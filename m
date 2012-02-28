@@ -1,38 +1,445 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out5-smtp.messagingengine.com ([66.111.4.29]:34151 "EHLO
-	out5-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752228Ab2BER4H (ORCPT
+Received: from smtp-68.nebula.fi ([83.145.220.68]:47748 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S964824Ab2B1TFI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 5 Feb 2012 12:56:07 -0500
-Received: from compute6.internal (compute6.nyi.mail.srv.osa [10.202.2.46])
-	by gateway1.nyi.mail.srv.osa (Postfix) with ESMTP id 31B4B20A67
-	for <linux-media@vger.kernel.org>; Sun,  5 Feb 2012 12:56:06 -0500 (EST)
-Date: Sun, 5 Feb 2012 08:40:09 -0800
-From: Greg KH <greg@kroah.com>
-To: Knut Petersen <Knut_Petersen@t-online.de>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	mchehab@infradead.org
-Subject: Re: [BUG] v3.2.1: circular locking dvb_device_open /
- videobuf_dvb_find_frontend
-Message-ID: <20120205164009.GA5677@kroah.com>
-References: <4F170E93.5070604@t-online.de>
- <4F2E8537.9070308@t-online.de>
+	Tue, 28 Feb 2012 14:05:08 -0500
+Date: Tue, 28 Feb 2012 21:05:01 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
+	teturtia@gmail.com, dacohen@gmail.com, snjw23@gmail.com,
+	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
+	tuukkat76@gmail.com, k.debski@gmail.com, riverful@gmail.com
+Subject: Re: [PATCH v3 33/33] rm680: Add camera init
+Message-ID: <20120228190501.GA14920@valkosipuli.localdomain>
+References: <20120220015605.GI7784@valkosipuli.localdomain>
+ <1329703032-31314-33-git-send-email-sakari.ailus@iki.fi>
+ <2304066.XHbnXjxlmi@avalon>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <4F2E8537.9070308@t-online.de>
+In-Reply-To: <2304066.XHbnXjxlmi@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Feb 05, 2012 at 02:33:43PM +0100, Knut Petersen wrote:
-> Hi Linus!
+Hi Laurent,
+
+Laurent Pinchart wrote:
+> Thanks for the patch.
+
+Thanks for the review!
+
+> On Monday 20 February 2012 03:57:12 Sakari Ailus wrote:
+>> From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+>>
+>> This currently introduces an extra file to the arch/arm/mach-omap2
+>> directory: board-rm680-camera.c. Keeping the device tree in mind, the
+>> context of the file could be represented as static data with one exception:
+>> the external clock to the sensor.
+>>
+>> This external clock is provided by the OMAP 3 SoC and required by the
+>> sensor. The issue is that the clock originates from the ISP and not from
+>> PRCM block as the other clocks and thus is not supported by the clock
+>> framework. Otherwise the sensor driver could just clk_get() and clk_enable()
+>> it, just like the regulators and gpios.
+>>
+>> Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+>> ---
+>>  arch/arm/mach-omap2/Makefile             |    3 +-
+>>  arch/arm/mach-omap2/board-rm680-camera.c |  375 +++++++++++++++++++++++++++
+>>  arch/arm/mach-omap2/board-rm680.c        |   38 +++
+>>  3 files changed, 415 insertions(+), 1 deletions(-)
+>>  create mode 100644 arch/arm/mach-omap2/board-rm680-camera.c
+>>
 > 
-> The problem still exists in 3.2.4, but nobody seems to be interested ...
+> [snip]
+> 
+>> diff --git a/arch/arm/mach-omap2/board-rm680-camera.c
+>> b/arch/arm/mach-omap2/board-rm680-camera.c new file mode 100644
+>> index 0000000..5059821
+>> --- /dev/null
+>> +++ b/arch/arm/mach-omap2/board-rm680-camera.c
+> 
+> [snip]
+> 
+>> +#include <asm/mach-types.h>
+>> +#include <plat/omap-pm.h>
+>> +
+>> +#include <media/omap3isp.h>
+>> +#include <media/smiapp.h>
+>> +
+>> +#include "../../../drivers/media/video/omap3isp/isp.h"
+> 
+> Do we still need the private OMAP3 ISP header ? You can move the ISP_XCLK_* 
+> macros to the public header (and maybe rename them to OMAP3ISP_XCLK_*).
 
-Isn't it resolved in 3.3-rc2 already?  If not, please work with the
-linux-media developers.
+Not for macros, but for e.g. isp_device definition (for platform
+callbacks) that are related to XCLK. Once we get the generic clock
+framework we can get rid of this.
 
-thanks,
+>> +#include "devices.h"
+>> +
+>> +#define SEC_CAMERA_RESET_GPIO	97
+>> +
+>> +#define RM680_PRI_SENSOR	1
+>> +#define RM680_PRI_LENS		2
+>> +#define RM680_SEC_SENSOR	3
+>> +#define MAIN_CAMERA_XCLK	ISP_XCLK_A
+>> +#define SEC_CAMERA_XCLK		ISP_XCLK_B
+>> +
+>> +/*
+>> + *
+>> + * Main Camera Module EXTCLK
+>> + * Used by the sensor and the actuator driver.
+>> + *
+>> + */
+>> +static struct camera_xclk {
+>> +	u32 hz;
+>> +	u32 lock;
+>> +	u8 xclksel;
+>> +} cameras_xclk;
+>> +
+>> +static DEFINE_MUTEX(lock_xclk);
+>> +
+>> +static int rm680_update_xclk(struct v4l2_subdev *subdev, u32 hz, u32 which,
+>> +			     u8 xclksel)
+>> +{
+>> +	struct isp_device *isp = v4l2_dev_to_isp_device(subdev->v4l2_dev);
+>> +	int ret;
+>> +
+>> +	mutex_lock(&lock_xclk);
+>> +
+>> +	if (which == RM680_SEC_SENSOR) {
+>> +		if (cameras_xclk.xclksel == MAIN_CAMERA_XCLK) {
+>> +			ret = -EBUSY;
+>> +			goto done;
+>> +		}
+>> +	} else {
+>> +		if (cameras_xclk.xclksel == SEC_CAMERA_XCLK) {
+>> +			ret = -EBUSY;
+>> +			goto done;
+>> +		}
+>> +	}
+>> +
+>> +	if (hz) {	/* Turn on */
+>> +		cameras_xclk.lock |= which;
+>> +		if (cameras_xclk.hz == 0) {
+>> +			isp->platform_cb.set_xclk(isp, hz, xclksel);
+>> +			cameras_xclk.hz = hz;
+>> +			cameras_xclk.xclksel = xclksel;
+>> +		}
+>> +	} else {	/* Turn off */
+>> +		cameras_xclk.lock &= ~which;
+>> +		if (cameras_xclk.lock == 0) {
+>> +			isp->platform_cb.set_xclk(isp, 0, xclksel);
+>> +			cameras_xclk.hz = 0;
+>> +			cameras_xclk.xclksel = 0;
+>> +		}
+>> +	}
+>> +
+>> +	ret = cameras_xclk.hz;
+>> +
+>> +done:
+>> +	mutex_unlock(&lock_xclk);
+>> +	return ret;
+>> +}
+> 
+> I don't like this, but we can't do much better until the generic struct clk is 
+> available :-) However, in addition to handling the ISP clocks, the above code 
+> also prevents the two sensors from being used at the same time. This won't be 
+> handle by the clock framework and will need to be implemented somewhere else. 
+> Shouldn't we already split the two functions ?
 
-greg k-h
+This code will disappear with generic clock framework. It's as simple as
+that.
+
+To prevent them from being used simultaneously we should probably use
+two virtual regulators --- one for each sensor and only one can be
+powered simultaneously. There's actually even a small delay for the
+duration of which one must wait before powering on the other one. That
+can be easily handled in regulators, too (I guess).
+
+>> +
+>> +/*
+>> + *
+>> + * Main Camera Sensor
+>> + *
+>> + */
+>> +
+>> +static int rm680_main_camera_set_xclk(struct v4l2_subdev *sd, int hz)
+>> +{
+>> +	return rm680_update_xclk(sd, hz, RM680_PRI_SENSOR, MAIN_CAMERA_XCLK);
+>> +}
+>> +
+>> +static struct smiapp_flash_strobe_parms rm680_main_camera_strobe_setup = {
+>> +	.mode			= 0x0c,
+>> +	.strobe_width_high_us	= 100000,
+>> +	.strobe_delay		= 0,
+>> +	.stobe_start_point	= 0,
+>> +	.trigger		= 0,
+>> +};
+>> +
+>> +static struct smiapp_platform_data rm696_main_camera_platform_data = {
+>> +	.i2c_addr_dfl		= SMIAPP_DFL_I2C_ADDR,
+>> +	.i2c_addr_alt		= SMIAPP_ALT_I2C_ADDR,
+>> +	.nvm_size		= 16 * 64,
+>> +	.ext_clk		= (9.6 * 1000 * 1000),
+> 
+> Parenthesis are not needed.
+
+Fixed.
+
+>> +	.lanes			= 2,
+>> +	/* bit rate / ddr / lanes */
+>> +	.op_sys_clock		= (s64 []){ 796800000 / 2 / 2,
+>> +					    840000000 / 2 / 2,
+>> +					    1996800000 / 2 / 2, 0 },
+>> +	.csi_signalling_mode	= SMIAPP_CSI_SIGNALLING_MODE_CSI2,
+>> +	.strobe_setup		= &rm680_main_camera_strobe_setup,
+> 
+> What about embedding the flash strobe parameters in smiapp_platform_data ? Do 
+> you think that would be better ?
+
+The same struct is used on both sensors, and making this part of the
+smiapp_platform_data directly would cause duplication of the definition.
+That said, I don't like this either, and actually think it'll go away sooner
+or later.
+
+>> +	.set_xclk		= rm680_main_camera_set_xclk,
+>> +	.xshutdown		= SMIAPP_NO_XSHUTDOWN,
+>> +};
+>> +
+>> +static struct smiapp_platform_data rm680_main_camera_platform_data = {
+>> +	.i2c_addr_dfl		= SMIAPP_DFL_I2C_ADDR,
+>> +	.i2c_addr_alt		= SMIAPP_ALT_I2C_ADDR,
+>> +	.nvm_size		= 16 * 64,
+>> +	.ext_clk		= (9.6 * 1000 * 1000),
+>> +	.lanes			= 2,
+>> +	.op_sys_clock		= (s64 []){ 840000000 / 2 / 2,
+>> +					    1334400000 / 2 / 2,
+>> +					    1593600000 / 2 / 2, 0 },
+>> +	.csi_signalling_mode	= SMIAPP_CSI_SIGNALLING_MODE_CSI2,
+>> +	.module_board_orient	= SMIAPP_MODULE_BOARD_ORIENT_180,
+>> +	.strobe_setup		= &rm680_main_camera_strobe_setup,
+>> +	.set_xclk		= rm680_main_camera_set_xclk,
+>> +	.xshutdown		= SMIAPP_NO_XSHUTDOWN,
+>> +};
+>> +
+>> +/*
+>> + *
+>> + * SECONDARY CAMERA Sensor
+>> + *
+>> + */
+>> +
+>> +#define SEC_CAMERA_XCLK		ISP_XCLK_B
+>> +
+>> +static int rm680_sec_camera_set_xclk(struct v4l2_subdev *sd, int hz)
+>> +{
+>> +	return rm680_update_xclk(sd, hz, RM680_SEC_SENSOR, SEC_CAMERA_XCLK);
+>> +}
+>> +
+>> +static struct smiapp_platform_data rm696_sec_camera_platform_data = {
+>> +	.ext_clk		= (10.8 * 1000 * 1000),
+>> +	.lanes			= 1,
+>> +	/* bit rate / ddr */
+>> +	.op_sys_clock		= (s64 []){ 13770000 * 10 / 2, 0 },
+>> +	.csi_signalling_mode	= SMIAPP_CSI_SIGNALLING_MODE_CCP2_DATA_CLOCK,
+>> +	.module_board_orient	= SMIAPP_MODULE_BOARD_ORIENT_180,
+>> +	.set_xclk		= rm680_sec_camera_set_xclk,
+>> +	.xshutdown		= SEC_CAMERA_RESET_GPIO,
+>> +};
+>> +
+>> +static struct smiapp_platform_data rm680_sec_camera_platform_data = {
+>> +	.ext_clk		= (10.8 * 1000 * 1000),
+>> +	.lanes			= 1,
+>> +	/* bit rate / ddr */
+>> +	.op_sys_clock		= (s64 []){ 11880000 * 10 / 2, 0 },
+>> +	.csi_signalling_mode	= SMIAPP_CSI_SIGNALLING_MODE_CCP2_DATA_CLOCK,
+>> +	.set_xclk		= rm680_sec_camera_set_xclk,
+>> +	.xshutdown		= SEC_CAMERA_RESET_GPIO,
+>> +};
+>> +
+>> +/*
+>> + *
+>> + * Init all the modules
+>> + *
+>> + */
+>> +
+>> +#define CAMERA_I2C_BUS_NUM		2
+>> +#define AD5836_I2C_BUS_NUM		2
+>> +#define AS3645A_I2C_BUS_NUM		2
+>> +
+>> +static struct i2c_board_info rm696_camera_i2c_devices[] = {
+>> +	{
+>> +		I2C_BOARD_INFO(SMIAPP_NAME, SMIAPP_ALT_I2C_ADDR),
+>> +		.platform_data = &rm696_main_camera_platform_data,
+>> +	},
+>> +	{
+>> +		I2C_BOARD_INFO(SMIAPP_NAME, SMIAPP_DFL_I2C_ADDR),
+>> +		.platform_data = &rm696_sec_camera_platform_data,
+>> +	},
+>> +};
+>> +
+>> +static struct i2c_board_info rm680_camera_i2c_devices[] = {
+>> +	{
+>> +		I2C_BOARD_INFO(SMIAPP_NAME, SMIAPP_ALT_I2C_ADDR),
+>> +		.platform_data = &rm680_main_camera_platform_data,
+>> +	},
+>> +	{
+>> +		I2C_BOARD_INFO(SMIAPP_NAME, SMIAPP_DFL_I2C_ADDR),
+>> +		.platform_data = &rm680_sec_camera_platform_data,
+>> +	},
+>> +};
+>> +
+>> +static struct isp_subdev_i2c_board_info rm696_camera_primary_subdevs[] = {
+>> +	{
+>> +		.board_info = &rm696_camera_i2c_devices[0],
+>> +		.i2c_adapter_id = CAMERA_I2C_BUS_NUM,
+>> +	},
+>> +	{ NULL, 0, },
+>> +};
+>> +
+>> +static struct isp_subdev_i2c_board_info rm696_camera_secondary_subdevs[] =
+>> { +	{
+>> +		.board_info = &rm696_camera_i2c_devices[1],
+>> +		.i2c_adapter_id = CAMERA_I2C_BUS_NUM,
+>> +	},
+>> +	{ NULL, 0, },
+>> +};
+>> +
+>> +static struct isp_subdev_i2c_board_info rm680_camera_primary_subdevs[] = {
+>> +	{
+>> +		.board_info = &rm680_camera_i2c_devices[0],
+>> +		.i2c_adapter_id = CAMERA_I2C_BUS_NUM,
+>> +	},
+>> +	{ NULL, 0, },
+>> +};
+>> +
+>> +static struct isp_subdev_i2c_board_info rm680_camera_secondary_subdevs[] =
+>> { +	{
+>> +		.board_info = &rm680_camera_i2c_devices[1],
+>> +		.i2c_adapter_id = CAMERA_I2C_BUS_NUM,
+>> +	},
+>> +	{ NULL, 0, },
+>> +};
+>> +
+>> +static struct isp_v4l2_subdevs_group rm696_camera_subdevs[] = {
+>> +	{
+>> +		.subdevs = rm696_camera_primary_subdevs,
+>> +		.interface = ISP_INTERFACE_CSI2A_PHY2,
+>> +		.bus = { .csi2 = {
+>> +			.crc		= 1,
+>> +			.vpclk_div	= 1,
+> 
+> Just wondering, is vpclk_div really needed in platform data, or should it be 
+> computed by the driver at runtime based on the clock frequencies ?
+
+Probably, but I don't know how. :-)
+
+Figuring out that probably requires some work. It was originally set
+fixed since we didn't have any information on the clocks in the driver
+itself.
+
+The TRM doesn't explicitly say how to configure this; it just tells to set
+the value if the reset value isn't correct. ;-) I think actually that it
+might be possible to calculate this from pixel rate and l3_ick.
+
+I'll need to try how that works out. Do you think I should try to make this
+change as part of this patchset? I'd suggest to postpone it to avoid
+breaking too many things at once --- there are already large number of
+changes to the ISP driver.
+
+>> +			.lanecfg	= {
+>> +				.clk = {
+>> +					.pol = 1,
+>> +					.pos = 2,
+>> +				},
+>> +				.data[0] = {
+>> +					.pol = 1,
+>> +					.pos = 1,
+>> +				},
+>> +				.data[1] = {
+>> +					.pol = 1,
+>> +					.pos = 3,
+>> +				},
+>> +			},
+>> +		} },
+>> +	},
+>> +	{
+>> +		.subdevs = rm696_camera_secondary_subdevs,
+>> +		.interface = ISP_INTERFACE_CCP2B_PHY1,
+>> +		.bus = { .ccp2 = {
+>> +			.strobe_clk_pol	= 0,
+>> +			.crc		= 0,
+>> +			.ccp2_mode	= 0,
+>> +			.phy_layer	= 0,
+>> +			.vpclk_div	= 2,
+>> +			.lanecfg	= {
+>> +				.clk = {
+>> +					.pol = 0,
+>> +					.pos = 1,
+>> +				},
+>> +				.data[0] = {
+>> +					.pol = 0,
+>> +					.pos = 2,
+>> +				},
+>> +			},
+>> +		} },
+>> +	},
+>> +	{ NULL, 0, },
+>> +};
+>> +
+>> +static struct isp_v4l2_subdevs_group rm680_camera_subdevs[] = {
+>> +	{
+>> +		.subdevs = rm680_camera_primary_subdevs,
+>> +		.interface = ISP_INTERFACE_CSI2A_PHY2,
+>> +		.bus = { .csi2 = {
+>> +			.crc		= 1,
+>> +			.vpclk_div	= 1,
+>> +			.lanecfg	= {
+>> +				.clk = {
+>> +					.pol = 1,
+>> +					.pos = 2,
+>> +				},
+>> +				.data[0] = {
+>> +					.pol = 1,
+>> +					.pos = 3,
+>> +				},
+>> +				.data[1] = {
+>> +					.pol = 1,
+>> +					.pos = 1,
+>> +				},
+>> +			},
+>> +		} },
+>> +	},
+>> +	{
+>> +		.subdevs = rm680_camera_secondary_subdevs,
+>> +		.interface = ISP_INTERFACE_CCP2B_PHY1,
+>> +		.bus = { .ccp2 = {
+>> +			.strobe_clk_pol	= 0,
+>> +			.crc		= 0,
+>> +			.ccp2_mode	= 0,
+>> +			.phy_layer	= 0,
+>> +			.vpclk_div	= 2,
+>> +			.lanecfg	= {
+>> +				.clk = {
+>> +					.pol = 0,
+>> +					.pos = 1,
+>> +				},
+>> +				.data[0] = {
+>> +					.pol = 0,
+>> +					.pos = 2,
+>> +				},
+>> +			},
+>> +		} },
+>> +	},
+>> +	{ NULL, 0, },
+>> +};
+> 
+
+Regards,
+
+-- 
+Sakari Ailus
+sakari.ailus@iki.fi
