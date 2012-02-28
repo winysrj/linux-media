@@ -1,211 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-1.atlantis.sk ([80.94.52.57]:33377 "EHLO mail.atlantis.sk"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752259Ab2BQUOX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Feb 2012 15:14:23 -0500
-To: alsa-devel@alsa-project.org
-Subject: Re: [alsa-devel] tea575x-tuner improvements & use in maxiradio
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Content-Disposition: inline
-From: Ondrej Zary <linux@rainbow-software.org>
-Date: Fri, 17 Feb 2012 21:13:40 +0100
+Received: from mail-tul01m020-f174.google.com ([209.85.214.174]:60555 "EHLO
+	mail-tul01m020-f174.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S965140Ab2B1O5k convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 28 Feb 2012 09:57:40 -0500
+Received: by obcva7 with SMTP id va7so6871442obc.19
+        for <linux-media@vger.kernel.org>; Tue, 28 Feb 2012 06:57:39 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201202172113.43729.linux@rainbow-software.org>
+In-Reply-To: <4F4A01E0.7000701@sciolus.org>
+References: <4F4A01E0.7000701@sciolus.org>
+Date: Tue, 28 Feb 2012 11:57:39 -0300
+Message-ID: <CALF0-+V7TvMCqZoWMsoC3iBzB3JzhSkebqDjH=pREfrQ1yphgQ@mail.gmail.com>
+Subject: Re: easycap: reset()
+From: =?ISO-8859-1?Q?Ezequiel_Garc=EDa?= <elezegarcia@gmail.com>
+To: "R.M. Thomas" <rmthomas@sciolus.org>
+Cc: "Winkler, Tomas" <tomas.winkler@intel.com>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wednesday 08 February 2012 08:29:25 Hans Verkuil wrote:
-> On Tuesday, February 07, 2012 23:20:19 Ondrej Zary wrote:
-> > On Sunday 05 February 2012 14:17:05 Hans Verkuil wrote:
-> > > These patches improve the tea575x-tuner module to make it up to date
-> > > with the latest V4L2 frameworks.
-> > >
-> > > The maxiradio driver has also been converted to use the tea575x-tuner
-> > > and I've used that card to test it.
-> > >
-> > > Unfortunately, this card can't read the data pin, so the new hardware
-> > > seek functionality has been tested only partially (yes, it seeks, but
-> > > when it finds a channel I can't read back the frequency).
-> > >
-> > > Ondrej, are you able to test these patches for the sound cards that use
-> > > this tea575x tuner?
-> > >
-> > > Note that these two patches rely on other work that I did and that
-> > > hasn't been merged yet. So it is best to pull from my git tree:
-> > >
-> > > http://git.linuxtv.org/hverkuil/media_tree.git/shortlog/refs/heads/radi
-> > >o-pc i2
-> > >
-> > > You can use the v4l-utils repository
-> > > (http://git.linuxtv.org/v4l-utils.git) to test the drivers: the
-> > > v4l2-compliance test should succeed and with v4l2-ctl you can test the
-> > > hardware seek:
-> > >
-> > > To seek down:
-> > >
-> > > v4l2-ctl -d /dev/radio0 --freq-seek=dir=0
-> > >
-> > > To seek up:
-> > >
-> > > v4l2-ctl -d /dev/radio0 --freq-seek=dir=1
-> > >
-> > > To do the compliance test:
-> > >
-> > > v4l2-compliance -r /dev/radio0
-> >
-> > It seems to work (tested with SF64-PCR - snd_fm801) but the seek is
-> > severely broken. Reading the frequency immediately after seek does not
-> > work, it always returns the old value (haven't found a delay that works).
-> > Reading it later (copied back snd_tea575x_get_freq function) works. The
-> > chip seeks randomly up or down, ignoring UP/DOWN flag and often stops at
-> > wrong place (only noise) or even outside the FM range.
-> >
-> > So I strongly suggest not to enable this (mis-)feature. The HW seems to
-> > be completely broken (unless there's some weird bug in the code).
+Hi Mike,
+
+On Sun, Feb 26, 2012 at 6:56 AM, R.M. Thomas <rmthomas@sciolus.org> wrote:
+> Hi Ezequiel,
 >
-> Well, it seemed like a good idea at the time :-) I'll remove this
-> 'feature', it's really not worth our time to try and make this work for
-> these old cards.
+> As you probably know, I originally developed the driver on the Sourceforge
+> site.  Before uploading any new version of the driver I carried out
+> extensive automated testing using various scripts I had written for this
+> purpose.  I attach the tarball for the final version of the Sourceforge
+> driver in order to explain what I mean.  When you unpack the tarball you
+> will find the script ./tools/checktestPAL.sh, and you will see that this
+> runs the script ./testPAL.sh unattended for 36 test cases.
+>
+> Early versions of the driver did not have the extra reset() calls, and I
+> found that when I carried out the automated testing with
+> ./tools/checktestPAL.sh and similar scripts the EasyCAP would sometimes fail
+> to initialize correctly.  In these cases no video stream was visible, with
+> mplayer then displaying an unchanging green or black window.  On average, I
+> would see this failure in 5-10% of the test cases, but the behavior was not
+> reproducible:  failure would occur randomly on different test cases when I
+> ran ./tools/checktestPAL.sh again.
+>
+> I never discovered what caused the failures.  I assumed (without any
+> evidence) that one of the EasyCAP chips was prone to latch-up or some
+> similar hardware problem, but I may have been wrong about this.  The
+> practical workaround which I found was to forcibly reset the hardware
+> registers whenever the driver detected problems at initialization.  This is
+> the reason for the time-consuming repeated use of the function reset().
+>
+> It would certainly be desirable to remove the extra reset() calls if
+> possible, and I hope you will be able to do so.  However, I suggest that
+> driver modifications involving reset() should be subjected to automated
+> testing, because any resulting problems may not be apparent if testing is
+> limited to one or two cases.
+>
 
-I fixed it somehow. Now it works most of the time.
-The important things:
- - a delay must be present after search start and before first register read
-   or the seek does weird things
- - when the search stops, the new frequency is not available immediately, we
-   must wait until it appears in the register (fortunately, we can clear the
-   frequency bits when starting the search as it starts at the frequency
-   currently set, not from the value written)
- - sometimes, seek remains on the current frequency (or moves only a little),
-   so repeat it until it moves by at least 50 kHz
+I see. I'll pospone the reset() patch until further testing
+shows it is stable enough.
+Thanks a lot for the test scripts, they'll be of much help.
 
---- a/sound/i2c/other/tea575x-tuner.c
-+++ b/sound/i2c/other/tea575x-tuner.c
-@@ -89,7 +89,7 @@ static void snd_tea575x_write(struct snd_tea575x *tea, unsigned int val)
- 		tea->ops->set_pins(tea, 0);
- }
- 
--static unsigned int snd_tea575x_read(struct snd_tea575x *tea)
-+static u32 snd_tea575x_read(struct snd_tea575x *tea)
- {
- 	u16 l, rdata;
- 	u32 data = 0;
-@@ -120,6 +120,27 @@ static unsigned int snd_tea575x_read(struct snd_tea575x *tea)
- 	return data;
- }
- 
-+static void snd_tea575x_get_freq(struct snd_tea575x *tea)
-+{
-+	u32 freq = snd_tea575x_read(tea) & TEA575X_BIT_FREQ_MASK;
-+
-+	if (freq == 0) {
-+		tea->freq = 0;
-+		return;
-+	}
-+
-+	/* freq *= 12.5 */
-+	freq *= 125;
-+	freq /= 10;
-+	/* crystal fixup */
-+	if (tea->tea5759)
-+		freq += TEA575X_FMIF;
-+	else
-+		freq -= TEA575X_FMIF;
-+
-+	tea->freq = clamp(freq * 16, FREQ_LO, FREQ_HI); /* from kHz */
-+}
-+
- static void snd_tea575x_set_freq(struct snd_tea575x *tea)
- {
- 	u32 freq = tea->freq;
-@@ -203,6 +224,8 @@ static int vidioc_g_frequency(struct file *file, void *priv,
- 	if (f->tuner != 0)
- 		return -EINVAL;
- 	f->type = V4L2_TUNER_RADIO;
-+	if (!tea->cannot_read_data)
-+		snd_tea575x_get_freq(tea);
- 	f->frequency = tea->freq;
- 	return 0;
- }
-@@ -225,36 +248,50 @@ static int vidioc_s_hw_freq_seek(struct file *file, void *fh,
- 					struct v4l2_hw_freq_seek *a)
- {
- 	struct snd_tea575x *tea = video_drvdata(file);
-+	int i, old_freq;
-+	unsigned long timeout;
- 
- 	if (tea->cannot_read_data)
- 		return -ENOTTY;
-+
-+	snd_tea575x_get_freq(tea);
-+	old_freq = tea->freq;
-+	/* clear the frequency, HW will fill it in */
-+	tea->val &= ~TEA575X_BIT_FREQ_MASK;
- 	tea->val |= TEA575X_BIT_SEARCH;
--	tea->val &= ~TEA575X_BIT_UPDOWN;
- 	if (a->seek_upward)
- 		tea->val |= TEA575X_BIT_UPDOWN;
-+	else
-+		tea->val &= ~TEA575X_BIT_UPDOWN;
- 	snd_tea575x_write(tea, tea->val);
-+	timeout = jiffies + msecs_to_jiffies(10000);
- 	for (;;) {
--		unsigned val = snd_tea575x_read(tea);
--
--		if (!(val & TEA575X_BIT_SEARCH)) {
--			/* Found a frequency */
--			val &= TEA575X_BIT_FREQ_MASK;
--			val = (val * 10) / 125;
--			if (tea->tea5759)
--				val += TEA575X_FMIF;
--			else
--				val -= TEA575X_FMIF;
--			tea->freq = clamp(val * 16, FREQ_LO, FREQ_HI);
--			return 0;
--		}
-+		if (time_after(jiffies, timeout))
-+			break;
- 		if (schedule_timeout_interruptible(msecs_to_jiffies(10))) {
- 			/* some signal arrived, stop search */
- 			tea->val &= ~TEA575X_BIT_SEARCH;
- 			snd_tea575x_write(tea, tea->val);
- 			return -ERESTARTSYS;
- 		}
-+		if (!(snd_tea575x_read(tea) & TEA575X_BIT_SEARCH)) {
-+			/* Found a frequency, wait until it can be read */
-+			for (i = 0; i < 100; i++) {
-+				msleep(10);
-+				snd_tea575x_get_freq(tea);
-+				if (tea->freq != 0) /* available */
-+					break;
-+			}
-+			/* if we moved by less than 50 kHz, continue seeking */
-+			if (abs(old_freq - tea->freq) < 16 * 500) {
-+				snd_tea575x_write(tea, tea->val);
-+				continue;
-+			}
-+			tea->val &= ~TEA575X_BIT_SEARCH;
-+			return 0;
-+		}
- 	}
--	return 0;
-+	return -ETIMEDOUT;
- }
- 
- static int tea575x_s_ctrl(struct v4l2_ctrl *ctrl)
-@@ -318,7 +355,7 @@ int snd_tea575x_init(struct snd_tea575x *tea)
- 			return -ENODEV;
- 	}
- 
--	tea->val = TEA575X_BIT_BAND_FM | TEA575X_BIT_SEARCH_10_40;
-+	tea->val = TEA575X_BIT_BAND_FM | TEA575X_BIT_SEARCH_5_28;
- 	tea->freq = 90500 * 16;		/* 90.5Mhz default */
- 	snd_tea575x_set_freq(tea);
- 
+> On a more general point, I believe the easycap driver would benefit from
+> some radical rewriting.  At present it is not integrated with the V4L2
+> mainstream (for historical reasons), and this needs to be corrected:
+>
+> https://lkml.org/lkml/2010/11/29/376
 
+That's true. However, the driver works fine and
+I'm not sure a complete rewrite is a good option.
 
+>
+> Unfortunately I cannot contribute to this myself, not only because I am
+> fully committed now to an entirely different project, but also because I
+> know so little about the V4L2 infrastructure that I could not be of much
+> use.  I do hope you will be able to make some progress with it.
+>
 
--- 
-Ondrej Zary
+I understand. I also hope we make some progress with it :)
+
+If it is at all possible I would like to ask you to send me
+any information about the driver you have,
+I mean datasheets and that sort of stuff.
+
+Thanks a lot for your feedback,
+Ezequiel.
