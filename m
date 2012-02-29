@@ -1,36 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nm3-vm0.bt.bullet.mail.ird.yahoo.com ([212.82.108.88]:40495
-	"HELO nm3-vm0.bt.bullet.mail.ird.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1750951Ab2BSXxL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 Feb 2012 18:53:11 -0500
-Message-ID: <4F4189EB.6020202@yahoo.com>
-Date: Sun, 19 Feb 2012 23:46:51 +0000
-From: Chris Rankin <rankincj@yahoo.com>
+Received: from wp188.webpack.hosteurope.de ([80.237.132.195]:43265 "EHLO
+	wp188.webpack.hosteurope.de" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755063Ab2B2HET convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 29 Feb 2012 02:04:19 -0500
+From: Danny Kukawka <danny.kukawka@bisect.de>
+To: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: Re: [PATCH 00/12] Part 2: check given MAC address, if invalid return -EADDRNOTAVAIL
+Date: Wed, 29 Feb 2012 08:02:49 +0100
+Cc: =?utf-8?q?Micha=C5=82_Miros=C5=82aw?= <mirqus@gmail.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	Andy Gospodarek <andy@greyhouse.net>,
+	"Guo-Fu Tseng" <cooldavid@cooldavid.org>,
+	Petko Manolov <petkan@users.sourceforge.net>,
+	"VMware, Inc." <pv-drivers@vmware.com>,
+	"John W. Linville" <linville@tuxdriver.com>, linux390@de.ibm.com,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Stephen Hemminger <shemminger@vyatta.com>,
+	Joe Perches <joe@perches.com>,
+	Jeff Kirsher <jeffrey.t.kirsher@intel.com>,
+	Jiri Pirko <jpirko@redhat.com>, netdev@vger.kernel.org,
+	linux-usb@vger.kernel.org, linux-wireless@vger.kernel.org,
+	libertas-dev@lists.infradead.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-s390@vger.kernel.org,
+	linux-hams@vger.kernel.org, linux-mips@linux-mips.org
+References: <1330099282-4588-1-git-send-email-danny.kukawka@bisect.de> <CAHXqBFK=u+MchBn=D31h6nhp-R9GTNbaC18QJA937zjXc60UQw@mail.gmail.com> <CAMuHMdVZ8eVdRLtsq23XCLtA4wU7cTc-mLebAQ4QzO=gkuNMWQ@mail.gmail.com>
+In-Reply-To: <CAMuHMdVZ8eVdRLtsq23XCLtA4wU7cTc-mLebAQ4QzO=gkuNMWQ@mail.gmail.com>
 MIME-Version: 1.0
-To: gennarone@gmail.com, linux-media@vger.kernel.org
-Subject: [PATCH] em28xx: pre-allocate DVB isoc transfer buffers
-References: <1329155962-22896-1-git-send-email-gennarone@gmail.com>
-In-Reply-To: <1329155962-22896-1-git-send-email-gennarone@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Content-Disposition: inline
+Message-Id: <201202290802.52234.danny.kukawka@bisect.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Gianluca,
+On Samstag, 25. Februar 2012, Geert Uytterhoeven wrote:
+> 2012/2/24 Michał Mirosław <mirqus@gmail.com>:
+> > 2012/2/24 Danny Kukawka <danny.kukawka@bisect.de>:
+> >> Second Part of series patches to unifiy the return value of
+> >> .ndo_set_mac_address if the given address isn't valid.
+> >>
+> >> These changes check if a given (MAC) address is valid in
+> >> .ndo_set_mac_address, if invalid return -EADDRNOTAVAIL
+> >> as eth_mac_addr() already does if is_valid_ether_addr() fails.
+> >
+> > Why not just fix dev_set_mac_address() and make do_setlink() use that?
+>
+> BTW, it's also called from dev_set_mac_address().
+>
+> > Checks are specific to address family, not device model I assume.
+>
+> Indeed, why can't this be done in one single place, instead of sprinkling
+> these checks over all drivers, missing all out-of-tree (note: I don't care)
+> and all soon-to-be-submitted drivers?
 
-One quick comment about your patch; I've noticed that you've declared two new 
-"GPL only" symbols:
+Since the .ndo_set_mac_address functions are used by some drivers internally 
+too, you may get some new checks on other places. But I'll take a look at it.
 
-EXPORT_SYMBOL_GPL(em28xx_capture_start);
-EXPORT_SYMBOL_GPL(em28xx_alloc_isoc);
+Danny
 
-I'm not sure what the exact policy is with GPL symbols, but I do know what Al 
-Viro posted recently on the subject:
-
-http://thread.gmane.org/gmane.linux.file-systems/61372
-
-Do we really need EXPORT_SYMBOL_GPL() here?
-
-Cheers,
-Chris
