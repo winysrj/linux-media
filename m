@@ -1,81 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38091 "EHLO
-	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753817Ab2BBWsh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Feb 2012 17:48:37 -0500
-Date: Thu, 2 Feb 2012 14:48:35 -0800
-From: Andrew Morton <akpm@linux-foundation.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Al Viro <viro@zeniv.linux.org.uk>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Davide Libenzi <davidel@xmailserver.org>,
-	linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
-	"David S. Miller" <davem@davemloft.net>,
-	Enke Chen <enkechen@cisco.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFCv7 PATCH 2/4] poll: add poll_requested_events() and
- poll_does_not_wait() functions
-Message-Id: <20120202144835.5ccd3a76.akpm@linux-foundation.org>
-In-Reply-To: <54c55b11bba94b57a76ca7553f735bcb822aa43d.1328176079.git.hans.verkuil@cisco.com>
-References: <1328178417-3876-1-git-send-email-hverkuil@xs4all.nl>
-	<54c55b11bba94b57a76ca7553f735bcb822aa43d.1328176079.git.hans.verkuil@cisco.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from multi.imgtec.com ([194.200.65.239]:47661 "EHLO multi.imgtec.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757827Ab2B2L2Q (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 29 Feb 2012 06:28:16 -0500
+Message-ID: <4F4E0BC9.4070200@imgtec.com>
+Date: Wed, 29 Feb 2012 11:28:09 +0000
+From: James Hogan <james.hogan@imgtec.com>
+MIME-Version: 1.0
+To: linux-kernel <linux-kernel@vger.kernel.org>,
+	<linux-media@vger.kernel.org>, Pekka Enberg <penberg@kernel.org>,
+	Jarod Wilson <jarod@redhat.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Stephen Rothwell <sfr@canb.auug.org.au>,
+	Lucas De Marchi <lucas.demarchi@profusion.mobi>,
+	Paul Gortmaker <paul.gortmaker@windriver.com>
+Subject: [RESEND 2] [PATCH] rc/ir-raw: fix BUG_ON, using kfifo_rec_ptr_1 instead
+ of kfifo
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu,  2 Feb 2012 11:26:55 +0100
-Hans Verkuil <hverkuil@xs4all.nl> wrote:
+Raw IR events are passed to the raw event thread through a kfifo. The
+size of the event struct is 12 bytes, and space for 512 events is
+reserved in the kfifo (6144 bytes), however this is rounded down to 4096
+bytes (the next power of 2) by __kfifo_alloc().
 
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> In some cases the poll() implementation in a driver has to do different
-> things depending on the events the caller wants to poll for. An example is
-> when a driver needs to start a DMA engine if the caller polls for POLLIN,
-> but doesn't want to do that if POLLIN is not requested but instead only
-> POLLOUT or POLLPRI is requested. This is something that can happen in the
-> video4linux subsystem.
-> 
-> Unfortunately, the current epoll/poll/select implementation doesn't provide
-> that information reliably. The poll_table_struct does have it: it has a key
-> field with the event mask. But once a poll() call matches one or more bits
-> of that mask any following poll() calls are passed a NULL poll_table_struct
-> pointer.
-> 
-> The solution is to set the qproc field to NULL in poll_table_struct once
-> poll() matches the events, not the poll_table_struct pointer itself. That
-> way drivers can obtain the mask through a new poll_requested_events inline.
-> 
-> The poll_table_struct can still be NULL since some kernel code calls it
-> internally (netfs_state_poll() in ./drivers/staging/pohmelfs/netfs.h). In
-> that case poll_requested_events() returns ~0 (i.e. all events).
-> 
-> Very rarely drivers might want to know whether poll_wait will actually wait.
-> If another earlier file descriptor in the set already matched the events the
-> caller wanted to wait for, then the kernel will return from the select() call
-> without waiting.
-> 
-> A new helper function poll_does_not_wait() is added that drivers can use to
-> detect this situation.
-> 
-> Drivers should no longer access any of the poll_table internals, but use the
-> poll_requested_events() and poll_does_not_wait() access functions instead.
+4096 bytes is not divisible by 12 therefore if the fifo fills up, a
+third of a record will be written in the end of the kfifo by
+ir_raw_event_store() because the recsize of the fifo is 0 (it doesn't
+have records). When this is read by ir_raw_event_thread() a corrupted or
+partial record will be read, and in the case of a partial record the
+BUG_ON(retval != sizeof(ev)) gets hit too.
 
-A way to communicate and enforce this is to rename the relevant fields.  Prepend
-a "_" to them and add a stern comment.
+According to samples/kfifo/record-example.c struct kfifo_rec_ptr_1 can
+handle records of a length between 0 and 255 bytes, so change struct
+ir_raw_event_ctrl to use that instead of struct kfifo.
+
+Signed-off-by: James Hogan <james.hogan@imgtec.com>
+---
+ drivers/media/rc/rc-core-priv.h |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/media/rc/rc-core-priv.h b/drivers/media/rc/rc-core-priv.h
+index c6ca870..989ea08 100644
+--- a/drivers/media/rc/rc-core-priv.h
++++ b/drivers/media/rc/rc-core-priv.h
+@@ -35,7 +35,7 @@ struct ir_raw_event_ctrl {
+ 	struct list_head		list;		/* to keep track of raw clients */
+ 	struct task_struct		*thread;
+ 	spinlock_t			lock;
+-	struct kfifo			kfifo;		/* fifo for the pulse/space durations */
++	struct kfifo_rec_ptr_1		kfifo;		/* fifo for the pulse/space durations */
+ 	ktime_t				last_event;	/* when last event occurred */
+ 	enum raw_event_type		last_type;	/* last event type */
+ 	struct rc_dev			*dev;		/* pointer to the parent rc_dev */
+-- 
+1.7.2.3
 
 
-> Since the behavior of the qproc field changes with this patch (since this
-> function pointer can now be NULL when that wasn't possible in the past) I
-> have renamed that field from qproc to pq_proc. Any out-of-tree driver that
-> uses it will now fail to compile.
-> 
-> Some notes regarding the correctness of this patch: the driver's poll()
-> function is called with a 'struct poll_table_struct *wait' argument. This
-> pointer may or may not be NULL, drivers can never rely on it being one or
-> the other as that depends on whether or not an earlier file descriptor in
-> the select()'s fdset matched the requested events.
-> 
-> ...
-> 
