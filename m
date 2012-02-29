@@ -1,35 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout-de.gmx.net ([213.165.64.22]:46298 "HELO
-	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1754110Ab2BUSO7 convert rfc822-to-8bit (ORCPT
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:60344 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965223Ab2B2Jx4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Feb 2012 13:14:59 -0500
-From: Toralf =?utf-8?q?F=C3=B6rster?= <toralf.foerster@gmx.de>
-To: linux-media@vger.kernel.org
-Subject: warning: (VIDEO_BT848_DVB) selects DVB_BT8XX
-Date: Tue, 21 Feb 2012 19:14:53 +0100
+	Wed, 29 Feb 2012 04:53:56 -0500
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201202211914.53806.toralf.foerster@gmx.de>
+In-Reply-To: <1329929337-16648-14-git-send-email-m.szyprowski@samsung.com>
+References: <1329929337-16648-1-git-send-email-m.szyprowski@samsung.com> <1329929337-16648-14-git-send-email-m.szyprowski@samsung.com>
+From: Barry Song <21cnbao@gmail.com>
+Date: Wed, 29 Feb 2012 17:53:35 +0800
+Message-ID: <CAGsJ_4ygM6YAUj5mcskuEYcaJqYVHp_qzbUJvE9_huFhFcWtkg@mail.gmail.com>
+Subject: Re: [Linaro-mm-sig] [PATCHv23 13/16] drivers: add Contiguous Memory Allocator
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org, Ohad Ben-Cohen <ohad@wizery.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Russell King <linux@arm.linux.org.uk>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Jonathan Corbet <corbet@lwn.net>, Mel Gorman <mel@csn.ul.ie>,
+	Michal Nazarewicz <mina86@mina86.com>,
+	Dave Hansen <dave@linux.vnet.ibm.com>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Rob Clark <rob.clark@linaro.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	DL-SHA-WorkGroupLinux <workgroup.linux@csr.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+2012/2/23 Marek Szyprowski <m.szyprowski@samsung.com>:
+> The Contiguous Memory Allocator is a set of helper functions for DMA
+> mapping framework that improves allocations of contiguous memory chunks.
+>
+> CMA grabs memory on system boot, marks it with MIGRATE_CMA migrate type
+> and gives back to the system. Kernel is allowed to allocate only movable
+> pages within CMA's managed memory so that it can be used for example for
+> page cache when DMA mapping do not use it. On
+> dma_alloc_from_contiguous() request such pages are migrated out of CMA
+> area to free required contiguous block and fulfill the request. This
+> allows to allocate large contiguous chunks of memory at any time
+> assuming that there is enough free memory available in the system.
+>
+> This code is heavily based on earlier works by Michal Nazarewicz.
+>
+> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> Signed-off-by: Michal Nazarewicz <mina86@mina86.com>
+> Acked-by: Arnd Bergmann <arnd@arndb.de>
+> Tested-by: Rob Clark <rob.clark@linaro.org>
+> Tested-by: Ohad Ben-Cohen <ohad@wizery.com>
+> Tested-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+> Tested-by: Robert Nelson <robertcnelson@gmail.com>
 
-b/c it is now -rc4 I think that such things are worth to be reported (isn't it 
-?) :
+if there is a /proc/cmainfo like /proc/slabinfo, it might be helpful
+to people as we can see the usage of CMA clearly.
 
-
- make randconfig
-...
-warning: (VIDEO_BT848_DVB) selects DVB_BT8XX which has unmet direct 
-dependencies (MEDIA_SUPPORT && DVB_CAPTURE_DRIVERS && DVB_CORE && PCI && I2C 
-&& VIDEO_BT848)
-
-
--- 
-MfG/Sincerely
-Toralf Förster
-pgp finger print: 7B1A 07F4 EC82 0F90 D4C2 8936 872A E508 7DB6 9DA3
+Thanks
+barry
