@@ -1,58 +1,228 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:1392 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754855Ab2B1KUG (ORCPT
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:62901 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758083Ab2B2OzO convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Feb 2012 05:20:06 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [GIT PULL FOR v3.4] tea575x update to latest V4L2 framework requirements
-Date: Tue, 28 Feb 2012 11:19:42 +0100
-Cc: alsa-devel@alsa-project.org,
-	Ondrej Zary <linux@rainbow-software.org>
+	Wed, 29 Feb 2012 09:55:14 -0500
+Received: by vbbff1 with SMTP id ff1so2758424vbb.19
+        for <linux-media@vger.kernel.org>; Wed, 29 Feb 2012 06:55:14 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201202281119.42794.hverkuil@xs4all.nl>
+In-Reply-To: <CAKnK67TPGB8+HHUW9Ppk8XkLOrXTsYP9TmLmpsdUX-JxmeDNVA@mail.gmail.com>
+References: <CAH9_wRN5=nHtB9M3dL4wvZGL3+mb4_TfS=uPun_13D7n0E3CKA@mail.gmail.com>
+	<CAKnK67T=obVTWkzZqVtv+PninjkbLp1os5AnsoZ+j=NGFFMWLA@mail.gmail.com>
+	<CAH9_wRNGERctBxYT5NNEHOhuzWZYF2yKxG4BA6pzPzBWPy8_3Q@mail.gmail.com>
+	<CAH9_wRN9bA8JTViBA6sWk9aVOU1Pbr5bPFvNh2MCsGUVjnr9qg@mail.gmail.com>
+	<CAKnK67Qk6pJ1LQBsi_V3OfadzEXHV8RnaOOxT3MK7Hu4zsk9dg@mail.gmail.com>
+	<CAH9_wRPu0X29oTcQvFHZou2B9ZTBT74kFbRWBJY2b6x4ftYzEg@mail.gmail.com>
+	<CAKnK67TPGB8+HHUW9Ppk8XkLOrXTsYP9TmLmpsdUX-JxmeDNVA@mail.gmail.com>
+Date: Wed, 29 Feb 2012 20:25:14 +0530
+Message-ID: <CAH9_wRM-2QZkOeWJHPvZcBwRGKxdqefh4fiRzKFtFpWK+ziz4g@mail.gmail.com>
+Subject: Re: Video Capture Issue
+From: Sriram V <vshrirama@gmail.com>
+To: "Aguirre, Sergio" <saaguirre@ti.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi Aguirre Sergio,
+  1) Looks like it could be a data lane issue. OMAP detects lots of
+ERRSOTSYNCHS errors
+     on the datalanes (CSI2_COMPLEXIO_IRQSTATUS)
+  2)  Even if i configure it to use only one data lane on both sides. It detects
+      errors on other data lanes.
 
-This patch series updates the tea575x drivers to the latest V4L2 framework
-requirements, converts radio-maxiradio to tea575x as well and adds hwseek
-support to these drivers.
+That explains the abnormally high number of these error interrupts and a
+frame completion interrupt once in a while.
 
-All changes are V4L related, even though some of the patches touch sound
-drivers (but only the V4L parts of those sound drivers).
+I guess, I need to check my configuration settings.
 
-Tested with SF16-FMR2, SF64-PCR, SF64-PCE2, SF256-PCP (Ondrej) and maxiradio
-(Hans).
+Thanks,
+Sriram
 
+
+
+On Tue, Feb 28, 2012 at 9:12 PM, Aguirre, Sergio <saaguirre@ti.com> wrote:
+> Hi Sriram,
+>
+> On Tue, Feb 28, 2012 at 8:46 AM, Sriram V <vshrirama@gmail.com> wrote:
+>> Hi Aguirre Sergio,
+>>
+>> On Tue, Feb 28, 2012 at 9:08 AM, Aguirre, Sergio <saaguirre@ti.com> wrote:
+>>> Sriram,
+>>>
+>>> On Sun, Feb 26, 2012 at 8:54 AM, Sriram V <vshrirama@gmail.com> wrote:
+>>>> Hi,
+>>>>  When I take the dump of the buffer which is pointed by "DATA MEM
+>>>> PING ADDRESS". It always shows 0x55.
+>>>>  Even if i write 0x00 to the address. I do notice that it quickly
+>>>> changes to 0x55.
+>>>>  Under what conditions could this happen? What am i missing here.
+>>>
+>>> If you're using "yavta" for capture, notice that it clears out the
+>>> buffers before queuing them in:
+>>>
+>>> static int video_queue_buffer(struct device *dev, int index, enum
+>>> buffer_fill_mode fill)
+>>> {
+>>>        struct v4l2_buffer buf;
+>>>        int ret;
+>>>
+>>>        ...
+>>>        ...
+>>>        if (dev->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
+>>>                ...
+>>>        } else {
+>>>                if (fill & BUFFER_FILL_FRAME)
+>>>                        memset(dev->buffers[buf.index].mem, 0x55, dev->buffers[index].size);
+>>>                if (fill & BUFFER_FILL_PADDING)
+>>>                        memset(dev->buffers[buf.index].mem + dev->buffers[index].size,
+>>>                               0x55, dev->buffers[index].padding);
+>>>        }
+>>>        ...
+>>> }
+>>>
+>>> So, just make sure this condition is not met.
+>>>
+>>>>
+>>
+>> Unfortunately, this condition is met.  For some reason, ISS thinks
+>> it has got valid frame. Whereas the Image data is not populated into
+>> the buffers.
+>> The register CSI2_CTX_CTRL1_i[COUNT] keeps getting toggled between 0 and 1
+>> indicating a frame arrival.
+>>
+>> I also notice that on some frames, The first 0x200 bytes contains data
+>> other than 0x55
+>> and the rest are 0x55.
+>>
+>> Probably this could be related to resolution settings or hsync and
+>> vsync settings.
+>> Probably, my chip configuration is faulty.
+>
+> Hmm, sounds like it.
+>
+> Can you try adding this to the top of the file?
+>
+> #define DEBUG
+>
+> So that the dev_dbg() prints get executed?
+>
+> I'm curious to see if you detect any ComplexIO errors on omap4iss_csi2_isr()...
+>
+>>
+>>>>  I do notice that the OMAP4 ISS is tested to work with OV5640 (YUV422
+>>>> Frames) and OV5650 (Raw Data)
+>>>>  When you say 422 Frames only. Do you mean 422-8Bit Mode?.
+>>>
+>>> Yes. When saving YUV422 to memory, you can only use this mode AFAIK.
+>>>
+>>>>
+>>>>  I havent tried RAW12 which my device gives, Do i have to update only
+>>>> the Data Format Selection register
+>>>>  of the ISS  for RAW12?
+>>>
+>>> Ok, now it makes sense.
+>>>
+>>> So, if your CSI2 source is giving, you need to make sure:
+>>>
+>>> CSI2_CTX_CTRL2_0.FORMAT[9:0] is:
+>>>
+>>> - 0xAC: RAW12 + EXP16
+>>> or
+>>> - 0x2C: RAW12
+>>>
+>>> The difference is that the EXP16 variant, will save to memory in
+>>> expansion to 2 bytes, instead of 12 bits, so it'll be byte aligned.
+>>>
+>>> Can you try attached patch?
+>>
+>> With RAW12 configuration, I dont see any interrupts at all.
+>
+> Ok,
+>
+> Then this means your CSI2 transmitter (sensor) is actually sending
+> YUV422, and not RAW12.
+>
+> Nevermind that patch then...
+>
+> Regards,
+> Sergio
+>>
+>>
+>>>
+>>> Regards,
+>>> Sergio
+>>>
+>>>>
+>>>>  Please advice.
+>>>>
+>>>>
+>>>> On Thu, Feb 23, 2012 at 11:24 PM, Sriram V <vshrirama@gmail.com> wrote:
+>>>>> Hi,
+>>>>>  1) An Hexdump of the captured file shows 0x55 at all locations.
+>>>>>      Is there any buffer location i need to check.
+>>>>>  2) I have tried with  "devel" branch.
+>>>>>  3) Changing the polarities doesnt help either.
+>>>>>  4) The sensor is giving out YUV422 8Bit Mode,
+>>>>>      Will 0x52001074 = 0x0A00001E (UYVY Format)  it bypass the ISP
+>>>>>       and dump directly into memory.
+>>>>>
+>>>>> On 2/23/12, Aguirre, Sergio <saaguirre@ti.com> wrote:
+>>>>>> Hi Sriram,
+>>>>>>
+>>>>>> On Thu, Feb 23, 2012 at 11:25 AM, Sriram V <vshrirama@gmail.com> wrote:
+>>>>>>> Hi,
+>>>>>>>  1) I am trying to get a HDMI to CSI Bridge chip working with OMAP4 ISS.
+>>>>>>>      The issue is the captured frames are completely green in color.
+>>>>>>
+>>>>>> Sounds like the buffer is all zeroes, can you confirm?
+>>>>>>
+>>>>>>>  2) The Chip is configured to output VGA Color bar sequence with
+>>>>>>> YUV422-8Bit and
+>>>>>>>       uses datalane 0 only.
+>>>>>>>  3) The Format on OMAP4 ISS  is UYVY (Register 0x52001074 = 0x0A00001E)
+>>>>>>>  I am trying to directly dump the data into memory without ISP processing.
+>>>>>>>
+>>>>>>>
+>>>>>>>  Please advice.
+>>>>>>
+>>>>>> Just to be clear on your environment, which branch/commitID are you based
+>>>>>> on?
+>>>>>>
+>>>>>> Regards,
+>>>>>> Sergio
+>>>>>>
+>>>>>>>
+>>>>>>> --
+>>>>>>> Regards,
+>>>>>>> Sriram
+>>>>>>> --
+>>>>>>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>>>>>>> the body of a message to majordomo@vger.kernel.org
+>>>>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>>>>
+>>>>>
+>>>>>
+>>>>> --
+>>>>> Regards,
+>>>>> Sriram
+>>>>
+>>>>
+>>>>
+>>>> --
+>>>> Regards,
+>>>> Sriram
+>>
+>>
+>>
+>> --
+>> Regards,
+>> Sriram
+
+
+
+-- 
 Regards,
-
-	Hans
-
-The following changes since commit a3db60bcf7671cc011ab4f848cbc40ff7ab52c1e:
-
-  [media] xc5000: declare firmware configuration structures as static const (2012-02-14 17:22:46 -0200)
-
-are available in the git repository at:
-  git://linuxtv.org/hverkuil/media_tree.git radio-pci
-
-Hans Verkuil (4):
-      tea575x-tuner: update to latest V4L2 framework requirements.
-      tea575x: fix HW seek
-      radio-maxiradio: use the tea575x framework.
-      V4L2 Spec: return -EINVAL on unsupported wrap_around value.
-
- .../DocBook/media/v4l/vidioc-s-hw-freq-seek.xml    |    6 +-
- drivers/media/radio/Kconfig                        |    2 +-
- drivers/media/radio/radio-maxiradio.c              |  379 ++++----------------
- drivers/media/radio/radio-sf16fmr2.c               |   61 +++-
- include/sound/tea575x-tuner.h                      |    6 +-
- sound/i2c/other/tea575x-tuner.c                    |  169 ++++++---
- sound/pci/es1968.c                                 |   15 +
- sound/pci/fm801.c                                  |   20 +-
- 8 files changed, 273 insertions(+), 385 deletions(-)
+Sriram
