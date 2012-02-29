@@ -1,115 +1,148 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:2249 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756556Ab2BXJyy (ORCPT
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:38080 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757158Ab2B2JtL convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Feb 2012 04:54:54 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: Re: [RFCv1 PATCH 0/6] Improved/New timings API
-Date: Fri, 24 Feb 2012 10:54:46 +0100
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-References: <1328263566-21620-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1328263566-21620-1-git-send-email-hverkuil@xs4all.nl>
+	Wed, 29 Feb 2012 04:49:11 -0500
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201202241054.46924.hverkuil@xs4all.nl>
+In-Reply-To: <1329929337-16648-13-git-send-email-m.szyprowski@samsung.com>
+References: <1329929337-16648-1-git-send-email-m.szyprowski@samsung.com> <1329929337-16648-13-git-send-email-m.szyprowski@samsung.com>
+From: Barry Song <21cnbao@gmail.com>
+Date: Wed, 29 Feb 2012 17:48:49 +0800
+Message-ID: <CAGsJ_4z_TR_UKhjxg-rzATodKJoNn2R-17KkqbeC-fLh3dK3sQ@mail.gmail.com>
+Subject: Re: [Linaro-mm-sig] [PATCHv23 12/16] mm: trigger page reclaim in
+ alloc_contig_range() to stabilise watermarks
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org, Ohad Ben-Cohen <ohad@wizery.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Russell King <linux@arm.linux.org.uk>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Jonathan Corbet <corbet@lwn.net>, Mel Gorman <mel@csn.ul.ie>,
+	Michal Nazarewicz <mina86@mina86.com>,
+	Dave Hansen <dave@linux.vnet.ibm.com>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Rob Clark <rob.clark@linaro.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday, February 03, 2012 11:06:00 Hans Verkuil wrote:
-> Hi all,
-> 
-> This is an implementation of this RFC:
-> 
-> http://www.mail-archive.com/linux-media@vger.kernel.org/msg38168.html
+2012/2/23 Marek Szyprowski <m.szyprowski@samsung.com>:
+> alloc_contig_range() performs memory allocation so it also should keep
+> track on keeping the correct level of memory watermarks. This commit adds
+> a call to *_slowpath style reclaim to grab enough pages to make sure that
+> the final collection of contiguous pages from freelists will not starve
+> the system.
+>
+> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> CC: Michal Nazarewicz <mina86@mina86.com>
+> Tested-by: Rob Clark <rob.clark@linaro.org>
+> Tested-by: Ohad Ben-Cohen <ohad@wizery.com>
+> Tested-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+> Tested-by: Robert Nelson <robertcnelson@gmail.com>
+> ---
+>  include/linux/mmzone.h |    9 +++++++
+>  mm/page_alloc.c        |   62 ++++++++++++++++++++++++++++++++++++++++++++++++
+>  2 files changed, 71 insertions(+), 0 deletions(-)
+>
+> diff --git a/include/linux/mmzone.h b/include/linux/mmzone.h
+> index 4781f30..77db8c0 100644
+> --- a/include/linux/mmzone.h
+> +++ b/include/linux/mmzone.h
+> @@ -63,8 +63,10 @@ enum {
+>
+>  #ifdef CONFIG_CMA
+>  #  define is_migrate_cma(migratetype) unlikely((migratetype) == MIGRATE_CMA)
+> +#  define cma_wmark_pages(zone)        zone->min_cma_pages
+>  #else
+>  #  define is_migrate_cma(migratetype) false
+> +#  define cma_wmark_pages(zone) 0
+>  #endif
+>
+>  #define for_each_migratetype_order(order, type) \
+> @@ -371,6 +373,13 @@ struct zone {
+>        /* see spanned/present_pages for more description */
+>        seqlock_t               span_seqlock;
+>  #endif
+> +#ifdef CONFIG_CMA
+> +       /*
+> +        * CMA needs to increase watermark levels during the allocation
+> +        * process to make sure that the system is not starved.
+> +        */
+> +       unsigned long           min_cma_pages;
+> +#endif
+>        struct free_area        free_area[MAX_ORDER];
+>
+>  #ifndef CONFIG_SPARSEMEM
+> diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+> index 7a0d286..39cd74f 100644
+> --- a/mm/page_alloc.c
+> +++ b/mm/page_alloc.c
+> @@ -5092,6 +5092,11 @@ static void __setup_per_zone_wmarks(void)
+>                                        low + (min >> 2);
+>                zone->watermark[WMARK_HIGH] = min_wmark_pages(zone) +
+>                                        low + (min >> 1);
+> +
+> +               zone->watermark[WMARK_MIN] += cma_wmark_pages(zone);
+> +               zone->watermark[WMARK_LOW] += cma_wmark_pages(zone);
+> +               zone->watermark[WMARK_HIGH] += cma_wmark_pages(zone);
+> +
+>                setup_zone_migrate_reserve(zone);
+>                spin_unlock_irqrestore(&zone->lock, flags);
+>        }
+> @@ -5695,6 +5700,56 @@ static int __alloc_contig_migrate_range(unsigned long start, unsigned long end)
+>        return ret > 0 ? 0 : ret;
+>  }
+>
+> +/*
+> + * Update zone's cma pages counter used for watermark level calculation.
+> + */
+> +static inline void __update_cma_watermarks(struct zone *zone, int count)
+> +{
+> +       unsigned long flags;
+> +       spin_lock_irqsave(&zone->lock, flags);
+> +       zone->min_cma_pages += count;
+> +       spin_unlock_irqrestore(&zone->lock, flags);
+> +       setup_per_zone_wmarks();
+> +}
+> +
+> +/*
+> + * Trigger memory pressure bump to reclaim some pages in order to be able to
+> + * allocate 'count' pages in single page units. Does similar work as
+> + *__alloc_pages_slowpath() function.
+> + */
+> +static int __reclaim_pages(struct zone *zone, gfp_t gfp_mask, int count)
+> +{
+> +       enum zone_type high_zoneidx = gfp_zone(gfp_mask);
+> +       struct zonelist *zonelist = node_zonelist(0, gfp_mask);
+> +       int did_some_progress = 0;
+> +       int order = 1;
+> +       unsigned long watermark;
+> +
+> +       /*
+> +        * Increase level of watermarks to force kswapd do his job
+> +        * to stabilise at new watermark level.
+> +        */
+> +       __update_cma_watermarks(zone, count);
+> +
+> +       /* Obey watermarks as if the page was being allocated */
+> +       watermark = low_wmark_pages(zone) + count;
+> +       while (!zone_watermark_ok(zone, 0, watermark, 0, 0)) {
+> +               wake_all_kswapd(order, zonelist, high_zoneidx, zone_idx(zone));
+> +
+> +               did_some_progress = __perform_reclaim(gfp_mask, order, zonelist,
+> +                                                     NULL);
+> +               if (!did_some_progress) {
+> +                       /* Exhausted what can be done so it's blamo time */
+> +                       out_of_memory(zonelist, gfp_mask, order, NULL);
 
-Mauro,
+out_of_memory() has got another param in the newest next/master tree,
+out_of_memory(zonelist, gfp_mask, order, NULL, false) should be OK.
 
-I'd greatly appreciate it if you can review this API.
-
-I've verified that it works well with CVT and GTF timings (the code for that
-is in the test-timings branch in the git repo below).
-
-One thing that might change slightly is the description of this flag:
-
-           <entry>V4L2_DV_FL_DIVIDE_CLOCK_BY_1_001</entry>
-           <entry>CEA-861 specific: only valid for video transmitters, the flag is cleared
-  by receivers. It is also only valid for formats with the V4L2_DV_FL_NTSC_COMPATIBLE flag
-  set, for other formats the flag will be cleared by the driver.
-
-  If the application sets this flag, then the pixelclock used to set up the transmitter is
-  divided by 1.001 to make it compatible with NTSC framerates. If the transmitter
-  can't generate such frequencies, then the flag will also be cleared.
-           </entry>
-
-Currently it is only valid for transmitters, but I've seen newer receivers
-that should be able to detect this small difference in pixelclock frequency.
-
-I haven't tested (yet) whether they can actually do this, and it would have
-to be considered a hint only since this minute pixelclock difference falls
-within the CEA861-defined pixelclock variation. But if they can do this, then
-that would be a really nice feature.
-
-Basically I'm looking for a stamp of approval before I continue with this.
-
-If you are OK with it, then I'll make a final version of this patch series,
-and start adding this API to all drivers that currently use the preset API.
-Once that's done we can deprecate and eventually remove the preset API.
-
-But that's a fair amount of work and I don't want to start on that unless I
-know you agree with this API.
-
-Regards,
-
-	Hans
-
-> 
-> The goal is that with these additions the existing DV_PRESET API can be
-> removed eventually. It's always painful to admit, but that wasn't the best
-> API ever :-)
-> 
-> To my dismay I discovered that some of the preset defines were even impossible:
-> there are no interlaced 1920x1080i25/29.97/30 formats.
-> 
-> I have been testing this new code with the adv7604 HDMI receiver as used here:
-> 
-> http://git.linuxtv.org/hverkuil/cisco.git/shortlog/refs/heads/test-timings
-> 
-> This is my development/test branch, so the code is a bit messy.
-> 
-> One problem that I always had with the older proposals is that there was no
-> easy way to just select a specific standard (e.g. 720p60). By creating the
-> linux/v4l2-dv-timings.h header this is now very easy to do, both for drivers
-> and applications.
-> 
-> I also took special care on how to distinguish between e.g. 720p60 and 720p59.94.
-> See the documentation for more information.
-> 
-> Note that the QUERY_DV_TIMINGS and DV_TIMINGS_CAP ioctls will be marked
-> experimental. Particularly the latter ioctl might well change in the future as
-> I do not have enough experience to tell whether DV_TIMINGS_CAP is sufficiently
-> detailed.
-> 
-> I would like to get some feedback on this approach, just to make sure I don't
-> need to start over.
-> 
-> In the meantime I will be working on code to detect CVT and GTF video timings
-> since that is needed to verify that that part works correctly as well.
-> 
-> And once everyone agrees to the API, then I will try and add this API to all
-> drivers that currently use the preset API. That way there will be a decent
-> path forward to eventually remove the preset API (sooner rather than later
-> IMHO).
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+-barry
