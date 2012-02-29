@@ -1,92 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:12028 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759575Ab2BJRcq (ORCPT
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:4035 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965223Ab2B2Jue (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Feb 2012 12:32:46 -0500
-Date: Fri, 10 Feb 2012 18:32:22 +0100
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCHv21 07/16] mm: page_alloc: change fallbacks array handling
-In-reply-to: <1328895151-5196-1-git-send-email-m.szyprowski@samsung.com>
-To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org
-Cc: Michal Nazarewicz <mina86@mina86.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
-	Jesse Barker <jesse.barker@linaro.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Shariq Hasnain <shariq.hasnain@linaro.org>,
-	Chunsang Jeong <chunsang.jeong@linaro.org>,
-	Dave Hansen <dave@linux.vnet.ibm.com>,
-	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-	Rob Clark <rob.clark@linaro.org>,
-	Ohad Ben-Cohen <ohad@wizery.com>
-Message-id: <1328895151-5196-8-git-send-email-m.szyprowski@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1328895151-5196-1-git-send-email-m.szyprowski@samsung.com>
+	Wed, 29 Feb 2012 04:50:34 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [PATCH] Add missing slab.h to fix linux-next compile errors
+Date: Wed, 29 Feb 2012 10:50:27 +0100
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201202291050.27369.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Michal Nazarewicz <mina86@mina86.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-This commit adds a row for MIGRATE_ISOLATE type to the fallbacks array
-which was missing from it.  It also, changes the array traversal logic
-a little making MIGRATE_RESERVE an end marker.  The letter change,
-removes the implicit MIGRATE_UNMOVABLE from the end of each row which
-was read by __rmqueue_fallback() function.
-
-Signed-off-by: Michal Nazarewicz <mina86@mina86.com>
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Acked-by: Mel Gorman <mel@csn.ul.ie>
-Tested-by: Rob Clark <rob.clark@linaro.org>
-Tested-by: Ohad Ben-Cohen <ohad@wizery.com>
-Tested-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
----
- mm/page_alloc.c |    9 +++++----
- 1 files changed, 5 insertions(+), 4 deletions(-)
-
-diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index f820bfa..f025fba 100644
---- a/mm/page_alloc.c
-+++ b/mm/page_alloc.c
-@@ -875,11 +875,12 @@ struct page *__rmqueue_smallest(struct zone *zone, unsigned int order,
-  * This array describes the order lists are fallen back to when
-  * the free lists for the desirable migrate type are depleted
-  */
--static int fallbacks[MIGRATE_TYPES][MIGRATE_TYPES-1] = {
-+static int fallbacks[MIGRATE_TYPES][3] = {
- 	[MIGRATE_UNMOVABLE]   = { MIGRATE_RECLAIMABLE, MIGRATE_MOVABLE,   MIGRATE_RESERVE },
- 	[MIGRATE_RECLAIMABLE] = { MIGRATE_UNMOVABLE,   MIGRATE_MOVABLE,   MIGRATE_RESERVE },
- 	[MIGRATE_MOVABLE]     = { MIGRATE_RECLAIMABLE, MIGRATE_UNMOVABLE, MIGRATE_RESERVE },
--	[MIGRATE_RESERVE]     = { MIGRATE_RESERVE,     MIGRATE_RESERVE,   MIGRATE_RESERVE }, /* Never used */
-+	[MIGRATE_RESERVE]     = { MIGRATE_RESERVE }, /* Never used */
-+	[MIGRATE_ISOLATE]     = { MIGRATE_RESERVE }, /* Never used */
- };
- 
- /*
-@@ -974,12 +975,12 @@ __rmqueue_fallback(struct zone *zone, int order, int start_migratetype)
- 	/* Find the largest possible block of pages in the other list */
- 	for (current_order = MAX_ORDER-1; current_order >= order;
- 						--current_order) {
--		for (i = 0; i < MIGRATE_TYPES - 1; i++) {
-+		for (i = 0;; i++) {
- 			migratetype = fallbacks[start_migratetype][i];
- 
- 			/* MIGRATE_RESERVE handled later if necessary */
- 			if (migratetype == MIGRATE_RESERVE)
--				continue;
-+				break;
- 
- 			area = &(zone->free_area[current_order]);
- 			if (list_empty(&area->free_list[migratetype]))
--- 
-1.7.1.569.g6f426
-
+diff --git a/drivers/media/radio/radio-aimslab.c b/drivers/media/radio/radio-aimslab.c
+index 862dfce..98e0c8c 100644
+--- a/drivers/media/radio/radio-aimslab.c
++++ b/drivers/media/radio/radio-aimslab.c
+@@ -32,6 +32,7 @@
+ #include <linux/delay.h>	/* msleep			*/
+ #include <linux/videodev2.h>	/* kernel radio structs		*/
+ #include <linux/io.h>		/* outb, outb_p			*/
++#include <linux/slab.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-ioctl.h>
+ #include <media/v4l2-ctrls.h>
+diff --git a/drivers/media/radio/radio-aztech.c b/drivers/media/radio/radio-aztech.c
+index 8117fdf..177bcbd 100644
+--- a/drivers/media/radio/radio-aztech.c
++++ b/drivers/media/radio/radio-aztech.c
+@@ -21,6 +21,7 @@
+ #include <linux/delay.h>	/* udelay			*/
+ #include <linux/videodev2.h>	/* kernel radio structs		*/
+ #include <linux/io.h>		/* outb, outb_p			*/
++#include <linux/slab.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-ioctl.h>
+ #include <media/v4l2-ctrls.h>
+diff --git a/drivers/media/radio/radio-gemtek.c b/drivers/media/radio/radio-gemtek.c
+index 9d7fdae..2e639ce 100644
+--- a/drivers/media/radio/radio-gemtek.c
++++ b/drivers/media/radio/radio-gemtek.c
+@@ -29,6 +29,7 @@
+ #include <linux/videodev2.h>	/* kernel radio structs		*/
+ #include <linux/mutex.h>
+ #include <linux/io.h>		/* outb, outb_p			*/
++#include <linux/slab.h>
+ #include <media/v4l2-ioctl.h>
+ #include <media/v4l2-device.h>
+ #include "radio-isa.h"
+diff --git a/drivers/media/radio/radio-isa.c b/drivers/media/radio/radio-isa.c
+index 02bcead..06f9063 100644
+--- a/drivers/media/radio/radio-isa.c
++++ b/drivers/media/radio/radio-isa.c
+@@ -26,6 +26,7 @@
+ #include <linux/delay.h>
+ #include <linux/videodev2.h>
+ #include <linux/io.h>
++#include <linux/slab.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-ioctl.h>
+ #include <media/v4l2-fh.h>
+diff --git a/drivers/media/radio/radio-terratec.c b/drivers/media/radio/radio-terratec.c
+index 2b82dd7..be10a80 100644
+--- a/drivers/media/radio/radio-terratec.c
++++ b/drivers/media/radio/radio-terratec.c
+@@ -26,6 +26,7 @@
+ #include <linux/videodev2.h>	/* kernel radio structs		*/
+ #include <linux/mutex.h>
+ #include <linux/io.h>		/* outb, outb_p			*/
++#include <linux/slab.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-ioctl.h>
+ #include "radio-isa.h"
+diff --git a/drivers/media/radio/radio-trust.c b/drivers/media/radio/radio-trust.c
+index 0703a80..26a8c60 100644
+--- a/drivers/media/radio/radio-trust.c
++++ b/drivers/media/radio/radio-trust.c
+@@ -21,6 +21,7 @@
+ #include <linux/ioport.h>
+ #include <linux/videodev2.h>
+ #include <linux/io.h>
++#include <linux/slab.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-ioctl.h>
+ #include "radio-isa.h"
+diff --git a/drivers/media/radio/radio-typhoon.c b/drivers/media/radio/radio-typhoon.c
+index 145d10c..eb72a4d 100644
+--- a/drivers/media/radio/radio-typhoon.c
++++ b/drivers/media/radio/radio-typhoon.c
+@@ -33,6 +33,7 @@
+ #include <linux/ioport.h>	/* request_region		  */
+ #include <linux/videodev2.h>	/* kernel radio structs           */
+ #include <linux/io.h>		/* outb, outb_p                   */
++#include <linux/slab.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-ioctl.h>
+ #include "radio-isa.h"
+diff --git a/drivers/media/radio/radio-zoltrix.c b/drivers/media/radio/radio-zoltrix.c
+index 33dc089..026e88e 100644
+--- a/drivers/media/radio/radio-zoltrix.c
++++ b/drivers/media/radio/radio-zoltrix.c
+@@ -45,6 +45,7 @@
+ #include <linux/videodev2.h>	/* kernel radio structs           */
+ #include <linux/mutex.h>
+ #include <linux/io.h>		/* outb, outb_p                   */
++#include <linux/slab.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-ioctl.h>
+ #include "radio-isa.h"
