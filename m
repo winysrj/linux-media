@@ -1,89 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout-de.gmx.net ([213.165.64.23]:48620 "HELO
-	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752501Ab2BVNVX (ORCPT
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:55506 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932644Ab2B2Ngq convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Feb 2012 08:21:23 -0500
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by dino.fritz.box (Postfix) with ESMTPS id 663F3D612A8
-	for <linux-media@vger.kernel.org>; Wed, 22 Feb 2012 14:21:11 +0100 (CET)
-Message-ID: <4F44EBC6.504@gmx.net>
-Date: Wed, 22 Feb 2012 14:21:10 +0100
-From: "C. Hemsing" <C.Hemsing@gmx.net>
+	Wed, 29 Feb 2012 08:36:46 -0500
+Content-Type: text/plain; charset=utf-8; format=flowed; delsp=yes
+To: "Barry Song" <21cnbao@gmail.com>
+Cc: "Marek Szyprowski" <m.szyprowski@samsung.com>,
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org, "Ohad Ben-Cohen" <ohad@wizery.com>,
+	"Daniel Walker" <dwalker@codeaurora.org>,
+	"Russell King" <linux@arm.linux.org.uk>,
+	"Arnd Bergmann" <arnd@arndb.de>,
+	"Jonathan Corbet" <corbet@lwn.net>, "Mel Gorman" <mel@csn.ul.ie>,
+	"Dave Hansen" <dave@linux.vnet.ibm.com>,
+	"Jesse Barker" <jesse.barker@linaro.org>,
+	"Kyungmin Park" <kyungmin.park@samsung.com>,
+	"Andrew Morton" <akpm@linux-foundation.org>,
+	"Rob Clark" <rob.clark@linaro.org>,
+	"KAMEZAWA Hiroyuki" <kamezawa.hiroyu@jp.fujitsu.com>,
+	DL-SHA-WorkGroupLinux <workgroup.linux@csr.com>
+Subject: Re: [Linaro-mm-sig] [PATCHv23 00/16] Contiguous Memory Allocator
+References: <1329929337-16648-1-git-send-email-m.szyprowski@samsung.com>
+ <CAGsJ_4wgVcVjtAa6Qpki=8jSON7MfwJ8yumJ1YXE5p8L3PqUzw@mail.gmail.com>
+ <op.wafuu3kr3l0zgt@mpn-glaptop>
+ <CAGsJ_4yk+Ca4RDP=sYaXvEKuJzYNhyZWQ7jfKnpR+zCm=3Dq6Q@mail.gmail.com>
+Date: Wed, 29 Feb 2012 14:36:42 +0100
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: saa7134 card, Creatix CTX953/CTX941
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8BIT
+From: "Michal Nazarewicz" <mina86@mina86.com>
+Message-ID: <op.wafz3gv53l0zgt@mpn-glaptop>
+In-Reply-To: <CAGsJ_4yk+Ca4RDP=sYaXvEKuJzYNhyZWQ7jfKnpR+zCm=3Dq6Q@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-To the maintainer of the saa7134 modules, especially the Creatix 953 driver:
+On Wed, 29 Feb 2012 14:34:02 +0100, Barry Song <21cnbao@gmail.com> wrote:
 
-I have a Creatix CTX941 (minipci) hybrid card.
+> 2012/2/29 Michal Nazarewicz <mina86@mina86.com>:
+>> On Wed, 29 Feb 2012 10:35:42 +0100, Barry Song <21cnbao@gmail.com> wrote:
+>>> and i also write a simple kernel helper to test the CMA:
 
-I contacted the vendor Creatix and according to their information the
-CTX941 board is virtually the same as the CTX953.
+>> Would it make sense to make a patch out of it putting it to tools/cma (or
+>> similar)?
 
-When loading the board as card 134 (CTX953), the following kernel 
-messages are being generated:
+> i can send a patch for this. i am just thinking, should it be placed
+> in tools/ as a test utility or Documents/ as an example to explain CMA
+> to users who want to use cma.
 
-saa7134 0000:06:06.0: PCI INT A -> GSI 20 (level, low) -> IRQ 20
-saa7133[0]: found at 0000:06:06.0, rev: 209, irq: 20, latency: 181, 
-mmio: 0xb0007000
-saa7133[0]: subsystem: 16be:0009, board: Medion/Creatix CTX953 Hybrid 
-[card=134,insmod option]
-saa7133[0]: board init: gpio is 0
-IRQ 20/saa7133[0]: IRQF_DISABLED is not guaranteed on shared IRQs
-saa7133[0]: i2c eeprom 00: be 16 09 00 54 20 1c 00 43 43 a9 1c 55 d2 b2 92
-saa7133[0]: i2c eeprom 10: 00 ff 86 0f ff 20 ff 00 01 50 32 79 01 3c ca 50
-saa7133[0]: i2c eeprom 20: 01 40 01 02 02 03 01 00 06 ff 00 25 02 51 96 2b
-saa7133[0]: i2c eeprom 30: a7 58 7a 1f 03 8e 84 5e da 7a 04 b3 05 87 b2 3c
-saa7133[0]: i2c eeprom 40: ff 21 00 c2 96 10 03 22 15 10 fd 79 44 9f c2 8f
-saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 90: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom a0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-i2c i2c-0: Invalid 7-bit address 0x7a
-tuner 0-004b: chip found @ 0x96 (saa7133[0])
-tda829x 0-004b: setting tuner address to 61
-tda829x 0-004b: type set to tda8290+75a
-saa7133[0]: registered device video0 [v4l2]
-saa7133[0]: registered device vbi0
-saa7134 ALSA driver for DMA sound loaded
-IRQ 20/saa7133[0]: IRQF_DISABLED is not guaranteed on shared IRQs
-saa7133[0]/alsa: saa7133[0] at 0xb0007000 irq 20 registered as card -2
-dvb_init() allocating 1 frontend
-DVB: registering new adapter (saa7133[0])
-DVB: registering adapter 0 frontend 0 (Philips TDA10046H DVB-T)...
-tda1004x: setting up plls for 48MHz sampling clock
-tda1004x: found firmware revision 29 -- ok
-tda827x_probe_version: could not read from tuner at addr: 0xc0
+I'd put it in tools/.
 
-and consequently when I try to tuned to a dvb-t channel, the kernel emits:
+> i also think we should have a seperate document to explain cma in details
+> in documents/, and my helper program can be placed there.
 
-tda1004x: setting up plls for 48MHz sampling clock
-tda1004x: found firmware revision 29 -- ok
-tda827x_probe_version: could not read from tuner at addr: 0xc0
-tda827xo_set_params: could not write to tuner at addr: 0xc0
-tda827xo_set_params: could not write to tuner at addr: 0xc0
-tda827xo_set_params: could not write to tuner at addr: 0xc0
-tda827x_probe_version: could not read from tuner at addr: 0xc0
+I'm currently writing an article for LWN which I hope will also lead to something
+worth putting in Documentation/.
 
-As it seems tda827x cannot address the tuner registers.
-
-1) Has the CTX953 ever been working (I've seen the
-"could not read from tuner at addr: 0xc0"
-elsewhere.
-2) Is it working currently?
-3) If yes to 1) and 2), what could be the difference to the CTX941 ?
-
-Cheers,
-Chris
+-- 
+Best regards,                                         _     _
+.o. | Liege of Serenely Enlightened Majesty of      o' \,=./ `o
+..o | Computer Science,  Michał “mina86” Nazarewicz    (o o)
+ooo +----<email/xmpp: mpn@google.com>--------------ooO--(_)--Ooo--
