@@ -1,240 +1,326 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:32994 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754312Ab2BJDxt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Feb 2012 22:53:49 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Kruno Mrak <kruno.mrak@matrix-vision.de>
-Cc: linux-media@vger.kernel.org, sakari.ailus@iki.fi
-Subject: Re: omap3isp: sequence number in v4l2 buffer not incremented
-Date: Thu, 09 Feb 2012 17:08:28 +0100
-Message-ID: <3002082.9RrLpdpVPL@avalon>
-In-Reply-To: <4F202102.5070701@matrix-vision.de>
-References: <4F202102.5070701@matrix-vision.de>
+Received: from wolverine02.qualcomm.com ([199.106.114.251]:4087 "EHLO
+	wolverine02.qualcomm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932327Ab2B2F5O (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 29 Feb 2012 00:57:14 -0500
+Message-ID: <4F4DBE34.4000808@codeaurora.org>
+Date: Wed, 29 Feb 2012 11:27:08 +0530
+From: Ravi Kumar V <kumarrav@codeaurora.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: James Hogan <james@albanarts.com>
+CC: tsoni@codeaurora.org, linux-arm-msm@vger.kernel.org,
+	linux-kernel@vger.kernel.org, Jarod Wilson <jarod@redhat.com>,
+	bryanh@codeaurora.org, linux-arm-kernel@lists.infradead.org,
+	Anssi Hannula <anssi.hannula@iki.fi>, davidb@codeaurora.org,
+	linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	"Juan J. Garcia de Soria" <skandalfo@gmail.com>
+Subject: Re: [PATCH v3 1/1] rc: Add support for GPIO based IR Receiver driver.
+References: <1330408300-21939-1-git-send-email-kumarrav@codeaurora.org> <20120228202944.GA9373@balrog>
+In-Reply-To: <20120228202944.GA9373@balrog>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kruno,
+On 2/29/2012 1:59 AM, James Hogan wrote:
+> On Tue, Feb 28, 2012 at 11:21:40AM +0530, Ravi Kumar V wrote:
+>> Adds GPIO based IR Receiver driver. It decodes signals using decoders
+>> available in rc framework.
+>>
+>> Signed-off-by: Ravi Kumar V<kumarrav@codeaurora.org>
+>
+> Looks good to me (but I'm no expert).
+>
+> Cheers
+> James
+>
+Thanks for review and good suggestions
 
-On Wednesday 25 January 2012 16:34:26 Kruno Mrak wrote:
-> Hello,
-> 
-> we have an omap based intelligent camera and image sensor is connected to
-> camera parallel interface. Image capturing via "CCDC output" works fine.
-> When streaming is on and reading "sequence" variable, it shows always -1.
-> Looking at kernel-source ispvideo.c, i found following if-else statement:
-> 
-> /* Do frame number propagation only if this is the output video node.
->   * Frame number either comes from the CSI receivers or it gets
->   * incremented here if H3A is not active.
->   * Note: There is no guarantee that the output buffer will finish
->   * first, so the input number might lag behind by 1 in some cases.
->   */
-> if (video == pipe->output && !pipe->do_propagation)
-> 	buf->vbuf.sequence = atomic_inc_return(&pipe->frame_number);
-> else
-> 	buf->vbuf.sequence = atomic_read(&pipe->frame_number);
-> 
-> When i change to
-> if (video == pipe->output && pipe->do_propagation)
-> ...
-> the sequence variable is incremented.
-> 
-> So my question:
-> Could it be that "pipe->do_propagation" should be tested on true and not on
-> false?
+>>
+>> diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
+>> index aeb7f43..6f63ded 100644
+>> --- a/drivers/media/rc/Kconfig
+>> +++ b/drivers/media/rc/Kconfig
+>> @@ -256,4 +256,13 @@ config RC_LOOPBACK
+>>   	   To compile this driver as a module, choose M here: the module will
+>>   	   be called rc_loopback.
+>>
+>> +config IR_GPIO_CIR
+>> +	tristate "GPIO IR remote control"
+>> +	depends on RC_CORE
+>> +	---help---
+>> +	   Say Y if you want to use GPIO based IR Receiver.
+>> +
+>> +	   To compile this driver as a module, choose M here: the module will
+>> +	   be called gpio-ir-recv.
+>> +
+>>   endif #RC_CORE
+>> diff --git a/drivers/media/rc/Makefile b/drivers/media/rc/Makefile
+>> index 2156e78..9b3568e 100644
+>> --- a/drivers/media/rc/Makefile
+>> +++ b/drivers/media/rc/Makefile
+>> @@ -25,3 +25,4 @@ obj-$(CONFIG_IR_REDRAT3) += redrat3.o
+>>   obj-$(CONFIG_IR_STREAMZAP) += streamzap.o
+>>   obj-$(CONFIG_IR_WINBOND_CIR) += winbond-cir.o
+>>   obj-$(CONFIG_RC_LOOPBACK) += rc-loopback.o
+>> +obj-$(CONFIG_IR_GPIO_CIR) += gpio-ir-recv.o
+>> diff --git a/drivers/media/rc/gpio-ir-recv.c b/drivers/media/rc/gpio-ir-recv.c
+>> new file mode 100644
+>> index 0000000..6744479
+>> --- /dev/null
+>> +++ b/drivers/media/rc/gpio-ir-recv.c
+>> @@ -0,0 +1,205 @@
+>> +/* Copyright (c) 2012, Code Aurora Forum. All rights reserved.
+>> + *
+>> + * This program is free software; you can redistribute it and/or modify
+>> + * it under the terms of the GNU General Public License version 2 and
+>> + * only version 2 as published by the Free Software Foundation.
+>> + *
+>> + * This program is distributed in the hope that it will be useful,
+>> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+>> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+>> + * GNU General Public License for more details.
+>> + */
+>> +
+>> +#include<linux/kernel.h>
+>> +#include<linux/init.h>
+>> +#include<linux/module.h>
+>> +#include<linux/interrupt.h>
+>> +#include<linux/gpio.h>
+>> +#include<linux/slab.h>
+>> +#include<linux/platform_device.h>
+>> +#include<linux/irq.h>
+>> +#include<media/rc-core.h>
+>> +#include<media/gpio-ir-recv.h>
+>> +
+>> +#define GPIO_IR_DRIVER_NAME	"gpio-rc-recv"
+>> +#define GPIO_IR_DEVICE_NAME	"gpio_ir_recv"
+>> +
+>> +struct gpio_rc_dev {
+>> +	struct rc_dev *rcdev;
+>> +	unsigned int gpio_nr;
+>> +	bool active_low;
+>> +};
+>> +
+>> +static irqreturn_t gpio_ir_recv_irq(int irq, void *dev_id)
+>> +{
+>> +	struct gpio_rc_dev *gpio_dev = dev_id;
+>> +	unsigned int gval;
+>> +	int rc = 0;
+>> +	enum raw_event_type type = IR_SPACE;
+>> +
+>> +	gval = gpio_get_value_cansleep(gpio_dev->gpio_nr);
+>> +
+>> +	if (gval<  0)
+>> +		goto err_get_value;
+>> +
+>> +	if (gpio_dev->active_low)
+>> +		gval = !gval;
+>> +
+>> +	if (gval == 1)
+>> +		type = IR_PULSE;
+>> +
+>> +	rc = ir_raw_event_store_edge(gpio_dev->rcdev, type);
+>> +	if (rc<  0)
+>> +		goto err_get_value;
+>> +
+>> +	ir_raw_event_handle(gpio_dev->rcdev);
+>> +
+>> +err_get_value:
+>> +	return IRQ_HANDLED;
+>> +}
+>> +
+>> +static int __devinit gpio_ir_recv_probe(struct platform_device *pdev)
+>> +{
+>> +	struct gpio_rc_dev *gpio_dev;
+>> +	struct rc_dev *rcdev;
+>> +	const struct gpio_ir_recv_platform_data *pdata =
+>> +					pdev->dev.platform_data;
+>> +	int rc;
+>> +
+>> +	if (!pdata)
+>> +		return -EINVAL;
+>> +
+>> +	if (pdata->gpio_nr<  0)
+>> +		return -EINVAL;
+>> +
+>> +	gpio_dev = kzalloc(sizeof(struct gpio_rc_dev), GFP_KERNEL);
+>> +	if (!gpio_dev)
+>> +		return -ENOMEM;
+>> +
+>> +	rcdev = rc_allocate_device();
+>> +	if (!rcdev) {
+>> +		rc = -ENOMEM;
+>> +		goto err_allocate_device;
+>> +	}
+>> +
+>> +	rcdev->driver_type = RC_DRIVER_IR_RAW;
+>> +	rcdev->allowed_protos = RC_TYPE_ALL;
+>> +	rcdev->input_name = GPIO_IR_DEVICE_NAME;
+>> +	rcdev->input_id.bustype = BUS_HOST;
+>> +	rcdev->driver_name = GPIO_IR_DRIVER_NAME;
+>> +	rcdev->map_name = RC_MAP_EMPTY;
+>> +
+>> +	gpio_dev->rcdev = rcdev;
+>> +	gpio_dev->gpio_nr = pdata->gpio_nr;
+>> +	gpio_dev->active_low = pdata->active_low;
+>> +
+>> +	rc = gpio_request(pdata->gpio_nr, "gpio-ir-recv");
+>> +	if (rc<  0)
+>> +		goto err_gpio_request;
+>> +	rc  = gpio_direction_input(pdata->gpio_nr);
+>> +	if (rc<  0)
+>> +		goto err_gpio_direction_input;
+>> +
+>> +	rc = rc_register_device(rcdev);
+>> +	if (rc<  0) {
+>> +		dev_err(&pdev->dev, "failed to register rc device\n");
+>> +		goto err_register_rc_device;
+>> +	}
+>> +
+>> +	platform_set_drvdata(pdev, gpio_dev);
+>> +
+>> +	rc = request_any_context_irq(gpio_to_irq(pdata->gpio_nr),
+>> +				gpio_ir_recv_irq,
+>> +			IRQF_TRIGGER_FALLING | IRQF_TRIGGER_RISING,
+>> +					"gpio-ir-recv-irq", gpio_dev);
+>> +	if (rc<  0)
+>> +		goto err_request_irq;
+>> +
+>> +	return 0;
+>> +
+>> +err_request_irq:
+>> +	platform_set_drvdata(pdev, NULL);
+>> +	rc_unregister_device(rcdev);
+>> +err_register_rc_device:
+>> +err_gpio_direction_input:
+>> +	gpio_free(pdata->gpio_nr);
+>> +err_gpio_request:
+>> +	rc_free_device(rcdev);
+>> +	rcdev = NULL;
+>> +err_allocate_device:
+>> +	kfree(gpio_dev);
+>> +	return rc;
+>> +}
+>> +
+>> +static int __devexit gpio_ir_recv_remove(struct platform_device *pdev)
+>> +{
+>> +	struct gpio_rc_dev *gpio_dev = platform_get_drvdata(pdev);
+>> +
+>> +	free_irq(gpio_to_irq(gpio_dev->gpio_nr), gpio_dev);
+>> +	platform_set_drvdata(pdev, NULL);
+>> +	rc_unregister_device(gpio_dev->rcdev);
+>> +	gpio_free(gpio_dev->gpio_nr);
+>> +	rc_free_device(gpio_dev->rcdev);
+>> +	kfree(gpio_dev);
+>> +	return 0;
+>> +}
+>> +
+>> +#ifdef CONFIG_PM
+>> +static int gpio_ir_recv_suspend(struct device *dev)
+>> +{
+>> +	struct platform_device *pdev = to_platform_device(dev);
+>> +	struct gpio_rc_dev *gpio_dev = platform_get_drvdata(pdev);
+>> +
+>> +	if (device_may_wakeup(dev))
+>> +		enable_irq_wake(gpio_to_irq(gpio_dev->gpio_nr));
+>> +	else
+>> +		disable_irq(gpio_to_irq(gpio_dev->gpio_nr));
+>> +
+>> +	return 0;
+>> +}
+>> +
+>> +static int gpio_ir_recv_resume(struct device *dev)
+>> +{
+>> +	struct platform_device *pdev = to_platform_device(dev);
+>> +	struct gpio_rc_dev *gpio_dev = platform_get_drvdata(pdev);
+>> +
+>> +	if (device_may_wakeup(dev))
+>> +		disable_irq_wake(gpio_to_irq(gpio_dev->gpio_nr));
+>> +	else
+>> +		enable_irq(gpio_to_irq(gpio_dev->gpio_nr));
+>> +
+>> +	return 0;
+>> +}
+>> +
+>> +static const struct dev_pm_ops gpio_ir_recv_pm_ops = {
+>> +	.suspend        = gpio_ir_recv_suspend,
+>> +	.resume         = gpio_ir_recv_resume,
+>> +};
+>> +#endif
+>> +
+>> +static struct platform_driver gpio_ir_recv_driver = {
+>> +	.probe  = gpio_ir_recv_probe,
+>> +	.remove = __devexit_p(gpio_ir_recv_remove),
+>> +	.driver = {
+>> +		.name   = GPIO_IR_DRIVER_NAME,
+>> +		.owner  = THIS_MODULE,
+>> +#ifdef CONFIG_PM
+>> +		.pm	=&gpio_ir_recv_pm_ops,
+>> +#endif
+>> +	},
+>> +};
+>> +
+>> +static int __init gpio_ir_recv_init(void)
+>> +{
+>> +	return platform_driver_register(&gpio_ir_recv_driver);
+>> +}
+>> +module_init(gpio_ir_recv_init);
+>> +
+>> +static void __exit gpio_ir_recv_exit(void)
+>> +{
+>> +	platform_driver_unregister(&gpio_ir_recv_driver);
+>> +}
+>> +module_exit(gpio_ir_recv_exit);
+>> +
+>> +MODULE_DESCRIPTION("GPIO IR Receiver driver");
+>> +MODULE_LICENSE("GPL v2");
+>> diff --git a/include/media/gpio-ir-recv.h b/include/media/gpio-ir-recv.h
+>> new file mode 100644
+>> index 0000000..61a7fbb
+>> --- /dev/null
+>> +++ b/include/media/gpio-ir-recv.h
+>> @@ -0,0 +1,22 @@
+>> +/* Copyright (c) 2012, Code Aurora Forum. All rights reserved.
+>> + *
+>> + * This program is free software; you can redistribute it and/or modify
+>> + * it under the terms of the GNU General Public License version 2 and
+>> + * only version 2 as published by the Free Software Foundation.
+>> + *
+>> + * This program is distributed in the hope that it will be useful,
+>> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+>> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+>> + * GNU General Public License for more details.
+>> + */
+>> +
+>> +#ifndef __GPIO_IR_RECV_H__
+>> +#define __GPIO_IR_RECV_H__
+>> +
+>> +struct gpio_ir_recv_platform_data {
+>> +	unsigned int gpio_nr;
+>> +	bool active_low;
+>> +};
+>> +
+>> +#endif /* __GPIO_IR_RECV_H__ */
+>> +
+>> --
+>> Sent by a consultant of the Qualcomm Innovation Center, Inc.
+>> The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum.
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> Please read the FAQ at  http://www.tux.org/lkml/
+>
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
 
-No, the code is correct here. When do_propagation is true, the pipeline's
-frame number is incremented in the frame start interrupt handler. This allows
-synchronization of buffer sequence numbers with the statistics engine frame
-counts.
-
-> If this change is wrong, how can i achieve that the sequence number is
-> incremented?
-
-The driver increments the frame number in the CCP2 and CSI2 receivers
-interrupt handlers. The frame number will thus not be incremented when using
-the CCDC parallel input, which is wrong.
-
-Does the following patch fix your problem ? I haven't been able to test it
-yet with the CCP2 and CSI2 receivers, I might ask you to test a second
-version. Sakari, could you test the patch on the N900 with the CCP2 receiver ?
-I'm currently travelling and haven't brought mine with me.
-
->From c0d23bfa38fc91f33f39bab9328eda3a4481f152 Mon Sep 17 00:00:00 2001
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Date: Thu, 9 Feb 2012 17:00:45 +0100
-Subject: [PATCH] omap3isp: Fix frame number propagation
-
-When propagating the frame number through the pipeline, the frame number
-must be incremented at frame start by the appropriate IRQ handler. This
-was properly handled for the CSI2 and CCP2 receivers, but not when the
-CCDC parallel interface is used.
-
-ADD frame number incrementation to the HS/VS interrupt handler. As the
-HS/VS interrupt is also generated for frames received by the CSI2 and
-CCP2 receivers, remove explicit propagation handling from the serial
-receivers.
-
-Reported-by: Kruno Mrak <kruno.mrak@matrix-vision.de>
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/video/omap3isp/isp.c     |    8 --------
- drivers/media/video/omap3isp/ispccdc.c |    3 +++
- drivers/media/video/omap3isp/ispccp2.c |   22 ----------------------
- drivers/media/video/omap3isp/ispcsi2.c |   19 +++----------------
- drivers/media/video/omap3isp/ispcsi2.h |    1 -
- 5 files changed, 6 insertions(+), 47 deletions(-)
-
-diff --git a/drivers/media/video/omap3isp/isp.c b/drivers/media/video/omap3isp/isp.c
-index 06afbc1..df6416c 100644
---- a/drivers/media/video/omap3isp/isp.c
-+++ b/drivers/media/video/omap3isp/isp.c
-@@ -785,14 +785,6 @@ static int isp_pipeline_enable(struct isp_pipeline *pipe,
- 		}
- 	}
- 
--	/* Frame number propagation. In continuous streaming mode the number
--	 * is incremented in the frame start ISR. In mem-to-mem mode
--	 * singleshot is used and frame start IRQs are not available.
--	 * Thus we have to increment the number here.
--	 */
--	if (pipe->do_propagation && mode == ISP_PIPELINE_STREAM_SINGLESHOT)
--		atomic_inc(&pipe->frame_number);
--
- 	return 0;
- }
- 
-diff --git a/drivers/media/video/omap3isp/ispccdc.c b/drivers/media/video/omap3isp/ispccdc.c
-index eaabc27..8d8d6f3 100644
---- a/drivers/media/video/omap3isp/ispccdc.c
-+++ b/drivers/media/video/omap3isp/ispccdc.c
-@@ -1410,6 +1410,9 @@ static void ccdc_hs_vs_isr(struct isp_ccdc_device *ccdc)
- 	struct video_device *vdev = ccdc->subdev.devnode;
- 	struct v4l2_event event;
- 
-+	/* Frame number propagation */
-+	atomic_inc(&pipe->frame_number);
-+
- 	memset(&event, 0, sizeof(event));
- 	event.type = V4L2_EVENT_FRAME_SYNC;
- 	event.u.frame_sync.frame_sequence = atomic_read(&pipe->frame_number);
-diff --git a/drivers/media/video/omap3isp/ispccp2.c b/drivers/media/video/omap3isp/ispccp2.c
-index 70ddbf3..84014b9 100644
---- a/drivers/media/video/omap3isp/ispccp2.c
-+++ b/drivers/media/video/omap3isp/ispccp2.c
-@@ -178,19 +178,6 @@ static void ccp2_if_enable(struct isp_ccp2_device *ccp2, u8 enable)
- 			ISPCCP2_CTRL_MODE | ISPCCP2_CTRL_IF_EN,
- 			enable ? (ISPCCP2_CTRL_MODE | ISPCCP2_CTRL_IF_EN) : 0);
- 
--	/* For frame count propagation */
--	if (pipe->do_propagation) {
--		/* We may want the Frame Start IRQ from LC0 */
--		if (enable)
--			isp_reg_set(isp, OMAP3_ISP_IOMEM_CCP2,
--				    ISPCCP2_LC01_IRQENABLE,
--				    ISPCCP2_LC01_IRQSTATUS_LC0_FS_IRQ);
--		else
--			isp_reg_clr(isp, OMAP3_ISP_IOMEM_CCP2,
--				    ISPCCP2_LC01_IRQENABLE,
--				    ISPCCP2_LC01_IRQSTATUS_LC0_FS_IRQ);
--	}
--
- 	if (!enable && ccp2->vdds_csib)
- 		regulator_disable(ccp2->vdds_csib);
- }
-@@ -350,7 +337,6 @@ static void ccp2_lcx_config(struct isp_ccp2_device *ccp2,
- 	      ISPCCP2_LC01_IRQSTATUS_LC0_CRC_IRQ |
- 	      ISPCCP2_LC01_IRQSTATUS_LC0_FSP_IRQ |
- 	      ISPCCP2_LC01_IRQSTATUS_LC0_FW_IRQ |
--	      ISPCCP2_LC01_IRQSTATUS_LC0_FS_IRQ |
- 	      ISPCCP2_LC01_IRQSTATUS_LC0_FSC_IRQ |
- 	      ISPCCP2_LC01_IRQSTATUS_LC0_SSC_IRQ;
- 
-@@ -613,14 +599,6 @@ void omap3isp_ccp2_isr(struct isp_ccp2_device *ccp2)
- 	if (omap3isp_module_sync_is_stopping(&ccp2->wait, &ccp2->stopping))
- 		return;
- 
--	/* Frame number propagation */
--	if (lcx_irqstatus & ISPCCP2_LC01_IRQSTATUS_LC0_FS_IRQ) {
--		struct isp_pipeline *pipe =
--			to_isp_pipeline(&ccp2->subdev.entity);
--		if (pipe->do_propagation)
--			atomic_inc(&pipe->frame_number);
--	}
--
- 	/* Handle queued buffers on frame end interrupts */
- 	if (lcm_irqstatus & ISPCCP2_LCM_IRQSTATUS_EOF_IRQ)
- 		ccp2_isr_buffer(ccp2);
-diff --git a/drivers/media/video/omap3isp/ispcsi2.c b/drivers/media/video/omap3isp/ispcsi2.c
-index fcb5168..3026215 100644
---- a/drivers/media/video/omap3isp/ispcsi2.c
-+++ b/drivers/media/video/omap3isp/ispcsi2.c
-@@ -378,21 +378,17 @@ static void csi2_timing_config(struct isp_device *isp,
- static void csi2_irq_ctx_set(struct isp_device *isp,
- 			     struct isp_csi2_device *csi2, int enable)
- {
--	u32 reg = ISPCSI2_CTX_IRQSTATUS_FE_IRQ;
- 	int i;
- 
--	if (csi2->use_fs_irq)
--		reg |= ISPCSI2_CTX_IRQSTATUS_FS_IRQ;
--
- 	for (i = 0; i < 8; i++) {
--		isp_reg_writel(isp, reg, csi2->regs1,
-+		isp_reg_writel(isp, ISPCSI2_CTX_IRQSTATUS_FE_IRQ, csi2->regs1,
- 			       ISPCSI2_CTX_IRQSTATUS(i));
- 		if (enable)
- 			isp_reg_set(isp, csi2->regs1, ISPCSI2_CTX_IRQENABLE(i),
--				    reg);
-+				    ISPCSI2_CTX_IRQSTATUS_FE_IRQ);
- 		else
- 			isp_reg_clr(isp, csi2->regs1, ISPCSI2_CTX_IRQENABLE(i),
--				    reg);
-+				    ISPCSI2_CTX_IRQSTATUS_FE_IRQ);
- 	}
- }
- 
-@@ -690,14 +686,6 @@ static void csi2_isr_ctx(struct isp_csi2_device *csi2,
- 	status = isp_reg_readl(isp, csi2->regs1, ISPCSI2_CTX_IRQSTATUS(n));
- 	isp_reg_writel(isp, status, csi2->regs1, ISPCSI2_CTX_IRQSTATUS(n));
- 
--	/* Propagate frame number */
--	if (status & ISPCSI2_CTX_IRQSTATUS_FS_IRQ) {
--		struct isp_pipeline *pipe =
--				     to_isp_pipeline(&csi2->subdev.entity);
--		if (pipe->do_propagation)
--			atomic_inc(&pipe->frame_number);
--	}
--
- 	if (!(status & ISPCSI2_CTX_IRQSTATUS_FE_IRQ))
- 		return;
- 
-@@ -1054,7 +1042,6 @@ static int csi2_set_stream(struct v4l2_subdev *sd, int enable)
- 	case ISP_PIPELINE_STREAM_CONTINUOUS:
- 		if (omap3isp_csiphy_acquire(csi2->phy) < 0)
- 			return -ENODEV;
--		csi2->use_fs_irq = pipe->do_propagation;
- 		if (csi2->output & CSI2_OUTPUT_MEMORY)
- 			omap3isp_sbl_enable(isp, OMAP3_ISP_SBL_CSI2A_WRITE);
- 		csi2_configure(csi2);
-diff --git a/drivers/media/video/omap3isp/ispcsi2.h b/drivers/media/video/omap3isp/ispcsi2.h
-index 885ad79..c57729b 100644
---- a/drivers/media/video/omap3isp/ispcsi2.h
-+++ b/drivers/media/video/omap3isp/ispcsi2.h
-@@ -145,7 +145,6 @@ struct isp_csi2_device {
- 	u32 output; /* output to CCDC, memory or both? */
- 	bool dpcm_decompress;
- 	unsigned int frame_skip;
--	bool use_fs_irq;
- 
- 	struct isp_csiphy *phy;
- 	struct isp_csi2_ctx_cfg contexts[ISP_CSI2_MAX_CTX_NUM + 1];
 
 -- 
-Regards,
-
-Laurent Pinchart
+Sent by a consultant of the Qualcomm Innovation Center, Inc.
+The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum.
