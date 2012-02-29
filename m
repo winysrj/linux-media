@@ -1,533 +1,390 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:54201 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752209Ab2BVQtE (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:46132 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932213Ab2B2JfS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Feb 2012 11:49:04 -0500
-Date: Wed, 22 Feb 2012 17:48:46 +0100
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCHv23 05/16] mm: compaction: export some of the functions
-In-reply-to: <1329929337-16648-1-git-send-email-m.szyprowski@samsung.com>
-To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org
-Cc: Michal Nazarewicz <mina86@mina86.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
-	Jesse Barker <jesse.barker@linaro.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Chunsang Jeong <chunsang.jeong@linaro.org>,
-	Dave Hansen <dave@linux.vnet.ibm.com>,
-	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-	Rob Clark <rob.clark@linaro.org>,
-	Ohad Ben-Cohen <ohad@wizery.com>
-Message-id: <1329929337-16648-6-git-send-email-m.szyprowski@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1329929337-16648-1-git-send-email-m.szyprowski@samsung.com>
+	Wed, 29 Feb 2012 04:35:18 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
+	teturtia@gmail.com, dacohen@gmail.com, snjw23@gmail.com,
+	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
+	tuukkat76@gmail.com, k.debski@gmail.com, riverful@gmail.com
+Subject: Re: [PATCH v3 32/33] smiapp: Add driver.
+Date: Wed, 29 Feb 2012 10:35:26 +0100
+Message-ID: <3598400.2MKjxpiZx5@avalon>
+In-Reply-To: <20120229054149.GB14920@valkosipuli.localdomain>
+References: <20120220015605.GI7784@valkosipuli.localdomain> <2925645.UTNbXqr535@avalon> <20120229054149.GB14920@valkosipuli.localdomain>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Michal Nazarewicz <mina86@mina86.com>
+Hi Sakari,
 
-This commit exports some of the functions from compaction.c file
-outside of it adding their declaration into internal.h header
-file so that other mm related code can use them.
+On Wednesday 29 February 2012 07:41:50 Sakari Ailus wrote:
+> On Mon, Feb 27, 2012 at 04:38:49PM +0100, Laurent Pinchart wrote:
+> > On Monday 20 February 2012 03:57:11 Sakari Ailus wrote:
+> > > From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+> > > 
+> > > Add driver for SMIA++/SMIA image sensors. The driver exposes the sensor
+> > > as three subdevs, pixel array, binner and scaler --- in case the device
+> > > has a scaler.
+> > > 
+> > > Currently it relies on the board code for external clock handling. There
+> > > is no fast way out of this dependency before the ISP drivers (omap3isp)
+> > > among others will be able to export that clock through the clock
+> > > framework instead.
+> > > 
+> > > Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 
-This forced compaction.c to always be compiled (as opposed to being
-compiled only if CONFIG_COMPACTION is defined) but as to avoid
-introducing code that user did not ask for, part of the compaction.c
-is now wrapped in on #ifdef.
+[snip]
 
-Signed-off-by: Michal Nazarewicz <mina86@mina86.com>
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Acked-by: Mel Gorman <mel@csn.ul.ie>
-Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Tested-by: Rob Clark <rob.clark@linaro.org>
-Tested-by: Ohad Ben-Cohen <ohad@wizery.com>
-Tested-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Tested-by: Robert Nelson <robertcnelson@gmail.com>
----
- mm/Makefile     |    3 +-
- mm/compaction.c |  328 ++++++++++++++++++++++++++-----------------------------
- mm/internal.h   |   33 ++++++
- 3 files changed, 191 insertions(+), 173 deletions(-)
+> > > +
+> > > +	dev_dbg(&client->dev, "format_model_type %s\n",
+> > > +		fmt_model_type == SMIAPP_FRAME_FORMAT_MODEL_TYPE_2BYTE
+> > > +		? "2 byte" :
+> > > +		fmt_model_type == SMIAPP_FRAME_FORMAT_MODEL_TYPE_4BYTE
+> > > +		? "4 byte" : "is simply bad");
+> > 
+> > Simply ? :-)
+> 
+> Yeah, well, it's not that complex. :-) Do you think I should change that to
+> something else?
 
-diff --git a/mm/Makefile b/mm/Makefile
-index 306742a..309424c 100644
---- a/mm/Makefile
-+++ b/mm/Makefile
-@@ -13,7 +13,7 @@ obj-y			:= filemap.o mempool.o oom_kill.o fadvise.o \
- 			   readahead.o swap.o truncate.o vmscan.o shmem.o \
- 			   prio_tree.o util.o mmzone.o vmstat.o backing-dev.o \
- 			   page_isolation.o mm_init.o mmu_context.o percpu.o \
--			   $(mmu-y)
-+			   compaction.o $(mmu-y)
- obj-y += init-mm.o
- 
- ifdef CONFIG_NO_BOOTMEM
-@@ -33,7 +33,6 @@ obj-$(CONFIG_NUMA) 	+= mempolicy.o
- obj-$(CONFIG_SPARSEMEM)	+= sparse.o
- obj-$(CONFIG_SPARSEMEM_VMEMMAP) += sparse-vmemmap.o
- obj-$(CONFIG_SLOB) += slob.o
--obj-$(CONFIG_COMPACTION) += compaction.o
- obj-$(CONFIG_MMU_NOTIFIER) += mmu_notifier.o
- obj-$(CONFIG_KSM) += ksm.o
- obj-$(CONFIG_PAGE_POISONING) += debug-pagealloc.o
-diff --git a/mm/compaction.c b/mm/compaction.c
-index 06b198f..7a92e41 100644
---- a/mm/compaction.c
-+++ b/mm/compaction.c
-@@ -16,30 +16,11 @@
- #include <linux/sysfs.h>
- #include "internal.h"
- 
-+#if defined CONFIG_COMPACTION || defined CONFIG_CMA
-+
- #define CREATE_TRACE_POINTS
- #include <trace/events/compaction.h>
- 
--/*
-- * compact_control is used to track pages being migrated and the free pages
-- * they are being migrated to during memory compaction. The free_pfn starts
-- * at the end of a zone and migrate_pfn begins at the start. Movable pages
-- * are moved to the end of a zone during a compaction run and the run
-- * completes when free_pfn <= migrate_pfn
-- */
--struct compact_control {
--	struct list_head freepages;	/* List of free pages to migrate to */
--	struct list_head migratepages;	/* List of pages being migrated */
--	unsigned long nr_freepages;	/* Number of isolated free pages */
--	unsigned long nr_migratepages;	/* Number of pages to migrate */
--	unsigned long free_pfn;		/* isolate_freepages search base */
--	unsigned long migrate_pfn;	/* isolate_migratepages search base */
--	bool sync;			/* Synchronous migration */
--
--	int order;			/* order a direct compactor needs */
--	int migratetype;		/* MOVABLE, RECLAIMABLE etc */
--	struct zone *zone;
--};
--
- static unsigned long release_freepages(struct list_head *freelist)
- {
- 	struct page *page, *next;
-@@ -54,6 +35,16 @@ static unsigned long release_freepages(struct list_head *freelist)
- 	return count;
- }
- 
-+static void map_pages(struct list_head *list)
-+{
-+	struct page *page;
-+
-+	list_for_each_entry(page, list, lru) {
-+		arch_alloc_page(page, 0);
-+		kernel_map_pages(page, 1, 1);
-+	}
-+}
-+
- /*
-  * Isolate free pages onto a private freelist. Caller must hold zone->lock.
-  * If @strict is true, will abort returning 0 on any invalid PFNs or non-free
-@@ -122,7 +113,7 @@ static unsigned long isolate_freepages_block(unsigned long blockpfn,
-  * (which may be greater then end_pfn if end fell in a middle of
-  * a free page).
-  */
--static unsigned long
-+unsigned long
- isolate_freepages_range(unsigned long start_pfn, unsigned long end_pfn)
- {
- 	unsigned long isolated, pfn, block_end_pfn, flags;
-@@ -176,127 +167,6 @@ isolate_freepages_range(unsigned long start_pfn, unsigned long end_pfn)
- 	return pfn;
- }
- 
--/* Returns true if the page is within a block suitable for migration to */
--static bool suitable_migration_target(struct page *page)
--{
--
--	int migratetype = get_pageblock_migratetype(page);
--
--	/* Don't interfere with memory hot-remove or the min_free_kbytes blocks */
--	if (migratetype == MIGRATE_ISOLATE || migratetype == MIGRATE_RESERVE)
--		return false;
--
--	/* If the page is a large free page, then allow migration */
--	if (PageBuddy(page) && page_order(page) >= pageblock_order)
--		return true;
--
--	/* If the block is MIGRATE_MOVABLE, allow migration */
--	if (migratetype == MIGRATE_MOVABLE)
--		return true;
--
--	/* Otherwise skip the block */
--	return false;
--}
--
--static void map_pages(struct list_head *list)
--{
--	struct page *page;
--
--	list_for_each_entry(page, list, lru) {
--		arch_alloc_page(page, 0);
--		kernel_map_pages(page, 1, 1);
--	}
--}
--
--/*
-- * Based on information in the current compact_control, find blocks
-- * suitable for isolating free pages from and then isolate them.
-- */
--static void isolate_freepages(struct zone *zone,
--				struct compact_control *cc)
--{
--	struct page *page;
--	unsigned long high_pfn, low_pfn, pfn, zone_end_pfn, end_pfn;
--	unsigned long flags;
--	int nr_freepages = cc->nr_freepages;
--	struct list_head *freelist = &cc->freepages;
--
--	/*
--	 * Initialise the free scanner. The starting point is where we last
--	 * scanned from (or the end of the zone if starting). The low point
--	 * is the end of the pageblock the migration scanner is using.
--	 */
--	pfn = cc->free_pfn;
--	low_pfn = cc->migrate_pfn + pageblock_nr_pages;
--
--	/*
--	 * Take care that if the migration scanner is at the end of the zone
--	 * that the free scanner does not accidentally move to the next zone
--	 * in the next isolation cycle.
--	 */
--	high_pfn = min(low_pfn, pfn);
--
--	zone_end_pfn = zone->zone_start_pfn + zone->spanned_pages;
--
--	/*
--	 * Isolate free pages until enough are available to migrate the
--	 * pages on cc->migratepages. We stop searching if the migrate
--	 * and free page scanners meet or enough free pages are isolated.
--	 */
--	for (; pfn > low_pfn && cc->nr_migratepages > nr_freepages;
--					pfn -= pageblock_nr_pages) {
--		unsigned long isolated;
--
--		if (!pfn_valid(pfn))
--			continue;
--
--		/*
--		 * Check for overlapping nodes/zones. It's possible on some
--		 * configurations to have a setup like
--		 * node0 node1 node0
--		 * i.e. it's possible that all pages within a zones range of
--		 * pages do not belong to a single zone.
--		 */
--		page = pfn_to_page(pfn);
--		if (page_zone(page) != zone)
--			continue;
--
--		/* Check the block is suitable for migration */
--		if (!suitable_migration_target(page))
--			continue;
--
--		/*
--		 * Found a block suitable for isolating free pages from. Now
--		 * we disabled interrupts, double check things are ok and
--		 * isolate the pages. This is to minimise the time IRQs
--		 * are disabled
--		 */
--		isolated = 0;
--		spin_lock_irqsave(&zone->lock, flags);
--		if (suitable_migration_target(page)) {
--			end_pfn = min(pfn + pageblock_nr_pages, zone_end_pfn);
--			isolated = isolate_freepages_block(pfn, end_pfn,
--							   freelist, false);
--			nr_freepages += isolated;
--		}
--		spin_unlock_irqrestore(&zone->lock, flags);
--
--		/*
--		 * Record the highest PFN we isolated pages from. When next
--		 * looking for free pages, the search will restart here as
--		 * page migration may have returned some pages to the allocator
--		 */
--		if (isolated)
--			high_pfn = max(high_pfn, pfn);
--	}
--
--	/* split_free_page does not map the pages */
--	map_pages(freelist);
--
--	cc->free_pfn = high_pfn;
--	cc->nr_freepages = nr_freepages;
--}
--
- /* Update the number of anon and file isolated pages in the zone */
- static void acct_isolated(struct zone *zone, struct compact_control *cc)
- {
-@@ -325,13 +195,6 @@ static bool too_many_isolated(struct zone *zone)
- 	return isolated > (inactive + active) / 2;
- }
- 
--/* possible outcome of isolate_migratepages */
--typedef enum {
--	ISOLATE_ABORT,		/* Abort compaction now */
--	ISOLATE_NONE,		/* No pages isolated, continue scanning */
--	ISOLATE_SUCCESS,	/* Pages isolated, migrate */
--} isolate_migrate_t;
--
- /**
-  * isolate_migratepages_range() - isolate all migrate-able pages in range.
-  * @zone:	Zone pages are in.
-@@ -351,7 +214,7 @@ typedef enum {
-  * does not modify any cc's fields, in particular it does not modify
-  * (or read for that matter) cc->migrate_pfn.
-  */
--static unsigned long
-+unsigned long
- isolate_migratepages_range(struct zone *zone, struct compact_control *cc,
- 			   unsigned long low_pfn, unsigned long end_pfn)
- {
-@@ -487,35 +350,118 @@ isolate_migratepages_range(struct zone *zone, struct compact_control *cc,
- 	return low_pfn;
- }
- 
-+#endif /* CONFIG_COMPACTION || CONFIG_CMA */
-+#ifdef CONFIG_COMPACTION
-+
-+/* Returns true if the page is within a block suitable for migration to */
-+static bool suitable_migration_target(struct page *page)
-+{
-+
-+	int migratetype = get_pageblock_migratetype(page);
-+
-+	/* Don't interfere with memory hot-remove or the min_free_kbytes blocks */
-+	if (migratetype == MIGRATE_ISOLATE || migratetype == MIGRATE_RESERVE)
-+		return false;
-+
-+	/* If the page is a large free page, then allow migration */
-+	if (PageBuddy(page) && page_order(page) >= pageblock_order)
-+		return true;
-+
-+	/* If the block is MIGRATE_MOVABLE, allow migration */
-+	if (migratetype == MIGRATE_MOVABLE)
-+		return true;
-+
-+	/* Otherwise skip the block */
-+	return false;
-+}
-+
- /*
-- * Isolate all pages that can be migrated from the block pointed to by
-- * the migrate scanner within compact_control.
-+ * Based on information in the current compact_control, find blocks
-+ * suitable for isolating free pages from and then isolate them.
-  */
--static isolate_migrate_t isolate_migratepages(struct zone *zone,
--					struct compact_control *cc)
-+static void isolate_freepages(struct zone *zone,
-+				struct compact_control *cc)
- {
--	unsigned long low_pfn, end_pfn;
-+	struct page *page;
-+	unsigned long high_pfn, low_pfn, pfn, zone_end_pfn, end_pfn;
-+	unsigned long flags;
-+	int nr_freepages = cc->nr_freepages;
-+	struct list_head *freelist = &cc->freepages;
- 
--	/* Do not scan outside zone boundaries */
--	low_pfn = max(cc->migrate_pfn, zone->zone_start_pfn);
-+	/*
-+	 * Initialise the free scanner. The starting point is where we last
-+	 * scanned from (or the end of the zone if starting). The low point
-+	 * is the end of the pageblock the migration scanner is using.
-+	 */
-+	pfn = cc->free_pfn;
-+	low_pfn = cc->migrate_pfn + pageblock_nr_pages;
- 
--	/* Only scan within a pageblock boundary */
--	end_pfn = ALIGN(low_pfn + pageblock_nr_pages, pageblock_nr_pages);
-+	/*
-+	 * Take care that if the migration scanner is at the end of the zone
-+	 * that the free scanner does not accidentally move to the next zone
-+	 * in the next isolation cycle.
-+	 */
-+	high_pfn = min(low_pfn, pfn);
- 
--	/* Do not cross the free scanner or scan within a memory hole */
--	if (end_pfn > cc->free_pfn || !pfn_valid(low_pfn)) {
--		cc->migrate_pfn = end_pfn;
--		return ISOLATE_NONE;
--	}
-+	zone_end_pfn = zone->zone_start_pfn + zone->spanned_pages;
- 
--	/* Perform the isolation */
--	low_pfn = isolate_migratepages_range(zone, cc, low_pfn, end_pfn);
--	if (!low_pfn)
--		return ISOLATE_ABORT;
-+	/*
-+	 * Isolate free pages until enough are available to migrate the
-+	 * pages on cc->migratepages. We stop searching if the migrate
-+	 * and free page scanners meet or enough free pages are isolated.
-+	 */
-+	for (; pfn > low_pfn && cc->nr_migratepages > nr_freepages;
-+					pfn -= pageblock_nr_pages) {
-+		unsigned long isolated;
- 
--	cc->migrate_pfn = low_pfn;
-+		if (!pfn_valid(pfn))
-+			continue;
- 
--	return ISOLATE_SUCCESS;
-+		/*
-+		 * Check for overlapping nodes/zones. It's possible on some
-+		 * configurations to have a setup like
-+		 * node0 node1 node0
-+		 * i.e. it's possible that all pages within a zones range of
-+		 * pages do not belong to a single zone.
-+		 */
-+		page = pfn_to_page(pfn);
-+		if (page_zone(page) != zone)
-+			continue;
-+
-+		/* Check the block is suitable for migration */
-+		if (!suitable_migration_target(page))
-+			continue;
-+
-+		/*
-+		 * Found a block suitable for isolating free pages from. Now
-+		 * we disabled interrupts, double check things are ok and
-+		 * isolate the pages. This is to minimise the time IRQs
-+		 * are disabled
-+		 */
-+		isolated = 0;
-+		spin_lock_irqsave(&zone->lock, flags);
-+		if (suitable_migration_target(page)) {
-+			end_pfn = min(pfn + pageblock_nr_pages, zone_end_pfn);
-+			isolated = isolate_freepages_block(pfn, end_pfn,
-+							   freelist, false);
-+			nr_freepages += isolated;
-+		}
-+		spin_unlock_irqrestore(&zone->lock, flags);
-+
-+		/*
-+		 * Record the highest PFN we isolated pages from. When next
-+		 * looking for free pages, the search will restart here as
-+		 * page migration may have returned some pages to the allocator
-+		 */
-+		if (isolated)
-+			high_pfn = max(high_pfn, pfn);
-+	}
-+
-+	/* split_free_page does not map the pages */
-+	map_pages(freelist);
-+
-+	cc->free_pfn = high_pfn;
-+	cc->nr_freepages = nr_freepages;
- }
- 
- /*
-@@ -564,6 +510,44 @@ static void update_nr_listpages(struct compact_control *cc)
- 	cc->nr_freepages = nr_freepages;
- }
- 
-+/* possible outcome of isolate_migratepages */
-+typedef enum {
-+	ISOLATE_ABORT,		/* Abort compaction now */
-+	ISOLATE_NONE,		/* No pages isolated, continue scanning */
-+	ISOLATE_SUCCESS,	/* Pages isolated, migrate */
-+} isolate_migrate_t;
-+
-+/*
-+ * Isolate all pages that can be migrated from the block pointed to by
-+ * the migrate scanner within compact_control.
-+ */
-+static isolate_migrate_t isolate_migratepages(struct zone *zone,
-+					struct compact_control *cc)
-+{
-+	unsigned long low_pfn, end_pfn;
-+
-+	/* Do not scan outside zone boundaries */
-+	low_pfn = max(cc->migrate_pfn, zone->zone_start_pfn);
-+
-+	/* Only scan within a pageblock boundary */
-+	end_pfn = ALIGN(low_pfn + pageblock_nr_pages, pageblock_nr_pages);
-+
-+	/* Do not cross the free scanner or scan within a memory hole */
-+	if (end_pfn > cc->free_pfn || !pfn_valid(low_pfn)) {
-+		cc->migrate_pfn = end_pfn;
-+		return ISOLATE_NONE;
-+	}
-+
-+	/* Perform the isolation */
-+	low_pfn = isolate_migratepages_range(zone, cc, low_pfn, end_pfn);
-+	if (!low_pfn)
-+		return ISOLATE_ABORT;
-+
-+	cc->migrate_pfn = low_pfn;
-+
-+	return ISOLATE_SUCCESS;
-+}
-+
- static int compact_finished(struct zone *zone,
- 			    struct compact_control *cc)
- {
-@@ -910,3 +894,5 @@ void compaction_unregister_node(struct node *node)
- 	return device_remove_file(&node->dev, &dev_attr_compact);
- }
- #endif /* CONFIG_SYSFS && CONFIG_NUMA */
-+
-+#endif /* CONFIG_COMPACTION */
-diff --git a/mm/internal.h b/mm/internal.h
-index 2189af4..aee4761 100644
---- a/mm/internal.h
-+++ b/mm/internal.h
-@@ -100,6 +100,39 @@ extern void prep_compound_page(struct page *page, unsigned long order);
- extern bool is_free_buddy_page(struct page *page);
- #endif
- 
-+#if defined CONFIG_COMPACTION || defined CONFIG_CMA
-+
-+/*
-+ * in mm/compaction.c
-+ */
-+/*
-+ * compact_control is used to track pages being migrated and the free pages
-+ * they are being migrated to during memory compaction. The free_pfn starts
-+ * at the end of a zone and migrate_pfn begins at the start. Movable pages
-+ * are moved to the end of a zone during a compaction run and the run
-+ * completes when free_pfn <= migrate_pfn
-+ */
-+struct compact_control {
-+	struct list_head freepages;	/* List of free pages to migrate to */
-+	struct list_head migratepages;	/* List of pages being migrated */
-+	unsigned long nr_freepages;	/* Number of isolated free pages */
-+	unsigned long nr_migratepages;	/* Number of pages to migrate */
-+	unsigned long free_pfn;		/* isolate_freepages search base */
-+	unsigned long migrate_pfn;	/* isolate_migratepages search base */
-+	bool sync;			/* Synchronous migration */
-+
-+	int order;			/* order a direct compactor needs */
-+	int migratetype;		/* MOVABLE, RECLAIMABLE etc */
-+	struct zone *zone;
-+};
-+
-+unsigned long
-+isolate_freepages_range(unsigned long start_pfn, unsigned long end_pfn);
-+unsigned long
-+isolate_migratepages_range(struct zone *zone, struct compact_control *cc,
-+			   unsigned long low_pfn, unsigned long end_pfn);
-+
-+#endif
- 
- /*
-  * function for dealing with page's order in buddy system.
+No, that's fine. I just found it funny that the format could be "simply bad" 
+:-)
+
+[snip]
+
+> > > +	if (embedded_start == -1 || embedded_end == -1)
+> > > +		embedded_start = embedded_end = 0;
+> > 
+> > One assignment per line please.
+> 
+> I'm not sure if you gain any clarity with that, but I guess it's a norm
+> still. Fixed.
+
+It's very easy to miss one of the assignments if you group them in a single 
+line.Or at least it is for me.
+
+[snip]
+
+> > > +	case V4L2_CID_VBLANK:
+> > > +		exposure = sensor->exposure->val;
+> > > +
+> > > +		__smiapp_update_exposure_limits(sensor);
+> > > +
+> > > +		if (exposure > sensor->exposure->maximum) {
+> > > +			sensor->exposure->val =
+> > > +				sensor->exposure->maximum;
+> > > +			rval = smiapp_set_ctrl(
+> > > +				sensor->exposure);
+> > 
+> > Shouldn't you call the V4L2 control API here instead ? Otherwise no
+> > control change event will be generated for the exposure time. Will this
+> > work as expected if the user sets the exposure time in the same
+> > VIDIOC_S_EXT_CTRLS call ?
+> 
+> Good question. I'm holding the ctrl handler lock here and so can't use the
+> regular functions to perform the change. Perhaps time to implement
+> __v4l2_subdev_s_ext_ctrls() and use that?
+
+Do you mean __v4l2_ctrl_s_ctrl() ? I think it would make sense, yes.
+
+> > > +	if (sensor->pixel_array->ctrl_handler.error) {
+> > > +		dev_err(&client->dev,
+> > > +			"pixel array controls initialization failed (%d)\n",
+> > > +			sensor->pixel_array->ctrl_handler.error);
+> > 
+> > Shouldn't you call v4l2_ctrl_handler_free() here ?
+> 
+> Yes. Fixed.
+> 
+> > > +		return sensor->pixel_array->ctrl_handler.error;
+> > > +	}
+> > > +
+> > > +	sensor->pixel_array->sd.ctrl_handler =
+> > > +		&sensor->pixel_array->ctrl_handler;
+> > > +
+> > > +	v4l2_ctrl_cluster(2, &sensor->hflip);
+> > 
+> > Shouldn't you move this before the control handler check ?
+> 
+> Why? It can't fail.
+
+I thought it could fail. You could then leave it here, but it would be easier 
+from a maintenance point of view to check the error code after completing all 
+control-related initialization, as it would avoid introducing a bug if for 
+some reason the v4l2_ctrl_cluster() function needs to return an error later.
+
+[snip]
+
+> > > +static int smiapp_update_mode(struct smiapp_sensor *sensor)
+> > > +{
+> > 
+> > This function isn't protected by the sensor mutex when called from
+> > s_power, but it changes controls. The other call paths seem OK, but you
+> > might want to double-check them.
+> 
+> It's actually not an issue. When s_power is being called there are no other
+> users and the power_lock serialises it.
+
+Are you sure about that? s_power can be called from both the subdev video node 
+open() handlers (assuming the sensor is in the pipe).
+
+> I implemented it this way since the control setup acquires the same lock
+> that I would have to hold while powering up. The power_lock fixes this
+> issue.
+> 
+> I cleaned this up so that I won't take sensor->mutex at all anymore.
+
+[snip]
+
+> > > +	dev_dbg(&client->dev, "module 0x%2.2x-0x%4.4x\n",
+> > 
+> > "module 0x%02x-0x%04x\n" (and similarly below) ?
+> 
+> Hmm. %y.yx means exactly y characters of %x. What does %0yx mean?
+
+at least y characters, pad with 0. You can keep %y.yx if you prefer it.
+
+> > > +		minfo->manufacturer_id, minfo->model_id);
+> > > +
+> > > +	dev_dbg(&client->dev,
+> > > +		"module revision 0x%2.2x-0x%2.2x date %2.2d-%2.2d-%2.2d\n",
+> > > +		minfo->revision_number_major, minfo->revision_number_minor,
+> > > +		minfo->module_year, minfo->module_month, minfo->module_day);
+> > > +
+> > > +	dev_dbg(&client->dev, "sensor 0x%2.2x-0x%4.4x\n",
+> > > +		minfo->sensor_manufacturer_id, minfo->sensor_model_id);
+> > > +
+> > > +	dev_dbg(&client->dev,
+> > > +		"sensor revision 0x%2.2x firmware version 0x%2.2x\n",
+> > > +		minfo->sensor_revision_number, minfo->sensor_firmware_version);
+> > > +
+> > > +	dev_dbg(&client->dev, "smia version %2.2d smiapp version %2.2d\n",
+> > > +		minfo->smia_version, minfo->smiapp_version);
+> > > +
+> > 
+> > Could you please add a short comment to explain why this is needed ?
+> 
+> The one below?
+
+Yes, the lines below, sorry.
+
+> Some devices just have bad data in these variables. Hopefully the other
+> variables have better stuff.
+
+I knew why this was needed, but other readers might not :-) That's why a 
+comment would be good.
+
+> The lvalues are module parameters whereas the rvalues are sensor parameters.
+>
+> > > +	if (!minfo->manufacturer_id && !minfo->model_id) {
+> > > +		minfo->manufacturer_id = minfo->sensor_manufacturer_id;
+> > > +		minfo->model_id = minfo->sensor_model_id;
+> > > +		minfo->revision_number_major = minfo->sensor_revision_number;
+> > > +	}
+> > > +
+> > > +	for (i = 0; i < ARRAY_SIZE(smiapp_module_idents); i++) {
+> > > +		if (smiapp_module_idents[i].manufacturer_id
+> > > +		    != minfo->manufacturer_id)
+> > > +			continue;
+> > > +		if (smiapp_module_idents[i].model_id != minfo->model_id)
+> > > +			continue;
+> > > +		if (smiapp_module_idents[i].flags
+> > > +		    & SMIAPP_MODULE_IDENT_FLAG_REV_LE) {
+> > > +			if (smiapp_module_idents[i].revision_number_major
+> > > +			    < minfo->revision_number_major)
+> > > +				continue;
+> > > +		} else {
+> > > +			if (smiapp_module_idents[i].revision_number_major
+> > > +			    != minfo->revision_number_major)
+> > > +				continue;
+> > > +		}
+> > > +
+> > > +		minfo->name = smiapp_module_idents[i].name;
+> > > +		minfo->quirk = smiapp_module_idents[i].quirk;
+> > > +		break;
+> > > +	}
+> > > +
+> > > +	if (i >= ARRAY_SIZE(smiapp_module_idents))
+> > > +		dev_warn(&client->dev, "no quirks for this module\n");
+> > 
+> > Maybe a message such as "unknown SMIA++ module - trying generic support"
+> > would be better ? Many of the known modules have no quirks.
+> 
+> I'd like to think it as a positive message of the conformance of the sensor
+> --- still it may inform that the quirks are actually missing. What do you
+> think?
+
+In that case I think something similar to my message is better :-) I agree 
+about the meaning the message should convey.
+
+> > > +
+> > > +	dev_dbg(&client->dev, "the sensor is called %s, ident
+> > > %2.2x%4.4x%2.2x\n",
+> > > +		minfo->name, minfo->manufacturer_id, minfo->model_id,
+> > > +		minfo->revision_number_major);
+> > > +
+> > > +	strlcpy(subdev->name, sensor->minfo.name, sizeof(subdev->name));
+> > > +
+> > > +	return 0;
+> > > +}
+
+[snip]
+
+> > > +static int smiapp_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh
+> > > *fh)
+> > > +{
+> > > +	struct smiapp_subdev *ssd = to_smiapp_subdev(sd);
+> > > +	struct v4l2_subdev_selection sel;
+> > > +	struct v4l2_rect *try_sel;
+> > > +	int i;
+> > > +	int rval;
+> > > +
+> > > +	mutex_lock(&ssd->sensor->power_mutex);
+> > > +	mutex_lock(&ssd->sensor->mutex);
+> > > +
+> > > +	for (i = 0; i < ssd->npads; i++) {
+> > > +		struct v4l2_subdev_format fmt;
+> > > +		struct v4l2_mbus_framefmt *try_fmt;
+> > > +
+> > > +		fmt.which = V4L2_SUBDEV_FORMAT_ACTIVE;
+> > > +		fmt.pad = i;
+> > > +		__smiapp_get_format(sd, fh, &fmt);
+> > > +		try_fmt = v4l2_subdev_get_try_format(fh, i);
+> > > +		*try_fmt = fmt.format;
+> > > +
+> > > +		sel.which = V4L2_SUBDEV_FORMAT_ACTIVE;
+> > > +		sel.pad = i;
+> > > +		sel.target = V4L2_SUBDEV_SEL_TGT_CROP_ACTIVE;
+> > > +		__smiapp_get_selection(sd, fh, &sel);
+> > > +		try_sel = v4l2_subdev_get_try_crop(fh, i);
+> > > +		*try_sel = sel.r;
+> > 
+> > Wouldn't it be better to use the default values instead of the active ones
+> > here ?
+> 
+> Good question.
+> 
+> > > +	}
+> > > +
+> > > +	if (ssd != ssd->sensor->pixel_array) {
+> > > +		sel.which = V4L2_SUBDEV_FORMAT_ACTIVE;
+> > > +		sel.pad = SMIAPP_PAD_SINK;
+> > > +		sel.target = V4L2_SUBDEV_SEL_TGT_COMPOSE_ACTIVE;
+> > > +		__smiapp_get_selection(sd, fh, &sel);
+> > > +		try_sel = v4l2_subdev_get_try_compose(fh, SMIAPP_PAD_SINK);
+> > > +		*try_sel = sel.r;
+> > > +	}
+> > > +
+> > > +	rval = smiapp_set_power(sd, 1);
+> > > +
+> > > +	mutex_unlock(&ssd->sensor->mutex);
+> > > +
+> > > +	if (rval < 0)
+> > > +		goto out;
+> > > +
+> > > +	/* Was the sensor already powered on? */
+> > > +	if (ssd->sensor->power_count > 1)
+> > 
+> > power_count is accessed in smiapp_set_power without taking the power_mutex
+> > lock. Are two locks really needed ?
+> 
+> Well, now that you mention it, control handler setup function that wouldn't
+> take the locks would resolve the issue, I think. Should I create one?
+
+I'd ask Hans about that.
+
+[snip]
+
+> > > --git a/drivers/media/video/smiapp/smiapp-reg.h
+> > > b/drivers/media/video/smiapp/smiapp-reg.h new file mode 100644
+> > > index 0000000..126ca5b
+> > > --- /dev/null
+> > > +++ b/drivers/media/video/smiapp/smiapp-reg.h
+> > 
+> > [snip]
+> > 
+> > > +#define SMIAPP_SCALING_CAPABILITY_NONE			0
+> > > +#define SMIAPP_SCALING_CAPABILITY_HORIZONTAL		1
+> > > +#define SMIAPP_SCALING_CAPABILITY_BOTH			2 /* horizontal/both */
+> > 
+> > Do you mean horizontal/vertical ?
+> 
+> No. The BOTH capability means that either horizontal or (horizontal and
+> vertical) scaling is supported (parentheses for precedence).
+
+I was referring to the comment on the third line.
+
+[snip]
+
+> > > +static uint32_t float_to_u32_mul_1000000(struct i2c_client *client,
+> > > +					 uint32_t phloat)
+> > 
+> > Now that's creative :-)
+> 
+> I couldn't figure out a way to avoid that, unfortunately. There are a few
+> corresponding functions in math emulation libraries but it seems onethey
+> would require significant changes to be usable for this driver.
+
+I should have been more specific, I was referring to the name 'phloat' :-)
+
+[snip]
+
+> > > diff --git a/drivers/media/video/smiapp/smiapp.h
+> > > b/drivers/media/video/smiapp/smiapp.h new file mode 100644
+> > > index 0000000..df514dd
+> > > --- /dev/null
+> > > +++ b/drivers/media/video/smiapp/smiapp.h
+> > 
+> > [snip]
+> > 
+> > > +struct smiapp_module_ident {
+> > > +	u8 manufacturer_id;
+> > > +	u16 model_id;
+> > > +	u8 revision_number_major;
+> > > +
+> > > +	u8 flags;
+> > > +
+> > > +	char *name;
+> > > +	const struct smiapp_quirk *quirk;
+> > > +} __packed;
+> > 
+> > Is there really a need to pack this ? You could just move
+> > revision_number_major above model_id to save a couple of bytes and leave
+> > packing out.
+> 
+> The order is there for readability, packing to save memory. I can change the
+> order, too, if you think it's a good idea.
+
+Packing usually increases the run time (and possibly code size), as the CPU 
+will need to perform unaligned access. I don't think it's worth it in this 
+case. At second thought moving the fields around won't save any memory, so I 
+would just remove __packed.
+
+> > > +#define SMIAPP_IDENT_FQ(manufacturer, model, rev, fl, _name, _quirk)	
+\
+> > > +	{ .manufacturer_id = manufacturer,				\
+> > > +			.model_id = model,				\
+> > > +			.revision_number_major = rev,			\
+> > > +			.flags = fl,					\
+> > > +			.name = _name,					\
+> > > +			.quirk = _quirk, }
+> > 
+> > Any reason for the strange indentation ?
+> 
+> This is standard indentation in my Emacsitor. Hmm. I think I might be fine
+> even if it indented less. It looks like it wouldn't be indended to work that
+> way.
+
+Maybe it's time to switch to vi ? :-D
+
 -- 
-1.7.1.569.g6f426
+Regards,
+
+Laurent Pinchart
 
