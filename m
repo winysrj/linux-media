@@ -1,78 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:35359 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752535Ab2CNP37 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Mar 2012 11:29:59 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Vaibhav Hiremath <hvaibhav@ti.com>
-Cc: linux-media@vger.kernel.org, mchehab@infradead.org, archit@ti.com,
-	linux-omap@vger.kernel.org
-Subject: Re: [PATCH] omap_vout: Fix "DMA transaction error" issue when rotation is enabled
-Date: Wed, 14 Mar 2012 16:30:25 +0100
-Message-ID: <2410737.F7OP3MWonz@avalon>
-In-Reply-To: <1331295117-489-1-git-send-email-hvaibhav@ti.com>
-References: <1331295117-489-1-git-send-email-hvaibhav@ti.com>
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:52977 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750713Ab2CAX0c (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Mar 2012 18:26:32 -0500
+Received: by eaaq12 with SMTP id q12so417774eaa.19
+        for <linux-media@vger.kernel.org>; Thu, 01 Mar 2012 15:26:30 -0800 (PST)
+Message-ID: <4F5005A3.9060503@gmail.com>
+Date: Fri, 02 Mar 2012 00:26:27 +0100
+From: Sylwester Nawrocki <snjw23@gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media@vger.kernel.org, Sakari Ailus <sakari.ailus@iki.fi>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Subject: Re: [PATCH/RFC][DRAFT] V4L: Add camera auto focus controls
+References: <1326749622-11446-1-git-send-email-sylvester.nawrocki@gmail.com> <4F4A6493.1080004@gmail.com> <1441235.tcAt0gpJAF@avalon>
+In-Reply-To: <1441235.tcAt0gpJAF@avalon>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Vaibhav,
+Hi Laurent,
 
-On Friday 09 March 2012 17:41:57 Vaibhav Hiremath wrote:
-> When rotation is enabled and driver is configured in USERPTR
-> buffer exchange mechanism, in specific use-case driver reports
-> an error,
->    "DMA transaction error with device 0".
-> 
-> In driver _buffer_prepare funtion, we were using
-> "vout->buf_phy_addr[vb->i]" for buffer physical address to
-> configure SDMA channel, but this variable does get updated
-> only during init.
-> And the issue will occur when driver allocates less number
-> of buffers during init and application requests more buffers
-> through REQBUF ioctl; this variable will lead to invalid
-> configuration of SDMA channel leading to DMA transaction error.
-> 
-> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-> ---
-> Archit/Laurent,
-> Can you help me to validate this patch on your platform/usecase?
+On 03/01/2012 11:30 PM, Laurent Pinchart wrote:
+> One option would be to disable the focus area control when the focus distance
+> is set to a value different than normal (or the other way around). Control
+> change events could be used to report that to userspace. Would that work with
+> your hardware ?
 
-I've tested the patch by rotating the omap_vout overlay by 90 degrees and 
-starting a video stream with 4 buffers. There's no crash, but the kernel 
-prints
+What would work, would be disabling the focus distance control when the focus 
+area is set to a value different than "all".
 
-[77.877807] omapdss DISPC error: FIFO UNDERFLOW on gfx, disabling the overlay
-[77.928344] omapdss DISPC error: FIFO UNDERFLOW on vid1, disabling the overlay
+I have also been considering adding an extra menu entry for the focus distance 
+control, indicating some "neutral" state, but disabling the other control
+sounds like a better idea. I couldn't find anything reasonable, as there was 
+already the focus distance "normal" menu entry.
 
-The same problem occurs with 3 buffers, which is what the omap_vout driver 
-allocates by default.
+Then, after the focus are is set to, for instance, "spot", transition to 
+the focus distance "macro" would be only possible through focus area "all"
+(where the focus distance is enabled again). I guess it's acceptable.
 
-Without your patch applied I get the same behaviour. Is my test procedure 
-wrong ?
+It's only getting a bit harder for applications to present a single list 
+of the focus modes to the user, since they would, for instance, grey out 
+the entries corresponding to disabled control. It shouldn't be a big deal 
+though.
 
->  drivers/media/video/omap/omap_vout_vrfb.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/media/video/omap/omap_vout_vrfb.c
-> b/drivers/media/video/omap/omap_vout_vrfb.c index 4be26ab..240d36d 100644
-> --- a/drivers/media/video/omap/omap_vout_vrfb.c
-> +++ b/drivers/media/video/omap/omap_vout_vrfb.c
-> @@ -225,7 +225,7 @@ int omap_vout_prepare_vrfb(struct omap_vout_device
-> *vout, if (!is_rotation_enabled(vout))
->  		return 0;
-> 
-> -	dmabuf = vout->buf_phy_addr[vb->i];
-> +	dmabuf = (dma_addr_t) vout->queued_buf_addr[vb->i];
->  	/* If rotation is enabled, copy input buffer into VRFB
->  	 * memory space using DMA. We are copying input buffer
->  	 * into VRFB memory space of desired angle and DSS will
 
--- 
+--
 Regards,
-
-Laurent Pinchart
-
+Sylwester
