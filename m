@@ -1,58 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cassarossa.samfundet.no ([129.241.93.19]:60969 "EHLO
-	cassarossa.samfundet.no" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757105Ab2CBXVl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Mar 2012 18:21:41 -0500
-Received: from pannekake.samfundet.no ([2001:700:300:1800::dddd] ident=unknown)
-	by cassarossa.samfundet.no with esmtps (TLS1.0:RSA_AES_256_CBC_SHA1:32)
-	(Exim 4.72)
-	(envelope-from <sesse@samfundet.no>)
-	id 1S3bn7-0002OH-B3
-	for linux-media@vger.kernel.org; Sat, 03 Mar 2012 00:21:37 +0100
-Received: from sesse by pannekake.samfundet.no with local (Exim 4.72)
-	(envelope-from <sesse@samfundet.no>)
-	id 1S3bn7-0002J7-1i
-	for linux-media@vger.kernel.org; Sat, 03 Mar 2012 00:21:37 +0100
-Date: Sat, 3 Mar 2012 00:21:37 +0100
-From: "Steinar H. Gunderson" <sgunderson@bigfoot.com>
-To: linux-media@vger.kernel.org
-Subject: Re: [PATCH] Various nits, fixes and hacks for mantis CA support on
- SMP
-Message-ID: <20120302232136.GB31447@uio.no>
-References: <20120228010330.GA25786@uio.no>
- <4F514CCB.8020502@kolumbus.fi>
+Received: from mail-wi0-f174.google.com ([209.85.212.174]:37765 "EHLO
+	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756035Ab2CAUjf convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Mar 2012 15:39:35 -0500
+Received: by wibhm2 with SMTP id hm2so195599wib.19
+        for <linux-media@vger.kernel.org>; Thu, 01 Mar 2012 12:39:34 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <4F514CCB.8020502@kolumbus.fi>
+In-Reply-To: <CAKdnbx6P=MhCV+aoUxeFEdWCseeJSfAd2UgjhZJHjRNA7NtGog@mail.gmail.com>
+References: <CAKdnbx4Vhj5ZoArOssETJQFbM0YxSfSoU62ybSK3J+cMX9irSA@mail.gmail.com>
+ <4F4F4B9B.7090705@redhat.com> <CAKdnbx6P=MhCV+aoUxeFEdWCseeJSfAd2UgjhZJHjRNA7NtGog@mail.gmail.com>
+From: Eddi De Pieri <eddi@depieri.net>
+Date: Thu, 1 Mar 2012 21:39:14 +0100
+Message-ID: <CAKdnbx50bPzgF5o5a_N-WtmnQJWiv-NmEPq7ajjUn==g06rcWg@mail.gmail.com>
+Subject: Re: possible bug in http://git.linuxtv.org/mchehab/experimental-v4l-utils.git
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Mar 03, 2012 at 12:42:19AM +0200, Marko Ristola wrote:
-> I'm not happy with I2CDONE busy looping either.
-> I've tried twice lately to swith into I2C IRQ, but those patches have caused I2CDONE timeouts.
+Hi Mauro,
 
-Note that there are already timeouts with the current polling code, but they
-are ignored (my patch makes them at least be printed with verbose=5). I can't
-immediately recall if it's on RACK, DONE or both.
+> I've aplied the dvb code at the main v4l-utils tree some time ago. Since then,
+> I'm applying the fixes directly there. So, please check if the issue you're pointing
+> weren't fix yet there. If not, please send me a patch.
 
-> Do my following I2C logic thoughts make any sense?
+The code is still unchanged.
 
-Well, note first of all that I know next to nothing about I2C, and I've never
-seen any hardware documentation on the Mantis card (is there any?). But
-generally it makes sense to me, except that I've never heard of the demand of
-radio silence for 10 ms before.
+I prefere you double check my suggested patch below since I don't
+fully understand your code.
 
-> There might be race conditions, that the driver possibly manages:
-> 1. If two threads talk into DVB frontend, one could turn off the I2C gate, while the other is talking to DVB frontend.
->    This would case lack of I2CRACK: only way to recover would be to turn
->    the I2C gate on, and then redo the I2C transfer.
+However sound strange to me that you compute "bw" value and then you
+overwrite it.
 
-Note that I've tried putting mutexes around the I2C functions, and it didn't
-help on the I2C timeouts; however, that was largely on a single-character
-level, so it might not be enough. (You can see these mutexes being commented
-out in my patch.)
 
-/* Steinar */
--- 
-Homepage: http://www.sesse.net/
+> I suspect a bug in follow code:
+>
+>                 for (bw = 0; fe_bandwidth_name[bw] != 0; bw++) {
+>                         if (fe_bandwidth_name[bw] == v3_parms.u.ofdm.bandwidth)
+>                                 break;
+>                 }
+>                 dvb_fe_retrieve_parm(parms, DTV_BANDWIDTH_HZ, &bw);
+>
+> I think should be something like:
+>
+>                 int bw_idx;
+>
+>                 dvb_fe_retrieve_parm(parms, DTV_BANDWIDTH_HZ, &bw);
+>
+>                 for (bw_idx = 0; fe_bandwidth_name[bw_idx] != 0; bw_idx++) {
+>                         if (fe_bandwidth_name[bw_idx] == bw) {
+>                                 v3_parms.u.ofdm.bandwidth = bw;
+>                                 break;
+>                         }
+>                 }
+
+Regards,
+Eddi
