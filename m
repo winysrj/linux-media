@@ -1,224 +1,150 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:50954 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754474Ab2CDPTl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 4 Mar 2012 10:19:41 -0500
-Date: Sun, 4 Mar 2012 17:19:36 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Manjunath Hadli <manjunath.hadli@ti.com>
-Cc: LMML <linux-media@vger.kernel.org>,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH v3 2/2] v4l2: add new pixel formats supported on dm365
-Message-ID: <20120304151935.GA879@valkosipuli.localdomain>
-References: <1328609114-5487-1-git-send-email-manjunath.hadli@ti.com>
- <1328609114-5487-3-git-send-email-manjunath.hadli@ti.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:44609 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754433Ab2CAO4U (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Mar 2012 09:56:20 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
+	teturtia@gmail.com, dacohen@gmail.com, snjw23@gmail.com,
+	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
+	tuukkat76@gmail.com, k.debski@gmail.com, riverful@gmail.com
+Subject: Re: [PATCH v3 32/33] smiapp: Add driver.
+Date: Thu, 01 Mar 2012 15:56:35 +0100
+Message-ID: <2004080.2hxX8IoNUT@avalon>
+In-Reply-To: <4F4F8143.8000909@iki.fi>
+References: <20120220015605.GI7784@valkosipuli.localdomain> <3598400.2MKjxpiZx5@avalon> <4F4F8143.8000909@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1328609114-5487-3-git-send-email-manjunath.hadli@ti.com>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Manju,
+Hi Sakari,
 
-Thanks for the patch.
+On Thursday 01 March 2012 16:01:39 Sakari Ailus wrote:
+> Laurent Pinchart wrote:
 
-On Tue, Feb 07, 2012 at 03:35:14PM +0530, Manjunath Hadli wrote:
-> add new macro V4L2_PIX_FMT_SGRBG10ALAW8 and associated formats
-> to represent Bayer format frames compressed by A-LAW algorithm,
-> add V4L2_PIX_FMT_UV8 to represent storage of C data (UV interleaved)
-> only.
+[snip]
+
+> >>>> +		return sensor->pixel_array->ctrl_handler.error;
+> >>>> +	}
+> >>>> +
+> >>>> +	sensor->pixel_array->sd.ctrl_handler =
+> >>>> +		&sensor->pixel_array->ctrl_handler;
+> >>>> +
+> >>>> +	v4l2_ctrl_cluster(2, &sensor->hflip);
+> >>> 
+> >>> Shouldn't you move this before the control handler check ?
+> >> 
+> >> Why? It can't fail.
+> > 
+> > I thought it could fail. You could then leave it here, but it would be
+> > easier from a maintenance point of view to check the error code after
+> > completing all control-related initialization, as it would avoid
+> > introducing a bug if for some reason the v4l2_ctrl_cluster() function
+> > needs to return an error later.
+> Then every other driver must also take that into account. And as
+> Sylwester said, there are things to check before that as well.
 > 
-> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> ---
->  .../DocBook/media/v4l/pixfmt-srggb10alaw8.xml      |   34 +++++++++++
->  Documentation/DocBook/media/v4l/pixfmt-uv8.xml     |   62 ++++++++++++++++++++
->  Documentation/DocBook/media/v4l/pixfmt.xml         |    2 +
->  include/linux/videodev2.h                          |    9 +++
->  4 files changed, 107 insertions(+), 0 deletions(-)
->  create mode 100644 Documentation/DocBook/media/v4l/pixfmt-srggb10alaw8.xml
->  create mode 100644 Documentation/DocBook/media/v4l/pixfmt-uv8.xml
+> So I could also re-check the control handler error status after the
+> function but currently it doesn't look like it would make sense.
+
+Sylwester made a very good point. Let's leave the code as-is.
+
+[snip]
+
+> >> The lvalues are module parameters whereas the rvalues are sensor
+> >> parameters.>> 
+> >>>> +	if (!minfo->manufacturer_id && !minfo->model_id) {
+> >>>> +		minfo->manufacturer_id = minfo->sensor_manufacturer_id;
+> >>>> +		minfo->model_id = minfo->sensor_model_id;
+> >>>> +		minfo->revision_number_major = minfo->sensor_revision_number;
+> >>>> +	}
+> >>>> +
+> >>>> +	for (i = 0; i < ARRAY_SIZE(smiapp_module_idents); i++) {
+> >>>> +		if (smiapp_module_idents[i].manufacturer_id
+> >>>> +		    != minfo->manufacturer_id)
+> >>>> +			continue;
+> >>>> +		if (smiapp_module_idents[i].model_id != minfo->model_id)
+> >>>> +			continue;
+> >>>> +		if (smiapp_module_idents[i].flags
+> >>>> +		    & SMIAPP_MODULE_IDENT_FLAG_REV_LE) {
+> >>>> +			if (smiapp_module_idents[i].revision_number_major
+> >>>> +			    < minfo->revision_number_major)
+> >>>> +				continue;
+> >>>> +		} else {
+> >>>> +			if (smiapp_module_idents[i].revision_number_major
+> >>>> +			    != minfo->revision_number_major)
+> >>>> +				continue;
+> >>>> +		}
+> >>>> +
+> >>>> +		minfo->name = smiapp_module_idents[i].name;
+> >>>> +		minfo->quirk = smiapp_module_idents[i].quirk;
+> >>>> +		break;
+> >>>> +	}
+> >>>> +
+> >>>> +	if (i >= ARRAY_SIZE(smiapp_module_idents))
+> >>>> +		dev_warn(&client->dev, "no quirks for this module\n");
+> >>> 
+> >>> Maybe a message such as "unknown SMIA++ module - trying generic support"
+> >>> would be better ? Many of the known modules have no quirks.
+> >> 
+> >> I'd like to think it as a positive message of the conformance of the
+> >> sensor
+> >> --- still it may inform that the quirks are actually missing. What do you
+> >> think?
+> > 
+> > In that case I think something similar to my message is better :-) I agree
+> > about the meaning the message should convey.
 > 
-> diff --git a/Documentation/DocBook/media/v4l/pixfmt-srggb10alaw8.xml b/Documentation/DocBook/media/v4l/pixfmt-srggb10alaw8.xml
-> new file mode 100644
-> index 0000000..b20f525
-> --- /dev/null
-> +++ b/Documentation/DocBook/media/v4l/pixfmt-srggb10alaw8.xml
-> @@ -0,0 +1,34 @@
-> +	<refentry>
-> +	  <refmeta>
-> +	    <refentrytitle>
-> +	      V4L2_PIX_FMT_SRGGB10ALAW8 ('aRA8'),
-> +	      V4L2_PIX_FMT_SGBRG10ALAW8 ('aGA8'),
-> +	      V4L2_PIX_FMT_SGRBG10ALAW8 ('agA8'),
-> +	      V4L2_PIX_FMT_SBGGR10ALAW8 ('aBA8'),
-> +	    </refentrytitle>
-> +	    &manvol;
-> +	  </refmeta>
-> +	  <refnamediv>
-> +	    <refname id="V4L2-PIX-FMT-SRGGB10ALAW8">
-> +	      <constant>V4L2_PIX_FMT_SRGGB10ALAW8</constant>
-> +	    </refname>
-> +	    <refname id="V4L2-PIX-FMT-SGRBG10ALAW8">
-> +	      <constant>V4L2_PIX_FMT_SGRBG10ALAW8</constant>
-> +	    </refname>
-> +	    <refname id="V4L2-PIX-FMT-SGBRG10ALAW8">
-> +	      <constant>V4L2_PIX_FMT_SGBRG10ALAW8</constant>
-> +	    </refname>
+> I understand from your message that the sensor should have quirks and
+> the fact they're missing is a fall-back solution. :-)
 
-The order here is different than earlier.
+Just use any message you want that says that the sensor model isn't known to 
+the driver, but should still work as it's supposed to be standard-compliant 
+:-)
 
-> +	    <refname id="V4L2-PIX-FMT-SBGGR10ALAW8">
-> +	      <constant>V4L2_PIX_FMT_SBGGR10ALAW8</constant>
-> +	    </refname>
-> +	    <refpurpose>10-bit Bayer formats compressed to 8 bits</refpurpose>
-> +	  </refnamediv>
-> +	  <refsect1>
-> +	    <title>Description</title>
-> +	    <para>The following four pixel formats are raw sRGB / Bayer
-> +	    formats with 10 bits per colour compressed to 8 bits each,
-> +	    using the A-LAW algorithm. Each colour component consumes 8
-> +	    bits of memory. In other respects this format is similar to
-> +	    <xref linkend="V4L2-PIX-FMT-SRGGB8">.</xref></para>
-> +	  </refsect1>
-> +	</refentry>
-> diff --git a/Documentation/DocBook/media/v4l/pixfmt-uv8.xml b/Documentation/DocBook/media/v4l/pixfmt-uv8.xml
-> new file mode 100644
-> index 0000000..e3e6b11
-> --- /dev/null
-> +++ b/Documentation/DocBook/media/v4l/pixfmt-uv8.xml
-> @@ -0,0 +1,62 @@
-> +	<refentry id="V4L2-PIX-FMT-UV8">
-> +	  <refmeta>
-> +	    <refentrytitle>V4L2_PIX_FMT_UV8  ('UV8')</refentrytitle>
-> +	    &manvol;
-> +	  </refmeta>
-> +	  <refnamediv>
-> +	    <refname><constant>V4L2_PIX_FMT_UV8</constant></refname>
-> +	    <refpurpose>UV plane interleaved</refpurpose>
-> +	  </refnamediv>
-> +	  <refsect1>
-> +	    <title>Description</title>
-> +	    <para>In this format there is no Y plane, Only C plane. ie
-> +	    (UV interleaved)</para>
+[snip]
 
-How about referring to "CbCr" instead of "C"?
+> >>>> +	}
+> >>>> +
+> >>>> +	if (ssd != ssd->sensor->pixel_array) {
+> >>>> +		sel.which = V4L2_SUBDEV_FORMAT_ACTIVE;
+> >>>> +		sel.pad = SMIAPP_PAD_SINK;
+> >>>> +		sel.target = V4L2_SUBDEV_SEL_TGT_COMPOSE_ACTIVE;
+> >>>> +		__smiapp_get_selection(sd, fh, &sel);
+> >>>> +		try_sel = v4l2_subdev_get_try_compose(fh, SMIAPP_PAD_SINK);
+> >>>> +		*try_sel = sel.r;
+> >>>> +	}
+> >>>> +
+> >>>> +	rval = smiapp_set_power(sd, 1);
+> >>>> +
+> >>>> +	mutex_unlock(&ssd->sensor->mutex);
+> >>>> +
+> >>>> +	if (rval < 0)
+> >>>> +		goto out;
+> >>>> +
+> >>>> +	/* Was the sensor already powered on? */
+> >>>> +	if (ssd->sensor->power_count > 1)
+> >>> 
+> >>> power_count is accessed in smiapp_set_power without taking the
+> >>> power_mutex lock. Are two locks really needed ?
+> >> 
+> >> Well, now that you mention it, control handler setup function that
+> >> wouldn't take the locks would resolve the issue, I think. Should I create
+> >> one?
+> > 
+> > I'd ask Hans about that.
+> > 
+> > [snip]
+> 
+> I agree. I think I'll postpone the change so we can have time for
+> discussion. Would you be ok with that?
 
-> +	    <example>
-> +	    <title>
-> +	      <constant>V4L2_PIX_FMT_UV8</constant>
-> +	       pixel image
-> +	    </title>
-> +
-> +	    <formalpara>
-> +	      <title>Byte Order.</title>
-> +	      <para>Each cell is one byte.
-> +	        <informaltable frame="none">
-> +	        <tgroup cols="5" align="center">
-> +		  <colspec align="left" colwidth="2*" />
-> +		  <tbody valign="top">
-> +		    <row>
-> +		      <entry>start&nbsp;+&nbsp;0:</entry>
-> +		      <entry>Cb<subscript>00</subscript></entry>
-> +		      <entry>Cr<subscript>00</subscript></entry>
-> +		      <entry>Cb<subscript>01</subscript></entry>
-> +		      <entry>Cr<subscript>01</subscript></entry>
-> +		    </row>
-> +		    <row>
-> +		      <entry>start&nbsp;+&nbsp;4:</entry>
-> +		      <entry>Cb<subscript>10</subscript></entry>
-> +		      <entry>Cr<subscript>10</subscript></entry>
-> +		      <entry>Cb<subscript>11</subscript></entry>
-> +		      <entry>Cr<subscript>11</subscript></entry>
-> +		    </row>
-> +		    <row>
-> +		      <entry>start&nbsp;+&nbsp;8:</entry>
-> +		      <entry>Cb<subscript>20</subscript></entry>
-> +		      <entry>Cr<subscript>20</subscript></entry>
-> +		      <entry>Cb<subscript>21</subscript></entry>
-> +		      <entry>Cr<subscript>21</subscript></entry>
-> +		    </row>
-> +		    <row>
-> +		      <entry>start&nbsp;+&nbsp;12:</entry>
-> +		      <entry>Cb<subscript>30</subscript></entry>
-> +		      <entry>Cr<subscript>30</subscript></entry>
-> +		      <entry>Cb<subscript>31</subscript></entry>
-> +		      <entry>Cr<subscript>31</subscript></entry>
-> +		    </row>
-> +		  </tbody>
-> +		</tgroup>
-> +		</informaltable>
-> +	      </para>
-> +	      </formalpara>
-> +	    </example>
-> +	  </refsect1>
-> +	</refentry>
-> diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
-> index 9ddc57c..0b62750 100644
-> --- a/Documentation/DocBook/media/v4l/pixfmt.xml
-> +++ b/Documentation/DocBook/media/v4l/pixfmt.xml
-> @@ -673,6 +673,7 @@ access the palette, this must be done with ioctls of the Linux framebuffer API.<
->      &sub-srggb8;
->      &sub-sbggr16;
->      &sub-srggb10;
-> +    &sub-srggb10alaw8;
->      &sub-srggb12;
->    </section>
->  
-> @@ -696,6 +697,7 @@ information.</para>
->  
->      &sub-packed-yuv;
->      &sub-grey;
-> +    &sub-uv8;
-
-I might put this between the Y' and the rest of the YUV formats.
-
->      &sub-y10;
->      &sub-y12;
->      &sub-y10b;
-> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-> index 012a296..8e6b3f2 100644
-> --- a/include/linux/videodev2.h
-> +++ b/include/linux/videodev2.h
-> @@ -338,6 +338,9 @@ struct v4l2_pix_format {
->  #define V4L2_PIX_FMT_HM12    v4l2_fourcc('H', 'M', '1', '2') /*  8  YUV 4:2:0 16x16 macroblocks */
->  #define V4L2_PIX_FMT_M420    v4l2_fourcc('M', '4', '2', '0') /* 12  YUV 4:2:0 2 lines y, 1 line uv interleaved */
->  
-> +/* Chrominance formats */
-> +#define V4L2_PIX_FMT_UV8      v4l2_fourcc('U', 'V', '8', ' ') /*  8  UV 4:4 */
-> +
-
-Could you put this before "/* Luminance+Chrominance formats */", please?
-
->  /* two planes -- one Y, one Cr + Cb interleaved  */
->  #define V4L2_PIX_FMT_NV12    v4l2_fourcc('N', 'V', '1', '2') /* 12  Y/CbCr 4:2:0  */
->  #define V4L2_PIX_FMT_NV21    v4l2_fourcc('N', 'V', '2', '1') /* 12  Y/CrCb 4:2:0  */
-> @@ -366,6 +369,12 @@ struct v4l2_pix_format {
->  #define V4L2_PIX_FMT_SRGGB12 v4l2_fourcc('R', 'G', '1', '2') /* 12  RGRG.. GBGB.. */
->  	/* 10bit raw bayer DPCM compressed to 8 bits */
->  #define V4L2_PIX_FMT_SGRBG10DPCM8 v4l2_fourcc('B', 'D', '1', '0')
-> +	/* 10bit raw bayer a-law compressed to 8 bits */
-> +#define V4L2_PIX_FMT_SBGGR10ALAW8 v4l2_fourcc('a', 'B', 'A', '8')
-> +#define V4L2_PIX_FMT_SGBRG10ALAW8 v4l2_fourcc('a', 'G', 'A', '8')
-> +#define V4L2_PIX_FMT_SGRBG10ALAW8 v4l2_fourcc('a', 'g', 'A', '8')
-> +#define V4L2_PIX_FMT_SRGGB10ALAW8 v4l2_fourcc('a', 'R', 'A', '8')
-> +
-
-Could you rebase this on top of my patchset, this patch in particular:
-
-<URL:http://www.spinics.net/lists/linux-media/msg44871.html>
-
->  	/*
->  	 * 10bit raw bayer, expanded to 16 bits
->  	 * xxxxrrrrrrrrrrxxxxgggggggggg xxxxggggggggggxxxxbbbbbbbbbb...
-
-Looks good in general, assuming these changes. I'd still like to have
-comments to the related patches from Hans and Laurent.
-
-Kind regards,
+OK.
 
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+Regards,
+
+Laurent Pinchart
