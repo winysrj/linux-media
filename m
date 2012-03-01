@@ -1,162 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vx0-f174.google.com ([209.85.220.174]:51788 "EHLO
-	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755733Ab2CSByz convert rfc822-to-8bit (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:36271 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757203Ab2CALMR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 18 Mar 2012 21:54:55 -0400
+	Thu, 1 Mar 2012 06:12:17 -0500
+References: <CAOQJi0jWyz3toed1veDhCRPDQqnrgBKg6uooifGwTPPscR33nQ@mail.gmail.com>
+In-Reply-To: <CAOQJi0jWyz3toed1veDhCRPDQqnrgBKg6uooifGwTPPscR33nQ@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <1332113668-4364-3-git-send-email-daniel.vetter@ffwll.ch>
-References: <1332113668-4364-1-git-send-email-daniel.vetter@ffwll.ch>
-	<1332113668-4364-3-git-send-email-daniel.vetter@ffwll.ch>
-Date: Sun, 18 Mar 2012 20:54:54 -0500
-Message-ID: <CAF6AEGvD_e2mL9x-sifMpaxBmGBjcwk9DcfjBYJ389G8xAwBeQ@mail.gmail.com>
-Subject: Re: [PATCH 3/4] dma_buf: Add documentation for the new cpu access support
-From: Rob Clark <rob.clark@linaro.org>
-To: Daniel Vetter <daniel.vetter@ffwll.ch>
-Cc: linaro-mm-sig@lists.linaro.org,
-	LKML <linux-kernel@vger.kernel.org>,
-	DRI Development <dri-devel@lists.freedesktop.org>,
+Content-Type: text/plain;
+ charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Subject: Re: audio is not working
+From: Andy Walls <awalls@md.metrocast.net>
+Date: Thu, 01 Mar 2012 06:12:22 -0500
+To: Steven Dahlin <linux.sldahlin@gmail.com>,
 	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Message-ID: <da9cfaea-5715-4652-b7ce-16e7cb5f28d7@email.android.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Mar 18, 2012 at 6:34 PM, Daniel Vetter <daniel.vetter@ffwll.ch> wrote:
-> v2: Fix spelling issues noticed by Rob Clark.
->
-> Signed-off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+Steven Dahlin <linux.sldahlin@gmail.com> wrote:
 
-Signed-off-by: Rob Clark <rob@ti.com>
+>I am running an athlon ii 945 with a hauppauge wintv 1600 capture
+>card.  I have a version of mythtv installed (0.24) in which I
+>downloaded the latest V4L-DVB Device Drivers from
+>git://linuxtv.org/media_build.git, built them, and then installed.
+>Everything is up to date with the software packages.  The video
+>records perfectly fine but the audio is missing.  The backend log has
+>the following indicators of problems:
+>
+>2012-02-29 22:30:28.722 AFD Warning: ScanATSCCaptionStreams() called
+>with no PMT
+>2012-02-29 22:30:28.763 AFD: Opened codec 0x7f7180007f30,
+>id(MPEG2VIDEO) type(Video)
+>2012-02-29 22:30:28.797 AFD: codec MP2 has 2 channels
+>2012-02-29 22:30:28.830 AFD: Opened codec 0x7f718000abe0, id(MP2)
+>type(Audio)
+>2012-02-29 22:30:28.951 [mpeg2video @ 0x7f719986c700]warning: first
+>frame is no keyframe
+>2012-02-29 22:30:29.016 [mpeg2video @ 0x7f719986c700]warning: first
+>frame is no keyframe
+>2012-02-29 22:35:12.770 [mpeg2video @ 0x7f719986c700]00 motion_type at
+>28 10
+>2012-02-29 22:35:12.815 [mpeg2video @ 0x7f719986c700]Warning MVs not
+>available
+>2012-02-29 22:35:12.859 [mp2 @ 0x7f719986c700]incomplete frame
+>2012-02-29 22:35:12.899 AFD Error: Unknown audio decoding error
+>
+>In the syslog I am seeing entries (a log of them) like this:
+>
+>Feb 29 22:29:56 bifrosttv kernel: [ 1154.739451] cx18-0: Skipped
+>encoder IDX, MDL 442, 2 times - it must have dropped out of rotation
+>Feb 29 22:29:56 bifrosttv kernel: [ 1154.739459] cx18-0: Skipped
+>encoder IDX, MDL 443, 2 times - it must have dropped out of rotation
+>Feb 29 22:29:56 bifrosttv kernel: [ 1154.739465] cx18-0: Skipped
+>encoder IDX, MDL 444, 2 times - it must have dropped out of rotation
+>Feb 29 22:29:56 bifrosttv kernel: [ 1154.739472] cx18-0: Could not
+>find MDL 438 for stream encoder IDX
+>Feb 29 22:29:56 bifrosttv kernel: [ 1154.739478] cx18-0: Could not
+>find MDL 441 for stream encoder IDX
+>Feb 29 22:30:00 bifrosttv kernel: [ 1158.736285] cx18-0: Skipped
+>encoder IDX, MDL 444, 1 times - it must have dropped out of rotation
+>Feb 29 22:30:00 bifrosttv kernel: [ 1158.736325] cx18-0: Could not
+>find MDL 441 for stream encoder IDX
+>Feb 29 22:30:00 bifrosttv kernel: [ 1158.736335] cx18-0: Could not
+>find MDL 442 for stream encoder IDX
+>Feb 29 22:30:00 bifrosttv kernel: [ 1158.736431] cx18-0: Could not
+>find MDL 443 for stream encoder IDX
+>Feb 29 22:30:00 bifrosttv kernel: [ 1158.736437] cx18-0: Could not
+>find MDL 444 for stream encoder IDX
+>Feb 29 22:30:00 bifrosttv kernel: [ 1158.736475] cx18-0: Could not
+>find MDL 442 for stream encoder IDX
+>
+>Does anyone have suggestions or ideas I can try?
+>--
+>To unsubscribe from this list: send the line "unsubscribe linux-media"
+>in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-> ---
->  Documentation/dma-buf-sharing.txt |  102 +++++++++++++++++++++++++++++++++++-
->  1 files changed, 99 insertions(+), 3 deletions(-)
->
-> diff --git a/Documentation/dma-buf-sharing.txt b/Documentation/dma-buf-sharing.txt
-> index 225f96d..9f3aeef 100644
-> --- a/Documentation/dma-buf-sharing.txt
-> +++ b/Documentation/dma-buf-sharing.txt
-> @@ -32,8 +32,12 @@ The buffer-user
->  *IMPORTANT*: [see https://lkml.org/lkml/2011/12/20/211 for more details]
->  For this first version, A buffer shared using the dma_buf sharing API:
->  - *may* be exported to user space using "mmap" *ONLY* by exporter, outside of
-> -   this framework.
-> -- may be used *ONLY* by importers that do not need CPU access to the buffer.
-> +  this framework.
-> +- with this new iteration of the dma-buf api cpu access from the kernel has been
-> +  enable, see below for the details.
-> +
-> +dma-buf operations for device dma only
-> +--------------------------------------
->
->  The dma_buf buffer sharing API usage contains the following steps:
->
-> @@ -219,7 +223,99 @@ NOTES:
->    If the exporter chooses not to allow an attach() operation once a
->    map_dma_buf() API has been called, it simply returns an error.
->
-> -Miscellaneous notes:
-> +Kernel cpu access to a dma-buf buffer object
-> +--------------------------------------------
-> +
-> +The motivation to allow cpu access from the kernel to a dma-buf object from the
-> +importers side are:
-> +- fallback operations, e.g. if the devices is connected to a usb bus and the
-> +  kernel needs to shuffle the data around first before sending it away.
-> +- full transparency for existing users on the importer side, i.e. userspace
-> +  should not notice the difference between a normal object from that subsystem
-> +  and an imported one backed by a dma-buf. This is really important for drm
-> +  opengl drivers that expect to still use all the existing upload/download
-> +  paths.
-> +
-> +Access to a dma_buf from the kernel context involves three steps:
-> +
-> +1. Prepare access, which invalidate any necessary caches and make the object
-> +   available for cpu access.
-> +2. Access the object page-by-page with the dma_buf map apis
-> +3. Finish access, which will flush any necessary cpu caches and free reserved
-> +   resources.
-> +
-> +1. Prepare access
-> +
-> +   Before an importer can access a dma_buf object with the cpu from the kernel
-> +   context, it needs to notify the exporter of the access that is about to
-> +   happen.
-> +
-> +   Interface:
-> +      int dma_buf_begin_cpu_access(struct dma_buf *dmabuf,
-> +                                  size_t start, size_t len,
-> +                                  enum dma_data_direction direction)
-> +
-> +   This allows the exporter to ensure that the memory is actually available for
-> +   cpu access - the exporter might need to allocate or swap-in and pin the
-> +   backing storage. The exporter also needs to ensure that cpu access is
-> +   coherent for the given range and access direction. The range and access
-> +   direction can be used by the exporter to optimize the cache flushing, i.e.
-> +   access outside of the range or with a different direction (read instead of
-> +   write) might return stale or even bogus data (e.g. when the exporter needs to
-> +   copy the data to temporary storage).
-> +
-> +   This step might fail, e.g. in oom conditions.
-> +
-> +2. Accessing the buffer
-> +
-> +   To support dma_buf objects residing in highmem cpu access is page-based using
-> +   an api similar to kmap. Accessing a dma_buf is done in aligned chunks of
-> +   PAGE_SIZE size. Before accessing a chunk it needs to be mapped, which returns
-> +   a pointer in kernel virtual address space. Afterwards the chunk needs to be
-> +   unmapped again. There is no limit on how often a given chunk can be mapped
-> +   and unmapped, i.e. the importer does not need to call begin_cpu_access again
-> +   before mapping the same chunk again.
-> +
-> +   Interfaces:
-> +      void *dma_buf_kmap(struct dma_buf *, unsigned long);
-> +      void dma_buf_kunmap(struct dma_buf *, unsigned long, void *);
-> +
-> +   There are also atomic variants of these interfaces. Like for kmap they
-> +   facilitate non-blocking fast-paths. Neither the importer nor the exporter (in
-> +   the callback) is allowed to block when using these.
-> +
-> +   Interfaces:
-> +      void *dma_buf_kmap_atomic(struct dma_buf *, unsigned long);
-> +      void dma_buf_kunmap_atomic(struct dma_buf *, unsigned long, void *);
-> +
-> +   For importers all the restrictions of using kmap apply, like the limited
-> +   supply of kmap_atomic slots. Hence an importer shall only hold onto at most 2
-> +   atomic dma_buf kmaps at the same time (in any given process context).
-> +
-> +   dma_buf kmap calls outside of the range specified in begin_cpu_access are
-> +   undefined. If the range is not PAGE_SIZE aligned, kmap needs to succeed on
-> +   the partial chunks at the beginning and end but may return stale or bogus
-> +   data outside of the range (in these partial chunks).
-> +
-> +   Note that these calls need to always succeed. The exporter needs to complete
-> +   any preparations that might fail in begin_cpu_access.
-> +
-> +3. Finish access
-> +
-> +   When the importer is done accessing the range specified in begin_cpu_access,
-> +   it needs to announce this to the exporter (to facilitate cache flushing and
-> +   unpinning of any pinned resources). The result of of any dma_buf kmap calls
-> +   after end_cpu_access is undefined.
-> +
-> +   Interface:
-> +      void dma_buf_end_cpu_access(struct dma_buf *dma_buf,
-> +                                 size_t start, size_t len,
-> +                                 enum dma_data_direction dir);
-> +
-> +
-> +Miscellaneous notes
-> +-------------------
-> +
->  - Any exporters or users of the dma-buf buffer sharing framework must have
->   a 'select DMA_SHARED_BUFFER' in their respective Kconfigs.
->
-> --
-> 1.7.7.5
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+1. Take mythtv out of the picture and test mplayer.
+
+2. The log messages indicate that your system is falling behind in responding to interrupts from the cx23418.  Check /proc/interrupts to see if another device driver is sharing an interrupt line with the cx23418; then initially blame that device driver.  Then really try and figure out what is hogging your PCI bus and/or CPU or holding up interrupt processing.  The dropped/corrupt buffer notifications are a system level issue that cannot be fixed in the cx18 driver.
+
+Regards
+Andy
