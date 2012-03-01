@@ -1,99 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:52324 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:42150 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754552Ab2CPMyp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Mar 2012 08:54:45 -0400
+	with ESMTP id S965273Ab2CAWaA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Mar 2012 17:30:00 -0500
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/1] mt9v032: Provide pixel rate control
-Date: Fri, 16 Mar 2012 13:55:13 +0100
-Message-ID: <1762135.yeoBRAyros@avalon>
-In-Reply-To: <20120316123653.GC5412@valkosipuli.localdomain>
-References: <1331845299-6147-1-git-send-email-sakari.ailus@iki.fi> <2818545.mNbT3MTFRm@avalon> <20120316123653.GC5412@valkosipuli.localdomain>
+To: Sylwester Nawrocki <snjw23@gmail.com>
+Cc: linux-media@vger.kernel.org, Sakari Ailus <sakari.ailus@iki.fi>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Subject: Re: [PATCH/RFC][DRAFT] V4L: Add camera auto focus controls
+Date: Thu, 01 Mar 2012 23:30:16 +0100
+Message-ID: <1441235.tcAt0gpJAF@avalon>
+In-Reply-To: <4F4A6493.1080004@gmail.com>
+References: <1326749622-11446-1-git-send-email-sylvester.nawrocki@gmail.com> <4F4A6493.1080004@gmail.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Hi Sylwester,
 
-On Friday 16 March 2012 14:36:53 Sakari Ailus wrote:
-> On Fri, Mar 16, 2012 at 01:31:39PM +0100, Laurent Pinchart wrote:
-> > On Friday 16 March 2012 14:12:11 Sakari Ailus wrote:
-> > > On Fri, Mar 16, 2012 at 12:58:30PM +0100, Laurent Pinchart wrote:
-> > > > On Thursday 15 March 2012 23:01:39 Sakari Ailus wrote:
-> > > > > Provide pixel rate control calculated from external clock and
-> > > > > horizontal
-> > > > > binning factor.
-> > > > > 
-> > > > > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> > > > > ---
-> > > > > 
-> > > > >  drivers/media/video/mt9v032.c |   35 
-> > > > >  ++++++++++++++++++++++++++++++++-
-> > > > >  1 files changed, 34 insertions(+), 1 deletions(-)
-> > > > > 
-> > > > > diff --git a/drivers/media/video/mt9v032.c
-> > > > > b/drivers/media/video/mt9v032.c
-> > > > > index 75e253a..e530e8d 100644
-> > > > > --- a/drivers/media/video/mt9v032.c
-> > > > > +++ b/drivers/media/video/mt9v032.c
+On Sunday 26 February 2012 17:57:55 Sylwester Nawrocki wrote:
+> On 01/16/2012 10:33 PM, Sylwester Nawrocki wrote:
+> > diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+> > index 012a296..0808b12 100644
+> > --- a/include/linux/videodev2.h
+> > +++ b/include/linux/videodev2.h
+> > @@ -1662,6 +1662,34 @@ enum  v4l2_exposure_auto_type {
 > > 
-> > [snip]
+> >   #define V4L2_CID_IRIS_ABSOLUTE			(V4L2_CID_CAMERA_CLASS_BASE+17)
+> >   #define V4L2_CID_IRIS_RELATIVE			(V4L2_CID_CAMERA_CLASS_BASE+18)
 > > 
-> > > > > +static void mt9v032_configure_pixel_rate(struct v4l2_subdev
-> > > > > *subdev,
-> > > > > +					 unsigned int hratio)
-> > > > > +{
-> > > > > +	struct i2c_client *client = v4l2_get_subdevdata(subdev);
-> > > > > +	struct mt9v032 *mt9v032 = to_mt9v032(subdev);
-> > > > > +	struct v4l2_ext_controls ctrls;
-> > > > > +	struct v4l2_ext_control ctrl;
-> > > > > +
-> > > > > +	memset(&ctrls, 0, sizeof(ctrls));
-> > > > > +	memset(&ctrl, 0, sizeof(ctrl));
-> > > > > +
-> > > > > +	ctrls.count = 1;
-> > > > > +	ctrls.controls = &ctrl;
-> > > > > +
-> > > > > +	ctrl.id = V4L2_CID_PIXEL_RATE;
-> > > > > +	ctrl.value64 = EXT_CLK / hratio;
-> > > > > +
-> > > > > +	if (v4l2_s_ext_ctrls(mt9v032->pixel_rate->ctrl_handler, &ctrls) 
-<
-> > > > > 0)
-> > > > > +		dev_warn(&client->dev, "bug: failed to set pixel rate\n");
-> > > > 
-> > > > What about just calling v4l2_ctrl_s_ctrl() ?
-> > > 
-> > > It's a 64-bit integer control, so it has to be set using
-> > > v4l2_s_ext_ctrls().> 
-> > What about extending v4l2_ctrl_s_ctrl() to support 64-bit integer controls
-> > then ?
+> > +#define V4L2_CID_AUTO_FOCUS_START		(V4L2_CID_CAMERA_CLASS_BASE+19)
+> > +#define V4L2_CID_AUTO_FOCUS_STOP		(V4L2_CID_CAMERA_CLASS_BASE+20)
+> > +#define V4L2_CID_AUTO_FOCUS_STATUS		(V4L2_CID_CAMERA_CLASS_BASE+21)
+> > +enum v4l2_auto_focus_status {
+> > +	V4L2_AUTO_FOCUS_STATUS_IDLE		= 0,
+> > +	V4L2_AUTO_FOCUS_STATUS_BUSY		= 1,
+> > +	V4L2_AUTO_FOCUS_STATUS_SUCCESS		= 2,
+> > +	V4L2_AUTO_FOCUS_STATUS_FAIL		= 3,
+> > +};
+> > +
+> > +#define V4L2_CID_AUTO_FOCUS_DISTANCE		(V4L2_CID_CAMERA_CLASS_BASE+22)
+> > +enum v4l2_auto_focus_distance {
+> > +	V4L2_AUTO_FOCUS_DISTANCE_NORMAL		= 0,
+> > +	V4L2_AUTO_FOCUS_DISTANCE_MACRO		= 1,
+> > +	V4L2_AUTO_FOCUS_DISTANCE_INFINITY	= 2,
+> > +};
+> > +
+> > +#define V4L2_CID_AUTO_FOCUS_SELECTION		
+(V4L2_CID_CAMERA_CLASS_BASE+23)
+> > +enum v4l2_auto_focus_selection {
+> > +	V4L2_AUTO_FOCUS_SELECTION_NORMAL	= 0,
+> > +	V4L2_AUTO_FOCUS_SELECTION_SPOT		= 1,
+> > +	V4L2_AUTO_FOCUS_SELECTION_RECTANGLE	= 2,
+> > +};
 > 
-> The second argument to that function is struct v4l2_control:
+> I'd like to ask your advice, I've found those two above controls
+> rather painful in use. After changing V4L2_CID_AUTO_FOCUS_SELECTION to
 > 
-> struct v4l2_control {
->         __u32                id;
->         __s32                value;
+> #define V4L2_CID_AUTO_FOCUS_AREA		(V4L2_CID_CAMERA_CLASS_BASE+23)
+> enum v4l2_auto_focus_selection {
+> 	V4L2_AUTO_FOCUS_SELECTION_ALL		= 0,
+> 	V4L2_AUTO_FOCUS_SELECTION_SPOT		= 1,
+> 	V4L2_AUTO_FOCUS_SELECTION_RECTANGLE	= 2,
 > };
 > 
-> So there's no chance to extend it. This must also be the reason why 64-bit
-> controls require using extended controls.
+> I tried use them with the M-5MOLS sensor driver where there is only
+> one register for setting following automatic focus modes:
 > 
-> What we could do is to introduce v4l2_s_ext_ctrl without the "s" in the end
-> to just set one extended control. I think that would be a reasonable
-> approach, as it seems we need the functionality in multiple places.
+> NORMAL AUTO (single-shot),
+> MACRO,
+> INFINITY,
+> SPOT,
+> FACE_DETECTION
+> 
+> The issue is that when V4L2_CID_AUTO_FOCUS_AREA is set to for example
+> V4L2_AUTO_FOCUS_SELECTION_SPOT, none of the menu entries of
+> V4L2_CID_AUTO_FOCUS_DISTANCE is valid.
+> 
+> So it would really be better to use single control for automatic focus
+> mode. A private control could handle that. But there will be more than
+> one sensor driver needing such a control, so I thought about an
+> additional header, e.g. samsung_camera.h in include/linux/ that would
+> define reguired control IDs and menus in the camera class private id
+> range.
+> 
+> What do you think about it ?
 
-We're talking about different functions.
-
-int v4l2_ctrl_s_ctrl(struct v4l2_ctrl *ctrl, s32 val);
-
-Extending that one wouldn't break the userspace API. We could use s64 instead 
-of s32, or add a new function such as v4l2_ctrl_s_ctrl64().
+One option would be to disable the focus area control when the focus distance 
+is set to a value different than normal (or the other way around). Control 
+change events could be used to report that to userspace. Would that work with 
+your hardware ?
 
 -- 
 Regards,
