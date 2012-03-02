@@ -1,102 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:38602 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754872Ab2CWPtp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Mar 2012 11:49:45 -0400
-From: Sumit Semwal <sumit.semwal@ti.com>
-To: <daniel.vetter@ffwll.ch>
-CC: <dri-devel@lists.freedesktop.org>,
-	<linaro-mm-sig@lists.linaro.org>, <linux-media@vger.kernel.org>,
-	Sumit Semwal <sumit.semwal@ti.com>,
-	Sumit Semwal <sumit.semwal@linaro.org>
-Subject: [PATCH] dma-buf: Correct dummy function declarations.
-Date: Fri, 23 Mar 2012 21:19:17 +0530
-Message-ID: <1332517757-25532-1-git-send-email-sumit.semwal@ti.com>
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:55421 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756401Ab2CBUl5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Mar 2012 15:41:57 -0500
+Received: by mail-iy0-f174.google.com with SMTP id z16so2764466iag.19
+        for <linux-media@vger.kernel.org>; Fri, 02 Mar 2012 12:41:57 -0800 (PST)
+Date: Fri, 2 Mar 2012 14:41:49 -0600
+From: Jonathan Nieder <jrnieder@gmail.com>
+To: Ben Hutchings <ben@decadent.org.uk>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+	Jarod Wilson <jarod@redhat.com>,
+	Torsten Crass <torsten.crass@eBiology.de>
+Subject: [PATCH 4/4] [media] staging: lirc_serial: Do not assume error codes
+ returned by request_irq()
+Message-ID: <20120302204149.GE22323@burratino>
+References: <1321422581.2885.50.camel@deadeye>
+ <20120302034545.GA31860@burratino>
+ <1330662942.8460.229.camel@deadeye>
+ <20120302203913.GA22323@burratino>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20120302203913.GA22323@burratino>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-While testing, I found that we need to correct some of the dummy declarations. When I send my pull request to Linus, I wish to squash these changes into the original patches from Daniel. Could you please review?
+From: Ben Hutchings <ben@decadent.org.uk>
+Date: Wed, 16 Nov 2011 01:54:04 -0300
 
-Best regards,
-~Sumit
+commit affc9a0d59ac49bd304e2137bd5e4ffdd6fdfa52 upstream.
 
-=========
+lirc_serial_probe() must fail if request_irq() returns an error, even if
+it isn't EBUSY or EINVAL,
 
-Dummy functions for the newly added cpu access ops are needed for compilation
-when dma-buf framework is not compiled-in.
-
-Also, the introduction of flags in dma_buf_fd  needs to be added to dummy
-functions as well.
-
-Signed-off-by: Sumit Semwal <sumit.semwal@linaro.org>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Signed-off-by: Jonathan Nieder <jrnieder@gmail.com>
 ---
- include/linux/dma-buf.h |   26 +++++++++++++-------------
- 1 files changed, 13 insertions(+), 13 deletions(-)
+ drivers/staging/lirc/lirc_serial.c |   21 +++++++++------------
+ 1 file changed, 9 insertions(+), 12 deletions(-)
 
-diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
-index f08028e..779aaf9 100644
---- a/include/linux/dma-buf.h
-+++ b/include/linux/dma-buf.h
-@@ -189,7 +189,7 @@ static inline struct dma_buf *dma_buf_export(void *priv,
- 	return ERR_PTR(-ENODEV);
- }
+diff --git a/drivers/staging/lirc/lirc_serial.c b/drivers/staging/lirc/lirc_serial.c
+index 4b8fefb954d3..21cbc9ae79c9 100644
+--- a/drivers/staging/lirc/lirc_serial.c
++++ b/drivers/staging/lirc/lirc_serial.c
+@@ -843,18 +843,15 @@ static int __devinit lirc_serial_probe(struct platform_device *dev)
+ 	result = request_irq(irq, irq_handler,
+ 			     IRQF_DISABLED | (share_irq ? IRQF_SHARED : 0),
+ 			     LIRC_DRIVER_NAME, (void *)&hardware);
+-
+-	switch (result) {
+-	case -EBUSY:
+-		printk(KERN_ERR LIRC_DRIVER_NAME ": IRQ %d busy\n", irq);
+-		return -EBUSY;
+-	case -EINVAL:
+-		printk(KERN_ERR LIRC_DRIVER_NAME
+-		       ": Bad irq number or handler\n");
+-		return -EINVAL;
+-	default:
+-		break;
+-	};
++	if (result < 0) {
++		if (result == -EBUSY)
++			printk(KERN_ERR LIRC_DRIVER_NAME ": IRQ %d busy\n",
++			       irq);
++		else if (result == -EINVAL)
++			printk(KERN_ERR LIRC_DRIVER_NAME
++			       ": Bad irq number or handler\n");
++		return result;
++	}
  
--static inline int dma_buf_fd(struct dma_buf *dmabuf)
-+static inline int dma_buf_fd(struct dma_buf *dmabuf, int flags)
- {
- 	return -ENODEV;
- }
-@@ -216,36 +216,36 @@ static inline void dma_buf_unmap_attachment(struct dma_buf_attachment *attach,
- 	return;
- }
- 
--static inline int dma_buf_begin_cpu_access(struct dma_buf *,
--					   size_t, size_t,
--					   enum dma_data_direction)
-+static inline int dma_buf_begin_cpu_access(struct dma_buf *dmabuf,
-+					   size_t start, size_t len,
-+					   enum dma_data_direction dir)
- {
- 	return -ENODEV;
- }
- 
--static inline void dma_buf_end_cpu_access(struct dma_buf *,
--					  size_t, size_t,
--					  enum dma_data_direction)
-+static inline void dma_buf_end_cpu_access(struct dma_buf *dmabuf,
-+					  size_t start, size_t len,
-+					  enum dma_data_direction dir)
- {
- }
- 
--static inline void *dma_buf_kmap_atomic(struct dma_buf *, unsigned long)
-+static inline void *dma_buf_kmap_atomic(struct dma_buf *db, unsigned long pnum)
- {
- 	return NULL;
- }
- 
--static inline void dma_buf_kunmap_atomic(struct dma_buf *, unsigned long,
--					 void *)
-+static inline void dma_buf_kunmap_atomic(struct dma_buf *db, unsigned long pnum,
-+					 void *vaddr)
- {
- }
- 
--static inline void *dma_buf_kmap(struct dma_buf *, unsigned long)
-+static inline void *dma_buf_kmap(struct dma_buf *db, unsigned long pnum)
- {
- 	return NULL;
- }
- 
--static inline void dma_buf_kunmap(struct dma_buf *, unsigned long,
--				  void *)
-+static inline void dma_buf_kunmap(struct dma_buf *db, unsigned long pnum,
-+				  void *vaddr)
- {
- }
- #endif /* CONFIG_DMA_SHARED_BUFFER */
+ 	/* Reserve io region. */
+ 	/*
 -- 
-1.7.5.4
+1.7.9.2
 
