@@ -1,81 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:38331 "EHLO
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:55421 "EHLO
 	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753386Ab2CHPGf convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Mar 2012 10:06:35 -0500
-Received: by iagz16 with SMTP id z16so797094iag.19
-        for <linux-media@vger.kernel.org>; Thu, 08 Mar 2012 07:06:34 -0800 (PST)
+	with ESMTP id S1753997Ab2CBUl2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Mar 2012 15:41:28 -0500
+Received: by iagz16 with SMTP id z16so2764466iag.19
+        for <linux-media@vger.kernel.org>; Fri, 02 Mar 2012 12:41:27 -0800 (PST)
+Date: Fri, 2 Mar 2012 14:41:19 -0600
+From: Jonathan Nieder <jrnieder@gmail.com>
+To: Ben Hutchings <ben@decadent.org.uk>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+	Jarod Wilson <jarod@redhat.com>,
+	Torsten Crass <torsten.crass@eBiology.de>
+Subject: [PATCH 3/4] [media] staging: lirc_serial: Fix deadlock on resume
+ failure
+Message-ID: <20120302204119.GD22323@burratino>
+References: <1321422581.2885.50.camel@deadeye>
+ <20120302034545.GA31860@burratino>
+ <1330662942.8460.229.camel@deadeye>
+ <20120302203913.GA22323@burratino>
 MIME-Version: 1.0
-In-Reply-To: <1331215050-20823-2-git-send-email-sakari.ailus@iki.fi>
-References: <1960253.l1xo097dr7@avalon>
-	<1331215050-20823-2-git-send-email-sakari.ailus@iki.fi>
-Date: Thu, 8 Mar 2012 16:06:34 +0100
-Message-ID: <CAGGh5h37Rd9O1Hp6FHBo1KcQRdEb=2OJxGkA0aJmyWkEB9juGQ@mail.gmail.com>
-Subject: Re: [PATCH v5.1 35/35] smiapp: Add driver
-From: jean-philippe francois <jp.francois@cynove.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	dacohen@gmail.com, snjw23@gmail.com,
-	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
-	tuukkat76@gmail.com, k.debski@samsung.com, riverful@gmail.com,
-	hverkuil@xs4all.nl, teturtia@gmail.com, pradeep.sawlani@gmail.com
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20120302203913.GA22323@burratino>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Le 8 mars 2012 14:57, Sakari Ailus <sakari.ailus@iki.fi> a écrit :
-> Add driver for SMIA++/SMIA image sensors. The driver exposes the sensor as
-> three subdevs, pixel array, binner and scaler --- in case the device has a
-> scaler.
->
-> Currently it relies on the board code for external clock handling. There is
-> no fast way out of this dependency before the ISP drivers (omap3isp) among
-> others will be able to export that clock through the clock framework
-> instead.
->
-> +       case V4L2_CID_EXPOSURE:
-> +               return smiapp_write(
-> +                       client,
-> +                       SMIAPP_REG_U16_COARSE_INTEGRATION_TIME, ctrl->val);
-> +
-At this point, knowing pixel clock and line length, it is possible
-to get / set the exposure in useconds or millisecond value.
+From: Ben Hutchings <ben@decadent.org.uk>
+Date: Wed, 16 Nov 2011 01:53:25 -0300
 
->From userspace, if for example you change the format and crop,
-you can just set the expo to a value in msec or usec, and get the
-same exposure after your format change.
+commit 1ff1d88e862948ae5bfe490248c023ff8ac2855d upstream.
 
-The driver is IMO the place where we have all the info. Here is some
-example code with usec. (The 522 constant is the fine integration register...)
+A resume function cannot remove the device it is resuming!
 
-static int  mt9j_expo_to_shutter(struct usb_ovfx2 * ov, u32 expo)
-{
-	int rc = 0;
-	u32 expo_pix; // exposition in pixclk unit
-	u16 coarse_expo;
-	u16 row_time;
-	expo_pix = expo * 96;   /// pixel clock in MHz
-	MT9J_RREAD(ov, LINE_LENGTH_PCK, &row_time);
-	expo_pix = expo_pix - 522;
-	coarse_expo = (expo_pix + row_time/2)/ row_time;
-	MT9J_RWRITE(ov, COARSE_EXPO_REG, coarse_expo);
-	return rc;
-}
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Signed-off-by: Jonathan Nieder <jrnieder@gmail.com>
+---
+ drivers/staging/lirc/lirc_serial.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-static int  mt9j_shutter_to_expo(struct usb_ovfx2 * ov, u32  * expo)
-{
-	int rc = 0;
-	u32 expo_pix; // exposition in pixclk unit
-	u16 coarse_expo;
-	u16 row_time;
-	MT9J_RREAD(ov, LINE_LENGTH_PCK, &row_time);
-	MT9J_RREAD(ov, COARSE_EXPO_REG, &coarse_expo);
-	expo_pix = row_time * coarse_expo + 522;
-	*expo = expo_pix / (96);
-	return rc;
-}
+diff --git a/drivers/staging/lirc/lirc_serial.c b/drivers/staging/lirc/lirc_serial.c
+index fa023da6bdaa..4b8fefb954d3 100644
+--- a/drivers/staging/lirc/lirc_serial.c
++++ b/drivers/staging/lirc/lirc_serial.c
+@@ -1127,10 +1127,8 @@ static int lirc_serial_resume(struct platform_device *dev)
+ {
+ 	unsigned long flags;
+ 
+-	if (hardware_init_port() < 0) {
+-		lirc_serial_exit();
++	if (hardware_init_port() < 0)
+ 		return -EINVAL;
+-	}
+ 
+ 	spin_lock_irqsave(&hardware[type].lock, flags);
+ 	/* Enable Interrupt */
+-- 
+1.7.9.2
 
-Maybe you have enough on your plate for now, and this can
-wait after inclusion, but it is a nice abstraction to have  from
-userspace point of view.
