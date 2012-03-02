@@ -1,214 +1,296 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:49671 "EHLO arroyo.ext.ti.com"
+Received: from smtp.nokia.com ([147.243.1.47]:53323 "EHLO mgw-sa01.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757713Ab2CSIpZ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Mar 2012 04:45:25 -0400
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-To: "Taneja, Archit" <archit@ti.com>
-CC: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: RE: [PATCH] omap_vout: Set DSS overlay_info only if paddr is non
- zero
-Date: Mon, 19 Mar 2012 08:45:20 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83181EB1F@DBDE01.ent.ti.com>
-References: <1331110876-11895-1-git-send-email-archit@ti.com>
- <79CD15C6BA57404B839C016229A409A831810EAA@DBDE01.ent.ti.com>
- <4F6312E4.5000404@ti.com> <4F631FDF.8070308@ti.com>
-In-Reply-To: <4F631FDF.8070308@ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+	id S932423Ab2CBRc4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 2 Mar 2012 12:32:56 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, dacohen@gmail.com,
+	snjw23@gmail.com, andriy.shevchenko@linux.intel.com,
+	t.stanislaws@samsung.com, tuukkat76@gmail.com,
+	k.debski@samsung.com, riverful@gmail.com, hverkuil@xs4all.nl,
+	teturtia@gmail.com
+Subject: [PATCH v4 31/34] omap3isp: Configure CSI-2 phy based on platform data
+Date: Fri,  2 Mar 2012 19:30:39 +0200
+Message-Id: <1330709442-16654-31-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <20120302173219.GA15695@valkosipuli.localdomain>
+References: <20120302173219.GA15695@valkosipuli.localdomain>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Mar 16, 2012 at 16:41:27, Taneja, Archit wrote:
-> Hi,
-> 
-> On Friday 16 March 2012 03:46 PM, Archit Taneja wrote:
-> > On Monday 12 March 2012 03:34 PM, Hiremath, Vaibhav wrote:
-> >> On Wed, Mar 07, 2012 at 14:31:16, Taneja, Archit wrote:
-> >>> The omap_vout driver tries to set the DSS overlay_info using
-> >>> set_overlay_info()
-> >>> when the physical address for the overlay is still not configured.
-> >>> This happens
-> >>> in omap_vout_probe() and vidioc_s_fmt_vid_out().
-> >>>
-> >>> The calls to omapvid_init(which internally calls set_overlay_info())
-> >>> are removed
-> >>> from these functions. They don't need to be called as the
-> >>> omap_vout_device
-> >>> struct anyway maintains the overlay related changes made. Also,
-> >>> remove the
-> >>> explicit call to set_overlay_info() in vidioc_streamon(), this was
-> >>> used to set
-> >>> the paddr, this isn't needed as omapvid_init() does the same thing
-> >>> later.
-> >>>
-> >>> These changes are required as the DSS2 driver since 3.3 kernel
-> >>> doesn't let you
-> >>> set the overlay info with paddr as 0.
-> >>>
-> >>> Signed-off-by: Archit Taneja<archit@ti.com>
-> >>> ---
-> >>> drivers/media/video/omap/omap_vout.c | 36
-> >>> ++++-----------------------------
-> >>> 1 files changed, 5 insertions(+), 31 deletions(-)
-> >>>
-> >>> diff --git a/drivers/media/video/omap/omap_vout.c
-> >>> b/drivers/media/video/omap/omap_vout.c
-> >>> index 1fb7d5b..dffcf66 100644
-> >>> --- a/drivers/media/video/omap/omap_vout.c
-> >>> +++ b/drivers/media/video/omap/omap_vout.c
-> >>> @@ -1157,13 +1157,6 @@ static int vidioc_s_fmt_vid_out(struct file
-> >>> *file, void *fh,
-> >>> /* set default crop and win */
-> >>> omap_vout_new_format(&vout->pix,&vout->fbuf,&vout->crop,&vout->win);
-> >>>
-> >>> - /* Save the changes in the overlay strcuture */
-> >>> - ret = omapvid_init(vout, 0);
-> >>> - if (ret) {
-> >>> - v4l2_err(&vout->vid_dev->v4l2_dev, "failed to change mode\n");
-> >>> - goto s_fmt_vid_out_exit;
-> >>> - }
-> >>> -
-> >>> ret = 0;
-> >>>
-> >>> s_fmt_vid_out_exit:
-> >>> @@ -1664,20 +1657,6 @@ static int vidioc_streamon(struct file *file,
-> >>> void *fh, enum v4l2_buf_type i)
-> >>>
-> >>> omap_dispc_register_isr(omap_vout_isr, vout, mask);
-> >>>
-> >>> - for (j = 0; j< ovid->num_overlays; j++) {
-> >>> - struct omap_overlay *ovl = ovid->overlays[j];
-> >>> -
-> >>> - if (ovl->manager&& ovl->manager->device) {
-> >>> - struct omap_overlay_info info;
-> >>> - ovl->get_overlay_info(ovl,&info);
-> >>> - info.paddr = addr;
-> >>> - if (ovl->set_overlay_info(ovl,&info)) {
-> >>> - ret = -EINVAL;
-> >>> - goto streamon_err1;
-> >>> - }
-> >>> - }
-> >>> - }
-> >>> -
-> >>
-> >> Have you checked for build warnings? I am getting build warnings
-> >>
-> >> CC drivers/media/video/omap/omap_vout.o
-> >> CC drivers/media/video/omap/omap_voutlib.o
-> >> CC drivers/media/video/omap/omap_vout_vrfb.o
-> >> drivers/media/video/omap/omap_vout.c: In function 'vidioc_streamon':
-> >> drivers/media/video/omap/omap_vout.c:1619:25: warning: unused variable
-> >> 'ovid'
-> >> drivers/media/video/omap/omap_vout.c:1615:15: warning: unused variable
-> >> 'j'
-> >> LD drivers/media/video/omap/omap-vout.o
-> >> LD drivers/media/video/omap/built-in.o
-> >>
-> >> Can you fix this and submit the next version?
-> 
-> I applied the patch on the current mainline kernel, it doesn't give any 
-> build warnings. Even after applying the patch, 'j and ovid' are still 
-> used in vidioc_streamon().
-> 
-> Can you check if it was applied correctly?
-> 
+Configure CSI-2 phy based on platform data in the ISP driver. For that, the
+new V4L2_CID_IMAGE_SOURCE_PIXEL_RATE control is used. Previously the same
+was configured from the board code.
 
-Archit,
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/video/omap3isp/isp.h       |    3 -
+ drivers/media/video/omap3isp/ispcsiphy.c |  168 +++++++++++++++++-------------
+ drivers/media/video/omap3isp/ispcsiphy.h |   10 --
+ 3 files changed, 97 insertions(+), 84 deletions(-)
 
-I could able to trace what's going on here,
-
-I am using "v4l_for_linus" branch, which has one missing patch,
-
-commit aaa874a985158383c4b394c687c716ef26288741
-Author: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Date:   Tue Nov 15 16:37:53 2011 +0200
-
-    OMAPDSS: APPLY: rewrite overlay enable/disable
-
-
-So, I do not have below changes,
-
-@@ -1686,6 +1681,16 @@ static int vidioc_streamon(struct file *file, void *fh, enum v4l2_buf_type i)
-        if (ret)
-                v4l2_err(&vout->vid_dev->v4l2_dev, "failed to change mode\n");
-
-+       for (j = 0; j < ovid->num_overlays; j++) {
-+               struct omap_overlay *ovl = ovid->overlays[j];
+diff --git a/drivers/media/video/omap3isp/isp.h b/drivers/media/video/omap3isp/isp.h
+index 964ab1b..7533a40 100644
+--- a/drivers/media/video/omap3isp/isp.h
++++ b/drivers/media/video/omap3isp/isp.h
+@@ -126,9 +126,6 @@ struct isp_reg {
+ 
+ struct isp_platform_callback {
+ 	u32 (*set_xclk)(struct isp_device *isp, u32 xclk, u8 xclksel);
+-	int (*csiphy_config)(struct isp_csiphy *phy,
+-			     struct isp_csiphy_dphy_cfg *dphy,
+-			     struct isp_csiphy_lanes_cfg *lanes);
+ };
+ 
+ /*
+diff --git a/drivers/media/video/omap3isp/ispcsiphy.c b/drivers/media/video/omap3isp/ispcsiphy.c
+index 5be37ce..902477d 100644
+--- a/drivers/media/video/omap3isp/ispcsiphy.c
++++ b/drivers/media/video/omap3isp/ispcsiphy.c
+@@ -28,41 +28,13 @@
+ #include <linux/device.h>
+ #include <linux/regulator/consumer.h>
+ 
++#include "../../../../arch/arm/mach-omap2/control.h"
 +
-+               if (ovl->manager && ovl->manager->device) {
-+                       ret = ovl->enable(ovl);
-+                       if (ret)
-+                               goto streamon_err1;
-+               }
-+       }
+ #include "isp.h"
+ #include "ispreg.h"
+ #include "ispcsiphy.h"
+ 
+ /*
+- * csiphy_lanes_config - Configuration of CSIPHY lanes.
+- *
+- * Updates HW configuration.
+- * Called with phy->mutex taken.
+- */
+-static void csiphy_lanes_config(struct isp_csiphy *phy)
+-{
+-	unsigned int i;
+-	u32 reg;
+-
+-	reg = isp_reg_readl(phy->isp, phy->cfg_regs, ISPCSI2_PHY_CFG);
+-
+-	for (i = 0; i < phy->num_data_lanes; i++) {
+-		reg &= ~(ISPCSI2_PHY_CFG_DATA_POL_MASK(i + 1) |
+-			 ISPCSI2_PHY_CFG_DATA_POSITION_MASK(i + 1));
+-		reg |= (phy->lanes.data[i].pol <<
+-			ISPCSI2_PHY_CFG_DATA_POL_SHIFT(i + 1));
+-		reg |= (phy->lanes.data[i].pos <<
+-			ISPCSI2_PHY_CFG_DATA_POSITION_SHIFT(i + 1));
+-	}
+-
+-	reg &= ~(ISPCSI2_PHY_CFG_CLOCK_POL_MASK |
+-		 ISPCSI2_PHY_CFG_CLOCK_POSITION_MASK);
+-	reg |= phy->lanes.clk.pol << ISPCSI2_PHY_CFG_CLOCK_POL_SHIFT;
+-	reg |= phy->lanes.clk.pos << ISPCSI2_PHY_CFG_CLOCK_POSITION_SHIFT;
+-
+-	isp_reg_writel(phy->isp, reg, phy->cfg_regs, ISPCSI2_PHY_CFG);
+-}
+-
+-/*
+  * csiphy_power_autoswitch_enable
+  * @enable: Sets or clears the autoswitch function enable flag.
+  */
+@@ -107,46 +79,31 @@ static int csiphy_set_power(struct isp_csiphy *phy, u32 power)
+ }
+ 
+ /*
+- * csiphy_dphy_config - Configure CSI2 D-PHY parameters.
+- *
+- * Called with phy->mutex taken.
++ * TCLK values are OK at their reset values
+  */
+-static void csiphy_dphy_config(struct isp_csiphy *phy)
+-{
+-	u32 reg;
+-
+-	/* Set up ISPCSIPHY_REG0 */
+-	reg = isp_reg_readl(phy->isp, phy->phy_regs, ISPCSIPHY_REG0);
+-
+-	reg &= ~(ISPCSIPHY_REG0_THS_TERM_MASK |
+-		 ISPCSIPHY_REG0_THS_SETTLE_MASK);
+-	reg |= phy->dphy.ths_term << ISPCSIPHY_REG0_THS_TERM_SHIFT;
+-	reg |= phy->dphy.ths_settle << ISPCSIPHY_REG0_THS_SETTLE_SHIFT;
+-
+-	isp_reg_writel(phy->isp, reg, phy->phy_regs, ISPCSIPHY_REG0);
+-
+-	/* Set up ISPCSIPHY_REG1 */
+-	reg = isp_reg_readl(phy->isp, phy->phy_regs, ISPCSIPHY_REG1);
+-
+-	reg &= ~(ISPCSIPHY_REG1_TCLK_TERM_MASK |
+-		 ISPCSIPHY_REG1_TCLK_MISS_MASK |
+-		 ISPCSIPHY_REG1_TCLK_SETTLE_MASK);
+-	reg |= phy->dphy.tclk_term << ISPCSIPHY_REG1_TCLK_TERM_SHIFT;
+-	reg |= phy->dphy.tclk_miss << ISPCSIPHY_REG1_TCLK_MISS_SHIFT;
+-	reg |= phy->dphy.tclk_settle << ISPCSIPHY_REG1_TCLK_SETTLE_SHIFT;
++#define TCLK_TERM	0
++#define TCLK_MISS	1
++#define TCLK_SETTLE	14
+ 
+-	isp_reg_writel(phy->isp, reg, phy->phy_regs, ISPCSIPHY_REG1);
+-}
+-
+-static int csiphy_config(struct isp_csiphy *phy,
+-			 struct isp_csiphy_dphy_cfg *dphy,
+-			 struct isp_csiphy_lanes_cfg *lanes)
++static int omap3isp_csiphy_config(struct isp_csiphy *phy)
+ {
++	struct isp_csi2_device *csi2 = phy->csi2;
++	struct isp_pipeline *pipe = to_isp_pipeline(&csi2->subdev.entity);
++	struct isp_v4l2_subdevs_group *subdevs = pipe->external->host_priv;
++	struct isp_csiphy_lanes_cfg *lanes;
++	int csi2_ddrclk_khz;
+ 	unsigned int used_lanes = 0;
+ 	unsigned int i;
++	u32 reg;
 +
-
-This explains why I am seeing these warnings. Let me give pull request based on master branch.
-
-
-Thanks,
-Vaibhav
-
-> Regards,
-> Archit
-> 
-> >
-> > Will fix this and submit.
-> >
-> > Archit
-> >
-> >>
-> >> Thanks,
-> >> Vaibhav
-> >>
-> >>> /* First save the configuration in ovelray structure */
-> >>> ret = omapvid_init(vout, addr);
-> >>> if (ret)
-> >>> @@ -2071,11 +2050,12 @@ static int __init
-> >>> omap_vout_create_video_devices(struct platform_device *pdev)
-> >>> }
-> >>> video_set_drvdata(vfd, vout);
-> >>>
-> >>> - /* Configure the overlay structure */
-> >>> - ret = omapvid_init(vid_dev->vouts[k], 0);
-> >>> - if (!ret)
-> >>> - goto success;
-> >>> + dev_info(&pdev->dev, ": registered and initialized"
-> >>> + " video device %d\n", vfd->minor);
-> >>> + if (k == (pdev->num_resources - 1))
-> >>> + return 0;
-> >>>
-> >>> + continue;
-> >>> error2:
-> >>> if (vout->vid_info.rotation_type == VOUT_ROT_VRFB)
-> >>> omap_vout_release_vrfb(vout);
-> >>> @@ -2085,12 +2065,6 @@ error1:
-> >>> error:
-> >>> kfree(vout);
-> >>> return ret;
-> >>> -
-> >>> -success:
-> >>> - dev_info(&pdev->dev, ": registered and initialized"
-> >>> - " video device %d\n", vfd->minor);
-> >>> - if (k == (pdev->num_resources - 1))
-> >>> - return 0;
-> >>> }
-> >>>
-> >>> return -ENODEV;
-> >>> --
-> >>> 1.7.5.4
-> >>>
-> >>>
-> >>
-> >>
-> >
-> >
-> 
-> 
++	if (subdevs->interface == ISP_INTERFACE_CCP2B_PHY1
++	    || subdevs->interface == ISP_INTERFACE_CCP2B_PHY2)
++		lanes = &subdevs->bus.ccp2.lanecfg;
++	else
++		lanes = &subdevs->bus.csi2.lanecfg;
+ 
+ 	/* Clock and data lanes verification */
+-	for (i = 0; i < phy->num_data_lanes; i++) {
++	for (i = 0; i < csi2->phy->num_data_lanes; i++) {
+ 		if (lanes->data[i].pol > 1 || lanes->data[i].pos > 3)
+ 			return -EINVAL;
+ 
+@@ -162,10 +119,80 @@ static int csiphy_config(struct isp_csiphy *phy,
+ 	if (lanes->clk.pos == 0 || used_lanes & (1 << lanes->clk.pos))
+ 		return -EINVAL;
+ 
+-	mutex_lock(&phy->mutex);
+-	phy->dphy = *dphy;
+-	phy->lanes = *lanes;
+-	mutex_unlock(&phy->mutex);
++	/* FIXME: Do 34xx / 35xx require something here? */
++	if (cpu_is_omap3630()) {
++		u32 cam_phy_ctrl =
++			omap_readl(OMAP343X_CTRL_BASE
++				   + OMAP3630_CONTROL_CAMERA_PHY_CTRL);
++
++		/*
++		 * SCM.CONTROL_CAMERA_PHY_CTRL
++		 * - bit[4]    : CSIPHY1 data sent to CSIB
++		 * - bit [3:2] : CSIPHY1 config: 00 d-phy, 01/10 ccp2
++		 * - bit [1:0] : CSIPHY2 config: 00 d-phy, 01/10 ccp2
++		 */
++		if (subdevs->interface == ISP_INTERFACE_CCP2B_PHY1)
++			cam_phy_ctrl |= 1 << 2;
++		else if (subdevs->interface == ISP_INTERFACE_CSI2C_PHY1)
++			cam_phy_ctrl &= ~(1 << 2);
++
++		if (subdevs->interface == ISP_INTERFACE_CCP2B_PHY2)
++			cam_phy_ctrl |= 1;
++		else if (subdevs->interface == ISP_INTERFACE_CSI2A_PHY2)
++			cam_phy_ctrl &= ~1;
++
++		omap_writel(cam_phy_ctrl,
++			    OMAP343X_CTRL_BASE
++			    + OMAP3630_CONTROL_CAMERA_PHY_CTRL);
++	}
++
++	/* DPHY timing configuration */
++	/* CSI-2 is DDR and we only count used lanes. */
++	csi2_ddrclk_khz = pipe->external_rate / 1000
++		/ (2 * hweight32(used_lanes)) * pipe->external_bpp;
++
++	reg = isp_reg_readl(csi2->isp, csi2->phy->phy_regs, ISPCSIPHY_REG0);
++
++	reg &= ~(ISPCSIPHY_REG0_THS_TERM_MASK |
++		 ISPCSIPHY_REG0_THS_SETTLE_MASK);
++	/* THS_TERM: Programmed value = ceil(12.5 ns/DDRClk period) - 1. */
++	reg |= (DIV_ROUND_UP(25 * csi2_ddrclk_khz, 2000000) - 1)
++		<< ISPCSIPHY_REG0_THS_TERM_SHIFT;
++	/* THS_SETTLE: Programmed value = ceil(90 ns/DDRClk period) + 3. */
++	reg |= (DIV_ROUND_UP(90 * csi2_ddrclk_khz, 1000000) + 3)
++		<< ISPCSIPHY_REG0_THS_SETTLE_SHIFT;
++
++	isp_reg_writel(csi2->isp, reg, csi2->phy->phy_regs, ISPCSIPHY_REG0);
++
++	reg = isp_reg_readl(csi2->isp, csi2->phy->phy_regs, ISPCSIPHY_REG1);
++
++	reg &= ~(ISPCSIPHY_REG1_TCLK_TERM_MASK |
++		 ISPCSIPHY_REG1_TCLK_MISS_MASK |
++		 ISPCSIPHY_REG1_TCLK_SETTLE_MASK);
++	reg |= TCLK_TERM << ISPCSIPHY_REG1_TCLK_TERM_SHIFT;
++	reg |= TCLK_MISS << ISPCSIPHY_REG1_TCLK_MISS_SHIFT;
++	reg |= TCLK_SETTLE << ISPCSIPHY_REG1_TCLK_SETTLE_SHIFT;
++
++	isp_reg_writel(csi2->isp, reg, csi2->phy->phy_regs, ISPCSIPHY_REG1);
++
++	/* DPHY lane configuration */
++	reg = isp_reg_readl(csi2->isp, csi2->phy->cfg_regs, ISPCSI2_PHY_CFG);
++
++	for (i = 0; i < csi2->phy->num_data_lanes; i++) {
++		reg &= ~(ISPCSI2_PHY_CFG_DATA_POL_MASK(i + 1) |
++			 ISPCSI2_PHY_CFG_DATA_POSITION_MASK(i + 1));
++		reg |= (lanes->data[i].pol <<
++			ISPCSI2_PHY_CFG_DATA_POL_SHIFT(i + 1));
++		reg |= (lanes->data[i].pos <<
++			ISPCSI2_PHY_CFG_DATA_POSITION_SHIFT(i + 1));
++	}
++
++	reg &= ~(ISPCSI2_PHY_CFG_CLOCK_POL_MASK |
++		 ISPCSI2_PHY_CFG_CLOCK_POSITION_MASK);
++	reg |= lanes->clk.pol << ISPCSI2_PHY_CFG_CLOCK_POL_SHIFT;
++	reg |= lanes->clk.pos << ISPCSI2_PHY_CFG_CLOCK_POSITION_SHIFT;
++
++	isp_reg_writel(csi2->isp, reg, csi2->phy->cfg_regs, ISPCSI2_PHY_CFG);
+ 
+ 	return 0;
+ }
+@@ -188,8 +215,9 @@ int omap3isp_csiphy_acquire(struct isp_csiphy *phy)
+ 
+ 	omap3isp_csi2_reset(phy->csi2);
+ 
+-	csiphy_dphy_config(phy);
+-	csiphy_lanes_config(phy);
++	rval = omap3isp_csiphy_config(phy);
++	if (rval < 0)
++		goto done;
+ 
+ 	rval = csiphy_set_power(phy, ISPCSI2_PHY_CFG_PWR_CMD_ON);
+ 	if (rval) {
+@@ -225,8 +253,6 @@ int omap3isp_csiphy_init(struct isp_device *isp)
+ 	struct isp_csiphy *phy1 = &isp->isp_csiphy1;
+ 	struct isp_csiphy *phy2 = &isp->isp_csiphy2;
+ 
+-	isp->platform_cb.csiphy_config = csiphy_config;
+-
+ 	phy2->isp = isp;
+ 	phy2->csi2 = &isp->isp_csi2a;
+ 	phy2->num_data_lanes = ISP_CSIPHY2_NUM_DATA_LANES;
+diff --git a/drivers/media/video/omap3isp/ispcsiphy.h b/drivers/media/video/omap3isp/ispcsiphy.h
+index e93a661..14551fd 100644
+--- a/drivers/media/video/omap3isp/ispcsiphy.h
++++ b/drivers/media/video/omap3isp/ispcsiphy.h
+@@ -32,14 +32,6 @@
+ struct isp_csi2_device;
+ struct regulator;
+ 
+-struct isp_csiphy_dphy_cfg {
+-	u8 ths_term;
+-	u8 ths_settle;
+-	u8 tclk_term;
+-	unsigned tclk_miss:1;
+-	u8 tclk_settle;
+-};
+-
+ struct isp_csiphy {
+ 	struct isp_device *isp;
+ 	struct mutex mutex;	/* serialize csiphy configuration */
+@@ -52,8 +44,6 @@ struct isp_csiphy {
+ 	unsigned int phy_regs;
+ 
+ 	u8 num_data_lanes;	/* number of CSI2 Data Lanes supported */
+-	struct isp_csiphy_lanes_cfg lanes;
+-	struct isp_csiphy_dphy_cfg dphy;
+ };
+ 
+ int omap3isp_csiphy_acquire(struct isp_csiphy *phy);
+-- 
+1.7.2.5
 
