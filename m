@@ -1,99 +1,148 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ftp.meprolight.com ([194.90.149.17]:58267 "EHLO meprolight.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1757255Ab2CHMLJ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Mar 2012 07:11:09 -0500
-From: Alex Gershgorin <alexg@meprolight.com>
-To: Fabio Estevam <festevam@gmail.com>
-CC: Fabio Estevam <fabio.estevam@freescale.com>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	"g.liakhovetski@gmx.de" <g.liakhovetski@gmx.de>,
-	"s.hauer@pengutronix.de" <s.hauer@pengutronix.de>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Thu, 8 Mar 2012 14:10:52 +0200
-Subject: RE: I.MX35 PDK
-Message-ID: <4875438356E7CA4A8F2145FCD3E61C0B2CBD5D8913@MEP-EXCH.meprolight.com>
-References: <CAOMZO5DnP7+zupy9vwBPS0+2XtKM1+nLbwCqBzuCqEG5OWbZRQ@mail.gmail.com>
-	<4875438356E7CA4A8F2145FCD3E61C0B2CBD666A28@MEP-EXCH.meprolight.com>,<CAOMZO5Amo0XFf+TV7PprCL079C5Y0qKmo+k-FfShU7k4SG7W6Q@mail.gmail.com>
-In-Reply-To: <CAOMZO5Amo0XFf+TV7PprCL079C5Y0qKmo+k-FfShU7k4SG7W6Q@mail.gmail.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+Received: from smtp.nokia.com ([147.243.128.26]:60731 "EHLO mgw-da02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932203Ab2CBRcx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 2 Mar 2012 12:32:53 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, dacohen@gmail.com,
+	snjw23@gmail.com, andriy.shevchenko@linux.intel.com,
+	t.stanislaws@samsung.com, tuukkat76@gmail.com,
+	k.debski@samsung.com, riverful@gmail.com, hverkuil@xs4all.nl,
+	teturtia@gmail.com
+Subject: [PATCH v4 02/34] v4l: Document integer menu controls
+Date: Fri,  2 Mar 2012 19:30:10 +0200
+Message-Id: <1330709442-16654-2-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <20120302173219.GA15695@valkosipuli.localdomain>
+References: <20120302173219.GA15695@valkosipuli.localdomain>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ Documentation/DocBook/media/v4l/compat.xml         |   10 +++++
+ Documentation/DocBook/media/v4l/v4l2.xml           |    6 +++
+ .../DocBook/media/v4l/vidioc-queryctrl.xml         |   39 +++++++++++++++++++-
+ 3 files changed, 53 insertions(+), 2 deletions(-)
+
+diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
+index c93298f..8cd5c96 100644
+--- a/Documentation/DocBook/media/v4l/compat.xml
++++ b/Documentation/DocBook/media/v4l/compat.xml
+@@ -2400,6 +2400,16 @@ details.</para>
+       </orderedlist>
+     </section>
  
-> Yes this I2C problem, all I2C slave device need response to Host CPU by
-> pulls I2C data bus to low, in other words generate ACK, the clock pulse for
-> the acknowledge bit is always created by the bus master.
->
-> In this case, the camera tries to reset the data bus and generate an ACK,
-> but the voltage drops to the area of two volts, although it should be reset
-> to zero.
-> I replaced R172 with 10K on CPU board and got a good result, but there are
-> other surprises
++    <section>
++      <title>V4L2 in Linux 3.4</title>
++      <orderedlist>
++        <listitem>
++	  <para>Added integer menus, the new type will be
++	  V4L2_CTRL_TYPE_INTEGER_MENU.</para>
++        </listitem>
++      </orderedlist>
++    </section>
++
+     <section id="other">
+       <title>Relation of V4L2 to other Linux multimedia APIs</title>
+ 
+diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
+index dcf9e33..ff11a13 100644
+--- a/Documentation/DocBook/media/v4l/v4l2.xml
++++ b/Documentation/DocBook/media/v4l/v4l2.xml
+@@ -128,6 +128,12 @@ structs, ioctls) must be noted in more detail in the history chapter
+ applications. -->
+ 
+       <revision>
++	<revnumber>3.4</revnumber>
++	<date>2012-01-26</date>
++	<authorinitials>sa</authorinitials>
++	<revremark>Added V4L2_CTRL_TYPE_INTEGER_MENU.</revremark>
++      </revision>
++      <revision>
+ 	<revnumber>3.3</revnumber>
+ 	<date>2012-01-11</date>
+ 	<authorinitials>hv</authorinitials>
+diff --git a/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml b/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml
+index 36660d3..505f020 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml
+@@ -215,11 +215,12 @@ the array to zero.</entry>
+ 
+     <table pgwide="1" frame="none" id="v4l2-querymenu">
+       <title>struct <structname>v4l2_querymenu</structname></title>
+-      <tgroup cols="3">
++      <tgroup cols="4">
+ 	&cs-str;
+ 	<tbody valign="top">
+ 	  <row>
+ 	    <entry>__u32</entry>
++	    <entry></entry>
+ 	    <entry><structfield>id</structfield></entry>
+ 	    <entry>Identifies the control, set by the application
+ from the respective &v4l2-queryctrl;
+@@ -227,18 +228,38 @@ from the respective &v4l2-queryctrl;
+ 	  </row>
+ 	  <row>
+ 	    <entry>__u32</entry>
++	    <entry></entry>
+ 	    <entry><structfield>index</structfield></entry>
+ 	    <entry>Index of the menu item, starting at zero, set by
+ 	    the application.</entry>
+ 	  </row>
+ 	  <row>
++	    <entry>union</entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	  </row>
++	  <row>
++	    <entry></entry>
+ 	    <entry>__u8</entry>
+ 	    <entry><structfield>name</structfield>[32]</entry>
+ 	    <entry>Name of the menu item, a NUL-terminated ASCII
+-string. This information is intended for the user.</entry>
++string. This information is intended for the user. This field is valid
++for <constant>V4L2_CTRL_FLAG_MENU</constant> type controls.</entry>
++	  </row>
++	  <row>
++	    <entry></entry>
++	    <entry>__s64</entry>
++	    <entry><structfield>value</structfield></entry>
++	    <entry>
++              Value of the integer menu item. This field is valid for
++              <constant>V4L2_CTRL_FLAG_INTEGER_MENU</constant> type
++              controls.
++            </entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry>__u32</entry>
++	    <entry></entry>
+ 	    <entry><structfield>reserved</structfield></entry>
+ 	    <entry>Reserved for future extensions. Drivers must set
+ the array to zero.</entry>
+@@ -292,6 +313,20 @@ the menu items can be enumerated with the
+ <constant>VIDIOC_QUERYMENU</constant> ioctl.</entry>
+ 	  </row>
+ 	  <row>
++	    <entry><constant>V4L2_CTRL_TYPE_INTEGER_MENU</constant></entry>
++	    <entry>&ge; 0</entry>
++	    <entry>1</entry>
++	    <entry>N-1</entry>
++	    <entry>
++              The control has a menu of N choices. The values of the
++              menu items can be enumerated with the
++              <constant>VIDIOC_QUERYMENU</constant> ioctl. This is
++              similar to <constant>V4L2_CTRL_TYPE_MENU</constant>
++              except that instead of strings, the menu items are
++              signed 64-bit integers.
++            </entry>
++	  </row>
++	  <row>
+ 	    <entry><constant>V4L2_CTRL_TYPE_BITMASK</constant></entry>
+ 	    <entry>0</entry>
+ 	    <entry>n/a</entry>
+-- 
+1.7.2.5
 
->Ok, good.
-
->Can you try to change the I2C1 pad settings in software, so that the
->board can work with the original resistor?
-
-In the near future I will check this option:-) 
-
->
-> Linux video capture interface: v2.00
-> soc-camera-pdrv soc-camera-pdrv.0: Probing soc-camera-pdrv.0
-> mx3-camera mx3-camera.0: MX3 Camera driver attached to camera 0
-> ov2640 0-0030: ov2640 Product ID 26:42 Manufacturer ID 7f:a2
-> i2c i2c-0: OV2640 Probed1
-> mx3-camera mx3-camera.0: MX3 Camera driver detached from camera 0
-> dmaengine: failed to get dma1chan0: (-22)
-> dmaengine: failed to get dma1chan1: (-22)
-> dmaengine: failed to get dma1chan2: (-22)
-> dmaengine: failed to get dma1chan3: (-22)
-> dmaengine: failed to get dma1chan4: (-22)
-> dmaengine: failed to get dma1chan5: (-22)
-> dmaengine: failed to get dma1chan6: (-22)
-> dmaengine: failed to get dma1chan7: (-22)
-> dmaengine: failed to get dma1chan8: (-22)
-> dmaengine: failed to get dma1chan9: (-22)
-> dmaengine: failed to get dma1chan10: (-22)
-> dmaengine: failed to get dma1chan11: (-22)
-> dmaengine: failed to get dma1chan12: (-22)
-> dmaengine: failed to get dma1chan13: (-22)
-> dmaengine: failed to get dma1chan14: (-22)
-> dmaengine: failed to get dma1chan15: (-22)
-> dmaengine: failed to get dma1chan16: (-22)
-> dmaengine: failed to get dma1chan17: (-22)
-> dmaengine: failed to get dma1chan18: (-22)
-> dmaengine: failed to get dma1chan19: (-22)
-> dmaengine: failed to get dma1chan20: (-22)
-> dmaengine: failed to get dma1chan21: (-22)
-> dmaengine: failed to get dma1chan22: (-22)
-> dmaengine: failed to get dma1chan23: (-22)
-> dmaengine: failed to get dma1chan24: (-22)
-> dmaengine: failed to get dma1chan25: (-22)
-> dmaengine: failed to get dma1chan26: (-22)
-> dmaengine: failed to get dma1chan27: (-22)
-> dmaengine: failed to get dma1chan28: (-22)
-> dmaengine: failed to get dma1chan29: (-22)
-> dmaengine: failed to get dma1chan30: (-22):
-
->This is something that needs to be solved, but it does not prevent the
->camera to work though.
-
->On my mx31pdk I get the same dmaengine errors and the ov2640 does work fine.
->I think you can go ahead and try to use the camera on the mx35pdk now.
->You can try:
-
->gst-launch -v v4l2src device=/dev/video0 !
->video/x-raw-yuv,width=320,height=240,framerate=25/1 ! ffmpegcolorspace
->! fbdevsink
-
- Thank Fabio I'll try to check it.
-
-Regards
-Alex Gershgorin 
