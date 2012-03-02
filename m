@@ -1,63 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.ispras.ru ([83.149.198.202]:33519 "EHLO smtp.ispras.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1031155Ab2CFVIU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 6 Mar 2012 16:08:20 -0500
-From: Alexey Khoroshilov <khoroshilov@ispras.ru>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Patrick Boettcher <Patrick.Boettcher@dibcom.fr>
-Cc: Alexey Khoroshilov <khoroshilov@ispras.ru>,
-	Olivier Grenie <olivier.grenie@dibcom.fr>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	ldv-project@ispras.ru
-Subject: [PATCH 1/2] [media] dib9000: fix explicit lock mismatches
-Date: Wed,  7 Mar 2012 01:08:16 +0400
-Message-Id: <1331068096-11563-1-git-send-email-khoroshilov@ispras.ru>
+Received: from shadbolt.e.decadent.org.uk ([88.96.1.126]:43668 "EHLO
+	shadbolt.e.decadent.org.uk" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750745Ab2CBEft (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 1 Mar 2012 23:35:49 -0500
+Message-ID: <1330662942.8460.229.camel@deadeye>
+Subject: Re: [PATCH 1/5] staging: lirc_serial: Fix init/exit order
+From: Ben Hutchings <ben@decadent.org.uk>
+To: Jonathan Nieder <jrnieder@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+	Jarod Wilson <jarod@redhat.com>,
+	Torsten Crass <torsten.crass@eBiology.de>
+Date: Fri, 02 Mar 2012 04:35:42 +0000
+In-Reply-To: <20120302034545.GA31860@burratino>
+References: <1321422581.2885.50.camel@deadeye>
+	 <20120302034545.GA31860@burratino>
+Content-Type: multipart/signed; micalg="pgp-sha512";
+	protocol="application/pgp-signature"; boundary="=-E72ecY/X89wKpFpFW4Fb"
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There are several error paths, where &state->platform.risc.mem_mbx_lock
-is not unlocked. The patch fixes it.
 
-Found by Linux Driver Verification project (linuxtesting.org).
+--=-E72ecY/X89wKpFpFW4Fb
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Alexey Khoroshilov <khoroshilov@ispras.ru>
----
- drivers/media/dvb/frontends/dib9000.c |    6 +++++-
- 1 files changed, 5 insertions(+), 1 deletions(-)
+On Thu, 2012-03-01 at 21:45 -0600, Jonathan Nieder wrote:
+[...]
+> From <http://bugs.debian.org/645811> I see that you tested these patches:
+>=20
+>  affc9a0d59ac [media] staging: lirc_serial: Do not assume error codes
+>               returned by request_irq()
+>  9b98d6067971 [media] staging: lirc_serial: Fix bogus error codes
+>  1ff1d88e8629 [media] staging: lirc_serial: Fix deadlock on resume failur=
+e
+>  c8e57e1b766c [media] staging: lirc_serial: Free resources on failure
+>               paths of lirc_serial_probe()
+>  9105b8b20041 [media] staging: lirc_serial: Fix init/exit order
+>=20
+> in a VM.  They were applied in 3.3-rc1 and have been in the Debian
+> kernel since 3.1.4-1 at the end of November.
+>=20
+> Would some of these patches (e.g., at least patches 1, 2, and 5) be
+> appropriate for inclusion in the 3.0.y and 3.2.y stable kernels from
+> kernel.org?
 
-diff --git a/drivers/media/dvb/frontends/dib9000.c b/drivers/media/dvb/frontends/dib9000.c
-index 863ef3c..d96b6a1 100644
---- a/drivers/media/dvb/frontends/dib9000.c
-+++ b/drivers/media/dvb/frontends/dib9000.c
-@@ -2208,6 +2208,7 @@ static int dib9000_read_signal_strength(struct dvb_frontend *fe, u16 * strength)
- 
- 	DibAcquireLock(&state->platform.risc.mem_mbx_lock);
- 	if (dib9000_fw_memmbx_sync(state, FE_SYNC_CHANNEL) < 0) {
-+		DibReleaseLock(&state->platform.risc.mem_mbx_lock);
- 		ret = -EIO;
- 		goto error;
- 	}
-@@ -2233,8 +2234,10 @@ static u32 dib9000_get_snr(struct dvb_frontend *fe)
- 	u16 val;
- 
- 	DibAcquireLock(&state->platform.risc.mem_mbx_lock);
--	if (dib9000_fw_memmbx_sync(state, FE_SYNC_CHANNEL) < 0)
-+	if (dib9000_fw_memmbx_sync(state, FE_SYNC_CHANNEL) < 0) {
-+		DibReleaseLock(&state->platform.risc.mem_mbx_lock);
- 		return -EIO;
-+	}
- 	dib9000_risc_mem_read(state, FE_MM_R_FE_MONITOR, (u8 *) c, 16 * 2);
- 	DibReleaseLock(&state->platform.risc.mem_mbx_lock);
- 
-@@ -2291,6 +2294,7 @@ static int dib9000_read_unc_blocks(struct dvb_frontend *fe, u32 * unc)
- 	DibAcquireLock(&state->demod_lock);
- 	DibAcquireLock(&state->platform.risc.mem_mbx_lock);
- 	if (dib9000_fw_memmbx_sync(state, FE_SYNC_CHANNEL) < 0) {
-+		DibReleaseLock(&state->platform.risc.mem_mbx_lock);
- 		ret = -EIO;
- 		goto error;
- 	}
--- 
-1.7.4.1
+Assuming they haven't caused any regressions, I think everything except
+9b98d6067971 (4/5) would be appropriate.
 
+Ben.
+
+--=20
+Ben Hutchings
+One of the nice things about standards is that there are so many of them.
+
+--=-E72ecY/X89wKpFpFW4Fb
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIVAwUAT1BOHue/yOyVhhEJAQqHrxAApRsqtquoHu0S1HVD1ggZ6dn0ydFDuV6o
+TC0d9qEsvi0GtyQbBVmlbRNpA963R92MkqHzsc8I+9+nE6uXE+fm0f9agaz4OR3o
+wFPEkB/5+GCvQvLeVsMyexMk7nwWcRCI9BGH5Sr95QkTjxagQlIbNfd0BXhuCeS0
+dMPpDPNUYvjBf41ZmUfqN0Ia31bQBn70aqP9ktCOjEzBmJwJP887iffHPTAiG2l4
+4TQSof406p9z7qj4Pp8NFBGwVWOkbVvyJYnf77omdPzo+vi3AZ6qaSLnS0hThFdk
+tsdVh2JvjN1fFzBE5PKs28rb2RAmA7lXtpo5PqJIUGGS2S/WHxg0bSL860Gtall0
+JuLnnDz3UKlab0jTGnOujarjqiGKs/8/oDFVEVw5EetJL+kawRzxJUVLdki6Q9ip
+aQWtPw+R+o6M0bzqk3p6QkYHbabKlthHoCU0i/kQfMUDinh7rkPGY0hTbcIv8Pmp
+d+6VRUFHupSBvwkveZ8YNAYmv0cvYvWeFGo7Jq60Bvwox/PP3xK2tMvuONw6o9K5
+pBaSBRXbqBPBarHu75ZzuCiyhQDhHvwrLKBdYlOpEtA1m2GKF1opoTt2qIWEUrAk
+juUsWH2BHad1ZgoQyZL+SbZO3d+Gr54aAlPIRad+J5aQUCdMWJwIfMupqUpKlO6E
+xXt1Xkd8P3I=
+=Ffzp
+-----END PGP SIGNATURE-----
+
+--=-E72ecY/X89wKpFpFW4Fb--
