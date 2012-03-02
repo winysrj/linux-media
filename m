@@ -1,45 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f172.google.com ([209.85.212.172]:50939 "EHLO
-	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756293Ab2CTVXO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Mar 2012 17:23:14 -0400
-Received: by wibhj6 with SMTP id hj6so5710588wib.1
-        for <linux-media@vger.kernel.org>; Tue, 20 Mar 2012 14:23:11 -0700 (PDT)
-Date: Tue, 20 Mar 2012 22:23:51 +0100
-From: Daniel Vetter <daniel@ffwll.ch>
-To: linaro-mm-sig@lists.linaro.org,
-	LKML <linux-kernel@vger.kernel.org>,
-	DRI Development <dri-devel@lists.freedesktop.org>,
-	linux-media@vger.kernel.org
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
-Subject: Re: [PATCH] [RFC] dma-buf: mmap support
-Message-ID: <20120320212013.GA22215@phenom.ffwll.local>
-References: <1332276785-1440-1-git-send-email-daniel.vetter@ffwll.ch>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1332276785-1440-1-git-send-email-daniel.vetter@ffwll.ch>
+Received: from smtp.nokia.com ([147.243.128.24]:37122 "EHLO mgw-da01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932362Ab2CBRcz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 2 Mar 2012 12:32:55 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, dacohen@gmail.com,
+	snjw23@gmail.com, andriy.shevchenko@linux.intel.com,
+	t.stanislaws@samsung.com, tuukkat76@gmail.com,
+	k.debski@samsung.com, riverful@gmail.com, hverkuil@xs4all.nl,
+	teturtia@gmail.com
+Subject: [PATCH v4 17/34] v4l: Improve sub-device documentation for pad ops
+Date: Fri,  2 Mar 2012 19:30:25 +0200
+Message-Id: <1330709442-16654-17-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <20120302173219.GA15695@valkosipuli.localdomain>
+References: <20120302173219.GA15695@valkosipuli.localdomain>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Mar 20, 2012 at 09:53:05PM +0100, Daniel Vetter wrote:
-> Note taht this dma-buf mmap patch does _not_ support every possible
-> insanity an existing subsystem could pull of with mmap: Because it
-> does not allow to intercept pagefaults and shoot down ptes importing
-> subsystems can't add some magic of their own at these points (e.g. to
-> automatically synchronize with outstanding rendering or set up some
-> special resources). I've done a cursory read through a few mmap
-> implementions of various subsytems and I'm hopeful that we can avoid
-> this (and the complexity it'd bring with it).
+Document that format related configuration is done through pad ops in case
+the driver does use the media framework.
 
-To clarify: This concerns the importer. The exporter is of course still
-free to do whatever it pleases. But the goal of this exercise is that
-importing subsystems can still offer an identical userspace interfaces for
-buffers imported through dma-buf and native ones, hence why I've mentioned
-it.
--Daniel
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ Documentation/video4linux/v4l2-framework.txt |    9 +++++++++
+ 1 files changed, 9 insertions(+), 0 deletions(-)
+
+diff --git a/Documentation/video4linux/v4l2-framework.txt b/Documentation/video4linux/v4l2-framework.txt
+index 659b2ba..f06c563 100644
+--- a/Documentation/video4linux/v4l2-framework.txt
++++ b/Documentation/video4linux/v4l2-framework.txt
+@@ -262,11 +262,16 @@ struct v4l2_subdev_video_ops {
+ 	...
+ };
+ 
++struct v4l2_subdev_pad_ops {
++	...
++};
++
+ struct v4l2_subdev_ops {
+ 	const struct v4l2_subdev_core_ops  *core;
+ 	const struct v4l2_subdev_tuner_ops *tuner;
+ 	const struct v4l2_subdev_audio_ops *audio;
+ 	const struct v4l2_subdev_video_ops *video;
++	const struct v4l2_subdev_pad_ops *video;
+ };
+ 
+ The core ops are common to all subdevs, the other categories are implemented
+@@ -303,6 +308,10 @@ Don't forget to cleanup the media entity before the sub-device is destroyed:
+ 
+ 	media_entity_cleanup(&sd->entity);
+ 
++If the subdev driver intends to process video and integrate with the media
++framework, it must implement format related functionality using
++v4l2_subdev_pad_ops instead of v4l2_subdev_video_ops.
++
+ A device (bridge) driver needs to register the v4l2_subdev with the
+ v4l2_device:
+ 
 -- 
-Daniel Vetter
-Mail: daniel@ffwll.ch
-Mobile: +41 (0)79 365 57 48
+1.7.2.5
+
