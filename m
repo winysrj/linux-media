@@ -1,87 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:44903 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761835Ab2CONKW convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Mar 2012 09:10:22 -0400
-Received: by yhmm54 with SMTP id m54so3073385yhm.19
-        for <linux-media@vger.kernel.org>; Thu, 15 Mar 2012 06:10:22 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <4F61C79E.6090603@redhat.com>
-References: <CALjTZvZy4npSE0aELnmsZzzgsxUC1xjeNYVwQ_CvJG59PizfEQ@mail.gmail.com>
-	<CALF0-+Wp03vsbiaJFUt=ymnEncEvDg_KmnV+2OWjtO-_0qqBVg@mail.gmail.com>
-	<CALjTZvYVtuSm0v-_Q7od=iUDvHbkMe4c5ycAQZwoErCCe=N+Bg@mail.gmail.com>
-	<CALF0-+W3HenNpUt_yGxqs+fohcZ22ozDw9MhTWua0B++ZFA2vA@mail.gmail.com>
-	<CALjTZvYJZ32Red-UfZXubB-Lk503DWbHGTL_kEoV4DVDDYJ46w@mail.gmail.com>
-	<4F61C79E.6090603@redhat.com>
-Date: Thu, 15 Mar 2012 13:10:21 +0000
-Message-ID: <CALjTZvZR=Mr-eSVwy=Wd8ToikAX9bG23NLARRw_K0scT-_YeCg@mail.gmail.com>
-Subject: Re: eMPIA EM2710 Webcam (em28xx) and LIRC
-From: Rui Salvaterra <rsalvaterra@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: =?UTF-8?Q?Ezequiel_Garc=C3=ADa?= <elezegarcia@gmail.com>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from smtp.nokia.com ([147.243.128.26]:60752 "EHLO mgw-da02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932375Ab2CBRcz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 2 Mar 2012 12:32:55 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, dacohen@gmail.com,
+	snjw23@gmail.com, andriy.shevchenko@linux.intel.com,
+	t.stanislaws@samsung.com, tuukkat76@gmail.com,
+	k.debski@samsung.com, riverful@gmail.com, hverkuil@xs4all.nl,
+	teturtia@gmail.com
+Subject: [PATCH v4 14/34] v4l: Add DPCM compressed formats
+Date: Fri,  2 Mar 2012 19:30:22 +0200
+Message-Id: <1330709442-16654-14-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <20120302173219.GA15695@valkosipuli.localdomain>
+References: <20120302173219.GA15695@valkosipuli.localdomain>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 15 March 2012 10:42, Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
->
-> The em28xx module requires IR support from rc_core, as most em28xx devices
-> support it. It can be compiled without IR support, but, as the em28xx-input
-> is not on a separate module, and it contains some calls to rc_core functions
-> like rc_register_device, modprobe will load rc_core, and rc_core will load
-> the decoders, including lirc_dev.
->
-> Those modules are small and won't be running if all you have are the webcams.
-> The optimization to not load those modules is not big, so nobody had time
-> yet to do it.
->
-> Anyway, if you want to fix it, there are two possible approaches:
->
-> 1) change rc_core to not load the IR decoders at load time, postponing it
->   to load only if a RC_DRIVER_IR_RAW device is registered via rc_register_device.
->
-> A patch for it shouldn't be hard. All you need to do is to move ir_raw_init()
-> to rc_register_device() and add a logic there to call it for the first
-> raw device.
->
-> With such patch, rc_core module will still be loaded.
->
-> 2) change em28xx-input.c to be a separate module, called only when a device
-> has IR. It will need to have a logic similar to em28xx-dvb and em28xx-alsa
-> modules.
->
-> It is not hard to write such patch, as most of the logic is already there,
-> but it is not as trivial as approach (1).
->
-> It probably makes sense for both approaches (1) and (2), as not all boards
-> support "raw" devices. In the case of em28xx, there's no device using "raw"
-> mode, as the em28xx chips provide a hardware IR decoder. So, up to now, we
-> didn't find any em28xx device requiring a software decoder for IR.
->
-> If you want to write patches for the above, they'll be welcome.
->
-> I hope that helps.
->
-> Regards,
-> Mauro
+Add three other colour orders for 10-bit to 8-bit DPCM compressed formats.
 
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+ Documentation/DocBook/media/v4l/pixfmt-srggb10.xml |    2 +-
+ .../DocBook/media/v4l/pixfmt-srggb10dpcm8.xml      |   29 ++++++++++++++++++++
+ Documentation/DocBook/media/v4l/pixfmt.xml         |    1 +
+ include/linux/videodev2.h                          |    3 ++
+ 4 files changed, 34 insertions(+), 1 deletions(-)
+ create mode 100644 Documentation/DocBook/media/v4l/pixfmt-srggb10dpcm8.xml
 
-Hi, Mauro
+diff --git a/Documentation/DocBook/media/v4l/pixfmt-srggb10.xml b/Documentation/DocBook/media/v4l/pixfmt-srggb10.xml
+index 7b27409..c1c62a9 100644
+--- a/Documentation/DocBook/media/v4l/pixfmt-srggb10.xml
++++ b/Documentation/DocBook/media/v4l/pixfmt-srggb10.xml
+@@ -1,4 +1,4 @@
+-    <refentry>
++    <refentry id="pixfmt-srggb10">
+       <refmeta>
+ 	<refentrytitle>V4L2_PIX_FMT_SRGGB10 ('RG10'),
+ 	 V4L2_PIX_FMT_SGRBG10 ('BA10'),
+diff --git a/Documentation/DocBook/media/v4l/pixfmt-srggb10dpcm8.xml b/Documentation/DocBook/media/v4l/pixfmt-srggb10dpcm8.xml
+new file mode 100644
+index 0000000..40455f1
+--- /dev/null
++++ b/Documentation/DocBook/media/v4l/pixfmt-srggb10dpcm8.xml
+@@ -0,0 +1,29 @@
++    <refentry>
++      <refmeta>
++	<refentrytitle>
++	 V4L2_PIX_FMT_SRGGB10DPCM8 ('bBA8'),
++	 V4L2_PIX_FMT_SGBRG10DPCM8 ('bGA8'),
++	 V4L2_PIX_FMT_SGRBG10DPCM8 ('BD10'),
++	 V4L2_PIX_FMT_SBGGR10DPCM8 ('bRA8'),
++	 </refentrytitle>
++	&manvol;
++      </refmeta>
++      <refnamediv>
++	<refname id="V4L2-PIX-FMT-SRGGB10DPCM8"><constant>V4L2_PIX_FMT_SRGGB10DPCM8</constant></refname>
++	<refname id="V4L2-PIX-FMT-SGRBG10DPCM8"><constant>V4L2_PIX_FMT_SGRBG10DPCM8</constant></refname>
++	<refname id="V4L2-PIX-FMT-SGBRG10DPCM8"><constant>V4L2_PIX_FMT_SGBRG10DPCM8</constant></refname>
++	<refname id="V4L2-PIX-FMT-SBGGR10DPCM8"><constant>V4L2_PIX_FMT_SBGGR10DPCM8</constant></refname>
++	<refpurpose>10-bit Bayer formats compressed to 8 bits</refpurpose>
++      </refnamediv>
++      <refsect1>
++	<title>Description</title>
++
++	<para>The following four pixel formats are raw sRGB / Bayer formats
++	with 10 bits per colour compressed to 8 bits each, using DPCM
++	compression. DPCM, differential pulse-code modulation, is lossy.
++	Each colour component consumes 8 bits of memory. In other respects
++	this format is similar to <xref
++	linkend="pixfmt-srggb10">.</xref></para>
++
++      </refsect1>
++    </refentry>
+diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
+index 31eaae2..74d4fcd 100644
+--- a/Documentation/DocBook/media/v4l/pixfmt.xml
++++ b/Documentation/DocBook/media/v4l/pixfmt.xml
+@@ -673,6 +673,7 @@ access the palette, this must be done with ioctls of the Linux framebuffer API.<
+     &sub-srggb8;
+     &sub-sbggr16;
+     &sub-srggb10;
++    &sub-srggb10dpcm8;
+     &sub-srggb12;
+   </section>
+ 
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index f46350e..76f3153 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -378,7 +378,10 @@ struct v4l2_pix_format {
+ #define V4L2_PIX_FMT_SGRBG12 v4l2_fourcc('B', 'A', '1', '2') /* 12  GRGR.. BGBG.. */
+ #define V4L2_PIX_FMT_SRGGB12 v4l2_fourcc('R', 'G', '1', '2') /* 12  RGRG.. GBGB.. */
+ 	/* 10bit raw bayer DPCM compressed to 8 bits */
++#define V4L2_PIX_FMT_SBGGR10DPCM8 v4l2_fourcc('b', 'B', 'A', '8')
++#define V4L2_PIX_FMT_SGBRG10DPCM8 v4l2_fourcc('b', 'G', 'A', '8')
+ #define V4L2_PIX_FMT_SGRBG10DPCM8 v4l2_fourcc('B', 'D', '1', '0')
++#define V4L2_PIX_FMT_SRGGB10DPCM8 v4l2_fourcc('b', 'R', 'A', '8')
+ 	/*
+ 	 * 10bit raw bayer, expanded to 16 bits
+ 	 * xxxxrrrrrrrrrrxxxxgggggggggg xxxxggggggggggxxxxbbbbbbbbbb...
+-- 
+1.7.2.5
 
-I'm sorry for the late reply, I'm at work.
-Thanks a lot for the explanation. Such refactoring seems a bit out of
-my reach, for the time being (though apparently a nice opportunity to
-learn Git-fu, I'm intoxicated by CVS), but at least now I understand
-what is really happening.
-I may try and hack the code a bit and see what comes out, but don't
-wait for me, by all means. I only have a general idea of how the
-kernel works (I understand C, but stopped writing it about ten years
-ago, as I do Java for a living).
-
-
-Thanks, once again,
-
-Rui Salvaterra
