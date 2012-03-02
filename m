@@ -1,37 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:36257 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1030763Ab2CFPJT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Mar 2012 10:09:19 -0500
-Date: Tue, 6 Mar 2012 17:09:15 +0200
+Received: from smtp.nokia.com ([147.243.128.24]:37126 "EHLO mgw-da01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932428Ab2CBRc4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 2 Mar 2012 12:32:56 -0500
 From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, dacohen@gmail.com, snjw23@gmail.com,
-	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
-	tuukkat76@gmail.com, k.debski@samsung.com, riverful@gmail.com,
-	hverkuil@xs4all.nl, teturtia@gmail.com
-Subject: Re: [PATCH v4 08/34] v4l: Add subdev selections documentation: svg
- and dia files
-Message-ID: <20120306150915.GH1075@valkosipuli.localdomain>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, dacohen@gmail.com,
+	snjw23@gmail.com, andriy.shevchenko@linux.intel.com,
+	t.stanislaws@samsung.com, tuukkat76@gmail.com,
+	k.debski@samsung.com, riverful@gmail.com, hverkuil@xs4all.nl,
+	teturtia@gmail.com
+Subject: [PATCH v4 23/34] omap3isp: Move setting constaints above media_entity_pipeline_start
+Date: Fri,  2 Mar 2012 19:30:31 +0200
+Message-Id: <1330709442-16654-23-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <20120302173219.GA15695@valkosipuli.localdomain>
 References: <20120302173219.GA15695@valkosipuli.localdomain>
- <1330709442-16654-8-git-send-email-sakari.ailus@iki.fi>
- <2834317.dsjm0Bgpv2@avalon>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <2834317.dsjm0Bgpv2@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Mar 05, 2012 at 12:07:30PM +0100, Laurent Pinchart wrote:
-> Hi Sakari,
-> 
-> Thanks for the patch. This version is more readable.
-> 
-> What about also making the red lines dotted/dashed ?
+The clock rate for l3_ick is will soon be read during pipeline validation
+which is now part of media_entity_pipeline_start(). For that reason we set
+constraints earlier on.
 
-Done.
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+ drivers/media/video/omap3isp/ispvideo.c |   14 +++++++-------
+ 1 files changed, 7 insertions(+), 7 deletions(-)
 
+diff --git a/drivers/media/video/omap3isp/ispvideo.c b/drivers/media/video/omap3isp/ispvideo.c
+index c191f13..b0d541b 100644
+--- a/drivers/media/video/omap3isp/ispvideo.c
++++ b/drivers/media/video/omap3isp/ispvideo.c
+@@ -304,8 +304,6 @@ static int isp_video_validate_pipeline(struct isp_pipeline *pipe)
+ 	struct v4l2_subdev *subdev;
+ 	int ret;
+ 
+-	pipe->max_rate = pipe->l3_ick;
+-
+ 	subdev = isp_video_remote_subdev(pipe->output, NULL);
+ 	if (subdev == NULL)
+ 		return -EPIPE;
+@@ -993,6 +991,12 @@ isp_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
+ 	 */
+ 	pipe = video->video.entity.pipe
+ 	     ? to_isp_pipeline(&video->video.entity) : &video->pipe;
++
++	if (video->isp->pdata->set_constraints)
++		video->isp->pdata->set_constraints(video->isp, true);
++	pipe->l3_ick = clk_get_rate(video->isp->clock[ISP_CLK_L3_ICK]);
++	pipe->max_rate = pipe->l3_ick;
++
+ 	media_entity_pipeline_start(&video->video.entity, &pipe->pipe);
+ 
+ 	/* Verify that the currently configured format matches the output of
+@@ -1025,10 +1029,6 @@ isp_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
+ 		pipe->output = far_end;
+ 	}
+ 
+-	if (video->isp->pdata->set_constraints)
+-		video->isp->pdata->set_constraints(video->isp, true);
+-	pipe->l3_ick = clk_get_rate(video->isp->clock[ISP_CLK_L3_ICK]);
+-
+ 	/* Validate the pipeline and update its state. */
+ 	ret = isp_video_validate_pipeline(pipe);
+ 	if (ret < 0)
+@@ -1074,9 +1074,9 @@ isp_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
+ error:
+ 	if (ret < 0) {
+ 		omap3isp_video_queue_streamoff(&vfh->queue);
++		media_entity_pipeline_stop(&video->video.entity);
+ 		if (video->isp->pdata->set_constraints)
+ 			video->isp->pdata->set_constraints(video->isp, false);
+-		media_entity_pipeline_stop(&video->video.entity);
+ 		/* The DMA queue must be emptied here, otherwise CCDC interrupts
+ 		 * that will get triggered the next time the CCDC is powered up
+ 		 * will try to access buffers that might have been freed but
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+1.7.2.5
+
