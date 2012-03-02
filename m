@@ -1,43 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:33406 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753167Ab2CCP2D (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 3 Mar 2012 10:28:03 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:49550 "EHLO
+	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757243Ab2CBIfm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 2 Mar 2012 03:35:42 -0500
+Received: by lahj13 with SMTP id j13so1743935lah.19
+        for <linux-media@vger.kernel.org>; Fri, 02 Mar 2012 00:35:41 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <1328001827-21251-1-git-send-email-javier.martin@vista-silicon.com>
+References: <1328001827-21251-1-git-send-email-javier.martin@vista-silicon.com>
+Date: Fri, 2 Mar 2012 09:35:41 +0100
+Message-ID: <CACKLOr0v14XPfnccGH7rh2yd2eSwOOd8fZeN29SVP8tRrtxWow@mail.gmail.com>
+Subject: Re: [PATCH 1/2] media: tvp5150: Add cropping support.
+From: javier Martin <javier.martin@vista-silicon.com>
 To: linux-media@vger.kernel.org
-Cc: Martin Hostettler <martin@neutronstar.dyndns.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-Subject: [PATCH v3 05/10] mt9m032: Enclose to_dev() macro argument in brackets
-Date: Sat,  3 Mar 2012 16:28:10 +0100
-Message-Id: <1330788495-18762-6-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1330788495-18762-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1330788495-18762-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Cc: mchehab@infradead.org, hverkuil@xs4all.nl,
+	Javier Martin <javier.martin@vista-silicon.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-To make the macro safer to use, enclose its argument in brackets in the
-macro's body.
+Hi all,
+I've been using and testing these patches successfully for a month.
+Do you have any comments on them? Do you think they are ready to be merged?
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/video/mt9m032.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
+[PATCH 1/2] media: tvp5150: Add cropping support
+[PATCH 2/2] media: tvp5150: Add g_mbus_fmt_callback
 
-diff --git a/drivers/media/video/mt9m032.c b/drivers/media/video/mt9m032.c
-index a821b91..74f0cdd 100644
---- a/drivers/media/video/mt9m032.c
-+++ b/drivers/media/video/mt9m032.c
-@@ -121,7 +121,8 @@ struct mt9m032 {
- };
- 
- #define to_mt9m032(sd)	container_of(sd, struct mt9m032, subdev)
--#define to_dev(sensor)	&((struct i2c_client *)v4l2_get_subdevdata(&sensor->subdev))->dev
-+#define to_dev(sensor) \
-+	(&((struct i2c_client *)v4l2_get_subdevdata(&(sensor)->subdev))->dev)
- 
- static int mt9m032_read_reg(struct mt9m032 *sensor, u8 reg)
- {
+
 -- 
-1.7.3.4
-
+Javier Martin
+Vista Silicon S.L.
+CDTUC - FASE C - Oficina S-345
+Avda de los Castros s/n
+39005- Santander. Cantabria. Spain
++34 942 25 32 60
+www.vista-silicon.com
