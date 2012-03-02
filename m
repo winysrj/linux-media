@@ -1,74 +1,162 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 124-248-200-57.sunnyvision.com ([124.248.200.57]:37920 "EHLO
-	teamb04.edmhongkong.com" rhost-flags-OK-FAIL-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1756448Ab2CGOHx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 7 Mar 2012 09:07:53 -0500
-Message-ID: <0Day0ffMj9IsM@mars.seed.net.tw>
-From: eric@cloudjidi.com
-Subject: Web development service
-Content-Type: text/plain;
-Content-Transfer-Encoding: Quoted-Printable
-Date: Wed,  7 Mar 2012 21:56:53 +0800 (HKT)
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from smtp.nokia.com ([147.243.1.48]:28018 "EHLO mgw-sa02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932289Ab2CBRcz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 2 Mar 2012 12:32:55 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, dacohen@gmail.com,
+	snjw23@gmail.com, andriy.shevchenko@linux.intel.com,
+	t.stanislaws@samsung.com, tuukkat76@gmail.com,
+	k.debski@samsung.com, riverful@gmail.com, hverkuil@xs4all.nl,
+	teturtia@gmail.com
+Subject: [PATCH v4 18/34] v4l: Implement v4l2_subdev_link_validate()
+Date: Fri,  2 Mar 2012 19:30:26 +0200
+Message-Id: <1330709442-16654-18-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <20120302173219.GA15695@valkosipuli.localdomain>
+References: <20120302173219.GA15695@valkosipuli.localdomain>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dear all,
-Please see below is our general job reference and web design package, 
+v4l2_subdev_link_validate() is the default op for validating a link. In V4L2
+subdev context, it is used to call a pad op which performs the proper link
+check without much extra work.
 
-Total 12 pages web design service
-- Two language version
-- All the webpage design is included:
-- Theme development;
-- Design Study;
-- Original Layout / Artwork Design;
-- Steady HTML / Flash Web page development;
-- Search Engine Applicable;
-- Basic Graphic Flash Banner x1;
-- All text contents, logos and related product photos should be provided by client
- Product eCatalogue (Product Page)
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+ Documentation/video4linux/v4l2-framework.txt |   12 +++++
+ drivers/media/video/v4l2-subdev.c            |   64 ++++++++++++++++++++++++++
+ include/media/v4l2-subdev.h                  |   12 +++++
+ 3 files changed, 88 insertions(+), 0 deletions(-)
 
-- CMS Function of add /edit Products with Contents & Photos
-- Maximum 10 fields include Photos and Contents
-- Text Editor for Detail Contents (if need)
-- Support text descriptions and photos updating
-- 1 Level categories management
-- Database support with un-limit Products create
-- Not include Data input
-- Standard Admin panel with login function (1 admin account)
-Content management system (Activities page)
-
-- Basic CMS function of add / edit items
-- Max. 5 fields per item
-- Support photos and text descriptions
-- Front-end support 1 page only (Comapny activities page)
-- Database support with un-limit Products create
-- Not include Data input
-- Integrated Admin Panel
-Enquiry form function (Contact Us)
-- Form to mail
-Package price : $38,000
-
-Yoy may click the hyperlink to see some of our design reference.
-
-Job reference
-
-http://www.hk-belle.com/
-http://www.mirabell.com.hk/
-http://www.nikijodi.com/
-http://www.joy-peace.com/
-http://www.staccato.com
-http://www.chicks.com.hk/
-
-Program reference
-http://www.gloryskygroup.com/index.aspx=3Flang=3Dbig5
-http://www.mydriver.com.hk/
+diff --git a/Documentation/video4linux/v4l2-framework.txt b/Documentation/video4linux/v4l2-framework.txt
+index f06c563..9d341bc 100644
+--- a/Documentation/video4linux/v4l2-framework.txt
++++ b/Documentation/video4linux/v4l2-framework.txt
+@@ -312,6 +312,18 @@ If the subdev driver intends to process video and integrate with the media
+ framework, it must implement format related functionality using
+ v4l2_subdev_pad_ops instead of v4l2_subdev_video_ops.
  
-Best Regards,
-Eric Chan
-Senior Sales Executive
-
-If you do not wish to further receive this event message, email subscriber@dedicatedserver.com.hk to unsubscribe this message
-
++In that case, the subdev driver may set the link_validate field to provide
++its own link validation function. The link validation function is called for
++every link in the pipeline where both of the ends of the links are V4L2
++sub-devices. The driver is still responsible for validating the correctness
++of the format configuration between sub-devices and video nodes.
++
++If link_validate op is not set, the default function
++v4l2_subdev_link_validate_default() is used instead. This function ensures
++that width, height and the media bus pixel code are equal on both source and
++sink of the link. Subdev drivers are also free to use this function to
++perform the checks mentioned above in addition to their own checks.
++
+ A device (bridge) driver needs to register the v4l2_subdev with the
+ v4l2_device:
+ 
+diff --git a/drivers/media/video/v4l2-subdev.c b/drivers/media/video/v4l2-subdev.c
+index eda34cd..507cde2 100644
+--- a/drivers/media/video/v4l2-subdev.c
++++ b/drivers/media/video/v4l2-subdev.c
+@@ -387,6 +387,70 @@ const struct v4l2_file_operations v4l2_subdev_fops = {
+ 	.poll = subdev_poll,
+ };
+ 
++#ifdef CONFIG_MEDIA_CONTROLLER
++int v4l2_subdev_link_validate_default(struct v4l2_subdev *sd,
++				      struct media_link *link,
++				      struct v4l2_subdev_format *source_fmt,
++				      struct v4l2_subdev_format *sink_fmt)
++{
++	if (source_fmt->format.width != sink_fmt->format.width
++	    || source_fmt->format.height != sink_fmt->format.height
++	    || source_fmt->format.code != sink_fmt->format.code)
++		return -EINVAL;
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(v4l2_subdev_link_validate_default);
++
++static int
++v4l2_subdev_link_validate_get_format(struct media_pad *pad,
++				     struct v4l2_subdev_format *fmt)
++{
++	switch (media_entity_type(pad->entity)) {
++	case MEDIA_ENT_T_V4L2_SUBDEV:
++		fmt->which = V4L2_SUBDEV_FORMAT_ACTIVE;
++		fmt->pad = pad->index;
++		return v4l2_subdev_call(media_entity_to_v4l2_subdev(
++						pad->entity),
++					pad, get_fmt, NULL, fmt);
++	default:
++		WARN(1, "Driver bug! Wrong media entity type %d, entity %s\n",
++		     media_entity_type(pad->entity), pad->entity->name);
++		/* Fall through */
++	case MEDIA_ENT_T_DEVNODE_V4L:
++		return -EINVAL;
++	}
++}
++
++int v4l2_subdev_link_validate(struct media_link *link)
++{
++	struct v4l2_subdev *sink;
++	struct v4l2_subdev_format sink_fmt, source_fmt;
++	int rval;
++
++	rval = v4l2_subdev_link_validate_get_format(
++		link->source, &source_fmt);
++	if (rval < 0)
++		return 0;
++
++	rval = v4l2_subdev_link_validate_get_format(
++		link->sink, &sink_fmt);
++	if (rval < 0)
++		return 0;
++
++	sink = media_entity_to_v4l2_subdev(link->sink->entity);
++
++	rval = v4l2_subdev_call(sink, pad, link_validate, link,
++				&source_fmt, &sink_fmt);
++	if (rval != -ENOIOCTLCMD)
++		return rval;
++
++	return v4l2_subdev_link_validate_default(
++		sink, link, &source_fmt, &sink_fmt);
++}
++EXPORT_SYMBOL_GPL(v4l2_subdev_link_validate);
++#endif /* CONFIG_MEDIA_CONTROLLER */
++
+ void v4l2_subdev_init(struct v4l2_subdev *sd, const struct v4l2_subdev_ops *ops)
+ {
+ 	INIT_LIST_HEAD(&sd->list);
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index 7e85035..1c2318b 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -470,6 +470,11 @@ struct v4l2_subdev_pad_ops {
+ 			     struct v4l2_subdev_selection *sel);
+ 	int (*set_selection)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
+ 			     struct v4l2_subdev_selection *sel);
++#ifdef CONFIG_MEDIA_CONTROLLER
++	int (*link_validate)(struct v4l2_subdev *sd, struct media_link *link,
++			     struct v4l2_subdev_format *source_fmt,
++			     struct v4l2_subdev_format *sink_fmt);
++#endif /* CONFIG_MEDIA_CONTROLLER */
+ };
+ 
+ struct v4l2_subdev_ops {
+@@ -602,6 +607,13 @@ static inline void *v4l2_get_subdev_hostdata(const struct v4l2_subdev *sd)
+ 	return sd->host_priv;
+ }
+ 
++#ifdef CONFIG_MEDIA_CONTROLLER
++int v4l2_subdev_link_validate_default(struct v4l2_subdev *sd,
++				      struct media_link *link,
++				      struct v4l2_subdev_format *source_fmt,
++				      struct v4l2_subdev_format *sink_fmt);
++int v4l2_subdev_link_validate(struct media_link *link);
++#endif /* CONFIG_MEDIA_CONTROLLER */
+ void v4l2_subdev_init(struct v4l2_subdev *sd,
+ 		      const struct v4l2_subdev_ops *ops);
+ 
+-- 
+1.7.2.5
 
