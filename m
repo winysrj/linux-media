@@ -1,107 +1,162 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:54460 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751241Ab2CGJBh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 7 Mar 2012 04:01:37 -0500
-From: Archit Taneja <archit@ti.com>
-To: <hvaibhav@ti.com>
-CC: <tomi.valkeinen@ti.com>, <linux-omap@vger.kernel.org>,
-	<linux-media@vger.kernel.org>, Archit Taneja <archit@ti.com>
-Subject: [PATCH] omap_vout: Set DSS overlay_info only if paddr is non zero
-Date: Wed, 7 Mar 2012 14:31:16 +0530
-Message-ID: <1331110876-11895-1-git-send-email-archit@ti.com>
+Received: from smtp-68.nebula.fi ([83.145.220.68]:34017 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S964821Ab2CBWlb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Mar 2012 17:41:31 -0500
+Date: Sat, 3 Mar 2012 00:41:26 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org,
+	Martin Hostettler <martin@neutronstar.dyndns.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH v2 10/10] mt9m032: Use generic PLL setup code
+Message-ID: <20120302224126.GH15695@valkosipuli.localdomain>
+References: <1330685047-12742-1-git-send-email-laurent.pinchart@ideasonboard.com>
+ <1330685047-12742-11-git-send-email-laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1330685047-12742-11-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The omap_vout driver tries to set the DSS overlay_info using set_overlay_info()
-when the physical address for the overlay is still not configured. This happens
-in omap_vout_probe() and vidioc_s_fmt_vid_out().
+Hi Laurent,
 
-The calls to omapvid_init(which internally calls set_overlay_info()) are removed
-from these functions. They don't need to be called as the omap_vout_device
-struct anyway maintains the overlay related changes made. Also, remove the
-explicit call to set_overlay_info() in vidioc_streamon(), this was used to set
-the paddr, this isn't needed as omapvid_init() does the same thing later.
+Thanks for the patch.
 
-These changes are required as the DSS2 driver since 3.3 kernel doesn't let you
-set the overlay info with paddr as 0.
+On Fri, Mar 02, 2012 at 11:44:07AM +0100, Laurent Pinchart wrote:
+> Compute the PLL parameters at runtime using the generic Aptina PLL
+> helper.
+> 
+> Remove the PLL parameters from platform data and pass the external clock
+> and desired internal clock frequencies instead.
+> 
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> ---
+>  drivers/media/video/mt9m032.c |   61 ++++++++++++++++++++++++++---------------
+>  include/media/mt9m032.h       |    4 +--
+>  2 files changed, 40 insertions(+), 25 deletions(-)
+> 
+> diff --git a/drivers/media/video/mt9m032.c b/drivers/media/video/mt9m032.c
+> index 4cde779..45e8c68 100644
+> --- a/drivers/media/video/mt9m032.c
+> +++ b/drivers/media/video/mt9m032.c
+> @@ -35,6 +35,8 @@
+>  #include <media/v4l2-device.h>
+>  #include <media/v4l2-subdev.h>
+>  
+> +#include "aptina-pll.h"
+> +
+>  #define MT9M032_CHIP_VERSION			0x00
+>  #define     MT9M032_CHIP_VERSION_VALUE		0x1402
+>  #define MT9M032_ROW_START			0x01
+> @@ -61,6 +63,7 @@
+>  #define MT9M032_GAIN_BLUE			0x2c
+>  #define MT9M032_GAIN_RED			0x2d
+>  #define MT9M032_GAIN_GREEN2			0x2e
+> +
+>  /* write only */
+>  #define MT9M032_GAIN_ALL			0x35
+>  #define     MT9M032_GAIN_DIGITAL_MASK		0x7f
+> @@ -83,6 +86,8 @@
+>  #define     MT9P031_PLL_CONTROL_PWROFF		0x0050
+>  #define     MT9P031_PLL_CONTROL_PWRON		0x0051
+>  #define     MT9P031_PLL_CONTROL_USEPLL		0x0052
+> +#define MT9P031_PLL_CONFIG2			0x11
+> +#define     MT9P031_PLL_CONFIG2_P1_DIV_MASK	0x1f
+>  
+>  /*
+>   * width and height include active boundry and black parts
+> @@ -223,31 +228,43 @@ static int update_formatter2(struct mt9m032 *sensor, bool streaming)
+>  static int mt9m032_setup_pll(struct mt9m032 *sensor)
+>  {
+>  	struct i2c_client *client = v4l2_get_subdevdata(&sensor->subdev);
+> -	struct mt9m032_platform_data* pdata = sensor->pdata;
+> -	u16 reg_pll1;
+> -	unsigned int pre_div;
+> +	struct mt9m032_platform_data *pdata = sensor->pdata;
+> +	struct aptina_pll_limits limits;
+> +	struct aptina_pll pll;
+>  	int ret;
+>  
+> -	/* TODO: also support other pre-div values */
+> -	if (pdata->pll_pre_div != 6) {
+> -		dev_warn(to_dev(sensor),
+> -			"Unsupported PLL pre-divisor value %u, using default 6\n",
+> -			pdata->pll_pre_div);
+> -	}
+> -	pre_div = 6;
+> -
+> -	sensor->pix_clock = pdata->ext_clock * pdata->pll_mul /
+> -		(pre_div * pdata->pll_out_div);
+> +	limits.ext_clock_min = 8000000;
+> +	limits.ext_clock_max = 16500000;
+> +	limits.int_clock_min = 2000000;
+> +	limits.int_clock_max = 24000000;
+> +	limits.out_clock_min = 322000000;
+> +	limits.out_clock_max = 693000000;
+> +	limits.pix_clock_max = 99000000;
+> +	limits.n_min = 1;
+> +	limits.n_max = 64;
+> +	limits.m_min = 16;
+> +	limits.m_max = 255;
+> +	limits.p1_min = 1;
+> +	limits.p1_max = 128;
 
-Signed-off-by: Archit Taneja <archit@ti.com>
----
- drivers/media/video/omap/omap_vout.c |   36 ++++-----------------------------
- 1 files changed, 5 insertions(+), 31 deletions(-)
+You could make limits const and static.
 
-diff --git a/drivers/media/video/omap/omap_vout.c b/drivers/media/video/omap/omap_vout.c
-index 1fb7d5b..dffcf66 100644
---- a/drivers/media/video/omap/omap_vout.c
-+++ b/drivers/media/video/omap/omap_vout.c
-@@ -1157,13 +1157,6 @@ static int vidioc_s_fmt_vid_out(struct file *file, void *fh,
- 	/* set default crop and win */
- 	omap_vout_new_format(&vout->pix, &vout->fbuf, &vout->crop, &vout->win);
- 
--	/* Save the changes in the overlay strcuture */
--	ret = omapvid_init(vout, 0);
--	if (ret) {
--		v4l2_err(&vout->vid_dev->v4l2_dev, "failed to change mode\n");
--		goto s_fmt_vid_out_exit;
--	}
--
- 	ret = 0;
- 
- s_fmt_vid_out_exit:
-@@ -1664,20 +1657,6 @@ static int vidioc_streamon(struct file *file, void *fh, enum v4l2_buf_type i)
- 
- 	omap_dispc_register_isr(omap_vout_isr, vout, mask);
- 
--	for (j = 0; j < ovid->num_overlays; j++) {
--		struct omap_overlay *ovl = ovid->overlays[j];
--
--		if (ovl->manager && ovl->manager->device) {
--			struct omap_overlay_info info;
--			ovl->get_overlay_info(ovl, &info);
--			info.paddr = addr;
--			if (ovl->set_overlay_info(ovl, &info)) {
--				ret = -EINVAL;
--				goto streamon_err1;
--			}
--		}
--	}
--
- 	/* First save the configuration in ovelray structure */
- 	ret = omapvid_init(vout, addr);
- 	if (ret)
-@@ -2071,11 +2050,12 @@ static int __init omap_vout_create_video_devices(struct platform_device *pdev)
- 		}
- 		video_set_drvdata(vfd, vout);
- 
--		/* Configure the overlay structure */
--		ret = omapvid_init(vid_dev->vouts[k], 0);
--		if (!ret)
--			goto success;
-+		dev_info(&pdev->dev, ": registered and initialized"
-+				" video device %d\n", vfd->minor);
-+		if (k == (pdev->num_resources - 1))
-+			return 0;
- 
-+		continue;
- error2:
- 		if (vout->vid_info.rotation_type == VOUT_ROT_VRFB)
- 			omap_vout_release_vrfb(vout);
-@@ -2085,12 +2065,6 @@ error1:
- error:
- 		kfree(vout);
- 		return ret;
--
--success:
--		dev_info(&pdev->dev, ": registered and initialized"
--				" video device %d\n", vfd->minor);
--		if (k == (pdev->num_resources - 1))
--			return 0;
- 	}
- 
- 	return -ENODEV;
+> +	pll.ext_clock = pdata->ext_clock;
+> +	pll.pix_clock = pdata->pix_clock;
+> +
+> +	ret = aptina_pll_configure(&client->dev, &pll, &limits);
+> +	if (ret < 0)
+> +		return ret;
+
+Now that you're handling timing information in the sensor driver, including
+blanking --- AFAIU, what would you think about implementing the new sensor
+control interface for this one?
+
+> -	reg_pll1 = ((pdata->pll_out_div - 1) & MT9M032_PLL_CONFIG1_OUTDIV_MASK)
+> -		   | pdata->pll_mul << MT9M032_PLL_CONFIG1_MUL_SHIFT;
+> +	sensor->pix_clock = pll.pix_clock;
+>  
+> -	ret = mt9m032_write_reg(client, MT9M032_PLL_CONFIG1, reg_pll1);
+> +	ret = mt9m032_write_reg(client, MT9M032_PLL_CONFIG1,
+> +				(pll.m << MT9M032_PLL_CONFIG1_MUL_SHIFT)
+> +				| (pll.p1 - 1));
+>  	if (!ret)
+> -		ret = mt9m032_write_reg(client,
+> -					MT9P031_PLL_CONTROL,
+> -					MT9P031_PLL_CONTROL_PWRON | MT9P031_PLL_CONTROL_USEPLL);
+> -
+> +		ret = mt9m032_write_reg(client, MT9P031_PLL_CONFIG2, pll.n - 1);
+> +	if (!ret)
+> +		ret = mt9m032_write_reg(client, MT9P031_PLL_CONTROL,
+> +					MT9P031_PLL_CONTROL_PWRON |
+> +					MT9P031_PLL_CONTROL_USEPLL);
+>  	if (!ret)
+>  		ret = mt9m032_write_reg(client, MT9M032_READ_MODE1, 0x8006);
+>  							/* more reserved, Continuous */
+> diff --git a/include/media/mt9m032.h b/include/media/mt9m032.h
+> index 94cefc5..804e0a5 100644
+> --- a/include/media/mt9m032.h
+> +++ b/include/media/mt9m032.h
+> @@ -29,9 +29,7 @@
+>  
+>  struct mt9m032_platform_data {
+>  	u32 ext_clock;
+> -	u32 pll_pre_div;
+> -	u32 pll_mul;
+> -	u32 pll_out_div;
+> +	u32 pix_clock;
+>  	int invert_pixclock;
+>  
+>  };
+> -- 
+> 1.7.3.4
+
+Regards,
+
 -- 
-1.7.5.4
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
