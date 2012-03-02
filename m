@@ -1,37 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:46306 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756799Ab2CUAFN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Mar 2012 20:05:13 -0400
-Received: by obbeh20 with SMTP id eh20so315081obb.19
-        for <linux-media@vger.kernel.org>; Tue, 20 Mar 2012 17:05:13 -0700 (PDT)
-MIME-Version: 1.0
-Date: Tue, 20 Mar 2012 21:05:13 -0300
-Message-ID: <CALF0-+U+H=mycbcWYP8J9+5TsGCA8NdBWC7Ge7xJ11F3Q6=j=g@mail.gmail.com>
-Subject: [Q] v4l buffer format inside isoc
-From: =?ISO-8859-1?Q?Ezequiel_Garc=EDa?= <elezegarcia@gmail.com>
-To: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from smtp.nokia.com ([147.243.1.48]:28019 "EHLO mgw-sa02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932324Ab2CBRcz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 2 Mar 2012 12:32:55 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, dacohen@gmail.com,
+	snjw23@gmail.com, andriy.shevchenko@linux.intel.com,
+	t.stanislaws@samsung.com, tuukkat76@gmail.com,
+	k.debski@samsung.com, riverful@gmail.com, hverkuil@xs4all.nl,
+	teturtia@gmail.com
+Subject: [PATCH v4 22/34] omap3: add definition for CONTROL_CAMERA_PHY_CTRL
+Date: Fri,  2 Mar 2012 19:30:30 +0200
+Message-Id: <1330709442-16654-22-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <20120302173219.GA15695@valkosipuli.localdomain>
+References: <20120302173219.GA15695@valkosipuli.localdomain>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+This register is available only in OMAP3630.
 
-I'm a little lost while writing a driver for an easycap device
-(saa7113 capture device).
-I have my isoc handler, and the isoc urb flying OK.
-I also have the videobuf2 queue setup (or at least I think so), and I understand
-I need to call vb2_buffer_done() with a filled buffer.
+The original patch was submitted by Vimarsh Zutshi.
 
-What I DON'T understand is how should I fill such buffer?
-I mean, what *format* comes inside the isoc buffer?
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ arch/arm/mach-omap2/control.h |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-Should I look at saa7113 datasheet?
-Should I base in em28xx?
+diff --git a/arch/arm/mach-omap2/control.h b/arch/arm/mach-omap2/control.h
+index 0ba68d3..f3acf09 100644
+--- a/arch/arm/mach-omap2/control.h
++++ b/arch/arm/mach-omap2/control.h
+@@ -183,6 +183,7 @@
+ #define OMAP3630_CONTROL_FUSE_OPP120_VDD1       (OMAP2_CONTROL_GENERAL + 0x0120)
+ #define OMAP3630_CONTROL_FUSE_OPP50_VDD2        (OMAP2_CONTROL_GENERAL + 0x0128)
+ #define OMAP3630_CONTROL_FUSE_OPP100_VDD2       (OMAP2_CONTROL_GENERAL + 0x012C)
++#define OMAP3630_CONTROL_CAMERA_PHY_CTRL	(OMAP2_CONTROL_GENERAL + 0x02f0)
+ 
+ /* OMAP44xx control efuse offsets */
+ #define OMAP44XX_CONTROL_FUSE_IVA_OPP50		0x22C
+-- 
+1.7.2.5
 
-I'm sorry to ask such a generic question.
-Perhaps, someone cares enough to give me a hint.
-
-Thanks,
-Ezequiel.
