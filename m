@@ -1,173 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:55598 "EHLO mx1.redhat.com"
+Received: from smtp.nokia.com ([147.243.1.48]:27995 "EHLO mgw-sa02.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754623Ab2CYLzB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 25 Mar 2012 07:55:01 -0400
-From: Hans de Goede <hdegoede@redhat.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH 09/10] uvcvideo: Properly report the inactive flag for inactive controls
-Date: Sun, 25 Mar 2012 13:56:49 +0200
-Message-Id: <1332676610-14953-10-git-send-email-hdegoede@redhat.com>
-In-Reply-To: <1332676610-14953-1-git-send-email-hdegoede@redhat.com>
-References: <1332676610-14953-1-git-send-email-hdegoede@redhat.com>
+	id S932115Ab2CBRcx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 2 Mar 2012 12:32:53 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, dacohen@gmail.com,
+	snjw23@gmail.com, andriy.shevchenko@linux.intel.com,
+	t.stanislaws@samsung.com, tuukkat76@gmail.com,
+	k.debski@samsung.com, riverful@gmail.com, hverkuil@xs4all.nl,
+	teturtia@gmail.com
+Subject: [PATCH v4 07/34] v4l: Support s_crop and g_crop through s/g_selection
+Date: Fri,  2 Mar 2012 19:30:15 +0200
+Message-Id: <1330709442-16654-7-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <20120302173219.GA15695@valkosipuli.localdomain>
+References: <20120302173219.GA15695@valkosipuli.localdomain>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Note the unused in this patch slave_ids addition to the mappings will get
-used in a follow up patch to generate control change events for the slave
-ctrls when their flags change due to the master control changing value.
+Fall back to s_selection if s_crop isn't implemented by a driver. Same for
+g_selection / g_crop.
 
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/video/uvc/uvc_ctrl.c |   33 +++++++++++++++++++++++++++++++++
- drivers/media/video/uvc/uvcvideo.h |    4 ++++
- 2 files changed, 37 insertions(+)
+ drivers/media/video/v4l2-subdev.c |   37 +++++++++++++++++++++++++++++++++++--
+ 1 files changed, 35 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/video/uvc/uvc_ctrl.c b/drivers/media/video/uvc/uvc_ctrl.c
-index 742496f..91d9007 100644
---- a/drivers/media/video/uvc/uvc_ctrl.c
-+++ b/drivers/media/video/uvc/uvc_ctrl.c
-@@ -421,6 +421,8 @@ static struct uvc_control_mapping uvc_ctrl_mappings[] = {
- 		.offset		= 0,
- 		.v4l2_type	= V4L2_CTRL_TYPE_INTEGER,
- 		.data_type	= UVC_CTRL_DATA_TYPE_SIGNED,
-+		.master_id	= V4L2_CID_HUE_AUTO,
-+		.master_manual	= 0,
- 	},
- 	{
- 		.id		= V4L2_CID_SATURATION,
-@@ -493,6 +495,7 @@ static struct uvc_control_mapping uvc_ctrl_mappings[] = {
- 		.offset		= 0,
- 		.v4l2_type	= V4L2_CTRL_TYPE_BOOLEAN,
- 		.data_type	= UVC_CTRL_DATA_TYPE_BOOLEAN,
-+		.slave_ids	= { V4L2_CID_HUE, },
- 	},
- 	{
- 		.id		= V4L2_CID_EXPOSURE_AUTO,
-@@ -505,6 +508,7 @@ static struct uvc_control_mapping uvc_ctrl_mappings[] = {
- 		.data_type	= UVC_CTRL_DATA_TYPE_BITMASK,
- 		.menu_info	= exposure_auto_controls,
- 		.menu_count	= ARRAY_SIZE(exposure_auto_controls),
-+		.slave_ids	= { V4L2_CID_EXPOSURE_ABSOLUTE, },
- 	},
- 	{
- 		.id		= V4L2_CID_EXPOSURE_AUTO_PRIORITY,
-@@ -525,6 +529,8 @@ static struct uvc_control_mapping uvc_ctrl_mappings[] = {
- 		.offset		= 0,
- 		.v4l2_type	= V4L2_CTRL_TYPE_INTEGER,
- 		.data_type	= UVC_CTRL_DATA_TYPE_UNSIGNED,
-+		.master_id	= V4L2_CID_EXPOSURE_AUTO,
-+		.master_manual	= V4L2_EXPOSURE_MANUAL,
- 	},
- 	{
- 		.id		= V4L2_CID_AUTO_WHITE_BALANCE,
-@@ -535,6 +541,7 @@ static struct uvc_control_mapping uvc_ctrl_mappings[] = {
- 		.offset		= 0,
- 		.v4l2_type	= V4L2_CTRL_TYPE_BOOLEAN,
- 		.data_type	= UVC_CTRL_DATA_TYPE_BOOLEAN,
-+		.slave_ids	= { V4L2_CID_WHITE_BALANCE_TEMPERATURE, },
- 	},
- 	{
- 		.id		= V4L2_CID_WHITE_BALANCE_TEMPERATURE,
-@@ -545,6 +552,8 @@ static struct uvc_control_mapping uvc_ctrl_mappings[] = {
- 		.offset		= 0,
- 		.v4l2_type	= V4L2_CTRL_TYPE_INTEGER,
- 		.data_type	= UVC_CTRL_DATA_TYPE_UNSIGNED,
-+		.master_id	= V4L2_CID_AUTO_WHITE_BALANCE,
-+		.master_manual	= 0,
- 	},
- 	{
- 		.id		= V4L2_CID_AUTO_WHITE_BALANCE,
-@@ -555,6 +564,8 @@ static struct uvc_control_mapping uvc_ctrl_mappings[] = {
- 		.offset		= 0,
- 		.v4l2_type	= V4L2_CTRL_TYPE_BOOLEAN,
- 		.data_type	= UVC_CTRL_DATA_TYPE_BOOLEAN,
-+		.slave_ids	= { V4L2_CID_BLUE_BALANCE,
-+				    V4L2_CID_RED_BALANCE },
- 	},
- 	{
- 		.id		= V4L2_CID_BLUE_BALANCE,
-@@ -565,6 +576,8 @@ static struct uvc_control_mapping uvc_ctrl_mappings[] = {
- 		.offset		= 0,
- 		.v4l2_type	= V4L2_CTRL_TYPE_INTEGER,
- 		.data_type	= UVC_CTRL_DATA_TYPE_SIGNED,
-+		.master_id	= V4L2_CID_AUTO_WHITE_BALANCE,
-+		.master_manual	= 0,
- 	},
- 	{
- 		.id		= V4L2_CID_RED_BALANCE,
-@@ -575,6 +588,8 @@ static struct uvc_control_mapping uvc_ctrl_mappings[] = {
- 		.offset		= 16,
- 		.v4l2_type	= V4L2_CTRL_TYPE_INTEGER,
- 		.data_type	= UVC_CTRL_DATA_TYPE_SIGNED,
-+		.master_id	= V4L2_CID_AUTO_WHITE_BALANCE,
-+		.master_manual	= 0,
- 	},
- 	{
- 		.id		= V4L2_CID_FOCUS_ABSOLUTE,
-@@ -585,6 +600,8 @@ static struct uvc_control_mapping uvc_ctrl_mappings[] = {
- 		.offset		= 0,
- 		.v4l2_type	= V4L2_CTRL_TYPE_INTEGER,
- 		.data_type	= UVC_CTRL_DATA_TYPE_UNSIGNED,
-+		.master_id	= V4L2_CID_FOCUS_AUTO,
-+		.master_manual	= 0,
- 	},
- 	{
- 		.id		= V4L2_CID_FOCUS_AUTO,
-@@ -595,6 +612,7 @@ static struct uvc_control_mapping uvc_ctrl_mappings[] = {
- 		.offset		= 0,
- 		.v4l2_type	= V4L2_CTRL_TYPE_BOOLEAN,
- 		.data_type	= UVC_CTRL_DATA_TYPE_BOOLEAN,
-+		.slave_ids	= { V4L2_CID_FOCUS_ABSOLUTE, },
- 	},
- 	{
- 		.id		= V4L2_CID_IRIS_ABSOLUTE,
-@@ -943,6 +961,8 @@ static int __uvc_query_v4l2_ctrl(struct uvc_video_chain *chain,
- 	struct uvc_control_mapping *mapping,
- 	struct v4l2_queryctrl *v4l2_ctrl)
- {
-+	struct uvc_control_mapping *master_map;
-+	struct uvc_control *master_ctrl = NULL;
- 	struct uvc_menu_info *menu;
- 	unsigned int i;
- 	int ret = 0;
-@@ -958,6 +978,19 @@ static int __uvc_query_v4l2_ctrl(struct uvc_video_chain *chain,
- 	if (!(ctrl->info.flags & UVC_CTRL_FLAG_SET_CUR))
- 		v4l2_ctrl->flags |= V4L2_CTRL_FLAG_READ_ONLY;
+diff --git a/drivers/media/video/v4l2-subdev.c b/drivers/media/video/v4l2-subdev.c
+index 7d22538..eda34cd 100644
+--- a/drivers/media/video/v4l2-subdev.c
++++ b/drivers/media/video/v4l2-subdev.c
+@@ -228,6 +228,8 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
  
-+	if (mapping->master_id)
-+		master_ctrl = uvc_find_control(chain, mapping->master_id,
-+					       &master_map);
-+	if (master_ctrl && (master_ctrl->info.flags & UVC_CTRL_FLAG_GET_CUR)) {
-+		s32 val;
-+		ret = __uvc_ctrl_get(chain, master_ctrl, master_map, &val);
-+		if (ret < 0)
-+			goto done;
-+
-+		if (val != mapping->master_manual)
-+				v4l2_ctrl->flags |= V4L2_CTRL_FLAG_INACTIVE;
-+	}
-+
- 	if (!ctrl->cached) {
- 		ret = uvc_ctrl_populate_cache(chain, ctrl);
- 		if (ret < 0)
-diff --git a/drivers/media/video/uvc/uvcvideo.h b/drivers/media/video/uvc/uvcvideo.h
-index 649a0bb..79a83e0 100644
---- a/drivers/media/video/uvc/uvcvideo.h
-+++ b/drivers/media/video/uvc/uvcvideo.h
-@@ -172,6 +172,10 @@ struct uvc_control_mapping {
- 	struct uvc_menu_info *menu_info;
- 	__u32 menu_count;
+ 	case VIDIOC_SUBDEV_G_CROP: {
+ 		struct v4l2_subdev_crop *crop = arg;
++		struct v4l2_subdev_selection sel;
++		int rval;
  
-+	__u32 master_id;
-+	__s32 master_manual;
-+	__u32 slave_ids[2];
+ 		if (crop->which != V4L2_SUBDEV_FORMAT_TRY &&
+ 		    crop->which != V4L2_SUBDEV_FORMAT_ACTIVE)
+@@ -236,11 +238,27 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+ 		if (crop->pad >= sd->entity.num_pads)
+ 			return -EINVAL;
+ 
+-		return v4l2_subdev_call(sd, pad, get_crop, subdev_fh, crop);
++		rval = v4l2_subdev_call(sd, pad, get_crop, subdev_fh, crop);
++		if (rval != -ENOIOCTLCMD)
++			return rval;
 +
- 	__s32 (*get) (struct uvc_control_mapping *mapping, __u8 query,
- 		      const __u8 *data);
- 	void (*set) (struct uvc_control_mapping *mapping, __s32 value,
++		memset(&sel, 0, sizeof(sel));
++		sel.which = crop->which;
++		sel.pad = crop->pad;
++		sel.target = V4L2_SUBDEV_SEL_TGT_CROP_ACTIVE;
++
++		rval = v4l2_subdev_call(
++			sd, pad, get_selection, subdev_fh, &sel);
++
++		crop->rect = sel.r;
++
++		return rval;
+ 	}
+ 
+ 	case VIDIOC_SUBDEV_S_CROP: {
+ 		struct v4l2_subdev_crop *crop = arg;
++		struct v4l2_subdev_selection sel;
++		int rval;
+ 
+ 		if (crop->which != V4L2_SUBDEV_FORMAT_TRY &&
+ 		    crop->which != V4L2_SUBDEV_FORMAT_ACTIVE)
+@@ -249,7 +267,22 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+ 		if (crop->pad >= sd->entity.num_pads)
+ 			return -EINVAL;
+ 
+-		return v4l2_subdev_call(sd, pad, set_crop, subdev_fh, crop);
++		rval = v4l2_subdev_call(sd, pad, set_crop, subdev_fh, crop);
++		if (rval != -ENOIOCTLCMD)
++			return rval;
++
++		memset(&sel, 0, sizeof(sel));
++		sel.which = crop->which;
++		sel.pad = crop->pad;
++		sel.target = V4L2_SUBDEV_SEL_TGT_CROP_ACTIVE;
++		sel.r = crop->rect;
++
++		rval = v4l2_subdev_call(
++			sd, pad, set_selection, subdev_fh, &sel);
++
++		crop->rect = sel.r;
++
++		return rval;
+ 	}
+ 
+ 	case VIDIOC_SUBDEV_ENUM_MBUS_CODE: {
 -- 
-1.7.9.3
+1.7.2.5
 
