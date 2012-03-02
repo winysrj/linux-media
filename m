@@ -1,69 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:55129 "EHLO mx1.redhat.com"
+Received: from smtp.nokia.com ([147.243.1.47]:53313 "EHLO mgw-sa01.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932434Ab2CSR21 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Mar 2012 13:28:27 -0400
-Message-ID: <4F676C94.4010606@redhat.com>
-Date: Mon, 19 Mar 2012 14:27:48 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: "Justin P. Mattock" <justinmattock@gmail.com>
-CC: Greg KH <gregkh@linuxfoundation.org>,
-	Jiri Kosina <jkosina@suse.cz>, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, marauder@tiscali.it,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH V2]NEXT:drivers:staging:media Fix comments and some typos
- in staging/media/*
-References: <1331045709-19309-1-git-send-email-justinmattock@gmail.com> <4F635DBF.7000603@gmail.com> <alpine.LNX.2.00.1203161644190.18356@pobox.suse.cz> <20120316155845.GA975@kroah.com> <4F636514.1080303@gmail.com> <4F636570.7090706@gmail.com>
-In-Reply-To: <4F636570.7090706@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	id S932344Ab2CBRcz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 2 Mar 2012 12:32:55 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, dacohen@gmail.com,
+	snjw23@gmail.com, andriy.shevchenko@linux.intel.com,
+	t.stanislaws@samsung.com, tuukkat76@gmail.com,
+	k.debski@samsung.com, riverful@gmail.com, hverkuil@xs4all.nl,
+	teturtia@gmail.com
+Subject: [PATCH v4 20/34] omap3isp: Support additional in-memory compressed bayer formats
+Date: Fri,  2 Mar 2012 19:30:28 +0200
+Message-Id: <1330709442-16654-20-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <20120302173219.GA15695@valkosipuli.localdomain>
+References: <20120302173219.GA15695@valkosipuli.localdomain>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 16-03-2012 13:08, Justin P. Mattock escreveu:
-> On 03/16/2012 09:06 AM, Justin P. Mattock wrote:
->> On 03/16/2012 08:58 AM, Greg KH wrote:
->>> On Fri, Mar 16, 2012 at 04:45:03PM +0100, Jiri Kosina wrote:
->>>> On Fri, 16 Mar 2012, Justin P. Mattock wrote:
->>>>
->>>>> before I forget about this patch, what was the status of this one?
->>>>
->>>> As previously announced multiple times, I am ignoring patches that go to
->>>> drivers/staging and letting Greg pick them up if he wants to.
->>>>
->>>> Greg, if you want to have this changed, just let me know.
->>>
->>> No, no objection from me, but patches to drivers/staging/media/ do not
->>> go through me, please see the MAINTAINERS file for the owner of those
->>> (hint, it's Mauro...)
->>>
->>> thanks,
->>>
->>> greg k-h
->>>
->>
->> ahh!! I got it now.. your in charge of the staging tree but for each
->> branch there is an owner(I thought to just send to greg KH and thats it)
->>
->> adding Mauro to the Cc's so he can view the patch, then on any other
->> patch I send to staging I will send it to the maintainer then the rest
->> as follows with a cc's.
->>
->> Thanks for the help on this.
->>
->> Justin P. Mattock
-> 
-> and of course pressed send without the Maintainer on it.. duh!
+This also prevents accessing NULL pointer in csi2_try_format().
 
-I'm applying it on my tree. Thanks!
-Mauro
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/video/omap3isp/ispvideo.c |   13 +++++++++++++
+ 1 files changed, 13 insertions(+), 0 deletions(-)
 
-> 
-> Justin P. Mattock
-> 
-> -- 
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/media/video/omap3isp/ispvideo.c b/drivers/media/video/omap3isp/ispvideo.c
+index b020700..c191f13 100644
+--- a/drivers/media/video/omap3isp/ispvideo.c
++++ b/drivers/media/video/omap3isp/ispvideo.c
+@@ -46,6 +46,10 @@
+  * Helper functions
+  */
+ 
++/*
++ * NOTE: When adding new media bus codes, always remember to add
++ * corresponding in-memory formats to the table below!!!
++ */
+ static struct isp_format_info formats[] = {
+ 	{ V4L2_MBUS_FMT_Y8_1X8, V4L2_MBUS_FMT_Y8_1X8,
+ 	  V4L2_MBUS_FMT_Y8_1X8, V4L2_MBUS_FMT_Y8_1X8,
+@@ -68,9 +72,18 @@ static struct isp_format_info formats[] = {
+ 	{ V4L2_MBUS_FMT_SRGGB8_1X8, V4L2_MBUS_FMT_SRGGB8_1X8,
+ 	  V4L2_MBUS_FMT_SRGGB8_1X8, V4L2_MBUS_FMT_SRGGB8_1X8,
+ 	  V4L2_PIX_FMT_SRGGB8, 8, },
++	{ V4L2_MBUS_FMT_SBGGR10_DPCM8_1X8, V4L2_MBUS_FMT_SBGGR10_DPCM8_1X8,
++	  V4L2_MBUS_FMT_SBGGR10_1X10, 0,
++	  V4L2_PIX_FMT_SBGGR10DPCM8, 8, },
++	{ V4L2_MBUS_FMT_SGBRG10_DPCM8_1X8, V4L2_MBUS_FMT_SGBRG10_DPCM8_1X8,
++	  V4L2_MBUS_FMT_SGBRG10_1X10, 0,
++	  V4L2_PIX_FMT_SGBRG10DPCM8, 8, },
+ 	{ V4L2_MBUS_FMT_SGRBG10_DPCM8_1X8, V4L2_MBUS_FMT_SGRBG10_DPCM8_1X8,
+ 	  V4L2_MBUS_FMT_SGRBG10_1X10, 0,
+ 	  V4L2_PIX_FMT_SGRBG10DPCM8, 8, },
++	{ V4L2_MBUS_FMT_SRGGB10_DPCM8_1X8, V4L2_MBUS_FMT_SRGGB10_DPCM8_1X8,
++	  V4L2_MBUS_FMT_SRGGB10_1X10, 0,
++	  V4L2_PIX_FMT_SRGGB10DPCM8, 8, },
+ 	{ V4L2_MBUS_FMT_SBGGR10_1X10, V4L2_MBUS_FMT_SBGGR10_1X10,
+ 	  V4L2_MBUS_FMT_SBGGR10_1X10, V4L2_MBUS_FMT_SBGGR8_1X8,
+ 	  V4L2_PIX_FMT_SBGGR10, 10, },
+-- 
+1.7.2.5
 
