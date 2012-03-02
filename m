@@ -1,61 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:57907 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754881Ab2CBR2v (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Mar 2012 12:28:51 -0500
-Received: from avalon.localnet (unknown [91.178.172.210])
-	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 8FFE97B0D
-	for <linux-media@vger.kernel.org>; Fri,  2 Mar 2012 18:28:50 +0100 (CET)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Received: from smtp.nokia.com ([147.243.128.26]:60725 "EHLO mgw-da02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932183Ab2CBRcx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 2 Mar 2012 12:32:53 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
 To: linux-media@vger.kernel.org
-Subject: [GIT PULL v2] V4L custom compat_ioctl32 support and uvcvideo changes for v3.4
-Date: Fri, 02 Mar 2012 18:29:08 +0100
-Message-ID: <3599272.HaRRMUkdNT@avalon>
-In-Reply-To: <7606670.NSjiUfzPCc@avalon>
-References: <7606670.NSjiUfzPCc@avalon>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Cc: laurent.pinchart@ideasonboard.com, dacohen@gmail.com,
+	snjw23@gmail.com, andriy.shevchenko@linux.intel.com,
+	t.stanislaws@samsung.com, tuukkat76@gmail.com,
+	k.debski@samsung.com, riverful@gmail.com, hverkuil@xs4all.nl,
+	teturtia@gmail.com
+Subject: [PATCH v4 05/34] v4l: vdev_to_v4l2_subdev() should have return type "struct v4l2_subdev *"
+Date: Fri,  2 Mar 2012 19:30:13 +0200
+Message-Id: <1330709442-16654-5-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <20120302173219.GA15695@valkosipuli.localdomain>
+References: <20120302173219.GA15695@valkosipuli.localdomain>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+vdev_to_v4l2_subdev() should return struct v4l2_subdev *, not void *. Fix
+this.
 
-The following changes since commit e8ca6d20a65d9d94693a0ed99b12d95b882dc859:
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ include/media/v4l2-subdev.h |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-  [media] tveeprom: update hauppauge tuner list thru 181 (2012-02-28 18:46:53 
--0300)
-
-are available in the git repository at:
-  git://linuxtv.org/pinchartl/uvcvideo.git uvcvideo-next
-
-This now includes that linux/atomic.h patch from Andrew Morton that was 
-forgotten in the previous pull request.
-
-Andrew Morton (1):
-      uvcvideo: uvc_driver.c: use linux/atomic.h
-
-Javier Martin (1):
-      uvcvideo: Allow userptr IO mode
-
-Laurent Pinchart (5):
-      uvcvideo: Avoid division by 0 in timestamp calculation
-      v4l: Add custom compat_ioctl32 operation
-      uvcvideo: Return -ENOTTY in case of unknown ioctl
-      uvcvideo: Implement compat_ioctl32 for custom ioctls
-      uvcvideo: Add support for Dell XPS m1530 integrated webcam
-
- drivers/media/video/Makefile              |    7 +-
- drivers/media/video/uvc/uvc_driver.c      |   11 ++-
- drivers/media/video/uvc/uvc_queue.c       |    2 +-
- drivers/media/video/uvc/uvc_v4l2.c        |  207 +++++++++++++++++++++++++++-
- drivers/media/video/uvc/uvc_video.c       |   14 ++-
- drivers/media/video/v4l2-compat-ioctl32.c |   20 ++--
- include/media/v4l2-dev.h                  |    3 +
- 7 files changed, 243 insertions(+), 21 deletions(-)
-
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index feab950..bcaf6b8 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -545,7 +545,7 @@ struct v4l2_subdev {
+ #define media_entity_to_v4l2_subdev(ent) \
+ 	container_of(ent, struct v4l2_subdev, entity)
+ #define vdev_to_v4l2_subdev(vdev) \
+-	video_get_drvdata(vdev)
++	((struct v4l2_subdev *)video_get_drvdata(vdev))
+ 
+ /*
+  * Used for storing subdev information per file handle
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.2.5
 
