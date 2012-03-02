@@ -1,274 +1,227 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.47]:60165 "EHLO mgw-sa01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756938Ab2CFQd3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 6 Mar 2012 11:33:29 -0500
+Received: from smtp-68.nebula.fi ([83.145.220.68]:36691 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932115Ab2CBRc1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Mar 2012 12:32:27 -0500
+Date: Fri, 2 Mar 2012 19:32:19 +0200
 From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, dacohen@gmail.com,
-	snjw23@gmail.com, andriy.shevchenko@linux.intel.com,
-	t.stanislaws@samsung.com, tuukkat76@gmail.com,
-	k.debski@samsung.com, riverful@gmail.com, hverkuil@xs4all.nl,
-	teturtia@gmail.com, pradeep.sawlani@gmail.com
-Subject: [PATCH v5 30/35] omap3isp: Move CCDC link validation to ccdc_link_validate()
-Date: Tue,  6 Mar 2012 18:33:11 +0200
-Message-Id: <1331051596-8261-30-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <20120306163239.GN1075@valkosipuli.localdomain>
-References: <20120306163239.GN1075@valkosipuli.localdomain>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	David Cohen <dacohen@gmail.com>,
+	Sylwester Nawrocki <snjw23@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	tuukkat76@gmail.com, Kamil Debski <k.debski@samsung.com>,
+	Kim HeungJun <riverful@gmail.com>, teturtia@gmail.com
+Subject: [PATCH v4 0/34] V4L2 subdev and sensor control changes, SMIA++
+ driver and N9 camera board code
+Message-ID: <20120302173219.GA15695@valkosipuli.localdomain>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Perform CCDC link validation in ccdc_link_validate() instead of
-isp_video_validate_pipeline(). Also perform maximum data rate check in
-isp_video_check_external_subdevs().
+Hi everyone,
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
----
- drivers/media/video/omap3isp/ispccdc.c  |   65 +++++++++++++++++++++
- drivers/media/video/omap3isp/ispvideo.c |   94 ++++---------------------------
- 2 files changed, 76 insertions(+), 83 deletions(-)
+This the fourth version of my patchset that contains:
 
-diff --git a/drivers/media/video/omap3isp/ispccdc.c b/drivers/media/video/omap3isp/ispccdc.c
-index cd1bf6d..84f230e 100644
---- a/drivers/media/video/omap3isp/ispccdc.c
-+++ b/drivers/media/video/omap3isp/ispccdc.c
-@@ -2000,6 +2000,69 @@ static int ccdc_set_format(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
- }
- 
- /*
-+ * Decide whether desired output pixel code can be obtained with
-+ * the lane shifter by shifting the input pixel code.
-+ * @in: input pixelcode to shifter
-+ * @out: output pixelcode from shifter
-+ * @additional_shift: # of bits the sensor's LSB is offset from CAMEXT[0]
-+ *
-+ * return true if the combination is possible
-+ * return false otherwise
-+ */
-+static bool ccdc_is_shiftable(enum v4l2_mbus_pixelcode in,
-+			      enum v4l2_mbus_pixelcode out,
-+			      unsigned int additional_shift)
-+{
-+	const struct isp_format_info *in_info, *out_info;
-+
-+	if (in == out)
-+		return true;
-+
-+	in_info = omap3isp_video_format_info(in);
-+	out_info = omap3isp_video_format_info(out);
-+
-+	if ((in_info->flavor == 0) || (out_info->flavor == 0))
-+		return false;
-+
-+	if (in_info->flavor != out_info->flavor)
-+		return false;
-+
-+	return in_info->bpp - out_info->bpp + additional_shift <= 6;
-+}
-+
-+static int ccdc_link_validate(struct v4l2_subdev *sd,
-+			      struct media_link *link,
-+			      struct v4l2_subdev_format *source_fmt,
-+			      struct v4l2_subdev_format *sink_fmt)
-+{
-+	struct isp_ccdc_device *ccdc = v4l2_get_subdevdata(sd);
-+	unsigned long parallel_shift;
-+
-+	/* Check if the two ends match */
-+	if (source_fmt->format.width != sink_fmt->format.width ||
-+	    source_fmt->format.height != sink_fmt->format.height)
-+		return -EPIPE;
-+
-+	/* We've got a parallel sensor here. */
-+	if (ccdc->input == CCDC_INPUT_PARALLEL) {
-+		struct isp_parallel_platform_data *pdata =
-+			&((struct isp_v4l2_subdevs_group *)
-+			  media_entity_to_v4l2_subdev(link->source->entity)
-+			  ->host_priv)->bus.parallel;
-+		parallel_shift = pdata->data_lane_shift * 2;
-+	} else {
-+		parallel_shift = 0;
-+	}
-+
-+	/* Lane shifter may be used to drop bits on CCDC sink pad */
-+	if (!ccdc_is_shiftable(source_fmt->format.code,
-+			       sink_fmt->format.code, parallel_shift))
-+		return -EPIPE;
-+
-+	return 0;
-+}
-+
-+/*
-  * ccdc_init_formats - Initialize formats on all pads
-  * @sd: ISP CCDC V4L2 subdevice
-  * @fh: V4L2 subdev file handle
-@@ -2041,6 +2104,7 @@ static const struct v4l2_subdev_pad_ops ccdc_v4l2_pad_ops = {
- 	.enum_frame_size = ccdc_enum_frame_size,
- 	.get_fmt = ccdc_get_format,
- 	.set_fmt = ccdc_set_format,
-+	.link_validate = ccdc_link_validate,
- };
- 
- /* V4L2 subdev operations */
-@@ -2150,6 +2214,7 @@ static int ccdc_link_setup(struct media_entity *entity,
- /* media operations */
- static const struct media_entity_operations ccdc_media_ops = {
- 	.link_setup = ccdc_link_setup,
-+	.link_validate = v4l2_subdev_link_validate,
- };
- 
- void omap3isp_ccdc_unregister_entities(struct isp_ccdc_device *ccdc)
-diff --git a/drivers/media/video/omap3isp/ispvideo.c b/drivers/media/video/omap3isp/ispvideo.c
-index 6d4ad87..51075b3 100644
---- a/drivers/media/video/omap3isp/ispvideo.c
-+++ b/drivers/media/video/omap3isp/ispvideo.c
-@@ -130,37 +130,6 @@ omap3isp_video_format_info(enum v4l2_mbus_pixelcode code)
- }
- 
- /*
-- * Decide whether desired output pixel code can be obtained with
-- * the lane shifter by shifting the input pixel code.
-- * @in: input pixelcode to shifter
-- * @out: output pixelcode from shifter
-- * @additional_shift: # of bits the sensor's LSB is offset from CAMEXT[0]
-- *
-- * return true if the combination is possible
-- * return false otherwise
-- */
--static bool isp_video_is_shiftable(enum v4l2_mbus_pixelcode in,
--		enum v4l2_mbus_pixelcode out,
--		unsigned int additional_shift)
--{
--	const struct isp_format_info *in_info, *out_info;
--
--	if (in == out)
--		return true;
--
--	in_info = omap3isp_video_format_info(in);
--	out_info = omap3isp_video_format_info(out);
--
--	if ((in_info->flavor == 0) || (out_info->flavor == 0))
--		return false;
--
--	if (in_info->flavor != out_info->flavor)
--		return false;
--
--	return in_info->bpp - out_info->bpp + additional_shift <= 6;
--}
--
--/*
-  * isp_video_mbus_to_pix - Convert v4l2_mbus_framefmt to v4l2_pix_format
-  * @video: ISP video instance
-  * @mbus: v4l2_mbus_framefmt format (input)
-@@ -298,50 +267,24 @@ isp_video_far_end(struct isp_video *video)
- static int isp_video_validate_pipeline(struct isp_pipeline *pipe)
- {
- 	struct isp_device *isp = pipe->output->isp;
--	struct v4l2_subdev_format fmt_source;
--	struct v4l2_subdev_format fmt_sink;
- 	struct media_pad *pad;
- 	struct v4l2_subdev *subdev;
--	int ret;
- 
- 	subdev = isp_video_remote_subdev(pipe->output, NULL);
- 	if (subdev == NULL)
- 		return -EPIPE;
- 
- 	while (1) {
--		unsigned int shifter_link;
- 		/* Retrieve the sink format */
- 		pad = &subdev->entity.pads[0];
- 		if (!(pad->flags & MEDIA_PAD_FL_SINK))
- 			break;
- 
--		fmt_sink.pad = pad->index;
--		fmt_sink.which = V4L2_SUBDEV_FORMAT_ACTIVE;
--		ret = v4l2_subdev_call(subdev, pad, get_fmt, NULL, &fmt_sink);
--		if (ret < 0 && ret != -ENOIOCTLCMD)
--			return -EPIPE;
--
- 		/* Update the maximum frame rate */
- 		if (subdev == &isp->isp_res.subdev)
- 			omap3isp_resizer_max_rate(&isp->isp_res,
- 						  &pipe->max_rate);
- 
--		/* Check ccdc maximum data rate when data comes from sensor
--		 * TODO: Include ccdc rate in pipe->max_rate and compare the
--		 *       total pipe rate with the input data rate from sensor.
--		 */
--		if (subdev == &isp->isp_ccdc.subdev && pipe->input == NULL) {
--			unsigned int rate = UINT_MAX;
--
--			omap3isp_ccdc_max_rate(&isp->isp_ccdc, &rate);
--			if (pipe->external_rate > rate)
--				return -ENOSPC;
--		}
--
--		/* If sink pad is on CCDC, the link has the lane shifter
--		 * in the middle of it. */
--		shifter_link = subdev == &isp->isp_ccdc.subdev;
--
- 		/* Retrieve the source format. Return an error if no source
- 		 * entity can be found, and stop checking the pipeline if the
- 		 * source entity isn't a subdev.
-@@ -354,32 +297,6 @@ static int isp_video_validate_pipeline(struct isp_pipeline *pipe)
- 			break;
- 
- 		subdev = media_entity_to_v4l2_subdev(pad->entity);
--
--		fmt_source.pad = pad->index;
--		fmt_source.which = V4L2_SUBDEV_FORMAT_ACTIVE;
--		ret = v4l2_subdev_call(subdev, pad, get_fmt, NULL, &fmt_source);
--		if (ret < 0 && ret != -ENOIOCTLCMD)
--			return -EPIPE;
--
--		/* Check if the two ends match */
--		if (fmt_source.format.width != fmt_sink.format.width ||
--		    fmt_source.format.height != fmt_sink.format.height)
--			return -EPIPE;
--
--		if (shifter_link) {
--			unsigned int parallel_shift = 0;
--			if (isp->isp_ccdc.input == CCDC_INPUT_PARALLEL) {
--				struct isp_parallel_platform_data *pdata =
--					&((struct isp_v4l2_subdevs_group *)
--					      subdev->host_priv)->bus.parallel;
--				parallel_shift = pdata->data_lane_shift * 2;
--			}
--			if (!isp_video_is_shiftable(fmt_source.format.code,
--						fmt_sink.format.code,
--						parallel_shift))
--				return -EPIPE;
--		} else if (fmt_source.format.code != fmt_sink.format.code)
--			return -EPIPE;
- 	}
- 
- 	return 0;
-@@ -950,6 +867,7 @@ static int isp_video_check_external_subdevs(struct isp_pipeline *pipe)
- 	struct v4l2_subdev_format fmt;
- 	struct v4l2_ext_controls ctrls;
- 	struct v4l2_ext_control ctrl;
-+	unsigned int rate = UINT_MAX;
- 	int i;
- 	int ret = 0;
- 
-@@ -1002,6 +920,16 @@ static int isp_video_check_external_subdevs(struct isp_pipeline *pipe)
- 
- 	pipe->external_rate = ctrl.value64;
- 
-+	if (pipe->entities & (1 << isp->isp_ccdc.subdev.entity.id)) {
-+		/*
-+		 * Check that maximum allowed CCDC pixel rate isn't
-+		 * exceeded by the pixel rate.
-+		 */
-+		omap3isp_ccdc_max_rate(&isp->isp_ccdc, &rate);
-+		if (pipe->external_rate > rate)
-+			return -ENOSPC;
-+	}
-+
- 	return 0;
- }
- 
+- Integer menu controls [2],
+- Selection IOCTL for subdevs [3],
+- Sensor control changes [5,7],
+- link_validate() media entity and V4L2 subdev pad ops,
+- OMAP 3 ISP driver improvements [4],
+- SMIA++ sensor driver,
+- rm680/rm696 board code (a.k.a Nokia N9 and N950) and
+- Other V4L2 and media improvements (see individual patches)
+
+The Docbook documentation in HTML format can be found in [13] (v3
+documentation available in [11]).
+
+Changes to version 3 [12] include:
+
+- OMAP 3 ISP
+  - Rework ISP driver patches
+  - Remove code from isp_video_pipeline_validate in same patch as the
+    functionality is added elsewhere (old patch to remove leftovers
+    dropped)
+  - isp_video_streamon() error handling cleanups
+  - All pipeline validation performed before any s_straem subdev ops
+    - Resizer data rate check moved to link validation
+    - CCDC rate checked in isp_video_check_external_subdeva()
+  - Formats checked during link validation
+  - Remove means to set pixel rate (new patch)
+  - Don't set link_validate pad ops where the default is sufficient
+
+- Media controller
+  - media_entity_pipeline_start() collects information on entities in
+    pipeline
+  - link validation error handling fix
+
+- V4L2 / V4L2 subdev
+  - Less confusing selection example diagrams
+  - Selection documentation improvements  (as also suggested by Laurent)
+
+- SMIA++ driver
+  - Fixes according to Laurent's suggestions [14]
+  - Locking fixes and power handling cleanups
+
+Changes to version 2 [10] include:
+
+- V4L2
+  - Image source controls
+    - Documentation no longer refers to "pixel clock" in v4l2_mbus_framefmt
+      (this should have been the last reference to those!!)
+    - Capitalise first letters in control names
+  - Selections
+    - Use hex numbers for targets
+  - Return NULL instead of invalid pointer when accessing non-existend pads
+    in v4l2_subdev_get_try_{format,crop,compose} (new patch)
+  - Put link validation definitions in v4l2-subdev.h behind
+    #ifdef CONFIG_MEDIA_CONTROLLER ... #endif
+  - Spelling fixes (selections and 4cc guidelines)
+  - Change vdev_to_v4l2_subdev() return type to struct v4l2_subdev * (new
+    patch)
+
+- SMIA++ driver
+  - Clock tree calculation fixes
+  - Control handler setup usage fixes at smiapp_open()
+  - Don't access non-existent pads
+
+Changes to version 1 [8] include:
+
+- OMAP 3 ISP driver
+  - Swapped order of csi receiver's lane definitions
+  - Rewrote omap 3 isp link validation patches almost completely
+    - Information on connected external entity collected to isp_pipeline
+    - Information collected during link checking and used at streamon
+
+- Media entity link validation
+  - Error handling fixes
+
+- SMIA++ driver
+  - Selection API bugfixes
+  - Report correct pixel order right from boot
+  - Move link rate control to subdev connected to subdev external to the
+    sensor (e.g. ISP's CSI-2 receiver)
+  - Introduce proper serialisation
+  - Deny changing some controls when streaming (flipping and link rate)
+  - Control handler setup moved from streamon time to first subdev open
+  - There is no source compose target
+  - Bugfixes
+
+- Media bus pixel codes
+  - Documentation fix for dpcm compressed formats
+  - Added patch for 4CC guidelines (raw bayer only for now)
+
+- Selections
+  - Improved selections documentation
+  - Added more selections examples
+  - Compose target is not available on source pads anymore [9]
+  - Dropped default targets
+
+- V4L2
+  - Add documentation on link_validate()
+  - link_validate() and relater functions  depends on
+CONFIG_MEDIA_CONTROLLER
+  - Skip link validation for links on which stream_count was non-zero
+  - Do not validate link if entity's stream count is non-zero
+  - Use v4l2_subdev_link_validate_default() if no link_validate pad op
+is set
+  - Allow changing control handler mutex: this enables a driver to provide
+    multiple subdevs but use only one mutex. Default mutex (part of struct
+    v4l2_ctrl_handler) is set in v4l2_ctrl_handler_init().
+  - Split image source class into two: image source and image processing
+
+Changes to the RFC v1 [6] include:
+
+- Integer controls:
+  - Target Linux 3.4 instead of 3.3
+  - Proper control type check in querymenu
+  - vivi compile fixes
+
+- Subdev selections
+  - Pad try fields combined to single struct
+  - Correctly set sel.which based on crop->which in crop fall-back
+
+- Subdev selection documentation
+  - Better explanation on image processing in subdevs
+  - Added a diagram to visualise subdev configuration
+  - Fixed DocBook syntax issues
+  - Mark VIDIOC_SUBDEV_S_CROP and VIDIOC_SUBDEV_G_CROP obsolete
+
+- Pixel rate
+  - Pixel rate is now a 64-bit control, not part of v4l2_mbus_framefmt
+  - Unit for pixel rate is pixels / second
+  - Pixel rate is read-only
+
+- Link frequency is now in Hz --- documented as such also
+
+- Link validation instead of pipeline validation
+  - Each link is validated by calling link_validate op
+    - Added link validation op to media_entity_ops
+  - Link validation op in pad ops makes this easy for subdev drivers
+  - media_entity_pipeline_start() may return an error code now
+    - This might affect other drivers, but will warn in compilation.
+      No adverse effects are caused if the driver does not use
+      link_validate().
+
+- OMAP 3 ISP
+  - Make lanecfg as part of the platform data structure, not pointer
+  - Document lane configuration structures
+  - Link validation moved to respective subdev drivers from ispvideo.c
+    - isp_validate_pipeline() removed
+
+- SMIA++ driver
+  - Update pixel order based on vflip and hflip
+  - Cleanups in the main driver, register definitions and PLL code
+  - Depend on V4L2_V4L2_SUBDEV_API and MEDIA_CONTROLLER
+  - Use pr_* macros instead of printk
+  - Improved error handling for i2c_transfer()
+  - Removed useless definitions
+  - Don't access try crop / compose directly but use helper functions
+  - Add xshutdown to platform data
+  - Move driver under smiapp directory
+
+- rm680 board code
+  - Use REGULATOR_SUPPLY() where possible
+  - Removed printk()'s
+  - Don't include private smiapp headers
+
+
+References:
+
+[1] http://www.spinics.net/lists/linux-omap/msg61295.html
+
+[2] http://www.spinics.net/lists/linux-media/msg40796.html
+
+[3] http://www.spinics.net/lists/linux-media/msg41503.html
+
+[4] http://www.spinics.net/lists/linux-media/msg41542.html
+
+[5] http://www.spinics.net/lists/linux-media/msg40861.html
+
+[6] http://www.spinics.net/lists/linux-media/msg41765.html
+
+[7] http://www.spinics.net/lists/linux-media/msg42848.html
+
+[8] http://www.spinics.net/lists/linux-media/msg42991.html
+
+[9] http://www.spinics.net/lists/linux-media/msg43810.html
+
+[10] http://www.spinics.net/lists/linux-media/msg43888.html
+
+[11] http://www.retiisi.org.uk/v4l2/tmp/media_api/
+
+[12] http://www.spinics.net/lists/linux-media/msg44405.html
+
+[13] http://www.retiisi.org.uk/v4l2/tmp/media_api2/
+
+[14] http://www.spinics.net/lists/linux-media/msg44704.html
+
+Kind regards,
+
 -- 
-1.7.2.5
-
+Sakari Ailus
+sakari.ailus@iki.fi
