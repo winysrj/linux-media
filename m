@@ -1,86 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:64834 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751236Ab2CYLyw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 25 Mar 2012 07:54:52 -0400
-From: Hans de Goede <hdegoede@redhat.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH 02/10] media/radio: use v4l2_ctrl_subscribe_event where possible
-Date: Sun, 25 Mar 2012 13:56:42 +0200
-Message-Id: <1332676610-14953-3-git-send-email-hdegoede@redhat.com>
-In-Reply-To: <1332676610-14953-1-git-send-email-hdegoede@redhat.com>
-References: <1332676610-14953-1-git-send-email-hdegoede@redhat.com>
+Received: from mailout2.samsung.com ([203.254.224.25]:10535 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754180Ab2CBCSZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Mar 2012 21:18:25 -0500
+Received: from epcpsbgm2.samsung.com (mailout2.samsung.com [203.254.224.25])
+ by mailout2.samsung.com
+ (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
+ 2010)) with ESMTP id <0M08009KHJNOCED0@mailout2.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 02 Mar 2012 11:18:22 +0900 (KST)
+Received: from jtppark ([12.23.118.214])
+ by mmp2.samsung.com (Oracle Communications Messaging Exchange Server 7u4-19.01
+ 64bit (built Sep  7 2010)) with ESMTPA id <0M08003C4JQMFZ20@mmp2.samsung.com>
+ for linux-media@vger.kernel.org; Fri, 02 Mar 2012 11:18:22 +0900 (KST)
+Reply-to: jtp.park@samsung.com
+From: Jeongtae Park <jtp.park@samsung.com>
+To: linux-media@vger.kernel.org, 'Kamil Debski' <k.debski@samsung.com>
+Cc: janghyuck.kim@samsung.com, jaeryul.oh@samsung.com,
+	'Marek Szyprowski' <m.szyprowski@samsung.com>
+Subject: [PATCH 2/3] v4l2-ctrl: add codec controls support to the control
+ framework
+Date: Fri, 02 Mar 2012 11:18:22 +0900
+Message-id: <007201ccf81a$bdf63850$39e2a8f0$%park@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8
+Content-transfer-encoding: 7bit
+Content-language: ko
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
- drivers/media/radio/radio-isa.c   |   10 +---------
- drivers/media/radio/radio-keene.c |   14 +-------------
- 2 files changed, 2 insertions(+), 22 deletions(-)
+Add support for the codec controls to the v4l2 control framework.
 
-diff --git a/drivers/media/radio/radio-isa.c b/drivers/media/radio/radio-isa.c
-index 06f9063..1346046 100644
---- a/drivers/media/radio/radio-isa.c
-+++ b/drivers/media/radio/radio-isa.c
-@@ -150,14 +150,6 @@ static int radio_isa_log_status(struct file *file, void *priv)
- 	return 0;
- }
+Signed-off-by: Jeongtae Park <jtp.park@samsung.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Kamil Debski <k.debski@samsung.com>
+---
+ drivers/media/video/v4l2-ctrls.c |   41 +++++++++++++++++++++++++++++++++++++-
+ 1 files changed, 40 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
+index 9091172..1561483 100644
+--- a/drivers/media/video/v4l2-ctrls.c
++++ b/drivers/media/video/v4l2-ctrls.c
+@@ -361,6 +361,25 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
+ 		"External",
+ 		NULL,
+ 	};
++	static const char * const h264_sei_fp_arrangement_type[] = {
++		"Checkerboard",
++		"Column Interleaved",
++		"Row Interleaved",
++		"Side By Side",
++		"Top And Bottom",
++		"Temporal Interleaved",
++		NULL,
++	};
++	static const char * const h264_fmo_map_type[] = {
++		"Interleaved Slices",
++		"Scattered Slices",
++		"Foreground with Left Over",
++		"Box Out",
++		"Raster Scan",
++		"Wipe Scan",
++		"Explicit",
++		NULL,
++	};
  
--static int radio_isa_subscribe_event(struct v4l2_fh *fh,
--				struct v4l2_event_subscription *sub)
--{
--	if (sub->type == V4L2_EVENT_CTRL)
--		return v4l2_event_subscribe(fh, sub, 0);
--	return -EINVAL;
--}
--
- static const struct v4l2_ctrl_ops radio_isa_ctrl_ops = {
- 	.s_ctrl = radio_isa_s_ctrl,
- };
-@@ -177,7 +169,7 @@ static const struct v4l2_ioctl_ops radio_isa_ioctl_ops = {
- 	.vidioc_g_frequency = radio_isa_g_frequency,
- 	.vidioc_s_frequency = radio_isa_s_frequency,
- 	.vidioc_log_status  = radio_isa_log_status,
--	.vidioc_subscribe_event   = radio_isa_subscribe_event,
-+	.vidioc_subscribe_event   = v4l2_ctrl_subscribe_event,
- 	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
- };
+ 	switch (id) {
+ 	case V4L2_CID_MPEG_AUDIO_SAMPLING_FREQ:
+@@ -426,6 +445,10 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
+ 		return mpeg_mpeg4_level;
+ 	case V4L2_CID_MPEG_VIDEO_MPEG4_PROFILE:
+ 		return mpeg4_profile;
++	case V4L2_CID_MPEG_VIDEO_H264_SEI_FP_ARRANGEMENT_TYPE:
++		return h264_sei_fp_arrangement_type;
++	case V4L2_CID_MPEG_VIDEO_H264_FMO_MAP_TYPE:
++		return h264_fmo_map_type;
+ 	default:
+ 		return NULL;
+ 	}
+@@ -548,6 +571,21 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_MPEG_VIDEO_H264_VUI_EXT_SAR_WIDTH:	return "Horizontal Size of SAR";
+ 	case V4L2_CID_MPEG_VIDEO_H264_VUI_SAR_ENABLE:		return "Aspect Ratio VUI Enable";
+ 	case V4L2_CID_MPEG_VIDEO_H264_VUI_SAR_IDC:		return "VUI Aspect Ratio IDC";
++	case V4L2_CID_MPEG_VIDEO_H264_SEI_FRAME_PACKING:	return "SEI Frame Packing";
++	case V4L2_CID_MPEG_VIDEO_H264_SEI_FP_CURRENT_FRAME_0:	return "Frame Packing Current Frame";
++	case V4L2_CID_MPEG_VIDEO_H264_SEI_FP_ARRANGEMENT_TYPE:	return "Frame Packing Arrangement Type";
++	case V4L2_CID_MPEG_VIDEO_H264_FMO:			return "Flexible Macroblock Order";
++	case V4L2_CID_MPEG_VIDEO_H264_FMO_MAP_TYPE:		return "FMO Map Type";
++	case V4L2_CID_MPEG_VIDEO_H264_FMO_SLICE_GROUP:		return "FMO Slice Group";
++	case V4L2_CID_MPEG_VIDEO_H264_FMO_CHANGE_DIRECTION:	return "FMO Change Direction";
++	case V4L2_CID_MPEG_VIDEO_H264_FMO_CHANGE_RATE:		return "FMO Change Rate";
++	case V4L2_CID_MPEG_VIDEO_H264_FMO_RUN_LENGTH:		return "FMO Run Length";
++	case V4L2_CID_MPEG_VIDEO_H264_ASO:			return "Arbitrary Slice Order";
++	case V4L2_CID_MPEG_VIDEO_H264_ASO_SLICE_ORDER:		return "ASO Slice Order";
++	case V4L2_CID_MPEG_VIDEO_H264_HIERARCHICAL_CODING:	return "Hierarchical Coding";
++	case V4L2_CID_MPEG_VIDEO_H264_HIERARCHICAL_CODING_TYPE:	return "Hierarchical Coding Type";
++	case V4L2_CID_MPEG_VIDEO_H264_HIERARCHICAL_CODING_LAYER: return "Hierarchical Coding Layer";
++	case V4L2_CID_MPEG_VIDEO_H264_HIERARCHICAL_CODING_LAYER_QP: return "Hierarchical Coding Layer QP value";
+ 	case V4L2_CID_MPEG_VIDEO_MPEG4_I_FRAME_QP:		return "MPEG4 I-Frame QP Value";
+ 	case V4L2_CID_MPEG_VIDEO_MPEG4_P_FRAME_QP:		return "MPEG4 P-Frame QP Value";
+ 	case V4L2_CID_MPEG_VIDEO_MPEG4_B_FRAME_QP:		return "MPEG4 B-Frame QP Value";
+@@ -556,12 +594,13 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_MPEG_VIDEO_MPEG4_LEVEL:			return "MPEG4 Level";
+ 	case V4L2_CID_MPEG_VIDEO_MPEG4_PROFILE:			return "MPEG4 Profile";
+ 	case V4L2_CID_MPEG_VIDEO_MPEG4_QPEL:			return "Quarter Pixel Search Enable";
+-	case V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MAX_BYTES:		return "Maximum Bytes in a Slice";
++	case V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MAX_BITS:		return "Maximum Bits in a Slice";
+ 	case V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MAX_MB:		return "Number of MBs in a Slice";
+ 	case V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MODE:		return "Slice Partitioning Method";
+ 	case V4L2_CID_MPEG_VIDEO_VBV_SIZE:			return "VBV Buffer Size";
+ 	case V4L2_CID_MPEG_VIDEO_DEC_PTS:			return "Video Decoder PTS";
+ 	case V4L2_CID_MPEG_VIDEO_DEC_FRAME:			return "Video Decoder Frame Count";
++	case V4L2_CID_MPEG_VIDEO_VBV_DELAY:			return "VBV Buffer Initial Delay";
  
-diff --git a/drivers/media/radio/radio-keene.c b/drivers/media/radio/radio-keene.c
-index 55bd1d2..e1c72b0 100644
---- a/drivers/media/radio/radio-keene.c
-+++ b/drivers/media/radio/radio-keene.c
-@@ -256,18 +256,6 @@ static int keene_s_ctrl(struct v4l2_ctrl *ctrl)
- 	return -EINVAL;
- }
- 
--static int vidioc_subscribe_event(struct v4l2_fh *fh,
--				struct v4l2_event_subscription *sub)
--{
--	switch (sub->type) {
--	case V4L2_EVENT_CTRL:
--		return v4l2_event_subscribe(fh, sub, 0);
--	default:
--		return -EINVAL;
--	}
--}
--
--
- /* File system interface */
- static const struct v4l2_file_operations usb_keene_fops = {
- 	.owner		= THIS_MODULE,
-@@ -288,7 +276,7 @@ static const struct v4l2_ioctl_ops usb_keene_ioctl_ops = {
- 	.vidioc_g_frequency = vidioc_g_frequency,
- 	.vidioc_s_frequency = vidioc_s_frequency,
- 	.vidioc_log_status = v4l2_ctrl_log_status,
--	.vidioc_subscribe_event = vidioc_subscribe_event,
-+	.vidioc_subscribe_event = v4l2_ctrl_subscribe_event,
- 	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
- };
- 
+ 	/* CAMERA controls */
+ 	/* Keep the order of the 'case's the same as in videodev2.h! */
 -- 
-1.7.9.3
+1.7.1
+
 
