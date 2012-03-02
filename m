@@ -1,50 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:45752 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:46838 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755927Ab2CFQYH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Mar 2012 11:24:07 -0500
+	with ESMTP id S1756379Ab2CBKn5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Mar 2012 05:43:57 -0500
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
 Cc: Martin Hostettler <martin@neutronstar.dyndns.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-Subject: [PATCH v2 2/5] mt9p031: Remove unused xskip and yskip fields in struct mt9p031
-Date: Tue,  6 Mar 2012 17:24:22 +0100
-Message-Id: <1331051065-5055-3-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1331051065-5055-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1331051065-5055-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: [PATCH v2 04/10] mt9m032: Use module_i2c_driver() macro
+Date: Fri,  2 Mar 2012 11:44:01 +0100
+Message-Id: <1330685047-12742-5-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1330685047-12742-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1330685047-12742-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The fields are set but never used, remove them.
+Replace the custom driver init and exit functions by
+module_i2c_driver().
 
 Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/video/mt9p031.c |    4 ----
- 1 files changed, 0 insertions(+), 4 deletions(-)
+ drivers/media/video/mt9m032.c |   19 +------------------
+ 1 files changed, 1 insertions(+), 18 deletions(-)
 
-diff --git a/drivers/media/video/mt9p031.c b/drivers/media/video/mt9p031.c
-index dd937df..52dd9f8 100644
---- a/drivers/media/video/mt9p031.c
-+++ b/drivers/media/video/mt9p031.c
-@@ -114,8 +114,6 @@ struct mt9p031 {
- 	struct mt9p031_platform_data *pdata;
- 	struct mutex power_lock; /* lock to protect power_count */
- 	int power_count;
--	u16 xskip;
--	u16 yskip;
+diff --git a/drivers/media/video/mt9m032.c b/drivers/media/video/mt9m032.c
+index e09f9a5..a821b91 100644
+--- a/drivers/media/video/mt9m032.c
++++ b/drivers/media/video/mt9m032.c
+@@ -806,24 +806,7 @@ static struct i2c_driver mt9m032_i2c_driver = {
+ 	.id_table = mt9m032_id_table,
+ };
  
- 	const struct mt9p031_pll_divs *pll;
+-static int __init mt9m032_init(void)
+-{
+-	int rval;
+-
+-	rval = i2c_add_driver(&mt9m032_i2c_driver);
+-	if (rval)
+-		pr_err("%s: failed registering " MT9M032_NAME "\n", __func__);
+-
+-	return rval;
+-}
+-
+-static void mt9m032_exit(void)
+-{
+-	i2c_del_driver(&mt9m032_i2c_driver);
+-}
+-
+-module_init(mt9m032_init);
+-module_exit(mt9m032_exit);
++module_i2c_driver(mt9m032_i2c_driver);
  
-@@ -784,8 +782,6 @@ static int mt9p031_open(struct v4l2_subdev *subdev, struct v4l2_subdev_fh *fh)
- 	format->field = V4L2_FIELD_NONE;
- 	format->colorspace = V4L2_COLORSPACE_SRGB;
- 
--	mt9p031->xskip = 1;
--	mt9p031->yskip = 1;
- 	return mt9p031_set_power(subdev, 1);
- }
- 
+ MODULE_AUTHOR("Martin Hostettler <martin@neutronstar.dyndns.org>");
+ MODULE_DESCRIPTION("MT9M032 camera sensor driver");
 -- 
 1.7.3.4
 
