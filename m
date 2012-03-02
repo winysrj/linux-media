@@ -1,153 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:1026 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757767Ab2CBIN3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Mar 2012 03:13:29 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: jtp.park@samsung.com
-Subject: Re: [PATCH 1/3] v4l: add contorl definitions for codec devices.
-Date: Fri, 2 Mar 2012 09:13:14 +0100
-Cc: linux-media@vger.kernel.org,
-	"'Kamil Debski'" <k.debski@samsung.com>, janghyuck.kim@samsung.com,
-	jaeryul.oh@samsung.com,
-	"'Marek Szyprowski'" <m.szyprowski@samsung.com>
-References: <007101ccf81a$a507c610$ef175230$%park@samsung.com>
-In-Reply-To: <007101ccf81a$a507c610$ef175230$%park@samsung.com>
+Received: from smtp-68.nebula.fi ([83.145.220.68]:51875 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751967Ab2CBSBl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Mar 2012 13:01:41 -0500
+Date: Fri, 2 Mar 2012 20:01:37 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
+	teturtia@gmail.com, dacohen@gmail.com, snjw23@gmail.com,
+	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
+	tuukkat76@gmail.com, k.debski@gmail.com, riverful@gmail.com
+Subject: Re: [PATCH v3 09/33] v4l: Add subdev selections documentation
+Message-ID: <20120302180137.GF15695@valkosipuli.localdomain>
+References: <20120220015605.GI7784@valkosipuli.localdomain>
+ <1714254.ToCjbJ901j@avalon>
+ <20120302122439.GC14920@valkosipuli.localdomain>
+ <1742252.0cUhcqmAIQ@avalon>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201203020913.14834.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1742252.0cUhcqmAIQ@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jeongtae!
+Hi Laurent,
 
-Some review notes below...
-
-On Friday, March 02, 2012 03:17:40 Jeongtae Park wrote:
-> Add control definitions for controls specific to codec devices.
+On Fri, Mar 02, 2012 at 06:54:48PM +0100, Laurent Pinchart wrote:
+> Hi Sakari,
 > 
-> Signed-off-by: Jeongtae Park <jtp.park@samsung.com>
-> Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-> Cc: Kamil Debski <k.debski@samsung.com>
-> ---
->  include/linux/videodev2.h |   51 ++++++++++++++++++++++++++++++++++++++++++--
->  1 files changed, 48 insertions(+), 3 deletions(-)
+> On Friday 02 March 2012 14:24:40 Sakari Ailus wrote:
+> > On Tue, Feb 28, 2012 at 12:42:26PM +0100, Laurent Pinchart wrote:
+> > > On Sunday 26 February 2012 23:42:19 Sakari Ailus wrote:
+> > > > Laurent Pinchart wrote:
+> > > > > On Monday 20 February 2012 03:56:48 Sakari Ailus wrote:
 > 
-> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-> index b739d7d..a19512a 100644
-> --- a/include/linux/videodev2.h
-> +++ b/include/linux/videodev2.h
-> @@ -359,7 +359,9 @@ struct v4l2_pix_format {
->  
->  /* two non contiguous planes - one Y, one Cr + Cb interleaved  */
->  #define V4L2_PIX_FMT_NV12M   v4l2_fourcc('N', 'M', '1', '2') /* 12  Y/CbCr 4:2:0  */
-> +#define V4L2_PIX_FMT_NV21M   v4l2_fourcc('N', 'M', '2', '1') /* 21  Y/CrCb 4:2:0  */
->  #define V4L2_PIX_FMT_NV12MT  v4l2_fourcc('T', 'M', '1', '2') /* 12  Y/CbCr 4:2:0 64x32 macroblocks */
-> +#define V4L2_PIX_FMT_NV12MT_16X16 v4l2_fourcc('V', 'M', '1', '2') /* 12  Y/CbCr 4:2:0 16x16 macroblocks */
->  
->  /* three non contiguous planes - Y, Cb, Cr */
->  #define V4L2_PIX_FMT_YUV420M v4l2_fourcc('Y', 'M', '1', '2') /* 12  YUV420 planar */
-> @@ -392,6 +394,7 @@ struct v4l2_pix_format {
->  #define V4L2_PIX_FMT_MPEG     v4l2_fourcc('M', 'P', 'E', 'G') /* MPEG-1/2/4 Multiplexed */
->  #define V4L2_PIX_FMT_H264     v4l2_fourcc('H', '2', '6', '4') /* H264 with start codes */
->  #define V4L2_PIX_FMT_H264_NO_SC v4l2_fourcc('A', 'V', 'C', '1') /* H264 without start codes */
-> +#define V4L2_PIX_FMT_H264_MVC v4l2_fourcc('M', '2', '6', '4') /* H264 MVC */
->  #define V4L2_PIX_FMT_H263     v4l2_fourcc('H', '2', '6', '3') /* H263          */
->  #define V4L2_PIX_FMT_MPEG1    v4l2_fourcc('M', 'P', 'G', '1') /* MPEG-1 ES     */
->  #define V4L2_PIX_FMT_MPEG2    v4l2_fourcc('M', 'P', 'G', '2') /* MPEG-2 ES     */
-> @@ -399,6 +402,7 @@ struct v4l2_pix_format {
->  #define V4L2_PIX_FMT_XVID     v4l2_fourcc('X', 'V', 'I', 'D') /* Xvid           */
->  #define V4L2_PIX_FMT_VC1_ANNEX_G v4l2_fourcc('V', 'C', '1', 'G') /* SMPTE 421M Annex G compliant stream */
->  #define V4L2_PIX_FMT_VC1_ANNEX_L v4l2_fourcc('V', 'C', '1', 'L') /* SMPTE 421M Annex L compliant stream */
-> +#define V4L2_PIX_FMT_VP8      v4l2_fourcc('V', 'P', '8', '0') /* VP8 */
-
-Note that these new formats need to be documented in the spec as well.
-
->  
->  /*  Vendor-specific formats   */
->  #define V4L2_PIX_FMT_CPIA1    v4l2_fourcc('C', 'P', 'I', 'A') /* cpia1 YUV */
-> @@ -1458,17 +1462,18 @@ enum v4l2_mpeg_video_header_mode {
->  };
->  #define V4L2_CID_MPEG_VIDEO_MAX_REF_PIC			(V4L2_CID_MPEG_BASE+217)
->  #define V4L2_CID_MPEG_VIDEO_MB_RC_ENABLE		(V4L2_CID_MPEG_BASE+218)
-> -#define V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MAX_BYTES	(V4L2_CID_MPEG_BASE+219)
-> +#define V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MAX_BITS	(V4L2_CID_MPEG_BASE+219)
-
-Why change from bytes to bits? That changes the meaning of this control.
-
->  #define V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MAX_MB		(V4L2_CID_MPEG_BASE+220)
->  #define V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MODE		(V4L2_CID_MPEG_BASE+221)
->  enum v4l2_mpeg_video_multi_slice_mode {
->  	V4L2_MPEG_VIDEO_MULTI_SLICE_MODE_SINGLE		= 0,
-> -	V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_MB		= 1,
-> -	V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_BYTES	= 2,
-> +	V4L2_MPEG_VIDEO_MULTI_SLICE_MODE_MAX_MB		= 1,
-> +	V4L2_MPEG_VIDEO_MULTI_SLICE_MODE_MAX_BITS	= 2,
->  };
->  #define V4L2_CID_MPEG_VIDEO_VBV_SIZE			(V4L2_CID_MPEG_BASE+222)
->  #define V4L2_CID_MPEG_VIDEO_DEC_PTS			(V4L2_CID_MPEG_BASE+223)
->  #define V4L2_CID_MPEG_VIDEO_DEC_FRAME			(V4L2_CID_MPEG_BASE+224)
-> +#define V4L2_CID_MPEG_VIDEO_VBV_DELAY			(V4L2_CID_MPEG_BASE+225)
->  
->  #define V4L2_CID_MPEG_VIDEO_H263_I_FRAME_QP		(V4L2_CID_MPEG_BASE+300)
->  #define V4L2_CID_MPEG_VIDEO_H263_P_FRAME_QP		(V4L2_CID_MPEG_BASE+301)
-> @@ -1559,6 +1564,46 @@ enum v4l2_mpeg_video_h264_vui_sar_idc {
->  	V4L2_MPEG_VIDEO_H264_VUI_SAR_IDC_2x1		= 16,
->  	V4L2_MPEG_VIDEO_H264_VUI_SAR_IDC_EXTENDED	= 17,
->  };
-> +#define V4L2_CID_MPEG_VIDEO_H264_SEI_FRAME_PACKING		(V4L2_CID_MPEG_BASE+368)
-> +#define V4L2_CID_MPEG_VIDEO_H264_SEI_FP_CURRENT_FRAME_0		(V4L2_CID_MPEG_BASE+369)
-> +#define V4L2_CID_MPEG_VIDEO_H264_SEI_FP_ARRANGEMENT_TYPE	(V4L2_CID_MPEG_BASE+370)
-> +enum v4l2_mpeg_video_h264_sei_fp_arrangement_type {
-> +	V4L2_MPEG_VIDEO_H264_SEI_FP_ARRANGEMENT_TYPE_CHEKERBOARD	= 0,
-> +	V4L2_MPEG_VIDEO_H264_SEI_FP_ARRANGEMENT_TYPE_COLUMN		= 1,
-> +	V4L2_MPEG_VIDEO_H264_SEI_FP_ARRANGEMENT_TYPE_ROW		= 2,
-> +	V4L2_MPEG_VIDEO_H264_SEI_FP_ARRANGEMENT_TYPE_SIDE_BY_SIDE	= 3,
-> +	V4L2_MPEG_VIDEO_H264_SEI_FP_ARRANGEMENT_TYPE_TOP_BOTTOM		= 4,
-> +	V4L2_MPEG_VIDEO_H264_SEI_FP_ARRANGEMENT_TYPE_TEMPORAL		= 5,
-> +};
-> +#define V4L2_CID_MPEG_VIDEO_H264_FMO			(V4L2_CID_MPEG_BASE+371)
-> +#define V4L2_CID_MPEG_VIDEO_H264_FMO_MAP_TYPE		(V4L2_CID_MPEG_BASE+372)
-> +enum v4l2_mpeg_video_h264_fmo_map_type {
-> +	V4L2_MPEG_VIDEO_H264_FMO_MAP_TYPE_INTERLEAVED_SLICES		= 0,
-> +	V4L2_MPEG_VIDEO_H264_FMO_MAP_TYPE_SCATTERED_SLICES		= 1,
-> +	V4L2_MPEG_VIDEO_H264_FMO_MAP_TYPE_FOREGROUND_WITH_LEFT_OVER	= 2,
-> +	V4L2_MPEG_VIDEO_H264_FMO_MAP_TYPE_BOX_OUT			= 3,
-> +	V4L2_MPEG_VIDEO_H264_FMO_MAP_TYPE_RASTER_SCAN			= 4,
-> +	V4L2_MPEG_VIDEO_H264_FMO_MAP_TYPE_WIPE_SCAN			= 5,
-> +	V4L2_MPEG_VIDEO_H264_FMO_MAP_TYPE_EXPLICIT			= 6,
-> +};
-> +#define V4L2_CID_MPEG_VIDEO_H264_FMO_SLICE_GROUP	(V4L2_CID_MPEG_BASE+373)
-> +#define V4L2_CID_MPEG_VIDEO_H264_FMO_CHANGE_DIRECTION	(V4L2_CID_MPEG_BASE+374)
-> +enum v4l2_mpeg_video_h264_fmo_change_dir {
-> +	V4L2_MPEG_VIDEO_H264_FMO_CHANGE_DIR_RIGHT	= 0,
-> +	V4L2_MPEG_VIDEO_H264_FMO_CHANGE_DIR_LEFT	= 1,
-> +};
-> +#define V4L2_CID_MPEG_VIDEO_H264_FMO_CHANGE_RATE	(V4L2_CID_MPEG_BASE+375)
-> +#define V4L2_CID_MPEG_VIDEO_H264_FMO_RUN_LENGTH		(V4L2_CID_MPEG_BASE+376)
-> +#define V4L2_CID_MPEG_VIDEO_H264_ASO			(V4L2_CID_MPEG_BASE+377)
-> +#define V4L2_CID_MPEG_VIDEO_H264_ASO_SLICE_ORDER	(V4L2_CID_MPEG_BASE+378)
-> +#define V4L2_CID_MPEG_VIDEO_H264_HIERARCHICAL_CODING		(V4L2_CID_MPEG_BASE+379)
-> +#define V4L2_CID_MPEG_VIDEO_H264_HIERARCHICAL_CODING_TYPE	(V4L2_CID_MPEG_BASE+380)
-> +enum v4l2_mpeg_video_h264_hierarchical_coding_type {
-> +	V4L2_MPEG_VIDEO_H264_HIERARCHICAL_CODING_B	= 0,
-> +	V4L2_MPEG_VIDEO_H264_HIERARCHICAL_CODING_P	= 1,
-> +};
-> +#define V4L2_CID_MPEG_VIDEO_H264_HIERARCHICAL_CODING_LAYER	(V4L2_CID_MPEG_BASE+381)
-> +#define V4L2_CID_MPEG_VIDEO_H264_HIERARCHICAL_CODING_LAYER_QP	(V4L2_CID_MPEG_BASE+382)
-
-Are these new controls generic for all H264 encoders, or specific to this
-chip?
-
-Also note that these new controls have to be documented in the spec as well.
-
->  #define V4L2_CID_MPEG_VIDEO_MPEG4_I_FRAME_QP	(V4L2_CID_MPEG_BASE+400)
->  #define V4L2_CID_MPEG_VIDEO_MPEG4_P_FRAME_QP	(V4L2_CID_MPEG_BASE+401)
->  #define V4L2_CID_MPEG_VIDEO_MPEG4_B_FRAME_QP	(V4L2_CID_MPEG_BASE+402)
+> > > > >> +      </section>
+> > > > >> 
+> > > > >> -      <para>Cropping behaviour on output pads is not defined.</para>
+> > > > >> +    </section>
+> > > > >> +
+> > > > >> +    <section>
+> > > > >> +      <title>Order of configuration and format propagation</title>
+> > > > >> +
+> > > > >> +      <para>Inside subdevs, the order of image processing steps will
+> > > > >> +      always be from the sink pad towards the source pad. This is
+> > > > >> also
+> > > > >> +      reflected in the order in which the configuration must be
+> > > > >> +      performed by the user: the changes made will be propagated to
+> > > > >> +      any subsequent stages. If this behaviour is not desired, the
+> > > > >> +      user must set
+> > > > >> +      <constant>V4L2_SUBDEV_SEL_FLAG_KEEP_CONFIG</constant> flag.
+> > > > > 
+> > > > > Could you explain what happens when V4L2_SUBDEV_SEL_FLAG_KEEP_CONFIG
+> > > > > is
+> > > > > set ? Just stating that it doesn't follow the propagation behaviour
+> > > > > previously described could be understood in many different ways.
+> > > > 
+> > > > Good point. How about this:
+> > > > 
+> > > > "This flag causes that no propagation of the changes are allowed in any
+> > > > circumstances. This may also lead the accessed rectangle not being
+> > > > changed at all,
+> > > 
+> > > "The accessed rectangle will likely be adjusted by the driver,"
+> > 
+> > Why "likely"? I think it should say "may" instead, but this of course
+> > depends on what the user asks.
 > 
+> I'm fine with "The accessed rectangle may be adjusted by the driver" (or 
+> s/may/can/, as adjusting the rectangle is part of the negotiation mechanism 
+> and is thus more likely than not).
+> 
+> > > > depending on the properties of the underlying hardware.
+> > > > Some drivers may not support this flag."
+> > > 
+> > > What should happen then ? Should the flag be ignored, or should the driver
+> > > return an error ?
+> > 
+> > Only the SMIA++ driver supports this flag so far (as goes for the subdev
+> > selection interface).
+> > 
+> > I think it should be ignored. Consider a situation that we add a new flag
+> > which most of the drivers are unaware of.
+> > 
+> > As we're adding the flag right at the time the interface is introduced, we
+> > could also require that all drivers must support it. How about that? In that
+> > case I'd remove the last sentence of that paragraph.
+> 
+> I think I'd like that better. Otherwise applications would be forced to check 
+> the returned rectangle to find out if the flag was taken into account.
 
-Regards,
+Fixed for the next one.
 
-	Hans
+Cheers,
+
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
