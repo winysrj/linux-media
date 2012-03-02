@@ -1,56 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:55784 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759086Ab2CSPgx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Mar 2012 11:36:53 -0400
-Date: Mon, 19 Mar 2012 17:44:33 +0200
-From: Ville =?iso-8859-1?Q?Syrj=E4l=E4?= <ville.syrjala@linux.intel.com>
-To: Daniel Vetter <daniel.vetter@ffwll.ch>
-Cc: linaro-mm-sig@lists.linaro.org,
-	LKML <linux-kernel@vger.kernel.org>,
-	DRI Development <dri-devel@lists.freedesktop.org>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH] dma-buf: document fd flags and O_CLOEXEC requirement
-Message-ID: <20120319154433.GP4917@intel.com>
-References: <CAPM=9twSZJyYcNwDwaC5eSy7fXNaRBGTZZ6F2K3D8AeQdYtgww@mail.gmail.com>
- <1332171715-1484-1-git-send-email-daniel.vetter@ffwll.ch>
+Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:57886 "EHLO
+	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750753Ab2CBJuU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 2 Mar 2012 04:50:20 -0500
+Received: by lahj13 with SMTP id j13so1816577lah.19
+        for <linux-media@vger.kernel.org>; Fri, 02 Mar 2012 01:50:18 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <1332171715-1484-1-git-send-email-daniel.vetter@ffwll.ch>
+In-Reply-To: <4F5086E3.9010809@gmail.com>
+References: <1328001827-21251-1-git-send-email-javier.martin@vista-silicon.com>
+	<CACKLOr0v14XPfnccGH7rh2yd2eSwOOd8fZeN29SVP8tRrtxWow@mail.gmail.com>
+	<4F5086E3.9010809@gmail.com>
+Date: Fri, 2 Mar 2012 10:50:18 +0100
+Message-ID: <CACKLOr38N-USvnyOquADn8QMdNXB9aDMucfwdEydFV5b24mgcQ@mail.gmail.com>
+Subject: Re: [PATCH 1/2] media: tvp5150: Add cropping support.
+From: javier Martin <javier.martin@vista-silicon.com>
+To: koansoftware@gmail.com
+Cc: linux-media@vger.kernel.org, mchehab@infradead.org,
+	hverkuil@xs4all.nl
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Mar 19, 2012 at 04:41:55PM +0100, Daniel Vetter wrote:
-> Otherwise subsystems will get this wrong and end up with a second
-> export ioctl with the flag and O_CLOEXEC support added.
-> 
-> v2: Fixup the function name and caution exporters to limit the flags
-> to only O_CLOEXEC. Noted by Dave Airlie.
-> 
-> Cc: Dave Airlie <airlied@gmail.com>
-> Signed-Off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
-> ---
->  Documentation/dma-buf-sharing.txt |    6 ++++++
->  1 files changed, 6 insertions(+), 0 deletions(-)
-> 
-> diff --git a/Documentation/dma-buf-sharing.txt b/Documentation/dma-buf-sharing.txt
-> index 9f3aeef..a6d4c37 100644
-> --- a/Documentation/dma-buf-sharing.txt
-> +++ b/Documentation/dma-buf-sharing.txt
-> @@ -319,6 +319,12 @@ Miscellaneous notes
->  - Any exporters or users of the dma-buf buffer sharing framework must have
->    a 'select DMA_SHARED_BUFFER' in their respective Kconfigs.
->  
-> +- To avoid the wrath of userspace library writers exporting subsystems must have
-> +  a flag parameter in the ioctl that creates the dma-buf fd which needs to
-> +  support at least the O_CLOEXEC fd flag. This needs to be passed in the flag
-> +  parameter of dma_buf_fd. Without any other reasons applying it is recommended
-> +  that exporters limit the flags passed to dma_buf_fd to only O_CLOEXEC.
+On 2 March 2012 09:37, Marco Cavallini <koansoftware@gmail.com> wrote:
+> javier Martin ha scritto, Il 02/03/2012 09:35:
+>> Hi all,
+>> I've been using and testing these patches successfully for a month.
+>> Do you have any comments on them? Do you think they are ready to be merged?
+>>
+>> [PATCH 1/2] media: tvp5150: Add cropping support
+>> [PATCH 2/2] media: tvp5150: Add g_mbus_fmt_callback
+>>
+>>
+>
+> Hi Javier,
+> I'm working on tvp5150 with a PXA270 just these days.
+> Could you provide a link to those patches please?
 
-Difficult to parse. Needs more punctuation.
+Sure:
+http://www.spinics.net/lists/linux-media/msg43789.html
+http://www.spinics.net/lists/linux-media/msg43790.html
+
 
 -- 
-Ville Syrjälä
-Intel OTC
+Javier Martin
+Vista Silicon S.L.
+CDTUC - FASE C - Oficina S-345
+Avda de los Castros s/n
+39005- Santander. Cantabria. Spain
++34 942 25 32 60
+www.vista-silicon.com
