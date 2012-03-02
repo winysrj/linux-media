@@ -1,64 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:46851 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759605Ab2C3IWD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Mar 2012 04:22:03 -0400
-Received: by wgbdr13 with SMTP id dr13so353783wgb.1
-        for <linux-media@vger.kernel.org>; Fri, 30 Mar 2012 01:22:01 -0700 (PDT)
-From: Patrick Boettcher <pboettcher@kernellabs.com>
-To: Matias Aguirre <fastslack@gmail.com>
-Subject: Re: Module dvb-usb
-Date: Fri, 30 Mar 2012 10:21:57 +0200
-Cc: linux-media@vger.kernel.org
-References: <CAKBz3my92vV5gEMsN2kfbEGeHGd=q9A2zmYuYN7pn703cNG6RA@mail.gmail.com>
-In-Reply-To: <CAKBz3my92vV5gEMsN2kfbEGeHGd=q9A2zmYuYN7pn703cNG6RA@mail.gmail.com>
-MIME-Version: 1.0
-Message-Id: <201203301021.57083.pboettcher@kernellabs.com>
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
+Received: from perceval.ideasonboard.com ([95.142.166.194]:46833 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754237Ab2CBKnx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Mar 2012 05:43:53 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Martin Hostettler <martin@neutronstar.dyndns.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: [PATCH v2 00/10] MT9M032 sensor driver
+Date: Fri,  2 Mar 2012 11:43:57 +0100
+Message-Id: <1330685047-12742-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Matias,
+Hi everybody,
 
-On Friday 30 March 2012 09:42:14 Matias Aguirre wrote:
-> My name is Matias and im a programmer. I need to ask some things to
-> you about the creation of new modules into the kernel for TV
-> adapters. I have a new TV adapter with the chipset DM1305.
-> 
-> I have the firmware of this chipset.. can i start with that or i need
-> more info?
+Here's the second version of the Aptina MT9M032 sensor driver, originally
+written by Martin Hostettler.
 
-First of all you should ask on the linux-media mailing list whether 
-there is already someone working on a driver for this device. (CC'd)
+Compared to the first version, I've squashed two patches together that were
+not supposed to be split in the first place and fixed a couple of 80-columns
+checkpatch warnings.
 
-If not having the firmware-binary is not enough, you also need to know 
-how to communicate with it and what kind of messages have to be sent to 
-the firmware to make it do something. If you do not have any 
-documentation about it (and you cannot get hold of it from the vendor), 
-you need to reverse-engineer the communication.
+The first patch is still Martin's original driver untouched for ease of
+review. I can squash some of the other patches onto it if needed after review
+is complete.
 
-This is where the vp7045-example comes into the game: the vp7045 has a 
-relatively simple firmware interface which can help you to quickly make 
-a driver for you device.
+Patch 09/10 adds a generic PLL setup code for several Aptina sensors. I will
+post a patch for the MT9P031 sensor driver to use that code separately from
+this set.
 
-But, there is two different dvb usb device types:
+I would still like to push the patches in time for v3.4. Martin, could you
+please review the set ? Guennadi, to you have any MT9M032 hardware you can use
+to test the driver ?
 
-1) the USB-firmware contains the demod/tuner-drivers and the firmware 
-interface is high-level. (this is the case for the vp7045)
-or
 
-2) the USB-firmware only implements a bridge for I2C/SPI or other 
-control protocols and the demod/tuner-drivers have to be handled from 
-the host. 
+Laurent Pinchart (9):
+  mt9m032: Reorder code into section and whitespace cleanups
+  mt9m032: Make get/set format/crop operations consistent across
+    drivers
+  mt9m032: Use module_i2c_driver() macro
+  mt9m032: Enclose to_dev() macro argument in brackets
+  mt9m032: Pass an i2c_client pointer to the register read/write
+    functions
+  mt9m032: Put HFLIP and VFLIP controls in a cluster
+  mt9m032: Remove unneeded register read
+  v4l: Aptina-style sensor PLL support
+  mt9m032: Use generic PLL setup code
 
-If your device is of the 2nd kind you should rather look at cxusb.c .
+Martin Hostettler (1):
+  v4l: Add driver for Micron MT9M032 camera sensor
 
-HTH
---
-Patrick
+ drivers/media/video/Kconfig      |   11 +
+ drivers/media/video/Makefile     |    5 +
+ drivers/media/video/aptina-pll.c |  120 ++++++
+ drivers/media/video/aptina-pll.h |   55 +++
+ drivers/media/video/mt9m032.c    |  827 ++++++++++++++++++++++++++++++++++++++
+ include/media/mt9m032.h          |   36 ++
+ 6 files changed, 1054 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/media/video/aptina-pll.c
+ create mode 100644 drivers/media/video/aptina-pll.h
+ create mode 100644 drivers/media/video/mt9m032.c
+ create mode 100644 include/media/mt9m032.h
 
-Kernel Labs Inc.
-http://www.kernellabs.com/
+-- 
+Regards,
+
+Laurent Pinchart
+
