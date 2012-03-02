@@ -1,162 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.48]:28018 "EHLO mgw-sa02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932289Ab2CBRcz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 2 Mar 2012 12:32:55 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, dacohen@gmail.com,
-	snjw23@gmail.com, andriy.shevchenko@linux.intel.com,
-	t.stanislaws@samsung.com, tuukkat76@gmail.com,
-	k.debski@samsung.com, riverful@gmail.com, hverkuil@xs4all.nl,
-	teturtia@gmail.com
-Subject: [PATCH v4 18/34] v4l: Implement v4l2_subdev_link_validate()
-Date: Fri,  2 Mar 2012 19:30:26 +0200
-Message-Id: <1330709442-16654-18-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <20120302173219.GA15695@valkosipuli.localdomain>
-References: <20120302173219.GA15695@valkosipuli.localdomain>
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:50375 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757828Ab2CBDpy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Mar 2012 22:45:54 -0500
+Received: by iagz16 with SMTP id z16so1746831iag.19
+        for <linux-media@vger.kernel.org>; Thu, 01 Mar 2012 19:45:54 -0800 (PST)
+Date: Thu, 1 Mar 2012 21:45:45 -0600
+From: Jonathan Nieder <jrnieder@gmail.com>
+To: Ben Hutchings <ben@decadent.org.uk>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Greg Kroah-Hartman <gregkh@suse.de>,
+	linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+	Jarod Wilson <jarod@redhat.com>,
+	Torsten Crass <torsten.crass@eBiology.de>
+Subject: Re: [PATCH 1/5] staging: lirc_serial: Fix init/exit order
+Message-ID: <20120302034545.GA31860@burratino>
+References: <1321422581.2885.50.camel@deadeye>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1321422581.2885.50.camel@deadeye>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-v4l2_subdev_link_validate() is the default op for validating a link. In V4L2
-subdev context, it is used to call a pad op which performs the proper link
-check without much extra work.
+Hi Ben,
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
----
- Documentation/video4linux/v4l2-framework.txt |   12 +++++
- drivers/media/video/v4l2-subdev.c            |   64 ++++++++++++++++++++++++++
- include/media/v4l2-subdev.h                  |   12 +++++
- 3 files changed, 88 insertions(+), 0 deletions(-)
+Ben Hutchings wrote[1]:
 
-diff --git a/Documentation/video4linux/v4l2-framework.txt b/Documentation/video4linux/v4l2-framework.txt
-index f06c563..9d341bc 100644
---- a/Documentation/video4linux/v4l2-framework.txt
-+++ b/Documentation/video4linux/v4l2-framework.txt
-@@ -312,6 +312,18 @@ If the subdev driver intends to process video and integrate with the media
- framework, it must implement format related functionality using
- v4l2_subdev_pad_ops instead of v4l2_subdev_video_ops.
- 
-+In that case, the subdev driver may set the link_validate field to provide
-+its own link validation function. The link validation function is called for
-+every link in the pipeline where both of the ends of the links are V4L2
-+sub-devices. The driver is still responsible for validating the correctness
-+of the format configuration between sub-devices and video nodes.
-+
-+If link_validate op is not set, the default function
-+v4l2_subdev_link_validate_default() is used instead. This function ensures
-+that width, height and the media bus pixel code are equal on both source and
-+sink of the link. Subdev drivers are also free to use this function to
-+perform the checks mentioned above in addition to their own checks.
-+
- A device (bridge) driver needs to register the v4l2_subdev with the
- v4l2_device:
- 
-diff --git a/drivers/media/video/v4l2-subdev.c b/drivers/media/video/v4l2-subdev.c
-index eda34cd..507cde2 100644
---- a/drivers/media/video/v4l2-subdev.c
-+++ b/drivers/media/video/v4l2-subdev.c
-@@ -387,6 +387,70 @@ const struct v4l2_file_operations v4l2_subdev_fops = {
- 	.poll = subdev_poll,
- };
- 
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+int v4l2_subdev_link_validate_default(struct v4l2_subdev *sd,
-+				      struct media_link *link,
-+				      struct v4l2_subdev_format *source_fmt,
-+				      struct v4l2_subdev_format *sink_fmt)
-+{
-+	if (source_fmt->format.width != sink_fmt->format.width
-+	    || source_fmt->format.height != sink_fmt->format.height
-+	    || source_fmt->format.code != sink_fmt->format.code)
-+		return -EINVAL;
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(v4l2_subdev_link_validate_default);
-+
-+static int
-+v4l2_subdev_link_validate_get_format(struct media_pad *pad,
-+				     struct v4l2_subdev_format *fmt)
-+{
-+	switch (media_entity_type(pad->entity)) {
-+	case MEDIA_ENT_T_V4L2_SUBDEV:
-+		fmt->which = V4L2_SUBDEV_FORMAT_ACTIVE;
-+		fmt->pad = pad->index;
-+		return v4l2_subdev_call(media_entity_to_v4l2_subdev(
-+						pad->entity),
-+					pad, get_fmt, NULL, fmt);
-+	default:
-+		WARN(1, "Driver bug! Wrong media entity type %d, entity %s\n",
-+		     media_entity_type(pad->entity), pad->entity->name);
-+		/* Fall through */
-+	case MEDIA_ENT_T_DEVNODE_V4L:
-+		return -EINVAL;
-+	}
-+}
-+
-+int v4l2_subdev_link_validate(struct media_link *link)
-+{
-+	struct v4l2_subdev *sink;
-+	struct v4l2_subdev_format sink_fmt, source_fmt;
-+	int rval;
-+
-+	rval = v4l2_subdev_link_validate_get_format(
-+		link->source, &source_fmt);
-+	if (rval < 0)
-+		return 0;
-+
-+	rval = v4l2_subdev_link_validate_get_format(
-+		link->sink, &sink_fmt);
-+	if (rval < 0)
-+		return 0;
-+
-+	sink = media_entity_to_v4l2_subdev(link->sink->entity);
-+
-+	rval = v4l2_subdev_call(sink, pad, link_validate, link,
-+				&source_fmt, &sink_fmt);
-+	if (rval != -ENOIOCTLCMD)
-+		return rval;
-+
-+	return v4l2_subdev_link_validate_default(
-+		sink, link, &source_fmt, &sink_fmt);
-+}
-+EXPORT_SYMBOL_GPL(v4l2_subdev_link_validate);
-+#endif /* CONFIG_MEDIA_CONTROLLER */
-+
- void v4l2_subdev_init(struct v4l2_subdev *sd, const struct v4l2_subdev_ops *ops)
- {
- 	INIT_LIST_HEAD(&sd->list);
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index 7e85035..1c2318b 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -470,6 +470,11 @@ struct v4l2_subdev_pad_ops {
- 			     struct v4l2_subdev_selection *sel);
- 	int (*set_selection)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
- 			     struct v4l2_subdev_selection *sel);
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+	int (*link_validate)(struct v4l2_subdev *sd, struct media_link *link,
-+			     struct v4l2_subdev_format *source_fmt,
-+			     struct v4l2_subdev_format *sink_fmt);
-+#endif /* CONFIG_MEDIA_CONTROLLER */
- };
- 
- struct v4l2_subdev_ops {
-@@ -602,6 +607,13 @@ static inline void *v4l2_get_subdev_hostdata(const struct v4l2_subdev *sd)
- 	return sd->host_priv;
- }
- 
-+#ifdef CONFIG_MEDIA_CONTROLLER
-+int v4l2_subdev_link_validate_default(struct v4l2_subdev *sd,
-+				      struct media_link *link,
-+				      struct v4l2_subdev_format *source_fmt,
-+				      struct v4l2_subdev_format *sink_fmt);
-+int v4l2_subdev_link_validate(struct media_link *link);
-+#endif /* CONFIG_MEDIA_CONTROLLER */
- void v4l2_subdev_init(struct v4l2_subdev *sd,
- 		      const struct v4l2_subdev_ops *ops);
- 
--- 
-1.7.2.5
+> Currently the module init function registers a platform_device and
+> only then allocates its IRQ and I/O region.  This allows allocation to
+> race with the device's suspend() function.  Instead, allocate
+> resources in the platform driver's probe() function and free them in
+> the remove() function.
+>
+> The module exit function removes the platform device before the
+> character device that provides access to it.  Change it to reverse the
+> order of initialisation.
+>
+> Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
+> ---
+> The down-side of this is that module insertion now succeeds even if the
+> device can't be probed.  But that's how most driver modules work, and
+> there will be obvious error messages logged on failure.
 
+>From <http://bugs.debian.org/645811> I see that you tested these patches:
+
+ affc9a0d59ac [media] staging: lirc_serial: Do not assume error codes
+              returned by request_irq()
+ 9b98d6067971 [media] staging: lirc_serial: Fix bogus error codes
+ 1ff1d88e8629 [media] staging: lirc_serial: Fix deadlock on resume failure
+ c8e57e1b766c [media] staging: lirc_serial: Free resources on failure
+              paths of lirc_serial_probe()
+ 9105b8b20041 [media] staging: lirc_serial: Fix init/exit order
+
+in a VM.  They were applied in 3.3-rc1 and have been in the Debian
+kernel since 3.1.4-1 at the end of November.
+
+Would some of these patches (e.g., at least patches 1, 2, and 5) be
+appropriate for inclusion in the 3.0.y and 3.2.y stable kernels from
+kernel.org?
+
+Thanks,
+Jonathan
+
+[1] http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/40486
