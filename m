@@ -1,160 +1,257 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from banach.math.auburn.edu ([131.204.45.3]:54328 "EHLO
-	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932670Ab2CFX4o (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Mar 2012 18:56:44 -0500
-Date: Tue, 6 Mar 2012 17:44:09 -0600 (CST)
-From: Theodore Kilgore <kilgota@banach.math.auburn.edu>
-To: Xavion <xavion.0@gmail.com>
-cc: Hans de Goede <hdegoede@redhat.com>,
-	Jean-Francois Moine <moinejf@free.fr>,
-	"Linux Kernel (Media) ML" <linux-media@vger.kernel.org>
-Subject: Re: My Microdia (SN9C201) webcam doesn't work properly in Linux
- anymore
-In-Reply-To: <CAKnx8Y4z6Ai14RRdG6zd=CEDfHqfNr6Mx=x=XtfU9=KZEwmaNA@mail.gmail.com>
-Message-ID: <alpine.LNX.2.00.1203061727300.2208@banach.math.auburn.edu>
-References: <CAKnx8Y7BAyR8A5r-eL13MVgZO2DcKndP3v-MTfkQdmXPvjjGJg@mail.gmail.com> <CAKnx8Y6dM8qbQvJgt_z2A2XD8aPGhGoqCSWabyNYjRbsH6CDJw@mail.gmail.com> <4F51CCC1.8020308@redhat.com> <CAKnx8Y6ER6CV6WQKrmN4fFkLjQx0GXEzvNmuApnA=G6fJDgsPQ@mail.gmail.com>
- <20120304082531.1307a9ed@tele> <CAKnx8Y7A2Dd0JW0n9bJBBc+ScnagpdFEkAvbg_Jab3vt66Ky0Q@mail.gmail.com> <20120305182736.563df8b4@tele> <CAKnx8Y54ngVXmrLg2bjnn_MvibWE6SKR5jXQFQ9+ZmHWoM9HmQ@mail.gmail.com> <4F55DB8B.8050907@redhat.com>
- <CAKnx8Y4z6Ai14RRdG6zd=CEDfHqfNr6Mx=x=XtfU9=KZEwmaNA@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="-863829203-256965950-1331077449=:2208"
+Received: from perceval.ideasonboard.com ([95.142.166.194]:46838 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756391Ab2CBKn7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Mar 2012 05:43:59 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Martin Hostettler <martin@neutronstar.dyndns.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: [PATCH v2 09/10] v4l: Aptina-style sensor PLL support
+Date: Fri,  2 Mar 2012 11:44:06 +0100
+Message-Id: <1330685047-12742-10-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1330685047-12742-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1330685047-12742-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+Add a generic helper function to compute PLL parameters for PLL found in
+several Aptina sensors.
 
----863829203-256965950-1331077449=:2208
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/video/Kconfig      |    4 +
+ drivers/media/video/Makefile     |    4 +
+ drivers/media/video/aptina-pll.c |  120 ++++++++++++++++++++++++++++++++++++++
+ drivers/media/video/aptina-pll.h |   55 +++++++++++++++++
+ 4 files changed, 183 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/media/video/aptina-pll.c
+ create mode 100644 drivers/media/video/aptina-pll.h
 
-
-
-On Wed, 7 Mar 2012, Xavion wrote:
-
-> Hi Hans
-> 
-> >> The good news is that the nasty errors I was getting yesterday have
-> >> magically disappeared overnight!
-> >
-> > That is likely because the scene you're pointing at (or the lighting
-> > conditions) have changed, not all pictures compress equally well
-> > with JPEG. If you point the camera at the same scene as when you were
-> > getting these errors (with similar, good, lighting conditions) you'll
-> > likely see those errors re-surface.
-> 
-> At the time, I thought it was probably just because I hadn't rebooted
-> my computer after installing GSPCA v2.15.1 the previous day.  If those
-> nastier errors resurface, I'll test whether they can be suppressed by
-> making those changes to "sn9c20x.c" again.
-> 
-> >>     root@Desktop /etc/motion # tail /var/log/kernel.log
-> >>     Mar  6 08:34:17 Desktop kernel: [ 7240.125167] gspca_main: ISOC
-> >> data error: [0] len=0, status=-18
-> >>    ...
-> >
-> > Hmm, error -18 is EXDEV, which according to
-> > Documentation/usb/error-codes.txt is:
-> >
-> > -EXDEV                  ISO transfer only partially completed
-> >                        (only set in iso_frame_desc[n].status, not
-> > urb->status)
-> >
-> > I've seen those before, and I think we should simply ignore them rather then
-> > log an error for them. Jean-Francois, what do you think?
-> 
-> I'll let you guys decide what to do about this, but remember that I'm
-> here to help if you need more testing done.  If you want my opinion,
-> I'd be leaning towards trying to prevent any errors that appear
-> regularly.
-> 
-> >> In fairness to Motion, the default JPEG quality listed in its
-> >> configuration file is only 75%.  I had upped this to 90% for clarity,
-> >> but subsequently reverting to the default configuration file didn't
-> >> stop these errors.
-> >
-> > That is a different JPG setting, that is the compression quality for the
-> > JPEG's motion saves to disk if it detects motion. We're are talking about
-> > the compression quality of the JPEG's going over the USB wire, which is
-> > controller by the driver, not by motion.
-> 
-> I thought that was probably the case, but I left open the possibility
-> that Motion could've been telling GSPCA what JPEG setting to use for
-> USB transfers.
-> 
-> >> They also remained after I increased the three "vga_mode" ratios to "6
-> >> / 8" or changed Line 2093 of "sn9c20x.c" to "sd->quality = 75;".
-> >
-> > You mean the -18 error remain, right, that is expected, the
-> > ratios / sd->quality only fix the errors you were seeing previously.
-> 
-> Yes, I was only seeing the "-18" error message yesterday.  I knew that
-> the "vga_mode" and "sd->quality" suggestions were intended for the
-> other (nastier) errors.  As I couldn't be sure that the "-18" error
-> wasn't somehow related, I decided to test those suggestions on it as
-> well.
-> 
-> >> Entering either of the following commands before starting Motion
-> >> didn't make any difference either.
-> >>     export LD_PRELOAD=/usr/lib/libv4l/v4l1compat.so
-> >>     export LD_PRELOAD=/usr/lib/libv4l/v4l2convert.so
-> >>
-> >> The other thing I'm wondering about is how to force SXGA (1280x1024)
-> >> mode to be used.  I've set the 'width' and 'height' variables in the
-> >> Motion configuration file correctly, but I still see the following
-> >> kernel output:
-> >>     Mar  6 08:37:46 Desktop kernel: [ 7448.680301] gspca_sn9c20x: Set
-> >> 640x480
-> >>
-> >> I should note that Motion defaults to "V4L2_PIX_FMT_YUV420" in its
-> >> configuration file, which is what I'd been using until now.  From the
-> >> look of the code in the "sn9c20x.c" file, I must use
-> >> "V4L2_PIX_FMT_SBGGR8" to get the 1280x1024 resolution.
-> >
-> > For sxga mode you will need to use libv4l, but I doubt if your camera
-> > supports
-> > it at all, most don't. What does dmesg say immediately after unplugging and
-> > replugging the camera?
-> 
-> The software I use to control my webcam in Windows can increase the
-> snapshot zoom to what it calls 'SXGA'.  Closer inspection reveals that
-> it's actually just doubling the 640x480 image - via nearest-neighbour
-> interpolation - to get a rather pixelated 1280x960.
-
-This kind of fudging is, unfortunately, very typical. Lots of cameras on 
-the market have things like that written on the package. If there is any 
-residual truth in what is written there at all, it says something like 
-"Interpolated XxY resolution" which is a mealy-mouthed admission of that 
-kind of resolution-inflation when you see it. But sometimes they just 
-plain lie. 
-
+diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+index 80acb78..e1dfdbc 100644
+--- a/drivers/media/video/Kconfig
++++ b/drivers/media/video/Kconfig
+@@ -133,6 +133,9 @@ menu "Encoders, decoders, sensors and other helper chips"
  
-> This isn't even the proper SXGA resolution, which is supposed to be
-> 1280x1024.  The Sonix website claims that their SN9C201 webcam can
-> provide up to a 1.3 MP (SXGA) video size!  
+ comment "Audio decoders, processors and mixers"
+ 
++config VIDEO_APTINA_PLL
++	tristate
++
+ config VIDEO_TVAUDIO
+ 	tristate "Simple audio decoder chips"
+ 	depends on VIDEO_V4L2 && I2C
+@@ -946,6 +949,7 @@ config SOC_CAMERA_MT9M001
+ config VIDEO_MT9M032
+ 	tristate "MT9M032 camera sensor support"
+ 	depends on I2C && VIDEO_V4L2
++	select VIDEO_APTINA_PLL
+ 	help
+ 	  This driver supports MT9M032 cameras from Micron, monochrome
+ 	  models only.
+diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
+index 9b19533..8e037e9 100644
+--- a/drivers/media/video/Makefile
++++ b/drivers/media/video/Makefile
+@@ -22,6 +22,10 @@ endif
+ 
+ obj-$(CONFIG_VIDEO_V4L2_COMMON) += v4l2-common.o
+ 
++# Helper modules
++
++obj-$(CONFIG_VIDEO_APTINA_PLL) += aptina-pll.o
++
+ # All i2c modules must come first:
+ 
+ obj-$(CONFIG_VIDEO_TUNER) += tuner.o
+diff --git a/drivers/media/video/aptina-pll.c b/drivers/media/video/aptina-pll.c
+new file mode 100644
+index 0000000..e4df9ec
+--- /dev/null
++++ b/drivers/media/video/aptina-pll.c
+@@ -0,0 +1,120 @@
++/*
++ * Aptina Sensor PLL Configuration
++ *
++ * Copyright (C) 2012 Laurent Pinchart <laurent.pinchart@ideasonboard.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
++ * 02110-1301 USA
++ */
++
++#include <linux/device.h>
++#include <linux/gcd.h>
++#include <linux/kernel.h>
++#include <linux/module.h>
++
++#include "aptina-pll.h"
++
++int aptina_pll_configure(struct device *dev, struct aptina_pll *pll,
++			 const struct aptina_pll_limits *limits)
++{
++	unsigned int mf_min;
++	unsigned int mf_max;
++	unsigned int mf;
++	unsigned int clock;
++	unsigned int div;
++	unsigned int p1;
++	unsigned int n;
++	unsigned int m;
++
++	if (pll->ext_clock < limits->ext_clock_min ||
++	    pll->ext_clock > limits->ext_clock_max) {
++		dev_err(dev, "pll: invalid external clock frequency.\n");
++		return -EINVAL;
++	}
++
++	if (pll->pix_clock > limits->pix_clock_max) {
++		dev_err(dev, "pll: invalid pixel clock frequency.\n");
++		return -EINVAL;
++	}
++
++	/* Compute the multiplier M and combined N*P1 divisor. */
++	div = gcd(pll->pix_clock, pll->ext_clock);
++	pll->m = pll->pix_clock / div;
++	div = pll->ext_clock / div;
++
++	/* We now have the smallest M and N*P1 values that will result in the
++	 * desired pixel clock frequency, but they might be out of the valid
++	 * range. Compute the factor by which we should multiply them given the
++	 * following constraints:
++	 *
++	 * - minimum/maximum multiplier
++	 * - minimum/maximum multiplier output clock frequency assuming the
++	 *   minimum/maximum N value
++	 * - minimum/maximum combined N*P1 divisor
++	 */
++	mf_min = DIV_ROUND_UP(limits->m_min, pll->m);
++	mf_min = max(mf_min, limits->out_clock_min /
++		     (pll->ext_clock / limits->n_min * pll->m));
++	mf_min = max(mf_min, limits->n_min * limits->p1_min / div);
++	mf_max = limits->m_max / pll->m;
++	mf_max = min(mf_max, limits->out_clock_max /
++		    (pll->ext_clock / limits->n_max * pll->m));
++	mf_max = min(mf_max, DIV_ROUND_UP(limits->n_max * limits->p1_max, div));
++
++	dev_dbg(dev, "pll: mf min %u max %u\n", mf_min, mf_max);
++	if (mf_min > mf_max) {
++		dev_err(dev, "pll: no valid combined N*P1 divisor.\n");
++		return -EINVAL;
++	}
++
++	/* Find the highest acceptable P1 value and compute the corresponding N
++	 * divisor. Make sure the P1 value is even.
++	 */
++	for (mf = mf_min; mf <= mf_max; ++mf) {
++		m = pll->m * mf;
++
++		for (p1 = limits->p1_max & ~1; p1 > limits->p1_min; p1 -= 2) {
++			if ((div * mf) % p1)
++				continue;
++
++			n = div * mf / p1;
++
++			clock = pll->ext_clock / n;
++			if (clock < limits->int_clock_min ||
++			    clock > limits->int_clock_max)
++				continue;
++
++			clock *= m;
++			if (clock < limits->out_clock_min ||
++			    clock > limits->out_clock_max)
++				continue;
++
++			goto found;
++		}
++	}
++
++	dev_err(dev, "pll: no valid N and P1 divisors found.\n");
++	return -EINVAL;
++
++found:
++	pll->n = n;
++	pll->m = m;
++	pll->p1 = p1;
++
++	dev_dbg(dev, "PLL: ext clock %u N %u M %u P1 %u pix clock %u\n",
++		 pll->ext_clock, pll->n, pll->m, pll->p1, pll->pix_clock);
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(aptina_pll_configure);
+diff --git a/drivers/media/video/aptina-pll.h b/drivers/media/video/aptina-pll.h
+new file mode 100644
+index 0000000..36a9363
+--- /dev/null
++++ b/drivers/media/video/aptina-pll.h
+@@ -0,0 +1,55 @@
++/*
++ * Aptina Sensor PLL Configuration
++ *
++ * Copyright (C) 2012 Laurent Pinchart <laurent.pinchart@ideasonboard.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
++ * 02110-1301 USA
++ */
++
++#ifndef __APTINA_PLL_H
++#define __APTINA_PLL_H
++
++struct aptina_pll {
++	unsigned int ext_clock;
++	unsigned int pix_clock;
++
++	unsigned int n;
++	unsigned int m;
++	unsigned int p1;
++};
++
++struct aptina_pll_limits {
++	unsigned int ext_clock_min;
++	unsigned int ext_clock_max;
++	unsigned int int_clock_min;
++	unsigned int int_clock_max;
++	unsigned int out_clock_min;
++	unsigned int out_clock_max;
++	unsigned int pix_clock_max;
++
++	unsigned int n_min;
++	unsigned int n_max;
++	unsigned int m_min;
++	unsigned int m_max;
++	unsigned int p1_min;
++	unsigned int p1_max;
++};
++
++struct device;
++
++int aptina_pll_configure(struct device *dev, struct aptina_pll *pll,
++			 const struct aptina_pll_limits *limits);
++
++#endif /* __APTINA_PLL_H */
+-- 
+1.7.3.4
 
-Too typical. 
-
-Do you happen to know of
-> any inexpensive webcams that are capable of true SXGA in Linux?
-
-Unfortunately, not. But I could not resist pointing out that the kind of 
-hype that you have described is all too typical of the marketing for such 
-merchandise. 
-
-As to getting that kind of resolution out of a webcam, though, it would be 
-a rather tough go due to the amount of data which has to pass over the 
-wire even if it is compressed data. The frame rate would be pretty 
-atrocious. Therefore, you are probably not going to see that kind 
-of resolution in an inexpensive webcam, at least until USB 3 comes 
-into common use. 
-
-Perhaps for now if you want that kind of resolution and do not care about 
-the frame rate very much, you would be better off to buy a slightly 
-fancier camera and do something like using gphoto2 to take timed shots.
-
-Just a suggestion. And thanks for the patience to work through the 
-problem. This thread has been an interesting read.
-
-Theodore Kilgore
----863829203-256965950-1331077449=:2208--
