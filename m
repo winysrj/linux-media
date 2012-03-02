@@ -1,189 +1,153 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:25078 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965144Ab2CFLiT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Mar 2012 06:38:19 -0500
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Received: from euspt2 ([210.118.77.14]) by mailout4.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0M0G00LFROBQ0I80@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 06 Mar 2012 11:38:14 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0M0G0030YOBQ0B@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 06 Mar 2012 11:38:14 +0000 (GMT)
-Date: Tue, 06 Mar 2012 12:38:04 +0100
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: [RFCv2 PATCH 3/9] v4l: vb2: Add dma-contig allocator as dma_buf user
-In-reply-to: <1331033890-10350-1-git-send-email-t.stanislaws@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, t.stanislaws@samsung.com,
-	kyungmin.park@samsung.com, hverkuil@xs4all.nl,
-	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
-	daeinki@gmail.com, Sumit Semwal <sumit.semwal@linaro.org>
-Message-id: <1331033890-10350-4-git-send-email-t.stanislaws@samsung.com>
-References: <1331033890-10350-1-git-send-email-t.stanislaws@samsung.com>
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:1026 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757767Ab2CBIN3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Mar 2012 03:13:29 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: jtp.park@samsung.com
+Subject: Re: [PATCH 1/3] v4l: add contorl definitions for codec devices.
+Date: Fri, 2 Mar 2012 09:13:14 +0100
+Cc: linux-media@vger.kernel.org,
+	"'Kamil Debski'" <k.debski@samsung.com>, janghyuck.kim@samsung.com,
+	jaeryul.oh@samsung.com,
+	"'Marek Szyprowski'" <m.szyprowski@samsung.com>
+References: <007101ccf81a$a507c610$ef175230$%park@samsung.com>
+In-Reply-To: <007101ccf81a$a507c610$ef175230$%park@samsung.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201203020913.14834.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Sumit Semwal <sumit.semwal@ti.com>
+Hi Jeongtae!
 
-This patch makes changes for adding dma-contig as a dma_buf user. It provides
-function implementations for the {attach, detach, map, unmap}_dmabuf()
-mem_ops of DMABUF memory type.
+Some review notes below...
 
-Signed-off-by: Sumit Semwal <sumit.semwal@ti.com>
-Signed-off-by: Sumit Semwal <sumit.semwal@linaro.org>
-	[author of the original patch]
-Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-	[integration with refactored dma-contig allocator]
----
- drivers/media/video/videobuf2-dma-contig.c |  116 ++++++++++++++++++++++++++++
- 1 files changed, 116 insertions(+), 0 deletions(-)
+On Friday, March 02, 2012 03:17:40 Jeongtae Park wrote:
+> Add control definitions for controls specific to codec devices.
+> 
+> Signed-off-by: Jeongtae Park <jtp.park@samsung.com>
+> Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+> Cc: Kamil Debski <k.debski@samsung.com>
+> ---
+>  include/linux/videodev2.h |   51 ++++++++++++++++++++++++++++++++++++++++++--
+>  1 files changed, 48 insertions(+), 3 deletions(-)
+> 
+> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+> index b739d7d..a19512a 100644
+> --- a/include/linux/videodev2.h
+> +++ b/include/linux/videodev2.h
+> @@ -359,7 +359,9 @@ struct v4l2_pix_format {
+>  
+>  /* two non contiguous planes - one Y, one Cr + Cb interleaved  */
+>  #define V4L2_PIX_FMT_NV12M   v4l2_fourcc('N', 'M', '1', '2') /* 12  Y/CbCr 4:2:0  */
+> +#define V4L2_PIX_FMT_NV21M   v4l2_fourcc('N', 'M', '2', '1') /* 21  Y/CrCb 4:2:0  */
+>  #define V4L2_PIX_FMT_NV12MT  v4l2_fourcc('T', 'M', '1', '2') /* 12  Y/CbCr 4:2:0 64x32 macroblocks */
+> +#define V4L2_PIX_FMT_NV12MT_16X16 v4l2_fourcc('V', 'M', '1', '2') /* 12  Y/CbCr 4:2:0 16x16 macroblocks */
+>  
+>  /* three non contiguous planes - Y, Cb, Cr */
+>  #define V4L2_PIX_FMT_YUV420M v4l2_fourcc('Y', 'M', '1', '2') /* 12  YUV420 planar */
+> @@ -392,6 +394,7 @@ struct v4l2_pix_format {
+>  #define V4L2_PIX_FMT_MPEG     v4l2_fourcc('M', 'P', 'E', 'G') /* MPEG-1/2/4 Multiplexed */
+>  #define V4L2_PIX_FMT_H264     v4l2_fourcc('H', '2', '6', '4') /* H264 with start codes */
+>  #define V4L2_PIX_FMT_H264_NO_SC v4l2_fourcc('A', 'V', 'C', '1') /* H264 without start codes */
+> +#define V4L2_PIX_FMT_H264_MVC v4l2_fourcc('M', '2', '6', '4') /* H264 MVC */
+>  #define V4L2_PIX_FMT_H263     v4l2_fourcc('H', '2', '6', '3') /* H263          */
+>  #define V4L2_PIX_FMT_MPEG1    v4l2_fourcc('M', 'P', 'G', '1') /* MPEG-1 ES     */
+>  #define V4L2_PIX_FMT_MPEG2    v4l2_fourcc('M', 'P', 'G', '2') /* MPEG-2 ES     */
+> @@ -399,6 +402,7 @@ struct v4l2_pix_format {
+>  #define V4L2_PIX_FMT_XVID     v4l2_fourcc('X', 'V', 'I', 'D') /* Xvid           */
+>  #define V4L2_PIX_FMT_VC1_ANNEX_G v4l2_fourcc('V', 'C', '1', 'G') /* SMPTE 421M Annex G compliant stream */
+>  #define V4L2_PIX_FMT_VC1_ANNEX_L v4l2_fourcc('V', 'C', '1', 'L') /* SMPTE 421M Annex L compliant stream */
+> +#define V4L2_PIX_FMT_VP8      v4l2_fourcc('V', 'P', '8', '0') /* VP8 */
 
-diff --git a/drivers/media/video/videobuf2-dma-contig.c b/drivers/media/video/videobuf2-dma-contig.c
-index c1dc043..746dd5f 100644
---- a/drivers/media/video/videobuf2-dma-contig.c
-+++ b/drivers/media/video/videobuf2-dma-contig.c
-@@ -35,6 +35,9 @@ struct vb2_dc_buf {
- 
- 	/* USERPTR related */
- 	struct vm_area_struct		*vma;
-+
-+	/* DMABUF related */
-+	struct dma_buf_attachment	*db_attach;
- };
- 
- /*********************************************/
-@@ -485,6 +488,115 @@ fail_buf:
- }
- 
- /*********************************************/
-+/*       callbacks for DMABUF buffers        */
-+/*********************************************/
-+
-+static int vb2_dc_map_dmabuf(void *mem_priv)
-+{
-+	struct vb2_dc_buf *buf = mem_priv;
-+	struct sg_table *sgt;
-+	unsigned long contig_size;
-+	int ret = 0;
-+
-+	if (WARN_ON(!buf->db_attach)) {
-+		printk(KERN_ERR "trying to pin a non attached buffer\n");
-+		return -EINVAL;
-+	}
-+
-+	if (WARN_ON(buf->dma_sgt)) {
-+		printk(KERN_ERR "dmabuf buffer is already pinned\n");
-+		return 0;
-+	}
-+
-+	/* get the associated scatterlist for this buffer */
-+	sgt = dma_buf_map_attachment(buf->db_attach, buf->dma_dir);
-+	if (IS_ERR_OR_NULL(sgt)) {
-+		printk(KERN_ERR "Error getting dmabuf scatterlist\n");
-+		return -EINVAL;
-+	}
-+
-+	/* checking if dmabuf is big enough to store contiguous chunk */
-+	contig_size = vb2_dc_get_contiguous_size(sgt);
-+	if (contig_size < buf->size) {
-+		printk(KERN_ERR "contiguous chunk of dmabuf is too small\n");
-+		ret = -EFAULT;
-+		goto fail_map;
-+	}
-+
-+	buf->dma_addr = sg_dma_address(sgt->sgl);
-+	buf->dma_sgt = sgt;
-+
-+	return 0;
-+
-+fail_map:
-+	dma_buf_unmap_attachment(buf->db_attach, sgt);
-+
-+	return ret;
-+}
-+
-+static void vb2_dc_unmap_dmabuf(void *mem_priv)
-+{
-+	struct vb2_dc_buf *buf = mem_priv;
-+	struct sg_table *sgt = buf->dma_sgt;
-+
-+	if (WARN_ON(!buf->db_attach)) {
-+		printk(KERN_ERR "trying to unpin a not attached buffer\n");
-+		return;
-+	}
-+
-+	if (WARN_ON(!sgt)) {
-+		printk(KERN_ERR "dmabuf buffer is already unpinned\n");
-+		return;
-+	}
-+
-+	dma_buf_unmap_attachment(buf->db_attach, sgt);
-+
-+	buf->dma_addr = 0;
-+	buf->dma_sgt = NULL;
-+}
-+
-+static void vb2_dc_detach_dmabuf(void *mem_priv)
-+{
-+	struct vb2_dc_buf *buf = mem_priv;
-+
-+	if (buf->dma_addr)
-+		vb2_dc_unmap_dmabuf(buf);
-+
-+	/* detach this attachment */
-+	dma_buf_detach(buf->db_attach->dmabuf, buf->db_attach);
-+	kfree(buf);
-+}
-+
-+static void *vb2_dc_attach_dmabuf(void *alloc_ctx, struct dma_buf *dbuf,
-+	unsigned long size, int write)
-+{
-+	struct vb2_dc_buf *buf;
-+	struct dma_buf_attachment *dba;
-+
-+	if (dbuf->size < size)
-+		return ERR_PTR(-EFAULT);
-+
-+	buf = kzalloc(sizeof *buf, GFP_KERNEL);
-+	if (!buf)
-+		return ERR_PTR(-ENOMEM);
-+
-+	buf->dev = alloc_ctx;
-+	/* create attachment for the dmabuf with the user device */
-+	dba = dma_buf_attach(dbuf, buf->dev);
-+	if (IS_ERR(dba)) {
-+		printk(KERN_ERR "failed to attach dmabuf\n");
-+		kfree(buf);
-+		return dba;
-+	}
-+
-+	buf->dma_dir = write ? DMA_FROM_DEVICE : DMA_TO_DEVICE;
-+	buf->size = size;
-+	buf->db_attach = dba;
-+
-+	return buf;
-+}
-+
-+/*********************************************/
- /*       DMA CONTIG exported functions       */
- /*********************************************/
- 
-@@ -498,6 +610,10 @@ const struct vb2_mem_ops vb2_dma_contig_memops = {
- 	.put_userptr	= vb2_dc_put_userptr,
- 	.prepare	= vb2_dc_prepare,
- 	.finish		= vb2_dc_finish,
-+	.map_dmabuf	= vb2_dc_map_dmabuf,
-+	.unmap_dmabuf	= vb2_dc_unmap_dmabuf,
-+	.attach_dmabuf	= vb2_dc_attach_dmabuf,
-+	.detach_dmabuf	= vb2_dc_detach_dmabuf,
- 	.num_users	= vb2_dc_num_users,
- };
- EXPORT_SYMBOL_GPL(vb2_dma_contig_memops);
--- 
-1.7.5.4
+Note that these new formats need to be documented in the spec as well.
 
+>  
+>  /*  Vendor-specific formats   */
+>  #define V4L2_PIX_FMT_CPIA1    v4l2_fourcc('C', 'P', 'I', 'A') /* cpia1 YUV */
+> @@ -1458,17 +1462,18 @@ enum v4l2_mpeg_video_header_mode {
+>  };
+>  #define V4L2_CID_MPEG_VIDEO_MAX_REF_PIC			(V4L2_CID_MPEG_BASE+217)
+>  #define V4L2_CID_MPEG_VIDEO_MB_RC_ENABLE		(V4L2_CID_MPEG_BASE+218)
+> -#define V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MAX_BYTES	(V4L2_CID_MPEG_BASE+219)
+> +#define V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MAX_BITS	(V4L2_CID_MPEG_BASE+219)
+
+Why change from bytes to bits? That changes the meaning of this control.
+
+>  #define V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MAX_MB		(V4L2_CID_MPEG_BASE+220)
+>  #define V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MODE		(V4L2_CID_MPEG_BASE+221)
+>  enum v4l2_mpeg_video_multi_slice_mode {
+>  	V4L2_MPEG_VIDEO_MULTI_SLICE_MODE_SINGLE		= 0,
+> -	V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_MB		= 1,
+> -	V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_BYTES	= 2,
+> +	V4L2_MPEG_VIDEO_MULTI_SLICE_MODE_MAX_MB		= 1,
+> +	V4L2_MPEG_VIDEO_MULTI_SLICE_MODE_MAX_BITS	= 2,
+>  };
+>  #define V4L2_CID_MPEG_VIDEO_VBV_SIZE			(V4L2_CID_MPEG_BASE+222)
+>  #define V4L2_CID_MPEG_VIDEO_DEC_PTS			(V4L2_CID_MPEG_BASE+223)
+>  #define V4L2_CID_MPEG_VIDEO_DEC_FRAME			(V4L2_CID_MPEG_BASE+224)
+> +#define V4L2_CID_MPEG_VIDEO_VBV_DELAY			(V4L2_CID_MPEG_BASE+225)
+>  
+>  #define V4L2_CID_MPEG_VIDEO_H263_I_FRAME_QP		(V4L2_CID_MPEG_BASE+300)
+>  #define V4L2_CID_MPEG_VIDEO_H263_P_FRAME_QP		(V4L2_CID_MPEG_BASE+301)
+> @@ -1559,6 +1564,46 @@ enum v4l2_mpeg_video_h264_vui_sar_idc {
+>  	V4L2_MPEG_VIDEO_H264_VUI_SAR_IDC_2x1		= 16,
+>  	V4L2_MPEG_VIDEO_H264_VUI_SAR_IDC_EXTENDED	= 17,
+>  };
+> +#define V4L2_CID_MPEG_VIDEO_H264_SEI_FRAME_PACKING		(V4L2_CID_MPEG_BASE+368)
+> +#define V4L2_CID_MPEG_VIDEO_H264_SEI_FP_CURRENT_FRAME_0		(V4L2_CID_MPEG_BASE+369)
+> +#define V4L2_CID_MPEG_VIDEO_H264_SEI_FP_ARRANGEMENT_TYPE	(V4L2_CID_MPEG_BASE+370)
+> +enum v4l2_mpeg_video_h264_sei_fp_arrangement_type {
+> +	V4L2_MPEG_VIDEO_H264_SEI_FP_ARRANGEMENT_TYPE_CHEKERBOARD	= 0,
+> +	V4L2_MPEG_VIDEO_H264_SEI_FP_ARRANGEMENT_TYPE_COLUMN		= 1,
+> +	V4L2_MPEG_VIDEO_H264_SEI_FP_ARRANGEMENT_TYPE_ROW		= 2,
+> +	V4L2_MPEG_VIDEO_H264_SEI_FP_ARRANGEMENT_TYPE_SIDE_BY_SIDE	= 3,
+> +	V4L2_MPEG_VIDEO_H264_SEI_FP_ARRANGEMENT_TYPE_TOP_BOTTOM		= 4,
+> +	V4L2_MPEG_VIDEO_H264_SEI_FP_ARRANGEMENT_TYPE_TEMPORAL		= 5,
+> +};
+> +#define V4L2_CID_MPEG_VIDEO_H264_FMO			(V4L2_CID_MPEG_BASE+371)
+> +#define V4L2_CID_MPEG_VIDEO_H264_FMO_MAP_TYPE		(V4L2_CID_MPEG_BASE+372)
+> +enum v4l2_mpeg_video_h264_fmo_map_type {
+> +	V4L2_MPEG_VIDEO_H264_FMO_MAP_TYPE_INTERLEAVED_SLICES		= 0,
+> +	V4L2_MPEG_VIDEO_H264_FMO_MAP_TYPE_SCATTERED_SLICES		= 1,
+> +	V4L2_MPEG_VIDEO_H264_FMO_MAP_TYPE_FOREGROUND_WITH_LEFT_OVER	= 2,
+> +	V4L2_MPEG_VIDEO_H264_FMO_MAP_TYPE_BOX_OUT			= 3,
+> +	V4L2_MPEG_VIDEO_H264_FMO_MAP_TYPE_RASTER_SCAN			= 4,
+> +	V4L2_MPEG_VIDEO_H264_FMO_MAP_TYPE_WIPE_SCAN			= 5,
+> +	V4L2_MPEG_VIDEO_H264_FMO_MAP_TYPE_EXPLICIT			= 6,
+> +};
+> +#define V4L2_CID_MPEG_VIDEO_H264_FMO_SLICE_GROUP	(V4L2_CID_MPEG_BASE+373)
+> +#define V4L2_CID_MPEG_VIDEO_H264_FMO_CHANGE_DIRECTION	(V4L2_CID_MPEG_BASE+374)
+> +enum v4l2_mpeg_video_h264_fmo_change_dir {
+> +	V4L2_MPEG_VIDEO_H264_FMO_CHANGE_DIR_RIGHT	= 0,
+> +	V4L2_MPEG_VIDEO_H264_FMO_CHANGE_DIR_LEFT	= 1,
+> +};
+> +#define V4L2_CID_MPEG_VIDEO_H264_FMO_CHANGE_RATE	(V4L2_CID_MPEG_BASE+375)
+> +#define V4L2_CID_MPEG_VIDEO_H264_FMO_RUN_LENGTH		(V4L2_CID_MPEG_BASE+376)
+> +#define V4L2_CID_MPEG_VIDEO_H264_ASO			(V4L2_CID_MPEG_BASE+377)
+> +#define V4L2_CID_MPEG_VIDEO_H264_ASO_SLICE_ORDER	(V4L2_CID_MPEG_BASE+378)
+> +#define V4L2_CID_MPEG_VIDEO_H264_HIERARCHICAL_CODING		(V4L2_CID_MPEG_BASE+379)
+> +#define V4L2_CID_MPEG_VIDEO_H264_HIERARCHICAL_CODING_TYPE	(V4L2_CID_MPEG_BASE+380)
+> +enum v4l2_mpeg_video_h264_hierarchical_coding_type {
+> +	V4L2_MPEG_VIDEO_H264_HIERARCHICAL_CODING_B	= 0,
+> +	V4L2_MPEG_VIDEO_H264_HIERARCHICAL_CODING_P	= 1,
+> +};
+> +#define V4L2_CID_MPEG_VIDEO_H264_HIERARCHICAL_CODING_LAYER	(V4L2_CID_MPEG_BASE+381)
+> +#define V4L2_CID_MPEG_VIDEO_H264_HIERARCHICAL_CODING_LAYER_QP	(V4L2_CID_MPEG_BASE+382)
+
+Are these new controls generic for all H264 encoders, or specific to this
+chip?
+
+Also note that these new controls have to be documented in the spec as well.
+
+>  #define V4L2_CID_MPEG_VIDEO_MPEG4_I_FRAME_QP	(V4L2_CID_MPEG_BASE+400)
+>  #define V4L2_CID_MPEG_VIDEO_MPEG4_P_FRAME_QP	(V4L2_CID_MPEG_BASE+401)
+>  #define V4L2_CID_MPEG_VIDEO_MPEG4_B_FRAME_QP	(V4L2_CID_MPEG_BASE+402)
+> 
+
+Regards,
+
+	Hans
