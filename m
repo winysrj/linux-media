@@ -1,27 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from customer-200-79-36-4.uninet-ide.com.mx ([200.79.36.4]:35009
-	"EHLO barracuda.corett.gob.mx" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1759642Ab2CNIlS convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Mar 2012 04:41:18 -0400
-Date: Tue, 13 Mar 2012 18:52:02 -0600 (CST)
-From: Webmail Admin <14224.nancy.heim@corett.gob.mx>
-Reply-To: Webmail Admin <webmail@kimo.com>
-Message-ID: <1076126968.62307.1331686322818.JavaMail.root@mail>
-Subject: E-Mail-Quota-Warnung
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
-To: undisclosed-recipients:;
+Received: from smtp.nokia.com ([147.243.1.47]:53322 "EHLO mgw-sa01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932421Ab2CBRc4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 2 Mar 2012 12:32:56 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, dacohen@gmail.com,
+	snjw23@gmail.com, andriy.shevchenko@linux.intel.com,
+	t.stanislaws@samsung.com, tuukkat76@gmail.com,
+	k.debski@samsung.com, riverful@gmail.com, hverkuil@xs4all.nl,
+	teturtia@gmail.com
+Subject: [PATCH v4 29/34] omap3isp: Default link validation for ccp2, csi2, preview and resizer
+Date: Fri,  2 Mar 2012 19:30:37 +0200
+Message-Id: <1330709442-16654-29-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <20120302173219.GA15695@valkosipuli.localdomain>
+References: <20120302173219.GA15695@valkosipuli.localdomain>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Use default link validation for ccp2, csi2, preview and resizer. On ccp2,
+csi2 and ccdc we also collect information on external subdevs as one may be
+connected to those entities.
 
-Webmail Kontoinhaber,
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+ drivers/media/video/omap3isp/ispccp2.c    |    1 +
+ drivers/media/video/omap3isp/ispcsi2.c    |    1 +
+ drivers/media/video/omap3isp/isppreview.c |    1 +
+ drivers/media/video/omap3isp/ispresizer.c |    1 +
+ 4 files changed, 4 insertions(+), 0 deletions(-)
 
- Hiermit möchten wir Sie informieren, dass Sie Ihre E-Mail-Kontingent von 325MB überschritten und Sie müssen Ihre E-Quote oder der Lagerung Limit zu erhöhen, denn in weniger als 24 Stunden Ihre E-Mail deaktivieren sein wird. Steigern Sie Ihre E-Mail-Kontingent und weiterhin mit Ihrem Webmail-Konto.
+diff --git a/drivers/media/video/omap3isp/ispccp2.c b/drivers/media/video/omap3isp/ispccp2.c
+index 70ddbf3..41e807f 100644
+--- a/drivers/media/video/omap3isp/ispccp2.c
++++ b/drivers/media/video/omap3isp/ispccp2.c
+@@ -1021,6 +1021,7 @@ static int ccp2_link_setup(struct media_entity *entity,
+ /* media operations */
+ static const struct media_entity_operations ccp2_media_ops = {
+ 	.link_setup = ccp2_link_setup,
++	.link_validate = v4l2_subdev_link_validate,
+ };
+ 
+ /*
+diff --git a/drivers/media/video/omap3isp/ispcsi2.c b/drivers/media/video/omap3isp/ispcsi2.c
+index fcb5168..d2e1c92 100644
+--- a/drivers/media/video/omap3isp/ispcsi2.c
++++ b/drivers/media/video/omap3isp/ispcsi2.c
+@@ -1181,6 +1181,7 @@ static int csi2_link_setup(struct media_entity *entity,
+ /* media operations */
+ static const struct media_entity_operations csi2_media_ops = {
+ 	.link_setup = csi2_link_setup,
++	.link_validate = v4l2_subdev_link_validate,
+ };
+ 
+ void omap3isp_csi2_unregister_entities(struct isp_csi2_device *csi2)
+diff --git a/drivers/media/video/omap3isp/isppreview.c b/drivers/media/video/omap3isp/isppreview.c
+index 6d0fb2c..8545f0b 100644
+--- a/drivers/media/video/omap3isp/isppreview.c
++++ b/drivers/media/video/omap3isp/isppreview.c
+@@ -2076,6 +2076,7 @@ static int preview_link_setup(struct media_entity *entity,
+ /* media operations */
+ static const struct media_entity_operations preview_media_ops = {
+ 	.link_setup = preview_link_setup,
++	.link_validate = v4l2_subdev_link_validate,
+ };
+ 
+ void omap3isp_preview_unregister_entities(struct isp_prev_device *prev)
+diff --git a/drivers/media/video/omap3isp/ispresizer.c b/drivers/media/video/omap3isp/ispresizer.c
+index 6958a9e..0fc6525 100644
+--- a/drivers/media/video/omap3isp/ispresizer.c
++++ b/drivers/media/video/omap3isp/ispresizer.c
+@@ -1603,6 +1603,7 @@ static int resizer_link_setup(struct media_entity *entity,
+ /* media operations */
+ static const struct media_entity_operations resizer_media_ops = {
+ 	.link_setup = resizer_link_setup,
++	.link_validate = v4l2_subdev_link_validate,
+ };
+ 
+ void omap3isp_resizer_unregister_entities(struct isp_res_device *res)
+-- 
+1.7.2.5
 
- Klicken Sie auf diesen Link, um Ihr Konto zu aktualisieren: http://osasu123.phpforms.net/view_forms/view/14e2847162
-
- System-Administrator
- Admin Webmail Help Desk
