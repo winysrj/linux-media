@@ -1,58 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp509.mail.kks.yahoo.co.jp ([114.111.99.158]:23442 "HELO
-	smtp509.mail.kks.yahoo.co.jp" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1755376Ab2CJPpe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 10 Mar 2012 10:45:34 -0500
-From: tskd2@yahoo.co.jp
-To: linux-media@vger.kernel.org
-Cc: Akihiro Tsukada <tskd2@yahoo.co.jp>
-Subject: [PATCH 4/4] dvb: earth-pt1: remove unsupported net subdevices
-Date: Sun, 11 Mar 2012 00:38:16 +0900
-Message-Id: <1331393896-17902-4-git-send-email-tskd2@yahoo.co.jp>
-In-Reply-To: <1331393896-17902-1-git-send-email-tskd2@yahoo.co.jp>
-References: <1331393896-17902-1-git-send-email-tskd2@yahoo.co.jp>
+Received: from mx1.redhat.com ([209.132.183.28]:10616 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752786Ab2CCHqc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 3 Mar 2012 02:46:32 -0500
+Message-ID: <4F51CCC1.8020308@redhat.com>
+Date: Sat, 03 Mar 2012 08:48:17 +0100
+From: Hans de Goede <hdegoede@redhat.com>
+MIME-Version: 1.0
+To: Xavion <xavion.0@gmail.com>
+CC: "Linux Kernel (Media) ML" <linux-media@vger.kernel.org>
+Subject: Re: My Microdia (SN9C201) webcam doesn't work properly in Linux anymore
+References: <CAKnx8Y7BAyR8A5r-eL13MVgZO2DcKndP3v-MTfkQdmXPvjjGJg@mail.gmail.com> <CAKnx8Y6dM8qbQvJgt_z2A2XD8aPGhGoqCSWabyNYjRbsH6CDJw@mail.gmail.com>
+In-Reply-To: <CAKnx8Y6dM8qbQvJgt_z2A2XD8aPGhGoqCSWabyNYjRbsH6CDJw@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Akihiro Tsukada <tskd2@yahoo.co.jp>
+Hi,
 
-PT1 and PT2 do not have net functions.
+On 03/03/2012 01:23 AM, Xavion wrote:
+> My Microdia (SN9C201) webcam was working in Linux, but it has been
+> failing lately.  Take a look at the attached snapshot to see what I
+> mean.  It's like that all the time in Linux these days, but it works
+> perfectly in Windows.
 
-Signed-off-by: Akihiro Tsukada <tskd2@yahoo.co.jp>
----
- drivers/media/dvb/pt1/pt1.c |    4 ----
- 1 files changed, 0 insertions(+), 4 deletions(-)
+Thanks for the picture that truely says more then a 1000 words
+(Dutch proverb), the problem is that the new bandwidth allocation
+code added to gspca in 3.2 does not allocate enough bandwidth for
+the sn9c20x. 3.3 has a fix for this.
 
-diff --git a/drivers/media/dvb/pt1/pt1.c b/drivers/media/dvb/pt1/pt1.c
-index 9cd161c..15b35c4 100644
---- a/drivers/media/dvb/pt1/pt1.c
-+++ b/drivers/media/dvb/pt1/pt1.c
-@@ -99,7 +99,6 @@ struct pt1_adapter {
- 	struct dvb_demux demux;
- 	int users;
- 	struct dmxdev dmxdev;
--	struct dvb_net net;
- 	struct dvb_frontend *fe;
- 	int (*orig_set_voltage)(struct dvb_frontend *fe,
- 				fe_sec_voltage_t voltage);
-@@ -624,7 +623,6 @@ static int pt1_wakeup(struct dvb_frontend *fe)
- 
- static void pt1_free_adapter(struct pt1_adapter *adap)
- {
--	dvb_net_release(&adap->net);
- 	adap->demux.dmx.close(&adap->demux.dmx);
- 	dvb_dmxdev_release(&adap->dmxdev);
- 	dvb_dmx_release(&adap->demux);
-@@ -694,8 +692,6 @@ pt1_alloc_adapter(struct pt1 *pt1)
- 	if (ret < 0)
- 		goto err_dmx_release;
- 
--	dvb_net_init(dvb_adap, &adap->net, &demux->dmx);
--
- 	return adap;
- 
- err_dmx_release:
--- 
-1.7.7.6
+Regards,
 
+Hans
