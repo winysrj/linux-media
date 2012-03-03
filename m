@@ -1,133 +1,334 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:32807 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161311Ab2CPJUP convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Mar 2012 05:20:15 -0400
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"mchehab@infradead.org" <mchehab@infradead.org>,
-	"Taneja, Archit" <archit@ti.com>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Subject: RE: [PATCH] omap_vout: Fix the build warning and section miss-match
- warning
-Date: Fri, 16 Mar 2012 09:19:59 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83181B844@DBDE01.ent.ti.com>
-References: <1331295243-2191-1-git-send-email-hvaibhav@ti.com>
- <1981335.62NlLPnzP3@avalon>
-In-Reply-To: <1981335.62NlLPnzP3@avalon>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:58081 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752781Ab2CCPMc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 3 Mar 2012 10:12:32 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org,
+	Martin Hostettler <martin@neutronstar.dyndns.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH v2 09/10] v4l: Aptina-style sensor PLL support
+Date: Sat, 03 Mar 2012 16:12:45 +0100
+Message-ID: <1744313.RLp5WWKiSq@avalon>
+In-Reply-To: <20120302184621.GG15695@valkosipuli.localdomain>
+References: <1330685047-12742-1-git-send-email-laurent.pinchart@ideasonboard.com> <1330685047-12742-10-git-send-email-laurent.pinchart@ideasonboard.com> <20120302184621.GG15695@valkosipuli.localdomain>
 MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Mar 14, 2012 at 20:22:37, Laurent Pinchart wrote:
-> Hi Vaibhav,
-> 
-> Thanks for the patch.
-> 
-> On Friday 09 March 2012 17:44:03 Vaibhav Hiremath wrote:
-> > Patch fixes below build warning and section miss-match warning
-> > from omap_vout driver -
-> 
-> You should probably not refer to "patch below" in a commit message, as there 
-> this won't be a patch anymore after it gets applied (and "below" is 
-> meaningless in a git log).
-> 
+Hi Sakari,
 
-Ok. 
+Thanks for the review.
 
-> > Build warnings:
-> > =============
-> > drivers/media/video/omap/omap_vout.c: In function 'omapvid_setup_overlay':
-> > drivers/media/video/omap/omap_vout.c:381:17: warning: 'mode' may be used
-> > uninitialized in this function
+On Friday 02 March 2012 20:46:21 Sakari Ailus wrote:
+> On Fri, Mar 02, 2012 at 11:44:06AM +0100, Laurent Pinchart wrote:
+> > Add a generic helper function to compute PLL parameters for PLL found in
+> > several Aptina sensors.
 > > 
-> > Section Mis-Match warnings:
-> > ==========================
-> > WARNING: drivers/media/video/omap/omap-vout.o(.data+0x0): Section mismatch
-> > in reference from the variable
-> > omap_vout_driver to the function .init.text:omap_vout_probe()
-> > The variable omap_vout_driver references
-> > the function __init omap_vout_probe()
-> > If the reference is valid then annotate the
-> > variable with __init* or __refdata (see linux/init.h) or name the variable:
-> > *_template, *_timer, *_sht, *_ops, *_probe, *_probe_one, *_console
-> 
-> There are 3 fixes in this patch: compilation warning, section mismatch 
-> warning, and addition of .owner = THIS_MODULE. I would have split the patch in 
-> 3.
-> 
-
-Ok. Will separate them into 3.
-
-> > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-> >
+> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 > > ---
-> >  drivers/media/video/omap/omap_vout.c |    9 +++++----
-> >  1 files changed, 5 insertions(+), 4 deletions(-)
 > > 
-> > diff --git a/drivers/media/video/omap/omap_vout.c
-> > b/drivers/media/video/omap/omap_vout.c index dffcf66..0fb0437 100644
-> > --- a/drivers/media/video/omap/omap_vout.c
-> > +++ b/drivers/media/video/omap/omap_vout.c
-> > @@ -328,7 +328,7 @@ static int video_mode_to_dss_mode(struct
-> > omap_vout_device *vout) struct omap_overlay *ovl;
-> >  	struct omapvideo_info *ovid;
-> >  	struct v4l2_pix_format *pix = &vout->pix;
-> > -	enum omap_color_mode mode;
-> > +	enum omap_color_mode mode = -EINVAL;
+> >  drivers/media/video/Kconfig      |    4 +
+> >  drivers/media/video/Makefile     |    4 +
+> >  drivers/media/video/aptina-pll.c |  120
+> >  ++++++++++++++++++++++++++++++++++++++ drivers/media/video/aptina-pll.h
+> >  |   55 +++++++++++++++++
+> >  4 files changed, 183 insertions(+), 0 deletions(-)
+> >  create mode 100644 drivers/media/video/aptina-pll.c
+> >  create mode 100644 drivers/media/video/aptina-pll.h
+> > 
+> > diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+> > index 80acb78..e1dfdbc 100644
+> > --- a/drivers/media/video/Kconfig
+> > +++ b/drivers/media/video/Kconfig
+> > @@ -133,6 +133,9 @@ menu "Encoders, decoders, sensors and other helper
+> > chips"> 
+> >  comment "Audio decoders, processors and mixers"
+> > 
+> > +config VIDEO_APTINA_PLL
+> > +	tristate
+> > +
+> > 
+> >  config VIDEO_TVAUDIO
+> >  
+> >  	tristate "Simple audio decoder chips"
+> >  	depends on VIDEO_V4L2 && I2C
 > 
-> What about removing "case 0" below ? The default case would then set mode to -
-> EINVAL.
-> 
+> Wouldn't it make sense to create another section for these to separate them
+> from the reset? This isn't audio decoder, processor nor mixer. :-)
 
-Yeup... thanks for pointing this. Will fix it in next version.
+I'm not sure if a separate section is really needed. The option won't show up 
+during configuration, it will be selected automatically by other drivers. I'll 
+move it to the "Camera sensor devices" section anyway, as it's more logical to 
+group it with the sensor drivers.
 
-Thanks,
-Vaibhav
+> > @@ -946,6 +949,7 @@ config SOC_CAMERA_MT9M001
+> > 
+> >  config VIDEO_MT9M032
+> >  
+> >  	tristate "MT9M032 camera sensor support"
+> >  	depends on I2C && VIDEO_V4L2
+> > 
+> > +	select VIDEO_APTINA_PLL
+> > 
+> >  	help
+> >  	
+> >  	  This driver supports MT9M032 cameras from Micron, monochrome
+> >  	  models only.
+> 
+> This should be in another patch, shouldn't it?
 
+Yes, That's already fixed :-)
+
+> > diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
+> > index 9b19533..8e037e9 100644
+> > --- a/drivers/media/video/Makefile
+> > +++ b/drivers/media/video/Makefile
+> > @@ -22,6 +22,10 @@ endif
 > > 
-> >  	ovid = &vout->vid_info;
-> >  	ovl = ovid->overlays[0];
-> > @@ -2108,7 +2108,7 @@ static void omap_vout_cleanup_device(struct
-> > omap_vout_device *vout) kfree(vout);
-> >  }
+> >  obj-$(CONFIG_VIDEO_V4L2_COMMON) += v4l2-common.o
 > > 
-> > -static int omap_vout_remove(struct platform_device *pdev)
-> > +static int __devexit omap_vout_remove(struct platform_device *pdev)
-> >  {
-> >  	int k;
-> >  	struct v4l2_device *v4l2_dev = platform_get_drvdata(pdev);
-> > @@ -2129,7 +2129,7 @@ static int omap_vout_remove(struct platform_device
-> > *pdev) return 0;
-> >  }
+> > +# Helper modules
+> > +
+> > +obj-$(CONFIG_VIDEO_APTINA_PLL) += aptina-pll.o
+> > +
 > > 
-> > -static int __init omap_vout_probe(struct platform_device *pdev)
-> > +static int __devinit omap_vout_probe(struct platform_device *pdev)
-> >  {
-> >  	int ret = 0, i;
-> >  	struct omap_overlay *ovl;
-> > @@ -2241,9 +2241,10 @@ probe_err0:
-> >  static struct platform_driver omap_vout_driver = {
-> >  	.driver = {
-> >  		.name = VOUT_NAME,
-> > +		.owner = THIS_MODULE,
-> >  	},
-> >  	.probe = omap_vout_probe,
-> > -	.remove = omap_vout_remove,
-> > +	.remove = __devexit_p(omap_vout_remove),
-> >  };
+> >  # All i2c modules must come first:
+> >  
+> >  obj-$(CONFIG_VIDEO_TUNER) += tuner.o
 > > 
-> >  static int __init omap_vout_init(void)
+> > diff --git a/drivers/media/video/aptina-pll.c
+> > b/drivers/media/video/aptina-pll.c new file mode 100644
+> > index 0000000..e4df9ec
+> > --- /dev/null
+> > +++ b/drivers/media/video/aptina-pll.c
+> > @@ -0,0 +1,120 @@
+> > +/*
+> > + * Aptina Sensor PLL Configuration
+> > + *
+> > + * Copyright (C) 2012 Laurent Pinchart
+> > <laurent.pinchart@ideasonboard.com>
+> > + *
+> > + * This program is free software; you can redistribute it and/or
+> > + * modify it under the terms of the GNU General Public License
+> > + * version 2 as published by the Free Software Foundation.
+> > + *
+> > + * This program is distributed in the hope that it will be useful, but
+> > + * WITHOUT ANY WARRANTY; without even the implied warranty of
+> > + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+> > + * General Public License for more details.
+> > + *
+> > + * You should have received a copy of the GNU General Public License
+> > + * along with this program; if not, write to the Free Software
+> > + * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+> > + * 02110-1301 USA
+> > + */
+> > +
+> > +#include <linux/device.h>
+> > +#include <linux/gcd.h>
+> > +#include <linux/kernel.h>
+> > +#include <linux/module.h>
+> > +
+> > +#include "aptina-pll.h"
+> > +
+> > +int aptina_pll_configure(struct device *dev, struct aptina_pll *pll,
+> > +			 const struct aptina_pll_limits *limits)
+> > +{
+> > +	unsigned int mf_min;
+> > +	unsigned int mf_max;
+> > +	unsigned int mf;
+> > +	unsigned int clock;
+> > +	unsigned int div;
+> > +	unsigned int p1;
+> > +	unsigned int n;
+> > +	unsigned int m;
+> > +
+> > +	if (pll->ext_clock < limits->ext_clock_min ||
+> > +	    pll->ext_clock > limits->ext_clock_max) {
+> > +		dev_err(dev, "pll: invalid external clock frequency.\n");
+> > +		return -EINVAL;
+> > +	}
+> > +
+> > +	if (pll->pix_clock > limits->pix_clock_max) {
+> > +		dev_err(dev, "pll: invalid pixel clock frequency.\n");
+> > +		return -EINVAL;
+> > +	}
+> > +
+> > +	/* Compute the multiplier M and combined N*P1 divisor. */
+> > +	div = gcd(pll->pix_clock, pll->ext_clock);
+> > +	pll->m = pll->pix_clock / div;
+> > +	div = pll->ext_clock / div;
+> > +
+> > +	/* We now have the smallest M and N*P1 values that will result in the
+> > +	 * desired pixel clock frequency, but they might be out of the valid
+> > +	 * range. Compute the factor by which we should multiply them given 
+the
+> > +	 * following constraints:
+> > +	 *
+> > +	 * - minimum/maximum multiplier
+> > +	 * - minimum/maximum multiplier output clock frequency assuming the
+> > +	 *   minimum/maximum N value
+> > +	 * - minimum/maximum combined N*P1 divisor
+> > +	 */
+> > +	mf_min = DIV_ROUND_UP(limits->m_min, pll->m);
+> > +	mf_min = max(mf_min, limits->out_clock_min /
+> > +		     (pll->ext_clock / limits->n_min * pll->m));
+> > +	mf_min = max(mf_min, limits->n_min * limits->p1_min / div);
+> > +	mf_max = limits->m_max / pll->m;
+> > +	mf_max = min(mf_max, limits->out_clock_max /
+> > +		    (pll->ext_clock / limits->n_max * pll->m));
+> > +	mf_max = min(mf_max, DIV_ROUND_UP(limits->n_max * limits->p1_max, 
+div));
 > 
-> -- 
-> Regards,
+> I'd split this line as you've split the rest.
+
+The other lines were split to keep lines shorter than 81 columns. This one is 
+short enough.
+
+> > +	dev_dbg(dev, "pll: mf min %u max %u\n", mf_min, mf_max);
+> > +	if (mf_min > mf_max) {
+> > +		dev_err(dev, "pll: no valid combined N*P1 divisor.\n");
+> > +		return -EINVAL;
+> > +	}
+> > +
+> > +	/* Find the highest acceptable P1 value and compute the corresponding 
+N
+> > +	 * divisor. Make sure the P1 value is even.
+> > +	 */
+> > +	for (mf = mf_min; mf <= mf_max; ++mf) {
+> > +		m = pll->m * mf;
+> > +
+> > +		for (p1 = limits->p1_max & ~1; p1 > limits->p1_min; p1 -= 2) {
 > 
-> Laurent Pinchart
+> Can't p1 be equal to limits->p1_min?
 > 
+> What are typical values for p1_min and p1_max?
+
+Typical values are 1 and 128. As p1 should be even, it will never be equal to 
+p1_min. However, in the general case, it could, so I'll fix this. There's a 
+risk of inifinite loop if the caller sets p1_min to 0, so I'll add a check.
+
+> > +			if ((div * mf) % p1)
+> > +				continue;
 > 
+> I think you could calculate the valid iteration change for mf and avoid
+> extra time spent in the loop. You could swap the for loops which gives you
+> constant divider in the inner loop, which should be helpful.
+> 
+> Example (not fully tested nor thought out):
+> 
+> mf_min = ALIGN(p1, lcm(div, p1) / div)
+> 
+> mf += lcm(div, p1) / div
+>
+> > +			n = div * mf / p1;
+> > +
+> > +			clock = pll->ext_clock / n;
+> > +			if (clock < limits->int_clock_min ||
+> > +			    clock > limits->int_clock_max)
+> > +				continue;
+> > +
+> > +			clock *= m;
+> > +			if (clock < limits->out_clock_min ||
+> > +			    clock > limits->out_clock_max)
+> > +				continue;
+> 
+> Same goes with clock values: now you can calculate which range of mf_min and
+> mf_max you need to check. Your inner loop becomes a simple check for p1_min
+> <= p1_max.
+
+I've found a possible solution, that gets rid of the inner loop. See v3 :-)
+
+> > +			goto found;
+> > +		}
+> > +	}
+> > +
+> > +	dev_err(dev, "pll: no valid N and P1 divisors found.\n");
+> > +	return -EINVAL;
+> > +
+> > +found:
+> > +	pll->n = n;
+> > +	pll->m = m;
+> > +	pll->p1 = p1;
+> > +
+> > +	dev_dbg(dev, "PLL: ext clock %u N %u M %u P1 %u pix clock %u\n",
+> > +		 pll->ext_clock, pll->n, pll->m, pll->p1, pll->pix_clock);
+> > +
+> > +	return 0;
+> > +}
+> > +EXPORT_SYMBOL_GPL(aptina_pll_configure);
+> > diff --git a/drivers/media/video/aptina-pll.h
+> > b/drivers/media/video/aptina-pll.h new file mode 100644
+> > index 0000000..36a9363
+> > --- /dev/null
+> > +++ b/drivers/media/video/aptina-pll.h
+> > @@ -0,0 +1,55 @@
+> > +/*
+> > + * Aptina Sensor PLL Configuration
+> > + *
+> > + * Copyright (C) 2012 Laurent Pinchart
+> > <laurent.pinchart@ideasonboard.com>
+> > + *
+> > + * This program is free software; you can redistribute it and/or
+> > + * modify it under the terms of the GNU General Public License
+> > + * version 2 as published by the Free Software Foundation.
+> > + *
+> > + * This program is distributed in the hope that it will be useful, but
+> > + * WITHOUT ANY WARRANTY; without even the implied warranty of
+> > + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+> > + * General Public License for more details.
+> > + *
+> > + * You should have received a copy of the GNU General Public License
+> > + * along with this program; if not, write to the Free Software
+> > + * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+> > + * 02110-1301 USA
+> > + */
+> > +
+> > +#ifndef __APTINA_PLL_H
+> > +#define __APTINA_PLL_H
+> > +
+> > +struct aptina_pll {
+> > +	unsigned int ext_clock;
+> > +	unsigned int pix_clock;
+> > +
+> > +	unsigned int n;
+> > +	unsigned int m;
+> > +	unsigned int p1;
+> > +};
+> > +
+> > +struct aptina_pll_limits {
+> > +	unsigned int ext_clock_min;
+> > +	unsigned int ext_clock_max;
+> > +	unsigned int int_clock_min;
+> > +	unsigned int int_clock_max;
+> > +	unsigned int out_clock_min;
+> > +	unsigned int out_clock_max;
+> > +	unsigned int pix_clock_max;
+> 
+> Is there no minimum for pix_clock?
+
+Not in the datasheets I have.
+
+> > +	unsigned int n_min;
+> > +	unsigned int n_max;
+> > +	unsigned int m_min;
+> > +	unsigned int m_max;
+> > +	unsigned int p1_min;
+> > +	unsigned int p1_max;
+> > +};
+> > +
+> > +struct device;
+> > +
+> > +int aptina_pll_configure(struct device *dev, struct aptina_pll *pll,
+> > +			 const struct aptina_pll_limits *limits);
+> > +
+> > +#endif /* __APTINA_PLL_H */
+
+-- 
+Regards,
+
+Laurent Pinchart
 
