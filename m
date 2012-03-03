@@ -1,108 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:58761 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753534Ab2CXMdG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 24 Mar 2012 08:33:06 -0400
-References: <CAHtAJjpO_M27cm77Uf=23_TfeYvAR8CVcemVGDi9ZoEaEwTRtg@mail.gmail.com>
-In-Reply-To: <CAHtAJjpO_M27cm77Uf=23_TfeYvAR8CVcemVGDi9ZoEaEwTRtg@mail.gmail.com>
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:38807 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755012Ab2CCBOH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Mar 2012 20:14:07 -0500
+Received: by iagz16 with SMTP id z16so3046363iag.19
+        for <linux-media@vger.kernel.org>; Fri, 02 Mar 2012 17:14:06 -0800 (PST)
+Date: Fri, 2 Mar 2012 19:13:54 -0600
+From: Jonathan Nieder <jrnieder@gmail.com>
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Ben Hutchings <ben@decadent.org.uk>, devel@driverdev.osuosl.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Torsten Crass <torsten.crass@eBiology.de>,
+	Jarod Wilson <jarod@redhat.com>, linux-media@vger.kernel.org
+Subject: Re: [PATCH 3.0.y 0/4] Re: lirc_serial spuriously claims assigned
+ port and irq to be in use
+Message-ID: <20120303011354.GA30296@burratino>
+References: <1321422581.2885.50.camel@deadeye>
+ <20120302034545.GA31860@burratino>
+ <1330662942.8460.229.camel@deadeye>
+ <20120302203913.GA22323@burratino>
+ <20120302211300.GA6008@kroah.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
- charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Subject: Re: ViXS XCode 2100 Series TV NTSC/ATSC FM Tuner Card
-From: Andy Walls <awalls@md.metrocast.net>
-Date: Sat, 24 Mar 2012 08:33:06 -0400
-To: Vikas N Kumar <vikasnkumar@users.sourceforge.net>,
-	linux-media@vger.kernel.org
-Message-ID: <13083ba8-30b5-4d44-8930-8109e57a6d74@email.android.com>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20120302211300.GA6008@kroah.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Vikas N Kumar <vikasnkumar@users.sourceforge.net> wrote:
+Greg Kroah-Hartman wrote:
 
->Hi
->I am interested to know if there exists any support for the ViXS XCode
->2100 Series cards ? I have looked and not found any viable support for
->the card chipset except for some forums mentioning "ivtv" as a driver.
->
->If there is anyone working on this or if there is some guidance I
->would like to help out and provide support for this TV tuner card.
->
->Below are the full details of the card that I have. Any help or
->information is appreciated ?
->
->Thanks.
->
->
-># lspci -vv -d 1745:
->02:00.0 Multimedia controller: ViXS Systems, Inc. XCode 2100 Series
->	Subsystem: ASUSTeK Computer Inc. Device 48b0
->	Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-
->Stepping- SERR+ FastB2B- DisINTx-
->	Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort-
-><TAbort- <MAbort- >SERR- <PERR- INTx-
->	Latency: 0, Cache Line Size: 64 bytes
->	Interrupt: pin A routed to IRQ 10
->	Region 0: Memory at fdf00000 (64-bit, prefetchable) [size=1M]
->	Region 2: Memory at feaf0000 (32-bit, non-prefetchable) [size=64K]
->	Region 4: I/O ports at <unassigned>
->	Capabilities: [40] Power Management version 2
->		Flags: PMEClk- DSI- D1+ D2- AuxCurrent=375mA
->PME(D0+,D1+,D2-,D3hot+,D3cold-)
->		Status: D0 NoSoftRst- PME-Enable- DSel=0 DScale=0 PME-
->	Capabilities: [50] MSI: Enable- Count=1/1 Maskable- 64bit+
->		Address: 0000000000000000  Data: 0000
->	Capabilities: [60] Express (v1) Endpoint, MSI 00
->		DevCap:	MaxPayload 128 bytes, PhantFunc 0, Latency L0s <128ns, L1
-><2us
->			ExtTag- AttnBtn- AttnInd- PwrInd- RBE- FLReset-
->		DevCtl:	Report errors: Correctable- Non-Fatal- Fatal- Unsupported-
->			RlxdOrd- ExtTag- PhantFunc- AuxPwr- NoSnoop-
->			MaxPayload 128 bytes, MaxReadReq 512 bytes
->		DevSta:	CorrErr- UncorrErr+ FatalErr- UnsuppReq+ AuxPwr- TransPend-
->		LnkCap:	Port #0, Speed 2.5GT/s, Width x1, ASPM L0s L1, Latency L0
-><4us, L1 <64us
->			ClockPM- Surprise- LLActRep- BwNot-
->		LnkCtl:	ASPM Disabled; RCB 128 bytes Disabled- Retrain- CommClk+
->			ExtSynch- ClockPM- AutWidDis- BWInt- AutBWInt-
->		LnkSta:	Speed 2.5GT/s, Width x1, TrErr- Train- SlotClk+ DLActive-
->BWMgmt- ABWMgmt-
->	Capabilities: [100 v1] Advanced Error Reporting
->		UESta:	DLP- SDES- TLP- FCP- CmpltTO- CmpltAbrt- UnxCmplt- RxOF-
->MalfTLP- ECRC- UnsupReq+ ACSViol-
->		UEMsk:	DLP- SDES- TLP- FCP- CmpltTO- CmpltAbrt- UnxCmplt- RxOF-
->MalfTLP- ECRC- UnsupReq- ACSViol-
->		UESvrt:	DLP+ SDES- TLP- FCP+ CmpltTO- CmpltAbrt- UnxCmplt- RxOF+
->MalfTLP+ ECRC- UnsupReq- ACSViol-
->		CESta:	RxErr- BadTLP- BadDLLP- Rollover- Timeout- NonFatalErr-
->		CEMsk:	RxErr- BadTLP- BadDLLP- Rollover- Timeout- NonFatalErr-
->		AERCap:	First Error Pointer: 14, GenCap+ CGenEn- ChkCap+ ChkEn-
->	Capabilities: [140 v1] Virtual Channel
->		Caps:	LPEVC=0 RefClk=100ns PATEntryBits=1
->		Arb:	Fixed- WRR32- WRR64- WRR128-
->		Ctrl:	ArbSelect=Fixed
->		Status:	InProgress-
->		VC0:	Caps:	PATOffset=00 MaxTimeSlots=1 RejSnoopTrans-
->			Arb:	Fixed- WRR32- WRR64- WRR128- TWRR128- WRR256-
->			Ctrl:	Enable+ ID=0 ArbSelect=Fixed TC/VC=ff
->			Status:	NegoPending- InProgress-
->
->
->-- 
->http://www.vikaskumar.org/
->--
->To unsubscribe from this list: send the line "unsubscribe linux-media"
->in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> I'll look at these, but please, in the future, send all stable patches
+> to stable@vger.kernel.org as there are other stable trees that people
+> maintain and they watch that list...
 
-Hi,
-
-ivtv will never support this chip;  the hardware is not even close to a CX23415/6.
-
-ViXS has never openly released any documentation.
-
-They do have a linux sdk.  Hitachi supposedly used it for one of their TVs.
-
--Andy
+Thanks, Greg.  Will do.
