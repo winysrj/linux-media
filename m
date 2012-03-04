@@ -1,70 +1,32 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:44101 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1030372Ab2CFT5D (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Mar 2012 14:57:03 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	linux-media@vger.kernel.org, dacohen@gmail.com, snjw23@gmail.com,
-	andriy.shevchenko@linux.intel.com, tuukkat76@gmail.com,
-	k.debski@samsung.com, riverful@gmail.com, hverkuil@xs4all.nl,
-	teturtia@gmail.com
-Subject: Re: [PATCH v4 04/34] v4l: VIDIOC_SUBDEV_S_SELECTION and VIDIOC_SUBDEV_G_SELECTION IOCTLs
-Date: Tue, 06 Mar 2012 20:57:22 +0100
-Message-ID: <1414506.aeJ7eL5TfP@avalon>
-In-Reply-To: <4F566BC8.9090400@iki.fi>
-References: <20120302173219.GA15695@valkosipuli.localdomain> <4F563E02.7010406@samsung.com> <4F566BC8.9090400@iki.fi>
+Received: from metresurs-samara.ru ([85.113.38.184]:49509 "EHLO
+	gw.metresurs-samara.ru" rhost-flags-OK-FAIL-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1759585Ab2CGSoo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 7 Mar 2012 13:44:44 -0500
+Received: from h-PC ([84.124.88.206])
+	(authenticated user spam@metresurs-samara.ru)
+	by gw.metresurs-samara.ru
+	for linux-media@vger.kernel.org;
+	Sun, 4 Mar 2012 22:27:34 +0400
+From: "MRS. TURNER CLARISSA ANN" <clarissaann_mrs.turner@yahoo.com>
+To: linux-media@vger.kernel.org
+Subject: CAN I TRUST YOU?
+Date: Sun, 4 Mar 2012 19:27:35 +0100
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Message-ID: <1330878459ad580c5affc305b8828a3b46661165bb@yahoo.com>
+Reply-To: clarissaann.turnerclarissa.mrs@gmail.com
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday 06 March 2012 21:55:52 Sakari Ailus wrote:
-> Tomasz Stanislawski wrote:
-> > On 03/06/2012 05:27 PM, Laurent Pinchart wrote:
-> >> On Tuesday 06 March 2012 17:50:36 Sakari Ailus wrote:
-> >>> On Mon, Mar 05, 2012 at 11:59:22AM +0100, Laurent Pinchart wrote:
-> >>>> On Friday 02 March 2012 19:30:12 Sakari Ailus wrote:
-> >>>>> Add support for VIDIOC_SUBDEV_S_SELECTION and
-> >>>>> VIDIOC_SUBDEV_G_SELECTION
-> >>>>> IOCTLs. They replace functionality provided by VIDIOC_SUBDEV_S_CROP
-> >>>>> and
-> >>>>> VIDIOC_SUBDEV_G_CROP IOCTLs and also add new functionality
-> >>>>> (composing).
-> >>>>> 
-> >>>>> VIDIOC_SUBDEV_G_CROP and VIDIOC_SUBDEV_S_CROP continue to be
-> >>>>> supported.
-> >>>>> 
-> >>>>> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> >>>> 
-> >>>> Except for the ACTIVE name,
-> >>>> 
-> >>>> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> >>>> 
-> >>>> Maybe we could discuss this on IRC with Tomasz ?
-> >>> 
-> >>> Tomasz wasn't online when I checked.
-> >>> 
-> >>> How about "CURRENT"?
-> >> 
-> >> Sounds good to me. Let's see if Tomasz will be online tomorrow ;-)
-> > 
-> > Hi,
-> > 
-> > What do you think about ACTIVE -> ACTUAL?
-> > Similar word with the same number of letters :)
-> 
-> Sounds good to me; perhaps even better than CURRENT. I'm fine with
-> either with perhaps a small inclination towards "actual".
-> 
-> Laurent?
+Good day,
 
-ACTUAL is good.
+I have an Offer that you will help me to handle, it will benefit you. kindly respond via mail: turnerclarissaann.clarissaann@gmail.com
 
--- 
-Regards,
+Regards.
+Mrs.Turner Clarissa Ann.
 
-Laurent Pinchart
 
