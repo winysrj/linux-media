@@ -1,152 +1,29 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:57780 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1030784Ab2CULDU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Mar 2012 07:03:20 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: linux-media@vger.kernel.org
-Subject: [PATCH v2 7/9] soc-camera: Honor user-requested bytesperline and sizeimage
-Date: Wed, 21 Mar 2012 12:03:26 +0100
-Message-Id: <1332327808-6056-8-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1332327808-6056-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1332327808-6056-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:56570 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752933Ab2CDAZj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 3 Mar 2012 19:25:39 -0500
+Received: by iagz16 with SMTP id z16so3966009iag.19
+        for <linux-media@vger.kernel.org>; Sat, 03 Mar 2012 16:25:39 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <4F51CCC1.8020308@redhat.com>
+References: <CAKnx8Y7BAyR8A5r-eL13MVgZO2DcKndP3v-MTfkQdmXPvjjGJg@mail.gmail.com>
+ <CAKnx8Y6dM8qbQvJgt_z2A2XD8aPGhGoqCSWabyNYjRbsH6CDJw@mail.gmail.com> <4F51CCC1.8020308@redhat.com>
+From: Xavion <xavion.0@gmail.com>
+Date: Sun, 4 Mar 2012 11:25:19 +1100
+Message-ID: <CAKnx8Y6ER6CV6WQKrmN4fFkLjQx0GXEzvNmuApnA=G6fJDgsPQ@mail.gmail.com>
+Subject: Re: My Microdia (SN9C201) webcam doesn't work properly in Linux anymore
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: "Linux Kernel (Media) ML" <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Compute the bytesperline and sizeimage values when trying/setting
-formats or when allocating buffers by taking the user-requested values
-into account.
+Hi Hans
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/video/mx3_camera.c           |   20 +++++++++++++-----
- drivers/media/video/sh_mobile_ceu_camera.c |   20 +++++++++++++-----
- drivers/media/video/soc_camera.c           |   29 ++++++++++++++-------------
- 3 files changed, 43 insertions(+), 26 deletions(-)
-
-diff --git a/drivers/media/video/mx3_camera.c b/drivers/media/video/mx3_camera.c
-index 84579b6..a0c7d65 100644
---- a/drivers/media/video/mx3_camera.c
-+++ b/drivers/media/video/mx3_camera.c
-@@ -206,17 +206,25 @@ static int mx3_videobuf_setup(struct vb2_queue *vq,
- 	if (fmt) {
- 		const struct soc_camera_format_xlate *xlate = soc_camera_xlate_by_fourcc(icd,
- 								fmt->fmt.pix.pixelformat);
--		int bytes_per_line;
-+		unsigned int bytes_per_line;
-+		int ret;
- 
- 		if (!xlate)
- 			return -EINVAL;
- 
--		bytes_per_line = soc_mbus_bytes_per_line(fmt->fmt.pix.width,
--							 xlate->host_fmt);
--		if (bytes_per_line < 0)
--			return bytes_per_line;
-+		ret = soc_mbus_bytes_per_line(fmt->fmt.pix.width,
-+					      xlate->host_fmt);
-+		if (ret < 0)
-+			return ret;
-+
-+		bytes_per_line = max_t(u32, fmt->fmt.pix.bytesperline, ret);
-+
-+		ret = soc_mbus_image_size(xlate->host_fmt, bytes_per_line,
-+					  fmt->fmt.pix.height);
-+		if (ret < 0)
-+			return ret;
- 
--		sizes[0] = bytes_per_line * fmt->fmt.pix.height;
-+		sizes[0] = max_t(u32, fmt->fmt.pix.sizeimage, ret);
- 	} else {
- 		/* Called from VIDIOC_REQBUFS or in compatibility mode */
- 		sizes[0] = icd->sizeimage;
-diff --git a/drivers/media/video/sh_mobile_ceu_camera.c b/drivers/media/video/sh_mobile_ceu_camera.c
-index 0cc04d9..b8801bd 100644
---- a/drivers/media/video/sh_mobile_ceu_camera.c
-+++ b/drivers/media/video/sh_mobile_ceu_camera.c
-@@ -210,17 +210,25 @@ static int sh_mobile_ceu_videobuf_setup(struct vb2_queue *vq,
- 	if (fmt) {
- 		const struct soc_camera_format_xlate *xlate = soc_camera_xlate_by_fourcc(icd,
- 								fmt->fmt.pix.pixelformat);
--		int bytes_per_line;
-+		unsigned int bytes_per_line;
-+		int ret;
- 
- 		if (!xlate)
- 			return -EINVAL;
- 
--		bytes_per_line = soc_mbus_bytes_per_line(fmt->fmt.pix.width,
--							 xlate->host_fmt);
--		if (bytes_per_line < 0)
--			return bytes_per_line;
-+		ret = soc_mbus_bytes_per_line(fmt->fmt.pix.width,
-+					      xlate->host_fmt);
-+		if (ret < 0)
-+			return ret;
-+
-+		bytes_per_line = max_t(u32, fmt->fmt.pix.bytesperline, ret);
-+
-+		ret = soc_mbus_image_size(xlate->host_fmt, bytes_per_line,
-+					  fmt->fmt.pix.height);
-+		if (ret < 0)
-+			return ret;
- 
--		sizes[0] = bytes_per_line * fmt->fmt.pix.height;
-+		sizes[0] = max_t(u32, fmt->fmt.pix.sizeimage, ret);
- 	} else {
- 		/* Called from VIDIOC_REQBUFS or in compatibility mode */
- 		sizes[0] = icd->sizeimage;
-diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
-index b827107..02ae98b 100644
---- a/drivers/media/video/soc_camera.c
-+++ b/drivers/media/video/soc_camera.c
-@@ -164,6 +164,7 @@ static int soc_camera_try_fmt(struct soc_camera_device *icd,
- 			      struct v4l2_format *f)
- {
- 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
-+	const struct soc_camera_format_xlate *xlate;
- 	struct v4l2_pix_format *pix = &f->fmt.pix;
- 	int ret;
- 
-@@ -177,22 +178,22 @@ static int soc_camera_try_fmt(struct soc_camera_device *icd,
- 	if (ret < 0)
- 		return ret;
- 
--	if (!pix->sizeimage) {
--		if (!pix->bytesperline) {
--			const struct soc_camera_format_xlate *xlate;
-+	xlate = soc_camera_xlate_by_fourcc(icd, pix->pixelformat);
-+	if (!xlate)
-+		return -EINVAL;
- 
--			xlate = soc_camera_xlate_by_fourcc(icd, pix->pixelformat);
--			if (!xlate)
--				return -EINVAL;
-+	ret = soc_mbus_bytes_per_line(pix->width, xlate->host_fmt);
-+	if (ret < 0)
-+		return ret;
- 
--			ret = soc_mbus_bytes_per_line(pix->width,
--						      xlate->host_fmt);
--			if (ret > 0)
--				pix->bytesperline = ret;
--		}
--		if (pix->bytesperline)
--			pix->sizeimage = pix->bytesperline * pix->height;
--	}
-+	pix->bytesperline = max_t(u32, pix->bytesperline, ret);
-+
-+	ret = soc_mbus_image_size(xlate->host_fmt, pix->bytesperline,
-+				  pix->height);
-+	if (ret < 0)
-+		return ret;
-+
-+	pix->sizeimage = max_t(u32, pix->sizeimage, ret);
- 
- 	return 0;
- }
--- 
-1.7.3.4
-
+Thanks for letting me know that this problem will be fixed in Linux
+v3.3.  It could be several weeks before my distribution releases that
+kernel.  Dropping back to Linux v3.1 isn't an option, as my NVIDIA
+driver requires Linux v3.2.  Can the fix for this problem also be
+applied to Linux v3.2.x manually?  If so, please email me the
+corresponding patch file and I'll test it here.
