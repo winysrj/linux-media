@@ -1,45 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.ukfsn.org ([77.75.108.3]:56117 "EHLO mail.ukfsn.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760812Ab2CPPFs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Mar 2012 11:05:48 -0400
-Message-ID: <4F6356C5.9010808@ukfsn.org>
-Date: Fri, 16 Mar 2012 15:05:41 +0000
-From: Andy Furniss <andyqos@ukfsn.org>
+Received: from swampdragon.chaosbits.net ([90.184.90.115]:25541 "EHLO
+	swampdragon.chaosbits.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754488Ab2CDU0p (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 4 Mar 2012 15:26:45 -0500
+Date: Sun, 4 Mar 2012 21:25:04 +0100 (CET)
+From: Jesper Juhl <jj@chaosbits.net>
+To: linux-media@vger.kernel.org
+cc: linux-kernel@vger.kernel.org, srinivasa.deevi@conexant.com,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
+	=?ISO-8859-15?Q?M=E1rcio_A_Alves?= <froooozen@gmail.com>,
+	Julia Lawall <julia@diku.dk>,
+	Lucas De Marchi <lucas.demarchi@profusion.mobi>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH] media, cx231xx: Fix double free on close
+Message-ID: <alpine.LNX.2.00.1203042121100.9371@swampdragon.chaosbits.net>
 MIME-Version: 1.0
-To: gennarone@gmail.com
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] em28xx: pre-allocate DVB isoc transfer buffers
-References: <1329155962-22896-1-git-send-email-gennarone@gmail.com> <4F628886.3050009@ukfsn.org> <4F6299A4.1060309@gmail.com> <4F6312F0.1010305@ukfsn.org>
-In-Reply-To: <4F6312F0.1010305@ukfsn.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Andy Furniss wrote:
-> Gianluca Gennari wrote:
+In cx231xx_v4l2_close() there are two calls to
+cx231xx_release_resources(dev) followed by kfree(dev). That is a
+problem since cx231xx_release_resources() already kfree()'s its
+argument, so we end up doing a double free.
 
->> Hi Andy,
->> the patch is already in the current media_build tree and is queued for
->> kernel 3.4.
->
-> Ahh, I'll give that a try, thanks.
+Easily resolved by just removing the redundant kfree() calls after the
+calls to cx231xx_release_resources().
 
-Seems to be working OK so far, I had to avoid building radio to get it 
-to compile.
+I also changed the 'dev = NULL' assignments (which are rather
+pointless since 'dev' is about to go out of scope), to 'fh->dev = NULL'
+since it looks to me that that is what was actually intended.
+And I removed the 'dev = NULL' assignment at the end of
+cx231xx_release_resources() since it is pointless.
 
-Are these just informational - I get five every time I tune (barring the 
-first time IIRC)
+Signed-off-by: Jesper Juhl <jj@chaosbits.net>
+---
+ drivers/media/video/cx231xx/cx231xx-cards.c |    1 -
+ drivers/media/video/cx231xx/cx231xx-video.c |    6 ++----
+ 2 files changed, 2 insertions(+), 5 deletions(-)
 
-Mar 16 14:56:58 noki kernel: ehci_hcd 0000:01:0a.2: shutdown urb 
-ced2d000 ep4in-iso
-Mar 16 14:56:58 noki kernel: ehci_hcd 0000:01:0a.2: shutdown urb 
-ced2d800 ep4in-iso
-Mar 16 14:56:58 noki kernel: ehci_hcd 0000:01:0a.2: shutdown urb 
-cec3f800 ep4in-iso
-Mar 16 14:56:58 noki kernel: ehci_hcd 0000:01:0a.2: shutdown urb 
-ced2c000 ep4in-iso
-Mar 16 14:56:58 noki kernel: ehci_hcd 0000:01:0a.2: shutdown urb 
-ced2c800 ep4in-iso
+ Please note that I do not have hardware to actually test this properly, 
+ so this patch is compile tested only.
+ I also do not have very intimate knowledge of this driver, so please 
+ review carefully before applying.
+
+diff --git a/drivers/media/video/cx231xx/cx231xx-cards.c b/drivers/media/video/cx231xx/cx231xx-cards.c
+index 875a7ce..8ed460d 100644
+--- a/drivers/media/video/cx231xx/cx231xx-cards.c
++++ b/drivers/media/video/cx231xx/cx231xx-cards.c
+@@ -861,7 +861,6 @@ void cx231xx_release_resources(struct cx231xx *dev)
+ 	kfree(dev->sliced_cc_mode.alt_max_pkt_size);
+ 	kfree(dev->ts1_mode.alt_max_pkt_size);
+ 	kfree(dev);
+-	dev = NULL;
+ }
+ 
+ /*
+diff --git a/drivers/media/video/cx231xx/cx231xx-video.c b/drivers/media/video/cx231xx/cx231xx-video.c
+index 829a41b..7f916f0 100644
+--- a/drivers/media/video/cx231xx/cx231xx-video.c
++++ b/drivers/media/video/cx231xx/cx231xx-video.c
+@@ -2319,8 +2319,7 @@ static int cx231xx_v4l2_close(struct file *filp)
+ 			if (dev->state & DEV_DISCONNECTED) {
+ 				if (atomic_read(&dev->devlist_count) > 0) {
+ 					cx231xx_release_resources(dev);
+-					kfree(dev);
+-					dev = NULL;
++					fh->dev = NULL;
+ 					return 0;
+ 				}
+ 				return 0;
+@@ -2350,8 +2349,7 @@ static int cx231xx_v4l2_close(struct file *filp)
+ 		   free the remaining resources */
+ 		if (dev->state & DEV_DISCONNECTED) {
+ 			cx231xx_release_resources(dev);
+-			kfree(dev);
+-			dev = NULL;
++			fh->dev = NULL;
+ 			return 0;
+ 		}
+ 
+-- 
+1.7.9.2
+
+
+-- 
+Jesper Juhl <jj@chaosbits.net>       http://www.chaosbits.net/
+Don't top-post http://www.catb.org/jargon/html/T/top-post.html
+Plain text mails only, please.
 
