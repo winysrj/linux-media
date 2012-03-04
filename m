@@ -1,40 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:41638 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755701Ab2CUTJP convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Mar 2012 15:09:15 -0400
-Received: by yhmm54 with SMTP id m54so1243967yhm.19
-        for <linux-media@vger.kernel.org>; Wed, 21 Mar 2012 12:09:15 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <CAGoCfiz1RmNwYBsHnXr5__qTy58k2BTp-P3d_sqSdWt9tS7TjQ@mail.gmail.com>
-References: <CALF0-+U+H=mycbcWYP8J9+5TsGCA8NdBWC7Ge7xJ11F3Q6=j=g@mail.gmail.com>
-	<1332291909.26972.3.camel@palomino.walls.org>
-	<CALF0-+Wz9Gn0PUqDyeFkK36QGu9HNVm3SUfaGrpvsit==BKvkA@mail.gmail.com>
-	<CAGoCfiz1RmNwYBsHnXr5__qTy58k2BTp-P3d_sqSdWt9tS7TjQ@mail.gmail.com>
-Date: Wed, 21 Mar 2012 16:09:14 -0300
-Message-ID: <CALF0-+XRREN9d8_aB+1Nfa9VEaTeYQCo9sEDa5sBuzo5rcbfjw@mail.gmail.com>
-Subject: Re: [Q] v4l buffer format inside isoc
-From: =?ISO-8859-1?Q?Ezequiel_Garc=EDa?= <elezegarcia@gmail.com>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: Andy Walls <awalls@md.metrocast.net>,
-	linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from smtp1-g21.free.fr ([212.27.42.1]:48954 "EHLO smtp1-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751419Ab2CDHYE convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 4 Mar 2012 02:24:04 -0500
+Date: Sun, 4 Mar 2012 08:25:31 +0100
+From: Jean-Francois Moine <moinejf@free.fr>
+To: Xavion <xavion.0@gmail.com>
+Cc: "Linux Kernel (Media) ML" <linux-media@vger.kernel.org>
+Subject: Re: My Microdia (SN9C201) webcam doesn't work properly in Linux
+ anymore
+Message-ID: <20120304082531.1307a9ed@tele>
+In-Reply-To: <CAKnx8Y6ER6CV6WQKrmN4fFkLjQx0GXEzvNmuApnA=G6fJDgsPQ@mail.gmail.com>
+References: <CAKnx8Y7BAyR8A5r-eL13MVgZO2DcKndP3v-MTfkQdmXPvjjGJg@mail.gmail.com>
+	<CAKnx8Y6dM8qbQvJgt_z2A2XD8aPGhGoqCSWabyNYjRbsH6CDJw@mail.gmail.com>
+	<4F51CCC1.8020308@redhat.com>
+	<CAKnx8Y6ER6CV6WQKrmN4fFkLjQx0GXEzvNmuApnA=G6fJDgsPQ@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Sun, 4 Mar 2012 11:25:19 +1100
+Xavion <xavion.0@gmail.com> wrote:
+
+> Thanks for letting me know that this problem will be fixed in Linux
+> v3.3.  It could be several weeks before my distribution releases that
+> kernel.  Dropping back to Linux v3.1 isn't an option, as my NVIDIA
+> driver requires Linux v3.2.  Can the fix for this problem also be
+> applied to Linux v3.2.x manually?  If so, please email me the
+> corresponding patch file and I'll test it here.
+
 Hi,
 
-2012/3/21 Devin Heitmueller <dheitmueller@kernellabs.com>:
->
-> Every USB bridge provides their raw video over isoc in a slightly
-> different format (not just in terms of the colorspace but also how to
-> read the isoc header to detect the start of video frame, which field
-> is being sent, etc). †Regarding the colorspace, in many cases it's
-> simply 16-bit YUYV, so I would probably start there.
+You may take the gspca test version from my site: it is smaller.
 
-Ok. So, it's not saa7113 related, but rather stk1160 related?
-
-When there is no video, isoc urbs are received with actual length=4.
-This is header right?
+-- 
+Ken ar c'henta√±	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
