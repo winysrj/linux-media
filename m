@@ -1,72 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:53553 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753185Ab2CLRKw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Mar 2012 13:10:52 -0400
-Received: by eekc41 with SMTP id c41so1310743eek.19
-        for <linux-media@vger.kernel.org>; Mon, 12 Mar 2012 10:10:51 -0700 (PDT)
-Message-ID: <4F5E2E19.4010208@gmail.com>
-Date: Mon, 12 Mar 2012 18:10:49 +0100
-From: Gianluca Gennari <gennarone@gmail.com>
-Reply-To: gennarone@gmail.com
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:55867 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754314Ab2CDV6u (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 4 Mar 2012 16:58:50 -0500
+Received: by iagz16 with SMTP id z16so4744672iag.19
+        for <linux-media@vger.kernel.org>; Sun, 04 Mar 2012 13:58:50 -0800 (PST)
 MIME-Version: 1.0
-To: Hans-Frieder Vogt <hfvogt@gmx.net>, linux-media@vger.kernel.org
-Subject: Re: [PATCH] AF903X driver update, v1.02
-References: <201202222321.43972.hfvogt@gmx.net> <201203111623.04475.hfvogt@gmx.net>
-In-Reply-To: <201203111623.04475.hfvogt@gmx.net>
+In-Reply-To: <20120304082531.1307a9ed@tele>
+References: <CAKnx8Y7BAyR8A5r-eL13MVgZO2DcKndP3v-MTfkQdmXPvjjGJg@mail.gmail.com>
+ <CAKnx8Y6dM8qbQvJgt_z2A2XD8aPGhGoqCSWabyNYjRbsH6CDJw@mail.gmail.com>
+ <4F51CCC1.8020308@redhat.com> <CAKnx8Y6ER6CV6WQKrmN4fFkLjQx0GXEzvNmuApnA=G6fJDgsPQ@mail.gmail.com>
+ <20120304082531.1307a9ed@tele>
+From: Xavion <xavion.0@gmail.com>
+Date: Mon, 5 Mar 2012 08:58:30 +1100
+Message-ID: <CAKnx8Y7A2Dd0JW0n9bJBBc+ScnagpdFEkAvbg_Jab3vt66Ky0Q@mail.gmail.com>
+Subject: Re: My Microdia (SN9C201) webcam doesn't work properly in Linux anymore
+To: Jean-Francois Moine <moinejf@free.fr>
+Cc: "Linux Kernel (Media) ML" <linux-media@vger.kernel.org>
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Il 11/03/2012 16:23, Hans-Frieder Vogt ha scritto:
-> This is an update of the patch "Basic AF9035/AF9033 driver" that I send to the mailing list on 22 Feb.
-> The driver provides support for DVB-T USB 2.0 sticks based on AF9035/AF9033. Currently supported devices:
-> - Terratec T5 Ver.2 (also known as T6), Tuner FC0012
-> - Avermedia Volar HD Nano (A867R), Tuner MxL5007t
-> 
-> Ver 1.02 of the driver includes the following changes compared to the initial version:
-> 
-> - significantly reduced number of mutex calls (only remaining protection in low-level af903x_send_cmd)
->   this change made some multiply defined function unnecessary (_internal functions and non _internal functions)
->   maybe this reduction was a bit too agressive, but I didn't get any problems in several days testing 
-> - reduced number of iterations in loop for lock detection (should improve response)
-> - correct errors in initial contribution and add proper entries in dvb-usb-ids.h (thanks to Gianluca Gennari)
-> - removed unnecessary (loading of rc key table) and commented out code
-> - minor cleanup (e.g. af903x_fe_is_locked)
-> 
+Hi Jean-Francois
 
-Hi Hans,
-I just tested the new version of the driver on my a867 stick (single
-mxl5007 tuner), on Ubuntu 11.10 with a vanilla 3.2.9 kernel and the
-latest media_build tree installed.
+I can confirm that GSPCA v2.15.1 removes the bad pixels when I use
+Cheese or VLC.  However, I'm sorry to report that the Motion problems
+unfortunately still remain.  Is there something else I must do to
+overcome the below errors?  I'm happy to keep testing newer GSPCA
+versions for you until we get this fixed.
 
-I can confirm the two main issues I found on the previous version are
-completely solved.
-In fact, Kaffeine is much more responsive now, and I can also open the
-window with the signal strength/quality bars without any sluggishness.
-I also unplugged the device from the USB port under several different
-conditions (watching a channel, doing a channel scan and so on) without
-any kernel crash.
 
-I tested several channels (UHF, VHF, QAM64, QAM16, QPSK, 8MHz, 7MHz,...)
-with no problem: the reception was stable in all configurations. Zapping
-is also much faster with this version. I will run longer tests in the
-coming days.
+`--> tail /var/log/kernel.log
+Mar  5 08:25:52 Desktop kernel: [ 6673.781987] gspca_main: frame
+overflow 156309 > 155648
+Mar  5 08:25:52 Desktop kernel: [ 6673.813992] gspca_main: frame
+overflow 156309 > 155648
+Mar  5 08:25:53 Desktop kernel: [ 6673.849986] gspca_main: frame
+overflow 155693 > 155648
+Mar  5 08:25:53 Desktop kernel: [ 6673.881989] gspca_main: frame
+overflow 156021 > 155648
+Mar  5 08:25:53 Desktop kernel: [ 6673.917991] gspca_main: frame
+overflow 156309 > 155648
+Mar  5 08:25:53 Desktop kernel: [ 6673.949993] gspca_main: frame
+overflow 156309 > 155648
+Mar  5 08:25:53 Desktop kernel: [ 6673.985990] gspca_main: frame
+overflow 156309 > 155648
+Mar  5 08:25:53 Desktop kernel: [ 6674.021981] gspca_main: frame
+overflow 156309 > 155648
+Mar  5 08:25:53 Desktop kernel: [ 6674.053985] gspca_main: frame
+overflow 156309 > 155648
+Mar  5 08:25:53 Desktop kernel: [ 6674.089989] gspca_main: frame
+overflow 156309 > 155648
 
-The only minor issues that I could find are related to channel scanning.
-A full scan with Kaffeine takes much longer than with other sticks (most
-of the time is spent on empty frequencies).
-Despite the long wait, some frequency is not locked (for example, the
-very first VHF frequency, channel 5, is missed 100% of the times).
-This problem seem to disappear disabling the PID filter (but I need
-further testing to draw any conclusion).
-Also, during a full scan, Kaffeine becomes sluggish again.
 
-In the end, the driver seem to work fine now, with only a few minor issues.
-
-Thank you for your effort.
-
-Regards,
-Gianluca
+`--> tail /var/log/errors.log
+Mar  5 08:24:16 Desktop motion: [1] v4l2_next: VIDIOC_QBUF: Invalid argument
+Mar  5 08:24:16 Desktop motion: [1] Video device fatal error - Closing
+video device
+Mar  5 08:24:20 Desktop motion: [1] Retrying until successful
+connection with camera
+Mar  5 08:24:27 Desktop motion: [1] v4l2_next: VIDIOC_DQBUF: EIO
+(s->pframe 3): Input/output error
+Mar  5 08:24:27 Desktop motion: [1] v4l2_next: VIDIOC_QBUF: Invalid argument
+Mar  5 08:24:27 Desktop motion: [1] Video device fatal error - Closing
+video device
+Mar  5 08:24:30 Desktop motion: [1] Retrying until successful
+connection with camera
+Mar  5 08:24:33 Desktop motion: [1] v4l2_next: VIDIOC_DQBUF: EIO
+(s->pframe 0): Input/output error
+Mar  5 08:24:33 Desktop motion: [1] v4l2_next: VIDIOC_QBUF: Invalid argument
+Mar  5 08:24:33 Desktop motion: [1] Video device fatal error - Closing
+video device
