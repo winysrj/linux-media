@@ -1,34 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:29727 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754840Ab2CWQY1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Mar 2012 12:24:27 -0400
-From: Hans de Goede <hdegoede@redhat.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH 1/6] pwc: Add support for control events
-Date: Fri, 23 Mar 2012 17:26:20 +0100
-Message-Id: <1332519985-31535-1-git-send-email-hdegoede@redhat.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:42139 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756797Ab2CELPp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Mar 2012 06:15:45 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, dacohen@gmail.com, snjw23@gmail.com,
+	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
+	tuukkat76@gmail.com, k.debski@samsung.com, riverful@gmail.com,
+	hverkuil@xs4all.nl, teturtia@gmail.com
+Subject: Re: [PATCH v4 18/34] v4l: Implement v4l2_subdev_link_validate()
+Date: Mon, 05 Mar 2012 12:16:04 +0100
+Message-ID: <10400534.fUrqukFgMn@avalon>
+In-Reply-To: <1330709442-16654-18-git-send-email-sakari.ailus@iki.fi>
+References: <20120302173219.GA15695@valkosipuli.localdomain> <1330709442-16654-18-git-send-email-sakari.ailus@iki.fi>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
- drivers/media/video/pwc/pwc-v4l.c |    2 ++
- 1 file changed, 2 insertions(+)
+Hi Sakari,
 
-diff --git a/drivers/media/video/pwc/pwc-v4l.c b/drivers/media/video/pwc/pwc-v4l.c
-index 2834e3e..c1ba1a0 100644
---- a/drivers/media/video/pwc/pwc-v4l.c
-+++ b/drivers/media/video/pwc/pwc-v4l.c
-@@ -1166,4 +1166,6 @@ const struct v4l2_ioctl_ops pwc_ioctl_ops = {
- 	.vidioc_enum_frameintervals	    = pwc_enum_frameintervals,
- 	.vidioc_g_parm			    = pwc_g_parm,
- 	.vidioc_s_parm			    = pwc_s_parm,
-+	.vidioc_subscribe_event		    = v4l2_ctrl_subscribe_event,
-+	.vidioc_unsubscribe_event	    = v4l2_event_unsubscribe,
- };
+Thanks for the patch.
+
+On Friday 02 March 2012 19:30:26 Sakari Ailus wrote:
+> v4l2_subdev_link_validate() is the default op for validating a link. In V4L2
+> subdev context, it is used to call a pad op which performs the proper link
+> check without much extra work.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
 -- 
-1.7.9.3
+Regards,
+
+Laurent Pinchart
 
