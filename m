@@ -1,322 +1,273 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:60009 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753430Ab2CMNf0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Mar 2012 09:35:26 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Received: from euspt2 ([210.118.77.13]) by mailout3.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0M0T00GR8SEWA290@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 13 Mar 2012 13:35:20 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0M0T00A04SEVFD@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 13 Mar 2012 13:35:20 +0000 (GMT)
-Date: Tue, 13 Mar 2012 14:35:10 +0100
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: [PATCH 2/6] v4l: s5p-tv: hdmiphy: add support for per-platform variants
-In-reply-to: <1331645714-24535-1-git-send-email-t.stanislaws@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: sachin.kamat@linaro.org, m.szyprowski@samsung.com,
-	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
-	hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com
-Message-id: <1331645714-24535-3-git-send-email-t.stanislaws@samsung.com>
-References: <1331645714-24535-1-git-send-email-t.stanislaws@samsung.com>
+Received: from mail-1-out2.atlantis.sk ([80.94.52.71]:40378 "EHLO
+	mail.atlantis.sk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S932167Ab2CEUbR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Mar 2012 15:31:17 -0500
+From: Ondrej Zary <linux@rainbow-software.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH 1/2] radio-isa: PnP support for the new ISA radio framework
+Date: Mon, 5 Mar 2012 21:30:51 +0100
+Cc: linux-media@vger.kernel.org
+References: <201203012025.08605.linux@rainbow-software.org> <201203020955.16196.hverkuil@xs4all.nl>
+In-Reply-To: <201203020955.16196.hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <201203052130.53961.linux@rainbow-software.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Adds selection of HDMIPHY configuration tables basing on both preset and
-platform variant.
+Add PnP support to the new ISA radio framework.
 
-Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/video/s5p-tv/hdmiphy_drv.c |  227 ++++++++++++++++++++++++------
- 1 files changed, 187 insertions(+), 40 deletions(-)
+Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
 
-diff --git a/drivers/media/video/s5p-tv/hdmiphy_drv.c b/drivers/media/video/s5p-tv/hdmiphy_drv.c
-index 0afef77..7ab00fd 100644
---- a/drivers/media/video/s5p-tv/hdmiphy_drv.c
-+++ b/drivers/media/video/s5p-tv/hdmiphy_drv.c
-@@ -25,54 +25,186 @@ MODULE_AUTHOR("Tomasz Stanislawski <t.stanislaws@samsung.com>");
- MODULE_DESCRIPTION("Samsung HDMI Physical interface driver");
- MODULE_LICENSE("GPL");
- 
--struct hdmiphy_conf {
--	u32 preset;
--	const u8 *data;
-+enum hdmiphy_id {
-+	HDMIPHY_S5PV210,
-+	HDMIPHY_EXYNOS4210,
-+	HDMIPHY_EXYNOS4212,
-+	HDMIPHY_EXYNOS4412,
- };
- 
--static const u8 hdmiphy_conf27[32] = {
--	0x01, 0x05, 0x00, 0xD8, 0x10, 0x1C, 0x30, 0x40,
--	0x6B, 0x10, 0x02, 0x51, 0xDf, 0xF2, 0x54, 0x87,
--	0x84, 0x00, 0x30, 0x38, 0x00, 0x08, 0x10, 0xE0,
--	0x22, 0x40, 0xe3, 0x26, 0x00, 0x00, 0x00, 0x00,
--};
--
--static const u8 hdmiphy_conf74_175[32] = {
--	0x01, 0x05, 0x00, 0xD8, 0x10, 0x9C, 0xef, 0x5B,
--	0x6D, 0x10, 0x01, 0x51, 0xef, 0xF3, 0x54, 0xb9,
--	0x84, 0x00, 0x30, 0x38, 0x00, 0x08, 0x10, 0xE0,
--	0x22, 0x40, 0xa5, 0x26, 0x01, 0x00, 0x00, 0x00,
-+struct hdmiphy_conf {
-+	unsigned long pixclk;
-+	enum hdmiphy_id id;
-+	const u8 data[32];
- };
- 
--static const u8 hdmiphy_conf74_25[32] = {
--	0x01, 0x05, 0x00, 0xd8, 0x10, 0x9c, 0xf8, 0x40,
--	0x6a, 0x10, 0x01, 0x51, 0xff, 0xf1, 0x54, 0xba,
--	0x84, 0x00, 0x30, 0x38, 0x00, 0x08, 0x10, 0xe0,
--	0x22, 0x40, 0xa4, 0x26, 0x01, 0x00, 0x00, 0x00,
-+struct hdmiphy_ctx {
-+	struct v4l2_subdev sd;
-+	enum hdmiphy_id id;
- };
- 
--static const u8 hdmiphy_conf148_5[32] = {
--	0x01, 0x05, 0x00, 0xD8, 0x10, 0x9C, 0xf8, 0x40,
--	0x6A, 0x18, 0x00, 0x51, 0xff, 0xF1, 0x54, 0xba,
--	0x84, 0x00, 0x10, 0x38, 0x00, 0x08, 0x10, 0xE0,
--	0x22, 0x40, 0xa4, 0x26, 0x02, 0x00, 0x00, 0x00,
--};
-+static inline  struct hdmiphy_ctx *sd_to_ctx(struct v4l2_subdev *sd)
-+{
-+	return container_of(sd, struct hdmiphy_ctx, sd);
-+}
- 
- static const struct hdmiphy_conf hdmiphy_conf[] = {
--	{ V4L2_DV_480P59_94, hdmiphy_conf27 },
--	{ V4L2_DV_1080P30, hdmiphy_conf74_175 },
--	{ V4L2_DV_720P59_94, hdmiphy_conf74_175 },
--	{ V4L2_DV_720P60, hdmiphy_conf74_25 },
--	{ V4L2_DV_1080P50, hdmiphy_conf148_5 },
--	{ V4L2_DV_1080P60, hdmiphy_conf148_5 },
-+	{ .id = HDMIPHY_S5PV210, .pixclk = 27000000, .data = {
-+		0x01, 0x05, 0x00, 0xD8, 0x10, 0x1C, 0x30, 0x40,
-+		0x6B, 0x10, 0x02, 0x52, 0xDF, 0xF2, 0x54, 0x87,
-+		0x84, 0x00, 0x30, 0x38, 0x00, 0x08, 0x10, 0xE0,
-+		0x22, 0x40, 0xE3, 0x26, 0x00, 0x00, 0x00, 0x00, }
-+	},
-+	{ .id = HDMIPHY_S5PV210, .pixclk = 27027000, .data = {
-+		0x01, 0x05, 0x00, 0xD4, 0x10, 0x9C, 0x09, 0x64,
-+		0x6B, 0x10, 0x02, 0x52, 0xDF, 0xF2, 0x54, 0x87,
-+		0x84, 0x00, 0x30, 0x38, 0x00, 0x08, 0x10, 0xE0,
-+		0x22, 0x40, 0xE2, 0x26, 0x00, 0x00, 0x00, 0x00, }
-+	},
-+	{ .id = HDMIPHY_S5PV210, .pixclk = 74176000, .data = {
-+		0x01, 0x05, 0x00, 0xD8, 0x10, 0x9C, 0xEF, 0x5B,
-+		0x6D, 0x10, 0x01, 0x52, 0xEF, 0xF3, 0x54, 0xB9,
-+		0x84, 0x00, 0x30, 0x38, 0x00, 0x08, 0x10, 0xE0,
-+		0x22, 0x40, 0xA5, 0x26, 0x01, 0x00, 0x00, 0x00, }
-+	},
-+	{ .id = HDMIPHY_S5PV210, .pixclk = 74250000, .data = {
-+		0x01, 0x05, 0x00, 0xD8, 0x10, 0x9C, 0xF8, 0x40,
-+		0x6A, 0x10, 0x01, 0x52, 0xFF, 0xF1, 0x54, 0xBA,
-+		0x84, 0x00, 0x10, 0x38, 0x00, 0x08, 0x10, 0xE0,
-+		0x22, 0x40, 0xA4, 0x26, 0x01, 0x00, 0x00, 0x00, }
-+	},
-+	{ .id = HDMIPHY_EXYNOS4210, .pixclk = 27000000, .data = {
-+		0x01, 0x05, 0x00, 0xD8, 0x10, 0x1C, 0x30, 0x40,
-+		0x6B, 0x10, 0x02, 0x51, 0xDF, 0xF2, 0x54, 0x87,
-+		0x84, 0x00, 0x30, 0x38, 0x00, 0x08, 0x10, 0xE0,
-+		0x22, 0x40, 0xE3, 0x26, 0x00, 0x00, 0x00, 0x00, }
-+	},
-+	{ .id = HDMIPHY_EXYNOS4210, .pixclk = 27027000, .data = {
-+		0x01, 0x05, 0x00, 0xD4, 0x10, 0x9C, 0x09, 0x64,
-+		0x6B, 0x10, 0x02, 0x51, 0xDF, 0xF2, 0x54, 0x87,
-+		0x84, 0x00, 0x30, 0x38, 0x00, 0x08, 0x10, 0xE0,
-+		0x22, 0x40, 0xE2, 0x26, 0x00, 0x00, 0x00, 0x00, }
-+	},
-+	{ .id = HDMIPHY_EXYNOS4210, .pixclk = 74176000, .data = {
-+		0x01, 0x05, 0x00, 0xD8, 0x10, 0x9C, 0xEF, 0x5B,
-+		0x6D, 0x10, 0x01, 0x51, 0xEF, 0xF3, 0x54, 0xB9,
-+		0x84, 0x00, 0x30, 0x38, 0x00, 0x08, 0x10, 0xE0,
-+		0x22, 0x40, 0xA5, 0x26, 0x01, 0x00, 0x00, 0x00, }
-+	},
-+	{ .id = HDMIPHY_EXYNOS4210, .pixclk = 74250000, .data = {
-+		0x01, 0x05, 0x00, 0xD8, 0x10, 0x9C, 0xF8, 0x40,
-+		0x6A, 0x10, 0x01, 0x51, 0xFF, 0xF1, 0x54, 0xBA,
-+		0x84, 0x00, 0x10, 0x38, 0x00, 0x08, 0x10, 0xE0,
-+		0x22, 0x40, 0xA4, 0x26, 0x01, 0x00, 0x00, 0x00, }
-+	},
-+	{ .id = HDMIPHY_EXYNOS4210, .pixclk = 148352000, .data = {
-+		0x01, 0x05, 0x00, 0xD8, 0x10, 0x9C, 0xEF, 0x5B,
-+		0x6D, 0x18, 0x00, 0x51, 0xEF, 0xF3, 0x54, 0xB9,
-+		0x84, 0x00, 0x30, 0x38, 0x00, 0x08, 0x10, 0xE0,
-+		0x11, 0x40, 0xA5, 0x26, 0x02, 0x00, 0x00, 0x00, }
-+	},
-+	{ .id = HDMIPHY_EXYNOS4210, .pixclk = 148500000, .data = {
-+		0x01, 0x05, 0x00, 0xD8, 0x10, 0x9C, 0xF8, 0x40,
-+		0x6A, 0x18, 0x00, 0x51, 0xFF, 0xF1, 0x54, 0xBA,
-+		0x84, 0x00, 0x10, 0x38, 0x00, 0x08, 0x10, 0xE0,
-+		0x11, 0x40, 0xA4, 0x26, 0x02, 0x00, 0x00, 0x00, }
-+	},
-+	{ .id = HDMIPHY_EXYNOS4212, .pixclk = 27000000, .data = {
-+		0x01, 0x11, 0x2D, 0x75, 0x00, 0x01, 0x00, 0x08,
-+		0x82, 0x00, 0x0E, 0xD9, 0x45, 0xA0, 0x34, 0xC0,
-+		0x0B, 0x80, 0x12, 0x87, 0x08, 0x24, 0x24, 0x71,
-+		0x54, 0xE3, 0x24, 0x00, 0x00, 0x00, 0x01, 0x00, }
-+	},
-+	{ .id = HDMIPHY_EXYNOS4212, .pixclk = 27027000, .data = {
-+		0x01, 0x91, 0x2D, 0x72, 0x00, 0x64, 0x12, 0x08,
-+		0x43, 0x20, 0x0E, 0xD9, 0x45, 0xA0, 0x34, 0xC0,
-+		0x0B, 0x80, 0x12, 0x87, 0x08, 0x24, 0x24, 0x71,
-+		0x54, 0xE2, 0x24, 0x00, 0x00, 0x00, 0x01, 0x00, }
-+	},
-+	{ .id = HDMIPHY_EXYNOS4212, .pixclk = 74176000, .data = {
-+		0x01, 0x91, 0x3E, 0x35, 0x00, 0x5B, 0xDE, 0x08,
-+		0x82, 0x20, 0x73, 0xD9, 0x45, 0xA0, 0x34, 0xC0,
-+		0x0B, 0x80, 0x12, 0x87, 0x08, 0x24, 0x24, 0x52,
-+		0x54, 0xA5, 0x24, 0x01, 0x00, 0x00, 0x01, 0x00, }
-+	},
-+	{ .id = HDMIPHY_EXYNOS4212, .pixclk = 74250000, .data = {
-+		0x01, 0x91, 0x3E, 0x35, 0x00, 0x40, 0xF0, 0x08,
-+		0x82, 0x20, 0x73, 0xD9, 0x45, 0xA0, 0x34, 0xC0,
-+		0x0B, 0x80, 0x12, 0x87, 0x08, 0x24, 0x24, 0x52,
-+		0x54, 0xA4, 0x24, 0x01, 0x00, 0x00, 0x01, 0x00, }
-+	},
-+	{ .id = HDMIPHY_EXYNOS4212, .pixclk = 148500000, .data = {
-+		0x01, 0x91, 0x3E, 0x15, 0x00, 0x40, 0xF0, 0x08,
-+		0x82, 0x20, 0x73, 0xD9, 0x45, 0xA0, 0x34, 0xC0,
-+		0x0B, 0x80, 0x12, 0x87, 0x08, 0x24, 0x24, 0xA4,
-+		0x54, 0x4A, 0x25, 0x03, 0x00, 0x00, 0x01, 0x00, }
-+	},
-+	{ .id = HDMIPHY_EXYNOS4412, .pixclk = 27000000, .data = {
-+		0x01, 0x11, 0x2D, 0x75, 0x40, 0x01, 0x00, 0x08,
-+		0x82, 0x00, 0x0E, 0xD9, 0x45, 0xA0, 0xAC, 0x80,
-+		0x08, 0x80, 0x11, 0x84, 0x02, 0x22, 0x44, 0x86,
-+		0x54, 0xE4, 0x24, 0x00, 0x00, 0x00, 0x01, 0x00, }
-+	},
-+	{ .id = HDMIPHY_EXYNOS4412, .pixclk = 27027000, .data = {
-+		0x01, 0x91, 0x2D, 0x72, 0x40, 0x64, 0x12, 0x08,
-+		0x43, 0x20, 0x0E, 0xD9, 0x45, 0xA0, 0xAC, 0x80,
-+		0x08, 0x80, 0x11, 0x84, 0x02, 0x22, 0x44, 0x86,
-+		0x54, 0xE3, 0x24, 0x00, 0x00, 0x00, 0x01, 0x00, }
-+	},
-+	{ .id = HDMIPHY_EXYNOS4412, .pixclk = 74176000, .data = {
-+		0x01, 0x91, 0x1F, 0x10, 0x40, 0x5B, 0xEF, 0x08,
-+		0x81, 0x20, 0xB9, 0xD8, 0x45, 0xA0, 0xAC, 0x80,
-+		0x08, 0x80, 0x11, 0x84, 0x02, 0x22, 0x44, 0x86,
-+		0x54, 0xA6, 0x24, 0x01, 0x00, 0x00, 0x01, 0x00, }
-+	},
-+	{ .id = HDMIPHY_EXYNOS4412, .pixclk = 74250000, .data = {
-+		0x01, 0x91, 0x1F, 0x10, 0x40, 0x40, 0xF8, 0x08,
-+		0x81, 0x20, 0xBA, 0xD8, 0x45, 0xA0, 0xAC, 0x80,
-+		0x08, 0x80, 0x11, 0x84, 0x02, 0x22, 0x44, 0x86,
-+		0x54, 0xA5, 0x24, 0x01, 0x00, 0x00, 0x01, 0x00, }
-+	},
-+	{ .id = HDMIPHY_EXYNOS4412, .pixclk = 148500000, .data = {
-+		0x01, 0x91, 0x1F, 0x00, 0x40, 0x40, 0xF8, 0x08,
-+		0x81, 0x20, 0xBA, 0xD8, 0x45, 0xA0, 0xAC, 0x80,
-+		0x08, 0x80, 0x11, 0x84, 0x02, 0x22, 0x44, 0x86,
-+		0x54, 0x4B, 0x25, 0x03, 0x00, 0x00, 0x01, 0x00, }
-+	},
- };
- 
--const u8 *hdmiphy_preset2conf(u32 preset)
-+static unsigned long hdmiphy_preset_to_pixclk(u32 preset)
- {
-+	static const unsigned long pixclk[] = {
-+		[V4L2_DV_480P59_94] =  27000000,
-+		[V4L2_DV_576P50]    =  27000000,
-+		[V4L2_DV_720P59_94] =  74176000,
-+		[V4L2_DV_720P50]    =  74250000,
-+		[V4L2_DV_720P60]    =  74250000,
-+		[V4L2_DV_1080P24]   =  74250000,
-+		[V4L2_DV_1080P30]   =  74250000,
-+		[V4L2_DV_1080I50]   =  74250000,
-+		[V4L2_DV_1080I60]   =  74250000,
-+		[V4L2_DV_1080P50]   = 148500000,
-+		[V4L2_DV_1080P60]   = 148500000,
-+	};
-+	if (preset < ARRAY_SIZE(pixclk))
-+		return pixclk[preset];
-+	else
-+		return 0;
-+}
-+
-+static const u8 *hdmiphy_find_conf(u32 preset, enum hdmiphy_id id)
-+{
-+	unsigned long pixclk;
- 	int i;
--	for (i = 0; i < ARRAY_SIZE(hdmiphy_conf); ++i)
--		if (hdmiphy_conf[i].preset == preset)
--			return hdmiphy_conf[i].data;
-+	const struct hdmiphy_conf *conf = hdmiphy_conf;
-+
-+	pixclk = hdmiphy_preset_to_pixclk(preset);
-+	if (!pixclk)
-+		return NULL;
-+
-+	for (i = 0; i < ARRAY_SIZE(hdmiphy_conf); ++i, ++conf)
-+		if (conf->pixclk == pixclk && conf->id == id)
-+			return conf->data;
- 	return NULL;
+diff --git a/drivers/media/radio/radio-isa.c b/drivers/media/radio/radio-isa.c
+index 02bcead..b0c0d7a 100644
+--- a/drivers/media/radio/radio-isa.c
++++ b/drivers/media/radio/radio-isa.c
+@@ -26,6 +26,7 @@
+ #include <linux/delay.h>
+ #include <linux/videodev2.h>
+ #include <linux/io.h>
++#include <linux/slab.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-ioctl.h>
+ #include <media/v4l2-fh.h>
+@@ -198,56 +199,31 @@ static bool radio_isa_valid_io(const struct radio_isa_driver *drv, int io)
+ 	return false;
  }
  
-@@ -88,11 +220,12 @@ static int hdmiphy_s_dv_preset(struct v4l2_subdev *sd,
- 	const u8 *data;
- 	u8 buffer[32];
- 	int ret;
-+	struct hdmiphy_ctx *ctx = sd_to_ctx(sd);
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
- 	struct device *dev = &client->dev;
- 
- 	dev_info(dev, "s_dv_preset(preset = %d)\n", preset->preset);
--	data = hdmiphy_preset2conf(preset->preset);
-+	data = hdmiphy_find_conf(preset->preset, ctx->id);
- 	if (!data) {
- 		dev_err(dev, "format not supported\n");
- 		return -EINVAL;
-@@ -146,21 +279,35 @@ static const struct v4l2_subdev_ops hdmiphy_ops = {
- static int __devinit hdmiphy_probe(struct i2c_client *client,
- 	const struct i2c_device_id *id)
+-int radio_isa_probe(struct device *pdev, unsigned int dev)
++struct radio_isa_card *radio_isa_alloc(struct radio_isa_driver *drv,
++				struct device *pdev)
  {
--	static struct v4l2_subdev sd;
-+	struct hdmiphy_ctx *ctx;
+-	struct radio_isa_driver *drv = pdev->platform_data;
+-	const struct radio_isa_ops *ops = drv->ops;
+ 	struct v4l2_device *v4l2_dev;
+-	struct radio_isa_card *isa;
+-	int res;
++	struct radio_isa_card *isa = drv->ops->alloc();
++	if (!isa)
++		return NULL;
+ 
+-	isa = drv->ops->alloc();
+-	if (isa == NULL)
+-		return -ENOMEM;
+ 	dev_set_drvdata(pdev, isa);
+ 	isa->drv = drv;
+-	isa->io = drv->io_params[dev];
+ 	v4l2_dev = &isa->v4l2_dev;
+ 	strlcpy(v4l2_dev->name, dev_name(pdev), sizeof(v4l2_dev->name));
+ 
+-	if (drv->probe && ops->probe) {
+-		int i;
+-
+-		for (i = 0; i < drv->num_of_io_ports; ++i) {
+-			int io = drv->io_ports[i];
+-
+-			if (request_region(io, drv->region_size, v4l2_dev->name)) {
+-				bool found = ops->probe(isa, io);
+-
+-				release_region(io, drv->region_size);
+-				if (found) {
+-					isa->io = io;
+-					break;
+-				}
+-			}
+-		}
+-	}
+-
+-	if (!radio_isa_valid_io(drv, isa->io)) {
+-		int i;
++	return isa;
++}
+ 
+-		if (isa->io < 0)
+-			return -ENODEV;
+-		v4l2_err(v4l2_dev, "you must set an I/O address with io=0x%03x",
+-				drv->io_ports[0]);
+-		for (i = 1; i < drv->num_of_io_ports; i++)
+-			printk(KERN_CONT "/0x%03x", drv->io_ports[i]);
+-		printk(KERN_CONT ".\n");
+-		kfree(isa);
+-		return -EINVAL;
+-	}
++int radio_isa_common_probe(struct radio_isa_card *isa, struct device *pdev,
++				int radio_nr, unsigned region_size)
++{
++	const struct radio_isa_driver *drv = isa->drv;
++	const struct radio_isa_ops *ops = drv->ops;
++	struct v4l2_device *v4l2_dev = &isa->v4l2_dev;
++	int res;
+ 
+-	if (!request_region(isa->io, drv->region_size, v4l2_dev->name)) {
++	if (!request_region(isa->io, region_size, v4l2_dev->name)) {
+ 		v4l2_err(v4l2_dev, "port 0x%x already in use\n", isa->io);
+ 		kfree(isa);
+ 		return -EBUSY;
+@@ -300,8 +276,8 @@ int radio_isa_probe(struct device *pdev, unsigned int dev)
+ 		v4l2_err(v4l2_dev, "Could not setup card\n");
+ 		goto err_node_reg;
+ 	}
+-	res = video_register_device(&isa->vdev, VFL_TYPE_RADIO,
+-					drv->radio_nr_params[dev]);
++	res = video_register_device(&isa->vdev, VFL_TYPE_RADIO, radio_nr);
 +
-+	ctx = kzalloc(sizeof *ctx, GFP_KERNEL);
-+	if (!ctx)
+ 	if (res < 0) {
+ 		v4l2_err(v4l2_dev, "Could not register device node\n");
+ 		goto err_node_reg;
+@@ -316,24 +292,110 @@ err_node_reg:
+ err_hdl:
+ 	v4l2_device_unregister(&isa->v4l2_dev);
+ err_dev_reg:
+-	release_region(isa->io, drv->region_size);
++	release_region(isa->io, region_size);
+ 	kfree(isa);
+ 	return res;
+ }
+-EXPORT_SYMBOL_GPL(radio_isa_probe);
+ 
+-int radio_isa_remove(struct device *pdev, unsigned int dev)
++int radio_isa_common_remove(struct radio_isa_card *isa, unsigned region_size)
+ {
+-	struct radio_isa_card *isa = dev_get_drvdata(pdev);
+ 	const struct radio_isa_ops *ops = isa->drv->ops;
+ 
+ 	ops->s_mute_volume(isa, true, isa->volume ? isa->volume->cur.val : 0);
+ 	video_unregister_device(&isa->vdev);
+ 	v4l2_ctrl_handler_free(&isa->hdl);
+ 	v4l2_device_unregister(&isa->v4l2_dev);
+-	release_region(isa->io, isa->drv->region_size);
++	release_region(isa->io, region_size);
+ 	v4l2_info(&isa->v4l2_dev, "Removed radio card %s\n", isa->drv->card);
+ 	kfree(isa);
+ 	return 0;
+ }
++
++int radio_isa_probe(struct device *pdev, unsigned int dev)
++{
++	struct radio_isa_driver *drv = pdev->platform_data;
++	const struct radio_isa_ops *ops = drv->ops;
++	struct v4l2_device *v4l2_dev;
++	struct radio_isa_card *isa;
++
++	isa = radio_isa_alloc(drv, pdev);
++	if (!isa)
++		return -ENOMEM;
++	isa->io = drv->io_params[dev];
++	v4l2_dev = &isa->v4l2_dev;
++
++	if (drv->probe && ops->probe) {
++		int i;
++
++		for (i = 0; i < drv->num_of_io_ports; ++i) {
++			int io = drv->io_ports[i];
++
++			if (request_region(io, drv->region_size, v4l2_dev->name)) {
++				bool found = ops->probe(isa, io);
++
++				release_region(io, drv->region_size);
++				if (found) {
++					isa->io = io;
++					break;
++				}
++			}
++		}
++	}
++
++	if (!radio_isa_valid_io(drv, isa->io)) {
++		int i;
++
++		if (isa->io < 0)
++			return -ENODEV;
++		v4l2_err(v4l2_dev, "you must set an I/O address with io=0x%03x",
++				drv->io_ports[0]);
++		for (i = 1; i < drv->num_of_io_ports; i++)
++			printk(KERN_CONT "/0x%03x", drv->io_ports[i]);
++		printk(KERN_CONT ".\n");
++		kfree(isa);
++		return -EINVAL;
++	}
++
++	return radio_isa_common_probe(isa, pdev, drv->radio_nr_params[dev],
++					drv->region_size);
++}
++EXPORT_SYMBOL_GPL(radio_isa_probe);
++
++int radio_isa_remove(struct device *pdev, unsigned int dev)
++{
++	struct radio_isa_card *isa = dev_get_drvdata(pdev);
++
++	return radio_isa_common_remove(isa, isa->drv->region_size);
++}
+ EXPORT_SYMBOL_GPL(radio_isa_remove);
++
++#ifdef CONFIG_PNP
++int radio_isa_pnp_probe(struct pnp_dev *dev, const struct pnp_device_id *dev_id)
++{
++	struct pnp_driver *pnp_drv = to_pnp_driver(dev->dev.driver);
++	struct radio_isa_driver *drv = container_of(pnp_drv,
++					struct radio_isa_driver, pnp_driver);
++	struct radio_isa_card *isa;
++
++	if (!pnp_port_valid(dev, 0))
++		return -ENODEV;
++
++	isa = radio_isa_alloc(drv, &dev->dev);
++	if (!isa)
 +		return -ENOMEM;
 +
-+	ctx->id = id->driver_data;
-+	v4l2_i2c_subdev_init(&ctx->sd, client, &hdmiphy_ops);
- 
--	v4l2_i2c_subdev_init(&sd, client, &hdmiphy_ops);
- 	dev_info(&client->dev, "probe successful\n");
- 	return 0;
- }
- 
- static int __devexit hdmiphy_remove(struct i2c_client *client)
- {
-+	struct v4l2_subdev *sd = i2c_get_clientdata(client);
-+	struct hdmiphy_ctx *ctx = sd_to_ctx(sd);
++	isa->io = pnp_port_start(dev, 0);
 +
-+	kfree(ctx);
- 	dev_info(&client->dev, "remove successful\n");
++	return radio_isa_common_probe(isa, &dev->dev, drv->radio_nr_params[0],
++					pnp_port_len(dev, 0));
++}
++EXPORT_SYMBOL_GPL(radio_isa_pnp_probe);
 +
- 	return 0;
- }
++int radio_isa_pnp_remove(struct pnp_dev *dev)
++{
++	struct radio_isa_card *isa = dev_get_drvdata(&dev->dev);
++
++	return radio_isa_common_remove(isa, pnp_port_len(dev, 0));
++}
++EXPORT_SYMBOL_GPL(radio_isa_pnp_remove);
++#endif
+diff --git a/drivers/media/radio/radio-isa.h b/drivers/media/radio/radio-isa.h
+index 8a0ea84..0e7dc25 100644
+--- a/drivers/media/radio/radio-isa.h
++++ b/drivers/media/radio/radio-isa.h
+@@ -24,6 +24,7 @@
+ #define _RADIO_ISA_H_
  
- static const struct i2c_device_id hdmiphy_id[] = {
--	{ "hdmiphy", 0 },
-+	{ "hdmiphy-s5pv210", HDMIPHY_S5PV210 },
-+	{ "hdmiphy-exynos4210", HDMIPHY_EXYNOS4210 },
-+	{ "hdmiphy-exynos4212", HDMIPHY_EXYNOS4212 },
-+	{ "hdmiphy-exynos4412", HDMIPHY_EXYNOS4412 },
- 	{ },
- };
- MODULE_DEVICE_TABLE(i2c, hdmiphy_id);
--- 
-1.7.5.4
+ #include <linux/isa.h>
++#include <linux/pnp.h>
+ #include <linux/videodev2.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-ctrls.h>
+@@ -76,6 +77,9 @@ struct radio_isa_ops {
+ /* Top level structure needed to instantiate the cards */
+ struct radio_isa_driver {
+ 	struct isa_driver driver;
++#ifdef CONFIG_PNP
++	struct pnp_driver pnp_driver;
++#endif
+ 	const struct radio_isa_ops *ops;
+ 	/* The module_param_array with the specified I/O ports */
+ 	int *io_params;
+@@ -101,5 +105,10 @@ struct radio_isa_driver {
+ int radio_isa_match(struct device *pdev, unsigned int dev);
+ int radio_isa_probe(struct device *pdev, unsigned int dev);
+ int radio_isa_remove(struct device *pdev, unsigned int dev);
++#ifdef CONFIG_PNP
++int radio_isa_pnp_probe(struct pnp_dev *dev,
++			const struct pnp_device_id *dev_id);
++int radio_isa_pnp_remove(struct pnp_dev *dev);
++#endif
+ 
+ #endif
 
+
+-- 
+Ondrej Zary
