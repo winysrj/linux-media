@@ -1,37 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:52412 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752040Ab2CUSyf convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Mar 2012 14:54:35 -0400
-Received: by yenl12 with SMTP id l12so1236955yen.19
-        for <linux-media@vger.kernel.org>; Wed, 21 Mar 2012 11:54:34 -0700 (PDT)
+Received: from perceval.ideasonboard.com ([95.142.166.194]:51599 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756899Ab2CELKi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Mar 2012 06:10:38 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, dacohen@gmail.com, snjw23@gmail.com,
+	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
+	tuukkat76@gmail.com, k.debski@samsung.com, riverful@gmail.com,
+	hverkuil@xs4all.nl, teturtia@gmail.com
+Subject: Re: [PATCH v4 15/34] media: Add link_validate() op to check links to the sink pad
+Date: Mon, 05 Mar 2012 12:10:58 +0100
+Message-ID: <6463420.kC9QS8Kqbq@avalon>
+In-Reply-To: <1330709442-16654-15-git-send-email-sakari.ailus@iki.fi>
+References: <20120302173219.GA15695@valkosipuli.localdomain> <1330709442-16654-15-git-send-email-sakari.ailus@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <1332291909.26972.3.camel@palomino.walls.org>
-References: <CALF0-+U+H=mycbcWYP8J9+5TsGCA8NdBWC7Ge7xJ11F3Q6=j=g@mail.gmail.com>
-	<1332291909.26972.3.camel@palomino.walls.org>
-Date: Wed, 21 Mar 2012 15:54:34 -0300
-Message-ID: <CALF0-+Wz9Gn0PUqDyeFkK36QGu9HNVm3SUfaGrpvsit==BKvkA@mail.gmail.com>
-Subject: Re: [Q] v4l buffer format inside isoc
-From: =?ISO-8859-1?Q?Ezequiel_Garc=EDa?= <elezegarcia@gmail.com>
-To: Andy Walls <awalls@md.metrocast.net>
-Cc: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2012/3/20 Andy Walls <awalls@md.metrocast.net>:
+Hi Sakari,
 
->
-> Section 8.10 of the SAA7113 data sheet shows 16 "data formats".  The
-> interesting one for video is #15 Y:U:V 4:2:2.
+Thanks for the patch.
 
-Thanks. Perhaps, I should have done my homework.
+On Friday 02 March 2012 19:30:23 Sakari Ailus wrote:
+> The purpose of the link_validate() op is to allow an entity driver to ensure
+> that the properties of the pads at the both ends of the link are suitable
+> for starting the pipeline. link_validate is called on sink pads on active
+> links which belong to the active part of the graph.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
 
->
-> The EM28xx chip programming might rearrange some data, but I have no
-> knowledge or experience with the eMPIA chips.
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-The chip is not eMPIA, but rather stk1160. It's a new chipset that's not
-currently supported (there is a similar one in stk-webcam).
+-- 
+Regards,
+
+Laurent Pinchart
+
