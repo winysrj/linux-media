@@ -1,63 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1-g21.free.fr ([212.27.42.1]:41807 "EHLO smtp1-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758340Ab2CSIYk convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Mar 2012 04:24:40 -0400
-Received: from tele (unknown [IPv6:2a01:e35:2f5c:9de0:212:bfff:fe1e:9ce4])
-	by smtp1-g21.free.fr (Postfix) with ESMTP id 93083940143
-	for <linux-media@vger.kernel.org>; Mon, 19 Mar 2012 09:24:33 +0100 (CET)
-Date: Mon, 19 Mar 2012 09:24:48 +0100
-From: Jean-Francois Moine <moinejf@free.fr>
-To: linux-media@vger.kernel.org
-Subject: [GIT PATCHES FOR 3.4] gspca for_v3.4
-Message-ID: <20120319092448.1ac7a587@tele>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from mailout-de.gmx.net ([213.165.64.22]:37375 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S932379Ab2CEOth (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Mar 2012 09:49:37 -0500
+From: "Oleksij Rempel (Alexey Fisher)" <bug-track@fisher-privat.net>
+To: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com
+Cc: "Oleksij Rempel (Alexey Fisher)" <bug-track@fisher-privat.net>
+Subject: [PATCH] make mmap logs more readable.
+Date: Mon,  5 Mar 2012 15:49:27 +0100
+Message-Id: <1330958967-31522-1-git-send-email-bug-track@fisher-privat.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+From: "Oleksij Rempel (Alexey Fisher)" <bug-track@fisher-privat.net>
 
-This set includes the patch http://patchwork.linuxtv.org/patch/9494.
+Signed-off-by: Oleksij Rempel (Alexey Fisher) <bug-track@fisher-privat.net>
+---
+ lib/libv4l2/libv4l2.c |   10 +++++-----
+ 1 files changed, 5 insertions(+), 5 deletions(-)
 
-The following changes since commit 632fba4d012458fd5fedc678fb9b0f8bc59ceda2:
-
-  [media] cx25821: Add a card definition for "No brand" cards that have: subvendor = 0x0000 subdevice = 0x0000 (2012-03-08 12:42:28 -0300)
-
-are available in the git repository at:
-
-  git://linuxtv.org/jfrancois/gspca.git for_v3.4
-
-for you to fetch changes up to 898b0fd6218c7012a1b73e3bf7a7c60fd578c0a6:
-
-  gspca - sn9c20x: Cleanup source (2012-03-19 08:55:16 +0100)
-
-----------------------------------------------------------------
-Jean-François Moine (12):
-      gspca - zc3xx: Add V4L2_CID_JPEG_COMPRESSION_QUALITY control support
-      gspca - zc3xx: Lack of register 08 value for sensor cs2102k
-      gspca - sn9c20x: Fix loss of frame start
-      gspca - sn9c20x: Use the new video control mechanism
-      gspca - sn9c20x: Propagate USB errors to higher level
-      gspca - sn9c20x: Add a delay after Omnivision sensor reset
-      gspca - sn9c20x: Add the JPEG compression quality control
-      gspca - sn9c20x: Optimize the code of write sequences
-      gspca - sn9c20x: Greater delay in case of sensor no response
-      gspca - sn9c20x: Add automatic JPEG compression mechanism
-      gspca - sn9c20x: Simplify register write for capture start/stop
-      gspca - sn9c20x: Cleanup source
-
-Jose Alberto Reguero (1):
-      gspca - ov534_9: Add brightness to OmniVision 5621 sensor
-
- drivers/media/video/gspca/ov534_9.c |   49 ++-
- drivers/media/video/gspca/sn9c20x.c | 1138 ++++++++++++++++-------------------
- drivers/media/video/gspca/zc3xx.c   |   47 ++-
- 3 files changed, 582 insertions(+), 652 deletions(-)
-
-
+diff --git a/lib/libv4l2/libv4l2.c b/lib/libv4l2/libv4l2.c
+index 8dd01ba..f17fa45 100644
+--- a/lib/libv4l2/libv4l2.c
++++ b/lib/libv4l2/libv4l2.c
+@@ -1533,7 +1533,7 @@ void *v4l2_mmap(void *start, size_t length, int prot, int flags, int fd,
+ 			start || length != V4L2_FRAME_BUF_SIZE ||
+ 			((unsigned int)offset & ~0xFFu) != V4L2_MMAP_OFFSET_MAGIC) {
+ 		if (index != -1)
+-			V4L2_LOG("Passing mmap(%p, %d, ..., %x, through to the driver\n",
++			V4L2_LOG("Passing mmap(start: %p, length: %d, offset: %x) through to the driver\n",
+ 					start, (int)length, (int)offset);
+ 
+ 		if (offset & ((1 << MMAP2_PAGE_SHIFT) - 1)) {
+@@ -1576,8 +1576,8 @@ void *v4l2_mmap(void *start, size_t length, int prot, int flags, int fd,
+ 	result = devices[index].convert_mmap_buf +
+ 		buffer_index * V4L2_FRAME_BUF_SIZE;
+ 
+-	V4L2_LOG("Fake (conversion) mmap buf %u, seen by app at: %p\n",
+-			buffer_index, result);
++	V4L2_LOG("Fake (conversion) mmap buf %u, seen by app at: %p, length: %d\n",
++			buffer_index, result, (int)length);
+ 
+ leave:
+ 	pthread_mutex_unlock(&devices[index].stream_lock);
+@@ -1620,13 +1620,13 @@ int v4l2_munmap(void *_start, size_t length)
+ 			pthread_mutex_unlock(&devices[index].stream_lock);
+ 
+ 			if (unmapped) {
+-				V4L2_LOG("v4l2 fake buffer munmap %p, %d\n", start, (int)length);
++				V4L2_LOG("v4l2 fake buffer munmap %p, length: %d\n", start, (int)length);
+ 				return 0;
+ 			}
+ 		}
+ 	}
+ 
+-	V4L2_LOG("v4l2 unknown munmap %p, %d\n", start, (int)length);
++	V4L2_LOG("v4l2 unknown munmap %p, length: %d\n", start, (int)length);
+ 
+ 	return SYS_MUNMAP(_start, length);
+ }
 -- 
-Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+1.7.9
+
