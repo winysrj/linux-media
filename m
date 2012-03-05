@@ -1,97 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1-g21.free.fr ([212.27.42.1]:52386 "EHLO smtp1-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756373Ab2CEJTc convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Mar 2012 04:19:32 -0500
-Date: Mon, 5 Mar 2012 10:21:01 +0100
-From: Jean-Francois Moine <moinejf@free.fr>
-To: Jonathan Nieder <jrnieder@gmail.com>
-Cc: Skippy le Grand Gourou <lecotegougdelaforce@free.fr>,
-	linux-media@vger.kernel.org, linux-usb@vger.kernel.org
-Subject: Re: [bug?] ov519 fails to handle Hercules Deluxe webcam
-Message-ID: <20120305102101.652b46e7@tele>
-In-Reply-To: <20120305003801.GB27427@burratino>
-References: <20120304223239.22117.54556.reportbug@deepthought>
-	<20120305003801.GB27427@burratino>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:60462 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753887Ab2CEVjG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Mar 2012 16:39:06 -0500
+Received: by vbbff1 with SMTP id ff1so3874605vbb.19
+        for <linux-media@vger.kernel.org>; Mon, 05 Mar 2012 13:39:05 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <20120303002342.GI15695@valkosipuli.localdomain>
+References: <1330616161-1937-1-git-send-email-daniel.vetter@ffwll.ch>
+	<1330616161-1937-4-git-send-email-daniel.vetter@ffwll.ch>
+	<20120303002342.GI15695@valkosipuli.localdomain>
+Date: Mon, 5 Mar 2012 22:39:05 +0100
+Message-ID: <CAKMK7uGnfN9TyK-53OPTQ2r609ZNZ6jcAYVhaSe_ywAaBOPJ6Q@mail.gmail.com>
+Subject: Re: [PATCH 3/3] dma_buf: Add documentation for the new cpu access support
+From: Daniel Vetter <daniel.vetter@ffwll.ch>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linaro-mm-sig@lists.linaro.org,
+	LKML <linux-kernel@vger.kernel.org>,
+	DRI Development <dri-devel@lists.freedesktop.org>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 4 Mar 2012 18:38:01 -0600
-Jonathan Nieder <jrnieder@gmail.com> wrote:
+On Sat, Mar 3, 2012 at 01:23, Sakari Ailus <sakari.ailus@iki.fi> wrote:
+> Where it should be decided which operations are being done to the buffer
+> when it is passed to user space and back to kernel space?
+>
+> How about spliting these operations to those done on the first time the
+> buffer is passed to the user space (mapping to kernel address space, for
+> example) and those required every time buffer is passed from kernel to user
+> and back (cache flusing)?
+>
+> I'm asking since any unnecessary time-consuming operations, especially as
+> heavy as mapping the buffer, should be avoidable in subsystems dealing
+> with streaming video, cameras etc., i.e. non-GPU users.
 
-> Hi,
-> 
-> Skippy le Grand Gourou wrote[1]:
-> 
-> > Hercules Deluxe USB webcam won't work, see the end of the kernel
-> > log.
-> [...]
-> > [521041.808976] gspca: probing 05a9:4519
-> > [521042.469094] ov519: I2C synced in 3 attempt(s)
-> > [521042.469097] ov519: starting OV7xx0 configuration
-> > [521042.469793] ov519: Unknown image sensor version: 2
-> > [521042.469795] ov519: Failed to configure OV7xx0
-> > [521042.469797] ov519: OV519 Config failed
-> > [521042.469807] ov519: probe of 3-1.4:1.0 failed with error -16
-> > [521042.469884] gspca: probing 05a9:4519
-> > [521467.885255] usbcore: deregistering interface driver ov519
-> > [521467.885278] ov519: deregistered
-> > [521467.900288] gspca: main deregistered
-> > [521809.376462] dialog[12612]: segfault at 0 ip b77c6125 sp bf8861b0 error 4 in libncursesw.so.5.7[b77b5000+43000]
-> > [524303.418813] usb 3-1.3: USB disconnect, address 9
-> [...]
-> > [528511.174900] usb 3-1.4: USB disconnect, address 10
-> > [528513.420812] usb 3-1.4: new full speed USB device using ehci_hcd and address 13
-> > [528513.515013] usb 3-1.4: New USB device found, idVendor=05a9, idProduct=4519
-> > [528513.515018] usb 3-1.4: New USB device strings: Mfr=1, Product=2, SerialNumber=0
-> > [528513.515021] usb 3-1.4: Product: USB Camera
-> > [528513.515023] usb 3-1.4: Manufacturer: OmniVision Technologies, Inc.
-> > [528513.515116] usb 3-1.4: configuration #1 chosen from 1 choice
-> > [528513.524620] Linux video capture interface: v2.00
-> > [528513.526783] gspca: main v2.7.0 registered
-> > [528513.527299] gspca: probing 05a9:4519
-> > [528514.190995] ov519: I2C synced in 3 attempt(s)
-> > [528514.190998] ov519: starting OV7xx0 configuration
-> > [528514.192570] ov519: Sensor is an OV7610
-> > [528514.417110] ov519: probe of 3-1.4:1.0 failed with error -5
-> > [528514.417139] usbcore: registered new interface driver ov519
-> > [528514.417143] ov519: registered
-> [...]
-> > 00:1a.0 USB Controller [0c03]: Intel Corporation Cougar Point USB Enhanced Host Controller #2 [8086:1c2d] (rev 05) (prog-if 20 [EHCI])
-> >         Subsystem: ASUSTeK Computer Inc. Device [1043:844d]
-> [...]
-> > Bus 001 Device 001: ID 1d6b:0003 Linux Foundation 3.0 root hub
-> > Bus 002 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
-> > Bus 003 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
-> > Bus 002 Device 002: ID 8087:0024 Intel Corp. Integrated Rate Matching Hub
-> > Bus 003 Device 002: ID 8087:0024 Intel Corp. Integrated Rate Matching Hub
-> > Bus 003 Device 012: ID 9e88:9e8f  
-> > Bus 003 Device 013: ID 05a9:4519 OmniVision Technologies, Inc. Webcam Classic
-> > Bus 003 Device 005: ID 04a9:221c Canon, Inc. CanoScan LiDE 60
-> > Bus 003 Device 006: ID 046d:c50e Logitech, Inc. Cordless Mouse Receiver
-> [...]
-> 
-> Kernel is Debian 2.6.32-41, which is closely based on stable
-> 2.6.32.54.  I don't see any obvious potential fixes in the diff
-> relative to linux-next.
-> 
-> Known problem?  Any hints for tracking this down?
-> 
-> Thanks,
-> Jonathan
-> 
-> [1] http://bugs.debian.org/662246
+I'm a bit confused about your comments because this interface
+extension doesn't support userspace mmap. So userspace isn't even part
+of the picture. Adding mmap support is something entirely different
+imo, and I have no idea yet how we should handle cache coherency for
+that.
 
-Hi Skippy and Jonathan,
-
-The git commit b877a9a7fb0 (gspca - ov519: Fix sensor detection
-problems) may have fix this problem.
-
-To be sure, try the gspca test version from my web site.
-
+Yours, Daniel
 -- 
-Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+Daniel Vetter
+daniel.vetter@ffwll.ch - +41 (0) 79 365 57 48 - http://blog.ffwll.ch
