@@ -1,39 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:41655 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754751Ab2CJObh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 10 Mar 2012 09:31:37 -0500
-Received: by yhmm54 with SMTP id m54so1537604yhm.19
-        for <linux-media@vger.kernel.org>; Sat, 10 Mar 2012 06:31:36 -0800 (PST)
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:64904 "EHLO
+	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753321Ab2CERdH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Mar 2012 12:33:07 -0500
+Message-ID: <4F54F8CB.9050903@gmail.com>
+Date: Mon, 05 Mar 2012 09:32:59 -0800
+From: "Justin P. Mattock" <justinmattock@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <CAPEGoTArUKaBn1-GRt3zaPg0VU3B=4znjxReLWQLzf6KTL48Cg@mail.gmail.com>
-References: <CAPEGoTArUKaBn1-GRt3zaPg0VU3B=4znjxReLWQLzf6KTL48Cg@mail.gmail.com>
-Date: Sat, 10 Mar 2012 15:31:36 +0100
-Message-ID: <CAL7owaD7tOoWYvCECTv0jh5HtB3wykScs0Nmmi07nxNk4FgJhA@mail.gmail.com>
-Subject: Re: Please remove nl-Ziggo-Zwolle dvb-c initial scan file
-From: Christoph Pfister <christophpfister@gmail.com>
-To: Hein Rigolo <rigolo@gmail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+To: David Santinoli <marauder@tiscali.it>
+CC: trivial@kernel.org, linux-kernel@vger.kernel.org,
+	gregkh@linuxfoundation.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH]NEXT:drivers:staging:media Fix comments and some typos
+ in staging/media/*
+References: <1330962566-5781-1-git-send-email-justinmattock@gmail.com> <20120305172820.GA1652@aidi.santinoli.com>
+In-Reply-To: <20120305172820.GA1652@aidi.santinoli.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Done, thanks.
+On 03/05/2012 09:28 AM, David Santinoli wrote:
+> On Mon, Mar 05, 2012 at 07:49:26AM -0800, Justin P. Mattock wrote:
+>> -   The two functions bellow implements the newer ioctls
+>> +   The two functions bellow implement the newer ioctls
+>
+> There's still some room for improvement here. :-)
+>
+> Cheers,
+>   David
+>
 
-Christoph
+I can change bellow to below but is this intentional? i.e. a loud noise 
+from the newer ioctl or something.
 
-
-Am 28. Dezember 2011 14:27 schrieb Hein Rigolo <rigolo@gmail.com>:
-> Christoph,
->
-> The nl-Ziggo-Zwolle dvb-c initial scan file is no longer up to date,
-> and no longer relevant. The nl-Ziggo DVB-C initial scan file is enough
-> to find all the required transport streams in all Ziggo locations.
->
-> Could you remove the nl-Ziggo-Zwolle file from dvb-apps?
->
-> Thanks,
->
->
-> Hein
+Justin P. Mattock
