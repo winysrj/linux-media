@@ -1,52 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:57886 "EHLO
-	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750753Ab2CBJuU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 2 Mar 2012 04:50:20 -0500
-Received: by lahj13 with SMTP id j13so1816577lah.19
-        for <linux-media@vger.kernel.org>; Fri, 02 Mar 2012 01:50:18 -0800 (PST)
+Received: from perceval.ideasonboard.com ([95.142.166.194]:46519 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756876Ab2CELao (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Mar 2012 06:30:44 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, dacohen@gmail.com, snjw23@gmail.com,
+	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
+	tuukkat76@gmail.com, k.debski@samsung.com, riverful@gmail.com,
+	hverkuil@xs4all.nl, teturtia@gmail.com
+Subject: Re: [PATCH v4 29/34] omap3isp: Default link validation for ccp2, csi2, preview and resizer
+Date: Mon, 05 Mar 2012 12:31:04 +0100
+Message-ID: <5457219.tDkWgqCPuT@avalon>
+In-Reply-To: <1330709442-16654-29-git-send-email-sakari.ailus@iki.fi>
+References: <20120302173219.GA15695@valkosipuli.localdomain> <1330709442-16654-29-git-send-email-sakari.ailus@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <4F5086E3.9010809@gmail.com>
-References: <1328001827-21251-1-git-send-email-javier.martin@vista-silicon.com>
-	<CACKLOr0v14XPfnccGH7rh2yd2eSwOOd8fZeN29SVP8tRrtxWow@mail.gmail.com>
-	<4F5086E3.9010809@gmail.com>
-Date: Fri, 2 Mar 2012 10:50:18 +0100
-Message-ID: <CACKLOr38N-USvnyOquADn8QMdNXB9aDMucfwdEydFV5b24mgcQ@mail.gmail.com>
-Subject: Re: [PATCH 1/2] media: tvp5150: Add cropping support.
-From: javier Martin <javier.martin@vista-silicon.com>
-To: koansoftware@gmail.com
-Cc: linux-media@vger.kernel.org, mchehab@infradead.org,
-	hverkuil@xs4all.nl
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 2 March 2012 09:37, Marco Cavallini <koansoftware@gmail.com> wrote:
-> javier Martin ha scritto, Il 02/03/2012 09:35:
->> Hi all,
->> I've been using and testing these patches successfully for a month.
->> Do you have any comments on them? Do you think they are ready to be merged?
->>
->> [PATCH 1/2] media: tvp5150: Add cropping support
->> [PATCH 2/2] media: tvp5150: Add g_mbus_fmt_callback
->>
->>
->
-> Hi Javier,
-> I'm working on tvp5150 with a PXA270 just these days.
-> Could you provide a link to those patches please?
+Hi Sakari,
 
-Sure:
-http://www.spinics.net/lists/linux-media/msg43789.html
-http://www.spinics.net/lists/linux-media/msg43790.html
+Thanks for the patch.
 
+On Friday 02 March 2012 19:30:37 Sakari Ailus wrote:
+> Use default link validation for ccp2, csi2, preview and resizer. On ccp2,
+> csi2 and ccdc we also collect information on external subdevs as one may be
+> connected to those entities.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
 -- 
-Javier Martin
-Vista Silicon S.L.
-CDTUC - FASE C - Oficina S-345
-Avda de los Castros s/n
-39005- Santander. Cantabria. Spain
-+34 942 25 32 60
-www.vista-silicon.com
+Regards,
+
+Laurent Pinchart
+
