@@ -1,241 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:16873 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751236Ab2CYLyz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 25 Mar 2012 07:54:55 -0400
-From: Hans de Goede <hdegoede@redhat.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH 04/10] v4l2-ctrls: Use v4l2_subscribed_event_ops
-Date: Sun, 25 Mar 2012 13:56:44 +0200
-Message-Id: <1332676610-14953-5-git-send-email-hdegoede@redhat.com>
-In-Reply-To: <1332676610-14953-1-git-send-email-hdegoede@redhat.com>
-References: <1332676610-14953-1-git-send-email-hdegoede@redhat.com>
+Received: from mail-pz0-f52.google.com ([209.85.210.52]:47855 "EHLO
+	mail-pz0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750977Ab2CEPte (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Mar 2012 10:49:34 -0500
+From: "Justin P. Mattock" <justinmattock@gmail.com>
+To: trivial@kernel.org
+Cc: linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org,
+	linux-media@vger.kernel.org,
+	"Justin P. Mattock" <justinmattock@gmail.com>
+Subject: [PATCH]NEXT:drivers:staging:media Fix comments and some typos in staging/media/*
+Date: Mon,  5 Mar 2012 07:49:26 -0800
+Message-Id: <1330962566-5781-1-git-send-email-justinmattock@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/video/ivtv/ivtv-ioctl.c |    3 +-
- drivers/media/video/v4l2-ctrls.c      |   58 ++++++++++++++++++++++++++-------
- drivers/media/video/v4l2-event.c      |   39 ----------------------
- include/media/v4l2-ctrls.h            |    7 ++--
- 4 files changed, 52 insertions(+), 55 deletions(-)
+From: "Justin P. Mattock" <justinmattock@gmail.com>
 
-diff --git a/drivers/media/video/ivtv/ivtv-ioctl.c b/drivers/media/video/ivtv/ivtv-ioctl.c
-index 5b41e5b..0c9cf0d 100644
---- a/drivers/media/video/ivtv/ivtv-ioctl.c
-+++ b/drivers/media/video/ivtv/ivtv-ioctl.c
-@@ -1468,8 +1468,9 @@ static int ivtv_subscribe_event(struct v4l2_fh *fh, struct v4l2_event_subscripti
- 	switch (sub->type) {
- 	case V4L2_EVENT_VSYNC:
- 	case V4L2_EVENT_EOS:
--	case V4L2_EVENT_CTRL:
- 		return v4l2_event_subscribe(fh, sub, 0, NULL);
-+	case V4L2_EVENT_CTRL:
-+		return v4l2_event_subscribe(fh, sub, 0, &v4l2_ctrl_sub_ev_ops);
- 	default:
- 		return -EINVAL;
- 	}
-diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
-index 7023e6d..2a44355 100644
---- a/drivers/media/video/v4l2-ctrls.c
-+++ b/drivers/media/video/v4l2-ctrls.c
-@@ -2381,10 +2381,22 @@ int v4l2_ctrl_s_ctrl(struct v4l2_ctrl *ctrl, s32 val)
- }
- EXPORT_SYMBOL(v4l2_ctrl_s_ctrl);
+linux-next:
+I like to spend some time reading code, in doing so I have found some typos in some of the comments.
+The patch below fixes what I have found.
+
+Signed-off-by: Justin P. Mattock <justinmattock@gmail.com>
+
+---
+ drivers/staging/media/Kconfig              |    2 +-
+ drivers/staging/media/as102/as102_drv.c    |    2 +-
+ drivers/staging/media/as102/as102_fe.c     |    4 ++--
+ drivers/staging/media/go7007/go7007-v4l2.c |    8 ++++----
+ drivers/staging/media/lirc/lirc_serial.c   |    2 +-
+ drivers/staging/media/solo6x10/Kconfig     |    2 +-
+ 6 files changed, 10 insertions(+), 10 deletions(-)
+
+diff --git a/drivers/staging/media/Kconfig b/drivers/staging/media/Kconfig
+index 7e5caa3..4f4b7d6 100644
+--- a/drivers/staging/media/Kconfig
++++ b/drivers/staging/media/Kconfig
+@@ -6,7 +6,7 @@ menuconfig STAGING_MEDIA
+ 	  don't have the "normal" Linux kernel quality level.
+ 	  Most of them don't follow properly the V4L, DVB and/or RC API's,
+ 	  so, they won't likely work fine with the existing applications.
+-	  That also means that, one fixed, their API's will change to match
++	  That also means that, once fixed, their API's will change to match
+ 	  the existing ones.
  
--void v4l2_ctrl_add_event(struct v4l2_ctrl *ctrl,
--				struct v4l2_subscribed_event *sev)
-+static int v4l2_ctrl_add_event(struct v4l2_subscribed_event *sev)
+           If you wish to work on these drivers, to help improve them, or
+diff --git a/drivers/staging/media/as102/as102_drv.c b/drivers/staging/media/as102/as102_drv.c
+index aae0505..ea4f992 100644
+--- a/drivers/staging/media/as102/as102_drv.c
++++ b/drivers/staging/media/as102/as102_drv.c
+@@ -27,7 +27,7 @@
+ #include <linux/uaccess.h>
+ #include <linux/usb.h>
+ 
+-/* header file for Usb device driver*/
++/* header file for usb device driver*/
+ #include "as102_drv.h"
+ #include "as102_fw.h"
+ #include "dvbdev.h"
+diff --git a/drivers/staging/media/as102/as102_fe.c b/drivers/staging/media/as102/as102_fe.c
+index bdc5a38..57daa8c 100644
+--- a/drivers/staging/media/as102/as102_fe.c
++++ b/drivers/staging/media/as102/as102_fe.c
+@@ -337,7 +337,7 @@ int as102_dvb_register_fe(struct as102_dev_t *as102_dev,
+ 	strncpy(dvb_fe->ops.info.name, as102_dev->name,
+ 		sizeof(dvb_fe->ops.info.name));
+ 
+-	/* register dbvb frontend */
++	/* register dvb frontend */
+ 	errno = dvb_register_frontend(dvb_adap, dvb_fe);
+ 	if (errno == 0)
+ 		dvb_fe->tuner_priv = as102_dev;
+@@ -349,7 +349,7 @@ static void as10x_fe_copy_tps_parameters(struct dtv_frontend_properties *fe_tps,
+ 					 struct as10x_tps *as10x_tps)
  {
--	v4l2_ctrl_lock(ctrl);
-+	struct v4l2_ctrl_handler *hdl = sev->fh->ctrl_handler;
-+	struct v4l2_ctrl_ref *ref;
-+	struct v4l2_ctrl *ctrl;
-+	int ret = 0;
-+
-+	mutex_lock(&hdl->lock);
-+
-+	ref = find_ref(hdl, sev->id);
-+	if (!ref) {
-+		ret = -EINVAL;
-+		goto leave;
-+	}
-+	ctrl = ref->ctrl;
-+
- 	list_add_tail(&sev->node, &ctrl->ev_subs);
- 	if (ctrl->type != V4L2_CTRL_TYPE_CTRL_CLASS &&
- 	    (sev->flags & V4L2_EVENT_SUB_FL_SEND_INITIAL)) {
-@@ -2396,18 +2408,42 @@ void v4l2_ctrl_add_event(struct v4l2_ctrl *ctrl,
- 		fill_event(&ev, ctrl, changes);
- 		v4l2_event_queue_fh(sev->fh, &ev);
- 	}
--	v4l2_ctrl_unlock(ctrl);
-+leave:
-+	mutex_unlock(&hdl->lock);
-+	return ret;
- }
--EXPORT_SYMBOL(v4l2_ctrl_add_event);
  
--void v4l2_ctrl_del_event(struct v4l2_ctrl *ctrl,
--				struct v4l2_subscribed_event *sev)
-+static void v4l2_ctrl_del_event(struct v4l2_subscribed_event *sev)
- {
--	v4l2_ctrl_lock(ctrl);
-+	struct v4l2_ctrl_handler *hdl = sev->fh->ctrl_handler;
-+
-+	mutex_lock(&hdl->lock);
- 	list_del(&sev->node);
--	v4l2_ctrl_unlock(ctrl);
-+	mutex_unlock(&hdl->lock);
- }
--EXPORT_SYMBOL(v4l2_ctrl_del_event);
-+
-+void v4l2_ctrl_replace(struct v4l2_event *old, const struct v4l2_event *new)
-+{
-+	u32 old_changes = old->u.ctrl.changes;
-+
-+	old->u.ctrl = new->u.ctrl;
-+	old->u.ctrl.changes |= old_changes;
-+}
-+EXPORT_SYMBOL(v4l2_ctrl_replace);
-+
-+void v4l2_ctrl_merge(const struct v4l2_event *old, struct v4l2_event *new)
-+{
-+	new->u.ctrl.changes |= old->u.ctrl.changes;
-+}
-+EXPORT_SYMBOL(v4l2_ctrl_merge);
-+
-+const struct v4l2_subscribed_event_ops v4l2_ctrl_sub_ev_ops = {
-+	.add = v4l2_ctrl_add_event,
-+	.del = v4l2_ctrl_del_event,
-+	.replace = v4l2_ctrl_replace,
-+	.merge = v4l2_ctrl_merge,
-+};
-+EXPORT_SYMBOL(v4l2_ctrl_sub_ev_ops);
- 
- int v4l2_ctrl_log_status(struct file *file, void *fh)
- {
-@@ -2425,7 +2461,7 @@ int v4l2_ctrl_subscribe_event(struct v4l2_fh *fh,
- 				struct v4l2_event_subscription *sub)
- {
- 	if (sub->type == V4L2_EVENT_CTRL)
--		return v4l2_event_subscribe(fh, sub, 0, NULL);
-+		return v4l2_event_subscribe(fh, sub, 0, &v4l2_ctrl_sub_ev_ops);
- 	return -EINVAL;
- }
- EXPORT_SYMBOL(v4l2_ctrl_subscribe_event);
-diff --git a/drivers/media/video/v4l2-event.c b/drivers/media/video/v4l2-event.c
-index 0ba2dfa..60b4e2e 100644
---- a/drivers/media/video/v4l2-event.c
-+++ b/drivers/media/video/v4l2-event.c
-@@ -25,7 +25,6 @@
- #include <media/v4l2-dev.h>
- #include <media/v4l2-fh.h>
- #include <media/v4l2-event.h>
--#include <media/v4l2-ctrls.h>
- 
- #include <linux/sched.h>
- #include <linux/slab.h>
-@@ -203,30 +202,11 @@ int v4l2_event_pending(struct v4l2_fh *fh)
- }
- EXPORT_SYMBOL_GPL(v4l2_event_pending);
- 
--static void ctrls_replace(struct v4l2_event *old, const struct v4l2_event *new)
--{
--	u32 old_changes = old->u.ctrl.changes;
--
--	old->u.ctrl = new->u.ctrl;
--	old->u.ctrl.changes |= old_changes;
--}
--
--static void ctrls_merge(const struct v4l2_event *old, struct v4l2_event *new)
--{
--	new->u.ctrl.changes |= old->u.ctrl.changes;
--}
--
--static const struct v4l2_subscribed_event_ops ctrl_ops = {
--	.replace = ctrls_replace,
--	.merge = ctrls_merge,
--};
--
- int v4l2_event_subscribe(struct v4l2_fh *fh,
- 			 struct v4l2_event_subscription *sub, unsigned elems,
- 			 const struct v4l2_subscribed_event_ops *ops)
- {
- 	struct v4l2_subscribed_event *sev, *found_ev;
--	struct v4l2_ctrl *ctrl = NULL;
- 	unsigned long flags;
- 	unsigned i;
- 
-@@ -235,11 +215,6 @@ int v4l2_event_subscribe(struct v4l2_fh *fh,
- 
- 	if (elems < 1)
- 		elems = 1;
--	if (sub->type == V4L2_EVENT_CTRL) {
--		ctrl = v4l2_ctrl_find(fh->ctrl_handler, sub->id);
--		if (ctrl == NULL)
--			return -EINVAL;
--	}
- 
- 	sev = kzalloc(sizeof(*sev) + sizeof(struct v4l2_kevent) * elems, GFP_KERNEL);
- 	if (!sev)
-@@ -251,9 +226,6 @@ int v4l2_event_subscribe(struct v4l2_fh *fh,
- 	sev->flags = sub->flags;
- 	sev->fh = fh;
- 	sev->ops = ops;
--	if (ctrl) {
--		sev->ops = &ctrl_ops;
--	}
- 
- 	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
- 	found_ev = v4l2_event_subscribed(fh, sub->type, sub->id);
-@@ -275,10 +247,6 @@ int v4l2_event_subscribe(struct v4l2_fh *fh,
- 		}
- 	}
- 
--	/* v4l2_ctrl_add_event uses a mutex, so do this outside the spin lock */
--	if (ctrl)
--		v4l2_ctrl_add_event(ctrl, sev);
--
- 	/* Mark as ready for use */
- 	sev->elems = elems;
- 
-@@ -338,13 +306,6 @@ int v4l2_event_unsubscribe(struct v4l2_fh *fh,
- 	if (sev && sev->ops && sev->ops->del)
- 		sev->ops->del(sev);
- 
--	if (sev && sev->type == V4L2_EVENT_CTRL) {
--		struct v4l2_ctrl *ctrl = v4l2_ctrl_find(fh->ctrl_handler, sev->id);
--
--		if (ctrl)
--			v4l2_ctrl_del_event(ctrl, sev);
--	}
--
- 	kfree(sev);
- 
+-	/* extract consteallation */
++	/* extract constellation */
+ 	switch (as10x_tps->modulation) {
+ 	case CONST_QPSK:
+ 		fe_tps->modulation = QPSK;
+diff --git a/drivers/staging/media/go7007/go7007-v4l2.c b/drivers/staging/media/go7007/go7007-v4l2.c
+index 2b27d8d..8054378 100644
+--- a/drivers/staging/media/go7007/go7007-v4l2.c
++++ b/drivers/staging/media/go7007/go7007-v4l2.c
+@@ -1050,15 +1050,15 @@ static int vidioc_s_parm(struct file *filp, void *priv,
  	return 0;
-diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
-index 3dbd066..e5194f9 100644
---- a/include/media/v4l2-ctrls.h
-+++ b/include/media/v4l2-ctrls.h
-@@ -488,10 +488,9 @@ s32 v4l2_ctrl_g_ctrl(struct v4l2_ctrl *ctrl);
- int v4l2_ctrl_s_ctrl(struct v4l2_ctrl *ctrl, s32 val);
+ }
  
- /* Internal helper functions that deal with control events. */
--void v4l2_ctrl_add_event(struct v4l2_ctrl *ctrl,
--		struct v4l2_subscribed_event *sev);
--void v4l2_ctrl_del_event(struct v4l2_ctrl *ctrl,
--		struct v4l2_subscribed_event *sev);
-+extern const struct v4l2_subscribed_event_ops v4l2_ctrl_sub_ev_ops;
-+void v4l2_ctrl_replace(struct v4l2_event *old, const struct v4l2_event *new);
-+void v4l2_ctrl_merge(const struct v4l2_event *old, struct v4l2_event *new);
+-/* VIDIOC_ENUMSTD on go7007 were used for enumberating the supported fps and
++/* VIDIOC_ENUMSTD on go7007 were used for enumerating the supported fps and
+    its resolution, when the device is not connected to TV.
+-   This were an API abuse, probably used by the lack of specific IOCTL's to
+-   enumberate it, by the time the driver were written.
++   This is were an API abuse, probably used by the lack of specific IOCTL's to
++   enumerate it, by the time the driver was written.
  
- /* Can be used as a vidioc_log_status function that just dumps all controls
-    associated with the filehandle. */
+    However, since kernel 2.6.19, two new ioctls (VIDIOC_ENUM_FRAMEINTERVALS
+    and VIDIOC_ENUM_FRAMESIZES) were added for this purpose.
+ 
+-   The two functions bellow implements the newer ioctls
++   The two functions bellow implement the newer ioctls
+ */
+ static int vidioc_enum_framesizes(struct file *filp, void *priv,
+ 				  struct v4l2_frmsizeenum *fsize)
+diff --git a/drivers/staging/media/lirc/lirc_serial.c b/drivers/staging/media/lirc/lirc_serial.c
+index 8dd8897..97352cf 100644
+--- a/drivers/staging/media/lirc/lirc_serial.c
++++ b/drivers/staging/media/lirc/lirc_serial.c
+@@ -1282,7 +1282,7 @@ MODULE_PARM_DESC(iommap, "physical base for memory mapped I/O"
+ /*
+  * some architectures (e.g. intel xscale) align the 8bit serial registers
+  * on 32bit word boundaries.
+- * See linux-kernel/serial/8250.c serial_in()/out()
++ * See linux-kernel/drivers/tty/serial/8250/8250.c serial_in()/out()
+  */
+ module_param(ioshift, int, S_IRUGO);
+ MODULE_PARM_DESC(ioshift, "shift I/O register offset (0 = no shift)");
+diff --git a/drivers/staging/media/solo6x10/Kconfig b/drivers/staging/media/solo6x10/Kconfig
+index 03dcac4..63352de 100644
+--- a/drivers/staging/media/solo6x10/Kconfig
++++ b/drivers/staging/media/solo6x10/Kconfig
+@@ -5,4 +5,4 @@ config SOLO6X10
+ 	select SND_PCM
+ 	---help---
+ 	  This driver supports the Softlogic based MPEG-4 and h.264 codec
+-	  codec cards.
++	  cards.
 -- 
-1.7.9.3
+1.7.5.4
 
