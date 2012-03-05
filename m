@@ -1,66 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:5295 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757913Ab2CSW0c (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Mar 2012 18:26:32 -0400
-Message-ID: <4F67B283.4050308@redhat.com>
-Date: Mon, 19 Mar 2012 19:26:11 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-1-out2.atlantis.sk ([80.94.52.71]:40383 "EHLO
+	mail.atlantis.sk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751723Ab2CEVHd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Mar 2012 16:07:33 -0500
+From: Ondrej Zary <linux@rainbow-software.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH v2 2/2] radio-gemtek: add PnP support for AOpen FX-3D/Pro Radio
+Date: Mon, 5 Mar 2012 22:06:51 +0100
+Cc: linux-media@vger.kernel.org
 MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: Jean Delvare <khali@linux-fr.org>,
-	LMML <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH 1/2] [media] dib0700: Drop useless check when remote key
- is pressed
-References: <20120313185037.4059a869@endymion.delvare> <CAGoCfixvanxKT4h1k+FkaYkQ-zHjR-rYBWxHHiDygOScPCeZPA@mail.gmail.com>
-In-Reply-To: <CAGoCfixvanxKT4h1k+FkaYkQ-zHjR-rYBWxHHiDygOScPCeZPA@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <201203052206.54047.linux@rainbow-software.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 13-03-2012 14:57, Devin Heitmueller escreveu:
-> On Tue, Mar 13, 2012 at 1:50 PM, Jean Delvare <khali@linux-fr.org> wrote:
->> struct dvb_usb_device *d can never be NULL so don't waste time
->> checking for this.
->>
->> Rationale: the urb's context is set when usb_fill_bulk_urb() is called
->> in dib0700_rc_setup(), and never changes after that. d is dereferenced
->> unconditionally in dib0700_rc_setup() so it can't be NULL or the
->> driver would crash right away.
->>
->> Signed-off-by: Jean Delvare <khali@linux-fr.org>
->> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
->> Cc: Devin Heitmueller <dheitmueller@kernellabs.com>
->> ---
->> Devin, am I missing something?
-> 
-> I think this was just a case of defensive coding where I didn't want
-> to dereference something without validating the pointer first (out of
-> fear that it got called through some other code path that I didn't
-> consider).
+Add PnP support to radio-gemtek for AOpen FX-3D/Pro Radio card
+(AD1816 + Gemtek radio).
 
->> --- linux-3.3-rc7.orig/drivers/media/dvb/dvb-usb/dib0700_core.c	2012-03-13 11:09:13.000000000 +0100
->> +++ linux-3.3-rc7/drivers/media/dvb/dvb-usb/dib0700_core.c	2012-03-13 18:37:05.785953845 +0100
->> @@ -677,9 +677,6 @@ static void dib0700_rc_urb_completion(st
->>  	u8 toggle;
->>  
->>  	deb_info("%s()\n", __func__);
->> -	if (d == NULL)
->> -		return;
->> -
+Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
 
-Well, usb_free_urb() is not called when d == NULL, so, if this condition
-ever happens, it will keep URB's allocated.
+diff --git a/drivers/media/radio/radio-gemtek.c b/drivers/media/radio/radio-gemtek.c
+index 9d7fdae..235c0e3 100644
+--- a/drivers/media/radio/radio-gemtek.c
++++ b/drivers/media/radio/radio-gemtek.c
+@@ -29,6 +29,8 @@
+ #include <linux/videodev2.h>	/* kernel radio structs		*/
+ #include <linux/mutex.h>
+ #include <linux/io.h>		/* outb, outb_p			*/
++#include <linux/pnp.h>
++#include <linux/slab.h>
+ #include <media/v4l2-ioctl.h>
+ #include <media/v4l2-device.h>
+ #include "radio-isa.h"
+@@ -282,6 +284,16 @@ static const struct radio_isa_ops gemtek_ops = {
+ 
+ static const int gemtek_ioports[] = { 0x20c, 0x30c, 0x24c, 0x34c, 0x248, 0x28c };
+ 
++#ifdef CONFIG_PNP
++static struct pnp_device_id gemtek_pnp_devices[] = {
++	/* AOpen FX-3D/Pro Radio */
++	{.id = "ADS7183", .driver_data = 0},
++	{.id = ""}
++};
++
++MODULE_DEVICE_TABLE(pnp, gemtek_pnp_devices);
++#endif
++
+ static struct radio_isa_driver gemtek_driver = {
+ 	.driver = {
+ 		.match		= radio_isa_match,
+@@ -291,6 +303,14 @@ static struct radio_isa_driver gemtek_driver = {
+ 			.name	= "radio-gemtek",
+ 		},
+ 	},
++#ifdef CONFIG_PNP
++	.pnp_driver = {
++		.name		= "radio-gemtek",
++		.id_table	= gemtek_pnp_devices,
++		.probe		= radio_isa_pnp_probe,
++		.remove		= radio_isa_pnp_remove,
++	},
++#endif
+ 	.io_params = io,
+ 	.radio_nr_params = radio_nr,
+ 	.io_ports = gemtek_ioports,
+@@ -304,12 +324,18 @@ static struct radio_isa_driver gemtek_driver = {
+ static int __init gemtek_init(void)
+ {
+ 	gemtek_driver.probe = probe;
++#ifdef CONFIG_PNP
++	pnp_register_driver(&gemtek_driver.pnp_driver);
++#endif
+ 	return isa_register_driver(&gemtek_driver.driver, GEMTEK_MAX);
+ }
+ 
+ static void __exit gemtek_exit(void)
+ {
+ 	hardmute = 1;	/* Turn off PLL */
++#ifdef CONFIG_PNP
++	pnp_unregister_driver(&gemtek_driver.pnp_driver);
++#endif
+ 	isa_unregister_driver(&gemtek_driver.driver);
+ }
+ 
 
-Anyway, if struct dvb_usb_device *d is NULL, the driver has something very
-wrong happening on it, and nothing will work on it.
 
-I agree with Jean: it is better to just remove this code there.
-
-Yet, I'd be more happy if Jean's patch could check first if the status is
-below 0, in order to prevent a possible race condition at device disconnect.
-
-Regards,
-Mauro
+-- 
+Ondrej Zary
