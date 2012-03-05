@@ -1,139 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:56327 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965129Ab2CFLiT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Mar 2012 06:38:19 -0500
-Received: from euspt1 (mailout2.w1.samsung.com [210.118.77.12])
- by mailout2.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0M0G003KLOBR18@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 06 Mar 2012 11:38:15 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0M0G00CLQOBRW5@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 06 Mar 2012 11:38:15 +0000 (GMT)
-Date: Tue, 06 Mar 2012 12:38:06 +0100
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: [RFCv2 PATCH 5/9] v4l: vb2: add buffer exporting via dmabuf
-In-reply-to: <1331033890-10350-1-git-send-email-t.stanislaws@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, t.stanislaws@samsung.com,
-	kyungmin.park@samsung.com, hverkuil@xs4all.nl,
-	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
-	daeinki@gmail.com
-Message-id: <1331033890-10350-6-git-send-email-t.stanislaws@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1331033890-10350-1-git-send-email-t.stanislaws@samsung.com>
+Received: from mx1.redhat.com ([209.132.183.28]:28298 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751019Ab2CEIbd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 5 Mar 2012 03:31:33 -0500
+Message-ID: <4F547A4E.9090703@redhat.com>
+Date: Mon, 05 Mar 2012 09:33:18 +0100
+From: Hans de Goede <hdegoede@redhat.com>
+MIME-Version: 1.0
+To: Xavion <xavion.0@gmail.com>
+CC: Jean-Francois Moine <moinejf@free.fr>,
+	"Linux Kernel (Media) ML" <linux-media@vger.kernel.org>
+Subject: Re: My Microdia (SN9C201) webcam doesn't work properly in Linux anymore
+References: <CAKnx8Y7BAyR8A5r-eL13MVgZO2DcKndP3v-MTfkQdmXPvjjGJg@mail.gmail.com> <CAKnx8Y6dM8qbQvJgt_z2A2XD8aPGhGoqCSWabyNYjRbsH6CDJw@mail.gmail.com> <4F51CCC1.8020308@redhat.com> <CAKnx8Y6ER6CV6WQKrmN4fFkLjQx0GXEzvNmuApnA=G6fJDgsPQ@mail.gmail.com> <20120304082531.1307a9ed@tele> <CAKnx8Y7A2Dd0JW0n9bJBBc+ScnagpdFEkAvbg_Jab3vt66Ky0Q@mail.gmail.com>
+In-Reply-To: <CAKnx8Y7A2Dd0JW0n9bJBBc+ScnagpdFEkAvbg_Jab3vt66Ky0Q@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds extension to videobuf2-core. It allow to export a mmap buffer
-as a file descriptor.
+Hi,
 
-Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/video/videobuf2-core.c |   64 ++++++++++++++++++++++++++++++++++
- include/media/videobuf2-core.h       |    2 +
- 2 files changed, 66 insertions(+), 0 deletions(-)
+On 03/04/2012 10:58 PM, Xavion wrote:
+> Hi Jean-Francois
+>
+> I can confirm that GSPCA v2.15.1 removes the bad pixels when I use
+> Cheese or VLC.  However, I'm sorry to report that the Motion problems
+> unfortunately still remain.  Is there something else I must do to
+> overcome the below errors?  I'm happy to keep testing newer GSPCA
+> versions for you until we get this fixed.
 
-diff --git a/drivers/media/video/videobuf2-core.c b/drivers/media/video/videobuf2-core.c
-index e7df560..41c4bf8 100644
---- a/drivers/media/video/videobuf2-core.c
-+++ b/drivers/media/video/videobuf2-core.c
-@@ -1553,6 +1553,70 @@ int vb2_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b, bool nonblocking)
- }
- EXPORT_SYMBOL_GPL(vb2_dqbuf);
- 
-+static int __find_plane_by_offset(struct vb2_queue *q, unsigned long off,
-+			unsigned int *_buffer, unsigned int *_plane);
-+
-+/**
-+ * vb2_expbuf() - Export a buffer as a file descriptor
-+ * @q:		videobuf2 queue
-+ * @b:		export buffer structure passed from userspace to vidioc_expbuf
-+ *		handler in driver
-+ *
-+ * The return values from this function are intended to be directly returned
-+ * from vidioc_expbuf handler in driver.
-+ */
-+int vb2_expbuf(struct vb2_queue *q, struct v4l2_exportbuffer *eb)
-+{
-+	struct vb2_buffer *vb = NULL;
-+	struct vb2_plane *vb_plane;
-+	unsigned int buffer, plane;
-+	int ret;
-+	struct dma_buf *dbuf;
-+
-+	if (q->memory != V4L2_MEMORY_MMAP) {
-+		dprintk(1, "Queue is not currently set up for mmap\n");
-+		return -EINVAL;
-+	}
-+
-+	if (!q->mem_ops->get_dmabuf) {
-+		dprintk(1, "Queue does not support DMA buffer exporting\n");
-+		return -EINVAL;
-+	}
-+
-+	/*
-+	 * Find the plane corresponding to the offset passed by userspace.
-+	 */
-+	ret = __find_plane_by_offset(q, eb->mem_offset, &buffer, &plane);
-+	if (ret) {
-+		dprintk(1, "invalid offset %u\n", eb->mem_offset);
-+		return ret;
-+	}
-+
-+	vb = q->bufs[buffer];
-+	vb_plane = &vb->planes[plane];
-+
-+	dbuf = call_memop(q, get_dmabuf, vb_plane->mem_priv);
-+	if (IS_ERR_OR_NULL(dbuf)) {
-+		dprintk(1, "Failed to export buffer %d, plane %d\n",
-+			buffer, plane);
-+		return -EINVAL;
-+	}
-+
-+	ret = dma_buf_fd(dbuf);
-+	if (ret < 0) {
-+		dprintk(3, "buffer %d, plane %d failed to export (%d)\n",
-+			buffer, plane, ret);
-+		return ret;
-+	}
-+
-+	dprintk(3, "buffer %d, plane %d exported as %d descriptor\n",
-+		buffer, plane, ret);
-+	eb->fd = ret;
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(vb2_expbuf);
-+
- /**
-  * __vb2_queue_cancel() - cancel and stop (pause) streaming
-  *
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index 412c6a4..548252b 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -79,6 +79,7 @@ struct vb2_mem_ops {
- 	void		(*prepare)(void *buf_priv);
- 	void		(*finish)(void *buf_priv);
- 	void		(*put)(void *buf_priv);
-+	struct dma_buf *(*get_dmabuf)(void *buf_priv);
- 
- 	void		*(*get_userptr)(void *alloc_ctx, unsigned long vaddr,
- 					unsigned long size, int write);
-@@ -348,6 +349,7 @@ int vb2_queue_init(struct vb2_queue *q);
- void vb2_queue_release(struct vb2_queue *q);
- 
- int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b);
-+int vb2_expbuf(struct vb2_queue *q, struct v4l2_exportbuffer *eb);
- int vb2_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b, bool nonblocking);
- 
- int vb2_streamon(struct vb2_queue *q, enum v4l2_buf_type type);
--- 
-1.7.5.4
+I guess that motion is using the JPG compressed frames rather then
+the i420 like special format these cameras also support, and it looks
+like we don't reserve enoug space to buffer these frames. To fix this
+we need to enlarge the size we reserve per frame in the sn9c20x driver,
+edit sn9c20x.c and search for vga_mode, in that table you will
+find a factor "4 / 8" (its in there 3 times), change all 3 occurences
+to "5 / 8" and try again, then "6 / 8", etc.
 
+Normally I would be suspicious about SOF / EOF detection when we
+need such a factor, but the timestamps in your log exactly match 30
+fps, so that seems to be fine. And in my experience with the USB bandwidth
+stuff the sn9c20x does seem to compress less then other JPG cams, so
+it makes sense that it needs bigger buffers to store the frames too.
+
+Alternatively you can try if motion can be made to use a different format
+then JPG, by forcing it to use libv4l by starting it like this:
+LD_PRELOAD=/usr/lib/libv4l/v4l1-compat.so motion
+
+Note if you're on a rpm based 64 bit distro and motion is 64 bit too
+that should be:
+LD_PRELOAD=/usr/lib64/libv4l/v4l1-compat.so motion
+
+But that would just be working around the issue, it is better to
+fix the issue with using the JPG mode of the camera instead.
+
+Regards,
+
+Hans
+
+
+
+
+
+>
+>
+> `-->  tail /var/log/kernel.log
+> Mar  5 08:25:52 Desktop kernel: [ 6673.781987] gspca_main: frame
+> overflow 156309>  155648
+> Mar  5 08:25:52 Desktop kernel: [ 6673.813992] gspca_main: frame
+> overflow 156309>  155648
+> Mar  5 08:25:53 Desktop kernel: [ 6673.849986] gspca_main: frame
+> overflow 155693>  155648
+> Mar  5 08:25:53 Desktop kernel: [ 6673.881989] gspca_main: frame
+> overflow 156021>  155648
+> Mar  5 08:25:53 Desktop kernel: [ 6673.917991] gspca_main: frame
+> overflow 156309>  155648
+> Mar  5 08:25:53 Desktop kernel: [ 6673.949993] gspca_main: frame
+> overflow 156309>  155648
+> Mar  5 08:25:53 Desktop kernel: [ 6673.985990] gspca_main: frame
+> overflow 156309>  155648
+> Mar  5 08:25:53 Desktop kernel: [ 6674.021981] gspca_main: frame
+> overflow 156309>  155648
+> Mar  5 08:25:53 Desktop kernel: [ 6674.053985] gspca_main: frame
+> overflow 156309>  155648
+> Mar  5 08:25:53 Desktop kernel: [ 6674.089989] gspca_main: frame
+> overflow 156309>  155648
+>
+>
+> `-->  tail /var/log/errors.log
+> Mar  5 08:24:16 Desktop motion: [1] v4l2_next: VIDIOC_QBUF: Invalid argument
+> Mar  5 08:24:16 Desktop motion: [1] Video device fatal error - Closing
+> video device
+> Mar  5 08:24:20 Desktop motion: [1] Retrying until successful
+> connection with camera
+> Mar  5 08:24:27 Desktop motion: [1] v4l2_next: VIDIOC_DQBUF: EIO
+> (s->pframe 3): Input/output error
+> Mar  5 08:24:27 Desktop motion: [1] v4l2_next: VIDIOC_QBUF: Invalid argument
+> Mar  5 08:24:27 Desktop motion: [1] Video device fatal error - Closing
+> video device
+> Mar  5 08:24:30 Desktop motion: [1] Retrying until successful
+> connection with camera
+> Mar  5 08:24:33 Desktop motion: [1] v4l2_next: VIDIOC_DQBUF: EIO
+> (s->pframe 0): Input/output error
+> Mar  5 08:24:33 Desktop motion: [1] v4l2_next: VIDIOC_QBUF: Invalid argument
+> Mar  5 08:24:33 Desktop motion: [1] Video device fatal error - Closing
+> video device
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
