@@ -1,47 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail2.matrix-vision.com ([85.214.244.251]:37154 "EHLO
-	mail2.matrix-vision.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751229Ab2CINCN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Mar 2012 08:02:13 -0500
-Message-ID: <4F59FD87.4030506@matrix-vision.de>
-Date: Fri, 09 Mar 2012 13:54:31 +0100
-From: Michael Jones <michael.jones@matrix-vision.de>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:36334 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756893Ab2CELfy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Mar 2012 06:35:54 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, dacohen@gmail.com, snjw23@gmail.com,
+	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
+	tuukkat76@gmail.com, k.debski@samsung.com, riverful@gmail.com,
+	hverkuil@xs4all.nl, teturtia@gmail.com
+Subject: Re: [PATCH v4 34/34] rm680: Add camera init
+Date: Mon, 05 Mar 2012 12:36:13 +0100
+Message-ID: <1463492.hYzTZPMTCH@avalon>
+In-Reply-To: <1330709442-16654-34-git-send-email-sakari.ailus@iki.fi>
+References: <20120302173219.GA15695@valkosipuli.localdomain> <1330709442-16654-34-git-send-email-sakari.ailus@iki.fi>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: jean-philippe francois <jp.francois@cynove.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org
-Subject: Re: Lockup on second streamon with omap3-isp
-References: <CAGGh5h0dVOsT-PCoCBtjj=+rLzViwnM2e9hG+sbWQk5iS-ThEQ@mail.gmail.com> <2747531.0sXdUv33Rd@avalon> <CAGGh5h13mOVtWPLGowvtvZM1Ufx2PST3DCokJzspGFcsUo=FiA@mail.gmail.com> <2243690.V1TtfkZKP0@avalon>
-In-Reply-To: <2243690.V1TtfkZKP0@avalon>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hi Sakari,
 
-On 03/09/2012 11:42 AM, Laurent Pinchart wrote:
-> Hi Jean-Philippe,
->
-[snip]
->  From my experience, the ISP doesn't handle free-running sensors very well.
-> There are other things it doesn't handle well, such as sensors stopping in the
-> middle of the frame. I would consider this as limitations.
+Thanks for the patch.
 
-Considering choking on sensors which stop in the middle of the frame- is 
-this just a limitation of the driver, or is it really a limitation of 
-the ISP hardware itself?  It is at least a limitation of the driver 
-because we rely on the VD1 and VD0 interrupts, so we'll of course have 
-problems if we never get to the last line.  But isn't it conceivable to 
-use HS_VS to do our end-of-frame stuff instead of VD0?  Maybe then the 
-ISP would be OK with frames that ended early, as long as they had 
-reached VD1.  Then of course, you could move VD1 to an even earlier 
-line, even to the first line.
+On Friday 02 March 2012 19:30:42 Sakari Ailus wrote:
+> From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+> 
+> This currently introduces an extra file to the arch/arm/mach-omap2
+> directory: board-rm680-camera.c. Keeping the device tree in mind, the
+> context of the file could be represented as static data with one exception:
+> the external clock to the sensor.
+> 
+> This external clock is provided by the OMAP 3 SoC and required by the
+> sensor. The issue is that the clock originates from the ISP and not from
+> PRCM block as the other clocks and thus is not supported by the clock
+> framework. Otherwise the sensor driver could just clk_get() and clk_enable()
+> it, just like the regulators and gpios.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 
-Do you think that's possible?
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
--Michael
+-- 
+Regards,
 
-MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
-Registergericht: Amtsgericht Stuttgart, HRB 271090
-Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner, Erhard Meier
+Laurent Pinchart
+
