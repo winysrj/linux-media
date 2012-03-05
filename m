@@ -1,125 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eu1sys200aog107.obsmtp.com ([207.126.144.123]:35044 "EHLO
-	eu1sys200aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757787Ab2CMLeQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Mar 2012 07:34:16 -0400
-From: Bhupesh Sharma <bhupesh.sharma@st.com>
-To: <linux-usb@vger.kernel.org>
-Cc: <linux-media@vger.kernel.org>, <spear-devel@list.st.com>,
-	<laurent.pinchart@ideasonboard.com>,
-	Bhupesh Sharma <bhupesh.sharma@st.com>
-Subject: [PATCH RESEND] usb: gadget/uvc: Remove non-required locking from 'uvc_queue_next_buffer' routine
-Date: Tue, 13 Mar 2012 17:04:01 +0530
-Message-ID: <d5dbc7befb35abdce18d77f918954137a2be2f26.1331638300.git.bhupesh.sharma@st.com>
+Received: from mx1.redhat.com ([209.132.183.28]:64589 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932367Ab2CEOlw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 5 Mar 2012 09:41:52 -0500
+Message-ID: <4F54D116.7020304@redhat.com>
+Date: Mon, 05 Mar 2012 15:43:34 +0100
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+To: Jean-Francois Moine <moinejf@free.fr>
+CC: Xavion <xavion.0@gmail.com>,
+	"Linux Kernel (Media) ML" <linux-media@vger.kernel.org>
+Subject: Re: My Microdia (SN9C201) webcam doesn't work properly in Linux anymore
+References: <CAKnx8Y7BAyR8A5r-eL13MVgZO2DcKndP3v-MTfkQdmXPvjjGJg@mail.gmail.com> <CAKnx8Y6dM8qbQvJgt_z2A2XD8aPGhGoqCSWabyNYjRbsH6CDJw@mail.gmail.com> <4F51CCC1.8020308@redhat.com> <CAKnx8Y6ER6CV6WQKrmN4fFkLjQx0GXEzvNmuApnA=G6fJDgsPQ@mail.gmail.com> <20120304082531.1307a9ed@tele> <CAKnx8Y7A2Dd0JW0n9bJBBc+ScnagpdFEkAvbg_Jab3vt66Ky0Q@mail.gmail.com> <4F547A4E.9090703@redhat.com> <20120305130318.458bd040@tele>
+In-Reply-To: <20120305130318.458bd040@tele>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch removes the non-required spinlock acquire/release calls on
-'queue_irqlock' from 'uvc_queue_next_buffer' routine.
+Hi,
 
-This routine is called from 'video->encode' function (which translates to either
-'uvc_video_encode_bulk' or 'uvc_video_encode_isoc') in 'uvc_video.c'.
-As, the 'video->encode' routines are called with 'queue_irqlock' already held,
-so acquiring a 'queue_irqlock' again in 'uvc_queue_next_buffer' routine causes
-a spin lock recursion.
+On 03/05/2012 01:03 PM, Jean-Francois Moine wrote:
+> On Mon, 05 Mar 2012 09:33:18 +0100
+> Hans de Goede<hdegoede@redhat.com>  wrote:
+>
+>> I guess that motion is using the JPG compressed frames rather then
+>> the i420 like special format these cameras also support, and it looks
+>> like we don't reserve enoug space to buffer these frames. To fix this
+>> we need to enlarge the size we reserve per frame in the sn9c20x driver,
+>> edit sn9c20x.c and search for vga_mode, in that table you will
+>> find a factor "4 / 8" (its in there 3 times), change all 3 occurences
+>> to "5 / 8" and try again, then "6 / 8", etc.
+>>
+>> Normally I would be suspicious about SOF / EOF detection when we
+>> need such a factor, but the timestamps in your log exactly match 30
+>> fps, so that seems to be fine. And in my experience with the USB bandwidth
+>> stuff the sn9c20x does seem to compress less then other JPG cams, so
+>> it makes sense that it needs bigger buffers to store the frames too.
+>
+> Hi Hans,
+>
+> The JPEG compression quality of the sn9c20x is 95%. That's why the
+> frames are so big. Then, if the quality is not settable, I wonder why
+> to use the JPEG format.
 
-A sample kernel crash log is given below (as observed on using 'g_webcam'
-with DWC designware 2.0 UDC):
+I think the quality is settable, and we are just not setting it to a very
+useful value. I'm afraid I don't have time to work on this atm, but if you
+are willing to take a shot at this, then I can test (I've such a camera).
 
-Kernel crash log:
------------------
-BUG: spinlock recursion on CPU#0, swapper/0/0
- lock: 8f824f70, .magic: dead4ead, .owner: swapper/0/0, .owner_cpu: 0
-Backtrace:
-[<80011b04>] (dump_backtrace+0x0/0x10c) from [<8040bc04>] (dump_stack+0x18/0x1c)
- r6:8f8240b4 r5:8f824f70 r4:805a1b80 r3:805b9d00
-[<8040bbec>] (dump_stack+0x0/0x1c) from [<8040e178>] (spin_dump+0x80/0x94)
-[<8040e0f8>] (spin_dump+0x0/0x94) from [<8040e1b8>] (spin_bug+0x2c/0x30)
- r5:804e88f4 r4:8f824f70
-[<8040e18c>] (spin_bug+0x0/0x30) from [<8019e45c>] (do_raw_spin_lock+0x148/0x16c)
- r5:80586000 r4:8f824f70
-[<8019e314>] (do_raw_spin_lock+0x0/0x16c) from [<80411e5c>] (_raw_spin_lock_irqsave+0x18/0x20)
- r9:8f81515c r8:8fb30740 r7:8f824f70 r6:8f8240b4 r5:8f8240d0
-r4:60000193
-[<80411e44>] (_raw_spin_lock_irqsave+0x0/0x20) from [<802d17e0>] (uvc_queue_next_buffer.part.11+0x2
-4/0xa4)
- r4:8f824054 r3:00000000
-[<802d17bc>] (uvc_queue_next_buffer.part.11+0x0/0xa4) from [<802d1968>] (uvc_video_encode_isoc+0x10
-8/0x118)
- r7:00000110 r6:00070800 r5:8f8240d0 r4:8f824054
-[<802d1860>] (uvc_video_encode_isoc+0x0/0x118) from [<802cffb8>] (uvc_video_complete+0x6c/0x134)
- r8:60000193 r7:8f815120 r6:8f824f70 r5:8f824054 r4:8fb30740
-r3:802d1860
-[<802cff4c>] (uvc_video_complete+0x0/0x134) from [<802cc18c>] (req_done+0xd0/0xf4)
- r8:90810400 r7:805dbcd0 r6:00000000 r5:8f815120 r4:8fb30740
-r3:802cff4c
-[<802cc0bc>] (req_done+0x0/0xf4) from [<802cda84>] (udc_handle_epn_in_int+0xc0/0x1b8)
- r7:00000400 r6:8059efd4 r5:90810060 r4:8f815120
-[<802cd9c4>] (udc_handle_epn_in_int+0x0/0x1b8) from [<802ce950>] (dw_udc_irq+0x10c/0x61c)
-[<802ce844>] (dw_udc_irq+0x0/0x61c) from [<8006951c>] (handle_irq_event_percpu+0x54/0x188)
-[<800694c8>] (handle_irq_event_percpu+0x0/0x188) from [<80069694>] (handle_irq_event+0x44/0x64)
-[<80069650>] (handle_irq_event+0x0/0x64) from [<8006c270>] (handle_fasteoi_irq+0xa0/0x148)
- r6:80586000 r5:8058c894 r4:8058c840 r3:00000000
-[<8006c1d0>] (handle_fasteoi_irq+0x0/0x148) from [<80068d28>] (generic_handle_irq+0x34/0x48)
- r5:80584b6c r4:8059f8b8
-[<80068cf4>] (generic_handle_irq+0x0/0x48) from [<8000efa8>] (handle_IRQ+0x54/0xb4)
-[<8000ef54>] (handle_IRQ+0x0/0xb4) from [<8000849c>] (gic_handle_irq+0x2c/0xb0)
- r8:8059eff8 r7:80587f38 r6:fec80100 r5:8059eff8 r4:00000000
-r3:0000005e
-[<80008470>] (gic_handle_irq+0x0/0xb0) from [<8000dd80>] (__irq_svc+0x40/0x60)
-Exception stack(0x80587f38 to 0x80587f80)
-7f20:                                                       ffffffed 00000000
-7f40: 80587f80 00000000 80586000 805f1988 80413864 805a2bb8 80586000 411fc091
-7f60: 00000000 80587f8c 80587f90 80587f80 8000f2a4 8000f2a8 60000013 ffffffff
- r8:80586000 r7:80587f6c r6:ffffffff r5:60000013 r4:8000f2a8
-r3:8000f2a4
-[<8000f27c>] (default_idle+0x0/0x30) from [<8000f52c>] (cpu_idle+0xd8/0xf4)
-[<8000f454>] (cpu_idle+0x0/0xf4) from [<803fd0e0>] (rest_init+0x64/0x7c)
- r8:0000406a r7:805a2bac r6:809778c0 r5:8057b144 r4:8059f690
-r3:00000000
-[<803fd07c>] (rest_init+0x0/0x7c) from [<805527ec>] (start_kernel+0x294/0x2e8)
-[<80552558>] (start_kernel+0x0/0x2e8) from [<00008044>] (0x8044)
+I'll send you a private mail with info on how to set the compression
+ratio.
 
-Signed-off-by: Bhupesh Sharma <bhupesh.sharma@st.com>
----
- drivers/usb/gadget/uvc_queue.c |    4 +---
- 1 files changed, 1 insertions(+), 3 deletions(-)
+> BTW, I wonder also about the SN9C20X_I420: this format asks for a
+> buffer greater than the native image.
 
-diff --git a/drivers/usb/gadget/uvc_queue.c b/drivers/usb/gadget/uvc_queue.c
-index d776adb..104ae9c 100644
---- a/drivers/usb/gadget/uvc_queue.c
-+++ b/drivers/usb/gadget/uvc_queue.c
-@@ -543,11 +543,11 @@ done:
- 	return ret;
- }
- 
-+/* called with &queue_irqlock held.. */
- static struct uvc_buffer *
- uvc_queue_next_buffer(struct uvc_video_queue *queue, struct uvc_buffer *buf)
- {
- 	struct uvc_buffer *nextbuf;
--	unsigned long flags;
- 
- 	if ((queue->flags & UVC_QUEUE_DROP_INCOMPLETE) &&
- 	    buf->buf.length != buf->buf.bytesused) {
-@@ -556,14 +556,12 @@ uvc_queue_next_buffer(struct uvc_video_queue *queue, struct uvc_buffer *buf)
- 		return buf;
- 	}
- 
--	spin_lock_irqsave(&queue->irqlock, flags);
- 	list_del(&buf->queue);
- 	if (!list_empty(&queue->irqqueue))
- 		nextbuf = list_first_entry(&queue->irqqueue, struct uvc_buffer,
- 					   queue);
- 	else
- 		nextbuf = NULL;
--	spin_unlock_irqrestore(&queue->irqlock, flags);
- 
- 	buf->buf.sequence = queue->sequence++;
- 	do_gettimeofday(&buf->buf.timestamp);
--- 
-1.7.2.2
+Yes, but then the data is ready to use, since most apps actuall want i420,
+where as raw bayer needs a lot of CPU intensive processing before we get
+useful data out of it.
 
+Regards,
+
+Hans
