@@ -1,101 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bues.ch ([80.190.117.144]:49850 "EHLO bues.ch"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932104Ab2CTQhg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Mar 2012 12:37:36 -0400
-Date: Tue, 20 Mar 2012 17:37:24 +0100
-From: Michael =?UTF-8?B?QsO8c2No?= <m@bues.ch>
-To: gennarone@gmail.com
-Cc: Hans-Frieder Vogt <hfvogt@gmx.net>, linux-media@vger.kernel.org
-Subject: Re: [PATCH 2/3] Basic AF9035/AF9033 driver
-Message-ID: <20120320173724.4d3f2f0f@milhouse>
-In-Reply-To: <4F68B001.1050809@gmail.com>
-References: <201202222321.43972.hfvogt@gmx.net>
-	<4F67CF24.8050601@redhat.com>
-	<20120320140411.58b5808b@milhouse>
-	<4F68B001.1050809@gmail.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=PGP-SHA1;
- boundary="Sig_/=6UdQPWNWsUidNnt0rDQg9q"; protocol="application/pgp-signature"
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:56327 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759125Ab2CFLiU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Mar 2012 06:38:20 -0500
+Received: from euspt1 (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0M0G003KLOBR18@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 06 Mar 2012 11:38:16 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0M0G0071WOBRLO@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 06 Mar 2012 11:38:15 +0000 (GMT)
+Date: Tue, 06 Mar 2012 12:38:10 +0100
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: [RFCv2 PATCH 9/9] v4l: s5p-tv: mixer: integrate with dmabuf
+In-reply-to: <1331033890-10350-1-git-send-email-t.stanislaws@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: m.szyprowski@samsung.com, t.stanislaws@samsung.com,
+	kyungmin.park@samsung.com, hverkuil@xs4all.nl,
+	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
+	daeinki@gmail.com
+Message-id: <1331033890-10350-10-git-send-email-t.stanislaws@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1331033890-10350-1-git-send-email-t.stanislaws@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---Sig_/=6UdQPWNWsUidNnt0rDQg9q
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/video/s5p-tv/Kconfig       |    1 +
+ drivers/media/video/s5p-tv/mixer_video.c |   12 +++++++++++-
+ 2 files changed, 12 insertions(+), 1 deletions(-)
 
-On Tue, 20 Mar 2012 17:27:45 +0100
-Gianluca Gennari <gennarone@gmail.com> wrote:
+diff --git a/drivers/media/video/s5p-tv/Kconfig b/drivers/media/video/s5p-tv/Kconfig
+index f248b28..2e80126 100644
+--- a/drivers/media/video/s5p-tv/Kconfig
++++ b/drivers/media/video/s5p-tv/Kconfig
+@@ -10,6 +10,7 @@ config VIDEO_SAMSUNG_S5P_TV
+ 	bool "Samsung TV driver for S5P platform (experimental)"
+ 	depends on PLAT_S5P && PM_RUNTIME
+ 	depends on EXPERIMENTAL
++	select DMA_SHARED_BUFFER
+ 	default n
+ 	---help---
+ 	  Say Y here to enable selecting the TV output devices for
+diff --git a/drivers/media/video/s5p-tv/mixer_video.c b/drivers/media/video/s5p-tv/mixer_video.c
+index f7ca5cc..f08edbf 100644
+--- a/drivers/media/video/s5p-tv/mixer_video.c
++++ b/drivers/media/video/s5p-tv/mixer_video.c
+@@ -697,6 +697,15 @@ static int mxr_dqbuf(struct file *file, void *priv, struct v4l2_buffer *p)
+ 	return vb2_dqbuf(&layer->vb_queue, p, file->f_flags & O_NONBLOCK);
+ }
+ 
++static int mxr_expbuf(struct file *file, void *priv,
++	struct v4l2_exportbuffer *eb)
++{
++	struct mxr_layer *layer = video_drvdata(file);
++
++	mxr_dbg(layer->mdev, "%s:%d\n", __func__, __LINE__);
++	return vb2_expbuf(&layer->vb_queue, eb);
++}
++
+ static int mxr_streamon(struct file *file, void *priv, enum v4l2_buf_type i)
+ {
+ 	struct mxr_layer *layer = video_drvdata(file);
+@@ -724,6 +733,7 @@ static const struct v4l2_ioctl_ops mxr_ioctl_ops = {
+ 	.vidioc_querybuf = mxr_querybuf,
+ 	.vidioc_qbuf = mxr_qbuf,
+ 	.vidioc_dqbuf = mxr_dqbuf,
++	.vidioc_expbuf = mxr_expbuf,
+ 	/* Streaming control */
+ 	.vidioc_streamon = mxr_streamon,
+ 	.vidioc_streamoff = mxr_streamoff,
+@@ -1074,7 +1084,7 @@ struct mxr_layer *mxr_base_layer_create(struct mxr_device *mdev,
+ 
+ 	layer->vb_queue = (struct vb2_queue) {
+ 		.type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE,
+-		.io_modes = VB2_MMAP | VB2_USERPTR,
++		.io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF,
+ 		.drv_priv = layer,
+ 		.buf_struct_size = sizeof(struct mxr_buffer),
+ 		.ops = &mxr_video_qops,
+-- 
+1.7.5.4
 
-> Hi Michael,
->=20
-> Il 20/03/2012 14:04, Michael B=C3=BCsch ha scritto:
-> > Thank you for working on a af903x driver.
-> >=20
-> > I tried to test the driver on a debian 3.2 kernel, after applying a sma=
-ll fix:
-> > It should be CONFIG_DVB_USB_AF903X here.
->=20
-> this issue is fixed in version "1.02" of the driver, posted by Hans a
-> few days ago.
-
-I can only find the post from Feb 22th, which includes this glitch.
-Can you point me to the newer post in the list archives?
-
-> > So I'm wondering how big the differences between the fc0011 and fc0012 =
-are.
-> > Can the 0011 be implemented in the 0012 driver, or does it require a se=
-parate driver?
-> > Please give me a few hints, to I can work on implementing support for t=
-hat tuner.
->=20
-> I have no idea about the real differences between the two tuner models,
-> but here you can find an old "leaked" af9035 driver with support for
-> several tuners, including fc0011 and fc0012:
->=20
-> https://bitbucket.org/voltagex/af9035/src
->
-> (look under the "api" subdir for the tuners).
-
-Yeah I know about that "thing". It makes my eyes bleed, though.
-
-But the author of this document pointed me to this:
-http://linuxtv.org/wiki/index.php/Fitipower
-That seems pretty useful, in addition to the existing crap driver.
-
-> The driver is not working with recent kernels, but probably you can
-> extract the information needed to implement a proper kernel driver for
-> fc0011, using the fc0012 driver written by Hans as a reference.
-
-Yeah after looking at things it seems best to have a separate module.
-I already started to put the boilerplate code together and I'm currently
-putting the various device specific bits in place.
-
---=20
-Greetings, Michael.
-
-PGP encryption is encouraged / 908D8B0E
-
---Sig_/=6UdQPWNWsUidNnt0rDQg9q
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Disposition: attachment; filename=signature.asc
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJPaLJEAAoJEPUyvh2QjYsOot0QALnBK5SOPSWq2gGIEgyg4zlV
-dMdmjdpUcm1i4ffoyqn/eALNcOM+WGTEdObfaz3BPKniCFHufYv++qdT9zC53iH7
-Pb9IZXsXAU8aS00qhfV0kSTJY0A/C3Q9VwWzNK6uGbgy0JTdxBoU+qaqC0etjiWq
-wGG4eALyOchH0sI2TskR7iz7oXIxXg62JwdYWjHMHCbZ0Qw6vh05mkMMLt9bzipQ
-GwYMaaFwEQ7lBZvn7UdQbhftVeR+HtNGjSUOns2lT5GMX4N3u3FDOq+VZb0wnQ3Z
-nZJjCTbqJ9XXPcqMgeiYsvASzkQuaqDcdNuzib6la/usW3zTgZ9WTpXXvxE9O9jo
-9KYLJRXdL6RxWGkPBRnc0MftlDatrzS4QUNYV6EdEdEP7OyXK+bM2/1quTANv85b
-ySDajKX9sVaCaO2dylt+4jqEtSpKKhMHNmNlVoM9AwpZc804U00MHGg8aQ3loL2c
-UhhdG/CwQowzZhjdJjsc9k3yJfPN/8oq4pZLL6UxXXVa4+FcDdIiBB6SyDe5qz0y
-pRCdQtroGvGLGditG/cLnkmL+XQ3mPj6qNEzGI/mgkYTN2QVqXtnOgAv+z4ezCwU
-hRDTWbUWZMgR4334m7uBQWTOHDs9R36Lrn5ExalMUxvbS+HDZONAcO1ueXWrdb9B
-5oeM7/qjnu1m8htcnEGH
-=FTHt
------END PGP SIGNATURE-----
-
---Sig_/=6UdQPWNWsUidNnt0rDQg9q--
