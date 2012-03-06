@@ -1,48 +1,148 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:36592 "EHLO mail.kapsi.fi"
+Received: from smtp.nokia.com ([147.243.128.24]:22269 "EHLO mgw-da01.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757716Ab2CWMuw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Mar 2012 08:50:52 -0400
-Message-ID: <4F6C71AA.4000106@iki.fi>
-Date: Fri, 23 Mar 2012 14:50:50 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Gianluca Gennari <gennarone@gmail.com>
-CC: linux-media@vger.kernel.org, mchehab@redhat.com
-Subject: Re: [PATCH 3/3] cxd2820r: delete unused function cxd2820r_init_t2
-References: <1331832829-4580-1-git-send-email-gennarone@gmail.com> <1331832829-4580-4-git-send-email-gennarone@gmail.com>
-In-Reply-To: <1331832829-4580-4-git-send-email-gennarone@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	id S1755775Ab2CFQd1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 6 Mar 2012 11:33:27 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, dacohen@gmail.com,
+	snjw23@gmail.com, andriy.shevchenko@linux.intel.com,
+	t.stanislaws@samsung.com, tuukkat76@gmail.com,
+	k.debski@samsung.com, riverful@gmail.com, hverkuil@xs4all.nl,
+	teturtia@gmail.com, pradeep.sawlani@gmail.com
+Subject: [PATCH v5 02/35] v4l: Document integer menu controls
+Date: Tue,  6 Mar 2012 18:32:43 +0200
+Message-Id: <1331051596-8261-2-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <20120306163239.GN1075@valkosipuli.localdomain>
+References: <20120306163239.GN1075@valkosipuli.localdomain>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Acked-by: Antti Palosaari <crope@iki.fi>
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ Documentation/DocBook/media/v4l/compat.xml         |   10 +++++
+ Documentation/DocBook/media/v4l/v4l2.xml           |    6 +++
+ .../DocBook/media/v4l/vidioc-queryctrl.xml         |   39 +++++++++++++++++++-
+ 3 files changed, 53 insertions(+), 2 deletions(-)
 
-
-
-On 15.03.2012 19:33, Gianluca Gennari wrote:
-> Deleted unused declaration of function "cxd2820r_init_t2".
->
-> Signed-off-by: Gianluca Gennari<gennarone@gmail.com>
-> ---
->   drivers/media/dvb/frontends/cxd2820r_priv.h |    2 --
->   1 files changed, 0 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/media/dvb/frontends/cxd2820r_priv.h b/drivers/media/dvb/frontends/cxd2820r_priv.h
-> index 9a9822c..568b996 100644
-> --- a/drivers/media/dvb/frontends/cxd2820r_priv.h
-> +++ b/drivers/media/dvb/frontends/cxd2820r_priv.h
-> @@ -146,8 +146,6 @@ int cxd2820r_read_snr_t2(struct dvb_frontend *fe, u16 *snr);
->
->   int cxd2820r_read_ucblocks_t2(struct dvb_frontend *fe, u32 *ucblocks);
->
-> -int cxd2820r_init_t2(struct dvb_frontend *fe);
-> -
->   int cxd2820r_sleep_t2(struct dvb_frontend *fe);
->
->   int cxd2820r_get_tune_settings_t2(struct dvb_frontend *fe,
-
-
+diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
+index c93298f..8cd5c96 100644
+--- a/Documentation/DocBook/media/v4l/compat.xml
++++ b/Documentation/DocBook/media/v4l/compat.xml
+@@ -2400,6 +2400,16 @@ details.</para>
+       </orderedlist>
+     </section>
+ 
++    <section>
++      <title>V4L2 in Linux 3.4</title>
++      <orderedlist>
++        <listitem>
++	  <para>Added integer menus, the new type will be
++	  V4L2_CTRL_TYPE_INTEGER_MENU.</para>
++        </listitem>
++      </orderedlist>
++    </section>
++
+     <section id="other">
+       <title>Relation of V4L2 to other Linux multimedia APIs</title>
+ 
+diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
+index dcf9e33..ff11a13 100644
+--- a/Documentation/DocBook/media/v4l/v4l2.xml
++++ b/Documentation/DocBook/media/v4l/v4l2.xml
+@@ -128,6 +128,12 @@ structs, ioctls) must be noted in more detail in the history chapter
+ applications. -->
+ 
+       <revision>
++	<revnumber>3.4</revnumber>
++	<date>2012-01-26</date>
++	<authorinitials>sa</authorinitials>
++	<revremark>Added V4L2_CTRL_TYPE_INTEGER_MENU.</revremark>
++      </revision>
++      <revision>
+ 	<revnumber>3.3</revnumber>
+ 	<date>2012-01-11</date>
+ 	<authorinitials>hv</authorinitials>
+diff --git a/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml b/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml
+index 36660d3..505f020 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml
+@@ -215,11 +215,12 @@ the array to zero.</entry>
+ 
+     <table pgwide="1" frame="none" id="v4l2-querymenu">
+       <title>struct <structname>v4l2_querymenu</structname></title>
+-      <tgroup cols="3">
++      <tgroup cols="4">
+ 	&cs-str;
+ 	<tbody valign="top">
+ 	  <row>
+ 	    <entry>__u32</entry>
++	    <entry></entry>
+ 	    <entry><structfield>id</structfield></entry>
+ 	    <entry>Identifies the control, set by the application
+ from the respective &v4l2-queryctrl;
+@@ -227,18 +228,38 @@ from the respective &v4l2-queryctrl;
+ 	  </row>
+ 	  <row>
+ 	    <entry>__u32</entry>
++	    <entry></entry>
+ 	    <entry><structfield>index</structfield></entry>
+ 	    <entry>Index of the menu item, starting at zero, set by
+ 	    the application.</entry>
+ 	  </row>
+ 	  <row>
++	    <entry>union</entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	  </row>
++	  <row>
++	    <entry></entry>
+ 	    <entry>__u8</entry>
+ 	    <entry><structfield>name</structfield>[32]</entry>
+ 	    <entry>Name of the menu item, a NUL-terminated ASCII
+-string. This information is intended for the user.</entry>
++string. This information is intended for the user. This field is valid
++for <constant>V4L2_CTRL_FLAG_MENU</constant> type controls.</entry>
++	  </row>
++	  <row>
++	    <entry></entry>
++	    <entry>__s64</entry>
++	    <entry><structfield>value</structfield></entry>
++	    <entry>
++              Value of the integer menu item. This field is valid for
++              <constant>V4L2_CTRL_FLAG_INTEGER_MENU</constant> type
++              controls.
++            </entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry>__u32</entry>
++	    <entry></entry>
+ 	    <entry><structfield>reserved</structfield></entry>
+ 	    <entry>Reserved for future extensions. Drivers must set
+ the array to zero.</entry>
+@@ -292,6 +313,20 @@ the menu items can be enumerated with the
+ <constant>VIDIOC_QUERYMENU</constant> ioctl.</entry>
+ 	  </row>
+ 	  <row>
++	    <entry><constant>V4L2_CTRL_TYPE_INTEGER_MENU</constant></entry>
++	    <entry>&ge; 0</entry>
++	    <entry>1</entry>
++	    <entry>N-1</entry>
++	    <entry>
++              The control has a menu of N choices. The values of the
++              menu items can be enumerated with the
++              <constant>VIDIOC_QUERYMENU</constant> ioctl. This is
++              similar to <constant>V4L2_CTRL_TYPE_MENU</constant>
++              except that instead of strings, the menu items are
++              signed 64-bit integers.
++            </entry>
++	  </row>
++	  <row>
+ 	    <entry><constant>V4L2_CTRL_TYPE_BITMASK</constant></entry>
+ 	    <entry>0</entry>
+ 	    <entry>n/a</entry>
 -- 
-http://palosaari.fi/
+1.7.2.5
+
