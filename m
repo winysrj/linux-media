@@ -1,204 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:35908 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752480Ab2CULs5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Mar 2012 07:48:57 -0400
-Date: Wed, 21 Mar 2012 13:48:49 +0200
+Received: from smtp.nokia.com ([147.243.128.24]:22310 "EHLO mgw-da01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756905Ab2CFQd3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 6 Mar 2012 11:33:29 -0500
 From: Sakari Ailus <sakari.ailus@iki.fi>
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Cc: mchehab@redhat.com,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	David Cohen <dacohen@gmail.com>,
-	Sylwester Nawrocki <snjw23@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	tuukkat76@gmail.com, Kamil Debski <k.debski@samsung.com>,
-	Kim HeungJun <riverful@gmail.com>, teturtia@gmail.com,
-	pradeep.sawlani@gmail.com
-Subject: [GIT PULL FOR v3.4 v3] V4L2 subdev and sensor control changes and
- SMIA++ driver
-Message-ID: <20120321114849.GA913@valkosipuli.localdomain>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, dacohen@gmail.com,
+	snjw23@gmail.com, andriy.shevchenko@linux.intel.com,
+	t.stanislaws@samsung.com, tuukkat76@gmail.com,
+	k.debski@samsung.com, riverful@gmail.com, hverkuil@xs4all.nl,
+	teturtia@gmail.com, pradeep.sawlani@gmail.com
+Subject: [PATCH v5 23/35] omap3isp: Assume media_entity_pipeline_start may fail
+Date: Tue,  6 Mar 2012 18:33:04 +0200
+Message-Id: <1331051596-8261-23-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <20120306163239.GN1075@valkosipuli.localdomain>
+References: <20120306163239.GN1075@valkosipuli.localdomain>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Since media_entity_pipeline_start() now does link validation, it may
+actually fail. Perform the error handling.
 
-This patchset adds
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+ drivers/media/video/omap3isp/ispvideo.c |   52 ++++++++++++++++--------------
+ 1 files changed, 28 insertions(+), 24 deletions(-)
 
-- Integer menu controls,
-- Selection IOCTL for subdevs,
-- Sensor control improvements,
-- link_validate() media entity and V4L2 subdev pad ops,
-- OMAP 3 ISP driver improvements,
-- SMIA++ sensor driver and
-- Other V4L2 and media improvements (see individual patches)
-
-Changes since pull v2:
-
-- Fixed incorrect 4CC codes in documentation for compresed raw bayer formats
-
-Changes since pull v1:
-
-- Correct selection rectangle field description in subdev selection
-  documentation (thanks to Sylwester)
-- Use roundup() instead of ALIGN() in SMIA++ driver
-- Rebased on current media_tree.git/staging/for_v3.4
-
-
-
-The following changes since commit f92c97c8bd77992ff8bd6ef29a23dc82dca799cb:
-
-  [media] update CARDLIST.em28xx (2012-03-19 23:12:02 -0300)
-
-are available in the git repository at:
-  ssh://linuxtv.org/git/sailus/media_tree.git media-for-3.4
-
-Jesper Juhl (1):
-      adp1653: Remove unneeded include of version.h
-
-Laurent Pinchart (2):
-      omap3isp: Prevent pipelines that contain a crashed entity from starting
-      omap3isp: Fix frame number propagation
-
-Sakari Ailus (37):
-      v4l: Introduce integer menu controls
-      v4l: Document integer menu controls
-      vivi: Add an integer menu test control
-      v4l: VIDIOC_SUBDEV_S_SELECTION and VIDIOC_SUBDEV_G_SELECTION IOCTLs
-      v4l: vdev_to_v4l2_subdev() should have return type "struct v4l2_subdev *"
-      v4l: Check pad number in get try pointer functions
-      v4l: Support s_crop and g_crop through s/g_selection
-      v4l: Add subdev selections documentation: svg and dia files
-      v4l: Add subdev selections documentation
-      v4l: Mark VIDIOC_SUBDEV_G_CROP and VIDIOC_SUBDEV_S_CROP obsolete
-      v4l: Image source control class
-      v4l: Image processing control class
-      v4l: Document raw bayer 4CC codes
-      v4l: Add DPCM compressed raw bayer pixel formats
-      media: Add link_validate() op to check links to the sink pad
-      v4l: Improve sub-device documentation for pad ops
-      v4l: Implement v4l2_subdev_link_validate()
-      v4l: Allow changing control handler lock
-      omap3isp: Support additional in-memory compressed bayer formats
-      omap3isp: Move definitions required by board code under include/media.
-      omap3: add definition for CONTROL_CAMERA_PHY_CTRL
-      omap3isp: Move setting constaints above media_entity_pipeline_start
-      omap3isp: Assume media_entity_pipeline_start may fail
-      omap3isp: Add lane configuration to platform data
-      omap3isp: Collect entities that are part of the pipeline
-      omap3isp: Add information on external subdev to struct isp_pipeline
-      omap3isp: Introduce isp_video_check_external_subdevs()
-      omap3isp: Use external rate instead of vpcfg
-      omap3isp: Default link validation for ccp2, csi2, preview and resizer
-      omap3isp: Move CCDC link validation to ccdc_link_validate()
-      omap3isp: Configure CSI-2 phy based on platform data
-      omap3isp: Add resizer data rate configuration to resizer_link_validate
-      omap3isp: Find source pad from external entity
-      smiapp: Generic SMIA++/SMIA PLL calculator
-      smiapp: Add driver
-      omap3isp: Prevent crash at module unload
-      omap3isp: Handle omap3isp_csi2_reset() errors
-
- Documentation/DocBook/media/Makefile               |    4 +-
- Documentation/DocBook/media/v4l/compat.xml         |   19 +-
- Documentation/DocBook/media/v4l/controls.xml       |  168 ++
- Documentation/DocBook/media/v4l/dev-subdev.xml     |  202 ++-
- Documentation/DocBook/media/v4l/pixfmt-srggb10.xml |    2 +-
- .../DocBook/media/v4l/pixfmt-srggb10dpcm8.xml      |   29 +
- Documentation/DocBook/media/v4l/pixfmt.xml         |    1 +
- .../media/v4l/subdev-image-processing-crop.dia     |  614 +++++
- .../media/v4l/subdev-image-processing-crop.svg     |   63 +
- .../media/v4l/subdev-image-processing-full.dia     | 1588 +++++++++++
- .../media/v4l/subdev-image-processing-full.svg     |  163 ++
- ...ubdev-image-processing-scaling-multi-source.dia | 1152 ++++++++
- ...ubdev-image-processing-scaling-multi-source.svg |  116 +
- Documentation/DocBook/media/v4l/v4l2.xml           |   20 +-
- .../DocBook/media/v4l/vidioc-g-ext-ctrls.xml       |   12 +
- .../DocBook/media/v4l/vidioc-queryctrl.xml         |   39 +-
- .../DocBook/media/v4l/vidioc-subdev-g-crop.xml     |    9 +-
- .../media/v4l/vidioc-subdev-g-selection.xml        |  228 ++
- Documentation/media-framework.txt                  |   19 +
- Documentation/video4linux/4CCs.txt                 |   32 +
- Documentation/video4linux/v4l2-framework.txt       |   21 +
- arch/arm/mach-omap2/control.h                      |    1 +
- drivers/media/media-entity.c                       |   57 +-
- drivers/media/video/Kconfig                        |    3 +
- drivers/media/video/Makefile                       |    3 +
- drivers/media/video/adp1653.c                      |   11 +-
- drivers/media/video/omap3isp/isp.c                 |   67 +-
- drivers/media/video/omap3isp/isp.h                 |   11 +-
- drivers/media/video/omap3isp/ispccdc.c             |   74 +-
- drivers/media/video/omap3isp/ispccdc.h             |   10 -
- drivers/media/video/omap3isp/ispccp2.c             |   24 +-
- drivers/media/video/omap3isp/ispcsi2.c             |   21 +-
- drivers/media/video/omap3isp/ispcsi2.h             |    1 -
- drivers/media/video/omap3isp/ispcsiphy.c           |  172 +-
- drivers/media/video/omap3isp/ispcsiphy.h           |   25 +-
- drivers/media/video/omap3isp/isppreview.c          |    1 +
- drivers/media/video/omap3isp/ispresizer.c          |   16 +
- drivers/media/video/omap3isp/ispvideo.c            |  341 ++--
- drivers/media/video/omap3isp/ispvideo.h            |    5 +
- drivers/media/video/smiapp-pll.c                   |  419 +++
- drivers/media/video/smiapp-pll.h                   |  103 +
- drivers/media/video/smiapp/Kconfig                 |   13 +
- drivers/media/video/smiapp/Makefile                |    3 +
- drivers/media/video/smiapp/smiapp-core.c           | 2832 ++++++++++++++++++++
- drivers/media/video/smiapp/smiapp-debug.h          |   32 +
- drivers/media/video/smiapp/smiapp-limits.c         |  132 +
- drivers/media/video/smiapp/smiapp-limits.h         |  128 +
- drivers/media/video/smiapp/smiapp-quirk.c          |  264 ++
- drivers/media/video/smiapp/smiapp-quirk.h          |   72 +
- drivers/media/video/smiapp/smiapp-reg-defs.h       |  503 ++++
- drivers/media/video/smiapp/smiapp-reg.h            |  122 +
- drivers/media/video/smiapp/smiapp-regs.c           |  213 ++
- drivers/media/video/smiapp/smiapp-regs.h           |   46 +
- drivers/media/video/smiapp/smiapp.h                |  251 ++
- drivers/media/video/v4l2-ctrls.c                   |  133 +-
- drivers/media/video/v4l2-subdev.c                  |  143 +-
- drivers/media/video/vivi.c                         |   26 +-
- include/linux/v4l2-subdev.h                        |   41 +
- include/linux/videodev2.h                          |   26 +-
- include/media/media-entity.h                       |    5 +-
- include/media/omap3isp.h                           |   29 +
- include/media/smiapp.h                             |   83 +
- include/media/v4l2-ctrls.h                         |   15 +-
- include/media/v4l2-subdev.h                        |   49 +-
- 64 files changed, 10541 insertions(+), 486 deletions(-)
- create mode 100644 Documentation/DocBook/media/v4l/pixfmt-srggb10dpcm8.xml
- create mode 100644 Documentation/DocBook/media/v4l/subdev-image-processing-crop.dia
- create mode 100644 Documentation/DocBook/media/v4l/subdev-image-processing-crop.svg
- create mode 100644 Documentation/DocBook/media/v4l/subdev-image-processing-full.dia
- create mode 100644 Documentation/DocBook/media/v4l/subdev-image-processing-full.svg
- create mode 100644 Documentation/DocBook/media/v4l/subdev-image-processing-scaling-multi-source.dia
- create mode 100644 Documentation/DocBook/media/v4l/subdev-image-processing-scaling-multi-source.svg
- create mode 100644 Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml
- create mode 100644 Documentation/video4linux/4CCs.txt
- create mode 100644 drivers/media/video/smiapp-pll.c
- create mode 100644 drivers/media/video/smiapp-pll.h
- create mode 100644 drivers/media/video/smiapp/Kconfig
- create mode 100644 drivers/media/video/smiapp/Makefile
- create mode 100644 drivers/media/video/smiapp/smiapp-core.c
- create mode 100644 drivers/media/video/smiapp/smiapp-debug.h
- create mode 100644 drivers/media/video/smiapp/smiapp-limits.c
- create mode 100644 drivers/media/video/smiapp/smiapp-limits.h
- create mode 100644 drivers/media/video/smiapp/smiapp-quirk.c
- create mode 100644 drivers/media/video/smiapp/smiapp-quirk.h
- create mode 100644 drivers/media/video/smiapp/smiapp-reg-defs.h
- create mode 100644 drivers/media/video/smiapp/smiapp-reg.h
- create mode 100644 drivers/media/video/smiapp/smiapp-regs.c
- create mode 100644 drivers/media/video/smiapp/smiapp-regs.h
- create mode 100644 drivers/media/video/smiapp/smiapp.h
- create mode 100644 include/media/smiapp.h
-
-
-
-Kind regards,
-
+diff --git a/drivers/media/video/omap3isp/ispvideo.c b/drivers/media/video/omap3isp/ispvideo.c
+index b0d541b..d34f690 100644
+--- a/drivers/media/video/omap3isp/ispvideo.c
++++ b/drivers/media/video/omap3isp/ispvideo.c
+@@ -997,14 +997,16 @@ isp_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
+ 	pipe->l3_ick = clk_get_rate(video->isp->clock[ISP_CLK_L3_ICK]);
+ 	pipe->max_rate = pipe->l3_ick;
+ 
+-	media_entity_pipeline_start(&video->video.entity, &pipe->pipe);
++	ret = media_entity_pipeline_start(&video->video.entity, &pipe->pipe);
++	if (ret < 0)
++		goto err_pipeline_start;
+ 
+ 	/* Verify that the currently configured format matches the output of
+ 	 * the connected subdev.
+ 	 */
+ 	ret = isp_video_check_format(video, vfh);
+ 	if (ret < 0)
+-		goto error;
++		goto err_check_format;
+ 
+ 	video->bpl_padding = ret;
+ 	video->bpl_value = vfh->format.fmt.pix.bytesperline;
+@@ -1021,7 +1023,7 @@ isp_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
+ 	} else {
+ 		if (far_end == NULL) {
+ 			ret = -EPIPE;
+-			goto error;
++			goto err_check_format;
+ 		}
+ 
+ 		state = ISP_PIPELINE_STREAM_INPUT | ISP_PIPELINE_IDLE_INPUT;
+@@ -1032,7 +1034,7 @@ isp_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
+ 	/* Validate the pipeline and update its state. */
+ 	ret = isp_video_validate_pipeline(pipe);
+ 	if (ret < 0)
+-		goto error;
++		goto err_check_format;
+ 
+ 	pipe->error = false;
+ 
+@@ -1054,7 +1056,7 @@ isp_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
+ 
+ 	ret = omap3isp_video_queue_streamon(&vfh->queue);
+ 	if (ret < 0)
+-		goto error;
++		goto err_check_format;
+ 
+ 	/* In sensor-to-memory mode, the stream can be started synchronously
+ 	 * to the stream on command. In memory-to-memory mode, it will be
+@@ -1064,32 +1066,34 @@ isp_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
+ 		ret = omap3isp_pipeline_set_stream(pipe,
+ 					      ISP_PIPELINE_STREAM_CONTINUOUS);
+ 		if (ret < 0)
+-			goto error;
++			goto err_set_stream;
+ 		spin_lock_irqsave(&video->queue->irqlock, flags);
+ 		if (list_empty(&video->dmaqueue))
+ 			video->dmaqueue_flags |= ISP_VIDEO_DMAQUEUE_UNDERRUN;
+ 		spin_unlock_irqrestore(&video->queue->irqlock, flags);
+ 	}
+ 
+-error:
+-	if (ret < 0) {
+-		omap3isp_video_queue_streamoff(&vfh->queue);
+-		media_entity_pipeline_stop(&video->video.entity);
+-		if (video->isp->pdata->set_constraints)
+-			video->isp->pdata->set_constraints(video->isp, false);
+-		/* The DMA queue must be emptied here, otherwise CCDC interrupts
+-		 * that will get triggered the next time the CCDC is powered up
+-		 * will try to access buffers that might have been freed but
+-		 * still present in the DMA queue. This can easily get triggered
+-		 * if the above omap3isp_pipeline_set_stream() call fails on a
+-		 * system with a free-running sensor.
+-		 */
+-		INIT_LIST_HEAD(&video->dmaqueue);
+-		video->queue = NULL;
+-	}
++	video->streaming = 1;
++
++	mutex_unlock(&video->stream_lock);
++	return 0;
+ 
+-	if (!ret)
+-		video->streaming = 1;
++err_set_stream:
++	omap3isp_video_queue_streamoff(&vfh->queue);
++err_check_format:
++	media_entity_pipeline_stop(&video->video.entity);
++err_pipeline_start:
++	if (video->isp->pdata->set_constraints)
++		video->isp->pdata->set_constraints(video->isp, false);
++	/* The DMA queue must be emptied here, otherwise CCDC interrupts that
++	 * will get triggered the next time the CCDC is powered up will try to
++	 * access buffers that might have been freed but still present in the
++	 * DMA queue. This can easily get triggered if the above
++	 * omap3isp_pipeline_set_stream() call fails on a system with a
++	 * free-running sensor.
++	 */
++	INIT_LIST_HEAD(&video->dmaqueue);
++	video->queue = NULL;
+ 
+ 	mutex_unlock(&video->stream_lock);
+ 	return ret;
 -- 
-Sakari Ailus
-sakari.ailus@iki.fi
+1.7.2.5
+
