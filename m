@@ -1,52 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:37083 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751591Ab2CKL7T convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 11 Mar 2012 07:59:19 -0400
-From: "Nori, Sekhar" <nsekhar@ti.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: RE: [PATCH - stable v3.2] omap3isp: ccdc: Fix crash in HS/VS
- interrupt handler
-Date: Sun, 11 Mar 2012 11:59:12 +0000
-Message-ID: <DF0F476B391FA8409C78302C7BA518B6317F1421@DBDE01.ent.ti.com>
-References: <1331466608-3277-1-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1331466608-3277-1-git-send-email-laurent.pinchart@ideasonboard.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:44101 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030372Ab2CFT5D (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Mar 2012 14:57:03 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	linux-media@vger.kernel.org, dacohen@gmail.com, snjw23@gmail.com,
+	andriy.shevchenko@linux.intel.com, tuukkat76@gmail.com,
+	k.debski@samsung.com, riverful@gmail.com, hverkuil@xs4all.nl,
+	teturtia@gmail.com
+Subject: Re: [PATCH v4 04/34] v4l: VIDIOC_SUBDEV_S_SELECTION and VIDIOC_SUBDEV_G_SELECTION IOCTLs
+Date: Tue, 06 Mar 2012 20:57:22 +0100
+Message-ID: <1414506.aeJ7eL5TfP@avalon>
+In-Reply-To: <4F566BC8.9090400@iki.fi>
+References: <20120302173219.GA15695@valkosipuli.localdomain> <4F563E02.7010406@samsung.com> <4F566BC8.9090400@iki.fi>
 MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
-
-On Sun, Mar 11, 2012 at 17:20:08, Laurent Pinchart wrote:
-> The HS/VS interrupt handler needs to access the pipeline object. It
-> erronously tries to get it from the CCDC output video node, which isn't
-> necessarily included in the pipeline. This leads to a NULL pointer
-> dereference.
+On Tuesday 06 March 2012 21:55:52 Sakari Ailus wrote:
+> Tomasz Stanislawski wrote:
+> > On 03/06/2012 05:27 PM, Laurent Pinchart wrote:
+> >> On Tuesday 06 March 2012 17:50:36 Sakari Ailus wrote:
+> >>> On Mon, Mar 05, 2012 at 11:59:22AM +0100, Laurent Pinchart wrote:
+> >>>> On Friday 02 March 2012 19:30:12 Sakari Ailus wrote:
+> >>>>> Add support for VIDIOC_SUBDEV_S_SELECTION and
+> >>>>> VIDIOC_SUBDEV_G_SELECTION
+> >>>>> IOCTLs. They replace functionality provided by VIDIOC_SUBDEV_S_CROP
+> >>>>> and
+> >>>>> VIDIOC_SUBDEV_G_CROP IOCTLs and also add new functionality
+> >>>>> (composing).
+> >>>>> 
+> >>>>> VIDIOC_SUBDEV_G_CROP and VIDIOC_SUBDEV_S_CROP continue to be
+> >>>>> supported.
+> >>>>> 
+> >>>>> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> >>>> 
+> >>>> Except for the ACTIVE name,
+> >>>> 
+> >>>> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> >>>> 
+> >>>> Maybe we could discuss this on IRC with Tomasz ?
+> >>> 
+> >>> Tomasz wasn't online when I checked.
+> >>> 
+> >>> How about "CURRENT"?
+> >> 
+> >> Sounds good to me. Let's see if Tomasz will be online tomorrow ;-)
+> > 
+> > Hi,
+> > 
+> > What do you think about ACTIVE -> ACTUAL?
+> > Similar word with the same number of letters :)
 > 
-> Fix the bug by getting the pipeline object from the CCDC subdev entity.
+> Sounds good to me; perhaps even better than CURRENT. I'm fine with
+> either with perhaps a small inclination towards "actual".
 > 
-> Reported-by: Gary Thomas <gary@mlbassoc.com>
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> ---
->  drivers/media/video/omap3isp/ispccdc.c |    3 +--
->  1 files changed, 1 insertions(+), 2 deletions(-)
-> 
-> The patch fixes a v3.2 bug and has been included in v3.3-rc1. Could you please
-> add it to the stable v3.2 series ?
+> Laurent?
 
-AFAIK, stable@kernel.org is down and the correct address is
-stable@vger.kernel.org.
+ACTUAL is good.
 
-Also, you need to include the upstream commit id in the commit
-message (See Documentation/stable_kernel_rules.txt)
+-- 
+Regards,
 
-Thanks,
-Sekhar
+Laurent Pinchart
 
