@@ -1,120 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.171]:61860 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753621Ab2CNPAV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Mar 2012 11:00:21 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by axis700.grange (Postfix) with ESMTP id C4D69189F9D
-	for <linux-media@vger.kernel.org>; Wed, 14 Mar 2012 16:00:19 +0100 (CET)
-Date: Wed, 14 Mar 2012 16:00:19 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH] V4L: soc-camera: call soc_camera_power_on() after adding
- the client to the host
-Message-ID: <Pine.LNX.4.64.1203141553580.25284@axis700.grange>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from smtp.nokia.com ([147.243.1.47]:60134 "EHLO mgw-sa01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755891Ab2CFQd2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 6 Mar 2012 11:33:28 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, dacohen@gmail.com,
+	snjw23@gmail.com, andriy.shevchenko@linux.intel.com,
+	t.stanislaws@samsung.com, tuukkat76@gmail.com,
+	k.debski@samsung.com, riverful@gmail.com, hverkuil@xs4all.nl,
+	teturtia@gmail.com, pradeep.sawlani@gmail.com
+Subject: [PATCH v5 10/35] v4l: Mark VIDIOC_SUBDEV_G_CROP and VIDIOC_SUBDEV_S_CROP obsolete
+Date: Tue,  6 Mar 2012 18:32:51 +0200
+Message-Id: <1331051596-8261-10-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <20120306163239.GN1075@valkosipuli.localdomain>
+References: <20120306163239.GN1075@valkosipuli.localdomain>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-soc_camera_power_on() calls client's .s_power(1) method, which can try to
-access the client hardware. This, however, is typically only possible,
-after calling host's .add() method, because that's where the host driver
-usually turns the master clock on.
+These two IOCTLS are obsoleted by VIDIOC_SUBDEV_G_SELECTION and
+VIDIOC_SUBDEV_S_SELECTION. Mark them obsolete.
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
+ Documentation/DocBook/media/v4l/compat.xml         |    7 +++++++
+ .../DocBook/media/v4l/vidioc-subdev-g-crop.xml     |    9 ++++++---
+ 2 files changed, 13 insertions(+), 3 deletions(-)
 
-This patch has been lying around for some time, but it is indeed required 
-for some camera drivers, e.g., mt9m111, otherwise they fail to function. 
-I'll push it for 3.4.
-
- drivers/media/video/soc_camera.c |   32 ++++++++++++++++----------------
- 1 files changed, 16 insertions(+), 16 deletions(-)
-
-diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
-index b827107..eb25756 100644
---- a/drivers/media/video/soc_camera.c
-+++ b/drivers/media/video/soc_camera.c
-@@ -526,10 +526,6 @@ static int soc_camera_open(struct file *file)
- 			},
- 		};
+diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
+index 603fa4ad..ebfe47e 100644
+--- a/Documentation/DocBook/media/v4l/compat.xml
++++ b/Documentation/DocBook/media/v4l/compat.xml
+@@ -2547,6 +2547,13 @@ interfaces and should not be implemented in new drivers.</para>
+ <constant>VIDIOC_S_MPEGCOMP</constant> ioctls. Use Extended Controls,
+ <xref linkend="extended-controls" />.</para>
+         </listitem>
++        <listitem>
++	  <para><constant>VIDIOC_SUBDEV_G_CROP</constant> and
++	  <constant>VIDIOC_SUBDEV_S_CROP</constant> ioctls. Use
++	  <constant>VIDIOC_SUBDEV_G_SELECTION</constant> and
++	  <constant>VIDIOC_SUBDEV_S_SELECTION</constant>, <xref
++	  linkend="vidioc-subdev-g-selection" />.</para>
++        </listitem>
+       </itemizedlist>
+     </section>
+   </section>
+diff --git a/Documentation/DocBook/media/v4l/vidioc-subdev-g-crop.xml b/Documentation/DocBook/media/v4l/vidioc-subdev-g-crop.xml
+index 0619732..4cddd78 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-subdev-g-crop.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-subdev-g-crop.xml
+@@ -58,9 +58,12 @@
+     <title>Description</title>
  
--		ret = soc_camera_power_on(icd, icl);
--		if (ret < 0)
--			goto epower;
--
- 		/* The camera could have been already on, try to reset */
- 		if (icl->reset)
- 			icl->reset(icd->pdev);
-@@ -540,6 +536,10 @@ static int soc_camera_open(struct file *file)
- 			goto eiciadd;
- 		}
- 
-+		ret = soc_camera_power_on(icd, icl);
-+		if (ret < 0)
-+			goto epower;
+     <note>
+-      <title>Experimental</title>
+-      <para>This is an <link linkend="experimental">experimental</link>
+-      interface and may change in the future.</para>
++      <title>Obsolete</title>
 +
- 		pm_runtime_enable(&icd->vdev->dev);
- 		ret = pm_runtime_resume(&icd->vdev->dev);
- 		if (ret < 0 && ret != -ENOSYS)
-@@ -578,10 +578,10 @@ einitvb:
- esfmt:
- 	pm_runtime_disable(&icd->vdev->dev);
- eresume:
--	ici->ops->remove(icd);
--eiciadd:
- 	soc_camera_power_off(icd, icl);
- epower:
-+	ici->ops->remove(icd);
-+eiciadd:
- 	icd->use_count--;
- 	module_put(ici->ops->owner);
++      <para>This is an <link linkend="obsolete">obsolete</link>
++      interface and may be removed in the future. It is superseded by
++      <link linkend="vidioc-subdev-g-selection">the selection
++      API</link>.</para>
+     </note>
  
-@@ -1050,6 +1050,14 @@ static int soc_camera_probe(struct soc_camera_device *icd)
- 	if (ret < 0)
- 		goto ereg;
- 
-+	/* The camera could have been already on, try to reset */
-+	if (icl->reset)
-+		icl->reset(icd->pdev);
-+
-+	ret = ici->ops->add(icd);
-+	if (ret < 0)
-+		goto eadd;
-+
- 	/*
- 	 * This will not yet call v4l2_subdev_core_ops::s_power(1), because the
- 	 * subdevice has not been initialised yet. We'll have to call it once
-@@ -1060,14 +1068,6 @@ static int soc_camera_probe(struct soc_camera_device *icd)
- 	if (ret < 0)
- 		goto epower;
- 
--	/* The camera could have been already on, try to reset */
--	if (icl->reset)
--		icl->reset(icd->pdev);
--
--	ret = ici->ops->add(icd);
--	if (ret < 0)
--		goto eadd;
--
- 	/* Must have icd->vdev before registering the device */
- 	ret = video_dev_create(icd);
- 	if (ret < 0)
-@@ -1165,10 +1165,10 @@ eadddev:
- 	video_device_release(icd->vdev);
- 	icd->vdev = NULL;
- evdc:
--	ici->ops->remove(icd);
--eadd:
- 	soc_camera_power_off(icd, icl);
- epower:
-+	ici->ops->remove(icd);
-+eadd:
- 	regulator_bulk_free(icl->num_regulators, icl->regulators);
- ereg:
- 	v4l2_ctrl_handler_free(&icd->ctrl_handler);
+     <para>To retrieve the current crop rectangle applications set the
 -- 
 1.7.2.5
 
