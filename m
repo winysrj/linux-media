@@ -1,120 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:56500 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757381Ab2CWRvr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Mar 2012 13:51:47 -0400
-Received: by wejx9 with SMTP id x9so2839225wej.19
-        for <linux-media@vger.kernel.org>; Fri, 23 Mar 2012 10:51:46 -0700 (PDT)
-Date: Fri, 23 Mar 2012 18:52:31 +0100
-From: Daniel Vetter <daniel@ffwll.ch>
-To: Sumit Semwal <sumit.semwal@ti.com>
-Cc: daniel.vetter@ffwll.ch, dri-devel@lists.freedesktop.org,
-	linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
-	Sumit Semwal <sumit.semwal@linaro.org>
-Subject: Re: [PATCH] dma-buf: Correct dummy function declarations.
-Message-ID: <20120323175230.GE4087@phenom.ffwll.local>
-References: <1332517757-25532-1-git-send-email-sumit.semwal@ti.com>
-MIME-Version: 1.0
-In-Reply-To: <1332517757-25532-1-git-send-email-sumit.semwal@ti.com>
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Received: from smtp.nokia.com ([147.243.128.24]:22306 "EHLO mgw-da01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756754Ab2CFQd3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 6 Mar 2012 11:33:29 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, dacohen@gmail.com,
+	snjw23@gmail.com, andriy.shevchenko@linux.intel.com,
+	t.stanislaws@samsung.com, tuukkat76@gmail.com,
+	k.debski@samsung.com, riverful@gmail.com, hverkuil@xs4all.nl,
+	teturtia@gmail.com, pradeep.sawlani@gmail.com
+Subject: [PATCH v5 19/35] omap3isp: Support additional in-memory compressed bayer formats
+Date: Tue,  6 Mar 2012 18:33:00 +0200
+Message-Id: <1331051596-8261-19-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <20120306163239.GN1075@valkosipuli.localdomain>
+References: <20120306163239.GN1075@valkosipuli.localdomain>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Mar 23, 2012 at 09:19:17PM +0530, Sumit Semwal wrote:
-> While testing, I found that we need to correct some of the dummy declarations. When I send my pull request to Linus, I wish to squash these changes into the original patches from Daniel. Could you please review?
-> 
-> Best regards,
-> ~Sumit
-> 
-> =========
-> 
-> Dummy functions for the newly added cpu access ops are needed for compilation
-> when dma-buf framework is not compiled-in.
-> 
-> Also, the introduction of flags in dma_buf_fd  needs to be added to dummy
-> functions as well.
-> 
-> Signed-off-by: Sumit Semwal <sumit.semwal@linaro.org>
+This also prevents accessing NULL pointer in csi2_try_format().
 
-Sorry for fumbling the compile-testing for the !DMA_BUF case here.
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/video/omap3isp/ispvideo.c |   13 +++++++++++++
+ 1 files changed, 13 insertions(+), 0 deletions(-)
 
-Acked-by: Daniel Vetter <daniel.vetter@ffwll.ch>
-
-Cheers, Daniel
-
-> ---
->  include/linux/dma-buf.h |   26 +++++++++++++-------------
->  1 files changed, 13 insertions(+), 13 deletions(-)
-> 
-> diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
-> index f08028e..779aaf9 100644
-> --- a/include/linux/dma-buf.h
-> +++ b/include/linux/dma-buf.h
-> @@ -189,7 +189,7 @@ static inline struct dma_buf *dma_buf_export(void *priv,
->  	return ERR_PTR(-ENODEV);
->  }
->  
-> -static inline int dma_buf_fd(struct dma_buf *dmabuf)
-> +static inline int dma_buf_fd(struct dma_buf *dmabuf, int flags)
->  {
->  	return -ENODEV;
->  }
-> @@ -216,36 +216,36 @@ static inline void dma_buf_unmap_attachment(struct dma_buf_attachment *attach,
->  	return;
->  }
->  
-> -static inline int dma_buf_begin_cpu_access(struct dma_buf *,
-> -					   size_t, size_t,
-> -					   enum dma_data_direction)
-> +static inline int dma_buf_begin_cpu_access(struct dma_buf *dmabuf,
-> +					   size_t start, size_t len,
-> +					   enum dma_data_direction dir)
->  {
->  	return -ENODEV;
->  }
->  
-> -static inline void dma_buf_end_cpu_access(struct dma_buf *,
-> -					  size_t, size_t,
-> -					  enum dma_data_direction)
-> +static inline void dma_buf_end_cpu_access(struct dma_buf *dmabuf,
-> +					  size_t start, size_t len,
-> +					  enum dma_data_direction dir)
->  {
->  }
->  
-> -static inline void *dma_buf_kmap_atomic(struct dma_buf *, unsigned long)
-> +static inline void *dma_buf_kmap_atomic(struct dma_buf *db, unsigned long pnum)
->  {
->  	return NULL;
->  }
->  
-> -static inline void dma_buf_kunmap_atomic(struct dma_buf *, unsigned long,
-> -					 void *)
-> +static inline void dma_buf_kunmap_atomic(struct dma_buf *db, unsigned long pnum,
-> +					 void *vaddr)
->  {
->  }
->  
-> -static inline void *dma_buf_kmap(struct dma_buf *, unsigned long)
-> +static inline void *dma_buf_kmap(struct dma_buf *db, unsigned long pnum)
->  {
->  	return NULL;
->  }
->  
-> -static inline void dma_buf_kunmap(struct dma_buf *, unsigned long,
-> -				  void *)
-> +static inline void dma_buf_kunmap(struct dma_buf *db, unsigned long pnum,
-> +				  void *vaddr)
->  {
->  }
->  #endif /* CONFIG_DMA_SHARED_BUFFER */
-> -- 
-> 1.7.5.4
-> 
-
+diff --git a/drivers/media/video/omap3isp/ispvideo.c b/drivers/media/video/omap3isp/ispvideo.c
+index b020700..c191f13 100644
+--- a/drivers/media/video/omap3isp/ispvideo.c
++++ b/drivers/media/video/omap3isp/ispvideo.c
+@@ -46,6 +46,10 @@
+  * Helper functions
+  */
+ 
++/*
++ * NOTE: When adding new media bus codes, always remember to add
++ * corresponding in-memory formats to the table below!!!
++ */
+ static struct isp_format_info formats[] = {
+ 	{ V4L2_MBUS_FMT_Y8_1X8, V4L2_MBUS_FMT_Y8_1X8,
+ 	  V4L2_MBUS_FMT_Y8_1X8, V4L2_MBUS_FMT_Y8_1X8,
+@@ -68,9 +72,18 @@ static struct isp_format_info formats[] = {
+ 	{ V4L2_MBUS_FMT_SRGGB8_1X8, V4L2_MBUS_FMT_SRGGB8_1X8,
+ 	  V4L2_MBUS_FMT_SRGGB8_1X8, V4L2_MBUS_FMT_SRGGB8_1X8,
+ 	  V4L2_PIX_FMT_SRGGB8, 8, },
++	{ V4L2_MBUS_FMT_SBGGR10_DPCM8_1X8, V4L2_MBUS_FMT_SBGGR10_DPCM8_1X8,
++	  V4L2_MBUS_FMT_SBGGR10_1X10, 0,
++	  V4L2_PIX_FMT_SBGGR10DPCM8, 8, },
++	{ V4L2_MBUS_FMT_SGBRG10_DPCM8_1X8, V4L2_MBUS_FMT_SGBRG10_DPCM8_1X8,
++	  V4L2_MBUS_FMT_SGBRG10_1X10, 0,
++	  V4L2_PIX_FMT_SGBRG10DPCM8, 8, },
+ 	{ V4L2_MBUS_FMT_SGRBG10_DPCM8_1X8, V4L2_MBUS_FMT_SGRBG10_DPCM8_1X8,
+ 	  V4L2_MBUS_FMT_SGRBG10_1X10, 0,
+ 	  V4L2_PIX_FMT_SGRBG10DPCM8, 8, },
++	{ V4L2_MBUS_FMT_SRGGB10_DPCM8_1X8, V4L2_MBUS_FMT_SRGGB10_DPCM8_1X8,
++	  V4L2_MBUS_FMT_SRGGB10_1X10, 0,
++	  V4L2_PIX_FMT_SRGGB10DPCM8, 8, },
+ 	{ V4L2_MBUS_FMT_SBGGR10_1X10, V4L2_MBUS_FMT_SBGGR10_1X10,
+ 	  V4L2_MBUS_FMT_SBGGR10_1X10, V4L2_MBUS_FMT_SBGGR8_1X8,
+ 	  V4L2_PIX_FMT_SBGGR10, 10, },
 -- 
-Daniel Vetter
-Mail: daniel@ffwll.ch
-Mobile: +41 (0)79 365 57 48
+1.7.2.5
+
