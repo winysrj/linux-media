@@ -1,116 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f172.google.com ([209.85.212.172]:58971 "EHLO
-	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965122Ab2CPWSu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Mar 2012 18:18:50 -0400
-Received: by wibhj6 with SMTP id hj6so1470484wib.1
-        for <linux-media@vger.kernel.org>; Fri, 16 Mar 2012 15:18:48 -0700 (PDT)
-Message-ID: <4F63BC4B.1010900@googlemail.com>
-Date: Fri, 16 Mar 2012 23:18:51 +0100
-From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:51079 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757498Ab2CFJim (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 6 Mar 2012 04:38:42 -0500
+Message-ID: <4F55DB8B.8050907@redhat.com>
+Date: Tue, 06 Mar 2012 10:40:27 +0100
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: Move em27xx/em28xx webcams to a gspca subdriver ?
-References: <CALjTZvZy4npSE0aELnmsZzzgsxUC1xjeNYVwQ_CvJG59PizfEQ@mail.gmail.com> <CALF0-+Wp03vsbiaJFUt=ymnEncEvDg_KmnV+2OWjtO-_0qqBVg@mail.gmail.com> <CALjTZvYVtuSm0v-_Q7od=iUDvHbkMe4c5ycAQZwoErCCe=N+Bg@mail.gmail.com> <CALF0-+W3HenNpUt_yGxqs+fohcZ22ozDw9MhTWua0B++ZFA2vA@mail.gmail.com> <CALjTZvYJZ32Red-UfZXubB-Lk503DWbHGTL_kEoV4DVDDYJ46w@mail.gmail.com> <4F61C79E.6090603@redhat.com> <4F61E1BC.1020807@googlemail.com> <4F61E913.4000809@redhat.com>
-In-Reply-To: <4F61E913.4000809@redhat.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+To: Xavion <xavion.0@gmail.com>
+CC: Jean-Francois Moine <moinejf@free.fr>,
+	"Linux Kernel (Media) ML" <linux-media@vger.kernel.org>
+Subject: Re: My Microdia (SN9C201) webcam doesn't work properly in Linux anymore
+References: <CAKnx8Y7BAyR8A5r-eL13MVgZO2DcKndP3v-MTfkQdmXPvjjGJg@mail.gmail.com> <CAKnx8Y6dM8qbQvJgt_z2A2XD8aPGhGoqCSWabyNYjRbsH6CDJw@mail.gmail.com> <4F51CCC1.8020308@redhat.com> <CAKnx8Y6ER6CV6WQKrmN4fFkLjQx0GXEzvNmuApnA=G6fJDgsPQ@mail.gmail.com> <20120304082531.1307a9ed@tele> <CAKnx8Y7A2Dd0JW0n9bJBBc+ScnagpdFEkAvbg_Jab3vt66Ky0Q@mail.gmail.com> <20120305182736.563df8b4@tele> <CAKnx8Y54ngVXmrLg2bjnn_MvibWE6SKR5jXQFQ9+ZmHWoM9HmQ@mail.gmail.com>
+In-Reply-To: <CAKnx8Y54ngVXmrLg2bjnn_MvibWE6SKR5jXQFQ9+ZmHWoM9HmQ@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi,
 
-[Was: eMPIA EM2710 Webcam (em28xx) and LIRC]
-
-Continue this part of the discussion in a new thread...
-
-Am 15.03.2012 14:05, schrieb Mauro Carvalho Chehab:
-> Em 15-03-2012 09:34, Frank Schäfer escreveu:
->> ...
->>
->> I would like to bring up the question, if it wouldn't make sense to move
->> support for the em27xx/28xx webcams to a separate gspca-subdriver.
-> The em2710/2750 chips are very similar to em2820. There's not much sense
-> on moving it elsewhere, as it would duplicate a lot of the existing code,
-> for no good reason.
-Yes, that was my first thought, too.
-But looking at the resulting gspca subdriver, you will see that there is
-not much code duplication.
-I would say that adding support for this device as a gspca subdriver
-requires less new lines of code than extending/modifying the em28xx driver.
-
->> I'm currently working on adding support for the VAD Laplace webcam
->> (em2765 + OV2640) (http://linuxtv.org/wiki/index.php/VAD_Laplace).
->> Lots of modifications to the em28xx driver would be necessary to support
->> this device because of some significant differences:
->> - supports only bulk transfers
-> em28xx supports it as well, but it is used only for dvb, currently.
-You are talking about the em28xx device capabilities, right ?
-AFAIK, the em28xx driver still has no bulk transfer support.
-
->> - uses proprietary I2C-writes
-> huh? I2C writes are proprietary. What do you mean?
-Maybe proprietary is not the best name...
-Requests 0x06 an 0x08 are used for the usb control messages.
-I have documented that at http://linuxtv.org/wiki/index.php/VAD_Laplace.
-Could be the "vendor specific" usb requests the datasheet talks about.
-
->> - em25xx-eeprom
-> Are you meaning more than 256 addresses eeprom? Newer Empia chips use it,
-> not only the webcam ones. Currently, the code detects it but nobody wrote
-> an implementation for it yet. It would likely make sense to implement it
-> at em28xx anyway.
-Yes, the device has an eeprom with 16bit addresses.
-Anyway, I'm talking about a different format of the eeprom data:
-http://wenku.baidu.com/view/a21a28eab8f67c1cfad6b8f6.html
-
-You can find the eeprom content of my device at
-http://linuxtv.org/wiki/index.php/VAD_Laplace
-
->> - ov2640 sensor
-> The better is to use a separate I2C driver for the sensor. This is not
-> a common practice at gspca, but doing that would help to re-use the sensor
-> driver elsewhere.
-I agree. But let's do things step by step...
-
->> Lots of changes concerning the USB-interface probing, button handling,
->> video controls, frame processing and more would be necessary, too.
-> Video controls are implemented at the sensor sub-driver, so this is not
-> an issue.
+On 03/06/2012 01:44 AM, Xavion wrote:
+> Hi Guys
 >
-> Anyway, if em2765 is different enough from em2874 and em2750, then it makes
-> sense to write it as a separate driver. Otherwise, it is better to add support
-> for it there.
-
-No, the em2765 itself seems to be very similar to the other
-em27xx/em28xx chips.
-But the device as a whole is different enough to consider a separate driver.
-
->> For reverse engineering purposes, I decided to write a gspca subdriver
->> for this device (will send a patch for testing/discussion soon).
-> Ok.
-See the patch posted a minute ago.
-
+> Thanks very much for the follow-up emails.  Our time-zone differences
+> prevented me from replying sooner.  I'm guessing you guys are both in
+> Europe, whereas I'm down and across in Australia.
 >
->> I have no strong opinion about this, but I somehow feel that the em28xx
->> driver gets bloated more and more...
-> The advantage of adding it there is that it generally reduces maintenance 
-> efforts, as the same code and fixes don't need to be added on two separate
-> places.
-Yes, that's right. But on the other hand, the benefit of separate
-drivers is simpler code, which is easier to maintain/understand.
-For example, there would be no LIRC modules issue ;-)
+> As I plan to use this webcam for home security, I would prefer to keep
+> the JPEG quality at or above 90% if possible.  This is because it'd be
+> difficult enough to see a burglar's face clearly at 640x480 with
+> lossless quality.
+>
+> The good news is that the nasty errors I was getting yesterday have
+> magically disappeared overnight!
 
-> For example, if the em2765 eeprom access is similar to em2874, the same
-> code chunk would be required on both drivers.
-Sure, code duplication is one of the disadvantages. The question is how
-much duplicate code there would be.
+That is likely because the scene you're pointing at (or the lighting
+conditions) have changed, not all pictures compress equally well
+with JPEG. If you point the camera at the same scene as when you were
+getting these errors (with similar, good, lighting conditions) you'll
+likely see those errors re-surface.
+
+> All I'm seeing today (at 90% and 75%
+> quality) is what look to be non-fatal errors, since Motion seems to
+> work correctly.
+>
+>      root@Desktop /etc/motion # tail /var/log/kernel.log
+>      Mar  6 08:34:17 Desktop kernel: [ 7240.125167] gspca_main: ISOC
+> data error: [0] len=0, status=-18
+>      Mar  6 08:34:17 Desktop kernel: [ 7240.125172] gspca_main: ISOC
+> data error: [1] len=0, status=-18
+>      Mar  6 08:36:40 Desktop kernel: [ 7382.545241] gspca_main: ISOC
+> data error: [0] len=0, status=-18
+>      Mar  6 08:36:40 Desktop kernel: [ 7382.545246] gspca_main: ISOC
+> data error: [1] len=0, status=-18
+>      Mar  6 08:37:46 Desktop kernel: [ 7448.680301] gspca_sn9c20x: Set 640x480
+>      Mar  6 08:40:12 Desktop kernel: [ 7594.685124] gspca_main: ISOC
+> data error: [0] len=0, status=-18
+>      Mar  6 08:40:12 Desktop kernel: [ 7594.685129] gspca_main: ISOC
+> data error: [1] len=0, status=-18
+>      Mar  6 08:42:37 Desktop kernel: [ 7739.715758] gspca_sn9c20x: Set 640x480
+>      Mar  6 08:46:06 Desktop kernel: [ 7948.598533] gspca_main: ISOC
+> data error: [0] len=0, status=-18
+>      Mar  6 08:46:06 Desktop kernel: [ 7948.598538] gspca_main: ISOC
+> data error: [1] len=0, status=-18
+
+Hmm, error -18 is EXDEV, which according to Documentation/usb/error-codes.txt is:
+
+-EXDEV                  ISO transfer only partially completed
+                         (only set in iso_frame_desc[n].status, not urb->status)
+
+I've seen those before, and I think we should simply ignore them rather then
+log an error for them. Jean-Francois, what do you think?
+
+> In fairness to Motion, the default JPEG quality listed in its
+> configuration file is only 75%.  I had upped this to 90% for clarity,
+> but subsequently reverting to the default configuration file didn't
+> stop these errors.
+
+That is a different JPG setting, that is the compression quality for the
+JPEG's motion saves to disk if it detects motion. We're are talking about
+the compression quality of the JPEG's going over the USB wire, which is
+controller by the driver, not by motion.
+
+> They also remained after I increased the three "vga_mode" ratios to "6
+> / 8" or changed Line 2093 of "sn9c20x.c" to "sd->quality = 75;".
+
+You mean the -18 error remain, right, that is expected, the
+ratios / sd->quality only fix the errors you were seeing previously.
+
+> Entering either of the following commands before starting Motion
+> didn't make any difference either.
+>      export LD_PRELOAD=/usr/lib/libv4l/v4l1compat.so
+>      export LD_PRELOAD=/usr/lib/libv4l/v4l2convert.so
+>
+> The other thing I'm wondering about is how to force SXGA (1280x1024)
+> mode to be used.  I've set the 'width' and 'height' variables in the
+> Motion configuration file correctly, but I still see the following
+> kernel output:
+>      Mar  6 08:37:46 Desktop kernel: [ 7448.680301] gspca_sn9c20x: Set 640x480
+>
+> I should note that Motion defaults to "V4L2_PIX_FMT_YUV420" in its
+> configuration file, which is what I'd been using until now.  From the
+> look of the code in the "sn9c20x.c" file, I must use
+> "V4L2_PIX_FMT_SBGGR8" to get the 1280x1024 resolution.
+
+For sxga mode you will need to use libv4l, but I doubt if your camera supports
+it at all, most don't. What does dmesg say immediately after unplugging and
+replugging the camera?
 
 Regards,
-Frank
 
-> Regards,
-> Mauro
-
-
+Hans
