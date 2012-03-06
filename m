@@ -1,43 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-out003.kontent.com ([81.88.40.217]:56460 "EHLO
-	smtp-out003.kontent.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1422762Ab2CPQcR convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Mar 2012 12:32:17 -0400
-From: Oliver Neukum <oliver@neukum.org>
-To: santosh nayak <santoshprasadnayak@gmail.com>
-Subject: Re: [PATCH] [media] staging: Return -EINTR in s2250_probe() if fails to get lock.
-Date: Fri, 16 Mar 2012 17:32:17 +0100
-Cc: mchehab@infradead.org, gregkh@linuxfoundation.org,
-	khoroshilov@ispras.ru, linux-media@vger.kernel.org,
-	devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
-	kernel-janitors@vger.kernel.org
-References: <1331915038-11231-1-git-send-email-santoshprasadnayak@gmail.com>
-In-Reply-To: <1331915038-11231-1-git-send-email-santoshprasadnayak@gmail.com>
+Received: from moutng.kundenserver.de ([212.227.17.10]:50481 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758224Ab2CFNLZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Mar 2012 08:11:25 -0500
+Date: Tue, 6 Mar 2012 14:11:07 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Alex Gershgorin <alexg@meprolight.com>
+cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Sascha Hauer <s.hauer@pengutronix.de>
+Subject: Re: mx3-camera
+In-Reply-To: <4875438356E7CA4A8F2145FCD3E61C0B2CBD5D8906@MEP-EXCH.meprolight.com>
+Message-ID: <Pine.LNX.4.64.1203061406500.9300@axis700.grange>
+References: <4875438356E7CA4A8F2145FCD3E61C0B2CBD5D8906@MEP-EXCH.meprolight.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201203161732.17246.oliver@neukum.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Freitag, 16. März 2012, 17:23:58 schrieb santosh nayak:
-> From: Santosh Nayak <santoshprasadnayak@gmail.com>
+Hi Alex
+
+(adding v4l and Sascha to CC)
+
+On Tue, 6 Mar 2012, Alex Gershgorin wrote:
+
+> Hi Guennadi,
 > 
-> In s2250_probe(), If locking attempt is interrupted by a signal then
-> it should return -EINTR after unregistering audio device and making free
-> the allocated memory.
+> I'm working on I.MX35 PDK platform with use 3.3.0-rc6 version of the Linux Kernel.  
+> Here is my Kernel boot message
 > 
-> At present, if locking is interrupted by signal it will display message
-> "initialized successfully" and return success.  This is wrong.
+> "Linux video capture interface: v2.00
+> mx3-camera: probe of mx3-camera.0 failed with error -2"
+> 
+> This error comes from probe function of mx3 camera host driver.
+> Precisely in this part of the code:
+>  
+> mx3_cam->clk = clk_get(&pdev->dev, NULL);
+> if (IS_ERR(mx3_cam->clk)) {
+> 	err = PTR_ERR(mx3_cam->clk);
+> 	goto eclkget;
+> }
 
-Indeed there's a lot wrong here. The idea of having an interruptible
-sleep in probe() is arcane. You need a very, very, very good reason for that.
-The sane fix is using an uninterruptable sleep here.
+I think, the reason is, that the i.MX35 platform doesn't register a camera 
+clock, similar to i.MX31 (arch/arm/mach-imx/clock-imx31.c):
 
-Second, while you are at it, fix the error case for no initialization
-due to a failing kmalloc(). You need to return -ENOMEM.
+	_REGISTER_CLOCK("mx3-camera.0", NULL, csi_clk)
 
-	Regards
-		Oliver
+Thanks
+Guennadi
+
+> I will be glad for any help.
+> 
+> Regards,
+> Alex Gershgorin
+
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
