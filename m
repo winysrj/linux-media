@@ -1,47 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:34017 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750810Ab2CPVYc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Mar 2012 17:24:32 -0400
-Received: by wejx9 with SMTP id x9so4322064wej.19
-        for <linux-media@vger.kernel.org>; Fri, 16 Mar 2012 14:24:31 -0700 (PDT)
-Message-ID: <4F63AF8D.3060005@unixindia.com>
-Date: Fri, 16 Mar 2012 21:24:29 +0000
-From: Bhasker C V <bhasker@unixindia.com>
-MIME-Version: 1.0
+Received: from perceval.ideasonboard.com ([95.142.166.194]:45752 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755927Ab2CFQYH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Mar 2012 11:24:07 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Subject: Bit rate of a transport stream
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Cc: Martin Hostettler <martin@neutronstar.dyndns.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sakari Ailus <sakari.ailus@iki.fi>
+Subject: [PATCH v2 2/5] mt9p031: Remove unused xskip and yskip fields in struct mt9p031
+Date: Tue,  6 Mar 2012 17:24:22 +0100
+Message-Id: <1331051065-5055-3-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1331051065-5055-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1331051065-5055-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+The fields are set but never used, remove them.
 
- In finding the bit rate of a transport stream as a whole, I had a doubt
-if someone can help  me please
- I did try to google but could not get any definite information on this
-topic
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/video/mt9p031.c |    4 ----
+ 1 files changed, 0 insertions(+), 4 deletions(-)
 
- Say I have 2 programs in a transport stream each with 1 audio and 1 video
- Can I safely assume the total bitrate of the stream is the combined
-bitrate of program 1 ES rate and progam 2 ES rate ?
- If this is the case will the audio PIDs should also be taken into
-account for caculating the total bitrate of the stream ?
-
-
- Program 1  -> PIDA(audio), PIDB(video)
- Program 2  -> PIDC(audio), PIDD(video)
-
-bitrate = ES rate of PIDA + PIDB + PIDC + PIDD ?
-
-or is there any other easier way to find the bitrate of a MPEG transport
-stream ?
-
-thanks
-
-
+diff --git a/drivers/media/video/mt9p031.c b/drivers/media/video/mt9p031.c
+index dd937df..52dd9f8 100644
+--- a/drivers/media/video/mt9p031.c
++++ b/drivers/media/video/mt9p031.c
+@@ -114,8 +114,6 @@ struct mt9p031 {
+ 	struct mt9p031_platform_data *pdata;
+ 	struct mutex power_lock; /* lock to protect power_count */
+ 	int power_count;
+-	u16 xskip;
+-	u16 yskip;
+ 
+ 	const struct mt9p031_pll_divs *pll;
+ 
+@@ -784,8 +782,6 @@ static int mt9p031_open(struct v4l2_subdev *subdev, struct v4l2_subdev_fh *fh)
+ 	format->field = V4L2_FIELD_NONE;
+ 	format->colorspace = V4L2_COLORSPACE_SRGB;
+ 
+-	mt9p031->xskip = 1;
+-	mt9p031->yskip = 1;
+ 	return mt9p031_set_power(subdev, 1);
+ }
+ 
 -- 
-Bhasker C V
+1.7.3.4
 
