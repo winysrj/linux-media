@@ -1,78 +1,156 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:52314 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751802Ab2CWMtn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Mar 2012 08:49:43 -0400
-Message-ID: <4F6C7162.50900@iki.fi>
-Date: Fri, 23 Mar 2012 14:49:38 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Gianluca Gennari <gennarone@gmail.com>
-CC: linux-media@vger.kernel.org, mchehab@redhat.com
-Subject: Re: [PATCH 1/3] cxd2820r: tweak search algorithm behavior
-References: <1331832829-4580-1-git-send-email-gennarone@gmail.com> <1331832829-4580-2-git-send-email-gennarone@gmail.com>
-In-Reply-To: <1331832829-4580-2-git-send-email-gennarone@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from perceval.ideasonboard.com ([95.142.166.194]:52552 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755697Ab2CFQcW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Mar 2012 11:32:22 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Martin Hostettler <martin@neutronstar.dyndns.org>,
+	Sakari Ailus <sakari.ailus@iki.fi>
+Subject: [PATCH v3 4/5] mt9p031: Use generic PLL setup code
+Date: Tue,  6 Mar 2012 17:32:38 +0100
+Message-Id: <1331051559-13841-5-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1331051559-13841-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1331051559-13841-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Acked-by: Antti Palosaari <crope@iki.fi>
+Compute the PLL parameters at runtime using the generic Aptina PLL
+helper.
 
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/video/Kconfig   |    1 +
+ drivers/media/video/mt9p031.c |   62 ++++++++++++++++++-----------------------
+ 2 files changed, 28 insertions(+), 35 deletions(-)
 
-Still I am little bit sceptical about that since dvb_frontend.h comments 
-are speaking signal search - not for full LOCK. Maybe there is room for 
-improvement somewhere else. Anyhow, better to merge that as now.
-
-regards
-Antti
-
-
-On 15.03.2012 19:33, Gianluca Gennari wrote:
-> MPIS based STBs running 3.x kernels and the Enigma2 OS are not able to tune
-> DVB-T channels with the PCTV 290e using the current cxd2820r driver.
-> DVB-T2 channels instead work properly.
->
-> This patch fixes the problem by changing the condition to break out from the
-> wait lock loop in the "search" function of the cxd2820r demodulator from
-> FE_HAS_SIGNAL to FE_HAS_LOCK.
->
-> As a consequence, the "search" function of the demodulator driver now returns
-> DVBFE_ALGO_SEARCH_SUCCESS only if the frequency lock is successfully acquired.
->
-> This behavior seems consistent with other demodulator drivers (e.g. stv090x,
-> hd29l2, stv0900, stb0899, mb86a16).
->
-> This patch has been successfully tested with DVB-T and DVB-T2 signals,
-> on both PC and the mipsel STB running Enigma2.
-> No apparent side effect has been observed on PC applications like Kaffeine.
-> DVB-C is not available in my country so it's not tested.
->
-> Signed-off-by: Gianluca Gennari<gennarone@gmail.com>
-> ---
->   drivers/media/dvb/frontends/cxd2820r_core.c |    4 ++--
->   1 files changed, 2 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/media/dvb/frontends/cxd2820r_core.c b/drivers/media/dvb/frontends/cxd2820r_core.c
-> index 5c7c2aa..3bba37d 100644
-> --- a/drivers/media/dvb/frontends/cxd2820r_core.c
-> +++ b/drivers/media/dvb/frontends/cxd2820r_core.c
-> @@ -526,12 +526,12 @@ static enum dvbfe_search cxd2820r_search(struct dvb_frontend *fe)
->   		if (ret)
->   			goto error;
->
-> -		if (status&  FE_HAS_SIGNAL)
-> +		if (status&  FE_HAS_LOCK)
->   			break;
->   	}
->
->   	/* check if we have a valid signal */
-> -	if (status) {
-> +	if (status&  FE_HAS_LOCK) {
->   		priv->last_tune_failed = 0;
->   		return DVBFE_ALGO_SEARCH_SUCCESS;
->   	} else {
-
-
+diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+index 7867b0b..666836d 100644
+--- a/drivers/media/video/Kconfig
++++ b/drivers/media/video/Kconfig
+@@ -473,6 +473,7 @@ config VIDEO_OV7670
+ config VIDEO_MT9P031
+ 	tristate "Aptina MT9P031 support"
+ 	depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
++	select VIDEO_APTINA_PLL
+ 	---help---
+ 	  This is a Video4Linux2 sensor-level driver for the Aptina
+ 	  (Micron) mt9p031 5 Mpixel camera.
+diff --git a/drivers/media/video/mt9p031.c b/drivers/media/video/mt9p031.c
+index 52dd9f8..3bcd14b 100644
+--- a/drivers/media/video/mt9p031.c
++++ b/drivers/media/video/mt9p031.c
+@@ -27,6 +27,8 @@
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-subdev.h>
+ 
++#include "aptina-pll.h"
++
+ #define MT9P031_PIXEL_ARRAY_WIDTH			2752
+ #define MT9P031_PIXEL_ARRAY_HEIGHT			2004
+ 
+@@ -97,14 +99,6 @@
+ #define MT9P031_TEST_PATTERN_RED			0xa2
+ #define MT9P031_TEST_PATTERN_BLUE			0xa3
+ 
+-struct mt9p031_pll_divs {
+-	u32 ext_freq;
+-	u32 target_freq;
+-	u8 m;
+-	u8 n;
+-	u8 p1;
+-};
+-
+ struct mt9p031 {
+ 	struct v4l2_subdev subdev;
+ 	struct media_pad pad;
+@@ -115,7 +109,7 @@ struct mt9p031 {
+ 	struct mutex power_lock; /* lock to protect power_count */
+ 	int power_count;
+ 
+-	const struct mt9p031_pll_divs *pll;
++	struct aptina_pll pll;
+ 
+ 	/* Registers cache */
+ 	u16 output_control;
+@@ -183,33 +177,31 @@ static int mt9p031_reset(struct mt9p031 *mt9p031)
+ 					  0);
+ }
+ 
+-/*
+- * This static table uses ext_freq and vdd_io values to select suitable
+- * PLL dividers m, n and p1 which have been calculated as specifiec in p36
+- * of Aptina's mt9p031 datasheet. New values should be added here.
+- */
+-static const struct mt9p031_pll_divs mt9p031_divs[] = {
+-	/* ext_freq	target_freq	m	n	p1 */
+-	{21000000,	48000000,	26,	2,	6}
+-};
+-
+-static int mt9p031_pll_get_divs(struct mt9p031 *mt9p031)
++static int mt9p031_pll_setup(struct mt9p031 *mt9p031)
+ {
++	static const struct aptina_pll_limits limits = {
++		.ext_clock_min = 6000000,
++		.ext_clock_max = 27000000,
++		.int_clock_min = 2000000,
++		.int_clock_max = 13500000,
++		.out_clock_min = 180000000,
++		.out_clock_max = 360000000,
++		.pix_clock_max = 96000000,
++		.n_min = 1,
++		.n_max = 64,
++		.m_min = 16,
++		.m_max = 255,
++		.p1_min = 1,
++		.p1_max = 128,
++	};
++
+ 	struct i2c_client *client = v4l2_get_subdevdata(&mt9p031->subdev);
+-	int i;
++	struct mt9p031_platform_data *pdata = mt9p031->pdata;
+ 
+-	for (i = 0; i < ARRAY_SIZE(mt9p031_divs); i++) {
+-		if (mt9p031_divs[i].ext_freq == mt9p031->pdata->ext_freq &&
+-		  mt9p031_divs[i].target_freq == mt9p031->pdata->target_freq) {
+-			mt9p031->pll = &mt9p031_divs[i];
+-			return 0;
+-		}
+-	}
++	mt9p031->pll.ext_clock = pdata->ext_freq;
++	mt9p031->pll.pix_clock = pdata->target_freq;
+ 
+-	dev_err(&client->dev, "Couldn't find PLL dividers for ext_freq = %d, "
+-		"target_freq = %d\n", mt9p031->pdata->ext_freq,
+-		mt9p031->pdata->target_freq);
+-	return -EINVAL;
++	return aptina_pll_calculate(&client->dev, &limits, &mt9p031->pll);
+ }
+ 
+ static int mt9p031_pll_enable(struct mt9p031 *mt9p031)
+@@ -223,11 +215,11 @@ static int mt9p031_pll_enable(struct mt9p031 *mt9p031)
+ 		return ret;
+ 
+ 	ret = mt9p031_write(client, MT9P031_PLL_CONFIG_1,
+-			    (mt9p031->pll->m << 8) | (mt9p031->pll->n - 1));
++			    (mt9p031->pll.m << 8) | (mt9p031->pll.n - 1));
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	ret = mt9p031_write(client, MT9P031_PLL_CONFIG_2, mt9p031->pll->p1 - 1);
++	ret = mt9p031_write(client, MT9P031_PLL_CONFIG_2, mt9p031->pll.p1 - 1);
+ 	if (ret < 0)
+ 		return ret;
+ 
+@@ -900,7 +892,7 @@ static int mt9p031_probe(struct i2c_client *client,
+ 	mt9p031->format.field = V4L2_FIELD_NONE;
+ 	mt9p031->format.colorspace = V4L2_COLORSPACE_SRGB;
+ 
+-	ret = mt9p031_pll_get_divs(mt9p031);
++	ret = mt9p031_pll_setup(mt9p031);
+ 
+ done:
+ 	if (ret < 0) {
 -- 
-http://palosaari.fi/
+1.7.3.4
+
