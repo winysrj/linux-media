@@ -1,32 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:59390 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965448Ab2CPPpF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Mar 2012 11:45:05 -0400
-Date: Fri, 16 Mar 2012 16:45:03 +0100 (CET)
-From: Jiri Kosina <jkosina@suse.cz>
-To: "Justin P. Mattock" <justinmattock@gmail.com>
-Cc: linux-kernel@vger.kernel.org, gregkh@linuxfoundation.org,
-	linux-media@vger.kernel.org, marauder@tiscali.it
-Subject: Re: [PATCH V2]NEXT:drivers:staging:media Fix comments and some typos
- in staging/media/*
-In-Reply-To: <4F635DBF.7000603@gmail.com>
-Message-ID: <alpine.LNX.2.00.1203161644190.18356@pobox.suse.cz>
-References: <1331045709-19309-1-git-send-email-justinmattock@gmail.com> <4F635DBF.7000603@gmail.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from perceval.ideasonboard.com ([95.142.166.194]:52544 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755294Ab2CFQcU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Mar 2012 11:32:20 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Martin Hostettler <martin@neutronstar.dyndns.org>,
+	Sakari Ailus <sakari.ailus@iki.fi>
+Subject: [PATCH v3 0/5] MT9M032 and MT9P031 sensor patches
+Date: Tue,  6 Mar 2012 17:32:34 +0100
+Message-Id: <1331051559-13841-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 16 Mar 2012, Justin P. Mattock wrote:
+Hi,
 
-> before I forget about this patch, what was the status of this one?
+I've missed a 64-bit division issue in v2. Here's a v3 that fixes that. Sorry
+for the noise.
 
-As previously announced multiple times, I am ignoring patches that go to 
-drivers/staging and letting Greg pick them up if he wants to.
+Danny Kukawka (1):
+  mt9p031: Remove duplicate media/v4l2-subdev.h include
 
-Greg, if you want to have this changed, just let me know.
+Laurent Pinchart (3):
+  mt9p031: Remove unused xskip and yskip fields in struct mt9p031
+  v4l: Aptina-style sensor PLL support
+  mt9p031: Use generic PLL setup code
+
+Martin Hostettler (1):
+  v4l: Add driver for Micron MT9M032 camera sensor
+
+ drivers/media/video/Kconfig      |   12 +
+ drivers/media/video/Makefile     |    5 +
+ drivers/media/video/aptina-pll.c |  174 ++++++++
+ drivers/media/video/aptina-pll.h |   56 +++
+ drivers/media/video/mt9m032.c    |  825 ++++++++++++++++++++++++++++++++++++++
+ drivers/media/video/mt9p031.c    |   67 ++--
+ include/media/mt9m032.h          |   36 ++
+ 7 files changed, 1135 insertions(+), 40 deletions(-)
+ create mode 100644 drivers/media/video/aptina-pll.c
+ create mode 100644 drivers/media/video/aptina-pll.h
+ create mode 100644 drivers/media/video/mt9m032.c
+ create mode 100644 include/media/mt9m032.h
 
 -- 
-Jiri Kosina
-SUSE Labs
+Regards,
+
+Laurent Pinchart
+
