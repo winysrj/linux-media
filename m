@@ -1,61 +1,139 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f174.google.com ([209.85.212.174]:55958 "EHLO
-	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752592Ab2CFSCE convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Mar 2012 13:02:04 -0500
-MIME-Version: 1.0
-In-Reply-To: <4F53EA7D.4090402@gmail.com>
-References: <CAMuHMdVmiqY9uh574_uTK76+28bvhEL0BPnzjDF-bf-0mgj4gg@mail.gmail.com>
-	<4F53EA7D.4090402@gmail.com>
-Date: Tue, 6 Mar 2012 19:02:02 +0100
-Message-ID: <CAMuHMdVE2m-Q+ikyEE5V9dd9cbqCbCC2+CtnkDhq=UTQg2detQ@mail.gmail.com>
-Subject: Re: rtl2830: __udivdi3 undefined
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-To: gennarone@gmail.com
-Cc: linux-media@vger.kernel.org, Antti Palosaari <crope@iki.fi>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux-Next <linux-next@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:56327 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965129Ab2CFLiT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Mar 2012 06:38:19 -0500
+Received: from euspt1 (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0M0G003KLOBR18@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 06 Mar 2012 11:38:15 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0M0G00CLQOBRW5@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 06 Mar 2012 11:38:15 +0000 (GMT)
+Date: Tue, 06 Mar 2012 12:38:06 +0100
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: [RFCv2 PATCH 5/9] v4l: vb2: add buffer exporting via dmabuf
+In-reply-to: <1331033890-10350-1-git-send-email-t.stanislaws@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: m.szyprowski@samsung.com, t.stanislaws@samsung.com,
+	kyungmin.park@samsung.com, hverkuil@xs4all.nl,
+	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
+	daeinki@gmail.com
+Message-id: <1331033890-10350-6-git-send-email-t.stanislaws@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1331033890-10350-1-git-send-email-t.stanislaws@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Mar 4, 2012 at 23:19, Gianluca Gennari <gennarone@gmail.com> wrote:
-> Probably the best solution is to use div_u64.
-> The following patch fixed the warning on my 32 bit system.
->
-> Signed-off-by: Gianluca Gennari <gennarone@gmail.com>
+This patch adds extension to videobuf2-core. It allow to export a mmap buffer
+as a file descriptor.
 
-Thanks, that fixes it (div_u64() is do_div() on 32-bit).
+Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/video/videobuf2-core.c |   64 ++++++++++++++++++++++++++++++++++
+ include/media/videobuf2-core.h       |    2 +
+ 2 files changed, 66 insertions(+), 0 deletions(-)
 
-Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
+diff --git a/drivers/media/video/videobuf2-core.c b/drivers/media/video/videobuf2-core.c
+index e7df560..41c4bf8 100644
+--- a/drivers/media/video/videobuf2-core.c
++++ b/drivers/media/video/videobuf2-core.c
+@@ -1553,6 +1553,70 @@ int vb2_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b, bool nonblocking)
+ }
+ EXPORT_SYMBOL_GPL(vb2_dqbuf);
+ 
++static int __find_plane_by_offset(struct vb2_queue *q, unsigned long off,
++			unsigned int *_buffer, unsigned int *_plane);
++
++/**
++ * vb2_expbuf() - Export a buffer as a file descriptor
++ * @q:		videobuf2 queue
++ * @b:		export buffer structure passed from userspace to vidioc_expbuf
++ *		handler in driver
++ *
++ * The return values from this function are intended to be directly returned
++ * from vidioc_expbuf handler in driver.
++ */
++int vb2_expbuf(struct vb2_queue *q, struct v4l2_exportbuffer *eb)
++{
++	struct vb2_buffer *vb = NULL;
++	struct vb2_plane *vb_plane;
++	unsigned int buffer, plane;
++	int ret;
++	struct dma_buf *dbuf;
++
++	if (q->memory != V4L2_MEMORY_MMAP) {
++		dprintk(1, "Queue is not currently set up for mmap\n");
++		return -EINVAL;
++	}
++
++	if (!q->mem_ops->get_dmabuf) {
++		dprintk(1, "Queue does not support DMA buffer exporting\n");
++		return -EINVAL;
++	}
++
++	/*
++	 * Find the plane corresponding to the offset passed by userspace.
++	 */
++	ret = __find_plane_by_offset(q, eb->mem_offset, &buffer, &plane);
++	if (ret) {
++		dprintk(1, "invalid offset %u\n", eb->mem_offset);
++		return ret;
++	}
++
++	vb = q->bufs[buffer];
++	vb_plane = &vb->planes[plane];
++
++	dbuf = call_memop(q, get_dmabuf, vb_plane->mem_priv);
++	if (IS_ERR_OR_NULL(dbuf)) {
++		dprintk(1, "Failed to export buffer %d, plane %d\n",
++			buffer, plane);
++		return -EINVAL;
++	}
++
++	ret = dma_buf_fd(dbuf);
++	if (ret < 0) {
++		dprintk(3, "buffer %d, plane %d failed to export (%d)\n",
++			buffer, plane, ret);
++		return ret;
++	}
++
++	dprintk(3, "buffer %d, plane %d exported as %d descriptor\n",
++		buffer, plane, ret);
++	eb->fd = ret;
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(vb2_expbuf);
++
+ /**
+  * __vb2_queue_cancel() - cancel and stop (pause) streaming
+  *
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index 412c6a4..548252b 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -79,6 +79,7 @@ struct vb2_mem_ops {
+ 	void		(*prepare)(void *buf_priv);
+ 	void		(*finish)(void *buf_priv);
+ 	void		(*put)(void *buf_priv);
++	struct dma_buf *(*get_dmabuf)(void *buf_priv);
+ 
+ 	void		*(*get_userptr)(void *alloc_ctx, unsigned long vaddr,
+ 					unsigned long size, int write);
+@@ -348,6 +349,7 @@ int vb2_queue_init(struct vb2_queue *q);
+ void vb2_queue_release(struct vb2_queue *q);
+ 
+ int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b);
++int vb2_expbuf(struct vb2_queue *q, struct v4l2_exportbuffer *eb);
+ int vb2_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b, bool nonblocking);
+ 
+ int vb2_streamon(struct vb2_queue *q, enum v4l2_buf_type type);
+-- 
+1.7.5.4
 
-> ---
->  drivers/media/dvb/frontends/rtl2830.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
->
-> diff --git a/drivers/media/dvb/frontends/rtl2830.c
-> b/drivers/media/dvb/frontends/rtl2830.c
-> index f971d94..45196c5 100644
-> --- a/drivers/media/dvb/frontends/rtl2830.c
-> +++ b/drivers/media/dvb/frontends/rtl2830.c
-> @@ -244,7 +244,7 @@ static int rtl2830_init(struct dvb_frontend *fe)
->
->        num = priv->cfg.if_dvbt % priv->cfg.xtal;
->        num *= 0x400000;
-> -       num /= priv->cfg.xtal;
-> +       num = div_u64(num, priv->cfg.xtal);
->        num = -num;
->        if_ctl = num & 0x3fffff;
->        dbg("%s: if_ctl=%08x", __func__, if_ctl);
-
-Gr{oetje,eeting}s,
-
-                        Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
