@@ -1,102 +1,260 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:40718 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756314Ab2CNVgQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Mar 2012 17:36:16 -0400
-Message-ID: <4F610F4D.6080402@iki.fi>
-Date: Wed, 14 Mar 2012 23:36:13 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from smtp-68.nebula.fi ([83.145.220.68]:35075 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756626Ab2CFQcs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Mar 2012 11:32:48 -0500
+Date: Tue, 6 Mar 2012 18:32:40 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	David Cohen <dacohen@gmail.com>,
+	Sylwester Nawrocki <snjw23@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	tuukkat76@gmail.com, Kamil Debski <k.debski@samsung.com>,
+	Kim HeungJun <riverful@gmail.com>, teturtia@gmail.com,
+	pradeep.sawlani@gmail.com
+Subject: [PATCH v5 0/35] V4L2 subdev and sensor control changes, SMIA++
+ driver and N9 camera board code
+Message-ID: <20120306163239.GN1075@valkosipuli.localdomain>
 MIME-Version: 1.0
-To: Malcolm Priestley <tvboxspy@gmail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH 2/2 FOR 3.4] af9015: fix i2c failures for dual-tuner devices
- - part 2
-References: <1331735251-15393-1-git-send-email-crope@iki.fi>  <1331735251-15393-2-git-send-email-crope@iki.fi> <1331759693.5713.12.camel@tvbox>
-In-Reply-To: <1331759693.5713.12.camel@tvbox>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 14.03.2012 23:14, Malcolm Priestley wrote:
-> On Wed, 2012-03-14 at 16:27 +0200, Antti Palosaari wrote:
->> Some changes for previous patch I liked to do.
->> Just move tuner init and sleep to own functions from the demod
->> init and sleep functions.  Functionality remains still almost the same.
->>
->> Signed-off-by: Antti Palosaari<crope@iki.fi>
->> ---
->>   drivers/media/dvb/dvb-usb/af9015.c |   74 ++++++++++++++++++++++-------------
->>   drivers/media/dvb/dvb-usb/af9015.h |    4 +-
->>   2 files changed, 48 insertions(+), 30 deletions(-)
->>
->> diff --git a/drivers/media/dvb/dvb-usb/af9015.c b/drivers/media/dvb/dvb-usb/af9015.c
->> index 9307b4ca..7e70ea5 100644
->> --- a/drivers/media/dvb/dvb-usb/af9015.c
->> +++ b/drivers/media/dvb/dvb-usb/af9015.c
->> @@ -1141,18 +1141,7 @@ static int af9015_af9013_init(struct dvb_frontend *fe)
->>   		return -EAGAIN;
->>
->>   	ret = priv->init[adap->id](fe);
->> -	if (ret)
->> -		goto err_unlock;
->> -
->> -	if (priv->tuner_ops_init[adap->id]) {
->> -		if (fe->ops.i2c_gate_ctrl)
->> -			fe->ops.i2c_gate_ctrl(fe, 1);
->> -		ret = priv->tuner_ops_init[adap->id](fe);
->> -		if (fe->ops.i2c_gate_ctrl)
->> -			fe->ops.i2c_gate_ctrl(fe, 0);
->> -	}
->>
->> -err_unlock:
->>   	mutex_unlock(&adap->dev->usb_mutex);
->>
->>   	return ret;
->> @@ -1168,24 +1157,48 @@ static int af9015_af9013_sleep(struct dvb_frontend *fe)
->>   	if (mutex_lock_interruptible(&adap->dev->usb_mutex))
->>   		return -EAGAIN;
->>
->> -	if (priv->tuner_ops_sleep[adap->id]) {
->> -		if (fe->ops.i2c_gate_ctrl)
->> -			fe->ops.i2c_gate_ctrl(fe, 1);
->> -		ret = priv->tuner_ops_sleep[adap->id](fe);
->> -		if (fe->ops.i2c_gate_ctrl)
->> -			fe->ops.i2c_gate_ctrl(fe, 0);
->> -		if (ret)
->> -			goto err_unlock;
->> -	}
->> -
->>   	ret = priv->sleep[adap->id](fe);
->>
->> -err_unlock:
->>   	mutex_unlock(&adap->dev->usb_mutex);
->>
->>   	return ret;
->>   }
->>
->> +/* override tuner callbacks for resource locking */
->> +static int af9015_tuner_init(struct dvb_frontend *fe)
->> +{
->> +	int ret;
->> +	struct dvb_usb_adapter *adap = fe->dvb->priv;
->> +	struct af9015_state *priv = adap->dev->priv;
->> +
->> +	if (mutex_lock_interruptible(&adap->dev->usb_mutex))
->> +		return -EAGAIN;
-> Hi Antti
->
-> I think using mutex_lock_interruptible errors into dvb-usb causes false
-> errors and errors caused by missed registers.
->
-> I prefer to use mutex_lock only return genuine device errors.
+Hi everyone,
 
-IIRC documentation says mutex_lock_interruptible() must be used instead 
-of mutex_lock() when possible. I don't see any reason why I it should be 
-changed.
+This the fifth version of my patchset that contains:
 
-regards
-Antti
+- Integer menu controls [2],
+- Selection IOCTL for subdevs [3],
+- Sensor control changes [5,7],
+- link_validate() media entity and V4L2 subdev pad ops,
+- OMAP 3 ISP driver improvements [4],
+- SMIA++ sensor driver,
+- rm680/rm696 board code (a.k.a Nokia N9 and N950) and
+- Other V4L2 and media improvements (see individual patches)
+
+The Docbook documentation in HTML format can be found in [15] (v3
+documentation available in [11] and v4 in [13]).
+
+
+The issue with "ACTIVE" target names still needs to be addressed. The
+current proposal is "CURRENT". To be discussed on IRC.
+
+
+Changes to version 4 [16]:
+
+- V4L2 / V4L2 subdev
+  - Documentation
+    - Spelling fixes
+    - Red lines in diagrams dotted instead of solid
+    - Proper ordering of raw bayer formats
+
+- SMIA++ driver
+  - PLL code separated from the actual driver
+  - Source pads are always zero now
+  - Error handling fixes in nvm reading
+  - Try format pixel code handling fixes
+  - Miscellaneous code cleanups
+
+- Media controller
+  - Dropped the patch to find entities; moved to omap3isp driver instead
+
+- OMAP 3 ISP
+  - Find out external entity's pad number, don't assume zero (new patch)
+  - Small cleanups
+  - Entities in pipeline stored in struct isp_pipeline
+
+Changes to version 3 [12] include:
+
+- OMAP 3 ISP
+  - Rework ISP driver patches
+  - Remove code from isp_video_pipeline_validate in same patch as the
+    functionality is added elsewhere (old patch to remove leftovers
+    dropped)
+  - isp_video_streamon() error handling cleanups
+  - All pipeline validation performed before any s_straem subdev ops
+    - Resizer data rate check moved to link validation
+    - CCDC rate checked in isp_video_check_external_subdeva()
+  - Formats checked during link validation
+  - Remove means to set pixel rate (new patch)
+  - Don't set link_validate pad ops where the default is sufficient
+
+- Media controller
+  - media_entity_pipeline_start() collects information on entities in
+    pipeline
+  - link validation error handling fix
+
+- V4L2 / V4L2 subdev
+  - Less confusing selection example diagrams
+  - Selection documentation improvements  (as also suggested by Laurent)
+
+- SMIA++ driver
+  - Fixes according to Laurent's suggestions [14]
+  - Locking fixes and power handling cleanups
+
+Changes to version 2 [10] include:
+
+- V4L2
+  - Image source controls
+    - Documentation no longer refers to "pixel clock" in v4l2_mbus_framefmt
+      (this should have been the last reference to those!!)
+    - Capitalise first letters in control names
+  - Selections
+    - Use hex numbers for targets
+  - Return NULL instead of invalid pointer when accessing non-existend pads
+    in v4l2_subdev_get_try_{format,crop,compose} (new patch)
+  - Put link validation definitions in v4l2-subdev.h behind
+    #ifdef CONFIG_MEDIA_CONTROLLER ... #endif
+  - Spelling fixes (selections and 4cc guidelines)
+  - Change vdev_to_v4l2_subdev() return type to struct v4l2_subdev * (new
+    patch)
+
+- SMIA++ driver
+  - Clock tree calculation fixes
+  - Control handler setup usage fixes at smiapp_open()
+  - Don't access non-existent pads
+
+Changes to version 1 [8] include:
+
+- OMAP 3 ISP driver
+  - Swapped order of csi receiver's lane definitions
+  - Rewrote omap 3 isp link validation patches almost completely
+    - Information on connected external entity collected to isp_pipeline
+    - Information collected during link checking and used at streamon
+
+- Media entity link validation
+  - Error handling fixes
+
+- SMIA++ driver
+  - Selection API bugfixes
+  - Report correct pixel order right from boot
+  - Move link rate control to subdev connected to subdev external to the
+    sensor (e.g. ISP's CSI-2 receiver)
+  - Introduce proper serialisation
+  - Deny changing some controls when streaming (flipping and link rate)
+  - Control handler setup moved from streamon time to first subdev open
+  - There is no source compose target
+  - Bugfixes
+
+- Media bus pixel codes
+  - Documentation fix for dpcm compressed formats
+  - Added patch for 4CC guidelines (raw bayer only for now)
+
+- Selections
+  - Improved selections documentation
+  - Added more selections examples
+  - Compose target is not available on source pads anymore [9]
+  - Dropped default targets
+
+- V4L2
+  - Add documentation on link_validate()
+  - link_validate() and relater functions  depends on
+CONFIG_MEDIA_CONTROLLER
+  - Skip link validation for links on which stream_count was non-zero
+  - Do not validate link if entity's stream count is non-zero
+  - Use v4l2_subdev_link_validate_default() if no link_validate pad op
+is set
+  - Allow changing control handler mutex: this enables a driver to provide
+    multiple subdevs but use only one mutex. Default mutex (part of struct
+    v4l2_ctrl_handler) is set in v4l2_ctrl_handler_init().
+  - Split image source class into two: image source and image processing
+
+Changes to the RFC v1 [6] include:
+
+- Integer controls:
+  - Target Linux 3.4 instead of 3.3
+  - Proper control type check in querymenu
+  - vivi compile fixes
+
+- Subdev selections
+  - Pad try fields combined to single struct
+  - Correctly set sel.which based on crop->which in crop fall-back
+
+- Subdev selection documentation
+  - Better explanation on image processing in subdevs
+  - Added a diagram to visualise subdev configuration
+  - Fixed DocBook syntax issues
+  - Mark VIDIOC_SUBDEV_S_CROP and VIDIOC_SUBDEV_G_CROP obsolete
+
+- Pixel rate
+  - Pixel rate is now a 64-bit control, not part of v4l2_mbus_framefmt
+  - Unit for pixel rate is pixels / second
+  - Pixel rate is read-only
+
+- Link frequency is now in Hz --- documented as such also
+
+- Link validation instead of pipeline validation
+  - Each link is validated by calling link_validate op
+    - Added link validation op to media_entity_ops
+  - Link validation op in pad ops makes this easy for subdev drivers
+  - media_entity_pipeline_start() may return an error code now
+    - This might affect other drivers, but will warn in compilation.
+      No adverse effects are caused if the driver does not use
+      link_validate().
+
+- OMAP 3 ISP
+  - Make lanecfg as part of the platform data structure, not pointer
+  - Document lane configuration structures
+  - Link validation moved to respective subdev drivers from ispvideo.c
+    - isp_validate_pipeline() removed
+
+- SMIA++ driver
+  - Update pixel order based on vflip and hflip
+  - Cleanups in the main driver, register definitions and PLL code
+  - Depend on V4L2_V4L2_SUBDEV_API and MEDIA_CONTROLLER
+  - Use pr_* macros instead of printk
+  - Improved error handling for i2c_transfer()
+  - Removed useless definitions
+  - Don't access try crop / compose directly but use helper functions
+  - Add xshutdown to platform data
+  - Move driver under smiapp directory
+
+- rm680 board code
+  - Use REGULATOR_SUPPLY() where possible
+  - Removed printk()'s
+  - Don't include private smiapp headers
+
+
+References:
+
+[1] http://www.spinics.net/lists/linux-omap/msg61295.html
+
+[2] http://www.spinics.net/lists/linux-media/msg40796.html
+
+[3] http://www.spinics.net/lists/linux-media/msg41503.html
+
+[4] http://www.spinics.net/lists/linux-media/msg41542.html
+
+[5] http://www.spinics.net/lists/linux-media/msg40861.html
+
+[6] http://www.spinics.net/lists/linux-media/msg41765.html
+
+[7] http://www.spinics.net/lists/linux-media/msg42848.html
+
+[8] http://www.spinics.net/lists/linux-media/msg42991.html
+
+[9] http://www.spinics.net/lists/linux-media/msg43810.html
+
+[10] http://www.spinics.net/lists/linux-media/msg43888.html
+
+[11] http://www.retiisi.org.uk/v4l2/tmp/media_api/
+
+[12] http://www.spinics.net/lists/linux-media/msg44405.html
+
+[13] http://www.retiisi.org.uk/v4l2/tmp/media_api2/
+
+[14] http://www.spinics.net/lists/linux-media/msg44704.html
+
+[15] http://wwww.retiisi.org.uk/v4l2/tmp/media_api3/
+
+[16] http://www.spinics.net/lists/linux-media/msg44843.html
+
+Kind regards,
 
 -- 
-http://palosaari.fi/
+Sakari Ailus
+sakari.ailus@iki.fi
