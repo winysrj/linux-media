@@ -1,70 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.24]:22301 "EHLO mgw-da01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756870Ab2CFQd2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 6 Mar 2012 11:33:28 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, dacohen@gmail.com,
-	snjw23@gmail.com, andriy.shevchenko@linux.intel.com,
-	t.stanislaws@samsung.com, tuukkat76@gmail.com,
-	k.debski@samsung.com, riverful@gmail.com, hverkuil@xs4all.nl,
-	teturtia@gmail.com, pradeep.sawlani@gmail.com
-Subject: [PATCH v5 13/35] v4l: Document raw bayer 4CC codes
-Date: Tue,  6 Mar 2012 18:32:54 +0200
-Message-Id: <1331051596-8261-13-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <20120306163239.GN1075@valkosipuli.localdomain>
-References: <20120306163239.GN1075@valkosipuli.localdomain>
+Received: from mail-wi0-f174.google.com ([209.85.212.174]:55958 "EHLO
+	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752592Ab2CFSCE convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Mar 2012 13:02:04 -0500
+MIME-Version: 1.0
+In-Reply-To: <4F53EA7D.4090402@gmail.com>
+References: <CAMuHMdVmiqY9uh574_uTK76+28bvhEL0BPnzjDF-bf-0mgj4gg@mail.gmail.com>
+	<4F53EA7D.4090402@gmail.com>
+Date: Tue, 6 Mar 2012 19:02:02 +0100
+Message-ID: <CAMuHMdVE2m-Q+ikyEE5V9dd9cbqCbCC2+CtnkDhq=UTQg2detQ@mail.gmail.com>
+Subject: Re: rtl2830: __udivdi3 undefined
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+To: gennarone@gmail.com
+Cc: linux-media@vger.kernel.org, Antti Palosaari <crope@iki.fi>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux-Next <linux-next@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Document guidelines how 4CC codes should be named. Only raw bayer is
-included currently. Other formats should be documented later on.
+On Sun, Mar 4, 2012 at 23:19, Gianluca Gennari <gennarone@gmail.com> wrote:
+> Probably the best solution is to use div_u64.
+> The following patch fixed the warning on my 32 bit system.
+>
+> Signed-off-by: Gianluca Gennari <gennarone@gmail.com>
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
----
- Documentation/video4linux/4CCs.txt |   32 ++++++++++++++++++++++++++++++++
- 1 files changed, 32 insertions(+), 0 deletions(-)
- create mode 100644 Documentation/video4linux/4CCs.txt
+Thanks, that fixes it (div_u64() is do_div() on 32-bit).
 
-diff --git a/Documentation/video4linux/4CCs.txt b/Documentation/video4linux/4CCs.txt
-new file mode 100644
-index 0000000..41241af
---- /dev/null
-+++ b/Documentation/video4linux/4CCs.txt
-@@ -0,0 +1,32 @@
-+Guidelines for Linux4Linux pixel format 4CCs
-+============================================
-+
-+Guidelines for Video4Linux 4CC codes defined using v4l2_fourcc() are
-+specified in this document. First of the characters defines the nature of
-+the pixel format, compression and colour space. The interpretation of the
-+other three characters depends on the first one.
-+
-+Existing 4CCs may not obey these guidelines.
-+
-+Formats
-+=======
-+
-+Raw bayer
-+---------
-+
-+The following first characters are used by raw bayer formats:
-+
-+	B: raw bayer, uncompressed
-+	b: raw bayer, DPCM compressed
-+	a: A-law compressed
-+	u: u-law compressed
-+
-+2nd character: pixel order
-+	B: BGGR
-+	G: GBRG
-+	g: GRBG
-+	R: RGGB
-+
-+3rd character: uncompressed bits-per-pixel 0--9, A--
-+
-+4th character: compressed bits-per-pixel 0--9, A--
--- 
-1.7.2.5
+Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
 
+> ---
+>  drivers/media/dvb/frontends/rtl2830.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+>
+> diff --git a/drivers/media/dvb/frontends/rtl2830.c
+> b/drivers/media/dvb/frontends/rtl2830.c
+> index f971d94..45196c5 100644
+> --- a/drivers/media/dvb/frontends/rtl2830.c
+> +++ b/drivers/media/dvb/frontends/rtl2830.c
+> @@ -244,7 +244,7 @@ static int rtl2830_init(struct dvb_frontend *fe)
+>
+>        num = priv->cfg.if_dvbt % priv->cfg.xtal;
+>        num *= 0x400000;
+> -       num /= priv->cfg.xtal;
+> +       num = div_u64(num, priv->cfg.xtal);
+>        num = -num;
+>        if_ctl = num & 0x3fffff;
+>        dbg("%s: if_ctl=%08x", __func__, if_ctl);
+
+Gr{oetje,eeting}s,
+
+                        Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
