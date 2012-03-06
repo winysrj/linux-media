@@ -1,140 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:55070 "EHLO
+Received: from smtp-68.nebula.fi ([83.145.220.68]:53788 "EHLO
 	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754447Ab2CDPBe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 4 Mar 2012 10:01:34 -0500
-Message-ID: <4F5383CA.4050202@iki.fi>
-Date: Sun, 04 Mar 2012 17:01:30 +0200
+	with ESMTP id S1030461Ab2CFMJe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Mar 2012 07:09:34 -0500
+Date: Tue, 6 Mar 2012 14:09:30 +0200
 From: Sakari Ailus <sakari.ailus@iki.fi>
-MIME-Version: 1.0
 To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-media@vger.kernel.org,
-	Martin Hostettler <martin@neutronstar.dyndns.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH v3 09/10] v4l: Aptina-style sensor PLL support
-References: <1330788495-18762-1-git-send-email-laurent.pinchart@ideasonboard.com> <1330788495-18762-10-git-send-email-laurent.pinchart@ideasonboard.com> <20120303223707.GJ15695@valkosipuli.localdomain> <2059444.5Gn7cyLNBL@avalon>
-In-Reply-To: <2059444.5Gn7cyLNBL@avalon>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Cc: linux-media@vger.kernel.org, dacohen@gmail.com, snjw23@gmail.com,
+	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
+	tuukkat76@gmail.com, k.debski@samsung.com, riverful@gmail.com,
+	hverkuil@xs4all.nl, teturtia@gmail.com
+Subject: Re: [PATCH v4 16/34] media: Collect entities that are part of the
+ pipeline before link validation
+Message-ID: <20120306120930.GE1075@valkosipuli.localdomain>
+References: <20120302173219.GA15695@valkosipuli.localdomain>
+ <1330709442-16654-16-git-send-email-sakari.ailus@iki.fi>
+ <7119876.zcxcmOKuSu@avalon>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <7119876.zcxcmOKuSu@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 Hi Laurent,
 
-Laurent Pinchart wrote:
-> On Sunday 04 March 2012 00:37:07 Sakari Ailus wrote:
->> On Sat, Mar 03, 2012 at 04:28:14PM +0100, Laurent Pinchart wrote:
->>> Add a generic helper function to compute PLL parameters for PLL found in
->>> several Aptina sensors.
->
-> [snip]
->
->>> diff --git a/drivers/media/video/aptina-pll.c
->>> b/drivers/media/video/aptina-pll.c new file mode 100644
->>> index 0000000..55e4a40
->>> --- /dev/null
->>> +++ b/drivers/media/video/aptina-pll.c
->
-> [snip]
->
->>> +int aptina_pll_configure(struct device *dev, struct aptina_pll *pll,
->>> +			 const struct aptina_pll_limits *limits)
->>
->> I've done the same to the SMIA++ PLL: it can be used separately from the
->> driver now; it'll be part of the next patchset.
->>
->> Do you think it could make sense to swap pll and limits parameters?
->
-> Why ? :-)
+On Mon, Mar 05, 2012 at 12:13:39PM +0100, Laurent Pinchart wrote:
+> On Friday 02 March 2012 19:30:24 Sakari Ailus wrote:
+> > Make information available which entities are part of the pipeline before
+> > link_validate() ops are being called.
+> > 
+> > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> > ---
+> >  drivers/media/media-entity.c |   23 ++++++++++++++++++++---
+> >  include/media/media-entity.h |    1 +
+> >  2 files changed, 21 insertions(+), 3 deletions(-)
+> > 
+> > diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+> > index d6d0e81..55f66c6 100644
+> > --- a/drivers/media/media-entity.c
+> > +++ b/drivers/media/media-entity.c
+> > @@ -220,12 +220,19 @@ __must_check int media_entity_pipeline_start(struct
+> > media_entity *entity, struct media_device *mdev = entity->parent;
+> >  	struct media_entity_graph graph;
+> >  	struct media_entity *entity_err = entity;
+> > +	struct {
+> > +		struct media_entity *entity;
+> > +		struct media_link *link;
+> > +	} to_validate[MEDIA_ENTITY_ENUM_MAX_DEPTH];
+> > +	int nto_validate = 0;
+> >  	int ret;
+> > 
+> >  	mutex_lock(&mdev->graph_mutex);
+> > 
+> >  	media_entity_graph_walk_start(&graph, entity);
+> > 
+> > +	pipe->entities = 0;
+> > +
+> >  	while ((entity = media_entity_graph_walk_next(&graph))) {
+> >  		unsigned int i;
+> > 
+> > @@ -237,6 +244,8 @@ __must_check int media_entity_pipeline_start(struct
+> > media_entity *entity, if (entity->stream_count > 1)
+> >  			continue;
+> > 
+> > +		pipe->entities |= 1 << entity->id;
+> > +
+> >  		if (!entity->ops || !entity->ops->link_validate)
+> >  			continue;
+> > 
+> > @@ -251,12 +260,20 @@ __must_check int media_entity_pipeline_start(struct
+> > media_entity *entity, if (link->sink->entity != entity)
+> >  				continue;
+> > 
+> > -			ret = entity->ops->link_validate(link);
+> > -			if (ret < 0 && ret != -ENOIOCTLCMD)
+> > -				goto error;
+> > +			BUG_ON(nto_validate >= MEDIA_ENTITY_ENUM_MAX_DEPTH);
+> > +			to_validate[nto_validate].entity = entity;
+> > +			to_validate[nto_validate].link = link;
+> > +			nto_validate++;
+> >  		}
+> >  	}
+> > 
+> > +	for (nto_validate--; nto_validate >= 0; nto_validate--) {
+> > +		ret = to_validate[nto_validate].entity->ops->
+> > +			link_validate(to_validate[nto_validate].link);
+> > +		if (ret < 0 && ret != -ENOIOCTLCMD)
+> > +			goto error;
+> > +	}
+> > +
+> >  	mutex_unlock(&mdev->graph_mutex);
+> > 
+> >  	return 0;
+> > diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+> > index 0c16f51..bbfc8f2 100644
+> > --- a/include/media/media-entity.h
+> > +++ b/include/media/media-entity.h
+> > @@ -27,6 +27,7 @@
+> >  #include <linux/media.h>
+> > 
+> >  struct media_pipeline {
+> > +	u32 entities;
+> 
+> This assume there will be no more than 32 entities. I don't think that's a 
+> safe assumption, especially with ALSA devices. I'm not sure I would put this 
+> in the media controller core just yet.
 
-Uh, I have it that way. ;-) Also both dev and limits contain perhaps 
-less interesting or const information than pll, which contains both 
-input and output parameters.
+Based our discussion online, I'm dropping this patch and replacing it with
+another which is specific to the omap3isp driver.
 
->> I call the function smiapp_pll_calculate().
->
-> I've renamed the function to aptina_pll_calculate().
->
->>> +{
->>> +	unsigned int mf_min;
->>> +	unsigned int mf_max;
->>> +	unsigned int p1_min;
->>> +	unsigned int p1_max;
->>> +	unsigned int p1;
->>> +	unsigned int div;
->>> +
->>> +	if (pll->ext_clock<  limits->ext_clock_min ||
->>> +	    pll->ext_clock>  limits->ext_clock_max) {
->>> +		dev_err(dev, "pll: invalid external clock frequency.\n");
->>> +		return -EINVAL;
->>> +	}
->>> +
->>> +	if (pll->pix_clock>  limits->pix_clock_max) {
->>> +		dev_err(dev, "pll: invalid pixel clock frequency.\n");
->>> +		return -EINVAL;
->>> +	}
->>
->> You could check that pix_clock isn't zero.
->
-> OK.
->
-> [snip]
->
->>> +	for (p1 = p1_max&  ~1; p1>= p1_min; p1 -= 2) {
->>> +		unsigned int mf_inc = lcm(div, p1) / div;
->>
->> I think you could avoid division by using p1 * gcd(div, p1) instead.
->
-> That's not the same. lcm(div, p1) / div == p1 / gcd(div, p1). There's still a
-> division, but it's slightly better, so I'll use that.
-
-Right; you can put that on the late hour I was writing this at. ;-)
-
->>> +		unsigned int mf_high;
->>> +		unsigned int mf_low;
->>> +
->>> +		mf_low = max(roundup(mf_min, mf_inc),
->>> +			     DIV_ROUND_UP(pll->ext_clock * p1,
->>> +			       limits->int_clock_max * div));
->>> +		mf_high = min(mf_max, pll->ext_clock * p1 /
->>> +			      (limits->int_clock_min * div));
->>> +
->>> +		if (mf_low<= mf_high) {
->>> +			pll->n = div * mf_low / p1;
->>> +			pll->m *= mf_low;
->>> +			pll->p1 = p1;
->>> +			break;
->>
->> You could return already here.
->
-> OK.
-
-Or even:
-
-	if (mf_low > mf_high)
-		continue;
-
-	dev_dbg(stuff);
-	return 0;
-
-I find this often easier to read. It's up to you.
-
->>> +		}
->>> +	}
->>> +
->>> +	if (p1<  p1_min) {
->>> +		dev_err(dev, "pll: no valid N and P1 divisors found.\n");
->>> +		return -EINVAL;
->>> +	}
->>> +
->>> +	dev_dbg(dev, "PLL: ext clock %u N %u M %u P1 %u pix clock %u\n",
->>> +		 pll->ext_clock, pll->n, pll->m, pll->p1, pll->pix_clock);
->>> +
->>> +	return 0;
->>> +}
->
-
+Cheers,
 
 -- 
 Sakari Ailus
-sakari.ailus@iki.fi
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
