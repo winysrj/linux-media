@@ -1,413 +1,306 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:65152 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753603Ab2CMNoH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Mar 2012 09:44:07 -0400
-From: Hans de Goede <hdegoede@redhat.com>
-To: Andrew Morton <akpm@google.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>,
-	Davide Libenzi <davidel@xmailserver.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Jonathan Corbet <corbet@lwn.net>, linux-kernel@vger.kernel.org,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH] poll: add poll_requested_events() and poll_does_not_wait() functions
-Date: Tue, 13 Mar 2012 14:45:56 +0100
-Message-Id: <1331646356-3449-2-git-send-email-hdegoede@redhat.com>
-In-Reply-To: <1331646356-3449-1-git-send-email-hdegoede@redhat.com>
-References: <1331646356-3449-1-git-send-email-hdegoede@redhat.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:45753 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755541Ab2CFQYH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Mar 2012 11:24:07 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Martin Hostettler <martin@neutronstar.dyndns.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sakari Ailus <sakari.ailus@iki.fi>
+Subject: [PATCH v2 3/5] v4l: Aptina-style sensor PLL support
+Date: Tue,  6 Mar 2012 17:24:23 +0100
+Message-Id: <1331051065-5055-4-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1331051065-5055-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1331051065-5055-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Add a generic helper function to compute PLL parameters for PLL found in
+several Aptina sensors.
 
-In some cases the poll() implementation in a driver has to do different
-things depending on the events the caller wants to poll for. An example is
-when a driver needs to start a DMA engine if the caller polls for POLLIN,
-but doesn't want to do that if POLLIN is not requested but instead only
-POLLOUT or POLLPRI is requested. This is something that can happen in the
-video4linux subsystem among others.
-
-Unfortunately, the current epoll/poll/select implementation doesn't provide
-that information reliably. The poll_table_struct does have it: it has a key
-field with the event mask. But once a poll() call matches one or more bits
-of that mask any following poll() calls are passed a NULL poll_table pointer.
-
-Also, the eventpoll implementation always left the key field at ~0 instead
-of using the requested events mask.
-
-This was changed in eventpoll.c so the key field now contains the actual
-events that should be polled for as set by the caller.
-
-The solution to the NULL poll_table pointer is to set the qproc field to
-NULL in poll_table once poll() matches the events, not the poll_table
-pointer itself. That way drivers can obtain the mask through a new
-poll_requested_events inline.
-
-The poll_table_struct can still be NULL since some kernel code calls it
-internally (netfs_state_poll() in ./drivers/staging/pohmelfs/netfs.h). In
-that case poll_requested_events() returns ~0 (i.e. all events).
-
-Very rarely drivers might want to know whether poll_wait will actually wait.
-If another earlier file descriptor in the set already matched the events the
-caller wanted to wait for, then the kernel will return from the select() call
-without waiting. This might be useful information in order to avoid doing
-expensive work.
-
-A new helper function poll_does_not_wait() is added that drivers can use to
-detect this situation. This is now used in sock_poll_wait() in
-include/net/sock.h. This was the only place in the kernel that needed this
-information.
-
-Drivers should no longer access any of the poll_table internals, but use the
-poll_requested_events() and poll_does_not_wait() access functions instead.
-In order to enforce that the poll_table fields are now prepended with an
-underscore and a comment was added warning against using them directly.
-
-This required a change in unix_dgram_poll() in unix/af_unix.c which used the
-key field to get the requested events. It's been replaced by a call to
-poll_requested_events().
-
-For qproc it was especially important to change its name since the behavior of
-that field changes with this patch since this function pointer can now be NULL
-when that wasn't possible in the past.
-
-Any driver accessing the qproc or key fields directly will now fail to compile.
-
-Some notes regarding the correctness of this patch: the driver's poll()
-function is called with a 'struct poll_table_struct *wait' argument. This
-pointer may or may not be NULL, drivers can never rely on it being one or
-the other as that depends on whether or not an earlier file descriptor in
-the select()'s fdset matched the requested events.
-
-There are only three things a driver can do with the wait argument:
-
-1) obtain the key field:
-
-	events = wait ? wait->key : ~0;
-
-   This will still work although it should be replaced with the new
-   poll_requested_events() function (which does exactly the same).
-   This will now even work better, since wait is no longer set to NULL
-   unnecessarily.
-
-2) use the qproc callback. This could be deadly since qproc can now be
-   NULL. Renaming qproc should prevent this from happening. There are no
-   kernel drivers that actually access this callback directly, BTW.
-
-3) test whether wait == NULL to determine whether poll would return without
-   waiting. This is no longer sufficient as the correct test is now
-   wait == NULL || wait->_qproc == NULL.
-
-   However, the worst that can happen here is a slight performance hit in
-   the case where wait != NULL and wait->_qproc == NULL. In that case the
-   driver will assume that poll_wait() will actually add the fd to the set
-   of waiting file descriptors. Of course, poll_wait() will not do that
-   since it tests for wait->_qproc. This will not break anything, though.
-
-   There is only one place in the whole kernel where this happens
-   (sock_poll_wait() in include/net/sock.h) and that code will be replaced
-   by a call to poll_does_not_wait() in the next patch.
-
-   Note that even if wait->_qproc != NULL drivers cannot rely on poll_wait()
-   actually waiting. The next file descriptor from the set might match the
-   event mask and thus any possible waits will never happen.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Reviewed-by: Jonathan Corbet <corbet@lwn.net>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Davide Libenzi <davidel@xmailserver.org>
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
 ---
- fs/eventpoll.c       |   18 +++++++++++++++---
- fs/select.c          |   40 ++++++++++++++++++----------------------
- include/linux/poll.h |   37 +++++++++++++++++++++++++++++++------
- include/net/sock.h   |    2 +-
- net/unix/af_unix.c   |    2 +-
- 5 files changed, 66 insertions(+), 33 deletions(-)
+ drivers/media/video/Kconfig      |    3 +
+ drivers/media/video/Makefile     |    4 +
+ drivers/media/video/aptina-pll.c |  174 ++++++++++++++++++++++++++++++++++++++
+ drivers/media/video/aptina-pll.h |   56 ++++++++++++
+ 4 files changed, 237 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/media/video/aptina-pll.c
+ create mode 100644 drivers/media/video/aptina-pll.h
 
-diff --git a/fs/eventpoll.c b/fs/eventpoll.c
-index ea54cde..42cff65 100644
---- a/fs/eventpoll.c
-+++ b/fs/eventpoll.c
-@@ -699,9 +699,12 @@ static int ep_read_events_proc(struct eventpoll *ep, struct list_head *head,
- 			       void *priv)
- {
- 	struct epitem *epi, *tmp;
-+	poll_table pt;
+diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+index 9495b6a..7867b0b 100644
+--- a/drivers/media/video/Kconfig
++++ b/drivers/media/video/Kconfig
+@@ -459,6 +459,9 @@ config VIDEO_AK881X
  
-+	init_poll_funcptr(&pt, NULL);
- 	list_for_each_entry_safe(epi, tmp, head, rdllink) {
--		if (epi->ffd.file->f_op->poll(epi->ffd.file, NULL) &
-+		pt._key = epi->event.events;
-+		if (epi->ffd.file->f_op->poll(epi->ffd.file, &pt) &
- 		    epi->event.events)
- 			return POLLIN | POLLRDNORM;
- 		else {
-@@ -1093,6 +1096,7 @@ static int ep_insert(struct eventpoll *ep, struct epoll_event *event,
- 	/* Initialize the poll table using the queue callback */
- 	epq.epi = epi;
- 	init_poll_funcptr(&epq.pt, ep_ptable_queue_proc);
-+	epq.pt._key = event->events;
+ comment "Camera sensor devices"
  
- 	/*
- 	 * Attach the item to the poll hooks and get current event bits.
-@@ -1187,6 +1191,9 @@ static int ep_modify(struct eventpoll *ep, struct epitem *epi, struct epoll_even
- {
- 	int pwake = 0;
- 	unsigned int revents;
-+	poll_table pt;
++config VIDEO_APTINA_PLL
++	tristate
 +
-+	init_poll_funcptr(&pt, NULL);
+ config VIDEO_OV7670
+ 	tristate "OmniVision OV7670 sensor support"
+ 	depends on I2C && VIDEO_V4L2
+diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
+index 563443c..d1304e1 100644
+--- a/drivers/media/video/Makefile
++++ b/drivers/media/video/Makefile
+@@ -22,6 +22,10 @@ endif
  
- 	/*
- 	 * Set the new event interest mask before calling f_op->poll();
-@@ -1194,13 +1201,14 @@ static int ep_modify(struct eventpoll *ep, struct epitem *epi, struct epoll_even
- 	 * f_op->poll() call and the new event set registering.
- 	 */
- 	epi->event.events = event->events;
-+	pt._key = event->events;
- 	epi->event.data = event->data; /* protected by mtx */
+ obj-$(CONFIG_VIDEO_V4L2_COMMON) += v4l2-common.o
  
- 	/*
- 	 * Get current event bits. We can safely use the file* here because
- 	 * its usage count has been increased by the caller of this function.
- 	 */
--	revents = epi->ffd.file->f_op->poll(epi->ffd.file, NULL);
-+	revents = epi->ffd.file->f_op->poll(epi->ffd.file, &pt);
- 
- 	/*
- 	 * If the item is "hot" and it is not registered inside the ready
-@@ -1235,6 +1243,9 @@ static int ep_send_events_proc(struct eventpoll *ep, struct list_head *head,
- 	unsigned int revents;
- 	struct epitem *epi;
- 	struct epoll_event __user *uevent;
-+	poll_table pt;
++# Helper modules
 +
-+	init_poll_funcptr(&pt, NULL);
++obj-$(CONFIG_VIDEO_APTINA_PLL) += aptina-pll.o
++
+ # All i2c modules must come first:
  
- 	/*
- 	 * We can loop without lock because we are passed a task private list.
-@@ -1247,7 +1258,8 @@ static int ep_send_events_proc(struct eventpoll *ep, struct list_head *head,
- 
- 		list_del_init(&epi->rdllink);
- 
--		revents = epi->ffd.file->f_op->poll(epi->ffd.file, NULL) &
-+		pt._key = epi->event.events;
-+		revents = epi->ffd.file->f_op->poll(epi->ffd.file, &pt) &
- 			epi->event.events;
- 
- 		/*
-diff --git a/fs/select.c b/fs/select.c
-index e782258..16211c7 100644
---- a/fs/select.c
-+++ b/fs/select.c
-@@ -223,7 +223,7 @@ static void __pollwait(struct file *filp, wait_queue_head_t *wait_address,
- 	get_file(filp);
- 	entry->filp = filp;
- 	entry->wait_address = wait_address;
--	entry->key = p->key;
-+	entry->key = p->_key;
- 	init_waitqueue_func_entry(&entry->wait, pollwake);
- 	entry->wait.private = pwq;
- 	add_wait_queue(wait_address, &entry->wait);
-@@ -386,13 +386,11 @@ get_max:
- static inline void wait_key_set(poll_table *wait, unsigned long in,
- 				unsigned long out, unsigned long bit)
- {
--	if (wait) {
--		wait->key = POLLEX_SET;
--		if (in & bit)
--			wait->key |= POLLIN_SET;
--		if (out & bit)
--			wait->key |= POLLOUT_SET;
--	}
-+	wait->_key = POLLEX_SET;
-+	if (in & bit)
-+		wait->_key |= POLLIN_SET;
-+	if (out & bit)
-+		wait->_key |= POLLOUT_SET;
- }
- 
- int do_select(int n, fd_set_bits *fds, struct timespec *end_time)
-@@ -414,7 +412,7 @@ int do_select(int n, fd_set_bits *fds, struct timespec *end_time)
- 	poll_initwait(&table);
- 	wait = &table.pt;
- 	if (end_time && !end_time->tv_sec && !end_time->tv_nsec) {
--		wait = NULL;
-+		wait->_qproc = NULL;
- 		timed_out = 1;
- 	}
- 
-@@ -459,17 +457,17 @@ int do_select(int n, fd_set_bits *fds, struct timespec *end_time)
- 					if ((mask & POLLIN_SET) && (in & bit)) {
- 						res_in |= bit;
- 						retval++;
--						wait = NULL;
-+						wait->_qproc = NULL;
- 					}
- 					if ((mask & POLLOUT_SET) && (out & bit)) {
- 						res_out |= bit;
- 						retval++;
--						wait = NULL;
-+						wait->_qproc = NULL;
- 					}
- 					if ((mask & POLLEX_SET) && (ex & bit)) {
- 						res_ex |= bit;
- 						retval++;
--						wait = NULL;
-+						wait->_qproc = NULL;
- 					}
- 				}
- 			}
-@@ -481,7 +479,7 @@ int do_select(int n, fd_set_bits *fds, struct timespec *end_time)
- 				*rexp = res_ex;
- 			cond_resched();
- 		}
--		wait = NULL;
-+		wait->_qproc = NULL;
- 		if (retval || timed_out || signal_pending(current))
- 			break;
- 		if (table.error) {
-@@ -720,7 +718,7 @@ struct poll_list {
-  * interested in events matching the pollfd->events mask, and the result
-  * matching that mask is both recorded in pollfd->revents and returned. The
-  * pwait poll_table will be used by the fd-provided poll handler for waiting,
-- * if non-NULL.
-+ * if pwait->_qproc is non-NULL.
-  */
- static inline unsigned int do_pollfd(struct pollfd *pollfd, poll_table *pwait)
- {
-@@ -738,9 +736,7 @@ static inline unsigned int do_pollfd(struct pollfd *pollfd, poll_table *pwait)
- 		if (file != NULL) {
- 			mask = DEFAULT_POLLMASK;
- 			if (file->f_op && file->f_op->poll) {
--				if (pwait)
--					pwait->key = pollfd->events |
--							POLLERR | POLLHUP;
-+				pwait->_key = pollfd->events | POLLERR | POLLHUP;
- 				mask = file->f_op->poll(file, pwait);
- 			}
- 			/* Mask out unneeded events. */
-@@ -763,7 +759,7 @@ static int do_poll(unsigned int nfds,  struct poll_list *list,
- 
- 	/* Optimise the no-wait case */
- 	if (end_time && !end_time->tv_sec && !end_time->tv_nsec) {
--		pt = NULL;
-+		pt->_qproc = NULL;
- 		timed_out = 1;
- 	}
- 
-@@ -781,22 +777,22 @@ static int do_poll(unsigned int nfds,  struct poll_list *list,
- 			for (; pfd != pfd_end; pfd++) {
- 				/*
- 				 * Fish for events. If we found one, record it
--				 * and kill the poll_table, so we don't
-+				 * and kill poll_table->_qproc, so we don't
- 				 * needlessly register any other waiters after
- 				 * this. They'll get immediately deregistered
- 				 * when we break out and return.
- 				 */
- 				if (do_pollfd(pfd, pt)) {
- 					count++;
--					pt = NULL;
-+					pt->_qproc = NULL;
- 				}
- 			}
- 		}
- 		/*
- 		 * All waiters have already been registered, so don't provide
--		 * a poll_table to them on the next loop iteration.
-+		 * a poll_table->_qproc to them on the next loop iteration.
- 		 */
--		pt = NULL;
-+		pt->_qproc = NULL;
- 		if (!count) {
- 			count = wait->error;
- 			if (signal_pending(current))
-diff --git a/include/linux/poll.h b/include/linux/poll.h
-index cf40010..48fe8bc 100644
---- a/include/linux/poll.h
-+++ b/include/linux/poll.h
-@@ -32,21 +32,46 @@ struct poll_table_struct;
-  */
- typedef void (*poll_queue_proc)(struct file *, wait_queue_head_t *, struct poll_table_struct *);
- 
+ obj-$(CONFIG_VIDEO_TUNER) += tuner.o
+diff --git a/drivers/media/video/aptina-pll.c b/drivers/media/video/aptina-pll.c
+new file mode 100644
+index 0000000..0bd3813
+--- /dev/null
++++ b/drivers/media/video/aptina-pll.c
+@@ -0,0 +1,174 @@
 +/*
-+ * Do not touch the structure directly, use the access functions
-+ * poll_does_not_wait() and poll_requested_events() instead.
++ * Aptina Sensor PLL Configuration
++ *
++ * Copyright (C) 2012 Laurent Pinchart <laurent.pinchart@ideasonboard.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
++ * 02110-1301 USA
 + */
- typedef struct poll_table_struct {
--	poll_queue_proc qproc;
--	unsigned long key;
-+	poll_queue_proc _qproc;
-+	unsigned long _key;
- } poll_table;
- 
- static inline void poll_wait(struct file * filp, wait_queue_head_t * wait_address, poll_table *p)
- {
--	if (p && wait_address)
--		p->qproc(filp, wait_address, p);
-+	if (p && p->_qproc && wait_address)
-+		p->_qproc(filp, wait_address, p);
-+}
 +
-+/*
-+ * Return true if it is guaranteed that poll will not wait. This is the case
-+ * if the poll() of another file descriptor in the set got an event, so there
-+ * is no need for waiting.
-+ */
-+static inline bool poll_does_not_wait(const poll_table *p)
++#include <linux/device.h>
++#include <linux/gcd.h>
++#include <linux/kernel.h>
++#include <linux/lcm.h>
++#include <linux/module.h>
++
++#include "aptina-pll.h"
++
++int aptina_pll_calculate(struct device *dev,
++			 const struct aptina_pll_limits *limits,
++			 struct aptina_pll *pll)
 +{
-+	return p == NULL || p->_qproc == NULL;
-+}
++	unsigned int mf_min;
++	unsigned int mf_max;
++	unsigned int p1_min;
++	unsigned int p1_max;
++	unsigned int p1;
++	unsigned int div;
 +
++	dev_dbg(dev, "PLL: ext clock %u pix clock %u\n",
++		pll->ext_clock, pll->pix_clock);
++
++	if (pll->ext_clock < limits->ext_clock_min ||
++	    pll->ext_clock > limits->ext_clock_max) {
++		dev_err(dev, "pll: invalid external clock frequency.\n");
++		return -EINVAL;
++	}
++
++	if (pll->pix_clock == 0 || pll->pix_clock > limits->pix_clock_max) {
++		dev_err(dev, "pll: invalid pixel clock frequency.\n");
++		return -EINVAL;
++	}
++
++	/* Compute the multiplier M and combined N*P1 divisor. */
++	div = gcd(pll->pix_clock, pll->ext_clock);
++	pll->m = pll->pix_clock / div;
++	div = pll->ext_clock / div;
++
++	/* We now have the smallest M and N*P1 values that will result in the
++	 * desired pixel clock frequency, but they might be out of the valid
++	 * range. Compute the factor by which we should multiply them given the
++	 * following constraints:
++	 *
++	 * - minimum/maximum multiplier
++	 * - minimum/maximum multiplier output clock frequency assuming the
++	 *   minimum/maximum N value
++	 * - minimum/maximum combined N*P1 divisor
++	 */
++	mf_min = DIV_ROUND_UP(limits->m_min, pll->m);
++	mf_min = max(mf_min, limits->out_clock_min /
++		     (pll->ext_clock / limits->n_min * pll->m));
++	mf_min = max(mf_min, limits->n_min * limits->p1_min / div);
++	mf_max = limits->m_max / pll->m;
++	mf_max = min(mf_max, limits->out_clock_max /
++		    (pll->ext_clock / limits->n_max * pll->m));
++	mf_max = min(mf_max, DIV_ROUND_UP(limits->n_max * limits->p1_max, div));
++
++	dev_dbg(dev, "pll: mf min %u max %u\n", mf_min, mf_max);
++	if (mf_min > mf_max) {
++		dev_err(dev, "pll: no valid combined N*P1 divisor.\n");
++		return -EINVAL;
++	}
++
++	/*
++	 * We're looking for the highest acceptable P1 value for which a
++	 * multiplier factor MF exists that fulfills the following conditions:
++	 *
++	 * 1. p1 is in the [p1_min, p1_max] range given by the limits and is
++	 *    even
++	 * 2. mf is in the [mf_min, mf_max] range computed above
++	 * 3. div * mf is a multiple of p1, in order to compute
++	 *	n = div * mf / p1
++	 *	m = pll->m * mf
++	 * 4. the internal clock frequency, given by ext_clock / n, is in the
++	 *    [int_clock_min, int_clock_max] range given by the limits
++	 * 5. the output clock frequency, given by ext_clock / n * m, is in the
++	 *    [out_clock_min, out_clock_max] range given by the limits
++	 *
++	 * The first naive approach is to iterate over all p1 values acceptable
++	 * according to (1) and all mf values acceptable according to (2), and
++	 * stop at the first combination that fulfills (3), (4) and (5). This
++	 * has a O(n^2) complexity.
++	 *
++	 * Instead of iterating over all mf values in the [mf_min, mf_max] range
++	 * we can compute the mf increment between two acceptable values
++	 * according to (3) with
++	 *
++	 *	mf_inc = p1 / gcd(div, p1)			(6)
++	 *
++	 * and round the minimum up to the nearest multiple of mf_inc. This will
++	 * restrict the number of mf values to be checked.
++	 *
++	 * Furthermore, conditions (4) and (5) only restrict the range of
++	 * acceptable p1 and mf values by modifying the minimum and maximum
++	 * limits. (5) can be expressed as
++	 *
++	 *	ext_clock / (div * mf / p1) * m * mf >= out_clock_min
++	 *	ext_clock / (div * mf / p1) * m * mf <= out_clock_max
++	 *
++	 * or
++	 *
++	 *	p1 >= out_clock_min * div / (ext_clock * m)	(7)
++	 *	p1 <= out_clock_max * div / (ext_clock * m)
++	 *
++	 * Similarly, (4) can be expressed as
++	 *
++	 *	mf >= ext_clock * p1 / (int_clock_max * div)	(8)
++	 *	mf <= ext_clock * p1 / (int_clock_min * div)
++	 *
++	 * We can thus iterate over the restricted p1 range defined by the
++	 * combination of (1) and (7), and then compute the restricted mf range
++	 * defined by the combination of (2), (6) and (8). If the resulting mf
++	 * range is not empty, any value in the mf range is acceptable. We thus
++	 * select the mf lwoer bound and the corresponding p1 value.
++	 */
++	if (limits->p1_min == 0) {
++		dev_err(dev, "pll: P1 minimum value must be >0.\n");
++		return -EINVAL;
++	}
++
++	p1_min = max(limits->p1_min, DIV_ROUND_UP(limits->out_clock_min * div,
++		     pll->ext_clock * pll->m));
++	p1_max = min(limits->p1_max, limits->out_clock_max * div /
++		     (pll->ext_clock * pll->m));
++
++	for (p1 = p1_max & ~1; p1 >= p1_min; p1 -= 2) {
++		unsigned int mf_inc = p1 / gcd(div, p1);
++		unsigned int mf_high;
++		unsigned int mf_low;
++
++		mf_low = max(roundup(mf_min, mf_inc),
++			     DIV_ROUND_UP(pll->ext_clock * p1,
++			       limits->int_clock_max * div));
++		mf_high = min(mf_max, pll->ext_clock * p1 /
++			      (limits->int_clock_min * div));
++
++		if (mf_low > mf_high)
++			continue;
++
++		pll->n = div * mf_low / p1;
++		pll->m *= mf_low;
++		pll->p1 = p1;
++		dev_dbg(dev, "PLL: N %u M %u P1 %u\n", pll->n, pll->m, pll->p1);
++		return 0;
++	}
++
++	dev_err(dev, "pll: no valid N and P1 divisors found.\n");
++	return -EINVAL;
++}
++EXPORT_SYMBOL_GPL(aptina_pll_calculate);
++
++MODULE_DESCRIPTION("Aptina PLL Helpers");
++MODULE_AUTHOR("Laurent Pinchart <laurent.pinchart@ideasonboard.com>");
++MODULE_LICENSE("GPL v2");
+diff --git a/drivers/media/video/aptina-pll.h b/drivers/media/video/aptina-pll.h
+new file mode 100644
+index 0000000..b370e34
+--- /dev/null
++++ b/drivers/media/video/aptina-pll.h
+@@ -0,0 +1,56 @@
 +/*
-+ * Return the set of events that the application wants to poll for.
-+ * This is useful for drivers that need to know whether a DMA transfer has
-+ * to be started implicitly on poll(). You typically only want to do that
-+ * if the application is actually polling for POLLIN and/or POLLOUT.
++ * Aptina Sensor PLL Configuration
++ *
++ * Copyright (C) 2012 Laurent Pinchart <laurent.pinchart@ideasonboard.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
++ * 02110-1301 USA
 + */
-+static inline unsigned long poll_requested_events(const poll_table *p)
-+{
-+	return p ? p->_key : ~0UL;
- }
- 
- static inline void init_poll_funcptr(poll_table *pt, poll_queue_proc qproc)
- {
--	pt->qproc = qproc;
--	pt->key   = ~0UL; /* all events enabled */
-+	pt->_qproc = qproc;
-+	pt->_key   = ~0UL; /* all events enabled */
- }
- 
- struct poll_table_entry {
-diff --git a/include/net/sock.h b/include/net/sock.h
-index 91c1c8b..da7f2ec 100644
---- a/include/net/sock.h
-+++ b/include/net/sock.h
-@@ -1824,7 +1824,7 @@ static inline bool wq_has_sleeper(struct socket_wq *wq)
- static inline void sock_poll_wait(struct file *filp,
- 		wait_queue_head_t *wait_address, poll_table *p)
- {
--	if (p && wait_address) {
-+	if (!poll_does_not_wait(p) && wait_address) {
- 		poll_wait(filp, wait_address, p);
- 		/*
- 		 * We need to be sure we are in sync with the
-diff --git a/net/unix/af_unix.c b/net/unix/af_unix.c
-index 85d3bb7..59f5202 100644
---- a/net/unix/af_unix.c
-+++ b/net/unix/af_unix.c
-@@ -2175,7 +2175,7 @@ static unsigned int unix_dgram_poll(struct file *file, struct socket *sock,
- 	}
- 
- 	/* No write status requested, avoid expensive OUT tests. */
--	if (wait && !(wait->key & (POLLWRBAND | POLLWRNORM | POLLOUT)))
-+	if (!(poll_requested_events(wait) & (POLLWRBAND | POLLWRNORM | POLLOUT)))
- 		return mask;
- 
- 	writable = unix_writable(sk);
++
++#ifndef __APTINA_PLL_H
++#define __APTINA_PLL_H
++
++struct aptina_pll {
++	unsigned int ext_clock;
++	unsigned int pix_clock;
++
++	unsigned int n;
++	unsigned int m;
++	unsigned int p1;
++};
++
++struct aptina_pll_limits {
++	unsigned int ext_clock_min;
++	unsigned int ext_clock_max;
++	unsigned int int_clock_min;
++	unsigned int int_clock_max;
++	unsigned int out_clock_min;
++	unsigned int out_clock_max;
++	unsigned int pix_clock_max;
++
++	unsigned int n_min;
++	unsigned int n_max;
++	unsigned int m_min;
++	unsigned int m_max;
++	unsigned int p1_min;
++	unsigned int p1_max;
++};
++
++struct device;
++
++int aptina_pll_calculate(struct device *dev,
++			 const struct aptina_pll_limits *limits,
++			 struct aptina_pll *pll);
++
++#endif /* __APTINA_PLL_H */
 -- 
-1.7.9.3
+1.7.3.4
 
