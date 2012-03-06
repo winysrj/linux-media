@@ -1,39 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from oyp.chewa.net ([91.121.6.101]:54845 "EHLO oyp.chewa.net"
+Received: from smtp.nokia.com ([147.243.1.47]:37177 "EHLO mgw-sa01.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752914Ab2CKPsg convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 11 Mar 2012 11:48:36 -0400
-From: "=?iso-8859-1?q?R=E9mi?= Denis-Courmont" <remi@remlab.net>
-To: linux-media@vger.kernel.org
-Subject: Re: Mapping frontends to demuxes
-Date: Sun, 11 Mar 2012 17:48:31 +0200
-Cc: vlc-devel@videolan.org
-References: <201203111608.48843.remi@remlab.net> <201203111725.58006.remi@remlab.net> <CAGoCfiwM_FPAbRhZf4UfiWU7XkY6_WvHzT-v9qyBF9nZ=HaR-A@mail.gmail.com>
-In-Reply-To: <CAGoCfiwM_FPAbRhZf4UfiWU7XkY6_WvHzT-v9qyBF9nZ=HaR-A@mail.gmail.com>
+	id S1030895Ab2CFUho (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 6 Mar 2012 15:37:44 -0500
+Message-ID: <4F567588.9020808@iki.fi>
+Date: Tue, 06 Mar 2012 22:37:28 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201203111748.32004.remi@remlab.net>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media@vger.kernel.org,
+	Martin Hostettler <martin@neutronstar.dyndns.org>
+Subject: Re: [PATCH v3 2/5] mt9p031: Remove unused xskip and yskip fields
+ in struct mt9p031
+References: <1331051559-13841-1-git-send-email-laurent.pinchart@ideasonboard.com> <1331051559-13841-3-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1331051559-13841-3-git-send-email-laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Le dimanche 11 mars 2012 17:34:50 Devin Heitmueller, vous avez écrit :
-> 2012/3/11 Rémi Denis-Courmont <remi@remlab.net>:
-> > By the way, the bt8xx driver exposes ATSC but not ITU J.83 annex B. This
-> > is contrary to all other ATSC frontends. Is this correct?
+Hi Laurent,
+
+Thanks for the patch.
+
+Laurent Pinchart wrote:
+> The fields are set but never used, remove them.
 > 
-> Many of the older cards didn't support J.83 annex B (i.e. ClearQAM).
-> Whether the device supports ClearQAM or not is actually controlled by
-> the demodulator driver, not the bridge driver.
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> ---
+>  drivers/media/video/mt9p031.c |    4 ----
+>  1 files changed, 0 insertions(+), 4 deletions(-)
 
-Ah ok, thanks.
-
-On the topic of J.83, what's the intended difference between SYS_ISDBC and 
-SYS_DVBC_ANNEX_C ? (I cannot find any driver with SYS_ISDBC.)
+Reviewed-by: Sakari Ailus <sakari.ailus@iki.fi>
 
 -- 
-Rémi Denis-Courmont
-http://www.remlab.net/
-http://fi.linkedin.com/in/remidenis
+Sakari Ailus
+sakari.ailus@iki.fi
