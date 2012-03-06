@@ -1,79 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp12.smtpout.orange.fr ([80.12.242.134]:44649 "EHLO
-	smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754847Ab2C0RT5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Mar 2012 13:19:57 -0400
-From: "EricJCh.Aubert" <ericjch.aubert@orange.fr>
-To: linux-media@vger.kernel.org
-Subject: update to file fr-Paris for DVB-T
-Date: Tue, 27 Mar 2012 19:19:41 +0200
-Message-ID: <7290113.xzNoLM6CRa@linux>
+Received: from smtp-68.nebula.fi ([83.145.220.68]:52527 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030385Ab2CFMIk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Mar 2012 07:08:40 -0500
+Date: Tue, 6 Mar 2012 14:08:35 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, dacohen@gmail.com, snjw23@gmail.com,
+	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
+	tuukkat76@gmail.com, k.debski@samsung.com, riverful@gmail.com,
+	hverkuil@xs4all.nl, teturtia@gmail.com
+Subject: Re: [PATCH v4 09/34] v4l: Add subdev selections documentation
+Message-ID: <20120306120834.GD1075@valkosipuli.localdomain>
+References: <20120302173219.GA15695@valkosipuli.localdomain>
+ <1330709442-16654-9-git-send-email-sakari.ailus@iki.fi>
+ <6164314.lBIqd5p9kY@avalon>
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="nextPart148103209.LF2280nICB"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <6164314.lBIqd5p9kY@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Laurent,
 
---nextPart148103209.LF2280nICB
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+On Mon, Mar 05, 2012 at 12:47:26PM +0100, Laurent Pinchart wrote:
+> Hi Sakari,
+> 
+> Thanks for the patch.
 
-Hello,
- 
-I have updated the file fr-Paris with the frequencies valid from march 8th 
-2011
-source http://www.tvnt.net/forum/tous-au-numerique-ile-de-france-le-8-
-mars-2011-mise-a-jour-le-26-02-2011-t24658.html
+Thanks for the comments!
 
-file fr-Paris joined
+> On Friday 02 March 2012 19:30:17 Sakari Ailus wrote:
+> > Add documentation for V4L2 subdev selection API. This changes also
+> > experimental V4L2 subdev API so that scaling now works through selection API
+> > only.
+> > 
+> > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> 
+> [snip]
+> 
+> > diff --git a/Documentation/DocBook/media/v4l/dev-subdev.xml
+> > b/Documentation/DocBook/media/v4l/dev-subdev.xml index 0916a73..ef99da1
+> > 100644
+> > --- a/Documentation/DocBook/media/v4l/dev-subdev.xml
+> > +++ b/Documentation/DocBook/media/v4l/dev-subdev.xml
+> 
+> [snip]
+> 
+> > +      <para>The scaling operation changes the size of the image by
+> > +      scaling it to new dimensions. The scaling ratio isn't specified
+> > +      explicitly, but is implied from the original and scaled image
+> > +      sizes. Both sizes are represented by &v4l2-rect;.</para>
+> > +
+> > +      <para>Scaling support is optional. When supported by a subdev,
+> > +      the crop rectangle on the subdev's sink pad is scaled to the
+> > +      size configured using &sub-subdev-g-selection; and
+> > +      <constant>V4L2_SUBDEV_SEL_COMPOSE_ACTIVE</constant> selection
+> > +      target on the same pad. If the subdev supports scaling but no
+> 
+> s/no/not/ (my bad, typo in my previous review)
+> 
+> > +      composing, the top and left values are not used and must always
+> > +      be set to zero."</para>
+> 
+> s/"// (don't copy the text blindly ;-))
 
-Rgds
+Fixed.
+
+> > +    <section>
+> > +      <title>Order of configuration and format propagation</title>
+> > +
+> > +      <para>Inside subdevs, the order of image processing steps will
+> > +      always be from the sink pad towards the source pad. This is also
+> > +      reflected in the order in which the configuration must be
+> > +      performed by the user: the changes made will be propagated to
+> > +      any subsequent stages. If this behaviour is not desired, the
+> > +      user must set
+> > +      <constant>V4L2_SUBDEV_SEL_FLAG_KEEP_CONFIG</constant> flag. This
+> > +      flag causes that no propagation of the changes are allowed in
+> > +      any circumstances. This may also cause the accessed rectangle to
+> > +      be adjusted by the driver, depending on the properties of the
+> > +      underlying hardware. Some drivers may not support this
+> > +      flag.</para>
+> 
+> Haven't we agreed that supporting the flag should be mandatory ?
+
+Yes, but it may have been after I sent the patchset. Nevertheless, it's
+fixed now.
+
+> > +      <para>The coordinates to a step always refer to the active size
+> > +      of the previous step. The exception to this rule is the source
+> > +      compose rectangle, which refers to the sink compose bounds
+> > +      rectangle --- if it is supported by the hardware.</para>
+> 
+> [snip]
+> 
+> > diff --git a/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml
+> > b/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml new file
+> > mode 100644
+> > index 0000000..da1cc4f
+> > --- /dev/null
+> > +++ b/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml
+> 
+> [snip]
+> 
+> > +    <section>
+> > +      <title>Types of selection targets</title>
+> > +
+> > +      <para>The are two types of selection targets: active and bounds.
+> 
+> s/The/There/
+
+Fixed.
+
+Regards,
+
 -- 
-Eric Aubert
-
-ericjch.aubert@orange.fr
---nextPart148103209.LF2280nICB
-Content-Disposition: attachment; filename="fr-Paris"
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="UTF-8"; name="fr-Paris"
-
-# Paris - France - various DVB-T transmitters
-# contributed by Alexis de Lattre <alexis@via.ecp.fr>
-#
-# update by Eric Aubert <ericjch.aubert@orange.fr>
-# date march 2012
-#
-# City                       R1 R2 R3 R4 R5 R6 L8 R7* R8*
-# Paris - Tour Eiffel      : 35 25 22 30 28 32 33 42  58
-# Paris Est - Chennevi=C3=A8res : 35 25 22 30 28 32    42  58=20
-# Paris Nord - Sannois     : 35 25 22 30 28 32    42  58=20
-# Paris Sud - Villebon     : 35 25 22 30 28 32    42  58=20
-# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarch=
-y
-#R3 (Canal+ HD,Canal+ Cin=C3=A9ma,Canal+ Sport,Plan=C3=A8te,TPS Star)
-T 482166000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
-#R2 (I-T=C3=A9l=C3=A9,BFM TV,Direct 8,Gulli,Virgin 17,France 4)
-T 506166000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
-#R3 (Canal+ HD,Canal+ Cin=C3=A9ma,Canal+ Sport,Plan=C3=A8te,TPS Star)
-T 522166000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
-#R5 (TF1 HD,France 2 HD,M6 HD)
-T 530166000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
-#R4 (M6,W9,NT1,Paris Premi=C3=A8re,ARTE HD)
-T 546166000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
-#R6 (TF1,LCI,Eurosport,TF6,NRJ 12,TMC)
-T 562166000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
-### Paris - Tour Eiffel      : 33
-#L8 (cha=C3=AEnes locales)
-T 570166000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
-#R1 (France 2,France 3,France 5,Arte,LCP/Public S=C3=A9nat,France =C3=94=
-)
-T 586166000 8MHz 3/4 NONE QAM64 8k 1/8 NONE
-#R7*
-T 642166000 8MHz 3/4 NONE QAM64 8k 1/32 NONE
-#R8*
-T 700166000 8MHz 3/4 NONE QAM64 8k 1/32 NONE
-
---nextPart148103209.LF2280nICB--
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
