@@ -1,51 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gx0-f174.google.com ([209.85.161.174]:37474 "EHLO
-	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932395Ab2CZNNx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Mar 2012 09:13:53 -0400
-Received: by gghe5 with SMTP id e5so3751193ggh.19
-        for <linux-media@vger.kernel.org>; Mon, 26 Mar 2012 06:13:53 -0700 (PDT)
-MIME-Version: 1.0
-Date: Mon, 26 Mar 2012 10:13:52 -0300
-Message-ID: <CALF0-+Wt1KzjgggO=ESJ-cBs6Gk5PK0-nazsx52qhW3UUfqNKw@mail.gmail.com>
-Subject: [PATCH 0/5] Make em28xx-input.c a separate module
-From: =?ISO-8859-1?Q?Ezequiel_Garc=EDa?= <elezegarcia@gmail.com>
-To: linux-media <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Rui Salvaterra <rsalvaterra@gmail.com>,
-	Antti Palosaari <crope@iki.fi>,
-	Gianluca Gennari <gennarone@gmail.com>,
-	=?ISO-8859-1?Q?Ezequiel_Garc=EDa?= <elezegarcia@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from smtp.nokia.com ([147.243.128.26]:32679 "EHLO mgw-da02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756882Ab2CFQd3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 6 Mar 2012 11:33:29 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, dacohen@gmail.com,
+	snjw23@gmail.com, andriy.shevchenko@linux.intel.com,
+	t.stanislaws@samsung.com, tuukkat76@gmail.com,
+	k.debski@samsung.com, riverful@gmail.com, hverkuil@xs4all.nl,
+	teturtia@gmail.com, pradeep.sawlani@gmail.com
+Subject: [PATCH v5 14/35] v4l: Add DPCM compressed raw bayer pixel formats
+Date: Tue,  6 Mar 2012 18:32:55 +0200
+Message-Id: <1331051596-8261-14-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <20120306163239.GN1075@valkosipuli.localdomain>
+References: <20120306163239.GN1075@valkosipuli.localdomain>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Add three other colour orders for 10-bit to 8-bit DPCM compressed raw bayer
+pixel formats.
 
-This patchset isolates em28xx-input code and turns it
-into a module, as suggested by Mauro [1].
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+ Documentation/DocBook/media/v4l/pixfmt-srggb10.xml |    2 +-
+ .../DocBook/media/v4l/pixfmt-srggb10dpcm8.xml      |   29 ++++++++++++++++++++
+ Documentation/DocBook/media/v4l/pixfmt.xml         |    1 +
+ include/linux/videodev2.h                          |    3 ++
+ 4 files changed, 34 insertions(+), 1 deletions(-)
+ create mode 100644 Documentation/DocBook/media/v4l/pixfmt-srggb10dpcm8.xml
 
-Contrary to my initial expectations, the patch produces
-code that's actually cleaner and a slightly less spaghetti.
+diff --git a/Documentation/DocBook/media/v4l/pixfmt-srggb10.xml b/Documentation/DocBook/media/v4l/pixfmt-srggb10.xml
+index 7b27409..c1c62a9 100644
+--- a/Documentation/DocBook/media/v4l/pixfmt-srggb10.xml
++++ b/Documentation/DocBook/media/v4l/pixfmt-srggb10.xml
+@@ -1,4 +1,4 @@
+-    <refentry>
++    <refentry id="pixfmt-srggb10">
+       <refmeta>
+ 	<refentrytitle>V4L2_PIX_FMT_SRGGB10 ('RG10'),
+ 	 V4L2_PIX_FMT_SGRBG10 ('BA10'),
+diff --git a/Documentation/DocBook/media/v4l/pixfmt-srggb10dpcm8.xml b/Documentation/DocBook/media/v4l/pixfmt-srggb10dpcm8.xml
+new file mode 100644
+index 0000000..80937f1
+--- /dev/null
++++ b/Documentation/DocBook/media/v4l/pixfmt-srggb10dpcm8.xml
+@@ -0,0 +1,29 @@
++    <refentry>
++      <refmeta>
++	<refentrytitle>
++	 V4L2_PIX_FMT_SRGGB10DPCM8 ('bBA8'),
++	 V4L2_PIX_FMT_SGBRG10DPCM8 ('bGA8'),
++	 V4L2_PIX_FMT_SGRBG10DPCM8 ('BD10'),
++	 V4L2_PIX_FMT_SBGGR10DPCM8 ('bRA8'),
++	 </refentrytitle>
++	&manvol;
++      </refmeta>
++      <refnamediv>
++	<refname id="V4L2-PIX-FMT-SRGGB10DPCM8"><constant>V4L2_PIX_FMT_SRGGB10DPCM8</constant></refname>
++	<refname id="V4L2-PIX-FMT-SGBRG10DPCM8"><constant>V4L2_PIX_FMT_SGBRG10DPCM8</constant></refname>
++	<refname id="V4L2-PIX-FMT-SGRBG10DPCM8"><constant>V4L2_PIX_FMT_SGRBG10DPCM8</constant></refname>
++	<refname id="V4L2-PIX-FMT-SBGGR10DPCM8"><constant>V4L2_PIX_FMT_SBGGR10DPCM8</constant></refname>
++	<refpurpose>10-bit Bayer formats compressed to 8 bits</refpurpose>
++      </refnamediv>
++      <refsect1>
++	<title>Description</title>
++
++	<para>The following four pixel formats are raw sRGB / Bayer formats
++	with 10 bits per colour compressed to 8 bits each, using DPCM
++	compression. DPCM, differential pulse-code modulation, is lossy.
++	Each colour component consumes 8 bits of memory. In other respects
++	this format is similar to <xref
++	linkend="pixfmt-srggb10">.</xref></para>
++
++      </refsect1>
++    </refentry>
+diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
+index 31eaae2..74d4fcd 100644
+--- a/Documentation/DocBook/media/v4l/pixfmt.xml
++++ b/Documentation/DocBook/media/v4l/pixfmt.xml
+@@ -673,6 +673,7 @@ access the palette, this must be done with ioctls of the Linux framebuffer API.<
+     &sub-srggb8;
+     &sub-sbggr16;
+     &sub-srggb10;
++    &sub-srggb10dpcm8;
+     &sub-srggb12;
+   </section>
+ 
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index f46350e..76f3153 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -378,7 +378,10 @@ struct v4l2_pix_format {
+ #define V4L2_PIX_FMT_SGRBG12 v4l2_fourcc('B', 'A', '1', '2') /* 12  GRGR.. BGBG.. */
+ #define V4L2_PIX_FMT_SRGGB12 v4l2_fourcc('R', 'G', '1', '2') /* 12  RGRG.. GBGB.. */
+ 	/* 10bit raw bayer DPCM compressed to 8 bits */
++#define V4L2_PIX_FMT_SBGGR10DPCM8 v4l2_fourcc('b', 'B', 'A', '8')
++#define V4L2_PIX_FMT_SGBRG10DPCM8 v4l2_fourcc('b', 'G', 'A', '8')
+ #define V4L2_PIX_FMT_SGRBG10DPCM8 v4l2_fourcc('B', 'D', '1', '0')
++#define V4L2_PIX_FMT_SRGGB10DPCM8 v4l2_fourcc('b', 'R', 'A', '8')
+ 	/*
+ 	 * 10bit raw bayer, expanded to 16 bits
+ 	 * xxxxrrrrrrrrrrxxxxgggggggggg xxxxggggggggggxxxxbbbbbbbbbb...
+-- 
+1.7.2.5
 
-I've tried to make the whole change as clear as possible
-by splitting it into several patches.
-This was done to ease the maintainer job and also
-in the hope that someone cares to review and provide feeback.
-
-As I don't have em28xx hardware, I did virtually no test at all so :(
-
- drivers/media/video/em28xx/Kconfig        |    4 +-
- drivers/media/video/em28xx/Makefile       |    5 +-
- drivers/media/video/em28xx/em28xx-cards.c |   66 +--------
- drivers/media/video/em28xx/em28xx-core.c  |    3 +
- drivers/media/video/em28xx/em28xx-i2c.c   |    3 -
- drivers/media/video/em28xx/em28xx-input.c |  250 +++++++++++++++++++----------
- drivers/media/video/em28xx/em28xx.h       |   32 +----
- 7 files changed, 175 insertions(+), 188 deletions(-)
-
-[1] http://www.spinics.net/lists/linux-media/msg45416.html
-
-Regards,
-Ezequiel.
