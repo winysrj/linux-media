@@ -1,178 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.meprolight.com ([194.90.149.17]:31524 "EHLO meprolight.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753602Ab2CMPNX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Mar 2012 11:13:23 -0400
-From: Alex Gershgorin <alexg@meprolight.com>
-To: Sascha Hauer <s.hauer@pengutronix.de>
-CC: <linux-kernel@vger.kernel.org>, <g.liakhovetski@gmx.de>,
-	<fabio.estevam@freescale.com>, <linux-media@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	Alex Gershgorin <alexg@meprolight.com>
-Subject: [PATCH v1] i.MX35-PDK: Add Camera support
-Date: Tue, 13 Mar 2012 17:05:29 +0200
-Message-ID: <1331651129-30540-1-git-send-email-alexg@meprolight.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:45433 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030372Ab2CFPZQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Mar 2012 10:25:16 -0500
+MIME-version: 1.0
+Content-type: text/plain; charset=utf-8
+Received: from euspt1 ([210.118.77.13]) by mailout3.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0M0G00K6GYU2RX00@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 06 Mar 2012 15:25:14 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0M0G00ENWYU12T@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 06 Mar 2012 15:25:14 +0000 (GMT)
+Date: Tue, 06 Mar 2012 16:24:04 +0100
+From: Kamil Debski <k.debski@samsung.com>
+Subject: V4L2 MFC video decoding example application
+To: linux-media <linux-media@vger.kernel.org>
+Cc: "mika.kamppuri@symbio.com" <mika.kamppuri@symbio.com>,
+	"jari.issakainen@symbio.com" <jari.issakainen@symbio.com>,
+	"thomas.langas@fxitech.com" <thomas.langas@fxitech.com>,
+	"dakuit00@googlemail.com" <dakuit00@googlemail.com>,
+	"brian@seedmorn.cn" <brian@seedmorn.cn>,
+	"dron0gus@gmail.com" <dron0gus@gmail.com>,
+	"sawyer@seedmorn.cn" <sawyer@seedmorn.cn>,
+	"sakari.ailus@iki.fi" <sakari.ailus@iki.fi>,
+	"subash.ramaswamy@linaro.org" <subash.ramaswamy@linaro.org>,
+	"maheshbhairodagi@gmail.com" <maheshbhairodagi@gmail.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	"naveen.ch@samsung.com" <naveen.ch@samsung.com>,
+	"sachin.kamat@linaro.org" <sachin.kamat@linaro.org>,
+	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
+	"jtp.park@samsung.com" <jtp.park@samsung.com>,
+	"jaeryul.oh@samsung.com" <jaeryul.oh@samsung.com>,
+	Chanho Park <chanho61.park@samsung.com>
+Message-id: <ADF13DA15EB3FE4FBA487CCC7BEFDF36270347EFE4@bssrvexch01>
+Content-language: en-US
+Content-transfer-encoding: base64
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In i.MX35-PDK, OV2640  camera is populated on the
-personality board. This camera is registered as a subdevice via soc-camera interface.
-
-Signed-off-by: Alex Gershgorin <alexg@meprolight.com>
----
- arch/arm/mach-imx/mach-mx35_3ds.c |   96 +++++++++++++++++++++++++++++++++++++
- 1 files changed, 96 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/mach-imx/mach-mx35_3ds.c b/arch/arm/mach-imx/mach-mx35_3ds.c
-index 0af6c9c..a7dd8e6 100644
---- a/arch/arm/mach-imx/mach-mx35_3ds.c
-+++ b/arch/arm/mach-imx/mach-mx35_3ds.c
-@@ -4,6 +4,11 @@
-  *
-  * Author: Fabio Estevam <fabio.estevam@freescale.com>
-  *
-+ * Copyright (C) 2011 Meprolight, Ltd.
-+ * Alex Gershgorin <alexg@meprolight.com>
-+ *
-+ * Modified from i.MX31 3-Stack Development System
-+ *
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License as published by
-  * the Free Software Foundation; either version 2 of the License, or
-@@ -34,6 +39,7 @@
- #include <asm/mach/arch.h>
- #include <asm/mach/time.h>
- #include <asm/mach/map.h>
-+#include <asm/memblock.h>
- 
- #include <mach/hardware.h>
- #include <mach/common.h>
-@@ -41,6 +47,8 @@
- #include <mach/irqs.h>
- #include <mach/3ds_debugboard.h>
- 
-+#include <media/soc_camera.h>
-+
- #include "devices-imx35.h"
- 
- #define EXPIO_PARENT_INT	gpio_to_irq(IMX_GPIO_NR(1, 1))
-@@ -120,6 +128,83 @@ static iomux_v3_cfg_t mx35pdk_pads[] = {
- 	/* I2C1 */
- 	MX35_PAD_I2C1_CLK__I2C1_SCL,
- 	MX35_PAD_I2C1_DAT__I2C1_SDA,
-+	/* CSI */
-+	MX35_PAD_TX1__IPU_CSI_D_6,
-+	MX35_PAD_TX0__IPU_CSI_D_7,
-+	MX35_PAD_CSI_D8__IPU_CSI_D_8,
-+	MX35_PAD_CSI_D9__IPU_CSI_D_9,
-+	MX35_PAD_CSI_D10__IPU_CSI_D_10,
-+	MX35_PAD_CSI_D11__IPU_CSI_D_11,
-+	MX35_PAD_CSI_D12__IPU_CSI_D_12,
-+	MX35_PAD_CSI_D13__IPU_CSI_D_13,
-+	MX35_PAD_CSI_D14__IPU_CSI_D_14,
-+	MX35_PAD_CSI_D15__IPU_CSI_D_15,
-+	MX35_PAD_CSI_HSYNC__IPU_CSI_HSYNC,
-+	MX35_PAD_CSI_MCLK__IPU_CSI_MCLK,
-+	MX35_PAD_CSI_PIXCLK__IPU_CSI_PIXCLK,
-+	MX35_PAD_CSI_VSYNC__IPU_CSI_VSYNC,
-+};
-+
-+/*
-+ * Camera support
-+*/
-+static phys_addr_t mx3_camera_base __initdata;
-+#define MX35_3DS_CAMERA_BUF_SIZE SZ_8M
-+
-+static const struct mx3_camera_pdata mx35_3ds_camera_pdata __initconst = {
-+	.flags = MX3_CAMERA_DATAWIDTH_8,
-+	.mclk_10khz = 2000,
-+};
-+
-+static int __init imx35_3ds_init_camera(void)
-+{
-+	int dma, ret = -ENOMEM;
-+	struct platform_device *pdev =
-+		imx35_alloc_mx3_camera(&mx35_3ds_camera_pdata);
-+
-+	if (IS_ERR(pdev))
-+		return PTR_ERR(pdev);
-+
-+	if (!mx3_camera_base)
-+		goto err;
-+
-+	dma = dma_declare_coherent_memory(&pdev->dev,
-+					mx3_camera_base, mx3_camera_base,
-+					MX35_3DS_CAMERA_BUF_SIZE,
-+					DMA_MEMORY_MAP | DMA_MEMORY_EXCLUSIVE);
-+
-+	if (!(dma & DMA_MEMORY_MAP))
-+		goto err;
-+
-+	ret = platform_device_add(pdev);
-+	if (ret)
-+err:
-+		platform_device_put(pdev);
-+
-+	return ret;
-+}
-+
-+static const struct ipu_platform_data mx35_3ds_ipu_data __initconst = {
-+	.irq_base = MXC_IPU_IRQ_START,
-+};
-+
-+static struct i2c_board_info mx35_3ds_i2c_camera = {
-+	I2C_BOARD_INFO("ov2640", 0x30),
-+};
-+
-+static struct soc_camera_link iclink_ov2640 = {
-+	.bus_id		= 0,
-+	.board_info	= &mx35_3ds_i2c_camera,
-+	.i2c_adapter_id	= 0,
-+	.power		= NULL,
-+};
-+
-+static struct platform_device mx35_3ds_ov2640 = {
-+	.name	= "soc-camera-pdrv",
-+	.id	= 0,
-+	.dev	= {
-+		.platform_data = &iclink_ov2640,
-+	},
- };
- 
- static int mx35_3ds_otg_init(struct platform_device *pdev)
-@@ -204,6 +289,9 @@ static void __init mx35_3ds_init(void)
- 		pr_warn("Init of the debugboard failed, all "
- 				"devices on the debugboard are unusable.\n");
- 	imx35_add_imx_i2c0(&mx35_3ds_i2c0_data);
-+	imx35_add_ipu_core(&mx35_3ds_ipu_data);
-+	platform_device_register(&mx35_3ds_ov2640);
-+	imx35_3ds_init_camera();
- }
- 
- static void __init mx35pdk_timer_init(void)
-@@ -215,6 +303,13 @@ struct sys_timer mx35pdk_timer = {
- 	.init	= mx35pdk_timer_init,
- };
- 
-+static void __init mx35_3ds_reserve(void)
-+{
-+	/* reserve MX35_3DS_CAMERA_BUF_SIZE bytes for mx3-camera */
-+	mx3_camera_base = arm_memblock_steal(MX35_3DS_CAMERA_BUF_SIZE,
-+					 MX35_3DS_CAMERA_BUF_SIZE);
-+}
-+
- MACHINE_START(MX35_3DS, "Freescale MX35PDK")
- 	/* Maintainer: Freescale Semiconductor, Inc */
- 	.atag_offset = 0x100,
-@@ -224,5 +319,6 @@ MACHINE_START(MX35_3DS, "Freescale MX35PDK")
- 	.handle_irq = imx35_handle_irq,
- 	.timer = &mx35pdk_timer,
- 	.init_machine = mx35_3ds_init,
-+	.reserve = mx35_3ds_reserve,
- 	.restart	= mxc_restart,
- MACHINE_END
--- 
-1.7.0.4
-
+SGksDQoNCkkgd291bGQgbGlrZSB0byBpbmZvcm0geW91IHRoYXQgdGhlIGV4YW1wbGUgYXBwbGlj
+YXRpb24gZm9yIHRoZSBNRkMgZHJpdmVyIGhhcyBiZWVuIHByZXBhcmVkIGFuZCB3YXMgdG9kYXkg
+cmVsZWFzZWQgdG8gdGhlIG9wZW4gc291cmNlLg0KDQpUaGUgYXBwbGljYXRpb24gZGVtb25zdHJh
+dGVzIGhvdyB0byBzZXR1cCBhbmQgaGFuZGxlIHZpZGVvIHN0cmVhbSBkZWNvZGluZy4gSXQgdXNl
+cyBNRkMgZm9yIHZpZGVvIGRlY29kaW5nIGFuZCBGSU1DIGZvciBwb3N0IHByb2Nlc3NpbmcgKGNv
+bG9yIGNvbnZlcnNpb24gYW5kIHNjYWxpbmcpLiBUaGUgcmVzdWx0aW5nIGltYWdlIGlzIGRpc3Bs
+YXllZCB1c2luZyB0aGUgZnJhbWUgYnVmZmVyLiBUaGUgbWFpbiBnb2FsIHdhcyByZWxlYXNpbmcg
+YSBzaW1wbGUgYW5kIGVhc3kgdG8gdW5kZXJzdGFuZCBleGFtcGxlIGFwcGxpY2F0aW9uLiBJIGhv
+cGUgdGhhdCBpdCB3aWxsIHByb3ZlIHVzZWZ1bCBhbmQgY2xlYXIuDQoNClRoZSBjb2RlIGNhbiBi
+ZSBmb3VuZCBoZXJlOg0KaHR0cDovL2dpdC5pbmZyYWRlYWQub3JnL3VzZXJzL2ttcGFyay9wdWJs
+aWMtYXBwcy90cmVlL0hFQUQ6L3Y0bDItbWZjLWV4YW1wbGUNCg0KQmVzdCB3aXNoZXMsDQotLQ0K
+S2FtaWwgRGVic2tpDQpMaW51eCBQbGF0Zm9ybSBHcm91cA0KU2Ftc3VuZyBQb2xhbmQgUiZEIENl
+bnRlcg0KDQoNCg0KVGhlIGFib3ZlIG1lc3NhZ2UgaXMgaW50ZW5kZWQgc29sZWx5IGZvciB0aGUg
+bmFtZWQgYWRkcmVzc2VlIGFuZCBtYXkgY29udGFpbiB0cmFkZSBzZWNyZXQsIGluZHVzdHJpYWwg
+dGVjaG5vbG9neSBvciBwcml2aWxlZ2VkIGFuZCBjb25maWRlbnRpYWwgaW5mb3JtYXRpb24gb3Ro
+ZXJ3aXNlIHByb3RlY3RlZCB1bmRlciBhcHBsaWNhYmxlIGxhdy4gQW55IHVuYXV0aG9yaXplZCBk
+aXNzZW1pbmF0aW9uLCBkaXN0cmlidXRpb24sIGNvcHlpbmcgb3IgdXNlIG9mIHRoZSBpbmZvcm1h
+dGlvbiBjb250YWluZWQgaW4gdGhpcyBjb21tdW5pY2F0aW9uIGlzIHN0cmljdGx5IHByb2hpYml0
+ZWQuIElmIHlvdSBoYXZlIHJlY2VpdmVkIHRoaXMgY29tbXVuaWNhdGlvbiBpbiBlcnJvciwgcGxl
+YXNlIG5vdGlmeSBzZW5kZXIgYnkgZW1haWwgYW5kIGRlbGV0ZSB0aGlzIGNvbW11bmljYXRpb24g
+aW1tZWRpYXRlbHkuDQoNCg0KUG93ecW8c3phIHdpYWRvbW/Fm8SHIHByemV6bmFjem9uYSBqZXN0
+IHd5xYLEhWN6bmllIGRsYSBhZHJlc2F0YSBuaW5pZWpzemVqIHdpYWRvbW/Fm2NpIGkgbW/FvGUg
+emF3aWVyYcSHIGluZm9ybWFjamUgYsSZZMSFY2UgdGFqZW1uaWPEhSBoYW5kbG93xIUsIHRhamVt
+bmljxIUgcHJ6ZWRzacSZYmlvcnN0d2Egb3JheiBpbmZvcm1hY2plIG8gY2hhcmFrdGVyemUgcG91
+Zm55bSBjaHJvbmlvbmUgb2Jvd2nEhXp1asSFY3ltaSBwcnplcGlzYW1pIHByYXdhLiBKYWtpZWtv
+bHdpZWsgbmlldXByYXduaW9uZSBpY2ggcm96cG93c3plY2huaWFuaWUsIGR5c3RyeWJ1Y2phLCBr
+b3Bpb3dhbmllIGx1YiB1xbx5Y2llIGluZm9ybWFjamkgemF3YXJ0eWNoIHcgcG93ecW8c3plaiB3
+aWFkb21vxZtjaSBqZXN0IHphYnJvbmlvbmUuIEplxZtsaSBvdHJ6eW1hxYJlxZsgcG93ecW8c3rE
+hSB3aWFkb21vxZvEhyBvbXnFgmtvd28sIHVwcnplam1pZSBwcm9zesSZIHBvaW5mb3JtdWogbyB0
+eW0gZmFrY2llIGRyb2fEhSBtYWlsb3fEhSBuYWRhd2PEmSB0ZWogd2lhZG9tb8WbY2kgb3JheiBu
+aWV6d8WCb2N6bmllIHVzdcWEIHBvd3nFvHN6xIUgd2lhZG9tb8WbxIcgemUgc3dvamVnbyBrb21w
+dXRlcmEuDQo=
