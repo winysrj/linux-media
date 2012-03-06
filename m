@@ -1,124 +1,169 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:60009 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753613Ab2CMNfY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Mar 2012 09:35:24 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Received: from euspt1 ([210.118.77.13]) by mailout3.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0M0T00HQWSEV3D90@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 13 Mar 2012 13:35:19 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0M0T001GKSEV2Q@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 13 Mar 2012 13:35:19 +0000 (GMT)
-Date: Tue, 13 Mar 2012 14:35:12 +0100
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: [PATCH 4/6] v4l: s5p-tv: hdmi: fix mode synchronization
-In-reply-to: <1331645714-24535-1-git-send-email-t.stanislaws@samsung.com>
+Received: from smtp.nokia.com ([147.243.1.47]:60135 "EHLO mgw-sa01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755860Ab2CFQd2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 6 Mar 2012 11:33:28 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: sachin.kamat@linaro.org, m.szyprowski@samsung.com,
-	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
-	hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com
-Message-id: <1331645714-24535-5-git-send-email-t.stanislaws@samsung.com>
-References: <1331645714-24535-1-git-send-email-t.stanislaws@samsung.com>
+Cc: laurent.pinchart@ideasonboard.com, dacohen@gmail.com,
+	snjw23@gmail.com, andriy.shevchenko@linux.intel.com,
+	t.stanislaws@samsung.com, tuukkat76@gmail.com,
+	k.debski@samsung.com, riverful@gmail.com, hverkuil@xs4all.nl,
+	teturtia@gmail.com, pradeep.sawlani@gmail.com
+Subject: [PATCH v5 15/35] media: Add link_validate() op to check links to the sink pad
+Date: Tue,  6 Mar 2012 18:32:56 +0200
+Message-Id: <1331051596-8261-15-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <20120306163239.GN1075@valkosipuli.localdomain>
+References: <20120306163239.GN1075@valkosipuli.localdomain>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The mode setup was applied on HDMI hardware only on resume event.  This caused
-problem if HDMI was not suspended between mode switches.  This patch fixes this
-problem by setting a dirty flag on a mode change event.  If flag is set them
-new mode is applied on the next stream-on event.
+The purpose of the link_validate() op is to allow an entity driver to ensure
+that the properties of the pads at the both ends of the link are suitable
+for starting the pipeline. link_validate is called on sink pads on active
+links which belong to the active part of the graph.
 
-Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/video/s5p-tv/hdmi_drv.c |   20 ++++++++++++++++----
- 1 files changed, 16 insertions(+), 4 deletions(-)
+ Documentation/media-framework.txt |   19 ++++++++++++++
+ drivers/media/media-entity.c      |   50 +++++++++++++++++++++++++++++++++++-
+ include/media/media-entity.h      |    5 ++-
+ 3 files changed, 70 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/video/s5p-tv/hdmi_drv.c b/drivers/media/video/s5p-tv/hdmi_drv.c
-index eefb903..20cb6ee 100644
---- a/drivers/media/video/s5p-tv/hdmi_drv.c
-+++ b/drivers/media/video/s5p-tv/hdmi_drv.c
-@@ -87,6 +87,8 @@ struct hdmi_device {
- 	struct v4l2_subdev *mhl_sd;
- 	/** configuration of current graphic mode */
- 	const struct hdmi_timings *cur_conf;
-+	/** flag indicating that timings are dirty */
-+	int cur_conf_dirty;
- 	/** current preset */
- 	u32 cur_preset;
- 	/** other resources */
-@@ -253,6 +255,10 @@ static int hdmi_conf_apply(struct hdmi_device *hdmi_dev)
+diff --git a/Documentation/media-framework.txt b/Documentation/media-framework.txt
+index 3a0f879..8028754 100644
+--- a/Documentation/media-framework.txt
++++ b/Documentation/media-framework.txt
+@@ -335,6 +335,9 @@ the media_entity pipe field.
+ Calls to media_entity_pipeline_start() can be nested. The pipeline pointer must
+ be identical for all nested calls to the function.
  
- 	dev_dbg(dev, "%s\n", __func__);
- 
-+	/* skip if conf is already synchronized with HW */
-+	if (!hdmi_dev->cur_conf_dirty)
-+		return 0;
++media_entity_pipeline_start() may return an error. In that case, it will
++clean up any the changes it did by itself.
 +
- 	/* reset hdmiphy */
- 	hdmi_write_mask(hdmi_dev, HDMI_PHY_RSTOUT, ~0, HDMI_PHY_SW_RSTOUT);
- 	mdelay(10);
-@@ -278,6 +284,8 @@ static int hdmi_conf_apply(struct hdmi_device *hdmi_dev)
- 	/* setting core registers */
- 	hdmi_timing_apply(hdmi_dev, conf);
+ When stopping the stream, drivers must notify the entities with
  
-+	hdmi_dev->cur_conf_dirty = 0;
+ 	media_entity_pipeline_stop(struct media_entity *entity);
+@@ -351,3 +354,19 @@ If other operations need to be disallowed on streaming entities (such as
+ changing entities configuration parameters) drivers can explicitly check the
+ media_entity stream_count field to find out if an entity is streaming. This
+ operation must be done with the media_device graph_mutex held.
 +
- 	return 0;
- }
- 
-@@ -500,6 +508,10 @@ static int hdmi_streamon(struct hdmi_device *hdev)
- 
- 	dev_dbg(dev, "%s\n", __func__);
- 
-+	ret = hdmi_conf_apply(hdev);
-+	if (ret)
-+		return ret;
 +
- 	ret = v4l2_subdev_call(hdev->phy_sd, video, s_stream, 1);
- 	if (ret)
- 		return ret;
-@@ -620,6 +632,7 @@ static int hdmi_s_dv_preset(struct v4l2_subdev *sd,
- 		return -EINVAL;
++Link validation
++---------------
++
++Link validation is performed by media_entity_pipeline_start() for any
++entity which has sink pads in the pipeline. The
++media_entity::link_validate() callback is used for that purpose. In
++link_validate() callback, entity driver should check that the properties of
++the source pad of the connected entity and its own sink pad match. It is up
++to the type of the entity (and in the end, the properties of the hardware)
++what matching actually means.
++
++Subsystems should facilitate link validation by providing subsystem specific
++helper functions to provide easy access for commonly needed information, and
++in the end provide a way to use driver-specific callbacks.
+diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+index 056138f..d6d0e81 100644
+--- a/drivers/media/media-entity.c
++++ b/drivers/media/media-entity.c
+@@ -214,23 +214,69 @@ EXPORT_SYMBOL_GPL(media_entity_graph_walk_next);
+  * pipeline pointer must be identical for all nested calls to
+  * media_entity_pipeline_start().
+  */
+-void media_entity_pipeline_start(struct media_entity *entity,
+-				 struct media_pipeline *pipe)
++__must_check int media_entity_pipeline_start(struct media_entity *entity,
++					     struct media_pipeline *pipe)
+ {
+ 	struct media_device *mdev = entity->parent;
+ 	struct media_entity_graph graph;
++	struct media_entity *entity_err = entity;
++	int ret;
+ 
+ 	mutex_lock(&mdev->graph_mutex);
+ 
+ 	media_entity_graph_walk_start(&graph, entity);
+ 
+ 	while ((entity = media_entity_graph_walk_next(&graph))) {
++		unsigned int i;
++
+ 		entity->stream_count++;
+ 		WARN_ON(entity->pipe && entity->pipe != pipe);
+ 		entity->pipe = pipe;
++
++		/* Already streaming --- no need to check. */
++		if (entity->stream_count > 1)
++			continue;
++
++		if (!entity->ops || !entity->ops->link_validate)
++			continue;
++
++		for (i = 0; i < entity->num_links; i++) {
++			struct media_link *link = &entity->links[i];
++
++			/* Is this pad part of an enabled link? */
++			if (!(link->flags & MEDIA_LNK_FL_ENABLED))
++				continue;
++
++			/* Are we the sink or not? */
++			if (link->sink->entity != entity)
++				continue;
++
++			ret = entity->ops->link_validate(link);
++			if (ret < 0 && ret != -ENOIOCTLCMD)
++				goto error;
++		}
  	}
- 	hdev->cur_conf = conf;
-+	hdev->cur_conf_dirty = 1;
- 	hdev->cur_preset = preset->preset;
- 	return 0;
+ 
+ 	mutex_unlock(&mdev->graph_mutex);
++
++	return 0;
++
++error:
++	/*
++	 * Link validation on graph failed. We revert what we did and
++	 * return the error.
++	 */
++	media_entity_graph_walk_start(&graph, entity_err);
++
++	while ((entity_err = media_entity_graph_walk_next(&graph))) {
++		entity_err->stream_count--;
++		if (entity_err->stream_count == 0)
++			entity_err->pipe = NULL;
++	}
++
++	mutex_unlock(&mdev->graph_mutex);
++
++	return ret;
  }
-@@ -689,6 +702,8 @@ static int hdmi_runtime_suspend(struct device *dev)
- 	dev_dbg(dev, "%s\n", __func__);
- 	v4l2_subdev_call(hdev->mhl_sd, core, s_power, 0);
- 	hdmi_resource_poweroff(&hdev->res);
-+	/* flag that device context is lost */
-+	hdev->cur_conf_dirty = 1;
- 	return 0;
- }
+ EXPORT_SYMBOL_GPL(media_entity_pipeline_start);
  
-@@ -702,10 +717,6 @@ static int hdmi_runtime_resume(struct device *dev)
+diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+index 29e7bba..0c16f51 100644
+--- a/include/media/media-entity.h
++++ b/include/media/media-entity.h
+@@ -46,6 +46,7 @@ struct media_entity_operations {
+ 	int (*link_setup)(struct media_entity *entity,
+ 			  const struct media_pad *local,
+ 			  const struct media_pad *remote, u32 flags);
++	int (*link_validate)(struct media_link *link);
+ };
  
- 	hdmi_resource_poweron(&hdev->res);
+ struct media_entity {
+@@ -140,8 +141,8 @@ void media_entity_graph_walk_start(struct media_entity_graph *graph,
+ 		struct media_entity *entity);
+ struct media_entity *
+ media_entity_graph_walk_next(struct media_entity_graph *graph);
+-void media_entity_pipeline_start(struct media_entity *entity,
+-		struct media_pipeline *pipe);
++__must_check int media_entity_pipeline_start(struct media_entity *entity,
++					     struct media_pipeline *pipe);
+ void media_entity_pipeline_stop(struct media_entity *entity);
  
--	ret = hdmi_conf_apply(hdev);
--	if (ret)
--		goto fail;
--
- 	/* starting MHL */
- 	ret = v4l2_subdev_call(hdev->mhl_sd, core, s_power, 1);
- 	if (hdev->mhl_sd && ret)
-@@ -946,6 +957,7 @@ static int __devinit hdmi_probe(struct platform_device *pdev)
- 	hdmi_dev->cur_preset = HDMI_DEFAULT_PRESET;
- 	/* FIXME: missing fail preset is not supported */
- 	hdmi_dev->cur_conf = hdmi_preset2timings(hdmi_dev->cur_preset);
-+	hdmi_dev->cur_conf_dirty = 1;
- 
- 	/* storing subdev for call that have only access to struct device */
- 	dev_set_drvdata(dev, sd);
+ #define media_entity_call(entity, operation, args...)			\
 -- 
-1.7.5.4
+1.7.2.5
 
