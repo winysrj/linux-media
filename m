@@ -1,105 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eu1sys200aog102.obsmtp.com ([207.126.144.113]:35399 "EHLO
-	eu1sys200aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751293Ab2CLK31 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Mar 2012 06:29:27 -0400
-From: Bhupesh SHARMA <bhupesh.sharma@st.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	spear-devel <spear-devel@list.st.com>
-Date: Mon, 12 Mar 2012 18:28:41 +0800
-Subject: RE: [PATCH 1/1] V4L/v4l2-dev: Make 'videodev_init' as a subsys
- initcall
-Message-ID: <D5ECB3C7A6F99444980976A8C6D896384FA2BA2138@EAPEX1MAIL1.st.com>
-References: <bbe7861cb38c036d3c24df908ffbfc125274ea99.1331543025.git.bhupesh.sharma@st.com>
- <2051000.HEIejvjnKb@avalon>
- <D5ECB3C7A6F99444980976A8C6D896384FA2BA211E@EAPEX1MAIL1.st.com>
- <2577994.crRz2krmEM@avalon>
-In-Reply-To: <2577994.crRz2krmEM@avalon>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from dev.henes.no ([212.4.45.42]:48318 "EHLO dev.henes.no"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1031036Ab2CFUkc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 6 Mar 2012 15:40:32 -0500
+Received: from localhost (localhost.localdomain [127.0.0.1])
+	by dev.henes.no (Postfix) with ESMTP id 5D22EC9B57
+	for <linux-media@vger.kernel.org>; Tue,  6 Mar 2012 21:36:55 +0100 (CET)
+Received: from dev.henes.no ([127.0.0.1])
+	by localhost (dev.henes.no [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id IUP5UG03U0TZ for <linux-media@vger.kernel.org>;
+	Tue,  6 Mar 2012 21:36:54 +0100 (CET)
+Received: from [10.0.0.40] (cable-153-47.romerikebb.no [77.247.153.47])
+	by dev.henes.no (Postfix) with ESMTPSA id C56EAC99F2
+	for <linux-media@vger.kernel.org>; Tue,  6 Mar 2012 21:36:54 +0100 (CET)
+Message-ID: <4F56763C.50806@henes.no>
+Date: Tue, 06 Mar 2012 21:40:28 +0100
+From: =?ISO-8859-1?Q?Johan_Hen=E6s?= <johan@henes.no>
 MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: Technotrend TT-Connect CT 3650 and dvb_ca
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hello Everyone !
 
-> -----Original Message-----
-> From: Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com]
-> Sent: Monday, March 12, 2012 3:54 PM
-> To: Bhupesh SHARMA
-> Cc: linux-media@vger.kernel.org; spear-devel
-> Subject: Re: [PATCH 1/1] V4L/v4l2-dev: Make 'videodev_init' as a subsys
-> initcall
-> 
-> Hi Bhupesh,
-> 
-> On Monday 12 March 2012 18:13:18 Bhupesh SHARMA wrote:
-> > On Monday, March 12, 2012 3:35 PM Laurent Pinchart wrote:
-> > > On Monday 12 March 2012 14:39:02 Bhupesh Sharma wrote:
-> > > > As the V4L2 based UVC webcam gadget (g_webcam) expects the
-> > > > 'videodev' to present when the 'webcam_bind' routine is called,
-> > > > so 'videodev' should be available as early as possible.
-> > > >
-> > > > Now, when 'g_webcam' is built as a module (i.e. not a part of
-> > > > kernel) the late availability of 'videodev' is OK, but if
-> > > > 'g_webcam' is built statically as a part of the kernel,
-> > > > the kernel crashes (a sample crash dump using Designware 2.0 UDC
-> > > > is provided below).
-> > > >
-> > > > To solve the same, this patch makes 'videodev_init' as a subsys
-> > >
-> > > initcall.
-> > >
-> > > > Kernel Crash Dump:
-> > > > ------------------
-> > >
-> > > [snip]
-> > >
-> > > > Signed-off-by: Bhupesh Sharma <bhupesh.sharma@st.com>
-> > > > ---
-> > > >
-> > > >  drivers/media/video/v4l2-dev.c |    2 +-
-> > > >  1 files changed, 1 insertions(+), 1 deletions(-)
-> > > >
-> > > > diff --git a/drivers/media/video/v4l2-dev.c
-> > >
-> > > b/drivers/media/video/v4l2-dev.c
-> > >
-> > > > index 96e9615..041804b 100644
-> > > > --- a/drivers/media/video/v4l2-dev.c
-> > > > +++ b/drivers/media/video/v4l2-dev.c
-> > > > @@ -788,7 +788,7 @@ static void __exit videodev_exit(void)
-> > > >
-> > > >  	unregister_chrdev_region(dev, VIDEO_NUM_DEVICES);
-> > > >
-> > > >  }
-> > > >
-> > > > -module_init(videodev_init)
-> > > > +subsys_initcall(videodev_init);
-> > > >
-> > > >  module_exit(videodev_exit)
-> > > >
-> > > >  MODULE_AUTHOR("Alan Cox, Mauro Carvalho Chehab
-> > >
-> > > <mchehab@infradead.org>");
-> > >
-> > > Shouldn't drivers/media/media-devnode.c then use subsys_initcall()
-> as
-> > > well ?
-> >
-> > Yes, it should. Do you want me to send a patch for the same also?
-> >
-> > But I have no platform to check whether the Media Controller changes
-> > for g_webcam work on a real platform (i.e. omap3isp), so can you
-> > kindly test the patch I send for the same on your setup?
-> 
-> I'll test both on the OMAP3 ISP and I'll send a patch for media-
-> devnode.c.
+I have three DVB-C devices of the type mentioned, connected to my 
+mythtv-server which have been working great for a long time. As my cable 
+provider now are planning to start encrypting all channels, I have 
+bought a Xcrypt CAM module as needed. I soon realised that I needed to 
+upgrade the kernel and are now running kernel /: 3.2.0-17-generic 
+#27-Ubuntu SMP Fri Feb 24 22:03:50 UTC 2012 x86_64 x86_64 x86_64 
+GNU/Linux/ .
 
-Ok thanks.
+When inserting the module everything looks well :
 
-Regards,
-Bhupesh
+/dvb_ca adapter 0: DVB CAM detected and initialised successfully/
+
+The problems start when trying to watch an encrypted channel. I do get a 
+channel lock in myth, so far so good, but no picture...
+
+In my syslog I see the following :
+
+/dvb_ca adapter 0: CAM tried to send a buffer larger than the link 
+buffer size (32896 > 255)!
+dvb_ca adapter 0: CAM tried to send a buffer larger than the ecount size!
+dvb_ca adapter 0: DVB CAM link initialisation failed :(/
+
+Any ideas on what might be wrong ?
+
+Best regards,
+
+Johan
+
