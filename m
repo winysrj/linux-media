@@ -1,339 +1,199 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:44485 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752179Ab2CCWhN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 3 Mar 2012 17:37:13 -0500
-Date: Sun, 4 Mar 2012 00:37:07 +0200
+Received: from smtp.nokia.com ([147.243.1.48]:44225 "EHLO mgw-sa02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756626Ab2CFQd2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 6 Mar 2012 11:33:28 -0500
 From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org,
-	Martin Hostettler <martin@neutronstar.dyndns.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH v3 09/10] v4l: Aptina-style sensor PLL support
-Message-ID: <20120303223707.GJ15695@valkosipuli.localdomain>
-References: <1330788495-18762-1-git-send-email-laurent.pinchart@ideasonboard.com>
- <1330788495-18762-10-git-send-email-laurent.pinchart@ideasonboard.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1330788495-18762-10-git-send-email-laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, dacohen@gmail.com,
+	snjw23@gmail.com, andriy.shevchenko@linux.intel.com,
+	t.stanislaws@samsung.com, tuukkat76@gmail.com,
+	k.debski@samsung.com, riverful@gmail.com, hverkuil@xs4all.nl,
+	teturtia@gmail.com, pradeep.sawlani@gmail.com
+Subject: [PATCH v5 11/35] v4l: Image source control class
+Date: Tue,  6 Mar 2012 18:32:52 +0200
+Message-Id: <1331051596-8261-11-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <20120306163239.GN1075@valkosipuli.localdomain>
+References: <20120306163239.GN1075@valkosipuli.localdomain>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Add image source control class. This control class is intended to contain
+low level controls which deal with control of the image capture process ---
+the A/D converter in image sensors, for example.
 
-Thanks for the patch!
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+ Documentation/DocBook/media/v4l/controls.xml       |   86 ++++++++++++++++++++
+ .../DocBook/media/v4l/vidioc-g-ext-ctrls.xml       |    6 ++
+ drivers/media/video/v4l2-ctrls.c                   |    7 ++
+ include/linux/videodev2.h                          |    9 ++
+ 4 files changed, 108 insertions(+), 0 deletions(-)
 
-On Sat, Mar 03, 2012 at 04:28:14PM +0100, Laurent Pinchart wrote:
-> Add a generic helper function to compute PLL parameters for PLL found in
-> several Aptina sensors.
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> ---
->  drivers/media/video/Kconfig      |    3 +
->  drivers/media/video/Makefile     |    4 +
->  drivers/media/video/aptina-pll.c |  175 ++++++++++++++++++++++++++++++++++++++
->  drivers/media/video/aptina-pll.h |   55 ++++++++++++
->  4 files changed, 237 insertions(+), 0 deletions(-)
->  create mode 100644 drivers/media/video/aptina-pll.c
->  create mode 100644 drivers/media/video/aptina-pll.h
-> 
-> diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-> index 80acb78..410baf2 100644
-> --- a/drivers/media/video/Kconfig
-> +++ b/drivers/media/video/Kconfig
-> @@ -459,6 +459,9 @@ config VIDEO_AK881X
->  
->  comment "Camera sensor devices"
->  
-> +config VIDEO_APTINA_PLL
-> +	tristate
-> +
-
-That's a much better place for this.
-
->  config VIDEO_OV7670
->  	tristate "OmniVision OV7670 sensor support"
->  	depends on I2C && VIDEO_V4L2
-> diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
-> index 9b19533..8e037e9 100644
-> --- a/drivers/media/video/Makefile
-> +++ b/drivers/media/video/Makefile
-> @@ -22,6 +22,10 @@ endif
->  
->  obj-$(CONFIG_VIDEO_V4L2_COMMON) += v4l2-common.o
->  
-> +# Helper modules
-> +
-> +obj-$(CONFIG_VIDEO_APTINA_PLL) += aptina-pll.o
-> +
->  # All i2c modules must come first:
->  
->  obj-$(CONFIG_VIDEO_TUNER) += tuner.o
-> diff --git a/drivers/media/video/aptina-pll.c b/drivers/media/video/aptina-pll.c
-> new file mode 100644
-> index 0000000..55e4a40
-> --- /dev/null
-> +++ b/drivers/media/video/aptina-pll.c
-> @@ -0,0 +1,175 @@
-> +/*
-> + * Aptina Sensor PLL Configuration
-> + *
-> + * Copyright (C) 2012 Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> + *
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of the GNU General Public License
-> + * version 2 as published by the Free Software Foundation.
-> + *
-> + * This program is distributed in the hope that it will be useful, but
-> + * WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-> + * General Public License for more details.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> + * along with this program; if not, write to the Free Software
-> + * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-> + * 02110-1301 USA
-> + */
-> +
-> +#include <linux/device.h>
-> +#include <linux/gcd.h>
-> +#include <linux/kernel.h>
-> +#include <linux/lcm.h>
-> +#include <linux/module.h>
-> +
-> +#include "aptina-pll.h"
-> +
-> +int aptina_pll_configure(struct device *dev, struct aptina_pll *pll,
-> +			 const struct aptina_pll_limits *limits)
-
-I've done the same to the SMIA++ PLL: it can be used separately from the
-driver now; it'll be part of the next patchset.
-
-Do you think it could make sense to swap pll and limits parameters?
-
-I call the function smiapp_pll_calculate().
-
-> +{
-> +	unsigned int mf_min;
-> +	unsigned int mf_max;
-> +	unsigned int p1_min;
-> +	unsigned int p1_max;
-> +	unsigned int p1;
-> +	unsigned int div;
-> +
-> +	if (pll->ext_clock < limits->ext_clock_min ||
-> +	    pll->ext_clock > limits->ext_clock_max) {
-> +		dev_err(dev, "pll: invalid external clock frequency.\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	if (pll->pix_clock > limits->pix_clock_max) {
-> +		dev_err(dev, "pll: invalid pixel clock frequency.\n");
-> +		return -EINVAL;
-> +	}
-
-You could check that pix_clock isn't zero.
-
-> +	/* Compute the multiplier M and combined N*P1 divisor. */
-> +	div = gcd(pll->pix_clock, pll->ext_clock);
-> +	pll->m = pll->pix_clock / div;
-> +	div = pll->ext_clock / div;
-> +
-> +	/* We now have the smallest M and N*P1 values that will result in the
-> +	 * desired pixel clock frequency, but they might be out of the valid
-> +	 * range. Compute the factor by which we should multiply them given the
-> +	 * following constraints:
-> +	 *
-> +	 * - minimum/maximum multiplier
-> +	 * - minimum/maximum multiplier output clock frequency assuming the
-> +	 *   minimum/maximum N value
-> +	 * - minimum/maximum combined N*P1 divisor
-> +	 */
-> +	mf_min = DIV_ROUND_UP(limits->m_min, pll->m);
-> +	mf_min = max(mf_min, limits->out_clock_min /
-> +		     (pll->ext_clock / limits->n_min * pll->m));
-> +	mf_min = max(mf_min, limits->n_min * limits->p1_min / div);
-> +	mf_max = limits->m_max / pll->m;
-> +	mf_max = min(mf_max, limits->out_clock_max /
-> +		    (pll->ext_clock / limits->n_max * pll->m));
-> +	mf_max = min(mf_max, DIV_ROUND_UP(limits->n_max * limits->p1_max, div));
-> +
-> +	dev_dbg(dev, "pll: mf min %u max %u\n", mf_min, mf_max);
-> +	if (mf_min > mf_max) {
-> +		dev_err(dev, "pll: no valid combined N*P1 divisor.\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	/*
-> +	 * We're looking for the highest acceptable P1 value for which a
-> +	 * multiplier factor MF exists that fulfills the following conditions:
-> +	 *
-> +	 * 1. p1 is in the [p1_min, p1_max] range given by the limits and is
-> +	 *    even
-> +	 * 2. mf is in the [mf_min, mf_max] range computed above
-> +	 * 3. div * mf is a multiple of p1, in order to compute
-> +	 *	n = div * mf / p1
-> +	 *	m = pll->m * mf
-> +	 * 4. the internal clock frequency, given by ext_clock / n, is in the
-> +	 *    [int_clock_min, int_clock_max] range given by the limits
-> +	 * 5. the output clock frequency, given by ext_clock / n * m, is in the
-> +	 *    [out_clock_min, out_clock_max] range given by the limits
-> +	 *
-> +	 * The first naive approach is to iterate over all p1 values acceptable
-> +	 * according to (1) and all mf values acceptable according to (2), and
-> +	 * stop at the first combination that fulfills (3), (4) and (5). This
-> +	 * has a O(n^2) complexity.
-> +	 *
-> +	 * Instead of iterating over all mf values in the [mf_min, mf_max] range
-> +	 * we can compute the mf increment between two acceptable values
-> +	 * according to (3) with
-> +	 *
-> +	 *	mf_inc = lcm(div, p1) / div			(6)
-> +	 *
-> +	 * and round the minimum up to the nearest multiple of mf_inc. This will
-> +	 * restrict the number of mf values to be checked.
-> +	 *
-> +	 * Furthermore, conditions (4) and (5) only restrict the range of
-> +	 * acceptable p1 and mf values by modifying the minimum and maximum
-> +	 * limits. (5) can be expressed as
-> +	 *
-> +	 *	ext_clock / (div * mf / p1) * m * mf >= out_clock_min
-> +	 *	ext_clock / (div * mf / p1) * m * mf <= out_clock_max
-> +	 *
-> +	 * or
-> +	 *
-> +	 *	p1 >= out_clock_min * div / (ext_clock * m)	(7)
-> +	 *	p1 <= out_clock_max * div / (ext_clock * m)
-> +	 *
-> +	 * Similarly, (4) can be expressed as
-> +	 *
-> +	 *	mf >= ext_clock * p1 / (int_clock_max * div)	(8)
-> +	 *	mf <= ext_clock * p1 / (int_clock_min * div)
-> +	 *
-> +	 * We can thus iterate over the restricted p1 range defined by the
-> +	 * combination of (1) and (7), and then compute the restricted mf range
-> +	 * defined by the combination of (2), (6) and (8). If the resulting mf
-> +	 * range is not empty, any value in the mf range is acceptable. We thus
-> +	 * select the mf lwoer bound and the corresponding p1 value.
-> +	 */
-> +	if (limits->p1_min == 0) {
-> +		dev_err(dev, "pll: P1 minimum value must be >0.\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	p1_min = max(limits->p1_min, DIV_ROUND_UP(limits->out_clock_min * div,
-> +		     pll->ext_clock * pll->m));
-> +	p1_max = min(limits->p1_max, limits->out_clock_max * div /
-> +		     (pll->ext_clock * pll->m));
-> +
-> +	for (p1 = p1_max & ~1; p1 >= p1_min; p1 -= 2) {
-> +		unsigned int mf_inc = lcm(div, p1) / div;
-
-I think you could avoid division by using p1 * gcd(div, p1) instead.
-
-> +		unsigned int mf_high;
-> +		unsigned int mf_low;
-> +
-> +		mf_low = max(roundup(mf_min, mf_inc),
-> +			     DIV_ROUND_UP(pll->ext_clock * p1,
-> +			       limits->int_clock_max * div));
-> +		mf_high = min(mf_max, pll->ext_clock * p1 /
-> +			      (limits->int_clock_min * div));
-> +
-> +		if (mf_low <= mf_high) {
-> +			pll->n = div * mf_low / p1;
-> +			pll->m *= mf_low;
-> +			pll->p1 = p1;
-> +			break;
-
-You could return already here.
-
-> +		}
-> +	}
-> +
-> +	if (p1 < p1_min) {
-> +		dev_err(dev, "pll: no valid N and P1 divisors found.\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	dev_dbg(dev, "PLL: ext clock %u N %u M %u P1 %u pix clock %u\n",
-> +		 pll->ext_clock, pll->n, pll->m, pll->p1, pll->pix_clock);
-> +
-> +	return 0;
-> +}
-> +EXPORT_SYMBOL_GPL(aptina_pll_configure);
-> +
-> +MODULE_DESCRIPTION("Aptina PLL Helpers");
-> +MODULE_AUTHOR("Laurent Pinchart <laurent.pinchart@ideasonboard.com>");
-> +MODULE_LICENSE("GPL v2");
-> diff --git a/drivers/media/video/aptina-pll.h b/drivers/media/video/aptina-pll.h
-> new file mode 100644
-> index 0000000..36a9363
-> --- /dev/null
-> +++ b/drivers/media/video/aptina-pll.h
-> @@ -0,0 +1,55 @@
-> +/*
-> + * Aptina Sensor PLL Configuration
-> + *
-> + * Copyright (C) 2012 Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> + *
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of the GNU General Public License
-> + * version 2 as published by the Free Software Foundation.
-> + *
-> + * This program is distributed in the hope that it will be useful, but
-> + * WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-> + * General Public License for more details.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> + * along with this program; if not, write to the Free Software
-> + * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-> + * 02110-1301 USA
-> + */
-> +
-> +#ifndef __APTINA_PLL_H
-> +#define __APTINA_PLL_H
-> +
-> +struct aptina_pll {
-> +	unsigned int ext_clock;
-> +	unsigned int pix_clock;
-> +
-> +	unsigned int n;
-> +	unsigned int m;
-> +	unsigned int p1;
-> +};
-> +
-> +struct aptina_pll_limits {
-> +	unsigned int ext_clock_min;
-> +	unsigned int ext_clock_max;
-> +	unsigned int int_clock_min;
-> +	unsigned int int_clock_max;
-> +	unsigned int out_clock_min;
-> +	unsigned int out_clock_max;
-> +	unsigned int pix_clock_max;
-> +
-> +	unsigned int n_min;
-> +	unsigned int n_max;
-> +	unsigned int m_min;
-> +	unsigned int m_max;
-> +	unsigned int p1_min;
-> +	unsigned int p1_max;
-> +};
-> +
-> +struct device;
-> +
-> +int aptina_pll_configure(struct device *dev, struct aptina_pll *pll,
-> +			 const struct aptina_pll_limits *limits);
-> +
-> +#endif /* __APTINA_PLL_H */
-> -- 
-> 1.7.3.4
-> 
-
-Cheers,
-
+diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+index 3f3d2e2..2257db4 100644
+--- a/Documentation/DocBook/media/v4l/controls.xml
++++ b/Documentation/DocBook/media/v4l/controls.xml
+@@ -3438,4 +3438,90 @@ interface and may change in the future.</para>
+       </table>
+ 
+     </section>
++
++    <section id="image-source-controls">
++      <title>Image Source Control Reference</title>
++
++      <note>
++	<title>Experimental</title>
++
++	<para>This is an <link
++	linkend="experimental">experimental</link> interface and may
++	change in the future.</para>
++      </note>
++
++      <para>
++	The Image Source control class is intended for low-level
++	control of image source devices such as image sensors. The
++	devices feature an analogue to digital converter and a bus
++	transmitter to transmit the image data out of the device.
++      </para>
++
++      <table pgwide="1" frame="none" id="image-source-control-id">
++      <title>Image Source Control IDs</title>
++
++      <tgroup cols="4">
++	<colspec colname="c1" colwidth="1*" />
++	<colspec colname="c2" colwidth="6*" />
++	<colspec colname="c3" colwidth="2*" />
++	<colspec colname="c4" colwidth="6*" />
++	<spanspec namest="c1" nameend="c2" spanname="id" />
++	<spanspec namest="c2" nameend="c4" spanname="descr" />
++	<thead>
++	  <row>
++	    <entry spanname="id" align="left">ID</entry>
++	    <entry align="left">Type</entry>
++	  </row><row rowsep="1"><entry spanname="descr" align="left">Description</entry>
++	  </row>
++	</thead>
++	<tbody valign="top">
++	  <row><entry></entry></row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_IMAGE_SOURCE_CLASS</constant></entry>
++	    <entry>class</entry>
++	  </row>
++	  <row>
++	    <entry spanname="descr">The IMAGE_SOURCE class descriptor.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_VBLANK</constant></entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row>
++	    <entry spanname="descr">Vertical blanking. The idle period
++	    after every frame during which no image data is produced.
++	    The unit of vertical blanking is a line. Every line has
++	    length of the image width plus horizontal blanking at the
++	    pixel rate defined by
++	    <constant>V4L2_CID_PIXEL_RATE</constant> control in the
++	    same sub-device.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_HBLANK</constant></entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row>
++	    <entry spanname="descr">Horizontal blanking. The idle
++	    period after every line of image data during which no
++	    image data is produced. The unit of horizontal blanking is
++	    pixels.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_ANALOGUE_GAIN</constant></entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row>
++	    <entry spanname="descr">Analogue gain is gain affecting
++	    all colour components in the pixel matrix. The gain
++	    operation is performed in the analogue domain before A/D
++	    conversion.
++	    </entry>
++	  </row>
++	  <row><entry></entry></row>
++	</tbody>
++      </tgroup>
++      </table>
++
++    </section>
++
+ </section>
+diff --git a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
+index b17a7aa..f420034 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
+@@ -265,6 +265,12 @@ These controls are described in <xref
+ These controls are described in <xref
+ 		linkend="flash-controls" />.</entry>
+ 	  </row>
++	  <row>
++	    <entry><constant>V4L2_CTRL_CLASS_IMAGE_SOURCE</constant></entry>
++	    <entry>0x9d0000</entry> <entry>The class containing image
++	    source controls. These controls are described in <xref
++	    linkend="image-source-controls" />.</entry>
++	  </row>
+ 	</tbody>
+       </tgroup>
+     </table>
+diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
+index f0484bd..3ca6bc7 100644
+--- a/drivers/media/video/v4l2-ctrls.c
++++ b/drivers/media/video/v4l2-ctrls.c
+@@ -623,6 +623,12 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_FLASH_CHARGE:		return "Charge";
+ 	case V4L2_CID_FLASH_READY:		return "Ready to Strobe";
+ 
++	/* Image source controls */
++	case V4L2_CID_IMAGE_SOURCE_CLASS:	return "Image Source Controls";
++	case V4L2_CID_VBLANK:			return "Vertical Blanking";
++	case V4L2_CID_HBLANK:			return "Horizontal Blanking";
++	case V4L2_CID_ANALOGUE_GAIN:		return "Analogue Gain";
++
+ 	default:
+ 		return NULL;
+ 	}
+@@ -722,6 +728,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_MPEG_CLASS:
+ 	case V4L2_CID_FM_TX_CLASS:
+ 	case V4L2_CID_FLASH_CLASS:
++	case V4L2_CID_IMAGE_SOURCE_CLASS:
+ 		*type = V4L2_CTRL_TYPE_CTRL_CLASS;
+ 		/* You can neither read not write these */
+ 		*flags |= V4L2_CTRL_FLAG_READ_ONLY | V4L2_CTRL_FLAG_WRITE_ONLY;
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index e3c6302..ca64202 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -1136,6 +1136,7 @@ struct v4l2_ext_controls {
+ #define V4L2_CTRL_CLASS_CAMERA 0x009a0000	/* Camera class controls */
+ #define V4L2_CTRL_CLASS_FM_TX 0x009b0000	/* FM Modulator control class */
+ #define V4L2_CTRL_CLASS_FLASH 0x009c0000	/* Camera flash controls */
++#define V4L2_CTRL_CLASS_IMAGE_SOURCE 0x009d0000	/* Image source controls */
+ 
+ #define V4L2_CTRL_ID_MASK      	  (0x0fffffff)
+ #define V4L2_CTRL_ID2CLASS(id)    ((id) & 0x0fff0000UL)
+@@ -1762,6 +1763,14 @@ enum v4l2_flash_strobe_source {
+ #define V4L2_CID_FLASH_CHARGE			(V4L2_CID_FLASH_CLASS_BASE + 11)
+ #define V4L2_CID_FLASH_READY			(V4L2_CID_FLASH_CLASS_BASE + 12)
+ 
++/* Image source controls */
++#define V4L2_CID_IMAGE_SOURCE_CLASS_BASE	(V4L2_CTRL_CLASS_IMAGE_SOURCE | 0x900)
++#define V4L2_CID_IMAGE_SOURCE_CLASS		(V4L2_CTRL_CLASS_IMAGE_SOURCE | 1)
++
++#define V4L2_CID_VBLANK				(V4L2_CID_IMAGE_SOURCE_CLASS_BASE + 1)
++#define V4L2_CID_HBLANK				(V4L2_CID_IMAGE_SOURCE_CLASS_BASE + 2)
++#define V4L2_CID_ANALOGUE_GAIN			(V4L2_CID_IMAGE_SOURCE_CLASS_BASE + 3)
++
+ /*
+  *	T U N I N G
+  */
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+1.7.2.5
+
