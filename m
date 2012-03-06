@@ -1,79 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:41603 "EHLO mail.kapsi.fi"
+Received: from smtp.nokia.com ([147.243.128.24]:22317 "EHLO mgw-da01.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752907Ab2C3MdG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Mar 2012 08:33:06 -0400
-Message-ID: <4F75A7FE.8090405@iki.fi>
-Date: Fri, 30 Mar 2012 15:33:02 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org
-Subject: [GIT PULL FOR 3.5] AF9035/AF9033/TUA9001 => TerraTec Cinergy T Stick
- [0ccd:0093]
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+	id S1756972Ab2CFQd3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 6 Mar 2012 11:33:29 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, dacohen@gmail.com,
+	snjw23@gmail.com, andriy.shevchenko@linux.intel.com,
+	t.stanislaws@samsung.com, tuukkat76@gmail.com,
+	k.debski@samsung.com, riverful@gmail.com, hverkuil@xs4all.nl,
+	teturtia@gmail.com, pradeep.sawlani@gmail.com
+Subject: [PATCH v5 29/35] omap3isp: Default link validation for ccp2, csi2, preview and resizer
+Date: Tue,  6 Mar 2012 18:33:10 +0200
+Message-Id: <1331051596-8261-29-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <20120306163239.GN1075@valkosipuli.localdomain>
+References: <20120306163239.GN1075@valkosipuli.localdomain>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Terve Mauro and all the other hackers,
+Use default link validation for ccp2, csi2, preview and resizer. On ccp2,
+csi2 and ccdc we also collect information on external subdevs as one may be
+connected to those entities.
 
-I did some massive rewrite for my old AF9035/AF9033 driver that was 
-never merged. Anyhow, here it is.
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/video/omap3isp/ispccp2.c    |    1 +
+ drivers/media/video/omap3isp/ispcsi2.c    |    1 +
+ drivers/media/video/omap3isp/isppreview.c |    1 +
+ drivers/media/video/omap3isp/ispresizer.c |    1 +
+ 4 files changed, 4 insertions(+), 0 deletions(-)
 
-New drivers here are:
-Infineon TUA 9001 silicon tuner driver
-Afatech AF9033 DVB-T demodulator driver
-Afatech AF9035 DVB USB driver
-
-AF9035 integrates AF9033. Both chips are also sold separately. AF9033 
-will not likely work as a stand-alone since I didn't have hardware to 
-test, but in theory it is quite well split out from the DVB USB 
-interface driver (AF9035).
-
-Tips for cheap AF9035 based dual devices are welcome!
-
-regards
-Antti
-
-
-The following changes since commit 26315a507f6acda933f0d41200de8fec51775867:
-
-   em28xx-dvb: stop URBs when stopping the streaming (2012-03-28 
-15:32:23 +0300)
-
-are available in the git repository at:
-   git://linuxtv.org/anttip/media_tree.git af9035
-
-Antti Palosaari (3):
-       Infineon TUA 9001 silicon tuner driver
-       Afatech AF9033 DVB-T demodulator driver
-       Afatech AF9035 DVB USB driver
-
-  drivers/media/common/tuners/Kconfig        |    6 +
-  drivers/media/common/tuners/Makefile       |    1 +
-  drivers/media/common/tuners/tua9001.c      |  215 ++++++++
-  drivers/media/common/tuners/tua9001.h      |   46 ++
-  drivers/media/common/tuners/tua9001_priv.h |   34 ++
-  drivers/media/dvb/dvb-usb/Kconfig          |    9 +
-  drivers/media/dvb/dvb-usb/Makefile         |    3 +
-  drivers/media/dvb/dvb-usb/af9035.c         |  799 
-++++++++++++++++++++++++++++
-  drivers/media/dvb/dvb-usb/af9035.h         |  102 ++++
-  drivers/media/dvb/dvb-usb/dvb-usb-ids.h    |    1 +
-  drivers/media/dvb/frontends/Kconfig        |    5 +
-  drivers/media/dvb/frontends/Makefile       |    1 +
-  drivers/media/dvb/frontends/af9033.c       |  706 ++++++++++++++++++++++++
-  drivers/media/dvb/frontends/af9033.h       |   73 +++
-  drivers/media/dvb/frontends/af9033_priv.h  |  242 +++++++++
-  15 files changed, 2243 insertions(+), 0 deletions(-)
-  create mode 100644 drivers/media/common/tuners/tua9001.c
-  create mode 100644 drivers/media/common/tuners/tua9001.h
-  create mode 100644 drivers/media/common/tuners/tua9001_priv.h
-  create mode 100644 drivers/media/dvb/dvb-usb/af9035.c
-  create mode 100644 drivers/media/dvb/dvb-usb/af9035.h
-  create mode 100644 drivers/media/dvb/frontends/af9033.c
-  create mode 100644 drivers/media/dvb/frontends/af9033.h
-  create mode 100644 drivers/media/dvb/frontends/af9033_priv.h
+diff --git a/drivers/media/video/omap3isp/ispccp2.c b/drivers/media/video/omap3isp/ispccp2.c
+index 70ddbf3..41e807f 100644
+--- a/drivers/media/video/omap3isp/ispccp2.c
++++ b/drivers/media/video/omap3isp/ispccp2.c
+@@ -1021,6 +1021,7 @@ static int ccp2_link_setup(struct media_entity *entity,
+ /* media operations */
+ static const struct media_entity_operations ccp2_media_ops = {
+ 	.link_setup = ccp2_link_setup,
++	.link_validate = v4l2_subdev_link_validate,
+ };
+ 
+ /*
+diff --git a/drivers/media/video/omap3isp/ispcsi2.c b/drivers/media/video/omap3isp/ispcsi2.c
+index fcb5168..d2e1c92 100644
+--- a/drivers/media/video/omap3isp/ispcsi2.c
++++ b/drivers/media/video/omap3isp/ispcsi2.c
+@@ -1181,6 +1181,7 @@ static int csi2_link_setup(struct media_entity *entity,
+ /* media operations */
+ static const struct media_entity_operations csi2_media_ops = {
+ 	.link_setup = csi2_link_setup,
++	.link_validate = v4l2_subdev_link_validate,
+ };
+ 
+ void omap3isp_csi2_unregister_entities(struct isp_csi2_device *csi2)
+diff --git a/drivers/media/video/omap3isp/isppreview.c b/drivers/media/video/omap3isp/isppreview.c
+index 6d0fb2c..8545f0b 100644
+--- a/drivers/media/video/omap3isp/isppreview.c
++++ b/drivers/media/video/omap3isp/isppreview.c
+@@ -2076,6 +2076,7 @@ static int preview_link_setup(struct media_entity *entity,
+ /* media operations */
+ static const struct media_entity_operations preview_media_ops = {
+ 	.link_setup = preview_link_setup,
++	.link_validate = v4l2_subdev_link_validate,
+ };
+ 
+ void omap3isp_preview_unregister_entities(struct isp_prev_device *prev)
+diff --git a/drivers/media/video/omap3isp/ispresizer.c b/drivers/media/video/omap3isp/ispresizer.c
+index 6958a9e..0fc6525 100644
+--- a/drivers/media/video/omap3isp/ispresizer.c
++++ b/drivers/media/video/omap3isp/ispresizer.c
+@@ -1603,6 +1603,7 @@ static int resizer_link_setup(struct media_entity *entity,
+ /* media operations */
+ static const struct media_entity_operations resizer_media_ops = {
+ 	.link_setup = resizer_link_setup,
++	.link_validate = v4l2_subdev_link_validate,
+ };
+ 
+ void omap3isp_resizer_unregister_entities(struct isp_res_device *res)
 -- 
-http://palosaari.fi/
+1.7.2.5
+
