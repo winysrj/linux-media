@@ -1,70 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from impaqm3.telefonica.net ([213.4.138.19]:59940 "EHLO
-	telefonica.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1757671Ab2CEXYY convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Mar 2012 18:24:24 -0500
-From: Jose Alberto Reguero <jareguero@telefonica.net>
-To: Roger =?ISO-8859-1?Q?M=E5rtensson?= <roger.martensson@gmail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] Add CI support to az6007 driver
-Date: Tue, 06 Mar 2012 00:23:58 +0100
-Message-ID: <1436129.Xg0ZNGxkxn@jar7.dominio>
-In-Reply-To: <4F552548.4000304@gmail.com>
-References: <1577059.kW45pXQ20M@jar7.dominio> <4F552548.4000304@gmail.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-Content-Type: text/plain; charset="iso-8859-1"
+Received: from perceval.ideasonboard.com ([95.142.166.194]:45055 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030385Ab2CFMJa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Mar 2012 07:09:30 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Martin Hostettler <martin@neutronstar.dyndns.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sakari Ailus <sakari.ailus@iki.fi>
+Subject: [PATCH 1/5] mt9p031: Remove duplicate media/v4l2-subdev.h include
+Date: Tue,  6 Mar 2012 13:09:42 +0100
+Message-Id: <1331035786-8938-2-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1331035786-8938-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1331035786-8938-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Lunes, 5 de marzo de 2012 21:42:48 Roger Mårtensson escribió:
-> Jose Alberto Reguero skrev 2012-03-05 00:22:
-> > This patch add CI support to az6007 driver.
-> > 
-> > Signed-off-by: Jose Alberto Reguero<jareguero@telefonica.net>
-> 
-> Since I have this device and have access to a CAM-card and program card
-> to access the encrypted channels(DVB-C) I thought I should try this
-> patch and report my findings. First I have to say that I'm just a user
-> and no developer.
-> 
-> After managing to include the patch in media_build I do get this in
-> dmesg when inserting the CAM.
-> 
-> [  395.561886] dvb_ca adapter 2: DVB CAM detected and initialised
-> successfully
-> 
-> When scanning I can find my channels.
-> I can watch unencrypted channels without problem even with the CAM inserted.
-> 
-> When trying a encrypted channel with gnutv I get this:
-> 
-> $ gnutv -adapter 2 -channels my-channels-v4.conf -out file t.mpg
-> -timeout 30 TV3
-> Using frontend "DRXK DVB-C DVB-T", type DVB-C
-> status SCVYL | signal 02c7 | snr 00be | ber 00000000 | unc 00000704 |
-> FE_HAS_LOCK
-> en50221_tl_handle_sb: Received T_SB for connection not in T_STATE_ACTIVE
-> from module on slot 00
-> 
-> en50221_stdcam_llci_poll: Error reported by stack:-7
-> 
-> CAM Application type: 01
-> CAM Application manufacturer: cafe
-> CAM Manufacturer code: babe
-> CAM Menu string: Conax Conditional Access
-> CAM supports the following ca system ids:
->    0x0b00
-> Received new PMT - sending to CAM...
-> 
-> And the resulting mpeg file is not watchable with mplayer.
-> 
-> Do you want me to test anything?
-> --
+From: Danny Kukawka <danny.kukawka@bisect.de>
 
-No. I tested the patch with DVB-T an watch encrypted channels with vdr without 
-problems. I don't know why you can't. I don't know gnutv. Try with other 
-software if you want.
+drivers/media/video/mt9p031.c included 'media/v4l2-subdev.h' twice,
+remove the duplicate.
 
-Jose Alberto
+Signed-off-by: Danny Kukawka <danny.kukawka@bisect.de>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/video/mt9p031.c |    1 -
+ 1 files changed, 0 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/media/video/mt9p031.c b/drivers/media/video/mt9p031.c
+index 93c3ec7..dd937df 100644
+--- a/drivers/media/video/mt9p031.c
++++ b/drivers/media/video/mt9p031.c
+@@ -19,7 +19,6 @@
+ #include <linux/log2.h>
+ #include <linux/pm.h>
+ #include <linux/slab.h>
+-#include <media/v4l2-subdev.h>
+ #include <linux/videodev2.h>
+ 
+ #include <media/mt9p031.h>
+-- 
+1.7.3.4
 
