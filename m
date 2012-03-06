@@ -1,124 +1,153 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr18.xs4all.nl ([194.109.24.38]:3850 "EHLO
-	smtp-vbr18.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753345Ab2CBIUz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Mar 2012 03:20:55 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: jtp.park@samsung.com
-Subject: Re: [PATCH 2/3] v4l2-ctrl: add codec controls support to the control framework
-Date: Fri, 2 Mar 2012 09:20:42 +0100
-Cc: linux-media@vger.kernel.org,
-	"'Kamil Debski'" <k.debski@samsung.com>, janghyuck.kim@samsung.com,
-	jaeryul.oh@samsung.com,
-	"'Marek Szyprowski'" <m.szyprowski@samsung.com>
-References: <007201ccf81a$bdf63850$39e2a8f0$%park@samsung.com>
-In-Reply-To: <007201ccf81a$bdf63850$39e2a8f0$%park@samsung.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201203020920.42912.hverkuil@xs4all.nl>
+Received: from smtp.nokia.com ([147.243.1.48]:44257 "EHLO mgw-sa02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756963Ab2CFQda (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 6 Mar 2012 11:33:30 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, dacohen@gmail.com,
+	snjw23@gmail.com, andriy.shevchenko@linux.intel.com,
+	t.stanislaws@samsung.com, tuukkat76@gmail.com,
+	k.debski@samsung.com, riverful@gmail.com, hverkuil@xs4all.nl,
+	teturtia@gmail.com, pradeep.sawlani@gmail.com
+Subject: [PATCH v5 28/35] omap3isp: Use external rate instead of vpcfg
+Date: Tue,  6 Mar 2012 18:33:09 +0200
+Message-Id: <1331051596-8261-28-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <20120306163239.GN1075@valkosipuli.localdomain>
+References: <20120306163239.GN1075@valkosipuli.localdomain>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday, March 02, 2012 03:18:22 Jeongtae Park wrote:
-> Add support for the codec controls to the v4l2 control framework.
-> 
-> Signed-off-by: Jeongtae Park <jtp.park@samsung.com>
-> Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-> Cc: Kamil Debski <k.debski@samsung.com>
-> ---
->  drivers/media/video/v4l2-ctrls.c |   41 +++++++++++++++++++++++++++++++++++++-
->  1 files changed, 40 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
-> index 9091172..1561483 100644
-> --- a/drivers/media/video/v4l2-ctrls.c
-> +++ b/drivers/media/video/v4l2-ctrls.c
-> @@ -361,6 +361,25 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
->  		"External",
->  		NULL,
->  	};
-> +	static const char * const h264_sei_fp_arrangement_type[] = {
-> +		"Checkerboard",
-> +		"Column Interleaved",
-> +		"Row Interleaved",
-> +		"Side By Side",
-> +		"Top And Bottom",
-> +		"Temporal Interleaved",
-> +		NULL,
-> +	};
-> +	static const char * const h264_fmo_map_type[] = {
-> +		"Interleaved Slices",
-> +		"Scattered Slices",
-> +		"Foreground with Left Over",
-> +		"Box Out",
-> +		"Raster Scan",
-> +		"Wipe Scan",
-> +		"Explicit",
-> +		NULL,
-> +	};
->  
->  	switch (id) {
->  	case V4L2_CID_MPEG_AUDIO_SAMPLING_FREQ:
-> @@ -426,6 +445,10 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
->  		return mpeg_mpeg4_level;
->  	case V4L2_CID_MPEG_VIDEO_MPEG4_PROFILE:
->  		return mpeg4_profile;
-> +	case V4L2_CID_MPEG_VIDEO_H264_SEI_FP_ARRANGEMENT_TYPE:
-> +		return h264_sei_fp_arrangement_type;
-> +	case V4L2_CID_MPEG_VIDEO_H264_FMO_MAP_TYPE:
-> +		return h264_fmo_map_type;
->  	default:
->  		return NULL;
->  	}
-> @@ -548,6 +571,21 @@ const char *v4l2_ctrl_get_name(u32 id)
->  	case V4L2_CID_MPEG_VIDEO_H264_VUI_EXT_SAR_WIDTH:	return "Horizontal Size of SAR";
->  	case V4L2_CID_MPEG_VIDEO_H264_VUI_SAR_ENABLE:		return "Aspect Ratio VUI Enable";
->  	case V4L2_CID_MPEG_VIDEO_H264_VUI_SAR_IDC:		return "VUI Aspect Ratio IDC";
-> +	case V4L2_CID_MPEG_VIDEO_H264_SEI_FRAME_PACKING:	return "SEI Frame Packing";
-> +	case V4L2_CID_MPEG_VIDEO_H264_SEI_FP_CURRENT_FRAME_0:	return "Frame Packing Current Frame";
-> +	case V4L2_CID_MPEG_VIDEO_H264_SEI_FP_ARRANGEMENT_TYPE:	return "Frame Packing Arrangement Type";
-> +	case V4L2_CID_MPEG_VIDEO_H264_FMO:			return "Flexible Macroblock Order";
-> +	case V4L2_CID_MPEG_VIDEO_H264_FMO_MAP_TYPE:		return "FMO Map Type";
-> +	case V4L2_CID_MPEG_VIDEO_H264_FMO_SLICE_GROUP:		return "FMO Slice Group";
-> +	case V4L2_CID_MPEG_VIDEO_H264_FMO_CHANGE_DIRECTION:	return "FMO Change Direction";
-> +	case V4L2_CID_MPEG_VIDEO_H264_FMO_CHANGE_RATE:		return "FMO Change Rate";
-> +	case V4L2_CID_MPEG_VIDEO_H264_FMO_RUN_LENGTH:		return "FMO Run Length";
-> +	case V4L2_CID_MPEG_VIDEO_H264_ASO:			return "Arbitrary Slice Order";
-> +	case V4L2_CID_MPEG_VIDEO_H264_ASO_SLICE_ORDER:		return "ASO Slice Order";
-> +	case V4L2_CID_MPEG_VIDEO_H264_HIERARCHICAL_CODING:	return "Hierarchical Coding";
-> +	case V4L2_CID_MPEG_VIDEO_H264_HIERARCHICAL_CODING_TYPE:	return "Hierarchical Coding Type";
-> +	case V4L2_CID_MPEG_VIDEO_H264_HIERARCHICAL_CODING_LAYER: return "Hierarchical Coding Layer";
-> +	case V4L2_CID_MPEG_VIDEO_H264_HIERARCHICAL_CODING_LAYER_QP: return "Hierarchical Coding Layer QP value";
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 
-The maximum string length is 31 bytes (+1 for the terminating 0). This
-string exceeds that and will be cut off. The last word 'value' can be
-removed, I think, to keep the string within 31 bytes.
+Access pipe->external_rate instead of isp_ccdc.vpcfg.pixelclk. Also remove
+means to set the value for isp_ccdc_vpcfg.pixelclk.
 
-It's a good idea to check with 'v4l2-ctl --list-ctrls' whether nothing else
-is cut off.
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+ drivers/media/video/omap3isp/isp.c      |   14 --------------
+ drivers/media/video/omap3isp/isp.h      |    1 -
+ drivers/media/video/omap3isp/ispccdc.c  |    6 ++----
+ drivers/media/video/omap3isp/ispccdc.h  |   10 ----------
+ drivers/media/video/omap3isp/ispvideo.c |    2 +-
+ 5 files changed, 3 insertions(+), 30 deletions(-)
 
-Regards,
+diff --git a/drivers/media/video/omap3isp/isp.c b/drivers/media/video/omap3isp/isp.c
+index 12d5f92..f54953d 100644
+--- a/drivers/media/video/omap3isp/isp.c
++++ b/drivers/media/video/omap3isp/isp.c
+@@ -329,19 +329,6 @@ void omap3isp_configure_bridge(struct isp_device *isp,
+ 	isp_reg_writel(isp, ispctrl_val, OMAP3_ISP_IOMEM_MAIN, ISP_CTRL);
+ }
+ 
+-/**
+- * isp_set_pixel_clock - Configures the ISP pixel clock
+- * @isp: OMAP3 ISP device
+- * @pixelclk: Average pixel clock in Hz
+- *
+- * Set the average pixel clock required by the sensor. The ISP will use the
+- * lowest possible memory bandwidth settings compatible with the clock.
+- **/
+-static void isp_set_pixel_clock(struct isp_device *isp, unsigned int pixelclk)
+-{
+-	isp->isp_ccdc.vpcfg.pixelclk = pixelclk;
+-}
+-
+ void omap3isp_hist_dma_done(struct isp_device *isp)
+ {
+ 	if (omap3isp_ccdc_busy(&isp->isp_ccdc) ||
+@@ -2068,7 +2055,6 @@ static int isp_probe(struct platform_device *pdev)
+ 
+ 	isp->autoidle = autoidle;
+ 	isp->platform_cb.set_xclk = isp_set_xclk;
+-	isp->platform_cb.set_pixel_clock = isp_set_pixel_clock;
+ 
+ 	mutex_init(&isp->isp_mutex);
+ 	spin_lock_init(&isp->stat_lock);
+diff --git a/drivers/media/video/omap3isp/isp.h b/drivers/media/video/omap3isp/isp.h
+index 2e78041..964ab1b 100644
+--- a/drivers/media/video/omap3isp/isp.h
++++ b/drivers/media/video/omap3isp/isp.h
+@@ -129,7 +129,6 @@ struct isp_platform_callback {
+ 	int (*csiphy_config)(struct isp_csiphy *phy,
+ 			     struct isp_csiphy_dphy_cfg *dphy,
+ 			     struct isp_csiphy_lanes_cfg *lanes);
+-	void (*set_pixel_clock)(struct isp_device *isp, unsigned int pixelclk);
+ };
+ 
+ /*
+diff --git a/drivers/media/video/omap3isp/ispccdc.c b/drivers/media/video/omap3isp/ispccdc.c
+index a74a797..cd1bf6d 100644
+--- a/drivers/media/video/omap3isp/ispccdc.c
++++ b/drivers/media/video/omap3isp/ispccdc.c
+@@ -836,8 +836,8 @@ static void ccdc_config_vp(struct isp_ccdc_device *ccdc)
+ 
+ 	if (pipe->input)
+ 		div = DIV_ROUND_UP(l3_ick, pipe->max_rate);
+-	else if (ccdc->vpcfg.pixelclk)
+-		div = l3_ick / ccdc->vpcfg.pixelclk;
++	else if (pipe->external_rate)
++		div = l3_ick / pipe->external_rate;
+ 
+ 	div = clamp(div, 2U, max_div);
+ 	fmtcfg_vp |= (div - 2) << ISPCCDC_FMTCFG_VPIF_FRQ_SHIFT;
+@@ -2276,8 +2276,6 @@ int omap3isp_ccdc_init(struct isp_device *isp)
+ 	ccdc->clamp.oblen = 0;
+ 	ccdc->clamp.dcsubval = 0;
+ 
+-	ccdc->vpcfg.pixelclk = 0;
+-
+ 	ccdc->update = OMAP3ISP_CCDC_BLCLAMP;
+ 	ccdc_apply_controls(ccdc);
+ 
+diff --git a/drivers/media/video/omap3isp/ispccdc.h b/drivers/media/video/omap3isp/ispccdc.h
+index 6d0264b..e570abe 100644
+--- a/drivers/media/video/omap3isp/ispccdc.h
++++ b/drivers/media/video/omap3isp/ispccdc.h
+@@ -80,14 +80,6 @@ struct ispccdc_syncif {
+ 	u8 bt_r656_en;
+ };
+ 
+-/*
+- * struct ispccdc_vp - Structure for Video Port parameters
+- * @pixelclk: Input pixel clock in Hz
+- */
+-struct ispccdc_vp {
+-	unsigned int pixelclk;
+-};
+-
+ enum ispccdc_lsc_state {
+ 	LSC_STATE_STOPPED = 0,
+ 	LSC_STATE_STOPPING = 1,
+@@ -161,7 +153,6 @@ struct ispccdc_lsc {
+  * @update: Bitmask of controls to update during the next interrupt
+  * @shadow_update: Controls update in progress by userspace
+  * @syncif: Interface synchronization configuration
+- * @vpcfg: Video port configuration
+  * @underrun: A buffer underrun occurred and a new buffer has been queued
+  * @state: Streaming state
+  * @lock: Serializes shadow_update with interrupt handler
+@@ -190,7 +181,6 @@ struct isp_ccdc_device {
+ 	unsigned int shadow_update;
+ 
+ 	struct ispccdc_syncif syncif;
+-	struct ispccdc_vp vpcfg;
+ 
+ 	unsigned int underrun:1;
+ 	enum isp_pipeline_stream_state state;
+diff --git a/drivers/media/video/omap3isp/ispvideo.c b/drivers/media/video/omap3isp/ispvideo.c
+index ef5c770..6d4ad87 100644
+--- a/drivers/media/video/omap3isp/ispvideo.c
++++ b/drivers/media/video/omap3isp/ispvideo.c
+@@ -334,7 +334,7 @@ static int isp_video_validate_pipeline(struct isp_pipeline *pipe)
+ 			unsigned int rate = UINT_MAX;
+ 
+ 			omap3isp_ccdc_max_rate(&isp->isp_ccdc, &rate);
+-			if (isp->isp_ccdc.vpcfg.pixelclk > rate)
++			if (pipe->external_rate > rate)
+ 				return -ENOSPC;
+ 		}
+ 
+-- 
+1.7.2.5
 
-	Hans
-
->  	case V4L2_CID_MPEG_VIDEO_MPEG4_I_FRAME_QP:		return "MPEG4 I-Frame QP Value";
->  	case V4L2_CID_MPEG_VIDEO_MPEG4_P_FRAME_QP:		return "MPEG4 P-Frame QP Value";
->  	case V4L2_CID_MPEG_VIDEO_MPEG4_B_FRAME_QP:		return "MPEG4 B-Frame QP Value";
-> @@ -556,12 +594,13 @@ const char *v4l2_ctrl_get_name(u32 id)
->  	case V4L2_CID_MPEG_VIDEO_MPEG4_LEVEL:			return "MPEG4 Level";
->  	case V4L2_CID_MPEG_VIDEO_MPEG4_PROFILE:			return "MPEG4 Profile";
->  	case V4L2_CID_MPEG_VIDEO_MPEG4_QPEL:			return "Quarter Pixel Search Enable";
-> -	case V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MAX_BYTES:		return "Maximum Bytes in a Slice";
-> +	case V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MAX_BITS:		return "Maximum Bits in a Slice";
->  	case V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MAX_MB:		return "Number of MBs in a Slice";
->  	case V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MODE:		return "Slice Partitioning Method";
->  	case V4L2_CID_MPEG_VIDEO_VBV_SIZE:			return "VBV Buffer Size";
->  	case V4L2_CID_MPEG_VIDEO_DEC_PTS:			return "Video Decoder PTS";
->  	case V4L2_CID_MPEG_VIDEO_DEC_FRAME:			return "Video Decoder Frame Count";
-> +	case V4L2_CID_MPEG_VIDEO_VBV_DELAY:			return "VBV Buffer Initial Delay";
->  
->  	/* CAMERA controls */
->  	/* Keep the order of the 'case's the same as in videodev2.h! */
-> 
