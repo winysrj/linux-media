@@ -1,75 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vx0-f174.google.com ([209.85.220.174]:33307 "EHLO
-	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756170Ab2CJCwN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Mar 2012 21:52:13 -0500
-Received: by vcqp1 with SMTP id p1so2054513vcq.19
-        for <linux-media@vger.kernel.org>; Fri, 09 Mar 2012 18:52:13 -0800 (PST)
-From: Andrew Miller <amiller@amilx.com>
-To: linux-media@vger.kernel.org
-Cc: amiller@amilx.com, devel@driverdev.osuosl.org
-Subject: [PATCH] Staging: media: solo6x10: core.c Fix some coding style issue
-Date: Fri,  9 Mar 2012 21:51:01 -0500
-Message-Id: <1331347861-9747-1-git-send-email-amiller@amilx.com>
+Received: from smtp-68.nebula.fi ([83.145.220.68]:46078 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751632Ab2CFPul (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Mar 2012 10:50:41 -0500
+Date: Tue, 6 Mar 2012 17:50:36 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, dacohen@gmail.com, snjw23@gmail.com,
+	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
+	tuukkat76@gmail.com, k.debski@samsung.com, riverful@gmail.com,
+	hverkuil@xs4all.nl, teturtia@gmail.com
+Subject: Re: [PATCH v4 04/34] v4l: VIDIOC_SUBDEV_S_SELECTION and
+ VIDIOC_SUBDEV_G_SELECTION IOCTLs
+Message-ID: <20120306155036.GJ1075@valkosipuli.localdomain>
+References: <20120302173219.GA15695@valkosipuli.localdomain>
+ <1330709442-16654-4-git-send-email-sakari.ailus@iki.fi>
+ <12441257.HgrTH0oxIp@avalon>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <12441257.HgrTH0oxIp@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Replaced spaces with tabs
+On Mon, Mar 05, 2012 at 11:59:22AM +0100, Laurent Pinchart wrote:
+> Hi Sakari,
+> 
+> Thanks for the patch.
+> 
+> On Friday 02 March 2012 19:30:12 Sakari Ailus wrote:
+> > Add support for VIDIOC_SUBDEV_S_SELECTION and VIDIOC_SUBDEV_G_SELECTION
+> > IOCTLs. They replace functionality provided by VIDIOC_SUBDEV_S_CROP and
+> > VIDIOC_SUBDEV_G_CROP IOCTLs and also add new functionality (composing).
+> > 
+> > VIDIOC_SUBDEV_G_CROP and VIDIOC_SUBDEV_S_CROP continue to be supported.
+> > 
+> > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> 
+> Except for the ACTIVE name, 
+> 
+> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> 
+> Maybe we could discuss this on IRC with Tomasz ?
 
-Signed-off-by: Andrew Miller <amiller@amilx.com>
----
- drivers/staging/media/solo6x10/core.c |   32 ++++++++++++++++----------------
- 1 files changed, 16 insertions(+), 16 deletions(-)
+Tomasz wasn't online when I checked.
 
-diff --git a/drivers/staging/media/solo6x10/core.c b/drivers/staging/media/solo6x10/core.c
-index f974f64..d2fd842 100644
---- a/drivers/staging/media/solo6x10/core.c
-+++ b/drivers/staging/media/solo6x10/core.c
-@@ -195,28 +195,28 @@ static int __devinit solo_pci_probe(struct pci_dev *pdev,
- 			SOLO6010_SYS_CFG_OUTDIV(3);
- 	solo_reg_write(solo_dev, SOLO_SYS_CFG, reg);
- 
--        if (solo_dev->flags & FLAGS_6110) {
--                u32 sys_clock_MHz = SOLO_CLOCK_MHZ;
--                u32 pll_DIVQ;
--                u32 pll_DIVF;
--
--                if (sys_clock_MHz < 125) {
--                        pll_DIVQ = 3;
--                        pll_DIVF = (sys_clock_MHz * 4) / 3;
--                } else {
--                        pll_DIVQ = 2;
--                        pll_DIVF = (sys_clock_MHz * 2) / 3;
--                }
--
--                solo_reg_write(solo_dev, SOLO6110_PLL_CONFIG,
-+	if (solo_dev->flags & FLAGS_6110) {
-+		u32 sys_clock_MHz = SOLO_CLOCK_MHZ;
-+		u32 pll_DIVQ;
-+		u32 pll_DIVF;
-+
-+		if (sys_clock_MHz < 125) {
-+			pll_DIVQ = 3;
-+			pll_DIVF = (sys_clock_MHz * 4) / 3;
-+		} else {
-+			pll_DIVQ = 2;
-+			pll_DIVF = (sys_clock_MHz * 2) / 3;
-+		}
-+
-+		solo_reg_write(solo_dev, SOLO6110_PLL_CONFIG,
- 			       SOLO6110_PLL_RANGE_5_10MHZ |
- 			       SOLO6110_PLL_DIVR(9) |
- 			       SOLO6110_PLL_DIVQ_EXP(pll_DIVQ) |
- 			       SOLO6110_PLL_DIVF(pll_DIVF) | SOLO6110_PLL_FSEN);
--		mdelay(1);      // PLL Locking time (1ms)
-+		mdelay(1);      /* PLL Locking time (1ms) */
- 
- 		solo_reg_write(solo_dev, SOLO_DMA_CTRL1, 3 << 8); /* ? */
--        } else
-+	} else
- 		solo_reg_write(solo_dev, SOLO_DMA_CTRL1, 1 << 8); /* ? */
- 
- 	solo_reg_write(solo_dev, SOLO_TIMER_CLOCK_NUM, SOLO_CLOCK_MHZ - 1);
+How about "CURRENT"?
+
 -- 
-1.7.7.6
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
