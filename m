@@ -1,8 +1,8 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.48]:44225 "EHLO mgw-sa02.nokia.com"
+Received: from smtp.nokia.com ([147.243.128.26]:32651 "EHLO mgw-da02.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756626Ab2CFQd2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 6 Mar 2012 11:33:28 -0500
+	id S1754275Ab2CFQd1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 6 Mar 2012 11:33:27 -0500
 From: Sakari Ailus <sakari.ailus@iki.fi>
 To: linux-media@vger.kernel.org
 Cc: laurent.pinchart@ideasonboard.com, dacohen@gmail.com,
@@ -10,190 +10,205 @@ Cc: laurent.pinchart@ideasonboard.com, dacohen@gmail.com,
 	t.stanislaws@samsung.com, tuukkat76@gmail.com,
 	k.debski@samsung.com, riverful@gmail.com, hverkuil@xs4all.nl,
 	teturtia@gmail.com, pradeep.sawlani@gmail.com
-Subject: [PATCH v5 11/35] v4l: Image source control class
-Date: Tue,  6 Mar 2012 18:32:52 +0200
-Message-Id: <1331051596-8261-11-git-send-email-sakari.ailus@iki.fi>
+Subject: [PATCH v5 04/35] v4l: VIDIOC_SUBDEV_S_SELECTION and VIDIOC_SUBDEV_G_SELECTION IOCTLs
+Date: Tue,  6 Mar 2012 18:32:45 +0200
+Message-Id: <1331051596-8261-4-git-send-email-sakari.ailus@iki.fi>
 In-Reply-To: <20120306163239.GN1075@valkosipuli.localdomain>
 References: <20120306163239.GN1075@valkosipuli.localdomain>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add image source control class. This control class is intended to contain
-low level controls which deal with control of the image capture process ---
-the A/D converter in image sensors, for example.
+Add support for VIDIOC_SUBDEV_S_SELECTION and VIDIOC_SUBDEV_G_SELECTION
+IOCTLs. They replace functionality provided by VIDIOC_SUBDEV_S_CROP and
+VIDIOC_SUBDEV_G_CROP IOCTLs and also add new functionality (composing).
+
+VIDIOC_SUBDEV_G_CROP and VIDIOC_SUBDEV_S_CROP continue to be supported.
 
 Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- Documentation/DocBook/media/v4l/controls.xml       |   86 ++++++++++++++++++++
- .../DocBook/media/v4l/vidioc-g-ext-ctrls.xml       |    6 ++
- drivers/media/video/v4l2-ctrls.c                   |    7 ++
- include/linux/videodev2.h                          |    9 ++
- 4 files changed, 108 insertions(+), 0 deletions(-)
+ drivers/media/video/v4l2-subdev.c |   42 ++++++++++++++++++++++++++++--------
+ include/linux/v4l2-subdev.h       |   41 ++++++++++++++++++++++++++++++++++++
+ include/media/v4l2-subdev.h       |   21 +++++++++++++++---
+ 3 files changed, 90 insertions(+), 14 deletions(-)
 
-diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
-index 3f3d2e2..2257db4 100644
---- a/Documentation/DocBook/media/v4l/controls.xml
-+++ b/Documentation/DocBook/media/v4l/controls.xml
-@@ -3438,4 +3438,90 @@ interface and may change in the future.</para>
-       </table>
+diff --git a/drivers/media/video/v4l2-subdev.c b/drivers/media/video/v4l2-subdev.c
+index 6fe88e9..7d22538 100644
+--- a/drivers/media/video/v4l2-subdev.c
++++ b/drivers/media/video/v4l2-subdev.c
+@@ -35,14 +35,9 @@
+ static int subdev_fh_init(struct v4l2_subdev_fh *fh, struct v4l2_subdev *sd)
+ {
+ #if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
+-	/* Allocate try format and crop in the same memory block */
+-	fh->try_fmt = kzalloc((sizeof(*fh->try_fmt) + sizeof(*fh->try_crop))
+-			      * sd->entity.num_pads, GFP_KERNEL);
+-	if (fh->try_fmt == NULL)
++	fh->pad = kzalloc(sizeof(*fh->pad) * sd->entity.num_pads, GFP_KERNEL);
++	if (fh->pad == NULL)
+ 		return -ENOMEM;
+-
+-	fh->try_crop = (struct v4l2_rect *)
+-		(fh->try_fmt + sd->entity.num_pads);
+ #endif
+ 	return 0;
+ }
+@@ -50,9 +45,8 @@ static int subdev_fh_init(struct v4l2_subdev_fh *fh, struct v4l2_subdev *sd)
+ static void subdev_fh_free(struct v4l2_subdev_fh *fh)
+ {
+ #if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
+-	kfree(fh->try_fmt);
+-	fh->try_fmt = NULL;
+-	fh->try_crop = NULL;
++	kfree(fh->pad);
++	fh->pad = NULL;
+ #endif
+ }
  
-     </section>
-+
-+    <section id="image-source-controls">
-+      <title>Image Source Control Reference</title>
-+
-+      <note>
-+	<title>Experimental</title>
-+
-+	<para>This is an <link
-+	linkend="experimental">experimental</link> interface and may
-+	change in the future.</para>
-+      </note>
-+
-+      <para>
-+	The Image Source control class is intended for low-level
-+	control of image source devices such as image sensors. The
-+	devices feature an analogue to digital converter and a bus
-+	transmitter to transmit the image data out of the device.
-+      </para>
-+
-+      <table pgwide="1" frame="none" id="image-source-control-id">
-+      <title>Image Source Control IDs</title>
-+
-+      <tgroup cols="4">
-+	<colspec colname="c1" colwidth="1*" />
-+	<colspec colname="c2" colwidth="6*" />
-+	<colspec colname="c3" colwidth="2*" />
-+	<colspec colname="c4" colwidth="6*" />
-+	<spanspec namest="c1" nameend="c2" spanname="id" />
-+	<spanspec namest="c2" nameend="c4" spanname="descr" />
-+	<thead>
-+	  <row>
-+	    <entry spanname="id" align="left">ID</entry>
-+	    <entry align="left">Type</entry>
-+	  </row><row rowsep="1"><entry spanname="descr" align="left">Description</entry>
-+	  </row>
-+	</thead>
-+	<tbody valign="top">
-+	  <row><entry></entry></row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_IMAGE_SOURCE_CLASS</constant></entry>
-+	    <entry>class</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="descr">The IMAGE_SOURCE class descriptor.</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_VBLANK</constant></entry>
-+	    <entry>integer</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="descr">Vertical blanking. The idle period
-+	    after every frame during which no image data is produced.
-+	    The unit of vertical blanking is a line. Every line has
-+	    length of the image width plus horizontal blanking at the
-+	    pixel rate defined by
-+	    <constant>V4L2_CID_PIXEL_RATE</constant> control in the
-+	    same sub-device.</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_HBLANK</constant></entry>
-+	    <entry>integer</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="descr">Horizontal blanking. The idle
-+	    period after every line of image data during which no
-+	    image data is produced. The unit of horizontal blanking is
-+	    pixels.</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_ANALOGUE_GAIN</constant></entry>
-+	    <entry>integer</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="descr">Analogue gain is gain affecting
-+	    all colour components in the pixel matrix. The gain
-+	    operation is performed in the analogue domain before A/D
-+	    conversion.
-+	    </entry>
-+	  </row>
-+	  <row><entry></entry></row>
-+	</tbody>
-+      </tgroup>
-+      </table>
-+
-+    </section>
-+
- </section>
-diff --git a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
-index b17a7aa..f420034 100644
---- a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
-@@ -265,6 +265,12 @@ These controls are described in <xref
- These controls are described in <xref
- 		linkend="flash-controls" />.</entry>
- 	  </row>
-+	  <row>
-+	    <entry><constant>V4L2_CTRL_CLASS_IMAGE_SOURCE</constant></entry>
-+	    <entry>0x9d0000</entry> <entry>The class containing image
-+	    source controls. These controls are described in <xref
-+	    linkend="image-source-controls" />.</entry>
-+	  </row>
- 	</tbody>
-       </tgroup>
-     </table>
-diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
-index f0484bd..3ca6bc7 100644
---- a/drivers/media/video/v4l2-ctrls.c
-+++ b/drivers/media/video/v4l2-ctrls.c
-@@ -623,6 +623,12 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_FLASH_CHARGE:		return "Charge";
- 	case V4L2_CID_FLASH_READY:		return "Ready to Strobe";
- 
-+	/* Image source controls */
-+	case V4L2_CID_IMAGE_SOURCE_CLASS:	return "Image Source Controls";
-+	case V4L2_CID_VBLANK:			return "Vertical Blanking";
-+	case V4L2_CID_HBLANK:			return "Horizontal Blanking";
-+	case V4L2_CID_ANALOGUE_GAIN:		return "Analogue Gain";
-+
- 	default:
- 		return NULL;
+@@ -293,6 +287,34 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+ 		return v4l2_subdev_call(sd, pad, enum_frame_interval, subdev_fh,
+ 					fie);
  	}
-@@ -722,6 +728,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_MPEG_CLASS:
- 	case V4L2_CID_FM_TX_CLASS:
- 	case V4L2_CID_FLASH_CLASS:
-+	case V4L2_CID_IMAGE_SOURCE_CLASS:
- 		*type = V4L2_CTRL_TYPE_CTRL_CLASS;
- 		/* You can neither read not write these */
- 		*flags |= V4L2_CTRL_FLAG_READ_ONLY | V4L2_CTRL_FLAG_WRITE_ONLY;
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index e3c6302..ca64202 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -1136,6 +1136,7 @@ struct v4l2_ext_controls {
- #define V4L2_CTRL_CLASS_CAMERA 0x009a0000	/* Camera class controls */
- #define V4L2_CTRL_CLASS_FM_TX 0x009b0000	/* FM Modulator control class */
- #define V4L2_CTRL_CLASS_FLASH 0x009c0000	/* Camera flash controls */
-+#define V4L2_CTRL_CLASS_IMAGE_SOURCE 0x009d0000	/* Image source controls */
- 
- #define V4L2_CTRL_ID_MASK      	  (0x0fffffff)
- #define V4L2_CTRL_ID2CLASS(id)    ((id) & 0x0fff0000UL)
-@@ -1762,6 +1763,14 @@ enum v4l2_flash_strobe_source {
- #define V4L2_CID_FLASH_CHARGE			(V4L2_CID_FLASH_CLASS_BASE + 11)
- #define V4L2_CID_FLASH_READY			(V4L2_CID_FLASH_CLASS_BASE + 12)
- 
-+/* Image source controls */
-+#define V4L2_CID_IMAGE_SOURCE_CLASS_BASE	(V4L2_CTRL_CLASS_IMAGE_SOURCE | 0x900)
-+#define V4L2_CID_IMAGE_SOURCE_CLASS		(V4L2_CTRL_CLASS_IMAGE_SOURCE | 1)
 +
-+#define V4L2_CID_VBLANK				(V4L2_CID_IMAGE_SOURCE_CLASS_BASE + 1)
-+#define V4L2_CID_HBLANK				(V4L2_CID_IMAGE_SOURCE_CLASS_BASE + 2)
-+#define V4L2_CID_ANALOGUE_GAIN			(V4L2_CID_IMAGE_SOURCE_CLASS_BASE + 3)
++	case VIDIOC_SUBDEV_G_SELECTION: {
++		struct v4l2_subdev_selection *sel = arg;
 +
- /*
-  *	T U N I N G
-  */
++		if (sel->which != V4L2_SUBDEV_FORMAT_TRY &&
++		    sel->which != V4L2_SUBDEV_FORMAT_ACTIVE)
++			return -EINVAL;
++
++		if (sel->pad >= sd->entity.num_pads)
++			return -EINVAL;
++
++		return v4l2_subdev_call(
++			sd, pad, get_selection, subdev_fh, sel);
++	}
++
++	case VIDIOC_SUBDEV_S_SELECTION: {
++		struct v4l2_subdev_selection *sel = arg;
++
++		if (sel->which != V4L2_SUBDEV_FORMAT_TRY &&
++		    sel->which != V4L2_SUBDEV_FORMAT_ACTIVE)
++			return -EINVAL;
++
++		if (sel->pad >= sd->entity.num_pads)
++			return -EINVAL;
++
++		return v4l2_subdev_call(
++			sd, pad, set_selection, subdev_fh, sel);
++	}
+ #endif
+ 	default:
+ 		return v4l2_subdev_call(sd, core, ioctl, cmd, arg);
+diff --git a/include/linux/v4l2-subdev.h b/include/linux/v4l2-subdev.h
+index ed29cbb..4c63e51 100644
+--- a/include/linux/v4l2-subdev.h
++++ b/include/linux/v4l2-subdev.h
+@@ -123,6 +123,43 @@ struct v4l2_subdev_frame_interval_enum {
+ 	__u32 reserved[9];
+ };
+ 
++#define V4L2_SUBDEV_SEL_FLAG_SIZE_GE			(1 << 0)
++#define V4L2_SUBDEV_SEL_FLAG_SIZE_LE			(1 << 1)
++#define V4L2_SUBDEV_SEL_FLAG_KEEP_CONFIG		(1 << 2)
++
++/* active cropping area */
++#define V4L2_SUBDEV_SEL_TGT_CROP_ACTIVE			0x0000
++/* cropping bounds */
++#define V4L2_SUBDEV_SEL_TGT_CROP_BOUNDS			0x0002
++/* current composing area */
++#define V4L2_SUBDEV_SEL_TGT_COMPOSE_ACTIVE		0x0100
++/* composing bounds */
++#define V4L2_SUBDEV_SEL_TGT_COMPOSE_BOUNDS		0x0102
++
++
++/**
++ * struct v4l2_subdev_selection - selection info
++ *
++ * @which: either V4L2_SUBDEV_FORMAT_ACTIVE or V4L2_SUBDEV_FORMAT_TRY
++ * @pad: pad number, as reported by the media API
++ * @target: selection target, used to choose one of possible rectangles
++ * @flags: constraint flags
++ * @r: coordinates of the selection window
++ * @reserved: for future use, set to zero for now
++ *
++ * Hardware may use multiple helper windows to process a video stream.
++ * The structure is used to exchange this selection areas between
++ * an application and a driver.
++ */
++struct v4l2_subdev_selection {
++	__u32 which;
++	__u32 pad;
++	__u32 target;
++	__u32 flags;
++	struct v4l2_rect r;
++	__u32 reserved[8];
++};
++
+ #define VIDIOC_SUBDEV_G_FMT	_IOWR('V',  4, struct v4l2_subdev_format)
+ #define VIDIOC_SUBDEV_S_FMT	_IOWR('V',  5, struct v4l2_subdev_format)
+ #define VIDIOC_SUBDEV_G_FRAME_INTERVAL \
+@@ -137,5 +174,9 @@ struct v4l2_subdev_frame_interval_enum {
+ 			_IOWR('V', 75, struct v4l2_subdev_frame_interval_enum)
+ #define VIDIOC_SUBDEV_G_CROP	_IOWR('V', 59, struct v4l2_subdev_crop)
+ #define VIDIOC_SUBDEV_S_CROP	_IOWR('V', 60, struct v4l2_subdev_crop)
++#define VIDIOC_SUBDEV_G_SELECTION \
++	_IOWR('V', 61, struct v4l2_subdev_selection)
++#define VIDIOC_SUBDEV_S_SELECTION \
++	_IOWR('V', 62, struct v4l2_subdev_selection)
+ 
+ #endif
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index f0f3358..feab950 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -466,6 +466,10 @@ struct v4l2_subdev_pad_ops {
+ 		       struct v4l2_subdev_crop *crop);
+ 	int (*get_crop)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
+ 		       struct v4l2_subdev_crop *crop);
++	int (*get_selection)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
++			     struct v4l2_subdev_selection *sel);
++	int (*set_selection)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
++			     struct v4l2_subdev_selection *sel);
+ };
+ 
+ struct v4l2_subdev_ops {
+@@ -549,8 +553,11 @@ struct v4l2_subdev {
+ struct v4l2_subdev_fh {
+ 	struct v4l2_fh vfh;
+ #if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
+-	struct v4l2_mbus_framefmt *try_fmt;
+-	struct v4l2_rect *try_crop;
++	struct {
++		struct v4l2_mbus_framefmt try_fmt;
++		struct v4l2_rect try_crop;
++		struct v4l2_rect try_compose;
++	} *pad;
+ #endif
+ };
+ 
+@@ -561,13 +568,19 @@ struct v4l2_subdev_fh {
+ static inline struct v4l2_mbus_framefmt *
+ v4l2_subdev_get_try_format(struct v4l2_subdev_fh *fh, unsigned int pad)
+ {
+-	return &fh->try_fmt[pad];
++	return &fh->pad[pad].try_fmt;
+ }
+ 
+ static inline struct v4l2_rect *
+ v4l2_subdev_get_try_crop(struct v4l2_subdev_fh *fh, unsigned int pad)
+ {
+-	return &fh->try_crop[pad];
++	return &fh->pad[pad].try_crop;
++}
++
++static inline struct v4l2_rect *
++v4l2_subdev_get_try_compose(struct v4l2_subdev_fh *fh, unsigned int pad)
++{
++	return &fh->pad[pad].try_compose;
+ }
+ #endif
+ 
 -- 
 1.7.2.5
 
