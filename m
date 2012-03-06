@@ -1,271 +1,173 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:24859 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756697Ab2COJz3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Mar 2012 05:55:29 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 8BIT
-Content-type: text/plain; charset=UTF-8
-Received: from euspt1 ([210.118.77.14]) by mailout4.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0M0X003TS7KEHA60@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 15 Mar 2012 09:55:26 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0M0X00K807KB8H@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 15 Mar 2012 09:55:24 +0000 (GMT)
-Date: Thu, 15 Mar 2012 10:55:25 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [PATCH v5 09/35] v4l: Add subdev selections documentation
-In-reply-to: <1331051596-8261-9-git-send-email-sakari.ailus@iki.fi>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	dacohen@gmail.com, snjw23@gmail.com,
-	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
-	tuukkat76@gmail.com, k.debski@samsung.com, riverful@gmail.com,
-	hverkuil@xs4all.nl, teturtia@gmail.com, pradeep.sawlani@gmail.com
-Message-id: <4F61BC8D.7060900@samsung.com>
-References: <20120306163239.GN1075@valkosipuli.localdomain>
- <1331051596-8261-9-git-send-email-sakari.ailus@iki.fi>
+Received: from smtp-68.nebula.fi ([83.145.220.68]:40655 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755154Ab2CFQWV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Mar 2012 11:22:21 -0500
+Date: Tue, 6 Mar 2012 18:22:15 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org,
+	Martin Hostettler <martin@neutronstar.dyndns.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH 5/5] v4l: Add driver for Micron MT9M032 camera sensor
+Message-ID: <20120306162215.GM1075@valkosipuli.localdomain>
+References: <1331035786-8938-1-git-send-email-laurent.pinchart@ideasonboard.com>
+ <1331035786-8938-6-git-send-email-laurent.pinchart@ideasonboard.com>
+ <20120306150403.GG1075@valkosipuli.localdomain>
+ <3590523.ZOyvX5TbID@avalon>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <3590523.ZOyvX5TbID@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Hi Laurent,
 
-On 03/06/2012 05:32 PM, Sakari Ailus wrote:
-> Add documentation for V4L2 subdev selection API. This changes also
-> experimental V4L2 subdev API so that scaling now works through selection API
-> only.
+On Tue, Mar 06, 2012 at 05:08:01PM +0100, Laurent Pinchart wrote:
+...
+> > > +struct mt9m032 {
+> > > +	struct v4l2_subdev subdev;
+> > > +	struct media_pad pad;
+> > > +	struct mt9m032_platform_data *pdata;
+> > > +
+> > > +	struct v4l2_ctrl_handler ctrls;
+> > > +	struct {
+> > > +		struct v4l2_ctrl *hflip;
+> > > +		struct v4l2_ctrl *vflip;
+> > > +	};
+> > > +
+> > > +	bool streaming;
+> > > +
+> > > +	int pix_clock;
+> > 
+> > unsigned?
 > 
-> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> ---
->  Documentation/DocBook/media/Makefile               |    4 +-
->  Documentation/DocBook/media/v4l/compat.xml         |    9 +
->  Documentation/DocBook/media/v4l/dev-subdev.xml     |  202 +++++++++++++++--
->  Documentation/DocBook/media/v4l/v4l2.xml           |   17 ++-
->  .../media/v4l/vidioc-subdev-g-selection.xml        |  228 ++++++++++++++++++++
->  5 files changed, 433 insertions(+), 27 deletions(-)
->  cre
-ate mode 100644 Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml
+> No comment ;-) I'll fix this.
 
-[snip]
+:-)
 
-> diff --git a/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml b/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml
-> new file mode 100644
-> index 0000000..9164b85
-> --- /dev/null
-> +++ b/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml
-> @@ -0,0 +1,228 @@
-> +<refentry id="vidioc-subdev-g-selection">
-> +  <refmeta>
-> +    <refentrytitle>ioctl VIDIOC_SUBDEV_G_SELECTION, VIDIOC_SUBDEV_S_SELECTION</refentrytitle>
-> +    &manvol;
-> +  </refmeta>
-> +
-> +  <refnamediv>
-> +    <refname>VIDIOC_SUBDEV_G_SELECTION</refname>
-> +    <refname>VIDIOC_SUBDEV_S_SELECTION</refname>
-> +    <refpurpose>Get or set selection rectangles on a subdev pad</refpurpose>
-> +  </refnamediv>
-> +
-> +  <refsynopsisdiv>
-> +    <funcsynopsis>
-> +      <funcprototype>
-> +	<funcdef>int <function>ioctl</function></funcdef>
-> +	<paramdef>int <parameter>fd</parameter></paramdef>
-> +	<paramdef>int <parameter>request</parameter></paramdef>
-> +	<paramdef>struct v4l2_subdev_selection *<parameter>argp</parameter></paramdef>
-> +      </funcprototype>
-> +    </funcsynopsis>
-> +  </refsynopsisdiv>
-> +
-> +  <refsect1>
-> +    <title>Arguments</title>
-> +
-> +    <variablelist>
-> +      <varlistentry>
-> +	<term><parameter>fd</parameter></term>
-> +	<listitem>
-> +	  <para>&fd;</para>
-> +	</listitem>
-> +      </varlistentry>
-> +      <varlistentry>
-> +	<term><parameter>request</parameter></term>
-> +	<listitem>
-> +	  <para>VIDIOC_SUBDEV_G_SELECTION, VIDIOC_SUBDEV_S_SELECTION</para>
-> +	</listitem>
-> +      </varlistentry>
-> +      <varlistentry>
-> +	<term><parameter>argp</parameter></term>
-> +	<listitem>
-> +	  <para></para>
-> +	</listitem>
-> +      </varlistentry>
-> +    </variablelist>
-> +  </refsect1>
-> +
-> +  <refsect1>
-> +    <title>Description</title>
-> +
-> +    <note>
-> +      <title>Experimental</title>
-> +      <para>This is an <link linkend="experimental">experimental</link>
-> +      interface and may change in the future.</para>
-> +    </note>
-> +
-> +    <para>The selections are used to configure various image
-> +    processing functionality performed by the subdevs which affect the
-> +    image size. This currently includes cropping, scaling and
-> +    composition.</para>
-> +
-> +    <para>The selection API replaces <link
-> +    linkend="vidioc-subdev-g-crop">the old subdev crop API</link>. All
-> +    the function of the crop API, and more, are supported by the
-> +    selections API.</para>
-> +
-> +    <para>See <xref linkend="subdev"></xref> for
-> +    more information on how each selection target affects the image
-> +    processing pipeline inside the subdevice.</para>
-> +
-> +    <section>
-> +      <title>Types of selection targets</title>
-> +
-> +      <para>There are two types of selection targets: active and bounds.
-> +      The ACTIVE targets are the targets which configure the hardware.
-> +      The BOUNDS target will return a rectangle that contain all
-> +      possible ACTIVE rectangles.</para>
-> +    </section>
-> +
-> +    <section>
-> +      <title>Discovering supported features</title>
-> +
-> +      <para>To discover which targets are supported, the user can
-> +      perform <constant>VIDIOC_SUBDEV_G_SELECTION</constant> on them.
-> +      Any unsupported target will return
-> +      <constant>EINVAL</constant>.</para>
-> +    </section>
-> +
-> +    <table pgwide="1" frame="none" id="v4l2-subdev-selection-targets">
-> +      <title>V4L2 subdev selection targets</title>
-> +      <tgroup cols="3">
-> +        &cs-def;
-> +	<tbody valign="top">
-> +	  <row>
-> +	    <entry><constant>V4L2_SUBDEV_SEL_TGT_CROP_ACTIVE</constant></entry>
-> +	    <entry>0x0000</entry>
-> +	    <entry>Active crop. Defines the cropping
-> +	    performed by the processing step.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry><constant>V4L2_SUBDEV_SEL_TGT_CROP_BOUNDS</constant></entry>
-> +	    <entry>0x0002</entry>
-> +	    <entry>Bounds of the crop rectangle.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry><constant>V4L2_SUBDEV_SEL_TGT_COMPOSE_ACTIVE</constant></entry>
-> +	    <entry>0x0100</entry>
-> +	    <entry>Active compose rectangle. Used to configure scaling
-> +	    on sink pads and composition on source pads.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry><constant>V4L2_SUBDEV_SEL_TGT_COMPOSE_BOUNDS</constant></entry>
-> +	    <entry>0x0102</entry>
-> +	    <entry>Bounds of the compose rectangle.</entry>
-> +	  </row>
-> +	</tbody>
-> +      </tgroup>
-> +    </table>
-> +
-> +    <table pgwide="1" frame="none" id="v4l2-subdev-selection-flags">
-> +      <title>V4L2 subdev selection flags</title>
-> +      <tgroup cols="3">
-> +        &cs-def;
-> +	<tbody valign="top">
-> +	  <row>
-> +	    <entry><constant>V4L2_SUBDEV_SEL_FLAG_SIZE_GE</constant></entry>
-> +	    <entry>(1 &lt;&lt; 0)</entry> <entry>Suggest the driver it
-> +	    should choose greater or equal rectangle (in size) than
-> +	    was requested. Albeit the driver may choose a lesser size,
-> +	    it will only do so due to hardware limitations. Without
-> +	    this flag (and
-> +	    <constant>V4L2_SUBDEV_SEL_FLAG_SIZE_LE</constant>) the
-> +	    behaviour is to choose the closest possible
-> +	    rectangle.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry><constant>V4L2_SUBDEV_SEL_FLAG_SIZE_LE</constant></entry>
-> +	    <entry>(1 &lt;&lt; 1)</entry> <entry>Suggest the driver it
-> +	    should choose lesser or equal rectangle (in size) than was
-> +	    requested. Albeit the driver may choose a greater size, it
-> +	    will only do so due to hardware limitations.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry><constant>V4L2_SUBDEV_SEL_FLAG_KEEP_CONFIG</constant></entry>
-> +	    <entry>(1 &lt;&lt; 2)</entry>
-> +	    <entry>The configuration should not be propagated to any
-> +	    further processing steps. If this flag is not given, the
-> +	    configuration is propagated inside the subdevice to all
-> +	    further processing steps.</entry>
-> +	  </row>
-> +	</tbody>
-> +      </tgroup>
-> +    </table>
-> +
-> +    <table pgwide="1" frame="none" id="v4l2-subdev-selection">
-> +      <title>struct <structname>v4l2_subdev_selection</structname></title>
-> +      <tgroup cols="3">
-> +        &cs-str;
-> +	<tbody valign="top">
-> +	  <row>
-> +	    <entry>__u32</entry>
-> +	    <entry><structfield>which</structfield></entry>
-> +	    <entry>Active or try selection, from
-> +	    &v4l2-subdev-format-whence;.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry>__u32</entry>
-> +	    <entry><structfield>pad</structfield></entry>
-> +	    <entry>Pad number as reported by the media framework.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry>__u32</entry>
-> +	    <entry><structfield>target</structfield></entry>
-> +	    <entry>Target selection rectangle. See
-> +	    <xref linkend="v4l2-subdev-selection-targets">.</xref>.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry>__u32</entry>
-> +	    <entry><structfield>flags</structfield></entry>
-> +	    <entry>Flags. See
-> +	    <xref linkend="v4l2-subdev-selection-flags">.</xref></entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry>&v4l2-rect;</entry>
-> +	    <entry><structfield>rect</structfield></entry>
-> +	    <entry>Crop rectangle boundaries, in pixels.</entry>
+> > > +	struct v4l2_mbus_framefmt format;
+> > > +	struct v4l2_rect crop;
+> > > +	struct v4l2_fract frame_interval;
+> > > +};
+> 
+> [snip]
+> 
+> > > +static unsigned long mt9m032_row_time(struct mt9m032 *sensor, int width)
+> > > +{
+> > > +	int effective_width;
+> > 
+> > unsigned, this & width?
+> 
+> ...
+> 
+> > > +	u64 ns;
+> > > +
+> > > +	effective_width = width + 716; /* emperical value */
+> > > +	ns = div_u64(((u64)1000000000) * effective_width, sensor->pix_clock);
+> > > +	dev_dbg(to_dev(sensor),	"MT9M032 line time: %llu ns\n", ns);
+> > 
+> > The sensor is using rows internally for exposure as is SMIA++ sensor. Should
+> > we use a different control or the same?
+> > 
+> > Some sensors also provide additional fine exposure control, which is in
+> > pixels. It doesn't make sense to change the fine exposure time except in
+> > very special situations, i.e. normally it's 0.
+> 
+> I would prefer keeping the same control for now. We have enough new features 
+> to introduce already :-)
 
-Shouldn't it be "Selection rectangle, in pixels." ?
+I'm fine with that. I agree we have more changes I would have hoped for, so
+let's not try to make more.
 
-> +	  </row>
-> +	  <row>
-> +	    <entry>__u32</entry>
-> +	    <entry><structfield>reserved</structfield>[8]</entry>
-> +	    <entry>Reserved for future extensions. Applications and drivers must
-> +	    set the array to zero.</entry>
-> +	  </row>
-> +	</tbody>
-> +      </tgroup>
-> +    </table>
-> +
-> +  </refsect1>
+> > > +	return ns;
+> > > +}
+> > > +
+> > > +static int mt9m032_update_timing(struct mt9m032 *sensor,
+> > > +				 struct v4l2_fract *interval)
+> > > +{
+> > > +	struct i2c_client *client = v4l2_get_subdevdata(&sensor->subdev);
+> > > +	struct v4l2_rect *crop = &sensor->crop;
+> > > +	unsigned long row_time;
+> > > +	unsigned int min_vblank;
+> > > +	unsigned int vblank;
+> > > +
+> > > +	if (!interval)
+> > > +		interval = &sensor->frame_interval;
+> > > +
+> > > +	row_time = mt9m032_row_time(sensor, crop->width);
+> > > +
+> > > +	vblank = div_u64(1000000000ULL * interval->numerator,
+> > > +			 ((u64)interval->denominator) * row_time)
+> > > +	       - crop->height;
+> > > +
+> > > +	if (vblank > MT9M032_MAX_BLANKING_ROWS) {
+> > > +		/* hardware limits to 11 bit values */
+> > > +		interval->denominator = 1000;
+> > > +		interval->numerator =
+> > > +			div_u64((crop->height + MT9M032_MAX_BLANKING_ROWS) *
+> > > +				(u64)row_time * interval->denominator,
+> > > +				1000000000ULL);
+> > > +		vblank = div_u64(1000000000ULL * interval->numerator,
+> > > +				 ((u64)interval->denominator) * row_time)
+> > > +		       - crop->height;
+> > > +	}
+> > > +	/* enforce minimal 1.6ms blanking time. */
+> > > +	min_vblank = 1600000 / row_time;
+> > > +	vblank = clamp_t(unsigned int, vblank, min_vblank,
+> > > +			 MT9M032_MAX_BLANKING_ROWS);
+> > > +
+> > > +	return mt9m032_write(client, MT9M032_VBLANK, vblank);
+> > > +}
+> > 
+> > You'd get rid of these calculations with the new sensor control interface.
+> > 
+> > I'm fine with you starting to support that later on but that would change
+> > the user space API for this driver. Is that an issue?
+> 
+> I don't see that as an issue.
 
---
+It's agreed then.
 
-Regards,
-Sylwester
+...
+
+> > > +static int mt9m032_set_exposure(struct mt9m032 *sensor, s32 val)
+> > > +{
+> > > +	struct i2c_client *client = v4l2_get_subdevdata(&sensor->subdev);
+> > > +	int shutter_width;
+> > > +	u16 high_val, low_val;
+> > > +	int ret;
+> > 
+> > What's the unit of the exposure control? I'd use lines but I think this
+> > driver uses something else.
+> 
+> The driver seems to use microseconds. I'm thinking about switching that to 
+> lines. What's your opinion ?
+
+It would probably simplify the driver and lessen the number of the changes
+that need to be done later on when switching over to the new sensor control
+interface, also to the user space interface.
+
+That said, before the user can get the pixel clock through the pixel rate
+control it's not possible to set the exposure time in seconds in a generic
+way.
+
+...
+
+> > > +struct mt9m032_platform_data {
+> > > +	u32 ext_clock;
+> > > +	u32 pix_clock;
+> > > +	int invert_pixclock;
+> > 
+> > unsigned?
+> 
+> bool ?
+
+Ack.
+
+Cheers,
 
 -- 
-Sylwester Nawrocki
-실베스터 나브로츠키
-Samsung Poland R&D Center
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
