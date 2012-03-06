@@ -1,131 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:44959 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753594Ab2CQS5z (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 17 Mar 2012 14:57:55 -0400
-Date: Sat, 17 Mar 2012 20:57:47 +0200
+Received: from smtp.nokia.com ([147.243.1.47]:60166 "EHLO mgw-sa01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756947Ab2CFQd3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 6 Mar 2012 11:33:29 -0500
 From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Ajay Kumar <ajaykumar.rs@samsung.com>
-Cc: linux-media@vger.kernel.org, k.debski@samsung.com,
-	kyungmin.park@samsung.com, s.nawrocki@samsung.com,
-	es10.choi@samsung.com
-Subject: Re: [PATCH v2 1/1] media: video: s5p-g2d: Add support for FIMG2D
- v41 H/W logic
-Message-ID: <20120317185747.GE5412@valkosipuli.localdomain>
-References: <1331983334-18934-1-git-send-email-ajaykumar.rs@samsung.com>
- <1331983334-18934-2-git-send-email-ajaykumar.rs@samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1331983334-18934-2-git-send-email-ajaykumar.rs@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, dacohen@gmail.com,
+	snjw23@gmail.com, andriy.shevchenko@linux.intel.com,
+	t.stanislaws@samsung.com, tuukkat76@gmail.com,
+	k.debski@samsung.com, riverful@gmail.com, hverkuil@xs4all.nl,
+	teturtia@gmail.com, pradeep.sawlani@gmail.com
+Subject: [PATCH v5 27/35] omap3isp: Introduce isp_video_check_external_subdevs()
+Date: Tue,  6 Mar 2012 18:33:08 +0200
+Message-Id: <1331051596-8261-27-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <20120306163239.GN1075@valkosipuli.localdomain>
+References: <20120306163239.GN1075@valkosipuli.localdomain>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ajay,
+isp_video_check_external_subdevs() will retrieve external subdev's
+bits-per-pixel and pixel rate for the use of other ISP subdevs at streamon
+time. isp_video_check_external_subdevs() is called after pipeline
+validation.
 
-Thanks for the patch. I have a few comments below.
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+ drivers/media/video/omap3isp/ispvideo.c |   75 +++++++++++++++++++++++++++++++
+ 1 files changed, 75 insertions(+), 0 deletions(-)
 
-On Sat, Mar 17, 2012 at 04:52:14PM +0530, Ajay Kumar wrote:
-> Modify the G2D driver(which initially supported only FIMG2D v3 style H/W)
-> to support FIMG2D v41 style hardware present on Exynos4x12 and Exynos52x0 SOC.
-> 
-> 	-- Set the SRC and DST type to 'memory' instead of using reset values.
-> 	-- FIMG2D v41 H/W uses different logic for stretching(scaling).
-> 	-- Use CACHECTL_REG only with FIMG2D v3.
-> 
-> Signed-off-by: Ajay Kumar <ajaykumar.rs@samsung.com>
-> ---
->  drivers/media/video/s5p-g2d/g2d-hw.c   |   39 ++++++++++++++++++++++++++++---
->  drivers/media/video/s5p-g2d/g2d-regs.h |    6 +++++
->  drivers/media/video/s5p-g2d/g2d.c      |   23 +++++++++++++++++-
->  drivers/media/video/s5p-g2d/g2d.h      |    9 ++++++-
->  4 files changed, 70 insertions(+), 7 deletions(-)
-> 
-> diff --git a/drivers/media/video/s5p-g2d/g2d-hw.c b/drivers/media/video/s5p-g2d/g2d-hw.c
-> index 5b86cbe..f8225b8 100644
-> --- a/drivers/media/video/s5p-g2d/g2d-hw.c
-> +++ b/drivers/media/video/s5p-g2d/g2d-hw.c
-> @@ -28,6 +28,8 @@ void g2d_set_src_size(struct g2d_dev *d, struct g2d_frame *f)
->  {
->  	u32 n;
->  
-> +	w(0, SRC_SELECT_REG);
-> +
->  	w(f->stride & 0xFFFF, SRC_STRIDE_REG);
->  
->  	n = f->o_height & 0xFFF;
-> @@ -52,6 +54,8 @@ void g2d_set_dst_size(struct g2d_dev *d, struct g2d_frame *f)
->  {
->  	u32 n;
->  
-> +	w(0, DST_SELECT_REG);
-> +
->  	w(f->stride & 0xFFFF, DST_STRIDE_REG);
->  
->  	n = f->o_height & 0xFFF;
-> @@ -82,10 +86,36 @@ void g2d_set_flip(struct g2d_dev *d, u32 r)
->  	w(r, SRC_MSK_DIRECT_REG);
->  }
->  
-> -u32 g2d_cmd_stretch(u32 e)
-> +/**
-> + * g2d_calc_scale_factor - convert scale factor to fixed pint 16
-
-Point, perhaps?
-
-> + * @n: numerator
-> + * @d: denominator
-> + */
-> +static unsigned long g2d_calc_scale_factor(int n, int d)
-> +{
-> +	return (n << 16) / d;
-> +}
-> +
-> +void g2d_set_v41_stretch(struct g2d_dev *d, struct g2d_frame *src,
-> +					struct g2d_frame *dst)
->  {
-> -	e &= 1;
-> -	return e << 4;
-> +	int src_w, src_h, dst_w, dst_h;
-
-Is int intentional --- width and height usually can't be negative.
-
-> +	u32 wcfg, hcfg;
-> +
-> +	w(DEFAULT_SCALE_MODE, SRC_SCALE_CTRL_REG);
-> +
-> +	src_w = src->c_width;
-> +	src_h = src->c_height;
-> +
-> +	dst_w = dst->c_width;
-> +	dst_h = dst->c_height;
-> +
-> +	/* inversed scaling factor: src is numerator */
-> +	wcfg = g2d_calc_scale_factor(src_w, dst_w);
-> +	hcfg = g2d_calc_scale_factor(src_h, dst_h);
-
-I think this would be more simple without that many temporary variables and
-an extra function.
-
-> +	w(wcfg, SRC_XSCALE_REG);
-> +	w(hcfg, SRC_YSCALE_REG);
->  }
->  
->  void g2d_set_cmd(struct g2d_dev *d, u32 c)
-> @@ -96,7 +126,8 @@ void g2d_set_cmd(struct g2d_dev *d, u32 c)
->  void g2d_start(struct g2d_dev *d)
->  {
->  	/* Clear cache */
-> -	w(0x7, CACHECTL_REG);
-> +	if (d->device_type == TYPE_G2D_3X)
-> +		w(0x7, CACHECTL_REG);
->  	/* Enable interrupt */
->  	w(1, INTEN_REG);
->  	/* Start G2D engine */
-
-Kind regards,
-
+diff --git a/drivers/media/video/omap3isp/ispvideo.c b/drivers/media/video/omap3isp/ispvideo.c
+index 4bc9cca..ef5c770 100644
+--- a/drivers/media/video/omap3isp/ispvideo.c
++++ b/drivers/media/video/omap3isp/ispvideo.c
+@@ -934,6 +934,77 @@ isp_video_dqbuf(struct file *file, void *fh, struct v4l2_buffer *b)
+ 					  file->f_flags & O_NONBLOCK);
+ }
+ 
++static int isp_video_check_external_subdevs(struct isp_pipeline *pipe)
++{
++	struct isp_device *isp =
++		container_of(pipe, struct isp_video, pipe)->isp;
++	struct media_entity *ents[] = {
++		&isp->isp_csi2a.subdev.entity,
++		&isp->isp_csi2c.subdev.entity,
++		&isp->isp_ccp2.subdev.entity,
++		&isp->isp_ccdc.subdev.entity
++	};
++	struct media_pad *source_pad;
++	struct media_entity *source = NULL;
++	struct media_entity *sink;
++	struct v4l2_subdev_format fmt;
++	struct v4l2_ext_controls ctrls;
++	struct v4l2_ext_control ctrl;
++	int i;
++	int ret = 0;
++
++	for (i = 0; i < ARRAY_SIZE(ents); i++) {
++		/* Is the entity part of the pipeline? */
++		if (!(pipe->entities & (1 << ents[i]->id)))
++			continue;
++
++		/* ISP entities have always sink pad == 0. Find source. */
++		source_pad = media_entity_remote_source(&ents[i]->pads[0]);
++
++		if (source_pad == NULL)
++			continue;
++
++		source = source_pad->entity;
++		sink = ents[i];
++		break;
++	}
++
++	if (!source || media_entity_type(source) != MEDIA_ENT_T_V4L2_SUBDEV)
++		return 0;
++
++	pipe->external = media_entity_to_v4l2_subdev(source);
++
++	fmt.pad = source_pad->index;
++	fmt.which = V4L2_SUBDEV_FORMAT_ACTIVE;
++	ret = v4l2_subdev_call(media_entity_to_v4l2_subdev(sink),
++			       pad, get_fmt, NULL, &fmt);
++	BUG_ON(ret < 0);
++
++	pipe->external_bpp = omap3isp_video_format_info(
++		fmt.format.code)->bpp;
++
++	memset(&ctrls, 0, sizeof(ctrls));
++	memset(&ctrl, 0, sizeof(ctrl));
++
++	ctrl.id = V4L2_CID_PIXEL_RATE;
++
++	ctrls.ctrl_class = V4L2_CTRL_ID2CLASS(ctrl.id);
++	ctrls.count = 1;
++	ctrls.controls = &ctrl;
++
++	ret = v4l2_g_ext_ctrls(pipe->external->ctrl_handler, &ctrls);
++	if (ret < 0) {
++		dev_warn(isp->dev,
++			 "no pixel rate control in subdev %s\n",
++			 pipe->external->name);
++		return ret;
++	}
++
++	pipe->external_rate = ctrl.value64;
++
++	return 0;
++}
++
+ /*
+  * Stream management
+  *
+@@ -1010,6 +1081,10 @@ isp_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
+ 	while ((entity = media_entity_graph_walk_next(&graph)))
+ 		pipe->entities |= 1 << entity->id;
+ 
++	ret = isp_video_check_external_subdevs(pipe);
++	if (ret < 0)
++		goto err_check_format;
++
+ 	/* Verify that the currently configured format matches the output of
+ 	 * the connected subdev.
+ 	 */
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+1.7.2.5
+
