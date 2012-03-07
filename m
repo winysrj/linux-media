@@ -1,51 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:38450 "EHLO
-	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753323Ab2CDMbE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 4 Mar 2012 07:31:04 -0500
-Received: by lahj13 with SMTP id j13so3617372lah.19
-        for <linux-media@vger.kernel.org>; Sun, 04 Mar 2012 04:31:02 -0800 (PST)
-Message-ID: <4F536080.9080702@gmail.com>
-Date: Sun, 04 Mar 2012 13:30:56 +0100
-From: =?ISO-8859-1?Q?Roger_M=E5rtensson?= <roger.martensson@gmail.com>
+Received: from mail-tul01m020-f174.google.com ([209.85.214.174]:35224 "EHLO
+	mail-tul01m020-f174.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754635Ab2CGOcY convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 7 Mar 2012 09:32:24 -0500
+Received: by obbuo6 with SMTP id uo6so6978129obb.19
+        for <linux-media@vger.kernel.org>; Wed, 07 Mar 2012 06:32:23 -0800 (PST)
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Terratec H7
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <4F572611.50607@redhat.com>
+References: <CALF0-+V7DXB+x-FKcy00kjfvdvLGKVTAmEEBP7zfFYxm+0NvYQ@mail.gmail.com>
+	<4F572611.50607@redhat.com>
+Date: Wed, 7 Mar 2012 11:32:23 -0300
+Message-ID: <CALF0-+V5kTMXZ+Nfy4yqOSgyMwBYmjGH4EfFbqjju+d3GdsvSA@mail.gmail.com>
+Subject: Re: A second easycap driver implementation
+From: =?ISO-8859-1?Q?Ezequiel_Garc=EDa?= <elezegarcia@gmail.com>
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: Tomas Winkler <tomasw@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+	gregkh <gregkh@linuxfoundation.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi!
+Hi,
 
-I noticed that support for Terratec H7 arrived not long ago. Thank you 
-very much.
+>
+> Have you considered instead slowly moving the existing easycap driver
+> over to all the new infrastructure we have now. For starters replace
+> its buffer management with videobuf2, then in another patch replace
+> some other bits, etc. ?  See what I've done to the pwc driver :)
 
-It works very well in kaffeine and gnutv(the only applications tested at 
-the moment). I have tried it with DVB-C without any problems as long as 
-I choose unencrypted channels.
-I haven't tried DVB-T but I guess it will work too. I do have access to 
-it if testing is needed.
+Yes. And that was what I was doing until now.
+Yet, after some work it seemed much easier
+to simply start over from scratch.
 
-I now wonder if CI support is planned to get implemented?
-It is a feature I am missing.
+Besides, it's being a great learning experience :)
 
-I have access to DVB-C in both unencrypted and encrypted channels and 
-may be able to help in testing.
-I have access to a Smit CAM(conax) if that does matter. I may be able to 
-test encrypted DVB-T too but since I'm not using that at the moment I'm 
-not sure I have the right CAM.
+So, since the driver is not yet working I guess there
+is no point in submitting anything.
 
-  * Okänt - identifierat
-  * Engelska
-  * Svenska
-  * Franska
-  * Tyska
+Instead, anyone the wants to help I can send what I have now
+or we can start working through github.
+If someone owns this device, it would be a *huge* help
+with testing.
 
-  * Engelska
-  * Svenska
-  * Franska
-  * Tyska
+However, as soon as this is capturing video I would like
+to put it on staging, so everyone can help.
+Is this possible?
 
-  <javascript:void(0);>
+Thanks,
+Ezequiel.
