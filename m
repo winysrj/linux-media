@@ -1,56 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:39552 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756539Ab2CYQTP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 25 Mar 2012 12:19:15 -0400
-References: <CAHtAJjpO_M27cm77Uf=23_TfeYvAR8CVcemVGDi9ZoEaEwTRtg@mail.gmail.com> <13083ba8-30b5-4d44-8930-8109e57a6d74@email.android.com> <CAHtAJjpBzPTg28PfwwCruuSHNew8w8UCo3DDkb3JM+cZjwz4qw@mail.gmail.com>
-In-Reply-To: <CAHtAJjpBzPTg28PfwwCruuSHNew8w8UCo3DDkb3JM+cZjwz4qw@mail.gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:56388 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751262Ab2CGJJD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 7 Mar 2012 04:09:03 -0500
+Message-ID: <4F572611.50607@redhat.com>
+Date: Wed, 07 Mar 2012 10:10:41 +0100
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
- charset=UTF-8
+To: =?ISO-8859-1?Q?Ezequiel_Garc=EDa?= <elezegarcia@gmail.com>
+CC: Tomas Winkler <tomasw@gmail.com>, Greg KH <gregkh@suse.de>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, devel@driverdev.osuosl.org
+Subject: Re: A second easycap driver implementation
+References: <CALF0-+V7DXB+x-FKcy00kjfvdvLGKVTAmEEBP7zfFYxm+0NvYQ@mail.gmail.com>
+In-Reply-To: <CALF0-+V7DXB+x-FKcy00kjfvdvLGKVTAmEEBP7zfFYxm+0NvYQ@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 8bit
-Subject: Re: ViXS XCode 2100 Series TV NTSC/ATSC FM Tuner Card
-From: Andy Walls <awalls@md.metrocast.net>
-Date: Sun, 25 Mar 2012 12:19:14 -0400
-To: Vikas N Kumar <vikasnkumar@users.sourceforge.net>
-CC: linux-media@vger.kernel.org
-Message-ID: <3ad4b571-f3fe-40de-ac14-3a4a31a77912@email.android.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Vikas N Kumar <vikasnkumar@users.sourceforge.net> wrote:
+Hi,
 
->On Sat, Mar 24, 2012 at 8:33 AM, Andy Walls <awalls@md.metrocast.net>
->wrote:
->>
->> Hi,
->>
->> ivtv will never support this chip;  the hardware is not even close to
->a CX23415/6.
->>
->> ViXS has never openly released any documentation.
->>
->> They do have a linux sdk.  Hitachi supposedly used it for one of
->their TVs.
->>
+On 03/06/2012 10:04 PM, Ezequiel Garc�a wrote:
+> Hello,
 >
->Will NDISWrapper work for their Windows drivers on Linux ? Curious to
->know if anyone has ever tried and failed/succeeded before I try it
->out.
+> After some research on v4l2 and videbuf2, and considering that easycap
+> driver is pretty
+> outdated I've decided to start writing a new driver from scratch.
 >
->Thanks.
->-- 
->http://www.vikaskumar.org/
+> I am using the excellent vivi driver and some usb video capture drivers as
+> a starting point. And of course, I'm using the current easycap implementation
+> as a reference (it works pretty well).
+>
+> I have a couple of doubts regarding the development itself (how to
+> trace properly,
+> where to allocate urbs, and such) but perhaps the maintainers prefer
+> to take a look
+> at the code.
+>
+> However, currently the driver is just a skeleton: it does all v4l2 and
+> videobuf2 intialization
+> but it doesn't actually stream video or submit urbs.
+>
+> So,
+> 1. Should I try to have something more finished before submit or can I
+> submit as it is?
+> 2. In any case, how should I submit it? (Considering there is already
+> a working driver).
 
+Have you considered instead slowly moving the existing easycap driver
+over to all the new infrastructure we have now. For starters replace
+its buffer management with videobuf2, then in another patch replace
+some other bits, etc. ?  See what I've done to the pwc driver :)
 
-NDIS = Network Driver Interface Specification
+OTOH if you already have a new more modern driver ready, then I say
+go ahead and submit it. I would suggest to add it to staging too,
+and make the 2 kconfig options conflict, so enabling one would allow
+the user to no longer select the other (with a note about this in
+the help text). And then hopefully soon we will see a follow up
+patch removing the old driver, and then moving the new one out
+of staging.
 
-So no, that will not work.
-
-ViXS does not support  their products with open source linux drivers.  Forget their devices under linux, you will always be unhappy.
-
-Instead, buy a device from a company that does support linux with open source drivers.
+Which ever path you choose: Thanks for working on this!
 
 Regards,
-Andy
+
+Hans
