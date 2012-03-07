@@ -1,46 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from tex.lwn.net ([70.33.254.29]:56068 "EHLO vena.lwn.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1162033Ab2CPXgU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Mar 2012 19:36:20 -0400
-From: Jonathan Corbet <corbet@lwn.net>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: [PATCH] A series of Marvell camera fixes
-Date: Fri, 16 Mar 2012 17:14:49 -0600
-Message-Id: <1331939696-12482-1-git-send-email-corbet@lwn.net>
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:45039 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759007Ab2CGDmE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Mar 2012 22:42:04 -0500
+From: santosh nayak <santoshprasadnayak@gmail.com>
+To: mchehab@infradead.org
+Cc: dheitmueller@kernellabs.com, hans.verkuil@cisco.com,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	kernel-janitors@vger.kernel.org,
+	Santosh Nayak <santoshprasadnayak@gmail.com>
+Subject: [PATCH] [media] dvb: negative value assigned to unsigned int in CDRXD().
+Date: Wed,  7 Mar 2012 09:11:03 +0530
+Message-Id: <1331091663-4790-1-git-send-email-santoshprasadnayak@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi, Mauro,
+From: Santosh Nayak <santoshprasadnayak@gmail.com>
 
-Here is a set of relatively straightforward fixes for some Marvell camera
-bugs, some of which were rather less straightforward to find.  If you
-prefer, they can be pulled from:
+In CDRXD(), Negative number is assigned to unsigned variable
+'state->noise_cal.tdCal2.
 
-	git://git.lwn.net/linux-2.6.git marvell-fixes
+Members of 'SNoiseCal' should be 'signed short'.
 
-Therein you'll find:
+Signed-off-by: Santosh Nayak <santoshprasadnayak@gmail.com>
+---
+ drivers/media/dvb/frontends/drxd_hard.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-Jonathan Corbet (7):
-      marvell-cam: ensure that the camera stops when requested
-      marvell-cam: Remove broken "owner" logic
-      marvell-cam: Increase the DMA shutdown timeout
-      marvell-cam: fix the green screen of death
-      marvell-cam: Don't signal multiple frame completions in scatter/gather mode
-      mmp-camera: Don't power up the sensor on resume
-      marvell-cam: Demote the "release" print to debug level
-
- mcam-core.c  |   35 +++++++++++++++++++++++------------
- mcam-core.h  |    1 -
- mmp-driver.c |   13 +++++++++----
- 3 files changed, 32 insertions(+), 17 deletions(-)
-
-If it's not to late to get these in to 3.4 (during the merge window or a
-later fix cycle) I'd appreciate it.
-
-Thanks,
-
-jon
-
+diff --git a/drivers/media/dvb/frontends/drxd_hard.c b/drivers/media/dvb/frontends/drxd_hard.c
+index 7bf39cd..f380eb4 100644
+--- a/drivers/media/dvb/frontends/drxd_hard.c
++++ b/drivers/media/dvb/frontends/drxd_hard.c
+@@ -101,9 +101,9 @@ struct SCfgAgc {
+ 
+ struct SNoiseCal {
+ 	int cpOpt;
+-	u16 cpNexpOfs;
+-	u16 tdCal2k;
+-	u16 tdCal8k;
++	short cpNexpOfs;
++	short tdCal2k;
++	short tdCal8k;
+ };
+ 
+ enum app_env {
+-- 
+1.7.4.4
 
