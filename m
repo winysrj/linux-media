@@ -1,39 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:63742 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1032342Ab2COVmL (ORCPT
+Received: from 124-248-200-57.sunnyvision.com ([124.248.200.57]:37920 "EHLO
+	teamb04.edmhongkong.com" rhost-flags-OK-FAIL-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1756448Ab2CGOHx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Mar 2012 17:42:11 -0400
-Received: by ghrr11 with SMTP id r11so3574790ghr.19
-        for <linux-media@vger.kernel.org>; Thu, 15 Mar 2012 14:42:10 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20120315213542.GB25362@redhat.com>
-References: <1331844829-1166-1-git-send-email-elezegarcia@gmail.com>
-	<20120315213542.GB25362@redhat.com>
-Date: Thu, 15 Mar 2012 18:42:09 -0300
-Message-ID: <CALF0-+Wcdvi35R9C36ZdU8yU0Dgsq6O5MexhfD9FqJEC765Xwg@mail.gmail.com>
-Subject: Re: [PATCH v2] media: rc: Pospone ir raw decoders loading until
- really needed
-From: =?ISO-8859-1?Q?Ezequiel_Garc=EDa?= <elezegarcia@gmail.com>
-To: Jarod Wilson <jarod@redhat.com>
-Cc: mchehab@infradead.org, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+	Wed, 7 Mar 2012 09:07:53 -0500
+Message-ID: <0Day0ffMj9IsM@mars.seed.net.tw>
+From: eric@cloudjidi.com
+Subject: Web development service
+Content-Type: text/plain;
+Content-Transfer-Encoding: Quoted-Printable
+Date: Wed,  7 Mar 2012 21:56:53 +0800 (HKT)
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jarod,
+Dear all,
+Please see below is our general job reference and web design package, 
 
-On Thu, Mar 15, 2012 at 6:35 PM, Jarod Wilson <jarod@redhat.com> wrote:
->
-> So yeah, ok, I'm fine with this. Haven't tested it with actual raw IR
-> hardware, but I don't see any reason it wouldn't work.
->
-> Acked-by: Jarod Wilson <jarod@redhat.com>
+Total 12 pages web design service
+- Two language version
+- All the webpage design is included:
+- Theme development;
+- Design Study;
+- Original Layout / Artwork Design;
+- Steady HTML / Flash Web page development;
+- Search Engine Applicable;
+- Basic Graphic Flash Banner x1;
+- All text contents, logos and related product photos should be provided by client
+ Product eCatalogue (Product Page)
 
-Thanks for the feedback.
-I have a paranoid question: Is it ok to solve this with a static variable?
-I don't like static (as I fear globals), but in this case I saw no
-cleaner solution.
+- CMS Function of add /edit Products with Contents & Photos
+- Maximum 10 fields include Photos and Contents
+- Text Editor for Detail Contents (if need)
+- Support text descriptions and photos updating
+- 1 Level categories management
+- Database support with un-limit Products create
+- Not include Data input
+- Standard Admin panel with login function (1 admin account)
+Content management system (Activities page)
 
-Thanks again,
-Ezequiel.
+- Basic CMS function of add / edit items
+- Max. 5 fields per item
+- Support photos and text descriptions
+- Front-end support 1 page only (Comapny activities page)
+- Database support with un-limit Products create
+- Not include Data input
+- Integrated Admin Panel
+Enquiry form function (Contact Us)
+- Form to mail
+Package price : $38,000
+
+Yoy may click the hyperlink to see some of our design reference.
+
+Job reference
+
+http://www.hk-belle.com/
+http://www.mirabell.com.hk/
+http://www.nikijodi.com/
+http://www.joy-peace.com/
+http://www.staccato.com
+http://www.chicks.com.hk/
+
+Program reference
+http://www.gloryskygroup.com/index.aspx=3Flang=3Dbig5
+http://www.mydriver.com.hk/
+ 
+Best Regards,
+Eric Chan
+Senior Sales Executive
+
+If you do not wish to further receive this event message, email subscriber@dedicatedserver.com.hk to unsubscribe this message
+
+
