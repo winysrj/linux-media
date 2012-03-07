@@ -1,84 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:35847 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757904Ab2CUKec convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Mar 2012 06:34:32 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Konstantin Khlebnikov <khlebnikov@openvz.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-	devel@driverdev.osuosl.org,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	linux-kernel@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-mm@kvack.org,
-	Arve =?ISO-8859-1?Q?Hj=F8nnev=E5g?= <arve@android.com>,
-	John Stultz <john.stultz@linaro.org>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 05/16] mm/drivers: use vm_flags_t for vma flags
-Date: Wed, 21 Mar 2012 11:34:56 +0100
-Message-ID: <3319224.gEMkjEgmG9@avalon>
-In-Reply-To: <20120321065633.13852.11903.stgit@zurg>
-References: <20120321065140.13852.52315.stgit@zurg> <20120321065633.13852.11903.stgit@zurg>
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:58428 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759790Ab2CGUEP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Mar 2012 15:04:15 -0500
+Received: by iagz16 with SMTP id z16so9059999iag.19
+        for <linux-media@vger.kernel.org>; Wed, 07 Mar 2012 12:04:14 -0800 (PST)
+Date: Wed, 7 Mar 2012 12:04:07 -0800
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+To: Jonathan Nieder <jrnieder@gmail.com>
+Cc: Ben Hutchings <ben@decadent.org.uk>, devel@driverdev.osuosl.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Torsten Crass <torsten.crass@eBiology.de>,
+	Jarod Wilson <jarod@redhat.com>, linux-media@vger.kernel.org
+Subject: Re: [PATCH 3.0.y 0/4] Re: lirc_serial spuriously claims assigned
+ port and irq to be in use
+Message-ID: <20120307200407.GB26451@kroah.com>
+References: <1321422581.2885.50.camel@deadeye>
+ <20120302034545.GA31860@burratino>
+ <1330662942.8460.229.camel@deadeye>
+ <20120302203913.GA22323@burratino>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-Content-Type: text/plain; charset="iso-8859-1"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20120302203913.GA22323@burratino>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Konstantin,
-
-Thanks for the patch.
-
-On Wednesday 21 March 2012 10:56:33 Konstantin Khlebnikov wrote:
-> Signed-off-by: Konstantin Khlebnikov <khlebnikov@openvz.org>
-> Cc: linux-media@vger.kernel.org
-> Cc: devel@driverdev.osuosl.org
-> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-> Cc: John Stultz <john.stultz@linaro.org>
-> Cc: "Arve Hjønnevåg" <arve@android.com>
-> ---
->  drivers/media/video/omap3isp/ispqueue.h |    2 +-
-
-For the OMAP3 ISP driver,
-
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
->  drivers/staging/android/ashmem.c        |    2 +-
->  2 files changed, 2 insertions(+), 2 deletions(-)
+On Fri, Mar 02, 2012 at 02:39:13PM -0600, Jonathan Nieder wrote:
+> Ben Hutchings wrote:
+> > On Thu, 2012-03-01 at 21:45 -0600, Jonathan Nieder wrote:
 > 
-> diff --git a/drivers/media/video/omap3isp/ispqueue.h
-> b/drivers/media/video/omap3isp/ispqueue.h index 92c5a12..908dfd7 100644
-> --- a/drivers/media/video/omap3isp/ispqueue.h
-> +++ b/drivers/media/video/omap3isp/ispqueue.h
-> @@ -90,7 +90,7 @@ struct isp_video_buffer {
->  	void *vaddr;
+> >> Would some of these patches (e.g., at least patches 1, 2, and 5) be
+> >> appropriate for inclusion in the 3.0.y and 3.2.y stable kernels from
+> >> kernel.org?
+> >
+> > Assuming they haven't caused any regressions, I think everything except
+> > 9b98d6067971 (4/5) would be appropriate.
 > 
->  	/* For userspace buffers. */
-> -	unsigned long vm_flags;
-> +	vm_flags_t vm_flags;
->  	unsigned long offset;
->  	unsigned int npages;
->  	struct page **pages;
-> diff --git a/drivers/staging/android/ashmem.c
-> b/drivers/staging/android/ashmem.c index 9f1f27e..4511420 100644
-> --- a/drivers/staging/android/ashmem.c
-> +++ b/drivers/staging/android/ashmem.c
-> @@ -269,7 +269,7 @@ out:
->  	return ret;
->  }
-> 
-> -static inline unsigned long calc_vm_may_flags(unsigned long prot)
-> +static inline vm_flags_t calc_vm_may_flags(unsigned long prot)
->  {
->  	return _calc_vm_trans(prot, PROT_READ,  VM_MAYREAD) |
->  	       _calc_vm_trans(prot, PROT_WRITE, VM_MAYWRITE) |
-> 
+> Great.  Here are the aforementioned patches rebased against 3.0.y, in
+> the hope that some interested person can confirm they still work.  The
+> only backporting needed was to adjust to the lack of
+> drivers/staging/lirc -> drivers/staging/media/lirc renaming.
 
--- 
-Regards,
+So they should also go to 3.2-stable, right?
 
-Laurent Pinchart
-
+greg k-h
