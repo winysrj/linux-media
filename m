@@ -1,81 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.26]:32685 "EHLO mgw-da02.nokia.com"
+Received: from smtp1-g21.free.fr ([212.27.42.1]:58147 "EHLO smtp1-g21.free.fr"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756950Ab2CFQd3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 6 Mar 2012 11:33:29 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, dacohen@gmail.com,
-	snjw23@gmail.com, andriy.shevchenko@linux.intel.com,
-	t.stanislaws@samsung.com, tuukkat76@gmail.com,
-	k.debski@samsung.com, riverful@gmail.com, hverkuil@xs4all.nl,
-	teturtia@gmail.com, pradeep.sawlani@gmail.com
-Subject: [PATCH v5 22/35] omap3isp: Move setting constaints above media_entity_pipeline_start
-Date: Tue,  6 Mar 2012 18:33:03 +0200
-Message-Id: <1331051596-8261-22-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <20120306163239.GN1075@valkosipuli.localdomain>
-References: <20120306163239.GN1075@valkosipuli.localdomain>
+	id S1755257Ab2CGPas convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Mar 2012 10:30:48 -0500
+Date: Wed, 7 Mar 2012 16:32:24 +0100
+From: Jean-Francois Moine <moinejf@free.fr>
+To: Xavion <xavion.0@gmail.com>, Hans de Goede <hdegoede@redhat.com>
+Cc: "Linux Kernel (Media) ML" <linux-media@vger.kernel.org>
+Subject: Re: My Microdia (SN9C201) webcam doesn't work properly in Linux
+ anymore
+Message-ID: <20120307163224.412b4d2f@tele>
+In-Reply-To: <CAKnx8Y4z6Ai14RRdG6zd=CEDfHqfNr6Mx=x=XtfU9=KZEwmaNA@mail.gmail.com>
+References: <CAKnx8Y7BAyR8A5r-eL13MVgZO2DcKndP3v-MTfkQdmXPvjjGJg@mail.gmail.com>
+	<CAKnx8Y6dM8qbQvJgt_z2A2XD8aPGhGoqCSWabyNYjRbsH6CDJw@mail.gmail.com>
+	<4F51CCC1.8020308@redhat.com>
+	<CAKnx8Y6ER6CV6WQKrmN4fFkLjQx0GXEzvNmuApnA=G6fJDgsPQ@mail.gmail.com>
+	<20120304082531.1307a9ed@tele>
+	<CAKnx8Y7A2Dd0JW0n9bJBBc+ScnagpdFEkAvbg_Jab3vt66Ky0Q@mail.gmail.com>
+	<20120305182736.563df8b4@tele>
+	<CAKnx8Y54ngVXmrLg2bjnn_MvibWE6SKR5jXQFQ9+ZmHWoM9HmQ@mail.gmail.com>
+	<4F55DB8B.8050907@redhat.com>
+	<CAKnx8Y4z6Ai14RRdG6zd=CEDfHqfNr6Mx=x=XtfU9=KZEwmaNA@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The clock rate for l3_ick will soon be read during pipeline validation which
-is now part of media_entity_pipeline_start(). For that reason we set
-constraints earlier on.
+On Wed, 7 Mar 2012 09:59:28 +1100
+Xavion <xavion.0@gmail.com> wrote:
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/video/omap3isp/ispvideo.c |   14 +++++++-------
- 1 files changed, 7 insertions(+), 7 deletions(-)
+> >>     root@Desktop /etc/motion # tail /var/log/kernel.log
+> >>     Mar  6 08:34:17 Desktop kernel: [ 7240.125167] gspca_main: ISOC
+> >> data error: [0] len=0, status=-18
+> >>    ...  
+> >
+> > Hmm, error -18 is EXDEV, which according to
+> > Documentation/usb/error-codes.txt is:
+> >
+> > -EXDEV                  ISO transfer only partially completed
+> >                        (only set in iso_frame_desc[n].status, not
+> > urb->status)
+> >
+> > I've seen those before, and I think we should simply ignore them rather then
+> > log an error for them. Jean-Francois, what do you think?  
+> 
+> I'll let you guys decide what to do about this, but remember that I'm
+> here to help if you need more testing done.  If you want my opinion,
+> I'd be leaning towards trying to prevent any errors that appear
+> regularly.
 
-diff --git a/drivers/media/video/omap3isp/ispvideo.c b/drivers/media/video/omap3isp/ispvideo.c
-index c191f13..b0d541b 100644
---- a/drivers/media/video/omap3isp/ispvideo.c
-+++ b/drivers/media/video/omap3isp/ispvideo.c
-@@ -304,8 +304,6 @@ static int isp_video_validate_pipeline(struct isp_pipeline *pipe)
- 	struct v4l2_subdev *subdev;
- 	int ret;
- 
--	pipe->max_rate = pipe->l3_ick;
--
- 	subdev = isp_video_remote_subdev(pipe->output, NULL);
- 	if (subdev == NULL)
- 		return -EPIPE;
-@@ -993,6 +991,12 @@ isp_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
- 	 */
- 	pipe = video->video.entity.pipe
- 	     ? to_isp_pipeline(&video->video.entity) : &video->pipe;
-+
-+	if (video->isp->pdata->set_constraints)
-+		video->isp->pdata->set_constraints(video->isp, true);
-+	pipe->l3_ick = clk_get_rate(video->isp->clock[ISP_CLK_L3_ICK]);
-+	pipe->max_rate = pipe->l3_ick;
-+
- 	media_entity_pipeline_start(&video->video.entity, &pipe->pipe);
- 
- 	/* Verify that the currently configured format matches the output of
-@@ -1025,10 +1029,6 @@ isp_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
- 		pipe->output = far_end;
- 	}
- 
--	if (video->isp->pdata->set_constraints)
--		video->isp->pdata->set_constraints(video->isp, true);
--	pipe->l3_ick = clk_get_rate(video->isp->clock[ISP_CLK_L3_ICK]);
--
- 	/* Validate the pipeline and update its state. */
- 	ret = isp_video_validate_pipeline(pipe);
- 	if (ret < 0)
-@@ -1074,9 +1074,9 @@ isp_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
- error:
- 	if (ret < 0) {
- 		omap3isp_video_queue_streamoff(&vfh->queue);
-+		media_entity_pipeline_stop(&video->video.entity);
- 		if (video->isp->pdata->set_constraints)
- 			video->isp->pdata->set_constraints(video->isp, false);
--		media_entity_pipeline_stop(&video->video.entity);
- 		/* The DMA queue must be emptied here, otherwise CCDC interrupts
- 		 * that will get triggered the next time the CCDC is powered up
- 		 * will try to access buffers that might have been freed but
+Hi,
+
+It seems that the webcams handled by the driver sn9c20x work the same
+as the ones handled by sonixj. In this last driver, I adjust the JPEG
+compression to avoid the errors "USB FIFO full", and I think that these
+errors also raise the URB error -18 with the sn9c20x. I will need some
+time to put a same code into the sn9c20x, then I'd be glad to have it
+tested.
+
+There was an other problem in the driver sonixj: the end of frame
+marker was not always at the right place. Xavion, as you have
+ms-windows, may you do some USB traces with this system? I need a
+capture sequence of about 15 seconds (not more) with big luminosity
+changes.
+
+> This isn't even the proper SXGA resolution, which is supposed to be
+> 1280x1024.  The Sonix website claims that their SN9C201 webcam can
+> provide up to a 1.3 MP (SXGA) video size!  Do you happen to know of
+> any inexpensive webcams that are capable of true SXGA in Linux?
+> 
+>     `--> lsusb | grep Cam
+>     Bus 001 Device 006: ID 0c45:627b Microdia PC Camera (SN9C201 + OV7660)
+
+The sensor ov7660 can do VGA only (640x480).
+
+Otherwise, I uploaded a new gspca test version (2.15.3) with the JPEG compression control (default 80%). May you try it?
+
 -- 
-1.7.2.5
-
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
