@@ -1,56 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:54471 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753041Ab2CBKIn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Mar 2012 05:08:43 -0500
-Date: Fri, 2 Mar 2012 11:08:40 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PULL] mx2-camera patches for 3.4
-Message-ID: <Pine.LNX.4.64.1203021103310.913@axis700.grange>
+Received: from smtp-68.nebula.fi ([83.145.220.68]:42394 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756242Ab2CGPYG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Mar 2012 10:24:06 -0500
+Date: Wed, 7 Mar 2012 17:24:00 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, dacohen@gmail.com, snjw23@gmail.com,
+	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
+	tuukkat76@gmail.com, k.debski@samsung.com, riverful@gmail.com,
+	hverkuil@xs4all.nl, teturtia@gmail.com, pradeep.sawlani@gmail.com
+Subject: Re: [PATCH v5 25/35] omap3isp: Collect entities that are part of
+ the pipeline
+Message-ID: <20120307152359.GB1476@valkosipuli.localdomain>
+References: <20120306163239.GN1075@valkosipuli.localdomain>
+ <1331051596-8261-25-git-send-email-sakari.ailus@iki.fi>
+ <6281574.FW0nkSrXHX@avalon>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <6281574.FW0nkSrXHX@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro
+Hi Laurent,
 
-This time so it happened, that soc-camera for the next kernel version 
-consists of only one driver updates: mx2-camera.
+On Wed, Mar 07, 2012 at 11:50:19AM +0100, Laurent Pinchart wrote:
+> Hi Sakari,
+> 
+> Another comment.
+> 
+> On Tuesday 06 March 2012 18:33:06 Sakari Ailus wrote:
+> > Collect entities which are part of the pipeline into a single bit mask.
+> > 
+> > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> 
+> [snip]
+> 
+> > diff --git a/drivers/media/video/omap3isp/ispvideo.h
+> > b/drivers/media/video/omap3isp/ispvideo.h index d91bdb91..0423c9d 100644
+> > --- a/drivers/media/video/omap3isp/ispvideo.h
+> > +++ b/drivers/media/video/omap3isp/ispvideo.h
+> > @@ -96,6 +96,7 @@ struct isp_pipeline {
+> >  	enum isp_pipeline_stream_state stream_state;
+> >  	struct isp_video *input;
+> >  	struct isp_video *output;
+> > +	u32 entities;
+> >  	unsigned long l3_ick;
+> >  	unsigned int max_rate;
+> >  	atomic_t frame_number;
+> 
+> Could you please update the structure documentation ?
+> 
+> @entities: Bitmask of entities in the pipeline (indexed by entity ID)
 
-The following changes since commit e8ca6d20a65d9d94693a0ed99b12d95b882dc859:
+Sure. I'll take that from your patch. ;-)
 
-  [media] tveeprom: update hauppauge tuner list thru 181 (2012-02-28 18:46:53 -0300)
-
-are available in the git repository at:
-  git://linuxtv.org/gliakhovetski/v4l-dvb.git for-3.4
-
-Fabio Estevam (2):
-      media: video: mx2_camera.c: Provide error message if clk_get fails
-      media: video: mx2_camera.c: Remove unneeded dev_dbg
-
-Javier Martin (10):
-      media i.MX27 camera: migrate driver to videobuf2
-      media i.MX27 camera: add start_stream and stop_stream callbacks.
-      media i.MX27 camera: improve discard buffer handling.
-      media i.MX27 camera: handle overflows properly.
-      media: i.MX27 camera: Use list_first_entry() whenever possible.
-      media: i.MX27 camera: Use spin_lock() inside the IRQ handler.
-      media: i.MX27 camera: return IRQ_NONE if no IRQ status bit is set.
-      media: i.MX27 camera: fix compilation warning.
-      media: i.MX27 camera: more efficient discard buffer handling.
-      media: i.MX27 camera: Add resizing support.
-
-Sascha Hauer (1):
-      V4L: mx2_camera: remove unsupported i.MX27 DMA mode, make EMMA mandatory
-
- drivers/media/video/mx2_camera.c | 1214 +++++++++++++++++++++-----------------
- 1 files changed, 668 insertions(+), 546 deletions(-)
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
