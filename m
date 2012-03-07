@@ -1,40 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:46352 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751438Ab2C1MAO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Mar 2012 08:00:14 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@iki.fi
-Subject: [PATCH v2 0/4] OMAP3 ISP preview engine configuration improvement
-Date: Wed, 28 Mar 2012 13:59:57 +0200
-Message-Id: <1332936001-32603-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:61643 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751827Ab2CGQpz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Mar 2012 11:45:55 -0500
+Received: by gghe5 with SMTP id e5so2251297ggh.19
+        for <linux-media@vger.kernel.org>; Wed, 07 Mar 2012 08:45:54 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <4F578E65.4070409@redhat.com>
+References: <CALF0-+V7DXB+x-FKcy00kjfvdvLGKVTAmEEBP7zfFYxm+0NvYQ@mail.gmail.com>
+	<4F572611.50607@redhat.com>
+	<CALF0-+V5kTMXZ+Nfy4yqOSgyMwBYmjGH4EfFbqjju+d3GdsvSA@mail.gmail.com>
+	<20120307154311.GB14836@kroah.com>
+	<4F578E65.4070409@redhat.com>
+Date: Wed, 7 Mar 2012 13:45:54 -0300
+Message-ID: <CALF0-+W5HwFFnp96sK=agjc07V_GuizrD6k+Eu9b7sQXOW=Ngw@mail.gmail.com>
+Subject: Re: A second easycap driver implementation
+From: =?ISO-8859-1?Q?Ezequiel_Garc=EDa?= <elezegarcia@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: gregkh <gregkh@linuxfoundation.org>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Tomas Winkler <tomasw@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, devel@driverdev.osuosl.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+On Wed, Mar 7, 2012 at 1:35 PM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+>
+> Yes, the driver is weird, as it encapsulates the demod code
+> inside it , instead of using the saa7115 driver, that covers most
+> of saa711x devices, including saa7113.
+>
+> Btw, is this driver really needed? The em28xx driver has support
+> for the Easy Cap Capture DC-60 model (I had access to one of those
+> in the past, and I know that the driver works properly).
+>
+> What's the chipset using on your Easycap device?
 
-Here's the second version of the OMAP3 ISP preview engine configuration
-improvement patches.
+Chipset is STK116. I'm not entirely sure but is seems that
+there are to models: DC60 and DC60+.
 
-Patches 1/4 and 2/4 have already been acked and haven't changed since v1. Patch
-3/4 is a new bug fix, and patch 4/4 is a complete rework of the shadow update
-issue fix previously submitted as 3/3 in v1.
+Apparently, the former would be using STK1160.
 
-Laurent Pinchart (4):
-  omap3isp: preview: Skip brightness and contrast in configuration
-    ioctl
-  omap3isp: preview: Optimize parameters setup for the common case
-  omap3isp: preview: Remove averager parameter update flag
-  omap3isp: preview: Shorten shadow update delay
+>
+> If it is not an Empiatech em28xx USB bridge, then it makes sense
+> to have a separate driver for it. Otherwise, it is just easier
+> and better to add support for your device there.
 
- drivers/media/video/omap3isp/isppreview.c |  144 +++++++++++++++++++++--------
- drivers/media/video/omap3isp/isppreview.h |   24 +++--
- 2 files changed, 119 insertions(+), 49 deletions(-)
+Ok, I'll take a look at the em28xx driver and also at the saa711x
+to see how would it be possible to add support for this device.
+Perhaps, we'll end up with a separate driver but based on
+some common code.
 
--- 
-Regards,
-
-Laurent Pinchart
-
+Thanks,
+Ezequiel.
