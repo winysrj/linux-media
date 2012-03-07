@@ -1,73 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:34869 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754569Ab2CGQgE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 7 Mar 2012 11:36:04 -0500
-Message-ID: <4F578E65.4070409@redhat.com>
-Date: Wed, 07 Mar 2012 13:35:49 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from smtp-68.nebula.fi ([83.145.220.68]:39739 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752037Ab2CGX6F (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Mar 2012 18:58:05 -0500
+Message-ID: <4F57F5F4.5080103@iki.fi>
+Date: Thu, 08 Mar 2012 01:57:40 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
 MIME-Version: 1.0
-To: gregkh <gregkh@linuxfoundation.org>
-CC: =?ISO-8859-1?Q?Ezequiel_Garc=EDa?= <elezegarcia@gmail.com>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Tomas Winkler <tomasw@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org, devel@driverdev.osuosl.org
-Subject: Re: A second easycap driver implementation
-References: <CALF0-+V7DXB+x-FKcy00kjfvdvLGKVTAmEEBP7zfFYxm+0NvYQ@mail.gmail.com> <4F572611.50607@redhat.com> <CALF0-+V5kTMXZ+Nfy4yqOSgyMwBYmjGH4EfFbqjju+d3GdsvSA@mail.gmail.com> <20120307154311.GB14836@kroah.com>
-In-Reply-To: <20120307154311.GB14836@kroah.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media@vger.kernel.org, dacohen@gmail.com, snjw23@gmail.com,
+	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
+	tuukkat76@gmail.com, k.debski@samsung.com, riverful@gmail.com,
+	hverkuil@xs4all.nl, teturtia@gmail.com, pradeep.sawlani@gmail.com
+Subject: Re: [PATCH v5 27/35] omap3isp: Introduce isp_video_check_external_subdevs()
+References: <20120306163239.GN1075@valkosipuli.localdomain> <51199527.ynQze3IDdP@avalon> <20120307174946.GD1476@valkosipuli.localdomain> <1513668.GA27SF7oCM@avalon>
+In-Reply-To: <1513668.GA27SF7oCM@avalon>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 07-03-2012 12:43, gregkh escreveu:
-> On Wed, Mar 07, 2012 at 11:32:23AM -0300, Ezequiel García wrote:
->> Hi,
->>
+Hi Laurent,
+
+Laurent Pinchart wrote:
+> On Wednesday 07 March 2012 19:49:46 Sakari Ailus wrote:
+>> On Wed, Mar 07, 2012 at 11:43:31AM +0100, Laurent Pinchart wrote:
+>>> On Tuesday 06 March 2012 18:33:08 Sakari Ailus wrote:
+>>>> isp_video_check_external_subdevs() will retrieve external subdev's
+>>>> bits-per-pixel and pixel rate for the use of other ISP subdevs at
+>>>> streamon
+>>>> time. isp_video_check_external_subdevs() is called after pipeline
+>>>> validation.
+>>>>
+>>>> Signed-off-by: Sakari Ailus<sakari.ailus@iki.fi>
+>>>> ---
+>>>>
+>>>>   drivers/media/video/omap3isp/ispvideo.c |   75
+>>>>   ++++++++++++++++++++++++++++
+>>>>   1 files changed, 75 insertions(+), 0 deletions(-)
+>>>>
+>>>> diff --git a/drivers/media/video/omap3isp/ispvideo.c
+>>>> b/drivers/media/video/omap3isp/ispvideo.c index 4bc9cca..ef5c770 100644
+>>>> --- a/drivers/media/video/omap3isp/ispvideo.c
+>>>> +++ b/drivers/media/video/omap3isp/ispvideo.c
+>>>> @@ -934,6 +934,77 @@ isp_video_dqbuf(struct file *file, void *fh, struct
+>>>> v4l2_buffer *b) file->f_flags&  O_NONBLOCK);
+>>>>
+>>>>   }
+>>>>
+>>>> +static int isp_video_check_external_subdevs(struct isp_pipeline *pipe)
+>>>> +{
+>>>> +	struct isp_device *isp =
+>>>> +		container_of(pipe, struct isp_video, pipe)->isp;
 >>>
->>> Have you considered instead slowly moving the existing easycap driver
->>> over to all the new infrastructure we have now. For starters replace
->>> its buffer management with videobuf2, then in another patch replace
->>> some other bits, etc. ?  See what I've done to the pwc driver :)
+>>> Any reason not to pass isp_device * from the caller to this function ?
 >>
->> Yes. And that was what I was doing until now.
->> Yet, after some work it seemed much easier
->> to simply start over from scratch.
+>> I didn't simply because it was unnecessary. Should I? "pipe" is needed in
+>> any case.
+>
+> It will look simpler (in my opinion), and will probably generate less code, so
+> I think you should.
 
-Yes, the driver is weird, as it encapsulates the demod code
-inside it , instead of using the saa7115 driver, that covers most
-of saa711x devices, including saa7113.
+I'll change that for a new version tomorrow.
 
-Btw, is this driver really needed? The em28xx driver has support
-for the Easy Cap Capture DC-60 model (I had access to one of those
-in the past, and I know that the driver works properly).
-
-What's the chipset using on your Easycap device?
-
-If it is not an Empiatech em28xx USB bridge, then it makes sense
-to have a separate driver for it. Otherwise, it is just easier
-and better to add support for your device there.
-
->>
->> Besides, it's being a great learning experience :)
->>
->> So, since the driver is not yet working I guess there
->> is no point in submitting anything.
->>
->> Instead, anyone the wants to help I can send what I have now
->> or we can start working through github.
->> If someone owns this device, it would be a *huge* help
->> with testing.
->>
->> However, as soon as this is capturing video I would like
->> to put it on staging, so everyone can help.
->> Is this possible?
-> 
-> Yes it is, just send the patches to the correct people (note I don't
-> control the drivers/staging/media subdirectory.)
-> 
-> good luck,
-> 
-> greg k-h
-
+-- 
+Sakari Ailus
+sakari.ailus@iki.fi
