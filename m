@@ -1,74 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:46158 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757345Ab2CUX3E (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Mar 2012 19:29:04 -0400
-Received: by wgbdr13 with SMTP id dr13so977882wgb.1
-        for <linux-media@vger.kernel.org>; Wed, 21 Mar 2012 16:29:03 -0700 (PDT)
-Date: Thu, 22 Mar 2012 00:29:45 +0100
-From: Daniel Vetter <daniel@ffwll.ch>
-To: Rebecca Schultz Zavin <rebecca@android.com>
-Cc: Rob Clark <rob.clark@linaro.org>, linaro-mm-sig@lists.linaro.org,
-	LKML <linux-kernel@vger.kernel.org>,
-	DRI Development <dri-devel@lists.freedesktop.org>,
-	linux-media@vger.kernel.org, Daniel Vetter <daniel.vetter@ffwll.ch>
-Subject: Re: [Linaro-mm-sig] [PATCH] [RFC] dma-buf: mmap support
-Message-ID: <20120321232945.GC20712@phenom.ffwll.local>
-References: <1332276785-1440-1-git-send-email-daniel.vetter@ffwll.ch>
- <CAF6AEGsBZ5BBBBGKZ5VSJOr70=9Qpp1pq+2m4d_vgsveW+3Atw@mail.gmail.com>
- <CALJcvx5+g2+tZPp-2PJg04AOzYuv0eZyih542M+ghjQLFeBmFg@mail.gmail.com>
- <20120321222528.GA20712@phenom.ffwll.local>
- <CALJcvx422uZ4Wb346=bvDvp1iLGOdSwJ6qKc5nLwRO4NQbQK1Q@mail.gmail.com>
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:56041 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754569Ab2CGPwF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Mar 2012 10:52:05 -0500
+Received: by bkcik5 with SMTP id ik5so5348021bkc.19
+        for <linux-media@vger.kernel.org>; Wed, 07 Mar 2012 07:52:03 -0800 (PST)
+Message-ID: <4F57841A.6060901@gmail.com>
+Date: Wed, 07 Mar 2012 16:51:54 +0100
+From: poma <pomidorabelisima@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <CALJcvx422uZ4Wb346=bvDvp1iLGOdSwJ6qKc5nLwRO4NQbQK1Q@mail.gmail.com>
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+To: linux-media@vger.kernel.org
+Subject: Re: [PATCH] af9015: fix i2c failures for dual-tuner devices
+References: <4F19EB13.7010502@iki.fi> <1327266792-8030-1-git-send-email-ghecker@gmx.de>
+In-Reply-To: <1327266792-8030-1-git-send-email-ghecker@gmx.de>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Mar 21, 2012 at 03:44:38PM -0700, Rebecca Schultz Zavin wrote:
-> Couldn't this just as easily be handled by not having those mappings
-> be mapped cached or write combine to userspace?  They'd be coherent,
-> just slow.  I'm not sure we can actually say that all these cpu access
-> are necessary slow path operations anyway.  On android we do sometimes
-> decide to software render things to eliminate the overhead of
-> maintaining a hardware context for context switching the gpu.   If you
-> want cached or writecombine mappings you'd have to manage them
-> explicitly.  If you can't manage them explicitly you have to settle
-> for slow.  That seems reasonable to me.
+On 22.01.2012 22:13, Gordon Hecker wrote:
+> The i2c failures were caused by enabling both i2c gates
+> at the same time while putting the tuners asleep.
+> 
+> This patch removes the init() and sleep() callbacks from the tuner,
+> to prevent frontend.c from calling
+>   i2c_gate_ctrl
+>   tuner init / sleep
+>   i2c_gate_ctrl
+> without holding the lock.
+> tuner init() and sleep() are instead called in frontend init() and
+> sleep().
+> 
+> Signed-off-by: Gordon Hecker <ghecker@gmx.de>
+> ---
+>  drivers/media/dvb/dvb-usb/af9015.c |   31 +++++++++++++++++++++++++++++++
+>  drivers/media/dvb/dvb-usb/af9015.h |    2 ++
+>  2 files changed, 33 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/media/dvb/dvb-usb/af9015.c b/drivers/media/dvb/dvb-usb/af9015.c
+> index e755d76..b69b43b 100644
+> --- a/drivers/media/dvb/dvb-usb/af9015.c
+> +++ b/drivers/media/dvb/dvb-usb/af9015.c
+> @@ -1141,7 +1141,18 @@ static int af9015_af9013_init(struct dvb_frontend *fe)
+>  		return -EAGAIN;
+>  
+>  	ret = priv->init[adap->id](fe);
+> +	if (ret)
+> +		goto err_unlock;
+> +
+> +	if (priv->tuner_ops_init[adap->id]) {
+> +		if (fe->ops.i2c_gate_ctrl)
+> +			fe->ops.i2c_gate_ctrl(fe, 1);
+> +		ret = priv->tuner_ops_init[adap->id](fe);
+> +		if (fe->ops.i2c_gate_ctrl)
+> +			fe->ops.i2c_gate_ctrl(fe, 0);
+> +	}
+>  
+> +err_unlock:
+>  	mutex_unlock(&adap->dev->usb_mutex);
+>  
+>  	return ret;
+> @@ -1157,8 +1168,19 @@ static int af9015_af9013_sleep(struct dvb_frontend *fe)
+>  	if (mutex_lock_interruptible(&adap->dev->usb_mutex))
+>  		return -EAGAIN;
+>  
+> +	if (priv->tuner_ops_sleep[adap->id]) {
+> +		if (fe->ops.i2c_gate_ctrl)
+> +			fe->ops.i2c_gate_ctrl(fe, 1);
+> +		ret = priv->tuner_ops_sleep[adap->id](fe);
+> +		if (fe->ops.i2c_gate_ctrl)
+> +			fe->ops.i2c_gate_ctrl(fe, 0);
+> +		if (ret)
+> +			goto err_unlock;
+> +	}
+> +
+>  	ret = priv->sleep[adap->id](fe);
+>  
+> +err_unlock:
+>  	mutex_unlock(&adap->dev->usb_mutex);
+>  
+>  	return ret;
+> @@ -1283,6 +1305,7 @@ static struct mxl5007t_config af9015_mxl5007t_config = {
+>  static int af9015_tuner_attach(struct dvb_usb_adapter *adap)
+>  {
+>  	int ret;
+> +	struct af9015_state *state = adap->dev->priv;
+>  	deb_info("%s:\n", __func__);
+>  
+>  	switch (af9015_af9013_config[adap->id].tuner) {
+> @@ -1340,6 +1363,14 @@ static int af9015_tuner_attach(struct dvb_usb_adapter *adap)
+>  		err("Unknown tuner id:%d",
+>  			af9015_af9013_config[adap->id].tuner);
+>  	}
+> +
+> +	state->tuner_ops_sleep[adap->id] =
+> +				adap->fe_adap[0].fe->ops.tuner_ops.sleep;
+> +	adap->fe_adap[0].fe->ops.tuner_ops.sleep = 0;
+> +
+> +	state->tuner_ops_init[adap->id] =
+> +				adap->fe_adap[0].fe->ops.tuner_ops.init;
+> +	adap->fe_adap[0].fe->ops.tuner_ops.init = 0;
+>  	return ret;
+>  }
+>  
+> diff --git a/drivers/media/dvb/dvb-usb/af9015.h b/drivers/media/dvb/dvb-usb/af9015.h
+> index f619063..ee2ec5b 100644
+> --- a/drivers/media/dvb/dvb-usb/af9015.h
+> +++ b/drivers/media/dvb/dvb-usb/af9015.h
+> @@ -108,6 +108,8 @@ struct af9015_state {
+>  	int (*read_status[2]) (struct dvb_frontend *fe, fe_status_t *status);
+>  	int (*init[2]) (struct dvb_frontend *fe);
+>  	int (*sleep[2]) (struct dvb_frontend *fe);
+> +	int (*tuner_ops_init[2]) (struct dvb_frontend *fe);
+> +	int (*tuner_ops_sleep[2]) (struct dvb_frontend *fe);
+>  };
+>  
+>  struct af9015_config {
 
-Well the usual approach is writecombine, which doesn't need any explicit
-cache management. 
+Both tuners perform stable.
+Tested on mythbackend multiple streams simultaneously.
++1
 
-> As far as I can tell with explicit operations I have to invalidate
-> before touching from mmap and clean after.  With these implicit ones,
-> I stil have to invalidate and clean, but now I also have to remap them
-> before and after.  I don't know what the performance hit of this
-> remapping step is, but I'd like to if you have any insight.
-
-We have a few inefficiencies in the drm/i915 fault path which makes it
-slow, but generally pagefault performance should be rather quick (at least
-quicker than flushing the actual data). At least if your fault handler is
-somewhat clever and prefaults a few more pages in both x and y direction.
-
-But if that's too slow, I'm open to extending dma-buf later on to support
-more explicit cache management for userspace mmaps (like I've explained
-below in my previous mail). I just think we should have real benchmark
-results (and hence some real users of dma-buf) before we add this
-complexity. Atm I have no idea whether it's worth it. After all, as soon
-as we expect a lot of rendering/processing, some special dsp/gpu/whatever
-is likely to take over.
-
-> > Imo the best way to enable cached mappings is to later on extend dma-buf
-> > (as soon as we have some actual exporters/importers in the mainline
-> > kernel) with an optional cached_mmap interface which requires explict
-> > prepare_mmap_access/finish_mmap_acces calls. Then if both exporter and
-> > importer support this, it could get used - otherwise the dma-buf layer
-> > could transparently fall back to coherent mappings.
-
-Yours, Daniel
--- 
-Daniel Vetter
-Mail: daniel@ffwll.ch
-Mobile: +41 (0)79 365 57 48
+rgds,
+poma
