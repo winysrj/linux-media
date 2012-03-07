@@ -1,55 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:62539 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757648Ab2CTKjL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Mar 2012 06:39:11 -0400
-Received: from euspt2 (mailout2.w1.samsung.com [210.118.77.12])
- by mailout2.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0M1600KMWIX8SG@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 20 Mar 2012 10:39:08 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0M16004PIIX62C@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 20 Mar 2012 10:39:06 +0000 (GMT)
-Date: Tue, 20 Mar 2012 11:38:59 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH 0/6] s5p-fimc driver updates
-To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, riverful.kim@samsung.com,
-	sw0312.kim@samsung.com, s.nawrocki@samsung.com
-Message-id: <1332239945-32711-1-git-send-email-s.nawrocki@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:41805 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752048Ab2CGKw7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Mar 2012 05:52:59 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, dacohen@gmail.com, snjw23@gmail.com,
+	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
+	tuukkat76@gmail.com, k.debski@samsung.com, riverful@gmail.com,
+	hverkuil@xs4all.nl, teturtia@gmail.com, pradeep.sawlani@gmail.com
+Subject: Re: [PATCH v5 28/35] omap3isp: Use external rate instead of vpcfg
+Date: Wed, 07 Mar 2012 11:53:19 +0100
+Message-ID: <2509531.N5XHlDPohC@avalon>
+In-Reply-To: <1331051596-8261-28-git-send-email-sakari.ailus@iki.fi>
+References: <20120306163239.GN1075@valkosipuli.localdomain> <1331051596-8261-28-git-send-email-sakari.ailus@iki.fi>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This series includes some fixes and updates of the s5p-fimc driver,
-it includes some prerequisite patches for adding the device tree 
-support.
+Hi Sakari,
 
-The last patch depends of the deferred probe infrastructure which 
-is already in linux-next:
-http://git.kernel.org/?p=linux/kernel/git/next/linux-next.git;a=commitdiff;h=d1c3414c2a9d10ef7f0f7665f5d2947cd088c093
+Thanks for the patch.
 
-Sylwester Nawrocki (6):
-  s5p-fimc: Don't use platform data for CSI data alignment configuration
-  s5p-fimc: Reinitialize the pipeline properly after VIDIOC_STREAMOFF
-  s5p-fimc: Simplify locking by removing the context data structure spinlock
-  s5p-fimc: Refactor hardware setup for m2m transaction
-  s5p-fimc: Remove unneeded fields from struct fimc_dev
-  s5p-fimc: Handle sub-device interdependencies using deferred probing
+On Tuesday 06 March 2012 18:33:09 Sakari Ailus wrote:
+> From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+> 
+> Access pipe->external_rate instead of isp_ccdc.vpcfg.pixelclk. Also remove
+> means to set the value for isp_ccdc_vpcfg.pixelclk.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
 
- drivers/media/video/s5p-fimc/fimc-capture.c |   33 ++++----
- drivers/media/video/s5p-fimc/fimc-core.c    |  112 ++++++++-------------------
- drivers/media/video/s5p-fimc/fimc-core.h    |   18 ++---
- drivers/media/video/s5p-fimc/fimc-mdevice.c |   70 +++++++++++++----
- drivers/media/video/s5p-fimc/fimc-reg.c     |    3 +-
- drivers/media/video/s5p-fimc/mipi-csis.c    |   21 ++---
- 6 files changed, 119 insertions(+), 138 deletions(-)
+Very nice.
+
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+This also means that implementing support for the V4L2_CID_PIXEL_RATE control 
+is required in the sensor drivers to be used with the OMAP3 ISP. I'll submit 
+patches.
 
 -- 
-1.7.9.2
+Regards,
+
+Laurent Pinchart
 
