@@ -1,42 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from tex.lwn.net ([70.33.254.29]:48429 "EHLO vena.lwn.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964832Ab2CSRon (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Mar 2012 13:44:43 -0400
-Date: Mon, 19 Mar 2012 11:44:41 -0600
-From: Jonathan Corbet <corbet@lwn.net>
-To: javier Martin <javier.martin@vista-silicon.com>
+Received: from mailout-de.gmx.net ([213.165.64.22]:34621 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S932291Ab2CGQX6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Mar 2012 11:23:58 -0500
+Message-ID: <1331137433.4765.3.camel@localhost>
+Subject: Re: Technotrend TT-Connect CT 3650 and dvb_ca
+From: Martin MAURER <martinmaurer@gmx.at>
+Reply-To: martinmaurer@gmx.at
+To: Johan =?ISO-8859-1?Q?Hen=E6s?= <johan@henes.no>
 Cc: linux-media@vger.kernel.org
-Subject: Re: [Q] ov7670: green line in VGA resolution
-Message-ID: <20120319114441.5c64574f@dt>
-In-Reply-To: <CACKLOr28ECqBhTkMsd=6vSOMPZk2DgbRFWZOZXH39omQRP0fcA@mail.gmail.com>
-References: <CACKLOr28ECqBhTkMsd=6vSOMPZk2DgbRFWZOZXH39omQRP0fcA@mail.gmail.com>
+Date: Wed, 07 Mar 2012 17:23:53 +0100
+In-Reply-To: <4F56763C.50806@henes.no>
+References: <4F56763C.50806@henes.no>
+Content-Type: multipart/signed; micalg="pgp-sha256";
+	protocol="application/pgp-signature"; boundary="=-s/QEe6kZYmqFohb8hjAA"
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 19 Mar 2012 17:27:06 +0100
-javier Martin <javier.martin@vista-silicon.com> wrote:
 
-> I suspect the problem is related to the fact that this sensor has an
-> array of 656 x 488 pixels but only 640 x 480 are active. The datasheet
-> available from Omnivision (Version 1.4, August 21, 2006) is not clear
-> about how to configure the sensor not to show non active pixels but I
-> could find the following patch which addresses a similar problem for
-> QVGA:
+--=-s/QEe6kZYmqFohb8hjAA
+Content-Type: text/plain; charset="ISO-8859-15"
+Content-Transfer-Encoding: quoted-printable
 
-Interesting...nobody ever sent that patch anywhere where I've seen it.
+Hi Johan,
 
-Anyway, the ov7670 datasheet is not clear on much of anything, and the
-things it *is* clear on are likely to be wrong.
+I have a similar problem which happens every few days with this card.
+For me it helps to remove and reinsert the kernel module whenever this
+happens.
+"rmmod -f dvb_usb_ttusb2 && modprobe dvb_usb_ttusb2"
 
-The comment in the patch makes it clear how this was worked out, anyway:
-"empirically determined."  Unless you can get through to the one person at
-OmniVision who knows how this sensor actually works, the best that can be
-done is to mess with the values for the window.  That's often done at both
-the sensor and the controller level - if you look at the Marvell
-controller, you'll see window tweaking there too.
+see also the following unresolved threads:
+http://www.spinics.net/lists/linux-media/msg43531.html
 
-jon
+http://www.spinics.net/lists/linux-media/msg43813.html
+
+Martin
+
+
+On Tue, 2012-03-06 at 21:40 +0100, Johan Hen=E6s wrote:
+> Hello Everyone !
+>=20
+> I have three DVB-C devices of the type mentioned, connected to my=20
+> mythtv-server which have been working great for a long time. As my cable=
+=20
+> provider now are planning to start encrypting all channels, I have=20
+> bought a Xcrypt CAM module as needed. I soon realised that I needed to=
+=20
+> upgrade the kernel and are now running kernel /: 3.2.0-17-generic=20
+> #27-Ubuntu SMP Fri Feb 24 22:03:50 UTC 2012 x86_64 x86_64 x86_64=20
+> GNU/Linux/ .
+>=20
+> When inserting the module everything looks well :
+>=20
+> /dvb_ca adapter 0: DVB CAM detected and initialised successfully/
+>=20
+> The problems start when trying to watch an encrypted channel. I do get a=
+=20
+> channel lock in myth, so far so good, but no picture...
+>=20
+> In my syslog I see the following :
+>=20
+> /dvb_ca adapter 0: CAM tried to send a buffer larger than the link=20
+> buffer size (32896 > 255)!
+> dvb_ca adapter 0: CAM tried to send a buffer larger than the ecount size!
+> dvb_ca adapter 0: DVB CAM link initialisation failed :(/
+>=20
+> Any ideas on what might be wrong ?
+>=20
+> Best regards,
+>=20
+> Johan
+>=20
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+--=-s/QEe6kZYmqFohb8hjAA
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQEcBAABCAAGBQJPV4uZAAoJEJAm2rnb24AZd38H/3eYoKB7421xlrX3KDT9NXyB
+TIQTt5UMvgdkRA8a4E0iGB2dts93OU1LJ5QL/FpXgWrQOA3loJ1TQZA1f7h4qyTQ
+4HZZPmRMRUg9PRSk1GCrOTikdoguvQ6TsHezUGhuC8k3EofsOpL/Tjq4lFXcK8ax
+Zum81FChp2fS6uzYdalzOgeEjx2rRyS8cJwX6ScX2H6g1WTVUi0grI6Sw6t/a4Bm
+BIv/5x3qq5HdkMTOjMUss1gpKaEbsNR1gU6Qdd96jUP9sPBaP/phSYBG8z0aSxnD
+Ri0OQztDv3CgKA4H+Ifm1Fd7tj4VhjtFzIADdQWZyB7Cm1+qudHrK5/xMh7VrRs=
+=Vs6j
+-----END PGP SIGNATURE-----
+
+--=-s/QEe6kZYmqFohb8hjAA--
+
