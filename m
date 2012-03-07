@@ -1,52 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:52977 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750713Ab2CAX0c (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Mar 2012 18:26:32 -0500
-Received: by eaaq12 with SMTP id q12so417774eaa.19
-        for <linux-media@vger.kernel.org>; Thu, 01 Mar 2012 15:26:30 -0800 (PST)
-Message-ID: <4F5005A3.9060503@gmail.com>
-Date: Fri, 02 Mar 2012 00:26:27 +0100
-From: Sylwester Nawrocki <snjw23@gmail.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:58965 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754605Ab2CGKen (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Mar 2012 05:34:43 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, dacohen@gmail.com, snjw23@gmail.com,
+	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
+	tuukkat76@gmail.com, k.debski@samsung.com, riverful@gmail.com,
+	hverkuil@xs4all.nl, teturtia@gmail.com, pradeep.sawlani@gmail.com
+Subject: Re: [PATCH v5 25/35] omap3isp: Collect entities that are part of the pipeline
+Date: Wed, 07 Mar 2012 11:35:02 +0100
+Message-ID: <3330510.TBBu7RATHi@avalon>
+In-Reply-To: <1331051596-8261-25-git-send-email-sakari.ailus@iki.fi>
+References: <20120306163239.GN1075@valkosipuli.localdomain> <1331051596-8261-25-git-send-email-sakari.ailus@iki.fi>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-media@vger.kernel.org, Sakari Ailus <sakari.ailus@iki.fi>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Subject: Re: [PATCH/RFC][DRAFT] V4L: Add camera auto focus controls
-References: <1326749622-11446-1-git-send-email-sylvester.nawrocki@gmail.com> <4F4A6493.1080004@gmail.com> <1441235.tcAt0gpJAF@avalon>
-In-Reply-To: <1441235.tcAt0gpJAF@avalon>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hi Sakari,
 
-On 03/01/2012 11:30 PM, Laurent Pinchart wrote:
-> One option would be to disable the focus area control when the focus distance
-> is set to a value different than normal (or the other way around). Control
-> change events could be used to report that to userspace. Would that work with
-> your hardware ?
+Thanks for the patch.
 
-What would work, would be disabling the focus distance control when the focus 
-area is set to a value different than "all".
+On Tuesday 06 March 2012 18:33:06 Sakari Ailus wrote:
+> Collect entities which are part of the pipeline into a single bit mask.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> ---
+>  drivers/media/video/omap3isp/ispvideo.c |    9 +++++++++
+>  drivers/media/video/omap3isp/ispvideo.h |    1 +
+>  2 files changed, 10 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/media/video/omap3isp/ispvideo.c
+> b/drivers/media/video/omap3isp/ispvideo.c index d34f690..4bc9cca 100644
+> --- a/drivers/media/video/omap3isp/ispvideo.c
+> +++ b/drivers/media/video/omap3isp/ispvideo.c
+> @@ -970,6 +970,8 @@ isp_video_streamon(struct file *file, void *fh, enum
+> v4l2_buf_type type) {
+>  	struct isp_video_fh *vfh = to_isp_video_fh(fh);
+>  	struct isp_video *video = video_drvdata(file);
+> +	struct media_entity_graph graph;
+> +	struct media_entity *entity;
+>  	enum isp_pipeline_state state;
+>  	struct isp_pipeline *pipe;
+>  	struct isp_video *far_end;
+> @@ -992,6 +994,8 @@ isp_video_streamon(struct file *file, void *fh, enum
+> v4l2_buf_type type) pipe = video->video.entity.pipe
+>  	     ? to_isp_pipeline(&video->video.entity) : &video->pipe;
+> 
+> +	pipe->entities = 0;
+> +
 
-I have also been considering adding an extra menu entry for the focus distance 
-control, indicating some "neutral" state, but disabling the other control
-sounds like a better idea. I couldn't find anything reasonable, as there was 
-already the focus distance "normal" menu entry.
+This could be move right before the graph walk code below to keep both parts 
+together. However, pipe->entities would then be invalid (instead of always 0) 
+in the link validation operations. That can be considered as an issue, so I'm 
+fine if you prefer leaving this assignment here.
 
-Then, after the focus are is set to, for instance, "spot", transition to 
-the focus distance "macro" would be only possible through focus area "all"
-(where the focus distance is enabled again). I guess it's acceptable.
+>  	if (video->isp->pdata->set_constraints)
+>  		video->isp->pdata->set_constraints(video->isp, true);
+>  	pipe->l3_ick = clk_get_rate(video->isp->clock[ISP_CLK_L3_ICK]);
+> @@ -1001,6 +1005,11 @@ isp_video_streamon(struct file *file, void *fh, enum
+> v4l2_buf_type type) if (ret < 0)
+>  		goto err_pipeline_start;
+> 
+> +	entity = &video->video.entity;
+> +	media_entity_graph_walk_start(&graph, entity);
+> +	while ((entity = media_entity_graph_walk_next(&graph)))
+> +		pipe->entities |= 1 << entity->id;
+> +
 
-It's only getting a bit harder for applications to present a single list 
-of the focus modes to the user, since they would, for instance, grey out 
-the entries corresponding to disabled control. It shouldn't be a big deal 
-though.
+To avoid walking the graph one more time, what about moving this to 
+isp_video_far_end() where we already walk the graph (and moving the 
+isp_video_far_end() call earlier in this function) ? You could possible rename 
+isp_video_far_end() to something a bit more in line with its new purpose then.
 
+>  	/* Verify that the currently configured format matches the output of
+>  	 * the connected subdev.
+>  	 */
+> diff --git a/drivers/media/video/omap3isp/ispvideo.h
+> b/drivers/media/video/omap3isp/ispvideo.h index d91bdb91..0423c9d 100644
+> --- a/drivers/media/video/omap3isp/ispvideo.h
+> +++ b/drivers/media/video/omap3isp/ispvideo.h
+> @@ -96,6 +96,7 @@ struct isp_pipeline {
+>  	enum isp_pipeline_stream_state stream_state;
+>  	struct isp_video *input;
+>  	struct isp_video *output;
+> +	u32 entities;
+>  	unsigned long l3_ick;
+>  	unsigned int max_rate;
+>  	atomic_t frame_number;
 
---
+-- 
 Regards,
-Sylwester
+
+Laurent Pinchart
+
