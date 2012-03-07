@@ -1,73 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ftp.meprolight.com ([194.90.149.17]:55640 "EHLO meprolight.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1757800Ab2CFNk0 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Mar 2012 08:40:26 -0500
-From: Alex Gershgorin <alexg@meprolight.com>
-To: Alex Gershgorin <alexg@meprolight.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Sascha Hauer <s.hauer@pengutronix.de>
-Date: Tue, 6 Mar 2012 15:40:10 +0200
-Subject: RE: mx3-camera
-Message-ID: <4875438356E7CA4A8F2145FCD3E61C0B2CBD5D890A@MEP-EXCH.meprolight.com>
-References: <4875438356E7CA4A8F2145FCD3E61C0B2CBD5D8906@MEP-EXCH.meprolight.com>,<Pine.LNX.4.64.1203061406500.9300@axis700.grange>,<4875438356E7CA4A8F2145FCD3E61C0B2CBD5D8909@MEP-EXCH.meprolight.com>
-In-Reply-To: <4875438356E7CA4A8F2145FCD3E61C0B2CBD5D8909@MEP-EXCH.meprolight.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:55916 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755251Ab2CGKuA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Mar 2012 05:50:00 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, dacohen@gmail.com, snjw23@gmail.com,
+	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
+	tuukkat76@gmail.com, k.debski@samsung.com, riverful@gmail.com,
+	hverkuil@xs4all.nl, teturtia@gmail.com, pradeep.sawlani@gmail.com
+Subject: Re: [PATCH v5 25/35] omap3isp: Collect entities that are part of the pipeline
+Date: Wed, 07 Mar 2012 11:50:19 +0100
+Message-ID: <6281574.FW0nkSrXHX@avalon>
+In-Reply-To: <1331051596-8261-25-git-send-email-sakari.ailus@iki.fi>
+References: <20120306163239.GN1075@valkosipuli.localdomain> <1331051596-8261-25-git-send-email-sakari.ailus@iki.fi>
 MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Sakari,
 
-________________________________________
-From: Alex Gershgorin
-Sent: Tuesday, March 06, 2012 3:22 PM
-To: Guennadi Liakhovetski
-Cc: linux-kernel@vger.kernel.org; Linux Media Mailing List; Sascha Hauer
-Subject: RE: mx3-camera
+Another comment.
 
- Thanks Guennadi,
+On Tuesday 06 March 2012 18:33:06 Sakari Ailus wrote:
+> Collect entities which are part of the pipeline into a single bit mask.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
 
->Hi Alex
+[snip]
 
->(adding v4l and Sascha to CC)
+> diff --git a/drivers/media/video/omap3isp/ispvideo.h
+> b/drivers/media/video/omap3isp/ispvideo.h index d91bdb91..0423c9d 100644
+> --- a/drivers/media/video/omap3isp/ispvideo.h
+> +++ b/drivers/media/video/omap3isp/ispvideo.h
+> @@ -96,6 +96,7 @@ struct isp_pipeline {
+>  	enum isp_pipeline_stream_state stream_state;
+>  	struct isp_video *input;
+>  	struct isp_video *output;
+> +	u32 entities;
+>  	unsigned long l3_ick;
+>  	unsigned int max_rate;
+>  	atomic_t frame_number;
 
->On Tue, 6 Mar 2012, Alex Gershgorin wrote:
+Could you please update the structure documentation ?
 
-> Hi Guennadi,
->
-> I'm working on I.MX35 PDK platform with use 3.3.0-rc6 version of the Linux Kernel.
-> Here is my Kernel boot message
->
-> "Linux video capture interface: v2.00
-> mx3-camera: probe of mx3-camera.0 failed with error -2"
->
-> This error comes from probe function of mx3 camera host driver.
-> Precisely in this part of the code:
->
-> mx3_cam->clk = clk_get(&pdev->dev, NULL);
-> if (IS_ERR(mx3_cam->clk)) {
->       err = PTR_ERR(mx3_cam->clk);
->       goto eclkget;
-> }
+@entities: Bitmask of entities in the pipeline (indexed by entity ID)
 
->I think, the reason is, that the i.MX35 platform doesn't register a camera
->clock, similar to i.MX31 (arch/arm/mach-imx/clock-imx31.c):
-
- >       _REGISTER_CLOCK("mx3-camera.0", NULL, csi_clk)
-
-In i.MX35 (arch/arm/mach-imx/clock-imx35.c) it looks like this:
-_REGISTER_CLOCK(NULL, "csi", csi_clk)
-
-You were right, it should be  _REGISTER_CLOCK("mx3-camera.0", NULL, csi_clk) 
-I checked, now this error not appear  :-) 
-
-> I will be glad for any help.
-
+-- 
 Regards,
-Alex Gershgorin
 
+Laurent Pinchart
 
