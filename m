@@ -1,105 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:30756 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1031942Ab2COQys (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Mar 2012 12:54:48 -0400
-Received: from euspt1 (mailout2.w1.samsung.com [210.118.77.12])
- by mailout2.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0M0X009K6QZ5MD@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 15 Mar 2012 16:54:41 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0M0X002O6QZ3O0@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 15 Mar 2012 16:54:39 +0000 (GMT)
-Date: Thu, 15 Mar 2012 17:54:17 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH/RFC 03/23] V4L: Add Wide Dynamic Range camera class control
-In-reply-to: <1331830477-12146-1-git-send-email-s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, riverful.kim@samsung.com,
-	kyungmin.park@samsung.com, s.nawrocki@samsung.com
-Message-id: <1331830477-12146-4-git-send-email-s.nawrocki@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1331830477-12146-1-git-send-email-s.nawrocki@samsung.com>
+Received: from mx1.redhat.com ([209.132.183.28]:46791 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751092Ab2CGUx0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 7 Mar 2012 15:53:26 -0500
+Message-ID: <4F57CAB9.3050604@redhat.com>
+Date: Wed, 07 Mar 2012 17:53:13 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: =?ISO-8859-1?Q?Ezequiel_Garc=EDa?= <elezegarcia@gmail.com>
+CC: gregkh <gregkh@linuxfoundation.org>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Tomas Winkler <tomasw@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+	Peter Senna Tschudin <peter.senna@gmail.com>
+Subject: Re: A second easycap driver implementation
+References: <CALF0-+V7DXB+x-FKcy00kjfvdvLGKVTAmEEBP7zfFYxm+0NvYQ@mail.gmail.com> <4F572611.50607@redhat.com> <CALF0-+V5kTMXZ+Nfy4yqOSgyMwBYmjGH4EfFbqjju+d3GdsvSA@mail.gmail.com> <20120307154311.GB14836@kroah.com> <4F578E65.4070409@redhat.com> <CALF0-+W5HwFFnp96sK=agjc07V_GuizrD6k+Eu9b7sQXOW=Ngw@mail.gmail.com> <4F579815.2060207@redhat.com> <CALF0-+VnoMRoaTKeyD6bE8kP3qccun5keyiJRnM3Vg0sAecaQw@mail.gmail.com>
+In-Reply-To: <CALF0-+VnoMRoaTKeyD6bE8kP3qccun5keyiJRnM3Vg0sAecaQw@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The V4L2_CID_WIDE_DYNAMIC_RANGE camera class control allows
-to control the wide dynamic range (WDR) feature provided by
-a camera. It can be used to enable/disable WDR. For the WDR
-technique selection separate menu control should be added.
+Em 07-03-2012 17:39, Ezequiel García escreveu:
+> Hi Mauro,
+> 
+>>
+>> em28xx is a good reference.
+>>
+> 
+> I'm looking at it.
+> In fact, I have a first question: why there is a limit to the number of devices
+> the driver support? I found the same idea in easycap original
+> implementation, but I
+> can't understand why do we have to limit in such a way.
+> 
+>         /* Check to see next free device and mark as used */
+>         do {
+>                 nr = find_first_zero_bit(&em28xx_devused, EM28XX_MAXBOARDS);
+>                 if (nr >= EM28XX_MAXBOARDS) {
+>                         /* No free device slots */
+>                         printk(DRIVER_NAME ": Supports only %i em28xx
+> boards.\n",
+>                                         EM28XX_MAXBOARDS);
+>                         retval = -ENOMEM;
+>                         goto err_no_slot;
+>                 }
+>         } while (test_and_set_bit(nr, &em28xx_devused));
 
-Signed-off-by: HeungJun Kim <riverful.kim@samsung.com>
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- Documentation/DocBook/media/v4l/controls.xml |   14 ++++++++++++++
- drivers/media/video/v4l2-ctrls.c             |    2 ++
- include/linux/videodev2.h                    |    2 ++
- 3 files changed, 18 insertions(+)
+There are several reasons for that, including a few historical ones. One of them 
+is that the number of reserved v4l char devices is limited (well, V4L core
+now supports dynamic allocation). Another one is a few modprobe arrays for em28xx.
 
-diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
-index f8e1161..c74e5bb 100644
---- a/Documentation/DocBook/media/v4l/controls.xml
-+++ b/Documentation/DocBook/media/v4l/controls.xml
-@@ -3144,6 +3144,20 @@ sky. It corresponds approximately to 9000...10000 K color temperature.
- 	  </row>
- 	  <row><entry></entry></row>
- 
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_WIDE_DYNAMIC_RANGE</constant></entry>
-+	    <entry>boolean</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="descr">Enables or disables the camera's
-+wide dynamic range feature.  This feature allows to obtain clear images
-+in situations where intensity of the illumination varies significantly
-+throughout the scene, i.e. there are simultaneously very dark and very
-+bright areas. It is most commonly realized in cameras by combining
-+two subsequent frames of different exposure times.</entry>
-+	  </row>
-+	  <row><entry></entry></row>
-+
- 	</tbody>
-       </tgroup>
-     </table>
-diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
-index 6dbbe03..f8e7086 100644
---- a/drivers/media/video/v4l2-ctrls.c
-+++ b/drivers/media/video/v4l2-ctrls.c
-@@ -633,6 +633,7 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_AUTO_FOCUS_FACE_PRIORITY:	return "Auto Focus, Face Priority";
- 
- 	case V4L2_CID_WHITE_BALANCE_PRESET:	return "White Balance, Preset";
-+	case V4L2_CID_WIDE_DYNAMIC_RANGE:	return "Wide Dynamic Range";
- 
- 	/* FM Radio Modulator control */
- 	/* Keep the order of the 'case's the same as in videodev2.h! */
-@@ -731,6 +732,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_MPEG_VIDEO_H264_8X8_TRANSFORM:
- 	case V4L2_CID_MPEG_VIDEO_H264_VUI_SAR_ENABLE:
- 	case V4L2_CID_MPEG_VIDEO_MPEG4_QPEL:
-+	case V4L2_CID_WIDE_DYNAMIC_RANGE:
- 		*type = V4L2_CTRL_TYPE_BOOLEAN;
- 		*min = 0;
- 		*max = *step = 1;
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index 250ac9e..8450afd 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -1728,6 +1728,8 @@ enum v4l2_white_balance_preset {
- 	V4L2_WHITE_BALANCE_PRESET_SHADE		= 5,
- };
- 
-+#define V4L2_CID_WIDE_DYNAMIC_RANGE		(V4L2_CID_CAMERA_CLASS_BASE+31)
-+
- /* FM Modulator class control IDs */
- #define V4L2_CID_FM_TX_CLASS_BASE		(V4L2_CTRL_CLASS_FM_TX | 0x900)
- #define V4L2_CID_FM_TX_CLASS			(V4L2_CTRL_CLASS_FM_TX | 1)
--- 
-1.7.9.2
+Anyway, an USB 2.0 bus only supports one  uncompressed video stream.
+
+> 
+> 
+>>
+>> It is not clear, from the easycap code, where the I2C address
+>> is stored:
+>>
+>> int write_saa(struct usb_device *p, u16 reg0, u16 set0)
+>> {
+>>        if (!p)
+>>                return -ENODEV;
+>>        SET(p, 0x200, 0x00);
+>>        SET(p, 0x204, reg0);
+>>        SET(p, 0x205, set0);
+>>        SET(p, 0x200, 0x01);
+>>        return wait_i2c(p);
+>> }
+> 
+> I think i2c_address it is near registers 0x200/0x204, which gets
+> initialised at setup_stk().
+> I'll have a closer look.
+
+Ok.
+
+> 
+> Thanks for your comments,
+> Ezequiel.
 
