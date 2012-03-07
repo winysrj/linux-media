@@ -1,82 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from zoneX.GCU-Squad.org ([194.213.125.0]:14169 "EHLO
-	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760081Ab2CUUJs (ORCPT
+Received: from shadbolt.e.decadent.org.uk ([88.96.1.126]:42339 "EHLO
+	shadbolt.e.decadent.org.uk" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1030418Ab2CGVeu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Mar 2012 16:09:48 -0400
-Date: Wed, 21 Mar 2012 21:09:36 +0100
-From: Jean Delvare <khali@linux-fr.org>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	LMML <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH 1/2] [media] dib0700: Drop useless check when remote key
-  is pressed
-Message-ID: <20120321210936.006d4604@endymion.delvare>
-In-Reply-To: <4F687572.1030109@redhat.com>
-References: <20120313185037.4059a869@endymion.delvare>
- <CAGoCfixvanxKT4h1k+FkaYkQ-zHjR-rYBWxHHiDygOScPCeZPA@mail.gmail.com>
- <4F67B283.4050308@redhat.com>
- <20120320082002.6551466a@endymion.delvare>
- <4F687572.1030109@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Wed, 7 Mar 2012 16:34:50 -0500
+Date: Wed, 7 Mar 2012 21:34:41 +0000
+From: Ben Hutchings <ben@decadent.org.uk>
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Jonathan Nieder <jrnieder@gmail.com>, devel@driverdev.osuosl.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Torsten Crass <torsten.crass@eBiology.de>,
+	Jarod Wilson <jarod@redhat.com>, linux-media@vger.kernel.org
+Message-ID: <20120307213441.GX12704@decadent.org.uk>
+References: <1321422581.2885.50.camel@deadeye>
+ <20120302034545.GA31860@burratino>
+ <1330662942.8460.229.camel@deadeye>
+ <20120302203913.GA22323@burratino>
+ <20120307200407.GB26451@kroah.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20120307200407.GB26451@kroah.com>
+Subject: Re: [PATCH 3.0.y 0/4] Re: lirc_serial spuriously claims assigned
+ port and irq to be in use
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
-
-On Tue, 20 Mar 2012 09:17:54 -0300, Mauro Carvalho Chehab wrote:
-> Em 20-03-2012 04:20, Jean Delvare escreveu:
-> > On Mon, 19 Mar 2012 19:26:11 -0300, Mauro Carvalho Chehab wrote:
-> >> Yet, I'd be more happy if Jean's patch could check first if the status is
-> >> below 0, in order to prevent a possible race condition at device disconnect.
+On Wed, Mar 07, 2012 at 12:04:07PM -0800, Greg Kroah-Hartman wrote:
+> On Fri, Mar 02, 2012 at 02:39:13PM -0600, Jonathan Nieder wrote:
+> > Ben Hutchings wrote:
+> > > On Thu, 2012-03-01 at 21:45 -0600, Jonathan Nieder wrote:
 > > 
-> > I'm not sure I see the race condition you're seeing. Do you believe
-> > purb->context would be NULL (or point to already-freed memory) when
-> > dib0700_rc_urb_completion is called as part of device disconnect? Or is
-> > it something else? I'll be happy to resubmit my patch series with a fix
-> > if you explain where you think there is a race condition.
+> > >> Would some of these patches (e.g., at least patches 1, 2, and 5) be
+> > >> appropriate for inclusion in the 3.0.y and 3.2.y stable kernels from
+> > >> kernel.org?
+> > >
+> > > Assuming they haven't caused any regressions, I think everything except
+> > > 9b98d6067971 (4/5) would be appropriate.
+> > 
+> > Great.  Here are the aforementioned patches rebased against 3.0.y, in
+> > the hope that some interested person can confirm they still work.  The
+> > only backporting needed was to adjust to the lack of
+> > drivers/staging/lirc -> drivers/staging/media/lirc renaming.
 > 
-> What I'm saying is that the only potential chance of having a NULL value
-> for d is at the device disconnect/removal, if is there any bug when waiting
-> for the URB's to be killed.
-> 
-> So, it would be better to invert the error test logic to:
-> 
-> static void dib0700_rc_urb_completion(struct urb *purb)
-> {
-> 	struct dvb_usb_device *d = purb->context;
-> 	struct dib0700_rc_response *poll_reply;
-> 	u32 uninitialized_var(keycode);
-> 	u8 toggle;
-> 
-> 	poll_reply = purb->transfer_buffer;
-> 	if (purb->status < 0) {
-> 		deb_info("discontinuing polling\n");
-> 		kfree(purb->transfer_buffer);
-> 		usb_free_urb(purb);
-> 		return;
-> 	}
-> 
-> 	deb_info("%s()\n", __func__);
-> 	if (d->rc_dev == NULL) {
-> 		/* This will occur if disable_rc_polling=1 */
-> 		kfree(purb->transfer_buffer);
-> 		usb_free_urb(purb);
-> 		return;
-> 	}
-> 
-> As, at device disconnect/completion, the status will indicate an error, and
-> the function will return before trying to de-referenciate rc_dev.
+> So they should also go to 3.2-stable, right?
+ 
+Yes, only for 3.2 a simple cherry-pick should work.
 
-Hmm. I couldn't find any code that would reset purb->context. I tested
-2000 rmmod dvb-usb-dib0700 on a 3.3.0 kernel with my two patches
-applied, compiled with CONFIG_DEBUG_SLAB=y and CONFIG_DEBUG_VM=y, and
-it did not crash nor report any problem. I don't think there is any
-race here, so I see no point in changing the code. We just got rid of a
-paranoid check, it is not to apply another paranoid patch.
+Ben.
 
 -- 
-Jean Delvare
+Ben Hutchings
+We get into the habit of living before acquiring the habit of thinking.
+                                                              - Albert Camus
