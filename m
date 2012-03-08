@@ -1,127 +1,173 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:46838 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755676Ab2CBKn6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Mar 2012 05:43:58 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Martin Hostettler <martin@neutronstar.dyndns.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: [PATCH v2 07/10] mt9m032: Put HFLIP and VFLIP controls in a cluster
-Date: Fri,  2 Mar 2012 11:44:04 +0100
-Message-Id: <1330685047-12742-8-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1330685047-12742-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1330685047-12742-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from smtp-68.nebula.fi ([83.145.220.68]:54944 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753588Ab2CHRRv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Mar 2012 12:17:51 -0500
+Date: Thu, 8 Mar 2012 19:17:46 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org,
+	Martin Hostettler <martin@neutronstar.dyndns.org>
+Subject: Re: [PATCH v3 5/5] v4l: Add driver for Micron MT9M032 camera sensor
+Message-ID: <20120308171745.GE1591@valkosipuli.localdomain>
+References: <1331051559-13841-1-git-send-email-laurent.pinchart@ideasonboard.com>
+ <1331051559-13841-6-git-send-email-laurent.pinchart@ideasonboard.com>
+ <20120306231633.GO1075@valkosipuli.localdomain>
+ <2041187.ucBOt7zOjI@avalon>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <2041187.ucBOt7zOjI@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-HFLIP and VFLIP are often set together to rotate the image by 180°.
-Putting the controls in a cluster makes sure they will always be applied
-together, getting rid of a race condition that could result in one bad
-frame.
+Hi Laurent,
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/video/mt9m032.c |   43 +++++++++++++++++++---------------------
- 1 files changed, 20 insertions(+), 23 deletions(-)
+On Wed, Mar 07, 2012 at 12:31:34PM +0100, Laurent Pinchart wrote:
+...
+> > > +static u32 mt9m032_row_time(struct mt9m032 *sensor, unsigned int width)
+> > > +{
+> > > +	unsigned int effective_width;
+> > > +	u32 ns;
+> > > +
+> > > +	effective_width = width + 716; /* emperical value */
+> > 
+> > Why empirical value? This should be directly related to image width
+> > (before binning) and horizontal blanking.
+> 
+> Ask Martin :-)
+> 
+> I don't have access to the documentation nor the hardware, so I'd rather keep 
+> the value as-is for now.
 
-diff --git a/drivers/media/video/mt9m032.c b/drivers/media/video/mt9m032.c
-index cfed53a..6bd4280 100644
---- a/drivers/media/video/mt9m032.c
-+++ b/drivers/media/video/mt9m032.c
-@@ -107,7 +107,12 @@ struct mt9m032 {
- 	struct v4l2_subdev subdev;
- 	struct media_pad pad;
- 	struct mt9m032_platform_data *pdata;
-+
- 	struct v4l2_ctrl_handler ctrls;
-+	struct {
-+		struct v4l2_ctrl *hflip;
-+		struct v4l2_ctrl *vflip;
-+	};
- 
- 	bool streaming;
- 
-@@ -116,8 +121,6 @@ struct mt9m032 {
- 	struct v4l2_mbus_framefmt format;	/* height and width always the same as in crop */
- 	struct v4l2_rect crop;
- 	struct v4l2_fract frame_interval;
--
--	struct v4l2_ctrl *hflip, *vflip;
- };
- 
- #define to_mt9m032(sd)	container_of(sd, struct mt9m032, subdev)
-@@ -503,23 +506,13 @@ static int update_read_mode2(struct mt9m032 *sensor, bool vflip, bool hflip)
- {
- 	struct i2c_client *client = v4l2_get_subdevdata(&sensor->subdev);
- 	int reg_val = (!!vflip) << MT9M032_READ_MODE2_VFLIP_SHIFT
--		      | (!!hflip) << MT9M032_READ_MODE2_HFLIP_SHIFT
--		      | MT9M032_READ_MODE2_ROW_BLC
--		      | 0x0007;
-+		    | (!!hflip) << MT9M032_READ_MODE2_HFLIP_SHIFT
-+		    | MT9M032_READ_MODE2_ROW_BLC
-+		    | 0x0007;
- 
- 	return mt9m032_write_reg(client, MT9M032_READ_MODE2, reg_val);
- }
- 
--static int mt9m032_set_hflip(struct mt9m032 *sensor, s32 val)
--{
--	return update_read_mode2(sensor, sensor->vflip->cur.val, val);
--}
--
--static int mt9m032_set_vflip(struct mt9m032 *sensor, s32 val)
--{
--	return update_read_mode2(sensor, val, sensor->hflip->cur.val);
--}
--
- static int mt9m032_set_exposure(struct mt9m032 *sensor, s32 val)
- {
- 	struct i2c_client *client = v4l2_get_subdevdata(&sensor->subdev);
-@@ -581,17 +574,17 @@ static int mt9m032_try_ctrl(struct v4l2_ctrl *ctrl)
- 
- static int mt9m032_set_ctrl(struct v4l2_ctrl *ctrl)
- {
--	struct mt9m032 *sensor = container_of(ctrl->handler, struct mt9m032, ctrls);
-+	struct mt9m032 *sensor =
-+		container_of(ctrl->handler, struct mt9m032, ctrls);
- 
- 	switch (ctrl->id) {
- 	case V4L2_CID_GAIN:
- 		return mt9m032_set_gain(sensor, ctrl->val);
- 
- 	case V4L2_CID_HFLIP:
--		return mt9m032_set_hflip(sensor, ctrl->val);
--
- 	case V4L2_CID_VFLIP:
--		return mt9m032_set_vflip(sensor, ctrl->val);
-+		return update_read_mode2(sensor, sensor->vflip->val,
-+					 sensor->hflip->val);
- 
- 	case V4L2_CID_EXPOSURE:
- 		return mt9m032_set_exposure(sensor, ctrl->val);
-@@ -700,10 +693,14 @@ static int mt9m032_probe(struct i2c_client *client,
- 	v4l2_ctrl_new_std(&sensor->ctrls, &mt9m032_ctrl_ops,
- 			  V4L2_CID_GAIN, 0, 127, 1, 64);
- 
--	sensor->hflip = v4l2_ctrl_new_std(&sensor->ctrls, &mt9m032_ctrl_ops,
--			  V4L2_CID_HFLIP, 0, 1, 1, 0);
--	sensor->vflip = v4l2_ctrl_new_std(&sensor->ctrls, &mt9m032_ctrl_ops,
--			  V4L2_CID_VFLIP, 0, 1, 1, 0);
-+	sensor->hflip = v4l2_ctrl_new_std(&sensor->ctrls,
-+					  &mt9m032_ctrl_ops,
-+					  V4L2_CID_HFLIP, 0, 1, 1, 0);
-+	sensor->vflip = v4l2_ctrl_new_std(&sensor->ctrls,
-+					  &mt9m032_ctrl_ops,
-+					  V4L2_CID_VFLIP, 0, 1, 1, 0);
-+	v4l2_ctrl_cluster(2, &sensor->hflip);
-+
- 	v4l2_ctrl_new_std(&sensor->ctrls, &mt9m032_ctrl_ops,
- 			  V4L2_CID_EXPOSURE, 0, 8000, 1, 1700);    /* 1.7ms */
- 
+Ok. Let's keep this one then.
+
+> > > +	ns = div_u64(1000000000ULL * effective_width, sensor->pix_clock);
+> > > +	dev_dbg(to_dev(sensor),	"MT9M032 line time: %u ns\n", ns);
+> > > +	return ns;
+> > > +}
+> 
+> [snip]
+> 
+> > > +static int mt9m032_setup_pll(struct mt9m032 *sensor)
+> > > +{
+> > > +	static const struct aptina_pll_limits limits = {
+> > > +		.ext_clock_min = 8000000,
+> > > +		.ext_clock_max = 16500000,
+> > > +		.int_clock_min = 2000000,
+> > > +		.int_clock_max = 24000000,
+> > > +		.out_clock_min = 322000000,
+> > > +		.out_clock_max = 693000000,
+> > > +		.pix_clock_max = 99000000,
+> > > +		.n_min = 1,
+> > > +		.n_max = 64,
+> > > +		.m_min = 16,
+> > > +		.m_max = 255,
+> > > +		.p1_min = 1,
+> > > +		.p1_max = 128,
+> > > +	};
+> > > +
+> > > +	struct i2c_client *client = v4l2_get_subdevdata(&sensor->subdev);
+> > > +	struct mt9m032_platform_data *pdata = sensor->pdata;
+> > > +	struct aptina_pll pll;
+> > > +	int ret;
+> > > +
+> > > +	pll.ext_clock = pdata->ext_clock;
+> > > +	pll.pix_clock = pdata->pix_clock;
+> > 
+> > You could initialise these in the declaration.
+> 
+> Yes, but I would find that less readable :-)
+
+Ok.
+
+...
+
+> > > +	rect.width = min(rect.width, MT9M032_PIXEL_ARRAY_WIDTH - rect.left);
+> > > +	rect.height = min(rect.height, MT9M032_PIXEL_ARRAY_HEIGHT - 
+> rect.top);
+> > > +
+> > > +	__crop = __mt9m032_get_pad_crop(sensor, fh, crop->which);
+> > > +
+> > > +	if (rect.width != __crop->width || rect.height != __crop->height) {
+> > > +		/* Reset the output image size if the crop rectangle size has
+> > > +		 * been modified.
+> > > +		 */
+> > > +		format = __mt9m032_get_pad_format(sensor, fh, crop->which);
+> > > +		format->width = rect.width;
+> > > +		format->height = rect.height;
+> > 
+> > I think you can do this unconditionally.
+> 
+> I could, but I hope to add binning/skipping support to this driver soon. The 
+> check will be needed then.
+
+Sounds fine for me.
+
+> > > +	}
+> > > +
+> > > +	*__crop = rect;
+> > > +	crop->rect = rect;
+> > > +
+> > > +	if (crop->which != V4L2_SUBDEV_FORMAT_ACTIVE)
+> > > +		return 0;
+> > > +
+> > > +	return mt9m032_update_geom_timing(sensor);
+> > > +}
+> 
+> [snip]
+> 
+> > > +static int mt9m032_set_frame_interval(struct v4l2_subdev *subdev,
+> > > +				      struct v4l2_subdev_frame_interval *fi)
+> > > +{
+> > > +	struct mt9m032 *sensor = to_mt9m032(subdev);
+> > > +	int ret;
+> > > +
+> > > +	if (sensor->streaming)
+> > > +		return -EBUSY;
+> > > +
+> > > +	memset(fi->reserved, 0, sizeof(fi->reserved));
+> > 
+> > I'm not quite sure these should be touched.
+> 
+> Why not ? Do you think this could cause a regression in the future when the 
+> fields won't be reserved anymore ?
+
+The user is responsible for setting those fields to zero. If we set them to
+zero for them they will start relying on that. At some point that might not
+hold true anymore.
+
+> > > +	ret = mt9m032_update_timing(sensor, &fi->interval);
+> > > +	if (!ret)
+> > > +		sensor->frame_interval = fi->interval;
+> > > +
+> > > +	return ret;
+> > > +}
+> 
+> 
+> > > +static int mt9m032_set_ctrl(struct v4l2_ctrl *ctrl)
+> > > +{
+> > > +	struct mt9m032 *sensor =
+> > > +		container_of(ctrl->handler, struct mt9m032, ctrls);
+> > > +	struct i2c_client *client = v4l2_get_subdevdata(&sensor->subdev);
+> > > +	int ret;
+> > > +
+> > > +	switch (ctrl->id) {
+> > > +	case V4L2_CID_GAIN:
+> > > +		return mt9m032_set_gain(sensor, ctrl->val);
+> > 
+> > The gain control only touches analogue gain. Shouldn't you use
+> > V4L2_CID_ANALOGUE_GAIN (or something alike) instead?
+> 
+> If there was such a control in mainline, sure ;-)
+> 
+> I plan to revisit controls in the various Aptina sensor drivers I maintain in 
+> the near future. Analog/digital gains will be on my to-do list.
+
+Fine for me. Let's think these after 3.4 merge window.
+
+Cheers,
+
 -- 
-1.7.3.4
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
