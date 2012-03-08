@@ -1,53 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f172.google.com ([209.85.212.172]:50918 "EHLO
-	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760426Ab2CTPeP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Mar 2012 11:34:15 -0400
-Received: by wibhj6 with SMTP id hj6so5337637wib.1
-        for <linux-media@vger.kernel.org>; Tue, 20 Mar 2012 08:34:12 -0700 (PDT)
-From: Javier Martin <javier.martin@vista-silicon.com>
-To: linux-media@vger.kernel.org
-Cc: s.nawrocki@samsung.com, mchehab@infradead.org,
-	Javier Martin <javier.martin@vista-silicon.com>
-Subject: [PATCH] media: i.MX2: eMMa-PrP: Allow userptr IO mode.
-Date: Tue, 20 Mar 2012 16:33:59 +0100
-Message-Id: <1332257639-7908-1-git-send-email-javier.martin@vista-silicon.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:41067 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755355Ab2CHSFN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Mar 2012 13:05:13 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, dacohen@gmail.com, snjw23@gmail.com,
+	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
+	tuukkat76@gmail.com, k.debski@samsung.com, riverful@gmail.com,
+	hverkuil@xs4all.nl, teturtia@gmail.com, pradeep.sawlani@gmail.com
+Subject: Re: [PATCH v5.3 27/35] omap3isp: Introduce isp_video_check_external_subdevs()
+Date: Thu, 08 Mar 2012 19:05:30 +0100
+Message-ID: <6081097.ezx1Tdxi38@avalon>
+In-Reply-To: <1331226264-6874-1-git-send-email-sakari.ailus@iki.fi>
+References: <1513668.GA27SF7oCM@avalon> <1331226264-6874-1-git-send-email-sakari.ailus@iki.fi>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Userptr can be very useful if this device
-is requested to use video buffers allocated
-by another processing device. So that
-buffers don't need to be copied.
+Hi Sakari,
 
-Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
----
- drivers/media/video/mx2_emmaprp.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+Thanks for the patch.
 
-diff --git a/drivers/media/video/mx2_emmaprp.c b/drivers/media/video/mx2_emmaprp.c
-index ba89a74..55ac173 100644
---- a/drivers/media/video/mx2_emmaprp.c
-+++ b/drivers/media/video/mx2_emmaprp.c
-@@ -755,7 +755,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
- 
- 	memset(src_vq, 0, sizeof(*src_vq));
- 	src_vq->type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
--	src_vq->io_modes = VB2_MMAP;
-+	src_vq->io_modes = VB2_MMAP | VB2_USERPTR;
- 	src_vq->drv_priv = ctx;
- 	src_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
- 	src_vq->ops = &emmaprp_qops;
-@@ -767,7 +767,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
- 
- 	memset(dst_vq, 0, sizeof(*dst_vq));
- 	dst_vq->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
--	dst_vq->io_modes = VB2_MMAP;
-+	dst_vq->io_modes = VB2_MMAP | VB2_USERPTR;
- 	dst_vq->drv_priv = ctx;
- 	dst_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
- 	dst_vq->ops = &emmaprp_qops;
+On Thursday 08 March 2012 19:04:24 Sakari Ailus wrote:
+> isp_video_check_external_subdevs() will retrieve external subdev's
+> bits-per-pixel and pixel rate for the use of other ISP subdevs at streamon
+> time. isp_video_check_external_subdevs() is called after pipeline
+> validation.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
 -- 
-1.7.0.4
+Regards,
+
+Laurent Pinchart
 
