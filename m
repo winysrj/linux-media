@@ -1,65 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:50472 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756174Ab2CAGrQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Mar 2012 01:47:16 -0500
-Received: by pbcup15 with SMTP id up15so522147pbc.19
-        for <linux-media@vger.kernel.org>; Wed, 29 Feb 2012 22:47:15 -0800 (PST)
+Received: from perceval.ideasonboard.com ([95.142.166.194]:50650 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753386Ab2CHOiZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Mar 2012 09:38:25 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, dacohen@gmail.com, snjw23@gmail.com,
+	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
+	tuukkat76@gmail.com, k.debski@samsung.com, riverful@gmail.com,
+	hverkuil@xs4all.nl, teturtia@gmail.com, pradeep.sawlani@gmail.com
+Subject: Re: [PATCH v5.1 34/35] smiapp: Generic SMIA++/SMIA PLL calculator
+Date: Thu, 08 Mar 2012 15:38:45 +0100
+Message-ID: <2338182.m4p3vRkuCF@avalon>
+In-Reply-To: <1331215050-20823-1-git-send-email-sakari.ailus@iki.fi>
+References: <1960253.l1xo097dr7@avalon> <1331215050-20823-1-git-send-email-sakari.ailus@iki.fi>
 MIME-Version: 1.0
-Date: Wed, 29 Feb 2012 23:41:50 -0700
-Message-ID: <CAOQJi0jWyz3toed1veDhCRPDQqnrgBKg6uooifGwTPPscR33nQ@mail.gmail.com>
-Subject: audio is not working
-From: Steven Dahlin <linux.sldahlin@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I am running an athlon ii 945 with a hauppauge wintv 1600 capture
-card.  I have a version of mythtv installed (0.24) in which I
-downloaded the latest V4L-DVB Device Drivers from
-git://linuxtv.org/media_build.git, built them, and then installed.
-Everything is up to date with the software packages.  The video
-records perfectly fine but the audio is missing.  The backend log has
-the following indicators of problems:
+Hi Sakari,
 
-2012-02-29 22:30:28.722 AFD Warning: ScanATSCCaptionStreams() called with no PMT
-2012-02-29 22:30:28.763 AFD: Opened codec 0x7f7180007f30,
-id(MPEG2VIDEO) type(Video)
-2012-02-29 22:30:28.797 AFD: codec MP2 has 2 channels
-2012-02-29 22:30:28.830 AFD: Opened codec 0x7f718000abe0, id(MP2) type(Audio)
-2012-02-29 22:30:28.951 [mpeg2video @ 0x7f719986c700]warning: first
-frame is no keyframe
-2012-02-29 22:30:29.016 [mpeg2video @ 0x7f719986c700]warning: first
-frame is no keyframe
-2012-02-29 22:35:12.770 [mpeg2video @ 0x7f719986c700]00 motion_type at 28 10
-2012-02-29 22:35:12.815 [mpeg2video @ 0x7f719986c700]Warning MVs not available
-2012-02-29 22:35:12.859 [mp2 @ 0x7f719986c700]incomplete frame
-2012-02-29 22:35:12.899 AFD Error: Unknown audio decoding error
+Thanks for the patch.
 
-In the syslog I am seeing entries (a log of them) like this:
+On Thursday 08 March 2012 15:57:29 Sakari Ailus wrote:
+> From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+> 
+> Calculate PLL configuration based on input data: sensor configuration, board
+> properties and sensor-specific limits.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 
-Feb 29 22:29:56 bifrosttv kernel: [ 1154.739451] cx18-0: Skipped
-encoder IDX, MDL 442, 2 times - it must have dropped out of rotation
-Feb 29 22:29:56 bifrosttv kernel: [ 1154.739459] cx18-0: Skipped
-encoder IDX, MDL 443, 2 times - it must have dropped out of rotation
-Feb 29 22:29:56 bifrosttv kernel: [ 1154.739465] cx18-0: Skipped
-encoder IDX, MDL 444, 2 times - it must have dropped out of rotation
-Feb 29 22:29:56 bifrosttv kernel: [ 1154.739472] cx18-0: Could not
-find MDL 438 for stream encoder IDX
-Feb 29 22:29:56 bifrosttv kernel: [ 1154.739478] cx18-0: Could not
-find MDL 441 for stream encoder IDX
-Feb 29 22:30:00 bifrosttv kernel: [ 1158.736285] cx18-0: Skipped
-encoder IDX, MDL 444, 1 times - it must have dropped out of rotation
-Feb 29 22:30:00 bifrosttv kernel: [ 1158.736325] cx18-0: Could not
-find MDL 441 for stream encoder IDX
-Feb 29 22:30:00 bifrosttv kernel: [ 1158.736335] cx18-0: Could not
-find MDL 442 for stream encoder IDX
-Feb 29 22:30:00 bifrosttv kernel: [ 1158.736431] cx18-0: Could not
-find MDL 443 for stream encoder IDX
-Feb 29 22:30:00 bifrosttv kernel: [ 1158.736437] cx18-0: Could not
-find MDL 444 for stream encoder IDX
-Feb 29 22:30:00 bifrosttv kernel: [ 1158.736475] cx18-0: Could not
-find MDL 442 for stream encoder IDX
+[snip]
 
-Does anyone have suggestions or ideas I can try?
+> diff --git a/drivers/media/video/smiapp-pll.c
+> b/drivers/media/video/smiapp-pll.c new file mode 100644
+> index 0000000..c8ffdc9
+> --- /dev/null
+> +++ b/drivers/media/video/smiapp-pll.c
+
+[snip]
+
+> +	/*
+> +	 * Find pix_div such that a legal pix_div * sys_div results
+> +	 * into a value which is not smaller than div, the desired
+> +	 * divisor.
+> +	 */
+> +	for (vt_div = min_vt_div; vt_div <= max_vt_div;
+> +	     vt_div += 2 - (vt_div & 1)) {
+> +		for (sys_div = min_sys_div;
+> +		     sys_div <= max_sys_div;
+> +		     sys_div += 2 - (sys_div & 1)) {
+> +			int pix_div = DIV_ROUND_UP(vt_div, sys_div);
+> +
+> +			if (pix_div <
+> +			    limits->min_vt_pix_clk_div
+> +			    || pix_div
+> +			    > limits->max_vt_pix_clk_div) {
+
+Maybe you should get some sleep, I've heard it helps memory ;-)
+
+> +				dev_dbg(dev,
+> +					"pix_div %d too small or too big (%d--%d)\n",
+> +					pix_div,
+> +					limits->min_vt_pix_clk_div,
+> +					limits->max_vt_pix_clk_div);
+> +				continue;
+> +			}
+> +
+> +			/* Check if this one is better. */
+> +			if (pix_div * sys_div
+> +			    <= ALIGN(min_vt_div, best_pix_div))
+> +				best_pix_div = pix_div;
+> +		}
+> +		if (best_pix_div < INT_MAX >> 1)
+> +			break;
+> +	}
+
+-- 
+Regards,
+
+Laurent Pinchart
+
