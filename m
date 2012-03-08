@@ -1,125 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:56041 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754569Ab2CGPwF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Mar 2012 10:52:05 -0500
-Received: by bkcik5 with SMTP id ik5so5348021bkc.19
-        for <linux-media@vger.kernel.org>; Wed, 07 Mar 2012 07:52:03 -0800 (PST)
-Message-ID: <4F57841A.6060901@gmail.com>
-Date: Wed, 07 Mar 2012 16:51:54 +0100
-From: poma <pomidorabelisima@gmail.com>
+Received: from ftp.meprolight.com ([194.90.149.17]:38613 "EHLO meprolight.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752577Ab2CHNnV convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Mar 2012 08:43:21 -0500
+From: Alex Gershgorin <alexg@meprolight.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: Fabio Estevam <fabio.estevam@freescale.com>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	"'s.hauer@pengutronix.de'" <s.hauer@pengutronix.de>,
+	"'linux-kernel@vger.kernel.org'" <linux-kernel@vger.kernel.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Date: Thu, 8 Mar 2012 15:43:03 +0200
+Subject: RE: I.MX35 PDK
+Message-ID: <4875438356E7CA4A8F2145FCD3E61C0B2CBD5D8914@MEP-EXCH.meprolight.com>
+References: <4875438356E7CA4A8F2145FCD3E61C0B2CBD666A28@MEP-EXCH.meprolight.com>,<Pine.LNX.4.64.1203081225290.29847@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1203081225290.29847@axis700.grange>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: [PATCH] af9015: fix i2c failures for dual-tuner devices
-References: <4F19EB13.7010502@iki.fi> <1327266792-8030-1-git-send-email-ghecker@gmx.de>
-In-Reply-To: <1327266792-8030-1-git-send-email-ghecker@gmx.de>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 22.01.2012 22:13, Gordon Hecker wrote:
-> The i2c failures were caused by enabling both i2c gates
-> at the same time while putting the tuners asleep.
-> 
-> This patch removes the init() and sleep() callbacks from the tuner,
-> to prevent frontend.c from calling
->   i2c_gate_ctrl
->   tuner init / sleep
->   i2c_gate_ctrl
-> without holding the lock.
-> tuner init() and sleep() are instead called in frontend init() and
-> sleep().
-> 
-> Signed-off-by: Gordon Hecker <ghecker@gmx.de>
-> ---
->  drivers/media/dvb/dvb-usb/af9015.c |   31 +++++++++++++++++++++++++++++++
->  drivers/media/dvb/dvb-usb/af9015.h |    2 ++
->  2 files changed, 33 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/media/dvb/dvb-usb/af9015.c b/drivers/media/dvb/dvb-usb/af9015.c
-> index e755d76..b69b43b 100644
-> --- a/drivers/media/dvb/dvb-usb/af9015.c
-> +++ b/drivers/media/dvb/dvb-usb/af9015.c
-> @@ -1141,7 +1141,18 @@ static int af9015_af9013_init(struct dvb_frontend *fe)
->  		return -EAGAIN;
->  
->  	ret = priv->init[adap->id](fe);
-> +	if (ret)
-> +		goto err_unlock;
-> +
-> +	if (priv->tuner_ops_init[adap->id]) {
-> +		if (fe->ops.i2c_gate_ctrl)
-> +			fe->ops.i2c_gate_ctrl(fe, 1);
-> +		ret = priv->tuner_ops_init[adap->id](fe);
-> +		if (fe->ops.i2c_gate_ctrl)
-> +			fe->ops.i2c_gate_ctrl(fe, 0);
-> +	}
->  
-> +err_unlock:
->  	mutex_unlock(&adap->dev->usb_mutex);
->  
->  	return ret;
-> @@ -1157,8 +1168,19 @@ static int af9015_af9013_sleep(struct dvb_frontend *fe)
->  	if (mutex_lock_interruptible(&adap->dev->usb_mutex))
->  		return -EAGAIN;
->  
-> +	if (priv->tuner_ops_sleep[adap->id]) {
-> +		if (fe->ops.i2c_gate_ctrl)
-> +			fe->ops.i2c_gate_ctrl(fe, 1);
-> +		ret = priv->tuner_ops_sleep[adap->id](fe);
-> +		if (fe->ops.i2c_gate_ctrl)
-> +			fe->ops.i2c_gate_ctrl(fe, 0);
-> +		if (ret)
-> +			goto err_unlock;
-> +	}
-> +
->  	ret = priv->sleep[adap->id](fe);
->  
-> +err_unlock:
->  	mutex_unlock(&adap->dev->usb_mutex);
->  
->  	return ret;
-> @@ -1283,6 +1305,7 @@ static struct mxl5007t_config af9015_mxl5007t_config = {
->  static int af9015_tuner_attach(struct dvb_usb_adapter *adap)
->  {
->  	int ret;
-> +	struct af9015_state *state = adap->dev->priv;
->  	deb_info("%s:\n", __func__);
->  
->  	switch (af9015_af9013_config[adap->id].tuner) {
-> @@ -1340,6 +1363,14 @@ static int af9015_tuner_attach(struct dvb_usb_adapter *adap)
->  		err("Unknown tuner id:%d",
->  			af9015_af9013_config[adap->id].tuner);
->  	}
-> +
-> +	state->tuner_ops_sleep[adap->id] =
-> +				adap->fe_adap[0].fe->ops.tuner_ops.sleep;
-> +	adap->fe_adap[0].fe->ops.tuner_ops.sleep = 0;
-> +
-> +	state->tuner_ops_init[adap->id] =
-> +				adap->fe_adap[0].fe->ops.tuner_ops.init;
-> +	adap->fe_adap[0].fe->ops.tuner_ops.init = 0;
->  	return ret;
->  }
->  
-> diff --git a/drivers/media/dvb/dvb-usb/af9015.h b/drivers/media/dvb/dvb-usb/af9015.h
-> index f619063..ee2ec5b 100644
-> --- a/drivers/media/dvb/dvb-usb/af9015.h
-> +++ b/drivers/media/dvb/dvb-usb/af9015.h
-> @@ -108,6 +108,8 @@ struct af9015_state {
->  	int (*read_status[2]) (struct dvb_frontend *fe, fe_status_t *status);
->  	int (*init[2]) (struct dvb_frontend *fe);
->  	int (*sleep[2]) (struct dvb_frontend *fe);
-> +	int (*tuner_ops_init[2]) (struct dvb_frontend *fe);
-> +	int (*tuner_ops_sleep[2]) (struct dvb_frontend *fe);
->  };
->  
->  struct af9015_config {
+Hi Guennadi,
 
-Both tuners perform stable.
-Tested on mythbackend multiple streams simultaneously.
-+1
+Thanks for you comments...
 
-rgds,
-poma
+>>>Hi Alex
+
+>>>Why is the cc-list mangled again? Why is the V4L list dropped again?
+>>>What's so difficult about hitting the "reply-to-all" button?
+
+ You are absolutely right, I hope that now the cc-list valid.
+
+> Hi Fabio,
+>
+> Thanks for you response...
+>
+> > in spite of this I get from ov2640 driver error
+> > Here Linux Kernel boot message:
+> >
+> > "Linux video capture interface: v2.00
+> > soc-camera-pdrv soc-camera-pdrv.0: Probing soc-camera-pdrv.0
+> > mx3-camera mx3-camera.0: MX3 Camera driver attached to camera 0
+> > ov2640 0-0030: Product ID error fb:fb"
+> >
+> > I cannot understand what the problem is, if someone tested this?
+>
+> >>Looks like a I2C issue.
+>
+> >>Check the I2C1 pad settings in the mainline kernel.
+>
+> >>On FSL kernel we have:
+>
+> #<<define PAD_CONFIG (PAD_CTL_HYS_SCHMITZ | PAD_CTL_PKE_ENABLE |
+> >>PAD_CTL_PUE_PUD | PAD_CTL_ODE_OpenDrain)
+>
+>       <<switch (i2c_num) {
+>       <<case 0:
+>               <<mxc_request_iomux(MX35_PIN_I2C1_CLK, MUX_CONFIG_SION);
+>               <<mxc_request_iomux(MX35_PIN_I2C1_DAT, MUX_CONFIG_SION);
+>
+>               <<mxc_iomux_set_pad(MX35_PIN_I2C1_CLK, PAD_CONFIG);
+>               <<mxc_iomux_set_pad(MX35_PIN_I2C1_DAT, PAD_CONFIG);
+>
+> >>Also check if you are getting the proper voltage levels at the I2C1 lines.
+>
+> Yes this I2C problem, all I2C slave device need response to Host CPU by pulls I2C data bus to low, in other words generate ACK, the clock pulse for the acknowledge bit is always created by the bus master.
+>
+> In this case, the camera tries to reset the data bus and generate an ACK, but the voltage drops to the area of two volts, although it should be reset to zero.
+> I replaced R172 with 10K on CPU board and got a good result, but there are other surprises
+>
+> Linux video capture interface: v2.00
+> soc-camera-pdrv soc-camera-pdrv.0: Probing soc-camera-pdrv.0
+> mx3-camera mx3-camera.0: MX3 Camera driver attached to camera 0
+> ov2640 0-0030: ov2640 Product ID 26:42 Manufacturer ID 7f:a2
+> i2c i2c-0: OV2640 Probed
+> mx3-camera mx3-camera.0: MX3 Camera driver detached from camera 0
+> dmaengine: failed to get dma1chan0: (-22)
+> dmaengine: failed to get dma1chan1: (-22)
+> dmaengine: failed to get dma1chan2: (-22)
+> dmaengine: failed to get dma1chan3: (-22)
+
+>>>First of all it shows, that you're not using the newest kernel:
+
+>>>http://thread.gmane.org/gmane.linux.ports.sh.devel/11508
+
+I use Linux version 3.3.0-rc6 it contains the changes.
+
+>>>Secondly, as Fabio just pointed out, these messages are not fatal, which
+>>>is also the reason, why I changed their priority to "debug"
+
+Ok
+
+>>>Please, describe the actual problem, that you're getting (if any) and do
+>>>add the v4l list back to the list of recipients!
+
+At this stage, for me the problem of this type are actual, for the simple reason that I see it the first time.
+Thanks for support and patience :-) 
+
+> What is the problem?
+> Guennadi please help me understand
+>
+
+Regards, 
+Alex Gershgorin
+ 
