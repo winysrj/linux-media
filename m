@@ -1,65 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.47]:53313 "EHLO mgw-sa01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932344Ab2CBRcz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 2 Mar 2012 12:32:55 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, dacohen@gmail.com,
-	snjw23@gmail.com, andriy.shevchenko@linux.intel.com,
-	t.stanislaws@samsung.com, tuukkat76@gmail.com,
-	k.debski@samsung.com, riverful@gmail.com, hverkuil@xs4all.nl,
-	teturtia@gmail.com
-Subject: [PATCH v4 20/34] omap3isp: Support additional in-memory compressed bayer formats
-Date: Fri,  2 Mar 2012 19:30:28 +0200
-Message-Id: <1330709442-16654-20-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <20120302173219.GA15695@valkosipuli.localdomain>
-References: <20120302173219.GA15695@valkosipuli.localdomain>
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:38331 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753386Ab2CHPGf convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Mar 2012 10:06:35 -0500
+Received: by iagz16 with SMTP id z16so797094iag.19
+        for <linux-media@vger.kernel.org>; Thu, 08 Mar 2012 07:06:34 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <1331215050-20823-2-git-send-email-sakari.ailus@iki.fi>
+References: <1960253.l1xo097dr7@avalon>
+	<1331215050-20823-2-git-send-email-sakari.ailus@iki.fi>
+Date: Thu, 8 Mar 2012 16:06:34 +0100
+Message-ID: <CAGGh5h37Rd9O1Hp6FHBo1KcQRdEb=2OJxGkA0aJmyWkEB9juGQ@mail.gmail.com>
+Subject: Re: [PATCH v5.1 35/35] smiapp: Add driver
+From: jean-philippe francois <jp.francois@cynove.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	dacohen@gmail.com, snjw23@gmail.com,
+	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
+	tuukkat76@gmail.com, k.debski@samsung.com, riverful@gmail.com,
+	hverkuil@xs4all.nl, teturtia@gmail.com, pradeep.sawlani@gmail.com
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This also prevents accessing NULL pointer in csi2_try_format().
+Le 8 mars 2012 14:57, Sakari Ailus <sakari.ailus@iki.fi> a écrit :
+> Add driver for SMIA++/SMIA image sensors. The driver exposes the sensor as
+> three subdevs, pixel array, binner and scaler --- in case the device has a
+> scaler.
+>
+> Currently it relies on the board code for external clock handling. There is
+> no fast way out of this dependency before the ISP drivers (omap3isp) among
+> others will be able to export that clock through the clock framework
+> instead.
+>
+> +       case V4L2_CID_EXPOSURE:
+> +               return smiapp_write(
+> +                       client,
+> +                       SMIAPP_REG_U16_COARSE_INTEGRATION_TIME, ctrl->val);
+> +
+At this point, knowing pixel clock and line length, it is possible
+to get / set the exposure in useconds or millisecond value.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/video/omap3isp/ispvideo.c |   13 +++++++++++++
- 1 files changed, 13 insertions(+), 0 deletions(-)
+>From userspace, if for example you change the format and crop,
+you can just set the expo to a value in msec or usec, and get the
+same exposure after your format change.
 
-diff --git a/drivers/media/video/omap3isp/ispvideo.c b/drivers/media/video/omap3isp/ispvideo.c
-index b020700..c191f13 100644
---- a/drivers/media/video/omap3isp/ispvideo.c
-+++ b/drivers/media/video/omap3isp/ispvideo.c
-@@ -46,6 +46,10 @@
-  * Helper functions
-  */
- 
-+/*
-+ * NOTE: When adding new media bus codes, always remember to add
-+ * corresponding in-memory formats to the table below!!!
-+ */
- static struct isp_format_info formats[] = {
- 	{ V4L2_MBUS_FMT_Y8_1X8, V4L2_MBUS_FMT_Y8_1X8,
- 	  V4L2_MBUS_FMT_Y8_1X8, V4L2_MBUS_FMT_Y8_1X8,
-@@ -68,9 +72,18 @@ static struct isp_format_info formats[] = {
- 	{ V4L2_MBUS_FMT_SRGGB8_1X8, V4L2_MBUS_FMT_SRGGB8_1X8,
- 	  V4L2_MBUS_FMT_SRGGB8_1X8, V4L2_MBUS_FMT_SRGGB8_1X8,
- 	  V4L2_PIX_FMT_SRGGB8, 8, },
-+	{ V4L2_MBUS_FMT_SBGGR10_DPCM8_1X8, V4L2_MBUS_FMT_SBGGR10_DPCM8_1X8,
-+	  V4L2_MBUS_FMT_SBGGR10_1X10, 0,
-+	  V4L2_PIX_FMT_SBGGR10DPCM8, 8, },
-+	{ V4L2_MBUS_FMT_SGBRG10_DPCM8_1X8, V4L2_MBUS_FMT_SGBRG10_DPCM8_1X8,
-+	  V4L2_MBUS_FMT_SGBRG10_1X10, 0,
-+	  V4L2_PIX_FMT_SGBRG10DPCM8, 8, },
- 	{ V4L2_MBUS_FMT_SGRBG10_DPCM8_1X8, V4L2_MBUS_FMT_SGRBG10_DPCM8_1X8,
- 	  V4L2_MBUS_FMT_SGRBG10_1X10, 0,
- 	  V4L2_PIX_FMT_SGRBG10DPCM8, 8, },
-+	{ V4L2_MBUS_FMT_SRGGB10_DPCM8_1X8, V4L2_MBUS_FMT_SRGGB10_DPCM8_1X8,
-+	  V4L2_MBUS_FMT_SRGGB10_1X10, 0,
-+	  V4L2_PIX_FMT_SRGGB10DPCM8, 8, },
- 	{ V4L2_MBUS_FMT_SBGGR10_1X10, V4L2_MBUS_FMT_SBGGR10_1X10,
- 	  V4L2_MBUS_FMT_SBGGR10_1X10, V4L2_MBUS_FMT_SBGGR8_1X8,
- 	  V4L2_PIX_FMT_SBGGR10, 10, },
--- 
-1.7.2.5
+The driver is IMO the place where we have all the info. Here is some
+example code with usec. (The 522 constant is the fine integration register...)
 
+static int  mt9j_expo_to_shutter(struct usb_ovfx2 * ov, u32 expo)
+{
+	int rc = 0;
+	u32 expo_pix; // exposition in pixclk unit
+	u16 coarse_expo;
+	u16 row_time;
+	expo_pix = expo * 96;   /// pixel clock in MHz
+	MT9J_RREAD(ov, LINE_LENGTH_PCK, &row_time);
+	expo_pix = expo_pix - 522;
+	coarse_expo = (expo_pix + row_time/2)/ row_time;
+	MT9J_RWRITE(ov, COARSE_EXPO_REG, coarse_expo);
+	return rc;
+}
+
+static int  mt9j_shutter_to_expo(struct usb_ovfx2 * ov, u32  * expo)
+{
+	int rc = 0;
+	u32 expo_pix; // exposition in pixclk unit
+	u16 coarse_expo;
+	u16 row_time;
+	MT9J_RREAD(ov, LINE_LENGTH_PCK, &row_time);
+	MT9J_RREAD(ov, COARSE_EXPO_REG, &coarse_expo);
+	expo_pix = row_time * coarse_expo + 522;
+	*expo = expo_pix / (96);
+	return rc;
+}
+
+Maybe you have enough on your plate for now, and this can
+wait after inclusion, but it is a nice abstraction to have  from
+userspace point of view.
