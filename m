@@ -1,106 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx01.sz.bfs.de ([194.94.69.103]:15980 "EHLO mx01.sz.bfs.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752566Ab2CROnG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 18 Mar 2012 10:43:06 -0400
-Message-ID: <4F65F476.70002@bfs.de>
-Date: Sun, 18 Mar 2012 15:43:02 +0100
-From: walter harms <wharms@bfs.de>
-Reply-To: wharms@bfs.de
+Received: from ftp.meprolight.com ([194.90.149.17]:46441 "EHLO meprolight.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1756597Ab2CHPgW convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Mar 2012 10:36:22 -0500
+From: Alex Gershgorin <alexg@meprolight.com>
+To: Fabio Estevam <festevam@gmail.com>
+CC: Fabio Estevam <fabio.estevam@freescale.com>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	"g.liakhovetski@gmx.de" <g.liakhovetski@gmx.de>,
+	"s.hauer@pengutronix.de" <s.hauer@pengutronix.de>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Thu, 8 Mar 2012 17:36:05 +0200
+Subject: RE: I.MX35 PDK
+Message-ID: <4875438356E7CA4A8F2145FCD3E61C0B2CBD5D8918@MEP-EXCH.meprolight.com>
+References: <CAOMZO5DnP7+zupy9vwBPS0+2XtKM1+nLbwCqBzuCqEG5OWbZRQ@mail.gmail.com>
+	<4875438356E7CA4A8F2145FCD3E61C0B2CBD666A28@MEP-EXCH.meprolight.com>,<CAOMZO5Amo0XFf+TV7PprCL079C5Y0qKmo+k-FfShU7k4SG7W6Q@mail.gmail.com>,<4875438356E7CA4A8F2145FCD3E61C0B2CBD5D8913@MEP-EXCH.meprolight.com>
+In-Reply-To: <4875438356E7CA4A8F2145FCD3E61C0B2CBD5D8913@MEP-EXCH.meprolight.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-To: santosh nayak <santoshprasadnayak@gmail.com>
-CC: mchehab@infradead.org, oliver@neukum.org,
-	gregkh@linuxfoundation.org, khoroshilov@ispras.ru,
-	linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-	linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
-Subject: Re: [PATCH] [media] staging: use mutex_lock() in s2250_probe().
-References: <1332005817-10762-1-git-send-email-santoshprasadnayak@gmail.com>
-In-Reply-To: <1332005817-10762-1-git-send-email-santoshprasadnayak@gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
+>On my mx31pdk I get the same dmaengine errors and the ov2640 does work fine.
+>I think you can go ahead and try to use the camera on the mx35pdk now.
+>You can try:
 
-Am 17.03.2012 18:36, schrieb santosh nayak:
-> From: Santosh Nayak <santoshprasadnayak@gmail.com>
-> 
-> Use uninterruptable sleep lock  'mutex_lock()'  in place of
-> mutex_lock_interruptible() because there is no userspace
-> for s2250_probe().
-> 
-> Return -ENOMEM   if kzalloc() fails to allocate and initialize.
-> 
-> Signed-off-by: Santosh Nayak <santoshprasadnayak@gmail.com>
-> ---
->  drivers/staging/media/go7007/s2250-board.c |   43 +++++++++++++++------------
->  1 files changed, 24 insertions(+), 19 deletions(-)
-> 
-> diff --git a/drivers/staging/media/go7007/s2250-board.c b/drivers/staging/media/go7007/s2250-board.c
-> index 014d384..1406a37 100644
-> --- a/drivers/staging/media/go7007/s2250-board.c
-> +++ b/drivers/staging/media/go7007/s2250-board.c
-> @@ -637,27 +637,32 @@ static int s2250_probe(struct i2c_client *client,
->  	state->audio_input = 0;
->  	write_reg(client, 0x08, 0x02); /* Line In */
->  
-> -	if (mutex_lock_interruptible(&usb->i2c_lock) == 0) {
-> -		data = kzalloc(16, GFP_KERNEL);
-> -		if (data != NULL) {
-> -			int rc;
-> -			rc = go7007_usb_vendor_request(go, 0x41, 0, 0,
-> -						       data, 16, 1);
-> -			if (rc > 0) {
-> -				u8 mask;
-> -				data[0] = 0;
-> -				mask = 1<<5;
-> -				data[0] &= ~mask;
-> -				data[1] |= mask;
-> -				go7007_usb_vendor_request(go, 0x40, 0,
-> -							  (data[1]<<8)
-> -							  + data[1],
-> -							  data, 16, 0);
-> -			}
-> -			kfree(data);
-> -		}
-> +	mutex_lock(&usb->i2c_lock);
-> +	data = kzalloc(16, GFP_KERNEL);
-> +	if (data == NULL) {
-> +		i2c_unregister_device(audio);
-> +		kfree(state);
->  		mutex_unlock(&usb->i2c_lock);
-> +		return -ENOMEM;
-> +	} else {
-> +		int rc;
-> +		rc = go7007_usb_vendor_request(go, 0x41, 0, 0,
-> +					       data, 16, 1);
-> +		if (rc > 0) {
-> +			u8 mask;
-> +			data[0] = 0;
-> +			mask = 1<<5;
-> +			data[0] &= ~mask;
-> +			data[1] |= mask;
-> +			go7007_usb_vendor_request(go, 0x40, 0,
-> +						  (data[1]<<8)
-> +						  + data[1],
-> +						  data, 16, 0);
-> +		}
-> +		kfree(data);
->  	}
-> +	mutex_unlock(&usb->i2c_lock);
-> +
->  
->  	v4l2_info(sd, "initialized successfully\n");
->  	return 0;
+>gst-launch -v v4l2src device=/dev/video0 !
+>video/x-raw-yuv,width=320,height=240,framerate=25/1 ! ffmpegcolorspace
+>! fbdevsink
 
-hi,
-You can drop the else
-1. there is no 3. way
-2. you can save 1 indent level
+<<Thank Fabio I'll try to check it.
 
-just one question: the (data[1]<<8)+ data[1] is intended ? always data[1] ?
-(i have no clue, it is the original code, it just feels .. strange )
+I tried to test it, everything is fine,  just do not see the video on display.
+Here can see messages:
 
-re,
- wh
+Setting pipeline to PAUSED ...mx3-camera mx3-camera.0: MX3 Camera driver attached to camera 0
+/GstPipeline:pipeline0/GstV4l2Src:v4l2src0.GstPad:src: caps = video/x-raw-yuv, format=(fourcc)UYVY, framerate=(fraction)25/1, width=(int)320, height=(int)240, interlaced=(boolean)false
+Pipeline is live and does not need PREROLL ...
+WARNING: from element /GstPipeline:pipeline0/GstV4l2Src:v4l2src0: Could not get parameters on device '/dev/video0'
+Additional debug info:
+v4l2src_calls.c(240): gst_v4l2src_set_capture (): /GstPipeline:pipeline0/GstV4l2Src:v4l2src0:
+system error: Invalid argument
+Setting pipeline to PLAYING ...
+New clock: GstSystemClock
+
+It works well :-) 
+gst-launch videotestsrc ! fbdevsink
+
+Regards
+Alex Gershgorin
