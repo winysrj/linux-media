@@ -1,55 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:45051 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1030385Ab2CFMJa (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Mar 2012 07:09:30 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Martin Hostettler <martin@neutronstar.dyndns.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-Subject: [PATCH 0/5] MT9M032 and MT9P031 sensor patches
-Date: Tue,  6 Mar 2012 13:09:41 +0100
-Message-Id: <1331035786-8938-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:54863 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754101Ab2CHVZz convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Mar 2012 16:25:55 -0500
+MIME-Version: 1.0
+In-Reply-To: <1329929337-16648-13-git-send-email-m.szyprowski@samsung.com>
+References: <1329929337-16648-1-git-send-email-m.szyprowski@samsung.com> <1329929337-16648-13-git-send-email-m.szyprowski@samsung.com>
+From: Sandeep Patil <psandeep.s@gmail.com>
+Date: Thu, 8 Mar 2012 13:25:13 -0800
+Message-ID: <CA+K6fF5aN7Z3roKOzZe+a87ey4YcLd5Fr1U794wvb+8H3qP2+w@mail.gmail.com>
+Subject: Re: [Linaro-mm-sig] [PATCHv23 12/16] mm: trigger page reclaim in
+ alloc_contig_range() to stabilise watermarks
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org, Ohad Ben-Cohen <ohad@wizery.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Russell King <linux@arm.linux.org.uk>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Jonathan Corbet <corbet@lwn.net>, Mel Gorman <mel@csn.ul.ie>,
+	Michal Nazarewicz <mina86@mina86.com>,
+	Dave Hansen <dave@linux.vnet.ibm.com>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Rob Clark <rob.clark@linaro.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi everybody,
+> +static int __reclaim_pages(struct zone *zone, gfp_t gfp_mask, int count)
+> +{
+> +       /*
+> +        * Increase level of watermarks to force kswapd do his job
+> +        * to stabilise at new watermark level.
+> +        */
+> +       __update_cma_watermarks(zone, count);
+> +
+> +       /* Obey watermarks as if the page was being allocated */
+> +       watermark = low_wmark_pages(zone) + count;
+> +       while (!zone_watermark_ok(zone, 0, watermark, 0, 0)) {
 
-Here are the MT9M032 and MT9P031 sensor patches that I'd like to push for
-v3.4.
+Wouldn't this reclaim (2 * count pages) above low wmark?
 
-The mt9m032 is a new driver originally written by Martin Hostettler. I've
-taken over maintenance of the code and posted several enhancements patches to
-the list previously. This version is the result of those patches squashed into
-the original code.
+You are updating the low wmark first and then adding "count"
+for the zone_watermark_ok() check as well ..
 
-Danny Kukawka (1):
-  mt9p031: Remove duplicate media/v4l2-subdev.h include
-
-Laurent Pinchart (3):
-  mt9p031: Remove unused xskip and yskip fields in struct mt9p031
-  v4l: Aptina-style sensor PLL support
-  mt9p031: Use generic PLL setup code
-
-Martin Hostettler (1):
-  v4l: Add driver for Micron MT9M032 camera sensor
-
- drivers/media/video/Kconfig      |   12 +
- drivers/media/video/Makefile     |    5 +
- drivers/media/video/aptina-pll.c |  174 ++++++++
- drivers/media/video/aptina-pll.h |   56 +++
- drivers/media/video/mt9m032.c    |  823 ++++++++++++++++++++++++++++++++++++++
- drivers/media/video/mt9p031.c    |   67 ++--
- include/media/mt9m032.h          |   36 ++
- 7 files changed, 1133 insertions(+), 40 deletions(-)
- create mode 100644 drivers/media/video/aptina-pll.c
- create mode 100644 drivers/media/video/aptina-pll.h
- create mode 100644 drivers/media/video/mt9m032.c
- create mode 100644 include/media/mt9m032.h
-
--- 
-Regards,
-
-Laurent Pinchart
-
+Sandeep
