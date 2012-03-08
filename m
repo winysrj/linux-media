@@ -1,67 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:55810 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758959Ab2CHXrV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Mar 2012 18:47:21 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Archit Taneja <archit@ti.com>
-Cc: hvaibhav@ti.com, tomi.valkeinen@ti.com, linux-omap@vger.kernel.org,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH] omap_vout: Set DSS overlay_info only if paddr is non zero
-Date: Fri, 09 Mar 2012 00:47:41 +0100
-Message-ID: <1729342.AddG4HPA3i@avalon>
-In-Reply-To: <1331110876-11895-1-git-send-email-archit@ti.com>
-References: <1331110876-11895-1-git-send-email-archit@ti.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
+Received: from ftp.meprolight.com ([194.90.149.17]:58267 "EHLO meprolight.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1757255Ab2CHMLJ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Mar 2012 07:11:09 -0500
+From: Alex Gershgorin <alexg@meprolight.com>
+To: Fabio Estevam <festevam@gmail.com>
+CC: Fabio Estevam <fabio.estevam@freescale.com>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	"g.liakhovetski@gmx.de" <g.liakhovetski@gmx.de>,
+	"s.hauer@pengutronix.de" <s.hauer@pengutronix.de>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Thu, 8 Mar 2012 14:10:52 +0200
+Subject: RE: I.MX35 PDK
+Message-ID: <4875438356E7CA4A8F2145FCD3E61C0B2CBD5D8913@MEP-EXCH.meprolight.com>
+References: <CAOMZO5DnP7+zupy9vwBPS0+2XtKM1+nLbwCqBzuCqEG5OWbZRQ@mail.gmail.com>
+	<4875438356E7CA4A8F2145FCD3E61C0B2CBD666A28@MEP-EXCH.meprolight.com>,<CAOMZO5Amo0XFf+TV7PprCL079C5Y0qKmo+k-FfShU7k4SG7W6Q@mail.gmail.com>
+In-Reply-To: <CAOMZO5Amo0XFf+TV7PprCL079C5Y0qKmo+k-FfShU7k4SG7W6Q@mail.gmail.com>
+Content-Language: en-US
 Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Archit,
+ 
+> Yes this I2C problem, all I2C slave device need response to Host CPU by
+> pulls I2C data bus to low, in other words generate ACK, the clock pulse for
+> the acknowledge bit is always created by the bus master.
+>
+> In this case, the camera tries to reset the data bus and generate an ACK,
+> but the voltage drops to the area of two volts, although it should be reset
+> to zero.
+> I replaced R172 with 10K on CPU board and got a good result, but there are
+> other surprises
 
-On Wednesday 07 March 2012 14:31:16 Archit Taneja wrote:
-> The omap_vout driver tries to set the DSS overlay_info using
-> set_overlay_info() when the physical address for the overlay is still not
-> configured. This happens in omap_vout_probe() and vidioc_s_fmt_vid_out().
-> 
-> The calls to omapvid_init(which internally calls set_overlay_info()) are
-> removed from these functions. They don't need to be called as the
-> omap_vout_device struct anyway maintains the overlay related changes made.
-> Also, remove the explicit call to set_overlay_info() in vidioc_streamon(),
-> this was used to set the paddr, this isn't needed as omapvid_init() does
-> the same thing later.
-> 
-> These changes are required as the DSS2 driver since 3.3 kernel doesn't let
-> you set the overlay info with paddr as 0.
-> 
-> Signed-off-by: Archit Taneja <archit@ti.com>
+>Ok, good.
 
-Thanks for the patch. This seems to fix memory corruption that would result
-in sysfs-related crashes such as
+>Can you try to change the I2C1 pad settings in software, so that the
+>board can work with the original resistor?
 
-[   31.279541] ------------[ cut here ]------------
-[   31.284423] WARNING: at fs/sysfs/file.c:343 sysfs_open_file+0x70/0x1f8()
-[   31.291503] missing sysfs attribute operations for kobject: (null)
-[   31.298004] Modules linked in: mt9p031 aptina_pll omap3_isp
-[   31.303924] [<c0018260>] (unwind_backtrace+0x0/0xec) from [<c0034488>] (warn_slowpath_common+0x4c/0x64)
-[   31.313812] [<c0034488>] (warn_slowpath_common+0x4c/0x64) from [<c0034520>] (warn_slowpath_fmt+0x2c/0x3c)
-[   31.323913] [<c0034520>] (warn_slowpath_fmt+0x2c/0x3c) from [<c01219bc>] (sysfs_open_file+0x70/0x1f8)
-[   31.333618] [<c01219bc>] (sysfs_open_file+0x70/0x1f8) from [<c00ccc94>] (__dentry_open+0x1f8/0x30c)
-[   31.343139] [<c00ccc94>] (__dentry_open+0x1f8/0x30c) from [<c00cce58>] (nameidata_to_filp+0x50/0x5c)
-[   31.352752] [<c00cce58>] (nameidata_to_filp+0x50/0x5c) from [<c00db4c0>] (do_last+0x55c/0x6a0)
-[   31.361999] [<c00db4c0>] (do_last+0x55c/0x6a0) from [<c00db6bc>] (path_openat+0xb8/0x37c)
-[   31.370605] [<c00db6bc>] (path_openat+0xb8/0x37c) from [<c00dba60>] (do_filp_open+0x30/0x7c)
-[   31.379486] [<c00dba60>] (do_filp_open+0x30/0x7c) from [<c00cc904>] (do_sys_open+0xd8/0x170)
-[   31.388366] [<c00cc904>] (do_sys_open+0xd8/0x170) from [<c0012760>] (ret_fast_syscall+0x0/0x3c)
-[   31.397552] ---[ end trace 13639ab74f345d7e ]---
+In the near future I will check this option:-) 
 
-Tested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>
+> Linux video capture interface: v2.00
+> soc-camera-pdrv soc-camera-pdrv.0: Probing soc-camera-pdrv.0
+> mx3-camera mx3-camera.0: MX3 Camera driver attached to camera 0
+> ov2640 0-0030: ov2640 Product ID 26:42 Manufacturer ID 7f:a2
+> i2c i2c-0: OV2640 Probed1
+> mx3-camera mx3-camera.0: MX3 Camera driver detached from camera 0
+> dmaengine: failed to get dma1chan0: (-22)
+> dmaengine: failed to get dma1chan1: (-22)
+> dmaengine: failed to get dma1chan2: (-22)
+> dmaengine: failed to get dma1chan3: (-22)
+> dmaengine: failed to get dma1chan4: (-22)
+> dmaengine: failed to get dma1chan5: (-22)
+> dmaengine: failed to get dma1chan6: (-22)
+> dmaengine: failed to get dma1chan7: (-22)
+> dmaengine: failed to get dma1chan8: (-22)
+> dmaengine: failed to get dma1chan9: (-22)
+> dmaengine: failed to get dma1chan10: (-22)
+> dmaengine: failed to get dma1chan11: (-22)
+> dmaengine: failed to get dma1chan12: (-22)
+> dmaengine: failed to get dma1chan13: (-22)
+> dmaengine: failed to get dma1chan14: (-22)
+> dmaengine: failed to get dma1chan15: (-22)
+> dmaengine: failed to get dma1chan16: (-22)
+> dmaengine: failed to get dma1chan17: (-22)
+> dmaengine: failed to get dma1chan18: (-22)
+> dmaengine: failed to get dma1chan19: (-22)
+> dmaengine: failed to get dma1chan20: (-22)
+> dmaengine: failed to get dma1chan21: (-22)
+> dmaengine: failed to get dma1chan22: (-22)
+> dmaengine: failed to get dma1chan23: (-22)
+> dmaengine: failed to get dma1chan24: (-22)
+> dmaengine: failed to get dma1chan25: (-22)
+> dmaengine: failed to get dma1chan26: (-22)
+> dmaengine: failed to get dma1chan27: (-22)
+> dmaengine: failed to get dma1chan28: (-22)
+> dmaengine: failed to get dma1chan29: (-22)
+> dmaengine: failed to get dma1chan30: (-22):
 
-Please push it to v3.3 :-)
+>This is something that needs to be solved, but it does not prevent the
+>camera to work though.
 
--- 
-Regards,
+>On my mx31pdk I get the same dmaengine errors and the ov2640 does work fine.
+>I think you can go ahead and try to use the camera on the mx35pdk now.
+>You can try:
 
-Laurent Pinchart
+>gst-launch -v v4l2src device=/dev/video0 !
+>video/x-raw-yuv,width=320,height=240,framerate=25/1 ! ffmpegcolorspace
+>! fbdevsink
 
+ Thank Fabio I'll try to check it.
+
+Regards
+Alex Gershgorin 
