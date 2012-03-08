@@ -1,62 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:36781 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754139Ab2COReF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Mar 2012 13:34:05 -0400
-Received: by eaaq12 with SMTP id q12so1771285eaa.19
-        for <linux-media@vger.kernel.org>; Thu, 15 Mar 2012 10:34:03 -0700 (PDT)
-From: Gianluca Gennari <gennarone@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@redhat.com
-Cc: crope@iki.fi, Gianluca Gennari <gennarone@gmail.com>
-Subject: [PATCH 0/3] cxd2820r: tweak search algorithm, enable LNA in DVB-T mode
-Date: Thu, 15 Mar 2012 18:33:46 +0100
-Message-Id: <1331832829-4580-1-git-send-email-gennarone@gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:30833 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754781Ab2CHOXW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 8 Mar 2012 09:23:22 -0500
+Message-ID: <4F58C0D3.3070909@redhat.com>
+Date: Thu, 08 Mar 2012 11:23:15 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Oliver Schinagl <oliver@schinagl.nl>
+CC: linux-media@vger.kernel.org
+Subject: Re: USB ID for Asus U3100MINI Plus DVB-T tuner
+References: <4F429DF1.3010500@schinagl.nl>
+In-Reply-To: <4F429DF1.3010500@schinagl.nl>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The PCTV 290e had several issues on my mipsel-based STB (powered by a
-Broadcom 7405 SoC), running a Linux 3.1 kernel and the Enigma2 OS.
+Em 20-02-2012 17:24, Oliver Schinagl escreveu:
+> Hi,
+> 
+> i'm partial writer of http://www.linuxtv.org/wiki/index.php/Asus_U3100_Mini_plus_DVB-T and host the mentioned git repository.
+> 
+> I have noticed that the Asus U3100Mini plus dvb-t tuner still does not have it's USB ID added to usb-ids.h and thus supply this patch.
+> 
+> The DVB-T tuner uses the "Afa Technologies Inc. AF9035A USB Device" and has an USB ID of 0b05:1779.
+> 
+> Btw, my /usr/share/misc/usb.ids does list this device properly.
+> 
+> Bus 002 Device 002: ID 0b05:1779 ASUSTek Computer, Inc. My Cinema U3100 Mini Plus [AF9035A]
+> 
+> 
+> Also, what is afa's current status in supporting (or not) the af903a and what specifications are required to piggy back the driver possibly ontop of the previous afa drivers?
+> 
+> 
+> I know afa is 'working on it' as quited from the wiki:
+> "
+> 
+> For its part, Afatech does not want any of the above driver attempts to make their way into the kernel, as none of them are very robust in terms of chip support.
+> 
+> Instead, AFA has embarked upon the development of yet another OSS driver, which will be generic in that it will be capable of supporting the entire AF901x family as well as all possible device configurations permitted. In addition to the expectation that it will be this driver that is eventually adopted into the kernel, AFA have also signaled that they intend provide continuous support (i.e. they will stay on as the driver's maintainer).
+> 
+> Currently, this newest driver has reached a second round of testing in AFA labs, but that has only been in conjunction (with some peripheral manufacturers) with a few devices, and, as it stands, the code is still not particularly generic (due to both the complexities of the chip itself as well as those involved in getting the various device configurations to work). So, as of yet, there currently isn't anything for the end user to test. However, as soon things progress past this stage, there will be something released for users to test. There is no specific release timeframe set for this, but hopefully it will be soon, as the chip manufacturer (as well as everybody else involved) is under pressure, due to the large adoption of the chip by different peripheral manufacturers (Avermedia, Terratec, Azurewave, DigitalNow, Pinnacle, as well as some number of unbranded Chinese manufacturers too). In short, a lot more devices based on this chipset are expected to materialize."
+> 
+> Oliver
+> 
+> 
+> asus_dvb-usb-ids.h.diff
 
-The most annoying one was that the 290e was able to tune the lone DVB-T2
-frequency existing in my area, but was not able to tune any DVB-T channel.
+Sorry, but there's no sense of just adding a new USB ID there, without the driver.
+> 
+> 
+> --- v4l/dvb-usb-ids.h	2011-10-24 09:10:05.000000000 +0200
+> +++ v4l/dvb-usb-ids.h_asus	2012-02-20 20:06:57.980979949 +0100
+> @@ -294,6 +294,7 @@
+>  #define USB_PID_ASUS_U3000				0x171f
+>  #define USB_PID_ASUS_U3000H				0x1736
+>  #define USB_PID_ASUS_U3100				0x173f
+> +#define USB_PID_ASUS_U3100MINI_PLUS			0x1779
+>  #define USB_PID_YUAN_EC372S				0x1edc
+>  #define USB_PID_YUAN_STK7700PH				0x1f08
+>  #define USB_PID_YUAN_PD378S				0x2edc
+> 
 
-Following a suggestion of the original author of the driver, I tried to
-tweak the wait time in the lock loop. In fact, increasing the wait time
-from 50 to 200ms in the tuning loop was enough to get the lock on most
-channels.
-But channel change was quite slow and sometimes, doing an automatic scan,
-some frequency was not locked.
-So instead of playing with the timings I changed the behavior of the
-search algorithm as explained in the patch 1, with very good results.
-
-With this modification, the automatic scan is 100% reliable and zapping
-is quite fast (on the STB). There is no noticeable difference when using
-Kaffeine on the PC.
-
-But there was a further issue: a few weak channels were affected by high
-BER and badly corrupted pictures. The same channels were working fine on
-an Avermedia A867 stick (as well as other sticks).
-
-The driver has an option to enable a "Low Noise Amplifier" (LNA) before the
-demodulator. Enabling it, the reception of weak channels improved a lot,
-as reported in the description of patch 2.
-
-Finally, patch 3 is a trivial clean-up.
-
-Best regards,
-Gianluca Gennari
-
-Gianluca Gennari (3):
-  cxd2820r: tweak search algorithm behavior
-  em28xx-dvb: enable LNA for cxd2820r in DVB-T mode
-  cxd2820r: delete unused function cxd2820r_init_t2
-
- drivers/media/dvb/frontends/cxd2820r_core.c |    4 ++--
- drivers/media/dvb/frontends/cxd2820r_priv.h |    2 --
- drivers/media/video/em28xx/em28xx-dvb.c     |    3 ++-
- 3 files changed, 4 insertions(+), 5 deletions(-)
-
--- 
-1.7.5.4
-
+Regards,
+Mauro
