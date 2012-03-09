@@ -1,74 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 124-248-200-57.sunnyvision.com ([124.248.200.57]:54105 "EHLO
-	teamb04.edmhongkong.com" rhost-flags-OK-FAIL-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752089Ab2CHLZb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 8 Mar 2012 06:25:31 -0500
-Message-ID: <9jlejsZTgTYWeq@tcts.seed.net.tw>
-From: design@dedicatedserver.com.hk
-Subject: Web development service
-Content-Type: text/plain;
-Content-Transfer-Encoding: Quoted-Printable
-Date: Thu,  8 Mar 2012 19:24:13 +0800 (HKT)
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from perceval.ideasonboard.com ([95.142.166.194]:39923 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754500Ab2CIPBH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Mar 2012 10:01:07 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@iki.ifi,
+	Martin Hostettler <martin@neutronstar.dyndns.org>
+Subject: [PATCH v4 0/5] MT9M032 and MT9P031 sensor patches
+Date: Fri,  9 Mar 2012 16:01:20 +0100
+Message-Id: <1331305285-10781-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dear all,
-Please see below is our general job reference and web design package, 
+Here's the fourth version of the MT9M032 and MT9P031 sensor patches for v3.4.
 
-Total 12 pages web design service
-- Two language version
-- All the webpage design is included:
-- Theme development;
-- Design Study;
-- Original Layout / Artwork Design;
-- Steady HTML / Flash Web page development;
-- Search Engine Applicable;
-- Basic Graphic Flash Banner x1;
-- All text contents, logos and related product photos should be provided by client
- Product eCatalogue (Product Page)
+Compared to v3, only patch 5/5 has been changed. I've added locking to the
+driver, removed the memset to 0 for the reserved fields in the frame interval
+set handler, fixed a typo in a kernel log message and moved the driver to the
+right location in Kconfig and Makefile.
 
-- CMS Function of add /edit Products with Contents & Photos
-- Maximum 10 fields include Photos and Contents
-- Text Editor for Detail Contents (if need)
-- Support text descriptions and photos updating
-- 1 Level categories management
-- Database support with un-limit Products create
-- Not include Data input
-- Standard Admin panel with login function (1 admin account)
-Content management system (Activities page)
+Danny Kukawka (1):
+  mt9p031: Remove duplicate media/v4l2-subdev.h include
 
-- Basic CMS function of add / edit items
-- Max. 5 fields per item
-- Support photos and text descriptions
-- Front-end support 1 page only (Comapny activities page)
-- Database support with un-limit Products create
-- Not include Data input
-- Integrated Admin Panel
-Enquiry form function (Contact Us)
-- Form to mail
-Package price : $38,000
+Laurent Pinchart (3):
+  mt9p031: Remove unused xskip and yskip fields in struct mt9p031
+  v4l: Aptina-style sensor PLL support
+  mt9p031: Use generic PLL setup code
 
-Yoy may click the hyperlink to see some of our design reference.
+Martin Hostettler (1):
+  v4l: Add driver for Micron MT9M032 camera sensor
 
-Job reference
+ drivers/media/video/Kconfig      |   12 +
+ drivers/media/video/Makefile     |    5 +
+ drivers/media/video/aptina-pll.c |  174 ++++++++
+ drivers/media/video/aptina-pll.h |   56 +++
+ drivers/media/video/mt9m032.c    |  862 ++++++++++++++++++++++++++++++++++++++
+ drivers/media/video/mt9p031.c    |   67 ++--
+ include/media/mt9m032.h          |   36 ++
+ 7 files changed, 1172 insertions(+), 40 deletions(-)
+ create mode 100644 drivers/media/video/aptina-pll.c
+ create mode 100644 drivers/media/video/aptina-pll.h
+ create mode 100644 drivers/media/video/mt9m032.c
+ create mode 100644 include/media/mt9m032.h
 
-http://www.hk-belle.com/
-http://www.mirabell.com.hk/
-http://www.nikijodi.com/
-http://www.joy-peace.com/
-http://www.staccato.com
-http://www.chicks.com.hk/
+-- 
+Regards,
 
-Program reference
-http://www.gloryskygroup.com/index.aspx=3Flang=3Dbig5
-http://www.mydriver.com.hk/
- 
-Best Regards,
-Eric Chan
-Senior Sales Executive
-
-If you do not wish to further receive this event message, email subscriber@dedicatedserver.com.hk to unsubscribe this message
-
+Laurent Pinchart
 
