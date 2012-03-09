@@ -1,132 +1,169 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:2397 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965226Ab2CBJXB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Mar 2012 04:23:01 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: halli manjunatha <manjunatha_halli@ti.com>
-Subject: Re: [PATCH 3/3] wl128x: Add sysfs based support for FM features
-Date: Fri, 2 Mar 2012 10:22:49 +0100
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Manjunatha Halli <x0130808@ti.com>, shahed@ti.com
-References: <1330114471-26435-1-git-send-email-manjunatha_halli@ti.com> <201202291225.50801.hverkuil@xs4all.nl> <CAMT6PyeaW2OwRc5So5JtTeUVJ9vFLafddLteSqoW3GJaVrFesA@mail.gmail.com>
-In-Reply-To: <CAMT6PyeaW2OwRc5So5JtTeUVJ9vFLafddLteSqoW3GJaVrFesA@mail.gmail.com>
+Return-Path: linux-dvb-bounces+mchehab=redhat.com@linuxtv.org
+Received: from mail.tu-berlin.de ([130.149.7.33])
+	by www.linuxtv.org with esmtp (Exim 4.72)
+	(envelope-from <minhhoang1004@yahoo.com>) id 1S5xeo-0003ED-9V
+	for linux-dvb@linuxtv.org; Fri, 09 Mar 2012 12:06:47 +0100
+Received: from nm30-vm0.bullet.mail.sp2.yahoo.com ([98.139.91.238])
+	by mail.tu-berlin.de (exim-4.75/mailfrontend-4) with smtp
+	for <linux-dvb@linuxtv.org>
+	id 1S5xem-0005HP-Cn; Fri, 09 Mar 2012 12:06:46 +0100
+Message-ID: <1331291147.97962.YahooMailNeo@web111209.mail.gq1.yahoo.com>
+Date: Fri, 9 Mar 2012 03:05:47 -0800 (PST)
+From: "Admin@tydaikho.com" <minhhoang1004@yahoo.com>
+To: "linux-dvb@linuxtv.org" <linux-dvb@linuxtv.org>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Subject: [linux-dvb] AverMedia A306 minicard hybrid DVB-T driver on linux.
+Reply-To: linux-media@vger.kernel.org,
+        "Admin@tydaikho.com" <minhhoang1004@yahoo.com>
+List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
+	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
+List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
+List-Post: <mailto:linux-dvb@linuxtv.org>
+List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
+List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
+	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: multipart/mixed; boundary="===============1530166527=="
+Sender: linux-dvb-bounces@linuxtv.org
+Errors-To: linux-dvb-bounces+mchehab=redhat.com@linuxtv.org
+List-ID: <linux-dvb@linuxtv.org>
+
+--===============1530166527==
+Content-Type: multipart/alternative; boundary="915624407-920675067-1331291147=:97962"
+
+--915624407-920675067-1331291147=:97962
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
+
+I get troubles when i install my TV tuner on my linux system. My OS can't k=
+now my card. I look for Google but i can't find the solutions. Linuxtv seem=
+s not support this card:=0A"=0AAVerMedia A306 DVB-T, PAL, NTSC Mini PCIe (M=
+inicard) ?=A0Unknown=0A =0A=A0"=0AHere is my result of "dmesg|grep cx":=0A"=
+=0Aroot@linux:/home/hoangnm# dmesg|grep cx=0A[ =A0 10.416760] cx23885 drive=
+r version 0.0.3 loaded=0A[ =A0 10.416799] cx23885 0000:07:00.0: PCI INT A -=
+> Link[Z01A] -> GSI 20 (level, low) -> IRQ 20=0A[ =A0 10.416802] cx23885[0]=
+: Your board isn't known (yet) to the driver.=0A[ =A0 10.416803] cx23885[0]=
+: Try to pick one of the existing card configs via=0A[ =A0 10.416804] cx238=
+85[0]: card=3D<n> insmod option. =A0Updating to the latest=0A[ =A0 10.41680=
+5] cx23885[0]: version might help as well.=0A[ =A0 10.416807] cx23885[0]: H=
+ere is a list of valid choices for the card=3D<n> insmod option:=0A[ =A0 10=
+.416809] cx23885[0]: =A0 =A0card=3D0 -> UNKNOWN/GENERIC=0A=0A..............=
+...........................=0A[ =A0 10.417101] CORE cx23885[0]: subsystem: =
+1461:c139, board: UNKNOWN/GENERIC [card=3D0,autodetected]=0A[ =A0 10.543352=
+] cx23885_dev_checkrevision() Hardware revision =3D 0xb0=0A[ =A0 10.543358]=
+ cx23885[0]/0: found at 0000:07:00.0, rev: 2, irq: 20, latency: 0, mmio: 0x=
+f0400000=0A[ =A0 10.543365] cx23885 0000:07:00.0: setting latency timer to =
+64=0A=0A"=0AAny ideas to solve this problem?=0AThank you very much! and sor=
+ry about my bad English.=0A------------------------------------------------=
+----------=0AYahoo: minhhoang1004 + Google: minhhoang1004 + Skype: minhhoan=
+g1004 + MSN: tydaikho=0A---------------------------------------------------=
+-------=0A=0A(http://tydaikho.com) =A0VS =A0(http://vnluser.net)=0A
+--915624407-920675067-1331291147=:97962
+Content-Type: text/html; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
+
+<html><body><div style=3D"color:#000; background-color:#fff; font-family:ar=
+ial, helvetica, sans-serif;font-size:10pt"><div style=3D"font-family: arial=
+, helvetica, sans-serif; font-size: 10pt; "><span>I get troubles when i ins=
+tall my TV tuner on my linux system. My OS can't know my card. I look for G=
+oogle but i can't find the solutions. Linuxtv seems not support this card:<=
+/span></div><div style=3D"font-family: arial, helvetica, sans-serif; font-s=
+ize: 10pt; "><span>"</span></div><div style=3D"font-family: arial, helvetic=
+a, sans-serif; font-size: 10pt; "><span><table class=3D"wikitable sortable"=
+ id=3D"sortable_table_id_0" style=3D"background-color: rgb(249, 249, 249); =
+margin-top: 1em; margin-right: 1em; margin-bottom: 1em; margin-left: 0px; b=
+ackground-image: initial; background-attachment: initial; background-origin=
+: initial; background-clip: initial; border-top-width: 1px; border-right-wi=
+dth: 1px; border-bottom-width: 1px; border-left-width: 1px; border-top-colo=
+r:
+ rgb(170, 170, 170); border-right-color: rgb(170, 170, 170); border-bottom-=
+color: rgb(170, 170, 170); border-left-color: rgb(170, 170, 170); border-to=
+p-style: solid; border-right-style: solid; border-bottom-style: solid; bord=
+er-left-style: solid; border-image: initial; border-collapse: collapse; fon=
+t-family: sans-serif; line-height: 19px; "><tbody><tr><td style=3D"border-t=
+op-width: 1px; border-right-width: 1px; border-bottom-width: 1px; border-le=
+ft-width: 1px; border-top-color: rgb(170, 170, 170); border-right-color: rg=
+b(170, 170, 170); border-bottom-color: rgb(170, 170, 170); border-left-colo=
+r: rgb(170, 170, 170); border-top-style: solid; border-right-style: solid; =
+border-bottom-style: solid; border-left-style: solid; border-image: initial=
+; padding-top: 0.2em; padding-right: 0.2em; padding-bottom: 0.2em; padding-=
+left: 0.2em; ">AVerMedia A306</td><td style=3D"border-top-width: 1px; borde=
+r-right-width: 1px; border-bottom-width: 1px; border-left-width: 1px;
+ border-top-color: rgb(170, 170, 170); border-right-color: rgb(170, 170, 17=
+0); border-bottom-color: rgb(170, 170, 170); border-left-color: rgb(170, 17=
+0, 170); border-top-style: solid; border-right-style: solid; border-bottom-=
+style: solid; border-left-style: solid; border-image: initial; padding-top:=
+ 0.2em; padding-right: 0.2em; padding-bottom: 0.2em; padding-left: 0.2em; "=
+>DVB-T, PAL, NTSC</td><td style=3D"border-top-width: 1px; border-right-widt=
+h: 1px; border-bottom-width: 1px; border-left-width: 1px; border-top-color:=
+ rgb(170, 170, 170); border-right-color: rgb(170, 170, 170); border-bottom-=
+color: rgb(170, 170, 170); border-left-color: rgb(170, 170, 170); border-to=
+p-style: solid; border-right-style: solid; border-bottom-style: solid; bord=
+er-left-style: solid; border-image: initial; padding-top: 0.2em; padding-ri=
+ght: 0.2em; padding-bottom: 0.2em; padding-left: 0.2em; ">Mini PCIe (Minica=
+rd)</td><td style=3D"border-top-width: 1px; border-right-width: 1px;
+ border-bottom-width: 1px; border-left-width: 1px; border-top-color: rgb(17=
+0, 170, 170); border-right-color: rgb(170, 170, 170); border-bottom-color: =
+rgb(170, 170, 170); border-left-color: rgb(170, 170, 170); border-top-style=
+: solid; border-right-style: solid; border-bottom-style: solid; border-left=
+-style: solid; border-image: initial; padding-top: 0.2em; padding-right: 0.=
+2em; padding-bottom: 0.2em; padding-left: 0.2em; "><font color=3D"purple"><=
+span class=3D"Unicode"><b><i>?</i></b></span>&nbsp;Unknown<br></font></td><=
+/tr></tbody></table></span></div><div style=3D"font-family: arial, helvetic=
+a, sans-serif; font-size: 10pt; ">&nbsp;"</div><div style=3D"font-family: a=
+rial, helvetica, sans-serif; font-size: 10pt; ">Here is my result of "dmesg=
+|grep cx":</div><div style=3D"font-family: arial, helvetica, sans-serif; fo=
+nt-size: 10pt; ">"</div><div><div><font size=3D"2">root@linux:/home/hoangnm=
+# dmesg|grep cx</font></div><div><font size=3D"2">[ &nbsp; 10.416760] cx238=
+85
+ driver version 0.0.3 loaded</font></div><div><font size=3D"2">[ &nbsp; 10.=
+416799] cx23885 0000:07:00.0: PCI INT A -&gt; Link[Z01A] -&gt; GSI 20 (leve=
+l, low) -&gt; IRQ 20</font></div><div><font size=3D"2">[ &nbsp; 10.416802] =
+cx23885[0]: Your board isn't known (yet) to the driver.</font></div><div><f=
+ont size=3D"2">[ &nbsp; 10.416803] cx23885[0]: Try to pick one of the exist=
+ing card configs via</font></div><div><font size=3D"2">[ &nbsp; 10.416804] =
+cx23885[0]: card=3D&lt;n&gt; insmod option. &nbsp;Updating to the latest</f=
+ont></div><div><font size=3D"2">[ &nbsp; 10.416805] cx23885[0]: version mig=
+ht help as well.</font></div><div><font size=3D"2">[ &nbsp; 10.416807] cx23=
+885[0]: Here is a list of valid choices for the card=3D&lt;n&gt; insmod opt=
+ion:</font></div><div><font size=3D"2">[ &nbsp; 10.416809] cx23885[0]: &nbs=
+p; &nbsp;card=3D0 -&gt; UNKNOWN/GENERIC</font></div><div style=3D"font-fami=
+ly: arial, helvetica, sans-serif; font-size: 10pt; "><br></div><div style=
+=3D"font-family:
+ arial, helvetica, sans-serif; font-size: 10pt; ">.........................=
+................</div><div><div><font size=3D"2">[ &nbsp; 10.417101] CORE c=
+x23885[0]: subsystem: 1461:c139, board: UNKNOWN/GENERIC [card=3D0,autodetec=
+ted]</font></div><div><font size=3D"2">[ &nbsp; 10.543352] cx23885_dev_chec=
+krevision() Hardware revision =3D 0xb0</font></div><div><font size=3D"2">[ =
+&nbsp; 10.543358] cx23885[0]/0: found at 0000:07:00.0, rev: 2, irq: 20, lat=
+ency: 0, mmio: 0xf0400000</font></div><div><font size=3D"2">[ &nbsp; 10.543=
+365] cx23885 0000:07:00.0: setting latency timer to 64</font></div><div sty=
+le=3D"font-family: arial, helvetica, sans-serif; font-size: 10pt; "><br></d=
+iv></div></div><div style=3D"font-family: arial, helvetica, sans-serif; fon=
+t-size: 10pt; ">"</div><div style=3D"font-family: arial, helvetica, sans-se=
+rif; font-size: 10pt; ">Any ideas to solve this problem?</div><div style=3D=
+"font-family: arial, helvetica, sans-serif; font-size: 10pt; ">Thank you ve=
+ry much! and
+ sorry about my bad English.</div><div style=3D"font-family: arial, helveti=
+ca, sans-serif; font-size: 10pt; ">----------------------------------------=
+------------------</div><div style=3D"font-family: arial, helvetica, sans-s=
+erif; font-size: 10pt; ">Yahoo: minhhoang1004 + Google: minhhoang1004 + Sky=
+pe: minhhoang1004 + MSN: tydaikho</div><div style=3D"font-family: arial, he=
+lvetica, sans-serif; font-size: 10pt; ">-----------------------------------=
+-----------------------<br><center></center><div>(http://tydaikho.com) &nbs=
+p;VS &nbsp;(http://vnluser.net)</div><div><br></div></div></div></body></ht=
+ml>
+--915624407-920675067-1331291147=:97962--
+
+
+--===============1530166527==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Message-Id: <201203021022.49464.hverkuil@xs4all.nl>
-Sender: linux-media-owner@vger.kernel.org
-List-ID: <linux-media.vger.kernel.org>
+Content-Disposition: inline
 
-On Wednesday, February 29, 2012 18:19:27 halli manjunatha wrote:
-> On Wed, Feb 29, 2012 at 5:25 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> > On Tuesday, February 28, 2012 23:52:21 halli manjunatha wrote:
-> >> On Tue, Feb 28, 2012 at 4:05 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> >> > On Monday, February 27, 2012 17:29:18 halli manjunatha wrote:
-> >> >> Hi Hans,
-> >> >>
-> >> >> Agreed I don't mind to create new controls for below things
-> >> >>
-> >> >> 1) FM RX Band selection (US/Europe, Japan and Russian bands)
-> >> >> 2) FM RX RDS AF turn ON/OFF
-> >> >> 3) FM RX RSSI level set/get
-> >> >> 4) FM TX Alternate Frequency set/get
-> >> >> 5) FM RX De-Emphasis mode set/get
-> >> >>
-> >> >> However, previously you have suggested me to hide few controls (like
-> >> >> band selection) from the user but few of our application wanted
-> >> >> controls like above and that is why I have created the sysfs entries.
-> >> >>
-> >> >> Please suggest me how can I move forward with new controls or with sysfs?
-> >> >
-> >> > The first question is which of these controls are general to FM receivers or
-> >> > transmitters, and which are specific to this chipset. The chipset specific
-> >> > controls should be private controls (look at V4L2_CID_MPEG_CX2341X_BASE in
-> >> > videodev2.h how those are defined). The others should be defined as new
-> >> > controls of the FM_TX class or the FM_RX class. The FM_RX class should be
-> >> > defined as a new class as it doesn't exist at the moment. Don't forget to
-> >> > document these controls clearly.
-> >> >
-> >> > With regards to the band selection: I remember that there was a discussion,
-> >> > but not the details. Do you have a link to that discussion? I can't find it
-> >> > (at least not quickly :-) ).
-> >>
-> >> Below features are generic to all FM receivers so we can add new CID's
-> >> for below features
-> >> 1) FM RX RDS AF turn ON/OFF
-> >> 2) FM TX Alternate Frequency set/get
-> >>
-> >> About other 3 features its different issue,
-> >>     1) FM RX Band selection (US/Europe, Japan and Russian bands)
-> >>     2) FM RX RSSI level set/get
-> >>     3) FM RX De-Emphasis mode set/get
-> >>
-> >> All these 3 features are generic to any FM receiver, only question is
-> >> does all FM receivers wants to expose these controls to application
-> >> writer?
-> >
-> > Good question, and there is no good answer at the moment. See e.g. this
-> > IRC discussion:
-> >
-> > http://www.spinics.net/lists/linux-media/msg44023.html
-> >
-> > In the absence of a good solution to this problem I am inclined to make
-> > these controls driver specific but marked experimental. The experimental
-> > tag allows us to eventually make it a generic control without too much
-> > hassle.
-> 
-> Agreed, I will make them driver specific and mark them as experimental.
-> 
-> >
-> >> Example Band selection, every FM receiver at the minimum supports both
-> >> Europe and Japan band, now the question is should we add a CID to
-> >> switch between these two bands?
-> >
-> > If we decide to add a band selection control, then that would be a menu
-> > control (since there are up to three bands) and it would only be implemented
-> > by drivers that need it.
-> >
-> > What I am still not clear on is *why* you would want this control. What
-> > is the reason your customers want this? What does it allow you to do that
-> > can't be done today?
-> 
-> There are 2 reasons for this,
-> 
-> First, our chip supports weather band, unlike other bands (Europe,
-> Japan and Russian) user may wants to
-> switch to weather band and wants to listen to weather report and again
-> switches back to normal band.
-
-OK, that makes sense. Are the RX and TX independent with regards to
-band selection?
-
-Make sure that when the band is changed the rangelow and rangehigh values
-are also changed. If the current frequency is out of that range, then the
-frequency should be clamped to the closest value frequency. Although an
-alternative strategy might be to remember the last used frequency for each
-band. That might make more sense in the case of switching between a normal
-band and the weather band. We need to define and document which strategy
-should be used here.
-
-BTW, is the receiver for the weather band implemented as a separate receiver?
-I read that some devices can listen to the normal band and interrupt that
-when a weather report is broadcast on the weather band. That implies two
-receivers and it would require a rethink.
-
-Also, is this feature really implemented as separate frequency ranges in
-hardware? Or is the receiver able to receive on the whole range of frequencies
-from 65.8 (OIRT) to approx. 165 (weather band range)?
-
-Is the datasheet of this device available somewhere?
-
-> Second,  for FM TX, our chip supports band selection for FM
-> transmitter, so if the same phone is used in different
-> regions of world then user can switch to the actual band and start
-> transmitting by choosing a blank frequency in that band.
-
-Isn't this something that can be equally easily done in userspace?
-
-Regards,
-
-	Hans
+_______________________________________________
+linux-dvb users mailing list
+For V4L/DVB development, please use instead linux-media@vger.kernel.org
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1530166527==--
