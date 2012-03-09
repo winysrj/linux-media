@@ -1,142 +1,343 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:40513 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751092Ab2CGKKs convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Mar 2012 05:10:48 -0500
-Received: from epcpsbgm1.samsung.com (mailout1.samsung.com [203.254.224.24])
- by mailout1.samsung.com
- (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
- 2010)) with ESMTP id <0M0I00CLPEXRK3S0@mailout1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 07 Mar 2012 19:10:47 +0900 (KST)
-Received: from AMDN157 ([106.116.48.215])
- by mmp1.samsung.com (Oracle Communications Messaging Exchange Server 7u4-19.01
- 64bit (built Sep  7 2010)) with ESMTPA id <0M0I00GQCEXT2W70@mmp1.samsung.com>
- for linux-media@vger.kernel.org; Wed, 07 Mar 2012 19:10:47 +0900 (KST)
-From: Kamil Debski <k.debski@samsung.com>
-To: 'Hans Verkuil' <hverkuil@xs4all.nl>, jtp.park@samsung.com
-Cc: linux-media@vger.kernel.org, janghyuck.kim@samsung.com,
-	jaeryul.oh@samsung.com, Marek Szyprowski <m.szyprowski@samsung.com>
-References: <007101ccf81a$a507c610$ef175230$%park@samsung.com>
- <201203020913.14834.hverkuil@xs4all.nl>
-In-reply-to: <201203020913.14834.hverkuil@xs4all.nl>
-Subject: RE: [PATCH 1/3] v4l: add contorl definitions for codec devices.
-Date: Wed, 07 Mar 2012 11:10:40 +0100
-Message-id: <002901ccfc4a$9041c2b0$b0c54810$%debski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 8BIT
-Content-language: en-gb
+Received: from smtp.nokia.com ([147.243.1.48]:16453 "EHLO mgw-sa02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758305Ab2CITPv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 9 Mar 2012 14:15:51 -0500
+Message-ID: <4F5A56D0.50803@iki.fi>
+Date: Fri, 09 Mar 2012 21:15:28 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media@vger.kernel.org, sakari.ailus@iki.fi,
+	Martin Hostettler <martin@neutronstar.dyndns.org>
+Subject: Re: [PATCH v4 5/5] v4l: Add driver for Micron MT9M032 camera sensor
+References: <1331305285-10781-1-git-send-email-laurent.pinchart@ideasonboard.com> <1331305285-10781-6-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1331305285-10781-6-git-send-email-laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans, hi Jeongtae,
+Hi Laurent,
 
-> From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
-> Sent: 02 March 2012 09:13
-> 
-> Hi Jeongtae!
-> 
-> Some review notes below...
-> 
-> On Friday, March 02, 2012 03:17:40 Jeongtae Park wrote:
-> > Add control definitions for controls specific to codec devices.
-> >
-> > Signed-off-by: Jeongtae Park <jtp.park@samsung.com>
-> > Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-> > Cc: Kamil Debski <k.debski@samsung.com>
-> > ---
-> >  include/linux/videodev2.h |   51
-> ++++++++++++++++++++++++++++++++++++++++++--
-> >  1 files changed, 48 insertions(+), 3 deletions(-)
-> >
-> > diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-> > index b739d7d..a19512a 100644
-> > --- a/include/linux/videodev2.h
-> > +++ b/include/linux/videodev2.h
-> > @@ -359,7 +359,9 @@ struct v4l2_pix_format {
-> >
-> >  /* two non contiguous planes - one Y, one Cr + Cb interleaved  */
-> >  #define V4L2_PIX_FMT_NV12M   v4l2_fourcc('N', 'M', '1', '2') /* 12
-> Y/CbCr 4:2:0  */
-> > +#define V4L2_PIX_FMT_NV21M   v4l2_fourcc('N', 'M', '2', '1') /* 21
-> Y/CrCb 4:2:0  */
-> >  #define V4L2_PIX_FMT_NV12MT  v4l2_fourcc('T', 'M', '1', '2') /* 12
-> Y/CbCr 4:2:0 64x32 macroblocks */
-> > +#define V4L2_PIX_FMT_NV12MT_16X16 v4l2_fourcc('V', 'M', '1', '2') /* 12
-> Y/CbCr 4:2:0 16x16 macroblocks */
-> >
-> >  /* three non contiguous planes - Y, Cb, Cr */
-> >  #define V4L2_PIX_FMT_YUV420M v4l2_fourcc('Y', 'M', '1', '2') /* 12
-> YUV420 planar */
-> > @@ -392,6 +394,7 @@ struct v4l2_pix_format {
-> >  #define V4L2_PIX_FMT_MPEG     v4l2_fourcc('M', 'P', 'E', 'G') /* MPEG-
-> 1/2/4 Multiplexed */
-> >  #define V4L2_PIX_FMT_H264     v4l2_fourcc('H', '2', '6', '4') /* H264
-> with start codes */
-> >  #define V4L2_PIX_FMT_H264_NO_SC v4l2_fourcc('A', 'V', 'C', '1') /* H264
-> without start codes */
-> > +#define V4L2_PIX_FMT_H264_MVC v4l2_fourcc('M', '2', '6', '4') /* H264 MVC
-> */
-> >  #define V4L2_PIX_FMT_H263     v4l2_fourcc('H', '2', '6', '3') /* H263
-> */
-> >  #define V4L2_PIX_FMT_MPEG1    v4l2_fourcc('M', 'P', 'G', '1') /* MPEG-1
-> ES     */
-> >  #define V4L2_PIX_FMT_MPEG2    v4l2_fourcc('M', 'P', 'G', '2') /* MPEG-2
-> ES     */
-> > @@ -399,6 +402,7 @@ struct v4l2_pix_format {
-> >  #define V4L2_PIX_FMT_XVID     v4l2_fourcc('X', 'V', 'I', 'D') /* Xvid
-> */
-> >  #define V4L2_PIX_FMT_VC1_ANNEX_G v4l2_fourcc('V', 'C', '1', 'G') /* SMPTE
-> 421M Annex G compliant stream */
-> >  #define V4L2_PIX_FMT_VC1_ANNEX_L v4l2_fourcc('V', 'C', '1', 'L') /* SMPTE
-> 421M Annex L compliant stream */
-> > +#define V4L2_PIX_FMT_VP8      v4l2_fourcc('V', 'P', '8', '0') /* VP8 */
-> 
-> Note that these new formats need to be documented in the spec as well.
-> 
-> >
-> >  /*  Vendor-specific formats   */
-> >  #define V4L2_PIX_FMT_CPIA1    v4l2_fourcc('C', 'P', 'I', 'A') /* cpia1
-> YUV */
-> > @@ -1458,17 +1462,18 @@ enum v4l2_mpeg_video_header_mode {
-> >  };
-> >  #define V4L2_CID_MPEG_VIDEO_MAX_REF_PIC
-> 	(V4L2_CID_MPEG_BASE+217)
-> >  #define V4L2_CID_MPEG_VIDEO_MB_RC_ENABLE
-> 	(V4L2_CID_MPEG_BASE+218)
-> > -#define V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MAX_BYTES
-> 	(V4L2_CID_MPEG_BASE+219)
-> > +#define V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MAX_BITS
-> 	(V4L2_CID_MPEG_BASE+219)
-> 
-> Why change from bytes to bits? That changes the meaning of this control.
+Thanks for the patch. Just a few minor comments below.
 
-We had a discussion about this on irc with Hans. Let me paste a snippet:
+Laurent Pinchart wrote:
+...
+> +static int mt9m032_setup_pll(struct mt9m032 *sensor)
+> +{
+> +	static const struct aptina_pll_limits limits = {
+> +		.ext_clock_min = 8000000,
+> +		.ext_clock_max = 16500000,
+> +		.int_clock_min = 2000000,
+> +		.int_clock_max = 24000000,
+> +		.out_clock_min = 322000000,
+> +		.out_clock_max = 693000000,
+> +		.pix_clock_max = 99000000,
+> +		.n_min = 1,
+> +		.n_max = 64,
+> +		.m_min = 16,
+> +		.m_max = 255,
+> +		.p1_min = 1,
+> +		.p1_max = 128,
+> +	};
+> +
+> +	struct i2c_client *client = v4l2_get_subdevdata(&sensor->subdev);
+> +	struct mt9m032_platform_data *pdata = sensor->pdata;
+> +	struct aptina_pll pll;
+> +	int ret;
+> +
+> +	pll.ext_clock = pdata->ext_clock;
+> +	pll.pix_clock = pdata->pix_clock;
+> +
+> +	ret = aptina_pll_calculate(&client->dev, &limits, &pll);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	sensor->pix_clock = pll.pix_clock;
 
-Jun 08 09:58:36 <kdebski>	hverkuil: in the first email you have wrote that you would like to add some more comments on the codec controls after you get yourself familiar with the standard. any progress on that?
-Jun 08 10:06:17 <hverkuil>	kdebski: yes, I want to go through the docbook patch again and check each item against the standard docs I have.
-Jun 08 10:06:48 <hverkuil>	I'll just make notes here as I go along and you can comment on it.
-Jun 08 10:08:02 <hverkuil>	I want to finish my review today if possible.
-Jun 08 10:10:12 <hverkuil>	kdebski: VIDEO_MAX_REF_PIC: is this H264 specific or is it also valid for MPEG4?
-Jun 08 10:18:36 <hverkuil>	kdebski: VIDEO_MULTI_SLICE_MODE: MAX_BITS: is this specific to your encoder, or is this part of the standard? And why is it in bits instead of bytes?
-Jun 08 10:22:01 <kdebski>	I have had a look at the most recent documentation for MFC and MAX_REF_PIC disappeared, previously I have categorised it as H264 only
-Jun 08 10:24:15 <kdebski>	in ffmpeg documentation it seems as a control that can be used in other codecs as well
-Jun 08 10:25:37 <kdebski>	VIDEO_MULTI_SLICE_MODE: MAX_BITS it can be set in x264 with --slice-max-size (it is in bytes there)
-Jun 08 10:26:10 <hverkuil>	Ah, so that slice mode is for x264, not h264?
-Jun 08 10:26:33 <kdebski>	hverkuil: for MFC it is bits
-Jun 08 10:26:56 <kdebski>	x264 is an open source h264 encoder
-Jun 08 10:28:20 <hverkuil>	so with MAX_BITS you can get variable number of MBs per slice, right?
-Jun 08 10:28:56 <kdebski>	yes
-Jun 08 10:29:00 <hverkuil>	I think I'd call it MAX_BYTES.
+I wouldn't expect aptina_pll_calculate() to change the supplied pixel
+clock. I'd consider it a bug if it does that. So you could use the pixel
+clock from platform data equally well.
 
-Although I wasn't too convinced whether it should be BITS or BYTES we have made a choice. It is in the mainline kernel. It is part of the API - changing it now could and probably will brake existing applications.
-The idea was to model the controls on the arguments/parameters used by existing open source codecs, such as x264.
- 
-[snip]
+> +	ret = mt9m032_write(client, MT9M032_PLL_CONFIG1,
+> +			    (pll.m << MT9M032_PLL_CONFIG1_MUL_SHIFT)
+> +			    | (pll.p1 - 1));
+> +	if (!ret)
+> +		ret = mt9m032_write(client, MT9P031_PLL_CONFIG2, pll.n - 1);
+> +	if (!ret)
+> +		ret = mt9m032_write(client, MT9P031_PLL_CONTROL,
+> +				    MT9P031_PLL_CONTROL_PWRON |
+> +				    MT9P031_PLL_CONTROL_USEPLL);
+> +	if (!ret)		/* more reserved, Continuous, Master Mode */
+> +		ret = mt9m032_write(client, MT9M032_READ_MODE1, 0x8006);
+> +	if (!ret)		/* Set 14-bit mode, select 7 divider */
+> +		ret = mt9m032_write(client, MT9M032_FORMATTER1, 0x111e);
+> +
+> +	return ret;
+> +}
 
-Best wishes,
---
-Kamil Debski
-Linux Platform Group
-Samsung Poland R&D Center
+...
+> +static int mt9m032_set_pad_format(struct v4l2_subdev *subdev,
+> +				  struct v4l2_subdev_fh *fh,
+> +				  struct v4l2_subdev_format *fmt)
+> +{
+> +	struct mt9m032 *sensor = to_mt9m032(subdev);
+> +	int ret;
+> +
+> +	mutex_lock(&sensor->lock);
+> +
+> +	if (sensor->streaming && fmt->which == V4L2_SUBDEV_FORMAT_ACTIVE) {
+> +		ret = -EBUSY;
+> +		goto done;
+> +	}
+> +
+> +	/* Scaling is not supported, the format is thus fixed. */
+> +	ret = mt9m032_get_pad_format(subdev, fh, fmt);
+> +
+> +done:
+> +	mutex_lock(&sensor->lock);
+> +	return ret;
+> +}
+> +
+> +static int mt9m032_get_crop(struct v4l2_subdev *subdev,
+> +			    struct v4l2_subdev_fh *fh,
+> +			    struct v4l2_subdev_crop *crop)
+> +{
+> +	struct mt9m032 *sensor = to_mt9m032(subdev);
+> +
+> +	mutex_lock(&sensor->lock);
+> +	crop->rect = *__mt9m032_get_pad_crop(sensor, fh, crop->which);
+> +	mutex_unlock(&sensor->lock);
+> +
+> +	return 0;
+> +}
 
+Shouldn't these two be renamed --- you've got "pad" in set/get fmt names
+as well.
+
+> +static int mt9m032_set_crop(struct v4l2_subdev *subdev,
+> +			    struct v4l2_subdev_fh *fh,
+> +			    struct v4l2_subdev_crop *crop)
+> +{
+> +	struct mt9m032 *sensor = to_mt9m032(subdev);
+> +	struct v4l2_mbus_framefmt *format;
+> +	struct v4l2_rect *__crop;
+> +	struct v4l2_rect rect;
+> +	int ret = 0;
+> +
+> +	mutex_lock(&sensor->lock);
+> +
+> +	if (sensor->streaming && crop->which == V4L2_SUBDEV_FORMAT_ACTIVE) {
+> +		ret = -EBUSY;
+> +		goto done;
+> +	}
+> +
+> +	/* Clamp the crop rectangle boundaries and align them to a multiple of 2
+> +	 * pixels to ensure a GRBG Bayer pattern.
+> +	 */
+> +	rect.left = clamp(ALIGN(crop->rect.left, 2), MT9M032_COLUMN_START_MIN,
+> +			  MT9M032_COLUMN_START_MAX);
+> +	rect.top = clamp(ALIGN(crop->rect.top, 2), MT9M032_ROW_START_MIN,
+> +			 MT9M032_ROW_START_MAX);
+> +	rect.width = clamp(ALIGN(crop->rect.width, 2), MT9M032_COLUMN_SIZE_MIN,
+> +			   MT9M032_COLUMN_SIZE_MAX);
+> +	rect.height = clamp(ALIGN(crop->rect.height, 2), MT9M032_ROW_SIZE_MIN,
+> +			    MT9M032_ROW_SIZE_MAX);
+> +
+> +	rect.width = min(rect.width, MT9M032_PIXEL_ARRAY_WIDTH - rect.left);
+> +	rect.height = min(rect.height, MT9M032_PIXEL_ARRAY_HEIGHT - rect.top);
+> +
+> +	__crop = __mt9m032_get_pad_crop(sensor, fh, crop->which);
+> +
+> +	if (rect.width != __crop->width || rect.height != __crop->height) {
+> +		/* Reset the output image size if the crop rectangle size has
+> +		 * been modified.
+> +		 */
+> +		format = __mt9m032_get_pad_format(sensor, fh, crop->which);
+> +		format->width = rect.width;
+> +		format->height = rect.height;
+> +	}
+> +
+> +	*__crop = rect;
+> +	crop->rect = rect;
+> +
+> +	if (crop->which == V4L2_SUBDEV_FORMAT_ACTIVE)
+> +		ret = mt9m032_update_geom_timing(sensor);
+> +
+> +done:
+> +	mutex_unlock(&sensor->lock);
+> +	return ret;
+> +}
+
+...
+
+> +static int mt9m032_probe(struct i2c_client *client,
+> +			 const struct i2c_device_id *devid)
+> +{
+> +	struct i2c_adapter *adapter = client->adapter;
+> +	struct mt9m032 *sensor;
+> +	int chip_version;
+> +	int ret;
+> +
+> +	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_WORD_DATA)) {
+> +		dev_warn(&client->dev,
+> +			 "I2C-Adapter doesn't support I2C_FUNC_SMBUS_WORD\n");
+> +		return -EIO;
+> +	}
+> +
+> +	if (!client->dev.platform_data)
+> +		return -ENODEV;
+> +
+> +	sensor = kzalloc(sizeof(*sensor), GFP_KERNEL);
+> +	if (sensor == NULL)
+> +		return -ENOMEM;
+> +
+> +	mutex_init(&sensor->lock);
+> +
+> +	sensor->pdata = client->dev.platform_data;
+> +
+> +	v4l2_i2c_subdev_init(&sensor->subdev, client, &mt9m032_ops);
+> +	sensor->subdev.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+> +
+> +	chip_version = mt9m032_read(client, MT9M032_CHIP_VERSION);
+> +	if (chip_version != MT9M032_CHIP_VERSION_VALUE) {
+> +		dev_err(&client->dev, "MT9M032 not detected, wrong version "
+> +			"0x%04x\n", chip_version);
+> +		ret = -ENODEV;
+> +		goto free_sensor;
+> +	}
+> +
+> +	dev_info(&client->dev, "MT9M032 detected at address 0x%02x\n",
+> +		 client->addr);
+> +
+> +	sensor->frame_interval.numerator = 1;
+> +	sensor->frame_interval.denominator = 30;
+> +
+> +	sensor->crop.left = 416;
+> +	sensor->crop.top = 360;
+> +	sensor->crop.width = 640;
+> +	sensor->crop.height = 480;
+
+How was the situation with this? Shouldn't the default be no cropping?
+
+> +	sensor->format.width = sensor->crop.width;
+> +	sensor->format.height = sensor->crop.height;
+> +	sensor->format.code = V4L2_MBUS_FMT_Y8_1X8;
+> +	sensor->format.field = V4L2_FIELD_NONE;
+> +	sensor->format.colorspace = V4L2_COLORSPACE_SRGB;
+> +
+> +	v4l2_ctrl_handler_init(&sensor->ctrls, 4);
+> +
+> +	v4l2_ctrl_new_std(&sensor->ctrls, &mt9m032_ctrl_ops,
+> +			  V4L2_CID_GAIN, 0, 127, 1, 64);
+> +
+> +	sensor->hflip = v4l2_ctrl_new_std(&sensor->ctrls,
+> +					  &mt9m032_ctrl_ops,
+> +					  V4L2_CID_HFLIP, 0, 1, 1, 0);
+> +	sensor->vflip = v4l2_ctrl_new_std(&sensor->ctrls,
+> +					  &mt9m032_ctrl_ops,
+> +					  V4L2_CID_VFLIP, 0, 1, 1, 0);
+> +
+> +	v4l2_ctrl_new_std(&sensor->ctrls, &mt9m032_ctrl_ops,
+> +			  V4L2_CID_EXPOSURE, MT9M032_SHUTTER_WIDTH_MIN,
+> +			  MT9M032_SHUTTER_WIDTH_MAX, 1,
+> +			  MT9M032_SHUTTER_WIDTH_DEF);
+> +
+> +	if (sensor->ctrls.error) {
+> +		ret = sensor->ctrls.error;
+> +		dev_err(&client->dev, "control initialization error %d\n", ret);
+> +		goto free_ctrl;
+> +	}
+> +
+> +	v4l2_ctrl_cluster(2, &sensor->hflip);
+> +
+> +	sensor->subdev.ctrl_handler = &sensor->ctrls;
+> +	sensor->pad.flags = MEDIA_PAD_FL_SOURCE;
+> +	ret = media_entity_init(&sensor->subdev.entity, 1, &sensor->pad, 0);
+> +	if (ret < 0)
+> +		goto free_ctrl;
+> +
+> +	ret = mt9m032_write(client, MT9M032_RESET, 1);	/* reset on */
+> +	if (ret < 0)
+> +		goto free_ctrl;
+
+I think you should do media_entity_cleanup() if this or anything past
+this fails.
+
+> +	mt9m032_write(client, MT9M032_RESET, 0);	/* reset off */
+> +	if (ret < 0)
+> +		goto free_ctrl;
+> +
+> +	ret = mt9m032_setup_pll(sensor);
+> +	if (ret < 0)
+> +		goto free_ctrl;
+> +	usleep_range(10000, 11000);
+> +
+> +	v4l2_ctrl_handler_setup(&sensor->ctrls);
+> +
+> +	/* SIZE */
+> +	ret = mt9m032_update_geom_timing(sensor);
+> +	if (ret < 0)
+> +		goto free_ctrl;
+> +
+> +	ret = mt9m032_write(client, 0x41, 0x0000);	/* reserved !!! */
+> +	if (ret < 0)
+> +		goto free_ctrl;
+> +	ret = mt9m032_write(client, 0x42, 0x0003);	/* reserved !!! */
+> +	if (ret < 0)
+> +		goto free_ctrl;
+> +	ret = mt9m032_write(client, 0x43, 0x0003);	/* reserved !!! */
+> +	if (ret < 0)
+> +		goto free_ctrl;
+> +	ret = mt9m032_write(client, 0x7f, 0x0000);	/* reserved !!! */
+> +	if (ret < 0)
+> +		goto free_ctrl;
+> +	if (sensor->pdata->invert_pixclock) {
+> +		ret = mt9m032_write(client, MT9M032_PIX_CLK_CTRL,
+> +				    MT9M032_PIX_CLK_CTRL_INV_PIXCLK);
+> +		if (ret < 0)
+> +			goto free_ctrl;
+> +	}
+> +
+> +	ret = mt9m032_write(client, MT9M032_RESTART, 1); /* Restart on */
+> +	if (ret < 0)
+> +		goto free_ctrl;
+> +	msleep(100);
+> +	ret = mt9m032_write(client, MT9M032_RESTART, 0); /* Restart off */
+> +	if (ret < 0)
+> +		goto free_ctrl;
+> +	msleep(100);
+> +	ret = update_formatter2(sensor, false);
+> +	if (ret < 0)
+> +		goto free_ctrl;
+> +
+> +	return ret;
+> +
+> +free_ctrl:
+> +	v4l2_ctrl_handler_free(&sensor->ctrls);
+> +
+> +free_sensor:
+> +	mutex_destroy(&sensor->lock);
+> +	kfree(sensor);
+> +	return ret;
+> +}
+> +
+> +static int mt9m032_remove(struct i2c_client *client)
+> +{
+> +	struct v4l2_subdev *subdev = i2c_get_clientdata(client);
+> +	struct mt9m032 *sensor = to_mt9m032(subdev);
+> +
+> +	v4l2_device_unregister_subdev(&sensor->subdev);
+> +	v4l2_ctrl_handler_free(&sensor->ctrls);
+> +	media_entity_cleanup(&sensor->subdev.entity);
+> +	mutex_destroy(&sensor->lock);
+> +	kfree(sensor);
+> +	return 0;
+> +}
+
+Kind regards,
+
+-- 
+Sakari Ailus
+sakari.ailus@iki.fi
