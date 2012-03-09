@@ -1,406 +1,184 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:38130 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S932799Ab2CZQX1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Mar 2012 12:23:27 -0400
-Date: Mon, 26 Mar 2012 19:23:23 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 3/3] omap3isp: preview: Shorten shadow update delay
-Message-ID: <20120326162323.GE913@valkosipuli.localdomain>
-References: <1332772951-19108-1-git-send-email-laurent.pinchart@ideasonboard.com>
- <1332772951-19108-4-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:34034 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751478Ab2CIKmX convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Mar 2012 05:42:23 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: jean-philippe francois <jp.francois@cynove.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org
+Subject: Re: Lockup on second streamon with omap3-isp
+Date: Fri, 09 Mar 2012 11:42:38 +0100
+Message-ID: <2243690.V1TtfkZKP0@avalon>
+In-Reply-To: <CAGGh5h13mOVtWPLGowvtvZM1Ufx2PST3DCokJzspGFcsUo=FiA@mail.gmail.com>
+References: <CAGGh5h0dVOsT-PCoCBtjj=+rLzViwnM2e9hG+sbWQk5iS-ThEQ@mail.gmail.com> <2747531.0sXdUv33Rd@avalon> <CAGGh5h13mOVtWPLGowvtvZM1Ufx2PST3DCokJzspGFcsUo=FiA@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1332772951-19108-4-git-send-email-laurent.pinchart@ideasonboard.com>
+Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hi Jean-Philippe,
 
-Thanks for the patch.
-
-On Mon, Mar 26, 2012 at 04:42:31PM +0200, Laurent Pinchart wrote:
-> When applications modify preview engine parameters, the new values are
-> applied to the hardware by the preview engine interrupt handler during
-> vertical blanking. If the parameters are being changed when the
-> interrupt handler is called, it just delays applying the parameters
-> until the next frame.
+On Friday 09 March 2012 08:30:10 jean-philippe francois wrote:
+> Le 9 mars 2012 00:28, Laurent Pinchart a écrit :
+> > On Thursday 08 March 2012 19:22:53 Sakari Ailus wrote:
+> >> On Wed, Mar 07, 2012 at 03:24:29PM +0100, jean-philippe francois wrote:
+> >> > Le 6 mars 2012 18:08, jean-philippe francois a écrit :
+> >> > > Hi,
+> >> > > 
+> >> > > I have a custom dm3730 board, running a 3.2.0 kernel.
+> >> > > The board is equipped with an aptina MT9J sensor on
+> >> > > parallel interface.
+> >> > > 
+> >> > > Whenever I try to run yavta twice, the second run leads to a
+> >> > > soft lockup in omap3isp_video_queue_streamon (see below)
+> >> > > 
+> >> > > What can I do / test  to debug this issue ?
+> >> > 
+> >> > Examining the offset, The code is stuck in the for_each loop,
+> >> > but I fail to see why.
+> >> > 
+> >> > I added list manipulation and spinlock debugging, without detecting any
+> >> > problem.
+> >> > 
+> >> > > # get.vga
+> >> > > Device /dev/video2 opened.
+> >> > > Device `OMAP3 ISP CCDC output' on `media' is a video capture device.
+> >> > > Video format set: SGRBG8 (47425247) 640x480 (stride 640) buffer size
+> >> > > 307200
+> >> > > Video format: SGRBG8 (47425247) 640x480 (stride 640) buffer size
+> >> > > 307200
+> >> > > 3 buffers requested.
+> >> > > length: 307200 offset: 0
+> >> > > Buffer 0 mapped at address 0x4023e000.
+> >> > > length: 307200 offset: 307200
+> >> > > Buffer 1 mapped at address 0x4034d000.
+> >> > > length: 307200 offset: 614400
+> >> > > Buffer 2 mapped at address 0x40444000.
+> >> > > 0 (0) [-] 4294967295 307200 bytes 100.397705 100.397796 7.817 fps
+> >> > > 1 (1) [-] 4294967295 307200 bytes 100.495666 100.495788 10.208 fps
+> >> > > 2 (2) [-] 4294967295 307200 bytes 100.593658 100.593750 10.205 fps
+> >> > > 3 (0) [-] 4294967295 307200 bytes 100.691619 100.691741 10.208 fps
+> >> > > 4 (1) [-] 4294967295 307200 bytes 100.789611 100.789703 10.205 fps
+> >> > > 5 (2) [-] 4294967295 307200 bytes 100.887573 100.887695 10.208 fps
+> >> > > 6 (0) [-] 4294967295 307200 bytes 100.985565 100.985656 10.205 fps
+> >> > > 7 (1) [-] 4294967295 307200 bytes 101.083526 101.083709 10.208 fps
+> >> > > 8 (2) [-] 4294967295 307200 bytes 101.181488 101.181610 10.208 fps
+> >> > > 9 (0) [-] 4294967295 307200 bytes 101.279480 101.279571 10.205 fps
+> >> > > Captured 10 frames in 1.009796 seconds (9.902989 fps, 3042198.137254
+> >> > > B/s).
+> >> > > 3 buffers released.
+> >> > > [1]+  Done                       httpd
+> >> > > # get.vga
+> >> > > Device /dev/video2 opened.
+> >> > > Device `OMAP3 ISP CCDC output' on `media' is a video capture device.
+> >> > > Video format set: SGRBG8 (47425247) 640x480 (stride 640) buffer size
+> >> > > 307200
+> >> > > Video format: SGRBG8 (47425247) 640x480 (stride 640) buffer size
+> >> > > 307200
+> >> > > 3 buffers requested.
+> >> > > length: 307200 offset: 0
+> >> > > Buffer 0 mapped at address 0x40285000.
+> >> > > length: 307200 offset: 307200
+> >> > > Buffer 1 mapped at address 0x40314000.
+> >> > > length: 307200 offset: 614400
+> >> > > Buffer 2 mapped at address 0x403bb000.
+> >> > > BUG: soft lockup - CPU#0 stuck for 22s! [yavta:495]
+> >> > > Modules linked in: ks8851_mll omap3_isp fpgacam(O)
+> >> > > 
+> >> > > Pid: 495, comm:                yavta
+> >> > > CPU: 0    Tainted: G           O  (3.2.0 #52)
+> >> > > PC is at __do_softirq+0x50/0x110
+> >> > > LR is at __do_softirq+0x38/0x110
+> >> > > pc : [<c003746c>]    lr : [<c0037454>]    psr: 20000113
+> >> > > sp : ce8e5c88  ip : cf406140  fp : 00000000
+> >> > > r10: cee90800  r9 : 0000000a  r8 : ce8e4000
+> >> > > r7 : 00000002  r6 : 00000000  r5 : 00000000  r4 : 00000025
+> >> > > r3 : c044e580  r2 : 00000000  r1 : 00000002  r0 : 00000000
+> >> > > Flags: nzCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment user
+> >> > > Control: 10c5387d  Table: 8e858019  DAC: 00000015
+> >> > > [<c00123b0>] (unwind_backtrace+0x0/0xec) from [<c00646c4>]
+> >> > > (watchdog_timer_fn+0xd8/0x128)
+> >> > > [<c00646c4>] (watchdog_timer_fn+0xd8/0x128) from [<c004e640>]
+> >> > > (__run_hrtimer+0x68/0xe4)
+> >> > > [<c004e640>] (__run_hrtimer+0x68/0xe4) from [<c004e8b0>]
+> >> > > (hrtimer_interrupt+0x11c/0x2a4)
+> >> > > [<c004e8b0>] (hrtimer_interrupt+0x11c/0x2a4) from [<c0018f44>]
+> >> > > (omap2_gp_timer_interrupt+0x24/0x34)
+> >> > > [<c0018f44>] (omap2_gp_timer_interrupt+0x24/0x34) from [<c0064df8>]
+> >> > > (handle_irq_event_percpu+0x28/0x110)
+> >> > > [<c0064df8>] (handle_irq_event_percpu+0x28/0x110) from [<c0064f34>]
+> >> > > (handle_irq_event+0x54/0x74)
+> >> > > [<c0064f34>] (handle_irq_event+0x54/0x74) from [<c00676f8>]
+> >> > > (handle_level_irq+0xb4/0x100)
+> >> > > [<c00676f8>] (handle_level_irq+0xb4/0x100) from [<c0064a28>]
+> >> > > (generic_handle_irq+0x28/0x30)
+> >> > > [<c0064a28>] (generic_handle_irq+0x28/0x30) from [<c000e570>]
+> >> > > (handle_IRQ+0x60/0x84)
+> >> > > [<c000e570>] (handle_IRQ+0x60/0x84) from [<c000d874>]
+> >> > > (__irq_svc+0x34/0x98)
+> >> > > [<c000d874>] (__irq_svc+0x34/0x98) from [<c003746c>]
+> >> > > (__do_softirq+0x50/0x110) [<c003746c>] (__do_softirq+0x50/0x110) from
+> >> > > [<c00376f0>]
+> >> > > (irq_exit+0x48/0x9c)omap3isp_video_queue_streamon
+> >> > > [<c00376f0>] (irq_exit+0x48/0x9c) from [<c000e574>]
+> >> > > (handle_IRQ+0x64/0x84)
+> >> > > [<c000e574>] (handle_IRQ+0x64/0x84) from [<c000d874>]
+> >> > > (__irq_svc+0x34/0x98)
+> >> > > [<c000d874>] (__irq_svc+0x34/0x98) from [<bf007864>] (+0x6c/0xa0
+> >> > > [omap3_isp])
+> >> 
+> >> As it's __irq_svc(), I'd guess it's stuck executing the ISP interrupt
+> >> handler. This shouldn't happen.
+> >> 
+> >> Is the sensor a parallel one?
+> >> 
+> >> There have been cases where bad hs / vs signals essentially cause the ISP
+> >> driver to stay in handling interrupts.
+> > 
+> > Or rather to constantly re-enter the interrupt handler.
+> > 
+> > Make sure that your sensor stops generating hsync/vsync signals when the
+> > stream is stopped, and also make sure that the hsync/vsync signals are
+> > either driven by the sensor or pulled up or low.
 > 
-> If an application modifies the parameters for every frame, and the
-> preview engine interrupt is triggerred synchronously, the parameters are
-> never applied to the hardware.
-> 
-> Fix this by storing new parameters in a shadow copy, and replace the
-> active parameters with the shadow values atomically.
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> ---
->  drivers/media/video/omap3isp/isppreview.c |  122 ++++++++++++++++++++---------
->  drivers/media/video/omap3isp/isppreview.h |   19 +++--
->  2 files changed, 95 insertions(+), 46 deletions(-)
-> 
-> diff --git a/drivers/media/video/omap3isp/isppreview.c b/drivers/media/video/omap3isp/isppreview.c
-> index 2b5c137..34fecc9 100644
-> --- a/drivers/media/video/omap3isp/isppreview.c
-> +++ b/drivers/media/video/omap3isp/isppreview.c
-> @@ -649,12 +649,17 @@ preview_config_rgb_to_ycbcr(struct isp_prev_device *prev, const void *prev_csc)
->  static void
->  preview_update_contrast(struct isp_prev_device *prev, u8 contrast)
->  {
-> -	struct prev_params *params = &prev->params;
-> +	struct prev_params *params;
-> +	unsigned long flags;
-> +
-> +	spin_lock_irqsave(&prev->params.lock, flags);
-> +	params = prev->params.active;
->  
->  	if (params->contrast != (contrast * ISPPRV_CONTRAST_UNITS)) {
->  		params->contrast = contrast * ISPPRV_CONTRAST_UNITS;
-> -		prev->update |= PREV_CONTRAST;
-> +		params->update |= PREV_CONTRAST;
->  	}
-> +	spin_unlock_irqrestore(&prev->params.lock, flags);
->  }
->  
->  /*
-> @@ -681,12 +686,17 @@ preview_config_contrast(struct isp_prev_device *prev, const void *params)
->  static void
->  preview_update_brightness(struct isp_prev_device *prev, u8 brightness)
->  {
-> -	struct prev_params *params = &prev->params;
-> +	struct prev_params *params;
-> +	unsigned long flags;
-> +
-> +	spin_lock_irqsave(&prev->params.lock, flags);
-> +	params = prev->params.active;
->  
->  	if (params->brightness != (brightness * ISPPRV_BRIGHT_UNITS)) {
->  		params->brightness = brightness * ISPPRV_BRIGHT_UNITS;
-> -		prev->update |= PREV_BRIGHTNESS;
-> +		params->update |= PREV_BRIGHTNESS;
->  	}
-> +	spin_unlock_irqrestore(&prev->params.lock, flags);
->  }
->  
->  /*
-> @@ -886,20 +896,24 @@ static int preview_config(struct isp_prev_device *prev,
->  			  struct omap3isp_prev_update_config *cfg)
->  {
->  	struct prev_params *params;
-> +	struct prev_params *shadow;
->  	struct preview_update *attr;
-> +	unsigned long flags;
->  	int i, bit, rval = 0;
->  
-> -	params = &prev->params;
->  	if (cfg->update == 0)
->  		return 0;
->  
-> -	if (prev->state != ISP_PIPELINE_STREAM_STOPPED) {
-> -		unsigned long flags;
-> +	params = kmalloc(sizeof(*params), GFP_KERNEL);
-> +	if (params == NULL)
-> +		return -ENOMEM;
->  
-> -		spin_lock_irqsave(&prev->lock, flags);
-> -		prev->shadow_update = 1;
-> -		spin_unlock_irqrestore(&prev->lock, flags);
-> -	}
-> +	spin_lock_irqsave(&prev->params.lock, flags);
-> +	memcpy(params, prev->params.shadow ? : prev->params.active,
-> +	       sizeof(*params));
-> +	spin_unlock_irqrestore(&prev->params.lock, flags);
-> +
-> +	params->update = 0;
->  
->  	for (i = 0; i < ARRAY_SIZE(update_attrs); i++) {
->  		attr = &update_attrs[i];
+> Thank you, I will try this and keep you posted.
+> With this sensor it is possible, but that is not the case for every
+> sensor out there.
+> Is this an ISP bug ?
 
-I think it's partly a matter of taste but --- would you think it'd make
-sense to allocate the another configuration structure statically? I didn't
-check the actual size of the configuration but it seems to be pretty big.
-Handling allocation failures in applications is a nuisance, but also
-allocating such largish chunks to just to be on the safe side doesn't sound
-very appealing either.
+>From my experience, the ISP doesn't handle free-running sensors very well. 
+There are other things it doesn't handle well, such as sensors stopping in the 
+middle of the frame. I would consider this as limitations.
 
-Say, if you're capturing a photo and you allocation fails here. Should you
-just retry it a few times, or fail immediately? Random allocation failures
-are not unforeseen even on systems with plenty of memory. Not that it should
-work this way I guess...
+This shouldn't cause any interrupt storm though, but I'd like you to check 
+just in case. Floating HS/VS signals that would happen to oscillate near the 
+logic threshold voltage is my main guess for your problem.
 
-Have you checked what's the size of this struct btw.?
+> It never happens on first start, ie before ccdc_configure is called
+> for the first time.
+> Is there a way to eventually handle this in the driver ?
 
-> @@ -926,11 +940,28 @@ static int preview_config(struct isp_prev_device *prev,
->  			params->features &= ~attr->feature_bit;
->  		}
->  
-> -		prev->update |= attr->feature_bit;
-> +		params->update |= attr->feature_bit;
-> +	}
-> +
-> +	if (rval < 0) {
-> +		kfree(params);
-> +		return rval;
->  	}
->  
-> -	prev->shadow_update = 0;
-> -	return rval;
-> +	spin_lock_irqsave(&prev->params.lock, flags);
-> +	/* If shadow parameters are still present, keep their update flags as
-> +	 * the hardware hasn't been updated yet. The values have been copied at
-> +	 * the beginning of the function.
-> +	 */
-> +	if (prev->params.shadow)
-> +		params->update |= prev->params.shadow->update;
-> +
-> +	shadow = prev->params.shadow;
-> +	prev->params.shadow = params;
-> +	spin_unlock_irqrestore(&prev->params.lock, flags);
-> +
-> +	kfree(shadow);
-> +	return 0;
->  }
->  
->  /*
-> @@ -941,7 +972,7 @@ static int preview_config(struct isp_prev_device *prev,
->   */
->  static void preview_setup_hw(struct isp_prev_device *prev)
->  {
-> -	struct prev_params *params = &prev->params;
-> +	struct prev_params *params = prev->params.active;
->  	struct preview_update *attr;
->  	int i, bit;
->  	void *param_ptr;
-> @@ -952,7 +983,7 @@ static void preview_setup_hw(struct isp_prev_device *prev)
->  	for (i = 0; i < ARRAY_SIZE(update_attrs); i++) {
->  		attr = &update_attrs[i];
->  
-> -		if (!(prev->update & attr->feature_bit))
-> +		if (!(params->update & attr->feature_bit))
->  			continue;
->  		bit = params->features & attr->feature_bit;
->  		if (bit) {
-> @@ -967,7 +998,7 @@ static void preview_setup_hw(struct isp_prev_device *prev)
->  			if (attr->enable)
->  				attr->enable(prev, 0);
->  
-> -		prev->update &= ~attr->feature_bit;
-> +		params->update &= ~attr->feature_bit;
->  	}
->  }
->  
-> @@ -1004,14 +1035,15 @@ preview_config_ycpos(struct isp_prev_device *prev,
->   */
->  static void preview_config_averager(struct isp_prev_device *prev, u8 average)
->  {
-> +	struct prev_params *params = prev->params.active;
->  	struct isp_device *isp = to_isp_device(prev);
->  	int reg = 0;
->  
-> -	if (prev->params.cfa.format == OMAP3ISP_CFAFMT_BAYER)
-> +	if (params->cfa.format == OMAP3ISP_CFAFMT_BAYER)
->  		reg = ISPPRV_AVE_EVENDIST_2 << ISPPRV_AVE_EVENDIST_SHIFT |
->  		      ISPPRV_AVE_ODDDIST_2 << ISPPRV_AVE_ODDDIST_SHIFT |
->  		      average;
-> -	else if (prev->params.cfa.format == OMAP3ISP_CFAFMT_RGBFOVEON)
-> +	else if (params->cfa.format == OMAP3ISP_CFAFMT_RGBFOVEON)
->  		reg = ISPPRV_AVE_EVENDIST_3 << ISPPRV_AVE_EVENDIST_SHIFT |
->  		      ISPPRV_AVE_ODDDIST_3 << ISPPRV_AVE_ODDDIST_SHIFT |
->  		      average;
-> @@ -1032,7 +1064,7 @@ static void preview_config_averager(struct isp_prev_device *prev, u8 average)
->  static void preview_config_input_size(struct isp_prev_device *prev)
->  {
->  	struct isp_device *isp = to_isp_device(prev);
-> -	struct prev_params *params = &prev->params;
-> +	struct prev_params *params = prev->params.active;
->  	unsigned int sph = prev->crop.left;
->  	unsigned int eph = prev->crop.left + prev->crop.width - 1;
->  	unsigned int slv = prev->crop.top;
-> @@ -1189,7 +1221,7 @@ int omap3isp_preview_busy(struct isp_prev_device *prev)
->   */
->  void omap3isp_preview_restore_context(struct isp_device *isp)
->  {
-> -	isp->isp_prev.update = PREV_FEATURES_END - 1;
-> +	isp->isp_prev.params.active->update = PREV_FEATURES_END - 1;
->  	preview_setup_hw(&isp->isp_prev);
->  }
->  
-> @@ -1249,12 +1281,19 @@ static void preview_print_status(struct isp_prev_device *prev)
->  /*
->   * preview_init_params - init image processing parameters.
->   * @prev: pointer to previewer private structure
-> - * return none
-> + *
-> + * Returns 0 on success or -ENOMEM if parameters memory can't be allocated.
->   */
-> -static void preview_init_params(struct isp_prev_device *prev)
-> +static int preview_init_params(struct isp_prev_device *prev)
->  {
-> -	struct prev_params *params = &prev->params;
-> -	int i = 0;
-> +	struct prev_params *params;
-> +	unsigned int i;
-> +
-> +	spin_lock_init(&prev->params.lock);
-> +
-> +	params = kzalloc(sizeof(*params), GFP_KERNEL);
-> +	if (params == NULL)
-> +		return -ENOMEM;
->  
->  	/* Init values */
->  	params->contrast = ISPPRV_CONTRAST_DEF * ISPPRV_CONTRAST_UNITS;
-> @@ -1297,7 +1336,10 @@ static void preview_init_params(struct isp_prev_device *prev)
->  			 | PREV_RGB2RGB | PREV_COLOR_CONV | PREV_WB
->  			 | PREV_BRIGHTNESS | PREV_CONTRAST;
->  
-> -	prev->update = PREV_FEATURES_END - 1;
-> +	params->update = PREV_FEATURES_END - 1;
-> +
-> +	prev->params.active = params;
-> +	return 0;
->  }
->  
->  /*
-> @@ -1457,16 +1499,17 @@ void omap3isp_preview_isr(struct isp_prev_device *prev)
->  	if (omap3isp_module_sync_is_stopping(&prev->wait, &prev->stopping))
->  		return;
->  
-> -	spin_lock_irqsave(&prev->lock, flags);
-> -	if (prev->shadow_update)
-> -		goto done;
-> +	spin_lock_irqsave(&prev->params.lock, flags);
-> +	if (prev->params.shadow) {
-> +		kfree(prev->params.active);
-> +		prev->params.active = prev->params.shadow;
-> +		prev->params.shadow = NULL;
-> +	}
-> +	spin_unlock_irqrestore(&prev->params.lock, flags);
->  
->  	preview_setup_hw(prev);
->  	preview_config_input_size(prev);
->  
-> -done:
-> -	spin_unlock_irqrestore(&prev->lock, flags);
-> -
->  	if (prev->input == PREVIEW_INPUT_MEMORY ||
->  	    prev->output & PREVIEW_OUTPUT_MEMORY)
->  		preview_isr_buffer(prev);
-> @@ -1557,7 +1600,6 @@ static int preview_set_stream(struct v4l2_subdev *sd, int enable)
->  	struct isp_video *video_out = &prev->video_out;
->  	struct isp_device *isp = to_isp_device(prev);
->  	struct device *dev = to_device(prev);
-> -	unsigned long flags;
->  
->  	if (prev->state == ISP_PIPELINE_STREAM_STOPPED) {
->  		if (enable == ISP_PIPELINE_STREAM_STOPPED)
-> @@ -1594,11 +1636,9 @@ static int preview_set_stream(struct v4l2_subdev *sd, int enable)
->  		if (omap3isp_module_sync_idle(&sd->entity, &prev->wait,
->  					      &prev->stopping))
->  			dev_dbg(dev, "%s: stop timeout.\n", sd->name);
-> -		spin_lock_irqsave(&prev->lock, flags);
->  		omap3isp_sbl_disable(isp, OMAP3_ISP_SBL_PREVIEW_READ);
->  		omap3isp_sbl_disable(isp, OMAP3_ISP_SBL_PREVIEW_WRITE);
->  		omap3isp_subclk_disable(isp, OMAP3_ISP_SUBCLK_PREVIEW);
-> -		spin_unlock_irqrestore(&prev->lock, flags);
->  		isp_video_dmaqueue_flags_clr(video_out);
->  		break;
->  	}
-> @@ -2206,17 +2246,20 @@ error_video_in:
->  }
->  
->  /*
-> - * isp_preview_init - Previewer initialization.
-> + * omap3isp_preview_init - Previewer initialization.
->   * @dev : Pointer to ISP device
->   * return -ENOMEM or zero on success
->   */
->  int omap3isp_preview_init(struct isp_device *isp)
->  {
->  	struct isp_prev_device *prev = &isp->isp_prev;
-> +	int ret;
->  
-> -	spin_lock_init(&prev->lock);
->  	init_waitqueue_head(&prev->wait);
-> -	preview_init_params(prev);
-> +
-> +	ret = preview_init_params(prev);
-> +	if (ret < 0)
-> +		return ret;
->  
->  	return preview_init_entities(prev);
->  }
-> @@ -2229,4 +2272,7 @@ void omap3isp_preview_cleanup(struct isp_device *isp)
->  	omap3isp_video_cleanup(&prev->video_in);
->  	omap3isp_video_cleanup(&prev->video_out);
->  	media_entity_cleanup(&prev->subdev.entity);
-> +
-> +	kfree(prev->params.active);
-> +	kfree(prev->params.shadow);
->  }
-> diff --git a/drivers/media/video/omap3isp/isppreview.h b/drivers/media/video/omap3isp/isppreview.h
-> index 0968660..c38ed09 100644
-> --- a/drivers/media/video/omap3isp/isppreview.h
-> +++ b/drivers/media/video/omap3isp/isppreview.h
-> @@ -89,6 +89,7 @@ enum preview_ycpos_mode {
->  /*
->   * struct prev_params - Structure for all configuration
->   * @features: Set of features enabled.
-> + * @update: Bitmask of the parameters to be updated
->   * @cfa: CFA coefficients.
->   * @csup: Chroma suppression coefficients.
->   * @luma: Luma enhancement coefficients.
-> @@ -106,6 +107,7 @@ enum preview_ycpos_mode {
->   */
->  struct prev_params {
->  	u32 features;
-> +	u32 update;
->  	struct omap3isp_prev_cfa cfa;
->  	struct omap3isp_prev_csup csup;
->  	struct omap3isp_prev_luma luma;
-> @@ -157,12 +159,11 @@ struct isptables_update {
->   * @output: Bitmask of the active output
->   * @video_in: Input video entity
->   * @video_out: Output video entity
-> - * @params: Module configuration data
-> - * @shadow_update: If set, update the hardware configured in the next interrupt
-> + * @params.active: Active module configuration data
-> + * @params.shadow: Shadow module configuration data
-> + * @params.lock: Parameters lock, protects params.active and params.shadow
->   * @underrun: Whether the preview entity has queued buffers on the output
->   * @state: Current preview pipeline state
-> - * @lock: Shadow update lock
-> - * @update: Bitmask of the parameters to be updated
->   *
->   * This structure is used to store the OMAP ISP Preview module Information.
->   */
-> @@ -179,13 +180,15 @@ struct isp_prev_device {
->  	struct isp_video video_in;
->  	struct isp_video video_out;
->  
-> -	struct prev_params params;
-> -	unsigned int shadow_update:1;
-> +	struct {
-> +		struct prev_params *active;
-> +		struct prev_params *shadow;
-> +		spinlock_t lock;
-> +	} params;
-> +
->  	enum isp_pipeline_stream_state state;
->  	wait_queue_head_t wait;
->  	atomic_t stopping;
-> -	spinlock_t lock;
-> -	u32 update;
->  };
->  
->  struct isp_device;
-> -- 
-> 1.7.3.4
-> 
+Let's first find out where the problam comes from exactly.
+
+> >> > > [<bf007864>] (omap3isp_video_queue_streamon+0x6c/0xa0 [omap3_isp])
+> >> > > from [<bf0096cc>] (isp_video_streamon+0x178/0x258 [omap3_isp])
+> >> > > [<bf0096cc>] (isp_video_streamon+0x178/0x258 [omap3_isp]) from
+> >> > > [<c022cae4>] (__video_do_ioctl+0x1b9c/0x4894)
+> >> > > [<c022cae4>] (__video_do_ioctl+0x1b9c/0x4894) from [<c022ae08>]
+> >> > > (video_usercopy+0x1b8/0x298)
+> >> > > [<c022ae08>] (video_usercopy+0x1b8/0x298) from [<c0229d48>]
+> >> > > (v4l2_ioctl+0x68/0x114)
+> >> > > [<c0229d48>] (v4l2_ioctl+0x68/0x114) from [<c00a2514>]
+> >> > > (vfs_ioctl+0x20/0x3c) [<c00a2514>] (vfs_ioctl+0x20/0x3c) from
+> >> > > [<c00a2d9c>] (do_vfs_ioctl+0x1ac/0x1c4) [<c00a2d9c>]
+> >> > > (do_vfs_ioctl+0x1ac/0x1c4) from [<c00a2de8>] (sys_ioctl+0x34/0x54)
+> >> > > [<c00a2de8>] (sys_ioctl+0x34/0x54) from [<c000dcc0>]
+> >> > > (ret_fast_syscall+0x0/0x30) Kernel panic - not syncing: softlockup:
+> >> > > hung tasks
 
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+Regards,
+
+Laurent Pinchart
+
