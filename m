@@ -1,80 +1,160 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:41300 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752801Ab2CLKjP convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Mar 2012 06:39:15 -0400
-Received: by ghrr11 with SMTP id r11so2366874ghr.19
-        for <linux-media@vger.kernel.org>; Mon, 12 Mar 2012 03:39:14 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <201203111527.41689.remi@remlab.net>
-References: <CAGa-wNMGMTBdB2bqPL7vibgrv+tLZnOMQsQwDbHHWXO6cyNkTg@mail.gmail.com>
-	<201203111527.41689.remi@remlab.net>
-Date: Mon, 12 Mar 2012 11:39:14 +0100
-Message-ID: <CAGa-wNNkivstczhfktOTqu=xGyBkjtdin7jhL4Q-jixOymcR5A@mail.gmail.com>
-Subject: Re: dvb-c usb device for linux
-From: Claus Olesen <ceolesen@gmail.com>
-To: =?ISO-8859-1?Q?R=E9mi_Denis=2DCourmont?= <remi@remlab.net>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from smtp.nokia.com ([147.243.128.24]:21356 "EHLO mgw-da01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751478Ab2CISoq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 9 Mar 2012 13:44:46 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
+	teturtia@gmail.com, dacohen@gmail.com, snjw23@gmail.com,
+	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
+	tuukkat76@gmail.com, k.debski@gmail.com, riverful@gmail.com,
+	pradeep.sawlani@gmail.com
+Subject: [PATCH 25/35] omap3isp: Collect entities that are part of the pipeline
+Date: Fri,  9 Mar 2012 20:44:08 +0200
+Message-Id: <1331318648-20954-1-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1912567.UNqMTnFDpO@avalon>
+References: <1912567.UNqMTnFDpO@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-@Remi - Thank you very much and to everyone involved in making it work.
-Because - that it (almost) already works was knew to me.
-I'm using Fedora 16 and Kaffeine all fully up to date
-and for anyone interested here's all I had to do to make it work.
+Collect entities which are part of the pipeline into a single bit mask.
 
-update software
-===============
-- get, build and install the latest media files as described in
-http://linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-DVB_Device_Drivers
-if the build fails as it did for me then if you are able to fix the error(s) in
-the source file(s) then you want to build as described under "./build --man" for
-"develop a new patch" i.e. by
-"cd media_build/v4l;make"
-instead of by using the build script which resyncs with the repository thereby
-undoing your changes.
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+ drivers/media/video/omap3isp/ispvideo.c |   61 +++++++++++++++++--------------
+ drivers/media/video/omap3isp/ispvideo.h |    2 +
+ 2 files changed, 35 insertions(+), 28 deletions(-)
 
-setup kaffeine
-==============
-- close kaffeine
-- run "w_scan -fc" (for cable, -ft for terrestial) but no need for any longer
-than until it starts scanning frequencies - for the effect of its commanding of
-the 290e into the role of a dvb-c device
-(is that what the reset button on kaffeine's device panel is supposed to do?)
-- launch kaffeine
-verify that the device1 panel says DVB-C and Cable as Name
-besides, notice that the device2 tab corresponding to
-/dev/dvb/adapter0/frontend1
-and formerly representing the dvb-c part of the 290e is now gone
-- select a Source on the device1 panel
-- scan for channels on the channels panel
-notice that the channels panel says Cable as Source
+diff --git a/drivers/media/video/omap3isp/ispvideo.c b/drivers/media/video/omap3isp/ispvideo.c
+index d34f690..8ce3c5b 100644
+--- a/drivers/media/video/omap3isp/ispvideo.c
++++ b/drivers/media/video/omap3isp/ispvideo.c
+@@ -255,8 +255,9 @@ isp_video_remote_subdev(struct isp_video *video, u32 *pad)
+ }
+ 
+ /* Return a pointer to the ISP video instance at the far end of the pipeline. */
+-static struct isp_video *
+-isp_video_far_end(struct isp_video *video)
++static int isp_video_get_graph_data(struct isp_video *video,
++				    struct isp_pipeline *pipe,
++				    enum isp_pipeline_state *state)
+ {
+ 	struct media_entity_graph graph;
+ 	struct media_entity *entity = &video->video.entity;
+@@ -267,21 +268,40 @@ isp_video_far_end(struct isp_video *video)
+ 	media_entity_graph_walk_start(&graph, entity);
+ 
+ 	while ((entity = media_entity_graph_walk_next(&graph))) {
++		struct isp_video *__video;
++
++		pipe->entities |= 1 << entity->id;
++
++		if (far_end != NULL)
++			continue;
++
+ 		if (entity == &video->video.entity)
+ 			continue;
+ 
+ 		if (media_entity_type(entity) != MEDIA_ENT_T_DEVNODE)
+ 			continue;
+ 
+-		far_end = to_isp_video(media_entity_to_video_device(entity));
+-		if (far_end->type != video->type)
+-			break;
+-
+-		far_end = NULL;
++		__video = to_isp_video(media_entity_to_video_device(entity));
++		if (__video->type != video->type)
++			far_end = __video;
+ 	}
+ 
+ 	mutex_unlock(&mdev->graph_mutex);
+-	return far_end;
++
++	if (video->type == V4L2_BUF_TYPE_VIDEO_CAPTURE) {
++		*state = ISP_PIPELINE_STREAM_OUTPUT | ISP_PIPELINE_IDLE_OUTPUT;
++		pipe->input = far_end;
++		pipe->output = video;
++	} else {
++		if (far_end == NULL)
++			return -EPIPE;
++
++		*state = ISP_PIPELINE_STREAM_INPUT | ISP_PIPELINE_IDLE_INPUT;
++		pipe->input = video;
++		pipe->output = far_end;
++	}
++
++	return 0;
+ }
+ 
+ /*
+@@ -972,7 +992,6 @@ isp_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
+ 	struct isp_video *video = video_drvdata(file);
+ 	enum isp_pipeline_state state;
+ 	struct isp_pipeline *pipe;
+-	struct isp_video *far_end;
+ 	unsigned long flags;
+ 	int ret;
+ 
+@@ -992,6 +1011,8 @@ isp_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
+ 	pipe = video->video.entity.pipe
+ 	     ? to_isp_pipeline(&video->video.entity) : &video->pipe;
+ 
++	pipe->entities = 0;
++
+ 	if (video->isp->pdata->set_constraints)
+ 		video->isp->pdata->set_constraints(video->isp, true);
+ 	pipe->l3_ick = clk_get_rate(video->isp->clock[ISP_CLK_L3_ICK]);
+@@ -1011,25 +1032,9 @@ isp_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
+ 	video->bpl_padding = ret;
+ 	video->bpl_value = vfh->format.fmt.pix.bytesperline;
+ 
+-	/* Find the ISP video node connected at the far end of the pipeline and
+-	 * update the pipeline.
+-	 */
+-	far_end = isp_video_far_end(video);
+-
+-	if (video->type == V4L2_BUF_TYPE_VIDEO_CAPTURE) {
+-		state = ISP_PIPELINE_STREAM_OUTPUT | ISP_PIPELINE_IDLE_OUTPUT;
+-		pipe->input = far_end;
+-		pipe->output = video;
+-	} else {
+-		if (far_end == NULL) {
+-			ret = -EPIPE;
+-			goto err_check_format;
+-		}
+-
+-		state = ISP_PIPELINE_STREAM_INPUT | ISP_PIPELINE_IDLE_INPUT;
+-		pipe->input = video;
+-		pipe->output = far_end;
+-	}
++	ret = isp_video_get_graph_data(video, pipe, &state);
++	if (ret < 0)
++		goto err_check_format;
+ 
+ 	/* Validate the pipeline and update its state. */
+ 	ret = isp_video_validate_pipeline(pipe);
+diff --git a/drivers/media/video/omap3isp/ispvideo.h b/drivers/media/video/omap3isp/ispvideo.h
+index d91bdb9..c9187cb 100644
+--- a/drivers/media/video/omap3isp/ispvideo.h
++++ b/drivers/media/video/omap3isp/ispvideo.h
+@@ -88,6 +88,7 @@ enum isp_pipeline_state {
+ /*
+  * struct isp_pipeline - An ISP hardware pipeline
+  * @error: A hardware error occurred during capture
++ * @entities: Bitmask of entities in the pipeline (indexed by entity ID)
+  */
+ struct isp_pipeline {
+ 	struct media_pipeline pipe;
+@@ -96,6 +97,7 @@ struct isp_pipeline {
+ 	enum isp_pipeline_stream_state stream_state;
+ 	struct isp_video *input;
+ 	struct isp_video *output;
++	u32 entities;
+ 	unsigned long l3_ick;
+ 	unsigned int max_rate;
+ 	atomic_t frame_number;
+-- 
+1.7.2.5
 
-with that kaffeine now shows cable tv using the 290e
-
-
-
-On Sun, Mar 11, 2012 at 2:27 PM, Rémi Denis-Courmont <remi@remlab.net> wrote:
-> Le dimanche 11 mars 2012 15:08:25 Claus Olesen, vous avez écrit :
->> PS.
->> If linux supported the 290e for dvb-c as supported by its chipset
->> CXD2820 as also used by the ET T2C for dvb-c then it would be my choice.
->
-> The Linux driver does support DVB-C.
->
-> However you need software that understands multi-standard frontends from the
-> Linux DVB API v5.4, and that is hard to come by as of today.
->
->> As I said in my previous email then
->> I found that the 290e works for dvb-c using dvbviewer and just now
->> I found that it works for dvb-c also using dvblink
->
-> I have 290e showing DVB-C channels with hacked VLC on Linux 3.3-rc6.
->
-> --
-> Rémi Denis-Courmont
-> http://www.remlab.net/
-> http://fi.linkedin.com/in/remidenis
