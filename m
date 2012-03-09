@@ -1,85 +1,166 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from banach.math.auburn.edu ([131.204.45.3]:60295 "EHLO
-	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751332Ab2CHGG1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Mar 2012 01:06:27 -0500
-Date: Thu, 8 Mar 2012 00:16:24 -0600 (CST)
-From: Theodore Kilgore <kilgota@banach.math.auburn.edu>
-To: Xavion <xavion.0@gmail.com>
-cc: "Linux Kernel (Media) ML" <linux-media@vger.kernel.org>
-Subject: Re: My Microdia (SN9C201) webcam doesn't work properly in Linux
- anymore
-In-Reply-To: <CAKnx8Y7J7PGrw3ekLGhO=uw2mneHEvCzmt4HtArTtk_iJQ3RuQ@mail.gmail.com>
-Message-ID: <alpine.LNX.2.00.1203072340320.2356@banach.math.auburn.edu>
-References: <CAKnx8Y7BAyR8A5r-eL13MVgZO2DcKndP3v-MTfkQdmXPvjjGJg@mail.gmail.com> <CAKnx8Y6dM8qbQvJgt_z2A2XD8aPGhGoqCSWabyNYjRbsH6CDJw@mail.gmail.com> <4F51CCC1.8020308@redhat.com> <CAKnx8Y6ER6CV6WQKrmN4fFkLjQx0GXEzvNmuApnA=G6fJDgsPQ@mail.gmail.com>
- <20120304082531.1307a9ed@tele> <CAKnx8Y7A2Dd0JW0n9bJBBc+ScnagpdFEkAvbg_Jab3vt66Ky0Q@mail.gmail.com> <20120305182736.563df8b4@tele> <CAKnx8Y54ngVXmrLg2bjnn_MvibWE6SKR5jXQFQ9+ZmHWoM9HmQ@mail.gmail.com> <4F55DB8B.8050907@redhat.com>
- <CAKnx8Y4z6Ai14RRdG6zd=CEDfHqfNr6Mx=x=XtfU9=KZEwmaNA@mail.gmail.com> <alpine.LNX.2.00.1203061727300.2208@banach.math.auburn.edu> <CAKnx8Y7J7PGrw3ekLGhO=uw2mneHEvCzmt4HtArTtk_iJQ3RuQ@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from smtp.nokia.com ([147.243.128.26]:42564 "EHLO mgw-da02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1030188Ab2CIUbv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 9 Mar 2012 15:31:51 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
+	teturtia@gmail.com, dacohen@gmail.com, snjw23@gmail.com,
+	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
+	tuukkat76@gmail.com, k.debski@gmail.com, riverful@gmail.com,
+	pradeep.sawlani@gmail.com
+Subject: [PATCH v5.3 25/35] omap3isp: Collect entities that are part of the pipeline
+Date: Fri,  9 Mar 2012 22:31:25 +0200
+Message-Id: <1331325085-28462-1-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1912567.UNqMTnFDpO@avalon>
+References: <1912567.UNqMTnFDpO@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Collect entities which are part of the pipeline into a single bit mask.
 
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+since last version:
 
-On Thu, 8 Mar 2012, Xavion wrote:
+- state is set in isp_video_streamon() rather than
+  isp_video_get_graph_data().
+- Get information from all entities which was broken by the previous
+  version.
 
-> Hi Theodore
-> 
-> > As to getting that kind of resolution out of a webcam, though, it would be
-> > a rather tough go due to the amount of data which has to pass over the
-> > wire even if it is compressed data. The frame rate would be pretty
-> > atrocious. Therefore, you are probably not going to see that kind
-> > of resolution in an inexpensive webcam, at least until USB 3 comes
-> > into common use.
-> 
-> Thanks for offering your thoughts on this matter.  
+ drivers/media/video/omap3isp/ispvideo.c |   57 +++++++++++++++++-------------
+ drivers/media/video/omap3isp/ispvideo.h |    2 +
+ 2 files changed, 34 insertions(+), 25 deletions(-)
 
-You are welcome. 
+diff --git a/drivers/media/video/omap3isp/ispvideo.c b/drivers/media/video/omap3isp/ispvideo.c
+index d34f690..d8a5250 100644
+--- a/drivers/media/video/omap3isp/ispvideo.c
++++ b/drivers/media/video/omap3isp/ispvideo.c
+@@ -255,8 +255,8 @@ isp_video_remote_subdev(struct isp_video *video, u32 *pad)
+ }
+ 
+ /* Return a pointer to the ISP video instance at the far end of the pipeline. */
+-static struct isp_video *
+-isp_video_far_end(struct isp_video *video)
++static int isp_video_get_graph_data(struct isp_video *video,
++				    struct isp_pipeline *pipe)
+ {
+ 	struct media_entity_graph graph;
+ 	struct media_entity *entity = &video->video.entity;
+@@ -267,21 +267,38 @@ isp_video_far_end(struct isp_video *video)
+ 	media_entity_graph_walk_start(&graph, entity);
+ 
+ 	while ((entity = media_entity_graph_walk_next(&graph))) {
++		struct isp_video *__video;
++
++		pipe->entities |= 1 << entity->id;
++
++		if (far_end != NULL)
++			continue;
++
+ 		if (entity == &video->video.entity)
+ 			continue;
+ 
+ 		if (media_entity_type(entity) != MEDIA_ENT_T_DEVNODE)
+ 			continue;
+ 
+-		far_end = to_isp_video(media_entity_to_video_device(entity));
+-		if (far_end->type != video->type)
+-			break;
+-
+-		far_end = NULL;
++		__video = to_isp_video(media_entity_to_video_device(entity));
++		if (__video->type != video->type)
++			far_end = __video;
+ 	}
+ 
+ 	mutex_unlock(&mdev->graph_mutex);
+-	return far_end;
++
++	if (video->type == V4L2_BUF_TYPE_VIDEO_CAPTURE) {
++		pipe->input = far_end;
++		pipe->output = video;
++	} else {
++		if (far_end == NULL)
++			return -EPIPE;
++
++		pipe->input = video;
++		pipe->output = far_end;
++	}
++
++	return 0;
+ }
+ 
+ /*
+@@ -972,7 +989,6 @@ isp_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
+ 	struct isp_video *video = video_drvdata(file);
+ 	enum isp_pipeline_state state;
+ 	struct isp_pipeline *pipe;
+-	struct isp_video *far_end;
+ 	unsigned long flags;
+ 	int ret;
+ 
+@@ -992,6 +1008,8 @@ isp_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
+ 	pipe = video->video.entity.pipe
+ 	     ? to_isp_pipeline(&video->video.entity) : &video->pipe;
+ 
++	pipe->entities = 0;
++
+ 	if (video->isp->pdata->set_constraints)
+ 		video->isp->pdata->set_constraints(video->isp, true);
+ 	pipe->l3_ick = clk_get_rate(video->isp->clock[ISP_CLK_L3_ICK]);
+@@ -1011,25 +1029,14 @@ isp_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
+ 	video->bpl_padding = ret;
+ 	video->bpl_value = vfh->format.fmt.pix.bytesperline;
+ 
+-	/* Find the ISP video node connected at the far end of the pipeline and
+-	 * update the pipeline.
+-	 */
+-	far_end = isp_video_far_end(video);
++	ret = isp_video_get_graph_data(video, pipe);
++	if (ret < 0)
++		goto err_check_format;
+ 
+-	if (video->type == V4L2_BUF_TYPE_VIDEO_CAPTURE) {
++	if (video->type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
+ 		state = ISP_PIPELINE_STREAM_OUTPUT | ISP_PIPELINE_IDLE_OUTPUT;
+-		pipe->input = far_end;
+-		pipe->output = video;
+-	} else {
+-		if (far_end == NULL) {
+-			ret = -EPIPE;
+-			goto err_check_format;
+-		}
+-
++	else
+ 		state = ISP_PIPELINE_STREAM_INPUT | ISP_PIPELINE_IDLE_INPUT;
+-		pipe->input = video;
+-		pipe->output = far_end;
+-	}
+ 
+ 	/* Validate the pipeline and update its state. */
+ 	ret = isp_video_validate_pipeline(pipe);
+diff --git a/drivers/media/video/omap3isp/ispvideo.h b/drivers/media/video/omap3isp/ispvideo.h
+index d91bdb9..c9187cb 100644
+--- a/drivers/media/video/omap3isp/ispvideo.h
++++ b/drivers/media/video/omap3isp/ispvideo.h
+@@ -88,6 +88,7 @@ enum isp_pipeline_state {
+ /*
+  * struct isp_pipeline - An ISP hardware pipeline
+  * @error: A hardware error occurred during capture
++ * @entities: Bitmask of entities in the pipeline (indexed by entity ID)
+  */
+ struct isp_pipeline {
+ 	struct media_pipeline pipe;
+@@ -96,6 +97,7 @@ struct isp_pipeline {
+ 	enum isp_pipeline_stream_state stream_state;
+ 	struct isp_video *input;
+ 	struct isp_video *output;
++	u32 entities;
+ 	unsigned long l3_ick;
+ 	unsigned int max_rate;
+ 	atomic_t frame_number;
+-- 
+1.7.2.5
 
-It looks like I'll
-> have to keep checking eBay for cheap USB v3 (HD) webcams periodically.
-
-Which somebody will need to support because they will probably not work 
-out of the box with an OEM driver CD ;-)
-
->  For the record, I've only got Motion set to capture four frames per
-> second at the moment.
-> 
-> > Perhaps for now if you want that kind of resolution and do not care about
-> > the frame rate very much, you would be better off to buy a slightly
-> > fancier camera and do something like using gphoto2 to take timed shots.
-> 
-> I prefer the idea of captured motion to that of timed snapshots.  The
-> captured images and videos are automatically uploaded to my Dropbox
-> account.  As I'm only a 'free' user, I must limit the storage space
-> that these files consume.
-> 
-
-Some of the cheap cameras do work pretty well, actually. But as far as I 
-know any resolution better than 640*480 seems to be pretty unusual. Lots 
-of "interpolated" higher resolution meaning they have inflated the 
-pictures, of course. But some of the 640x480 cameras do better than 
-others. And also I should point out that if 4 fps is OK with you then some 
-of the cameras do not even do compression. If you could get hold of an old 
-SQ905 camera that will do 640x480 it runs on bulk transport and there is 
-no compression of frame data at all. Also, what is interesting is that 
-with all the cheap cameras they cut corners, of course. But the SQ905 
-cameras always seemed to me to tend to have better optics than a lot of 
-the other cheap cams. Where they really cut down on features was with the 
-controller chip. It will do practically nothing compared to some others. 
-The SQ905 used to be advertised as the cheapest camera controller chip on 
-the market, once upon a time. But the images one gets from those cameras 
-sometimes are not half bad.
-
-Also I should mention that if one wants to get better images out then it 
-is best somehow to capture and save the raw data and process it later. 
-This is true for any camera which either produces an uncompressed bitmap 
-raw image, and also for any camera which does compression of said bitmap 
-image before sending it down to the computer. Everything but JPEG, pretty 
-much. Why is this? Because the image processing used with webcams must 
-necessarily have speed as the number one priority, else the frame rate 
-suffers severely. If one is not thus constrained, it is possible to do a 
-much better job with that raw data. But remember that you can maximize 
-image quality, or you can maximize frame rate. Choose one of the two.
-
-Theodore Kilgore
