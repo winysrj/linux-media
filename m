@@ -1,207 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:36389 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933567Ab2C3Aad (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Mar 2012 20:30:33 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH v2 4/4] omap3isp: preview: Shorten shadow update delay
-Date: Fri, 30 Mar 2012 02:30:34 +0200
-Message-ID: <2856992.ve4AGyBgA4@avalon>
-In-Reply-To: <20120329203417.GC922@valkosipuli.localdomain>
-References: <1332936001-32603-1-git-send-email-laurent.pinchart@ideasonboard.com> <1332936001-32603-5-git-send-email-laurent.pinchart@ideasonboard.com> <20120329203417.GC922@valkosipuli.localdomain>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
+Received: from comal.ext.ti.com ([198.47.26.152]:52616 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752051Ab2CIIEH convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Mar 2012 03:04:07 -0500
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	"Taneja, Archit" <archit@ti.com>
+CC: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: RE: [PATCH] omap_vout: Set DSS overlay_info only if paddr is non
+ zero
+Date: Fri, 9 Mar 2012 08:03:59 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A83180E941@DBDE01.ent.ti.com>
+References: <1331110876-11895-1-git-send-email-archit@ti.com>
+ <1729342.AddG4HPA3i@avalon>
+In-Reply-To: <1729342.AddG4HPA3i@avalon>
+Content-Language: en-US
 Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
-
-Thank you for the review.
-
-On Thursday 29 March 2012 23:34:17 Sakari Ailus wrote:
-> On Wed, Mar 28, 2012 at 02:00:01PM +0200, Laurent Pinchart wrote:
-> > When applications modify preview engine parameters, the new values are
-> > applied to the hardware by the preview engine interrupt handler during
-> > vertical blanking. If the parameters are being changed when the
-> > interrupt handler is called, it just delays applying the parameters
-> > until the next frame.
-> > 
-> > If an application modifies the parameters for every frame, and the
-> > preview engine interrupt is triggerred synchronously, the parameters are
-> > never applied to the hardware.
-> > 
-> > Fix this by storing new parameters in a shadow copy, and switch the
-> > active parameters with the shadow values atomically.
-> > 
-> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > ---
-> > 
-> >  drivers/media/video/omap3isp/isppreview.c |  137
-> >  +++++++++++++++++++++-------- drivers/media/video/omap3isp/isppreview.h
-> >  |   21 +++--
-> >  2 files changed, 112 insertions(+), 46 deletions(-)
-> > 
-> > diff --git a/drivers/media/video/omap3isp/isppreview.c
-> > b/drivers/media/video/omap3isp/isppreview.c index 2b5c137..3267d83 100644
-> > --- a/drivers/media/video/omap3isp/isppreview.c
-> > +++ b/drivers/media/video/omap3isp/isppreview.c
-
-[snip]
-
-> > @@ -887,19 +897,19 @@ static int preview_config(struct isp_prev_device
-> > *prev,> 
-> >  {
-> >  	struct prev_params *params;
-> >  	struct preview_update *attr;
-> > +	unsigned long flags;
-> >  	int i, bit, rval = 0;
-> > 
-> > -	params = &prev->params;
-> > 
-> >  	if (cfg->update == 0)
-> >  		return 0;
-> > 
-> > -	if (prev->state != ISP_PIPELINE_STREAM_STOPPED) {
-> > -		unsigned long flags;
-> > +	spin_lock_irqsave(&prev->params.lock, flags);
-> > +	params = prev->params.shadow;
-> > +	memcpy(params, prev->params.active, sizeof(*params));
+On Fri, Mar 09, 2012 at 05:17:41, Laurent Pinchart wrote:
+> Hi Archit,
 > 
-> Why memcpy()? Couldn't the same be achieved by swapping the pointers?
-
-I would prefer just swapping pointers as well, but that wouldn't work.
-
-We have two sets of parameters, A and B. At initialization time we fill set A 
-with initial values, and make active point to A and shadow to B. Let's assume 
-we also fill set B with the same initial values as set A.
-
-Let's imagine the user calls preview_config() to configure the gamma table. 
-Set B is updated with new gamma table values. The active and shadow pointers 
-are then swapped at the end of the function (assuming no interrupt is occuring 
-at the same time). The active pointer points to set B, and the shadow pointer 
-to set A. Set A contains outdated gamma table values compared to set B.
-
-The user now calls preview_config() a second time before the interrupt handler 
-gets a chance to run, to configure white balance. We udpate set A with new 
-white balance values and swap the pointers. The active pointer points to set 
-A, and the shadow pointer to set B.
-
-The interrupt handler now runs, and configures the hardware with the white 
-balance parameters from set A. The gamma table values from set B are not 
-applied.
-
-Another issue is omap3isp_preview_restore_context(), which must restore the 
-whole preview engine context with all the latest parameters. If they're 
-scattered around set A and set B, that will be more complex.
-
-Of course, if you can think of a better way to handle this than a memcpy, I'm 
-all ears :-)
-
-> I also have a feeling that the implementation is still more complex than
-> would really be needed.
+> On Wednesday 07 March 2012 14:31:16 Archit Taneja wrote:
+> > The omap_vout driver tries to set the DSS overlay_info using
+> > set_overlay_info() when the physical address for the overlay is still not
+> > configured. This happens in omap_vout_probe() and vidioc_s_fmt_vid_out().
+> > 
+> > The calls to omapvid_init(which internally calls set_overlay_info()) are
+> > removed from these functions. They don't need to be called as the
+> > omap_vout_device struct anyway maintains the overlay related changes made.
+> > Also, remove the explicit call to set_overlay_info() in vidioc_streamon(),
+> > this was used to set the paddr, this isn't needed as omapvid_init() does
+> > the same thing later.
+> > 
+> > These changes are required as the DSS2 driver since 3.3 kernel doesn't let
+> > you set the overlay info with paddr as 0.
+> > 
+> > Signed-off-by: Archit Taneja <archit@ti.com>
 > 
-> Calls to preview_config() should also be serialised. Otherwise it's possible
-> to call this simultaneously from user space. That likely wasn't an issue in
-> the old implementation.
-
-I agree. I'll fix that.
-
-> > +	params->busy = true;
-> > +	spin_unlock_irqrestore(&prev->params.lock, flags);
-> > -		spin_lock_irqsave(&prev->lock, flags);
-> > -		prev->shadow_update = 1;
-> > -		spin_unlock_irqrestore(&prev->lock, flags);
-> > -	}
-> > +	params->update = 0;
-> > 
-> >  	for (i = 0; i < ARRAY_SIZE(update_attrs); i++) {
-> >  		attr = &update_attrs[i];
-> > @@ -926,11 +936,34 @@ static int preview_config(struct isp_prev_device
-> > *prev,> 
-> >  			params->features &= ~attr->feature_bit;
-> >  		}
-> > 
-> > -		prev->update |= attr->feature_bit;
-> > +		params->update |= attr->feature_bit;
-> > +	}
-> > +
-> > +	if (rval < 0) {
-> > +		kfree(params);
+> Thanks for the patch. This seems to fix memory corruption that would result
+> in sysfs-related crashes such as
 > 
-> I think this must be a remnant from the earlier version of the patch. :-)
+> [   31.279541] ------------[ cut here ]------------
+> [   31.284423] WARNING: at fs/sysfs/file.c:343 sysfs_open_file+0x70/0x1f8()
+> [   31.291503] missing sysfs attribute operations for kobject: (null)
+> [   31.298004] Modules linked in: mt9p031 aptina_pll omap3_isp
+> [   31.303924] [<c0018260>] (unwind_backtrace+0x0/0xec) from [<c0034488>] (warn_slowpath_common+0x4c/0x64)
+> [   31.313812] [<c0034488>] (warn_slowpath_common+0x4c/0x64) from [<c0034520>] (warn_slowpath_fmt+0x2c/0x3c)
+> [   31.323913] [<c0034520>] (warn_slowpath_fmt+0x2c/0x3c) from [<c01219bc>] (sysfs_open_file+0x70/0x1f8)
+> [   31.333618] [<c01219bc>] (sysfs_open_file+0x70/0x1f8) from [<c00ccc94>] (__dentry_open+0x1f8/0x30c)
+> [   31.343139] [<c00ccc94>] (__dentry_open+0x1f8/0x30c) from [<c00cce58>] (nameidata_to_filp+0x50/0x5c)
+> [   31.352752] [<c00cce58>] (nameidata_to_filp+0x50/0x5c) from [<c00db4c0>] (do_last+0x55c/0x6a0)
+> [   31.361999] [<c00db4c0>] (do_last+0x55c/0x6a0) from [<c00db6bc>] (path_openat+0xb8/0x37c)
+> [   31.370605] [<c00db6bc>] (path_openat+0xb8/0x37c) from [<c00dba60>] (do_filp_open+0x30/0x7c)
+> [   31.379486] [<c00dba60>] (do_filp_open+0x30/0x7c) from [<c00cc904>] (do_sys_open+0xd8/0x170)
+> [   31.388366] [<c00cc904>] (do_sys_open+0xd8/0x170) from [<c0012760>] (ret_fast_syscall+0x0/0x3c)
+> [   31.397552] ---[ end trace 13639ab74f345d7e ]---
+> 
+> Tested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> 
 
-Oops :-)
+Thanks Laurent for testing this patch.
 
-> > +		return rval;
-> >  	}
-> > 
-> > -	prev->shadow_update = 0;
-> > -	return rval;
-> > +	spin_lock_irqsave(&prev->params.lock, flags);
-> > +	params->busy = false;
-> > +
-> > +	/* If active parameters are not in use, switch the active and shadow
-> > +	 * parameters.
-> > +	 */
-> > +	if (!prev->params.active->busy) {
-> > +		/* Make sure to keep the active update flags as the hardware
-> > +		 * hasn't been updated yet. The values have been copied at the
-> > +		 * beginning of the function.
-> > +		 */
-> > +		params->update |= prev->params.active->update;
-> > +		prev->params.active->update = 0;
-> > +
-> > +		prev->params.shadow = prev->params.active;
-> > +		prev->params.active = params;
-> > +	}
-> > +	spin_unlock_irqrestore(&prev->params.lock, flags);
-> > +
-> > +	return 0;
-> > 
-> >  }
 
-[snip]
+> Please push it to v3.3 :-)
+> 
 
-> > @@ -1249,12 +1283,18 @@ static void preview_print_status(struct
-> > isp_prev_device *prev)> 
-> >  /*
-> >  
-> >   * preview_init_params - init image processing parameters.
-> >   * @prev: pointer to previewer private structure
-> > - * return none
-> > + *
-> > + * Returns 0 on success or -ENOMEM if parameters memory can't be
-> > allocated.
->
-> This comment no longer needs to be changed.
+Will send a pull request today itself.
 
-Indeed. And the function doesn't need to return a value anymore.
+Thanks,
+Vaibhav
 
-> >   */
-> > 
-> > -static void preview_init_params(struct isp_prev_device *prev)
-> > +static int preview_init_params(struct isp_prev_device *prev)
-> > 
-> >  {
-> > -	struct prev_params *params = &prev->params;
-> > -	int i = 0;
-> > +	struct prev_params *params;
-> > +	unsigned int i;
-> > +
-> > +	spin_lock_init(&prev->params.lock);
-> > +
-> > +	params = &prev->params.params[0];
-> > +	params->busy = false;
-> > 
-> >  	/* Init values */
-> >  	params->contrast = ISPPRV_CONTRAST_DEF * ISPPRV_CONTRAST_UNITS;
-
--- 
-Regards,
-
-Laurent Pinchart
+> -- 
+> Regards,
+> 
+> Laurent Pinchart
+> 
+> 
 
