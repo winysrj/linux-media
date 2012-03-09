@@ -1,91 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:53779 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756050Ab2CGSLV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Mar 2012 13:11:21 -0500
-Date: Wed, 7 Mar 2012 20:11:16 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Michael Jones <michael.jones@matrix-vision.de>
-Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	dacohen@gmail.com, snjw23@gmail.com,
-	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
-	tuukkat76@gmail.com, k.debski@samsung.com, riverful@gmail.com,
-	hverkuil@xs4all.nl, teturtia@gmail.com, pradeep.sawlani@gmail.com
-Subject: Re: [PATCH v5 09/35] v4l: Add subdev selections documentation
-Message-ID: <20120307181116.GH1476@valkosipuli.localdomain>
-References: <20120306163239.GN1075@valkosipuli.localdomain>
- <1331051596-8261-9-git-send-email-sakari.ailus@iki.fi>
- <4F572216.50307@matrix-vision.de>
+Received: from mail2.matrix-vision.com ([85.214.244.251]:37154 "EHLO
+	mail2.matrix-vision.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751229Ab2CINCN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Mar 2012 08:02:13 -0500
+Message-ID: <4F59FD87.4030506@matrix-vision.de>
+Date: Fri, 09 Mar 2012 13:54:31 +0100
+From: Michael Jones <michael.jones@matrix-vision.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4F572216.50307@matrix-vision.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: jean-philippe francois <jp.francois@cynove.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org
+Subject: Re: Lockup on second streamon with omap3-isp
+References: <CAGGh5h0dVOsT-PCoCBtjj=+rLzViwnM2e9hG+sbWQk5iS-ThEQ@mail.gmail.com> <2747531.0sXdUv33Rd@avalon> <CAGGh5h13mOVtWPLGowvtvZM1Ufx2PST3DCokJzspGFcsUo=FiA@mail.gmail.com> <2243690.V1TtfkZKP0@avalon>
+In-Reply-To: <2243690.V1TtfkZKP0@avalon>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Michael,
+Hi Laurent,
 
-Thanks for the comments.
+On 03/09/2012 11:42 AM, Laurent Pinchart wrote:
+> Hi Jean-Philippe,
+>
+[snip]
+>  From my experience, the ISP doesn't handle free-running sensors very well.
+> There are other things it doesn't handle well, such as sensors stopping in the
+> middle of the frame. I would consider this as limitations.
 
-On Wed, Mar 07, 2012 at 09:53:42AM +0100, Michael Jones wrote:
-> Hi Sakari,
-> 
-> Hopefully it's not too late to make a few minor suggestions.
-> 
-> On 03/06/2012 05:32 PM, Sakari Ailus wrote:
-> >Add documentation for V4L2 subdev selection API. This changes also
-> >experimental V4L2 subdev API so that scaling now works through selection API
-> >only.
-> >
-> >Signed-off-by: Sakari Ailus<sakari.ailus@iki.fi>
-> [snip]
-> >+
-> >+<para>On sink pads, cropping is applied relatively to the
-> 
-> s/relatively/relative/
-> 
-> >+      current pad format. The pad format represents the image size as
-> >+      received by the sub-device from the previous block in the
-> >+      pipeline, and the crop rectangle represents the sub-image that
-> >+      will be transmitted further inside the sub-device for
-> >+      processing.</para>
-> [snip]
-> >+<para>On source pads, cropping is similar to sink pads, with the
-> >+      exception that the source size from which the cropping is
-> >+      performed, is the COMPOSE rectangle on the sink pad. In both
-> >+      sink and source pads, the crop rectangle must be entirely
-> >+      containted inside the source image size for the crop
-> 
-> s/containted/contained/
-> 
-> >+      operation.</para>
-> >+
-> >+<para>The drivers should always use the closest possible
-> >+      rectangle the user requests on all selection targets, unless
-> >+      specificly told otherwise.
-> 
-> s/specificly/specifically/
-> 
-> >+<constant>V4L2_SUBDEV_SEL_FLAG_SIZE_GE</constant>  and
-> >+<constant>V4L2_SUBDEV_SEL_FLAG_SIZE_LE</constant>  flags may be
-> >+      used to round the image size either up or down.<xref
-> >+      linkend="v4l2-subdev-selection-flags"></xref></para>
-> >+</section>
-> 
-> [snip]
-> 
-> >+<constant>V4L2_SUBDEV_SEL_FLAG_KEEP_CONFIG</constant>  flag. This
-> >+      flag causes that no propagation of the changes are allowed in
-> >+      any circumstances. This may also cause the accessed rectangle to
-> 
-> "This flag causes that" sounds ungrammatical.  I suggest: "This flag
-> causes no propagation of the changes to be allowed under any
-> circumstances."
+Considering choking on sensors which stop in the middle of the frame- is 
+this just a limitation of the driver, or is it really a limitation of 
+the ISP hardware itself?  It is at least a limitation of the driver 
+because we rely on the VD1 and VD0 interrupts, so we'll of course have 
+problems if we never get to the last line.  But isn't it conceivable to 
+use HS_VS to do our end-of-frame stuff instead of VD0?  Maybe then the 
+ISP would be OK with frames that ended early, as long as they had 
+reached VD1.  Then of course, you could move VD1 to an even earlier 
+line, even to the first line.
 
-Applied all of them.
+Do you think that's possible?
 
-Cheers,
+-Michael
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
+Registergericht: Amtsgericht Stuttgart, HRB 271090
+Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner, Erhard Meier
