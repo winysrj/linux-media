@@ -1,71 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:55129 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751212Ab2CDWTq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 4 Mar 2012 17:19:46 -0500
-Message-ID: <4F53EA7D.4090402@gmail.com>
-Date: Sun, 04 Mar 2012 23:19:41 +0100
-From: Gianluca Gennari <gennarone@gmail.com>
-Reply-To: gennarone@gmail.com
+Received: from perceval.ideasonboard.com ([95.142.166.194]:36298 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750795Ab2CIM6W (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Mar 2012 07:58:22 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Michael Jones <michael.jones@matrix-vision.de>
+Cc: jean-philippe francois <jp.francois@cynove.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org
+Subject: Re: Lockup on second streamon with omap3-isp
+Date: Fri, 09 Mar 2012 13:58:43 +0100
+Message-ID: <2038085.aDq2jrhkOM@avalon>
+In-Reply-To: <4F59FD87.4030506@matrix-vision.de>
+References: <CAGGh5h0dVOsT-PCoCBtjj=+rLzViwnM2e9hG+sbWQk5iS-ThEQ@mail.gmail.com> <2243690.V1TtfkZKP0@avalon> <4F59FD87.4030506@matrix-vision.de>
 MIME-Version: 1.0
-To: Geert Uytterhoeven <geert@linux-m68k.org>,
-	linux-media@vger.kernel.org
-CC: Antti Palosaari <crope@iki.fi>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux-Next <linux-next@vger.kernel.org>
-Subject: Re: rtl2830: __udivdi3 undefined
-References: <CAMuHMdVmiqY9uh574_uTK76+28bvhEL0BPnzjDF-bf-0mgj4gg@mail.gmail.com>
-In-Reply-To: <CAMuHMdVmiqY9uh574_uTK76+28bvhEL0BPnzjDF-bf-0mgj4gg@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Il 29/02/2012 22:30, Geert Uytterhoeven ha scritto:
-> http://kisskb.ellerman.id.au/kisskb/buildresult/5759200/ ERROR:
-> "__udivdi3" [drivers/media/dvb/frontends/rtl2830.ko] undefined!
-> 
-> I didn't look too deeply into it, but I think it's caused by the
-> "num /= priv->cfg.xtal" in rtl2830_init() (with num being u64).
-> 
-> Can't it use do_div() instead?
-> 
-> Gr{oetje,eeting}s,
-> 
-> Geert
-> 
-> -- Geert Uytterhoeven -- There's lots of Linux beyond ia32 --
-> geert@linux-m68k.org
-> 
-> In personal conversations with technical people, I call myself a
-> hacker. But when I'm talking to journalists I just say "programmer"
-> or something like that. -- Linus Torvalds -- To unsubscribe from this
-> list: send the line "unsubscribe linux-media" in the body of a
-> message to majordomo@vger.kernel.org More majordomo info at
-> http://vger.kernel.org/majordomo-info.html
-> 
+Hi Michael,
 
-Probably the best solution is to use div_u64.
-The following patch fixed the warning on my 32 bit system.
+On Friday 09 March 2012 13:54:31 Michael Jones wrote:
+> On 03/09/2012 11:42 AM, Laurent Pinchart wrote:
+> > Hi Jean-Philippe,
+> 
+> [snip]
+> 
+> >  From my experience, the ISP doesn't handle free-running sensors very
+> >  well.
+> > 
+> > There are other things it doesn't handle well, such as sensors stopping in
+> > the middle of the frame. I would consider this as limitations.
+> 
+> Considering choking on sensors which stop in the middle of the frame- is
+> this just a limitation of the driver, or is it really a limitation of
+> the ISP hardware itself?
 
-Signed-off-by: Gianluca Gennari <gennarone@gmail.com>
----
- drivers/media/dvb/frontends/rtl2830.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+It's a limitation of the hardware. Various OMAP3 ISP blocks can't be stopped 
+before they have processed a complete frame once they have been started. The 
+work around is to reset the whole ISP, which we will do in v3.4, but that 
+won't solve the problem completely if one application uses the resizer in 
+memory-to-memory mode and another application uses the rest of the ISP. In 
+that case the driver won't be able to reset the ISP as long as the first 
+application uses it.
 
-diff --git a/drivers/media/dvb/frontends/rtl2830.c
-b/drivers/media/dvb/frontends/rtl2830.c
-index f971d94..45196c5 100644
---- a/drivers/media/dvb/frontends/rtl2830.c
-+++ b/drivers/media/dvb/frontends/rtl2830.c
-@@ -244,7 +244,7 @@ static int rtl2830_init(struct dvb_frontend *fe)
+> It is at least a limitation of the driver because we rely on the VD1 and VD0
+> interrupts, so we'll of course have problems if we never get to the last
+> line.  But isn't it conceivable to use HS_VS to do our end-of-frame stuff
+> instead of VD0?  Maybe then the ISP would be OK with frames that ended
+> early, as long as they had reached VD1.  Then of course, you could move VD1
+> to an even earlier line, even to the first line.
+> 
+> Do you think that's possible?
 
- 	num = priv->cfg.if_dvbt % priv->cfg.xtal;
- 	num *= 0x400000;
--	num /= priv->cfg.xtal;
-+	num = div_u64(num, priv->cfg.xtal);
- 	num = -num;
- 	if_ctl = num & 0x3fffff;
- 	dbg("%s: if_ctl=%08x", __func__, if_ctl);
+Unfortunately not. HS_VS could be used as a fallback to detect the end of a 
+frame in case something bad occurs, but that hardware will still be stuck 
+waiting for the end of the frame. The real problem here is a lack of feature 
+on the hardware side, the ISP modules should either support being stopped in 
+the middle of a frame, or support per-module reset.
+
 -- 
-1.7.0.4
+Regards,
+
+Laurent Pinchart
+
