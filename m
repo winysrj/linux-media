@@ -1,71 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.47]:60134 "EHLO mgw-sa01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755891Ab2CFQd2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 6 Mar 2012 11:33:28 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, dacohen@gmail.com,
-	snjw23@gmail.com, andriy.shevchenko@linux.intel.com,
-	t.stanislaws@samsung.com, tuukkat76@gmail.com,
-	k.debski@samsung.com, riverful@gmail.com, hverkuil@xs4all.nl,
-	teturtia@gmail.com, pradeep.sawlani@gmail.com
-Subject: [PATCH v5 10/35] v4l: Mark VIDIOC_SUBDEV_G_CROP and VIDIOC_SUBDEV_S_CROP obsolete
-Date: Tue,  6 Mar 2012 18:32:51 +0200
-Message-Id: <1331051596-8261-10-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <20120306163239.GN1075@valkosipuli.localdomain>
-References: <20120306163239.GN1075@valkosipuli.localdomain>
+Received: from mail-we0-f174.google.com ([74.125.82.174]:60468 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754886Ab2CIUrJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Mar 2012 15:47:09 -0500
+Received: by wejx9 with SMTP id x9so1395206wej.19
+        for <linux-media@vger.kernel.org>; Fri, 09 Mar 2012 12:47:07 -0800 (PST)
+From: Gianluca Gennari <gennarone@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@redhat.com
+Cc: Gianluca Gennari <gennarone@gmail.com>
+Subject: [PATCH] media_build: add module_driver and module_i2c_driver macros to compat.h
+Date: Fri,  9 Mar 2012 21:45:50 +0100
+Message-Id: <1331325950-2879-1-git-send-email-gennarone@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-These two IOCTLS are obsoleted by VIDIOC_SUBDEV_G_SELECTION and
-VIDIOC_SUBDEV_S_SELECTION. Mark them obsolete.
+This patch eliminates a lot of warnings like this on old kernels:
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+media_build/v4l/au8522_decoder.c:842: warning: data definition has no type or storage class
+media_build/v4l/au8522_decoder.c:842: warning: type defaults to 'int' in declaration of 'module_i2c_driver'
+media_build/v4l/au8522_decoder.c:842: warning: parameter names (without types) in function declaration
+media_build/v4l/au8522_decoder.c:832: warning: 'au8522_driver' defined but not used
+
+Tested with 2.6.32 and 3.3-rc6 without problems.
+
+Signed-off-by: Gianluca Gennari <gennarone@gmail.com>
 ---
- Documentation/DocBook/media/v4l/compat.xml         |    7 +++++++
- .../DocBook/media/v4l/vidioc-subdev-g-crop.xml     |    9 ++++++---
- 2 files changed, 13 insertions(+), 3 deletions(-)
+ v4l/compat.h |   20 ++++++++++++++++++++
+ 1 files changed, 20 insertions(+), 0 deletions(-)
 
-diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
-index 603fa4ad..ebfe47e 100644
---- a/Documentation/DocBook/media/v4l/compat.xml
-+++ b/Documentation/DocBook/media/v4l/compat.xml
-@@ -2547,6 +2547,13 @@ interfaces and should not be implemented in new drivers.</para>
- <constant>VIDIOC_S_MPEGCOMP</constant> ioctls. Use Extended Controls,
- <xref linkend="extended-controls" />.</para>
-         </listitem>
-+        <listitem>
-+	  <para><constant>VIDIOC_SUBDEV_G_CROP</constant> and
-+	  <constant>VIDIOC_SUBDEV_S_CROP</constant> ioctls. Use
-+	  <constant>VIDIOC_SUBDEV_G_SELECTION</constant> and
-+	  <constant>VIDIOC_SUBDEV_S_SELECTION</constant>, <xref
-+	  linkend="vidioc-subdev-g-selection" />.</para>
-+        </listitem>
-       </itemizedlist>
-     </section>
-   </section>
-diff --git a/Documentation/DocBook/media/v4l/vidioc-subdev-g-crop.xml b/Documentation/DocBook/media/v4l/vidioc-subdev-g-crop.xml
-index 0619732..4cddd78 100644
---- a/Documentation/DocBook/media/v4l/vidioc-subdev-g-crop.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-subdev-g-crop.xml
-@@ -58,9 +58,12 @@
-     <title>Description</title>
+diff --git a/v4l/compat.h b/v4l/compat.h
+index 62710c9..acc105c 100644
+--- a/v4l/compat.h
++++ b/v4l/compat.h
+@@ -898,4 +898,24 @@ module_exit(plat_mod_exit);
+ #define DMA_MEM_TO_DEV DMA_TO_DEVICE
+ #endif
  
-     <note>
--      <title>Experimental</title>
--      <para>This is an <link linkend="experimental">experimental</link>
--      interface and may change in the future.</para>
-+      <title>Obsolete</title>
++#ifndef module_driver
++#define module_driver(__driver, __register, __unregister) \
++static int __init __driver##_init(void) \
++{ \
++	return __register(&(__driver)); \
++} \
++module_init(__driver##_init); \
++static void __exit __driver##_exit(void) \
++{ \
++	__unregister(&(__driver)); \
++} \
++module_exit(__driver##_exit);
++#endif
 +
-+      <para>This is an <link linkend="obsolete">obsolete</link>
-+      interface and may be removed in the future. It is superseded by
-+      <link linkend="vidioc-subdev-g-selection">the selection
-+      API</link>.</para>
-     </note>
- 
-     <para>To retrieve the current crop rectangle applications set the
++#ifndef module_i2c_driver
++#define module_i2c_driver(__i2c_driver) \
++       module_driver(__i2c_driver, i2c_add_driver, \
++                       i2c_del_driver)
++#endif
++
+ #endif /*  _COMPAT_H */
 -- 
-1.7.2.5
+1.7.0.4
 
