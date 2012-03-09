@@ -1,39 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:63584 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757917Ab2CPBis (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Mar 2012 21:38:48 -0400
-Received: by wejx9 with SMTP id x9so3446656wej.19
-        for <linux-media@vger.kernel.org>; Thu, 15 Mar 2012 18:38:47 -0700 (PDT)
-Message-ID: <4F6299A4.1060309@gmail.com>
-Date: Fri, 16 Mar 2012 02:38:44 +0100
-From: Gianluca Gennari <gennarone@gmail.com>
-Reply-To: gennarone@gmail.com
+Received: from perceval.ideasonboard.com ([95.142.166.194]:57524 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753074Ab2CIMZy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Mar 2012 07:25:54 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org,
+	Martin Hostettler <martin@neutronstar.dyndns.org>
+Subject: Re: [PATCH v3 5/5] v4l: Add driver for Micron MT9M032 camera sensor
+Date: Fri, 09 Mar 2012 13:26:15 +0100
+Message-ID: <2691948.ctHUsthuZj@avalon>
+In-Reply-To: <20120308171745.GE1591@valkosipuli.localdomain>
+References: <1331051559-13841-1-git-send-email-laurent.pinchart@ideasonboard.com> <2041187.ucBOt7zOjI@avalon> <20120308171745.GE1591@valkosipuli.localdomain>
 MIME-Version: 1.0
-To: Andy Furniss <andyqos@ukfsn.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] em28xx: pre-allocate DVB isoc transfer buffers
-References: <1329155962-22896-1-git-send-email-gennarone@gmail.com> <4F628886.3050009@ukfsn.org>
-In-Reply-To: <4F628886.3050009@ukfsn.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Il 16/03/2012 01:25, Andy Furniss ha scritto:
-> 
-> Does this patch have a chance of getting in?
-> 
-> I am still having to flush caches before use. If you want more testing I
-> can give it a go. I didn't earlier as I didn't have a git to apply it to
-> and thought it was going to get in anyway.
-> 
+Hi Sakari,
 
-Hi Andy,
-the patch is already in the current media_build tree and is queued for
-kernel 3.4.
+On Thursday 08 March 2012 19:17:46 Sakari Ailus wrote:
+> On Wed, Mar 07, 2012 at 12:31:34PM +0100, Laurent Pinchart wrote:
 
+[snip]
+
+> > > > +static int mt9m032_set_frame_interval(struct v4l2_subdev *subdev,
+> > > > +				      struct v4l2_subdev_frame_interval *fi)
+> > > > +{
+> > > > +	struct mt9m032 *sensor = to_mt9m032(subdev);
+> > > > +	int ret;
+> > > > +
+> > > > +	if (sensor->streaming)
+> > > > +		return -EBUSY;
+> > > > +
+> > > > +	memset(fi->reserved, 0, sizeof(fi->reserved));
+> > > 
+> > > I'm not quite sure these should be touched.
+> > 
+> > Why not ? Do you think this could cause a regression in the future when
+> > the fields won't be reserved anymore ?
+> 
+> The user is responsible for setting those fields to zero. If we set them to
+> zero for them they will start relying on that. At some point that might not
+> hold true anymore.
+
+Thinking about it some more, applications should set the reserved fields to 0, 
+or first issue a get call and modify the fields it's interested in, keeping 
+the reserved fields at their default value. I'll remove the memset here.
+
+-- 
 Regards,
-Gianluca
+
+Laurent Pinchart
 
