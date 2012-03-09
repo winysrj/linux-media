@@ -1,64 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.meprolight.com ([194.90.149.17]:34996 "EHLO meprolight.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1759101Ab2CFNWq convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Mar 2012 08:22:46 -0500
-From: Alex Gershgorin <alexg@meprolight.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Sascha Hauer <s.hauer@pengutronix.de>
-Date: Tue, 6 Mar 2012 15:22:01 +0200
-Subject: RE: mx3-camera
-Message-ID: <4875438356E7CA4A8F2145FCD3E61C0B2CBD5D8909@MEP-EXCH.meprolight.com>
-References: <4875438356E7CA4A8F2145FCD3E61C0B2CBD5D8906@MEP-EXCH.meprolight.com>,<Pine.LNX.4.64.1203061406500.9300@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1203061406500.9300@axis700.grange>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:59719 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755628Ab2CIM4q (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Mar 2012 07:56:46 -0500
+MIME-version: 1.0
+Content-transfer-encoding: 8BIT
+Content-type: text/plain; charset=UTF-8
+Date: Fri, 09 Mar 2012 13:56:39 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH] s5p-csis: Fix compilation with PM_SLEEP disabled
+To: linux-media@vger.kernel.org
+Cc: linux-samsung-soc@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Message-id: <1331297799-6335-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Fix following compilation error when CONFIG_PM_SLEEP is disabled:
 
- Thanks Guennadi, 
+  CC      drivers/media/video/s5p-fimc/mipi-csis.o
+drivers/media/video/s5p-fimc/mipi-csis.c: In function ‘s5pcsis_remove’:
+drivers/media/video/s5p-fimc/mipi-csis.c:956: error: implicit declaration of function ‘s5pcsis_suspend’
 
->Hi Alex
+Reported-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/video/s5p-fimc/mipi-csis.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
->(adding v4l and Sascha to CC)
-
->On Tue, 6 Mar 2012, Alex Gershgorin wrote:
-
-> Hi Guennadi,
->
-> I'm working on I.MX35 PDK platform with use 3.3.0-rc6 version of the Linux Kernel.
-> Here is my Kernel boot message
->
-> "Linux video capture interface: v2.00
-> mx3-camera: probe of mx3-camera.0 failed with error -2"
->
-> This error comes from probe function of mx3 camera host driver.
-> Precisely in this part of the code:
->
-> mx3_cam->clk = clk_get(&pdev->dev, NULL);
-> if (IS_ERR(mx3_cam->clk)) {
->       err = PTR_ERR(mx3_cam->clk);
->       goto eclkget;
-> }
-
->I think, the reason is, that the i.MX35 platform doesn't register a camera
->clock, similar to i.MX31 (arch/arm/mach-imx/clock-imx31.c):
-
- >       _REGISTER_CLOCK("mx3-camera.0", NULL, csi_clk)
-
-In i.MX35 (arch/arm/mach-imx/clock-imx35.c) it looks like this:
-
-_REGISTER_CLOCK(NULL, "csi", csi_clk)
-
-> I will be glad for any help.
->
-
-Regards,
-Alex Gershgorin
-
+diff --git a/drivers/media/video/s5p-fimc/mipi-csis.c b/drivers/media/video/s5p-fimc/mipi-csis.c
+index a903138..f44f690 100644
+--- a/drivers/media/video/s5p-fimc/mipi-csis.c
++++ b/drivers/media/video/s5p-fimc/mipi-csis.c
+@@ -684,7 +684,7 @@ static int __devexit s5pcsis_remove(struct platform_device *pdev)
+ 	struct csis_state *state = sd_to_csis_state(sd);
  
+ 	pm_runtime_disable(&pdev->dev);
+-	s5pcsis_suspend(&pdev->dev);
++	s5pcsis_pm_suspend(&pdev->dev, false);
+ 	clk_disable(state->clock[CSIS_CLK_MUX]);
+ 	pm_runtime_set_suspended(&pdev->dev);
+ 	s5pcsis_clk_put(state);
+-- 
+1.7.9
+
