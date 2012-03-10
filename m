@@ -1,131 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:35977 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S932257Ab2CUOSc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Mar 2012 10:18:32 -0400
-Message-ID: <4F69E334.4080409@iki.fi>
-Date: Wed, 21 Mar 2012 16:18:28 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-MIME-Version: 1.0
-To: Prabhakar Lad <prabhakar.csengg@gmail.com>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	David Cohen <dacohen@gmail.com>,
-	Sylwester Nawrocki <snjw23@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	tuukkat76@gmail.com, Kamil Debski <k.debski@samsung.com>,
-	Kim HeungJun <riverful@gmail.com>, teturtia@gmail.com,
-	pradeep.sawlani@gmail.com
-Subject: Re: [GIT PULL FOR v3.4] V4L2 subdev and sensor control changes and
- SMIA++ driver
-References: <20120311165650.GA4220@valkosipuli.localdomain> <4F67A970.8090606@redhat.com> <20120319225402.GB6284@valkosipuli.localdomain> <CA+V-a8vsKHRxbvgxoFqCACS16iojhxE4fcDSqC9R5yvRJ46OQg@mail.gmail.com>
-In-Reply-To: <CA+V-a8vsKHRxbvgxoFqCACS16iojhxE4fcDSqC9R5yvRJ46OQg@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mail-vx0-f174.google.com ([209.85.220.174]:33307 "EHLO
+	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756170Ab2CJCwN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Mar 2012 21:52:13 -0500
+Received: by vcqp1 with SMTP id p1so2054513vcq.19
+        for <linux-media@vger.kernel.org>; Fri, 09 Mar 2012 18:52:13 -0800 (PST)
+From: Andrew Miller <amiller@amilx.com>
+To: linux-media@vger.kernel.org
+Cc: amiller@amilx.com, devel@driverdev.osuosl.org
+Subject: [PATCH] Staging: media: solo6x10: core.c Fix some coding style issue
+Date: Fri,  9 Mar 2012 21:51:01 -0500
+Message-Id: <1331347861-9747-1-git-send-email-amiller@amilx.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Prabhakar,
+Replaced spaces with tabs
 
-Prabhakar Lad wrote:
-> On Tue, Mar 20, 2012 at 4:24 AM, Sakari Ailus<sakari.ailus@iki.fi>  wrote:
->> Hi Mauro,
->>
->> On Mon, Mar 19, 2012 at 06:47:28PM -0300, Mauro Carvalho Chehab wrote:
->>> Em 11-03-2012 13:56, Sakari Ailus escreveu:
->>>> Hi Mauro,
->>>>
->>>> This patchset adds
->>>>
->>>> - Integer menu controls,
->>>> - Selection IOCTL for subdevs,
->>>> - Sensor control improvements,
->>>> - link_validate() media entity and V4L2 subdev pad ops,
->>>> - OMAP 3 ISP driver improvements,
->>>> - SMIA++ sensor driver and
->>>> - Other V4L2 and media improvements (see individual patches)
->>>>
->>>> The previous patchset can be found here:
->>>>
->>>> <URL:http://www.spinics.net/lists/linux-media/msg45052.html>
->>>>
->>>> Compared to the patchset, I've dropped the rm-696 camera board code and will
->>>> submit it through linux-omap later on. Other changes done to address review
->>>> comments have been also done --- see the URL above for details.
->>>>
->>>> The following changes since commit 632fba4d012458fd5fedc678fb9b0f8bc59ceda2:
->>>>
->>>>    [media] cx25821: Add a card definition for "No brand" cards that have: subvendor = 0x0000 subdevice = 0x0000 (2012-03-08 12:42:28 -0300)
->>>>
->>>> are available in the git repository at:
->>>>    ssh://linuxtv.org/git/sailus/media_tree.git media-for-3.4
->>>>
->>>> Jesper Juhl (1):
->>>>        adp1653: Remove unneeded include of version.h
->>>>
->>>> Laurent Pinchart (3):
->>>>        omap3isp: Prevent pipelines that contain a crashed entity from starting
->>>>        omap3isp: Fix crash caused by subdevs now having a pointer to devnodes
->>>>        omap3isp: Fix frame number propagation
->>>>
->>>> Sakari Ailus (37):
->>>>        v4l: Introduce integer menu controls
->>>>        v4l: Document integer menu controls
->>>>        vivi: Add an integer menu test control
->>>>        v4l: VIDIOC_SUBDEV_S_SELECTION and VIDIOC_SUBDEV_G_SELECTION IOCTLs
->>>>        v4l: vdev_to_v4l2_subdev() should have return type "struct v4l2_subdev *"
->>>>        v4l: Check pad number in get try pointer functions
->>>>        v4l: Support s_crop and g_crop through s/g_selection
->>>>        v4l: Add subdev selections documentation: svg and dia files
->>>>        v4l: Add subdev selections documentation
->>>
->>> This patch broke docbook compilation:
->>>
->>>    HTML    Documentation/DocBook/media_api.html
->>> warning: failed to load external entity "/home/v4l/v4l/patchwork/Documentation/DocBook/vidioc-subdev-g-selection.xml"
->>> /home/v4l/v4l/patchwork/Documentation/DocBook/dev-subdev.xml:310: parser error : Failure to process entity sub-subdev-g-selection
->>>        size configured using&sub-subdev-g-selection; and
->>>                                                      ^
->>> /home/v4l/v4l/patchwork/Documentation/DocBook/dev-subdev.xml:310: parser error : Entity 'sub-subdev-g-selection' not defined
->>>        size configured using&sub-subdev-g-selection; and
->>>                                                      ^
->>> /home/v4l/v4l/patchwork/Documentation/DocBook/dev-subdev.xml:468: parser error : chunk is not well balanced
->>>
->>> ^
->>> /home/v4l/v4l/patchwork/Documentation/DocBook/v4l2.xml:476: parser error : Failure to process entity sub-dev-subdev
->>>      <section id="subdev">  &sub-dev-subdev;</section>
->>>                                            ^
->>> /home/v4l/v4l/patchwork/Documentation/DocBook/v4l2.xml:476: parser error : Entity 'sub-dev-subdev' not defined
->>>      <section id="subdev">  &sub-dev-subdev;</section>
->>>                                            ^
->>> /usr/bin/xmlto: line 568:  3232 Segmentation fault      "/usr/bin/xsltproc" --nonet --xinclude --param passivetex.extensions '1' -o "/tmp/xmlto.J0M0go/media_api.proc" "/tmp/xmlto-xsl.GKa5kH" "/home/v4l/v4l/patchwork/Documentation/DocBook/media_api.xml"
->>> /bin/cp: cannot stat `*.*htm*': No such file or directory
->>> make[1]: *** [Documentation/DocBook/media_api.html] Error 1
->>> make: *** [htmldocs] Error 2
->>>
->>> Please fix.
->>
->> I'm pretty sure it compiles for me --- I just tested it myself on a
->> different machine. Do you think you could possibly have e.g. old
->> Documentation/DocBook/media-entities.tmpl in your tree? This file
->> sometimes isn't getting rebuilt even when it would be needed to.
->>
->    Even I am facing a similar kind of issue where
->   Documentation/DocBook/media-entities.tmpl is not getting rebuilt how to fix it?
+Signed-off-by: Andrew Miller <amiller@amilx.com>
+---
+ drivers/staging/media/solo6x10/core.c |   32 ++++++++++++++++----------------
+ 1 files changed, 16 insertions(+), 16 deletions(-)
 
-Please run "make cleandocs" first.
-
-Alternatively one could change the Makefile so that these temporary 
-files are always rebuilt when building the DocBook documentation, or 
-even so that these temporary files would depend on the proper source xml 
-files.
-
-Kind regards,
-
+diff --git a/drivers/staging/media/solo6x10/core.c b/drivers/staging/media/solo6x10/core.c
+index f974f64..d2fd842 100644
+--- a/drivers/staging/media/solo6x10/core.c
++++ b/drivers/staging/media/solo6x10/core.c
+@@ -195,28 +195,28 @@ static int __devinit solo_pci_probe(struct pci_dev *pdev,
+ 			SOLO6010_SYS_CFG_OUTDIV(3);
+ 	solo_reg_write(solo_dev, SOLO_SYS_CFG, reg);
+ 
+-        if (solo_dev->flags & FLAGS_6110) {
+-                u32 sys_clock_MHz = SOLO_CLOCK_MHZ;
+-                u32 pll_DIVQ;
+-                u32 pll_DIVF;
+-
+-                if (sys_clock_MHz < 125) {
+-                        pll_DIVQ = 3;
+-                        pll_DIVF = (sys_clock_MHz * 4) / 3;
+-                } else {
+-                        pll_DIVQ = 2;
+-                        pll_DIVF = (sys_clock_MHz * 2) / 3;
+-                }
+-
+-                solo_reg_write(solo_dev, SOLO6110_PLL_CONFIG,
++	if (solo_dev->flags & FLAGS_6110) {
++		u32 sys_clock_MHz = SOLO_CLOCK_MHZ;
++		u32 pll_DIVQ;
++		u32 pll_DIVF;
++
++		if (sys_clock_MHz < 125) {
++			pll_DIVQ = 3;
++			pll_DIVF = (sys_clock_MHz * 4) / 3;
++		} else {
++			pll_DIVQ = 2;
++			pll_DIVF = (sys_clock_MHz * 2) / 3;
++		}
++
++		solo_reg_write(solo_dev, SOLO6110_PLL_CONFIG,
+ 			       SOLO6110_PLL_RANGE_5_10MHZ |
+ 			       SOLO6110_PLL_DIVR(9) |
+ 			       SOLO6110_PLL_DIVQ_EXP(pll_DIVQ) |
+ 			       SOLO6110_PLL_DIVF(pll_DIVF) | SOLO6110_PLL_FSEN);
+-		mdelay(1);      // PLL Locking time (1ms)
++		mdelay(1);      /* PLL Locking time (1ms) */
+ 
+ 		solo_reg_write(solo_dev, SOLO_DMA_CTRL1, 3 << 8); /* ? */
+-        } else
++	} else
+ 		solo_reg_write(solo_dev, SOLO_DMA_CTRL1, 1 << 8); /* ? */
+ 
+ 	solo_reg_write(solo_dev, SOLO_TIMER_CLOCK_NUM, SOLO_CLOCK_MHZ - 1);
 -- 
-Sakari Ailus
-sakari.ailus@iki.fi
+1.7.7.6
+
