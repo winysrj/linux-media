@@ -1,95 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:27586 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761898Ab2CONTm (ORCPT
+Received: from acsinet15.oracle.com ([141.146.126.227]:17087 "EHLO
+	acsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752704Ab2CJI6d (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Mar 2012 09:19:42 -0400
-Received: from epcpsbgm2.samsung.com (mailout3.samsung.com [203.254.224.33])
- by mailout3.samsung.com
- (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
- 2010)) with ESMTP id <0M0X00MGDH07FK20@mailout3.samsung.com> for
- linux-media@vger.kernel.org; Thu, 15 Mar 2012 22:19:40 +0900 (KST)
-Received: from AMDN157 ([106.116.48.215])
- by mmp2.samsung.com (Oracle Communications Messaging Exchange Server 7u4-19.01
- 64bit (built Sep  7 2010)) with ESMTPA id <0M0X00C6TH0SAP00@mmp2.samsung.com>
- for linux-media@vger.kernel.org; Thu, 15 Mar 2012 22:19:44 +0900 (KST)
-From: Kamil Debski <k.debski@samsung.com>
-To: 'Sakari Ailus' <sakari.ailus@iki.fi>,
-	'javier Martin' <javier.martin@vista-silicon.com>
-Cc: linux-media@vger.kernel.org
-References: <CACKLOr3T-w1JdaGgnL+ZEXFX4v_oVd0HY8mqrm5ZzxEziH32jw@mail.gmail.com>
- <20120315110336.GH4220@valkosipuli.localdomain>
-In-reply-to: <20120315110336.GH4220@valkosipuli.localdomain>
-Subject: RE: [Q] media: V4L2 compressed frames and s_fmt.
-Date: Thu, 15 Mar 2012 14:19:33 +0100
-Message-id: <006d01cd02ae$457fc960$d07f5c20$%debski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: en-gb
+	Sat, 10 Mar 2012 03:58:33 -0500
+Date: Sat, 10 Mar 2012 11:58:18 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Ravi Kumar V <kumarrav@codeaurora.org>
+Cc: linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: [patch] [media] gpio-ir-recv: a couple signedness bugs
+Message-ID: <20120310085818.GC4647@elgon.mountain>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Javier, Sakari,
+There are couple places where we check unsigned values for negative.  I
+changed ->gpin_nr to signed because in gpio_ir_recv_probe() we do:
+        if (pdata->gpio_nr < 0)
+                return -EINVAL;
+I also change gval to a signed int in gpio_ir_recv_irq() because that's
+the type that gpio_get_value_cansleep() returns and we test for negative
+returns.
 
-> From: Sakari Ailus [mailto:sakari.ailus@iki.fi]
-> Sent: 15 March 2012 12:04
-> 
-> Hi Javier,
-> 
-> (Cc Kamil.)
-> 
-> On Wed, Mar 14, 2012 at 12:22:43PM +0100, javier Martin wrote:
-> > Hi,
-> > I'm developing a V4L2 mem2mem driver for the codadx6 IP video codec
-> > which is included in the i.MX27 chip.
-> >
-> > The capture interface of this driver can therefore return h.264 or
-> > mpeg4 video frames.
-> >
-> > Provided that the size of each frame varies and is unknown to the
-> > user, how is the driver supposed to react to a S_FMT when it comes to
-> > parameters such as the following?
-> >
-> > pix->width
-> > pix->height
-> > pix->bytesperline
-> > pix->sizeimage
-> >
-> > According to the documentation [1] I understand that the driver can
-> > just ignore 'bytesperline' and should return in 'sizeimage' the
-> > maximum buffer size to store a compressed frame. However, it does not
-> > mention anything special about width and height. Does it make sense
-> > setting width and height for h.264/mpeg4 formats?
-> 
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 
-Yes, in case of the compressed side (capture) the width, height and
-bytesperline
-is ignored. The MFC driver sets bytesperline to 0 and leaves width and height
-intact
-during S_FMT. I suggest you do the same or set all of them (width, height,
-bytesperline)
-to 0.
-
-> It does. This has been recently discussed, and there were a few ideas how
-> to
-> do this. But no final conclusion AFAIR.
-> 
-> <URL:http://www.spinics.net/lists/linux-media/msg40905.html>
-
-In this RFC we have discussed the decoding and resolution change while
-decoding. Here the question is about encoding.
-
-> 
-> Kamil: do you have plans to update the RFC?
-> 
-
-As Javier is now working on a codec driver then it might the right time to 
-bring the discussion back to life.
-
-Best wishes,
---
-Kamil Debski
-Linux Platform Group
-Samsung Poland R&D Center
-
+diff --git a/drivers/media/rc/gpio-ir-recv.c b/drivers/media/rc/gpio-ir-recv.c
+index 6744479..0d87545 100644
+--- a/drivers/media/rc/gpio-ir-recv.c
++++ b/drivers/media/rc/gpio-ir-recv.c
+@@ -26,14 +26,14 @@
+ 
+ struct gpio_rc_dev {
+ 	struct rc_dev *rcdev;
+-	unsigned int gpio_nr;
++	int gpio_nr;
+ 	bool active_low;
+ };
+ 
+ static irqreturn_t gpio_ir_recv_irq(int irq, void *dev_id)
+ {
+ 	struct gpio_rc_dev *gpio_dev = dev_id;
+-	unsigned int gval;
++	int gval;
+ 	int rc = 0;
+ 	enum raw_event_type type = IR_SPACE;
+ 
+diff --git a/include/media/gpio-ir-recv.h b/include/media/gpio-ir-recv.h
+index 61a7fbb..67797bf 100644
+--- a/include/media/gpio-ir-recv.h
++++ b/include/media/gpio-ir-recv.h
+@@ -14,7 +14,7 @@
+ #define __GPIO_IR_RECV_H__
+ 
+ struct gpio_ir_recv_platform_data {
+-	unsigned int gpio_nr;
++	int gpio_nr;
+ 	bool active_low;
+ };
+ 
