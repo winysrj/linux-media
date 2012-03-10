@@ -1,54 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:52809 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756050Ab2CGSef (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Mar 2012 13:34:35 -0500
-Date: Wed, 7 Mar 2012 20:34:29 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, dacohen@gmail.com, snjw23@gmail.com,
-	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
-	tuukkat76@gmail.com, k.debski@samsung.com, riverful@gmail.com,
-	hverkuil@xs4all.nl, teturtia@gmail.com, pradeep.sawlani@gmail.com
-Subject: Re: [PATCH v5 28/35] omap3isp: Use external rate instead of vpcfg
-Message-ID: <20120307183429.GI1476@valkosipuli.localdomain>
-References: <20120306163239.GN1075@valkosipuli.localdomain>
- <1331051596-8261-28-git-send-email-sakari.ailus@iki.fi>
- <2509531.N5XHlDPohC@avalon>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <2509531.N5XHlDPohC@avalon>
+Received: from smtp509.mail.kks.yahoo.co.jp ([114.111.99.158]:23435 "HELO
+	smtp509.mail.kks.yahoo.co.jp" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1755223Ab2CJPpb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 10 Mar 2012 10:45:31 -0500
+From: tskd2@yahoo.co.jp
+To: linux-media@vger.kernel.org
+Cc: Akihiro Tsukada <tskd2@yahoo.co.jp>
+Subject: [PATCH 2/4] dvb: earth-pt1: add an error check/report on the incoming data
+Date: Sun, 11 Mar 2012 00:38:14 +0900
+Message-Id: <1331393896-17902-2-git-send-email-tskd2@yahoo.co.jp>
+In-Reply-To: <1331393896-17902-1-git-send-email-tskd2@yahoo.co.jp>
+References: <1331393896-17902-1-git-send-email-tskd2@yahoo.co.jp>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Mar 07, 2012 at 11:53:19AM +0100, Laurent Pinchart wrote:
-> Hi Sakari,
-> 
-> Thanks for the patch.
-> 
-> On Tuesday 06 March 2012 18:33:09 Sakari Ailus wrote:
-> > From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-> > 
-> > Access pipe->external_rate instead of isp_ccdc.vpcfg.pixelclk. Also remove
-> > means to set the value for isp_ccdc_vpcfg.pixelclk.
-> > 
-> > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> 
-> Very nice.
-> 
-> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> 
-> This also means that implementing support for the V4L2_CID_PIXEL_RATE control 
-> is required in the sensor drivers to be used with the OMAP3 ISP. I'll submit 
-> patches.
+From: Akihiro Tsukada <tskd2@yahoo.co.jp>
 
-My tree is here if you wish to try it:
+This patch adds a data integrity check using the sequence counter and error flags added by the bridge chip.
 
-<URL:http://git.linuxtv.org/sailus/media_tree.git/shortlog/refs/heads/media-for-3.4>
+Signed-off-by: Akihiro Tsukada <tskd2@yahoo.co.jp>
+---
+ drivers/media/dvb/pt1/pt1.c |   14 ++++++++++++++
+ 1 files changed, 14 insertions(+), 0 deletions(-)
 
-Cheers,
-
+diff --git a/drivers/media/dvb/pt1/pt1.c b/drivers/media/dvb/pt1/pt1.c
+index 463f784..8229a91 100644
+--- a/drivers/media/dvb/pt1/pt1.c
++++ b/drivers/media/dvb/pt1/pt1.c
+@@ -28,6 +28,7 @@
+ #include <linux/pci.h>
+ #include <linux/kthread.h>
+ #include <linux/freezer.h>
++#include <linux/ratelimit.h>
+ 
+ #include "dvbdev.h"
+ #include "dvb_demux.h"
+@@ -92,6 +93,7 @@ struct pt1_adapter {
+ 	u8 *buf;
+ 	int upacket_count;
+ 	int packet_count;
++	int st_count;
+ 
+ 	struct dvb_adapter adap;
+ 	struct dvb_demux demux;
+@@ -266,6 +268,7 @@ static int pt1_filter(struct pt1 *pt1, struct pt1_buffer_page *page)
+ 	struct pt1_adapter *adap;
+ 	int offset;
+ 	u8 *buf;
++	int sc;
+ 
+ 	if (!page->upackets[PT1_NR_UPACKETS - 1])
+ 		return 0;
+@@ -282,6 +285,16 @@ static int pt1_filter(struct pt1 *pt1, struct pt1_buffer_page *page)
+ 		else if (!adap->upacket_count)
+ 			continue;
+ 
++		if (upacket >> 24 & 1)
++			printk_ratelimited(KERN_INFO "earth-pt1: device "
++				"buffer overflowing. table[%d] buf[%d]\n",
++				pt1->table_index, pt1->buf_index);
++		sc = upacket >> 26 & 0x7;
++		if (adap->st_count != -1 && sc != ((adap->st_count + 1) & 0x7))
++			printk_ratelimited(KERN_INFO "earth-pt1: data loss"
++				" in streamID(adapter)[%d]\n", index);
++		adap->st_count = sc;
++
+ 		buf = adap->buf;
+ 		offset = adap->packet_count * 188 + adap->upacket_count * 3;
+ 		buf[offset] = upacket >> 16;
+@@ -652,6 +665,7 @@ pt1_alloc_adapter(struct pt1 *pt1)
+ 	adap->buf = buf;
+ 	adap->upacket_count = 0;
+ 	adap->packet_count = 0;
++	adap->st_count = -1;
+ 
+ 	dvb_adap = &adap->adap;
+ 	dvb_adap->priv = adap;
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+1.7.7.6
+
