@@ -1,44 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:44410 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754305Ab2CUTkL convert rfc822-to-8bit (ORCPT
+Received: from smtp509.mail.kks.yahoo.co.jp ([114.111.99.158]:23442 "HELO
+	smtp509.mail.kks.yahoo.co.jp" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1755376Ab2CJPpe (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Mar 2012 15:40:11 -0400
-Received: by obbeh20 with SMTP id eh20so903553obb.19
-        for <linux-media@vger.kernel.org>; Wed, 21 Mar 2012 12:40:10 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <CAGoCfiwm3XryRD4d+bMpZhTWCqvzdURGFqTr9nemfbqztj5MwQ@mail.gmail.com>
-References: <CALF0-+U+H=mycbcWYP8J9+5TsGCA8NdBWC7Ge7xJ11F3Q6=j=g@mail.gmail.com>
-	<1332291909.26972.3.camel@palomino.walls.org>
-	<CALF0-+Wz9Gn0PUqDyeFkK36QGu9HNVm3SUfaGrpvsit==BKvkA@mail.gmail.com>
-	<CAGoCfiz1RmNwYBsHnXr5__qTy58k2BTp-P3d_sqSdWt9tS7TjQ@mail.gmail.com>
-	<CALF0-+XRREN9d8_aB+1Nfa9VEaTeYQCo9sEDa5sBuzo5rcbfjw@mail.gmail.com>
-	<CAGoCfiwm3XryRD4d+bMpZhTWCqvzdURGFqTr9nemfbqztj5MwQ@mail.gmail.com>
-Date: Wed, 21 Mar 2012 16:40:10 -0300
-Message-ID: <CALF0-+XJUB3N4UbiCneE_EPmLwMmB5TaEbP1s4On-P09wFeNPQ@mail.gmail.com>
-Subject: Re: [Q] v4l buffer format inside isoc
-From: =?ISO-8859-1?Q?Ezequiel_Garc=EDa?= <elezegarcia@gmail.com>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: Andy Walls <awalls@md.metrocast.net>,
-	linux-media <linux-media@vger.kernel.org>,
-	Jean-Francois Moine <moinejf@free.fr>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Sat, 10 Mar 2012 10:45:34 -0500
+From: tskd2@yahoo.co.jp
+To: linux-media@vger.kernel.org
+Cc: Akihiro Tsukada <tskd2@yahoo.co.jp>
+Subject: [PATCH 4/4] dvb: earth-pt1: remove unsupported net subdevices
+Date: Sun, 11 Mar 2012 00:38:16 +0900
+Message-Id: <1331393896-17902-4-git-send-email-tskd2@yahoo.co.jp>
+In-Reply-To: <1331393896-17902-1-git-send-email-tskd2@yahoo.co.jp>
+References: <1331393896-17902-1-git-send-email-tskd2@yahoo.co.jp>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2012/3/21 Devin Heitmueller <dheitmueller@kernellabs.com>:
-> I'm not sure what you mean by "no video".  Do you have capture
-> disabled?  Are you saying that you didn't connect the video cable to
-> your input?  Most devices will continue to generate video frames over
-> isoc even if there is no actual video signal present.
+From: Akihiro Tsukada <tskd2@yahoo.co.jp>
 
-I mean there is no signal at video input.
+PT1 and PT2 do not have net functions.
 
->
-> But yeah, most of the solutions I have seen have every isoc packet
-> starting with a header that includes descriptors for things like start
-> of video frame, odd/even field, etc.
->
+Signed-off-by: Akihiro Tsukada <tskd2@yahoo.co.jp>
+---
+ drivers/media/dvb/pt1/pt1.c |    4 ----
+ 1 files changed, 0 insertions(+), 4 deletions(-)
 
-Thanks, I'll keep reading sources and info. Hope it gets me somewhere.
+diff --git a/drivers/media/dvb/pt1/pt1.c b/drivers/media/dvb/pt1/pt1.c
+index 9cd161c..15b35c4 100644
+--- a/drivers/media/dvb/pt1/pt1.c
++++ b/drivers/media/dvb/pt1/pt1.c
+@@ -99,7 +99,6 @@ struct pt1_adapter {
+ 	struct dvb_demux demux;
+ 	int users;
+ 	struct dmxdev dmxdev;
+-	struct dvb_net net;
+ 	struct dvb_frontend *fe;
+ 	int (*orig_set_voltage)(struct dvb_frontend *fe,
+ 				fe_sec_voltage_t voltage);
+@@ -624,7 +623,6 @@ static int pt1_wakeup(struct dvb_frontend *fe)
+ 
+ static void pt1_free_adapter(struct pt1_adapter *adap)
+ {
+-	dvb_net_release(&adap->net);
+ 	adap->demux.dmx.close(&adap->demux.dmx);
+ 	dvb_dmxdev_release(&adap->dmxdev);
+ 	dvb_dmx_release(&adap->demux);
+@@ -694,8 +692,6 @@ pt1_alloc_adapter(struct pt1 *pt1)
+ 	if (ret < 0)
+ 		goto err_dmx_release;
+ 
+-	dvb_net_init(dvb_adap, &adap->net, &demux->dmx);
+-
+ 	return adap;
+ 
+ err_dmx_release:
+-- 
+1.7.7.6
+
