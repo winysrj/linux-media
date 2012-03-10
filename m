@@ -1,95 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:62674 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757026Ab2COA2S convert rfc822-to-8bit (ORCPT
+Received: from mail-wi0-f170.google.com ([209.85.212.170]:58242 "EHLO
+	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751840Ab2CJTYQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Mar 2012 20:28:18 -0400
-Received: by ghrr11 with SMTP id r11so2480517ghr.19
-        for <linux-media@vger.kernel.org>; Wed, 14 Mar 2012 17:28:18 -0700 (PDT)
+	Sat, 10 Mar 2012 14:24:16 -0500
+Received: by wibhr17 with SMTP id hr17so1609758wib.1
+        for <linux-media@vger.kernel.org>; Sat, 10 Mar 2012 11:24:15 -0800 (PST)
+Message-ID: <4F5BAA5C.8010705@gmail.com>
+Date: Sat, 10 Mar 2012 20:24:12 +0100
+From: Sylwester Nawrocki <snjw23@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <CALF0-+W3HenNpUt_yGxqs+fohcZ22ozDw9MhTWua0B++ZFA2vA@mail.gmail.com>
-References: <CALjTZvZy4npSE0aELnmsZzzgsxUC1xjeNYVwQ_CvJG59PizfEQ@mail.gmail.com>
-	<CALF0-+Wp03vsbiaJFUt=ymnEncEvDg_KmnV+2OWjtO-_0qqBVg@mail.gmail.com>
-	<CALjTZvYVtuSm0v-_Q7od=iUDvHbkMe4c5ycAQZwoErCCe=N+Bg@mail.gmail.com>
-	<CALF0-+W3HenNpUt_yGxqs+fohcZ22ozDw9MhTWua0B++ZFA2vA@mail.gmail.com>
-Date: Thu, 15 Mar 2012 00:28:17 +0000
-Message-ID: <CALjTZvYJZ32Red-UfZXubB-Lk503DWbHGTL_kEoV4DVDDYJ46w@mail.gmail.com>
-Subject: Re: eMPIA EM2710 Webcam (em28xx) and LIRC
-From: Rui Salvaterra <rsalvaterra@gmail.com>
-To: =?UTF-8?Q?Ezequiel_Garc=C3=ADa?= <elezegarcia@gmail.com>
-Cc: linux-media@vger.kernel.org
+To: Jean-Francois Moine <moinejf@free.fr>
+CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [GIT PATCHES FOR 3.4] gspca for_v3.4
+References: <20120227130606.1f432e7b@tele>	<4F4BE111.6090805@gmail.com>	<20120228120548.186ee4bc@tele>	<4F4CB75F.4050907@samsung.com> <20120310123901.72aaa060@tele>
+In-Reply-To: <20120310123901.72aaa060@tele>
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2012/3/14 Ezequiel García <elezegarcia@gmail.com>:
-> Hi,
->
-> 2012/3/14 Rui Salvaterra <rsalvaterra@gmail.com>:
+On 03/10/2012 12:39 PM, Jean-Francois Moine wrote:
+> On Tue, 28 Feb 2012 12:15:43 +0100
+> Sylwester Nawrocki<s.nawrocki@samsung.com>  wrote:
+> 
+>>> I checked the changes in zc3xx.c, and I have made many commits. So, it
+>>> would be simpler if you would remove your patch. I could give you a
+>>> merged one once the media tree would be updated.
 >>
->> Hi, Ezequiel. Thanks a lot for your reply.
->> I'm attaching a copy of my full dmesg, its a bit hard to spot exactly
->> where all modules are loaded (since the boot sequence became
->> asynchronous).
->
-> Indeed.
->
->>
->>
->> Sure, no problem at all. I booted with em28xx disable_ir=1 and got the
->> same result. Additionally:
->>
->> rui@wilykat:~$ lsmod | grep ir
->> ir_lirc_codec          12901  0
->> lirc_dev               19204  1 ir_lirc_codec
->> ir_mce_kbd_decoder     12724  0
->> ir_sanyo_decoder       12513  0
->> ir_sony_decoder        12510  0
->> ir_jvc_decoder         12507  0
->> ir_rc6_decoder         12507  0
->> ir_rc5_decoder         12507  0
->> ir_nec_decoder         12507  0
->> rc_core                26373  9
->> ir_lirc_codec,ir_mce_kbd_decoder,ir_sanyo_decoder,ir_sony_decoder,ir_jvc_decoder,ir_rc6_decoder,em28xx,ir_rc5_decoder,ir_nec_decoder
->> rui@wilykat:~$
->
-> Mmmm...
-> Are you completely sure that em28xx driver is triggering the load of
-> the ir related modules?
+>> OK, if it's easier please carry the patch in your tree. Otherwise, let me
+>> handle it after our pull request are included in the media tree.
+> 
+> Hi Sylwester,
+> 
+> Here is the merge of your patch (origin media_tree staging/for_v3.4).
+> As I have an other patch to do to the driver, I may add it to my
+> changes once you have acked it (I have no webcam to test it).
 
-I'm positive, the LIRC modules aren't loaded at all if I boot with the
-webcam disconnected. As soon as I plug it into an USB port, em28xx and
-LIRC are loaded.
+Hi Jean-Francois,
 
-> Perhaps you could disable the module (blacklist, or compile out the
-> module, or erase em28xx.ko to make sure)
-> so you can see that effectively em28xx doesn't load and the rest of
-> the modules doesn't load either,
-> do you follow my line of reasoning?
+thanks, I have tested your patch, but on the webcam I have (A4TECH PK-835):
 
-Ok, I did some more testing, here's what I found out. If I blacklist
-em28xx, no modules are loaded. Afterwards, I allowed em28xx to load
-and appended
+[16803.614071] usb 2-1.1: new full speed USB device using ehci_hcd and address 10
+[16803.708177] gspca: probing 0ac8:303b
+[16804.634470] zc3xx: probe 2wr ov vga 0x0000
+[16804.658594] zc3xx: probe sensor -> 0011
+[16804.658601] zc3xx: Find Sensor HV7131R
+[16804.659099] input: zc3xx as /devices/pci0000:00/0000:00:1d.0/usb2/2-1/2-1.1/input/input13
+[16804.659512] gspca: video1 created
 
-blacklist rc_core
-blacklist ir_lirc_codec
-blacklist lirc_dev
-blacklist ir_mce_kbd_decoder
-blacklist ir_sanyo_decoder
-blacklist ir_sony_decoder
-blacklist ir_jvc_decoder
-blacklist ir_rc6_decoder
-blacklist ir_rc5_decoder
-blacklist ir_nec_decoder
+the JPEG quality control is disabled. I have removed the following line from 
+the patch temporarily:
 
-to /etc/modprobe.d/blacklist.conf (basically blacklisted all LIRC
-stuff), but it also didn't work. And I still have em28xx disable_ir=1.
+ +		gspca_dev->ctrl_dis = (1 << QUALITY);
 
->
-> I'm also no kernel expert, just trying to be helpful.
->
-> Hope it helps,
-> Ezequiel.
+just to see if it appears. Of course due to the automatic transfer control
+introduced with patches starting from
+http://git.linuxtv.org/media_tree.git/commit/30c73d464a10bee4bb8375bb2ed8cc102c507bb7
+the jpeg quality control doesn't do anything useful. 
 
-Every bit of help is appreciated, thanks a lot! :)
+So I can't really test the patch, but it looks fine for me. And if it's needed
+please include it in your other change set. FWIW,
+
+Acked-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+
+--
+Regards,
+Sylwester
