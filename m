@@ -1,82 +1,137 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eu1sys200aog107.obsmtp.com ([207.126.144.123]:38232 "EHLO
-	eu1sys200aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759483Ab2CMDcY convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Mar 2012 23:32:24 -0400
-From: Bhupesh SHARMA <bhupesh.sharma@st.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Tue, 13 Mar 2012 11:31:31 +0800
-Subject: RE: [PATCH] media: Initialize the media core with subsys_initcall()
-Message-ID: <D5ECB3C7A6F99444980976A8C6D896384FA2BA2212@EAPEX1MAIL1.st.com>
-References: <bbe7861cb38c036d3c24df908ffbfc125274ea99.1331543025.git.bhupesh.sharma@st.com>
- <1331560967-32396-1-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1331560967-32396-1-git-send-email-laurent.pinchart@ideasonboard.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:46768 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754565Ab2CJOUK convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 10 Mar 2012 09:20:10 -0500
+Received: by iagz16 with SMTP id z16so3877917iag.19
+        for <linux-media@vger.kernel.org>; Sat, 10 Mar 2012 06:20:09 -0800 (PST)
 MIME-Version: 1.0
+In-Reply-To: <4F2DE790.9080805@gmail.com>
+References: <4F2DE790.9080805@gmail.com>
+Date: Sat, 10 Mar 2012 15:20:09 +0100
+Message-ID: <CAL7owaAyg3nOg5YXM2AZL_2is0rFaMyXtXo-yBHh0_q8o-XwKA@mail.gmail.com>
+Subject: Re: dvb-apps: add scan files for Ireland (ie-*)
+From: Christoph Pfister <christophpfister@gmail.com>
+To: Jonathan McCrohan <jmccrohan@gmail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Pushed, thanks.
 
-Thanks for the patch.
+Christoph
 
-> -----Original Message-----
-> From: Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com]
-> Sent: Monday, March 12, 2012 7:33 PM
-> To: linux-media@vger.kernel.org
-> Cc: Bhupesh SHARMA
-> Subject: [PATCH] media: Initialize the media core with
-> subsys_initcall()
-> 
-> Media-related drivers living outside drivers/media/ (such as the UVC
-> gadget driver in drivers/usb/gadget/) rely on the media core being
-> initialized before they're probed. As drivers/usb/ is linked before
-> drivers/media/, this is currently not the case and will lead to crashes
-> if the drivers are not compiled as modules.
-> 
-> Register media_devnode_init() as a subsys_initcall() instead of
-> module_init() to fix this.
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> ---
->  drivers/media/media-devnode.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
 
-> Bhupesh, do you plan to send a pull request with your "V4L/v4l2-dev:
-> Make
-> 'videodev_init' as a subsys initcall" patch, or would you like me to
-> take it
-> in my tree ? I'd like both patches to go in at the same time, with this
-> one
-> coming first to avoid any risk of bisection issue.
-
-I would prefer that you take my patch also in your tree and have
-a single pull request for both the patches as they solve the same
-issue and hence must be pulled at the same time.
-
-For your patch:
-Acked-By: Bhupesh Sharma <bhupesh.sharma@st.com>
-
-> 
-> diff --git a/drivers/media/media-devnode.c b/drivers/media/media-
-> devnode.c
-> index 7b42ace..421cf73 100644
-> --- a/drivers/media/media-devnode.c
-> +++ b/drivers/media/media-devnode.c
-> @@ -312,7 +312,7 @@ static void __exit media_devnode_exit(void)
->  	unregister_chrdev_region(media_dev_t, MEDIA_NUM_DEVICES);
->  }
-> 
-> -module_init(media_devnode_init)
-> +subsys_initcall(media_devnode_init);
->  module_exit(media_devnode_exit)
-> 
->  MODULE_AUTHOR("Laurent Pinchart <laurent.pinchart@ideasonboard.com>");
+Am 5. Februar 2012 03:21 schrieb Jonathan McCrohan <jmccrohan@gmail.com>:
+> # HG changeset patch
+> # User Jonathan McCrohan <jmccrohan@gmail.com>
+> # Date 1328407970 0
+> # Node ID 068772e2c579c9e8c32c81d2e7b5b6978e6afe7f
+> # Parent  69fc03702a6489ae46c50a3a5514df714d3832e8
+> add scan files for Ireland (ie-*)
+>
+> Signed-off-by: Jonathan McCrohan <jmccrohan@gmail.com>
+>
+> diff -r 69fc03702a64 -r 068772e2c579 util/scan/dvb-t/ie-CairnHill
+> --- /dev/null   Thu Jan 01 00:00:00 1970 +0000
+> +++ b/util/scan/dvb-t/ie-CairnHill      Sun Feb 05 02:12:50 2012 +0000
+> @@ -0,0 +1,4 @@
+> +# Ireland, Cairn Hill
+> +# Generated from http://www.rtenl.ie/wp-content/uploads/2011/12/SAORVIEW-Frequencies-Rev-1.0.pdf
+> +# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
+> +T 682000000 8MHz 3/4 NONE QAM16 2k 1/32 NONE # CH47: Saorview
+> diff -r 69fc03702a64 -r 068772e2c579 util/scan/dvb-t/ie-ClermontCarn
+> --- /dev/null   Thu Jan 01 00:00:00 1970 +0000
+> +++ b/util/scan/dvb-t/ie-ClermontCarn   Sun Feb 05 02:12:50 2012 +0000
+> @@ -0,0 +1,4 @@
+> +# Ireland, Clermont Carn
+> +# Generated from http://www.rtenl.ie/wp-content/uploads/2011/12/SAORVIEW-Frequencies-Rev-1.0.pdf
+> +# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
+> +T 730000000 8MHz 3/4 NONE QAM16 2k 1/32 NONE # CH53: Saorview
+> diff -r 69fc03702a64 -r 068772e2c579 util/scan/dvb-t/ie-Dungarvan
+> --- /dev/null   Thu Jan 01 00:00:00 1970 +0000
+> +++ b/util/scan/dvb-t/ie-Dungarvan      Sun Feb 05 02:12:50 2012 +0000
+> @@ -0,0 +1,4 @@
+> +# Ireland, Dungarvan
+> +# Generated from http://www.rtenl.ie/wp-content/uploads/2011/12/SAORVIEW-Frequencies-Rev-1.0.pdf
+> +# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
+> +T 746000000 8MHz 3/4 NONE QAM16 2k 1/32 NONE # CH55: Saorview
+> diff -r 69fc03702a64 -r 068772e2c579 util/scan/dvb-t/ie-HolywellHill
+> --- /dev/null   Thu Jan 01 00:00:00 1970 +0000
+> +++ b/util/scan/dvb-t/ie-HolywellHill   Sun Feb 05 02:12:50 2012 +0000
+> @@ -0,0 +1,4 @@
+> +# Ireland, Holywell Hill
+> +# Generated from http://www.rtenl.ie/wp-content/uploads/2011/12/SAORVIEW-Frequencies-Rev-1.0.pdf
+> +# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
+> +T 546000000 8MHz 3/4 NONE QAM16 2k 1/32 NONE # CH30: Saorview
+> diff -r 69fc03702a64 -r 068772e2c579 util/scan/dvb-t/ie-Kippure
+> --- /dev/null   Thu Jan 01 00:00:00 1970 +0000
+> +++ b/util/scan/dvb-t/ie-Kippure        Sun Feb 05 02:12:50 2012 +0000
+> @@ -0,0 +1,4 @@
+> +# Ireland, Kippure
+> +# Generated from http://www.rtenl.ie/wp-content/uploads/2011/12/SAORVIEW-Frequencies-Rev-1.0.pdf
+> +# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
+> +T 738000000 8MHz 3/4 NONE QAM16 2k 1/32 NONE # CH54: Saorview
+> diff -r 69fc03702a64 -r 068772e2c579 util/scan/dvb-t/ie-Maghera
+> --- /dev/null   Thu Jan 01 00:00:00 1970 +0000
+> +++ b/util/scan/dvb-t/ie-Maghera        Sun Feb 05 02:12:50 2012 +0000
+> @@ -0,0 +1,4 @@
+> +# Ireland, Maghera
+> +# Generated from http://www.rtenl.ie/wp-content/uploads/2011/12/SAORVIEW-Frequencies-Rev-1.0.pdf
+> +# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
+> +T 690000000 8MHz 3/4 NONE QAM16 2k 1/32 NONE # CH48: Saorview
+> diff -r 69fc03702a64 -r 068772e2c579 util/scan/dvb-t/ie-MountLeinster
+> --- /dev/null   Thu Jan 01 00:00:00 1970 +0000
+> +++ b/util/scan/dvb-t/ie-MountLeinster  Sun Feb 05 02:12:50 2012 +0000
+> @@ -0,0 +1,4 @@
+> +# Ireland, Mount Leinster
+> +# Generated from http://www.rtenl.ie/wp-content/uploads/2011/12/SAORVIEW-Frequencies-Rev-1.0.pdf
+> +# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
+> +T 666000000 8MHz 3/4 NONE QAM16 2k 1/32 NONE # CH45: Saorview
+> diff -r 69fc03702a64 -r 068772e2c579 util/scan/dvb-t/ie-Mullaghanish
+> --- /dev/null   Thu Jan 01 00:00:00 1970 +0000
+> +++ b/util/scan/dvb-t/ie-Mullaghanish   Sun Feb 05 02:12:50 2012 +0000
+> @@ -0,0 +1,4 @@
+> +# Ireland, Mullaghanish
+> +# Generated from http://www.rtenl.ie/wp-content/uploads/2011/12/SAORVIEW-Frequencies-Rev-1.0.pdf
+> +# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
+> +T 474000000 8MHz 3/4 NONE QAM16 2k 1/32 NONE # CH21: Saorview
+> diff -r 69fc03702a64 -r 068772e2c579 util/scan/dvb-t/ie-SpurHill
+> --- /dev/null   Thu Jan 01 00:00:00 1970 +0000
+> +++ b/util/scan/dvb-t/ie-SpurHill       Sun Feb 05 02:12:50 2012 +0000
+> @@ -0,0 +1,4 @@
+> +# Ireland, Spur Hill
+> +# Generated from http://www.rtenl.ie/wp-content/uploads/2011/12/SAORVIEW-Frequencies-Rev-1.0.pdf
+> +# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
+> +T 666000000 8MHz 3/4 NONE QAM16 2k 1/32 NONE # CH45: Saorview
+> diff -r 69fc03702a64 -r 068772e2c579 util/scan/dvb-t/ie-ThreeRock
+> --- /dev/null   Thu Jan 01 00:00:00 1970 +0000
+> +++ b/util/scan/dvb-t/ie-ThreeRock      Sun Feb 05 02:12:50 2012 +0000
+> @@ -0,0 +1,4 @@
+> +# Ireland, Three Rock
+> +# Generated from http://www.rtenl.ie/wp-content/uploads/2011/12/SAORVIEW-Frequencies-Rev-1.0.pdf
+> +# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
+> +T 738000000 8MHz 3/4 NONE QAM16 2k 1/32 NONE # CH54: Saorview
+> diff -r 69fc03702a64 -r 068772e2c579 util/scan/dvb-t/ie-Truskmore
+> --- /dev/null   Thu Jan 01 00:00:00 1970 +0000
+> +++ b/util/scan/dvb-t/ie-Truskmore      Sun Feb 05 02:12:50 2012 +0000
+> @@ -0,0 +1,4 @@
+> +# Ireland, Truskmore
+> +# Generated from http://www.rtenl.ie/wp-content/uploads/2011/12/SAORVIEW-Frequencies-Rev-1.0.pdf
+> +# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
+> +T 730000000 8MHz 3/4 NONE QAM16 2k 1/32 NONE # CH53: Saorview
+> diff -r 69fc03702a64 -r 068772e2c579 util/scan/dvb-t/ie-WoodcockHill
+> --- /dev/null   Thu Jan 01 00:00:00 1970 +0000
+> +++ b/util/scan/dvb-t/ie-WoodcockHill   Sun Feb 05 02:12:50 2012 +0000
+> @@ -0,0 +1,4 @@
+> +# Ireland, Woodcock Hill
+> +# Generated from http://www.rtenl.ie/wp-content/uploads/2011/12/SAORVIEW-Frequencies-Rev-1.0.pdf
+> +# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
+> +T 682000000 8MHz 3/4 NONE QAM16 2k 1/32 NONE # CH47: Saorview
 > --
-
-Regards,
-Bhupesh
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
