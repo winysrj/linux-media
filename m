@@ -1,34 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hrndva-omtalb.mail.rr.com ([71.74.56.122]:33320 "EHLO
-	hrndva-omtalb.mail.rr.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754865Ab2CZUJZ (ORCPT
+Received: from oyp.chewa.net ([91.121.6.101]:54845 "EHLO oyp.chewa.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752914Ab2CKPsg convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Mar 2012 16:09:25 -0400
-Message-ID: <4F70CCF3.4000000@kc.rr.com>
-Date: Mon, 26 Mar 2012 15:09:23 -0500
-From: Joe Henley <joehenley@kc.rr.com>
-MIME-Version: 1.0
+	Sun, 11 Mar 2012 11:48:36 -0400
+From: "=?iso-8859-1?q?R=E9mi?= Denis-Courmont" <remi@remlab.net>
 To: linux-media@vger.kernel.org
-Subject: Re:  Cannot compile media_build from git sources
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Subject: Re: Mapping frontends to demuxes
+Date: Sun, 11 Mar 2012 17:48:31 +0200
+Cc: vlc-devel@videolan.org
+References: <201203111608.48843.remi@remlab.net> <201203111725.58006.remi@remlab.net> <CAGoCfiwM_FPAbRhZf4UfiWU7XkY6_WvHzT-v9qyBF9nZ=HaR-A@mail.gmail.com>
+In-Reply-To: <CAGoCfiwM_FPAbRhZf4UfiWU7XkY6_WvHzT-v9qyBF9nZ=HaR-A@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201203111748.32004.remi@remlab.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Bogus,
+Le dimanche 11 mars 2012 17:34:50 Devin Heitmueller, vous avez écrit :
+> 2012/3/11 Rémi Denis-Courmont <remi@remlab.net>:
+> > By the way, the bt8xx driver exposes ATSC but not ITU J.83 annex B. This
+> > is contrary to all other ATSC frontends. Is this correct?
+> 
+> Many of the older cards didn't support J.83 annex B (i.e. ClearQAM).
+> Whether the device supports ClearQAM or not is actually controlled by
+> the demodulator driver, not the bridge driver.
 
-This is the same problem I wrote about on March 21, 2012.  I have 
-received no reply so far.
+Ah ok, thanks.
 
-You can try to work around the problem as I did:
--- This assumes you don't need radio-rtrack2.
--- Look at the build command.  Near the end are two "make" commands. 
-Comment out the last one.
--- Run the resulting "build".  Then go into ../media_build/v4l/.config 
-Set the "radio-rtrack2" to "n" (from "m").
--- Then go back to the directory which has the "build" program and just 
-run "make" ...... if all runs OK, then run "make install."
+On the topic of J.83, what's the intended difference between SYS_ISDBC and 
+SYS_DVBC_ANNEX_C ? (I cannot find any driver with SYS_ISDBC.)
 
-Good luck!
-
-Joe Henley
+-- 
+Rémi Denis-Courmont
+http://www.remlab.net/
+http://fi.linkedin.com/in/remidenis
