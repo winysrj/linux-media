@@ -1,51 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ftp.meprolight.com ([194.90.149.17]:39652 "EHLO meprolight.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1754399Ab2CMNvA convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Mar 2012 09:51:00 -0400
-From: Alex Gershgorin <alexg@meprolight.com>
-To: 'Sascha Hauer' <s.hauer@pengutronix.de>
-CC: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"g.liakhovetski@gmx.de" <g.liakhovetski@gmx.de>,
-	"fabio.estevam@freescale.com" <fabio.estevam@freescale.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"'linux-arm-kernel@lists.infradead.org'"
-	<linux-arm-kernel@lists.infradead.org>
-Date: Tue, 13 Mar 2012 15:50:35 +0200
-Subject: RE: [PATCH] i.MX35-PDK: Add Camera support
-Message-ID: <4875438356E7CA4A8F2145FCD3E61C0B2CBD666A2A@MEP-EXCH.meprolight.com>
-In-Reply-To: <20120313133333.GG3852@pengutronix.de>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from mx1.redhat.com ([209.132.183.28]:11513 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752662Ab2CKNu1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 11 Mar 2012 09:50:27 -0400
+Message-ID: <4F5CAD9A.5090000@redhat.com>
+Date: Sun, 11 Mar 2012 10:50:18 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
+To: Andreas Regel <andreas.regel@gmx.de>
+CC: abraham.manu@gmail.com, linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/3] stv090x: Fix typo in register macros
+References: <4F4BEAAB.3000603@gmx.de>
+In-Reply-To: <4F4BEAAB.3000603@gmx.de>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sascha,
+Em 27-02-2012 17:42, Andreas Regel escreveu:
+> Fix typo in register macros of ERRCNT2.
 
-Thanks for you comments.
- 
-> In i.MX35-PDK, OV2640  camera is populated on the
-> personality board. This camera is registered as a subdevice via soc-camera interface.
+Patch is line-wrapped:
+
+patch -p1 -i patches/lmml_10078_1_3_stv090x_fix_typo_in_register_macros.patch --dry-run -t -N
+patching file drivers/media/dvb/frontends/stv090x.c
+patch: **** malformed patch at line 33: *fe, u32 *per)
+
+Patch may be line wrapped
+patching file drivers/media/dvb/frontends/stv090x.c
+Hunk #1 FAILED at 3526.
+patch: **** malformed patch at line 34:  
+
+But, even fixing it, it still doesn't apply:
+
+patch -p1 -i patches/lmml_10078_1_3_stv090x_fix_typo_in_register_macros.patch --dry-run -t -N
+patching file drivers/media/dvb/frontends/stv090x.c
+Hunk #1 FAILED at 3526.
+1 out of 1 hunk FAILED -- saving rejects to file drivers/media/dvb/frontends/stv090x.c.rej
+patching file drivers/media/dvb/frontends/stv090x_reg.h
+Hunk #1 FAILED at 2232.
+1 out of 1 hunk FAILED -- saving rejects to file drivers/media/dvb/frontends/stv090x_reg.h.rej
+
+
 > 
-> Signed-off-by: Alex Gershgorin <alexg@meprolight.com>
+> Signed-off-by: Andreas Regel <andreas.regel@gmx.de>
 > ---
->  arch/arm/mach-imx/mach-mx35_3ds.c |   87 +++++++++++++++++++++++++++++++++++++
->  1 files changed, 87 insertions(+), 0 deletions(-)
+>  drivers/media/dvb/frontends/stv090x.c     |    2 +-
+>  drivers/media/dvb/frontends/stv090x_reg.h |    4 ++--
+>  2 files changed, 3 insertions(+), 3 deletions(-)
 > 
-> diff --git a/arch/arm/mach-imx/mach-mx35_3ds.c b/arch/arm/mach-imx/mach-mx35_3ds.c
+> diff --git a/drivers/media/dvb/frontends/stv090x.c b/drivers/media/dvb/frontends/stv090x.c
+> index 4aef187..6c3c095 100644
+> --- a/drivers/media/dvb/frontends/stv090x.c
+> +++ b/drivers/media/dvb/frontends/stv090x.c
+> @@ -3526,7 +3526,7 @@ static int stv090x_read_per(struct dvb_frontend *fe, u32 *per)
+>      } else {
+>          /* Counter 2 */
+>          reg = STV090x_READ_DEMOD(state, ERRCNT22);
+> -        h = STV090x_GETFIELD_Px(reg, ERR_CNT2_FIELD);
+> +        h = STV090x_GETFIELD_Px(reg, ERR_CNT22_FIELD);
+>           reg = STV090x_READ_DEMOD(state, ERRCNT21);
+>          m = STV090x_GETFIELD_Px(reg, ERR_CNT21_FIELD);
+> diff --git a/drivers/media/dvb/frontends/stv090x_reg.h b/drivers/media/dvb/frontends/stv090x_reg.h
+> index 93741ee..26c8885 100644
+> --- a/drivers/media/dvb/frontends/stv090x_reg.h
+> +++ b/drivers/media/dvb/frontends/stv090x_reg.h
+> @@ -2232,8 +2232,8 @@
+>  #define STV090x_P2_ERRCNT22                STV090x_Px_ERRCNT22(2)
+>  #define STV090x_OFFST_Px_ERRCNT2_OLDVALUE_FIELD        7
+>  #define STV090x_WIDTH_Px_ERRCNT2_OLDVALUE_FIELD        1
+> -#define STV090x_OFFST_Px_ERR_CNT2_FIELD            0
+> -#define STV090x_WIDTH_Px_ERR_CNT2_FIELD            7
+> +#define STV090x_OFFST_Px_ERR_CNT22_FIELD        0
+> +#define STV090x_WIDTH_Px_ERR_CNT22_FIELD        7
+>   #define STV090x_Px_ERRCNT21(__x)            (0xF59E - (__x - 1) * 0x200)
+>  #define STV090x_P1_ERRCNT21                STV090x_Px_ERRCNT21(1)
 
-> > This one does not apply as it is obviously based on (an earlier version
-> > of) the framebuffer patches of this board. Please always base your stuff
-> > on some -rc kernel. We can resolve conflicts later upstream, but we
-> > cannot easily apply a patch when we do not have the correct base.
-
-> >Please add the linux arm kernel mailing list next time.
-
-Oh what a stupid mistake, I will correct it.
-
-Regards,
-
-Alex Gershgorin
