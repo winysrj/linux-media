@@ -1,50 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:39929 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:56668 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756344Ab2CIPBI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Mar 2012 10:01:08 -0500
+	with ESMTP id S1751493Ab2CKLts (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 11 Mar 2012 07:49:48 -0400
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@iki.ifi,
-	Martin Hostettler <martin@neutronstar.dyndns.org>
-Subject: [PATCH v4 2/5] mt9p031: Remove unused xskip and yskip fields in struct mt9p031
-Date: Fri,  9 Mar 2012 16:01:22 +0100
-Message-Id: <1331305285-10781-3-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1331305285-10781-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1331305285-10781-1-git-send-email-laurent.pinchart@ideasonboard.com>
+To: stable@kernel.org
+Cc: linux-media@vger.kernel.org
+Subject: [PATCH - stable v3.2] omap3isp: ccdc: Fix crash in HS/VS interrupt handler
+Date: Sun, 11 Mar 2012 12:50:08 +0100
+Message-Id: <1331466608-3277-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The fields are set but never used, remove them.
+The HS/VS interrupt handler needs to access the pipeline object. It
+erronously tries to get it from the CCDC output video node, which isn't
+necessarily included in the pipeline. This leads to a NULL pointer
+dereference.
 
+Fix the bug by getting the pipeline object from the CCDC subdev entity.
+
+Reported-by: Gary Thomas <gary@mlbassoc.com>
 Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Reviewed-by: Sakari Ailus <sakari.ailus@iki.fi>
+Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
- drivers/media/video/mt9p031.c |    4 ----
- 1 files changed, 0 insertions(+), 4 deletions(-)
+ drivers/media/video/omap3isp/ispccdc.c |    3 +--
+ 1 files changed, 1 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/video/mt9p031.c b/drivers/media/video/mt9p031.c
-index dd937df..52dd9f8 100644
---- a/drivers/media/video/mt9p031.c
-+++ b/drivers/media/video/mt9p031.c
-@@ -114,8 +114,6 @@ struct mt9p031 {
- 	struct mt9p031_platform_data *pdata;
- 	struct mutex power_lock; /* lock to protect power_count */
- 	int power_count;
--	u16 xskip;
--	u16 yskip;
+The patch fixes a v3.2 bug and has been included in v3.3-rc1. Could you please
+add it to the stable v3.2 series ?
+
+diff --git a/drivers/media/video/omap3isp/ispccdc.c b/drivers/media/video/omap3isp/ispccdc.c
+index 54a4a3f..a319281 100644
+--- a/drivers/media/video/omap3isp/ispccdc.c
++++ b/drivers/media/video/omap3isp/ispccdc.c
+@@ -1406,8 +1406,7 @@ static int __ccdc_handle_stopping(struct isp_ccdc_device *ccdc, u32 event)
  
- 	const struct mt9p031_pll_divs *pll;
- 
-@@ -784,8 +782,6 @@ static int mt9p031_open(struct v4l2_subdev *subdev, struct v4l2_subdev_fh *fh)
- 	format->field = V4L2_FIELD_NONE;
- 	format->colorspace = V4L2_COLORSPACE_SRGB;
- 
--	mt9p031->xskip = 1;
--	mt9p031->yskip = 1;
- 	return mt9p031_set_power(subdev, 1);
- }
+ static void ccdc_hs_vs_isr(struct isp_ccdc_device *ccdc)
+ {
+-	struct isp_pipeline *pipe =
+-		to_isp_pipeline(&ccdc->video_out.video.entity);
++	struct isp_pipeline *pipe = to_isp_pipeline(&ccdc->subdev.entity);
+ 	struct video_device *vdev = ccdc->subdev.devnode;
+ 	struct v4l2_event event;
  
 -- 
-1.7.3.4
+Regards,
+
+Laurent Pinchart
 
