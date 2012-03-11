@@ -1,80 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.24]:37126 "EHLO mgw-da01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932428Ab2CBRc4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 2 Mar 2012 12:32:56 -0500
+Received: from smtp-68.nebula.fi ([83.145.220.68]:49807 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751845Ab2CKJEm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 11 Mar 2012 05:04:42 -0400
+Date: Sun, 11 Mar 2012 11:04:34 +0200
 From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, dacohen@gmail.com,
-	snjw23@gmail.com, andriy.shevchenko@linux.intel.com,
-	t.stanislaws@samsung.com, tuukkat76@gmail.com,
-	k.debski@samsung.com, riverful@gmail.com, hverkuil@xs4all.nl,
-	teturtia@gmail.com
-Subject: [PATCH v4 23/34] omap3isp: Move setting constaints above media_entity_pipeline_start
-Date: Fri,  2 Mar 2012 19:30:31 +0200
-Message-Id: <1330709442-16654-23-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <20120302173219.GA15695@valkosipuli.localdomain>
-References: <20120302173219.GA15695@valkosipuli.localdomain>
+To: jean-philippe francois <jp.francois@cynove.com>
+Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	dacohen@gmail.com, snjw23@gmail.com,
+	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
+	tuukkat76@gmail.com, k.debski@samsung.com, riverful@gmail.com,
+	hverkuil@xs4all.nl, teturtia@gmail.com, pradeep.sawlani@gmail.com
+Subject: Re: [PATCH v5.1 35/35] smiapp: Add driver
+Message-ID: <20120311090434.GH1591@valkosipuli.localdomain>
+References: <1960253.l1xo097dr7@avalon>
+ <1331215050-20823-2-git-send-email-sakari.ailus@iki.fi>
+ <CAGGh5h37Rd9O1Hp6FHBo1KcQRdEb=2OJxGkA0aJmyWkEB9juGQ@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAGGh5h37Rd9O1Hp6FHBo1KcQRdEb=2OJxGkA0aJmyWkEB9juGQ@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The clock rate for l3_ick is will soon be read during pipeline validation
-which is now part of media_entity_pipeline_start(). For that reason we set
-constraints earlier on.
+Hi François,
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
----
- drivers/media/video/omap3isp/ispvideo.c |   14 +++++++-------
- 1 files changed, 7 insertions(+), 7 deletions(-)
+On Thu, Mar 08, 2012 at 04:06:34PM +0100, jean-philippe francois wrote:
+> Le 8 mars 2012 14:57, Sakari Ailus <sakari.ailus@iki.fi> a écrit :
+> > Add driver for SMIA++/SMIA image sensors. The driver exposes the sensor as
+> > three subdevs, pixel array, binner and scaler --- in case the device has a
+> > scaler.
+> >
+> > Currently it relies on the board code for external clock handling. There is
+> > no fast way out of this dependency before the ISP drivers (omap3isp) among
+> > others will be able to export that clock through the clock framework
+> > instead.
+> >
+> > +       case V4L2_CID_EXPOSURE:
+> > +               return smiapp_write(
+> > +                       client,
+> > +                       SMIAPP_REG_U16_COARSE_INTEGRATION_TIME, ctrl->val);
+> > +
+> At this point, knowing pixel clock and line length, it is possible
+> to get / set the exposure in useconds or millisecond value.
 
-diff --git a/drivers/media/video/omap3isp/ispvideo.c b/drivers/media/video/omap3isp/ispvideo.c
-index c191f13..b0d541b 100644
---- a/drivers/media/video/omap3isp/ispvideo.c
-+++ b/drivers/media/video/omap3isp/ispvideo.c
-@@ -304,8 +304,6 @@ static int isp_video_validate_pipeline(struct isp_pipeline *pipe)
- 	struct v4l2_subdev *subdev;
- 	int ret;
- 
--	pipe->max_rate = pipe->l3_ick;
--
- 	subdev = isp_video_remote_subdev(pipe->output, NULL);
- 	if (subdev == NULL)
- 		return -EPIPE;
-@@ -993,6 +991,12 @@ isp_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
- 	 */
- 	pipe = video->video.entity.pipe
- 	     ? to_isp_pipeline(&video->video.entity) : &video->pipe;
-+
-+	if (video->isp->pdata->set_constraints)
-+		video->isp->pdata->set_constraints(video->isp, true);
-+	pipe->l3_ick = clk_get_rate(video->isp->clock[ISP_CLK_L3_ICK]);
-+	pipe->max_rate = pipe->l3_ick;
-+
- 	media_entity_pipeline_start(&video->video.entity, &pipe->pipe);
- 
- 	/* Verify that the currently configured format matches the output of
-@@ -1025,10 +1029,6 @@ isp_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
- 		pipe->output = far_end;
- 	}
- 
--	if (video->isp->pdata->set_constraints)
--		video->isp->pdata->set_constraints(video->isp, true);
--	pipe->l3_ick = clk_get_rate(video->isp->clock[ISP_CLK_L3_ICK]);
--
- 	/* Validate the pipeline and update its state. */
- 	ret = isp_video_validate_pipeline(pipe);
- 	if (ret < 0)
-@@ -1074,9 +1074,9 @@ isp_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
- error:
- 	if (ret < 0) {
- 		omap3isp_video_queue_streamoff(&vfh->queue);
-+		media_entity_pipeline_stop(&video->video.entity);
- 		if (video->isp->pdata->set_constraints)
- 			video->isp->pdata->set_constraints(video->isp, false);
--		media_entity_pipeline_stop(&video->video.entity);
- 		/* The DMA queue must be emptied here, otherwise CCDC interrupts
- 		 * that will get triggered the next time the CCDC is powered up
- 		 * will try to access buffers that might have been freed but
+It is possible, but still I don't think we even want that at this level.
+This is a fairly low level interface.
+
+The exposure time in seconds can always be constructed from horizontal and
+vertical blanking and the pixel rate in the user space.
+
+How you choose the exposure value in seconds does contain policy decisions
+which belong to the user space. Sensor drivers don't even have enough
+information to make these decisions. Providing the exposure time in native
+unit for sensors allows making these decisions in the user space.
+
+For example:
+
+- To get a common frame rate such as 30 or 25 fps, you need to add blanking,
+either horizontal or vertical. Using horizontal blanking gives you more
+unwanted rolling shutter effect but amortises the data rate over time. Which
+one you want (horizontal or vertical) is dependent on your hardware and what
+else is involved in your use case
+
+- Hardware limitations. Most blocks in the OMAP 3 ISP have the maximum speed
+of is 100 Mp/s but for the CSI-2 receiver it's 200 Mp/s. So if the ISP is
+configured to write the images to memory in the CSI-2 receiver, the maximum
+pixel rate is 200 Mp/s, not 100. This kind of limitations are quite common
+in ISPs and not limited to OMAP 3 ISP. Should the sensor driver know which
+blocks are part of the pipeline, and limit minimum frame time based on that?
+I admit not everything is in place yet for the full solution of this
+problem, but making the pixel rate configurable available to the user space
+is definitely a part of it. Ideally the user should be provided a way to
+enumerate these limitations to be able to make informed decisions.
+
+It shouldn't be the responsibility of the regular applications to deal with
+these things, though. We need additional functionality in libv4l2 to provide
+a higher level interface to the exposure time --- just like for the pipeline
+configuration. On the other hand, an application tailored to a device must
+be able to make these decisions by itself.
+
+> From userspace, if for example you change the format and crop,
+> you can just set the expo to a value in msec or usec, and get the
+> same exposure after your format change.
+> 
+> The driver is IMO the place where we have all the info. Here is some
+> example code with usec. (The 522 constant is the fine integration register...)
+> 
+> static int  mt9j_expo_to_shutter(struct usb_ovfx2 * ov, u32 expo)
+> {
+> 	int rc = 0;
+> 	u32 expo_pix; // exposition in pixclk unit
+> 	u16 coarse_expo;
+> 	u16 row_time;
+> 	expo_pix = expo * 96;   /// pixel clock in MHz
+> 	MT9J_RREAD(ov, LINE_LENGTH_PCK, &row_time);
+> 	expo_pix = expo_pix - 522;
+> 	coarse_expo = (expo_pix + row_time/2)/ row_time;
+> 	MT9J_RWRITE(ov, COARSE_EXPO_REG, coarse_expo);
+> 	return rc;
+> }
+> 
+> static int  mt9j_shutter_to_expo(struct usb_ovfx2 * ov, u32  * expo)
+> {
+> 	int rc = 0;
+> 	u32 expo_pix; // exposition in pixclk unit
+> 	u16 coarse_expo;
+> 	u16 row_time;
+> 	MT9J_RREAD(ov, LINE_LENGTH_PCK, &row_time);
+> 	MT9J_RREAD(ov, COARSE_EXPO_REG, &coarse_expo);
+> 	expo_pix = row_time * coarse_expo + 522;
+> 	*expo = expo_pix / (96);
+> 	return rc;
+> }
+> 
+> Maybe you have enough on your plate for now, and this can
+> wait after inclusion, but it is a nice abstraction to have  from
+> userspace point of view.
+
+Kind regards,
+
 -- 
-1.7.2.5
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
