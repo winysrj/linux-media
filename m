@@ -1,48 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:51434 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751052Ab2CERRh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 5 Mar 2012 12:17:37 -0500
-Message-ID: <4F54F524.8020105@redhat.com>
-Date: Mon, 05 Mar 2012 14:17:24 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from smtp-68.nebula.fi ([83.145.220.68]:44509 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751998Ab2CKBzx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 10 Mar 2012 20:55:53 -0500
+Date: Sun, 11 Mar 2012 03:55:45 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org,
+	Martin Hostettler <martin@neutronstar.dyndns.org>
+Subject: Re: [PATCH v4 5/5] v4l: Add driver for Micron MT9M032 camera sensor
+Message-ID: <20120311015545.GG1591@valkosipuli.localdomain>
+References: <1331305285-10781-1-git-send-email-laurent.pinchart@ideasonboard.com>
+ <1331305285-10781-6-git-send-email-laurent.pinchart@ideasonboard.com>
+ <4F5A56D0.50803@iki.fi>
+ <24208361.kjqmef2Tq0@avalon>
 MIME-Version: 1.0
-To: Trilok Soni <tsoni@codeaurora.org>
-CC: James Hogan <james.hogan@imgtec.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Paul Gortmaker <paul.gortmaker@windriver.com>,
-	linux-media@vger.kernel.org,
-	linux-kernel <linux-kernel@vger.kernel.org>
-Subject: Re: [RESEND] [PATCH] media: ir-sony-decoder: 15bit function decode
- fix
-References: <4F4B6EC5.1070806@imgtec.com> <4F54AA3C.6010702@imgtec.com> <4F54CE85.7070009@codeaurora.org>
-In-Reply-To: <4F54CE85.7070009@codeaurora.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <24208361.kjqmef2Tq0@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 05-03-2012 11:32, Trilok Soni escreveu:
-> Hi James,
+Hi Laurent,
+
+On Fri, Mar 09, 2012 at 09:20:47PM +0100, Laurent Pinchart wrote:
+> > Laurent Pinchart wrote:
+> > ...
+> > 
+> > > +static int mt9m032_setup_pll(struct mt9m032 *sensor)
+> > > +{
+> > > +	static const struct aptina_pll_limits limits = {
+> > > +		.ext_clock_min = 8000000,
+> > > +		.ext_clock_max = 16500000,
+> > > +		.int_clock_min = 2000000,
+> > > +		.int_clock_max = 24000000,
+> > > +		.out_clock_min = 322000000,
+> > > +		.out_clock_max = 693000000,
+> > > +		.pix_clock_max = 99000000,
+> > > +		.n_min = 1,
+> > > +		.n_max = 64,
+> > > +		.m_min = 16,
+> > > +		.m_max = 255,
+> > > +		.p1_min = 1,
+> > > +		.p1_max = 128,
+> > > +	};
+> > > +
+> > > +	struct i2c_client *client = v4l2_get_subdevdata(&sensor->subdev);
+> > > +	struct mt9m032_platform_data *pdata = sensor->pdata;
+> > > +	struct aptina_pll pll;
+> > > +	int ret;
+> > > +
+> > > +	pll.ext_clock = pdata->ext_clock;
+> > > +	pll.pix_clock = pdata->pix_clock;
+> > > +
+> > > +	ret = aptina_pll_calculate(&client->dev, &limits, &pll);
+> > > +	if (ret < 0)
+> > > +		return ret;
+> > > +
+> > > +	sensor->pix_clock = pll.pix_clock;
+> > 
+> > I wouldn't expect aptina_pll_calculate() to change the supplied pixel
+> > clock. I'd consider it a bug if it does that. So you could use the pixel
+> > clock from platform data equally well.
 > 
-> On 3/5/2012 5:27 PM, James Hogan wrote:
->> Ping
->>
->> Another week's gone by with no response. It's a trivial patch, so can
->> somebody please take a look at it? (or if I'm missing somebody relevant
->> from CC, please add them)
->>
-> 
-> You are not alone, GPIO IR patch is also in waiting mode...
+> But does it make a difference ? :-) Taking the value from pll.pix_clock seems 
+> more logical to me.
 
-Unfortunately, I'm very busy those days, testing a big patch series that it is
-re-writing one subsystem on several machines. Due to that, I had to reduce
-the timeslot for patch review.
+This is an input parameter rather than output. I don't see a reason to read
+it back. It works even if you do, but makes no sense.
 
-If your patches are at patchwork.linuxtv.org, you shouldn't worry... the patches
-are on my queue ;)
-
-I'll review them in time for 3.4.
+I've been thinking of splitting the similar struct on SMIA++  between input
+and output parameters later on.
 
 Regards,
-Mauro
+
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
