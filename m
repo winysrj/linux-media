@@ -1,45 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.24]:22267 "EHLO mgw-da01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754901Ab2CFQd1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 6 Mar 2012 11:33:27 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, dacohen@gmail.com,
-	snjw23@gmail.com, andriy.shevchenko@linux.intel.com,
-	t.stanislaws@samsung.com, tuukkat76@gmail.com,
-	k.debski@samsung.com, riverful@gmail.com, hverkuil@xs4all.nl,
-	teturtia@gmail.com, pradeep.sawlani@gmail.com
-Subject: [PATCH v5 05/35] v4l: vdev_to_v4l2_subdev() should have return type "struct v4l2_subdev *"
-Date: Tue,  6 Mar 2012 18:32:46 +0200
-Message-Id: <1331051596-8261-5-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <20120306163239.GN1075@valkosipuli.localdomain>
-References: <20120306163239.GN1075@valkosipuli.localdomain>
+Received: from mailout-de.gmx.net ([213.165.64.22]:34384 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1753638Ab2CKR72 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 11 Mar 2012 13:59:28 -0400
+Message-ID: <4F5CE7FD.9050609@gmx.de>
+Date: Sun, 11 Mar 2012 18:59:25 +0100
+From: Andreas Regel <andreas.regel@gmx.de>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: abraham.manu@gmail.com, linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/3] stv090x: Fix typo in register macros
+References: <4F4BEAAB.3000603@gmx.de> <4F5CAD9A.5090000@redhat.com>
+In-Reply-To: <4F5CAD9A.5090000@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-vdev_to_v4l2_subdev() should return struct v4l2_subdev *, not void *. Fix
-this.
+Hi Mauro,
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+it should be OK now.
+
 ---
- include/media/v4l2-subdev.h |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/media/dvb/frontends/stv090x.c     |    2 +-
+ drivers/media/dvb/frontends/stv090x_reg.h |    4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index feab950..bcaf6b8 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -545,7 +545,7 @@ struct v4l2_subdev {
- #define media_entity_to_v4l2_subdev(ent) \
- 	container_of(ent, struct v4l2_subdev, entity)
- #define vdev_to_v4l2_subdev(vdev) \
--	video_get_drvdata(vdev)
-+	((struct v4l2_subdev *)video_get_drvdata(vdev))
+diff --git a/drivers/media/dvb/frontends/stv090x.c b/drivers/media/dvb/frontends/stv090x.c
+index 4aef187..6c3c095 100644
+--- a/drivers/media/dvb/frontends/stv090x.c
++++ b/drivers/media/dvb/frontends/stv090x.c
+@@ -3526,7 +3526,7 @@ static int stv090x_read_per(struct dvb_frontend *fe, u32 *per)
+ 	} else {
+ 		/* Counter 2 */
+ 		reg = STV090x_READ_DEMOD(state, ERRCNT22);
+-		h = STV090x_GETFIELD_Px(reg, ERR_CNT2_FIELD);
++		h = STV090x_GETFIELD_Px(reg, ERR_CNT22_FIELD);
  
- /*
-  * Used for storing subdev information per file handle
+ 		reg = STV090x_READ_DEMOD(state, ERRCNT21);
+ 		m = STV090x_GETFIELD_Px(reg, ERR_CNT21_FIELD);
+diff --git a/drivers/media/dvb/frontends/stv090x_reg.h b/drivers/media/dvb/frontends/stv090x_reg.h
+index 93741ee..26c8885 100644
+--- a/drivers/media/dvb/frontends/stv090x_reg.h
++++ b/drivers/media/dvb/frontends/stv090x_reg.h
+@@ -2232,8 +2232,8 @@
+ #define STV090x_P2_ERRCNT22				STV090x_Px_ERRCNT22(2)
+ #define STV090x_OFFST_Px_ERRCNT2_OLDVALUE_FIELD		7
+ #define STV090x_WIDTH_Px_ERRCNT2_OLDVALUE_FIELD		1
+-#define STV090x_OFFST_Px_ERR_CNT2_FIELD			0
+-#define STV090x_WIDTH_Px_ERR_CNT2_FIELD			7
++#define STV090x_OFFST_Px_ERR_CNT22_FIELD		0
++#define STV090x_WIDTH_Px_ERR_CNT22_FIELD		7
+ 
+ #define STV090x_Px_ERRCNT21(__x)			(0xF59E - (__x - 1) * 0x200)
+ #define STV090x_P1_ERRCNT21				STV090x_Px_ERRCNT21(1)
 -- 
 1.7.2.5
 
