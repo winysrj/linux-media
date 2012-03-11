@@ -1,59 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:54998 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1031348Ab2CPQIU (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:49853 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751741Ab2CKMIC (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Mar 2012 12:08:20 -0400
-Message-ID: <4F636570.7090706@gmail.com>
-Date: Fri, 16 Mar 2012 09:08:16 -0700
-From: "Justin P. Mattock" <justinmattock@gmail.com>
+	Sun, 11 Mar 2012 08:08:02 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: "Nori, Sekhar" <nsekhar@ti.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [PATCH - stable v3.2] omap3isp: ccdc: Fix crash in HS/VS interrupt handler
+Date: Sun, 11 Mar 2012 13:08:21 +0100
+Message-ID: <1475570.ULi9FIQYeE@avalon>
+In-Reply-To: <DF0F476B391FA8409C78302C7BA518B6317F1421@DBDE01.ent.ti.com>
+References: <1331466608-3277-1-git-send-email-laurent.pinchart@ideasonboard.com> <DF0F476B391FA8409C78302C7BA518B6317F1421@DBDE01.ent.ti.com>
 MIME-Version: 1.0
-To: Greg KH <gregkh@linuxfoundation.org>
-CC: Jiri Kosina <jkosina@suse.cz>, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, marauder@tiscali.it,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH V2]NEXT:drivers:staging:media Fix comments and some typos
- in staging/media/*
-References: <1331045709-19309-1-git-send-email-justinmattock@gmail.com> <4F635DBF.7000603@gmail.com> <alpine.LNX.2.00.1203161644190.18356@pobox.suse.cz> <20120316155845.GA975@kroah.com> <4F636514.1080303@gmail.com>
-In-Reply-To: <4F636514.1080303@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/16/2012 09:06 AM, Justin P. Mattock wrote:
-> On 03/16/2012 08:58 AM, Greg KH wrote:
->> On Fri, Mar 16, 2012 at 04:45:03PM +0100, Jiri Kosina wrote:
->>> On Fri, 16 Mar 2012, Justin P. Mattock wrote:
->>>
->>>> before I forget about this patch, what was the status of this one?
->>>
->>> As previously announced multiple times, I am ignoring patches that go to
->>> drivers/staging and letting Greg pick them up if he wants to.
->>>
->>> Greg, if you want to have this changed, just let me know.
->>
->> No, no objection from me, but patches to drivers/staging/media/ do not
->> go through me, please see the MAINTAINERS file for the owner of those
->> (hint, it's Mauro...)
->>
->> thanks,
->>
->> greg k-h
->>
->
-> ahh!! I got it now.. your in charge of the staging tree but for each
-> branch there is an owner(I thought to just send to greg KH and thats it)
->
-> adding Mauro to the Cc's so he can view the patch, then on any other
-> patch I send to staging I will send it to the maintainer then the rest
-> as follows with a cc's.
->
-> Thanks for the help on this.
->
-> Justin P. Mattock
+Hi Sekhar,
 
-and of course pressed send without the Maintainer on it.. duh!
+On Sunday 11 March 2012 11:59:12 Nori, Sekhar wrote:
+> On Sun, Mar 11, 2012 at 17:20:08, Laurent Pinchart wrote:
+> > The HS/VS interrupt handler needs to access the pipeline object. It
+> > erronously tries to get it from the CCDC output video node, which isn't
+> > necessarily included in the pipeline. This leads to a NULL pointer
+> > dereference.
+> > 
+> > Fix the bug by getting the pipeline object from the CCDC subdev entity.
+> > 
+> > Reported-by: Gary Thomas <gary@mlbassoc.com>
+> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
+> > Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> > ---
+> > 
+> >  drivers/media/video/omap3isp/ispccdc.c |    3 +--
+> >  1 files changed, 1 insertions(+), 2 deletions(-)
+> > 
+> > The patch fixes a v3.2 bug and has been included in v3.3-rc1. Could you
+> > please add it to the stable v3.2 series ?
+> 
+> AFAIK, stable@kernel.org is down and the correct address is
+> stable@vger.kernel.org.
 
-Justin P. Mattock
+Oops, my bad.
+
+> Also, you need to include the upstream commit id in the commit
+> message (See Documentation/stable_kernel_rules.txt)
+
+I've resent the patch. Thank you.
+
+-- 
+Regards,
+
+Laurent Pinchart
 
