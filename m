@@ -1,64 +1,25 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bues.ch ([80.190.117.144]:49931 "EHLO bues.ch"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750847Ab2CTRdC (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Mar 2012 13:33:02 -0400
-Date: Tue, 20 Mar 2012 18:32:50 +0100
-From: Michael =?UTF-8?B?QsO8c2No?= <m@bues.ch>
-To: gennarone@gmail.com
-Cc: Hans-Frieder Vogt <hfvogt@gmx.net>, linux-media@vger.kernel.org
-Subject: Re: [PATCH 2/3] Basic AF9035/AF9033 driver
-Message-ID: <20120320183250.504fcced@milhouse>
-In-Reply-To: <4F68B52F.4040405@gmail.com>
-References: <201202222321.43972.hfvogt@gmx.net>
-	<4F67CF24.8050601@redhat.com>
-	<20120320140411.58b5808b@milhouse>
-	<4F68B001.1050809@gmail.com>
-	<20120320173724.4d3f2f0f@milhouse>
-	<4F68B52F.4040405@gmail.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=PGP-SHA1;
- boundary="Sig_/+M3VTHVPZMZLMvqLzzI_wvS"; protocol="application/pgp-signature"
+Received: from out-62.smtp.ucla.edu ([169.232.46.172]:51377 "EHLO
+	out-62.smtp.ucla.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752249Ab2CKKOH convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 11 Mar 2012 06:14:07 -0400
+Message-Id: <201203111005.q2BA5TqM006936@mail.ucla.edu>
+Content-Type: text/plain; charset=US-ASCII
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7BIT
+Content-Description: Mail message body
+Subject: MAIL 10.03.2012
+To: Recipients <tagnrichard@yahoo.com.hk>
+From: "Mr. Richard Tang" <tagnrichard@yahoo.com.hk>
+Date: Sun, 11 Mar 2012 11:05:28 +0100
+Reply-To: tangricad@yahoo.co.jp
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---Sig_/+M3VTHVPZMZLMvqLzzI_wvS
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+Mail From Tang.
 
-On Tue, 20 Mar 2012 17:49:51 +0100
-Gianluca Gennari <gennarone@gmail.com> wrote:
+I work with the hang seng Bank Hong Kong.I have a business proposition for you involving a trade in my bank which I know we will be of mutual benefit to both of us, If interested mail me at:tangricad@yahoo.co.jp
 
-> Here it is:
-> http://www.mail-archive.com/linux-media@vger.kernel.org/msg44169.html
-
-Uh thanks. I must have been blinded by the AF903x_SRC driver. ;)
-
---=20
-Greetings, Michael.
-
-PGP encryption is encouraged / 908D8B0E
-
---Sig_/+M3VTHVPZMZLMvqLzzI_wvS
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Disposition: attachment; filename=signature.asc
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJPaL9CAAoJEPUyvh2QjYsOy6sQALg7V7LS+R9EBY3vhaEPv2fK
-+sCK6p85+bkLIAwgtMMygAmRonsHeQgZd2aHYigN5GprMBtuqSaTs4ux5WfIzkRT
-j3Ro4R753YISNraV3U9FRNRWG2QgpJX5EL/Y+bIfIuyl3GycHyzWlYF3bsJ9qk0t
-+sOC7g5cYORoTdNJuQNXkvaIKmwRTMErMijAjb+/h4lbMp24p6HALnOWdqtD7z2r
-jvNie7SjZLDFlfS9126EZDP6Q6iWUnKPSXA2qVJlw/mwNsRFxEKTz7sGJ6TD2QXh
-QIfBhkJkD1Ok6ydEB048TwzBfVOVZlT4H1CqaWQdoOlA20xUQ1OJKneFoylgSUrV
-g1LkiBR+AwAudSNasKus9pgKZX1MKlC14g2lnnEVhbix2vv/VutgE/kfZq3ab6K2
-2fVfJiyTDDgbYtzUlCI6JKbVu7Uy2IcD/IVDgDaMlFmY4xjiv0NHxz2EFz1OgpL4
-enmlnrbuqpb1jJY9dqMfsYZFSxdQDQQivcDRyPPIZFlEe7Z7i/ac3o0d776TNSZ0
-09n4tDSjbf8rqMRcwsUCEThwToD9xyDGnADf++V4B3M7S7Cwas6ZujJn7pcaa0hy
-Yav9dW00Hi/9I8gNz+tab+KiZYSIgbU1YKwSdgPiEVeyYN5yxfUqCyiFB5BSEmsW
-n5vAaGMHvMkLhdsZ3n+7
-=pP/Q
------END PGP SIGNATURE-----
-
---Sig_/+M3VTHVPZMZLMvqLzzI_wvS--
+Regards,
+Richard Tang.
