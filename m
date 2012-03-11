@@ -1,29 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 124-248-200-66.sunnyvision.com ([124.248.200.66]:41171 "EHLO
-	teamb04.edmhongkong.com" rhost-flags-OK-FAIL-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1750950Ab2CPOgJ (ORCPT
+Received: from mailout-de.gmx.net ([213.165.64.23]:45498 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752967Ab2CKPXM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Mar 2012 10:36:09 -0400
-Message-ID: <IprvpepwVKvf@tpts6.seed.net.tw>
-From: boris@cloudluca.com
-Subject: Oppertunities to co-operate
-Content-Type: text/plain;
-Content-Transfer-Encoding: Quoted-Printable
-Date: Fri, 16 Mar 2012 21:28:57 +0800 (HKT)
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+	Sun, 11 Mar 2012 11:23:12 -0400
+From: "Hans-Frieder Vogt" <hfvogt@gmx.net>
+To: linux-media@vger.kernel.org
+Subject: [PATCH] AF903X driver update, v1.02
+Date: Sun, 11 Mar 2012 16:23:04 +0100
+References: <201202222321.43972.hfvogt@gmx.net>
+In-Reply-To: <201202222321.43972.hfvogt@gmx.net>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201203111623.04475.hfvogt@gmx.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dear All,
- 
-This is Boris Lam from cloudluca. We are one of the top Hosting Solution Provider which located in Hong Kong.  We have a very good network infrastructure in Asia especially in Hong Kong and providing Hosting management, Dedicated server and Co-location Service. 
- 
-As one of the top data center in Hong Kong, we have our own Data Center (located in Kowloon Side) with TIA-945 Standard Tier 3+ level and providing One-stop and Total Hosting solution to our clients, with our state-of-art technologies and professional technical support, we have help for over 10,000 IT projects launched in past 13 years.
- 
-We would like to ask if your side considering to co-locate/make a server site in our datacenter. If you have any IT projects that need our assist, please let us know. Thanks.
- 
-Best Regards,
-Boris Lam
-Senior Sales Executive
+This is an update of the patch "Basic AF9035/AF9033 driver" that I send to the mailing list on 22 Feb.
+The driver provides support for DVB-T USB 2.0 sticks based on AF9035/AF9033. Currently supported devices:
+- Terratec T5 Ver.2 (also known as T6), Tuner FC0012
+- Avermedia Volar HD Nano (A867R), Tuner MxL5007t
 
+Ver 1.02 of the driver includes the following changes compared to the initial version:
 
+- significantly reduced number of mutex calls (only remaining protection in low-level af903x_send_cmd)
+  this change made some multiply defined function unnecessary (_internal functions and non _internal functions)
+  maybe this reduction was a bit too agressive, but I didn't get any problems in several days testing 
+- reduced number of iterations in loop for lock detection (should improve response)
+- correct errors in initial contribution and add proper entries in dvb-usb-ids.h (thanks to Gianluca Gennari)
+- removed unnecessary (loading of rc key table) and commented out code
+- minor cleanup (e.g. af903x_fe_is_locked)
+
+Signed-off-by: Hans-Frieder Vogt <hfvogt@gmx.net>
+
+because of the size of the patch here just a link:
+http://home.arcor.de/hfvogt/af903x/af903x-1.02.patch.gz
+
+ drivers/media/dvb/dvb-usb/Kconfig          |    8
+ drivers/media/dvb/dvb-usb/Makefile         |    3
+ drivers/media/dvb/dvb-usb/af903x-cmd.h     |   61 +
+ drivers/media/dvb/dvb-usb/af903x-core.c    |  453 ++++++++++++
+ drivers/media/dvb/dvb-usb/af903x-core.h    |   59 +
+ drivers/media/dvb/dvb-usb/af903x-devices.c | 1446 ++++++++++++++++++++++++++++++++++++++
+ drivers/media/dvb/dvb-usb/af903x-fe-priv.h |  202 +++++
+ drivers/media/dvb/dvb-usb/af903x-fe.c      | 2070 
++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ drivers/media/dvb/dvb-usb/af903x-fe.h      |  164 ++++
+ drivers/media/dvb/dvb-usb/af903x-reg.h     |  214 +++++
+ drivers/media/dvb/dvb-usb/af903x-tuners.c  |  447 +++++++++++
+ drivers/media/dvb/dvb-usb/af903x-tuners.h  |   62 +
+ drivers/media/dvb/dvb-usb/af903x.h         |   51 +
+ drivers/media/dvb/dvb-usb/dvb-usb-ids.h    |   16
+ 14 files changed, 5256 insertions(+)
+
+Please try the driver and give feedback.
+
+Cheers,
+
+Hans-Frieder Vogt                       e-mail: hfvogt <at> gmx .dot. net
