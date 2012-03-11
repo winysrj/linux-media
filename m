@@ -1,43 +1,29 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:52549 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756072Ab2CFQcU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Mar 2012 11:32:20 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Received: from oyp.chewa.net ([91.121.6.101]:42371 "EHLO oyp.chewa.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752902Ab2CKOIw convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 11 Mar 2012 10:08:52 -0400
+From: "=?utf-8?q?R=C3=A9mi?= Denis-Courmont" <remi@remlab.net>
 To: linux-media@vger.kernel.org
-Cc: Martin Hostettler <martin@neutronstar.dyndns.org>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-Subject: [PATCH v3 1/5] mt9p031: Remove duplicate media/v4l2-subdev.h include
-Date: Tue,  6 Mar 2012 17:32:35 +0100
-Message-Id: <1331051559-13841-2-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1331051559-13841-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1331051559-13841-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Subject: Mapping frontends to demuxes
+Date: Sun, 11 Mar 2012 16:08:48 +0200
+Cc: vlc-devel@videolan.org
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201203111608.48843.remi@remlab.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Danny Kukawka <danny.kukawka@bisect.de>
+	Hello linux-media folks,
 
-drivers/media/video/mt9p031.c included 'media/v4l2-subdev.h' twice,
-remove the duplicate.
+With the new multi-system frontend capability API, how are frontend and 
+demux/dvr devices paired? Should userspace assume that frontendX corresponds 
+to demuxX and dvrX (and caX and netX?) within a multifrontend adaptor?
 
-Signed-off-by: Danny Kukawka <danny.kukawka@bisect.de>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/video/mt9p031.c |    1 -
- 1 files changed, 0 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/media/video/mt9p031.c b/drivers/media/video/mt9p031.c
-index 93c3ec7..dd937df 100644
---- a/drivers/media/video/mt9p031.c
-+++ b/drivers/media/video/mt9p031.c
-@@ -19,7 +19,6 @@
- #include <linux/log2.h>
- #include <linux/pm.h>
- #include <linux/slab.h>
--#include <media/v4l2-subdev.h>
- #include <linux/videodev2.h>
- 
- #include <media/mt9p031.h>
 -- 
-1.7.3.4
-
+Rémi Denis-Courmont
+http://www.remlab.net/
+http://fi.linkedin.com/in/remidenis
