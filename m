@@ -1,42 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:48250 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753718Ab2CTMpH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Mar 2012 08:45:07 -0400
-Received: by eaaq12 with SMTP id q12so2976634eaa.19
-        for <linux-media@vger.kernel.org>; Tue, 20 Mar 2012 05:45:05 -0700 (PDT)
+Received: from seiner.com ([66.178.130.209]:36283 "EHLO www.seiner.lan"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753551Ab2CKSGU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 11 Mar 2012 14:06:20 -0400
+Received: from www.seiner.lan ([192.168.128.6] ident=yan)
+	by www.seiner.lan with esmtpsa (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
+	(Exim 4.69)
+	(envelope-from <yan@seiner.com>)
+	id 1S6mn1-0001hz-6f
+	for linux-media@vger.kernel.org; Sun, 11 Mar 2012 10:42:39 -0700
+Message-ID: <4F5CE40C.6040706@seiner.com>
+Date: Sun, 11 Mar 2012 10:42:36 -0700
+From: Yan Seiner <yan@seiner.com>
 MIME-Version: 1.0
-In-Reply-To: <Pine.LNX.4.64.1203201340300.21870@axis700.grange>
-References: <1329761467-14417-1-git-send-email-festevam@gmail.com>
-	<Pine.LNX.4.64.1202201916410.2836@axis700.grange>
-	<CAOMZO5AAeqHZFqpZYB_riSCQvCRSjQtR2EqpZvC5V3TRyzuWJQ@mail.gmail.com>
-	<4F67E4FD.2070709@redhat.com>
-	<Pine.LNX.4.64.1203200851300.20315@axis700.grange>
-	<CAOMZO5CJHkb1JrAd+DYvYP-DrV6XsqO3wtoxJGe_s9sE1tQktw@mail.gmail.com>
-	<Pine.LNX.4.64.1203201340300.21870@axis700.grange>
-Date: Tue, 20 Mar 2012 09:45:05 -0300
-Message-ID: <CAOMZO5B=0LMqi-v-KwJkvsBEqUU+Bj8TRo08i7zGSv97jnZpVQ@mail.gmail.com>
-Subject: Re: [PATCH] video: mx3_camera: Allocate camera object via kzalloc
-From: Fabio Estevam <festevam@gmail.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org, mchehab@infradead.org,
-	kernel@pengutronix.de, Fabio Estevam <fabio.estevam@freescale.com>
-Content-Type: text/plain; charset=UTF-8
+To: linux-media@vger.kernel.org
+Subject: saa7115: black image
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 3/20/12, Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
+I have an embedded platform with a Hauppage USB Live video capture 
+dongle.  I recently upgraded to 3.0.12 and now I get no image at all - a 
+nice pure black is all I get.
 
->> Is this valid only for mx3_camera driver?
->
-> No
->
->> All other soc camera drivers use kzalloc.
->>
->> What makes mx3_camera different in this respect?
->
-> Nothing
+I am sure that the dongle is getting a signal.  This same hardware used 
+to work with an older 2.6 kernel.
 
-Ok, so isn't my patch correct then?
+Partial lsmod:
+
+root@anchor:/etc# lsmod
+Module                  Size  Used by    Not tainted
+saa7115                11296  0
+usbvision              48704  0
+v4l2_common             4336  2 saa7115,usbvision
+videodev               62768  3 saa7115,usbvision,v4l2_common
+i2c_core               12240  5 
+saa7115,usbvision,v4l2_common,videodev,i2c_dev
+
+[   33.640000] usbcore: registered new interface driver usb-storage
+[   33.644000] USB Mass Storage support registered.
+[   33.708000] Linux video capture interface: v2.00
+[   34.084000] usbvision_probe: Hauppauge WinTV USB Live Pro (NTSC M/N) 
+found
+[   34.092000] USBVision[0]: registered USBVision Video device video0 [v4l2]
+[   34.100000] usbcore: registered new interface driver usbvision
+[   34.104000] USBVision USB Video Device Driver for Linux : 0.9.10
+
+and this shows up every time the device is opened:
+
+[  219.772000] saa7115 0-0025: saa7113 found (1f7113d0e100000) @ 0x4a 
+(usbvision-3-1)
+
+I can't help but think I am missing a module, or firmware, or 
+something.... But with no messages to go on it's a bit of a mystery.
+
+And yes, I've tried different inputs on the dongle; 0 is the composite 
+in and 1 is the s-video.  I'm using input 0.
+
+-- 
+Honoring our vets.
+
+http://www.bataanmarch.com/
+
