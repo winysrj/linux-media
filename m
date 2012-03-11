@@ -1,80 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:48888 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756953Ab2CLT67 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Mar 2012 15:58:59 -0400
-Message-ID: <4F5E557D.5000403@iki.fi>
-Date: Mon, 12 Mar 2012 21:58:53 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-we0-f174.google.com ([74.125.82.174]:50317 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753474Ab2CKRp7 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 11 Mar 2012 13:45:59 -0400
+Received: by wejx9 with SMTP id x9so2544679wej.19
+        for <linux-media@vger.kernel.org>; Sun, 11 Mar 2012 10:45:57 -0700 (PDT)
 MIME-Version: 1.0
-To: gennarone@gmail.com
-CC: Geert Uytterhoeven <geert@linux-m68k.org>,
-	linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux-Next <linux-next@vger.kernel.org>
-Subject: Re: rtl2830: __udivdi3 undefined
-References: <CAMuHMdVmiqY9uh574_uTK76+28bvhEL0BPnzjDF-bf-0mgj4gg@mail.gmail.com> <4F53EA7D.4090402@gmail.com>
-In-Reply-To: <4F53EA7D.4090402@gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Date: Sun, 11 Mar 2012 13:45:57 -0400
+Message-ID: <CALUGRoAhxsZ2u8sGOEG3--cMPozobq-qReH6dD1dhYFA9Y_zAQ@mail.gmail.com>
+Subject: Hauppauge HVR-1600 potential bug or model issue
+From: Matt Berglund <bmwebinfo@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05.03.2012 00:19, Gianluca Gennari wrote:
-> Il 29/02/2012 22:30, Geert Uytterhoeven ha scritto:
->> http://kisskb.ellerman.id.au/kisskb/buildresult/5759200/ ERROR:
->> "__udivdi3" [drivers/media/dvb/frontends/rtl2830.ko] undefined!
->>
->> I didn't look too deeply into it, but I think it's caused by the
->> "num /= priv->cfg.xtal" in rtl2830_init() (with num being u64).
->>
->> Can't it use do_div() instead?
->>
->> Gr{oetje,eeting}s,
->>
->> Geert
->>
->> -- Geert Uytterhoeven -- There's lots of Linux beyond ia32 --
->> geert@linux-m68k.org
->>
->> In personal conversations with technical people, I call myself a
->> hacker. But when I'm talking to journalists I just say "programmer"
->> or something like that. -- Linus Torvalds -- To unsubscribe from this
->> list: send the line "unsubscribe linux-media" in the body of a
->> message to majordomo@vger.kernel.org More majordomo info at
->> http://vger.kernel.org/majordomo-info.html
->>
->
-> Probably the best solution is to use div_u64.
-> The following patch fixed the warning on my 32 bit system.
->
-> Signed-off-by: Gianluca Gennari<gennarone@gmail.com>
-> ---
->   drivers/media/dvb/frontends/rtl2830.c |    2 +-
->   1 files changed, 1 insertions(+), 1 deletions(-)
->
-> diff --git a/drivers/media/dvb/frontends/rtl2830.c
-> b/drivers/media/dvb/frontends/rtl2830.c
-> index f971d94..45196c5 100644
-> --- a/drivers/media/dvb/frontends/rtl2830.c
-> +++ b/drivers/media/dvb/frontends/rtl2830.c
-> @@ -244,7 +244,7 @@ static int rtl2830_init(struct dvb_frontend *fe)
->
->   	num = priv->cfg.if_dvbt % priv->cfg.xtal;
->   	num *= 0x400000;
-> -	num /= priv->cfg.xtal;
-> +	num = div_u64(num, priv->cfg.xtal);
->   	num = -num;
->   	if_ctl = num&  0x3fffff;
->   	dbg("%s: if_ctl=%08x", __func__, if_ctl);
+Hello all,
 
-Acked-by: Antti Palosaari <crope@iki.fi>
+I'm having trouble with my 1600 listed as: Hauppauge model 74541, rev C6A3
+The firmware is installed. Both using yum and manually.
+Based on the LTV wiki, it seems this is less well tested model. If
+this is so, I'll be happy to do what I can to test it.
 
-I have been two weeks on skiing trip and since didn't acked that earlier.
+Subsystem: Hauppauge computer works Inc. WinTV HVR-1600 [0070:7444]
 
+Running Fedora 16 with 3.2.9-1.fc16.x86_64 on an MSI 790FX-GD70 with
+an AMD 5770 and 6770 board running crossfirex/catalyst  (I realize
+this is potentially problematic but I don't think it is the cause of
+this issue)
 
-regards
-Antti
+I have used both the built-in drivers and now have compiled what I
+believe are the latest linuxtv drivers, per the wiki there.
 
--- 
-http://palosaari.fi/
+With the following results:
+[  762.974890] Linux media interface: v0.10
+[  762.979795] Linux video capture interface: v2.00
+[  762.979804] WARNING: You are using an experimental version of the
+media stack.
+[  762.979808]  As the driver is backported to an older kernel, it doesn't offer
+[  762.979811]  enough quality for its usage in production.
+[  762.979813]  Use it with care.
+[  762.979815] Latest git patches (needed if you report a bug to
+linux-media@vger.kernel.org):
+[  762.979818]  632fba4d012458fd5fedc678fb9b0f8bc59ceda2 [media]
+cx25821: Add a card definition for No brand cards that have: subvendor
+= 0x0000 subdevice = 0x0000
+[  762.979823]  1b1301e67bbcad0649a8b3c6a944d2b2acddc411 [media] Fix
+small DocBook typo
+[  762.979826]  0f67a03ff6ada162ad7518d9092f72d830d3a887 [media]
+media: tvp5150: support g_mbus_fmt callback
+[  762.985568] WARNING: You are using an experimental version of the
+media stack.
+[  762.985570]  As the driver is backported to an older kernel, it doesn't offer
+[  762.985570]  enough quality for its usage in production.
+[  762.985571]  Use it with care.
+[  762.985572] Latest git patches (needed if you report a bug to
+linux-media@vger.kernel.org):
+[  762.985573]  632fba4d012458fd5fedc678fb9b0f8bc59ceda2 [media]
+cx25821: Add a card definition for No brand cards that have: subvendor
+= 0x0000 subdevice = 0x0000
+[  762.985574]  1b1301e67bbcad0649a8b3c6a944d2b2acddc411 [media] Fix
+small DocBook typo
+[  762.985575]  0f67a03ff6ada162ad7518d9092f72d830d3a887 [media]
+media: tvp5150: support g_mbus_fmt callback
+[  762.986723] cx18:  Start initialization, version 1.5.1
+[  762.987457] cx18-0: Initializing card 0
+[  762.987460] cx18-0: Autodetected Hauppauge card
+[  762.993040] cx18-0: cx23418 revision 01010000 (B)
+[  763.227077] tveeprom 0-0050: Hauppauge model 74541, rev C6A3, serial#
+[  763.227080] tveeprom 0-0050: MAC address
+[  763.227082] tveeprom 0-0050: tuner model is TCL MFNM05-4 (idx 103, type 43)
+[  763.227084] tveeprom 0-0050: TV standards NTSC(M) (eeprom 0x08)
+[  763.227086] tveeprom 0-0050: audio processor is CX23418 (idx 38)
+[  763.227088] tveeprom 0-0050: decoder processor is CX23418 (idx 31)
+[  763.227089] tveeprom 0-0050: has radio
+[  763.227090] cx18-0: Autodetected Hauppauge HVR-1600
+[  763.227092] cx18-0: Simultaneous Digital and Analog TV capture supported
+[  763.340073] cx18-0: Registered device video0 for encoder MPEG (64 x 32.00 kB)
+[  763.340076] DVB: registering new adapter (cx18)
+[  763.341895] s5h1409_readreg: readreg error (ret == -6)
+[  763.341903] cx18-0: frontend initialization failed
+[  763.342126] cx18-0: DVB failed to register
+[  763.342235] cx18-0: Registered device video32 for encoder YUV (20 x
+101.25 kB)
+[  763.342301] cx18-0: Registered device vbi0 for encoder VBI (20 x 51984 bytes)
+[  763.342369] cx18-0: Registered device video24 for encoder PCM audio
+(256 x 4.00 kB)
+[  763.342433] cx18-0: Registered device radio0 for encoder radio
+[  763.342552] cx18-0: unregister DVB
+[  763.343628] cx18-0: Error -1 registering devices
+[  763.346390] cx18-0: Error -1 on initialization
+[  763.346406] cx18: probe of 0000:07:07.0 failed with error -1
+[  763.346427] cx18:  End initialization
+
+This will be used to capture signals from a cable feed, both free HD
+and SD, if possible.
+
+This happens regardless of how the drivers are installed.
+
+I noticed this:
+[  763.341895] s5h1409_readreg: readreg error (ret == -6)
+And was wondering if this is related to the card appearing to be less
+well known?
+
+I will enable debug and poke around a bit more, but I'm far from a
+driver writer.
+
+Thanks,
+Matt
