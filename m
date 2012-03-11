@@ -1,334 +1,147 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:58081 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752781Ab2CCPMc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 3 Mar 2012 10:12:32 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org,
-	Martin Hostettler <martin@neutronstar.dyndns.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH v2 09/10] v4l: Aptina-style sensor PLL support
-Date: Sat, 03 Mar 2012 16:12:45 +0100
-Message-ID: <1744313.RLp5WWKiSq@avalon>
-In-Reply-To: <20120302184621.GG15695@valkosipuli.localdomain>
-References: <1330685047-12742-1-git-send-email-laurent.pinchart@ideasonboard.com> <1330685047-12742-10-git-send-email-laurent.pinchart@ideasonboard.com> <20120302184621.GG15695@valkosipuli.localdomain>
+Received: from smtp-68.nebula.fi ([83.145.220.68]:38962 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752743Ab2CKODu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 11 Mar 2012 10:03:50 -0400
+Message-ID: <4F5CB0C0.3010802@iki.fi>
+Date: Sun, 11 Mar 2012 16:03:44 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media@vger.kernel.org, dacohen@gmail.com, snjw23@gmail.com,
+	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
+	tuukkat76@gmail.com, k.debski@samsung.com, riverful@gmail.com,
+	hverkuil@xs4all.nl, teturtia@gmail.com, pradeep.sawlani@gmail.com
+Subject: Re: [PATCH v5.3 35/35] smiapp: Add driver
+References: <2156787.Alpb00gqF2@avalon> <1331225383-964-1-git-send-email-sakari.ailus@iki.fi> <4311682.RklyrCL4F8@avalon>
+In-Reply-To: <4311682.RklyrCL4F8@avalon>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Hi Laurent,
 
-Thanks for the review.
+Thanks for the comments!
 
-On Friday 02 March 2012 20:46:21 Sakari Ailus wrote:
-> On Fri, Mar 02, 2012 at 11:44:06AM +0100, Laurent Pinchart wrote:
-> > Add a generic helper function to compute PLL parameters for PLL found in
-> > several Aptina sensors.
-> > 
-> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > ---
-> > 
-> >  drivers/media/video/Kconfig      |    4 +
-> >  drivers/media/video/Makefile     |    4 +
-> >  drivers/media/video/aptina-pll.c |  120
-> >  ++++++++++++++++++++++++++++++++++++++ drivers/media/video/aptina-pll.h
-> >  |   55 +++++++++++++++++
-> >  4 files changed, 183 insertions(+), 0 deletions(-)
-> >  create mode 100644 drivers/media/video/aptina-pll.c
-> >  create mode 100644 drivers/media/video/aptina-pll.h
-> > 
-> > diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-> > index 80acb78..e1dfdbc 100644
-> > --- a/drivers/media/video/Kconfig
-> > +++ b/drivers/media/video/Kconfig
-> > @@ -133,6 +133,9 @@ menu "Encoders, decoders, sensors and other helper
-> > chips"> 
-> >  comment "Audio decoders, processors and mixers"
-> > 
-> > +config VIDEO_APTINA_PLL
-> > +	tristate
-> > +
-> > 
-> >  config VIDEO_TVAUDIO
-> >  
-> >  	tristate "Simple audio decoder chips"
-> >  	depends on VIDEO_V4L2 && I2C
-> 
-> Wouldn't it make sense to create another section for these to separate them
-> from the reset? This isn't audio decoder, processor nor mixer. :-)
-
-I'm not sure if a separate section is really needed. The option won't show up 
-during configuration, it will be selected automatically by other drivers. I'll 
-move it to the "Camera sensor devices" section anyway, as it's more logical to 
-group it with the sensor drivers.
-
-> > @@ -946,6 +949,7 @@ config SOC_CAMERA_MT9M001
-> > 
-> >  config VIDEO_MT9M032
-> >  
-> >  	tristate "MT9M032 camera sensor support"
-> >  	depends on I2C && VIDEO_V4L2
-> > 
-> > +	select VIDEO_APTINA_PLL
-> > 
-> >  	help
-> >  	
-> >  	  This driver supports MT9M032 cameras from Micron, monochrome
-> >  	  models only.
-> 
-> This should be in another patch, shouldn't it?
-
-Yes, That's already fixed :-)
-
-> > diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
-> > index 9b19533..8e037e9 100644
-> > --- a/drivers/media/video/Makefile
-> > +++ b/drivers/media/video/Makefile
-> > @@ -22,6 +22,10 @@ endif
-> > 
-> >  obj-$(CONFIG_VIDEO_V4L2_COMMON) += v4l2-common.o
-> > 
-> > +# Helper modules
-> > +
-> > +obj-$(CONFIG_VIDEO_APTINA_PLL) += aptina-pll.o
-> > +
-> > 
-> >  # All i2c modules must come first:
-> >  
-> >  obj-$(CONFIG_VIDEO_TUNER) += tuner.o
-> > 
-> > diff --git a/drivers/media/video/aptina-pll.c
-> > b/drivers/media/video/aptina-pll.c new file mode 100644
-> > index 0000000..e4df9ec
-> > --- /dev/null
-> > +++ b/drivers/media/video/aptina-pll.c
-> > @@ -0,0 +1,120 @@
-> > +/*
-> > + * Aptina Sensor PLL Configuration
-> > + *
-> > + * Copyright (C) 2012 Laurent Pinchart
-> > <laurent.pinchart@ideasonboard.com>
-> > + *
-> > + * This program is free software; you can redistribute it and/or
-> > + * modify it under the terms of the GNU General Public License
-> > + * version 2 as published by the Free Software Foundation.
-> > + *
-> > + * This program is distributed in the hope that it will be useful, but
-> > + * WITHOUT ANY WARRANTY; without even the implied warranty of
-> > + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-> > + * General Public License for more details.
-> > + *
-> > + * You should have received a copy of the GNU General Public License
-> > + * along with this program; if not, write to the Free Software
-> > + * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-> > + * 02110-1301 USA
-> > + */
-> > +
-> > +#include <linux/device.h>
-> > +#include <linux/gcd.h>
-> > +#include <linux/kernel.h>
-> > +#include <linux/module.h>
-> > +
-> > +#include "aptina-pll.h"
-> > +
-> > +int aptina_pll_configure(struct device *dev, struct aptina_pll *pll,
-> > +			 const struct aptina_pll_limits *limits)
-> > +{
-> > +	unsigned int mf_min;
-> > +	unsigned int mf_max;
-> > +	unsigned int mf;
-> > +	unsigned int clock;
-> > +	unsigned int div;
-> > +	unsigned int p1;
-> > +	unsigned int n;
-> > +	unsigned int m;
-> > +
-> > +	if (pll->ext_clock < limits->ext_clock_min ||
-> > +	    pll->ext_clock > limits->ext_clock_max) {
-> > +		dev_err(dev, "pll: invalid external clock frequency.\n");
-> > +		return -EINVAL;
-> > +	}
-> > +
-> > +	if (pll->pix_clock > limits->pix_clock_max) {
-> > +		dev_err(dev, "pll: invalid pixel clock frequency.\n");
-> > +		return -EINVAL;
-> > +	}
-> > +
-> > +	/* Compute the multiplier M and combined N*P1 divisor. */
-> > +	div = gcd(pll->pix_clock, pll->ext_clock);
-> > +	pll->m = pll->pix_clock / div;
-> > +	div = pll->ext_clock / div;
-> > +
-> > +	/* We now have the smallest M and N*P1 values that will result in the
-> > +	 * desired pixel clock frequency, but they might be out of the valid
-> > +	 * range. Compute the factor by which we should multiply them given 
-the
-> > +	 * following constraints:
-> > +	 *
-> > +	 * - minimum/maximum multiplier
-> > +	 * - minimum/maximum multiplier output clock frequency assuming the
-> > +	 *   minimum/maximum N value
-> > +	 * - minimum/maximum combined N*P1 divisor
-> > +	 */
-> > +	mf_min = DIV_ROUND_UP(limits->m_min, pll->m);
-> > +	mf_min = max(mf_min, limits->out_clock_min /
-> > +		     (pll->ext_clock / limits->n_min * pll->m));
-> > +	mf_min = max(mf_min, limits->n_min * limits->p1_min / div);
-> > +	mf_max = limits->m_max / pll->m;
-> > +	mf_max = min(mf_max, limits->out_clock_max /
-> > +		    (pll->ext_clock / limits->n_max * pll->m));
-> > +	mf_max = min(mf_max, DIV_ROUND_UP(limits->n_max * limits->p1_max, 
-div));
-> 
-> I'd split this line as you've split the rest.
-
-The other lines were split to keep lines shorter than 81 columns. This one is 
-short enough.
-
-> > +	dev_dbg(dev, "pll: mf min %u max %u\n", mf_min, mf_max);
-> > +	if (mf_min > mf_max) {
-> > +		dev_err(dev, "pll: no valid combined N*P1 divisor.\n");
-> > +		return -EINVAL;
-> > +	}
-> > +
-> > +	/* Find the highest acceptable P1 value and compute the corresponding 
-N
-> > +	 * divisor. Make sure the P1 value is even.
-> > +	 */
-> > +	for (mf = mf_min; mf <= mf_max; ++mf) {
-> > +		m = pll->m * mf;
-> > +
-> > +		for (p1 = limits->p1_max & ~1; p1 > limits->p1_min; p1 -= 2) {
-> 
-> Can't p1 be equal to limits->p1_min?
-> 
-> What are typical values for p1_min and p1_max?
-
-Typical values are 1 and 128. As p1 should be even, it will never be equal to 
-p1_min. However, in the general case, it could, so I'll fix this. There's a 
-risk of inifinite loop if the caller sets p1_min to 0, so I'll add a check.
-
-> > +			if ((div * mf) % p1)
-> > +				continue;
-> 
-> I think you could calculate the valid iteration change for mf and avoid
-> extra time spent in the loop. You could swap the for loops which gives you
-> constant divider in the inner loop, which should be helpful.
-> 
-> Example (not fully tested nor thought out):
-> 
-> mf_min = ALIGN(p1, lcm(div, p1) / div)
-> 
-> mf += lcm(div, p1) / div
+Laurent Pinchart wrote:
+> On Thursday 08 March 2012 18:49:43 Sakari Ailus wrote:
+>> Add driver for SMIA++/SMIA image sensors. The driver exposes the sensor as
+>> three subdevs, pixel array, binner and scaler --- in case the device has a
+>> scaler.
+>>
+>> Currently it relies on the board code for external clock handling. There is
+>> no fast way out of this dependency before the ISP drivers (omap3isp) among
+>> others will be able to export that clock through the clock framework
+>> instead.
+>>
+>> Signed-off-by: Sakari Ailus<sakari.ailus@maxwell.research.nokia.com>
 >
-> > +			n = div * mf / p1;
-> > +
-> > +			clock = pll->ext_clock / n;
-> > +			if (clock < limits->int_clock_min ||
-> > +			    clock > limits->int_clock_max)
-> > +				continue;
-> > +
-> > +			clock *= m;
-> > +			if (clock < limits->out_clock_min ||
-> > +			    clock > limits->out_clock_max)
-> > +				continue;
-> 
-> Same goes with clock values: now you can calculate which range of mf_min and
-> mf_max you need to check. Your inner loop becomes a simple check for p1_min
-> <= p1_max.
+> [snip]
+>
+>> diff --git a/drivers/media/video/smiapp-pll.c
+>> b/drivers/media/video/smiapp-pll.c index be63bb4..326bd0e 100644
+>> --- a/drivers/media/video/smiapp-pll.c
+>> +++ b/drivers/media/video/smiapp-pll.c
+>> @@ -22,6 +22,8 @@
+>>    *
+>>    */
+>>
+>> +#include "smiapp/smiapp-debug.h"
+>> +
+>
+> Is this needed ?
 
-I've found a possible solution, that gets rid of the inner loop. See v3 :-)
+If debugging is enabled for SMIA++ driver the same is done for the PLL 
+code. It's the only driver using the PLL code currently and I think it's 
+an appropriate way to enable debug output.
 
-> > +			goto found;
-> > +		}
-> > +	}
-> > +
-> > +	dev_err(dev, "pll: no valid N and P1 divisors found.\n");
-> > +	return -EINVAL;
-> > +
-> > +found:
-> > +	pll->n = n;
-> > +	pll->m = m;
-> > +	pll->p1 = p1;
-> > +
-> > +	dev_dbg(dev, "PLL: ext clock %u N %u M %u P1 %u pix clock %u\n",
-> > +		 pll->ext_clock, pll->n, pll->m, pll->p1, pll->pix_clock);
-> > +
-> > +	return 0;
-> > +}
-> > +EXPORT_SYMBOL_GPL(aptina_pll_configure);
-> > diff --git a/drivers/media/video/aptina-pll.h
-> > b/drivers/media/video/aptina-pll.h new file mode 100644
-> > index 0000000..36a9363
-> > --- /dev/null
-> > +++ b/drivers/media/video/aptina-pll.h
-> > @@ -0,0 +1,55 @@
-> > +/*
-> > + * Aptina Sensor PLL Configuration
-> > + *
-> > + * Copyright (C) 2012 Laurent Pinchart
-> > <laurent.pinchart@ideasonboard.com>
-> > + *
-> > + * This program is free software; you can redistribute it and/or
-> > + * modify it under the terms of the GNU General Public License
-> > + * version 2 as published by the Free Software Foundation.
-> > + *
-> > + * This program is distributed in the hope that it will be useful, but
-> > + * WITHOUT ANY WARRANTY; without even the implied warranty of
-> > + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-> > + * General Public License for more details.
-> > + *
-> > + * You should have received a copy of the GNU General Public License
-> > + * along with this program; if not, write to the Free Software
-> > + * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-> > + * 02110-1301 USA
-> > + */
-> > +
-> > +#ifndef __APTINA_PLL_H
-> > +#define __APTINA_PLL_H
-> > +
-> > +struct aptina_pll {
-> > +	unsigned int ext_clock;
-> > +	unsigned int pix_clock;
-> > +
-> > +	unsigned int n;
-> > +	unsigned int m;
-> > +	unsigned int p1;
-> > +};
-> > +
-> > +struct aptina_pll_limits {
-> > +	unsigned int ext_clock_min;
-> > +	unsigned int ext_clock_max;
-> > +	unsigned int int_clock_min;
-> > +	unsigned int int_clock_max;
-> > +	unsigned int out_clock_min;
-> > +	unsigned int out_clock_max;
-> > +	unsigned int pix_clock_max;
-> 
-> Is there no minimum for pix_clock?
+I expect this to be changed in the future though.
 
-Not in the datasheets I have.
+What do you think? Would you only rely on dynamic printk?
 
-> > +	unsigned int n_min;
-> > +	unsigned int n_max;
-> > +	unsigned int m_min;
-> > +	unsigned int m_max;
-> > +	unsigned int p1_min;
-> > +	unsigned int p1_max;
-> > +};
-> > +
-> > +struct device;
-> > +
-> > +int aptina_pll_configure(struct device *dev, struct aptina_pll *pll,
-> > +			 const struct aptina_pll_limits *limits);
-> > +
-> > +#endif /* __APTINA_PLL_H */
+>>   #include<linux/gcd.h>
+>>   #include<linux/lcm.h>
+>>   #include<linux/module.h>
+>
+> [snio]
+>
+>> diff --git a/drivers/media/video/smiapp/smiapp-core.c
+>> b/drivers/media/video/smiapp/smiapp-core.c new file mode 100644
+>> index 0000000..68f4397
+>> --- /dev/null
+>> +++ b/drivers/media/video/smiapp/smiapp-core.c
+>
+> [snip]
+>
+>> +static int smiapp_set_format(struct v4l2_subdev *subdev,
+>> +			     struct v4l2_subdev_fh *fh,
+>> +			     struct v4l2_subdev_format *fmt)
+>> +{
+>> +	struct smiapp_sensor *sensor = to_smiapp_sensor(subdev);
+>> +	struct smiapp_subdev *ssd = to_smiapp_subdev(subdev);
+>> +	struct v4l2_rect *crops[SMIAPP_PADS];
+>> +	const struct smiapp_csi_data_format *csi_format;
+>> +
+>> +	mutex_lock(&sensor->mutex);
+>> +
+>> +	/*
+>> +	 * Media bus code is changeable on src subdev's source pad. On
+>> +	 * other source pads we just get format here.
+>> +	 */
+>> +	if (fmt->pad == ssd->source_pad) {
+>> +		int rval = __smiapp_get_format(subdev, fh, fmt);
+>
+> This overwrites fmt completely, you won't be able to change it at all.
 
--- 
+Good catch. I'll fix it and resend.
+
+>> +		if (!rval&&  subdev ==&sensor->src->sd) {
+>> +			csi_format = smiapp_validate_csi_data_format(
+>> +				sensor, fmt->format.code);
+>> +			if (fmt->which == V4L2_SUBDEV_FORMAT_ACTIVE)
+>> +				sensor->csi_format = csi_format;
+>> +			fmt->format.code = csi_format->code;
+>> +		}
+>> +
+>> +		mutex_unlock(&sensor->mutex);
+>> +		return rval;
+>> +	}
+>> +
+>> +	/* Sink pad. Width and height are changeable here. */
+>> +	fmt->format.code = __smiapp_get_mbus_code(subdev, fmt->pad);
+>> +	fmt->format.width&= ~1;
+>> +	fmt->format.height&= ~1;
+>> +
+>> +	fmt->format.width =
+>> +		clamp(fmt->format.width,
+>> +		      sensor->limits[SMIAPP_LIMIT_MIN_X_OUTPUT_SIZE],
+>> +		      sensor->limits[SMIAPP_LIMIT_MAX_X_OUTPUT_SIZE]);
+>> +	fmt->format.height =
+>> +		clamp(fmt->format.height,
+>> +		      sensor->limits[SMIAPP_LIMIT_MIN_Y_OUTPUT_SIZE],
+>> +		      sensor->limits[SMIAPP_LIMIT_MAX_Y_OUTPUT_SIZE]);
+>> +
+>> +	smiapp_get_crop_compose(subdev, fh, crops, NULL, fmt->which);
+>> +
+>> +	crops[ssd->sink_pad]->left = 0;
+>> +	crops[ssd->sink_pad]->top = 0;
+>> +	crops[ssd->sink_pad]->width = fmt->format.width;
+>> +	crops[ssd->sink_pad]->height = fmt->format.height;
+>> +	if (fmt->which == V4L2_SUBDEV_FORMAT_ACTIVE)
+>> +		ssd->sink_fmt = *crops[ssd->sink_pad];
+>> +	smiapp_propagate(subdev, fh, fmt->which,
+>> +			 V4L2_SUBDEV_SEL_TGT_CROP_ACTUAL);
+>> +
+>> +	mutex_unlock(&sensor->mutex);
+>> +
+>> +	return 0;
+>> +}
+>
+
 Regards,
 
-Laurent Pinchart
-
+-- 
+Sakari Ailus
+sakari.ailus@iki.fi
