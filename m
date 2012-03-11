@@ -1,61 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.ispras.ru ([83.149.198.202]:33961 "EHLO smtp.ispras.ru"
+Received: from 7of9.schinagl.nl ([88.159.158.68]:54573 "EHLO 7of9.schinagl.nl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757885Ab2CGTWR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 7 Mar 2012 14:22:17 -0500
-From: Alexey Khoroshilov <khoroshilov@ispras.ru>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Olivier Grenie <olivier.grenie@dibcom.fr>
-Cc: Alexey Khoroshilov <khoroshilov@ispras.ru>,
-	Patrick Boettcher <pboettcher@kernellabs.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	ldv-project@ispras.ru
-Subject: [PATCH] [media] dib0700: unlock mutexes on error paths
-Date: Wed,  7 Mar 2012 23:21:58 +0400
-Message-Id: <1331148118-22593-1-git-send-email-khoroshilov@ispras.ru>
+	id S1751041Ab2CKTvj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 11 Mar 2012 15:51:39 -0400
+Received: from [10.2.0.137] (unknown [10.2.0.137])
+	by 7of9.schinagl.nl (Postfix) with ESMTPA id 1DE2F20FB3
+	for <linux-media@vger.kernel.org>; Sun, 11 Mar 2012 20:56:10 +0100 (CET)
+Message-ID: <4F5D025C.2060609@schinagl.nl>
+Date: Sun, 11 Mar 2012 20:51:56 +0100
+From: Oliver Schinagl <oliver@schinagl.nl>
+MIME-Version: 1.0
+CC: linux-media <linux-media@vger.kernel.org>
+Subject: Re: [PATCH dvb-apps] DVB-H R.I.P.
+References: <4EEF7395.6060201@iki.fi> <CAL7owaBiDacn77nYXMbGAQFqDJy6JJoD69TgCmBDceziu7gQhA@mail.gmail.com>
+In-Reply-To: <CAL7owaBiDacn77nYXMbGAQFqDJy6JJoD69TgCmBDceziu7gQhA@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-dib0700_i2c_xfer [_new and _legacy] leave i2c_mutex locked on error paths.
-The patch adds appropriate unlocks.
+I don't know if it has been mentioned here, but in NL, DVB-H has been 
+shut down july 1st aswell. DVB-T was extended to use the DVB-H 
+frequencies however, can find out those details if needed.
 
-Found by Linux Driver Verification project (linuxtesting.org).
-
-Signed-off-by: Alexey Khoroshilov <khoroshilov@ispras.ru>
----
- drivers/media/dvb/dvb-usb/dib0700_core.c |    9 ++++++---
- 1 files changed, 6 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/media/dvb/dvb-usb/dib0700_core.c b/drivers/media/dvb/dvb-usb/dib0700_core.c
-index 070e82a..8ec22c4 100644
---- a/drivers/media/dvb/dvb-usb/dib0700_core.c
-+++ b/drivers/media/dvb/dvb-usb/dib0700_core.c
-@@ -228,7 +228,7 @@ static int dib0700_i2c_xfer_new(struct i2c_adapter *adap, struct i2c_msg *msg,
- 			/* Write request */
- 			if (mutex_lock_interruptible(&d->usb_mutex) < 0) {
- 				err("could not acquire lock");
--				return 0;
-+				break;
- 			}
- 			st->buf[0] = REQUEST_NEW_I2C_WRITE;
- 			st->buf[1] = msg[i].addr << 1;
-@@ -270,11 +270,14 @@ static int dib0700_i2c_xfer_legacy(struct i2c_adapter *adap,
- 	struct dib0700_state *st = d->priv;
- 	int i,len;
- 
--	if (mutex_lock_interruptible(&d->i2c_mutex) < 0)
-+	if (mutex_lock_interruptible(&d->i2c_mutex) < 0) {
-+		err("could not acquire lock");
- 		return -EAGAIN;
-+	}
- 	if (mutex_lock_interruptible(&d->usb_mutex) < 0) {
-+		mutex_unlock(&d->i2c_mutex);
- 		err("could not acquire lock");
--		return 0;
-+		return -EAGAIN;
- 	}
- 
- 	for (i = 0; i < num; i++) {
--- 
-1.7.4.1
+On 03/11/12 19:17, Christoph Pfister wrote:
+> Done.
+>
+> Christoph
+>
+>
+> Am 19. Dezember 2011 18:25 schrieb Antti Palosaari<crope@iki.fi>:
+>> It is R.I.P.
+>>
+>> Finland is now switching from DVB-H to DVB-T2 in case of mobile transmission
+>> too. Some of the DVB-H transmitters are shut down already and all the rest
+>> are closed before 31.3.2012.
+>>
+>> Mobile TV/Radio evolution have been rather interesting here, from DAB to
+>> DVB-H to DVB-T2. I really hope DVB-T2 will be big success finally.
+>>
+>> 1997-2005 DAB
+>> 2006-2011 DVB-H
+>> 2012->  DVB-T2
+>>
+>>
+>> regards
+>> Antti
+>>
+>> --
+>> http://palosaari.fi/
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
