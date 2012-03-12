@@ -1,52 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail4-relais-sop.national.inria.fr ([192.134.164.105]:46968
-	"EHLO mail4-relais-sop.national.inria.fr" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754921Ab2CQV2v (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:53749 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751758Ab2CLN7i (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 17 Mar 2012 17:28:51 -0400
-Date: Sat, 17 Mar 2012 22:28:47 +0100 (CET)
-From: Julia Lawall <julia.lawall@lip6.fr>
-To: David Miller <davem@davemloft.net>
-cc: santoshprasadnayak@gmail.com, hjlipp@web.de, tilman@imap.cc,
-	isdn@linux-pingi.de, gigaset307x-common@lists.sourceforge.net,
-	netdev@vger.kernel.org, linux-media@vger.kernel.org,
-	kernel-janitors@vger.kernel.org
-Subject: Re: [PATCH] isdn: Return -EINTR in gigaset_start() if locking attempts
- fails.
-In-Reply-To: <20120317.135854.570143927282385505.davem@davemloft.net>
-Message-ID: <alpine.DEB.2.02.1203172225080.2364@localhost6.localdomain6>
-References: <1331903413-11426-1-git-send-email-santoshprasadnayak@gmail.com> <20120316.231856.1071253468993560433.davem@davemloft.net> <CAOD=uF6JJiiGjQwybzwdU3Zw9pC8YbDPxm_Pg9E9WNAXbfTiUQ@mail.gmail.com>
- <20120317.135854.570143927282385505.davem@davemloft.net>
+	Mon, 12 Mar 2012 09:59:38 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Bhupesh Sharma <bhupesh.sharma@st.com>
+Cc: linux-media@vger.kernel.org, spear-devel@list.st.com
+Subject: Re: [PATCH 1/1] V4L/v4l2-dev: Make 'videodev_init' as a subsys initcall
+Date: Mon, 12 Mar 2012 15:00:02 +0100
+Message-ID: <14320325.8aVQ1vTbWk@avalon>
+In-Reply-To: <bbe7861cb38c036d3c24df908ffbfc125274ea99.1331543025.git.bhupesh.sharma@st.com>
+References: <bbe7861cb38c036d3c24df908ffbfc125274ea99.1331543025.git.bhupesh.sharma@st.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 17 Mar 2012, David Miller wrote:
+On Monday 12 March 2012 14:39:02 Bhupesh Sharma wrote:
+> As the V4L2 based UVC webcam gadget (g_webcam) expects the
+> 'videodev' to present when the 'webcam_bind' routine is called,
+> so 'videodev' should be available as early as possible.
+> 
+> Now, when 'g_webcam' is built as a module (i.e. not a part of
+> kernel) the late availability of 'videodev' is OK, but if
+> 'g_webcam' is built statically as a part of the kernel,
+> the kernel crashes (a sample crash dump using Designware 2.0 UDC
+> is provided below).
+> 
+> To solve the same, this patch makes 'videodev_init' as a subsys initcall.
 
-> From: santosh prasad nayak <santoshprasadnayak@gmail.com>
-> Date: Sat, 17 Mar 2012 21:26:14 +0530
->
->> Caller is interpreting 0 in opposite way of normal sequence.
->> Thats why I misunderstood it.
->
-> The simple fact is that you didn't even look at the code at the call
-> sites when you wrote this patch, and that's the first thing anyone is
-> going to do when reviewing it.
->
-> Therefore your laziness results in more useless work for other people.
-> I just wanted to point out how selfish and anti-social this kind of
-> behavior is.
+[snip]
 
-Not to pour too much salt on a wound, but just 5 lines above the patch 
-site is the comment:
+> Signed-off-by: Bhupesh Sharma <bhupesh.sharma@st.com>
 
-  * Return value:
-  *      1 - success, 0 - error
+Tested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-And the error label also returns 0.  So there is a lot of local 
-information that one can use to see what protocol the function follows.
+> ---
+>  drivers/media/video/v4l2-dev.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/media/video/v4l2-dev.c b/drivers/media/video/v4l2-dev.c
+> index 96e9615..041804b 100644
+> --- a/drivers/media/video/v4l2-dev.c
+> +++ b/drivers/media/video/v4l2-dev.c
+> @@ -788,7 +788,7 @@ static void __exit videodev_exit(void)
+>  	unregister_chrdev_region(dev, VIDEO_NUM_DEVICES);
+>  }
+> 
+> -module_init(videodev_init)
+> +subsys_initcall(videodev_init);
+>  module_exit(videodev_exit)
+> 
+>  MODULE_AUTHOR("Alan Cox, Mauro Carvalho Chehab <mchehab@infradead.org>");
 
-That said, it's a bit too bad that two protocols have to coexist.
+-- 
+Regards,
 
-julia
+Laurent Pinchart
+
