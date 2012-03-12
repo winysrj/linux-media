@@ -1,126 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:64585 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1031663Ab2COQyx (ORCPT
+Received: from arroyo.ext.ti.com ([192.94.94.40]:58698 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751389Ab2CLKEJ convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Mar 2012 12:54:53 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Received: from euspt1 ([210.118.77.14]) by mailout4.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0M0X007YTQZ8PJ00@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 15 Mar 2012 16:54:44 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0M0X00178QZ4YS@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 15 Mar 2012 16:54:41 +0000 (GMT)
-Date: Thu, 15 Mar 2012 17:54:30 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH/RFC 16/23] m5mols: Add exposure bias control
-In-reply-to: <1331830477-12146-1-git-send-email-s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, riverful.kim@samsung.com,
-	kyungmin.park@samsung.com, s.nawrocki@samsung.com
-Message-id: <1331830477-12146-17-git-send-email-s.nawrocki@samsung.com>
-References: <1331830477-12146-1-git-send-email-s.nawrocki@samsung.com>
+	Mon, 12 Mar 2012 06:04:09 -0400
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: "Taneja, Archit" <archit@ti.com>
+CC: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: RE: [PATCH] omap_vout: Set DSS overlay_info only if paddr is non
+ zero
+Date: Mon, 12 Mar 2012 10:04:03 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A831810EAA@DBDE01.ent.ti.com>
+References: <1331110876-11895-1-git-send-email-archit@ti.com>
+In-Reply-To: <1331110876-11895-1-git-send-email-archit@ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add integer menu control for exposure bias. The control value range is
--2.0 EV to +2.0 EV, in 0.5 EV steps.
+On Wed, Mar 07, 2012 at 14:31:16, Taneja, Archit wrote:
+> The omap_vout driver tries to set the DSS overlay_info using set_overlay_info()
+> when the physical address for the overlay is still not configured. This happens
+> in omap_vout_probe() and vidioc_s_fmt_vid_out().
+> 
+> The calls to omapvid_init(which internally calls set_overlay_info()) are removed
+> from these functions. They don't need to be called as the omap_vout_device
+> struct anyway maintains the overlay related changes made. Also, remove the
+> explicit call to set_overlay_info() in vidioc_streamon(), this was used to set
+> the paddr, this isn't needed as omapvid_init() does the same thing later.
+> 
+> These changes are required as the DSS2 driver since 3.3 kernel doesn't let you
+> set the overlay info with paddr as 0.
+> 
+> Signed-off-by: Archit Taneja <archit@ti.com>
+> ---
+>  drivers/media/video/omap/omap_vout.c |   36 ++++-----------------------------
+>  1 files changed, 5 insertions(+), 31 deletions(-)
+> 
+> diff --git a/drivers/media/video/omap/omap_vout.c b/drivers/media/video/omap/omap_vout.c
+> index 1fb7d5b..dffcf66 100644
+> --- a/drivers/media/video/omap/omap_vout.c
+> +++ b/drivers/media/video/omap/omap_vout.c
+> @@ -1157,13 +1157,6 @@ static int vidioc_s_fmt_vid_out(struct file *file, void *fh,
+>  	/* set default crop and win */
+>  	omap_vout_new_format(&vout->pix, &vout->fbuf, &vout->crop, &vout->win);
+>  
+> -	/* Save the changes in the overlay strcuture */
+> -	ret = omapvid_init(vout, 0);
+> -	if (ret) {
+> -		v4l2_err(&vout->vid_dev->v4l2_dev, "failed to change mode\n");
+> -		goto s_fmt_vid_out_exit;
+> -	}
+> -
+>  	ret = 0;
+>  
+>  s_fmt_vid_out_exit:
+> @@ -1664,20 +1657,6 @@ static int vidioc_streamon(struct file *file, void *fh, enum v4l2_buf_type i)
+>  
+>  	omap_dispc_register_isr(omap_vout_isr, vout, mask);
+>  
+> -	for (j = 0; j < ovid->num_overlays; j++) {
+> -		struct omap_overlay *ovl = ovid->overlays[j];
+> -
+> -		if (ovl->manager && ovl->manager->device) {
+> -			struct omap_overlay_info info;
+> -			ovl->get_overlay_info(ovl, &info);
+> -			info.paddr = addr;
+> -			if (ovl->set_overlay_info(ovl, &info)) {
+> -				ret = -EINVAL;
+> -				goto streamon_err1;
+> -			}
+> -		}
+> -	}
+> -
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/video/m5mols/m5mols.h          |    3 ++-
- drivers/media/video/m5mols/m5mols_controls.c |   23 ++++++++++++++++++++++-
- 2 files changed, 24 insertions(+), 2 deletions(-)
+Have you checked for build warnings? I am getting build warnings 
 
-diff --git a/drivers/media/video/m5mols/m5mols.h b/drivers/media/video/m5mols/m5mols.h
-index d04443b..87bf690 100644
---- a/drivers/media/video/m5mols/m5mols.h
-+++ b/drivers/media/video/m5mols/m5mols.h
-@@ -189,8 +189,9 @@ struct m5mols_info {
- 
- 	struct v4l2_ctrl_handler handle;
- 	struct {
--		/* exposure/auto-exposure cluster */
-+		/* exposure/exposure bias/auto exposure cluster */
- 		struct v4l2_ctrl *auto_exposure;
-+		struct v4l2_ctrl *exposure_bias;
- 		struct v4l2_ctrl *exposure;
- 	};
- 	struct {
-diff --git a/drivers/media/video/m5mols/m5mols_controls.c b/drivers/media/video/m5mols/m5mols_controls.c
-index 98eaeb0..cca31db 100644
---- a/drivers/media/video/m5mols/m5mols_controls.c
-+++ b/drivers/media/video/m5mols/m5mols_controls.c
-@@ -241,6 +241,11 @@ static int m5mols_set_exposure(struct m5mols_info *info, int exposure)
- 		ret = m5mols_write(sd, AE_MODE, REG_AE_ALL);
- 		if (ret < 0)
- 			return ret;
-+
-+		v4l2_dbg(1, m5mols_debug, sd, "%s: exposure bias: %#x\n",
-+			 __func__, info->exposure_bias->val);
-+
-+		return m5mols_write(sd, AE_INDEX, info->exposure_bias->val);
- 	}
- 
- 	if (exposure == V4L2_EXPOSURE_MANUAL) {
-@@ -251,6 +256,9 @@ static int m5mols_set_exposure(struct m5mols_info *info, int exposure)
- 		if (ret == 0)
- 			ret = m5mols_write(sd, AE_MAN_GAIN_CAP,
- 					   info->exposure->val);
-+
-+		v4l2_dbg(1, m5mols_debug, sd, "%s: exposure: %#x\n",
-+			 __func__, info->exposure->val);
- 	}
- 
- 	return ret;
-@@ -431,6 +439,12 @@ static const s64 iso_qmenu[] = {
- 	50, 100, 200, 400, 800, 1600, 3200
- };
- 
-+/* Supported Exposure Bias values, -2.0EV...+2.0EV */
-+static const s64 ev_bias_qmenu[] = {
-+	/* AE_INDEX: 0x00...0x08 */
-+	-2000, -1500, -1000, -500, 0, 500, 1000, 1500, 2000
-+};
-+
- int m5mols_init_controls(struct v4l2_subdev *sd)
- {
- 	struct m5mols_info *info = to_m5mols(sd);
-@@ -456,6 +470,7 @@ int m5mols_init_controls(struct v4l2_subdev *sd)
- 			&m5mols_ctrl_ops, V4L2_CID_WHITE_BALANCE_PRESET,
- 			5, ~0x3e, V4L2_WHITE_BALANCE_PRESET_DAYLIGHT);
- 
-+	/* Exposure control cluster */
- 	info->auto_exposure = v4l2_ctrl_new_std_menu(&info->handle,
- 			&m5mols_ctrl_ops, V4L2_CID_EXPOSURE_AUTO,
- 			1, ~0x03, V4L2_EXPOSURE_AUTO);
-@@ -465,6 +480,12 @@ int m5mols_init_controls(struct v4l2_subdev *sd)
- 			&m5mols_ctrl_ops, V4L2_CID_EXPOSURE,
- 			0, exposure_max, 1, exposure_max / 2);
- 
-+	info->exposure_bias = v4l2_ctrl_new_std_int_menu(&info->handle,
-+			&m5mols_ctrl_ops, V4L2_CID_AUTO_EXPOSURE_BIAS,
-+			ARRAY_SIZE(ev_bias_qmenu) - 1,
-+			ARRAY_SIZE(ev_bias_qmenu)/2 - 1,
-+			ev_bias_qmenu);
-+
- 	/* ISO control cluster */
- 	info->auto_iso = v4l2_ctrl_new_std(&info->handle, &m5mols_ctrl_ops,
- 			V4L2_CID_ISO_SENSITIVITY_AUTO, 0, 1, 1, 1);
-@@ -490,7 +511,7 @@ int m5mols_init_controls(struct v4l2_subdev *sd)
- 		return ret;
- 	}
- 
--	v4l2_ctrl_auto_cluster(2, &info->auto_exposure, 1, false);
-+	v4l2_ctrl_auto_cluster(3, &info->auto_exposure, 1, false);
- 	info->auto_iso->flags |= V4L2_CTRL_FLAG_VOLATILE |
- 				V4L2_CTRL_FLAG_UPDATE;
- 	v4l2_ctrl_auto_cluster(2, &info->auto_iso, 0, false);
--- 
-1.7.9.2
+  CC      drivers/media/video/omap/omap_vout.o
+  CC      drivers/media/video/omap/omap_voutlib.o
+  CC      drivers/media/video/omap/omap_vout_vrfb.o
+drivers/media/video/omap/omap_vout.c: In function 'vidioc_streamon':
+drivers/media/video/omap/omap_vout.c:1619:25: warning: unused variable 'ovid'
+drivers/media/video/omap/omap_vout.c:1615:15: warning: unused variable 'j'
+  LD      drivers/media/video/omap/omap-vout.o
+  LD      drivers/media/video/omap/built-in.o
+
+Can you fix this and submit the next version?
+
+Thanks,
+Vaibhav
+
+>  	/* First save the configuration in ovelray structure */
+>  	ret = omapvid_init(vout, addr);
+>  	if (ret)
+> @@ -2071,11 +2050,12 @@ static int __init omap_vout_create_video_devices(struct platform_device *pdev)
+>  		}
+>  		video_set_drvdata(vfd, vout);
+>  
+> -		/* Configure the overlay structure */
+> -		ret = omapvid_init(vid_dev->vouts[k], 0);
+> -		if (!ret)
+> -			goto success;
+> +		dev_info(&pdev->dev, ": registered and initialized"
+> +				" video device %d\n", vfd->minor);
+> +		if (k == (pdev->num_resources - 1))
+> +			return 0;
+>  
+> +		continue;
+>  error2:
+>  		if (vout->vid_info.rotation_type == VOUT_ROT_VRFB)
+>  			omap_vout_release_vrfb(vout);
+> @@ -2085,12 +2065,6 @@ error1:
+>  error:
+>  		kfree(vout);
+>  		return ret;
+> -
+> -success:
+> -		dev_info(&pdev->dev, ": registered and initialized"
+> -				" video device %d\n", vfd->minor);
+> -		if (k == (pdev->num_resources - 1))
+> -			return 0;
+>  	}
+>  
+>  	return -ENODEV;
+> -- 
+> 1.7.5.4
+> 
+> 
 
