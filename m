@@ -1,124 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eu1sys200aog118.obsmtp.com ([207.126.144.145]:51427 "EHLO
-	eu1sys200aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752174Ab2CSD7r convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 18 Mar 2012 23:59:47 -0400
-From: Bhupesh SHARMA <bhupesh.sharma@st.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	spear-devel <spear-devel@list.st.com>
-Date: Mon, 19 Mar 2012 11:58:41 +0800
-Subject: RE: [PATCH RESEND] usb: gadget/uvc: Remove non-required locking
- from 'uvc_queue_next_buffer' routine
-Message-ID: <D5ECB3C7A6F99444980976A8C6D896384FA2BA2E91@EAPEX1MAIL1.st.com>
-References: <d5dbc7befb35abdce18d77f918954137a2be2f26.1331638300.git.bhupesh.sharma@st.com>
- <11788268.pQ7t4NVJy6@avalon>
-In-Reply-To: <11788268.pQ7t4NVJy6@avalon>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+Received: from plane.gmane.org ([80.91.229.3]:43927 "EHLO plane.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751293Ab2CLBUH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 11 Mar 2012 21:20:07 -0400
+Received: from list by plane.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1S6tvf-0002N7-Lr
+	for linux-media@vger.kernel.org; Mon, 12 Mar 2012 02:20:03 +0100
+Received: from p4ffe12dc.dip.t-dialin.net ([79.254.18.220])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Mon, 12 Mar 2012 02:20:03 +0100
+Received: from steve by p4ffe12dc.dip.t-dialin.net with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Mon, 12 Mar 2012 02:20:03 +0100
+To: linux-media@vger.kernel.org
+From: Steve Markgraf <steve@steve-m.de>
+Subject: Re: SDR FM demodulation
+Date: Mon, 12 Mar 2012 02:09:36 +0100
+Message-ID: <jjjicf$n6s$1@dough.gmane.org>
+References: <4F33DFB8.4080702@iki.fi> <CAO-Op+Fn0AxiqD4367O7H7AziR4g2vnFCMtsVcu1iRvf6P5iYw@mail.gmail.com> <4F36632A.3010700@iki.fi>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+In-Reply-To: <4F36632A.3010700@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hi,
 
-> -----Original Message-----
-> From: Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com]
-> Sent: Thursday, March 15, 2012 6:17 AM
-> To: Bhupesh SHARMA
-> Cc: linux-usb@vger.kernel.org; linux-media@vger.kernel.org; spear-devel
-> Subject: Re: [PATCH RESEND] usb: gadget/uvc: Remove non-required
-> locking from 'uvc_queue_next_buffer' routine
-> 
-> Hi Bhupesh,
-> 
-> Thank you for the patch.
+On 11.02.2012 13:46, Antti Palosaari wrote:
+> Now someone should make Linux driver that can tune that device to
+> different frequencies and look what it really can do.
 
-Thanks for your review comments..
+I sniffed the Windows driver and wrote a small libusb-based program
+[1], which can tune to a given frequency and record the I/Q-samples to
+a file.
 
-> On Tuesday 13 March 2012 17:04:01 Bhupesh Sharma wrote:
-> > This patch removes the non-required spinlock acquire/release calls on
-> > 'queue_irqlock' from 'uvc_queue_next_buffer' routine.
-> >
-> > This routine is called from 'video->encode' function (which
-> translates to
-> > either 'uvc_video_encode_bulk' or 'uvc_video_encode_isoc') in
-> > 'uvc_video.c'. As, the 'video->encode' routines are called with
-> > 'queue_irqlock' already held, so acquiring a 'queue_irqlock' again in
-> > 'uvc_queue_next_buffer' routine causes a spin lock recursion.
-> >
-> > A sample kernel crash log is given below (as observed on using
-> 'g_webcam'
-> > with DWC designware 2.0 UDC):
-> >
-> > Kernel crash log:
-> > -----------------
-> 
-> [snip]
-> 
-> I don't think you need to include the complete crash report in the
-> commit
-> message, the above description should be enough.
-> 
-> > Signed-off-by: Bhupesh Sharma <bhupesh.sharma@st.com>
-> 
-> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> 
-> This should probably go in through the USB tree. Could you please
-> either send
-> a pull request or make sure the patch is picked up (after modifying the
-> commit
-> message if you agree with my comment) ?
+So far FM radio reception with GNU Radio, as well as GMR-1 satellite
+(Thuraya) reception [2] at 1,525GHz with 1,8MHz bandwidth have been
+tested. Despite the 8 bit ADC, the stick seems to perform quite well.
 
-Sure. I will prune the commit message and then I will try
-to raise a pull request so that this patch goes through the
-USB tree.
+The program so far supports the "ezcap USB 2.0 DVB-T/DAB/FM stick" with
+the Elonics E4000 tuner, and the "Terratec NOXON DAB/DAB+ USB-Stick"
+with the Fitipower FC0013 tuner.
 
-> > ---
-> >  drivers/usb/gadget/uvc_queue.c |    4 +---
-> >  1 files changed, 1 insertions(+), 3 deletions(-)
-> >
-> > diff --git a/drivers/usb/gadget/uvc_queue.c
-> b/drivers/usb/gadget/uvc_queue.c
-> > index d776adb..104ae9c 100644
-> > --- a/drivers/usb/gadget/uvc_queue.c
-> > +++ b/drivers/usb/gadget/uvc_queue.c
-> > @@ -543,11 +543,11 @@ done:
-> >  	return ret;
-> >  }
-> >
-> > +/* called with &queue_irqlock held.. */
-> >  static struct uvc_buffer *
-> >  uvc_queue_next_buffer(struct uvc_video_queue *queue, struct
-> uvc_buffer
-> > *buf) {
-> >  	struct uvc_buffer *nextbuf;
-> > -	unsigned long flags;
-> >
-> >  	if ((queue->flags & UVC_QUEUE_DROP_INCOMPLETE) &&
-> >  	    buf->buf.length != buf->buf.bytesused) {
-> > @@ -556,14 +556,12 @@ uvc_queue_next_buffer(struct uvc_video_queue
-> *queue,
-> > struct uvc_buffer *buf) return buf;
-> >  	}
-> >
-> > -	spin_lock_irqsave(&queue->irqlock, flags);
-> >  	list_del(&buf->queue);
-> >  	if (!list_empty(&queue->irqqueue))
-> >  		nextbuf = list_first_entry(&queue->irqqueue, struct
-> uvc_buffer,
-> >  					   queue);
-> >  	else
-> >  		nextbuf = NULL;
-> > -	spin_unlock_irqrestore(&queue->irqlock, flags);
-> >
-> >  	buf->buf.sequence = queue->sequence++;
-> >  	do_gettimeofday(&buf->buf.timestamp);
-> 
-> --
+The code is still somewhat hackish and experimental, since not all of
+the demodulator registers are known, and especially the tuner setup has
+room for improvement.
 
 Regards,
-Bhupesh
+Steve
+
+[1] http://cgit.osmocom.org/cgit/rtl-sdr/
+[2] http://gmr.osmocom.org/
+
