@@ -1,42 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:50544 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752193Ab2CPCgc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Mar 2012 22:36:32 -0400
-Received: by yhmm54 with SMTP id m54so3833835yhm.19
-        for <linux-media@vger.kernel.org>; Thu, 15 Mar 2012 19:36:31 -0700 (PDT)
+Received: from mail.kapsi.fi ([217.30.184.167]:52718 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757806Ab2CLWWy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 12 Mar 2012 18:22:54 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	=?UTF-8?q?Ji=C5=99=C3=AD=20Zelenka?= <klacek@bubakov.net>
+Subject: [PATCH FOR 3.3-RC8] tda10071: BUGFIX delivery system
+Date: Tue, 13 Mar 2012 00:21:20 +0200
+Message-Id: <1331590880-3100-1-git-send-email-crope@iki.fi>
 MIME-Version: 1.0
-Date: Fri, 16 Mar 2012 03:36:31 +0100
-Message-ID: <CAGa-wNOb8m9D0nZccqe+nKjEjWx5p7SaXHPJHHrb8z7Ts8YuUA@mail.gmail.com>
-Subject: Re: cxd2820r: i2c wr failed (PCTV Nanostick 290e)
-From: Claus Olesen <ceolesen@gmail.com>
-To: kae@midnighthax.com
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I have two 290e's - one for dvb-c and one for dvb-t - on the same computer
-running F16, Kaffeine and latest media files
-and I see lots of lines in /var/log/messages like this
+Commit b2a29b578d9c21b2e5c88020f830d3c42115c51d sets accidentally supported
+delivery systems as DVB-T/T2 whilst it should be DVB-S/S2. Due to that frontend
+cannot be used at all.
 
-cxd2820r: i2c wr failed ret:-110 reg:db len:1
+Bug reported: Jiří Zelenka
 
-and fewer like this
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Reported-by: Jiří Zelenka <klacek@bubakov.net>
+Cc: Jiří Zelenka <klacek@bubakov.net>
+---
+ drivers/media/dvb/frontends/tda10071.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-tda18271_write_regs: [16-0060|M] ERROR: idx = 0x3, len = 1,
-i2c_transfer returned: -110
+diff --git a/drivers/media/dvb/frontends/tda10071.c b/drivers/media/dvb/frontends/tda10071.c
+index a992050..c21bc92 100644
+--- a/drivers/media/dvb/frontends/tda10071.c
++++ b/drivers/media/dvb/frontends/tda10071.c
+@@ -1215,7 +1215,7 @@ error:
+ EXPORT_SYMBOL(tda10071_attach);
+ 
+ static struct dvb_frontend_ops tda10071_ops = {
+-	.delsys = { SYS_DVBT, SYS_DVBT2 },
++	.delsys = { SYS_DVBS, SYS_DVBS2 },
+ 	.info = {
+ 		.name = "NXP TDA10071",
+ 		.frequency_min = 950000,
+-- 
+1.7.7.6
 
-but strangely none today.
-But despite that then I haven't noticed any problems and in particular that of
-yours of lsusb not showing your 290e.
-
-lsusb on my computer shows the 290e's as
-Bus 002 Device 002: ID 2013:024f Unknown (Pinnacle?)
-Bus 002 Device 003: ID 2013:024f Unknown (Pinnacle?)
-
-However, not long ago I reported a conflict with the 290e and USB a mem stick
-http://www.mail-archive.com/linux-media@vger.kernel.org/msg42499.html
-which leads me to think that for what it is worth as a test you may want to try
-with only 1 USB attached namely only the 290e
