@@ -1,121 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:52527 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1030385Ab2CFMIk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Mar 2012 07:08:40 -0500
-Date: Tue, 6 Mar 2012 14:08:35 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, dacohen@gmail.com, snjw23@gmail.com,
-	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
-	tuukkat76@gmail.com, k.debski@samsung.com, riverful@gmail.com,
-	hverkuil@xs4all.nl, teturtia@gmail.com
-Subject: Re: [PATCH v4 09/34] v4l: Add subdev selections documentation
-Message-ID: <20120306120834.GD1075@valkosipuli.localdomain>
-References: <20120302173219.GA15695@valkosipuli.localdomain>
- <1330709442-16654-9-git-send-email-sakari.ailus@iki.fi>
- <6164314.lBIqd5p9kY@avalon>
+Received: from mail-wi0-f178.google.com ([209.85.212.178]:48713 "EHLO
+	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750867Ab2CLEnS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 12 Mar 2012 00:43:18 -0400
+Received: by wibhq7 with SMTP id hq7so3114035wib.1
+        for <linux-media@vger.kernel.org>; Sun, 11 Mar 2012 21:43:17 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <6164314.lBIqd5p9kY@avalon>
+Date: Mon, 12 Mar 2012 00:38:07 -0400
+Message-ID: <CALUGRoA7FfKn-+KWZOKLkGuCxpqh1D9tZJTnZQw1PVXYwOP8jw@mail.gmail.com>
+Subject: HVR-1600 problem
+From: Matt Berglund <bmwebinfo@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hello all,
 
-On Mon, Mar 05, 2012 at 12:47:26PM +0100, Laurent Pinchart wrote:
-> Hi Sakari,
-> 
-> Thanks for the patch.
+I'm having trouble with my 1600 listed as: Hauppauge model 74541, rev C6A3
+The firmware is installed. Both using yum and manually.
+Based on the LTV wiki, it seems this is less well tested model. If
+this is so, I'll be happy to do what I can to test it.
 
-Thanks for the comments!
+Subsystem: Hauppauge computer works Inc. WinTV HVR-1600 [0070:7444]
 
-> On Friday 02 March 2012 19:30:17 Sakari Ailus wrote:
-> > Add documentation for V4L2 subdev selection API. This changes also
-> > experimental V4L2 subdev API so that scaling now works through selection API
-> > only.
-> > 
-> > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> 
-> [snip]
-> 
-> > diff --git a/Documentation/DocBook/media/v4l/dev-subdev.xml
-> > b/Documentation/DocBook/media/v4l/dev-subdev.xml index 0916a73..ef99da1
-> > 100644
-> > --- a/Documentation/DocBook/media/v4l/dev-subdev.xml
-> > +++ b/Documentation/DocBook/media/v4l/dev-subdev.xml
-> 
-> [snip]
-> 
-> > +      <para>The scaling operation changes the size of the image by
-> > +      scaling it to new dimensions. The scaling ratio isn't specified
-> > +      explicitly, but is implied from the original and scaled image
-> > +      sizes. Both sizes are represented by &v4l2-rect;.</para>
-> > +
-> > +      <para>Scaling support is optional. When supported by a subdev,
-> > +      the crop rectangle on the subdev's sink pad is scaled to the
-> > +      size configured using &sub-subdev-g-selection; and
-> > +      <constant>V4L2_SUBDEV_SEL_COMPOSE_ACTIVE</constant> selection
-> > +      target on the same pad. If the subdev supports scaling but no
-> 
-> s/no/not/ (my bad, typo in my previous review)
-> 
-> > +      composing, the top and left values are not used and must always
-> > +      be set to zero."</para>
-> 
-> s/"// (don't copy the text blindly ;-))
+Running Fedora 16 with 3.2.9-1.fc16.x86_64 on an MSI 790FX-GD70 with
+an AMD 5770 and 6770 board running crossfirex/catalyst  (I realize
+this is potentially problematic but I don't think it is the cause of
+this issue)
 
-Fixed.
+I have used both the built-in drivers and now have compiled what I
+believe are the latest linuxtv drivers, per the wiki there.
 
-> > +    <section>
-> > +      <title>Order of configuration and format propagation</title>
-> > +
-> > +      <para>Inside subdevs, the order of image processing steps will
-> > +      always be from the sink pad towards the source pad. This is also
-> > +      reflected in the order in which the configuration must be
-> > +      performed by the user: the changes made will be propagated to
-> > +      any subsequent stages. If this behaviour is not desired, the
-> > +      user must set
-> > +      <constant>V4L2_SUBDEV_SEL_FLAG_KEEP_CONFIG</constant> flag. This
-> > +      flag causes that no propagation of the changes are allowed in
-> > +      any circumstances. This may also cause the accessed rectangle to
-> > +      be adjusted by the driver, depending on the properties of the
-> > +      underlying hardware. Some drivers may not support this
-> > +      flag.</para>
-> 
-> Haven't we agreed that supporting the flag should be mandatory ?
+With the following results:
+[  762.974890] Linux media interface: v0.10
+[  762.979795] Linux video capture interface: v2.00
+[  762.979804] WARNING: You are using an experimental version of the
+media stack.
+[  762.979808]  As the driver is backported to an older kernel, it doesn't offer
+[  762.979811]  enough quality for its usage in production.
+[  762.979813]  Use it with care.
+[  762.979815] Latest git patches (needed if you report a bug to
+linux-media@vger.kernel.org):
+[  762.979818]  632fba4d012458fd5fedc678fb9b0f8bc59ceda2 [media]
+cx25821: Add a card definition for No brand cards that have: subvendor
+= 0x0000 subdevice = 0x0000
+[  762.979823]  1b1301e67bbcad0649a8b3c6a944d2b2acddc411 [media] Fix
+small DocBook typo
+[  762.979826]  0f67a03ff6ada162ad7518d9092f72d830d3a887 [media]
+media: tvp5150: support g_mbus_fmt callback
+[  762.985568] WARNING: You are using an experimental version of the
+media stack.
+[  762.985570]  As the driver is backported to an older kernel, it doesn't offer
+[  762.985570]  enough quality for its usage in production.
+[  762.985571]  Use it with care.
+[  762.985572] Latest git patches (needed if you report a bug to
+linux-media@vger.kernel.org):
+[  762.985573]  632fba4d012458fd5fedc678fb9b0f8bc59ceda2 [media]
+cx25821: Add a card definition for No brand cards that have: subvendor
+= 0x0000 subdevice = 0x0000
+[  762.985574]  1b1301e67bbcad0649a8b3c6a944d2b2acddc411 [media] Fix
+small DocBook typo
+[  762.985575]  0f67a03ff6ada162ad7518d9092f72d830d3a887 [media]
+media: tvp5150: support g_mbus_fmt callback
+[  762.986723] cx18:  Start initialization, version 1.5.1
+[  762.987457] cx18-0: Initializing card 0
+[  762.987460] cx18-0: Autodetected Hauppauge card
+[  762.993040] cx18-0: cx23418 revision 01010000 (B)
+[  763.227077] tveeprom 0-0050: Hauppauge model 74541, rev C6A3, serial#
+[  763.227080] tveeprom 0-0050: MAC address
+[  763.227082] tveeprom 0-0050: tuner model is TCL MFNM05-4 (idx 103, type 43)
+[  763.227084] tveeprom 0-0050: TV standards NTSC(M) (eeprom 0x08)
+[  763.227086] tveeprom 0-0050: audio processor is CX23418 (idx 38)
+[  763.227088] tveeprom 0-0050: decoder processor is CX23418 (idx 31)
+[  763.227089] tveeprom 0-0050: has radio
+[  763.227090] cx18-0: Autodetected Hauppauge HVR-1600
+[  763.227092] cx18-0: Simultaneous Digital and Analog TV capture supported
+[  763.340073] cx18-0: Registered device video0 for encoder MPEG (64 x 32.00 kB)
+[  763.340076] DVB: registering new adapter (cx18)
+[  763.341895] s5h1409_readreg: readreg error (ret == -6)
+[  763.341903] cx18-0: frontend initialization failed
+[  763.342126] cx18-0: DVB failed to register
+[  763.342235] cx18-0: Registered device video32 for encoder YUV (20 x
+101.25 kB)
+[  763.342301] cx18-0: Registered device vbi0 for encoder VBI (20 x 51984 bytes)
+[  763.342369] cx18-0: Registered device video24 for encoder PCM audio
+(256 x 4.00 kB)
+[  763.342433] cx18-0: Registered device radio0 for encoder radio
+[  763.342552] cx18-0: unregister DVB
+[  763.343628] cx18-0: Error -1 registering devices
+[  763.346390] cx18-0: Error -1 on initialization
+[  763.346406] cx18: probe of 0000:07:07.0 failed with error -1
+[  763.346427] cx18:  End initialization
 
-Yes, but it may have been after I sent the patchset. Nevertheless, it's
-fixed now.
+This will be used to capture signals from a cable feed, both free HD
+and SD.
 
-> > +      <para>The coordinates to a step always refer to the active size
-> > +      of the previous step. The exception to this rule is the source
-> > +      compose rectangle, which refers to the sink compose bounds
-> > +      rectangle --- if it is supported by the hardware.</para>
-> 
-> [snip]
-> 
-> > diff --git a/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml
-> > b/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml new file
-> > mode 100644
-> > index 0000000..da1cc4f
-> > --- /dev/null
-> > +++ b/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml
-> 
-> [snip]
-> 
-> > +    <section>
-> > +      <title>Types of selection targets</title>
-> > +
-> > +      <para>The are two types of selection targets: active and bounds.
-> 
-> s/The/There/
+This problem happens regardless of how the drivers are installed.
 
-Fixed.
+I noticed this:
+[  763.341895] s5h1409_readreg: readreg error (ret == -6)
+And was wondering if this is related to the card appearing to be less
+well known?
 
-Regards,
+I will enable debug and poke around a bit more, but I'm far from a
+driver writer.
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+Thanks,
+Matt
