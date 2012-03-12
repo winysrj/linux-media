@@ -1,149 +1,168 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:30616 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1031961Ab2COQyu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Mar 2012 12:54:50 -0400
-Received: from euspt1 (mailout1.w1.samsung.com [210.118.77.11])
- by mailout1.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0M0X000L7QYZW4@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 15 Mar 2012 16:54:35 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0M0X00177QZ4YS@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 15 Mar 2012 16:54:41 +0000 (GMT)
-Date: Thu, 15 Mar 2012 17:54:28 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH/RFC 14/23] m5mols: Add ISO controls
-In-reply-to: <1331830477-12146-1-git-send-email-s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, riverful.kim@samsung.com,
-	kyungmin.park@samsung.com, s.nawrocki@samsung.com
-Message-id: <1331830477-12146-15-git-send-email-s.nawrocki@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1331830477-12146-1-git-send-email-s.nawrocki@samsung.com>
+Received: from mail.meprolight.com ([194.90.149.17]:45225 "EHLO meprolight.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752177Ab2CLQfe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 12 Mar 2012 12:35:34 -0400
+From: Alex <alexg@meprolight.com>
+To: Sascha Hauer <s.hauer@pengutronix.de>
+CC: <linux-kernel@vger.kernel.org>, <g.liakhovetski@gmx.de>,
+	<fabio.estevam@freescale.com>, <linux-media@vger.kernel.org>,
+	Alex <alexg@meprolight.com>
+Subject: [PATCH] i.MX35-PDK: Add Camera support
+Date: Mon, 12 Mar 2012 18:28:51 +0200
+Message-ID: <1331569731-30973-1-git-send-email-alexg@meprolight.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/video/m5mols/m5mols.h          |    5 +++
- drivers/media/video/m5mols/m5mols_controls.c |   51 ++++++++++++++++++++++++++
- 2 files changed, 56 insertions(+)
+In i.MX35-PDK, OV2640  camera is populated on the
+personality board. This camera is registered as a subdevice via soc-camera interface.
 
-diff --git a/drivers/media/video/m5mols/m5mols.h b/drivers/media/video/m5mols/m5mols.h
-index cf5405b..475a7be 100644
---- a/drivers/media/video/m5mols/m5mols.h
-+++ b/drivers/media/video/m5mols/m5mols.h
-@@ -193,6 +193,11 @@ struct m5mols_info {
- 		struct v4l2_ctrl *auto_exposure;
- 		struct v4l2_ctrl *exposure;
- 	};
-+	struct {
-+		/* iso/auto iso cluster */
-+		struct v4l2_ctrl *auto_iso;
-+		struct v4l2_ctrl *iso;
-+	};
+Signed-off-by: Alex Gershgorin <alexg@meprolight.com>
+---
+ arch/arm/mach-imx/mach-mx35_3ds.c |   87 +++++++++++++++++++++++++++++++++++++
+ 1 files changed, 87 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/mach-imx/mach-mx35_3ds.c b/arch/arm/mach-imx/mach-mx35_3ds.c
+index a477e46..55f5b0a 100644
+--- a/arch/arm/mach-imx/mach-mx35_3ds.c
++++ b/arch/arm/mach-imx/mach-mx35_3ds.c
+@@ -35,6 +35,8 @@
+ #include <asm/mach/time.h>
+ #include <asm/mach/map.h>
  
- 	struct v4l2_ctrl *autowb;
- 	struct v4l2_ctrl *colorfx;
-diff --git a/drivers/media/video/m5mols/m5mols_controls.c b/drivers/media/video/m5mols/m5mols_controls.c
-index cb94ec9..f335f9c 100644
---- a/drivers/media/video/m5mols/m5mols_controls.c
-+++ b/drivers/media/video/m5mols/m5mols_controls.c
-@@ -319,6 +319,35 @@ static int m5mols_set_color_effect(struct m5mols_info *info, int val)
- 	return ret;
- }
++#include <asm/memblock.h>
++
+ #include <mach/hardware.h>
+ #include <mach/common.h>
+ #include <mach/iomux-mx35.h>
+@@ -43,6 +45,8 @@
  
-+static int m5mols_set_iso(struct m5mols_info *info, int auto_iso)
+ #include "devices-imx35.h"
+ 
++#include <media/soc_camera.h>
++
+ #define EXPIO_PARENT_INT	gpio_to_irq(IMX_GPIO_NR(1, 1))
+ 
+ static const struct imxuart_platform_data uart_pdata __initconst = {
+@@ -145,6 +149,21 @@ static iomux_v3_cfg_t mx35pdk_pads[] = {
+ 	MX35_PAD_CONTRAST__IPU_DISPB_CONTR,
+ 	MX35_PAD_D3_REV__IPU_DISPB_D3_REV,
+ 	MX35_PAD_D3_CLS__IPU_DISPB_D3_CLS,
++	/* CSI */
++	MX35_PAD_TX1__IPU_CSI_D_6,
++	MX35_PAD_TX0__IPU_CSI_D_7,
++	MX35_PAD_CSI_D8__IPU_CSI_D_8,
++	MX35_PAD_CSI_D9__IPU_CSI_D_9,
++	MX35_PAD_CSI_D10__IPU_CSI_D_10,
++	MX35_PAD_CSI_D11__IPU_CSI_D_11,
++	MX35_PAD_CSI_D12__IPU_CSI_D_12,
++	MX35_PAD_CSI_D13__IPU_CSI_D_13,
++	MX35_PAD_CSI_D14__IPU_CSI_D_14,
++	MX35_PAD_CSI_D15__IPU_CSI_D_15,
++	MX35_PAD_CSI_HSYNC__IPU_CSI_HSYNC,
++	MX35_PAD_CSI_MCLK__IPU_CSI_MCLK,
++	MX35_PAD_CSI_PIXCLK__IPU_CSI_PIXCLK,
++	MX35_PAD_CSI_VSYNC__IPU_CSI_VSYNC,
+ };
+ 
+ static const struct fb_videomode fb_modedb[] = {
+@@ -177,6 +196,64 @@ static struct mx3fb_platform_data mx3fb_pdata __initdata = {
+ 	.num_modes	= ARRAY_SIZE(fb_modedb),
+ };
+ 
++/*
++ * Camera support
++ */
++static phys_addr_t mx3_camera_base __initdata;
++#define MX35_3DS_CAMERA_BUF_SIZE SZ_8M
++
++static const struct mx3_camera_pdata mx35_3ds_camera_pdata __initconst = {
++	.flags = MX3_CAMERA_DATAWIDTH_8,
++	.mclk_10khz = 2000,
++};
++
++static int __init imx35_3ds_init_camera(void)
 +{
-+	u32 iso = auto_iso ? 0 : info->iso->val + 1;
++	int dma, ret = -ENOMEM;
++	struct platform_device *pdev =
++		imx35_alloc_mx3_camera(&mx35_3ds_camera_pdata);
 +
-+	return m5mols_write(&info->sd, AE_ISO, iso);
-+}
++	if (IS_ERR(pdev))
++		return PTR_ERR(pdev);
 +
-+static int m5mols_g_volatile_ctrl(struct v4l2_ctrl *ctrl)
-+{
-+	struct v4l2_subdev *sd = to_sd(ctrl);
-+	struct m5mols_info *info = to_m5mols(sd);
-+	int ret = 0;
-+	u8 status;
++	if (!mx3_camera_base)
++		goto err;
 +
++	dma = dma_declare_coherent_memory(&pdev->dev,
++					mx3_camera_base, mx3_camera_base,
++					MX35_3DS_CAMERA_BUF_SIZE,
++					DMA_MEMORY_MAP | DMA_MEMORY_EXCLUSIVE);
 +
-+	if (!info->isp_ready)
-+		return -EBUSY;
++	if (!(dma & DMA_MEMORY_MAP))
++		goto err;
 +
-+	switch (ctrl->id) {
-+	case V4L2_CID_ISO_SENSITIVITY_AUTO:
-+		ret = m5mols_read_u8(sd, AE_ISO, &status);
-+		if (ret == 0)
-+			ctrl->val = !status;
-+		break;
-+	}
++	ret = platform_device_add(pdev);
++	if (ret)
++err:
++		platform_device_put(pdev);
 +
 +	return ret;
 +}
 +
- static int m5mols_s_ctrl(struct v4l2_ctrl *ctrl)
- {
- 	unsigned int ctrl_mode = m5mols_get_ctrl_mode(ctrl);
-@@ -354,6 +383,10 @@ static int m5mols_s_ctrl(struct v4l2_ctrl *ctrl)
- 		ret = m5mols_set_exposure(info, ctrl->val);
- 		break;
- 
-+	case V4L2_CID_ISO_SENSITIVITY:
-+		ret = m5mols_set_iso(info, ctrl->val);
-+		break;
-+
- 	case V4L2_CID_AUTO_WHITE_BALANCE:
- 		ret = m5mols_set_white_balance(info, ctrl->val);
- 		break;
-@@ -374,9 +407,16 @@ static int m5mols_s_ctrl(struct v4l2_ctrl *ctrl)
- }
- 
- static const struct v4l2_ctrl_ops m5mols_ctrl_ops = {
-+	.g_volatile_ctrl	= m5mols_g_volatile_ctrl,
- 	.s_ctrl			= m5mols_s_ctrl,
- };
- 
-+/* Supported manual ISO values */
-+static const s64 iso_qmenu[] = {
-+	/* AE_ISO: 0x01...0x07 */
-+	50, 100, 200, 400, 800, 1600, 3200
++static struct i2c_board_info mx35_3ds_i2c_camera = {
++	I2C_BOARD_INFO("ov2640", 0x30),
 +};
 +
- int m5mols_init_controls(struct v4l2_subdev *sd)
++static struct soc_camera_link iclink_ov2640 = {
++	.bus_id		= 0,
++	.board_info	= &mx35_3ds_i2c_camera,
++	.i2c_adapter_id	= 0,
++	.power		= NULL,
++};
++
++static struct platform_device mx35_3ds_ov2640 = {
++	.name	= "soc-camera-pdrv",
++	.id	= 0,
++	.dev	= {
++		.platform_data = &iclink_ov2640,
++	},
++};
++
+ static int mx35_3ds_otg_init(struct platform_device *pdev)
  {
- 	struct m5mols_info *info = to_m5mols(sd);
-@@ -406,6 +446,14 @@ int m5mols_init_controls(struct v4l2_subdev *sd)
- 			&m5mols_ctrl_ops, V4L2_CID_EXPOSURE,
- 			0, exposure_max, 1, exposure_max / 2);
+ 	return mx35_initialize_usb_hw(pdev->id, MXC_EHCI_INTERNAL_PHY);
+@@ -261,6 +338,8 @@ static void __init mx35_3ds_init(void)
+ 	imx35_add_imx_i2c0(&mx35_3ds_i2c0_data);
+ 	imx35_add_ipu_core(&mx35_3ds_ipu_data);
+ 	imx35_add_mx3_sdc_fb(&mx3fb_pdata);
++	platform_device_register(&mx35_3ds_ov2640);
++	imx35_3ds_init_camera();
+ }
  
-+	/* ISO control cluster */
-+	info->auto_iso = v4l2_ctrl_new_std(&info->handle, &m5mols_ctrl_ops,
-+			V4L2_CID_ISO_SENSITIVITY_AUTO, 0, 1, 1, 1);
+ static void __init mx35pdk_timer_init(void)
+@@ -272,6 +351,13 @@ struct sys_timer mx35pdk_timer = {
+ 	.init	= mx35pdk_timer_init,
+ };
+ 
++static void __init mx35_3ds_reserve(void)
++{
++	/* reserve MX35_3DS_CAMERA_BUF_SIZE bytes for mx3-camera */
++	mx3_camera_base = arm_memblock_steal(MX35_3DS_CAMERA_BUF_SIZE,
++					 MX35_3DS_CAMERA_BUF_SIZE);
++}
 +
-+	info->iso = v4l2_ctrl_new_std_int_menu(&info->handle, &m5mols_ctrl_ops,
-+			V4L2_CID_ISO_SENSITIVITY, ARRAY_SIZE(iso_qmenu) - 1,
-+			ARRAY_SIZE(iso_qmenu)/2 - 1, iso_qmenu);
-+
- 	info->saturation = v4l2_ctrl_new_std(&info->handle, &m5mols_ctrl_ops,
- 			V4L2_CID_SATURATION, 1, 5, 1, 3);
- 
-@@ -424,6 +472,9 @@ int m5mols_init_controls(struct v4l2_subdev *sd)
- 	}
- 
- 	v4l2_ctrl_auto_cluster(2, &info->auto_exposure, 1, false);
-+	info->auto_iso->flags |= V4L2_CTRL_FLAG_VOLATILE |
-+				V4L2_CTRL_FLAG_UPDATE;
-+	v4l2_ctrl_auto_cluster(2, &info->auto_iso, 0, false);
- 	sd->ctrl_handler = &info->handle;
- 
- 	return 0;
+ MACHINE_START(MX35_3DS, "Freescale MX35PDK")
+ 	/* Maintainer: Freescale Semiconductor, Inc */
+ 	.atag_offset = 0x100,
+@@ -281,5 +367,6 @@ MACHINE_START(MX35_3DS, "Freescale MX35PDK")
+ 	.handle_irq = imx35_handle_irq,
+ 	.timer = &mx35pdk_timer,
+ 	.init_machine = mx35_3ds_init,
++	.reserve = mx35_3ds_reserve,
+ 	.restart	= mxc_restart,
+ MACHINE_END
 -- 
-1.7.9.2
+1.7.0.4
 
