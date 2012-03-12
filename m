@@ -1,294 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f172.google.com ([209.85.212.172]:64498 "EHLO
-	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758041Ab2CSWsh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Mar 2012 18:48:37 -0400
-Received: by wibhj6 with SMTP id hj6so4411713wib.1
-        for <linux-media@vger.kernel.org>; Mon, 19 Mar 2012 15:48:35 -0700 (PDT)
-From: Daniel Vetter <daniel.vetter@ffwll.ch>
-To: linaro-mm-sig@lists.linaro.org,
-	LKML <linux-kernel@vger.kernel.org>,
-	DRI Development <dri-devel@lists.freedesktop.org>,
-	linux-media@vger.kernel.org
-Cc: Rob Clark <rob.clark@linaro.org>,
-	Daniel Vetter <daniel.vetter@ffwll.ch>
-Subject: [PATCH] dma-buf: add support for kernel cpu access
-Date: Tue, 20 Mar 2012 00:02:37 +0100
-Message-Id: <1332198157-12307-1-git-send-email-daniel.vetter@ffwll.ch>
-In-Reply-To: <CAF6AEGsXiJadKVeU+2z3zC8qLp+hmmY_6YYOL0XXYWV+p+h-+A@mail.gmail.com>
-References: <CAF6AEGsXiJadKVeU+2z3zC8qLp+hmmY_6YYOL0XXYWV+p+h-+A@mail.gmail.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:48888 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756953Ab2CLT67 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 12 Mar 2012 15:58:59 -0400
+Message-ID: <4F5E557D.5000403@iki.fi>
+Date: Mon, 12 Mar 2012 21:58:53 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: gennarone@gmail.com
+CC: Geert Uytterhoeven <geert@linux-m68k.org>,
+	linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux-Next <linux-next@vger.kernel.org>
+Subject: Re: rtl2830: __udivdi3 undefined
+References: <CAMuHMdVmiqY9uh574_uTK76+28bvhEL0BPnzjDF-bf-0mgj4gg@mail.gmail.com> <4F53EA7D.4090402@gmail.com>
+In-Reply-To: <4F53EA7D.4090402@gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Big differences to other contenders in the field (like ion) is
-that this also supports highmem, so we have to split up the cpu
-access from the kernel side into a prepare and a kmap step.
+On 05.03.2012 00:19, Gianluca Gennari wrote:
+> Il 29/02/2012 22:30, Geert Uytterhoeven ha scritto:
+>> http://kisskb.ellerman.id.au/kisskb/buildresult/5759200/ ERROR:
+>> "__udivdi3" [drivers/media/dvb/frontends/rtl2830.ko] undefined!
+>>
+>> I didn't look too deeply into it, but I think it's caused by the
+>> "num /= priv->cfg.xtal" in rtl2830_init() (with num being u64).
+>>
+>> Can't it use do_div() instead?
+>>
+>> Gr{oetje,eeting}s,
+>>
+>> Geert
+>>
+>> -- Geert Uytterhoeven -- There's lots of Linux beyond ia32 --
+>> geert@linux-m68k.org
+>>
+>> In personal conversations with technical people, I call myself a
+>> hacker. But when I'm talking to journalists I just say "programmer"
+>> or something like that. -- Linus Torvalds -- To unsubscribe from this
+>> list: send the line "unsubscribe linux-media" in the body of a
+>> message to majordomo@vger.kernel.org More majordomo info at
+>> http://vger.kernel.org/majordomo-info.html
+>>
+>
+> Probably the best solution is to use div_u64.
+> The following patch fixed the warning on my 32 bit system.
+>
+> Signed-off-by: Gianluca Gennari<gennarone@gmail.com>
+> ---
+>   drivers/media/dvb/frontends/rtl2830.c |    2 +-
+>   1 files changed, 1 insertions(+), 1 deletions(-)
+>
+> diff --git a/drivers/media/dvb/frontends/rtl2830.c
+> b/drivers/media/dvb/frontends/rtl2830.c
+> index f971d94..45196c5 100644
+> --- a/drivers/media/dvb/frontends/rtl2830.c
+> +++ b/drivers/media/dvb/frontends/rtl2830.c
+> @@ -244,7 +244,7 @@ static int rtl2830_init(struct dvb_frontend *fe)
+>
+>   	num = priv->cfg.if_dvbt % priv->cfg.xtal;
+>   	num *= 0x400000;
+> -	num /= priv->cfg.xtal;
+> +	num = div_u64(num, priv->cfg.xtal);
+>   	num = -num;
+>   	if_ctl = num&  0x3fffff;
+>   	dbg("%s: if_ctl=%08x", __func__, if_ctl);
 
-Prepare is allowed to fail and should do everything required so that
-the kmap calls can succeed (like swapin/backing storage allocation,
-flushing, ...).
+Acked-by: Antti Palosaari <crope@iki.fi>
 
-More in-depth explanations will follow in the follow-up documentation
-patch.
+I have been two weeks on skiing trip and since didn't acked that earlier.
 
-Changes in v2:
 
-- Clear up begin_cpu_access confusion noticed by Sumit Semwal.
-- Don't automatically fallback from the _atomic variants to the
-  non-atomic variants. The _atomic callbacks are not allowed to
-  sleep, so we want exporters to make this decision explicit. The
-  function signatures are explicit, so simpler exporters can still
-  use the same function for both.
-- Make the unmap functions optional. Simpler exporters with permanent
-  mappings don't need to do anything at unmap time.
+regards
+Antti
 
-Changes in v3:
-
-- Adjust the WARN_ON checks for the new ->ops functions as suggested
-  by Rob Clark and Sumit Semwal.
-- Rebased on top of latest dma-buf-next git.
-
-Changes in v4:
-
-- Fixup a missing - in a return -EINVAL; statement.
-
-Signed-Off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
----
- drivers/base/dma-buf.c  |  124 ++++++++++++++++++++++++++++++++++++++++++++++-
- include/linux/dma-buf.h |   59 ++++++++++++++++++++++
- 2 files changed, 182 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/base/dma-buf.c b/drivers/base/dma-buf.c
-index 5641b9c..07cbbc6 100644
---- a/drivers/base/dma-buf.c
-+++ b/drivers/base/dma-buf.c
-@@ -80,7 +80,9 @@ struct dma_buf *dma_buf_export(void *priv, const struct dma_buf_ops *ops,
- 	if (WARN_ON(!priv || !ops
- 			  || !ops->map_dma_buf
- 			  || !ops->unmap_dma_buf
--			  || !ops->release)) {
-+			  || !ops->release
-+			  || !ops->kmap_atomic
-+			  || !ops->kmap)) {
- 		return ERR_PTR(-EINVAL);
- 	}
- 
-@@ -284,3 +286,123 @@ void dma_buf_unmap_attachment(struct dma_buf_attachment *attach,
- 						direction);
- }
- EXPORT_SYMBOL_GPL(dma_buf_unmap_attachment);
-+
-+
-+/**
-+ * dma_buf_begin_cpu_access - Must be called before accessing a dma_buf from the
-+ * cpu in the kernel context. Calls begin_cpu_access to allow exporter-specific
-+ * preparations. Coherency is only guaranteed in the specified range for the
-+ * specified access direction.
-+ * @dma_buf:	[in]	buffer to prepare cpu access for.
-+ * @start:	[in]	start of range for cpu access.
-+ * @len:	[in]	length of range for cpu access.
-+ * @direction:	[in]	length of range for cpu access.
-+ *
-+ * Can return negative error values, returns 0 on success.
-+ */
-+int dma_buf_begin_cpu_access(struct dma_buf *dmabuf, size_t start, size_t len,
-+			     enum dma_data_direction direction)
-+{
-+	int ret = 0;
-+
-+	if (WARN_ON(!dmabuf))
-+		return -EINVAL;
-+
-+	if (dmabuf->ops->begin_cpu_access)
-+		ret = dmabuf->ops->begin_cpu_access(dmabuf, start, len, direction);
-+
-+	return ret;
-+}
-+EXPORT_SYMBOL_GPL(dma_buf_begin_cpu_access);
-+
-+/**
-+ * dma_buf_end_cpu_access - Must be called after accessing a dma_buf from the
-+ * cpu in the kernel context. Calls end_cpu_access to allow exporter-specific
-+ * actions. Coherency is only guaranteed in the specified range for the
-+ * specified access direction.
-+ * @dma_buf:	[in]	buffer to complete cpu access for.
-+ * @start:	[in]	start of range for cpu access.
-+ * @len:	[in]	length of range for cpu access.
-+ * @direction:	[in]	length of range for cpu access.
-+ *
-+ * This call must always succeed.
-+ */
-+void dma_buf_end_cpu_access(struct dma_buf *dmabuf, size_t start, size_t len,
-+			    enum dma_data_direction direction)
-+{
-+	WARN_ON(!dmabuf);
-+
-+	if (dmabuf->ops->end_cpu_access)
-+		dmabuf->ops->end_cpu_access(dmabuf, start, len, direction);
-+}
-+EXPORT_SYMBOL_GPL(dma_buf_end_cpu_access);
-+
-+/**
-+ * dma_buf_kmap_atomic - Map a page of the buffer object into kernel address
-+ * space. The same restrictions as for kmap_atomic and friends apply.
-+ * @dma_buf:	[in]	buffer to map page from.
-+ * @page_num:	[in]	page in PAGE_SIZE units to map.
-+ *
-+ * This call must always succeed, any necessary preparations that might fail
-+ * need to be done in begin_cpu_access.
-+ */
-+void *dma_buf_kmap_atomic(struct dma_buf *dmabuf, unsigned long page_num)
-+{
-+	WARN_ON(!dmabuf);
-+
-+	return dmabuf->ops->kmap_atomic(dmabuf, page_num);
-+}
-+EXPORT_SYMBOL_GPL(dma_buf_kmap_atomic);
-+
-+/**
-+ * dma_buf_kunmap_atomic - Unmap a page obtained by dma_buf_kmap_atomic.
-+ * @dma_buf:	[in]	buffer to unmap page from.
-+ * @page_num:	[in]	page in PAGE_SIZE units to unmap.
-+ * @vaddr:	[in]	kernel space pointer obtained from dma_buf_kmap_atomic.
-+ *
-+ * This call must always succeed.
-+ */
-+void dma_buf_kunmap_atomic(struct dma_buf *dmabuf, unsigned long page_num,
-+			   void *vaddr)
-+{
-+	WARN_ON(!dmabuf);
-+
-+	if (dmabuf->ops->kunmap_atomic)
-+		dmabuf->ops->kunmap_atomic(dmabuf, page_num, vaddr);
-+}
-+EXPORT_SYMBOL_GPL(dma_buf_kunmap_atomic);
-+
-+/**
-+ * dma_buf_kmap - Map a page of the buffer object into kernel address space. The
-+ * same restrictions as for kmap and friends apply.
-+ * @dma_buf:	[in]	buffer to map page from.
-+ * @page_num:	[in]	page in PAGE_SIZE units to map.
-+ *
-+ * This call must always succeed, any necessary preparations that might fail
-+ * need to be done in begin_cpu_access.
-+ */
-+void *dma_buf_kmap(struct dma_buf *dmabuf, unsigned long page_num)
-+{
-+	WARN_ON(!dmabuf);
-+
-+	return dmabuf->ops->kmap(dmabuf, page_num);
-+}
-+EXPORT_SYMBOL_GPL(dma_buf_kmap);
-+
-+/**
-+ * dma_buf_kunmap - Unmap a page obtained by dma_buf_kmap.
-+ * @dma_buf:	[in]	buffer to unmap page from.
-+ * @page_num:	[in]	page in PAGE_SIZE units to unmap.
-+ * @vaddr:	[in]	kernel space pointer obtained from dma_buf_kmap.
-+ *
-+ * This call must always succeed.
-+ */
-+void dma_buf_kunmap(struct dma_buf *dmabuf, unsigned long page_num,
-+		    void *vaddr)
-+{
-+	WARN_ON(!dmabuf);
-+
-+	if (dmabuf->ops->kunmap)
-+		dmabuf->ops->kunmap(dmabuf, page_num, vaddr);
-+}
-+EXPORT_SYMBOL_GPL(dma_buf_kunmap);
-diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
-index 24e0f48..ee7ef99 100644
---- a/include/linux/dma-buf.h
-+++ b/include/linux/dma-buf.h
-@@ -50,6 +50,17 @@ struct dma_buf_attachment;
-  * @unmap_dma_buf: decreases usecount of buffer, might deallocate scatter
-  *		   pages.
-  * @release: release this buffer; to be called after the last dma_buf_put.
-+ * @begin_cpu_access: [optional] called before cpu access to invalidate cpu
-+ * 		      caches and allocate backing storage (if not yet done)
-+ * 		      respectively pin the objet into memory.
-+ * @end_cpu_access: [optional] called after cpu access to flush cashes.
-+ * @kmap_atomic: maps a page from the buffer into kernel address
-+ * 		 space, users may not block until the subsequent unmap call.
-+ * 		 This callback must not sleep.
-+ * @kunmap_atomic: [optional] unmaps a atomically mapped page from the buffer.
-+ * 		   This Callback must not sleep.
-+ * @kmap: maps a page from the buffer into kernel address space.
-+ * @kunmap: [optional] unmaps a page from the buffer.
-  */
- struct dma_buf_ops {
- 	int (*attach)(struct dma_buf *, struct device *,
-@@ -73,6 +84,14 @@ struct dma_buf_ops {
- 	/* after final dma_buf_put() */
- 	void (*release)(struct dma_buf *);
- 
-+	int (*begin_cpu_access)(struct dma_buf *, size_t, size_t,
-+				enum dma_data_direction);
-+	void (*end_cpu_access)(struct dma_buf *, size_t, size_t,
-+			       enum dma_data_direction);
-+	void *(*kmap_atomic)(struct dma_buf *, unsigned long);
-+	void (*kunmap_atomic)(struct dma_buf *, unsigned long, void *);
-+	void *(*kmap)(struct dma_buf *, unsigned long);
-+	void (*kunmap)(struct dma_buf *, unsigned long, void *);
- };
- 
- /**
-@@ -140,6 +159,14 @@ struct sg_table *dma_buf_map_attachment(struct dma_buf_attachment *,
- 					enum dma_data_direction);
- void dma_buf_unmap_attachment(struct dma_buf_attachment *, struct sg_table *,
- 				enum dma_data_direction);
-+int dma_buf_begin_cpu_access(struct dma_buf *dma_buf, size_t start, size_t len,
-+			     enum dma_data_direction dir);
-+void dma_buf_end_cpu_access(struct dma_buf *dma_buf, size_t start, size_t len,
-+			    enum dma_data_direction dir);
-+void *dma_buf_kmap_atomic(struct dma_buf *, unsigned long);
-+void dma_buf_kunmap_atomic(struct dma_buf *, unsigned long, void *);
-+void *dma_buf_kmap(struct dma_buf *, unsigned long);
-+void dma_buf_kunmap(struct dma_buf *, unsigned long, void *);
- #else
- 
- static inline struct dma_buf_attachment *dma_buf_attach(struct dma_buf *dmabuf,
-@@ -188,6 +215,38 @@ static inline void dma_buf_unmap_attachment(struct dma_buf_attachment *attach,
- 	return;
- }
- 
-+static inline int dma_buf_begin_cpu_access(struct dma_buf *,
-+					   size_t, size_t,
-+					   enum dma_data_direction)
-+{
-+	return -ENODEV;
-+}
-+
-+static inline void dma_buf_end_cpu_access(struct dma_buf *,
-+					  size_t, size_t,
-+					  enum dma_data_direction)
-+{
-+}
-+
-+static inline void *dma_buf_kmap_atomic(struct dma_buf *, unsigned long)
-+{
-+	return NULL;
-+}
-+
-+static inline void dma_buf_kunmap_atomic(struct dma_buf *, unsigned long,
-+					 void *)
-+{
-+}
-+
-+static inline void *dma_buf_kmap(struct dma_buf *, unsigned long)
-+{
-+	return NULL;
-+}
-+
-+static inline void dma_buf_kunmap(struct dma_buf *, unsigned long,
-+				  void *)
-+{
-+}
- #endif /* CONFIG_DMA_SHARED_BUFFER */
- 
- #endif /* __DMA_BUF_H__ */
 -- 
-1.7.7.5
-
+http://palosaari.fi/
