@@ -1,214 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.24]:37123 "EHLO mgw-da01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932385Ab2CBRcz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 2 Mar 2012 12:32:55 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, dacohen@gmail.com,
-	snjw23@gmail.com, andriy.shevchenko@linux.intel.com,
-	t.stanislaws@samsung.com, tuukkat76@gmail.com,
-	k.debski@samsung.com, riverful@gmail.com, hverkuil@xs4all.nl,
-	teturtia@gmail.com
-Subject: [PATCH v4 12/34] v4l: Image processing control class
-Date: Fri,  2 Mar 2012 19:30:20 +0200
-Message-Id: <1330709442-16654-12-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <20120302173219.GA15695@valkosipuli.localdomain>
-References: <20120302173219.GA15695@valkosipuli.localdomain>
+Received: from eu1sys200aog118.obsmtp.com ([207.126.144.145]:50733 "EHLO
+	eu1sys200aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753107Ab2CLJK2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 12 Mar 2012 05:10:28 -0400
+From: Bhupesh Sharma <bhupesh.sharma@st.com>
+To: <linux-media@vger.kernel.org>
+Cc: <spear-devel@list.st.com>, <laurent.pinchart@ideasonboard.com>,
+	Bhupesh Sharma <bhupesh.sharma@st.com>
+Subject: [PATCH 1/1] V4L/v4l2-dev: Make 'videodev_init' as a subsys initcall
+Date: Mon, 12 Mar 2012 14:39:02 +0530
+Message-ID: <bbe7861cb38c036d3c24df908ffbfc125274ea99.1331543025.git.bhupesh.sharma@st.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add control class for image processing controls. The control class deals
-with controls processing image, for example digital gain or noise filtering,
-which can be present in any part of the pipeline.
+As the V4L2 based UVC webcam gadget (g_webcam) expects the
+'videodev' to present when the 'webcam_bind' routine is called,
+so 'videodev' should be available as early as possible.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Now, when 'g_webcam' is built as a module (i.e. not a part of
+kernel) the late availability of 'videodev' is OK, but if
+'g_webcam' is built statically as a part of the kernel,
+the kernel crashes (a sample crash dump using Designware 2.0 UDC
+is provided below).
+
+To solve the same, this patch makes 'videodev_init' as a subsys initcall.
+
+Kernel Crash Dump:
+------------------
+
+designware_udc designware_udc: Device Synopsys UDC probed csr 90810000: plug 90812000
+g_webcam gadget: uvc_function_bind
+Unable to handle kernel NULL pointer dereference at virtual address 000000e4
+pgd = 80004000
+[000000e4] *pgd=00000000
+Internal error: Oops: 5 [#1] SMP
+Modules linked in:
+CPU: 0    Not tainted  (3.3.0-rc3-13888-ge774c03-dirty #20)
+PC is at do_raw_spin_lock+0x10/0x16c
+LR is at _raw_spin_lock+0x10/0x14
+pc : [<8019e344>]    lr : [<804095c0>]    psr: 60000013
+sp : 8f839d20  ip : 8f839d50  fp : 8f839d4c
+r10: 80760a94  r9 : 8042de98  r8 : 00000154
+r7 : 80760e94  r6 : 805cfc10  r5 : 8fb6a008  r4 : 8fb6a008
+r3 : 805dd0c8  r2 : 8f839d48  r1 : 805cfc08  r0 : 000000e0
+Flags: nZCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment kernel
+Control: 10c5387d  Table: 0000404a  DAC: 00000015
+Process swapper/0 (pid: 1, stack limit = 0x8f8382f0)
+Stack: (0x8f839d20 to 0x8f83a000)
+9d20: ffffffff ffffffff 8fb6a008 8fb6a008 805cfc10 80760e94 00000154 8042de98
+9d40: 8f839d5c 8f839d50 804095c0 8019e340 8f839d7c 8f839d60 80222b28 804095bc
+9d60: 8fb12b80 8fb6a008 8fb6a010 805cfc08 8f839dc4 8f839d80 80223db8 80222adc
+9d80: 8f839dac 8f839d90 8022baa0 8019e2e8 8fb6a008 8075e7f4 8fb6a008 8fb6a008
+9da0: 00000000 8fb6a008 80760e94 00000154 8042de98 80760a94 8f839ddc 8f839dc8
+9dc0: 802242a8 80223d1c 8fb12b80 8fb6a000 8f839e1c 8f839de0 8030132c 80224298
+9de0: 80223ce8 803f2ee8 00000001 804f7750 8f839e1c 8f824008 805cff20 8f824000
+9e00: 8fb6a000 ffffffff 00000000 8f8d4880 8f839e4c 8f839e20 80562e3c 80301100
+9e20: 00000000 8fb13140 8f824008 805cff20 8042aa68 8f824000 8042aa8c 805e4d40
+9e40: 8f839e64 8f839e50 802d20c4 80562ba8 805d0058 805cff20 8f839e8c 8f839e68
+9e60: 80563034 802d206c 8042aa8c 805cff20 8f8d4880 00000000 805cfc08 8fb12a40
+9e80: 8f839e9c 8f839e90 805630c4 80562ec4 8f839ebc 8f839ea0 802d2364 805630b0
+9ea0: 805cfeac 8f8d4880 805cfbe8 807605e8 8f839ed4 8f839ec0 80562b3c 802d22cc
+9ec0: 80562ac4 8f8d4880 8f839f04 8f839ed8 802d0b40 80562ad0 8f839ef4 805cff90
+9ee0: 805cff90 805cfb98 00000000 00000000 805cfbe8 805e4d40 8f839f3c 8f839f08
+9f00: 802cd078 802d0a18 00000000 802d0a0c 00000000 8fb9ba00 802d0a0c 805cff90
+9f20: 00000013 00000000 00000000 805e4d40 8f839f5c 8f839f40 802cf390 802ccff0
+9f40: 00000003 00000003 804fb598 00000000 8f839f74 8f839f60 802d2554 802cf2a0
+9f60: 8f838000 8057731c 8f839f84 8f839f78 80562b90 802d24d0 8f839fdc 8f839f88
+9f80: 800085d4 80562b84 805af2ac 805af2ac 80562b78 00000000 00000013 00000000
+9fa0: 00000000 00000000 8f839fc4 8f839fb8 80043dd0 8057706c 8057731c 8002875c
+9fc0: 00000013 00000000 00000000 00000000 8f839ff4 8f839fe0 805468d4 800085a0
+9fe0: 00000000 80546840 00000000 8f839ff8 8002875c 8054684c 51155555 55545555
+Backtrace:
+[<8019e334>] (do_raw_spin_lock+0x0/0x16c) from [<804095c0>] (_raw_spin_lock+0x10/0x14)
+ r9:8042de98 r8:00000154 r7:80760e94 r6:805cfc10 r5:8fb6a008
+r4:8fb6a008
+[<804095b0>] (_raw_spin_lock+0x0/0x14) from [<80222b28>] (get_device_parent+0x58/0x1c0)
+[<80222ad0>] (get_device_parent+0x0/0x1c0) from [<80223db8>] (device_add+0xa8/0x57c)
+ r6:805cfc08 r5:8fb6a010 r4:8fb6a008 r3:8fb12b80
+[<80223d10>] (device_add+0x0/0x57c) from [<802242a8>] (device_register+0x1c/0x20)
+[<8022428c>] (device_register+0x0/0x20) from [<8030132c>] (__video_register_device+0x238/0x484)
+ r4:8fb6a000 r3:8fb12b80
+[<803010f4>] (__video_register_device+0x0/0x484) from [<80562e3c>] (uvc_function_bind+0x2a0/0x31c)
+[<80562b9c>] (uvc_function_bind+0x0/0x31c) from [<802d20c4>] (usb_add_function+0x64/0x118)
+[<802d2060>] (usb_add_function+0x0/0x118) from [<80563034>] (uvc_bind_config+0x17c/0x1ec)
+ r5:805cff20 r4:805d0058
+[<80562eb8>] (uvc_bind_config+0x0/0x1ec) from [<805630c4>] (webcam_config_bind+0x20/0x28)
+ r8:8fb12a40 r7:805cfc08 r6:00000000 r5:8f8d4880 r4:805cff20
+r3:8042aa8c
+[<805630a4>] (webcam_config_bind+0x0/0x28) from [<802d2364>] (usb_add_config+0xa4/0x124)
+[<802d22c0>] (usb_add_config+0x0/0x124) from [<80562b3c>] (webcam_bind+0x78/0xb4)
+ r6:807605e8 r5:805cfbe8 r4:8f8d4880 r3:805cfeac
+[<80562ac4>] (webcam_bind+0x0/0xb4) from [<802d0b40>] (composite_bind+0x134/0x308)
+ r4:8f8d4880 r3:80562ac4
+[<802d0a0c>] (composite_bind+0x0/0x308) from [<802cd078>] (dw_udc_start+0x94/0x2bc)
+[<802ccfe4>] (dw_udc_start+0x0/0x2bc) from [<802cf390>] (usb_gadget_probe_driver+0xfc/0x180)
+[<802cf294>] (usb_gadget_probe_driver+0x0/0x180) from [<802d2554>] (usb_composite_probe+0x90/0xb4)
+ r6:00000000 r5:804fb598 r4:00000003 r3:00000003
+[<802d24c4>] (usb_composite_probe+0x0/0xb4) from [<80562b90>] (webcam_init+0x18/0x24)
+ r5:8057731c r4:8f838000
+[<80562b78>] (webcam_init+0x0/0x24) from [<800085d4>] (do_one_initcall+0x40/0x184)
+[<80008594>] (do_one_initcall+0x0/0x184) from [<805468d4>] (kernel_init+0x94/0x134)
+[<80546840>] (kernel_init+0x0/0x134) from [<8002875c>] (do_exit+0x0/0x6f8)
+ r5:80546840 r4:00000000
+Code: e1a0c00d e92ddbf0 e24cb004 e24dd008 (e5902004)
+---[ end trace 7ecca37f36fbdc06 ]---
+Signed-off-by: Bhupesh Sharma <bhupesh.sharma@st.com>
 ---
- Documentation/DocBook/media/v4l/controls.xml       |   82 ++++++++++++++++++++
- .../DocBook/media/v4l/vidioc-g-ext-ctrls.xml       |    6 ++
- drivers/media/video/v4l2-ctrls.c                   |   13 +++
- include/linux/videodev2.h                          |    8 ++
- 4 files changed, 109 insertions(+), 0 deletions(-)
+ drivers/media/video/v4l2-dev.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
-index 2257db4..4ca03f1 100644
---- a/Documentation/DocBook/media/v4l/controls.xml
-+++ b/Documentation/DocBook/media/v4l/controls.xml
-@@ -3524,4 +3524,86 @@ interface and may change in the future.</para>
+diff --git a/drivers/media/video/v4l2-dev.c b/drivers/media/video/v4l2-dev.c
+index 96e9615..041804b 100644
+--- a/drivers/media/video/v4l2-dev.c
++++ b/drivers/media/video/v4l2-dev.c
+@@ -788,7 +788,7 @@ static void __exit videodev_exit(void)
+ 	unregister_chrdev_region(dev, VIDEO_NUM_DEVICES);
+ }
  
-     </section>
+-module_init(videodev_init)
++subsys_initcall(videodev_init);
+ module_exit(videodev_exit)
  
-+    <section id="image-process-controls">
-+      <title>Image Process Control Reference</title>
-+
-+      <note>
-+	<title>Experimental</title>
-+
-+	<para>This is an <link
-+	linkend="experimental">experimental</link> interface and may
-+	change in the future.</para>
-+      </note>
-+
-+      <para>
-+	The Image Source control class is intended for low-level control of
-+	image processing functions. Unlike
-+	<constant>V4L2_CID_IMAGE_SOURCE_CLASS</constant>, the controls in
-+	this class affect processing the image, and do not control capturing
-+	of it.
-+      </para>
-+
-+      <table pgwide="1" frame="none" id="image-process-control-id">
-+      <title>Image Source Control IDs</title>
-+
-+      <tgroup cols="4">
-+	<colspec colname="c1" colwidth="1*" />
-+	<colspec colname="c2" colwidth="6*" />
-+	<colspec colname="c3" colwidth="2*" />
-+	<colspec colname="c4" colwidth="6*" />
-+	<spanspec namest="c1" nameend="c2" spanname="id" />
-+	<spanspec namest="c2" nameend="c4" spanname="descr" />
-+	<thead>
-+	  <row>
-+	    <entry spanname="id" align="left">ID</entry>
-+	    <entry align="left">Type</entry>
-+	  </row><row rowsep="1"><entry spanname="descr" align="left">Description</entry>
-+	  </row>
-+	</thead>
-+	<tbody valign="top">
-+	  <row><entry></entry></row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_IMAGE_PROC_CLASS</constant></entry>
-+	    <entry>class</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="descr">The IMAGE_PROC class descriptor.</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_LINK_FREQ</constant></entry>
-+	    <entry>integer menu</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="descr">Data bus frequency. Together with the
-+	    media bus pixel code, bus type (clock cycles per sample), the
-+	    data bus frequency defines the pixel rate
-+	    (<constant>V4L2_CID_PIXEL_RATE</constant>) in the
-+	    pixel array (or possibly elsewhere, if the device is not an
-+	    image sensor). The frame rate can be calculated from the pixel
-+	    clock, image width and height and horizontal and vertical
-+	    blanking. While the pixel rate control may be defined elsewhere
-+	    than in the subdev containing the pixel array, the frame rate
-+	    cannot be obtained from that information. This is because only
-+	    on the pixel array it can be assumed that the vertical and
-+	    horizontal blanking information is exact: no other blanking is
-+	    allowed in the pixel array. The selection of frame rate is
-+	    performed by selecting the desired horizontal and vertical
-+	    blanking. The unit of this control is Hz. </entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_PIXEL_RATE</constant></entry>
-+	    <entry>64-bit integer</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="descr">Pixel rate in the source pads of
-+	    the subdev. This control is read-only and its unit is
-+	    pixels / second.
-+	    </entry>
-+	  </row>
-+	  <row><entry></entry></row>
-+	</tbody>
-+      </tgroup>
-+      </table>
-+
-+    </section>
- </section>
-diff --git a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
-index f420034..f41a2f5 100644
---- a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
-@@ -271,6 +271,12 @@ These controls are described in <xref
- 	    source controls. These controls are described in <xref
- 	    linkend="image-source-controls" />.</entry>
- 	  </row>
-+	  <row>
-+	    <entry><constant>V4L2_CTRL_CLASS_IMAGE_PROC</constant></entry>
-+	    <entry>0x9e0000</entry> <entry>The class containing image
-+	    processing controls. These controls are described in <xref
-+	    linkend="image-process-controls" />.</entry>
-+	  </row>
- 	</tbody>
-       </tgroup>
-     </table>
-diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
-index 3ca6bc7..1cbf97f 100644
---- a/drivers/media/video/v4l2-ctrls.c
-+++ b/drivers/media/video/v4l2-ctrls.c
-@@ -629,6 +629,11 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_HBLANK:			return "Horizontal Blanking";
- 	case V4L2_CID_ANALOGUE_GAIN:		return "Analogue Gain";
- 
-+	/* Image processing controls */
-+	case V4L2_CID_IMAGE_PROC_CLASS:		return "Image Processing Controls";
-+	case V4L2_CID_LINK_FREQ:		return "Link Frequency";
-+	case V4L2_CID_PIXEL_RATE:		return "Pixel Rate";
-+
- 	default:
- 		return NULL;
- 	}
-@@ -719,6 +724,9 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_MPEG_VIDEO_MPEG4_PROFILE:
- 		*type = V4L2_CTRL_TYPE_MENU;
- 		break;
-+	case V4L2_CID_LINK_FREQ:
-+		*type = V4L2_CTRL_TYPE_INTEGER_MENU;
-+		break;
- 	case V4L2_CID_RDS_TX_PS_NAME:
- 	case V4L2_CID_RDS_TX_RADIO_TEXT:
- 		*type = V4L2_CTRL_TYPE_STRING;
-@@ -729,6 +737,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_FM_TX_CLASS:
- 	case V4L2_CID_FLASH_CLASS:
- 	case V4L2_CID_IMAGE_SOURCE_CLASS:
-+	case V4L2_CID_IMAGE_PROC_CLASS:
- 		*type = V4L2_CTRL_TYPE_CTRL_CLASS;
- 		/* You can neither read not write these */
- 		*flags |= V4L2_CTRL_FLAG_READ_ONLY | V4L2_CTRL_FLAG_WRITE_ONLY;
-@@ -754,6 +763,10 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 		*type = V4L2_CTRL_TYPE_INTEGER64;
- 		*flags |= V4L2_CTRL_FLAG_READ_ONLY | V4L2_CTRL_FLAG_VOLATILE;
- 		break;
-+	case V4L2_CID_PIXEL_RATE:
-+		*type = V4L2_CTRL_TYPE_INTEGER64;
-+		*flags |= V4L2_CTRL_FLAG_READ_ONLY;
-+		break;
- 	default:
- 		*type = V4L2_CTRL_TYPE_INTEGER;
- 		break;
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index ca64202..f46350e 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -1137,6 +1137,7 @@ struct v4l2_ext_controls {
- #define V4L2_CTRL_CLASS_FM_TX 0x009b0000	/* FM Modulator control class */
- #define V4L2_CTRL_CLASS_FLASH 0x009c0000	/* Camera flash controls */
- #define V4L2_CTRL_CLASS_IMAGE_SOURCE 0x009d0000	/* Image source controls */
-+#define V4L2_CTRL_CLASS_IMAGE_PROC 0x009e0000	/* Image processing controls */
- 
- #define V4L2_CTRL_ID_MASK      	  (0x0fffffff)
- #define V4L2_CTRL_ID2CLASS(id)    ((id) & 0x0fff0000UL)
-@@ -1771,6 +1772,13 @@ enum v4l2_flash_strobe_source {
- #define V4L2_CID_HBLANK				(V4L2_CID_IMAGE_SOURCE_CLASS_BASE + 2)
- #define V4L2_CID_ANALOGUE_GAIN			(V4L2_CID_IMAGE_SOURCE_CLASS_BASE + 3)
- 
-+/* Image processing controls */
-+#define V4L2_CID_IMAGE_PROC_CLASS_BASE		(V4L2_CTRL_CLASS_IMAGE_PROC | 0x900)
-+#define V4L2_CID_IMAGE_PROC_CLASS		(V4L2_CTRL_CLASS_IMAGE_PROC | 1)
-+
-+#define V4L2_CID_LINK_FREQ			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 1)
-+#define V4L2_CID_PIXEL_RATE			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 2)
-+
- /*
-  *	T U N I N G
-  */
+ MODULE_AUTHOR("Alan Cox, Mauro Carvalho Chehab <mchehab@infradead.org>");
 -- 
-1.7.2.5
+1.7.2.2
 
