@@ -1,78 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:11513 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752662Ab2CKNu1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 11 Mar 2012 09:50:27 -0400
-Message-ID: <4F5CAD9A.5090000@redhat.com>
-Date: Sun, 11 Mar 2012 10:50:18 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from smtp2.infomaniak.ch ([84.16.68.90]:50154 "EHLO
+	smtp2.infomaniak.ch" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751239Ab2CLQJH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 12 Mar 2012 12:09:07 -0400
+Message-ID: <4F5E1DA6.8060006@deckpoint.ch>
+Date: Mon, 12 Mar 2012 17:00:38 +0100
+From: Thomas Kernen <tkernen@deckpoint.ch>
 MIME-Version: 1.0
-To: Andreas Regel <andreas.regel@gmx.de>
-CC: abraham.manu@gmail.com, linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/3] stv090x: Fix typo in register macros
-References: <4F4BEAAB.3000603@gmx.de>
-In-Reply-To: <4F4BEAAB.3000603@gmx.de>
-Content-Type: text/plain; charset=ISO-8859-15
+To: Christoph Pfister <christophpfister@gmail.com>,
+	Chris Rankin <rankincj@yahoo.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: Updated tuning file for Crystal Palace transmitter, UK
+References: <1329006214.67176.YahooMailNeo@web121704.mail.ne1.yahoo.com> <CAL7owaAYTBmdjcu+p6ibfep4WpefG_jA+TeJjViQ2aTcC_DY2w@mail.gmail.com>
+In-Reply-To: <CAL7owaAYTBmdjcu+p6ibfep4WpefG_jA+TeJjViQ2aTcC_DY2w@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 27-02-2012 17:42, Andreas Regel escreveu:
-> Fix typo in register macros of ERRCNT2.
+Any chance we can get more specific parameters for the T2 transmissions 
+than AUTO/AUTO/AUTO/AUTO/AUTO/AUTO?
 
-Patch is line-wrapped:
+It should be using UK Freeview Mode 6:
+QAM256, 32K, FEC=2/3, guard= 1/128
 
-patch -p1 -i patches/lmml_10078_1_3_stv090x_fix_typo_in_register_macros.patch --dry-run -t -N
-patching file drivers/media/dvb/frontends/stv090x.c
-patch: **** malformed patch at line 33: *fe, u32 *per)
+Chris can you confirm that is what you are seeing?
 
-Patch may be line wrapped
-patching file drivers/media/dvb/frontends/stv090x.c
-Hunk #1 FAILED at 3526.
-patch: **** malformed patch at line 34:  
+I seem to recall that some time ago we tired to enforce using the 
+specific tuning parameters for all the options.
 
-But, even fixing it, it still doesn't apply:
+Cheers,
+Thomas
 
-patch -p1 -i patches/lmml_10078_1_3_stv090x_fix_typo_in_register_macros.patch --dry-run -t -N
-patching file drivers/media/dvb/frontends/stv090x.c
-Hunk #1 FAILED at 3526.
-1 out of 1 hunk FAILED -- saving rejects to file drivers/media/dvb/frontends/stv090x.c.rej
-patching file drivers/media/dvb/frontends/stv090x_reg.h
-Hunk #1 FAILED at 2232.
-1 out of 1 hunk FAILED -- saving rejects to file drivers/media/dvb/frontends/stv090x_reg.h.rej
-
-
-> 
-> Signed-off-by: Andreas Regel <andreas.regel@gmx.de>
-> ---
->  drivers/media/dvb/frontends/stv090x.c     |    2 +-
->  drivers/media/dvb/frontends/stv090x_reg.h |    4 ++--
->  2 files changed, 3 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/media/dvb/frontends/stv090x.c b/drivers/media/dvb/frontends/stv090x.c
-> index 4aef187..6c3c095 100644
-> --- a/drivers/media/dvb/frontends/stv090x.c
-> +++ b/drivers/media/dvb/frontends/stv090x.c
-> @@ -3526,7 +3526,7 @@ static int stv090x_read_per(struct dvb_frontend *fe, u32 *per)
->      } else {
->          /* Counter 2 */
->          reg = STV090x_READ_DEMOD(state, ERRCNT22);
-> -        h = STV090x_GETFIELD_Px(reg, ERR_CNT2_FIELD);
-> +        h = STV090x_GETFIELD_Px(reg, ERR_CNT22_FIELD);
->           reg = STV090x_READ_DEMOD(state, ERRCNT21);
->          m = STV090x_GETFIELD_Px(reg, ERR_CNT21_FIELD);
-> diff --git a/drivers/media/dvb/frontends/stv090x_reg.h b/drivers/media/dvb/frontends/stv090x_reg.h
-> index 93741ee..26c8885 100644
-> --- a/drivers/media/dvb/frontends/stv090x_reg.h
-> +++ b/drivers/media/dvb/frontends/stv090x_reg.h
-> @@ -2232,8 +2232,8 @@
->  #define STV090x_P2_ERRCNT22                STV090x_Px_ERRCNT22(2)
->  #define STV090x_OFFST_Px_ERRCNT2_OLDVALUE_FIELD        7
->  #define STV090x_WIDTH_Px_ERRCNT2_OLDVALUE_FIELD        1
-> -#define STV090x_OFFST_Px_ERR_CNT2_FIELD            0
-> -#define STV090x_WIDTH_Px_ERR_CNT2_FIELD            7
-> +#define STV090x_OFFST_Px_ERR_CNT22_FIELD        0
-> +#define STV090x_WIDTH_Px_ERR_CNT22_FIELD        7
->   #define STV090x_Px_ERRCNT21(__x)            (0xF59E - (__x - 1) * 0x200)
->  #define STV090x_P1_ERRCNT21                STV090x_Px_ERRCNT21(1)
+On 3/10/12 3:18 PM, Christoph Pfister wrote:
+> Updated, thanks.
+>
+> Christoph
+>
+>
+> Am 12. Februar 2012 01:23 schrieb Chris Rankin<rankincj@yahoo.com>:
+>> Hi,
+>>
+>> The UK's Crystal Palace transmitter supports DVB-T2, so here's an updated tuning file.
+>>
+>> Cheers,
+>> Chris
+>>
+>> #------------------------------------------------------------------------------
+>> # file automatically generated by w_scan
+>> # (http://wirbel.htpc-forum.de/w_scan/index2.html)
+>> #!<w_scan>  20120112 1 0 TERRESTRIAL GB</w_scan>
+>> #------------------------------------------------------------------------------
+>> # location and provider: Crystal Palace, UK
+>> # date (yyyy-mm-dd)    : 2012-02-12
+>> #
+>> # T[2] [plp_id] [system_id]<freq>  <bw>  <fec_hi>  <fec_lo>  <mod>  <tm>  <guard>  <hi>  [# comment]
+>> #------------------------------------------------------------------------------
+>> T 481833330 8MHz  2/3 NONE    QAM64   2k 1/32 NONE    # London.
+>> T 537833330 8MHz  3/4 NONE    QAM16   2k 1/32 NONE    # London.
+>> T 505833330 8MHz  3/4 NONE    QAM16   2k 1/32 NONE    # London.
+>> T 561833330 8MHz  2/3 NONE    QAM64   2k 1/32 NONE    # London.
+>> T 529833330 8MHz  3/4 NONE    QAM16   2k 1/32 NONE    # London.
+>> T 578166670 8MHz  3/4 NONE    QAM16   2k 1/32 NONE    # London.
+>> T2 0 16435 554000000 8MHz AUTO AUTO     AUTO AUTO AUTO AUTO    # London.
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
