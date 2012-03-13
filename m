@@ -1,106 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.26]:60752 "EHLO mgw-da02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932375Ab2CBRcz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 2 Mar 2012 12:32:55 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, dacohen@gmail.com,
-	snjw23@gmail.com, andriy.shevchenko@linux.intel.com,
-	t.stanislaws@samsung.com, tuukkat76@gmail.com,
-	k.debski@samsung.com, riverful@gmail.com, hverkuil@xs4all.nl,
-	teturtia@gmail.com
-Subject: [PATCH v4 14/34] v4l: Add DPCM compressed formats
-Date: Fri,  2 Mar 2012 19:30:22 +0200
-Message-Id: <1330709442-16654-14-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <20120302173219.GA15695@valkosipuli.localdomain>
-References: <20120302173219.GA15695@valkosipuli.localdomain>
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:47368 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755143Ab2CMPWj convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 13 Mar 2012 11:22:39 -0400
+Received: by eekc41 with SMTP id c41so308428eek.19
+        for <linux-media@vger.kernel.org>; Tue, 13 Mar 2012 08:22:37 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <loom.20120307T170824-19@post.gmane.org>
+References: <4EF67721.9050102@unixsol.org>
+	<4EF6DD91.2030800@iki.fi>
+	<4EF6F84C.3000307@redhat.com>
+	<CAF0Ff2kkFJYLUjVdmV9d9aWTsi-2ZHHEEjLrVSTCUnP+VTyxRg@mail.gmail.com>
+	<4EF7066C.4070806@redhat.com>
+	<loom.20111227T105753-96@post.gmane.org>
+	<CAF0Ff2mf0tYs3UG3M6Cahep+_kMToVaGgPhTqR7zhRG0UXWuig@mail.gmail.com>
+	<85A7A8FC-150C-4463-B09C-85EED6F851A8@cosy.sbg.ac.at>
+	<CAF0Ff2ncv0PJWSOOw=7WeGyqX3kKiQitY52uEOztfC8Bwj6LgQ@mail.gmail.com>
+	<CAB0B130-3B08-41B4-920A-C54058C43AEE@cosy.sbg.ac.at>
+	<CAF0Ff2kF3VCL4PomOo5zBBrZSPmPvGd9qSZ+XwSp7ALJmq3+kw@mail.gmail.com>
+	<78E6697C-BD32-4062-BC2C-A5F7D0CBD79C@cosy.sbg.ac.at>
+	<CAF0Ff2nCz114LEJFRXy+L7Yq-uD4+sJeHOzNSk=28V_qgbta7A@mail.gmail.com>
+	<loom.20120307T170824-19@post.gmane.org>
+Date: Tue, 13 Mar 2012 17:22:37 +0200
+Message-ID: <CAF0Ff2n1wj5LTu935sR6jxYP8ncHHEA=f6urs8+QKcD2Zd04zg@mail.gmail.com>
+Subject: Re: DVB-S2 multistream support
+From: Konstantin Dimitrov <kosio.dimitrov@gmail.com>
+To: Bob Winslow <bob.news@non-elite.com>
+Cc: linux-media@vger.kernel.org,
+	=?ISO-8859-1?Q?Christian_Pr=E4hauser?= <cpraehaus@cosy.sbg.ac.at>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add three other colour orders for 10-bit to 8-bit DPCM compressed formats.
+hi Bob,
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
----
- Documentation/DocBook/media/v4l/pixfmt-srggb10.xml |    2 +-
- .../DocBook/media/v4l/pixfmt-srggb10dpcm8.xml      |   29 ++++++++++++++++++++
- Documentation/DocBook/media/v4l/pixfmt.xml         |    1 +
- include/linux/videodev2.h                          |    3 ++
- 4 files changed, 34 insertions(+), 1 deletions(-)
- create mode 100644 Documentation/DocBook/media/v4l/pixfmt-srggb10dpcm8.xml
+all work to support BBFrames in the Linux kernel is done by Christian
+- in fact it's a long lost work from 5 years ago:
 
-diff --git a/Documentation/DocBook/media/v4l/pixfmt-srggb10.xml b/Documentation/DocBook/media/v4l/pixfmt-srggb10.xml
-index 7b27409..c1c62a9 100644
---- a/Documentation/DocBook/media/v4l/pixfmt-srggb10.xml
-+++ b/Documentation/DocBook/media/v4l/pixfmt-srggb10.xml
-@@ -1,4 +1,4 @@
--    <refentry>
-+    <refentry id="pixfmt-srggb10">
-       <refmeta>
- 	<refentrytitle>V4L2_PIX_FMT_SRGGB10 ('RG10'),
- 	 V4L2_PIX_FMT_SGRBG10 ('BA10'),
-diff --git a/Documentation/DocBook/media/v4l/pixfmt-srggb10dpcm8.xml b/Documentation/DocBook/media/v4l/pixfmt-srggb10dpcm8.xml
-new file mode 100644
-index 0000000..40455f1
---- /dev/null
-+++ b/Documentation/DocBook/media/v4l/pixfmt-srggb10dpcm8.xml
-@@ -0,0 +1,29 @@
-+    <refentry>
-+      <refmeta>
-+	<refentrytitle>
-+	 V4L2_PIX_FMT_SRGGB10DPCM8 ('bBA8'),
-+	 V4L2_PIX_FMT_SGBRG10DPCM8 ('bGA8'),
-+	 V4L2_PIX_FMT_SGRBG10DPCM8 ('BD10'),
-+	 V4L2_PIX_FMT_SBGGR10DPCM8 ('bRA8'),
-+	 </refentrytitle>
-+	&manvol;
-+      </refmeta>
-+      <refnamediv>
-+	<refname id="V4L2-PIX-FMT-SRGGB10DPCM8"><constant>V4L2_PIX_FMT_SRGGB10DPCM8</constant></refname>
-+	<refname id="V4L2-PIX-FMT-SGRBG10DPCM8"><constant>V4L2_PIX_FMT_SGRBG10DPCM8</constant></refname>
-+	<refname id="V4L2-PIX-FMT-SGBRG10DPCM8"><constant>V4L2_PIX_FMT_SGBRG10DPCM8</constant></refname>
-+	<refname id="V4L2-PIX-FMT-SBGGR10DPCM8"><constant>V4L2_PIX_FMT_SBGGR10DPCM8</constant></refname>
-+	<refpurpose>10-bit Bayer formats compressed to 8 bits</refpurpose>
-+      </refnamediv>
-+      <refsect1>
-+	<title>Description</title>
-+
-+	<para>The following four pixel formats are raw sRGB / Bayer formats
-+	with 10 bits per colour compressed to 8 bits each, using DPCM
-+	compression. DPCM, differential pulse-code modulation, is lossy.
-+	Each colour component consumes 8 bits of memory. In other respects
-+	this format is similar to <xref
-+	linkend="pixfmt-srggb10">.</xref></para>
-+
-+      </refsect1>
-+    </refentry>
-diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
-index 31eaae2..74d4fcd 100644
---- a/Documentation/DocBook/media/v4l/pixfmt.xml
-+++ b/Documentation/DocBook/media/v4l/pixfmt.xml
-@@ -673,6 +673,7 @@ access the palette, this must be done with ioctls of the Linux framebuffer API.<
-     &sub-srggb8;
-     &sub-sbggr16;
-     &sub-srggb10;
-+    &sub-srggb10dpcm8;
-     &sub-srggb12;
-   </section>
- 
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index f46350e..76f3153 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -378,7 +378,10 @@ struct v4l2_pix_format {
- #define V4L2_PIX_FMT_SGRBG12 v4l2_fourcc('B', 'A', '1', '2') /* 12  GRGR.. BGBG.. */
- #define V4L2_PIX_FMT_SRGGB12 v4l2_fourcc('R', 'G', '1', '2') /* 12  RGRG.. GBGB.. */
- 	/* 10bit raw bayer DPCM compressed to 8 bits */
-+#define V4L2_PIX_FMT_SBGGR10DPCM8 v4l2_fourcc('b', 'B', 'A', '8')
-+#define V4L2_PIX_FMT_SGBRG10DPCM8 v4l2_fourcc('b', 'G', 'A', '8')
- #define V4L2_PIX_FMT_SGRBG10DPCM8 v4l2_fourcc('B', 'D', '1', '0')
-+#define V4L2_PIX_FMT_SRGGB10DPCM8 v4l2_fourcc('b', 'R', 'A', '8')
- 	/*
- 	 * 10bit raw bayer, expanded to 16 bits
- 	 * xxxxrrrrrrrrrrxxxxgggggggggg xxxxggggggggggxxxxbbbbbbbbbb...
--- 
-1.7.2.5
+http://www.linuxtv.org/pipermail/linux-dvb/2007-December/022217.html
 
+and i hope it won't be lost again. i just encouraged Christian that
+his work is important and there are people interested in it - you're
+one such example. so, i offered Christian to help him with i can. i
+guess more people appreciating what his doing and encourage him will
+give him better motivation to release the code to the public. however,
+i guess the delay is more, because it's not easy and it requires time
+to prepare the code for initial public release and that's why the
+delay. so, i don't have Christian's code and i'm eager as you're to be
+able to try it out, but we need to be patient. i'm sure that after
+there is some public release and repository more people will be
+interested to contribute to that work.
+
+best regards,
+konstantin
+
+On Wed, Mar 7, 2012 at 6:33 PM, Bob Winslow <bob.news@non-elite.com> wrote:
+>
+>> that's really great news! i'm looking forward to look at the code when
+>> the public repository is ready. i'm sure i'm not the only one and the
+>> news would be especially exciting for TBS 6925 owners, which use
+>> Linux, but it's away beyond that, because the real news here is
+>> working base-band support in 'dvb-core' of V4L. also, it's really good
+>> that SAA716x code seems to just work with BBFrames and no further
+>> changes are required there.
+>>
+>
+> Hi Christian, Konstantin,
+>
+>
+>  Well, my TBS 6925 just came in the mail yesterday and I am excited to plug it
+> in and start playing with it.  Your work on the bb-demux looks like a good place
+> to start playing with the card under linux.
+>
+>  Have you setup a public repo yet for the band band support (bb-demux) ?
+>
+> Also, I downloaded the linux drivers for the card from the TBS dtv site, and put
+> them on my ubuntu 11.10 pc.  They seem to work.   Is this the best place to get
+> drivers for the card??  the front end driver files seem to be just .o's and the
+> source is not in the tarball.
+>
+> Sorry, I'm a bit new to the dvb world and I am still learning where to find
+> stuff.  Any pointers/help to finding the latest code/drivers would be very much
+> appreciated.
+>
+>
+> Kind regards,
+>
+>  Bob
+>
+>
+>
+>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
