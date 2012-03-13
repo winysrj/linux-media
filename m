@@ -1,57 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:34122 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755259Ab2C1THs (ORCPT
+Received: from smtp1.infomaniak.ch ([84.16.68.89]:57402 "EHLO
+	smtp1.infomaniak.ch" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755015Ab2CMQkF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Mar 2012 15:07:48 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Michael Jones <michael.jones@matrix-vision.de>
-Cc: linux-media ML <linux-media@vger.kernel.org>
-Subject: Re: reading config parameters of omap3-isp subdevs
-Date: Wed, 28 Mar 2012 17:54:12 +0200
-Message-ID: <2457237.l62XdFKgLK@avalon>
-In-Reply-To: <4F6856C0.4070404@matrix-vision.de>
-References: <4F6348D7.9070409@matrix-vision.de> <6085689.3CUf0tMs8E@avalon> <4F6856C0.4070404@matrix-vision.de>
+	Tue, 13 Mar 2012 12:40:05 -0400
+Message-ID: <4F5F7860.6070408@deckpoint.ch>
+Date: Tue, 13 Mar 2012 17:40:00 +0100
+From: Thomas Kernen <tkernen@deckpoint.ch>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Chris Rankin <rankincj@yahoo.com>
+CC: Christoph Pfister <christophpfister@gmail.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: Updated tuning file for Crystal Palace transmitter, UK
+References: <1329006214.67176.YahooMailNeo@web121704.mail.ne1.yahoo.com> <CAL7owaAYTBmdjcu+p6ibfep4WpefG_jA+TeJjViQ2aTcC_DY2w@mail.gmail.com> <4F5E1DA6.8060006@deckpoint.ch> <1331569768.46549.YahooMailNeo@web121702.mail.ne1.yahoo.com>
+In-Reply-To: <1331569768.46549.YahooMailNeo@web121702.mail.ne1.yahoo.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Michael,
 
-On Tuesday 20 March 2012 11:06:56 Michael Jones wrote:
-> On 03/20/2012 12:22 AM, Laurent Pinchart wrote:
-> > On Friday 16 March 2012 15:06:15 Michael Jones wrote:
-> [snip]
-> 
-> > Adding a R/W bit to the flag argument should indeed work. However, I'm
-> > wondering what your use case for reading parameters back is.
-> 
-> The simplest use case in my mind is that after the user has fiddled around
-> with config parameters, they should be able to set them back to their
-> original state. For that, they need to know what the original state was.
-> 
-> > The preview engine parameter structures seem pretty-much self-contained to
-> > me, I'm not sure it would make sense to only modify one of the parameters.
-> 
-> Why doesn't it make sense to write to only e.g. 'COEF3' in the PRV_WBGAIN
-> register? Especially considering the sparse documentation of many of these
-> registers, I would like to be able to tweak the existing parameters from
-> their defaults, rather than start from scratch.
+I'm surprised that it is providing you with AUTO values, if you look at 
+most other entries for tuning files, everything is clearly marked and 
+there are (virtually?) no AUTO parameters in use. The whole point being 
+that we remove the guessing.
 
-Because configuring white balance requires modifying all the coefficients.
+I'll update it next time I'm in the London area and have some time to 
+generate the output.
 
-I agree that querying the default parameters can be useful for experimentation 
-purpose, although in that case you could just have a look at the driver source 
-code ;-) I've sent a patch that modifies the way the preview engine handles 
-the configuration process to the linux-media mailing list. I could try 
-implementing read access on top of that, but I'm not sure when I'll have time 
-to do so. If you want to give it a try, I'll review your code :-) Be careful 
-of the race conditions, they're not trivial.
+Cheers,
+Thomas
 
--- 
-Regards,
-
-Laurent Pinchart
+On 3/12/12 5:29 PM, Chris Rankin wrote:
+> I am only reporting the output from w_scan. To be honest, I'm concerned
+> that more "precise" information might do more harm than good; more DVB
+> tuners seem to understand AUTO than QAM256, for example.
+>
+> Cheers,
+> Chris
+>
+> ------------------------------------------------------------------------
+> *From:* Thomas Kernen <tkernen@deckpoint.ch>
+> *To:* Christoph Pfister <christophpfister@gmail.com>; Chris Rankin
+> <rankincj@yahoo.com>
+> *Cc:* "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+> *Sent:* Monday, 12 March 2012, 16:00
+> *Subject:* Re: Updated tuning file for Crystal Palace transmitter, UK
+>
+> Any chance we can get more specific parameters for the T2 transmissions
+> than AUTO/AUTO/AUTO/AUTO/AUTO/AUTO?
+>
+> It should be using UK Freeview Mode 6:
+> QAM256, 32K, FEC=2/3, guard= 1/128
+>
+> Chris can you confirm that is what you are seeing?
+>
+> I seem to recall that some time ago we tired to enforce using the
+> specific tuning parameters for all the options.
+>
+> Cheers,
+> Thomas
+>
+> On 3/10/12 3:18 PM, Christoph Pfister wrote:
+>  > Updated, thanks.
+>  >
+>  > Christoph
+>  >
+>  >
+>  > Am 12. Februar 2012 01:23 schrieb Chris Rankin<rankincj@yahoo.com
+> <mailto:rankincj@yahoo.com>>:
+>  >> Hi,
+>  >>
+>  >> The UK's Crystal Palace transmitter supports DVB-T2, so here's an
+> updated tuning file.
+>  >>
+>  >> Cheers,
+>  >> Chris
+>  >>
+>  >>
+> #------------------------------------------------------------------------------
+>  >> # file automatically generated by w_scan
+>  >> # (http://wirbel.htpc-forum.de/w_scan/index2.html)
+>  >> #!<w_scan> 20120112 1 0 TERRESTRIAL GB</w_scan>
+>  >>
+> #------------------------------------------------------------------------------
+>  >> # location and provider: Crystal Palace, UK
+>  >> # date (yyyy-mm-dd) : 2012-02-12
+>  >> #
+>  >> # T[2] [plp_id] [system_id]<freq> <bw> <fec_hi> <fec_lo> <mod> <tm>
+> <guard> <hi> [# comment]
+>  >>
+> #------------------------------------------------------------------------------
+>  >> T 481833330 8MHz 2/3 NONE QAM64 2k 1/32 NONE # London.
+>  >> T 537833330 8MHz 3/4 NONE QAM16 2k 1/32 NONE # London.
+>  >> T 505833330 8MHz 3/4 NONE QAM16 2k 1/32 NONE # London.
+>  >> T 561833330 8MHz 2/3 NONE QAM64 2k 1/32 NONE # London.
+>  >> T 529833330 8MHz 3/4 NONE QAM16 2k 1/32 NONE # London.
+>  >> T 578166670 8MHz 3/4 NONE QAM16 2k 1/32 NONE # London.
+>  >> T2 0 16435 554000000 8MHz AUTO AUTO AUTO AUTO AUTO AUTO # London.
+>  >> --
+>  >> To unsubscribe from this list: send the line "unsubscribe
+> linux-media" in
+>  >> the body of a message to majordomo@vger.kernel.org
+> <mailto:majordomo@vger.kernel.org>
+>  >> More majordomo info at http://vger.kernel.org/majordomo-info.html
+>  > --
+>  > To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>  > the body of a message to majordomo@vger.kernel.org
+> <mailto:majordomo@vger.kernel.org>
+>  > More majordomo info at http://vger.kernel.org/majordomo-info.html
+>
+>
+>
 
