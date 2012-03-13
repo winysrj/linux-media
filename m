@@ -1,68 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:39114 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965023Ab2CUG4h (ORCPT
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:65208 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751867Ab2CMTbr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Mar 2012 02:56:37 -0400
-Subject: [PATCH 05/16] mm/drivers: use vm_flags_t for vma flags
-To: Andrew Morton <akpm@linux-foundation.org>
-From: Konstantin Khlebnikov <khlebnikov@openvz.org>
-Cc: devel@driverdev.osuosl.org,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	linux-kernel@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-mm@kvack.org,
-	Arve =?utf-8?b?SGrDuG5uZXbDpWc=?= <arve@android.com>,
-	John Stultz <john.stultz@linaro.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org
-Date: Wed, 21 Mar 2012 10:56:33 +0400
-Message-ID: <20120321065633.13852.11903.stgit@zurg>
-In-Reply-To: <20120321065140.13852.52315.stgit@zurg>
-References: <20120321065140.13852.52315.stgit@zurg>
+	Tue, 13 Mar 2012 15:31:47 -0400
+Received: by iagz16 with SMTP id z16so1178053iag.19
+        for <linux-media@vger.kernel.org>; Tue, 13 Mar 2012 12:31:47 -0700 (PDT)
+Date: Tue, 13 Mar 2012 12:31:43 -0700
+From: Greg KH <gregkh@linuxfoundation.org>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: stable@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH - stable v3.2] omap3isp: ccdc: Fix crash in HS/VS
+ interrupt handler
+Message-ID: <20120313193143.GB8568@kroah.com>
+References: <1331467663-3735-1-git-send-email-laurent.pinchart@ideasonboard.com>
+ <20120313180753.GA29074@kroah.com>
+ <3242481.khdzXh3pyH@avalon>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <3242481.khdzXh3pyH@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Konstantin Khlebnikov <khlebnikov@openvz.org>
-Cc: linux-media@vger.kernel.org
-Cc: devel@driverdev.osuosl.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: John Stultz <john.stultz@linaro.org>
-Cc: "Arve Hjønnevåg" <arve@android.com>
----
- drivers/media/video/omap3isp/ispqueue.h |    2 +-
- drivers/staging/android/ashmem.c        |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+On Tue, Mar 13, 2012 at 07:20:11PM +0100, Laurent Pinchart wrote:
+> Hi Greg,
+> 
+> On Tuesday 13 March 2012 11:07:53 Greg KH wrote:
+> > On Sun, Mar 11, 2012 at 01:07:43PM +0100, Laurent Pinchart wrote:
+> > > The HS/VS interrupt handler needs to access the pipeline object. It
+> > > erronously tries to get it from the CCDC output video node, which isn't
+> > > necessarily included in the pipeline. This leads to a NULL pointer
+> > > dereference.
+> > > 
+> > > Fix the bug by getting the pipeline object from the CCDC subdev entity.
+> > > 
+> > > The upstream commit ID is bcf45117d10140852fcdc2bfd36221dc8b996025.
+> > 
+> > In what tree?  I don't see that id in Linus's tree, are you sure you got
+> > it correct?
+> > 
+> > confused,
+> 
+> I must have been confused as well :-/
+> 
+> The upstream commit ID is bd0f2e6da7ea9e225cb2dbd3229e25584b0e9538. Sorry for 
+> the mistake.
 
-diff --git a/drivers/media/video/omap3isp/ispqueue.h b/drivers/media/video/omap3isp/ispqueue.h
-index 92c5a12..908dfd7 100644
---- a/drivers/media/video/omap3isp/ispqueue.h
-+++ b/drivers/media/video/omap3isp/ispqueue.h
-@@ -90,7 +90,7 @@ struct isp_video_buffer {
- 	void *vaddr;
- 
- 	/* For userspace buffers. */
--	unsigned long vm_flags;
-+	vm_flags_t vm_flags;
- 	unsigned long offset;
- 	unsigned int npages;
- 	struct page **pages;
-diff --git a/drivers/staging/android/ashmem.c b/drivers/staging/android/ashmem.c
-index 9f1f27e..4511420 100644
---- a/drivers/staging/android/ashmem.c
-+++ b/drivers/staging/android/ashmem.c
-@@ -269,7 +269,7 @@ out:
- 	return ret;
- }
- 
--static inline unsigned long calc_vm_may_flags(unsigned long prot)
-+static inline vm_flags_t calc_vm_may_flags(unsigned long prot)
- {
- 	return _calc_vm_trans(prot, PROT_READ,  VM_MAYREAD) |
- 	       _calc_vm_trans(prot, PROT_WRITE, VM_MAYWRITE) |
+No problem, now queued up, thanks.
 
+greg k-h
