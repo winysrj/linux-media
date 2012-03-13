@@ -1,43 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f174.google.com ([209.85.217.174]:34087 "EHLO
-	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753420Ab2CROtK (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:44451 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758729Ab2CMSTr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 18 Mar 2012 10:49:10 -0400
-Received: by lbbgm6 with SMTP id gm6so2815035lbb.19
-        for <linux-media@vger.kernel.org>; Sun, 18 Mar 2012 07:49:08 -0700 (PDT)
-Message-ID: <4F65F5E2.2030302@gmail.com>
-Date: Sun, 18 Mar 2012 15:49:06 +0100
-From: =?ISO-8859-1?Q?Roger_M=E5rtensson?= <roger.martensson@gmail.com>
+	Tue, 13 Mar 2012 14:19:47 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Greg KH <gregkh@linuxfoundation.org>
+Cc: stable@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH - stable v3.2] omap3isp: ccdc: Fix crash in HS/VS interrupt handler
+Date: Tue, 13 Mar 2012 19:20:11 +0100
+Message-ID: <3242481.khdzXh3pyH@avalon>
+In-Reply-To: <20120313180753.GA29074@kroah.com>
+References: <1331467663-3735-1-git-send-email-laurent.pinchart@ideasonboard.com> <20120313180753.GA29074@kroah.com>
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Terratec H7(az6007), CI support and Kaffeine
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello!
+Hi Greg,
 
-This mail is a small request to see if anyone else except me that has 
-problem with viewing encrypted channels.
+On Tuesday 13 March 2012 11:07:53 Greg KH wrote:
+> On Sun, Mar 11, 2012 at 01:07:43PM +0100, Laurent Pinchart wrote:
+> > The HS/VS interrupt handler needs to access the pipeline object. It
+> > erronously tries to get it from the CCDC output video node, which isn't
+> > necessarily included in the pipeline. This leads to a NULL pointer
+> > dereference.
+> > 
+> > Fix the bug by getting the pipeline object from the CCDC subdev entity.
+> > 
+> > The upstream commit ID is bcf45117d10140852fcdc2bfd36221dc8b996025.
+> 
+> In what tree?  I don't see that id in Linus's tree, are you sure you got
+> it correct?
+> 
+> confused,
 
-My problem is as follows:
-When viewing encrypted channels I can watch without problem.
-When I change to another encrypted channel inside kaffeine nothing 
-happens. The EPG tells me which program it is but no video is displayed.
+I must have been confused as well :-/
 
-To be able to watch the channel I have to close down kaffeine and 
-restart it. Then works every time.
+The upstream commit ID is bd0f2e6da7ea9e225cb2dbd3229e25584b0e9538. Sorry for 
+the mistake.
 
-I can change to an unencrypted channel without problem but not switch 
-back to an encrypted one.
+-- 
+Regards,
 
-This is using DVB-C and kaffeine 1.2.2 as supplied in Ubuntu 11.10. I am 
-using kernel 3.0.0-16-generic with media_build installed for access to 
-az6007-driver.
+Laurent Pinchart
 
-I am using the CI-patch from Jose Alberto Reguero since I'm not sure it 
-has been added to media_build yet.
-
-Is this a Kaffeine-problem or is it a driver/dvb-problem?
