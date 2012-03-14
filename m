@@ -1,93 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-1-out2.atlantis.sk ([80.94.52.71]:37674 "EHLO
-	mail.atlantis.sk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1759139Ab2CVSxm (ORCPT
+Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:35586 "EHLO
+	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1761145Ab2CNRpd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Mar 2012 14:53:42 -0400
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH v2 2/2] [resend] radio-gemtek: add PnP support for AOpen FX-3D/Pro Radio
-Cc: linux-media@vger.kernel.org
-Content-Disposition: inline
-From: Ondrej Zary <linux@rainbow-software.org>
-Date: Thu, 22 Mar 2012 19:53:29 +0100
+	Wed, 14 Mar 2012 13:45:33 -0400
+Received: by lahj13 with SMTP id j13so1674189lah.19
+        for <linux-media@vger.kernel.org>; Wed, 14 Mar 2012 10:45:31 -0700 (PDT)
+Message-ID: <4F60D934.7040006@gmail.com>
+Date: Wed, 14 Mar 2012 18:45:24 +0100
+From: =?ISO-8859-1?Q?Roger_M=E5rtensson?= <roger.martensson@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201203221953.31823.linux@rainbow-software.org>
+To: Jose Alberto Reguero <jareguero@telefonica.net>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] Add CI support to az6007 driver
+References: <1577059.kW45pXQ20M@jar7.dominio> <4F552548.4000304@gmail.com> <1436129.Xg0ZNGxkxn@jar7.dominio> <4F57B520.9070607@gmail.com>
+In-Reply-To: <4F57B520.9070607@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add PnP support to radio-gemtek for AOpen FX-3D/Pro Radio card
-(AD1816 + Gemtek radio).
+Hello!
 
-Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
+Sorry for the top post but this is just to check with you if you have 
+experienced the same problem that I have. See below with some additional 
+comments.
 
-diff --git a/drivers/media/radio/radio-gemtek.c b/drivers/media/radio/radio-gemtek.c
-index 9d7fdae..235c0e3 100644
---- a/drivers/media/radio/radio-gemtek.c
-+++ b/drivers/media/radio/radio-gemtek.c
-@@ -29,6 +29,8 @@
- #include <linux/videodev2.h>	/* kernel radio structs		*/
- #include <linux/mutex.h>
- #include <linux/io.h>		/* outb, outb_p			*/
-+#include <linux/pnp.h>
-+#include <linux/slab.h>
- #include <media/v4l2-ioctl.h>
- #include <media/v4l2-device.h>
- #include "radio-isa.h"
-@@ -282,6 +284,16 @@ static const struct radio_isa_ops gemtek_ops = {
- 
- static const int gemtek_ioports[] = { 0x20c, 0x30c, 0x24c, 0x34c, 0x248, 0x28c };
- 
-+#ifdef CONFIG_PNP
-+static struct pnp_device_id gemtek_pnp_devices[] = {
-+	/* AOpen FX-3D/Pro Radio */
-+	{.id = "ADS7183", .driver_data = 0},
-+	{.id = ""}
-+};
-+
-+MODULE_DEVICE_TABLE(pnp, gemtek_pnp_devices);
-+#endif
-+
- static struct radio_isa_driver gemtek_driver = {
- 	.driver = {
- 		.match		= radio_isa_match,
-@@ -291,6 +303,14 @@ static struct radio_isa_driver gemtek_driver = {
- 			.name	= "radio-gemtek",
- 		},
- 	},
-+#ifdef CONFIG_PNP
-+	.pnp_driver = {
-+		.name		= "radio-gemtek",
-+		.id_table	= gemtek_pnp_devices,
-+		.probe		= radio_isa_pnp_probe,
-+		.remove		= radio_isa_pnp_remove,
-+	},
-+#endif
- 	.io_params = io,
- 	.radio_nr_params = radio_nr,
- 	.io_ports = gemtek_ioports,
-@@ -304,12 +324,18 @@ static struct radio_isa_driver gemtek_driver = {
- static int __init gemtek_init(void)
- {
- 	gemtek_driver.probe = probe;
-+#ifdef CONFIG_PNP
-+	pnp_register_driver(&gemtek_driver.pnp_driver);
-+#endif
- 	return isa_register_driver(&gemtek_driver.driver, GEMTEK_MAX);
- }
- 
- static void __exit gemtek_exit(void)
- {
- 	hardmute = 1;	/* Turn off PLL */
-+#ifdef CONFIG_PNP
-+	pnp_unregister_driver(&gemtek_driver.pnp_driver);
-+#endif
- 	isa_unregister_driver(&gemtek_driver.driver);
- }
- 
+Roger Mårtensson skrev 2012-03-07 20:21:
+> Jose Alberto Reguero skrev 2012-03-06 00:23:
+>> On Lunes, 5 de marzo de 2012 21:42:48 Roger Mårtensson escribió:
+>>
+>> No. I tested the patch with DVB-T an watch encrypted channels with 
+>> vdr without
+>> problems. I don't know why you can't. I don't know gnutv. Try with other
+>> software if you want.
+>
+> I have done some more testing and it works.. Sort of. :-)
+>
+> First let me walk through the dmesg.
+>
+> First I reinsert the CAM-card:
+>
+> Mar  7 20:12:36 tvpc kernel: [  959.717666] dvb_ca adapter 2: DVB CAM 
+> detected and initialised successfully
+>
+> The next lines are when I start Kaffeine. Kaffeine gets a lock on the 
+> encrypted channel and starts viewing it.
+>
+> Mar  7 20:13:02 tvpc kernel: [  986.359195] mt2063: detected a mt2063 B3
+> Mar  7 20:13:03 tvpc kernel: [  987.368964] drxk: SCU_RESULT_INVPAR 
+> while sending cmd 0x0203 with params:
+> Mar  7 20:13:03 tvpc kernel: [  987.368974] drxk: 02 00 00 00 10 00 05 
+> 00 03 02                    ..........
+> Mar  7 20:13:06 tvpc kernel: [  990.286628] dvb_ca adapter 2: DVB CAM 
+> detected and initialised successfully
+>
+> And now my "sort of"-comment. When I change the to another encrypted 
+> channel in kaffeine I get nothing. To be able to view this channel I 
+> need to restart kaffeine.
+>
+> The only thing that seems different in the logs are that when 
+> restarting kaffeine I get the "CAM detected and initialised" but when 
+> changing channels I do not get that line.
+>
+> Maybe there should be another reinit of the CAM somewhere? (just a guess)
 
+I turned on debugging and I see when changing channels from one 
+encrypted to another I get lots of:
+"40 from 0x1read cam data = 0 from 0x1read cam data = 80 from 0x1read 
+cam data = "
 
--- 
-Ondrej Zary
+So the drivers is doing something except I don't get anything in 
+kaffeine until I restart the application.
+Now and then I even have to restart kaffeine twice. Same as above.. I 
+see it reading but nothing happens.
+
+I seem to find some EPG data since it can tell me what programs should 
+be shown.
