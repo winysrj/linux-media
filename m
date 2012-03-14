@@ -1,70 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:34225 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755054Ab2CMO3Y (ORCPT
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:33434 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756031Ab2CNTyE convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Mar 2012 10:29:24 -0400
-Received: by yhmm54 with SMTP id m54so589313yhm.19
-        for <linux-media@vger.kernel.org>; Tue, 13 Mar 2012 07:29:24 -0700 (PDT)
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: mchehab@infradead.org
-Cc: rankincj@yahoo.com, dheitmueller@kernellabs.com, crope@iki.fi,
-	saschasommer@freenet.de, linux-media@vger.kernel.org,
-	Ezequiel Garcia <elezegarcia@gmail.com>
-Subject: [PATCH v2] media: em28xx: Paranoic stack save
-Date: Tue, 13 Mar 2012 11:29:14 -0300
-Message-Id: <1331648954-2415-1-git-send-email-elezegarcia@gmail.com>
+	Wed, 14 Mar 2012 15:54:04 -0400
+Received: by gghe5 with SMTP id e5so2223793ggh.19
+        for <linux-media@vger.kernel.org>; Wed, 14 Mar 2012 12:54:03 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <CALjTZvYVtuSm0v-_Q7od=iUDvHbkMe4c5ycAQZwoErCCe=N+Bg@mail.gmail.com>
+References: <CALjTZvZy4npSE0aELnmsZzzgsxUC1xjeNYVwQ_CvJG59PizfEQ@mail.gmail.com>
+	<CALF0-+Wp03vsbiaJFUt=ymnEncEvDg_KmnV+2OWjtO-_0qqBVg@mail.gmail.com>
+	<CALjTZvYVtuSm0v-_Q7od=iUDvHbkMe4c5ycAQZwoErCCe=N+Bg@mail.gmail.com>
+Date: Wed, 14 Mar 2012 16:47:16 -0300
+Message-ID: <CALF0-+W3HenNpUt_yGxqs+fohcZ22ozDw9MhTWua0B++ZFA2vA@mail.gmail.com>
+Subject: Re: eMPIA EM2710 Webcam (em28xx) and LIRC
+From: =?ISO-8859-1?Q?Ezequiel_Garc=EDa?= <elezegarcia@gmail.com>
+To: Rui Salvaterra <rsalvaterra@gmail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch saves 255 bytes of stack on usb_probe() by removing
-a char array. In some platforms this is represents a substantial save.
+Hi,
 
-Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
----
-Previous patch was sent as 2/2 by mistake
----
- drivers/media/video/em28xx/em28xx-cards.c |   19 ++++---------------
- 1 files changed, 4 insertions(+), 15 deletions(-)
+2012/3/14 Rui Salvaterra <rsalvaterra@gmail.com>:
+>
+> Hi, Ezequiel. Thanks a lot for your reply.
+> I'm attaching a copy of my full dmesg, its a bit hard to spot exactly
+> where all modules are loaded (since the boot sequence became
+> asynchronous).
 
-diff --git a/drivers/media/video/em28xx/em28xx-cards.c b/drivers/media/video/em28xx/em28xx-cards.c
-index ce1b60f..d328616 100644
---- a/drivers/media/video/em28xx/em28xx-cards.c
-+++ b/drivers/media/video/em28xx/em28xx-cards.c
-@@ -3122,7 +3122,6 @@ static int em28xx_usb_probe(struct usb_interface *interface,
- 	int i, nr;
- 	const int ifnum = interface->altsetting[0].desc.bInterfaceNumber;
- 	char *speed;
--	char descr[255] = "";
- 
- 	udev = usb_get_dev(interface_to_usbdev(interface));
- 
-@@ -3227,21 +3226,11 @@ static int em28xx_usb_probe(struct usb_interface *interface,
- 		speed = "unknown";
- 	}
- 
--	if (udev->manufacturer)
--		strlcpy(descr, udev->manufacturer, sizeof(descr));
--
--	if (udev->product) {
--		if (*descr)
--			strlcat(descr, " ", sizeof(descr));
--		strlcat(descr, udev->product, sizeof(descr));
--	}
--
--	if (*descr)
--		strlcat(descr, " ", sizeof(descr));
--
- 	printk(KERN_INFO DRIVER_NAME
--		": New device %s@ %s Mbps (%04x:%04x, interface %d, class %d)\n",
--		descr,
-+		": New device %s %s @ %s Mbps "
-+		"(%04x:%04x, interface %d, class %d)\n",
-+		udev->manufacturer ? udev->manufacturer : "",
-+		udev->product ? udev->product : "",
- 		speed,
- 		le16_to_cpu(udev->descriptor.idVendor),
- 		le16_to_cpu(udev->descriptor.idProduct),
--- 
-1.7.3.4
+Indeed.
 
+>
+>
+> Sure, no problem at all. I booted with em28xx disable_ir=1 and got the
+> same result. Additionally:
+>
+> rui@wilykat:~$ lsmod | grep ir
+> ir_lirc_codec          12901  0
+> lirc_dev               19204  1 ir_lirc_codec
+> ir_mce_kbd_decoder     12724  0
+> ir_sanyo_decoder       12513  0
+> ir_sony_decoder        12510  0
+> ir_jvc_decoder         12507  0
+> ir_rc6_decoder         12507  0
+> ir_rc5_decoder         12507  0
+> ir_nec_decoder         12507  0
+> rc_core                26373  9
+> ir_lirc_codec,ir_mce_kbd_decoder,ir_sanyo_decoder,ir_sony_decoder,ir_jvc_decoder,ir_rc6_decoder,em28xx,ir_rc5_decoder,ir_nec_decoder
+> rui@wilykat:~$
+
+Mmmm...
+Are you completely sure that em28xx driver is triggering the load of
+the ir related modules?
+Perhaps you could disable the module (blacklist, or compile out the
+module, or erase em28xx.ko to make sure)
+so you can see that effectively em28xx doesn't load and the rest of
+the modules doesn't load either,
+do you follow my line of reasoning?
+
+I'm also no kernel expert, just trying to be helpful.
+
+Hope it helps,
+Ezequiel.
