@@ -1,41 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:63575 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756148Ab2CLR1L (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Mar 2012 13:27:11 -0400
-Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q2CHRADR023157
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Mon, 12 Mar 2012 13:27:10 -0400
-From: Jarod Wilson <jarod@redhat.com>
-To: linux-media@vger.kernel.org
-Cc: Jarod Wilson <jarod@redhat.com>
-Subject: [PATCH] mceusb: add Formosa device ID 0xe042
-Date: Mon, 12 Mar 2012 13:27:03 -0400
-Message-Id: <1331573223-22676-1-git-send-email-jarod@redhat.com>
+Received: from moutng.kundenserver.de ([212.227.17.9]:61154 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753518Ab2CNPC0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 14 Mar 2012 11:02:26 -0400
+Date: Wed, 14 Mar 2012 16:02:24 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+cc: linux-sh@vger.kernel.org
+Subject: [PATCH 2/2] ARM: mach-shmobile: sh7372 CEU supports up to 8188x8188
+ images
+In-Reply-To: <Pine.LNX.4.64.1203141600210.25284@axis700.grange>
+Message-ID: <Pine.LNX.4.64.1203141601060.25284@axis700.grange>
+References: <Pine.LNX.4.64.1203141600210.25284@axis700.grange>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Yet another device ID that has started showing up in the wild.
-
-Signed-off-by: Jarod Wilson <jarod@redhat.com>
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 ---
- drivers/media/rc/mceusb.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/media/rc/mceusb.c b/drivers/media/rc/mceusb.c
-index 60d3c1e..0918c69 100644
---- a/drivers/media/rc/mceusb.c
-+++ b/drivers/media/rc/mceusb.c
-@@ -361,6 +361,8 @@ static struct usb_device_id mceusb_dev_table[] = {
- 	{ USB_DEVICE(VENDOR_FORMOSA, 0xe03c) },
- 	/* Formosa Industrial Computing */
- 	{ USB_DEVICE(VENDOR_FORMOSA, 0xe03e) },
-+	/* Formosa Industrial Computing */
-+	{ USB_DEVICE(VENDOR_FORMOSA, 0xe042) },
- 	/* Fintek eHome Infrared Transceiver (HP branded) */
- 	{ USB_DEVICE(VENDOR_FINTEK, 0x5168) },
- 	/* Fintek eHome Infrared Transceiver */
+This patch we can push some time after the first one in this series gets 
+in, no breakage is caused.
+
+ arch/arm/mach-shmobile/board-ap4evb.c   |    2 ++
+ arch/arm/mach-shmobile/board-mackerel.c |    2 ++
+ 2 files changed, 4 insertions(+), 0 deletions(-)
+
+diff --git a/arch/arm/mach-shmobile/board-ap4evb.c b/arch/arm/mach-shmobile/board-ap4evb.c
+index aab0a34..f67aa03 100644
+--- a/arch/arm/mach-shmobile/board-ap4evb.c
++++ b/arch/arm/mach-shmobile/board-ap4evb.c
+@@ -1009,6 +1009,8 @@ static struct sh_mobile_ceu_companion csi2 = {
+ 
+ static struct sh_mobile_ceu_info sh_mobile_ceu_info = {
+ 	.flags = SH_CEU_FLAG_USE_8BIT_BUS,
++	.max_width = 8188,
++	.max_height = 8188,
+ 	.csi2 = &csi2,
+ };
+ 
+diff --git a/arch/arm/mach-shmobile/board-mackerel.c b/arch/arm/mach-shmobile/board-mackerel.c
+index 9b42fbd..f790772 100644
+--- a/arch/arm/mach-shmobile/board-mackerel.c
++++ b/arch/arm/mach-shmobile/board-mackerel.c
+@@ -1270,6 +1270,8 @@ static void mackerel_camera_del(struct soc_camera_device *icd)
+ 
+ static struct sh_mobile_ceu_info sh_mobile_ceu_info = {
+ 	.flags = SH_CEU_FLAG_USE_8BIT_BUS,
++	.max_width = 8188,
++	.max_height = 8188,
+ };
+ 
+ static struct resource ceu_resources[] = {
 -- 
-1.7.1
+1.7.2.5
 
