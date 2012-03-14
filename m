@@ -1,52 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from wolverine01.qualcomm.com ([199.106.114.254]:52838 "EHLO
-	wolverine01.qualcomm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756768Ab2CBHDD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Mar 2012 02:03:03 -0500
-Message-ID: <4F5070A0.9070609@codeaurora.org>
-Date: Fri, 02 Mar 2012 12:32:56 +0530
-From: Trilok Soni <tsoni@codeaurora.org>
+Received: from smtp-68.nebula.fi ([83.145.220.68]:54194 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030425Ab2CNIgX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 14 Mar 2012 04:36:23 -0400
+Date: Wed, 14 Mar 2012 10:36:16 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, Bhupesh Sharma <bhupesh.sharma@st.com>
+Subject: Re: [PATCH] media: Initialize the media core with subsys_initcall()
+Message-ID: <20120314083616.GE4220@valkosipuli.localdomain>
+References: <bbe7861cb38c036d3c24df908ffbfc125274ea99.1331543025.git.bhupesh.sharma@st.com>
+ <1331560967-32396-1-git-send-email-laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-To: James Hogan <james@albanarts.com>
-CC: Ravi Kumar V <kumarrav@codeaurora.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jarod Wilson <jarod@redhat.com>,
-	Anssi Hannula <anssi.hannula@iki.fi>,
-	"Juan J. Garcia de Soria" <skandalfo@gmail.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	davidb@codeaurora.org, bryanh@codeaurora.org,
-	linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCH v3 1/1] rc: Add support for GPIO based IR Receiver driver.
-References: <1330408300-21939-1-git-send-email-kumarrav@codeaurora.org> <20120228202944.GA9373@balrog> <4F4E1911.5050208@codeaurora.org>
-In-Reply-To: <4F4E1911.5050208@codeaurora.org>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1331560967-32396-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro/Wilson,
+Hi Laurent,
 
-On 2/29/2012 5:54 PM, Trilok Soni wrote:
-> Hi Mauro/Wilson,
->
-> On 2/29/2012 1:59 AM, James Hogan wrote:
->> On Tue, Feb 28, 2012 at 11:21:40AM +0530, Ravi Kumar V wrote:
->>> Adds GPIO based IR Receiver driver. It decodes signals using decoders
->>> available in rc framework.
->>>
->>> Signed-off-by: Ravi Kumar V<kumarrav@codeaurora.org>
->>
->> Looks good to me (but I'm no expert).
->>
->
-> Please review this patch.
->
-> Thank you James for the review comments.
+Thanks for the patch!
 
-Please review and check if this patch can be merged in your tree.
+On Mon, Mar 12, 2012 at 03:02:47PM +0100, Laurent Pinchart wrote:
+> Media-related drivers living outside drivers/media/ (such as the UVC
+> gadget driver in drivers/usb/gadget/) rely on the media core being
+> initialized before they're probed. As drivers/usb/ is linked before
+> drivers/media/, this is currently not the case and will lead to crashes
+> if the drivers are not compiled as modules.
+> 
+> Register media_devnode_init() as a subsys_initcall() instead of
+> module_init() to fix this.
+> 
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> ---
+>  drivers/media/media-devnode.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
 
----Trilok Soni
+Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
+Tested-by: Sakari Ailus <sakari.ailus@iki.fi>
 
---
-Sent by a consultant of the Qualcomm Innovation Center, Inc.
-The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum.
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
