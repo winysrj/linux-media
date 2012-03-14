@@ -1,56 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ftp.meprolight.com ([194.90.149.17]:46441 "EHLO meprolight.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1756597Ab2CHPgW convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Mar 2012 10:36:22 -0500
-From: Alex Gershgorin <alexg@meprolight.com>
-To: Fabio Estevam <festevam@gmail.com>
-CC: Fabio Estevam <fabio.estevam@freescale.com>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	"g.liakhovetski@gmx.de" <g.liakhovetski@gmx.de>,
-	"s.hauer@pengutronix.de" <s.hauer@pengutronix.de>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Thu, 8 Mar 2012 17:36:05 +0200
-Subject: RE: I.MX35 PDK
-Message-ID: <4875438356E7CA4A8F2145FCD3E61C0B2CBD5D8918@MEP-EXCH.meprolight.com>
-References: <CAOMZO5DnP7+zupy9vwBPS0+2XtKM1+nLbwCqBzuCqEG5OWbZRQ@mail.gmail.com>
-	<4875438356E7CA4A8F2145FCD3E61C0B2CBD666A28@MEP-EXCH.meprolight.com>,<CAOMZO5Amo0XFf+TV7PprCL079C5Y0qKmo+k-FfShU7k4SG7W6Q@mail.gmail.com>,<4875438356E7CA4A8F2145FCD3E61C0B2CBD5D8913@MEP-EXCH.meprolight.com>
-In-Reply-To: <4875438356E7CA4A8F2145FCD3E61C0B2CBD5D8913@MEP-EXCH.meprolight.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:47626 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752328Ab2CNLWo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 14 Mar 2012 07:22:44 -0400
+Received: by iagz16 with SMTP id z16so2195775iag.19
+        for <linux-media@vger.kernel.org>; Wed, 14 Mar 2012 04:22:44 -0700 (PDT)
 MIME-Version: 1.0
+Date: Wed, 14 Mar 2012 12:22:43 +0100
+Message-ID: <CACKLOr3T-w1JdaGgnL+ZEXFX4v_oVd0HY8mqrm5ZzxEziH32jw@mail.gmail.com>
+Subject: [Q] media: V4L2 compressed frames and s_fmt.
+From: javier Martin <javier.martin@vista-silicon.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi,
+I'm developing a V4L2 mem2mem driver for the codadx6 IP video codec
+which is included in the i.MX27 chip.
 
->On my mx31pdk I get the same dmaengine errors and the ov2640 does work fine.
->I think you can go ahead and try to use the camera on the mx35pdk now.
->You can try:
+The capture interface of this driver can therefore return h.264 or
+mpeg4 video frames.
 
->gst-launch -v v4l2src device=/dev/video0 !
->video/x-raw-yuv,width=320,height=240,framerate=25/1 ! ffmpegcolorspace
->! fbdevsink
+Provided that the size of each frame varies and is unknown to the
+user, how is the driver supposed to react to a S_FMT when it comes to
+parameters such as the following?
 
-<<Thank Fabio I'll try to check it.
+pix->width
+pix->height
+pix->bytesperline
+pix->sizeimage
 
-I tried to test it, everything is fine,  just do not see the video on display.
-Here can see messages:
+According to the documentation [1] I understand that the driver can
+just ignore 'bytesperline' and should return in 'sizeimage' the
+maximum buffer size to store a compressed frame. However, it does not
+mention anything special about width and height. Does it make sense
+setting width and height for h.264/mpeg4 formats?
 
-Setting pipeline to PAUSED ...mx3-camera mx3-camera.0: MX3 Camera driver attached to camera 0
-/GstPipeline:pipeline0/GstV4l2Src:v4l2src0.GstPad:src: caps = video/x-raw-yuv, format=(fourcc)UYVY, framerate=(fraction)25/1, width=(int)320, height=(int)240, interlaced=(boolean)false
-Pipeline is live and does not need PREROLL ...
-WARNING: from element /GstPipeline:pipeline0/GstV4l2Src:v4l2src0: Could not get parameters on device '/dev/video0'
-Additional debug info:
-v4l2src_calls.c(240): gst_v4l2src_set_capture (): /GstPipeline:pipeline0/GstV4l2Src:v4l2src0:
-system error: Invalid argument
-Setting pipeline to PLAYING ...
-New clock: GstSystemClock
 
-It works well :-) 
-gst-launch videotestsrc ! fbdevsink
-
-Regards
-Alex Gershgorin
+[1] http://v4l2spec.bytesex.org/spec/c2030.htm#V4L2-PIX-FORMAT
+-- 
+Javier Martin
+Vista Silicon S.L.
+CDTUC - FASE C - Oficina S-345
+Avda de los Castros s/n
+39005- Santander. Cantabria. Spain
++34 942 25 32 60
+www.vista-silicon.com
