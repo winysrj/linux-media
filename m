@@ -1,191 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from na3sys009aog127.obsmtp.com ([74.125.149.107]:52115 "HELO
-	psmtp.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-	id S1756999Ab2CES4f convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Mar 2012 13:56:35 -0500
-Received: by mail-lpp01m010-f50.google.com with SMTP id m13so6518614lah.23
-        for <linux-media@vger.kernel.org>; Mon, 05 Mar 2012 10:56:30 -0800 (PST)
+Received: from perceval.ideasonboard.com ([95.142.166.194]:33449 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760475Ab2CNBgy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 13 Mar 2012 21:36:54 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Bhupesh SHARMA <bhupesh.sharma@st.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] media: Initialize the media core with subsys_initcall()
+Date: Wed, 14 Mar 2012 02:37:19 +0100
+Message-ID: <2310390.JmOSWKFls9@avalon>
+In-Reply-To: <D5ECB3C7A6F99444980976A8C6D896384FA2BA2212@EAPEX1MAIL1.st.com>
+References: <bbe7861cb38c036d3c24df908ffbfc125274ea99.1331543025.git.bhupesh.sharma@st.com> <1331560967-32396-1-git-send-email-laurent.pinchart@ideasonboard.com> <D5ECB3C7A6F99444980976A8C6D896384FA2BA2212@EAPEX1MAIL1.st.com>
 MIME-Version: 1.0
-In-Reply-To: <20120303002342.GI15695@valkosipuli.localdomain>
-References: <1330616161-1937-1-git-send-email-daniel.vetter@ffwll.ch>
-	<1330616161-1937-4-git-send-email-daniel.vetter@ffwll.ch>
-	<20120303002342.GI15695@valkosipuli.localdomain>
-Date: Mon, 5 Mar 2012 12:48:18 -0600
-Message-ID: <CAO8GWqkz_pR8jshQqNx8c2_jQ+b=RO-PHukerLaHbq8sk3Va-w@mail.gmail.com>
-Subject: Re: [Linaro-mm-sig] [PATCH 3/3] dma_buf: Add documentation for the
- new cpu access support
-From: "Clark, Rob" <rob@ti.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>,
-	linaro-mm-sig@lists.linaro.org,
-	LKML <linux-kernel@vger.kernel.org>,
-	DRI Development <dri-devel@lists.freedesktop.org>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Mar 2, 2012 at 6:23 PM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
-> Hi Daniel,
->
+Hi Bhupesh,
+
+On Tuesday 13 March 2012 11:31:31 Bhupesh SHARMA wrote:
+> Hi Laurent,
+> 
 > Thanks for the patch.
->
-> On Thu, Mar 01, 2012 at 04:36:01PM +0100, Daniel Vetter wrote:
->> Signed-off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
->> ---
->>  Documentation/dma-buf-sharing.txt |  102 +++++++++++++++++++++++++++++++++++-
->>  1 files changed, 99 insertions(+), 3 deletions(-)
->>
->> diff --git a/Documentation/dma-buf-sharing.txt b/Documentation/dma-buf-sharing.txt
->> index 225f96d..f12542b 100644
->> --- a/Documentation/dma-buf-sharing.txt
->> +++ b/Documentation/dma-buf-sharing.txt
->> @@ -32,8 +32,12 @@ The buffer-user
->>  *IMPORTANT*: [see https://lkml.org/lkml/2011/12/20/211 for more details]
->>  For this first version, A buffer shared using the dma_buf sharing API:
->>  - *may* be exported to user space using "mmap" *ONLY* by exporter, outside of
->> -   this framework.
->> -- may be used *ONLY* by importers that do not need CPU access to the buffer.
->> +  this framework.
->> +- with this new iteration of the dma-buf api cpu access from the kernel has been
->> +  enable, see below for the details.
->> +
->> +dma-buf operations for device dma only
->> +--------------------------------------
->>
->>  The dma_buf buffer sharing API usage contains the following steps:
->>
->> @@ -219,7 +223,99 @@ NOTES:
->>     If the exporter chooses not to allow an attach() operation once a
->>     map_dma_buf() API has been called, it simply returns an error.
->>
->> -Miscellaneous notes:
->> +Kernel cpu access to a dma-buf buffer object
->> +--------------------------------------------
->> +
->> +The motivation to allow cpu access from the kernel to a dma-buf object from the
->> +importers side are:
->> +- fallback operations, e.g. if the devices is connected to a usb bus and the
->> +  kernel needs to shuffle the data around first before sending it away.
->> +- full transperancy for existing users on the importer side, i.e. userspace
->> +  should not notice the difference between a normal object from that subsystem
->> +  and an imported one backed by a dma-buf. This is really important for drm
->> +  opengl drivers that expect to still use all the existing upload/download
->> +  paths.
->> +
->> +Access to a dma_buf from the kernel context involves three steps:
->> +
->> +1. Prepare access, which invalidate any necessary caches and make the object
->> +   available for cpu access.
->> +2. Access the object page-by-page with the dma_buf map apis
->> +3. Finish access, which will flush any necessary cpu caches and free reserved
->> +   resources.
->
-> Where it should be decided which operations are being done to the buffer
-> when it is passed to user space and back to kernel space?
->
-> How about spliting these operations to those done on the first time the
-> buffer is passed to the user space (mapping to kernel address space, for
-> example) and those required every time buffer is passed from kernel to user
-> and back (cache flusing)?
->
-> I'm asking since any unnecessary time-consuming operations, especially as
-> heavy as mapping the buffer, should be avoidable in subsystems dealing
-> with streaming video, cameras etc., i.e. non-GPU users.
+> 
+> > -----Original Message-----
+> > From: Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com]
+> > Sent: Monday, March 12, 2012 7:33 PM
+> > To: linux-media@vger.kernel.org
+> > Cc: Bhupesh SHARMA
+> > Subject: [PATCH] media: Initialize the media core with
+> > subsys_initcall()
+> > 
+> > Media-related drivers living outside drivers/media/ (such as the UVC
+> > gadget driver in drivers/usb/gadget/) rely on the media core being
+> > initialized before they're probed. As drivers/usb/ is linked before
+> > drivers/media/, this is currently not the case and will lead to crashes
+> > if the drivers are not compiled as modules.
+> > 
+> > Register media_devnode_init() as a subsys_initcall() instead of
+> > module_init() to fix this.
+> > 
+> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > ---
+> > 
+> >  drivers/media/media-devnode.c |    2 +-
+> >  1 files changed, 1 insertions(+), 1 deletions(-)
+> > 
+> > Bhupesh, do you plan to send a pull request with your "V4L/v4l2-dev:
+> > Make
+> > 'videodev_init' as a subsys initcall" patch, or would you like me to
+> > take it
+> > in my tree ? I'd like both patches to go in at the same time, with this
+> > one
+> > coming first to avoid any risk of bisection issue.
+> 
+> I would prefer that you take my patch also in your tree and have
+> a single pull request for both the patches as they solve the same
+> issue and hence must be pulled at the same time.
 
+OK. I've applied your patch to my tree, I'll send a pull request tomorrow.
 
-Well, this is really something for the buffer exporter to deal with..
-since there is no way for an importer to create a userspace mmap'ing
-of the buffer.  A lot of these expensive operations go away if you
-don't even create a userspace virtual mapping in the first place ;-)
+> For your patch:
+> Acked-By: Bhupesh Sharma <bhupesh.sharma@st.com>
 
-BR,
--R
+Thanks.
 
->
->> +1. Prepare acces
->> +
->> +   Before an importer can acces a dma_buf object with the cpu from the kernel
->> +   context, it needs to notice the exporter of the access that is about to
->> +   happen.
->> +
->> +   Interface:
->> +      int dma_buf_begin_cpu_access(struct dma_buf *dmabuf,
->> +                                size_t start, size_t len,
->> +                                enum dma_data_direction direction)
->> +
->> +   This allows the exporter to ensure that the memory is actually available for
->> +   cpu access - the exporter might need to allocate or swap-in and pin the
->> +   backing storage. The exporter also needs to ensure that cpu access is
->> +   coherent for the given range and access direction. The range and access
->> +   direction can be used by the exporter to optimize the cache flushing, i.e.
->> +   access outside of the range or with a different direction (read instead of
->> +   write) might return stale or even bogus data (e.g. when the exporter needs to
->> +   copy the data to temporaray storage).
->> +
->> +   This step might fail, e.g. in oom conditions.
->> +
->> +2. Accessing the buffer
->> +
->> +   To support dma_buf objects residing in highmem cpu access is page-based using
->> +   an api similar to kmap. Accessing a dma_buf is done in aligned chunks of
->> +   PAGE_SIZE size. Before accessing a chunk it needs to be mapped, which returns
->> +   a pointer in kernel virtual address space. Afterwards the chunk needs to be
->> +   unmapped again. There is no limit on how often a given chunk can be mapped
->> +   and unmmapped, i.e. the importer does not need to call begin_cpu_access again
->> +   before mapping the same chunk again.
->> +
->> +   Interfaces:
->> +      void *dma_buf_kmap(struct dma_buf *, unsigned long);
->> +      void dma_buf_kunmap(struct dma_buf *, unsigned long, void *);
->> +
->> +   There are also atomic variants of these interfaces. Like for kmap they
->> +   facilitate non-blocking fast-paths. Neither the importer nor the exporter (in
->> +   the callback) is allowed to block when using these.
->> +
->> +   Interfaces:
->> +      void *dma_buf_kmap_atomic(struct dma_buf *, unsigned long);
->> +      void dma_buf_kunmap_atomic(struct dma_buf *, unsigned long, void *);
->> +
->> +   For importers all the restrictions of using kmap apply, like the limited
->> +   supply of kmap_atomic slots. Hence an importer shall only hold onto at most 2
->> +   atomic dma_buf kmaps at the same time (in any given process context).
->> +
->> +   dma_buf kmap calls outside of the range specified in begin_cpu_access are
->> +   undefined. If the range is not PAGE_SIZE aligned, kmap needs to succeed on
->> +   the partial chunks at the beginning and end but may return stale or bogus
->> +   data outside of the range (in these partial chunks).
->> +
->> +   Note that these calls need to always succeed. The exporter needs to complete
->> +   any preparations that might fail in begin_cpu_access.
->> +
->> +3. Finish access
->> +
->> +   When the importer is done accessing the range specified in begin_cpu_acces,
->> +   it needs to announce this to the exporter (to facilitate cache flushing and
->> +   unpinning of any pinned resources). The result of of any dma_buf kmap calls
->> +   after end_cpu_access is undefined.
->> +
->> +   Interface:
->> +      void dma_buf_end_cpu_access(struct dma_buf *dma_buf,
->> +                               size_t start, size_t len,
->> +                               enum dma_data_direction dir);
->> +
->> +
->> +Miscellaneous notes
->> +-------------------
->> +
->>  - Any exporters or users of the dma-buf buffer sharing framework must have
->>    a 'select DMA_SHARED_BUFFER' in their respective Kconfigs.
->
-> Kind regards,
->
-> --
-> Sakari Ailus
-> e-mail: sakari.ailus@iki.fi     jabber/XMPP/Gmail: sailus@retiisi.org.uk
->
-> _______________________________________________
-> Linaro-mm-sig mailing list
-> Linaro-mm-sig@lists.linaro.org
-> http://lists.linaro.org/mailman/listinfo/linaro-mm-sig
+> > diff --git a/drivers/media/media-devnode.c b/drivers/media/media-
+> > devnode.c
+> > index 7b42ace..421cf73 100644
+> > --- a/drivers/media/media-devnode.c
+> > +++ b/drivers/media/media-devnode.c
+> > @@ -312,7 +312,7 @@ static void __exit media_devnode_exit(void)
+> > 
+> >  	unregister_chrdev_region(media_dev_t, MEDIA_NUM_DEVICES);
+> >  
+> >  }
+> > 
+> > -module_init(media_devnode_init)
+> > +subsys_initcall(media_devnode_init);
+> > 
+> >  module_exit(media_devnode_exit)
+> >  
+> >  MODULE_AUTHOR("Laurent Pinchart <laurent.pinchart@ideasonboard.com>");
+> > 
+> > --
+
+-- 
+Regards,
+
+Laurent Pinchart
+
