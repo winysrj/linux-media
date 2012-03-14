@@ -1,58 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:44780 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756794Ab2CQLJJ (ORCPT
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:37877 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756688Ab2CNRmC (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 17 Mar 2012 07:09:09 -0400
-Received: from epcpsbgm1.samsung.com (mailout4.samsung.com [203.254.224.34])
- by mailout4.samsung.com
- (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
- 2010)) with ESMTP id <0M11009EH0B9ABC0@mailout4.samsung.com> for
- linux-media@vger.kernel.org; Sat, 17 Mar 2012 20:09:09 +0900 (KST)
-Received: from localhost.localdomain ([107.108.73.106])
- by mmp2.samsung.com (Oracle Communications Messaging Exchange Server 7u4-19.01
- 64bit (built Sep  7 2010)) with ESMTPA id <0M1100JOJ0B86920@mmp2.samsung.com>
- for linux-media@vger.kernel.org; Sat, 17 Mar 2012 20:09:17 +0900 (KST)
-From: Ajay Kumar <ajaykumar.rs@samsung.com>
-To: linux-media@vger.kernel.org, k.debski@samsung.com
-Cc: kyungmin.park@samsung.com, s.nawrocki@samsung.com,
-	es10.choi@samsung.com
-Subject: [PATCH v2 0/1] media: video: s5p-g2d: Add support for FIMG2D v41 H/W
- logic
-Date: Sat, 17 Mar 2012 16:52:13 +0530
-Message-id: <1331983334-18934-1-git-send-email-ajaykumar.rs@samsung.com>
+	Wed, 14 Mar 2012 13:42:02 -0400
+Received: by ghrr11 with SMTP id r11so2071053ghr.19
+        for <linux-media@vger.kernel.org>; Wed, 14 Mar 2012 10:42:02 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <CALjTZvZy4npSE0aELnmsZzzgsxUC1xjeNYVwQ_CvJG59PizfEQ@mail.gmail.com>
+References: <CALjTZvZy4npSE0aELnmsZzzgsxUC1xjeNYVwQ_CvJG59PizfEQ@mail.gmail.com>
+Date: Wed, 14 Mar 2012 14:42:01 -0300
+Message-ID: <CALF0-+Wp03vsbiaJFUt=ymnEncEvDg_KmnV+2OWjtO-_0qqBVg@mail.gmail.com>
+Subject: Re: eMPIA EM2710 Webcam (em28xx) and LIRC
+From: =?ISO-8859-1?Q?Ezequiel_Garc=EDa?= <elezegarcia@gmail.com>
+To: Rui Salvaterra <rsalvaterra@gmail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The patches are created against "media-for-next" branch of kmpark's tree at:
-git://git.infradead.org/users/kmpark/linux-2.6-samsung
+Hi Rui,
 
-The existing G2D driver supports only FIMG2D v3 style H/W.
-This Patch modifies the existing G2D driver to support FIMG2D v41 style H/W.
-FIMG2D v41 is present in Exynos4x12 and Exynos52x0 boards.
+On Wed, Mar 14, 2012 at 8:28 AM, Rui Salvaterra <rsalvaterra@gmail.com> wrote:
+> Hi, everyone.
+>
+> I apologise in advance for the noise if this is the wrong place to ask
+> such questions. I have a couple of eMPIA EM2710 (Silvercrest) USB
+> webcams which work quite well, except for the fact that most of LIRC
 
-Patchset 1: http://patchwork.linuxtv.org/patch/10330/
+Exactly what module do you refer to? Could you just send a snippet
+of dmesg when module is loaded?
 
-Changes from Patchset1:
-	-- Define 2 device_type ids(TYPE_G2D_3X and TYPE_G2D_41X) instead of 3
-	-- Replace scale_factor_to_fixed16 function by g2d_calc_scale_factor
-	-- Rename g2d_cmd_stretch function as g2d_set_v41_stretch
-	-- Define and use CMD_V3_ENABLE_STRETCH instead of using (1 << 4)
+> is unnecessarily loaded when the em28xx module loads. I suppose it
+> shouldn't be necessary, since these are webcams and don't have any
 
-Hi Mr.Kyungmin Park,
-I have defined only 2 type ids as per spec - TYPE_G2D_3X and TYPE_G2D_41X.
-Also, this patch works with dummy clock scheme for sclk_fimg2d on Exynos5.
+Looking at source code, I noticed two things:
+1. You have a module param named "disable-ir", perhaps you could
+try to use this (do you know how?).
+2. EM2710 board is defined like this:
 
-Hi Mr.Kamil,
-I have made changes as per your comments.
-Patch is tested for stretching, ROP and flip features on Exynos5.
+                .name          = "EM2710/EM2750/EM2751 webcam grabber",
+                .xclk          = EM28XX_XCLK_FREQUENCY_20MHZ,
+                .tuner_type    = TUNER_ABSENT,
+                .is_webcam     = 1,
+                .input         = { {
+                        .type     = EM28XX_VMUX_COMPOSITE1,
+                        .vmux     = 0,
+                        .amux     = EM28XX_AMUX_VIDEO,
+                        .gpio     = silvercrest_reg_seq,
+                } },
 
-To Kamil:
-	media: video: s5p-g2d: Add support for FIMG2D v41 H/W logic
+As opposed to:
 
- drivers/media/video/s5p-g2d/g2d-hw.c   |   39 ++++++++++++++++++++++++++++---
- drivers/media/video/s5p-g2d/g2d-regs.h |    6 +++++
- drivers/media/video/s5p-g2d/g2d.c      |   23 +++++++++++++++++-
- drivers/media/video/s5p-g2d/g2d.h      |    9 ++++++-
- 4 files changed, 70 insertions(+), 7 deletions(-)
+                .name         = "Terratec Cinergy 250 USB",
+                .tuner_type   = TUNER_LG_PAL_NEW_TAPC,
+                .has_ir_i2c   = 1,
+                .tda9887_conf = TDA9887_PRESENT,
+                .decoder      = EM28XX_SAA711X,
+                .input        = { {
+                        .type     = EM28XX_VMUX_TELEVISION,
+                        .vmux     = SAA7115_COMPOSITE2,
+                        .amux     = EM28XX_AMUX_LINE_IN,
+                }, {
+                        .type     = EM28XX_VMUX_COMPOSITE1,
+                        .vmux     = SAA7115_COMPOSITE0,
+                        .amux     = EM28XX_AMUX_LINE_IN,
+                }, {
+                        .type     = EM28XX_VMUX_SVIDEO,
+                        .vmux     = SAA7115_SVIDEO3,
+                        .amux     = EM28XX_AMUX_LINE_IN,
+                } },
+        },
 
+Noticed the lack of "has_ir_i2c" definition in the EM2710.
+
+So I don't know how that module is being loaded. Probably I'm missing something.
+
+Hope it helps,
+Ezequiel.
