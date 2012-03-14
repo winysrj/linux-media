@@ -1,306 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:45753 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755541Ab2CFQYH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Mar 2012 11:24:07 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Received: from mail-we0-f174.google.com ([74.125.82.174]:61807 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760375Ab2CNUbg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 14 Mar 2012 16:31:36 -0400
+Received: by wejx9 with SMTP id x9so2129641wej.19
+        for <linux-media@vger.kernel.org>; Wed, 14 Mar 2012 13:31:35 -0700 (PDT)
+Message-ID: <1331757086.5029.2.camel@tvbox>
+Subject: [PATCH] m88rs2000 ver 1.13 Correct deseqc and tuner gain functions
+From: Malcolm Priestley <tvboxspy@gmail.com>
 To: linux-media@vger.kernel.org
-Cc: Martin Hostettler <martin@neutronstar.dyndns.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-Subject: [PATCH v2 3/5] v4l: Aptina-style sensor PLL support
-Date: Tue,  6 Mar 2012 17:24:23 +0100
-Message-Id: <1331051065-5055-4-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1331051065-5055-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1331051065-5055-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Date: Wed, 14 Mar 2012 20:31:26 +0000
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a generic helper function to compute PLL parameters for PLL found in
-several Aptina sensors.
+Remove incorrect SEC_MINI_B settings-TODO complete this section.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
+Correct break and remove return -EINVAL within set tone. It appears
+there is a bug that occasionally something other than ON/OFF is
+sent stalling the driver. Just continue and write back registers.
+
+Set register b2 in setup. This is the set voltage pin which
+isn't used in lmedm04 driver but it is always set to 0x1.
+
+Correct the if statements in set_tuner_rf.
+
+Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
 ---
- drivers/media/video/Kconfig      |    3 +
- drivers/media/video/Makefile     |    4 +
- drivers/media/video/aptina-pll.c |  174 ++++++++++++++++++++++++++++++++++++++
- drivers/media/video/aptina-pll.h |   56 ++++++++++++
- 4 files changed, 237 insertions(+), 0 deletions(-)
- create mode 100644 drivers/media/video/aptina-pll.c
- create mode 100644 drivers/media/video/aptina-pll.h
+ drivers/media/dvb/frontends/m88rs2000.c |   17 ++++++++---------
+ 1 files changed, 8 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-index 9495b6a..7867b0b 100644
---- a/drivers/media/video/Kconfig
-+++ b/drivers/media/video/Kconfig
-@@ -459,6 +459,9 @@ config VIDEO_AK881X
+diff --git a/drivers/media/dvb/frontends/m88rs2000.c b/drivers/media/dvb/frontends/m88rs2000.c
+index c9a3435..a8573db 100644
+--- a/drivers/media/dvb/frontends/m88rs2000.c
++++ b/drivers/media/dvb/frontends/m88rs2000.c
+@@ -228,8 +228,7 @@ static int m88rs2000_send_diseqc_burst(struct dvb_frontend *fe,
+ 	msleep(50);
+ 	reg0 = m88rs2000_demod_read(state, 0xb1);
+ 	reg1 = m88rs2000_demod_read(state, 0xb2);
+-	if (burst == SEC_MINI_B)
+-		reg1 |= 0x1;
++	/* TODO complete this section */
+ 	m88rs2000_demod_write(state, 0xb2, reg1);
+ 	m88rs2000_demod_write(state, 0xb1, reg0);
+ 	m88rs2000_demod_write(state, 0x9a, 0xb0);
+@@ -251,13 +250,12 @@ static int m88rs2000_set_tone(struct dvb_frontend *fe, fe_sec_tone_mode_t tone)
+ 	case SEC_TONE_ON:
+ 		reg0 |= 0x4;
+ 		reg0 &= 0xbc;
+-	break;
++		break;
+ 	case SEC_TONE_OFF:
+ 		reg1 |= 0x80;
+-	break;
+-
++		break;
+ 	default:
+-		return -EINVAL;
++		break;
+ 	}
+ 	m88rs2000_demod_write(state, 0xb2, reg1);
+ 	m88rs2000_demod_write(state, 0xb1, reg0);
+@@ -292,6 +290,7 @@ struct inittab m88rs2000_setup[] = {
+ 	{DEMOD_WRITE, 0xf0, 0x22},
+ 	{DEMOD_WRITE, 0xf1, 0xbf},
+ 	{DEMOD_WRITE, 0xb0, 0x45},
++	{DEMOD_WRITE, 0xb2, 0x01}, /* set voltage pin always set 1*/
+ 	{DEMOD_WRITE, 0x9a, 0xb0},
+ 	{0xff, 0xaa, 0xff}
+ };
+@@ -520,9 +519,9 @@ static int m88rs2000_set_tuner_rf(struct dvb_frontend *fe)
+ 	int reg;
+ 	reg = m88rs2000_tuner_read(state, 0x3d);
+ 	reg &= 0x7f;
+-	if (reg < 0x17)
++	if (reg < 0x16)
+ 		reg = 0xa1;
+-	else if (reg < 0x16)
++	else if (reg == 0x16)
+ 		reg = 0x99;
+ 	else
+ 		reg = 0xf9;
+@@ -902,5 +901,5 @@ EXPORT_SYMBOL(m88rs2000_attach);
+ MODULE_DESCRIPTION("M88RS2000 DVB-S Demodulator driver");
+ MODULE_AUTHOR("Malcolm Priestley tvboxspy@gmail.com");
+ MODULE_LICENSE("GPL");
+-MODULE_VERSION("1.12");
++MODULE_VERSION("1.13");
  
- comment "Camera sensor devices"
- 
-+config VIDEO_APTINA_PLL
-+	tristate
-+
- config VIDEO_OV7670
- 	tristate "OmniVision OV7670 sensor support"
- 	depends on I2C && VIDEO_V4L2
-diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
-index 563443c..d1304e1 100644
---- a/drivers/media/video/Makefile
-+++ b/drivers/media/video/Makefile
-@@ -22,6 +22,10 @@ endif
- 
- obj-$(CONFIG_VIDEO_V4L2_COMMON) += v4l2-common.o
- 
-+# Helper modules
-+
-+obj-$(CONFIG_VIDEO_APTINA_PLL) += aptina-pll.o
-+
- # All i2c modules must come first:
- 
- obj-$(CONFIG_VIDEO_TUNER) += tuner.o
-diff --git a/drivers/media/video/aptina-pll.c b/drivers/media/video/aptina-pll.c
-new file mode 100644
-index 0000000..0bd3813
---- /dev/null
-+++ b/drivers/media/video/aptina-pll.c
-@@ -0,0 +1,174 @@
-+/*
-+ * Aptina Sensor PLL Configuration
-+ *
-+ * Copyright (C) 2012 Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * version 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-+ * 02110-1301 USA
-+ */
-+
-+#include <linux/device.h>
-+#include <linux/gcd.h>
-+#include <linux/kernel.h>
-+#include <linux/lcm.h>
-+#include <linux/module.h>
-+
-+#include "aptina-pll.h"
-+
-+int aptina_pll_calculate(struct device *dev,
-+			 const struct aptina_pll_limits *limits,
-+			 struct aptina_pll *pll)
-+{
-+	unsigned int mf_min;
-+	unsigned int mf_max;
-+	unsigned int p1_min;
-+	unsigned int p1_max;
-+	unsigned int p1;
-+	unsigned int div;
-+
-+	dev_dbg(dev, "PLL: ext clock %u pix clock %u\n",
-+		pll->ext_clock, pll->pix_clock);
-+
-+	if (pll->ext_clock < limits->ext_clock_min ||
-+	    pll->ext_clock > limits->ext_clock_max) {
-+		dev_err(dev, "pll: invalid external clock frequency.\n");
-+		return -EINVAL;
-+	}
-+
-+	if (pll->pix_clock == 0 || pll->pix_clock > limits->pix_clock_max) {
-+		dev_err(dev, "pll: invalid pixel clock frequency.\n");
-+		return -EINVAL;
-+	}
-+
-+	/* Compute the multiplier M and combined N*P1 divisor. */
-+	div = gcd(pll->pix_clock, pll->ext_clock);
-+	pll->m = pll->pix_clock / div;
-+	div = pll->ext_clock / div;
-+
-+	/* We now have the smallest M and N*P1 values that will result in the
-+	 * desired pixel clock frequency, but they might be out of the valid
-+	 * range. Compute the factor by which we should multiply them given the
-+	 * following constraints:
-+	 *
-+	 * - minimum/maximum multiplier
-+	 * - minimum/maximum multiplier output clock frequency assuming the
-+	 *   minimum/maximum N value
-+	 * - minimum/maximum combined N*P1 divisor
-+	 */
-+	mf_min = DIV_ROUND_UP(limits->m_min, pll->m);
-+	mf_min = max(mf_min, limits->out_clock_min /
-+		     (pll->ext_clock / limits->n_min * pll->m));
-+	mf_min = max(mf_min, limits->n_min * limits->p1_min / div);
-+	mf_max = limits->m_max / pll->m;
-+	mf_max = min(mf_max, limits->out_clock_max /
-+		    (pll->ext_clock / limits->n_max * pll->m));
-+	mf_max = min(mf_max, DIV_ROUND_UP(limits->n_max * limits->p1_max, div));
-+
-+	dev_dbg(dev, "pll: mf min %u max %u\n", mf_min, mf_max);
-+	if (mf_min > mf_max) {
-+		dev_err(dev, "pll: no valid combined N*P1 divisor.\n");
-+		return -EINVAL;
-+	}
-+
-+	/*
-+	 * We're looking for the highest acceptable P1 value for which a
-+	 * multiplier factor MF exists that fulfills the following conditions:
-+	 *
-+	 * 1. p1 is in the [p1_min, p1_max] range given by the limits and is
-+	 *    even
-+	 * 2. mf is in the [mf_min, mf_max] range computed above
-+	 * 3. div * mf is a multiple of p1, in order to compute
-+	 *	n = div * mf / p1
-+	 *	m = pll->m * mf
-+	 * 4. the internal clock frequency, given by ext_clock / n, is in the
-+	 *    [int_clock_min, int_clock_max] range given by the limits
-+	 * 5. the output clock frequency, given by ext_clock / n * m, is in the
-+	 *    [out_clock_min, out_clock_max] range given by the limits
-+	 *
-+	 * The first naive approach is to iterate over all p1 values acceptable
-+	 * according to (1) and all mf values acceptable according to (2), and
-+	 * stop at the first combination that fulfills (3), (4) and (5). This
-+	 * has a O(n^2) complexity.
-+	 *
-+	 * Instead of iterating over all mf values in the [mf_min, mf_max] range
-+	 * we can compute the mf increment between two acceptable values
-+	 * according to (3) with
-+	 *
-+	 *	mf_inc = p1 / gcd(div, p1)			(6)
-+	 *
-+	 * and round the minimum up to the nearest multiple of mf_inc. This will
-+	 * restrict the number of mf values to be checked.
-+	 *
-+	 * Furthermore, conditions (4) and (5) only restrict the range of
-+	 * acceptable p1 and mf values by modifying the minimum and maximum
-+	 * limits. (5) can be expressed as
-+	 *
-+	 *	ext_clock / (div * mf / p1) * m * mf >= out_clock_min
-+	 *	ext_clock / (div * mf / p1) * m * mf <= out_clock_max
-+	 *
-+	 * or
-+	 *
-+	 *	p1 >= out_clock_min * div / (ext_clock * m)	(7)
-+	 *	p1 <= out_clock_max * div / (ext_clock * m)
-+	 *
-+	 * Similarly, (4) can be expressed as
-+	 *
-+	 *	mf >= ext_clock * p1 / (int_clock_max * div)	(8)
-+	 *	mf <= ext_clock * p1 / (int_clock_min * div)
-+	 *
-+	 * We can thus iterate over the restricted p1 range defined by the
-+	 * combination of (1) and (7), and then compute the restricted mf range
-+	 * defined by the combination of (2), (6) and (8). If the resulting mf
-+	 * range is not empty, any value in the mf range is acceptable. We thus
-+	 * select the mf lwoer bound and the corresponding p1 value.
-+	 */
-+	if (limits->p1_min == 0) {
-+		dev_err(dev, "pll: P1 minimum value must be >0.\n");
-+		return -EINVAL;
-+	}
-+
-+	p1_min = max(limits->p1_min, DIV_ROUND_UP(limits->out_clock_min * div,
-+		     pll->ext_clock * pll->m));
-+	p1_max = min(limits->p1_max, limits->out_clock_max * div /
-+		     (pll->ext_clock * pll->m));
-+
-+	for (p1 = p1_max & ~1; p1 >= p1_min; p1 -= 2) {
-+		unsigned int mf_inc = p1 / gcd(div, p1);
-+		unsigned int mf_high;
-+		unsigned int mf_low;
-+
-+		mf_low = max(roundup(mf_min, mf_inc),
-+			     DIV_ROUND_UP(pll->ext_clock * p1,
-+			       limits->int_clock_max * div));
-+		mf_high = min(mf_max, pll->ext_clock * p1 /
-+			      (limits->int_clock_min * div));
-+
-+		if (mf_low > mf_high)
-+			continue;
-+
-+		pll->n = div * mf_low / p1;
-+		pll->m *= mf_low;
-+		pll->p1 = p1;
-+		dev_dbg(dev, "PLL: N %u M %u P1 %u\n", pll->n, pll->m, pll->p1);
-+		return 0;
-+	}
-+
-+	dev_err(dev, "pll: no valid N and P1 divisors found.\n");
-+	return -EINVAL;
-+}
-+EXPORT_SYMBOL_GPL(aptina_pll_calculate);
-+
-+MODULE_DESCRIPTION("Aptina PLL Helpers");
-+MODULE_AUTHOR("Laurent Pinchart <laurent.pinchart@ideasonboard.com>");
-+MODULE_LICENSE("GPL v2");
-diff --git a/drivers/media/video/aptina-pll.h b/drivers/media/video/aptina-pll.h
-new file mode 100644
-index 0000000..b370e34
---- /dev/null
-+++ b/drivers/media/video/aptina-pll.h
-@@ -0,0 +1,56 @@
-+/*
-+ * Aptina Sensor PLL Configuration
-+ *
-+ * Copyright (C) 2012 Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * version 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-+ * 02110-1301 USA
-+ */
-+
-+#ifndef __APTINA_PLL_H
-+#define __APTINA_PLL_H
-+
-+struct aptina_pll {
-+	unsigned int ext_clock;
-+	unsigned int pix_clock;
-+
-+	unsigned int n;
-+	unsigned int m;
-+	unsigned int p1;
-+};
-+
-+struct aptina_pll_limits {
-+	unsigned int ext_clock_min;
-+	unsigned int ext_clock_max;
-+	unsigned int int_clock_min;
-+	unsigned int int_clock_max;
-+	unsigned int out_clock_min;
-+	unsigned int out_clock_max;
-+	unsigned int pix_clock_max;
-+
-+	unsigned int n_min;
-+	unsigned int n_max;
-+	unsigned int m_min;
-+	unsigned int m_max;
-+	unsigned int p1_min;
-+	unsigned int p1_max;
-+};
-+
-+struct device;
-+
-+int aptina_pll_calculate(struct device *dev,
-+			 const struct aptina_pll_limits *limits,
-+			 struct aptina_pll *pll);
-+
-+#endif /* __APTINA_PLL_H */
 -- 
-1.7.3.4
+1.7.9.1
+
+
+
 
