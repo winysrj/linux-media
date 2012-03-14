@@ -1,98 +1,153 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:64585 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1031968Ab2COQyw (ORCPT
+Received: from smtp-68.nebula.fi ([83.145.220.68]:55055 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751754Ab2CNIh2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Mar 2012 12:54:52 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Received: from euspt1 ([210.118.77.14]) by mailout4.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0M0X007YTQZ8PJ00@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 15 Mar 2012 16:54:44 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0M0X002OOQZ4O0@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 15 Mar 2012 16:54:41 +0000 (GMT)
-Date: Thu, 15 Mar 2012 17:54:32 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH/RFC 18/23] m5mols: Add image stabilization control
-In-reply-to: <1331830477-12146-1-git-send-email-s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, riverful.kim@samsung.com,
-	kyungmin.park@samsung.com, s.nawrocki@samsung.com
-Message-id: <1331830477-12146-19-git-send-email-s.nawrocki@samsung.com>
-References: <1331830477-12146-1-git-send-email-s.nawrocki@samsung.com>
+	Wed, 14 Mar 2012 04:37:28 -0400
+Date: Wed, 14 Mar 2012 10:37:23 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Bhupesh Sharma <bhupesh.sharma@st.com>
+Cc: linux-media@vger.kernel.org, spear-devel@list.st.com,
+	laurent.pinchart@ideasonboard.com
+Subject: Re: [PATCH 1/1] V4L/v4l2-dev: Make 'videodev_init' as a subsys
+ initcall
+Message-ID: <20120314083723.GF4220@valkosipuli.localdomain>
+References: <bbe7861cb38c036d3c24df908ffbfc125274ea99.1331543025.git.bhupesh.sharma@st.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <bbe7861cb38c036d3c24df908ffbfc125274ea99.1331543025.git.bhupesh.sharma@st.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
----
- drivers/media/video/m5mols/m5mols.h          |    1 +
- drivers/media/video/m5mols/m5mols_controls.c |   16 ++++++++++++++++
- 2 files changed, 17 insertions(+)
+Hi Bhupesh,
 
-diff --git a/drivers/media/video/m5mols/m5mols.h b/drivers/media/video/m5mols/m5mols.h
-index b2117df..213b15b 100644
---- a/drivers/media/video/m5mols/m5mols.h
-+++ b/drivers/media/video/m5mols/m5mols.h
-@@ -209,6 +209,7 @@ struct m5mols_info {
- 	struct v4l2_ctrl *saturation;
- 	struct v4l2_ctrl *zoom;
- 	struct v4l2_ctrl *wdr;
-+	struct v4l2_ctrl *stabilization;
- 
- 	struct m5mols_version ver;
- 	struct m5mols_capture cap;
-diff --git a/drivers/media/video/m5mols/m5mols_controls.c b/drivers/media/video/m5mols/m5mols_controls.c
-index 08c581e..2c7beef 100644
---- a/drivers/media/video/m5mols/m5mols_controls.c
-+++ b/drivers/media/video/m5mols/m5mols_controls.c
-@@ -12,6 +12,7 @@
-  * the Free Software Foundation; either version 2 of the License, or
-  * (at your option) any later version.
-  */
-+#define pr_fmt(fmt) "%s:%d "fmt, __func__, __LINE__
- 
- #include <linux/i2c.h>
- #include <linux/delay.h>
-@@ -359,6 +360,14 @@ static int m5mols_set_wdr(struct m5mols_info *info, int wdr)
- 	return m5mols_write(&info->sd, CAPP_WDR_EN, wdr);
- }
- 
-+static int m5mols_set_stabilization(struct m5mols_info *info, int val)
-+{
-+	struct v4l2_subdev *sd = &info->sd;
-+
-+	v4l2_dbg(1, m5mols_debug, sd, "image stabilization: %d\n", val);
-+	return 0;
-+}
-+
- static int m5mols_g_volatile_ctrl(struct v4l2_ctrl *ctrl)
- {
- 	struct v4l2_subdev *sd = to_sd(ctrl);
-@@ -435,6 +444,10 @@ static int m5mols_s_ctrl(struct v4l2_ctrl *ctrl)
- 	case V4L2_CID_WIDE_DYNAMIC_RANGE:
- 		ret = m5mols_set_wdr(info, ctrl->val);
- 		break;
-+
-+	case V4L2_CID_IMAGE_STABILIZATION:
-+		ret = m5mols_set_stabilization(info, ctrl->val);
-+		break;
- 	}
- 
- 	if (ret == 0 && info->mode != last_mode)
-@@ -522,6 +535,9 @@ int m5mols_init_controls(struct v4l2_subdev *sd)
- 	info->wdr = v4l2_ctrl_new_std(&info->handle, &m5mols_ctrl_ops,
- 			V4L2_CID_WIDE_DYNAMIC_RANGE, 0, 1, 1, 0);
- 
-+	info->stabilization = v4l2_ctrl_new_std(&info->handle, &m5mols_ctrl_ops,
-+			V4L2_CID_IMAGE_STABILIZATION, 0, 1, 1, 0);
-+
- 	if (info->handle.error) {
- 		int ret = info->handle.error;
- 		v4l2_err(sd, "Failed to initialize controls: %d\n", ret);
+On Mon, Mar 12, 2012 at 02:39:02PM +0530, Bhupesh Sharma wrote:
+> As the V4L2 based UVC webcam gadget (g_webcam) expects the
+> 'videodev' to present when the 'webcam_bind' routine is called,
+> so 'videodev' should be available as early as possible.
+> 
+> Now, when 'g_webcam' is built as a module (i.e. not a part of
+> kernel) the late availability of 'videodev' is OK, but if
+> 'g_webcam' is built statically as a part of the kernel,
+> the kernel crashes (a sample crash dump using Designware 2.0 UDC
+> is provided below).
+> 
+> To solve the same, this patch makes 'videodev_init' as a subsys initcall.
+> 
+> Kernel Crash Dump:
+> ------------------
+> 
+> designware_udc designware_udc: Device Synopsys UDC probed csr 90810000: plug 90812000
+> g_webcam gadget: uvc_function_bind
+> Unable to handle kernel NULL pointer dereference at virtual address 000000e4
+> pgd = 80004000
+> [000000e4] *pgd=00000000
+> Internal error: Oops: 5 [#1] SMP
+> Modules linked in:
+> CPU: 0    Not tainted  (3.3.0-rc3-13888-ge774c03-dirty #20)
+> PC is at do_raw_spin_lock+0x10/0x16c
+> LR is at _raw_spin_lock+0x10/0x14
+> pc : [<8019e344>]    lr : [<804095c0>]    psr: 60000013
+> sp : 8f839d20  ip : 8f839d50  fp : 8f839d4c
+> r10: 80760a94  r9 : 8042de98  r8 : 00000154
+> r7 : 80760e94  r6 : 805cfc10  r5 : 8fb6a008  r4 : 8fb6a008
+> r3 : 805dd0c8  r2 : 8f839d48  r1 : 805cfc08  r0 : 000000e0
+> Flags: nZCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment kernel
+> Control: 10c5387d  Table: 0000404a  DAC: 00000015
+> Process swapper/0 (pid: 1, stack limit = 0x8f8382f0)
+> Stack: (0x8f839d20 to 0x8f83a000)
+> 9d20: ffffffff ffffffff 8fb6a008 8fb6a008 805cfc10 80760e94 00000154 8042de98
+> 9d40: 8f839d5c 8f839d50 804095c0 8019e340 8f839d7c 8f839d60 80222b28 804095bc
+> 9d60: 8fb12b80 8fb6a008 8fb6a010 805cfc08 8f839dc4 8f839d80 80223db8 80222adc
+> 9d80: 8f839dac 8f839d90 8022baa0 8019e2e8 8fb6a008 8075e7f4 8fb6a008 8fb6a008
+> 9da0: 00000000 8fb6a008 80760e94 00000154 8042de98 80760a94 8f839ddc 8f839dc8
+> 9dc0: 802242a8 80223d1c 8fb12b80 8fb6a000 8f839e1c 8f839de0 8030132c 80224298
+> 9de0: 80223ce8 803f2ee8 00000001 804f7750 8f839e1c 8f824008 805cff20 8f824000
+> 9e00: 8fb6a000 ffffffff 00000000 8f8d4880 8f839e4c 8f839e20 80562e3c 80301100
+> 9e20: 00000000 8fb13140 8f824008 805cff20 8042aa68 8f824000 8042aa8c 805e4d40
+> 9e40: 8f839e64 8f839e50 802d20c4 80562ba8 805d0058 805cff20 8f839e8c 8f839e68
+> 9e60: 80563034 802d206c 8042aa8c 805cff20 8f8d4880 00000000 805cfc08 8fb12a40
+> 9e80: 8f839e9c 8f839e90 805630c4 80562ec4 8f839ebc 8f839ea0 802d2364 805630b0
+> 9ea0: 805cfeac 8f8d4880 805cfbe8 807605e8 8f839ed4 8f839ec0 80562b3c 802d22cc
+> 9ec0: 80562ac4 8f8d4880 8f839f04 8f839ed8 802d0b40 80562ad0 8f839ef4 805cff90
+> 9ee0: 805cff90 805cfb98 00000000 00000000 805cfbe8 805e4d40 8f839f3c 8f839f08
+> 9f00: 802cd078 802d0a18 00000000 802d0a0c 00000000 8fb9ba00 802d0a0c 805cff90
+> 9f20: 00000013 00000000 00000000 805e4d40 8f839f5c 8f839f40 802cf390 802ccff0
+> 9f40: 00000003 00000003 804fb598 00000000 8f839f74 8f839f60 802d2554 802cf2a0
+> 9f60: 8f838000 8057731c 8f839f84 8f839f78 80562b90 802d24d0 8f839fdc 8f839f88
+> 9f80: 800085d4 80562b84 805af2ac 805af2ac 80562b78 00000000 00000013 00000000
+> 9fa0: 00000000 00000000 8f839fc4 8f839fb8 80043dd0 8057706c 8057731c 8002875c
+> 9fc0: 00000013 00000000 00000000 00000000 8f839ff4 8f839fe0 805468d4 800085a0
+> 9fe0: 00000000 80546840 00000000 8f839ff8 8002875c 8054684c 51155555 55545555
+> Backtrace:
+> [<8019e334>] (do_raw_spin_lock+0x0/0x16c) from [<804095c0>] (_raw_spin_lock+0x10/0x14)
+>  r9:8042de98 r8:00000154 r7:80760e94 r6:805cfc10 r5:8fb6a008
+> r4:8fb6a008
+> [<804095b0>] (_raw_spin_lock+0x0/0x14) from [<80222b28>] (get_device_parent+0x58/0x1c0)
+> [<80222ad0>] (get_device_parent+0x0/0x1c0) from [<80223db8>] (device_add+0xa8/0x57c)
+>  r6:805cfc08 r5:8fb6a010 r4:8fb6a008 r3:8fb12b80
+> [<80223d10>] (device_add+0x0/0x57c) from [<802242a8>] (device_register+0x1c/0x20)
+> [<8022428c>] (device_register+0x0/0x20) from [<8030132c>] (__video_register_device+0x238/0x484)
+>  r4:8fb6a000 r3:8fb12b80
+> [<803010f4>] (__video_register_device+0x0/0x484) from [<80562e3c>] (uvc_function_bind+0x2a0/0x31c)
+> [<80562b9c>] (uvc_function_bind+0x0/0x31c) from [<802d20c4>] (usb_add_function+0x64/0x118)
+> [<802d2060>] (usb_add_function+0x0/0x118) from [<80563034>] (uvc_bind_config+0x17c/0x1ec)
+>  r5:805cff20 r4:805d0058
+> [<80562eb8>] (uvc_bind_config+0x0/0x1ec) from [<805630c4>] (webcam_config_bind+0x20/0x28)
+>  r8:8fb12a40 r7:805cfc08 r6:00000000 r5:8f8d4880 r4:805cff20
+> r3:8042aa8c
+> [<805630a4>] (webcam_config_bind+0x0/0x28) from [<802d2364>] (usb_add_config+0xa4/0x124)
+> [<802d22c0>] (usb_add_config+0x0/0x124) from [<80562b3c>] (webcam_bind+0x78/0xb4)
+>  r6:807605e8 r5:805cfbe8 r4:8f8d4880 r3:805cfeac
+> [<80562ac4>] (webcam_bind+0x0/0xb4) from [<802d0b40>] (composite_bind+0x134/0x308)
+>  r4:8f8d4880 r3:80562ac4
+> [<802d0a0c>] (composite_bind+0x0/0x308) from [<802cd078>] (dw_udc_start+0x94/0x2bc)
+> [<802ccfe4>] (dw_udc_start+0x0/0x2bc) from [<802cf390>] (usb_gadget_probe_driver+0xfc/0x180)
+> [<802cf294>] (usb_gadget_probe_driver+0x0/0x180) from [<802d2554>] (usb_composite_probe+0x90/0xb4)
+>  r6:00000000 r5:804fb598 r4:00000003 r3:00000003
+> [<802d24c4>] (usb_composite_probe+0x0/0xb4) from [<80562b90>] (webcam_init+0x18/0x24)
+>  r5:8057731c r4:8f838000
+> [<80562b78>] (webcam_init+0x0/0x24) from [<800085d4>] (do_one_initcall+0x40/0x184)
+> [<80008594>] (do_one_initcall+0x0/0x184) from [<805468d4>] (kernel_init+0x94/0x134)
+> [<80546840>] (kernel_init+0x0/0x134) from [<8002875c>] (do_exit+0x0/0x6f8)
+>  r5:80546840 r4:00000000
+> Code: e1a0c00d e92ddbf0 e24cb004 e24dd008 (e5902004)
+> ---[ end trace 7ecca37f36fbdc06 ]---
+> Signed-off-by: Bhupesh Sharma <bhupesh.sharma@st.com>
+
+Thanks!
+
+Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
+Tested-by: Sakari Ailus <sakari.ailus@iki.fi>
+
+> ---
+>  drivers/media/video/v4l2-dev.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/media/video/v4l2-dev.c b/drivers/media/video/v4l2-dev.c
+> index 96e9615..041804b 100644
+> --- a/drivers/media/video/v4l2-dev.c
+> +++ b/drivers/media/video/v4l2-dev.c
+> @@ -788,7 +788,7 @@ static void __exit videodev_exit(void)
+>  	unregister_chrdev_region(dev, VIDEO_NUM_DEVICES);
+>  }
+>  
+> -module_init(videodev_init)
+> +subsys_initcall(videodev_init);
+>  module_exit(videodev_exit)
+>  
+>  MODULE_AUTHOR("Alan Cox, Mauro Carvalho Chehab <mchehab@infradead.org>");
+> -- 
+> 1.7.2.2
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+Cheers,
+
 -- 
-1.7.9.2
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
