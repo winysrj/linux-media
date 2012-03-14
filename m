@@ -1,44 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.perfora.net ([74.208.4.195]:60569 "EHLO mout.perfora.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756096Ab0DEUVH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 5 Apr 2010 16:21:07 -0400
-Message-ID: <4BBA462E.5060203@vorgon.com>
-Date: Mon, 05 Apr 2010 13:21:02 -0700
-From: "Timothy D. Lenz" <tlenz@vorgon.com>
-MIME-Version: 1.0
+Received: from mail.interworx.nl ([93.190.137.248]:42035 "EHLO
+	mail.interworx.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755965Ab0DVSHv convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 22 Apr 2010 14:07:51 -0400
+Received: from [62.45.235.101] ([62.45.235.101])
+	by mail.interworx.nl (Kerio MailServer 6.6.2)
+	for linux-media@vger.kernel.org;
+	Wed, 14 Mar 2012 16:53:04 +0100
 To: linux-media@vger.kernel.org
-Subject: Possible bug with FusionHDTV7 Dual Express
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+From: "Hans van den Bogert" <gandalf@unit-westland.nl>
+Subject: anysee e30 suspend->resume causes wrong profiling of card.
+Message-ID: <20120314155304.c347fb58@mail.interworx.nl>
+Date: Wed, 14 Mar 2012 16:53:04 +0100
+MIME-Version: 1.0
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-For some time I have been having problems with VDR seemingly loosing 
-control over one of the two tuners. It seems to be related to the 
-atscepg plugin. It happened quicker after VDR had timer recorded a show. 
-Removing the plugin seemed to stop it but also get no epg data. basicly, 
-which ever tuner vdr was displaying from, the other tuner would seem to 
-stop working. You get no signal. But only vdr needed to be restarted to 
-get the tuner back. One tuner always seemed to go down within 24hrs when 
-using the plugin. It seems to be related to when the plugin used a free 
-tuner to scan epg.
+The anysee driver works correctly from cold boot and reinsertion of the device, however, after a suspend resume cycle (S3),  the device suddenly is initated as dvb-t as where it was dvb-c before. Yes this is a combo device, so dvb T and C, but why does the profiling in anysee.c not handle this case? Obviously the following snippet produces a false positive on warm boot and resume:
 
-I put a second card in, an HVR-1800 which became the 3rd dvb device 
-according to vdr. Same thing kept happening. Always the first or second 
-tuner since no mater which vdr was using, it would always be one of 
-those that was left free. I started vdr with "-D 1 -D 2" to force vdr to 
-only use 1 tuner of the dual and the second card. I also use femon to 
-make sure vdr is using dvb1 after changing channels so that the plugin 
-uses the second card for scanning.
 
-It has been running for a couple of days and done recordings without 
-loosing a tuner. Since forcing it to use only one tuner of the dual 
-seems to have stopped the problem, it is starting to look like a driver 
-problem with the fusion card. Today I used femon to put vdr on dvb2 so 
-that the plugin uses the fusion to scan epg. In a couple days if the 
-problem still doesn't show, I may swap slot positions of the two cards 
-so vdr use the 1800 without forcing by blocking a tuner.
+/* Zarlink ZL10353 DVB-T demod inside of Samsung DNOS404ZH103A NIM */
+        adap->fe = dvb_attach(zl10353_attach, &anysee_zl10353_config,
+                              &adap->dev->i2c_adap);
+        if (adap->fe != NULL) {
+                state->tuner = DVB_PLL_THOMSON_DTT7579;
+                info("mine: case 2");
+                return 0;
+        }
 
-The plugin Author has also been looking into this, but he only recently 
-got a second tuner card working.
+I've looked through the rest of the code and by no means am I a developer but, isn't the problem that on warm boots the register of the anysee device doesn't hold the right value in combination with a combo device? because in all the other cases when profiling for different kind of device like the e30c the register is put in a different state before probing for the demuxer.
+
+In the meantime I have commented out the above snippet, which results in a works-for-me. But it isn't a nice solution for the average/new linux user wanting to build a htpc with a anysee combo device.
+
+Tested with ubuntu-lucid module, further tested/compiled with the HG repo.
+
+ps I'm new with mailing lists, is this the right place to post for the anysee driver?
