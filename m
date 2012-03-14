@@ -1,62 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ccsrelay02.in2p3.fr ([134.158.66.52]:42985 "EHLO
-	ccsrelay02.in2p3.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756582Ab2CEWPU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Mar 2012 17:15:20 -0500
-Message-ID: <4F5532D0.4030108@free.fr>
-Date: Mon, 05 Mar 2012 22:40:32 +0100
-From: Skippy <lecotegougdelaforce@free.fr>
-Reply-To: lecotegougdelaforce@free.fr
+Received: from perceval.ideasonboard.com ([95.142.166.194]:35359 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752535Ab2CNP37 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 14 Mar 2012 11:29:59 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Vaibhav Hiremath <hvaibhav@ti.com>
+Cc: linux-media@vger.kernel.org, mchehab@infradead.org, archit@ti.com,
+	linux-omap@vger.kernel.org
+Subject: Re: [PATCH] omap_vout: Fix "DMA transaction error" issue when rotation is enabled
+Date: Wed, 14 Mar 2012 16:30:25 +0100
+Message-ID: <2410737.F7OP3MWonz@avalon>
+In-Reply-To: <1331295117-489-1-git-send-email-hvaibhav@ti.com>
+References: <1331295117-489-1-git-send-email-hvaibhav@ti.com>
 MIME-Version: 1.0
-To: Jonathan Nieder <jrnieder@gmail.com>
-CC: Jean-Francois Moine <moinejf@free.fr>, linux-media@vger.kernel.org,
-	linux-usb@vger.kernel.org
-Subject: Re: [bug?] ov519 fails to handle Hercules Deluxe webcam
-References: <20120304223239.22117.54556.reportbug@deepthought> <20120305003801.GB27427@burratino> <20120305102101.652b46e7@tele> <20120305093430.GA14386@burratino>
-In-Reply-To: <20120305093430.GA14386@burratino>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Le 05/03/2012 10:34, Jonathan Nieder a écrit :
-> 	make localmodconfig; # optional: minimize configuration
-> 	make; # optionally with -j<num>  for parallel build
+Hi Vaibhav,
 
-The compilation failed (see at the end of this email) and I didn't feel 
-like trying to debug it so I went for Jean-François' build, and it seems 
-to work fine (thanks !).
+On Friday 09 March 2012 17:41:57 Vaibhav Hiremath wrote:
+> When rotation is enabled and driver is configured in USERPTR
+> buffer exchange mechanism, in specific use-case driver reports
+> an error,
+>    "DMA transaction error with device 0".
+> 
+> In driver _buffer_prepare funtion, we were using
+> "vout->buf_phy_addr[vb->i]" for buffer physical address to
+> configure SDMA channel, but this variable does get updated
+> only during init.
+> And the issue will occur when driver allocates less number
+> of buffers during init and application requests more buffers
+> through REQBUF ioctl; this variable will lead to invalid
+> configuration of SDMA channel leading to DMA transaction error.
+> 
+> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> ---
+> Archit/Laurent,
+> Can you help me to validate this patch on your platform/usecase?
 
-<HS>Jean-François, please have a look at 
-http://fr.wikipedia.org/wiki/Casse_%28typographie%29 or 
-http://www.cnrtl.fr/definition/casse (CASSE³) and you may switch back to 
-French… ;-)</HS>
+I've tested the patch by rotating the omap_vout overlay by 90 degrees and 
+starting a video stream with 4 buffers. There's no crash, but the kernel 
+prints
 
------------------------------------------------------------------------
-# LANG=en_US.utf8 make localmodconfig
-   HOSTCC  scripts/basic/fixdep
-In file included from /usr/include/sys/socket.h:40,
-                  from /usr/include/netinet/in.h:25,
-                  from /usr/include/arpa/inet.h:23,
-                  from scripts/basic/fixdep.c:116:
-/usr/include/bits/socket.h:370:24: error: asm/socket.h: No such file or 
-directory
-make[1]: *** [scripts/basic/fixdep] Error 1
-make: *** [scripts_basic] Error 2
+[77.877807] omapdss DISPC error: FIFO UNDERFLOW on gfx, disabling the overlay
+[77.928344] omapdss DISPC error: FIFO UNDERFLOW on vid1, disabling the overlay
 
-# LANG=en_US.utf8 make
-   HOSTCC  scripts/basic/fixdep
-In file included from /usr/include/sys/socket.h:40,
-                  from /usr/include/netinet/in.h:25,
-                  from /usr/include/arpa/inet.h:23,
-                  from scripts/basic/fixdep.c:116:
-/usr/include/bits/socket.h:370:24: error: asm/socket.h: No such file or 
-directory
-make[2]: *** [scripts/basic/fixdep] Error 1
-make[1]: *** [scripts_basic] Error 2
-make: *** No rule to make target `include/config/auto.conf', needed by 
-`include/config/kernel.release'.  Stop.
------------------------------------------------------------------------
+The same problem occurs with 3 buffers, which is what the omap_vout driver 
+allocates by default.
 
+Without your patch applied I get the same behaviour. Is my test procedure 
+wrong ?
 
+>  drivers/media/video/omap/omap_vout_vrfb.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/media/video/omap/omap_vout_vrfb.c
+> b/drivers/media/video/omap/omap_vout_vrfb.c index 4be26ab..240d36d 100644
+> --- a/drivers/media/video/omap/omap_vout_vrfb.c
+> +++ b/drivers/media/video/omap/omap_vout_vrfb.c
+> @@ -225,7 +225,7 @@ int omap_vout_prepare_vrfb(struct omap_vout_device
+> *vout, if (!is_rotation_enabled(vout))
+>  		return 0;
+> 
+> -	dmabuf = vout->buf_phy_addr[vb->i];
+> +	dmabuf = (dma_addr_t) vout->queued_buf_addr[vb->i];
+>  	/* If rotation is enabled, copy input buffer into VRFB
+>  	 * memory space using DMA. We are copying input buffer
+>  	 * into VRFB memory space of desired angle and DSS will
+
+-- 
+Regards,
+
+Laurent Pinchart
 
