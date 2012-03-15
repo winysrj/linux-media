@@ -1,84 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from acsinet15.oracle.com ([141.146.126.227]:21546 "EHLO
-	acsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753229Ab2CTNhh (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:30756 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1031980Ab2COQy5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Mar 2012 09:37:37 -0400
-Date: Tue, 20 Mar 2012 16:37:50 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: volokh <volokh@telros.ru>
-Cc: devel@linuxdriverproject.org, linux-media@vger.kernel.org
-Subject: Re: go7007 patch for 3.2.11
-Message-ID: <20120320133750.GA3967@mwanda>
-References: <1332247500.6182.30.camel@VPir>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="2oS5YaxWCcQjTEyO"
-Content-Disposition: inline
-In-Reply-To: <1332247500.6182.30.camel@VPir>
+	Thu, 15 Mar 2012 12:54:57 -0400
+Received: from euspt1 (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0M0X009PRQZ8MY@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 15 Mar 2012 16:54:44 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0M0X002OQQZ4O0@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 15 Mar 2012 16:54:42 +0000 (GMT)
+Date: Thu, 15 Mar 2012 17:54:37 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH/RFC 23/23] V4L: Add auto focus targets to the subdev selections
+ API
+In-reply-to: <1331830477-12146-1-git-send-email-s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: m.szyprowski@samsung.com, riverful.kim@samsung.com,
+	kyungmin.park@samsung.com, s.nawrocki@samsung.com
+Message-id: <1331830477-12146-24-git-send-email-s.nawrocki@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1331830477-12146-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ Documentation/DocBook/media/v4l/dev-subdev.xml     |   27 +++++++++++++++++++-
+ .../media/v4l/vidioc-subdev-g-selection.xml        |   14 ++++++++--
+ include/linux/v4l2-subdev.h                        |    4 +++
+ 3 files changed, 42 insertions(+), 3 deletions(-)
 
---2oS5YaxWCcQjTEyO
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+diff --git a/Documentation/DocBook/media/v4l/dev-subdev.xml b/Documentation/DocBook/media/v4l/dev-subdev.xml
+index 133fb02..9d2857b 100644
+--- a/Documentation/DocBook/media/v4l/dev-subdev.xml
++++ b/Documentation/DocBook/media/v4l/dev-subdev.xml
+@@ -277,7 +277,7 @@
+     </section>
+ 
+     <section>
+-      <title>Selections: cropping, scaling and composition</title>
++      <title>Selections - cropping, scaling and composition</title>
+ 
+       <para>Many sub-devices support cropping frames on their input or output
+       pads (or possible even on both). Cropping is used to select the area of
+@@ -330,6 +330,31 @@
+     </section>
+ 
+     <section>
++      <title>Selections - regions of interest</title>
++    <section>
++      <title>Automatic focus</title>
++
++      <para>The camera automatic focus algorithms may require configuration
++      of a region or multiple regions of interest in form of rectangle or spot
++      coordinates.</para>
++
++      <para>A single rectangle of interest is represented in &v4l2-rect;
++      by the coordinates of the top left corner and the rectangle size. Both
++      the coordinates and sizes are expressed in pixels. When the <structfield>
++      width</structfield> and <structfield>height</structfield> fields of
++      &v4l2-rect; are set to 0 the selection determines spot coordinates,
++      rather than a rectangle.</para>
++
++      <para>Auto focus rectangles are reset to their default values when the
++      output image format is modified. Drivers should use the output image size
++      as the auto focus rectangle default value, but hardware requirements may
++      prevent this.
++      </para>
++      <para>The auto focus selections on input pads are not defined.</para>
++    </section>
++    </section>
++
++    <section>
+       <title>Types of selection targets</title>
+ 
+       <section>
+diff --git a/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml b/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml
+index 1e3a744..6d60bb0 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml
+@@ -57,8 +57,8 @@
+ 
+     <para>The selections are used to configure various image
+     processing functionality performed by the subdevs which affect the
+-    image size. This currently includes cropping, scaling and
+-    composition.</para>
++    image size. This currently includes cropping, scaling, composition
++    and automatic focus regions of interest.</para>
+ 
+     <para>The selection API replaces <link
+     linkend="vidioc-subdev-g-crop">the old subdev crop API</link>. All
+@@ -114,6 +114,16 @@
+ 	    <entry>0x0102</entry>
+ 	    <entry>Bounds of the compose rectangle.</entry>
+ 	  </row>
++	  <row>
++	    <entry><constant>V4L2_SUBDEV_SEL_TGT_AUTO_FOCUS_BOUNDS</constant></entry>
++	    <entry>0x1000</entry>
++	    <entry>Bounds of the automatic focus region of interest.</entry>
++	  </row>
++	  <row>
++	    <entry><constant>V4L2_SUBDEV_SEL_TGT_AUTO_FOCUS_ACTUAL</constant></entry>
++	    <entry>0x1001</entry>
++	    <entry>Actual automatic focus rectangle or spot coordinates.</entry>
++	  </row>
+ 	</tbody>
+       </tgroup>
+     </table>
+diff --git a/include/linux/v4l2-subdev.h b/include/linux/v4l2-subdev.h
+index 812019e..49b1f14 100644
+--- a/include/linux/v4l2-subdev.h
++++ b/include/linux/v4l2-subdev.h
+@@ -136,6 +136,10 @@ struct v4l2_subdev_frame_interval_enum {
+ /* composing bounds */
+ #define V4L2_SUBDEV_SEL_TGT_COMPOSE_BOUNDS		0x0102
+ 
++/* auto focus region of interest */
++#define V4L2_SUBDEV_SEL_TGT_AUTO_FOCUS_ACTUAL		0x1000
++/* auto focus region (spot coordinates) bounds */
++#define V4L2_SUBDEV_SEL_TGT_AUTO_FOCUS_BOUNDS		0x1001
+ 
+ /**
+  * struct v4l2_subdev_selection - selection info
+-- 
+1.7.9.2
 
-On Tue, Mar 20, 2012 at 04:45:00PM +0400, volokh wrote:
-> Good day.
->=20
-> I`ve Angelo PCI-MPG24 (Adlink manufacture) video capture grubber with
-> go7007&tw2804 on board.
->=20
-> I am video surveillance developer (through web,tcp,etc net), so I`m
-> interest with well quality(stability) of this card driver.So this patch=
-=20
-> improve some part of driver,eg tuning,motion detection, etc.
->=20
-> There are two attachments, so patch19032012.tar.bz2 is patch for kernel,
-> and other one is patch for testing card.
->=20
-> I send it for you with hope this patch will be assign in new kernels.
->=20
-
-go7007 is handled by the linux-media people these days, not us.
-
-Anyway, the patch needs to be submitted in the proper way so we can
-save the raw email and apply it like this:
-	cat raw_email.txt | git am
-or
-	cat raw_email.txt | patch -P1
-
-Send the patch to yourself first and verify that it applies.
-
-Read Documentation/SubmittingPatches.  There are bunch of tutorials
-on how to submit patches online as well.
-http://www.tuxradar.com/content/newbies-guide-hacking-linux-kernel
-
-regards,
-dan carpenter
-
---2oS5YaxWCcQjTEyO
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAEBAgAGBQJPaIgtAAoJEOnZkXI/YHqRDCEP/0DQadceLE4OHO4LcT3zI8/D
-uSVBg+FcH5zhXeq4/xeZgtUqP9dIDZD3oi+R2dLhvz+kpzPag8LBeCLpiTuxW1WD
-YhetSn4UTkVKyTDcdU3V7aZhE6TyW4/gU+acCCfIg+FXJjvmnZknQGdJhAMMAKEA
-OINUvcjCBP1C0T9lnZCL/yC5qHUJODRnQG3GuAdoY1ilYGatoCvAtHhYe4AAilUC
-9/DrQSA5wFRWxQv975Lfx1cCdA3EqKeAcdrPU18ZUnOjA/y7yHSOsxWiobJXR+b2
-8JyYfIcr1tY4SDzhF99FKU+dmaZ3n389BCcHh74+xoKkvf33XO3M/tRqVxQeaEtP
-Fsa61soXjpLtMHuxIxycuAgcxfeg0ehnElvVwjrQJndDqeKQ75GKSWdzqYpHLndH
-aTg7LL9401xI5IklctrBLO2Y6ZI+w8cQQ24Zg2UIXQG6V3BqdHD6N1on8uQSeZd0
-qSu/HmtvxhchJkbG3mloNZNB+CsvM/iUzjFK0cCKL15P916hTHcavEnofA1UYiNR
-wNok3vxkbocKSF7ZRjMd2MpiENZF89R285BTOrfQMPdZmgo03XAaYFqKjIAuC8XA
-fkewy3m35afNYg9e3EGZfpAflNwOT/q2gkLjW5jbUVmOWWMQ1YffJfQT09WtUzF0
-qO93V5mANJXz48JyfyxS
-=SMj4
------END PGP SIGNATURE-----
-
---2oS5YaxWCcQjTEyO--
