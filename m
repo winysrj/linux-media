@@ -1,82 +1,143 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from woodlands.midnighthax.com ([93.89.81.115]:42059 "EHLO
-	woodlands.the.cage" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1032210Ab2COUOs (ORCPT
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:64585 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1031805Ab2COQyu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Mar 2012 16:14:48 -0400
-Received: from ws.the.cage ([10.0.0.100])
-	by woodlands.the.cage with esmtp (Exim 4.72)
-	(envelope-from <kae@midnighthax.com>)
-	id 1S8H4Q-0003qQ-Jm
-	for linux-media@vger.kernel.org; Thu, 15 Mar 2012 20:14:46 +0000
-Date: Thu, 15 Mar 2012 20:14:46 +0000
-From: Keith Edmunds <kae@midnighthax.com>
+	Thu, 15 Mar 2012 12:54:50 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Received: from euspt1 ([210.118.77.14]) by mailout4.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0M0X00703QZ6P910@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 15 Mar 2012 16:54:42 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0M0X00GNJQZ324@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 15 Mar 2012 16:54:40 +0000 (GMT)
+Date: Thu, 15 Mar 2012 17:54:20 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH/RFC 06/23] V4L: Add camera ISO sensitivity controls
+In-reply-to: <1331830477-12146-1-git-send-email-s.nawrocki@samsung.com>
 To: linux-media@vger.kernel.org
-Subject: Re: cxd2820r: i2c wr failed (PCTV Nanostick 290e)
-Message-ID: <20120315201446.17f21639@ws.the.cage>
-In-Reply-To: <20120310142042.0f238d3a@ws.the.cage>
-References: <20120310142042.0f238d3a@ws.the.cage>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Cc: m.szyprowski@samsung.com, riverful.kim@samsung.com,
+	kyungmin.park@samsung.com, s.nawrocki@samsung.com
+Message-id: <1331830477-12146-7-git-send-email-s.nawrocki@samsung.com>
+References: <1331830477-12146-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I posted the message below last week, but I've had no response.
+Add ISO sensitivity and ISO auto/manual controls. The sensitivity
+values are related to level of amplification of the analog signal
+between image sensor and ADC. Although some sensors expose an
+interface to accept the ISO values directly.
 
-Is this the wrong list? Did I do something wrong in my posting?
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ Documentation/DocBook/media/v4l/biblio.xml   |   11 +++++++++++
+ Documentation/DocBook/media/v4l/controls.xml |   24 ++++++++++++++++++++++++
+ drivers/media/video/v4l2-ctrls.c             |    4 ++++
+ include/linux/videodev2.h                    |    2 ++
+ 4 files changed, 41 insertions(+)
 
-I would like fix this problem, and I have more information now, but I
-don't want to clutter this list if it's the wrong place.
-
-Guidance as to what I should do gratefully received: thanks.
-
-> Hi List
-> 
-> I'm having lots of problems with my PCTV Nanostick 290e under MythTV. Is
-> this the best place to report these problems?
-> 
-> I'm happy to provide whatever detail is needed, but in summary:
-> 
->  - every day or two, I get the error messages logged below. I need to
->    reboot the back end to clear them.
-> 
->  - when the back end comes back up, 'lsusb' doesn't show the 290e. I have
->    to unplug it, wait a few seconds, then plug it back in again
-> 
-> This is extremely frustrating. When it works, it's great; when it
-> doesn't, recordings fail.
-> 
-> The following errors are reported repeatedly:
-> 
-> Mar  9 10:02:03 woodlands kernel: [ 6006.157991] cxd2820r: i2c wr failed
-> ret:-110 reg:85 len:1 
-> Mar  9 10:02:05 woodlands kernel: [ 6008.511994] cxd2820r: i2c wr failed
-> ret:-110 reg:00 len:1 
-> Mar  9 10:02:08 woodlands kernel: [ 6011.208909] cxd2820r: i2c wr failed
-> ret:-110 reg:85 len:1 
-> Mar 9 10:02:10 woodlands kernel: [ 6013.566440] cxd2820r: i2c wr failed
-> ret:-110 reg:00 len:1
-> 
-> MythTV backend details:
->  - Debian v6.0.4 ("Squeeze")
->  - Debian multimedia repository
->  - Myth version 0.24.2-0.0squeeze1 (as packaged by repository)
->  - Kernel: 2.6.32-5-686-bigmem (I've also tried 3.2.0-0.bpo.1-686-pae,
->    both Debian-packaged)
->  - Tuners: 2 x Hauppauge Nova-T Stick (USB) and 1 x PCTV Nanostick 290e
->    (also USB)
->  - no module load parameters specified
->  - tuning delay 750mS for each tuner
->  - drivers for the 290e built using the media_build scripts
->    (http://git.linuxtv.org/media_build.git)
-> 
-> Many thanks,
-> Keith
-
-
+diff --git a/Documentation/DocBook/media/v4l/biblio.xml b/Documentation/DocBook/media/v4l/biblio.xml
+index 7dc65c5..66a0ef2 100644
+--- a/Documentation/DocBook/media/v4l/biblio.xml
++++ b/Documentation/DocBook/media/v4l/biblio.xml
+@@ -197,4 +197,15 @@ in the frequency range from 87,5 to 108,0 MHz</title>
+       <title>NTSC-4: United States RBDS Standard</title>
+     </biblioentry>
+ 
++    <biblioentry id="iso12232">
++      <abbrev>ISO&nbsp;12232:2006</abbrev>
++      <authorgroup>
++	<corpauthor>International Organization for Standardization
++(<ulink url="http://www.iso.org">http://www.iso.org</ulink>)</corpauthor>
++      </authorgroup>
++      <title>Photography &mdash; Digital still cameras &mdash; Determination
++      of exposure index, ISO speed ratings, standard output sensitivity, and
++      recommended exposure index</title>
++    </biblioentry>
++
+   </bibliography>
+diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+index ebb4431..b92c85a 100644
+--- a/Documentation/DocBook/media/v4l/controls.xml
++++ b/Documentation/DocBook/media/v4l/controls.xml
+@@ -3184,6 +3184,30 @@ feature.</entry>
+ 	  </row>
+ 	  <row><entry></entry></row>
+ 
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_ISO_SENSITIVITY</constant>&nbsp;</entry>
++	    <entry>integer menu</entry>
++	  </row><row><entry spanname="descr">Determines ISO equivalent of an
++image sensor indicating the sensor's sensitivity to light. The numbers are
++expressed in arithmetic scale, as per <xref linkend="iso12232" /> standard,
++where doubling the sensor sensitivity is represented by doubling the numerical
++ISO value. Applications should interpret the values as standard ISO values
++multiplied by 1000, e.g. control value 800 stands for ISO 0.8. Drivers will
++usually support only a subset of standard ISO values.
++</entry>
++	  </row>
++	  <row><entry></entry></row>
++
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_ISO_SENSITIVITY_AUTO</constant>&nbsp;</entry>
++	    <entry>boolean</entry>
++	  </row><row><entry spanname="descr">Enables automatic ISO sensitivity
++adjustments. The effect of setting <constant>V4L2_CID_ISO_SENSITIVITY</constant>
++while automatic ISO control is enabled is undefined, drivers should ignore such
++requests.</entry>
++	  </row>
++	  <row><entry></entry></row>
++
+ 	</tbody>
+       </tgroup>
+     </table>
+diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
+index 53e56be..58c7849 100644
+--- a/drivers/media/video/v4l2-ctrls.c
++++ b/drivers/media/video/v4l2-ctrls.c
+@@ -636,6 +636,8 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_WIDE_DYNAMIC_RANGE:	return "Wide Dynamic Range";
+ 	case V4L2_CID_IMAGE_STABILIZATION:	return "Image Stabilization";
+ 	case V4L2_CID_AUTO_EXPOSURE_BIAS:	return "Auto Exposure, Bias";
++	case V4L2_CID_ISO_SENSITIVITY:		return "ISO Sensitivity";
++	case V4L2_CID_ISO_SENSITIVITY_AUTO:	return "ISO Sensitivity, Auto";
+ 
+ 	/* FM Radio Modulator control */
+ 	/* Keep the order of the 'case's the same as in videodev2.h! */
+@@ -736,6 +738,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_MPEG_VIDEO_MPEG4_QPEL:
+ 	case V4L2_CID_WIDE_DYNAMIC_RANGE:
+ 	case V4L2_CID_IMAGE_STABILIZATION:
++	case V4L2_CID_ISO_SENSITIVITY_AUTO:
+ 		*type = V4L2_CTRL_TYPE_BOOLEAN;
+ 		*min = 0;
+ 		*max = *step = 1;
+@@ -792,6 +795,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_RDS_TX_RADIO_TEXT:
+ 		*type = V4L2_CTRL_TYPE_STRING;
+ 		break;
++	case V4L2_CID_ISO_SENSITIVITY:
+ 	case V4L2_CID_AUTO_EXPOSURE_BIAS:
+ 		*type = V4L2_CTRL_TYPE_INTEGER_MENU;
+ 		break;
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index 3d7bb3d..440d59c99 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -1731,6 +1731,8 @@ enum v4l2_white_balance_preset {
+ #define V4L2_CID_WIDE_DYNAMIC_RANGE		(V4L2_CID_CAMERA_CLASS_BASE+31)
+ #define V4L2_CID_IMAGE_STABILIZATION		(V4L2_CID_CAMERA_CLASS_BASE+32)
+ #define V4L2_CID_AUTO_EXPOSURE_BIAS		(V4L2_CID_CAMERA_CLASS_BASE+33)
++#define V4L2_CID_ISO_SENSITIVITY		(V4L2_CID_CAMERA_CLASS_BASE+34)
++#define V4L2_CID_ISO_SENSITIVITY_AUTO		(V4L2_CID_CAMERA_CLASS_BASE+35)
+ 
+ /* FM Modulator class control IDs */
+ #define V4L2_CID_FM_TX_CLASS_BASE		(V4L2_CTRL_CLASS_FM_TX | 0x900)
 -- 
-"You can have everything in life you want if you help enough other people
-get what they want" - Zig Ziglar. 
+1.7.9.2
 
-Who did you help today?
