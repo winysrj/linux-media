@@ -1,150 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:44609 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754433Ab2CAO4U (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Mar 2012 09:56:20 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
-	teturtia@gmail.com, dacohen@gmail.com, snjw23@gmail.com,
-	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
-	tuukkat76@gmail.com, k.debski@gmail.com, riverful@gmail.com
-Subject: Re: [PATCH v3 32/33] smiapp: Add driver.
-Date: Thu, 01 Mar 2012 15:56:35 +0100
-Message-ID: <2004080.2hxX8IoNUT@avalon>
-In-Reply-To: <4F4F8143.8000909@iki.fi>
-References: <20120220015605.GI7784@valkosipuli.localdomain> <3598400.2MKjxpiZx5@avalon> <4F4F8143.8000909@iki.fi>
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:43677 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756015Ab2COOao (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 15 Mar 2012 10:30:44 -0400
+Received: by eaaq12 with SMTP id q12so1574169eaa.19
+        for <linux-media@vger.kernel.org>; Thu, 15 Mar 2012 07:30:43 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <006d01cd02ae$457fc960$d07f5c20$%debski@samsung.com>
+References: <CACKLOr3T-w1JdaGgnL+ZEXFX4v_oVd0HY8mqrm5ZzxEziH32jw@mail.gmail.com>
+	<20120315110336.GH4220@valkosipuli.localdomain>
+	<006d01cd02ae$457fc960$d07f5c20$%debski@samsung.com>
+Date: Thu, 15 Mar 2012 15:30:42 +0100
+Message-ID: <CACKLOr1igHtcfMBHTdncSzHiBixt03WDJ-QSNvUn3sRe171e+A@mail.gmail.com>
+Subject: Re: [Q] media: V4L2 compressed frames and s_fmt.
+From: javier Martin <javier.martin@vista-silicon.com>
+To: Kamil Debski <k.debski@samsung.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Hi Kamil, Sakari,
+thank you for your replies.
 
-On Thursday 01 March 2012 16:01:39 Sakari Ailus wrote:
-> Laurent Pinchart wrote:
+On 15 March 2012 14:19, Kamil Debski <k.debski@samsung.com> wrote:
+> Hi Javier, Sakari,
+>
+>> From: Sakari Ailus [mailto:sakari.ailus@iki.fi]
+>> Sent: 15 March 2012 12:04
+>>
+>> Hi Javier,
+>>
+>> (Cc Kamil.)
+>>
+>> On Wed, Mar 14, 2012 at 12:22:43PM +0100, javier Martin wrote:
+>> > Hi,
+>> > I'm developing a V4L2 mem2mem driver for the codadx6 IP video codec
+>> > which is included in the i.MX27 chip.
+>> >
+>> > The capture interface of this driver can therefore return h.264 or
+>> > mpeg4 video frames.
+>> >
+>> > Provided that the size of each frame varies and is unknown to the
+>> > user, how is the driver supposed to react to a S_FMT when it comes to
+>> > parameters such as the following?
+>> >
+>> > pix->width
+>> > pix->height
+>> > pix->bytesperline
+>> > pix->sizeimage
+>> >
+>> > According to the documentation [1] I understand that the driver can
+>> > just ignore 'bytesperline' and should return in 'sizeimage' the
+>> > maximum buffer size to store a compressed frame. However, it does not
+>> > mention anything special about width and height. Does it make sense
+>> > setting width and height for h.264/mpeg4 formats?
+>>
+>
+> Yes, in case of the compressed side (capture) the width, height and
+> bytesperline
+> is ignored. The MFC driver sets bytesperline to 0 and leaves width and height
+> intact
+> during S_FMT. I suggest you do the same or set all of them (width, height,
+> bytesperline)
+> to 0.
 
-[snip]
+I'm not sure about that, according to the code in here [1] it ignores
+width and height, as you stated, but it fills bytesperline with the
+value in imagesize. This applies to TRY_FMT and S_FMT.
+On the other hand, in G_FMT [2], it sets width and height to 0, but
+bytesperline and sizeimage are set to ctx->enc_dst_buf_size, which I
+deduce it's the encoder buffer size.
 
-> >>>> +		return sensor->pixel_array->ctrl_handler.error;
-> >>>> +	}
-> >>>> +
-> >>>> +	sensor->pixel_array->sd.ctrl_handler =
-> >>>> +		&sensor->pixel_array->ctrl_handler;
-> >>>> +
-> >>>> +	v4l2_ctrl_cluster(2, &sensor->hflip);
-> >>> 
-> >>> Shouldn't you move this before the control handler check ?
-> >> 
-> >> Why? It can't fail.
-> > 
-> > I thought it could fail. You could then leave it here, but it would be
-> > easier from a maintenance point of view to check the error code after
-> > completing all control-related initialization, as it would avoid
-> > introducing a bug if for some reason the v4l2_ctrl_cluster() function
-> > needs to return an error later.
-> Then every other driver must also take that into account. And as
-> Sylwester said, there are things to check before that as well.
-> 
-> So I could also re-check the control handler error status after the
-> function but currently it doesn't look like it would make sense.
+If this is the agreed way of doing things I can just implement this
+behavior in my driver as well.
 
-Sylwester made a very good point. Let's leave the code as-is.
+Regards.
 
-[snip]
-
-> >> The lvalues are module parameters whereas the rvalues are sensor
-> >> parameters.>> 
-> >>>> +	if (!minfo->manufacturer_id && !minfo->model_id) {
-> >>>> +		minfo->manufacturer_id = minfo->sensor_manufacturer_id;
-> >>>> +		minfo->model_id = minfo->sensor_model_id;
-> >>>> +		minfo->revision_number_major = minfo->sensor_revision_number;
-> >>>> +	}
-> >>>> +
-> >>>> +	for (i = 0; i < ARRAY_SIZE(smiapp_module_idents); i++) {
-> >>>> +		if (smiapp_module_idents[i].manufacturer_id
-> >>>> +		    != minfo->manufacturer_id)
-> >>>> +			continue;
-> >>>> +		if (smiapp_module_idents[i].model_id != minfo->model_id)
-> >>>> +			continue;
-> >>>> +		if (smiapp_module_idents[i].flags
-> >>>> +		    & SMIAPP_MODULE_IDENT_FLAG_REV_LE) {
-> >>>> +			if (smiapp_module_idents[i].revision_number_major
-> >>>> +			    < minfo->revision_number_major)
-> >>>> +				continue;
-> >>>> +		} else {
-> >>>> +			if (smiapp_module_idents[i].revision_number_major
-> >>>> +			    != minfo->revision_number_major)
-> >>>> +				continue;
-> >>>> +		}
-> >>>> +
-> >>>> +		minfo->name = smiapp_module_idents[i].name;
-> >>>> +		minfo->quirk = smiapp_module_idents[i].quirk;
-> >>>> +		break;
-> >>>> +	}
-> >>>> +
-> >>>> +	if (i >= ARRAY_SIZE(smiapp_module_idents))
-> >>>> +		dev_warn(&client->dev, "no quirks for this module\n");
-> >>> 
-> >>> Maybe a message such as "unknown SMIA++ module - trying generic support"
-> >>> would be better ? Many of the known modules have no quirks.
-> >> 
-> >> I'd like to think it as a positive message of the conformance of the
-> >> sensor
-> >> --- still it may inform that the quirks are actually missing. What do you
-> >> think?
-> > 
-> > In that case I think something similar to my message is better :-) I agree
-> > about the meaning the message should convey.
-> 
-> I understand from your message that the sensor should have quirks and
-> the fact they're missing is a fall-back solution. :-)
-
-Just use any message you want that says that the sensor model isn't known to 
-the driver, but should still work as it's supposed to be standard-compliant 
-:-)
-
-[snip]
-
-> >>>> +	}
-> >>>> +
-> >>>> +	if (ssd != ssd->sensor->pixel_array) {
-> >>>> +		sel.which = V4L2_SUBDEV_FORMAT_ACTIVE;
-> >>>> +		sel.pad = SMIAPP_PAD_SINK;
-> >>>> +		sel.target = V4L2_SUBDEV_SEL_TGT_COMPOSE_ACTIVE;
-> >>>> +		__smiapp_get_selection(sd, fh, &sel);
-> >>>> +		try_sel = v4l2_subdev_get_try_compose(fh, SMIAPP_PAD_SINK);
-> >>>> +		*try_sel = sel.r;
-> >>>> +	}
-> >>>> +
-> >>>> +	rval = smiapp_set_power(sd, 1);
-> >>>> +
-> >>>> +	mutex_unlock(&ssd->sensor->mutex);
-> >>>> +
-> >>>> +	if (rval < 0)
-> >>>> +		goto out;
-> >>>> +
-> >>>> +	/* Was the sensor already powered on? */
-> >>>> +	if (ssd->sensor->power_count > 1)
-> >>> 
-> >>> power_count is accessed in smiapp_set_power without taking the
-> >>> power_mutex lock. Are two locks really needed ?
-> >> 
-> >> Well, now that you mention it, control handler setup function that
-> >> wouldn't take the locks would resolve the issue, I think. Should I create
-> >> one?
-> > 
-> > I'd ask Hans about that.
-> > 
-> > [snip]
-> 
-> I agree. I think I'll postpone the change so we can have time for
-> discussion. Would you be ok with that?
-
-OK.
-
+[1] http://lxr.linux.no/#linux+v3.2.11/drivers/media/video/s5p-mfc/s5p_mfc_enc.c#L880
+[2] http://lxr.linux.no/#linux+v3.2.11/drivers/media/video/s5p-mfc/s5p_mfc_enc.c#L844
 -- 
-Regards,
-
-Laurent Pinchart
+Javier Martin
+Vista Silicon S.L.
+CDTUC - FASE C - Oficina S-345
+Avda de los Castros s/n
+39005- Santander. Cantabria. Spain
++34 942 25 32 60
+www.vista-silicon.com
