@@ -1,171 +1,431 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:35741 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965130Ab2CCAXr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Mar 2012 19:23:47 -0500
-Date: Sat, 3 Mar 2012 02:23:42 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Daniel Vetter <daniel.vetter@ffwll.ch>
-Cc: linaro-mm-sig@lists.linaro.org,
-	LKML <linux-kernel@vger.kernel.org>,
-	DRI Development <dri-devel@lists.freedesktop.org>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 3/3] dma_buf: Add documentation for the new cpu access
- support
-Message-ID: <20120303002342.GI15695@valkosipuli.localdomain>
-References: <1330616161-1937-1-git-send-email-daniel.vetter@ffwll.ch>
- <1330616161-1937-4-git-send-email-daniel.vetter@ffwll.ch>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1330616161-1937-4-git-send-email-daniel.vetter@ffwll.ch>
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:30616 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030346Ab2COQyq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 15 Mar 2012 12:54:46 -0400
+Received: from euspt2 (mailout1.w1.samsung.com [210.118.77.11])
+ by mailout1.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0M0X001FYQYY8A@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 15 Mar 2012 16:54:34 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0M0X008JAQZ3T2@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 15 Mar 2012 16:54:40 +0000 (GMT)
+Date: Thu, 15 Mar 2012 17:54:26 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH/RFC 12/23] m5mols: Refactored controls handling
+In-reply-to: <1331830477-12146-1-git-send-email-s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: m.szyprowski@samsung.com, riverful.kim@samsung.com,
+	kyungmin.park@samsung.com, s.nawrocki@samsung.com
+Message-id: <1331830477-12146-13-git-send-email-s.nawrocki@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1331830477-12146-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Daniel,
+This patch is a prerequisite for the new controls addition. It consolidates
+the control handling code, which is moved to m5mols_controls.c and
+staticized. The controls initialization is reordered to better reflect
+the control clusters and make the diffs smaller when new controls are added.
+To make the code easier to follow when more controls is added use separate
+set function for each control.
 
-Thanks for the patch.
+Rewrite the image effect registers handling.
 
-On Thu, Mar 01, 2012 at 04:36:01PM +0100, Daniel Vetter wrote:
-> Signed-off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
-> ---
->  Documentation/dma-buf-sharing.txt |  102 +++++++++++++++++++++++++++++++++++-
->  1 files changed, 99 insertions(+), 3 deletions(-)
-> 
-> diff --git a/Documentation/dma-buf-sharing.txt b/Documentation/dma-buf-sharing.txt
-> index 225f96d..f12542b 100644
-> --- a/Documentation/dma-buf-sharing.txt
-> +++ b/Documentation/dma-buf-sharing.txt
-> @@ -32,8 +32,12 @@ The buffer-user
->  *IMPORTANT*: [see https://lkml.org/lkml/2011/12/20/211 for more details]
->  For this first version, A buffer shared using the dma_buf sharing API:
->  - *may* be exported to user space using "mmap" *ONLY* by exporter, outside of
-> -   this framework.
-> -- may be used *ONLY* by importers that do not need CPU access to the buffer.
-> +  this framework.
-> +- with this new iteration of the dma-buf api cpu access from the kernel has been
-> +  enable, see below for the details.
-> +
-> +dma-buf operations for device dma only
-> +--------------------------------------
->  
->  The dma_buf buffer sharing API usage contains the following steps:
->  
-> @@ -219,7 +223,99 @@ NOTES:
->     If the exporter chooses not to allow an attach() operation once a
->     map_dma_buf() API has been called, it simply returns an error.
->  
-> -Miscellaneous notes:
-> +Kernel cpu access to a dma-buf buffer object
-> +--------------------------------------------
-> +
-> +The motivation to allow cpu access from the kernel to a dma-buf object from the
-> +importers side are:
-> +- fallback operations, e.g. if the devices is connected to a usb bus and the
-> +  kernel needs to shuffle the data around first before sending it away.
-> +- full transperancy for existing users on the importer side, i.e. userspace
-> +  should not notice the difference between a normal object from that subsystem
-> +  and an imported one backed by a dma-buf. This is really important for drm
-> +  opengl drivers that expect to still use all the existing upload/download
-> +  paths.
-> +
-> +Access to a dma_buf from the kernel context involves three steps:
-> +
-> +1. Prepare access, which invalidate any necessary caches and make the object
-> +   available for cpu access.
-> +2. Access the object page-by-page with the dma_buf map apis
-> +3. Finish access, which will flush any necessary cpu caches and free reserved
-> +   resources.
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/video/m5mols/m5mols.h          |   10 +-
+ drivers/media/video/m5mols/m5mols_controls.c |  224 ++++++++++++++++++++------
+ drivers/media/video/m5mols/m5mols_core.c     |   77 +--------
+ 3 files changed, 180 insertions(+), 131 deletions(-)
 
-Where it should be decided which operations are being done to the buffer
-when it is passed to user space and back to kernel space?
-
-How about spliting these operations to those done on the first time the
-buffer is passed to the user space (mapping to kernel address space, for
-example) and those required every time buffer is passed from kernel to user
-and back (cache flusing)?
-
-I'm asking since any unnecessary time-consuming operations, especially as
-heavy as mapping the buffer, should be avoidable in subsystems dealing
-with streaming video, cameras etc., i.e. non-GPU users.
-
-> +1. Prepare acces
-> +
-> +   Before an importer can acces a dma_buf object with the cpu from the kernel
-> +   context, it needs to notice the exporter of the access that is about to
-> +   happen.
-> +
-> +   Interface:
-> +      int dma_buf_begin_cpu_access(struct dma_buf *dmabuf,
-> +				   size_t start, size_t len,
-> +				   enum dma_data_direction direction)
-> +
-> +   This allows the exporter to ensure that the memory is actually available for
-> +   cpu access - the exporter might need to allocate or swap-in and pin the
-> +   backing storage. The exporter also needs to ensure that cpu access is
-> +   coherent for the given range and access direction. The range and access
-> +   direction can be used by the exporter to optimize the cache flushing, i.e.
-> +   access outside of the range or with a different direction (read instead of
-> +   write) might return stale or even bogus data (e.g. when the exporter needs to
-> +   copy the data to temporaray storage).
-> +
-> +   This step might fail, e.g. in oom conditions.
-> +
-> +2. Accessing the buffer
-> +
-> +   To support dma_buf objects residing in highmem cpu access is page-based using
-> +   an api similar to kmap. Accessing a dma_buf is done in aligned chunks of
-> +   PAGE_SIZE size. Before accessing a chunk it needs to be mapped, which returns
-> +   a pointer in kernel virtual address space. Afterwards the chunk needs to be
-> +   unmapped again. There is no limit on how often a given chunk can be mapped
-> +   and unmmapped, i.e. the importer does not need to call begin_cpu_access again
-> +   before mapping the same chunk again.
-> +
-> +   Interfaces:
-> +      void *dma_buf_kmap(struct dma_buf *, unsigned long);
-> +      void dma_buf_kunmap(struct dma_buf *, unsigned long, void *);
-> +
-> +   There are also atomic variants of these interfaces. Like for kmap they
-> +   facilitate non-blocking fast-paths. Neither the importer nor the exporter (in
-> +   the callback) is allowed to block when using these.
-> +
-> +   Interfaces:
-> +      void *dma_buf_kmap_atomic(struct dma_buf *, unsigned long);
-> +      void dma_buf_kunmap_atomic(struct dma_buf *, unsigned long, void *);
-> +
-> +   For importers all the restrictions of using kmap apply, like the limited
-> +   supply of kmap_atomic slots. Hence an importer shall only hold onto at most 2
-> +   atomic dma_buf kmaps at the same time (in any given process context).
-> +
-> +   dma_buf kmap calls outside of the range specified in begin_cpu_access are
-> +   undefined. If the range is not PAGE_SIZE aligned, kmap needs to succeed on
-> +   the partial chunks at the beginning and end but may return stale or bogus
-> +   data outside of the range (in these partial chunks).
-> +
-> +   Note that these calls need to always succeed. The exporter needs to complete
-> +   any preparations that might fail in begin_cpu_access.
-> +
-> +3. Finish access
-> +
-> +   When the importer is done accessing the range specified in begin_cpu_acces,
-> +   it needs to announce this to the exporter (to facilitate cache flushing and
-> +   unpinning of any pinned resources). The result of of any dma_buf kmap calls
-> +   after end_cpu_access is undefined.
-> +
-> +   Interface:
-> +      void dma_buf_end_cpu_access(struct dma_buf *dma_buf,
-> +				  size_t start, size_t len,
-> +				  enum dma_data_direction dir);
-> +
-> +
-> +Miscellaneous notes
-> +-------------------
-> +
->  - Any exporters or users of the dma-buf buffer sharing framework must have
->    a 'select DMA_SHARED_BUFFER' in their respective Kconfigs.
-
-Kind regards,
-
+diff --git a/drivers/media/video/m5mols/m5mols.h b/drivers/media/video/m5mols/m5mols.h
+index da4381f..631a0c9 100644
+--- a/drivers/media/video/m5mols/m5mols.h
++++ b/drivers/media/video/m5mols/m5mols.h
+@@ -188,10 +188,11 @@ struct m5mols_info {
+ 	atomic_t irq_done;
+ 
+ 	struct v4l2_ctrl_handler handle;
+-
+-	/* Autoexposure/exposure control cluster */
+-	struct v4l2_ctrl *autoexposure;
+-	struct v4l2_ctrl *exposure;
++	struct {
++		/* exposure/auto-exposure cluster */
++		struct v4l2_ctrl *auto_exposure;
++		struct v4l2_ctrl *exposure;
++	};
+ 
+ 	struct v4l2_ctrl *autowb;
+ 	struct v4l2_ctrl *colorfx;
+@@ -286,6 +287,7 @@ int m5mols_start_capture(struct m5mols_info *info);
+ int m5mols_do_scenemode(struct m5mols_info *info, u8 mode);
+ int m5mols_lock_3a(struct m5mols_info *info, bool lock);
+ int m5mols_set_ctrl(struct v4l2_ctrl *ctrl);
++int m5mols_init_controls(struct v4l2_subdev *sd);
+ 
+ /* The firmware function */
+ int m5mols_update_fw(struct v4l2_subdev *sd,
+diff --git a/drivers/media/video/m5mols/m5mols_controls.c b/drivers/media/video/m5mols/m5mols_controls.c
+index 0730e50..f4308a4 100644
+--- a/drivers/media/video/m5mols/m5mols_controls.c
++++ b/drivers/media/video/m5mols/m5mols_controls.c
+@@ -227,73 +227,195 @@ int m5mols_lock_3a(struct m5mols_info *info, bool lock)
+ 	return ret;
+ }
+ 
+-/* m5mols_set_ctrl() - The main s_ctrl function called by m5mols_set_ctrl() */
+-int m5mols_set_ctrl(struct v4l2_ctrl *ctrl)
++/* Set exposure/auto exposure cluster */
++static int m5mols_set_exposure(struct m5mols_info *info, int exposure)
++{
++	struct v4l2_subdev *sd = &info->sd;
++	int ret;
++
++	ret = m5mols_lock_ae(info, exposure != V4L2_EXPOSURE_AUTO);
++	if (ret < 0)
++		return ret;
++
++	if (exposure == V4L2_EXPOSURE_AUTO) {
++		ret = m5mols_write(sd, AE_MODE, REG_AE_ALL);
++		if (ret < 0)
++			return ret;
++	}
++
++	if (exposure == V4L2_EXPOSURE_MANUAL) {
++		ret = m5mols_write(sd, AE_MODE, REG_AE_OFF);
++		if (ret == 0)
++			ret = m5mols_write(sd, AE_MAN_GAIN_MON,
++					   info->exposure->val);
++		if (ret == 0)
++			ret = m5mols_write(sd, AE_MAN_GAIN_CAP,
++					   info->exposure->val);
++	}
++
++	return ret;
++}
++
++static int m5mols_set_white_balance(struct m5mols_info *info, int awb)
++{
++	int ret;
++
++	ret = m5mols_lock_awb(info, !awb);
++	if (ret < 0)
++		return ret;
++
++	return m5mols_write(&info->sd, AWB_MODE, awb ? REG_AWB_AUTO :
++			    REG_AWB_PRESET);
++}
++
++static int m5mols_set_saturation(struct m5mols_info *info, int val)
++{
++	int ret = m5mols_write(&info->sd, MON_CHROMA_LVL, val);
++	if (ret < 0)
++		return ret;
++
++	return m5mols_write(&info->sd, MON_CHROMA_EN, REG_CHROMA_ON);
++}
++
++static int m5mols_set_color_effect(struct m5mols_info *info, int val)
++{
++	unsigned int m_effect = REG_COLOR_EFFECT_OFF;
++	unsigned int p_effect = REG_EFFECT_OFF;
++	unsigned int cfix_r = 0, cfix_b = 0;
++	struct v4l2_subdev *sd = &info->sd;
++	int ret = 0;
++
++	switch (val) {
++	case V4L2_COLORFX_BW:
++		m_effect = REG_COLOR_EFFECT_ON;
++		break;
++	case V4L2_COLORFX_NEGATIVE:
++		p_effect = REG_EFFECT_NEGA;
++		break;
++	case V4L2_COLORFX_EMBOSS:
++		p_effect = REG_EFFECT_EMBOSS;
++		break;
++	case V4L2_COLORFX_SEPIA:
++		m_effect = REG_COLOR_EFFECT_ON;
++		cfix_r = REG_CFIXR_SEPIA;
++		cfix_b = REG_CFIXB_SEPIA;
++		break;
++	}
++
++	ret = m5mols_write(sd, PARM_EFFECT, p_effect);
++	if (!ret)
++		ret = m5mols_write(sd, MON_EFFECT, m_effect);
++
++	if (ret == 0 && m_effect == REG_COLOR_EFFECT_ON) {
++		ret = m5mols_write(sd, MON_CFIXR, cfix_r);
++		if (!ret)
++			ret = m5mols_write(sd, MON_CFIXB, cfix_b);
++	}
++
++	v4l2_dbg(1, m5mols_debug, sd,
++		 "p_effect: %#x, m_effect: %#x, r: %#x, b: %#x (%d)\n",
++		 p_effect, m_effect, cfix_r, cfix_b, ret);
++
++	return ret;
++}
++
++static int m5mols_s_ctrl(struct v4l2_ctrl *ctrl)
+ {
+ 	struct v4l2_subdev *sd = to_sd(ctrl);
+ 	struct m5mols_info *info = to_m5mols(sd);
++	int ispstate = info->mode;
+ 	int ret;
+ 
++	/*
++	 * If needed, defer restoring the controls until
++	 * the device is fully initialized.
++	 */
++	if (!info->isp_ready) {
++		info->ctrl_sync = 0;
++		return 0;
++	}
++
++	ret = m5mols_mode(info, REG_PARAMETER);
++	if (ret < 0)
++		return ret;
++
+ 	switch (ctrl->id) {
+ 	case V4L2_CID_ZOOM_ABSOLUTE:
+-		return m5mols_write(sd, MON_ZOOM, ctrl->val);
++		ret = m5mols_write(sd, MON_ZOOM, ctrl->val);
++		break;
+ 
+ 	case V4L2_CID_EXPOSURE_AUTO:
+-		ret = m5mols_lock_ae(info,
+-			ctrl->val == V4L2_EXPOSURE_AUTO ? false : true);
+-		if (!ret && ctrl->val == V4L2_EXPOSURE_AUTO)
+-			ret = m5mols_write(sd, AE_MODE, REG_AE_ALL);
+-		if (!ret && ctrl->val == V4L2_EXPOSURE_MANUAL) {
+-			int val = info->exposure->val;
+-			ret = m5mols_write(sd, AE_MODE, REG_AE_OFF);
+-			if (!ret)
+-				ret = m5mols_write(sd, AE_MAN_GAIN_MON, val);
+-			if (!ret)
+-				ret = m5mols_write(sd, AE_MAN_GAIN_CAP, val);
+-		}
+-		return ret;
++		ret = m5mols_set_exposure(info, ctrl->val);
++		break;
+ 
+ 	case V4L2_CID_AUTO_WHITE_BALANCE:
+-		ret = m5mols_lock_awb(info, ctrl->val ? false : true);
+-		if (!ret)
+-			ret = m5mols_write(sd, AWB_MODE, ctrl->val ?
+-				REG_AWB_AUTO : REG_AWB_PRESET);
+-		return ret;
++		ret = m5mols_set_white_balance(info, ctrl->val);
++		break;
+ 
+ 	case V4L2_CID_SATURATION:
+-		ret = m5mols_write(sd, MON_CHROMA_LVL, ctrl->val);
+-		if (!ret)
+-			ret = m5mols_write(sd, MON_CHROMA_EN, REG_CHROMA_ON);
+-		return ret;
++		ret = m5mols_set_saturation(info, ctrl->val);
++		break;
+ 
+ 	case V4L2_CID_COLORFX:
+-		/*
+-		 * This control uses two kinds of registers: normal & color.
+-		 * The normal effect belongs to category 1, while the color
+-		 * one belongs to category 2.
+-		 *
+-		 * The normal effect uses one register: CAT1_EFFECT.
+-		 * The color effect uses three registers:
+-		 * CAT2_COLOR_EFFECT, CAT2_CFIXR, CAT2_CFIXB.
+-		 */
+-		ret = m5mols_write(sd, PARM_EFFECT,
+-			ctrl->val == V4L2_COLORFX_NEGATIVE ? REG_EFFECT_NEGA :
+-			ctrl->val == V4L2_COLORFX_EMBOSS ? REG_EFFECT_EMBOSS :
+-			REG_EFFECT_OFF);
+-		if (!ret)
+-			ret = m5mols_write(sd, MON_EFFECT,
+-				ctrl->val == V4L2_COLORFX_SEPIA ?
+-				REG_COLOR_EFFECT_ON : REG_COLOR_EFFECT_OFF);
+-		if (!ret)
+-			ret = m5mols_write(sd, MON_CFIXR,
+-				ctrl->val == V4L2_COLORFX_SEPIA ?
+-				REG_CFIXR_SEPIA : 0);
+-		if (!ret)
+-			ret = m5mols_write(sd, MON_CFIXB,
+-				ctrl->val == V4L2_COLORFX_SEPIA ?
+-				REG_CFIXB_SEPIA : 0);
++		ret = m5mols_set_color_effect(info, ctrl->val);
++		break;
++	}
++	if (ret < 0)
++		return ret;
++
++	return m5mols_mode(info, ispstate);
++}
++
++static const struct v4l2_ctrl_ops m5mols_ctrl_ops = {
++	.s_ctrl			= m5mols_s_ctrl,
++};
++
++int m5mols_init_controls(struct v4l2_subdev *sd)
++{
++	struct m5mols_info *info = to_m5mols(sd);
++	u16 exposure_max;
++	u16 zoom_step;
++	int ret;
++
++	/* Determine the firmware dependant control range and step values */
++	ret = m5mols_read_u16(sd, AE_MAX_GAIN_MON, &exposure_max);
++	if (ret < 0)
++		return ret;
++
++	zoom_step = is_manufacturer(info, REG_SAMSUNG_OPTICS) ? 31 : 1;
++
++	v4l2_ctrl_handler_init(&info->handle, 6);
++
++	info->auto_wb = v4l2_ctrl_new_std(&info->handle, &m5mols_ctrl_ops,
++			V4L2_CID_AUTO_WHITE_BALANCE, 0, 1, 1, 1);
++
++	info->auto_exposure = v4l2_ctrl_new_std_menu(&info->handle,
++			&m5mols_ctrl_ops, V4L2_CID_EXPOSURE_AUTO,
++			1, ~0x03, V4L2_EXPOSURE_AUTO);
++
++	info->exposure = v4l2_ctrl_new_std(&info->handle,
++			&m5mols_ctrl_ops, V4L2_CID_EXPOSURE,
++			0, exposure_max, 1, exposure_max / 2);
++
++	info->saturation = v4l2_ctrl_new_std(&info->handle, &m5mols_ctrl_ops,
++			V4L2_CID_SATURATION, 1, 5, 1, 3);
++
++	info->zoom = v4l2_ctrl_new_std(&info->handle, &m5mols_ctrl_ops,
++			V4L2_CID_ZOOM_ABSOLUTE, 1, 70, zoom_step, 1);
++
++	info->colorfx = v4l2_ctrl_new_std_menu(&info->handle, &m5mols_ctrl_ops,
++			V4L2_CID_COLORFX, 4, 0, V4L2_COLORFX_NONE);
++	m5mols_set_ctrl_mode(info->colorfx, REG_PARAMETER);
++
++	if (info->handle.error) {
++		int ret = info->handle.error;
++		v4l2_err(sd, "Failed to initialize controls: %d\n", ret);
++		v4l2_ctrl_handler_free(&info->handle);
+ 		return ret;
+ 	}
+ 
+-	return -EINVAL;
++	v4l2_ctrl_auto_cluster(2, &info->auto_exposure, 1, false);
++	sd->ctrl_handler = &info->handle;
++
++	return 0;
+ }
+diff --git a/drivers/media/video/m5mols/m5mols_core.c b/drivers/media/video/m5mols/m5mols_core.c
+index d718aee..2afe12b 100644
+--- a/drivers/media/video/m5mols/m5mols_core.c
++++ b/drivers/media/video/m5mols/m5mols_core.c
+@@ -681,35 +681,6 @@ static const struct v4l2_subdev_video_ops m5mols_video_ops = {
+ 	.s_stream	= m5mols_s_stream,
+ };
+ 
+-static int m5mols_s_ctrl(struct v4l2_ctrl *ctrl)
+-{
+-	struct v4l2_subdev *sd = to_sd(ctrl);
+-	struct m5mols_info *info = to_m5mols(sd);
+-	int ispstate = info->mode;
+-	int ret;
+-
+-	/*
+-	 * If needed, defer restoring the controls until
+-	 * the device is fully initialized.
+-	 */
+-	if (!info->isp_ready) {
+-		info->ctrl_sync = 0;
+-		return 0;
+-	}
+-
+-	ret = m5mols_mode(info, REG_PARAMETER);
+-	if (ret < 0)
+-		return ret;
+-	ret = m5mols_set_ctrl(ctrl);
+-	if (ret < 0)
+-		return ret;
+-	return m5mols_mode(info, ispstate);
+-}
+-
+-static const struct v4l2_ctrl_ops m5mols_ctrl_ops = {
+-	.s_ctrl	= m5mols_s_ctrl,
+-};
+-
+ static int m5mols_sensor_power(struct m5mols_info *info, bool enable)
+ {
+ 	struct v4l2_subdev *sd = &info->sd;
+@@ -802,52 +773,6 @@ static int m5mols_fw_start(struct v4l2_subdev *sd)
+ 	return ret;
+ }
+ 
+-static int m5mols_init_controls(struct m5mols_info *info)
+-{
+-	struct v4l2_subdev *sd = &info->sd;
+-	u16 max_exposure;
+-	u16 step_zoom;
+-	int ret;
+-
+-	/* Determine value's range & step of controls for various FW version */
+-	ret = m5mols_read_u16(sd, AE_MAX_GAIN_MON, &max_exposure);
+-	if (!ret)
+-		step_zoom = is_manufacturer(info, REG_SAMSUNG_OPTICS) ? 31 : 1;
+-	if (ret)
+-		return ret;
+-
+-	v4l2_ctrl_handler_init(&info->handle, 6);
+-	info->autowb = v4l2_ctrl_new_std(&info->handle,
+-			&m5mols_ctrl_ops, V4L2_CID_AUTO_WHITE_BALANCE,
+-			0, 1, 1, 0);
+-	info->saturation = v4l2_ctrl_new_std(&info->handle,
+-			&m5mols_ctrl_ops, V4L2_CID_SATURATION,
+-			1, 5, 1, 3);
+-	info->zoom = v4l2_ctrl_new_std(&info->handle,
+-			&m5mols_ctrl_ops, V4L2_CID_ZOOM_ABSOLUTE,
+-			1, 70, step_zoom, 1);
+-	info->exposure = v4l2_ctrl_new_std(&info->handle,
+-			&m5mols_ctrl_ops, V4L2_CID_EXPOSURE,
+-			0, max_exposure, 1, (int)max_exposure/2);
+-	info->colorfx = v4l2_ctrl_new_std_menu(&info->handle,
+-			&m5mols_ctrl_ops, V4L2_CID_COLORFX,
+-			4, (1 << V4L2_COLORFX_BW), V4L2_COLORFX_NONE);
+-	info->autoexposure = v4l2_ctrl_new_std_menu(&info->handle,
+-			&m5mols_ctrl_ops, V4L2_CID_EXPOSURE_AUTO,
+-			1, 0, V4L2_EXPOSURE_AUTO);
+-
+-	sd->ctrl_handler = &info->handle;
+-	if (info->handle.error) {
+-		v4l2_err(sd, "Failed to initialize controls: %d\n", ret);
+-		v4l2_ctrl_handler_free(&info->handle);
+-		return info->handle.error;
+-	}
+-
+-	v4l2_ctrl_cluster(2, &info->autoexposure);
+-
+-	return 0;
+-}
+-
+ /**
+  * m5mols_s_power - Main sensor power control function
+  *
+@@ -1010,7 +935,7 @@ static int __devinit m5mols_probe(struct i2c_client *client,
+ 
+ 	ret = m5mols_fw_start(sd);
+ 	if (!ret)
+-		ret = m5mols_init_controls(info);
++		ret = m5mols_init_controls(sd);
+ 
+ 	m5mols_sensor_power(info, false);
+ 	if (!ret)
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+1.7.9.2
+
