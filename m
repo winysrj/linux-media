@@ -1,73 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.26]:32672 "EHLO mgw-da02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756756Ab2CFQd2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 6 Mar 2012 11:33:28 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, dacohen@gmail.com,
-	snjw23@gmail.com, andriy.shevchenko@linux.intel.com,
-	t.stanislaws@samsung.com, tuukkat76@gmail.com,
-	k.debski@samsung.com, riverful@gmail.com, hverkuil@xs4all.nl,
-	teturtia@gmail.com, pradeep.sawlani@gmail.com
-Subject: [PATCH v5 06/35] v4l: Check pad number in get try pointer functions
-Date: Tue,  6 Mar 2012 18:32:47 +0200
-Message-Id: <1331051596-8261-6-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <20120306163239.GN1075@valkosipuli.localdomain>
-References: <20120306163239.GN1075@valkosipuli.localdomain>
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:49560 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753443Ab2CODEA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 14 Mar 2012 23:04:00 -0400
+Received: by yhmm54 with SMTP id m54so2634075yhm.19
+        for <linux-media@vger.kernel.org>; Wed, 14 Mar 2012 20:03:59 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <CALjTZvYJZ32Red-UfZXubB-Lk503DWbHGTL_kEoV4DVDDYJ46w@mail.gmail.com>
+References: <CALjTZvZy4npSE0aELnmsZzzgsxUC1xjeNYVwQ_CvJG59PizfEQ@mail.gmail.com>
+	<CALF0-+Wp03vsbiaJFUt=ymnEncEvDg_KmnV+2OWjtO-_0qqBVg@mail.gmail.com>
+	<CALjTZvYVtuSm0v-_Q7od=iUDvHbkMe4c5ycAQZwoErCCe=N+Bg@mail.gmail.com>
+	<CALF0-+W3HenNpUt_yGxqs+fohcZ22ozDw9MhTWua0B++ZFA2vA@mail.gmail.com>
+	<CALjTZvYJZ32Red-UfZXubB-Lk503DWbHGTL_kEoV4DVDDYJ46w@mail.gmail.com>
+Date: Thu, 15 Mar 2012 00:03:59 -0300
+Message-ID: <CALF0-+XAH3SHi2PcbW8Ryyg=+JuAAcs2sjCmJK0yNYp0u4A3Nw@mail.gmail.com>
+Subject: Re: eMPIA EM2710 Webcam (em28xx) and LIRC
+From: =?ISO-8859-1?Q?Ezequiel_Garc=EDa?= <elezegarcia@gmail.com>
+To: Rui Salvaterra <rsalvaterra@gmail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Unify functions to get try pointers and validate the pad number accessed by
-the user.
+Hi,
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- include/media/v4l2-subdev.h |   30 +++++++++++++-----------------
- 1 files changed, 13 insertions(+), 17 deletions(-)
+>
+> I'm positive, the LIRC modules aren't loaded at all if I boot with the
+> webcam disconnected. As soon as I plug it into an USB port, em28xx and
+> LIRC are loaded.
+>
 
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index bcaf6b8..7e85035 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -565,23 +565,19 @@ struct v4l2_subdev_fh {
- 	container_of(fh, struct v4l2_subdev_fh, vfh)
- 
- #if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
--static inline struct v4l2_mbus_framefmt *
--v4l2_subdev_get_try_format(struct v4l2_subdev_fh *fh, unsigned int pad)
--{
--	return &fh->pad[pad].try_fmt;
--}
--
--static inline struct v4l2_rect *
--v4l2_subdev_get_try_crop(struct v4l2_subdev_fh *fh, unsigned int pad)
--{
--	return &fh->pad[pad].try_crop;
--}
--
--static inline struct v4l2_rect *
--v4l2_subdev_get_try_compose(struct v4l2_subdev_fh *fh, unsigned int pad)
--{
--	return &fh->pad[pad].try_compose;
--}
-+#define __V4L2_SUBDEV_MK_GET_TRY(rtype, fun_name, field_name)		\
-+	static inline struct rtype *					\
-+	v4l2_subdev_get_try_##fun_name(struct v4l2_subdev_fh *fh,	\
-+				       unsigned int pad)		\
-+	{								\
-+		BUG_ON(unlikely(pad >= vdev_to_v4l2_subdev(		\
-+					fh->vfh.vdev)->entity.num_pads)); \
-+		return &fh->pad[pad].field_name;			\
-+	}
-+
-+__V4L2_SUBDEV_MK_GET_TRY(v4l2_mbus_framefmt, format, try_fmt)
-+__V4L2_SUBDEV_MK_GET_TRY(v4l2_rect, crop, try_compose)
-+__V4L2_SUBDEV_MK_GET_TRY(v4l2_rect, compose, try_compose)
- #endif
- 
- extern const struct v4l2_file_operations v4l2_subdev_fops;
--- 
-1.7.2.5
+So... why don't you post *this* dmesg:
+First boot the computer.
+Then change the kernel debug level so to get every output possible.
+Then insert the module.
 
+This dmesg is of some interest, not the previous one.
+
+A couple of things you can test:
+
+1. If your module is getting loaded when
+the device is plugged, then udev
+must be running. I suggest you to
+turn it off, just to remove it from the equation.
+Once you do this, you'll have to load module
+manually.
+
+2. Also modprobe maybe handling dependencies.
+To check this you can do:
+
+$ modprobe -v em28xx
+
+3. You can try *not* to use modprobe. So
+start fresh (from boot) and load with insmod
+providing full path, like this:
+
+$ insmod /lib/modules/3.3.0-rc3-athlon-full-preempt-gentoo+/kernel/drivers/media/video/em28xx/em28xx.ko
+
+Probably you'll bump into unknown symbol errors.
+You can see them with dmesg.
+
+Hope it helps,
+Ezequiel.
