@@ -1,99 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout-de.gmx.net ([213.165.64.22]:34621 "HELO
-	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S932291Ab2CGQX6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Mar 2012 11:23:58 -0500
-Message-ID: <1331137433.4765.3.camel@localhost>
-Subject: Re: Technotrend TT-Connect CT 3650 and dvb_ca
-From: Martin MAURER <martinmaurer@gmx.at>
-Reply-To: martinmaurer@gmx.at
-To: Johan =?ISO-8859-1?Q?Hen=E6s?= <johan@henes.no>
-Cc: linux-media@vger.kernel.org
-Date: Wed, 07 Mar 2012 17:23:53 +0100
-In-Reply-To: <4F56763C.50806@henes.no>
-References: <4F56763C.50806@henes.no>
-Content-Type: multipart/signed; micalg="pgp-sha256";
-	protocol="application/pgp-signature"; boundary="=-s/QEe6kZYmqFohb8hjAA"
-Mime-Version: 1.0
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:52200 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030378Ab2COPDn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 15 Mar 2012 11:03:43 -0400
+Received: by eaaq12 with SMTP id q12so1609840eaa.19
+        for <linux-media@vger.kernel.org>; Thu, 15 Mar 2012 08:03:42 -0700 (PDT)
+Message-ID: <4F6204CB.5000505@gmail.com>
+Date: Thu, 15 Mar 2012 16:03:39 +0100
+From: Gianluca Gennari <gennarone@gmail.com>
+Reply-To: gennarone@gmail.com
+MIME-Version: 1.0
+To: poma <pomidorabelisima@gmail.com>
+CC: Hans-Frieder Vogt <hfvogt@gmx.net>, linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/3] Support for tuner FC0012
+References: <201202222321.35533.hfvogt@gmx.net> <4F61FE49.6010704@gmail.com>
+In-Reply-To: <4F61FE49.6010704@gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Il 15/03/2012 15:35, poma ha scritto:
 
---=-s/QEe6kZYmqFohb8hjAA
-Content-Type: text/plain; charset="ISO-8859-15"
-Content-Transfer-Encoding: quoted-printable
+> Patched git://linuxtv.org/media_build.git with your Fitipower FC0012
+> tuner driver(fc0012.patch) got here:
+> ..
+>   CC [M]  /tmp/media_build/v4l/fc0012.o
+> /tmp/media_build/v4l/tda18212.c:21:0: warning: "pr_fmt" redefined
+> [enabled by default]
+> include/linux/printk.h:152:0: note: this is the location of the previous
+> definition
+> /tmp/media_build/v4l/fc0012.c:146:16: warning: 'struct
+> dvb_frontend_parameters' declared inside parameter list [enabled by default]
+> /tmp/media_build/v4l/fc0012.c:146:16: warning: its scope is only this
+> definition or declaration, which is probably not what you want [enabled
+> by default]
+> /tmp/media_build/v4l/fc0012.c: In function 'fc0012_set_params':
+> /tmp/media_build/v4l/fc0012.c:156:19: error: dereferencing pointer to
+> incomplete type
+> /tmp/media_build/v4l/fc0012.c:279:17: error: dereferencing pointer to
+> incomplete type
+> /tmp/media_build/v4l/fc0012.c:280:8: error: 'BANDWIDTH_6_MHZ' undeclared
+> (first use in this function)
+> /tmp/media_build/v4l/fc0012.c:280:8: note: each undeclared identifier is
+> reported only once for each function it appears in
+> /tmp/media_build/v4l/fc0012.c:284:8: error: 'BANDWIDTH_7_MHZ' undeclared
+> (first use in this function)
+> /tmp/media_build/v4l/fc0012.c:288:8: error: 'BANDWIDTH_8_MHZ' undeclared
+> (first use in this function)
+> /tmp/media_build/v4l/fc0012.c: At top level:
+> /tmp/media_build/v4l/fc0012.c:393:9: warning: initialization from
+> incompatible pointer type [enabled by default]
+> /tmp/media_build/v4l/fc0012.c:393:9: warning: (near initialization for
+> 'fc0012_tuner_ops.set_params') [enabled by default]
+> make[3]: *** [/tmp/media_build/v4l/fc0012.o] Error 1
+> make[3]: *** Waiting for unfinished jobs....
+> make[2]: *** [_module_/tmp/media_build/v4l] Error 2
+> make[2]: Leaving directory `/usr/src/kernels/3.2.9-2.fc16.x86_64'
+> make[1]: *** [default] Error 2
+> make[1]: Leaving directory `/tmp/media_build/v4l'
+> make: *** [all] Error 2
+> 
+> rgds,
+> poma
 
-Hi Johan,
+Hi poma,
+this is due to the fact that you are using a 3.2 kernel together with
+the current media_build tree. You should use a 3.3 kernel, otherwise the
+directives like:
 
-I have a similar problem which happens every few days with this card.
-For me it helps to remove and reinsert the kernel module whenever this
-happens.
-"rmmod -f dvb_usb_ttusb2 && modprobe dvb_usb_ttusb2"
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(3,3,0))
+....
+#else
+....
+#endif
 
-see also the following unresolved threads:
-http://www.spinics.net/lists/linux-media/msg43531.html
+will select the wrong code path (current media_build trees need the same
+code path of the 3.3 kernel).
 
-http://www.spinics.net/lists/linux-media/msg43813.html
+Another solution (very ugly) is to replace the lines like the one above
+with something like this:
 
-Martin
+#ifdef V4L2_DVB_V5
+....
+#else
+....
+#endif
 
+where V4L2_DVB_V5 is defined like this (for example, in af903x-fe.h):
 
-On Tue, 2012-03-06 at 21:40 +0100, Johan Hen=E6s wrote:
-> Hello Everyone !
->=20
-> I have three DVB-C devices of the type mentioned, connected to my=20
-> mythtv-server which have been working great for a long time. As my cable=
-=20
-> provider now are planning to start encrypting all channels, I have=20
-> bought a Xcrypt CAM module as needed. I soon realised that I needed to=
-=20
-> upgrade the kernel and are now running kernel /: 3.2.0-17-generic=20
-> #27-Ubuntu SMP Fri Feb 24 22:03:50 UTC 2012 x86_64 x86_64 x86_64=20
-> GNU/Linux/ .
->=20
-> When inserting the module everything looks well :
->=20
-> /dvb_ca adapter 0: DVB CAM detected and initialised successfully/
->=20
-> The problems start when trying to watch an encrypted channel. I do get a=
-=20
-> channel lock in myth, so far so good, but no picture...
->=20
-> In my syslog I see the following :
->=20
-> /dvb_ca adapter 0: CAM tried to send a buffer larger than the link=20
-> buffer size (32896 > 255)!
-> dvb_ca adapter 0: CAM tried to send a buffer larger than the ecount size!
-> dvb_ca adapter 0: DVB CAM link initialisation failed :(/
->=20
-> Any ideas on what might be wrong ?
->=20
-> Best regards,
->=20
-> Johan
->=20
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(3,3,0)) || ((defined
+V4L2_VERSION) && (V4L2_VERSION >= 197120))
+#define V4L2_DVB_V5
+#endif
 
+This will make the code compile with all kernels supported by the
+media_build tree (>= 2.6.31).
 
---=-s/QEe6kZYmqFohb8hjAA
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
+The same applies for
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(3,2,0))
+....
+#else
+....
+#endif
 
-iQEcBAABCAAGBQJPV4uZAAoJEJAm2rnb24AZd38H/3eYoKB7421xlrX3KDT9NXyB
-TIQTt5UMvgdkRA8a4E0iGB2dts93OU1LJ5QL/FpXgWrQOA3loJ1TQZA1f7h4qyTQ
-4HZZPmRMRUg9PRSk1GCrOTikdoguvQ6TsHezUGhuC8k3EofsOpL/Tjq4lFXcK8ax
-Zum81FChp2fS6uzYdalzOgeEjx2rRyS8cJwX6ScX2H6g1WTVUi0grI6Sw6t/a4Bm
-BIv/5x3qq5HdkMTOjMUss1gpKaEbsNR1gU6Qdd96jUP9sPBaP/phSYBG8z0aSxnD
-Ri0OQztDv3CgKA4H+Ifm1Fd7tj4VhjtFzIADdQWZyB7Cm1+qudHrK5/xMh7VrRs=
-=Vs6j
------END PGP SIGNATURE-----
+that should be replaced with
 
---=-s/QEe6kZYmqFohb8hjAA--
+#ifdef V4L2_REFACTORED_MFE_CODE
+....
+#else
+....
+#endif
 
+where V4L2_REFACTORED_MFE_CODE is defined this way:
+
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(3,2,0)) || ((defined
+V4L2_VERSION) && (V4L2_VERSION >= 196608))
+#define V4L2_REFACTORED_MFE_CODE
+#endif
+
+Probably there are cleaver solutions that I could not figure out.
+If you want to test the driver, I can share with you the modified patches.
+
+Regards,
+Gianluca
