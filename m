@@ -1,134 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:63398 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754586Ab2CHLeo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Mar 2012 06:34:44 -0500
-Date: Thu, 8 Mar 2012 12:34:41 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Alex Gershgorin <alexg@meprolight.com>
-cc: 'Fabio Estevam' <festevam@gmail.com>,
-	Fabio Estevam <fabio.estevam@freescale.com>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	"'s.hauer@pengutronix.de'" <s.hauer@pengutronix.de>,
-	"'linux-kernel@vger.kernel.org'" <linux-kernel@vger.kernel.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: RE: I.MX35 PDK
-In-Reply-To: <4875438356E7CA4A8F2145FCD3E61C0B2CBD666A28@MEP-EXCH.meprolight.com>
-Message-ID: <Pine.LNX.4.64.1203081225290.29847@axis700.grange>
-References: <4875438356E7CA4A8F2145FCD3E61C0B2CBD666A28@MEP-EXCH.meprolight.com>
+Received: from mx1.redhat.com ([209.132.183.28]:54186 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1032048Ab2CORlw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 15 Mar 2012 13:41:52 -0400
+Message-ID: <4F6229D4.8010302@redhat.com>
+Date: Thu, 15 Mar 2012 14:41:40 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Gianluca Gennari <gennarone@gmail.com>
+CC: linux-media@vger.kernel.org, crope@iki.fi
+Subject: Re: [PATCH 0/3] cxd2820r: tweak search algorithm, enable LNA in DVB-T
+ mode
+References: <1331832829-4580-1-git-send-email-gennarone@gmail.com>
+In-Reply-To: <1331832829-4580-1-git-send-email-gennarone@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Alex
+Em 15-03-2012 14:33, Gianluca Gennari escreveu:
+> The PCTV 290e had several issues on my mipsel-based STB (powered by a
+> Broadcom 7405 SoC), running a Linux 3.1 kernel and the Enigma2 OS.
+> 
+> The most annoying one was that the 290e was able to tune the lone DVB-T2
+> frequency existing in my area, but was not able to tune any DVB-T channel.
+> 
+> Following a suggestion of the original author of the driver, I tried to
+> tweak the wait time in the lock loop. In fact, increasing the wait time
+> from 50 to 200ms in the tuning loop was enough to get the lock on most
+> channels.
+> But channel change was quite slow and sometimes, doing an automatic scan,
+> some frequency was not locked.
+> So instead of playing with the timings I changed the behavior of the
+> search algorithm as explained in the patch 1, with very good results.
+> 
+> With this modification, the automatic scan is 100% reliable and zapping
+> is quite fast (on the STB). There is no noticeable difference when using
+> Kaffeine on the PC.
+> 
+> But there was a further issue: a few weak channels were affected by high
+> BER and badly corrupted pictures. The same channels were working fine on
+> an Avermedia A867 stick (as well as other sticks).
+> 
+> The driver has an option to enable a "Low Noise Amplifier" (LNA) before the
+> demodulator. Enabling it, the reception of weak channels improved a lot,
+> as reported in the description of patch 2.
 
-Why is the cc-list mangled again? Why is the V4L list dropped again? 
-What's so difficult about hitting the "reply-to-all" button?
+Hi Gianluca,
 
-On Thu, 8 Mar 2012, Alex Gershgorin wrote:
+With regards to LNA, the better is to add a DVBv5 property for it.
 
-> Hi Fabio,
-> 
-> Thanks for you response...
-> 
-> > in spite of this I get from ov2640 driver error
-> > Here Linux Kernel boot message:
-> >
-> > "Linux video capture interface: v2.00
-> > soc-camera-pdrv soc-camera-pdrv.0: Probing soc-camera-pdrv.0
-> > mx3-camera mx3-camera.0: MX3 Camera driver attached to camera 0
-> > ov2640 0-0030: Product ID error fb:fb"
-> >
-> > I cannot understand what the problem is, if someone tested this?
-> 
-> >>Looks like a I2C issue.
-> 
-> >>Check the I2C1 pad settings in the mainline kernel.
-> 
-> >>On FSL kernel we have:
-> 
-> #<<define PAD_CONFIG (PAD_CTL_HYS_SCHMITZ | PAD_CTL_PKE_ENABLE |
-> >>PAD_CTL_PUE_PUD | PAD_CTL_ODE_OpenDrain)
-> 
-> 	<<switch (i2c_num) {
-> 	<<case 0:
-> 		<<mxc_request_iomux(MX35_PIN_I2C1_CLK, MUX_CONFIG_SION);
-> 		<<mxc_request_iomux(MX35_PIN_I2C1_DAT, MUX_CONFIG_SION);
-> 
-> 		<<mxc_iomux_set_pad(MX35_PIN_I2C1_CLK, PAD_CONFIG);
-> 		<<mxc_iomux_set_pad(MX35_PIN_I2C1_DAT, PAD_CONFIG);
-> 
-> >>Also check if you are getting the proper voltage levels at the I2C1 lines.
-> 
-> Yes this I2C problem, all I2C slave device need response to Host CPU by pulls I2C data bus to low, in other words generate ACK, the clock pulse for the acknowledge bit is always created by the bus master.
-> 
-> In this case, the camera tries to reset the data bus and generate an ACK, but the voltage drops to the area of two volts, although it should be reset to zero.
-> I replaced R172 with 10K on CPU board and got a good result, but there are other surprises 
-> 
-> Linux video capture interface: v2.00
-> soc-camera-pdrv soc-camera-pdrv.0: Probing soc-camera-pdrv.0
-> mx3-camera mx3-camera.0: MX3 Camera driver attached to camera 0
-> ov2640 0-0030: ov2640 Product ID 26:42 Manufacturer ID 7f:a2
-> i2c i2c-0: OV2640 Probed
-> mx3-camera mx3-camera.0: MX3 Camera driver detached from camera 0
-> dmaengine: failed to get dma1chan0: (-22)
-> dmaengine: failed to get dma1chan1: (-22)
-> dmaengine: failed to get dma1chan2: (-22)
-> dmaengine: failed to get dma1chan3: (-22)
+The LNA is generally located at the antenna, and not at the device.
 
-First of all it shows, that you're not using the newest kernel:
+As you know, more than one device may be connected to the same antenna, 
+and it is generally not a good idea to have two devices sending power to
+the LNA.
 
-http://thread.gmane.org/gmane.linux.ports.sh.devel/11508
+So, it is better to have a way to turn it on via the usespace API.
 
-Secondly, as Fabio just pointed out, these messages are not fatal, which 
-is also the reason, why I changed their priority to "debug"
+Also, as this consumes power, the better is to do it only when the device
+is actually used.
 
-Please, describe the actual problem, that you're getting (if any) and do 
-add the v4l list back to the list of recipients!
-
-Thanks
-Guennadi
-
-> dmaengine: failed to get dma1chan4: (-22)
-> dmaengine: failed to get dma1chan5: (-22)
-> dmaengine: failed to get dma1chan6: (-22)
-> dmaengine: failed to get dma1chan7: (-22)
-> dmaengine: failed to get dma1chan8: (-22)
-> dmaengine: failed to get dma1chan9: (-22)
-> dmaengine: failed to get dma1chan10: (-22)
-> dmaengine: failed to get dma1chan11: (-22)
-> dmaengine: failed to get dma1chan12: (-22)
-> dmaengine: failed to get dma1chan13: (-22)
-> dmaengine: failed to get dma1chan14: (-22)
-> dmaengine: failed to get dma1chan15: (-22)
-> dmaengine: failed to get dma1chan16: (-22)
-> dmaengine: failed to get dma1chan17: (-22)
-> dmaengine: failed to get dma1chan18: (-22)
-> dmaengine: failed to get dma1chan19: (-22)
-> dmaengine: failed to get dma1chan20: (-22)
-> dmaengine: failed to get dma1chan21: (-22)
-> dmaengine: failed to get dma1chan22: (-22)
-> dmaengine: failed to get dma1chan23: (-22)
-> dmaengine: failed to get dma1chan24: (-22)
-> dmaengine: failed to get dma1chan25: (-22)
-> dmaengine: failed to get dma1chan26: (-22)
-> dmaengine: failed to get dma1chan27: (-22)
-> dmaengine: failed to get dma1chan28: (-22)
-> dmaengine: failed to get dma1chan29: (-22)
-> dmaengine: failed to get dma1chan30: (-22):
+Regards,
+Mauro
 > 
+> Finally, patch 3 is a trivial clean-up.
 > 
-> What is the problem? 
-> Guennadi please help me understand 
+> Best regards,
+> Gianluca Gennari
 > 
-> Thanks,
->  
-> Alex Gershgorin
+> Gianluca Gennari (3):
+>   cxd2820r: tweak search algorithm behavior
+>   em28xx-dvb: enable LNA for cxd2820r in DVB-T mode
+>   cxd2820r: delete unused function cxd2820r_init_t2
+> 
+>  drivers/media/dvb/frontends/cxd2820r_core.c |    4 ++--
+>  drivers/media/dvb/frontends/cxd2820r_priv.h |    2 --
+>  drivers/media/video/em28xx/em28xx-dvb.c     |    3 ++-
+>  3 files changed, 4 insertions(+), 5 deletions(-)
 > 
 
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
