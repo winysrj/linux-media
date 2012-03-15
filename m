@@ -1,60 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f172.google.com ([209.85.212.172]:38639 "EHLO
-	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932351Ab2CYXmY (ORCPT
+Received: from woodlands.midnighthax.com ([93.89.81.115]:42059 "EHLO
+	woodlands.the.cage" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1032210Ab2COUOs (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 25 Mar 2012 19:42:24 -0400
-Received: by wibhj6 with SMTP id hj6so3740836wib.1
-        for <linux-media@vger.kernel.org>; Sun, 25 Mar 2012 16:42:23 -0700 (PDT)
-MIME-Version: 1.0
-Date: Sun, 25 Mar 2012 17:42:23 -0600
-Message-ID: <CAGD8Z76xfCUO8Ho9m2jEmEYMajR=e1MXuDLqriPbRNs_zD621w@mail.gmail.com>
-Subject: Re: reading config parameters of omap3-isp subdevs
-From: Joshua Hintze <joshua.hintze@gmail.com>
-To: laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+	Thu, 15 Mar 2012 16:14:48 -0400
+Received: from ws.the.cage ([10.0.0.100])
+	by woodlands.the.cage with esmtp (Exim 4.72)
+	(envelope-from <kae@midnighthax.com>)
+	id 1S8H4Q-0003qQ-Jm
+	for linux-media@vger.kernel.org; Thu, 15 Mar 2012 20:14:46 +0000
+Date: Thu, 15 Mar 2012 20:14:46 +0000
+From: Keith Edmunds <kae@midnighthax.com>
+To: linux-media@vger.kernel.org
+Subject: Re: cxd2820r: i2c wr failed (PCTV Nanostick 290e)
+Message-ID: <20120315201446.17f21639@ws.the.cage>
+In-Reply-To: <20120310142042.0f238d3a@ws.the.cage>
+References: <20120310142042.0f238d3a@ws.the.cage>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I was just wondering the same thing as far as reading the current
-settings. The reason why I would want to read the settings (could be
-different than Michael's) is that there are a lot of settings that I
-am still unfamiliar with yet. I don't know the default values. So by
-being able to read the entire settings and adjust only the white
-balance gain or such would make the learning process considerably less
-sharp. I would love to have the read option.
+I posted the message below last week, but I've had no response.
 
-Josh
+Is this the wrong list? Did I do something wrong in my posting?
 
+I would like fix this problem, and I have more information now, but I
+don't want to clutter this list if it's the wrong place.
 
-Hi Michael,
+Guidance as to what I should do gratefully received: thanks.
 
-On Friday 16 March 2012 15:06:15 Michael Jones wrote:
-> Hi all,
->
-> I am playing around with some parameters in the previewer on the ISP. With
-> ioctl VIDIOC_OMAP3ISP_PRV_CFG I am able to write the various parameters but
-> what I'm missing is a way to read them. For example, I have no way to adjust
-> only coef2 in 'struct omap3isp_prev_wbal' while leaving the others
-> unchanged. If I could first read the whole omap3isp_prev_wbal structure,
-> then I could change just the things I want to change. This seems like it
-> would be common functionality for such ioctls. I didn't find any previous
-> discussion related to this.
->
-> I could imagine either adding a r/w flag to 'struct
-> omap3isp_prev_update_config' or adding a new ioctl entirely. I think I
-> would prefer the r/w flag.  Feedback?
->
-> I noticed that other ISP subdevs have similar ioctls.  Perhaps a similar
-> thing would be useful there, but right now I'm only looking at the
-> previewer.
+> Hi List
+> 
+> I'm having lots of problems with my PCTV Nanostick 290e under MythTV. Is
+> this the best place to report these problems?
+> 
+> I'm happy to provide whatever detail is needed, but in summary:
+> 
+>  - every day or two, I get the error messages logged below. I need to
+>    reboot the back end to clear them.
+> 
+>  - when the back end comes back up, 'lsusb' doesn't show the 290e. I have
+>    to unplug it, wait a few seconds, then plug it back in again
+> 
+> This is extremely frustrating. When it works, it's great; when it
+> doesn't, recordings fail.
+> 
+> The following errors are reported repeatedly:
+> 
+> Mar  9 10:02:03 woodlands kernel: [ 6006.157991] cxd2820r: i2c wr failed
+> ret:-110 reg:85 len:1 
+> Mar  9 10:02:05 woodlands kernel: [ 6008.511994] cxd2820r: i2c wr failed
+> ret:-110 reg:00 len:1 
+> Mar  9 10:02:08 woodlands kernel: [ 6011.208909] cxd2820r: i2c wr failed
+> ret:-110 reg:85 len:1 
+> Mar 9 10:02:10 woodlands kernel: [ 6013.566440] cxd2820r: i2c wr failed
+> ret:-110 reg:00 len:1
+> 
+> MythTV backend details:
+>  - Debian v6.0.4 ("Squeeze")
+>  - Debian multimedia repository
+>  - Myth version 0.24.2-0.0squeeze1 (as packaged by repository)
+>  - Kernel: 2.6.32-5-686-bigmem (I've also tried 3.2.0-0.bpo.1-686-pae,
+>    both Debian-packaged)
+>  - Tuners: 2 x Hauppauge Nova-T Stick (USB) and 1 x PCTV Nanostick 290e
+>    (also USB)
+>  - no module load parameters specified
+>  - tuning delay 750mS for each tuner
+>  - drivers for the 290e built using the media_build scripts
+>    (http://git.linuxtv.org/media_build.git)
+> 
+> Many thanks,
+> Keith
 
-Adding a R/W bit to the flag argument should indeed work. However, I'm
-wondering what your use case for reading parameters back is. The preview
-engine parameter structures seem pretty-much self-contained to me, I'm not
-sure it would make sense to only modify one of the parameters.
 
 -- 
-Regards,
+"You can have everything in life you want if you help enough other people
+get what they want" - Zig Ziglar. 
 
-Laurent Pinchart
+Who did you help today?
