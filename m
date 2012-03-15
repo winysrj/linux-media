@@ -1,597 +1,162 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.26]:60745 "EHLO mgw-da02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932305Ab2CBRcz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 2 Mar 2012 12:32:55 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, dacohen@gmail.com,
-	snjw23@gmail.com, andriy.shevchenko@linux.intel.com,
-	t.stanislaws@samsung.com, tuukkat76@gmail.com,
-	k.debski@samsung.com, riverful@gmail.com, hverkuil@xs4all.nl,
-	teturtia@gmail.com
-Subject: [PATCH v4 09/34] v4l: Add subdev selections documentation
-Date: Fri,  2 Mar 2012 19:30:17 +0200
-Message-Id: <1330709442-16654-9-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <20120302173219.GA15695@valkosipuli.localdomain>
-References: <20120302173219.GA15695@valkosipuli.localdomain>
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:36390 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1030342Ab2COB0d (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 14 Mar 2012 21:26:33 -0400
+Subject: Re: Hauppauge HVR-1600 potential bug or model issue
+From: Andy Walls <awalls@md.metrocast.net>
+To: Matt Berglund <bmwebinfo@gmail.com>
+Cc: linux-media@vger.kernel.org
+Date: Wed, 14 Mar 2012 21:26:27 -0400
+In-Reply-To: <CALUGRoAhxsZ2u8sGOEG3--cMPozobq-qReH6dD1dhYFA9Y_zAQ@mail.gmail.com>
+References: <CALUGRoAhxsZ2u8sGOEG3--cMPozobq-qReH6dD1dhYFA9Y_zAQ@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Message-ID: <1331774789.2737.49.camel@palomino.walls.org>
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add documentation for V4L2 subdev selection API. This changes also
-experimental V4L2 subdev API so that scaling now works through selection API
-only.
+Hi Matt,
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
----
- Documentation/DocBook/media/Makefile               |    4 +-
- Documentation/DocBook/media/v4l/compat.xml         |    9 +
- Documentation/DocBook/media/v4l/dev-subdev.xml     |  203 +++++++++++++++--
- Documentation/DocBook/media/v4l/v4l2.xml           |   17 ++-
- .../media/v4l/vidioc-subdev-g-selection.xml        |  228 ++++++++++++++++++++
- 5 files changed, 434 insertions(+), 27 deletions(-)
- create mode 100644 Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml
+On Sun, 2012-03-11 at 13:45 -0400, Matt Berglund wrote:
+> Hello all,
+> 
+> I'm having trouble with my 1600 listed as: Hauppauge model 74541, rev C6A3
+> The firmware is installed. Both using yum and manually.
+> Based on the LTV wiki, it seems this is less well tested model. If
+> this is so,
 
-diff --git a/Documentation/DocBook/media/Makefile b/Documentation/DocBook/media/Makefile
-index 6628b4b..3625209 100644
---- a/Documentation/DocBook/media/Makefile
-+++ b/Documentation/DocBook/media/Makefile
-@@ -70,6 +70,8 @@ IOCTLS = \
- 	VIDIOC_SUBDEV_ENUM_MBUS_CODE \
- 	VIDIOC_SUBDEV_ENUM_FRAME_SIZE \
- 	VIDIOC_SUBDEV_ENUM_FRAME_INTERVAL \
-+	VIDIOC_SUBDEV_G_SELECTION \
-+	VIDIOC_SUBDEV_S_SELECTION \
- 
- TYPES = \
- 	$(shell perl -ne 'print "$$1 " if /^typedef\s+[^\s]+\s+([^\s]+)\;/' $(srctree)/include/linux/videodev2.h) \
-@@ -193,7 +195,7 @@ DVB_DOCUMENTED = \
- #
- 
- install_media_images = \
--	$(Q)cp $(OBJIMGFILES) $(MEDIA_OBJ_DIR)/media_api
-+	$(Q)cp $(OBJIMGFILES) $(MEDIA_SRC_DIR)/v4l/*.svg $(MEDIA_OBJ_DIR)/media_api
- 
- $(MEDIA_OBJ_DIR)/%: $(MEDIA_SRC_DIR)/%.b64
- 	$(Q)base64 -d $< >$@
-diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
-index 8cd5c96..603fa4ad 100644
---- a/Documentation/DocBook/media/v4l/compat.xml
-+++ b/Documentation/DocBook/media/v4l/compat.xml
-@@ -2407,6 +2407,11 @@ details.</para>
- 	  <para>Added integer menus, the new type will be
- 	  V4L2_CTRL_TYPE_INTEGER_MENU.</para>
-         </listitem>
-+        <listitem>
-+	  <para>Added selection API for V4L2 subdev interface:
-+	  &VIDIOC-SUBDEV-G-SELECTION; and
-+	  &VIDIOC-SUBDEV-S-SELECTION;.</para>
-+        </listitem>
-       </orderedlist>
-     </section>
- 
-@@ -2523,6 +2528,10 @@ ioctls.</para>
-         <listitem>
- 	  <para>Selection API. <xref linkend="selection-api" /></para>
-         </listitem>
-+        <listitem>
-+	  <para>Sub-device selection API: &VIDIOC-SUBDEV-G-SELECTION;
-+	  and &VIDIOC-SUBDEV-S-SELECTION; ioctls.</para>
-+        </listitem>
-       </itemizedlist>
-     </section>
- 
-diff --git a/Documentation/DocBook/media/v4l/dev-subdev.xml b/Documentation/DocBook/media/v4l/dev-subdev.xml
-index 0916a73..ef99da1 100644
---- a/Documentation/DocBook/media/v4l/dev-subdev.xml
-+++ b/Documentation/DocBook/media/v4l/dev-subdev.xml
-@@ -76,11 +76,12 @@
-     <wordasword>format</wordasword> means the combination of media bus data
-     format, frame width and frame height.</para></note>
- 
--    <para>Image formats are typically negotiated on video capture and output
--    devices using the <link linkend="crop">cropping and scaling</link> ioctls.
--    The driver is responsible for configuring every block in the video pipeline
--    according to the requested format at the pipeline input and/or
--    output.</para>
-+    <para>Image formats are typically negotiated on video capture and
-+    output devices using the format and <link
-+    linkend="vidioc-subdev-g-selection">selection</link> ioctls. The
-+    driver is responsible for configuring every block in the video
-+    pipeline according to the requested format at the pipeline input
-+    and/or output.</para>
- 
-     <para>For complex devices, such as often found in embedded systems,
-     identical image sizes at the output of a pipeline can be achieved using
-@@ -276,11 +277,11 @@
-     </section>
- 
-     <section>
--      <title>Cropping and scaling</title>
-+      <title>Selections: cropping, scaling and composition</title>
- 
-       <para>Many sub-devices support cropping frames on their input or output
-       pads (or possible even on both). Cropping is used to select the area of
--      interest in an image, typically on a video sensor or video decoder. It can
-+      interest in an image, typically on an image sensor or a video decoder. It can
-       also be used as part of digital zoom implementations to select the area of
-       the image that will be scaled up.</para>
- 
-@@ -288,26 +289,180 @@
-       &v4l2-rect; by the coordinates of the top left corner and the rectangle
-       size. Both the coordinates and sizes are expressed in pixels.</para>
- 
--      <para>The crop rectangle is retrieved and set using the
--      &VIDIOC-SUBDEV-G-CROP; and &VIDIOC-SUBDEV-S-CROP; ioctls. Like for pad
--      formats, drivers store try and active crop rectangles. The format
--      negotiation mechanism applies to crop settings as well.</para>
--
--      <para>On input pads, cropping is applied relatively to the current pad
--      format. The pad format represents the image size as received by the
--      sub-device from the previous block in the pipeline, and the crop rectangle
--      represents the sub-image that will be transmitted further inside the
--      sub-device for processing. The crop rectangle be entirely containted
--      inside the input image size.</para>
--
--      <para>Input crop rectangle are reset to their default value when the input
--      image format is modified. Drivers should use the input image size as the
--      crop rectangle default value, but hardware requirements may prevent this.
--      </para>
-+      <para>As for pad formats, drivers store try and active
-+      rectangles for the selection targets of ACTIVE type <xref
-+      linkend="v4l2-subdev-selection-targets">.</xref></para>
-+
-+      <para>On sink pads, cropping is applied relatively to the
-+      current pad format. The pad format represents the image size as
-+      received by the sub-device from the previous block in the
-+      pipeline, and the crop rectangle represents the sub-image that
-+      will be transmitted further inside the sub-device for
-+      processing.</para>
-+
-+      <para>The scaling operation changes the size of the image by
-+      scaling it to new dimensions. The scaling ratio isn't specified
-+      explicitly, but is implied from the original and scaled image
-+      sizes. Both sizes are represented by &v4l2-rect;.</para>
-+
-+      <para>Scaling support is optional. When supported by a subdev,
-+      the crop rectangle on the subdev's sink pad is scaled to the
-+      size configured using &sub-subdev-g-selection; and
-+      <constant>V4L2_SUBDEV_SEL_COMPOSE_ACTIVE</constant> selection
-+      target on the same pad. If the subdev supports scaling but no
-+      composing, the top and left values are not used and must always
-+      be set to zero."</para>
-+
-+      <para>On source pads, cropping is similar to sink pads, with the
-+      exception that the source size from which the cropping is
-+      performed, is the COMPOSE rectangle on the sink pad. In both
-+      sink and source pads, the crop rectangle must be entirely
-+      containted inside the source image size for the crop
-+      operation.</para>
-+
-+      <para>The drivers should always use the closest possible
-+      rectangle the user requests on all selection targets, unless
-+      specificly told otherwise.
-+      <constant>V4L2_SUBDEV_SEL_FLAG_SIZE_GE</constant> and
-+      <constant>V4L2_SUBDEV_SEL_FLAG_SIZE_LE</constant> flags may be
-+      used to round the image size either up or down. <xref
-+      linkend="v4l2-subdev-selection-flags"></xref></para>
-+    </section>
-+
-+    <section>
-+      <title>Types of selection targets</title>
-+
-+      <section>
-+	<title>ACTIVE targets</title>
-+
-+	<para>ACTIVE targets reflect the actual hardware configuration
-+	at any point of time. There is a BOUNDS target
-+	corresponding to every ACTIVE target.</para>
-+      </section>
-+
-+      <section>
-+	<title>BOUNDS targets</title>
-+
-+	<para>BOUNDS targets is the smallest rectangle that contains
-+	all valid ACTIVE rectangles. It may not be possible to set the
-+	ACTIVE rectangle as large as the BOUNDS rectangle, however.
-+	This may be because e.g. a sensor's pixel array is not
-+	rectangular but cross-shaped or round. The maximum size may
-+	also be smaller than the BOUNDS rectangle.</para>
-+      </section>
- 
--      <para>Cropping behaviour on output pads is not defined.</para>
-+    </section>
-+
-+    <section>
-+      <title>Order of configuration and format propagation</title>
-+
-+      <para>Inside subdevs, the order of image processing steps will
-+      always be from the sink pad towards the source pad. This is also
-+      reflected in the order in which the configuration must be
-+      performed by the user: the changes made will be propagated to
-+      any subsequent stages. If this behaviour is not desired, the
-+      user must set
-+      <constant>V4L2_SUBDEV_SEL_FLAG_KEEP_CONFIG</constant> flag. This
-+      flag causes that no propagation of the changes are allowed in
-+      any circumstances. This may also cause the accessed rectangle to
-+      be adjusted by the driver, depending on the properties of the
-+      underlying hardware. Some drivers may not support this
-+      flag.</para>
-+
-+      <para>The coordinates to a step always refer to the active size
-+      of the previous step. The exception to this rule is the source
-+      compose rectangle, which refers to the sink compose bounds
-+      rectangle --- if it is supported by the hardware.</para>
-+
-+      <orderedlist>
-+	<listitem>Sink pad format. The user configures the sink pad
-+	format. This format defines the parameters of the image the
-+	entity receives through the pad for further processing.</listitem>
-+
-+	<listitem>Sink pad active crop selection. The sink pad crop
-+	defines the crop performed to the sink pad format.</listitem>
-+
-+	<listitem>Sink pad active compose selection. The size of the
-+	sink pad compose rectangle defines the scaling ratio compared
-+	to the size of the sink pad crop rectangle. The location of
-+	the compose rectangle specifies the location of the active
-+	sink compose rectangle in the sink compose bounds
-+	rectangle.</listitem>
-+
-+	<listitem>Source pad active crop selection. Crop on the source
-+	pad defines crop performed to the image in the sink compose
-+	bounds rectangle.</listitem>
-+
-+	<listitem>Source pad format. The source pad format defines the
-+	output pixel format of the subdev, as well as the other
-+	parameters with the exception of the image width and height.
-+	Width and height are defined by the size of the source pad
-+	active crop selection.</listitem>
-+      </orderedlist>
-+
-+      <para>Accessing any of the above rectangles not supported by the
-+      subdev will return <constant>EINVAL</constant>. Any rectangle
-+      referring to a previous unsupported rectangle coordinates will
-+      instead refer to the previous supported rectangle. For example,
-+      if sink crop is not supported, the compose selection will refer
-+      to the sink pad format dimensions instead.</para>
-+
-+      <figure id="subdev-image-processing-crop">
-+	<title>Image processing in subdevs: simple crop example</title>
-+	<mediaobject>
-+	  <imageobject>
-+	    <imagedata fileref="subdev-image-processing-crop.svg"
-+	    format="SVG" scale="200" />
-+	  </imageobject>
-+	</mediaobject>
-+      </figure>
-+
-+      <para>In the above example, the subdev supports cropping on its
-+      sink pad. To configure it, the user sets the media bus format on
-+      the subdev's sink pad. Now the active crop rectangle can be set
-+      on the sink pad --- the location and size of this rectangle
-+      reflect the location and size of a rectangle to be cropped from
-+      the sink format. The size of the sink crop rectangle will also
-+      be the size of the format of the subdev's source pad.</para>
-+
-+      <figure id="subdev-image-processing-scaling-multi-source">
-+	<title>Image processing in subdevs: scaling with multiple sources</title>
-+	<mediaobject>
-+	  <imageobject>
-+	    <imagedata fileref="subdev-image-processing-scaling-multi-source.svg"
-+	    format="SVG" scale="200" />
-+	  </imageobject>
-+	</mediaobject>
-+      </figure>
-+
-+      <para>In this example, the subdev is capable of first cropping,
-+      then scaling and finally cropping for two source pads
-+      individually from the resulting scaled image. The location of
-+      the scaled image in the cropped image is ignored in sink compose
-+      target. Both of the locations of the source crop rectangles
-+      refer to the sink scaling rectangle, independently cropping an
-+      area at location specified by the source crop rectangle from
-+      it.</para>
-+
-+      <figure id="subdev-image-processing-full">
-+	<title>Image processing in subdevs: scaling and composition
-+	with multiple sinks and sources</title>
-+	<mediaobject>
-+	  <imageobject>
-+	    <imagedata fileref="subdev-image-processing-full.svg"
-+	    format="SVG" scale="200" />
-+	  </imageobject>
-+	</mediaobject>
-+      </figure>
-+
-+      <para>The subdev driver supports two sink pads and two source
-+      pads. The images from both of the sink pads are individually
-+      cropped, then scaled and further composed on the composition
-+      bounds rectangle. From that, two independent streams are cropped
-+      and sent out of the subdev from the source pads.</para>
- 
-     </section>
-+
-   </section>
- 
-   &sub-subdev-formats;
-diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
-index ff11a13..912ec9c 100644
---- a/Documentation/DocBook/media/v4l/v4l2.xml
-+++ b/Documentation/DocBook/media/v4l/v4l2.xml
-@@ -96,6 +96,17 @@ Remote Controller chapter.</contrib>
- 	  </address>
- 	</affiliation>
-       </author>
-+
-+      <author>
-+	<firstname>Sakari</firstname>
-+	<surname>Ailus</surname>
-+	<contrib>Subdev selections API.</contrib>
-+	<affiliation>
-+	  <address>
-+	    <email>sakari.ailus@iki.fi</email>
-+	  </address>
-+	</affiliation>
-+      </author>
-     </authorgroup>
- 
-     <copyright>
-@@ -129,9 +140,10 @@ applications. -->
- 
-       <revision>
- 	<revnumber>3.4</revnumber>
--	<date>2012-01-26</date>
-+	<date>2012-02-02</date>
- 	<authorinitials>sa</authorinitials>
--	<revremark>Added V4L2_CTRL_TYPE_INTEGER_MENU.</revremark>
-+	<revremark>Added V4L2_CTRL_TYPE_INTEGER_MENU. Added V4L2 subdev
-+		   selections API.</revremark>
-       </revision>
-       <revision>
- 	<revnumber>3.3</revnumber>
-@@ -537,6 +549,7 @@ and discussions on the V4L mailing list.</revremark>
-     &sub-subdev-g-crop;
-     &sub-subdev-g-fmt;
-     &sub-subdev-g-frame-interval;
-+    &sub-subdev-g-selection;
-     &sub-subscribe-event;
-     <!-- End of ioctls. -->
-     &sub-mmap;
-diff --git a/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml b/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml
-new file mode 100644
-index 0000000..da1cc4f
---- /dev/null
-+++ b/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml
-@@ -0,0 +1,228 @@
-+<refentry id="vidioc-subdev-g-selection">
-+  <refmeta>
-+    <refentrytitle>ioctl VIDIOC_SUBDEV_G_SELECTION, VIDIOC_SUBDEV_S_SELECTION</refentrytitle>
-+    &manvol;
-+  </refmeta>
-+
-+  <refnamediv>
-+    <refname>VIDIOC_SUBDEV_G_SELECTION</refname>
-+    <refname>VIDIOC_SUBDEV_S_SELECTION</refname>
-+    <refpurpose>Get or set selection rectangles on a subdev pad</refpurpose>
-+  </refnamediv>
-+
-+  <refsynopsisdiv>
-+    <funcsynopsis>
-+      <funcprototype>
-+	<funcdef>int <function>ioctl</function></funcdef>
-+	<paramdef>int <parameter>fd</parameter></paramdef>
-+	<paramdef>int <parameter>request</parameter></paramdef>
-+	<paramdef>struct v4l2_subdev_selection *<parameter>argp</parameter></paramdef>
-+      </funcprototype>
-+    </funcsynopsis>
-+  </refsynopsisdiv>
-+
-+  <refsect1>
-+    <title>Arguments</title>
-+
-+    <variablelist>
-+      <varlistentry>
-+	<term><parameter>fd</parameter></term>
-+	<listitem>
-+	  <para>&fd;</para>
-+	</listitem>
-+      </varlistentry>
-+      <varlistentry>
-+	<term><parameter>request</parameter></term>
-+	<listitem>
-+	  <para>VIDIOC_SUBDEV_G_SELECTION, VIDIOC_SUBDEV_S_SELECTION</para>
-+	</listitem>
-+      </varlistentry>
-+      <varlistentry>
-+	<term><parameter>argp</parameter></term>
-+	<listitem>
-+	  <para></para>
-+	</listitem>
-+      </varlistentry>
-+    </variablelist>
-+  </refsect1>
-+
-+  <refsect1>
-+    <title>Description</title>
-+
-+    <note>
-+      <title>Experimental</title>
-+      <para>This is an <link linkend="experimental">experimental</link>
-+      interface and may change in the future.</para>
-+    </note>
-+
-+    <para>The selections are used to configure various image
-+    processing functionality performed by the subdevs which affect the
-+    image size. This currently includes cropping, scaling and
-+    composition.</para>
-+
-+    <para>The selection API replaces <link
-+    linkend="vidioc-subdev-g-crop">the old subdev crop API</link>. All
-+    the function of the crop API, and more, are supported by the
-+    selections API.</para>
-+
-+    <para>See <xref linkend="subdev"></xref> for
-+    more information on how each selection target affects the image
-+    processing pipeline inside the subdevice.</para>
-+
-+    <section>
-+      <title>Types of selection targets</title>
-+
-+      <para>The are two types of selection targets: active and bounds.
-+      The ACTIVE targets are the targets which configure the hardware.
-+      The BOUNDS target will return a rectangle that contain all
-+      possible ACTIVE rectangles.</para>
-+    </section>
-+
-+    <section>
-+      <title>Discovering supported features</title>
-+
-+      <para>To discover which targets are supported, the user can
-+      perform <constant>VIDIOC_SUBDEV_G_SELECTION</constant> on them.
-+      Any unsupported target will return
-+      <constant>EINVAL</constant>.</para>
-+    </section>
-+
-+    <table pgwide="1" frame="none" id="v4l2-subdev-selection-targets">
-+      <title>V4L2 subdev selection targets</title>
-+      <tgroup cols="3">
-+        &cs-def;
-+	<tbody valign="top">
-+	  <row>
-+	    <entry><constant>V4L2_SUBDEV_SEL_TGT_CROP_ACTIVE</constant></entry>
-+	    <entry>0x0000</entry>
-+	    <entry>Active crop. Defines the cropping
-+	    performed by the processing step.</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>V4L2_SUBDEV_SEL_TGT_CROP_BOUNDS</constant></entry>
-+	    <entry>0x0002</entry>
-+	    <entry>Bounds of the crop rectangle.</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>V4L2_SUBDEV_SEL_TGT_COMPOSE_ACTIVE</constant></entry>
-+	    <entry>0x0100</entry>
-+	    <entry>Active compose rectangle. Used to configure scaling
-+	    on sink pads and composition on source pads.</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>V4L2_SUBDEV_SEL_TGT_COMPOSE_BOUNDS</constant></entry>
-+	    <entry>0x0102</entry>
-+	    <entry>Bounds of the compose rectangle.</entry>
-+	  </row>
-+	</tbody>
-+      </tgroup>
-+    </table>
-+
-+    <table pgwide="1" frame="none" id="v4l2-subdev-selection-flags">
-+      <title>V4L2 subdev selection flags</title>
-+      <tgroup cols="3">
-+        &cs-def;
-+	<tbody valign="top">
-+	  <row>
-+	    <entry><constant>V4L2_SUBDEV_SEL_FLAG_SIZE_GE</constant></entry>
-+	    <entry>(1 &lt;&lt; 0)</entry> <entry>Suggest the driver it
-+	    should choose greater or equal rectangle (in size) than
-+	    was requested. Albeit the driver may choose a lesser size,
-+	    it will only do so due to hardware limitations. Without
-+	    this flag (and
-+	    <constant>V4L2_SUBDEV_SEL_FLAG_SIZE_LE</constant>) the
-+	    behaviour is to choose the closest possible
-+	    rectangle.</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>V4L2_SUBDEV_SEL_FLAG_SIZE_LE</constant></entry>
-+	    <entry>(1 &lt;&lt; 1)</entry> <entry>Suggest the driver it
-+	    should choose lesser or equal rectangle (in size) than was
-+	    requested. Albeit the driver may choose a greater size, it
-+	    will only do so due to hardware limitations.</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>V4L2_SUBDEV_SEL_FLAG_KEEP_CONFIG</constant></entry>
-+	    <entry>(1 &lt;&lt; 2)</entry>
-+	    <entry>The configuration should not be propagated to any
-+	    further processing steps. If this flag is not given, the
-+	    configuration is propagated inside the subdevice to all
-+	    further processing steps.</entry>
-+	  </row>
-+	</tbody>
-+      </tgroup>
-+    </table>
-+
-+    <table pgwide="1" frame="none" id="v4l2-subdev-selection">
-+      <title>struct <structname>v4l2_subdev_selection</structname></title>
-+      <tgroup cols="3">
-+        &cs-str;
-+	<tbody valign="top">
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>which</structfield></entry>
-+	    <entry>Active or try selection, from
-+	    &v4l2-subdev-format-whence;.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>pad</structfield></entry>
-+	    <entry>Pad number as reported by the media framework.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>target</structfield></entry>
-+	    <entry>Target selection rectangle. See
-+	    <xref linkend="v4l2-subdev-selection-targets">.</xref>.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>flags</structfield></entry>
-+	    <entry>Flags. See
-+	    <xref linkend="v4l2-subdev-selection-flags">.</xref></entry>
-+	  </row>
-+	  <row>
-+	    <entry>&v4l2-rect;</entry>
-+	    <entry><structfield>rect</structfield></entry>
-+	    <entry>Crop rectangle boundaries, in pixels.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>reserved</structfield>[8]</entry>
-+	    <entry>Reserved for future extensions. Applications and drivers must
-+	    set the array to zero.</entry>
-+	  </row>
-+	</tbody>
-+      </tgroup>
-+    </table>
-+
-+  </refsect1>
-+
-+  <refsect1>
-+    &return-value;
-+
-+    <variablelist>
-+      <varlistentry>
-+	<term><errorcode>EBUSY</errorcode></term>
-+	<listitem>
-+	  <para>The selection rectangle can't be changed because the
-+	  pad is currently busy. This can be caused, for instance, by
-+	  an active video stream on the pad. The ioctl must not be
-+	  retried without performing another action to fix the problem
-+	  first. Only returned by
-+	  <constant>VIDIOC_SUBDEV_S_SELECTION</constant></para>
-+	</listitem>
-+      </varlistentry>
-+      <varlistentry>
-+	<term><errorcode>EINVAL</errorcode></term>
-+	<listitem>
-+	  <para>The &v4l2-subdev-selection;
-+	  <structfield>pad</structfield> references a non-existing
-+	  pad, the <structfield>which</structfield> field references a
-+	  non-existing format, or the selection target is not
-+	  supported on the given subdev pad.</para>
-+	</listitem>
-+      </varlistentry>
-+    </variablelist>
-+  </refsect1>
-+</refentry>
--- 
-1.7.2.5
+This model should work with the stock kernel cx18 driver and supporting
+modules, in any kernel from the past few years.
+
+(Although I must admit, I have not tested if kernel-churn outside of the
+cx18 driver in very recent 3.x kernels broke anything.)
+
+>  I'll be happy to do what I can to test it.
+> 
+> Subsystem: Hauppauge computer works Inc. WinTV HVR-1600 [0070:7444]
+> 
+> Running Fedora 16 with 3.2.9-1.fc16.x86_64 on an MSI 790FX-GD70 with
+> an AMD 5770 and 6770 board running crossfirex/catalyst  (I realize
+> this is potentially problematic but I don't think it is the cause of
+> this issue)
+> 
+> I have used both the built-in drivers and now have compiled what I
+> believe are the latest linuxtv drivers, per the wiki there.
+> 
+> With the following results:
+> [  762.974890] Linux media interface: v0.10
+> [  762.979795] Linux video capture interface: v2.00
+> [  762.979804] WARNING: You are using an experimental version of the
+> media stack.
+> [  762.979808]  As the driver is backported to an older kernel, it doesn't offer
+> [  762.979811]  enough quality for its usage in production.
+> [  762.979813]  Use it with care.
+
+[snip]
+
+> [  762.986723] cx18:  Start initialization, version 1.5.1
+> [  762.987457] cx18-0: Initializing card 0
+> [  762.987460] cx18-0: Autodetected Hauppauge card
+> [  762.993040] cx18-0: cx23418 revision 01010000 (B)
+> [  763.227077] tveeprom 0-0050: Hauppauge model 74541, rev C6A3, serial#
+> [  763.227080] tveeprom 0-0050: MAC address
+> [  763.227082] tveeprom 0-0050: tuner model is TCL MFNM05-4 (idx 103, type 43)
+> [  763.227084] tveeprom 0-0050: TV standards NTSC(M) (eeprom 0x08)
+> [  763.227086] tveeprom 0-0050: audio processor is CX23418 (idx 38)
+> [  763.227088] tveeprom 0-0050: decoder processor is CX23418 (idx 31)
+> [  763.227089] tveeprom 0-0050: has radio
+> [  763.227090] cx18-0: Autodetected Hauppauge HVR-1600
+> [  763.227092] cx18-0: Simultaneous Digital and Analog TV capture supported
+> [  763.340073] cx18-0: Registered device video0 for encoder MPEG (64 x 32.00 kB)
+> [  763.340076] DVB: registering new adapter (cx18)
+> [  763.341895] s5h1409_readreg: readreg error (ret == -6)
+
+I2C bus communications between the CX23418 and CX24227(aka S5H1409)
+ATSC/QAM demodulator chip aren't working.  The cx18 driver bailed out
+because of this.
+
+
+
+> [  763.341903] cx18-0: frontend initialization failed
+> [  763.342126] cx18-0: DVB failed to register
+> [  763.342235] cx18-0: Registered device video32 for encoder YUV (20 x
+> 101.25 kB)
+> [  763.342301] cx18-0: Registered device vbi0 for encoder VBI (20 x 51984 bytes)
+> [  763.342369] cx18-0: Registered device video24 for encoder PCM audio
+> (256 x 4.00 kB)
+> [  763.342433] cx18-0: Registered device radio0 for encoder radio
+> [  763.342552] cx18-0: unregister DVB
+> [  763.343628] cx18-0: Error -1 registering devices
+> [  763.346390] cx18-0: Error -1 on initialization
+> [  763.346406] cx18: probe of 0000:07:07.0 failed with error -1
+> [  763.346427] cx18:  End initialization
+> 
+> This will be used to capture signals from a cable feed, both free HD
+> and SD, if possible.
+
+Yes it should be fine, but for DTV you will only be able to receive the
+unencrypted channels.
+
+
+> This happens regardless of how the drivers are installed.
+> 
+> I noticed this:
+> [  763.341895] s5h1409_readreg: readreg error (ret == -6)
+> And was wondering if this is related to the card appearing to be less
+> well known?
+
+Nope.  It is likely related to your specific system hardware and/or the
+way the linux kernel sets up your motherboard's PCI chipset.
+
+Some things to do:
+
+1. The card looks like an older model, so I'm assuming you got it used.
+Go test the card in a Windows machine and verify the digital TV side of
+the card works under that OS.
+
+
+2. As I mentioned on IRC, the legacy conventional PCI bus is sesnitive
+to accumulations of dust.  Pull *all* your PCI cards, blow the dust out
+of all the slots, reseat your cards, and test again.
+
+3. The cx18 driver bit-bangs every bit on the I2C bus on the HVR-1600
+with per I2C-bit PCI transactions over the PCI bus.  Some PCI bridges
+may not handle this well under certain circumstances and will return
+error words on the PCI bus (0xffffffff) instead of actual data.  You may
+wish to try this card in a different Linux box, with a different
+motherboard and see if the error follows the HVR-1600 or not.  You could
+throw in some debug statements in cx18-io.[ch] and/or cx18-i2c.c to
+perhaps gain some insight into what is going on with your hardware.
+
+
+I am looking into converting the cx18 driver to use the CX23418 hardware
+I2C master, instead of bit-banging.  That might alleviate some problems
+with PCI bridges which might behave badly with many back-to-back PCI
+accesses.  The CX23418 hardware I2C master isn't very intelligent, but
+it would improve things some.  My problem is that the datasheet which I
+have is poorly written in explaining how the hardware I2C master is to
+be driven, so it will take some time and experimentation.
+
+
+4. The other I2C bus operations on the HVR-1600 (BTW, the CX23418 and
+HVR-1600 have 2 I2C buses) don't seem to have any problems: i.e. the
+EEPROM and analog tuner.  It could be the CX24227 is somehow stuck in
+reset or just plain stuck.  I have no GPIO pin to twiddle to reset the
+CX24227 chip.  You may have some luck with ensuring there is ample power
+to power the HVR-1600 board and no ground loops.  You may wish to try
+temporarily pulling all unneeded PCI/PCIe cards and drives from your
+machine, and unhook all your TV cables from the machine, and see if
+things get better.
+
+> I will enable debug and poke around a bit more, but I'm far from a
+> driver writer.
+> 
+> Thanks,
+> Matt
+
+Regards,
+Andy W.
 
