@@ -1,38 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:53100 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755818Ab2CFQln (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Mar 2012 11:41:43 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, dacohen@gmail.com, snjw23@gmail.com,
-	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
-	tuukkat76@gmail.com, k.debski@samsung.com, riverful@gmail.com,
-	hverkuil@xs4all.nl, teturtia@gmail.com, pradeep.sawlani@gmail.com
-Subject: Re: [PATCH v5 08/35] v4l: Add subdev selections documentation: svg and dia files
-Date: Tue, 06 Mar 2012 17:42:04 +0100
-Message-ID: <6592153.AiaRAhiWju@avalon>
-In-Reply-To: <1331051596-8261-8-git-send-email-sakari.ailus@iki.fi>
-References: <20120306163239.GN1075@valkosipuli.localdomain> <1331051596-8261-8-git-send-email-sakari.ailus@iki.fi>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
+Received: from valsplat.xs4all.nl ([80.101.102.23]:42002 "EHLO hq.valsplat.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S965275Ab2COW77 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 15 Mar 2012 18:59:59 -0400
+Received: from 211-35-223.ftth.xms.internl.net ([85.223.35.211] helo=[192.168.13.8])
+	by hq.valsplat.nl with esmtpsa (TLS1.0:RSA_AES_256_CBC_SHA1:32)
+	(Exim 4.69)
+	(envelope-from <newsuser@famdijkstra.org>)
+	id 1S8JIx-0001eW-Lg
+	for linux-media@vger.kernel.org; Thu, 15 Mar 2012 23:37:55 +0100
+Message-ID: <1331851075.2330.8.camel@kepling>
+Subject: Driver for TerraTec Cinergy T PCIe dual
+From: Tim Dijkstra <newsuser@famdijkstra.org>
+To: linux-media@vger.kernel.org
+Date: Thu, 15 Mar 2012 23:37:55 +0100
 Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Hi,
 
-Thanks for the patch.
+I've bought a 
 
-On Tuesday 06 March 2012 18:32:49 Sakari Ailus wrote:
-> Add svga and dia files for V4L2 subdev selections documentation.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+	TerraTec Cinergy T PCIe dual
 
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+On linuxtv.org it says it is supported (although unconfirmed) in 3.3.
+I'm now running this kernel, but no luck. To be fair I do not know for
+sure if it is the driver or the hardware. I do not have an easy way to
+try it with another OS... 
 
--- 
-Regards,
+Also it doesn't even show in lspci. What does that mean, is that normal
+for a card that is not supported yet?
 
-Laurent Pinchart
+grts Tim
 
