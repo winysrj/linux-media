@@ -1,76 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:60541 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932180Ab2CYVyU (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:50288 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1031375Ab2COAqt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 25 Mar 2012 17:54:20 -0400
-Received: by bkcik5 with SMTP id ik5so3535861bkc.19
-        for <linux-media@vger.kernel.org>; Sun, 25 Mar 2012 14:54:19 -0700 (PDT)
-Message-ID: <4F6F9407.5020602@googlemail.com>
-Date: Sun, 25 Mar 2012 23:54:15 +0200
-From: Gregor Jasny <gjasny@googlemail.com>
+	Wed, 14 Mar 2012 20:46:49 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Bhupesh Sharma <bhupesh.sharma@st.com>
+Cc: linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
+	spear-devel@list.st.com
+Subject: Re: [PATCH RESEND] usb: gadget/uvc: Remove non-required locking from 'uvc_queue_next_buffer' routine
+Date: Thu, 15 Mar 2012 01:47:15 +0100
+Message-ID: <11788268.pQ7t4NVJy6@avalon>
+In-Reply-To: <d5dbc7befb35abdce18d77f918954137a2be2f26.1331638300.git.bhupesh.sharma@st.com>
+References: <d5dbc7befb35abdce18d77f918954137a2be2f26.1331638300.git.bhupesh.sharma@st.com>
 MIME-Version: 1.0
-To: Marien Zwart <marien.zwart@gmail.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: libv4l: add Lenovo Thinkpad Edge E325 to upside down devices
- table
-References: <1332616469.3755.9.camel@cyclops.marienz.net>
-In-Reply-To: <1332616469.3755.9.camel@cyclops.marienz.net>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA256
+Hi Bhupesh,
 
-Hello Marien,
+Thank you for the patch.
 
-On 3/24/12 8:14 PM, Marien Zwart wrote:
-> Like the recently added Thinkpad X200 and X201 the Thinkpad Edge 
-> E325 apparently has its camera upside down. dmidecode and lsusb 
-> output is attached. I have also confirmed that Debian's 
-> libv4l-0.8.6 with the following entry added to its table makes the 
-> camera work:
+On Tuesday 13 March 2012 17:04:01 Bhupesh Sharma wrote:
+> This patch removes the non-required spinlock acquire/release calls on
+> 'queue_irqlock' from 'uvc_queue_next_buffer' routine.
 > 
-> { 0x04f2, 0xb27c, 0, "LENOVO", "12973MG", V4LCONTROL_HFLIPPED | 
-> V4LCONTROL_VFLIPPED },
+> This routine is called from 'video->encode' function (which translates to
+> either 'uvc_video_encode_bulk' or 'uvc_video_encode_isoc') in
+> 'uvc_video.c'. As, the 'video->encode' routines are called with
+> 'queue_irqlock' already held, so acquiring a 'queue_irqlock' again in
+> 'uvc_queue_next_buffer' routine causes a spin lock recursion.
 > 
+> A sample kernel crash log is given below (as observed on using 'g_webcam'
+> with DWC designware 2.0 UDC):
+> 
+> Kernel crash log:
+> -----------------
 
-Thanks for the patch! I've applied this change in a slightly modified
-form to the v4l-utils head and stable-0.8 branch.
+[snip]
 
-I assume you're a Debian user: libv4l-0.8.6-2 got just uploaded to
-Debian Sid. In case you're on Ubuntu, the libv4l/stable PPA will pick
-up the patch with the next nightly build.
+I don't think you need to include the complete crash report in the commit 
+message, the above description should be enough.
 
-> It looks like v4l-utils git master does not know about this model 
-> yet. My apologies if it does and I overlooked it (I only grepped 
-> through that code, I did not run it).
+> Signed-off-by: Bhupesh Sharma <bhupesh.sharma@st.com>
 
-Thanks again for the diff.
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-> Please let me know if you need more information (note I'm not 
-> subscribed to the list, so please CC me).
+This should probably go in through the USB tree. Could you please either send 
+a pull request or make sure the patch is picked up (after modifying the commit 
+message if you agree with my comment) ?
 
-It would be great if you could test the updated package.
+> ---
+>  drivers/usb/gadget/uvc_queue.c |    4 +---
+>  1 files changed, 1 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/usb/gadget/uvc_queue.c b/drivers/usb/gadget/uvc_queue.c
+> index d776adb..104ae9c 100644
+> --- a/drivers/usb/gadget/uvc_queue.c
+> +++ b/drivers/usb/gadget/uvc_queue.c
+> @@ -543,11 +543,11 @@ done:
+>  	return ret;
+>  }
+> 
+> +/* called with &queue_irqlock held.. */
+>  static struct uvc_buffer *
+>  uvc_queue_next_buffer(struct uvc_video_queue *queue, struct uvc_buffer
+> *buf) {
+>  	struct uvc_buffer *nextbuf;
+> -	unsigned long flags;
+> 
+>  	if ((queue->flags & UVC_QUEUE_DROP_INCOMPLETE) &&
+>  	    buf->buf.length != buf->buf.bytesused) {
+> @@ -556,14 +556,12 @@ uvc_queue_next_buffer(struct uvc_video_queue *queue,
+> struct uvc_buffer *buf) return buf;
+>  	}
+> 
+> -	spin_lock_irqsave(&queue->irqlock, flags);
+>  	list_del(&buf->queue);
+>  	if (!list_empty(&queue->irqqueue))
+>  		nextbuf = list_first_entry(&queue->irqqueue, struct uvc_buffer,
+>  					   queue);
+>  	else
+>  		nextbuf = NULL;
+> -	spin_unlock_irqrestore(&queue->irqlock, flags);
+> 
+>  	buf->buf.sequence = queue->sequence++;
+>  	do_gettimeofday(&buf->buf.timestamp);
 
-Thanks,
-Gregor
------BEGIN PGP SIGNATURE-----
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
+-- 
+Regards,
 
-iQIcBAEBCAAGBQJPb5QHAAoJEBmaZPrftQD/hKkP/jpvILuhjowJOjdKGfmj9NQK
-X6mCk8Sc7ViaMG/GrzdC+J3Aufry2k1X8ntqh09UbGqz5C+/pmV1pcwLHJr113Xe
-PUZ0exNDszfGDB6VEYZIUd7eQGZnxmX6wnWjNKRM5SEirr65Fg6vYzz29zxxGgXq
-XeryRSE4EfwPOIrkpmRbiG3Vfz2bkD5o9bpE7CTSX4Xjof1oUGRi8zVP6k/ItogL
-GAjvtI1BUdscOHunxJK4kFPT+WpcCoQTCTvZdEhDIW5gZGFA+tIH6Swv/qIgPgYB
-FC2tw5DzA7i1+HW2Cf/+o0iT5BRrvbJVaVFmBJDzM/oVY30nysfVukcSCOPKTYOi
-0/YbIt/bnXGz3leltSMy9pBwndPz72H6fnV5uzZWaUHED+Nlwt1mnROXMAyvkjuw
-auVmd5JZ1vMaC/oyJx/UsEwe7TOZRogoJnMviWlOrHXAyBW6OvHf17OYLNv0mKmU
-70MsJyd0JF/mB5skHiEZWfZn5W27lndWRoM5/cjX9aN4sE4tngR+ZXkd50C6AXZJ
-3eFCxvTl8zDR1mkyOuXwBrqrT8wVocgjdGLuv0B3ng7RuGOyKvH3Bl73iEXsxXSz
-QEXnVdh+YfcuRsrKRkk9Xwdu4iS7swd6oapSlV48QMkNWDm5L+SWkKI1epG2JxWH
-W/BQapX+yorgza4jKSJ/
-=6Ow6
------END PGP SIGNATURE-----
+Laurent Pinchart
+
