@@ -1,29 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:56570 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752933Ab2CDAZj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 3 Mar 2012 19:25:39 -0500
-Received: by iagz16 with SMTP id z16so3966009iag.19
-        for <linux-media@vger.kernel.org>; Sat, 03 Mar 2012 16:25:39 -0800 (PST)
+Received: from mx1.redhat.com ([209.132.183.28]:15127 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1761823Ab2CONHw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 15 Mar 2012 09:07:52 -0400
+Message-ID: <4F61E99C.60300@redhat.com>
+Date: Thu, 15 Mar 2012 10:07:40 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <4F51CCC1.8020308@redhat.com>
-References: <CAKnx8Y7BAyR8A5r-eL13MVgZO2DcKndP3v-MTfkQdmXPvjjGJg@mail.gmail.com>
- <CAKnx8Y6dM8qbQvJgt_z2A2XD8aPGhGoqCSWabyNYjRbsH6CDJw@mail.gmail.com> <4F51CCC1.8020308@redhat.com>
-From: Xavion <xavion.0@gmail.com>
-Date: Sun, 4 Mar 2012 11:25:19 +1100
-Message-ID: <CAKnx8Y6ER6CV6WQKrmN4fFkLjQx0GXEzvNmuApnA=G6fJDgsPQ@mail.gmail.com>
-Subject: Re: My Microdia (SN9C201) webcam doesn't work properly in Linux anymore
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: "Linux Kernel (Media) ML" <linux-media@vger.kernel.org>
+To: Antti Palosaari <crope@iki.fi>
+CC: Linus Torvalds <torvalds@linux-foundation.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: Re: [GIT PULL for v3.3] media fixes
+References: <4F61CA9D.309@redhat.com> <4F61E569.4080708@iki.fi>
+In-Reply-To: <4F61E569.4080708@iki.fi>
 Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans
+Em 15-03-2012 09:49, Antti Palosaari escreveu:
+> Moikka Mauro,
+> Just for the sure, since it is last days of RC phase, that bugfix must be send for the Kernel 3.3 too:
+> http://patchwork.linuxtv.org/patch/10313/
 
-Thanks for letting me know that this problem will be fixed in Linux
-v3.3.  It could be several weeks before my distribution releases that
-kernel.  Dropping back to Linux v3.1 isn't an option, as my NVIDIA
-driver requires Linux v3.2.  Can the fix for this problem also be
-applied to Linux v3.2.x manually?  If so, please email me the
-corresponding patch file and I'll test it here.
+That fix is not at -next yet. I'll add it there in time for the Friday's -next
+and send the pull request tomorrow or during the weekend.
+
+Regards,
+Mauro
+> 
+> regards
+> Antti
+> 
+> On 15.03.2012 12:55, Mauro Carvalho Chehab wrote:
+>> Hi Linus,
+>>
+>> Please pull from:
+>>     git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media v4l_for_linus
+>>
+>> For 4 fixes for 3.3 (all trivial):
+>>     - uvc video driver: fixes a division by zero;
+>>     - davinci: add module.h to fix compilation;
+>>     - smsusb: fix the delivery system setting;
+>>     - smsdvb: the get_frontend implementation there is broken.
+>>
+>> The smsdvb patch has 127 lines, but it is trivial: instead of returning
+>> a cache of the set_frontend (with is wrong, as it doesn't have the
+>> updated values for the data, and the implementation there is buggy),
+>> it copies the information of the detected DVB parameters from the
+>> smsdvb private structures into the corresponding DVBv5 struct fields.
+>>
+>> Thanks!
+>> Mauro
+>>
+>> -
+>>
+>> Latest commit at the branch:
+>> d138210ffa90e6c78e3f7a2c348f50e865ff735c [media] smsdvb: fix get_frontend
+>> The following changes since commit fde7d9049e55ab85a390be7f415d74c9f62dd0f9:
+>>
+>>    Linux 3.3-rc7 (2012-03-10 13:49:52 -0800)
+>>
+>> are available in the git repository at:
+>>    git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media v4l_for_linus
+>>
+>> Gianluca Gennari (1):
+>>        [media] smsdvb: fix get_frontend
+>>
+>> Henrique Camargo (1):
+>>        [media] media: davinci: added module.h to resolve unresolved macros
+>>
+>> Laurent Pinchart (1):
+>>        [media] [FOR,v3.3] uvcvideo: Avoid division by 0 in timestamp calculation
+>>
+>> Mauro Carvalho Chehab (1):
+>>        [media] smsusb: fix the default delivery system setting
+>>
+>>   drivers/media/dvb/siano/smsdvb.c    |  127 ++++++++++++++++++++++++++++++++---
+>>   drivers/media/video/davinci/isif.c  |    1 +
+>>   drivers/media/video/uvc/uvc_video.c |   14 +++--
+>>   3 files changed, 128 insertions(+), 14 deletions(-)
+>>
+>> -- 
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
+
