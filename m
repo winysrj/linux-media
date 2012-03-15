@@ -1,330 +1,165 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:52003 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751014Ab2CCRf3 (ORCPT
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:43352 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1031446Ab2COBcl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 3 Mar 2012 12:35:29 -0500
-Subject: Re: [PATCH v3 09/10] v4l: Aptina-style sensor PLL support
-From: Andy Walls <awalls@md.metrocast.net>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org,
-	Martin Hostettler <martin@neutronstar.dyndns.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-Date: Sat, 03 Mar 2012 12:35:09 -0500
-In-Reply-To: <1330788495-18762-10-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1330788495-18762-1-git-send-email-laurent.pinchart@ideasonboard.com>
-	 <1330788495-18762-10-git-send-email-laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Message-ID: <1330796111.4195.10.camel@palomino.walls.org>
-Mime-Version: 1.0
+	Wed, 14 Mar 2012 21:32:41 -0400
+Received: by gghe5 with SMTP id e5so2531877ggh.19
+        for <linux-media@vger.kernel.org>; Wed, 14 Mar 2012 18:32:40 -0700 (PDT)
+From: Rob Clark <rob.clark@linaro.org>
+To: linaro-mm-sig@lists.linaro.org, dri-devel@lists.freedesktop.org,
+	linux-media@vger.kernel.org
+Cc: patches@linaro.org, sumit.semwal@linaro.org, daniel@ffwll.ch,
+	rschultz@google.com, Rob Clark <rob@ti.com>
+Subject: [PATCH] RFC: dma-buf: userspace mmap support
+Date: Wed, 14 Mar 2012 20:32:28 -0500
+Message-Id: <1331775148-5001-1-git-send-email-rob.clark@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 2012-03-03 at 16:28 +0100, Laurent Pinchart wrote:
-> Add a generic helper function to compute PLL parameters for PLL found in
-> several Aptina sensors.
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> ---
->  drivers/media/video/Kconfig      |    3 +
->  drivers/media/video/Makefile     |    4 +
->  drivers/media/video/aptina-pll.c |  175 ++++++++++++++++++++++++++++++++++++++
->  drivers/media/video/aptina-pll.h |   55 ++++++++++++
->  4 files changed, 237 insertions(+), 0 deletions(-)
->  create mode 100644 drivers/media/video/aptina-pll.c
->  create mode 100644 drivers/media/video/aptina-pll.h
-> 
-> diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-> index 80acb78..410baf2 100644
-> --- a/drivers/media/video/Kconfig
-> +++ b/drivers/media/video/Kconfig
-> @@ -459,6 +459,9 @@ config VIDEO_AK881X
->  
->  comment "Camera sensor devices"
->  
-> +config VIDEO_APTINA_PLL
-> +	tristate
-> +
->  config VIDEO_OV7670
->  	tristate "OmniVision OV7670 sensor support"
->  	depends on I2C && VIDEO_V4L2
-> diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
-> index 9b19533..8e037e9 100644
-> --- a/drivers/media/video/Makefile
-> +++ b/drivers/media/video/Makefile
-> @@ -22,6 +22,10 @@ endif
->  
->  obj-$(CONFIG_VIDEO_V4L2_COMMON) += v4l2-common.o
->  
-> +# Helper modules
-> +
-> +obj-$(CONFIG_VIDEO_APTINA_PLL) += aptina-pll.o
-> +
->  # All i2c modules must come first:
->  
->  obj-$(CONFIG_VIDEO_TUNER) += tuner.o
-> diff --git a/drivers/media/video/aptina-pll.c b/drivers/media/video/aptina-pll.c
-> new file mode 100644
-> index 0000000..55e4a40
-> --- /dev/null
-> +++ b/drivers/media/video/aptina-pll.c
-> @@ -0,0 +1,175 @@
-> +/*
-> + * Aptina Sensor PLL Configuration
-> + *
-> + * Copyright (C) 2012 Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> + *
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of the GNU General Public License
-> + * version 2 as published by the Free Software Foundation.
-> + *
-> + * This program is distributed in the hope that it will be useful, but
-> + * WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-> + * General Public License for more details.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> + * along with this program; if not, write to the Free Software
-> + * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-> + * 02110-1301 USA
-> + */
-> +
-> +#include <linux/device.h>
-> +#include <linux/gcd.h>
-> +#include <linux/kernel.h>
-> +#include <linux/lcm.h>
-> +#include <linux/module.h>
-> +
-> +#include "aptina-pll.h"
-> +
-> +int aptina_pll_configure(struct device *dev, struct aptina_pll *pll,
-> +			 const struct aptina_pll_limits *limits)
-> +{
-> +	unsigned int mf_min;
-> +	unsigned int mf_max;
-> +	unsigned int p1_min;
-> +	unsigned int p1_max;
-> +	unsigned int p1;
-> +	unsigned int div;
-> +
-> +	if (pll->ext_clock < limits->ext_clock_min ||
-> +	    pll->ext_clock > limits->ext_clock_max) {
-> +		dev_err(dev, "pll: invalid external clock frequency.\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	if (pll->pix_clock > limits->pix_clock_max) {
-> +		dev_err(dev, "pll: invalid pixel clock frequency.\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	/* Compute the multiplier M and combined N*P1 divisor. */
-> +	div = gcd(pll->pix_clock, pll->ext_clock);
-> +	pll->m = pll->pix_clock / div;
-> +	div = pll->ext_clock / div;
-> +
-> +	/* We now have the smallest M and N*P1 values that will result in the
-> +	 * desired pixel clock frequency, but they might be out of the valid
-> +	 * range. Compute the factor by which we should multiply them given the
-> +	 * following constraints:
-> +	 *
-> +	 * - minimum/maximum multiplier
-> +	 * - minimum/maximum multiplier output clock frequency assuming the
-> +	 *   minimum/maximum N value
-> +	 * - minimum/maximum combined N*P1 divisor
-> +	 */
-> +	mf_min = DIV_ROUND_UP(limits->m_min, pll->m);
-> +	mf_min = max(mf_min, limits->out_clock_min /
-> +		     (pll->ext_clock / limits->n_min * pll->m));
-> +	mf_min = max(mf_min, limits->n_min * limits->p1_min / div);
-> +	mf_max = limits->m_max / pll->m;
-> +	mf_max = min(mf_max, limits->out_clock_max /
-> +		    (pll->ext_clock / limits->n_max * pll->m));
-> +	mf_max = min(mf_max, DIV_ROUND_UP(limits->n_max * limits->p1_max, div));
-> +
-> +	dev_dbg(dev, "pll: mf min %u max %u\n", mf_min, mf_max);
-> +	if (mf_min > mf_max) {
-> +		dev_err(dev, "pll: no valid combined N*P1 divisor.\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	/*
-> +	 * We're looking for the highest acceptable P1 value 
+From: Rob Clark <rob@ti.com>
 
-Why the *highest* acceptable post-divide (P1) value?
+Enable optional userspace access to dma-buf buffers via mmap() on the
+dma-buf file descriptor.  Userspace access to the buffer should be
+bracketed with DMA_BUF_IOCTL_{PREPARE,FINISH}_ACCESS ioctl calls to
+give the exporting driver a chance to deal with cache synchronization
+and such for cached userspace mappings without resorting to page
+faulting tricks.  The reasoning behind this is that, while drm
+drivers tend to have all the mechanisms in place for dealing with
+page faulting tricks, other driver subsystems may not.  And in
+addition, while page faulting tricks make userspace simpler, there
+are some associated overheads.
 
-> for which a
-> +	 * multiplier factor MF exists that fulfills the following conditions:
-> +	 *
-> +	 * 1. p1 is in the [p1_min, p1_max] range given by the limits and is
-> +	 *    even
-> +	 * 2. mf is in the [mf_min, mf_max] range computed above
-> +	 * 3. div * mf is a multiple of p1, in order to compute
-> +	 *	n = div * mf / p1
-> +	 *	m = pll->m * mf
-> +	 * 4. the internal clock frequency, given by ext_clock / n, is in the
-> +	 *    [int_clock_min, int_clock_max] range given by the limits
-> +	 * 5. the output clock frequency, given by ext_clock / n * m, is in the
-> +	 *    [out_clock_min, out_clock_max] range given by the limits
-> +	 *
+In all cases, the mmap() call is allowed to fail, and the associated
+dma_buf_ops are optional (mmap() will fail if at least the mmap()
+op is not implemented by the exporter, but in either case the
+{prepare,finish}_access() ops are optional).
 
-So just to make your constrained optimzation problem even more complex:
+For now the prepare/finish access ioctls are kept simple with no
+argument, although there is possibility to add additional ioctls
+(or simply change the existing ioctls from _IO() to _IOW()) later
+to provide optimization to allow userspace to specify a region of
+interest.
 
-I would imagine you would get faster PLL lock and less phase noise by
-having the VCO operate near its center frequency.
+For a final patch, dma-buf.h would need to be split into what is
+exported to userspace, and what is kernel private, but I wanted to
+get feedback on the idea of requiring userspace to bracket access
+first (vs. limiting this to coherent mappings or exporters who play
+page faltings plus PTE shoot-down games) before I split the header
+which would cause conflicts with other pending dma-buf patches.  So
+flame-on!
+---
+ drivers/base/dma-buf.c  |   42 ++++++++++++++++++++++++++++++++++++++++++
+ include/linux/dma-buf.h |   22 ++++++++++++++++++++++
+ 2 files changed, 64 insertions(+), 0 deletions(-)
 
-If you think that is a sensible constraint, then that translates to
-having the PLL output before post-divide (i.e. ext_clock / n * m), to be
-as close as possible to the center frequency of the VCO (i.e.
-(out_clock_max - out_clock_min) / 2 ).
-
-Regards,
-Andy
-
-
-> +	 * The first naive approach is to iterate over all p1 values acceptable
-> +	 * according to (1) and all mf values acceptable according to (2), and
-> +	 * stop at the first combination that fulfills (3), (4) and (5). This
-> +	 * has a O(n^2) complexity.
-> +	 *
-> +	 * Instead of iterating over all mf values in the [mf_min, mf_max] range
-> +	 * we can compute the mf increment between two acceptable values
-> +	 * according to (3) with
-> +	 *
-> +	 *	mf_inc = lcm(div, p1) / div			(6)
-> +	 *
-> +	 * and round the minimum up to the nearest multiple of mf_inc. This will
-> +	 * restrict the number of mf values to be checked.
-> +	 *
-> +	 * Furthermore, conditions (4) and (5) only restrict the range of
-> +	 * acceptable p1 and mf values by modifying the minimum and maximum
-> +	 * limits. (5) can be expressed as
-> +	 *
-> +	 *	ext_clock / (div * mf / p1) * m * mf >= out_clock_min
-> +	 *	ext_clock / (div * mf / p1) * m * mf <= out_clock_max
-> +	 *
-> +	 * or
-> +	 *
-> +	 *	p1 >= out_clock_min * div / (ext_clock * m)	(7)
-> +	 *	p1 <= out_clock_max * div / (ext_clock * m)
-> +	 *
-> +	 * Similarly, (4) can be expressed as
-> +	 *
-> +	 *	mf >= ext_clock * p1 / (int_clock_max * div)	(8)
-> +	 *	mf <= ext_clock * p1 / (int_clock_min * div)
-> +	 *
-> +	 * We can thus iterate over the restricted p1 range defined by the
-> +	 * combination of (1) and (7), and then compute the restricted mf range
-> +	 * defined by the combination of (2), (6) and (8). If the resulting mf
-> +	 * range is not empty, any value in the mf range is acceptable. We thus
-> +	 * select the mf lwoer bound and the corresponding p1 value.
-> +	 */
-> +	if (limits->p1_min == 0) {
-> +		dev_err(dev, "pll: P1 minimum value must be >0.\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	p1_min = max(limits->p1_min, DIV_ROUND_UP(limits->out_clock_min * div,
-> +		     pll->ext_clock * pll->m));
-> +	p1_max = min(limits->p1_max, limits->out_clock_max * div /
-> +		     (pll->ext_clock * pll->m));
-> +
-> +	for (p1 = p1_max & ~1; p1 >= p1_min; p1 -= 2) {
-> +		unsigned int mf_inc = lcm(div, p1) / div;
-> +		unsigned int mf_high;
-> +		unsigned int mf_low;
-> +
-> +		mf_low = max(roundup(mf_min, mf_inc),
-> +			     DIV_ROUND_UP(pll->ext_clock * p1,
-> +			       limits->int_clock_max * div));
-> +		mf_high = min(mf_max, pll->ext_clock * p1 /
-> +			      (limits->int_clock_min * div));
-> +
-> +		if (mf_low <= mf_high) {
-> +			pll->n = div * mf_low / p1;
-> +			pll->m *= mf_low;
-> +			pll->p1 = p1;
-> +			break;
-> +		}
-> +	}
-> +
-> +	if (p1 < p1_min) {
-> +		dev_err(dev, "pll: no valid N and P1 divisors found.\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	dev_dbg(dev, "PLL: ext clock %u N %u M %u P1 %u pix clock %u\n",
-> +		 pll->ext_clock, pll->n, pll->m, pll->p1, pll->pix_clock);
-> +
-> +	return 0;
-> +}
-> +EXPORT_SYMBOL_GPL(aptina_pll_configure);
-> +
-> +MODULE_DESCRIPTION("Aptina PLL Helpers");
-> +MODULE_AUTHOR("Laurent Pinchart <laurent.pinchart@ideasonboard.com>");
-> +MODULE_LICENSE("GPL v2");
-> diff --git a/drivers/media/video/aptina-pll.h b/drivers/media/video/aptina-pll.h
-> new file mode 100644
-> index 0000000..36a9363
-> --- /dev/null
-> +++ b/drivers/media/video/aptina-pll.h
-> @@ -0,0 +1,55 @@
-> +/*
-> + * Aptina Sensor PLL Configuration
-> + *
-> + * Copyright (C) 2012 Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> + *
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of the GNU General Public License
-> + * version 2 as published by the Free Software Foundation.
-> + *
-> + * This program is distributed in the hope that it will be useful, but
-> + * WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-> + * General Public License for more details.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> + * along with this program; if not, write to the Free Software
-> + * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-> + * 02110-1301 USA
-> + */
-> +
-> +#ifndef __APTINA_PLL_H
-> +#define __APTINA_PLL_H
-> +
-> +struct aptina_pll {
-> +	unsigned int ext_clock;
-> +	unsigned int pix_clock;
-> +
-> +	unsigned int n;
-> +	unsigned int m;
-> +	unsigned int p1;
-> +};
-> +
-> +struct aptina_pll_limits {
-> +	unsigned int ext_clock_min;
-> +	unsigned int ext_clock_max;
-> +	unsigned int int_clock_min;
-> +	unsigned int int_clock_max;
-> +	unsigned int out_clock_min;
-> +	unsigned int out_clock_max;
-> +	unsigned int pix_clock_max;
-> +
-> +	unsigned int n_min;
-> +	unsigned int n_max;
-> +	unsigned int m_min;
-> +	unsigned int m_max;
-> +	unsigned int p1_min;
-> +	unsigned int p1_max;
-> +};
-> +
-> +struct device;
-> +
-> +int aptina_pll_configure(struct device *dev, struct aptina_pll *pll,
-> +			 const struct aptina_pll_limits *limits);
-> +
-> +#endif /* __APTINA_PLL_H */
-
+diff --git a/drivers/base/dma-buf.c b/drivers/base/dma-buf.c
+index c9a945f..382b78a 100644
+--- a/drivers/base/dma-buf.c
++++ b/drivers/base/dma-buf.c
+@@ -30,6 +30,46 @@
+ 
+ static inline int is_dma_buf_file(struct file *);
+ 
++static int dma_buf_mmap(struct file *file, struct vm_area_struct *vma)
++{
++	struct dma_buf *dmabuf;
++
++	if (!is_dma_buf_file(file))
++		return -EINVAL;
++
++	dmabuf = file->private_data;
++
++	if (dmabuf->ops->mmap)
++		return dmabuf->ops->mmap(dmabuf, file, vma);
++
++	return -ENODEV;
++}
++
++static long dma_buf_ioctl(struct file *file, unsigned int cmd,
++		unsigned long arg)
++{
++	struct dma_buf *dmabuf;
++
++	if (!is_dma_buf_file(file))
++		return -EINVAL;
++
++	dmabuf = file->private_data;
++
++	switch (_IOC_NR(cmd)) {
++	case _IOC_NR(DMA_BUF_IOCTL_PREPARE_ACCESS):
++		if (dmabuf->ops->prepare_access)
++			return dmabuf->ops->prepare_access(dmabuf);
++		return 0;
++	case _IOC_NR(DMA_BUF_IOCTL_FINISH_ACCESS):
++		if (dmabuf->ops->finish_access)
++			return dmabuf->ops->finish_access(dmabuf);
++		return 0;
++	default:
++		return -EINVAL;
++	}
++}
++
++
+ static int dma_buf_release(struct inode *inode, struct file *file)
+ {
+ 	struct dma_buf *dmabuf;
+@@ -45,6 +85,8 @@ static int dma_buf_release(struct inode *inode, struct file *file)
+ }
+ 
+ static const struct file_operations dma_buf_fops = {
++	.mmap 		= dma_buf_mmap,
++	.unlocked_ioctl = dma_buf_ioctl,
+ 	.release	= dma_buf_release,
+ };
+ 
+diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
+index a885b26..cbdff81 100644
+--- a/include/linux/dma-buf.h
++++ b/include/linux/dma-buf.h
+@@ -34,6 +34,17 @@
+ struct dma_buf;
+ struct dma_buf_attachment;
+ 
++/* TODO: dma-buf.h should be the userspace visible header, and dma-buf-priv.h (?)
++ * the kernel internal header.. for now just stuff these here to avoid conflicting
++ * with other patches..
++ *
++ * For now, no arg to keep things simple, but we could consider adding an
++ * optional region of interest later.
++ */
++#define DMA_BUF_IOCTL_PREPARE_ACCESS   _IO('Z', 0)
++#define DMA_BUF_IOCTL_FINISH_ACCESS    _IO('Z', 1)
++
++
+ /**
+  * struct dma_buf_ops - operations possible on struct dma_buf
+  * @attach: [optional] allows different devices to 'attach' themselves to the
+@@ -49,6 +60,13 @@ struct dma_buf_attachment;
+  * @unmap_dma_buf: decreases usecount of buffer, might deallocate scatter
+  *		   pages.
+  * @release: release this buffer; to be called after the last dma_buf_put.
++ * @mmap: [optional, allowed to fail] operation called if userspace calls
++ *		 mmap() on the dmabuf fd.  Note that userspace should use the
++ *		 DMA_BUF_PREPARE_ACCESS / DMA_BUF_FINISH_ACCESS ioctls before/after
++ *		 sw access to the buffer, to give the exporter an opportunity to
++ *		 deal with cache maintenance.
++ * @prepare_access: [optional] handler for PREPARE_ACCESS ioctl.
++ * @finish_access: [optional] handler for FINISH_ACCESS ioctl.
+  */
+ struct dma_buf_ops {
+ 	int (*attach)(struct dma_buf *, struct device *,
+@@ -72,6 +90,10 @@ struct dma_buf_ops {
+ 	/* after final dma_buf_put() */
+ 	void (*release)(struct dma_buf *);
+ 
++	int (*mmap)(struct dma_buf *, struct file *, struct vm_area_struct *);
++	int (*prepare_access)(struct dma_buf *);
++	int (*finish_access)(struct dma_buf *);
++
+ };
+ 
+ /**
+-- 
+1.7.5.4
 
