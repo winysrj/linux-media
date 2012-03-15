@@ -1,101 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.47]:53310 "EHLO mgw-sa01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932153Ab2CBRcz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 2 Mar 2012 12:32:55 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:33702 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1031940Ab2COQys (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 15 Mar 2012 12:54:48 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Received: from euspt2 ([210.118.77.13]) by mailout3.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0M0X0060ZQZ4I810@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 15 Mar 2012 16:54:40 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0M0X004PUQZ35P@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 15 Mar 2012 16:54:40 +0000 (GMT)
+Date: Thu, 15 Mar 2012 17:54:22 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH/RFC 08/23] V4L: camera control class documentation
+In-reply-to: <1331830477-12146-1-git-send-email-s.nawrocki@samsung.com>
 To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, dacohen@gmail.com,
-	snjw23@gmail.com, andriy.shevchenko@linux.intel.com,
-	t.stanislaws@samsung.com, tuukkat76@gmail.com,
-	k.debski@samsung.com, riverful@gmail.com, hverkuil@xs4all.nl,
-	teturtia@gmail.com
-Subject: [PATCH v4 16/34] media: Collect entities that are part of the pipeline before link validation
-Date: Fri,  2 Mar 2012 19:30:24 +0200
-Message-Id: <1330709442-16654-16-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <20120302173219.GA15695@valkosipuli.localdomain>
-References: <20120302173219.GA15695@valkosipuli.localdomain>
+Cc: m.szyprowski@samsung.com, riverful.kim@samsung.com,
+	kyungmin.park@samsung.com, s.nawrocki@samsung.com
+Message-id: <1331830477-12146-9-git-send-email-s.nawrocki@samsung.com>
+References: <1331830477-12146-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Make information available which entities are part of the pipeline before
-link_validate() ops are being called.
-
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
 ---
- drivers/media/media-entity.c |   23 ++++++++++++++++++++---
- include/media/media-entity.h |    1 +
- 2 files changed, 21 insertions(+), 3 deletions(-)
+ Documentation/DocBook/media/v4l/controls.xml |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index d6d0e81..55f66c6 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -220,12 +220,19 @@ __must_check int media_entity_pipeline_start(struct media_entity *entity,
- 	struct media_device *mdev = entity->parent;
- 	struct media_entity_graph graph;
- 	struct media_entity *entity_err = entity;
-+	struct {
-+		struct media_entity *entity;
-+		struct media_link *link;
-+	} to_validate[MEDIA_ENTITY_ENUM_MAX_DEPTH];
-+	int nto_validate = 0;
- 	int ret;
+diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+index aa3b2db..e177367 100644
+--- a/Documentation/DocBook/media/v4l/controls.xml
++++ b/Documentation/DocBook/media/v4l/controls.xml
+@@ -2688,7 +2688,8 @@ in by the application. 0 = do not insert, 1 = insert packets.</entry>
  
- 	mutex_lock(&mdev->graph_mutex);
+       <para>The Camera class includes controls for mechanical (or
+ equivalent digital) features of a device such as controllable lenses
+-or sensors.</para>
++or sensors. This class also includes controls for software algorithms
++inplemented in the camera's firmware.</para>
  
- 	media_entity_graph_walk_start(&graph, entity);
- 
-+	pipe->entities = 0;
-+
- 	while ((entity = media_entity_graph_walk_next(&graph))) {
- 		unsigned int i;
- 
-@@ -237,6 +244,8 @@ __must_check int media_entity_pipeline_start(struct media_entity *entity,
- 		if (entity->stream_count > 1)
- 			continue;
- 
-+		pipe->entities |= 1 << entity->id;
-+
- 		if (!entity->ops || !entity->ops->link_validate)
- 			continue;
- 
-@@ -251,12 +260,20 @@ __must_check int media_entity_pipeline_start(struct media_entity *entity,
- 			if (link->sink->entity != entity)
- 				continue;
- 
--			ret = entity->ops->link_validate(link);
--			if (ret < 0 && ret != -ENOIOCTLCMD)
--				goto error;
-+			BUG_ON(nto_validate >= MEDIA_ENTITY_ENUM_MAX_DEPTH);
-+			to_validate[nto_validate].entity = entity;
-+			to_validate[nto_validate].link = link;
-+			nto_validate++;
- 		}
- 	}
- 
-+	for (nto_validate--; nto_validate >= 0; nto_validate--) {
-+		ret = to_validate[nto_validate].entity->ops->
-+			link_validate(to_validate[nto_validate].link);
-+		if (ret < 0 && ret != -ENOIOCTLCMD)
-+			goto error;
-+	}
-+
- 	mutex_unlock(&mdev->graph_mutex);
- 
- 	return 0;
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index 0c16f51..bbfc8f2 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -27,6 +27,7 @@
- #include <linux/media.h>
- 
- struct media_pipeline {
-+	u32 entities;
- };
- 
- struct media_link {
+     <table pgwide="1" frame="none" id="camera-control-id">
+       <title>Camera Control IDs</title>
 -- 
-1.7.2.5
+1.7.9.2
 
