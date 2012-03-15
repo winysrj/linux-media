@@ -1,77 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bues.ch ([80.190.117.144]:39851 "EHLO bues.ch"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965642Ab2C3Vp6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Mar 2012 17:45:58 -0400
-Date: Fri, 30 Mar 2012 23:45:45 +0200
-From: Michael =?UTF-8?B?QsO8c2No?= <m@bues.ch>
-To: Antti Palosaari <crope@iki.fi>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [GIT PULL FOR 3.5] AF9035/AF9033/TUA9001 => TerraTec Cinergy T
- Stick [0ccd:0093]
-Message-ID: <20120330234545.45f4e2e8@milhouse>
-In-Reply-To: <4F75A7FE.8090405@iki.fi>
-References: <4F75A7FE.8090405@iki.fi>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=PGP-SHA1;
- boundary="Sig_/BtEEhd.p1Sm5VnZl5EKTCGL"; protocol="application/pgp-signature"
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:30756 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1031941Ab2COQyx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 15 Mar 2012 12:54:53 -0400
+Received: from euspt1 (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0M0X009O6QZ6NE@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 15 Mar 2012 16:54:42 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0M0X00HGVQZ35S@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 15 Mar 2012 16:54:40 +0000 (GMT)
+Date: Thu, 15 Mar 2012 17:54:25 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH/RFC 11/23] m5mols: Convert macros to inline functions
+In-reply-to: <1331830477-12146-1-git-send-email-s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: m.szyprowski@samsung.com, riverful.kim@samsung.com,
+	kyungmin.park@samsung.com, s.nawrocki@samsung.com
+Message-id: <1331830477-12146-12-git-send-email-s.nawrocki@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1331830477-12146-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---Sig_/BtEEhd.p1Sm5VnZl5EKTCGL
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+Make to_sd and to_m5mols macros static inline functions
+for better type safety.
 
-On Fri, 30 Mar 2012 15:33:02 +0300
-Antti Palosaari <crope@iki.fi> wrote:
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/video/m5mols/m5mols.h |   17 ++++++++++++-----
+ 1 file changed, 12 insertions(+), 5 deletions(-)
 
-> Terve Mauro and all the other hackers,
->=20
-> I did some massive rewrite for my old AF9035/AF9033 driver that was=20
-> never merged. Anyhow, here it is.
->=20
-> New drivers here are:
-> Infineon TUA 9001 silicon tuner driver
-> Afatech AF9033 DVB-T demodulator driver
-> Afatech AF9035 DVB USB driver
+diff --git a/drivers/media/video/m5mols/m5mols.h b/drivers/media/video/m5mols/m5mols.h
+index 35a3949..da4381f 100644
+--- a/drivers/media/video/m5mols/m5mols.h
++++ b/drivers/media/video/m5mols/m5mols.h
+@@ -21,11 +21,6 @@
+ 
+ extern int m5mols_debug;
+ 
+-#define to_m5mols(__sd)	container_of(__sd, struct m5mols_info, sd)
+-
+-#define to_sd(__ctrl) \
+-	(&container_of(__ctrl->handler, struct m5mols_info, handle)->sd)
+-
+ enum m5mols_restype {
+ 	M5MOLS_RESTYPE_MONITOR,
+ 	M5MOLS_RESTYPE_CAPTURE,
+@@ -296,4 +291,16 @@ int m5mols_set_ctrl(struct v4l2_ctrl *ctrl);
+ int m5mols_update_fw(struct v4l2_subdev *sd,
+ 		     int (*set_power)(struct m5mols_info *, bool));
+ 
++static inline struct m5mols_info *to_m5mols(struct v4l2_subdev *subdev)
++{
++	return container_of(subdev, struct m5mols_info, sd);
++}
++
++static inline struct v4l2_subdev *to_sd(struct v4l2_ctrl *ctrl)
++{
++	struct m5mols_info *info = container_of(ctrl->handler,
++						struct m5mols_info, handle);
++	return &info->sd;
++}
++
+ #endif	/* M5MOLS_H */
+-- 
+1.7.9.2
 
-This looks pretty nice.
-
-I recently wrote a tuner driver for the fc0011 tuner, which is used in some
-af9035 sticks:
-http://patchwork.linuxtv.org/patch/10503/
-
-It was developed against an af903x driver by Hans-Frieder Vogt.
-
-I'll port it to your AF9035 driver, ASAP, to check whether this works
-on my DVB USB stick.
-
---=20
-Greetings, Michael.
-
-PGP encryption is encouraged / 908D8B0E
-
---Sig_/BtEEhd.p1Sm5VnZl5EKTCGL
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Disposition: attachment; filename=signature.asc
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJPdimJAAoJEPUyvh2QjYsO6a8QAJZolKisyR81Q4+AUBtlZFV9
-rvXkSuss6h6qjWv5cHZ2Ubung7BQVDe/0gncxY8kQiEFrx6p/wcQvQzxZS9w8bG6
-CvjxXGhk07LoM58LG2t9qKqbr5VbjrPlfhku26ap6vGAUpnHY7n74xjLJqJXddJl
-jVUt/6JtC8og6+b0ya97jtbc/kcBtgfMqi4WaX/BLHep9yJm5uk+koLPsimrINp+
-P5ZYh74DyM4Qpo4oywJCB60/xd0B03IIvk11QEroIDNzzBJjXbfJ1q4MxEXH2b88
-TS3l9THDtrVJnVOD8x4rocgrNie1fdK5B/VxD2vPQG1CKITNFeZmSzojrhJEKD9u
-4XGVVWCyYmxxB+MS3b1ql7N5KTjR7H8SXrvJxA2BM/j/1rS9cpCW04O3KfnmC8sH
-fTvom4DR5PEuLUgo5Xq1dFjybu+3FAfQG49ZrRTo/IvlRV2M3QCrWMDGQbVfJIce
-8C/Iw36tnrBaPwr0rhWsLJ1rjVWbeCrUWXfBlTQqG2U/yizhuu6+cJr4Z4klOIdZ
-CiNZtr7Q+OjV7jXK/muADCQapbXXHw/oAVmRFTT++rvBOvg7pMPFMQDY/mCFq8Cl
-qy1kURI/CbOHI5fTJX1YKgrx2UK2bnUgiNglr7AlZnncPqTn1iC6jHxS/c2Jet2M
-MXQOTegIp0CZxkv4KHIm
-=LeB5
------END PGP SIGNATURE-----
-
---Sig_/BtEEhd.p1Sm5VnZl5EKTCGL--
