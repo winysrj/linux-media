@@ -1,45 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailfe09.c2i.net ([212.247.155.2]:43476 "EHLO swip.net"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751447Ab2CKVHR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 11 Mar 2012 17:07:17 -0400
-From: Hans Petter Selasky <hselasky@c2i.net>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [GIT PULL FOR v3.3] uvcvideo divide by 0 fix
-Date: Sun, 11 Mar 2012 22:00:35 +0100
-Cc: James Hogan <james@albanarts.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org
-References: <20120219234151.GA32005@balrog> <1689974.qoel1Ujv1I@avalon>
-In-Reply-To: <1689974.qoel1Ujv1I@avalon>
+Received: from mx1.redhat.com ([209.132.183.28]:35649 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932304Ab2COVfv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 15 Mar 2012 17:35:51 -0400
+Date: Thu, 15 Mar 2012 17:35:42 -0400
+From: Jarod Wilson <jarod@redhat.com>
+To: Ezequiel Garcia <elezegarcia@gmail.com>
+Cc: mchehab@infradead.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH v2] media: rc: Pospone ir raw decoders loading until
+ really needed
+Message-ID: <20120315213542.GB25362@redhat.com>
+References: <1331844829-1166-1-git-send-email-elezegarcia@gmail.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201203112200.35422.hselasky@c2i.net>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1331844829-1166-1-git-send-email-elezegarcia@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday 20 February 2012 12:49:39 Laurent Pinchart wrote:
-> Hi Mauro,
+On Thu, Mar 15, 2012 at 05:53:49PM -0300, Ezequiel Garcia wrote:
+> This changes rc_core to not load the IR decoders at load time,
+> postponing it to load only if a RC_DRIVER_IR_RAW device is 
+> registered via rc_register_device.
+> We use a static boolean variable, to ensure decoders modules
+> are only loaded once.
+> Tested with rc-loopback device only.
 > 
-> The following changes since commit
-> b01543dfe67bb1d191998e90d20534dc354de059:
+> Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
+> ---
+> v2: Fix broken logic in v1. 
+>     Also, put raw_init as static instead of inside rc_dev
+>     struct to ensure loading is only tried the first time.
+> ---
+>  drivers/media/rc/rc-main.c |   11 +++++++++--
+>  1 files changed, 9 insertions(+), 2 deletions(-)
 > 
->   Linux 3.3-rc4 (2012-02-18 15:53:33 -0800)
-> 
-> are available in the git repository at:
->   git://linuxtv.org/pinchartl/uvcvideo.git uvcvideo-stable
-> 
-> The patch fixes a divide by 0 bug reported by a couple of users already.
-> Could you please make sure it gets into v3.3 ?
-> 
-> Laurent Pinchart (1):
->       uvcvideo: Avoid division by 0 in timestamp calculation
-> 
->  drivers/media/video/uvc/uvc_video.c |   14 +++++++++-----
->  1 files changed, 9 insertions(+), 5 deletions(-)
+> diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+> index f6a930b..d366d53 100644
+> --- a/drivers/media/rc/rc-main.c
+> +++ b/drivers/media/rc/rc-main.c
+> @@ -32,6 +32,9 @@
+>  static LIST_HEAD(rc_map_list);
+>  static DEFINE_SPINLOCK(rc_map_lock);
+>  
+> +/* Used to load raw decoders modules only if needed */
+> +static bool raw_init;
+> +
+>  static struct rc_map_list *seek_rc_map(const char *name)
+>  {
+>  	struct rc_map_list *map = NULL;
+> @@ -1103,6 +1106,12 @@ int rc_register_device(struct rc_dev *dev)
+>  	kfree(path);
+>  
+>  	if (dev->driver_type == RC_DRIVER_IR_RAW) {
+> +		/* Load raw decoders, if they aren't already */
+> +		if (!raw_init) {
+> +			IR_dprintk(1, "Loading raw decoders\n");
 
-Has this patch been pulled back into media_tree.git ?
+I think this is slightly redundant, since we already print something for
+each of the decoders loaded, but eh, its a debug printk, maybe you're
+debugging why none are loading, so its good to know you're reaching the
+call to ir_raw_init...
 
---HPS
+So yeah, ok, I'm fine with this. Haven't tested it with actual raw IR
+hardware, but I don't see any reason it wouldn't work.
+
+Acked-by: Jarod Wilson <jarod@redhat.com>
+
+> +			ir_raw_init();
+> +			raw_init = true;
+> +		}
+>  		rc = ir_raw_event_register(dev);
+>  		if (rc < 0)
+>  			goto out_input;
+> @@ -1176,8 +1185,6 @@ static int __init rc_core_init(void)
+>  		return rc;
+>  	}
+>  
+> -	/* Initialize/load the decoders/keymap code that will be used */
+> -	ir_raw_init();
+>  	rc_map_register(&empty_map);
+>  
+>  	return 0;
+
+-- 
+Jarod Wilson
+jarod@redhat.com
+
