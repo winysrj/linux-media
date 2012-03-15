@@ -1,45 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.48]:28019 "EHLO mgw-sa02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932324Ab2CBRcz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 2 Mar 2012 12:32:55 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, dacohen@gmail.com,
-	snjw23@gmail.com, andriy.shevchenko@linux.intel.com,
-	t.stanislaws@samsung.com, tuukkat76@gmail.com,
-	k.debski@samsung.com, riverful@gmail.com, hverkuil@xs4all.nl,
-	teturtia@gmail.com
-Subject: [PATCH v4 22/34] omap3: add definition for CONTROL_CAMERA_PHY_CTRL
-Date: Fri,  2 Mar 2012 19:30:30 +0200
-Message-Id: <1330709442-16654-22-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <20120302173219.GA15695@valkosipuli.localdomain>
-References: <20120302173219.GA15695@valkosipuli.localdomain>
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:36192 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756109Ab2CORPM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 15 Mar 2012 13:15:12 -0400
+Received: by ghrr11 with SMTP id r11so3274523ghr.19
+        for <linux-media@vger.kernel.org>; Thu, 15 Mar 2012 10:15:12 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <4F61FF2D.6010505@redhat.com>
+References: <CALjTZvZy4npSE0aELnmsZzzgsxUC1xjeNYVwQ_CvJG59PizfEQ@mail.gmail.com>
+	<CALF0-+Wp03vsbiaJFUt=ymnEncEvDg_KmnV+2OWjtO-_0qqBVg@mail.gmail.com>
+	<CALjTZvYVtuSm0v-_Q7od=iUDvHbkMe4c5ycAQZwoErCCe=N+Bg@mail.gmail.com>
+	<CALF0-+W3HenNpUt_yGxqs+fohcZ22ozDw9MhTWua0B++ZFA2vA@mail.gmail.com>
+	<CALjTZvYJZ32Red-UfZXubB-Lk503DWbHGTL_kEoV4DVDDYJ46w@mail.gmail.com>
+	<4F61C79E.6090603@redhat.com>
+	<CALjTZvZR=Mr-eSVwy=Wd8ToikAX9bG23NLARRw_K0scT-_YeCg@mail.gmail.com>
+	<4F61FF2D.6010505@redhat.com>
+Date: Thu, 15 Mar 2012 14:15:11 -0300
+Message-ID: <CALF0-+WJ9c579+=2QMamxpAngHJKWfZaWqOp_z=GvZKGy97VnA@mail.gmail.com>
+Subject: Re: eMPIA EM2710 Webcam (em28xx) and LIRC
+From: =?ISO-8859-1?Q?Ezequiel_Garc=EDa?= <elezegarcia@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Rui Salvaterra <rsalvaterra@gmail.com>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This register is available only in OMAP3630.
+Hi Mauro,
 
-The original patch was submitted by Vimarsh Zutshi.
+On 3/15/12, Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
+> If you won't take it, it is likely that some day someone will do it,
+> but, as this is just a cleanup, the main developers won't likely
+> have time for doing it, as they're generally busy adding support for
+> new hardware.
+>
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- arch/arm/mach-omap2/control.h |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+I have no problem submitting the two patches in discussion.
+(Actually, I've already wroten the first one).
 
-diff --git a/arch/arm/mach-omap2/control.h b/arch/arm/mach-omap2/control.h
-index 0ba68d3..f3acf09 100644
---- a/arch/arm/mach-omap2/control.h
-+++ b/arch/arm/mach-omap2/control.h
-@@ -183,6 +183,7 @@
- #define OMAP3630_CONTROL_FUSE_OPP120_VDD1       (OMAP2_CONTROL_GENERAL + 0x0120)
- #define OMAP3630_CONTROL_FUSE_OPP50_VDD2        (OMAP2_CONTROL_GENERAL + 0x0128)
- #define OMAP3630_CONTROL_FUSE_OPP100_VDD2       (OMAP2_CONTROL_GENERAL + 0x012C)
-+#define OMAP3630_CONTROL_CAMERA_PHY_CTRL	(OMAP2_CONTROL_GENERAL + 0x02f0)
- 
- /* OMAP44xx control efuse offsets */
- #define OMAP44XX_CONTROL_FUSE_IVA_OPP50		0x22C
--- 
-1.7.2.5
+If Rui wants to help me, it would be nice to get this tested,
+since I don't have the necessary hardware.
 
+One thing I haven't got clear is this: I've seen that ir_raw_init()
+does not call request_module() directly but rather defers it
+through a work queue.
+
+I don't understand fully the rc code, but still I don't get what
+happens if I need the raw decoders *now* (so to speak)
+but the work queue hasn't been run yet?
+
+Thanks,
+Ezequiel.
