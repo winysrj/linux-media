@@ -1,116 +1,139 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:35791 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751866Ab2CCMhc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 3 Mar 2012 07:37:32 -0500
-Received: by eekc41 with SMTP id c41so917751eek.19
-        for <linux-media@vger.kernel.org>; Sat, 03 Mar 2012 04:37:30 -0800 (PST)
-Message-ID: <4F521088.5080409@gmail.com>
-Date: Sat, 03 Mar 2012 13:37:28 +0100
-From: Sylwester Nawrocki <snjw23@gmail.com>
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:41068 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1032893Ab2CPPfc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 16 Mar 2012 11:35:32 -0400
+Message-ID: <4F635DBF.7000603@gmail.com>
+Date: Fri, 16 Mar 2012 08:35:27 -0700
+From: "Justin P. Mattock" <justinmattock@gmail.com>
 MIME-Version: 1.0
-To: =?EUC-KR?B?vNu/tbjx?= <ym.song@samsung.com>
-CC: linux-media@vger.kernel.org, mchehab@infradead.org,
-	andrzej.p@samsung.com
-Subject: Re: [PATCH] media: jpeg: add driver for a version 2.x of jpeg H/W
-References: <002e01ccf805$8a5c2000$9f146000$%song@samsung.com>
-In-Reply-To: <002e01ccf805$8a5c2000$9f146000$%song@samsung.com>
-Content-Type: text/plain; charset=EUC-KR
-Content-Transfer-Encoding: 8bit
+To: "Justin P. Mattock" <justinmattock@gmail.com>
+CC: trivial@kernel.org, linux-kernel@vger.kernel.org,
+	gregkh@linuxfoundation.org, linux-media@vger.kernel.org,
+	marauder@tiscali.it
+Subject: Re: [PATCH V2]NEXT:drivers:staging:media Fix comments and some typos
+ in staging/media/*
+References: <1331045709-19309-1-git-send-email-justinmattock@gmail.com>
+In-Reply-To: <1331045709-19309-1-git-send-email-justinmattock@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi 价康格,
+before I forget about this patch, what was the status of this one?
 
-On 03/02/2012 12:46 AM, 价康格 wrote:
-> This patch add a driver for a version 2.x of jpeg H/W
-
-s/add/adds
-> in ths Samsung Exynos5 Soc.
-
-s/ths/the
-> A jpeg H/W version of Exynos4 SoC is 3.0
-> 
-> 1. Encoding
->   - input format : V4L2_PIX_FMT_RGB565X and V4L2_PIX_FMT_YUYV
-> 
-> 2. Decoding
->   - output format : V4L2_PIX_FMT_YUYV and V4L2_PIX_FMT_YUV420
-
-Please consider reworking this patch so it can be applied on the latest s5p-jpeg driver 
-changes adding JPEG controls:
-http://git.infradead.org/users/kmpark/linux-2.6-samsung/shortlog/refs/heads/media-for-next 
-
-> Signed-off-by: youngmok song<ym.song@samsung.com>
-
-Normally the full name starts with capital letters.
-
+On 03/06/2012 06:55 AM, Justin P. Mattock wrote:
+> From: "Justin P. Mattock"<justinmattock@gmail.com>
+>
+> linux-next:
+> I like to spend some time reading code, in doing so I have found some typos in some of the comments.
+> The patch below fixes what I have found.
+>
+> Signed-off-by: Justin P. Mattock<justinmattock@gmail.com>
+>
 > ---
->   drivers/media/video/Kconfig                   |   17 +
->   drivers/media/video/s5p-jpeg/Makefile         |    5 +-
->   drivers/media/video/s5p-jpeg/jpeg-core.c      |  303 +-------------------
->   drivers/media/video/s5p-jpeg/jpeg-hw-common.h |   34 +++
->   drivers/media/video/s5p-jpeg/jpeg-hw-v2x.h    |  387 +++++++++++++++++++++++++
->   drivers/media/video/s5p-jpeg/jpeg-regs-v2x.h  |  150 ++++++++++
->   drivers/media/video/s5p-jpeg/jpeg-v2x.c       |  129 ++++++++
->   drivers/media/video/s5p-jpeg/jpeg-v3.c        |  340 ++++++++++++++++++++++
->   8 files changed, 1066 insertions(+), 299 deletions(-)
->   create mode 100644 drivers/media/video/s5p-jpeg/jpeg-hw-common.h
->   create mode 100644 drivers/media/video/s5p-jpeg/jpeg-hw-v2x.h
->   create mode 100644 drivers/media/video/s5p-jpeg/jpeg-regs-v2x.h
->   create mode 100644 drivers/media/video/s5p-jpeg/jpeg-v2x.c
->   create mode 100644 drivers/media/video/s5p-jpeg/jpeg-v3.c
-> 
-> diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-> index 9adada0..551f925 100644
-> --- a/drivers/media/video/Kconfig
-> +++ b/drivers/media/video/Kconfig
-> @@ -1167,6 +1167,23 @@ config VIDEO_SAMSUNG_S5P_JPEG
->   	select V4L2_MEM2MEM_DEV
+>   drivers/staging/media/Kconfig              |    2 +-
+>   drivers/staging/media/as102/as102_drv.c    |    2 +-
+>   drivers/staging/media/as102/as102_fe.c     |    4 ++--
+>   drivers/staging/media/go7007/go7007-v4l2.c |    8 ++++----
+>   drivers/staging/media/lirc/lirc_serial.c   |    2 +-
+>   drivers/staging/media/solo6x10/Kconfig     |    2 +-
+>   6 files changed, 10 insertions(+), 10 deletions(-)
+>
+> diff --git a/drivers/staging/media/Kconfig b/drivers/staging/media/Kconfig
+> index 7e5caa3..4f4b7d6 100644
+> --- a/drivers/staging/media/Kconfig
+> +++ b/drivers/staging/media/Kconfig
+> @@ -6,7 +6,7 @@ menuconfig STAGING_MEDIA
+>   	  don't have the "normal" Linux kernel quality level.
+>   	  Most of them don't follow properly the V4L, DVB and/or RC API's,
+>   	  so, they won't likely work fine with the existing applications.
+> -	  That also means that, one fixed, their API's will change to match
+> +	  That also means that, once fixed, their API's will change to match
+>   	  the existing ones.
+>
+>             If you wish to work on these drivers, to help improve them, or
+> diff --git a/drivers/staging/media/as102/as102_drv.c b/drivers/staging/media/as102/as102_drv.c
+> index aae0505..ea4f992 100644
+> --- a/drivers/staging/media/as102/as102_drv.c
+> +++ b/drivers/staging/media/as102/as102_drv.c
+> @@ -27,7 +27,7 @@
+>   #include<linux/uaccess.h>
+>   #include<linux/usb.h>
+>
+> -/* header file for Usb device driver*/
+> +/* header file for usb device driver*/
+>   #include "as102_drv.h"
+>   #include "as102_fw.h"
+>   #include "dvbdev.h"
+> diff --git a/drivers/staging/media/as102/as102_fe.c b/drivers/staging/media/as102/as102_fe.c
+> index bdc5a38..57daa8c 100644
+> --- a/drivers/staging/media/as102/as102_fe.c
+> +++ b/drivers/staging/media/as102/as102_fe.c
+> @@ -337,7 +337,7 @@ int as102_dvb_register_fe(struct as102_dev_t *as102_dev,
+>   	strncpy(dvb_fe->ops.info.name, as102_dev->name,
+>   		sizeof(dvb_fe->ops.info.name));
+>
+> -	/* register dbvb frontend */
+> +	/* register dvb frontend */
+>   	errno = dvb_register_frontend(dvb_adap, dvb_fe);
+>   	if (errno == 0)
+>   		dvb_fe->tuner_priv = as102_dev;
+> @@ -349,7 +349,7 @@ static void as10x_fe_copy_tps_parameters(struct dtv_frontend_properties *fe_tps,
+>   					 struct as10x_tps *as10x_tps)
+>   {
+>
+> -	/* extract consteallation */
+> +	/* extract constellation */
+>   	switch (as10x_tps->modulation) {
+>   	case CONST_QPSK:
+>   		fe_tps->modulation = QPSK;
+> diff --git a/drivers/staging/media/go7007/go7007-v4l2.c b/drivers/staging/media/go7007/go7007-v4l2.c
+> index 2b27d8d..f916586 100644
+> --- a/drivers/staging/media/go7007/go7007-v4l2.c
+> +++ b/drivers/staging/media/go7007/go7007-v4l2.c
+> @@ -1050,15 +1050,15 @@ static int vidioc_s_parm(struct file *filp, void *priv,
+>   	return 0;
+>   }
+>
+> -/* VIDIOC_ENUMSTD on go7007 were used for enumberating the supported fps and
+> +/* VIDIOC_ENUMSTD on go7007 were used for enumerating the supported fps and
+>      its resolution, when the device is not connected to TV.
+> -   This were an API abuse, probably used by the lack of specific IOCTL's to
+> -   enumberate it, by the time the driver were written.
+> +   This is were an API abuse, probably used by the lack of specific IOCTL's to
+> +   enumerate it, by the time the driver was written.
+>
+>      However, since kernel 2.6.19, two new ioctls (VIDIOC_ENUM_FRAMEINTERVALS
+>      and VIDIOC_ENUM_FRAMESIZES) were added for this purpose.
+>
+> -   The two functions bellow implements the newer ioctls
+> +   The two functions below implement the newer ioctls
+>   */
+>   static int vidioc_enum_framesizes(struct file *filp, void *priv,
+>   				  struct v4l2_frmsizeenum *fsize)
+> diff --git a/drivers/staging/media/lirc/lirc_serial.c b/drivers/staging/media/lirc/lirc_serial.c
+> index 8dd8897..97352cf 100644
+> --- a/drivers/staging/media/lirc/lirc_serial.c
+> +++ b/drivers/staging/media/lirc/lirc_serial.c
+> @@ -1282,7 +1282,7 @@ MODULE_PARM_DESC(iommap, "physical base for memory mapped I/O"
+>   /*
+>    * some architectures (e.g. intel xscale) align the 8bit serial registers
+>    * on 32bit word boundaries.
+> - * See linux-kernel/serial/8250.c serial_in()/out()
+> + * See linux-kernel/drivers/tty/serial/8250/8250.c serial_in()/out()
+>    */
+>   module_param(ioshift, int, S_IRUGO);
+>   MODULE_PARM_DESC(ioshift, "shift I/O register offset (0 = no shift)");
+> diff --git a/drivers/staging/media/solo6x10/Kconfig b/drivers/staging/media/solo6x10/Kconfig
+> index 03dcac4..63352de 100644
+> --- a/drivers/staging/media/solo6x10/Kconfig
+> +++ b/drivers/staging/media/solo6x10/Kconfig
+> @@ -5,4 +5,4 @@ config SOLO6X10
+>   	select SND_PCM
 >   	---help---
->   	  This is a v4l2 driver for Samsung S5P and EXYNOS4 JPEG codec
-> +choice
-> +	prompt "JPEG V4L2 Driver"
-> +	default S5P_JPEG_V3
-> +	depends on VIDEO_SAMSUNG_S5P_JPEG
-> +	---help---
-> +	  Select version of MFC driver
+>   	  This driver supports the Softlogic based MPEG-4 and h.264 codec
+> -	  codec cards.
+> +	  cards.
 
-MFC  ?
-
-> +config S5P_JPEG_V3
-> +	bool "JPEG 3.x"
-> +	---help---
-> +	  Use JPEG 3.x V4L2 Driver
-> +
-> +config S5P_JPEG_V2
-> +	bool "JPEG 2.x"
-> +	---help---
-> +	  Use JPEG 2.x V4L2 Driver
-> +endchoice
-
-How the user is supposed to know which JPEG IP version applies to which SoC ?
-
-Generally, resolving the hardware differences at compile time is not something that
-we would want. I suggest using struct platform_device_id for handling different H/W 
-variants, like it is done for example in drivers/dma/imx-sdma.c (see sdma_devtypes 
-table). It will ease the driver's adaptation to instantiation from the device tree, which
-is important, since the exynos5 is supposed to be a DT only platform.
-
-Probably even function pointers at the variant data structure wouldn't hurt, if there
-is too many differences to handle them through single flags. From a quick review it 
-feels like the code could be consolidated more, but I'm going to leave commenting
-on the details for Andrzej.
-
-Please have a look at the JPEG controls:
-http://git.infradead.org/users/kmpark/linux-samsung/commitdiff/e0122eabd2be3f0a3a9ff635df81e5c2509c4700
-and feel free to propose anything you think is missing there (the Huffman and the 
-quantization tables will need their own ioctl(s)).
-
-As a side note, please don't use Korean characters in the patch message. This implies
-the character set other than ascii/utf-8 and and makes patches impossible to apply.
-
- --
-
-Regards,
-Sylwester
