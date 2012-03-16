@@ -1,51 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:39923 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754500Ab2CIPBH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Mar 2012 10:01:07 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@iki.ifi,
-	Martin Hostettler <martin@neutronstar.dyndns.org>
-Subject: [PATCH v4 0/5] MT9M032 and MT9P031 sensor patches
-Date: Fri,  9 Mar 2012 16:01:20 +0100
-Message-Id: <1331305285-10781-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:62794 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753625Ab2CPRuz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 16 Mar 2012 13:50:55 -0400
+Received: by gghe5 with SMTP id e5so4452467ggh.19
+        for <linux-media@vger.kernel.org>; Fri, 16 Mar 2012 10:50:55 -0700 (PDT)
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: mchehab@infradead.org
+Cc: jarod@redhat.com, linux-media@vger.kernel.org,
+	Ezequiel Garcia <elezegarcia@gmail.com>
+Subject: [PATCH v3] media: rc: Pospone ir raw decoders loading until really needed
+Date: Fri, 16 Mar 2012 15:00:56 -0300
+Message-Id: <1331920856-3371-1-git-send-email-elezegarcia@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Here's the fourth version of the MT9M032 and MT9P031 sensor patches for v3.4.
+This changes rc_core to not load the IR decoders at load time,
+postponing it to load only if a RC_DRIVER_IR_RAW device is registered
+via rc_register_device.
+We use a static boolean variable, to ensure decoders modules
+are only loaded once.
+Tested with rc-loopback device only.
 
-Compared to v3, only patch 5/5 has been changed. I've added locking to the
-driver, removed the memset to 0 for the reserved fields in the frame interval
-set handler, fixed a typo in a kernel log message and moved the driver to the
-right location in Kconfig and Makefile.
+Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
+---
+v3: Fix scope of static bool: now it is local to relevant function.
+v2: Fix broken logic in v1.
+    Also, put raw_init as static instead of inside rc_dev
+    struct to ensure loading is only tried the first time.
+---
+ drivers/media/rc/rc-main.c |    9 +++++++--
+ 1 files changed, 7 insertions(+), 2 deletions(-)
 
-Danny Kukawka (1):
-  mt9p031: Remove duplicate media/v4l2-subdev.h include
-
-Laurent Pinchart (3):
-  mt9p031: Remove unused xskip and yskip fields in struct mt9p031
-  v4l: Aptina-style sensor PLL support
-  mt9p031: Use generic PLL setup code
-
-Martin Hostettler (1):
-  v4l: Add driver for Micron MT9M032 camera sensor
-
- drivers/media/video/Kconfig      |   12 +
- drivers/media/video/Makefile     |    5 +
- drivers/media/video/aptina-pll.c |  174 ++++++++
- drivers/media/video/aptina-pll.h |   56 +++
- drivers/media/video/mt9m032.c    |  862 ++++++++++++++++++++++++++++++++++++++
- drivers/media/video/mt9p031.c    |   67 ++--
- include/media/mt9m032.h          |   36 ++
- 7 files changed, 1172 insertions(+), 40 deletions(-)
- create mode 100644 drivers/media/video/aptina-pll.c
- create mode 100644 drivers/media/video/aptina-pll.h
- create mode 100644 drivers/media/video/mt9m032.c
- create mode 100644 include/media/mt9m032.h
-
+diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+index f6a930b..6e16b09 100644
+--- a/drivers/media/rc/rc-main.c
++++ b/drivers/media/rc/rc-main.c
+@@ -1029,6 +1029,7 @@ EXPORT_SYMBOL_GPL(rc_free_device);
+ 
+ int rc_register_device(struct rc_dev *dev)
+ {
++	static bool raw_init = false; /* raw decoders loaded? */
+ 	static atomic_t devno = ATOMIC_INIT(0);
+ 	struct rc_map *rc_map;
+ 	const char *path;
+@@ -1103,6 +1104,12 @@ int rc_register_device(struct rc_dev *dev)
+ 	kfree(path);
+ 
+ 	if (dev->driver_type == RC_DRIVER_IR_RAW) {
++		/* Load raw decoders, if they aren't already */
++		if (!raw_init) {
++			IR_dprintk(1, "Loading raw decoders\n");
++			ir_raw_init();
++			raw_init = true;
++		}
+ 		rc = ir_raw_event_register(dev);
+ 		if (rc < 0)
+ 			goto out_input;
+@@ -1176,8 +1183,6 @@ static int __init rc_core_init(void)
+ 		return rc;
+ 	}
+ 
+-	/* Initialize/load the decoders/keymap code that will be used */
+-	ir_raw_init();
+ 	rc_map_register(&empty_map);
+ 
+ 	return 0;
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.3.4
 
