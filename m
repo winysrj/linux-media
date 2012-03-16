@@ -1,69 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eu1sys200aog105.obsmtp.com ([207.126.144.119]:39868 "EHLO
-	eu1sys200aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752244Ab2CVEux (ORCPT
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:50544 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752193Ab2CPCgc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Mar 2012 00:50:53 -0400
-From: Bhupesh Sharma <bhupesh.sharma@st.com>
-To: <gregkh@linuxfoundation.org>, <linux-usb@vger.kernel.org>
-Cc: <laurent.pinchart@ideasonboard.com>, <spear-devel@list.st.com>,
-	<linux-media@vger.kernel.org>,
-	Bhupesh Sharma <bhupesh.sharma@st.com>
-Subject: [PATCH] usb: gadget/uvc: Remove non-required locking from 'uvc_queue_next_buffer' routine
-Date: Thu, 22 Mar 2012 10:20:37 +0530
-Message-ID: <4cead89e45e3e31fccae5bb6fbfb72b2ce1b8cd5.1332391406.git.bhupesh.sharma@st.com>
+	Thu, 15 Mar 2012 22:36:32 -0400
+Received: by yhmm54 with SMTP id m54so3833835yhm.19
+        for <linux-media@vger.kernel.org>; Thu, 15 Mar 2012 19:36:31 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain
+Date: Fri, 16 Mar 2012 03:36:31 +0100
+Message-ID: <CAGa-wNOb8m9D0nZccqe+nKjEjWx5p7SaXHPJHHrb8z7Ts8YuUA@mail.gmail.com>
+Subject: Re: cxd2820r: i2c wr failed (PCTV Nanostick 290e)
+From: Claus Olesen <ceolesen@gmail.com>
+To: kae@midnighthax.com
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch removes the non-required spinlock acquire/release calls on
-'queue_irqlock' from 'uvc_queue_next_buffer' routine.
+I have two 290e's - one for dvb-c and one for dvb-t - on the same computer
+running F16, Kaffeine and latest media files
+and I see lots of lines in /var/log/messages like this
 
-This routine is called from 'video->encode' function (which translates to either
-'uvc_video_encode_bulk' or 'uvc_video_encode_isoc') in 'uvc_video.c'.
-As, the 'video->encode' routines are called with 'queue_irqlock' already held,
-so acquiring a 'queue_irqlock' again in 'uvc_queue_next_buffer' routine causes
-a spin lock recursion.
+cxd2820r: i2c wr failed ret:-110 reg:db len:1
 
-Signed-off-by: Bhupesh Sharma <bhupesh.sharma@st.com>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/usb/gadget/uvc_queue.c |    4 +---
- 1 files changed, 1 insertions(+), 3 deletions(-)
+and fewer like this
 
-diff --git a/drivers/usb/gadget/uvc_queue.c b/drivers/usb/gadget/uvc_queue.c
-index d776adb..104ae9c 100644
---- a/drivers/usb/gadget/uvc_queue.c
-+++ b/drivers/usb/gadget/uvc_queue.c
-@@ -543,11 +543,11 @@ done:
- 	return ret;
- }
- 
-+/* called with &queue_irqlock held.. */
- static struct uvc_buffer *
- uvc_queue_next_buffer(struct uvc_video_queue *queue, struct uvc_buffer *buf)
- {
- 	struct uvc_buffer *nextbuf;
--	unsigned long flags;
- 
- 	if ((queue->flags & UVC_QUEUE_DROP_INCOMPLETE) &&
- 	    buf->buf.length != buf->buf.bytesused) {
-@@ -556,14 +556,12 @@ uvc_queue_next_buffer(struct uvc_video_queue *queue, struct uvc_buffer *buf)
- 		return buf;
- 	}
- 
--	spin_lock_irqsave(&queue->irqlock, flags);
- 	list_del(&buf->queue);
- 	if (!list_empty(&queue->irqqueue))
- 		nextbuf = list_first_entry(&queue->irqqueue, struct uvc_buffer,
- 					   queue);
- 	else
- 		nextbuf = NULL;
--	spin_unlock_irqrestore(&queue->irqlock, flags);
- 
- 	buf->buf.sequence = queue->sequence++;
- 	do_gettimeofday(&buf->buf.timestamp);
--- 
-1.7.2.2
+tda18271_write_regs: [16-0060|M] ERROR: idx = 0x3, len = 1,
+i2c_transfer returned: -110
 
+but strangely none today.
+But despite that then I haven't noticed any problems and in particular that of
+yours of lsusb not showing your 290e.
+
+lsusb on my computer shows the 290e's as
+Bus 002 Device 002: ID 2013:024f Unknown (Pinnacle?)
+Bus 002 Device 003: ID 2013:024f Unknown (Pinnacle?)
+
+However, not long ago I reported a conflict with the 290e and USB a mem stick
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg42499.html
+which leads me to think that for what it is worth as a test you may want to try
+with only 1 USB attached namely only the 290e
