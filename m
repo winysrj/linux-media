@@ -1,42 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:52283 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757859Ab2CHQK7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Mar 2012 11:10:59 -0500
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: text/plain; charset=ISO-8859-1
-Received: from euspt1 ([210.118.77.14]) by mailout4.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0M0K007LHQAAG800@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 08 Mar 2012 16:10:58 +0000 (GMT)
-Received: from [106.116.48.223] by spt1.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTPA id <0M0K00HQAQA9TF@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 08 Mar 2012 16:10:57 +0000 (GMT)
-Date: Thu, 08 Mar 2012 17:10:56 +0100
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: Re: [PATCH v4 04/34] v4l: VIDIOC_SUBDEV_S_SELECTION and
- VIDIOC_SUBDEV_G_SELECTION IOCTLs
-In-reply-to: <4F566C61.9070907@iki.fi>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org, dacohen@gmail.com, snjw23@gmail.com,
-	andriy.shevchenko@linux.intel.com, tuukkat76@gmail.com,
-	k.debski@samsung.com, riverful@gmail.com, hverkuil@xs4all.nl,
-	teturtia@gmail.com
-Message-id: <4F58DA10.7020501@samsung.com>
-References: <20120302173219.GA15695@valkosipuli.localdomain>
- <4F563E02.7010406@samsung.com> <4F566BC8.9090400@iki.fi>
- <1414506.aeJ7eL5TfP@avalon> <4F566C61.9070907@iki.fi>
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:43118 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1031330Ab2CPQEv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 16 Mar 2012 12:04:51 -0400
+Received: by gghe5 with SMTP id e5so4339306ggh.19
+        for <linux-media@vger.kernel.org>; Fri, 16 Mar 2012 09:04:51 -0700 (PDT)
+From: Rob Clark <rob.clark@linaro.org>
+To: linaro-mm-sig@lists.linaro.org, dri-devel@lists.freedesktop.org,
+	linux-media@vger.kernel.org
+Cc: patches@linaro.org, sumit.semwal@linaro.org, daniel@ffwll.ch,
+	airlied@redhat.com, Rob Clark <rob@ti.com>
+Subject: [PATCH] dma-buf: add get_dma_buf()
+Date: Fri, 16 Mar 2012 11:04:41 -0500
+Message-Id: <1331913881-13105-1-git-send-email-rob.clark@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
-Does you patchset include renaming selection macros for both subdev and video node API?
-I could prepare fixes to videodev2.h and Documentation if it is needed.
+From: Rob Clark <rob@ti.com>
 
-Regards,
-Tomasz Stanislawski
+Works in a similar way to get_file(), and is needed in cases such as
+when the exporter needs to also keep a reference to the dmabuf (that
+is later released with a dma_buf_put()), and possibly other similar
+cases.
 
+Signed-off-by: Rob Clark <rob@ti.com>
+---
+ include/linux/dma-buf.h |   14 ++++++++++++++
+ 1 files changed, 14 insertions(+), 0 deletions(-)
+
+diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
+index cbdff81..25eb287 100644
+--- a/include/linux/dma-buf.h
++++ b/include/linux/dma-buf.h
+@@ -132,6 +132,20 @@ struct dma_buf_attachment {
+ 	void *priv;
+ };
+ 
++/**
++ * get_dma_buf - convenience wrapper for get_file.
++ * @dmabuf:	[in]	pointer to dma_buf
++ *
++ * Increments the reference count on the dma-buf, needed in case of drivers
++ * that either need to create additional references to the dmabuf on the
++ * kernel side.  For example, an exporter that needs to keep a dmabuf ptr
++ * so that subsequent exports don't create a new dmabuf.
++ */
++static inline void get_dma_buf(struct dma_buf *dmabuf)
++{
++	get_file(dmabuf->file);
++}
++
+ #ifdef CONFIG_DMA_SHARED_BUFFER
+ struct dma_buf_attachment *dma_buf_attach(struct dma_buf *dmabuf,
+ 							struct device *dev);
+-- 
+1.7.5.4
 
