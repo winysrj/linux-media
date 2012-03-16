@@ -1,58 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:46838 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756379Ab2CBKn5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Mar 2012 05:43:57 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Martin Hostettler <martin@neutronstar.dyndns.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: [PATCH v2 04/10] mt9m032: Use module_i2c_driver() macro
-Date: Fri,  2 Mar 2012 11:44:01 +0100
-Message-Id: <1330685047-12742-5-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1330685047-12742-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1330685047-12742-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from smtp1-g21.free.fr ([212.27.42.1]:49941 "EHLO smtp1-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754798Ab2CPTkE convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 16 Mar 2012 15:40:04 -0400
+Date: Fri, 16 Mar 2012 20:40:05 +0100
+From: Jean-Francois Moine <moinejf@free.fr>
+To: Xavion <xavion.0@gmail.com>
+Cc: "Linux Kernel (Media) ML" <linux-media@vger.kernel.org>
+Subject: Re: My Microdia (SN9C201) webcam succumbs to glare in Linux
+Message-ID: <20120316204005.58f64d41@tele>
+In-Reply-To: <CAKnx8Y6Qa-9CTNoH3MfbH3TdypswL1avZdcN3Wy_qW1xK6o6ag@mail.gmail.com>
+References: <CAKnx8Y5_amjNv7YjTGUqBoSYU99tGYJLw0G63ha8TZDq3n7Sgw@mail.gmail.com>
+	<CAKnx8Y6Qa-9CTNoH3MfbH3TdypswL1avZdcN3Wy_qW1xK6o6ag@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Replace the custom driver init and exit functions by
-module_i2c_driver().
+On Fri, 16 Mar 2012 08:53:51 +1100
+Xavion <xavion.0@gmail.com> wrote:
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/video/mt9m032.c |   19 +------------------
- 1 files changed, 1 insertions(+), 18 deletions(-)
+> As you can probably gather from the attached screenshots, I'm
+> attempting to use my SN9C201 webcam for home security.  The problem is
+> that it succumbs to external glare during the middle hours of sunny
+> days when used in Linux.
+> 
+> The same problem doesn't occur in Windows, probably since the software
+> automatically adjusts to the current lighting conditions.  These
+> screenshots were taken only five minutes apart and the sunlight
+> intensity didn't change much in-between.
+> 
+> No amount of adjusting the webcam's settings (via V4L2-UCP) seemed to
+> make any significant difference.  For this reason, I'm guessing that
+> there's at least one other adjustable setting that the GSPCA driver
+> isn't tapping into yet.
+	[snip]
 
-diff --git a/drivers/media/video/mt9m032.c b/drivers/media/video/mt9m032.c
-index e09f9a5..a821b91 100644
---- a/drivers/media/video/mt9m032.c
-+++ b/drivers/media/video/mt9m032.c
-@@ -806,24 +806,7 @@ static struct i2c_driver mt9m032_i2c_driver = {
- 	.id_table = mt9m032_id_table,
- };
- 
--static int __init mt9m032_init(void)
--{
--	int rval;
--
--	rval = i2c_add_driver(&mt9m032_i2c_driver);
--	if (rval)
--		pr_err("%s: failed registering " MT9M032_NAME "\n", __func__);
--
--	return rval;
--}
--
--static void mt9m032_exit(void)
--{
--	i2c_del_driver(&mt9m032_i2c_driver);
--}
--
--module_init(mt9m032_init);
--module_exit(mt9m032_exit);
-+module_i2c_driver(mt9m032_i2c_driver);
- 
- MODULE_AUTHOR("Martin Hostettler <martin@neutronstar.dyndns.org>");
- MODULE_DESCRIPTION("MT9M032 camera sensor driver");
+Hi Xavion,
+
+It seems that the exposure is not set correctly. May you try the patch
+below? (to be applied to the gspca test version 2.15.7 - the exposure
+may be too low at init time, set it to 800)
+
+--- build/sn9c20x.c~
++++ build/sn9c20x.c
+@@ -1650,10 +1650,9 @@
+ 	case SENSOR_OV7670:
+ 	case SENSOR_OV9655:
+ 	case SENSOR_OV9650:
+-		exp[0] |= (3 << 4);
+-		exp[2] = 0x2d;
+-		exp[3] = expo;
+-		exp[4] = expo >> 8;
++		exp[0] |= (2 << 4);
++		exp[2] = 0x10;			/* AECH */
++		exp[3] = expo * 255 / 0x1780;
+ 		break;
+ 	case SENSOR_MT9M001:
+ 	case SENSOR_MT9V112:
+
 -- 
-1.7.3.4
-
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
