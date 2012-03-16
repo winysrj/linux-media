@@ -1,68 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from zoneX.GCU-Squad.org ([194.213.125.0]:18378 "EHLO
-	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757906Ab2CMRw5 (ORCPT
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:62812 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754719Ab2CPQGs (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Mar 2012 13:52:57 -0400
-Date: Tue, 13 Mar 2012 18:52:50 +0100
-From: Jean Delvare <khali@linux-fr.org>
-To: LMML <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>
-Subject: [PATCH 2/2 v2] [media] dib0700: Fix memory leak during
- initialization
-Message-ID: <20120313185250.2c8a0d78@endymion.delvare>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+	Fri, 16 Mar 2012 12:06:48 -0400
+Message-ID: <4F636514.1080303@gmail.com>
+Date: Fri, 16 Mar 2012 09:06:44 -0700
+From: "Justin P. Mattock" <justinmattock@gmail.com>
+MIME-Version: 1.0
+To: Greg KH <gregkh@linuxfoundation.org>
+CC: Jiri Kosina <jkosina@suse.cz>, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, marauder@tiscali.it
+Subject: Re: [PATCH V2]NEXT:drivers:staging:media Fix comments and some typos
+ in staging/media/*
+References: <1331045709-19309-1-git-send-email-justinmattock@gmail.com> <4F635DBF.7000603@gmail.com> <alpine.LNX.2.00.1203161644190.18356@pobox.suse.cz> <20120316155845.GA975@kroah.com>
+In-Reply-To: <20120316155845.GA975@kroah.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Reported by kmemleak.
+On 03/16/2012 08:58 AM, Greg KH wrote:
+> On Fri, Mar 16, 2012 at 04:45:03PM +0100, Jiri Kosina wrote:
+>> On Fri, 16 Mar 2012, Justin P. Mattock wrote:
+>>
+>>> before I forget about this patch, what was the status of this one?
+>>
+>> As previously announced multiple times, I am ignoring patches that go to
+>> drivers/staging and letting Greg pick them up if he wants to.
+>>
+>> Greg, if you want to have this changed, just let me know.
+>
+> No, no objection from me, but patches to drivers/staging/media/ do not
+> go through me, please see the MAINTAINERS file for the owner of those
+> (hint, it's Mauro...)
+>
+> thanks,
+>
+> greg k-h
+>
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>
----
-Changes since v1:
-* Don't free the URB when it is still in use.
-* Fix a second leak (transfer_buffer).
+ahh!! I got it now.. your in charge of the staging tree but for each 
+branch there is an owner(I thought to just send to greg KH and thats it)
 
- drivers/media/dvb/dvb-usb/dib0700_core.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+adding Mauro to the Cc's so he can view the patch, then on any other 
+patch I send to staging I will send it to the maintainer then the rest 
+as follows with a cc's.
 
---- linux-3.3-rc7.orig/drivers/media/dvb/dvb-usb/dib0700_core.c	2012-03-13 11:20:33.748864483 +0100
-+++ linux-3.3-rc7/drivers/media/dvb/dvb-usb/dib0700_core.c	2012-03-13 17:42:20.316570058 +0100
-@@ -679,6 +679,7 @@ static void dib0700_rc_urb_completion(st
- 	deb_info("%s()\n", __func__);
- 	if (d->rc_dev == NULL) {
- 		/* This will occur if disable_rc_polling=1 */
-+		kfree(purb->transfer_buffer);
- 		usb_free_urb(purb);
- 		return;
- 	}
-@@ -687,6 +688,7 @@ static void dib0700_rc_urb_completion(st
- 
- 	if (purb->status < 0) {
- 		deb_info("discontinuing polling\n");
-+		kfree(purb->transfer_buffer);
- 		usb_free_urb(purb);
- 		return;
- 	}
-@@ -781,8 +783,11 @@ int dib0700_rc_setup(struct dvb_usb_devi
- 			  dib0700_rc_urb_completion, d);
- 
- 	ret = usb_submit_urb(purb, GFP_ATOMIC);
--	if (ret)
-+	if (ret) {
- 		err("rc submit urb failed\n");
-+		kfree(purb->transfer_buffer);
-+		usb_free_urb(purb);
-+	}
- 
- 	return ret;
- }
+Thanks for the help on this.
 
-
--- 
-Jean Delvare
+Justin P. Mattock
