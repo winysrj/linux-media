@@ -1,66 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:36298 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750795Ab2CIM6W (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Mar 2012 07:58:22 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Michael Jones <michael.jones@matrix-vision.de>
-Cc: jean-philippe francois <jp.francois@cynove.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org
-Subject: Re: Lockup on second streamon with omap3-isp
-Date: Fri, 09 Mar 2012 13:58:43 +0100
-Message-ID: <2038085.aDq2jrhkOM@avalon>
-In-Reply-To: <4F59FD87.4030506@matrix-vision.de>
-References: <CAGGh5h0dVOsT-PCoCBtjj=+rLzViwnM2e9hG+sbWQk5iS-ThEQ@mail.gmail.com> <2243690.V1TtfkZKP0@avalon> <4F59FD87.4030506@matrix-vision.de>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
+Received: from devils.ext.ti.com ([198.47.26.153]:32807 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1161311Ab2CPJUP convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 16 Mar 2012 05:20:15 -0400
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"mchehab@infradead.org" <mchehab@infradead.org>,
+	"Taneja, Archit" <archit@ti.com>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Subject: RE: [PATCH] omap_vout: Fix the build warning and section miss-match
+ warning
+Date: Fri, 16 Mar 2012 09:19:59 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A83181B844@DBDE01.ent.ti.com>
+References: <1331295243-2191-1-git-send-email-hvaibhav@ti.com>
+ <1981335.62NlLPnzP3@avalon>
+In-Reply-To: <1981335.62NlLPnzP3@avalon>
+Content-Language: en-US
 Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Michael,
+On Wed, Mar 14, 2012 at 20:22:37, Laurent Pinchart wrote:
+> Hi Vaibhav,
+> 
+> Thanks for the patch.
+> 
+> On Friday 09 March 2012 17:44:03 Vaibhav Hiremath wrote:
+> > Patch fixes below build warning and section miss-match warning
+> > from omap_vout driver -
+> 
+> You should probably not refer to "patch below" in a commit message, as there 
+> this won't be a patch anymore after it gets applied (and "below" is 
+> meaningless in a git log).
+> 
 
-On Friday 09 March 2012 13:54:31 Michael Jones wrote:
-> On 03/09/2012 11:42 AM, Laurent Pinchart wrote:
-> > Hi Jean-Philippe,
-> 
-> [snip]
-> 
-> >  From my experience, the ISP doesn't handle free-running sensors very
-> >  well.
+Ok. 
+
+> > Build warnings:
+> > =============
+> > drivers/media/video/omap/omap_vout.c: In function 'omapvid_setup_overlay':
+> > drivers/media/video/omap/omap_vout.c:381:17: warning: 'mode' may be used
+> > uninitialized in this function
 > > 
-> > There are other things it doesn't handle well, such as sensors stopping in
-> > the middle of the frame. I would consider this as limitations.
+> > Section Mis-Match warnings:
+> > ==========================
+> > WARNING: drivers/media/video/omap/omap-vout.o(.data+0x0): Section mismatch
+> > in reference from the variable
+> > omap_vout_driver to the function .init.text:omap_vout_probe()
+> > The variable omap_vout_driver references
+> > the function __init omap_vout_probe()
+> > If the reference is valid then annotate the
+> > variable with __init* or __refdata (see linux/init.h) or name the variable:
+> > *_template, *_timer, *_sht, *_ops, *_probe, *_probe_one, *_console
 > 
-> Considering choking on sensors which stop in the middle of the frame- is
-> this just a limitation of the driver, or is it really a limitation of
-> the ISP hardware itself?
-
-It's a limitation of the hardware. Various OMAP3 ISP blocks can't be stopped 
-before they have processed a complete frame once they have been started. The 
-work around is to reset the whole ISP, which we will do in v3.4, but that 
-won't solve the problem completely if one application uses the resizer in 
-memory-to-memory mode and another application uses the rest of the ISP. In 
-that case the driver won't be able to reset the ISP as long as the first 
-application uses it.
-
-> It is at least a limitation of the driver because we rely on the VD1 and VD0
-> interrupts, so we'll of course have problems if we never get to the last
-> line.  But isn't it conceivable to use HS_VS to do our end-of-frame stuff
-> instead of VD0?  Maybe then the ISP would be OK with frames that ended
-> early, as long as they had reached VD1.  Then of course, you could move VD1
-> to an even earlier line, even to the first line.
+> There are 3 fixes in this patch: compilation warning, section mismatch 
+> warning, and addition of .owner = THIS_MODULE. I would have split the patch in 
+> 3.
 > 
-> Do you think that's possible?
 
-Unfortunately not. HS_VS could be used as a fallback to detect the end of a 
-frame in case something bad occurs, but that hardware will still be stuck 
-waiting for the end of the frame. The real problem here is a lack of feature 
-on the hardware side, the ISP modules should either support being stopped in 
-the middle of a frame, or support per-module reset.
+Ok. Will separate them into 3.
 
--- 
-Regards,
+> > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> >
+> > ---
+> >  drivers/media/video/omap/omap_vout.c |    9 +++++----
+> >  1 files changed, 5 insertions(+), 4 deletions(-)
+> > 
+> > diff --git a/drivers/media/video/omap/omap_vout.c
+> > b/drivers/media/video/omap/omap_vout.c index dffcf66..0fb0437 100644
+> > --- a/drivers/media/video/omap/omap_vout.c
+> > +++ b/drivers/media/video/omap/omap_vout.c
+> > @@ -328,7 +328,7 @@ static int video_mode_to_dss_mode(struct
+> > omap_vout_device *vout) struct omap_overlay *ovl;
+> >  	struct omapvideo_info *ovid;
+> >  	struct v4l2_pix_format *pix = &vout->pix;
+> > -	enum omap_color_mode mode;
+> > +	enum omap_color_mode mode = -EINVAL;
+> 
+> What about removing "case 0" below ? The default case would then set mode to -
+> EINVAL.
+> 
 
-Laurent Pinchart
+Yeup... thanks for pointing this. Will fix it in next version.
+
+Thanks,
+Vaibhav
+
+> > 
+> >  	ovid = &vout->vid_info;
+> >  	ovl = ovid->overlays[0];
+> > @@ -2108,7 +2108,7 @@ static void omap_vout_cleanup_device(struct
+> > omap_vout_device *vout) kfree(vout);
+> >  }
+> > 
+> > -static int omap_vout_remove(struct platform_device *pdev)
+> > +static int __devexit omap_vout_remove(struct platform_device *pdev)
+> >  {
+> >  	int k;
+> >  	struct v4l2_device *v4l2_dev = platform_get_drvdata(pdev);
+> > @@ -2129,7 +2129,7 @@ static int omap_vout_remove(struct platform_device
+> > *pdev) return 0;
+> >  }
+> > 
+> > -static int __init omap_vout_probe(struct platform_device *pdev)
+> > +static int __devinit omap_vout_probe(struct platform_device *pdev)
+> >  {
+> >  	int ret = 0, i;
+> >  	struct omap_overlay *ovl;
+> > @@ -2241,9 +2241,10 @@ probe_err0:
+> >  static struct platform_driver omap_vout_driver = {
+> >  	.driver = {
+> >  		.name = VOUT_NAME,
+> > +		.owner = THIS_MODULE,
+> >  	},
+> >  	.probe = omap_vout_probe,
+> > -	.remove = omap_vout_remove,
+> > +	.remove = __devexit_p(omap_vout_remove),
+> >  };
+> > 
+> >  static int __init omap_vout_init(void)
+> 
+> -- 
+> Regards,
+> 
+> Laurent Pinchart
+> 
+> 
 
