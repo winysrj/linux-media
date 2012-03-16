@@ -1,95 +1,208 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:3819 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755484Ab2CYMm3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 25 Mar 2012 08:42:29 -0400
-Message-ID: <4F6F12A6.6030801@redhat.com>
-Date: Sun, 25 Mar 2012 09:42:14 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-vx0-f174.google.com ([209.85.220.174]:45123 "EHLO
+	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030751Ab2CPO1H convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 16 Mar 2012 10:27:07 -0400
+Received: by vcqp1 with SMTP id p1so4307512vcq.19
+        for <linux-media@vger.kernel.org>; Fri, 16 Mar 2012 07:27:06 -0700 (PDT)
 MIME-Version: 1.0
-To: Paulo Cavalcanti <promac@gmail.com>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Michael Krufky <mkrufky@linuxtv.org>,
-	linux-media@vger.kernel.org
-Subject: Re: bttv 0.9.19 driver
-References: <CAMgUmn=XLnTbKJaOegStdi8bDwO2GfnohuODFr8=UTaSeJeFgg@mail.gmail.com> <4F6CEBBA.6050705@redhat.com> <CAMgUmnnGddUoSh5=oTKOrGmY8jinUZ54tg78BVYe98=mHHMepQ@mail.gmail.com>
-In-Reply-To: <CAMgUmnnGddUoSh5=oTKOrGmY8jinUZ54tg78BVYe98=mHHMepQ@mail.gmail.com>
+In-Reply-To: <4F631B05.6090601@stericsson.com>
+References: <1331775148-5001-1-git-send-email-rob.clark@linaro.org>
+	<4F631B05.6090601@stericsson.com>
+Date: Fri, 16 Mar 2012 09:19:29 -0500
+Message-ID: <CAF6AEGsb2-x9YSxKVPpD9eVwByv=btO1XM7m9-CBo2GxNOkq+g@mail.gmail.com>
+Subject: Re: [Linaro-mm-sig] [PATCH] RFC: dma-buf: userspace mmap support
+From: Rob Clark <rob.clark@linaro.org>
+To: Marcus Lorentzon <marcus.xm.lorentzon@stericsson.com>
+Cc: "linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
+	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"rschultz@google.com" <rschultz@google.com>,
+	"daniel@ffwll.ch" <daniel@ffwll.ch>,
+	"patches@linaro.org" <patches@linaro.org>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 25-03-2012 09:21, Paulo Cavalcanti escreveu:
-> 
-> 
-> 
-> 
->     There was a known regression at the radio core. Not sure when it happened, nor on what
->     kernel it were fixed. Could you please test a 3.x kernel?
-> 
->     If you're a RHEL6 customer, you can open a case with via the proper
->     Red Hat channels, in order to backport fix it on RHEL6 kernel.
->     Yet, even in this case, it would be important to test the latest kernel,
->     to see if the fixes applied upstream fixes the issue.
-> 
->     Thanks,
->     Mauro.
-> 
-> 
-> Hi, Mauro
-> 
-> I tested other card ids, and the one that has always been chosen by the kernel (72) is working now:
-> 
-> options bttv card=72 radio=1 tuner=69 audiomux=0x21,0x20,0x23,0x23,0x28 gpiomask=0x3f vcr_hack=1 chroma_agc=1
-> 
-> In the past, this combination of tuner and card id had problems with the TV sound,
-> but now either the radio, tv or remote is fine. I only did not test the composite input of the card.
+On Fri, Mar 16, 2012 at 5:50 AM, Marcus Lorentzon
+<marcus.xm.lorentzon@stericsson.com> wrote:
+> On 03/15/2012 02:32 AM, Rob Clark wrote:
+>>
+>> From: Rob Clark<rob@ti.com>
+>> [snip]
+>>
+>> In all cases, the mmap() call is allowed to fail, and the associated
+>> dma_buf_ops are optional (mmap() will fail if at least the mmap()
+>> op is not implemented by the exporter, but in either case the
+>> {prepare,finish}_access() ops are optional).
+>
+> I sort of understand this approach. It allowes some implementations
+> (ARM/Android) to move forward. But how would an application act if mmap
+> fails? What is the option? How can the application detect if mmap is
+> possible or not? Or is this mmap only supposed to be used from device
+> specific libs like libdrm-xx/libv4l2-xx/libgralloc?
 
-Good.
+The most sane fail path probably depends on the use case.  For
+example, if you have some code that is writing subtitle overlay into
+frames of video, then the fallback that makes sense is probably just
+to skip the buffer.  In other cases, showing error message and exiting
+gracefully might be what makes sense.
 
-> However, this is enough for me to maintain the analog radio packages in Fedora.
-> 
-> Regarding the 3.0 kernel, If I update the video4linux drivers to the latest snapshot (in my case 03/21/2012) doesn't it produce the same result?
+I expect it is most likely that a particular exporting device will
+either support mmap or not.  But I expect there would at least some
+special cases, for example in product kernels with secure/protected
+content.
 
-It should produce the same results.
+> Can mmap fail for one buffer, but not another? Can it fail for a buffer that
+> have successfully been mmapped once before (except for the usual
+> ENOMEM/EAGAIN etc)?
 
-> I am also trying to keep rhel6 functional in ATrpms, and I realized that there was also some recent
-> change (after 11/24/2011) that forced me to upgrade video4linux drivers to have
-> vlc 2.0 working with ISDB-TB in previous kernels:
-> 
-> http://forum.videolan.org/viewtopic.php?f=13&t=99397 <http://forum.videolan.org/viewtopic.php?f=13&t=99397>
+well, this is always possible regardless, for example if client
+process virtual address space is exhausted.
 
-ISDB-T works on older kernels, via an emulation code at the Kernel. Userspace apps
-thinks ISDB is DVB-T, so they all work.
+>> For now the prepare/finish access ioctls are kept simple with no
+>> argument, although there is possibility to add additional ioctls
+>> (or simply change the existing ioctls from _IO() to _IOW()) later
+>> to provide optimization to allow userspace to specify a region of
+>> interest.
+>
+> I like the idea of simple, assume the worst, no args, versions of begin/end
+> access. But once we move forward, I don't just like the region, but also
+> access type (R/W). R/W info allows the driver to make cache management
+> optimizations otherwise impossible. Like if CPU with no alloc-on-write just
+> write, a write buffer flush is enough to switch to a HW read. And (at least
+> on ARM) cache clean can be done for all cache for large areas, but
+> invalidate has to be done line by line. Eliminating the need to do
+> invalidate, especially if region is small, compared to invalidate entire
+> buffer line by line can make a huge difference.
+> But I would like these in a separate ioctl to keep the normal case simple.
+> Maybe as a separate patch even.
 
-The only think that doesn't work, via the emulation code, is radio broadcast. There are some
-DVBv5 properties that need to be filled for it:
+yeah, I expect that there will be some proposals and discussions about
+that, so I wanted to get basic support in first :-)
 
-#define DTV_ISDBT_SOUND_BROADCASTING	19
+>>
+>> For a final patch, dma-buf.h would need to be split into what is
+>> exported to userspace, and what is kernel private, but I wanted to
+>> get feedback on the idea of requiring userspace to bracket access
+>> first (vs. limiting this to coherent mappings or exporters who play
+>> page faltings plus PTE shoot-down games) before I split the header
+>> which would cause conflicts with other pending dma-buf patches.  So
+>> flame-on!
+>
+> Why not just guard the kernel parts with __KERNEL__ or something? Or there
+> are guidelines preventing this?
 
-#define DTV_ISDBT_SB_SUBCHANNEL_ID	20
-#define DTV_ISDBT_SB_SEGMENT_IDX	21
-#define DTV_ISDBT_SB_SEGMENT_COUNT	22
+I think that is at least not how things are normally done, and seems a bit ugly
 
-As there's no equivalent of those on DVB-T, and those parameters aren't automatically
-detected by the (current) frontendds. So, only a program prepared to use them would
-work. Also, not all ISDB drivers are prepared to work with those properties.
+BR,
+-R
 
-I never tested radio broadcast, as there aren't any such stations in Brazil,
-so I can't tell if it works or not.
-
-> I know this is a different topic, but would you know if mplayer is supporting ISDB-TB?
-
-AFAIKT, mplayer doesn't support DVBv5 API, but, provided that you feed it with a proper
-channels.conf file under ~/.mplayer, it works fine.
-
-> While vlc and xine/kaffeine work, gstreamer and mplayer are still not working with ISDB-TB for me ...
-
-Never tested gstreamer with ISDB-T.
-> 
-> Thanks.
-> 
-> -- 
-> Paulo Roma Cavalcanti
-> LCG - UFRJ
-
+>> [snip]
+>>
+>>
+>> +
+>> +static long dma_buf_ioctl(struct file *file, unsigned int cmd,
+>> +               unsigned long arg)
+>> +{
+>> +       struct dma_buf *dmabuf;
+>> +
+>> +       if (!is_dma_buf_file(file))
+>> +               return -EINVAL;
+>> +
+>> +       dmabuf = file->private_data;
+>> +
+>> +       switch (_IOC_NR(cmd)) {
+>> +       case _IOC_NR(DMA_BUF_IOCTL_PREPARE_ACCESS):
+>> +               if (dmabuf->ops->prepare_access)
+>> +                       return dmabuf->ops->prepare_access(dmabuf);
+>> +               return 0;
+>> +       case _IOC_NR(DMA_BUF_IOCTL_FINISH_ACCESS):
+>> +               if (dmabuf->ops->finish_access)
+>> +                       return dmabuf->ops->finish_access(dmabuf);
+>> +               return 0;
+>> +       default:
+>> +               return -EINVAL;
+>> +       }
+>> +}
+>> +
+>> +
+>
+> Multiple empty lines
+>
+>>  static int dma_buf_release(struct inode *inode, struct file *file)
+>>  {
+>>        struct dma_buf *dmabuf;
+>> @@ -45,6 +85,8 @@ static int dma_buf_release(struct inode *inode, struct
+>> file *file)
+>>  }
+>>
+>>  static const struct file_operations dma_buf_fops = {
+>> +       .mmap           = dma_buf_mmap,
+>> +       .unlocked_ioctl = dma_buf_ioctl,
+>>        .release        = dma_buf_release,
+>>  };
+>>
+>> diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
+>> index a885b26..cbdff81 100644
+>> --- a/include/linux/dma-buf.h
+>> +++ b/include/linux/dma-buf.h
+>> @@ -34,6 +34,17 @@
+>>  struct dma_buf;
+>>  struct dma_buf_attachment;
+>>
+>> +/* TODO: dma-buf.h should be the userspace visible header, and
+>> dma-buf-priv.h (?)
+>> + * the kernel internal header.. for now just stuff these here to avoid
+>> conflicting
+>> + * with other patches..
+>> + *
+>> + * For now, no arg to keep things simple, but we could consider adding an
+>> + * optional region of interest later.
+>> + */
+>> +#define DMA_BUF_IOCTL_PREPARE_ACCESS   _IO('Z', 0)
+>> +#define DMA_BUF_IOCTL_FINISH_ACCESS    _IO('Z', 1)
+>> +
+>> +
+>
+> Multiple empty lines
+>
+>>  /**
+>>   * struct dma_buf_ops - operations possible on struct dma_buf
+>>   * @attach: [optional] allows different devices to 'attach' themselves to
+>> the
+>> @@ -49,6 +60,13 @@ struct dma_buf_attachment;
+>>   * @unmap_dma_buf: decreases usecount of buffer, might deallocate scatter
+>>   *               pages.
+>>   * @release: release this buffer; to be called after the last
+>> dma_buf_put.
+>> + * @mmap: [optional, allowed to fail] operation called if userspace calls
+>> + *              mmap() on the dmabuf fd.  Note that userspace should use
+>> the
+>> + *              DMA_BUF_PREPARE_ACCESS / DMA_BUF_FINISH_ACCESS ioctls
+>> before/after
+>> + *              sw access to the buffer, to give the exporter an
+>> opportunity to
+>> + *              deal with cache maintenance.
+>> + * @prepare_access: [optional] handler for PREPARE_ACCESS ioctl.
+>> + * @finish_access: [optional] handler for FINISH_ACCESS ioctl.
+>
+> xx_access should only be optional if you don't implement mmap. Otherwise it
+> will be very hard to implement cache sync in dma_buf (the cpu2dev and
+> dev2cpu parts). Introducing cache sync in dma_buf should be a way to remove
+> it from dma_buf clients. An option would be for the cache sync code to
+> assume the worst for each cpu2dev sync. Even if the CPU has not touched
+> anything.
+>
+> In short, very welcome patch ...
+>
+> /BR
+> /Marcus
+>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
