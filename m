@@ -1,40 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:33623 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755553Ab2CHTlS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Mar 2012 14:41:18 -0500
-Received: by wejx9 with SMTP id x9so572276wej.19
-        for <linux-media@vger.kernel.org>; Thu, 08 Mar 2012 11:41:16 -0800 (PST)
-Message-ID: <1331235668.6783.1.camel@tvbox>
-Subject: [PATCH] lmedm04 - support for m88rs2000 missing kconfig option.
-From: Malcolm Priestley <tvboxspy@gmail.com>
-To: linux-media@vger.kernel.org
-Date: Thu, 08 Mar 2012 19:41:08 +0000
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Mime-Version: 1.0
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:44322 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752779Ab2CPRxP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 16 Mar 2012 13:53:15 -0400
+Received: by iagz16 with SMTP id z16so5713421iag.19
+        for <linux-media@vger.kernel.org>; Fri, 16 Mar 2012 10:53:15 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1331913881-13105-1-git-send-email-rob.clark@linaro.org>
+References: <1331913881-13105-1-git-send-email-rob.clark@linaro.org>
+Date: Fri, 16 Mar 2012 17:53:15 +0000
+Message-ID: <CAPM=9txFA1M4CK2njLDJRwLn6ZaPQMUsiqMCybqLSwWmZ7Y=mw@mail.gmail.com>
+Subject: Re: [Linaro-mm-sig] [PATCH] dma-buf: add get_dma_buf()
+From: Dave Airlie <airlied@gmail.com>
+To: Rob Clark <rob.clark@linaro.org>
+Cc: linaro-mm-sig@lists.linaro.org, dri-devel@lists.freedesktop.org,
+	linux-media@vger.kernel.org, airlied@redhat.com, daniel@ffwll.ch,
+	patches@linaro.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
- Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
+On Fri, Mar 16, 2012 at 4:04 PM, Rob Clark <rob.clark@linaro.org> wrote:
+> From: Rob Clark <rob@ti.com>
+>
+> Works in a similar way to get_file(), and is needed in cases such as
+> when the exporter needs to also keep a reference to the dmabuf (that
+> is later released with a dma_buf_put()), and possibly other similar
+> cases.
+>
+> Signed-off-by: Rob Clark <rob@ti.com>
 
----
- drivers/media/dvb/dvb-usb/Kconfig |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/media/dvb/dvb-usb/Kconfig b/drivers/media/dvb/dvb-usb/Kconfig
-index 6154292..63bf456 100644
---- a/drivers/media/dvb/dvb-usb/Kconfig
-+++ b/drivers/media/dvb/dvb-usb/Kconfig
-@@ -386,6 +386,7 @@ config DVB_USB_LME2510
- 	select DVB_IX2505V if !DVB_FE_CUSTOMISE
- 	select DVB_STV0299 if !DVB_FE_CUSTOMISE
- 	select DVB_PLL if !DVB_FE_CUSTOMISE
-+	select DVB_M88RS2000 if !DVB_FE_CUSTOMISE
- 	help
- 	  Say Y here to support the LME DM04/QQBOX DVB-S USB2.0 .
- 
--- 
-1.7.9
-
-
+Reviewed-by: Dave Airlie <airlied@redhat.com>
