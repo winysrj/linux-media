@@ -1,137 +1,29 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.48]:44252 "EHLO mgw-sa02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756912Ab2CFQd3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 6 Mar 2012 11:33:29 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, dacohen@gmail.com,
-	snjw23@gmail.com, andriy.shevchenko@linux.intel.com,
-	t.stanislaws@samsung.com, tuukkat76@gmail.com,
-	k.debski@samsung.com, riverful@gmail.com, hverkuil@xs4all.nl,
-	teturtia@gmail.com, pradeep.sawlani@gmail.com
-Subject: [PATCH v5 32/35] omap3isp: Add resizer data rate configuration to resizer_link_validate
-Date: Tue,  6 Mar 2012 18:33:13 +0200
-Message-Id: <1331051596-8261-32-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <20120306163239.GN1075@valkosipuli.localdomain>
-References: <20120306163239.GN1075@valkosipuli.localdomain>
+Received: from 124-248-200-66.sunnyvision.com ([124.248.200.66]:41171 "EHLO
+	teamb04.edmhongkong.com" rhost-flags-OK-FAIL-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1750950Ab2CPOgJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 16 Mar 2012 10:36:09 -0400
+Message-ID: <IprvpepwVKvf@tpts6.seed.net.tw>
+From: boris@cloudluca.com
+Subject: Oppertunities to co-operate
+Content-Type: text/plain;
+Content-Transfer-Encoding: Quoted-Printable
+Date: Fri, 16 Mar 2012 21:28:57 +0800 (HKT)
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The configuration of many other blocks depend on resizer maximum data rate.
-Get the value from resizer at link validation time.
+Dear All,
+ 
+This is Boris Lam from cloudluca. We are one of the top Hosting Solution Provider which located in Hong Kong.  We have a very good network infrastructure in Asia especially in Hong Kong and providing Hosting management, Dedicated server and Co-location Service. 
+ 
+As one of the top data center in Hong Kong, we have our own Data Center (located in Kowloon Side) with TIA-945 Standard Tier 3+ level and providing One-stop and Total Hosting solution to our clients, with our state-of-art technologies and professional technical support, we have help for over 10,000 IT projects launched in past 13 years.
+ 
+We would like to ask if your side considering to co-locate/make a server site in our datacenter. If you have any IT projects that need our assist, please let us know. Thanks.
+ 
+Best Regards,
+Boris Lam
+Senior Sales Executive
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
----
- drivers/media/video/omap3isp/ispresizer.c |   15 ++++++++
- drivers/media/video/omap3isp/ispvideo.c   |   54 -----------------------------
- 2 files changed, 15 insertions(+), 54 deletions(-)
-
-diff --git a/drivers/media/video/omap3isp/ispresizer.c b/drivers/media/video/omap3isp/ispresizer.c
-index 0fc6525..dda49cb 100644
---- a/drivers/media/video/omap3isp/ispresizer.c
-+++ b/drivers/media/video/omap3isp/ispresizer.c
-@@ -1494,6 +1494,20 @@ static int resizer_set_format(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
- 	return 0;
- }
- 
-+static int resizer_link_validate(struct v4l2_subdev *sd,
-+				 struct media_link *link,
-+				 struct v4l2_subdev_format *source_fmt,
-+				 struct v4l2_subdev_format *sink_fmt)
-+{
-+	struct isp_res_device *res = v4l2_get_subdevdata(sd);
-+	struct isp_pipeline *pipe = to_isp_pipeline(&sd->entity);
-+
-+	omap3isp_resizer_max_rate(res, &pipe->max_rate);
-+
-+	return v4l2_subdev_link_validate_default(sd, link,
-+						 source_fmt, sink_fmt);
-+}
-+
- /*
-  * resizer_init_formats - Initialize formats on all pads
-  * @sd: ISP resizer V4L2 subdevice
-@@ -1532,6 +1546,7 @@ static const struct v4l2_subdev_pad_ops resizer_v4l2_pad_ops = {
- 	.set_fmt = resizer_set_format,
- 	.get_crop = resizer_g_crop,
- 	.set_crop = resizer_s_crop,
-+	.link_validate = resizer_link_validate,
- };
- 
- /* subdev operations */
-diff --git a/drivers/media/video/omap3isp/ispvideo.c b/drivers/media/video/omap3isp/ispvideo.c
-index 51075b3..d9dd279 100644
---- a/drivers/media/video/omap3isp/ispvideo.c
-+++ b/drivers/media/video/omap3isp/ispvideo.c
-@@ -253,55 +253,6 @@ isp_video_far_end(struct isp_video *video)
- 	return far_end;
- }
- 
--/*
-- * Validate a pipeline by checking both ends of all links for format
-- * discrepancies.
-- *
-- * Compute the minimum time per frame value as the maximum of time per frame
-- * limits reported by every block in the pipeline.
-- *
-- * Return 0 if all formats match, or -EPIPE if at least one link is found with
-- * different formats on its two ends or if the pipeline doesn't start with a
-- * video source (either a subdev with no input pad, or a non-subdev entity).
-- */
--static int isp_video_validate_pipeline(struct isp_pipeline *pipe)
--{
--	struct isp_device *isp = pipe->output->isp;
--	struct media_pad *pad;
--	struct v4l2_subdev *subdev;
--
--	subdev = isp_video_remote_subdev(pipe->output, NULL);
--	if (subdev == NULL)
--		return -EPIPE;
--
--	while (1) {
--		/* Retrieve the sink format */
--		pad = &subdev->entity.pads[0];
--		if (!(pad->flags & MEDIA_PAD_FL_SINK))
--			break;
--
--		/* Update the maximum frame rate */
--		if (subdev == &isp->isp_res.subdev)
--			omap3isp_resizer_max_rate(&isp->isp_res,
--						  &pipe->max_rate);
--
--		/* Retrieve the source format. Return an error if no source
--		 * entity can be found, and stop checking the pipeline if the
--		 * source entity isn't a subdev.
--		 */
--		pad = media_entity_remote_source(pad);
--		if (pad == NULL)
--			return -EPIPE;
--
--		if (media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
--			break;
--
--		subdev = media_entity_to_v4l2_subdev(pad->entity);
--	}
--
--	return 0;
--}
--
- static int
- __isp_video_get_format(struct isp_video *video, struct v4l2_format *format)
- {
-@@ -1043,11 +994,6 @@ isp_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
- 		pipe->output = far_end;
- 	}
- 
--	/* Validate the pipeline and update its state. */
--	ret = isp_video_validate_pipeline(pipe);
--	if (ret < 0)
--		goto err_check_format;
--
- 	pipe->error = false;
- 
- 	spin_lock_irqsave(&pipe->lock, flags);
--- 
-1.7.2.5
 
