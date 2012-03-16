@@ -1,53 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:36192 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756109Ab2CORPM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Mar 2012 13:15:12 -0400
-Received: by ghrr11 with SMTP id r11so3274523ghr.19
-        for <linux-media@vger.kernel.org>; Thu, 15 Mar 2012 10:15:12 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <4F61FF2D.6010505@redhat.com>
-References: <CALjTZvZy4npSE0aELnmsZzzgsxUC1xjeNYVwQ_CvJG59PizfEQ@mail.gmail.com>
-	<CALF0-+Wp03vsbiaJFUt=ymnEncEvDg_KmnV+2OWjtO-_0qqBVg@mail.gmail.com>
-	<CALjTZvYVtuSm0v-_Q7od=iUDvHbkMe4c5ycAQZwoErCCe=N+Bg@mail.gmail.com>
-	<CALF0-+W3HenNpUt_yGxqs+fohcZ22ozDw9MhTWua0B++ZFA2vA@mail.gmail.com>
-	<CALjTZvYJZ32Red-UfZXubB-Lk503DWbHGTL_kEoV4DVDDYJ46w@mail.gmail.com>
-	<4F61C79E.6090603@redhat.com>
-	<CALjTZvZR=Mr-eSVwy=Wd8ToikAX9bG23NLARRw_K0scT-_YeCg@mail.gmail.com>
-	<4F61FF2D.6010505@redhat.com>
-Date: Thu, 15 Mar 2012 14:15:11 -0300
-Message-ID: <CALF0-+WJ9c579+=2QMamxpAngHJKWfZaWqOp_z=GvZKGy97VnA@mail.gmail.com>
-Subject: Re: eMPIA EM2710 Webcam (em28xx) and LIRC
-From: =?ISO-8859-1?Q?Ezequiel_Garc=EDa?= <elezegarcia@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Rui Salvaterra <rsalvaterra@gmail.com>, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from tex.lwn.net ([70.33.254.29]:56080 "EHLO vena.lwn.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1162055Ab2CPXgV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 16 Mar 2012 19:36:21 -0400
+From: Jonathan Corbet <corbet@lwn.net>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Jonathan Corbet <corbet@lwn.net>
+Subject: [PATCH 6/7] mmp-camera: Don't power up the sensor on resume
+Date: Fri, 16 Mar 2012 17:14:55 -0600
+Message-Id: <1331939696-12482-7-git-send-email-corbet@lwn.net>
+In-Reply-To: <1331939696-12482-1-git-send-email-corbet@lwn.net>
+References: <1331939696-12482-1-git-send-email-corbet@lwn.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+We still need to power up the controller to avoid unsightly self-immolation
+should something try to access its registers, but the sensor can stay
+powered down unless the camera was actually operating at suspend time.
+This gets rid of the camera LED flash on resume, fixing OLPC bug #11644.
 
-On 3/15/12, Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
-> If you won't take it, it is likely that some day someone will do it,
-> but, as this is just a cleanup, the main developers won't likely
-> have time for doing it, as they're generally busy adding support for
-> new hardware.
->
+Signed-off-by: Jonathan Corbet <corbet@lwn.net>
+---
+ drivers/media/video/marvell-ccic/mmp-driver.c |   13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
 
-I have no problem submitting the two patches in discussion.
-(Actually, I've already wroten the first one).
+diff --git a/drivers/media/video/marvell-ccic/mmp-driver.c b/drivers/media/video/marvell-ccic/mmp-driver.c
+index 0d64e2d..d235523 100644
+--- a/drivers/media/video/marvell-ccic/mmp-driver.c
++++ b/drivers/media/video/marvell-ccic/mmp-driver.c
+@@ -106,6 +106,13 @@ static struct mmp_camera *mmpcam_find_device(struct platform_device *pdev)
+ /*
+  * Power control.
+  */
++static void mmpcam_power_up_ctlr(struct mmp_camera *cam)
++{
++	iowrite32(0x3f, cam->power_regs + REG_CCIC_DCGCR);
++	iowrite32(0x3805b, cam->power_regs + REG_CCIC_CRCR);
++	mdelay(1);
++}
++
+ static void mmpcam_power_up(struct mcam_camera *mcam)
+ {
+ 	struct mmp_camera *cam = mcam_to_cam(mcam);
+@@ -113,9 +120,7 @@ static void mmpcam_power_up(struct mcam_camera *mcam)
+ /*
+  * Turn on power and clocks to the controller.
+  */
+-	iowrite32(0x3f, cam->power_regs + REG_CCIC_DCGCR);
+-	iowrite32(0x3805b, cam->power_regs + REG_CCIC_CRCR);
+-	mdelay(1);
++	mmpcam_power_up_ctlr(cam);
+ /*
+  * Provide power to the sensor.
+  */
+@@ -335,7 +340,7 @@ static int mmpcam_resume(struct platform_device *pdev)
+ 	 * touch a register even if nothing was active before; trust
+ 	 * me, it's better this way.
+ 	 */
+-	mmpcam_power_up(&cam->mcam);
++	mmpcam_power_up_ctlr(cam);
+ 	return mccic_resume(&cam->mcam);
+ }
+ 
+-- 
+1.7.9.3
 
-If Rui wants to help me, it would be nice to get this tested,
-since I don't have the necessary hardware.
-
-One thing I haven't got clear is this: I've seen that ir_raw_init()
-does not call request_module() directly but rather defers it
-through a work queue.
-
-I don't understand fully the rc code, but still I don't get what
-happens if I need the raw decoders *now* (so to speak)
-but the work queue hasn't been run yet?
-
-Thanks,
-Ezequiel.
