@@ -1,177 +1,155 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:60112 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751682Ab2CIHaL convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Mar 2012 02:30:11 -0500
-Received: by iagz16 with SMTP id z16so1867603iag.19
-        for <linux-media@vger.kernel.org>; Thu, 08 Mar 2012 23:30:10 -0800 (PST)
+Received: from eu1sys200aog103.obsmtp.com ([207.126.144.115]:53633 "EHLO
+	eu1sys200aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1032437Ab2CPKvN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 16 Mar 2012 06:51:13 -0400
+Message-ID: <4F631B05.6090601@stericsson.com>
+Date: Fri, 16 Mar 2012 11:50:45 +0100
+From: Marcus Lorentzon <marcus.xm.lorentzon@stericsson.com>
 MIME-Version: 1.0
-In-Reply-To: <2747531.0sXdUv33Rd@avalon>
-References: <CAGGh5h0dVOsT-PCoCBtjj=+rLzViwnM2e9hG+sbWQk5iS-ThEQ@mail.gmail.com>
-	<CAGGh5h3H9qqMxYSuLd67_8tnk8y62R5x7k1bZwfjEKbDRy-GqA@mail.gmail.com>
-	<20120308172253.GF1591@valkosipuli.localdomain>
-	<2747531.0sXdUv33Rd@avalon>
-Date: Fri, 9 Mar 2012 08:30:10 +0100
-Message-ID: <CAGGh5h13mOVtWPLGowvtvZM1Ufx2PST3DCokJzspGFcsUo=FiA@mail.gmail.com>
-Subject: Re: Lockup on second streamon with omap3-isp
-From: jean-philippe francois <jp.francois@cynove.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: Rob Clark <rob.clark@linaro.org>
+Cc: "linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
+	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"rschultz@google.com" <rschultz@google.com>,
+	"daniel@ffwll.ch" <daniel@ffwll.ch>,
+	"patches@linaro.org" <patches@linaro.org>
+Subject: Re: [Linaro-mm-sig] [PATCH] RFC: dma-buf: userspace mmap support
+References: <1331775148-5001-1-git-send-email-rob.clark@linaro.org>
+In-Reply-To: <1331775148-5001-1-git-send-email-rob.clark@linaro.org>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Le 9 mars 2012 00:28, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> a écrit :
-> On Thursday 08 March 2012 19:22:53 Sakari Ailus wrote:
->> On Wed, Mar 07, 2012 at 03:24:29PM +0100, jean-philippe francois wrote:
->> > Le 6 mars 2012 18:08, jean-philippe francois <jp.francois@cynove.com> a
-> écrit :
->> > > Hi,
->> > >
->> > > I have a custom dm3730 board, running a 3.2.0 kernel.
->> > > The board is equipped with an aptina MT9J sensor on
->> > > parallel interface.
->> > >
->> > > Whenever I try to run yavta twice, the second run leads to a
->> > > soft lockup in omap3isp_video_queue_streamon (see below)
->> > >
->> > > What can I do / test  to debug this issue ?
->> >
->> > Examining the offset, The code is stuck in the for_each loop,
->> > but I fail to see why.
->> >
->> > I added list manipulation and spinlock debugging, without detecting any
->> > problem.
->> >
->> > > # get.vga
->> > > Device /dev/video2 opened.
->> > > Device `OMAP3 ISP CCDC output' on `media' is a video capture device.
->> > > Video format set: SGRBG8 (47425247) 640x480 (stride 640) buffer size
->> > > 307200
->> > > Video format: SGRBG8 (47425247) 640x480 (stride 640) buffer size 307200
->> > > 3 buffers requested.
->> > > length: 307200 offset: 0
->> > > Buffer 0 mapped at address 0x4023e000.
->> > > length: 307200 offset: 307200
->> > > Buffer 1 mapped at address 0x4034d000.
->> > > length: 307200 offset: 614400
->> > > Buffer 2 mapped at address 0x40444000.
->> > > 0 (0) [-] 4294967295 307200 bytes 100.397705 100.397796 7.817 fps
->> > > 1 (1) [-] 4294967295 307200 bytes 100.495666 100.495788 10.208 fps
->> > > 2 (2) [-] 4294967295 307200 bytes 100.593658 100.593750 10.205 fps
->> > > 3 (0) [-] 4294967295 307200 bytes 100.691619 100.691741 10.208 fps
->> > > 4 (1) [-] 4294967295 307200 bytes 100.789611 100.789703 10.205 fps
->> > > 5 (2) [-] 4294967295 307200 bytes 100.887573 100.887695 10.208 fps
->> > > 6 (0) [-] 4294967295 307200 bytes 100.985565 100.985656 10.205 fps
->> > > 7 (1) [-] 4294967295 307200 bytes 101.083526 101.083709 10.208 fps
->> > > 8 (2) [-] 4294967295 307200 bytes 101.181488 101.181610 10.208 fps
->> > > 9 (0) [-] 4294967295 307200 bytes 101.279480 101.279571 10.205 fps
->> > > Captured 10 frames in 1.009796 seconds (9.902989 fps, 3042198.137254
->> > > B/s).
->> > > 3 buffers released.
->> > > [1]+  Done                       httpd
->> > > # get.vga
->> > > Device /dev/video2 opened.
->> > > Device `OMAP3 ISP CCDC output' on `media' is a video capture device.
->> > > Video format set: SGRBG8 (47425247) 640x480 (stride 640) buffer size
->> > > 307200
->> > > Video format: SGRBG8 (47425247) 640x480 (stride 640) buffer size 307200
->> > > 3 buffers requested.
->> > > length: 307200 offset: 0
->> > > Buffer 0 mapped at address 0x40285000.
->> > > length: 307200 offset: 307200
->> > > Buffer 1 mapped at address 0x40314000.
->> > > length: 307200 offset: 614400
->> > > Buffer 2 mapped at address 0x403bb000.
->> > > BUG: soft lockup - CPU#0 stuck for 22s! [yavta:495]
->> > > Modules linked in: ks8851_mll omap3_isp fpgacam(O)
->> > >
->> > > Pid: 495, comm:                yavta
->> > > CPU: 0    Tainted: G           O  (3.2.0 #52)
->> > > PC is at __do_softirq+0x50/0x110
->> > > LR is at __do_softirq+0x38/0x110
->> > > pc : [<c003746c>]    lr : [<c0037454>]    psr: 20000113
->> > > sp : ce8e5c88  ip : cf406140  fp : 00000000
->> > > r10: cee90800  r9 : 0000000a  r8 : ce8e4000
->> > > r7 : 00000002  r6 : 00000000  r5 : 00000000  r4 : 00000025
->> > > r3 : c044e580  r2 : 00000000  r1 : 00000002  r0 : 00000000
->> > > Flags: nzCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment user
->> > > Control: 10c5387d  Table: 8e858019  DAC: 00000015
->> > > [<c00123b0>] (unwind_backtrace+0x0/0xec) from [<c00646c4>]
->> > > (watchdog_timer_fn+0xd8/0x128)
->> > > [<c00646c4>] (watchdog_timer_fn+0xd8/0x128) from [<c004e640>]
->> > > (__run_hrtimer+0x68/0xe4)
->> > > [<c004e640>] (__run_hrtimer+0x68/0xe4) from [<c004e8b0>]
->> > > (hrtimer_interrupt+0x11c/0x2a4)
->> > > [<c004e8b0>] (hrtimer_interrupt+0x11c/0x2a4) from [<c0018f44>]
->> > > (omap2_gp_timer_interrupt+0x24/0x34)
->> > > [<c0018f44>] (omap2_gp_timer_interrupt+0x24/0x34) from [<c0064df8>]
->> > > (handle_irq_event_percpu+0x28/0x110)
->> > > [<c0064df8>] (handle_irq_event_percpu+0x28/0x110) from [<c0064f34>]
->> > > (handle_irq_event+0x54/0x74)
->> > > [<c0064f34>] (handle_irq_event+0x54/0x74) from [<c00676f8>]
->> > > (handle_level_irq+0xb4/0x100)
->> > > [<c00676f8>] (handle_level_irq+0xb4/0x100) from [<c0064a28>]
->> > > (generic_handle_irq+0x28/0x30)
->> > > [<c0064a28>] (generic_handle_irq+0x28/0x30) from [<c000e570>]
->> > > (handle_IRQ+0x60/0x84)
->> > > [<c000e570>] (handle_IRQ+0x60/0x84) from [<c000d874>]
->> > > (__irq_svc+0x34/0x98)
->> > > [<c000d874>] (__irq_svc+0x34/0x98) from [<c003746c>]
->> > > (__do_softirq+0x50/0x110) [<c003746c>] (__do_softirq+0x50/0x110) from
->> > > [<c00376f0>]
->> > > (irq_exit+0x48/0x9c)omap3isp_video_queue_streamon
->> > > [<c00376f0>] (irq_exit+0x48/0x9c) from [<c000e574>]
->> > > (handle_IRQ+0x64/0x84)
->> > > [<c000e574>] (handle_IRQ+0x64/0x84) from [<c000d874>]
->> > > (__irq_svc+0x34/0x98)
->> > > [<c000d874>] (__irq_svc+0x34/0x98) from [<bf007864>] (+0x6c/0xa0
->> > > [omap3_isp])
->> As it's __irq_svc(), I'd guess it's stuck executing the ISP interrupt
->> handler. This shouldn't happen.
->>
->> Is the sensor a parallel one?
->>
->> There have been cases where bad hs / vs signals essentially cause the ISP
->> driver to stay in handling interrupts.
->
-> Or rather to constantly re-enter the interrupt handler.
->
-> Make sure that your sensor stops generating hsync/vsync signals when the
-> stream is stopped, and also make sure that the hsync/vsync signals are either
-> driven by the sensor or pulled up or low.
+On 03/15/2012 02:32 AM, Rob Clark wrote:
+> From: Rob Clark<rob@ti.com>
+> [snip]
+> In all cases, the mmap() call is allowed to fail, and the associated
+> dma_buf_ops are optional (mmap() will fail if at least the mmap()
+> op is not implemented by the exporter, but in either case the
+> {prepare,finish}_access() ops are optional).
+I sort of understand this approach. It allowes some implementations 
+(ARM/Android) to move forward. But how would an application act if mmap 
+fails? What is the option? How can the application detect if mmap is 
+possible or not? Or is this mmap only supposed to be used from device 
+specific libs like libdrm-xx/libv4l2-xx/libgralloc?
 
-Thank you, I will try this and keep you posted.
-With this sensor it is possible, but that is not the case for every
-sensor out there.
-Is this an ISP bug ?
+Can mmap fail for one buffer, but not another? Can it fail for a buffer 
+that have successfully been mmapped once before (except for the usual 
+ENOMEM/EAGAIN etc)?
+> For now the prepare/finish access ioctls are kept simple with no
+> argument, although there is possibility to add additional ioctls
+> (or simply change the existing ioctls from _IO() to _IOW()) later
+> to provide optimization to allow userspace to specify a region of
+> interest.
+I like the idea of simple, assume the worst, no args, versions of 
+begin/end access. But once we move forward, I don't just like the 
+region, but also access type (R/W). R/W info allows the driver to make 
+cache management optimizations otherwise impossible. Like if CPU with no 
+alloc-on-write just write, a write buffer flush is enough to switch to a 
+HW read. And (at least on ARM) cache clean can be done for all cache for 
+large areas, but invalidate has to be done line by line. Eliminating the 
+need to do invalidate, especially if region is small, compared to 
+invalidate entire buffer line by line can make a huge difference.
+But I would like these in a separate ioctl to keep the normal case 
+simple. Maybe as a separate patch even.
+>
+> For a final patch, dma-buf.h would need to be split into what is
+> exported to userspace, and what is kernel private, but I wanted to
+> get feedback on the idea of requiring userspace to bracket access
+> first (vs. limiting this to coherent mappings or exporters who play
+> page faltings plus PTE shoot-down games) before I split the header
+> which would cause conflicts with other pending dma-buf patches.  So
+> flame-on!
+Why not just guard the kernel parts with __KERNEL__ or something? Or 
+there are guidelines preventing this?
 
-It never happens on first start, ie before ccdc_configure is called
-for the first time.
-Is there a way to eventually handle this in the driver ?
+> [snip]
+>
+> +
+> +static long dma_buf_ioctl(struct file *file, unsigned int cmd,
+> +		unsigned long arg)
+> +{
+> +	struct dma_buf *dmabuf;
+> +
+> +	if (!is_dma_buf_file(file))
+> +		return -EINVAL;
+> +
+> +	dmabuf = file->private_data;
+> +
+> +	switch (_IOC_NR(cmd)) {
+> +	case _IOC_NR(DMA_BUF_IOCTL_PREPARE_ACCESS):
+> +		if (dmabuf->ops->prepare_access)
+> +			return dmabuf->ops->prepare_access(dmabuf);
+> +		return 0;
+> +	case _IOC_NR(DMA_BUF_IOCTL_FINISH_ACCESS):
+> +		if (dmabuf->ops->finish_access)
+> +			return dmabuf->ops->finish_access(dmabuf);
+> +		return 0;
+> +	default:
+> +		return -EINVAL;
+> +	}
+> +}
+> +
+> +
+Multiple empty lines
+>   static int dma_buf_release(struct inode *inode, struct file *file)
+>   {
+>   	struct dma_buf *dmabuf;
+> @@ -45,6 +85,8 @@ static int dma_buf_release(struct inode *inode, struct file *file)
+>   }
+>
+>   static const struct file_operations dma_buf_fops = {
+> +	.mmap 		= dma_buf_mmap,
+> +	.unlocked_ioctl = dma_buf_ioctl,
+>   	.release	= dma_buf_release,
+>   };
+>
+> diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
+> index a885b26..cbdff81 100644
+> --- a/include/linux/dma-buf.h
+> +++ b/include/linux/dma-buf.h
+> @@ -34,6 +34,17 @@
+>   struct dma_buf;
+>   struct dma_buf_attachment;
+>
+> +/* TODO: dma-buf.h should be the userspace visible header, and dma-buf-priv.h (?)
+> + * the kernel internal header.. for now just stuff these here to avoid conflicting
+> + * with other patches..
+> + *
+> + * For now, no arg to keep things simple, but we could consider adding an
+> + * optional region of interest later.
+> + */
+> +#define DMA_BUF_IOCTL_PREPARE_ACCESS   _IO('Z', 0)
+> +#define DMA_BUF_IOCTL_FINISH_ACCESS    _IO('Z', 1)
+> +
+> +
+Multiple empty lines
+>   /**
+>    * struct dma_buf_ops - operations possible on struct dma_buf
+>    * @attach: [optional] allows different devices to 'attach' themselves to the
+> @@ -49,6 +60,13 @@ struct dma_buf_attachment;
+>    * @unmap_dma_buf: decreases usecount of buffer, might deallocate scatter
+>    *		   pages.
+>    * @release: release this buffer; to be called after the last dma_buf_put.
+> + * @mmap: [optional, allowed to fail] operation called if userspace calls
+> + *		 mmap() on the dmabuf fd.  Note that userspace should use the
+> + *		 DMA_BUF_PREPARE_ACCESS / DMA_BUF_FINISH_ACCESS ioctls before/after
+> + *		 sw access to the buffer, to give the exporter an opportunity to
+> + *		 deal with cache maintenance.
+> + * @prepare_access: [optional] handler for PREPARE_ACCESS ioctl.
+> + * @finish_access: [optional] handler for FINISH_ACCESS ioctl.
+xx_access should only be optional if you don't implement mmap. Otherwise 
+it will be very hard to implement cache sync in dma_buf (the cpu2dev and 
+dev2cpu parts). Introducing cache sync in dma_buf should be a way to 
+remove it from dma_buf clients. An option would be for the cache sync 
+code to assume the worst for each cpu2dev sync. Even if the CPU has not 
+touched anything.
 
+In short, very welcome patch ...
 
->
->> > > [<bf007864>] (omap3isp_video_queue_streamon+0x6c/0xa0 [omap3_isp])
->> > > from [<bf0096cc>] (isp_video_streamon+0x178/0x258 [omap3_isp])
->> > > [<bf0096cc>] (isp_video_streamon+0x178/0x258 [omap3_isp]) from
->> > > [<c022cae4>] (__video_do_ioctl+0x1b9c/0x4894)
->> > > [<c022cae4>] (__video_do_ioctl+0x1b9c/0x4894) from [<c022ae08>]
->> > > (video_usercopy+0x1b8/0x298)
->> > > [<c022ae08>] (video_usercopy+0x1b8/0x298) from [<c0229d48>]
->> > > (v4l2_ioctl+0x68/0x114)
->> > > [<c0229d48>] (v4l2_ioctl+0x68/0x114) from [<c00a2514>]
->> > > (vfs_ioctl+0x20/0x3c) [<c00a2514>] (vfs_ioctl+0x20/0x3c) from
->> > > [<c00a2d9c>] (do_vfs_ioctl+0x1ac/0x1c4) [<c00a2d9c>]
->> > > (do_vfs_ioctl+0x1ac/0x1c4) from [<c00a2de8>] (sys_ioctl+0x34/0x54)
->> > > [<c00a2de8>] (sys_ioctl+0x34/0x54) from [<c000dcc0>]
->> > > (ret_fast_syscall+0x0/0x30) Kernel panic - not syncing: softlockup:
->> > > hung tasks
->
-> --
-> Regards,
->
-> Laurent Pinchart
->
+/BR
+/Marcus
+
