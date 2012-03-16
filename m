@@ -1,85 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:58390 "EHLO mail.kapsi.fi"
+Received: from tex.lwn.net ([70.33.254.29]:56070 "EHLO vena.lwn.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752704Ab2CWMzF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Mar 2012 08:55:05 -0400
-Message-ID: <4F6C72A6.30908@iki.fi>
-Date: Fri, 23 Mar 2012 14:55:02 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Gianluca Gennari <gennarone@gmail.com>
-CC: linux-media@vger.kernel.org, mchehab@redhat.com
-Subject: Re: [PATCH 2/3] em28xx-dvb: enable LNA for cxd2820r in DVB-T mode
-References: <1331832829-4580-1-git-send-email-gennarone@gmail.com> <1331832829-4580-3-git-send-email-gennarone@gmail.com>
-In-Reply-To: <1331832829-4580-3-git-send-email-gennarone@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	id S1162039Ab2CPXgU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 16 Mar 2012 19:36:20 -0400
+From: Jonathan Corbet <corbet@lwn.net>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Jonathan Corbet <corbet@lwn.net>
+Subject: [PATCH 2/7] marvell-cam: Remove broken "owner" logic
+Date: Fri, 16 Mar 2012 17:14:51 -0600
+Message-Id: <1331939696-12482-3-git-send-email-corbet@lwn.net>
+In-Reply-To: <1331939696-12482-1-git-send-email-corbet@lwn.net>
+References: <1331939696-12482-1-git-send-email-corbet@lwn.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As we speak earlier LNA support is not implemented at all as our API / 
-framework. My personal opinion LNA should be always disabled by default 
-since it still makes some noise. Current hard coded values are just 
-selected what gives better signal for me and thus are not optimal nor 
-correct. Anyhow, I would not like to change those as for some user it 
-could cause problems. And if I would change those I will disable all :)
+The marvell cam driver retained just enough of the owner-tracking logic
+from cafe_ccic to be broken; it could, conceivably, cause the driver to
+release DMA memory while the controller is still active.  Simply remove the
+remaining pieces and ensure that the controller is stopped before we free
+things.
 
-So better to left as those are currently until API/DVB core is fixed to 
-support LNA.
+Signed-off-by: Jonathan Corbet <corbet@lwn.net>
+---
+ drivers/media/video/marvell-ccic/mcam-core.c |    5 +----
+ drivers/media/video/marvell-ccic/mcam-core.h |    1 -
+ 2 files changed, 1 insertion(+), 5 deletions(-)
 
-regards
-Antti
-
-
-On 15.03.2012 19:33, Gianluca Gennari wrote:
-> Enable the LNA amplifier also for DVB-T (like for DVB-T2 and DVB-C);
-> this greatly improves reception of weak signals without affecting the reception
-> of the strong ones.
->
-> Experimental data (collected with the mipsel STB) on the weakest frequencies
-> available in my area:
->
-> LNA OFF:
->
-> MUX          level   BER     picture
->
-> RAI mux 4    72%     32000   corrupted
-> TIMB 2       75%     14      OK
-> TVA Vicenza  68%     32000   corrupted
-> RAI mux 2    78%     14      OK
->
-> LNA ON:
->
-> MUX          level   BER     picture
->
-> RAI mux 4    73%     1500    OK
-> TIMB 2       76%     0       OK
-> TVA Vicenza  69%     0       OK
-> RAI mux 2    79%     0       OK
->
-> Moreover, with LNA enabled, the PCTV 290e was able to pick up 2 new frequencies
-> matching the integrated tuner of my Panasonic G20 TV, which is really good.
->
-> Signed-off-by: Gianluca Gennari<gennarone@gmail.com>
-> ---
->   drivers/media/video/em28xx/em28xx-dvb.c |    3 ++-
->   1 files changed, 2 insertions(+), 1 deletions(-)
->
-> diff --git a/drivers/media/video/em28xx/em28xx-dvb.c b/drivers/media/video/em28xx/em28xx-dvb.c
-> index fbd9010..4917b71 100644
-> --- a/drivers/media/video/em28xx/em28xx-dvb.c
-> +++ b/drivers/media/video/em28xx/em28xx-dvb.c
-> @@ -502,7 +502,8 @@ static struct cxd2820r_config em28xx_cxd2820r_config = {
->   	.i2c_address = (0xd8>>  1),
->   	.ts_mode = CXD2820R_TS_SERIAL,
->
-> -	/* enable LNA for DVB-T2 and DVB-C */
-> +	/* enable LNA for DVB-T, DVB-T2 and DVB-C */
-> +	.gpio_dvbt[0] = CXD2820R_GPIO_E | CXD2820R_GPIO_O | CXD2820R_GPIO_L,
->   	.gpio_dvbt2[0] = CXD2820R_GPIO_E | CXD2820R_GPIO_O | CXD2820R_GPIO_L,
->   	.gpio_dvbc[0] = CXD2820R_GPIO_E | CXD2820R_GPIO_O | CXD2820R_GPIO_L,
->   };
-
-
+diff --git a/drivers/media/video/marvell-ccic/mcam-core.c b/drivers/media/video/marvell-ccic/mcam-core.c
+index 35cd89d..b261182 100644
+--- a/drivers/media/video/marvell-ccic/mcam-core.c
++++ b/drivers/media/video/marvell-ccic/mcam-core.c
+@@ -1564,11 +1564,8 @@ static int mcam_v4l_release(struct file *filp)
+ 			singles, delivered);
+ 	mutex_lock(&cam->s_mutex);
+ 	(cam->users)--;
+-	if (filp == cam->owner) {
+-		mcam_ctlr_stop_dma(cam);
+-		cam->owner = NULL;
+-	}
+ 	if (cam->users == 0) {
++		mcam_ctlr_stop_dma(cam);
+ 		mcam_cleanup_vb2(cam);
+ 		mcam_ctlr_power_down(cam);
+ 		if (cam->buffer_mode == B_vmalloc && alloc_bufs_at_read)
+diff --git a/drivers/media/video/marvell-ccic/mcam-core.h b/drivers/media/video/marvell-ccic/mcam-core.h
+index 917200e..bd6acba 100644
+--- a/drivers/media/video/marvell-ccic/mcam-core.h
++++ b/drivers/media/video/marvell-ccic/mcam-core.h
+@@ -107,7 +107,6 @@ struct mcam_camera {
+ 	enum mcam_state state;
+ 	unsigned long flags;		/* Buffer status, mainly (dev_lock) */
+ 	int users;			/* How many open FDs */
+-	struct file *owner;		/* Who has data access (v4l2) */
+ 
+ 	/*
+ 	 * Subsystem structures.
 -- 
-http://palosaari.fi/
+1.7.9.3
+
