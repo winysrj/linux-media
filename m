@@ -1,40 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from wolverine01.qualcomm.com ([199.106.114.254]:40671 "EHLO
-	wolverine01.qualcomm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932365Ab2CEOcn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Mar 2012 09:32:43 -0500
-Message-ID: <4F54CE85.7070009@codeaurora.org>
-Date: Mon, 05 Mar 2012 20:02:37 +0530
-From: Trilok Soni <tsoni@codeaurora.org>
+Received: from mail-we0-f174.google.com ([74.125.82.174]:63584 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757917Ab2CPBis (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 15 Mar 2012 21:38:48 -0400
+Received: by wejx9 with SMTP id x9so3446656wej.19
+        for <linux-media@vger.kernel.org>; Thu, 15 Mar 2012 18:38:47 -0700 (PDT)
+Message-ID: <4F6299A4.1060309@gmail.com>
+Date: Fri, 16 Mar 2012 02:38:44 +0100
+From: Gianluca Gennari <gennarone@gmail.com>
+Reply-To: gennarone@gmail.com
 MIME-Version: 1.0
-To: James Hogan <james.hogan@imgtec.com>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Paul Gortmaker <paul.gortmaker@windriver.com>,
-	linux-media@vger.kernel.org,
-	linux-kernel <linux-kernel@vger.kernel.org>
-Subject: Re: [RESEND] [PATCH] media: ir-sony-decoder: 15bit function decode
- fix
-References: <4F4B6EC5.1070806@imgtec.com> <4F54AA3C.6010702@imgtec.com>
-In-Reply-To: <4F54AA3C.6010702@imgtec.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: Andy Furniss <andyqos@ukfsn.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] em28xx: pre-allocate DVB isoc transfer buffers
+References: <1329155962-22896-1-git-send-email-gennarone@gmail.com> <4F628886.3050009@ukfsn.org>
+In-Reply-To: <4F628886.3050009@ukfsn.org>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi James,
+Il 16/03/2012 01:25, Andy Furniss ha scritto:
+> 
+> Does this patch have a chance of getting in?
+> 
+> I am still having to flush caches before use. If you want more testing I
+> can give it a go. I didn't earlier as I didn't have a git to apply it to
+> and thought it was going to get in anyway.
+> 
 
-On 3/5/2012 5:27 PM, James Hogan wrote:
-> Ping
->
-> Another week's gone by with no response. It's a trivial patch, so can
-> somebody please take a look at it? (or if I'm missing somebody relevant
-> from CC, please add them)
->
+Hi Andy,
+the patch is already in the current media_build tree and is queued for
+kernel 3.4.
 
-You are not alone, GPIO IR patch is also in waiting mode...
+Regards,
+Gianluca
 
----Trilok Soni
-
---
-Sent by a consultant of the Qualcomm Innovation Center, Inc.
-The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum.
