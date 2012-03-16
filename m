@@ -1,145 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.47]:63178 "EHLO mgw-sa01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756606Ab2CGRXH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 7 Mar 2012 12:23:07 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, dacohen@gmail.com,
-	snjw23@gmail.com, andriy.shevchenko@linux.intel.com,
-	t.stanislaws@samsung.com, tuukkat76@gmail.com,
-	k.debski@samsung.com, riverful@gmail.com, hverkuil@xs4all.nl,
-	teturtia@gmail.com, pradeep.sawlani@gmail.com
-Subject: [PATCH v5.1 25/35] omap3isp: Collect entities that are part of the pipeline
-Date: Wed,  7 Mar 2012 19:22:56 +0200
-Message-Id: <1331140976-5087-1-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <20120307172051.GC1476@valkosipuli.localdomain>
-References: <20120307172051.GC1476@valkosipuli.localdomain>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:45929 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757038Ab2CPMbL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 16 Mar 2012 08:31:11 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/1] mt9v032: Provide pixel rate control
+Date: Fri, 16 Mar 2012 13:31:39 +0100
+Message-ID: <2818545.mNbT3MTFRm@avalon>
+In-Reply-To: <20120316121211.GB5412@valkosipuli.localdomain>
+References: <1331845299-6147-1-git-send-email-sakari.ailus@iki.fi> <1834735.kIipVBG3Dt@avalon> <20120316121211.GB5412@valkosipuli.localdomain>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Collect entities which are part of the pipeline into a single bit mask.
+Hi Sakari,
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
----
- drivers/media/video/omap3isp/ispvideo.c |   48 ++++++++++++++++---------------
- drivers/media/video/omap3isp/ispvideo.h |    2 +
- 2 files changed, 27 insertions(+), 23 deletions(-)
+On Friday 16 March 2012 14:12:11 Sakari Ailus wrote:
+> On Fri, Mar 16, 2012 at 12:58:30PM +0100, Laurent Pinchart wrote:
+> > On Thursday 15 March 2012 23:01:39 Sakari Ailus wrote:
+> > > Provide pixel rate control calculated from external clock and horizontal
+> > > binning factor.
+> > > 
+> > > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> > > ---
+> > > 
+> > >  drivers/media/video/mt9v032.c |   35  ++++++++++++++++++++++++++++++++-
+> > >  1 files changed, 34 insertions(+), 1 deletions(-)
+> > > 
+> > > diff --git a/drivers/media/video/mt9v032.c
+> > > b/drivers/media/video/mt9v032.c
+> > > index 75e253a..e530e8d 100644
+> > > --- a/drivers/media/video/mt9v032.c
+> > > +++ b/drivers/media/video/mt9v032.c
 
-diff --git a/drivers/media/video/omap3isp/ispvideo.c b/drivers/media/video/omap3isp/ispvideo.c
-index d34f690..7411076 100644
---- a/drivers/media/video/omap3isp/ispvideo.c
-+++ b/drivers/media/video/omap3isp/ispvideo.c
-@@ -255,8 +255,9 @@ isp_video_remote_subdev(struct isp_video *video, u32 *pad)
- }
- 
- /* Return a pointer to the ISP video instance at the far end of the pipeline. */
--static struct isp_video *
--isp_video_far_end(struct isp_video *video)
-+static int isp_video_get_graph_data(struct isp_video *video,
-+				    struct isp_pipeline *pipe,
-+				    enum isp_pipeline_state *state)
- {
- 	struct media_entity_graph graph;
- 	struct media_entity *entity = &video->video.entity;
-@@ -267,6 +268,8 @@ isp_video_far_end(struct isp_video *video)
- 	media_entity_graph_walk_start(&graph, entity);
- 
- 	while ((entity = media_entity_graph_walk_next(&graph))) {
-+		pipe->entities |= 1 << entity->id;
-+
- 		if (entity == &video->video.entity)
- 			continue;
- 
-@@ -281,7 +284,21 @@ isp_video_far_end(struct isp_video *video)
- 	}
- 
- 	mutex_unlock(&mdev->graph_mutex);
--	return far_end;
-+
-+	if (video->type == V4L2_BUF_TYPE_VIDEO_CAPTURE) {
-+		*state = ISP_PIPELINE_STREAM_OUTPUT | ISP_PIPELINE_IDLE_OUTPUT;
-+		pipe->input = far_end;
-+		pipe->output = video;
-+	} else {
-+		if (far_end == NULL)
-+			return -EPIPE;
-+
-+		*state = ISP_PIPELINE_STREAM_INPUT | ISP_PIPELINE_IDLE_INPUT;
-+		pipe->input = video;
-+		pipe->output = far_end;
-+	}
-+
-+	return 0;
- }
- 
- /*
-@@ -972,7 +989,6 @@ isp_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
- 	struct isp_video *video = video_drvdata(file);
- 	enum isp_pipeline_state state;
- 	struct isp_pipeline *pipe;
--	struct isp_video *far_end;
- 	unsigned long flags;
- 	int ret;
- 
-@@ -992,6 +1008,8 @@ isp_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
- 	pipe = video->video.entity.pipe
- 	     ? to_isp_pipeline(&video->video.entity) : &video->pipe;
- 
-+	pipe->entities = 0;
-+
- 	if (video->isp->pdata->set_constraints)
- 		video->isp->pdata->set_constraints(video->isp, true);
- 	pipe->l3_ick = clk_get_rate(video->isp->clock[ISP_CLK_L3_ICK]);
-@@ -1011,25 +1029,9 @@ isp_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
- 	video->bpl_padding = ret;
- 	video->bpl_value = vfh->format.fmt.pix.bytesperline;
- 
--	/* Find the ISP video node connected at the far end of the pipeline and
--	 * update the pipeline.
--	 */
--	far_end = isp_video_far_end(video);
--
--	if (video->type == V4L2_BUF_TYPE_VIDEO_CAPTURE) {
--		state = ISP_PIPELINE_STREAM_OUTPUT | ISP_PIPELINE_IDLE_OUTPUT;
--		pipe->input = far_end;
--		pipe->output = video;
--	} else {
--		if (far_end == NULL) {
--			ret = -EPIPE;
--			goto err_check_format;
--		}
--
--		state = ISP_PIPELINE_STREAM_INPUT | ISP_PIPELINE_IDLE_INPUT;
--		pipe->input = video;
--		pipe->output = far_end;
--	}
-+	ret = isp_video_get_graph_data(video, pipe, &state);
-+	if (ret < 0)
-+		goto err_check_format;
- 
- 	/* Validate the pipeline and update its state. */
- 	ret = isp_video_validate_pipeline(pipe);
-diff --git a/drivers/media/video/omap3isp/ispvideo.h b/drivers/media/video/omap3isp/ispvideo.h
-index d91bdb91..c9187cb 100644
---- a/drivers/media/video/omap3isp/ispvideo.h
-+++ b/drivers/media/video/omap3isp/ispvideo.h
-@@ -88,6 +88,7 @@ enum isp_pipeline_state {
- /*
-  * struct isp_pipeline - An ISP hardware pipeline
-  * @error: A hardware error occurred during capture
-+ * @entities: Bitmask of entities in the pipeline (indexed by entity ID)
-  */
- struct isp_pipeline {
- 	struct media_pipeline pipe;
-@@ -96,6 +97,7 @@ struct isp_pipeline {
- 	enum isp_pipeline_stream_state stream_state;
- 	struct isp_video *input;
- 	struct isp_video *output;
-+	u32 entities;
- 	unsigned long l3_ick;
- 	unsigned int max_rate;
- 	atomic_t frame_number;
+[snip]
+
+> > > +static void mt9v032_configure_pixel_rate(struct v4l2_subdev *subdev,
+> > > +					 unsigned int hratio)
+> > > +{
+> > > +	struct i2c_client *client = v4l2_get_subdevdata(subdev);
+> > > +	struct mt9v032 *mt9v032 = to_mt9v032(subdev);
+> > > +	struct v4l2_ext_controls ctrls;
+> > > +	struct v4l2_ext_control ctrl;
+> > > +
+> > > +	memset(&ctrls, 0, sizeof(ctrls));
+> > > +	memset(&ctrl, 0, sizeof(ctrl));
+> > > +
+> > > +	ctrls.count = 1;
+> > > +	ctrls.controls = &ctrl;
+> > > +
+> > > +	ctrl.id = V4L2_CID_PIXEL_RATE;
+> > > +	ctrl.value64 = EXT_CLK / hratio;
+> > > +
+> > > +	if (v4l2_s_ext_ctrls(mt9v032->pixel_rate->ctrl_handler, &ctrls) < 0)
+> > > +		dev_warn(&client->dev, "bug: failed to set pixel rate\n");
+> > 
+> > What about just calling v4l2_ctrl_s_ctrl() ?
+> 
+> It's a 64-bit integer control, so it has to be set using v4l2_s_ext_ctrls().
+
+What about extending v4l2_ctrl_s_ctrl() to support 64-bit integer controls 
+then ?
+
+> > > +}
+
+[snip]
+
+> > > @@ -695,6 +723,9 @@ static int mt9v032_probe(struct i2c_client *client,
+> > > 
+> > >  			  V4L2_CID_EXPOSURE, MT9V032_TOTAL_SHUTTER_WIDTH_MIN,
+> > >  			  MT9V032_TOTAL_SHUTTER_WIDTH_MAX, 1,
+> > >  			  MT9V032_TOTAL_SHUTTER_WIDTH_DEF);
+> > > 
+> > > +	mt9v032->pixel_rate =
+> > > +		v4l2_ctrl_new_std(&mt9v032->ctrls, &mt9v032_ctrl_ops,
+> > > +				  V4L2_CID_PIXEL_RATE, 0, 0, 1, 0);
+> > 
+> > Shouldn't you set the bounds to [EXT_CLK/4..EXT_CLK] ? Otherwise the set
+> > control call will likely fail. We probably need a new control framework
+> > function to modify the bounds.
+> 
+> Same here. 64-bit controls don't have min/max.
+
+Right, my bad.
+
+> > >  	for (i = 0; i < ARRAY_SIZE(mt9v032_ctrls); ++i)
+> > >  	
+> > >  		v4l2_ctrl_new_custom(&mt9v032->ctrls, &mt9v032_ctrls[i], NULL);
+> > > 
+
 -- 
-1.7.2.5
+Regards,
+
+Laurent Pinchart
 
