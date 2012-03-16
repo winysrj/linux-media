@@ -1,72 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qa0-f53.google.com ([209.85.216.53]:37965 "EHLO
-	mail-qa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757222Ab2CZKlr (ORCPT
+Received: from blu0-omc2-s34.blu0.hotmail.com ([65.55.111.109]:10728 "EHLO
+	blu0-omc2-s34.blu0.hotmail.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1760682Ab2CPJbk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Mar 2012 06:41:47 -0400
-Received: by qadc11 with SMTP id c11so2033222qad.19
-        for <linux-media@vger.kernel.org>; Mon, 26 Mar 2012 03:41:46 -0700 (PDT)
+	Fri, 16 Mar 2012 05:31:40 -0400
+Message-ID: <BLU0-SMTP683E9C15A4921407384A82B15F0@phx.gbl>
+Date: Fri, 16 Mar 2012 10:33:43 +0100
+From: Daniele Rogora <dodoeg@hotmail.it>
 MIME-Version: 1.0
-From: Sumit Semwal <sumit.semwal@linaro.org>
-Date: Mon, 26 Mar 2012 16:11:24 +0530
-Message-ID: <CAO_48GGXBNLqW8cBpAekzVQV8xZ_pLugg7uVaB+dXN4jLEE+iw@mail.gmail.com>
-Subject: [GIT PULL]: dma-buf updates for 3.4
-To: torvalds@linux-foundation.org, linux-kernel@vger.kernel.org,
-	DRI mailing list <dri-devel@lists.freedesktop.org>,
-	linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org
-Cc: Jesse Barker <jesse.barker@linaro.org>, akpm@linux-foundation.org,
-	Daniel Vetter <daniel@ffwll.ch>, Arnd Bergmann <arnd@arndb.de>,
-	Dave Airlie <airlied@linux.ie>
-Content-Type: text/plain; charset=ISO-8859-1
+To: linux-media@vger.kernel.org
+Subject: Fwd: ADS InstantFM Music RDX-155-EF
+References: <4F630866.9080306@hotmail.it>
+In-Reply-To: <4F630866.9080306@hotmail.it>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Linus,
+Hi everyone,
+I need your help. I can't get any sound from the device in the subject.
 
-Could you please pull the dma-buf updates for 3.4? This includes the
-following key items:
+I'm actually on Gentoo 64bit, vanilla kernel 3.3.0-rc2 with usb-audio 
+support and radio-si470x with usb support built-in. I'm using alsa 1.0.25.
 
-- kernel cpu access support,
-- flag-passing to dma_buf_fd,
-- relevant Documentation updates, and
-- some minor cleanups and fixes.
+When i plug the device I get the following dmesg:
 
-These changes are needed for the drm prime/dma-buf interface code that
-Dave Airlie plans to submit in this merge window.
+[ 1704.922092] usb 6-1: new full-speed USB device number 3 using uhci_hcd
+[ 1705.054408] usb 6-1: skipped 4 descriptors after interface
+[ 1705.054415] usb 6-1: skipped 2 descriptors after interface
+[ 1705.054420] usb 6-1: skipped 1 descriptor after endpoint
+[ 1705.054425] usb 6-1: skipped 1 descriptor after interface
+[ 1705.057396] usb 6-1: default language 0x0409
+[ 1705.065250] usb 6-1: udev 3, busnum 6, minor = 642
+[ 1705.065256] usb 6-1: New USB device found, idVendor=06e1, idProduct=a155
+[ 1705.065261] usb 6-1: New USB device strings: Mfr=1, Product=2, 
+SerialNumber=0
+[ 1705.065265] usb 6-1: Product: ADS InstantFM Music
+[ 1705.065269] usb 6-1: Manufacturer: ADS TECH
+[ 1705.065457] usb 6-1: usb_probe_device
+[ 1705.065463] usb 6-1: configuration #1 chosen from 1 choice
+[ 1705.067252] usb 6-1: adding 6-1:1.0 (config #1, interface 0)
+[ 1705.067332] snd-usb-audio 6-1:1.0: usb_probe_interface
+[ 1705.067340] snd-usb-audio 6-1:1.0: usb_probe_interface - got id
+[ 1705.074898] usb 6-1: adding 6-1:1.1 (config #1, interface 1)
+[ 1705.074950] usb 6-1: adding 6-1:1.2 (config #1, interface 2)
+[ 1705.075028] radio-si470x 6-1:1.2: usb_probe_interface
+[ 1705.075033] radio-si470x 6-1:1.2: usb_probe_interface - got id
+[ 1705.076251] radio-si470x 6-1:1.2: DeviceID=0xffff ChipID=0xffff
+[ 1705.077239] radio-si470x 6-1:1.2: software version 1, hardware version 7
+[ 1705.077244] radio-si470x 6-1:1.2: This driver is known to work with 
+software version 7,
+[ 1705.077249] radio-si470x 6-1:1.2: but the device has software version 1.
+[ 1705.077253] radio-si470x 6-1:1.2: If you have some trouble using this 
+driver,
+[ 1705.077257] radio-si470x 6-1:1.2: please report to V4L ML at 
+linux-media@vger.kernel.org
 
-Thanks, and best regards,
-~Sumit.
+lsusb
+Bus 006 Device 003: ID 06e1:a155 ADS Technologies, Inc. FM Radio 
+Receiver/Instant FM Music (RDX-155-EF).
 
-The following changes since commit c16fa4f2ad19908a47c63d8fa436a1178438c7e7:
+Then I can see the new device /dev/radio0 and in alsamixer there is the 
+new usb audio capture device.
 
-  Linux 3.3 (2012-03-18 16:15:34 -0700)
+The problem is that I can't get any audio from it. If I try to "cat 
+/dev/dsp1 > /dev/dsp" I can hear some noise, but I can't tell if that is 
+the normal noise of the fm signal or what else.
 
-are available in the git repository at:
-  git://git.linaro.org/people/sumitsemwal/linux-dma-buf.git for-linus-3.4
+I also tried with the "radio" utility. It doesn't do anything whatever I 
+try. Also it gives me these errors (popping out from the red background)
+VIDIOCGAUDIO: Inappropriate ioctl for device │
+VIDIOCSAUDIO: Inappropriate ioctl for device
 
-Daniel Vetter (3):
-      dma-buf: don't hold the mutex around map/unmap calls
-      dma-buf: add support for kernel cpu access
-      dma_buf: Add documentation for the new cpu access support
+If I try to "radio -c /dev/radio0 -i" to scan for available freqs, it 
+just goes from 87.5 to 108.00 in a couple of seconds finding nothing.
 
-Dave Airlie (1):
-      dma-buf: pass flags into dma_buf_fd.
+I've tried also with a stock Ubuntu 11.10, with exactly the same 
+results. Also the first time I plugged the device the software version 
+was 0; then I tried it with Windows 7 (where it works), and it updated 
+the software to version 1.
 
-Laurent Pinchart (4):
-      dma-buf: Constify ops argument to dma_buf_export()
-      dma-buf: Remove unneeded sanity checks
-      dma-buf: Return error instead of using a goto statement when possible
-      dma-buf: Move code out of mutex-protected section in dma_buf_attach()
+So, I'd like to get this device to work; please tell me if there is any 
+informatio you need to figure out what's going on.
 
-Rob Clark (2):
-      dma-buf: add get_dma_buf()
-      dma-buf: document fd flags and O_CLOEXEC requirement
+Thanks, Daniele
 
-Sumit Semwal (2):
-      dma-buf: add dma_data_direction to unmap dma_buf_op
-      dma-buf: correct dummy function declarations.
-
- Documentation/dma-buf-sharing.txt |  120 ++++++++++++++++++++++++++-
- drivers/base/dma-buf.c            |  165 +++++++++++++++++++++++++++++++------
- include/linux/dma-buf.h           |   97 +++++++++++++++++++--
- 3 files changed, 345 insertions(+), 37 deletions(-)
