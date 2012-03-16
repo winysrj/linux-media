@@ -1,45 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:7416 "EHLO mx1.redhat.com"
+Received: from tex.lwn.net ([70.33.254.29]:56073 "EHLO vena.lwn.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757098Ab2CSWMo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Mar 2012 18:12:44 -0400
-Message-ID: <4F67AF4F.4050407@redhat.com>
-Date: Mon, 19 Mar 2012 19:12:31 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Bhupesh SHARMA <bhupesh.sharma@st.com>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	spear-devel <spear-devel@list.st.com>
-Subject: Re: [PATCH RESEND] usb: gadget/uvc: Remove non-required locking from
- 'uvc_queue_next_buffer' routine
-References: <d5dbc7befb35abdce18d77f918954137a2be2f26.1331638300.git.bhupesh.sharma@st.com> <11788268.pQ7t4NVJy6@avalon> <D5ECB3C7A6F99444980976A8C6D896384FA2BA2E91@EAPEX1MAIL1.st.com>
-In-Reply-To: <D5ECB3C7A6F99444980976A8C6D896384FA2BA2E91@EAPEX1MAIL1.st.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	id S1162041Ab2CPXgU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 16 Mar 2012 19:36:20 -0400
+From: Jonathan Corbet <corbet@lwn.net>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Jonathan Corbet <corbet@lwn.net>
+Subject: [PATCH 1/7] marvell-cam: ensure that the camera stops when requested
+Date: Fri, 16 Mar 2012 17:14:50 -0600
+Message-Id: <1331939696-12482-2-git-send-email-corbet@lwn.net>
+In-Reply-To: <1331939696-12482-1-git-send-email-corbet@lwn.net>
+References: <1331939696-12482-1-git-send-email-corbet@lwn.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 19-03-2012 00:58, Bhupesh SHARMA escreveu:
-> Hi Laurent,
-> 
->> -----Original Message-----
->> From: Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com]
->> Sent: Thursday, March 15, 2012 6:17 AM
->> To: Bhupesh SHARMA
->> Cc: linux-usb@vger.kernel.org; linux-media@vger.kernel.org; spear-devel
->> Subject: Re: [PATCH RESEND] usb: gadget/uvc: Remove non-required
->> locking from 'uvc_queue_next_buffer' routine
->>
->> Hi Bhupesh,
->>
->> Thank you for the patch.
-> 
-...
->> This should probably go in through the USB tree. 
-...
-For sure, as this stuff doesn't belong to drivers/media ;)
+The controller stop/restart logic could possibly restart DMA after the
+driver things things have stopped, with suitably ugly results.  Make sure
+that we only restart the hardware if we're supposed to be streaming.
 
-Regards,
-Mauro
+Signed-off-by: Jonathan Corbet <corbet@lwn.net>
+---
+ drivers/media/video/marvell-ccic/mcam-core.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/media/video/marvell-ccic/mcam-core.c b/drivers/media/video/marvell-ccic/mcam-core.c
+index 37d20e7..35cd89d 100644
+--- a/drivers/media/video/marvell-ccic/mcam-core.c
++++ b/drivers/media/video/marvell-ccic/mcam-core.c
+@@ -556,6 +556,11 @@ static void mcam_dma_sg_done(struct mcam_camera *cam, int frame)
+ 	struct mcam_vb_buffer *buf = cam->vb_bufs[0];
+ 
+ 	/*
++	 * If we're no longer supposed to be streaming, don't do anything.
++	 */
++	if (cam->state != S_STREAMING)
++		return;
++	/*
+ 	 * Very Bad Not Good Things happen if you don't clear
+ 	 * C1_DESC_ENA before making any descriptor changes.
+ 	 */
+@@ -922,7 +927,7 @@ static void mcam_vb_buf_queue(struct vb2_buffer *vb)
+ 	spin_lock_irqsave(&cam->dev_lock, flags);
+ 	start = (cam->state == S_BUFWAIT) && !list_empty(&cam->buffers);
+ 	list_add(&mvb->queue, &cam->buffers);
+-	if (test_bit(CF_SG_RESTART, &cam->flags))
++	if (cam->state == S_STREAMING && test_bit(CF_SG_RESTART, &cam->flags))
+ 		mcam_sg_restart(cam);
+ 	spin_unlock_irqrestore(&cam->dev_lock, flags);
+ 	if (start)
+-- 
+1.7.9.3
+
