@@ -1,56 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:56576 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758058Ab2CLXJ6 (ORCPT
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:35524 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759547Ab2CPJIM convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Mar 2012 19:09:58 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Petter Selasky <hselasky@c2i.net>
-Cc: James Hogan <james@albanarts.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org
-Subject: Re: [GIT PULL FOR v3.3] uvcvideo divide by 0 fix
-Date: Tue, 13 Mar 2012 00:10:21 +0100
-Message-ID: <6138844.b9r1FjnsQ8@avalon>
-In-Reply-To: <201203112200.35422.hselasky@c2i.net>
-References: <20120219234151.GA32005@balrog> <1689974.qoel1Ujv1I@avalon> <201203112200.35422.hselasky@c2i.net>
+	Fri, 16 Mar 2012 05:08:12 -0400
+Received: by ghrr11 with SMTP id r11so3950531ghr.19
+        for <linux-media@vger.kernel.org>; Fri, 16 Mar 2012 02:08:11 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <4F6228D4.6090706@redhat.com>
+References: <CALjTZvZy4npSE0aELnmsZzzgsxUC1xjeNYVwQ_CvJG59PizfEQ@mail.gmail.com>
+	<CALF0-+Wp03vsbiaJFUt=ymnEncEvDg_KmnV+2OWjtO-_0qqBVg@mail.gmail.com>
+	<CALjTZvYVtuSm0v-_Q7od=iUDvHbkMe4c5ycAQZwoErCCe=N+Bg@mail.gmail.com>
+	<CALF0-+W3HenNpUt_yGxqs+fohcZ22ozDw9MhTWua0B++ZFA2vA@mail.gmail.com>
+	<CALjTZvYJZ32Red-UfZXubB-Lk503DWbHGTL_kEoV4DVDDYJ46w@mail.gmail.com>
+	<4F61C79E.6090603@redhat.com>
+	<CALjTZvZR=Mr-eSVwy=Wd8ToikAX9bG23NLARRw_K0scT-_YeCg@mail.gmail.com>
+	<4F61FF2D.6010505@redhat.com>
+	<CALF0-+WJ9c579+=2QMamxpAngHJKWfZaWqOp_z=GvZKGy97VnA@mail.gmail.com>
+	<4F6228D4.6090706@redhat.com>
+Date: Fri, 16 Mar 2012 09:08:11 +0000
+Message-ID: <CALjTZvYZTaQNkb4bxoG6Z5QHVcFg+hz9hgPkGzgrf_LAH2y0cQ@mail.gmail.com>
+Subject: Re: eMPIA EM2710 Webcam (em28xx) and LIRC
+From: Rui Salvaterra <rsalvaterra@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: =?UTF-8?Q?Ezequiel_Garc=C3=ADa?= <elezegarcia@gmail.com>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Hi again, I'm terribly sorry for the delay
 
-On Sunday 11 March 2012 22:00:35 Hans Petter Selasky wrote:
-> On Monday 20 February 2012 12:49:39 Laurent Pinchart wrote:
-> > Hi Mauro,
-> > 
-> > The following changes since commit
-> > 
-> > b01543dfe67bb1d191998e90d20534dc354de059:
-> >   Linux 3.3-rc4 (2012-02-18 15:53:33 -0800)
-> > 
-> > are available in the git repository at:
-> >   git://linuxtv.org/pinchartl/uvcvideo.git uvcvideo-stable
-> > 
-> > The patch fixes a divide by 0 bug reported by a couple of users already.
-> > Could you please make sure it gets into v3.3 ?
-> > 
-> > Laurent Pinchart (1):
-> >       uvcvideo: Avoid division by 0 in timestamp calculation
-> >  
-> >  drivers/media/video/uvc/uvc_video.c |   14 +++++++++-----
-> >  1 files changed, 9 insertions(+), 5 deletions(-)
-> 
-> Has this patch been pulled back into media_tree.git ?
 
-It doesn't seem so.
+2012/3/15 Mauro Carvalho Chehab <mchehab@redhat.com>:
+> Em 15-03-2012 14:15, Ezequiel García escreveu:
+>> Hi Mauro,
+>>
+>> On 3/15/12, Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
+>>> If you won't take it, it is likely that some day someone will do it,
+>>> but, as this is just a cleanup, the main developers won't likely
+>>> have time for doing it, as they're generally busy adding support for
+>>> new hardware.
+>>>
+>>
+>> I have no problem submitting the two patches in discussion.
+>> (Actually, I've already wroten the first one).
+>
+> Good!
+>
+>> If Rui wants to help me, it would be nice to get this tested,
+>> since I don't have the necessary hardware.
+>
+> I might test, but I'm currently very busy with some other stuff,
+> so I won't likely have time for it anytime soon.
 
-Mauro, could you please pull this ASAP ? v3.3 is very close.
 
--- 
-Regards,
+I'd love to give it at spin, of course. I'm just not familiar with the
+procedure on Debian/Ubuntu (last time I compiled a kernel I was
+running Gentoo, about six years ago).
 
-Laurent Pinchart
 
+>
+>> One thing I haven't got clear is this: I've seen that ir_raw_init()
+>> does not call request_module() directly but rather defers it
+>> through a work queue.
+>
+> Deferring request_module to a work_queue is a common procedure we
+> do at v4l drivers. It helps to initialize faster, and prevents some
+> dependency issues, as the decoders depend on rc_core to be initialized,
+> in order to load.
+>
+>> I don't understand fully the rc code, but still I don't get what
+>> happens if I need the raw decoders *now* (so to speak)
+>> but the work queue hasn't been run yet?
+>
+> Well, if you press an RC key while the needed decoded is not loaded,
+> that key will be lost. No other problems should happen.
+>
+> Regards,
+> Mauro.
+
+
+Thanks,
+
+Rui Salvaterra
