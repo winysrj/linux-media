@@ -1,62 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:60468 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754886Ab2CIUrJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Mar 2012 15:47:09 -0500
-Received: by wejx9 with SMTP id x9so1395206wej.19
-        for <linux-media@vger.kernel.org>; Fri, 09 Mar 2012 12:47:07 -0800 (PST)
-From: Gianluca Gennari <gennarone@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@redhat.com
-Cc: Gianluca Gennari <gennarone@gmail.com>
-Subject: [PATCH] media_build: add module_driver and module_i2c_driver macros to compat.h
-Date: Fri,  9 Mar 2012 21:45:50 +0100
-Message-Id: <1331325950-2879-1-git-send-email-gennarone@gmail.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:52324 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754552Ab2CPMyp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 16 Mar 2012 08:54:45 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/1] mt9v032: Provide pixel rate control
+Date: Fri, 16 Mar 2012 13:55:13 +0100
+Message-ID: <1762135.yeoBRAyros@avalon>
+In-Reply-To: <20120316123653.GC5412@valkosipuli.localdomain>
+References: <1331845299-6147-1-git-send-email-sakari.ailus@iki.fi> <2818545.mNbT3MTFRm@avalon> <20120316123653.GC5412@valkosipuli.localdomain>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch eliminates a lot of warnings like this on old kernels:
+Hi Sakari,
 
-media_build/v4l/au8522_decoder.c:842: warning: data definition has no type or storage class
-media_build/v4l/au8522_decoder.c:842: warning: type defaults to 'int' in declaration of 'module_i2c_driver'
-media_build/v4l/au8522_decoder.c:842: warning: parameter names (without types) in function declaration
-media_build/v4l/au8522_decoder.c:832: warning: 'au8522_driver' defined but not used
+On Friday 16 March 2012 14:36:53 Sakari Ailus wrote:
+> On Fri, Mar 16, 2012 at 01:31:39PM +0100, Laurent Pinchart wrote:
+> > On Friday 16 March 2012 14:12:11 Sakari Ailus wrote:
+> > > On Fri, Mar 16, 2012 at 12:58:30PM +0100, Laurent Pinchart wrote:
+> > > > On Thursday 15 March 2012 23:01:39 Sakari Ailus wrote:
+> > > > > Provide pixel rate control calculated from external clock and
+> > > > > horizontal
+> > > > > binning factor.
+> > > > > 
+> > > > > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> > > > > ---
+> > > > > 
+> > > > >  drivers/media/video/mt9v032.c |   35 
+> > > > >  ++++++++++++++++++++++++++++++++-
+> > > > >  1 files changed, 34 insertions(+), 1 deletions(-)
+> > > > > 
+> > > > > diff --git a/drivers/media/video/mt9v032.c
+> > > > > b/drivers/media/video/mt9v032.c
+> > > > > index 75e253a..e530e8d 100644
+> > > > > --- a/drivers/media/video/mt9v032.c
+> > > > > +++ b/drivers/media/video/mt9v032.c
+> > 
+> > [snip]
+> > 
+> > > > > +static void mt9v032_configure_pixel_rate(struct v4l2_subdev
+> > > > > *subdev,
+> > > > > +					 unsigned int hratio)
+> > > > > +{
+> > > > > +	struct i2c_client *client = v4l2_get_subdevdata(subdev);
+> > > > > +	struct mt9v032 *mt9v032 = to_mt9v032(subdev);
+> > > > > +	struct v4l2_ext_controls ctrls;
+> > > > > +	struct v4l2_ext_control ctrl;
+> > > > > +
+> > > > > +	memset(&ctrls, 0, sizeof(ctrls));
+> > > > > +	memset(&ctrl, 0, sizeof(ctrl));
+> > > > > +
+> > > > > +	ctrls.count = 1;
+> > > > > +	ctrls.controls = &ctrl;
+> > > > > +
+> > > > > +	ctrl.id = V4L2_CID_PIXEL_RATE;
+> > > > > +	ctrl.value64 = EXT_CLK / hratio;
+> > > > > +
+> > > > > +	if (v4l2_s_ext_ctrls(mt9v032->pixel_rate->ctrl_handler, &ctrls) 
+<
+> > > > > 0)
+> > > > > +		dev_warn(&client->dev, "bug: failed to set pixel rate\n");
+> > > > 
+> > > > What about just calling v4l2_ctrl_s_ctrl() ?
+> > > 
+> > > It's a 64-bit integer control, so it has to be set using
+> > > v4l2_s_ext_ctrls().> 
+> > What about extending v4l2_ctrl_s_ctrl() to support 64-bit integer controls
+> > then ?
+> 
+> The second argument to that function is struct v4l2_control:
+> 
+> struct v4l2_control {
+>         __u32                id;
+>         __s32                value;
+> };
+> 
+> So there's no chance to extend it. This must also be the reason why 64-bit
+> controls require using extended controls.
+> 
+> What we could do is to introduce v4l2_s_ext_ctrl without the "s" in the end
+> to just set one extended control. I think that would be a reasonable
+> approach, as it seems we need the functionality in multiple places.
 
-Tested with 2.6.32 and 3.3-rc6 without problems.
+We're talking about different functions.
 
-Signed-off-by: Gianluca Gennari <gennarone@gmail.com>
----
- v4l/compat.h |   20 ++++++++++++++++++++
- 1 files changed, 20 insertions(+), 0 deletions(-)
+int v4l2_ctrl_s_ctrl(struct v4l2_ctrl *ctrl, s32 val);
 
-diff --git a/v4l/compat.h b/v4l/compat.h
-index 62710c9..acc105c 100644
---- a/v4l/compat.h
-+++ b/v4l/compat.h
-@@ -898,4 +898,24 @@ module_exit(plat_mod_exit);
- #define DMA_MEM_TO_DEV DMA_TO_DEVICE
- #endif
- 
-+#ifndef module_driver
-+#define module_driver(__driver, __register, __unregister) \
-+static int __init __driver##_init(void) \
-+{ \
-+	return __register(&(__driver)); \
-+} \
-+module_init(__driver##_init); \
-+static void __exit __driver##_exit(void) \
-+{ \
-+	__unregister(&(__driver)); \
-+} \
-+module_exit(__driver##_exit);
-+#endif
-+
-+#ifndef module_i2c_driver
-+#define module_i2c_driver(__i2c_driver) \
-+       module_driver(__i2c_driver, i2c_add_driver, \
-+                       i2c_del_driver)
-+#endif
-+
- #endif /*  _COMPAT_H */
+Extending that one wouldn't break the userspace API. We could use s64 instead 
+of s32, or add a new function such as v4l2_ctrl_s_ctrl64().
+
 -- 
-1.7.0.4
+Regards,
+
+Laurent Pinchart
 
