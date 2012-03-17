@@ -1,193 +1,225 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:9730 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756552Ab2CSWDz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Mar 2012 18:03:55 -0400
-Message-ID: <4F67AD31.8030500@redhat.com>
-Date: Mon, 19 Mar 2012 19:03:29 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Alex Gershgorin <alexg@meprolight.com>
-CC: Sascha Hauer <s.hauer@pengutronix.de>,
-	linux-kernel@vger.kernel.org, g.liakhovetski@gmx.de,
-	fabio.estevam@freescale.com, linux-media@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCH v1] i.MX35-PDK: Add Camera support
-References: <1331651129-30540-1-git-send-email-alexg@meprolight.com>
-In-Reply-To: <1331651129-30540-1-git-send-email-alexg@meprolight.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mailout4.samsung.com ([203.254.224.34]:44780 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756860Ab2CQLJK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 17 Mar 2012 07:09:10 -0400
+Received: from epcpsbgm1.samsung.com (mailout4.samsung.com [203.254.224.34])
+ by mailout4.samsung.com
+ (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
+ 2010)) with ESMTP id <0M11009EH0B9ABC0@mailout4.samsung.com> for
+ linux-media@vger.kernel.org; Sat, 17 Mar 2012 20:09:10 +0900 (KST)
+Received: from localhost.localdomain ([107.108.73.106])
+ by mmp2.samsung.com (Oracle Communications Messaging Exchange Server 7u4-19.01
+ 64bit (built Sep  7 2010)) with ESMTPA id <0M1100JOJ0B86920@mmp2.samsung.com>
+ for linux-media@vger.kernel.org; Sat, 17 Mar 2012 20:09:18 +0900 (KST)
+From: Ajay Kumar <ajaykumar.rs@samsung.com>
+To: linux-media@vger.kernel.org, k.debski@samsung.com
+Cc: kyungmin.park@samsung.com, s.nawrocki@samsung.com,
+	es10.choi@samsung.com
+Subject: [PATCH v2 1/1] media: video: s5p-g2d: Add support for FIMG2D v41 H/W
+ logic
+Date: Sat, 17 Mar 2012 16:52:14 +0530
+Message-id: <1331983334-18934-2-git-send-email-ajaykumar.rs@samsung.com>
+In-reply-to: <1331983334-18934-1-git-send-email-ajaykumar.rs@samsung.com>
+References: <1331983334-18934-1-git-send-email-ajaykumar.rs@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 13-03-2012 12:05, Alex Gershgorin escreveu:
-> In i.MX35-PDK, OV2640  camera is populated on the
-> personality board. This camera is registered as a subdevice via soc-camera interface.
-> 
-> Signed-off-by: Alex Gershgorin <alexg@meprolight.com>
+Modify the G2D driver(which initially supported only FIMG2D v3 style H/W)
+to support FIMG2D v41 style hardware present on Exynos4x12 and Exynos52x0 SOC.
 
-Patch doesn't apply over v3.3:
+	-- Set the SRC and DST type to 'memory' instead of using reset values.
+	-- FIMG2D v41 H/W uses different logic for stretching(scaling).
+	-- Use CACHECTL_REG only with FIMG2D v3.
 
-patching file arch/arm/mach-imx/mach-mx35_3ds.c
-Hunk #3 FAILED at 149.
-Hunk #4 succeeded at 126 with fuzz 1 (offset -55 lines).
-Hunk #5 FAILED at 323.
-Hunk #6 succeeded at 277 (offset -57 lines).
-Hunk #7 succeeded at 293 (offset -57 lines).
-2 out of 7 hunks FAILED -- saving rejects to file arch/arm/mach-imx/mach-mx35_3ds.c.rej
- arch/arm/mach-imx/mach-mx35_3ds.c |   87 ++++++++++++++++++++++++++++++++++++++
+Signed-off-by: Ajay Kumar <ajaykumar.rs@samsung.com>
+---
+ drivers/media/video/s5p-g2d/g2d-hw.c   |   39 ++++++++++++++++++++++++++++---
+ drivers/media/video/s5p-g2d/g2d-regs.h |    6 +++++
+ drivers/media/video/s5p-g2d/g2d.c      |   23 +++++++++++++++++-
+ drivers/media/video/s5p-g2d/g2d.h      |    9 ++++++-
+ 4 files changed, 70 insertions(+), 7 deletions(-)
 
-
-> ---
->  arch/arm/mach-imx/mach-mx35_3ds.c |   96 +++++++++++++++++++++++++++++++++++++
->  1 files changed, 96 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/arm/mach-imx/mach-mx35_3ds.c b/arch/arm/mach-imx/mach-mx35_3ds.c
-> index 0af6c9c..a7dd8e6 100644
-> --- a/arch/arm/mach-imx/mach-mx35_3ds.c
-> +++ b/arch/arm/mach-imx/mach-mx35_3ds.c
-> @@ -4,6 +4,11 @@
->   *
->   * Author: Fabio Estevam <fabio.estevam@freescale.com>
->   *
-> + * Copyright (C) 2011 Meprolight, Ltd.
-> + * Alex Gershgorin <alexg@meprolight.com>
-> + *
-> + * Modified from i.MX31 3-Stack Development System
-> + *
->   * This program is free software; you can redistribute it and/or modify
->   * it under the terms of the GNU General Public License as published by
->   * the Free Software Foundation; either version 2 of the License, or
-> @@ -34,6 +39,7 @@
->  #include <asm/mach/arch.h>
->  #include <asm/mach/time.h>
->  #include <asm/mach/map.h>
-> +#include <asm/memblock.h>
->  
->  #include <mach/hardware.h>
->  #include <mach/common.h>
-> @@ -41,6 +47,8 @@
->  #include <mach/irqs.h>
->  #include <mach/3ds_debugboard.h>
->  
-> +#include <media/soc_camera.h>
-> +
->  #include "devices-imx35.h"
->  
->  #define EXPIO_PARENT_INT	gpio_to_irq(IMX_GPIO_NR(1, 1))
-> @@ -120,6 +128,83 @@ static iomux_v3_cfg_t mx35pdk_pads[] = {
->  	/* I2C1 */
->  	MX35_PAD_I2C1_CLK__I2C1_SCL,
->  	MX35_PAD_I2C1_DAT__I2C1_SDA,
-> +	/* CSI */
-> +	MX35_PAD_TX1__IPU_CSI_D_6,
-> +	MX35_PAD_TX0__IPU_CSI_D_7,
-> +	MX35_PAD_CSI_D8__IPU_CSI_D_8,
-> +	MX35_PAD_CSI_D9__IPU_CSI_D_9,
-> +	MX35_PAD_CSI_D10__IPU_CSI_D_10,
-> +	MX35_PAD_CSI_D11__IPU_CSI_D_11,
-> +	MX35_PAD_CSI_D12__IPU_CSI_D_12,
-> +	MX35_PAD_CSI_D13__IPU_CSI_D_13,
-> +	MX35_PAD_CSI_D14__IPU_CSI_D_14,
-> +	MX35_PAD_CSI_D15__IPU_CSI_D_15,
-> +	MX35_PAD_CSI_HSYNC__IPU_CSI_HSYNC,
-> +	MX35_PAD_CSI_MCLK__IPU_CSI_MCLK,
-> +	MX35_PAD_CSI_PIXCLK__IPU_CSI_PIXCLK,
-> +	MX35_PAD_CSI_VSYNC__IPU_CSI_VSYNC,
-> +};
-> +
-> +/*
-> + * Camera support
-> +*/
-> +static phys_addr_t mx3_camera_base __initdata;
-> +#define MX35_3DS_CAMERA_BUF_SIZE SZ_8M
-> +
-> +static const struct mx3_camera_pdata mx35_3ds_camera_pdata __initconst = {
-> +	.flags = MX3_CAMERA_DATAWIDTH_8,
-> +	.mclk_10khz = 2000,
-> +};
-> +
-> +static int __init imx35_3ds_init_camera(void)
-> +{
-> +	int dma, ret = -ENOMEM;
-> +	struct platform_device *pdev =
-> +		imx35_alloc_mx3_camera(&mx35_3ds_camera_pdata);
-> +
-> +	if (IS_ERR(pdev))
-> +		return PTR_ERR(pdev);
-> +
-> +	if (!mx3_camera_base)
-> +		goto err;
-> +
-> +	dma = dma_declare_coherent_memory(&pdev->dev,
-> +					mx3_camera_base, mx3_camera_base,
-> +					MX35_3DS_CAMERA_BUF_SIZE,
-> +					DMA_MEMORY_MAP | DMA_MEMORY_EXCLUSIVE);
-> +
-> +	if (!(dma & DMA_MEMORY_MAP))
-> +		goto err;
-> +
-> +	ret = platform_device_add(pdev);
-> +	if (ret)
-> +err:
-> +		platform_device_put(pdev);
-> +
-> +	return ret;
-> +}
-> +
-> +static const struct ipu_platform_data mx35_3ds_ipu_data __initconst = {
-> +	.irq_base = MXC_IPU_IRQ_START,
-> +};
-> +
-> +static struct i2c_board_info mx35_3ds_i2c_camera = {
-> +	I2C_BOARD_INFO("ov2640", 0x30),
-> +};
-> +
-> +static struct soc_camera_link iclink_ov2640 = {
-> +	.bus_id		= 0,
-> +	.board_info	= &mx35_3ds_i2c_camera,
-> +	.i2c_adapter_id	= 0,
-> +	.power		= NULL,
-> +};
-> +
-> +static struct platform_device mx35_3ds_ov2640 = {
-> +	.name	= "soc-camera-pdrv",
-> +	.id	= 0,
-> +	.dev	= {
-> +		.platform_data = &iclink_ov2640,
-> +	},
->  };
->  
->  static int mx35_3ds_otg_init(struct platform_device *pdev)
-> @@ -204,6 +289,9 @@ static void __init mx35_3ds_init(void)
->  		pr_warn("Init of the debugboard failed, all "
->  				"devices on the debugboard are unusable.\n");
->  	imx35_add_imx_i2c0(&mx35_3ds_i2c0_data);
-> +	imx35_add_ipu_core(&mx35_3ds_ipu_data);
-> +	platform_device_register(&mx35_3ds_ov2640);
-> +	imx35_3ds_init_camera();
->  }
->  
->  static void __init mx35pdk_timer_init(void)
-> @@ -215,6 +303,13 @@ struct sys_timer mx35pdk_timer = {
->  	.init	= mx35pdk_timer_init,
->  };
->  
-> +static void __init mx35_3ds_reserve(void)
-> +{
-> +	/* reserve MX35_3DS_CAMERA_BUF_SIZE bytes for mx3-camera */
-> +	mx3_camera_base = arm_memblock_steal(MX35_3DS_CAMERA_BUF_SIZE,
-> +					 MX35_3DS_CAMERA_BUF_SIZE);
-> +}
-> +
->  MACHINE_START(MX35_3DS, "Freescale MX35PDK")
->  	/* Maintainer: Freescale Semiconductor, Inc */
->  	.atag_offset = 0x100,
-> @@ -224,5 +319,6 @@ MACHINE_START(MX35_3DS, "Freescale MX35PDK")
->  	.handle_irq = imx35_handle_irq,
->  	.timer = &mx35pdk_timer,
->  	.init_machine = mx35_3ds_init,
-> +	.reserve = mx35_3ds_reserve,
->  	.restart	= mxc_restart,
->  MACHINE_END
+diff --git a/drivers/media/video/s5p-g2d/g2d-hw.c b/drivers/media/video/s5p-g2d/g2d-hw.c
+index 5b86cbe..f8225b8 100644
+--- a/drivers/media/video/s5p-g2d/g2d-hw.c
++++ b/drivers/media/video/s5p-g2d/g2d-hw.c
+@@ -28,6 +28,8 @@ void g2d_set_src_size(struct g2d_dev *d, struct g2d_frame *f)
+ {
+ 	u32 n;
+ 
++	w(0, SRC_SELECT_REG);
++
+ 	w(f->stride & 0xFFFF, SRC_STRIDE_REG);
+ 
+ 	n = f->o_height & 0xFFF;
+@@ -52,6 +54,8 @@ void g2d_set_dst_size(struct g2d_dev *d, struct g2d_frame *f)
+ {
+ 	u32 n;
+ 
++	w(0, DST_SELECT_REG);
++
+ 	w(f->stride & 0xFFFF, DST_STRIDE_REG);
+ 
+ 	n = f->o_height & 0xFFF;
+@@ -82,10 +86,36 @@ void g2d_set_flip(struct g2d_dev *d, u32 r)
+ 	w(r, SRC_MSK_DIRECT_REG);
+ }
+ 
+-u32 g2d_cmd_stretch(u32 e)
++/**
++ * g2d_calc_scale_factor - convert scale factor to fixed pint 16
++ * @n: numerator
++ * @d: denominator
++ */
++static unsigned long g2d_calc_scale_factor(int n, int d)
++{
++	return (n << 16) / d;
++}
++
++void g2d_set_v41_stretch(struct g2d_dev *d, struct g2d_frame *src,
++					struct g2d_frame *dst)
+ {
+-	e &= 1;
+-	return e << 4;
++	int src_w, src_h, dst_w, dst_h;
++	u32 wcfg, hcfg;
++
++	w(DEFAULT_SCALE_MODE, SRC_SCALE_CTRL_REG);
++
++	src_w = src->c_width;
++	src_h = src->c_height;
++
++	dst_w = dst->c_width;
++	dst_h = dst->c_height;
++
++	/* inversed scaling factor: src is numerator */
++	wcfg = g2d_calc_scale_factor(src_w, dst_w);
++	hcfg = g2d_calc_scale_factor(src_h, dst_h);
++
++	w(wcfg, SRC_XSCALE_REG);
++	w(hcfg, SRC_YSCALE_REG);
+ }
+ 
+ void g2d_set_cmd(struct g2d_dev *d, u32 c)
+@@ -96,7 +126,8 @@ void g2d_set_cmd(struct g2d_dev *d, u32 c)
+ void g2d_start(struct g2d_dev *d)
+ {
+ 	/* Clear cache */
+-	w(0x7, CACHECTL_REG);
++	if (d->device_type == TYPE_G2D_3X)
++		w(0x7, CACHECTL_REG);
+ 	/* Enable interrupt */
+ 	w(1, INTEN_REG);
+ 	/* Start G2D engine */
+diff --git a/drivers/media/video/s5p-g2d/g2d-regs.h b/drivers/media/video/s5p-g2d/g2d-regs.h
+index 02e1cf5..14c681f 100644
+--- a/drivers/media/video/s5p-g2d/g2d-regs.h
++++ b/drivers/media/video/s5p-g2d/g2d-regs.h
+@@ -35,6 +35,9 @@
+ #define SRC_COLOR_MODE_REG	0x030C	/* Src Image Color Mode reg */
+ #define SRC_LEFT_TOP_REG	0x0310	/* Src Left Top Coordinate reg */
+ #define SRC_RIGHT_BOTTOM_REG	0x0314	/* Src Right Bottom Coordinate reg */
++#define SRC_SCALE_CTRL_REG	0x0328	/* Src Scaling type select */
++#define SRC_XSCALE_REG		0x032c	/* Src X Scaling ratio */
++#define SRC_YSCALE_REG		0x0330	/* Src Y Scaling ratio */
+ 
+ /* Parameter Setting Registers (Dest) */
+ #define DST_SELECT_REG		0x0400	/* Dest Image Selection reg */
+@@ -112,4 +115,7 @@
+ 
+ #define DEFAULT_WIDTH		100
+ #define DEFAULT_HEIGHT		100
++#define DEFAULT_SCALE_MODE	(2 << 0)
+ 
++/* Command mode register values */
++#define CMD_V3_ENABLE_STRETCH	(1 << 4)
+diff --git a/drivers/media/video/s5p-g2d/g2d.c b/drivers/media/video/s5p-g2d/g2d.c
+index 789de74..8924f7e 100644
+--- a/drivers/media/video/s5p-g2d/g2d.c
++++ b/drivers/media/video/s5p-g2d/g2d.c
+@@ -582,8 +582,13 @@ static void device_run(void *prv)
+ 	g2d_set_flip(dev, ctx->flip);
+ 
+ 	if (ctx->in.c_width != ctx->out.c_width ||
+-		ctx->in.c_height != ctx->out.c_height)
+-		cmd |= g2d_cmd_stretch(1);
++		ctx->in.c_height != ctx->out.c_height) {
++		if (dev->device_type == TYPE_G2D_3X)
++			cmd |= CMD_V3_ENABLE_STRETCH;
++		else
++			g2d_set_v41_stretch(dev, &ctx->in, &ctx->out);
++	}
++
+ 	g2d_set_cmd(dev, cmd);
+ 	g2d_start(dev);
+ 
+@@ -783,6 +788,8 @@ static int g2d_probe(struct platform_device *pdev)
+ 
+ 	def_frame.stride = (def_frame.width * def_frame.fmt->depth) >> 3;
+ 
++	dev->device_type = platform_get_device_id(pdev)->driver_data;
++
+ 	return 0;
+ 
+ unreg_video_dev:
+@@ -832,9 +839,21 @@ static int g2d_remove(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
++static struct platform_device_id g2d_driver_ids[] = {
++	{
++		.name		= "s5p-g2d",
++		.driver_data	= TYPE_G2D_3X,
++	}, {
++		.name		= "s5p-g2d41x",
++		.driver_data	= TYPE_G2D_41X,
++	}, { },
++};
++MODULE_DEVICE_TABLE(platform, s3c24xx_driver_ids);
++
+ static struct platform_driver g2d_pdrv = {
+ 	.probe		= g2d_probe,
+ 	.remove		= g2d_remove,
++	.id_table	= g2d_driver_ids,
+ 	.driver		= {
+ 		.name = G2D_NAME,
+ 		.owner = THIS_MODULE,
+diff --git a/drivers/media/video/s5p-g2d/g2d.h b/drivers/media/video/s5p-g2d/g2d.h
+index 1b82065..009b37d 100644
+--- a/drivers/media/video/s5p-g2d/g2d.h
++++ b/drivers/media/video/s5p-g2d/g2d.h
+@@ -15,6 +15,11 @@
+ 
+ #define G2D_NAME "s5p-g2d"
+ 
++enum g2d_type {
++	TYPE_G2D_3X,
++	TYPE_G2D_41X,
++};
++
+ struct g2d_dev {
+ 	struct v4l2_device	v4l2_dev;
+ 	struct v4l2_m2m_dev	*m2m_dev;
+@@ -30,6 +35,7 @@ struct g2d_dev {
+ 	struct g2d_ctx		*curr;
+ 	int irq;
+ 	wait_queue_head_t	irq_queue;
++	enum g2d_type		device_type;
+ };
+ 
+ struct g2d_frame {
+@@ -81,7 +87,8 @@ void g2d_start(struct g2d_dev *d);
+ void g2d_clear_int(struct g2d_dev *d);
+ void g2d_set_rop4(struct g2d_dev *d, u32 r);
+ void g2d_set_flip(struct g2d_dev *d, u32 r);
+-u32 g2d_cmd_stretch(u32 e);
++void g2d_set_v41_stretch(struct g2d_dev *d,
++			struct g2d_frame *src, struct g2d_frame *dst);
+ void g2d_set_cmd(struct g2d_dev *d, u32 c);
+ 
+ 
+-- 
+1.7.0.4
 
