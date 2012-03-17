@@ -1,31 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:52497 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752475Ab2CNL2E (ORCPT
+Received: from educacao.niteroi.urbi.com.br ([200.152.56.131]:54751 "EHLO
+	FMEmail.localdomain" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753006Ab2CRHiy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Mar 2012 07:28:04 -0400
-Received: by yhmm54 with SMTP id m54so1642960yhm.19
-        for <linux-media@vger.kernel.org>; Wed, 14 Mar 2012 04:28:04 -0700 (PDT)
+	Sun, 18 Mar 2012 03:38:54 -0400
+Message-ID: <20120317154640.9kny76e8g88w80co@webmail.educacao.niteroi.rj.gov.br>
+Date: Sat, 17 Mar 2012 15:46:40 -0400
+From: "Mr.Saeed Ahmed." <seal@on.net>
+Reply-to: saeeahmedo5@linuxmail.org
+To: undisclosed-recipients:;
+Subject: Will You Be Trusted?
 MIME-Version: 1.0
-Date: Wed, 14 Mar 2012 11:28:03 +0000
-Message-ID: <CALjTZvZy4npSE0aELnmsZzzgsxUC1xjeNYVwQ_CvJG59PizfEQ@mail.gmail.com>
-Subject: eMPIA EM2710 Webcam (em28xx) and LIRC
-From: Rui Salvaterra <rsalvaterra@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain;
+	charset=ISO-8859-1;
+	DelSp="Yes";
+	format="flowed"
+Content-Disposition: inline
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi, everyone.
 
-I apologise in advance for the noise if this is the wrong place to ask
-such questions. I have a couple of eMPIA EM2710 (Silvercrest) USB
-webcams which work quite well, except for the fact that most of LIRC
-is unnecessarily loaded when the em28xx module loads. I suppose it
-shouldn't be necessary, since these are webcams and don't have any
-kind of IR remote control. I tried blacklisting the relevant modules,
-but they keep loading. If relevant, I'm running Linux 3.3.0-rc7 on
-Ubuntu 11.10.
-(I'm not subscribed to the list, but I occasionally lurk in the archives.)
 
-Thanks!
+Dear Friend,
+
+As you read this, I don't want you to feel sorry for me,because, I
+believe everyone will die someday,and am contacting you because
+I really do need your help and I want you to help me with all your
+effort and time for just seven to fourteen workings days of your time.I
+want you to be honest and truthful with me that you will help me
+with my last wish as a dying man.
+
+Please i need a reliable person who will usethe Money($18 milliondollars)to
+build orphanage home or charityorganization.
+
+Please kindly reply to my most confidential email if you are really
+interested in helping me please: saeeahmedo5@linuxmail.org
+
+
+God be with you.
+
+Mr.Saeed Ahmed.
+
+----------------------------------------------------------------
+FME Webmail
+www.educacao.niteroi.rj.gov.br
+
