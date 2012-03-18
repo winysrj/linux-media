@@ -1,87 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:35524 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759547Ab2CPJIM convert rfc822-to-8bit (ORCPT
+Received: from mail-lb0-f174.google.com ([209.85.217.174]:34087 "EHLO
+	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753420Ab2CROtK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Mar 2012 05:08:12 -0400
-Received: by ghrr11 with SMTP id r11so3950531ghr.19
-        for <linux-media@vger.kernel.org>; Fri, 16 Mar 2012 02:08:11 -0700 (PDT)
+	Sun, 18 Mar 2012 10:49:10 -0400
+Received: by lbbgm6 with SMTP id gm6so2815035lbb.19
+        for <linux-media@vger.kernel.org>; Sun, 18 Mar 2012 07:49:08 -0700 (PDT)
+Message-ID: <4F65F5E2.2030302@gmail.com>
+Date: Sun, 18 Mar 2012 15:49:06 +0100
+From: =?ISO-8859-1?Q?Roger_M=E5rtensson?= <roger.martensson@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <4F6228D4.6090706@redhat.com>
-References: <CALjTZvZy4npSE0aELnmsZzzgsxUC1xjeNYVwQ_CvJG59PizfEQ@mail.gmail.com>
-	<CALF0-+Wp03vsbiaJFUt=ymnEncEvDg_KmnV+2OWjtO-_0qqBVg@mail.gmail.com>
-	<CALjTZvYVtuSm0v-_Q7od=iUDvHbkMe4c5ycAQZwoErCCe=N+Bg@mail.gmail.com>
-	<CALF0-+W3HenNpUt_yGxqs+fohcZ22ozDw9MhTWua0B++ZFA2vA@mail.gmail.com>
-	<CALjTZvYJZ32Red-UfZXubB-Lk503DWbHGTL_kEoV4DVDDYJ46w@mail.gmail.com>
-	<4F61C79E.6090603@redhat.com>
-	<CALjTZvZR=Mr-eSVwy=Wd8ToikAX9bG23NLARRw_K0scT-_YeCg@mail.gmail.com>
-	<4F61FF2D.6010505@redhat.com>
-	<CALF0-+WJ9c579+=2QMamxpAngHJKWfZaWqOp_z=GvZKGy97VnA@mail.gmail.com>
-	<4F6228D4.6090706@redhat.com>
-Date: Fri, 16 Mar 2012 09:08:11 +0000
-Message-ID: <CALjTZvYZTaQNkb4bxoG6Z5QHVcFg+hz9hgPkGzgrf_LAH2y0cQ@mail.gmail.com>
-Subject: Re: eMPIA EM2710 Webcam (em28xx) and LIRC
-From: Rui Salvaterra <rsalvaterra@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: =?UTF-8?Q?Ezequiel_Garc=C3=ADa?= <elezegarcia@gmail.com>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Terratec H7(az6007), CI support and Kaffeine
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi again, I'm terribly sorry for the delay
+Hello!
 
+This mail is a small request to see if anyone else except me that has 
+problem with viewing encrypted channels.
 
-2012/3/15 Mauro Carvalho Chehab <mchehab@redhat.com>:
-> Em 15-03-2012 14:15, Ezequiel García escreveu:
->> Hi Mauro,
->>
->> On 3/15/12, Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
->>> If you won't take it, it is likely that some day someone will do it,
->>> but, as this is just a cleanup, the main developers won't likely
->>> have time for doing it, as they're generally busy adding support for
->>> new hardware.
->>>
->>
->> I have no problem submitting the two patches in discussion.
->> (Actually, I've already wroten the first one).
->
-> Good!
->
->> If Rui wants to help me, it would be nice to get this tested,
->> since I don't have the necessary hardware.
->
-> I might test, but I'm currently very busy with some other stuff,
-> so I won't likely have time for it anytime soon.
+My problem is as follows:
+When viewing encrypted channels I can watch without problem.
+When I change to another encrypted channel inside kaffeine nothing 
+happens. The EPG tells me which program it is but no video is displayed.
 
+To be able to watch the channel I have to close down kaffeine and 
+restart it. Then works every time.
 
-I'd love to give it at spin, of course. I'm just not familiar with the
-procedure on Debian/Ubuntu (last time I compiled a kernel I was
-running Gentoo, about six years ago).
+I can change to an unencrypted channel without problem but not switch 
+back to an encrypted one.
 
+This is using DVB-C and kaffeine 1.2.2 as supplied in Ubuntu 11.10. I am 
+using kernel 3.0.0-16-generic with media_build installed for access to 
+az6007-driver.
 
->
->> One thing I haven't got clear is this: I've seen that ir_raw_init()
->> does not call request_module() directly but rather defers it
->> through a work queue.
->
-> Deferring request_module to a work_queue is a common procedure we
-> do at v4l drivers. It helps to initialize faster, and prevents some
-> dependency issues, as the decoders depend on rc_core to be initialized,
-> in order to load.
->
->> I don't understand fully the rc code, but still I don't get what
->> happens if I need the raw decoders *now* (so to speak)
->> but the work queue hasn't been run yet?
->
-> Well, if you press an RC key while the needed decoded is not loaded,
-> that key will be lost. No other problems should happen.
->
-> Regards,
-> Mauro.
+I am using the CI-patch from Jose Alberto Reguero since I'm not sure it 
+has been added to media_build yet.
 
-
-Thanks,
-
-Rui Salvaterra
+Is this a Kaffeine-problem or is it a driver/dvb-problem?
