@@ -1,85 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.47]:53290 "EHLO mgw-sa01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932153Ab2CBRcx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 2 Mar 2012 12:32:53 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, dacohen@gmail.com,
-	snjw23@gmail.com, andriy.shevchenko@linux.intel.com,
-	t.stanislaws@samsung.com, tuukkat76@gmail.com,
-	k.debski@samsung.com, riverful@gmail.com, hverkuil@xs4all.nl,
-	teturtia@gmail.com
-Subject: [PATCH v4 03/34] vivi: Add an integer menu test control
-Date: Fri,  2 Mar 2012 19:30:11 +0200
-Message-Id: <1330709442-16654-3-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <20120302173219.GA15695@valkosipuli.localdomain>
-References: <20120302173219.GA15695@valkosipuli.localdomain>
+Received: from mail-pz0-f46.google.com ([209.85.210.46]:53542 "EHLO
+	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754658Ab2CRQEy convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 18 Mar 2012 12:04:54 -0400
+MIME-Version: 1.0
+In-Reply-To: <4F65F476.70002@bfs.de>
+References: <1332005817-10762-1-git-send-email-santoshprasadnayak@gmail.com>
+	<4F65F476.70002@bfs.de>
+Date: Sun, 18 Mar 2012 21:34:53 +0530
+Message-ID: <CAOD=uF52G=csMXQMoL7dGPdTv16S9WKsfqpooA+y=ha9RNib1w@mail.gmail.com>
+Subject: Re: [PATCH] [media] staging: use mutex_lock() in s2250_probe().
+From: santosh prasad nayak <santoshprasadnayak@gmail.com>
+To: wharms@bfs.de
+Cc: mchehab@infradead.org, oliver@neukum.org,
+	gregkh@linuxfoundation.org, khoroshilov@ispras.ru,
+	linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+	linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add an integer menu test control for the vivi driver.
+On Sun, Mar 18, 2012 at 8:13 PM, walter harms <wharms@bfs.de> wrote:
+>
+>
+> Am 17.03.2012 18:36, schrieb santosh nayak:
+>> From: Santosh Nayak <santoshprasadnayak@gmail.com>
+>>
+>> Use uninterruptable sleep lock  'mutex_lock()'  in place of
+>> mutex_lock_interruptible() because there is no userspace
+>> for s2250_probe().
+>>
+>> Return -ENOMEM   if kzalloc() fails to allocate and initialize.
+>>
+>> Signed-off-by: Santosh Nayak <santoshprasadnayak@gmail.com>
+>> ---
+>>  drivers/staging/media/go7007/s2250-board.c |   43 +++++++++++++++------------
+>>  1 files changed, 24 insertions(+), 19 deletions(-)
+>>
+>> diff --git a/drivers/staging/media/go7007/s2250-board.c b/drivers/staging/media/go7007/s2250-board.c
+>> index 014d384..1406a37 100644
+>> --- a/drivers/staging/media/go7007/s2250-board.c
+>> +++ b/drivers/staging/media/go7007/s2250-board.c
+>> @@ -637,27 +637,32 @@ static int s2250_probe(struct i2c_client *client,
+>>       state->audio_input = 0;
+>>       write_reg(client, 0x08, 0x02); /* Line In */
+>>
+>> -     if (mutex_lock_interruptible(&usb->i2c_lock) == 0) {
+>> -             data = kzalloc(16, GFP_KERNEL);
+>> -             if (data != NULL) {
+>> -                     int rc;
+>> -                     rc = go7007_usb_vendor_request(go, 0x41, 0, 0,
+>> -                                                    data, 16, 1);
+>> -                     if (rc > 0) {
+>> -                             u8 mask;
+>> -                             data[0] = 0;
+>> -                             mask = 1<<5;
+>> -                             data[0] &= ~mask;
+>> -                             data[1] |= mask;
+>> -                             go7007_usb_vendor_request(go, 0x40, 0,
+>> -                                                       (data[1]<<8)
+>> -                                                       + data[1],
+>> -                                                       data, 16, 0);
+>> -                     }
+>> -                     kfree(data);
+>> -             }
+>> +     mutex_lock(&usb->i2c_lock);
+>> +     data = kzalloc(16, GFP_KERNEL);
+>> +     if (data == NULL) {
+>> +             i2c_unregister_device(audio);
+>> +             kfree(state);
+>>               mutex_unlock(&usb->i2c_lock);
+>> +             return -ENOMEM;
+>> +     } else {
+>> +             int rc;
+>> +             rc = go7007_usb_vendor_request(go, 0x41, 0, 0,
+>> +                                            data, 16, 1);
+>> +             if (rc > 0) {
+>> +                     u8 mask;
+>> +                     data[0] = 0;
+>> +                     mask = 1<<5;
+>> +                     data[0] &= ~mask;
+>> +                     data[1] |= mask;
+>> +                     go7007_usb_vendor_request(go, 0x40, 0,
+>> +                                               (data[1]<<8)
+>> +                                               + data[1],
+>> +                                               data, 16, 0);
+>> +             }
+>> +             kfree(data);
+>>       }
+>> +     mutex_unlock(&usb->i2c_lock);
+>> +
+>>
+>>       v4l2_info(sd, "initialized successfully\n");
+>>       return 0;
+>
+> hi,
+> You can drop the else
+> 1. there is no 3. way
+> 2. you can save 1 indent level
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/video/vivi.c |   22 ++++++++++++++++++++++
- 1 files changed, 22 insertions(+), 0 deletions(-)
+ok. I will do it.
 
-diff --git a/drivers/media/video/vivi.c b/drivers/media/video/vivi.c
-index 5e8b071..d75a1e4 100644
---- a/drivers/media/video/vivi.c
-+++ b/drivers/media/video/vivi.c
-@@ -177,6 +177,7 @@ struct vivi_dev {
- 	struct v4l2_ctrl	   *menu;
- 	struct v4l2_ctrl	   *string;
- 	struct v4l2_ctrl	   *bitmask;
-+	struct v4l2_ctrl	   *int_menu;
- 
- 	spinlock_t                 slock;
- 	struct mutex		   mutex;
-@@ -503,6 +504,10 @@ static void vivi_fillbuff(struct vivi_dev *dev, struct vivi_buffer *buf)
- 			dev->boolean->cur.val,
- 			dev->menu->qmenu[dev->menu->cur.val],
- 			dev->string->cur.string);
-+	snprintf(str, sizeof(str), " integer_menu %lld, value %d ",
-+			dev->int_menu->qmenu_int[dev->int_menu->cur.val],
-+			dev->int_menu->cur.val);
-+	gen_text(dev, vbuf, line++ * 16, 16, str);
- 	mutex_unlock(&dev->ctrl_handler.lock);
- 	gen_text(dev, vbuf, line++ * 16, 16, str);
- 	if (dev->button_pressed) {
-@@ -1165,6 +1170,22 @@ static const struct v4l2_ctrl_config vivi_ctrl_bitmask = {
- 	.step = 0,
- };
- 
-+static const s64 vivi_ctrl_int_menu_values[] = {
-+	1, 1, 2, 3, 5, 8, 13, 21, 42,
-+};
-+
-+static const struct v4l2_ctrl_config vivi_ctrl_int_menu = {
-+	.ops = &vivi_ctrl_ops,
-+	.id = VIVI_CID_CUSTOM_BASE + 7,
-+	.name = "Integer menu",
-+	.type = V4L2_CTRL_TYPE_INTEGER_MENU,
-+	.min = 1,
-+	.max = 8,
-+	.def = 4,
-+	.menu_skip_mask = 0x02,
-+	.qmenu_int = vivi_ctrl_int_menu_values,
-+};
-+
- static const struct v4l2_file_operations vivi_fops = {
- 	.owner		= THIS_MODULE,
- 	.open           = v4l2_fh_open,
-@@ -1275,6 +1296,7 @@ static int __init vivi_create_instance(int inst)
- 	dev->menu = v4l2_ctrl_new_custom(hdl, &vivi_ctrl_menu, NULL);
- 	dev->string = v4l2_ctrl_new_custom(hdl, &vivi_ctrl_string, NULL);
- 	dev->bitmask = v4l2_ctrl_new_custom(hdl, &vivi_ctrl_bitmask, NULL);
-+	dev->int_menu = v4l2_ctrl_new_custom(hdl, &vivi_ctrl_int_menu, NULL);
- 	if (hdl->error) {
- 		ret = hdl->error;
- 		goto unreg_dev;
--- 
-1.7.2.5
+>
+> just one question: the (data[1]<<8)+ data[1] is intended ? always data[1] ?
+> (i have no clue, it is the original code, it just feels .. strange )
 
+I just added mutex_lock and error handling for kzalloc .
+Rest of the things were there before. No change done by me.
+
+regards
+Santosh
+
+> re,
+>  wh
