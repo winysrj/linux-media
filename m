@@ -1,343 +1,152 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.48]:16453 "EHLO mgw-sa02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758305Ab2CITPv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 9 Mar 2012 14:15:51 -0500
-Message-ID: <4F5A56D0.50803@iki.fi>
-Date: Fri, 09 Mar 2012 21:15:28 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-media@vger.kernel.org, sakari.ailus@iki.fi,
-	Martin Hostettler <martin@neutronstar.dyndns.org>
-Subject: Re: [PATCH v4 5/5] v4l: Add driver for Micron MT9M032 camera sensor
-References: <1331305285-10781-1-git-send-email-laurent.pinchart@ideasonboard.com> <1331305285-10781-6-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1331305285-10781-6-git-send-email-laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mail-wi0-f178.google.com ([209.85.212.178]:38838 "EHLO
+	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756896Ab2CRXU3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 18 Mar 2012 19:20:29 -0400
+Received: by wibhq7 with SMTP id hq7so3127375wib.1
+        for <linux-media@vger.kernel.org>; Sun, 18 Mar 2012 16:20:28 -0700 (PDT)
+From: Daniel Vetter <daniel.vetter@ffwll.ch>
+To: linaro-mm-sig@lists.linaro.org,
+	LKML <linux-kernel@vger.kernel.org>,
+	DRI Development <dri-devel@lists.freedesktop.org>,
+	linux-media@vger.kernel.org
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
+Subject: [PATCH 3/4] dma_buf: Add documentation for the new cpu access support
+Date: Mon, 19 Mar 2012 00:34:27 +0100
+Message-Id: <1332113668-4364-3-git-send-email-daniel.vetter@ffwll.ch>
+In-Reply-To: <1332113668-4364-1-git-send-email-daniel.vetter@ffwll.ch>
+References: <1332113668-4364-1-git-send-email-daniel.vetter@ffwll.ch>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+v2: Fix spelling issues noticed by Rob Clark.
 
-Thanks for the patch. Just a few minor comments below.
+Signed-off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+---
+ Documentation/dma-buf-sharing.txt |  102 +++++++++++++++++++++++++++++++++++-
+ 1 files changed, 99 insertions(+), 3 deletions(-)
 
-Laurent Pinchart wrote:
-...
-> +static int mt9m032_setup_pll(struct mt9m032 *sensor)
-> +{
-> +	static const struct aptina_pll_limits limits = {
-> +		.ext_clock_min = 8000000,
-> +		.ext_clock_max = 16500000,
-> +		.int_clock_min = 2000000,
-> +		.int_clock_max = 24000000,
-> +		.out_clock_min = 322000000,
-> +		.out_clock_max = 693000000,
-> +		.pix_clock_max = 99000000,
-> +		.n_min = 1,
-> +		.n_max = 64,
-> +		.m_min = 16,
-> +		.m_max = 255,
-> +		.p1_min = 1,
-> +		.p1_max = 128,
-> +	};
-> +
-> +	struct i2c_client *client = v4l2_get_subdevdata(&sensor->subdev);
-> +	struct mt9m032_platform_data *pdata = sensor->pdata;
-> +	struct aptina_pll pll;
-> +	int ret;
-> +
-> +	pll.ext_clock = pdata->ext_clock;
-> +	pll.pix_clock = pdata->pix_clock;
-> +
-> +	ret = aptina_pll_calculate(&client->dev, &limits, &pll);
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	sensor->pix_clock = pll.pix_clock;
-
-I wouldn't expect aptina_pll_calculate() to change the supplied pixel
-clock. I'd consider it a bug if it does that. So you could use the pixel
-clock from platform data equally well.
-
-> +	ret = mt9m032_write(client, MT9M032_PLL_CONFIG1,
-> +			    (pll.m << MT9M032_PLL_CONFIG1_MUL_SHIFT)
-> +			    | (pll.p1 - 1));
-> +	if (!ret)
-> +		ret = mt9m032_write(client, MT9P031_PLL_CONFIG2, pll.n - 1);
-> +	if (!ret)
-> +		ret = mt9m032_write(client, MT9P031_PLL_CONTROL,
-> +				    MT9P031_PLL_CONTROL_PWRON |
-> +				    MT9P031_PLL_CONTROL_USEPLL);
-> +	if (!ret)		/* more reserved, Continuous, Master Mode */
-> +		ret = mt9m032_write(client, MT9M032_READ_MODE1, 0x8006);
-> +	if (!ret)		/* Set 14-bit mode, select 7 divider */
-> +		ret = mt9m032_write(client, MT9M032_FORMATTER1, 0x111e);
-> +
-> +	return ret;
-> +}
-
-...
-> +static int mt9m032_set_pad_format(struct v4l2_subdev *subdev,
-> +				  struct v4l2_subdev_fh *fh,
-> +				  struct v4l2_subdev_format *fmt)
-> +{
-> +	struct mt9m032 *sensor = to_mt9m032(subdev);
-> +	int ret;
-> +
-> +	mutex_lock(&sensor->lock);
-> +
-> +	if (sensor->streaming && fmt->which == V4L2_SUBDEV_FORMAT_ACTIVE) {
-> +		ret = -EBUSY;
-> +		goto done;
-> +	}
-> +
-> +	/* Scaling is not supported, the format is thus fixed. */
-> +	ret = mt9m032_get_pad_format(subdev, fh, fmt);
-> +
-> +done:
-> +	mutex_lock(&sensor->lock);
-> +	return ret;
-> +}
-> +
-> +static int mt9m032_get_crop(struct v4l2_subdev *subdev,
-> +			    struct v4l2_subdev_fh *fh,
-> +			    struct v4l2_subdev_crop *crop)
-> +{
-> +	struct mt9m032 *sensor = to_mt9m032(subdev);
-> +
-> +	mutex_lock(&sensor->lock);
-> +	crop->rect = *__mt9m032_get_pad_crop(sensor, fh, crop->which);
-> +	mutex_unlock(&sensor->lock);
-> +
-> +	return 0;
-> +}
-
-Shouldn't these two be renamed --- you've got "pad" in set/get fmt names
-as well.
-
-> +static int mt9m032_set_crop(struct v4l2_subdev *subdev,
-> +			    struct v4l2_subdev_fh *fh,
-> +			    struct v4l2_subdev_crop *crop)
-> +{
-> +	struct mt9m032 *sensor = to_mt9m032(subdev);
-> +	struct v4l2_mbus_framefmt *format;
-> +	struct v4l2_rect *__crop;
-> +	struct v4l2_rect rect;
-> +	int ret = 0;
-> +
-> +	mutex_lock(&sensor->lock);
-> +
-> +	if (sensor->streaming && crop->which == V4L2_SUBDEV_FORMAT_ACTIVE) {
-> +		ret = -EBUSY;
-> +		goto done;
-> +	}
-> +
-> +	/* Clamp the crop rectangle boundaries and align them to a multiple of 2
-> +	 * pixels to ensure a GRBG Bayer pattern.
-> +	 */
-> +	rect.left = clamp(ALIGN(crop->rect.left, 2), MT9M032_COLUMN_START_MIN,
-> +			  MT9M032_COLUMN_START_MAX);
-> +	rect.top = clamp(ALIGN(crop->rect.top, 2), MT9M032_ROW_START_MIN,
-> +			 MT9M032_ROW_START_MAX);
-> +	rect.width = clamp(ALIGN(crop->rect.width, 2), MT9M032_COLUMN_SIZE_MIN,
-> +			   MT9M032_COLUMN_SIZE_MAX);
-> +	rect.height = clamp(ALIGN(crop->rect.height, 2), MT9M032_ROW_SIZE_MIN,
-> +			    MT9M032_ROW_SIZE_MAX);
-> +
-> +	rect.width = min(rect.width, MT9M032_PIXEL_ARRAY_WIDTH - rect.left);
-> +	rect.height = min(rect.height, MT9M032_PIXEL_ARRAY_HEIGHT - rect.top);
-> +
-> +	__crop = __mt9m032_get_pad_crop(sensor, fh, crop->which);
-> +
-> +	if (rect.width != __crop->width || rect.height != __crop->height) {
-> +		/* Reset the output image size if the crop rectangle size has
-> +		 * been modified.
-> +		 */
-> +		format = __mt9m032_get_pad_format(sensor, fh, crop->which);
-> +		format->width = rect.width;
-> +		format->height = rect.height;
-> +	}
-> +
-> +	*__crop = rect;
-> +	crop->rect = rect;
-> +
-> +	if (crop->which == V4L2_SUBDEV_FORMAT_ACTIVE)
-> +		ret = mt9m032_update_geom_timing(sensor);
-> +
-> +done:
-> +	mutex_unlock(&sensor->lock);
-> +	return ret;
-> +}
-
-...
-
-> +static int mt9m032_probe(struct i2c_client *client,
-> +			 const struct i2c_device_id *devid)
-> +{
-> +	struct i2c_adapter *adapter = client->adapter;
-> +	struct mt9m032 *sensor;
-> +	int chip_version;
-> +	int ret;
-> +
-> +	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_WORD_DATA)) {
-> +		dev_warn(&client->dev,
-> +			 "I2C-Adapter doesn't support I2C_FUNC_SMBUS_WORD\n");
-> +		return -EIO;
-> +	}
-> +
-> +	if (!client->dev.platform_data)
-> +		return -ENODEV;
-> +
-> +	sensor = kzalloc(sizeof(*sensor), GFP_KERNEL);
-> +	if (sensor == NULL)
-> +		return -ENOMEM;
-> +
-> +	mutex_init(&sensor->lock);
-> +
-> +	sensor->pdata = client->dev.platform_data;
-> +
-> +	v4l2_i2c_subdev_init(&sensor->subdev, client, &mt9m032_ops);
-> +	sensor->subdev.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
-> +
-> +	chip_version = mt9m032_read(client, MT9M032_CHIP_VERSION);
-> +	if (chip_version != MT9M032_CHIP_VERSION_VALUE) {
-> +		dev_err(&client->dev, "MT9M032 not detected, wrong version "
-> +			"0x%04x\n", chip_version);
-> +		ret = -ENODEV;
-> +		goto free_sensor;
-> +	}
-> +
-> +	dev_info(&client->dev, "MT9M032 detected at address 0x%02x\n",
-> +		 client->addr);
-> +
-> +	sensor->frame_interval.numerator = 1;
-> +	sensor->frame_interval.denominator = 30;
-> +
-> +	sensor->crop.left = 416;
-> +	sensor->crop.top = 360;
-> +	sensor->crop.width = 640;
-> +	sensor->crop.height = 480;
-
-How was the situation with this? Shouldn't the default be no cropping?
-
-> +	sensor->format.width = sensor->crop.width;
-> +	sensor->format.height = sensor->crop.height;
-> +	sensor->format.code = V4L2_MBUS_FMT_Y8_1X8;
-> +	sensor->format.field = V4L2_FIELD_NONE;
-> +	sensor->format.colorspace = V4L2_COLORSPACE_SRGB;
-> +
-> +	v4l2_ctrl_handler_init(&sensor->ctrls, 4);
-> +
-> +	v4l2_ctrl_new_std(&sensor->ctrls, &mt9m032_ctrl_ops,
-> +			  V4L2_CID_GAIN, 0, 127, 1, 64);
-> +
-> +	sensor->hflip = v4l2_ctrl_new_std(&sensor->ctrls,
-> +					  &mt9m032_ctrl_ops,
-> +					  V4L2_CID_HFLIP, 0, 1, 1, 0);
-> +	sensor->vflip = v4l2_ctrl_new_std(&sensor->ctrls,
-> +					  &mt9m032_ctrl_ops,
-> +					  V4L2_CID_VFLIP, 0, 1, 1, 0);
-> +
-> +	v4l2_ctrl_new_std(&sensor->ctrls, &mt9m032_ctrl_ops,
-> +			  V4L2_CID_EXPOSURE, MT9M032_SHUTTER_WIDTH_MIN,
-> +			  MT9M032_SHUTTER_WIDTH_MAX, 1,
-> +			  MT9M032_SHUTTER_WIDTH_DEF);
-> +
-> +	if (sensor->ctrls.error) {
-> +		ret = sensor->ctrls.error;
-> +		dev_err(&client->dev, "control initialization error %d\n", ret);
-> +		goto free_ctrl;
-> +	}
-> +
-> +	v4l2_ctrl_cluster(2, &sensor->hflip);
-> +
-> +	sensor->subdev.ctrl_handler = &sensor->ctrls;
-> +	sensor->pad.flags = MEDIA_PAD_FL_SOURCE;
-> +	ret = media_entity_init(&sensor->subdev.entity, 1, &sensor->pad, 0);
-> +	if (ret < 0)
-> +		goto free_ctrl;
-> +
-> +	ret = mt9m032_write(client, MT9M032_RESET, 1);	/* reset on */
-> +	if (ret < 0)
-> +		goto free_ctrl;
-
-I think you should do media_entity_cleanup() if this or anything past
-this fails.
-
-> +	mt9m032_write(client, MT9M032_RESET, 0);	/* reset off */
-> +	if (ret < 0)
-> +		goto free_ctrl;
-> +
-> +	ret = mt9m032_setup_pll(sensor);
-> +	if (ret < 0)
-> +		goto free_ctrl;
-> +	usleep_range(10000, 11000);
-> +
-> +	v4l2_ctrl_handler_setup(&sensor->ctrls);
-> +
-> +	/* SIZE */
-> +	ret = mt9m032_update_geom_timing(sensor);
-> +	if (ret < 0)
-> +		goto free_ctrl;
-> +
-> +	ret = mt9m032_write(client, 0x41, 0x0000);	/* reserved !!! */
-> +	if (ret < 0)
-> +		goto free_ctrl;
-> +	ret = mt9m032_write(client, 0x42, 0x0003);	/* reserved !!! */
-> +	if (ret < 0)
-> +		goto free_ctrl;
-> +	ret = mt9m032_write(client, 0x43, 0x0003);	/* reserved !!! */
-> +	if (ret < 0)
-> +		goto free_ctrl;
-> +	ret = mt9m032_write(client, 0x7f, 0x0000);	/* reserved !!! */
-> +	if (ret < 0)
-> +		goto free_ctrl;
-> +	if (sensor->pdata->invert_pixclock) {
-> +		ret = mt9m032_write(client, MT9M032_PIX_CLK_CTRL,
-> +				    MT9M032_PIX_CLK_CTRL_INV_PIXCLK);
-> +		if (ret < 0)
-> +			goto free_ctrl;
-> +	}
-> +
-> +	ret = mt9m032_write(client, MT9M032_RESTART, 1); /* Restart on */
-> +	if (ret < 0)
-> +		goto free_ctrl;
-> +	msleep(100);
-> +	ret = mt9m032_write(client, MT9M032_RESTART, 0); /* Restart off */
-> +	if (ret < 0)
-> +		goto free_ctrl;
-> +	msleep(100);
-> +	ret = update_formatter2(sensor, false);
-> +	if (ret < 0)
-> +		goto free_ctrl;
-> +
-> +	return ret;
-> +
-> +free_ctrl:
-> +	v4l2_ctrl_handler_free(&sensor->ctrls);
-> +
-> +free_sensor:
-> +	mutex_destroy(&sensor->lock);
-> +	kfree(sensor);
-> +	return ret;
-> +}
-> +
-> +static int mt9m032_remove(struct i2c_client *client)
-> +{
-> +	struct v4l2_subdev *subdev = i2c_get_clientdata(client);
-> +	struct mt9m032 *sensor = to_mt9m032(subdev);
-> +
-> +	v4l2_device_unregister_subdev(&sensor->subdev);
-> +	v4l2_ctrl_handler_free(&sensor->ctrls);
-> +	media_entity_cleanup(&sensor->subdev.entity);
-> +	mutex_destroy(&sensor->lock);
-> +	kfree(sensor);
-> +	return 0;
-> +}
-
-Kind regards,
-
+diff --git a/Documentation/dma-buf-sharing.txt b/Documentation/dma-buf-sharing.txt
+index 225f96d..9f3aeef 100644
+--- a/Documentation/dma-buf-sharing.txt
++++ b/Documentation/dma-buf-sharing.txt
+@@ -32,8 +32,12 @@ The buffer-user
+ *IMPORTANT*: [see https://lkml.org/lkml/2011/12/20/211 for more details]
+ For this first version, A buffer shared using the dma_buf sharing API:
+ - *may* be exported to user space using "mmap" *ONLY* by exporter, outside of
+-   this framework.
+-- may be used *ONLY* by importers that do not need CPU access to the buffer.
++  this framework.
++- with this new iteration of the dma-buf api cpu access from the kernel has been
++  enable, see below for the details.
++
++dma-buf operations for device dma only
++--------------------------------------
+ 
+ The dma_buf buffer sharing API usage contains the following steps:
+ 
+@@ -219,7 +223,99 @@ NOTES:
+    If the exporter chooses not to allow an attach() operation once a
+    map_dma_buf() API has been called, it simply returns an error.
+ 
+-Miscellaneous notes:
++Kernel cpu access to a dma-buf buffer object
++--------------------------------------------
++
++The motivation to allow cpu access from the kernel to a dma-buf object from the
++importers side are:
++- fallback operations, e.g. if the devices is connected to a usb bus and the
++  kernel needs to shuffle the data around first before sending it away.
++- full transparency for existing users on the importer side, i.e. userspace
++  should not notice the difference between a normal object from that subsystem
++  and an imported one backed by a dma-buf. This is really important for drm
++  opengl drivers that expect to still use all the existing upload/download
++  paths.
++
++Access to a dma_buf from the kernel context involves three steps:
++
++1. Prepare access, which invalidate any necessary caches and make the object
++   available for cpu access.
++2. Access the object page-by-page with the dma_buf map apis
++3. Finish access, which will flush any necessary cpu caches and free reserved
++   resources.
++
++1. Prepare access
++
++   Before an importer can access a dma_buf object with the cpu from the kernel
++   context, it needs to notify the exporter of the access that is about to
++   happen.
++
++   Interface:
++      int dma_buf_begin_cpu_access(struct dma_buf *dmabuf,
++				   size_t start, size_t len,
++				   enum dma_data_direction direction)
++
++   This allows the exporter to ensure that the memory is actually available for
++   cpu access - the exporter might need to allocate or swap-in and pin the
++   backing storage. The exporter also needs to ensure that cpu access is
++   coherent for the given range and access direction. The range and access
++   direction can be used by the exporter to optimize the cache flushing, i.e.
++   access outside of the range or with a different direction (read instead of
++   write) might return stale or even bogus data (e.g. when the exporter needs to
++   copy the data to temporary storage).
++
++   This step might fail, e.g. in oom conditions.
++
++2. Accessing the buffer
++
++   To support dma_buf objects residing in highmem cpu access is page-based using
++   an api similar to kmap. Accessing a dma_buf is done in aligned chunks of
++   PAGE_SIZE size. Before accessing a chunk it needs to be mapped, which returns
++   a pointer in kernel virtual address space. Afterwards the chunk needs to be
++   unmapped again. There is no limit on how often a given chunk can be mapped
++   and unmapped, i.e. the importer does not need to call begin_cpu_access again
++   before mapping the same chunk again.
++
++   Interfaces:
++      void *dma_buf_kmap(struct dma_buf *, unsigned long);
++      void dma_buf_kunmap(struct dma_buf *, unsigned long, void *);
++
++   There are also atomic variants of these interfaces. Like for kmap they
++   facilitate non-blocking fast-paths. Neither the importer nor the exporter (in
++   the callback) is allowed to block when using these.
++
++   Interfaces:
++      void *dma_buf_kmap_atomic(struct dma_buf *, unsigned long);
++      void dma_buf_kunmap_atomic(struct dma_buf *, unsigned long, void *);
++
++   For importers all the restrictions of using kmap apply, like the limited
++   supply of kmap_atomic slots. Hence an importer shall only hold onto at most 2
++   atomic dma_buf kmaps at the same time (in any given process context).
++
++   dma_buf kmap calls outside of the range specified in begin_cpu_access are
++   undefined. If the range is not PAGE_SIZE aligned, kmap needs to succeed on
++   the partial chunks at the beginning and end but may return stale or bogus
++   data outside of the range (in these partial chunks).
++
++   Note that these calls need to always succeed. The exporter needs to complete
++   any preparations that might fail in begin_cpu_access.
++
++3. Finish access
++
++   When the importer is done accessing the range specified in begin_cpu_access,
++   it needs to announce this to the exporter (to facilitate cache flushing and
++   unpinning of any pinned resources). The result of of any dma_buf kmap calls
++   after end_cpu_access is undefined.
++
++   Interface:
++      void dma_buf_end_cpu_access(struct dma_buf *dma_buf,
++				  size_t start, size_t len,
++				  enum dma_data_direction dir);
++
++
++Miscellaneous notes
++-------------------
++
+ - Any exporters or users of the dma-buf buffer sharing framework must have
+   a 'select DMA_SHARED_BUFFER' in their respective Kconfigs.
+ 
 -- 
-Sakari Ailus
-sakari.ailus@iki.fi
+1.7.7.5
+
