@@ -1,94 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:33449 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760475Ab2CNBgy (ORCPT
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:46586 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753838Ab2CRTEM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Mar 2012 21:36:54 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Bhupesh SHARMA <bhupesh.sharma@st.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] media: Initialize the media core with subsys_initcall()
-Date: Wed, 14 Mar 2012 02:37:19 +0100
-Message-ID: <2310390.JmOSWKFls9@avalon>
-In-Reply-To: <D5ECB3C7A6F99444980976A8C6D896384FA2BA2212@EAPEX1MAIL1.st.com>
-References: <bbe7861cb38c036d3c24df908ffbfc125274ea99.1331543025.git.bhupesh.sharma@st.com> <1331560967-32396-1-git-send-email-laurent.pinchart@ideasonboard.com> <D5ECB3C7A6F99444980976A8C6D896384FA2BA2212@EAPEX1MAIL1.st.com>
+	Sun, 18 Mar 2012 15:04:12 -0400
+Received: by wibhj6 with SMTP id hj6so2962155wib.1
+        for <linux-media@vger.kernel.org>; Sun, 18 Mar 2012 12:04:11 -0700 (PDT)
+Date: Sun, 18 Mar 2012 20:04:53 +0100
+From: Daniel Vetter <daniel@ffwll.ch>
+To: Sumit Semwal <sumit.semwal@linaro.org>
+Cc: Dave Airlie <airlied@gmail.com>, Rob Clark <rob.clark@linaro.org>,
+	patches@linaro.org, dri-devel@lists.freedesktop.org,
+	linaro-mm-sig@lists.linaro.org, daniel@ffwll.ch,
+	airlied@redhat.com, linux-media@vger.kernel.org
+Subject: Re: [Linaro-mm-sig] [PATCH] dma-buf: add get_dma_buf()
+Message-ID: <20120318190453.GJ4286@phenom.ffwll.local>
+References: <1331913881-13105-1-git-send-email-rob.clark@linaro.org>
+ <CAPM=9txFA1M4CK2njLDJRwLn6ZaPQMUsiqMCybqLSwWmZ7Y=mw@mail.gmail.com>
+ <CAO_48GH_zkgQQgvbiD8MQ5dHb3pD5mTSxtA_z4+KhGQJWQhC1g@mail.gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAO_48GH_zkgQQgvbiD8MQ5dHb3pD5mTSxtA_z4+KhGQJWQhC1g@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Bhupesh,
+On Sun, Mar 18, 2012 at 01:12:22PM +0530, Sumit Semwal wrote:
+> On 16 March 2012 23:23, Dave Airlie <airlied@gmail.com> wrote:
+> > On Fri, Mar 16, 2012 at 4:04 PM, Rob Clark <rob.clark@linaro.org> wrote:
+> >> From: Rob Clark <rob@ti.com>
+> >>
+> >> Works in a similar way to get_file(), and is needed in cases such as
+> >> when the exporter needs to also keep a reference to the dmabuf (that
+> >> is later released with a dma_buf_put()), and possibly other similar
+> >> cases.
+> >>
+> >> Signed-off-by: Rob Clark <rob@ti.com>
+> >
+> > Reviewed-by: Dave Airlie <airlied@redhat.com>
+> >
+> Thanks; pulled into for-next.
 
-On Tuesday 13 March 2012 11:31:31 Bhupesh SHARMA wrote:
-> Hi Laurent,
-> 
-> Thanks for the patch.
-> 
-> > -----Original Message-----
-> > From: Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com]
-> > Sent: Monday, March 12, 2012 7:33 PM
-> > To: linux-media@vger.kernel.org
-> > Cc: Bhupesh SHARMA
-> > Subject: [PATCH] media: Initialize the media core with
-> > subsys_initcall()
-> > 
-> > Media-related drivers living outside drivers/media/ (such as the UVC
-> > gadget driver in drivers/usb/gadget/) rely on the media core being
-> > initialized before they're probed. As drivers/usb/ is linked before
-> > drivers/media/, this is currently not the case and will lead to crashes
-> > if the drivers are not compiled as modules.
-> > 
-> > Register media_devnode_init() as a subsys_initcall() instead of
-> > module_init() to fix this.
-> > 
-> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > ---
-> > 
-> >  drivers/media/media-devnode.c |    2 +-
-> >  1 files changed, 1 insertions(+), 1 deletions(-)
-> > 
-> > Bhupesh, do you plan to send a pull request with your "V4L/v4l2-dev:
-> > Make
-> > 'videodev_init' as a subsys initcall" patch, or would you like me to
-> > take it
-> > in my tree ? I'd like both patches to go in at the same time, with this
-> > one
-> > coming first to avoid any risk of bisection issue.
-> 
-> I would prefer that you take my patch also in your tree and have
-> a single pull request for both the patches as they solve the same
-> issue and hence must be pulled at the same time.
-
-OK. I've applied your patch to my tree, I'll send a pull request tomorrow.
-
-> For your patch:
-> Acked-By: Bhupesh Sharma <bhupesh.sharma@st.com>
-
-Thanks.
-
-> > diff --git a/drivers/media/media-devnode.c b/drivers/media/media-
-> > devnode.c
-> > index 7b42ace..421cf73 100644
-> > --- a/drivers/media/media-devnode.c
-> > +++ b/drivers/media/media-devnode.c
-> > @@ -312,7 +312,7 @@ static void __exit media_devnode_exit(void)
-> > 
-> >  	unregister_chrdev_region(media_dev_t, MEDIA_NUM_DEVICES);
-> >  
-> >  }
-> > 
-> > -module_init(media_devnode_init)
-> > +subsys_initcall(media_devnode_init);
-> > 
-> >  module_exit(media_devnode_exit)
-> >  
-> >  MODULE_AUTHOR("Laurent Pinchart <laurent.pinchart@ideasonboard.com>");
-> > 
-> > --
-
+I'm back from vacation and already grumpily complaining about dma-buf
+patches ;-) For consistency with dma_buf_put we should call this
+dma_buf_get instead of get_dma_buf ... I'll write a bikeshed patch on top
+of your tree.
+-Daniel
 -- 
-Regards,
-
-Laurent Pinchart
-
+Daniel Vetter
+Mail: daniel@ffwll.ch
+Mobile: +41 (0)79 365 57 48
