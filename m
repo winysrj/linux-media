@@ -1,92 +1,218 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:21542 "EHLO mx1.redhat.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:59516 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750992Ab2COSGM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Mar 2012 14:06:12 -0400
-Message-ID: <4F622F88.9080502@redhat.com>
-Date: Thu, 15 Mar 2012 15:06:00 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+	id S1753871Ab2CSLrH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 19 Mar 2012 07:47:07 -0400
+Message-ID: <4F671CA3.6080107@ti.com>
+Date: Mon, 19 Mar 2012 17:16:43 +0530
+From: Archit Taneja <a0393947@ti.com>
 MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: Gianluca Gennari <gennarone@gmail.com>, linux-media@vger.kernel.org
-Subject: Re: [PATCH 0/3] cxd2820r: tweak search algorithm, enable LNA in DVB-T
- mode
-References: <1331832829-4580-1-git-send-email-gennarone@gmail.com> <4F6229D4.8010302@redhat.com> <4F622BBD.7050605@iki.fi>
-In-Reply-To: <4F622BBD.7050605@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+CC: "Taneja, Archit" <archit@ti.com>,
+	"Valkeinen, Tomi" <tomi.valkeinen@ti.com>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] omap_vout: Set DSS overlay_info only if paddr is non
+ zero
+References: <1331110876-11895-1-git-send-email-archit@ti.com> <79CD15C6BA57404B839C016229A409A831810EAA@DBDE01.ent.ti.com> <4F6312E4.5000404@ti.com> <4F631FDF.8070308@ti.com> <79CD15C6BA57404B839C016229A409A83181EB1F@DBDE01.ent.ti.com>
+In-Reply-To: <79CD15C6BA57404B839C016229A409A83181EB1F@DBDE01.ent.ti.com>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 15-03-2012 14:49, Antti Palosaari escreveu:
-> On 15.03.2012 19:41, Mauro Carvalho Chehab wrote:
->> Em 15-03-2012 14:33, Gianluca Gennari escreveu:
->>> The PCTV 290e had several issues on my mipsel-based STB (powered by a
->>> Broadcom 7405 SoC), running a Linux 3.1 kernel and the Enigma2 OS.
->>>
->>> The most annoying one was that the 290e was able to tune the lone DVB-T2
->>> frequency existing in my area, but was not able to tune any DVB-T channel.
->>>
->>> Following a suggestion of the original author of the driver, I tried to
->>> tweak the wait time in the lock loop. In fact, increasing the wait time
->>> from 50 to 200ms in the tuning loop was enough to get the lock on most
->>> channels.
->>> But channel change was quite slow and sometimes, doing an automatic scan,
->>> some frequency was not locked.
->>> So instead of playing with the timings I changed the behavior of the
->>> search algorithm as explained in the patch 1, with very good results.
->>>
->>> With this modification, the automatic scan is 100% reliable and zapping
->>> is quite fast (on the STB). There is no noticeable difference when using
->>> Kaffeine on the PC.
->>>
->>> But there was a further issue: a few weak channels were affected by high
->>> BER and badly corrupted pictures. The same channels were working fine on
->>> an Avermedia A867 stick (as well as other sticks).
->>>
->>> The driver has an option to enable a "Low Noise Amplifier" (LNA) before the
->>> demodulator. Enabling it, the reception of weak channels improved a lot,
->>> as reported in the description of patch 2.
+On Monday 19 March 2012 02:15 PM, Hiremath, Vaibhav wrote:
+> On Fri, Mar 16, 2012 at 16:41:27, Taneja, Archit wrote:
+>> Hi,
 >>
->> Hi Gianluca,
+>> On Friday 16 March 2012 03:46 PM, Archit Taneja wrote:
+>>> On Monday 12 March 2012 03:34 PM, Hiremath, Vaibhav wrote:
+>>>> On Wed, Mar 07, 2012 at 14:31:16, Taneja, Archit wrote:
+>>>>> The omap_vout driver tries to set the DSS overlay_info using
+>>>>> set_overlay_info()
+>>>>> when the physical address for the overlay is still not configured.
+>>>>> This happens
+>>>>> in omap_vout_probe() and vidioc_s_fmt_vid_out().
+>>>>>
+>>>>> The calls to omapvid_init(which internally calls set_overlay_info())
+>>>>> are removed
+>>>>> from these functions. They don't need to be called as the
+>>>>> omap_vout_device
+>>>>> struct anyway maintains the overlay related changes made. Also,
+>>>>> remove the
+>>>>> explicit call to set_overlay_info() in vidioc_streamon(), this was
+>>>>> used to set
+>>>>> the paddr, this isn't needed as omapvid_init() does the same thing
+>>>>> later.
+>>>>>
+>>>>> These changes are required as the DSS2 driver since 3.3 kernel
+>>>>> doesn't let you
+>>>>> set the overlay info with paddr as 0.
+>>>>>
+>>>>> Signed-off-by: Archit Taneja<archit@ti.com>
+>>>>> ---
+>>>>> drivers/media/video/omap/omap_vout.c | 36
+>>>>> ++++-----------------------------
+>>>>> 1 files changed, 5 insertions(+), 31 deletions(-)
+>>>>>
+>>>>> diff --git a/drivers/media/video/omap/omap_vout.c
+>>>>> b/drivers/media/video/omap/omap_vout.c
+>>>>> index 1fb7d5b..dffcf66 100644
+>>>>> --- a/drivers/media/video/omap/omap_vout.c
+>>>>> +++ b/drivers/media/video/omap/omap_vout.c
+>>>>> @@ -1157,13 +1157,6 @@ static int vidioc_s_fmt_vid_out(struct file
+>>>>> *file, void *fh,
+>>>>> /* set default crop and win */
+>>>>> omap_vout_new_format(&vout->pix,&vout->fbuf,&vout->crop,&vout->win);
+>>>>>
+>>>>> - /* Save the changes in the overlay strcuture */
+>>>>> - ret = omapvid_init(vout, 0);
+>>>>> - if (ret) {
+>>>>> - v4l2_err(&vout->vid_dev->v4l2_dev, "failed to change mode\n");
+>>>>> - goto s_fmt_vid_out_exit;
+>>>>> - }
+>>>>> -
+>>>>> ret = 0;
+>>>>>
+>>>>> s_fmt_vid_out_exit:
+>>>>> @@ -1664,20 +1657,6 @@ static int vidioc_streamon(struct file *file,
+>>>>> void *fh, enum v4l2_buf_type i)
+>>>>>
+>>>>> omap_dispc_register_isr(omap_vout_isr, vout, mask);
+>>>>>
+>>>>> - for (j = 0; j<  ovid->num_overlays; j++) {
+>>>>> - struct omap_overlay *ovl = ovid->overlays[j];
+>>>>> -
+>>>>> - if (ovl->manager&&  ovl->manager->device) {
+>>>>> - struct omap_overlay_info info;
+>>>>> - ovl->get_overlay_info(ovl,&info);
+>>>>> - info.paddr = addr;
+>>>>> - if (ovl->set_overlay_info(ovl,&info)) {
+>>>>> - ret = -EINVAL;
+>>>>> - goto streamon_err1;
+>>>>> - }
+>>>>> - }
+>>>>> - }
+>>>>> -
+>>>>
+>>>> Have you checked for build warnings? I am getting build warnings
+>>>>
+>>>> CC drivers/media/video/omap/omap_vout.o
+>>>> CC drivers/media/video/omap/omap_voutlib.o
+>>>> CC drivers/media/video/omap/omap_vout_vrfb.o
+>>>> drivers/media/video/omap/omap_vout.c: In function 'vidioc_streamon':
+>>>> drivers/media/video/omap/omap_vout.c:1619:25: warning: unused variable
+>>>> 'ovid'
+>>>> drivers/media/video/omap/omap_vout.c:1615:15: warning: unused variable
+>>>> 'j'
+>>>> LD drivers/media/video/omap/omap-vout.o
+>>>> LD drivers/media/video/omap/built-in.o
+>>>>
+>>>> Can you fix this and submit the next version?
 >>
->> With regards to LNA, the better is to add a DVBv5 property for it.
+>> I applied the patch on the current mainline kernel, it doesn't give any
+>> build warnings. Even after applying the patch, 'j and ovid' are still
+>> used in vidioc_streamon().
 >>
->> The LNA is generally located at the antenna, and not at the device.
-> 
-> LNA inside antenna, or near antenna, is called amplifier. Power to that amplifier is feed by device or power supply using antenna cable.
-> 
-> I see LNA more likely amplifier that is inside device. It could be external chip between tuner IC and antenna connector or more usually logical part inside tuner IC.
-> 
-> Thus I see two different use cases here. 1) LNA, 2) power supply to amplifier.
-
-Yes, there are those two types of amplifiers. Some vendors ship hardware with
-a power amplify inside their antenna, and call it as LNA (as it is a low noise
-amplifier).
-
->> As you know, more than one device may be connected to the same antenna,
->> and it is generally not a good idea to have two devices sending power to
->> the LNA.
+>> Can you check if it was applied correctly?
 >>
->> So, it is better to have a way to turn it on via the usespace API.
+>
+> Archit,
+>
+> I could able to trace what's going on here,
+>
+> I am using "v4l_for_linus" branch, which has one missing patch,
+>
+> commit aaa874a985158383c4b394c687c716ef26288741
+> Author: Tomi Valkeinen<tomi.valkeinen@ti.com>
+> Date:   Tue Nov 15 16:37:53 2011 +0200
+>
+>      OMAPDSS: APPLY: rewrite overlay enable/disable
+>
+>
+> So, I do not have below changes,
+>
+> @@ -1686,6 +1681,16 @@ static int vidioc_streamon(struct file *file, void *fh, enum v4l2_buf_type i)
+>          if (ret)
+>                  v4l2_err(&vout->vid_dev->v4l2_dev, "failed to change mode\n");
+>
+> +       for (j = 0; j<  ovid->num_overlays; j++) {
+> +               struct omap_overlay *ovl = ovid->overlays[j];
+> +
+> +               if (ovl->manager&&  ovl->manager->device) {
+> +                       ret = ovl->enable(ovl);
+> +                       if (ret)
+> +                               goto streamon_err1;
+> +               }
+> +       }
+> +
+>
+> This explains why I am seeing these warnings. Let me give pull request based on master branch.
+
+Okay. Thanks for looking into this.
+
+Archit
+
+>
+>
+> Thanks,
+> Vaibhav
+>
+>> Regards,
+>> Archit
 >>
->> Also, as this consumes power, the better is to do it only when the device
->> is actually used.
-> 
-> I think we need API support for LNA/amp + internal API support for AUTO LNA.
+>>>
+>>> Will fix this and submit.
+>>>
+>>> Archit
+>>>
+>>>>
+>>>> Thanks,
+>>>> Vaibhav
+>>>>
+>>>>> /* First save the configuration in ovelray structure */
+>>>>> ret = omapvid_init(vout, addr);
+>>>>> if (ret)
+>>>>> @@ -2071,11 +2050,12 @@ static int __init
+>>>>> omap_vout_create_video_devices(struct platform_device *pdev)
+>>>>> }
+>>>>> video_set_drvdata(vfd, vout);
+>>>>>
+>>>>> - /* Configure the overlay structure */
+>>>>> - ret = omapvid_init(vid_dev->vouts[k], 0);
+>>>>> - if (!ret)
+>>>>> - goto success;
+>>>>> + dev_info(&pdev->dev, ": registered and initialized"
+>>>>> + " video device %d\n", vfd->minor);
+>>>>> + if (k == (pdev->num_resources - 1))
+>>>>> + return 0;
+>>>>>
+>>>>> + continue;
+>>>>> error2:
+>>>>> if (vout->vid_info.rotation_type == VOUT_ROT_VRFB)
+>>>>> omap_vout_release_vrfb(vout);
+>>>>> @@ -2085,12 +2065,6 @@ error1:
+>>>>> error:
+>>>>> kfree(vout);
+>>>>> return ret;
+>>>>> -
+>>>>> -success:
+>>>>> - dev_info(&pdev->dev, ": registered and initialized"
+>>>>> - " video device %d\n", vfd->minor);
+>>>>> - if (k == (pdev->num_resources - 1))
+>>>>> - return 0;
+>>>>> }
+>>>>>
+>>>>> return -ENODEV;
+>>>>> --
+>>>>> 1.7.5.4
+>>>>>
+>>>>>
+>>>>
+>>>>
+>>>
+>>>
+>>
+>>
+>
 
-Yes.
-
-> Originally I added LNA support as a module param for em28xx-dvb but Mauro NACKed it thus it is hard coded. Anyhow, some method switching LNA on/off is better than no method at all
-
-Well, adding one or two DVBv5 properties to enable/disable the LNA is very easy.
-
-So, instead of adding hacks, let's just do the right thing.
-
-> 
-> regards
-> Antti
-> 
-
-Regards,
-Mauro
