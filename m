@@ -1,44 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:50283 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753078Ab2CVOlA (ORCPT
+Received: from mail-vx0-f174.google.com ([209.85.220.174]:59860 "EHLO
+	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757507Ab2CSCOk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Mar 2012 10:41:00 -0400
-Received: by yhmm54 with SMTP id m54so1780143yhm.19
-        for <linux-media@vger.kernel.org>; Thu, 22 Mar 2012 07:41:00 -0700 (PDT)
-Date: Thu, 22 Mar 2012 07:40:56 -0700
-From: Greg KH <gregkh@linuxfoundation.org>
-To: Bhupesh Sharma <bhupesh.sharma@st.com>
-Cc: linux-usb@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	spear-devel@list.st.com, linux-media@vger.kernel.org
-Subject: Re: [PATCH] usb: gadget/uvc: Remove non-required locking from
- 'uvc_queue_next_buffer' routine
-Message-ID: <20120322144056.GG19835@kroah.com>
-References: <4cead89e45e3e31fccae5bb6fbfb72b2ce1b8cd5.1332391406.git.bhupesh.sharma@st.com>
+	Sun, 18 Mar 2012 22:14:40 -0400
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4cead89e45e3e31fccae5bb6fbfb72b2ce1b8cd5.1332391406.git.bhupesh.sharma@st.com>
+Date: Sun, 18 Mar 2012 22:14:39 -0400
+Message-ID: <CAOcJUbxrPtAWGeHz1uxTPuqAHFUq6f=NVx1KZRiWLkYSWTFiwg@mail.gmail.com>
+Subject: [v3.3 BUG FIX] mxl111sf: fix error on stream stop in mxl111sf_ep6_streaming_ctrl()
+From: Michael Krufky <mkrufky@linuxtv.org>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	linux-media <linux-media@vger.kernel.org>
+Content-Type: multipart/mixed; boundary=90e6ba4fc346e4f2aa04bb8f1e89
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Mar 22, 2012 at 10:20:37AM +0530, Bhupesh Sharma wrote:
-> This patch removes the non-required spinlock acquire/release calls on
-> 'queue_irqlock' from 'uvc_queue_next_buffer' routine.
-> 
-> This routine is called from 'video->encode' function (which translates to either
-> 'uvc_video_encode_bulk' or 'uvc_video_encode_isoc') in 'uvc_video.c'.
-> As, the 'video->encode' routines are called with 'queue_irqlock' already held,
-> so acquiring a 'queue_irqlock' again in 'uvc_queue_next_buffer' routine causes
-> a spin lock recursion.
-> 
-> Signed-off-by: Bhupesh Sharma <bhupesh.sharma@st.com>
-> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> ---
->  drivers/usb/gadget/uvc_queue.c |    4 +---
->  1 files changed, 1 insertions(+), 3 deletions(-)
+--90e6ba4fc346e4f2aa04bb8f1e89
+Content-Type: text/plain; charset=ISO-8859-1
 
-Please use scripts/get_maintainer.pl to determine who to send this to
-(hint, it's not me...)
+I just tested Linux 3.3-rc7 and found that my mxl111sf driver was
+broken!!  The fix was easy to find...
 
-greg k-h
+Hopefully we can get this fix merged before Linus releases 3.3 --
+Please do whatever it takes to get this into mainline.
+
+Thanks & best regards,
+
+Mike Krufky
+
+The following changes since commit 632fba4d012458fd5fedc678fb9b0f8bc59ceda2:
+  Sander Eikelenboom (1):
+        [media] cx25821: Add a card definition for "No brand" cards
+that have: subvendor = 0x0000 subdevice = 0x0000
+
+are available in the git repository at:
+
+  git://linuxtv.org/mkrufky/mxl111sf aero-m
+
+Michael Krufky (1):
+      mxl111sf: fix error on stream stop in mxl111sf_ep6_streaming_ctrl()
+
+ drivers/media/dvb/dvb-usb/mxl111sf.c |    6 ++----
+ 1 files changed, 2 insertions(+), 4 deletions(-)
+
+--90e6ba4fc346e4f2aa04bb8f1e89
+Content-Type: application/octet-stream;
+	name=bc93326ce5869486c33dbb98596a8a3758c6266d
+Content-Disposition: attachment;
+	filename=bc93326ce5869486c33dbb98596a8a3758c6266d
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_gzyvntbf0
+
+RnJvbTogTWljaGFlbCBLcnVma3kgPG1rcnVma3lAbGludXh0di5vcmc+CkRhdGU6IFN1biwgMTgg
+TWFyIDIwMTIgMTc6MzU6NTcgKzAwMDAgKC0wNDAwKQpTdWJqZWN0OiBteGwxMTFzZjogZml4IGVy
+cm9yIG9uIHN0cmVhbSBzdG9wIGluIG14bDExMXNmX2VwNl9zdHJlYW1pbmdfY3RybCgpClgtR2l0
+LVVybDogaHR0cDovL2dpdC5saW51eHR2Lm9yZwoKbXhsMTExc2Y6IGZpeCBlcnJvciBvbiBzdHJl
+YW0gc3RvcCBpbiBteGwxMTFzZl9lcDZfc3RyZWFtaW5nX2N0cmwoKQoKUmVtb3ZlIHVubmVjZXNz
+YXJ5IHJlZ2lzdGVyIGFjY2VzcyBpbiBteGwxMTFzZl9lcDZfc3RyZWFtaW5nX2N0cmwoKQoKVGhp
+cyBjb2RlIGJyZWFrcyBkcml2ZXIgb3BlcmF0aW9uIGluIGtlcm5lbCAzLjMgYW5kIGxhdGVyLCBh
+bHRob3VnaAppdCB3b3JrcyBwcm9wZXJseSBpbiAzLjIgIERpc2FibGUgcmVnaXN0ZXIgYWNjZXNz
+IHRvIDB4MTIgZm9yIG5vdy4KClNpZ25lZC1vZmYtYnk6IE1pY2hhZWwgS3J1Zmt5IDxta3J1Zmt5
+QGxpbnV4dHYub3JnPgotLS0KCmRpZmYgLS1naXQgYS9kcml2ZXJzL21lZGlhL2R2Yi9kdmItdXNi
+L214bDExMXNmLmMgYi9kcml2ZXJzL21lZGlhL2R2Yi9kdmItdXNiL214bDExMXNmLmMKaW5kZXgg
+MzhlZjAyNS4uODEzMDVkZSAxMDA2NDQKLS0tIGEvZHJpdmVycy9tZWRpYS9kdmIvZHZiLXVzYi9t
+eGwxMTFzZi5jCisrKyBiL2RyaXZlcnMvbWVkaWEvZHZiL2R2Yi11c2IvbXhsMTExc2YuYwpAQCAt
+MzUxLDE1ICszNTEsMTMgQEAgc3RhdGljIGludCBteGwxMTFzZl9lcDZfc3RyZWFtaW5nX2N0cmwo
+c3RydWN0IGR2Yl91c2JfYWRhcHRlciAqYWRhcCwgaW50IG9ub2ZmKQogCQkJCQkgICAgICBhZGFw
+X3N0YXRlLT5lcDZfY2xvY2twaGFzZSwKIAkJCQkJICAgICAgMCwgMCk7CiAJCW14bF9mYWlsKHJl
+dCk7CisjaWYgMAogCX0gZWxzZSB7CiAJCXJldCA9IG14bDExMXNmX2Rpc2FibGVfNjU2X3BvcnQo
+c3RhdGUpOwogCQlteGxfZmFpbChyZXQpOworI2VuZGlmCiAJfQogCi0JbXhsMTExc2ZfcmVhZF9y
+ZWcoc3RhdGUsIDB4MTIsICZ0bXApOwotCXRtcCAmPSB+MHgwNDsKLQlteGwxMTFzZl93cml0ZV9y
+ZWcoc3RhdGUsIDB4MTIsIHRtcCk7Ci0KIAlyZXR1cm4gcmV0OwogfQogCg==
+--90e6ba4fc346e4f2aa04bb8f1e89--
