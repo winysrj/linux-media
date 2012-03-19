@@ -1,48 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailfe08.c2i.net ([212.247.154.226]:60605 "EHLO swip.net"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1750876Ab2C0QBK convert rfc822-to-8bit (ORCPT
+Received: from cassarossa.samfundet.no ([129.241.93.19]:48161 "EHLO
+	cassarossa.samfundet.no" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030194Ab2CSOHp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Mar 2012 12:01:10 -0400
-Received: from [176.74.212.201] (account mc467741@c2i.net HELO laptop002.hselasky.homeunix.org)
-  by mailfe08.swip.net (CommuniGate Pro SMTP 5.4.2)
-  with ESMTPA id 256815132 for linux-media@vger.kernel.org; Tue, 27 Mar 2012 17:56:06 +0200
-From: Hans Petter Selasky <hselasky@c2i.net>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH] Fix compiler warning.
-Date: Tue, 27 Mar 2012 17:54:41 +0200
+	Mon, 19 Mar 2012 10:07:45 -0400
+Date: Mon, 19 Mar 2012 15:07:42 +0100
+From: "Steinar H. Gunderson" <sgunderson@bigfoot.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH] Various nits, fixes and hacks for mantis CA support on
+ SMP
+Message-ID: <20120319140742.GC8239@uio.no>
+References: <20120228010330.GA25786@uio.no>
+ <4F673D16.7010802@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201203271754.41984.hselasky@c2i.net>
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <4F673D16.7010802@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->From 03d309b552e01622a678b2c500f80fe59746ca12 Mon Sep 17 00:00:00 2001
-From: Hans Petter Selasky <hselasky@c2i.net>
-Date: Tue, 27 Mar 2012 17:53:19 +0200
-Subject: [PATCH] Fix compiler warning.
+On Mon, Mar 19, 2012 at 11:05:10AM -0300, Mauro Carvalho Chehab wrote:
+> A "conglomerate of patches" can't be applied upstream. Instead, you should
+> be sending us a patch series, preserving the original author/signed-off-by
+> for each one, if the patches were nod written by you, and add your
+> Signed-off-by: at the end of each patch.
 
-Signed-off-by: Hans Petter Selasky <hselasky@c2i.net>
----
- drivers/media/dvb/dvb-core/dvb_frontend.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+This is true. I was, however, mainly looking for feedback -- it seems there
+is very little interest, though.
 
-diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-
-core/dvb_frontend.c
-index 4555baa..bfdf599 100644
---- a/drivers/media/dvb/dvb-core/dvb_frontend.c
-+++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
-@@ -146,7 +146,7 @@ static int dtv_get_frontend(struct dvb_frontend *fe,
- 
- static bool has_get_frontend(struct dvb_frontend *fe)
- {
--	return fe->ops.get_frontend;
-+	return fe->ops.get_frontend != NULL;
- }
- 
- /*
+/* Steinar */
 -- 
-1.7.1.1
-
+Homepage: http://www.sesse.net/
