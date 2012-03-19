@@ -1,116 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:42112 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756615Ab2CELNU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Mar 2012 06:13:20 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, dacohen@gmail.com, snjw23@gmail.com,
-	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
-	tuukkat76@gmail.com, k.debski@samsung.com, riverful@gmail.com,
-	hverkuil@xs4all.nl, teturtia@gmail.com
-Subject: Re: [PATCH v4 16/34] media: Collect entities that are part of the pipeline before link validation
-Date: Mon, 05 Mar 2012 12:13:39 +0100
-Message-ID: <7119876.zcxcmOKuSu@avalon>
-In-Reply-To: <1330709442-16654-16-git-send-email-sakari.ailus@iki.fi>
-References: <20120302173219.GA15695@valkosipuli.localdomain> <1330709442-16654-16-git-send-email-sakari.ailus@iki.fi>
+Received: from mx1.redhat.com ([209.132.183.28]:5295 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757913Ab2CSW0c (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 19 Mar 2012 18:26:32 -0400
+Message-ID: <4F67B283.4050308@redhat.com>
+Date: Mon, 19 Mar 2012 19:26:11 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: Jean Delvare <khali@linux-fr.org>,
+	LMML <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH 1/2] [media] dib0700: Drop useless check when remote key
+ is pressed
+References: <20120313185037.4059a869@endymion.delvare> <CAGoCfixvanxKT4h1k+FkaYkQ-zHjR-rYBWxHHiDygOScPCeZPA@mail.gmail.com>
+In-Reply-To: <CAGoCfixvanxKT4h1k+FkaYkQ-zHjR-rYBWxHHiDygOScPCeZPA@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Em 13-03-2012 14:57, Devin Heitmueller escreveu:
+> On Tue, Mar 13, 2012 at 1:50 PM, Jean Delvare <khali@linux-fr.org> wrote:
+>> struct dvb_usb_device *d can never be NULL so don't waste time
+>> checking for this.
+>>
+>> Rationale: the urb's context is set when usb_fill_bulk_urb() is called
+>> in dib0700_rc_setup(), and never changes after that. d is dereferenced
+>> unconditionally in dib0700_rc_setup() so it can't be NULL or the
+>> driver would crash right away.
+>>
+>> Signed-off-by: Jean Delvare <khali@linux-fr.org>
+>> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+>> Cc: Devin Heitmueller <dheitmueller@kernellabs.com>
+>> ---
+>> Devin, am I missing something?
+> 
+> I think this was just a case of defensive coding where I didn't want
+> to dereference something without validating the pointer first (out of
+> fear that it got called through some other code path that I didn't
+> consider).
 
-Thanks for the patch.
+>> --- linux-3.3-rc7.orig/drivers/media/dvb/dvb-usb/dib0700_core.c	2012-03-13 11:09:13.000000000 +0100
+>> +++ linux-3.3-rc7/drivers/media/dvb/dvb-usb/dib0700_core.c	2012-03-13 18:37:05.785953845 +0100
+>> @@ -677,9 +677,6 @@ static void dib0700_rc_urb_completion(st
+>>  	u8 toggle;
+>>  
+>>  	deb_info("%s()\n", __func__);
+>> -	if (d == NULL)
+>> -		return;
+>> -
 
-On Friday 02 March 2012 19:30:24 Sakari Ailus wrote:
-> Make information available which entities are part of the pipeline before
-> link_validate() ops are being called.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> ---
->  drivers/media/media-entity.c |   23 ++++++++++++++++++++---
->  include/media/media-entity.h |    1 +
->  2 files changed, 21 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-> index d6d0e81..55f66c6 100644
-> --- a/drivers/media/media-entity.c
-> +++ b/drivers/media/media-entity.c
-> @@ -220,12 +220,19 @@ __must_check int media_entity_pipeline_start(struct
-> media_entity *entity, struct media_device *mdev = entity->parent;
->  	struct media_entity_graph graph;
->  	struct media_entity *entity_err = entity;
-> +	struct {
-> +		struct media_entity *entity;
-> +		struct media_link *link;
-> +	} to_validate[MEDIA_ENTITY_ENUM_MAX_DEPTH];
-> +	int nto_validate = 0;
->  	int ret;
-> 
->  	mutex_lock(&mdev->graph_mutex);
-> 
->  	media_entity_graph_walk_start(&graph, entity);
-> 
-> +	pipe->entities = 0;
-> +
->  	while ((entity = media_entity_graph_walk_next(&graph))) {
->  		unsigned int i;
-> 
-> @@ -237,6 +244,8 @@ __must_check int media_entity_pipeline_start(struct
-> media_entity *entity, if (entity->stream_count > 1)
->  			continue;
-> 
-> +		pipe->entities |= 1 << entity->id;
-> +
->  		if (!entity->ops || !entity->ops->link_validate)
->  			continue;
-> 
-> @@ -251,12 +260,20 @@ __must_check int media_entity_pipeline_start(struct
-> media_entity *entity, if (link->sink->entity != entity)
->  				continue;
-> 
-> -			ret = entity->ops->link_validate(link);
-> -			if (ret < 0 && ret != -ENOIOCTLCMD)
-> -				goto error;
-> +			BUG_ON(nto_validate >= MEDIA_ENTITY_ENUM_MAX_DEPTH);
-> +			to_validate[nto_validate].entity = entity;
-> +			to_validate[nto_validate].link = link;
-> +			nto_validate++;
->  		}
->  	}
-> 
-> +	for (nto_validate--; nto_validate >= 0; nto_validate--) {
-> +		ret = to_validate[nto_validate].entity->ops->
-> +			link_validate(to_validate[nto_validate].link);
-> +		if (ret < 0 && ret != -ENOIOCTLCMD)
-> +			goto error;
-> +	}
-> +
->  	mutex_unlock(&mdev->graph_mutex);
-> 
->  	return 0;
-> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-> index 0c16f51..bbfc8f2 100644
-> --- a/include/media/media-entity.h
-> +++ b/include/media/media-entity.h
-> @@ -27,6 +27,7 @@
->  #include <linux/media.h>
-> 
->  struct media_pipeline {
-> +	u32 entities;
+Well, usb_free_urb() is not called when d == NULL, so, if this condition
+ever happens, it will keep URB's allocated.
 
-This assume there will be no more than 32 entities. I don't think that's a 
-safe assumption, especially with ALSA devices. I'm not sure I would put this 
-in the media controller core just yet.
+Anyway, if struct dvb_usb_device *d is NULL, the driver has something very
+wrong happening on it, and nothing will work on it.
 
->  };
-> 
->  struct media_link {
+I agree with Jean: it is better to just remove this code there.
 
--- 
+Yet, I'd be more happy if Jean's patch could check first if the status is
+below 0, in order to prevent a possible race condition at device disconnect.
+
 Regards,
-
-Laurent Pinchart
-
+Mauro
