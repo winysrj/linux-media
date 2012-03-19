@@ -1,31 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:47678 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753574Ab2CKRsA convert rfc822-to-8bit (ORCPT
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:55522 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030647Ab2CSKvw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 11 Mar 2012 13:48:00 -0400
-Received: by yenl12 with SMTP id l12so1929823yen.19
-        for <linux-media@vger.kernel.org>; Sun, 11 Mar 2012 10:48:00 -0700 (PDT)
+	Mon, 19 Mar 2012 06:51:52 -0400
 MIME-Version: 1.0
-In-Reply-To: <20120309004344.187af1e4@tiber>
-References: <20120309004344.187af1e4@tiber>
-Date: Sun, 11 Mar 2012 18:48:00 +0100
-Message-ID: <CAL7owaBeup9ttxKC2pAjxLvTP18s70WMJMFPsargdJzp7taWeg@mail.gmail.com>
-Subject: Re: Initial tuning data format for DVB-T2
-From: Christoph Pfister <christophpfister@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: h@realh.co.uk
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+In-Reply-To: <1332113668-4364-4-git-send-email-daniel.vetter@ffwll.ch>
+References: <1332113668-4364-1-git-send-email-daniel.vetter@ffwll.ch>
+	<1332113668-4364-4-git-send-email-daniel.vetter@ffwll.ch>
+Date: Mon, 19 Mar 2012 10:51:51 +0000
+Message-ID: <CAPM=9twSZJyYcNwDwaC5eSy7fXNaRBGTZZ6F2K3D8AeQdYtgww@mail.gmail.com>
+Subject: Re: [Linaro-mm-sig] [PATCH 4/4] dma-buf: document fd flags and
+ O_CLOEXEC requirement
+From: Dave Airlie <airlied@gmail.com>
+To: Daniel Vetter <daniel.vetter@ffwll.ch>
+Cc: linaro-mm-sig@lists.linaro.org,
+	LKML <linux-kernel@vger.kernel.org>,
+	DRI Development <dri-devel@lists.freedesktop.org>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 9. März 2012 01:43 schrieb Tony Houghton <h@realh.co.uk>:
-> Is there an official way of expressing DVB-T2 tuning data in the files
-> used by the scan utility as input? Similarly to how roll-off and
-> modulation type were added to the S/S2 lines. I think DVB-T2 needs a PLP
-> id on top of the DVB-T parameters, is there anything else?
+On Sun, Mar 18, 2012 at 11:34 PM, Daniel Vetter <daniel.vetter@ffwll.ch> wrote:
+> Otherwise subsystems will get this wrong and end up with and second
+> export ioctl with the flag and O_CLOEXEC support added.
 
-w_scan seems to use some kind of T2 format, I haven't seen other suggestions.
+Its not actually dma_buf_export that takes the O_CLOEXEC flag its dma_buf_fd
 
-Christoph
+I'm not sure how blindly we should be passing flags in from userspace
+to these, like O_NONBLOCK or perms flags.
+
+Dave.
