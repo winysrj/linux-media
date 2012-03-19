@@ -1,80 +1,179 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:37877 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756688Ab2CNRmC (ORCPT
+Received: from co202.xi-lite.net ([149.6.83.202]:49592 "EHLO co202.xi-lite.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754117Ab2CSK0S convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Mar 2012 13:42:02 -0400
-Received: by ghrr11 with SMTP id r11so2071053ghr.19
-        for <linux-media@vger.kernel.org>; Wed, 14 Mar 2012 10:42:02 -0700 (PDT)
+	Mon, 19 Mar 2012 06:26:18 -0400
+From: Olivier GRENIE <olivier.grenie@parrot.com>
+To: santosh prasad nayak <santoshprasadnayak@gmail.com>,
+	"mchehab@infradead.org" <mchehab@infradead.org>
+CC: "pboettcher@kernellabs.com" <pboettcher@kernellabs.com>,
+	"florian@mickler.org" <florian@mickler.org>,
+	"gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Mon, 19 Mar 2012 10:28:12 +0000
+Subject: RE: [PATCH] [media] dib0700: Return -EINTR and unlock mutex if
+ locking attempts fails.
+Message-ID: <96767C26EA89B648B398B4BCB10B3F635F0FFD779B@DIAMANT.xi-lite.lan>
+References: <1331901909-4960-1-git-send-email-santoshprasadnayak@gmail.com>,<CAOD=uF6568Gp_Zir+u3O5O8srZGzqcdSMQ9eppcao0d8Bdkwxw@mail.gmail.com>
+In-Reply-To: <CAOD=uF6568Gp_Zir+u3O5O8srZGzqcdSMQ9eppcao0d8Bdkwxw@mail.gmail.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-In-Reply-To: <CALjTZvZy4npSE0aELnmsZzzgsxUC1xjeNYVwQ_CvJG59PizfEQ@mail.gmail.com>
-References: <CALjTZvZy4npSE0aELnmsZzzgsxUC1xjeNYVwQ_CvJG59PizfEQ@mail.gmail.com>
-Date: Wed, 14 Mar 2012 14:42:01 -0300
-Message-ID: <CALF0-+Wp03vsbiaJFUt=ymnEncEvDg_KmnV+2OWjtO-_0qqBVg@mail.gmail.com>
-Subject: Re: eMPIA EM2710 Webcam (em28xx) and LIRC
-From: =?ISO-8859-1?Q?Ezequiel_Garc=EDa?= <elezegarcia@gmail.com>
-To: Rui Salvaterra <rsalvaterra@gmail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Rui,
+Hello,
+I agree with the patch. But you could also add:
+diff --git a/drivers/media/dvb/dvb-usb/dib0700_core.c b/drivers/media/dvb/dvb-usb/dib0700_core.c
+index 1a6ddbc..a271203 100644
+--- a/drivers/media/dvb/dvb-usb/dib0700_core.c
++++ b/drivers/media/dvb/dvb-usb/dib0700_core.c
+@@ -178,7 +178,7 @@ static int dib0700_i2c_xfer_new(struct i2c_adapter *adap, struct i2c_msg *msg,
+        /* Ensure nobody else hits the i2c bus while we're sending our
+           sequence of messages, (such as the remote control thread) */
+        if (mutex_lock_interruptible(&d->i2c_mutex) < 0)
+-               return -EAGAIN;
++               return -EINTR;
+ 
+        for (i = 0; i < num; i++) {
+                if (i == 0) {
+@@ -272,7 +272,7 @@ static int dib0700_i2c_xfer_legacy(struct i2c_adapter *adap,
+        int i,len;
+ 
+        if (mutex_lock_interruptible(&d->i2c_mutex) < 0)
+-               return -EAGAIN;
++               return -EINTR;
+        if (mutex_lock_interruptible(&d->usb_mutex) < 0) {
+                err("could not acquire lock");
+                mutex_unlock(&d->i2c_mutex);
+ 
+regards,
+Olivier
 
-On Wed, Mar 14, 2012 at 8:28 AM, Rui Salvaterra <rsalvaterra@gmail.com> wrote:
-> Hi, everyone.
+________________________________________
+From: santosh prasad nayak [santoshprasadnayak@gmail.com]
+Sent: Monday, March 19, 2012 9:47 AM
+To: mchehab@infradead.org
+Cc: Olivier GRENIE; pboettcher@kernellabs.com; florian@mickler.org; gregkh@linuxfoundation.org; linux-media@vger.kernel.org
+Subject: Re: [PATCH] [media] dib0700: Return -EINTR and unlock mutex if locking attempts fails.
+
+Can anyone please review it ?
+
+
+regards
+Santosh
+
+On Fri, Mar 16, 2012 at 6:15 PM, santosh nayak
+<santoshprasadnayak@gmail.com> wrote:
+> From: Santosh Nayak <santoshprasadnayak@gmail.com>
 >
-> I apologise in advance for the noise if this is the wrong place to ask
-> such questions. I have a couple of eMPIA EM2710 (Silvercrest) USB
-> webcams which work quite well, except for the fact that most of LIRC
-
-Exactly what module do you refer to? Could you just send a snippet
-of dmesg when module is loaded?
-
-> is unnecessarily loaded when the em28xx module loads. I suppose it
-> shouldn't be necessary, since these are webcams and don't have any
-
-Looking at source code, I noticed two things:
-1. You have a module param named "disable-ir", perhaps you could
-try to use this (do you know how?).
-2. EM2710 board is defined like this:
-
-                .name          = "EM2710/EM2750/EM2751 webcam grabber",
-                .xclk          = EM28XX_XCLK_FREQUENCY_20MHZ,
-                .tuner_type    = TUNER_ABSENT,
-                .is_webcam     = 1,
-                .input         = { {
-                        .type     = EM28XX_VMUX_COMPOSITE1,
-                        .vmux     = 0,
-                        .amux     = EM28XX_AMUX_VIDEO,
-                        .gpio     = silvercrest_reg_seq,
-                } },
-
-As opposed to:
-
-                .name         = "Terratec Cinergy 250 USB",
-                .tuner_type   = TUNER_LG_PAL_NEW_TAPC,
-                .has_ir_i2c   = 1,
-                .tda9887_conf = TDA9887_PRESENT,
-                .decoder      = EM28XX_SAA711X,
-                .input        = { {
-                        .type     = EM28XX_VMUX_TELEVISION,
-                        .vmux     = SAA7115_COMPOSITE2,
-                        .amux     = EM28XX_AMUX_LINE_IN,
-                }, {
-                        .type     = EM28XX_VMUX_COMPOSITE1,
-                        .vmux     = SAA7115_COMPOSITE0,
-                        .amux     = EM28XX_AMUX_LINE_IN,
-                }, {
-                        .type     = EM28XX_VMUX_SVIDEO,
-                        .vmux     = SAA7115_SVIDEO3,
-                        .amux     = EM28XX_AMUX_LINE_IN,
-                } },
-        },
-
-Noticed the lack of "has_ir_i2c" definition in the EM2710.
-
-So I don't know how that module is being loaded. Probably I'm missing something.
-
-Hope it helps,
-Ezequiel.
+>
+> In 'dib0700_i2c_xfer_new()' and 'dib0700_i2c_xfer_legacy()'
+> we are taking two locks:
+>                1. i2c_mutex
+>                2. usb_mutex
+> If attempt to take 'usb_mutex' lock fails then the previously taken
+> lock 'i2c_mutex' should be unlocked and -EINTR should be return so
+> that caller can take appropriate action.
+>
+> If locking attempt was interrupted by a signal then
+> we should return -EINTR. At present we are returning '0' for
+> such scenarios  which is wrong.
+>
+> Signed-off-by: Santosh Nayak <santoshprasadnayak@gmail.com>
+> ---
+>  drivers/media/dvb/dvb-usb/dib0700_core.c |   20 +++++++++++---------
+>  1 files changed, 11 insertions(+), 9 deletions(-)
+>
+> diff --git a/drivers/media/dvb/dvb-usb/dib0700_core.c b/drivers/media/dvb/dvb-usb/dib0700_core.c
+> index 070e82a..1a6ddbc 100644
+> --- a/drivers/media/dvb/dvb-usb/dib0700_core.c
+> +++ b/drivers/media/dvb/dvb-usb/dib0700_core.c
+> @@ -32,7 +32,7 @@ int dib0700_get_version(struct dvb_usb_device *d, u32 *hwversion,
+>
+>        if (mutex_lock_interruptible(&d->usb_mutex) < 0) {
+>                err("could not acquire lock");
+> -               return 0;
+> +               return -EINTR;
+>        }
+>
+>        ret = usb_control_msg(d->udev, usb_rcvctrlpipe(d->udev, 0),
+> @@ -118,7 +118,7 @@ int dib0700_set_gpio(struct dvb_usb_device *d, enum dib07x0_gpios gpio, u8 gpio_
+>
+>        if (mutex_lock_interruptible(&d->usb_mutex) < 0) {
+>                err("could not acquire lock");
+> -               return 0;
+> +               return -EINTR;
+>        }
+>
+>        st->buf[0] = REQUEST_SET_GPIO;
+> @@ -139,7 +139,7 @@ static int dib0700_set_usb_xfer_len(struct dvb_usb_device *d, u16 nb_ts_packets)
+>        if (st->fw_version >= 0x10201) {
+>                if (mutex_lock_interruptible(&d->usb_mutex) < 0) {
+>                        err("could not acquire lock");
+> -                       return 0;
+> +                       return -EINTR;
+>                }
+>
+>                st->buf[0] = REQUEST_SET_USB_XFER_LEN;
+> @@ -228,7 +228,8 @@ static int dib0700_i2c_xfer_new(struct i2c_adapter *adap, struct i2c_msg *msg,
+>                        /* Write request */
+>                        if (mutex_lock_interruptible(&d->usb_mutex) < 0) {
+>                                err("could not acquire lock");
+> -                               return 0;
+> +                               mutex_unlock(&d->i2c_mutex);
+> +                               return -EINTR;
+>                        }
+>                        st->buf[0] = REQUEST_NEW_I2C_WRITE;
+>                        st->buf[1] = msg[i].addr << 1;
+> @@ -274,7 +275,8 @@ static int dib0700_i2c_xfer_legacy(struct i2c_adapter *adap,
+>                return -EAGAIN;
+>        if (mutex_lock_interruptible(&d->usb_mutex) < 0) {
+>                err("could not acquire lock");
+> -               return 0;
+> +               mutex_unlock(&d->i2c_mutex);
+> +               return -EINTR;
+>        }
+>
+>        for (i = 0; i < num; i++) {
+> @@ -369,7 +371,7 @@ static int dib0700_set_clock(struct dvb_usb_device *d, u8 en_pll,
+>
+>        if (mutex_lock_interruptible(&d->usb_mutex) < 0) {
+>                err("could not acquire lock");
+> -               return 0;
+> +               return -EINTR;
+>        }
+>
+>        st->buf[0] = REQUEST_SET_CLOCK;
+> @@ -401,7 +403,7 @@ int dib0700_set_i2c_speed(struct dvb_usb_device *d, u16 scl_kHz)
+>
+>        if (mutex_lock_interruptible(&d->usb_mutex) < 0) {
+>                err("could not acquire lock");
+> -               return 0;
+> +               return -EINTR;
+>        }
+>
+>        st->buf[0] = REQUEST_SET_I2C_PARAM;
+> @@ -561,7 +563,7 @@ int dib0700_streaming_ctrl(struct dvb_usb_adapter *adap, int onoff)
+>
+>        if (mutex_lock_interruptible(&adap->dev->usb_mutex) < 0) {
+>                err("could not acquire lock");
+> -               return 0;
+> +               return -EINTR;
+>        }
+>
+>        st->buf[0] = REQUEST_ENABLE_VIDEO;
+> @@ -611,7 +613,7 @@ int dib0700_change_protocol(struct rc_dev *rc, u64 rc_type)
+>
+>        if (mutex_lock_interruptible(&d->usb_mutex) < 0) {
+>                err("could not acquire lock");
+> -               return 0;
+> +               return -EINTR;
+>        }
+>
+>        st->buf[0] = REQUEST_SET_RC;
+> --
+> 1.7.4.4
+>
