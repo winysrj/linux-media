@@ -1,49 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f170.google.com ([209.85.212.170]:36089 "EHLO
-	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932094Ab2CRXUa (ORCPT
+Received: from smtp1-g21.free.fr ([212.27.42.1]:41807 "EHLO smtp1-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758340Ab2CSIYk convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 18 Mar 2012 19:20:30 -0400
-Received: by wibhr17 with SMTP id hr17so2730133wib.1
-        for <linux-media@vger.kernel.org>; Sun, 18 Mar 2012 16:20:29 -0700 (PDT)
-From: Daniel Vetter <daniel.vetter@ffwll.ch>
-To: linaro-mm-sig@lists.linaro.org,
-	LKML <linux-kernel@vger.kernel.org>,
-	DRI Development <dri-devel@lists.freedesktop.org>,
-	linux-media@vger.kernel.org
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
-Subject: [PATCH 4/4] dma-buf: document fd flags and O_CLOEXEC requirement
-Date: Mon, 19 Mar 2012 00:34:28 +0100
-Message-Id: <1332113668-4364-4-git-send-email-daniel.vetter@ffwll.ch>
-In-Reply-To: <1332113668-4364-1-git-send-email-daniel.vetter@ffwll.ch>
-References: <1332113668-4364-1-git-send-email-daniel.vetter@ffwll.ch>
+	Mon, 19 Mar 2012 04:24:40 -0400
+Received: from tele (unknown [IPv6:2a01:e35:2f5c:9de0:212:bfff:fe1e:9ce4])
+	by smtp1-g21.free.fr (Postfix) with ESMTP id 93083940143
+	for <linux-media@vger.kernel.org>; Mon, 19 Mar 2012 09:24:33 +0100 (CET)
+Date: Mon, 19 Mar 2012 09:24:48 +0100
+From: Jean-Francois Moine <moinejf@free.fr>
+To: linux-media@vger.kernel.org
+Subject: [GIT PATCHES FOR 3.4] gspca for_v3.4
+Message-ID: <20120319092448.1ac7a587@tele>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Otherwise subsystems will get this wrong and end up with and second
-export ioctl with the flag and O_CLOEXEC support added.
+Hi Mauro,
 
-Signed-Off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
----
- Documentation/dma-buf-sharing.txt |    5 +++++
- 1 files changed, 5 insertions(+), 0 deletions(-)
+This set includes the patch http://patchwork.linuxtv.org/patch/9494.
 
-diff --git a/Documentation/dma-buf-sharing.txt b/Documentation/dma-buf-sharing.txt
-index 9f3aeef..087e261 100644
---- a/Documentation/dma-buf-sharing.txt
-+++ b/Documentation/dma-buf-sharing.txt
-@@ -319,6 +319,11 @@ Miscellaneous notes
- - Any exporters or users of the dma-buf buffer sharing framework must have
-   a 'select DMA_SHARED_BUFFER' in their respective Kconfigs.
- 
-+- To avoid the wrath of userspace library writers exporting subsystems must have
-+  a flag parameter in the ioctl that creates the dma-buf fd which needs to
-+  support at least the O_CLOEXEC fd flag. This needs to be passed in the flag
-+  parameter of dma_buf_export.
-+
- References:
- [1] struct dma_buf_ops in include/linux/dma-buf.h
- [2] All interfaces mentioned above defined in include/linux/dma-buf.h
+The following changes since commit 632fba4d012458fd5fedc678fb9b0f8bc59ceda2:
+
+  [media] cx25821: Add a card definition for "No brand" cards that have: subvendor = 0x0000 subdevice = 0x0000 (2012-03-08 12:42:28 -0300)
+
+are available in the git repository at:
+
+  git://linuxtv.org/jfrancois/gspca.git for_v3.4
+
+for you to fetch changes up to 898b0fd6218c7012a1b73e3bf7a7c60fd578c0a6:
+
+  gspca - sn9c20x: Cleanup source (2012-03-19 08:55:16 +0100)
+
+----------------------------------------------------------------
+Jean-François Moine (12):
+      gspca - zc3xx: Add V4L2_CID_JPEG_COMPRESSION_QUALITY control support
+      gspca - zc3xx: Lack of register 08 value for sensor cs2102k
+      gspca - sn9c20x: Fix loss of frame start
+      gspca - sn9c20x: Use the new video control mechanism
+      gspca - sn9c20x: Propagate USB errors to higher level
+      gspca - sn9c20x: Add a delay after Omnivision sensor reset
+      gspca - sn9c20x: Add the JPEG compression quality control
+      gspca - sn9c20x: Optimize the code of write sequences
+      gspca - sn9c20x: Greater delay in case of sensor no response
+      gspca - sn9c20x: Add automatic JPEG compression mechanism
+      gspca - sn9c20x: Simplify register write for capture start/stop
+      gspca - sn9c20x: Cleanup source
+
+Jose Alberto Reguero (1):
+      gspca - ov534_9: Add brightness to OmniVision 5621 sensor
+
+ drivers/media/video/gspca/ov534_9.c |   49 ++-
+ drivers/media/video/gspca/sn9c20x.c | 1138 ++++++++++++++++-------------------
+ drivers/media/video/gspca/zc3xx.c   |   47 ++-
+ 3 files changed, 582 insertions(+), 652 deletions(-)
+
+
 -- 
-1.7.7.5
-
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
