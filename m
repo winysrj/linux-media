@@ -1,51 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:55847 "EHLO
-	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758813Ab2CFKdr convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 6 Mar 2012 05:33:47 -0500
-Received: by mail-tul01m020-f172.google.com with SMTP id ta4so3082534obb.3
-        for <linux-media@vger.kernel.org>; Tue, 06 Mar 2012 02:33:46 -0800 (PST)
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:36172 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1758607Ab2CSXDN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 19 Mar 2012 19:03:13 -0400
+Date: Tue, 20 Mar 2012 00:54:03 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	David Cohen <dacohen@gmail.com>,
+	Sylwester Nawrocki <snjw23@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	tuukkat76@gmail.com, Kamil Debski <k.debski@samsung.com>,
+	Kim HeungJun <riverful@gmail.com>, teturtia@gmail.com,
+	pradeep.sawlani@gmail.com
+Subject: Re: [GIT PULL FOR v3.4] V4L2 subdev and sensor control changes and
+ SMIA++ driver
+Message-ID: <20120319225402.GB6284@valkosipuli.localdomain>
+References: <20120311165650.GA4220@valkosipuli.localdomain>
+ <4F67A970.8090606@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <CAKMK7uHnNMytknBO2y=ioPXJ9tZpy99ntGP=iPVzyjvXmTmj9g@mail.gmail.com>
-References: <1330616161-1937-1-git-send-email-daniel.vetter@ffwll.ch>
- <1330616161-1937-3-git-send-email-daniel.vetter@ffwll.ch> <CAF6AEGtynLeNds9DFjr6G08UMWMBQn8tn10UgFTNz9P7SwQuUQ@mail.gmail.com>
- <CAKMK7uHnNMytknBO2y=ioPXJ9tZpy99ntGP=iPVzyjvXmTmj9g@mail.gmail.com>
-From: "Semwal, Sumit" <sumit.semwal@ti.com>
-Date: Tue, 6 Mar 2012 16:03:26 +0530
-Message-ID: <CAB2ybb_XiuW=5GeOepGjE8yNtV5rTxDfE09Ti8uaZnrsy9j1CQ@mail.gmail.com>
-Subject: Re: [PATCH 2/3] dma-buf: add support for kernel cpu access
-To: Daniel Vetter <daniel.vetter@ffwll.ch>
-Cc: Rob Clark <robdclark@gmail.com>, linaro-mm-sig@lists.linaro.org,
-	LKML <linux-kernel@vger.kernel.org>,
-	DRI Development <dri-devel@lists.freedesktop.org>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4F67A970.8090606@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Daniel,
-On Tue, Mar 6, 2012 at 12:27 AM, Daniel Vetter <daniel.vetter@ffwll.ch> wrote:
-> On Fri, Mar 2, 2012 at 23:24, Rob Clark <robdclark@gmail.com> wrote:
->> Perhaps we should check somewhere for required dmabuf ops fxns (like
->> kmap_atomic here), rather than just calling unconditionally what might
->> be a null ptr.  At least put it in the WARN_ON(), but it might be
->> nicer to catch a missing required fxns at export time, rather than
->> waiting for an importer to try and call it.  Less likely that way, for
->> newly added required functions go unnoticed.
->>
->> (same comment applies below for the non-atomic variant.. and possibly
->> some other existing dmabuf ops)
->
-> Agreed, I'll rework the patch to do that when rebasing onto Sumit's latest tree.
-In addition, you'd not need to check for !dmabuf->ops since the export
-should already catch it.
+Hi Mauro,
 
-As I sent in the other mail a while back, could you please rebase on
-for-next at git://git.linaro.org/people/sumitsemwal/linux-dma-buf.git
+On Mon, Mar 19, 2012 at 06:47:28PM -0300, Mauro Carvalho Chehab wrote:
+> Em 11-03-2012 13:56, Sakari Ailus escreveu:
+> > Hi Mauro,
+> > 
+> > This patchset adds
+> > 
+> > - Integer menu controls,
+> > - Selection IOCTL for subdevs,
+> > - Sensor control improvements,
+> > - link_validate() media entity and V4L2 subdev pad ops,
+> > - OMAP 3 ISP driver improvements,
+> > - SMIA++ sensor driver and
+> > - Other V4L2 and media improvements (see individual patches)
+> > 
+> > The previous patchset can be found here:
+> > 
+> > <URL:http://www.spinics.net/lists/linux-media/msg45052.html>
+> > 
+> > Compared to the patchset, I've dropped the rm-696 camera board code and will
+> > submit it through linux-omap later on. Other changes done to address review
+> > comments have been also done --- see the URL above for details.
+> > 
+> > The following changes since commit 632fba4d012458fd5fedc678fb9b0f8bc59ceda2:
+> > 
+> >   [media] cx25821: Add a card definition for "No brand" cards that have: subvendor = 0x0000 subdevice = 0x0000 (2012-03-08 12:42:28 -0300)
+> > 
+> > are available in the git repository at:
+> >   ssh://linuxtv.org/git/sailus/media_tree.git media-for-3.4
+> > 
+> > Jesper Juhl (1):
+> >       adp1653: Remove unneeded include of version.h
+> > 
+> > Laurent Pinchart (3):
+> >       omap3isp: Prevent pipelines that contain a crashed entity from starting
+> >       omap3isp: Fix crash caused by subdevs now having a pointer to devnodes
+> >       omap3isp: Fix frame number propagation
+> > 
+> > Sakari Ailus (37):
+> >       v4l: Introduce integer menu controls
+> >       v4l: Document integer menu controls
+> >       vivi: Add an integer menu test control
+> >       v4l: VIDIOC_SUBDEV_S_SELECTION and VIDIOC_SUBDEV_G_SELECTION IOCTLs
+> >       v4l: vdev_to_v4l2_subdev() should have return type "struct v4l2_subdev *"
+> >       v4l: Check pad number in get try pointer functions
+> >       v4l: Support s_crop and g_crop through s/g_selection
+> >       v4l: Add subdev selections documentation: svg and dia files
+> >       v4l: Add subdev selections documentation
+> 
+> This patch broke docbook compilation:
+> 
+>   HTML    Documentation/DocBook/media_api.html
+> warning: failed to load external entity "/home/v4l/v4l/patchwork/Documentation/DocBook/vidioc-subdev-g-selection.xml"
+> /home/v4l/v4l/patchwork/Documentation/DocBook/dev-subdev.xml:310: parser error : Failure to process entity sub-subdev-g-selection
+>       size configured using &sub-subdev-g-selection; and
+>                                                     ^
+> /home/v4l/v4l/patchwork/Documentation/DocBook/dev-subdev.xml:310: parser error : Entity 'sub-subdev-g-selection' not defined
+>       size configured using &sub-subdev-g-selection; and
+>                                                     ^
+> /home/v4l/v4l/patchwork/Documentation/DocBook/dev-subdev.xml:468: parser error : chunk is not well balanced
+> 
+> ^
+> /home/v4l/v4l/patchwork/Documentation/DocBook/v4l2.xml:476: parser error : Failure to process entity sub-dev-subdev
+>     <section id="subdev"> &sub-dev-subdev; </section>
+>                                           ^
+> /home/v4l/v4l/patchwork/Documentation/DocBook/v4l2.xml:476: parser error : Entity 'sub-dev-subdev' not defined
+>     <section id="subdev"> &sub-dev-subdev; </section>
+>                                           ^
+> /usr/bin/xmlto: line 568:  3232 Segmentation fault      "/usr/bin/xsltproc" --nonet --xinclude --param passivetex.extensions '1' -o "/tmp/xmlto.J0M0go/media_api.proc" "/tmp/xmlto-xsl.GKa5kH" "/home/v4l/v4l/patchwork/Documentation/DocBook/media_api.xml"
+> /bin/cp: cannot stat `*.*htm*': No such file or directory
+> make[1]: *** [Documentation/DocBook/media_api.html] Error 1
+> make: *** [htmldocs] Error 2
+> 
+> Please fix.
 
-Best regards,
-~Sumit.
-> -Daniel
-> --
+I'm pretty sure it compiles for me --- I just tested it myself on a
+different machine. Do you think you could possibly have e.g. old
+Documentation/DocBook/media-entities.tmpl in your tree? This file
+sometimes isn't getting rebuilt even when it would be needed to.
+
+Kind regards,
+
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
