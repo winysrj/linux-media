@@ -1,43 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:58901 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965189Ab2CUOqV (ORCPT
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:49088 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753631Ab2CSVmy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Mar 2012 10:46:21 -0400
-Received: by pbcun15 with SMTP id un15so839928pbc.19
-        for <linux-media@vger.kernel.org>; Wed, 21 Mar 2012 07:46:21 -0700 (PDT)
-Date: Wed, 21 Mar 2012 07:46:17 -0700
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-To: Konstantin Khlebnikov <khlebnikov@openvz.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-	devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-mm@kvack.org,
-	Arve =?iso-8859-1?B?SGr4bm5lduVn?= <arve@android.com>,
-	John Stultz <john.stultz@linaro.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 05/16] mm/drivers: use vm_flags_t for vma flags
-Message-ID: <20120321144617.GA14149@kroah.com>
-References: <20120321065140.13852.52315.stgit@zurg>
- <20120321065633.13852.11903.stgit@zurg>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20120321065633.13852.11903.stgit@zurg>
+	Mon, 19 Mar 2012 17:42:54 -0400
+From: Rob Clark <rob.clark@linaro.org>
+To: linaro-mm-sig@lists.linaro.org, linux-kernel@vger.kernel.org,
+	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
+Cc: patches@linaro.org, daniel.vetter@ffwll.ch,
+	sumit.semwal@linaro.org, Rob Clark <rob@ti.com>
+Subject: [PATCH] dma-buf: document fd flags and O_CLOEXEC requirement
+Date: Mon, 19 Mar 2012 16:42:49 -0500
+Message-Id: <1332193370-27820-1-git-send-email-rob.clark@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Mar 21, 2012 at 10:56:33AM +0400, Konstantin Khlebnikov wrote:
-> Signed-off-by: Konstantin Khlebnikov <khlebnikov@openvz.org>
-> Cc: linux-media@vger.kernel.org
-> Cc: devel@driverdev.osuosl.org
-> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-> Cc: John Stultz <john.stultz@linaro.org>
-> Cc: "Arve Hjønnevåg" <arve@android.com>
+From: Rob Clark <rob@ti.com>
 
-Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Otherwise subsystems will get this wrong and end up with a second
+export ioctl with the flag and O_CLOEXEC support added.
+
+Signed-off-by: Rob Clark <rob@ti.com>
+Reviewed-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+---
+Updated version of Daniel's original documentation patch with (hopefully)
+improved wording, and a better description of the motivation.
+
+ Documentation/dma-buf-sharing.txt |   18 ++++++++++++++++++
+ 1 files changed, 18 insertions(+), 0 deletions(-)
+
+diff --git a/Documentation/dma-buf-sharing.txt b/Documentation/dma-buf-sharing.txt
+index 225f96d..3b51134 100644
+--- a/Documentation/dma-buf-sharing.txt
++++ b/Documentation/dma-buf-sharing.txt
+@@ -223,6 +223,24 @@ Miscellaneous notes:
+ - Any exporters or users of the dma-buf buffer sharing framework must have
+   a 'select DMA_SHARED_BUFFER' in their respective Kconfigs.
+ 
++- In order to avoid fd leaks on exec, the FD_CLOEXEC flag must be set
++  on the file descriptor.  This is not just a resource leak, but a
++  potential security hole.  It could give the newly exec'd application
++  access to buffers, via the leaked fd, to which it should otherwise
++  not be permitted access.
++
++  The problem with doing this via a separate fcntl() call, versus doing it
++  atomically when the fd is created, is that this is inherently racy in a
++  multi-threaded app[3].  The issue is made worse when it is library code
++  opening/creating the file descriptor, as the application may not even be
++  aware of the fd's.
++
++  To avoid this problem, userspace must have a way to request O_CLOEXEC
++  flag be set when the dma-buf fd is created.  So any API provided by
++  the exporting driver to create a dmabuf fd must provide a way to let
++  userspace control setting of O_CLOEXEC flag passed in to dma_buf_fd().
++
+ References:
+ [1] struct dma_buf_ops in include/linux/dma-buf.h
+ [2] All interfaces mentioned above defined in include/linux/dma-buf.h
++[3] https://lwn.net/Articles/236486/
+-- 
+1.7.5.4
 
