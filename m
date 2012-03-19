@@ -1,58 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gx0-f174.google.com ([209.85.161.174]:61643 "EHLO
-	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751827Ab2CGQpz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Mar 2012 11:45:55 -0500
-Received: by gghe5 with SMTP id e5so2251297ggh.19
-        for <linux-media@vger.kernel.org>; Wed, 07 Mar 2012 08:45:54 -0800 (PST)
+Received: from eu1sys200aog118.obsmtp.com ([207.126.144.145]:51427 "EHLO
+	eu1sys200aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752174Ab2CSD7r convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 18 Mar 2012 23:59:47 -0400
+From: Bhupesh SHARMA <bhupesh.sharma@st.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	spear-devel <spear-devel@list.st.com>
+Date: Mon, 19 Mar 2012 11:58:41 +0800
+Subject: RE: [PATCH RESEND] usb: gadget/uvc: Remove non-required locking
+ from 'uvc_queue_next_buffer' routine
+Message-ID: <D5ECB3C7A6F99444980976A8C6D896384FA2BA2E91@EAPEX1MAIL1.st.com>
+References: <d5dbc7befb35abdce18d77f918954137a2be2f26.1331638300.git.bhupesh.sharma@st.com>
+ <11788268.pQ7t4NVJy6@avalon>
+In-Reply-To: <11788268.pQ7t4NVJy6@avalon>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-In-Reply-To: <4F578E65.4070409@redhat.com>
-References: <CALF0-+V7DXB+x-FKcy00kjfvdvLGKVTAmEEBP7zfFYxm+0NvYQ@mail.gmail.com>
-	<4F572611.50607@redhat.com>
-	<CALF0-+V5kTMXZ+Nfy4yqOSgyMwBYmjGH4EfFbqjju+d3GdsvSA@mail.gmail.com>
-	<20120307154311.GB14836@kroah.com>
-	<4F578E65.4070409@redhat.com>
-Date: Wed, 7 Mar 2012 13:45:54 -0300
-Message-ID: <CALF0-+W5HwFFnp96sK=agjc07V_GuizrD6k+Eu9b7sQXOW=Ngw@mail.gmail.com>
-Subject: Re: A second easycap driver implementation
-From: =?ISO-8859-1?Q?Ezequiel_Garc=EDa?= <elezegarcia@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: gregkh <gregkh@linuxfoundation.org>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Tomas Winkler <tomasw@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org, devel@driverdev.osuosl.org
-Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Mar 7, 2012 at 1:35 PM, Mauro Carvalho Chehab
-<mchehab@redhat.com> wrote:
->
-> Yes, the driver is weird, as it encapsulates the demod code
-> inside it , instead of using the saa7115 driver, that covers most
-> of saa711x devices, including saa7113.
->
-> Btw, is this driver really needed? The em28xx driver has support
-> for the Easy Cap Capture DC-60 model (I had access to one of those
-> in the past, and I know that the driver works properly).
->
-> What's the chipset using on your Easycap device?
+Hi Laurent,
 
-Chipset is STK116. I'm not entirely sure but is seems that
-there are to models: DC60 and DC60+.
+> -----Original Message-----
+> From: Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com]
+> Sent: Thursday, March 15, 2012 6:17 AM
+> To: Bhupesh SHARMA
+> Cc: linux-usb@vger.kernel.org; linux-media@vger.kernel.org; spear-devel
+> Subject: Re: [PATCH RESEND] usb: gadget/uvc: Remove non-required
+> locking from 'uvc_queue_next_buffer' routine
+> 
+> Hi Bhupesh,
+> 
+> Thank you for the patch.
 
-Apparently, the former would be using STK1160.
+Thanks for your review comments..
 
->
-> If it is not an Empiatech em28xx USB bridge, then it makes sense
-> to have a separate driver for it. Otherwise, it is just easier
-> and better to add support for your device there.
+> On Tuesday 13 March 2012 17:04:01 Bhupesh Sharma wrote:
+> > This patch removes the non-required spinlock acquire/release calls on
+> > 'queue_irqlock' from 'uvc_queue_next_buffer' routine.
+> >
+> > This routine is called from 'video->encode' function (which
+> translates to
+> > either 'uvc_video_encode_bulk' or 'uvc_video_encode_isoc') in
+> > 'uvc_video.c'. As, the 'video->encode' routines are called with
+> > 'queue_irqlock' already held, so acquiring a 'queue_irqlock' again in
+> > 'uvc_queue_next_buffer' routine causes a spin lock recursion.
+> >
+> > A sample kernel crash log is given below (as observed on using
+> 'g_webcam'
+> > with DWC designware 2.0 UDC):
+> >
+> > Kernel crash log:
+> > -----------------
+> 
+> [snip]
+> 
+> I don't think you need to include the complete crash report in the
+> commit
+> message, the above description should be enough.
+> 
+> > Signed-off-by: Bhupesh Sharma <bhupesh.sharma@st.com>
+> 
+> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> 
+> This should probably go in through the USB tree. Could you please
+> either send
+> a pull request or make sure the patch is picked up (after modifying the
+> commit
+> message if you agree with my comment) ?
 
-Ok, I'll take a look at the em28xx driver and also at the saa711x
-to see how would it be possible to add support for this device.
-Perhaps, we'll end up with a separate driver but based on
-some common code.
+Sure. I will prune the commit message and then I will try
+to raise a pull request so that this patch goes through the
+USB tree.
 
-Thanks,
-Ezequiel.
+> > ---
+> >  drivers/usb/gadget/uvc_queue.c |    4 +---
+> >  1 files changed, 1 insertions(+), 3 deletions(-)
+> >
+> > diff --git a/drivers/usb/gadget/uvc_queue.c
+> b/drivers/usb/gadget/uvc_queue.c
+> > index d776adb..104ae9c 100644
+> > --- a/drivers/usb/gadget/uvc_queue.c
+> > +++ b/drivers/usb/gadget/uvc_queue.c
+> > @@ -543,11 +543,11 @@ done:
+> >  	return ret;
+> >  }
+> >
+> > +/* called with &queue_irqlock held.. */
+> >  static struct uvc_buffer *
+> >  uvc_queue_next_buffer(struct uvc_video_queue *queue, struct
+> uvc_buffer
+> > *buf) {
+> >  	struct uvc_buffer *nextbuf;
+> > -	unsigned long flags;
+> >
+> >  	if ((queue->flags & UVC_QUEUE_DROP_INCOMPLETE) &&
+> >  	    buf->buf.length != buf->buf.bytesused) {
+> > @@ -556,14 +556,12 @@ uvc_queue_next_buffer(struct uvc_video_queue
+> *queue,
+> > struct uvc_buffer *buf) return buf;
+> >  	}
+> >
+> > -	spin_lock_irqsave(&queue->irqlock, flags);
+> >  	list_del(&buf->queue);
+> >  	if (!list_empty(&queue->irqqueue))
+> >  		nextbuf = list_first_entry(&queue->irqqueue, struct
+> uvc_buffer,
+> >  					   queue);
+> >  	else
+> >  		nextbuf = NULL;
+> > -	spin_unlock_irqrestore(&queue->irqlock, flags);
+> >
+> >  	buf->buf.sequence = queue->sequence++;
+> >  	do_gettimeofday(&buf->buf.timestamp);
+> 
+> --
+
+Regards,
+Bhupesh
