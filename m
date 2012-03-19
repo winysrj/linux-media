@@ -1,55 +1,168 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from va3ehsobe002.messaging.microsoft.com ([216.32.180.12]:22031
-	"EHLO va3outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932604Ab2C3Khd (ORCPT
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:62507 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757195Ab2CSXJ4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Mar 2012 06:37:33 -0400
-Received: from mail72-va3 (localhost [127.0.0.1])	by mail72-va3-R.bigfish.com
- (Postfix) with ESMTP id 3881D2200F8	for <linux-media@vger.kernel.org>; Fri,
- 30 Mar 2012 10:37:32 +0000 (UTC)
-Received: from VA3EHSMHS005.bigfish.com (unknown [10.7.14.249])	by
- mail72-va3.bigfish.com (Postfix) with ESMTP id DCC4D36006B	for
- <linux-media@vger.kernel.org>; Fri, 30 Mar 2012 10:37:30 +0000 (UTC)
-Received: from shlinux1.ap.freescale.net ([10.213.130.145])	by
- az84smr01.freescale.net (8.14.3/8.14.0) with ESMTP id q2UAbNUF005093	for
- <linux-media@vger.kernel.org>; Fri, 30 Mar 2012 03:37:23 -0700
-From: Liu Ying <Ying.liu@freescale.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-CC: <g.liakhovetski@gmx.de>, <hechtb@gmail.com>,
-	<laurent.pinchart@ideasonboard.com>, <sfr@canb.auug.org.au>,
-	<linux-media@vger.kernel.org>, Liu Ying <Ying.Liu@freescale.com>
-Subject: [PATCH 1/1] [media] V4L: OV5642:remove redundant code to set cropping w/h
-Date: Fri, 30 Mar 2012 17:41:27 +0800
-Message-ID: <1333100487-32484-1-git-send-email-Ying.liu@freescale.com>
+	Mon, 19 Mar 2012 19:09:56 -0400
+Received: by ghrr11 with SMTP id r11so5935983ghr.19
+        for <linux-media@vger.kernel.org>; Mon, 19 Mar 2012 16:09:55 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain
+Date: Tue, 20 Mar 2012 01:09:55 +0200
+Message-ID: <CABA=pqfbzWV45e7RLVTzrnnr4LCDwQD2d3kdYw0hcehSo3VCuQ@mail.gmail.com>
+Subject: [PATCH] em28xx: support for 2304:0242 PCTV QuatroStick (510e)
+From: Ivan Kalvachev <ikalvachev@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: multipart/mixed; boundary=20cf303ea32811450304bba0a8b2
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Liu Ying <Ying.Liu@freescale.com>
+--20cf303ea32811450304bba0a8b2
+Content-Type: text/plain; charset=UTF-8
 
-This patch contains code change only to remove redundant
-code to set priv->crop_rect.width/height in probe function.
+This patch should be applied after the
+"PATCH 2/2] em28xx: support for 2013:0251 PCTV QuatroStick nano
+(520e)" patchset.
 
-Signed-off-by: Liu Ying <Ying.Liu@freescale.com>
----
- drivers/media/video/ov5642.c |    2 --
- 1 files changed, 0 insertions(+), 2 deletions(-)
+It is mostly copy/paste of the 520e code with setting GPIO7 removed
+(no LED light).
 
-diff --git a/drivers/media/video/ov5642.c b/drivers/media/video/ov5642.c
-index bb37ec8..efdd6be 100644
---- a/drivers/media/video/ov5642.c
-+++ b/drivers/media/video/ov5642.c
-@@ -1025,8 +1025,6 @@ static int ov5642_probe(struct i2c_client *client,
- 	priv->crop_rect.height	= OV5642_DEFAULT_HEIGHT;
- 	priv->crop_rect.left	= (OV5642_MAX_WIDTH - OV5642_DEFAULT_WIDTH) / 2;
- 	priv->crop_rect.top	= (OV5642_MAX_HEIGHT - OV5642_DEFAULT_HEIGHT) / 2;
--	priv->crop_rect.width	= OV5642_DEFAULT_WIDTH;
--	priv->crop_rect.height	= OV5642_DEFAULT_HEIGHT;
- 	priv->total_width = OV5642_DEFAULT_WIDTH + BLANKING_EXTRA_WIDTH;
- 	priv->total_height = BLANKING_MIN_HEIGHT;
- 
--- 
-1.7.1
+I've worked on just released vanilla linux-3.3.0 kernel, so there may
+be 1/2 lines offset to the internal working source, but most of the
+code should apply cleanly.
+
+I was able to get the DVB-C working (tuned and watched TV). Haven't
+tested DVB-T (no signal atm).
+
+Here is a log of the `dmsg` when detecting my device.
+
+[ 1197.735520] em28xx: New device Pinnacle Systems PCTV 510e @ 480
+Mbps (2304:0242, interface 0, class 0)
+[ 1197.735525] em28xx: Audio Vendor Class interface 0 found
+[ 1197.735527] em28xx: Video interface 0 found
+[ 1197.735530] em28xx: DVB interface 0 found
+[ 1197.735588] em28xx #0: chip ID is em2884
+[ 1198.030970] em28xx #0: Identified as PCTV QuatroStick (510e) (card=85)
+[ 1198.053727] Registered IR keymap rc-pinnacle-pctv-hd
+[ 1198.053829] input: em28xx IR (em28xx #0) as
+/devices/pci0000:00/0000:00:1a.7/usb1/1-4/rc/rc0/input10
+[ 1198.053933] rc0: em28xx IR (em28xx #0) as
+/devices/pci0000:00/0000:00:1a.7/usb1/1-4/rc/rc0
+[ 1198.054591] em28xx #0: Config register raw data: 0xb7
+[ 1198.054595] em28xx #0: I2S Audio (5 sample rates)
+[ 1198.054598] em28xx #0: No AC97 audio processor
+[ 1198.071627] em28xx #0: v4l2 driver version 0.1.3
+[ 1198.093354] em28xx #0: V4L2 video device registered as video1
+[ 1198.093382] usbcore: registered new interface driver em28xx
+[ 1198.097021] em28xx-audio.c: probing for em28xx Audio Vendor Class
+[ 1198.097026] em28xx-audio.c: Copyright (C) 2006 Markus Rechberger
+[ 1198.097028] em28xx-audio.c: Copyright (C) 2007-2011 Mauro Carvalho Chehab
+[ 1198.097721] Em28xx: Initialized (Em28xx Audio Extension) extension
+[ 1198.116227] drxk: status = 0x039260d9
+[ 1198.116233] drxk: detected a drx-3926k, spin A1, xtal 20.250 MHz
+[ 1199.570712] DRXK driver version 0.9.4300
+[ 1199.585694] drxk: frontend initialized.
+[ 1199.588100] tda18271 2-0060: creating new instance
+[ 1199.597682] TDA18271HD/C2 detected @ 2-0060
+[ 1199.935489] DVB: registering new adapter (em28xx #0)
+[ 1199.935495] DVB: registering adapter 0 frontend 0 (DRXK DVB-C DVB-T)...
+[ 1199.936048] em28xx #0: Successfully loaded em28xx-dvb
+[ 1199.936054] Em28xx: Initialized (Em28xx dvb Extension) extension
 
 
+Special thanks to everybody who worked on the code and to Antti
+Palosaari and Devin Heitmueller who provided essential support on irc.
+
+Best Regards
+   Ivan Kalvachev
+iive
+
+--20cf303ea32811450304bba0a8b2
+Content-Type: application/octet-stream; name="pctv510e.patch"
+Content-Disposition: attachment; filename="pctv510e.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: file0
+
+ZGlmZiAtdXJkcCBlbTI4eHgub3JnL2VtMjh4eC1jYXJkcy5jIGVtMjh4eC9lbTI4eHgtY2FyZHMu
+YwotLS0gYS9kcml2ZXJzL21lZGlhL3ZpZGVvL2VtMjh4eC9lbTI4eHgtY2FyZHMuYwkyMDEyLTAz
+LTIwIDAwOjE1OjExLjQ2MzQxMDAxNyArMDIwMAorKysgYi9kcml2ZXJzL21lZGlhL3ZpZGVvL2Vt
+Mjh4eC9lbTI4eHgtY2FyZHMuYwkyMDEyLTAzLTIwIDAwOjIxOjQ4Ljk3NDM3OTI0NiArMDIwMApA
+QCAtMzY0LDYgKzM2NCwxOSBAQCBzdGF0aWMgc3RydWN0IGVtMjh4eF9yZWdfc2VxIG1heG1lZGlh
+X3ViCiAJey0xLCAgICAgICAgICAgICAgICAgLTEsICAgIC0xLCAgIC0xfSwKIH07CiAKKy8qIDIz
+MDQ6MDI0MiBQQ1RWIFF1YXRyb1N0aWNrICg1MTBlKQorICogR1BJT18yOiBkZWNvZGVyIHJlc2V0
+LCAwPWFjdGl2ZQorICogR1BJT180OiBkZWNvZGVyIHN1c3BlbmQsIDA9YWN0aXZlCisgKiBHUElP
+XzY6IGRlbW9kIHJlc2V0LCAwPWFjdGl2ZQorICogR1BJT183OiBMRUQsIDE9YWN0aXZlCisgKi8K
+K3N0YXRpYyBzdHJ1Y3QgZW0yOHh4X3JlZ19zZXEgcGN0dl81MTBlW10gPSB7CisJe0VNMjg3NF9S
+ODBfR1BJTywgMHgxMCwgMHhmZiwgMTAwfSwKKwl7RU0yODc0X1I4MF9HUElPLCAweDE0LCAweGZm
+LCAxMDB9LCAvKiBHUElPXzIgPSAxICovCisJe0VNMjg3NF9SODBfR1BJTywgMHg1NCwgMHhmZiwg
+MDUwfSwgLyogR1BJT182ID0gMSAqLworCXsgICAgICAgICAgICAgLTEsICAgLTEsICAgLTEsICAt
+MX0sCit9OworCiAvKiAyMDEzOjAyNTEgUENUViBRdWF0cm9TdGljayBuYW5vICg1MjBlKQogICog
+R1BJT18yOiBkZWNvZGVyIHJlc2V0LCAwPWFjdGl2ZQogICogR1BJT180OiBkZWNvZGVyIHN1c3Bl
+bmQsIDA9YWN0aXZlCkBAIC0xOTQ0LDYgKzE5NTcsMTggQEAgc3RydWN0IGVtMjh4eF9ib2FyZCBl
+bTI4eHhfYm9hcmRzW10gPSB7CiAJCQkJRU0yOFhYX0kyQ19DTEtfV0FJVF9FTkFCTEUgfAogCQkJ
+CUVNMjhYWF9JMkNfRlJFUV80MDBfS0haLAogCX0sCisJLyogMjMwNDowMjQyIFBDVFYgUXVhdHJv
+U3RpY2sgKDUxMGUpCisJICogRW1waWEgRU0yODg0ICsgTWljcm9uYXMgRFJYIDM5MjZLICsgTlhQ
+IFREQTE4MjcxSERDMiAqLworCVtFTTI4ODRfQk9BUkRfUENUVl81MTBFXSA9IHsKKwkJLm5hbWUg
+ICAgICAgICAgPSAiUENUViBRdWF0cm9TdGljayAoNTEwZSkiLAorCQkudHVuZXJfdHlwZSAgICA9
+IFRVTkVSX0FCU0VOVCwKKwkJLnR1bmVyX2dwaW8gICAgPSBwY3R2XzUxMGUsCisJCS5oYXNfZHZi
+ICAgICAgID0gMSwKKwkJLmlyX2NvZGVzICAgICAgPSBSQ19NQVBfUElOTkFDTEVfUENUVl9IRCwK
+KwkJLmkyY19zcGVlZCAgICAgPSBFTTI4NzRfSTJDX1NFQ09OREFSWV9CVVNfU0VMRUNUIHwKKwkJ
+CQlFTTI4WFhfSTJDX0NMS19XQUlUX0VOQUJMRSB8CisJCQkJRU0yOFhYX0kyQ19GUkVRXzQwMF9L
+SFosCisJfSwKIAkvKiAyMDEzOjAyNTEgUENUViBRdWF0cm9TdGljayBuYW5vICg1MjBlKQogCSAq
+IEVtcGlhIEVNMjg4NCArIE1pY3JvbmFzIERSWCAzOTI2SyArIE5YUCBUREExODI3MUhEQzIgKi8K
+IAlbRU0yODg0X0JPQVJEX1BDVFZfNTIwRV0gPSB7CkBAIC0yMTA5LDYgKzIxMzQsOCBAQCBzdHJ1
+Y3QgdXNiX2RldmljZV9pZCBlbTI4eHhfaWRfdGFibGVbXSA9CiAJCQkuZHJpdmVyX2luZm8gPSBF
+TTI4NjBfQk9BUkRfRUFTWUNBUCB9LAogCXsgVVNCX0RFVklDRSgweDFiODAsIDB4ZTQyNSksCiAJ
+CQkuZHJpdmVyX2luZm8gPSBFTTI4NzRfQk9BUkRfTUFYTUVESUFfVUI0MjVfVEMgfSwKKwl7IFVT
+Ql9ERVZJQ0UoMHgyMzA0LCAweDAyNDIpLAorCQkJLmRyaXZlcl9pbmZvID0gRU0yODg0X0JPQVJE
+X1BDVFZfNTEwRSB9LAogCXsgVVNCX0RFVklDRSgweDIwMTMsIDB4MDI1MSksCiAJCQkuZHJpdmVy
+X2luZm8gPSBFTTI4ODRfQk9BUkRfUENUVl81MjBFIH0sCiAJeyB9LApkaWZmIC11cmRwIGVtMjh4
+eC5vcmcvZW0yOHh4LWR2Yi5jIGVtMjh4eC9lbTI4eHgtZHZiLmMKLS0tIGEvZHJpdmVycy9tZWRp
+YS92aWRlby9lbTI4eHgvZW0yOHh4LWR2Yi5jCTIwMTItMDMtMjAgMDA6MTU6MTEuNDYyNDEwMDIy
+ICswMjAwCisrKyBiL2RyaXZlcnMvbWVkaWEvdmlkZW8vZW0yOHh4L2VtMjh4eC1kdmIuYwkyMDEy
+LTAzLTE5IDIxOjM4OjM2LjUzMzI5MjkwNCArMDIwMApAQCAtMzMzLDYgKzMzMywxMyBAQCBzdHJ1
+Y3QgZHJ4a19jb25maWcgbWF4bWVkaWFfdWI0MjVfdGNfZHJ4CiAJLm5vX2kyY19icmlkZ2UgPSAx
+LAogfTsKIAorc3RydWN0IGRyeGtfY29uZmlnIHBjdHZfNTIwZV9kcnhrID0geworCS5hZHIgPSAw
+eDI5LAorCS5zaW5nbGVfbWFzdGVyID0gMSwKKwkubWljcm9jb2RlX25hbWUgPSAiZHZiLWRlbW9k
+LWRyeGstcGN0di5mdyIsCisJLmNodW5rX3NpemUgPSA1OCwKK307CisKIHN0YXRpYyBpbnQgZHJ4
+a19nYXRlX2N0cmwoc3RydWN0IGR2Yl9mcm9udGVuZCAqZmUsIGludCBlbmFibGUpCiB7CiAJc3Ry
+dWN0IGVtMjh4eF9kdmIgKmR2YiA9IGZlLT5zZWNfcHJpdjsKQEAgLTQ2Niw2ICs0NzMsMzMgQEAg
+c3RhdGljIHZvaWQgdGVycmF0ZWNfaDVfaW5pdChzdHJ1Y3QgZW0yOAogCWVtMjh4eF9ncGlvX3Nl
+dChkZXYsIHRlcnJhdGVjX2g1X2VuZCk7CiB9OwogCitzdGF0aWMgdm9pZCBwY3R2XzUyMGVfaW5p
+dChzdHJ1Y3QgZW0yOHh4ICpkZXYpCit7CisJLyoKKwkgKiBJbml0IFREQTgyOTUoPykgYW5hbG9n
+IGRlbW9kdWxhdG9yLiBMb29rcyBsaWtlIEkyQyB0cmFmZmljIHRvCisJICogZGlnaXRhbCBkZW1v
+ZHVsYXRvciBhbmQgdHVuZXIgYXJlIHJvdXRlZCB2aWEgVERBODI5NS4KKwkgKi8KKwlpbnQgaTsK
+KwlzdHJ1Y3QgeworCQl1bnNpZ25lZCBjaGFyIHJbNF07CisJCWludCBsZW47CisJfSByZWdzW10g
+PSB7CisJCXt7IDB4MDYsIDB4MDIsIDB4MDAsIDB4MzEgfSwgNH0sCisJCXt7IDB4MDEsIDB4MDIg
+fSwgMn0sCisJCXt7IDB4MDEsIDB4MDIsIDB4MDAsIDB4YzYgfSwgNH0sCisJCXt7IDB4MDEsIDB4
+MDAgfSwgMn0sCisJCXt7IDB4MDEsIDB4MDAsIDB4ZmYsIDB4YWYgfSwgNH0sCisJCXt7IDB4MDEs
+IDB4MDAsIDB4MDMsIDB4YTAgfSwgNH0sCisJCXt7IDB4MDEsIDB4MDAgfSwgMn0sCisJCXt7IDB4
+MDEsIDB4MDAsIDB4NzMsIDB4YWYgfSwgNH0sCisJfTsKKworCWRldi0+aTJjX2NsaWVudC5hZGRy
+ID0gMHg4MiA+PiAxOyAvKiAweDQxICovCisKKwlmb3IgKGkgPSAwOyBpIDwgQVJSQVlfU0laRShy
+ZWdzKTsgaSsrKQorCQlpMmNfbWFzdGVyX3NlbmQoJmRldi0+aTJjX2NsaWVudCwgcmVnc1tpXS5y
+LCByZWdzW2ldLmxlbik7Cit9OworCiBzdGF0aWMgaW50IGVtMjh4eF9tdDM1Ml90ZXJyYXRlY194
+c19pbml0KHN0cnVjdCBkdmJfZnJvbnRlbmQgKmZlKQogewogCS8qIFZhbHVlcyBleHRyYWN0ZWQg
+ZnJvbSBhIFVTQiB0cmFjZSBvZiB0aGUgVGVycmF0ZWMgV2luZG93cyBkcml2ZXIgKi8KQEAgLTk2
+Nyw2ICsxMDAxLDI1IEBAIHN0YXRpYyBpbnQgZW0yOHh4X2R2Yl9pbml0KHN0cnVjdCBlbTI4eHgK
+IAkJCQkiZHJpdmVyIHZlcnNpb25cbiIpOwogCiAJCWJyZWFrOworCWNhc2UgRU0yODg0X0JPQVJE
+X1BDVFZfNTEwRToKKwljYXNlIEVNMjg4NF9CT0FSRF9QQ1RWXzUyMEU6CisJCXBjdHZfNTIwZV9p
+bml0KGRldik7CisKKwkJLyogYXR0YWNoIGRlbW9kdWxhdG9yICovCisJCWR2Yi0+ZmVbMF0gPSBk
+dmJfYXR0YWNoKGRyeGtfYXR0YWNoLCAmcGN0dl81MjBlX2RyeGssCisJCQkJJmRldi0+aTJjX2Fk
+YXApOworCisJCWlmIChkdmItPmZlWzBdKSB7CisJCQkvKiBhdHRhY2ggdHVuZXIgKi8KKwkJCWlm
+ICghZHZiX2F0dGFjaCh0ZGExODI3MV9hdHRhY2gsIGR2Yi0+ZmVbMF0sIDB4NjAsCisJCQkJCSZk
+ZXYtPmkyY19hZGFwLAorCQkJCQkmZW0yOHh4X2N4ZDI4MjByX3RkYTE4MjcxX2NvbmZpZykpIHsK
+KwkJCQlkdmJfZnJvbnRlbmRfZGV0YWNoKGR2Yi0+ZmVbMF0pOworCQkJCXJlc3VsdCA9IC1FSU5W
+QUw7CisJCQkJZ290byBvdXRfZnJlZTsKKwkJCX0KKwkJfQorCQlicmVhazsKIAlkZWZhdWx0Ogog
+CQllbTI4eHhfZXJyZGV2KCIvMjogVGhlIGZyb250ZW5kIG9mIHlvdXIgRFZCL0FUU0MgY2FyZCIK
+IAkJCQkiIGlzbid0IHN1cHBvcnRlZCB5ZXRcbiIpOwpkaWZmIC11cmRwIGVtMjh4eC5vcmcvZW0y
+OHh4LmggZW0yOHh4L2VtMjh4eC5oCi0tLSBhL2RyaXZlcnMvbWVkaWEvdmlkZW8vZW0yOHh4L2Vt
+Mjh4eC5oCTIwMTItMDMtMjAgMDA6MTU6MTEuNDYzNDEwMDE3ICswMjAwCisrKyBiL2RyaXZlcnMv
+bWVkaWEvdmlkZW8vZW0yOHh4L2VtMjh4eC5oCTIwMTItMDMtMTkgMjE6MzQ6MzcuMDg5MzExNDM3
+ICswMjAwCkBAIC0xMjYsNyArMTI2LDggQEAKICNkZWZpbmUgRU0yODg0X0JPQVJEX0NJTkVSR1lf
+SFRDX1NUSUNLCQkgIDgyCiAjZGVmaW5lIEVNMjg2MF9CT0FSRF9IVF9WSURCT1hfTlcwMyAJCSAg
+ODMKICNkZWZpbmUgRU0yODc0X0JPQVJEX01BWE1FRElBX1VCNDI1X1RDICAgICAgICAgICAgODQK
+LSNkZWZpbmUgRU0yODg0X0JPQVJEX1BDVFZfNTIwRSAgICAgICAgICAgICAgICAgICAgODUKKyNk
+ZWZpbmUgRU0yODg0X0JPQVJEX1BDVFZfNTEwRSAgICAgICAgICAgICAgICAgICAgODUKKyNkZWZp
+bmUgRU0yODg0X0JPQVJEX1BDVFZfNTIwRSAgICAgICAgICAgICAgICAgICAgODYKIAogLyogTGlt
+aXRzIG1pbmltdW0gYW5kIGRlZmF1bHQgbnVtYmVyIG9mIGJ1ZmZlcnMgKi8KICNkZWZpbmUgRU0y
+OFhYX01JTl9CVUYgNAo=
+--20cf303ea32811450304bba0a8b2--
