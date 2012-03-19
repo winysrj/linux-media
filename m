@@ -1,80 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:44509 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751998Ab2CKBzx (ORCPT
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:50034 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751073Ab2CSLmP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 10 Mar 2012 20:55:53 -0500
-Date: Sun, 11 Mar 2012 03:55:45 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org,
-	Martin Hostettler <martin@neutronstar.dyndns.org>
-Subject: Re: [PATCH v4 5/5] v4l: Add driver for Micron MT9M032 camera sensor
-Message-ID: <20120311015545.GG1591@valkosipuli.localdomain>
-References: <1331305285-10781-1-git-send-email-laurent.pinchart@ideasonboard.com>
- <1331305285-10781-6-git-send-email-laurent.pinchart@ideasonboard.com>
- <4F5A56D0.50803@iki.fi>
- <24208361.kjqmef2Tq0@avalon>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <24208361.kjqmef2Tq0@avalon>
+	Mon, 19 Mar 2012 07:42:15 -0400
+Received: by ghrr11 with SMTP id r11so5287858ghr.19
+        for <linux-media@vger.kernel.org>; Mon, 19 Mar 2012 04:42:14 -0700 (PDT)
+From: Sachin Kamat <sachin.kamat@linaro.org>
+To: linux-media@vger.kernel.org
+Cc: mchehab@infradead.org, andrzej.p@samsung.com,
+	sachin.kamat@linaro.org, patches@linaro.org
+Subject: [PATCH] [media] s5p-jpeg: Make the output format setting conditional
+Date: Mon, 19 Mar 2012 17:04:49 +0530
+Message-Id: <1332156889-8175-1-git-send-email-sachin.kamat@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+S5P-JPEG IP on Exynos4210 SoC supports YCbCr422 and YCbCr420
+as decoded output formats. But the driver used to fix the output
+format as YCbCr422. This is now made conditional depending upon
+the requested output format.
 
-On Fri, Mar 09, 2012 at 09:20:47PM +0100, Laurent Pinchart wrote:
-> > Laurent Pinchart wrote:
-> > ...
-> > 
-> > > +static int mt9m032_setup_pll(struct mt9m032 *sensor)
-> > > +{
-> > > +	static const struct aptina_pll_limits limits = {
-> > > +		.ext_clock_min = 8000000,
-> > > +		.ext_clock_max = 16500000,
-> > > +		.int_clock_min = 2000000,
-> > > +		.int_clock_max = 24000000,
-> > > +		.out_clock_min = 322000000,
-> > > +		.out_clock_max = 693000000,
-> > > +		.pix_clock_max = 99000000,
-> > > +		.n_min = 1,
-> > > +		.n_max = 64,
-> > > +		.m_min = 16,
-> > > +		.m_max = 255,
-> > > +		.p1_min = 1,
-> > > +		.p1_max = 128,
-> > > +	};
-> > > +
-> > > +	struct i2c_client *client = v4l2_get_subdevdata(&sensor->subdev);
-> > > +	struct mt9m032_platform_data *pdata = sensor->pdata;
-> > > +	struct aptina_pll pll;
-> > > +	int ret;
-> > > +
-> > > +	pll.ext_clock = pdata->ext_clock;
-> > > +	pll.pix_clock = pdata->pix_clock;
-> > > +
-> > > +	ret = aptina_pll_calculate(&client->dev, &limits, &pll);
-> > > +	if (ret < 0)
-> > > +		return ret;
-> > > +
-> > > +	sensor->pix_clock = pll.pix_clock;
-> > 
-> > I wouldn't expect aptina_pll_calculate() to change the supplied pixel
-> > clock. I'd consider it a bug if it does that. So you could use the pixel
-> > clock from platform data equally well.
-> 
-> But does it make a difference ? :-) Taking the value from pll.pix_clock seems 
-> more logical to me.
+Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+---
+ drivers/media/video/s5p-jpeg/jpeg-core.c |    5 ++++-
+ 1 files changed, 4 insertions(+), 1 deletions(-)
 
-This is an input parameter rather than output. I don't see a reason to read
-it back. It works even if you do, but makes no sense.
-
-I've been thinking of splitting the similar struct on SMIA++  between input
-and output parameters later on.
-
-Regards,
-
+diff --git a/drivers/media/video/s5p-jpeg/jpeg-core.c b/drivers/media/video/s5p-jpeg/jpeg-core.c
+index 1105a87..ee78fb2 100644
+--- a/drivers/media/video/s5p-jpeg/jpeg-core.c
++++ b/drivers/media/video/s5p-jpeg/jpeg-core.c
+@@ -957,7 +957,10 @@ static void s5p_jpeg_device_run(void *priv)
+ 		jpeg_rst_int_enable(jpeg->regs, true);
+ 		jpeg_data_num_int_enable(jpeg->regs, true);
+ 		jpeg_final_mcu_num_int_enable(jpeg->regs, true);
+-		jpeg_outform_raw(jpeg->regs, S5P_JPEG_RAW_OUT_422);
++		if (ctx->cap_q.fmt->fourcc == V4L2_PIX_FMT_YUYV)
++			jpeg_outform_raw(jpeg->regs, S5P_JPEG_RAW_OUT_422);
++		else
++			jpeg_outform_raw(jpeg->regs, S5P_JPEG_RAW_OUT_420);
+ 		jpeg_jpgadr(jpeg->regs, src_addr);
+ 		jpeg_imgadr(jpeg->regs, dst_addr);
+ 	}
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+1.7.4.1
+
