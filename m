@@ -1,86 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:36286 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757655Ab2C1JMi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Mar 2012 05:12:38 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 09/10] uvcvideo: Properly report the inactive flag for inactive controls
-Date: Wed, 28 Mar 2012 11:12:37 +0200
-Message-ID: <4797188.KPbmRBAMVG@avalon>
-In-Reply-To: <1332676610-14953-10-git-send-email-hdegoede@redhat.com>
-References: <1332676610-14953-1-git-send-email-hdegoede@redhat.com> <1332676610-14953-10-git-send-email-hdegoede@redhat.com>
+Received: from mx1.redhat.com ([209.132.183.28]:11678 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752946Ab2CSWeR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 19 Mar 2012 18:34:17 -0400
+Message-ID: <4F67B463.5080009@redhat.com>
+Date: Mon, 19 Mar 2012 19:34:11 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: =?ISO-8859-1?Q?Ezequiel_Garc=EDa?= <elezegarcia@gmail.com>
+CC: Hans de Goede <hdegoede@redhat.com>, linux-media@vger.kernel.org,
+	devel@driverdev.osuosl.org
+Subject: Re: A second easycap driver implementation
+References: <CALF0-+V7DXB+x-FKcy00kjfvdvLGKVTAmEEBP7zfFYxm+0NvYQ@mail.gmail.com> <4F572611.50607@redhat.com> <CALF0-+V5kTMXZ+Nfy4yqOSgyMwBYmjGH4EfFbqjju+d3GdsvSA@mail.gmail.com> <20120307154311.GB14836@kroah.com> <4F578E65.4070409@redhat.com> <CALF0-+W5HwFFnp96sK=agjc07V_GuizrD6k+Eu9b7sQXOW=Ngw@mail.gmail.com> <4F579815.2060207@redhat.com> <CALF0-+VovM_ykpyosETH5oBG-iEfxCZpg7yqF4Y4LRH0JW7=Gw@mail.gmail.com>
+In-Reply-To: <CALF0-+VovM_ykpyosETH5oBG-iEfxCZpg7yqF4Y4LRH0JW7=Gw@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
-
-Thanks for the patch.
-
-On Sunday 25 March 2012 13:56:49 Hans de Goede wrote:
-> Note the unused in this patch slave_ids addition to the mappings will get
-> used in a follow up patch to generate control change events for the slave
-> ctrls when their flags change due to the master control changing value.
+Em 19-03-2012 19:05, Ezequiel García escreveu:
+> Hi Mauro,
 > 
-> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-> ---
->  drivers/media/video/uvc/uvc_ctrl.c |   33 +++++++++++++++++++++++++++++++++
-> drivers/media/video/uvc/uvcvideo.h |    4 ++++
->  2 files changed, 37 insertions(+)
+> On 3/7/12, Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
+>>
+>> The usage of saa711x is simple. All you need to do is to implement
+>> an I2C bus at your easycap driver, load the module, and then, redirect
+>> any demod ioctl call to the I2C bus, like:
+>>
+>> static int vidioc_querystd(struct file *file, void *priv, v4l2_std_id *norm)
+>> {
+>> 	struct em28xx_fh   *fh  = priv;
+>> 	struct em28xx      *dev = fh->dev;
+>> 	int                rc;
+>>
+>> 	rc = check_dev(dev);
+>> 	if (rc < 0)
+>> 		return rc;
+>>
+>> 	v4l2_device_call_all(&dev->v4l2_dev, 0, video, querystd, norm);
+>>
+>> 	return 0;
+>> }
+>>
+>>
+>> An I2C device has an address that needs to be send through the I2C
+>> bus.
+>>
+>> The saa711x devices use one of the I2C addresses below:
+>>
+>> static unsigned short saa711x_addrs[] = {
+>> 	0x4a >> 1, 0x48 >> 1,   /* SAA7111, SAA7111A and SAA7113 */
+>> 	0x42 >> 1, 0x40 >> 1,   /* SAA7114, SAA7115 and SAA7118 */
+>> 	I2C_CLIENT_END };
+>>
 > 
-> diff --git a/drivers/media/video/uvc/uvc_ctrl.c
-> b/drivers/media/video/uvc/uvc_ctrl.c index 742496f..91d9007 100644
-> --- a/drivers/media/video/uvc/uvc_ctrl.c
-> +++ b/drivers/media/video/uvc/uvc_ctrl.c
+> I made my easycap driver use saa7115 driver to detect its saa7113 chip.
+> It wasn't so hard after some head scratching.
 
-[snip]
+Good!
 
-> @@ -943,6 +961,8 @@ static int __uvc_query_v4l2_ctrl(struct uvc_video_chain
-> *chain, struct uvc_control_mapping *mapping,
->  	struct v4l2_queryctrl *v4l2_ctrl)
->  {
-> +	struct uvc_control_mapping *master_map;
-> +	struct uvc_control *master_ctrl = NULL;
->  	struct uvc_menu_info *menu;
->  	unsigned int i;
->  	int ret = 0;
-> @@ -958,6 +978,19 @@ static int __uvc_query_v4l2_ctrl(struct uvc_video_chain
-> *chain, if (!(ctrl->info.flags & UVC_CTRL_FLAG_SET_CUR))
->  		v4l2_ctrl->flags |= V4L2_CTRL_FLAG_READ_ONLY;
+> The problem is now modprobe is taking too long, mainly because saa7115 does
+> some probing.
+> I was thinking (since we already discussed deferring stuff to a workqueue):
 > 
-> +	if (mapping->master_id)
-> +		master_ctrl = uvc_find_control(chain, mapping->master_id,
-> +					       &master_map);
+> Would it be problematic (in any fashion) to do add the i2c sub device
+> 
+>   v4l2_i2c_new_subdev(&dev->v4l2_dev, &dev->i2c_adap,
+>                         "saa7115_auto", 0, saa711x_addrs);
+> 
+> in a workqueue, (in the same way modules are loaded in workqueues)?
+> 
+> I think not, since we won't call i2c directly, but rather through
+> v4l2_device_call_all(), right?
 
-As an optimization, do you think it would make sense to add a struct 
-uvc_contro *master_ctrl field to struct uvc_control_mapping, and fill it in 
-uvc_ctrl_init_ctrl() ? That would require a loop over the mappings at 
-initialization time, but would get rid of the search operation at runtime. The 
-master_ctrl->info.flags & UVC_CTRL_FLAG_GET_CUR check would be performed at 
-initialization time as well, and master_ctrl would be left NULL it the master 
-control doesn't support the GET_CUR query.
+It would likely work. I would add some locking maybe at open or at ioctl
+level, to prevent calling the device while the init doesn't finish.
 
-> +	if (master_ctrl && (master_ctrl->info.flags & UVC_CTRL_FLAG_GET_CUR)) {
-> +		s32 val;
-> +		ret = __uvc_ctrl_get(chain, master_ctrl, master_map, &val);
-> +		if (ret < 0)
-> +			goto done;
-> +
-> +		if (val != mapping->master_manual)
-> +				v4l2_ctrl->flags |= V4L2_CTRL_FLAG_INACTIVE;
-> +	}
-> +
->  	if (!ctrl->cached) {
->  		ret = uvc_ctrl_populate_cache(chain, ctrl);
->  		if (ret < 0)
-
--- 
 Regards,
-
-Laurent Pinchart
+Mauro
+> 
+> Thanks,
+> Ezequiel.
 
