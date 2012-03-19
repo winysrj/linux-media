@@ -1,169 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.47]:60135 "EHLO mgw-sa01.nokia.com"
+Received: from mx1.redhat.com ([209.132.183.28]:46028 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755860Ab2CFQd2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 6 Mar 2012 11:33:28 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, dacohen@gmail.com,
-	snjw23@gmail.com, andriy.shevchenko@linux.intel.com,
-	t.stanislaws@samsung.com, tuukkat76@gmail.com,
-	k.debski@samsung.com, riverful@gmail.com, hverkuil@xs4all.nl,
-	teturtia@gmail.com, pradeep.sawlani@gmail.com
-Subject: [PATCH v5 15/35] media: Add link_validate() op to check links to the sink pad
-Date: Tue,  6 Mar 2012 18:32:56 +0200
-Message-Id: <1331051596-8261-15-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <20120306163239.GN1075@valkosipuli.localdomain>
-References: <20120306163239.GN1075@valkosipuli.localdomain>
+	id S1754492Ab2CSRsW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 19 Mar 2012 13:48:22 -0400
+Message-ID: <4F67714A.3070205@redhat.com>
+Date: Mon, 19 Mar 2012 14:47:54 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Alexey Khoroshilov <khoroshilov@ispras.ru>
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Olivier Grenie <olivier.grenie@dibcom.fr>,
+	Patrick Boettcher <pboettcher@kernellabs.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	ldv-project@ispras.ru
+Subject: Re: [PATCH] [media] dib0700: unlock mutexes on error paths
+References: <1331148118-22593-1-git-send-email-khoroshilov@ispras.ru>
+In-Reply-To: <1331148118-22593-1-git-send-email-khoroshilov@ispras.ru>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The purpose of the link_validate() op is to allow an entity driver to ensure
-that the properties of the pads at the both ends of the link are suitable
-for starting the pipeline. link_validate is called on sink pads on active
-links which belong to the active part of the graph.
+Em 07-03-2012 16:21, Alexey Khoroshilov escreveu:
+> dib0700_i2c_xfer [_new and _legacy] leave i2c_mutex locked on error paths.
+> The patch adds appropriate unlocks.
+> 
+> Found by Linux Driver Verification project (linuxtesting.org).
+> 
+> Signed-off-by: Alexey Khoroshilov <khoroshilov@ispras.ru>
+> ---
+>  drivers/media/dvb/dvb-usb/dib0700_core.c |    9 ++++++---
+>  1 files changed, 6 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/media/dvb/dvb-usb/dib0700_core.c b/drivers/media/dvb/dvb-usb/dib0700_core.c
+> index 070e82a..8ec22c4 100644
+> --- a/drivers/media/dvb/dvb-usb/dib0700_core.c
+> +++ b/drivers/media/dvb/dvb-usb/dib0700_core.c
+> @@ -228,7 +228,7 @@ static int dib0700_i2c_xfer_new(struct i2c_adapter *adap, struct i2c_msg *msg,
+>  			/* Write request */
+>  			if (mutex_lock_interruptible(&d->usb_mutex) < 0) {
+>  				err("could not acquire lock");
+> -				return 0;
+> +				break;
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- Documentation/media-framework.txt |   19 ++++++++++++++
- drivers/media/media-entity.c      |   50 +++++++++++++++++++++++++++++++++++-
- include/media/media-entity.h      |    5 ++-
- 3 files changed, 70 insertions(+), 4 deletions(-)
+A break here doesn't sound the right thing to do.
 
-diff --git a/Documentation/media-framework.txt b/Documentation/media-framework.txt
-index 3a0f879..8028754 100644
---- a/Documentation/media-framework.txt
-+++ b/Documentation/media-framework.txt
-@@ -335,6 +335,9 @@ the media_entity pipe field.
- Calls to media_entity_pipeline_start() can be nested. The pipeline pointer must
- be identical for all nested calls to the function.
- 
-+media_entity_pipeline_start() may return an error. In that case, it will
-+clean up any the changes it did by itself.
-+
- When stopping the stream, drivers must notify the entities with
- 
- 	media_entity_pipeline_stop(struct media_entity *entity);
-@@ -351,3 +354,19 @@ If other operations need to be disallowed on streaming entities (such as
- changing entities configuration parameters) drivers can explicitly check the
- media_entity stream_count field to find out if an entity is streaming. This
- operation must be done with the media_device graph_mutex held.
-+
-+
-+Link validation
-+---------------
-+
-+Link validation is performed by media_entity_pipeline_start() for any
-+entity which has sink pads in the pipeline. The
-+media_entity::link_validate() callback is used for that purpose. In
-+link_validate() callback, entity driver should check that the properties of
-+the source pad of the connected entity and its own sink pad match. It is up
-+to the type of the entity (and in the end, the properties of the hardware)
-+what matching actually means.
-+
-+Subsystems should facilitate link validation by providing subsystem specific
-+helper functions to provide easy access for commonly needed information, and
-+in the end provide a way to use driver-specific callbacks.
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index 056138f..d6d0e81 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -214,23 +214,69 @@ EXPORT_SYMBOL_GPL(media_entity_graph_walk_next);
-  * pipeline pointer must be identical for all nested calls to
-  * media_entity_pipeline_start().
-  */
--void media_entity_pipeline_start(struct media_entity *entity,
--				 struct media_pipeline *pipe)
-+__must_check int media_entity_pipeline_start(struct media_entity *entity,
-+					     struct media_pipeline *pipe)
- {
- 	struct media_device *mdev = entity->parent;
- 	struct media_entity_graph graph;
-+	struct media_entity *entity_err = entity;
-+	int ret;
- 
- 	mutex_lock(&mdev->graph_mutex);
- 
- 	media_entity_graph_walk_start(&graph, entity);
- 
- 	while ((entity = media_entity_graph_walk_next(&graph))) {
-+		unsigned int i;
-+
- 		entity->stream_count++;
- 		WARN_ON(entity->pipe && entity->pipe != pipe);
- 		entity->pipe = pipe;
-+
-+		/* Already streaming --- no need to check. */
-+		if (entity->stream_count > 1)
-+			continue;
-+
-+		if (!entity->ops || !entity->ops->link_validate)
-+			continue;
-+
-+		for (i = 0; i < entity->num_links; i++) {
-+			struct media_link *link = &entity->links[i];
-+
-+			/* Is this pad part of an enabled link? */
-+			if (!(link->flags & MEDIA_LNK_FL_ENABLED))
-+				continue;
-+
-+			/* Are we the sink or not? */
-+			if (link->sink->entity != entity)
-+				continue;
-+
-+			ret = entity->ops->link_validate(link);
-+			if (ret < 0 && ret != -ENOIOCTLCMD)
-+				goto error;
-+		}
- 	}
- 
- 	mutex_unlock(&mdev->graph_mutex);
-+
-+	return 0;
-+
-+error:
-+	/*
-+	 * Link validation on graph failed. We revert what we did and
-+	 * return the error.
-+	 */
-+	media_entity_graph_walk_start(&graph, entity_err);
-+
-+	while ((entity_err = media_entity_graph_walk_next(&graph))) {
-+		entity_err->stream_count--;
-+		if (entity_err->stream_count == 0)
-+			entity_err->pipe = NULL;
-+	}
-+
-+	mutex_unlock(&mdev->graph_mutex);
-+
-+	return ret;
- }
- EXPORT_SYMBOL_GPL(media_entity_pipeline_start);
- 
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index 29e7bba..0c16f51 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -46,6 +46,7 @@ struct media_entity_operations {
- 	int (*link_setup)(struct media_entity *entity,
- 			  const struct media_pad *local,
- 			  const struct media_pad *remote, u32 flags);
-+	int (*link_validate)(struct media_link *link);
- };
- 
- struct media_entity {
-@@ -140,8 +141,8 @@ void media_entity_graph_walk_start(struct media_entity_graph *graph,
- 		struct media_entity *entity);
- struct media_entity *
- media_entity_graph_walk_next(struct media_entity_graph *graph);
--void media_entity_pipeline_start(struct media_entity *entity,
--		struct media_pipeline *pipe);
-+__must_check int media_entity_pipeline_start(struct media_entity *entity,
-+					     struct media_pipeline *pipe);
- void media_entity_pipeline_stop(struct media_entity *entity);
- 
- #define media_entity_call(entity, operation, args...)			\
--- 
-1.7.2.5
+>  			}
+>  			st->buf[0] = REQUEST_NEW_I2C_WRITE;
+>  			st->buf[1] = msg[i].addr << 1;
+> @@ -270,11 +270,14 @@ static int dib0700_i2c_xfer_legacy(struct i2c_adapter *adap,
+>  	struct dib0700_state *st = d->priv;
+>  	int i,len;
+>  
+> -	if (mutex_lock_interruptible(&d->i2c_mutex) < 0)
+> +	if (mutex_lock_interruptible(&d->i2c_mutex) < 0) {
+> +		err("could not acquire lock");
+>  		return -EAGAIN;
+> +	}
+>  	if (mutex_lock_interruptible(&d->usb_mutex) < 0) {
+> +		mutex_unlock(&d->i2c_mutex);
+>  		err("could not acquire lock");
+> -		return 0;
+> +		return -EAGAIN;
+>  	}
+>  
+>  	for (i = 0; i < num; i++) {
 
