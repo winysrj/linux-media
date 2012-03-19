@@ -1,43 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:40751 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758908Ab2C3Nd1 (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:59782 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759134Ab2CSPeM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Mar 2012 09:33:27 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Gary Thomas <gary@mlbassoc.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: omap3isp & Linux-3.3
-Date: Fri, 30 Mar 2012 15:33:19 +0200
-Message-ID: <2647564.mZcJGaWXom@avalon>
-In-Reply-To: <4F75920C.9060103@mlbassoc.com>
-References: <4F75920C.9060103@mlbassoc.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Mon, 19 Mar 2012 11:34:12 -0400
+Received: from euspt2 (mailout1.w1.samsung.com [210.118.77.11])
+ by mailout1.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0M1500IFM1WICK@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 19 Mar 2012 15:33:54 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0M15001IZ1WVSW@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 19 Mar 2012 15:34:07 +0000 (GMT)
+Date: Mon, 19 Mar 2012 16:34:01 +0100
+From: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
+Subject: RE: [PATCH] [media] s5p-jpeg: Make the output format setting
+ conditional
+In-reply-to: <1332156889-8175-1-git-send-email-sachin.kamat@linaro.org>
+To: 'Sachin Kamat' <sachin.kamat@linaro.org>,
+	linux-media@vger.kernel.org
+Cc: mchehab@infradead.org, patches@linaro.org
+Message-id: <000601cd05e5$b576bdc0$20643940$%p@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-language: pl
+Content-transfer-encoding: 7BIT
+References: <1332156889-8175-1-git-send-email-sachin.kamat@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Gary,
+Hello,
 
-On Friday 30 March 2012 04:59:24 Gary Thomas wrote:
-> Laurent,
+On March 19, 2012 12:35 PM Sachin Kamat wrote:
+
+> Subject: [PATCH] [media] s5p-jpeg: Make the output format setting
+conditional
 > 
-> I'm looking at your latest tree.  I've merged my platform support
-> that I had working in 3.2, but I never see the TVP5150 sensor driver
-> being probed.
+> S5P-JPEG IP on Exynos4210 SoC supports YCbCr422 and YCbCr420
+> as decoded output formats. But the driver used to fix the output
+> format as YCbCr422. This is now made conditional depending upon
+> the requested output format.
+> 
+> Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+> ---
+>  drivers/media/video/s5p-jpeg/jpeg-core.c |    5 ++++-
 
-Is the OMAP3 ISP driver loaded ? What does it print to the kernel log ?
+<snip>
 
-> Has this changed?  Do you have an example [tree] with working board
-> support?  Previously you had a branch with support for the BeagleBoard
-> in place.  Is 'omap3isp-sensors-board' up to date?
+This has already been submitted and been pulled by Mauro:
 
-The branch is up-to-date, yes. It contains support for the Beagleabord-xM with 
-the MT9P031 camera module.
+http://git.linuxtv.org/media_tree.git/commit/fb6f8c0269644a19ee5e9bd6db080b3
+64ab28ea7
 
--- 
-Regards,
+Andrzej
 
-Laurent Pinchart
+
 
