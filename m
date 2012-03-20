@@ -1,70 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:46833 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754237Ab2CBKnx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Mar 2012 05:43:53 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Martin Hostettler <martin@neutronstar.dyndns.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: [PATCH v2 00/10] MT9M032 sensor driver
-Date: Fri,  2 Mar 2012 11:43:57 +0100
-Message-Id: <1330685047-12742-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:50939 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756293Ab2CTVXO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 20 Mar 2012 17:23:14 -0400
+Received: by wibhj6 with SMTP id hj6so5710588wib.1
+        for <linux-media@vger.kernel.org>; Tue, 20 Mar 2012 14:23:11 -0700 (PDT)
+Date: Tue, 20 Mar 2012 22:23:51 +0100
+From: Daniel Vetter <daniel@ffwll.ch>
+To: linaro-mm-sig@lists.linaro.org,
+	LKML <linux-kernel@vger.kernel.org>,
+	DRI Development <dri-devel@lists.freedesktop.org>,
+	linux-media@vger.kernel.org
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
+Subject: Re: [PATCH] [RFC] dma-buf: mmap support
+Message-ID: <20120320212013.GA22215@phenom.ffwll.local>
+References: <1332276785-1440-1-git-send-email-daniel.vetter@ffwll.ch>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1332276785-1440-1-git-send-email-daniel.vetter@ffwll.ch>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi everybody,
+On Tue, Mar 20, 2012 at 09:53:05PM +0100, Daniel Vetter wrote:
+> Note taht this dma-buf mmap patch does _not_ support every possible
+> insanity an existing subsystem could pull of with mmap: Because it
+> does not allow to intercept pagefaults and shoot down ptes importing
+> subsystems can't add some magic of their own at these points (e.g. to
+> automatically synchronize with outstanding rendering or set up some
+> special resources). I've done a cursory read through a few mmap
+> implementions of various subsytems and I'm hopeful that we can avoid
+> this (and the complexity it'd bring with it).
 
-Here's the second version of the Aptina MT9M032 sensor driver, originally
-written by Martin Hostettler.
-
-Compared to the first version, I've squashed two patches together that were
-not supposed to be split in the first place and fixed a couple of 80-columns
-checkpatch warnings.
-
-The first patch is still Martin's original driver untouched for ease of
-review. I can squash some of the other patches onto it if needed after review
-is complete.
-
-Patch 09/10 adds a generic PLL setup code for several Aptina sensors. I will
-post a patch for the MT9P031 sensor driver to use that code separately from
-this set.
-
-I would still like to push the patches in time for v3.4. Martin, could you
-please review the set ? Guennadi, to you have any MT9M032 hardware you can use
-to test the driver ?
-
-
-Laurent Pinchart (9):
-  mt9m032: Reorder code into section and whitespace cleanups
-  mt9m032: Make get/set format/crop operations consistent across
-    drivers
-  mt9m032: Use module_i2c_driver() macro
-  mt9m032: Enclose to_dev() macro argument in brackets
-  mt9m032: Pass an i2c_client pointer to the register read/write
-    functions
-  mt9m032: Put HFLIP and VFLIP controls in a cluster
-  mt9m032: Remove unneeded register read
-  v4l: Aptina-style sensor PLL support
-  mt9m032: Use generic PLL setup code
-
-Martin Hostettler (1):
-  v4l: Add driver for Micron MT9M032 camera sensor
-
- drivers/media/video/Kconfig      |   11 +
- drivers/media/video/Makefile     |    5 +
- drivers/media/video/aptina-pll.c |  120 ++++++
- drivers/media/video/aptina-pll.h |   55 +++
- drivers/media/video/mt9m032.c    |  827 ++++++++++++++++++++++++++++++++++++++
- include/media/mt9m032.h          |   36 ++
- 6 files changed, 1054 insertions(+), 0 deletions(-)
- create mode 100644 drivers/media/video/aptina-pll.c
- create mode 100644 drivers/media/video/aptina-pll.h
- create mode 100644 drivers/media/video/mt9m032.c
- create mode 100644 include/media/mt9m032.h
-
+To clarify: This concerns the importer. The exporter is of course still
+free to do whatever it pleases. But the goal of this exercise is that
+importing subsystems can still offer an identical userspace interfaces for
+buffers imported through dma-buf and native ones, hence why I've mentioned
+it.
+-Daniel
 -- 
-Regards,
-
-Laurent Pinchart
-
+Daniel Vetter
+Mail: daniel@ffwll.ch
+Mobile: +41 (0)79 365 57 48
