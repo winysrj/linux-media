@@ -1,65 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f174.google.com ([209.85.212.174]:62331 "EHLO
-	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751940Ab2CBWTj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Mar 2012 17:19:39 -0500
-Received: by wibhm2 with SMTP id hm2so899326wib.19
-        for <linux-media@vger.kernel.org>; Fri, 02 Mar 2012 14:19:38 -0800 (PST)
-Message-ID: <1330726770.20647.13.camel@tvbox>
-Subject: [PATCH] lmedm04 ver 1.97 Remove delays required for STV0288
-From: Malcolm Priestley <tvboxspy@gmail.com>
-To: linux-media@vger.kernel.org
-Date: Fri, 02 Mar 2012 22:19:30 +0000
-Content-Type: text/plain; charset="UTF-8"
+Received: from mail1.matrix-vision.com ([78.47.19.71]:53992 "EHLO
+	mail1.matrix-vision.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755614Ab2CTKFz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 20 Mar 2012 06:05:55 -0400
+Message-ID: <4F6856C0.4070404@matrix-vision.de>
+Date: Tue, 20 Mar 2012 11:06:56 +0100
+From: Michael Jones <michael.jones@matrix-vision.de>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media ML <linux-media@vger.kernel.org>
+Subject: Re: reading config parameters of omap3-isp subdevs
+References: <4F6348D7.9070409@matrix-vision.de> <6085689.3CUf0tMs8E@avalon>
+In-Reply-To: <6085689.3CUf0tMs8E@avalon>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Remove delays added for STV0288 frontend.
+Hi Laurent,
 
-This patch significantly speeds up channel change and scan.
+On 03/20/2012 12:22 AM, Laurent Pinchart wrote:
+> Hi Michael,
+>
+> On Friday 16 March 2012 15:06:15 Michael Jones wrote:
+[snip]
+>
+> Adding a R/W bit to the flag argument should indeed work. However, I'm
+> wondering what your use case for reading parameters back is.
 
-It requires patch 10161-STV0288 increase delay between carrier search.
+The simplest use case in my mind is that after the user has fiddled 
+around with config parameters, they should be able to set them back to 
+their original state.  For that, they need to know what the original 
+state was.
 
+ > The preview
+> engine parameter structures seem pretty-much self-contained to me, I'm not
+> sure it would make sense to only modify one of the parameters.
 
-Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
----
- drivers/media/dvb/dvb-usb/lmedm04.c |    6 +-----
- 1 files changed, 1 insertions(+), 5 deletions(-)
+Why doesn't it make sense to write to only e.g. 'COEF3' in the 
+PRV_WBGAIN register?  Especially considering the sparse documentation of 
+many of these registers, I would like to be able to tweak the existing 
+parameters from their defaults, rather than start from scratch.
 
-diff --git a/drivers/media/dvb/dvb-usb/lmedm04.c b/drivers/media/dvb/dvb-usb/lmedm04.c
-index a5ad561..948e325 100644
---- a/drivers/media/dvb/dvb-usb/lmedm04.c
-+++ b/drivers/media/dvb/dvb-usb/lmedm04.c
-@@ -181,8 +181,6 @@ static int lme2510_usb_talk(struct dvb_usb_device *d,
- 
- 	ret |= lme2510_bulk_write(d->udev, buff, wlen , 0x01);
- 
--	msleep(10);
--
- 	ret |= usb_clear_halt(d->udev, usb_rcvbulkpipe(d->udev, 0x01));
- 
- 	ret |= lme2510_bulk_read(d->udev, buff, (rlen < 64) ?
-@@ -455,8 +453,6 @@ static int lme2510_msg(struct dvb_usb_device *d,
- 						st->i2c_talk_onoff = 0;
- 					}
- 				}
--				if ((wbuf[3] != 0x6) & (wbuf[3] != 0x5))
--					msleep(5);
- 			}
- 			break;
- 		case TUNER_S0194:
-@@ -1294,5 +1290,5 @@ module_usb_driver(lme2510_driver);
- 
- MODULE_AUTHOR("Malcolm Priestley <tvboxspy@gmail.com>");
- MODULE_DESCRIPTION("LME2510(C) DVB-S USB2.0");
--MODULE_VERSION("1.96");
-+MODULE_VERSION("1.97");
- MODULE_LICENSE("GPL");
--- 
-1.7.9
+-Michael
 
-
-
-
+MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
+Registergericht: Amtsgericht Stuttgart, HRB 271090
+Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner, Erhard Meier
