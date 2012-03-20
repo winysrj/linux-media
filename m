@@ -1,64 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from swampdragon.chaosbits.net ([90.184.90.115]:22267 "EHLO
-	swampdragon.chaosbits.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751372Ab2CXWjU (ORCPT
+Received: from mail-we0-f174.google.com ([74.125.82.174]:38167 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755300Ab2CTVqy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 24 Mar 2012 18:39:20 -0400
-Date: Sat, 24 Mar 2012 23:39:18 +0100 (CET)
-From: Jesper Juhl <jj@chaosbits.net>
-To: linux-kernel@vger.kernel.org
-cc: Pierrick Hascoet <pierrick.hascoet@abilis.com>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	devel@driverdev.osuosl.org, linux-media@vger.kernel.org,
-	Pierrick Hascoet <pierrick.hascoet@abilis.com>,
-	Sylwester Nawrocki <snjw23@gmail.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	trivial@kernel.org
-Subject: [PATCH] staging/media/as102: Don't call release_firmware() on
- uninitialized variable
-Message-ID: <alpine.LNX.2.00.1203242336340.8210@swampdragon.chaosbits.net>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+	Tue, 20 Mar 2012 17:46:54 -0400
+Received: by wejx9 with SMTP id x9so443980wej.19
+        for <linux-media@vger.kernel.org>; Tue, 20 Mar 2012 14:46:53 -0700 (PDT)
+Date: Tue, 20 Mar 2012 22:46:46 +0100
+From: Steffen Barszus <steffenbpunkt@googlemail.com>
+To: Jarod Wilson <jarod@redhat.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: nuvoton-cir on Intel DH67CL
+Message-ID: <20120320224646.4ab0df34@grobi>
+In-Reply-To: <20120319210011.GD4230@redhat.com>
+References: <20120314071037.43f650e4@grobi>
+	<20120314204101.GG3729@redhat.com>
+	<20120314223243.62671b44@grobi>
+	<20120319210011.GD4230@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If, in drivers/staging/media/as102/as102_fw.c::as102_fw_upload(), the call
-	cmd_buf = kzalloc(MAX_FW_PKT_SIZE, GFP_KERNEL);
-should fail and return NULL so that we jump to the 'error:' label,
-then we'll end up calling 'release_firmware(firmware);' with
-'firmware' still uninitialized - not good.
-
-The easy fix is to just initialize 'firmware' to NULL when we declare
-it, since release_firmware() deals gracefully with being passed NULL
-pointers.
-
-Signed-off-by: Jesper Juhl <jj@chaosbits.net>
----
- drivers/staging/media/as102/as102_fw.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
- Only compile tested.
-
-diff --git a/drivers/staging/media/as102/as102_fw.c b/drivers/staging/media/as102/as102_fw.c
-index 43ebc43..1075fb1 100644
---- a/drivers/staging/media/as102/as102_fw.c
-+++ b/drivers/staging/media/as102/as102_fw.c
-@@ -165,7 +165,7 @@ error:
- int as102_fw_upload(struct as10x_bus_adapter_t *bus_adap)
- {
- 	int errno = -EFAULT;
--	const struct firmware *firmware;
-+	const struct firmware *firmware = NULL;
- 	unsigned char *cmd_buf = NULL;
- 	char *fw1, *fw2;
- 	struct usb_device *dev = bus_adap->usb_dev;
--- 
-1.7.9.4
+On Mon, 19 Mar 2012 17:00:11 -0400
+Jarod Wilson <jarod@redhat.com> wrote:
+> On Wed, Mar 14, 2012 at 10:32:43PM +0100, Steffen Barszus wrote:
+> > Anything to be activated to wakeup on S3/S5 ?  I.e. the key to wake
+> > it up ? I'm using RC6 remote - operation as already said is without
+> > any issues, just not wakeup. 
+> 
+> It occurs to me that the box I've got had Windows on it at one point,
+> and its possible wake via IR works only because someone set a wake
+> key pattern under Windows. And that your box doesn't wake, because it
+> hasn't had a wake key pattern set yet. We don't have any UI for
+> setting a wake key pattern just yet... (Or if we do, I'm just not
+> familiar with it).
 
 
--- 
-Jesper Juhl <jj@chaosbits.net>       http://www.chaosbits.net/
-Don't top-post http://www.catb.org/jargon/html/T/top-post.html
-Plain text mails only, please.
-
+Anything i can do to help getting it going ? (Except writing a driver)
+I could not find any reference to a tool either - so i guess it just
+doesnt exist :) 
