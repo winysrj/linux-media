@@ -1,119 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.meprolight.com ([194.90.149.17]:39379 "EHLO meprolight.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1757644Ab2CTKhA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Mar 2012 06:37:00 -0400
-From: Alex Gershgorin <alexg@meprolight.com>
-To: Sascha Hauer <s.hauer@pengutronix.de>
-CC: <linux-arm-kernel@lists.infradead.org>,
-	<linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<g.liakhovetski@gmx.de>, <fabio.estevam@freescale.com>,
-	Alex Gershgorin <alexg@meprolight.com>
-Subject: [PATCH] ARM: i.MX35: Add set_rate and round_rate calls to csi_clk
-Date: Tue, 20 Mar 2012 12:29:52 +0200
-Message-ID: <1332239392-12639-1-git-send-email-alexg@meprolight.com>
+Received: from mx1.redhat.com ([209.132.183.28]:11524 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757458Ab2CTAdH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 19 Mar 2012 20:33:07 -0400
+Message-ID: <4F67D03A.1080606@redhat.com>
+Date: Mon, 19 Mar 2012 21:32:58 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+To: Hans-Frieder Vogt <hfvogt@gmx.net>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH 3/3] Firmware for AF9035/AF9033 driver
+References: <201202222322.02424.hfvogt@gmx.net>
+In-Reply-To: <201202222322.02424.hfvogt@gmx.net>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch add set_rate and round_rate calls to csi_clk. This is needed
-to give mx3-camera control over master clock rate to camera.
+Em 22-02-2012 20:22, Hans-Frieder Vogt escreveu:
+> Firmware for the AF9035/AF9033 driver.
+> 
+> irmware format for af903x driver:
+> copied from it9135-driver by Jason Dong (C) 2011 ITE Technologies, INC.
+> 
+> 00000000: 8 chars "AF9035BX"    Identifier of firmware
+> 00000008: 4 bytes LE length of firmware following this:
+>                 32 + 4 + 4 + 4 + 4 + 4 + Firmware_CODELENGTH +
+>                 Firmware_SEGMENTLENGTH * Firmware_PARTITIONLENGTH * 5 +
+>                 5 + 2 + Firmware_scriptSets[0] * 5;
+> 0000000C: 32 chars firmware release version
+> 0000002C: 4 bytes BE link version
+> 00000030: 4 bytes BE ofdm version
+> 00000034: 4 bytes LE firmware code length (Firmware_CODELENGTH)
+> 00000038: 1 bytes number of firmware segments (Firmware_SEGMENTLENGTH)
+> 00000039: 3 bytes filler (0)
+> 0000003C: 1 bytes number of firmware partitions (Firmware_PARTITIONLENGTH)
+> 0000003D: 3 bytes filler (0)
+> 00000040: Firmware_CODELENGTH bytes
+> 0000abcd: description of firmware segments, for each segment in every 
+> partition:
+>         1 byte segment type (0: download firmware, 1: copy firmware, else: 
+> direct write firmware)
+>         4 bytes LE segment length
+> 0000bcde: 1 byte Firmware_SEGMENTLENGTH check
+> 0000bcdf: 1 byte Firmware_PARTITIONLENGTH check
+> 0000bce0: 3 bytes filler (0)
+> 0000bce3: 2 bytes LE number of firmware (demodulator) scripts
+> 0000bce5: list of firmware scripts, for each entry:
+>         4 bytes LE address
+>         1 byte value
+> 
+> Signed-off-by: Hans-Frieder Vogt <hfvogt@gmx.net>
+> 
+> http://home.arcor.de/hfvogt/af903x/dvb-usb-af9035-03.fw => for Terratec T5 
+> Ver. 2 / T6
+> http://home.arcor.de/hfvogt/af903x/dvb-usb-af9035-04.fw => for Avermedia A867
 
-Signed-off-by: Alex Gershgorin <alexg@meprolight.com>
----
- arch/arm/mach-imx/clock-imx35.c |   57 +++++++++++++++++++++++++++++++++++++-
- 1 files changed, 55 insertions(+), 2 deletions(-)
+Firmware patches should be against the linux-firmware tree [1].
 
-diff --git a/arch/arm/mach-imx/clock-imx35.c b/arch/arm/mach-imx/clock-imx35.c
-index ac8238c..3202b56 100644
---- a/arch/arm/mach-imx/clock-imx35.c
-+++ b/arch/arm/mach-imx/clock-imx35.c
-@@ -254,7 +254,7 @@ static unsigned long get_rate_ssi(struct clk *clk)
- 	return rate / ((div1 + 1) * (div2 + 1));
- }
- 
--static unsigned long get_rate_csi(struct clk *clk)
-+static unsigned long csi_get_rate(struct clk *clk)
- {
- 	unsigned long pdr2 = __raw_readl(CCM_BASE + CCM_PDR2);
- 	unsigned long rate;
-@@ -267,6 +267,45 @@ static unsigned long get_rate_csi(struct clk *clk)
- 	return rate / (((pdr2 >> 16) & 0x3f) + 1);
- }
- 
-+static int csi_set_rate(struct clk *clk, unsigned long rate)
-+{
-+	unsigned long div;
-+	unsigned long parent_rate;
-+	unsigned long pdr2 = __raw_readl(CCM_BASE + CCM_PDR2);
-+
-+	if (pdr2 & (1 << 7))
-+		parent_rate = get_rate_arm();
-+	else
-+		parent_rate = get_rate_ppll();
-+
-+	div = parent_rate / rate;
-+
-+	/* Set clock divider */
-+	pdr2 |= ((div - 1) & 0x3f) << 16;
-+	__raw_writel(pdr2, CCM_BASE + CCM_PDR2);
-+
-+	return 0;
-+}
-+
-+static unsigned long csi_round_rate(struct clk *clk, unsigned long rate)
-+{
-+	unsigned long div;
-+	unsigned long parent_rate;
-+	unsigned long pdr2 = __raw_readl(CCM_BASE + CCM_PDR2);
-+
-+	if (pdr2 & (1 << 7))
-+		parent_rate = get_rate_arm();
-+	else
-+		parent_rate = get_rate_ppll();
-+
-+	div = parent_rate / rate;
-+
-+	if (parent_rate % rate)
-+		div++;
-+
-+	return parent_rate / div;
-+}
-+
- static unsigned long get_rate_otg(struct clk *clk)
- {
- 	unsigned long pdr4 = __raw_readl(CCM_BASE + CCM_PDR4);
-@@ -353,6 +392,20 @@ static void clk_cgr_disable(struct clk *clk)
- 		.disable	= clk_cgr_disable,	\
- 	}
- 
-+#define DEFINE_CLOCK1(name, i, er, es, getsetround, s, p)	\
-+	static struct clk name = {                              \
-+		.id             = i,                            \
-+		.enable_reg     = CCM_BASE + er,                \
-+		.enable_shift   = es,                           \
-+		.get_rate       = getsetround##_get_rate,       \
-+		.set_rate       = getsetround##_set_rate,       \
-+		.round_rate     = getsetround##_round_rate,     \
-+		.enable         = clk_cgr_enable,               \
-+		.disable        = clk_cgr_disable,              \
-+		.secondary      = s,                            \
-+		.parent         = p,                            \
-+	}
-+
- DEFINE_CLOCK(asrc_clk,   0, CCM_CGR0,  0, NULL, NULL);
- DEFINE_CLOCK(pata_clk,    0, CCM_CGR0,  2, get_rate_ipg, NULL);
- /* DEFINE_CLOCK(audmux_clk, 0, CCM_CGR0,  4, NULL, NULL); */
-@@ -403,7 +456,7 @@ DEFINE_CLOCK(wdog_clk,   0, CCM_CGR2, 24, NULL, NULL);
- DEFINE_CLOCK(max_clk,    0, CCM_CGR2, 26, NULL, NULL);
- DEFINE_CLOCK(audmux_clk, 0, CCM_CGR2, 30, NULL, NULL);
- 
--DEFINE_CLOCK(csi_clk,    0, CCM_CGR3,  0, get_rate_csi, NULL);
-+DEFINE_CLOCK1(csi_clk,    0, CCM_CGR3,  0, csi, NULL, NULL);
- DEFINE_CLOCK(iim_clk,    0, CCM_CGR3,  2, NULL, NULL);
- DEFINE_CLOCK(gpu2d_clk,  0, CCM_CGR3,  4, NULL, NULL);
- 
--- 
-1.7.0.4
+[1] http://git.kernel.org/?p=linux/kernel/git/dwmw2/linux-firmware.git;a=summary
+
+We need a licensing text signed by the board or chipset manufacturer, in order
+to be able to add it there. If you can't get it, then the alternative is to change
+the Documentation/dvb/get_dvb_firmware script to get it from somewhere (although
+this is a bad option, as the firmware won't be distributed together with the Linux
+distributions).
+
+Regards,
+Mauro
+
+> 
+> Hans-Frieder Vogt                       e-mail: hfvogt <at> gmx .dot. net
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
