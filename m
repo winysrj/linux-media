@@ -1,42 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail2.matrix-vision.com ([85.214.244.251]:36806 "EHLO
-	mail2.matrix-vision.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755349Ab2CPOFY (ORCPT
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:33206 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758051Ab2CTOKs (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Mar 2012 10:05:24 -0400
-Message-ID: <4F6348D7.9070409@matrix-vision.de>
-Date: Fri, 16 Mar 2012 15:06:15 +0100
-From: Michael Jones <michael.jones@matrix-vision.de>
-MIME-Version: 1.0
-To: linux-media ML <linux-media@vger.kernel.org>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: reading config parameters of omap3-isp subdevs
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	Tue, 20 Mar 2012 10:10:48 -0400
+Received: by eekc41 with SMTP id c41so31451eek.19
+        for <linux-media@vger.kernel.org>; Tue, 20 Mar 2012 07:10:47 -0700 (PDT)
+From: Gianluca Gennari <gennarone@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@redhat.com
+Cc: Gianluca Gennari <gennarone@gmail.com>
+Subject: [PATCH] lirc: delete unused init/exit function prototypes
+Date: Tue, 20 Mar 2012 15:10:39 +0100
+Message-Id: <1332252639-3256-1-git-send-email-gennarone@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+The lirc sasem and imon drivers now use the module_usb_driver macro, so the old
+init/exit function prototypes are useless.
 
-I am playing around with some parameters in the previewer on the ISP. 
-With ioctl VIDIOC_OMAP3ISP_PRV_CFG I am able to write the various 
-parameters but what I'm missing is a way to read them.  For example, I 
-have no way to adjust only coef2 in 'struct omap3isp_prev_wbal' while 
-leaving the others unchanged.  If I could first read the whole 
-omap3isp_prev_wbal structure, then I could change just the things I want 
-to change.  This seems like it would be common functionality for such 
-ioctls.  I didn't find any previous discussion related to this.
+This patch eliminates this warnings:
 
-I could imagine either adding a r/w flag to 'struct 
-omap3isp_prev_update_config' or adding a new ioctl entirely.  I think I 
-would prefer the r/w flag.  Feedback?
+media_build/v4l/lirc_imon.c:74:19: warning: 'imon_init' declared 'static' but never defined [-Wunused-function]
+media_build/v4l/lirc_imon.c:75:20: warning: 'imon_exit' declared 'static' but never defined [-Wunused-function]
+media_build/v4l/lirc_sasem.c:84:19: warning: 'sasem_init' declared 'static' but never defined [-Wunused-function]
+media_build/v4l/lirc_sasem.c:85:20: warning: 'sasem_exit' declared 'static' but never defined [-Wunused-function]
 
-I noticed that other ISP subdevs have similar ioctls.  Perhaps a similar 
-thing would be useful there, but right now I'm only looking at the 
-previewer.
+Signed-off-by: Gianluca Gennari <gennarone@gmail.com>
+---
+ drivers/staging/media/lirc/lirc_imon.c  |    4 ----
+ drivers/staging/media/lirc/lirc_sasem.c |    4 ----
+ 2 files changed, 0 insertions(+), 8 deletions(-)
 
--Michael
+diff --git a/drivers/staging/media/lirc/lirc_imon.c b/drivers/staging/media/lirc/lirc_imon.c
+index 5f7f8cd..083219d 100644
+--- a/drivers/staging/media/lirc/lirc_imon.c
++++ b/drivers/staging/media/lirc/lirc_imon.c
+@@ -70,10 +70,6 @@ static ssize_t vfd_write(struct file *file, const char __user *buf,
+ static int ir_open(void *data);
+ static void ir_close(void *data);
+ 
+-/* Driver init/exit prototypes */
+-static int __init imon_init(void);
+-static void __exit imon_exit(void);
+-
+ /*** G L O B A L S ***/
+ #define IMON_DATA_BUF_SZ	35
+ 
+diff --git a/drivers/staging/media/lirc/lirc_sasem.c b/drivers/staging/media/lirc/lirc_sasem.c
+index 7855baa..8372d5e 100644
+--- a/drivers/staging/media/lirc/lirc_sasem.c
++++ b/drivers/staging/media/lirc/lirc_sasem.c
+@@ -80,10 +80,6 @@ static ssize_t vfd_write(struct file *file, const char *buf,
+ static int ir_open(void *data);
+ static void ir_close(void *data);
+ 
+-/* Driver init/exit prototypes */
+-static int __init sasem_init(void);
+-static void __exit sasem_exit(void);
+-
+ /*** G L O B A L S ***/
+ #define SASEM_DATA_BUF_SZ	32
+ 
+-- 
+1.7.5.4
 
-MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
-Registergericht: Amtsgericht Stuttgart, HRB 271090
-Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner, Erhard Meier
