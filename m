@@ -1,62 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:46496 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756615Ab2CEL2C (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Mar 2012 06:28:02 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, dacohen@gmail.com, snjw23@gmail.com,
-	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
-	tuukkat76@gmail.com, k.debski@samsung.com, riverful@gmail.com,
-	hverkuil@xs4all.nl, teturtia@gmail.com
-Subject: Re: [PATCH v4 26/34] omap3isp: Add information on external subdev to struct isp_pipeline
-Date: Mon, 05 Mar 2012 12:28:21 +0100
-Message-ID: <4023505.SC8tmEe4Q6@avalon>
-In-Reply-To: <1330709442-16654-26-git-send-email-sakari.ailus@iki.fi>
-References: <20120302173219.GA15695@valkosipuli.localdomain> <1330709442-16654-26-git-send-email-sakari.ailus@iki.fi>
+Received: from rcsinet15.oracle.com ([148.87.113.117]:44110 "EHLO
+	rcsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754072Ab2CTNj5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 20 Mar 2012 09:39:57 -0400
+Date: Tue, 20 Mar 2012 16:40:35 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: volokh <volokh@telros.ru>
+Cc: devel@linuxdriverproject.org, linux-media@vger.kernel.org
+Subject: Re: go7007 patch for 3.2.11
+Message-ID: <20120320134034.GA3218@mwanda>
+References: <1332247500.6182.30.camel@VPir>
+ <20120320133750.GA3967@mwanda>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="HcAYCG3uE/tztfnV"
+Content-Disposition: inline
+In-Reply-To: <20120320133750.GA3967@mwanda>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
 
-Thanks for the patch.
+--HcAYCG3uE/tztfnV
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-On Friday 02 March 2012 19:30:34 Sakari Ailus wrote:
-> Add pointer to external subdev, pixel rate of the external subdev and bpp of
-> the format to struct isp_pipeline.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> ---
->  drivers/media/video/omap3isp/ispvideo.h |    3 +++
->  1 files changed, 3 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/media/video/omap3isp/ispvideo.h
-> b/drivers/media/video/omap3isp/ispvideo.h index d91bdb91..b198723 100644
-> --- a/drivers/media/video/omap3isp/ispvideo.h
-> +++ b/drivers/media/video/omap3isp/ispvideo.h
-> @@ -102,6 +102,9 @@ struct isp_pipeline {
->  	bool do_propagation; /* of frame number */
->  	bool error;
->  	struct v4l2_fract max_timeperframe;
-> +	struct v4l2_subdev *external;
-> +	unsigned int external_rate;
-> +	int external_bpp;
+Also the patch has to apply against linux-next not 3.2.11.  Probably
+that is explained in the link I sent...
 
-unsigned int ? :-)
+regards,
+dan carpenter
 
-With that change,
+--HcAYCG3uE/tztfnV
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
 
->  };
-> 
->  #define to_isp_pipeline(__e) \
+iQIcBAEBAgAGBQJPaIjSAAoJEOnZkXI/YHqRDJcQAJJJcx7rO+CmUFCeAUlGf4tY
+2N5mYrd9PzvNmZbZzptnifKfFiU8ksLSoFMwek8l3bB1HhmR4H2D4rv30w/RLKmC
+E9C6pwKSlLrbNfIv8XrLDXY5z4rYQivOnbJ9/V4XKw6G7KqcRICt+R7Czb1397Jl
+IvHoCrR+eWAkQfDTKptirUgX2cjeav+ZvFysHPBAV+YMUABK+PrXGDGTOm9Qqm4K
++qk9cKNzBV4fOqMF8SEPavOtXSPhvtZtqCfkRrG8bRl8VMEXgHrUSeiznXwa2Mf7
+xezm9DZC6uvwdkQTXe1P11Xl54OgU3mrCcqN+eVE94DtbUXzgVg7Es0S2d8/xaDm
+v9qNeoCntxJNhJdBsk2sXLzrMEbj34n/2W7iDRVwzb0xIYObbtxLax+xHdoeREV3
+SwGn6dVqVNp8TvDe+YZ2qjQ/+4QhrlovxjvSf3M/GpTJIZEHXhuDNtxgE/ud9724
+KdSlfVrB90AiVsEmMSIJI2hIcgXnvNfxAghuGQPoBjupNDpxwfuCHmbKEH3hL5j6
+U8oiWbC//TQLJjHlEm6RHpyReoCHavbBgAs6VG5URP71tiAJxTNSVH9ZBeI35Vpc
+MfT929ULeVMgSN18XcGKEElmEO9nrZ80eIFn2uRihViU2Kmy4nXysAD1M0thCwk2
+k6/jQ5B4hXSTcPk+Vqxs
+=8Vkt
+-----END PGP SIGNATURE-----
 
--- 
-Regards,
-
-Laurent Pinchart
-
+--HcAYCG3uE/tztfnV--
