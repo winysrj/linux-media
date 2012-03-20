@@ -1,47 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:45469 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932892Ab2CZRnR (ORCPT
+Received: from zoneX.GCU-Squad.org ([194.213.125.0]:49106 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756990Ab2CTHUM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Mar 2012 13:43:17 -0400
-Received: by wejx9 with SMTP id x9so4368889wej.19
-        for <linux-media@vger.kernel.org>; Mon, 26 Mar 2012 10:43:16 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <2321523.YMAGzgKbQ4@avalon>
-References: <CAGD8Z75ELkV6wJOfuCFU3Z2dS=z5WbV-7izazaG7SVtfPMcn=A@mail.gmail.com>
-	<16456215.DlCuaG1n70@avalon>
-	<CAGD8Z76ctw2F669D4PdJpYm4L1caYm=stE3WW_5JNxXpZZwx9g@mail.gmail.com>
-	<2321523.YMAGzgKbQ4@avalon>
-Date: Mon, 26 Mar 2012 11:43:16 -0600
-Message-ID: <CAGD8Z76tN+ZXf9=Yfbd+EQ81m+nAsjPHogY2tN=V-5gJytaXJQ@mail.gmail.com>
-Subject: Re: Using MT9P031 digital sensor
-From: Joshua Hintze <joshua.hintze@gmail.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+	Tue, 20 Mar 2012 03:20:12 -0400
+Date: Tue, 20 Mar 2012 08:20:02 +0100
+From: Jean Delvare <khali@linux-fr.org>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	LMML <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH 1/2] [media] dib0700: Drop useless check when remote key
+  is pressed
+Message-ID: <20120320082002.6551466a@endymion.delvare>
+In-Reply-To: <4F67B283.4050308@redhat.com>
+References: <20120313185037.4059a869@endymion.delvare>
+	<CAGoCfixvanxKT4h1k+FkaYkQ-zHjR-rYBWxHHiDygOScPCeZPA@mail.gmail.com>
+	<4F67B283.4050308@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Laurent,
+Hi Mauro,
 
-On Mon, Mar 26, 2012 at 11:38 AM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> Hi Joshua,
->
-> On Monday 26 March 2012 09:44:52 Joshua Hintze wrote:
->> On Mon, Mar 26, 2012 at 2:25 AM, Laurent Pinchart wrote:
->> > On Sunday 25 March 2012 23:13:02 Joshua Hintze wrote:
->
-> [snip]
->
->> Dang, I'll have to look up some AEWB algorithms.
->
-> I will publish sample code soon (likely in a couple of weeks, could be a bit
-> before).
->
+On Mon, 19 Mar 2012 19:26:11 -0300, Mauro Carvalho Chehab wrote:
+>  On Tue, Mar 13, 2012 at 1:50 PM, Jean Delvare <khali@linux-fr.org> wrote:
+> > --- linux-3.3-rc7.orig/drivers/media/dvb/dvb-usb/dib0700_core.c	2012-03-13 11:09:13.000000000 +0100
+> > +++ linux-3.3-rc7/drivers/media/dvb/dvb-usb/dib0700_core.c	2012-03-13 18:37:05.785953845 +0100
+> > @@ -677,9 +677,6 @@ static void dib0700_rc_urb_completion(st
+> >  	u8 toggle;
+> >  
+> >  	deb_info("%s()\n", __func__);
+> > -	if (d == NULL)
+> > -		return;
+> > -
+> 
+> Well, usb_free_urb() is not called when d == NULL, so, if this condition
+> ever happens, it will keep URB's allocated.
+> 
+> Anyway, if struct dvb_usb_device *d is NULL, the driver has something very
+> wrong happening on it, and nothing will work on it.
+> 
+> I agree with Jean: it is better to just remove this code there.
+> 
+> Yet, I'd be more happy if Jean's patch could check first if the status is
+> below 0, in order to prevent a possible race condition at device disconnect.
 
-Great! I look forward to it.
+I'm not sure I see the race condition you're seeing. Do you believe
+purb->context would be NULL (or point to already-freed memory) when
+dib0700_rc_urb_completion is called as part of device disconnect? Or is
+it something else? I'll be happy to resubmit my patch series with a fix
+if you explain where you think there is a race condition.
 
-Thanks,
-
-Josh
+-- 
+Jean Delvare
