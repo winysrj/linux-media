@@ -1,52 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hrndva-omtalb.mail.rr.com ([71.74.56.122]:28066 "EHLO
-	hrndva-omtalb.mail.rr.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754549Ab2CDSZ0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 4 Mar 2012 13:25:26 -0500
-Date: Sun, 04 Mar 2012 12:25:23 -0600
-From: Larry Finger <Larry.Finger@lwfinger.net>
-To: awalls@md.metrocast.net
-Cc: linux-media@vger.kernel.org, ivtv-devel@ivtvdriver.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH] ivtv: Fix build warning
-Message-ID: <4f53b393.cBPkBHEECVOO9Jzx%Larry.Finger@lwfinger.net>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Received: from bues.ch ([80.190.117.144]:49931 "EHLO bues.ch"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750847Ab2CTRdC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 20 Mar 2012 13:33:02 -0400
+Date: Tue, 20 Mar 2012 18:32:50 +0100
+From: Michael =?UTF-8?B?QsO8c2No?= <m@bues.ch>
+To: gennarone@gmail.com
+Cc: Hans-Frieder Vogt <hfvogt@gmx.net>, linux-media@vger.kernel.org
+Subject: Re: [PATCH 2/3] Basic AF9035/AF9033 driver
+Message-ID: <20120320183250.504fcced@milhouse>
+In-Reply-To: <4F68B52F.4040405@gmail.com>
+References: <201202222321.43972.hfvogt@gmx.net>
+	<4F67CF24.8050601@redhat.com>
+	<20120320140411.58b5808b@milhouse>
+	<4F68B001.1050809@gmail.com>
+	<20120320173724.4d3f2f0f@milhouse>
+	<4F68B52F.4040405@gmail.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=PGP-SHA1;
+ boundary="Sig_/+M3VTHVPZMZLMvqLzzI_wvS"; protocol="application/pgp-signature"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In driver ivtv, there is a mismatch between the type of the radio module parameter
-and the storage variable, which leads to the following warning:
+--Sig_/+M3VTHVPZMZLMvqLzzI_wvS
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-  CC [M]  drivers/media/video/ivtv/ivtv-driver.o
-drivers/media/video/ivtv/ivtv-driver.c: In function ‘__check_radio’:
-drivers/media/video/ivtv/ivtv-driver.c:142: warning: return from incompatible pointer type
-drivers/media/video/ivtv/ivtv-driver.c: At top level:
-drivers/media/video/ivtv/ivtv-driver.c:142: warning: initialization from incompatible pointer type
+On Tue, 20 Mar 2012 17:49:51 +0100
+Gianluca Gennari <gennarone@gmail.com> wrote:
 
-Signed-off-by: Larry Finger <Larry.Finger@lwfinger.net>
----
+> Here it is:
+> http://www.mail-archive.com/linux-media@vger.kernel.org/msg44169.html
 
-Index: linux-2.6/drivers/media/video/ivtv/ivtv-driver.c
-===================================================================
---- linux-2.6.orig/drivers/media/video/ivtv/ivtv-driver.c
-+++ linux-2.6/drivers/media/video/ivtv/ivtv-driver.c
-@@ -99,7 +99,7 @@ static int i2c_clock_period[IVTV_MAX_CAR
- 
- static unsigned int cardtype_c = 1;
- static unsigned int tuner_c = 1;
--static bool radio_c = 1;
-+static int radio_c = 1;
- static unsigned int i2c_clock_period_c = 1;
- static char pal[] = "---";
- static char secam[] = "--";
-@@ -139,7 +139,7 @@ static int tunertype = -1;
- static int newi2c = -1;
- 
- module_param_array(tuner, int, &tuner_c, 0644);
--module_param_array(radio, bool, &radio_c, 0644);
-+module_param_array(radio, int, &radio_c, 0644);
- module_param_array(cardtype, int, &cardtype_c, 0644);
- module_param_string(pal, pal, sizeof(pal), 0644);
- module_param_string(secam, secam, sizeof(secam), 0644);
+Uh thanks. I must have been blinded by the AF903x_SRC driver. ;)
+
+--=20
+Greetings, Michael.
+
+PGP encryption is encouraged / 908D8B0E
+
+--Sig_/+M3VTHVPZMZLMvqLzzI_wvS
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Disposition: attachment; filename=signature.asc
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJPaL9CAAoJEPUyvh2QjYsOy6sQALg7V7LS+R9EBY3vhaEPv2fK
++sCK6p85+bkLIAwgtMMygAmRonsHeQgZd2aHYigN5GprMBtuqSaTs4ux5WfIzkRT
+j3Ro4R753YISNraV3U9FRNRWG2QgpJX5EL/Y+bIfIuyl3GycHyzWlYF3bsJ9qk0t
++sOC7g5cYORoTdNJuQNXkvaIKmwRTMErMijAjb+/h4lbMp24p6HALnOWdqtD7z2r
+jvNie7SjZLDFlfS9126EZDP6Q6iWUnKPSXA2qVJlw/mwNsRFxEKTz7sGJ6TD2QXh
+QIfBhkJkD1Ok6ydEB048TwzBfVOVZlT4H1CqaWQdoOlA20xUQ1OJKneFoylgSUrV
+g1LkiBR+AwAudSNasKus9pgKZX1MKlC14g2lnnEVhbix2vv/VutgE/kfZq3ab6K2
+2fVfJiyTDDgbYtzUlCI6JKbVu7Uy2IcD/IVDgDaMlFmY4xjiv0NHxz2EFz1OgpL4
+enmlnrbuqpb1jJY9dqMfsYZFSxdQDQQivcDRyPPIZFlEe7Z7i/ac3o0d776TNSZ0
+09n4tDSjbf8rqMRcwsUCEThwToD9xyDGnADf++V4B3M7S7Cwas6ZujJn7pcaa0hy
+Yav9dW00Hi/9I8gNz+tab+KiZYSIgbU1YKwSdgPiEVeyYN5yxfUqCyiFB5BSEmsW
+n5vAaGMHvMkLhdsZ3n+7
+=pP/Q
+-----END PGP SIGNATURE-----
+
+--Sig_/+M3VTHVPZMZLMvqLzzI_wvS--
