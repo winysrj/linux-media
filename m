@@ -1,90 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:43677 "EHLO
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:38974 "EHLO
 	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756015Ab2COOao (ORCPT
+	with ESMTP id S1754365Ab2CTL1J (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Mar 2012 10:30:44 -0400
-Received: by eaaq12 with SMTP id q12so1574169eaa.19
-        for <linux-media@vger.kernel.org>; Thu, 15 Mar 2012 07:30:43 -0700 (PDT)
+	Tue, 20 Mar 2012 07:27:09 -0400
+Received: by eaaq12 with SMTP id q12so2947362eaa.19
+        for <linux-media@vger.kernel.org>; Tue, 20 Mar 2012 04:27:08 -0700 (PDT)
+Message-ID: <4F68698A.2070403@gmail.com>
+Date: Tue, 20 Mar 2012 12:27:06 +0100
+From: Marco Cavallini <koansoftware@gmail.com>
+Reply-To: koansoftware@gmail.com
 MIME-Version: 1.0
-In-Reply-To: <006d01cd02ae$457fc960$d07f5c20$%debski@samsung.com>
-References: <CACKLOr3T-w1JdaGgnL+ZEXFX4v_oVd0HY8mqrm5ZzxEziH32jw@mail.gmail.com>
-	<20120315110336.GH4220@valkosipuli.localdomain>
-	<006d01cd02ae$457fc960$d07f5c20$%debski@samsung.com>
-Date: Thu, 15 Mar 2012 15:30:42 +0100
-Message-ID: <CACKLOr1igHtcfMBHTdncSzHiBixt03WDJ-QSNvUn3sRe171e+A@mail.gmail.com>
-Subject: Re: [Q] media: V4L2 compressed frames and s_fmt.
-From: javier Martin <javier.martin@vista-silicon.com>
-To: Kamil Debski <k.debski@samsung.com>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+To: linux-media@vger.kernel.org
+CC: Marco Cavallini <m.cavallini@koansoftware.com>
+Subject: tvp5150: pxa27x-camera pxa27x-camera.0: Field type 9 unsupported.
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kamil, Sakari,
-thank you for your replies.
+Hello,
+I am trying to run a tvp5150 driver with a PXA270 based board
+I am using kernel version: Linux 2.6.35 armv5tel GNU/Linux
 
-On 15 March 2012 14:19, Kamil Debski <k.debski@samsung.com> wrote:
-> Hi Javier, Sakari,
->
->> From: Sakari Ailus [mailto:sakari.ailus@iki.fi]
->> Sent: 15 March 2012 12:04
->>
->> Hi Javier,
->>
->> (Cc Kamil.)
->>
->> On Wed, Mar 14, 2012 at 12:22:43PM +0100, javier Martin wrote:
->> > Hi,
->> > I'm developing a V4L2 mem2mem driver for the codadx6 IP video codec
->> > which is included in the i.MX27 chip.
->> >
->> > The capture interface of this driver can therefore return h.264 or
->> > mpeg4 video frames.
->> >
->> > Provided that the size of each frame varies and is unknown to the
->> > user, how is the driver supposed to react to a S_FMT when it comes to
->> > parameters such as the following?
->> >
->> > pix->width
->> > pix->height
->> > pix->bytesperline
->> > pix->sizeimage
->> >
->> > According to the documentation [1] I understand that the driver can
->> > just ignore 'bytesperline' and should return in 'sizeimage' the
->> > maximum buffer size to store a compressed frame. However, it does not
->> > mention anything special about width and height. Does it make sense
->> > setting width and height for h.264/mpeg4 formats?
->>
->
-> Yes, in case of the compressed side (capture) the width, height and
-> bytesperline
-> is ignored. The MFC driver sets bytesperline to 0 and leaves width and height
-> intact
-> during S_FMT. I suggest you do the same or set all of them (width, height,
-> bytesperline)
-> to 0.
+I also did a test with kernel-3.2.5 without success.
+I started playing with V4L2, and I've never used it, but I built v4l2-utils.
+The problem is something in pxa_camera_try_fmt() related to the settings
+causing the error "pxa27x-camera pxa27x-camera.0: Field type 9 unsupported."
 
-I'm not sure about that, according to the code in here [1] it ignores
-width and height, as you stated, but it fills bytesperline with the
-value in imagesize. This applies to TRY_FMT and S_FMT.
-On the other hand, in G_FMT [2], it sets width and height to 0, but
-bytesperline and sizeimage are set to ctx->enc_dst_buf_size, which I
-deduce it's the encoder buffer size.
 
-If this is the agreed way of doing things I can just implement this
-behavior in my driver as well.
+[   30.005365] Linux video capture interface: v2.00
+[   32.942234] *** PROBE tvp5151 ***
+[   32.945573] tvp5150 0-003a: chip found @ 0x74 (pxa_i2c-i2c.0)
+[   33.281105] pxa27x-camera pxa27x-camera.0: Limiting master clock to
+26000000
+[   33.288557] camera 0-0: Probing 0-0
+[   33.292170] pxa27x-camera pxa27x-camera.0: PXA Camera driver attached
+to camera 0
+[   33.666535] *** PROBE tvp5151 ***
+[   33.669865] tvp5150 0-005d: chip found @ 0xba (pxa_i2c-i2c.0)
+[   33.811605] tvp5150 0-005d: tvp5150am1 detected.
+[   33.999541] *** tvp5150_g_fmt
+[   34.002776] pxa27x-camera pxa27x-camera.0: PXA Camera driver detached
+from camera 0
+[   34.447069] pxa27x-camera pxa27x-camera.0: PXA Camera driver attached
+to camera 0
+[   34.454755] *** tvp5150_try_fmt 2
+[   34.458053] pxa27x-camera pxa27x-camera.0: Field type 9 unsupported.
+[   34.464393] pxa27x-camera pxa27x-camera.0: PXA Camera driver detached
+from camera 0
 
-Regards.
 
-[1] http://lxr.linux.no/#linux+v3.2.11/drivers/media/video/s5p-mfc/s5p_mfc_enc.c#L880
-[2] http://lxr.linux.no/#linux+v3.2.11/drivers/media/video/s5p-mfc/s5p_mfc_enc.c#L844
--- 
-Javier Martin
-Vista Silicon S.L.
-CDTUC - FASE C - Oficina S-345
-Avda de los Castros s/n
-39005- Santander. Cantabria. Spain
-+34 942 25 32 60
-www.vista-silicon.com
+I am completely stuck at this, so I have some questions:
+- is kernel version 2.6.35 good for using tvp5150 driver?
+- do I need to have V2L to get out an image from tvp5150?
+- which settings are missing in this driver?
+- does anybody have seen a tvp5150 working with a PXA270 earlier?
+
+
+# ./v4l2-ctl --all
+[ 2195.222443] pxa27x-camera pxa27x-camera.0: PXA Camera driver attached
+to camera 0
+[ 2195.230247] *** tvp5150_try_fmt 2
+[ 2195.234032] pxa27x-camera pxa27x-camera.0: Field type 9 unsupported.
+[ 2195.240473] pxa27x-camera pxa27x-camera.0: PXA Camera driver detached
+from camera 0
+Failed to open /dev/video0: Invalid argument
+
+
+Any hint would be greatly appreciated, if you need more details please ask.
+
+TIA
+--
+Marco
