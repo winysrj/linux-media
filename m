@@ -1,38 +1,31 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.47]:37177 "EHLO mgw-sa01.nokia.com"
+Received: from mail.telros.ru ([83.136.244.21]:51231 "EHLO mail.telros.ru"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030895Ab2CFUho (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 6 Mar 2012 15:37:44 -0500
-Message-ID: <4F567588.9020808@iki.fi>
-Date: Tue, 06 Mar 2012 22:37:28 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-media@vger.kernel.org,
-	Martin Hostettler <martin@neutronstar.dyndns.org>
-Subject: Re: [PATCH v3 2/5] mt9p031: Remove unused xskip and yskip fields
- in struct mt9p031
-References: <1331051559-13841-1-git-send-email-laurent.pinchart@ideasonboard.com> <1331051559-13841-3-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1331051559-13841-3-git-send-email-laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-1
+	id S932104Ab2CTQF5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 20 Mar 2012 12:05:57 -0400
+Received: from [172.23.0.126]
+	by mail.telros.ru with esmtp
+	id 1SA1ZP-0000KI-51
+	for linux-media@vger.kernel.org; Tue, 20 Mar 2012 20:05:59 +0400
+Message-ID: <1332259555.6182.65.camel@VPir>
+Subject: 320cx analog part
+From: volokh <volokh@telros.ru>
+To: linux-media@vger.kernel.org
+Date: Tue, 20 Mar 2012 20:05:55 +0400
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hi, can somebody help me with developing analog driver part.
+I`m looking for any docs or code.
 
-Thanks for the patch.
+Now I starting up cx25840 through i2c bus, and control
+through /dev/video (call_all).
 
-Laurent Pinchart wrote:
-> The fields are set but never used, remove them.
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> ---
->  drivers/media/video/mt9p031.c |    4 ----
->  1 files changed, 0 insertions(+), 4 deletions(-)
+Now I intend to mmap capture through dib7000 usb device and I stoped
+here.
 
-Reviewed-by: Sakari Ailus <sakari.ailus@iki.fi>
+Thanks.
 
--- 
-Sakari Ailus
-sakari.ailus@iki.fi
