@@ -1,151 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f178.google.com ([209.85.212.178]:46710 "EHLO
-	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751874Ab2CZFNF convert rfc822-to-8bit (ORCPT
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:39587 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758618Ab2CTKjL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Mar 2012 01:13:05 -0400
-Received: by wibhq7 with SMTP id hq7so3960125wib.1
-        for <linux-media@vger.kernel.org>; Sun, 25 Mar 2012 22:13:03 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <CAGD8Z75ELkV6wJOfuCFU3Z2dS=z5WbV-7izazaG7SVtfPMcn=A@mail.gmail.com>
-References: <CAGD8Z75ELkV6wJOfuCFU3Z2dS=z5WbV-7izazaG7SVtfPMcn=A@mail.gmail.com>
-Date: Sun, 25 Mar 2012 23:13:02 -0600
-Message-ID: <CAGD8Z77akUx2S=h_AU+UcJ6yWf1Y_Rk4+8N78nFe4wP9OHYE=g@mail.gmail.com>
-Subject: Re: Using MT9P031 digital sensor
-From: Joshua Hintze <joshua.hintze@gmail.com>
-To: laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Tue, 20 Mar 2012 06:39:11 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Received: from euspt2 ([210.118.77.14]) by mailout4.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0M1600FCHIXBPL70@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 20 Mar 2012 10:39:11 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0M16004PRIX72C@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 20 Mar 2012 10:39:07 +0000 (GMT)
+Date: Tue, 20 Mar 2012 11:39:04 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH 5/6] s5p-fimc: Remove unneeded fields from struct fimc_dev
+In-reply-to: <1332239945-32711-1-git-send-email-s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: m.szyprowski@samsung.com, riverful.kim@samsung.com,
+	sw0312.kim@samsung.com, s.nawrocki@samsung.com,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Message-id: <1332239945-32711-6-git-send-email-s.nawrocki@samsung.com>
+References: <1332239945-32711-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Alright I made some progress on this.
+irq is used only locally and num_clocks is constant, so remove them.
 
-I can access the Mt9p031 registers that are exposed using a command such as
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/video/s5p-fimc/fimc-core.c |    8 +++-----
+ drivers/media/video/s5p-fimc/fimc-core.h |    4 ----
+ 2 files changed, 3 insertions(+), 9 deletions(-)
 
-./yavta -l /dev/v4l-subdev8 to list the available controls. Then I can
-set the exposure and analog gain with
-./yavta --set-control '0x00980911 1500' /dev/v4l-subdev8   <--- This
-seems to give the desired effect.
+diff --git a/drivers/media/video/s5p-fimc/fimc-core.c b/drivers/media/video/s5p-fimc/fimc-core.c
+index 21691e4..4d6b867 100644
+--- a/drivers/media/video/s5p-fimc/fimc-core.c
++++ b/drivers/media/video/s5p-fimc/fimc-core.c
+@@ -1559,7 +1559,7 @@ void fimc_unregister_m2m_device(struct fimc_dev *fimc)
+ static void fimc_clk_put(struct fimc_dev *fimc)
+ {
+ 	int i;
+-	for (i = 0; i < fimc->num_clocks; i++) {
++	for (i = 0; i < MAX_FIMC_CLOCKS; i++) {
+ 		if (IS_ERR_OR_NULL(fimc->clock[i]))
+ 			continue;
+ 		clk_unprepare(fimc->clock[i]);
+@@ -1572,7 +1572,7 @@ static int fimc_clk_get(struct fimc_dev *fimc)
+ {
+ 	int i, ret;
+ 
+-	for (i = 0; i < fimc->num_clocks; i++) {
++	for (i = 0; i < MAX_FIMC_CLOCKS; i++) {
+ 		fimc->clock[i] = clk_get(&fimc->pdev->dev, fimc_clocks[i]);
+ 		if (IS_ERR(fimc->clock[i]))
+ 			goto err;
+@@ -1672,9 +1672,7 @@ static int fimc_probe(struct platform_device *pdev)
+ 		dev_err(&pdev->dev, "Failed to get IRQ resource\n");
+ 		return -ENXIO;
+ 	}
+-	fimc->irq = res->start;
+ 
+-	fimc->num_clocks = MAX_FIMC_CLOCKS;
+ 	ret = fimc_clk_get(fimc);
+ 	if (ret)
+ 		return ret;
+@@ -1683,7 +1681,7 @@ static int fimc_probe(struct platform_device *pdev)
+ 
+ 	platform_set_drvdata(pdev, fimc);
+ 
+-	ret = devm_request_irq(&pdev->dev, fimc->irq, fimc_irq_handler,
++	ret = devm_request_irq(&pdev->dev, res->start, fimc_irq_handler,
+ 			       0, pdev->name, fimc);
+ 	if (ret) {
+ 		dev_err(&pdev->dev, "failed to install irq (%d)\n", ret);
+diff --git a/drivers/media/video/s5p-fimc/fimc-core.h b/drivers/media/video/s5p-fimc/fimc-core.h
+index 101c930..193e8f6 100644
+--- a/drivers/media/video/s5p-fimc/fimc-core.h
++++ b/drivers/media/video/s5p-fimc/fimc-core.h
+@@ -429,10 +429,8 @@ struct fimc_ctx;
+  * @pdata:	pointer to the device platform data
+  * @variant:	the IP variant information
+  * @id:		FIMC device index (0..FIMC_MAX_DEVS)
+- * @num_clocks: the number of clocks managed by this device instance
+  * @clock:	clocks required for FIMC operation
+  * @regs:	the mapped hardware registers
+- * @irq:	FIMC interrupt number
+  * @irq_queue:	interrupt handler waitqueue
+  * @v4l2_dev:	root v4l2_device
+  * @m2m:	memory-to-memory V4L2 device information
+@@ -448,10 +446,8 @@ struct fimc_dev {
+ 	struct s5p_platform_fimc	*pdata;
+ 	struct samsung_fimc_variant	*variant;
+ 	u16				id;
+-	u16				num_clocks;
+ 	struct clk			*clock[MAX_FIMC_CLOCKS];
+ 	void __iomem			*regs;
+-	int				irq;
+ 	wait_queue_head_t		irq_queue;
+ 	struct v4l2_device		*v4l2_dev;
+ 	struct fimc_m2m_device		m2m;
+-- 
+1.7.9.2
 
-Note that ./yavta -w (short option for --set-control) gives a seg
-fault for me. Possible bug in yavta??
-
-Now I'm working on fixing the white balance. In my office the
-incandescent light bulbs give off a yellowish tint late at night. I've
-been digging through the omap3isp code to figure out how to enable the
-automatic white balance. I was able to find the private IOCTLs for the
-previewer and I was able to use VIDIOC_OMAP3ISP_PRV_CFG. Using this
-IOCTL I adjusted the OMAP3ISP_PREV_WB, OMAP3ISP_PREV_BLKADJ, and
-OMAP3ISP_PREV_RGB2RGB.
-
-Since I wasn't sure where to start on adjusting these values I just
-set them all to the TRM's default register values. However when I did
-so a strange thing occurred. What I saw was all the colors went to a
-decent color. I'm curious if anybody can shed some light on the best
-way to get a high quality image. Ideally if I could just set a bit for
-auto white balance and auto exposure that could be good too.
-
-Thanks,
-
-Josh
-
-On Fri, Mar 23, 2012 at 1:01 PM, Joshua Hintze <joshua.hintze@gmail.com> wrote:
-> Sorry to bring up this old message list. I was curious when you spoke
-> about the ISP preview engine being able to adjust the white balance.
->
-> When I enumerate the previewer's available controls all I see is...
->
-> root@overo:~# ./yavta -l /dev/v4l-subdev3
-> --- User Controls (class 0x00980001) ---
-> control 0x00980900 `Brightness' min 0 max 255 step 1 default 0 current 0.
-> control 0x00980901 `Contrast' min 0 max 255 step 1 default 16 current 16.
-> 2 controls found.
->
->
-> Is this what you are referring to? Are there other settings I can
-> adjust to get the white balance and focus better using the  OMAP3 ISP
-> AWEB/OMAP3 ISP AF?
->
-> Thanks,
->
-> Josh
->
->
->
->
-> Hi Gary,
->
-> On Wednesday 30 November 2011 18:00:55 Gary Thomas wrote:
->> On 2011-11-30 07:57, Gary Thomas wrote:
->> > On 2011-11-30 07:30, Laurent Pinchart wrote:
->> >> On Wednesday 30 November 2011 15:13:18 Gary Thomas wrote:
->
-> [snip]
->
->> >>> This sort of works(*), but I'm still having issues (at least I can move
->> >>> frames!) When I configure the pipeline like this:
->> >>> media-ctl -r
->> >>> media-ctl -l '"mt9p031 3-005d":0->"OMAP3 ISP CCDC":0[1]'
->> >>> media-ctl -l '"OMAP3 ISP CCDC":2->"OMAP3 ISP preview":0[1]'
->> >>> media-ctl -l '"OMAP3 ISP preview":1->"OMAP3 ISP resizer":0[1]'
->> >>> media-ctl -l '"OMAP3 ISP resizer":1->"OMAP3 ISP resizer output":0[1]'
->> >>> media-ctl -f '"mt9p031 3-005d":0[SGRBG12 2592x1944]'
->> >>> media-ctl -f '"OMAP3 ISP CCDC":0 [SGRBG12 2592x1944]'
->> >>> media-ctl -f '"OMAP3 ISP CCDC":1 [SGRBG10 2592x1944]'
->> >>> media-ctl -f '"OMAP3 ISP preview":0 [SGRBG10 2592x1943]'
->> >>> media-ctl -f '"OMAP3 ISP resizer":0 [YUYV 2574x1935]'
->> >>> media-ctl -f '"OMAP3 ISP resizer":1 [YUYV 660x496]'
->> >>> the resulting frames are 666624 bytes each instead of 654720
->> >>>
->> >>> When I tried to grab from the previewer, the frames were 9969120
->> >>> instead of 9961380
->> >>>
->> >>> Any ideas what resolution is actually being moved through?
->> >>
->> >> Because the OMAP3 ISP has alignment requirements. Both the preview
->> >> engine and the resizer output line lenghts must be multiple of 32
->> >> bytes. The driver adds padding at end of lines when the output width
->> >> isn't a multiple of 16 pixels.
->> >
->> > Any guess which resolution(s) I should change and to what?
->>
->> I changed the resizer output to be 672x496 and was able to capture video
->> using ffmpeg.
->>
->> I don't know what to expect with this sensor (I've never seen it in use
->> before), but the image seems to have color balance issues - it's awash in
->> a green hue.  It may be the poor lighting in my office...  I did try the 9
->> test patterns which I was able to select via
->>    # v4l2-ctl -d /dev/v4l-subdev8 --set-ctrl=test_pattern=N
->> and these looked OK.  You can see them at
->> http://www.mlbassoc.com/misc/mt9p031_images/
->
-> Neither the sensor nor the OMAP3 ISP implement automatic white balance. The
-> ISP preview engine can be used to modify the white balance, and the statistics
-> engine can be used to extract data useful to compute the white balance
-> parameters, but linking the two needs to be performed in userspace.
->
->> >> So this means that your original problem comes from the BT656 patches.
->> >
->> > Yes, it does look that way. Now that I have something that moves data, I
->> > can compare how the ISP is setup between the two versions and come up
->> > with a fix.
->>
->> This is next on my plate, but it may take a while to figure it out.
->>
->> Is there some recent tree which will have this digital (mt9p031) part
->> working that also has the BT656 support in it?  I'd like to try that
->> rather than spending time figuring out why an older tree isn't working.
->
-> No, I haven't had time to create one, sorry. It shouldn't be difficult to
-> rebase the BT656 patches on top of the latest OMAP3 ISP and MT9P031 code.
->
-> --
-> Regards,
->
-> Laurent Pinchart
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majord...@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
