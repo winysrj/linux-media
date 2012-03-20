@@ -1,52 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:65208 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751867Ab2CMTbr (ORCPT
+Received: from eu1sys200aog111.obsmtp.com ([207.126.144.131]:55791 "EHLO
+	eu1sys200aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754710Ab2CTSO6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Mar 2012 15:31:47 -0400
-Received: by iagz16 with SMTP id z16so1178053iag.19
-        for <linux-media@vger.kernel.org>; Tue, 13 Mar 2012 12:31:47 -0700 (PDT)
-Date: Tue, 13 Mar 2012 12:31:43 -0700
-From: Greg KH <gregkh@linuxfoundation.org>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: stable@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH - stable v3.2] omap3isp: ccdc: Fix crash in HS/VS
- interrupt handler
-Message-ID: <20120313193143.GB8568@kroah.com>
-References: <1331467663-3735-1-git-send-email-laurent.pinchart@ideasonboard.com>
- <20120313180753.GA29074@kroah.com>
- <3242481.khdzXh3pyH@avalon>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <3242481.khdzXh3pyH@avalon>
+	Tue, 20 Mar 2012 14:14:58 -0400
+From: Srinivas KANDAGATLA <srinivas.kandagatla@st.com>
+To: linux-media@vger.kernel.org
+Cc: mchehab@redhat.com, srinivas.kandagatla@st.com
+Subject: [PATCH 3.3.0] ir-raw: remove BUG_ON in ir_raw_event_thread.
+Date: Tue, 20 Mar 2012 18:05:40 +0000
+Message-Id: <1332266740-27609-1-git-send-email-srinivas.kandagatla@st.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Mar 13, 2012 at 07:20:11PM +0100, Laurent Pinchart wrote:
-> Hi Greg,
-> 
-> On Tuesday 13 March 2012 11:07:53 Greg KH wrote:
-> > On Sun, Mar 11, 2012 at 01:07:43PM +0100, Laurent Pinchart wrote:
-> > > The HS/VS interrupt handler needs to access the pipeline object. It
-> > > erronously tries to get it from the CCDC output video node, which isn't
-> > > necessarily included in the pipeline. This leads to a NULL pointer
-> > > dereference.
-> > > 
-> > > Fix the bug by getting the pipeline object from the CCDC subdev entity.
-> > > 
-> > > The upstream commit ID is bcf45117d10140852fcdc2bfd36221dc8b996025.
-> > 
-> > In what tree?  I don't see that id in Linus's tree, are you sure you got
-> > it correct?
-> > 
-> > confused,
-> 
-> I must have been confused as well :-/
-> 
-> The upstream commit ID is bd0f2e6da7ea9e225cb2dbd3229e25584b0e9538. Sorry for 
-> the mistake.
+From: Srinivas Kandagatla <srinivas.kandagatla@st.com>
 
-No problem, now queued up, thanks.
+This patch removes BUG_ON in ir_raw_event_thread which IMO is a
+over-kill, and this kills the ir_raw_event_thread too. With a bit of
+additional logic in this patch, we nomore need to kill this thread.
+Other disadvantage of having a BUG-ON is,
+wake_up_process(dev->raw->thread) called on dead thread via
+ir_raw_event_handle will result in total lockup in SMP system.
 
-greg k-h
+Advantage of this patch is ir-raw event thread is left in a usable state
+even if the fifo does not have enough bytes.
+
+This patch sets the thread into TASK_INTERRUPTIBLE if raw-fifo has less
+then sizeof(struct ir_raw_event) bytes.
+
+Signed-off-by: Srinivas Kandagatla <srinivas.kandagatla@st.com>
+---
+
+Hi All, 
+BUG-ON in ir_raw_event_thread on an SMP system will put the system in an 
+un-usable state, because..
+
+BUG-ON actually kill the ir-raw-event kernel thread and my driver is 
+calling wake_up_process on a dead thread via ir_raw_event_handle from 
+interrupt context, which is why the system is left unusable.
+
+However, my patch simplifies code in ir_raw_event_thread and remove BUG_ON 
+forever.
+
+BUG_ON in this thread is a bit of over kill in my opinion, as the thread is 
+not is not in a very bad state, that it has to be killed.
+
+Thanks,
+srini
+
+
+ drivers/media/rc/ir-raw.c |    8 +++-----
+ 1 files changed, 3 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/media/rc/ir-raw.c b/drivers/media/rc/ir-raw.c
+index 95e6309..a820251 100644
+--- a/drivers/media/rc/ir-raw.c
++++ b/drivers/media/rc/ir-raw.c
+@@ -46,9 +46,9 @@ static int ir_raw_event_thread(void *data)
+ 	while (!kthread_should_stop()) {
+ 
+ 		spin_lock_irq(&raw->lock);
+-		retval = kfifo_out(&raw->kfifo, &ev, sizeof(ev));
++		retval = kfifo_len(&raw->kfifo);
+ 
+-		if (!retval) {
++		if (retval < sizeof(ev)) {
+ 			set_current_state(TASK_INTERRUPTIBLE);
+ 
+ 			if (kthread_should_stop())
+@@ -59,11 +59,9 @@ static int ir_raw_event_thread(void *data)
+ 			continue;
+ 		}
+ 
++		retval = kfifo_out(&raw->kfifo, &ev, sizeof(ev));
+ 		spin_unlock_irq(&raw->lock);
+ 
+-
+-		BUG_ON(retval != sizeof(ev));
+-
+ 		mutex_lock(&ir_raw_handler_lock);
+ 		list_for_each_entry(handler, &ir_raw_handler_list, list)
+ 			handler->decode(raw->dev, ev);
+-- 
+1.6.3.3
+
