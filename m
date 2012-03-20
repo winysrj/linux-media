@@ -1,143 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f178.google.com ([209.85.212.178]:46056 "EHLO
-	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753685Ab2CJONe (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.9]:54856 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757688Ab2CTH5p (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 10 Mar 2012 09:13:34 -0500
-Received: by wibhq7 with SMTP id hq7so1666392wib.1
-        for <linux-media@vger.kernel.org>; Sat, 10 Mar 2012 06:13:33 -0800 (PST)
-Message-ID: <4F5B6189.907@gmail.com>
-Date: Sat, 10 Mar 2012 15:13:29 +0100
-From: Sylwester Nawrocki <snjw23@gmail.com>
+	Tue, 20 Mar 2012 03:57:45 -0400
+Date: Tue, 20 Mar 2012 08:57:42 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+cc: Fabio Estevam <festevam@gmail.com>, linux-media@vger.kernel.org,
+	mchehab@infradead.org, kernel@pengutronix.de,
+	Fabio Estevam <fabio.estevam@freescale.com>
+Subject: Re: [PATCH] video: mx3_camera: Allocate camera object via kzalloc
+In-Reply-To: <4F67E4FD.2070709@redhat.com>
+Message-ID: <Pine.LNX.4.64.1203200851300.20315@axis700.grange>
+References: <1329761467-14417-1-git-send-email-festevam@gmail.com>
+ <Pine.LNX.4.64.1202201916410.2836@axis700.grange>
+ <CAOMZO5AAeqHZFqpZYB_riSCQvCRSjQtR2EqpZvC5V3TRyzuWJQ@mail.gmail.com>
+ <4F67E4FD.2070709@redhat.com>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-media@vger.kernel.org, sakari.ailus@iki.fi,
-	Martin Hostettler <martin@neutronstar.dyndns.org>
-Subject: Re: [PATCH v5 1/1] v4l: Add driver for Micron MT9M032 camera sensor
-References: <1331305285-10781-6-git-send-email-laurent.pinchart@ideasonboard.com> <1331324481-9926-1-git-send-email-laurent.pinchart@ideasonboard.com> <4F5A7667.4000709@gmail.com> <1859441.NBMQGniVTr@avalon>
-In-Reply-To: <1859441.NBMQGniVTr@avalon>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+On Mon, 19 Mar 2012, Mauro Carvalho Chehab wrote:
 
-On 03/10/2012 01:17 PM, Laurent Pinchart wrote:
-> Hi Sylwester,
+> Em 20-02-2012 16:23, Fabio Estevam escreveu:
+> > On Mon, Feb 20, 2012 at 4:17 PM, Guennadi Liakhovetski
+> > <g.liakhovetski@gmx.de> wrote:
+> >> On Mon, 20 Feb 2012, Fabio Estevam wrote:
+> >>
+> >>> Align mx3_camera driver with the other soc camera driver implementations
+> >>> by allocating the camera object via kzalloc.
+> >>
+> >> Sorry, any specific reason, why you think this "aligning" is so important?
+> > 
+> > Not really.
+> > 
+> > Just compared it with all other soc camera drivers I found and
+> > mx3_camera was the only one that uses "vzalloc"
+> > 
+> > Any specific reason that requires mx3_camera to use "vzalloc" instead
+> > of "kzalloc"?
 > 
-> On Friday 09 March 2012 22:30:15 Sylwester Nawrocki wrote:
->> Hi Laurent,
->>
->> I have a few minor comments, if you don't mind. :)
+> kzalloc() is more restrictive than vzalloc(). With v*alloc, it will allocate
+> a virtual memory area, with can be discontinuous, while kzalloc will get
+> a continuous area.
 > 
-> Sure, thanks for the review.
+> The DMA logic need to be prepared for virtual memory, if v*alloc() is used
+> (e. g. using videobuf2-vmalloc).
 > 
->> On 03/09/2012 09:21 PM, Laurent Pinchart wrote:
->>> From: Martin Hostettler<martin@neutronstar.dyndns.org>
->>>
->>> The MT9M032 is a parallel 1.6MP sensor from Micron controlled through I2C.
->>>
->>> The driver creates a V4L2 subdevice. It currently supports cropping, gain,
->>> exposure and v/h flipping controls in monochrome mode with an
->>> external pixel clock.
->>>
->>> Signed-off-by: Martin Hostettler<martin@neutronstar.dyndns.org>
->>> [Lots of clean up, fixes and enhancements]
->>> Signed-off-by: Laurent Pinchart<laurent.pinchart@ideasonboard.com>
+> As it is currently including media/videobuf2-dma-contig.h, I this patch
+> makes sense on my eyes.
 
-If it helps, you can add my:
+Don't think so. vzalloc() is used in mx3_camera to allocate driver private 
+data objects and are never used for DMA, so, it doesn't have any 
+restrictions on contiguity, coherency, alignment etc.
 
-   Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+One could argue, that since the struct is anyway smaller than 1 page, it 
+anyway will be allocated in a physically contiguous memory area (will it?) 
+and so, maybe, kmalloc() is less heavy weight than vmalloc() and might 
+save a couple of CPU cycles, but I don't think it's anything important, 
+that we should be optimising for.
 
-...
->>> +static int mt9m032_set_ctrl(struct v4l2_ctrl *ctrl)
->>> +{
->>> +	struct mt9m032 *sensor =
->>> +		container_of(ctrl->handler, struct mt9m032, ctrls);
->>> +	struct i2c_client *client = v4l2_get_subdevdata(&sensor->subdev);
->>> +	int ret;
->>> +
->>> +	switch (ctrl->id) {
->>> +	case V4L2_CID_GAIN:
->>> +		return mt9m032_set_gain(sensor, ctrl->val);
->>> +
->>> +	case V4L2_CID_HFLIP:
->>> +	case V4L2_CID_VFLIP:
->>
->> mt9m032_set_ctrl() will never be called with V4L2_CID_VFLIP control id,
->> since the first control in the cluster is HFLIP.
-> 
-> I agree that V4L2_CID_VFLIP will never be seen here, but I find it more
-> explicit to list all controls in the cluster. What do you think of something
-> like the following ?
-> 
->          case V4L2_CID_HFLIP:
->          /* case V4L2_CID_VFLIP: -- In the same cluster */
-
-Yeah, sounds better, than just removing VFLIP. It might make things 
-easier to understand at first sight.
-
->>> +		return update_read_mode2(sensor, sensor->vflip->val,
->>> +					 sensor->hflip->val);
->>> +
->>> +	case V4L2_CID_EXPOSURE:
->>> +		ret = mt9m032_write(client, MT9M032_SHUTTER_WIDTH_HIGH,
->>> +				    (ctrl->val>>   16)&   0xffff);
->>> +		if (ret<   0)
->>> +			return ret;
->>> +
->>> +		return mt9m032_write(client, MT9M032_SHUTTER_WIDTH_LOW,
->>> +				     ctrl->val&   0xffff);
->>> +
->>
->>> +	default:
->> This is an impossible case, isn't it ? The control framework won't call
->> s_ctrl op for controls that were never registered to the control handler,
->> AFAIK. So it should be safe to omit the "default" case. OTOH some rules say
->> that it is a good practice to always have the "default" case with a switch
->> statement.
-> 
-> I'll remove it.
-> 
->>> +		return -EINVAL;
->>> +	}
->>> +}
-> 
-> [snip]
-> 
->>> +static int mt9m032_probe(struct i2c_client *client,
->>> +			 const struct i2c_device_id *devid)
->>> +{
->>> +	struct i2c_adapter *adapter = client->adapter;
->>> +	struct mt9m032 *sensor;
->>> +	int chip_version;
->>> +	int ret;
->>> +
->>> +	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_WORD_DATA)) {
->>> +		dev_warn(&client->dev,
->>> +			 "I2C-Adapter doesn't support I2C_FUNC_SMBUS_WORD\n");
->>> +		return -EIO;
->>> +	}
->>> +
->>> +	if (!client->dev.platform_data)
->>> +		return -ENODEV;
->>> +
->>> +	sensor = kzalloc(sizeof(*sensor), GFP_KERNEL);
->>
->> Haven't you consider using devm_kzalloc() ?
->> (http://www.kernel.org/doc/htmldocs/device-drivers/API-devm-kzalloc.html)
->> It would slightly simplify the code, however it will use a couple of bytes
->> of memory for the resource tracking.
-> 
-> I came across that recently and haven't made my mind up yet :-) I'll need to
-> try it.
-
-Maybe benefits in this case are not that significant, but as more and more 
-kernel subsystems support the dynamically managed resources, error handling
-in drivers becomes much simpler than before.
-
---
-
-Regards,
-Sylwester
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
