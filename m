@@ -1,204 +1,176 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:44455 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751900Ab2CQND5 (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:62043 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758618Ab2CTKjN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 17 Mar 2012 09:03:57 -0400
-Subject: Re: Hauppauge HVR-1600 potential bug or model issue
-From: Andy Walls <awalls@md.metrocast.net>
-To: Matt Berglund <bmwebinfo@gmail.com>
-Cc: linux-media@vger.kernel.org
-Date: Sat, 17 Mar 2012 09:03:54 -0400
-In-Reply-To: <CALUGRoDGh_WNLpYKY5hPgFV5pF4MPdaT6APZgNgR1QaNe+bd+Q@mail.gmail.com>
-References: <CALUGRoAhxsZ2u8sGOEG3--cMPozobq-qReH6dD1dhYFA9Y_zAQ@mail.gmail.com>
-	 <1331774789.2737.49.camel@palomino.walls.org>
-	 <CALUGRoDGh_WNLpYKY5hPgFV5pF4MPdaT6APZgNgR1QaNe+bd+Q@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Message-ID: <1331989434.6738.21.camel@palomino.walls.org>
-Mime-Version: 1.0
+	Tue, 20 Mar 2012 06:39:13 -0400
+Received: from euspt1 (mailout1.w1.samsung.com [210.118.77.11])
+ by mailout1.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0M1600FUDIWRWA@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 20 Mar 2012 10:38:51 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0M16002P6IX8BS@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 20 Mar 2012 10:39:09 +0000 (GMT)
+Date: Tue, 20 Mar 2012 11:39:03 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH 4/6] s5p-fimc: Refactor hardware setup for m2m transaction
+In-reply-to: <1332239945-32711-1-git-send-email-s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: m.szyprowski@samsung.com, riverful.kim@samsung.com,
+	sw0312.kim@samsung.com, s.nawrocki@samsung.com,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Message-id: <1332239945-32711-5-git-send-email-s.nawrocki@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1332239945-32711-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 2012-03-15 at 23:54 -0400, Matt Berglund wrote:
-> Andy,
-> 
-> Thanks much. No, I had the 1600 sitting in a box, and I just moved my
-> mobo and components [snip] into something
-> with more cooling so I thought I would add the 1600 into the mix.
-> 
-> I checked it in windows. No luck.
+Remove redundant H/W setup logic by merging fimc_prepare_config()
+and the device_run() callback.
 
-Windows in another machine, or Windows in the same machine?
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/video/s5p-fimc/fimc-core.c |   77 ++++++++----------------------
+ drivers/media/video/s5p-fimc/fimc-core.h |    2 -
+ 2 files changed, 21 insertions(+), 58 deletions(-)
 
-> I cleaned the machine. No luck.
-> 
-> Looks like I bought a dud. As I said, it has been sitting here for a
-> year or more. Ohh well.
-
-Hauppauge, the manufacturer of the HVR-1600, has good customer service.
-When you are really sure you have a defective card from the box: give
-them a call, explain your situation, and see if you can get some
-exchange credit on a new or different unit.
-
-
-> I guess I'm in the market for a new card... any suggestions?
-
-I don't usually make suggestions, as that really depends on people's
-personal requirements.
-
-If linux support is important for you though, there is a very short list
-of companies that provide decent Linux support for TV capture.  Buy one
-of their devices. 
-
-Regards,
-Andy
-
-> Thanks for all the help,
-> Matt
-> 
-> On Wed, Mar 14, 2012 at 9:26 PM, Andy Walls <awalls@md.metrocast.net> wrote:
-> > Hi Matt,
-> >
-> > On Sun, 2012-03-11 at 13:45 -0400, Matt Berglund wrote:
-> >> Hello all,
-> >>
-> >> I'm having trouble with my 1600 listed as: Hauppauge model 74541, rev C6A3
-> >> The firmware is installed. Both using yum and manually.
-> >> Based on the LTV wiki, it seems this is less well tested model. If
-> >> this is so,
-> >
-> > This model should work with the stock kernel cx18 driver and supporting
-> > modules, in any kernel from the past few years.
-> >
-> > (Although I must admit, I have not tested if kernel-churn outside of the
-> > cx18 driver in very recent 3.x kernels broke anything.)
-> >
-> >>  I'll be happy to do what I can to test it.
-> >>
-> >> Subsystem: Hauppauge computer works Inc. WinTV HVR-1600 [0070:7444]
-> >>
-> >> Running Fedora 16 with 3.2.9-1.fc16.x86_64 on an MSI 790FX-GD70 with
-> >> an AMD 5770 and 6770 board running crossfirex/catalyst  (I realize
-> >> this is potentially problematic but I don't think it is the cause of
-> >> this issue)
-> >>
-> >> I have used both the built-in drivers and now have compiled what I
-> >> believe are the latest linuxtv drivers, per the wiki there.
-> >>
-> >> With the following results:
-> >> [  762.974890] Linux media interface: v0.10
-> >> [  762.979795] Linux video capture interface: v2.00
-> >> [  762.979804] WARNING: You are using an experimental version of the
-> >> media stack.
-> >> [  762.979808]  As the driver is backported to an older kernel, it doesn't offer
-> >> [  762.979811]  enough quality for its usage in production.
-> >> [  762.979813]  Use it with care.
-> >
-> > [snip]
-> >
-> >> [  762.986723] cx18:  Start initialization, version 1.5.1
-> >> [  762.987457] cx18-0: Initializing card 0
-> >> [  762.987460] cx18-0: Autodetected Hauppauge card
-> >> [  762.993040] cx18-0: cx23418 revision 01010000 (B)
-> >> [  763.227077] tveeprom 0-0050: Hauppauge model 74541, rev C6A3, serial#
-> >> [  763.227080] tveeprom 0-0050: MAC address
-> >> [  763.227082] tveeprom 0-0050: tuner model is TCL MFNM05-4 (idx 103, type 43)
-> >> [  763.227084] tveeprom 0-0050: TV standards NTSC(M) (eeprom 0x08)
-> >> [  763.227086] tveeprom 0-0050: audio processor is CX23418 (idx 38)
-> >> [  763.227088] tveeprom 0-0050: decoder processor is CX23418 (idx 31)
-> >> [  763.227089] tveeprom 0-0050: has radio
-> >> [  763.227090] cx18-0: Autodetected Hauppauge HVR-1600
-> >> [  763.227092] cx18-0: Simultaneous Digital and Analog TV capture supported
-> >> [  763.340073] cx18-0: Registered device video0 for encoder MPEG (64 x 32.00 kB)
-> >> [  763.340076] DVB: registering new adapter (cx18)
-> >> [  763.341895] s5h1409_readreg: readreg error (ret == -6)
-> >
-> > I2C bus communications between the CX23418 and CX24227(aka S5H1409)
-> > ATSC/QAM demodulator chip aren't working.  The cx18 driver bailed out
-> > because of this.
-> >
-> >
-> >
-> >> [  763.341903] cx18-0: frontend initialization failed
-> >> [  763.342126] cx18-0: DVB failed to register
-> >> [  763.342235] cx18-0: Registered device video32 for encoder YUV (20 x
-> >> 101.25 kB)
-> >> [  763.342301] cx18-0: Registered device vbi0 for encoder VBI (20 x 51984 bytes)
-> >> [  763.342369] cx18-0: Registered device video24 for encoder PCM audio
-> >> (256 x 4.00 kB)
-> >> [  763.342433] cx18-0: Registered device radio0 for encoder radio
-> >> [  763.342552] cx18-0: unregister DVB
-> >> [  763.343628] cx18-0: Error -1 registering devices
-> >> [  763.346390] cx18-0: Error -1 on initialization
-> >> [  763.346406] cx18: probe of 0000:07:07.0 failed with error -1
-> >> [  763.346427] cx18:  End initialization
-> >>
-> >> This will be used to capture signals from a cable feed, both free HD
-> >> and SD, if possible.
-> >
-> > Yes it should be fine, but for DTV you will only be able to receive the
-> > unencrypted channels.
-> >
-> >
-> >> This happens regardless of how the drivers are installed.
-> >>
-> >> I noticed this:
-> >> [  763.341895] s5h1409_readreg: readreg error (ret == -6)
-> >> And was wondering if this is related to the card appearing to be less
-> >> well known?
-> >
-> > Nope.  It is likely related to your specific system hardware and/or the
-> > way the linux kernel sets up your motherboard's PCI chipset.
-> >
-> > Some things to do:
-> >
-> > 1. The card looks like an older model, so I'm assuming you got it used.
-> > Go test the card in a Windows machine and verify the digital TV side of
-> > the card works under that OS.
-> >
-> >
-> > 2. As I mentioned on IRC, the legacy conventional PCI bus is sesnitive
-> > to accumulations of dust.  Pull *all* your PCI cards, blow the dust out
-> > of all the slots, reseat your cards, and test again.
-> >
-> > 3. The cx18 driver bit-bangs every bit on the I2C bus on the HVR-1600
-> > with per I2C-bit PCI transactions over the PCI bus.  Some PCI bridges
-> > may not handle this well under certain circumstances and will return
-> > error words on the PCI bus (0xffffffff) instead of actual data.  You may
-> > wish to try this card in a different Linux box, with a different
-> > motherboard and see if the error follows the HVR-1600 or not.  You could
-> > throw in some debug statements in cx18-io.[ch] and/or cx18-i2c.c to
-> > perhaps gain some insight into what is going on with your hardware.
-> >
-> >
-> > I am looking into converting the cx18 driver to use the CX23418 hardware
-> > I2C master, instead of bit-banging.  That might alleviate some problems
-> > with PCI bridges which might behave badly with many back-to-back PCI
-> > accesses.  The CX23418 hardware I2C master isn't very intelligent, but
-> > it would improve things some.  My problem is that the datasheet which I
-> > have is poorly written in explaining how the hardware I2C master is to
-> > be driven, so it will take some time and experimentation.
-> >
-> >
-> > 4. The other I2C bus operations on the HVR-1600 (BTW, the CX23418 and
-> > HVR-1600 have 2 I2C buses) don't seem to have any problems: i.e. the
-> > EEPROM and analog tuner.  It could be the CX24227 is somehow stuck in
-> > reset or just plain stuck.  I have no GPIO pin to twiddle to reset the
-> > CX24227 chip.  You may have some luck with ensuring there is ample power
-> > to power the HVR-1600 board and no ground loops.  You may wish to try
-> > temporarily pulling all unneeded PCI/PCIe cards and drives from your
-> > machine, and unhook all your TV cables from the machine, and see if
-> > things get better.
-> >
-> >> I will enable debug and poke around a bit more, but I'm far from a
-> >> driver writer.
-> >>
-> >> Thanks,
-> >> Matt
-> >
-> > Regards,
-> > Andy W.
-> >
-
+diff --git a/drivers/media/video/s5p-fimc/fimc-core.c b/drivers/media/video/s5p-fimc/fimc-core.c
+index 8a5951f..21691e4 100644
+--- a/drivers/media/video/s5p-fimc/fimc-core.c
++++ b/drivers/media/video/s5p-fimc/fimc-core.c
+@@ -582,55 +582,11 @@ void fimc_prepare_dma_offset(struct fimc_ctx *ctx, struct fimc_frame *f)
+ 	    f->fmt->color, f->dma_offset.y_h, f->dma_offset.y_v);
+ }
+ 
+-/**
+- * fimc_prepare_config - check dimensions, operation and color mode
+- *			 and pre-calculate offset and the scaling coefficients.
+- *
+- * @ctx: hardware context information
+- * @flags: flags indicating which parameters to check/update
+- *
+- * Return: 0 if dimensions are valid or non zero otherwise.
+- */
+-int fimc_prepare_config(struct fimc_ctx *ctx, u32 flags)
+-{
+-	struct fimc_frame *s_frame, *d_frame;
+-	struct vb2_buffer *vb = NULL;
+-	int ret = 0;
+-
+-	s_frame = &ctx->s_frame;
+-	d_frame = &ctx->d_frame;
+-
+-	if (flags & FIMC_PARAMS) {
+-		/* Prepare the DMA offset ratios for scaler. */
+-		fimc_prepare_dma_offset(ctx, &ctx->s_frame);
+-		fimc_prepare_dma_offset(ctx, &ctx->d_frame);
+-
+-		if (s_frame->height > (SCALER_MAX_VRATIO * d_frame->height) ||
+-		    s_frame->width > (SCALER_MAX_HRATIO * d_frame->width)) {
+-			err("out of scaler range");
+-			return -EINVAL;
+-		}
+-		fimc_set_yuv_order(ctx);
+-	}
+-
+-	if (flags & FIMC_SRC_ADDR) {
+-		vb = v4l2_m2m_next_src_buf(ctx->m2m_ctx);
+-		ret = fimc_prepare_addr(ctx, vb, s_frame, &s_frame->paddr);
+-		if (ret)
+-			return ret;
+-	}
+-
+-	if (flags & FIMC_DST_ADDR) {
+-		vb = v4l2_m2m_next_dst_buf(ctx->m2m_ctx);
+-		ret = fimc_prepare_addr(ctx, vb, d_frame, &d_frame->paddr);
+-	}
+-
+-	return ret;
+-}
+-
+ static void fimc_dma_run(void *priv)
+ {
++	struct vb2_buffer *vb = NULL;
+ 	struct fimc_ctx *ctx = priv;
++	struct fimc_frame *sf, *df;
+ 	struct fimc_dev *fimc;
+ 	unsigned long flags;
+ 	u32 ret;
+@@ -641,9 +597,22 @@ static void fimc_dma_run(void *priv)
+ 	fimc = ctx->fimc_dev;
+ 	spin_lock_irqsave(&fimc->slock, flags);
+ 	set_bit(ST_M2M_PEND, &fimc->state);
++	sf = &ctx->s_frame;
++	df = &ctx->d_frame;
++
++	if (ctx->state & FIMC_PARAMS) {
++		/* Prepare the DMA offsets for scaler */
++		fimc_prepare_dma_offset(ctx, sf);
++		fimc_prepare_dma_offset(ctx, df);
++	}
+ 
+-	ctx->state |= (FIMC_SRC_ADDR | FIMC_DST_ADDR);
+-	ret = fimc_prepare_config(ctx, ctx->state);
++	vb = v4l2_m2m_next_src_buf(ctx->m2m_ctx);
++	ret = fimc_prepare_addr(ctx, vb, sf, &sf->paddr);
++	if (ret)
++		goto dma_unlock;
++
++	vb = v4l2_m2m_next_dst_buf(ctx->m2m_ctx);
++	ret = fimc_prepare_addr(ctx, vb, df, &df->paddr);
+ 	if (ret)
+ 		goto dma_unlock;
+ 
+@@ -652,9 +621,9 @@ static void fimc_dma_run(void *priv)
+ 		ctx->state |= FIMC_PARAMS;
+ 		fimc->m2m.ctx = ctx;
+ 	}
+-	fimc_hw_set_input_addr(fimc, &ctx->s_frame.paddr);
+ 
+ 	if (ctx->state & FIMC_PARAMS) {
++		fimc_set_yuv_order(ctx);
+ 		fimc_hw_set_input_path(ctx);
+ 		fimc_hw_set_in_dma(ctx);
+ 		ret = fimc_set_scaler_info(ctx);
+@@ -665,17 +634,13 @@ static void fimc_dma_run(void *priv)
+ 		fimc_hw_set_target_format(ctx);
+ 		fimc_hw_set_rotation(ctx);
+ 		fimc_hw_set_effect(ctx, false);
+-	}
+-
+-	fimc_hw_set_output_path(ctx);
+-	if (ctx->state & (FIMC_DST_ADDR | FIMC_PARAMS))
+-		fimc_hw_set_output_addr(fimc, &ctx->d_frame.paddr, -1);
+-
+-	if (ctx->state & FIMC_PARAMS) {
+ 		fimc_hw_set_out_dma(ctx);
+ 		if (fimc->variant->has_alpha)
+ 			fimc_hw_set_rgb_alpha(ctx);
++		fimc_hw_set_output_path(ctx);
+ 	}
++	fimc_hw_set_input_addr(fimc, &sf->paddr);
++	fimc_hw_set_output_addr(fimc, &df->paddr, -1);
+ 
+ 	fimc_activate_capture(ctx);
+ 
+diff --git a/drivers/media/video/s5p-fimc/fimc-core.h b/drivers/media/video/s5p-fimc/fimc-core.h
+index 54198c7..101c930 100644
+--- a/drivers/media/video/s5p-fimc/fimc-core.h
++++ b/drivers/media/video/s5p-fimc/fimc-core.h
+@@ -119,8 +119,6 @@ enum fimc_color_fmt {
+ 
+ /* The hardware context state. */
+ #define	FIMC_PARAMS		(1 << 0)
+-#define	FIMC_SRC_ADDR		(1 << 1)
+-#define	FIMC_DST_ADDR		(1 << 2)
+ #define	FIMC_SRC_FMT		(1 << 3)
+ #define	FIMC_DST_FMT		(1 << 4)
+ #define	FIMC_DST_CROP		(1 << 5)
+-- 
+1.7.9.2
 
