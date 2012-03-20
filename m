@@ -1,75 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:35989 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753635Ab2CHOtE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Mar 2012 09:49:04 -0500
-Date: Thu, 8 Mar 2012 16:48:58 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, dacohen@gmail.com, snjw23@gmail.com,
-	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
-	tuukkat76@gmail.com, k.debski@samsung.com, riverful@gmail.com,
-	hverkuil@xs4all.nl, teturtia@gmail.com, pradeep.sawlani@gmail.com
-Subject: Re: [PATCH v5.1 34/35] smiapp: Generic SMIA++/SMIA PLL calculator
-Message-ID: <20120308144858.GC1591@valkosipuli.localdomain>
-References: <1960253.l1xo097dr7@avalon>
- <1331215050-20823-1-git-send-email-sakari.ailus@iki.fi>
- <2338182.m4p3vRkuCF@avalon>
+Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:40838 "EHLO
+	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1760533Ab2CTPPV convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 20 Mar 2012 11:15:21 -0400
+Received: by mail-gy0-f174.google.com with SMTP id r11so148170ghr.19
+        for <linux-media@vger.kernel.org>; Tue, 20 Mar 2012 08:15:20 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <2338182.m4p3vRkuCF@avalon>
+In-Reply-To: <1331033890-10350-1-git-send-email-t.stanislaws@samsung.com>
+References: <1331033890-10350-1-git-send-email-t.stanislaws@samsung.com>
+From: "Semwal, Sumit" <sumit.semwal@ti.com>
+Date: Tue, 20 Mar 2012 20:45:00 +0530
+Message-ID: <CAB2ybb_oJjykWstU3ib_ig_iB8GpvHzXGyg0GV0H5hK5PH+8UA@mail.gmail.com>
+Subject: Re: [RFCv2 PATCH 0/9] Integration of videobuf2 with dmabuf
+To: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Cc: linux-media@vger.kernel.org, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, hverkuil@xs4all.nl,
+	laurent.pinchart@ideasonboard.com, daeinki@gmail.com
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hi Tomasz,
 
-On Thu, Mar 08, 2012 at 03:38:45PM +0100, Laurent Pinchart wrote:
-> Hi Sakari,
-> 
-> Thanks for the patch.
-> 
-> On Thursday 08 March 2012 15:57:29 Sakari Ailus wrote:
-> > From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-> > 
-> > Calculate PLL configuration based on input data: sensor configuration, board
-> > properties and sensor-specific limits.
-> > 
-> > Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-> 
-> [snip]
-> 
-> > diff --git a/drivers/media/video/smiapp-pll.c
-> > b/drivers/media/video/smiapp-pll.c new file mode 100644
-> > index 0000000..c8ffdc9
-> > --- /dev/null
-> > +++ b/drivers/media/video/smiapp-pll.c
-> 
-> [snip]
-> 
-> > +	/*
-> > +	 * Find pix_div such that a legal pix_div * sys_div results
-> > +	 * into a value which is not smaller than div, the desired
-> > +	 * divisor.
-> > +	 */
-> > +	for (vt_div = min_vt_div; vt_div <= max_vt_div;
-> > +	     vt_div += 2 - (vt_div & 1)) {
-> > +		for (sys_div = min_sys_div;
-> > +		     sys_div <= max_sys_div;
-> > +		     sys_div += 2 - (sys_div & 1)) {
-> > +			int pix_div = DIV_ROUND_UP(vt_div, sys_div);
-> > +
-> > +			if (pix_div <
-> > +			    limits->min_vt_pix_clk_div
-> > +			    || pix_div
-> > +			    > limits->max_vt_pix_clk_div) {
-> 
-> Maybe you should get some sleep, I've heard it helps memory ;-)
+On Tue, Mar 6, 2012 at 5:08 PM, Tomasz Stanislawski
+<t.stanislaws@samsung.com> wrote:
+> Hello everyone,
+> This patchset is an incremental patch to patchset created by Sumit Semwal [1].
+> The patches are dedicated to help find a better solution for support of buffer
+> sharing by V4L2 API.  It is expected to start discussion on the final
+> installment for dma-buf in vb2-dma-contig allocator.  Current version of the
+> patches contain little documentation. It is going to be fixed after achieving
+> consensus about design for buffer exporting.  Moreover the API between vb2-core
+> and the allocator should be revised.
 
-Oh. That's what it was. I didn't find it the first time. Sorry about that.
+I like your approach in general quite a bit.
 
-I'll send a new version where that has been fixed.
+May I request you, though, to maybe split it over into two portions -
+the preparation patches, and the exporter portion. This would help as
+the exporter portion is quite dependent on dma_get_pages and
+dma-mapping patches. (Maybe also indirectly on DRM prime?)
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+With that split, we could try to target the preparation patches for
+3.4 while we continue to debate on the exporter patches? I just saw
+the dma-mapping pull request from Marek, so the dependencies might
+become available soon.
+
+If you agree, then I can post the patch version of my 'v4l2 as dma-buf
+user' patches, [except the patch that you've included in this series]
+so we can try to hit 3.4 merge window.
+>
+<snip>
+Best regards,
+~Sumit.
