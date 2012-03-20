@@ -1,144 +1,265 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:33702 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1031663Ab2COQyo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Mar 2012 12:54:44 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Received: from euspt2 ([210.118.77.13]) by mailout3.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0M0X0060ZQZ4I810@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 15 Mar 2012 16:54:40 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0M0X00FNPQZ3XT@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 15 Mar 2012 16:54:40 +0000 (GMT)
-Date: Thu, 15 Mar 2012 17:54:21 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH/RFC 07/23] V4L: Add camera exposure metering mode control
-In-reply-to: <1331830477-12146-1-git-send-email-s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, riverful.kim@samsung.com,
-	kyungmin.park@samsung.com, s.nawrocki@samsung.com
-Message-id: <1331830477-12146-8-git-send-email-s.nawrocki@samsung.com>
-References: <1331830477-12146-1-git-send-email-s.nawrocki@samsung.com>
+Received: from mx1.redhat.com ([209.132.183.28]:51484 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756569Ab2CTAIO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 19 Mar 2012 20:08:14 -0400
+Message-ID: <4F67CA67.7000202@redhat.com>
+Date: Mon, 19 Mar 2012 21:08:07 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: linuxtv@stefanringel.de
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH 04/22] mt2063: remove dect
+References: <1329256066-8844-1-git-send-email-linuxtv@stefanringel.de> <1329256066-8844-4-git-send-email-linuxtv@stefanringel.de>
+In-Reply-To: <1329256066-8844-4-git-send-email-linuxtv@stefanringel.de>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The V4L2_CID_EXPOSURE_METERING control allows to determine what
-method is used by the camera to measure amount of light available
-for automatic exposure control.
+Em 14-02-2012 19:47, linuxtv@stefanringel.de escreveu:
+> From: Stefan Ringel <linuxtv@stefanringel.de>
+> 
+> Signed-off-by: Stefan Ringel <linuxtv@stefanringel.de>
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- Documentation/DocBook/media/v4l/controls.xml |   29 ++++++++++++++++++++++++++
- drivers/media/video/v4l2-ctrls.c             |   10 +++++++++
- include/linux/videodev2.h                    |    7 +++++++
- 3 files changed, 46 insertions(+)
+Patch is also broken: it introduces some weird stuff there. Even after removing it,
+still doesn't compile:
 
-diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
-index b92c85a..aa3b2db 100644
---- a/Documentation/DocBook/media/v4l/controls.xml
-+++ b/Documentation/DocBook/media/v4l/controls.xml
-@@ -2790,6 +2790,35 @@ by adjusting absolute exposure time and/or aperture.</para></entry>
- 	  </row>
- 	  <row><entry></entry></row>
- 
-+	  <row id="v4l2-exposure-metering-mode">
-+	    <entry spanname="id"><constant>V4L2_CID_EXPOSURE_METERING</constant>&nbsp;</entry>
-+	    <entry>enum&nbsp;v4l2_exposure_metering_mode</entry>
-+	  </row><row><entry spanname="descr">Determines how the camera measures
-+the amount of light available to expose a frame. Possible values are:</entry>
-+	  </row>
-+	  <row>
-+	    <entrytbl spanname="descr" cols="2">
-+	      <tbody valign="top">
-+		<row>
-+		  <entry><constant>V4L2_EXPOSURE_METERING_AVERAGE</constant>&nbsp;</entry>
-+		  <entry>Use the light information coming from the entire frame
-+and average giving no weighting to any particular portion of metered area.
-+		  </entry>
-+		</row>
-+		<row>
-+		  <entry><constant>V4L2_EXPOSURE_METERING_CENTER_WEIGHTED</constant>&nbsp;</entry>
-+		  <entry>Average the light information coming from the entire frame
-+giving priority to the center of metered area.</entry>
-+		</row>
-+		<row>
-+		  <entry><constant>V4L2_EXPOSURE_METERING_SPOT</constant>&nbsp;</entry>
-+		  <entry>Measure only very small area at the centre of the frame.</entry>
-+		</row>
-+	      </tbody>
-+	    </entrytbl>
-+	  </row>
-+	  <row><entry></entry></row>
-+
- 	  <row>
- 	    <entry spanname="id"><constant>V4L2_CID_PAN_RELATIVE</constant>&nbsp;</entry>
- 	    <entry>integer</entry>
-diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
-index 58c7849..3ffd037 100644
---- a/drivers/media/video/v4l2-ctrls.c
-+++ b/drivers/media/video/v4l2-ctrls.c
-@@ -230,6 +230,12 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
- 		"Aperture Priority Mode",
- 		NULL
- 	};
-+	static const char * const camera_exposure_metering[] = {
-+		"Average",
-+		"Center Weighted",
-+		"Spot",
-+		NULL
-+	};
- 	static const char * const camera_auto_focus_area[] = {
- 		"All",
- 		"Spot",
-@@ -432,6 +438,8 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
- 		return camera_power_line_frequency;
- 	case V4L2_CID_EXPOSURE_AUTO:
- 		return camera_exposure_auto;
-+	case V4L2_CID_EXPOSURE_METERING:
-+		return camera_exposure_metering;
- 	case V4L2_CID_AUTO_FOCUS_AREA:
- 		return camera_auto_focus_area;
- 	case V4L2_CID_AUTO_FOCUS_DISTANCE:
-@@ -638,6 +646,7 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_AUTO_EXPOSURE_BIAS:	return "Auto Exposure, Bias";
- 	case V4L2_CID_ISO_SENSITIVITY:		return "ISO Sensitivity";
- 	case V4L2_CID_ISO_SENSITIVITY_AUTO:	return "ISO Sensitivity, Auto";
-+	case V4L2_CID_EXPOSURE_METERING:	return "Exposure, Metering Mode";
- 
- 	/* FM Radio Modulator control */
- 	/* Keep the order of the 'case's the same as in videodev2.h! */
-@@ -789,6 +798,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_MPEG_VIDEO_MPEG4_LEVEL:
- 	case V4L2_CID_MPEG_VIDEO_MPEG4_PROFILE:
- 	case V4L2_CID_JPEG_CHROMA_SUBSAMPLING:
-+	case V4L2_CID_EXPOSURE_METERING:
- 		*type = V4L2_CTRL_TYPE_MENU;
- 		break;
- 	case V4L2_CID_RDS_TX_PS_NAME:
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index 440d59c99..05438a5 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -1734,6 +1734,13 @@ enum v4l2_white_balance_preset {
- #define V4L2_CID_ISO_SENSITIVITY		(V4L2_CID_CAMERA_CLASS_BASE+34)
- #define V4L2_CID_ISO_SENSITIVITY_AUTO		(V4L2_CID_CAMERA_CLASS_BASE+35)
- 
-+#define V4L2_CID_EXPOSURE_METERING		(V4L2_CID_CAMERA_CLASS_BASE+36)
-+enum v4l2_exposure_metering_mode {
-+	V4L2_EXPOSURE_METERING_AVERAGE,
-+	V4L2_EXPOSURE_METERING_CENTER_WEIGHTED,
-+	V4L2_EXPOSURE_METERING_SPOT,
-+};
-+
- /* FM Modulator class control IDs */
- #define V4L2_CID_FM_TX_CLASS_BASE		(V4L2_CTRL_CLASS_FM_TX | 0x900)
- #define V4L2_CID_FM_TX_CLASS			(V4L2_CTRL_CLASS_FM_TX | 1)
--- 
-1.7.9.2
+drivers/media/common/tuners/mt2063.c: In function ‘MT2063_ChooseFirstIF’:
+drivers/media/common/tuners/mt2063.c:398:26: error: array type has incomplete element type
+drivers/media/common/tuners/mt2063.c:429:7: error: implicit declaration of function ‘floor’ [-Werror=implicit-function-declaration]
+drivers/media/common/tuners/mt2063.c:433:7: error: implicit declaration of function ‘ceil’ [-Werror=implicit-function-declaration]
+drivers/media/common/tuners/mt2063.c:398:26: warning: unused variable ‘zones’ [-Wunused-variable]
+cc1: some warnings being treated as errors
+
+> ---
+>  drivers/media/common/tuners/mt2063.c |  190 ----------------------------------
+>  1 files changed, 0 insertions(+), 190 deletions(-)
+> 
+> diff --git a/drivers/media/common/tuners/mt2063.c b/drivers/media/common/tuners/mt2063.c
+> index d5a9dd9..a79e4ef 100644
+> --- a/drivers/media/common/tuners/mt2063.c
+> +++ b/drivers/media/common/tuners/mt2063.c
+> @@ -363,200 +363,17 @@ static int MT2063_Sleep(struct dvb_frontend *fe)
+>  	return 0;
+>  }
+>  
+> -/*
+> - * Microtune spur avoidance
+> - */
+> -
+> -/*  Implement ceiling, floor functions.  */
+> -#define ceil(n, d) (((n) < 0) ? (-((-(n))/(d))) : (n)/(d) + ((n)%(d) != 0))
+> -#define floor(n, d) (((n) < 0) ? (-((-(n))/(d))) - ((n)%(d) != 0) : (n)/(d))
+> -
+> -struct MT2063_FIFZone_t {
+> -	s32 min_;
+> -	s32 max_;
+> -};
+> -
+> -static struct MT2063_ExclZone_t *InsertNode(struct MT2063_AvoidSpursData_t
+> -					    *pAS_Info,
+> -					    struct MT2063_ExclZone_t *pPrevNode)
+>  {
+> -	struct MT2063_ExclZone_t *pNode;
+>  
+> -	dprintk(2, "\n");
+> -
+> -	/*  Check for a node in the free list  */
+> -	if (pAS_Info->freeZones != NULL) {
+> -		/*  Use one from the free list  */
+> -		pNode = pAS_Info->freeZones;
+> -		pAS_Info->freeZones = pNode->next_;
+>  	} else {
+> -		/*  Grab a node from the array  */
+> -		pNode = &pAS_Info->MT2063_ExclZones[pAS_Info->nZones];
+> -	}
+> -
+> -	if (pPrevNode != NULL) {
+> -		pNode->next_ = pPrevNode->next_;
+> -		pPrevNode->next_ = pNode;
+> -	} else {		/*  insert at the beginning of the list  */
+> -
+> -		pNode->next_ = pAS_Info->usedZones;
+> -		pAS_Info->usedZones = pNode;
+> -	}
+> -
+> -	pAS_Info->nZones++;
+> -	return pNode;
+> -}
+> -
+> -static struct MT2063_ExclZone_t *RemoveNode(struct MT2063_AvoidSpursData_t
+> -					    *pAS_Info,
+> -					    struct MT2063_ExclZone_t *pPrevNode,
+> -					    struct MT2063_ExclZone_t
+> -					    *pNodeToRemove)
+> -{
+> -	struct MT2063_ExclZone_t *pNext = pNodeToRemove->next_;
+> -
+> -	dprintk(2, "\n");
+> -
+> -	/*  Make previous node point to the subsequent node  */
+> -	if (pPrevNode != NULL)
+> -		pPrevNode->next_ = pNext;
+> -
+> -	/*  Add pNodeToRemove to the beginning of the freeZones  */
+> -	pNodeToRemove->next_ = pAS_Info->freeZones;
+> -	pAS_Info->freeZones = pNodeToRemove;
+> -
+> -	/*  Decrement node count  */
+> -	pAS_Info->nZones--;
+> -
+> -	return pNext;
+> -}
+> -
+> -/*
+> - * MT_AddExclZone()
+> - *
+> - * Add (and merge) an exclusion zone into the list.
+> - * If the range (f_min, f_max) is totally outside the
+> - * 1st IF BW, ignore the entry.
+> - * If the range (f_min, f_max) is negative, ignore the entry.
+> - */
+> -static void MT2063_AddExclZone(struct MT2063_AvoidSpursData_t *pAS_Info,
+> -			       u32 f_min, u32 f_max)
+> -{
+> -	struct MT2063_ExclZone_t *pNode = pAS_Info->usedZones;
+> -	struct MT2063_ExclZone_t *pPrev = NULL;
+> -	struct MT2063_ExclZone_t *pNext = NULL;
+> -
+> -	dprintk(2, "\n");
+> -
+> -	/*  Check to see if this overlaps the 1st IF filter  */
+> -	if ((f_max > (pAS_Info->f_if1_Center - (pAS_Info->f_if1_bw / 2)))
+> -	    && (f_min < (pAS_Info->f_if1_Center + (pAS_Info->f_if1_bw / 2)))
+> -	    && (f_min < f_max)) {
+> -		/*
+> -		 *                1        2         3      4       5        6
+> -		 *
+> -		 *   New entry:  |---|    |--|      |--|    |-|    |---|    |--|
+> -		 *                or       or        or     or      or
+> -		 *   Existing:  |--|      |--|      |--|    |---|  |-|      |--|
+> -		 */
+> -
+> -		/*  Check for our place in the list  */
+> -		while ((pNode != NULL) && (pNode->max_ < f_min)) {
+> -			pPrev = pNode;
+> -			pNode = pNode->next_;
+> -		}
+> -
+> -		if ((pNode != NULL) && (pNode->min_ < f_max)) {
+> -			/*  Combine me with pNode  */
+> -			if (f_min < pNode->min_)
+> -				pNode->min_ = f_min;
+> -			if (f_max > pNode->max_)
+> -				pNode->max_ = f_max;
+> -		} else {
+> -			pNode = InsertNode(pAS_Info, pPrev);
+> -			pNode->min_ = f_min;
+> -			pNode->max_ = f_max;
+> -		}
+> -
+> -		/*  Look for merging possibilities  */
+> -		pNext = pNode->next_;
+> -		while ((pNext != NULL) && (pNext->min_ < pNode->max_)) {
+> -			if (pNext->max_ > pNode->max_)
+> -				pNode->max_ = pNext->max_;
+> -			/*  Remove pNext, return ptr to pNext->next  */
+> -			pNext = RemoveNode(pAS_Info, pNode, pNext);
+> -		}
+>  	}
+>  }
+>  
+> -/*
+> - *  Reset all exclusion zones.
+> - *  Add zones to protect the PLL FracN regions near zero
+> - */
+> -static void MT2063_ResetExclZones(struct MT2063_AvoidSpursData_t *pAS_Info)
+>  {
+> -	u32 center;
+>  
+> -	dprintk(2, "\n");
+>  
+> -	pAS_Info->nZones = 0;	/*  this clears the used list  */
+> -	pAS_Info->usedZones = NULL;	/*  reset ptr                  */
+> -	pAS_Info->freeZones = NULL;	/*  reset ptr                  */
+> -
+> -	center =
+> -	    pAS_Info->f_ref *
+> -	    ((pAS_Info->f_if1_Center - pAS_Info->f_if1_bw / 2 +
+> -	      pAS_Info->f_in) / pAS_Info->f_ref) - pAS_Info->f_in;
+> -	while (center <
+> -	       pAS_Info->f_if1_Center + pAS_Info->f_if1_bw / 2 +
+> -	       pAS_Info->f_LO1_FracN_Avoid) {
+> -		/*  Exclude LO1 FracN  */
+> -		MT2063_AddExclZone(pAS_Info,
+> -				   center - pAS_Info->f_LO1_FracN_Avoid,
+> -				   center - 1);
+> -		MT2063_AddExclZone(pAS_Info, center + 1,
+> -				   center + pAS_Info->f_LO1_FracN_Avoid);
+> -		center += pAS_Info->f_ref;
+> -	}
+>  
+> -	center =
+> -	    pAS_Info->f_ref *
+> -	    ((pAS_Info->f_if1_Center - pAS_Info->f_if1_bw / 2 -
+> -	      pAS_Info->f_out) / pAS_Info->f_ref) + pAS_Info->f_out;
+> -	while (center <
+> -	       pAS_Info->f_if1_Center + pAS_Info->f_if1_bw / 2 +
+> -	       pAS_Info->f_LO2_FracN_Avoid) {
+> -		/*  Exclude LO2 FracN  */
+> -		MT2063_AddExclZone(pAS_Info,
+> -				   center - pAS_Info->f_LO2_FracN_Avoid,
+> -				   center - 1);
+> -		MT2063_AddExclZone(pAS_Info, center + 1,
+> -				   center + pAS_Info->f_LO2_FracN_Avoid);
+> -		center += pAS_Info->f_ref;
+> -	}
+>  
+> -	if (MT2063_EXCLUDE_US_DECT_FREQUENCIES(pAS_Info->avoidDECT)) {
+> -		/*  Exclude LO1 values that conflict with DECT channels */
+> -		MT2063_AddExclZone(pAS_Info, 1920836000 - pAS_Info->f_in, 1922236000 - pAS_Info->f_in);	/* Ctr = 1921.536 */
+> -		MT2063_AddExclZone(pAS_Info, 1922564000 - pAS_Info->f_in, 1923964000 - pAS_Info->f_in);	/* Ctr = 1923.264 */
+> -		MT2063_AddExclZone(pAS_Info, 1924292000 - pAS_Info->f_in, 1925692000 - pAS_Info->f_in);	/* Ctr = 1924.992 */
+> -		MT2063_AddExclZone(pAS_Info, 1926020000 - pAS_Info->f_in, 1927420000 - pAS_Info->f_in);	/* Ctr = 1926.720 */
+> -		MT2063_AddExclZone(pAS_Info, 1927748000 - pAS_Info->f_in, 1929148000 - pAS_Info->f_in);	/* Ctr = 1928.448 */
+> -	}
+> -
+> -	if (MT2063_EXCLUDE_EURO_DECT_FREQUENCIES(pAS_Info->avoidDECT)) {
+> -		MT2063_AddExclZone(pAS_Info, 1896644000 - pAS_Info->f_in, 1898044000 - pAS_Info->f_in);	/* Ctr = 1897.344 */
+> -		MT2063_AddExclZone(pAS_Info, 1894916000 - pAS_Info->f_in, 1896316000 - pAS_Info->f_in);	/* Ctr = 1895.616 */
+> -		MT2063_AddExclZone(pAS_Info, 1893188000 - pAS_Info->f_in, 1894588000 - pAS_Info->f_in);	/* Ctr = 1893.888 */
+> -		MT2063_AddExclZone(pAS_Info, 1891460000 - pAS_Info->f_in, 1892860000 - pAS_Info->f_in);	/* Ctr = 1892.16  */
+> -		MT2063_AddExclZone(pAS_Info, 1889732000 - pAS_Info->f_in, 1891132000 - pAS_Info->f_in);	/* Ctr = 1890.432 */
+> -		MT2063_AddExclZone(pAS_Info, 1888004000 - pAS_Info->f_in, 1889404000 - pAS_Info->f_in);	/* Ctr = 1888.704 */
+> -		MT2063_AddExclZone(pAS_Info, 1886276000 - pAS_Info->f_in, 1887676000 - pAS_Info->f_in);	/* Ctr = 1886.976 */
+> -		MT2063_AddExclZone(pAS_Info, 1884548000 - pAS_Info->f_in, 1885948000 - pAS_Info->f_in);	/* Ctr = 1885.248 */
+> -		MT2063_AddExclZone(pAS_Info, 1882820000 - pAS_Info->f_in, 1884220000 - pAS_Info->f_in);	/* Ctr = 1883.52  */
+> -		MT2063_AddExclZone(pAS_Info, 1881092000 - pAS_Info->f_in, 1882492000 - pAS_Info->f_in);	/* Ctr = 1881.792 */
+> -	}
+> -}
+>  
+>  /*
+>   * MT_ChooseFirstIF - Choose the best available 1st IF
+> @@ -859,8 +676,6 @@ static u32 MT2063_AvoidSpurs(struct MT2063_AvoidSpursData_t *pAS_Info)
+>  		do {
+>  			pAS_Info->nSpursFound++;
+>  
+> -			/*  Raise f_IF1_upper, if needed  */
+> -			MT2063_AddExclZone(pAS_Info, zfIF1 - fm, zfIF1 + fp);
+>  
+>  			/*  Choose next IF1 that is closest to f_IF1_CENTER              */
+>  			new_IF1 = MT2063_ChooseFirstIF(pAS_Info);
+> @@ -1617,11 +1432,6 @@ static u32 MT2063_Tune(struct mt2063_state *state, u32 f_in)
+>  			     state->AS_Data.f_LO1_Step,
+>  			     state->AS_Data.f_ref) - f_in;
+>  
+> -	/*
+> -	 * Calculate frequency settings.  f_IF1_FREQ + f_in is the
+> -	 * desired LO1 frequency
+> -	 */
+> -	MT2063_ResetExclZones(&state->AS_Data);
+>  
+>  	f_IF1 = MT2063_ChooseFirstIF(&state->AS_Data);
+>  
 
