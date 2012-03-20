@@ -1,34 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gx0-f174.google.com ([209.85.161.174]:55522 "EHLO
-	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1030647Ab2CSKvw (ORCPT
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:56208 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752597Ab2CTSLT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Mar 2012 06:51:52 -0400
+	Tue, 20 Mar 2012 14:11:19 -0400
+Received: by yhmm54 with SMTP id m54so340557yhm.19
+        for <linux-media@vger.kernel.org>; Tue, 20 Mar 2012 11:11:18 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <1332113668-4364-4-git-send-email-daniel.vetter@ffwll.ch>
-References: <1332113668-4364-1-git-send-email-daniel.vetter@ffwll.ch>
-	<1332113668-4364-4-git-send-email-daniel.vetter@ffwll.ch>
-Date: Mon, 19 Mar 2012 10:51:51 +0000
-Message-ID: <CAPM=9twSZJyYcNwDwaC5eSy7fXNaRBGTZZ6F2K3D8AeQdYtgww@mail.gmail.com>
-Subject: Re: [Linaro-mm-sig] [PATCH 4/4] dma-buf: document fd flags and
- O_CLOEXEC requirement
-From: Dave Airlie <airlied@gmail.com>
-To: Daniel Vetter <daniel.vetter@ffwll.ch>
-Cc: linaro-mm-sig@lists.linaro.org,
-	LKML <linux-kernel@vger.kernel.org>,
-	DRI Development <dri-devel@lists.freedesktop.org>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+In-Reply-To: <E1S9oTc-0006p5-Qf@www.linuxtv.org>
+References: <E1S9oTc-0006p5-Qf@www.linuxtv.org>
+Date: Tue, 20 Mar 2012 20:11:18 +0200
+Message-ID: <CABA=pqfDxDfx6ngP9JVQSatiMA64ez5qrSJZqyi+j2C6f4MkGA@mail.gmail.com>
+Subject: Re: [git:v4l-dvb/for_v3.4] [media] em28xx: support for 2304:0242 PCTV
+ QuatroStick (510e)
+From: Ivan Kalvachev <ikalvachev@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Mar 18, 2012 at 11:34 PM, Daniel Vetter <daniel.vetter@ffwll.ch> wrote:
-> Otherwise subsystems will get this wrong and end up with and second
-> export ioctl with the flag and O_CLOEXEC support added.
+On 3/20/12, Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
+> This is an automatic generated email to let you know that the following
+> patch were queued at the
+> http://git.linuxtv.org/media_tree.git tree:
+>
+> Subject: [media] em28xx: support for 2304:0242 PCTV QuatroStick (510e)
+> Author:  Ivan Kalvachev <ikalvachev@gmail.com>
+> Date:    Mon Mar 19 20:09:55 2012 -0300
+>
+> It is mostly copy/paste of the 520e code with setting GPIO7 removed
+> (no LED light).
 
-Its not actually dma_buf_export that takes the O_CLOEXEC flag its dma_buf_fd
+> I've worked on just released vanilla linux-3.3.0 kernel, so there may
+> be 1/2 lines offset to the internal working source, but most of the
+> code should apply cleanly.
 
-I'm not sure how blindly we should be passing flags in from userspace
-to these, like O_NONBLOCK or perms flags.
+If you still haven't pushed this upstream, can you (rebase and) amend
+the message and remove the above paragraph. It is useless for commit
+message.
 
-Dave.
+Not a big deal if it is too late :)
