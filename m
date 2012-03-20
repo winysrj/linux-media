@@ -1,54 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:34037 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751693Ab2CEVbx convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Mar 2012 16:31:53 -0500
-Received: by vbbff1 with SMTP id ff1so3868681vbb.19
-        for <linux-media@vger.kernel.org>; Mon, 05 Mar 2012 13:31:52 -0800 (PST)
+Received: from mx1.redhat.com ([209.132.183.28]:48826 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756745Ab2CTADh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 19 Mar 2012 20:03:37 -0400
+Message-ID: <4F67C953.3040109@redhat.com>
+Date: Mon, 19 Mar 2012 21:03:31 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <CAF6AEGs4QyGfZyOnewigYDMi6K=62Cmb8Ntd-zQRbasTXnjy-g@mail.gmail.com>
-References: <1330616161-1937-1-git-send-email-daniel.vetter@ffwll.ch>
-	<1330616161-1937-3-git-send-email-daniel.vetter@ffwll.ch>
-	<e39f63$3uf6dn@fmsmga002.fm.intel.com>
-	<CAF6AEGs4QyGfZyOnewigYDMi6K=62Cmb8Ntd-zQRbasTXnjy-g@mail.gmail.com>
-Date: Mon, 5 Mar 2012 22:31:52 +0100
-Message-ID: <CAKMK7uEcukmyyqL6N2XMwMDjGe81NkhmuE1k0QyeJYKF0ufktg@mail.gmail.com>
-Subject: Re: [Linaro-mm-sig] [PATCH 2/3] dma-buf: add support for kernel cpu access
-From: Daniel Vetter <daniel.vetter@ffwll.ch>
-To: Rob Clark <rob.clark@linaro.org>
-Cc: Chris Wilson <chris@chris-wilson.co.uk>,
-	linaro-mm-sig@lists.linaro.org,
-	LKML <linux-kernel@vger.kernel.org>,
-	DRI Development <dri-devel@lists.freedesktop.org>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: linuxtv@stefanringel.de
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH 03/22] mt2063: add hybrid
+References: <1329256066-8844-1-git-send-email-linuxtv@stefanringel.de> <1329256066-8844-3-git-send-email-linuxtv@stefanringel.de>
+In-Reply-To: <1329256066-8844-3-git-send-email-linuxtv@stefanringel.de>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Mar 2, 2012 at 23:53, Rob Clark <rob.clark@linaro.org> wrote:
-> nitially the expectation was that userspace would not pass a buffer
-> to multiple subsystems for writing (or that if it did, it would get
-> the undefined results that one could expect)..  so dealing w/
-> synchronization was punted.
+Em 14-02-2012 19:47, linuxtv@stefanringel.de escreveu:
+> From: Stefan Ringel <linuxtv@stefanringel.de>
+> 
+> Signed-off-by: Stefan Ringel <linuxtv@stefanringel.de>
 
-Imo synchronization should not be part of the dma_buf core, i.e.
-userspace needs to ensure that access is synchronized.
-begin/end_cpu_access are the coherency brackets (like map/unmap for
-device dma). And if userspace asks for a gun and some bullets, the
-kernel should just deliver. Even in drm/i915 gem land we don't (and
-simply can't) make any promises about concurrent reads/writes/ioctls.
+Patch is broken:
 
-> I expect, though, that one of the next steps is some sort of
-> sync-object mechanism to supplement dmabuf
+drivers/media/common/tuners/mt2063.c:365:1: error: expected identifier or ‘(’ before ‘{’ token
+drivers/media/common/tuners/mt2063.c:367:4: error: expected identifier or ‘(’ before ‘else’
+drivers/media/common/tuners/mt2063.c:369:1: error: expected identifier or ‘(’ before ‘}’ token
+drivers/media/common/tuners/mt2063.c:371:1: error: expected identifier or ‘(’ before ‘{’ token
+drivers/media/common/tuners/mt2063.c:287:12: warning: ‘mt2063_setreg’ defined but not used [-Wunused-function]
+drivers/media/common/tuners/mt2063.c:308:12: warning: ‘mt2063_read’ defined but not used [-Wunused-function]
+drivers/media/common/tuners/mt2063.c:355:12: warning: ‘MT2063_Sleep’ defined but not used [-Wunused-function]
 
-Imo the only reason to add sync objects as explicit things is to make
-device-to-device sync more efficient by using hw semaphores and
-signalling lines. Or maybe a quick irq handler in the kernel that
-kicks of the next device. I don't think we should design these to make
-userspace simpler.
 
-Cheers, Daniel
--- 
-Daniel Vetter
-daniel.vetter@ffwll.ch - +41 (0) 79 365 57 48 - http://blog.ffwll.ch
+> ---
+>  drivers/media/common/tuners/mt2063.c |   57 +++++++++++++++++++++++-----------
+>  1 files changed, 39 insertions(+), 18 deletions(-)
+> 
+> diff --git a/drivers/media/common/tuners/mt2063.c b/drivers/media/common/tuners/mt2063.c
+> index 9f3a546..d5a9dd9 100644
+> --- a/drivers/media/common/tuners/mt2063.c
+> +++ b/drivers/media/common/tuners/mt2063.c
+> @@ -32,6 +32,8 @@ static unsigned int debug;
+>  module_param(debug, int, 0644);
+>  MODULE_PARM_DESC(debug, "Set debug level");
+>  
+> +static DEFINE_MUTEX(mt2063_list_mutex);
+> +static LIST_HEAD(hybrid_tuner_instance_list);
+>  
+>  /* debug level
+>   * 0 don't debug
+> @@ -2247,29 +2249,48 @@ static struct dvb_tuner_ops mt2063_ops = {
+>  };
+>  
+>  struct dvb_frontend *mt2063_attach(struct dvb_frontend *fe,
+> -				   struct mt2063_config *config,
+> -				   struct i2c_adapter *i2c)
+> +                   struct mt2063_config *config,
+> +                   struct i2c_adapter *i2c)
+>  {
+>  	struct mt2063_state *state = NULL;
+> +	int instance, ret;
+> +
+> +	dprintk(1, "\n");
+> +
+> +	mutex_lock(&mt2063_list_mutex);
+> +
+> +	instance = hybrid_tuner_request_state(struct mt2063_state, state,
+> +                                          hybrid_tuner_instance_list,
+> +                                          i2c, config->tuner_address,
+> +                                          "mt2063");
+> +
+> +	switch(instance) {
+> +	case 0:
+> +		goto fail;
+> +	case 1:
+> +		/* new instance */
+> +		state->i2c = i2c;
+> +		state->i2c_addr = config->tuner_address;
+> +		/* find chip */
+> +		mutex_init(&state->lock);
+> +		state->frontend = fe;
+> +		if (ret < 0)
+> +			goto fail;
+> +		fe->tuner_priv = state;
+> +		fe->ops.tuner_ops = mt2063_ops;
+> +		break;
+> +	default:
+> +		fe->tuner_priv = state;
+> +		fe->ops.tuner_ops = mt2063_ops;
+> +		break;
+> +	}
+> +	mutex_unlock(&mt2063_list_mutex);
+>  
+> -	dprintk(2, "\n");
+> -
+> -	state = kzalloc(sizeof(struct mt2063_state), GFP_KERNEL);
+> -	if (state == NULL)
+> -		goto error;
+> -
+> -	state->config = config;
+> -	state->i2c = i2c;
+> -	state->frontend = fe;
+> -	state->reference = config->refclock / 1000;	/* kHz */
+> -	fe->tuner_priv = state;
+> -	fe->ops.tuner_ops = mt2063_ops;
+> -
+> -	printk(KERN_INFO "%s: Attaching MT2063\n", __func__);
+>  	return fe;
+>  
+> -error:
+> -	kfree(state);
+> +fail:
+> +	hybrid_tuner_release_state(state);
+> +	mutex_unlock(&mt2063_list_mutex);
+>  	return NULL;
+>  }
+>  EXPORT_SYMBOL_GPL(mt2063_attach);
+
