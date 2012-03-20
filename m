@@ -1,260 +1,640 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:48947 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751920Ab2CGM0B (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Mar 2012 07:26:01 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, dacohen@gmail.com, snjw23@gmail.com,
-	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
-	tuukkat76@gmail.com, k.debski@samsung.com, riverful@gmail.com,
-	hverkuil@xs4all.nl, teturtia@gmail.com, pradeep.sawlani@gmail.com
-Subject: Re: [PATCH v5 34/35] smiapp: Generic SMIA++/SMIA PLL calculator
-Date: Wed, 07 Mar 2012 13:26:20 +0100
-Message-ID: <1960253.l1xo097dr7@avalon>
-In-Reply-To: <1331051596-8261-34-git-send-email-sakari.ailus@iki.fi>
-References: <20120306163239.GN1075@valkosipuli.localdomain> <1331051596-8261-34-git-send-email-sakari.ailus@iki.fi>
+Received: from mx1.redhat.com ([209.132.183.28]:22769 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1030421Ab2CTA1G (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 19 Mar 2012 20:27:06 -0400
+Message-ID: <4F67CED1.407@redhat.com>
+Date: Mon, 19 Mar 2012 21:26:57 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Hans-Frieder Vogt <hfvogt@gmx.net>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/3] Support for tuner FC0012
+References: <201202222321.35533.hfvogt@gmx.net>
+In-Reply-To: <201202222321.35533.hfvogt@gmx.net>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
-
-Thanks for the patch.
-
-On Tuesday 06 March 2012 18:33:15 Sakari Ailus wrote:
-> From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Em 22-02-2012 20:21, Hans-Frieder Vogt escreveu:
+> Support for the tuner Fitipower FC0012
 > 
-> Calculate PLL configuration based on input data: sensor configuration, board
-> properties and sensor-specific limits.
+> Signed-off-by: Hans-Frieder Vogt <hfvogt@gmx.net>
 > 
-> Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+> diff -Nupr a/drivers/media/common/tuners/fc0012.c 
+> b/drivers/media/common/tuners/fc0012.c
+> --- a/drivers/media/common/tuners/fc0012.c	1970-01-01 01:00:00.000000000 +0100
+> +++ b/drivers/media/common/tuners/fc0012.c	2012-02-19 17:37:27.364482154 
+> +0100
+> @@ -0,0 +1,430 @@
+> +/*
+> + * Fitipower FC0012 tuner driver
+> + *
+> + * Copyright (C) 2012 Hans-Frieder Vogt <hfvogt@gmx.net>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License as published by
+> + * the Free Software Foundation; either version 2 of the License, or
+> + * (at your option) any later version.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * along with this program; if not, write to the Free Software
+> + * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+> + */
+> +
+> +#include <linux/version.h>
 
-[snip]
+Media drivers shouldn't include linux/version.h.
 
-> diff --git a/drivers/media/video/smiapp-pll.c
-> b/drivers/media/video/smiapp-pll.c new file mode 100644
-> index 0000000..3a999c0
-> --- /dev/null
-> +++ b/drivers/media/video/smiapp-pll.c
+> +#include "fc0012.h"
+> +#include "fc0012-priv.h"
+> +
+> +static int fc0012_debug;
+> +module_param_named(debug, fc0012_debug, int, 0644);
+> +MODULE_PARM_DESC(debug, "Select debug level (default: debug off)");
+> +
+> +/* the FC0012 seems to have only byte access to the registers */
+> +static int fc0012_writeregs(struct fc0012_priv *priv, u8 reg, u8 *val, int 
+> len)
 
-[snip]
+Your emailer is mangling the patch, breaking long lines.
 
-> +int smiapp_pll_calculate(struct device *dev, struct smiapp_pll_limits
-> *limits,
-> +			 struct smiapp_pll *pll)
 > +{
+> +	u8 buf[1+len];
 
-[snip]
+This is generally not a good idea, as the Kernel stack is very small
+(about 2K-4K, depending on the arch).
 
-> +	/*
-> +	 * Some sensors perform analogue binning and some do this
-> +	 * digitally. The ones doing this digitally can be roughly be
-> +	 * found out using this formula. The ones doing this digitally
-> +	 * should run at higher clock rate, so smaller divisor is used
-> +	 * on video timing side.
-> +	 */
-> +	if (limits->min_line_length_pck_bin > limits->min_line_length_pck
-> +	    / pll->binning_horizontal)
-> +		vt_op_binning_div = pll->binning_horizontal;
-> +	else
-> +		vt_op_binning_div = 1;
-> +	dev_dbg(dev, "vt_op_binning_div: %d\n", vt_op_binning_div);
+> +	struct i2c_msg msg = { .addr = priv->addr,
+> +		.flags = 0, .buf = buf, .len = sizeof(buf) };
 > +
-> +	/*
-> +	 * Profile 2 supports vt_pix_clk_div E [4, 10]
-> +	 *
-> +	 * Horizontal binning can be used as a base for difference in
-> +	 * divisors. One must make sure that horizontal blanking is
-> +	 * enough to accommodate the CSI-2 sync codes.
-> +	 *
-> +	 * Take scaling factor into account as well.
-> +	 *
-> +	 * Find absolute limits for the factor of vt divider.
-> +	 */
-> +	dev_dbg(dev, "scale_m: %d\n", pll->scale_m);
-> +	min_vt_div = DIV_ROUND_UP(pll->op_pix_clk_div * pll->op_sys_clk_div
-> +				  * pll->scale_n,
-
-I still need
-
-        if (pll->flags & SMIAPP_PLL_FLAG_DUAL_READOUT)
-               num_readout_paths = 2;
-        else
-               num_readout_paths = 1;
-        min_vt_div = DIV_ROUND_UP(pll->op_pix_clk_div * pll->op_sys_clk_div
-                                 * pll->scale_n * num_readout_paths,
-
-for the AR0330 driver, but I can add that later.
-
-> +				  lane_op_clock_ratio * vt_op_binning_div
-> +				  * pll->scale_m);
-
-[snip]
-
-> +	/*
-> +	 * Find pix_div such that a legal pix_div * sys_div results
-> +	 * into a value which is not smaller than div, the desired
-> +	 * divisor.
-> +	 */
-> +	for (vt_div = min_vt_div; vt_div <= max_vt_div;
-> +	     vt_div += 2 - (vt_div & 1)) {
-> +		for (sys_div = min_sys_div;
-> +		     sys_div <= max_sys_div;
-> +		     sys_div += 2 - (sys_div & 1)) {
-> +			int pix_div = DIV_ROUND_UP(vt_div, sys_div);
+> +	buf[0] = reg;
+> +	memcpy(&buf[1], val, len);
 > +
-> +			if (pix_div <
-> +			    limits->min_vt_pix_clk_div
-> +			    || pix_div
-> +			    > limits->max_vt_pix_clk_div) {
-
-			if (pix_div < limits->min_vt_pix_clk_div ||
-			    pix_div > limits->max_vt_pix_clk_div) {
-
-> +				dev_dbg(dev,
-> +					"pix_div %d too small or too big (%d--%d)\n",
-> +					pix_div,
-> +					limits->min_vt_pix_clk_div,
-> +					limits->max_vt_pix_clk_div);
-> +				continue;
-> +			}
-> +
-> +			/* Check if this one is better. */
-> +			if (pix_div * sys_div
-> +			    <= ALIGN(min_vt_div, best_pix_div))
-> +				best_pix_div = pix_div;
-> +		}
-> +		if (best_pix_div < INT_MAX >> 1)
-> +			break;
+> +	msleep(1);
+> +	if (i2c_transfer(priv->i2c, &msg, 1) != 1) {
+> +		err("I2C write regs failed, reg: %02x, val[0]: %02x",
+> +			reg, val[0]);
+> +		return -EREMOTEIO;
 > +	}
-
-[snip]
-
-> diff --git a/drivers/media/video/smiapp/smiapp-core.c
-> b/drivers/media/video/smiapp/smiapp-core.c new file mode 100644
-> index 0000000..879fb1e
-> --- /dev/null
-> +++ b/drivers/media/video/smiapp/smiapp-core.c
-
-[snip]
-
-> +static void smiapp_get_crop_compose(struct v4l2_subdev *subdev,
-> +				    struct v4l2_subdev_fh *fh,
-> +				    struct v4l2_rect **crops,
-> +				    struct v4l2_rect **comps, int which)
-> +{
-> +	struct smiapp_subdev *ssd = to_smiapp_subdev(subdev);
-> +	int i;
-
-Can you guess ? :-)
-
-> +
-> +	if (which == V4L2_SUBDEV_FORMAT_ACTIVE) {
-> +		if (crops)
-> +			for (i = 0; i < subdev->entity.num_pads; i++)
-> +				crops[i] = &ssd->crop[i];
-> +		if (comps)
-> +			*comps = &ssd->compose;
-> +	} else {
-> +		if (crops) {
-> +			for (i = 0; i < subdev->entity.num_pads; i++) {
-> +				crops[i] = v4l2_subdev_get_try_crop(fh, i);
-> +				BUG_ON(!crops[i]);
-> +			}
-> +		}
-> +		if (comps) {
-> +			*comps = v4l2_subdev_get_try_compose(fh,
-> +							     SMIAPP_PAD_SINK);
-> +			BUG_ON(!*comps);
-> +		}
-> +	}
-> +}
-
-[snip]
-
-> +static int smiapp_set_format(struct v4l2_subdev *subdev,
-> +			     struct v4l2_subdev_fh *fh,
-> +			     struct v4l2_subdev_format *fmt)
-> +{
-> +	struct smiapp_sensor *sensor = to_smiapp_sensor(subdev);
-> +	struct smiapp_subdev *ssd = to_smiapp_subdev(subdev);
-> +	struct v4l2_rect *crops[SMIAPP_PADS];
-> +	const struct smiapp_csi_data_format *csi_format = sensor->csi_format;
-> +	int i;
-
-:-D
-
-> +
-> +	mutex_lock(&sensor->mutex);
-> +
-> +	smiapp_get_crop_compose(subdev, fh, crops, NULL, fmt->which);
-> +
-> +	if (subdev == &sensor->src->sd && fmt->pad == SMIAPP_PAD_SRC) {
-> +		for (i = 0; i < ARRAY_SIZE(smiapp_csi_data_formats); i++) {
-> +			if (sensor->mbus_frame_fmts & (1 << i) &&
-> +			    smiapp_csi_data_formats[i].code
-> +			    == fmt->format.code) {
-> +				csi_format = &smiapp_csi_data_formats[i];
-> +				if (fmt->which == V4L2_SUBDEV_FORMAT_ACTIVE)
-> +					sensor->csi_format = csi_format;
-> +				break;
-> +			}
-> +		}
-> +	}
-> +
-> +	if (fmt->pad == ssd->source_pad) {
-> +		int rval;
-> +
-> +		rval = __smiapp_get_format(subdev, fh, fmt);
-> +		fmt->format.code = csi_format->code;
-> +
-> +		mutex_unlock(&sensor->mutex);
-> +		return rval;
-> +	}
-> +
-> +	fmt->format.code = csi_format->code;
-
-This will result in the format code at the output of the pixel array being
-equal to the format code at the output of the binner/scaler. I don't think
-you want that.
-
-You probably need to take a small step back and rethink the code flow in this
-function a bit. I'm pretty sure you can keep it simple.
-
-> +	fmt->format.width &= ~1;
-> +	fmt->format.height &= ~1;
-> +
-> +	fmt->format.width =
-> +		clamp(fmt->format.width,
-> +		      sensor->limits[SMIAPP_LIMIT_MIN_X_OUTPUT_SIZE],
-> +		      sensor->limits[SMIAPP_LIMIT_MAX_X_OUTPUT_SIZE]);
-> +	fmt->format.height =
-> +		clamp(fmt->format.height,
-> +		      sensor->limits[SMIAPP_LIMIT_MIN_Y_OUTPUT_SIZE],
-> +		      sensor->limits[SMIAPP_LIMIT_MAX_Y_OUTPUT_SIZE]);
-> +
-> +	crops[ssd->sink_pad]->left = 0;
-> +	crops[ssd->sink_pad]->top = 0;
-> +	crops[ssd->sink_pad]->width = fmt->format.width;
-> +	crops[ssd->sink_pad]->height = fmt->format.height;
-> +	if (fmt->which == V4L2_SUBDEV_FORMAT_ACTIVE)
-> +		ssd->sink_fmt = *crops[ssd->sink_pad];
-> +	smiapp_propagate(subdev, fh, fmt->which,
-> +			 V4L2_SUBDEV_SEL_TGT_CROP_ACTIVE);
-> +
-> +	mutex_unlock(&sensor->mutex);
-> +
 > +	return 0;
 > +}
+> +
+> +static int fc0012_writereg(struct fc0012_priv *priv, u8 reg, u8 val)
+> +{
+> +	u8 buf[2] = {reg, val};
+> +	struct i2c_msg msg = { .addr = priv->addr,
+> +		.flags = 0, .buf = buf, .len = 2 };
+> +
+> +	msleep(1);
+> +	if (i2c_transfer(priv->i2c, &msg, 1) != 1) {
+> +		err("I2C write reg failed, reg: %02x, val: %02x", reg, val);
+> +		return -EREMOTEIO;
+> +	}
+> +	return 0;
+> +}
+> +
+> +static int fc0012_readreg(struct fc0012_priv *priv, u8 reg, u8 *val)
+> +{
+> +	struct i2c_msg msg[2] = {
+> +		{ .addr = priv->addr,
+> +		  .flags = 0, .buf = &reg, .len = 1 },
+> +		{ .addr = priv->addr,
+> +		  .flags = I2C_M_RD, .buf = val, .len = 1 },
+> +	};
+> +
+> +	if (i2c_transfer(priv->i2c, msg, 2) != 2) {
+> +		err("I2C read failed, reg: %02x", reg);
+> +		return -EREMOTEIO;
+> +	}
+> +	return 0;
+> +}
+> +
+> +static int fc0012_release(struct dvb_frontend *fe)
+> +{
+> +	kfree(fe->tuner_priv);
+> +	fe->tuner_priv = NULL;
+> +	return 0;
+> +}
+> +
+> +static int fc0012_init(struct dvb_frontend *fe)
+> +{
+> +	struct fc0012_priv *priv = fe->tuner_priv;
+> +	int ret = 0;
+> +	u8 i;
+> +	unsigned char reg[] = {
+> +		0x00,	/* dummy reg. 0 */
+> +		0x05,	/* reg. 0x01 */
+> +		0x10,	/* reg. 0x02 */
+> +		0x00,	/* reg. 0x03 */
+> +		0x00,	/* reg. 0x04 */
+> +		0x0a,	/* reg. 0x05 CHECK: correct? */
+> +		0x00,	/* reg. 0x06: divider 2, VCO slow */ 
+> +		0x0f,	/* reg. 0x07 */
+> +		0xff,	/* reg. 0x08: AGC Clock divide by 256, AGC gain 1/256, Loop Bw 
+> 1/8 */
+> +		0x6e,	/* reg. 0x09: Disable LoopThrough */
+> +		0xb8,	/* reg. 0x0a: Disable LO Test Buffer */
+> +		0x83,	/* reg. 0x0b: Output Clock is same as clock frequency */
+> +		0xfe,	/* reg. 0x0c: depending on AGC Up-Down mode, may need 0xf8 */
+> +		0x02,	/* reg. 0x0d: AGC Not Forcing & LNA Forcing, 0x02 for DVB-T */
+> +		0x00,	/* reg. 0x0e */
+> +		0x00,	/* reg. 0x0f */
+> +		0x0d,	/* reg. 0x10 */
+> +		0x00,	/* reg. 0x11 */
+> +		0x1f,	/* reg. 0x12: Set to maximum gain */
+> +		0x90,	/* reg. 0x13: Enable IX2, Set to Middle Gain: 0x08, Low Gain: 
+> 0x00, High Gain: 0x10 */
+> +		0x00,	/* reg. 0x14 */
+> +		0x04,	/* reg. 0x15: Enable LNA COMPS */
+> +	};
+> +
+> +	switch (priv->xtal_freq) {
+> +	case FC_XTAL_27_MHZ:
+> +	case FC_XTAL_28_8_MHZ:
+> +		reg[0x07] |= 0x20;
+> +		break;
+> +	case FC_XTAL_36_MHZ:
+> +	default:
+> +		break;
+> +	}
+> +	for (i = 1; i < sizeof(reg); i++) {
+> +		ret = fc0012_writereg(priv, i, reg[i]);
+> +		if (ret)
+> +			break;
+> +	}
+> +
+> +	if (ret)
+> +		deb_info("%s: failed:%d\n", __func__, ret);
+> +
+> +	return ret;
+> +}
+> +
+> +static int fc0012_sleep(struct dvb_frontend *fe)
+> +{
+> +	/* nothing to do here */
+> +	return 0;
+> +}
+> +
+> +#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,3,0)
+> +static int fc0012_set_params(struct dvb_frontend *fe)
+> +#else
+> +static int fc0012_set_params(struct dvb_frontend *fe,
+> +        struct dvb_frontend_parameters *params)
+> +#endif
 
-[snip]
+No. You shouldn't be testing for kernel version. The version will be
+the one where the driver will be added (3.4?). So, this test will
+always evaluate to an specific Kernel version.
 
--- 
-Regards,
+Also, this will break compilation under the media build, as the Kernel
+version can be lower than 3.3, but the internal API has changed.
 
-Laurent Pinchart
+The same applies to the other parts of the code that test for the version.
 
+> +{
+> +        struct fc0012_priv *priv = fe->tuner_priv;
+> +        int ret;
+> +#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,3,0)
+> +	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+> +	u32 freq = p->frequency / 1000;
+> +	u32 delsys = p->delivery_system;
+> +#else
+> +	u32 freq = params->frequency / 1000;
+> +	u32 bw = 0;
+> +#endif
+> +	unsigned char reg[0x16], am, pm, multi;
+> +	unsigned long fVCO;
+> +	unsigned short xtal_freq_khz_2, xin, xdiv;
+> +	int vco_select = false;
+> +
+> +	switch (priv->xtal_freq) {
+> +	case FC_XTAL_27_MHZ:
+> +		xtal_freq_khz_2 = 27000 / 2;
+> +		break;
+> +	case FC_XTAL_36_MHZ:
+> +		xtal_freq_khz_2 = 36000 / 2;
+> +		break;
+> +	case FC_XTAL_28_8_MHZ:
+> +	default:
+> +		xtal_freq_khz_2 = 28800 / 2;
+> +		break;
+> +	}
+> +
+> +	/* select frequency divider and the frequency of VCO */
+> +	if (freq * 96 < 3560000) {
+> +		multi = 96;
+> +		reg[5] = 0x82;
+> +		reg[6] = 0x00;
+> +	} else if (freq * 64 < 3560000) {
+> +		multi = 64;
+> +		reg[5] = 0x82;
+> +		reg[6] = 0x02;
+> +	} else if (freq * 48 < 3560000) {
+> +		multi = 48;
+> +		reg[5] = 0x42;
+> +		reg[6] = 0x00;
+> +	} else if (freq * 32 < 3560000) {
+> +		multi = 32;
+> +		reg[5] = 0x42;
+> +		reg[6] = 0x02;
+> +	} else if (freq * 24 < 3560000) {
+> +		multi = 24;
+> +		reg[5] = 0x22;
+> +		reg[6] = 0x00;
+> +	} else if (freq * 16 < 3560000) {
+> +		multi = 16;
+> +		reg[5] = 0x22;
+> +		reg[6] = 0x02;
+> +	} else if (freq * 12 < 3560000) {
+> +		multi = 12;
+> +		reg[5] = 0x12;
+> +		reg[6] = 0x00;
+> +	} else if (freq * 8 < 3560000) {
+> +		multi = 8;
+> +		reg[5] = 0x12;
+> +		reg[6] = 0x02;
+> +	} else if (freq * 6 < 3560000) {
+> +		multi = 6;
+> +		reg[5] = 0x0a;
+> +		reg[6] = 0x00;
+> +	} else {
+> +		multi = 4;
+> +		reg[5] = 0x0a;
+> +		reg[6] = 0x02;
+> +	}
+> +
+> +	fVCO = freq * multi;
+> +
+> +	if (fVCO >= 3060000) {
+> +		reg[6] |= 0x08;
+> +		vco_select = true;
+> +	}
+> +
+> +	if (freq >= 45000) {
+> +		/* From divided value (XDIV) determined the FA and FP value */
+> +		xdiv = (unsigned short)(fVCO / xtal_freq_khz_2);
+> +		if ((fVCO - xdiv * xtal_freq_khz_2) >= (xtal_freq_khz_2 / 2))
+> +			xdiv++;
+> +
+> +		pm = (unsigned char)(xdiv / 8);
+> +		am = (unsigned char)(xdiv - (8 * pm));
+> +
+> +		if (am < 2) {
+> +			reg[1] = am + 8;
+> +			reg[2] = pm - 1;
+> +		} else {
+> +			reg[1] = am;
+> +			reg[2] = pm;
+> +		}
+> +	} else {
+> +		/* fix for frequency less than 45 MHz */
+> +		reg[1] = 0x06;
+> +		reg[2] = 0x11;
+> +	}
+> +
+> +	/* fix clock out */
+> +	reg[6] |= 0x20;
+> +
+> +	/* From VCO frequency determines the XIN ( fractional part of Delta
+> +	   Sigma PLL) and divided value (XDIV) */
+> +	xin = (unsigned short)(fVCO - (fVCO / xtal_freq_khz_2) * 
+> xtal_freq_khz_2);
+> +	xin = (xin << 15) / xtal_freq_khz_2;
+> +	if (xin >= 16384)
+> +		xin += 32768;
+> +
+> +	reg[3] = xin >> 8;	/* xin with 9 bit resolution */
+> +	reg[4] = xin & 0xff;
+> +
+> +#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,3,0)
+> +	if (delsys == SYS_DVBT) {
+> +		reg[6] &= 0x3f;	/* bits 6 and 7 describe the bandwidth */
+> +		switch (p->bandwidth_hz) {
+> +		case 6000000:
+> +			reg[6] |= 0x80;
+> +			break;
+> +		case 7000000:
+> +			reg[6] |= 0x40;
+> +			break;
+> +		case 8000000:
+> +		default:
+> +			break;
+> +		}
+> +#else
+> +	if (fe->ops.info.type == FE_OFDM) {
+> +		reg[6] &= 0x3f;	/* bits 6 and 7 describe the bandwidth */
+> +		switch (params->u.ofdm.bandwidth) {
+> +		case BANDWIDTH_6_MHZ:
+> +			bw = 6000000;
+> +			reg[6] |= 0x80;
+> +			break;
+> +		case BANDWIDTH_7_MHZ:
+> +			bw = 7000000;
+> +			reg[6] |= 0x40;
+> +			break;
+> +		case BANDWIDTH_8_MHZ:
+> +		default:
+> +			bw = 8000000;
+> +			break;
+> +		}
+> +#endif
+> +	} else {
+> +		err("%s: modulation type not supported!\n", __func__);
+> +		return -EINVAL;
+> +	}
+> +
+> +	/* modified for Realtek demod */
+> +	reg[5] |= 0x07;
+> +
+> +	ret = fc0012_writeregs(priv, 1, &reg[1], 6);
+> +	if (ret)
+> +		goto error_out;
+> +
+> +	/* VCO Calibration */
+> +	ret = fc0012_writereg(priv, 0x0e, 0x80);
+> +	if (!ret)
+> +		ret = fc0012_writereg(priv, 0x0e, 0x00);
+> +	/* VCO Re-Calibration if needed */
+> +	if (!ret)
+> +		ret = fc0012_writereg(priv, 0x0e, 0x00);
+> +
+> +	if (!ret) {
+> +		msleep(10);
+> +		ret = fc0012_readreg(priv, 0x0e, &reg[0x0e]);
+> +	}
+> +	if (ret)
+> +		goto error_out;
+> +
+> +	/* vco selection */
+> +	reg[0x0e] &= 0x3f;
+> +
+> +	if (vco_select) {
+> +		if (reg[0x0e] > 0x3c) {
+> +			reg[6] &= ~0x08;
+> +			ret = fc0012_writereg(priv, 0x06, reg[6]);
+> +			if (!ret)
+> +				ret = fc0012_writereg(priv, 0x0e, 0x80);
+> +			if (!ret)
+> +				ret = fc0012_writereg(priv, 0x0e, 0x00);
+> +		}
+> +	} else {
+> +		if (reg[0x0e] < 0x02) {
+> +			reg[6] |= 0x08;
+> +			ret = fc0012_writereg(priv, 0x06, reg[6]);
+> +			if (!ret)
+> +				ret = fc0012_writereg(priv, 0x0e, 0x80);
+> +			if (!ret)
+> +				ret = fc0012_writereg(priv, 0x0e, 0x00);
+> +		}
+> +	}
+> +
+> +	priv->frequency = freq;
+> +#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,3,0)
+> +	priv->bandwidth = p->bandwidth_hz;
+> +#else
+> +	priv->bandwidth = bw;
+> +#endif
+> +
+> +error_out:
+> +	return ret;
+> +}
+> +
+> +static int fc0012_get_frequency(struct dvb_frontend *fe, u32 *frequency)
+> +{
+> +        struct fc0012_priv *priv = fe->tuner_priv;
+> +        *frequency = priv->frequency;
+> +        return 0;
+> +}
+> +
+> +#ifdef DEFINED_GET_IF_FREQUENCY
+
+This is always true. So, please remove this test.
+
+> +static int fc0012_get_if_frequency(struct dvb_frontend *fe, u32 *frequency)
+> +{
+> +	/* CHECK: always ? */
+> +        *frequency = 0;
+> +        return 0;
+> +}
+> +#endif
+> +
+> +static int fc0012_get_bandwidth(struct dvb_frontend *fe, u32 *bandwidth)
+> +{
+> +        struct fc0012_priv *priv = fe->tuner_priv;
+> +        *bandwidth = priv->bandwidth;
+> +        return 0;
+> +}
+> +
+> +
+> +static const struct dvb_tuner_ops fc0012_tuner_ops = {
+> +        .info = {
+> +                .name           = "Fitipower FC0012",
+> +
+> +                .frequency_min  = 170000000,
+> +                .frequency_max  = 860000000,
+> +                .frequency_step = 0,
+> +        },
+> +
+> +        .release       = fc0012_release,
+> +
+> +        .init          = fc0012_init,
+> +	.sleep         = fc0012_sleep,
+> +
+> +        .set_params    = fc0012_set_params,
+> +
+> +        .get_frequency = fc0012_get_frequency,
+> +#ifdef DEFINED_GET_IF_FREQUENCY
+
+Idem.
+
+> +	.get_if_frequency = fc0012_get_if_frequency,
+> +#endif
+> +	.get_bandwidth = fc0012_get_bandwidth,
+> +};
+> +
+> +struct dvb_frontend * fc0012_attach(struct dvb_frontend *fe,
+> +        struct i2c_adapter *i2c, u8 i2c_address,
+> +	enum fc0012_xtal_freq xtal_freq)
+> +{
+> +        struct fc0012_priv *priv = NULL;
+> +
+> +	priv = kzalloc(sizeof(struct fc0012_priv), GFP_KERNEL);
+> +	if (priv == NULL)
+> +		return NULL;
+> +
+> +	priv->i2c = i2c;
+> +	priv->addr = i2c_address;
+> +	priv->xtal_freq = xtal_freq;
+> +
+> +	info("Fitipower FC0012 successfully attached.");
+> +
+> +	fe->tuner_priv = priv;
+> +
+> +	memcpy(&fe->ops.tuner_ops, &fc0012_tuner_ops,
+> +		sizeof(struct dvb_tuner_ops));
+> +
+> +	return fe;
+> +}
+> +EXPORT_SYMBOL(fc0012_attach);
+> +
+> +MODULE_DESCRIPTION("Fitipower FC0012 silicon tuner driver");
+> +MODULE_AUTHOR("Hans-Frieder Vogt <hfvogt@gmx.net>");
+> +MODULE_LICENSE("GPL");
+> +MODULE_VERSION("0.1");
+> diff -Nupr a/drivers/media/common/tuners/fc0012.h 
+> b/drivers/media/common/tuners/fc0012.h
+> --- a/drivers/media/common/tuners/fc0012.h	1970-01-01 01:00:00.000000000 +0100
+> +++ b/drivers/media/common/tuners/fc0012.h	2012-02-20 23:02:11.639876934 
+> +0100
+> @@ -0,0 +1,49 @@
+> +/*
+> + * Fitipower FC0012 tuner driver - include
+> + *
+> + * Copyright (C) 2012 Hans-Frieder Vogt <hfvogt@gmx.net>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License as published by
+> + * the Free Software Foundation; either version 2 of the License, or
+> + * (at your option) any later version.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * along with this program; if not, write to the Free Software
+> + * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+> + */
+> +
+> +#ifndef _FC0012_H_
+> +#define _FC0012_H_
+> +
+> +#include "dvb_frontend.h"
+> +
+> +enum fc0012_xtal_freq {
+> +        FC_XTAL_27_MHZ,      /* 27000000 */
+> +        FC_XTAL_28_8_MHZ,    /* 28800000 */
+> +        FC_XTAL_36_MHZ,      /* 36000000 */
+> +};
+> +
+> +#if defined(CONFIG_MEDIA_TUNER_FC0012) || \
+> +        (defined(CONFIG_MEDIA_TUNER_FC0012_MODULE) && defined(MODULE))
+> +extern struct dvb_frontend *fc0012_attach(struct dvb_frontend *fe,
+> +					struct i2c_adapter *i2c,
+> +					u8 i2c_address,
+> +					enum fc0012_xtal_freq xtal_freq);
+> +#else
+> +static inline struct dvb_frontend *fc0012_attach(struct dvb_frontend *fe,
+> +						struct i2c_adapter *i2c,
+> +						u8 i2c_address,
+> +						enum fc0012_xtal_freq xtal_freq)
+> +{
+> +	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
+> +	return NULL;
+> +}
+> +#endif
+> +
+> +#endif
+> diff -Nupr a/drivers/media/common/tuners/fc0012-priv.h 
+> b/drivers/media/common/tuners/fc0012-priv.h
+> --- a/drivers/media/common/tuners/fc0012-priv.h	1970-01-01 01:00:00.000000000 
+> +0100
+> +++ b/drivers/media/common/tuners/fc0012-priv.h	2012-02-19 
+> 17:37:46.770986275 +0100
+> @@ -0,0 +1,50 @@
+> +/*
+> + * Fitipower FC0012 tuner driver - private includes
+> + *
+> + * Copyright (C) 2012 Hans-Frieder Vogt <hfvogt@gmx.net>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License as published by
+> + * the Free Software Foundation; either version 2 of the License, or
+> + * (at your option) any later version.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * along with this program; if not, write to the Free Software
+> + * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+> + */
+> +
+> +#ifndef _FC0012_PRIV_H_
+> +#define _FC0012_PRIV_H_
+> +
+> +#define LOG_PREFIX "fc0012"
+> +
+> +#define dprintk(var, level, args...) \
+> +	do { \
+> +		if ((var & level)) \
+> +			printk(args); \
+> +	} while (0)
+> +
+> +#define deb_info(args...) dprintk(fc0012_debug, 0x01, args)
+> +
+> +#undef err
+> +#define err(f, arg...)  printk(KERN_ERR     LOG_PREFIX": " f "\n" , ## arg)
+> +#undef info
+> +#define info(f, arg...) printk(KERN_INFO    LOG_PREFIX": " f "\n" , ## arg)
+> +#undef warn
+> +#define warn(f, arg...) printk(KERN_WARNING LOG_PREFIX": " f "\n" , ## arg)
+> +
+> +struct fc0012_priv {
+> +        struct i2c_adapter *i2c;
+> +	u8 addr;
+> +	u8 xtal_freq;
+> +
+> +        u32 frequency;
+> +	u32 bandwidth;
+> +};
+> +
+> +#endif
+> diff -Nupr a/drivers/media/common/tuners/Kconfig 
+> b/drivers/media/common/tuners/Kconfig
+> --- a/drivers/media/common/tuners/Kconfig	2012-01-08 05:45:35.000000000 +0100
+> +++ b/drivers/media/common/tuners/Kconfig	2012-02-20 23:04:29.435357491 
+> +0100
+> @@ -211,4 +211,11 @@ config MEDIA_TUNER_TDA18212
+>  	help
+>  	  NXP TDA18212 silicon tuner driver.
+>  
+> +config MEDIA_TUNER_FC0012
+> +	tristate "Fitipower FC0012 silicon tuner"
+> +	depends on VIDEO_MEDIA && I2C
+> +	default m if MEDIA_TUNER_CUSTOMISE
+> +	help
+> +	  Fitipower FC0012 silicon tuner driver.
+> +
+>  endmenu
+> diff -Nupr a/drivers/media/common/tuners/Makefile 
+> b/drivers/media/common/tuners/Makefile
+> --- a/drivers/media/common/tuners/Makefile	2012-01-05 05:45:47.000000000 +0100
+> +++ b/drivers/media/common/tuners/Makefile	2012-02-20 23:01:14.010487009 
+> +0100
+> @@ -28,6 +28,7 @@ obj-$(CONFIG_MEDIA_TUNER_MC44S803) += mc
+>  obj-$(CONFIG_MEDIA_TUNER_MAX2165) += max2165.o
+>  obj-$(CONFIG_MEDIA_TUNER_TDA18218) += tda18218.o
+>  obj-$(CONFIG_MEDIA_TUNER_TDA18212) += tda18212.o
+> +obj-$(CONFIG_MEDIA_TUNER_FC0012) += fc0012.o
+>  
+>  ccflags-y += -Idrivers/media/dvb/dvb-core
+>  ccflags-y += -Idrivers/media/dvb/frontends
+> 
+> 
+> Hans-Frieder Vogt                       e-mail: hfvogt <at> gmx .dot. net
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
