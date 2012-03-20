@@ -1,90 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-1-out2.atlantis.sk ([80.94.52.71]:55095 "EHLO
-	mail.atlantis.sk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S932167Ab2CEUbU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Mar 2012 15:31:20 -0500
-From: Ondrej Zary <linux@rainbow-software.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH 2/2] radio-gemtek: add PnP support for AOpen FX-3D/Pro Radio
-Date: Mon, 5 Mar 2012 21:30:59 +0100
-Cc: linux-media@vger.kernel.org
-References: <201203012025.08605.linux@rainbow-software.org> <201203020955.16196.hverkuil@xs4all.nl>
-In-Reply-To: <201203020955.16196.hverkuil@xs4all.nl>
+Received: from moutng.kundenserver.de ([212.227.126.171]:54708 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753727Ab2CTNLU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 20 Mar 2012 09:11:20 -0400
+Date: Tue, 20 Mar 2012 14:11:08 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Fabio Estevam <festevam@gmail.com>
+cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org, mchehab@infradead.org,
+	kernel@pengutronix.de, Fabio Estevam <fabio.estevam@freescale.com>
+Subject: Re: [PATCH] video: mx3_camera: Allocate camera object via kzalloc
+In-Reply-To: <CAOMZO5B=0LMqi-v-KwJkvsBEqUU+Bj8TRo08i7zGSv97jnZpVQ@mail.gmail.com>
+Message-ID: <Pine.LNX.4.64.1203201409420.21870@axis700.grange>
+References: <1329761467-14417-1-git-send-email-festevam@gmail.com>
+ <Pine.LNX.4.64.1202201916410.2836@axis700.grange>
+ <CAOMZO5AAeqHZFqpZYB_riSCQvCRSjQtR2EqpZvC5V3TRyzuWJQ@mail.gmail.com>
+ <4F67E4FD.2070709@redhat.com> <Pine.LNX.4.64.1203200851300.20315@axis700.grange>
+ <CAOMZO5CJHkb1JrAd+DYvYP-DrV6XsqO3wtoxJGe_s9sE1tQktw@mail.gmail.com>
+ <Pine.LNX.4.64.1203201340300.21870@axis700.grange>
+ <CAOMZO5B=0LMqi-v-KwJkvsBEqUU+Bj8TRo08i7zGSv97jnZpVQ@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <201203052131.02857.linux@rainbow-software.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add PnP support to radio-gemtek for AOpen FX-3D/Pro Radio card
-(AD1816 + Gemtek radio).
+On Tue, 20 Mar 2012, Fabio Estevam wrote:
 
-Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
+> On 3/20/12, Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
+> 
+> >> Is this valid only for mx3_camera driver?
+> >
+> > No
+> >
+> >> All other soc camera drivers use kzalloc.
+> >>
+> >> What makes mx3_camera different in this respect?
+> >
+> > Nothing
+> 
+> Ok, so isn't my patch correct then?
 
-diff --git a/drivers/media/radio/radio-gemtek.c b/drivers/media/radio/radio-gemtek.c
-index 9d7fdae..6ea0e23 100644
---- a/drivers/media/radio/radio-gemtek.c
-+++ b/drivers/media/radio/radio-gemtek.c
-@@ -29,6 +29,8 @@
- #include <linux/videodev2.h>	/* kernel radio structs		*/
- #include <linux/mutex.h>
- #include <linux/io.h>		/* outb, outb_p			*/
-+#include <linux/pnp.h>
-+#include <linux/slab.h>
- #include <media/v4l2-ioctl.h>
- #include <media/v4l2-device.h>
- #include "radio-isa.h"
-@@ -282,6 +284,16 @@ static const struct radio_isa_ops gemtek_ops = {
- 
- static const int gemtek_ioports[] = { 0x20c, 0x30c, 0x24c, 0x34c, 0x248, 0x28c };
- 
-+#ifdef CONFIG_PNP
-+static struct pnp_device_id gemtek_pnp_devices[] = {
-+	/* AOpen FX-3D/Pro Radio */
-+	{.id = "ADS7183", .driver_data = 0},
-+	{.id = ""}
-+};
-+
-+MODULE_DEVICE_TABLE(pnp, gemtek_pnp_devices);
-+#endif
-+
- static struct radio_isa_driver gemtek_driver = {
- 	.driver = {
- 		.match		= radio_isa_match,
-@@ -291,6 +303,14 @@ static struct radio_isa_driver gemtek_driver = {
- 			.name	= "radio-gemtek",
- 		},
- 	},
-+#ifdef CONFIG_PNP
-+	.pnp_driver = {
-+		.name		= "radio-gemtek",
-+		.id_table	= gemtek_pnp_devices,
-+		.probe		= radio_isa_pnp_probe,
-+		.remove		= radio_isa_pnp_remove,
-+	},
-+#endif
- 	.io_params = io,
- 	.radio_nr_params = radio_nr,
- 	.io_ports = gemtek_ioports,
-@@ -304,12 +324,14 @@ static struct radio_isa_driver gemtek_driver = {
- static int __init gemtek_init(void)
- {
- 	gemtek_driver.probe = probe;
-+	pnp_register_driver(&gemtek_driver.pnp_driver);
- 	return isa_register_driver(&gemtek_driver.driver, GEMTEK_MAX);
- }
- 
- static void __exit gemtek_exit(void)
- {
- 	hardmute = 1;	/* Turn off PLL */
-+	pnp_unregister_driver(&gemtek_driver.pnp_driver);
- 	isa_unregister_driver(&gemtek_driver.driver);
- }
- 
+No. It doesn't improve anything.
 
-
--- 
-Ondrej Zary
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
