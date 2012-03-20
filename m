@@ -1,349 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:46837 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753582Ab2CCRqi (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.8]:63520 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757273Ab2CTMkv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 3 Mar 2012 12:46:38 -0500
-Subject: Re: [PATCH v3 09/10] v4l: Aptina-style sensor PLL support
-From: Andy Walls <awalls@md.metrocast.net>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org,
-	Martin Hostettler <martin@neutronstar.dyndns.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-Date: Sat, 03 Mar 2012 12:46:19 -0500
-In-Reply-To: <1330796111.4195.10.camel@palomino.walls.org>
-References: <1330788495-18762-1-git-send-email-laurent.pinchart@ideasonboard.com>
-	 <1330788495-18762-10-git-send-email-laurent.pinchart@ideasonboard.com>
-	 <1330796111.4195.10.camel@palomino.walls.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Message-ID: <1330796781.4195.13.camel@palomino.walls.org>
-Mime-Version: 1.0
+	Tue, 20 Mar 2012 08:40:51 -0400
+Date: Tue, 20 Mar 2012 13:40:47 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Fabio Estevam <festevam@gmail.com>
+cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org, mchehab@infradead.org,
+	kernel@pengutronix.de, Fabio Estevam <fabio.estevam@freescale.com>
+Subject: Re: [PATCH] video: mx3_camera: Allocate camera object via kzalloc
+In-Reply-To: <CAOMZO5CJHkb1JrAd+DYvYP-DrV6XsqO3wtoxJGe_s9sE1tQktw@mail.gmail.com>
+Message-ID: <Pine.LNX.4.64.1203201340300.21870@axis700.grange>
+References: <1329761467-14417-1-git-send-email-festevam@gmail.com>
+ <Pine.LNX.4.64.1202201916410.2836@axis700.grange>
+ <CAOMZO5AAeqHZFqpZYB_riSCQvCRSjQtR2EqpZvC5V3TRyzuWJQ@mail.gmail.com>
+ <4F67E4FD.2070709@redhat.com> <Pine.LNX.4.64.1203200851300.20315@axis700.grange>
+ <CAOMZO5CJHkb1JrAd+DYvYP-DrV6XsqO3wtoxJGe_s9sE1tQktw@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 2012-03-03 at 12:35 -0500, Andy Walls wrote:
-> On Sat, 2012-03-03 at 16:28 +0100, Laurent Pinchart wrote:
-> > Add a generic helper function to compute PLL parameters for PLL found in
-> > several Aptina sensors.
-> > 
-> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > ---
-> >  drivers/media/video/Kconfig      |    3 +
-> >  drivers/media/video/Makefile     |    4 +
-> >  drivers/media/video/aptina-pll.c |  175 ++++++++++++++++++++++++++++++++++++++
-> >  drivers/media/video/aptina-pll.h |   55 ++++++++++++
-> >  4 files changed, 237 insertions(+), 0 deletions(-)
-> >  create mode 100644 drivers/media/video/aptina-pll.c
-> >  create mode 100644 drivers/media/video/aptina-pll.h
-> > 
-> > diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-> > index 80acb78..410baf2 100644
-> > --- a/drivers/media/video/Kconfig
-> > +++ b/drivers/media/video/Kconfig
-> > @@ -459,6 +459,9 @@ config VIDEO_AK881X
-> >  
-> >  comment "Camera sensor devices"
-> >  
-> > +config VIDEO_APTINA_PLL
-> > +	tristate
-> > +
-> >  config VIDEO_OV7670
-> >  	tristate "OmniVision OV7670 sensor support"
-> >  	depends on I2C && VIDEO_V4L2
-> > diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
-> > index 9b19533..8e037e9 100644
-> > --- a/drivers/media/video/Makefile
-> > +++ b/drivers/media/video/Makefile
-> > @@ -22,6 +22,10 @@ endif
-> >  
-> >  obj-$(CONFIG_VIDEO_V4L2_COMMON) += v4l2-common.o
-> >  
-> > +# Helper modules
-> > +
-> > +obj-$(CONFIG_VIDEO_APTINA_PLL) += aptina-pll.o
-> > +
-> >  # All i2c modules must come first:
-> >  
-> >  obj-$(CONFIG_VIDEO_TUNER) += tuner.o
-> > diff --git a/drivers/media/video/aptina-pll.c b/drivers/media/video/aptina-pll.c
-> > new file mode 100644
-> > index 0000000..55e4a40
-> > --- /dev/null
-> > +++ b/drivers/media/video/aptina-pll.c
-> > @@ -0,0 +1,175 @@
-> > +/*
-> > + * Aptina Sensor PLL Configuration
-> > + *
-> > + * Copyright (C) 2012 Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > + *
-> > + * This program is free software; you can redistribute it and/or
-> > + * modify it under the terms of the GNU General Public License
-> > + * version 2 as published by the Free Software Foundation.
-> > + *
-> > + * This program is distributed in the hope that it will be useful, but
-> > + * WITHOUT ANY WARRANTY; without even the implied warranty of
-> > + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-> > + * General Public License for more details.
-> > + *
-> > + * You should have received a copy of the GNU General Public License
-> > + * along with this program; if not, write to the Free Software
-> > + * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-> > + * 02110-1301 USA
-> > + */
-> > +
-> > +#include <linux/device.h>
-> > +#include <linux/gcd.h>
-> > +#include <linux/kernel.h>
-> > +#include <linux/lcm.h>
-> > +#include <linux/module.h>
-> > +
-> > +#include "aptina-pll.h"
-> > +
-> > +int aptina_pll_configure(struct device *dev, struct aptina_pll *pll,
-> > +			 const struct aptina_pll_limits *limits)
-> > +{
-> > +	unsigned int mf_min;
-> > +	unsigned int mf_max;
-> > +	unsigned int p1_min;
-> > +	unsigned int p1_max;
-> > +	unsigned int p1;
-> > +	unsigned int div;
-> > +
-> > +	if (pll->ext_clock < limits->ext_clock_min ||
-> > +	    pll->ext_clock > limits->ext_clock_max) {
-> > +		dev_err(dev, "pll: invalid external clock frequency.\n");
-> > +		return -EINVAL;
-> > +	}
-> > +
-> > +	if (pll->pix_clock > limits->pix_clock_max) {
-> > +		dev_err(dev, "pll: invalid pixel clock frequency.\n");
-> > +		return -EINVAL;
-> > +	}
-> > +
-> > +	/* Compute the multiplier M and combined N*P1 divisor. */
-> > +	div = gcd(pll->pix_clock, pll->ext_clock);
-> > +	pll->m = pll->pix_clock / div;
-> > +	div = pll->ext_clock / div;
-> > +
-> > +	/* We now have the smallest M and N*P1 values that will result in the
-> > +	 * desired pixel clock frequency, but they might be out of the valid
-> > +	 * range. Compute the factor by which we should multiply them given the
-> > +	 * following constraints:
-> > +	 *
-> > +	 * - minimum/maximum multiplier
-> > +	 * - minimum/maximum multiplier output clock frequency assuming the
-> > +	 *   minimum/maximum N value
-> > +	 * - minimum/maximum combined N*P1 divisor
-> > +	 */
-> > +	mf_min = DIV_ROUND_UP(limits->m_min, pll->m);
-> > +	mf_min = max(mf_min, limits->out_clock_min /
-> > +		     (pll->ext_clock / limits->n_min * pll->m));
-> > +	mf_min = max(mf_min, limits->n_min * limits->p1_min / div);
-> > +	mf_max = limits->m_max / pll->m;
-> > +	mf_max = min(mf_max, limits->out_clock_max /
-> > +		    (pll->ext_clock / limits->n_max * pll->m));
-> > +	mf_max = min(mf_max, DIV_ROUND_UP(limits->n_max * limits->p1_max, div));
-> > +
-> > +	dev_dbg(dev, "pll: mf min %u max %u\n", mf_min, mf_max);
-> > +	if (mf_min > mf_max) {
-> > +		dev_err(dev, "pll: no valid combined N*P1 divisor.\n");
-> > +		return -EINVAL;
-> > +	}
-> > +
-> > +	/*
-> > +	 * We're looking for the highest acceptable P1 value 
-> 
-> Why the *highest* acceptable post-divide (P1) value?
-> 
-> > for which a
-> > +	 * multiplier factor MF exists that fulfills the following conditions:
-> > +	 *
-> > +	 * 1. p1 is in the [p1_min, p1_max] range given by the limits and is
-> > +	 *    even
-> > +	 * 2. mf is in the [mf_min, mf_max] range computed above
-> > +	 * 3. div * mf is a multiple of p1, in order to compute
-> > +	 *	n = div * mf / p1
-> > +	 *	m = pll->m * mf
-> > +	 * 4. the internal clock frequency, given by ext_clock / n, is in the
-> > +	 *    [int_clock_min, int_clock_max] range given by the limits
-> > +	 * 5. the output clock frequency, given by ext_clock / n * m, is in the
-> > +	 *    [out_clock_min, out_clock_max] range given by the limits
-> > +	 *
-> 
-> So just to make your constrained optimzation problem even more complex:
-> 
-> I would imagine you would get faster PLL lock and less phase noise by
-> having the VCO operate near its center frequency.
-> 
-> If you think that is a sensible constraint, then that translates to
-> having the PLL output before post-divide (i.e. ext_clock / n * m), to be
-> as close as possible to the center frequency of the VCO (i.e.
-> (out_clock_max - out_clock_min) / 2 ).
+On Tue, 20 Mar 2012, Fabio Estevam wrote:
 
-Oops, I hate math in public.  :P
-
-I obviously meant
-
-	(out_clock_max + out_clock_min) / 2
-
-for the center frequency of the VCO.
-
-Regards,
-Andy
-
-> Regards,
-> Andy
+> Hi Guennadi,
 > 
+> On 3/20/12, Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
 > 
-> > +	 * The first naive approach is to iterate over all p1 values acceptable
-> > +	 * according to (1) and all mf values acceptable according to (2), and
-> > +	 * stop at the first combination that fulfills (3), (4) and (5). This
-> > +	 * has a O(n^2) complexity.
-> > +	 *
-> > +	 * Instead of iterating over all mf values in the [mf_min, mf_max] range
-> > +	 * we can compute the mf increment between two acceptable values
-> > +	 * according to (3) with
-> > +	 *
-> > +	 *	mf_inc = lcm(div, p1) / div			(6)
-> > +	 *
-> > +	 * and round the minimum up to the nearest multiple of mf_inc. This will
-> > +	 * restrict the number of mf values to be checked.
-> > +	 *
-> > +	 * Furthermore, conditions (4) and (5) only restrict the range of
-> > +	 * acceptable p1 and mf values by modifying the minimum and maximum
-> > +	 * limits. (5) can be expressed as
-> > +	 *
-> > +	 *	ext_clock / (div * mf / p1) * m * mf >= out_clock_min
-> > +	 *	ext_clock / (div * mf / p1) * m * mf <= out_clock_max
-> > +	 *
-> > +	 * or
-> > +	 *
-> > +	 *	p1 >= out_clock_min * div / (ext_clock * m)	(7)
-> > +	 *	p1 <= out_clock_max * div / (ext_clock * m)
-> > +	 *
-> > +	 * Similarly, (4) can be expressed as
-> > +	 *
-> > +	 *	mf >= ext_clock * p1 / (int_clock_max * div)	(8)
-> > +	 *	mf <= ext_clock * p1 / (int_clock_min * div)
-> > +	 *
-> > +	 * We can thus iterate over the restricted p1 range defined by the
-> > +	 * combination of (1) and (7), and then compute the restricted mf range
-> > +	 * defined by the combination of (2), (6) and (8). If the resulting mf
-> > +	 * range is not empty, any value in the mf range is acceptable. We thus
-> > +	 * select the mf lwoer bound and the corresponding p1 value.
-> > +	 */
-> > +	if (limits->p1_min == 0) {
-> > +		dev_err(dev, "pll: P1 minimum value must be >0.\n");
-> > +		return -EINVAL;
-> > +	}
-> > +
-> > +	p1_min = max(limits->p1_min, DIV_ROUND_UP(limits->out_clock_min * div,
-> > +		     pll->ext_clock * pll->m));
-> > +	p1_max = min(limits->p1_max, limits->out_clock_max * div /
-> > +		     (pll->ext_clock * pll->m));
-> > +
-> > +	for (p1 = p1_max & ~1; p1 >= p1_min; p1 -= 2) {
-> > +		unsigned int mf_inc = lcm(div, p1) / div;
-> > +		unsigned int mf_high;
-> > +		unsigned int mf_low;
-> > +
-> > +		mf_low = max(roundup(mf_min, mf_inc),
-> > +			     DIV_ROUND_UP(pll->ext_clock * p1,
-> > +			       limits->int_clock_max * div));
-> > +		mf_high = min(mf_max, pll->ext_clock * p1 /
-> > +			      (limits->int_clock_min * div));
-> > +
-> > +		if (mf_low <= mf_high) {
-> > +			pll->n = div * mf_low / p1;
-> > +			pll->m *= mf_low;
-> > +			pll->p1 = p1;
-> > +			break;
-> > +		}
-> > +	}
-> > +
-> > +	if (p1 < p1_min) {
-> > +		dev_err(dev, "pll: no valid N and P1 divisors found.\n");
-> > +		return -EINVAL;
-> > +	}
-> > +
-> > +	dev_dbg(dev, "PLL: ext clock %u N %u M %u P1 %u pix clock %u\n",
-> > +		 pll->ext_clock, pll->n, pll->m, pll->p1, pll->pix_clock);
-> > +
-> > +	return 0;
-> > +}
-> > +EXPORT_SYMBOL_GPL(aptina_pll_configure);
-> > +
-> > +MODULE_DESCRIPTION("Aptina PLL Helpers");
-> > +MODULE_AUTHOR("Laurent Pinchart <laurent.pinchart@ideasonboard.com>");
-> > +MODULE_LICENSE("GPL v2");
-> > diff --git a/drivers/media/video/aptina-pll.h b/drivers/media/video/aptina-pll.h
-> > new file mode 100644
-> > index 0000000..36a9363
-> > --- /dev/null
-> > +++ b/drivers/media/video/aptina-pll.h
-> > @@ -0,0 +1,55 @@
-> > +/*
-> > + * Aptina Sensor PLL Configuration
-> > + *
-> > + * Copyright (C) 2012 Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > + *
-> > + * This program is free software; you can redistribute it and/or
-> > + * modify it under the terms of the GNU General Public License
-> > + * version 2 as published by the Free Software Foundation.
-> > + *
-> > + * This program is distributed in the hope that it will be useful, but
-> > + * WITHOUT ANY WARRANTY; without even the implied warranty of
-> > + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-> > + * General Public License for more details.
-> > + *
-> > + * You should have received a copy of the GNU General Public License
-> > + * along with this program; if not, write to the Free Software
-> > + * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-> > + * 02110-1301 USA
-> > + */
-> > +
-> > +#ifndef __APTINA_PLL_H
-> > +#define __APTINA_PLL_H
-> > +
-> > +struct aptina_pll {
-> > +	unsigned int ext_clock;
-> > +	unsigned int pix_clock;
-> > +
-> > +	unsigned int n;
-> > +	unsigned int m;
-> > +	unsigned int p1;
-> > +};
-> > +
-> > +struct aptina_pll_limits {
-> > +	unsigned int ext_clock_min;
-> > +	unsigned int ext_clock_max;
-> > +	unsigned int int_clock_min;
-> > +	unsigned int int_clock_max;
-> > +	unsigned int out_clock_min;
-> > +	unsigned int out_clock_max;
-> > +	unsigned int pix_clock_max;
-> > +
-> > +	unsigned int n_min;
-> > +	unsigned int n_max;
-> > +	unsigned int m_min;
-> > +	unsigned int m_max;
-> > +	unsigned int p1_min;
-> > +	unsigned int p1_max;
-> > +};
-> > +
-> > +struct device;
-> > +
-> > +int aptina_pll_configure(struct device *dev, struct aptina_pll *pll,
-> > +			 const struct aptina_pll_limits *limits);
-> > +
-> > +#endif /* __APTINA_PLL_H */
+> > Don't think so. vzalloc() is used in mx3_camera to allocate driver private
+> > data objects and are never used for DMA, so, it doesn't have any
+> > restrictions on contiguity, coherency, alignment etc.
 > 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Is this valid only for mx3_camera driver?
 
+No
 
+> All other soc camera drivers use kzalloc.
+> 
+> What makes mx3_camera different in this respect?
+
+Nothing
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
