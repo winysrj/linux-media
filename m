@@ -1,40 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:37586 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759040Ab2CTMhb (ORCPT
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:34592 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757608Ab2CTMAU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Mar 2012 08:37:31 -0400
-Received: by eekc41 with SMTP id c41so3018695eek.19
-        for <linux-media@vger.kernel.org>; Tue, 20 Mar 2012 05:37:29 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <Pine.LNX.4.64.1203200851300.20315@axis700.grange>
-References: <1329761467-14417-1-git-send-email-festevam@gmail.com>
-	<Pine.LNX.4.64.1202201916410.2836@axis700.grange>
-	<CAOMZO5AAeqHZFqpZYB_riSCQvCRSjQtR2EqpZvC5V3TRyzuWJQ@mail.gmail.com>
-	<4F67E4FD.2070709@redhat.com>
-	<Pine.LNX.4.64.1203200851300.20315@axis700.grange>
-Date: Tue, 20 Mar 2012 09:37:29 -0300
-Message-ID: <CAOMZO5CJHkb1JrAd+DYvYP-DrV6XsqO3wtoxJGe_s9sE1tQktw@mail.gmail.com>
-Subject: Re: [PATCH] video: mx3_camera: Allocate camera object via kzalloc
-From: Fabio Estevam <festevam@gmail.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org, mchehab@infradead.org,
-	kernel@pengutronix.de, Fabio Estevam <fabio.estevam@freescale.com>
-Content-Type: text/plain; charset=UTF-8
+	Tue, 20 Mar 2012 08:00:20 -0400
+Received: by eaaq12 with SMTP id q12so2960227eaa.19
+        for <linux-media@vger.kernel.org>; Tue, 20 Mar 2012 05:00:18 -0700 (PDT)
+From: Gianluca Gennari <gennarone@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@redhat.com
+Cc: Gianluca Gennari <gennarone@gmail.com>
+Subject: [PATCH] media_build: add uvc_driver.c to no_atomic_include backport patch
+Date: Tue, 20 Mar 2012 13:00:10 +0100
+Message-Id: <1332244810-14881-1-git-send-email-gennarone@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+This pull request:
 
-On 3/20/12, Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
+http://patchwork.linuxtv.org/patch/10122/
 
-> Don't think so. vzalloc() is used in mx3_camera to allocate driver private
-> data objects and are never used for DMA, so, it doesn't have any
-> restrictions on contiguity, coherency, alignment etc.
+and in particular this patch:
 
-Is this valid only for mx3_camera driver?
+Andrew Morton (1):
+      uvcvideo: uvc_driver.c: use linux/atomic.h
 
-All other soc camera drivers use kzalloc.
+includes the header file linux/atomic.h in file uvc_driver.c, breaking the
+media_build tree compilation on all kernels up to 3.0.
 
-What makes mx3_camera different in this respect?
+To fix the problem, let's remove the included file adding a new chunk for
+uvc_driver.c in the existing no_atomic_include.patch backport patch.
+
+Tested with kernel 2.6.32.
+
+Signed-off-by: Gianluca Gennari <gennarone@gmail.com>
+---
+ backports/no_atomic_include.patch |    6 ++++++
+ 1 files changed, 6 insertions(+), 0 deletions(-)
+
+diff --git a/backports/no_atomic_include.patch b/backports/no_atomic_include.patch
+index c14c55d..d063734 100644
+--- a/backports/no_atomic_include.patch
++++ b/backports/no_atomic_include.patch
+@@ -16,6 +16,12 @@ index 10c2364..74587fa 100644
+ +++ b/drivers/media/video/uvc/uvc_ctrl.c
+ @@ -23 +22,0 @@
+ -#include <linux/atomic.h>
++diff --git a/drivers/media/video/uvc/uvc_driver.c b/drivers/media/video/uvc/uvc_driver.c
++index c029535..d143339 100644
++--- a/drivers/media/video/uvc/uvc_driver.c
+++++ b/drivers/media/video/uvc/uvc_driver.c
++@@ -26 +25,0 @@
++-#include <linux/atomic.h>
+ diff --git a/drivers/media/video/uvc/uvc_queue.c b/drivers/media/video/uvc/uvc_queue.c
+ index 677691c..a123a2f 100644
+ --- a/drivers/media/video/uvc/uvc_queue.c
+-- 
+1.7.0.4
+
