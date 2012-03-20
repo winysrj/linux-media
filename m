@@ -1,85 +1,184 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:52616 "EHLO comal.ext.ti.com"
+Received: from bues.ch ([80.190.117.144]:50323 "EHLO bues.ch"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752051Ab2CIIEH convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Mar 2012 03:04:07 -0500
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"Taneja, Archit" <archit@ti.com>
-CC: "Valkeinen, Tomi" <tomi.valkeinen@ti.com>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: RE: [PATCH] omap_vout: Set DSS overlay_info only if paddr is non
- zero
-Date: Fri, 9 Mar 2012 08:03:59 +0000
-Message-ID: <79CD15C6BA57404B839C016229A409A83180E941@DBDE01.ent.ti.com>
-References: <1331110876-11895-1-git-send-email-archit@ti.com>
- <1729342.AddG4HPA3i@avalon>
-In-Reply-To: <1729342.AddG4HPA3i@avalon>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+	id S1758901Ab2CTWdW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 20 Mar 2012 18:33:22 -0400
+Date: Tue, 20 Mar 2012 23:33:12 +0100
+From: Michael =?UTF-8?B?QsO8c2No?= <m@bues.ch>
+To: "Hans-Frieder Vogt" <hfvogt@gmx.net>
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [PATCH] v0.3 Support for tuner FC0012
+Message-ID: <20120320233312.2a204746@milhouse>
+In-Reply-To: <201203202314.35920.hfvogt@gmx.net>
+References: <201202222321.35533.hfvogt@gmx.net>
+	<4F67CED1.407@redhat.com>
+	<201203202314.35920.hfvogt@gmx.net>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=PGP-SHA1;
+ boundary="Sig_/Tdml79S6mWkC+PzTVR.61YM"; protocol="application/pgp-signature"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Mar 09, 2012 at 05:17:41, Laurent Pinchart wrote:
-> Hi Archit,
-> 
-> On Wednesday 07 March 2012 14:31:16 Archit Taneja wrote:
-> > The omap_vout driver tries to set the DSS overlay_info using
-> > set_overlay_info() when the physical address for the overlay is still not
-> > configured. This happens in omap_vout_probe() and vidioc_s_fmt_vid_out().
-> > 
-> > The calls to omapvid_init(which internally calls set_overlay_info()) are
-> > removed from these functions. They don't need to be called as the
-> > omap_vout_device struct anyway maintains the overlay related changes made.
-> > Also, remove the explicit call to set_overlay_info() in vidioc_streamon(),
-> > this was used to set the paddr, this isn't needed as omapvid_init() does
-> > the same thing later.
-> > 
-> > These changes are required as the DSS2 driver since 3.3 kernel doesn't let
-> > you set the overlay info with paddr as 0.
-> > 
-> > Signed-off-by: Archit Taneja <archit@ti.com>
-> 
-> Thanks for the patch. This seems to fix memory corruption that would result
-> in sysfs-related crashes such as
-> 
-> [   31.279541] ------------[ cut here ]------------
-> [   31.284423] WARNING: at fs/sysfs/file.c:343 sysfs_open_file+0x70/0x1f8()
-> [   31.291503] missing sysfs attribute operations for kobject: (null)
-> [   31.298004] Modules linked in: mt9p031 aptina_pll omap3_isp
-> [   31.303924] [<c0018260>] (unwind_backtrace+0x0/0xec) from [<c0034488>] (warn_slowpath_common+0x4c/0x64)
-> [   31.313812] [<c0034488>] (warn_slowpath_common+0x4c/0x64) from [<c0034520>] (warn_slowpath_fmt+0x2c/0x3c)
-> [   31.323913] [<c0034520>] (warn_slowpath_fmt+0x2c/0x3c) from [<c01219bc>] (sysfs_open_file+0x70/0x1f8)
-> [   31.333618] [<c01219bc>] (sysfs_open_file+0x70/0x1f8) from [<c00ccc94>] (__dentry_open+0x1f8/0x30c)
-> [   31.343139] [<c00ccc94>] (__dentry_open+0x1f8/0x30c) from [<c00cce58>] (nameidata_to_filp+0x50/0x5c)
-> [   31.352752] [<c00cce58>] (nameidata_to_filp+0x50/0x5c) from [<c00db4c0>] (do_last+0x55c/0x6a0)
-> [   31.361999] [<c00db4c0>] (do_last+0x55c/0x6a0) from [<c00db6bc>] (path_openat+0xb8/0x37c)
-> [   31.370605] [<c00db6bc>] (path_openat+0xb8/0x37c) from [<c00dba60>] (do_filp_open+0x30/0x7c)
-> [   31.379486] [<c00dba60>] (do_filp_open+0x30/0x7c) from [<c00cc904>] (do_sys_open+0xd8/0x170)
-> [   31.388366] [<c00cc904>] (do_sys_open+0xd8/0x170) from [<c0012760>] (ret_fast_syscall+0x0/0x3c)
-> [   31.397552] ---[ end trace 13639ab74f345d7e ]---
-> 
-> Tested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> 
+--Sig_/Tdml79S6mWkC+PzTVR.61YM
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-Thanks Laurent for testing this patch.
+On Tue, 20 Mar 2012 23:14:35 +0100
+"Hans-Frieder Vogt" <hfvogt@gmx.net> wrote:
+
+> +/*
+> +   buf[0] is the first register address
+> + */
+
+Just for me to understand this:
+How does this work? Does the hardware auto-increment the register address
+automatically after each received byte? If so, we could probably document
+that here in the comment.
+
+> +static int fc0012_writeregs(struct fc0012_priv *priv, u8 *buf, int len)
+> +{
+> +	struct i2c_msg msg =3D {
+> +		.addr =3D priv->addr, .flags =3D 0, .buf =3D buf, .len =3D len
+> +	};
+> +
+> +	if (i2c_transfer(priv->i2c, &msg, 1) !=3D 1) {
+> +		err("I2C write regs failed, reg: %02x, val[0]: %02x",
+> +			buf[0], len > 1 ? buf[1] : 0);
+> +		return -EREMOTEIO;
+> +	}
+> +	return 0;
+> +}
+
+> +static int fc0012_set_params(struct dvb_frontend *fe)
+> +{
+
+> +
+> +	priv->frequency =3D freq;
+
+I think this either needs a freq*1000, or priv->frequency=3Dp->frequency.
+
+> +	priv->bandwidth =3D p->bandwidth_hz;
+> +
+> +error_out:
+> +	return ret;
+> +}
 
 
-> Please push it to v3.3 :-)
-> 
+> +static const struct dvb_tuner_ops fc0012_tuner_ops =3D {
+> +        .info =3D {
+> +                .name           =3D "Fitipower FC0012",
+> +
+> +                .frequency_min  =3D 170000000,
+> +                .frequency_max  =3D 860000000,
+> +                .frequency_step =3D 0,
+> +        },
+> +
+> +        .release       =3D fc0012_release,
+> +
+> +        .init          =3D fc0012_init,
+> +	.sleep         =3D fc0012_sleep,
+> +
+> +        .set_params    =3D fc0012_set_params,
+> +
+> +        .get_frequency =3D fc0012_get_frequency,
+> +	.get_if_frequency =3D fc0012_get_if_frequency,
+> +	.get_bandwidth =3D fc0012_get_bandwidth,
+> +};
+> +
+> +struct dvb_frontend * fc0012_attach(struct dvb_frontend *fe,
+> +        struct i2c_adapter *i2c, u8 i2c_address,
+> +	enum fc0012_xtal_freq xtal_freq)
+> +{
+> +        struct fc0012_priv *priv =3D NULL;
 
-Will send a pull request today itself.
+Should use tab indention here and in the tuner_ops struct above.
 
-Thanks,
-Vaibhav
+> +
+> +#ifndef _FC0012_H_
+> +#define _FC0012_H_
+> +
+> +#include "dvb_frontend.h"
+> +
+> +enum fc0012_xtal_freq {
+> +        FC_XTAL_27_MHZ,      /* 27000000 */
+> +        FC_XTAL_28_8_MHZ,    /* 28800000 */
+> +        FC_XTAL_36_MHZ,      /* 36000000 */
+> +};
+> +
+> +#if defined(CONFIG_MEDIA_TUNER_FC0012) || \
+> +        (defined(CONFIG_MEDIA_TUNER_FC0012_MODULE) && defined(MODULE))
 
-> -- 
-> Regards,
-> 
-> Laurent Pinchart
-> 
-> 
+Why check for defined(MODULE) here?
 
+> +extern struct dvb_frontend *fc0012_attach(struct dvb_frontend *fe,
+> +					struct i2c_adapter *i2c,
+> +					u8 i2c_address,
+> +					enum fc0012_xtal_freq xtal_freq);
+> +#else
+
+
+> +#define LOG_PREFIX "fc0012"
+> +
+> +#define dprintk(var, level, args...) \
+> +	do { \
+> +		if ((var & level)) \
+> +			printk(args); \
+> +	} while (0)
+> +
+> +#define deb_info(args...) dprintk(fc0012_debug, 0x01, args)
+> +
+> +#undef err
+> +#define err(f, arg...)  printk(KERN_ERR     LOG_PREFIX": " f "\n" , ## a=
+rg)
+> +#undef info
+> +#define info(f, arg...) printk(KERN_INFO    LOG_PREFIX": " f "\n" , ## a=
+rg)
+> +#undef warn
+> +#define warn(f, arg...) printk(KERN_WARNING LOG_PREFIX": " f "\n" , ## a=
+rg)
+
+
+I think you should get rid of all these custom print helpers and use dev_er=
+r,
+dev_info and friends. Those are more ideomatic.
+
+> +struct fc0012_priv {
+> +        struct i2c_adapter *i2c;
+> +	u8 addr;
+> +	u8 xtal_freq;
+> +
+> +        u32 frequency;
+> +	u32 bandwidth;
+> +};
+
+Here seems to be some whitespace mixing. tab indention vs. space indention.
+
+--=20
+Greetings, Michael.
+
+PGP encryption is encouraged / 908D8B0E
+
+--Sig_/Tdml79S6mWkC+PzTVR.61YM
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Disposition: attachment; filename=signature.asc
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJPaQWoAAoJEPUyvh2QjYsOljAQAN7bM1CTEE8rG4bJb9sCCVDJ
+zcLy2SeU0gE983cxqn3CZyrbCpfnOeeB/qNJ2fTQ3y0WX7CrpsMxYBQNuCNBpFJ/
+6wfntoB7I5g5/lX0Vzbar1sQzDXvPXMnXB1RVgnV3x5i9ZE+Yc9MbypIGUshl4OX
++1Idzd0AfukJiYkEENoUYVTl4qwQGdi2s8Fwm3CcuJ5+TroSrft6+F9g8xC3ObGf
+paHQ6BZx9aAEdpJ5W7j+aRMrH2p2xwRJlQAnzAEL1t08ma2WNOuYUnl/LZJnT+Xp
+E6p7at3cyFAlzljqY6dJW2b5HYnRWHwK71oqFS9Hh3nZTHAFmtA4srLjKU+IM2/o
+nnShqDIZAf0xS4tDr4IQ0BIDjVwIlCBVPMs+3cbKxKKB87GTIGNkoK1V4vUkTj1F
+ze6JnNOzyscc1K2F/4WtvV+bWB9WRQ97yI2wbw+H2ttwgV0KTk0wEuXMv4X/i79a
+rAXQ8d1eFkT32woKgidqIAp2X41IPnWks2W1AyHja0L2Hmf1Sh1cj2srwDUNUWid
++Z0Fn4WV9NFCGni+PE+eX/nlQN+mSl84Oau9E1a7v3CvO++6mr0JpBer6JimX4hX
++Oae5XUSE7JZ5Cb1aXvV0tUSePc/sKGl0wL3Ih2QLy9xGg+x9yxp8nMkbaVRvENJ
+c6iWCU096t5p4tDvXu15
+=NLpU
+-----END PGP SIGNATURE-----
+
+--Sig_/Tdml79S6mWkC+PzTVR.61YM--
