@@ -1,97 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:44567 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932774Ab2CZRrz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Mar 2012 13:47:55 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 3/3] omap3isp: preview: Shorten shadow update delay
-Date: Mon, 26 Mar 2012 19:48:28 +0200
-Message-ID: <1968166.nyWDzh5zcN@avalon>
-In-Reply-To: <20120326162323.GE913@valkosipuli.localdomain>
-References: <1332772951-19108-1-git-send-email-laurent.pinchart@ideasonboard.com> <1332772951-19108-4-git-send-email-laurent.pinchart@ideasonboard.com> <20120326162323.GE913@valkosipuli.localdomain>
+Received: from mail.meprolight.com ([194.90.149.17]:39379 "EHLO meprolight.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1757644Ab2CTKhA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 20 Mar 2012 06:37:00 -0400
+From: Alex Gershgorin <alexg@meprolight.com>
+To: Sascha Hauer <s.hauer@pengutronix.de>
+CC: <linux-arm-kernel@lists.infradead.org>,
+	<linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<g.liakhovetski@gmx.de>, <fabio.estevam@freescale.com>,
+	Alex Gershgorin <alexg@meprolight.com>
+Subject: [PATCH] ARM: i.MX35: Add set_rate and round_rate calls to csi_clk
+Date: Tue, 20 Mar 2012 12:29:52 +0200
+Message-ID: <1332239392-12639-1-git-send-email-alexg@meprolight.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+This patch add set_rate and round_rate calls to csi_clk. This is needed
+to give mx3-camera control over master clock rate to camera.
 
-On Monday 26 March 2012 19:23:23 Sakari Ailus wrote:
-> On Mon, Mar 26, 2012 at 04:42:31PM +0200, Laurent Pinchart wrote:
-> > When applications modify preview engine parameters, the new values are
-> > applied to the hardware by the preview engine interrupt handler during
-> > vertical blanking. If the parameters are being changed when the
-> > interrupt handler is called, it just delays applying the parameters
-> > until the next frame.
-> > 
-> > If an application modifies the parameters for every frame, and the
-> > preview engine interrupt is triggerred synchronously, the parameters are
-> > never applied to the hardware.
-> > 
-> > Fix this by storing new parameters in a shadow copy, and replace the
-> > active parameters with the shadow values atomically.
+Signed-off-by: Alex Gershgorin <alexg@meprolight.com>
+---
+ arch/arm/mach-imx/clock-imx35.c |   57 +++++++++++++++++++++++++++++++++++++-
+ 1 files changed, 55 insertions(+), 2 deletions(-)
 
-[snip]
-
-> > @@-886,20 +896,24@@ static int preview_config(struct isp_prev_device*prev,
-> >  			  struct omap3isp_prev_update_config *cfg)
-> >  {
-> >  	struct prev_params *params;
-> > +	struct prev_params *shadow;
-> >  	struct preview_update *attr;
-> > +	unsigned long flags;
-> >  	int i, bit, rval = 0;
-> > 
-> > -	params = &prev->params;
-> >  	if (cfg->update == 0)
-> >  		return 0;
-> > 
-> > -	if (prev->state != ISP_PIPELINE_STREAM_STOPPED) {
-> > -		unsigned long flags;
-> > +	params = kmalloc(sizeof(*params), GFP_KERNEL);
-> > +	if (params == NULL)
-> > +		return -ENOMEM;
-> > 
-> > -		spin_lock_irqsave(&prev->lock, flags);
-> > -		prev->shadow_update = 1;
-> > -		spin_unlock_irqrestore(&prev->lock, flags);
-> > -	}
-> > +	spin_lock_irqsave(&prev->params.lock, flags);
-> > +	memcpy(params, prev->params.shadow ? : prev->params.active,
-> > +	       sizeof(*params));
-> > +	spin_unlock_irqrestore(&prev->params.lock, flags);
-> > +
-> > +	params->update = 0;
-> > 
-> >  	for (i = 0; i < ARRAY_SIZE(update_attrs); i++) {
-> >  	
-> >  		attr = &update_attrs[i];
-> 
-> I think it's partly a matter of taste but --- would you think it'd make
-> sense to allocate the another configuration structure statically? I didn't
-> check the actual size of the configuration but it seems to be pretty big.
-> Handling allocation failures in applications is a nuisance, but also
-> allocating such largish chunks to just to be on the safe side doesn't sound
-> very appealing either.
-
-I'd like that better as well, but then we'll run into the same issue that this 
-patch tries to fix. I'll try to find a better solution.
-
-> Say, if you're capturing a photo and you allocation fails here. Should you
-> just retry it a few times, or fail immediately? Random allocation failures
-> are not unforeseen even on systems with plenty of memory. Not that it should
-> work this way I guess...
-> 
-> Have you checked what's the size of this struct btw.?
-
-It's big. Around 16k if I'm not mistaken.
-
+diff --git a/arch/arm/mach-imx/clock-imx35.c b/arch/arm/mach-imx/clock-imx35.c
+index ac8238c..3202b56 100644
+--- a/arch/arm/mach-imx/clock-imx35.c
++++ b/arch/arm/mach-imx/clock-imx35.c
+@@ -254,7 +254,7 @@ static unsigned long get_rate_ssi(struct clk *clk)
+ 	return rate / ((div1 + 1) * (div2 + 1));
+ }
+ 
+-static unsigned long get_rate_csi(struct clk *clk)
++static unsigned long csi_get_rate(struct clk *clk)
+ {
+ 	unsigned long pdr2 = __raw_readl(CCM_BASE + CCM_PDR2);
+ 	unsigned long rate;
+@@ -267,6 +267,45 @@ static unsigned long get_rate_csi(struct clk *clk)
+ 	return rate / (((pdr2 >> 16) & 0x3f) + 1);
+ }
+ 
++static int csi_set_rate(struct clk *clk, unsigned long rate)
++{
++	unsigned long div;
++	unsigned long parent_rate;
++	unsigned long pdr2 = __raw_readl(CCM_BASE + CCM_PDR2);
++
++	if (pdr2 & (1 << 7))
++		parent_rate = get_rate_arm();
++	else
++		parent_rate = get_rate_ppll();
++
++	div = parent_rate / rate;
++
++	/* Set clock divider */
++	pdr2 |= ((div - 1) & 0x3f) << 16;
++	__raw_writel(pdr2, CCM_BASE + CCM_PDR2);
++
++	return 0;
++}
++
++static unsigned long csi_round_rate(struct clk *clk, unsigned long rate)
++{
++	unsigned long div;
++	unsigned long parent_rate;
++	unsigned long pdr2 = __raw_readl(CCM_BASE + CCM_PDR2);
++
++	if (pdr2 & (1 << 7))
++		parent_rate = get_rate_arm();
++	else
++		parent_rate = get_rate_ppll();
++
++	div = parent_rate / rate;
++
++	if (parent_rate % rate)
++		div++;
++
++	return parent_rate / div;
++}
++
+ static unsigned long get_rate_otg(struct clk *clk)
+ {
+ 	unsigned long pdr4 = __raw_readl(CCM_BASE + CCM_PDR4);
+@@ -353,6 +392,20 @@ static void clk_cgr_disable(struct clk *clk)
+ 		.disable	= clk_cgr_disable,	\
+ 	}
+ 
++#define DEFINE_CLOCK1(name, i, er, es, getsetround, s, p)	\
++	static struct clk name = {                              \
++		.id             = i,                            \
++		.enable_reg     = CCM_BASE + er,                \
++		.enable_shift   = es,                           \
++		.get_rate       = getsetround##_get_rate,       \
++		.set_rate       = getsetround##_set_rate,       \
++		.round_rate     = getsetround##_round_rate,     \
++		.enable         = clk_cgr_enable,               \
++		.disable        = clk_cgr_disable,              \
++		.secondary      = s,                            \
++		.parent         = p,                            \
++	}
++
+ DEFINE_CLOCK(asrc_clk,   0, CCM_CGR0,  0, NULL, NULL);
+ DEFINE_CLOCK(pata_clk,    0, CCM_CGR0,  2, get_rate_ipg, NULL);
+ /* DEFINE_CLOCK(audmux_clk, 0, CCM_CGR0,  4, NULL, NULL); */
+@@ -403,7 +456,7 @@ DEFINE_CLOCK(wdog_clk,   0, CCM_CGR2, 24, NULL, NULL);
+ DEFINE_CLOCK(max_clk,    0, CCM_CGR2, 26, NULL, NULL);
+ DEFINE_CLOCK(audmux_clk, 0, CCM_CGR2, 30, NULL, NULL);
+ 
+-DEFINE_CLOCK(csi_clk,    0, CCM_CGR3,  0, get_rate_csi, NULL);
++DEFINE_CLOCK1(csi_clk,    0, CCM_CGR3,  0, csi, NULL, NULL);
+ DEFINE_CLOCK(iim_clk,    0, CCM_CGR3,  2, NULL, NULL);
+ DEFINE_CLOCK(gpu2d_clk,  0, CCM_CGR3,  4, NULL, NULL);
+ 
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.0.4
 
