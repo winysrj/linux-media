@@ -1,113 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:54156 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1030524Ab2CNOwM (ORCPT
+Received: from acsinet15.oracle.com ([141.146.126.227]:21546 "EHLO
+	acsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753229Ab2CTNhh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Mar 2012 10:52:12 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Vaibhav Hiremath <hvaibhav@ti.com>
-Cc: linux-media@vger.kernel.org, mchehab@infradead.org, archit@ti.com,
-	linux-omap@vger.kernel.org
-Subject: Re: [PATCH] omap_vout: Fix the build warning and section miss-match warning
-Date: Wed, 14 Mar 2012 15:52:37 +0100
-Message-ID: <1981335.62NlLPnzP3@avalon>
-In-Reply-To: <1331295243-2191-1-git-send-email-hvaibhav@ti.com>
-References: <1331295243-2191-1-git-send-email-hvaibhav@ti.com>
+	Tue, 20 Mar 2012 09:37:37 -0400
+Date: Tue, 20 Mar 2012 16:37:50 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: volokh <volokh@telros.ru>
+Cc: devel@linuxdriverproject.org, linux-media@vger.kernel.org
+Subject: Re: go7007 patch for 3.2.11
+Message-ID: <20120320133750.GA3967@mwanda>
+References: <1332247500.6182.30.camel@VPir>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="2oS5YaxWCcQjTEyO"
+Content-Disposition: inline
+In-Reply-To: <1332247500.6182.30.camel@VPir>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Vaibhav,
 
-Thanks for the patch.
+--2oS5YaxWCcQjTEyO
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On Friday 09 March 2012 17:44:03 Vaibhav Hiremath wrote:
-> Patch fixes below build warning and section miss-match warning
-> from omap_vout driver -
+On Tue, Mar 20, 2012 at 04:45:00PM +0400, volokh wrote:
+> Good day.
+>=20
+> I`ve Angelo PCI-MPG24 (Adlink manufacture) video capture grubber with
+> go7007&tw2804 on board.
+>=20
+> I am video surveillance developer (through web,tcp,etc net), so I`m
+> interest with well quality(stability) of this card driver.So this patch=
+=20
+> improve some part of driver,eg tuning,motion detection, etc.
+>=20
+> There are two attachments, so patch19032012.tar.bz2 is patch for kernel,
+> and other one is patch for testing card.
+>=20
+> I send it for you with hope this patch will be assign in new kernels.
+>=20
 
-You should probably not refer to "patch below" in a commit message, as there 
-this won't be a patch anymore after it gets applied (and "below" is 
-meaningless in a git log).
+go7007 is handled by the linux-media people these days, not us.
 
-> Build warnings:
-> =============
-> drivers/media/video/omap/omap_vout.c: In function 'omapvid_setup_overlay':
-> drivers/media/video/omap/omap_vout.c:381:17: warning: 'mode' may be used
-> uninitialized in this function
-> 
-> Section Mis-Match warnings:
-> ==========================
-> WARNING: drivers/media/video/omap/omap-vout.o(.data+0x0): Section mismatch
-> in reference from the variable
-> omap_vout_driver to the function .init.text:omap_vout_probe()
-> The variable omap_vout_driver references
-> the function __init omap_vout_probe()
-> If the reference is valid then annotate the
-> variable with __init* or __refdata (see linux/init.h) or name the variable:
-> *_template, *_timer, *_sht, *_ops, *_probe, *_probe_one, *_console
+Anyway, the patch needs to be submitted in the proper way so we can
+save the raw email and apply it like this:
+	cat raw_email.txt | git am
+or
+	cat raw_email.txt | patch -P1
 
-There are 3 fixes in this patch: compilation warning, section mismatch 
-warning, and addition of .owner = THIS_MODULE. I would have split the patch in 
-3.
+Send the patch to yourself first and verify that it applies.
 
-> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
->
-> ---
->  drivers/media/video/omap/omap_vout.c |    9 +++++----
->  1 files changed, 5 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/media/video/omap/omap_vout.c
-> b/drivers/media/video/omap/omap_vout.c index dffcf66..0fb0437 100644
-> --- a/drivers/media/video/omap/omap_vout.c
-> +++ b/drivers/media/video/omap/omap_vout.c
-> @@ -328,7 +328,7 @@ static int video_mode_to_dss_mode(struct
-> omap_vout_device *vout) struct omap_overlay *ovl;
->  	struct omapvideo_info *ovid;
->  	struct v4l2_pix_format *pix = &vout->pix;
-> -	enum omap_color_mode mode;
-> +	enum omap_color_mode mode = -EINVAL;
+Read Documentation/SubmittingPatches.  There are bunch of tutorials
+on how to submit patches online as well.
+http://www.tuxradar.com/content/newbies-guide-hacking-linux-kernel
 
-What about removing "case 0" below ? The default case would then set mode to -
-EINVAL.
+regards,
+dan carpenter
 
-> 
->  	ovid = &vout->vid_info;
->  	ovl = ovid->overlays[0];
-> @@ -2108,7 +2108,7 @@ static void omap_vout_cleanup_device(struct
-> omap_vout_device *vout) kfree(vout);
->  }
-> 
-> -static int omap_vout_remove(struct platform_device *pdev)
-> +static int __devexit omap_vout_remove(struct platform_device *pdev)
->  {
->  	int k;
->  	struct v4l2_device *v4l2_dev = platform_get_drvdata(pdev);
-> @@ -2129,7 +2129,7 @@ static int omap_vout_remove(struct platform_device
-> *pdev) return 0;
->  }
-> 
-> -static int __init omap_vout_probe(struct platform_device *pdev)
-> +static int __devinit omap_vout_probe(struct platform_device *pdev)
->  {
->  	int ret = 0, i;
->  	struct omap_overlay *ovl;
-> @@ -2241,9 +2241,10 @@ probe_err0:
->  static struct platform_driver omap_vout_driver = {
->  	.driver = {
->  		.name = VOUT_NAME,
-> +		.owner = THIS_MODULE,
->  	},
->  	.probe = omap_vout_probe,
-> -	.remove = omap_vout_remove,
-> +	.remove = __devexit_p(omap_vout_remove),
->  };
-> 
->  static int __init omap_vout_init(void)
+--2oS5YaxWCcQjTEyO
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
--- 
-Regards,
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
 
-Laurent Pinchart
+iQIcBAEBAgAGBQJPaIgtAAoJEOnZkXI/YHqRDCEP/0DQadceLE4OHO4LcT3zI8/D
+uSVBg+FcH5zhXeq4/xeZgtUqP9dIDZD3oi+R2dLhvz+kpzPag8LBeCLpiTuxW1WD
+YhetSn4UTkVKyTDcdU3V7aZhE6TyW4/gU+acCCfIg+FXJjvmnZknQGdJhAMMAKEA
+OINUvcjCBP1C0T9lnZCL/yC5qHUJODRnQG3GuAdoY1ilYGatoCvAtHhYe4AAilUC
+9/DrQSA5wFRWxQv975Lfx1cCdA3EqKeAcdrPU18ZUnOjA/y7yHSOsxWiobJXR+b2
+8JyYfIcr1tY4SDzhF99FKU+dmaZ3n389BCcHh74+xoKkvf33XO3M/tRqVxQeaEtP
+Fsa61soXjpLtMHuxIxycuAgcxfeg0ehnElvVwjrQJndDqeKQ75GKSWdzqYpHLndH
+aTg7LL9401xI5IklctrBLO2Y6ZI+w8cQQ24Zg2UIXQG6V3BqdHD6N1on8uQSeZd0
+qSu/HmtvxhchJkbG3mloNZNB+CsvM/iUzjFK0cCKL15P916hTHcavEnofA1UYiNR
+wNok3vxkbocKSF7ZRjMd2MpiENZF89R285BTOrfQMPdZmgo03XAaYFqKjIAuC8XA
+fkewy3m35afNYg9e3EGZfpAflNwOT/q2gkLjW5jbUVmOWWMQ1YffJfQT09WtUzF0
+qO93V5mANJXz48JyfyxS
+=SMj4
+-----END PGP SIGNATURE-----
 
+--2oS5YaxWCcQjTEyO--
