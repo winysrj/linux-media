@@ -1,1562 +1,1858 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ch1ehsobe006.messaging.microsoft.com ([216.32.181.186]:55936
-	"EHLO ch1outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752636Ab2CHJgn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 8 Mar 2012 04:36:43 -0500
-From: Scott Jiang <scott.jiang.linux@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	<linux-media@vger.kernel.org>,
-	<uclinux-dist-devel@blackfin.uclinux.org>
-CC: Scott Jiang <scott.jiang.linux@gmail.com>
-Subject: [PATCH 3/3 v3] [FOR 3.3] v4l2: add blackfin capture bridge driver
-Date: Thu, 8 Mar 2012 16:44:17 -0500
-Message-ID: <1331243057-15763-3-git-send-email-scott.jiang.linux@gmail.com>
-In-Reply-To: <1331243057-15763-1-git-send-email-scott.jiang.linux@gmail.com>
-References: <1331243057-15763-1-git-send-email-scott.jiang.linux@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from mail.telros.ru ([83.136.244.21]:56543 "EHLO mail.telros.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1760594Ab2CTPaz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 20 Mar 2012 11:30:55 -0400
+Message-ID: <1332257451.6182.60.camel@VPir>
+Subject: [PATCH] go7007 patch for 3.2.x
+From: volokh <volokh@telros.ru>
+To: linux-media@vger.kernel.org, volokh@telros.ru,
+	devel@linuxdriverproject.org
+Date: Tue, 20 Mar 2012 19:30:51 +0400
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a v4l2 bridge driver for Blackfin video capture device, support ppi and eppi interface.
+please reply this at linux-media@vger.kernel.org I`ve some trouble
 
-Signed-off-by: Scott Jiang <scott.jiang.linux@gmail.com>
----
- drivers/media/video/Kconfig                 |    2 +
- drivers/media/video/Makefile                |    2 +
- drivers/media/video/blackfin/Kconfig        |   10 +
- drivers/media/video/blackfin/Makefile       |    2 +
- drivers/media/video/blackfin/bfin_capture.c | 1059 +++++++++++++++++++++++++++
- drivers/media/video/blackfin/ppi.c          |  271 +++++++
- include/media/blackfin/bfin_capture.h       |   37 +
- include/media/blackfin/ppi.h                |   74 ++
- 8 files changed, 1457 insertions(+), 0 deletions(-)
- create mode 100644 drivers/media/video/blackfin/Kconfig
- create mode 100644 drivers/media/video/blackfin/Makefile
- create mode 100644 drivers/media/video/blackfin/bfin_capture.c
- create mode 100644 drivers/media/video/blackfin/ppi.c
- create mode 100644 include/media/blackfin/bfin_capture.h
- create mode 100644 include/media/blackfin/ppi.h
+- add new tuning option for card(
+    V4L2_MPEG_VIDEO_ENCODING_H263
+    ,V4L2_CID_MPEG_VIDEO_B_FRAMES)
+- add framesizes&frameintervals control
+- tested&realize motion detector control(
+    GO7007IOC_REGION_NUMBER
+    ,GO7007IOC_PIXEL_THRESOLD
+    ,GO7007IOC_MOTION_THRESOLD
+    ,GO7007IOC_TRIGGER
+    ,GO7007IOC_REGION_CONTROL
+    ,GO7007IOC_CLIP_LEFT
+    ,GO7007IOC_CLIP_TOP
+    ,GO7007IOC_CLIP_WIDTH
+    ,GO7007IOC_CLIP_HEIGHT)
 
-diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-index 88eb68f..c2c9507 100644
---- a/drivers/media/video/Kconfig
-+++ b/drivers/media/video/Kconfig
-@@ -871,6 +871,8 @@ source "drivers/media/video/davinci/Kconfig"
+Tested with  Angelo PCI-MPG24(Adlink) with go7007&tw2804 onboard
+Regards Volokh
+
+diff -uprN -X linux-3.2.11-vanilla/Documentation/dontdiff linux-3.2.11-vanilla/drivers/staging/media/go7007/go7007.h linux-3.2.11/drivers/staging/media/go7007/go7007.h
+--- linux-3.2.11-vanilla/drivers/staging/media/go7007/go7007.h	2012-03-13 21:05:09.000000000 +0400
++++ linux-3.2.11/drivers/staging/media/go7007/go7007.h	2012-03-20 16:17:26.095901486 +0400
+@@ -21,12 +21,27 @@
+  * to select between MPEG1, MPEG2, and MPEG4 */
+ #define V4L2_PIX_FMT_MPEG4     v4l2_fourcc('M', 'P', 'G', '4') /* MPEG4 */
  
- source "drivers/media/video/omap/Kconfig"
++/* Temporary defines until accepted in v4l2-api (videodev2.h) */
++#ifndef V4L2_MPEG_STREAM_TYPE_MPEG_ELEM
++  #define V4L2_MPEG_STREAM_TYPE_MPEG_ELEM   6 /* MPEG elementary stream */
++#endif
++#ifndef V4L2_MPEG_VIDEO_ENCODING_MPEG_4
++  #define V4L2_MPEG_VIDEO_ENCODING_MPEG_4   3
++#endif
++
++#ifndef V4L2_MPEG_VIDEO_ENCODING_H263
++  #define V4L2_MPEG_VIDEO_ENCODING_H263     4
++#endif
++
++///deprecated defs
++#if 0
+ /* These will be replaced with a better interface
+  * soon, so don't get too attached to them */
+ #define	GO7007IOC_S_BITRATE	_IOW('V', BASE_VIDIOC_PRIVATE + 0, int)
+ #define	GO7007IOC_G_BITRATE	_IOR('V', BASE_VIDIOC_PRIVATE + 1, int)
  
-+source "drivers/media/video/blackfin/Kconfig"
-+
- config VIDEO_SH_VOU
- 	tristate "SuperH VOU video output driver"
- 	depends on VIDEO_DEV && ARCH_SHMOBILE
-diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
-index a83d13f..e702533 100644
---- a/drivers/media/video/Makefile
-+++ b/drivers/media/video/Makefile
-@@ -186,6 +186,8 @@ obj-$(CONFIG_VIDEO_SAMSUNG_S5P_TV)	+= s5p-tv/
+-enum go7007_aspect_ratio {
++enum go7007_aspect_ratio
++{
+ 	GO7007_ASPECT_RATIO_1_1 = 0,
+ 	GO7007_ASPECT_RATIO_4_3_NTSC = 1,
+ 	GO7007_ASPECT_RATIO_4_3_PAL = 2,
+@@ -35,7 +50,8 @@ enum go7007_aspect_ratio {
+ };
  
- obj-$(CONFIG_VIDEO_SAMSUNG_S5P_G2D)	+= s5p-g2d/
+ /* Used to set generic compression parameters */
+-struct go7007_comp_params {
++struct go7007_comp_params
++{
+ 	__u32 gop_size;
+ 	__u32 max_b_frames;
+ 	enum go7007_aspect_ratio aspect_ratio;
+@@ -46,14 +62,16 @@ struct go7007_comp_params {
+ #define GO7007_COMP_CLOSED_GOP		0x00000001
+ #define GO7007_COMP_OMIT_SEQ_HEADER	0x00000002
  
-+obj-$(CONFIG_BLACKFIN)                  += blackfin/
-+
- obj-$(CONFIG_ARCH_DAVINCI)		+= davinci/
+-enum go7007_mpeg_video_standard {
++enum go7007_mpeg_video_standard
++{
+ 	GO7007_MPEG_VIDEO_MPEG1 = 0,
+ 	GO7007_MPEG_VIDEO_MPEG2 = 1,
+ 	GO7007_MPEG_VIDEO_MPEG4 = 2,
+ };
  
- obj-$(CONFIG_VIDEO_SH_VOU)		+= sh_vou.o
-diff --git a/drivers/media/video/blackfin/Kconfig b/drivers/media/video/blackfin/Kconfig
-new file mode 100644
-index 0000000..ecd5323
---- /dev/null
-+++ b/drivers/media/video/blackfin/Kconfig
-@@ -0,0 +1,10 @@
-+config VIDEO_BLACKFIN_CAPTURE
-+	tristate "Blackfin Video Capture Driver"
-+	depends on VIDEO_V4L2 && BLACKFIN && I2C
-+	select VIDEOBUF2_DMA_CONTIG
-+	help
-+	  V4L2 bridge driver for Blackfin video capture device.
-+	  Choose PPI or EPPI as its interface.
+ /* Used to set parameters for V4L2_PIX_FMT_MPEG format */
+-struct go7007_mpeg_params {
++struct go7007_mpeg_params
++{
+ 	enum go7007_mpeg_video_standard mpeg_video_standard;
+ 	__u32 flags;
+ 	__u32 pali;
+@@ -83,21 +101,6 @@ struct go7007_mpeg_params {
+ #define GO7007_MPEG4_PROFILE_AS_L4		GO7007_MPEG_PROFILE(4, 0xf4)
+ #define GO7007_MPEG4_PROFILE_AS_L5		GO7007_MPEG_PROFILE(4, 0xf5)
+ 
+-struct go7007_md_params {
+-	__u16 region;
+-	__u16 trigger;
+-	__u16 pixel_threshold;
+-	__u16 motion_threshold;
+-	__u32 reserved[8];
+-};
+-
+-struct go7007_md_region {
+-	__u16 region;
+-	__u16 flags;
+-	struct v4l2_clip *clips;
+-	__u32 reserved[8];
+-};
+-
+ #define	GO7007IOC_S_MPEG_PARAMS	_IOWR('V', BASE_VIDIOC_PRIVATE + 2, \
+ 					struct go7007_mpeg_params)
+ #define	GO7007IOC_G_MPEG_PARAMS	_IOR('V', BASE_VIDIOC_PRIVATE + 3, \
+@@ -112,3 +115,38 @@ struct go7007_md_region {
+ 					struct go7007_md_params)
+ #define	GO7007IOC_S_MD_REGION	_IOW('V', BASE_VIDIOC_PRIVATE + 8, \
+ 					struct go7007_md_region)
++#endif
 +
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called bfin_video_capture.
-diff --git a/drivers/media/video/blackfin/Makefile b/drivers/media/video/blackfin/Makefile
-new file mode 100644
-index 0000000..aa3a0a2
---- /dev/null
-+++ b/drivers/media/video/blackfin/Makefile
-@@ -0,0 +1,2 @@
-+bfin_video_capture-objs := bfin_capture.o ppi.o
-+obj-$(CONFIG_VIDEO_BLACKFIN_CAPTURE) += bfin_video_capture.o
-diff --git a/drivers/media/video/blackfin/bfin_capture.c b/drivers/media/video/blackfin/bfin_capture.c
-new file mode 100644
-index 0000000..514fcf7
---- /dev/null
-+++ b/drivers/media/video/blackfin/bfin_capture.c
-@@ -0,0 +1,1059 @@
-+/*
-+ * Analog Devices video capture driver
-+ *
-+ * Copyright (c) 2011 Analog Devices Inc.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-+ */
++struct go7007_md_params
++{
++  __u16 region;
++  __u16 trigger;
++  __u16 pixel_threshold;
++  __u16 motion_threshold;
++  __u32 reserved[8];
++};
 +
-+#include <linux/completion.h>
-+#include <linux/delay.h>
-+#include <linux/errno.h>
-+#include <linux/fs.h>
-+#include <linux/i2c.h>
-+#include <linux/init.h>
-+#include <linux/interrupt.h>
-+#include <linux/io.h>
-+#include <linux/mm.h>
-+#include <linux/module.h>
-+#include <linux/platform_device.h>
-+#include <linux/slab.h>
-+#include <linux/time.h>
-+#include <linux/types.h>
++struct go7007_md_region
++{
++  __u16 region;
++  __u16 flags;
++  struct v4l2_clip *clips;
++  __u32 reserved[8];
++};
 +
-+#include <media/v4l2-chip-ident.h>
-+#include <media/v4l2-common.h>
-+#include <media/v4l2-ctrls.h>
++#define GO7007IOC_REGION_NUMBER V4L2_CID_PRIVATE_BASE
++#define GO7007IOC_PIXEL_THRESOLD V4L2_CID_PRIVATE_BASE+1
++#define GO7007IOC_MOTION_THRESOLD V4L2_CID_PRIVATE_BASE+2
++#define GO7007IOC_TRIGGER V4L2_CID_PRIVATE_BASE+3
++#define GO7007IOC_REGION_CONTROL V4L2_CID_PRIVATE_BASE+4
++#define GO7007IOC_CLIP_LEFT V4L2_CID_PRIVATE_BASE+5
++#define GO7007IOC_CLIP_TOP V4L2_CID_PRIVATE_BASE+6
++#define GO7007IOC_CLIP_WIDTH V4L2_CID_PRIVATE_BASE+7
++#define GO7007IOC_CLIP_HEIGHT V4L2_CID_PRIVATE_BASE+8
++
++enum RegionControl
++{
++  rcAdd=0
++  ,rcDelete=1
++  ,rcClear=2
++};
+diff -uprN -X linux-3.2.11-vanilla/Documentation/dontdiff linux-3.2.11-vanilla/drivers/staging/media/go7007/go7007-priv.h linux-3.2.11/drivers/staging/media/go7007/go7007-priv.h
+--- linux-3.2.11-vanilla/drivers/staging/media/go7007/go7007-priv.h	2012-03-13 21:05:09.000000000 +0400
++++ linux-3.2.11/drivers/staging/media/go7007/go7007-priv.h	2012-03-20 16:17:58.246497298 +0400
+@@ -215,7 +215,8 @@ struct go7007 {
+ 	} modet[4];
+ 	unsigned char modet_map[1624];
+ 	unsigned char active_map[216];
+-
++  struct v4l2_rect fClipRegion;
++  unsigned char fCurrentRegion:2;
+ 	/* Video streaming */
+ 	struct go7007_buffer *active_buf;
+ 	enum go7007_parser_state state;
+diff -uprN -X linux-3.2.11-vanilla/Documentation/dontdiff linux-3.2.11-vanilla/drivers/staging/media/go7007/go7007-v4l2.c linux-3.2.11/drivers/staging/media/go7007/go7007-v4l2.c
+--- linux-3.2.11-vanilla/drivers/staging/media/go7007/go7007-v4l2.c	2012-03-13 21:05:09.000000000 +0400
++++ linux-3.2.11/drivers/staging/media/go7007/go7007-v4l2.c	2012-03-20 16:17:51.181586119 +0400
+@@ -335,114 +335,390 @@ static int set_capture_size(struct go700
+ 	return 0;
+ }
+ 
+-#if 0
+-static int clip_to_modet_map(struct go7007 *go, int region,
+-		struct v4l2_clip *clip_list)
+-{
+-	struct v4l2_clip clip, *clip_ptr;
+-	int x, y, mbnum;
+-
+-	/* Check if coordinates are OK and if any macroblocks are already
+-	 * used by other regions (besides 0) */
+-	clip_ptr = clip_list;
+-	while (clip_ptr) {
+-		if (copy_from_user(&clip, clip_ptr, sizeof(clip)))
+-			return -EFAULT;
+-		if (clip.c.left < 0 || (clip.c.left & 0xF) ||
+-				clip.c.width <= 0 || (clip.c.width & 0xF))
+-			return -EINVAL;
+-		if (clip.c.left + clip.c.width > go->width)
+-			return -EINVAL;
+-		if (clip.c.top < 0 || (clip.c.top & 0xF) ||
+-				clip.c.height <= 0 || (clip.c.height & 0xF))
+-			return -EINVAL;
+-		if (clip.c.top + clip.c.height > go->height)
+-			return -EINVAL;
+-		for (y = 0; y < clip.c.height; y += 16)
+-			for (x = 0; x < clip.c.width; x += 16) {
+-				mbnum = (go->width >> 4) *
+-						((clip.c.top + y) >> 4) +
+-					((clip.c.left + x) >> 4);
+-				if (go->modet_map[mbnum] != 0 &&
+-						go->modet_map[mbnum] != region)
+-					return -EBUSY;
+-			}
+-		clip_ptr = clip.next;
+-	}
+-
+-	/* Clear old region macroblocks */
+-	for (mbnum = 0; mbnum < 1624; ++mbnum)
+-		if (go->modet_map[mbnum] == region)
+-			go->modet_map[mbnum] = 0;
+-
+-	/* Claim macroblocks in this list */
+-	clip_ptr = clip_list;
+-	while (clip_ptr) {
+-		if (copy_from_user(&clip, clip_ptr, sizeof(clip)))
+-			return -EFAULT;
+-		for (y = 0; y < clip.c.height; y += 16)
+-			for (x = 0; x < clip.c.width; x += 16) {
+-				mbnum = (go->width >> 4) *
+-						((clip.c.top + y) >> 4) +
+-					((clip.c.left + x) >> 4);
+-				go->modet_map[mbnum] = region;
+-			}
+-		clip_ptr = clip.next;
+-	}
+-	return 0;
++static int md_g_ctrl(struct v4l2_control *ctrl,struct go7007 *go)
++{
++  switch(ctrl->id)
++  {
++    case GO7007IOC_REGION_NUMBER:
++      ctrl->value=go->fCurrentRegion;
++      break;
++    case GO7007IOC_PIXEL_THRESOLD:
++      ctrl->value=(go->modet[go->fCurrentRegion].pixel_threshold<<1)+1;
++      break;
++    case GO7007IOC_MOTION_THRESOLD:
++      ctrl->value=(go->modet[go->fCurrentRegion].motion_threshold<<1)+1;
++      break;
++    case GO7007IOC_TRIGGER:
++      ctrl->value=(go->modet[go->fCurrentRegion].mb_threshold<<1)+1;
++      break;
++    case GO7007IOC_CLIP_LEFT:
++      ctrl->value=go->fClipRegion.left;
++      break;
++    case GO7007IOC_CLIP_TOP:
++      ctrl->value=go->fClipRegion.top;
++      break;
++    case GO7007IOC_CLIP_WIDTH:
++      ctrl->value=go->fClipRegion.width;
++      break;
++    case GO7007IOC_CLIP_HEIGHT:
++      ctrl->value=go->fClipRegion.height;
++      break;
++    case GO7007IOC_REGION_CONTROL:
++    default:
++      return -EINVAL;
++  }
++  return 0;
++}
++
++static void ClearModetMap(struct go7007 *go,char Region)
++{
++  /* Clear old region macroblocks */
++  int mbnum;
++  for(mbnum=0;mbnum<sizeof(go->modet_map);++mbnum)
++    if(go->modet_map[mbnum]==Region)
++      go->modet_map[mbnum]=0;
++}
++
++static int RectToModetMap(struct go7007 *go,char Region,struct v4l2_rect *Rect,int Delete)
++{
++  register int x,y,mbnum;
++  /* Check if coordinates are OK and if any macroblocks are already
++   * used by other regions (besides 0) */
++//  if(Rect)
++  if(Rect->left<0 || (Rect->left & 0xF) || Rect->width<=0 || (Rect->width & 0xF))
++    return -EINVAL;
++  if(Rect->left+Rect->width>go->width)
++    return -EINVAL;
++  if(Rect->top<0 || (Rect->top & 0xF) || Rect->height<=0 || (Rect->height & 0xF))
++    return -EINVAL;
++  if(Rect->top+Rect->height>go->height)
++    return -EINVAL;
++  for(y=0;y<Rect->height;y+=16)
++    for(x=0;x<Rect->width;x+=16)
++    {
++      mbnum=(go->width>>4)*((Rect->top+y)>>4)+((Rect->left+x)>>4);
++      if(go->modet_map[mbnum]!=0 && go->modet_map[mbnum]!=Region)
++        return -EBUSY;
++      else
++        go->modet_map[mbnum]=Delete ? 0 : Region;
++    }
++  return 0;
++}
++
++static int md_s_ctrl(struct v4l2_control *ctrl,struct go7007 *go)
++{
++  switch(ctrl->id)
++  {
++    case GO7007IOC_REGION_NUMBER:
++      if(ctrl->value<0 || ctrl->value>3)
++        return -EINVAL;
++      go->fCurrentRegion=ctrl->value;
++      break;
++    case GO7007IOC_PIXEL_THRESOLD:
++      if(ctrl->value<0 || ctrl->value>65535)
++        return -EINVAL;
++      go->modet[go->fCurrentRegion].pixel_threshold=ctrl->value>>1;
++      break;
++    case GO7007IOC_MOTION_THRESOLD:
++      if(ctrl->value<0 || ctrl->value>65535)
++        return -EINVAL;
++      go->modet[go->fCurrentRegion].motion_threshold=ctrl->value>>1;
++      break;
++    case GO7007IOC_TRIGGER:
++      if(ctrl->value<0 || ctrl->value>65535)
++        return -EINVAL;
++      go->modet[go->fCurrentRegion].mb_threshold=ctrl->value>>1;
++      go->modet[go->fCurrentRegion].enable=ctrl->value>0;
++      break;
++    case GO7007IOC_REGION_CONTROL:
++      if(go->fCurrentRegion<1 || go->fCurrentRegion>3)
++        return -EINVAL;
++      switch(ctrl->value)
++      {
++        case rcAdd:
++          RectToModetMap(go,go->fCurrentRegion,&go->fClipRegion,0);
++          break;
++        case rcDelete:
++          RectToModetMap(go,go->fCurrentRegion,&go->fClipRegion,1);
++          break;
++        case rcClear:
++          ClearModetMap(go,go->fCurrentRegion);
++          break;
++        default:
++          return -EINVAL;
++      }
++      break;
++    case GO7007IOC_CLIP_LEFT:
++      go->fClipRegion.top=ctrl->value;
++      break;
++    case GO7007IOC_CLIP_TOP:
++      go->fClipRegion.left=ctrl->value;
++      break;
++    case GO7007IOC_CLIP_WIDTH:
++      go->fClipRegion.width=ctrl->value;
++      break;
++    case GO7007IOC_CLIP_HEIGHT:
++      go->fClipRegion.height=ctrl->value;
++      break;
++    default:
++      return -EINVAL;
++  }
++  return 0;
++}
++
++static int vidioc_querymenu(struct file *file,void *fh,struct v4l2_querymenu *menuctrl)
++{
++  switch(menuctrl->id)
++  {
++    case V4L2_CID_MPEG_STREAM_TYPE:
++      switch(menuctrl->index)
++      {
++        case V4L2_MPEG_STREAM_TYPE_MPEG2_DVD:
++          strcpy(menuctrl->name,"MPEG2 DVD");
++          break;
++        case V4L2_MPEG_STREAM_TYPE_MPEG_ELEM:
++          strcpy(menuctrl->name,"MPEG ELEM");
++          break;
++        default:
++          return -EINVAL;
++      }
++      break;
++    case V4L2_CID_MPEG_VIDEO_ENCODING:
++      switch(menuctrl->index)
++      {
++        case V4L2_MPEG_VIDEO_ENCODING_MPEG_1:
++          strcpy(menuctrl->name,"MPEG1");
++          break;
++        case V4L2_MPEG_VIDEO_ENCODING_MPEG_2:
++          strcpy(menuctrl->name,"MPEG2");
++          break;
++        case V4L2_MPEG_VIDEO_ENCODING_MPEG_4:
++          strcpy(menuctrl->name,"MPEG4");
++          break;
++        case V4L2_MPEG_VIDEO_ENCODING_H263:
++          strcpy(menuctrl->name,"H263");
++          break;
++        default:
++          return -EINVAL;
++      }
++      break;
++    case V4L2_CID_MPEG_VIDEO_ASPECT:
++      switch(menuctrl->index)
++      {
++        case V4L2_MPEG_VIDEO_ASPECT_1x1:
++          strcpy(menuctrl->name,"1x1");
++          break;
++        case V4L2_MPEG_VIDEO_ASPECT_4x3:
++          strcpy(menuctrl->name,"4x3");
++          break;
++        case V4L2_MPEG_VIDEO_ASPECT_16x9:
++          strcpy(menuctrl->name,"16x9");
++          break;
++        case V4L2_MPEG_VIDEO_ASPECT_221x100:
++          strcpy(menuctrl->name,"221x100");
++//          break;
++        default:
++          return -EINVAL;
++      }
++      break;
++    case GO7007IOC_REGION_CONTROL:
++      switch(menuctrl->index)
++      {
++        case rcAdd:
++          strcpy(menuctrl->name,"Add");
++          break;
++        case rcDelete:
++          strcpy(menuctrl->name,"Delete");
++          break;
++        case rcClear:
++          strcpy(menuctrl->name,"Clear");
++          break;
++        default:
++          return -EINVAL;
++      }
++      break;
++    default:
++      return -EINVAL;
++  }
++  return 0;
++}
++
++static int md_query_ctrl(struct v4l2_queryctrl *ctrl,struct go7007 *go)
++{
++  static const u32 md_ctrls[]=
++  {
++    GO7007IOC_REGION_NUMBER
++    ,GO7007IOC_PIXEL_THRESOLD
++    ,GO7007IOC_MOTION_THRESOLD
++    ,GO7007IOC_TRIGGER
++    ,GO7007IOC_REGION_CONTROL
++    ,GO7007IOC_CLIP_LEFT
++    ,GO7007IOC_CLIP_TOP
++    ,GO7007IOC_CLIP_WIDTH
++    ,GO7007IOC_CLIP_HEIGHT
++    ,0
++  };
++
++  static const u32 *ctrl_classes[]=
++  {
++    md_ctrls
++    ,NULL
++  };
++
++  printk(KERN_INFO"Before Try md query ctrl %d",ctrl->id);
++
++  ctrl->id=v4l2_ctrl_next(ctrl_classes,ctrl->id);
++
++  printk(KERN_INFO"Try md query ctrl %d",ctrl->id);
++  switch(ctrl->id)
++  {
++    case GO7007IOC_REGION_NUMBER:
++      ctrl->type=V4L2_CTRL_TYPE_INTEGER;
++      strncpy(ctrl->name,"Region MD",sizeof(ctrl->name));
++      ctrl->minimum=0;
++      ctrl->maximum=3;
++      ctrl->step=1;
++      ctrl->default_value=0;
++      ctrl->flags=0;
++      break;
++    case GO7007IOC_PIXEL_THRESOLD:
++      ctrl->type=V4L2_CTRL_TYPE_INTEGER;
++      strncpy(ctrl->name,"Pixel Thresold",sizeof(ctrl->name));
++      ctrl->minimum=0;
++      ctrl->maximum=65535;
++      ctrl->step=1;
++      ctrl->default_value=32767;
++      ctrl->flags=0;
++      break;
++    case GO7007IOC_MOTION_THRESOLD:
++      ctrl->type=V4L2_CTRL_TYPE_INTEGER;
++      strncpy(ctrl->name,"Motion Thresold",sizeof(ctrl->name));
++      ctrl->minimum=0;
++      ctrl->maximum=65535;
++      ctrl->step=1;
++      ctrl->default_value=32767;
++      ctrl->flags=0;
++      break;
++    case GO7007IOC_TRIGGER:
++      ctrl->type=V4L2_CTRL_TYPE_INTEGER;
++      strncpy(ctrl->name,"Trigger",sizeof(ctrl->name));
++      ctrl->minimum=0;
++      ctrl->maximum=65535;
++      ctrl->step=1;
++      ctrl->default_value=32767;
++      ctrl->flags=0;
++      break;
++    case GO7007IOC_REGION_CONTROL:
++      ctrl->type=V4L2_CTRL_TYPE_MENU;//V4L2_CTRL_TYPE_BUTTON;
++      strncpy(ctrl->name,"Region Control",sizeof(ctrl->name));
++      ctrl->minimum=rcAdd;
++      ctrl->maximum=rcClear;
++      ctrl->step=1;
++      ctrl->default_value=rcAdd;
++      ctrl->flags=0;
++      break;
++    case GO7007IOC_CLIP_LEFT:
++      ctrl->type=V4L2_CTRL_TYPE_INTEGER;
++      strncpy(ctrl->name,"Left of Region",sizeof(ctrl->name));
++      ctrl->minimum=0;
++      ctrl->maximum=go->width-1;
++      ctrl->step=1;
++      ctrl->default_value=0;
++      ctrl->flags=0;
++      break;
++    case GO7007IOC_CLIP_TOP:
++      ctrl->type=V4L2_CTRL_TYPE_INTEGER;
++      strncpy(ctrl->name,"Top of Region",sizeof(ctrl->name));
++      ctrl->minimum=0;
++      ctrl->maximum=go->height-1;
++      ctrl->step=1;
++      ctrl->default_value=0;
++      ctrl->flags=0;
++      break;
++    case GO7007IOC_CLIP_WIDTH:
++      ctrl->type=V4L2_CTRL_TYPE_INTEGER;
++      strncpy(ctrl->name,"Width of Region",sizeof(ctrl->name));
++      ctrl->minimum=0;
++      ctrl->maximum=go->width;
++      ctrl->step=1;
++      ctrl->default_value=0;
++      ctrl->flags=0;
++      break;
++    case GO7007IOC_CLIP_HEIGHT:
++      ctrl->type=V4L2_CTRL_TYPE_INTEGER;
++      strncpy(ctrl->name,"Height of Region",sizeof(ctrl->name));
++      ctrl->minimum=0;
++      ctrl->maximum=go->height;
++      ctrl->step=1;
++      ctrl->default_value=0;
++      ctrl->flags=0;
++      break;
++    default:
++      return -EINVAL;
++  }
++  return 0;
+ }
+-#endif
+ 
+ static int mpeg_query_ctrl(struct v4l2_queryctrl *ctrl)
+ {
+-	static const u32 mpeg_ctrls[] = {
+-		V4L2_CID_MPEG_CLASS,
+-		V4L2_CID_MPEG_STREAM_TYPE,
+-		V4L2_CID_MPEG_VIDEO_ENCODING,
+-		V4L2_CID_MPEG_VIDEO_ASPECT,
+-		V4L2_CID_MPEG_VIDEO_GOP_SIZE,
+-		V4L2_CID_MPEG_VIDEO_GOP_CLOSURE,
+-		V4L2_CID_MPEG_VIDEO_BITRATE,
+-		0
+-	};
+-	static const u32 *ctrl_classes[] = {
+-		mpeg_ctrls,
+-		NULL
+-	};
+-
+-	ctrl->id = v4l2_ctrl_next(ctrl_classes, ctrl->id);
+-
+-	switch (ctrl->id) {
+-	case V4L2_CID_MPEG_CLASS:
+-		return v4l2_ctrl_query_fill(ctrl, 0, 0, 0, 0);
+-	case V4L2_CID_MPEG_STREAM_TYPE:
+-		return v4l2_ctrl_query_fill(ctrl,
+-				V4L2_MPEG_STREAM_TYPE_MPEG2_DVD,
+-				V4L2_MPEG_STREAM_TYPE_MPEG_ELEM, 1,
+-				V4L2_MPEG_STREAM_TYPE_MPEG_ELEM);
+-	case V4L2_CID_MPEG_VIDEO_ENCODING:
+-		return v4l2_ctrl_query_fill(ctrl,
+-				V4L2_MPEG_VIDEO_ENCODING_MPEG_1,
+-				V4L2_MPEG_VIDEO_ENCODING_MPEG_4, 1,
+-				V4L2_MPEG_VIDEO_ENCODING_MPEG_2);
+-	case V4L2_CID_MPEG_VIDEO_ASPECT:
+-		return v4l2_ctrl_query_fill(ctrl,
+-				V4L2_MPEG_VIDEO_ASPECT_1x1,
+-				V4L2_MPEG_VIDEO_ASPECT_16x9, 1,
+-				V4L2_MPEG_VIDEO_ASPECT_1x1);
+-	case V4L2_CID_MPEG_VIDEO_GOP_SIZE:
+-		return v4l2_ctrl_query_fill(ctrl, 0, 34, 1, 15);
+-	case V4L2_CID_MPEG_VIDEO_GOP_CLOSURE:
+-		return v4l2_ctrl_query_fill(ctrl, 0, 1, 1, 0);
+-	case V4L2_CID_MPEG_VIDEO_BITRATE:
+-		return v4l2_ctrl_query_fill(ctrl,
+-				64000,
+-				10000000, 1,
+-				1500000);
+-	default:
+-		return -EINVAL;
+-	}
+-	return 0;
++  static const u32 mpeg_ctrls[]=
++  {
++    V4L2_CID_MPEG_CLASS
++    ,V4L2_CID_MPEG_STREAM_TYPE
++    ,V4L2_CID_MPEG_VIDEO_ENCODING
++    ,V4L2_CID_MPEG_VIDEO_ASPECT
++    ,V4L2_CID_MPEG_VIDEO_B_FRAMES
++    ,V4L2_CID_MPEG_VIDEO_GOP_SIZE
++    ,V4L2_CID_MPEG_VIDEO_GOP_CLOSURE
++    ,V4L2_CID_MPEG_VIDEO_BITRATE
++//GO7007_COMP_OMIT_SEQ_HEADER,
++//GO7007_MPEG_REPEAT_SEQHEADER
++//GO7007_MPEG_OMIT_GOP_HEADER
++    ,0
++  };
++
++  static const u32 *ctrl_classes[]=
++  {
++    mpeg_ctrls
++    ,NULL
++  };
++
++  ctrl->id = v4l2_ctrl_next(ctrl_classes, ctrl->id);
++
++  switch(ctrl->id)
++  {
++    case V4L2_CID_MPEG_CLASS:
++    return v4l2_ctrl_query_fill(ctrl, 0, 0, 0, 0);
++    case V4L2_CID_MPEG_STREAM_TYPE:
++    return v4l2_ctrl_query_fill(ctrl,
++        V4L2_MPEG_STREAM_TYPE_MPEG2_DVD,
++        V4L2_MPEG_STREAM_TYPE_MPEG_ELEM, 1,
++        V4L2_MPEG_STREAM_TYPE_MPEG_ELEM);
++  case V4L2_CID_MPEG_VIDEO_ENCODING:
++    return v4l2_ctrl_query_fill(ctrl,
++        V4L2_MPEG_VIDEO_ENCODING_MPEG_1,
++        V4L2_MPEG_VIDEO_ENCODING_MPEG_4/*V4L2_MPEG_VIDEO_ENCODING_H263*/,1,
++        V4L2_MPEG_VIDEO_ENCODING_MPEG_2);
++  case V4L2_CID_MPEG_VIDEO_ASPECT:
++    return v4l2_ctrl_query_fill(ctrl,
++        V4L2_MPEG_VIDEO_ASPECT_1x1,
++        V4L2_MPEG_VIDEO_ASPECT_16x9, 1,
++        V4L2_MPEG_VIDEO_ASPECT_1x1);
++  case V4L2_CID_MPEG_VIDEO_GOP_SIZE:
++    return v4l2_ctrl_query_fill(ctrl, 0, 34, 1, 15);
++  case V4L2_CID_MPEG_VIDEO_GOP_CLOSURE:
++    return v4l2_ctrl_query_fill(ctrl, 0, 1, 1, 0);
++  case V4L2_CID_MPEG_VIDEO_BITRATE:
++    return v4l2_ctrl_query_fill(ctrl,
++        64000,
++        10000000, 1,
++        1500000);
++    case V4L2_CID_MPEG_VIDEO_B_FRAMES:
++      return v4l2_ctrl_query_fill(ctrl,0,2,1,0);
++    default:
++      return -EINVAL;
++    }
++  return 0;
+ }
+ 
+ static int mpeg_s_ctrl(struct v4l2_control *ctrl, struct go7007 *go)
+@@ -492,6 +768,9 @@ static int mpeg_s_ctrl(struct v4l2_contr
+ 			else*/
+ 				go->pali = 0xf5;
+ 			break;
++    case V4L2_MPEG_VIDEO_ENCODING_H263:
++      go->format=GO7007_FORMAT_H263;
++      break;
+ 		default:
+ 			return -EINVAL;
+ 		}
+@@ -538,10 +817,15 @@ static int mpeg_s_ctrl(struct v4l2_contr
+ 			return -EINVAL;
+ 		go->bitrate = ctrl->value;
+ 		break;
+-	default:
+-		return -EINVAL;
+-	}
+-	return 0;
++    case V4L2_CID_MPEG_VIDEO_B_FRAMES:
++      if(ctrl->value<0 || ctrl->value>2)///checking
++        return -EINVAL;
++      go->ipb=ctrl->value>0;
++      break;
++    default:
++      return -EINVAL;
++  }
++  return 0;
+ }
+ 
+ static int mpeg_g_ctrl(struct v4l2_control *ctrl, struct go7007 *go)
+@@ -564,6 +848,9 @@ static int mpeg_g_ctrl(struct v4l2_contr
+ 		case GO7007_FORMAT_MPEG4:
+ 			ctrl->value = V4L2_MPEG_VIDEO_ENCODING_MPEG_4;
+ 			break;
++    case GO7007_FORMAT_H263:
++      ctrl->value=V4L2_MPEG_VIDEO_ENCODING_H263;
++      break;
+ 		default:
+ 			return -EINVAL;
+ 		}
+@@ -592,10 +879,13 @@ static int mpeg_g_ctrl(struct v4l2_contr
+ 	case V4L2_CID_MPEG_VIDEO_BITRATE:
+ 		ctrl->value = go->bitrate;
+ 		break;
+-	default:
+-		return -EINVAL;
+-	}
+-	return 0;
++    case V4L2_CID_MPEG_VIDEO_B_FRAMES:
++      ctrl->value=go->ipb ? 2 : 0;
++      break;
++    default:
++      return -EINVAL;
++  }
++  return 0;
+ }
+ 
+ static int vidioc_querycap(struct file *file, void  *priv,
+@@ -605,9 +895,7 @@ static int vidioc_querycap(struct file *
+ 
+ 	strlcpy(cap->driver, "go7007", sizeof(cap->driver));
+ 	strlcpy(cap->card, go->name, sizeof(cap->card));
+-#if 0
+-	strlcpy(cap->bus_info, dev_name(&dev->udev->dev), sizeof(cap->bus_info));
+-#endif
++  strlcpy(cap->bus_info,dev_name(go->dev),sizeof(cap->bus_info));
+ 
+ 	cap->version = KERNEL_VERSION(0, 9, 8);
+ 
+@@ -975,39 +1263,43 @@ static int vidioc_streamoff(struct file
+ 	return 0;
+ }
+ 
+-static int vidioc_queryctrl(struct file *file, void *priv,
+-			   struct v4l2_queryctrl *query)
++static int vidioc_queryctrl(struct file *file,void *priv,struct v4l2_queryctrl *query)
+ {
+-	struct go7007 *go = ((struct go7007_file *) priv)->go;
+-	int id = query->id;
++  struct go7007 *go=((struct go7007_file *)priv)->go;
++  int id=query->id;
+ 
+-	if (0 == call_all(&go->v4l2_dev, core, queryctrl, query))
+-		return 0;
++  if(0==call_all(&go->v4l2_dev,core,queryctrl,query))
++    return 0;
+ 
+-	query->id = id;
+-	return mpeg_query_ctrl(query);
++  query->id=id;
++  if(mpeg_query_ctrl(query)==0)
++    return 0;
++  query->id=id;
++  return md_query_ctrl(query,go);
+ }
+ 
+-static int vidioc_g_ctrl(struct file *file, void *priv,
+-				struct v4l2_control *ctrl)
++static int vidioc_g_ctrl(struct file *file,void *priv,struct v4l2_control *ctrl)
+ {
+-	struct go7007 *go = ((struct go7007_file *) priv)->go;
++  struct go7007 *go=((struct go7007_file *)priv)->go;
+ 
+-	if (0 == call_all(&go->v4l2_dev, core, g_ctrl, ctrl))
+-		return 0;
++  if(0==call_all(&go->v4l2_dev,core,g_ctrl,ctrl))
++    return 0;
+ 
+-	return mpeg_g_ctrl(ctrl, go);
++  if(mpeg_g_ctrl(ctrl,go)==0)
++    return 0;
++  return md_g_ctrl(ctrl,go);
+ }
+ 
+-static int vidioc_s_ctrl(struct file *file, void *priv,
+-				struct v4l2_control *ctrl)
++static int vidioc_s_ctrl(struct file *file,void *priv,struct v4l2_control *ctrl)
+ {
+-	struct go7007 *go = ((struct go7007_file *) priv)->go;
++  struct go7007 *go=((struct go7007_file *)priv)->go;
+ 
+-	if (0 == call_all(&go->v4l2_dev, core, s_ctrl, ctrl))
+-		return 0;
++  if(0==call_all(&go->v4l2_dev,core,s_ctrl,ctrl))
++    return 0;
+ 
+-	return mpeg_s_ctrl(ctrl, go);
++  if(mpeg_s_ctrl(ctrl,go)==0)
++    return 0;
++  return md_s_ctrl(ctrl,go);
+ }
+ 
+ static int vidioc_g_parm(struct file *filp, void *priv,
+@@ -1060,44 +1352,246 @@ static int vidioc_s_parm(struct file *fi
+ 
+    The two functions bellow implements the newer ioctls
+ */
+-static int vidioc_enum_framesizes(struct file *filp, void *priv,
+-				  struct v4l2_frmsizeenum *fsize)
+-{
+-	struct go7007 *go = ((struct go7007_file *) priv)->go;
+-
+-	/* Return -EINVAL, if it is a TV board */
+-	if ((go->board_info->flags & GO7007_BOARD_HAS_TUNER) ||
+-	    (go->board_info->sensor_flags & GO7007_SENSOR_TV))
+-		return -EINVAL;
+-
+-	if (fsize->index > 0)
+-		return -EINVAL;
+-
+-	fsize->type = V4L2_FRMSIZE_TYPE_DISCRETE;
+-	fsize->discrete.width = go->board_info->sensor_width;
+-	fsize->discrete.height = go->board_info->sensor_height;
+-
+-	return 0;
+-}
+-
+-static int vidioc_enum_frameintervals(struct file *filp, void *priv,
+-				      struct v4l2_frmivalenum *fival)
++static int vidioc_enum_framesizes(struct file *filp,void *priv,struct v4l2_frmsizeenum *fsize)
+ {
+-	struct go7007 *go = ((struct go7007_file *) priv)->go;
++  struct go7007 *go=((struct go7007_file *)priv)->go;
++  /* Return -EINVAL, if it is a TV board */
++  if(go->board_info->flags & GO7007_BOARD_HAS_TUNER)
++    return -EINVAL;
++
++  if(go->board_info->sensor_flags & GO7007_SENSOR_TV)
++  {
++    switch(go->standard)
++    {
++      case GO7007_STD_NTSC:
++        switch(fsize->pixel_format)
++        {
++          case V4L2_PIX_FMT_MJPEG:
++          case V4L2_PIX_FMT_MPEG:
++            switch(fsize->index)
++            {
++              case 0:
++                fsize->type=V4L2_FRMSIZE_TYPE_DISCRETE;
++                fsize->discrete.width=720;
++                fsize->discrete.height=480;
++                break;
++              case 1:
++                fsize->type=V4L2_FRMSIZE_TYPE_DISCRETE;
++                fsize->discrete.width=640;
++                fsize->discrete.height=480;
++                break;
++              case 2:
++                fsize->type=V4L2_FRMSIZE_TYPE_DISCRETE;
++                fsize->discrete.width=352;
++                fsize->discrete.height=240;
++                break;
++              case 3:
++                fsize->type=V4L2_FRMSIZE_TYPE_DISCRETE;
++                fsize->discrete.width=320;
++                fsize->discrete.height=240;
++                break;
++              case 4:
++                fsize->type=V4L2_FRMSIZE_TYPE_DISCRETE;
++                fsize->discrete.width=176;
++                fsize->discrete.height=112;
++                break;
++              default:
++                return -EINVAL;
++            }
++            break;
++          default:
++            return -EINVAL;
++        }
++        break;
++      case GO7007_STD_PAL:
++        switch(fsize->pixel_format)
++        {
++          case V4L2_PIX_FMT_MJPEG:
++          case V4L2_PIX_FMT_MPEG:
++            switch(fsize->index)
++            {
++              case 0:
++                fsize->type=V4L2_FRMSIZE_TYPE_DISCRETE;
++                fsize->discrete.width=720;
++                fsize->discrete.height=576;
++                break;
++              case 1:
++                fsize->type=V4L2_FRMSIZE_TYPE_DISCRETE;
++                fsize->discrete.width=352;
++                fsize->discrete.height=288;
++                break;
++              case 2:
++                fsize->type=V4L2_FRMSIZE_TYPE_DISCRETE;
++                fsize->discrete.width=176;
++                fsize->discrete.height=144;
++                break;
++              default:
++                return -EINVAL;
++            }
++            break;
++          default:
++            return -EINVAL;
++        }
++        break;
++      default:
++        return -EINVAL;
++    }
++    return 0;
++  }
++
++  if (fsize->index > 0)
++    return -EINVAL;
++
++  fsize->type = V4L2_FRMSIZE_TYPE_DISCRETE;
++  fsize->discrete.width = go->board_info->sensor_width;
++  fsize->discrete.height = go->board_info->sensor_height;
++
++  return 0;
++}
++
++static int vidioc_enum_frameintervals(struct file *filp,void *priv,struct v4l2_frmivalenum *fival)
++{
++  struct go7007 *go=((struct go7007_file *)priv)->go;
++
++  /* Return -EINVAL, if it is a TV board */
++  if ((go->board_info->flags & GO7007_BOARD_HAS_TUNER))
++    return -EINVAL;
++
++  if(go->board_info->sensor_flags & GO7007_SENSOR_TV)
++  {
++    switch(fival->pixel_format)
++    {
++      case V4L2_PIX_FMT_MJPEG:
++      case V4L2_PIX_FMT_MPEG:
++        switch(go->standard)
++        {
++          case GO7007_STD_NTSC:
++            switch(fival->index)
++            {
++              case 0:
++                fival->type=V4L2_FRMIVAL_TYPE_DISCRETE;
++                fival->discrete.numerator=1001*1;
++                fival->discrete.denominator=go->sensor_framerate;
++                break;
++              case 1:
++                fival->type=V4L2_FRMIVAL_TYPE_DISCRETE;
++                fival->discrete.numerator=1001*2;
++                fival->discrete.denominator=go->sensor_framerate;
++                break;
++              case 2:
++                fival->type=V4L2_FRMIVAL_TYPE_DISCRETE;
++                fival->discrete.numerator=1001*3;
++                fival->discrete.denominator=go->sensor_framerate;
++                break;
++              case 3:
++                fival->type=V4L2_FRMIVAL_TYPE_DISCRETE;
++                fival->discrete.numerator=1001*4;
++                fival->discrete.denominator=go->sensor_framerate;
++                break;
++              case 4:
++                fival->type=V4L2_FRMIVAL_TYPE_DISCRETE;
++                fival->discrete.numerator=1001*5;
++                fival->discrete.denominator=go->sensor_framerate;
++                break;
++              case 5:
++                fival->type=V4L2_FRMIVAL_TYPE_DISCRETE;
++                fival->discrete.numerator=1001*6;
++                fival->discrete.denominator=go->sensor_framerate;
++                break;
++              case 6:
++                fival->type=V4L2_FRMIVAL_TYPE_DISCRETE;
++                fival->discrete.numerator=1001*7;
++                fival->discrete.denominator=go->sensor_framerate;
++                break;
++              case 7:
++                fival->type=V4L2_FRMIVAL_TYPE_DISCRETE;
++                fival->discrete.numerator=1001*10;
++                fival->discrete.denominator=go->sensor_framerate;
++                break;
++              case 8:
++                fival->type=V4L2_FRMIVAL_TYPE_DISCRETE;
++                fival->discrete.numerator=1001*15;
++                fival->discrete.denominator=go->sensor_framerate;
++                break;
++              case 9:
++                fival->type=V4L2_FRMIVAL_TYPE_DISCRETE;
++                fival->discrete.numerator=1001*30;
++                fival->discrete.denominator=go->sensor_framerate;
++                break;
++              default:
++                return -EINVAL;
++            }
++            break;
++          case GO7007_STD_PAL:
++            switch(fival->index)
++            {
++              case 0:
++                fival->type=V4L2_FRMIVAL_TYPE_DISCRETE;
++                fival->discrete.numerator=1001*1;
++                fival->discrete.denominator=go->sensor_framerate;
++                break;
++              case 1:
++                fival->type=V4L2_FRMIVAL_TYPE_DISCRETE;
++                fival->discrete.numerator=1001*2;
++                fival->discrete.denominator=go->sensor_framerate;
++                break;
++              case 2:
++                fival->type=V4L2_FRMIVAL_TYPE_DISCRETE;
++                fival->discrete.numerator=1001*3;
++                fival->discrete.denominator=go->sensor_framerate;
++                break;
++              case 3:
++                fival->type=V4L2_FRMIVAL_TYPE_DISCRETE;
++                fival->discrete.numerator=1001*4;
++                fival->discrete.denominator=go->sensor_framerate;
++                break;
++              case 4:
++                fival->type=V4L2_FRMIVAL_TYPE_DISCRETE;
++                fival->discrete.numerator=1001*5;
++                fival->discrete.denominator=go->sensor_framerate;
++                break;
++              case 5:
++                fival->type=V4L2_FRMIVAL_TYPE_DISCRETE;
++                fival->discrete.numerator=1001*6;
++                fival->discrete.denominator=go->sensor_framerate;
++                break;
++              case 6:
++                fival->type=V4L2_FRMIVAL_TYPE_DISCRETE;
++                fival->discrete.numerator=1001*8;
++                fival->discrete.denominator=go->sensor_framerate;
++                break;
++              case 7:
++                fival->type=V4L2_FRMIVAL_TYPE_DISCRETE;
++                fival->discrete.numerator=1001*13;
++                fival->discrete.denominator=go->sensor_framerate;
++                break;
++              case 8:
++                fival->type=V4L2_FRMIVAL_TYPE_DISCRETE;
++                fival->discrete.numerator=1001*25;
++                fival->discrete.denominator=go->sensor_framerate;
++                break;
++              default:
++                return -EINVAL;
++            }
++            break;
++          default:
++            return -EINVAL;
++        }
++        break;
++      default:
++        return -EINVAL;
++    }
++    return 0;
++  }
++
++  if (fival->index > 0)
++    return -EINVAL;
++
++  fival->type = V4L2_FRMIVAL_TYPE_DISCRETE;
++  fival->discrete.numerator = 1001;
++  fival->discrete.denominator = go->board_info->sensor_framerate;
+ 
+-	/* Return -EINVAL, if it is a TV board */
+-	if ((go->board_info->flags & GO7007_BOARD_HAS_TUNER) ||
+-	    (go->board_info->sensor_flags & GO7007_SENSOR_TV))
+-		return -EINVAL;
+-
+-	if (fival->index > 0)
+-		return -EINVAL;
+-
+-	fival->type = V4L2_FRMIVAL_TYPE_DISCRETE;
+-	fival->discrete.numerator = 1001;
+-	fival->discrete.denominator = go->board_info->sensor_framerate;
+-
+-	return 0;
++  return 0;
+ }
+ 
+ static int vidioc_g_std(struct file *file, void *priv, v4l2_std_id *std)
+@@ -1405,235 +1899,6 @@ static int vidioc_s_jpegcomp(struct file
+ 	return 0;
+ }
+ 
+-/* FIXME:
+-	Those ioctls are private, and not needed, since several standard
+-	extended controls already provide streaming control.
+-	So, those ioctls should be converted into vidioc_g_ext_ctrls()
+-	and vidioc_s_ext_ctrls()
+- */
+-
+-#if 0
+-	/* Temporary ioctls for controlling compression characteristics */
+-	case GO7007IOC_S_BITRATE:
+-	{
+-		int *bitrate = arg;
+-
+-		if (go->streaming)
+-			return -EINVAL;
+-		/* Upper bound is kind of arbitrary here */
+-		if (*bitrate < 64000 || *bitrate > 10000000)
+-			return -EINVAL;
+-		go->bitrate = *bitrate;
+-		return 0;
+-	}
+-	case GO7007IOC_G_BITRATE:
+-	{
+-		int *bitrate = arg;
+-
+-		*bitrate = go->bitrate;
+-		return 0;
+-	}
+-	case GO7007IOC_S_COMP_PARAMS:
+-	{
+-		struct go7007_comp_params *comp = arg;
+-
+-		if (go->format == GO7007_FORMAT_MJPEG)
+-			return -EINVAL;
+-		if (comp->gop_size > 0)
+-			go->gop_size = comp->gop_size;
+-		else
+-			go->gop_size = go->sensor_framerate / 1000;
+-		if (go->gop_size != 15)
+-			go->dvd_mode = 0;
+-		/*go->ipb = comp->max_b_frames > 0;*/ /* completely untested */
+-		if (go->board_info->sensor_flags & GO7007_SENSOR_TV) {
+-			switch (comp->aspect_ratio) {
+-			case GO7007_ASPECT_RATIO_4_3_NTSC:
+-			case GO7007_ASPECT_RATIO_4_3_PAL:
+-				go->aspect_ratio = GO7007_RATIO_4_3;
+-				break;
+-			case GO7007_ASPECT_RATIO_16_9_NTSC:
+-			case GO7007_ASPECT_RATIO_16_9_PAL:
+-				go->aspect_ratio = GO7007_RATIO_16_9;
+-				break;
+-			default:
+-				go->aspect_ratio = GO7007_RATIO_1_1;
+-				break;
+-			}
+-		}
+-		if (comp->flags & GO7007_COMP_OMIT_SEQ_HEADER) {
+-			go->dvd_mode = 0;
+-			go->seq_header_enable = 0;
+-		} else {
+-			go->seq_header_enable = 1;
+-		}
+-		/* fall-through */
+-	}
+-	case GO7007IOC_G_COMP_PARAMS:
+-	{
+-		struct go7007_comp_params *comp = arg;
+-
+-		if (go->format == GO7007_FORMAT_MJPEG)
+-			return -EINVAL;
+-		memset(comp, 0, sizeof(*comp));
+-		comp->gop_size = go->gop_size;
+-		comp->max_b_frames = go->ipb ? 2 : 0;
+-		switch (go->aspect_ratio) {
+-		case GO7007_RATIO_4_3:
+-			if (go->standard == GO7007_STD_NTSC)
+-				comp->aspect_ratio =
+-					GO7007_ASPECT_RATIO_4_3_NTSC;
+-			else
+-				comp->aspect_ratio =
+-					GO7007_ASPECT_RATIO_4_3_PAL;
+-			break;
+-		case GO7007_RATIO_16_9:
+-			if (go->standard == GO7007_STD_NTSC)
+-				comp->aspect_ratio =
+-					GO7007_ASPECT_RATIO_16_9_NTSC;
+-			else
+-				comp->aspect_ratio =
+-					GO7007_ASPECT_RATIO_16_9_PAL;
+-			break;
+-		default:
+-			comp->aspect_ratio = GO7007_ASPECT_RATIO_1_1;
+-			break;
+-		}
+-		if (go->closed_gop)
+-			comp->flags |= GO7007_COMP_CLOSED_GOP;
+-		if (!go->seq_header_enable)
+-			comp->flags |= GO7007_COMP_OMIT_SEQ_HEADER;
+-		return 0;
+-	}
+-	case GO7007IOC_S_MPEG_PARAMS:
+-	{
+-		struct go7007_mpeg_params *mpeg = arg;
+-
+-		if (go->format != GO7007_FORMAT_MPEG1 &&
+-				go->format != GO7007_FORMAT_MPEG2 &&
+-				go->format != GO7007_FORMAT_MPEG4)
+-			return -EINVAL;
+-
+-		if (mpeg->flags & GO7007_MPEG_FORCE_DVD_MODE) {
+-			go->format = GO7007_FORMAT_MPEG2;
+-			go->bitrate = 9800000;
+-			go->gop_size = 15;
+-			go->pali = 0x48;
+-			go->closed_gop = 1;
+-			go->repeat_seqhead = 0;
+-			go->seq_header_enable = 1;
+-			go->gop_header_enable = 1;
+-			go->dvd_mode = 1;
+-		} else {
+-			switch (mpeg->mpeg_video_standard) {
+-			case GO7007_MPEG_VIDEO_MPEG1:
+-				go->format = GO7007_FORMAT_MPEG1;
+-				go->pali = 0;
+-				break;
+-			case GO7007_MPEG_VIDEO_MPEG2:
+-				go->format = GO7007_FORMAT_MPEG2;
+-				if (mpeg->pali >> 24 == 2)
+-					go->pali = mpeg->pali & 0xff;
+-				else
+-					go->pali = 0x48;
+-				break;
+-			case GO7007_MPEG_VIDEO_MPEG4:
+-				go->format = GO7007_FORMAT_MPEG4;
+-				if (mpeg->pali >> 24 == 4)
+-					go->pali = mpeg->pali & 0xff;
+-				else
+-					go->pali = 0xf5;
+-				break;
+-			default:
+-				return -EINVAL;
+-			}
+-			go->gop_header_enable =
+-				mpeg->flags & GO7007_MPEG_OMIT_GOP_HEADER
+-				? 0 : 1;
+-			if (mpeg->flags & GO7007_MPEG_REPEAT_SEQHEADER)
+-				go->repeat_seqhead = 1;
+-			else
+-				go->repeat_seqhead = 0;
+-			go->dvd_mode = 0;
+-		}
+-		/* fall-through */
+-	}
+-	case GO7007IOC_G_MPEG_PARAMS:
+-	{
+-		struct go7007_mpeg_params *mpeg = arg;
+-
+-		memset(mpeg, 0, sizeof(*mpeg));
+-		switch (go->format) {
+-		case GO7007_FORMAT_MPEG1:
+-			mpeg->mpeg_video_standard = GO7007_MPEG_VIDEO_MPEG1;
+-			mpeg->pali = 0;
+-			break;
+-		case GO7007_FORMAT_MPEG2:
+-			mpeg->mpeg_video_standard = GO7007_MPEG_VIDEO_MPEG2;
+-			mpeg->pali = GO7007_MPEG_PROFILE(2, go->pali);
+-			break;
+-		case GO7007_FORMAT_MPEG4:
+-			mpeg->mpeg_video_standard = GO7007_MPEG_VIDEO_MPEG4;
+-			mpeg->pali = GO7007_MPEG_PROFILE(4, go->pali);
+-			break;
+-		default:
+-			return -EINVAL;
+-		}
+-		if (!go->gop_header_enable)
+-			mpeg->flags |= GO7007_MPEG_OMIT_GOP_HEADER;
+-		if (go->repeat_seqhead)
+-			mpeg->flags |= GO7007_MPEG_REPEAT_SEQHEADER;
+-		if (go->dvd_mode)
+-			mpeg->flags |= GO7007_MPEG_FORCE_DVD_MODE;
+-		return 0;
+-	}
+-	case GO7007IOC_S_MD_PARAMS:
+-	{
+-		struct go7007_md_params *mdp = arg;
+-
+-		if (mdp->region > 3)
+-			return -EINVAL;
+-		if (mdp->trigger > 0) {
+-			go->modet[mdp->region].pixel_threshold =
+-					mdp->pixel_threshold >> 1;
+-			go->modet[mdp->region].motion_threshold =
+-					mdp->motion_threshold >> 1;
+-			go->modet[mdp->region].mb_threshold =
+-					mdp->trigger >> 1;
+-			go->modet[mdp->region].enable = 1;
+-		} else
+-			go->modet[mdp->region].enable = 0;
+-		/* fall-through */
+-	}
+-	case GO7007IOC_G_MD_PARAMS:
+-	{
+-		struct go7007_md_params *mdp = arg;
+-		int region = mdp->region;
+-
+-		if (mdp->region > 3)
+-			return -EINVAL;
+-		memset(mdp, 0, sizeof(struct go7007_md_params));
+-		mdp->region = region;
+-		if (!go->modet[region].enable)
+-			return 0;
+-		mdp->pixel_threshold =
+-			(go->modet[region].pixel_threshold << 1) + 1;
+-		mdp->motion_threshold =
+-			(go->modet[region].motion_threshold << 1) + 1;
+-		mdp->trigger =
+-			(go->modet[region].mb_threshold << 1) + 1;
+-		return 0;
+-	}
+-	case GO7007IOC_S_MD_REGION:
+-	{
+-		struct go7007_md_region *region = arg;
+-
+-		if (region->region < 1 || region->region > 3)
+-			return -EINVAL;
+-		return clip_to_modet_map(go, region->region, region->clips);
+-	}
+-#endif
+-
+ static ssize_t go7007_read(struct file *file, char __user *data,
+ 		size_t count, loff_t *ppos)
+ {
+@@ -1779,7 +2044,9 @@ static const struct v4l2_ioctl_ops video
+ 	.vidioc_g_crop            = vidioc_g_crop,
+ 	.vidioc_s_crop            = vidioc_s_crop,
+ 	.vidioc_g_jpegcomp        = vidioc_g_jpegcomp,
+-	.vidioc_s_jpegcomp        = vidioc_s_jpegcomp,
++	.vidioc_s_jpegcomp        = vidioc_s_jpegcomp
++  ,.vidioc_querymenu=vidioc_querymenu
++  ,
+ };
+ 
+ static struct video_device go7007_template = {
+@@ -1787,13 +2054,14 @@ static struct video_device go7007_templa
+ 	.fops		= &go7007_fops,
+ 	.release	= go7007_vfl_release,
+ 	.ioctl_ops	= &video_ioctl_ops,
+-	.tvnorms	= V4L2_STD_ALL,
++	.tvnorms	= V4L2_STD_SECAM | V4L2_STD_NTSC | V4L2_STD_PAL,///V4L2_STD_ALL,
+ 	.current_norm	= V4L2_STD_NTSC,
+ };
+ 
+ int go7007_v4l2_init(struct go7007 *go)
+ {
+ 	int rv;
++  register int i;
+ 
+ 	go->video_dev = video_device_alloc();
+ 	if (go->video_dev == NULL)
+@@ -1816,8 +2084,11 @@ int go7007_v4l2_init(struct go7007 *go)
+ 	++go->ref_count;
+ 	printk(KERN_INFO "%s: registered device %s [v4l2]\n",
+ 	       go->video_dev->name, video_device_node_name(go->video_dev));
+-
+-	return 0;
++  memset(&go->fClipRegion,0,sizeof(go->fClipRegion));
++  go->fCurrentRegion=0;
++  for(i=0;i<4;i++)
++    memset(&go->modet[i],0,sizeof(go->modet[i]));
++  return 0;
+ }
+ 
+ void go7007_v4l2_remove(struct go7007 *go)
+diff -uprN -X linux-3.2.11-vanilla/Documentation/dontdiff linux-3.2.11-vanilla/drivers/staging/media/go7007/wis-tw2804.c linux-3.2.11/drivers/staging/media/go7007/wis-tw2804.c
+--- linux-3.2.11-vanilla/drivers/staging/media/go7007/wis-tw2804.c	2012-03-13 21:05:09.000000000 +0400
++++ linux-3.2.11/drivers/staging/media/go7007/wis-tw2804.c	2012-03-20 16:17:38.452746142 +0400
+@@ -21,10 +21,14 @@
+ #include <linux/videodev2.h>
+ #include <linux/ioctl.h>
+ #include <linux/slab.h>
++#include <media/v4l2-subdev.h>
 +#include <media/v4l2-device.h>
-+#include <media/v4l2-ioctl.h>
-+#include <media/videobuf2-dma-contig.h>
+ 
+ #include "wis-i2c.h"
+ 
+-struct wis_tw2804 {
++struct wis_tw2804
++{
++  struct v4l2_subdev sd;
+ 	int channel;
+ 	int norm;
+ 	int brightness;
+@@ -33,7 +37,15 @@ struct wis_tw2804 {
+ 	int hue;
+ };
+ 
+-static u8 global_registers[] = {
++static inline struct wis_tw2804 *to_state(struct v4l2_subdev *sd)
++{
++  return container_of(sd,struct wis_tw2804,sd);
++}
 +
-+#include <asm/dma.h>
++static int tw2804_log_status(struct v4l2_subdev *sd);
 +
-+#include <media/blackfin/bfin_capture.h>
-+#include <media/blackfin/ppi.h>
++static u8 global_registers[]=
++{
+ 	0x39, 0x00,
+ 	0x3a, 0xff,
+ 	0x3b, 0x84,
+@@ -44,7 +56,8 @@ static u8 global_registers[] = {
+ 	0xff, 0xff, /* Terminator (reg 0xff does not exist) */
+ };
+ 
+-static u8 channel_registers[] = {
++static u8 channel_registers[]=
++{
+ 	0x01, 0xc4,
+ 	0x02, 0xa5,
+ 	0x03, 0x20,
+@@ -105,9 +118,18 @@ static u8 channel_registers[] = {
+ 
+ static int write_reg(struct i2c_client *client, u8 reg, u8 value, int channel)
+ {
+-	return i2c_smbus_write_byte_data(client, reg | (channel << 6), value);
++  int i;
++  for(i=0;i<10;i++)
++  /*return */if(i2c_smbus_write_byte_data(client,reg|(channel<<6),value)<0)
++    return -1;
++  return 0;
+ }
+ 
++/**static u8 read_reg(struct i2c_client *client, u8 reg, int channel)
++{
++  return i2c_smbus_read_byte_data(client,reg|(channel<<6));
++}*/
 +
-+#define CAPTURE_DRV_NAME        "bfin_capture"
-+#define BCAP_MIN_NUM_BUF        2
+ static int write_regs(struct i2c_client *client, u8 *regs, int channel)
+ {
+ 	int i;
+@@ -119,183 +141,228 @@ static int write_regs(struct i2c_client
+ 	return 0;
+ }
+ 
+-static int wis_tw2804_command(struct i2c_client *client,
+-				unsigned int cmd, void *arg)
++static int wis_tw2804_command(struct i2c_client *client,unsigned int cmd,void *arg)
+ {
+-	struct wis_tw2804 *dec = i2c_get_clientdata(client);
++  struct v4l2_subdev *sd=i2c_get_clientdata(client);
++  struct wis_tw2804 *dec=to_state(sd);
++  int *input;
 +
-+struct bcap_format {
-+	char *desc;
-+	u32 pixelformat;
-+	enum v4l2_mbus_pixelcode mbus_code;
-+	int bpp; /* bits per pixel */
++  printk(KERN_INFO"wis-tw2804: call command %d\n",cmd);
++  if(cmd==DECODER_SET_CHANNEL)
++  {
++    printk(KERN_INFO"wis-tw2804: DecoderSetChannel call command %d\n",cmd);
++
++    input=arg;
++
++    if(*input<0 || *input>3)
++    {
++      printk(KERN_ERR"wis-tw2804: channel %d is not between 0 and 3!\n",*input);
++      return 0;
++    }
++    dec->channel=*input;
++    printk(KERN_DEBUG"wis-tw2804: initializing TW2804 channel %d\n",dec->channel);
++    if(dec->channel==0 && write_regs(client,global_registers,0)<0)
++    {
++      printk(KERN_ERR"wis-tw2804: error initializing TW2804 global registers\n");
++      return 0;
++    }
++    if(write_regs(client,channel_registers,dec->channel)<0)
++    {
++      printk(KERN_ERR"wis-tw2804: error initializing TW2804 channel %d\n",dec->channel);
++      return 0;
++    }
++    return 0;
++  }
++
++  if(dec->channel<0)
++  {
++    printk(KERN_DEBUG"wis-tw2804: ignoring command %08x until channel number is set\n",cmd);
++    return 0;
++  }
+ 
+-	if (cmd == DECODER_SET_CHANNEL) {
+-		int *input = arg;
++  return 0;
++}
+ 
+-		if (*input < 0 || *input > 3) {
+-			printk(KERN_ERR "wis-tw2804: channel %d is not "
+-					"between 0 and 3!\n", *input);
+-			return 0;
+-		}
+-		dec->channel = *input;
+-		printk(KERN_DEBUG "wis-tw2804: initializing TW2804 "
+-				"channel %d\n", dec->channel);
+-		if (dec->channel == 0 &&
+-				write_regs(client, global_registers, 0) < 0) {
+-			printk(KERN_ERR "wis-tw2804: error initializing "
+-					"TW2804 global registers\n");
+-			return 0;
+-		}
+-		if (write_regs(client, channel_registers, dec->channel) < 0) {
+-			printk(KERN_ERR "wis-tw2804: error initializing "
+-					"TW2804 channel %d\n", dec->channel);
+-			return 0;
+-		}
+-		return 0;
+-	}
+-
+-	if (dec->channel < 0) {
+-		printk(KERN_DEBUG "wis-tw2804: ignoring command %08x until "
+-				"channel number is set\n", cmd);
+-		return 0;
+-	}
+-
+-	switch (cmd) {
+-	case VIDIOC_S_STD:
+-	{
+-		v4l2_std_id *input = arg;
+-		u8 regs[] = {
+-			0x01, *input & V4L2_STD_NTSC ? 0xc4 : 0x84,
+-			0x09, *input & V4L2_STD_NTSC ? 0x07 : 0x04,
+-			0x0a, *input & V4L2_STD_NTSC ? 0xf0 : 0x20,
+-			0x0b, *input & V4L2_STD_NTSC ? 0x07 : 0x04,
+-			0x0c, *input & V4L2_STD_NTSC ? 0xf0 : 0x20,
+-			0x0d, *input & V4L2_STD_NTSC ? 0x40 : 0x4a,
+-			0x16, *input & V4L2_STD_NTSC ? 0x00 : 0x40,
+-			0x17, *input & V4L2_STD_NTSC ? 0x00 : 0x40,
+-			0x20, *input & V4L2_STD_NTSC ? 0x07 : 0x0f,
+-			0x21, *input & V4L2_STD_NTSC ? 0x07 : 0x0f,
+-			0xff,	0xff,
+-		};
+-		write_regs(client, regs, dec->channel);
+-		dec->norm = *input;
+-		break;
+-	}
+-	case VIDIOC_QUERYCTRL:
+-	{
+-		struct v4l2_queryctrl *ctrl = arg;
+-
+-		switch (ctrl->id) {
+-		case V4L2_CID_BRIGHTNESS:
+-			ctrl->type = V4L2_CTRL_TYPE_INTEGER;
+-			strncpy(ctrl->name, "Brightness", sizeof(ctrl->name));
+-			ctrl->minimum = 0;
+-			ctrl->maximum = 255;
+-			ctrl->step = 1;
+-			ctrl->default_value = 128;
+-			ctrl->flags = 0;
+-			break;
+-		case V4L2_CID_CONTRAST:
+-			ctrl->type = V4L2_CTRL_TYPE_INTEGER;
+-			strncpy(ctrl->name, "Contrast", sizeof(ctrl->name));
+-			ctrl->minimum = 0;
+-			ctrl->maximum = 255;
+-			ctrl->step = 1;
+-			ctrl->default_value = 128;
+-			ctrl->flags = 0;
+-			break;
+-		case V4L2_CID_SATURATION:
+-			ctrl->type = V4L2_CTRL_TYPE_INTEGER;
+-			strncpy(ctrl->name, "Saturation", sizeof(ctrl->name));
+-			ctrl->minimum = 0;
+-			ctrl->maximum = 255;
+-			ctrl->step = 1;
+-			ctrl->default_value = 128;
+-			ctrl->flags = 0;
+-			break;
+-		case V4L2_CID_HUE:
+-			ctrl->type = V4L2_CTRL_TYPE_INTEGER;
+-			strncpy(ctrl->name, "Hue", sizeof(ctrl->name));
+-			ctrl->minimum = 0;
+-			ctrl->maximum = 255;
+-			ctrl->step = 1;
+-			ctrl->default_value = 128;
+-			ctrl->flags = 0;
+-			break;
+-		}
+-		break;
+-	}
+-	case VIDIOC_S_CTRL:
+-	{
+-		struct v4l2_control *ctrl = arg;
+-
+-		switch (ctrl->id) {
+-		case V4L2_CID_BRIGHTNESS:
+-			if (ctrl->value > 255)
+-				dec->brightness = 255;
+-			else if (ctrl->value < 0)
+-				dec->brightness = 0;
+-			else
+-				dec->brightness = ctrl->value;
+-			write_reg(client, 0x12, dec->brightness, dec->channel);
+-			break;
+-		case V4L2_CID_CONTRAST:
+-			if (ctrl->value > 255)
+-				dec->contrast = 255;
+-			else if (ctrl->value < 0)
+-				dec->contrast = 0;
+-			else
+-				dec->contrast = ctrl->value;
+-			write_reg(client, 0x11, dec->contrast, dec->channel);
+-			break;
+-		case V4L2_CID_SATURATION:
+-			if (ctrl->value > 255)
+-				dec->saturation = 255;
+-			else if (ctrl->value < 0)
+-				dec->saturation = 0;
+-			else
+-				dec->saturation = ctrl->value;
+-			write_reg(client, 0x10, dec->saturation, dec->channel);
+-			break;
+-		case V4L2_CID_HUE:
+-			if (ctrl->value > 255)
+-				dec->hue = 255;
+-			else if (ctrl->value < 0)
+-				dec->hue = 0;
+-			else
+-				dec->hue = ctrl->value;
+-			write_reg(client, 0x0f, dec->hue, dec->channel);
+-			break;
+-		}
+-		break;
+-	}
+-	case VIDIOC_G_CTRL:
+-	{
+-		struct v4l2_control *ctrl = arg;
+-
+-		switch (ctrl->id) {
+-		case V4L2_CID_BRIGHTNESS:
+-			ctrl->value = dec->brightness;
+-			break;
+-		case V4L2_CID_CONTRAST:
+-			ctrl->value = dec->contrast;
+-			break;
+-		case V4L2_CID_SATURATION:
+-			ctrl->value = dec->saturation;
+-			break;
+-		case V4L2_CID_HUE:
+-			ctrl->value = dec->hue;
+-			break;
+-		}
+-		break;
+-	}
+-	default:
+-		break;
+-	}
+-	return 0;
++static int tw2804_log_status(struct v4l2_subdev *sd)
++{
++  struct wis_tw2804 *state=to_state(sd);
++  v4l2_info(sd, "Standard: %s\n",state->norm==V4L2_STD_NTSC ? "NTSC" : state->norm==V4L2_STD_PAL ? "PAL" : state->norm==V4L2_STD_SECAM ? "SECAM" : "unknown");
++  v4l2_info(sd,"Input: %d\n",state->channel);
++  v4l2_info(sd,"Brightness: %d\n",state->brightness);
++  v4l2_info(sd,"Contrast: %d\n",state->contrast);
++  v4l2_info(sd,"Saturation: %d\n",state->saturation);
++  v4l2_info(sd,"Hue: %d\n",state->hue);
++  return 0;
+ }
+ 
++static int tw2804_queryctrl(struct v4l2_subdev *sd, struct v4l2_queryctrl *query)
++{
++  static const u32 user_ctrls[]=
++  {
++    V4L2_CID_USER_CLASS,
++    V4L2_CID_BRIGHTNESS,
++    V4L2_CID_CONTRAST,
++    V4L2_CID_SATURATION,
++    V4L2_CID_HUE,
++    0
++  };
++
++  static const u32 *ctrl_classes[]=
++  {
++    user_ctrls,
++    NULL
++  };
++
++  query->id=v4l2_ctrl_next(ctrl_classes,query->id);
++
++  switch (query->id)
++  {
++    case V4L2_CID_USER_CLASS:
++      return v4l2_ctrl_query_fill(query, 0, 0, 0, 0);
++    case V4L2_CID_BRIGHTNESS:
++      return v4l2_ctrl_query_fill(query, 0, 255, 1, 128);
++    case V4L2_CID_CONTRAST:
++      return v4l2_ctrl_query_fill(query, 0, 255, 1, 128);
++    case V4L2_CID_SATURATION:
++      return v4l2_ctrl_query_fill(query, 0, 255, 1, 128);
++    case V4L2_CID_HUE:
++      return v4l2_ctrl_query_fill(query, 0, 255, 1, 128);
++    default:
++      return -EINVAL;
++  }
++}
++
++static int tw2804_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
++{
++  struct wis_tw2804 *dec=to_state(sd);
++  struct i2c_client *client=v4l2_get_subdevdata(sd);
++
++  int Addr=0x00;
++  switch(ctrl->id)
++  {
++    case V4L2_CID_BRIGHTNESS:
++      Addr=0x12;
++      break;
++    case V4L2_CID_CONTRAST:
++      Addr=0x11;
++      break;
++    case V4L2_CID_SATURATION:
++      Addr=0x10;
++      break;
++    case V4L2_CID_HUE:
++      Addr=0x0f;
++      break;
++    default:
++      return -EINVAL;
++  }
++  ctrl->value=ctrl->value>255 ? 255 : (ctrl->value<0 ? 0 : ctrl->value);
++  Addr=write_reg(client,Addr,ctrl->value,dec->channel);
++  if(Addr<0)
++  {
++    printk(KERN_INFO"wis_tw2804: can`t set_ctrl value:id=%d;value=%d",ctrl->id,ctrl->value);
++    return Addr;
++  }
++  printk(KERN_INFO"wis_tw2804: set_ctrl value:id=%d;value=%d",ctrl->id,ctrl->value);
++  switch(ctrl->id)
++  {
++    case V4L2_CID_BRIGHTNESS:
++      dec->brightness=ctrl->value;
++      break;
++    case V4L2_CID_CONTRAST:
++      dec->contrast=ctrl->value;
++      break;
++    case V4L2_CID_SATURATION:
++      dec->saturation=ctrl->value;
++      break;
++    case V4L2_CID_HUE:
++      dec->hue=ctrl->value;
++      break;
++    default:
++      return -EINVAL;
++  }
++  return 0;
++}
++
++static int tw2804_g_ctrl(struct v4l2_subdev *sd,struct v4l2_control *ctrl)
++{
++  struct wis_tw2804 *state=to_state(sd);
++ /// struct i2c_client *client=v4l2_get_subdevdata(sd);
++
++  switch(ctrl->id)
++  {
++    case V4L2_CID_BRIGHTNESS:
++      ctrl->value=state->brightness;//=read_reg(client,0x12,state->channel);
++      break;
++    case V4L2_CID_CONTRAST:
++      ctrl->value=state->contrast;//=read_reg(client,0x11,state->channel);
++      break;
++    case V4L2_CID_SATURATION:
++      ctrl->value=state->saturation;//=read_reg(client,0x10,state->channel);
++      break;
++    case V4L2_CID_HUE:
++      ctrl->value=state->hue;//=read_reg(client,0x0f,state->channel);
++      break;
++    default:
++      return -EINVAL;
++  }
++  return 0;
++}
++
++static int tw2804_s_std(struct v4l2_subdev *sd, v4l2_std_id norm)
++{
++  struct wis_tw2804 *dec=to_state(sd);
++  struct i2c_client *client=v4l2_get_subdevdata(sd);
++
++///      v4l2_std_id *input=arg;
++  u8 regs[]=
++  {
++    0x01,norm&V4L2_STD_NTSC ? 0xc4 : 0x84,
++    0x09,norm&V4L2_STD_NTSC ? 0x07 : 0x04,
++    0x0a,norm&V4L2_STD_NTSC ? 0xf0 : 0x20,
++    0x0b,norm&V4L2_STD_NTSC ? 0x07 : 0x04,
++    0x0c,norm&V4L2_STD_NTSC ? 0xf0 : 0x20,
++    0x0d,norm&V4L2_STD_NTSC ? 0x40 : 0x4a,
++    0x16,norm&V4L2_STD_NTSC ? 0x00 : 0x40,
++    0x17,norm&V4L2_STD_NTSC ? 0x00 : 0x40,
++    0x20,norm&V4L2_STD_NTSC ? 0x07 : 0x0f,
++    0x21,norm&V4L2_STD_NTSC ? 0x07 : 0x0f,
++    0xff,0xff,
++  };
++  write_regs(client,regs,dec->channel);
++  dec->norm=norm;
++  return 0;
++}
++
++static const struct v4l2_subdev_core_ops tw2804_core_ops=
++{
++  .log_status=tw2804_log_status,
++  .g_ctrl=tw2804_g_ctrl,
++  .s_ctrl=tw2804_s_ctrl,
++  .queryctrl=tw2804_queryctrl,
++  .s_std=tw2804_s_std,
 +};
 +
-+struct bcap_buffer {
-+	struct vb2_buffer vb;
-+	struct list_head list;
-+};
-+
-+struct bcap_device {
-+	/* capture device instance */
-+	struct v4l2_device v4l2_dev;
-+	/* v4l2 control handler */
-+	struct v4l2_ctrl_handler ctrl_handler;
-+	/* device node data */
-+	struct video_device *video_dev;
-+	/* sub device instance */
-+	struct v4l2_subdev *sd;
-+	/* capture config */
-+	struct bfin_capture_config *cfg;
-+	/* ppi interface */
-+	struct ppi_if *ppi;
-+	/* current input */
-+	unsigned int cur_input;
-+	/* current selected standard */
-+	v4l2_std_id std;
-+	/* used to store pixel format */
-+	struct v4l2_pix_format fmt;
-+	/* bits per pixel*/
-+	int bpp;
-+	/* used to store sensor supported format */
-+	struct bcap_format *sensor_formats;
-+	/* number of sensor formats array */
-+	int num_sensor_formats;
-+	/* pointing to current video buffer */
-+	struct bcap_buffer *cur_frm;
-+	/* pointing to next video buffer */
-+	struct bcap_buffer *next_frm;
-+	/* buffer queue used in videobuf2 */
-+	struct vb2_queue buffer_queue;
-+	/* allocator-specific contexts for each plane */
-+	struct vb2_alloc_ctx *alloc_ctx;
-+	/* queue of filled frames */
-+	struct list_head dma_queue;
-+	/* used in videobuf2 callback */
-+	spinlock_t lock;
-+	/* used to access capture device */
-+	struct mutex mutex;
-+	/* used to wait ppi to complete one transfer */
-+	struct completion comp;
-+	/* prepare to stop */
-+	bool stop;
-+};
-+
-+struct bcap_fh {
-+	struct v4l2_fh fh;
-+	/* indicates whether this file handle is doing IO */
-+	bool io_allowed;
-+};
-+
-+static const struct bcap_format bcap_formats[] = {
-+	{
-+		.desc        = "YCbCr 4:2:2 Interleaved UYVY",
-+		.pixelformat = V4L2_PIX_FMT_UYVY,
-+		.mbus_code   = V4L2_MBUS_FMT_UYVY8_2X8,
-+		.bpp         = 16,
-+	},
-+	{
-+		.desc        = "YCbCr 4:2:2 Interleaved YUYV",
-+		.pixelformat = V4L2_PIX_FMT_YUYV,
-+		.mbus_code   = V4L2_MBUS_FMT_YUYV8_2X8,
-+		.bpp         = 16,
-+	},
-+	{
-+		.desc        = "RGB 565",
-+		.pixelformat = V4L2_PIX_FMT_RGB565,
-+		.mbus_code   = V4L2_MBUS_FMT_RGB565_2X8_LE,
-+		.bpp         = 16,
-+	},
-+	{
-+		.desc        = "RGB 444",
-+		.pixelformat = V4L2_PIX_FMT_RGB444,
-+		.mbus_code   = V4L2_MBUS_FMT_RGB444_2X8_PADHI_LE,
-+		.bpp         = 16,
-+	},
-+
-+};
-+#define BCAP_MAX_FMTS ARRAY_SIZE(bcap_formats)
-+
-+static irqreturn_t bcap_isr(int irq, void *dev_id);
-+
-+static struct bcap_buffer *to_bcap_vb(struct vb2_buffer *vb)
-+{
-+	return container_of(vb, struct bcap_buffer, vb);
-+}
-+
-+static int bcap_init_sensor_formats(struct bcap_device *bcap_dev)
-+{
-+	enum v4l2_mbus_pixelcode code;
-+	struct bcap_format *sf;
-+	unsigned int num_formats = 0;
-+	int i, j;
-+
-+	while (!v4l2_subdev_call(bcap_dev->sd, video,
-+				enum_mbus_fmt, num_formats, &code))
-+		num_formats++;
-+	if (!num_formats)
-+		return -ENXIO;
-+
-+	sf = kzalloc(num_formats * sizeof(*sf), GFP_KERNEL);
-+	if (!sf)
-+		return -ENOMEM;
-+
-+	for (i = 0; i < num_formats; i++) {
-+		v4l2_subdev_call(bcap_dev->sd, video,
-+				enum_mbus_fmt, i, &code);
-+		for (j = 0; j < BCAP_MAX_FMTS; j++)
-+			if (code == bcap_formats[j].mbus_code)
-+				break;
-+		if (j == BCAP_MAX_FMTS) {
-+			/* we don't allow this sensor working with our bridge */
-+			kfree(sf);
-+			return -EINVAL;
-+		}
-+		sf[i] = bcap_formats[j];
-+	}
-+	bcap_dev->sensor_formats = sf;
-+	bcap_dev->num_sensor_formats = num_formats;
-+	return 0;
-+}
-+
-+static void bcap_free_sensor_formats(struct bcap_device *bcap_dev)
-+{
-+	bcap_dev->num_sensor_formats = 0;
-+	kfree(bcap_dev->sensor_formats);
-+	bcap_dev->sensor_formats = NULL;
-+}
-+
-+static int bcap_open(struct file *file)
-+{
-+	struct bcap_device *bcap_dev = video_drvdata(file);
-+	struct video_device *vfd = bcap_dev->video_dev;
-+	struct bcap_fh *bcap_fh;
-+
-+	if (!bcap_dev->sd) {
-+		v4l2_err(&bcap_dev->v4l2_dev, "No sub device registered\n");
-+		return -ENODEV;
-+	}
-+
-+	bcap_fh = kzalloc(sizeof(*bcap_fh), GFP_KERNEL);
-+	if (!bcap_fh) {
-+		v4l2_err(&bcap_dev->v4l2_dev,
-+			 "unable to allocate memory for file handle object\n");
-+		return -ENOMEM;
-+	}
-+
-+	v4l2_fh_init(&bcap_fh->fh, vfd);
-+
-+	/* store pointer to v4l2_fh in private_data member of file */
-+	file->private_data = &bcap_fh->fh;
-+	v4l2_fh_add(&bcap_fh->fh);
-+	bcap_fh->io_allowed = false;
-+	return 0;
-+}
-+
-+static int bcap_release(struct file *file)
-+{
-+	struct bcap_device *bcap_dev = video_drvdata(file);
-+	struct v4l2_fh *fh = file->private_data;
-+	struct bcap_fh *bcap_fh = container_of(fh, struct bcap_fh, fh);
-+
-+	/* if this instance is doing IO */
-+	if (bcap_fh->io_allowed)
-+		vb2_queue_release(&bcap_dev->buffer_queue);
-+
-+	file->private_data = NULL;
-+	v4l2_fh_del(&bcap_fh->fh);
-+	v4l2_fh_exit(&bcap_fh->fh);
-+	kfree(bcap_fh);
-+	return 0;
-+}
-+
-+static int bcap_mmap(struct file *file, struct vm_area_struct *vma)
-+{
-+	struct bcap_device *bcap_dev = video_drvdata(file);
-+
-+	return vb2_mmap(&bcap_dev->buffer_queue, vma);
-+}
-+
-+#ifndef CONFIG_MMU
-+static unsigned long bcap_get_unmapped_area(struct file *file,
-+					    unsigned long addr,
-+					    unsigned long len,
-+					    unsigned long pgoff,
-+					    unsigned long flags)
-+{
-+	struct bcap_device *bcap_dev = video_drvdata(file);
-+
-+	return vb2_get_unmapped_area(&bcap_dev->buffer_queue,
-+				     addr,
-+				     len,
-+				     pgoff,
-+				     flags);
-+}
-+#endif
-+
-+static unsigned int bcap_poll(struct file *file, poll_table *wait)
-+{
-+	struct bcap_device *bcap_dev = video_drvdata(file);
-+
-+	return vb2_poll(&bcap_dev->buffer_queue, file, wait);
-+}
-+
-+static int bcap_queue_setup(struct vb2_queue *vq,
-+				const struct v4l2_format *fmt,
-+				unsigned int *nbuffers, unsigned int *nplanes,
-+				unsigned int sizes[], void *alloc_ctxs[])
-+{
-+	struct bcap_device *bcap_dev = vb2_get_drv_priv(vq);
-+
-+	if (*nbuffers < BCAP_MIN_NUM_BUF)
-+		*nbuffers = BCAP_MIN_NUM_BUF;
-+
-+	*nplanes = 1;
-+	sizes[0] = bcap_dev->fmt.sizeimage;
-+	alloc_ctxs[0] = bcap_dev->alloc_ctx;
-+
-+	return 0;
-+}
-+
-+static int bcap_buffer_init(struct vb2_buffer *vb)
-+{
-+	struct bcap_buffer *buf = to_bcap_vb(vb);
-+
-+	INIT_LIST_HEAD(&buf->list);
-+	return 0;
-+}
-+
-+static int bcap_buffer_prepare(struct vb2_buffer *vb)
-+{
-+	struct bcap_device *bcap_dev = vb2_get_drv_priv(vb->vb2_queue);
-+	struct bcap_buffer *buf = to_bcap_vb(vb);
-+	unsigned long size;
-+
-+	size = bcap_dev->fmt.sizeimage;
-+	if (vb2_plane_size(vb, 0) < size) {
-+		v4l2_err(&bcap_dev->v4l2_dev, "buffer too small (%lu < %lu)\n",
-+				vb2_plane_size(vb, 0), size);
-+		return -EINVAL;
-+	}
-+	vb2_set_plane_payload(&buf->vb, 0, size);
-+
-+	return 0;
-+}
-+
-+static void bcap_buffer_queue(struct vb2_buffer *vb)
-+{
-+	struct bcap_device *bcap_dev = vb2_get_drv_priv(vb->vb2_queue);
-+	struct bcap_buffer *buf = to_bcap_vb(vb);
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&bcap_dev->lock, flags);
-+	list_add_tail(&buf->list, &bcap_dev->dma_queue);
-+	spin_unlock_irqrestore(&bcap_dev->lock, flags);
-+}
-+
-+static void bcap_buffer_cleanup(struct vb2_buffer *vb)
-+{
-+	struct bcap_device *bcap_dev = vb2_get_drv_priv(vb->vb2_queue);
-+	struct bcap_buffer *buf = to_bcap_vb(vb);
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&bcap_dev->lock, flags);
-+	list_del_init(&buf->list);
-+	spin_unlock_irqrestore(&bcap_dev->lock, flags);
-+}
-+
-+static void bcap_lock(struct vb2_queue *vq)
-+{
-+	struct bcap_device *bcap_dev = vb2_get_drv_priv(vq);
-+	mutex_lock(&bcap_dev->mutex);
-+}
-+
-+static void bcap_unlock(struct vb2_queue *vq)
-+{
-+	struct bcap_device *bcap_dev = vb2_get_drv_priv(vq);
-+	mutex_unlock(&bcap_dev->mutex);
-+}
-+
-+static int bcap_start_streaming(struct vb2_queue *vq, unsigned int count)
-+{
-+	struct bcap_device *bcap_dev = vb2_get_drv_priv(vq);
-+	struct ppi_if *ppi = bcap_dev->ppi;
-+	struct ppi_params params;
-+	int ret;
-+
-+	/* enable streamon on the sub device */
-+	ret = v4l2_subdev_call(bcap_dev->sd, video, s_stream, 1);
-+	if (ret && (ret != -ENOIOCTLCMD)) {
-+		v4l2_err(&bcap_dev->v4l2_dev, "stream on failed in subdev\n");
-+		return ret;
-+	}
-+
-+	/* set ppi params */
-+	params.width = bcap_dev->fmt.width;
-+	params.height = bcap_dev->fmt.height;
-+	params.bpp = bcap_dev->bpp;
-+	params.ppi_control = bcap_dev->cfg->ppi_control;
-+	params.int_mask = bcap_dev->cfg->int_mask;
-+	params.blank_clocks = bcap_dev->cfg->blank_clocks;
-+	ret = ppi->ops->set_params(ppi, &params);
-+	if (ret < 0) {
-+		v4l2_err(&bcap_dev->v4l2_dev,
-+				"Error in setting ppi params\n");
-+		return ret;
-+	}
-+
-+	/* attach ppi DMA irq handler */
-+	ret = ppi->ops->attach_irq(ppi, bcap_isr);
-+	if (ret < 0) {
-+		v4l2_err(&bcap_dev->v4l2_dev,
-+				"Error in attaching interrupt handler\n");
-+		return ret;
-+	}
-+
-+	INIT_COMPLETION(bcap_dev->comp);
-+	bcap_dev->stop = false;
-+	return 0;
-+}
-+
-+static int bcap_stop_streaming(struct vb2_queue *vq)
-+{
-+	struct bcap_device *bcap_dev = vb2_get_drv_priv(vq);
-+	struct ppi_if *ppi = bcap_dev->ppi;
-+	int ret;
-+
-+	if (!vb2_is_streaming(vq))
-+		return 0;
-+
-+	bcap_dev->stop = true;
-+	wait_for_completion(&bcap_dev->comp);
-+	ppi->ops->stop(ppi);
-+	ppi->ops->detach_irq(ppi);
-+	ret = v4l2_subdev_call(bcap_dev->sd, video, s_stream, 0);
-+	if (ret && (ret != -ENOIOCTLCMD))
-+		v4l2_err(&bcap_dev->v4l2_dev,
-+				"stream off failed in subdev\n");
-+
-+	/* release all active buffers */
-+	while (!list_empty(&bcap_dev->dma_queue)) {
-+		bcap_dev->next_frm = list_entry(bcap_dev->dma_queue.next,
-+						struct bcap_buffer, list);
-+		list_del(&bcap_dev->next_frm->list);
-+		vb2_buffer_done(&bcap_dev->next_frm->vb, VB2_BUF_STATE_ERROR);
-+	}
-+	return 0;
-+}
-+
-+static struct vb2_ops bcap_video_qops = {
-+	.queue_setup            = bcap_queue_setup,
-+	.buf_init               = bcap_buffer_init,
-+	.buf_prepare            = bcap_buffer_prepare,
-+	.buf_cleanup            = bcap_buffer_cleanup,
-+	.buf_queue              = bcap_buffer_queue,
-+	.wait_prepare           = bcap_unlock,
-+	.wait_finish            = bcap_lock,
-+	.start_streaming        = bcap_start_streaming,
-+	.stop_streaming         = bcap_stop_streaming,
-+};
-+
-+static int bcap_reqbufs(struct file *file, void *priv,
-+			struct v4l2_requestbuffers *req_buf)
-+{
-+	struct bcap_device *bcap_dev = video_drvdata(file);
-+	struct vb2_queue *vq = &bcap_dev->buffer_queue;
-+	struct v4l2_fh *fh = file->private_data;
-+	struct bcap_fh *bcap_fh = container_of(fh, struct bcap_fh, fh);
-+
-+	if (vb2_is_busy(vq))
-+		return -EBUSY;
-+
-+	bcap_fh->io_allowed = true;
-+
-+	return vb2_reqbufs(vq, req_buf);
-+}
-+
-+static int bcap_querybuf(struct file *file, void *priv,
-+				struct v4l2_buffer *buf)
-+{
-+	struct bcap_device *bcap_dev = video_drvdata(file);
-+
-+	return vb2_querybuf(&bcap_dev->buffer_queue, buf);
-+}
-+
-+static int bcap_qbuf(struct file *file, void *priv,
-+			struct v4l2_buffer *buf)
-+{
-+	struct bcap_device *bcap_dev = video_drvdata(file);
-+	struct v4l2_fh *fh = file->private_data;
-+	struct bcap_fh *bcap_fh = container_of(fh, struct bcap_fh, fh);
-+
-+	if (!bcap_fh->io_allowed)
-+		return -EBUSY;
-+
-+	return vb2_qbuf(&bcap_dev->buffer_queue, buf);
-+}
-+
-+static int bcap_dqbuf(struct file *file, void *priv,
-+			struct v4l2_buffer *buf)
-+{
-+	struct bcap_device *bcap_dev = video_drvdata(file);
-+	struct v4l2_fh *fh = file->private_data;
-+	struct bcap_fh *bcap_fh = container_of(fh, struct bcap_fh, fh);
-+
-+	if (!bcap_fh->io_allowed)
-+		return -EBUSY;
-+
-+	return vb2_dqbuf(&bcap_dev->buffer_queue,
-+				buf, file->f_flags & O_NONBLOCK);
-+}
-+
-+static irqreturn_t bcap_isr(int irq, void *dev_id)
-+{
-+	struct ppi_if *ppi = dev_id;
-+	struct bcap_device *bcap_dev = ppi->priv;
-+	struct timeval timevalue;
-+	struct vb2_buffer *vb = &bcap_dev->cur_frm->vb;
-+	dma_addr_t addr;
-+
-+	spin_lock(&bcap_dev->lock);
-+
-+	if (bcap_dev->cur_frm != bcap_dev->next_frm) {
-+		do_gettimeofday(&timevalue);
-+		vb->v4l2_buf.timestamp = timevalue;
-+		vb2_buffer_done(vb, VB2_BUF_STATE_DONE);
-+		bcap_dev->cur_frm = bcap_dev->next_frm;
-+	}
-+
-+	ppi->ops->stop(ppi);
-+
-+	if (bcap_dev->stop) {
-+		complete(&bcap_dev->comp);
-+	} else {
-+		if (!list_empty(&bcap_dev->dma_queue)) {
-+			bcap_dev->next_frm = list_entry(bcap_dev->dma_queue.next,
-+						struct bcap_buffer, list);
-+			list_del(&bcap_dev->next_frm->list);
-+			addr = vb2_dma_contig_plane_dma_addr(&bcap_dev->next_frm->vb, 0);
-+			ppi->ops->update_addr(ppi, (unsigned long)addr);
-+		}
-+		ppi->ops->start(ppi);
-+	}
-+
-+	spin_unlock(&bcap_dev->lock);
-+
-+	return IRQ_HANDLED;
-+}
-+
-+static int bcap_streamon(struct file *file, void *priv,
-+				enum v4l2_buf_type buf_type)
-+{
-+	struct bcap_device *bcap_dev = video_drvdata(file);
-+	struct bcap_fh *fh = file->private_data;
-+	struct ppi_if *ppi = bcap_dev->ppi;
-+	dma_addr_t addr;
-+	int ret;
-+
-+	if (!fh->io_allowed)
-+		return -EBUSY;
-+
-+	/* call streamon to start streaming in videobuf */
-+	ret = vb2_streamon(&bcap_dev->buffer_queue, buf_type);
-+	if (ret)
-+		return ret;
-+
-+	/* if dma queue is empty, return error */
-+	if (list_empty(&bcap_dev->dma_queue)) {
-+		v4l2_err(&bcap_dev->v4l2_dev, "dma queue is empty\n");
-+		ret = -EINVAL;
-+		goto err;
-+	}
-+
-+	/* get the next frame from the dma queue */
-+	bcap_dev->next_frm = list_entry(bcap_dev->dma_queue.next,
-+					struct bcap_buffer, list);
-+	bcap_dev->cur_frm = bcap_dev->next_frm;
-+	/* remove buffer from the dma queue */
-+	list_del(&bcap_dev->cur_frm->list);
-+	addr = vb2_dma_contig_plane_dma_addr(&bcap_dev->cur_frm->vb, 0);
-+	/* update DMA address */
-+	ppi->ops->update_addr(ppi, (unsigned long)addr);
-+	/* enable ppi */
-+	ppi->ops->start(ppi);
-+
-+	return 0;
-+err:
-+	vb2_streamoff(&bcap_dev->buffer_queue, buf_type);
-+	return ret;
-+}
-+
-+static int bcap_streamoff(struct file *file, void *priv,
-+				enum v4l2_buf_type buf_type)
-+{
-+	struct bcap_device *bcap_dev = video_drvdata(file);
-+	struct bcap_fh *fh = file->private_data;
-+
-+	if (!fh->io_allowed)
-+		return -EBUSY;
-+
-+	return vb2_streamoff(&bcap_dev->buffer_queue, buf_type);
-+}
-+
-+static int bcap_querystd(struct file *file, void *priv, v4l2_std_id *std)
-+{
-+	struct bcap_device *bcap_dev = video_drvdata(file);
-+
-+	return v4l2_subdev_call(bcap_dev->sd, video, querystd, std);
-+}
-+
-+static int bcap_g_std(struct file *file, void *priv, v4l2_std_id *std)
-+{
-+	struct bcap_device *bcap_dev = video_drvdata(file);
-+
-+	*std = bcap_dev->std;
-+	return 0;
-+}
-+
-+static int bcap_s_std(struct file *file, void *priv, v4l2_std_id *std)
-+{
-+	struct bcap_device *bcap_dev = video_drvdata(file);
-+	int ret;
-+
-+	if (vb2_is_busy(&bcap_dev->buffer_queue))
-+		return -EBUSY;
-+
-+	ret = v4l2_subdev_call(bcap_dev->sd, core, s_std, *std);
-+	if (ret < 0)
-+		return ret;
-+
-+	bcap_dev->std = *std;
-+	return 0;
-+}
-+
-+static int bcap_enum_input(struct file *file, void *priv,
-+				struct v4l2_input *input)
-+{
-+	struct bcap_device *bcap_dev = video_drvdata(file);
-+	struct bfin_capture_config *config = bcap_dev->cfg;
-+	int ret;
-+	u32 status;
-+
-+	if (input->index >= config->num_inputs)
-+		return -EINVAL;
-+
-+	*input = config->inputs[input->index];
-+	/* get input status */
-+	ret = v4l2_subdev_call(bcap_dev->sd, video, g_input_status, &status);
-+	if (!ret)
-+		input->status = status;
-+	return 0;
-+}
-+
-+static int bcap_g_input(struct file *file, void *priv, unsigned int *index)
-+{
-+	struct bcap_device *bcap_dev = video_drvdata(file);
-+
-+	*index = bcap_dev->cur_input;
-+	return 0;
-+}
-+
-+static int bcap_s_input(struct file *file, void *priv, unsigned int index)
-+{
-+	struct bcap_device *bcap_dev = video_drvdata(file);
-+	struct bfin_capture_config *config = bcap_dev->cfg;
-+	struct bcap_route *route;
-+	int ret;
-+
-+	if (vb2_is_busy(&bcap_dev->buffer_queue))
-+		return -EBUSY;
-+
-+	if (index >= config->num_inputs)
-+		return -EINVAL;
-+
-+	route = &config->routes[index];
-+	ret = v4l2_subdev_call(bcap_dev->sd, video, s_routing,
-+				route->input, route->output, 0);
-+	if ((ret < 0) && (ret != -ENOIOCTLCMD)) {
-+		v4l2_err(&bcap_dev->v4l2_dev, "Failed to set input\n");
-+		return ret;
-+	}
-+	bcap_dev->cur_input = index;
-+	return 0;
-+}
-+
-+static int bcap_try_format(struct bcap_device *bcap,
-+				struct v4l2_pix_format *pixfmt,
-+				enum v4l2_mbus_pixelcode *mbus_code,
-+				int *bpp)
-+{
-+	struct bcap_format *sf = bcap->sensor_formats;
-+	struct bcap_format *fmt = NULL;
-+	struct v4l2_mbus_framefmt mbus_fmt;
-+	int ret, i;
-+
-+	for (i = 0; i < bcap->num_sensor_formats; i++) {
-+		fmt = &sf[i];
-+		if (pixfmt->pixelformat == fmt->pixelformat)
-+			break;
-+	}
-+	if (i == bcap->num_sensor_formats)
-+		fmt = &sf[0];
-+
-+	if (mbus_code)
-+		*mbus_code = fmt->mbus_code;
-+	if (bpp)
-+		*bpp = fmt->bpp;
-+	v4l2_fill_mbus_format(&mbus_fmt, pixfmt, fmt->mbus_code);
-+	ret = v4l2_subdev_call(bcap->sd, video,
-+				try_mbus_fmt, &mbus_fmt);
-+	if (ret < 0)
-+		return ret;
-+	v4l2_fill_pix_format(pixfmt, &mbus_fmt);
-+	pixfmt->bytesperline = pixfmt->width * fmt->bpp / 8;
-+	pixfmt->sizeimage = pixfmt->bytesperline * pixfmt->height;
-+	return 0;
-+}
-+
-+static int bcap_enum_fmt_vid_cap(struct file *file, void  *priv,
-+					struct v4l2_fmtdesc *fmt)
-+{
-+	struct bcap_device *bcap_dev = video_drvdata(file);
-+	struct bcap_format *sf = bcap_dev->sensor_formats;
-+
-+	if (fmt->index >= bcap_dev->num_sensor_formats)
-+		return -EINVAL;
-+
-+	fmt->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-+	strlcpy(fmt->description,
-+		sf[fmt->index].desc,
-+		sizeof(fmt->description));
-+	fmt->pixelformat = sf[fmt->index].pixelformat;
-+	return 0;
-+}
-+
-+static int bcap_try_fmt_vid_cap(struct file *file, void *priv,
-+					struct v4l2_format *fmt)
-+{
-+	struct bcap_device *bcap_dev = video_drvdata(file);
-+	struct v4l2_pix_format *pixfmt = &fmt->fmt.pix;
-+
-+	return bcap_try_format(bcap_dev, pixfmt, NULL, NULL);
-+}
-+
-+static int bcap_g_fmt_vid_cap(struct file *file, void *priv,
-+				struct v4l2_format *fmt)
-+{
-+	struct bcap_device *bcap_dev = video_drvdata(file);
-+
-+	fmt->fmt.pix = bcap_dev->fmt;
-+	return 0;
-+}
-+
-+static int bcap_s_fmt_vid_cap(struct file *file, void *priv,
-+				struct v4l2_format *fmt)
-+{
-+	struct bcap_device *bcap_dev = video_drvdata(file);
-+	struct v4l2_mbus_framefmt mbus_fmt;
-+	enum v4l2_mbus_pixelcode mbus_code;
-+	struct v4l2_pix_format *pixfmt = &fmt->fmt.pix;
-+	int ret, bpp;
-+
-+	if (vb2_is_busy(&bcap_dev->buffer_queue))
-+		return -EBUSY;
-+
-+	/* see if format works */
-+	ret = bcap_try_format(bcap_dev, pixfmt, &mbus_code, &bpp);
-+	if (ret < 0)
-+		return ret;
-+
-+	v4l2_fill_mbus_format(&mbus_fmt, pixfmt, mbus_code);
-+	ret = v4l2_subdev_call(bcap_dev->sd, video, s_mbus_fmt, &mbus_fmt);
-+	if (ret < 0)
-+		return ret;
-+	bcap_dev->fmt = *pixfmt;
-+	bcap_dev->bpp = bpp;
-+	return 0;
-+}
-+
-+static int bcap_querycap(struct file *file, void  *priv,
-+				struct v4l2_capability *cap)
-+{
-+	struct bcap_device *bcap_dev = video_drvdata(file);
-+
-+	cap->capabilities = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
-+	strlcpy(cap->driver, CAPTURE_DRV_NAME, sizeof(cap->driver));
-+	strlcpy(cap->bus_info, "Blackfin Platform", sizeof(cap->bus_info));
-+	strlcpy(cap->card, bcap_dev->cfg->card_name, sizeof(cap->card));
-+	return 0;
-+}
-+
-+static int bcap_g_parm(struct file *file, void *fh,
-+				struct v4l2_streamparm *a)
-+{
-+	struct bcap_device *bcap_dev = video_drvdata(file);
-+
-+	if (a->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
-+		return -EINVAL;
-+	return v4l2_subdev_call(bcap_dev->sd, video, g_parm, a);
-+}
-+
-+static int bcap_s_parm(struct file *file, void *fh,
-+				struct v4l2_streamparm *a)
-+{
-+	struct bcap_device *bcap_dev = video_drvdata(file);
-+
-+	if (a->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
-+		return -EINVAL;
-+	return v4l2_subdev_call(bcap_dev->sd, video, s_parm, a);
-+}
-+
-+static int bcap_g_chip_ident(struct file *file, void *priv,
-+		struct v4l2_dbg_chip_ident *chip)
-+{
-+	struct bcap_device *bcap_dev = video_drvdata(file);
-+
-+	chip->ident = V4L2_IDENT_NONE;
-+	chip->revision = 0;
-+	if (chip->match.type != V4L2_CHIP_MATCH_I2C_DRIVER &&
-+			chip->match.type != V4L2_CHIP_MATCH_I2C_ADDR)
-+		return -EINVAL;
-+
-+	return v4l2_subdev_call(bcap_dev->sd, core,
-+			g_chip_ident, chip);
-+}
-+
-+#ifdef CONFIG_VIDEO_ADV_DEBUG
-+static int bcap_dbg_g_register(struct file *file, void *priv,
-+		struct v4l2_dbg_register *reg)
-+{
-+	struct bcap_device *bcap_dev = video_drvdata(file);
-+
-+	return v4l2_subdev_call(bcap_dev->sd, core,
-+			g_register, reg);
-+}
-+
-+static int bcap_dbg_s_register(struct file *file, void *priv,
-+		struct v4l2_dbg_register *reg)
-+{
-+	struct bcap_device *bcap_dev = video_drvdata(file);
-+
-+	return v4l2_subdev_call(bcap_dev->sd, core,
-+			s_register, reg);
-+}
-+#endif
-+
-+static int bcap_log_status(struct file *file, void *priv)
-+{
-+	struct bcap_device *bcap_dev = video_drvdata(file);
-+	/* status for sub devices */
-+	v4l2_device_call_all(&bcap_dev->v4l2_dev, 0, core, log_status);
-+	return 0;
-+}
-+
-+static const struct v4l2_ioctl_ops bcap_ioctl_ops = {
-+	.vidioc_querycap         = bcap_querycap,
-+	.vidioc_g_fmt_vid_cap    = bcap_g_fmt_vid_cap,
-+	.vidioc_enum_fmt_vid_cap = bcap_enum_fmt_vid_cap,
-+	.vidioc_s_fmt_vid_cap    = bcap_s_fmt_vid_cap,
-+	.vidioc_try_fmt_vid_cap  = bcap_try_fmt_vid_cap,
-+	.vidioc_enum_input       = bcap_enum_input,
-+	.vidioc_g_input          = bcap_g_input,
-+	.vidioc_s_input          = bcap_s_input,
-+	.vidioc_querystd         = bcap_querystd,
-+	.vidioc_s_std            = bcap_s_std,
-+	.vidioc_g_std            = bcap_g_std,
-+	.vidioc_reqbufs          = bcap_reqbufs,
-+	.vidioc_querybuf         = bcap_querybuf,
-+	.vidioc_qbuf             = bcap_qbuf,
-+	.vidioc_dqbuf            = bcap_dqbuf,
-+	.vidioc_streamon         = bcap_streamon,
-+	.vidioc_streamoff        = bcap_streamoff,
-+	.vidioc_g_parm           = bcap_g_parm,
-+	.vidioc_s_parm           = bcap_s_parm,
-+	.vidioc_g_chip_ident     = bcap_g_chip_ident,
-+#ifdef CONFIG_VIDEO_ADV_DEBUG
-+	.vidioc_g_register       = bcap_dbg_g_register,
-+	.vidioc_s_register       = bcap_dbg_s_register,
-+#endif
-+	.vidioc_log_status       = bcap_log_status,
-+};
-+
-+static struct v4l2_file_operations bcap_fops = {
-+	.owner = THIS_MODULE,
-+	.open = bcap_open,
-+	.release = bcap_release,
-+	.unlocked_ioctl = video_ioctl2,
-+	.mmap = bcap_mmap,
-+#ifndef CONFIG_MMU
-+	.get_unmapped_area = bcap_get_unmapped_area,
-+#endif
-+	.poll = bcap_poll
-+};
-+
-+static int __devinit bcap_probe(struct platform_device *pdev)
-+{
-+	struct bcap_device *bcap_dev;
-+	struct video_device *vfd;
-+	struct i2c_adapter *i2c_adap;
-+	struct bfin_capture_config *config;
-+	struct vb2_queue *q;
-+	int ret;
-+
-+	config = pdev->dev.platform_data;
-+	if (!config) {
-+		v4l2_err(pdev->dev.driver, "Unable to get board config\n");
-+		return -ENODEV;
-+	}
-+
-+	bcap_dev = kzalloc(sizeof(*bcap_dev), GFP_KERNEL);
-+	if (!bcap_dev) {
-+		v4l2_err(pdev->dev.driver, "Unable to alloc bcap_dev\n");
-+		return -ENOMEM;
-+	}
-+
-+	bcap_dev->cfg = config;
-+
-+	bcap_dev->ppi = ppi_create_instance(config->ppi_info);
-+	if (!bcap_dev->ppi) {
-+		v4l2_err(pdev->dev.driver, "Unable to create ppi\n");
-+		ret = -ENODEV;
-+		goto err_free_dev;
-+	}
-+	bcap_dev->ppi->priv = bcap_dev;
-+
-+	bcap_dev->alloc_ctx = vb2_dma_contig_init_ctx(&pdev->dev);
-+	if (IS_ERR(bcap_dev->alloc_ctx)) {
-+		ret = PTR_ERR(bcap_dev->alloc_ctx);
-+		goto err_free_ppi;
-+	}
-+
-+	vfd = video_device_alloc();
-+	if (!vfd) {
-+		ret = -ENOMEM;
-+		v4l2_err(pdev->dev.driver, "Unable to alloc video device\n");
-+		goto err_cleanup_ctx;
-+	}
-+
-+	/* initialize field of video device */
-+	vfd->release            = video_device_release;
-+	vfd->fops               = &bcap_fops;
-+	vfd->ioctl_ops          = &bcap_ioctl_ops;
-+	vfd->tvnorms            = 0;
-+	vfd->v4l2_dev           = &bcap_dev->v4l2_dev;
-+	set_bit(V4L2_FL_USE_FH_PRIO, &vfd->flags);
-+	strncpy(vfd->name, CAPTURE_DRV_NAME, sizeof(vfd->name));
-+	bcap_dev->video_dev     = vfd;
-+
-+	ret = v4l2_device_register(&pdev->dev, &bcap_dev->v4l2_dev);
-+	if (ret) {
-+		v4l2_err(pdev->dev.driver,
-+				"Unable to register v4l2 device\n");
-+		goto err_release_vdev;
-+	}
-+	v4l2_info(&bcap_dev->v4l2_dev, "v4l2 device registered\n");
-+
-+	bcap_dev->v4l2_dev.ctrl_handler = &bcap_dev->ctrl_handler;
-+	ret = v4l2_ctrl_handler_init(&bcap_dev->ctrl_handler, 0);
-+	if (ret) {
-+		v4l2_err(&bcap_dev->v4l2_dev,
-+				"Unable to init control handler\n");
-+		goto err_unreg_v4l2;
-+	}
-+
-+	spin_lock_init(&bcap_dev->lock);
-+	/* initialize queue */
-+	q = &bcap_dev->buffer_queue;
-+	q->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-+	q->io_modes = VB2_MMAP;
-+	q->drv_priv = bcap_dev;
-+	q->buf_struct_size = sizeof(struct bcap_buffer);
-+	q->ops = &bcap_video_qops;
-+	q->mem_ops = &vb2_dma_contig_memops;
-+
-+	vb2_queue_init(q);
-+
-+	mutex_init(&bcap_dev->mutex);
-+	init_completion(&bcap_dev->comp);
-+
-+	/* init video dma queues */
-+	INIT_LIST_HEAD(&bcap_dev->dma_queue);
-+
-+	vfd->lock = &bcap_dev->mutex;
-+
-+	/* register video device */
-+	ret = video_register_device(bcap_dev->video_dev, VFL_TYPE_GRABBER, -1);
-+	if (ret) {
-+		v4l2_err(&bcap_dev->v4l2_dev,
-+				"Unable to register video device\n");
-+		goto err_free_handler;
-+	}
-+	video_set_drvdata(bcap_dev->video_dev, bcap_dev);
-+	v4l2_info(&bcap_dev->v4l2_dev, "video device registered as: %s\n",
-+			video_device_node_name(vfd));
-+
-+	/* load up the subdevice */
-+	i2c_adap = i2c_get_adapter(config->i2c_adapter_id);
-+	if (!i2c_adap) {
-+		v4l2_err(&bcap_dev->v4l2_dev,
-+				"Unable to find i2c adapter\n");
-+		goto err_unreg_vdev;
-+
-+	}
-+	bcap_dev->sd = v4l2_i2c_new_subdev_board(&bcap_dev->v4l2_dev,
-+						 i2c_adap,
-+						 &config->board_info,
-+						 NULL);
-+	if (bcap_dev->sd) {
-+		int i;
-+		/* update tvnorms from the sub devices */
-+		for (i = 0; i < config->num_inputs; i++)
-+			vfd->tvnorms |= config->inputs[i].std;
-+	} else {
-+		v4l2_err(&bcap_dev->v4l2_dev,
-+				"Unable to register sub device\n");
-+		goto err_unreg_vdev;
-+	}
-+
-+	v4l2_info(&bcap_dev->v4l2_dev, "v4l2 sub device registered\n");
-+
-+	/* now we can probe the default state */
-+	if (vfd->tvnorms) {
-+		v4l2_std_id std;
-+		ret = v4l2_subdev_call(bcap_dev->sd, core, g_std, &std);
-+		if (ret) {
-+			v4l2_err(&bcap_dev->v4l2_dev,
-+					"Unable to get std\n");
-+			goto err_unreg_vdev;
-+		}
-+		bcap_dev->std = std;
-+	}
-+	ret = bcap_init_sensor_formats(bcap_dev);
-+	if (ret) {
-+		v4l2_err(&bcap_dev->v4l2_dev,
-+				"Unable to create sensor formats table\n");
-+		goto err_unreg_vdev;
-+	}
-+	return 0;
-+err_unreg_vdev:
-+	video_unregister_device(bcap_dev->video_dev);
-+	bcap_dev->video_dev = NULL;
-+err_free_handler:
-+	v4l2_ctrl_handler_free(&bcap_dev->ctrl_handler);
-+err_unreg_v4l2:
-+	v4l2_device_unregister(&bcap_dev->v4l2_dev);
-+err_release_vdev:
-+	if (bcap_dev->video_dev)
-+		video_device_release(bcap_dev->video_dev);
-+err_cleanup_ctx:
-+	vb2_dma_contig_cleanup_ctx(bcap_dev->alloc_ctx);
-+err_free_ppi:
-+	ppi_delete_instance(bcap_dev->ppi);
-+err_free_dev:
-+	kfree(bcap_dev);
-+	return ret;
-+}
-+
-+static int __devexit bcap_remove(struct platform_device *pdev)
-+{
-+	struct v4l2_device *v4l2_dev = platform_get_drvdata(pdev);
-+	struct bcap_device *bcap_dev = container_of(v4l2_dev,
-+						struct bcap_device, v4l2_dev);
-+
-+	bcap_free_sensor_formats(bcap_dev);
-+	video_unregister_device(bcap_dev->video_dev);
-+	v4l2_ctrl_handler_free(&bcap_dev->ctrl_handler);
-+	v4l2_device_unregister(v4l2_dev);
-+	vb2_dma_contig_cleanup_ctx(bcap_dev->alloc_ctx);
-+	ppi_delete_instance(bcap_dev->ppi);
-+	kfree(bcap_dev);
-+	return 0;
-+}
-+
-+static struct platform_driver bcap_driver = {
-+	.driver = {
-+		.name  = CAPTURE_DRV_NAME,
-+		.owner = THIS_MODULE,
-+	},
-+	.probe = bcap_probe,
-+	.remove = __devexit_p(bcap_remove),
-+};
-+
-+static __init int bcap_init(void)
-+{
-+	return platform_driver_register(&bcap_driver);
-+}
-+
-+static __exit void bcap_exit(void)
-+{
-+	platform_driver_unregister(&bcap_driver);
-+}
-+
-+module_init(bcap_init);
-+module_exit(bcap_exit);
-+
-+MODULE_DESCRIPTION("Analog Devices blackfin video capture driver");
-+MODULE_AUTHOR("Scott Jiang <Scott.Jiang.Linux@gmail.com>");
-+MODULE_LICENSE("GPL v2");
-diff --git a/drivers/media/video/blackfin/ppi.c b/drivers/media/video/blackfin/ppi.c
-new file mode 100644
-index 0000000..d295921
---- /dev/null
-+++ b/drivers/media/video/blackfin/ppi.c
-@@ -0,0 +1,271 @@
 +/*
-+ * ppi.c Analog Devices Parallel Peripheral Interface driver
-+ *
-+ * Copyright (c) 2011 Analog Devices Inc.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-+ */
++static const struct v4l2_subdev_video_ops tw2804_video_ops = {
++  .s_routing = tw2804_s_video_routing,
++  .s_fmt = tw2804_s_fmt,
++};*/
 +
-+#include <linux/slab.h>
-+
-+#include <asm/bfin_ppi.h>
-+#include <asm/blackfin.h>
-+#include <asm/cacheflush.h>
-+#include <asm/dma.h>
-+#include <asm/portmux.h>
-+
-+#include <media/blackfin/ppi.h>
-+
-+static int ppi_attach_irq(struct ppi_if *ppi, irq_handler_t handler);
-+static void ppi_detach_irq(struct ppi_if *ppi);
-+static int ppi_start(struct ppi_if *ppi);
-+static int ppi_stop(struct ppi_if *ppi);
-+static int ppi_set_params(struct ppi_if *ppi, struct ppi_params *params);
-+static void ppi_update_addr(struct ppi_if *ppi, unsigned long addr);
-+
-+static const struct ppi_ops ppi_ops = {
-+	.attach_irq = ppi_attach_irq,
-+	.detach_irq = ppi_detach_irq,
-+	.start = ppi_start,
-+	.stop = ppi_stop,
-+	.set_params = ppi_set_params,
-+	.update_addr = ppi_update_addr,
++static const struct v4l2_subdev_ops tw2804_ops=
++{
++  .core=&tw2804_core_ops,
++///  .audio = &s2250_audio_ops,
++///  .video = &s2250_video_ops,
 +};
 +
-+static irqreturn_t ppi_irq_err(int irq, void *dev_id)
-+{
-+	struct ppi_if *ppi = dev_id;
-+	const struct ppi_info *info = ppi->info;
-+
-+	switch (info->type) {
-+	case PPI_TYPE_PPI:
-+	{
-+		struct bfin_ppi_regs *reg = info->base;
-+		unsigned short status;
-+
-+		/* register on bf561 is cleared when read 
-+		 * others are W1C
-+		 */
-+		status = bfin_read16(&reg->status);
-+		bfin_write16(&reg->status, 0xff00);
-+		break;
-+	}
-+	case PPI_TYPE_EPPI:
-+	{
-+		struct bfin_eppi_regs *reg = info->base;
-+		bfin_write16(&reg->status, 0xffff);
-+		break;
-+	}
-+	default:
-+		break;
-+	}
-+
-+	return IRQ_HANDLED;
-+}
-+
-+static int ppi_attach_irq(struct ppi_if *ppi, irq_handler_t handler)
-+{
-+	const struct ppi_info *info = ppi->info;
-+	int ret;
-+
-+	ret = request_dma(info->dma_ch, "PPI_DMA");
-+
-+	if (ret) {
-+		pr_err("Unable to allocate DMA channel for PPI\n");
-+		return ret;
-+	}
-+	set_dma_callback(info->dma_ch, handler, ppi);
-+
-+	if (ppi->err_int) {
-+		ret = request_irq(info->irq_err, ppi_irq_err, 0, "PPI ERROR", ppi);
-+		if (ret) {
-+			pr_err("Unable to allocate IRQ for PPI\n");
-+			free_dma(info->dma_ch);
-+		}
-+	}
-+	return ret;
-+}
-+
-+static void ppi_detach_irq(struct ppi_if *ppi)
-+{
-+	const struct ppi_info *info = ppi->info;
-+
-+	if (ppi->err_int)
-+		free_irq(info->irq_err, ppi);
-+	free_dma(info->dma_ch);
-+}
-+
-+static int ppi_start(struct ppi_if *ppi)
-+{
-+	const struct ppi_info *info = ppi->info;
-+
-+	/* enable DMA */
-+	enable_dma(info->dma_ch);
-+
-+	/* enable PPI */
-+	ppi->ppi_control |= PORT_EN;
-+	switch (info->type) {
-+	case PPI_TYPE_PPI:
-+	{
-+		struct bfin_ppi_regs *reg = info->base;
-+		bfin_write16(&reg->control, ppi->ppi_control);
-+		break;
-+	}
-+	case PPI_TYPE_EPPI:
-+	{
-+		struct bfin_eppi_regs *reg = info->base;
-+		bfin_write32(&reg->control, ppi->ppi_control);
-+		break;
-+	}
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	SSYNC();
-+	return 0;
-+}
-+
-+static int ppi_stop(struct ppi_if *ppi)
-+{
-+	const struct ppi_info *info = ppi->info;
-+
-+	/* disable PPI */
-+	ppi->ppi_control &= ~PORT_EN;
-+	switch (info->type) {
-+	case PPI_TYPE_PPI:
-+	{
-+		struct bfin_ppi_regs *reg = info->base;
-+		bfin_write16(&reg->control, ppi->ppi_control);
-+		break;
-+	}
-+	case PPI_TYPE_EPPI:
-+	{
-+		struct bfin_eppi_regs *reg = info->base;
-+		bfin_write32(&reg->control, ppi->ppi_control);
-+		break;
-+	}
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	/* disable DMA */
-+	clear_dma_irqstat(info->dma_ch);
-+	disable_dma(info->dma_ch);
-+
-+	SSYNC();
-+	return 0;
-+}
-+
-+static int ppi_set_params(struct ppi_if *ppi, struct ppi_params *params)
-+{
-+	const struct ppi_info *info = ppi->info;
-+	int dma32 = 0;
-+	int dma_config, bytes_per_line, lines_per_frame;
-+
-+	bytes_per_line = params->width * params->bpp / 8;
-+	lines_per_frame = params->height;
-+	if (params->int_mask == 0xFFFFFFFF)
-+		ppi->err_int = false;
-+	else
-+		ppi->err_int = true;
-+
-+	dma_config = (DMA_FLOW_STOP | WNR | RESTART | DMA2D | DI_EN);
-+	ppi->ppi_control = params->ppi_control & ~PORT_EN;
-+	switch (info->type) {
-+	case PPI_TYPE_PPI:
-+	{
-+		struct bfin_ppi_regs *reg = info->base;
-+
-+		if (params->ppi_control & DMA32)
-+			dma32 = 1;
-+
-+		bfin_write16(&reg->control, ppi->ppi_control);
-+		bfin_write16(&reg->count, bytes_per_line - 1);
-+		bfin_write16(&reg->frame, lines_per_frame);
-+		break;
-+	}
-+	case PPI_TYPE_EPPI:
-+	{
-+		struct bfin_eppi_regs *reg = info->base;
-+
-+		if ((params->ppi_control & PACK_EN)
-+			|| (params->ppi_control & 0x38000) > DLEN_16)
-+			dma32 = 1;
-+
-+		bfin_write32(&reg->control, ppi->ppi_control);
-+		bfin_write16(&reg->line, bytes_per_line + params->blank_clocks);
-+		bfin_write16(&reg->frame, lines_per_frame);
-+		bfin_write16(&reg->hdelay, 0);
-+		bfin_write16(&reg->vdelay, 0);
-+		bfin_write16(&reg->hcount, bytes_per_line);
-+		bfin_write16(&reg->vcount, lines_per_frame);
-+		break;
-+	}
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	if (dma32) {
-+		dma_config |= WDSIZE_32;
-+		set_dma_x_count(info->dma_ch, bytes_per_line >> 2);
-+		set_dma_x_modify(info->dma_ch, 4);
-+		set_dma_y_modify(info->dma_ch, 4);
-+	} else {
-+		dma_config |= WDSIZE_16;
-+		set_dma_x_count(info->dma_ch, bytes_per_line >> 1);
-+		set_dma_x_modify(info->dma_ch, 2);
-+		set_dma_y_modify(info->dma_ch, 2);
-+	}
-+	set_dma_y_count(info->dma_ch, lines_per_frame);
-+	set_dma_config(info->dma_ch, dma_config);
-+
-+	SSYNC();
-+	return 0;
-+}
-+
-+static void ppi_update_addr(struct ppi_if *ppi, unsigned long addr)
-+{
-+	set_dma_start_addr(ppi->info->dma_ch, addr);
-+}
-+
-+struct ppi_if *ppi_create_instance(const struct ppi_info *info)
-+{
-+	struct ppi_if *ppi;
-+
-+	if (!info || !info->pin_req)
-+		return NULL;
-+
-+	if (peripheral_request_list(info->pin_req, KBUILD_MODNAME)) {
-+		pr_err("request peripheral failed\n");
-+		return NULL;
-+	}
-+
-+	ppi = kzalloc(sizeof(*ppi), GFP_KERNEL);
-+	if (!ppi) {
-+		peripheral_free_list(info->pin_req);
-+		pr_err("unable to allocate memory for ppi handle\n");
-+		return NULL;
-+	}
-+	ppi->ops = &ppi_ops;
-+	ppi->info = info;
-+
-+	pr_info("ppi probe success\n");
-+	return ppi;
-+}
-+
-+void ppi_delete_instance(struct ppi_if *ppi)
-+{
-+	peripheral_free_list(ppi->info->pin_req);
-+	kfree(ppi);
-+}
-diff --git a/include/media/blackfin/bfin_capture.h b/include/media/blackfin/bfin_capture.h
-new file mode 100644
-index 0000000..2038a8a
---- /dev/null
-+++ b/include/media/blackfin/bfin_capture.h
-@@ -0,0 +1,37 @@
-+#ifndef _BFIN_CAPTURE_H_
-+#define _BFIN_CAPTURE_H_
-+
-+#include <linux/i2c.h>
-+
-+struct v4l2_input;
-+struct ppi_info;
-+
-+struct bcap_route {
-+	u32 input;
-+	u32 output;
-+};
-+
-+struct bfin_capture_config {
-+	/* card name */
-+	char *card_name;
-+	/* inputs available at the sub device */
-+	struct v4l2_input *inputs;
-+	/* number of inputs supported */
-+	int num_inputs;
-+	/* routing information for each input */
-+	struct bcap_route *routes;
-+	/* i2c bus adapter no */
-+	int i2c_adapter_id;
-+	/* i2c subdevice board info */
-+	struct i2c_board_info board_info;
-+	/* ppi board info */
-+	const struct ppi_info *ppi_info;
-+	/* ppi control */
-+	unsigned long ppi_control;
-+	/* ppi interrupt mask */
-+	u32 int_mask;
-+	/* horizontal blanking clocks */
-+	int blank_clocks;
-+};
-+
-+#endif
-diff --git a/include/media/blackfin/ppi.h b/include/media/blackfin/ppi.h
-new file mode 100644
-index 0000000..8f72f8a
---- /dev/null
-+++ b/include/media/blackfin/ppi.h
-@@ -0,0 +1,74 @@
-+/*
-+ * Analog Devices PPI header file
-+ *
-+ * Copyright (c) 2011 Analog Devices Inc.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-+ */
-+
-+#ifndef _PPI_H_
-+#define _PPI_H_
-+
-+#include <linux/interrupt.h>
-+
-+#ifdef EPPI_EN
-+#define PORT_EN EPPI_EN
-+#define DMA32 0
-+#define PACK_EN PACKEN
-+#endif
-+
-+struct ppi_if;
-+
-+struct ppi_params {
-+	int width;
-+	int height;
-+	int bpp;
-+	unsigned long ppi_control;
-+	u32 int_mask;
-+	int blank_clocks;
-+};
-+
-+struct ppi_ops {
-+	int (*attach_irq)(struct ppi_if *ppi, irq_handler_t handler);
-+	void (*detach_irq)(struct ppi_if *ppi);
-+	int (*start)(struct ppi_if *ppi);
-+	int (*stop)(struct ppi_if *ppi);
-+	int (*set_params)(struct ppi_if *ppi, struct ppi_params *params);
-+	void (*update_addr)(struct ppi_if *ppi, unsigned long addr);
-+};
-+
-+enum ppi_type {
-+	PPI_TYPE_PPI,
-+	PPI_TYPE_EPPI,
-+};
-+
-+struct ppi_info {
-+	enum ppi_type type;
-+	int dma_ch;
-+	int irq_err;
-+	void __iomem *base;
-+	const unsigned short *pin_req;
-+};
-+
-+struct ppi_if {
-+	unsigned long ppi_control;
-+	const struct ppi_ops *ops;
-+	const struct ppi_info *info;
-+	bool err_int;
-+	void *priv;
-+};
-+
-+struct ppi_if *ppi_create_instance(const struct ppi_info *info);
-+void ppi_delete_instance(struct ppi_if *ppi);
-+#endif
--- 
-1.7.0.4
+ static int wis_tw2804_probe(struct i2c_client *client,
+ 			    const struct i2c_device_id *id)
+ {
+ 	struct i2c_adapter *adapter = client->adapter;
+ 	struct wis_tw2804 *dec;
++  struct v4l2_subdev *sd;
+ 
++  printk(KERN_DEBUG "wis_tw2804 :probing %s adapter %s",id->name,client->adapter->name);
+ 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
+ 		return -ENODEV;
+ 
+@@ -303,13 +370,15 @@ static int wis_tw2804_probe(struct i2c_c
+ 	if (dec == NULL)
+ 		return -ENOMEM;
+ 
++  sd=&dec->sd;
+ 	dec->channel = -1;
+ 	dec->norm = V4L2_STD_NTSC;
+ 	dec->brightness = 128;
+ 	dec->contrast = 128;
+ 	dec->saturation = 128;
+ 	dec->hue = 128;
+-	i2c_set_clientdata(client, dec);
++  v4l2_i2c_subdev_init(sd,client,&tw2804_ops);
++  v4l2_info(sd,"initializing %s at address 0x%x on %s\n","tw 2804", client->addr, client->adapter->name);
+ 
+ 	printk(KERN_DEBUG "wis-tw2804: creating TW2804 at address %d on %s\n",
+ 		client->addr, adapter->name);
+@@ -319,9 +388,10 @@ static int wis_tw2804_probe(struct i2c_c
+ 
+ static int wis_tw2804_remove(struct i2c_client *client)
+ {
+-	struct wis_tw2804 *dec = i2c_get_clientdata(client);
+-
+-	kfree(dec);
++  struct v4l2_subdev *sd=i2c_get_clientdata(client);
++  printk(KERN_INFO"wis_tw2804: remove");
++  v4l2_device_unregister_subdev(sd);
++  kfree(to_state(sd));
+ 	return 0;
+ }
+ 
+
 
 
