@@ -1,98 +1,152 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.47]:60133 "EHLO mgw-sa01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755894Ab2CFQd2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 6 Mar 2012 11:33:28 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, dacohen@gmail.com,
-	snjw23@gmail.com, andriy.shevchenko@linux.intel.com,
-	t.stanislaws@samsung.com, tuukkat76@gmail.com,
-	k.debski@samsung.com, riverful@gmail.com, hverkuil@xs4all.nl,
-	teturtia@gmail.com, pradeep.sawlani@gmail.com
-Subject: [PATCH v5 07/35] v4l: Support s_crop and g_crop through s/g_selection
-Date: Tue,  6 Mar 2012 18:32:48 +0200
-Message-Id: <1331051596-8261-7-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <20120306163239.GN1075@valkosipuli.localdomain>
-References: <20120306163239.GN1075@valkosipuli.localdomain>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:57780 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030784Ab2CULDU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 21 Mar 2012 07:03:20 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: linux-media@vger.kernel.org
+Subject: [PATCH v2 7/9] soc-camera: Honor user-requested bytesperline and sizeimage
+Date: Wed, 21 Mar 2012 12:03:26 +0100
+Message-Id: <1332327808-6056-8-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1332327808-6056-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1332327808-6056-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fall back to s_selection if s_crop isn't implemented by a driver. Same for
-g_selection / g_crop.
+Compute the bytesperline and sizeimage values when trying/setting
+formats or when allocating buffers by taking the user-requested values
+into account.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/video/v4l2-subdev.c |   37 +++++++++++++++++++++++++++++++++++--
- 1 files changed, 35 insertions(+), 2 deletions(-)
+ drivers/media/video/mx3_camera.c           |   20 +++++++++++++-----
+ drivers/media/video/sh_mobile_ceu_camera.c |   20 +++++++++++++-----
+ drivers/media/video/soc_camera.c           |   29 ++++++++++++++-------------
+ 3 files changed, 43 insertions(+), 26 deletions(-)
 
-diff --git a/drivers/media/video/v4l2-subdev.c b/drivers/media/video/v4l2-subdev.c
-index 7d22538..eda34cd 100644
---- a/drivers/media/video/v4l2-subdev.c
-+++ b/drivers/media/video/v4l2-subdev.c
-@@ -228,6 +228,8 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+diff --git a/drivers/media/video/mx3_camera.c b/drivers/media/video/mx3_camera.c
+index 84579b6..a0c7d65 100644
+--- a/drivers/media/video/mx3_camera.c
++++ b/drivers/media/video/mx3_camera.c
+@@ -206,17 +206,25 @@ static int mx3_videobuf_setup(struct vb2_queue *vq,
+ 	if (fmt) {
+ 		const struct soc_camera_format_xlate *xlate = soc_camera_xlate_by_fourcc(icd,
+ 								fmt->fmt.pix.pixelformat);
+-		int bytes_per_line;
++		unsigned int bytes_per_line;
++		int ret;
  
- 	case VIDIOC_SUBDEV_G_CROP: {
- 		struct v4l2_subdev_crop *crop = arg;
-+		struct v4l2_subdev_selection sel;
-+		int rval;
- 
- 		if (crop->which != V4L2_SUBDEV_FORMAT_TRY &&
- 		    crop->which != V4L2_SUBDEV_FORMAT_ACTIVE)
-@@ -236,11 +238,27 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 		if (crop->pad >= sd->entity.num_pads)
+ 		if (!xlate)
  			return -EINVAL;
  
--		return v4l2_subdev_call(sd, pad, get_crop, subdev_fh, crop);
-+		rval = v4l2_subdev_call(sd, pad, get_crop, subdev_fh, crop);
-+		if (rval != -ENOIOCTLCMD)
-+			return rval;
+-		bytes_per_line = soc_mbus_bytes_per_line(fmt->fmt.pix.width,
+-							 xlate->host_fmt);
+-		if (bytes_per_line < 0)
+-			return bytes_per_line;
++		ret = soc_mbus_bytes_per_line(fmt->fmt.pix.width,
++					      xlate->host_fmt);
++		if (ret < 0)
++			return ret;
 +
-+		memset(&sel, 0, sizeof(sel));
-+		sel.which = crop->which;
-+		sel.pad = crop->pad;
-+		sel.target = V4L2_SUBDEV_SEL_TGT_CROP_ACTIVE;
++		bytes_per_line = max_t(u32, fmt->fmt.pix.bytesperline, ret);
 +
-+		rval = v4l2_subdev_call(
-+			sd, pad, get_selection, subdev_fh, &sel);
-+
-+		crop->rect = sel.r;
-+
-+		return rval;
- 	}
++		ret = soc_mbus_image_size(xlate->host_fmt, bytes_per_line,
++					  fmt->fmt.pix.height);
++		if (ret < 0)
++			return ret;
  
- 	case VIDIOC_SUBDEV_S_CROP: {
- 		struct v4l2_subdev_crop *crop = arg;
-+		struct v4l2_subdev_selection sel;
-+		int rval;
+-		sizes[0] = bytes_per_line * fmt->fmt.pix.height;
++		sizes[0] = max_t(u32, fmt->fmt.pix.sizeimage, ret);
+ 	} else {
+ 		/* Called from VIDIOC_REQBUFS or in compatibility mode */
+ 		sizes[0] = icd->sizeimage;
+diff --git a/drivers/media/video/sh_mobile_ceu_camera.c b/drivers/media/video/sh_mobile_ceu_camera.c
+index 0cc04d9..b8801bd 100644
+--- a/drivers/media/video/sh_mobile_ceu_camera.c
++++ b/drivers/media/video/sh_mobile_ceu_camera.c
+@@ -210,17 +210,25 @@ static int sh_mobile_ceu_videobuf_setup(struct vb2_queue *vq,
+ 	if (fmt) {
+ 		const struct soc_camera_format_xlate *xlate = soc_camera_xlate_by_fourcc(icd,
+ 								fmt->fmt.pix.pixelformat);
+-		int bytes_per_line;
++		unsigned int bytes_per_line;
++		int ret;
  
- 		if (crop->which != V4L2_SUBDEV_FORMAT_TRY &&
- 		    crop->which != V4L2_SUBDEV_FORMAT_ACTIVE)
-@@ -249,7 +267,22 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 		if (crop->pad >= sd->entity.num_pads)
+ 		if (!xlate)
  			return -EINVAL;
  
--		return v4l2_subdev_call(sd, pad, set_crop, subdev_fh, crop);
-+		rval = v4l2_subdev_call(sd, pad, set_crop, subdev_fh, crop);
-+		if (rval != -ENOIOCTLCMD)
-+			return rval;
+-		bytes_per_line = soc_mbus_bytes_per_line(fmt->fmt.pix.width,
+-							 xlate->host_fmt);
+-		if (bytes_per_line < 0)
+-			return bytes_per_line;
++		ret = soc_mbus_bytes_per_line(fmt->fmt.pix.width,
++					      xlate->host_fmt);
++		if (ret < 0)
++			return ret;
 +
-+		memset(&sel, 0, sizeof(sel));
-+		sel.which = crop->which;
-+		sel.pad = crop->pad;
-+		sel.target = V4L2_SUBDEV_SEL_TGT_CROP_ACTIVE;
-+		sel.r = crop->rect;
++		bytes_per_line = max_t(u32, fmt->fmt.pix.bytesperline, ret);
 +
-+		rval = v4l2_subdev_call(
-+			sd, pad, set_selection, subdev_fh, &sel);
-+
-+		crop->rect = sel.r;
-+
-+		return rval;
- 	}
++		ret = soc_mbus_image_size(xlate->host_fmt, bytes_per_line,
++					  fmt->fmt.pix.height);
++		if (ret < 0)
++			return ret;
  
- 	case VIDIOC_SUBDEV_ENUM_MBUS_CODE: {
+-		sizes[0] = bytes_per_line * fmt->fmt.pix.height;
++		sizes[0] = max_t(u32, fmt->fmt.pix.sizeimage, ret);
+ 	} else {
+ 		/* Called from VIDIOC_REQBUFS or in compatibility mode */
+ 		sizes[0] = icd->sizeimage;
+diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
+index b827107..02ae98b 100644
+--- a/drivers/media/video/soc_camera.c
++++ b/drivers/media/video/soc_camera.c
+@@ -164,6 +164,7 @@ static int soc_camera_try_fmt(struct soc_camera_device *icd,
+ 			      struct v4l2_format *f)
+ {
+ 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
++	const struct soc_camera_format_xlate *xlate;
+ 	struct v4l2_pix_format *pix = &f->fmt.pix;
+ 	int ret;
+ 
+@@ -177,22 +178,22 @@ static int soc_camera_try_fmt(struct soc_camera_device *icd,
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	if (!pix->sizeimage) {
+-		if (!pix->bytesperline) {
+-			const struct soc_camera_format_xlate *xlate;
++	xlate = soc_camera_xlate_by_fourcc(icd, pix->pixelformat);
++	if (!xlate)
++		return -EINVAL;
+ 
+-			xlate = soc_camera_xlate_by_fourcc(icd, pix->pixelformat);
+-			if (!xlate)
+-				return -EINVAL;
++	ret = soc_mbus_bytes_per_line(pix->width, xlate->host_fmt);
++	if (ret < 0)
++		return ret;
+ 
+-			ret = soc_mbus_bytes_per_line(pix->width,
+-						      xlate->host_fmt);
+-			if (ret > 0)
+-				pix->bytesperline = ret;
+-		}
+-		if (pix->bytesperline)
+-			pix->sizeimage = pix->bytesperline * pix->height;
+-	}
++	pix->bytesperline = max_t(u32, pix->bytesperline, ret);
++
++	ret = soc_mbus_image_size(xlate->host_fmt, pix->bytesperline,
++				  pix->height);
++	if (ret < 0)
++		return ret;
++
++	pix->sizeimage = max_t(u32, pix->sizeimage, ret);
+ 
+ 	return 0;
+ }
 -- 
-1.7.2.5
+1.7.3.4
 
