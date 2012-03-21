@@ -1,67 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gx0-f174.google.com ([209.85.161.174]:33434 "EHLO
-	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756031Ab2CNTyE convert rfc822-to-8bit (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:35820 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S965129Ab2CUJxt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Mar 2012 15:54:04 -0400
-Received: by gghe5 with SMTP id e5so2223793ggh.19
-        for <linux-media@vger.kernel.org>; Wed, 14 Mar 2012 12:54:03 -0700 (PDT)
+	Wed, 21 Mar 2012 05:53:49 -0400
+Message-ID: <4F69A52B.7070701@iki.fi>
+Date: Wed, 21 Mar 2012 11:53:47 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <CALjTZvYVtuSm0v-_Q7od=iUDvHbkMe4c5ycAQZwoErCCe=N+Bg@mail.gmail.com>
-References: <CALjTZvZy4npSE0aELnmsZzzgsxUC1xjeNYVwQ_CvJG59PizfEQ@mail.gmail.com>
-	<CALF0-+Wp03vsbiaJFUt=ymnEncEvDg_KmnV+2OWjtO-_0qqBVg@mail.gmail.com>
-	<CALjTZvYVtuSm0v-_Q7od=iUDvHbkMe4c5ycAQZwoErCCe=N+Bg@mail.gmail.com>
-Date: Wed, 14 Mar 2012 16:47:16 -0300
-Message-ID: <CALF0-+W3HenNpUt_yGxqs+fohcZ22ozDw9MhTWua0B++ZFA2vA@mail.gmail.com>
-Subject: Re: eMPIA EM2710 Webcam (em28xx) and LIRC
-From: =?ISO-8859-1?Q?Ezequiel_Garc=EDa?= <elezegarcia@gmail.com>
-To: Rui Salvaterra <rsalvaterra@gmail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: Prabhakar Lad <prabhakar.csengg@gmail.com>
+CC: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	dacohen@gmail.com, snjw23@gmail.com,
+	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
+	tuukkat76@gmail.com, k.debski@samsung.com, riverful@gmail.com,
+	hverkuil@xs4all.nl, teturtia@gmail.com, pradeep.sawlani@gmail.com
+Subject: Re: [PATCH v5 14/35] v4l: Add DPCM compressed raw bayer pixel formats
+References: <20120306163239.GN1075@valkosipuli.localdomain> <1331051596-8261-14-git-send-email-sakari.ailus@iki.fi> <CA+V-a8uNqKERJd-vvBCw0GLgDuFcC_5seXZ9pdf_eN1xyC_xZA@mail.gmail.com>
+In-Reply-To: <CA+V-a8uNqKERJd-vvBCw0GLgDuFcC_5seXZ9pdf_eN1xyC_xZA@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Prabhakar,
 
-2012/3/14 Rui Salvaterra <rsalvaterra@gmail.com>:
+Prabhakar Lad wrote:
+> On Tue, Mar 6, 2012 at 10:02 PM, Sakari Ailus<sakari.ailus@iki.fi>  wrote:
+...
+>> diff --git a/Documentation/DocBook/media/v4l/pixfmt-srggb10dpcm8.xml
+>> b/Documentation/DocBook/media/v4l/pixfmt-srggb10dpcm8.xml
+>> new file mode 100644
+>> index 0000000..80937f1
+>> --- /dev/null
+>> +++ b/Documentation/DocBook/media/v4l/pixfmt-srggb10dpcm8.xml
+>> @@ -0,0 +1,29 @@
+>> +<refentry>
+>> +<refmeta>
+>> +<refentrytitle>
+>> +        V4L2_PIX_FMT_SRGGB10DPCM8 ('bBA8'),
+>> +        V4L2_PIX_FMT_SGBRG10DPCM8 ('bGA8'),
+>> +        V4L2_PIX_FMT_SGRBG10DPCM8 ('BD10'),
+>> +        V4L2_PIX_FMT_SBGGR10DPCM8 ('bRA8'),
+>> +</refentrytitle>
 >
-> Hi, Ezequiel. Thanks a lot for your reply.
-> I'm attaching a copy of my full dmesg, its a bit hard to spot exactly
-> where all modules are loaded (since the boot sequence became
-> asynchronous).
+> You missed here to change as per the 4CC code documentation.
 
-Indeed.
+Thanks!
 
->
->
-> Sure, no problem at all. I booted with em28xx disable_ir=1 and got the
-> same result. Additionally:
->
-> rui@wilykat:~$ lsmod | grep ir
-> ir_lirc_codec          12901  0
-> lirc_dev               19204  1 ir_lirc_codec
-> ir_mce_kbd_decoder     12724  0
-> ir_sanyo_decoder       12513  0
-> ir_sony_decoder        12510  0
-> ir_jvc_decoder         12507  0
-> ir_rc6_decoder         12507  0
-> ir_rc5_decoder         12507  0
-> ir_nec_decoder         12507  0
-> rc_core                26373  9
-> ir_lirc_codec,ir_mce_kbd_decoder,ir_sanyo_decoder,ir_sony_decoder,ir_jvc_decoder,ir_rc6_decoder,em28xx,ir_rc5_decoder,ir_nec_decoder
-> rui@wilykat:~$
-
-Mmmm...
-Are you completely sure that em28xx driver is triggering the load of
-the ir related modules?
-Perhaps you could disable the module (blacklist, or compile out the
-module, or erase em28xx.ko to make sure)
-so you can see that effectively em28xx doesn't load and the rest of
-the modules doesn't load either,
-do you follow my line of reasoning?
-
-I'm also no kernel expert, just trying to be helpful.
-
-Hope it helps,
-Ezequiel.
+-- 
+Sakari Ailus
+sakari.ailus@iki.fi
