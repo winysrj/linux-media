@@ -1,42 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:32881 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755577Ab2CES6A convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Mar 2012 13:58:00 -0500
-Received: by vbbff1 with SMTP id ff1so3714949vbb.19
-        for <linux-media@vger.kernel.org>; Mon, 05 Mar 2012 10:58:00 -0800 (PST)
+Received: from 7of9.schinagl.nl ([88.159.158.68]:60463 "EHLO 7of9.schinagl.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755224Ab2CUHwu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 21 Mar 2012 03:52:50 -0400
+Message-ID: <4F6988B8.3090002@schinagl.nl>
+Date: Wed, 21 Mar 2012 08:52:24 +0100
+From: Oliver Schinagl <oliver@schinagl.nl>
 MIME-Version: 1.0
-In-Reply-To: <CAF6AEGtynLeNds9DFjr6G08UMWMBQn8tn10UgFTNz9P7SwQuUQ@mail.gmail.com>
-References: <1330616161-1937-1-git-send-email-daniel.vetter@ffwll.ch>
-	<1330616161-1937-3-git-send-email-daniel.vetter@ffwll.ch>
-	<CAF6AEGtynLeNds9DFjr6G08UMWMBQn8tn10UgFTNz9P7SwQuUQ@mail.gmail.com>
-Date: Mon, 5 Mar 2012 19:57:59 +0100
-Message-ID: <CAKMK7uHnNMytknBO2y=ioPXJ9tZpy99ntGP=iPVzyjvXmTmj9g@mail.gmail.com>
-Subject: Re: [PATCH 2/3] dma-buf: add support for kernel cpu access
-From: Daniel Vetter <daniel.vetter@ffwll.ch>
-To: Rob Clark <robdclark@gmail.com>
-Cc: linaro-mm-sig@lists.linaro.org,
-	LKML <linux-kernel@vger.kernel.org>,
-	DRI Development <dri-devel@lists.freedesktop.org>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: gennarone@gmail.com
+CC: =?UTF-8?B?TWljaGFlbCBCw7xzY2g=?= <m@bues.ch>,
+	Hans-Frieder Vogt <hfvogt@gmx.net>, linux-media@vger.kernel.org
+Subject: Re: [PATCH 2/3] Basic AF9035/AF9033 driver
+References: <201202222321.43972.hfvogt@gmx.net> <4F67CF24.8050601@redhat.com> <20120320140411.58b5808b@milhouse> <4F68B001.1050809@gmail.com>
+In-Reply-To: <4F68B001.1050809@gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Mar 2, 2012 at 23:24, Rob Clark <robdclark@gmail.com> wrote:
-> Perhaps we should check somewhere for required dmabuf ops fxns (like
-> kmap_atomic here), rather than just calling unconditionally what might
-> be a null ptr.  At least put it in the WARN_ON(), but it might be
-> nicer to catch a missing required fxns at export time, rather than
-> waiting for an importer to try and call it.  Less likely that way, for
-> newly added required functions go unnoticed.
->
-> (same comment applies below for the non-atomic variant.. and possibly
-> some other existing dmabuf ops)
 
-Agreed, I'll rework the patch to do that when rebasing onto Sumit's latest tree.
--Daniel
--- 
-Daniel Vetter
-daniel.vetter@ffwll.ch - +41 (0) 79 365 57 48 - http://blog.ffwll.ch
+
+On 20-03-12 17:27, Gianluca Gennari wrote:
+> Hi Michael,
+>
+> Il 20/03/2012 14:04, Michael BÃ¼sch ha scritto:
+>> Thank you for working on a af903x driver.
+>>
+>> I tried to test the driver on a debian 3.2 kernel, after applying a small fix:
+>> It should be CONFIG_DVB_USB_AF903X here.
+> this issue is fixed in version "1.02" of the driver, posted by Hans a
+> few days ago.
+>
+>> So I'm wondering how big the differences between the fc0011 and fc0012 are.
+>> Can the 0011 be implemented in the 0012 driver, or does it require a separate driver?
+>> Please give me a few hints, to I can work on implementing support for that tuner.
+> I have no idea about the real differences between the two tuner models,
+> but here you can find an old "leaked" af9035 driver with support for
+> several tuners, including fc0011 and fc0012:
+>
+> https://bitbucket.org/voltagex/af9035/src
+I also have a git repository, http://git.schinagl.nl/AF903x_SRC.git 
+which should work with recent kernels. I haven't tested it extensively 
+however, seeing what this new AF9035 driver will do for my stick :)
+>
+> (look under the "api" subdir for the tuners).
+> The driver is not working with recent kernels, but probably you can
+> extract the information needed to implement a proper kernel driver for
+> fc0011, using the fc0012 driver written by Hans as a reference.
+>
+> Best regards,
+> Gianluca
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
