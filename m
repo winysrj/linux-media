@@ -1,54 +1,32 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:45743 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755541Ab2CFQYG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Mar 2012 11:24:06 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Received: from mail.telros.ru ([83.136.244.21]:54729 "EHLO mail.telros.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754695Ab2CUF3n (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 21 Mar 2012 01:29:43 -0400
+Received: from [172.23.0.126]
+	by mail.telros.ru with esmtp
+	id 1SAE7D-0004ac-PV
+	for linux-media@vger.kernel.org; Wed, 21 Mar 2012 09:29:43 +0400
+Message-ID: <1332307779.6182.70.camel@VPir>
+Subject: 320cx analog part
+From: volokh <volokh@telros.ru>
 To: linux-media@vger.kernel.org
-Cc: Martin Hostettler <martin@neutronstar.dyndns.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-Subject: [PATCH v2 0/5] MT9M032 and MT9P031 sensor patches
-Date: Tue,  6 Mar 2012 17:24:20 +0100
-Message-Id: <1331051065-5055-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Date: Wed, 21 Mar 2012 09:29:39 +0400
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi, can somebody help me with developing analog driver part.
+I`m looking for any docs or code.
 
-Here's the second version of the MT9M032 and MT9P031 sensor patches for v3.4.
+Now I starting up cx25840 through i2c bus, and control
+through /dev/video (call_all).
 
-Compared to v1, only patch 5/5 has been changed to incorporate Sakari's
-comments. I've modified the exposure control to use line units instead of
-microseconds, renamed various constants to mimic the MT9P031 driver and moved
-the hflip/vflip cluster creation after checking for control handler errors.
+Now I intend to mmap capture through dib7000 usb device and I stoped
+here.
 
-Danny Kukawka (1):
-  mt9p031: Remove duplicate media/v4l2-subdev.h include
+Thanks.
 
-Laurent Pinchart (3):
-  mt9p031: Remove unused xskip and yskip fields in struct mt9p031
-  v4l: Aptina-style sensor PLL support
-  mt9p031: Use generic PLL setup code
-
-Martin Hostettler (1):
-  v4l: Add driver for Micron MT9M032 camera sensor
-
- drivers/media/video/Kconfig      |   12 +
- drivers/media/video/Makefile     |    5 +
- drivers/media/video/aptina-pll.c |  174 ++++++++
- drivers/media/video/aptina-pll.h |   56 +++
- drivers/media/video/mt9m032.c    |  819 ++++++++++++++++++++++++++++++++++++++
- drivers/media/video/mt9p031.c    |   67 ++--
- include/media/mt9m032.h          |   36 ++
- 7 files changed, 1129 insertions(+), 40 deletions(-)
- create mode 100644 drivers/media/video/aptina-pll.c
- create mode 100644 drivers/media/video/aptina-pll.h
- create mode 100644 drivers/media/video/mt9m032.c
- create mode 100644 include/media/mt9m032.h
-
--- 
-Regards,
-
-Laurent Pinchart
 
