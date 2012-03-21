@@ -1,137 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:46768 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754565Ab2CJOUK convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 10 Mar 2012 09:20:10 -0500
-Received: by iagz16 with SMTP id z16so3877917iag.19
-        for <linux-media@vger.kernel.org>; Sat, 10 Mar 2012 06:20:09 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <4F2DE790.9080805@gmail.com>
-References: <4F2DE790.9080805@gmail.com>
-Date: Sat, 10 Mar 2012 15:20:09 +0100
-Message-ID: <CAL7owaAyg3nOg5YXM2AZL_2is0rFaMyXtXo-yBHh0_q8o-XwKA@mail.gmail.com>
-Subject: Re: dvb-apps: add scan files for Ireland (ie-*)
-From: Christoph Pfister <christophpfister@gmail.com>
-To: Jonathan McCrohan <jmccrohan@gmail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from smtp.nokia.com ([147.243.1.47]:53050 "EHLO mgw-sa01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751246Ab2CULov (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 21 Mar 2012 07:44:51 -0400
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, dacohen@gmail.com,
+	snjw23@gmail.com, andriy.shevchenko@linux.intel.com,
+	t.stanislaws@samsung.com, tuukkat76@gmail.com,
+	k.debski@samsung.com, riverful@gmail.com, hverkuil@xs4all.nl,
+	teturtia@gmail.com, pradeep.sawlani@gmail.com,
+	prabhakar.csengg@gmail.com
+Subject: [PATCH v5.5 14/40] v4l: Add DPCM compressed raw bayer pixel formats
+Date: Wed, 21 Mar 2012 13:44:38 +0200
+Message-Id: <1332330278-349-1-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <CA+V-a8uNqKERJd-vvBCw0GLgDuFcC_5seXZ9pdf_eN1xyC_xZA@mail.gmail.com>
+References: <CA+V-a8uNqKERJd-vvBCw0GLgDuFcC_5seXZ9pdf_eN1xyC_xZA@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Pushed, thanks.
+Add three other colour orders for 10-bit to 8-bit DPCM compressed raw bayer
+pixel formats.
 
-Christoph
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+ Documentation/DocBook/media/v4l/pixfmt-srggb10.xml |    2 +-
+ .../DocBook/media/v4l/pixfmt-srggb10dpcm8.xml      |   29 ++++++++++++++++++++
+ Documentation/DocBook/media/v4l/pixfmt.xml         |    1 +
+ include/linux/videodev2.h                          |    3 ++
+ 4 files changed, 34 insertions(+), 1 deletions(-)
+ create mode 100644 Documentation/DocBook/media/v4l/pixfmt-srggb10dpcm8.xml
 
+diff --git a/Documentation/DocBook/media/v4l/pixfmt-srggb10.xml b/Documentation/DocBook/media/v4l/pixfmt-srggb10.xml
+index 7b27409..c1c62a9 100644
+--- a/Documentation/DocBook/media/v4l/pixfmt-srggb10.xml
++++ b/Documentation/DocBook/media/v4l/pixfmt-srggb10.xml
+@@ -1,4 +1,4 @@
+-    <refentry>
++    <refentry id="pixfmt-srggb10">
+       <refmeta>
+ 	<refentrytitle>V4L2_PIX_FMT_SRGGB10 ('RG10'),
+ 	 V4L2_PIX_FMT_SGRBG10 ('BA10'),
+diff --git a/Documentation/DocBook/media/v4l/pixfmt-srggb10dpcm8.xml b/Documentation/DocBook/media/v4l/pixfmt-srggb10dpcm8.xml
+new file mode 100644
+index 0000000..5b2b03c
+--- /dev/null
++++ b/Documentation/DocBook/media/v4l/pixfmt-srggb10dpcm8.xml
+@@ -0,0 +1,29 @@
++    <refentry>
++      <refmeta>
++	<refentrytitle>
++	 V4L2_PIX_FMT_SBGGR10DPCM8 ('bBA8'),
++	 V4L2_PIX_FMT_SGBRG10DPCM8 ('bGA8'),
++	 V4L2_PIX_FMT_SGRBG10DPCM8 ('BD10'),
++	 V4L2_PIX_FMT_SRGGB10DPCM8 ('bRA8'),
++	 </refentrytitle>
++	&manvol;
++      </refmeta>
++      <refnamediv>
++	<refname id="V4L2-PIX-FMT-SBGGR10DPCM8"><constant>V4L2_PIX_FMT_SBGGR10DPCM8</constant></refname>
++	<refname id="V4L2-PIX-FMT-SGBRG10DPCM8"><constant>V4L2_PIX_FMT_SGBRG10DPCM8</constant></refname>
++	<refname id="V4L2-PIX-FMT-SGRBG10DPCM8"><constant>V4L2_PIX_FMT_SGRBG10DPCM8</constant></refname>
++	<refname id="V4L2-PIX-FMT-SRGGB10DPCM8"><constant>V4L2_PIX_FMT_SRGGB10DPCM8</constant></refname>
++	<refpurpose>10-bit Bayer formats compressed to 8 bits</refpurpose>
++      </refnamediv>
++      <refsect1>
++	<title>Description</title>
++
++	<para>The following four pixel formats are raw sRGB / Bayer formats
++	with 10 bits per colour compressed to 8 bits each, using DPCM
++	compression. DPCM, differential pulse-code modulation, is lossy.
++	Each colour component consumes 8 bits of memory. In other respects
++	this format is similar to <xref
++	linkend="pixfmt-srggb10">.</xref></para>
++
++      </refsect1>
++    </refentry>
+diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
+index 31eaae2..74d4fcd 100644
+--- a/Documentation/DocBook/media/v4l/pixfmt.xml
++++ b/Documentation/DocBook/media/v4l/pixfmt.xml
+@@ -673,6 +673,7 @@ access the palette, this must be done with ioctls of the Linux framebuffer API.<
+     &sub-srggb8;
+     &sub-sbggr16;
+     &sub-srggb10;
++    &sub-srggb10dpcm8;
+     &sub-srggb12;
+   </section>
+ 
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index 0805259..dbc0d77 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -378,7 +378,10 @@ struct v4l2_pix_format {
+ #define V4L2_PIX_FMT_SGRBG12 v4l2_fourcc('B', 'A', '1', '2') /* 12  GRGR.. BGBG.. */
+ #define V4L2_PIX_FMT_SRGGB12 v4l2_fourcc('R', 'G', '1', '2') /* 12  RGRG.. GBGB.. */
+ 	/* 10bit raw bayer DPCM compressed to 8 bits */
++#define V4L2_PIX_FMT_SBGGR10DPCM8 v4l2_fourcc('b', 'B', 'A', '8')
++#define V4L2_PIX_FMT_SGBRG10DPCM8 v4l2_fourcc('b', 'G', 'A', '8')
+ #define V4L2_PIX_FMT_SGRBG10DPCM8 v4l2_fourcc('B', 'D', '1', '0')
++#define V4L2_PIX_FMT_SRGGB10DPCM8 v4l2_fourcc('b', 'R', 'A', '8')
+ 	/*
+ 	 * 10bit raw bayer, expanded to 16 bits
+ 	 * xxxxrrrrrrrrrrxxxxgggggggggg xxxxggggggggggxxxxbbbbbbbbbb...
+-- 
+1.7.2.5
 
-Am 5. Februar 2012 03:21 schrieb Jonathan McCrohan <jmccrohan@gmail.com>:
-> # HG changeset patch
-> # User Jonathan McCrohan <jmccrohan@gmail.com>
-> # Date 1328407970 0
-> # Node ID 068772e2c579c9e8c32c81d2e7b5b6978e6afe7f
-> # Parent  69fc03702a6489ae46c50a3a5514df714d3832e8
-> add scan files for Ireland (ie-*)
->
-> Signed-off-by: Jonathan McCrohan <jmccrohan@gmail.com>
->
-> diff -r 69fc03702a64 -r 068772e2c579 util/scan/dvb-t/ie-CairnHill
-> --- /dev/null   Thu Jan 01 00:00:00 1970 +0000
-> +++ b/util/scan/dvb-t/ie-CairnHill      Sun Feb 05 02:12:50 2012 +0000
-> @@ -0,0 +1,4 @@
-> +# Ireland, Cairn Hill
-> +# Generated from http://www.rtenl.ie/wp-content/uploads/2011/12/SAORVIEW-Frequencies-Rev-1.0.pdf
-> +# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-> +T 682000000 8MHz 3/4 NONE QAM16 2k 1/32 NONE # CH47: Saorview
-> diff -r 69fc03702a64 -r 068772e2c579 util/scan/dvb-t/ie-ClermontCarn
-> --- /dev/null   Thu Jan 01 00:00:00 1970 +0000
-> +++ b/util/scan/dvb-t/ie-ClermontCarn   Sun Feb 05 02:12:50 2012 +0000
-> @@ -0,0 +1,4 @@
-> +# Ireland, Clermont Carn
-> +# Generated from http://www.rtenl.ie/wp-content/uploads/2011/12/SAORVIEW-Frequencies-Rev-1.0.pdf
-> +# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-> +T 730000000 8MHz 3/4 NONE QAM16 2k 1/32 NONE # CH53: Saorview
-> diff -r 69fc03702a64 -r 068772e2c579 util/scan/dvb-t/ie-Dungarvan
-> --- /dev/null   Thu Jan 01 00:00:00 1970 +0000
-> +++ b/util/scan/dvb-t/ie-Dungarvan      Sun Feb 05 02:12:50 2012 +0000
-> @@ -0,0 +1,4 @@
-> +# Ireland, Dungarvan
-> +# Generated from http://www.rtenl.ie/wp-content/uploads/2011/12/SAORVIEW-Frequencies-Rev-1.0.pdf
-> +# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-> +T 746000000 8MHz 3/4 NONE QAM16 2k 1/32 NONE # CH55: Saorview
-> diff -r 69fc03702a64 -r 068772e2c579 util/scan/dvb-t/ie-HolywellHill
-> --- /dev/null   Thu Jan 01 00:00:00 1970 +0000
-> +++ b/util/scan/dvb-t/ie-HolywellHill   Sun Feb 05 02:12:50 2012 +0000
-> @@ -0,0 +1,4 @@
-> +# Ireland, Holywell Hill
-> +# Generated from http://www.rtenl.ie/wp-content/uploads/2011/12/SAORVIEW-Frequencies-Rev-1.0.pdf
-> +# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-> +T 546000000 8MHz 3/4 NONE QAM16 2k 1/32 NONE # CH30: Saorview
-> diff -r 69fc03702a64 -r 068772e2c579 util/scan/dvb-t/ie-Kippure
-> --- /dev/null   Thu Jan 01 00:00:00 1970 +0000
-> +++ b/util/scan/dvb-t/ie-Kippure        Sun Feb 05 02:12:50 2012 +0000
-> @@ -0,0 +1,4 @@
-> +# Ireland, Kippure
-> +# Generated from http://www.rtenl.ie/wp-content/uploads/2011/12/SAORVIEW-Frequencies-Rev-1.0.pdf
-> +# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-> +T 738000000 8MHz 3/4 NONE QAM16 2k 1/32 NONE # CH54: Saorview
-> diff -r 69fc03702a64 -r 068772e2c579 util/scan/dvb-t/ie-Maghera
-> --- /dev/null   Thu Jan 01 00:00:00 1970 +0000
-> +++ b/util/scan/dvb-t/ie-Maghera        Sun Feb 05 02:12:50 2012 +0000
-> @@ -0,0 +1,4 @@
-> +# Ireland, Maghera
-> +# Generated from http://www.rtenl.ie/wp-content/uploads/2011/12/SAORVIEW-Frequencies-Rev-1.0.pdf
-> +# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-> +T 690000000 8MHz 3/4 NONE QAM16 2k 1/32 NONE # CH48: Saorview
-> diff -r 69fc03702a64 -r 068772e2c579 util/scan/dvb-t/ie-MountLeinster
-> --- /dev/null   Thu Jan 01 00:00:00 1970 +0000
-> +++ b/util/scan/dvb-t/ie-MountLeinster  Sun Feb 05 02:12:50 2012 +0000
-> @@ -0,0 +1,4 @@
-> +# Ireland, Mount Leinster
-> +# Generated from http://www.rtenl.ie/wp-content/uploads/2011/12/SAORVIEW-Frequencies-Rev-1.0.pdf
-> +# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-> +T 666000000 8MHz 3/4 NONE QAM16 2k 1/32 NONE # CH45: Saorview
-> diff -r 69fc03702a64 -r 068772e2c579 util/scan/dvb-t/ie-Mullaghanish
-> --- /dev/null   Thu Jan 01 00:00:00 1970 +0000
-> +++ b/util/scan/dvb-t/ie-Mullaghanish   Sun Feb 05 02:12:50 2012 +0000
-> @@ -0,0 +1,4 @@
-> +# Ireland, Mullaghanish
-> +# Generated from http://www.rtenl.ie/wp-content/uploads/2011/12/SAORVIEW-Frequencies-Rev-1.0.pdf
-> +# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-> +T 474000000 8MHz 3/4 NONE QAM16 2k 1/32 NONE # CH21: Saorview
-> diff -r 69fc03702a64 -r 068772e2c579 util/scan/dvb-t/ie-SpurHill
-> --- /dev/null   Thu Jan 01 00:00:00 1970 +0000
-> +++ b/util/scan/dvb-t/ie-SpurHill       Sun Feb 05 02:12:50 2012 +0000
-> @@ -0,0 +1,4 @@
-> +# Ireland, Spur Hill
-> +# Generated from http://www.rtenl.ie/wp-content/uploads/2011/12/SAORVIEW-Frequencies-Rev-1.0.pdf
-> +# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-> +T 666000000 8MHz 3/4 NONE QAM16 2k 1/32 NONE # CH45: Saorview
-> diff -r 69fc03702a64 -r 068772e2c579 util/scan/dvb-t/ie-ThreeRock
-> --- /dev/null   Thu Jan 01 00:00:00 1970 +0000
-> +++ b/util/scan/dvb-t/ie-ThreeRock      Sun Feb 05 02:12:50 2012 +0000
-> @@ -0,0 +1,4 @@
-> +# Ireland, Three Rock
-> +# Generated from http://www.rtenl.ie/wp-content/uploads/2011/12/SAORVIEW-Frequencies-Rev-1.0.pdf
-> +# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-> +T 738000000 8MHz 3/4 NONE QAM16 2k 1/32 NONE # CH54: Saorview
-> diff -r 69fc03702a64 -r 068772e2c579 util/scan/dvb-t/ie-Truskmore
-> --- /dev/null   Thu Jan 01 00:00:00 1970 +0000
-> +++ b/util/scan/dvb-t/ie-Truskmore      Sun Feb 05 02:12:50 2012 +0000
-> @@ -0,0 +1,4 @@
-> +# Ireland, Truskmore
-> +# Generated from http://www.rtenl.ie/wp-content/uploads/2011/12/SAORVIEW-Frequencies-Rev-1.0.pdf
-> +# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-> +T 730000000 8MHz 3/4 NONE QAM16 2k 1/32 NONE # CH53: Saorview
-> diff -r 69fc03702a64 -r 068772e2c579 util/scan/dvb-t/ie-WoodcockHill
-> --- /dev/null   Thu Jan 01 00:00:00 1970 +0000
-> +++ b/util/scan/dvb-t/ie-WoodcockHill   Sun Feb 05 02:12:50 2012 +0000
-> @@ -0,0 +1,4 @@
-> +# Ireland, Woodcock Hill
-> +# Generated from http://www.rtenl.ie/wp-content/uploads/2011/12/SAORVIEW-Frequencies-Rev-1.0.pdf
-> +# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-> +T 682000000 8MHz 3/4 NONE QAM16 2k 1/32 NONE # CH47: Saorview
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
