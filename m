@@ -1,74 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from emh03.mail.saunalahti.fi ([62.142.5.109]:39857 "EHLO
-	emh03.mail.saunalahti.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755170Ab2CWSQn (ORCPT
+Received: from zoneX.GCU-Squad.org ([194.213.125.0]:14169 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760081Ab2CUUJs (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Mar 2012 14:16:43 -0400
-Received: from saunalahti-vams (vs3-11.mail.saunalahti.fi [62.142.5.95])
-	by emh03-2.mail.saunalahti.fi (Postfix) with SMTP id 5B6B6EBC61
-	for <linux-media@vger.kernel.org>; Fri, 23 Mar 2012 20:16:41 +0200 (EET)
-Received: from kuusi.koti (a88-112-23-125.elisa-laajakaista.fi [88.112.23.125])
-	by emh04.mail.saunalahti.fi (Postfix) with ESMTP id 23B8E41BE3
-	for <linux-media@vger.kernel.org>; Fri, 23 Mar 2012 20:16:39 +0200 (EET)
-Message-ID: <4F6CBE07.6040904@kolumbus.fi>
-Date: Fri, 23 Mar 2012 20:16:39 +0200
-From: Marko Ristola <marko.ristola@kolumbus.fi>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: [PATCH] Various nits, fixes and hacks for mantis CA support on
- SMP
-References: <20120228010330.GA25786@uio.no> <4F514CCB.8020502@kolumbus.fi> <20120302232136.GB31447@uio.no>
-In-Reply-To: <20120302232136.GB31447@uio.no>
-Content-Type: text/plain; charset=UTF-8
+	Wed, 21 Mar 2012 16:09:48 -0400
+Date: Wed, 21 Mar 2012 21:09:36 +0100
+From: Jean Delvare <khali@linux-fr.org>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	LMML <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH 1/2] [media] dib0700: Drop useless check when remote key
+  is pressed
+Message-ID: <20120321210936.006d4604@endymion.delvare>
+In-Reply-To: <4F687572.1030109@redhat.com>
+References: <20120313185037.4059a869@endymion.delvare>
+ <CAGoCfixvanxKT4h1k+FkaYkQ-zHjR-rYBWxHHiDygOScPCeZPA@mail.gmail.com>
+ <4F67B283.4050308@redhat.com>
+ <20120320082002.6551466a@endymion.delvare>
+ <4F687572.1030109@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-03.03.2012 01:21, Steinar H. Gunderson kirjoitti:
-> On Sat, Mar 03, 2012 at 12:42:19AM +0200, Marko Ristola wrote:
->> I'm not happy with I2CDONE busy looping either.
->> I've tried twice lately to swith into I2C IRQ, but those patches have caused I2CDONE timeouts.
+Hi Mauro,
+
+On Tue, 20 Mar 2012 09:17:54 -0300, Mauro Carvalho Chehab wrote:
+> Em 20-03-2012 04:20, Jean Delvare escreveu:
+> > On Mon, 19 Mar 2012 19:26:11 -0300, Mauro Carvalho Chehab wrote:
+> >> Yet, I'd be more happy if Jean's patch could check first if the status is
+> >> below 0, in order to prevent a possible race condition at device disconnect.
+> > 
+> > I'm not sure I see the race condition you're seeing. Do you believe
+> > purb->context would be NULL (or point to already-freed memory) when
+> > dib0700_rc_urb_completion is called as part of device disconnect? Or is
+> > it something else? I'll be happy to resubmit my patch series with a fix
+> > if you explain where you think there is a race condition.
 > 
-> Note that there are already timeouts with the current polling code, but they
-> are ignored (my patch makes them at least be printed with verbose=5). I can't
-> immediately recall if it's on RACK, DONE or both.
-
-I think that occasional timeouts belong to the picture (RACK missing means: packet lost).
-If I2CDONE comes immediately when I2C command has been emitted,
-it is a driver software bug (some earlier I2C command).
-
+> What I'm saying is that the only potential chance of having a NULL value
+> for d is at the device disconnect/removal, if is there any bug when waiting
+> for the URB's to be killed.
 > 
->> Do my following I2C logic thoughts make any sense?
+> So, it would be better to invert the error test logic to:
 > 
-> Well, note first of all that I know next to nothing about I2C, and I've never
-> seen any hardware documentation on the Mantis card (is there any?). But
-> generally it makes sense to me, except that I've never heard of the demand of
-> radio silence for 10 ms before.
-Ok. Radio silence for 10 ms isn't your problem: when you have a FE_LOCK,
-10 ms requirement is no more relevant.
-
+> static void dib0700_rc_urb_completion(struct urb *purb)
+> {
+> 	struct dvb_usb_device *d = purb->context;
+> 	struct dib0700_rc_response *poll_reply;
+> 	u32 uninitialized_var(keycode);
+> 	u8 toggle;
 > 
->> There might be race conditions, that the driver possibly manages:
->> 1. If two threads talk into DVB frontend, one could turn off the I2C gate, while the other is talking to DVB frontend.
->>    This would case lack of I2CRACK: only way to recover would be to turn
->>    the I2C gate on, and then redo the I2C transfer.
+> 	poll_reply = purb->transfer_buffer;
+> 	if (purb->status < 0) {
+> 		deb_info("discontinuing polling\n");
+> 		kfree(purb->transfer_buffer);
+> 		usb_free_urb(purb);
+> 		return;
+> 	}
 > 
-> Note that I've tried putting mutexes around the I2C functions, and it didn't
-> help on the I2C timeouts; however, that was largely on a single-character
-> level, so it might not be enough. (You can see these mutexes being commented
-> out in my patch.)
-
-I have now a new idea for what to try with I2C interrupts.
-It all depends, whether I understand the driver coding well enough.
-
+> 	deb_info("%s()\n", __func__);
+> 	if (d->rc_dev == NULL) {
+> 		/* This will occur if disable_rc_polling=1 */
+> 		kfree(purb->transfer_buffer);
+> 		usb_free_urb(purb);
+> 		return;
+> 	}
 > 
-> /* Steinar */
+> As, at device disconnect/completion, the status will indicate an error, and
+> the function will return before trying to de-referenciate rc_dev.
 
-I have also a low interest for Mantis coding:
-Ideas come fast, and if the new code doesn't work right away,
-I back up the code somewhere and drop it.
+Hmm. I couldn't find any code that would reset purb->context. I tested
+2000 rmmod dvb-usb-dib0700 on a 3.3.0 kernel with my two patches
+applied, compiled with CONFIG_DEBUG_SLAB=y and CONFIG_DEBUG_VM=y, and
+it did not crash nor report any problem. I don't think there is any
+race here, so I see no point in changing the code. We just got rid of a
+paranoid check, it is not to apply another paranoid patch.
 
-Some years ago during Summer Holiday time I could get something done
-and even patches got applied into Linux kernel.
-
-Marko Ristola
+-- 
+Jean Delvare
