@@ -1,63 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:49088 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753631Ab2CSVmy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Mar 2012 17:42:54 -0400
-From: Rob Clark <rob.clark@linaro.org>
-To: linaro-mm-sig@lists.linaro.org, linux-kernel@vger.kernel.org,
-	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
-Cc: patches@linaro.org, daniel.vetter@ffwll.ch,
-	sumit.semwal@linaro.org, Rob Clark <rob@ti.com>
-Subject: [PATCH] dma-buf: document fd flags and O_CLOEXEC requirement
-Date: Mon, 19 Mar 2012 16:42:49 -0500
-Message-Id: <1332193370-27820-1-git-send-email-rob.clark@linaro.org>
+Received: from mx1.redhat.com ([209.132.183.28]:38888 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757580Ab2CUUkE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 21 Mar 2012 16:40:04 -0400
+Message-ID: <4F6A3C9C.2080906@redhat.com>
+Date: Wed, 21 Mar 2012 17:39:56 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: Move em27xx/em28xx webcams to a gspca subdriver ?
+References: <CALjTZvZy4npSE0aELnmsZzzgsxUC1xjeNYVwQ_CvJG59PizfEQ@mail.gmail.com> <CALF0-+Wp03vsbiaJFUt=ymnEncEvDg_KmnV+2OWjtO-_0qqBVg@mail.gmail.com> <CALjTZvYVtuSm0v-_Q7od=iUDvHbkMe4c5ycAQZwoErCCe=N+Bg@mail.gmail.com> <CALF0-+W3HenNpUt_yGxqs+fohcZ22ozDw9MhTWua0B++ZFA2vA@mail.gmail.com> <CALjTZvYJZ32Red-UfZXubB-Lk503DWbHGTL_kEoV4DVDDYJ46w@mail.gmail.com> <4F61C79E.6090603@redhat.com> <4F61E1BC.1020807@googlemail.com> <4F61E913.4000809@redhat.com> <4F63BC4B.1010900@googlemail.com> <4F6A178D.8080400@googlemail.com>
+In-Reply-To: <4F6A178D.8080400@googlemail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Rob Clark <rob@ti.com>
+Em 21-03-2012 15:01, Frank Schäfer escreveu:
+> Am 16.03.2012 23:18, schrieb Frank Schäfer:
+>> [Was: eMPIA EM2710 Webcam (em28xx) and LIRC]
+>>
+>> Continue this part of the discussion in a new thread...
+>>
+>> Am 15.03.2012 14:05, schrieb Mauro Carvalho Chehab:
+>>> Em 15-03-2012 09:34, Frank Schäfer escreveu:
+>>>> ...
+>>>>
+>>>> I would like to bring up the question, if it wouldn't make sense to move
+>>>> support for the em27xx/28xx webcams to a separate gspca-subdriver.
+>>> The em2710/2750 chips are very similar to em2820. There's not much sense
+>>> on moving it elsewhere, as it would duplicate a lot of the existing code,
+>>> for no good reason.
+>> Yes, that was my first thought, too.
+>> But looking at the resulting gspca subdriver, you will see that there is
+>> not much code duplication.
+>> I would say that adding support for this device as a gspca subdriver
+>> requires less new lines of code than extending/modifying the em28xx driver.
+>>
+>>>> I'm currently working on adding support for the VAD Laplace webcam
+>>>> (em2765 + OV2640) (http://linuxtv.org/wiki/index.php/VAD_Laplace).
+>>>> Lots of modifications to the em28xx driver would be necessary to support
+>>>> this device because of some significant differences:
+>>>> - supports only bulk transfers
+>>> em28xx supports it as well, but it is used only for dvb, currently.
+>> You are talking about the em28xx device capabilities, right ?
+>> AFAIK, the em28xx driver still has no bulk transfer support.
+>>
+>>>> - uses proprietary I2C-writes
+>>> huh? I2C writes are proprietary. What do you mean?
+>> Maybe proprietary is not the best name...
+>> Requests 0x06 an 0x08 are used for the usb control messages.
+>> I have documented that at http://linuxtv.org/wiki/index.php/VAD_Laplace.
+>> Could be the "vendor specific" usb requests the datasheet talks about.
+>>
+>>>> - em25xx-eeprom
+>>> Are you meaning more than 256 addresses eeprom? Newer Empia chips use it,
+>>> not only the webcam ones. Currently, the code detects it but nobody wrote
+>>> an implementation for it yet. It would likely make sense to implement it
+>>> at em28xx anyway.
+>> Yes, the device has an eeprom with 16bit addresses.
+>> Anyway, I'm talking about a different format of the eeprom data:
+>> http://wenku.baidu.com/view/a21a28eab8f67c1cfad6b8f6.html
+>>
+>> You can find the eeprom content of my device at
+>> http://linuxtv.org/wiki/index.php/VAD_Laplace
+>>
+>>>> - ov2640 sensor
+>>> The better is to use a separate I2C driver for the sensor. This is not
+>>> a common practice at gspca, but doing that would help to re-use the sensor
+>>> driver elsewhere.
+>> I agree. But let's do things step by step...
+>>
+>>>> Lots of changes concerning the USB-interface probing, button handling,
+>>>> video controls, frame processing and more would be necessary, too.
+>>> Video controls are implemented at the sensor sub-driver, so this is not
+>>> an issue.
+>>>
+>>> Anyway, if em2765 is different enough from em2874 and em2750, then it makes
+>>> sense to write it as a separate driver. Otherwise, it is better to add support
+>>> for it there.
+>> No, the em2765 itself seems to be very similar to the other
+>> em27xx/em28xx chips.
+>> But the device as a whole is different enough to consider a separate driver.
+>>
+>>>> For reverse engineering purposes, I decided to write a gspca subdriver
+>>>> for this device (will send a patch for testing/discussion soon).
+>>> Ok.
+>> See the patch posted a minute ago.
+>>
+>>>> I have no strong opinion about this, but I somehow feel that the em28xx
+>>>> driver gets bloated more and more...
+>>> The advantage of adding it there is that it generally reduces maintenance 
+>>> efforts, as the same code and fixes don't need to be added on two separate
+>>> places.
+>> Yes, that's right. But on the other hand, the benefit of separate
+>> drivers is simpler code, which is easier to maintain/understand.
+>> For example, there would be no LIRC modules issue ;-)
+>>
+>>> For example, if the em2765 eeprom access is similar to em2874, the same
+>>> code chunk would be required on both drivers.
+>> Sure, code duplication is one of the disadvantages. The question is how
+>> much duplicate code there would be.
+>>
+>> Regards,
+>> Frank
+>>
+>>> Regards,
+>>> Mauro
+> Ping !
+> No comments, opinions ? ;-)
 
-Otherwise subsystems will get this wrong and end up with a second
-export ioctl with the flag and O_CLOEXEC support added.
+-ETOOBUSY ;)
 
-Signed-off-by: Rob Clark <rob@ti.com>
-Reviewed-by: Daniel Vetter <daniel.vetter@ffwll.ch>
----
-Updated version of Daniel's original documentation patch with (hopefully)
-improved wording, and a better description of the motivation.
+We're in the middle of a merge window. I don't have any time
+during this and the next week for discussing it due to that,
+as there are some maintainer's task that I need to handle.
 
- Documentation/dma-buf-sharing.txt |   18 ++++++++++++++++++
- 1 files changed, 18 insertions(+), 0 deletions(-)
+Please ping me by the beginning of April, after the end of the
+merge window.
 
-diff --git a/Documentation/dma-buf-sharing.txt b/Documentation/dma-buf-sharing.txt
-index 225f96d..3b51134 100644
---- a/Documentation/dma-buf-sharing.txt
-+++ b/Documentation/dma-buf-sharing.txt
-@@ -223,6 +223,24 @@ Miscellaneous notes:
- - Any exporters or users of the dma-buf buffer sharing framework must have
-   a 'select DMA_SHARED_BUFFER' in their respective Kconfigs.
- 
-+- In order to avoid fd leaks on exec, the FD_CLOEXEC flag must be set
-+  on the file descriptor.  This is not just a resource leak, but a
-+  potential security hole.  It could give the newly exec'd application
-+  access to buffers, via the leaked fd, to which it should otherwise
-+  not be permitted access.
-+
-+  The problem with doing this via a separate fcntl() call, versus doing it
-+  atomically when the fd is created, is that this is inherently racy in a
-+  multi-threaded app[3].  The issue is made worse when it is library code
-+  opening/creating the file descriptor, as the application may not even be
-+  aware of the fd's.
-+
-+  To avoid this problem, userspace must have a way to request O_CLOEXEC
-+  flag be set when the dma-buf fd is created.  So any API provided by
-+  the exporting driver to create a dmabuf fd must provide a way to let
-+  userspace control setting of O_CLOEXEC flag passed in to dma_buf_fd().
-+
- References:
- [1] struct dma_buf_ops in include/linux/dma-buf.h
- [2] All interfaces mentioned above defined in include/linux/dma-buf.h
-+[3] https://lwn.net/Articles/236486/
--- 
-1.7.5.4
-
+Sorry,
+Mauro
