@@ -1,68 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.meprolight.com ([194.90.149.17]:57431 "EHLO meprolight.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S965025Ab2CTN60 convert rfc822-to-8bit (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:57798 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030814Ab2CULFq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Mar 2012 09:58:26 -0400
-From: Alex Gershgorin <alexg@meprolight.com>
-To: 'Sascha Hauer' <s.hauer@pengutronix.de>
-CC: "linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"g.liakhovetski@gmx.de" <g.liakhovetski@gmx.de>,
-	"fabio.estevam@freescale.com" <fabio.estevam@freescale.com>
-Date: Tue, 20 Mar 2012 15:57:52 +0200
-Subject: RE: [PATCH] ARM: i.MX35: Add set_rate and round_rate calls to
-	csi_clk
-Message-ID: <4875438356E7CA4A8F2145FCD3E61C0B2CC34C59E5@MEP-EXCH.meprolight.com>
-In-Reply-To: <20120320130805.GK3852@pengutronix.de>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+	Wed, 21 Mar 2012 07:05:46 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-sh@vger.kernel.org
+Subject: Re: [PATCH 1/2] V4L: sh_mobile_ceu_camera: maximum image size depends on the hardware version
+Date: Wed, 21 Mar 2012 12:06:13 +0100
+Message-ID: <148041421.OMs5SD2LFA@avalon>
+In-Reply-To: <Pine.LNX.4.64.1203211157340.31443@axis700.grange>
+References: <Pine.LNX.4.64.1203141600210.25284@axis700.grange> <2696549.KbXzs1B8nR@avalon> <Pine.LNX.4.64.1203211157340.31443@axis700.grange>
 MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Guennadi,
 
-Hi Sascha,
+On Wednesday 21 March 2012 11:59:59 Guennadi Liakhovetski wrote:
+> On Wed, 21 Mar 2012, Laurent Pinchart wrote:
+> > On Wednesday 14 March 2012 16:02:20 Guennadi Liakhovetski wrote:
+> > > Newer CEU versions, e.g., the one, used on sh7372, support image sizes
+> > > larger than 2560x1920. Retrieve maximum sizes from platform properties.
+> > 
+> > Isn't there a way you could query the CEU version at runtime instead ?
+> 
+> I'm not aware of any. And even if it were possible, I'm not sure putting
+> tables with "version - feature-set" tables into the driver proper would be
+> a very good idea. It used to be like that (or almost like that with
+> dependencies on the chip-type) in other drivers (e.g., shdma) and we
+> dropped it in favour of platform data.
 
-Thanks for you comments.
+I would have voted for doing it the other way around. The driver should know 
+about the different hardware versions it supports. Putting that in platform 
+data just moves the burden to board code developers and duplicates the 
+information in lots of places. At worse, if you can't detect the version at 
+runtime, I would put a version field in the platform data and map that to 
+hardware features in the driver.
 
-On Tue, Mar 20, 2012 at 12:29:52PM +0200, Alex Gershgorin wrote:
-> This patch add set_rate and round_rate calls to csi_clk. This is needed
-> to give mx3-camera control over master clock rate to camera.
-
-> >The file you are patching is scheduled for removal in favour for the
-> >common clock framework, so you are flogging a dead horse here. I suggest
-> >that you wait some time until I finished the i.MX35 patches for this.
-
-This patch allows me to move forward, without this patch the camera just does not work. I'll use it as a temporary patch and happily wait for you to finish your work on i.MX35 patches :-)
- 
-> +static int csi_set_rate(struct clk *clk, unsigned long rate)
-> +{
-> +	unsigned long div;
-> +	unsigned long parent_rate;
-> +	unsigned long pdr2 = __raw_readl(CCM_BASE + CCM_PDR2);
-> +
-> +	if (pdr2 & (1 << 7))
-> +		parent_rate = get_rate_arm();
-> +	else
-> +		parent_rate = get_rate_ppll();
-> +
-> +	div = parent_rate / rate;
-> +
-> +	/* Set clock divider */
-> +	pdr2 |= ((div - 1) & 0x3f) << 16;
-
-> >btw you forget to clear the divider bits in pdr2 before
-> >setting the new values.
-
- Totally agree with you.
-
-
-
+-- 
 Regards,
-Alex Gershgorin
 
+Laurent Pinchart
 
