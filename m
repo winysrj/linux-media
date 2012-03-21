@@ -1,62 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:65321 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753229Ab2CTOK1 (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:57779 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030715Ab2CULDT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Mar 2012 10:10:27 -0400
-Received: by eaaq12 with SMTP id q12so30151eaa.19
-        for <linux-media@vger.kernel.org>; Tue, 20 Mar 2012 07:10:26 -0700 (PDT)
-From: Gianluca Gennari <gennarone@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@redhat.com
-Cc: Gianluca Gennari <gennarone@gmail.com>
-Subject: [PATCH] media_build: fix module_*_driver redefined warnings
-Date: Tue, 20 Mar 2012 15:10:17 +0100
-Message-Id: <1332252617-3171-1-git-send-email-gennarone@gmail.com>
+	Wed, 21 Mar 2012 07:03:19 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: linux-media@vger.kernel.org
+Subject: [PATCH v2 6/9] soc-camera: Add soc_mbus_image_size
+Date: Wed, 21 Mar 2012 12:03:25 +0100
+Message-Id: <1332327808-6056-7-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1332327808-6056-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1332327808-6056-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The conditions "#ifndef module_usb_driver" and "#ifndef module_platform_driver"
-are always true, as the header files where this macros are defined are not
-included in compat.h (linux/usb.h and linux/platform_devices.h).
+The function returns the minimum size of an image for a given number of
+bytes per line (as per the V4L2 specification), width and format.
 
-This produces a lot of warnings like "module_usb_driver redefined" or
-"module_platform_driver redefined" with kernels 3.2 and 3.3.
-
-But including the header files in compat.h produces other "redefined" warnings,
-so let's check the kernel version instead.
-
-module_usb_driver was first introduced in kernel 3.3,
-while module_platform_driver was introduced in kernel 3.2.
-
-Tested with kernel 3.3, 3.2 and 3.0.
-
-Signed-off-by: Gianluca Gennari <gennarone@gmail.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- v4l/compat.h |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/media/video/soc_mediabus.c |   18 ++++++++++++++++++
+ include/media/soc_mediabus.h       |    2 ++
+ 2 files changed, 20 insertions(+), 0 deletions(-)
 
-diff --git a/v4l/compat.h b/v4l/compat.h
-index 62710c9..ab0f2e7 100644
---- a/v4l/compat.h
-+++ b/v4l/compat.h
-@@ -864,7 +864,7 @@ static inline int snd_ctl_enum_info(struct snd_ctl_elem_info *info, unsigned int
- #endif
- #endif /*pr_debug_ratelimited */
+diff --git a/drivers/media/video/soc_mediabus.c b/drivers/media/video/soc_mediabus.c
+index a707314..89dce09 100644
+--- a/drivers/media/video/soc_mediabus.c
++++ b/drivers/media/video/soc_mediabus.c
+@@ -397,6 +397,24 @@ s32 soc_mbus_bytes_per_line(u32 width, const struct soc_mbus_pixelfmt *mf)
+ }
+ EXPORT_SYMBOL(soc_mbus_bytes_per_line);
  
--#ifndef module_usb_driver
-+#if LINUX_VERSION_CODE < KERNEL_VERSION(3, 3, 0)
- #define module_usb_driver(drv)			\
- static int __init usb_mod_init(void)		\
- {						\
-@@ -878,7 +878,7 @@ module_init(usb_mod_init);			\
- module_exit(usb_mod_exit);
- #endif /* module_usb_driver */
- 
--#ifndef module_platform_driver
-+#if LINUX_VERSION_CODE < KERNEL_VERSION(3, 2, 0)
- #define module_platform_driver(drv)		\
- static int __init plat_mod_init(void)		\
- {						\
++s32 soc_mbus_image_size(const struct soc_mbus_pixelfmt *mf,
++			u32 bytes_per_line, u32 height)
++{
++	if (mf->layout == SOC_MBUS_LAYOUT_PACKED)
++		return bytes_per_line * height;
++
++	switch (mf->packing) {
++	case SOC_MBUS_PACKING_2X8_PADHI:
++	case SOC_MBUS_PACKING_2X8_PADLO:
++		return bytes_per_line * height * 2;
++	case SOC_MBUS_PACKING_1_5X8:
++		return bytes_per_line * height * 3 / 2;
++	default:
++		return -EINVAL;
++	}
++}
++EXPORT_SYMBOL(soc_mbus_image_size);
++
+ const struct soc_mbus_pixelfmt *soc_mbus_find_fmtdesc(
+ 	enum v4l2_mbus_pixelcode code,
+ 	const struct soc_mbus_lookup *lookup,
+diff --git a/include/media/soc_mediabus.h b/include/media/soc_mediabus.h
+index e18eed4..0dc6f46 100644
+--- a/include/media/soc_mediabus.h
++++ b/include/media/soc_mediabus.h
+@@ -99,6 +99,8 @@ const struct soc_mbus_pixelfmt *soc_mbus_find_fmtdesc(
+ const struct soc_mbus_pixelfmt *soc_mbus_get_fmtdesc(
+ 	enum v4l2_mbus_pixelcode code);
+ s32 soc_mbus_bytes_per_line(u32 width, const struct soc_mbus_pixelfmt *mf);
++s32 soc_mbus_image_size(const struct soc_mbus_pixelfmt *mf,
++			u32 bytes_per_line, u32 height);
+ int soc_mbus_samples_per_pixel(const struct soc_mbus_pixelfmt *mf,
+ 			unsigned int *numerator, unsigned int *denominator);
+ unsigned int soc_mbus_config_compatible(const struct v4l2_mbus_config *cfg,
 -- 
-1.7.5.4
+1.7.3.4
 
