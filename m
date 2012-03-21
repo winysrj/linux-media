@@ -1,55 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:38192 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1030697Ab2CSP2B (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:57776 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758653Ab2CULDQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Mar 2012 11:28:01 -0400
-Received: by wejx9 with SMTP id x9so5935890wej.19
-        for <linux-media@vger.kernel.org>; Mon, 19 Mar 2012 08:28:00 -0700 (PDT)
-From: Daniel Vetter <daniel.vetter@ffwll.ch>
-To: linaro-mm-sig@lists.linaro.org,
-	LKML <linux-kernel@vger.kernel.org>,
-	DRI Development <dri-devel@lists.freedesktop.org>,
-	linux-media@vger.kernel.org
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>,
-	Dave Airlie <airlied@gmail.com>
-Subject: [PATCH] dma-buf: document fd flags and O_CLOEXEC requirement
-Date: Mon, 19 Mar 2012 16:41:55 +0100
-Message-Id: <1332171715-1484-1-git-send-email-daniel.vetter@ffwll.ch>
-In-Reply-To: <CAPM=9twSZJyYcNwDwaC5eSy7fXNaRBGTZZ6F2K3D8AeQdYtgww@mail.gmail.com>
-References: <CAPM=9twSZJyYcNwDwaC5eSy7fXNaRBGTZZ6F2K3D8AeQdYtgww@mail.gmail.com>
+	Wed, 21 Mar 2012 07:03:16 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: linux-media@vger.kernel.org
+Subject: [PATCH v2 5/9] soc-camera: Fix bytes per line computation for planar formats
+Date: Wed, 21 Mar 2012 12:03:24 +0100
+Message-Id: <1332327808-6056-6-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1332327808-6056-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1332327808-6056-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Otherwise subsystems will get this wrong and end up with a second
-export ioctl with the flag and O_CLOEXEC support added.
+The V4L2 specification defines bytesperline for planar formats as the
+number of bytes per line for the largest plane. Modify
+soc_mbus_bytes_per_line() accordingly.
 
-v2: Fixup the function name and caution exporters to limit the flags
-to only O_CLOEXEC. Noted by Dave Airlie.
-
-Cc: Dave Airlie <airlied@gmail.com>
-Signed-Off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- Documentation/dma-buf-sharing.txt |    6 ++++++
- 1 files changed, 6 insertions(+), 0 deletions(-)
+ drivers/media/video/soc_mediabus.c |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
 
-diff --git a/Documentation/dma-buf-sharing.txt b/Documentation/dma-buf-sharing.txt
-index 9f3aeef..a6d4c37 100644
---- a/Documentation/dma-buf-sharing.txt
-+++ b/Documentation/dma-buf-sharing.txt
-@@ -319,6 +319,12 @@ Miscellaneous notes
- - Any exporters or users of the dma-buf buffer sharing framework must have
-   a 'select DMA_SHARED_BUFFER' in their respective Kconfigs.
+diff --git a/drivers/media/video/soc_mediabus.c b/drivers/media/video/soc_mediabus.c
+index 44dba6c..a707314 100644
+--- a/drivers/media/video/soc_mediabus.c
++++ b/drivers/media/video/soc_mediabus.c
+@@ -378,6 +378,9 @@ EXPORT_SYMBOL(soc_mbus_samples_per_pixel);
  
-+- To avoid the wrath of userspace library writers exporting subsystems must have
-+  a flag parameter in the ioctl that creates the dma-buf fd which needs to
-+  support at least the O_CLOEXEC fd flag. This needs to be passed in the flag
-+  parameter of dma_buf_fd. Without any other reasons applying it is recommended
-+  that exporters limit the flags passed to dma_buf_fd to only O_CLOEXEC.
+ s32 soc_mbus_bytes_per_line(u32 width, const struct soc_mbus_pixelfmt *mf)
+ {
++	if (mf->layout != SOC_MBUS_LAYOUT_PACKED)
++		return width * mf->bits_per_sample / 8;
 +
- References:
- [1] struct dma_buf_ops in include/linux/dma-buf.h
- [2] All interfaces mentioned above defined in include/linux/dma-buf.h
+ 	switch (mf->packing) {
+ 	case SOC_MBUS_PACKING_NONE:
+ 		return width * mf->bits_per_sample / 8;
 -- 
-1.7.7.5
+1.7.3.4
 
