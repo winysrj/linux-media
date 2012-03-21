@@ -1,99 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:33702 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1031969Ab2COQyw (ORCPT
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:50055 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755498Ab2CUJhe convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Mar 2012 12:54:52 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Received: from euspt2 ([210.118.77.13]) by mailout3.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0M0X0060ZQZ61K10@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 15 Mar 2012 16:54:42 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0M0X004Q0QZ45P@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 15 Mar 2012 16:54:42 +0000 (GMT)
-Date: Thu, 15 Mar 2012 17:54:35 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH/RFC 21/23] m5mols: Add JPEG compression quality control
-In-reply-to: <1331830477-12146-1-git-send-email-s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, riverful.kim@samsung.com,
-	kyungmin.park@samsung.com, s.nawrocki@samsung.com
-Message-id: <1331830477-12146-22-git-send-email-s.nawrocki@samsung.com>
-References: <1331830477-12146-1-git-send-email-s.nawrocki@samsung.com>
+	Wed, 21 Mar 2012 05:37:34 -0400
+Received: by obbeh20 with SMTP id eh20so590734obb.19
+        for <linux-media@vger.kernel.org>; Wed, 21 Mar 2012 02:37:33 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1331051596-8261-14-git-send-email-sakari.ailus@iki.fi>
+References: <20120306163239.GN1075@valkosipuli.localdomain>
+	<1331051596-8261-14-git-send-email-sakari.ailus@iki.fi>
+Date: Wed, 21 Mar 2012 15:07:33 +0530
+Message-ID: <CA+V-a8uNqKERJd-vvBCw0GLgDuFcC_5seXZ9pdf_eN1xyC_xZA@mail.gmail.com>
+Subject: Re: [PATCH v5 14/35] v4l: Add DPCM compressed raw bayer pixel formats
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	dacohen@gmail.com, snjw23@gmail.com,
+	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
+	tuukkat76@gmail.com, k.debski@samsung.com, riverful@gmail.com,
+	hverkuil@xs4all.nl, teturtia@gmail.com, pradeep.sawlani@gmail.com
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/video/m5mols/m5mols.h          |    1 +
- drivers/media/video/m5mols/m5mols_controls.c |   10 ++++++++--
- drivers/media/video/m5mols/m5mols_reg.h      |    1 +
- 3 files changed, 10 insertions(+), 2 deletions(-)
+Sakari,
 
-diff --git a/drivers/media/video/m5mols/m5mols.h b/drivers/media/video/m5mols/m5mols.h
-index d95ccb8..319db1e 100644
---- a/drivers/media/video/m5mols/m5mols.h
-+++ b/drivers/media/video/m5mols/m5mols.h
-@@ -227,6 +227,7 @@ struct m5mols_info {
- 	struct v4l2_ctrl *zoom;
- 	struct v4l2_ctrl *wdr;
- 	struct v4l2_ctrl *stabilization;
-+	struct v4l2_ctrl *jpeg_quality;
- 
- 	struct m5mols_version ver;
- 	struct m5mols_capture cap;
-diff --git a/drivers/media/video/m5mols/m5mols_controls.c b/drivers/media/video/m5mols/m5mols_controls.c
-index b7b46eb..7e2ea62 100644
---- a/drivers/media/video/m5mols/m5mols_controls.c
-+++ b/drivers/media/video/m5mols/m5mols_controls.c
-@@ -577,6 +577,10 @@ static int m5mols_s_ctrl(struct v4l2_ctrl *ctrl)
- 	case V4L2_CID_IMAGE_STABILIZATION:
- 		ret = m5mols_set_stabilization(info, ctrl->val);
- 		break;
-+
-+	case V4L2_CID_JPEG_COMPRESSION_QUALITY:
-+		ret = m5mols_write(sd, CAPP_JPEG_RATIO, ctrl->val);
-+		break;
- 	}
- 
- 	if (ret == 0 && info->mode != last_mode)
-@@ -615,8 +619,7 @@ int m5mols_init_controls(struct v4l2_subdev *sd)
- 		return ret;
- 
- 	zoom_step = is_manufacturer(info, REG_SAMSUNG_OPTICS) ? 31 : 1;
--
--	v4l2_ctrl_handler_init(&info->handle, 6);
-+	v4l2_ctrl_handler_init(&info->handle, 20);
- 
- 	/* White balance control cluster */
- 	info->auto_wb = v4l2_ctrl_new_std(&info->handle, &m5mols_ctrl_ops,
-@@ -693,6 +696,9 @@ int m5mols_init_controls(struct v4l2_subdev *sd)
- 	info->stabilization = v4l2_ctrl_new_std(&info->handle, &m5mols_ctrl_ops,
- 			V4L2_CID_IMAGE_STABILIZATION, 0, 1, 1, 0);
- 
-+	info->jpeg_quality = v4l2_ctrl_new_std(&info->handle, &m5mols_ctrl_ops,
-+			V4L2_CID_JPEG_COMPRESSION_QUALITY, 1, 100, 1, 80);
-+
- 	if (info->handle.error) {
- 		int ret = info->handle.error;
- 		v4l2_err(sd, "Failed to initialize controls: %d\n", ret);
-diff --git a/drivers/media/video/m5mols/m5mols_reg.h b/drivers/media/video/m5mols/m5mols_reg.h
-index f058c62..6123658 100644
---- a/drivers/media/video/m5mols/m5mols_reg.h
-+++ b/drivers/media/video/m5mols/m5mols_reg.h
-@@ -315,6 +315,7 @@
- #define REG_JPEG		0x10
- 
- #define CAPP_MAIN_IMAGE_SIZE	I2C_REG(CAT_CAPT_PARM, 0x01, 1)
-+#define CAPP_JPEG_RATIO		I2C_REG(CAT_CAPT_PARM, 0x17, 1)
- 
- #define CAPP_MCC_MODE		I2C_REG(CAT_CAPT_PARM, 0x1d, 1)
- #define REG_MCC_OFF		0x00
--- 
-1.7.9.2
+On Tue, Mar 6, 2012 at 10:02 PM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
+>
+> Add three other colour orders for 10-bit to 8-bit DPCM compressed raw
+> bayer
+> pixel formats.
+>
+> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> ---
+>  Documentation/DocBook/media/v4l/pixfmt-srggb10.xml |    2 +-
+>  .../DocBook/media/v4l/pixfmt-srggb10dpcm8.xml      |   29
+> ++++++++++++++++++++
+>  Documentation/DocBook/media/v4l/pixfmt.xml         |    1 +
+>  include/linux/videodev2.h                          |    3 ++
+>  4 files changed, 34 insertions(+), 1 deletions(-)
+>  create mode 100644
+> Documentation/DocBook/media/v4l/pixfmt-srggb10dpcm8.xml
+>
+> diff --git a/Documentation/DocBook/media/v4l/pixfmt-srggb10.xml
+> b/Documentation/DocBook/media/v4l/pixfmt-srggb10.xml
+> index 7b27409..c1c62a9 100644
+> --- a/Documentation/DocBook/media/v4l/pixfmt-srggb10.xml
+> +++ b/Documentation/DocBook/media/v4l/pixfmt-srggb10.xml
+> @@ -1,4 +1,4 @@
+> -    <refentry>
+> +    <refentry id="pixfmt-srggb10">
+>       <refmeta>
+>        <refentrytitle>V4L2_PIX_FMT_SRGGB10 ('RG10'),
+>         V4L2_PIX_FMT_SGRBG10 ('BA10'),
+> diff --git a/Documentation/DocBook/media/v4l/pixfmt-srggb10dpcm8.xml
+> b/Documentation/DocBook/media/v4l/pixfmt-srggb10dpcm8.xml
+> new file mode 100644
+> index 0000000..80937f1
+> --- /dev/null
+> +++ b/Documentation/DocBook/media/v4l/pixfmt-srggb10dpcm8.xml
+> @@ -0,0 +1,29 @@
+> +    <refentry>
+> +      <refmeta>
+> +       <refentrytitle>
+> +        V4L2_PIX_FMT_SRGGB10DPCM8 ('bBA8'),
+> +        V4L2_PIX_FMT_SGBRG10DPCM8 ('bGA8'),
+> +        V4L2_PIX_FMT_SGRBG10DPCM8 ('BD10'),
+> +        V4L2_PIX_FMT_SBGGR10DPCM8 ('bRA8'),
+> +        </refentrytitle>
 
+You missed here to change as per the 4CC code documentation.
+
+Regards,
+--Prabhakar Lad
+
+> +       &manvol;
+> +      </refmeta>
+> +      <refnamediv>
+> +       <refname
+> id="V4L2-PIX-FMT-SRGGB10DPCM8"><constant>V4L2_PIX_FMT_SRGGB10DPCM8</constant></refname>
+> +       <refname
+> id="V4L2-PIX-FMT-SGBRG10DPCM8"><constant>V4L2_PIX_FMT_SGBRG10DPCM8</constant></refname>
+> +       <refname
+> id="V4L2-PIX-FMT-SGRBG10DPCM8"><constant>V4L2_PIX_FMT_SGRBG10DPCM8</constant></refname>
+> +       <refname
+> id="V4L2-PIX-FMT-SBGGR10DPCM8"><constant>V4L2_PIX_FMT_SBGGR10DPCM8</constant></refname>
+> +       <refpurpose>10-bit Bayer formats compressed to 8 bits</refpurpose>
+> +      </refnamediv>
+> +      <refsect1>
+> +       <title>Description</title>
+> +
+> +       <para>The following four pixel formats are raw sRGB / Bayer
+> formats
+> +       with 10 bits per colour compressed to 8 bits each, using DPCM
+> +       compression. DPCM, differential pulse-code modulation, is lossy.
+> +       Each colour component consumes 8 bits of memory. In other respects
+> +       this format is similar to <xref
+> +       linkend="pixfmt-srggb10">.</xref></para>
+> +
+> +      </refsect1>
+> +    </refentry>
+> diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml
+> b/Documentation/DocBook/media/v4l/pixfmt.xml
+> index 31eaae2..74d4fcd 100644
+> --- a/Documentation/DocBook/media/v4l/pixfmt.xml
+> +++ b/Documentation/DocBook/media/v4l/pixfmt.xml
+> @@ -673,6 +673,7 @@ access the palette, this must be done with ioctls of
+> the Linux framebuffer API.<
+>     &sub-srggb8;
+>     &sub-sbggr16;
+>     &sub-srggb10;
+> +    &sub-srggb10dpcm8;
+>     &sub-srggb12;
+>   </section>
+>
+> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+> index f46350e..76f3153 100644
+> --- a/include/linux/videodev2.h
+> +++ b/include/linux/videodev2.h
+> @@ -378,7 +378,10 @@ struct v4l2_pix_format {
+>  #define V4L2_PIX_FMT_SGRBG12 v4l2_fourcc('B', 'A', '1', '2') /* 12
+>  GRGR.. BGBG.. */
+>  #define V4L2_PIX_FMT_SRGGB12 v4l2_fourcc('R', 'G', '1', '2') /* 12
+>  RGRG.. GBGB.. */
+>        /* 10bit raw bayer DPCM compressed to 8 bits */
+> +#define V4L2_PIX_FMT_SBGGR10DPCM8 v4l2_fourcc('b', 'B', 'A', '8')
+> +#define V4L2_PIX_FMT_SGBRG10DPCM8 v4l2_fourcc('b', 'G', 'A', '8')
+>  #define V4L2_PIX_FMT_SGRBG10DPCM8 v4l2_fourcc('B', 'D', '1', '0')
+> +#define V4L2_PIX_FMT_SRGGB10DPCM8 v4l2_fourcc('b', 'R', 'A', '8')
+>        /*
+>         * 10bit raw bayer, expanded to 16 bits
+>         * xxxxrrrrrrrrrrxxxxgggggggggg xxxxggggggggggxxxxbbbbbbbbbb...
+> --
+> 1.7.2.5
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
