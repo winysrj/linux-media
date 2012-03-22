@@ -1,54 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:53766 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751535Ab2CLOCY (ORCPT
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:57197 "EHLO
+	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1759736Ab2CVUjb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Mar 2012 10:02:24 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Bhupesh Sharma <bhupesh.sharma@st.com>
-Subject: [PATCH] media: Initialize the media core with subsys_initcall()
-Date: Mon, 12 Mar 2012 15:02:47 +0100
-Message-Id: <1331560967-32396-1-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <bbe7861cb38c036d3c24df908ffbfc125274ea99.1331543025.git.bhupesh.sharma@st.com>
-References: <bbe7861cb38c036d3c24df908ffbfc125274ea99.1331543025.git.bhupesh.sharma@st.com>
+	Thu, 22 Mar 2012 16:39:31 -0400
+Date: Thu, 22 Mar 2012 20:39:30 +0000
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH] [media] Convert I2C drivers to dev_pm_ops
+Message-ID: <20120322203929.GA31883@opensource.wolfsonmicro.com>
+References: <1332448493-31828-1-git-send-email-broonie@opensource.wolfsonmicro.com>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="VbJkn9YxBvnuCH5J"
+Content-Disposition: inline
+In-Reply-To: <1332448493-31828-1-git-send-email-broonie@opensource.wolfsonmicro.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Media-related drivers living outside drivers/media/ (such as the UVC
-gadget driver in drivers/usb/gadget/) rely on the media core being
-initialized before they're probed. As drivers/usb/ is linked before
-drivers/media/, this is currently not the case and will lead to crashes
-if the drivers are not compiled as modules.
 
-Register media_devnode_init() as a subsys_initcall() instead of
-module_init() to fix this.
+--VbJkn9YxBvnuCH5J
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/media-devnode.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+On Thu, Mar 22, 2012 at 08:34:53PM +0000, Mark Brown wrote:
 
-Bhupesh, do you plan to send a pull request with your "V4L/v4l2-dev: Make
-'videodev_init' as a subsys initcall" patch, or would you like me to take it
-in my tree ? I'd like both patches to go in at the same time, with this one
-coming first to avoid any risk of bisection issue.
+> +		.pm	= msp3400_pm_ops,
 
-diff --git a/drivers/media/media-devnode.c b/drivers/media/media-devnode.c
-index 7b42ace..421cf73 100644
---- a/drivers/media/media-devnode.c
-+++ b/drivers/media/media-devnode.c
-@@ -312,7 +312,7 @@ static void __exit media_devnode_exit(void)
- 	unregister_chrdev_region(media_dev_t, MEDIA_NUM_DEVICES);
- }
- 
--module_init(media_devnode_init)
-+subsys_initcall(media_devnode_init);
- module_exit(media_devnode_exit)
- 
- MODULE_AUTHOR("Laurent Pinchart <laurent.pinchart@ideasonboard.com>");
--- 
-Regards,
+Gah, missing &s - will resend tomorrow.
 
-Laurent Pinchart
+--VbJkn9YxBvnuCH5J
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAEBAgAGBQJPa437AAoJEBus8iNuMP3dNe0QAIINZINwvmR7iMmJ1MlnAUru
+yzlkQK6yKSd6YgmEvpFRBeAafVqU+cMtThHDBHpX+B0/Peuy3RlrJADw1Ciq0FtC
+4/XqFFn+ne6gP3Nh7TA2pGcOzD4v1HbSMuodvuk9gU1J1FqOvVf1vd9qbglMlByc
+UPdyl9DC/XKVm0JOwpbEGiYlfLnbqzZXXa01EJIBsg30OggrcxSasjCF/+Zo9CUQ
+GnWTFgAuc452KzgiKZFKnBxzhtbiPnWHO7SVQyYe5HVsaVubCRE55ArVpU3WGLK9
+oNh5BLZdH/6kczpzPAJF+aw5YN+kpOfpBUxXw3pDPnBsubDv7dmTnDSnLJgP5Fq4
+e5iyVKIf22dTjMqBJsMpNixlcMSDdWIhN0Ks7eJ9IO3dfg2hbVbS/7Wb8kH6HL+6
+020/woX3rUHPRDJUkCIdDfJ3HU+j75QBRzryvS/sKVSgsvIkSCGqgcSxSFEUOzQA
+F1EtYiaWljgmX5wHiV8J+H+n9KjDaDfK5JKss8O4Kvk0UL+kMXXqgm/fzj3y3jwq
+gQPBlH5JtSpFS6/kUUE7Y1QD6HE1GK41DWplMDFKvMUcVbKo0BgATuRSf63q4MXt
+7W210sPvUhKRxq+jVGY7Qso2ElKoifgDllkt9eleO353f/YeQgC0a2ikeZD6OOED
+FcaZlp33bAeDPdQCYCnG
+=oMZo
+-----END PGP SIGNATURE-----
+
+--VbJkn9YxBvnuCH5J--
