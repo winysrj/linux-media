@@ -1,44 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:45747 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755597Ab2CFQYG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Mar 2012 11:24:06 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Martin Hostettler <martin@neutronstar.dyndns.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-Subject: [PATCH v2 1/5] mt9p031: Remove duplicate media/v4l2-subdev.h include
-Date: Tue,  6 Mar 2012 17:24:21 +0100
-Message-Id: <1331051065-5055-2-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1331051065-5055-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1331051065-5055-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from eu1sys200aog105.obsmtp.com ([207.126.144.119]:39868 "EHLO
+	eu1sys200aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752244Ab2CVEux (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 22 Mar 2012 00:50:53 -0400
+From: Bhupesh Sharma <bhupesh.sharma@st.com>
+To: <gregkh@linuxfoundation.org>, <linux-usb@vger.kernel.org>
+Cc: <laurent.pinchart@ideasonboard.com>, <spear-devel@list.st.com>,
+	<linux-media@vger.kernel.org>,
+	Bhupesh Sharma <bhupesh.sharma@st.com>
+Subject: [PATCH] usb: gadget/uvc: Remove non-required locking from 'uvc_queue_next_buffer' routine
+Date: Thu, 22 Mar 2012 10:20:37 +0530
+Message-ID: <4cead89e45e3e31fccae5bb6fbfb72b2ce1b8cd5.1332391406.git.bhupesh.sharma@st.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Danny Kukawka <danny.kukawka@bisect.de>
+This patch removes the non-required spinlock acquire/release calls on
+'queue_irqlock' from 'uvc_queue_next_buffer' routine.
 
-drivers/media/video/mt9p031.c included 'media/v4l2-subdev.h' twice,
-remove the duplicate.
+This routine is called from 'video->encode' function (which translates to either
+'uvc_video_encode_bulk' or 'uvc_video_encode_isoc') in 'uvc_video.c'.
+As, the 'video->encode' routines are called with 'queue_irqlock' already held,
+so acquiring a 'queue_irqlock' again in 'uvc_queue_next_buffer' routine causes
+a spin lock recursion.
 
-Signed-off-by: Danny Kukawka <danny.kukawka@bisect.de>
+Signed-off-by: Bhupesh Sharma <bhupesh.sharma@st.com>
 Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/video/mt9p031.c |    1 -
- 1 files changed, 0 insertions(+), 1 deletions(-)
+ drivers/usb/gadget/uvc_queue.c |    4 +---
+ 1 files changed, 1 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/video/mt9p031.c b/drivers/media/video/mt9p031.c
-index 93c3ec7..dd937df 100644
---- a/drivers/media/video/mt9p031.c
-+++ b/drivers/media/video/mt9p031.c
-@@ -19,7 +19,6 @@
- #include <linux/log2.h>
- #include <linux/pm.h>
- #include <linux/slab.h>
--#include <media/v4l2-subdev.h>
- #include <linux/videodev2.h>
+diff --git a/drivers/usb/gadget/uvc_queue.c b/drivers/usb/gadget/uvc_queue.c
+index d776adb..104ae9c 100644
+--- a/drivers/usb/gadget/uvc_queue.c
++++ b/drivers/usb/gadget/uvc_queue.c
+@@ -543,11 +543,11 @@ done:
+ 	return ret;
+ }
  
- #include <media/mt9p031.h>
++/* called with &queue_irqlock held.. */
+ static struct uvc_buffer *
+ uvc_queue_next_buffer(struct uvc_video_queue *queue, struct uvc_buffer *buf)
+ {
+ 	struct uvc_buffer *nextbuf;
+-	unsigned long flags;
+ 
+ 	if ((queue->flags & UVC_QUEUE_DROP_INCOMPLETE) &&
+ 	    buf->buf.length != buf->buf.bytesused) {
+@@ -556,14 +556,12 @@ uvc_queue_next_buffer(struct uvc_video_queue *queue, struct uvc_buffer *buf)
+ 		return buf;
+ 	}
+ 
+-	spin_lock_irqsave(&queue->irqlock, flags);
+ 	list_del(&buf->queue);
+ 	if (!list_empty(&queue->irqqueue))
+ 		nextbuf = list_first_entry(&queue->irqqueue, struct uvc_buffer,
+ 					   queue);
+ 	else
+ 		nextbuf = NULL;
+-	spin_unlock_irqrestore(&queue->irqlock, flags);
+ 
+ 	buf->buf.sequence = queue->sequence++;
+ 	do_gettimeofday(&buf->buf.timestamp);
 -- 
-1.7.3.4
+1.7.2.2
 
