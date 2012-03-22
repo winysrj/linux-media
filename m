@@ -1,57 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ftp.meprolight.com ([194.90.149.17]:53202 "EHLO meprolight.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S964801Ab2CTIyz convert rfc822-to-8bit (ORCPT
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:53148 "EHLO
+	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932383Ab2CVUe5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Mar 2012 04:54:55 -0400
-From: Alex Gershgorin <alexg@meprolight.com>
-To: Sascha Hauer <s.hauer@pengutronix.de>,
-	Fabio Estevam <festevam@gmail.com>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	"fabio.estevam@freescale.com" <fabio.estevam@freescale.com>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"g.liakhovetski@gmx.de" <g.liakhovetski@gmx.de>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Tue, 20 Mar 2012 10:54:29 +0200
-Subject: RE: [PATCH v1] i.MX35-PDK: Add Camera support
-Message-ID: <4875438356E7CA4A8F2145FCD3E61C0B2CC34CAD0B@MEP-EXCH.meprolight.com>
-References: <1331651129-30540-1-git-send-email-alexg@meprolight.com>
-	<4F67AD31.8030500@redhat.com> <4F67B077.5050300@redhat.com>
-	<20120319223729.GC3852@pengutronix.de>
-	<CAOMZO5B=Qpng68xLmxGaHMqSmYzbkpObVcjHDQSXaXcz5s6gMQ@mail.gmail.com>,<20120319224550.GF3852@pengutronix.de>
-In-Reply-To: <20120319224550.GF3852@pengutronix.de>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+	Thu, 22 Mar 2012 16:34:57 -0400
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: linux-media@vger.kernel.org,
+	Mark Brown <broonie@opensource.wolfsonmicro.com>
+Subject: [PATCH] [media] Convert I2C drivers to dev_pm_ops
+Date: Thu, 22 Mar 2012 20:34:53 +0000
+Message-Id: <1332448493-31828-1-git-send-email-broonie@opensource.wolfsonmicro.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+The legacy I2C PM functions have been deprecated and warning on boot
+for over a year, convert the drivers still using them to dev_pm_ops.
 
-Hi all,
+Signed-off-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+---
+ drivers/media/video/msp3400-driver.c |   13 +++++++++----
+ drivers/media/video/tuner-core.c     |   13 +++++++++----
+ 2 files changed, 18 insertions(+), 8 deletions(-)
 
-Good news...
-After several number of changes, yesterday the camera started to work :-) 
-I will prepare some patches and send them. 
+diff --git a/drivers/media/video/msp3400-driver.c b/drivers/media/video/msp3400-driver.c
+index 82ce507..0a55317 100644
+--- a/drivers/media/video/msp3400-driver.c
++++ b/drivers/media/video/msp3400-driver.c
+@@ -597,15 +597,17 @@ static int msp_log_status(struct v4l2_subdev *sd)
+ 	return 0;
+ }
+ 
+-static int msp_suspend(struct i2c_client *client, pm_message_t state)
++static int msp_suspend(struct device *dev)
+ {
++	struct i2c_client *client = to_i2c_client(dev);
+ 	v4l_dbg(1, msp_debug, client, "suspend\n");
+ 	msp_reset(client);
+ 	return 0;
+ }
+ 
+-static int msp_resume(struct i2c_client *client)
++static int msp_resume(struct device *dev)
+ {
++	struct i2c_client *client = to_i2c_client(dev);
+ 	v4l_dbg(1, msp_debug, client, "resume\n");
+ 	msp_wake_thread(client);
+ 	return 0;
+@@ -863,6 +865,10 @@ static int msp_remove(struct i2c_client *client)
+ 
+ /* ----------------------------------------------------------------------- */
+ 
++static const struct dev_pm_ops msp3400_pm_ops = {
++	SET_SYSTEM_SLEEP_PM_OPS(msp3400_suspend, msp3400_resume)
++};
++
+ static const struct i2c_device_id msp_id[] = {
+ 	{ "msp3400", 0 },
+ 	{ }
+@@ -873,11 +879,10 @@ static struct i2c_driver msp_driver = {
+ 	.driver = {
+ 		.owner	= THIS_MODULE,
+ 		.name	= "msp3400",
++		.pm	= msp3400_pm_ops,
+ 	},
+ 	.probe		= msp_probe,
+ 	.remove		= msp_remove,
+-	.suspend	= msp_suspend,
+-	.resume		= msp_resume,
+ 	.id_table	= msp_id,
+ };
+ 
+diff --git a/drivers/media/video/tuner-core.c b/drivers/media/video/tuner-core.c
+index a5c6397..d3de74f 100644
+--- a/drivers/media/video/tuner-core.c
++++ b/drivers/media/video/tuner-core.c
+@@ -1241,8 +1241,9 @@ static int tuner_log_status(struct v4l2_subdev *sd)
+ 	return 0;
+ }
+ 
+-static int tuner_suspend(struct i2c_client *c, pm_message_t state)
++static int tuner_suspend(struct device *dev)
+ {
++	struct i2c_client *c = to_i2c_client(dev);
+ 	struct tuner *t = to_tuner(i2c_get_clientdata(c));
+ 	struct analog_demod_ops *analog_ops = &t->fe.ops.analog_ops;
+ 
+@@ -1254,8 +1255,9 @@ static int tuner_suspend(struct i2c_client *c, pm_message_t state)
+ 	return 0;
+ }
+ 
+-static int tuner_resume(struct i2c_client *c)
++static int tuner_resume(struct device *dev)
+ {
++	struct i2c_client *c = to_i2c_client(dev);
+ 	struct tuner *t = to_tuner(i2c_get_clientdata(c));
+ 
+ 	tuner_dbg("resume\n");
+@@ -1310,6 +1312,10 @@ static const struct v4l2_subdev_ops tuner_ops = {
+  * I2C structs and module init functions
+  */
+ 
++static const struct dev_pm_ops tuner_pm_ops = {
++	SET_SYSTEM_SLEEP_PM_OPS(tuner_suspend, tuner_resume)
++};
++
+ static const struct i2c_device_id tuner_id[] = {
+ 	{ "tuner", }, /* autodetect */
+ 	{ }
+@@ -1320,12 +1326,11 @@ static struct i2c_driver tuner_driver = {
+ 	.driver = {
+ 		.owner	= THIS_MODULE,
+ 		.name	= "tuner",
++		.pm	= tuner_pm_ops,
+ 	},
+ 	.probe		= tuner_probe,
+ 	.remove		= tuner_remove,
+ 	.command	= tuner_command,
+-	.suspend	= tuner_suspend,
+-	.resume		= tuner_resume,
+ 	.id_table	= tuner_id,
+ };
+ 
+-- 
+1.7.9.1
 
-On Mon, Mar 19, 2012 at 07:43:32PM -0300, Fabio Estevam wrote:
-> Hi Sascha,
->
-> On Mon, Mar 19, 2012 at 7:37 PM, Sascha Hauer <s.hauer@pengutronix.de> wrote:
->
-> > It's scheduled there. I should have responded with an applied message.
->
-> Please apply this one too: http://patchwork.ozlabs.org/patch/144942/
->
-
-Regards,
-Alex Gershgorin
-
-
---
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
