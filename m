@@ -1,199 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:55591 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753474Ab2CKQ45 (ORCPT
+Received: from mail-qc0-f174.google.com ([209.85.216.174]:41626 "EHLO
+	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752775Ab2CVGEM convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 11 Mar 2012 12:56:57 -0400
-Date: Sun, 11 Mar 2012 18:56:51 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Cc: mchehab@redhat.com,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	David Cohen <dacohen@gmail.com>,
-	Sylwester Nawrocki <snjw23@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	tuukkat76@gmail.com, Kamil Debski <k.debski@samsung.com>,
-	Kim HeungJun <riverful@gmail.com>, teturtia@gmail.com,
-	pradeep.sawlani@gmail.com
-Subject: [GIT PULL FOR v3.4] V4L2 subdev and sensor control changes and
- SMIA++ driver
-Message-ID: <20120311165650.GA4220@valkosipuli.localdomain>
+	Thu, 22 Mar 2012 02:04:12 -0400
+Received: by qcqw6 with SMTP id w6so1112032qcq.19
+        for <linux-media@vger.kernel.org>; Wed, 21 Mar 2012 23:04:11 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+In-Reply-To: <1332198157-12307-1-git-send-email-daniel.vetter@ffwll.ch>
+References: <CAF6AEGsXiJadKVeU+2z3zC8qLp+hmmY_6YYOL0XXYWV+p+h-+A@mail.gmail.com>
+ <1332198157-12307-1-git-send-email-daniel.vetter@ffwll.ch>
+From: Sumit Semwal <sumit.semwal@linaro.org>
+Date: Thu, 22 Mar 2012 11:33:50 +0530
+Message-ID: <CAO_48GEpMUNOyTJbOQ0_Kwj8ym2O0iQrdk2E1McX5GeVCe8R2Q@mail.gmail.com>
+Subject: Re: [Linaro-mm-sig] [PATCH] dma-buf: add support for kernel cpu access
+To: Daniel Vetter <daniel.vetter@ffwll.ch>
+Cc: linaro-mm-sig@lists.linaro.org,
+	LKML <linux-kernel@vger.kernel.org>,
+	DRI Development <dri-devel@lists.freedesktop.org>,
+	linux-media@vger.kernel.org, Rob Clark <rob.clark@linaro.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
-
-This patchset adds
-
-- Integer menu controls,
-- Selection IOCTL for subdevs,
-- Sensor control improvements,
-- link_validate() media entity and V4L2 subdev pad ops,
-- OMAP 3 ISP driver improvements,
-- SMIA++ sensor driver and
-- Other V4L2 and media improvements (see individual patches)
-
-The previous patchset can be found here:
-
-<URL:http://www.spinics.net/lists/linux-media/msg45052.html>
-
-Compared to the patchset, I've dropped the rm-696 camera board code and will
-submit it through linux-omap later on. Other changes done to address review
-comments have been also done --- see the URL above for details.
-
-The following changes since commit 632fba4d012458fd5fedc678fb9b0f8bc59ceda2:
-
-  [media] cx25821: Add a card definition for "No brand" cards that have: subvendor = 0x0000 subdevice = 0x0000 (2012-03-08 12:42:28 -0300)
-
-are available in the git repository at:
-  ssh://linuxtv.org/git/sailus/media_tree.git media-for-3.4
-
-Jesper Juhl (1):
-      adp1653: Remove unneeded include of version.h
-
-Laurent Pinchart (3):
-      omap3isp: Prevent pipelines that contain a crashed entity from starting
-      omap3isp: Fix crash caused by subdevs now having a pointer to devnodes
-      omap3isp: Fix frame number propagation
-
-Sakari Ailus (37):
-      v4l: Introduce integer menu controls
-      v4l: Document integer menu controls
-      vivi: Add an integer menu test control
-      v4l: VIDIOC_SUBDEV_S_SELECTION and VIDIOC_SUBDEV_G_SELECTION IOCTLs
-      v4l: vdev_to_v4l2_subdev() should have return type "struct v4l2_subdev *"
-      v4l: Check pad number in get try pointer functions
-      v4l: Support s_crop and g_crop through s/g_selection
-      v4l: Add subdev selections documentation: svg and dia files
-      v4l: Add subdev selections documentation
-      v4l: Mark VIDIOC_SUBDEV_G_CROP and VIDIOC_SUBDEV_S_CROP obsolete
-      v4l: Image source control class
-      v4l: Image processing control class
-      v4l: Document raw bayer 4CC codes
-      v4l: Add DPCM compressed raw bayer pixel formats
-      media: Add link_validate() op to check links to the sink pad
-      v4l: Improve sub-device documentation for pad ops
-      v4l: Implement v4l2_subdev_link_validate()
-      v4l: Allow changing control handler lock
-      omap3isp: Support additional in-memory compressed bayer formats
-      omap3isp: Move definitions required by board code under include/media.
-      omap3: add definition for CONTROL_CAMERA_PHY_CTRL
-      omap3isp: Move setting constaints above media_entity_pipeline_start
-      omap3isp: Assume media_entity_pipeline_start may fail
-      omap3isp: Add lane configuration to platform data
-      omap3isp: Collect entities that are part of the pipeline
-      omap3isp: Add information on external subdev to struct isp_pipeline
-      omap3isp: Introduce isp_video_check_external_subdevs()
-      omap3isp: Use external rate instead of vpcfg
-      omap3isp: Default link validation for ccp2, csi2, preview and resizer
-      omap3isp: Move CCDC link validation to ccdc_link_validate()
-      omap3isp: Configure CSI-2 phy based on platform data
-      omap3isp: Add resizer data rate configuration to resizer_link_validate
-      omap3isp: Find source pad from external entity
-      smiapp: Generic SMIA++/SMIA PLL calculator
-      smiapp: Add driver
-      omap3isp: Prevent crash at module unload
-      omap3isp: Handle omap3isp_csi2_reset() errors
-
- Documentation/DocBook/media/Makefile               |    4 +-
- Documentation/DocBook/media/v4l/compat.xml         |   19 +-
- Documentation/DocBook/media/v4l/controls.xml       |  168 ++
- Documentation/DocBook/media/v4l/dev-subdev.xml     |  202 ++-
- Documentation/DocBook/media/v4l/pixfmt-srggb10.xml |    2 +-
- .../DocBook/media/v4l/pixfmt-srggb10dpcm8.xml      |   29 +
- Documentation/DocBook/media/v4l/pixfmt.xml         |    1 +
- .../media/v4l/subdev-image-processing-crop.dia     |  614 +++++
- .../media/v4l/subdev-image-processing-crop.svg     |   63 +
- .../media/v4l/subdev-image-processing-full.dia     | 1588 +++++++++++
- .../media/v4l/subdev-image-processing-full.svg     |  163 ++
- ...ubdev-image-processing-scaling-multi-source.dia | 1152 ++++++++
- ...ubdev-image-processing-scaling-multi-source.svg |  116 +
- Documentation/DocBook/media/v4l/v4l2.xml           |   20 +-
- .../DocBook/media/v4l/vidioc-g-ext-ctrls.xml       |   12 +
- .../DocBook/media/v4l/vidioc-queryctrl.xml         |   39 +-
- .../DocBook/media/v4l/vidioc-subdev-g-crop.xml     |    9 +-
- .../media/v4l/vidioc-subdev-g-selection.xml        |  228 ++
- Documentation/media-framework.txt                  |   19 +
- Documentation/video4linux/4CCs.txt                 |   32 +
- Documentation/video4linux/v4l2-framework.txt       |   21 +
- arch/arm/mach-omap2/control.h                      |    1 +
- drivers/media/media-entity.c                       |   57 +-
- drivers/media/video/Kconfig                        |    5 +
- drivers/media/video/Makefile                       |    3 +
- drivers/media/video/adp1653.c                      |   11 +-
- drivers/media/video/omap3isp/isp.c                 |   67 +-
- drivers/media/video/omap3isp/isp.h                 |   11 +-
- drivers/media/video/omap3isp/ispccdc.c             |   76 +-
- drivers/media/video/omap3isp/ispccdc.h             |   10 -
- drivers/media/video/omap3isp/ispccp2.c             |   24 +-
- drivers/media/video/omap3isp/ispcsi2.c             |   21 +-
- drivers/media/video/omap3isp/ispcsi2.h             |    1 -
- drivers/media/video/omap3isp/ispcsiphy.c           |  172 +-
- drivers/media/video/omap3isp/ispcsiphy.h           |   25 +-
- drivers/media/video/omap3isp/isppreview.c          |    1 +
- drivers/media/video/omap3isp/ispresizer.c          |   16 +
- drivers/media/video/omap3isp/ispvideo.c            |  341 ++--
- drivers/media/video/omap3isp/ispvideo.h            |    5 +
- drivers/media/video/smiapp-pll.c                   |  419 +++
- drivers/media/video/smiapp-pll.h                   |  103 +
- drivers/media/video/smiapp/Kconfig                 |   13 +
- drivers/media/video/smiapp/Makefile                |    3 +
- drivers/media/video/smiapp/smiapp-core.c           | 2832 ++++++++++++++++++++
- drivers/media/video/smiapp/smiapp-debug.h          |   32 +
- drivers/media/video/smiapp/smiapp-limits.c         |  132 +
- drivers/media/video/smiapp/smiapp-limits.h         |  128 +
- drivers/media/video/smiapp/smiapp-quirk.c          |  264 ++
- drivers/media/video/smiapp/smiapp-quirk.h          |   72 +
- drivers/media/video/smiapp/smiapp-reg-defs.h       |  503 ++++
- drivers/media/video/smiapp/smiapp-reg.h            |  122 +
- drivers/media/video/smiapp/smiapp-regs.c           |  213 ++
- drivers/media/video/smiapp/smiapp-regs.h           |   46 +
- drivers/media/video/smiapp/smiapp.h                |  251 ++
- drivers/media/video/v4l2-ctrls.c                   |  133 +-
- drivers/media/video/v4l2-subdev.c                  |  143 +-
- drivers/media/video/vivi.c                         |   26 +-
- include/linux/v4l2-subdev.h                        |   41 +
- include/linux/videodev2.h                          |   26 +-
- include/media/media-entity.h                       |    5 +-
- include/media/omap3isp.h                           |   29 +
- include/media/smiapp.h                             |   83 +
- include/media/v4l2-ctrls.h                         |   15 +-
- include/media/v4l2-subdev.h                        |   49 +-
- 64 files changed, 10544 insertions(+), 487 deletions(-)
- create mode 100644 Documentation/DocBook/media/v4l/pixfmt-srggb10dpcm8.xml
- create mode 100644 Documentation/DocBook/media/v4l/subdev-image-processing-crop.dia
- create mode 100644 Documentation/DocBook/media/v4l/subdev-image-processing-crop.svg
- create mode 100644 Documentation/DocBook/media/v4l/subdev-image-processing-full.dia
- create mode 100644 Documentation/DocBook/media/v4l/subdev-image-processing-full.svg
- create mode 100644 Documentation/DocBook/media/v4l/subdev-image-processing-scaling-multi-source.dia
- create mode 100644 Documentation/DocBook/media/v4l/subdev-image-processing-scaling-multi-source.svg
- create mode 100644 Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml
- create mode 100644 Documentation/video4linux/4CCs.txt
- create mode 100644 drivers/media/video/smiapp-pll.c
- create mode 100644 drivers/media/video/smiapp-pll.h
- create mode 100644 drivers/media/video/smiapp/Kconfig
- create mode 100644 drivers/media/video/smiapp/Makefile
- create mode 100644 drivers/media/video/smiapp/smiapp-core.c
- create mode 100644 drivers/media/video/smiapp/smiapp-debug.h
- create mode 100644 drivers/media/video/smiapp/smiapp-limits.c
- create mode 100644 drivers/media/video/smiapp/smiapp-limits.h
- create mode 100644 drivers/media/video/smiapp/smiapp-quirk.c
- create mode 100644 drivers/media/video/smiapp/smiapp-quirk.h
- create mode 100644 drivers/media/video/smiapp/smiapp-reg-defs.h
- create mode 100644 drivers/media/video/smiapp/smiapp-reg.h
- create mode 100644 drivers/media/video/smiapp/smiapp-regs.c
- create mode 100644 drivers/media/video/smiapp/smiapp-regs.h
- create mode 100644 drivers/media/video/smiapp/smiapp.h
- create mode 100644 include/media/smiapp.h
-
-
-Kind regards,
-
--- 
-Sakari Ailus
-sakari.ailus@iki.fi
+On 20 March 2012 04:32, Daniel Vetter <daniel.vetter@ffwll.ch> wrote:
+> Big differences to other contenders in the field (like ion) is
+> that this also supports highmem, so we have to split up the cpu
+> access from the kernel side into a prepare and a kmap step.
+>
+> Prepare is allowed to fail and should do everything required so that
+> the kmap calls can succeed (like swapin/backing storage allocation,
+> flushing, ...).
+>
+> More in-depth explanations will follow in the follow-up documentation
+> patch.
+>
+> Changes in v2:
+>
+> - Clear up begin_cpu_access confusion noticed by Sumit Semwal.
+> - Don't automatically fallback from the _atomic variants to the
+>  non-atomic variants. The _atomic callbacks are not allowed to
+>  sleep, so we want exporters to make this decision explicit. The
+>  function signatures are explicit, so simpler exporters can still
+>  use the same function for both.
+> - Make the unmap functions optional. Simpler exporters with permanent
+>  mappings don't need to do anything at unmap time.
+>
+> Changes in v3:
+>
+> - Adjust the WARN_ON checks for the new ->ops functions as suggested
+>  by Rob Clark and Sumit Semwal.
+> - Rebased on top of latest dma-buf-next git.
+>
+> Changes in v4:
+>
+> - Fixup a missing - in a return -EINVAL; statement.
+>
+> Signed-Off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+Thanks; applied to for-next.
+> ---
+<snip>
+BR,
+~Sumit.
