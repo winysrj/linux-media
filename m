@@ -1,58 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:41257 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750894Ab2CGWGd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Mar 2012 17:06:33 -0500
-Received: by wgbdr13 with SMTP id dr13so5982967wgb.1
-        for <linux-media@vger.kernel.org>; Wed, 07 Mar 2012 14:06:32 -0800 (PST)
-Message-ID: <1331157983.11482.32.camel@tvbox>
-Subject: [PATCH 1/4] lmedm04 v1.98 Remove clear halt
-From: Malcolm Priestley <tvboxspy@gmail.com>
-To: linux-media@vger.kernel.org
-Date: Wed, 07 Mar 2012 22:06:23 +0000
-Content-Type: text/plain; charset="UTF-8"
+Received: from mail-1-out2.atlantis.sk ([80.94.52.71]:37674 "EHLO
+	mail.atlantis.sk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1759139Ab2CVSxm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 22 Mar 2012 14:53:42 -0400
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH v2 2/2] [resend] radio-gemtek: add PnP support for AOpen FX-3D/Pro Radio
+Cc: linux-media@vger.kernel.org
+Content-Disposition: inline
+From: Ondrej Zary <linux@rainbow-software.org>
+Date: Thu, 22 Mar 2012 19:53:29 +0100
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Mime-Version: 1.0
+Message-Id: <201203221953.31823.linux@rainbow-software.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-These were in the original lme2510 device driver.
+Add PnP support to radio-gemtek for AOpen FX-3D/Pro Radio card
+(AD1816 + Gemtek radio).
 
-Removing them significantly speeds up the driver.
+Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
 
-All tuners tested.
-
-Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
-
----
- drivers/media/dvb/dvb-usb/lmedm04.c |    6 +-----
- 1 files changed, 1 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/media/dvb/dvb-usb/lmedm04.c b/drivers/media/dvb/dvb-usb/lmedm04.c
-index 3e6ed28..a251583 100644
---- a/drivers/media/dvb/dvb-usb/lmedm04.c
-+++ b/drivers/media/dvb/dvb-usb/lmedm04.c
-@@ -177,12 +177,8 @@ static int lme2510_usb_talk(struct dvb_usb_device *d,
- 	/* the read/write capped at 64 */
- 	memcpy(buff, wbuf, (wlen < 64) ? wlen : 64);
+diff --git a/drivers/media/radio/radio-gemtek.c b/drivers/media/radio/radio-gemtek.c
+index 9d7fdae..235c0e3 100644
+--- a/drivers/media/radio/radio-gemtek.c
++++ b/drivers/media/radio/radio-gemtek.c
+@@ -29,6 +29,8 @@
+ #include <linux/videodev2.h>	/* kernel radio structs		*/
+ #include <linux/mutex.h>
+ #include <linux/io.h>		/* outb, outb_p			*/
++#include <linux/pnp.h>
++#include <linux/slab.h>
+ #include <media/v4l2-ioctl.h>
+ #include <media/v4l2-device.h>
+ #include "radio-isa.h"
+@@ -282,6 +284,16 @@ static const struct radio_isa_ops gemtek_ops = {
  
--	ret |= usb_clear_halt(d->udev, usb_sndbulkpipe(d->udev, 0x01));
--
- 	ret |= lme2510_bulk_write(d->udev, buff, wlen , 0x01);
+ static const int gemtek_ioports[] = { 0x20c, 0x30c, 0x24c, 0x34c, 0x248, 0x28c };
  
--	ret |= usb_clear_halt(d->udev, usb_rcvbulkpipe(d->udev, 0x01));
--
- 	ret |= lme2510_bulk_read(d->udev, buff, (rlen < 64) ?
- 			rlen : 64 , 0x01);
++#ifdef CONFIG_PNP
++static struct pnp_device_id gemtek_pnp_devices[] = {
++	/* AOpen FX-3D/Pro Radio */
++	{.id = "ADS7183", .driver_data = 0},
++	{.id = ""}
++};
++
++MODULE_DEVICE_TABLE(pnp, gemtek_pnp_devices);
++#endif
++
+ static struct radio_isa_driver gemtek_driver = {
+ 	.driver = {
+ 		.match		= radio_isa_match,
+@@ -291,6 +303,14 @@ static struct radio_isa_driver gemtek_driver = {
+ 			.name	= "radio-gemtek",
+ 		},
+ 	},
++#ifdef CONFIG_PNP
++	.pnp_driver = {
++		.name		= "radio-gemtek",
++		.id_table	= gemtek_pnp_devices,
++		.probe		= radio_isa_pnp_probe,
++		.remove		= radio_isa_pnp_remove,
++	},
++#endif
+ 	.io_params = io,
+ 	.radio_nr_params = radio_nr,
+ 	.io_ports = gemtek_ioports,
+@@ -304,12 +324,18 @@ static struct radio_isa_driver gemtek_driver = {
+ static int __init gemtek_init(void)
+ {
+ 	gemtek_driver.probe = probe;
++#ifdef CONFIG_PNP
++	pnp_register_driver(&gemtek_driver.pnp_driver);
++#endif
+ 	return isa_register_driver(&gemtek_driver.driver, GEMTEK_MAX);
+ }
  
-@@ -1290,5 +1286,5 @@ module_usb_driver(lme2510_driver);
+ static void __exit gemtek_exit(void)
+ {
+ 	hardmute = 1;	/* Turn off PLL */
++#ifdef CONFIG_PNP
++	pnp_unregister_driver(&gemtek_driver.pnp_driver);
++#endif
+ 	isa_unregister_driver(&gemtek_driver.driver);
+ }
  
- MODULE_AUTHOR("Malcolm Priestley <tvboxspy@gmail.com>");
- MODULE_DESCRIPTION("LME2510(C) DVB-S USB2.0");
--MODULE_VERSION("1.97");
-+MODULE_VERSION("1.98");
- MODULE_LICENSE("GPL");
+
+
 -- 
-1.7.9
-
-
+Ondrej Zary
