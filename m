@@ -1,58 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:49853 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751741Ab2CKMIC (ORCPT
+Received: from smtp1-g21.free.fr ([212.27.42.1]:34683 "EHLO smtp1-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757313Ab2CWTT3 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 11 Mar 2012 08:08:02 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: "Nori, Sekhar" <nsekhar@ti.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [PATCH - stable v3.2] omap3isp: ccdc: Fix crash in HS/VS interrupt handler
-Date: Sun, 11 Mar 2012 13:08:21 +0100
-Message-ID: <1475570.ULi9FIQYeE@avalon>
-In-Reply-To: <DF0F476B391FA8409C78302C7BA518B6317F1421@DBDE01.ent.ti.com>
-References: <1331466608-3277-1-git-send-email-laurent.pinchart@ideasonboard.com> <DF0F476B391FA8409C78302C7BA518B6317F1421@DBDE01.ent.ti.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Fri, 23 Mar 2012 15:19:29 -0400
+Date: Fri, 23 Mar 2012 20:19:45 +0100
+From: Jean-Francois Moine <moinejf@free.fr>
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: linux-media@vger.kernel.org
+Subject: [PATCH] tinyjpeg: Better luminance quantization table for Pixart
+ JPEG
+Message-ID: <20120323201945.39f26d98@tele>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sekhar,
+An other luminance quantization table gives a better quality to the
+Pixart images created by the webcams handled by the gspca drivers
+pac7302 and pac7311 (pixel format 'PJPG').
 
-On Sunday 11 March 2012 11:59:12 Nori, Sekhar wrote:
-> On Sun, Mar 11, 2012 at 17:20:08, Laurent Pinchart wrote:
-> > The HS/VS interrupt handler needs to access the pipeline object. It
-> > erronously tries to get it from the CCDC output video node, which isn't
-> > necessarily included in the pipeline. This leads to a NULL pointer
-> > dereference.
-> > 
-> > Fix the bug by getting the pipeline object from the CCDC subdev entity.
-> > 
-> > Reported-by: Gary Thomas <gary@mlbassoc.com>
-> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
-> > Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> > ---
-> > 
-> >  drivers/media/video/omap3isp/ispccdc.c |    3 +--
-> >  1 files changed, 1 insertions(+), 2 deletions(-)
-> > 
-> > The patch fixes a v3.2 bug and has been included in v3.3-rc1. Could you
-> > please add it to the stable v3.2 series ?
-> 
-> AFAIK, stable@kernel.org is down and the correct address is
-> stable@vger.kernel.org.
+Tests have been done with 5 different pac7302 webcams. The marker was
+always 0x44.
 
-Oops, my bad.
+Signed-off-by: Jean-François Moine <moinejf@free.fr>
 
-> Also, you need to include the upstream commit id in the commit
-> message (See Documentation/stable_kernel_rules.txt)
-
-I've resent the patch. Thank you.
+diff --git a/lib/libv4lconvert/tinyjpeg.c b/lib/libv4lconvert/tinyjpeg.c
+index e308f63..687e69c 100644
+--- a/lib/libv4lconvert/tinyjpeg.c
++++ b/lib/libv4lconvert/tinyjpeg.c
+@@ -206,14 +206,14 @@ static const unsigned char val_ac_chrominance[] = {
+ };
+ 
+ const unsigned char pixart_quantization[][64] = { {
+-		0x07, 0x07, 0x08, 0x0a, 0x09, 0x07, 0x0d, 0x0b,
+-		0x0c, 0x0d, 0x11, 0x10, 0x0f, 0x12, 0x17, 0x27,
+-		0x1a, 0x18, 0x16, 0x16, 0x18, 0x31, 0x23, 0x25,
+-		0x1d, 0x28, 0x3a, 0x33, 0x3d, 0x3c, 0x39, 0x33,
+-		0x38, 0x37, 0x40, 0x48, 0x5c, 0x4e, 0x40, 0x44,
+-		0x57, 0x45, 0x37, 0x38, 0x50, 0x6d, 0x51, 0x57,
+-		0x5f, 0x62, 0x67, 0x68, 0x67, 0x3e, 0x4d, 0x71,
+-		0x79, 0x70, 0x64, 0x78, 0x5c, 0x65, 0x67, 0x63,
++		0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x10, 0x10,
++		0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10,
++		0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10,
++		0x10, 0x10, 0x10, 0x10, 0x20, 0x20, 0x20, 0x20,
++		0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20,
++		0x20, 0x20, 0x20, 0x40, 0x40, 0x40, 0x40, 0x40,
++		0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40,
++		0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40,
+ 	},
+ 	{
+ 		0x11, 0x12, 0x12, 0x18, 0x15, 0x18, 0x2f, 0x1a,
 
 -- 
-Regards,
-
-Laurent Pinchart
-
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
