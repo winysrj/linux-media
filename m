@@ -1,66 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.186]:58117 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1030275Ab2CFNad (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Mar 2012 08:30:33 -0500
-Date: Tue, 6 Mar 2012 14:30:31 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Alex Gershgorin <alexg@meprolight.com>
-cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Sascha Hauer <s.hauer@pengutronix.de>
-Subject: RE: mx3-camera
-In-Reply-To: <4875438356E7CA4A8F2145FCD3E61C0B2CBD5D8909@MEP-EXCH.meprolight.com>
-Message-ID: <Pine.LNX.4.64.1203061427560.9300@axis700.grange>
-References: <4875438356E7CA4A8F2145FCD3E61C0B2CBD5D8906@MEP-EXCH.meprolight.com>,<Pine.LNX.4.64.1203061406500.9300@axis700.grange>
- <4875438356E7CA4A8F2145FCD3E61C0B2CBD5D8909@MEP-EXCH.meprolight.com>
+Received: from mail-we0-f174.google.com ([74.125.82.174]:50058 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932078Ab2CWQPi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 23 Mar 2012 12:15:38 -0400
+Received: by wejx9 with SMTP id x9so2770526wej.19
+        for <linux-media@vger.kernel.org>; Fri, 23 Mar 2012 09:15:37 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+In-Reply-To: <4f6ca10f.e503b40a.4448.ffffc0feSMTPIN_ADDED@mx.google.com>
+References: <CAL9G6WXZLdJqpivn2qNXb+oP9o4n=uyq6ywiRrzP13vmUYvaxw@mail.gmail.com>
+	<4f6ca10f.e503b40a.4448.ffffc0feSMTPIN_ADDED@mx.google.com>
+Date: Fri, 23 Mar 2012 17:15:37 +0100
+Message-ID: <CAL9G6WUZoJZhMjjzoKs04_7o4Dkj2Jxv_en63nuDOvvwYw=nvQ@mail.gmail.com>
+Subject: Re: dvb lock patch
+From: Josu Lazkano <josu.lazkano@gmail.com>
+To: Angela Schmid <angela.schmid@wolke7.net>
+Cc: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 6 Mar 2012, Alex Gershgorin wrote:
+2012/3/23 Angela Schmid <angela.schmid@wolke7.net>:
+> Hello Josu
+>
+> Maybe I have overseen any replies. Did you got some ?
+>
+> Angela
+>
 
->  Thanks Guennadi, 
-> 
-> >Hi Alex
-> 
-> >(adding v4l and Sascha to CC)
-> 
-> >On Tue, 6 Mar 2012, Alex Gershgorin wrote:
-> 
-> > Hi Guennadi,
-> >
-> > I'm working on I.MX35 PDK platform with use 3.3.0-rc6 version of the Linux Kernel.
-> > Here is my Kernel boot message
-> >
-> > "Linux video capture interface: v2.00
-> > mx3-camera: probe of mx3-camera.0 failed with error -2"
-> >
-> > This error comes from probe function of mx3 camera host driver.
-> > Precisely in this part of the code:
-> >
-> > mx3_cam->clk = clk_get(&pdev->dev, NULL);
-> > if (IS_ERR(mx3_cam->clk)) {
-> >       err = PTR_ERR(mx3_cam->clk);
-> >       goto eclkget;
-> > }
-> 
-> >I think, the reason is, that the i.MX35 platform doesn't register a camera
-> >clock, similar to i.MX31 (arch/arm/mach-imx/clock-imx31.c):
-> 
->  >       _REGISTER_CLOCK("mx3-camera.0", NULL, csi_clk)
-> 
-> In i.MX35 (arch/arm/mach-imx/clock-imx35.c) it looks like this:
-> 
-> _REGISTER_CLOCK(NULL, "csi", csi_clk)
+Hello, there is no replys, I think that this is not interesting for developers.
 
-Right, so, you'll have to convert it to a suitable form, test and submit 
-to Sascha;-)
+Kind regards.
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+-- 
+Josu Lazkano
