@@ -1,50 +1,31 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:49337 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751242Ab2CNJVr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Mar 2012 05:21:47 -0400
-Received: from epcpsbgm2.samsung.com (mailout2.samsung.com [203.254.224.25])
- by mailout2.samsung.com
- (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
- 2010)) with ESMTP id <0M0V004U5BB89X60@mailout2.samsung.com> for
- linux-media@vger.kernel.org; Wed, 14 Mar 2012 18:21:46 +0900 (KST)
-Received: from localhost.localdomain ([107.108.73.106])
- by mmp2.samsung.com (Oracle Communications Messaging Exchange Server 7u4-19.01
- 64bit (built Sep  7 2010)) with ESMTPA id <0M0V003VSBBEHAB0@mmp2.samsung.com>
- for linux-media@vger.kernel.org; Wed, 14 Mar 2012 18:21:50 +0900 (KST)
-From: Ajay Kumar <ajaykumar.rs@samsung.com>
-To: linux-media@vger.kernel.org, k.debski@samsung.com,
-	kgene.kim@samsung.com
-Cc: kyungmin.park@samsung.com, s.nawrocki@samsung.com,
-	es10.choi@samsung.com, sachin.kamat@linaro.org
-Subject: [PATCH 0/1] media: video: s5p-g2d: Add Support for FIMG2D v4 style H/W
-Date: Wed, 14 Mar 2012 15:03:39 +0530
-Message-id: <1331717620-30200-1-git-send-email-ajaykumar.rs@samsung.com>
+Received: from mx1.redhat.com ([209.132.183.28]:39260 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750845Ab2CWQuA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 23 Mar 2012 12:50:00 -0400
+From: Hans de Goede <hdegoede@redhat.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: uvc & pwc: Add support for control events
+Date: Fri, 23 Mar 2012 17:51:53 +0100
+Message-Id: <1332521519-552-1-git-send-email-hdegoede@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The existing G2D driver supports only FIMG2D v3 style H/W.
-This Patch modifies the existing G2D driver to
-support FIMG2D v4 style H/W. FIMG2D v4 is present in
-Exynos4x12 and Exynos52x0 boards.
+Hi All,
 
-Differences between FIMG2Dv3 and FIMG2Dv4:
-	--Default register values for SRC and DST type is different in v4.
-	--The stretching(Scaling) logic is different in v4.
-	--CACHECTRL_REG Register is not present in v4.
+This patch series adds supports for control events to the uvc and pwc
+drivers.
 
-Even though Exynos4x12 and Exynos52x0 have same FIMG2D v4 H/W, the source clock
-for fimg2d is present only in Exynos4x12. Exynos52x0 uses only gating clock.
-So, 3 type-id are defined inside the driver to distinguish between Exynos4210,
-Exynos4x12 and Exynos52x0.
+Note:
+-This series depends on Hans Verkuil's poll work, the latest version of
+-which
+ can be found here:
+ http://git.linuxtv.org/hgoede/gspca.git/shortlog/refs/heads/poll_req_events
+-This series has been posted before, this version is rebased on top of
+ the latest media_tree.git/staging/for_v3.4 and has some remarks from 
+ earlier reviews addressed
 
-Ajay Kumar (1):
-  [PATCH 1/1]media: video: s5p-g2d: Add support for FIMG2D v4 H/W logic
+Regards,
 
- drivers/media/video/s5p-g2d/g2d-hw.c   |   54 ++++++++++++++++++++++++++--
- drivers/media/video/s5p-g2d/g2d-regs.h |    4 ++
- drivers/media/video/s5p-g2d/g2d.c      |   61 +++++++++++++++++++++++---------
- drivers/media/video/s5p-g2d/g2d.h      |   10 +++++-
- 4 files changed, 107 insertions(+), 22 deletions(-)
-
+Hans
