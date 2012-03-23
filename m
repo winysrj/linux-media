@@ -1,271 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-1-out2.atlantis.sk ([80.94.52.71]:47255 "EHLO
-	mail.atlantis.sk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750891Ab2CEVH2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Mar 2012 16:07:28 -0500
-From: Ondrej Zary <linux@rainbow-software.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH v2 1/2] radio-isa: PnP support for the new ISA radio framework
-Date: Mon, 5 Mar 2012 22:06:44 +0100
-Cc: linux-media@vger.kernel.org
+Received: from mx1.redhat.com ([209.132.183.28]:26598 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755052Ab2CWVbx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 23 Mar 2012 17:31:53 -0400
+Message-ID: <4F6CEBBA.6050705@redhat.com>
+Date: Fri, 23 Mar 2012 18:31:38 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+To: Paulo Cavalcanti <promac@gmail.com>
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Michael Krufky <mkrufky@linuxtv.org>,
+	linux-media@vger.kernel.org
+Subject: Re: bttv 0.9.19 driver
+References: <CAMgUmn=XLnTbKJaOegStdi8bDwO2GfnohuODFr8=UTaSeJeFgg@mail.gmail.com>
+In-Reply-To: <CAMgUmn=XLnTbKJaOegStdi8bDwO2GfnohuODFr8=UTaSeJeFgg@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <201203052206.46921.linux@rainbow-software.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add PnP support to the new ISA radio framework.
+Hi Paulo,
 
-Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
+Em 23-03-2012 07:14, Paulo Cavalcanti escreveu:
+> 
+> Hi,
+> 
+> I have been using an analog bttv capture card (a Pixelview PV-M4900 FM.RC - PV-BT878P+ (Rev.4C,8E)) since 2006 with these parameters
+> in modprobe.conf:
+> 
+> options bttv card=70 radio=1 tuner=69 audiomux=0x21,0x20,0x23,0x23,
+> 0x28 gpiomask=0x3f vcr_hack=1 chroma_agc=1
+> 
+> However, since RHLE6 start shipping the kernel-2.6.32-220 series, the radio does not work any more (the TV is fine, though).
+> 
+> I have another computer running Fedora with kernel 2.6.35.14 with the same card, and
+> I tried to update video4linux to the newest snapshot and the same thing happened.
+> In /var/log/messages I only see these differences:
+> 
+> bttv driver 0.9.18 <----- work
+> 
+> tuner 1-0061: chip found @ 0xc2 (bt878 #0 [sw])
+> Mar 19 17:24:43 cascavel kernel: [    8.332740] tuner-simple 1-0061: creating new instance
+> Mar 19 17:24:43 cascavel kernel: [    8.332744] tuner-simple 1-0061: type set to 69 (Tena TNF 5335 and similar models)
+> 
+> 
+> bttv driver 0.9.19 <------ broke
+> 
+> Mar 21 18:18:55 cascavel kernel: [    6.492175] tuner 1-0061: Tuner -1 found with type(s) Radio TV.
+> Mar 21 18:18:55 cascavel kernel: [    6.533837] tuner-simple 1-0061: creating new instance
+> Mar 21 18:18:55 cascavel kernel: [    6.533841] tuner-simple 1-0061: type set to 69 (Tena TNF 5335 and similar models)
+> 
+> The rest of the log is the same:
+> 
+> bttv: driver version 0.9.19 loaded
+> Mar 21 21:44:36 cascavel kernel: [    7.978998] bttv: using 8 buffers with 2080k (520 pages) each for capture
+> Mar 21 21:44:36 cascavel kernel: [    7.979161] bttv: Bt8xx card found (0)
+> Mar 21 21:44:36 cascavel kernel: [    7.979186] bttv 0000:04:00.0: PCI INT A -> GSI 21 (level, low) -> IRQ 21
+> Mar 21 21:44:36 cascavel kernel: [    7.979195] bttv: 0: Bt878 (rev 17) at 0000:04:00.0, irq: 21, latency: 32, mmio: 0xe3101000
+> Mar 21 21:44:36 cascavel kernel: [    7.979227] bttv: 0: detected: Prolink Pixelview PV-BT [card=72], PCI subsystem ID is 1554:4011
+> Mar 21 21:44:36 cascavel kernel: [    7.979230] bttv: 0: using: Prolink Pixelview PV-BT878P+ (Rev.4C,8E) [card=70,insmod option]
+> Mar 21 21:44:36 cascavel kernel: [    7.979232] bttv: 0: gpio config override: mask=0x3f, mux=0x21,0x20,0x23,0x23
+> Mar 21 21:44:36 cascavel kernel: [    7.979319] bttv: 0: tuner type=69
+> 
+> It is like I could not change the radio stations any more, because I only hear noise, and some times the last TV channel
+> synchronized.
+> 
+> Does anyone know if anything has changed in the new bttv driver?
 
-diff --git a/drivers/media/radio/radio-isa.c b/drivers/media/radio/radio-isa.c
-index 02bcead..ed9039f 100644
---- a/drivers/media/radio/radio-isa.c
-+++ b/drivers/media/radio/radio-isa.c
-@@ -26,6 +26,7 @@
- #include <linux/delay.h>
- #include <linux/videodev2.h>
- #include <linux/io.h>
-+#include <linux/slab.h>
- #include <media/v4l2-device.h>
- #include <media/v4l2-ioctl.h>
- #include <media/v4l2-fh.h>
-@@ -198,56 +199,31 @@ static bool radio_isa_valid_io(const struct radio_isa_driver *drv, int io)
- 	return false;
- }
- 
--int radio_isa_probe(struct device *pdev, unsigned int dev)
-+struct radio_isa_card *radio_isa_alloc(struct radio_isa_driver *drv,
-+				struct device *pdev)
- {
--	struct radio_isa_driver *drv = pdev->platform_data;
--	const struct radio_isa_ops *ops = drv->ops;
- 	struct v4l2_device *v4l2_dev;
--	struct radio_isa_card *isa;
--	int res;
-+	struct radio_isa_card *isa = drv->ops->alloc();
-+	if (!isa)
-+		return NULL;
- 
--	isa = drv->ops->alloc();
--	if (isa == NULL)
--		return -ENOMEM;
- 	dev_set_drvdata(pdev, isa);
- 	isa->drv = drv;
--	isa->io = drv->io_params[dev];
- 	v4l2_dev = &isa->v4l2_dev;
- 	strlcpy(v4l2_dev->name, dev_name(pdev), sizeof(v4l2_dev->name));
- 
--	if (drv->probe && ops->probe) {
--		int i;
--
--		for (i = 0; i < drv->num_of_io_ports; ++i) {
--			int io = drv->io_ports[i];
--
--			if (request_region(io, drv->region_size, v4l2_dev->name)) {
--				bool found = ops->probe(isa, io);
--
--				release_region(io, drv->region_size);
--				if (found) {
--					isa->io = io;
--					break;
--				}
--			}
--		}
--	}
--
--	if (!radio_isa_valid_io(drv, isa->io)) {
--		int i;
-+	return isa;
-+}
- 
--		if (isa->io < 0)
--			return -ENODEV;
--		v4l2_err(v4l2_dev, "you must set an I/O address with io=0x%03x",
--				drv->io_ports[0]);
--		for (i = 1; i < drv->num_of_io_ports; i++)
--			printk(KERN_CONT "/0x%03x", drv->io_ports[i]);
--		printk(KERN_CONT ".\n");
--		kfree(isa);
--		return -EINVAL;
--	}
-+int radio_isa_common_probe(struct radio_isa_card *isa, struct device *pdev,
-+				int radio_nr, unsigned region_size)
-+{
-+	const struct radio_isa_driver *drv = isa->drv;
-+	const struct radio_isa_ops *ops = drv->ops;
-+	struct v4l2_device *v4l2_dev = &isa->v4l2_dev;
-+	int res;
- 
--	if (!request_region(isa->io, drv->region_size, v4l2_dev->name)) {
-+	if (!request_region(isa->io, region_size, v4l2_dev->name)) {
- 		v4l2_err(v4l2_dev, "port 0x%x already in use\n", isa->io);
- 		kfree(isa);
- 		return -EBUSY;
-@@ -300,8 +276,8 @@ int radio_isa_probe(struct device *pdev, unsigned int dev)
- 		v4l2_err(v4l2_dev, "Could not setup card\n");
- 		goto err_node_reg;
- 	}
--	res = video_register_device(&isa->vdev, VFL_TYPE_RADIO,
--					drv->radio_nr_params[dev]);
-+	res = video_register_device(&isa->vdev, VFL_TYPE_RADIO, radio_nr);
-+
- 	if (res < 0) {
- 		v4l2_err(v4l2_dev, "Could not register device node\n");
- 		goto err_node_reg;
-@@ -316,24 +292,110 @@ err_node_reg:
- err_hdl:
- 	v4l2_device_unregister(&isa->v4l2_dev);
- err_dev_reg:
--	release_region(isa->io, drv->region_size);
-+	release_region(isa->io, region_size);
- 	kfree(isa);
- 	return res;
- }
--EXPORT_SYMBOL_GPL(radio_isa_probe);
- 
--int radio_isa_remove(struct device *pdev, unsigned int dev)
-+int radio_isa_common_remove(struct radio_isa_card *isa, unsigned region_size)
- {
--	struct radio_isa_card *isa = dev_get_drvdata(pdev);
- 	const struct radio_isa_ops *ops = isa->drv->ops;
- 
- 	ops->s_mute_volume(isa, true, isa->volume ? isa->volume->cur.val : 0);
- 	video_unregister_device(&isa->vdev);
- 	v4l2_ctrl_handler_free(&isa->hdl);
- 	v4l2_device_unregister(&isa->v4l2_dev);
--	release_region(isa->io, isa->drv->region_size);
-+	release_region(isa->io, region_size);
- 	v4l2_info(&isa->v4l2_dev, "Removed radio card %s\n", isa->drv->card);
- 	kfree(isa);
- 	return 0;
- }
-+
-+int radio_isa_probe(struct device *pdev, unsigned int dev)
-+{
-+	struct radio_isa_driver *drv = pdev->platform_data;
-+	const struct radio_isa_ops *ops = drv->ops;
-+	struct v4l2_device *v4l2_dev;
-+	struct radio_isa_card *isa;
-+
-+	isa = radio_isa_alloc(drv, pdev);
-+	if (!isa)
-+		return -ENOMEM;
-+	isa->io = drv->io_params[dev];
-+	v4l2_dev = &isa->v4l2_dev;
-+
-+	if (drv->probe && ops->probe) {
-+		int i;
-+
-+		for (i = 0; i < drv->num_of_io_ports; ++i) {
-+			int io = drv->io_ports[i];
-+
-+			if (request_region(io, drv->region_size, v4l2_dev->name)) {
-+				bool found = ops->probe(isa, io);
-+
-+				release_region(io, drv->region_size);
-+				if (found) {
-+					isa->io = io;
-+					break;
-+				}
-+			}
-+		}
-+	}
-+
-+	if (!radio_isa_valid_io(drv, isa->io)) {
-+		int i;
-+
-+		if (isa->io < 0)
-+			return -ENODEV;
-+		v4l2_err(v4l2_dev, "you must set an I/O address with io=0x%03x",
-+				drv->io_ports[0]);
-+		for (i = 1; i < drv->num_of_io_ports; i++)
-+			printk(KERN_CONT "/0x%03x", drv->io_ports[i]);
-+		printk(KERN_CONT ".\n");
-+		kfree(isa);
-+		return -EINVAL;
-+	}
-+
-+	return radio_isa_common_probe(isa, pdev, drv->radio_nr_params[dev],
-+					drv->region_size);
-+}
-+EXPORT_SYMBOL_GPL(radio_isa_probe);
-+
-+int radio_isa_remove(struct device *pdev, unsigned int dev)
-+{
-+	struct radio_isa_card *isa = dev_get_drvdata(pdev);
-+
-+	return radio_isa_common_remove(isa, isa->drv->region_size);
-+}
- EXPORT_SYMBOL_GPL(radio_isa_remove);
-+
-+#ifdef CONFIG_PNP
-+int radio_isa_pnp_probe(struct pnp_dev *dev, const struct pnp_device_id *dev_id)
-+{
-+	struct pnp_driver *pnp_drv = to_pnp_driver(dev->dev.driver);
-+	struct radio_isa_driver *drv = container_of(pnp_drv,
-+					struct radio_isa_driver, pnp_driver);
-+	struct radio_isa_card *isa;
-+
-+	if (!pnp_port_valid(dev, 0))
-+		return -ENODEV;
-+
-+	isa = radio_isa_alloc(drv, &dev->dev);
-+	if (!isa)
-+		return -ENOMEM;
-+
-+	isa->io = pnp_port_start(dev, 0);
-+
-+	return radio_isa_common_probe(isa, &dev->dev, drv->radio_nr_params[0],
-+					pnp_port_len(dev, 0));
-+}
-+EXPORT_SYMBOL_GPL(radio_isa_pnp_probe);
-+
-+void radio_isa_pnp_remove(struct pnp_dev *dev)
-+{
-+	struct radio_isa_card *isa = dev_get_drvdata(&dev->dev);
-+
-+	radio_isa_common_remove(isa, pnp_port_len(dev, 0));
-+}
-+EXPORT_SYMBOL_GPL(radio_isa_pnp_remove);
-+#endif
-diff --git a/drivers/media/radio/radio-isa.h b/drivers/media/radio/radio-isa.h
-index 8a0ea84..ba4c01f 100644
---- a/drivers/media/radio/radio-isa.h
-+++ b/drivers/media/radio/radio-isa.h
-@@ -24,6 +24,7 @@
- #define _RADIO_ISA_H_
- 
- #include <linux/isa.h>
-+#include <linux/pnp.h>
- #include <linux/videodev2.h>
- #include <media/v4l2-device.h>
- #include <media/v4l2-ctrls.h>
-@@ -76,6 +77,9 @@ struct radio_isa_ops {
- /* Top level structure needed to instantiate the cards */
- struct radio_isa_driver {
- 	struct isa_driver driver;
-+#ifdef CONFIG_PNP
-+	struct pnp_driver pnp_driver;
-+#endif
- 	const struct radio_isa_ops *ops;
- 	/* The module_param_array with the specified I/O ports */
- 	int *io_params;
-@@ -101,5 +105,10 @@ struct radio_isa_driver {
- int radio_isa_match(struct device *pdev, unsigned int dev);
- int radio_isa_probe(struct device *pdev, unsigned int dev);
- int radio_isa_remove(struct device *pdev, unsigned int dev);
-+#ifdef CONFIG_PNP
-+int radio_isa_pnp_probe(struct pnp_dev *dev,
-+			const struct pnp_device_id *dev_id);
-+void radio_isa_pnp_remove(struct pnp_dev *dev);
-+#endif
- 
- #endif
+There was a known regression at the radio core. Not sure when it happened, nor on what
+kernel it were fixed. Could you please test a 3.x kernel?
 
+If you're a RHEL6 customer, you can open a case with via the proper
+Red Hat channels, in order to backport fix it on RHEL6 kernel.
+Yet, even in this case, it would be important to test the latest kernel,
+to see if the fixes applied upstream fixes the issue.
 
--- 
-Ondrej Zary
+Thanks,
+Mauro.
