@@ -1,143 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:64585 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1031805Ab2COQyu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Mar 2012 12:54:50 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Received: from euspt1 ([210.118.77.14]) by mailout4.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0M0X00703QZ6P910@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 15 Mar 2012 16:54:42 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0M0X00GNJQZ324@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 15 Mar 2012 16:54:40 +0000 (GMT)
-Date: Thu, 15 Mar 2012 17:54:20 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH/RFC 06/23] V4L: Add camera ISO sensitivity controls
-In-reply-to: <1331830477-12146-1-git-send-email-s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, riverful.kim@samsung.com,
-	kyungmin.park@samsung.com, s.nawrocki@samsung.com
-Message-id: <1331830477-12146-7-git-send-email-s.nawrocki@samsung.com>
-References: <1331830477-12146-1-git-send-email-s.nawrocki@samsung.com>
+Received: from eu1sys200aog119.obsmtp.com ([207.126.144.147]:37716 "EHLO
+	eu1sys200aog119.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752781Ab2CWLSB convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 23 Mar 2012 07:18:01 -0400
+From: Bhupesh SHARMA <bhupesh.sharma@st.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: "balbi@ti.com" <balbi@ti.com>,
+	"linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>,
+	spear-devel <spear-devel@list.st.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Greg KH <gregkh@linuxfoundation.org>,
+	"sshtylyov@mvista.com" <sshtylyov@mvista.com>
+Date: Fri, 23 Mar 2012 19:16:52 +0800
+Subject: RE: [PATCH] usb: gadget/uvc: Remove non-required locking from
+ 'uvc_queue_next_buffer' routine
+Message-ID: <D5ECB3C7A6F99444980976A8C6D896384FA2E26BD3@EAPEX1MAIL1.st.com>
+References: <4cead89e45e3e31fccae5bb6fbfb72b2ce1b8cd5.1332391406.git.bhupesh.sharma@st.com>
+ <20120322144056.GG19835@kroah.com>
+ <D5ECB3C7A6F99444980976A8C6D896384FA2E26B3C@EAPEX1MAIL1.st.com>
+ <4488993.8IuHKQXWmM@avalon>
+In-Reply-To: <4488993.8IuHKQXWmM@avalon>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add ISO sensitivity and ISO auto/manual controls. The sensitivity
-values are related to level of amplification of the analog signal
-between image sensor and ADC. Although some sensors expose an
-interface to accept the ISO values directly.
+Hi Laurent,
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- Documentation/DocBook/media/v4l/biblio.xml   |   11 +++++++++++
- Documentation/DocBook/media/v4l/controls.xml |   24 ++++++++++++++++++++++++
- drivers/media/video/v4l2-ctrls.c             |    4 ++++
- include/linux/videodev2.h                    |    2 ++
- 4 files changed, 41 insertions(+)
+> -----Original Message-----
+> From: Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com]
+> Sent: Friday, March 23, 2012 3:30 PM
+> To: Bhupesh SHARMA
+> Cc: balbi@ti.com; linux-usb@vger.kernel.org; spear-devel; linux-
+> media@vger.kernel.org; Greg KH
+> Subject: Re: [PATCH] usb: gadget/uvc: Remove non-required locking from
+> 'uvc_queue_next_buffer' routine
+> 
+> Hi Bhupesh,
+> 
+> On Friday 23 March 2012 17:31:19 Bhupesh SHARMA wrote:
+> > On Thursday, March 22, 2012 8:11 PM Gregg KH wrote:
+> > > On Thu, Mar 22, 2012 at 10:20:37AM +0530, Bhupesh Sharma wrote:
+> > > > This patch removes the non-required spinlock acquire/release
+> calls on
+> > > > 'queue_irqlock' from 'uvc_queue_next_buffer' routine.
+> > > >
+> > > > This routine is called from 'video->encode' function (which
+> translates
+> > > > to either 'uvc_video_encode_bulk' or 'uvc_video_encode_isoc') in
+> > > > 'uvc_video.c'. As, the 'video->encode' routines are called with
+> > > > 'queue_irqlock' already held, so acquiring a 'queue_irqlock'
+> again in
+> > > > 'uvc_queue_next_buffer' routine causes a spin lock recursion.
+> > > >
+> > > > Signed-off-by: Bhupesh Sharma <bhupesh.sharma@st.com>
+> > > > Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > > > ---
+> > > >
+> > > >  drivers/usb/gadget/uvc_queue.c |    4 +---
+> > > >  1 files changed, 1 insertions(+), 3 deletions(-)
+> > >
+> > > Please use scripts/get_maintainer.pl to determine who to send this
+> to
+> > > (hint, it's not me...)
+> >
+> > Can you please pick this USB webcam gadget/peripheral specific patch
+> > in your tree?
+> 
+> Could you please first resubmit with the comments fix as asked by
+> Sergei
+> Shtylyov ? (s/queue_irqlock/queue->irqlock/)
+> 
 
-diff --git a/Documentation/DocBook/media/v4l/biblio.xml b/Documentation/DocBook/media/v4l/biblio.xml
-index 7dc65c5..66a0ef2 100644
---- a/Documentation/DocBook/media/v4l/biblio.xml
-+++ b/Documentation/DocBook/media/v4l/biblio.xml
-@@ -197,4 +197,15 @@ in the frequency range from 87,5 to 108,0 MHz</title>
-       <title>NTSC-4: United States RBDS Standard</title>
-     </biblioentry>
- 
-+    <biblioentry id="iso12232">
-+      <abbrev>ISO&nbsp;12232:2006</abbrev>
-+      <authorgroup>
-+	<corpauthor>International Organization for Standardization
-+(<ulink url="http://www.iso.org">http://www.iso.org</ulink>)</corpauthor>
-+      </authorgroup>
-+      <title>Photography &mdash; Digital still cameras &mdash; Determination
-+      of exposure index, ISO speed ratings, standard output sensitivity, and
-+      recommended exposure index</title>
-+    </biblioentry>
-+
-   </bibliography>
-diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
-index ebb4431..b92c85a 100644
---- a/Documentation/DocBook/media/v4l/controls.xml
-+++ b/Documentation/DocBook/media/v4l/controls.xml
-@@ -3184,6 +3184,30 @@ feature.</entry>
- 	  </row>
- 	  <row><entry></entry></row>
- 
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_ISO_SENSITIVITY</constant>&nbsp;</entry>
-+	    <entry>integer menu</entry>
-+	  </row><row><entry spanname="descr">Determines ISO equivalent of an
-+image sensor indicating the sensor's sensitivity to light. The numbers are
-+expressed in arithmetic scale, as per <xref linkend="iso12232" /> standard,
-+where doubling the sensor sensitivity is represented by doubling the numerical
-+ISO value. Applications should interpret the values as standard ISO values
-+multiplied by 1000, e.g. control value 800 stands for ISO 0.8. Drivers will
-+usually support only a subset of standard ISO values.
-+</entry>
-+	  </row>
-+	  <row><entry></entry></row>
-+
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_ISO_SENSITIVITY_AUTO</constant>&nbsp;</entry>
-+	    <entry>boolean</entry>
-+	  </row><row><entry spanname="descr">Enables automatic ISO sensitivity
-+adjustments. The effect of setting <constant>V4L2_CID_ISO_SENSITIVITY</constant>
-+while automatic ISO control is enabled is undefined, drivers should ignore such
-+requests.</entry>
-+	  </row>
-+	  <row><entry></entry></row>
-+
- 	</tbody>
-       </tgroup>
-     </table>
-diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
-index 53e56be..58c7849 100644
---- a/drivers/media/video/v4l2-ctrls.c
-+++ b/drivers/media/video/v4l2-ctrls.c
-@@ -636,6 +636,8 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_WIDE_DYNAMIC_RANGE:	return "Wide Dynamic Range";
- 	case V4L2_CID_IMAGE_STABILIZATION:	return "Image Stabilization";
- 	case V4L2_CID_AUTO_EXPOSURE_BIAS:	return "Auto Exposure, Bias";
-+	case V4L2_CID_ISO_SENSITIVITY:		return "ISO Sensitivity";
-+	case V4L2_CID_ISO_SENSITIVITY_AUTO:	return "ISO Sensitivity, Auto";
- 
- 	/* FM Radio Modulator control */
- 	/* Keep the order of the 'case's the same as in videodev2.h! */
-@@ -736,6 +738,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_MPEG_VIDEO_MPEG4_QPEL:
- 	case V4L2_CID_WIDE_DYNAMIC_RANGE:
- 	case V4L2_CID_IMAGE_STABILIZATION:
-+	case V4L2_CID_ISO_SENSITIVITY_AUTO:
- 		*type = V4L2_CTRL_TYPE_BOOLEAN;
- 		*min = 0;
- 		*max = *step = 1;
-@@ -792,6 +795,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_RDS_TX_RADIO_TEXT:
- 		*type = V4L2_CTRL_TYPE_STRING;
- 		break;
-+	case V4L2_CID_ISO_SENSITIVITY:
- 	case V4L2_CID_AUTO_EXPOSURE_BIAS:
- 		*type = V4L2_CTRL_TYPE_INTEGER_MENU;
- 		break;
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index 3d7bb3d..440d59c99 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -1731,6 +1731,8 @@ enum v4l2_white_balance_preset {
- #define V4L2_CID_WIDE_DYNAMIC_RANGE		(V4L2_CID_CAMERA_CLASS_BASE+31)
- #define V4L2_CID_IMAGE_STABILIZATION		(V4L2_CID_CAMERA_CLASS_BASE+32)
- #define V4L2_CID_AUTO_EXPOSURE_BIAS		(V4L2_CID_CAMERA_CLASS_BASE+33)
-+#define V4L2_CID_ISO_SENSITIVITY		(V4L2_CID_CAMERA_CLASS_BASE+34)
-+#define V4L2_CID_ISO_SENSITIVITY_AUTO		(V4L2_CID_CAMERA_CLASS_BASE+35)
- 
- /* FM Modulator class control IDs */
- #define V4L2_CID_FM_TX_CLASS_BASE		(V4L2_CTRL_CLASS_FM_TX | 0x900)
--- 
-1.7.9.2
+Ok. I will make the changes as suggested by Sergei and then resubmit
+the patch..
 
+Regards,
+Bhupesh
