@@ -1,33 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from shards.monkeyblade.net ([198.137.202.13]:39961 "EHLO
-	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754226Ab2CQGTQ (ORCPT
+Received: from mail-wg0-f44.google.com ([74.125.82.44]:59214 "EHLO
+	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030228Ab2CWTDP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 17 Mar 2012 02:19:16 -0400
-Date: Fri, 16 Mar 2012 23:18:56 -0700 (PDT)
-Message-Id: <20120316.231856.1071253468993560433.davem@davemloft.net>
-To: santoshprasadnayak@gmail.com
-Cc: hjlipp@web.de, tilman@imap.cc, isdn@linux-pingi.de,
-	gigaset307x-common@lists.sourceforge.net, netdev@vger.kernel.org,
-	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
-Subject: Re: [PATCH] isdn: Return -EINTR in gigaset_start() if locking
- attempts fails.
-From: David Miller <davem@davemloft.net>
-In-Reply-To: <1331903413-11426-1-git-send-email-santoshprasadnayak@gmail.com>
-References: <1331903413-11426-1-git-send-email-santoshprasadnayak@gmail.com>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+	Fri, 23 Mar 2012 15:03:15 -0400
+From: Alex Gershgorin <alexgershgorin@gmail.com>
+To: Fabio Estevam <fabio.estevam@freescale.com>
+Cc: s.hauer@pengutronix.de, g.liakhovetski@gmx.de,
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, Alex Gershgorin <alexg@meprolight.com>
+Subject: Re: [PATCH v1] i.MX35-PDK: Add Camera support
+Date: Fri, 23 Mar 2012 21:02:51 +0200
+Message-Id: <1332529371-3994-1-git-send-email-alexg@meprolight.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: santosh nayak <santoshprasadnayak@gmail.com>
-Date: Fri, 16 Mar 2012 18:40:13 +0530
+Hi Fabio,
 
-> We have 3 callers: gigaset_probe(), gigaset_tty_open() and
-> gigaset_probe(). Each caller tries to free allocated memory
-> if lock fails. This is possible if we returns -EINTR.
+> Good news...
+> After several number of changes, yesterday the camera started to work :-)
+> I will prepare some patches and send them.
 
-Look again at the callers.
+> >Ok, great! Besides your mx35 clock patches: any other patch is
+> >required to getting the camera to work?
 
-They interpret "0" as an error, so your patch would break the driver.
+Yes, yesterday I sended to Sascha and ARM mailing list another patch
+i.MX35-PDK-Add-regulator-support, this also will need be used.
+
+> > Are you getting the camera image with the correct colors?
+
+Now the camera works fine without any problems, except those,
+who have already eliminated :-)
+
+Regards,
+Alex Gershgorin
+
