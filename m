@@ -1,213 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.26]:60729 "EHLO mgw-da02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932193Ab2CBRcx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 2 Mar 2012 12:32:53 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
+Received: from emh03.mail.saunalahti.fi ([62.142.5.109]:39857 "EHLO
+	emh03.mail.saunalahti.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755170Ab2CWSQn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 23 Mar 2012 14:16:43 -0400
+Received: from saunalahti-vams (vs3-11.mail.saunalahti.fi [62.142.5.95])
+	by emh03-2.mail.saunalahti.fi (Postfix) with SMTP id 5B6B6EBC61
+	for <linux-media@vger.kernel.org>; Fri, 23 Mar 2012 20:16:41 +0200 (EET)
+Received: from kuusi.koti (a88-112-23-125.elisa-laajakaista.fi [88.112.23.125])
+	by emh04.mail.saunalahti.fi (Postfix) with ESMTP id 23B8E41BE3
+	for <linux-media@vger.kernel.org>; Fri, 23 Mar 2012 20:16:39 +0200 (EET)
+Message-ID: <4F6CBE07.6040904@kolumbus.fi>
+Date: Fri, 23 Mar 2012 20:16:39 +0200
+From: Marko Ristola <marko.ristola@kolumbus.fi>
+MIME-Version: 1.0
 To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, dacohen@gmail.com,
-	snjw23@gmail.com, andriy.shevchenko@linux.intel.com,
-	t.stanislaws@samsung.com, tuukkat76@gmail.com,
-	k.debski@samsung.com, riverful@gmail.com, hverkuil@xs4all.nl,
-	teturtia@gmail.com
-Subject: [PATCH v4 04/34] v4l: VIDIOC_SUBDEV_S_SELECTION and VIDIOC_SUBDEV_G_SELECTION IOCTLs
-Date: Fri,  2 Mar 2012 19:30:12 +0200
-Message-Id: <1330709442-16654-4-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <20120302173219.GA15695@valkosipuli.localdomain>
-References: <20120302173219.GA15695@valkosipuli.localdomain>
+Subject: Re: [PATCH] Various nits, fixes and hacks for mantis CA support on
+ SMP
+References: <20120228010330.GA25786@uio.no> <4F514CCB.8020502@kolumbus.fi> <20120302232136.GB31447@uio.no>
+In-Reply-To: <20120302232136.GB31447@uio.no>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add support for VIDIOC_SUBDEV_S_SELECTION and VIDIOC_SUBDEV_G_SELECTION
-IOCTLs. They replace functionality provided by VIDIOC_SUBDEV_S_CROP and
-VIDIOC_SUBDEV_G_CROP IOCTLs and also add new functionality (composing).
+03.03.2012 01:21, Steinar H. Gunderson kirjoitti:
+> On Sat, Mar 03, 2012 at 12:42:19AM +0200, Marko Ristola wrote:
+>> I'm not happy with I2CDONE busy looping either.
+>> I've tried twice lately to swith into I2C IRQ, but those patches have caused I2CDONE timeouts.
+> 
+> Note that there are already timeouts with the current polling code, but they
+> are ignored (my patch makes them at least be printed with verbose=5). I can't
+> immediately recall if it's on RACK, DONE or both.
 
-VIDIOC_SUBDEV_G_CROP and VIDIOC_SUBDEV_S_CROP continue to be supported.
+I think that occasional timeouts belong to the picture (RACK missing means: packet lost).
+If I2CDONE comes immediately when I2C command has been emitted,
+it is a driver software bug (some earlier I2C command).
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
----
- drivers/media/video/v4l2-subdev.c |   42 ++++++++++++++++++++++++++++--------
- include/linux/v4l2-subdev.h       |   41 ++++++++++++++++++++++++++++++++++++
- include/media/v4l2-subdev.h       |   21 +++++++++++++++---
- 3 files changed, 90 insertions(+), 14 deletions(-)
+> 
+>> Do my following I2C logic thoughts make any sense?
+> 
+> Well, note first of all that I know next to nothing about I2C, and I've never
+> seen any hardware documentation on the Mantis card (is there any?). But
+> generally it makes sense to me, except that I've never heard of the demand of
+> radio silence for 10 ms before.
+Ok. Radio silence for 10 ms isn't your problem: when you have a FE_LOCK,
+10 ms requirement is no more relevant.
 
-diff --git a/drivers/media/video/v4l2-subdev.c b/drivers/media/video/v4l2-subdev.c
-index 6fe88e9..7d22538 100644
---- a/drivers/media/video/v4l2-subdev.c
-+++ b/drivers/media/video/v4l2-subdev.c
-@@ -35,14 +35,9 @@
- static int subdev_fh_init(struct v4l2_subdev_fh *fh, struct v4l2_subdev *sd)
- {
- #if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
--	/* Allocate try format and crop in the same memory block */
--	fh->try_fmt = kzalloc((sizeof(*fh->try_fmt) + sizeof(*fh->try_crop))
--			      * sd->entity.num_pads, GFP_KERNEL);
--	if (fh->try_fmt == NULL)
-+	fh->pad = kzalloc(sizeof(*fh->pad) * sd->entity.num_pads, GFP_KERNEL);
-+	if (fh->pad == NULL)
- 		return -ENOMEM;
--
--	fh->try_crop = (struct v4l2_rect *)
--		(fh->try_fmt + sd->entity.num_pads);
- #endif
- 	return 0;
- }
-@@ -50,9 +45,8 @@ static int subdev_fh_init(struct v4l2_subdev_fh *fh, struct v4l2_subdev *sd)
- static void subdev_fh_free(struct v4l2_subdev_fh *fh)
- {
- #if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
--	kfree(fh->try_fmt);
--	fh->try_fmt = NULL;
--	fh->try_crop = NULL;
-+	kfree(fh->pad);
-+	fh->pad = NULL;
- #endif
- }
- 
-@@ -293,6 +287,34 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 		return v4l2_subdev_call(sd, pad, enum_frame_interval, subdev_fh,
- 					fie);
- 	}
-+
-+	case VIDIOC_SUBDEV_G_SELECTION: {
-+		struct v4l2_subdev_selection *sel = arg;
-+
-+		if (sel->which != V4L2_SUBDEV_FORMAT_TRY &&
-+		    sel->which != V4L2_SUBDEV_FORMAT_ACTIVE)
-+			return -EINVAL;
-+
-+		if (sel->pad >= sd->entity.num_pads)
-+			return -EINVAL;
-+
-+		return v4l2_subdev_call(
-+			sd, pad, get_selection, subdev_fh, sel);
-+	}
-+
-+	case VIDIOC_SUBDEV_S_SELECTION: {
-+		struct v4l2_subdev_selection *sel = arg;
-+
-+		if (sel->which != V4L2_SUBDEV_FORMAT_TRY &&
-+		    sel->which != V4L2_SUBDEV_FORMAT_ACTIVE)
-+			return -EINVAL;
-+
-+		if (sel->pad >= sd->entity.num_pads)
-+			return -EINVAL;
-+
-+		return v4l2_subdev_call(
-+			sd, pad, set_selection, subdev_fh, sel);
-+	}
- #endif
- 	default:
- 		return v4l2_subdev_call(sd, core, ioctl, cmd, arg);
-diff --git a/include/linux/v4l2-subdev.h b/include/linux/v4l2-subdev.h
-index ed29cbb..4c63e51 100644
---- a/include/linux/v4l2-subdev.h
-+++ b/include/linux/v4l2-subdev.h
-@@ -123,6 +123,43 @@ struct v4l2_subdev_frame_interval_enum {
- 	__u32 reserved[9];
- };
- 
-+#define V4L2_SUBDEV_SEL_FLAG_SIZE_GE			(1 << 0)
-+#define V4L2_SUBDEV_SEL_FLAG_SIZE_LE			(1 << 1)
-+#define V4L2_SUBDEV_SEL_FLAG_KEEP_CONFIG		(1 << 2)
-+
-+/* active cropping area */
-+#define V4L2_SUBDEV_SEL_TGT_CROP_ACTIVE			0x0000
-+/* cropping bounds */
-+#define V4L2_SUBDEV_SEL_TGT_CROP_BOUNDS			0x0002
-+/* current composing area */
-+#define V4L2_SUBDEV_SEL_TGT_COMPOSE_ACTIVE		0x0100
-+/* composing bounds */
-+#define V4L2_SUBDEV_SEL_TGT_COMPOSE_BOUNDS		0x0102
-+
-+
-+/**
-+ * struct v4l2_subdev_selection - selection info
-+ *
-+ * @which: either V4L2_SUBDEV_FORMAT_ACTIVE or V4L2_SUBDEV_FORMAT_TRY
-+ * @pad: pad number, as reported by the media API
-+ * @target: selection target, used to choose one of possible rectangles
-+ * @flags: constraint flags
-+ * @r: coordinates of the selection window
-+ * @reserved: for future use, set to zero for now
-+ *
-+ * Hardware may use multiple helper windows to process a video stream.
-+ * The structure is used to exchange this selection areas between
-+ * an application and a driver.
-+ */
-+struct v4l2_subdev_selection {
-+	__u32 which;
-+	__u32 pad;
-+	__u32 target;
-+	__u32 flags;
-+	struct v4l2_rect r;
-+	__u32 reserved[8];
-+};
-+
- #define VIDIOC_SUBDEV_G_FMT	_IOWR('V',  4, struct v4l2_subdev_format)
- #define VIDIOC_SUBDEV_S_FMT	_IOWR('V',  5, struct v4l2_subdev_format)
- #define VIDIOC_SUBDEV_G_FRAME_INTERVAL \
-@@ -137,5 +174,9 @@ struct v4l2_subdev_frame_interval_enum {
- 			_IOWR('V', 75, struct v4l2_subdev_frame_interval_enum)
- #define VIDIOC_SUBDEV_G_CROP	_IOWR('V', 59, struct v4l2_subdev_crop)
- #define VIDIOC_SUBDEV_S_CROP	_IOWR('V', 60, struct v4l2_subdev_crop)
-+#define VIDIOC_SUBDEV_G_SELECTION \
-+	_IOWR('V', 61, struct v4l2_subdev_selection)
-+#define VIDIOC_SUBDEV_S_SELECTION \
-+	_IOWR('V', 62, struct v4l2_subdev_selection)
- 
- #endif
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index f0f3358..feab950 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -466,6 +466,10 @@ struct v4l2_subdev_pad_ops {
- 		       struct v4l2_subdev_crop *crop);
- 	int (*get_crop)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
- 		       struct v4l2_subdev_crop *crop);
-+	int (*get_selection)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
-+			     struct v4l2_subdev_selection *sel);
-+	int (*set_selection)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
-+			     struct v4l2_subdev_selection *sel);
- };
- 
- struct v4l2_subdev_ops {
-@@ -549,8 +553,11 @@ struct v4l2_subdev {
- struct v4l2_subdev_fh {
- 	struct v4l2_fh vfh;
- #if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
--	struct v4l2_mbus_framefmt *try_fmt;
--	struct v4l2_rect *try_crop;
-+	struct {
-+		struct v4l2_mbus_framefmt try_fmt;
-+		struct v4l2_rect try_crop;
-+		struct v4l2_rect try_compose;
-+	} *pad;
- #endif
- };
- 
-@@ -561,13 +568,19 @@ struct v4l2_subdev_fh {
- static inline struct v4l2_mbus_framefmt *
- v4l2_subdev_get_try_format(struct v4l2_subdev_fh *fh, unsigned int pad)
- {
--	return &fh->try_fmt[pad];
-+	return &fh->pad[pad].try_fmt;
- }
- 
- static inline struct v4l2_rect *
- v4l2_subdev_get_try_crop(struct v4l2_subdev_fh *fh, unsigned int pad)
- {
--	return &fh->try_crop[pad];
-+	return &fh->pad[pad].try_crop;
-+}
-+
-+static inline struct v4l2_rect *
-+v4l2_subdev_get_try_compose(struct v4l2_subdev_fh *fh, unsigned int pad)
-+{
-+	return &fh->pad[pad].try_compose;
- }
- #endif
- 
--- 
-1.7.2.5
+> 
+>> There might be race conditions, that the driver possibly manages:
+>> 1. If two threads talk into DVB frontend, one could turn off the I2C gate, while the other is talking to DVB frontend.
+>>    This would case lack of I2CRACK: only way to recover would be to turn
+>>    the I2C gate on, and then redo the I2C transfer.
+> 
+> Note that I've tried putting mutexes around the I2C functions, and it didn't
+> help on the I2C timeouts; however, that was largely on a single-character
+> level, so it might not be enough. (You can see these mutexes being commented
+> out in my patch.)
 
+I have now a new idea for what to try with I2C interrupts.
+It all depends, whether I understand the driver coding well enough.
+
+> 
+> /* Steinar */
+
+I have also a low interest for Mantis coding:
+Ideas come fast, and if the new code doesn't work right away,
+I back up the code somewhere and drop it.
+
+Some years ago during Summer Holiday time I could get something done
+and even patches got applied into Linux kernel.
+
+Marko Ristola
