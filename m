@@ -1,42 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:56208 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752597Ab2CTSLT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Mar 2012 14:11:19 -0400
-Received: by yhmm54 with SMTP id m54so340557yhm.19
-        for <linux-media@vger.kernel.org>; Tue, 20 Mar 2012 11:11:18 -0700 (PDT)
+Received: from comal.ext.ti.com ([198.47.26.152]:38602 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754872Ab2CWPtp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 23 Mar 2012 11:49:45 -0400
+From: Sumit Semwal <sumit.semwal@ti.com>
+To: <daniel.vetter@ffwll.ch>
+CC: <dri-devel@lists.freedesktop.org>,
+	<linaro-mm-sig@lists.linaro.org>, <linux-media@vger.kernel.org>,
+	Sumit Semwal <sumit.semwal@ti.com>,
+	Sumit Semwal <sumit.semwal@linaro.org>
+Subject: [PATCH] dma-buf: Correct dummy function declarations.
+Date: Fri, 23 Mar 2012 21:19:17 +0530
+Message-ID: <1332517757-25532-1-git-send-email-sumit.semwal@ti.com>
 MIME-Version: 1.0
-In-Reply-To: <E1S9oTc-0006p5-Qf@www.linuxtv.org>
-References: <E1S9oTc-0006p5-Qf@www.linuxtv.org>
-Date: Tue, 20 Mar 2012 20:11:18 +0200
-Message-ID: <CABA=pqfDxDfx6ngP9JVQSatiMA64ez5qrSJZqyi+j2C6f4MkGA@mail.gmail.com>
-Subject: Re: [git:v4l-dvb/for_v3.4] [media] em28xx: support for 2304:0242 PCTV
- QuatroStick (510e)
-From: Ivan Kalvachev <ikalvachev@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 3/20/12, Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
-> This is an automatic generated email to let you know that the following
-> patch were queued at the
-> http://git.linuxtv.org/media_tree.git tree:
->
-> Subject: [media] em28xx: support for 2304:0242 PCTV QuatroStick (510e)
-> Author:  Ivan Kalvachev <ikalvachev@gmail.com>
-> Date:    Mon Mar 19 20:09:55 2012 -0300
->
-> It is mostly copy/paste of the 520e code with setting GPIO7 removed
-> (no LED light).
+While testing, I found that we need to correct some of the dummy declarations. When I send my pull request to Linus, I wish to squash these changes into the original patches from Daniel. Could you please review?
 
-> I've worked on just released vanilla linux-3.3.0 kernel, so there may
-> be 1/2 lines offset to the internal working source, but most of the
-> code should apply cleanly.
+Best regards,
+~Sumit
 
-If you still haven't pushed this upstream, can you (rebase and) amend
-the message and remove the above paragraph. It is useless for commit
-message.
+=========
 
-Not a big deal if it is too late :)
+Dummy functions for the newly added cpu access ops are needed for compilation
+when dma-buf framework is not compiled-in.
+
+Also, the introduction of flags in dma_buf_fd  needs to be added to dummy
+functions as well.
+
+Signed-off-by: Sumit Semwal <sumit.semwal@linaro.org>
+---
+ include/linux/dma-buf.h |   26 +++++++++++++-------------
+ 1 files changed, 13 insertions(+), 13 deletions(-)
+
+diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
+index f08028e..779aaf9 100644
+--- a/include/linux/dma-buf.h
++++ b/include/linux/dma-buf.h
+@@ -189,7 +189,7 @@ static inline struct dma_buf *dma_buf_export(void *priv,
+ 	return ERR_PTR(-ENODEV);
+ }
+ 
+-static inline int dma_buf_fd(struct dma_buf *dmabuf)
++static inline int dma_buf_fd(struct dma_buf *dmabuf, int flags)
+ {
+ 	return -ENODEV;
+ }
+@@ -216,36 +216,36 @@ static inline void dma_buf_unmap_attachment(struct dma_buf_attachment *attach,
+ 	return;
+ }
+ 
+-static inline int dma_buf_begin_cpu_access(struct dma_buf *,
+-					   size_t, size_t,
+-					   enum dma_data_direction)
++static inline int dma_buf_begin_cpu_access(struct dma_buf *dmabuf,
++					   size_t start, size_t len,
++					   enum dma_data_direction dir)
+ {
+ 	return -ENODEV;
+ }
+ 
+-static inline void dma_buf_end_cpu_access(struct dma_buf *,
+-					  size_t, size_t,
+-					  enum dma_data_direction)
++static inline void dma_buf_end_cpu_access(struct dma_buf *dmabuf,
++					  size_t start, size_t len,
++					  enum dma_data_direction dir)
+ {
+ }
+ 
+-static inline void *dma_buf_kmap_atomic(struct dma_buf *, unsigned long)
++static inline void *dma_buf_kmap_atomic(struct dma_buf *db, unsigned long pnum)
+ {
+ 	return NULL;
+ }
+ 
+-static inline void dma_buf_kunmap_atomic(struct dma_buf *, unsigned long,
+-					 void *)
++static inline void dma_buf_kunmap_atomic(struct dma_buf *db, unsigned long pnum,
++					 void *vaddr)
+ {
+ }
+ 
+-static inline void *dma_buf_kmap(struct dma_buf *, unsigned long)
++static inline void *dma_buf_kmap(struct dma_buf *db, unsigned long pnum)
+ {
+ 	return NULL;
+ }
+ 
+-static inline void dma_buf_kunmap(struct dma_buf *, unsigned long,
+-				  void *)
++static inline void dma_buf_kunmap(struct dma_buf *db, unsigned long pnum,
++				  void *vaddr)
+ {
+ }
+ #endif /* CONFIG_DMA_SHARED_BUFFER */
+-- 
+1.7.5.4
+
