@@ -1,155 +1,329 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eu1sys200aog103.obsmtp.com ([207.126.144.115]:53633 "EHLO
-	eu1sys200aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1032437Ab2CPKvN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Mar 2012 06:51:13 -0400
-Message-ID: <4F631B05.6090601@stericsson.com>
-Date: Fri, 16 Mar 2012 11:50:45 +0100
-From: Marcus Lorentzon <marcus.xm.lorentzon@stericsson.com>
-MIME-Version: 1.0
-To: Rob Clark <rob.clark@linaro.org>
-Cc: "linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
-	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"rschultz@google.com" <rschultz@google.com>,
-	"daniel@ffwll.ch" <daniel@ffwll.ch>,
-	"patches@linaro.org" <patches@linaro.org>
-Subject: Re: [Linaro-mm-sig] [PATCH] RFC: dma-buf: userspace mmap support
-References: <1331775148-5001-1-git-send-email-rob.clark@linaro.org>
-In-Reply-To: <1331775148-5001-1-git-send-email-rob.clark@linaro.org>
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mx1.redhat.com ([209.132.183.28]:27244 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752678Ab2CWQuI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 23 Mar 2012 12:50:08 -0400
+From: Hans de Goede <hdegoede@redhat.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH 6/6] uvcvideo: Add support for control events
+Date: Fri, 23 Mar 2012 17:51:59 +0100
+Message-Id: <1332521519-552-7-git-send-email-hdegoede@redhat.com>
+In-Reply-To: <1332521519-552-1-git-send-email-hdegoede@redhat.com>
+References: <1332521519-552-1-git-send-email-hdegoede@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/15/2012 02:32 AM, Rob Clark wrote:
-> From: Rob Clark<rob@ti.com>
-> [snip]
-> In all cases, the mmap() call is allowed to fail, and the associated
-> dma_buf_ops are optional (mmap() will fail if at least the mmap()
-> op is not implemented by the exporter, but in either case the
-> {prepare,finish}_access() ops are optional).
-I sort of understand this approach. It allowes some implementations 
-(ARM/Android) to move forward. But how would an application act if mmap 
-fails? What is the option? How can the application detect if mmap is 
-possible or not? Or is this mmap only supposed to be used from device 
-specific libs like libdrm-xx/libv4l2-xx/libgralloc?
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+ drivers/media/video/uvc/uvc_ctrl.c |  114 +++++++++++++++++++++++++++++++++++-
+ drivers/media/video/uvc/uvc_v4l2.c |   30 +++++++++-
+ drivers/media/video/uvc/uvcvideo.h |   21 +++++--
+ 3 files changed, 157 insertions(+), 8 deletions(-)
 
-Can mmap fail for one buffer, but not another? Can it fail for a buffer 
-that have successfully been mmapped once before (except for the usual 
-ENOMEM/EAGAIN etc)?
-> For now the prepare/finish access ioctls are kept simple with no
-> argument, although there is possibility to add additional ioctls
-> (or simply change the existing ioctls from _IO() to _IOW()) later
-> to provide optimization to allow userspace to specify a region of
-> interest.
-I like the idea of simple, assume the worst, no args, versions of 
-begin/end access. But once we move forward, I don't just like the 
-region, but also access type (R/W). R/W info allows the driver to make 
-cache management optimizations otherwise impossible. Like if CPU with no 
-alloc-on-write just write, a write buffer flush is enough to switch to a 
-HW read. And (at least on ARM) cache clean can be done for all cache for 
-large areas, but invalidate has to be done line by line. Eliminating the 
-need to do invalidate, especially if region is small, compared to 
-invalidate entire buffer line by line can make a huge difference.
-But I would like these in a separate ioctl to keep the normal case 
-simple. Maybe as a separate patch even.
->
-> For a final patch, dma-buf.h would need to be split into what is
-> exported to userspace, and what is kernel private, but I wanted to
-> get feedback on the idea of requiring userspace to bracket access
-> first (vs. limiting this to coherent mappings or exporters who play
-> page faltings plus PTE shoot-down games) before I split the header
-> which would cause conflicts with other pending dma-buf patches.  So
-> flame-on!
-Why not just guard the kernel parts with __KERNEL__ or something? Or 
-there are guidelines preventing this?
-
-> [snip]
->
-> +
-> +static long dma_buf_ioctl(struct file *file, unsigned int cmd,
-> +		unsigned long arg)
-> +{
-> +	struct dma_buf *dmabuf;
-> +
-> +	if (!is_dma_buf_file(file))
-> +		return -EINVAL;
-> +
-> +	dmabuf = file->private_data;
-> +
-> +	switch (_IOC_NR(cmd)) {
-> +	case _IOC_NR(DMA_BUF_IOCTL_PREPARE_ACCESS):
-> +		if (dmabuf->ops->prepare_access)
-> +			return dmabuf->ops->prepare_access(dmabuf);
-> +		return 0;
-> +	case _IOC_NR(DMA_BUF_IOCTL_FINISH_ACCESS):
-> +		if (dmabuf->ops->finish_access)
-> +			return dmabuf->ops->finish_access(dmabuf);
-> +		return 0;
-> +	default:
-> +		return -EINVAL;
-> +	}
-> +}
-> +
-> +
-Multiple empty lines
->   static int dma_buf_release(struct inode *inode, struct file *file)
->   {
->   	struct dma_buf *dmabuf;
-> @@ -45,6 +85,8 @@ static int dma_buf_release(struct inode *inode, struct file *file)
->   }
->
->   static const struct file_operations dma_buf_fops = {
-> +	.mmap 		= dma_buf_mmap,
-> +	.unlocked_ioctl = dma_buf_ioctl,
->   	.release	= dma_buf_release,
->   };
->
-> diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
-> index a885b26..cbdff81 100644
-> --- a/include/linux/dma-buf.h
-> +++ b/include/linux/dma-buf.h
-> @@ -34,6 +34,17 @@
->   struct dma_buf;
->   struct dma_buf_attachment;
->
-> +/* TODO: dma-buf.h should be the userspace visible header, and dma-buf-priv.h (?)
-> + * the kernel internal header.. for now just stuff these here to avoid conflicting
-> + * with other patches..
-> + *
-> + * For now, no arg to keep things simple, but we could consider adding an
-> + * optional region of interest later.
-> + */
-> +#define DMA_BUF_IOCTL_PREPARE_ACCESS   _IO('Z', 0)
-> +#define DMA_BUF_IOCTL_FINISH_ACCESS    _IO('Z', 1)
-> +
-> +
-Multiple empty lines
->   /**
->    * struct dma_buf_ops - operations possible on struct dma_buf
->    * @attach: [optional] allows different devices to 'attach' themselves to the
-> @@ -49,6 +60,13 @@ struct dma_buf_attachment;
->    * @unmap_dma_buf: decreases usecount of buffer, might deallocate scatter
->    *		   pages.
->    * @release: release this buffer; to be called after the last dma_buf_put.
-> + * @mmap: [optional, allowed to fail] operation called if userspace calls
-> + *		 mmap() on the dmabuf fd.  Note that userspace should use the
-> + *		 DMA_BUF_PREPARE_ACCESS / DMA_BUF_FINISH_ACCESS ioctls before/after
-> + *		 sw access to the buffer, to give the exporter an opportunity to
-> + *		 deal with cache maintenance.
-> + * @prepare_access: [optional] handler for PREPARE_ACCESS ioctl.
-> + * @finish_access: [optional] handler for FINISH_ACCESS ioctl.
-xx_access should only be optional if you don't implement mmap. Otherwise 
-it will be very hard to implement cache sync in dma_buf (the cpu2dev and 
-dev2cpu parts). Introducing cache sync in dma_buf should be a way to 
-remove it from dma_buf clients. An option would be for the cache sync 
-code to assume the worst for each cpu2dev sync. Even if the CPU has not 
-touched anything.
-
-In short, very welcome patch ...
-
-/BR
-/Marcus
+diff --git a/drivers/media/video/uvc/uvc_ctrl.c b/drivers/media/video/uvc/uvc_ctrl.c
+index cea5e0a..96d05f7 100644
+--- a/drivers/media/video/uvc/uvc_ctrl.c
++++ b/drivers/media/video/uvc/uvc_ctrl.c
+@@ -21,6 +21,7 @@
+ #include <linux/vmalloc.h>
+ #include <linux/wait.h>
+ #include <linux/atomic.h>
++#include <media/v4l2-ctrls.h>
+ 
+ #include "uvcvideo.h"
+ 
+@@ -1143,10 +1144,12 @@ static int uvc_ctrl_commit_entity(struct uvc_device *dev,
+ 	return 0;
+ }
+ 
+-int __uvc_ctrl_commit(struct uvc_video_chain *chain, int rollback)
++int __uvc_ctrl_commit(struct uvc_video_chain *chain, int rollback,
++		      struct uvc_fh *handle,
++		      struct v4l2_ext_control *xctrls, int xctrls_count)
+ {
+ 	struct uvc_entity *entity;
+-	int ret = 0;
++	int i, ret = 0;
+ 
+ 	/* Find the control. */
+ 	list_for_each_entry(entity, &chain->entities, chain) {
+@@ -1155,6 +1158,9 @@ int __uvc_ctrl_commit(struct uvc_video_chain *chain, int rollback)
+ 			goto done;
+ 	}
+ 
++	if (!rollback)
++		for (i = 0; i < xctrls_count; ++i)
++			uvc_ctrl_send_event(handle, &xctrls[i]);
+ done:
+ 	mutex_unlock(&chain->ctrl_mutex);
+ 	return ret;
+@@ -1321,6 +1327,108 @@ int uvc_ctrl_set(struct uvc_video_chain *chain,
+ }
+ 
+ /* --------------------------------------------------------------------------
++ * Ctrl event handling
++ */
++
++static void uvc_ctrl_fill_event(struct uvc_video_chain *chain,
++	struct v4l2_event *ev,
++	struct uvc_control *ctrl,
++	struct uvc_control_mapping *mapping,
++	u32 value, u32 changes)
++{
++	struct v4l2_queryctrl v4l2_ctrl;
++
++	__uvc_query_v4l2_ctrl(chain, ctrl, mapping, &v4l2_ctrl);
++
++	memset(ev->reserved, 0, sizeof(ev->reserved));
++	ev->type = V4L2_EVENT_CTRL;
++	ev->id = v4l2_ctrl.id;
++	ev->u.ctrl.value = value;
++	ev->u.ctrl.changes = changes;
++	ev->u.ctrl.type = v4l2_ctrl.type;
++	ev->u.ctrl.flags = v4l2_ctrl.flags;
++	ev->u.ctrl.minimum = v4l2_ctrl.minimum;
++	ev->u.ctrl.maximum = v4l2_ctrl.maximum;
++	ev->u.ctrl.step = v4l2_ctrl.step;
++	ev->u.ctrl.default_value = v4l2_ctrl.default_value;
++}
++
++void uvc_ctrl_send_event(struct uvc_fh *handle,
++	struct v4l2_ext_control *xctrl)
++{
++	struct uvc_control *ctrl;
++	struct uvc_control_mapping *mapping;
++	struct v4l2_subscribed_event *sev;
++	struct v4l2_event ev;
++
++	ctrl = uvc_find_control(handle->chain, xctrl->id, &mapping);
++
++	if (list_empty(&mapping->ev_subs))
++		return;
++
++	uvc_ctrl_fill_event(handle->chain, &ev, ctrl, mapping, xctrl->value,
++			    V4L2_EVENT_CTRL_CH_VALUE);
++
++	list_for_each_entry(sev, &mapping->ev_subs, node)
++		if (sev->fh &&
++		    (sev->fh != &handle->vfh ||
++		     (sev->flags & V4L2_EVENT_SUB_FL_ALLOW_FEEDBACK)))
++			v4l2_event_queue_fh(sev->fh, &ev);
++}
++
++static int uvc_ctrl_add_event(struct v4l2_subscribed_event *sev)
++{
++	struct uvc_fh *handle = container_of(sev->fh, struct uvc_fh, vfh);
++	struct uvc_control_mapping *mapping;
++	struct uvc_control *ctrl;
++	int ret;
++
++	ret = mutex_lock_interruptible(&handle->chain->ctrl_mutex);
++	if (ret < 0)
++		return -ERESTARTSYS;
++
++	ctrl = uvc_find_control(handle->chain, sev->id, &mapping);
++	if (ctrl == NULL) {
++		ret = -EINVAL;
++		goto done;
++	}
++
++	list_add_tail(&sev->node, &mapping->ev_subs);
++	if (sev->flags & V4L2_EVENT_SUB_FL_SEND_INITIAL) {
++		struct v4l2_event ev;
++		struct v4l2_ext_control xctrl = { .value = 0 };
++		u32 changes = V4L2_EVENT_CTRL_CH_FLAGS;
++
++		if (__uvc_ctrl_get(handle->chain, ctrl, mapping, &xctrl) == 0)
++			changes |= V4L2_EVENT_CTRL_CH_VALUE;
++
++		uvc_ctrl_fill_event(handle->chain, &ev, ctrl, mapping,
++				    xctrl.value, changes);
++		v4l2_event_queue_fh(sev->fh, &ev);
++	}
++
++done:
++	mutex_unlock(&handle->chain->ctrl_mutex);
++	return ret;
++}
++
++static void uvc_ctrl_del_event(struct v4l2_subscribed_event *sev)
++{
++	struct uvc_fh *handle = container_of(sev->fh, struct uvc_fh, vfh);
++
++	mutex_lock(&handle->chain->ctrl_mutex);
++	list_del(&sev->node);
++	mutex_unlock(&handle->chain->ctrl_mutex);
++}
++
++const struct v4l2_subscribed_event_ops uvc_ctrl_sub_ev_ops = {
++	.add = uvc_ctrl_add_event,
++	.del = uvc_ctrl_del_event,
++	.replace = v4l2_ctrl_replace,
++	.merge = v4l2_ctrl_merge,
++};
++
++/* --------------------------------------------------------------------------
+  * Dynamic controls
+  */
+ 
+@@ -1665,6 +1773,8 @@ static int __uvc_ctrl_add_mapping(struct uvc_device *dev,
+ 	if (map == NULL)
+ 		return -ENOMEM;
+ 
++	INIT_LIST_HEAD(&map->ev_subs);
++
+ 	size = sizeof(*mapping->menu_info) * mapping->menu_count;
+ 	map->menu_info = kmemdup(mapping->menu_info, size, GFP_KERNEL);
+ 	if (map->menu_info == NULL) {
+diff --git a/drivers/media/video/uvc/uvc_v4l2.c b/drivers/media/video/uvc/uvc_v4l2.c
+index ff2cddd..2561ad8 100644
+--- a/drivers/media/video/uvc/uvc_v4l2.c
++++ b/drivers/media/video/uvc/uvc_v4l2.c
+@@ -25,6 +25,7 @@
+ #include <linux/atomic.h>
+ 
+ #include <media/v4l2-common.h>
++#include <media/v4l2-event.h>
+ #include <media/v4l2-ioctl.h>
+ 
+ #include "uvcvideo.h"
+@@ -505,6 +506,8 @@ static int uvc_v4l2_open(struct file *file)
+ 		}
+ 	}
+ 
++	v4l2_fh_init(&handle->vfh, stream->vdev);
++	v4l2_fh_add(&handle->vfh);
+ 	handle->chain = stream->chain;
+ 	handle->stream = stream;
+ 	handle->state = UVC_HANDLE_PASSIVE;
+@@ -528,6 +531,8 @@ static int uvc_v4l2_release(struct file *file)
+ 
+ 	/* Release the file handle. */
+ 	uvc_dismiss_privileges(handle);
++	v4l2_fh_del(&handle->vfh);
++	v4l2_fh_exit(&handle->vfh);
+ 	kfree(handle);
+ 	file->private_data = NULL;
+ 
+@@ -608,7 +613,7 @@ static long uvc_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+ 			uvc_ctrl_rollback(chain);
+ 			return ret;
+ 		}
+-		ret = uvc_ctrl_commit(chain);
++		ret = uvc_ctrl_commit(chain, handle, &xctrl, 1);
+ 		if (ret == 0)
+ 			ctrl->value = xctrl.value;
+ 		break;
+@@ -663,7 +668,8 @@ static long uvc_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+ 		ctrls->error_idx = 0;
+ 
+ 		if (cmd == VIDIOC_S_EXT_CTRLS)
+-			ret = uvc_ctrl_commit(chain);
++			ret = uvc_ctrl_commit(chain, handle,
++					      ctrls->controls, ctrls->count);
+ 		else
+ 			ret = uvc_ctrl_rollback(chain);
+ 		break;
+@@ -990,6 +996,26 @@ static long uvc_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+ 		return uvc_video_enable(stream, 0);
+ 	}
+ 
++	case VIDIOC_SUBSCRIBE_EVENT:
++	{
++		struct v4l2_event_subscription *sub = arg;
++
++		switch (sub->type) {
++		case V4L2_EVENT_CTRL:
++			return v4l2_event_subscribe(&handle->vfh, sub, 0,
++						    &uvc_ctrl_sub_ev_ops);
++		default:
++			return -EINVAL;
++		}
++	}
++
++	case VIDIOC_UNSUBSCRIBE_EVENT:
++		return v4l2_event_unsubscribe(&handle->vfh, arg);
++
++	case VIDIOC_DQEVENT:
++		return v4l2_event_dequeue(&handle->vfh, arg,
++					  file->f_flags & O_NONBLOCK);
++
+ 	/* Analog video standards make no sense for digital cameras. */
+ 	case VIDIOC_ENUMSTD:
+ 	case VIDIOC_QUERYSTD:
+diff --git a/drivers/media/video/uvc/uvcvideo.h b/drivers/media/video/uvc/uvcvideo.h
+index 67f88d8..3a89519 100644
+--- a/drivers/media/video/uvc/uvcvideo.h
++++ b/drivers/media/video/uvc/uvcvideo.h
+@@ -13,6 +13,8 @@
+ #include <linux/videodev2.h>
+ #include <media/media-device.h>
+ #include <media/v4l2-device.h>
++#include <media/v4l2-event.h>
++#include <media/v4l2-fh.h>
+ #include <media/videobuf2-core.h>
+ 
+ /* --------------------------------------------------------------------------
+@@ -153,6 +155,7 @@ struct uvc_control_info {
+ 
+ struct uvc_control_mapping {
+ 	struct list_head list;
++	struct list_head ev_subs;
+ 
+ 	struct uvc_control_info *ctrl;
+ 
+@@ -524,6 +527,7 @@ enum uvc_handle_state {
+ };
+ 
+ struct uvc_fh {
++	struct v4l2_fh vfh;
+ 	struct uvc_video_chain *chain;
+ 	struct uvc_streaming *stream;
+ 	enum uvc_handle_state state;
+@@ -643,6 +647,8 @@ extern int uvc_status_suspend(struct uvc_device *dev);
+ extern int uvc_status_resume(struct uvc_device *dev);
+ 
+ /* Controls */
++extern const struct v4l2_subscribed_event_ops uvc_ctrl_sub_ev_ops;
++
+ extern int uvc_query_v4l2_ctrl(struct uvc_video_chain *chain,
+ 		struct v4l2_queryctrl *v4l2_ctrl);
+ extern int uvc_query_v4l2_menu(struct uvc_video_chain *chain,
+@@ -655,14 +661,18 @@ extern void uvc_ctrl_cleanup_device(struct uvc_device *dev);
+ extern int uvc_ctrl_resume_device(struct uvc_device *dev);
+ 
+ extern int uvc_ctrl_begin(struct uvc_video_chain *chain);
+-extern int __uvc_ctrl_commit(struct uvc_video_chain *chain, int rollback);
+-static inline int uvc_ctrl_commit(struct uvc_video_chain *chain)
++extern int __uvc_ctrl_commit(struct uvc_video_chain *chain, int rollback,
++			struct uvc_fh *handle,
++			struct v4l2_ext_control *xctrls, int xctrls_count);
++static inline int uvc_ctrl_commit(struct uvc_video_chain *chain,
++			struct uvc_fh *handle,
++			struct v4l2_ext_control *xctrls, int xctrls_count)
+ {
+-	return __uvc_ctrl_commit(chain, 0);
++	return __uvc_ctrl_commit(chain, 0, handle, xctrls, xctrls_count);
+ }
+ static inline int uvc_ctrl_rollback(struct uvc_video_chain *chain)
+ {
+-	return __uvc_ctrl_commit(chain, 1);
++	return __uvc_ctrl_commit(chain, 1, NULL, NULL, 0);
+ }
+ 
+ extern int uvc_ctrl_get(struct uvc_video_chain *chain,
+@@ -670,6 +680,9 @@ extern int uvc_ctrl_get(struct uvc_video_chain *chain,
+ extern int uvc_ctrl_set(struct uvc_video_chain *chain,
+ 		struct v4l2_ext_control *xctrl);
+ 
++extern void uvc_ctrl_send_event(struct uvc_fh *handle,
++		struct v4l2_ext_control *xctrl);
++
+ extern int uvc_xu_ctrl_query(struct uvc_video_chain *chain,
+ 		struct uvc_xu_control_query *xqry);
+ 
+-- 
+1.7.9.3
 
