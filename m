@@ -1,113 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vx0-f174.google.com ([209.85.220.174]:42213 "EHLO
-	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161383Ab2COUjR convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Mar 2012 16:39:17 -0400
-Received: by vcqp1 with SMTP id p1so3563759vcq.19
-        for <linux-media@vger.kernel.org>; Thu, 15 Mar 2012 13:39:16 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20120315201446.17f21639@ws.the.cage>
-References: <20120310142042.0f238d3a@ws.the.cage>
-	<20120315201446.17f21639@ws.the.cage>
-Date: Thu, 15 Mar 2012 21:39:16 +0100
-Message-ID: <CAJ_iqtYvFLYvMe=C_H_MtFFQgEbpQDc3Bi6tOJ5R2DMQQyVcjw@mail.gmail.com>
-Subject: Re: cxd2820r: i2c wr failed (PCTV Nanostick 290e)
-From: Torfinn Ingolfsen <tingox@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from eu1sys200aog116.obsmtp.com ([207.126.144.141]:50072 "EHLO
+	eu1sys200aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753949Ab2CWJca convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 23 Mar 2012 05:32:30 -0400
+From: Bhupesh SHARMA <bhupesh.sharma@st.com>
+To: "balbi@ti.com" <balbi@ti.com>
+Cc: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>,
+	"laurent.pinchart@ideasonboard.com"
+	<laurent.pinchart@ideasonboard.com>,
+	spear-devel <spear-devel@list.st.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Greg KH <gregkh@linuxfoundation.org>
+Date: Fri, 23 Mar 2012 17:31:19 +0800
+Subject: RE: [PATCH] usb: gadget/uvc: Remove non-required locking from
+ 'uvc_queue_next_buffer' routine
+Message-ID: <D5ECB3C7A6F99444980976A8C6D896384FA2E26B3C@EAPEX1MAIL1.st.com>
+References: <4cead89e45e3e31fccae5bb6fbfb72b2ce1b8cd5.1332391406.git.bhupesh.sharma@st.com>
+ <20120322144056.GG19835@kroah.com>
+In-Reply-To: <20120322144056.GG19835@kroah.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Hi Felipe,
 
-On Thu, Mar 15, 2012 at 9:14 PM, Keith Edmunds <kae@midnighthax.com> wrote:
-> I posted the message below last week, but I've had no response.
->
-> Is this the wrong list? Did I do something wrong in my posting?
->
-> I would like fix this problem, and I have more information now, but I
-> don't want to clutter this list if it's the wrong place.
->
-> Guidance as to what I should do gratefully received: thanks.
+> -----Original Message-----
+> From: Greg KH [mailto:gregkh@linuxfoundation.org]
+> Sent: Thursday, March 22, 2012 8:11 PM
+> To: Bhupesh SHARMA
+> Cc: linux-usb@vger.kernel.org; laurent.pinchart@ideasonboard.com;
+> spear-devel; linux-media@vger.kernel.org
+> Subject: Re: [PATCH] usb: gadget/uvc: Remove non-required locking from
+> 'uvc_queue_next_buffer' routine
+> 
+> On Thu, Mar 22, 2012 at 10:20:37AM +0530, Bhupesh Sharma wrote:
+> > This patch removes the non-required spinlock acquire/release calls on
+> > 'queue_irqlock' from 'uvc_queue_next_buffer' routine.
+> >
+> > This routine is called from 'video->encode' function (which
+> translates to either
+> > 'uvc_video_encode_bulk' or 'uvc_video_encode_isoc') in 'uvc_video.c'.
+> > As, the 'video->encode' routines are called with 'queue_irqlock'
+> already held,
+> > so acquiring a 'queue_irqlock' again in 'uvc_queue_next_buffer'
+> routine causes
+> > a spin lock recursion.
+> >
+> > Signed-off-by: Bhupesh Sharma <bhupesh.sharma@st.com>
+> > Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > ---
+> >  drivers/usb/gadget/uvc_queue.c |    4 +---
+> >  1 files changed, 1 insertions(+), 3 deletions(-)
+> 
+> Please use scripts/get_maintainer.pl to determine who to send this to
+> (hint, it's not me...)
+> 
 
-FWIW,
-I haven't tested my nanoStick T2 (model 290e) with anything else than
-Kaffeine, but it has been running for many days, and I haven't seen
-the problem you describe.
-I'm using Xubuntu 11.10:
-tingo@kg-f4:~$ lsb_release -a
-No LSB modules are available.
-Distributor ID:	Ubuntu
-Description:	Ubuntu 11.10
-Release:	11.10
-Codename:	oneiric
-tingo@kg-f4:~$ uname -a
-Linux kg-f4 3.0.0-15-generic #26-Ubuntu SMP Fri Jan 20 17:23:00 UTC
-2012 x86_64 x86_64 x86_64 GNU/Linux
+Can you please pick this USB webcam gadget/peripheral specific patch
+in your tree?
 
-and media drivers (from http://git.linuxtv.org/media_build.git) built
-on 2012-02-08.
-
-HTH
->
->> Hi List
->>
->> I'm having lots of problems with my PCTV Nanostick 290e under MythTV. Is
->> this the best place to report these problems?
->>
->> I'm happy to provide whatever detail is needed, but in summary:
->>
->>  - every day or two, I get the error messages logged below. I need to
->>    reboot the back end to clear them.
->>
->>  - when the back end comes back up, 'lsusb' doesn't show the 290e. I have
->>    to unplug it, wait a few seconds, then plug it back in again
->>
->> This is extremely frustrating. When it works, it's great; when it
->> doesn't, recordings fail.
->>
->> The following errors are reported repeatedly:
->>
->> Mar  9 10:02:03 woodlands kernel: [ 6006.157991] cxd2820r: i2c wr failed
->> ret:-110 reg:85 len:1
->> Mar  9 10:02:05 woodlands kernel: [ 6008.511994] cxd2820r: i2c wr failed
->> ret:-110 reg:00 len:1
->> Mar  9 10:02:08 woodlands kernel: [ 6011.208909] cxd2820r: i2c wr failed
->> ret:-110 reg:85 len:1
->> Mar 9 10:02:10 woodlands kernel: [ 6013.566440] cxd2820r: i2c wr failed
->> ret:-110 reg:00 len:1
->>
->> MythTV backend details:
->>  - Debian v6.0.4 ("Squeeze")
->>  - Debian multimedia repository
->>  - Myth version 0.24.2-0.0squeeze1 (as packaged by repository)
->>  - Kernel: 2.6.32-5-686-bigmem (I've also tried 3.2.0-0.bpo.1-686-pae,
->>    both Debian-packaged)
->>  - Tuners: 2 x Hauppauge Nova-T Stick (USB) and 1 x PCTV Nanostick 290e
->>    (also USB)
->>  - no module load parameters specified
->>  - tuning delay 750mS for each tuner
->>  - drivers for the 290e built using the media_build scripts
->>    (http://git.linuxtv.org/media_build.git)
->>
->> Many thanks,
->> Keith
->
->
-> --
-> "You can have everything in life you want if you help enough other people
-> get what they want" - Zig Ziglar.
->
-> Who did you help today?
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
-
--- 
 Regards,
-Torfinn Ingolfsen
+Bhupesh
