@@ -1,46 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.48]:44254 "EHLO mgw-sa02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756945Ab2CFQd3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 6 Mar 2012 11:33:29 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, dacohen@gmail.com,
-	snjw23@gmail.com, andriy.shevchenko@linux.intel.com,
-	t.stanislaws@samsung.com, tuukkat76@gmail.com,
-	k.debski@samsung.com, riverful@gmail.com, hverkuil@xs4all.nl,
-	teturtia@gmail.com, pradeep.sawlani@gmail.com
-Subject: [PATCH v5 26/35] omap3isp: Add information on external subdev to struct isp_pipeline
-Date: Tue,  6 Mar 2012 18:33:07 +0200
-Message-Id: <1331051596-8261-26-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <20120306163239.GN1075@valkosipuli.localdomain>
-References: <20120306163239.GN1075@valkosipuli.localdomain>
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:33638 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759894Ab2CWUh1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 23 Mar 2012 16:37:27 -0400
+MIME-Version: 1.0
+In-Reply-To: <1332529371-3994-1-git-send-email-alexg@meprolight.com>
+References: <1332529371-3994-1-git-send-email-alexg@meprolight.com>
+Date: Fri, 23 Mar 2012 17:37:26 -0300
+Message-ID: <CAOMZO5Cf11Z3JNnsDU2c1YX5Fh=4qznc+26xndKHB1wQMDMu_g@mail.gmail.com>
+Subject: Re: [PATCH v1] i.MX35-PDK: Add Camera support
+From: Fabio Estevam <festevam@gmail.com>
+To: Alex Gershgorin <alexgershgorin@gmail.com>
+Cc: Fabio Estevam <fabio.estevam@freescale.com>,
+	s.hauer@pengutronix.de, g.liakhovetski@gmx.de,
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, Alex Gershgorin <alexg@meprolight.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add pointer to external subdev, pixel rate of the external subdev and bpp of
-the format to struct isp_pipeline.
+Hi Alex,
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/video/omap3isp/ispvideo.h |    3 +++
- 1 files changed, 3 insertions(+), 0 deletions(-)
+On Fri, Mar 23, 2012 at 4:02 PM, Alex Gershgorin
+<alexgershgorin@gmail.com> wrote:
+> Yes, yesterday I sended to Sascha and ARM mailing list another patch
+> i.MX35-PDK-Add-regulator-support, this also will need be used.
 
-diff --git a/drivers/media/video/omap3isp/ispvideo.h b/drivers/media/video/omap3isp/ispvideo.h
-index 0423c9d..8c16156 100644
---- a/drivers/media/video/omap3isp/ispvideo.h
-+++ b/drivers/media/video/omap3isp/ispvideo.h
-@@ -103,6 +103,9 @@ struct isp_pipeline {
- 	bool do_propagation; /* of frame number */
- 	bool error;
- 	struct v4l2_fract max_timeperframe;
-+	struct v4l2_subdev *external;
-+	unsigned int external_rate;
-+	unsigned int external_bpp;
- };
- 
- #define to_isp_pipeline(__e) \
--- 
-1.7.2.5
+Ok, good. I saw that patch as well.
 
+It would be really nice if you could fix the I2C issues you reported
+earlier in software.
+
+Otherwise the camera will only work on your own modified mx35pdk ;-)
+
+Regards,
+
+Fabio Estevam
