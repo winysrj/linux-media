@@ -1,47 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:46201 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755964Ab2CSWp7 (ORCPT
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:34840 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759856Ab2CWURp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Mar 2012 18:45:59 -0400
-Date: Mon, 19 Mar 2012 23:45:50 +0100
-From: Sascha Hauer <s.hauer@pengutronix.de>
-To: Fabio Estevam <festevam@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	fabio.estevam@freescale.com, linux-kernel@vger.kernel.org,
-	Alex Gershgorin <alexg@meprolight.com>, g.liakhovetski@gmx.de,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH v1] i.MX35-PDK: Add Camera support
-Message-ID: <20120319224550.GF3852@pengutronix.de>
-References: <1331651129-30540-1-git-send-email-alexg@meprolight.com>
- <4F67AD31.8030500@redhat.com>
- <4F67B077.5050300@redhat.com>
- <20120319223729.GC3852@pengutronix.de>
- <CAOMZO5B=Qpng68xLmxGaHMqSmYzbkpObVcjHDQSXaXcz5s6gMQ@mail.gmail.com>
+	Fri, 23 Mar 2012 16:17:45 -0400
+Received: by wibhj6 with SMTP id hj6so2378871wib.1
+        for <linux-media@vger.kernel.org>; Fri, 23 Mar 2012 13:17:44 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAOMZO5B=Qpng68xLmxGaHMqSmYzbkpObVcjHDQSXaXcz5s6gMQ@mail.gmail.com>
+Date: Fri, 23 Mar 2012 16:17:43 -0400
+Message-ID: <CAHtAJjpO_M27cm77Uf=23_TfeYvAR8CVcemVGDi9ZoEaEwTRtg@mail.gmail.com>
+Subject: ViXS XCode 2100 Series TV NTSC/ATSC FM Tuner Card
+From: Vikas N Kumar <vikasnkumar@users.sourceforge.net>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Mar 19, 2012 at 07:43:32PM -0300, Fabio Estevam wrote:
-> Hi Sascha,
-> 
-> On Mon, Mar 19, 2012 at 7:37 PM, Sascha Hauer <s.hauer@pengutronix.de> wrote:
-> 
-> > It's scheduled there. I should have responded with an applied message.
-> 
-> Please apply this one too: http://patchwork.ozlabs.org/patch/144942/
-> 
+Hi
+I am interested to know if there exists any support for the ViXS XCode
+2100 Series cards ? I have looked and not found any viable support for
+the card chipset except for some forums mentioning "ivtv" as a driver.
 
-Will do.
+If there is anyone working on this or if there is some guidance I
+would like to help out and provide support for this TV tuner card.
 
-Sascha
+Below are the full details of the card that I have. Any help or
+information is appreciated ?
+
+Thanks.
+
+
+# lspci -vv -d 1745:
+02:00.0 Multimedia controller: ViXS Systems, Inc. XCode 2100 Series
+	Subsystem: ASUSTeK Computer Inc. Device 48b0
+	Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-
+Stepping- SERR+ FastB2B- DisINTx-
+	Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort-
+<TAbort- <MAbort- >SERR- <PERR- INTx-
+	Latency: 0, Cache Line Size: 64 bytes
+	Interrupt: pin A routed to IRQ 10
+	Region 0: Memory at fdf00000 (64-bit, prefetchable) [size=1M]
+	Region 2: Memory at feaf0000 (32-bit, non-prefetchable) [size=64K]
+	Region 4: I/O ports at <unassigned>
+	Capabilities: [40] Power Management version 2
+		Flags: PMEClk- DSI- D1+ D2- AuxCurrent=375mA PME(D0+,D1+,D2-,D3hot+,D3cold-)
+		Status: D0 NoSoftRst- PME-Enable- DSel=0 DScale=0 PME-
+	Capabilities: [50] MSI: Enable- Count=1/1 Maskable- 64bit+
+		Address: 0000000000000000  Data: 0000
+	Capabilities: [60] Express (v1) Endpoint, MSI 00
+		DevCap:	MaxPayload 128 bytes, PhantFunc 0, Latency L0s <128ns, L1 <2us
+			ExtTag- AttnBtn- AttnInd- PwrInd- RBE- FLReset-
+		DevCtl:	Report errors: Correctable- Non-Fatal- Fatal- Unsupported-
+			RlxdOrd- ExtTag- PhantFunc- AuxPwr- NoSnoop-
+			MaxPayload 128 bytes, MaxReadReq 512 bytes
+		DevSta:	CorrErr- UncorrErr+ FatalErr- UnsuppReq+ AuxPwr- TransPend-
+		LnkCap:	Port #0, Speed 2.5GT/s, Width x1, ASPM L0s L1, Latency L0
+<4us, L1 <64us
+			ClockPM- Surprise- LLActRep- BwNot-
+		LnkCtl:	ASPM Disabled; RCB 128 bytes Disabled- Retrain- CommClk+
+			ExtSynch- ClockPM- AutWidDis- BWInt- AutBWInt-
+		LnkSta:	Speed 2.5GT/s, Width x1, TrErr- Train- SlotClk+ DLActive-
+BWMgmt- ABWMgmt-
+	Capabilities: [100 v1] Advanced Error Reporting
+		UESta:	DLP- SDES- TLP- FCP- CmpltTO- CmpltAbrt- UnxCmplt- RxOF-
+MalfTLP- ECRC- UnsupReq+ ACSViol-
+		UEMsk:	DLP- SDES- TLP- FCP- CmpltTO- CmpltAbrt- UnxCmplt- RxOF-
+MalfTLP- ECRC- UnsupReq- ACSViol-
+		UESvrt:	DLP+ SDES- TLP- FCP+ CmpltTO- CmpltAbrt- UnxCmplt- RxOF+
+MalfTLP+ ECRC- UnsupReq- ACSViol-
+		CESta:	RxErr- BadTLP- BadDLLP- Rollover- Timeout- NonFatalErr-
+		CEMsk:	RxErr- BadTLP- BadDLLP- Rollover- Timeout- NonFatalErr-
+		AERCap:	First Error Pointer: 14, GenCap+ CGenEn- ChkCap+ ChkEn-
+	Capabilities: [140 v1] Virtual Channel
+		Caps:	LPEVC=0 RefClk=100ns PATEntryBits=1
+		Arb:	Fixed- WRR32- WRR64- WRR128-
+		Ctrl:	ArbSelect=Fixed
+		Status:	InProgress-
+		VC0:	Caps:	PATOffset=00 MaxTimeSlots=1 RejSnoopTrans-
+			Arb:	Fixed- WRR32- WRR64- WRR128- TWRR128- WRR256-
+			Ctrl:	Enable+ ID=0 ArbSelect=Fixed TC/VC=ff
+			Status:	NegoPending- InProgress-
 
 
 -- 
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+http://www.vikaskumar.org/
