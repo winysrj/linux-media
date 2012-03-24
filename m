@@ -1,70 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:47921 "EHLO mail.kapsi.fi"
+Received: from mx1.redhat.com ([209.132.183.28]:7734 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030512Ab2CSU2H (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Mar 2012 16:28:07 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH FOR 3.4] rtl28xxu: dynamic USB ID support
-Date: Mon, 19 Mar 2012 22:27:47 +0200
-Message-Id: <1332188867-26543-1-git-send-email-crope@iki.fi>
+	id S1752759Ab2CXOcw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 24 Mar 2012 10:32:52 -0400
+Message-ID: <4F6DDB10.8000503@redhat.com>
+Date: Sat, 24 Mar 2012 11:32:48 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Josu Lazkano <josu.lazkano@gmail.com>
+CC: linux-media <linux-media@vger.kernel.org>
+Subject: Re: dvb lock patch
+References: <CAL9G6WXZLdJqpivn2qNXb+oP9o4n=uyq6ywiRrzP13vmUYvaxw@mail.gmail.com>
+In-Reply-To: <CAL9G6WXZLdJqpivn2qNXb+oP9o4n=uyq6ywiRrzP13vmUYvaxw@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-DVB USB core refuses to	load driver when current USB ID
-does not match IDs on driver table. Due to that dynamic
-IDs does not work. Replace reference design ID by dynamic
-ID in .probe() in order to get it working.
+Em 04-03-2012 17:49, Josu Lazkano escreveu:
+> Hello all, I am using this patch to get virtual adapters for DVB
+> devices: https://aur.archlinux.org/packages/sa/sascng-linux3-patch/sascng-linux3-patch.tar.gz
+> 
+> Here is more info: https://aur.archlinux.org/packages.php?ID=51325
+> 
+> Is it possible to add this patch on the dvb source?
+> 
+> This patch is needed for people who not have a CI and need to create
+> virtual adapters to get a working pay-tv system.
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/dvb/dvb-usb/rtl28xxu.c |   25 +++++++++++++++++++++++++
- 1 files changed, 25 insertions(+), 0 deletions(-)
+Please always send the diff, instead to a point to some tarball, otherwise
+most developers won't care enough to see what's there.
 
-diff --git a/drivers/media/dvb/dvb-usb/rtl28xxu.c b/drivers/media/dvb/dvb-usb/rtl28xxu.c
-index 8f4736a..4e69e9d 100644
---- a/drivers/media/dvb/dvb-usb/rtl28xxu.c
-+++ b/drivers/media/dvb/dvb-usb/rtl28xxu.c
-@@ -909,6 +909,8 @@ static int rtl28xxu_probe(struct usb_interface *intf,
- 	int ret, i;
- 	int properties_count = ARRAY_SIZE(rtl28xxu_properties);
- 	struct dvb_usb_device *d;
-+	struct usb_device *udev;
-+	bool found;
- 
- 	deb_info("%s: interface=%d\n", __func__,
- 		intf->cur_altsetting->desc.bInterfaceNumber);
-@@ -916,6 +918,29 @@ static int rtl28xxu_probe(struct usb_interface *intf,
- 	if (intf->cur_altsetting->desc.bInterfaceNumber != 0)
- 		return 0;
- 
-+	/* Dynamic USB ID support. Replaces first device ID with current one .*/
-+	udev = interface_to_usbdev(intf);
-+
-+	for (i = 0, found = false; i < ARRAY_SIZE(rtl28xxu_table) - 1; i++) {
-+		if (rtl28xxu_table[i].idVendor ==
-+				le16_to_cpu(udev->descriptor.idVendor) &&
-+				rtl28xxu_table[i].idProduct ==
-+				le16_to_cpu(udev->descriptor.idProduct)) {
-+			found = true;
-+			break;
-+		}
-+	}
-+
-+	if (!found) {
-+		deb_info("%s: using dynamic ID %04x:%04x\n", __func__,
-+				le16_to_cpu(udev->descriptor.idVendor),
-+				le16_to_cpu(udev->descriptor.idProduct));
-+		rtl28xxu_properties[0].devices[0].warm_ids[0]->idVendor =
-+				le16_to_cpu(udev->descriptor.idVendor);
-+		rtl28xxu_properties[0].devices[0].warm_ids[0]->idProduct =
-+				le16_to_cpu(udev->descriptor.idProduct);
-+	}
-+
- 	for (i = 0; i < properties_count; i++) {
- 		ret = dvb_usb_device_init(intf, &rtl28xxu_properties[i],
- 				THIS_MODULE, &d, adapter_nr);
--- 
-1.7.7.6
+Anyway:
 
+> diff -Nur linux-2.6.39/drivers/media/dvb/dvb-core/dvbdev.c linux-2.6.39/drivers/media/dvb/dvb-core/dvbdev.c
+> --- linux-2.6.39/drivers/media/dvb/dvb-core/dvbdev.c
+> +++ linux-2.6.39/drivers/media/dvb/dvb-core/dvbdev.c
+> @@ -83,8 +83,11 @@ static int dvb_device_open(struct inode *inode, struct file *file)
+>  			file->f_op = old_fops;
+>  			goto fail;
+>  		}
+> -		if(file->f_op->open)
+> +		if(file->f_op->open) {
+> +			mutex_unlock(&dvbdev_mutex);
+>  			err = file->f_op->open(inode,file);
+> +			mutex_lock(&dvbdev_mutex);
+> +		}
+>  		if (err) {
+>  			fops_put(file->f_op);
+>  			file->f_op = fops_get(old_fops);
+> -- 
+> 
+
+That doesn't sound right to me, and can actually cause race issues.
+
+Regards,
+Mauro.
