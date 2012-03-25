@@ -1,153 +1,323 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:55055 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751754Ab2CNIh2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Mar 2012 04:37:28 -0400
-Date: Wed, 14 Mar 2012 10:37:23 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Bhupesh Sharma <bhupesh.sharma@st.com>
-Cc: linux-media@vger.kernel.org, spear-devel@list.st.com,
-	laurent.pinchart@ideasonboard.com
-Subject: Re: [PATCH 1/1] V4L/v4l2-dev: Make 'videodev_init' as a subsys
- initcall
-Message-ID: <20120314083723.GF4220@valkosipuli.localdomain>
-References: <bbe7861cb38c036d3c24df908ffbfc125274ea99.1331543025.git.bhupesh.sharma@st.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <bbe7861cb38c036d3c24df908ffbfc125274ea99.1331543025.git.bhupesh.sharma@st.com>
+Received: from mx1.redhat.com ([209.132.183.28]:61615 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752107Ab2CYLyx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 25 Mar 2012 07:54:53 -0400
+From: Hans de Goede <hdegoede@redhat.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH 03/10] v4l2-event: Add v4l2_subscribed_event_ops
+Date: Sun, 25 Mar 2012 13:56:43 +0200
+Message-Id: <1332676610-14953-4-git-send-email-hdegoede@redhat.com>
+In-Reply-To: <1332676610-14953-1-git-send-email-hdegoede@redhat.com>
+References: <1332676610-14953-1-git-send-email-hdegoede@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Bhupesh,
+Just like with ctrl events, drivers may want to get called back on
+listener add / remove for other event types too. Rather then special
+casing all of this in subscribe / unsubscribe event it is better to
+use ops for this.
 
-On Mon, Mar 12, 2012 at 02:39:02PM +0530, Bhupesh Sharma wrote:
-> As the V4L2 based UVC webcam gadget (g_webcam) expects the
-> 'videodev' to present when the 'webcam_bind' routine is called,
-> so 'videodev' should be available as early as possible.
-> 
-> Now, when 'g_webcam' is built as a module (i.e. not a part of
-> kernel) the late availability of 'videodev' is OK, but if
-> 'g_webcam' is built statically as a part of the kernel,
-> the kernel crashes (a sample crash dump using Designware 2.0 UDC
-> is provided below).
-> 
-> To solve the same, this patch makes 'videodev_init' as a subsys initcall.
-> 
-> Kernel Crash Dump:
-> ------------------
-> 
-> designware_udc designware_udc: Device Synopsys UDC probed csr 90810000: plug 90812000
-> g_webcam gadget: uvc_function_bind
-> Unable to handle kernel NULL pointer dereference at virtual address 000000e4
-> pgd = 80004000
-> [000000e4] *pgd=00000000
-> Internal error: Oops: 5 [#1] SMP
-> Modules linked in:
-> CPU: 0    Not tainted  (3.3.0-rc3-13888-ge774c03-dirty #20)
-> PC is at do_raw_spin_lock+0x10/0x16c
-> LR is at _raw_spin_lock+0x10/0x14
-> pc : [<8019e344>]    lr : [<804095c0>]    psr: 60000013
-> sp : 8f839d20  ip : 8f839d50  fp : 8f839d4c
-> r10: 80760a94  r9 : 8042de98  r8 : 00000154
-> r7 : 80760e94  r6 : 805cfc10  r5 : 8fb6a008  r4 : 8fb6a008
-> r3 : 805dd0c8  r2 : 8f839d48  r1 : 805cfc08  r0 : 000000e0
-> Flags: nZCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment kernel
-> Control: 10c5387d  Table: 0000404a  DAC: 00000015
-> Process swapper/0 (pid: 1, stack limit = 0x8f8382f0)
-> Stack: (0x8f839d20 to 0x8f83a000)
-> 9d20: ffffffff ffffffff 8fb6a008 8fb6a008 805cfc10 80760e94 00000154 8042de98
-> 9d40: 8f839d5c 8f839d50 804095c0 8019e340 8f839d7c 8f839d60 80222b28 804095bc
-> 9d60: 8fb12b80 8fb6a008 8fb6a010 805cfc08 8f839dc4 8f839d80 80223db8 80222adc
-> 9d80: 8f839dac 8f839d90 8022baa0 8019e2e8 8fb6a008 8075e7f4 8fb6a008 8fb6a008
-> 9da0: 00000000 8fb6a008 80760e94 00000154 8042de98 80760a94 8f839ddc 8f839dc8
-> 9dc0: 802242a8 80223d1c 8fb12b80 8fb6a000 8f839e1c 8f839de0 8030132c 80224298
-> 9de0: 80223ce8 803f2ee8 00000001 804f7750 8f839e1c 8f824008 805cff20 8f824000
-> 9e00: 8fb6a000 ffffffff 00000000 8f8d4880 8f839e4c 8f839e20 80562e3c 80301100
-> 9e20: 00000000 8fb13140 8f824008 805cff20 8042aa68 8f824000 8042aa8c 805e4d40
-> 9e40: 8f839e64 8f839e50 802d20c4 80562ba8 805d0058 805cff20 8f839e8c 8f839e68
-> 9e60: 80563034 802d206c 8042aa8c 805cff20 8f8d4880 00000000 805cfc08 8fb12a40
-> 9e80: 8f839e9c 8f839e90 805630c4 80562ec4 8f839ebc 8f839ea0 802d2364 805630b0
-> 9ea0: 805cfeac 8f8d4880 805cfbe8 807605e8 8f839ed4 8f839ec0 80562b3c 802d22cc
-> 9ec0: 80562ac4 8f8d4880 8f839f04 8f839ed8 802d0b40 80562ad0 8f839ef4 805cff90
-> 9ee0: 805cff90 805cfb98 00000000 00000000 805cfbe8 805e4d40 8f839f3c 8f839f08
-> 9f00: 802cd078 802d0a18 00000000 802d0a0c 00000000 8fb9ba00 802d0a0c 805cff90
-> 9f20: 00000013 00000000 00000000 805e4d40 8f839f5c 8f839f40 802cf390 802ccff0
-> 9f40: 00000003 00000003 804fb598 00000000 8f839f74 8f839f60 802d2554 802cf2a0
-> 9f60: 8f838000 8057731c 8f839f84 8f839f78 80562b90 802d24d0 8f839fdc 8f839f88
-> 9f80: 800085d4 80562b84 805af2ac 805af2ac 80562b78 00000000 00000013 00000000
-> 9fa0: 00000000 00000000 8f839fc4 8f839fb8 80043dd0 8057706c 8057731c 8002875c
-> 9fc0: 00000013 00000000 00000000 00000000 8f839ff4 8f839fe0 805468d4 800085a0
-> 9fe0: 00000000 80546840 00000000 8f839ff8 8002875c 8054684c 51155555 55545555
-> Backtrace:
-> [<8019e334>] (do_raw_spin_lock+0x0/0x16c) from [<804095c0>] (_raw_spin_lock+0x10/0x14)
->  r9:8042de98 r8:00000154 r7:80760e94 r6:805cfc10 r5:8fb6a008
-> r4:8fb6a008
-> [<804095b0>] (_raw_spin_lock+0x0/0x14) from [<80222b28>] (get_device_parent+0x58/0x1c0)
-> [<80222ad0>] (get_device_parent+0x0/0x1c0) from [<80223db8>] (device_add+0xa8/0x57c)
->  r6:805cfc08 r5:8fb6a010 r4:8fb6a008 r3:8fb12b80
-> [<80223d10>] (device_add+0x0/0x57c) from [<802242a8>] (device_register+0x1c/0x20)
-> [<8022428c>] (device_register+0x0/0x20) from [<8030132c>] (__video_register_device+0x238/0x484)
->  r4:8fb6a000 r3:8fb12b80
-> [<803010f4>] (__video_register_device+0x0/0x484) from [<80562e3c>] (uvc_function_bind+0x2a0/0x31c)
-> [<80562b9c>] (uvc_function_bind+0x0/0x31c) from [<802d20c4>] (usb_add_function+0x64/0x118)
-> [<802d2060>] (usb_add_function+0x0/0x118) from [<80563034>] (uvc_bind_config+0x17c/0x1ec)
->  r5:805cff20 r4:805d0058
-> [<80562eb8>] (uvc_bind_config+0x0/0x1ec) from [<805630c4>] (webcam_config_bind+0x20/0x28)
->  r8:8fb12a40 r7:805cfc08 r6:00000000 r5:8f8d4880 r4:805cff20
-> r3:8042aa8c
-> [<805630a4>] (webcam_config_bind+0x0/0x28) from [<802d2364>] (usb_add_config+0xa4/0x124)
-> [<802d22c0>] (usb_add_config+0x0/0x124) from [<80562b3c>] (webcam_bind+0x78/0xb4)
->  r6:807605e8 r5:805cfbe8 r4:8f8d4880 r3:805cfeac
-> [<80562ac4>] (webcam_bind+0x0/0xb4) from [<802d0b40>] (composite_bind+0x134/0x308)
->  r4:8f8d4880 r3:80562ac4
-> [<802d0a0c>] (composite_bind+0x0/0x308) from [<802cd078>] (dw_udc_start+0x94/0x2bc)
-> [<802ccfe4>] (dw_udc_start+0x0/0x2bc) from [<802cf390>] (usb_gadget_probe_driver+0xfc/0x180)
-> [<802cf294>] (usb_gadget_probe_driver+0x0/0x180) from [<802d2554>] (usb_composite_probe+0x90/0xb4)
->  r6:00000000 r5:804fb598 r4:00000003 r3:00000003
-> [<802d24c4>] (usb_composite_probe+0x0/0xb4) from [<80562b90>] (webcam_init+0x18/0x24)
->  r5:8057731c r4:8f838000
-> [<80562b78>] (webcam_init+0x0/0x24) from [<800085d4>] (do_one_initcall+0x40/0x184)
-> [<80008594>] (do_one_initcall+0x0/0x184) from [<805468d4>] (kernel_init+0x94/0x134)
-> [<80546840>] (kernel_init+0x0/0x134) from [<8002875c>] (do_exit+0x0/0x6f8)
->  r5:80546840 r4:00000000
-> Code: e1a0c00d e92ddbf0 e24cb004 e24dd008 (e5902004)
-> ---[ end trace 7ecca37f36fbdc06 ]---
-> Signed-off-by: Bhupesh Sharma <bhupesh.sharma@st.com>
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ Documentation/video4linux/v4l2-framework.txt |   28 +++++++++----
+ drivers/media/video/ivtv/ivtv-ioctl.c        |    2 +-
+ drivers/media/video/omap3isp/ispccdc.c       |    2 +-
+ drivers/media/video/omap3isp/ispstat.c       |    2 +-
+ drivers/media/video/v4l2-ctrls.c             |    2 +-
+ drivers/media/video/v4l2-event.c             |   54 ++++++++++++++++++++------
+ drivers/usb/gadget/uvc_v4l2.c                |    2 +-
+ include/media/v4l2-event.h                   |   24 ++++++++----
+ 8 files changed, 86 insertions(+), 30 deletions(-)
 
-Thanks!
-
-Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
-Tested-by: Sakari Ailus <sakari.ailus@iki.fi>
-
-> ---
->  drivers/media/video/v4l2-dev.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/media/video/v4l2-dev.c b/drivers/media/video/v4l2-dev.c
-> index 96e9615..041804b 100644
-> --- a/drivers/media/video/v4l2-dev.c
-> +++ b/drivers/media/video/v4l2-dev.c
-> @@ -788,7 +788,7 @@ static void __exit videodev_exit(void)
->  	unregister_chrdev_region(dev, VIDEO_NUM_DEVICES);
->  }
->  
-> -module_init(videodev_init)
-> +subsys_initcall(videodev_init);
->  module_exit(videodev_exit)
->  
->  MODULE_AUTHOR("Alan Cox, Mauro Carvalho Chehab <mchehab@infradead.org>");
-> -- 
-> 1.7.2.2
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-Cheers,
-
+diff --git a/Documentation/video4linux/v4l2-framework.txt b/Documentation/video4linux/v4l2-framework.txt
+index 659b2ba..b77bb48 100644
+--- a/Documentation/video4linux/v4l2-framework.txt
++++ b/Documentation/video4linux/v4l2-framework.txt
+@@ -941,21 +941,35 @@ fast.
+ 
+ Useful functions:
+ 
+-- v4l2_event_queue()
++void v4l2_event_queue(struct video_device *vdev, const struct v4l2_event *ev)
+ 
+   Queue events to video device. The driver's only responsibility is to fill
+   in the type and the data fields. The other fields will be filled in by
+   V4L2.
+ 
+-- v4l2_event_subscribe()
++int v4l2_event_subscribe(struct v4l2_fh *fh,
++			 struct v4l2_event_subscription *sub, unsigned elems,
++			 const struct v4l2_subscribed_event_ops *ops)
+ 
+   The video_device->ioctl_ops->vidioc_subscribe_event must check the driver
+   is able to produce events with specified event id. Then it calls
+-  v4l2_event_subscribe() to subscribe the event. The last argument is the
+-  size of the event queue for this event. If it is 0, then the framework
+-  will fill in a default value (this depends on the event type).
++  v4l2_event_subscribe() to subscribe the event.
+ 
+-- v4l2_event_unsubscribe()
++  The elems argument is the size of the event queue for this event. If it is 0,
++  then the framework will fill in a default value (this depends on the event
++  type).
++
++  The ops argument allows the driver to specify a number of callbacks:
++  * add:     called when a new listener gets added (subscribing to the same
++             event twice will only cause this callback to get called once)
++  * del:     called when a listener stops listening
++  * replace: replace event 'old' with event 'new'.
++  * merge:   merge event 'old' into event 'new'.
++  All 4 callbacks are optional, if you don't want to specify any callbacks
++  the ops argument itself maybe NULL.
++
++int v4l2_event_unsubscribe(struct v4l2_fh *fh,
++			   struct v4l2_event_subscription *sub)
+ 
+   vidioc_unsubscribe_event in struct v4l2_ioctl_ops. A driver may use
+   v4l2_event_unsubscribe() directly unless it wants to be involved in
+@@ -964,7 +978,7 @@ Useful functions:
+   The special type V4L2_EVENT_ALL may be used to unsubscribe all events. The
+   drivers may want to handle this in a special way.
+ 
+-- v4l2_event_pending()
++int v4l2_event_pending(struct v4l2_fh *fh)
+ 
+   Returns the number of pending events. Useful when implementing poll.
+ 
+diff --git a/drivers/media/video/ivtv/ivtv-ioctl.c b/drivers/media/video/ivtv/ivtv-ioctl.c
+index 5452bee..5b41e5b 100644
+--- a/drivers/media/video/ivtv/ivtv-ioctl.c
++++ b/drivers/media/video/ivtv/ivtv-ioctl.c
+@@ -1469,7 +1469,7 @@ static int ivtv_subscribe_event(struct v4l2_fh *fh, struct v4l2_event_subscripti
+ 	case V4L2_EVENT_VSYNC:
+ 	case V4L2_EVENT_EOS:
+ 	case V4L2_EVENT_CTRL:
+-		return v4l2_event_subscribe(fh, sub, 0);
++		return v4l2_event_subscribe(fh, sub, 0, NULL);
+ 	default:
+ 		return -EINVAL;
+ 	}
+diff --git a/drivers/media/video/omap3isp/ispccdc.c b/drivers/media/video/omap3isp/ispccdc.c
+index eaabc27..1f3c16d 100644
+--- a/drivers/media/video/omap3isp/ispccdc.c
++++ b/drivers/media/video/omap3isp/ispccdc.c
+@@ -1703,7 +1703,7 @@ static int ccdc_subscribe_event(struct v4l2_subdev *sd, struct v4l2_fh *fh,
+ 	if (sub->id != 0)
+ 		return -EINVAL;
+ 
+-	return v4l2_event_subscribe(fh, sub, OMAP3ISP_CCDC_NEVENTS);
++	return v4l2_event_subscribe(fh, sub, OMAP3ISP_CCDC_NEVENTS, NULL);
+ }
+ 
+ static int ccdc_unsubscribe_event(struct v4l2_subdev *sd, struct v4l2_fh *fh,
+diff --git a/drivers/media/video/omap3isp/ispstat.c b/drivers/media/video/omap3isp/ispstat.c
+index 11871ec..b8640be 100644
+--- a/drivers/media/video/omap3isp/ispstat.c
++++ b/drivers/media/video/omap3isp/ispstat.c
+@@ -1032,7 +1032,7 @@ int omap3isp_stat_subscribe_event(struct v4l2_subdev *subdev,
+ 	if (sub->type != stat->event_type)
+ 		return -EINVAL;
+ 
+-	return v4l2_event_subscribe(fh, sub, STAT_NEVENTS);
++	return v4l2_event_subscribe(fh, sub, STAT_NEVENTS, NULL);
+ }
+ 
+ int omap3isp_stat_unsubscribe_event(struct v4l2_subdev *subdev,
+diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
+index 18015c0..7023e6d 100644
+--- a/drivers/media/video/v4l2-ctrls.c
++++ b/drivers/media/video/v4l2-ctrls.c
+@@ -2425,7 +2425,7 @@ int v4l2_ctrl_subscribe_event(struct v4l2_fh *fh,
+ 				struct v4l2_event_subscription *sub)
+ {
+ 	if (sub->type == V4L2_EVENT_CTRL)
+-		return v4l2_event_subscribe(fh, sub, 0);
++		return v4l2_event_subscribe(fh, sub, 0, NULL);
+ 	return -EINVAL;
+ }
+ EXPORT_SYMBOL(v4l2_ctrl_subscribe_event);
+diff --git a/drivers/media/video/v4l2-event.c b/drivers/media/video/v4l2-event.c
+index c26ad96..0ba2dfa 100644
+--- a/drivers/media/video/v4l2-event.c
++++ b/drivers/media/video/v4l2-event.c
+@@ -120,6 +120,14 @@ static void __v4l2_event_queue_fh(struct v4l2_fh *fh, const struct v4l2_event *e
+ 	if (sev == NULL)
+ 		return;
+ 
++	/*
++	 * If the event has been added to the fh->subscribed list, but its
++	 * add op has not completed yet elems will be 0, treat this as
++	 * not being subscribed.
++	 */
++	if (!sev->elems)
++		return;
++
+ 	/* Increase event sequence number on fh. */
+ 	fh->sequence++;
+ 
+@@ -132,14 +140,14 @@ static void __v4l2_event_queue_fh(struct v4l2_fh *fh, const struct v4l2_event *e
+ 		sev->first = sev_pos(sev, 1);
+ 		fh->navailable--;
+ 		if (sev->elems == 1) {
+-			if (sev->replace) {
+-				sev->replace(&kev->event, ev);
++			if (sev->ops && sev->ops->replace) {
++				sev->ops->replace(&kev->event, ev);
+ 				copy_payload = false;
+ 			}
+-		} else if (sev->merge) {
++		} else if (sev->ops && sev->ops->merge) {
+ 			struct v4l2_kevent *second_oldest =
+ 				sev->events + sev_pos(sev, 0);
+-			sev->merge(&kev->event, &second_oldest->event);
++			sev->ops->merge(&kev->event, &second_oldest->event);
+ 		}
+ 	}
+ 
+@@ -208,8 +216,14 @@ static void ctrls_merge(const struct v4l2_event *old, struct v4l2_event *new)
+ 	new->u.ctrl.changes |= old->u.ctrl.changes;
+ }
+ 
++static const struct v4l2_subscribed_event_ops ctrl_ops = {
++	.replace = ctrls_replace,
++	.merge = ctrls_merge,
++};
++
+ int v4l2_event_subscribe(struct v4l2_fh *fh,
+-			 struct v4l2_event_subscription *sub, unsigned elems)
++			 struct v4l2_event_subscription *sub, unsigned elems,
++			 const struct v4l2_subscribed_event_ops *ops)
+ {
+ 	struct v4l2_subscribed_event *sev, *found_ev;
+ 	struct v4l2_ctrl *ctrl = NULL;
+@@ -236,10 +250,9 @@ int v4l2_event_subscribe(struct v4l2_fh *fh,
+ 	sev->id = sub->id;
+ 	sev->flags = sub->flags;
+ 	sev->fh = fh;
+-	sev->elems = elems;
++	sev->ops = ops;
+ 	if (ctrl) {
+-		sev->replace = ctrls_replace;
+-		sev->merge = ctrls_merge;
++		sev->ops = &ctrl_ops;
+ 	}
+ 
+ 	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
+@@ -248,12 +261,27 @@ int v4l2_event_subscribe(struct v4l2_fh *fh,
+ 		list_add(&sev->list, &fh->subscribed);
+ 	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
+ 
+-	/* v4l2_ctrl_add_event uses a mutex, so do this outside the spin lock */
+-	if (found_ev)
++	if (found_ev) {
+ 		kfree(sev);
+-	else if (ctrl)
++		return 0; /* Already listening */
++	}
++
++	if (sev->ops && sev->ops->add) {
++		int ret = sev->ops->add(sev);
++		if (ret) {
++			sev->ops = NULL;
++			v4l2_event_unsubscribe(fh, sub);
++			return ret;
++		}
++	}
++
++	/* v4l2_ctrl_add_event uses a mutex, so do this outside the spin lock */
++	if (ctrl)
+ 		v4l2_ctrl_add_event(ctrl, sev);
+ 
++	/* Mark as ready for use */
++	sev->elems = elems;
++
+ 	return 0;
+ }
+ EXPORT_SYMBOL_GPL(v4l2_event_subscribe);
+@@ -306,6 +334,10 @@ int v4l2_event_unsubscribe(struct v4l2_fh *fh,
+ 	}
+ 
+ 	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
++
++	if (sev && sev->ops && sev->ops->del)
++		sev->ops->del(sev);
++
+ 	if (sev && sev->type == V4L2_EVENT_CTRL) {
+ 		struct v4l2_ctrl *ctrl = v4l2_ctrl_find(fh->ctrl_handler, sev->id);
+ 
+diff --git a/drivers/usb/gadget/uvc_v4l2.c b/drivers/usb/gadget/uvc_v4l2.c
+index f6e083b..90db5fe 100644
+--- a/drivers/usb/gadget/uvc_v4l2.c
++++ b/drivers/usb/gadget/uvc_v4l2.c
+@@ -296,7 +296,7 @@ uvc_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+ 		if (sub->type < UVC_EVENT_FIRST || sub->type > UVC_EVENT_LAST)
+ 			return -EINVAL;
+ 
+-		return v4l2_event_subscribe(&handle->vfh, arg, 2);
++		return v4l2_event_subscribe(&handle->vfh, arg, 2, NULL);
+ 	}
+ 
+ 	case VIDIOC_UNSUBSCRIBE_EVENT:
+diff --git a/include/media/v4l2-event.h b/include/media/v4l2-event.h
+index 5f14e88..88fa9a1 100644
+--- a/include/media/v4l2-event.h
++++ b/include/media/v4l2-event.h
+@@ -78,6 +78,19 @@ struct v4l2_kevent {
+ 	struct v4l2_event	event;
+ };
+ 
++/** struct v4l2_subscribed_event_ops - Subscribed event operations.
++  * @add:	Optional callback, called when a new listener is added
++  * @del:	Optional callback, called when a listener stops listening
++  * @replace:	Optional callback that can replace event 'old' with event 'new'.
++  * @merge:	Optional callback that can merge event 'old' into event 'new'.
++  */
++struct v4l2_subscribed_event_ops {
++	int  (*add)(struct v4l2_subscribed_event *sev);
++	void (*del)(struct v4l2_subscribed_event *sev);
++	void (*replace)(struct v4l2_event *old, const struct v4l2_event *new);
++	void (*merge)(const struct v4l2_event *old, struct v4l2_event *new);
++};
++
+ /** struct v4l2_subscribed_event - Internal struct representing a subscribed event.
+   * @list:	List node for the v4l2_fh->subscribed list.
+   * @type:	Event type.
+@@ -85,8 +98,7 @@ struct v4l2_kevent {
+   * @flags:	Copy of v4l2_event_subscription->flags.
+   * @fh:	Filehandle that subscribed to this event.
+   * @node:	List node that hooks into the object's event list (if there is one).
+-  * @replace:	Optional callback that can replace event 'old' with event 'new'.
+-  * @merge:	Optional callback that can merge event 'old' into event 'new'.
++  * @ops:	v4l2_subscribed_event_ops
+   * @elems:	The number of elements in the events array.
+   * @first:	The index of the events containing the oldest available event.
+   * @in_use:	The number of queued events.
+@@ -99,10 +111,7 @@ struct v4l2_subscribed_event {
+ 	u32			flags;
+ 	struct v4l2_fh		*fh;
+ 	struct list_head	node;
+-	void			(*replace)(struct v4l2_event *old,
+-					   const struct v4l2_event *new);
+-	void			(*merge)(const struct v4l2_event *old,
+-					 struct v4l2_event *new);
++	const struct v4l2_subscribed_event_ops *ops;
+ 	unsigned		elems;
+ 	unsigned		first;
+ 	unsigned		in_use;
+@@ -115,7 +124,8 @@ void v4l2_event_queue(struct video_device *vdev, const struct v4l2_event *ev);
+ void v4l2_event_queue_fh(struct v4l2_fh *fh, const struct v4l2_event *ev);
+ int v4l2_event_pending(struct v4l2_fh *fh);
+ int v4l2_event_subscribe(struct v4l2_fh *fh,
+-			 struct v4l2_event_subscription *sub, unsigned elems);
++			 struct v4l2_event_subscription *sub, unsigned elems,
++			 const struct v4l2_subscribed_event_ops *ops);
+ int v4l2_event_unsubscribe(struct v4l2_fh *fh,
+ 			   struct v4l2_event_subscription *sub);
+ void v4l2_event_unsubscribe_all(struct v4l2_fh *fh);
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+1.7.9.3
+
