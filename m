@@ -1,43 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from woodlands.midnighthax.com ([93.89.81.115]:45156 "EHLO
-	woodlands.the.cage" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1031037Ab2CPIAv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Mar 2012 04:00:51 -0400
-Received: from ws.the.cage ([10.0.0.100])
-	by woodlands.the.cage with esmtp (Exim 4.72)
-	(envelope-from <kae@midnighthax.com>)
-	id 1S8S5g-0000qE-KH
-	for linux-media@vger.kernel.org; Fri, 16 Mar 2012 08:00:48 +0000
-Date: Fri, 16 Mar 2012 08:00:48 +0000
-From: Keith Edmunds <kae@midnighthax.com>
-To: linux-media@vger.kernel.org
-Subject: Re: cxd2820r: i2c wr failed (PCTV Nanostick 290e)
-Message-ID: <20120316080048.0655c185@ws.the.cage>
-In-Reply-To: <CAGa-wNOb8m9D0nZccqe+nKjEjWx5p7SaXHPJHHrb8z7Ts8YuUA@mail.gmail.com>
-References: <CAGa-wNOb8m9D0nZccqe+nKjEjWx5p7SaXHPJHHrb8z7Ts8YuUA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mx1.redhat.com ([209.132.183.28]:30613 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751236Ab2CYLyu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 25 Mar 2012 07:54:50 -0400
+From: Hans de Goede <hdegoede@redhat.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: uvc & pwc: Add support for control events (v2)
+Date: Sun, 25 Mar 2012 13:56:40 +0200
+Message-Id: <1332676610-14953-1-git-send-email-hdegoede@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Thanks for the suggestions; I'll investigate further.
+Hi All,
 
-One other oddity I noticed: the last time the i2c errors were logged,
-rather than immediately rebooting I unplugged the 290e. There is a blue
-LED on the 290e, which of course went out when it was unplugged. However,
-it didn't come back on when I plugged it back in. I had to reboot to get
-it to show again.
+This patch series adds supports for control events to the uvc and pwc
+drivers.
 
-Both of my other tuners are USB tuners, so I don't think this is a USB
-problem (I have no problems with them). However, I'll try the USB MD5 test
-and report back.
+Note:
+-This series depends on Hans Verkuil's poll work, the latest version of
+-which
+ can be found here:
+ http://git.linuxtv.org/hgoede/gspca.git/shortlog/refs/heads/poll_req_events
+-This series has been posted before, this version is rebased on top of
+ the latest media_tree.git/staging/for_v3.4 and has some remarks from 
+ earlier reviews addressed
 
-Thanks,
-Keith
--- 
-"You can have everything in life you want if you help enough other people
-get what they want" - Zig Ziglar. 
+Changes in v2:
+- Make the last param of __uvc_ctrl_get a s32 rather then an xctrl, as only
+  the value part of the xctrl was used
+- Make uvc_ctrl_send_event static as it is only used in uvc_ctrls.c
+- Move some functions around in uvc_ctrls.c to avoid the need for forward
+  declarations for static / private helper functions
+- Refactor uvc_ctrl_send_event into uvc_ctrl_send_event and
+  uvc_ctrl_send_events in preparation for the next patches
+- Properly report the INACTIVE flag for inactive controls
+- Send ctrl change events when the inactive flag changes due to the master
+  ctrl changing
 
-Who did you help today?
+Regards,
+
+Hans
