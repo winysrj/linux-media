@@ -1,59 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:59778 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1031171Ab2CPPjy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Mar 2012 11:39:54 -0400
-Received: by eekc41 with SMTP id c41so2190203eek.19
-        for <linux-media@vger.kernel.org>; Fri, 16 Mar 2012 08:39:53 -0700 (PDT)
-Message-ID: <4F635EC7.9070700@gmail.com>
-Date: Fri, 16 Mar 2012 16:39:51 +0100
-From: Gianluca Gennari <gennarone@gmail.com>
-Reply-To: gennarone@gmail.com
-MIME-Version: 1.0
-To: Andy Furniss <andyqos@ukfsn.org>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] em28xx: pre-allocate DVB isoc transfer buffers
-References: <1329155962-22896-1-git-send-email-gennarone@gmail.com> <4F628886.3050009@ukfsn.org> <4F6299A4.1060309@gmail.com> <4F6312F0.1010305@ukfsn.org> <4F6356C5.9010808@ukfsn.org>
-In-Reply-To: <4F6356C5.9010808@ukfsn.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Received: from mx1.redhat.com ([209.132.183.28]:41513 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751236Ab2CYLy5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 25 Mar 2012 07:54:57 -0400
+From: Hans de Goede <hdegoede@redhat.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH 06/10] uvcvideo: Refactor uvc_ctrl_get and query
+Date: Sun, 25 Mar 2012 13:56:46 +0200
+Message-Id: <1332676610-14953-7-git-send-email-hdegoede@redhat.com>
+In-Reply-To: <1332676610-14953-1-git-send-email-hdegoede@redhat.com>
+References: <1332676610-14953-1-git-send-email-hdegoede@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Il 16/03/2012 16:05, Andy Furniss ha scritto:
-> Andy Furniss wrote:
->> Gianluca Gennari wrote:
-> 
->>> Hi Andy,
->>> the patch is already in the current media_build tree and is queued for
->>> kernel 3.4.
->>
->> Ahh, I'll give that a try, thanks.
-> 
-> Seems to be working OK so far, I had to avoid building radio to get it
-> to compile.
-> 
-> Are these just informational - I get five every time I tune (barring the
-> first time IIRC)
-> 
-> Mar 16 14:56:58 noki kernel: ehci_hcd 0000:01:0a.2: shutdown urb
-> ced2d000 ep4in-iso
-> Mar 16 14:56:58 noki kernel: ehci_hcd 0000:01:0a.2: shutdown urb
-> ced2d800 ep4in-iso
-> Mar 16 14:56:58 noki kernel: ehci_hcd 0000:01:0a.2: shutdown urb
-> cec3f800 ep4in-iso
-> Mar 16 14:56:58 noki kernel: ehci_hcd 0000:01:0a.2: shutdown urb
-> ced2c000 ep4in-iso
-> Mar 16 14:56:58 noki kernel: ehci_hcd 0000:01:0a.2: shutdown urb
-> ced2c800 ep4in-iso
+This is a preparation patch for adding ctrl event support.
 
-Looks like some innocuous logging from the ehci_hcd driver. I've never
-seen it because I'm not using the ehci_hcd module on my systems.
-When you tune a new channel, the USB transfer is stopped (with the URBs
-still alive, so the driver "shuts down" them) and a new one is started.
-Then the URBs are reused (instead of being deallocated/allocated
-again/cleared as before) so they are resubmitted.
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+ drivers/media/video/uvc/uvc_ctrl.c |   69 ++++++++++++++++++++++++------------
+ 1 file changed, 46 insertions(+), 23 deletions(-)
 
-Regards,
-Gianluca
+diff --git a/drivers/media/video/uvc/uvc_ctrl.c b/drivers/media/video/uvc/uvc_ctrl.c
+index 0efd3b1..4002b5b 100644
+--- a/drivers/media/video/uvc/uvc_ctrl.c
++++ b/drivers/media/video/uvc/uvc_ctrl.c
+@@ -899,24 +899,14 @@ static int uvc_ctrl_populate_cache(struct uvc_video_chain *chain,
+ 	return 0;
+ }
+ 
+-int uvc_query_v4l2_ctrl(struct uvc_video_chain *chain,
++static int __uvc_query_v4l2_ctrl(struct uvc_video_chain *chain,
++	struct uvc_control *ctrl,
++	struct uvc_control_mapping *mapping,
+ 	struct v4l2_queryctrl *v4l2_ctrl)
+ {
+-	struct uvc_control *ctrl;
+-	struct uvc_control_mapping *mapping;
+ 	struct uvc_menu_info *menu;
+ 	unsigned int i;
+-	int ret;
+-
+-	ret = mutex_lock_interruptible(&chain->ctrl_mutex);
+-	if (ret < 0)
+-		return -ERESTARTSYS;
+-
+-	ctrl = uvc_find_control(chain, v4l2_ctrl->id, &mapping);
+-	if (ctrl == NULL) {
+-		ret = -EINVAL;
+-		goto done;
+-	}
++	int ret = 0;
+ 
+ 	memset(v4l2_ctrl, 0, sizeof *v4l2_ctrl);
+ 	v4l2_ctrl->id = mapping->id;
+@@ -985,6 +975,28 @@ int uvc_query_v4l2_ctrl(struct uvc_video_chain *chain,
+ 				  uvc_ctrl_data(ctrl, UVC_CTRL_DATA_RES));
+ 
+ done:
++	return ret;
++}
++
++int uvc_query_v4l2_ctrl(struct uvc_video_chain *chain,
++	struct v4l2_queryctrl *v4l2_ctrl)
++{
++	struct uvc_control *ctrl;
++	struct uvc_control_mapping *mapping;
++	int ret;
++
++	ret = mutex_lock_interruptible(&chain->ctrl_mutex);
++	if (ret < 0)
++		return -ERESTARTSYS;
++
++	ctrl = uvc_find_control(chain, v4l2_ctrl->id, &mapping);
++	if (ctrl == NULL) {
++		ret = -EINVAL;
++		goto done;
++	}
++
++	ret = __uvc_query_v4l2_ctrl(chain, ctrl, mapping, v4l2_ctrl);
++done:
+ 	mutex_unlock(&chain->ctrl_mutex);
+ 	return ret;
+ }
+@@ -1148,17 +1160,15 @@ done:
+ 	return ret;
+ }
+ 
+-int uvc_ctrl_get(struct uvc_video_chain *chain,
+-	struct v4l2_ext_control *xctrl)
++static int __uvc_ctrl_get(struct uvc_video_chain *chain,
++	struct uvc_control *ctrl, struct uvc_control_mapping *mapping,
++	s32 *value)
+ {
+-	struct uvc_control *ctrl;
+-	struct uvc_control_mapping *mapping;
+ 	struct uvc_menu_info *menu;
+ 	unsigned int i;
+ 	int ret;
+ 
+-	ctrl = uvc_find_control(chain, xctrl->id, &mapping);
+-	if (ctrl == NULL || (ctrl->info.flags & UVC_CTRL_FLAG_GET_CUR) == 0)
++	if ((ctrl->info.flags & UVC_CTRL_FLAG_GET_CUR) == 0)
+ 		return -EINVAL;
+ 
+ 	if (!ctrl->loaded) {
+@@ -1172,14 +1182,14 @@ int uvc_ctrl_get(struct uvc_video_chain *chain,
+ 		ctrl->loaded = 1;
+ 	}
+ 
+-	xctrl->value = mapping->get(mapping, UVC_GET_CUR,
++	*value = mapping->get(mapping, UVC_GET_CUR,
+ 		uvc_ctrl_data(ctrl, UVC_CTRL_DATA_CURRENT));
+ 
+ 	if (mapping->v4l2_type == V4L2_CTRL_TYPE_MENU) {
+ 		menu = mapping->menu_info;
+ 		for (i = 0; i < mapping->menu_count; ++i, ++menu) {
+-			if (menu->value == xctrl->value) {
+-				xctrl->value = i;
++			if (menu->value == *value) {
++				*value = i;
+ 				break;
+ 			}
+ 		}
+@@ -1188,6 +1198,19 @@ int uvc_ctrl_get(struct uvc_video_chain *chain,
+ 	return 0;
+ }
+ 
++int uvc_ctrl_get(struct uvc_video_chain *chain,
++	struct v4l2_ext_control *xctrl)
++{
++	struct uvc_control *ctrl;
++	struct uvc_control_mapping *mapping;
++
++	ctrl = uvc_find_control(chain, xctrl->id, &mapping);
++	if (ctrl == NULL)
++		return -EINVAL;
++
++	return __uvc_ctrl_get(chain, ctrl, mapping, &xctrl->value);
++}
++
+ int uvc_ctrl_set(struct uvc_video_chain *chain,
+ 	struct v4l2_ext_control *xctrl)
+ {
+-- 
+1.7.9.3
+
