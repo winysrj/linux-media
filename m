@@ -1,63 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:57818 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754869Ab2CZIZX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Mar 2012 04:25:23 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Joshua Hintze <joshua.hintze@gmail.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: Using MT9P031 digital sensor
-Date: Mon, 26 Mar 2012 10:25:54 +0200
-Message-ID: <16456215.DlCuaG1n70@avalon>
-In-Reply-To: <CAGD8Z77akUx2S=h_AU+UcJ6yWf1Y_Rk4+8N78nFe4wP9OHYE=g@mail.gmail.com>
-References: <CAGD8Z75ELkV6wJOfuCFU3Z2dS=z5WbV-7izazaG7SVtfPMcn=A@mail.gmail.com> <CAGD8Z77akUx2S=h_AU+UcJ6yWf1Y_Rk4+8N78nFe4wP9OHYE=g@mail.gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:3819 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755484Ab2CYMm3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 25 Mar 2012 08:42:29 -0400
+Message-ID: <4F6F12A6.6030801@redhat.com>
+Date: Sun, 25 Mar 2012 09:42:14 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Paulo Cavalcanti <promac@gmail.com>
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Michael Krufky <mkrufky@linuxtv.org>,
+	linux-media@vger.kernel.org
+Subject: Re: bttv 0.9.19 driver
+References: <CAMgUmn=XLnTbKJaOegStdi8bDwO2GfnohuODFr8=UTaSeJeFgg@mail.gmail.com> <4F6CEBBA.6050705@redhat.com> <CAMgUmnnGddUoSh5=oTKOrGmY8jinUZ54tg78BVYe98=mHHMepQ@mail.gmail.com>
+In-Reply-To: <CAMgUmnnGddUoSh5=oTKOrGmY8jinUZ54tg78BVYe98=mHHMepQ@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Joshua,
-
-On Sunday 25 March 2012 23:13:02 Joshua Hintze wrote:
-> Alright I made some progress on this.
+Em 25-03-2012 09:21, Paulo Cavalcanti escreveu:
 > 
-> I can access the Mt9p031 registers that are exposed using a command such as
 > 
-> ./yavta -l /dev/v4l-subdev8 to list the available controls. Then I can
-> set the exposure and analog gain with
-> ./yavta --set-control '0x00980911 1500' /dev/v4l-subdev8   <--- This
-> seems to give the desired effect.
 > 
-> Note that ./yavta -w (short option for --set-control) gives a seg
-> fault for me. Possible bug in yavta??
+> 
+>     There was a known regression at the radio core. Not sure when it happened, nor on what
+>     kernel it were fixed. Could you please test a 3.x kernel?
+> 
+>     If you're a RHEL6 customer, you can open a case with via the proper
+>     Red Hat channels, in order to backport fix it on RHEL6 kernel.
+>     Yet, even in this case, it would be important to test the latest kernel,
+>     to see if the fixes applied upstream fixes the issue.
+> 
+>     Thanks,
+>     Mauro.
+> 
+> 
+> Hi, Mauro
+> 
+> I tested other card ids, and the one that has always been chosen by the kernel (72) is working now:
+> 
+> options bttv card=72 radio=1 tuner=69 audiomux=0x21,0x20,0x23,0x23,0x28 gpiomask=0x3f vcr_hack=1 chroma_agc=1
+> 
+> In the past, this combination of tuner and card id had problems with the TV sound,
+> but now either the radio, tv or remote is fine. I only did not test the composite input of the card.
 
-That's strange, I use -w all the time and haven't noticed any segfault. Can 
-you compile yavta with debugging information and provide some context ?
+Good.
 
-> Now I'm working on fixing the white balance. In my office the incandescent
-> light bulbs give off a yellowish tint late at night. I've been digging
-> through the omap3isp code to figure out how to enable the automatic white
-> balance. I was able to find the private IOCTLs for the previewer and I was
-> able to use VIDIOC_OMAP3ISP_PRV_CFG. Using this IOCTL I adjusted the
-> OMAP3ISP_PREV_WB, OMAP3ISP_PREV_BLKADJ, and OMAP3ISP_PREV_RGB2RGB.
->
-> Since I wasn't sure where to start on adjusting these values I just set them
-> all to the TRM's default register values. However when I did so a strange
-> thing occurred. What I saw was all the colors went to a decent color. I'm
-> curious if anybody can shed some light on the best way to get a high quality
-> image. Ideally if I could just set a bit for auto white balance and auto
-> exposure that could be good too.
+> However, this is enough for me to maintain the analog radio packages in Fedora.
+> 
+> Regarding the 3.0 kernel, If I update the video4linux drivers to the latest snapshot (in my case 03/21/2012) doesn't it produce the same result?
 
-The ISP doesn't implement automatic white balance. It can apply white 
-balancing (as well as other related processing), but computing values for 
-those parameters needs to be performed in userspace. The ISP statistics engine 
-engine can help speeding up the process, but the AEWB algorithm must be 
-implemented in your application.
+It should produce the same results.
 
--- 
-Regards,
+> I am also trying to keep rhel6 functional in ATrpms, and I realized that there was also some recent
+> change (after 11/24/2011) that forced me to upgrade video4linux drivers to have
+> vlc 2.0 working with ISDB-TB in previous kernels:
+> 
+> http://forum.videolan.org/viewtopic.php?f=13&t=99397 <http://forum.videolan.org/viewtopic.php?f=13&t=99397>
 
-Laurent Pinchart
+ISDB-T works on older kernels, via an emulation code at the Kernel. Userspace apps
+thinks ISDB is DVB-T, so they all work.
+
+The only think that doesn't work, via the emulation code, is radio broadcast. There are some
+DVBv5 properties that need to be filled for it:
+
+#define DTV_ISDBT_SOUND_BROADCASTING	19
+
+#define DTV_ISDBT_SB_SUBCHANNEL_ID	20
+#define DTV_ISDBT_SB_SEGMENT_IDX	21
+#define DTV_ISDBT_SB_SEGMENT_COUNT	22
+
+As there's no equivalent of those on DVB-T, and those parameters aren't automatically
+detected by the (current) frontendds. So, only a program prepared to use them would
+work. Also, not all ISDB drivers are prepared to work with those properties.
+
+I never tested radio broadcast, as there aren't any such stations in Brazil,
+so I can't tell if it works or not.
+
+> I know this is a different topic, but would you know if mplayer is supporting ISDB-TB?
+
+AFAIKT, mplayer doesn't support DVBv5 API, but, provided that you feed it with a proper
+channels.conf file under ~/.mplayer, it works fine.
+
+> While vlc and xine/kaffeine work, gstreamer and mplayer are still not working with ISDB-TB for me ...
+
+Never tested gstreamer with ISDB-T.
+> 
+> Thanks.
+> 
+> -- 
+> Paulo Roma Cavalcanti
+> LCG - UFRJ
 
