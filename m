@@ -1,81 +1,208 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:58259 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758557Ab2CAPW2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Mar 2012 10:22:28 -0500
-Received: by mail-ww0-f44.google.com with SMTP id dr13so680683wgb.1
-        for <linux-media@vger.kernel.org>; Thu, 01 Mar 2012 07:22:28 -0800 (PST)
+Received: from mail-we0-f174.google.com ([74.125.82.174]:57666 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932766Ab2CZPh5 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 Mar 2012 11:37:57 -0400
+Received: by wejx9 with SMTP id x9so4286850wej.19
+        for <linux-media@vger.kernel.org>; Mon, 26 Mar 2012 08:37:56 -0700 (PDT)
 MIME-Version: 1.0
-From: Daniel Vetter <daniel.vetter@ffwll.ch>
-To: linaro-mm-sig@lists.linaro.org,
-	LKML <linux-kernel@vger.kernel.org>,
-	DRI Development <dri-devel@lists.freedesktop.org>,
-	linux-media@vger.kernel.org
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
-Subject: [PATCH 1/3] dma-buf: don't hold the mutex around map/unmap calls
-Date: Thu,  1 Mar 2012 16:35:59 +0100
-Message-Id: <1330616161-1937-2-git-send-email-daniel.vetter@ffwll.ch>
-In-Reply-To: <1330616161-1937-1-git-send-email-daniel.vetter@ffwll.ch>
-References: <1330616161-1937-1-git-send-email-daniel.vetter@ffwll.ch>
+In-Reply-To: <4F708A66.8090303@mlbassoc.com>
+References: <CAGD8Z75ELkV6wJOfuCFU3Z2dS=z5WbV-7izazaG7SVtfPMcn=A@mail.gmail.com>
+	<CAGD8Z77akUx2S=h_AU+UcJ6yWf1Y_Rk4+8N78nFe4wP9OHYE=g@mail.gmail.com>
+	<4F708A66.8090303@mlbassoc.com>
+Date: Mon, 26 Mar 2012 09:37:55 -0600
+Message-ID: <CAGD8Z76vJSK9dCvSVWXW7FtUkN2MY5V2Dm9NJzHjrgjgS22Dxw@mail.gmail.com>
+Subject: Re: Using MT9P031 digital sensor
+From: Joshua Hintze <joshua.hintze@gmail.com>
+To: Gary Thomas <gary@mlbassoc.com>, linux-media@vger.kernel.org,
+	laurent.pinchart@ideasonboard.com
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The mutex protects the attachment list and hence needs to be held
-around the callbakc to the exporters (optional) attach/detach
-functions.
+Gary,
 
-Holding the mutex around the map/unmap calls doesn't protect any
-dma_buf state. Exporters need to properly protect any of their own
-state anyway (to protect against calls from their own interfaces).
-So this only makes the locking messier (and lockdep easier to anger).
+I'm using linux branch from 2.6.39
 
-Therefore let's just drop this.
+Fetch URL: git://www.sakoman.com/git/linux-omap-2.6
+branch: omap-2.6.39
 
-Signed-off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
----
- drivers/base/dma-buf.c  |    4 ----
- include/linux/dma-buf.h |    2 +-
- 2 files changed, 1 insertions(+), 5 deletions(-)
+I'm using an overo board so I figured I should follow Steve Sakoman's
+repository.
 
-diff --git a/drivers/base/dma-buf.c b/drivers/base/dma-buf.c
-index e38ad24..1b11192 100644
---- a/drivers/base/dma-buf.c
-+++ b/drivers/base/dma-buf.c
-@@ -258,10 +258,8 @@ struct sg_table *dma_buf_map_attachment(struct dma_buf_attachment *attach,
- 	if (WARN_ON(!attach || !attach->dmabuf || !attach->dmabuf->ops))
- 		return ERR_PTR(-EINVAL);
- 
--	mutex_lock(&attach->dmabuf->lock);
- 	if (attach->dmabuf->ops->map_dma_buf)
- 		sg_table = attach->dmabuf->ops->map_dma_buf(attach, direction);
--	mutex_unlock(&attach->dmabuf->lock);
- 
- 	return sg_table;
- }
-@@ -282,10 +280,8 @@ void dma_buf_unmap_attachment(struct dma_buf_attachment *attach,
- 			    || !attach->dmabuf->ops))
- 		return;
- 
--	mutex_lock(&attach->dmabuf->lock);
- 	if (attach->dmabuf->ops->unmap_dma_buf)
- 		attach->dmabuf->ops->unmap_dma_buf(attach, sg_table);
--	mutex_unlock(&attach->dmabuf->lock);
- 
- }
- EXPORT_SYMBOL_GPL(dma_buf_unmap_attachment);
-diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
-index f8ac076..f7ad2ca 100644
---- a/include/linux/dma-buf.h
-+++ b/include/linux/dma-buf.h
-@@ -86,7 +86,7 @@ struct dma_buf {
- 	struct file *file;
- 	struct list_head attachments;
- 	const struct dma_buf_ops *ops;
--	/* mutex to serialize list manipulation and other ops */
-+	/* mutex to serialize list manipulation and attach/detach */
- 	struct mutex lock;
- 	void *priv;
- };
--- 
-1.7.7.5
+Which brings up another question, would you recommend going off of one
+of Laurent's repo's and if so which one?
 
+
+Thanks,
+
+Josh
+
+
+
+On Mon, Mar 26, 2012 at 9:25 AM, Gary Thomas <gary@mlbassoc.com> wrote:
+> On 2012-03-25 23:13, Joshua Hintze wrote:
+>>
+>> Alright I made some progress on this.
+>>
+>> I can access the Mt9p031 registers that are exposed using a command such
+>> as
+>>
+>> ./yavta -l /dev/v4l-subdev8 to list the available controls. Then I can
+>> set the exposure and analog gain with
+>> ./yavta --set-control '0x00980911 1500' /dev/v4l-subdev8<--- This
+>> seems to give the desired effect.
+>>
+>> Note that ./yavta -w (short option for --set-control) gives a seg
+>> fault for me. Possible bug in yavta??
+>>
+>> Now I'm working on fixing the white balance. In my office the
+>> incandescent light bulbs give off a yellowish tint late at night. I've
+>> been digging through the omap3isp code to figure out how to enable the
+>> automatic white balance. I was able to find the private IOCTLs for the
+>> previewer and I was able to use VIDIOC_OMAP3ISP_PRV_CFG. Using this
+>> IOCTL I adjusted the OMAP3ISP_PREV_WB, OMAP3ISP_PREV_BLKADJ, and
+>> OMAP3ISP_PREV_RGB2RGB.
+>>
+>> Since I wasn't sure where to start on adjusting these values I just
+>> set them all to the TRM's default register values. However when I did
+>> so a strange thing occurred. What I saw was all the colors went to a
+>> decent color. I'm curious if anybody can shed some light on the best
+>> way to get a high quality image. Ideally if I could just set a bit for
+>> auto white balance and auto exposure that could be good too.
+>
+>
+> Just curious - what codebase (git URL) are you using?
+>
+>> On Fri, Mar 23, 2012 at 1:01 PM, Joshua Hintze<joshua.hintze@gmail.com>
+>>  wrote:
+>>>
+>>> Sorry to bring up this old message list. I was curious when you spoke
+>>> about the ISP preview engine being able to adjust the white balance.
+>>>
+>>> When I enumerate the previewer's available controls all I see is...
+>>>
+>>> root@overo:~# ./yavta -l /dev/v4l-subdev3
+>>> --- User Controls (class 0x00980001) ---
+>>> control 0x00980900 `Brightness' min 0 max 255 step 1 default 0 current 0.
+>>> control 0x00980901 `Contrast' min 0 max 255 step 1 default 16 current 16.
+>>> 2 controls found.
+>>>
+>>>
+>>> Is this what you are referring to? Are there other settings I can
+>>> adjust to get the white balance and focus better using the  OMAP3 ISP
+>>> AWEB/OMAP3 ISP AF?
+>>>
+>>> Thanks,
+>>>
+>>> Josh
+>>>
+>>>
+>>>
+>>>
+>>> Hi Gary,
+>>>
+>>> On Wednesday 30 November 2011 18:00:55 Gary Thomas wrote:
+>>>>
+>>>> On 2011-11-30 07:57, Gary Thomas wrote:
+>>>>>
+>>>>> On 2011-11-30 07:30, Laurent Pinchart wrote:
+>>>>>>
+>>>>>> On Wednesday 30 November 2011 15:13:18 Gary Thomas wrote:
+>>>
+>>>
+>>> [snip]
+>>>
+>>>>>>> This sort of works(*), but I'm still having issues (at least I can
+>>>>>>> move
+>>>>>>> frames!) When I configure the pipeline like this:
+>>>>>>> media-ctl -r
+>>>>>>> media-ctl -l '"mt9p031 3-005d":0->"OMAP3 ISP CCDC":0[1]'
+>>>>>>> media-ctl -l '"OMAP3 ISP CCDC":2->"OMAP3 ISP preview":0[1]'
+>>>>>>> media-ctl -l '"OMAP3 ISP preview":1->"OMAP3 ISP resizer":0[1]'
+>>>>>>> media-ctl -l '"OMAP3 ISP resizer":1->"OMAP3 ISP resizer output":0[1]'
+>>>>>>> media-ctl -f '"mt9p031 3-005d":0[SGRBG12 2592x1944]'
+>>>>>>> media-ctl -f '"OMAP3 ISP CCDC":0 [SGRBG12 2592x1944]'
+>>>>>>> media-ctl -f '"OMAP3 ISP CCDC":1 [SGRBG10 2592x1944]'
+>>>>>>> media-ctl -f '"OMAP3 ISP preview":0 [SGRBG10 2592x1943]'
+>>>>>>> media-ctl -f '"OMAP3 ISP resizer":0 [YUYV 2574x1935]'
+>>>>>>> media-ctl -f '"OMAP3 ISP resizer":1 [YUYV 660x496]'
+>>>>>>> the resulting frames are 666624 bytes each instead of 654720
+>>>>>>>
+>>>>>>> When I tried to grab from the previewer, the frames were 9969120
+>>>>>>> instead of 9961380
+>>>>>>>
+>>>>>>> Any ideas what resolution is actually being moved through?
+>>>>>>
+>>>>>>
+>>>>>> Because the OMAP3 ISP has alignment requirements. Both the preview
+>>>>>> engine and the resizer output line lenghts must be multiple of 32
+>>>>>> bytes. The driver adds padding at end of lines when the output width
+>>>>>> isn't a multiple of 16 pixels.
+>>>>>
+>>>>>
+>>>>> Any guess which resolution(s) I should change and to what?
+>>>>
+>>>>
+>>>> I changed the resizer output to be 672x496 and was able to capture video
+>>>> using ffmpeg.
+>>>>
+>>>> I don't know what to expect with this sensor (I've never seen it in use
+>>>> before), but the image seems to have color balance issues - it's awash
+>>>> in
+>>>> a green hue.  It may be the poor lighting in my office...  I did try the
+>>>> 9
+>>>> test patterns which I was able to select via
+>>>>    # v4l2-ctl -d /dev/v4l-subdev8 --set-ctrl=test_pattern=N
+>>>> and these looked OK.  You can see them at
+>>>> http://www.mlbassoc.com/misc/mt9p031_images/
+>>>
+>>>
+>>> Neither the sensor nor the OMAP3 ISP implement automatic white balance.
+>>> The
+>>> ISP preview engine can be used to modify the white balance, and the
+>>> statistics
+>>> engine can be used to extract data useful to compute the white balance
+>>> parameters, but linking the two needs to be performed in userspace.
+>>>
+>>>>>> So this means that your original problem comes from the BT656 patches.
+>>>>>
+>>>>>
+>>>>> Yes, it does look that way. Now that I have something that moves data,
+>>>>> I
+>>>>> can compare how the ISP is setup between the two versions and come up
+>>>>> with a fix.
+>>>>
+>>>>
+>>>> This is next on my plate, but it may take a while to figure it out.
+>>>>
+>>>> Is there some recent tree which will have this digital (mt9p031) part
+>>>> working that also has the BT656 support in it?  I'd like to try that
+>>>> rather than spending time figuring out why an older tree isn't working.
+>>>
+>>>
+>>> No, I haven't had time to create one, sorry. It shouldn't be difficult to
+>>> rebase the BT656 patches on top of the latest OMAP3 ISP and MT9P031 code.
+>>>
+>>> --
+>>> Regards,
+>>>
+>>> Laurent Pinchart
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>>> the body of a message to majord...@vger.kernel.org
+>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+>
+> --
+> ------------------------------------------------------------
+> Gary Thomas                 |  Consulting for the
+> MLB Associates              |    Embedded world
+> ------------------------------------------------------------
