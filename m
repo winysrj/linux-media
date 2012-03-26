@@ -1,58 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:35781 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757363Ab2CBSR2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Mar 2012 13:17:28 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sylwester Nawrocki <snjw23@gmail.com>
-Cc: linux-media@vger.kernel.org, Sakari Ailus <sakari.ailus@iki.fi>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Subject: Re: [PATCH/RFC][DRAFT] V4L: Add camera auto focus controls
-Date: Fri, 02 Mar 2012 19:17:46 +0100
-Message-ID: <10910238.HhAgf4n5o5@avalon>
-In-Reply-To: <4F5005A3.9060503@gmail.com>
-References: <1326749622-11446-1-git-send-email-sylvester.nawrocki@gmail.com> <1441235.tcAt0gpJAF@avalon> <4F5005A3.9060503@gmail.com>
+Received: from mail-vb0-f46.google.com ([209.85.212.46]:54597 "EHLO
+	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932489Ab2CZOqT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 Mar 2012 10:46:19 -0400
+Received: by vbbff1 with SMTP id ff1so2655554vbb.19
+        for <linux-media@vger.kernel.org>; Mon, 26 Mar 2012 07:46:18 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <assp.243108522f.1332706154.31585.245.camel@paddy.ipb-sub.ipb-halle.de>
+References: <assp.243108522f.1332706154.31585.245.camel@paddy.ipb-sub.ipb-halle.de>
+Date: Mon, 26 Mar 2012 10:46:18 -0400
+Message-ID: <CAGoCfix+iDFg86nYKqQOn1=DKHWp8Fj+iFdKZgcQjxKKf4uyow@mail.gmail.com>
+Subject: Re: Hauppauge WinTV HVR 930C-HD - new USB ID 2040:b130 ?
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Steffen Neumann <sneumann@ipb-halle.de>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+On Sun, Mar 25, 2012 at 4:09 PM, Steffen Neumann <sneumann@ipb-halle.de> wrote:
+> Hi,
+>
+> I am trying to get a Hauppauge WinTV HVR 930C-HD
+> to work under Ubuntu 12.04 with the vanilla 3.3 kernel from [1].
+> After (manually) loading the em28xx module,
+> there are no additional messages in kern.log,
+> only "registered new interface driver em28xx".
+>
+> What is odd is that lsusb shows for this card "ID 2040:b130 Hauppauge",
+> while from [2] I think it should be [2040:1605],
+> see below for the full lsusb -v output. The card
+> was purchased this week.
+>
+> Do I have a new revision of the 930C ?
+> I tried "modprobe em28xx card=81", but no change.
+> Did I miss anything else ?
 
-On Friday 02 March 2012 00:26:27 Sylwester Nawrocki wrote:
-> Hi Laurent,
-> 
-> On 03/01/2012 11:30 PM, Laurent Pinchart wrote:
-> > One option would be to disable the focus area control when the focus
-> > distance is set to a value different than normal (or the other way
-> > around). Control change events could be used to report that to userspace.
-> > Would that work with your hardware ?
-> 
-> What would work, would be disabling the focus distance control when the
-> focus area is set to a value different than "all".
-> 
-> I have also been considering adding an extra menu entry for the focus
-> distance control, indicating some "neutral" state, but disabling the other
-> control sounds like a better idea. I couldn't find anything reasonable, as
-> there was already the focus distance "normal" menu entry.
-> 
-> Then, after the focus are is set to, for instance, "spot", transition to
-> the focus distance "macro" would be only possible through focus area "all"
-> (where the focus distance is enabled again). I guess it's acceptable.
-> 
-> It's only getting a bit harder for applications to present a single list
-> of the focus modes to the user, since they would, for instance, grey out
-> the entries corresponding to disabled control. It shouldn't be a big deal
-> though.
+2040:b130 isn't an em28xx based device.  It uses cx231xx.  That said,
+it's not supported under Linux not because of the cx231xx driver but
+because there is no driver for the demodulator (si2163).
 
-It could indeed be a little bit confusing for users/applications, but having a 
-separate private focus control wouldn't be much better :-) In both cases an 
-application will need to know how to use the focus controls anyway.
+Nobody is working on such a driver, and there is no support planned
+for this device at this time.
+
+Devin
 
 -- 
-Regards,
-
-Laurent Pinchart
-
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
