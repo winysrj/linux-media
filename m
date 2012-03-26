@@ -1,92 +1,151 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:3009 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1761286Ab2COOjp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Mar 2012 10:39:45 -0400
-Message-ID: <4F61FF2D.6010505@redhat.com>
-Date: Thu, 15 Mar 2012 11:39:41 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-wi0-f178.google.com ([209.85.212.178]:46710 "EHLO
+	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751874Ab2CZFNF convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 Mar 2012 01:13:05 -0400
+Received: by wibhq7 with SMTP id hq7so3960125wib.1
+        for <linux-media@vger.kernel.org>; Sun, 25 Mar 2012 22:13:03 -0700 (PDT)
 MIME-Version: 1.0
-To: Rui Salvaterra <rsalvaterra@gmail.com>
-CC: =?UTF-8?B?RXplcXVpZWwgR2FyY8OtYQ==?= <elezegarcia@gmail.com>,
-	linux-media@vger.kernel.org
-Subject: Re: eMPIA EM2710 Webcam (em28xx) and LIRC
-References: <CALjTZvZy4npSE0aELnmsZzzgsxUC1xjeNYVwQ_CvJG59PizfEQ@mail.gmail.com> <CALF0-+Wp03vsbiaJFUt=ymnEncEvDg_KmnV+2OWjtO-_0qqBVg@mail.gmail.com> <CALjTZvYVtuSm0v-_Q7od=iUDvHbkMe4c5ycAQZwoErCCe=N+Bg@mail.gmail.com> <CALF0-+W3HenNpUt_yGxqs+fohcZ22ozDw9MhTWua0B++ZFA2vA@mail.gmail.com> <CALjTZvYJZ32Red-UfZXubB-Lk503DWbHGTL_kEoV4DVDDYJ46w@mail.gmail.com> <4F61C79E.6090603@redhat.com> <CALjTZvZR=Mr-eSVwy=Wd8ToikAX9bG23NLARRw_K0scT-_YeCg@mail.gmail.com>
-In-Reply-To: <CALjTZvZR=Mr-eSVwy=Wd8ToikAX9bG23NLARRw_K0scT-_YeCg@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <CAGD8Z75ELkV6wJOfuCFU3Z2dS=z5WbV-7izazaG7SVtfPMcn=A@mail.gmail.com>
+References: <CAGD8Z75ELkV6wJOfuCFU3Z2dS=z5WbV-7izazaG7SVtfPMcn=A@mail.gmail.com>
+Date: Sun, 25 Mar 2012 23:13:02 -0600
+Message-ID: <CAGD8Z77akUx2S=h_AU+UcJ6yWf1Y_Rk4+8N78nFe4wP9OHYE=g@mail.gmail.com>
+Subject: Re: Using MT9P031 digital sensor
+From: Joshua Hintze <joshua.hintze@gmail.com>
+To: laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 15-03-2012 10:10, Rui Salvaterra escreveu:
-> On 15 March 2012 10:42, Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
->>
->> The em28xx module requires IR support from rc_core, as most em28xx devices
->> support it. It can be compiled without IR support, but, as the em28xx-input
->> is not on a separate module, and it contains some calls to rc_core functions
->> like rc_register_device, modprobe will load rc_core, and rc_core will load
->> the decoders, including lirc_dev.
->>
->> Those modules are small and won't be running if all you have are the webcams.
->> The optimization to not load those modules is not big, so nobody had time
->> yet to do it.
->>
->> Anyway, if you want to fix it, there are two possible approaches:
->>
->> 1) change rc_core to not load the IR decoders at load time, postponing it
->>   to load only if a RC_DRIVER_IR_RAW device is registered via rc_register_device.
->>
->> A patch for it shouldn't be hard. All you need to do is to move ir_raw_init()
->> to rc_register_device() and add a logic there to call it for the first
->> raw device.
->>
->> With such patch, rc_core module will still be loaded.
->>
->> 2) change em28xx-input.c to be a separate module, called only when a device
->> has IR. It will need to have a logic similar to em28xx-dvb and em28xx-alsa
->> modules.
->>
->> It is not hard to write such patch, as most of the logic is already there,
->> but it is not as trivial as approach (1).
->>
->> It probably makes sense for both approaches (1) and (2), as not all boards
->> support "raw" devices. In the case of em28xx, there's no device using "raw"
->> mode, as the em28xx chips provide a hardware IR decoder. So, up to now, we
->> didn't find any em28xx device requiring a software decoder for IR.
->>
->> If you want to write patches for the above, they'll be welcome.
->>
->> I hope that helps.
->>
->> Regards,
->> Mauro
-> 
-> 
-> Hi, Mauro
-> 
-> I'm sorry for the late reply, I'm at work.
-> Thanks a lot for the explanation. Such refactoring seems a bit out of
-> my reach, for the time being (though apparently a nice opportunity to
-> learn Git-fu, I'm intoxicated by CVS), but at least now I understand
-> what is really happening.
-> I may try and hack the code a bit and see what comes out, but don't
-> wait for me, by all means. I only have a general idea of how the
-> kernel works (I understand C, but stopped writing it about ten years
-> ago, as I do Java for a living).
+Alright I made some progress on this.
 
-Take your time. As I said, a patch for (1) should be easy. So, if you're
-interested on trying to do it, it is probably the best thing to start.
+I can access the Mt9p031 registers that are exposed using a command such as
 
-If you won't take it, it is likely that some day someone will do it,
-but, as this is just a cleanup, the main developers won't likely
-have time for doing it, as they're generally busy adding support for 
-new hardware.
+./yavta -l /dev/v4l-subdev8 to list the available controls. Then I can
+set the exposure and analog gain with
+./yavta --set-control '0x00980911 1500' /dev/v4l-subdev8   <--- This
+seems to give the desired effect.
 
-Regards,
-Mauro
-> 
-> 
-> Thanks, once again,
-> 
-> Rui Salvaterra
+Note that ./yavta -w (short option for --set-control) gives a seg
+fault for me. Possible bug in yavta??
 
+Now I'm working on fixing the white balance. In my office the
+incandescent light bulbs give off a yellowish tint late at night. I've
+been digging through the omap3isp code to figure out how to enable the
+automatic white balance. I was able to find the private IOCTLs for the
+previewer and I was able to use VIDIOC_OMAP3ISP_PRV_CFG. Using this
+IOCTL I adjusted the OMAP3ISP_PREV_WB, OMAP3ISP_PREV_BLKADJ, and
+OMAP3ISP_PREV_RGB2RGB.
+
+Since I wasn't sure where to start on adjusting these values I just
+set them all to the TRM's default register values. However when I did
+so a strange thing occurred. What I saw was all the colors went to a
+decent color. I'm curious if anybody can shed some light on the best
+way to get a high quality image. Ideally if I could just set a bit for
+auto white balance and auto exposure that could be good too.
+
+Thanks,
+
+Josh
+
+On Fri, Mar 23, 2012 at 1:01 PM, Joshua Hintze <joshua.hintze@gmail.com> wrote:
+> Sorry to bring up this old message list. I was curious when you spoke
+> about the ISP preview engine being able to adjust the white balance.
+>
+> When I enumerate the previewer's available controls all I see is...
+>
+> root@overo:~# ./yavta -l /dev/v4l-subdev3
+> --- User Controls (class 0x00980001) ---
+> control 0x00980900 `Brightness' min 0 max 255 step 1 default 0 current 0.
+> control 0x00980901 `Contrast' min 0 max 255 step 1 default 16 current 16.
+> 2 controls found.
+>
+>
+> Is this what you are referring to? Are there other settings I can
+> adjust to get the white balance and focus better using the  OMAP3 ISP
+> AWEB/OMAP3 ISP AF?
+>
+> Thanks,
+>
+> Josh
+>
+>
+>
+>
+> Hi Gary,
+>
+> On Wednesday 30 November 2011 18:00:55 Gary Thomas wrote:
+>> On 2011-11-30 07:57, Gary Thomas wrote:
+>> > On 2011-11-30 07:30, Laurent Pinchart wrote:
+>> >> On Wednesday 30 November 2011 15:13:18 Gary Thomas wrote:
+>
+> [snip]
+>
+>> >>> This sort of works(*), but I'm still having issues (at least I can move
+>> >>> frames!) When I configure the pipeline like this:
+>> >>> media-ctl -r
+>> >>> media-ctl -l '"mt9p031 3-005d":0->"OMAP3 ISP CCDC":0[1]'
+>> >>> media-ctl -l '"OMAP3 ISP CCDC":2->"OMAP3 ISP preview":0[1]'
+>> >>> media-ctl -l '"OMAP3 ISP preview":1->"OMAP3 ISP resizer":0[1]'
+>> >>> media-ctl -l '"OMAP3 ISP resizer":1->"OMAP3 ISP resizer output":0[1]'
+>> >>> media-ctl -f '"mt9p031 3-005d":0[SGRBG12 2592x1944]'
+>> >>> media-ctl -f '"OMAP3 ISP CCDC":0 [SGRBG12 2592x1944]'
+>> >>> media-ctl -f '"OMAP3 ISP CCDC":1 [SGRBG10 2592x1944]'
+>> >>> media-ctl -f '"OMAP3 ISP preview":0 [SGRBG10 2592x1943]'
+>> >>> media-ctl -f '"OMAP3 ISP resizer":0 [YUYV 2574x1935]'
+>> >>> media-ctl -f '"OMAP3 ISP resizer":1 [YUYV 660x496]'
+>> >>> the resulting frames are 666624 bytes each instead of 654720
+>> >>>
+>> >>> When I tried to grab from the previewer, the frames were 9969120
+>> >>> instead of 9961380
+>> >>>
+>> >>> Any ideas what resolution is actually being moved through?
+>> >>
+>> >> Because the OMAP3 ISP has alignment requirements. Both the preview
+>> >> engine and the resizer output line lenghts must be multiple of 32
+>> >> bytes. The driver adds padding at end of lines when the output width
+>> >> isn't a multiple of 16 pixels.
+>> >
+>> > Any guess which resolution(s) I should change and to what?
+>>
+>> I changed the resizer output to be 672x496 and was able to capture video
+>> using ffmpeg.
+>>
+>> I don't know what to expect with this sensor (I've never seen it in use
+>> before), but the image seems to have color balance issues - it's awash in
+>> a green hue.  It may be the poor lighting in my office...  I did try the 9
+>> test patterns which I was able to select via
+>>    # v4l2-ctl -d /dev/v4l-subdev8 --set-ctrl=test_pattern=N
+>> and these looked OK.  You can see them at
+>> http://www.mlbassoc.com/misc/mt9p031_images/
+>
+> Neither the sensor nor the OMAP3 ISP implement automatic white balance. The
+> ISP preview engine can be used to modify the white balance, and the statistics
+> engine can be used to extract data useful to compute the white balance
+> parameters, but linking the two needs to be performed in userspace.
+>
+>> >> So this means that your original problem comes from the BT656 patches.
+>> >
+>> > Yes, it does look that way. Now that I have something that moves data, I
+>> > can compare how the ISP is setup between the two versions and come up
+>> > with a fix.
+>>
+>> This is next on my plate, but it may take a while to figure it out.
+>>
+>> Is there some recent tree which will have this digital (mt9p031) part
+>> working that also has the BT656 support in it?  I'd like to try that
+>> rather than spending time figuring out why an older tree isn't working.
+>
+> No, I haven't had time to create one, sorry. It shouldn't be difficult to
+> rebase the BT656 patches on top of the latest OMAP3 ISP and MT9P031 code.
+>
+> --
+> Regards,
+>
+> Laurent Pinchart
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majord...@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
