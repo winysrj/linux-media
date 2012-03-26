@@ -1,149 +1,160 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f174.google.com ([209.85.217.174]:38968 "EHLO
-	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756316Ab2CVClp convert rfc822-to-8bit (ORCPT
+Received: from mail-we0-f174.google.com ([74.125.82.174]:57409 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757423Ab2CZLUT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Mar 2012 22:41:45 -0400
-Received: by lbbgm6 with SMTP id gm6so1398266lbb.19
-        for <linux-media@vger.kernel.org>; Wed, 21 Mar 2012 19:41:43 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20120317185747.GE5412@valkosipuli.localdomain>
-References: <1331983334-18934-1-git-send-email-ajaykumar.rs@samsung.com>
-	<1331983334-18934-2-git-send-email-ajaykumar.rs@samsung.com>
-	<20120317185747.GE5412@valkosipuli.localdomain>
-Date: Thu, 22 Mar 2012 08:11:43 +0530
-Message-ID: <CAEC9eQP-4ggXJdoryvSCmhGMLbRYDqC88UWzTMm3WrCBgFq82w@mail.gmail.com>
-Subject: Re: [PATCH v2 1/1] media: video: s5p-g2d: Add support for FIMG2D v41
- H/W logic
-From: Ajay kumar <ajaynumb@gmail.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Ajay Kumar <ajaykumar.rs@samsung.com>, linux-media@vger.kernel.org,
-	k.debski@samsung.com, kyungmin.park@samsung.com,
-	s.nawrocki@samsung.com, es10.choi@samsung.com
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Mon, 26 Mar 2012 07:20:19 -0400
+Received: by mail-we0-f174.google.com with SMTP id x9so4115185wej.19
+        for <linux-media@vger.kernel.org>; Mon, 26 Mar 2012 04:20:18 -0700 (PDT)
+From: Javier Martin <javier.martin@vista-silicon.com>
+To: linux-media@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org,
+	u.kleine-koenig@pengutronix.de, mchehab@infradead.org,
+	kernel@pengutronix.de, linux@arm.linux.org.uk,
+	Javier Martin <javier.martin@vista-silicon.com>
+Subject: [PATCH 2/3] media: mx2_camera: Fix mbus format handling.
+Date: Mon, 26 Mar 2012 13:20:03 +0200
+Message-Id: <1332760804-22743-3-git-send-email-javier.martin@vista-silicon.com>
+In-Reply-To: <1332760804-22743-1-git-send-email-javier.martin@vista-silicon.com>
+References: <1332760804-22743-1-git-send-email-javier.martin@vista-silicon.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mr.Sakari
+Remove MX2_CAMERA_SWAP16 and MX2_CAMERA_PACK_DIR_MSB flags
+so that the driver can negotiate with the attached sensor
+whether the mbus format needs convertion from UYUV to YUYV
+or not.
 
-On Sun, Mar 18, 2012 at 12:27 AM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
-> Hi Ajay,
->
-> Thanks for the patch. I have a few comments below.
->
-> On Sat, Mar 17, 2012 at 04:52:14PM +0530, Ajay Kumar wrote:
->> Modify the G2D driver(which initially supported only FIMG2D v3 style H/W)
->> to support FIMG2D v41 style hardware present on Exynos4x12 and Exynos52x0 SOC.
->>
->>       -- Set the SRC and DST type to 'memory' instead of using reset values.
->>       -- FIMG2D v41 H/W uses different logic for stretching(scaling).
->>       -- Use CACHECTL_REG only with FIMG2D v3.
->>
->> Signed-off-by: Ajay Kumar <ajaykumar.rs@samsung.com>
->> ---
->>  drivers/media/video/s5p-g2d/g2d-hw.c   |   39 ++++++++++++++++++++++++++++---
->>  drivers/media/video/s5p-g2d/g2d-regs.h |    6 +++++
->>  drivers/media/video/s5p-g2d/g2d.c      |   23 +++++++++++++++++-
->>  drivers/media/video/s5p-g2d/g2d.h      |    9 ++++++-
->>  4 files changed, 70 insertions(+), 7 deletions(-)
->>
->> diff --git a/drivers/media/video/s5p-g2d/g2d-hw.c b/drivers/media/video/s5p-g2d/g2d-hw.c
->> index 5b86cbe..f8225b8 100644
->> --- a/drivers/media/video/s5p-g2d/g2d-hw.c
->> +++ b/drivers/media/video/s5p-g2d/g2d-hw.c
->> @@ -28,6 +28,8 @@ void g2d_set_src_size(struct g2d_dev *d, struct g2d_frame *f)
->>  {
->>       u32 n;
->>
->> +     w(0, SRC_SELECT_REG);
->> +
->>       w(f->stride & 0xFFFF, SRC_STRIDE_REG);
->>
->>       n = f->o_height & 0xFFF;
->> @@ -52,6 +54,8 @@ void g2d_set_dst_size(struct g2d_dev *d, struct g2d_frame *f)
->>  {
->>       u32 n;
->>
->> +     w(0, DST_SELECT_REG);
->> +
->>       w(f->stride & 0xFFFF, DST_STRIDE_REG);
->>
->>       n = f->o_height & 0xFFF;
->> @@ -82,10 +86,36 @@ void g2d_set_flip(struct g2d_dev *d, u32 r)
->>       w(r, SRC_MSK_DIRECT_REG);
->>  }
->>
->> -u32 g2d_cmd_stretch(u32 e)
->> +/**
->> + * g2d_calc_scale_factor - convert scale factor to fixed pint 16
->
-> Point, perhaps?
-Ok. Typo.
+Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
+---
+ arch/arm/plat-mxc/include/mach/mx2_cam.h |    2 -
+ drivers/media/video/mx2_camera.c         |   52 +++++++++++++++++++++++++++---
+ 2 files changed, 47 insertions(+), 7 deletions(-)
 
->> + * @n: numerator
->> + * @d: denominator
->> + */
->> +static unsigned long g2d_calc_scale_factor(int n, int d)
->> +{
->> +     return (n << 16) / d;
->> +}
->> +
->> +void g2d_set_v41_stretch(struct g2d_dev *d, struct g2d_frame *src,
->> +                                     struct g2d_frame *dst)
->>  {
->> -     e &= 1;
->> -     return e << 4;
->> +     int src_w, src_h, dst_w, dst_h;
->
-> Is int intentional --- width and height usually can't be negative.
-I will use 'unsigned int'.
+diff --git a/arch/arm/plat-mxc/include/mach/mx2_cam.h b/arch/arm/plat-mxc/include/mach/mx2_cam.h
+index 3c080a3..7ded6f1 100644
+--- a/arch/arm/plat-mxc/include/mach/mx2_cam.h
++++ b/arch/arm/plat-mxc/include/mach/mx2_cam.h
+@@ -23,7 +23,6 @@
+ #ifndef __MACH_MX2_CAM_H_
+ #define __MACH_MX2_CAM_H_
+ 
+-#define MX2_CAMERA_SWAP16		(1 << 0)
+ #define MX2_CAMERA_EXT_VSYNC		(1 << 1)
+ #define MX2_CAMERA_CCIR			(1 << 2)
+ #define MX2_CAMERA_CCIR_INTERLACE	(1 << 3)
+@@ -31,7 +30,6 @@
+ #define MX2_CAMERA_GATED_CLOCK		(1 << 5)
+ #define MX2_CAMERA_INV_DATA		(1 << 6)
+ #define MX2_CAMERA_PCLK_SAMPLE_RISING	(1 << 7)
+-#define MX2_CAMERA_PACK_DIR_MSB		(1 << 8)
+ 
+ /**
+  * struct mx2_camera_platform_data - optional platform data for mx2_camera
+diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
+index 8df624f..9274a53 100644
+--- a/drivers/media/video/mx2_camera.c
++++ b/drivers/media/video/mx2_camera.c
+@@ -348,6 +348,19 @@ static struct mx2_fmt_cfg mx27_emma_prp_table[] = {
+ 					PRP_INTR_CH2OVF,
+ 		}
+ 	},
++	{
++		.in_fmt		= V4L2_MBUS_FMT_UYVY8_2X8,
++		.out_fmt	= V4L2_PIX_FMT_YUV420,
++		.cfg		= {
++			.channel	= 2,
++			.in_fmt		= PRP_CNTL_DATA_IN_YUV422,
++			.out_fmt	= PRP_CNTL_CH2_OUT_YUV420,
++			.src_pixel	= 0x22000888, /* YUV422 (YUYV) */
++			.irq_flags	= PRP_INTR_RDERR | PRP_INTR_CH2WERR |
++					PRP_INTR_CH2FC | PRP_INTR_LBOVF |
++					PRP_INTR_CH2OVF,
++		}
++	},
+ };
+ 
+ static struct mx2_fmt_cfg *mx27_emma_prp_get_format(
+@@ -990,6 +1003,7 @@ static int mx2_camera_set_bus_param(struct soc_camera_device *icd,
+ 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
+ 	struct mx2_camera_dev *pcdev = ici->priv;
+ 	struct v4l2_mbus_config cfg = {.type = V4L2_MBUS_PARALLEL,};
++	const struct soc_camera_format_xlate *xlate;
+ 	unsigned long common_flags;
+ 	int ret;
+ 	int bytesperline;
+@@ -1034,14 +1048,31 @@ static int mx2_camera_set_bus_param(struct soc_camera_device *icd,
+ 		return ret;
+ 	}
+ 
++	xlate = soc_camera_xlate_by_fourcc(icd, pixfmt);
++	if (!xlate) {
++		dev_warn(icd->parent, "Format %x not found\n", pixfmt);
++		return -EINVAL;
++	}
++
++	if (xlate->code == V4L2_MBUS_FMT_YUYV8_2X8) {
++		csicr1 |= CSICR1_PACK_DIR;
++		csicr1 &= ~CSICR1_SWAP16_EN;
++		dev_dbg(icd->parent, "already yuyv format, don't convert\n");
++	} else if (xlate->code == V4L2_MBUS_FMT_UYVY8_2X8) {
++		csicr1 &= ~CSICR1_PACK_DIR;
++		csicr1 |= CSICR1_SWAP16_EN;
++		dev_dbg(icd->parent, "convert uyvy mbus format into yuyv\n");
++	} else {
++		dev_warn(icd->parent, "mbus format not supported\n");
++		return -EINVAL;
++	}
++
+ 	if (common_flags & V4L2_MBUS_PCLK_SAMPLE_RISING)
+ 		csicr1 |= CSICR1_REDGE;
+ 	if (common_flags & V4L2_MBUS_VSYNC_ACTIVE_HIGH)
+ 		csicr1 |= CSICR1_SOF_POL;
+ 	if (common_flags & V4L2_MBUS_HSYNC_ACTIVE_HIGH)
+ 		csicr1 |= CSICR1_HSYNC_POL;
+-	if (pcdev->platform_flags & MX2_CAMERA_SWAP16)
+-		csicr1 |= CSICR1_SWAP16_EN;
+ 	if (pcdev->platform_flags & MX2_CAMERA_EXT_VSYNC)
+ 		csicr1 |= CSICR1_EXT_VSYNC;
+ 	if (pcdev->platform_flags & MX2_CAMERA_CCIR)
+@@ -1052,8 +1083,6 @@ static int mx2_camera_set_bus_param(struct soc_camera_device *icd,
+ 		csicr1 |= CSICR1_GCLK_MODE;
+ 	if (pcdev->platform_flags & MX2_CAMERA_INV_DATA)
+ 		csicr1 |= CSICR1_INV_DATA;
+-	if (pcdev->platform_flags & MX2_CAMERA_PACK_DIR_MSB)
+-		csicr1 |= CSICR1_PACK_DIR;
+ 
+ 	pcdev->csicr1 = csicr1;
+ 
+@@ -1128,7 +1157,8 @@ static int mx2_camera_get_formats(struct soc_camera_device *icd,
+ 		return 0;
+ 	}
+ 
+-	if (code == V4L2_MBUS_FMT_YUYV8_2X8) {
++	if (code == V4L2_MBUS_FMT_YUYV8_2X8 ||
++	    code == V4L2_MBUS_FMT_UYVY8_2X8) {
+ 		formats++;
+ 		if (xlate) {
+ 			/*
+@@ -1144,6 +1174,18 @@ static int mx2_camera_get_formats(struct soc_camera_device *icd,
+ 		}
+ 	}
+ 
++	if (code == V4L2_MBUS_FMT_UYVY8_2X8) {
++		formats++;
++		if (xlate) {
++			xlate->host_fmt =
++				soc_mbus_get_fmtdesc(V4L2_MBUS_FMT_YUYV8_2X8);
++			xlate->code	= code;
++			dev_dbg(dev, "Providing host format %s for sensor code %d\n",
++				xlate->host_fmt->name, code);
++			xlate++;
++		}
++	}
++
+ 	/* Generic pass-trough */
+ 	formats++;
+ 	if (xlate) {
+-- 
+1.7.0.4
 
->> +     u32 wcfg, hcfg;
->> +
->> +     w(DEFAULT_SCALE_MODE, SRC_SCALE_CTRL_REG);
->> +
->> +     src_w = src->c_width;
->> +     src_h = src->c_height;
->> +
->> +     dst_w = dst->c_width;
->> +     dst_h = dst->c_height;
->> +
->> +     /* inversed scaling factor: src is numerator */
->> +     wcfg = g2d_calc_scale_factor(src_w, dst_w);
->> +     hcfg = g2d_calc_scale_factor(src_h, dst_h);
->
-> I think this would be more simple without that many temporary variables and
-> an extra function.
-You are right. I will Change it.
-
->> +     w(wcfg, SRC_XSCALE_REG);
->> +     w(hcfg, SRC_YSCALE_REG);
->>  }
->>
->>  void g2d_set_cmd(struct g2d_dev *d, u32 c)
->> @@ -96,7 +126,8 @@ void g2d_set_cmd(struct g2d_dev *d, u32 c)
->>  void g2d_start(struct g2d_dev *d)
->>  {
->>       /* Clear cache */
->> -     w(0x7, CACHECTL_REG);
->> +     if (d->device_type == TYPE_G2D_3X)
->> +             w(0x7, CACHECTL_REG);
->>       /* Enable interrupt */
->>       w(1, INTEN_REG);
->>       /* Start G2D engine */
->
-> Kind regards,
->
-> --
-> Sakari Ailus
-> e-mail: sakari.ailus@iki.fi     jabber/XMPP/Gmail: sailus@retiisi.org.uk
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-Thanks for your review and comments. I will resubmit the patch with changes.
-
-Regards,
-Ajay
