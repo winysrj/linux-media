@@ -1,52 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:36654 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932246Ab2CGRyO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Mar 2012 12:54:14 -0500
-Date: Wed, 7 Mar 2012 19:54:09 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, dacohen@gmail.com, snjw23@gmail.com,
-	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
-	tuukkat76@gmail.com, k.debski@samsung.com, riverful@gmail.com,
-	hverkuil@xs4all.nl, teturtia@gmail.com, pradeep.sawlani@gmail.com
-Subject: Re: [PATCH v5 28/35] omap3isp: Use external rate instead of vpcfg
-Message-ID: <20120307175409.GE1476@valkosipuli.localdomain>
-References: <20120306163239.GN1075@valkosipuli.localdomain>
- <1331051596-8261-28-git-send-email-sakari.ailus@iki.fi>
- <2509531.N5XHlDPohC@avalon>
+Received: from mailgate.urz.uni-halle.de ([141.48.3.13]:44704 "EHLO
+	mailgate.urz.uni-halle.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932824Ab2CZQqr convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 Mar 2012 12:46:47 -0400
+From: "Neumann, Steffen" <sneumann@ipb-halle.de>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: Hauppauge WinTV HVR 930C-HD - new USB ID 2040:b130 ?
+Date: Mon, 26 Mar 2012 16:46:43 +0000
+Message-ID: <assp.6432a3f11c.wbu9dt7xo6ww5ofhwd2i132p.1332780438773@email.android.com>
+References: <1332706154.31585.245.camel@paddy.ipb-sub.ipb-halle.de>,<CAGoCfix+iDFg86nYKqQOn1=DKHWp8Fj+iFdKZgcQjxKKf4uyow@mail.gmail.com>
+In-Reply-To: <CAGoCfix+iDFg86nYKqQOn1=DKHWp8Fj+iFdKZgcQjxKKf4uyow@mail.gmail.com>
+Content-Language: en-GB
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <2509531.N5XHlDPohC@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Mar 07, 2012 at 11:53:19AM +0100, Laurent Pinchart wrote:
-> Hi Sakari,
-> 
-> Thanks for the patch.
-> 
-> On Tuesday 06 March 2012 18:33:09 Sakari Ailus wrote:
-> > From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-> > 
-> > Access pipe->external_rate instead of isp_ccdc.vpcfg.pixelclk. Also remove
-> > means to set the value for isp_ccdc_vpcfg.pixelclk.
-> > 
-> > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> 
-> Very nice.
-> 
-> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> 
-> This also means that implementing support for the V4L2_CID_PIXEL_RATE control 
-> is required in the sensor drivers to be used with the OMAP3 ISP. I'll submit 
-> patches.
+Hi,
+Not the answer I was looking for,
+But thanks everybody for the clarification.
+I'll try to register for the wiki and add
+That information.
 
-Thanks!
+Yours, Steffen
 
-Let's see how we deal with the affected drivers...
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+Devin Heitmueller <dheitmueller@kernellabs.com> schrieb:
+
+
+On Sun, Mar 25, 2012 at 4:09 PM, Steffen Neumann <sneumann@ipb-halle.de> wrote:
+> Hi,
+>
+> I am trying to get a Hauppauge WinTV HVR 930C-HD
+> to work under Ubuntu 12.04 with the vanilla 3.3 kernel from [1].
+> After (manually) loading the em28xx module,
+> there are no additional messages in kern.log,
+> only "registered new interface driver em28xx".
+>
+> What is odd is that lsusb shows for this card "ID 2040:b130 Hauppauge",
+> while from [2] I think it should be [2040:1605],
+> see below for the full lsusb -v output. The card
+> was purchased this week.
+>
+> Do I have a new revision of the 930C ?
+> I tried "modprobe em28xx card=81", but no change.
+> Did I miss anything else ?
+
+2040:b130 isn't an em28xx based device.  It uses cx231xx.  That said,
+it's not supported under Linux not because of the cx231xx driver but
+because there is no driver for the demodulator (si2163).
+
+Nobody is working on such a driver, and there is no support planned
+for this device at this time.
+
+Devin
+
+--
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
+--
+To unsubscribe from this list: send the line "unsubscribe linux-media" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
