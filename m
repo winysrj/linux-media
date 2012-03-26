@@ -1,75 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:42611 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751915Ab2CWO5K (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Mar 2012 10:57:10 -0400
-Received: by yhmm54 with SMTP id m54so2786541yhm.19
-        for <linux-media@vger.kernel.org>; Fri, 23 Mar 2012 07:57:10 -0700 (PDT)
-Date: Fri, 23 Mar 2012 07:57:05 -0700
-From: Greg KH <gregkh@linuxfoundation.org>
-To: Bhupesh SHARMA <bhupesh.sharma@st.com>
-Cc: "balbi@ti.com" <balbi@ti.com>,
-	"linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>,
-	"laurent.pinchart@ideasonboard.com"
-	<laurent.pinchart@ideasonboard.com>,
-	spear-devel <spear-devel@list.st.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] usb: gadget/uvc: Remove non-required locking from
- 'uvc_queue_next_buffer' routine
-Message-ID: <20120323145705.GC11617@kroah.com>
-References: <4cead89e45e3e31fccae5bb6fbfb72b2ce1b8cd5.1332391406.git.bhupesh.sharma@st.com>
- <20120322144056.GG19835@kroah.com>
- <D5ECB3C7A6F99444980976A8C6D896384FA2E26B3C@EAPEX1MAIL1.st.com>
+Received: from nm2.bullet.mail.ird.yahoo.com ([77.238.189.59]:34726 "HELO
+	nm2.bullet.mail.ird.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1756894Ab2CZVme convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 Mar 2012 17:42:34 -0400
+Message-ID: <1332797739.83006.YahooMailNeo@web171403.mail.ir2.yahoo.com>
+Date: Mon, 26 Mar 2012 22:35:39 +0100 (BST)
+From: Sril <willy_the_cat@yahoo.com>
+Reply-To: Sril <willy_the_cat@yahoo.com>
+Subject: Re : AverTV Volar HD PRO : a return case.
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <D5ECB3C7A6F99444980976A8C6D896384FA2E26B3C@EAPEX1MAIL1.st.com>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Mar 23, 2012 at 05:31:19PM +0800, Bhupesh SHARMA wrote:
-> Hi Felipe,
-> 
-> > -----Original Message-----
-> > From: Greg KH [mailto:gregkh@linuxfoundation.org]
-> > Sent: Thursday, March 22, 2012 8:11 PM
-> > To: Bhupesh SHARMA
-> > Cc: linux-usb@vger.kernel.org; laurent.pinchart@ideasonboard.com;
-> > spear-devel; linux-media@vger.kernel.org
-> > Subject: Re: [PATCH] usb: gadget/uvc: Remove non-required locking from
-> > 'uvc_queue_next_buffer' routine
-> > 
-> > On Thu, Mar 22, 2012 at 10:20:37AM +0530, Bhupesh Sharma wrote:
-> > > This patch removes the non-required spinlock acquire/release calls on
-> > > 'queue_irqlock' from 'uvc_queue_next_buffer' routine.
-> > >
-> > > This routine is called from 'video->encode' function (which
-> > translates to either
-> > > 'uvc_video_encode_bulk' or 'uvc_video_encode_isoc') in 'uvc_video.c'.
-> > > As, the 'video->encode' routines are called with 'queue_irqlock'
-> > already held,
-> > > so acquiring a 'queue_irqlock' again in 'uvc_queue_next_buffer'
-> > routine causes
-> > > a spin lock recursion.
-> > >
-> > > Signed-off-by: Bhupesh Sharma <bhupesh.sharma@st.com>
-> > > Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > > ---
-> > >  drivers/usb/gadget/uvc_queue.c |    4 +---
-> > >  1 files changed, 1 insertions(+), 3 deletions(-)
-> > 
-> > Please use scripts/get_maintainer.pl to determine who to send this to
-> > (hint, it's not me...)
-> > 
-> 
-> Can you please pick this USB webcam gadget/peripheral specific patch
-> in your tree?
+Hi,
 
-You didn't put the patch in your request.  Hint, just resend it with the
-proper information, digging patches out of old email threads is a major
-pain when you are dealing with the patch load kernel maintainers do.
+Ianswer to mysel to say that I finally have a "working" 07ca:a835 under 3.0.26 kernel with xgazza_af9035 patch.
+The one for 3.2.x crash part of kernel and I still have I2C regs that can not be read.
 
-thanks,
+So, what tools must do I work on : patch for v4l (build_media) or patch for kernel from xgazza or af903x driver or whatever ?
+Which one is under active building ?
 
-greg k-h
+Thanks for reply.
+
+Best regards.
+See ya.
+
+
+
+> Hi,
+
+> I acquire this usb stick 07ca:a835 and it's still does not work properly. Now, with the af9035 patch from  http://openpli.git.sourceforge.net/git/gitweb.cgi?p=openpli/openembedded;a=blob_plain;f=recipes/linux/linux-etxx00/dvb-usb-af9035.patch;hb=HEAD the tv interface is recognize but have trouble with kaffeine, tvtime and gnome-dvb-daemon. Here's a trace from gnome : "af9033: I2C 
+
+> read failed reg:0047".
+
+> From kaffeine : "kaffeine(3817) DvbDevice::frontendEvent: tuning failed". >From tvtime, nothing card doesn't appear : probably missing conf, it's ok. This message try to follow Andrej 
+
+> Podzimekand Gianluca Gennari's messages on 02/07/2012. Does someone got ideas about what to do to correct this ? kernel : 3.2.11 with patch noticed. No externe v4l at all during construct. 
+
+> Compile fine : Mar 18 16:09:43 localhost kernel: [  305.726981] dvb-usb: found a 'Avermedia AverTV Volar HD & HD PRO (A835)' in cold state, will try to load a firmware
+> Mar 18 16:09:43 localhost kernel: [  305.742050] dvb-usb: downloading firmware from file 'dvb-usb-af9035-01.fw'
+> Mar 18 16:09:43 localhost kernel: [  306.039886] dvb-usb: found a 'Avermedia AverTV Volar HD & HD PRO (A835)' in warm state.
+> Mar 18 16:09:43 localhost kernel: [  306.040032] dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
+> Mar 18 16:09:43 localhost kernel: [  306.040406] DVB: registering new adapter (Avermedia AverTV Volar HD & HD PRO (A835))
+> Mar 18 16:09:43 localhost kernel: [  306.078104] af9033: firmware version: LINK:11.15.10.0 OFDM:5.48.10.0
+> Mar 18 16:09:43 localhost kernel: [  306.080355] DVB: registering adapter 0 frontend 0 (Afatech AF9033 DVB-T)...
+> Mar 18 16:09:43 localhost kernel: [  306.129981] tda18218: NXP TDA18218HN successfully identified.
+> Mar 18 16:09:43 localhost kernel: [  306.131483] dvb-usb: Avermedia AverTV Volar HD & HD PRO (A835) successfully initialized and connected.
+> Mar 18 16:09:43 localhost kernel: [  306.140531] usbcore: registered new interface driver dvb_usb_af9035 Best regards.
+> See ya.
+
