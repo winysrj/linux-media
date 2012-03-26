@@ -1,63 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.24]:37121 "EHLO mgw-da01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932360Ab2CBRcz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 2 Mar 2012 12:32:55 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
+Received: from mail-we0-f174.google.com ([74.125.82.174]:57409 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757411Ab2CZLUP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 Mar 2012 07:20:15 -0400
+Received: by wejx9 with SMTP id x9so4115185wej.19
+        for <linux-media@vger.kernel.org>; Mon, 26 Mar 2012 04:20:14 -0700 (PDT)
+MIME-Version: 1.0
+From: Javier Martin <javier.martin@vista-silicon.com>
 To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, dacohen@gmail.com,
-	snjw23@gmail.com, andriy.shevchenko@linux.intel.com,
-	t.stanislaws@samsung.com, tuukkat76@gmail.com,
-	k.debski@samsung.com, riverful@gmail.com, hverkuil@xs4all.nl,
-	teturtia@gmail.com
-Subject: [PATCH v4 21/34] omap3isp: Move definitions required by board code under include/media.
-Date: Fri,  2 Mar 2012 19:30:29 +0200
-Message-Id: <1330709442-16654-21-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <20120302173219.GA15695@valkosipuli.localdomain>
-References: <20120302173219.GA15695@valkosipuli.localdomain>
+Cc: linux-arm-kernel@lists.infradead.org,
+	u.kleine-koenig@pengutronix.de, mchehab@infradead.org,
+	kernel@pengutronix.de, linux@arm.linux.org.uk,
+	Javier Martin <javier.martin@vista-silicon.com>
+Subject: [PATCH 1/3] media: tvp5150: Fix mbus format.
+Date: Mon, 26 Mar 2012 13:20:02 +0200
+Message-Id: <1332760804-22743-2-git-send-email-javier.martin@vista-silicon.com>
+In-Reply-To: <1332760804-22743-1-git-send-email-javier.martin@vista-silicon.com>
+References: <1332760804-22743-1-git-send-email-javier.martin@vista-silicon.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-XCLK definitions are often required by the board code. Move them to public
-include file.
+According to p.14 fig 3-3 of the datasheet (SLES098A)
+this decoder transmits data in UYVY format.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
 ---
- drivers/media/video/omap3isp/isp.h |    4 ----
- include/media/omap3isp.h           |    4 ++++
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/media/video/tvp5150.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/video/omap3isp/isp.h b/drivers/media/video/omap3isp/isp.h
-index d96603e..2e78041 100644
---- a/drivers/media/video/omap3isp/isp.h
-+++ b/drivers/media/video/omap3isp/isp.h
-@@ -237,10 +237,6 @@ void omap3isp_configure_bridge(struct isp_device *isp,
- 			       const struct isp_parallel_platform_data *pdata,
- 			       unsigned int shift);
+diff --git a/drivers/media/video/tvp5150.c b/drivers/media/video/tvp5150.c
+index e292c46..30c88e0 100644
+--- a/drivers/media/video/tvp5150.c
++++ b/drivers/media/video/tvp5150.c
+@@ -821,7 +821,7 @@ static int tvp5150_enum_mbus_fmt(struct v4l2_subdev *sd, unsigned index,
+ 	if (index)
+ 		return -EINVAL;
  
--#define ISP_XCLK_NONE			0
--#define ISP_XCLK_A			1
--#define ISP_XCLK_B			2
--
- struct isp_device *omap3isp_get(struct isp_device *isp);
- void omap3isp_put(struct isp_device *isp);
+-	*code = V4L2_MBUS_FMT_YUYV8_2X8;
++	*code = V4L2_MBUS_FMT_UYVY8_2X8;
+ 	return 0;
+ }
  
-diff --git a/include/media/omap3isp.h b/include/media/omap3isp.h
-index 042849a..3f4928d 100644
---- a/include/media/omap3isp.h
-+++ b/include/media/omap3isp.h
-@@ -29,6 +29,10 @@
- struct i2c_board_info;
- struct isp_device;
+@@ -845,7 +845,7 @@ static int tvp5150_mbus_fmt(struct v4l2_subdev *sd,
+ 	f->width = decoder->rect.width;
+ 	f->height = decoder->rect.height;
  
-+#define ISP_XCLK_NONE			0
-+#define ISP_XCLK_A			1
-+#define ISP_XCLK_B			2
-+
- enum isp_interface_type {
- 	ISP_INTERFACE_PARALLEL,
- 	ISP_INTERFACE_CSI2A_PHY2,
+-	f->code = V4L2_MBUS_FMT_YUYV8_2X8;
++	f->code = V4L2_MBUS_FMT_UYVY8_2X8;
+ 	f->field = V4L2_FIELD_SEQ_TB;
+ 	f->colorspace = V4L2_COLORSPACE_SMPTE170M;
+ 
 -- 
-1.7.2.5
+1.7.0.4
 
