@@ -1,75 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:38974 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754365Ab2CTL1J (ORCPT
+Received: from hrndva-omtalb.mail.rr.com ([71.74.56.122]:33320 "EHLO
+	hrndva-omtalb.mail.rr.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754865Ab2CZUJZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Mar 2012 07:27:09 -0400
-Received: by eaaq12 with SMTP id q12so2947362eaa.19
-        for <linux-media@vger.kernel.org>; Tue, 20 Mar 2012 04:27:08 -0700 (PDT)
-Message-ID: <4F68698A.2070403@gmail.com>
-Date: Tue, 20 Mar 2012 12:27:06 +0100
-From: Marco Cavallini <koansoftware@gmail.com>
-Reply-To: koansoftware@gmail.com
+	Mon, 26 Mar 2012 16:09:25 -0400
+Message-ID: <4F70CCF3.4000000@kc.rr.com>
+Date: Mon, 26 Mar 2012 15:09:23 -0500
+From: Joe Henley <joehenley@kc.rr.com>
 MIME-Version: 1.0
 To: linux-media@vger.kernel.org
-CC: Marco Cavallini <m.cavallini@koansoftware.com>
-Subject: tvp5150: pxa27x-camera pxa27x-camera.0: Field type 9 unsupported.
-Content-Type: text/plain; charset=UTF-8
+Subject: Re:  Cannot compile media_build from git sources
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
-I am trying to run a tvp5150 driver with a PXA270 based board
-I am using kernel version: Linux 2.6.35 armv5tel GNU/Linux
+Bogus,
 
-I also did a test with kernel-3.2.5 without success.
-I started playing with V4L2, and I've never used it, but I built v4l2-utils.
-The problem is something in pxa_camera_try_fmt() related to the settings
-causing the error "pxa27x-camera pxa27x-camera.0: Field type 9 unsupported."
+This is the same problem I wrote about on March 21, 2012.  I have 
+received no reply so far.
 
+You can try to work around the problem as I did:
+-- This assumes you don't need radio-rtrack2.
+-- Look at the build command.  Near the end are two "make" commands. 
+Comment out the last one.
+-- Run the resulting "build".  Then go into ../media_build/v4l/.config 
+Set the "radio-rtrack2" to "n" (from "m").
+-- Then go back to the directory which has the "build" program and just 
+run "make" ...... if all runs OK, then run "make install."
 
-[   30.005365] Linux video capture interface: v2.00
-[   32.942234] *** PROBE tvp5151 ***
-[   32.945573] tvp5150 0-003a: chip found @ 0x74 (pxa_i2c-i2c.0)
-[   33.281105] pxa27x-camera pxa27x-camera.0: Limiting master clock to
-26000000
-[   33.288557] camera 0-0: Probing 0-0
-[   33.292170] pxa27x-camera pxa27x-camera.0: PXA Camera driver attached
-to camera 0
-[   33.666535] *** PROBE tvp5151 ***
-[   33.669865] tvp5150 0-005d: chip found @ 0xba (pxa_i2c-i2c.0)
-[   33.811605] tvp5150 0-005d: tvp5150am1 detected.
-[   33.999541] *** tvp5150_g_fmt
-[   34.002776] pxa27x-camera pxa27x-camera.0: PXA Camera driver detached
-from camera 0
-[   34.447069] pxa27x-camera pxa27x-camera.0: PXA Camera driver attached
-to camera 0
-[   34.454755] *** tvp5150_try_fmt 2
-[   34.458053] pxa27x-camera pxa27x-camera.0: Field type 9 unsupported.
-[   34.464393] pxa27x-camera pxa27x-camera.0: PXA Camera driver detached
-from camera 0
+Good luck!
 
-
-I am completely stuck at this, so I have some questions:
-- is kernel version 2.6.35 good for using tvp5150 driver?
-- do I need to have V2L to get out an image from tvp5150?
-- which settings are missing in this driver?
-- does anybody have seen a tvp5150 working with a PXA270 earlier?
-
-
-# ./v4l2-ctl --all
-[ 2195.222443] pxa27x-camera pxa27x-camera.0: PXA Camera driver attached
-to camera 0
-[ 2195.230247] *** tvp5150_try_fmt 2
-[ 2195.234032] pxa27x-camera pxa27x-camera.0: Field type 9 unsupported.
-[ 2195.240473] pxa27x-camera pxa27x-camera.0: PXA Camera driver detached
-from camera 0
-Failed to open /dev/video0: Invalid argument
-
-
-Any hint would be greatly appreciated, if you need more details please ask.
-
-TIA
---
-Marco
+Joe Henley
