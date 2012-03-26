@@ -1,41 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:51599 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756899Ab2CELKi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Mar 2012 06:10:38 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, dacohen@gmail.com, snjw23@gmail.com,
-	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
-	tuukkat76@gmail.com, k.debski@samsung.com, riverful@gmail.com,
-	hverkuil@xs4all.nl, teturtia@gmail.com
-Subject: Re: [PATCH v4 15/34] media: Add link_validate() op to check links to the sink pad
-Date: Mon, 05 Mar 2012 12:10:58 +0100
-Message-ID: <6463420.kC9QS8Kqbq@avalon>
-In-Reply-To: <1330709442-16654-15-git-send-email-sakari.ailus@iki.fi>
-References: <20120302173219.GA15695@valkosipuli.localdomain> <1330709442-16654-15-git-send-email-sakari.ailus@iki.fi>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:43611 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932230Ab2CZNNu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 Mar 2012 09:13:50 -0400
+Received: by mail-gx0-f174.google.com with SMTP id e5so3751115ggh.19
+        for <linux-media@vger.kernel.org>; Mon, 26 Mar 2012 06:13:50 -0700 (PDT)
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@infradead.org
+Cc: rsalvaterra@gmail.com, crope@iki.fi, gennarone@gmail.com,
+	Ezequiel Garcia <elezegarcia@gmail.com>
+Subject: [PATCH 2/5] em28xx: Move ir/rc related initialization to em28xx_ir_init()
+Date: Mon, 26 Mar 2012 10:13:32 -0300
+Message-Id: <1332767615-24218-2-git-send-email-elezegarcia@gmail.com>
+In-Reply-To: <1332767615-24218-1-git-send-email-elezegarcia@gmail.com>
+References: <1332767615-24218-1-git-send-email-elezegarcia@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Moving this helps isolating em28xx_input and will help
+converting it into a separate module.
 
-Thanks for the patch.
+Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
+---
+ drivers/media/video/em28xx/em28xx-cards.c |   10 ----------
+ drivers/media/video/em28xx/em28xx-i2c.c   |    3 ---
+ drivers/media/video/em28xx/em28xx-input.c |   11 +++++++++++
+ 3 files changed, 11 insertions(+), 13 deletions(-)
 
-On Friday 02 March 2012 19:30:23 Sakari Ailus wrote:
-> The purpose of the link_validate() op is to allow an entity driver to ensure
-> that the properties of the pads at the both ends of the link are suitable
-> for starting the pipeline. link_validate is called on sink pads on active
-> links which belong to the active part of the graph.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
+diff --git a/drivers/media/video/em28xx/em28xx-cards.c b/drivers/media/video/em28xx/em28xx-cards.c
+index ce1b60f..ba99e22 100644
+--- a/drivers/media/video/em28xx/em28xx-cards.c
++++ b/drivers/media/video/em28xx/em28xx-cards.c
+@@ -2770,13 +2770,6 @@ void em28xx_card_setup(struct em28xx *dev)
+ 		break;
+ 	}
+ 
+-#if defined(CONFIG_MODULES) && defined(MODULE)
+-	if (dev->board.has_ir_i2c && !disable_ir)
+-		request_module("ir-kbd-i2c");
+-#endif
+-	if (dev->board.has_snapshot_button)
+-		em28xx_register_snapshot_button(dev);
+-
+ 	if (dev->board.valid == EM28XX_BOARD_NOT_VALIDATED) {
+ 		em28xx_errdev("\n\n");
+ 		em28xx_errdev("The support for this board weren't "
+@@ -2893,9 +2886,6 @@ static void flush_request_modules(struct em28xx *dev)
+ */
+ void em28xx_release_resources(struct em28xx *dev)
+ {
+-	if (dev->sbutton_input_dev)
+-		em28xx_deregister_snapshot_button(dev);
+-
+ 	if (dev->ir)
+ 		em28xx_ir_fini(dev);
+ 
+diff --git a/drivers/media/video/em28xx/em28xx-i2c.c b/drivers/media/video/em28xx/em28xx-i2c.c
+index 36f5a9b..91bf163 100644
+--- a/drivers/media/video/em28xx/em28xx-i2c.c
++++ b/drivers/media/video/em28xx/em28xx-i2c.c
+@@ -561,9 +561,6 @@ int em28xx_i2c_register(struct em28xx *dev)
+ 	if (i2c_scan)
+ 		em28xx_do_i2c_scan(dev);
+ 
+-	/* Instantiate the IR receiver device, if present */
+-	em28xx_register_i2c_ir(dev);
+-
+ 	return 0;
+ }
+ 
+diff --git a/drivers/media/video/em28xx/em28xx-input.c b/drivers/media/video/em28xx/em28xx-input.c
+index 2630b26..dd6e3f2 100644
+--- a/drivers/media/video/em28xx/em28xx-input.c
++++ b/drivers/media/video/em28xx/em28xx-input.c
+@@ -448,6 +448,15 @@ int em28xx_ir_init(struct em28xx *dev)
+ 	if (err)
+ 		goto err_out_stop;
+ 
++	em28xx_register_i2c_ir(dev);
++
++#if defined(CONFIG_MODULES) && defined(MODULE)
++	if (dev->board.has_ir_i2c)
++		request_module("ir-kbd-i2c");
++#endif
++	if (dev->board.has_snapshot_button)
++		em28xx_register_snapshot_button(dev);
++
+ 	return 0;
+ 
+  err_out_stop:
+@@ -462,6 +471,8 @@ int em28xx_ir_fini(struct em28xx *dev)
+ {
+ 	struct em28xx_IR *ir = dev->ir;
+ 
++	em28xx_deregister_snapshot_button(dev);
++
+ 	/* skip detach on non attached boards */
+ 	if (!ir)
+ 		return 0;
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.3.4
 
