@@ -1,54 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gx0-f174.google.com ([209.85.161.174]:43611 "EHLO
-	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932230Ab2CZNNs (ORCPT
+Received: from mail-we0-f174.google.com ([74.125.82.174]:57400 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757327Ab2CZNSA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Mar 2012 09:13:48 -0400
-Received: by gghe5 with SMTP id e5so3751115ggh.19
-        for <linux-media@vger.kernel.org>; Mon, 26 Mar 2012 06:13:47 -0700 (PDT)
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@infradead.org
-Cc: rsalvaterra@gmail.com, crope@iki.fi, gennarone@gmail.com,
-	Ezequiel Garcia <elezegarcia@gmail.com>
-Subject: [PATCH 1/5] em28xx: Export em28xx_[read,write]_reg functions as SYMBOL_GPL
-Date: Mon, 26 Mar 2012 10:13:31 -0300
-Message-Id: <1332767615-24218-1-git-send-email-elezegarcia@gmail.com>
+	Mon, 26 Mar 2012 09:18:00 -0400
+Received: by wejx9 with SMTP id x9so4188209wej.19
+        for <linux-media@vger.kernel.org>; Mon, 26 Mar 2012 06:17:59 -0700 (PDT)
+From: Javier Martin <javier.martin@vista-silicon.com>
+To: linux-media@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org,
+	u.kleine-koenig@pengutronix.de, mchehab@infradead.org,
+	kernel@pengutronix.de, baruch@tkos.co.il,
+	Javier Martin <javier.martin@vista-silicon.com>
+Subject: [PATCH v2 1/3] media: tvp5150: Fix mbus format.
+Date: Mon, 26 Mar 2012 15:17:46 +0200
+Message-Id: <1332767868-2531-2-git-send-email-javier.martin@vista-silicon.com>
+In-Reply-To: <1332767868-2531-1-git-send-email-javier.martin@vista-silicon.com>
+References: <1332767868-2531-1-git-send-email-javier.martin@vista-silicon.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
----
- drivers/media/video/em28xx/em28xx-core.c |    3 +++
- 1 files changed, 3 insertions(+), 0 deletions(-)
+According to p.14 fig 3-3 of the datasheet (SLES098A)
+this decoder transmits data in UYVY format.
 
-diff --git a/drivers/media/video/em28xx/em28xx-core.c b/drivers/media/video/em28xx/em28xx-core.c
-index 53a9fb9..237d44f 100644
---- a/drivers/media/video/em28xx/em28xx-core.c
-+++ b/drivers/media/video/em28xx/em28xx-core.c
-@@ -139,6 +139,7 @@ int em28xx_read_reg(struct em28xx *dev, u16 reg)
- {
- 	return em28xx_read_reg_req(dev, USB_REQ_GET_STATUS, reg);
+Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
+---
+ drivers/media/video/tvp5150.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/video/tvp5150.c b/drivers/media/video/tvp5150.c
+index e292c46..30c88e0 100644
+--- a/drivers/media/video/tvp5150.c
++++ b/drivers/media/video/tvp5150.c
+@@ -821,7 +821,7 @@ static int tvp5150_enum_mbus_fmt(struct v4l2_subdev *sd, unsigned index,
+ 	if (index)
+ 		return -EINVAL;
+ 
+-	*code = V4L2_MBUS_FMT_YUYV8_2X8;
++	*code = V4L2_MBUS_FMT_UYVY8_2X8;
+ 	return 0;
  }
-+EXPORT_SYMBOL_GPL(em28xx_read_reg);
  
- /*
-  * em28xx_write_regs_req()
-@@ -205,6 +206,7 @@ int em28xx_write_regs(struct em28xx *dev, u16 reg, char *buf, int len)
+@@ -845,7 +845,7 @@ static int tvp5150_mbus_fmt(struct v4l2_subdev *sd,
+ 	f->width = decoder->rect.width;
+ 	f->height = decoder->rect.height;
  
- 	return rc;
- }
-+EXPORT_SYMBOL_GPL(em28xx_write_regs);
+-	f->code = V4L2_MBUS_FMT_YUYV8_2X8;
++	f->code = V4L2_MBUS_FMT_UYVY8_2X8;
+ 	f->field = V4L2_FIELD_SEQ_TB;
+ 	f->colorspace = V4L2_COLORSPACE_SMPTE170M;
  
- /* Write a single register */
- int em28xx_write_reg(struct em28xx *dev, u16 reg, u8 val)
-@@ -239,6 +241,7 @@ int em28xx_write_reg_bits(struct em28xx *dev, u16 reg, u8 val,
- 
- 	return em28xx_write_regs(dev, reg, &newval, 1);
- }
-+EXPORT_SYMBOL_GPL(em28xx_write_reg_bits);
- 
- /*
-  * em28xx_is_ac97_ready()
 -- 
-1.7.3.4
+1.7.0.4
 
