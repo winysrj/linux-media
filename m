@@ -1,57 +1,308 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1-g21.free.fr ([212.27.42.1]:34305 "EHLO smtp1-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755989Ab2CEMBr convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Mar 2012 07:01:47 -0500
-Date: Mon, 5 Mar 2012 13:03:18 +0100
-From: Jean-Francois Moine <moinejf@free.fr>
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Xavion <xavion.0@gmail.com>,
-	"Linux Kernel (Media) ML" <linux-media@vger.kernel.org>
-Subject: Re: My Microdia (SN9C201) webcam doesn't work properly in Linux
- anymore
-Message-ID: <20120305130318.458bd040@tele>
-In-Reply-To: <4F547A4E.9090703@redhat.com>
-References: <CAKnx8Y7BAyR8A5r-eL13MVgZO2DcKndP3v-MTfkQdmXPvjjGJg@mail.gmail.com>
-	<CAKnx8Y6dM8qbQvJgt_z2A2XD8aPGhGoqCSWabyNYjRbsH6CDJw@mail.gmail.com>
-	<4F51CCC1.8020308@redhat.com>
-	<CAKnx8Y6ER6CV6WQKrmN4fFkLjQx0GXEzvNmuApnA=G6fJDgsPQ@mail.gmail.com>
-	<20120304082531.1307a9ed@tele>
-	<CAKnx8Y7A2Dd0JW0n9bJBBc+ScnagpdFEkAvbg_Jab3vt66Ky0Q@mail.gmail.com>
-	<4F547A4E.9090703@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:54933 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754886Ab2CZNPe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 Mar 2012 09:15:34 -0400
+Received: by gghe5 with SMTP id e5so3752730ggh.19
+        for <linux-media@vger.kernel.org>; Mon, 26 Mar 2012 06:15:34 -0700 (PDT)
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@infradead.org
+Cc: rsalvaterra@gmail.com, crope@iki.fi, gennarone@gmail.com,
+	Ezequiel Garcia <elezegarcia@gmail.com>
+Subject: [PATCH 4/5] em28xx: Change scope of em28xx-input local functions to static
+Date: Mon, 26 Mar 2012 10:13:34 -0300
+Message-Id: <1332767615-24218-4-git-send-email-elezegarcia@gmail.com>
+In-Reply-To: <1332767615-24218-1-git-send-email-elezegarcia@gmail.com>
+References: <1332767615-24218-1-git-send-email-elezegarcia@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 05 Mar 2012 09:33:18 +0100
-Hans de Goede <hdegoede@redhat.com> wrote:
+This functions are no longer used from another file,
+so they should be declared as static.
+Also is it necessary to move some of them before they
+are used, since they are no longer header-declared.
 
-> I guess that motion is using the JPG compressed frames rather then
-> the i420 like special format these cameras also support, and it looks
-> like we don't reserve enoug space to buffer these frames. To fix this
-> we need to enlarge the size we reserve per frame in the sn9c20x driver,
-> edit sn9c20x.c and search for vga_mode, in that table you will
-> find a factor "4 / 8" (its in there 3 times), change all 3 occurences
-> to "5 / 8" and try again, then "6 / 8", etc.
-> 
-> Normally I would be suspicious about SOF / EOF detection when we
-> need such a factor, but the timestamps in your log exactly match 30
-> fps, so that seems to be fine. And in my experience with the USB bandwidth
-> stuff the sn9c20x does seem to compress less then other JPG cams, so
-> it makes sense that it needs bigger buffers to store the frames too.
+Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
+---
+ drivers/media/video/em28xx/em28xx-input.c |  184 +++++++++++++++--------------
+ drivers/media/video/em28xx/em28xx.h       |   17 ---
+ 2 files changed, 93 insertions(+), 108 deletions(-)
 
-Hi Hans,
-
-The JPEG compression quality of the sn9c20x is 95%. That's why the
-frames are so big. Then, if the quality is not settable, I wonder why
-to use the JPEG format.
-
-BTW, I wonder also about the SN9C20X_I420: this format asks for a
-buffer greater than the native image. So, as these webcams are USB 2.0,
-shouldn't it be simpler to have only Bayer in the driver?
-
+diff --git a/drivers/media/video/em28xx/em28xx-input.c b/drivers/media/video/em28xx/em28xx-input.c
+index 0a58ba8..2496625 100644
+--- a/drivers/media/video/em28xx/em28xx-input.c
++++ b/drivers/media/video/em28xx/em28xx-input.c
+@@ -80,7 +80,7 @@ struct em28xx_IR {
+  I2C IR based get keycodes - should be used with ir-kbd-i2c
+  **********************************************************/
+ 
+-int em28xx_get_key_terratec(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
++static int em28xx_get_key_terratec(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
+ {
+ 	unsigned char b;
+ 
+@@ -108,7 +108,7 @@ int em28xx_get_key_terratec(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
+ 	return 1;
+ }
+ 
+-int em28xx_get_key_em_haup(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
++static int em28xx_get_key_em_haup(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
+ {
+ 	unsigned char buf[2];
+ 	u16 code;
+@@ -157,7 +157,7 @@ int em28xx_get_key_em_haup(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
+ 	return 1;
+ }
+ 
+-int em28xx_get_key_pinnacle_usb_grey(struct IR_i2c *ir, u32 *ir_key,
++static int em28xx_get_key_pinnacle_usb_grey(struct IR_i2c *ir, u32 *ir_key,
+ 				     u32 *ir_raw)
+ {
+ 	unsigned char buf[3];
+@@ -179,7 +179,8 @@ int em28xx_get_key_pinnacle_usb_grey(struct IR_i2c *ir, u32 *ir_key,
+ 	return 1;
+ }
+ 
+-int em28xx_get_key_winfast_usbii_deluxe(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
++static int em28xx_get_key_winfast_usbii_deluxe(struct IR_i2c *ir, u32 *ir_key,
++					u32 *ir_raw)
+ {
+ 	unsigned char subaddr, keydetect, key;
+ 
+@@ -387,7 +388,7 @@ int em28xx_ir_change_protocol(struct rc_dev *rc_dev, u64 rc_type)
+ 	return rc;
+ }
+ 
+-void em28xx_register_i2c_ir(struct em28xx *dev)
++static void em28xx_register_i2c_ir(struct em28xx *dev)
+ {
+ 	/* Leadtek winfast tv USBII deluxe can find a non working IR-device */
+ 	/* at address 0x18, so if that address is needed for another board in */
+@@ -431,6 +432,93 @@ void em28xx_register_i2c_ir(struct em28xx *dev)
+ 	i2c_new_probed_device(&dev->i2c_adap, &info, addr_list, NULL);
+ }
+ 
++/**********************************************************
++ Handle Webcam snapshot button
++ **********************************************************/
++
++static void em28xx_query_sbutton(struct work_struct *work)
++{
++	/* Poll the register and see if the button is depressed */
++	struct em28xx *dev =
++		container_of(work, struct em28xx, sbutton_query_work.work);
++	int ret;
++
++	ret = em28xx_read_reg(dev, EM28XX_R0C_USBSUSP);
++
++	if (ret & EM28XX_R0C_USBSUSP_SNAPSHOT) {
++		u8 cleared;
++		/* Button is depressed, clear the register */
++		cleared = ((u8) ret) & ~EM28XX_R0C_USBSUSP_SNAPSHOT;
++		em28xx_write_regs(dev, EM28XX_R0C_USBSUSP, &cleared, 1);
++
++		/* Not emulate the keypress */
++		input_report_key(dev->sbutton_input_dev, EM28XX_SNAPSHOT_KEY,
++				 1);
++		/* Now unpress the key */
++		input_report_key(dev->sbutton_input_dev, EM28XX_SNAPSHOT_KEY,
++				 0);
++	}
++
++	/* Schedule next poll */
++	schedule_delayed_work(&dev->sbutton_query_work,
++			      msecs_to_jiffies(EM28XX_SBUTTON_QUERY_INTERVAL));
++}
++
++static void em28xx_register_snapshot_button(struct em28xx *dev)
++{
++	struct input_dev *input_dev;
++	int err;
++
++	em28xx_info("Registering snapshot button...\n");
++	input_dev = input_allocate_device();
++	if (!input_dev) {
++		em28xx_errdev("input_allocate_device failed\n");
++		return;
++	}
++
++	usb_make_path(dev->udev, dev->snapshot_button_path,
++		      sizeof(dev->snapshot_button_path));
++	strlcat(dev->snapshot_button_path, "/sbutton",
++		sizeof(dev->snapshot_button_path));
++	INIT_DELAYED_WORK(&dev->sbutton_query_work, em28xx_query_sbutton);
++
++	input_dev->name = "em28xx snapshot button";
++	input_dev->phys = dev->snapshot_button_path;
++	input_dev->evbit[0] = BIT_MASK(EV_KEY) | BIT_MASK(EV_REP);
++	set_bit(EM28XX_SNAPSHOT_KEY, input_dev->keybit);
++	input_dev->keycodesize = 0;
++	input_dev->keycodemax = 0;
++	input_dev->id.bustype = BUS_USB;
++	input_dev->id.vendor = le16_to_cpu(dev->udev->descriptor.idVendor);
++	input_dev->id.product = le16_to_cpu(dev->udev->descriptor.idProduct);
++	input_dev->id.version = 1;
++	input_dev->dev.parent = &dev->udev->dev;
++
++	err = input_register_device(input_dev);
++	if (err) {
++		em28xx_errdev("input_register_device failed\n");
++		input_free_device(input_dev);
++		return;
++	}
++
++	dev->sbutton_input_dev = input_dev;
++	schedule_delayed_work(&dev->sbutton_query_work,
++			      msecs_to_jiffies(EM28XX_SBUTTON_QUERY_INTERVAL));
++	return;
++
++}
++
++static void em28xx_deregister_snapshot_button(struct em28xx *dev)
++{
++	if (dev->sbutton_input_dev != NULL) {
++		em28xx_info("Deregistering snapshot button\n");
++		cancel_delayed_work_sync(&dev->sbutton_query_work);
++		input_unregister_device(dev->sbutton_input_dev);
++		dev->sbutton_input_dev = NULL;
++	}
++	return;
++}
++
+ int em28xx_ir_init(struct em28xx *dev)
+ {
+ 	struct em28xx_IR *ir;
+@@ -530,89 +618,3 @@ int em28xx_ir_fini(struct em28xx *dev)
+ 	return 0;
+ }
+ 
+-/**********************************************************
+- Handle Webcam snapshot button
+- **********************************************************/
+-
+-static void em28xx_query_sbutton(struct work_struct *work)
+-{
+-	/* Poll the register and see if the button is depressed */
+-	struct em28xx *dev =
+-		container_of(work, struct em28xx, sbutton_query_work.work);
+-	int ret;
+-
+-	ret = em28xx_read_reg(dev, EM28XX_R0C_USBSUSP);
+-
+-	if (ret & EM28XX_R0C_USBSUSP_SNAPSHOT) {
+-		u8 cleared;
+-		/* Button is depressed, clear the register */
+-		cleared = ((u8) ret) & ~EM28XX_R0C_USBSUSP_SNAPSHOT;
+-		em28xx_write_regs(dev, EM28XX_R0C_USBSUSP, &cleared, 1);
+-
+-		/* Not emulate the keypress */
+-		input_report_key(dev->sbutton_input_dev, EM28XX_SNAPSHOT_KEY,
+-				 1);
+-		/* Now unpress the key */
+-		input_report_key(dev->sbutton_input_dev, EM28XX_SNAPSHOT_KEY,
+-				 0);
+-	}
+-
+-	/* Schedule next poll */
+-	schedule_delayed_work(&dev->sbutton_query_work,
+-			      msecs_to_jiffies(EM28XX_SBUTTON_QUERY_INTERVAL));
+-}
+-
+-void em28xx_register_snapshot_button(struct em28xx *dev)
+-{
+-	struct input_dev *input_dev;
+-	int err;
+-
+-	em28xx_info("Registering snapshot button...\n");
+-	input_dev = input_allocate_device();
+-	if (!input_dev) {
+-		em28xx_errdev("input_allocate_device failed\n");
+-		return;
+-	}
+-
+-	usb_make_path(dev->udev, dev->snapshot_button_path,
+-		      sizeof(dev->snapshot_button_path));
+-	strlcat(dev->snapshot_button_path, "/sbutton",
+-		sizeof(dev->snapshot_button_path));
+-	INIT_DELAYED_WORK(&dev->sbutton_query_work, em28xx_query_sbutton);
+-
+-	input_dev->name = "em28xx snapshot button";
+-	input_dev->phys = dev->snapshot_button_path;
+-	input_dev->evbit[0] = BIT_MASK(EV_KEY) | BIT_MASK(EV_REP);
+-	set_bit(EM28XX_SNAPSHOT_KEY, input_dev->keybit);
+-	input_dev->keycodesize = 0;
+-	input_dev->keycodemax = 0;
+-	input_dev->id.bustype = BUS_USB;
+-	input_dev->id.vendor = le16_to_cpu(dev->udev->descriptor.idVendor);
+-	input_dev->id.product = le16_to_cpu(dev->udev->descriptor.idProduct);
+-	input_dev->id.version = 1;
+-	input_dev->dev.parent = &dev->udev->dev;
+-
+-	err = input_register_device(input_dev);
+-	if (err) {
+-		em28xx_errdev("input_register_device failed\n");
+-		input_free_device(input_dev);
+-		return;
+-	}
+-
+-	dev->sbutton_input_dev = input_dev;
+-	schedule_delayed_work(&dev->sbutton_query_work,
+-			      msecs_to_jiffies(EM28XX_SBUTTON_QUERY_INTERVAL));
+-	return;
+-
+-}
+-
+-void em28xx_deregister_snapshot_button(struct em28xx *dev)
+-{
+-	if (dev->sbutton_input_dev != NULL) {
+-		em28xx_info("Deregistering snapshot button\n");
+-		cancel_delayed_work_sync(&dev->sbutton_query_work);
+-		input_unregister_device(dev->sbutton_input_dev);
+-		dev->sbutton_input_dev = NULL;
+-	}
+-	return;
+-}
+diff --git a/drivers/media/video/em28xx/em28xx.h b/drivers/media/video/em28xx/em28xx.h
+index 2ae6815..75630a6 100644
+--- a/drivers/media/video/em28xx/em28xx.h
++++ b/drivers/media/video/em28xx/em28xx.h
+@@ -715,7 +715,6 @@ extern void em28xx_card_setup(struct em28xx *dev);
+ extern struct em28xx_board em28xx_boards[];
+ extern struct usb_device_id em28xx_id_table[];
+ extern const unsigned int em28xx_bcount;
+-void em28xx_register_i2c_ir(struct em28xx *dev);
+ int em28xx_tuner_callback(void *ptr, int component, int command, int arg);
+ void em28xx_release_resources(struct em28xx *dev);
+ 
+@@ -723,27 +722,11 @@ void em28xx_release_resources(struct em28xx *dev);
+ 
+ #ifdef CONFIG_VIDEO_EM28XX_RC
+ 
+-int em28xx_get_key_terratec(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw);
+-int em28xx_get_key_em_haup(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw);
+-int em28xx_get_key_pinnacle_usb_grey(struct IR_i2c *ir, u32 *ir_key,
+-				     u32 *ir_raw);
+-int em28xx_get_key_winfast_usbii_deluxe(struct IR_i2c *ir, u32 *ir_key,
+-				     u32 *ir_raw);
+-void em28xx_register_snapshot_button(struct em28xx *dev);
+-void em28xx_deregister_snapshot_button(struct em28xx *dev);
+-
+ int em28xx_ir_init(struct em28xx *dev);
+ int em28xx_ir_fini(struct em28xx *dev);
+ 
+ #else
+ 
+-#define em28xx_get_key_terratec			NULL
+-#define em28xx_get_key_em_haup			NULL
+-#define em28xx_get_key_pinnacle_usb_grey	NULL
+-#define em28xx_get_key_winfast_usbii_deluxe	NULL
+-
+-static inline void em28xx_register_snapshot_button(struct em28xx *dev) {}
+-static inline void em28xx_deregister_snapshot_button(struct em28xx *dev) {}
+ static inline int em28xx_ir_init(struct em28xx *dev) { return 0; }
+ static inline int em28xx_ir_fini(struct em28xx *dev) { return 0; }
+ 
 -- 
-Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+1.7.3.4
+
