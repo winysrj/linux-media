@@ -1,149 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:41513 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751236Ab2CYLy5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 25 Mar 2012 07:54:57 -0400
-From: Hans de Goede <hdegoede@redhat.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH 06/10] uvcvideo: Refactor uvc_ctrl_get and query
-Date: Sun, 25 Mar 2012 13:56:46 +0200
-Message-Id: <1332676610-14953-7-git-send-email-hdegoede@redhat.com>
-In-Reply-To: <1332676610-14953-1-git-send-email-hdegoede@redhat.com>
-References: <1332676610-14953-1-git-send-email-hdegoede@redhat.com>
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:39572 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757031Ab2CZM4U convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 Mar 2012 08:56:20 -0400
+Received: by iagz16 with SMTP id z16so8226449iag.19
+        for <linux-media@vger.kernel.org>; Mon, 26 Mar 2012 05:56:19 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20120326121023.GD18420@sapphire.tkos.co.il>
+References: <1332760804-22743-1-git-send-email-javier.martin@vista-silicon.com>
+	<1332760804-22743-4-git-send-email-javier.martin@vista-silicon.com>
+	<20120326121023.GD18420@sapphire.tkos.co.il>
+Date: Mon, 26 Mar 2012 14:56:19 +0200
+Message-ID: <CACKLOr0abquyZ2bZMnq8pXTL8BXqzN_izK92hdA=gPJ6dBsTdA@mail.gmail.com>
+Subject: Re: [PATCH 3/3] i.MX27: visstrim_m10: Remove use of MX2_CAMERA_SWAP16.
+From: javier Martin <javier.martin@vista-silicon.com>
+To: Baruch Siach <baruch@tkos.co.il>
+Cc: linux-media@vger.kernel.org, linux@arm.linux.org.uk,
+	mchehab@infradead.org, kernel@pengutronix.de,
+	u.kleine-koenig@pengutronix.de,
+	linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a preparation patch for adding ctrl event support.
+On 26 March 2012 14:10, Baruch Siach <baruch@tkos.co.il> wrote:
+> Hi Javier,
+>
+> On Mon, Mar 26, 2012 at 01:20:04PM +0200, Javier Martin wrote:
+>>
+>> Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
+>> ---
+>>  arch/arm/mach-imx/mach-imx27_visstrim_m10.c |    2 +-
+>>  1 files changed, 1 insertions(+), 1 deletions(-)
+>>
+>> diff --git a/arch/arm/mach-imx/mach-imx27_visstrim_m10.c b/arch/arm/mach-imx/mach-imx27_visstrim_m10.c
+>> index 3128cfe..4db00c6 100644
+>> --- a/arch/arm/mach-imx/mach-imx27_visstrim_m10.c
+>> +++ b/arch/arm/mach-imx/mach-imx27_visstrim_m10.c
+>> @@ -164,7 +164,7 @@ static struct platform_device visstrim_tvp5150 = {
+>>
+>>
+>>  static struct mx2_camera_platform_data visstrim_camera = {
+>> -     .flags = MX2_CAMERA_CCIR | MX2_CAMERA_CCIR_INTERLACE | MX2_CAMERA_SWAP16 | MX2_CAMERA_PCLK_SAMPLE_RISING,
+>> +     .flags = MX2_CAMERA_CCIR | MX2_CAMERA_CCIR_INTERLACE | MX2_CAMERA_PCLK_SAMPLE_RISING,
+>>       .clk = 100000,
+>>  };
+>
+> The order of the last two patches in this series should be switched to
+> preserve bisectability.
+>
+> baruch
 
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
- drivers/media/video/uvc/uvc_ctrl.c |   69 ++++++++++++++++++++++++------------
- 1 file changed, 46 insertions(+), 23 deletions(-)
+You are right.
+Thanks.
 
-diff --git a/drivers/media/video/uvc/uvc_ctrl.c b/drivers/media/video/uvc/uvc_ctrl.c
-index 0efd3b1..4002b5b 100644
---- a/drivers/media/video/uvc/uvc_ctrl.c
-+++ b/drivers/media/video/uvc/uvc_ctrl.c
-@@ -899,24 +899,14 @@ static int uvc_ctrl_populate_cache(struct uvc_video_chain *chain,
- 	return 0;
- }
- 
--int uvc_query_v4l2_ctrl(struct uvc_video_chain *chain,
-+static int __uvc_query_v4l2_ctrl(struct uvc_video_chain *chain,
-+	struct uvc_control *ctrl,
-+	struct uvc_control_mapping *mapping,
- 	struct v4l2_queryctrl *v4l2_ctrl)
- {
--	struct uvc_control *ctrl;
--	struct uvc_control_mapping *mapping;
- 	struct uvc_menu_info *menu;
- 	unsigned int i;
--	int ret;
--
--	ret = mutex_lock_interruptible(&chain->ctrl_mutex);
--	if (ret < 0)
--		return -ERESTARTSYS;
--
--	ctrl = uvc_find_control(chain, v4l2_ctrl->id, &mapping);
--	if (ctrl == NULL) {
--		ret = -EINVAL;
--		goto done;
--	}
-+	int ret = 0;
- 
- 	memset(v4l2_ctrl, 0, sizeof *v4l2_ctrl);
- 	v4l2_ctrl->id = mapping->id;
-@@ -985,6 +975,28 @@ int uvc_query_v4l2_ctrl(struct uvc_video_chain *chain,
- 				  uvc_ctrl_data(ctrl, UVC_CTRL_DATA_RES));
- 
- done:
-+	return ret;
-+}
-+
-+int uvc_query_v4l2_ctrl(struct uvc_video_chain *chain,
-+	struct v4l2_queryctrl *v4l2_ctrl)
-+{
-+	struct uvc_control *ctrl;
-+	struct uvc_control_mapping *mapping;
-+	int ret;
-+
-+	ret = mutex_lock_interruptible(&chain->ctrl_mutex);
-+	if (ret < 0)
-+		return -ERESTARTSYS;
-+
-+	ctrl = uvc_find_control(chain, v4l2_ctrl->id, &mapping);
-+	if (ctrl == NULL) {
-+		ret = -EINVAL;
-+		goto done;
-+	}
-+
-+	ret = __uvc_query_v4l2_ctrl(chain, ctrl, mapping, v4l2_ctrl);
-+done:
- 	mutex_unlock(&chain->ctrl_mutex);
- 	return ret;
- }
-@@ -1148,17 +1160,15 @@ done:
- 	return ret;
- }
- 
--int uvc_ctrl_get(struct uvc_video_chain *chain,
--	struct v4l2_ext_control *xctrl)
-+static int __uvc_ctrl_get(struct uvc_video_chain *chain,
-+	struct uvc_control *ctrl, struct uvc_control_mapping *mapping,
-+	s32 *value)
- {
--	struct uvc_control *ctrl;
--	struct uvc_control_mapping *mapping;
- 	struct uvc_menu_info *menu;
- 	unsigned int i;
- 	int ret;
- 
--	ctrl = uvc_find_control(chain, xctrl->id, &mapping);
--	if (ctrl == NULL || (ctrl->info.flags & UVC_CTRL_FLAG_GET_CUR) == 0)
-+	if ((ctrl->info.flags & UVC_CTRL_FLAG_GET_CUR) == 0)
- 		return -EINVAL;
- 
- 	if (!ctrl->loaded) {
-@@ -1172,14 +1182,14 @@ int uvc_ctrl_get(struct uvc_video_chain *chain,
- 		ctrl->loaded = 1;
- 	}
- 
--	xctrl->value = mapping->get(mapping, UVC_GET_CUR,
-+	*value = mapping->get(mapping, UVC_GET_CUR,
- 		uvc_ctrl_data(ctrl, UVC_CTRL_DATA_CURRENT));
- 
- 	if (mapping->v4l2_type == V4L2_CTRL_TYPE_MENU) {
- 		menu = mapping->menu_info;
- 		for (i = 0; i < mapping->menu_count; ++i, ++menu) {
--			if (menu->value == xctrl->value) {
--				xctrl->value = i;
-+			if (menu->value == *value) {
-+				*value = i;
- 				break;
- 			}
- 		}
-@@ -1188,6 +1198,19 @@ int uvc_ctrl_get(struct uvc_video_chain *chain,
- 	return 0;
- }
- 
-+int uvc_ctrl_get(struct uvc_video_chain *chain,
-+	struct v4l2_ext_control *xctrl)
-+{
-+	struct uvc_control *ctrl;
-+	struct uvc_control_mapping *mapping;
-+
-+	ctrl = uvc_find_control(chain, xctrl->id, &mapping);
-+	if (ctrl == NULL)
-+		return -EINVAL;
-+
-+	return __uvc_ctrl_get(chain, ctrl, mapping, &xctrl->value);
-+}
-+
- int uvc_ctrl_set(struct uvc_video_chain *chain,
- 	struct v4l2_ext_control *xctrl)
- {
 -- 
-1.7.9.3
-
+Javier Martin
+Vista Silicon S.L.
+CDTUC - FASE C - Oficina S-345
+Avda de los Castros s/n
+39005- Santander. Cantabria. Spain
++34 942 25 32 60
+www.vista-silicon.com
