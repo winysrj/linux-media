@@ -1,161 +1,257 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:62921 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754897Ab2CEQYf convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Mar 2012 11:24:35 -0500
+Received: from mail-wg0-f44.google.com ([74.125.82.44]:32892 "EHLO
+	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932974Ab2CZQzE convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 Mar 2012 12:55:04 -0400
+Received: by wgbdr13 with SMTP id dr13so4064886wgb.1
+        for <linux-media@vger.kernel.org>; Mon, 26 Mar 2012 09:55:03 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <201203021022.49464.hverkuil@xs4all.nl>
-References: <1330114471-26435-1-git-send-email-manjunatha_halli@ti.com>
- <201202291225.50801.hverkuil@xs4all.nl> <CAMT6PyeaW2OwRc5So5JtTeUVJ9vFLafddLteSqoW3GJaVrFesA@mail.gmail.com>
- <201203021022.49464.hverkuil@xs4all.nl>
-From: halli manjunatha <hallimanju@gmail.com>
-Date: Mon, 5 Mar 2012 10:24:14 -0600
-Message-ID: <CAMT6PyfS3vkQu8dZ2qFu=iMo48XL3H=_dU2C4GYxLP-sNYqtqg@mail.gmail.com>
-Subject: Re: [PATCH 3/3] wl128x: Add sysfs based support for FM features
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Manjunatha Halli <x0130808@ti.com>, shahed@ti.com
+In-Reply-To: <4F709A15.7050501@mlbassoc.com>
+References: <CAGD8Z75ELkV6wJOfuCFU3Z2dS=z5WbV-7izazaG7SVtfPMcn=A@mail.gmail.com>
+	<CAGD8Z77akUx2S=h_AU+UcJ6yWf1Y_Rk4+8N78nFe4wP9OHYE=g@mail.gmail.com>
+	<4F708A66.8090303@mlbassoc.com>
+	<CAGD8Z76vJSK9dCvSVWXW7FtUkN2MY5V2Dm9NJzHjrgjgS22Dxw@mail.gmail.com>
+	<4F709A15.7050501@mlbassoc.com>
+Date: Mon, 26 Mar 2012 10:55:02 -0600
+Message-ID: <CAGD8Z76T0fbAzsPNi=L8+4XyHqZr+NVEfwJr0Q+Yj8OrFmLhEA@mail.gmail.com>
+Subject: Re: Using MT9P031 digital sensor
+From: Joshua Hintze <joshua.hintze@gmail.com>
+To: Gary Thomas <gary@mlbassoc.com>
+Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Mar 2, 2012 at 3:22 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> On Wednesday, February 29, 2012 18:19:27 halli manjunatha wrote:
->> On Wed, Feb 29, 2012 at 5:25 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->> > On Tuesday, February 28, 2012 23:52:21 halli manjunatha wrote:
->> >> On Tue, Feb 28, 2012 at 4:05 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->> >> > On Monday, February 27, 2012 17:29:18 halli manjunatha wrote:
->> >> >> Hi Hans,
->> >> >>
->> >> >> Agreed I don't mind to create new controls for below things
->> >> >>
->> >> >> 1) FM RX Band selection (US/Europe, Japan and Russian bands)
->> >> >> 2) FM RX RDS AF turn ON/OFF
->> >> >> 3) FM RX RSSI level set/get
->> >> >> 4) FM TX Alternate Frequency set/get
->> >> >> 5) FM RX De-Emphasis mode set/get
->> >> >>
->> >> >> However, previously you have suggested me to hide few controls (like
->> >> >> band selection) from the user but few of our application wanted
->> >> >> controls like above and that is why I have created the sysfs entries.
->> >> >>
->> >> >> Please suggest me how can I move forward with new controls or with sysfs?
->> >> >
->> >> > The first question is which of these controls are general to FM receivers or
->> >> > transmitters, and which are specific to this chipset. The chipset specific
->> >> > controls should be private controls (look at V4L2_CID_MPEG_CX2341X_BASE in
->> >> > videodev2.h how those are defined). The others should be defined as new
->> >> > controls of the FM_TX class or the FM_RX class. The FM_RX class should be
->> >> > defined as a new class as it doesn't exist at the moment. Don't forget to
->> >> > document these controls clearly.
->> >> >
->> >> > With regards to the band selection: I remember that there was a discussion,
->> >> > but not the details. Do you have a link to that discussion? I can't find it
->> >> > (at least not quickly :-) ).
->> >>
->> >> Below features are generic to all FM receivers so we can add new CID's
->> >> for below features
->> >> 1) FM RX RDS AF turn ON/OFF
->> >> 2) FM TX Alternate Frequency set/get
->> >>
->> >> About other 3 features its different issue,
->> >>     1) FM RX Band selection (US/Europe, Japan and Russian bands)
->> >>     2) FM RX RSSI level set/get
->> >>     3) FM RX De-Emphasis mode set/get
->> >>
->> >> All these 3 features are generic to any FM receiver, only question is
->> >> does all FM receivers wants to expose these controls to application
->> >> writer?
->> >
->> > Good question, and there is no good answer at the moment. See e.g. this
->> > IRC discussion:
->> >
->> > http://www.spinics.net/lists/linux-media/msg44023.html
->> >
->> > In the absence of a good solution to this problem I am inclined to make
->> > these controls driver specific but marked experimental. The experimental
->> > tag allows us to eventually make it a generic control without too much
->> > hassle.
+Gary,
+
+On Mon, Mar 26, 2012 at 10:32 AM, Gary Thomas <gary@mlbassoc.com> wrote:
+> On 2012-03-26 09:37, Joshua Hintze wrote:
 >>
->> Agreed, I will make them driver specific and mark them as experimental.
+>> Gary,
 >>
->> >
->> >> Example Band selection, every FM receiver at the minimum supports both
->> >> Europe and Japan band, now the question is should we add a CID to
->> >> switch between these two bands?
->> >
->> > If we decide to add a band selection control, then that would be a menu
->> > control (since there are up to three bands) and it would only be implemented
->> > by drivers that need it.
->> >
->> > What I am still not clear on is *why* you would want this control. What
->> > is the reason your customers want this? What does it allow you to do that
->> > can't be done today?
+>> I'm using linux branch from 2.6.39
 >>
->> There are 2 reasons for this,
+>> Fetch URL: git://www.sakoman.com/git/linux-omap-2.6
+>> branch: omap-2.6.39
 >>
->> First, our chip supports weather band, unlike other bands (Europe,
->> Japan and Russian) user may wants to
->> switch to weather band and wants to listen to weather report and again
->> switches back to normal band.
+>> I'm using an overo board so I figured I should follow Steve Sakoman's
+>> repository.
+>>
+>> Which brings up another question, would you recommend going off of one
+>> of Laurent's repo's and if so which one?
 >
-> OK, that makes sense. Are the RX and TX independent with regards to
-> band selection?
-
-Yes - RX and TX are independent of band selection
-
-> Make sure that when the band is changed the rangelow and rangehigh values
-> are also changed. If the current frequency is out of that range, then the
-> frequency should be clamped to the closest value frequency. Although an
-> alternative strategy might be to remember the last used frequency for each
-> band. That might make more sense in the case of switching between a normal
-> band and the weather band. We need to define and document which strategy
-> should be used here.
-
-As of now when I switch to new band I just set the frequency to lowest
-of the new band.
-In this way user can seek and tune to what ever channel he wants.
-
-> BTW, is the receiver for the weather band implemented as a separate receiver?
-> I read that some devices can listen to the normal band and interrupt that
-> when a weather report is broadcast on the weather band. That implies two
-> receivers and it would require a rethink.
 >
-> Also, is this feature really implemented as separate frequency ranges in
-> hardware? Or is the receiver able to receive on the whole range of frequencies
-> from 65.8 (OIRT) to approx. 165 (weather band range)?
-
-Our chip wont have 2 receivers, it has only 1 receiver which can
-receive on whole frequency range from 65 MHz to 165 MHz.
-
-> Is the datasheet of this device available somewhere?
-
-Sorry our newest chipset supports this feature so yet now we don't
-have any datasheet available on net.
-
+> The last time I tried Laurent's repo, it did not have the UYVY support in
+> the OMAP3ISP/CCDC merged in.  I don't know if that has changed recently.
 >
->> Second,  for FM TX, our chip supports band selection for FM
->> transmitter, so if the same phone is used in different
->> regions of world then user can switch to the actual band and start
->> transmitting by choosing a blank frequency in that band.
->
-> Isn't this something that can be equally easily done in userspace?
 
-you wants me to do this from driver itself without hinting the
-application about the band ?
 
+I've been able to use UYVY and YUYV with the kernel that I mentioned.
+So I would assume it should be in since my kernel is an older version
+of the omap3isp driver
+
+
+
+>> On Mon, Mar 26, 2012 at 9:25 AM, Gary Thomas<gary@mlbassoc.com>  wrote:
+>>>
+>>> On 2012-03-25 23:13, Joshua Hintze wrote:
+>>>>
+>>>>
+>>>> Alright I made some progress on this.
+>>>>
+>>>> I can access the Mt9p031 registers that are exposed using a command such
+>>>> as
+>>>>
+>>>> ./yavta -l /dev/v4l-subdev8 to list the available controls. Then I can
+>>>> set the exposure and analog gain with
+>>>> ./yavta --set-control '0x00980911 1500' /dev/v4l-subdev8<--- This
+>>>> seems to give the desired effect.
+>>>>
+>>>> Note that ./yavta -w (short option for --set-control) gives a seg
+>>>> fault for me. Possible bug in yavta??
+>>>>
+>>>> Now I'm working on fixing the white balance. In my office the
+>>>> incandescent light bulbs give off a yellowish tint late at night. I've
+>>>> been digging through the omap3isp code to figure out how to enable the
+>>>> automatic white balance. I was able to find the private IOCTLs for the
+>>>> previewer and I was able to use VIDIOC_OMAP3ISP_PRV_CFG. Using this
+>>>> IOCTL I adjusted the OMAP3ISP_PREV_WB, OMAP3ISP_PREV_BLKADJ, and
+>>>> OMAP3ISP_PREV_RGB2RGB.
+>>>>
+>>>> Since I wasn't sure where to start on adjusting these values I just
+>>>> set them all to the TRM's default register values. However when I did
+>>>> so a strange thing occurred. What I saw was all the colors went to a
+>>>> decent color. I'm curious if anybody can shed some light on the best
+>>>> way to get a high quality image. Ideally if I could just set a bit for
+>>>> auto white balance and auto exposure that could be good too.
+>>>
+>>>
+>>>
+>>> Just curious - what codebase (git URL) are you using?
+>>>
+>>>> On Fri, Mar 23, 2012 at 1:01 PM, Joshua Hintze<joshua.hintze@gmail.com>
+>>>>  wrote:
+>>>>>
+>>>>>
+>>>>> Sorry to bring up this old message list. I was curious when you spoke
+>>>>> about the ISP preview engine being able to adjust the white balance.
+>>>>>
+>>>>> When I enumerate the previewer's available controls all I see is...
+>>>>>
+>>>>> root@overo:~# ./yavta -l /dev/v4l-subdev3
+>>>>> --- User Controls (class 0x00980001) ---
+>>>>> control 0x00980900 `Brightness' min 0 max 255 step 1 default 0 current
+>>>>> 0.
+>>>>> control 0x00980901 `Contrast' min 0 max 255 step 1 default 16 current
+>>>>> 16.
+>>>>> 2 controls found.
+>>>>>
+>>>>>
+>>>>> Is this what you are referring to? Are there other settings I can
+>>>>> adjust to get the white balance and focus better using the  OMAP3 ISP
+>>>>> AWEB/OMAP3 ISP AF?
+>>>>>
+>>>>> Thanks,
+>>>>>
+>>>>> Josh
+>>>>>
+>>>>>
+>>>>>
+>>>>>
+>>>>> Hi Gary,
+>>>>>
+>>>>> On Wednesday 30 November 2011 18:00:55 Gary Thomas wrote:
+>>>>>>
+>>>>>>
+>>>>>> On 2011-11-30 07:57, Gary Thomas wrote:
+>>>>>>>
+>>>>>>>
+>>>>>>> On 2011-11-30 07:30, Laurent Pinchart wrote:
+>>>>>>>>
+>>>>>>>>
+>>>>>>>> On Wednesday 30 November 2011 15:13:18 Gary Thomas wrote:
+>>>>>
+>>>>>
+>>>>>
+>>>>> [snip]
+>>>>>
+>>>>>>>>> This sort of works(*), but I'm still having issues (at least I can
+>>>>>>>>> move
+>>>>>>>>> frames!) When I configure the pipeline like this:
+>>>>>>>>> media-ctl -r
+>>>>>>>>> media-ctl -l '"mt9p031 3-005d":0->"OMAP3 ISP CCDC":0[1]'
+>>>>>>>>> media-ctl -l '"OMAP3 ISP CCDC":2->"OMAP3 ISP preview":0[1]'
+>>>>>>>>> media-ctl -l '"OMAP3 ISP preview":1->"OMAP3 ISP resizer":0[1]'
+>>>>>>>>> media-ctl -l '"OMAP3 ISP resizer":1->"OMAP3 ISP resizer
+>>>>>>>>> output":0[1]'
+>>>>>>>>> media-ctl -f '"mt9p031 3-005d":0[SGRBG12 2592x1944]'
+>>>>>>>>> media-ctl -f '"OMAP3 ISP CCDC":0 [SGRBG12 2592x1944]'
+>>>>>>>>> media-ctl -f '"OMAP3 ISP CCDC":1 [SGRBG10 2592x1944]'
+>>>>>>>>> media-ctl -f '"OMAP3 ISP preview":0 [SGRBG10 2592x1943]'
+>>>>>>>>> media-ctl -f '"OMAP3 ISP resizer":0 [YUYV 2574x1935]'
+>>>>>>>>> media-ctl -f '"OMAP3 ISP resizer":1 [YUYV 660x496]'
+>>>>>>>>> the resulting frames are 666624 bytes each instead of 654720
+>>>>>>>>>
+>>>>>>>>> When I tried to grab from the previewer, the frames were 9969120
+>>>>>>>>> instead of 9961380
+>>>>>>>>>
+>>>>>>>>> Any ideas what resolution is actually being moved through?
+>>>>>>>>
+>>>>>>>>
+>>>>>>>>
+>>>>>>>> Because the OMAP3 ISP has alignment requirements. Both the preview
+>>>>>>>> engine and the resizer output line lenghts must be multiple of 32
+>>>>>>>> bytes. The driver adds padding at end of lines when the output width
+>>>>>>>> isn't a multiple of 16 pixels.
+>>>>>>>
+>>>>>>>
+>>>>>>>
+>>>>>>> Any guess which resolution(s) I should change and to what?
+>>>>>>
+>>>>>>
+>>>>>>
+>>>>>> I changed the resizer output to be 672x496 and was able to capture
+>>>>>> video
+>>>>>> using ffmpeg.
+>>>>>>
+>>>>>> I don't know what to expect with this sensor (I've never seen it in
+>>>>>> use
+>>>>>> before), but the image seems to have color balance issues - it's awash
+>>>>>> in
+>>>>>> a green hue.  It may be the poor lighting in my office...  I did try
+>>>>>> the
+>>>>>> 9
+>>>>>> test patterns which I was able to select via
+>>>>>>    # v4l2-ctl -d /dev/v4l-subdev8 --set-ctrl=test_pattern=N
+>>>>>> and these looked OK.  You can see them at
+>>>>>> http://www.mlbassoc.com/misc/mt9p031_images/
+>>>>>
+>>>>>
+>>>>>
+>>>>> Neither the sensor nor the OMAP3 ISP implement automatic white balance.
+>>>>> The
+>>>>> ISP preview engine can be used to modify the white balance, and the
+>>>>> statistics
+>>>>> engine can be used to extract data useful to compute the white balance
+>>>>> parameters, but linking the two needs to be performed in userspace.
+>>>>>
+>>>>>>>> So this means that your original problem comes from the BT656
+>>>>>>>> patches.
+>>>>>>>
+>>>>>>>
+>>>>>>>
+>>>>>>> Yes, it does look that way. Now that I have something that moves
+>>>>>>> data,
+>>>>>>> I
+>>>>>>> can compare how the ISP is setup between the two versions and come up
+>>>>>>> with a fix.
+>>>>>>
+>>>>>>
+>>>>>>
+>>>>>> This is next on my plate, but it may take a while to figure it out.
+>>>>>>
+>>>>>> Is there some recent tree which will have this digital (mt9p031) part
+>>>>>> working that also has the BT656 support in it?  I'd like to try that
+>>>>>> rather than spending time figuring out why an older tree isn't
+>>>>>> working.
+>>>>>
+>>>>>
+>>>>>
+>>>>> No, I haven't had time to create one, sorry. It shouldn't be difficult
+>>>>> to
+>>>>> rebase the BT656 patches on top of the latest OMAP3 ISP and MT9P031
+>>>>> code.
+>>>>>
+>>>>> --
+>>>>> Regards,
+>>>>>
+>>>>> Laurent Pinchart
+>>>>> --
+>>>>> To unsubscribe from this list: send the line "unsubscribe linux-media"
+>>>>> in
+>>>>> the body of a message to majord...@vger.kernel.org
+>>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>>
+>>>>
+>>>> --
+>>>> To unsubscribe from this list: send the line "unsubscribe linux-media"
+>>>> in
+>>>> the body of a message to majordomo@vger.kernel.org
+>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>
+>>>
+>>>
+>>> --
+>>> ------------------------------------------------------------
+>>> Gary Thomas                 |  Consulting for the
+>>> MLB Associates              |    Embedded world
+>>> ------------------------------------------------------------
 >
-> Regards,
 >
->        Hans
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
-
--- 
-Regards
-Halli
+> ------------------------------------------------------------
+> Gary Thomas                 |  Consulting for the
+> MLB Associates              |    Embedded world
+> ------------------------------------------------------------
