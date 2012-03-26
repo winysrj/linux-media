@@ -1,33 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 124-248-200-57.sunnyvision.com ([124.248.200.57]:51830 "EHLO
-	teamb04.edmhongkong.com" rhost-flags-OK-FAIL-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751889Ab2CGVEn (ORCPT
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:37474 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932395Ab2CZNNx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 7 Mar 2012 16:04:43 -0500
-Message-ID: <z3GcH@tpts1.seed.net.tw>
-From: woodyng1985@yahoo.com.hk
-Subject: Cloud server for FREE
-Content-Type: text/plain;
-Content-Transfer-Encoding: Quoted-Printable
-Date: Thu,  8 Mar 2012 05:04:13 +0800 (HKT)
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+	Mon, 26 Mar 2012 09:13:53 -0400
+Received: by gghe5 with SMTP id e5so3751193ggh.19
+        for <linux-media@vger.kernel.org>; Mon, 26 Mar 2012 06:13:53 -0700 (PDT)
+MIME-Version: 1.0
+Date: Mon, 26 Mar 2012 10:13:52 -0300
+Message-ID: <CALF0-+Wt1KzjgggO=ESJ-cBs6Gk5PK0-nazsx52qhW3UUfqNKw@mail.gmail.com>
+Subject: [PATCH 0/5] Make em28xx-input.c a separate module
+From: =?ISO-8859-1?Q?Ezequiel_Garc=EDa?= <elezegarcia@gmail.com>
+To: linux-media <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Rui Salvaterra <rsalvaterra@gmail.com>,
+	Antti Palosaari <crope@iki.fi>,
+	Gianluca Gennari <gennarone@gmail.com>,
+	=?ISO-8859-1?Q?Ezequiel_Garc=EDa?= <elezegarcia@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dear User,
+Hi,
 
-For now. you can using our cloud server for FREE by the following link:
+This patchset isolates em28xx-input code and turns it
+into a module, as suggested by Mauro [1].
 
-http://www.36cloud.com/cloud_promotion_2012q1/
+Contrary to my initial expectations, the patch produces
+code that's actually cleaner and a slightly less spaghetti.
 
-Hope you can enjoy our CLOUD server for Web, Email, Shared Drive VPN, Streaming, Game, FTP....or other purpose. 
+I've tried to make the whole change as clear as possible
+by splitting it into several patches.
+This was done to ease the maintainer job and also
+in the hope that someone cares to review and provide feeback.
 
-Many thanks.
+As I don't have em28xx hardware, I did virtually no test at all so :(
 
-Best Regards,
-The 36cloud Team
+ drivers/media/video/em28xx/Kconfig        |    4 +-
+ drivers/media/video/em28xx/Makefile       |    5 +-
+ drivers/media/video/em28xx/em28xx-cards.c |   66 +--------
+ drivers/media/video/em28xx/em28xx-core.c  |    3 +
+ drivers/media/video/em28xx/em28xx-i2c.c   |    3 -
+ drivers/media/video/em28xx/em28xx-input.c |  250 +++++++++++++++++++----------
+ drivers/media/video/em28xx/em28xx.h       |   32 +----
+ 7 files changed, 175 insertions(+), 188 deletions(-)
 
+[1] http://www.spinics.net/lists/linux-media/msg45416.html
 
-If you do not wish to further receive this event message, email "subscriber@dedicatedserver.com.hk" to unsubscribe this message or revoe your email from the list.
-
-
+Regards,
+Ezequiel.
