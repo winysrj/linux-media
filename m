@@ -1,51 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:63520 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757273Ab2CTMkv (ORCPT
+Received: from mail-wg0-f44.google.com ([74.125.82.44]:46720 "EHLO
+	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757379Ab2CZNSD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Mar 2012 08:40:51 -0400
-Date: Tue, 20 Mar 2012 13:40:47 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Fabio Estevam <festevam@gmail.com>
-cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org, mchehab@infradead.org,
-	kernel@pengutronix.de, Fabio Estevam <fabio.estevam@freescale.com>
-Subject: Re: [PATCH] video: mx3_camera: Allocate camera object via kzalloc
-In-Reply-To: <CAOMZO5CJHkb1JrAd+DYvYP-DrV6XsqO3wtoxJGe_s9sE1tQktw@mail.gmail.com>
-Message-ID: <Pine.LNX.4.64.1203201340300.21870@axis700.grange>
-References: <1329761467-14417-1-git-send-email-festevam@gmail.com>
- <Pine.LNX.4.64.1202201916410.2836@axis700.grange>
- <CAOMZO5AAeqHZFqpZYB_riSCQvCRSjQtR2EqpZvC5V3TRyzuWJQ@mail.gmail.com>
- <4F67E4FD.2070709@redhat.com> <Pine.LNX.4.64.1203200851300.20315@axis700.grange>
- <CAOMZO5CJHkb1JrAd+DYvYP-DrV6XsqO3wtoxJGe_s9sE1tQktw@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+	Mon, 26 Mar 2012 09:18:03 -0400
+Received: by wgbdr13 with SMTP id dr13so3877041wgb.1
+        for <linux-media@vger.kernel.org>; Mon, 26 Mar 2012 06:18:01 -0700 (PDT)
+From: Javier Martin <javier.martin@vista-silicon.com>
+To: linux-media@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org,
+	u.kleine-koenig@pengutronix.de, mchehab@infradead.org,
+	kernel@pengutronix.de, baruch@tkos.co.il,
+	Javier Martin <javier.martin@vista-silicon.com>
+Subject: [PATCH v2 2/3] i.MX27: visstrim_m10: Remove use of MX2_CAMERA_SWAP16.
+Date: Mon, 26 Mar 2012 15:17:47 +0200
+Message-Id: <1332767868-2531-3-git-send-email-javier.martin@vista-silicon.com>
+In-Reply-To: <1332767868-2531-1-git-send-email-javier.martin@vista-silicon.com>
+References: <1332767868-2531-1-git-send-email-javier.martin@vista-silicon.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 20 Mar 2012, Fabio Estevam wrote:
 
-> Hi Guennadi,
-> 
-> On 3/20/12, Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
-> 
-> > Don't think so. vzalloc() is used in mx3_camera to allocate driver private
-> > data objects and are never used for DMA, so, it doesn't have any
-> > restrictions on contiguity, coherency, alignment etc.
-> 
-> Is this valid only for mx3_camera driver?
-
-No
-
-> All other soc camera drivers use kzalloc.
-> 
-> What makes mx3_camera different in this respect?
-
-Nothing
-
-Thanks
-Guennadi
+Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ arch/arm/mach-imx/mach-imx27_visstrim_m10.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/mach-imx/mach-imx27_visstrim_m10.c b/arch/arm/mach-imx/mach-imx27_visstrim_m10.c
+index 3128cfe..4db00c6 100644
+--- a/arch/arm/mach-imx/mach-imx27_visstrim_m10.c
++++ b/arch/arm/mach-imx/mach-imx27_visstrim_m10.c
+@@ -164,7 +164,7 @@ static struct platform_device visstrim_tvp5150 = {
+ 
+ 
+ static struct mx2_camera_platform_data visstrim_camera = {
+-	.flags = MX2_CAMERA_CCIR | MX2_CAMERA_CCIR_INTERLACE | MX2_CAMERA_SWAP16 | MX2_CAMERA_PCLK_SAMPLE_RISING,
++	.flags = MX2_CAMERA_CCIR | MX2_CAMERA_CCIR_INTERLACE | MX2_CAMERA_PCLK_SAMPLE_RISING,
+ 	.clk = 100000,
+ };
+ 
+-- 
+1.7.0.4
+
