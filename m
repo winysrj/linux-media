@@ -1,99 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:61807 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760375Ab2CNUbg (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:40185 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751431Ab2C0PsE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Mar 2012 16:31:36 -0400
-Received: by wejx9 with SMTP id x9so2129641wej.19
-        for <linux-media@vger.kernel.org>; Wed, 14 Mar 2012 13:31:35 -0700 (PDT)
-Message-ID: <1331757086.5029.2.camel@tvbox>
-Subject: [PATCH] m88rs2000 ver 1.13 Correct deseqc and tuner gain functions
-From: Malcolm Priestley <tvboxspy@gmail.com>
-To: linux-media@vger.kernel.org
-Date: Wed, 14 Mar 2012 20:31:26 +0000
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Mime-Version: 1.0
+	Tue, 27 Mar 2012 11:48:04 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 05/10] uvcvideo: Fix a "ignoring return value of =?UTF-8?B?4oCYX19jbGVhcl91c2Vy4oCZIg==?= warning
+Date: Tue, 27 Mar 2012 17:48:01 +0200
+Message-ID: <2553055.XH042LfJfh@avalon>
+In-Reply-To: <1332676610-14953-6-git-send-email-hdegoede@redhat.com>
+References: <1332676610-14953-1-git-send-email-hdegoede@redhat.com> <1332676610-14953-6-git-send-email-hdegoede@redhat.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Remove incorrect SEC_MINI_B settings-TODO complete this section.
+Hi Hans,
 
-Correct break and remove return -EINVAL within set tone. It appears
-there is a bug that occasionally something other than ON/OFF is
-sent stalling the driver. Just continue and write back registers.
+Thanks for the patch.
 
-Set register b2 in setup. This is the set voltage pin which
-isn't used in lmedm04 driver but it is always set to 0x1.
+On Sunday 25 March 2012 13:56:45 Hans de Goede wrote:
+> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 
-Correct the if statements in set_tuner_rf.
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
----
- drivers/media/dvb/frontends/m88rs2000.c |   17 ++++++++---------
- 1 files changed, 8 insertions(+), 9 deletions(-)
+> ---
+>  drivers/media/video/uvc/uvc_v4l2.c |    3 ++-
+>  1 file changed, 2 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/video/uvc/uvc_v4l2.c
+> b/drivers/media/video/uvc/uvc_v4l2.c index ff2cddd..8db90ef 100644
+> --- a/drivers/media/video/uvc/uvc_v4l2.c
+> +++ b/drivers/media/video/uvc/uvc_v4l2.c
+> @@ -1097,7 +1097,8 @@ static int uvc_v4l2_put_xu_mapping(const struct
+> uvc_xu_control_mapping *kp, __put_user(kp->menu_count, &up->menu_count))
+>  		return -EFAULT;
+> 
+> -	__clear_user(up->reserved, sizeof(up->reserved));
+> +	if (__clear_user(up->reserved, sizeof(up->reserved)))
+> +		return -EFAULT;
+> 
+>  	if (kp->menu_count == 0)
+>  		return 0;
 
-diff --git a/drivers/media/dvb/frontends/m88rs2000.c b/drivers/media/dvb/frontends/m88rs2000.c
-index c9a3435..a8573db 100644
---- a/drivers/media/dvb/frontends/m88rs2000.c
-+++ b/drivers/media/dvb/frontends/m88rs2000.c
-@@ -228,8 +228,7 @@ static int m88rs2000_send_diseqc_burst(struct dvb_frontend *fe,
- 	msleep(50);
- 	reg0 = m88rs2000_demod_read(state, 0xb1);
- 	reg1 = m88rs2000_demod_read(state, 0xb2);
--	if (burst == SEC_MINI_B)
--		reg1 |= 0x1;
-+	/* TODO complete this section */
- 	m88rs2000_demod_write(state, 0xb2, reg1);
- 	m88rs2000_demod_write(state, 0xb1, reg0);
- 	m88rs2000_demod_write(state, 0x9a, 0xb0);
-@@ -251,13 +250,12 @@ static int m88rs2000_set_tone(struct dvb_frontend *fe, fe_sec_tone_mode_t tone)
- 	case SEC_TONE_ON:
- 		reg0 |= 0x4;
- 		reg0 &= 0xbc;
--	break;
-+		break;
- 	case SEC_TONE_OFF:
- 		reg1 |= 0x80;
--	break;
--
-+		break;
- 	default:
--		return -EINVAL;
-+		break;
- 	}
- 	m88rs2000_demod_write(state, 0xb2, reg1);
- 	m88rs2000_demod_write(state, 0xb1, reg0);
-@@ -292,6 +290,7 @@ struct inittab m88rs2000_setup[] = {
- 	{DEMOD_WRITE, 0xf0, 0x22},
- 	{DEMOD_WRITE, 0xf1, 0xbf},
- 	{DEMOD_WRITE, 0xb0, 0x45},
-+	{DEMOD_WRITE, 0xb2, 0x01}, /* set voltage pin always set 1*/
- 	{DEMOD_WRITE, 0x9a, 0xb0},
- 	{0xff, 0xaa, 0xff}
- };
-@@ -520,9 +519,9 @@ static int m88rs2000_set_tuner_rf(struct dvb_frontend *fe)
- 	int reg;
- 	reg = m88rs2000_tuner_read(state, 0x3d);
- 	reg &= 0x7f;
--	if (reg < 0x17)
-+	if (reg < 0x16)
- 		reg = 0xa1;
--	else if (reg < 0x16)
-+	else if (reg == 0x16)
- 		reg = 0x99;
- 	else
- 		reg = 0xf9;
-@@ -902,5 +901,5 @@ EXPORT_SYMBOL(m88rs2000_attach);
- MODULE_DESCRIPTION("M88RS2000 DVB-S Demodulator driver");
- MODULE_AUTHOR("Malcolm Priestley tvboxspy@gmail.com");
- MODULE_LICENSE("GPL");
--MODULE_VERSION("1.12");
-+MODULE_VERSION("1.13");
- 
 -- 
-1.7.9.1
+Regards,
 
-
-
+Laurent Pinchart
 
