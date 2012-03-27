@@ -1,56 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rcsinet15.oracle.com ([148.87.113.117]:44110 "EHLO
-	rcsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754072Ab2CTNj5 (ORCPT
+Received: from mailfe08.c2i.net ([212.247.154.226]:60605 "EHLO swip.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1750876Ab2C0QBK convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Mar 2012 09:39:57 -0400
-Date: Tue, 20 Mar 2012 16:40:35 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: volokh <volokh@telros.ru>
-Cc: devel@linuxdriverproject.org, linux-media@vger.kernel.org
-Subject: Re: go7007 patch for 3.2.11
-Message-ID: <20120320134034.GA3218@mwanda>
-References: <1332247500.6182.30.camel@VPir>
- <20120320133750.GA3967@mwanda>
+	Tue, 27 Mar 2012 12:01:10 -0400
+Received: from [176.74.212.201] (account mc467741@c2i.net HELO laptop002.hselasky.homeunix.org)
+  by mailfe08.swip.net (CommuniGate Pro SMTP 5.4.2)
+  with ESMTPA id 256815132 for linux-media@vger.kernel.org; Tue, 27 Mar 2012 17:56:06 +0200
+From: Hans Petter Selasky <hselasky@c2i.net>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH] Fix compiler warning.
+Date: Tue, 27 Mar 2012 17:54:41 +0200
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="HcAYCG3uE/tztfnV"
-Content-Disposition: inline
-In-Reply-To: <20120320133750.GA3967@mwanda>
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201203271754.41984.hselasky@c2i.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+>From 03d309b552e01622a678b2c500f80fe59746ca12 Mon Sep 17 00:00:00 2001
+From: Hans Petter Selasky <hselasky@c2i.net>
+Date: Tue, 27 Mar 2012 17:53:19 +0200
+Subject: [PATCH] Fix compiler warning.
 
---HcAYCG3uE/tztfnV
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Signed-off-by: Hans Petter Selasky <hselasky@c2i.net>
+---
+ drivers/media/dvb/dvb-core/dvb_frontend.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Also the patch has to apply against linux-next not 3.2.11.  Probably
-that is explained in the link I sent...
+diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-
+core/dvb_frontend.c
+index 4555baa..bfdf599 100644
+--- a/drivers/media/dvb/dvb-core/dvb_frontend.c
++++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
+@@ -146,7 +146,7 @@ static int dtv_get_frontend(struct dvb_frontend *fe,
+ 
+ static bool has_get_frontend(struct dvb_frontend *fe)
+ {
+-	return fe->ops.get_frontend;
++	return fe->ops.get_frontend != NULL;
+ }
+ 
+ /*
+-- 
+1.7.1.1
 
-regards,
-dan carpenter
-
---HcAYCG3uE/tztfnV
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAEBAgAGBQJPaIjSAAoJEOnZkXI/YHqRDJcQAJJJcx7rO+CmUFCeAUlGf4tY
-2N5mYrd9PzvNmZbZzptnifKfFiU8ksLSoFMwek8l3bB1HhmR4H2D4rv30w/RLKmC
-E9C6pwKSlLrbNfIv8XrLDXY5z4rYQivOnbJ9/V4XKw6G7KqcRICt+R7Czb1397Jl
-IvHoCrR+eWAkQfDTKptirUgX2cjeav+ZvFysHPBAV+YMUABK+PrXGDGTOm9Qqm4K
-+qk9cKNzBV4fOqMF8SEPavOtXSPhvtZtqCfkRrG8bRl8VMEXgHrUSeiznXwa2Mf7
-xezm9DZC6uvwdkQTXe1P11Xl54OgU3mrCcqN+eVE94DtbUXzgVg7Es0S2d8/xaDm
-v9qNeoCntxJNhJdBsk2sXLzrMEbj34n/2W7iDRVwzb0xIYObbtxLax+xHdoeREV3
-SwGn6dVqVNp8TvDe+YZ2qjQ/+4QhrlovxjvSf3M/GpTJIZEHXhuDNtxgE/ud9724
-KdSlfVrB90AiVsEmMSIJI2hIcgXnvNfxAghuGQPoBjupNDpxwfuCHmbKEH3hL5j6
-U8oiWbC//TQLJjHlEm6RHpyReoCHavbBgAs6VG5URP71tiAJxTNSVH9ZBeI35Vpc
-MfT929ULeVMgSN18XcGKEElmEO9nrZ80eIFn2uRihViU2Kmy4nXysAD1M0thCwk2
-k6/jQ5B4hXSTcPk+Vqxs
-=8Vkt
------END PGP SIGNATURE-----
-
---HcAYCG3uE/tztfnV--
