@@ -1,90 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:50645 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758004Ab2CBV0R convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Mar 2012 16:26:17 -0500
+Received: from perceval.ideasonboard.com ([95.142.166.194]:39193 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751628Ab2C1JeW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Mar 2012 05:34:22 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 10/10] uvcvideo: Send control change events for slave ctrls when the master changes
+Date: Wed, 28 Mar 2012 11:34:21 +0200
+Message-ID: <3644368.eZXM6sk7Z1@avalon>
+In-Reply-To: <1332676610-14953-11-git-send-email-hdegoede@redhat.com>
+References: <1332676610-14953-1-git-send-email-hdegoede@redhat.com> <1332676610-14953-11-git-send-email-hdegoede@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <1330616161-1937-2-git-send-email-daniel.vetter@ffwll.ch>
-References: <1330616161-1937-1-git-send-email-daniel.vetter@ffwll.ch>
-	<1330616161-1937-2-git-send-email-daniel.vetter@ffwll.ch>
-Date: Fri, 2 Mar 2012 15:26:16 -0600
-Message-ID: <CAF6AEGsfC-BM2DvFn457pMhE-b_Mr5O4RgaP5WVO78QwRBe-5g@mail.gmail.com>
-Subject: Re: [PATCH 1/3] dma-buf: don't hold the mutex around map/unmap calls
-From: Rob Clark <rob.clark@linaro.org>
-To: Daniel Vetter <daniel.vetter@ffwll.ch>
-Cc: linaro-mm-sig@lists.linaro.org,
-	LKML <linux-kernel@vger.kernel.org>,
-	DRI Development <dri-devel@lists.freedesktop.org>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Mar 1, 2012 at 9:35 AM, Daniel Vetter <daniel.vetter@ffwll.ch> wrote:
-> The mutex protects the attachment list and hence needs to be held
-> around the callbakc to the exporters (optional) attach/detach
-> functions.
->
-> Holding the mutex around the map/unmap calls doesn't protect any
-> dma_buf state. Exporters need to properly protect any of their own
-> state anyway (to protect against calls from their own interfaces).
-> So this only makes the locking messier (and lockdep easier to anger).
->
-> Therefore let's just drop this.
->
-> Signed-off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+Hi Hans,
 
-Reviewed-by: Rob Clark <rob.clark@linaro.org>
+Thanks for the patch.
 
+On Sunday 25 March 2012 13:56:50 Hans de Goede wrote:
+> This allows v4l2 control UI-s to update the inactive state (ie grey-ing
+> out of controls) for slave controls when the master control changes.
+> 
+> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 > ---
->  drivers/base/dma-buf.c  |    4 ----
->  include/linux/dma-buf.h |    2 +-
->  2 files changed, 1 insertions(+), 5 deletions(-)
->
-> diff --git a/drivers/base/dma-buf.c b/drivers/base/dma-buf.c
-> index e38ad24..1b11192 100644
-> --- a/drivers/base/dma-buf.c
-> +++ b/drivers/base/dma-buf.c
-> @@ -258,10 +258,8 @@ struct sg_table *dma_buf_map_attachment(struct dma_buf_attachment *attach,
->        if (WARN_ON(!attach || !attach->dmabuf || !attach->dmabuf->ops))
->                return ERR_PTR(-EINVAL);
->
-> -       mutex_lock(&attach->dmabuf->lock);
->        if (attach->dmabuf->ops->map_dma_buf)
->                sg_table = attach->dmabuf->ops->map_dma_buf(attach, direction);
-> -       mutex_unlock(&attach->dmabuf->lock);
->
->        return sg_table;
->  }
-> @@ -282,10 +280,8 @@ void dma_buf_unmap_attachment(struct dma_buf_attachment *attach,
->                            || !attach->dmabuf->ops))
->                return;
->
-> -       mutex_lock(&attach->dmabuf->lock);
->        if (attach->dmabuf->ops->unmap_dma_buf)
->                attach->dmabuf->ops->unmap_dma_buf(attach, sg_table);
-> -       mutex_unlock(&attach->dmabuf->lock);
->
->  }
->  EXPORT_SYMBOL_GPL(dma_buf_unmap_attachment);
-> diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
-> index f8ac076..f7ad2ca 100644
-> --- a/include/linux/dma-buf.h
-> +++ b/include/linux/dma-buf.h
-> @@ -86,7 +86,7 @@ struct dma_buf {
->        struct file *file;
->        struct list_head attachments;
->        const struct dma_buf_ops *ops;
-> -       /* mutex to serialize list manipulation and other ops */
-> +       /* mutex to serialize list manipulation and attach/detach */
->        struct mutex lock;
->        void *priv;
->  };
-> --
-> 1.7.7.5
->
-> _______________________________________________
-> dri-devel mailing list
-> dri-devel@lists.freedesktop.org
-> http://lists.freedesktop.org/mailman/listinfo/dri-devel
+>  drivers/media/video/uvc/uvc_ctrl.c |   55 +++++++++++++++++++++++++++++++--
+>  1 file changed, 52 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/media/video/uvc/uvc_ctrl.c
+> b/drivers/media/video/uvc/uvc_ctrl.c index 91d9007..2d06fd8 100644
+> --- a/drivers/media/video/uvc/uvc_ctrl.c
+> +++ b/drivers/media/video/uvc/uvc_ctrl.c
+
+[snip]
+
+> +static void uvc_ctrl_send_events(struct uvc_fh *handle,
+> +	struct v4l2_ext_control *xctrls, int xctrls_count)
+> +{
+> +	struct uvc_control_mapping *mapping;
+> +	struct uvc_control *ctrl;
+> +	u32 changes = V4L2_EVENT_CTRL_CH_VALUE;
+> +	int i, j;
+> +
+>  	for (i = 0; i < xctrls_count; ++i) {
+>  		ctrl = uvc_find_control(handle->chain, xctrls[i].id, &mapping);
+> +
+> +		for (j = 0; j < ARRAY_SIZE(mapping->slave_ids); ++j) {
+> +			if (!mapping->slave_ids[j])
+> +				break;
+> +			uvc_ctrl_send_slave_event(handle,
+> +						  mapping->slave_ids[j],
+> +						  xctrls, xctrls_count);
+> +		}
+> +
+> +		/*
+> +		 * If the master is being modified in the same transaction
+> +		 * flags may change too.
+> +		 */
+> +		if (mapping->master_id)
+> +			for (j = 0; j < xctrls_count; j++)
+> +				if (xctrls[j].id == mapping->master_id) {
+> +					changes |= V4L2_EVENT_CTRL_CH_FLAGS;
+
+Should you verify that the modification to the master control actually caused 
+a slave control flags change, or would that be overkill ?
+
+> +					break;
+> +				}
+
+Could you please put brackets around the for and the if ?
+
+> +
+>  		uvc_ctrl_send_event(handle, ctrl, mapping, xctrls[i].value,
+> -				    V4L2_EVENT_CTRL_CH_VALUE);
+> +				    changes);
+>  	}
+>  }
+
+-- 
+Regards,
+
+Laurent Pinchart
+
