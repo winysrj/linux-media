@@ -1,62 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:49107 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756507Ab2CTIm4 convert rfc822-to-8bit (ORCPT
+Received: from smtp01.smtpout.orange.fr ([80.12.242.123]:45653 "EHLO
+	smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751941Ab2C1RT3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Mar 2012 04:42:56 -0400
-Received: by iagz16 with SMTP id z16so10699399iag.19
-        for <linux-media@vger.kernel.org>; Tue, 20 Mar 2012 01:42:56 -0700 (PDT)
+	Wed, 28 Mar 2012 13:19:29 -0400
+From: "EricJCh.Aubert" <ericjch.aubert@orange.fr>
+To: linux-media@vger.kernel.org
+Subject: update to file fr-Paris for DVB-T corrected
+Date: Wed, 28 Mar 2012 19:18:58 +0200
+Message-ID: <1706979.NJtO1a2JFt@linux>
 MIME-Version: 1.0
-In-Reply-To: <20120319114441.5c64574f@dt>
-References: <CACKLOr28ECqBhTkMsd=6vSOMPZk2DgbRFWZOZXH39omQRP0fcA@mail.gmail.com>
-	<20120319114441.5c64574f@dt>
-Date: Tue, 20 Mar 2012 09:42:55 +0100
-Message-ID: <CACKLOr0PU40+fc=YDKq-LcTKGkfXsZT4G52RTB8fzu=8sSqRaw@mail.gmail.com>
-Subject: Re: [Q] ov7670: green line in VGA resolution
-From: javier Martin <javier.martin@vista-silicon.com>
-To: Jonathan Corbet <corbet@lwn.net>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: multipart/mixed; boundary="nextPart1621382.tLakN1j2ix"
+Content-Transfer-Encoding: 7Bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jonathan,
-thank you for your attention.
 
-On 19 March 2012 18:44, Jonathan Corbet <corbet@lwn.net> wrote:
-> On Mon, 19 Mar 2012 17:27:06 +0100
-> javier Martin <javier.martin@vista-silicon.com> wrote:
->
->> I suspect the problem is related to the fact that this sensor has an
->> array of 656 x 488 pixels but only 640 x 480 are active. The datasheet
->> available from Omnivision (Version 1.4, August 21, 2006) is not clear
->> about how to configure the sensor not to show non active pixels but I
->> could find the following patch which addresses a similar problem for
->> QVGA:
->
-> Interesting...nobody ever sent that patch anywhere where I've seen it.
->
-> Anyway, the ov7670 datasheet is not clear on much of anything, and the
-> things it *is* clear on are likely to be wrong.
->
-> The comment in the patch makes it clear how this was worked out, anyway:
-> "empirically determined."  Unless you can get through to the one person at
-> OmniVision who knows how this sensor actually works, the best that can be
-> done is to mess with the values for the window.  That's often done at both
-> the sensor and the controller level - if you look at the Marvell
-> controller, you'll see window tweaking there too.
+--nextPart1621382.tLakN1j2ix
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 
-So, what I understand is that you see the same green line and, due to
-the lack of documentation for the ov7670, you solve it adjusting de
-video window in the Marvell controller driver. Could you confirm this?
+Hi
+I've made a mistake in my previous file fr-Paris for R8 due to a bad compute
+it's not 700   but 770!
+here is the file with the correct values
 
-Regards.
+Rgds
 -- 
-Javier Martin
-Vista Silicon S.L.
-CDTUC - FASE C - Oficina S-345
-Avda de los Castros s/n
-39005- Santander. Cantabria. Spain
-+34 942 25 32 60
-www.vista-silicon.com
+Eric Aubert
+
+ericjch.aubert@orange.fr
+--nextPart1621382.tLakN1j2ix
+Content-Disposition: attachment; filename="fr-Paris"
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="UTF-8"; name="fr-Paris"
+
+# Paris - France - various DVB-T transmitters
+# contributed by Alexis de Lattre <alexis@via.ecp.fr>
+#
+# update by Eric Aubert <ericjch.aubert@orange.fr>
+# date march 2012
+#
+# City                       R1 R2 R3 R4 R5 R6 L8 R7* R8*
+# Paris - Tour Eiffel      : 35 25 22 30 28 32 33 42  58
+# Paris Est - Chennevi=C3=A8res : 35 25 22 30 28 32    42  58=20
+# Paris Nord - Sannois     : 35 25 22 30 28 32    42  58=20
+# Paris Sud - Villebon     : 35 25 22 30 28 32    42  58=20
+# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarch=
+y
+#R3 (Canal+ HD,Canal+ Cin=C3=A9ma,Canal+ Sport,Plan=C3=A8te,TPS Star)
+T 482166000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
+#R2 (I-T=C3=A9l=C3=A9,BFM TV,Direct 8,Gulli,Virgin 17,France 4)
+T 506166000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
+#R3 (Canal+ HD,Canal+ Cin=C3=A9ma,Canal+ Sport,Plan=C3=A8te,TPS Star)
+T 522166000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
+#R5 (TF1 HD,France 2 HD,M6 HD)
+T 530166000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
+#R4 (M6,W9,NT1,Paris Premi=C3=A8re,ARTE HD)
+T 546166000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
+#R6 (TF1,LCI,Eurosport,TF6,NRJ 12,TMC)
+T 562166000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
+### Paris - Tour Eiffel      : 33
+#L8 (cha=C3=AEnes locales)
+T 570166000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
+#R1 (France 2,France 3,France 5,Arte,LCP/Public S=C3=A9nat,France =C3=94=
+)
+T 586166000 8MHz 3/4 NONE QAM64 8k 1/8 NONE
+#R7*
+T 642166000 8MHz 3/4 NONE QAM64 8k 1/32 NONE
+#R8*
+T 770166000 8MHz 3/4 NONE QAM64 8k 1/32 NONE
+
+--nextPart1621382.tLakN1j2ix--
+
