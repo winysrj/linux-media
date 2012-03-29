@@ -1,125 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.47]:53321 "EHLO mgw-sa01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932420Ab2CBRc4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 2 Mar 2012 12:32:56 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, dacohen@gmail.com,
-	snjw23@gmail.com, andriy.shevchenko@linux.intel.com,
-	t.stanislaws@samsung.com, tuukkat76@gmail.com,
-	k.debski@samsung.com, riverful@gmail.com, hverkuil@xs4all.nl,
-	teturtia@gmail.com
-Subject: [PATCH v4 27/34] omap3isp: Introduce isp_video_check_external_subdevs()
-Date: Fri,  2 Mar 2012 19:30:35 +0200
-Message-Id: <1330709442-16654-27-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <20120302173219.GA15695@valkosipuli.localdomain>
-References: <20120302173219.GA15695@valkosipuli.localdomain>
+Received: from mail-vb0-f46.google.com ([209.85.212.46]:61168 "EHLO
+	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750839Ab2C2JSm convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 29 Mar 2012 05:18:42 -0400
+Received: by vbbff1 with SMTP id ff1so1317296vbb.19
+        for <linux-media@vger.kernel.org>; Thu, 29 Mar 2012 02:18:42 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <4F742569.5020503@redhat.com>
+References: <CAJu-Zix22G3WbCCJ1h7P7+9naEU0XkYNDELTk9hCzMQ8UYB-gQ@mail.gmail.com>
+ <4F742569.5020503@redhat.com>
+From: =?UTF-8?Q?Rafa=C5=82_Rzepecki?= <divided.mind@gmail.com>
+Date: Thu, 29 Mar 2012 11:18:21 +0200
+Message-ID: <CAJu-ZixgaED4r5+OZHvEtSD8fUVmYyi6ZvNmMtDyZrtSFFGAOw@mail.gmail.com>
+Subject: Re: Startup delay needed for a Sonix camera
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: linux-media@vger.kernel.org, Jean-Francois Moine <moinejf@free.fr>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-isp_video_check_external_subdevs() will retrieve external subdev's
-bits-per-pixel and pixel rate for the use of other ISP subdevs at streamon
-time. isp_video_check_external_subdevs() is called after pipeline
-validation.
+2012/3/29 Hans de Goede <hdegoede@redhat.com>:
+> Hi,
+>
+>
+> On 03/29/2012 08:27 AM, Rafał Rzepecki wrote:
+>>
+>> Hi,
+>>
+>> I've tried to reach Jean-Francois with this a week ago, but I still
+>> haven't received an answer, so I'm sending it to the mailing list. I'd
+>> appreciate a CC of any follow-ups.
+>>
+>> I've been having problems with my ID 0c45:6128 Microdia PC Camera
+>> (SN9C325 + OM6802) using driver gspca_sonixj. Specifically, launching
+>> command:
+>> $ gst-launch-0.10 v4l2src ! ffmpegcolorspace ! pngenc ! filesink \
+>> location=/tmp/file.png
+>> gave a file that is all black. This is problematic because at least
+>> one program (odeskteam) uses a similar method to grab camshots.
+>>
+>> I thought it looked like as though the camera hasn't got enough time
+>> to initialize, and indeed, adding an msleep(30) near the end of
+>> sd_start() in sonixj.c solved the problem.
+>
+>
+> The problem is that the above method to take a snapshot is simply
+> wrong. Many cameras need to be streaming video data for "a while"
+> before they give a (good) picture.
+>
+> Many cameras need some time for things like auto-gain, auto-exposure,
+> auto-whitebalance and auto-focus to get to their correct setting for
+> a proper picture. A black picture probably means that the auto-gain/
+> auto-exposure for set camera still needs to jank up the gain and/or
+> exposure. and you're simply not giving it time for this.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
----
- drivers/media/video/omap3isp/ispvideo.c |   74 +++++++++++++++++++++++++++++++
- 1 files changed, 74 insertions(+), 0 deletions(-)
+The fix already in the trunk (see my other message) proves that's not
+the case in this instance.
+(Also, I've checked whether it's really all black or just very dim.
+Even aiming the camera at a bright halogen bulb gave black picture.)
 
-diff --git a/drivers/media/video/omap3isp/ispvideo.c b/drivers/media/video/omap3isp/ispvideo.c
-index f2621bc..4ec781a 100644
---- a/drivers/media/video/omap3isp/ispvideo.c
-+++ b/drivers/media/video/omap3isp/ispvideo.c
-@@ -934,6 +934,77 @@ isp_video_dqbuf(struct file *file, void *fh, struct v4l2_buffer *b)
- 					  file->f_flags & O_NONBLOCK);
- }
- 
-+static int isp_video_check_external_subdevs(struct isp_pipeline *pipe)
-+{
-+	struct isp_device *isp =
-+		container_of(pipe, struct isp_video, pipe)->isp;
-+	struct media_entity *ents[] = {
-+		&isp->isp_csi2a.subdev.entity,
-+		&isp->isp_csi2c.subdev.entity,
-+		&isp->isp_ccp2.subdev.entity,
-+		&isp->isp_ccdc.subdev.entity
-+	};
-+	struct media_pad *source_pad;
-+	struct media_entity *source = NULL;
-+	struct media_entity *sink;
-+	struct v4l2_subdev_format fmt;
-+	struct v4l2_ext_controls ctrls;
-+	struct v4l2_ext_control ctrl;
-+	int i;
-+	int ret = 0;
-+
-+	for (i = 0; i < ARRAY_SIZE(ents); i++) {
-+		/* Is the entity part of the pipeline? */
-+		if (!(pipe->pipe.entities & (1 << ents[i]->id)))
-+			continue;
-+
-+		/* ISP entities have always sink pad == 0. Find source. */
-+		source_pad = media_entity_remote_source(&ents[i]->pads[0]);
-+
-+		if (source_pad == NULL)
-+			continue;
-+
-+		source = source_pad->entity;
-+		sink = ents[i];
-+		break;
-+	}
-+
-+	if (!source || media_entity_type(source) != MEDIA_ENT_T_V4L2_SUBDEV)
-+		return 0;
-+
-+	pipe->external = media_entity_to_v4l2_subdev(source);
-+
-+	fmt.pad = source_pad->index;
-+	fmt.which = V4L2_SUBDEV_FORMAT_ACTIVE;
-+	ret = v4l2_subdev_call(media_entity_to_v4l2_subdev(sink),
-+			       pad, get_fmt, NULL, &fmt);
-+	BUG_ON(ret < 0);
-+
-+	pipe->external_bpp = omap3isp_video_format_info(
-+		fmt.format.code)->bpp;
-+
-+	memset(&ctrls, 0, sizeof(ctrls));
-+	memset(&ctrl, 0, sizeof(ctrl));
-+
-+	ctrl.id = V4L2_CID_PIXEL_RATE;
-+
-+	ctrls.ctrl_class = V4L2_CTRL_ID2CLASS(ctrl.id);
-+	ctrls.count = 1;
-+	ctrls.controls = &ctrl;
-+
-+	ret = v4l2_g_ext_ctrls(pipe->external->ctrl_handler, &ctrls);
-+	if (ret < 0) {
-+		dev_warn(isp->dev,
-+			 "no pixel rate control in subdev %s\n",
-+			 pipe->external->name);
-+		return ret;
-+	}
-+
-+	pipe->external_rate = ctrl.value64;
-+
-+	return 0;
-+}
-+
- /*
-  * Stream management
-  *
-@@ -1000,6 +1071,9 @@ isp_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
- 	ret = media_entity_pipeline_start(&video->video.entity, &pipe->pipe);
- 	if (ret < 0)
- 		goto err_media_entity_pipeline_start;
-+	ret = isp_video_check_external_subdevs(pipe);
-+	if (ret < 0)
-+		goto err_isp_video_check_format;
- 
- 	/* Verify that the currently configured format matches the output of
- 	 * the connected subdev.
+> My high quality HD video microsoft studio pro camera also starts
+> out with a close to black picture when I start streaming data from
+> it in anything but bright sunlight, and then corrects the picture
+> in 1-5 frames. This same camera takes like .5 seconds to gets it
+> auto focus settled so your snapshot example would likely result
+> in a too dark, unsharp picture. Note that this is all handled by
+> the camera itself, the UVC driver it uses has no control over this.
+>
+> Why do you think digital compact (still photo) cameras take so much
+> time from you pressing the take picture button to actually taking the
+> picture? They are in essence doing the same. The only difference
+> with webcams is that people want more then 1 picture / second so
+> the camera cannot do all those corrections before sending a picture,
+> instead it does them while it is streaming data, meaning that the
+> first second or so of data can be quite useless.
+
+While all true, at least with that camera (after applying either fix)
+and one another I have laying around I've observed no discernible
+difference between quality of pictures obtained with this method and
+after a few seconds warm-up. I suspect most, if not all, 'web' cameras
+are capable of giving satisfactory picture on such short notice,
+especially given their automation is rather unsophisticated compared
+to still photo cameras; of course in extreme conditions (low light,
+etc.) all bets are off.
+
+Anyhow, while I agree that the best solution would be for the app to
+switch to a more sophisticated snapshot method, I don't really have
+any bearing whatsoever on the app that exposed the problem; it's
+proprietary and closed-source and I only use it, and although I have
+filed a bugreport they haven't exactly been very responsive. OTOH, I
+suppose that confirms that this method usually works sufficiently well
+-- otherwise I expect they'd have known the problem and implemented
+appropriate workarounds, if only as hidden debug options, which they
+seemed not have done.
+
+It's also worth noting that it this particular application the picture
+doesn't have to be of great quality, so perhaps that's the reason for
+the quick and dirty method chosen -- but it's important that at least
+_something_ can be seen. As long as the hardware is basically capable
+of that (as is true in this case), I think the driver should expose
+this capability.
 -- 
-1.7.2.5
-
+Rafał Rzepecki
