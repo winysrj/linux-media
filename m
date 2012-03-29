@@ -1,57 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from plane.gmane.org ([80.91.229.3]:43927 "EHLO plane.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751293Ab2CLBUH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 11 Mar 2012 21:20:07 -0400
-Received: from list by plane.gmane.org with local (Exim 4.69)
-	(envelope-from <gldv-linux-media@m.gmane.org>)
-	id 1S6tvf-0002N7-Lr
-	for linux-media@vger.kernel.org; Mon, 12 Mar 2012 02:20:03 +0100
-Received: from p4ffe12dc.dip.t-dialin.net ([79.254.18.220])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Mon, 12 Mar 2012 02:20:03 +0100
-Received: from steve by p4ffe12dc.dip.t-dialin.net with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Mon, 12 Mar 2012 02:20:03 +0100
-To: linux-media@vger.kernel.org
-From: Steve Markgraf <steve@steve-m.de>
-Subject: Re: SDR FM demodulation
-Date: Mon, 12 Mar 2012 02:09:36 +0100
-Message-ID: <jjjicf$n6s$1@dough.gmane.org>
-References: <4F33DFB8.4080702@iki.fi> <CAO-Op+Fn0AxiqD4367O7H7AziR4g2vnFCMtsVcu1iRvf6P5iYw@mail.gmail.com> <4F36632A.3010700@iki.fi>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-In-Reply-To: <4F36632A.3010700@iki.fi>
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:55164 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753412Ab2C2TSI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 29 Mar 2012 15:18:08 -0400
+References: <20120329174427.D1F6E15D201A8@alastor.dyndns.org> <E9BA201A-4F44-4E01-8553-0977724C79B1@gmail.com>
+In-Reply-To: <E9BA201A-4F44-4E01-8553-0977724C79B1@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain;
+ charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Subject: Re: Compilation problem : too few arguments to function 'kmap_atomic
+From: Andy Walls <awalls@md.metrocast.net>
+Date: Thu, 29 Mar 2012 15:18:16 -0400
+To: =?ISO-8859-1?Q?Lo=EFc_Bertron?= <loic.bertron@gmail.com>,
+	linux-media@vger.kernel.org
+Message-ID: <d43931cd-9951-4e72-bee7-90308c99a54e@email.android.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+"Loïc Bertron" <loic.bertron@gmail.com> wrote
 
-On 11.02.2012 13:46, Antti Palosaari wrote:
-> Now someone should make Linux driver that can tune that device to
-> different frequencies and look what it really can do.
+>Hello,
+>
+>I'm running into an issue when compiling the last version of
+>media_build : 
+>
+>/usr/src/linux-headers-2.6.32-5-common/include/linux/kernel.h:366:1:
+>warning: this is the location of the previous definition
+>  CC [M]  /home/toto/sources/media_build/v4l/hdpvr-control.o
+>  CC [M]  /home/toto/sources/media_build/v4l/hdpvr-core.o
+>  CC [M]  /home/toto/sources/media_build/v4l/hdpvr-video.o
+>  CC [M]  /home/toto/sources/media_build/v4l/hdpvr-i2c.o
+>  CC [M]  /home/toto/sources/media_build/v4l/hopper_cards.o
+>  CC [M]  /home/toto/sources/media_build/v4l/hopper_vp3028.o
+>  CC [M]  /home/toto/sources/media_build/v4l/ivtv-routing.o
+>  CC [M]  /home/toto/sources/media_build/v4l/ivtv-cards.o
+>  CC [M]  /home/toto/sources/media_build/v4l/ivtv-controls.o
+>  CC [M]  /home/toto/sources/media_build/v4l/ivtv-driver.o
+>  CC [M]  /home/toto/sources/media_build/v4l/ivtv-fileops.o
+>  CC [M]  /home/toto/sources/media_build/v4l/ivtv-firmware.o
+>  CC [M]  /home/toto/sources/media_build/v4l/ivtv-gpio.o
+>  CC [M]  /home/toto/sources/media_build/v4l/ivtv-i2c.o
+>  CC [M]  /home/toto/sources/media_build/v4l/ivtv-ioctl.o
+>  CC [M]  /home/toto/sources/media_build/v4l/ivtv-irq.o
+>  CC [M]  /home/toto/sources/media_build/v4l/ivtv-mailbox.o
+>  CC [M]  /home/toto/sources/media_build/v4l/ivtv-queue.o
+>  CC [M]  /home/toto/sources/media_build/v4l/ivtv-streams.o
+>  CC [M]  /home/toto/sources/media_build/v4l/ivtv-udma.o
+>/home/toto/sources/media_build/v4l/ivtv-udma.c: In function
+>'ivtv_udma_fill_sg_list':
+>/home/toto/sources/media_build/v4l/ivtv-udma.c:60: error: too few
+>arguments to function 'kmap_atomic'
+>/home/toto/sources/media_build/v4l/ivtv-udma.c:62:21: error: macro
+>"kunmap_atomic" requires 2 arguments, but only 1 given 
+>/home/toto/sources/media_build/v4l/ivtv-udma.c:62: error:
+>'kunmap_atomic' undeclared (first use in this function)
+>/home/toto/sources/media_build/v4l/ivtv-udma.c:62: error: (Each
+>undeclared identifier is reported only once
+>/home/toto/sources/media_build/v4l/ivtv-udma.c:62: error: for each
+>function it appears in.)
+>make[5]: *** [/home/toto/sources/media_build/v4l/ivtv-udma.o] Error 1
+>make[4]: *** [_module_/home/toto/sources/media_build/v4l] Error 2
+>make[3]: *** [sub-make] Error 2
+>make[2]: *** [all] Error 2
+>make[2]: Leaving directory `/usr/src/linux-headers-2.6.32-5-amd64'
+>make[1]: *** [default] Error 2
+>make[1]: Leaving directory `/home/toto/sources/media_build/v4l'
+>make: *** [all] Error 2
+>build failed at ./build line 410.
+>
+>After searching a bit on Google, I found someone with the same issue
+>than me who post it today : http://pastebin.com/zgqN7LRE
+>
+>Any idea ? --
+>To unsubscribe from this list: send the line "unsubscribe linux-media"
+>in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-I sniffed the Windows driver and wrote a small libusb-based program
-[1], which can tune to a given frequency and record the I/Q-samples to
-a file.
+Backport builds to older kernels are never guarnteed to work.
 
-So far FM radio reception with GNU Radio, as well as GMR-1 satellite
-(Thuraya) reception [2] at 1,525GHz with 1,8MHz bandwidth have been
-tested. Despite the 8 bit ADC, the stick seems to perform quite well.
+The ivtv driver source has to keep up with the latest kernel.  In this case kmap_atomic and kunmap_atomic in the latest kernels have one less argument that in the older kernel version you are using.
 
-The program so far supports the "ezcap USB 2.0 DVB-T/DAB/FM stick" with
-the Elonics E4000 tuner, and the "Terratec NOXON DAB/DAB+ USB-Stick"
-with the Fitipower FC0013 tuner.
+You will need to fix the drivers/media/video/ivtv/ source files to fix the problem.  If you develop a patch for the backport, you can submit it and hopefully get it included as a backward compatibilty patch for the media_build repo.
 
-The code is still somewhat hackish and experimental, since not all of
-the demodulator registers are known, and especially the tuner setup has
-room for improvement.
+Of course that may not be the only problem.   A PVR-x50 user recent noted that media_build ivtv didn't work right with 2.6.32.  I investigated it down to an I2c driver module binding problem, also due to the media_build backport not having a patch.
+
+I have no time, nor desire, to fix things for kernels that old, which are likely Enterprise kernels anyway.  If you do need support for an Enterprise kernel, I recommend getting it from the Enterprise kernel vendor or a consultant.
 
 Regards,
-Steve
-
-[1] http://cgit.osmocom.org/cgit/rtl-sdr/
-[2] http://gmr.osmocom.org/
-
+Andy
