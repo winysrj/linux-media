@@ -1,40 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:42139 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756797Ab2CELPp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Mar 2012 06:15:45 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, dacohen@gmail.com, snjw23@gmail.com,
-	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
-	tuukkat76@gmail.com, k.debski@samsung.com, riverful@gmail.com,
-	hverkuil@xs4all.nl, teturtia@gmail.com
-Subject: Re: [PATCH v4 18/34] v4l: Implement v4l2_subdev_link_validate()
-Date: Mon, 05 Mar 2012 12:16:04 +0100
-Message-ID: <10400534.fUrqukFgMn@avalon>
-In-Reply-To: <1330709442-16654-18-git-send-email-sakari.ailus@iki.fi>
-References: <20120302173219.GA15695@valkosipuli.localdomain> <1330709442-16654-18-git-send-email-sakari.ailus@iki.fi>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from smtp1-g21.free.fr ([212.27.42.1]:45219 "EHLO smtp1-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753961Ab2C2KGW convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 29 Mar 2012 06:06:22 -0400
+Date: Thu, 29 Mar 2012 12:06:47 +0200
+From: Jean-Francois Moine <moinejf@free.fr>
+To: =?UTF-8?B?UmFmYcWC?= Rzepecki <divided.mind@gmail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: Startup delay needed for a Sonix camera
+Message-ID: <20120329120647.6c943772@tele>
+In-Reply-To: <CAJu-ZiykBizbXg=Oq1o-8TYX+CJjBYmZsFsHUFsKJ3BxVQrahQ@mail.gmail.com>
+References: <CAJu-Zix22G3WbCCJ1h7P7+9naEU0XkYNDELTk9hCzMQ8UYB-gQ@mail.gmail.com>
+	<CAJu-ZiykBizbXg=Oq1o-8TYX+CJjBYmZsFsHUFsKJ3BxVQrahQ@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+On Thu, 29 Mar 2012 09:16:59 +0200
+Rafał Rzepecki <divided.mind@gmail.com> wrote:
 
-Thanks for the patch.
+> Actually after some more research I've found that b4b01071379 has fixed it.
+> (Jean-François says in the commit message "This problem was introduced
+> by commit 0e4d413af1a9d and its exact effects are unknown." So I guess
+> they are known now.)
 
-On Friday 02 March 2012 19:30:26 Sakari Ailus wrote:
-> v4l2_subdev_link_validate() is the default op for validating a link. In V4L2
-> subdev context, it is used to call a pad op which performs the proper link
-> check without much extra work.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Good news. Thanks.
 
 -- 
-Regards,
-
-Laurent Pinchart
-
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
