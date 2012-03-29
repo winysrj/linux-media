@@ -1,67 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgate.urz.uni-halle.de ([141.48.3.13]:44704 "EHLO
-	mailgate.urz.uni-halle.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932824Ab2CZQqr convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Mar 2012 12:46:47 -0400
-From: "Neumann, Steffen" <sneumann@ipb-halle.de>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: Hauppauge WinTV HVR 930C-HD - new USB ID 2040:b130 ?
-Date: Mon, 26 Mar 2012 16:46:43 +0000
-Message-ID: <assp.6432a3f11c.wbu9dt7xo6ww5ofhwd2i132p.1332780438773@email.android.com>
-References: <1332706154.31585.245.camel@paddy.ipb-sub.ipb-halle.de>,<CAGoCfix+iDFg86nYKqQOn1=DKHWp8Fj+iFdKZgcQjxKKf4uyow@mail.gmail.com>
-In-Reply-To: <CAGoCfix+iDFg86nYKqQOn1=DKHWp8Fj+iFdKZgcQjxKKf4uyow@mail.gmail.com>
-Content-Language: en-GB
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Received: from mx1.redhat.com ([209.132.183.28]:37080 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750770Ab2C2JBg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 29 Mar 2012 05:01:36 -0400
+Message-ID: <4F742569.5020503@redhat.com>
+Date: Thu, 29 Mar 2012 11:03:37 +0200
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
+To: =?UTF-8?B?UmFmYcWCIFJ6ZXBlY2tp?= <divided.mind@gmail.com>
+CC: linux-media@vger.kernel.org, Jean-Francois Moine <moinejf@free.fr>
+Subject: Re: Startup delay needed for a Sonix camera
+References: <CAJu-Zix22G3WbCCJ1h7P7+9naEU0XkYNDELTk9hCzMQ8UYB-gQ@mail.gmail.com>
+In-Reply-To: <CAJu-Zix22G3WbCCJ1h7P7+9naEU0XkYNDELTk9hCzMQ8UYB-gQ@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 Hi,
-Not the answer I was looking for,
-But thanks everybody for the clarification.
-I'll try to register for the wiki and add
-That information.
 
-Yours, Steffen
-
-
-Devin Heitmueller <dheitmueller@kernellabs.com> schrieb:
-
-
-On Sun, Mar 25, 2012 at 4:09 PM, Steffen Neumann <sneumann@ipb-halle.de> wrote:
+On 03/29/2012 08:27 AM, Rafał Rzepecki wrote:
 > Hi,
 >
-> I am trying to get a Hauppauge WinTV HVR 930C-HD
-> to work under Ubuntu 12.04 with the vanilla 3.3 kernel from [1].
-> After (manually) loading the em28xx module,
-> there are no additional messages in kern.log,
-> only "registered new interface driver em28xx".
+> I've tried to reach Jean-Francois with this a week ago, but I still
+> haven't received an answer, so I'm sending it to the mailing list. I'd
+> appreciate a CC of any follow-ups.
 >
-> What is odd is that lsusb shows for this card "ID 2040:b130 Hauppauge",
-> while from [2] I think it should be [2040:1605],
-> see below for the full lsusb -v output. The card
-> was purchased this week.
+> I've been having problems with my ID 0c45:6128 Microdia PC Camera
+> (SN9C325 + OM6802) using driver gspca_sonixj. Specifically, launching
+> command:
+> $ gst-launch-0.10 v4l2src ! ffmpegcolorspace ! pngenc ! filesink \
+> location=/tmp/file.png
+> gave a file that is all black. This is problematic because at least
+> one program (odeskteam) uses a similar method to grab camshots.
 >
-> Do I have a new revision of the 930C ?
-> I tried "modprobe em28xx card=81", but no change.
-> Did I miss anything else ?
+> I thought it looked like as though the camera hasn't got enough time
+> to initialize, and indeed, adding an msleep(30) near the end of
+> sd_start() in sonixj.c solved the problem.
 
-2040:b130 isn't an em28xx based device.  It uses cx231xx.  That said,
-it's not supported under Linux not because of the cx231xx driver but
-because there is no driver for the demodulator (si2163).
+The problem is that the above method to take a snapshot is simply
+wrong. Many cameras need to be streaming video data for "a while"
+before they give a (good) picture.
 
-Nobody is working on such a driver, and there is no support planned
-for this device at this time.
+Many cameras need some time for things like auto-gain, auto-exposure,
+auto-whitebalance and auto-focus to get to their correct setting for
+a proper picture. A black picture probably means that the auto-gain/
+auto-exposure for set camera still needs to jank up the gain and/or
+exposure. and you're simply not giving it time for this.
 
-Devin
+My high quality HD video microsoft studio pro camera also starts
+out with a close to black picture when I start streaming data from
+it in anything but bright sunlight, and then corrects the picture
+in 1-5 frames. This same camera takes like .5 seconds to gets it
+auto focus settled so your snapshot example would likely result
+in a too dark, unsharp picture. Note that this is all handled by
+the camera itself, the UVC driver it uses has no control over this.
 
---
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
---
-To unsubscribe from this list: send the line "unsubscribe linux-media" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Why do you think digital compact (still photo) cameras take so much
+time from you pressing the take picture button to actually taking the
+picture? They are in essence doing the same. The only difference
+with webcams is that people want more then 1 picture / second so
+the camera cannot do all those corrections before sending a picture,
+instead it does them while it is streaming data, meaning that the
+first second or so of data can be quite useless.
+
+Regards,
+
+Hans
