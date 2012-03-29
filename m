@@ -1,40 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vx0-f174.google.com ([209.85.220.174]:34517 "EHLO
-	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756947Ab2CLUrF (ORCPT
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:33714 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759033Ab2C2SNX convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Mar 2012 16:47:05 -0400
-Received: by vcqp1 with SMTP id p1so4603452vcq.19
-        for <linux-media@vger.kernel.org>; Mon, 12 Mar 2012 13:47:04 -0700 (PDT)
-MIME-Version: 1.0
-Date: Mon, 12 Mar 2012 16:47:04 -0400
-Message-ID: <CAOcJUbyF2J4C2cZP2jgs3efQ8bZSpBYLKhHT2CGF5r5XcNYcXw@mail.gmail.com>
-Subject: [GIT PULL / BUG FIX] au8522: enable modulation AFTER tune (instead of
- before tuning)
-From: Michael Krufky <mkrufky@kernellabs.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+	Thu, 29 Mar 2012 14:13:23 -0400
+Received: by iagz16 with SMTP id z16so3335858iag.19
+        for <linux-media@vger.kernel.org>; Thu, 29 Mar 2012 11:13:22 -0700 (PDT)
+Content-Type: text/plain; charset=us-ascii
+Mime-Version: 1.0 (Apple Message framework v1257)
+Subject: Compilation problem : too few arguments to function 'kmap_atomic
+From: =?iso-8859-1?Q?Lo=EFc_Bertron?= <loic.bertron@gmail.com>
+In-Reply-To: <20120329174427.D1F6E15D201A8@alastor.dyndns.org>
+Date: Thu, 29 Mar 2012 14:13:20 -0400
+Content-Transfer-Encoding: 8BIT
+Message-Id: <E9BA201A-4F44-4E01-8553-0977724C79B1@gmail.com>
+References: <20120329174427.D1F6E15D201A8@alastor.dyndns.org>
+To: linux-media@vger.kernel.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Please merge
+Hello,
 
-The following changes since commit 632fba4d012458fd5fedc678fb9b0f8bc59ceda2:
-  Sander Eikelenboom (1):
-        [media] cx25821: Add a card definition for "No brand" cards
-that have: subvendor = 0x0000 subdevice = 0x0000
+I'm running into an issue when compiling the last version of media_build : 
 
-are available in the git repository at:
+/usr/src/linux-headers-2.6.32-5-common/include/linux/kernel.h:366:1: warning: this is the location of the previous definition
+  CC [M]  /home/toto/sources/media_build/v4l/hdpvr-control.o
+  CC [M]  /home/toto/sources/media_build/v4l/hdpvr-core.o
+  CC [M]  /home/toto/sources/media_build/v4l/hdpvr-video.o
+  CC [M]  /home/toto/sources/media_build/v4l/hdpvr-i2c.o
+  CC [M]  /home/toto/sources/media_build/v4l/hopper_cards.o
+  CC [M]  /home/toto/sources/media_build/v4l/hopper_vp3028.o
+  CC [M]  /home/toto/sources/media_build/v4l/ivtv-routing.o
+  CC [M]  /home/toto/sources/media_build/v4l/ivtv-cards.o
+  CC [M]  /home/toto/sources/media_build/v4l/ivtv-controls.o
+  CC [M]  /home/toto/sources/media_build/v4l/ivtv-driver.o
+  CC [M]  /home/toto/sources/media_build/v4l/ivtv-fileops.o
+  CC [M]  /home/toto/sources/media_build/v4l/ivtv-firmware.o
+  CC [M]  /home/toto/sources/media_build/v4l/ivtv-gpio.o
+  CC [M]  /home/toto/sources/media_build/v4l/ivtv-i2c.o
+  CC [M]  /home/toto/sources/media_build/v4l/ivtv-ioctl.o
+  CC [M]  /home/toto/sources/media_build/v4l/ivtv-irq.o
+  CC [M]  /home/toto/sources/media_build/v4l/ivtv-mailbox.o
+  CC [M]  /home/toto/sources/media_build/v4l/ivtv-queue.o
+  CC [M]  /home/toto/sources/media_build/v4l/ivtv-streams.o
+  CC [M]  /home/toto/sources/media_build/v4l/ivtv-udma.o
+/home/toto/sources/media_build/v4l/ivtv-udma.c: In function 'ivtv_udma_fill_sg_list':
+/home/toto/sources/media_build/v4l/ivtv-udma.c:60: error: too few arguments to function 'kmap_atomic'
+/home/toto/sources/media_build/v4l/ivtv-udma.c:62:21: error: macro "kunmap_atomic" requires 2 arguments, but only 1 given 
+/home/toto/sources/media_build/v4l/ivtv-udma.c:62: error: 'kunmap_atomic' undeclared (first use in this function)
+/home/toto/sources/media_build/v4l/ivtv-udma.c:62: error: (Each undeclared identifier is reported only once
+/home/toto/sources/media_build/v4l/ivtv-udma.c:62: error: for each function it appears in.)
+make[5]: *** [/home/toto/sources/media_build/v4l/ivtv-udma.o] Error 1
+make[4]: *** [_module_/home/toto/sources/media_build/v4l] Error 2
+make[3]: *** [sub-make] Error 2
+make[2]: *** [all] Error 2
+make[2]: Leaving directory `/usr/src/linux-headers-2.6.32-5-amd64'
+make[1]: *** [default] Error 2
+make[1]: Leaving directory `/home/toto/sources/media_build/v4l'
+make: *** [all] Error 2
+build failed at ./build line 410.
 
-  git://linuxtv.org/mkrufky/tuners.git au8522
+After searching a bit on Google, I found someone with the same issue than me who post it today : http://pastebin.com/zgqN7LRE
 
-Michael Krufky (1):
-      au8522: bug-fix: enable modulation AFTER tune (instead of before tuning)
-
- drivers/media/dvb/frontends/au8522_dig.c |   10 +++++-----
- 1 files changed, 5 insertions(+), 5 deletions(-)
-
-Cheers,
-
-Mike Krufky
+Any idea ? 
