@@ -1,58 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f172.google.com ([209.85.212.172]:42675 "EHLO
-	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754998Ab2CRTOv (ORCPT
+Received: from va3ehsobe002.messaging.microsoft.com ([216.32.180.12]:22031
+	"EHLO va3outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932604Ab2C3Khd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 18 Mar 2012 15:14:51 -0400
-Received: by wibhj6 with SMTP id hj6so2968251wib.1
-        for <linux-media@vger.kernel.org>; Sun, 18 Mar 2012 12:14:50 -0700 (PDT)
-Date: Sun, 18 Mar 2012 20:15:33 +0100
-From: Daniel Vetter <daniel@ffwll.ch>
-To: Sumit Semwal <sumit.semwal@linaro.org>
-Cc: Dave Airlie <airlied@gmail.com>, Rob Clark <rob.clark@linaro.org>,
-	patches@linaro.org, dri-devel@lists.freedesktop.org,
-	linaro-mm-sig@lists.linaro.org, daniel@ffwll.ch,
-	airlied@redhat.com, linux-media@vger.kernel.org
-Subject: Re: [Linaro-mm-sig] [PATCH] dma-buf: add get_dma_buf()
-Message-ID: <20120318191533.GK4286@phenom.ffwll.local>
-References: <1331913881-13105-1-git-send-email-rob.clark@linaro.org>
- <CAPM=9txFA1M4CK2njLDJRwLn6ZaPQMUsiqMCybqLSwWmZ7Y=mw@mail.gmail.com>
- <CAO_48GH_zkgQQgvbiD8MQ5dHb3pD5mTSxtA_z4+KhGQJWQhC1g@mail.gmail.com>
- <20120318190453.GJ4286@phenom.ffwll.local>
+	Fri, 30 Mar 2012 06:37:33 -0400
+Received: from mail72-va3 (localhost [127.0.0.1])	by mail72-va3-R.bigfish.com
+ (Postfix) with ESMTP id 3881D2200F8	for <linux-media@vger.kernel.org>; Fri,
+ 30 Mar 2012 10:37:32 +0000 (UTC)
+Received: from VA3EHSMHS005.bigfish.com (unknown [10.7.14.249])	by
+ mail72-va3.bigfish.com (Postfix) with ESMTP id DCC4D36006B	for
+ <linux-media@vger.kernel.org>; Fri, 30 Mar 2012 10:37:30 +0000 (UTC)
+Received: from shlinux1.ap.freescale.net ([10.213.130.145])	by
+ az84smr01.freescale.net (8.14.3/8.14.0) with ESMTP id q2UAbNUF005093	for
+ <linux-media@vger.kernel.org>; Fri, 30 Mar 2012 03:37:23 -0700
+From: Liu Ying <Ying.liu@freescale.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+CC: <g.liakhovetski@gmx.de>, <hechtb@gmail.com>,
+	<laurent.pinchart@ideasonboard.com>, <sfr@canb.auug.org.au>,
+	<linux-media@vger.kernel.org>, Liu Ying <Ying.Liu@freescale.com>
+Subject: [PATCH 1/1] [media] V4L: OV5642:remove redundant code to set cropping w/h
+Date: Fri, 30 Mar 2012 17:41:27 +0800
+Message-ID: <1333100487-32484-1-git-send-email-Ying.liu@freescale.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20120318190453.GJ4286@phenom.ffwll.local>
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Mar 18, 2012 at 08:04:53PM +0100, Daniel Vetter wrote:
-> On Sun, Mar 18, 2012 at 01:12:22PM +0530, Sumit Semwal wrote:
-> > On 16 March 2012 23:23, Dave Airlie <airlied@gmail.com> wrote:
-> > > On Fri, Mar 16, 2012 at 4:04 PM, Rob Clark <rob.clark@linaro.org> wrote:
-> > >> From: Rob Clark <rob@ti.com>
-> > >>
-> > >> Works in a similar way to get_file(), and is needed in cases such as
-> > >> when the exporter needs to also keep a reference to the dmabuf (that
-> > >> is later released with a dma_buf_put()), and possibly other similar
-> > >> cases.
-> > >>
-> > >> Signed-off-by: Rob Clark <rob@ti.com>
-> > >
-> > > Reviewed-by: Dave Airlie <airlied@redhat.com>
-> > >
-> > Thanks; pulled into for-next.
-> 
-> I'm back from vacation and already grumpily complaining about dma-buf
-> patches ;-) For consistency with dma_buf_put we should call this
-> dma_buf_get instead of get_dma_buf ... I'll write a bikeshed patch on top
-> of your tree.
+From: Liu Ying <Ying.Liu@freescale.com>
 
-Oops, there's already a dma_buf_get around - Rob and Dave pointed that out
-on irc to dense me.  And I can't come up with a saner naming scheme. I'll
-retract my bikeshed.
--Daniel
+This patch contains code change only to remove redundant
+code to set priv->crop_rect.width/height in probe function.
+
+Signed-off-by: Liu Ying <Ying.Liu@freescale.com>
+---
+ drivers/media/video/ov5642.c |    2 --
+ 1 files changed, 0 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/video/ov5642.c b/drivers/media/video/ov5642.c
+index bb37ec8..efdd6be 100644
+--- a/drivers/media/video/ov5642.c
++++ b/drivers/media/video/ov5642.c
+@@ -1025,8 +1025,6 @@ static int ov5642_probe(struct i2c_client *client,
+ 	priv->crop_rect.height	= OV5642_DEFAULT_HEIGHT;
+ 	priv->crop_rect.left	= (OV5642_MAX_WIDTH - OV5642_DEFAULT_WIDTH) / 2;
+ 	priv->crop_rect.top	= (OV5642_MAX_HEIGHT - OV5642_DEFAULT_HEIGHT) / 2;
+-	priv->crop_rect.width	= OV5642_DEFAULT_WIDTH;
+-	priv->crop_rect.height	= OV5642_DEFAULT_HEIGHT;
+ 	priv->total_width = OV5642_DEFAULT_WIDTH + BLANKING_EXTRA_WIDTH;
+ 	priv->total_height = BLANKING_MIN_HEIGHT;
+ 
 -- 
-Daniel Vetter
-Mail: daniel@ffwll.ch
-Mobile: +41 (0)79 365 57 48
+1.7.1
+
+
