@@ -1,58 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:46199 "EHLO
-	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754897Ab2CGTVM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 7 Mar 2012 14:21:12 -0500
-Received: by lahj13 with SMTP id j13so7644644lah.19
-        for <linux-media@vger.kernel.org>; Wed, 07 Mar 2012 11:21:11 -0800 (PST)
-Message-ID: <4F57B520.9070607@gmail.com>
-Date: Wed, 07 Mar 2012 20:21:04 +0100
-From: =?ISO-8859-1?Q?Roger_M=E5rtensson?= <roger.martensson@gmail.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:41603 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752907Ab2C3MdG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Mar 2012 08:33:06 -0400
+Message-ID: <4F75A7FE.8090405@iki.fi>
+Date: Fri, 30 Mar 2012 15:33:02 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Jose Alberto Reguero <jareguero@telefonica.net>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] Add CI support to az6007 driver
-References: <1577059.kW45pXQ20M@jar7.dominio> <4F552548.4000304@gmail.com> <1436129.Xg0ZNGxkxn@jar7.dominio>
-In-Reply-To: <1436129.Xg0ZNGxkxn@jar7.dominio>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+Subject: [GIT PULL FOR 3.5] AF9035/AF9033/TUA9001 => TerraTec Cinergy T Stick
+ [0ccd:0093]
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Jose Alberto Reguero skrev 2012-03-06 00:23:
-> On Lunes, 5 de marzo de 2012 21:42:48 Roger Mårtensson escribió:
->
-> No. I tested the patch with DVB-T an watch encrypted channels with vdr without
-> problems. I don't know why you can't. I don't know gnutv. Try with other
-> software if you want.
+Terve Mauro and all the other hackers,
 
-I have done some more testing and it works.. Sort of. :-)
+I did some massive rewrite for my old AF9035/AF9033 driver that was 
+never merged. Anyhow, here it is.
 
-First let me walk through the dmesg.
+New drivers here are:
+Infineon TUA 9001 silicon tuner driver
+Afatech AF9033 DVB-T demodulator driver
+Afatech AF9035 DVB USB driver
 
-First I reinsert the CAM-card:
+AF9035 integrates AF9033. Both chips are also sold separately. AF9033 
+will not likely work as a stand-alone since I didn't have hardware to 
+test, but in theory it is quite well split out from the DVB USB 
+interface driver (AF9035).
 
-Mar  7 20:12:36 tvpc kernel: [  959.717666] dvb_ca adapter 2: DVB CAM 
-detected and initialised successfully
+Tips for cheap AF9035 based dual devices are welcome!
 
-The next lines are when I start Kaffeine. Kaffeine gets a lock on the 
-encrypted channel and starts viewing it.
+regards
+Antti
 
-Mar  7 20:13:02 tvpc kernel: [  986.359195] mt2063: detected a mt2063 B3
-Mar  7 20:13:03 tvpc kernel: [  987.368964] drxk: SCU_RESULT_INVPAR 
-while sending cmd 0x0203 with params:
-Mar  7 20:13:03 tvpc kernel: [  987.368974] drxk: 02 00 00 00 10 00 05 
-00 03 02                    ..........
-Mar  7 20:13:06 tvpc kernel: [  990.286628] dvb_ca adapter 2: DVB CAM 
-detected and initialised successfully
 
-And now my "sort of"-comment. When I change the to another encrypted 
-channel in kaffeine I get nothing. To be able to view this channel I 
-need to restart kaffeine.
+The following changes since commit 26315a507f6acda933f0d41200de8fec51775867:
 
-The only thing that seems different in the logs are that when restarting 
-kaffeine I get the "CAM detected and initialised" but when changing 
-channels I do not get that line.
+   em28xx-dvb: stop URBs when stopping the streaming (2012-03-28 
+15:32:23 +0300)
 
-Maybe there should be another reinit of the CAM somewhere? (just a guess)
+are available in the git repository at:
+   git://linuxtv.org/anttip/media_tree.git af9035
+
+Antti Palosaari (3):
+       Infineon TUA 9001 silicon tuner driver
+       Afatech AF9033 DVB-T demodulator driver
+       Afatech AF9035 DVB USB driver
+
+  drivers/media/common/tuners/Kconfig        |    6 +
+  drivers/media/common/tuners/Makefile       |    1 +
+  drivers/media/common/tuners/tua9001.c      |  215 ++++++++
+  drivers/media/common/tuners/tua9001.h      |   46 ++
+  drivers/media/common/tuners/tua9001_priv.h |   34 ++
+  drivers/media/dvb/dvb-usb/Kconfig          |    9 +
+  drivers/media/dvb/dvb-usb/Makefile         |    3 +
+  drivers/media/dvb/dvb-usb/af9035.c         |  799 
+++++++++++++++++++++++++++++
+  drivers/media/dvb/dvb-usb/af9035.h         |  102 ++++
+  drivers/media/dvb/dvb-usb/dvb-usb-ids.h    |    1 +
+  drivers/media/dvb/frontends/Kconfig        |    5 +
+  drivers/media/dvb/frontends/Makefile       |    1 +
+  drivers/media/dvb/frontends/af9033.c       |  706 ++++++++++++++++++++++++
+  drivers/media/dvb/frontends/af9033.h       |   73 +++
+  drivers/media/dvb/frontends/af9033_priv.h  |  242 +++++++++
+  15 files changed, 2243 insertions(+), 0 deletions(-)
+  create mode 100644 drivers/media/common/tuners/tua9001.c
+  create mode 100644 drivers/media/common/tuners/tua9001.h
+  create mode 100644 drivers/media/common/tuners/tua9001_priv.h
+  create mode 100644 drivers/media/dvb/dvb-usb/af9035.c
+  create mode 100644 drivers/media/dvb/dvb-usb/af9035.h
+  create mode 100644 drivers/media/dvb/frontends/af9033.c
+  create mode 100644 drivers/media/dvb/frontends/af9033.h
+  create mode 100644 drivers/media/dvb/frontends/af9033_priv.h
+-- 
+http://palosaari.fi/
