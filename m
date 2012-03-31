@@ -1,90 +1,186 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nm5-vm0.bullet.mail.ukl.yahoo.com ([217.146.183.232]:48928 "HELO
-	nm5-vm0.bullet.mail.ukl.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1754768Ab2DWLE1 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Apr 2012 07:04:27 -0400
-Message-ID: <1335179065.92781.YahooMailNeo@web28601.mail.ukl.yahoo.com>
-Date: Mon, 23 Apr 2012 12:04:25 +0100 (BST)
-From: cb cb <chrbruno@yahoo.fr>
-Reply-To: cb cb <chrbruno@yahoo.fr>
-Subject: em28xx on beagleboard with dazzle DVC100
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from mail-wg0-f44.google.com ([74.125.82.44]:47485 "EHLO
+	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755531Ab2CaJiw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 31 Mar 2012 05:38:52 -0400
+Received: by wgbdr13 with SMTP id dr13so1256784wgb.1
+        for <linux-media@vger.kernel.org>; Sat, 31 Mar 2012 02:38:50 -0700 (PDT)
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Subject: [PATCH/RFC] V4L: Extend V4L2_CID_COLORFX with more image effects
+Date: Sat, 31 Mar 2012 11:38:27 +0200
+Message-Id: <1333186707-15772-1-git-send-email-sylvester.nawrocki@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-hello,
+This patch adds definition of additional color effects:
+ - V4L2_COLORFX_AQUA,
+ - V4L2_COLORFX_ART_FREEZE,
+ - V4L2_COLORFX_SILHOUETTE,
+ - V4L2_COLORFX_SOLARIZATION,
+ - V4L2_COLORFX_ANTIQUE.
 
-i'm trying to capture video using a Dazzle DVC 100 RCA to USB converter ( em28xx driver )
+The control's type in the documentation is changed from 'enum' to 'menu'
+- V4L2_CID_COLORFX has always been a menu, not an integer type control.
 
-the program is the famous "capture.c" sample from the docs
-It is running on a BeagleBoard Xm with kernel 3.2.11
+Signed-off-by: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+---
+ Documentation/DocBook/media/v4l/controls.xml |   86 ++++++++++++++++++++++----
+ drivers/media/video/v4l2-ctrls.c             |    5 ++
+ include/linux/videodev2.h                    |   25 +++++---
+ 3 files changed, 93 insertions(+), 23 deletions(-)
 
-i get timeout errors at the "select" call, either using mmap, read or userp access
+diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+index b84f25e..582324f 100644
+--- a/Documentation/DocBook/media/v4l/controls.xml
++++ b/Documentation/DocBook/media/v4l/controls.xml
+@@ -284,19 +284,79 @@ minimum value disables backlight compensation.</entry>
+ 	  </row>
+ 	  <row id="v4l2-colorfx">
+ 	    <entry><constant>V4L2_CID_COLORFX</constant></entry>
+-	    <entry>enum</entry>
+-	    <entry>Selects a color effect. Possible values for
+-<constant>enum v4l2_colorfx</constant> are:
+-<constant>V4L2_COLORFX_NONE</constant> (0),
+-<constant>V4L2_COLORFX_BW</constant> (1),
+-<constant>V4L2_COLORFX_SEPIA</constant> (2),
+-<constant>V4L2_COLORFX_NEGATIVE</constant> (3),
+-<constant>V4L2_COLORFX_EMBOSS</constant> (4),
+-<constant>V4L2_COLORFX_SKETCH</constant> (5),
+-<constant>V4L2_COLORFX_SKY_BLUE</constant> (6),
+-<constant>V4L2_COLORFX_GRASS_GREEN</constant> (7),
+-<constant>V4L2_COLORFX_SKIN_WHITEN</constant> (8) and
+-<constant>V4L2_COLORFX_VIVID</constant> (9).</entry>
++	    <entry>menu</entry>
++	    <entry>Selects a color effect. The following values are defined:
++	    </entry>
++	  </row><row>
++	  <entry></entry>
++	  <entry></entry>
++	    <entrytbl spanname="descr" cols="2">
++	      <tbody valign="top">
++		<row>
++		  <entry><constant>V4L2_COLORFX_NONE</constant>&nbsp;</entry>
++		  <entry>Color effect is disabled.</entry>
++		</row>
++		<row>
++		  <entry><constant>V4L2_COLORFX_ANTIQUE</constant>&nbsp;</entry>
++		  <entry>An aging (old photo) effect.</entry>
++		</row>
++		<row>
++		  <entry><constant>V4L2_COLORFX_ART_FREEZE</constant>&nbsp;</entry>
++		  <entry>Frost color effect.</entry>
++		</row>
++		<row>
++		  <entry><constant>V4L2_COLORFX_AQUA</constant>&nbsp;</entry>
++		  <entry>Water color, cool tone.</entry>
++		</row>
++		<row>
++		  <entry><constant>V4L2_COLORFX_BW</constant>&nbsp;</entry>
++		  <entry>Black and white.</entry>
++		</row>
++		<row>
++		  <entry><constant>V4L2_COLORFX_EMBOSS</constant>&nbsp;</entry>
++		  <entry>Emboss, the highlights and shadows replace light/dark boundaries
++		  and low contrast areas are set to a gray background.</entry>
++		</row>
++		<row>
++		  <entry><constant>V4L2_COLORFX_GRASS_GREEN</constant>&nbsp;</entry>
++		  <entry>Grass green.</entry>
++		</row>
++		<row>
++		  <entry><constant>V4L2_COLORFX_NEGATIVE</constant>&nbsp;</entry>
++		  <entry>Negative.</entry>
++		</row>
++		<row>
++		  <entry><constant>V4L2_COLORFX_SEPIA</constant>&nbsp;</entry>
++		  <entry>Sepia tone.</entry>
++		</row>
++		<row>
++		  <entry><constant>V4L2_COLORFX_SKETCH</constant>&nbsp;</entry>
++		  <entry>Sketch.</entry>
++		</row>
++		<row>
++		  <entry><constant>V4L2_COLORFX_SKIN_WHITEN</constant>&nbsp;</entry>
++		  <entry>Skin whiten.</entry>
++		</row>
++		<row>
++		  <entry><constant>V4L2_COLORFX_SKY_BLUE</constant>&nbsp;</entry>
++		  <entry>Sky blue.</entry>
++		</row>
++		<row>
++		  <entry><constant>V4L2_COLORFX_SOLARIZATION</constant>&nbsp;</entry>
++		  <entry>Solarization, the image is partially reversed in tone,
++		  only color values above or below a certain threshold are inverted.
++		  </entry>
++		</row>
++		<row>
++		  <entry><constant>V4L2_COLORFX_SILHOUETTE</constant>&nbsp;</entry>
++		  <entry>Silhouette (outline).</entry>
++		</row>
++		<row>
++		  <entry><constant>V4L2_COLORFX_VIVID</constant>&nbsp;</entry>
++		  <entry>Vivid colors.</entry>
++		</row>
++	      </tbody>
++	    </entrytbl>
+ 	  </row>
+ 	  <row>
+ 	    <entry><constant>V4L2_CID_ROTATE</constant></entry>
+diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
+index 18015c0..7d6617c 100644
+--- a/drivers/media/video/v4l2-ctrls.c
++++ b/drivers/media/video/v4l2-ctrls.c
+@@ -241,6 +241,11 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
+ 		"Grass Green",
+ 		"Skin Whiten",
+ 		"Vivid",
++		"Aqua",
++		"Art Freeze",
++		"Silhouette",
++		"Solarization",
++		"Antique",
+ 		NULL
+ 	};
+ 	static const char * const tune_preemphasis[] = {
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index c9c9a46..be50b4d 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -1237,17 +1237,21 @@ enum v4l2_power_line_frequency {
+ #define V4L2_CID_COLOR_KILLER                   (V4L2_CID_BASE+30)
+ #define V4L2_CID_COLORFX			(V4L2_CID_BASE+31)
+ enum v4l2_colorfx {
+-	V4L2_COLORFX_NONE	= 0,
+-	V4L2_COLORFX_BW		= 1,
+-	V4L2_COLORFX_SEPIA	= 2,
+-	V4L2_COLORFX_NEGATIVE = 3,
+-	V4L2_COLORFX_EMBOSS = 4,
+-	V4L2_COLORFX_SKETCH = 5,
+-	V4L2_COLORFX_SKY_BLUE = 6,
+-	V4L2_COLORFX_GRASS_GREEN = 7,
+-	V4L2_COLORFX_SKIN_WHITEN = 8,
+-	V4L2_COLORFX_VIVID = 9,
++	V4L2_COLORFX_NONE			= 0,
++	V4L2_COLORFX_BW				= 1,
++	V4L2_COLORFX_SEPIA			= 2,
++	V4L2_COLORFX_NEGATIVE			= 3,
++	V4L2_COLORFX_EMBOSS			= 4,
++	V4L2_COLORFX_SKETCH			= 5,
++	V4L2_COLORFX_SKY_BLUE			= 6,
++	V4L2_COLORFX_GRASS_GREEN		= 7,
++	V4L2_COLORFX_SKIN_WHITEN		= 8,
++	V4L2_COLORFX_VIVID			= 9,
++	V4L2_COLORFX_AQUA			= 10,
++	V4L2_COLORFX_ART_FREEZE			= 11,
++	V4L2_COLORFX_SILHOUETTE			= 12,
++	V4L2_COLORFX_SOLARIZATION		= 13,
++	V4L2_COLORFX_ANTIQUE			= 14,
+ };
+ #define V4L2_CID_AUTOBRIGHTNESS			(V4L2_CID_BASE+32)
+ #define V4L2_CID_BAND_STOP_FILTER		(V4L2_CID_BASE+33)
+--
+1.7.4.1
 
-the same program works fine on an x86 platform (kernel 2.6.32)
-
-Could you help me figure out what is wrong ?
-
-Thanks a lot for your help,
-Best Regards,
-
-Christian
-
-
-below are the output from dmesg and capture sample program :
-
-[ 1783.364410] em28xx: New device Pinnacle Systems GmbH DVC100 @ 480 Mbps (2304:021a, interface 0, class 0)
-[ 1783.393707] em28xx #0: chip ID is em2820 (or em2710)
-[ 1783.557861] em28xx #0: i2c eeprom 00: 1a eb 67 95 04 23 1a 02 12 00 11 03 98 10 6a 2e
-[ 1783.570831] em28xx #0: i2c eeprom 10: 00 00 06 57 4e 00 00 00 60 00 00 00 02 00 00 00
-[ 1783.583557] em28xx #0: i2c eeprom 20: 02 00 01 00 00 00 00 00 00 00 00 00 00 00 00 00
-[ 1783.596191] em28xx #0: i2c eeprom 30: 00 00 20 40 20 80 02 20 10 01 00 00 00 00 00 00
-[ 1783.608947] em28xx #0: i2c eeprom 40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-[ 1783.621582] em28xx #0: i2c eeprom 50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-[ 1783.634155] em28xx #0: i2c eeprom 60: 00 00 00 00 00 00 00 00 00 00 2e 03 50 00 69 00
-[ 1783.646667] em28xx #0: i2c eeprom 70: 6e 00 6e 00 61 00 63 00 6c 00 65 00 20 00 53 00
-[ 1783.659301] em28xx #0: i2c eeprom 80: 79 00 73 00 74 00 65 00 6d 00 73 00 20 00 47 00
-[ 1783.672119] em28xx #0: i2c eeprom 90: 6d 00 62 00 48 00 00 00 10 03 44 00 56 00 43 00
-[ 1783.684600] em28xx #0: i2c eeprom a0: 31 00 30 00 30 00 00 00 32 00 30 00 33 00 35 00
-[ 1783.697113] em28xx #0: i2c eeprom b0: 36 00 30 00 37 00 35 00 31 00 33 00 34 00 31 00
-[ 1783.709716] em28xx #0: i2c eeprom c0: 30 00 32 00 30 00 30 00 30 00 31 00 00 00 32 00
-[ 1783.722290] em28xx #0: i2c eeprom d0: 33 00 31 00 32 00 33 00 00 00 00 00 00 00 00 00
-[ 1783.734619] em28xx #0: i2c eeprom e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-[ 1783.746826] em28xx #0: i2c eeprom f0: 00 00 00 00 00 00 00 00 bc 6f ec 04 99 62 5d 0e
-[ 1783.759155] em28xx #0: EEPROM ID= 0x9567eb1a, EEPROM hash = 0x30129684
-[ 1783.769622] em28xx #0: EEPROM info:
-[ 1783.776794] em28xx #0:       AC97 audio (5 sample rates)
-[ 1783.785217] em28xx #0:       300mA max power
-[ 1783.792541] em28xx #0:       Table at 0x06, strings=0x1098, 0x2e6a, 0x0000
-[ 1783.804077] em28xx #0: Identified as Pinnacle Dazzle DVC 
-90/100/101/107 / Kaiser Baas Video to DVD maker / Kworld DVD Maker 2 
-(card=9)
-[ 1784.313751] saa7115 4-0025: saa7113 found (1f7113d0e100000) @ 0x4a (em28xx #0)
-[ 1785.320953] em28xx #0: Config register raw data: 0x12
-[ 1785.359527] em28xx #0: AC97 vendor ID = 0xffffffff
-[ 1785.382995] em28xx #0: AC97 features = 0x6a90
-[ 1785.391174] em28xx #0: Empia 202 AC97 audio processor detected
-[ 1785.999938] em28xx #0: v4l2 driver version 0.1.3
-[ 1787.218750] em28xx #0: V4L2 video device registered as video0
-[ 1787.228454] em28xx audio device (2304:021a): interface 1, class 1
-[ 1787.238342] em28xx audio device (2304:021a): interface 2, class 1
-[ 1787.248229] usbcore: registered new interface driver em28xx
-[ 1787.257507] em28xx driver loaded
-[ 1787.348968] ALSA sound/usb/mixer.c:846 2:1: cannot get min/max values for control 2 (id 2)
-
-root@aravis:~# ./a.out -m -d /dev/video0
-select timeout
-root@aravis:~# ./a.out -r -d /dev/video0
-select timeout
-root@aravis:~# ./a.out -u -d /dev/video0
-VIDIOC_QBUF error 22, Invalid argument
-root@aravis:~#
-
-
-
-
-[ 1787.367309] usbcore: registered new interface driver snd-usb-audio
