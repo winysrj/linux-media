@@ -1,112 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:37421 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759986Ab2D0OXg (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:37053 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753066Ab2CaN3y (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Apr 2012 10:23:36 -0400
-Received: from euspt2 (mailout1.w1.samsung.com [210.118.77.11])
- by mailout1.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0M35000N46KR7O@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 27 Apr 2012 15:22:03 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0M3500LLY6N7JR@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 27 Apr 2012 15:23:31 +0100 (BST)
-Date: Fri, 27 Apr 2012 16:23:19 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH/RFC v3 02/14] V4L: Add camera exposure bias control
-In-reply-to: <1335536611-4298-1-git-send-email-s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
-	g.liakhovetski@gmx.de, hdegoede@redhat.com, moinejf@free.fr,
-	hverkuil@xs4all.nl, m.szyprowski@samsung.com,
-	riverful.kim@samsung.com, sw0312.kim@samsung.com,
-	s.nawrocki@samsung.com, Kyungmin Park <kyungmin.park@samsung.com>
-Message-id: <1335536611-4298-3-git-send-email-s.nawrocki@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1335536611-4298-1-git-send-email-s.nawrocki@samsung.com>
+	Sat, 31 Mar 2012 09:29:54 -0400
+Subject: Re: [PATCH for v3.4] Fix ivtv AUDIO_(BILINGUAL_)CHANNEL_SELECT
+ regression
+From: Andy Walls <awalls@md.metrocast.net>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Martin Dauskardt <martin.dauskardt@gmx.de>
+Date: Sat, 31 Mar 2012 09:29:51 -0400
+In-Reply-To: <201203311118.19446.hverkuil@xs4all.nl>
+References: <201203311118.19446.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Message-ID: <1333200592.2514.25.camel@palomino.walls.org>
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The camera may in some conditions incorrectly determine the exposure,
-and a manual automatic exposure correction may be needed. This patch
-adds V4L2_CID_AUTO_EXPOSURE_BIAS control which allows to add some
-offset in the automatic exposure control loop, to compensate for
-frame under- or over-exposure.
+On Sat, 2012-03-31 at 11:18 +0200, Hans Verkuil wrote:
+> Hi Mauro,
+> 
+> When I converted ivtv to the new decoder API I introduced a regression in the
+> support of the old channel select API. The patch below fixes this.
+> 
+> Thanks to Martin Dauskardt for reporting this.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- Documentation/DocBook/media/v4l/controls.xml |   16 ++++++++++++++++
- drivers/media/video/v4l2-ctrls.c             |    4 ++++
- include/linux/videodev2.h                    |    2 ++
- 3 files changed, 22 insertions(+)
+Looks good.  Thanks Martin and Hans.
 
-diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
-index 5038a3a..56a53a8 100644
---- a/Documentation/DocBook/media/v4l/controls.xml
-+++ b/Documentation/DocBook/media/v4l/controls.xml
-@@ -2775,6 +2775,22 @@ remain constant.</entry>
- 	  <row><entry></entry></row>
- 
- 	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_EXPOSURE_BIAS</constant>&nbsp;</entry>
-+	    <entry>integer menu</entry>
-+	  </row><row><entry spanname="descr"> Determines the automatic
-+exposure compensation, it is effective only when <constant>V4L2_CID_EXPOSURE_AUTO</constant>
-+control is set to <constant>AUTO</constant>, <constant>SHUTTER_PRIORITY </constant>
-+or <constant>APERTURE_PRIORITY</constant>.
-+It is expressed in terms of EV, drivers should interpret the values as 0.001 EV
-+units, where the value 1000 stands for +1 EV.
-+<para>Increasing the exposure compensation value is equivalent to decreasing
-+the exposure value (EV) and will increase the amount of light at the image
-+sensor. The camera performs the exposure compensation by adjusting absolute
-+exposure time and/or aperture.</para></entry>
-+	  </row>
-+	  <row><entry></entry></row>
-+
-+	  <row>
- 	    <entry spanname="id"><constant>V4L2_CID_PAN_RELATIVE</constant>&nbsp;</entry>
- 	    <entry>integer</entry>
- 	  </row><row><entry spanname="descr">This control turns the
-diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
-index e0725b5..1d7091f 100644
---- a/drivers/media/video/v4l2-ctrls.c
-+++ b/drivers/media/video/v4l2-ctrls.c
-@@ -597,6 +597,7 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_PRIVACY:			return "Privacy";
- 	case V4L2_CID_IRIS_ABSOLUTE:		return "Iris, Absolute";
- 	case V4L2_CID_IRIS_RELATIVE:		return "Iris, Relative";
-+	case V4L2_CID_AUTO_EXPOSURE_BIAS:	return "Auto Exposure, Bias";
- 
- 	/* FM Radio Modulator control */
- 	/* Keep the order of the 'case's the same as in videodev2.h! */
-@@ -739,6 +740,9 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_RDS_TX_RADIO_TEXT:
- 		*type = V4L2_CTRL_TYPE_STRING;
- 		break;
-+	case V4L2_CID_AUTO_EXPOSURE_BIAS:
-+		*type = V4L2_CTRL_TYPE_INTEGER_MENU;
-+		break;
- 	case V4L2_CID_USER_CLASS:
- 	case V4L2_CID_CAMERA_CLASS:
- 	case V4L2_CID_MPEG_CLASS:
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index 5a09ac3..da60cbb 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -1693,6 +1693,8 @@ enum  v4l2_exposure_auto_type {
- #define V4L2_CID_IRIS_ABSOLUTE			(V4L2_CID_CAMERA_CLASS_BASE+17)
- #define V4L2_CID_IRIS_RELATIVE			(V4L2_CID_CAMERA_CLASS_BASE+18)
- 
-+#define V4L2_CID_AUTO_EXPOSURE_BIAS		(V4L2_CID_CAMERA_CLASS_BASE+19)
-+
- /* FM Modulator class control IDs */
- #define V4L2_CID_FM_TX_CLASS_BASE		(V4L2_CTRL_CLASS_FM_TX | 0x900)
- #define V4L2_CID_FM_TX_CLASS			(V4L2_CTRL_CLASS_FM_TX | 1)
--- 
-1.7.10
+Reviewd-by: Andy Walls <awalls@md.metrocast.net>
+
+> Regards,
+> 
+> 	Hans
+> 
+> diff --git a/drivers/media/video/ivtv/ivtv-ioctl.c b/drivers/media/video/ivtv/ivtv-ioctl.c
+> index 5452bee..989e556 100644
+> --- a/drivers/media/video/ivtv/ivtv-ioctl.c
+> +++ b/drivers/media/video/ivtv/ivtv-ioctl.c
+> @@ -1763,13 +1763,13 @@ static int ivtv_decoder_ioctls(struct file *filp, unsigned int cmd, void *arg)
+>  		IVTV_DEBUG_IOCTL("AUDIO_CHANNEL_SELECT\n");
+>  		if (iarg > AUDIO_STEREO_SWAPPED)
+>  			return -EINVAL;
+> -		return v4l2_ctrl_s_ctrl(itv->ctrl_audio_playback, iarg);
+> +		return v4l2_ctrl_s_ctrl(itv->ctrl_audio_playback, iarg + 1);
+>  
+>  	case AUDIO_BILINGUAL_CHANNEL_SELECT:
+>  		IVTV_DEBUG_IOCTL("AUDIO_BILINGUAL_CHANNEL_SELECT\n");
+>  		if (iarg > AUDIO_STEREO_SWAPPED)
+>  			return -EINVAL;
+> -		return v4l2_ctrl_s_ctrl(itv->ctrl_audio_multilingual_playback, iarg);
+> +		return v4l2_ctrl_s_ctrl(itv->ctrl_audio_multilingual_playback, iarg + 1);
+>  
+>  	default:
+>  		return -EINVAL;
+
 
