@@ -1,58 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:52180 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751798Ab2DYPMv convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Apr 2012 11:12:51 -0400
+Received: from mail.kapsi.fi ([217.30.184.167]:54354 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757449Ab2CaO2q (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 31 Mar 2012 10:28:46 -0400
+Message-ID: <4F771496.8080305@iki.fi>
+Date: Sat, 31 Mar 2012 17:28:38 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <4F12D7A0.7030804@redhat.com>
-References: <4F12D7A0.7030804@redhat.com>
-Date: Wed, 25 Apr 2012 17:12:49 +0200
-Message-ID: <CAMuHMdV+ub7t_O5mu1vWrZFZOhZ7NYZfnoBWPyfK2bYQUT4yPw@mail.gmail.com>
-Subject: Re: [GIT PULL for 3.3-rc1] media updates
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Bob Liu <lliubbo@gmail.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+To: =?UTF-8?B?TWljaGFlbCBCw7xzY2g=?= <m@bues.ch>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [GIT PULL FOR 3.5] AF9035/AF9033/TUA9001 => TerraTec Cinergy
+ T Stick [0ccd:0093]
+References: <4F75A7FE.8090405@iki.fi> <20120330234545.45f4e2e8@milhouse> <4F762CF5.9010303@iki.fi> <20120331001458.33f12d82@milhouse> <20120331160445.71cd1e78@milhouse>
+In-Reply-To: <20120331160445.71cd1e78@milhouse>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Jan 15, 2012 at 14:41, Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
-> Laurent Pinchart (18):
->      [media] uvcvideo: Move fields from uvc_buffer::buf to uvc_buffer
->      [media] uvcvideo: Use videobuf2-vmalloc
+On 31.03.2012 17:04, Michael Büsch wrote:
+> On Sat, 31 Mar 2012 00:14:58 +0200
+> Michael Büsch<m@bues.ch>  wrote:
+>
+>> On Sat, 31 Mar 2012 01:00:21 +0300
+>> Antti Palosaari<crope@iki.fi>  wrote:
+>>
+>>> Feel free to do that. Actually, I just tried it about 2 hours ago. But I
+>>> failed, since there callbacks given as a param for tuner attach and it
+>>> is wrong. There is frontend callback defined just for that. Look example
+>>> from some Xceive tuners also hd29l2 demod driver contains one example.
+>>> Use git grep DVB_FRONTEND_COMPONENT_ drivers/media/ to see all those
+>>> existing callbacks.
+>>
+>> Cool. Thanks for the hint. I'll fix this.
+>
+> Ok, so I cooked something up here.
+> I'm wondering where to get the firmware file from, so I can test it.
 
-It seems these change (3d95e932573c316ad56b8e2f283e26de0b9c891c
-resp. 6998b6fb4b1c8f320adeee938d399c4d8dcc90e2) broke the
-build for nommu a while ago, as uvc_queue_get_unmapped_area() was not
-or was incorrectly updated:
+Googling the filename reveals many links, here is one:
+http://xgazza.altervista.org/Linux/DVB/dvb-usb-af9035-01.fw
 
-drivers/media/video/uvc/uvc_queue.c:254:23: error: 'struct
-uvc_video_queue' has no member named 'count'
-drivers/media/video/uvc/uvc_queue.c:255:18: error: 'struct
-uvc_video_queue' has no member named 'buffer'
-drivers/media/video/uvc/uvc_queue.c:256:19: error: 'struct vb2_buffer'
-has no member named 'm'
-drivers/media/video/uvc/uvc_queue.c:259:16: error: 'struct
-uvc_video_queue' has no member named 'count'
-drivers/media/video/uvc/uvc_queue.c:263:23: error: 'buf' undeclared
-(first use in this function)
+I will try to make new firmware loader during that weekend, now I am 
+busy hacking with it9035 I have. It is rather similar, but for some 
+nasty reason I haven't got lock. If it does not found soon I will jump 
+back for implementing those missing basic features.
 
-Cfr. http://kisskb.ellerman.id.au/kisskb/buildresult/6171077/
-
-Gr{oetje,eeting}s,
-
-                        Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+regards
+Antti
+-- 
+http://palosaari.fi/
