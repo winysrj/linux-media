@@ -1,129 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:52921 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753488Ab2DTMZI (ORCPT
+Received: from mail-wg0-f44.google.com ([74.125.82.44]:40012 "EHLO
+	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755545Ab2CaJoE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Apr 2012 08:25:08 -0400
-Received: from euspt1 (mailout2.w1.samsung.com [210.118.77.12])
- by mailout2.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0M2S00GOE2HQO5@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 20 Apr 2012 13:25:02 +0100 (BST)
-Received: from [106.116.48.223] by spt1.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTPA id <0M2S009DB2HTSZ@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 20 Apr 2012 13:25:06 +0100 (BST)
-Date: Fri, 20 Apr 2012 14:25:01 +0200
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: Re: [PATCH v4 02/14] Documentation: media: description of DMABUF
- importing in V4L2
-In-reply-to: <d24e8c6e35352ed5800161713f728591@chewa.net>
-To: =?UTF-8?B?UsOpbWkgRGVuaXMtQ291cm1vbnQ=?= <remi@remlab.net>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	airlied@redhat.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, sumit.semwal@ti.com, daeinki@gmail.com,
-	daniel.vetter@ffwll.ch, robdclark@gmail.com, pawel@osciak.com,
-	linaro-mm-sig@lists.linaro.org, hverkuil@xs4all.nl,
-	subashrp@gmail.com
-Message-id: <4F91559D.6060900@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 8BIT
-References: <1334332076-28489-1-git-send-email-t.stanislaws@samsung.com>
- <1334332076-28489-3-git-send-email-t.stanislaws@samsung.com>
- <13761406.oTf8ZzmZpQ@avalon> <4F9021FE.2070903@samsung.com>
- <4F907798.3000304@redhat.com> <4F912141.8060200@samsung.com>
- <d24e8c6e35352ed5800161713f728591@chewa.net>
+	Sat, 31 Mar 2012 05:44:04 -0400
+Received: by wgbdr13 with SMTP id dr13so1259193wgb.1
+        for <linux-media@vger.kernel.org>; Sat, 31 Mar 2012 02:44:03 -0700 (PDT)
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Subject: [PATCH] V4L: JPEG class documentation corrections
+Date: Sat, 31 Mar 2012 11:43:55 +0200
+Message-Id: <1333187035-28340-1-git-send-email-sylvester.nawrocki@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Remi,
+This patch fixes following compilation warning:
+Error: no ID for constraint linkend: v4l2-jpeg-chroma-subsampling.
 
-On 04/20/2012 12:56 PM, Rémi Denis-Courmont wrote:
-> On Fri, 20 Apr 2012 10:41:37 +0200, Tomasz Stanislawski
-> <t.stanislaws@samsung.com> wrote:
->>> Am I understanding wrong or are you saying that you want to drop
-> userptr
->>> from V4L2 API in long-term? If so, why?
->>
->> Dropping userptr is just some brainstorming idea.
->> It was found out that userptr is not a good mean
->> for buffer exchange between to two devices.
-> 
-> I can believe that. But I am also inclined to believe that DMABUF is
-> targetted at device-to-device transfer, while USERPTR is targetted at
-> device-to-user (or user-to-device) transfers. Are you saying applications
-> should use DMABUF and memory map the buffers?
+and adds missing JPEG control class at the Table A.58.
 
-No. As I sad before: it is *too early* to drop userptr and expect application
-to use DMABUF and MMAPs only. This was just some hypothetical idea.
+Signed-off-by: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+---
+ Documentation/DocBook/media/v4l/controls.xml       |    2 +-
+ .../DocBook/media/v4l/vidioc-g-ext-ctrls.xml       |    7 +++++++
+ 2 files changed, 8 insertions(+), 1 deletions(-)
 
-DMABUF is dedicated for  dev-dev transfers. However, looking at the current
-speed of appearances of  DMABUF extensions it may be expected that one day
-it starts supporting making DMA buffer from a user pointer.
-Currently there are already extensions for MMAP and cache synchronization.
-Who know what will happen future versions. However these are only
-hypothetical issues.
+diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+index 582324f..8761e76 100644
+--- a/Documentation/DocBook/media/v4l/controls.xml
++++ b/Documentation/DocBook/media/v4l/controls.xml
+@@ -3546,7 +3546,7 @@ interface and may change in the future.</para>
+ 	    from RGB to Y'CbCr color space.
+ 	    </entry>
+ 	  </row>
+-	  <row>
++	  <row id = "v4l2-jpeg-chroma-subsampling">
+ 	    <entrytbl spanname="descr" cols="2">
+ 	      <tbody valign="top">
+ 		<row>
+diff --git a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
+index b17a7aa..27e20bc 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
+@@ -265,7 +265,13 @@ These controls are described in <xref
+ These controls are described in <xref
+ 		linkend="flash-controls" />.</entry>
+ 	  </row>
++	  <row>
++	    <entry><constant>V4L2_CTRL_CLASS_JPEG</constant></entry>
++	    <entry>0x9d0000</entry>
++	    <entry>The class containing JPEG compression controls.
++These controls are described in <xref
++		linkend="jpeg-controls" />.</entry>
++	  </row>
+ 	</tbody>
+       </tgroup>
+     </table>
+--
+1.7.4.1
 
-Or would you care to explain
-> how DMABUF addresses the problem space of USERPTR?
-
-Allowing to attach a DMABUF to some userptr using some new magic IOCTL.
-I think that sooner or later someone will find this feature useful.
-
-> 
->> The USERPTR simplifies userspace code but introduce
->> a lot of complexity problems for the kernel drivers
->> and frameworks.
-> 
-> It is not only a simplification. In some cases, USERPTR is the only I/O
-> method that supports zero copy in pretty much any circumstance.
-
-Only for devices that have its own IOMMU that can access system memory.
-Moreover the userptr must come from malloc or be a mmaped file.
-The other case are drivers that touch memory using CPU in the kernel
-space like VIVI or USB drivers.
-
-> When the user cannot reliably predict the maximum number of required buffers,
-> predicts a value larger than the device will negotiate, or needs buffers to
-> outlive STREAMOFF (?), MMAP requires memory copying. USERPTR does not.
-
-What does outlive STREAMOFF means in this context?
-
-Anyway, IMO allocation of the buffers at VIDIOC_REQBUFS was not the best idea
-because it introduces an allocation overhead for negotiations of the number
-of the buffers. An allocation at mmap was to late. There is a need for some
-intermediate state between REQBUFS and mmap. The ioctl BUF_PREPARE may help here.
-
-Can you give me an example of a sane application is forced to negotiate a larger
-number of buffers than it is actually going to use?
-
-> 
-> Now, I do realize that some devices cannot support USERPTR efficiently,
-> then they should not support USERPTR. 
-
-The problem is not there is *NO* device that can handle USERPTR reliably.
-The can handle USERPTR generated by malloc or page cache (not sure).
-Memory mmaped from other devices, frameworks etc may or may not work.
-Even if the device has its IOMMU the DMA layer provides no generic way to
-transform from one device to the mapping in some other device.
-
-It is done using platform-defendant hacks like extracting PFNs from mappings,
-hack-forming them into struct pages or scatterlists, mapping it and hoping
-that the memory is not going to release it in some other thread.
-
-The only sure way is to copy data from userptr to MMAP buffer.
-
-But for those devices that can, it
-> seems quite a nice performance enhancement.
-
-The userptr has its niches were it works pretty well like Web cams or VIVI.
-I am saying that if ever DMABUF becomes a good alternative for USERPTR
-than maybe we should consider encouraging dropping USERPTR in the new
-drivers as 'obsolete' feature and providing some emulation layer in libv4l2
-for legacy applications.
-
-Regards,
-Tomasz Stanislawski
