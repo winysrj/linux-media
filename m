@@ -1,48 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:60417 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752822Ab2DFJL6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Apr 2012 05:11:58 -0400
-Received: by ghrr11 with SMTP id r11so1212804ghr.19
-        for <linux-media@vger.kernel.org>; Fri, 06 Apr 2012 02:11:58 -0700 (PDT)
+Received: from mail.kapsi.fi ([217.30.184.167]:46392 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1749667Ab2CaQsf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 31 Mar 2012 12:48:35 -0400
+Message-ID: <4F773562.6010008@iki.fi>
+Date: Sat, 31 Mar 2012 19:48:34 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Date: Fri, 6 Apr 2012 11:11:58 +0200
-Message-ID: <CAKZ=SG-pmn2BtqB+ihY9H9bvYCZq-E3uBsSaioPF5SRceq9iDg@mail.gmail.com>
-Subject: RTL28XX driver
-From: Thomas Mair <thomas.mair86@googlemail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+To: =?ISO-8859-1?Q?Michael_B=FCsch?= <m@bues.ch>
+CC: linux-media@vger.kernel.org
+Subject: Re: [GIT PULL FOR 3.5] AF9035/AF9033/TUA9001 => TerraTec Cinergy
+ T Stick [0ccd:0093]
+References: <4F75A7FE.8090405@iki.fi> <20120330234545.45f4e2e8@milhouse> <4F762CF5.9010303@iki.fi> <20120331001458.33f12d82@milhouse> <20120331160445.71cd1e78@milhouse> <4F771496.8080305@iki.fi> <20120331182925.3b85d2bc@milhouse> <4F77320F.8050009@iki.fi>
+In-Reply-To: <4F77320F.8050009@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello everyone,
+I dropped Mauro from cc since he is not likely interested of that 
+development.
 
-i own a TerraTec Cinergy T Stick Black device, and was able to find a
-working driver for the device. It seems to be, that the driver was
-originally written by Realtek and has since been updated by different
-Developers to meet DVB API changes. I was wondering what would be the
-necessary steps to include the driver into the kernel sources?
+On 31.03.2012 19:34, Antti Palosaari wrote:
+> On 31.03.2012 19:29, Michael Büsch wrote:
+>> On Sat, 31 Mar 2012 17:28:38 +0300
+>> Antti Palosaari<crope@iki.fi> wrote:
+>>
+>>> Googling the filename reveals many links, here is one:
+>>> http://xgazza.altervista.org/Linux/DVB/dvb-usb-af9035-01.fw
+>>
+>> Hm, on tuner register access I get these errors:
+>>
+>> [ 9259.080907] af9035_ctrl_msg: command=03 failed fw error=2
+>> [ 9259.080922] i2c i2c-8: I2C write reg failed, reg: 07, val: 0f
+>>
+>> Is it possible that this firmware is incompatible with my stick?
+>> The firmware that I successfully used with the other af9035 driver
+>> seems to
+>> be incompatible with your driver, though. It crashes it somewhere
+>> on firmware download in one of the USB transfer's memcpy.
+>
+> Most likely it is incompatible. It is surely one of the earliest
+> firmwares. I will try to make that new fw downloaded ASAP, likely
+> tomorrow morning it is done.
+>
+> And good news about IT9035 support - it is working. It was very few
+> changes needed, new initialization tables for af9033 and new firmware
+> uploader for af9035. Of course new tuner drivers is also needed, but it
+> seems to be very simple. yay, AF9035 is basically same as IT9035 +
+> integrated tuner.
 
-The one thing that needs to be solved before even thinking about the
-integration, is the licencing of the code. I did find it on two
-different locations, but without any licencing information. So
-probably Realtek should be contacted. I am willing to deal with that,
-but need furter information on under whitch lisence the code has to be
-relased.
+Ooops, I mean IT9135.
 
-So far, I put up a Github repository for the driver, which enables me
-to compile the proper kernel modue at
-https://github.com/tmair/DVB-Realtek-RTL2832U-2.2.2-10tuner-mod_kernel-3.0.0
-The modificatioins to the driver where taken from openpli
-http://openpli.git.sourceforge.net/git/gitweb.cgi?p=openpli/openembedded;a=blob;f=recipes/linux/linux-etxx00/dvb-usb-rtl2832.patch;h=063114c8ce4a2dbcf8c8dde1b4ab4f8e329a2afa;hb=HEAD
+And about the new FW downloader, that supports those new firmwares, feel 
+free to implement it if you wish too. I will now goto out of house and 
+will back during few hours. If you wish to do it just reply during 4 
+hours, and I will not start working for it. Instead I will continue with 
+IT9135.
 
-In the driver sources I stumbled accross many different devices
-containig the RTL28XX chipset, so I suppose the driver would enably
-quite many products to work.
-
-As I am relatively new to the developement of dvb drivers I appreciate
-any help in stabilizing the driver and proper integration into the dvb
-API.
-
-Greetings
-Thomas
+regards
+Antti
+-- 
+http://palosaari.fi/
