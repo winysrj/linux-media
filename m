@@ -1,140 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp206.alice.it ([82.57.200.102]:40427 "EHLO smtp206.alice.it"
+Received: from bues.ch ([80.190.117.144]:41431 "EHLO bues.ch"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760056Ab2D0ME0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Apr 2012 08:04:26 -0400
-Date: Fri, 27 Apr 2012 14:04:16 +0200
-From: Antonio Ospite <ospite@studenti.unina.it>
-To: Jean-Francois Moine <moinejf@free.fr>
-Cc: linux-media@vger.kernel.org,
-	Erik =?ISO-8859-1?Q?Andr=E9n?= <erik.andren@gmail.com>
-Subject: Re: gspca V4L2_CID_EXPOSURE_AUTO and VIDIOC_G/S/TRY_EXT_CTRLS
-Message-Id: <20120427140416.79cfd85f36f3f793816fe4d2@studenti.unina.it>
-In-Reply-To: <20120427095309.5d922000@tele>
-References: <20120418153720.1359c7d2f2a3efc2c7c17b88@studenti.unina.it>
-	<20120427095309.5d922000@tele>
+	id S1757212Ab2CaOE4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 31 Mar 2012 10:04:56 -0400
+Date: Sat, 31 Mar 2012 16:04:45 +0200
+From: Michael =?UTF-8?B?QsO8c2No?= <m@bues.ch>
+To: Antti Palosaari <crope@iki.fi>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [GIT PULL FOR 3.5] AF9035/AF9033/TUA9001 => TerraTec Cinergy T
+ Stick [0ccd:0093]
+Message-ID: <20120331160445.71cd1e78@milhouse>
+In-Reply-To: <20120331001458.33f12d82@milhouse>
+References: <4F75A7FE.8090405@iki.fi>
+	<20120330234545.45f4e2e8@milhouse>
+	<4F762CF5.9010303@iki.fi>
+	<20120331001458.33f12d82@milhouse>
 Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pgp-signature";
- micalg="PGP-SHA1";
- boundary="Signature=_Fri__27_Apr_2012_14_04_16_+0200_lnYsLEz16JHCPDjR"
+Content-Type: multipart/signed; micalg=PGP-SHA1;
+ boundary="Sig_/4Cql_n0.CTxeS2Atsgd9Ae9"; protocol="application/pgp-signature"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---Signature=_Fri__27_Apr_2012_14_04_16_+0200_lnYsLEz16JHCPDjR
-Content-Type: text/plain; charset=US-ASCII
-Content-Disposition: inline
+--Sig_/4Cql_n0.CTxeS2Atsgd9Ae9
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, 27 Apr 2012 09:53:09 +0200
-Jean-Francois Moine <moinejf@free.fr> wrote:
+On Sat, 31 Mar 2012 00:14:58 +0200
+Michael B=C3=BCsch <m@bues.ch> wrote:
 
-> On Wed, 18 Apr 2012 15:37:20 +0200
-> Antonio Ospite <ospite@studenti.unina.it> wrote:
+> On Sat, 31 Mar 2012 01:00:21 +0300
+> Antti Palosaari <crope@iki.fi> wrote:
 >=20
-> > I noticed that AEC (Automatic Exposure Control, or
-> > V4L2_CID_EXPOSURE_AUTO) does not work in the ov534 gspca driver, either
-> > from guvcview or qv4l2.
-> 	[snip]
-> > So in ov534, but I think in m5602 too, V4L2_CID_EXPOSURE_AUTO does not
-> > work from guvcview, qv4l2, or v4l2-ctrl, for instance the latter fails
-> > with the message:
-> >=20
-> > 	error 25 getting ext_ctrl Auto Exposure
-> >=20
-> > I tried adding an hackish implementation of vidioc_g_ext_ctrls and
-> > vidioc_s_ext_ctrls to gspca, and with these V4L2_CID_EXPOSURE_AUTO seems
-> > to work, but I need to learn more about this kind of controls before
-> > I can propose a decent implementation for mainline inclusion myself, so
-> > if anyone wants to anticipate me I'd be glad to test :)
-> >=20
-> > Unrelated, but maybe worth mentioning is that V4L2_CID_EXPOSURE_AUTO is
-> > of type MENU, while some drivers are treating it as a boolean, I think
-> > I can fix this one if needed.
+> > Feel free to do that. Actually, I just tried it about 2 hours ago. But =
+I=20
+> > failed, since there callbacks given as a param for tuner attach and it=
+=20
+> > is wrong. There is frontend callback defined just for that. Look exampl=
+e=20
+> > from some Xceive tuners also hd29l2 demod driver contains one example.=
+=20
+> > Use git grep DVB_FRONTEND_COMPONENT_ drivers/media/ to see all those=20
+> > existing callbacks.
 >=20
-> Hi Antonio,
->=20
-> Yes, V4L2_CID_EXPOSURE_AUTO is of class V4L2_CTRL_CLASS_CAMERA, and, as
-> the associated menu shows, it is not suitable for webcams.
->
+> Cool. Thanks for the hint. I'll fix this.
 
-Where is that menu you refer to? Maybe camera_exposure_auto in
-drivers/media/video/v4l2-ctrls.c which mentions also "Shutter Priority
-Mode" and "Aperture Priority Mode"?
-
-Naively one would expect that a web _camera_ could use some controls of
-type V4L2_CTRL_CLASS_CAMERA.
-
-> In the webcam world, the autoexposure is often the same as the
-> autogain: in the knee algorithm
-> (http://81.209.78.62:8080/docs/LowLightOptimization.html - also look at
-> gspca/sonixb.c), both exposure and gain are concerned.
-
-=46rom the document you point at I still understand that from a user point
-of view autoexposure and autogain are _independent_ parameters (Table
-1), it's just that for such algorithm to work well they should be _both_
-enabled.
-
-> The cases where
-> a user wants only autoexposure (fixed gain) or autogain (fixed
-> exposure) are rare.
->
-> If you want people to be able to do that, you
-> should add a new webcam control, V4L2_CID_AUTOEXPOSURE, and also add it
-> to each driver which implements the knee algorithm, and handle the three
-> cases, autogain only, autoexposure only and knee.
-
-The real problem here is that _manual_ exposure does not work in ov534
-because the user cannot turn off what we are currently calling auto
-exposure.
-
-> Then, looking about your implementation of vidioc_s_ext_ctrls, I found
-> it was a bit simple: setting many controls is atomic, i.e., if any
-> error occurs at some point, the previous controls should be reset to
-> their original values. Same about vidioc_g_ext_ctrls: the mutex must be
-> taken only once for the values do not change. You also do not check if
-> the controls are in a same control class.
-
-I see, it was my first shot and I just wanted to start the discussion
-with a "works here" implementation. I think that using some v4l2
-infrastructure like the control-framework like Hans proposes could be
-better in the long run. IIUC this could also prevent drivers having to
-handle menu entries themselves like we are doing now in sd_querymenu(),
-right?
-
-If you two reach an agreement and he gets to do it I'll surely port
-over drivers using V4L2_CID_EXPOSURE_AUTO.
-
-> Anyway, are these ioctl's needed?
->=20
-
-Whether they are really needed or not, that depends on the definition of
-webcam, the definition of "camera" in V4L2, and the relationship
-between the two.
-
-If a webcam IS-A v4l2 camera, then I'd expect it to be able to use
-V4L2_CTRL_CLASS_CAMERA controls, and then EXT controls should be made
-accessible by gspca somehow.
-
-Thanks,
-   Antonio
+Ok, so I cooked something up here.
+I'm wondering where to get the firmware file from, so I can test it.
 
 --=20
-Antonio Ospite
-http://ao2.it
+Greetings, Michael.
 
-A: Because it messes up the order in which people normally read text.
-   See http://en.wikipedia.org/wiki/Posting_style
-Q: Why is top-posting such a bad thing?
+PGP encryption is encouraged / 908D8B0E
 
---Signature=_Fri__27_Apr_2012_14_04_16_+0200_lnYsLEz16JHCPDjR
-Content-Type: application/pgp-signature
+--Sig_/4Cql_n0.CTxeS2Atsgd9Ae9
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Disposition: attachment; filename=signature.asc
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.12 (GNU/Linux)
 
-iEYEARECAAYFAk+ai0AACgkQ5xr2akVTsAGLHACdEIsXZwE4tCdWeT0nfn/YtFU9
-T4MAoIrRZTKPF7A/jMYLVuSZVD5yidIc
-=EF3z
+iQIcBAEBAgAGBQJPdw79AAoJEPUyvh2QjYsOeZMP/0UQBFSm/kh5Hs2RVFY0lojG
+QWgL7KAdWaOO0sBHRyQak1yCSSQIJzfvzbCV73wInv03FRJ6KOsptzVlC9sd9hX7
+bEvro2vmgyeOsM4GiSsBKWNsF7RKgV02Wl5Dm/W1kUZg2qS1nsBwdtxCM9KnFAy9
+TYjeg0oQMiCKVPqOcZ/Ll2L7NbeuMyIHnn0KTdwpkAiGvQeN9O4QpFbPLmqrGkBV
+O1HZFQeQNbb9IGcKbXKpHAH1pHkqTWho4094TSW3uskVOWNX6huDraG6H3HoF+Bt
+6UXhJIoXMJ5+flvBUIBNGOXkmlPi05N4Ccc5VxB3/cgCfp9Giik2JoR7d+46PRX7
+zeppeemdhO4szQsVVthd2kNXaISJ8TBdIdKSQWbXbzCcCPjTNMjK2OSe5ZTkpB0j
+7sXotGfuiptDxZl666njFu24RnGMTFY8nvnViNlf6R2Qqct+Ciu/xIzwfWuUL8iw
+uuGWscibMYkfKiB5gN0/a+JIpqSo2DNyORsG94IAkY2Kn7fYPC3xmbtgxz09PbSH
+iC4YI4SsxtoS6LFPExaOB2+vfErd1t7/lE0093ajVPUNNUn0bYxKw9K6mj19gy1I
+xc3igAA1zBquoeCY3JaeS+7JWisIJ6jsSGlMhAGqopq1UUCJ7VQEjrqj+OlBYoz3
+oanHXQoHzoZl3r+iCree
+=Vrm6
 -----END PGP SIGNATURE-----
 
---Signature=_Fri__27_Apr_2012_14_04_16_+0200_lnYsLEz16JHCPDjR--
+--Sig_/4Cql_n0.CTxeS2Atsgd9Ae9--
