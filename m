@@ -1,76 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nm9.bullet.mail.ukl.yahoo.com ([217.146.182.250]:30212 "HELO
-	nm9.bullet.mail.ukl.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1754601Ab2DFWon (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 6 Apr 2012 18:44:43 -0400
-Message-ID: <4F7F705A.3010507@yahoo.com>
-Date: Fri, 06 Apr 2012 23:38:18 +0100
-From: Chris Rankin <rankincj@yahoo.com>
+Received: from mailout-de.gmx.net ([213.165.64.22]:53052 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752933Ab2DAVTT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Apr 2012 17:19:19 -0400
+From: "Hans-Frieder Vogt" <hfvogt@gmx.net>
+To: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH] AF9033 read_ber and read_ucblocks implementation
+Date: Sun, 1 Apr 2012 23:19:12 +0200
+Cc: linux-media@vger.kernel.org
+References: <4F75A7FE.8090405@iki.fi> <201204012011.29830.hfvogt@gmx.net> <201204012307.31742.hfvogt@gmx.net>
+In-Reply-To: <201204012307.31742.hfvogt@gmx.net>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: linux-media@vger.kernel.org
-Subject: [PATCH v2] Linux 3.3 DVB userspace ABI broken for xine (FE_SET_FRONTEND)
-References: <4F7F4CAF.4010501@yahoo.com>
-In-Reply-To: <4F7F4CAF.4010501@yahoo.com>
-Content-Type: multipart/mixed;
- boundary="------------010001070809040207090703"
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201204012319.12575.hfvogt@gmx.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------010001070809040207090703
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Implementation of af9033_read_ber and af9033_read_ucblocks functions.
 
-I've had a closer look at the commit which caused the regression and it looks 
-like there were two places where fepriv->parameters_in was assigned to 
-fepriv->parameters_out. So I've updated my patch accordingly.
+Signed-off-by: Hans-Frieder Vogt <hfvogt@gmx.net>
 
-Cheers,
-Chris
+ drivers/media/dvb/dvb-usb/af9033.c |   68 +++++++++++++++++++++++++++++++++++--
+ 1 file changed, 66 insertions(+), 2 deletions(-)
 
-Signed-off-by: Chris Rankin <rankincj@yahoo.com>
-
---------------010001070809040207090703
-Content-Type: text/x-patch;
- name="DVB.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="DVB.diff"
-
---- linux-3.3/drivers/media/dvb/dvb-core/dvb_frontend.c.orig	2012-04-06 20:16:02.000000000 +0100
-+++ linux-3.3/drivers/media/dvb/dvb-core/dvb_frontend.c	2012-04-06 23:16:03.000000000 +0100
-@@ -143,6 +143,8 @@
- static void dvb_frontend_wakeup(struct dvb_frontend *fe);
- static int dtv_get_frontend(struct dvb_frontend *fe,
- 			    struct dvb_frontend_parameters *p_out);
-+static int dtv_property_legacy_params_sync(struct dvb_frontend *fe,
-+					   struct dvb_frontend_parameters *p);
- 
- static bool has_get_frontend(struct dvb_frontend *fe)
- {
-@@ -695,6 +697,7 @@
- 					fepriv->algo_status |= DVBFE_ALGO_SEARCH_AGAIN;
- 					fepriv->delay = HZ / 2;
- 				}
-+				dtv_property_legacy_params_sync(fe, &fepriv->parameters_out);
- 				fe->ops.read_status(fe, &s);
- 				if (s != fepriv->status) {
- 					dvb_frontend_add_event(fe, s); /* update event list */
-@@ -1831,6 +1834,13 @@
- 		return -EINVAL;
- 
- 	/*
-+	 * Initialize output parameters to match the values given by
-+	 * the user. FE_SET_FRONTEND triggers an initial frontend event
-+	 * with status = 0, which copies output parameters to userspace.
-+	 */
-+	dtv_property_legacy_params_sync(fe, &fepriv->parameters_out);
+diff -Nupr a/drivers/media/dvb/dvb-usb/af9033.c b/drivers/media/dvb/dvb-usb/af9033.c
+--- a/drivers/media/dvb/dvb-usb/af9033.c	2012-04-01 22:41:45.378193253 +0200
++++ b/drivers/media/dvb/dvb-usb/af9033.c	2012-04-01 23:12:19.212643650 +0200
+@@ -29,6 +29,10 @@ struct af9033_state {
+ 	u32 bandwidth_hz;
+ 	bool ts_mode_parallel;
+ 	bool ts_mode_serial;
 +
-+	/*
- 	 * Be sure that the bandwidth will be filled for all
- 	 * non-satellite systems, as tuners need to know what
- 	 * low pass/Nyquist half filter should be applied, in
++	u32 ber;
++	u32 ucb;
++	unsigned long last_stat_check;
+ };
+ 
+ /* write multiple registers */
+@@ -594,16 +598,76 @@ err:
+ 	return ret;
+ }
+ 
++static int af9033_update_ch_stat(struct af9033_state *state)
++{
++	int ret = 0;
++	u32 post_err_cnt, post_bit_cnt;
++	u16 abort_cnt;
++	u8 buf[7];
++	static u8 sw = 0;
++
++	/* only update data every half second */
++	if (time_after(jiffies, state->last_stat_check + 500 * HZ / 1000)) {
++		ret = af9033_rd_regs(state, 0x800032, buf, sizeof(buf));
++		if (ret < 0)
++			goto err;
++		abort_cnt = (buf[1] << 8) + buf[0];
++		post_err_cnt = (buf[4] << 16) + (buf[3] << 8) + buf[2];
++		post_bit_cnt = (buf[6] << 8) + buf[5];
++		if (post_bit_cnt == 0) {
++			abort_cnt = 1000;
++			post_err_cnt = 1;
++			post_bit_cnt = 2;
++		} else {
++			post_bit_cnt -= (u32)abort_cnt;
++			if (post_bit_cnt == 0) {
++				post_err_cnt = 1;
++				post_bit_cnt = 2;
++			} else {
++				post_err_cnt -= (u32)abort_cnt * 8 * 8;
++				post_bit_cnt *= 204 * 8;
++			}
++		}
++		state->ber = post_err_cnt * (0xffffffff / post_bit_cnt);
++		/* reset ucblocks value every second call */
++		if (sw)
++			state->ucb = abort_cnt;
++		else
++			state->ucb = +abort_cnt;
++		sw = ~sw;
++		state->last_stat_check = jiffies;
++	}
++
++	return 0;
++err:
++	pr_debug("%s: failed=%d\n", __func__, ret);
++	return ret;
++}
++
+ static int af9033_read_ber(struct dvb_frontend *fe, u32 *ber)
+ {
+-	*ber = 0;
++	struct af9033_state *state = fe->demodulator_priv;
++	int ret;
++
++	ret = af9033_update_ch_stat(state);
++	if (ret < 0)
++		return ret;
++
++	*ber = state->ber;
+ 
+ 	return 0;
+ }
+ 
+ static int af9033_read_ucblocks(struct dvb_frontend *fe, u32 *ucblocks)
+ {
+-	*ucblocks = 0;
++	struct af9033_state *state = fe->demodulator_priv;
++	int ret;
++
++	ret = af9033_update_ch_stat(state);
++	if (ret < 0)
++		return ret;
++
++	*ucblocks = state->ucb;
+ 
+ 	return 0;
+ }
 
---------------010001070809040207090703--
+Hans-Frieder Vogt                       e-mail: hfvogt <at> gmx .dot. net
