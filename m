@@ -1,72 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cassarossa.samfundet.no ([129.241.93.19]:40808 "EHLO
-	cassarossa.samfundet.no" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752332Ab2DAPyD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Apr 2012 11:54:03 -0400
-From: "Steinar H. Gunderson" <sgunderson@bigfoot.com>
-To: linux-media@vger.kernel.org
-Cc: "Steinar H. Gunderson" <sesse@samfundet.no>
-Subject: [PATCH 05/11] Slightly more friendly debugging output.
-Date: Sun,  1 Apr 2012 17:53:45 +0200
-Message-Id: <1333295631-31866-5-git-send-email-sgunderson@bigfoot.com>
-In-Reply-To: <20120401155330.GA31901@uio.no>
-References: <20120401155330.GA31901@uio.no>
+Received: from sirokuusama.dnainternet.net ([83.102.40.133]:59466 "EHLO
+	sirokuusama.dnainternet.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752599Ab2DAUy3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 1 Apr 2012 16:54:29 -0400
+From: Anssi Hannula <anssi.hannula@iki.fi>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: linux-media@vger.kernel.org, Stephan Raue <stephan@openelec.tv>,
+	Martin Beyss <Martin.Beyss@rwth-aachen.de>
+Subject: [PATCH 1/2] [media] ati_remote: allow specifying a default keymap selector function
+Date: Sun,  1 Apr 2012 23:41:45 +0300
+Message-Id: <1333312906-9325-2-git-send-email-anssi.hannula@iki.fi>
+In-Reply-To: <1333312906-9325-1-git-send-email-anssi.hannula@iki.fi>
+References: <1333312906-9325-1-git-send-email-anssi.hannula@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Steinar H. Gunderson" <sesse@samfundet.no>
+Currently the ati_remote default keymap is selected directly based on
+the USB device id.
 
-Say what address we read/write from/to. This is useful when trying
-to trace where the debug output comes from, and which accesses
-fail, if any.
+Add support for instead specifying a function returning the default
+keymap, allowing more complex selection logic to be added when needed.
 
-Signed-off-by: Steinar H. Gunderson <sesse@samfundet.no>
+This will be used for Medion X10 remotes in a following commit.
+
+Signed-off-by: Anssi Hannula <anssi.hannula@iki.fi>
 ---
- drivers/media/dvb/mantis/mantis_hif.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ drivers/media/rc/ati_remote.c |   36 ++++++++++++++++++++++++++----------
+ 1 file changed, 26 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/media/dvb/mantis/mantis_hif.c b/drivers/media/dvb/mantis/mantis_hif.c
-index 10c68df..1210cda 100644
---- a/drivers/media/dvb/mantis/mantis_hif.c
-+++ b/drivers/media/dvb/mantis/mantis_hif.c
-@@ -91,8 +91,9 @@ int mantis_hif_read_mem(struct mantis_ca *ca, u32 addr)
- 	struct mantis_pci *mantis = ca->ca_priv;
- 	u32 hif_addr = 0, data, count = 4;
+diff --git a/drivers/media/rc/ati_remote.c b/drivers/media/rc/ati_remote.c
+index baf907b..7a35f7a 100644
+--- a/drivers/media/rc/ati_remote.c
++++ b/drivers/media/rc/ati_remote.c
+@@ -151,13 +151,23 @@ MODULE_PARM_DESC(mouse, "Enable mouse device, default = yes");
+ #undef err
+ #define err(format, arg...) printk(KERN_ERR format , ## arg)
  
--	dprintk(MANTIS_DEBUG, 1, "Adapter(%d) Slot(0): Request HIF Mem Read", mantis->num);
-+	dprintk(MANTIS_DEBUG, 1, "Adapter(%d) Slot(0): Request HIF Mem Read of 0x%x", mantis->num, addr);
- 	mutex_lock(&ca->ca_lock);
++struct ati_receiver_type {
++	/* either default_keymap or get_default_keymap should be set */
++	const char *default_keymap;
++	const char *(*get_default_keymap)(struct usb_interface *interface);
++};
 +
- 	hif_addr &= ~MANTIS_GPIF_PCMCIAREG;
- 	hif_addr &= ~MANTIS_GPIF_PCMCIAIOM;
- 	hif_addr |=  MANTIS_HIF_STATUS;
-@@ -110,7 +111,7 @@ int mantis_hif_read_mem(struct mantis_ca *ca, u32 addr)
- 	}
- 	data = mmread(MANTIS_GPIF_DIN);
- 	mutex_unlock(&ca->ca_lock);
--	dprintk(MANTIS_DEBUG, 1, "Mem Read: 0x%02x", data);
-+	dprintk(MANTIS_DEBUG, 1, "Mem Read: 0x%02x from 0x%02x", data, addr);
- 	return (data >> 24) & 0xff;
- }
++static const struct ati_receiver_type type_ati		= { .default_keymap = RC_MAP_ATI_X10 };
++static const struct ati_receiver_type type_medion	= { .default_keymap = RC_MAP_MEDION_X10 };
++static const struct ati_receiver_type type_firefly	= { .default_keymap = RC_MAP_SNAPSTREAM_FIREFLY };
++
+ static struct usb_device_id ati_remote_table[] = {
+-	{ USB_DEVICE(ATI_REMOTE_VENDOR_ID, LOLA_REMOTE_PRODUCT_ID),	.driver_info = (unsigned long)RC_MAP_ATI_X10 },
+-	{ USB_DEVICE(ATI_REMOTE_VENDOR_ID, LOLA2_REMOTE_PRODUCT_ID),	.driver_info = (unsigned long)RC_MAP_ATI_X10 },
+-	{ USB_DEVICE(ATI_REMOTE_VENDOR_ID, ATI_REMOTE_PRODUCT_ID),	.driver_info = (unsigned long)RC_MAP_ATI_X10 },
+-	{ USB_DEVICE(ATI_REMOTE_VENDOR_ID, NVIDIA_REMOTE_PRODUCT_ID),	.driver_info = (unsigned long)RC_MAP_ATI_X10 },
+-	{ USB_DEVICE(ATI_REMOTE_VENDOR_ID, MEDION_REMOTE_PRODUCT_ID),	.driver_info = (unsigned long)RC_MAP_MEDION_X10 },
+-	{ USB_DEVICE(ATI_REMOTE_VENDOR_ID, FIREFLY_REMOTE_PRODUCT_ID),	.driver_info = (unsigned long)RC_MAP_SNAPSTREAM_FIREFLY },
++	{ USB_DEVICE(ATI_REMOTE_VENDOR_ID, LOLA_REMOTE_PRODUCT_ID),	.driver_info = (unsigned long)&type_ati },
++	{ USB_DEVICE(ATI_REMOTE_VENDOR_ID, LOLA2_REMOTE_PRODUCT_ID),	.driver_info = (unsigned long)&type_ati },
++	{ USB_DEVICE(ATI_REMOTE_VENDOR_ID, ATI_REMOTE_PRODUCT_ID),	.driver_info = (unsigned long)&type_ati },
++	{ USB_DEVICE(ATI_REMOTE_VENDOR_ID, NVIDIA_REMOTE_PRODUCT_ID),	.driver_info = (unsigned long)&type_ati },
++	{ USB_DEVICE(ATI_REMOTE_VENDOR_ID, MEDION_REMOTE_PRODUCT_ID),	.driver_info = (unsigned long)&type_medion },
++	{ USB_DEVICE(ATI_REMOTE_VENDOR_ID, FIREFLY_REMOTE_PRODUCT_ID),	.driver_info = (unsigned long)&type_firefly },
+ 	{}	/* Terminating entry */
+ };
  
-@@ -148,7 +149,7 @@ int mantis_hif_read_iom(struct mantis_ca *ca, u32 addr)
- 	struct mantis_pci *mantis = ca->ca_priv;
- 	u32 data, hif_addr = 0;
+@@ -766,6 +776,7 @@ static int ati_remote_probe(struct usb_interface *interface, const struct usb_de
+ 	struct usb_device *udev = interface_to_usbdev(interface);
+ 	struct usb_host_interface *iface_host = interface->cur_altsetting;
+ 	struct usb_endpoint_descriptor *endpoint_in, *endpoint_out;
++	struct ati_receiver_type *type = (struct ati_receiver_type *)id->driver_info;
+ 	struct ati_remote *ati_remote;
+ 	struct input_dev *input_dev;
+ 	struct rc_dev *rc_dev;
+@@ -827,10 +838,15 @@ static int ati_remote_probe(struct usb_interface *interface, const struct usb_de
+ 	snprintf(ati_remote->mouse_name, sizeof(ati_remote->mouse_name),
+ 		 "%s mouse", ati_remote->rc_name);
  
--	dprintk(MANTIS_DEBUG, 1, "Adapter(%d) Slot(0): Request HIF I/O Read", mantis->num);
-+	dprintk(MANTIS_DEBUG, 1, "Adapter(%d) Slot(0): Request HIF I/O Read of 0x%x", mantis->num, addr);
- 	mutex_lock(&ca->ca_lock);
- 	hif_addr &= ~MANTIS_GPIF_PCMCIAREG;
- 	hif_addr |=  MANTIS_GPIF_PCMCIAIOM;
-@@ -166,7 +167,7 @@ int mantis_hif_read_iom(struct mantis_ca *ca, u32 addr)
- 		return -EREMOTEIO;
- 	}
- 	data = mmread(MANTIS_GPIF_DIN);
--	dprintk(MANTIS_DEBUG, 1, "I/O Read: 0x%02x", data);
-+	dprintk(MANTIS_DEBUG, 1, "I/O Read: 0x%02x from 0x%02x", data, addr);
- 	udelay(50);
- 	mutex_unlock(&ca->ca_lock);
+-	if (id->driver_info)
+-		rc_dev->map_name = (const char *)id->driver_info;
+-	else
+-		rc_dev->map_name = RC_MAP_ATI_X10;
++	rc_dev->map_name = RC_MAP_ATI_X10; /* default map */
++
++	/* set default keymap according to receiver model */
++	if (type) {
++		if (type->default_keymap)
++			rc_dev->map_name = type->default_keymap;
++		else if (type->get_default_keymap)
++			rc_dev->map_name = type->get_default_keymap(interface);
++	}
  
+ 	ati_remote_rc_init(ati_remote);
+ 	mutex_init(&ati_remote->open_mutex);
 -- 
-1.7.9.5
+1.7.9.3
 
