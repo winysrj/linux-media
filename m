@@ -1,34 +1,29 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sypressi.dnainternet.net ([83.102.40.135]:40040 "EHLO
-	sypressi.dnainternet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753582Ab2DAUug (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Apr 2012 16:50:36 -0400
-From: Anssi Hannula <anssi.hannula@iki.fi>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: linux-media@vger.kernel.org, Stephan Raue <stephan@openelec.tv>,
-	Martin Beyss <Martin.Beyss@rwth-aachen.de>
-Subject: [PATCH 0/2] [media] ati_remote: Medion X10 Digitainer remote support
-Date: Sun,  1 Apr 2012 23:41:44 +0300
-Message-Id: <1333312906-9325-1-git-send-email-anssi.hannula@iki.fi>
+Received: from mail-we0-f174.google.com ([74.125.82.174]:37447 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753188Ab2DATPR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Apr 2012 15:15:17 -0400
+MIME-Version: 1.0
+In-Reply-To: <1333306151-20954-1-git-send-email-tdent48227@gmail.com>
+References: <1333306151-20954-1-git-send-email-tdent48227@gmail.com>
+Date: Sun, 1 Apr 2012 15:15:16 -0400
+Message-ID: <CAHXy_rN-qdTXEttDqOVZibu=HtD1_0foeaOHNOAOmLPkC_FkVg@mail.gmail.com>
+Subject: Re: [V2 PATCH 1/1] drivers/media/radio: Fix build error
+From: Tracey Dent <tdent48227@gmail.com>
+To: linux-kernel@vger.kernel.org
+Cc: shea@shealevy.com, torvalds@linux-foundation.org,
+	mchehab@infradead.org, hans.verkuil@cisco.com,
+	linux-media@vger.kernel.org, Tracey Dent <tdent48227@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi!
+I'm so sorry for all the noise. I recently set up git on a new laptop
+and I sis not configure it correctly. Can everybody disregard this
+thread and I sent a new patch in a new thread thread which should fix
+suggested issue[1].
 
-This patchset adds support for another Medion X10 remote to the
-ati_remote driver. See the individual patches for detailed explanations.
+Once again sorry.
 
 
-Anssi Hannula (2):
-      [media] ati_remote: allow specifying a default keymap selector function
-      [media] ati_remote: add support for Medion X10 Digitainer remote
-
- drivers/media/rc/ati_remote.c                      |  124 ++++++++++++++------
- drivers/media/rc/keymaps/Makefile                  |    1 +
- .../media/rc/keymaps/rc-medion-x10-digitainer.c    |  115 ++++++++++++++++++
- include/media/rc-map.h                             |    1 +
- 4 files changed, 204 insertions(+), 37 deletions(-)
-
--- 
-Anssi Hannula
-
+[1]: https://lkml.org/lkml/2012/4/1/175
