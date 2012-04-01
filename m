@@ -1,140 +1,146 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-1.cisco.com ([144.254.224.140]:20486 "EHLO
-	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753044Ab2D3P76 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Apr 2012 11:59:58 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [PATCH/RFC v3 09/14] V4L: Add camera 3A lock control
-Date: Mon, 30 Apr 2012 17:59:46 +0200
-Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	sakari.ailus@iki.fi, g.liakhovetski@gmx.de, hdegoede@redhat.com,
-	moinejf@free.fr, m.szyprowski@samsung.com,
-	riverful.kim@samsung.com, sw0312.kim@samsung.com,
-	Kyungmin Park <kyungmin.park@samsung.com>
-References: <1335536611-4298-1-git-send-email-s.nawrocki@samsung.com> <1335536611-4298-10-git-send-email-s.nawrocki@samsung.com>
-In-Reply-To: <1335536611-4298-10-git-send-email-s.nawrocki@samsung.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201204301759.46192.hverkuil@xs4all.nl>
+Received: from bues.ch ([80.190.117.144]:42269 "EHLO bues.ch"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751935Ab2DAMTu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 1 Apr 2012 08:19:50 -0400
+Date: Sun, 1 Apr 2012 14:19:40 +0200
+From: Michael =?UTF-8?B?QsO8c2No?= <m@bues.ch>
+To: Antti Palosaari <crope@iki.fi>
+Cc: linux-media@vger.kernel.org,
+	Daniel =?UTF-8?B?R2zDtmNrbmVy?= <daniel-gl@gmx.net>
+Subject: Re: [GIT PULL FOR 3.5] AF9035/AF9033/TUA9001 => TerraTec Cinergy T
+ Stick [0ccd:0093]
+Message-ID: <20120401141940.04e5220c@milhouse>
+In-Reply-To: <20120401103315.1149d6bf@milhouse>
+References: <4F75A7FE.8090405@iki.fi>
+	<20120330234545.45f4e2e8@milhouse>
+	<4F762CF5.9010303@iki.fi>
+	<20120331001458.33f12d82@milhouse>
+	<20120331160445.71cd1e78@milhouse>
+	<4F771496.8080305@iki.fi>
+	<20120331182925.3b85d2bc@milhouse>
+	<4F77320F.8050009@iki.fi>
+	<4F773562.6010008@iki.fi>
+	<20120331185217.2c82c4ad@milhouse>
+	<4F77DED5.2040103@iki.fi>
+	<20120401103315.1149d6bf@milhouse>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=PGP-SHA1;
+ boundary="Sig_/=j2tejfkT_gYhSACRjWlE6W"; protocol="application/pgp-signature"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday 27 April 2012 16:23:26 Sylwester Nawrocki wrote:
-> The V4L2_CID_3A_LOCK bitmask control allows applications to pause
-> or resume the automatic exposure, focus and wite balance adjustments.
-> It can be used, for example, to lock the 3A adjustments right before
-> a still image is captured, for pre-focus, etc.
-> The applications can control each of the algorithms independently,
-> through a corresponding control bit, if driver allows that.
-> 
-> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> ---
->  Documentation/DocBook/media/v4l/controls.xml |   40 ++++++++++++++++++++++++++
->  drivers/media/video/v4l2-ctrls.c             |    2 ++
->  include/linux/videodev2.h                    |    5 ++++
->  3 files changed, 47 insertions(+)
-> 
-> diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
-> index bf481d4..51509f4 100644
-> --- a/Documentation/DocBook/media/v4l/controls.xml
-> +++ b/Documentation/DocBook/media/v4l/controls.xml
-> @@ -3253,6 +3253,46 @@ lens-distortion correction.</entry>
->  	  </row>
->  	  <row><entry></entry></row>
->  
-> +	  <row>
-> +	    <entry spanname="id"><constant>V4L2_CID_3A_LOCK</constant></entry>
-> +	    <entry>bitmask</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry spanname="descr">This control locks or unlocks the automatic
-> +exposure, white balance and focus. The automatic adjustments can be paused
-> +independently by setting the coresponding lock bit to 1. The camera then retains
+--Sig_/=j2tejfkT_gYhSACRjWlE6W
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 
-Small typo: coresponding -> corresponding
+On Sun, 1 Apr 2012 10:33:15 +0200
+Michael B=C3=BCsch <m@bues.ch> wrote:
 
-> +the corresponding 3A settings, until the lock bit is cleared. The value of this
-> +control may be changed by other, exposure, white balance or focus controls. The
+> On Sun, 01 Apr 2012 07:51:33 +0300
+> Antti Palosaari <crope@iki.fi> wrote:
+> > > I have no clue about the firmware format, so it will probably be easi=
+er
+> > > if you'd dive into that stuff as you already seem to know it.
+> >=20
+> > Done. I didn't have neither info, but there was good posting from Danie=
+l=20
+> > Gl=C3=B6ckner that documents it! Nice job Daniel, without that info I w=
+as=20
+> > surely implemented it differently and surely more wrong way.
+> >=20
+> > I pushed my experimental tree out, patches are welcome top of that.
+> > http://git.linuxtv.org/anttip/media_tree.git/shortlog/refs/heads/af9035=
+_experimental
+> >=20
+> > I extracted three firmwares from windows binaries I have. I will sent=20
+> > those you, Michael, for testing. First, and oldest, is TUA9001, 2nd is=
+=20
+> > from FC0012 device and 3rd no idea.
+>=20
+> Great work. I'll rebase my tree on the new branch and check those firmwar=
+e files asap.
 
-The sentence 'The value ... focus controls' doesn't parse. I think 'other, ' needs
-to be removed.
+Hm, none of these firmwares fix the problem. Maybe it's not a firmware
+problem after all, but just incorrectly setup tuner-i2c.
 
-Regards,
+Here's the dmesg log:
 
-	Hans
+[  131.451556] usb 1-1.1: new high-speed USB device number 5 using ehci_hcd
+[  131.550302] usb 1-1.1: New USB device found, idVendor=3D15a4, idProduct=
+=3D9035
+[  131.550315] usb 1-1.1: New USB device strings: Mfr=3D0, Product=3D0, Ser=
+ialNumber=3D0
+[  131.674657] af9035_usb_probe: interface=3D0
+[  131.675169] af9035_identify_state: reply=3D00 00 00 00
+[  131.675185] dvb-usb: found a 'Afatech Technologies DVB-T stick' in cold =
+state, will try to load a firmware
+[  131.691605] dvb-usb: downloading firmware from file 'dvb-usb-af9035-02.f=
+w'
+[  131.691626] af9035_download_firmware: core=3D1 addr=3D4100 data_len=3D3 =
+checksum=3Dfbbe
+[  131.692696] af9035_download_firmware: data uploaded=3D10
+[  131.692716] af9035_download_firmware: core=3D1 addr=3D4800 data_len=3D15=
+014 checksum=3D587d
+[  131.777793] af9035_download_firmware: data uploaded=3D15031
+[  131.777807] af9035_download_firmware: core=3D1 addr=3D83e9 data_len=3D4 =
+checksum=3D117c
+[  131.778785] af9035_download_firmware: data uploaded=3D15042
+[  131.778796] af9035_download_firmware: core=3D2 addr=3D4100 data_len=3D3 =
+checksum=3Dfabe
+[  131.779785] af9035_download_firmware: data uploaded=3D15052
+[  131.779799] af9035_download_firmware: core=3D2 addr=3D4550 data_len=3D27=
+252 checksum=3D3950
+[  131.936162] af9035_download_firmware: data uploaded=3D42311
+[  131.999412] af9035: firmware version=3D11.10.10.0
+[  131.999443] dvb-usb: found a 'Afatech Technologies DVB-T stick' in warm =
+state.
+[  131.999790] dvb-usb: will pass the complete MPEG2 transport stream to th=
+e software demuxer.
+[  132.000122] DVB: registering new adapter (Afatech Technologies DVB-T sti=
+ck)
+[  132.000546] af9035_read_mac_address: dual mode=3D0
+[  132.001027] af9035_read_mac_address: [0]tuner=3D28
+[  132.002026] af9035_read_mac_address: [0]IF=3D36125
+[  132.002413] dvb-usb: MAC address: 00:00:00:00:00:00
+[  132.018549] af9033: firmware version: LINK=3D11.10.10.0 OFDM=3D5.33.10.0
+[  132.018566] DVB: registering adapter 0 frontend 0 (Afatech AF9033 (DVB-T=
+))...
+[  132.028370] i2c i2c-8: Fitipower FC0011 tuner attached
+[  132.028388] dvb-usb: Afatech Technologies DVB-T stick successfully initi=
+alized and connected.
+[  132.028405] af9035_init: USB speed=3D3 frame_size=3D0ff9 packet_size=3D80
+[  132.040019] usbcore: registered new interface driver dvb_usb_af9035
+[  145.407991] af9035_ctrl_msg: command=3D03 failed fw error=3D2
+[  145.408008] i2c i2c-8: I2C write reg failed, reg: 07, val: 0f
 
-> +following control bits are defined :
-> +</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entrytbl spanname="descr" cols="2">
-> +	      <tbody valign="top">
-> +		<row>
-> +		  <entry><constant>V4L2_3A_LOCK_EXPOSURE</constant></entry>
-> +		  <entry>Automatic exposure adjustments lock.</entry>
-> +		</row>
-> +		<row>
-> +		  <entry><constant>V4L2_3A_LOCK_WHITE_BALANCE</constant></entry>
-> +		  <entry>Automatic white balance adjustments lock.</entry>
-> +		</row>
-> +		<row>
-> +		  <entry><constant>V4L2_3A_LOCK_FOCUS</constant></entry>
-> +		  <entry>Automatic focus adjustments lock.</entry>
-> +		</row>
-> +	      </tbody>
-> +	    </entrytbl>
-> +	  </row>
-> +	  <row><entry spanname="descr">
-> +When a particular algorithm is not enabled, drivers should ignore requests
-> +to lock it and should return no error. An example might be an application
-> +setting bit <constant>V4L2_3A_LOCK_WHITE_BALANCE</constant> when the
-> +<constant>V4L2_CID_AUTO_WHITE_BALANCE</constant> control is set to
-> +<constant>FALSE</constant>.</entry>
-> +	  </row>
-> +	  <row><entry></entry></row>
-> +
->  	</tbody>
->        </tgroup>
->      </table>
-> diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
-> index 8b48893..d45f00c 100644
-> --- a/drivers/media/video/v4l2-ctrls.c
-> +++ b/drivers/media/video/v4l2-ctrls.c
-> @@ -671,6 +671,7 @@ const char *v4l2_ctrl_get_name(u32 id)
->  	case V4L2_CID_ISO_SENSITIVITY_AUTO:	return "ISO Sensitivity, Auto";
->  	case V4L2_CID_EXPOSURE_METERING:	return "Exposure, Metering Mode";
->  	case V4L2_CID_SCENE_MODE:		return "Scene Mode";
-> +	case V4L2_CID_3A_LOCK:			return "3A Lock";
->  
->  	/* FM Radio Modulator control */
->  	/* Keep the order of the 'case's the same as in videodev2.h! */
-> @@ -843,6 +844,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
->  		break;
->  	case V4L2_CID_FLASH_FAULT:
->  	case V4L2_CID_JPEG_ACTIVE_MARKER:
-> +	case V4L2_CID_3A_LOCK:
->  		*type = V4L2_CTRL_TYPE_BITMASK;
->  		break;
->  	case V4L2_CID_MIN_BUFFERS_FOR_CAPTURE:
-> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-> index 2c82fd9..7c30d54 100644
-> --- a/include/linux/videodev2.h
-> +++ b/include/linux/videodev2.h
-> @@ -1752,6 +1752,11 @@ enum v4l2_scene_mode {
->  	V4L2_SCENE_MODE_TEXT			= 13,
->  };
->  
-> +#define V4L2_CID_3A_LOCK			(V4L2_CID_CAMERA_CLASS_BASE+27)
-> +#define V4L2_3A_LOCK_EXPOSURE			(1 << 0)
-> +#define V4L2_3A_LOCK_WHITE_BALANCE		(1 << 1)
-> +#define V4L2_3A_LOCK_FOCUS			(1 << 2)
-> +
->  /* FM Modulator class control IDs */
->  #define V4L2_CID_FM_TX_CLASS_BASE		(V4L2_CTRL_CLASS_FM_TX | 0x900)
->  #define V4L2_CID_FM_TX_CLASS			(V4L2_CTRL_CLASS_FM_TX | 1)
-> 
+I also tried the other firmware. Same result.
+
+--=20
+Greetings, Michael.
+
+PGP encryption is encouraged / 908D8B0E
+
+--Sig_/=j2tejfkT_gYhSACRjWlE6W
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Disposition: attachment; filename=signature.asc
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJPeEfcAAoJEPUyvh2QjYsOo3AP/2h/bslWDipXnY5zOspD2XdA
+DEyhYHI9BFQsG4uvquE6yHGfW2O40Vtb5rewGnd4D2CzEIr7mKGv8F+1in+RoGEX
+IXH/3BxVbTyLJYnJF/LBEzjQwcYeWlL0h3ZKiRkXPaYe3SgBFjydWqQk7HomWzfP
++TuWKw3kqwc7wKZShK3hWq9/qkikTbyFuCNV38tcr/2XtZwmjXt405aY62RS/l6/
+kR1LUKuc1lwZANx85GOW6oaUX98mmxy3eIq2ROnp+tRYNk+edPCOJO5fgjIG+Dmu
+kr4YPmdJ5w/cYp/pIvFVX1sp5DyT/kuZAWz/2GjbT60pbat7NiexKYPElpwGoX2W
+HVl0IqWauw/ceFe+y7+I23ceRBFZmXqAH9LsG7FtRakpCYtkKIoBaI9tz8Zq8xIx
+EBmmmH1Mv9bMteOXfJDoU1+cPbwS29vxWE3BBfSGBoAqjfZEnQis0jA2w9QmKMfp
+ztzD30FlkfdNw5MyIO2Qguy8RpCNNNL+FHEe53dIhTiwVJBtid2cx/npiLnfE534
+7qjHiVhB8RsV0jtFI0l9Zkw20kIqaTUc7E2+Uhp2B2D95fHTQxXJco1i+SptlsPC
+0Xwc1xfWuQMRQI23ssceAROFTg0lK3FxNAFooaE1BcM/djDhQEdVL/KnSMq3xv7R
+amIFXmut0+Prp2ju12MZ
+=WqhK
+-----END PGP SIGNATURE-----
+
+--Sig_/=j2tejfkT_gYhSACRjWlE6W--
