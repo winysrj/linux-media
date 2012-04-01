@@ -1,119 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:4225 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753850Ab2D1PKI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 Apr 2012 11:10:08 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans de Goede <hdegoede@redhat.com>,
-	Jean-Francois Moine <moinejf@free.fr>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv1 PATCH 5/7] gscpa: use v4l2_fh and add G/S_PRIORITY support.
-Date: Sat, 28 Apr 2012 17:09:54 +0200
-Message-Id: <9d6d63bf8daefb1272273077dbdfb1389b17718c.1335625085.git.hans.verkuil@cisco.com>
-In-Reply-To: <1335625796-9429-1-git-send-email-hverkuil@xs4all.nl>
-References: <1335625796-9429-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <ea7e986dc0fa18da12c22048e9187e9933191d3d.1335625085.git.hans.verkuil@cisco.com>
-References: <ea7e986dc0fa18da12c22048e9187e9933191d3d.1335625085.git.hans.verkuil@cisco.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:53227 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750868Ab2DAEvg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 1 Apr 2012 00:51:36 -0400
+Message-ID: <4F77DED5.2040103@iki.fi>
+Date: Sun, 01 Apr 2012 07:51:33 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: =?ISO-8859-1?Q?Michael_B=FCsch?= <m@bues.ch>
+CC: linux-media@vger.kernel.org,
+	=?ISO-8859-1?Q?Daniel_Gl=F6ckner?= <daniel-gl@gmx.net>
+Subject: Re: [GIT PULL FOR 3.5] AF9035/AF9033/TUA9001 => TerraTec Cinergy
+ T Stick [0ccd:0093]
+References: <4F75A7FE.8090405@iki.fi> <20120330234545.45f4e2e8@milhouse> <4F762CF5.9010303@iki.fi> <20120331001458.33f12d82@milhouse> <20120331160445.71cd1e78@milhouse> <4F771496.8080305@iki.fi> <20120331182925.3b85d2bc@milhouse> <4F77320F.8050009@iki.fi> <4F773562.6010008@iki.fi> <20120331185217.2c82c4ad@milhouse>
+In-Reply-To: <20120331185217.2c82c4ad@milhouse>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On 31.03.2012 19:52, Michael Büsch wrote:
+> On Sat, 31 Mar 2012 19:48:34 +0300
+> Antti Palosaari<crope@iki.fi>  wrote:
+>
+>> And about the new FW downloader, that supports those new firmwares, feel
+>> free to implement it if you wish too. I will now goto out of house and
+>> will back during few hours. If you wish to do it just reply during 4
+>> hours, and I will not start working for it. Instead I will continue with
+>> IT9135.
+>
+> I have no clue about the firmware format, so it will probably be easier
+> if you'd dive into that stuff as you already seem to know it.
 
-In order to support control event gspca has to use struct v4l2_fh.
-As a bonus feature this also gives priority handling for free.
+Done. I didn't have neither info, but there was good posting from Daniel 
+Glöckner that documents it! Nice job Daniel, without that info I was 
+surely implemented it differently and surely more wrong way.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/video/gspca/gspca.c |   13 ++++++++++---
- drivers/media/video/gspca/gspca.h |    2 ++
- 2 files changed, 12 insertions(+), 3 deletions(-)
+I pushed my experimental tree out, patches are welcome top of that.
+http://git.linuxtv.org/anttip/media_tree.git/shortlog/refs/heads/af9035_experimental
 
-diff --git a/drivers/media/video/gspca/gspca.c b/drivers/media/video/gspca/gspca.c
-index 5c1b53e..3d3b780 100644
---- a/drivers/media/video/gspca/gspca.c
-+++ b/drivers/media/video/gspca/gspca.c
-@@ -39,6 +39,7 @@
- #include <linux/ktime.h>
- #include <media/v4l2-ioctl.h>
- #include <media/v4l2-ctrls.h>
-+#include <media/v4l2-fh.h>
- 
- #include "gspca.h"
- 
-@@ -1327,6 +1328,7 @@ static void gspca_release(struct video_device *vfd)
- 		video_device_node_name(&gspca_dev->vdev));
- 
- 	v4l2_ctrl_handler_free(gspca_dev->vdev.ctrl_handler);
-+	v4l2_device_unregister(&gspca_dev->v4l2_dev);
- 	kfree(gspca_dev->usb_buf);
- 	kfree(gspca_dev);
- }
-@@ -1352,7 +1354,7 @@ static int dev_open(struct file *file)
- 		gspca_dev->vdev.debug &= ~(V4L2_DEBUG_IOCTL
- 					| V4L2_DEBUG_IOCTL_ARG);
- #endif
--	return 0;
-+	return v4l2_fh_open(file);
- }
- 
- static int dev_close(struct file *file)
-@@ -1378,7 +1380,7 @@ static int dev_close(struct file *file)
- 
- 	PDEBUG(D_STREAM, "close done");
- 
--	return 0;
-+	return v4l2_fh_release(file);
- }
- 
- static int vidioc_querycap(struct file *file, void  *priv,
-@@ -2345,12 +2347,16 @@ int gspca_dev_probe2(struct usb_interface *intf,
- 		}
- 	}
- 
-+	ret = v4l2_device_register(&intf->dev, &gspca_dev->v4l2_dev);
-+	if (ret)
-+		goto out;
- 	gspca_dev->sd_desc = sd_desc;
- 	gspca_dev->nbufread = 2;
- 	gspca_dev->empty_packet = -1;	/* don't check the empty packets */
- 	gspca_dev->vdev = gspca_template;
--	gspca_dev->vdev.parent = &intf->dev;
-+	gspca_dev->vdev.v4l2_dev = &gspca_dev->v4l2_dev;
- 	video_set_drvdata(&gspca_dev->vdev, gspca_dev);
-+	set_bit(V4L2_FL_USE_FH_PRIO, &gspca_dev->vdev.flags);
- 	gspca_dev->module = module;
- 	gspca_dev->present = 1;
- 
-@@ -2458,6 +2464,7 @@ void gspca_disconnect(struct usb_interface *intf)
- 
- 	/* the device is freed at exit of this function */
- 	gspca_dev->dev = NULL;
-+	v4l2_device_disconnect(&gspca_dev->v4l2_dev);
- 	mutex_unlock(&gspca_dev->usb_lock);
- 
- 	usb_set_intfdata(intf, NULL);
-diff --git a/drivers/media/video/gspca/gspca.h b/drivers/media/video/gspca/gspca.h
-index 589009f..2aacfa3 100644
---- a/drivers/media/video/gspca/gspca.h
-+++ b/drivers/media/video/gspca/gspca.h
-@@ -6,6 +6,7 @@
- #include <linux/usb.h>
- #include <linux/videodev2.h>
- #include <media/v4l2-common.h>
-+#include <media/v4l2-device.h>
- #include <linux/mutex.h>
- 
- /* compilation option */
-@@ -158,6 +159,7 @@ struct gspca_frame {
- struct gspca_dev {
- 	struct video_device vdev;	/* !! must be the first item */
- 	struct module *module;		/* subdriver handling the device */
-+	struct v4l2_device v4l2_dev;
- 	struct usb_device *dev;
- 	struct file *capt_file;		/* file doing video capture */
- #if defined(CONFIG_INPUT) || defined(CONFIG_INPUT_MODULE)
+I extracted three firmwares from windows binaries I have. I will sent 
+those you, Michael, for testing. First, and oldest, is TUA9001, 2nd is 
+from FC0012 device and 3rd no idea.
+
+md5sum f71efe295151ba76cac2280680b69f3f
+LINK=11.5.9.0 OFDM=5.17.9.1
+
+md5sum 7cdc1e3aba54f3a9ad052dc6a29603fd
+LINK=11.10.10.0 OFDM=5.33.10.0
+
+md5sum 862604ab3fec0c94f4bf22b4cffd0d89
+LINK=12.13.15.0 OFDM=6.20.15.0
+
+I need more AF903x hardware, please give links to cheap eBay devices 
+etc. Also I would like to get one device where is AF9033 but no AF9035 
+at all just for stand-alone demodulator implementation. I know there is 
+few such devices, like AverMedia A336 for example...
+
+regards
+Antti
 -- 
-1.7.10
-
+http://palosaari.fi/
