@@ -1,188 +1,339 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:59144 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756008Ab2DQKCo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Apr 2012 06:02:44 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: davinci-linux-open-source@linux.davincidsp.com
-Cc: Manjunath Hadli <manjunath.hadli@ti.com>,
-	LMML <linux-media@vger.kernel.org>
-Subject: Re: [PATCH v2 05/13] davinci: vpif display: declare contiguous region of memory handled by dma_alloc_coherent
-Date: Tue, 17 Apr 2012 12:02:55 +0200
-Message-ID: <1658646.Sj5u4WkIAm@avalon>
-In-Reply-To: <1334652791-15833-6-git-send-email-manjunath.hadli@ti.com>
-References: <1334652791-15833-1-git-send-email-manjunath.hadli@ti.com> <1334652791-15833-6-git-send-email-manjunath.hadli@ti.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from saarni.dnainternet.net ([83.102.40.136]:36978 "EHLO
+	saarni.dnainternet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752608Ab2DAUxt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Apr 2012 16:53:49 -0400
+From: Anssi Hannula <anssi.hannula@iki.fi>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: linux-media@vger.kernel.org, Stephan Raue <stephan@openelec.tv>,
+	Martin Beyss <Martin.Beyss@rwth-aachen.de>
+Subject: [PATCH 2/2] [media] ati_remote: add support for Medion X10 Digitainer remote
+Date: Sun,  1 Apr 2012 23:41:46 +0300
+Message-Id: <1333312906-9325-3-git-send-email-anssi.hannula@iki.fi>
+In-Reply-To: <1333312906-9325-1-git-send-email-anssi.hannula@iki.fi>
+References: <1333312906-9325-1-git-send-email-anssi.hannula@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Manjunath,
+Add support for another Medion X10 remote. This was apparently
+originally used with the Medion Digitainer box, but is now sold
+separately without any Digitainer labeling.
 
-Thanks for the patch.
+A peculiarity of this remote is a scrollwheel in place of up/down
+buttons. Each direction is mapped to 8 different scancodes, each
+corresponding to 1..8 notches, allowing multiple notches to the same
+direction to be transmitted in a single scancode. The driver transforms
+the multi-notch scancodes to multiple events of the single-notch
+scancode.
+(0x70..0x77 = 1..8 notches down, 0x78..0x7f = 1..8 notches up)
 
-On Tuesday 17 April 2012 14:23:03 Manjunath Hadli wrote:
-> add support to declare contiguous region of memory to be handled
-> when requested by dma_alloc_coherent call. The user can specify
-> the size of the buffers with an offset from the kernel image
-> using cont_bufsize and cont_bufoffset module parameters respectively.
-> 
-> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-> ---
->  drivers/media/video/davinci/vpif_display.c |   65 ++++++++++++++++++++++++-
->  drivers/media/video/davinci/vpif_display.h |    1 +
->  2 files changed, 64 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/video/davinci/vpif_display.c
-> b/drivers/media/video/davinci/vpif_display.c index 355ad5c..27bc03d 100644
-> --- a/drivers/media/video/davinci/vpif_display.c
-> +++ b/drivers/media/video/davinci/vpif_display.c
-> @@ -57,18 +57,24 @@ static u32 ch2_numbuffers = 3;
->  static u32 ch3_numbuffers = 3;
->  static u32 ch2_bufsize = 1920 * 1080 * 2;
->  static u32 ch3_bufsize = 720 * 576 * 2;
-> +static u32 cont_bufoffset;
-> +static u32 cont_bufsize;
-> 
->  module_param(debug, int, 0644);
->  module_param(ch2_numbuffers, uint, S_IRUGO);
->  module_param(ch3_numbuffers, uint, S_IRUGO);
->  module_param(ch2_bufsize, uint, S_IRUGO);
->  module_param(ch3_bufsize, uint, S_IRUGO);
-> +module_param(cont_bufoffset, uint, S_IRUGO);
-> +module_param(cont_bufsize, uint, S_IRUGO);
-> 
->  MODULE_PARM_DESC(debug, "Debug level 0-1");
->  MODULE_PARM_DESC(ch2_numbuffers, "Channel2 buffer count (default:3)");
->  MODULE_PARM_DESC(ch3_numbuffers, "Channel3 buffer count (default:3)");
->  MODULE_PARM_DESC(ch2_bufsize, "Channel2 buffer size (default:1920 x 1080 x
-> 2)"); MODULE_PARM_DESC(ch3_bufsize, "Channel3 buffer size (default:720 x
-> 576 x 2)"); +MODULE_PARM_DESC(cont_bufoffset, "Display offset(default 0)");
-> +MODULE_PARM_DESC(cont_bufsize, "Display buffer size(default 0)");
-> 
->  static struct vpif_config_params config_params = {
->  	.min_numbuffers		= 3,
-> @@ -187,6 +193,24 @@ static int vpif_buffer_setup(struct videobuf_queue *q,
-> unsigned int *count, return 0;
-> 
->  	*size = config_params.channel_bufsize[ch->channel_id];
-> +
-> +	/*
-> +	 * Checking if the buffer size exceeds the available buffer
-> +	 * ycmux_mode = 0 means 1 channel mode HD and
-> +	 * ycmux_mode = 1 means 2 channels mode SD
-> +	 */
-> +	if (ch->vpifparams.std_info.ycmux_mode == 0) {
-> +		if (config_params.video_limit[ch->channel_id])
-> +			while (*size * *count > (config_params.video_limit[0]
-> +					+ config_params.video_limit[1]))
-> +				(*count)--;
-> +	} else {
-> +		if (config_params.video_limit[ch->channel_id])
-> +			while (*size * *count >
-> +				config_params.video_limit[ch->channel_id])
-> +				(*count)--;
-> +	}
-> +
->  	if (*count < config_params.min_numbuffers)
->  		*count = config_params.min_numbuffers;
-> 
-> @@ -830,7 +854,7 @@ static int vpif_reqbufs(struct file *file, void *priv,
-> 
->  	common = &ch->common[index];
-> 
-> -	if (common->fmt.type != reqbuf->type)
-> +	if (common->fmt.type != reqbuf->type || !vpif_dev)
->  		return -EINVAL;
-> 
->  	if (0 != common->io_usrs)
-> @@ -847,7 +871,7 @@ static int vpif_reqbufs(struct file *file, void *priv,
-> 
->  	/* Initialize videobuf queue as per the buffer type */
->  	videobuf_queue_dma_contig_init(&common->buffer_queue,
-> -					    &video_qops, NULL,
-> +					    &video_qops, vpif_dev,
->  					    &common->irqlock,
->  					    reqbuf->type, field,
->  					    sizeof(struct videobuf_buffer), fh,
-> @@ -1686,12 +1710,14 @@ static __init int vpif_probe(struct platform_device
-> *pdev) struct vpif_subdev_info *subdevdata;
->  	struct vpif_display_config *config;
->  	int i, j = 0, k, q, m, err = 0;
-> +	unsigned long phys_end_kernel;
->  	struct i2c_adapter *i2c_adap;
->  	struct common_obj *common;
->  	struct channel_obj *ch;
->  	struct video_device *vfd;
->  	struct resource *res;
->  	int subdev_count;
-> +	size_t size;
-> 
->  	vpif_dev = &pdev->dev;
-> 
-> @@ -1749,6 +1775,41 @@ static __init int vpif_probe(struct platform_device
-> *pdev) ch->video_dev = vfd;
->  	}
-> 
-> +	/* Initialising the memory from the input arguments file for
-> +	 * contiguous memory buffers and avoid defragmentation
-> +	 */
-> +	if (cont_bufsize) {
-> +		/* attempt to determine the end of Linux kernel memory */
-> +		phys_end_kernel = virt_to_phys((void *)PAGE_OFFSET) +
-> +			(num_physpages << PAGE_SHIFT);
-> +		phys_end_kernel += cont_bufoffset;
-> +		size = cont_bufsize;
-> +
-> +		err = dma_declare_coherent_memory(&pdev->dev, phys_end_kernel,
-> +				phys_end_kernel, size,
-> +				DMA_MEMORY_MAP | DMA_MEMORY_EXCLUSIVE);
+Since the scrollwheel scancodes are the same that are used for mouse on
+some other X10 (ati_remote) remotes, the driver will now check whether
+the active keymap has a keycode defined for the single-notch scancode
+when a mouse/scrollwheel scancode (0x70..0x7f) is received. If set,
+scrollwheel is assumed, otherwise mouse is assumed.
 
-This is a pretty dangerous hack. You should compute the memory address and 
-size in board code, and pass it to the driver through a device resource (don't 
-forget to call request_mem_region on the resource). I think the 
-dma_declare_coherent_memory() call should be moved to board code as well.
+This remote ships with a different receiver than the already supported
+Medion X10 remote, but they share the same USB ID. The only difference
+in the USB descriptors is that the Digitainer receiver has the Remote
+Wakeup bit set in bmAttributes of the Configuration Descriptor.
+Therefore that is used to select the default keymap.
 
-> +		if (!err) {
-> +			dev_err(&pdev->dev, "Unable to declare MMAP memory.\n");
-> +			err = -ENOMEM;
-> +			goto probe_out;
-> +		}
-> +
-> +		/* The resources are divided into two equal memory and when
-> +		 * we have HD output we can add them together
-> +		 */
-> +		for (j = 0; j < VPIF_DISPLAY_MAX_DEVICES; j++) {
-> +			ch = vpif_obj.dev[j];
-> +			ch->channel_id = j;
-> +
-> +			/* only enabled if second resource exists */
-> +			config_params.video_limit[ch->channel_id] = 0;
-> +			if (cont_bufsize)
-> +				config_params.video_limit[ch->channel_id] =
-> +									size/2;
-> +		}
-> +	}
-> +
->  	for (j = 0; j < VPIF_DISPLAY_MAX_DEVICES; j++) {
->  		ch = vpif_obj.dev[j];
->  		/* Initialize field of the channel objects */
-> diff --git a/drivers/media/video/davinci/vpif_display.h
-> b/drivers/media/video/davinci/vpif_display.h index dd4887c..8a311f1 100644
-> --- a/drivers/media/video/davinci/vpif_display.h
-> +++ b/drivers/media/video/davinci/vpif_display.h
-> @@ -158,6 +158,7 @@ struct vpif_config_params {
->  	u32 min_bufsize[VPIF_DISPLAY_NUM_CHANNELS];
->  	u32 channel_bufsize[VPIF_DISPLAY_NUM_CHANNELS];
->  	u8 numbuffers[VPIF_DISPLAY_NUM_CHANNELS];
-> +	u32 video_limit[VPIF_DISPLAY_NUM_CHANNELS];
->  	u8 min_numbuffers;
->  };
+Thanks to Stephan Raue from OpenELEC (www.openelec.tv) for providing me
+both a Medion X10 Digitainer remote+receiver and an already supported
+Medion X10 remote+receiver. Thanks to Martin Beyss for providing some
+useful information about the remote (including the "Digitainer" name).
+This patch has been tested by both of them and myself.
 
+Signed-off-by: Anssi Hannula <anssi.hannula@iki.fi>
+Tested-by: Stephan Raue <stephan@openelec.tv>
+Tested-by: Martin Beyss <Martin.Beyss@rwth-aachen.de>
+---
+ drivers/media/rc/ati_remote.c                      |   90 ++++++++++-----
+ drivers/media/rc/keymaps/Makefile                  |    1 +
+ .../media/rc/keymaps/rc-medion-x10-digitainer.c    |  115 ++++++++++++++++++++
+ include/media/rc-map.h                             |    1 +
+ 4 files changed, 179 insertions(+), 28 deletions(-)
+ create mode 100644 drivers/media/rc/keymaps/rc-medion-x10-digitainer.c
+
+diff --git a/drivers/media/rc/ati_remote.c b/drivers/media/rc/ati_remote.c
+index 7a35f7a..26fa043 100644
+--- a/drivers/media/rc/ati_remote.c
++++ b/drivers/media/rc/ati_remote.c
+@@ -1,7 +1,7 @@
+ /*
+  *  USB ATI Remote support
+  *
+- *                Copyright (c) 2011 Anssi Hannula <anssi.hannula@iki.fi>
++ *                Copyright (c) 2011, 2012 Anssi Hannula <anssi.hannula@iki.fi>
+  *  Version 2.2.0 Copyright (c) 2004 Torrey Hoffman <thoffman@arnor.net>
+  *  Version 2.1.1 Copyright (c) 2002 Vladimir Dergachev
+  *
+@@ -157,8 +157,20 @@ struct ati_receiver_type {
+ 	const char *(*get_default_keymap)(struct usb_interface *interface);
+ };
+ 
++static const char *get_medion_keymap(struct usb_interface *interface)
++{
++	struct usb_device *udev = interface_to_usbdev(interface);
++
++	/* The receiver shipped with the "Digitainer" variant helpfully has
++	 * a single additional bit set in its descriptor. */
++	if (udev->actconfig->desc.bmAttributes & USB_CONFIG_ATT_WAKEUP)
++		return RC_MAP_MEDION_X10_DIGITAINER;
++
++	return RC_MAP_MEDION_X10;
++}
++
+ static const struct ati_receiver_type type_ati		= { .default_keymap = RC_MAP_ATI_X10 };
+-static const struct ati_receiver_type type_medion	= { .default_keymap = RC_MAP_MEDION_X10 };
++static const struct ati_receiver_type type_medion	= { .get_default_keymap = get_medion_keymap };
+ static const struct ati_receiver_type type_firefly	= { .default_keymap = RC_MAP_SNAPSTREAM_FIREFLY };
+ 
+ static struct usb_device_id ati_remote_table[] = {
+@@ -455,6 +467,7 @@ static void ati_remote_input_report(struct urb *urb)
+ 	int acc;
+ 	int remote_num;
+ 	unsigned char scancode;
++	u32 wheel_keycode = KEY_RESERVED;
+ 	int i;
+ 
+ 	/*
+@@ -494,26 +507,33 @@ static void ati_remote_input_report(struct urb *urb)
+ 	 */
+ 	scancode = data[2] & 0x7f;
+ 
+-	/* Look up event code index in the mouse translation table. */
+-	for (i = 0; ati_remote_tbl[i].kind != KIND_END; i++) {
+-		if (scancode == ati_remote_tbl[i].data) {
+-			index = i;
+-			break;
++	dbginfo(&ati_remote->interface->dev,
++		"channel 0x%02x; key data %02x, scancode %02x\n",
++		remote_num, data[2], scancode);
++
++	if (scancode >= 0x70) {
++		/*
++		 * This is either a mouse or scrollwheel event, depending on
++		 * the remote/keymap.
++		 * Get the keycode assigned to scancode 0x78/0x70. If it is
++		 * set, assume this is a scrollwheel up/down event.
++		 */
++		wheel_keycode = rc_g_keycode_from_table(ati_remote->rdev,
++							scancode & 0x78);
++
++		if (wheel_keycode == KEY_RESERVED) {
++			/* scrollwheel was not mapped, assume mouse */
++
++			/* Look up event code index in the mouse translation table. */
++			for (i = 0; ati_remote_tbl[i].kind != KIND_END; i++) {
++				if (scancode == ati_remote_tbl[i].data) {
++					index = i;
++					break;
++				}
++			}
+ 		}
+ 	}
+ 
+-	if (index >= 0) {
+-		dbginfo(&ati_remote->interface->dev,
+-			"channel 0x%02x; mouse data %02x; index %d; keycode %d\n",
+-			remote_num, data[2], index, ati_remote_tbl[index].code);
+-		if (!dev)
+-			return; /* no mouse device */
+-	} else
+-		dbginfo(&ati_remote->interface->dev,
+-			"channel 0x%02x; key data %02x, scancode %02x\n",
+-			remote_num, data[2], scancode);
+-
+-
+ 	if (index >= 0 && ati_remote_tbl[index].kind == KIND_LITERAL) {
+ 		input_event(dev, ati_remote_tbl[index].type,
+ 			ati_remote_tbl[index].code,
+@@ -552,15 +572,29 @@ static void ati_remote_input_report(struct urb *urb)
+ 
+ 		if (index < 0) {
+ 			/* Not a mouse event, hand it to rc-core. */
+-
+-			/*
+-			 * We don't use the rc-core repeat handling yet as
+-			 * it would cause ghost repeats which would be a
+-			 * regression for this driver.
+-			 */
+-			rc_keydown_notimeout(ati_remote->rdev, scancode,
+-					     data[2]);
+-			rc_keyup(ati_remote->rdev);
++			int count = 1;
++
++			if (wheel_keycode != KEY_RESERVED) {
++				/*
++				 * This is a scrollwheel event, send the
++				 * scroll up (0x78) / down (0x70) scancode
++				 * repeatedly as many times as indicated by
++				 * rest of the scancode.
++				 */
++				count = (scancode & 0x07) + 1;
++				scancode &= 0x78;
++			}
++
++			while (count--) {
++				/*
++				* We don't use the rc-core repeat handling yet as
++				* it would cause ghost repeats which would be a
++				* regression for this driver.
++				*/
++				rc_keydown_notimeout(ati_remote->rdev, scancode,
++						     data[2]);
++				rc_keyup(ati_remote->rdev);
++			}
+ 			return;
+ 		}
+ 
+diff --git a/drivers/media/rc/keymaps/Makefile b/drivers/media/rc/keymaps/Makefile
+index 36e4d5e..c1d977c 100644
+--- a/drivers/media/rc/keymaps/Makefile
++++ b/drivers/media/rc/keymaps/Makefile
+@@ -49,6 +49,7 @@ obj-$(CONFIG_RC_MAP) += rc-adstech-dvb-t-pci.o \
+ 			rc-lme2510.o \
+ 			rc-manli.o \
+ 			rc-medion-x10.o \
++			rc-medion-x10-digitainer.o \
+ 			rc-msi-digivox-ii.o \
+ 			rc-msi-digivox-iii.o \
+ 			rc-msi-tvanywhere.o \
+diff --git a/drivers/media/rc/keymaps/rc-medion-x10-digitainer.c b/drivers/media/rc/keymaps/rc-medion-x10-digitainer.c
+new file mode 100644
+index 0000000..0a5ce84
+--- /dev/null
++++ b/drivers/media/rc/keymaps/rc-medion-x10-digitainer.c
+@@ -0,0 +1,115 @@
++/*
++ * Medion X10 RF remote keytable (Digitainer variant)
++ *
++ * Copyright (C) 2012 Anssi Hannula <anssi.hannula@iki.fi>
++ *
++ * This keymap is for a variant that has a distinctive scrollwheel instead of
++ * up/down buttons (tested with P/N 40009936 / 20018268), reportedly
++ * originally shipped with Medion Digitainer but now sold separately simply as
++ * an "X10" remote.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License along
++ * with this program; if not, write to the Free Software Foundation, Inc.,
++ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
++ */
++
++#include <linux/module.h>
++#include <media/rc-map.h>
++
++static struct rc_map_table medion_x10_digitainer[] = {
++	{ 0x02, KEY_POWER },
++
++	{ 0x2c, KEY_TV },
++	{ 0x2d, KEY_VIDEO },
++	{ 0x04, KEY_DVD },    /* CD/DVD */
++	{ 0x16, KEY_TEXT },   /* "teletext" icon, i.e. a screen with lines */
++	{ 0x06, KEY_AUDIO },
++	{ 0x2e, KEY_RADIO },
++	{ 0x31, KEY_EPG },    /* a screen with an open book */
++	{ 0x05, KEY_IMAGES }, /* Photo */
++	{ 0x2f, KEY_INFO },
++
++	{ 0x78, KEY_UP },     /* scrollwheel up 1 notch */
++	/* 0x79..0x7f: 2-8 notches, driver repeats 0x78 entry */
++
++	{ 0x70, KEY_DOWN },   /* scrollwheel down 1 notch */
++	/* 0x71..0x77: 2-8 notches, driver repeats 0x70 entry */
++
++	{ 0x19, KEY_MENU },
++	{ 0x1d, KEY_LEFT },
++	{ 0x1e, KEY_OK },     /* scrollwheel press */
++	{ 0x1f, KEY_RIGHT },
++	{ 0x20, KEY_BACK },
++
++	{ 0x09, KEY_VOLUMEUP },
++	{ 0x08, KEY_VOLUMEDOWN },
++	{ 0x00, KEY_MUTE },
++
++	{ 0x1b, KEY_SELECT }, /* also has "U" rotated 90 degrees CCW */
++
++	{ 0x0b, KEY_CHANNELUP },
++	{ 0x0c, KEY_CHANNELDOWN },
++	{ 0x1c, KEY_LAST },
++
++	{ 0x32, KEY_RED },    /* also Audio */
++	{ 0x33, KEY_GREEN },  /* also Subtitle */
++	{ 0x34, KEY_YELLOW }, /* also Angle */
++	{ 0x35, KEY_BLUE },   /* also Title */
++
++	{ 0x28, KEY_STOP },
++	{ 0x29, KEY_PAUSE },
++	{ 0x25, KEY_PLAY },
++	{ 0x21, KEY_PREVIOUS },
++	{ 0x18, KEY_CAMERA },
++	{ 0x23, KEY_NEXT },
++	{ 0x24, KEY_REWIND },
++	{ 0x27, KEY_RECORD },
++	{ 0x26, KEY_FORWARD },
++
++	{ 0x0d, KEY_1 },
++	{ 0x0e, KEY_2 },
++	{ 0x0f, KEY_3 },
++	{ 0x10, KEY_4 },
++	{ 0x11, KEY_5 },
++	{ 0x12, KEY_6 },
++	{ 0x13, KEY_7 },
++	{ 0x14, KEY_8 },
++	{ 0x15, KEY_9 },
++	{ 0x17, KEY_0 },
++};
++
++static struct rc_map_list medion_x10_digitainer_map = {
++	.map = {
++		.scan    = medion_x10_digitainer,
++		.size    = ARRAY_SIZE(medion_x10_digitainer),
++		.rc_type = RC_TYPE_OTHER,
++		.name    = RC_MAP_MEDION_X10_DIGITAINER,
++	}
++};
++
++static int __init init_rc_map_medion_x10_digitainer(void)
++{
++	return rc_map_register(&medion_x10_digitainer_map);
++}
++
++static void __exit exit_rc_map_medion_x10_digitainer(void)
++{
++	rc_map_unregister(&medion_x10_digitainer_map);
++}
++
++module_init(init_rc_map_medion_x10_digitainer)
++module_exit(exit_rc_map_medion_x10_digitainer)
++
++MODULE_DESCRIPTION("Medion X10 RF remote keytable (Digitainer variant)");
++MODULE_AUTHOR("Anssi Hannula <anssi.hannula@iki.fi>");
++MODULE_LICENSE("GPL");
+diff --git a/include/media/rc-map.h b/include/media/rc-map.h
+index f688bde..902d29d 100644
+--- a/include/media/rc-map.h
++++ b/include/media/rc-map.h
+@@ -110,6 +110,7 @@ void rc_map_init(void);
+ #define RC_MAP_LME2510                   "rc-lme2510"
+ #define RC_MAP_MANLI                     "rc-manli"
+ #define RC_MAP_MEDION_X10                "rc-medion-x10"
++#define RC_MAP_MEDION_X10_DIGITAINER     "rc-medion-x10-digitainer"
+ #define RC_MAP_MSI_DIGIVOX_II            "rc-msi-digivox-ii"
+ #define RC_MAP_MSI_DIGIVOX_III           "rc-msi-digivox-iii"
+ #define RC_MAP_MSI_TVANYWHERE_PLUS       "rc-msi-tvanywhere-plus"
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.9.3
 
