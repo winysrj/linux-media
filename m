@@ -1,128 +1,145 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eu1sys200aog117.obsmtp.com ([207.126.144.143]:54304 "EHLO
-	eu1sys200aog117.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752348Ab2D3KtZ convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Apr 2012 06:49:25 -0400
-From: Bhupesh SHARMA <bhupesh.sharma@st.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"balbi@ti.com" <balbi@ti.com>,
-	"g.liakhovetski@gmx.de" <g.liakhovetski@gmx.de>
-Date: Mon, 30 Apr 2012 18:47:24 +0800
-Subject: RE: Using UVC webcam gadget with a real v4l2 device
-Message-ID: <D5ECB3C7A6F99444980976A8C6D896384FA4446486@EAPEX1MAIL1.st.com>
-References: <D5ECB3C7A6F99444980976A8C6D896384FA44454C7@EAPEX1MAIL1.st.com>
- <4085740.9DbpdWgfF6@avalon>
- <D5ECB3C7A6F99444980976A8C6D896384FA4445DA8@EAPEX1MAIL1.st.com>
- <1649797.NTzsYukYS5@avalon>
-In-Reply-To: <1649797.NTzsYukYS5@avalon>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+Received: from bues.ch ([80.190.117.144]:42918 "EHLO bues.ch"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751938Ab2DAUd5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 1 Apr 2012 16:33:57 -0400
+Date: Sun, 1 Apr 2012 22:33:48 +0200
+From: Michael =?UTF-8?B?QsO8c2No?= <m@bues.ch>
+To: Antti Palosaari <crope@iki.fi>
+Cc: linux-media <linux-media@vger.kernel.org>
+Subject: [PATCH] af9035: Add USB read checksumming
+Message-ID: <20120401223348.5f163b5d@milhouse>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=PGP-SHA1;
+ boundary="Sig_/A0dY8p4HeVCSDR8r6KeRwI_"; protocol="application/pgp-signature"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+--Sig_/A0dY8p4HeVCSDR8r6KeRwI_
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-> -----Original Message-----
-> From: Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com]
-> Sent: Monday, April 30, 2012 3:51 PM
-> To: Bhupesh SHARMA
-> Cc: linux-usb@vger.kernel.org; linux-media@vger.kernel.org;
-> balbi@ti.com; g.liakhovetski@gmx.de
-> Subject: Re: Using UVC webcam gadget with a real v4l2 device
-> 
-> Hi Bhupesh,
-> 
-> On Thursday 26 April 2012 13:23:59 Bhupesh SHARMA wrote:
-> > Hi Laurent,
-> >
-> > Sorry to jump-in before your reply on my previous mail,
-> > but as I was studying the USERPTR stuff in more detail, I have a few
-> more
-> > queries which I believe you can include in your reply as well..
-> 
-> [snip]
-> 
-> > I am now a bit confused on how the entire system will work now:
-> > 	- Does USERPTR method needs to be supported both in UVC gadget
-> and
-> > soc-camera side, or one can still support the MMAP method and the
-> other can
-> > now be changed to support USERPTR method and we can achieve a ZERO
-> buffer
-> > copy operation using this method?
-> 
-> You need USERPTR support on one side only. In practice many (all?) soc-
-> camera
-> drivers require physically contiguous memory, so you will need to use
-> MMAP on
-> the soc-camera side and USERPTR on the UVC gadget side. DMABUF, when
-> merged in
-> the kernel, will be a better solution (but will require all drivers to
-> use
-> vb2).
+This adds USB message read checksumming to protect against
+device and bus errors.
+It also adds a read length check to avoid returning garbage from
+the buffer, if the device truncated the message.
 
-Perfect. So, I plan now to add vb2 support for uvc-gadget and leave soc-camera
-side to use the mmap stuff.
+Signed-off-by: Michael Buesch <m@bues.ch>
 
-Now, waiting for your pointers for managing the race-conditions in the UVC gadget
-and also avoiding the memcpy that is happening in the QBUF call on the UVC gadget,
-before I start the actual work.
+---
 
-Thanks for your help.
+Index: linux/drivers/media/dvb/dvb-usb/af9035.c
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+--- linux.orig/drivers/media/dvb/dvb-usb/af9035.c	2012-04-01 21:44:27.76700=
+0731 +0200
++++ linux/drivers/media/dvb/dvb-usb/af9035.c	2012-04-01 22:26:46.020185359 =
++0200
+@@ -37,6 +37,22 @@
+ 	}
+ };
+=20
++static u16 af9035_checksum(const u8 *buf, size_t len)
++{
++	size_t i;
++	u16 checksum =3D 0;
++
++	for (i =3D 1; i < len; i++) {
++		if (i % 2)
++			checksum +=3D buf[i] << 8;
++		else
++			checksum +=3D buf[i];
++	}
++	checksum =3D ~checksum;
++
++	return checksum;
++}
++
+ static int af9035_ctrl_msg(struct usb_device *udev, struct usb_req *req)
+ {
+ #define BUF_LEN 63
+@@ -45,11 +61,11 @@
+ #define CHECKSUM_LEN 2
+ #define USB_TIMEOUT 2000
+=20
+-	int ret, i, act_len;
++	int ret, act_len;
+ 	u8 buf[BUF_LEN];
+ 	u32 msg_len;
+ 	static u8 seq; /* packet sequence number */
+-	u16 checksum =3D 0;
++	u16 checksum, tmpsum;
+=20
+ 	/* buffer overflow check */
+ 	if (req->wlen > (BUF_LEN - REQ_HDR_LEN - CHECKSUM_LEN) ||
+@@ -70,14 +86,7 @@
+ 		memcpy(&buf[4], req->wbuf, req->wlen);
+=20
+ 	/* calc and add checksum */
+-	for (i =3D 1; i < buf[0]-1; i++) {
+-		if (i % 2)
+-			checksum +=3D buf[i] << 8;
+-		else
+-			checksum +=3D buf[i];
+-	}
+-	checksum =3D ~checksum;
+-
++	checksum =3D af9035_checksum(buf, buf[0] - 1);
+ 	buf[buf[0]-1] =3D (checksum >> 8);
+ 	buf[buf[0]-0] =3D (checksum & 0xff);
+=20
+@@ -107,7 +116,23 @@
+ 		ret =3D -EIO;
+ 		goto err_mutex_unlock;
+ 	}
++	if (act_len !=3D msg_len) {
++		err("recv bulk message truncated (%d !=3D %u)\n",
++		    act_len, (unsigned int)msg_len);
++		ret =3D -EIO;
++		goto err_mutex_unlock;
++	}
+=20
++	/* verify checksum */
++	checksum =3D af9035_checksum(buf, act_len - 2);
++	tmpsum =3D (buf[act_len - 2] << 8) | buf[act_len - 1];
++	if (tmpsum !=3D checksum) {
++		err("%s: command=3D%02X checksum mismatch (%04X !=3D %04X)\n",
++		    __func__, req->cmd,
++		    (unsigned int)tmpsum, (unsigned int)checksum);
++		ret =3D -EIO;
++		goto err_mutex_unlock;
++	}
+ 	/* check status */
+ 	if (buf[2]) {
+ 		pr_debug("%s: command=3D%02x failed fw error=3D%d\n", __func__,
 
-Regards,
-Bhupesh
 
-> > 	- More specifically, I would like to keep the soc-camera still
-> using MMAP
-> > (and hence still using video-buf) and make changes at the UVC gadget
-> side
-> > to support USERPTR and videobuf2. Will this work?
-> 
-> Please see above :-)
-> 
-> > 	- At the application side how should we design the flow in case
-> both
-> > support USERPTR, i.e. the buffer needs to be protected from
-> simultaneous
-> > access from the UVC gadget driver and soc-camera driver (to ensure
-> that a
-> > single buffer can be shared across them). Also in case we keep soc-
-> camera
-> > still using MMAP and UVC gadget side supporting USERPTR, how can we
-> share a
-> > common buffer across the UVC gadget and soc-camera driver.
-> 
-> That's easy. Request the same number of buffers on both sides with
-> REQBUFS,
-> mmap() them to userspace on the soc-camera side, and then use the user
-> pointer
-> to queue them with QBUF on the UVC side. You just need to ensure that a
-> buffer
-> is never enqueued to two drivers at the same time. Wait for buffers to
-> be
-> ready on both sides with select(), and when a buffer is ready dequeue
-> it and
-> requeue it on the other side.
-> 
-> > 	- In case of USERPTR method the camera capture hardware should be
-> able to
-> > DMA the received data to the user space buffers. Are there any
-> specific
-> > requirements on the DMA capability of these use-space buffers
-> > (scatter-gather or contiguous?).
-> 
-> DMA to userspace is quite hackish. You should use the MMAP method on
-> the soc-
-> camera side.
-> 
-> --
-> Regards,
-> 
-> Laurent Pinchart
+--=20
+Greetings, Michael.
 
+PGP encryption is encouraged / 908D8B0E
+
+--Sig_/A0dY8p4HeVCSDR8r6KeRwI_
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Disposition: attachment; filename=signature.asc
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJPeLusAAoJEPUyvh2QjYsOEv4P/j7hqDWqtzy+Ut5X/dTXs66M
+ouR4V0ceVnrDhwT8EOyG7/uB2ElkwzHw/qwbLmyZiCmwzMgsjTk3HR5nNYUB9K8i
+eY5qge/AgB0sP5k3M872UZN1piwa0ChUzM3UAUATWoUMC2Udvg25ly2Lt+vP8wcP
+p8aHZ+JaSaFsNWyectCevlW1qgLStyi/0PG04vBo5eEJwoKk00bL1rP/VcsPVwof
+FAjimqX4Uf8ixwopIIu5a1VrGCDIFJP3MGKeTKmkBJUip8IKxCw6CJWKZb3Up0Pw
+3ngdRqGFikBBXVAROfC7j234FS0i0zDCG3ihSELCOKglmvbKWO25LUv6o6Kp17uD
+XGWCW0qcHPMWj6xN8Z6/qjSt1+M6KnvN/CMYLjokBhqXiHjBDmv/rQVOtGZGDiXq
+pl6wdrxVbFd0D5K12D5K6EPYjKvRujORSkZvnxBiWUqGdPaF8hWWOhgKrK532D2x
+9u4JTmKq7AtZ5hVtNOJE37fUmYED8kINbRNGe+bYaWi6Wjj9s+nZtPUNozIX1scn
+odFuueu7daLSk6gjRvmiXw5F17FiOAw3h9DJMe/XVt+rWC4bdWJxpL/Nv6s7tR7a
+AVFNqCtltVd7y7e/Dsvg6intliSBfA1/cgQ5c81mBPIH9jsldWY5pouFgonr7Cq3
+ZJ/atPTQmPqX9u4KyLUz
+=RqKE
+-----END PGP SIGNATURE-----
+
+--Sig_/A0dY8p4HeVCSDR8r6KeRwI_--
