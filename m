@@ -1,53 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:4336 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752673Ab2CaJS1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 31 Mar 2012 05:18:27 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "linux-media" <linux-media@vger.kernel.org>
-Subject: [PATCH for v3.4] Fix ivtv AUDIO_(BILINGUAL_)CHANNEL_SELECT regression
-Date: Sat, 31 Mar 2012 11:18:19 +0200
-Cc: Martin Dauskardt <martin.dauskardt@gmx.de>,
-	Andy Walls <awalls@md.metrocast.net>
+Received: from mail.kapsi.fi ([217.30.184.167]:56942 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752753Ab2DAWL5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 1 Apr 2012 18:11:57 -0400
+Message-ID: <4F78D2AA.1020503@iki.fi>
+Date: Mon, 02 Apr 2012 01:11:54 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
+To: Hans-Frieder Vogt <hfvogt@gmx.net>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH] AF9033 read_ber and read_ucblocks implementation
+References: <4F75A7FE.8090405@iki.fi> <201204012011.29830.hfvogt@gmx.net> <201204012307.31742.hfvogt@gmx.net> <201204012319.12575.hfvogt@gmx.net> <4F78CF26.3080704@iki.fi>
+In-Reply-To: <4F78CF26.3080704@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <201203311118.19446.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+On 02.04.2012 00:56, Antti Palosaari wrote:
+> On 02.04.2012 00:19, Hans-Frieder Vogt wrote:
+>> Implementation of af9033_read_ber and af9033_read_ucblocks functions.
+>> + sw = ~sw;
+>
+> I don't see any reason for that?
 
-When I converted ivtv to the new decoder API I introduced a regression in the
-support of the old channel select API. The patch below fixes this.
+Now I see, it is some kind of switch to make operation every second call?
+As it is defined static:
++	static u8 sw = 0;
+[...]
++		if (sw)
++			state->ucb = abort_cnt;
++		else
++			state->ucb = +abort_cnt;
++		sw = ~sw;
 
-Thanks to Martin Dauskardt for reporting this.
+Unfortunately I am almost sure it will not work as it should. In my 
+understanding this kind of static variables are shared between driver 
+instances... and if you have device where is two or more af9033 demods 
+it will share it. Also if you have multiple af9033 devices, are are 
+shared. It works only if you have one af9033 demodulator in use.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Instead, this kind of switches should be but to driver private aka 
+state. Also think twice if all that logic is correct and needed.
 
-Regards,
-
-	Hans
-
-diff --git a/drivers/media/video/ivtv/ivtv-ioctl.c b/drivers/media/video/ivtv/ivtv-ioctl.c
-index 5452bee..989e556 100644
---- a/drivers/media/video/ivtv/ivtv-ioctl.c
-+++ b/drivers/media/video/ivtv/ivtv-ioctl.c
-@@ -1763,13 +1763,13 @@ static int ivtv_decoder_ioctls(struct file *filp, unsigned int cmd, void *arg)
- 		IVTV_DEBUG_IOCTL("AUDIO_CHANNEL_SELECT\n");
- 		if (iarg > AUDIO_STEREO_SWAPPED)
- 			return -EINVAL;
--		return v4l2_ctrl_s_ctrl(itv->ctrl_audio_playback, iarg);
-+		return v4l2_ctrl_s_ctrl(itv->ctrl_audio_playback, iarg + 1);
- 
- 	case AUDIO_BILINGUAL_CHANNEL_SELECT:
- 		IVTV_DEBUG_IOCTL("AUDIO_BILINGUAL_CHANNEL_SELECT\n");
- 		if (iarg > AUDIO_STEREO_SWAPPED)
- 			return -EINVAL;
--		return v4l2_ctrl_s_ctrl(itv->ctrl_audio_multilingual_playback, iarg);
-+		return v4l2_ctrl_s_ctrl(itv->ctrl_audio_multilingual_playback, iarg + 1);
- 
- 	default:
- 		return -EINVAL;
+regards
+Antti
+-- 
+http://palosaari.fi/
