@@ -1,111 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:41911 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756415Ab2DDN15 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Apr 2012 09:27:57 -0400
-Received: by eaaq12 with SMTP id q12so91877eaa.19
-        for <linux-media@vger.kernel.org>; Wed, 04 Apr 2012 06:27:55 -0700 (PDT)
-Message-ID: <4F7C4C58.5050703@gmail.com>
-Date: Wed, 04 Apr 2012 15:27:52 +0200
-From: Gianluca Gennari <gennarone@gmail.com>
-Reply-To: gennarone@gmail.com
+Received: from cassarossa.samfundet.no ([129.241.93.19]:40252 "EHLO
+	cassarossa.samfundet.no" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752297Ab2DAPxe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Apr 2012 11:53:34 -0400
+Received: from pannekake.samfundet.no ([2001:700:300:1800::dddd] ident=unknown)
+	by cassarossa.samfundet.no with esmtps (TLS1.0:RSA_AES_256_CBC_SHA1:32)
+	(Exim 4.72)
+	(envelope-from <sesse@samfundet.no>)
+	id 1SEN5u-0001Tt-Bj
+	for linux-media@vger.kernel.org; Sun, 01 Apr 2012 17:53:30 +0200
+Received: from sesse by pannekake.samfundet.no with local (Exim 4.72)
+	(envelope-from <sesse@samfundet.no>)
+	id 1SEN5u-0008Ld-3d
+	for linux-media@vger.kernel.org; Sun, 01 Apr 2012 17:53:30 +0200
+Date: Sun, 1 Apr 2012 17:53:30 +0200
+From: "Steinar H. Gunderson" <sgunderson@bigfoot.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH] Various fixes, hacks and patches for Mantis CA support.
+Message-ID: <20120401155330.GA31901@uio.no>
 MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: linux-media@vger.kernel.org, m@bues.ch, hfvogt@gmx.net,
-	mchehab@redhat.com
-Subject: Re: [PATCH] af9035: add several new USB IDs
-References: <1333540034-14002-1-git-send-email-gennarone@gmail.com> <4F7C3787.5020602@iki.fi> <4F7C4141.40004@gmail.com> <4F7C481A.2020203@iki.fi>
-In-Reply-To: <4F7C481A.2020203@iki.fi>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Il 04/04/2012 15:09, Antti Palosaari ha scritto:
-> On 04.04.2012 15:40, Gianluca Gennari wrote:
->> Il 04/04/2012 13:59, Antti Palosaari ha scritto:
->>> On 04.04.2012 14:47, Gianluca Gennari wrote:
->>>> Add several new USB IDs extracted from the Windows and Linux drivers
->>>> published
->>>> by the manufacturers (Terratec and AVerMedia).
->>>> +    [AF9035_07CA_0867] = {
->>>> +        USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_0867)},
->>>>        [AF9035_07CA_1867] = {
->>>>            USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_1867)},
->>>> +    [AF9035_07CA_3867] = {
->>>> +        USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_3867)},
->>>>        [AF9035_07CA_A867] = {
->>>>            USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_A867)},
->>>> +    [AF9035_07CA_B867] = {
->>>> +        USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_B867)},
->>>
->>> It have been common practise to use product names for USB PID
->>> definitions instead of USB ID numbers. I vote to continue that practise.
->>>
->>> Also, I am not very sure if it is wise to add new IDs without any
->>> testing. Likely those are just reference design and will work, but
->>> sometimes there is also some changes done for schematic wiring.
->>> Especially for Avermedia, see hacks needed some AF9015 Avermedia
->>> devices. They have put invalid data to eeprom and thus hacks are needed
->>> for overriding tuner IDs etc.
->>> Not to mention, driver supports also dynamic IDs and even device ID is
->>> missing user can load driver using dynamic ID and report it working or
->>> non-working.
->>>
->>> Anyone else any thoughts about adding IDs without testing ?
->>>
->>> regards
->>> Antti
->>
->> Regarding the USB PID definition naming, there is no problem for me.
->> Actually, some product names were used in the modified versions of your
->> old driver, so I converted them to the format above just for
->> convenience. The only problem is that there are so many variations of
->> the Avermedia sticks that it's hard to give them proper names.
->>
->> Some of this IDs are already tested (if we include the several
->> modifications of your old driver).
->>
->> In particular:
->> AF9035_0CCD_00AA : confirmed working on Ubuntu.it forum with the old
->> driver (don't have the link);
->> AF9035_07CA_0825 : confirmed working on OpenPli forum with the old
->> driver (see link above);
->>
->> Others comes from the official Windows drivers so they should be just
->> little variations of the retail products:
->> AF9035_07CA_A825, AF9035_07CA_0835, AF9035_07CA_3867.
->>
->> This IDs are can be the more problematic:
->> AF9035_15A4_1000, AF9035_15A4_1002, AF9035_15A4_1003,
->> AF9035_07CA_A333, AF9035_07CA_0337, AF9035_07CA_F337
->> since there is little or no information about this products.
->>
->> Anyway, this patch can be a reference for users willing to test the new
->> driver.
-> 
-> I mean those definitions that goes to common file named: dvb-usb-ids.h.
-> Those are named as a USB_PID_<VENDOR_NAME>_<PRODUCT_NAME>
-> 
-> PIDs inside af9035.c (enum af9035_id_entry) are used only for generating
-> table index. Before it was used plain index numbers but that causes in
-> past few times problems when people added new device IDs between then
-> the table. Meaning of that enum is only keep index in order
-> automatically - and it is just fine as it is short unique name as
-> currently AF9035_<VID>_<PID>.
-> 
-> Add those IDs you know working and sent patch. Lets add more IDs when
-> those are confirmed to work. And as I said I added dynamic ID support
-> for that driver, so even there is no USB ID defined inside driver, it
-> can be still used without compiling whole Kernel.
-> 
-> regards
-> Antti
-> 
+Hi,
 
-Ok, roger.
-As soon as the new driver is merged into the media_build tree, we should
-start getting feedback anyway, so let's wait.
+I was asked to break up my large patch into several smaller,
+Signed-off-by-marked changes. I've rebased against linux-2.6 master and done
+some today; note that since not all of these changes are originally by me,
+you will probably have to consider each one separately for inclusion
+(although they largely make sense independently of each other).
 
-Regards,
-Gianluca
+My interest in this project is, unfortunately, waning, since it appears there
+is no hardware documentation and very little active maintenance of the
+driver, which means that getting it the final step of the way is going to be
+hard (and probably not worth it). However, hopefully someone else will find
+the patch set useful nevertheless.
+
+/* Steinar */
+-- 
+Homepage: http://www.sesse.net/
