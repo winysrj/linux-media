@@ -1,55 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from na3sys009aog120.obsmtp.com ([74.125.149.140]:56380 "EHLO
-	na3sys009aog120.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754527Ab2DHD4O convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 7 Apr 2012 23:56:14 -0400
-Received: by qadb15 with SMTP id b15so1366996qad.2
-        for <linux-media@vger.kernel.org>; Sat, 07 Apr 2012 20:56:13 -0700 (PDT)
+Received: from mail.kapsi.fi ([217.30.184.167]:46067 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753273Ab2DAV44 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 1 Apr 2012 17:56:56 -0400
+Message-ID: <4F78CF26.3080704@iki.fi>
+Date: Mon, 02 Apr 2012 00:56:54 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <1333857274-9435-1-git-send-email-saaguirre@ti.com>
-References: <1333857274-9435-1-git-send-email-saaguirre@ti.com>
-From: "Aguirre, Sergio" <saaguirre@ti.com>
-Date: Sat, 7 Apr 2012 22:55:52 -0500
-Message-ID: <CAKnK67QWG2FhMzFHipu04wxWBzYfEd0A1wp=5LqR8kb-JQmffA@mail.gmail.com>
-Subject: Re: [PATCH] Add support for YUV420 formats
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, Sergio Aguirre <saaguirre@ti.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: Hans-Frieder Vogt <hfvogt@gmx.net>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH] AF9033 read_ber and read_ucblocks implementation
+References: <4F75A7FE.8090405@iki.fi> <201204012011.29830.hfvogt@gmx.net> <201204012307.31742.hfvogt@gmx.net> <201204012319.12575.hfvogt@gmx.net>
+In-Reply-To: <201204012319.12575.hfvogt@gmx.net>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
-
-Sorry, forgot to mention that this is for your media-ctl app.
-
-Regards,
-Sergio
-
-On Sat, Apr 7, 2012 at 10:54 PM,  <saaguirre@ti.com> wrote:
-> From: Sergio Aguirre <saaguirre@ti.com>
+On 02.04.2012 00:19, Hans-Frieder Vogt wrote:
+> Implementation of af9033_read_ber and af9033_read_ucblocks functions.
 >
-> Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
-> ---
->  src/v4l2subdev.c |    2 ++
->  1 files changed, 2 insertions(+), 0 deletions(-)
->
-> diff --git a/src/v4l2subdev.c b/src/v4l2subdev.c
-> index b886b72..e28ed49 100644
-> --- a/src/v4l2subdev.c
-> +++ b/src/v4l2subdev.c
-> @@ -498,8 +498,10 @@ static struct {
->        { "Y12", V4L2_MBUS_FMT_Y12_1X12 },
->        { "YUYV", V4L2_MBUS_FMT_YUYV8_1X16 },
->        { "YUYV2X8", V4L2_MBUS_FMT_YUYV8_2X8 },
-> +       { "YUYV1_5X8", V4L2_MBUS_FMT_YUYV8_1_5X8 },
->        { "UYVY", V4L2_MBUS_FMT_UYVY8_1X16 },
->        { "UYVY2X8", V4L2_MBUS_FMT_UYVY8_2X8 },
-> +       { "UYVY1_5X8", V4L2_MBUS_FMT_UYVY8_1_5X8 },
->        { "SBGGR8", V4L2_MBUS_FMT_SBGGR8_1X8 },
->        { "SGBRG8", V4L2_MBUS_FMT_SGBRG8_1X8 },
->        { "SGRBG8", V4L2_MBUS_FMT_SGRBG8_1X8 },
-> --
-> 1.7.5.4
->
+> Signed-off-by: Hans-Frieder Vogt<hfvogt@gmx.net>
+
+>   drivers/media/dvb/dvb-usb/af9033.c |   68 +++++++++++++++++++++++++++++++++++--
+
+Same wrong path issue.
+
+> +	/* only update data every half second */
+> +	if (time_after(jiffies, state->last_stat_check + 500 * HZ / 1000)) {
+
+500 * HZ looks odd. I suspect correct way is to use some macros for 
+that. See af9013 example usage of jiffies or explain the reason why 500 
+* HZ :)
+
+> +		sw = ~sw;
+
+I don't see any reason for that?
+
+
+It looked somehow complex, but I trust those calculations are kinda correct.
+
+
+IMHO it is enough to put random raw number from register to UCB and BER 
+counters. Random numbers are good enough unless you are making 
+measurement equipment. But off-course correct calculations are allowed.
+
+regards
+Antti
+-- 
+http://palosaari.fi/
