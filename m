@@ -1,40 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:33595 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752741Ab2D3Jst (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Apr 2012 05:48:49 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: jean-philippe francois <jp.francois@cynove.com>
-Cc: linux-media <linux-media@vger.kernel.org>
-Subject: Re: subdev_pad_ops vs video_ops
-Date: Mon, 30 Apr 2012 11:49:11 +0200
-Message-ID: <1623809.9sSP79J6ei@avalon>
-In-Reply-To: <CAGGh5h0nFxmX8rP-Sxu3CqCccX=dzpiqHy3VLvne2X3CwgvXHA@mail.gmail.com>
-References: <CAGGh5h0nFxmX8rP-Sxu3CqCccX=dzpiqHy3VLvne2X3CwgvXHA@mail.gmail.com>
+Received: from oproxy5-pub.bluehost.com ([67.222.38.55]:50342 "HELO
+	oproxy5-pub.bluehost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752625Ab2DATgG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Apr 2012 15:36:06 -0400
+Message-ID: <4F78AE1F.9020908@xenotime.net>
+Date: Sun, 01 Apr 2012 12:35:59 -0700
+From: Randy Dunlap <rdunlap@xenotime.net>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Tracey Dent <tdent48227@gmail.com>, linux-kernel@vger.kernel.org,
+	shea@shealevy.com, torvalds@linux-foundation.org,
+	mchehab@infradead.org, hans.verkuil@cisco.com,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/1] Drivers/media/radio: Fix build error
+References: <1333307374-25848-1-git-send-email-tdent48227@gmail.com> <201204012124.48701.hverkuil@xs4all.nl>
+In-Reply-To: <201204012124.48701.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jean-Philippe,
+On 04/01/2012 12:24 PM, Hans Verkuil wrote:
 
-On Monday 30 April 2012 10:34:54 jean-philippe francois wrote:
-> subdev_pad_ops and video_ops both contains operation related
-> to format, crop and bus format.
+> On Sunday, April 01, 2012 21:09:34 Tracey Dent wrote:
+>> radio-maxiradio depends on SND_FM801_TEA575X_BOOL to build or will
+>> result in an build error such as:
+>>
+>> Kernel: arch/x86/boot/bzImage is ready  (#1)
+>> ERROR: "snd_tea575x_init" [drivers/media/radio/radio-maxiradio.ko] undefined!
+>> ERROR: "snd_tea575x_exit" [drivers/media/radio/radio-maxiradio.ko] undefined!
+>> WARNING: modpost: Found 6 section mismatch(es).
+>> To see full details build your kernel with:
+>> 'make CONFIG_DEBUG_SECTION_MISMATCH=y'
+>> make[1]: *** [__modpost] Error 1
+>> make: *** [modules] Error 2
+>>
+>> Select CONFIG_SND_TEA575X to fixes problem and enable
+>> the driver to be built as desired.
+>>
+>> v2:
+>> instead of selecting CONFIG_SND_FM801_TEA575X_BOOL, select
+>> CONFIG_SND_TEA575X, which in turns selects CONFIG_SND_FM801_TEA575X_BOOL
+>> and any other dependencies for it to build.
+
+Tracey,
+
+'select' does not follow its dependency chain.  See
+Documentation/kbuild/kconfig-language.txt:
+
+  Note:
+	select should be used with care. select will force
+	a symbol to a value without visiting the dependencies.
+	By abusing select you are able to select a symbol FOO even
+	if FOO depends on BAR that is not set.
+	In general use select only for non-visible symbols
+	(no prompts anywhere) and for symbols with no dependencies.
+	That will limit the usefulness but on the other hand avoid
+	the illegal configurations all over.
+
+
+> No, this is the correct patch:
+
+
+Thanks.
+
+
+> diff --git a/sound/pci/Kconfig b/sound/pci/Kconfig
+> index 8816804..5ca0939 100644
+> --- a/sound/pci/Kconfig
+> +++ b/sound/pci/Kconfig
+> @@ -2,8 +2,8 @@
+>  
+>  config SND_TEA575X
+>  	tristate
+> -	depends on SND_FM801_TEA575X_BOOL || SND_ES1968_RADIO || RADIO_SF16FMR2
+> -	default SND_FM801 || SND_ES1968 || RADIO_SF16FMR2
+> +	depends on SND_FM801_TEA575X_BOOL || SND_ES1968_RADIO || RADIO_SF16FMR2 || RADIO_MAXIRADIO
+> +	default SND_FM801 || SND_ES1968 || RADIO_SF16FMR2 || RADIO_MAXIRADIO
+>  
+>  menuconfig SND_PCI
+>  	bool "PCI sound devices"
 > 
-> When should one or the other be used ?
-> For example mt9p031 implement everything using pad_ops, but other drivers
-> use video_ops functions.
+> RADIO_MAXIRADIO should be treated just like RADIO_SF16FMR2, I just didn't
+> realize at the time that it had to be added as a SND_TEA575X dependency.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> (Sorry for the late reply, I didn't have access to my cisco email for the last
+> few days).
+> 
+> Regards,
+> 
+> 	Hans
+> 
+>>
+>> Reported-by: Shea Levy <shea@shealevy.com>
+>> Signed-off-by: Tracey Dent <tdent48227@gmail.com>
+>> ---
+>>  drivers/media/radio/Kconfig |    1 +
+>>  1 file changed, 1 insertion(+)
+>>
+>> diff --git a/drivers/media/radio/Kconfig b/drivers/media/radio/Kconfig
+>> index 8db2d7f..b518ce5 100644
+>> --- a/drivers/media/radio/Kconfig
+>> +++ b/drivers/media/radio/Kconfig
+>> @@ -44,6 +44,7 @@ config USB_DSBR
+>>  config RADIO_MAXIRADIO
+>>  	tristate "Guillemot MAXI Radio FM 2000 radio"
+>>  	depends on VIDEO_V4L2 && PCI && SND
+>> +	select SND_TEA575X
+>>  	---help---
+>>  	  Choose Y here if you have this radio card.  This card may also be
+>>  	  found as Gemtek PCI FM.
+>>
+> --
 
-The pad ops are required by the media controller framework. New drivers should 
-use pad ops for format and selection handling. We need wrappers to translate 
-video ops to pad ops to be used by bridge drivers that don't support pad ops 
-yet.
 
 -- 
-Regards,
-
-Laurent Pinchart
-
+~Randy
