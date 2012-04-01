@@ -1,295 +1,382 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:49906 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754672Ab2DCOK2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Apr 2012 10:10:28 -0400
-Date: Tue, 03 Apr 2012 16:10:14 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCHv24 09/16] mm: page_isolation: MIGRATE_CMA isolation functions
- added
-In-reply-to: <1333462221-3987-1-git-send-email-m.szyprowski@samsung.com>
-To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org
-Cc: Michal Nazarewicz <mina86@mina86.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
-	Jesse Barker <jesse.barker@linaro.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Chunsang Jeong <chunsang.jeong@linaro.org>,
-	Dave Hansen <dave@linux.vnet.ibm.com>,
-	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-	Rob Clark <rob.clark@linaro.org>,
-	Ohad Ben-Cohen <ohad@wizery.com>,
-	Sandeep Patil <psandeep.s@gmail.com>
-Message-id: <1333462221-3987-10-git-send-email-m.szyprowski@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1333462221-3987-1-git-send-email-m.szyprowski@samsung.com>
+Received: from imr-ma03.mx.aol.com ([64.12.206.41]:35497 "EHLO
+	imr-ma03.mx.aol.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753777Ab2CaWf0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 31 Mar 2012 18:35:26 -0400
+Message-ID: <4F77B099.7030109@netscape.net>
+Date: Sat, 31 Mar 2012 22:34:17 -0300
+From: =?ISO-8859-1?Q?Alfredo_Jes=FAs_Delaiti?=
+	<alfredodelaiti@netscape.net>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Steven Toth <stoth@kernellabs.com>
+Subject: Broken driver cx23885 mygica x8507
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Michal Nazarewicz <mina86@mina86.com>
+Hi
 
-This commit changes various functions that change pages and
-pageblocks migrate type between MIGRATE_ISOLATE and
-MIGRATE_MOVABLE in such a way as to allow to work with
-MIGRATE_CMA migrate type.
+Some of the changes between 3.2 and 3.3 kernel have left without sound, 
+the card Mygica X8507.
+With kernel 3.0, 3.1 and 3.2 this worked fine.
+I tested with OpenSuSE, with two kernel that provides by distribution 
+and Kubunto with the kernel download from http://www.kernel.org/. In 
+both cases the same problem occurs.
+Then leave extra information:
 
-Signed-off-by: Michal Nazarewicz <mina86@mina86.com>
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Tested-by: Rob Clark <rob.clark@linaro.org>
-Tested-by: Ohad Ben-Cohen <ohad@wizery.com>
-Tested-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Tested-by: Robert Nelson <robertcnelson@gmail.com>
-Tested-by: Barry Song <Baohua.Song@csr.com>
----
- include/linux/gfp.h            |    3 ++-
- include/linux/page-isolation.h |   18 +++++++++---------
- mm/memory-failure.c            |    2 +-
- mm/memory_hotplug.c            |    6 +++---
- mm/page_alloc.c                |   17 +++++++++++------
- mm/page_isolation.c            |   15 ++++++++-------
- 6 files changed, 34 insertions(+), 27 deletions(-)
 
-diff --git a/include/linux/gfp.h b/include/linux/gfp.h
-index 78d32a7..1e49be4 100644
---- a/include/linux/gfp.h
-+++ b/include/linux/gfp.h
-@@ -394,7 +394,8 @@ static inline bool pm_suspended_storage(void)
- #ifdef CONFIG_CMA
- 
- /* The below functions must be run on a range from a single zone. */
--extern int alloc_contig_range(unsigned long start, unsigned long end);
-+extern int alloc_contig_range(unsigned long start, unsigned long end,
-+			      unsigned migratetype);
- extern void free_contig_range(unsigned long pfn, unsigned nr_pages);
- 
- /* CMA stuff */
-diff --git a/include/linux/page-isolation.h b/include/linux/page-isolation.h
-index 051c1b1..3bdcab3 100644
---- a/include/linux/page-isolation.h
-+++ b/include/linux/page-isolation.h
-@@ -3,7 +3,7 @@
- 
- /*
-  * Changes migrate type in [start_pfn, end_pfn) to be MIGRATE_ISOLATE.
-- * If specified range includes migrate types other than MOVABLE,
-+ * If specified range includes migrate types other than MOVABLE or CMA,
-  * this will fail with -EBUSY.
-  *
-  * For isolating all pages in the range finally, the caller have to
-@@ -11,27 +11,27 @@
-  * test it.
-  */
- extern int
--start_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn);
-+start_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn,
-+			 unsigned migratetype);
- 
- /*
-  * Changes MIGRATE_ISOLATE to MIGRATE_MOVABLE.
-  * target range is [start_pfn, end_pfn)
-  */
- extern int
--undo_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn);
-+undo_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn,
-+			unsigned migratetype);
- 
- /*
-- * test all pages in [start_pfn, end_pfn)are isolated or not.
-+ * Test all pages in [start_pfn, end_pfn) are isolated or not.
-  */
--extern int
--test_pages_isolated(unsigned long start_pfn, unsigned long end_pfn);
-+int test_pages_isolated(unsigned long start_pfn, unsigned long end_pfn);
- 
- /*
-- * Internal funcs.Changes pageblock's migrate type.
-- * Please use make_pagetype_isolated()/make_pagetype_movable().
-+ * Internal functions. Changes pageblock's migrate type.
-  */
- extern int set_migratetype_isolate(struct page *page);
--extern void unset_migratetype_isolate(struct page *page);
-+extern void unset_migratetype_isolate(struct page *page, unsigned migratetype);
- 
- 
- #endif
-diff --git a/mm/memory-failure.c b/mm/memory-failure.c
-index 97cc2733..c99ad4e 100644
---- a/mm/memory-failure.c
-+++ b/mm/memory-failure.c
-@@ -1404,7 +1404,7 @@ static int get_any_page(struct page *p, unsigned long pfn, int flags)
- 		/* Not a free page */
- 		ret = 1;
- 	}
--	unset_migratetype_isolate(p);
-+	unset_migratetype_isolate(p, MIGRATE_MOVABLE);
- 	unlock_memory_hotplug();
- 	return ret;
- }
-diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
-index 6629faf..fc898cb 100644
---- a/mm/memory_hotplug.c
-+++ b/mm/memory_hotplug.c
-@@ -891,7 +891,7 @@ static int __ref offline_pages(unsigned long start_pfn,
- 	nr_pages = end_pfn - start_pfn;
- 
- 	/* set above range as isolated */
--	ret = start_isolate_page_range(start_pfn, end_pfn);
-+	ret = start_isolate_page_range(start_pfn, end_pfn, MIGRATE_MOVABLE);
- 	if (ret)
- 		goto out;
- 
-@@ -956,7 +956,7 @@ repeat:
- 	   We cannot do rollback at this point. */
- 	offline_isolated_pages(start_pfn, end_pfn);
- 	/* reset pagetype flags and makes migrate type to be MOVABLE */
--	undo_isolate_page_range(start_pfn, end_pfn);
-+	undo_isolate_page_range(start_pfn, end_pfn, MIGRATE_MOVABLE);
- 	/* removal success */
- 	zone->present_pages -= offlined_pages;
- 	zone->zone_pgdat->node_present_pages -= offlined_pages;
-@@ -981,7 +981,7 @@ failed_removal:
- 		start_pfn, end_pfn);
- 	memory_notify(MEM_CANCEL_OFFLINE, &arg);
- 	/* pushback to free area */
--	undo_isolate_page_range(start_pfn, end_pfn);
-+	undo_isolate_page_range(start_pfn, end_pfn, MIGRATE_MOVABLE);
- 
- out:
- 	unlock_memory_hotplug();
-diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index 26d8b9f..216e575 100644
---- a/mm/page_alloc.c
-+++ b/mm/page_alloc.c
-@@ -5582,7 +5582,7 @@ out:
- 	return ret;
- }
- 
--void unset_migratetype_isolate(struct page *page)
-+void unset_migratetype_isolate(struct page *page, unsigned migratetype)
- {
- 	struct zone *zone;
- 	unsigned long flags;
-@@ -5590,8 +5590,8 @@ void unset_migratetype_isolate(struct page *page)
- 	spin_lock_irqsave(&zone->lock, flags);
- 	if (get_pageblock_migratetype(page) != MIGRATE_ISOLATE)
- 		goto out;
--	set_pageblock_migratetype(page, MIGRATE_MOVABLE);
--	move_freepages_block(zone, page, MIGRATE_MOVABLE);
-+	set_pageblock_migratetype(page, migratetype);
-+	move_freepages_block(zone, page, migratetype);
- out:
- 	spin_unlock_irqrestore(&zone->lock, flags);
- }
-@@ -5669,6 +5669,10 @@ static int __alloc_contig_migrate_range(unsigned long start, unsigned long end)
-  * alloc_contig_range() -- tries to allocate given range of pages
-  * @start:	start PFN to allocate
-  * @end:	one-past-the-last PFN to allocate
-+ * @migratetype:	migratetype of the underlaying pageblocks (either
-+ *			#MIGRATE_MOVABLE or #MIGRATE_CMA).  All pageblocks
-+ *			in range must have the same migratetype and it must
-+ *			be either of the two.
-  *
-  * The PFN range does not have to be pageblock or MAX_ORDER_NR_PAGES
-  * aligned, however it's the caller's responsibility to guarantee that
-@@ -5681,7 +5685,8 @@ static int __alloc_contig_migrate_range(unsigned long start, unsigned long end)
-  * pages which PFN is in [start, end) are allocated for the caller and
-  * need to be freed with free_contig_range().
-  */
--int alloc_contig_range(unsigned long start, unsigned long end)
-+int alloc_contig_range(unsigned long start, unsigned long end,
-+		       unsigned migratetype)
- {
- 	struct zone *zone = page_zone(pfn_to_page(start));
- 	unsigned long outer_start, outer_end;
-@@ -5712,7 +5717,7 @@ int alloc_contig_range(unsigned long start, unsigned long end)
- 	 */
- 
- 	ret = start_isolate_page_range(pfn_max_align_down(start),
--				       pfn_max_align_up(end));
-+				       pfn_max_align_up(end), migratetype);
- 	if (ret)
- 		goto done;
- 
-@@ -5772,7 +5777,7 @@ int alloc_contig_range(unsigned long start, unsigned long end)
- 
- done:
- 	undo_isolate_page_range(pfn_max_align_down(start),
--				pfn_max_align_up(end));
-+				pfn_max_align_up(end), migratetype);
- 	return ret;
- }
- 
-diff --git a/mm/page_isolation.c b/mm/page_isolation.c
-index 4ae42bb..c9f0477 100644
---- a/mm/page_isolation.c
-+++ b/mm/page_isolation.c
-@@ -24,6 +24,7 @@ __first_valid_page(unsigned long pfn, unsigned long nr_pages)
-  * to be MIGRATE_ISOLATE.
-  * @start_pfn: The lower PFN of the range to be isolated.
-  * @end_pfn: The upper PFN of the range to be isolated.
-+ * @migratetype: migrate type to set in error recovery.
-  *
-  * Making page-allocation-type to be MIGRATE_ISOLATE means free pages in
-  * the range will never be allocated. Any free pages and pages freed in the
-@@ -32,8 +33,8 @@ __first_valid_page(unsigned long pfn, unsigned long nr_pages)
-  * start_pfn/end_pfn must be aligned to pageblock_order.
-  * Returns 0 on success and -EBUSY if any part of range cannot be isolated.
-  */
--int
--start_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn)
-+int start_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn,
-+			     unsigned migratetype)
- {
- 	unsigned long pfn;
- 	unsigned long undo_pfn;
-@@ -56,7 +57,7 @@ undo:
- 	for (pfn = start_pfn;
- 	     pfn < undo_pfn;
- 	     pfn += pageblock_nr_pages)
--		unset_migratetype_isolate(pfn_to_page(pfn));
-+		unset_migratetype_isolate(pfn_to_page(pfn), migratetype);
- 
- 	return -EBUSY;
- }
-@@ -64,8 +65,8 @@ undo:
- /*
-  * Make isolated pages available again.
-  */
--int
--undo_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn)
-+int undo_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn,
-+			    unsigned migratetype)
- {
- 	unsigned long pfn;
- 	struct page *page;
-@@ -77,7 +78,7 @@ undo_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn)
- 		page = __first_valid_page(pfn, pageblock_nr_pages);
- 		if (!page || get_pageblock_migratetype(page) != MIGRATE_ISOLATE)
- 			continue;
--		unset_migratetype_isolate(page);
-+		unset_migratetype_isolate(page, migratetype);
- 	}
- 	return 0;
- }
-@@ -86,7 +87,7 @@ undo_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn)
-  * all pages in [start_pfn...end_pfn) must be in the same zone.
-  * zone->lock must be held before call this.
-  *
-- * Returns 1 if all pages in the range is isolated.
-+ * Returns 1 if all pages in the range are isolated.
-  */
- static int
- __test_page_isolated_in_pageblock(unsigned long pfn, unsigned long end_pfn)
+dhcppc0:/home/alfredo # modprobe cx23885
+dhcppc0:/home/alfredo # dmesg
+...
+[ 1127.074871] cx23885 driver version 0.0.3 loaded
+[ 1127.076014] cx23885[0]: cx23885_dev_setup() Memory configured for 
+PCIe bridge type 885
+[ 1127.076416] CORE cx23885[0]: subsystem: 14f1:8502, board: Mygica 
+X8507 [card=33,autodetected]
+[ 1127.076421] cx23885[0]: cx23885_pci_quirks()
+[ 1127.076428] cx23885[0]: cx23885_dev_setup() tuner_type = 0x4c 
+tuner_addr = 0x61 tuner_bus = 1
+[ 1127.076433] cx23885[0]: cx23885_dev_setup() radio_type = 0x0 
+radio_addr = 0x0
+[ 1127.076438] cx23885[0]: cx23885_reset()
+[ 1127.176467] cx23885[0]: cx23885_sram_channel_setup() Configuring 
+channel [VID A]
+[ 1127.176470] cx23885[0]: cx23885_sram_channel_setup() Erasing channel 
+[ch2]
+[ 1127.176473] cx23885[0]: cx23885_sram_channel_setup() Configuring 
+channel [TS1 B]
+[ 1127.176475] cx23885[0]: cx23885_sram_channel_setup() Erasing channel 
+[ch4]
+[ 1127.176478] cx23885[0]: cx23885_sram_channel_setup() Erasing channel 
+[ch5]
+[ 1127.176480] cx23885[0]: cx23885_sram_channel_setup() Configuring 
+channel [TS2 C]
+[ 1127.176493] cx23885[0]: cx23885_sram_channel_setup() Configuring 
+channel [TV Audio]
+[ 1127.176510] cx23885[0]: cx23885_sram_channel_setup() Erasing channel 
+[ch8]
+[ 1127.176512] cx23885[0]: cx23885_sram_channel_setup() Erasing channel 
+[ch9]
+[ 1127.428328] cx25840 8-0044: cx23885 A/V decoder found @ 0x88 (cx23885[0])
+[ 1128.101966] cx25840 8-0044: loaded v4l-cx23885-avcore-01.fw firmware 
+(16382 bytes)
+[ 1128.135245] cx23885[0]: cx23885_video_register()
+[ 1128.138062] tuner 7-0061: Tuner -1 found with type(s) Radio TV.
+[ 1128.138095] xc5000 7-0061: creating new instance
+[ 1128.138790] xc5000: Successfully identified at address 0x61
+[ 1128.138792] xc5000: Firmware has not been loaded previously
+[ 1128.138795] cx23885[0]: cx23885_vdev_init()
+[ 1128.138891] cx23885[0]: registered device video1 [v4l2]
+[ 1128.138893] cx23885[0]: cx23885_vdev_init()
+[ 1128.138949] cx23885[0]: registered device vbi1
+[ 1128.140495] cx23885[0]: registered ALSA audio device
+[ 1128.140500] cx23885[0]: cx23885_set_tvnorm(norm = 0x00001000) name: 
+[NTSC-M]
+[ 1128.155056] cx23885[0]: open dev=video1 radio=0 type=vid-cap
+[ 1128.155061] cx23885[0]: post videobuf_queue_init()
+[ 1128.155092] cx23885[0]: open dev=vbi1 radio=0 type=vbi-cap
+[ 1128.155097] cx23885[0]: post videobuf_queue_init()
+[ 1128.165628] xc5000: waiting for firmware upload 
+(dvb-fe-xc5000-1.6.114.fw)...
+[ 1128.282090] xc5000: firmware read 12401 bytes.
+[ 1128.282097] xc5000: firmware uploading...
+[ 1129.657015] xc5000: firmware upload complete...
+[ 1130.256026] cx23885[0]: cx23885_set_control() calling 
+cx25840(VIDIOC_S_CTRL)
+[ 1130.256151] cx23885[0]: cx23885_set_control() calling 
+cx25840(VIDIOC_S_CTRL)
+[ 1130.256267] cx23885[0]: cx23885_set_control() calling 
+cx25840(VIDIOC_S_CTRL)
+[ 1130.256272] cx23885[0]: cx23885_set_control() calling 
+cx25840(VIDIOC_S_CTRL)
+[ 1130.256495] cx23885[0]: cx23885_set_control() calling 
+cx25840(VIDIOC_S_CTRL)
+[ 1130.256609] cx23885[0]: cx23885_set_control() calling 
+cx25840(VIDIOC_S_CTRL)
+[ 1130.256726] cx23885[0]: cx23885_video_mux() video_mux: 0 [vmux=2, 
+gpio=0x0,0x0,0x0,0x0]
+[ 1130.288096] cx23885[0]: cx23885_audio_mux(input=0)
+[ 1130.288099] cx23885[0]: cx23885_flatiron_mux(input = 1)
+[ 1130.288318] cx23885[0]: Flatiron dump
+[ 1130.288394] cx23885[0]: FI[00] = d2
+[ 1130.288470] cx23885[0]: FI[01] = 03
+[ 1130.288545] cx23885[0]: FI[02] = 1b
+[ 1130.288620] cx23885[0]: FI[03] = 00
+[ 1130.288695] cx23885[0]: FI[04] = 08
+[ 1130.288770] cx23885[0]: FI[05] = 08
+[ 1130.288846] cx23885[0]: FI[06] = 03
+[ 1130.288921] cx23885[0]: FI[07] = 00
+[ 1130.288996] cx23885[0]: FI[08] = 13
+[ 1130.289078] cx23885[0]: FI[09] = 13
+[ 1130.289154] cx23885[0]: FI[0a] = 0a
+[ 1130.289233] cx23885[0]: FI[0b] = 00
+[ 1130.289308] cx23885[0]: FI[0c] = 05
+[ 1130.289383] cx23885[0]: FI[0d] = 00
+[ 1130.289458] cx23885[0]: FI[0e] = 20
+[ 1130.289534] cx23885[0]: FI[0f] = 00
+[ 1130.289609] cx23885[0]: FI[10] = 0c
+[ 1130.289684] cx23885[0]: FI[11] = 88
+[ 1130.289759] cx23885[0]: FI[12] = 71
+[ 1130.289835] cx23885[0]: FI[13] = 08
+[ 1130.289910] cx23885[0]: FI[14] = 80
+[ 1130.289987] cx23885[0]: FI[15] = 00
+[ 1130.290065] cx23885[0]: FI[16] = ff
+[ 1130.290140] cx23885[0]: FI[17] = ff
+[ 1130.290216] cx23885[0]: FI[18] = ff
+[ 1130.290291] cx23885[0]: FI[19] = 00
+[ 1130.290366] cx23885[0]: FI[1a] = 02
+[ 1130.290441] cx23885[0]: FI[1b] = 00
+[ 1130.290517] cx23885[0]: FI[1c] = 00
+[ 1130.290592] cx23885[0]: FI[1d] = 00
+[ 1130.290667] cx23885[0]: FI[1e] = 00
+[ 1130.290743] cx23885[0]: FI[1f] = 00
+[ 1130.290819] cx23885[0]: FI[20] = 00
+[ 1130.290895] cx23885[0]: FI[21] = 00
+[ 1130.290971] cx23885[0]: FI[22] = 00
+[ 1130.291048] cx23885[0]: FI[23] = 00
+[ 1130.291053] cx23885_dev_checkrevision() Hardware revision = 0xb0
+[ 1130.291059] cx23885[0]/0: found at 0000:02:00.0, rev: 2, irq: 19, 
+latency: 0, mmio: 0xfd400000
+
+
+
+
+Part of the output of dmesg after tuning a channel with tvtime:
+
+[ 1485.223117] cx23885[0]: cx23885_start_audio_dma()
+[ 1485.223130] cx23885[0]: cx23885_sram_channel_setup() Configuring 
+channel [TV Audio]
+[ 1485.223156] cx23885[0]: Start audio DMA, 1024 B/line, 4 lines/FIFO, 
+64 periods, 65536 byte buffer
+[ 1485.223169] cx23885[0]: TV Audio - dma channel status dump
+[ 1485.223177] cx23885[0]:   cmds: init risc lo   : 0x15287000
+[ 1485.223183] cx23885[0]:   cmds: init risc hi   : 0x00000000
+[ 1485.223188] cx23885[0]:   cmds: cdt base       : 0x00010a00
+[ 1485.223194] cx23885[0]:   cmds: cdt size       : 0x00000008
+[ 1485.223236] cx23885[0]:   cmds: iq base        : 0x00010480
+[ 1485.223243] cx23885[0]:   cmds: iq size        : 0x00000010
+[ 1485.223248] cx23885[0]:   cmds: risc pc lo     : 0x1528703c
+[ 1485.223256] cx23885[0]:   cmds: risc pc hi     : 0x00000000
+[ 1485.223263] cx23885[0]:   cmds: iq wr ptr      : 0x0000412f
+[ 1485.223269] cx23885[0]:   cmds: iq rd ptr      : 0x00004123
+[ 1485.223274] cx23885[0]:   cmds: cdt current    : 0x00010a08
+[ 1485.223279] cx23885[0]:   cmds: pci target lo  : 0x38666000
+[ 1485.223286] cx23885[0]:   cmds: pci target hi  : 0x00000000
+[ 1485.223293] cx23885[0]:   cmds: line / byte    : 0x00000000
+[ 1485.223298] cx23885[0]:   risc0: 0x1c000400 [ write sol eol count=1024 ]
+[ 1485.223315] cx23885[0]:   risc1: 0x38666000 [ INVALID sol 22 21 18 
+cnt1 14 13 count=0 ]
+[ 1485.223329] cx23885[0]:   risc2: 0x00000000 [ INVALID count=0 ]
+[ 1485.223338] cx23885[0]:   risc3: 0x1d010400 [ write sol eol irq1 cnt0 
+count=1024 ]
+[ 1485.223351] cx23885[0]:   (0x00010480) iq 0: 0x1c000400 [ write sol 
+eol count=1024 ]
+[ 1485.223361] cx23885[0]:   iq 1: 0x38666000 [ arg #1 ]
+[ 1485.223366] cx23885[0]:   iq 2: 0x00000000 [ arg #2 ]
+[ 1485.223372] cx23885[0]:   (0x0001048c) iq 3: 0x1d010400 [ write sol 
+eol irq1 cnt0 count=1024 ]
+[ 1485.223383] cx23885[0]:   iq 4: 0x38666400 [ arg #1 ]
+[ 1485.223388] cx23885[0]:   iq 5: 0x00000000 [ arg #2 ]
+[ 1485.223394] cx23885[0]:   (0x00010498) iq 6: 0x1d010400 [ write sol 
+eol irq1 cnt0 count=1024 ]
+[ 1485.223404] cx23885[0]:   iq 7: 0x38666800 [ arg #1 ]
+[ 1485.223410] cx23885[0]:   iq 8: 0x00000000 [ arg #2 ]
+[ 1485.223415] cx23885[0]:   (0x000104a4) iq 9: 0x1d010400 [ write sol 
+eol irq1 cnt0 count=1024 ]
+[ 1485.223426] cx23885[0]:   iq a: 0x38666c00 [ arg #1 ]
+[ 1485.223432] cx23885[0]:   iq b: 0x00000000 [ arg #2 ]
+[ 1485.223437] cx23885[0]:   (0x000104b0) iq c: 0x1d010400 [ write sol 
+eol irq1 cnt0 count=1024 ]
+[ 1485.223448] cx23885[0]:   iq d: 0x5a561000 [ arg #1 ]
+[ 1485.223453] cx23885[0]:   iq e: 0x00000000 [ arg #2 ]
+[ 1485.223459] cx23885[0]:   (0x000104bc) iq f: 0x00000000 [ INVALID 
+count=0 ]
+[ 1485.223465] cx23885[0]: fifo: 0x00007000 -> 0x8000
+[ 1485.223468] cx23885[0]: ctrl: 0x00010480 -> 0x104e0
+[ 1485.223473] cx23885[0]:   ptr1_reg: 0x00007068
+[ 1485.223478] cx23885[0]:   ptr2_reg: 0x00010a08
+[ 1485.223483] cx23885[0]:   cnt1_reg: 0x0000000e
+[ 1485.223488] cx23885[0]:   cnt2_reg: 0x00000007
+[ 1485.604027] cx23885[0]: Stopping audio DMA
+[ 1485.604042] cx23885[0]: TV Audio - dma channel status dump
+[ 1485.604049] cx23885[0]:   cmds: init risc lo   : 0x15287000
+[ 1485.604055] cx23885[0]:   cmds: init risc hi   : 0x00000000
+[ 1485.604062] cx23885[0]:   cmds: cdt base       : 0x00010a00
+[ 1485.604068] cx23885[0]:   cmds: cdt size       : 0x00000008
+[ 1485.604075] cx23885[0]:   cmds: iq base        : 0x00010480
+[ 1485.604080] cx23885[0]:   cmds: iq size        : 0x00000010
+[ 1485.604087] cx23885[0]:   cmds: risc pc lo     : 0x1528709c
+[ 1485.604093] cx23885[0]:   cmds: risc pc hi     : 0x00000000
+[ 1485.604100] cx23885[0]:   cmds: iq wr ptr      : 0x00004129
+[ 1485.604105] cx23885[0]:   cmds: iq rd ptr      : 0x0000412d
+[ 1485.604111] cx23885[0]:   cmds: cdt current    : 0x00010a08
+[ 1485.604119] cx23885[0]:   cmds: pci target lo  : 0x11748000
+[ 1485.604127] cx23885[0]:   cmds: pci target hi  : 0x00000000
+[ 1485.604132] cx23885[0]:   cmds: line / byte    : 0x00880000
+[ 1485.604140] cx23885[0]:   risc0: 0x1d010400 [ write sol eol irq1 cnt0 
+count=1024 ]
+[ 1485.604152] cx23885[0]:   risc1: 0x11748000 [ write irq1 22 21 20 18 
+resync count=0 ]
+[ 1485.604164] cx23885[0]:   risc2: 0x00000000 [ INVALID count=0 ]
+[ 1485.604175] cx23885[0]:   risc3: 0x1d010400 [ write sol eol irq1 cnt0 
+count=1024 ]
+[ 1485.604186] cx23885[0]:   (0x00010480) iq 0: 0x1d010400 [ write sol 
+eol irq1 cnt0 count=1024 ]
+[ 1485.604199] cx23885[0]:   iq 1: 0x11748800 [ arg #1 ]
+[ 1485.604205] cx23885[0]:   iq 2: 0x00000000 [ arg #2 ]
+[ 1485.604210] cx23885[0]:   (0x0001048c) iq 3: 0x1d010400 [ write sol 
+eol irq1 cnt0 count=1024 ]
+[ 1485.604222] cx23885[0]:   iq 4: 0x11748c00 [ arg #1 ]
+[ 1485.604230] cx23885[0]:   iq 5: 0x00000000 [ arg #2 ]
+[ 1485.604238] cx23885[0]:   (0x00010498) iq 6: 0x1d010400 [ write sol 
+eol irq1 cnt0 count=1024 ]
+[ 1485.604249] cx23885[0]:   iq 7: 0x0e9ef000 [ arg #1 ]
+[ 1485.604257] cx23885[0]:   iq 8: 0x00000000 [ arg #2 ]
+[ 1485.604262] cx23885[0]:   (0x000104a4) iq 9: 0x00000000 [ INVALID 
+count=0 ]
+[ 1485.604271] cx23885[0]:   (0x000104a8) iq a: 0x1d010400 [ write sol 
+eol irq1 cnt0 count=1024 ]
+[ 1485.604283] cx23885[0]:   iq b: 0x11748000 [ arg #1 ]
+[ 1485.604291] cx23885[0]:   iq c: 0x00000000 [ arg #2 ]
+[ 1485.604297] cx23885[0]:   (0x000104b4) iq d: 0x1d010400 [ write sol 
+eol irq1 cnt0 count=1024 ]
+[ 1485.604312] cx23885[0]:   iq e: 0x11748400 [ arg #1 ]
+[ 1485.604320] cx23885[0]:   iq f: 0x00000000 [ arg #2 ]
+[ 1485.604326] cx23885[0]: fifo: 0x00007000 -> 0x8000
+[ 1485.604330] cx23885[0]: ctrl: 0x00010480 -> 0x104e0
+[ 1485.604337] cx23885[0]:   ptr1_reg: 0x00007010
+[ 1485.604342] cx23885[0]:   ptr2_reg: 0x00010a08
+[ 1485.604347] cx23885[0]:   cnt1_reg: 0x00000002
+[ 1485.604351] cx23885[0]:   cnt2_reg: 0x00000007
+[ 1485.607081] cx23885[0]: cx23885_start_audio_dma()
+[ 1485.607092] cx23885[0]: cx23885_sram_channel_setup() Configuring 
+channel [TV Audio]
+[ 1485.607117] cx23885[0]: Start audio DMA, 1024 B/line, 4 lines/FIFO, 
+64 periods, 65536 byte buffer
+[ 1485.607128] cx23885[0]: TV Audio - dma channel status dump
+[ 1485.607135] cx23885[0]:   cmds: init risc lo   : 0x15287000
+[ 1485.607141] cx23885[0]:   cmds: init risc hi   : 0x00000000
+[ 1485.607149] cx23885[0]:   cmds: cdt base       : 0x00010a00
+[ 1485.607157] cx23885[0]:   cmds: cdt size       : 0x00000008
+[ 1485.607165] cx23885[0]:   cmds: iq base        : 0x00010480
+[ 1485.607173] cx23885[0]:   cmds: iq size        : 0x00000010
+[ 1485.607181] cx23885[0]:   cmds: risc pc lo     : 0x1528703c
+[ 1485.607189] cx23885[0]:   cmds: risc pc hi     : 0x00000000
+[ 1485.607197] cx23885[0]:   cmds: iq wr ptr      : 0x0000412f
+[ 1485.607203] cx23885[0]:   cmds: iq rd ptr      : 0x00004123
+[ 1485.607210] cx23885[0]:   cmds: cdt current    : 0x00010a08
+[ 1485.607216] cx23885[0]:   cmds: pci target lo  : 0x38666000
+[ 1485.607221] cx23885[0]:   cmds: pci target hi  : 0x00000000
+[ 1485.607227] cx23885[0]:   cmds: line / byte    : 0x00000000
+[ 1485.607232] cx23885[0]:   risc0: 0x1c000400 [ write sol eol count=1024 ]
+[ 1485.607243] cx23885[0]:   risc1: 0x38666000 [ INVALID sol 22 21 18 
+cnt1 14 13 count=0 ]
+[ 1485.607259] cx23885[0]:   risc2: 0x00000000 [ INVALID count=0 ]
+[ 1485.607267] cx23885[0]:   risc3: 0x1d010400 [ write sol eol irq1 cnt0 
+count=1024 ]
+[ 1485.607280] cx23885[0]:   (0x00010480) iq 0: 0x1c000400 [ write sol 
+eol count=1024 ]
+[ 1485.607289] cx23885[0]:   iq 1: 0x38666000 [ arg #1 ]
+[ 1485.607295] cx23885[0]:   iq 2: 0x00000000 [ arg #2 ]
+[ 1485.607300] cx23885[0]:   (0x0001048c) iq 3: 0x1d010400 [ write sol 
+eol irq1 cnt0 count=1024 ]
+[ 1485.607313] cx23885[0]:   iq 4: 0x38666400 [ arg #1 ]
+[ 1485.607319] cx23885[0]:   iq 5: 0x00000000 [ arg #2 ]
+[ 1485.607324] cx23885[0]:   (0x00010498) iq 6: 0x1d010400 [ write sol 
+eol irq1 cnt0 count=1024 ]
+[ 1485.607337] cx23885[0]:   iq 7: 0x38666800 [ arg #1 ]
+[ 1485.607342] cx23885[0]:   iq 8: 0x00000000 [ arg #2 ]
+[ 1485.607348] cx23885[0]:   (0x000104a4) iq 9: 0x1d010400 [ write sol 
+eol irq1 cnt0 count=1024 ]
+[ 1485.607358] cx23885[0]:   iq a: 0x38666c00 [ arg #1 ]
+[ 1485.607365] cx23885[0]:   iq b: 0x00000000 [ arg #2 ]
+[ 1485.607370] cx23885[0]:   (0x000104b0) iq c: 0x1d010400 [ write sol 
+eol irq1 cnt0 count=1024 ]
+[ 1485.607381] cx23885[0]:   iq d: 0x5a561000 [ arg #1 ]
+[ 1485.607386] cx23885[0]:   iq e: 0x00000000 [ arg #2 ]
+[ 1485.607391] cx23885[0]:   (0x000104bc) iq f: 0x00000000 [ INVALID 
+count=0 ]
+[ 1485.607397] cx23885[0]: fifo: 0x00007000 -> 0x8000
+[ 1485.607401] cx23885[0]: ctrl: 0x00010480 -> 0x104e0
+[ 1485.607406] cx23885[0]:   ptr1_reg: 0x00007068
+[ 1485.607410] cx23885[0]:   ptr2_reg: 0x00010a08
+[ 1485.607415] cx23885[0]:   cnt1_reg: 0x0000000e
+[ 1485.607420] cx23885[0]:   cnt2_reg: 0x00000007
+[ 1485.987968] cx23885[0]: Stopping audio DMA
+[ 1485.987982] cx23885[0]: TV Audio - dma channel status dump
+[ 1485.987990] cx23885[0]:   cmds: init risc lo   : 0x15287000
+[ 1485.987996] cx23885[0]:   cmds: init risc hi   : 0x00000000
+[ 1485.988005] cx23885[0]:   cmds: cdt base       : 0x00010a00
+[ 1485.988012] cx23885[0]:   cmds: cdt size       : 0x00000008
+[ 1485.988020] cx23885[0]:   cmds: iq base        : 0x00010480
+[ 1485.988028] cx23885[0]:   cmds: iq size        : 0x00000010
+[ 1485.988036] cx23885[0]:   cmds: risc pc lo     : 0x1528709c
+[ 1485.988044] cx23885[0]:   cmds: risc pc hi     : 0x00000000
+[ 1485.988053] cx23885[0]:   cmds: iq wr ptr      : 0x00004129
+[ 1485.988058] cx23885[0]:   cmds: iq rd ptr      : 0x0000412d
+[ 1485.988066] cx23885[0]:   cmds: cdt current    : 0x00010a08
+[ 1485.988074] cx23885[0]:   cmds: pci target lo  : 0x11748000
+[ 1485.988079] cx23885[0]:   cmds: pci target hi  : 0x00000000
+[ 1485.988085] cx23885[0]:   cmds: line / byte    : 0x00880000
+[ 1485.988090] cx23885[0]:   risc0: 0x1d010400 [ write sol eol irq1 cnt0 
+count=1024 ]
+[ 1485.988102] cx23885[0]:   risc1: 0x11748000 [ write irq1 22 21 20 18 
+resync count=0 ]
+[ 1485.988116] cx23885[0]:   risc2: 0x00000000 [ INVALID count=0 ]
+[ 1485.988127] cx23885[0]:   risc3: 0x1d010400 [ write sol eol irq1 cnt0 
+count=1024 ]
+[ 1485.988142] cx23885[0]:   (0x00010480) iq 0: 0x1d010400 [ write sol 
+eol irq1 cnt0 count=1024 ]
+[ 1485.988153] cx23885[0]:   iq 1: 0x11748800 [ arg #1 ]
+[ 1485.988158] cx23885[0]:   iq 2: 0x00000000 [ arg #2 ]
+[ 1485.988164] cx23885[0]:   (0x0001048c) iq 3: 0x1d010400 [ write sol 
+eol irq1 cnt0 count=1024 ]
+[ 1485.988175] cx23885[0]:   iq 4: 0x11748c00 [ arg #1 ]
+[ 1485.988183] cx23885[0]:   iq 5: 0x00000000 [ arg #2 ]
+[ 1485.988189] cx23885[0]:   (0x00010498) iq 6: 0x1d010400 [ write sol 
+eol irq1 cnt0 count=1024 ]
+[ 1485.988201] cx23885[0]:   iq 7: 0x0e9ef000 [ arg #1 ]
+[ 1485.988207] cx23885[0]:   iq 8: 0x00000000 [ arg #2 ]
+[ 1485.988214] cx23885[0]:   (0x000104a4) iq 9: 0x00000000 [ INVALID 
+count=0 ]
+[ 1485.988222] cx23885[0]:   (0x000104a8) iq a: 0x1d010400 [ write sol 
+eol irq1 cnt0 count=1024 ]
+[ 1485.988232] cx23885[0]:   iq b: 0x11748000 [ arg #1 ]
+[ 1485.988238] cx23885[0]:   iq c: 0x00000000 [ arg #2 ]
+[ 1485.988245] cx23885[0]:   (0x000104b4) iq d: 0x1d010400 [ write sol 
+eol irq1 cnt0 count=1024 ]
+[ 1485.988259] cx23885[0]:   iq e: 0x11748400 [ arg #1 ]
+[ 1485.988268] cx23885[0]:   iq f: 0x00000000 [ arg #2 ]
+[ 1485.988274] cx23885[0]: fifo: 0x00007000 -> 0x8000
+[ 1485.988278] cx23885[0]: ctrl: 0x00010480 -> 0x104e0
+[ 1485.988283] cx23885[0]:   ptr1_reg: 0x00007010
+[ 1485.988288] cx23885[0]:   ptr2_reg: 0x00010a08
+[ 1485.988293] cx23885[0]:   cnt1_reg: 0x00000002
+[ 1485.988297] cx23885[0]:   cnt2_reg: 0x00000007
+
+alfredo@dhcppc0:~> arecord -D hw:3,0 -r 48000 -c 2 -f S16_LE | aplay -
+Recording WAVE 'stdin' : Signed 16 bit Little Endian, Rate 48000 Hz, Stereo
+Playing WAVE 'stdin' : Signed 16 bit Little Endian, Rate 48000 Hz, Stereo
+overrun!!! (at least 0,031 ms long)
+overrun!!! (at least 0,252 ms long)
+overrun!!! (at least 0,286 ms long)
+overrun!!! (at least 0,275 ms long)
+overrun!!! (at least 0,278 ms long)
+overrun!!! (at least 0,268 ms long)
+overrun!!! (at least 0,281 ms long)
+overrun!!! (at least 0,277 ms long)
+overrun!!! (at least 0,265 ms long)
+
+
+Thanks.
+
+Alfredo
+
 -- 
-1.7.1.569.g6f426
+Dona tu voz
+http://www.voxforge.org/es
 
