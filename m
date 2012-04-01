@@ -1,62 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:62916 "EHLO mx1.redhat.com"
+Received: from mail.kapsi.fi ([217.30.184.167]:35260 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754381Ab2D1OUh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 Apr 2012 10:20:37 -0400
-Message-ID: <4F9BF440.7060907@redhat.com>
-Date: Sat, 28 Apr 2012 15:44:32 +0200
-From: Hans de Goede <hdegoede@redhat.com>
+	id S1752008Ab2DANTs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 1 Apr 2012 09:19:48 -0400
+Message-ID: <4F7855F2.4010201@iki.fi>
+Date: Sun, 01 Apr 2012 16:19:46 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Jean-Francois Moine <moinejf@free.fr>
-Subject: [GIT PULL FOR 3.5] gspca_pac73XX improvements + misc fixes
+To: =?ISO-8859-1?Q?Michael_B=FCsch?= <m@bues.ch>
+CC: linux-media@vger.kernel.org,
+	=?ISO-8859-1?Q?Daniel_Gl=F6ckner?= <daniel-gl@gmx.net>
+Subject: Re: [GIT PULL FOR 3.5] AF9035/AF9033/TUA9001 => TerraTec Cinergy
+ T Stick [0ccd:0093]
+References: <4F75A7FE.8090405@iki.fi> <20120330234545.45f4e2e8@milhouse> <4F762CF5.9010303@iki.fi> <20120331001458.33f12d82@milhouse> <20120331160445.71cd1e78@milhouse> <4F771496.8080305@iki.fi> <20120331182925.3b85d2bc@milhouse> <4F77320F.8050009@iki.fi> <4F773562.6010008@iki.fi> <20120331185217.2c82c4ad@milhouse> <4F77DED5.2040103@iki.fi> <20120401103315.1149d6bf@milhouse> <20120401141940.04e5220c@milhouse> <4F784A13.5000704@iki.fi> <20120401151153.637d2393@milhouse>
+In-Reply-To: <20120401151153.637d2393@milhouse>
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro et al,
+On 01.04.2012 16:11, Michael Büsch wrote:
+> On Sun, 01 Apr 2012 15:29:07 +0300
+> Antti Palosaari<crope@iki.fi>  wrote:
+>> buf[1] = msg[0].addr<<  1;
+>> Maybe you have given I2C address as a "8bit" format?
+>
+> Uhh, the address is leftshifted by one.
+> So I changed the i2c address from 0xC0 to 0x60.
 
-Please pull from my tree for a bunch of gspca_pac73XX
-improvements and 1 other webcam driver fix.
+That's a very common mistake, I2C addresses are 7 bit and LSB is 
+direction. But it is very common to see used it as a "8bit" format, 0xC0 
+write address and 0xc1 as a read address. Even some data-sheets have 
+that "wrong" naming.
+There is many drivers that is wrong and causing confusion, even my old 
+AF9015... :]
 
-The following changes since commit bcb2cf6e0bf033d79821c89e5ccb328bfbd44907:
+> The i2c write seems to work now. At least it doesn't complain anymore
+> and it sorta seems to tune to the right frequency.
+> But i2c read may be broken.
+> I had to enable the commented read code, but it still fails to read
+> the VCO calibration value:
+>
+> [ 3101.940765] i2c i2c-8: Failed to read VCO calibration value (got 20)
+>
+> It doesn't run into this check on the other af903x driver.
+> So I suspect an i2c read issue here.
 
-   [media] ngene: remove an unneeded condition (2012-04-26 15:29:23 -0300)
+That could be I2C adapter issue too, TUA9001 does not use it and thus 
+not tested at all... But for my eyes it looks logically correct still.
 
-are available in the git repository at:
+> Attached: The patches.
 
-   git://linuxtv.org/hgoede/gspca.git media-for_v3.5
+Lets see.
 
-for you to fetch changes up to c9b5378afdfc2fa3eecae2cf8d2e20c40e60496c:
-
-   gspca_pac7302: Improve the gain control (2012-04-28 15:37:59 +0200)
-
-----------------------------------------------------------------
-Hans de Goede (12):
-       stk-webcam: Don't flip the image by default
-       gspca/autogain_functions.h: Allow users to declare what they want
-       gspca_pac73xx: Remove comments from before the 7302 / 7311 separation
-       gspca_pac7311: Make sure exposure changes get applied immediately
-       gspca_pac7311: Adjust control scales to match registers
-       gspca_pac7311: Switch to new gspca control mechanism
-       gspca_pac7311: Switch to coarse expo autogain algorithm
-       gspca_pac7311: Convert multi-line comments to standard kernel style
-       gspca_pac7311: Properly set the compression balance
-       gspca_pac7302: Convert multi-line comments to standard kernel style
-       gspca_pac7302: Document some more registers
-       gspca_pac7302: Improve the gain control
-
-  drivers/media/video/gspca/autogain_functions.h |    6 +-
-  drivers/media/video/gspca/nw80x.c              |    2 +
-  drivers/media/video/gspca/pac7302.c            |  184 +++++++-----
-  drivers/media/video/gspca/pac7311.c            |  380 +++++++-----------------
-  drivers/media/video/gspca/sonixb.c             |    2 +
-  drivers/media/video/gspca/sonixj.c             |    5 +-
-  drivers/media/video/gspca/topro.c              |    6 +-
-  drivers/media/video/stk-webcam.c               |    8 +-
-  8 files changed, 239 insertions(+), 354 deletions(-)
-
-Thanks & Regards,
-
-Hans
+regards
+Antti
+-- 
+http://palosaari.fi/
