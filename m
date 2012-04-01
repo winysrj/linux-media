@@ -1,80 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:17999 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932490Ab2DTPIQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Apr 2012 11:08:16 -0400
-Message-ID: <4F917BD9.5070505@redhat.com>
-Date: Fri, 20 Apr 2012 12:08:09 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: "Gonzalo A. de la Vega" <gadelavega@gmail.com>
-CC: Andy Walls <awalls@md.metrocast.net>, linux-media@vger.kernel.org
-Subject: Re: [PATCH] TDA9887 PAL-Nc fix
-References: <4F8EB1F1.1030801@gmail.com> <1334879437.14608.22.camel@palomino.walls.org> <CADbd7mHbP0YVQSBo4TgF0ZKqEU5VydWOoHZp__owh2b4k8aZsw@mail.gmail.com>
-In-Reply-To: <CADbd7mHbP0YVQSBo4TgF0ZKqEU5VydWOoHZp__owh2b4k8aZsw@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Received: from cassarossa.samfundet.no ([129.241.93.19]:40864 "EHLO
+	cassarossa.samfundet.no" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752560Ab2DAPyF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Apr 2012 11:54:05 -0400
+From: "Steinar H. Gunderson" <sgunderson@bigfoot.com>
+To: linux-media@vger.kernel.org
+Cc: "Steinar H. Gunderson" <sesse@samfundet.no>
+Subject: [PATCH 10/11] Ignore timeouts waiting for the IRQ0 flag.
+Date: Sun,  1 Apr 2012 17:53:50 +0200
+Message-Id: <1333295631-31866-10-git-send-email-sgunderson@bigfoot.com>
+In-Reply-To: <20120401155330.GA31901@uio.no>
+References: <20120401155330.GA31901@uio.no>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Buenos dias Gonzalo,
+From: "Steinar H. Gunderson" <sesse@samfundet.no>
 
-Em 20-04-2012 11:01, Gonzalo A. de la Vega escreveu:
-> On Thu, Apr 19, 2012 at 8:50 PM, Andy Walls <awalls@md.metrocast.net> wrote:
->> On Wed, 2012-04-18 at 09:22 -0300, Gonzalo de la Vega wrote:
->>> The tunner IF for PAL-Nc norm, which AFAIK is used only in Argentina, was being defined as equal to PAL-M but it is not. It actually uses the same video IF as PAL-BG (and unlike PAL-M) but the audio is at 4.5MHz (same as PAL-M). A separate structure member was added for PAL-Nc.
->>>
->>> Signed-off-by: Gonzalo A. de la Vega <gadelavega@gmail.com>
->>
->> Hmmm.
->>
->> The Video IF for N systems is 45.75 MHz according to this popular book
->> (see page 29 of the PDF):
->> http://www.deetc.isel.ipl.pt/Analisedesinai/sm/downloads/doc/ch08.pdf
->>
->> The Video IF is really determined by the IF SAW filter used in your
->> tuner assembly, and how the tuner data sheet says to program the
->> mixer/oscillator chip to mix down from RF to IF.
->>
->> What model analog tuner assembly are you using?  It could be that the
->> linux tuner-simple module is setting up the mixer/oscillator chip wrong.
->>
->> Regards,
->> Andy
-> 
-> Hi Andy,
-> first of all and to clarify things: I could not tune analog TV without
-> this patch, or I could barely see a BW image. With the patch applied,
-> I can see image in full color and with good sound. So it works with
-> the patch, it does not work without it.
-> 
-> Now, I'm not an expert on TV (I am an electronics engineer thou) so I
-> am having some trouble trying to put together what I read in the
-> TDA9887 datasheet and the reference you sent. The thing with PAL-Nc is
-> that it has a video bandwidth of 4.2MHz not 5.0MHz (page 51) and the
-> attenuation of color difference signals for >20dB is at 3.6MHz instead
-> of 4MHz (page 54). You can just search for "Argentina" inside the
-> document.
-> 
-> So, this works... but now I'm not sure why. I guess cVideoIF_38_90 is
-> compensating for the bandwidth difference. I need to study this.
+As others have noticed, sometimes, especially during DMA transfers, the IRQ0
+flag is never properly set and thus reads never return.  (The typical case for
+this is when we've just done a write and the en50221 thread is waiting for the
+CAM status word to signal STATUSREG_DA; if this doesn't happen in a reasonable
+amount of time, the upstream libdvben50221.so will report errors back to
+mumudvb.)
 
->From other discussions we've had at the ML, it seems that devices sold in
-Argentina with analog tuners sometimes come with a NTSC tuner, and sometimes 
-come with an European PAL tuner. They solve the frequency shifts that
-happen there via some tda9887 (and/or tuner-simple) adjustments.
+I have no idea why this happens more often on SMP systems than on UMP systems,
+but they really seem to do. I haven't found any reasonable workaround for
+reliable polling either, so I'm making a hack -- if there's nothing returned in
+two milliseconds, the read is simply assumed to have completed.
 
-It seems that the setup, when using one type, is different than the other.
+This is an unfortunate hack, but in practice it's identical to earlier
+behavior except with a shorter timeout.
 
-That's why we need to know exactly what it is the tuner that your device
-has.
+Signed-off-by: Steinar H. Gunderson <sesse@samfundet.no>
+---
+ drivers/media/dvb/mantis/mantis_hif.c |   12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
-So, from time to time, we receive patches from someone in Argentina fixing
-support for one type, but breaking support for the other type. 
+diff --git a/drivers/media/dvb/mantis/mantis_hif.c b/drivers/media/dvb/mantis/mantis_hif.c
+index a3ec2a2..0da3c6d 100644
+--- a/drivers/media/dvb/mantis/mantis_hif.c
++++ b/drivers/media/dvb/mantis/mantis_hif.c
+@@ -45,11 +45,19 @@ static int mantis_hif_sbuf_opdone_wait(struct mantis_ca *ca)
+ 	struct mantis_pci *mantis = ca->ca_priv;
+ 	int rc = 0;
+ 
++	/*
++	 * HACK: Sometimes, especially during DMA transfers, and especially on
++	 * SMP systems (!), the IRQ-0 flag is never set, or at least we don't get it
++	 * (could it be that we're clearing it?). Thus, simply wait for 2 ms and then
++	 * assume we got an answer even if we didn't. This works around lots of CA
++	 * timeouts. The code with 500 ms wait and -EREMOTEIO is technically the
++	 * correct one, though.
++	 */
+ 	if (wait_event_timeout(ca->hif_opdone_wq,
+ 			       test_and_clear_bit(MANTIS_SBUF_OPDONE_BIT, &ca->hif_event),
+-			       msecs_to_jiffies(500)) == 0) {
++			       msecs_to_jiffies(2)) == 0) {
+ 
+-		dprintk(MANTIS_ERROR, 1, "Adapter(%d) Slot(0): Smart buffer operation timeout !", mantis->num);
++		dprintk(MANTIS_ERROR, 1, "Adapter(%d) Slot(0): Smart buffer operation timeout ! (ignoring)", mantis->num);
+ 		rc = -EREMOTEIO;
+ 	}
+ 	dprintk(MANTIS_DEBUG, 1, "Smart Buffer Operation complete");
+-- 
+1.7.9.5
 
-What we need is that someone with technical expertise and with the two types
-of devices, with access to real PAL-Nc signals, to work on a solution that
-would set it accordingly, depending on the actual tuner used on it.
-
-Regards,
-Mauro
