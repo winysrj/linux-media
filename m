@@ -1,95 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.171]:61168 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751202Ab2DRKnL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Apr 2012 06:43:11 -0400
-Date: Wed, 18 Apr 2012 12:43:09 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: V4L: soc-camera: protect hosts during probing from overzealous
- user-space
-Message-ID: <Pine.LNX.4.64.1204181236530.30514@axis700.grange>
+Received: from mailout-de.gmx.net ([213.165.64.22]:36518 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751085Ab2DAOby (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Apr 2012 10:31:54 -0400
+From: "Hans-Frieder Vogt" <hfvogt@gmx.net>
+To: Antti Palosaari <crope@iki.fi>
+Subject: Re: [GIT PULL FOR 3.5] AF9035/AF9033/TUA9001 => TerraTec Cinergy T Stick [0ccd:0093]
+Date: Sun, 1 Apr 2012 16:31:47 +0200
+Cc: linux-media@vger.kernel.org
+References: <4F75A7FE.8090405@iki.fi> <201204011227.18739.hfvogt@gmx.net> <4F784AB3.9070507@iki.fi>
+In-Reply-To: <4F784AB3.9070507@iki.fi>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201204011631.47333.hfvogt@gmx.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If multiple clients are registered on a single camera host interface,
-the user-space hot-plug software can try to access the one, that probed
-first, before probing of the second one has completed. This can be
-handled by individual host drivers, but it is even better to hold back
-the user-space until all the probing on this host has completed. This
-fixes a race on ecovec with two clients registered on the CEU1 host, which
-otherwise triggers a BUG() in sh_mobile_ceu_remove_device().
+Antti,
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
+I could provide the SNR, BER and UCB implementation (simply porting from my 
+draft driver to yours).
+But I first need to implement the support for my AverMedia A867R device so that 
+I am able to test the implementation. Therefore it could take a few hours 
+(maybe until tomorrow).
 
-Mauro, since this fixes a race, present in the current kernel, I'll push 
-it for 3.4 later. Or you can just pick it up from this mail - I don't have 
-any more pending fixes atm.
+Regards,
+Hans-Frieder
 
- drivers/media/video/soc_camera.c |    8 ++++++--
- include/media/soc_camera.h       |    3 ++-
- 2 files changed, 8 insertions(+), 3 deletions(-)
+Am Sonntag, 1. April 2012 schrieb Antti Palosaari:
+> On 01.04.2012 13:27, Hans-Frieder Vogt wrote:
+> > nice work! I'll try to port the features that I have in my implementation
+> > of an af9035 driver into yours.
+> 
+> You are welcome! But please tell me what you are doing to avoid
+> duplicate work. My today plan was to implement af9033 SNR, BER, UCB, but
+> if you would like to then say it for me and I will jump back to IT9135
+> support.
+> 
+> regards
+> Antti
 
-diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
-index eb25756..aedb970 100644
---- a/drivers/media/video/soc_camera.c
-+++ b/drivers/media/video/soc_camera.c
-@@ -530,7 +530,10 @@ static int soc_camera_open(struct file *file)
- 		if (icl->reset)
- 			icl->reset(icd->pdev);
- 
-+		/* Don't mess with the host during probe */
-+		mutex_lock(&ici->host_lock);
- 		ret = ici->ops->add(icd);
-+		mutex_unlock(&ici->host_lock);
- 		if (ret < 0) {
- 			dev_err(icd->pdev, "Couldn't activate the camera: %d\n", ret);
- 			goto eiciadd;
-@@ -956,7 +959,7 @@ static void scan_add_host(struct soc_camera_host *ici)
- {
- 	struct soc_camera_device *icd;
- 
--	mutex_lock(&list_lock);
-+	mutex_lock(&ici->host_lock);
- 
- 	list_for_each_entry(icd, &devices, list) {
- 		if (icd->iface == ici->nr) {
-@@ -967,7 +970,7 @@ static void scan_add_host(struct soc_camera_host *ici)
- 		}
- 	}
- 
--	mutex_unlock(&list_lock);
-+	mutex_unlock(&ici->host_lock);
- }
- 
- #ifdef CONFIG_I2C_BOARDINFO
-@@ -1313,6 +1316,7 @@ int soc_camera_host_register(struct soc_camera_host *ici)
- 	list_add_tail(&ici->list, &hosts);
- 	mutex_unlock(&list_lock);
- 
-+	mutex_init(&ici->host_lock);
- 	scan_add_host(ici);
- 
- 	return 0;
-diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
-index b5c2b6c..cad374b 100644
---- a/include/media/soc_camera.h
-+++ b/include/media/soc_camera.h
-@@ -59,7 +59,8 @@ struct soc_camera_device {
- struct soc_camera_host {
- 	struct v4l2_device v4l2_dev;
- 	struct list_head list;
--	unsigned char nr;				/* Host number */
-+	struct mutex host_lock;		/* Protect during probing */
-+	unsigned char nr;		/* Host number */
- 	void *priv;
- 	const char *drv_name;
- 	struct soc_camera_host_ops *ops;
--- 
-1.7.2.5
 
+Hans-Frieder Vogt                       e-mail: hfvogt <at> gmx .dot. net
