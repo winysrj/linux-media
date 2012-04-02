@@ -1,83 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from plane.gmane.org ([80.91.229.3]:34115 "EHLO plane.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750811Ab2D2PaH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 29 Apr 2012 11:30:07 -0400
-Received: from list by plane.gmane.org with local (Exim 4.69)
-	(envelope-from <gldv-linux-media@m.gmane.org>)
-	id 1SOW4a-0006Le-TX
-	for linux-media@vger.kernel.org; Sun, 29 Apr 2012 17:30:04 +0200
-Received: from d67-193-214-242.home3.cgocable.net ([67.193.214.242])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Sun, 29 Apr 2012 17:30:04 +0200
-Received: from brian by d67-193-214-242.home3.cgocable.net with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Sun, 29 Apr 2012 17:30:04 +0200
-To: linux-media@vger.kernel.org
-From: "Brian J. Murrell" <brian@interlinx.bc.ca>
-Subject: Re: HVR-1600 QAM recordings with slight glitches in them
-Date: Sun, 29 Apr 2012 11:27:16 -0400
-Message-ID: <4F9D5DD4.6020200@interlinx.bc.ca>
-References: <jn2ibp$pot$1@dough.gmane.org>  <1335307344.8218.11.camel@palomino.walls.org>  <jn7pph$qed$1@dough.gmane.org> <1335624964.2665.37.camel@palomino.walls.org> <4F9C38BE.3010301@interlinx.bc.ca> <4F9C559E.6010208@interlinx.bc.ca> <4F9C6D68.3090202@interlinx.bc.ca> <4F9CE796.2030004@grumpydevil.homelinux.org>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="------------enig07D827DAFC2E424506A4AFE9"
-In-Reply-To: <4F9CE796.2030004@grumpydevil.homelinux.org>
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:41854 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751572Ab2DBPvi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Apr 2012 11:51:38 -0400
+Received: by bkcik5 with SMTP id ik5so2636646bkc.19
+        for <linux-media@vger.kernel.org>; Mon, 02 Apr 2012 08:51:37 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <4F79BDCF.3070405@mlbassoc.com>
+References: <4F799A99.9010209@mlbassoc.com>
+	<CA+2YH7svJoCnvUPQGPr=YOsEQBZ16J5y9QGjFyfNmdjeLum4cA@mail.gmail.com>
+	<4F799F4F.9020606@mlbassoc.com>
+	<CA+2YH7uesV_085_-LyKCm8zuEROy_6FRQg8XkiRsHubdTXF8ig@mail.gmail.com>
+	<4F79AA43.3070109@mlbassoc.com>
+	<CA+2YH7sWJr8oBnPssoQkOAA+7sB+Y=1kYD3Qhacb-56NJFjQgg@mail.gmail.com>
+	<4F79BDCF.3070405@mlbassoc.com>
+Date: Mon, 2 Apr 2012 17:51:36 +0200
+Message-ID: <CA+2YH7uj7+qs-0PapfVEaHNFRQ=KHFSmLMHg60AYKbTQod-=eQ@mail.gmail.com>
+Subject: Re: OMAP3ISP won't start
+From: Enrico <ebutera@users.berlios.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, Gary Thomas <gary@mlbassoc.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enig07D827DAFC2E424506A4AFE9
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+On Mon, Apr 2, 2012 at 4:55 PM, Gary Thomas <gary@mlbassoc.com> wrote:
+> On 2012-04-02 08:38, Enrico wrote:
+>>> Attached.
+>>
+>>
+>> I just had a quick look and it seems everything is there, i can't test
+>> it right now but when i did test a mainline 3.3 kernel with my patches
+>> i had to use the "nohlt" kernel parm. If i'm not wrong without that
+>> param i had the same error, you can give it a try.
+>
+>
+> Hurray, that does work.
 
-On 12-04-29 03:02 AM, Rudy Zijlstra wrote:
-> Brian,
+Laurent, this is an old problem that i noticed some time ago [1] but
+apparently things are getting worse.
 
-Hi Rudy,
+The situation now is:
 
-> There is no minimum cable length for RF. Although for practical reasons=
+kernel 3.2 without cpu_idle: no need for nohlt
+kernel 3.2 with cpu_idle: nohlt is needed
+kernel 3.3 with/without cpu_idle: nohlt always needed
 
-> i rarely go below 30 cm (1 ').
+I really don't know where the problem comes from, but i verified that
+the cam powerdomain is correctly "acquired" during capture, i don't
+know what else i can check.
 
-Indeed.  Especially with RG6 they can get a bit stiff.
+[1]: http://www.digipedia.pl/usenet/thread/18550/20510/
 
-> It should be possible for you to buy "drop cables" which have a length
-> of 1m5 (about 5') and are commonly used in HE to connect equipment.
-
-Yeah, I'm trying to reduce the cable "nest" and I only have about 6"
-between the back of the equipment and the wall, where the splitter will
-be so 1' cables will probably do the trick.
-
-> screw-on F-connectors are another source of problems.
-
-Yes.
-
-> Crimping
-> F-connectors are best, but those need a fitting crimp tool.
-
-Indeed, and I have one.  :-)
-
-Thanks for the info!
-
-b.
-
-
---------------enig07D827DAFC2E424506A4AFE9
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
-
-iEYEARECAAYFAk+dXdQACgkQl3EQlGLyuXDmlwCfdMc9dgM+oODD3gtoi5ALUQhr
-g6AAnjt/hVLFKsA1IUUWRWcOZkK31RBD
-=dxpK
------END PGP SIGNATURE-----
-
---------------enig07D827DAFC2E424506A4AFE9--
-
+Enrico
