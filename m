@@ -1,72 +1,32 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:55565 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754198Ab2DSPIU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Apr 2012 11:08:20 -0400
-Date: Thu, 19 Apr 2012 16:08:13 +0100
-From: Luis Henriques <luis.henriques@canonical.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Jarod Wilson <jarod@redhat.com>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, stable@vger.kernel.org
-Subject: Re: [PATCH 1/1] [media] ite-cir: postpone ISR registration
-Message-ID: <20120419150813.GA22948@zeus>
-References: <1334782447-8742-1-git-send-email-luis.henriques@canonical.com>
+Received: from mail-vb0-f46.google.com ([209.85.212.46]:42602 "EHLO
+	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751047Ab2DBNPI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Apr 2012 09:15:08 -0400
+Received: by vbbff1 with SMTP id ff1so1662900vbb.19
+        for <linux-media@vger.kernel.org>; Mon, 02 Apr 2012 06:15:07 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1334782447-8742-1-git-send-email-luis.henriques@canonical.com>
+In-Reply-To: <4F799F4F.9020606@mlbassoc.com>
+References: <4F799A99.9010209@mlbassoc.com>
+	<CA+2YH7svJoCnvUPQGPr=YOsEQBZ16J5y9QGjFyfNmdjeLum4cA@mail.gmail.com>
+	<4F799F4F.9020606@mlbassoc.com>
+Date: Mon, 2 Apr 2012 15:15:07 +0200
+Message-ID: <CA+2YH7uesV_085_-LyKCm8zuEROy_6FRQg8XkiRsHubdTXF8ig@mail.gmail.com>
+Subject: Re: OMAP3ISP won't start
+From: Enrico <ebutera@users.berlios.de>
+To: Gary Thomas <gary@mlbassoc.com>
+Cc: linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Apr 18, 2012 at 09:54:07PM +0100, Luis Henriques wrote:
-> An early registration of an ISR was causing a crash to several users (for
-> example here: http://bugs.launchpad.net/bugs/972723  The reason was that
-> IRQs were being triggered before the driver initialisation was completed.
-> 
-> This patch fixes this by moving the invocation to request_irq() to a later
-> stage on the driver probe function.
-> 
-> Signed-off-by: Luis Henriques <luis.henriques@canonical.com>
-> ---
->  drivers/media/rc/ite-cir.c |    8 ++++----
->  1 file changed, 4 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/media/rc/ite-cir.c b/drivers/media/rc/ite-cir.c
-> index 682009d..98d8ccf 100644
-> --- a/drivers/media/rc/ite-cir.c
-> +++ b/drivers/media/rc/ite-cir.c
-> @@ -1521,10 +1521,6 @@ static int ite_probe(struct pnp_dev *pdev, const struct pnp_device_id
->  				dev_desc->io_region_size, ITE_DRIVER_NAME))
->  		goto failure;
->  
-> -	if (request_irq(itdev->cir_irq, ite_cir_isr, IRQF_SHARED,
-> -			ITE_DRIVER_NAME, (void *)itdev))
-> -		goto failure;
-> -
->  	/* set driver data into the pnp device */
->  	pnp_set_drvdata(pdev, itdev);
->  	itdev->pdev = pdev;
-> @@ -1600,6 +1596,10 @@ static int ite_probe(struct pnp_dev *pdev, const struct pnp_device_id
->  	rdev->driver_name = ITE_DRIVER_NAME;
->  	rdev->map_name = RC_MAP_RC6_MCE;
->  
-> +	if (request_irq(itdev->cir_irq, ite_cir_isr, IRQF_SHARED,
-> +			ITE_DRIVER_NAME, (void *)itdev))
-> +		goto failure;
-> +
->  	ret = rc_register_device(rdev);
->  	if (ret)
->  		goto failure;
-> -- 
-> 1.7.9.5
+On Mon, Apr 2, 2012 at 2:45 PM, Gary Thomas <gary@mlbassoc.com> wrote:
+> The items you mention are just what I merged from my previous kernel.
+> My changes are still pretty rough but I can send them to you if you'd
+> like.
 
-I completely forgot to add:
+Post them here and we will try to spot where the problem is, they
+could be useful for Laurent too as a reference.
 
-Cc: <stable@vger.kernel.org>
-
-to my email.
-
-Cheers,
---
-Luis
+Enrico
