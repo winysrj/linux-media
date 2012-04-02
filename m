@@ -1,43 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:38997 "EHLO mail.kapsi.fi"
+Received: from bues.ch ([80.190.117.144]:44582 "EHLO bues.ch"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751547Ab2DAQUX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 1 Apr 2012 12:20:23 -0400
-Message-ID: <4F788045.40208@iki.fi>
-Date: Sun, 01 Apr 2012 19:20:21 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: =?UTF-8?B?TWljaGFlbCBCw7xzY2g=?= <m@bues.ch>
-CC: linux-media@vger.kernel.org,
-	=?UTF-8?B?RGFuaWVsIEdsw7Zja25lcg==?= <daniel-gl@gmx.net>
-Subject: Re: [GIT PULL FOR 3.5] AF9035/AF9033/TUA9001 => TerraTec Cinergy
- T Stick [0ccd:0093]
-References: <4F75A7FE.8090405@iki.fi> <20120330234545.45f4e2e8@milhouse> <4F762CF5.9010303@iki.fi> <20120331001458.33f12d82@milhouse> <20120331160445.71cd1e78@milhouse> <4F771496.8080305@iki.fi> <20120331182925.3b85d2bc@milhouse> <4F77320F.8050009@iki.fi> <4F773562.6010008@iki.fi> <20120331185217.2c82c4ad@milhouse> <4F77DED5.2040103@iki.fi> <20120401103315.1149d6bf@milhouse> <20120401141940.04e5220c@milhouse> <4F784A13.5000704@iki.fi> <20120401151153.637d2393@milhouse> <20120401181502.7f5604c3@milhouse>
-In-Reply-To: <20120401181502.7f5604c3@milhouse>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+	id S1752482Ab2DBRvk (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 2 Apr 2012 13:51:40 -0400
+Date: Mon, 2 Apr 2012 19:51:25 +0200
+From: Michael =?UTF-8?B?QsO8c2No?= <m@bues.ch>
+To: Antti Palosaari <crope@iki.fi>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] Add fc0011 tuner driver
+Message-ID: <20120402195125.771b2c72@milhouse>
+In-Reply-To: <4F79E49D.1020802@iki.fi>
+References: <20120402181432.74e8bd50@milhouse>
+	<4F79DA52.2050907@iki.fi>
+	<20120402192011.4edc82ff@milhouse>
+	<4F79E49D.1020802@iki.fi>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=PGP-SHA1;
+ boundary="Sig_/YlXiTebJZoW7yFIMvbW80Jt"; protocol="application/pgp-signature"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01.04.2012 19:15, Michael Büsch wrote:
-> On Sun, 1 Apr 2012 15:11:53 +0200
-> Michael Büsch<m@bues.ch>  wrote:
->
->> [ 3101.940765] i2c i2c-8: Failed to read VCO calibration value (got 20)
->
-> Ok, it turns out that it doesn't fail all the time, but only sporadically.
-> So increasing the number of retries fixes (or at least works around) it.
+--Sig_/YlXiTebJZoW7yFIMvbW80Jt
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-OK, feel free to add ~3 retries inside af9035_ctrl_msg() i think.
+On Mon, 02 Apr 2012 20:40:45 +0300
+Antti Palosaari <crope@iki.fi> wrote:
 
-You didn't mention if error is coming from af9035 firmware or from USB 
-stack. Just for the interest...
+> hmmmm, I think Mauro will at least complain when I ask he to PULL that=20
+> master. Personally I would like to see line len something more than 80=20
+> chars, but as checkpatch.pl complains it I have shortened lines despite=20
+> very few cases.
 
-> No idea why this behaves differently from fc0011 on Hans' driver, though.
+I'm not a friend of long lines. In fact, I'm developing on a Netbook
+with split screen. So long lines will absolutely kill readability for me.
+But there is "long" as in 90 or 100 chars and there is "long" as in
+"uh let's stretch the 80 chars limit by a few chars, so that it's more read=
+able".
 
-Maybe some delay or there is retry on error logic.
+I already worked on code from other kernel subsystems for quite some time
+and the 80 char limit never was a hard limit there. For good reasons.
 
-regards
-Antti
--- 
-http://palosaari.fi/
+That said, iff the 80 char limit _is_ a hard limit for the DVB subsystem,
+I'll honor it. I just think it would worsen the code.
+
+> Likely tuner driver, or demod driver. But as demod tuner initialization=20
+> tables are likely correct I suspect it is tuner issue at first hand. And=
+=20
+> secondly my other hardware with TUA9001 performs very well, better than=20
+> old AF9015 sticks.
+
+Well the fc0011 tuner driver still works worse on this af9035 driver
+than on Hans' driver. I have absolutely no idea why this is the case.
+I'm almost certain that it is not a timing issue of some sort. I tried
+a zillion of delays and such.
+
+--=20
+Greetings, Michael.
+
+PGP encryption is encouraged / 908D8B0E
+
+--Sig_/YlXiTebJZoW7yFIMvbW80Jt
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Disposition: attachment; filename=signature.asc
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJPeecdAAoJEPUyvh2QjYsO+pQQAMUA+qek90zXZla0aBAv2qyO
+Y2wp7EiprCS428CXHIKILIXd3E7CzlYSfNurEMC+oq6mCB5UdV9vPfpR9lO3UEKT
+h45+XwUzBBFhdb3yqRv376Nmo2Qe4x9gFTMnVe0A2kd1/xzTm98d53NkZzN/e7J+
+v4QUdxTMplxYJd7144eKx3+6OE8JbYU6BmnDU+x5DhT7YoEYPQjAUcRLqyo9ouL9
+tY2iV1MeVXTsfPOZDigzN9UCKPT2q+3eJV/fqCcM8TlFtsZ9+uaPROtiW390Sgt5
+to8HV7diWehVMGznoGCyFXT4j+pVqwONTalRA36yxP0b6VPVYiq2NvrhaNZiBaDU
+fhCFtKFUsPkfqt+L0OBOLiRUA2oNOz/jgTRnsN35soxVWq1XHW87w/X+mLcSbut4
+gLbrKouT2Y5654E1tOELkVAQXfpbv0F6yQp8Pm2Sy3oSalE8eiQqP81IfpGSxIlK
++yN91qeJmvukygPSOVjYz18MmZ92r6MlACG2HSi5LCSnQLkp12LS34rbuqCbLvEh
+v/k5tv7MwmDNTKPDq/kwuu7w5UcJhyfzvJ24Bfc3Zk8YtPLt62xVbpfvUu3+W347
+211xMPomaOXmq1NasT4ZUm0c5XOI8ZoBgQBcyZ/rv+Z4vYDzDcDRHNac9kjyzP5N
+8TCSD/XvpTnzMyewi/33
+=Jn1D
+-----END PGP SIGNATURE-----
+
+--Sig_/YlXiTebJZoW7yFIMvbW80Jt--
