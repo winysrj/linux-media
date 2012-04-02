@@ -1,68 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:35405 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755570Ab2DIOPe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Apr 2012 10:15:34 -0400
-Received: by eaaq12 with SMTP id q12so1075746eaa.19
-        for <linux-media@vger.kernel.org>; Mon, 09 Apr 2012 07:15:33 -0700 (PDT)
-Message-ID: <4F82EF01.1090403@gmail.com>
-Date: Mon, 09 Apr 2012 16:15:29 +0200
-From: Gianluca Gennari <gennarone@gmail.com>
-Reply-To: gennarone@gmail.com
+Received: from perceval.ideasonboard.com ([95.142.166.194]:60541 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751546Ab2DBJRw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Apr 2012 05:17:52 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Martin Mokrejs <mmokrejs@fold.natur.cuni.cz>,
+	linux-media@vger.kernel.org
+Subject: Re: linux-3.2.12: uvcvideo: ** UNRECOGNIZED:  24 ff 42 49 53 54 00 01 05 02 10 00 00 00 00 00 01 06 b8 0b 02 07 b8 0b 03 08 b8 0b 04 09 4e 20 05 0a b8 0b
+Date: Mon, 02 Apr 2012 11:17:52 +0200
+Message-ID: <2044622.s86OocRClA@avalon>
+In-Reply-To: <4F771DAA.1000200@fold.natur.cuni.cz>
+References: <4F771DAA.1000200@fold.natur.cuni.cz>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH] media_build: fix module_*_driver redefined warnings
-References: <1332252617-3171-1-git-send-email-gennarone@gmail.com> <4F82D768.5030007@redhat.com>
-In-Reply-To: <4F82D768.5030007@redhat.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Martin,
 
-Il 09/04/2012 14:34, Mauro Carvalho Chehab ha scritto:
-> Hi Gianluca,
+On Saturday 31 March 2012 17:07:22 Martin Mokrejs wrote:
+> Hi,
+>   when inspecting "lsusb -v" output I came across this UNRECOGNIZED message.
+> Anything to worry about?
 > 
-> Em 20-03-2012 11:10, Gianluca Gennari escreveu:
-> 
-> Please avoid adding more tests for an specific Kernel version here. There are
-> two issues with checks like that:
-> 
-> 	1) this may break on some kernel-fix release that might backport the function.
-> This is not very common, but there was some cases like that, in the USB subsystem;
-> 
-> 	2) this generally breaks compilation, after some time, if someone tries
-> to compile it against a distribution-patched kernel, as the new code may be
-> backported there.
-> 
-> That's said, if just doing an "#ifdef module_usb_driver" doesn't work because this
-> is not a macro, you can add a simple check at this script:
-> 	v4l/scripts/make_config_compat.pl 
-> 
-> like this one:
-> 
-> 	check_file_for_func("include/linux/delay.h", "usleep_range", "NEED_USLEEP_RANGE");
-> 
-> This function will seek for "usleep_range" at the delay.h header. If not found, it will
-> add a #define NEED_USLEEP_RANGE at v4l/config-compat.h, that can be checked inside compat.h:
-> 
-> #ifdef NEED_USLEEP_RANGE
-> #define usleep_range(min, max) msleep(min/1000)
-> #endif
-> 
-> You can use the same kind of logic for module_usb_driver.
-> 
-> Regards,
-> Mauro
+> Bus 001 Device 003: ID 05ca:1820 Ricoh Co., Ltd
+> Device Descriptor:
+>   bLength                18
+>   bDescriptorType         1
+>   bcdUSB               2.00
+>   bDeviceClass          239 Miscellaneous Device
+>   bDeviceSubClass         2 ?
+>   bDeviceProtocol         1 Interface Association
+>   bMaxPacketSize0        64
+>   idVendor           0x05ca Ricoh Co., Ltd
+>   idProduct          0x1820
+>   bcdDevice            c.27
+>   iManufacturer           1 CN01MWM9724871A4KB28A00
+>   iProduct                2 Laptop_Integrated_Webcam_FHD
+> [cut]
+>     Interface Descriptor:
+>       bLength                 9
+>       bDescriptorType         4
+>       bInterfaceNumber        1
+>       bAlternateSetting      13
+>       bNumEndpoints           1
+>       bInterfaceClass        14 Video
+>       bInterfaceSubClass      2 Video Streaming
+>       bInterfaceProtocol      0
+>       iInterface              0
+>       Endpoint Descriptor:
+>         bLength                 7
+>         bDescriptorType         5
+>         bEndpointAddress     0x82  EP 2 IN
+>         bmAttributes            5
+>           Transfer Type            Isochronous
+>           Synch Type               Asynchronous
+>           Usage Type               Data
+>         wMaxPacketSize     0x1400  3x 1024 bytes
+>         bInterval               1
+>         ** UNRECOGNIZED:  24 ff 42 49 53 54 00 01 05 02 10 00 00 00 00 00 01
+> 06 b8 0b 02 07 b8 0b 03 08 b8 0b 04 09 4e 20 05 0a b8 0b
 
-Hi Mauro,
-thanks for the explanation but Hans Verkuil already solved the issue
-using the check_file_for_func method:
+That's a vendor-specific descriptor, as reported by the second byte being 
+0xff. Vendor-specific descriptors are not standard (and very often not 
+documented), so lsusb doesn't know how to decode it. The uvcvideo driver 
+happily ignores it completely.
 
-http://git.linuxtv.org/media_build.git/commit/2492bf186743a925db98694911649fa0e94003f5
+Such descriptors are used for various purposes, often to add proprietary 
+extensions to the device. In this case, as the next 4 bytes decode to 'BIST' 
+(most likely Built-In Self Test) in ASCII, I expect the descriptor to be used 
+for production and QA purpose.
 
-Of course, I agree this is a much better solution.
+> It is about the uvcvideo driver I think. The camera works, at least in skype
+> so probably I should not bother you asking this question at all. ;-)
 
+Getting a better understanding of Linux is always worth a question :-)
+
+> usb 1-1.5: new high-speed USB device number 3 using ehci_hcd
+> usb 1-1.5: skipped 1 descriptor after configuration
+> usb 1-1.5: skipped 6 descriptors after interface
+> usb 1-1.5: skipped 1 descriptor after endpoint
+> usb 1-1.5: skipped 19 descriptors after interface
+> usb 1-1.5: skipped 1 descriptor after endpoint
+> usb 1-1.5: default language 0x0409
+> usb 1-1.5: udev 3, busnum 1, minor = 2
+> usb 1-1.5: New USB device found, idVendor=05ca, idProduct=1820
+> usb 1-1.5: New USB device strings: Mfr=1, Product=2, SerialNumber=0
+> usb 1-1.5: Product: Laptop_Integrated_Webcam_FHD
+> usb 1-1.5: Manufacturer: CN01MWM9724871A4KB28A00
+> usb 1-1.5: usb_probe_device
+> usb 1-1.5: configuration #1 chosen from 1 choice
+> usb 1-1.5: adding 1-1.5:1.0 (config #1, interface 0)
+> uvcvideo 1-1.5:1.0: usb_probe_interface
+> uvcvideo 1-1.5:1.0: usb_probe_interface - got id
+> uvcvideo: Found UVC 1.00 device Laptop_Integrated_Webcam_FHD (05ca:1820)
+> input: Laptop_Integrated_Webcam_FHD as
+> /devices/pci0000:00/0000:00:1a.0/usb1/1-1/1-1.5/1-1.5:1.0/input/input8 usb
+> 1-1.5: adding 1-1.5:1.1 (config #1, interface 1)
+
+-- 
 Regards,
-Gianluca
+
+Laurent Pinchart
+
