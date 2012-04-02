@@ -1,113 +1,157 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:37421 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756683Ab2D0OXf (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:56023 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1750992Ab2DBV5H (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Apr 2012 10:23:35 -0400
-Received: from euspt1 (mailout1.w1.samsung.com [210.118.77.11])
- by mailout1.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0M3500A476KRUP@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 27 Apr 2012 15:22:03 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0M3500JOV6N9PL@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 27 Apr 2012 15:23:33 +0100 (BST)
-Date: Fri, 27 Apr 2012 16:23:17 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH/RFC v3 00/14] V4L camera control enhancements
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
-	g.liakhovetski@gmx.de, hdegoede@redhat.com, moinejf@free.fr,
-	hverkuil@xs4all.nl, m.szyprowski@samsung.com,
-	riverful.kim@samsung.com, sw0312.kim@samsung.com,
-	s.nawrocki@samsung.com
-Message-id: <1335536611-4298-1-git-send-email-s.nawrocki@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
+	Mon, 2 Apr 2012 17:57:07 -0400
+Date: Tue, 3 Apr 2012 00:57:03 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH v2 4/4] omap3isp: preview: Shorten shadow update delay
+Message-ID: <20120402215703.GF922@valkosipuli.localdomain>
+References: <1332936001-32603-1-git-send-email-laurent.pinchart@ideasonboard.com>
+ <1332936001-32603-5-git-send-email-laurent.pinchart@ideasonboard.com>
+ <20120329203417.GC922@valkosipuli.localdomain>
+ <2856992.ve4AGyBgA4@avalon>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <2856992.ve4AGyBgA4@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Here is one more update of the camera class controls change set.
+Hi Laurent,
 
-The changes since v2 are:
- - V4L2_CID_WHITE_BALANCE_PRESET replaced with V4L2_CID_AUTO_N_PRESET_WHITE_BALANCE
-   according to suggestions from Hans de Goede;
- - added Flurescent H white balance preset;
- - V4L2_CID_IMAGE_STABILIZATION and V4L2_CID_WIDE_DYNAMIC_RANGE controls type 
-   changed from boolean to menu, to make any further extensions of these 
-   controls easier;
-   I'm just not 100% sure if V4L2_WIDE_DYNAMIC_RANGE_ENABLED and
-   V4L2_IMAGE_STABILIZATION_ENABLED are good names for cases where the camera
-   doesn't support wide dynamic range or image stabilization technique
-   selection and only allows to enable or disable those algorithms;	 
- - V4L2_CID_ISO_SENSITIVITY_AUTO control type changed from boolean to menu in
-   order to support ISO presets; currently enum v4l2_iso_sensitivity_auto_type
-   does not contain any presets though;
- - V4L2_CID_COLORFX patch removed from this series;
- - updated vivi and s5c73m3 driver patches.
+On Fri, Mar 30, 2012 at 02:30:34AM +0200, Laurent Pinchart wrote:
+> On Thursday 29 March 2012 23:34:17 Sakari Ailus wrote:
+> > On Wed, Mar 28, 2012 at 02:00:01PM +0200, Laurent Pinchart wrote:
+> > > When applications modify preview engine parameters, the new values are
+> > > applied to the hardware by the preview engine interrupt handler during
+> > > vertical blanking. If the parameters are being changed when the
+> > > interrupt handler is called, it just delays applying the parameters
+> > > until the next frame.
+> > > 
+> > > If an application modifies the parameters for every frame, and the
+> > > preview engine interrupt is triggerred synchronously, the parameters are
+> > > never applied to the hardware.
+> > > 
+> > > Fix this by storing new parameters in a shadow copy, and switch the
+> > > active parameters with the shadow values atomically.
+> > > 
+> > > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > > ---
+> > > 
+> > >  drivers/media/video/omap3isp/isppreview.c |  137
+> > >  +++++++++++++++++++++-------- drivers/media/video/omap3isp/isppreview.h
+> > >  |   21 +++--
+> > >  2 files changed, 112 insertions(+), 46 deletions(-)
+> > > 
+> > > diff --git a/drivers/media/video/omap3isp/isppreview.c
+> > > b/drivers/media/video/omap3isp/isppreview.c index 2b5c137..3267d83 100644
+> > > --- a/drivers/media/video/omap3isp/isppreview.c
+> > > +++ b/drivers/media/video/omap3isp/isppreview.c
+> 
+> [snip]
+> 
+> > > @@ -887,19 +897,19 @@ static int preview_config(struct isp_prev_device
+> > > *prev,> 
+> > >  {
+> > >  	struct prev_params *params;
+> > >  	struct preview_update *attr;
+> > > +	unsigned long flags;
+> > >  	int i, bit, rval = 0;
+> > > 
+> > > -	params = &prev->params;
+> > > 
+> > >  	if (cfg->update == 0)
+> > >  		return 0;
+> > > 
+> > > -	if (prev->state != ISP_PIPELINE_STREAM_STOPPED) {
+> > > -		unsigned long flags;
+> > > +	spin_lock_irqsave(&prev->params.lock, flags);
+> > > +	params = prev->params.shadow;
+> > > +	memcpy(params, prev->params.active, sizeof(*params));
+> > 
+> > Why memcpy()? Couldn't the same be achieved by swapping the pointers?
+> 
+> I would prefer just swapping pointers as well, but that wouldn't work.
+> 
+> We have two sets of parameters, A and B. At initialization time we fill set A 
+> with initial values, and make active point to A and shadow to B. Let's assume 
+> we also fill set B with the same initial values as set A.
+> 
+> Let's imagine the user calls preview_config() to configure the gamma table. 
+> Set B is updated with new gamma table values. The active and shadow pointers 
+> are then swapped at the end of the function (assuming no interrupt is occuring 
+> at the same time). The active pointer points to set B, and the shadow pointer 
+> to set A. Set A contains outdated gamma table values compared to set B.
+> 
+> The user now calls preview_config() a second time before the interrupt handler 
+> gets a chance to run, to configure white balance. We udpate set A with new 
+> white balance values and swap the pointers. The active pointer points to set 
+> A, and the shadow pointer to set B.
+> 
+> The interrupt handler now runs, and configures the hardware with the white 
+> balance parameters from set A. The gamma table values from set B are not 
+> applied.
+> 
+> Another issue is omap3isp_preview_restore_context(), which must restore the 
+> whole preview engine context with all the latest parameters. If they're 
+> scattered around set A and set B, that will be more complex.
+> 
+> Of course, if you can think of a better way to handle this than a memcpy, I'm 
+> all ears :-)
 
-Changes since v1 (implicit):
- - the V4L2_CID_AUTO_FOCUS_FACE_PRIORITY control merged with
-   V4L2_CID_AUTO_FOCUS_FACE_AREA,
- - many minor documentation corrections,
- - removed "08/23 V4L: camera control class..." patch, which got
-   accidentally added at v1,
- - added V4L2_CID_SCENE_MODE and V4L2_CID_3A_LOCK controls,
- - added vivi patch for testing.
+I think it's time to summarise the problem before solutions. :-)
 
-The patches are also available in a git repository at:
-http://git.infradead.org/users/kmpark/linux-samsung/shortlog/refs/heads/v4l-controls-s5c73m3
+We've got a single IOCTL which is used to configure an array of properties
+defined by structs like omap3isp_prev_nf and omap3isp_prev_dcor. The
+configuration of any single property may be set by the user of any point of
+time, and should be applied as quickly as possible in the next frame
+blanking period. The user may set the properties either by a single IOCTL
+call or many of them --- still the end result should be the same. There may
+well be more than two of these calls.
 
+This means that just considering two complete parameter sets isn't enough to
+cover these cases. Instead, the parameters the IOCTL configures should be
+considered independent of the struct prev_params which they were
+configured.
 
-Thanks,
-Sylwester
+I think it's probably easiest to present each individual parameter structs
+belonging to two queues: one queue is called "free" and the other one is
+"waiting". The free queue contains structs that are not used i.e. they may
+be used by the preview_config() to copy new settings to from the user space
+struct, after which they are put to the "waiting" queue. If the waiting
+queue was not empty, its old contents are thrown to free queue and replaced
+by the fresh parameter struct. The ISR will then remove struct from the
+waiting queue, apply the settings in parameter struct and put it back to
+free queue.
 
+It's possible to implement the same with just a few flags without involving
+linked lists.
 
-Sylwester Nawrocki (14):
-  V4L: Add helper function for standard integer menu controls
-  V4L: Add camera exposure bias control
-  V4L: Add an extended camera white balance control
-  V4L: Add camera wide dynamic range control
-  V4L: Add camera image stabilization control
-  V4L: Add camera ISO sensitivity controls
-  V4L: Add camera exposure metering control
-  V4L: Add camera scene mode control
-  V4L: Add camera 3A lock control
-  V4L: Add auto focus targets to the selections API
-  V4L: Add auto focus targets to the subdev selections API
-  V4L: Add camera auto focus controls
-  V4L: Add S5C73M3 sensor sub-device driver
-  vivi: Add controls
+What do you think?
 
- Documentation/DocBook/media/v4l/biblio.xml         |   11 +
- Documentation/DocBook/media/v4l/controls.xml       |  501 +++++++-
- Documentation/DocBook/media/v4l/dev-subdev.xml     |   27 +-
- Documentation/DocBook/media/v4l/selection-api.xml  |   33 +-
- .../DocBook/media/v4l/vidioc-g-selection.xml       |   11 +
- .../media/v4l/vidioc-subdev-g-selection.xml        |   14 +-
- drivers/media/video/Kconfig                        |    8 +
- drivers/media/video/Makefile                       |    1 +
- drivers/media/video/s5c73m3/Makefile               |    3 +
- drivers/media/video/s5c73m3/s5c73m3-ctrls.c        |  705 +++++++++++
- drivers/media/video/s5c73m3/s5c73m3-spi.c          |  126 ++
- drivers/media/video/s5c73m3/s5c73m3.c              | 1243 ++++++++++++++++++++
- drivers/media/video/s5c73m3/s5c73m3.h              |  442 +++++++
- drivers/media/video/v4l2-ctrls.c                   |  133 ++-
- drivers/media/video/vivi.c                         |  111 +-
- include/linux/v4l2-subdev.h                        |    4 +
- include/linux/videodev2.h                          |   92 ++
- include/media/s5c73m3.h                            |   62 +
- include/media/v4l2-ctrls.h                         |   17 +
- 19 files changed, 3536 insertions(+), 8 deletions(-)
- create mode 100644 drivers/media/video/s5c73m3/Makefile
- create mode 100644 drivers/media/video/s5c73m3/s5c73m3-ctrls.c
- create mode 100644 drivers/media/video/s5c73m3/s5c73m3-spi.c
- create mode 100644 drivers/media/video/s5c73m3/s5c73m3.c
- create mode 100644 drivers/media/video/s5c73m3/s5c73m3.h
- create mode 100644 include/media/s5c73m3.h
+> [snip]
+> 
+> > > @@ -1249,12 +1283,18 @@ static void preview_print_status(struct
+> > > isp_prev_device *prev)> 
+> > >  /*
+> > >  
+> > >   * preview_init_params - init image processing parameters.
+> > >   * @prev: pointer to previewer private structure
+> > > - * return none
+> > > + *
+> > > + * Returns 0 on success or -ENOMEM if parameters memory can't be
+> > > allocated.
+> >
+> > This comment no longer needs to be changed.
+> 
+> Indeed. And the function doesn't need to return a value anymore.
+
+Good point. I agree.
 
 -- 
-1.7.10
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
