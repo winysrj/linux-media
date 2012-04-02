@@ -1,167 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:51051 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756903Ab2DTOpm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Apr 2012 10:45:42 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Date: Fri, 20 Apr 2012 16:45:28 +0200
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: [PATCHv5 07/13] v4l: vb2-dma-contig: Reorder functions
-In-reply-to: <1334933134-4688-1-git-send-email-t.stanislaws@samsung.com>
-To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
-Cc: airlied@redhat.com, m.szyprowski@samsung.com,
-	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
-	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
-	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
-	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
-	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
-	mchehab@redhat.com, linux-doc@vger.kernel.org,
-	g.liakhovetski@gmx.de
-Message-id: <1334933134-4688-8-git-send-email-t.stanislaws@samsung.com>
-References: <1334933134-4688-1-git-send-email-t.stanislaws@samsung.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:46991 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752676Ab2DBRDK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 2 Apr 2012 13:03:10 -0400
+Message-ID: <4F79DBCC.6070803@iki.fi>
+Date: Mon, 02 Apr 2012 20:03:08 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: =?ISO-8859-1?Q?Michael_B=FCsch?= <m@bues.ch>
+CC: linux-media <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] af9035: Add fc0011 tuner support
+References: <20120402181836.0018c6ad@milhouse>
+In-Reply-To: <20120402181836.0018c6ad@milhouse>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+On 02.04.2012 19:18, Michael Büsch wrote:
+> This adds Fitipower fc0011 tuner support to the af9035 driver.
+>
+> Signed-off-by: Michael Buesch<m@bues.ch>
 
-Group functions by buffer type.
+Applied, thanks!
+http://git.linuxtv.org/anttip/media_tree.git/shortlog/refs/heads/af9035_experimental
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/video/videobuf2-dma-contig.c |   92 ++++++++++++++++-----------
- 1 files changed, 54 insertions(+), 38 deletions(-)
+And same checkpatch.pl issue here.
+You can ran checkpatch like that:
+git diff | ./scripts/checkpatch.pl -
+git diff --cached | ./scripts/checkpatch.pl -
+./scripts/checkpatch.pl --file drivers/media/dvb/dvb-usb/af9035.c
 
-diff --git a/drivers/media/video/videobuf2-dma-contig.c b/drivers/media/video/videobuf2-dma-contig.c
-index ff0a662..476e536 100644
---- a/drivers/media/video/videobuf2-dma-contig.c
-+++ b/drivers/media/video/videobuf2-dma-contig.c
-@@ -20,14 +20,56 @@
- struct vb2_dc_buf {
- 	struct device			*dev;
- 	void				*vaddr;
--	dma_addr_t			dma_addr;
- 	unsigned long			size;
--	struct vm_area_struct		*vma;
--	atomic_t			refcount;
-+	dma_addr_t			dma_addr;
-+
-+	/* MMAP related */
- 	struct vb2_vmarea_handler	handler;
-+	atomic_t			refcount;
-+
-+	/* USERPTR related */
-+	struct vm_area_struct		*vma;
- };
- 
--static void vb2_dc_put(void *buf_priv);
-+/*********************************************/
-+/*         callbacks for all buffers         */
-+/*********************************************/
-+
-+static void *vb2_dc_cookie(void *buf_priv)
-+{
-+	struct vb2_dc_buf *buf = buf_priv;
-+
-+	return &buf->dma_addr;
-+}
-+
-+static void *vb2_dc_vaddr(void *buf_priv)
-+{
-+	struct vb2_dc_buf *buf = buf_priv;
-+
-+	return buf->vaddr;
-+}
-+
-+static unsigned int vb2_dc_num_users(void *buf_priv)
-+{
-+	struct vb2_dc_buf *buf = buf_priv;
-+
-+	return atomic_read(&buf->refcount);
-+}
-+
-+/*********************************************/
-+/*        callbacks for MMAP buffers         */
-+/*********************************************/
-+
-+static void vb2_dc_put(void *buf_priv)
-+{
-+	struct vb2_dc_buf *buf = buf_priv;
-+
-+	if (!atomic_dec_and_test(&buf->refcount))
-+		return;
-+
-+	dma_free_coherent(buf->dev, buf->size, buf->vaddr, buf->dma_addr);
-+	kfree(buf);
-+}
- 
- static void *vb2_dc_alloc(void *alloc_ctx, unsigned long size)
- {
-@@ -57,40 +99,6 @@ static void *vb2_dc_alloc(void *alloc_ctx, unsigned long size)
- 	return buf;
- }
- 
--static void vb2_dc_put(void *buf_priv)
--{
--	struct vb2_dc_buf *buf = buf_priv;
--
--	if (atomic_dec_and_test(&buf->refcount)) {
--		dma_free_coherent(buf->dev, buf->size, buf->vaddr,
--				  buf->dma_addr);
--		kfree(buf);
--	}
--}
--
--static void *vb2_dc_cookie(void *buf_priv)
--{
--	struct vb2_dc_buf *buf = buf_priv;
--
--	return &buf->dma_addr;
--}
--
--static void *vb2_dc_vaddr(void *buf_priv)
--{
--	struct vb2_dc_buf *buf = buf_priv;
--	if (!buf)
--		return 0;
--
--	return buf->vaddr;
--}
--
--static unsigned int vb2_dc_num_users(void *buf_priv)
--{
--	struct vb2_dc_buf *buf = buf_priv;
--
--	return atomic_read(&buf->refcount);
--}
--
- static int vb2_dc_mmap(void *buf_priv, struct vm_area_struct *vma)
- {
- 	struct vb2_dc_buf *buf = buf_priv;
-@@ -104,6 +112,10 @@ static int vb2_dc_mmap(void *buf_priv, struct vm_area_struct *vma)
- 				  &vb2_common_vm_ops, &buf->handler);
- }
- 
-+/*********************************************/
-+/*       callbacks for USERPTR buffers       */
-+/*********************************************/
-+
- static void *vb2_dc_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 					unsigned long size, int write)
- {
-@@ -142,6 +154,10 @@ static void vb2_dc_put_userptr(void *mem_priv)
- 	kfree(buf);
- }
- 
-+/*********************************************/
-+/*       DMA CONTIG exported functions       */
-+/*********************************************/
-+
- const struct vb2_mem_ops vb2_dma_contig_memops = {
- 	.alloc		= vb2_dc_alloc,
- 	.put		= vb2_dc_put,
+For that driver it complains you are using wrong sleep (msleep(10)). 
+Correct sleep for that case is something like usleep_range(10000, 
+100000); which means as sleep at least 10ms but it does not matter if 
+you sleep even 100ms. The wider range the better chance for Kernel to 
+optimize power saving. There was usleep_range() already used inside that 
+module.
+
+regards
+Antti
 -- 
-1.7.5.4
-
+http://palosaari.fi/
