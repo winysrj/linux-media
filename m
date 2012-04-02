@@ -1,232 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cassarossa.samfundet.no ([129.241.93.19]:40850 "EHLO
-	cassarossa.samfundet.no" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752448Ab2DAPyF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Apr 2012 11:54:05 -0400
-From: "Steinar H. Gunderson" <sgunderson@bigfoot.com>
-To: linux-media@vger.kernel.org
-Cc: "Steinar H. Gunderson" <sesse@samfundet.no>
-Subject: [PATCH 07/11] Fix a ton of SMP-unsafe accesses.
-Date: Sun,  1 Apr 2012 17:53:47 +0200
-Message-Id: <1333295631-31866-7-git-send-email-sgunderson@bigfoot.com>
-In-Reply-To: <20120401155330.GA31901@uio.no>
-References: <20120401155330.GA31901@uio.no>
+Received: from bues.ch ([80.190.117.144]:44249 "EHLO bues.ch"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752361Ab2DBQfB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 2 Apr 2012 12:35:01 -0400
+Date: Mon, 2 Apr 2012 18:34:52 +0200
+From: Michael =?UTF-8?B?QsO8c2No?= <m@bues.ch>
+To: Antti Palosaari <crope@iki.fi>
+Cc: linux-media <linux-media@vger.kernel.org>
+Subject: [PATCH] af9035: Add Afatech USB PIDs
+Message-ID: <20120402183452.68670fb3@milhouse>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=PGP-SHA1;
+ boundary="Sig_/r1BlWWc5M6bF5tTyHT6j5/I"; protocol="application/pgp-signature"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Steinar H. Gunderson" <sesse@samfundet.no>
+--Sig_/r1BlWWc5M6bF5tTyHT6j5/I
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-Basically a lot of the members of mantis_ca were accessed from several threads
-without a mutex, which is a big no-no; I've mostly changed to using atomic
-operations here, although I also added some locks were it made sense
-(e.g. when resetting the CAM).
+Add some generic Afatech USB PIDs used by "Cabstone" sticks and others.
+
+Signed-off-by: Michael Buesch <m@bues.ch>
+
 ---
- drivers/media/dvb/mantis/mantis_ca.c     |   14 ++++++++++++++
- drivers/media/dvb/mantis/mantis_common.h |    2 +-
- drivers/media/dvb/mantis/mantis_evm.c    |    9 +++++++--
- drivers/media/dvb/mantis/mantis_hif.c    |   25 ++++++++++++++++++++-----
- drivers/media/dvb/mantis/mantis_link.h   |    2 +-
- drivers/media/dvb/mantis/mantis_reg.h    |    6 ++++--
- 6 files changed, 47 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/media/dvb/mantis/mantis_ca.c b/drivers/media/dvb/mantis/mantis_ca.c
-index 0f8efc7..cdff4b7 100644
---- a/drivers/media/dvb/mantis/mantis_ca.c
-+++ b/drivers/media/dvb/mantis/mantis_ca.c
-@@ -95,11 +95,25 @@ static int mantis_ca_slot_reset(struct dvb_ca_en50221 *en50221, int slot)
- 	struct mantis_pci *mantis = ca->ca_priv;
- 
- 	dprintk(MANTIS_DEBUG, 1, "Slot(%d): Slot RESET", slot);
-+	mutex_lock(&mantis->int_stat_lock);
-+	if (test_and_clear_bit(MANTIS_SBUF_OPDONE_BIT, &ca->hif_event)) {
-+		dprintk(MANTIS_NOTICE, 1, "Slot(%d): Reset operation done before it started!", slot);
-+	}
- 	udelay(500); /* Wait.. */
- 	mmwrite(0xda, MANTIS_PCMCIA_RESET); /* Leading edge assert */
- 	udelay(500);
- 	mmwrite(0x00, MANTIS_PCMCIA_RESET); /* Trailing edge deassert */
- 	msleep(1000);
-+
-+	if (wait_event_timeout(ca->hif_opdone_wq,
-+			       test_and_clear_bit(MANTIS_SBUF_OPDONE_BIT, &ca->hif_event),
-+			       msecs_to_jiffies(500)) == -ERESTARTSYS) {
-+
-+		dprintk(MANTIS_ERROR, 1, "Slot(%d): Reset timeout!", slot);
-+	} else {
-+		dprintk(MANTIS_DEBUG, 1, "Slot(%d): Reset complete", slot);
-+	}
-+	mutex_unlock(&mantis->int_stat_lock);
- 	dvb_ca_en50221_camready_irq(&ca->en50221, 0);
- 
- 	return 0;
-diff --git a/drivers/media/dvb/mantis/mantis_common.h b/drivers/media/dvb/mantis/mantis_common.h
-index 9058d9d..0967103 100644
---- a/drivers/media/dvb/mantis/mantis_common.h
-+++ b/drivers/media/dvb/mantis/mantis_common.h
-@@ -161,7 +161,7 @@ struct mantis_pci {
- 	 /*	A12 A13 A14		*/
- 	u32			gpio_status;
- 
--	u32			gpif_status;
-+	volatile unsigned long	gpif_status;
- 
- 	struct mantis_ca	*mantis_ca;
- 	struct mutex		int_stat_lock;
-diff --git a/drivers/media/dvb/mantis/mantis_evm.c b/drivers/media/dvb/mantis/mantis_evm.c
-index 36f2256..0fdf51c 100644
---- a/drivers/media/dvb/mantis/mantis_evm.c
-+++ b/drivers/media/dvb/mantis/mantis_evm.c
-@@ -20,6 +20,7 @@
- 
- #include <linux/kernel.h>
- 
-+#include <linux/atomic.h>
- #include <linux/signal.h>
- #include <linux/sched.h>
- #include <linux/interrupt.h>
-@@ -87,10 +88,14 @@ static void mantis_hifevm_work(struct work_struct *work)
- 	if (gpif_stat & MANTIS_SBUF_EMPTY)
- 		dprintk(MANTIS_DEBUG, 1, "Event Mgr: Adapter(%d) Slot(0): Smart Buffer Empty", mantis->num);
- 
--	if (gpif_stat & MANTIS_SBUF_OPDONE) {
-+	if (gpif_stat & MANTIS_SBUF_OPDONE)
- 		dprintk(MANTIS_DEBUG, 1, "Event Mgr: Adapter(%d) Slot(0): Smart Buffer operation complete", mantis->num);
-+
-+	if (gpif_stat & MANTIS_SBUF_OPDONE) {
- 		ca->sbuf_status = MANTIS_SBUF_DATA_AVAIL;
--		ca->hif_event = MANTIS_SBUF_OPDONE;
-+		if (test_and_set_bit(MANTIS_SBUF_OPDONE_BIT, &ca->hif_event)) {
-+			dprintk(MANTIS_NOTICE, 1, "Operation done, but SBUF_OPDONE bit was already set!");
-+		}
- 		wake_up(&ca->hif_opdone_wq);
- 	}
- }
-diff --git a/drivers/media/dvb/mantis/mantis_hif.c b/drivers/media/dvb/mantis/mantis_hif.c
-index c1e456c..6d42f73 100644
---- a/drivers/media/dvb/mantis/mantis_hif.c
-+++ b/drivers/media/dvb/mantis/mantis_hif.c
-@@ -22,6 +22,7 @@
- #include <linux/signal.h>
- #include <linux/sched.h>
- 
-+#include <linux/atomic.h>
- #include <linux/interrupt.h>
- #include <asm/io.h>
- 
-@@ -45,25 +46,23 @@ static int mantis_hif_sbuf_opdone_wait(struct mantis_ca *ca)
- 	int rc = 0;
- 
- 	if (wait_event_timeout(ca->hif_opdone_wq,
--			       ca->hif_event & MANTIS_SBUF_OPDONE,
-+			       test_and_clear_bit(MANTIS_SBUF_OPDONE_BIT, &ca->hif_event),
- 			       msecs_to_jiffies(500)) == -ERESTARTSYS) {
- 
- 		dprintk(MANTIS_ERROR, 1, "Adapter(%d) Slot(0): Smart buffer operation timeout !", mantis->num);
- 		rc = -EREMOTEIO;
- 	}
- 	dprintk(MANTIS_DEBUG, 1, "Smart Buffer Operation complete");
--	ca->hif_event &= ~MANTIS_SBUF_OPDONE;
- 	return rc;
- }
- 
- static int mantis_hif_write_wait(struct mantis_ca *ca)
- {
- 	struct mantis_pci *mantis = ca->ca_priv;
--	u32 opdone = 0, timeout = 0;
- 	int rc = 0;
- 
- 	if (wait_event_timeout(ca->hif_write_wq,
--			       mantis->gpif_status & MANTIS_GPIF_WRACK,
-+			       test_and_clear_bit(MANTIS_GPIF_WRACK_BIT, &mantis->gpif_status),
- 			       msecs_to_jiffies(500)) == -ERESTARTSYS) {
- 
- 		dprintk(MANTIS_ERROR, 1, "Adapter(%d) Slot(0): Write ACK timed out !", mantis->num);
-@@ -81,7 +80,10 @@ static int mantis_hif_write_wait(struct mantis_ca *ca)
- 			break;
+Index: linux/drivers/media/dvb/dvb-usb/af9035.c
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+--- linux.orig/drivers/media/dvb/dvb-usb/af9035.c	2012-04-02 18:15:46.94695=
+2566 +0200
++++ linux/drivers/media/dvb/dvb-usb/af9035.c	2012-04-02 18:27:59.672754125 =
++0200
+@@ -738,11 +738,17 @@
+=20
+ enum af9035_id_entry {
+ 	AF9035_0CCD_0093,
++	AF9035_15A4_9035,
++	AF9035_15A4_1001,
+ };
+=20
+ static struct usb_device_id af9035_id[] =3D {
+ 	[AF9035_0CCD_0093] =3D {
+ 		USB_DEVICE(USB_VID_TERRATEC, USB_PID_TERRATEC_CINERGY_T_STICK)},
++	[AF9035_15A4_9035] =3D {
++		USB_DEVICE(USB_VID_AFATECH, USB_PID_AFATECH_AF9035)},
++	[AF9035_15A4_1001] =3D {
++		USB_DEVICE(USB_VID_AFATECH, USB_PID_AFATECH_AF9035_2)},
+ 	{},
+ };
+=20
+@@ -785,14 +791,20 @@
+=20
+ 		.i2c_algo =3D &af9035_i2c_algo,
+=20
+-		.num_device_descs =3D 1,
++		.num_device_descs =3D 2,
+ 		.devices =3D {
+ 			{
+ 				.name =3D "TerraTec Cinergy T Stick",
+ 				.cold_ids =3D {
+ 					&af9035_id[AF9035_0CCD_0093],
+ 				},
+-			},
++			}, {
++				.name =3D "Afatech Technologies DVB-T stick",
++				.cold_ids =3D {
++					&af9035_id[AF9035_15A4_9035],
++					&af9035_id[AF9035_15A4_1001],
++				},
++			}
  		}
- 	}
--	dprintk(MANTIS_DEBUG, 1, "HIF Write success");
-+	if (mantis_hif_sbuf_opdone_wait(ca) != 0) {
-+		dprintk(MANTIS_ERROR, 1, "Adapter(%d) Slot(0): Write operation timeout !", mantis->num);
-+		rc = -ETIMEDOUT;
-+	}
- 	return rc;
- }
- 
-@@ -94,6 +96,10 @@ int mantis_hif_read_mem(struct mantis_ca *ca, u32 addr)
- 	dprintk(MANTIS_DEBUG, 1, "Adapter(%d) Slot(0): Request HIF Mem Read of 0x%x", mantis->num, addr);
- 	mutex_lock(&mantis->int_stat_lock);
- 
-+	if (test_and_clear_bit(MANTIS_SBUF_OPDONE_BIT, &ca->hif_event)) {
-+		dprintk(MANTIS_NOTICE, 1, "Adapter(%d) Slot(0): Read operation done before it started!", mantis->num);
-+	}
-+
- 	hif_addr &= ~MANTIS_GPIF_PCMCIAREG;
- 	hif_addr &= ~MANTIS_GPIF_PCMCIAIOM;
- 	hif_addr |=  MANTIS_HIF_STATUS;
-@@ -123,6 +129,9 @@ int mantis_hif_write_mem(struct mantis_ca *ca, u32 addr, u8 data)
- 
- 	dprintk(MANTIS_DEBUG, 1, "Adapter(%d) Slot(0): Request HIF Mem Write", mantis->num);
- 	mutex_lock(&mantis->int_stat_lock);
-+	if (test_and_clear_bit(MANTIS_SBUF_OPDONE_BIT, &ca->hif_event)) {
-+		dprintk(MANTIS_NOTICE, 1, "Adapter(%d) Slot(0): Write operation done before it started!", mantis->num);
-+	}
- 	hif_addr &= ~MANTIS_GPIF_HIFRDWRN;
- 	hif_addr &= ~MANTIS_GPIF_PCMCIAREG;
- 	hif_addr &= ~MANTIS_GPIF_PCMCIAIOM;
-@@ -151,6 +160,9 @@ int mantis_hif_read_iom(struct mantis_ca *ca, u32 addr)
- 
- 	dprintk(MANTIS_DEBUG, 1, "Adapter(%d) Slot(0): Request HIF I/O Read of 0x%x", mantis->num, addr);
- 	mutex_lock(&mantis->int_stat_lock);
-+	if (test_and_clear_bit(MANTIS_SBUF_OPDONE_BIT, &ca->hif_event)) {
-+		dprintk(MANTIS_NOTICE, 1, "Adapter(%d) Slot(0): I/O read operation done before it started!", mantis->num);
-+	}
- 	hif_addr &= ~MANTIS_GPIF_PCMCIAREG;
- 	hif_addr |=  MANTIS_GPIF_PCMCIAIOM;
- 	hif_addr |=  MANTIS_HIF_STATUS;
-@@ -181,6 +193,9 @@ int mantis_hif_write_iom(struct mantis_ca *ca, u32 addr, u8 data)
- 
- 	dprintk(MANTIS_DEBUG, 1, "Adapter(%d) Slot(0): Request HIF I/O Write", mantis->num);
- 	mutex_lock(&mantis->int_stat_lock);
-+	if (test_and_clear_bit(MANTIS_SBUF_OPDONE_BIT, &ca->hif_event)) {
-+		dprintk(MANTIS_NOTICE, 1, "Adapter(%d) Slot(0): I/O write operation done before it started!", mantis->num);
-+	}
- 	hif_addr &= ~MANTIS_GPIF_PCMCIAREG;
- 	hif_addr &= ~MANTIS_GPIF_HIFRDWRN;
- 	hif_addr |=  MANTIS_GPIF_PCMCIAIOM;
-diff --git a/drivers/media/dvb/mantis/mantis_link.h b/drivers/media/dvb/mantis/mantis_link.h
-index c59602d..d8fefdf 100644
---- a/drivers/media/dvb/mantis/mantis_link.h
-+++ b/drivers/media/dvb/mantis/mantis_link.h
-@@ -48,7 +48,7 @@ struct mantis_ca {
- 
- 	struct work_struct		hif_evm_work;
- 
--	u32				hif_event;
-+	volatile unsigned long 		hif_event;
- 	wait_queue_head_t		hif_opdone_wq;
- 	wait_queue_head_t		hif_brrdyw_wq;
- 	wait_queue_head_t		hif_data_wq;
-diff --git a/drivers/media/dvb/mantis/mantis_reg.h b/drivers/media/dvb/mantis/mantis_reg.h
-index 7761f9d..be57b78 100644
---- a/drivers/media/dvb/mantis/mantis_reg.h
-+++ b/drivers/media/dvb/mantis/mantis_reg.h
-@@ -152,11 +152,13 @@
- 
- #define MANTIS_GPIF_STATUS		0x9c
- #define MANTIS_SBUF_KILLOP		(0x01 << 15)
--#define MANTIS_SBUF_OPDONE		(0x01 << 14)
-+#define MANTIS_SBUF_OPDONE_BIT		14
-+#define MANTIS_SBUF_OPDONE		(0x01 << MANTIS_SBUF_OPDONE_BIT)
- #define MANTIS_SBUF_EMPTY		(0x01 << 13)
- #define MANTIS_GPIF_DETSTAT		(0x01 <<  9)
- #define MANTIS_GPIF_INTSTAT		(0x01 <<  8)
--#define MANTIS_GPIF_WRACK		(0x01 <<  7)
-+#define MANTIS_GPIF_WRACK_BIT		7
-+#define MANTIS_GPIF_WRACK		(0x01 <<  MANTIS_GPIF_WRACK_BIT)
- #define MANTIS_GPIF_BRRDY		(0x01 <<  6)
- #define MANTIS_SBUF_OVFLW		(0x01 <<  5)
- #define MANTIS_GPIF_OTHERR		(0x01 <<  4)
--- 
-1.7.9.5
+ 	},
+ };
+Index: linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+--- linux.orig/drivers/media/dvb/dvb-usb/dvb-usb-ids.h	2012-04-01 11:41:29.=
+094353520 +0200
++++ linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h	2012-04-02 18:26:34.38627=
+2276 +0200
+@@ -76,6 +76,8 @@
+ #define USB_PID_AFATECH_AF9005				0x9020
+ #define USB_PID_AFATECH_AF9015_9015			0x9015
+ #define USB_PID_AFATECH_AF9015_9016			0x9016
++#define USB_PID_AFATECH_AF9035				0x9035
++#define USB_PID_AFATECH_AF9035_2			0x1001
+ #define USB_PID_TREKSTOR_DVBT				0x901b
+ #define USB_VID_ALINK_DTU				0xf170
+ #define USB_PID_ANSONIC_DVBT_USB			0x6000
 
+
+--=20
+Greetings, Michael.
+
+PGP encryption is encouraged / 908D8B0E
+
+--Sig_/r1BlWWc5M6bF5tTyHT6j5/I
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Disposition: attachment; filename=signature.asc
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJPedUsAAoJEPUyvh2QjYsOwuYP/0zqAqHBIsbaW8JuMVsCVB2C
+FB92fpr5Ziqkjv7ZmduDi4Ti6Oe0Nfr/WbqFvRPjRKm7xU9AsIoF4zh01dvuSsx3
+X9/zzHjTnODYBQFpU3qPGrTOs3BioiEpqhVYXA83Wgd5j/efIqBekkxB6YCHRgnQ
+SAL3/3sFrThLOgtnbU/xnX/DVeiBnLXzCwkN+Ng+IWMyhyTPClzd3HHh4MayxbBu
+FvjZMLsVgmzKeo6QurELarkTWKS6mKchZ2sx5Zfih3lkNSFLALnqMnQuojYp09zG
+56qK/gJa+PfgT1TjfnrlcO8rvSkG5/KRSbvGq2h1uMp37XKHBng8htjLIPIA4AGV
+GYKMAMkJCDBC2DJtJfB+4FSueTE4RnkKdz5+DR0ywLi+ujTnIwxuoA64U61hIeHQ
+LerGij+5a5kdIA2kZfPR846jm0zPcaiwTj4I9bJg8CGfArSe4b7aNqqG3MPb8DVp
+XVh37ncsjNgnd75D4K2CfE0CsrhtM9I4+DhkJWgDvc1G36xvWsw6ZIAX9n2H2uqG
+4FlNdli+J1d7lzdI/u/txqgiFNGltV5UYFb3zrN5rKyVuiftCxRE05k7W7Ai9gEk
+17FzNQMd4cIirrtZdKZaLnhZgQUaq1UgFyZjlyGpUf66LByGyqjTdLB0y4uMh91D
+OYcNSAziu6CShMRDuPRy
+=CKTz
+-----END PGP SIGNATURE-----
+
+--Sig_/r1BlWWc5M6bF5tTyHT6j5/I--
