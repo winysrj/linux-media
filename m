@@ -1,61 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39794 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754088Ab2D3NER (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Apr 2012 09:04:17 -0400
-Date: Mon, 30 Apr 2012 16:04:13 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/1] v4l: drop v4l2_buffer.input and V4L2_BUF_FLAG_INPUT
-Message-ID: <20120430130413.GL7913@valkosipuli.localdomain>
-References: <1335789624-15940-1-git-send-email-sakari.ailus@iki.fi>
- <2157218.XOp52YA11m@avalon>
+Received: from mail-vb0-f46.google.com ([209.85.212.46]:40265 "EHLO
+	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752718Ab2DBOio convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Apr 2012 10:38:44 -0400
+Received: by vbbff1 with SMTP id ff1so1725583vbb.19
+        for <linux-media@vger.kernel.org>; Mon, 02 Apr 2012 07:38:43 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <2157218.XOp52YA11m@avalon>
+In-Reply-To: <4F79AA43.3070109@mlbassoc.com>
+References: <4F799A99.9010209@mlbassoc.com>
+	<CA+2YH7svJoCnvUPQGPr=YOsEQBZ16J5y9QGjFyfNmdjeLum4cA@mail.gmail.com>
+	<4F799F4F.9020606@mlbassoc.com>
+	<CA+2YH7uesV_085_-LyKCm8zuEROy_6FRQg8XkiRsHubdTXF8ig@mail.gmail.com>
+	<4F79AA43.3070109@mlbassoc.com>
+Date: Mon, 2 Apr 2012 16:38:43 +0200
+Message-ID: <CA+2YH7sWJr8oBnPssoQkOAA+7sB+Y=1kYD3Qhacb-56NJFjQgg@mail.gmail.com>
+Subject: Re: OMAP3ISP won't start
+From: Enrico <ebutera@users.berlios.de>
+To: Gary Thomas <gary@mlbassoc.com>
+Cc: linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+On Mon, Apr 2, 2012 at 3:31 PM, Gary Thomas <gary@mlbassoc.com> wrote:
+> On 2012-04-02 07:15, Enrico wrote:
+>>
+>> On Mon, Apr 2, 2012 at 2:45 PM, Gary Thomas<gary@mlbassoc.com>  wrote:
+>>>
+>>> The items you mention are just what I merged from my previous kernel.
+>>> My changes are still pretty rough but I can send them to you if you'd
+>>> like.
+>>
+>>
+>> Post them here and we will try to spot where the problem is, they
+>> could be useful for Laurent too as a reference.
+>
+>
+> Attached.
 
-On Mon, Apr 30, 2012 at 02:48:23PM +0200, Laurent Pinchart wrote:
-> On Monday 30 April 2012 15:40:24 Sakari Ailus wrote:
-> > Remove input field in struct v4l2_buffer and flag V4L2_BUF_FLAG_INPUT which
-> > tells the former is valid. The flag is used by no driver currently.
-> > 
-> > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> > ---
-> > Hi all,
-> > 
-> > I thought this would be a good time to get rid of the input field in
-> > v4l2_buffer to avoid writing more useless compat code for it --- the enum
-> > compat code.
-> > 
-> > Comments are welcome. This patch is compile tested on videobuf and
-> > videobuf2.
-> 
-> I'm all for this. As far as I know, the field was only useful for a single 
-> out-of-tree driver which is long dead now.
-> 
-> >  drivers/media/video/v4l2-compat-ioctl32.c |    8 +++-----
-> >  drivers/media/video/videobuf-core.c       |   16 ----------------
-> >  drivers/media/video/videobuf2-core.c      |    4 +---
-> >  include/linux/videodev2.h                 |    4 +---
-> >  include/media/videobuf-core.h             |    2 --
-> 
-> A quick grep through the code shows that you've missed the cpia2 driver which 
-> sets the input field to 0 in cpia2_dqbuf(). Please try to compile as many 
-> drivers as possible with this patch. Using coccinelle 
-> (http://coccinelle.lip6.fr/) could help finding other accesses to the input 
-> field.
+I just had a quick look and it seems everything is there, i can't test
+it right now but when i did test a mainline 3.3 kernel with my patches
+i had to use the "nohlt" kernel parm. If i'm not wrong without that
+param i had the same error, you can give it a try.
 
-I grepped them but forgot to give -r option to grep... I found no further
-uses of the input field by quick looking. I'll compile what I can and resend
-the patch.
-
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+Enrico
