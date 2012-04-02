@@ -1,84 +1,32 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:56835 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753588Ab2DUCp5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Apr 2012 22:45:57 -0400
-Received: by pbcun15 with SMTP id un15so1704969pbc.19
-        for <linux-media@vger.kernel.org>; Fri, 20 Apr 2012 19:45:57 -0700 (PDT)
-Date: Sat, 21 Apr 2012 10:45:58 +0800
-From: "=?utf-8?B?bmliYmxlLm1heA==?=" <nibble.max@gmail.com>
-To: "=?utf-8?B?TWF1cm8gQ2FydmFsaG8gQ2hlaGFi?=" <mchehab@redhat.com>,
-	"=?utf-8?B?QW50dGkgUGFsb3NhYXJp?=" <crope@iki.fi>
-Cc: "=?utf-8?B?bGludXgtbWVkaWE=?=" <linux-media@vger.kernel.org>,
-	"=?utf-8?B?S29uc3RhbnRpbiBEaW1pdHJvdg==?=" <kosio.dimitrov@gmail.com>
-References: <1327228731.2540.3.camel@tvbox>,
- <4F2185A1.2000402@redhat.com>,
- <201204152353103757288@gmail.com>,
- <201204201601166255937@gmail.com>,
- <4F9130BB.8060107@iki.fi>
-Subject: =?utf-8?B?UmU6IFJlOiBbUEFUQ0ggMS82XSBtODhkczMxMDMsIG1vbnRhZ2UgZHZiLXMvczIgZGVtb2R1bGF0b3IgZHJpdmVy?=
-Message-ID: <201204211045557968605@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="utf-8"
+Received: from mail.kapsi.fi ([217.30.184.167]:42146 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752747Ab2DBWdt (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 2 Apr 2012 18:33:49 -0400
+Message-ID: <4F7A294C.9090706@iki.fi>
+Date: Tue, 03 Apr 2012 01:33:48 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Gianluca Gennari <gennarone@gmail.com>
+CC: linux-media@vger.kernel.org, m@bues.ch, hfvogt@gmx.net,
+	mchehab@redhat.com
+Subject: Re: [PATCH 2/5] af9035: add support for the tda18218 tuner
+References: <1333401917-27203-1-git-send-email-gennarone@gmail.com> <1333401917-27203-3-git-send-email-gennarone@gmail.com>
+In-Reply-To: <1333401917-27203-3-git-send-email-gennarone@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2012-04-21 10:38:02 nibble.max@gmail.com
->Em 20-04-2012 06:47, Antti Palosaari escreveu:
->> On 20.04.2012 11:01, nibble.max wrote:
->>> 2012-04-20 15:56:27 nibble.max@gmail.com
->>> At first time, I check it exist so try to patch it.
->>> But with new m88ds3103 features to add and ts2022 tuner include, find it is hard to do simply patch.
->>> It is better to create a new driver for maintain.
->>>> Hi Max,
->>>>
->>>> Em 15-04-2012 12:53, nibble.max escreveu:
->>>>> Montage m88ds3103 demodulator and ts2022 tuner driver.
->>>>
->>>> It was pointed to me that this device were already discussed on:
->>>>
->>>>    http://www.mail-archive.com/linux-media@vger.kernel.org/msg43109.html
->>>>
->>>> If m88ds3103 demod is similar enough to ds3000, it should just add the needed
->>>> bits at the existing driver, and not creating a new driver.
->>>>
->>>> Thanks,
->>>> Mauro
->> 
->> The main problem of these all existing and upcoming Montage DVB-S/S2 drivers are those are not split originally correct as a tuner and demod and now it causes problems.
->> 
->> I really suspect it should be:
->> * single demod driver that supports both DS3000 and DS3103
->> * single tuner driver that supports both TS2020 and TS2022
->> 
->> And now what we have is 2 drivers that contains both tuner and demod. And a lot of same code. :-(
->> 
->> But it is almost impossible to split it correctly at that phase if you don't have both hardware combinations, DS3000/TS2020 and DS3103/TS2022. I think it is best to leave old DS3000 as it is and make new driver for DS3103 *and* TS2022. Maybe after that someone could add DS3000 support to new DS3103 driver and TS2020 support to new TS2022 driver. After that it is possible to remove old DS3000 driver.
->> 
->> And we should really consider make simple rule not to accept any driver which is not split as logical parts: USB/PCI-interface + demodulator + tuner.
+On 03.04.2012 00:25, Gianluca Gennari wrote:
+> Add basic support for the tda18218 tuner and the AVerMedia A835 devices.
 >
->Mixing tuner and demod is not good. Yet, dropping the current ds3000 doesn't
->seem to be the best approach.
->
->IMO, Konstantin/Montage should split the ds3000 driver on two drivers, putting
->the ts2020 bits on a separate driver.
->
->Then, Max should write a patch for ds3000 in order to add support for ds3103 on
->it, and a patch for ts2020 driver, in order to add support for ts2022 on it.
->
->Of course, Konstantin should check if Max changes don't break support for the
->DS3000/TS2020 configuration.
->
->Regards,
->Mauro
-Actually, I have the following hardware combinations.
-1)DS3000 and TS2020 2)DS3103 and TS2020 3)DS3103 and TS2022
-Should I sumbit the driver for DS3103 and TS2022 in the split files?
-Or I must wait for Konstantin's work. How long should I wait for?
+> Signed-off-by: Gianluca Gennari<gennarone@gmail.com>
 
-BR,
-Max.
+Applied, thank you!
+http://git.linuxtv.org/anttip/media_tree.git/shortlog/refs/heads/af9035_experimental
 
+regards
+Antti
+-- 
+http://palosaari.fi/
