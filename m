@@ -1,42 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:57564 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751904Ab2DRVyR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Apr 2012 17:54:17 -0400
-Message-ID: <4F8F37E3.1040408@redhat.com>
-Date: Wed, 18 Apr 2012 18:53:39 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:43855 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751056Ab2DBJ0R (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Apr 2012 05:26:17 -0400
+Date: Mon, 2 Apr 2012 11:26:10 +0200
+From: Sascha Hauer <s.hauer@pengutronix.de>
+To: Javier Martin <javier.martin@vista-silicon.com>
+Cc: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	u.kleine-koenig@pengutronix.de, mchehab@infradead.org,
+	kernel@pengutronix.de, baruch@tkos.co.il
+Subject: Re: [PATCH v2 2/3] i.MX27: visstrim_m10: Remove use of
+ MX2_CAMERA_SWAP16.
+Message-ID: <20120402092610.GW26642@pengutronix.de>
+References: <1332767868-2531-1-git-send-email-javier.martin@vista-silicon.com>
+ <1332767868-2531-3-git-send-email-javier.martin@vista-silicon.com>
 MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: Hans-Frieder Vogt <hfvogt@gmx.net>, linux-media@vger.kernel.org,
-	=?ISO-8859-1?Q?Michael_B=FCsch?= <m@bues.ch>,
-	Gianluca Gennari <gennarone@gmail.com>
-Subject: Re: [PATCH] af9035: add remote control support
-References: <201204071924.44679.hfvogt@gmx.net> <4F8ED65D.5090105@iki.fi> <4F8F136E.7030800@redhat.com> <201204182242.32330.hfvogt@gmx.net> <4F8F2E58.7000603@iki.fi>
-In-Reply-To: <4F8F2E58.7000603@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1332767868-2531-3-git-send-email-javier.martin@vista-silicon.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 18-04-2012 18:12, Antti Palosaari escreveu:
-> On 18.04.2012 23:42, Hans-Frieder Vogt wrote:
->> Am Mittwoch, 18. April 2012 schrieb Mauro Carvalho Chehab:
->>> Em 18-04-2012 11:57, Antti Palosaari escreveu:
-
->>>>>> +
->>>>>> +    if (af9035_config.raw_ir) {
->>>>>> +        ret = af9035_rd_reg(d, EEPROM_IR_TYPE,&tmp);
->>>>
->>>> No space between x,y, IIRC checkpatch reports that.
->>
->> the only errors that checkpatch is reporting is ERROR: trailing whitespace,
->> but that seems to be normal for lines in the patch that are unchanged (I run
->> checkpatch.pl --no-tree --file ...patch).
+On Mon, Mar 26, 2012 at 03:17:47PM +0200, Javier Martin wrote:
 > 
-> I still like idea to add one space after comma always
+> Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
 
-Me too. The above, even passing on checkpatch, is not the right CodingStyle.
+Acked-by: Sascha Hauer <s.hauer@pengutronix.de>
 
-Regards,
-Mauro
+Should go via the media tree.
+
+Sascha
+
+> ---
+>  arch/arm/mach-imx/mach-imx27_visstrim_m10.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/arch/arm/mach-imx/mach-imx27_visstrim_m10.c b/arch/arm/mach-imx/mach-imx27_visstrim_m10.c
+> index 3128cfe..4db00c6 100644
+> --- a/arch/arm/mach-imx/mach-imx27_visstrim_m10.c
+> +++ b/arch/arm/mach-imx/mach-imx27_visstrim_m10.c
+> @@ -164,7 +164,7 @@ static struct platform_device visstrim_tvp5150 = {
+>  
+>  
+>  static struct mx2_camera_platform_data visstrim_camera = {
+> -	.flags = MX2_CAMERA_CCIR | MX2_CAMERA_CCIR_INTERLACE | MX2_CAMERA_SWAP16 | MX2_CAMERA_PCLK_SAMPLE_RISING,
+> +	.flags = MX2_CAMERA_CCIR | MX2_CAMERA_CCIR_INTERLACE | MX2_CAMERA_PCLK_SAMPLE_RISING,
+>  	.clk = 100000,
+>  };
+>  
+> -- 
+> 1.7.0.4
+> 
+> 
+
+-- 
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
