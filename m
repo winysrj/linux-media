@@ -1,86 +1,33 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vb0-f46.google.com ([209.85.212.46]:56994 "EHLO
-	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756418Ab2D3WGF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Apr 2012 18:06:05 -0400
-Received: by vbbff1 with SMTP id ff1so2413765vbb.19
-        for <linux-media@vger.kernel.org>; Mon, 30 Apr 2012 15:06:05 -0700 (PDT)
+Received: from mail.kapsi.fi ([217.30.184.167]:51796 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753505Ab2DBWmd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 2 Apr 2012 18:42:33 -0400
+Message-ID: <4F7A2B57.9050108@iki.fi>
+Date: Tue, 03 Apr 2012 01:42:31 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <CAOcJUbwCh9zwmY2_i-nqW1naYp_X9rOuW_BOKisrGUzPNNtzTg@mail.gmail.com>
-References: <CAOcJUbxHCo7xfGHJZdeEgReJrpCriweSb9s9+-_NfSODLz_NPQ@mail.gmail.com>
-	<4F9014CD.1040005@redhat.com>
-	<CAHAyoxx+Thhj+EwFbtJcXbkzks=0x+RfdudKOgQT=pqJzePcLw@mail.gmail.com>
-	<CAOcJUbyDNGoSdVV0WMVKavJm=RK6tanQTXS8AFzsHmHkGHOGUw@mail.gmail.com>
-	<CAOcJUbzyqkfOOR72xDc14B139EECjM9f5yCmC=d0yYQU6Js4jw@mail.gmail.com>
-	<CAOcJUbyT7LqdMwWcYa7XRhEvvSQGVftVQmiNBxw4xy+tv4412Q@mail.gmail.com>
-	<CAOcJUbxLdZoo36Jkk1kMOhSfPcneupF6bRsMKOmuY6F5xZcErQ@mail.gmail.com>
-	<CAOcJUbxt1uwMN-ip76t2F5k--vrtOUD0iTJSzDbsM9T2ajRPJw@mail.gmail.com>
-	<CAOcJUbzc=0kQ57XgX7q-2abQAr6Z0cLEreJH6vDbJ_JsFuf6cw@mail.gmail.com>
-	<CAOcJUbwCh9zwmY2_i-nqW1naYp_X9rOuW_BOKisrGUzPNNtzTg@mail.gmail.com>
-Date: Mon, 30 Apr 2012 18:06:04 -0400
-Message-ID: <CAOcJUbxa+WRJi_=Gyk-3La1dvFU4hKD7_Z2754GY2kdQuj9KmQ@mail.gmail.com>
-Subject: Re: ATSC-MH driver support for the Hauppauge WinTV Aero-m
-From: Michael Krufky <mkrufky@kernellabs.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media <linux-media@vger.kernel.org>
-Content-Type: multipart/mixed; boundary=20cf3071d0b613632304beeca941
+To: Gianluca Gennari <gennarone@gmail.com>
+CC: linux-media@vger.kernel.org, m@bues.ch, hfvogt@gmx.net,
+	mchehab@redhat.com
+Subject: Re: [PATCH 5/5] af9035: use module_usb_driver macro
+References: <1333401917-27203-1-git-send-email-gennarone@gmail.com> <1333401917-27203-6-git-send-email-gennarone@gmail.com>
+In-Reply-To: <1333401917-27203-6-git-send-email-gennarone@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---20cf3071d0b613632304beeca941
-Content-Type: text/plain; charset=ISO-8859-1
+On 03.04.2012 00:25, Gianluca Gennari wrote:
+> Let's save a few lines of code using the module_usb_driver macro.
+>
+> Signed-off-by: Gianluca Gennari<gennarone@gmail.com>
 
+Applied, thanks!
 
+http://git.linuxtv.org/anttip/media_tree.git/shortlog/refs/heads/af9035_experimental
 
---20cf3071d0b613632304beeca941
-Content-Type: application/octet-stream;
-	name="0008-dvb-usb-add-support-for-dvb-usb-adapters-that-delive.patch"
-Content-Disposition: attachment;
-	filename="0008-dvb-usb-add-support-for-dvb-usb-adapters-that-delive.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_h1o2urjp1
-
-RnJvbSBmMGQwNzllY2IyNTU0MDc5MmY3MzZmYzBkOWRlOGE4NzIwZjEzMGIyIE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBNaWNoYWVsIEtydWZreSA8bWtydWZreUBrZXJuZWxsYWJzLmNv
-bT4KRGF0ZTogVGh1LCA4IFNlcCAyMDExIDAzOjQ3OjIwIC0wNDAwClN1YmplY3Q6IFtQQVRDSCAw
-OC8xMF0gZHZiLXVzYjogYWRkIHN1cHBvcnQgZm9yIGR2Yi11c2ItYWRhcHRlcnMgdGhhdCBkZWxp
-dmVyCiByYXcgcGF5bG9hZAoKU2VsZWN0IHRoaXMgZmVhdHVyZSBzZXR0aW5nIHRoZSBkdmItdXNi
-LWFkYXB0ZXIgY2FwcyBmaWVsZCB3aXRoCkRWQl9VU0JfQURBUF9SRUNFSVZFU19SQVdfUEFZTE9B
-RAoKU2lnbmVkLW9mZi1ieTogTWljaGFlbCBLcnVma3kgPG1rcnVma3lAbGludXh0di5vcmc+Ci0t
-LQogZHJpdmVycy9tZWRpYS9kdmIvZHZiLXVzYi9kdmItdXNiLXVyYi5jIHwgICAxMiArKysrKysr
-KysrKysKIGRyaXZlcnMvbWVkaWEvZHZiL2R2Yi11c2IvZHZiLXVzYi5oICAgICB8ICAgIDEgKwog
-MiBmaWxlcyBjaGFuZ2VkLCAxMyBpbnNlcnRpb25zKCspLCAwIGRlbGV0aW9ucygtKQoKZGlmZiAt
-LWdpdCBhL2RyaXZlcnMvbWVkaWEvZHZiL2R2Yi11c2IvZHZiLXVzYi11cmIuYyBiL2RyaXZlcnMv
-bWVkaWEvZHZiL2R2Yi11c2IvZHZiLXVzYi11cmIuYwppbmRleCA1M2E1YzMwLi41YzhmNjUxIDEw
-MDY0NAotLS0gYS9kcml2ZXJzL21lZGlhL2R2Yi9kdmItdXNiL2R2Yi11c2ItdXJiLmMKKysrIGIv
-ZHJpdmVycy9tZWRpYS9kdmIvZHZiLXVzYi9kdmItdXNiLXVyYi5jCkBAIC04MCw2ICs4MCwxNCBA
-QCBzdGF0aWMgdm9pZCBkdmJfdXNiX2RhdGFfY29tcGxldGVfMjA0KHN0cnVjdCB1c2JfZGF0YV9z
-dHJlYW0gKnN0cmVhbSwgdTggKmJ1ZmZlcgogCQlkdmJfZG14X3N3ZmlsdGVyXzIwNCgmYWRhcC0+
-ZGVtdXgsIGJ1ZmZlciwgbGVuZ3RoKTsKIH0KIAorc3RhdGljIHZvaWQgZHZiX3VzYl9kYXRhX2Nv
-bXBsZXRlX3JhdyhzdHJ1Y3QgdXNiX2RhdGFfc3RyZWFtICpzdHJlYW0sCisJCQkJICAgICAgdTgg
-KmJ1ZmZlciwgc2l6ZV90IGxlbmd0aCkKK3sKKwlzdHJ1Y3QgZHZiX3VzYl9hZGFwdGVyICphZGFw
-ID0gc3RyZWFtLT51c2VyX3ByaXY7CisJaWYgKGFkYXAtPmZlZWRjb3VudCA+IDAgJiYgYWRhcC0+
-c3RhdGUgJiBEVkJfVVNCX0FEQVBfU1RBVEVfRFZCKQorCQlkdmJfZG14X3N3ZmlsdGVyX3Jhdygm
-YWRhcC0+ZGVtdXgsIGJ1ZmZlciwgbGVuZ3RoKTsKK30KKwogaW50IGR2Yl91c2JfYWRhcHRlcl9z
-dHJlYW1faW5pdChzdHJ1Y3QgZHZiX3VzYl9hZGFwdGVyICphZGFwKQogewogCWludCBpLCByZXQg
-PSAwOwpAQCAtOTAsNiArOTgsMTAgQEAgaW50IGR2Yl91c2JfYWRhcHRlcl9zdHJlYW1faW5pdChz
-dHJ1Y3QgZHZiX3VzYl9hZGFwdGVyICphZGFwKQogCQkJYWRhcC0+ZmVfYWRhcFtpXS5zdHJlYW0u
-Y29tcGxldGUgPQogCQkJCWR2Yl91c2JfZGF0YV9jb21wbGV0ZV8yMDQ7CiAJCWVsc2UKKwkJaWYg
-KGFkYXAtPnByb3BzLmZlW2ldLmNhcHMgJiBEVkJfVVNCX0FEQVBfUkVDRUlWRVNfUkFXX1BBWUxP
-QUQpCisJCQlhZGFwLT5mZV9hZGFwW2ldLnN0cmVhbS5jb21wbGV0ZSA9CisJCQkJZHZiX3VzYl9k
-YXRhX2NvbXBsZXRlX3JhdzsKKwkJZWxzZQogCQlhZGFwLT5mZV9hZGFwW2ldLnN0cmVhbS5jb21w
-bGV0ZSAgPSBkdmJfdXNiX2RhdGFfY29tcGxldGU7CiAJCWFkYXAtPmZlX2FkYXBbaV0uc3RyZWFt
-LnVzZXJfcHJpdiA9IGFkYXA7CiAJCXJldCA9IHVzYl91cmJfaW5pdCgmYWRhcC0+ZmVfYWRhcFtp
-XS5zdHJlYW0sCmRpZmYgLS1naXQgYS9kcml2ZXJzL21lZGlhL2R2Yi9kdmItdXNiL2R2Yi11c2Iu
-aCBiL2RyaXZlcnMvbWVkaWEvZHZiL2R2Yi11c2IvZHZiLXVzYi5oCmluZGV4IDZkN2QxM2YuLjg2
-Y2ZhODYgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvbWVkaWEvZHZiL2R2Yi11c2IvZHZiLXVzYi5oCisr
-KyBiL2RyaXZlcnMvbWVkaWEvZHZiL2R2Yi11c2IvZHZiLXVzYi5oCkBAIC0xNDEsNiArMTQxLDcg
-QEAgc3RydWN0IGR2Yl91c2JfYWRhcHRlcl9mZV9wcm9wZXJ0aWVzIHsKICNkZWZpbmUgRFZCX1VT
-Ql9BREFQX1BJRF9GSUxURVJfQ0FOX0JFX1RVUk5FRF9PRkYgMHgwMgogI2RlZmluZSBEVkJfVVNC
-X0FEQVBfTkVFRF9QSURfRklMVEVSSU5HICAgICAgICAgICAweDA0CiAjZGVmaW5lIERWQl9VU0Jf
-QURBUF9SRUNFSVZFU18yMDRfQllURV9UUyAgICAgICAgIDB4MDgKKyNkZWZpbmUgRFZCX1VTQl9B
-REFQX1JFQ0VJVkVTX1JBV19QQVlMT0FEICAgICAgICAgMHgxMAogCWludCBjYXBzOwogCWludCBw
-aWRfZmlsdGVyX2NvdW50OwogCi0tIAoxLjcuNS40Cgo=
---20cf3071d0b613632304beeca941--
+regards
+Antti
+-- 
+http://palosaari.fi/
