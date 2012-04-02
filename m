@@ -1,58 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:37492 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753640Ab2DWWBv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Apr 2012 18:01:51 -0400
-Message-ID: <4F95D14C.4020801@iki.fi>
-Date: Tue, 24 Apr 2012 01:01:48 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH] v4l: aptina-pll: Round up minimum multiplier factor value
- properly
-References: <1335189565-23617-1-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1335189565-23617-1-git-send-email-laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:60145 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753027Ab2DBV0q (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Apr 2012 17:26:46 -0400
+Received: by mail-wi0-f172.google.com with SMTP id hj6so3023786wib.1
+        for <linux-media@vger.kernel.org>; Mon, 02 Apr 2012 14:26:46 -0700 (PDT)
+From: Gianluca Gennari <gennarone@gmail.com>
+To: linux-media@vger.kernel.org, crope@iki.fi
+Cc: m@bues.ch, hfvogt@gmx.net, mchehab@redhat.com,
+	Gianluca Gennari <gennarone@gmail.com>
+Subject: [PATCH 5/5] af9035: use module_usb_driver macro
+Date: Mon,  2 Apr 2012 23:25:17 +0200
+Message-Id: <1333401917-27203-6-git-send-email-gennarone@gmail.com>
+In-Reply-To: <1333401917-27203-1-git-send-email-gennarone@gmail.com>
+References: <1333401917-27203-1-git-send-email-gennarone@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Let's save a few lines of code using the module_usb_driver macro.
 
-Laurent Pinchart wrote:
-> The mf_low value must be a multiple of mf_inc. Round it up to the
-> nearest mf_inc multiple after computing it.
->
-> Signed-off-by: Laurent Pinchart<laurent.pinchart@ideasonboard.com>
+Signed-off-by: Gianluca Gennari <gennarone@gmail.com>
+---
+ drivers/media/dvb/dvb-usb/af9035.c |   26 +-------------------------
+ 1 files changed, 1 insertions(+), 25 deletions(-)
 
-Thanks!
-
-Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
-
-> ---
->   drivers/media/video/aptina-pll.c |    5 ++---
->   1 files changed, 2 insertions(+), 3 deletions(-)
->
-> diff --git a/drivers/media/video/aptina-pll.c b/drivers/media/video/aptina-pll.c
-> index 0bd3813..8153a44 100644
-> --- a/drivers/media/video/aptina-pll.c
-> +++ b/drivers/media/video/aptina-pll.c
-> @@ -148,9 +148,8 @@ int aptina_pll_calculate(struct device *dev,
->   		unsigned int mf_high;
->   		unsigned int mf_low;
->
-> -		mf_low = max(roundup(mf_min, mf_inc),
-> -			     DIV_ROUND_UP(pll->ext_clock * p1,
-> -			       limits->int_clock_max * div));
-> +		mf_low = roundup(max(mf_min, DIV_ROUND_UP(pll->ext_clock * p1,
-> +					limits->int_clock_max * div)), mf_inc);
->   		mf_high = min(mf_max, pll->ext_clock * p1 /
->   			      (limits->int_clock_min * div));
->
-
-
+diff --git a/drivers/media/dvb/dvb-usb/af9035.c b/drivers/media/dvb/dvb-usb/af9035.c
+index 8bf6367..3242312 100644
+--- a/drivers/media/dvb/dvb-usb/af9035.c
++++ b/drivers/media/dvb/dvb-usb/af9035.c
+@@ -973,31 +973,7 @@ static struct usb_driver af9035_usb_driver = {
+ 	.id_table = af9035_id,
+ };
+ 
+-/* module stuff */
+-static int __init af9035_usb_module_init(void)
+-{
+-	int ret;
+-
+-	ret = usb_register(&af9035_usb_driver);
+-	if (ret < 0)
+-		goto err;
+-
+-	return 0;
+-
+-err:
+-	pr_debug("%s: failed=%d\n", __func__, ret);
+-
+-	return ret;
+-}
+-
+-static void __exit af9035_usb_module_exit(void)
+-{
+-	/* deregister this driver from the USB subsystem */
+-	usb_deregister(&af9035_usb_driver);
+-}
+-
+-module_init(af9035_usb_module_init);
+-module_exit(af9035_usb_module_exit);
++module_usb_driver(af9035_usb_driver);
+ 
+ MODULE_AUTHOR("Antti Palosaari <crope@iki.fi>");
+ MODULE_DESCRIPTION("Afatech AF9035 driver");
 -- 
-Sakari Ailus
-sakari.ailus@iki.fi
+1.7.5.4
+
