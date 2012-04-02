@@ -1,77 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:13475 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755183Ab2DWNvL convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Apr 2012 09:51:11 -0400
-Message-ID: <1335189065.18120.187.camel@smile>
-Subject: Re: [PATCH] as3645a: move .remove under .devexit.text
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org
-Date: Mon, 23 Apr 2012 16:51:05 +0300
-In-Reply-To: <1578696.ouKf8xKIQt@avalon>
-References: <1334843290-29668-1-git-send-email-andriy.shevchenko@linux.intel.com>
-	 <1578696.ouKf8xKIQt@avalon>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
-Mime-Version: 1.0
+Received: from imr-ma01.mx.aol.com ([64.12.206.39]:51549 "EHLO
+	imr-ma01.mx.aol.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754102Ab2DBCVq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Apr 2012 22:21:46 -0400
+Message-ID: <4F790D1B.4030702@netscape.net>
+Date: Sun, 01 Apr 2012 23:21:15 -0300
+From: =?ISO-8859-1?Q?Alfredo_Jes=FAs_Delaiti?=
+	<alfredodelaiti@netscape.net>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+CC: Steven Toth <stoth@kernellabs.com>
+Subject: Re: Broken driver cx23885 mygica x8507
+References: <4F77B099.7030109@netscape.net> <4F78A815.9050102@netscape.net>
+In-Reply-To: <4F78A815.9050102@netscape.net>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 2012-04-21 at 19:36 +0200, Laurent Pinchart wrote: 
-> Hi Andy,
-> 
-> Thanks for the patch.
-> 
-> On Thursday 19 April 2012 16:48:10 Andy Shevchenko wrote:
-> > There is no needs to keep .remove under .exit.text. This driver is for a
-> > standalone chip that could be on any board and connected to any i2c bus.
-> > 
-> > Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> > Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > ---
-> >  drivers/media/video/as3645a.c |    4 ++--
-> >  1 files changed, 2 insertions(+), 2 deletions(-)
-> > 
-> > diff --git a/drivers/media/video/as3645a.c b/drivers/media/video/as3645a.c
-> > index 7a3371f..dc2571f 100644
-> > --- a/drivers/media/video/as3645a.c
-> > +++ b/drivers/media/video/as3645a.c
-> > @@ -846,7 +846,7 @@ done:
-> >  	return ret;
-> >  }
-> > 
-> > -static int __exit as3645a_remove(struct i2c_client *client)
-> > +static int __devexit as3645a_remove(struct i2c_client *client)
-> 
-> What about also marking as3645a_probe() with __devinit ?
-Yup, we might mark probe() and init_controls() with such tag.
+Hi all
+
+El 01/04/12 16:10, Alfredo Jesús Delaiti escribió:
+> Hi all
+>
+> I found that this is the patch that makes no sound:
+>
+> http://git.kernellabs.com/?p=stoth/cx23885-hvr1850-fixups.git;a=commit;h=e187d0d51bcd0659eeac1d608284644ec8404239 
+>
+>
+> I will try to find that lines are responsible.
+>
+
+Please refer to the patch mentioned above.
+
+lines that leave without sound to the plate are these:
+
+@@ -1086,6 +1232,23 @@ static int set_input(struct i2c_client *client, 
+enum cx25840_video_input vid_inp
+                 cx25840_write4(client, 0x8d0, 0x1f063870);
+         }
+
++       if (is_cx2388x(state)) {
++               /* HVR1850 */
++               /* AUD_IO_CTRL - I2S Input, Parallel1*/
++               /*  - Channel 1 src - Parallel1 (Merlin out) */
++               /*  - Channel 2 src - Parallel2 (Merlin out) */
++               /*  - Channel 3 src - Parallel3 (Merlin AC97 out) */
++               /*  - I2S source and dir - Merlin, output */
++               cx25840_write4(client, 0x124, 0x100);
++
+->+               if (!is_dif) {
+->+                       /* Stop microcontroller if we don't need it
+->+                        * to avoid audio popping on svideo/composite use.
+->+                        */
+->+                       cx25840_and_or(client, 0x803, ~0x10, 0x00);
+->+               }
++       }
++
+         return 0;
+  }
+
+Without these lines, have sound.
 
 
-> I might be missing 
-> something though, as we have very few I2C drivers in drivers/media/video with 
-> a probe function marked with __devinit (or remove function marked with 
-> __devexit). Is it time for some cleanup ?
-The question is not for me. If I understand correctly that allows not to
-keep such code (probe() & related) in the memory after device
-initialization. And not use remove() at all in case of CONFIG_MODULE /
-CONFIG_HOTPLUG is off.
 
-> 
-> >  {
-> >  	struct v4l2_subdev *subdev = i2c_get_clientdata(client);
-> >  	struct as3645a *flash = to_as3645a(subdev);
-> > @@ -877,7 +877,7 @@ static struct i2c_driver as3645a_i2c_driver = {
-> >  		.pm   = &as3645a_pm_ops,
-> >  	},
-> >  	.probe	= as3645a_probe,
-> > -	.remove	= __exit_p(as3645a_remove),
-> > +	.remove	= __devexit_p(as3645a_remove),
-> >  	.id_table = as3645a_id_table,
-> >  };
-> 
+And the following line produces a vertical green bar on the right and 
+the image is a bit narrow.
+If I cancel that line, the image is colored with alternating bars and 
+color distorted.
+
+@@ -631,6 +654,37 @@ static void cx23885_initialize(struct i2c_client 
+*client)
+         /* Disable and clear audio interrupts - we don't use them */
+         cx25840_write(client, CX25840_AUD_INT_CTRL_REG, 0xff);
+         cx25840_write(client, CX25840_AUD_INT_STAT_REG, 0xff);
++
++       /* CC raw enable */
++       /*  - VIP 1.1 control codes - 10bit, blue field enable.
++        *  - enable raw data during vertical blanking.
++        *  - enable ancillary Data insertion for 656 or VIP.
++        */
+->+       cx25840_write4(client, 0x404, 0x0010253e);
+
+
+Thanks,
+
+Alfredo
+
+
 
 -- 
-Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Intel Finland Oy
+Dona tu voz
+http://www.voxforge.org/es
+
