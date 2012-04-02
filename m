@@ -1,182 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:12494 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754567Ab2DCOK1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Apr 2012 10:10:27 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Date: Tue, 03 Apr 2012 16:10:05 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCHv24 00/16] Contiguous Memory Allocator
-To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org
-Cc: Michal Nazarewicz <mina86@mina86.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
-	Jesse Barker <jesse.barker@linaro.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Chunsang Jeong <chunsang.jeong@linaro.org>,
-	Dave Hansen <dave@linux.vnet.ibm.com>,
-	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-	Rob Clark <rob.clark@linaro.org>,
-	Ohad Ben-Cohen <ohad@wizery.com>,
-	Sandeep Patil <psandeep.s@gmail.com>
-Message-id: <1333462221-3987-1-git-send-email-m.szyprowski@samsung.com>
+Received: from bues.ch ([80.190.117.144]:44505 "EHLO bues.ch"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753112Ab2DBRWc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 2 Apr 2012 13:22:32 -0400
+Date: Mon, 2 Apr 2012 19:22:22 +0200
+From: Michael =?UTF-8?B?QsO8c2No?= <m@bues.ch>
+To: Antti Palosaari <crope@iki.fi>
+Cc: linux-media <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] af9035: Add Afatech USB PIDs
+Message-ID: <20120402192222.53c7817c@milhouse>
+In-Reply-To: <4F79DC00.4030308@iki.fi>
+References: <20120402183452.68670fb3@milhouse>
+	<4F79DC00.4030308@iki.fi>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=PGP-SHA1;
+ boundary="Sig_/j_KaigopMBSq.q9Xoy4xNJ+"; protocol="application/pgp-signature"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+--Sig_/j_KaigopMBSq.q9Xoy4xNJ+
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 
-This is (yet another) update of CMA patches. I've rebased them onto
-recent v3.4-rc1 kernel tree and integrated some minor bugfixes. The
-first issue has been pointed by Sandeep Patil - alloc_contig_range
-reclaimed two times too many pages, second issue (possible mismatch
-between pageblock size and MAX_ORDER pages) has been recently spotted
-by Michal Nazarewicz.
+On Mon, 02 Apr 2012 20:04:00 +0300
+Antti Palosaari <crope@iki.fi> wrote:
 
-These patches are also available on my git repository:
-git://git.linaro.org/people/mszyprowski/linux-dma-mapping.git 3.4-rc1-cma-v24
+> On 02.04.2012 19:34, Michael B=C3=BCsch wrote:
+> > Add some generic Afatech USB PIDs used by "Cabstone" sticks and others.
+> >
+> > Signed-off-by: Michael Buesch<m@bues.ch>
+>=20
+> Applied, but same checkpatch.pl comments as earlier patches!
 
-Best regards
-Marek Szyprowski
-Samsung Poland R&D Center
+There is not a single warning or error in this patch.
 
-Links to previous versions of the patchset:
-v23: <http://www.spinics.net/lists/linux-media/msg44547.html>
-v22: <http://www.spinics.net/lists/linux-media/msg44370.html>
-v21: <http://www.spinics.net/lists/linux-media/msg44155.html>
-v20: <http://www.spinics.net/lists/linux-mm/msg29145.html>
-v19: <http://www.spinics.net/lists/linux-mm/msg29145.html>
-v18: <http://www.spinics.net/lists/linux-mm/msg28125.html>
-v17: <http://www.spinics.net/lists/arm-kernel/msg148499.html>
-v16: <http://www.spinics.net/lists/linux-mm/msg25066.html>
-v15: <http://www.spinics.net/lists/linux-mm/msg23365.html>
-v14: <http://www.spinics.net/lists/linux-media/msg36536.html>
-v13: (internal, intentionally not released)
-v12: <http://www.spinics.net/lists/linux-media/msg35674.html>
-v11: <http://www.spinics.net/lists/linux-mm/msg21868.html>
-v10: <http://www.spinics.net/lists/linux-mm/msg20761.html>
- v9: <http://article.gmane.org/gmane.linux.kernel.mm/60787>
- v8: <http://article.gmane.org/gmane.linux.kernel.mm/56855>
- v7: <http://article.gmane.org/gmane.linux.kernel.mm/55626>
- v6: <http://article.gmane.org/gmane.linux.kernel.mm/55626>
- v5: (intentionally left out as CMA v5 was identical to CMA v4)
- v4: <http://article.gmane.org/gmane.linux.kernel.mm/52010>
- v3: <http://article.gmane.org/gmane.linux.kernel.mm/51573>
- v2: <http://article.gmane.org/gmane.linux.kernel.mm/50986>
- v1: <http://article.gmane.org/gmane.linux.kernel.mm/50669>
+--=20
+Greetings, Michael.
 
+PGP encryption is encouraged / 908D8B0E
 
-Changelog:
+--Sig_/j_KaigopMBSq.q9Xoy4xNJ+
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Disposition: attachment; filename=signature.asc
 
-v24:
-    1. fixed handling of diffrent sizes of pageblock and MAX_ORDER size
-       pages
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
 
-    2. fixed number of the reclaimed pages before performing the allocation
-       (thanks to Sandeep Patil for pointing this issue)
+iQIcBAEBAgAGBQJPeeBOAAoJEPUyvh2QjYsOsRMP+gNLyWqZ8IX4k5QDL5WwHGbR
+J+eEqBnPu2sHaOgnWQdRRdxOhkZpi/F8u9C4B6NUP9XJFyxZ6KibU3L/p4qQYk3Z
+aGksl+K+CPDkMuYneTLvtHeqscZKzxdSp6++JvpXHrLvdIWgXrd5TMHGeHAZTl2I
+bLtdhSt5nW7pPqbILGvBmi6ViB6WuB4J7vTlpA+MRq8ZZGEH6zgTJAM+R5c60kSI
+BizL4v5PS9toczKRc4wL2ms0+rwtvGa2XW+Fq8jhhM6ujaYV87Kf/cn2oFrdTDvt
+BiCSWSzyhPPNOfvQkQKDlTTch0FF4e9Q15gCxUYcWeVc5FiUNajOsWIATe/8cT9a
+TyGfnQv2AvlPPrsW89VFVEhFSUHNrA6O1EieweFj8rHGuVrH4qY0eAQzBpxfwD4W
+JAxnhVVYtxODDZ8eD8cl4DjY7fnDeKJ1LPjTF2ieKXGGpH7K9Huv+tC7QZuFDZN/
+Bv1CdT5MHocexU5diJt3EtlUutk9I2hBxXPH8ggBXy7ed3LSkh/9GNP0SUv4PAp4
+XgXx6XBON9KUVG39agq+DHiFih6gG+c0nGLcoSouvHd9QGVFaNm6Ghw2TFYF41I6
+G7WNsaQcPuiPnMIcjp8ovWCT23XnIhYlcl948dMBEpnAatRWMGd5Y0/P7/yn6KZW
+wFSLBCN6/h1jsXR6TFM/
+=NsjW
+-----END PGP SIGNATURE-----
 
-    3. rebased onto Linux v3.4-rc1
-
-v23:
-    1. fixed bug spotted by Aaro Koskinen (incorrect check inside VM_BUG_ON)
-
-    2. rebased onto next-20120222 tree from
-       git://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git 
-
-v22:
-    1. Fixed compilation break caused by missing fixup patch in v21
-
-    2. Fixed typos in the comments
-
-    3. Removed superfluous #include entries
-
-v21:
-    1. Fixed incorrect check which broke memory compaction code
-
-    2. Fixed hacky and racy min_free_kbytes handling
-
-    3. Added serialization patch to watermark calculation
-
-    4. Fixed typos here and there in the comments
-
-v20 and earlier - see previous patchsets.
-
-
-Patches in this patchset:
-
-Marek Szyprowski (6):
-  mm: extract reclaim code from __alloc_pages_direct_reclaim()
-  mm: trigger page reclaim in alloc_contig_range() to stabilise
-    watermarks
-  drivers: add Contiguous Memory Allocator
-  X86: integrate CMA with DMA-mapping subsystem
-  ARM: integrate CMA with DMA-mapping subsystem
-  ARM: Samsung: use CMA for 2 memory banks for s5p-mfc device
-
-Mel Gorman (1):
-  mm: Serialize access to min_free_kbytes
-
-Michal Nazarewicz (9):
-  mm: page_alloc: remove trailing whitespace
-  mm: compaction: introduce isolate_migratepages_range()
-  mm: compaction: introduce map_pages()
-  mm: compaction: introduce isolate_freepages_range()
-  mm: compaction: export some of the functions
-  mm: page_alloc: introduce alloc_contig_range()
-  mm: page_alloc: change fallbacks array handling
-  mm: mmzone: MIGRATE_CMA migration type added
-  mm: page_isolation: MIGRATE_CMA isolation functions added
-
- Documentation/kernel-parameters.txt   |    9 +
- arch/Kconfig                          |    3 +
- arch/arm/Kconfig                      |    2 +
- arch/arm/include/asm/dma-contiguous.h |   15 ++
- arch/arm/include/asm/mach/map.h       |    1 +
- arch/arm/kernel/setup.c               |    9 +-
- arch/arm/mm/dma-mapping.c             |  370 ++++++++++++++++++++++++------
- arch/arm/mm/init.c                    |   23 ++-
- arch/arm/mm/mm.h                      |    3 +
- arch/arm/mm/mmu.c                     |   31 ++-
- arch/arm/plat-s5p/dev-mfc.c           |   51 +----
- arch/x86/Kconfig                      |    1 +
- arch/x86/include/asm/dma-contiguous.h |   13 +
- arch/x86/include/asm/dma-mapping.h    |    4 +
- arch/x86/kernel/pci-dma.c             |   18 ++-
- arch/x86/kernel/pci-nommu.c           |    8 +-
- arch/x86/kernel/setup.c               |    2 +
- drivers/base/Kconfig                  |   89 +++++++
- drivers/base/Makefile                 |    1 +
- drivers/base/dma-contiguous.c         |  401 +++++++++++++++++++++++++++++++
- include/asm-generic/dma-contiguous.h  |   28 +++
- include/linux/device.h                |    4 +
- include/linux/dma-contiguous.h        |  110 +++++++++
- include/linux/gfp.h                   |   12 +
- include/linux/mmzone.h                |   47 +++-
- include/linux/page-isolation.h        |   18 +-
- mm/Kconfig                            |    2 +-
- mm/Makefile                           |    3 +-
- mm/compaction.c                       |  418 +++++++++++++++++++++------------
- mm/internal.h                         |   33 +++
- mm/memory-failure.c                   |    2 +-
- mm/memory_hotplug.c                   |    6 +-
- mm/page_alloc.c                       |  409 ++++++++++++++++++++++++++++----
- mm/page_isolation.c                   |   15 +-
- mm/vmstat.c                           |    3 +
- 35 files changed, 1791 insertions(+), 373 deletions(-)
- create mode 100644 arch/arm/include/asm/dma-contiguous.h
- create mode 100644 arch/x86/include/asm/dma-contiguous.h
- create mode 100644 drivers/base/dma-contiguous.c
- create mode 100644 include/asm-generic/dma-contiguous.h
- create mode 100644 include/linux/dma-contiguous.h
-
--- 
-1.7.1.569.g6f426
-
+--Sig_/j_KaigopMBSq.q9Xoy4xNJ+--
