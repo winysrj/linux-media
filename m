@@ -1,222 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:62819 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750979Ab2DSFNN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Apr 2012 01:13:13 -0400
-MIME-Version: 1.0
-In-Reply-To: <1334765203-31844-5-git-send-email-manjunatha_halli@ti.com>
-References: <1334765203-31844-1-git-send-email-manjunatha_halli@ti.com>
-	<1334765203-31844-5-git-send-email-manjunatha_halli@ti.com>
-Date: Thu, 19 Apr 2012 14:13:12 +0900
-Message-ID: <CAH9JG2We=7mD=--0on6_iUC8wPESP2OzNji8t1QuZpENHKyotA@mail.gmail.com>
-Subject: Re: [PATCH V2 4/5] [Documentation] Media: Update docs for V4L2 FM new features
-From: Kyungmin Park <kmpark@infradead.org>
-To: manjunatha_halli@ti.com
-Cc: linux-media@vger.kernel.org, benzyg@ti.com,
-	linux-kernel@vger.kernel.org, Manjunatha Halli <x0130808@ti.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:60145 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751686Ab2DBV0j (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Apr 2012 17:26:39 -0400
+Received: by wibhj6 with SMTP id hj6so3023786wib.1
+        for <linux-media@vger.kernel.org>; Mon, 02 Apr 2012 14:26:38 -0700 (PDT)
+From: Gianluca Gennari <gennarone@gmail.com>
+To: linux-media@vger.kernel.org, crope@iki.fi
+Cc: m@bues.ch, hfvogt@gmx.net, mchehab@redhat.com,
+	Gianluca Gennari <gennarone@gmail.com>
+Subject: [PATCH 1/5] af9035: add USB id for 07ca:a867
+Date: Mon,  2 Apr 2012 23:25:13 +0200
+Message-Id: <1333401917-27203-2-git-send-email-gennarone@gmail.com>
+In-Reply-To: <1333401917-27203-1-git-send-email-gennarone@gmail.com>
+References: <1333401917-27203-1-git-send-email-gennarone@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+New USB id for the Avermedia A867 stick (Sky Digital Key with blue led).
 
-On 4/19/12, manjunatha_halli@ti.com <manjunatha_halli@ti.com> wrote:
-> From: Manjunatha Halli <x0130808@ti.com>
->
-> The list of new features -
-> 	1) New control class for FM RX
-> 	2) New FM RX CID's - De-Emphasis filter mode and RDS AF switch
-> 	3) New FM TX CID - RDS Alternate frequency set.
->
-> Signed-off-by: Manjunatha Halli <x0130808@ti.com>
-> ---
->  Documentation/DocBook/media/v4l/compat.xml         |    3 +
->  Documentation/DocBook/media/v4l/controls.xml       |   78
-> ++++++++++++++++++++
->  Documentation/DocBook/media/v4l/dev-rds.xml        |    5 +-
->  .../DocBook/media/v4l/vidioc-g-ext-ctrls.xml       |    7 ++
->  4 files changed, 91 insertions(+), 2 deletions(-)
->
-> diff --git a/Documentation/DocBook/media/v4l/compat.xml
-> b/Documentation/DocBook/media/v4l/compat.xml
-> index bce97c5..df1f345 100644
-> --- a/Documentation/DocBook/media/v4l/compat.xml
-> +++ b/Documentation/DocBook/media/v4l/compat.xml
-> @@ -2311,6 +2311,9 @@ more information.</para>
->  	  <para>Added FM Modulator (FM TX) Extended Control Class:
-> <constant>V4L2_CTRL_CLASS_FM_TX</constant> and their Control IDs.</para>
->  	</listitem>
->  	<listitem>
-> +	<para>Added FM Receiver (FM RX) Extended Control Class:
-> <constant>V4L2_CTRL_CLASS_FM_RX</constant> and their Control IDs.</para>
-> +	</listitem>
-> +	<listitem>
->  	  <para>Added Remote Controller chapter, describing the default Remote
-> Controller mapping for media devices.</para>
->  	</listitem>
->        </orderedlist>
-> diff --git a/Documentation/DocBook/media/v4l/controls.xml
-> b/Documentation/DocBook/media/v4l/controls.xml
-> index b84f25e..f6c8034 100644
-> --- a/Documentation/DocBook/media/v4l/controls.xml
-> +++ b/Documentation/DocBook/media/v4l/controls.xml
-> @@ -3018,6 +3018,12 @@ to find receivers which can scroll strings sized as
-> 32 x N or 64 x N characters.
->  with steps of 32 or 64 characters. The result is it must always contain a
-> string with size multiple of 32 or 64. </entry>
->  	  </row>
->  	  <row>
-> +	  <entry
-> spanname="id"><constant>V4L2_CID_RDS_TX_AF_FREQ</constant>&nbsp;</entry>
-> +	  <entry>integer</entry>
-> +	  </row>
-> +	  <row><entry spanname="descr">Sets the RDS Alternate Frequency value
-> which allows a receiver to re-tune to a different frequency providing the
-> same station when the first signal becomes too weak (e.g., when moving out
-> of range). </entry>
-> +	  </row>
-> +	  <row>
->  	    <entry
-> spanname="id"><constant>V4L2_CID_AUDIO_LIMITER_ENABLED</constant>&nbsp;</entry>
->  	    <entry>boolean</entry>
->  	  </row>
-> @@ -3146,6 +3152,78 @@ manually or automatically if set to zero. Unit, range
-> and step are driver-specif
->  <xref linkend="en50067" /> document, from CENELEC.</para>
->      </section>
->
-> +    <section id="fm-rx-controls">
-> +      <title>FM Receiver Control Reference</title>
-> +
-> +      <para>The FM Receiver (FM_RX) class includes controls for common
-> features of
-> +FM Reception capable devices. Currently this class includes parameter for
-> Alternate
-> +frequency.</para>
-> +
-> +      <table pgwide="1" frame="none" id="fm-rx-control-id">
-> +      <title>FM_RX Control IDs</title>
-> +
-> +      <tgroup cols="4">
-> +        <colspec colname="c1" colwidth="1*" />
-> +        <colspec colname="c2" colwidth="6*" />
-> +        <colspec colname="c3" colwidth="2*" />
-> +        <colspec colname="c4" colwidth="6*" />
-> +        <spanspec namest="c1" nameend="c2" spanname="id" />
-> +        <spanspec namest="c2" nameend="c4" spanname="descr" />
-> +        <thead>
-> +          <row>
-> +            <entry spanname="id" align="left">ID</entry>
-> +            <entry align="left">Type</entry>
-> +          </row><row rowsep="1"><entry spanname="descr"
-> align="left">Description</entry>
-> +          </row>
-> +        </thead>
-> +        <tbody valign="top">
-> +          <row><entry></entry></row>
-> +          <row>
-> +            <entry
-> spanname="id"><constant>V4L2_CID_FM_RX_CLASS</constant>&nbsp;</entry>
-> +            <entry>class</entry>
-> +          </row><row><entry spanname="descr">The FM_RX class
-> +descriptor. Calling &VIDIOC-QUERYCTRL; for this control will return a
-> +description of this control class.</entry>
-> +          </row>
-> +          <row>
-> +            <entry
-> spanname="id"><constant>V4L2_CID_RDS_AF_SWITCH</constant>&nbsp;</entry>
-> +            <entry>boolean</entry>
-> +          </row>
-> +          <row><entry spanname="descr">Enable or Disable's FM RX RDS
-> Alternate frequency feature.</entry>
-> +          </row>
-> +          <row>
-> +	    <entry
-> spanname="id"><constant>V4L2_CID_TUNE_DEEMPHASIS</constant>&nbsp;</entry>
-> +	    <entry>integer</entry>
-> +	  </row>
-> +	  <row id="v4l2-deemphasis"><entry spanname="descr">Configures the
-> de-emphasis value for reception.
-> +A pre-emphasis filter is applied to the broadcast to accentuate the high
-> audio frequencies.
-> +Depending on the region, a time constant of either 50 or 75 useconds is
-> used. The enum&nbsp;v4l2_deemphasis
-> +defines possible values for pre-emphasis. Here they are:</entry>
-> +	</row><row>
-> +	<entrytbl spanname="descr" cols="2">
-> +		  <tbody valign="top">
-> +		    <row>
-> +		      <entry><constant>V4L2_DEEMPHASIS_DISABLED</constant>&nbsp;</entry>
-> +		      <entry>No de-emphasis is applied.</entry>
-> +		    </row>
-> +		    <row>
-> +		      <entry><constant>V4L2_DEEMPHASIS_50_uS</constant>&nbsp;</entry>
-> +		      <entry>A de-emphasis of 50 uS is used.</entry>
-> +		    </row>
-> +		    <row>
-> +		      <entry><constant>V4L2_DEEMPHASIS_75_uS</constant>&nbsp;</entry>
-> +		      <entry>A de-emphasis of 75 uS is used.</entry>
-> +		    </row>
-> +		  </tbody>
-> +		</entrytbl>
-> +
-> +	  </row>
-> +          <row><entry></entry></row>
-> +        </tbody>
-> +      </tgroup>
-> +      </table>
-> +
-> +      </section>
->      <section id="flash-controls">
->        <title>Flash Control Reference</title>
->
-> diff --git a/Documentation/DocBook/media/v4l/dev-rds.xml
-> b/Documentation/DocBook/media/v4l/dev-rds.xml
-> index 38883a4..8188161 100644
-> --- a/Documentation/DocBook/media/v4l/dev-rds.xml
-> +++ b/Documentation/DocBook/media/v4l/dev-rds.xml
-> @@ -55,8 +55,9 @@ If the driver only passes RDS blocks without interpreting
-> the data
->  the <constant>V4L2_TUNER_CAP_RDS_BLOCK_IO</constant> flag has to be set. If
-> the
->  tuner is capable of handling RDS entities like program identification codes
-> and radio
->  text, the flag <constant>V4L2_TUNER_CAP_RDS_CONTROLS</constant> should be
-> set,
-> -see <link linkend="writing-rds-data">Writing RDS data</link> and
-> -<link linkend="fm-tx-controls">FM Transmitter Control
-> Reference</link>.</para>
-> +see <link linkend="writing-rds-data">Writing RDS data</link>,
-> +<link linkend="fm-tx-controls">FM Transmitter Control Reference</link>
-> +<link linkend="fm-rx-controls">FM Receiver Control Reference</link>.</para>
->    </section>
->
->    <section  id="reading-rds-data">
-> diff --git a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
-> b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
-> index b17a7aa..2a8b44e 100644
-> --- a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
-> +++ b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
-> @@ -258,6 +258,13 @@ These controls are described in <xref
->  These controls are described in <xref
->  		linkend="fm-tx-controls" />.</entry>
->  	  </row>
-> +          <row>
-> +            <entry><constant>V4L2_CTRL_CLASS_FM_RX</constant></entry>
-> +             <entry>0x9c0000</entry>
-> +             <entry>The class containing FM Receiver (FM RX) controls.
-> +These controls are described in <xref
-> +                 linkend="fm-rx-controls" />.</entry>
-> +           </row>
->  	  <row>
->  	    <entry><constant>V4L2_CTRL_CLASS_FLASH</constant></entry>
->  	    <entry>0x9c0000</entry>
-> --
-> 1.7.4.1
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+Signed-off-by: Gianluca Gennari <gennarone@gmail.com>
+---
+ drivers/media/dvb/dvb-usb/af9035.c      |    6 +++++-
+ drivers/media/dvb/dvb-usb/dvb-usb-ids.h |    1 +
+ 2 files changed, 6 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/media/dvb/dvb-usb/af9035.c b/drivers/media/dvb/dvb-usb/af9035.c
+index 8060e78..6f73cdf 100644
+--- a/drivers/media/dvb/dvb-usb/af9035.c
++++ b/drivers/media/dvb/dvb-usb/af9035.c
+@@ -794,6 +794,7 @@ enum af9035_id_entry {
+ 	AF9035_15A4_9035,
+ 	AF9035_15A4_1001,
+ 	AF9035_07CA_1867,
++	AF9035_07CA_A867,
+ };
+ 
+ static struct usb_device_id af9035_id[] = {
+@@ -805,6 +806,8 @@ static struct usb_device_id af9035_id[] = {
+ 		USB_DEVICE(USB_VID_AFATECH, USB_PID_AFATECH_AF9035_2)},
+ 	[AF9035_07CA_1867] = {
+ 		USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_1867)},
++	[AF9035_07CA_A867] = {
++		USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_A867)},
+ 	{},
+ };
+ 
+@@ -861,9 +864,10 @@ static struct dvb_usb_device_properties af9035_properties[] = {
+ 					&af9035_id[AF9035_15A4_1001],
+ 				},
+ 			}, {
+-				.name = "AVerMedia HD Volar",
++				.name = "AVerMedia HD Volar (A867)",
+ 				.cold_ids = {
+ 					&af9035_id[AF9035_07CA_1867],
++					&af9035_id[AF9035_07CA_A867],
+ 				},
+ 			},
+ 		}
+diff --git a/drivers/media/dvb/dvb-usb/dvb-usb-ids.h b/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
+index 8f77a6c..3cf002b 100644
+--- a/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
++++ b/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
+@@ -225,6 +225,7 @@
+ #define USB_PID_AVERMEDIA_A805				0xa805
+ #define USB_PID_AVERMEDIA_A815M				0x815a
+ #define USB_PID_AVERMEDIA_1867				0x1867
++#define USB_PID_AVERMEDIA_A867				0xa867
+ #define USB_PID_TECHNOTREND_CONNECT_S2400               0x3006
+ #define USB_PID_TECHNOTREND_CONNECT_CT3650		0x300d
+ #define USB_PID_TERRATEC_CINERGY_DT_XS_DIVERSITY	0x005a
+-- 
+1.7.5.4
+
