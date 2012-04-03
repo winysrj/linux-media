@@ -1,49 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:40933 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754824Ab2DTS3B (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Apr 2012 14:29:01 -0400
-From: Renzo Dani <arons7@gmail.com>
-To: laurent.pinchart@ideasonboard.com
-Cc: mchehab@infradead.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, arons7@gmail.com
-Subject: [PATCH 1/1] Added GenesysLogic BW Microscope device id
-Date: Fri, 20 Apr 2012 20:28:43 +0200
-Message-Id: <1334946523-14618-1-git-send-email-arons7@gmail.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:47857 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751872Ab2DCKLR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 3 Apr 2012 06:11:17 -0400
+Message-ID: <4F7ACCC1.20503@iki.fi>
+Date: Tue, 03 Apr 2012 13:11:13 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Gianluca Gennari <gennarone@gmail.com>
+CC: linux-media@vger.kernel.org, m@bues.ch, hfvogt@gmx.net,
+	mchehab@redhat.com
+Subject: Re: [PATCH 4/5 v2] af9035: fix warning
+References: <GmailId1367538da899604d> <1333413178-20737-1-git-send-email-gennarone@gmail.com>
+In-Reply-To: <1333413178-20737-1-git-send-email-gennarone@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Renzo Dani <arons7@gmail.com>
+On 03.04.2012 03:32, Gianluca Gennari wrote:
+> On a 32 bit system:
+>
+> af9035.c: In function 'af9035_download_firmware':
+> af9035.c:446:3: warning: format '%lu' expects argument of type 'long unsigned
+> int', but argument 3 has type 'unsigned int' [-Wformat]
+>
+> %zu avoids any warning on both 32 and 64 bit systems.
+>
+> Signed-off-by: Gianluca Gennari<gennarone@gmail.com>
 
+Applied thanks!
+http://git.linuxtv.org/anttip/media_tree.git/shortlog/refs/heads/af9035_experimental
 
-Signed-off-by: Renzo Dani <arons7@gmail.com>
----
- drivers/media/video/uvc/uvc_driver.c |   11 ++++++++++-
- 1 files changed, 10 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/media/video/uvc/uvc_driver.c b/drivers/media/video/uvc/uvc_driver.c
-index 1d13172..b8c94b4 100644
---- a/drivers/media/video/uvc/uvc_driver.c
-+++ b/drivers/media/video/uvc/uvc_driver.c
-@@ -2176,7 +2176,16 @@ static struct usb_device_id uvc_ids[] = {
- 	  .bInterfaceSubClass	= 1,
- 	  .bInterfaceProtocol	= 0,
- 	  .driver_info		= UVC_QUIRK_STREAM_NO_FID },
--	/* Hercules Classic Silver */
-+	/* Genesys Logic USB 2.0 BW Microscope */
-+        { .match_flags          = USB_DEVICE_ID_MATCH_DEVICE
-+                                | USB_DEVICE_ID_MATCH_INT_INFO,
-+          .idVendor             = 0x05e3,
-+          .idProduct            = 0x0511,
-+          .bInterfaceClass      = USB_CLASS_VIDEO,
-+          .bInterfaceSubClass   = 1,
-+          .bInterfaceProtocol   = 0,
-+          .driver_info          = UVC_QUIRK_STREAM_NO_FID },
-+        /* Hercules Classic Silver */
- 	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
- 				| USB_DEVICE_ID_MATCH_INT_INFO,
- 	  .idVendor		= 0x06f8,
+regards
+Antti
 -- 
-1.7.3.4
-
+http://palosaari.fi/
