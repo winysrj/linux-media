@@ -1,77 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:58821 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751814Ab2DUT6O (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 21 Apr 2012 15:58:14 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Renzo Dani <arons7@gmail.com>
-Cc: mchehab@infradead.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 1/1] Added GenesysLogic BW Microscope device id
-Date: Sat, 21 Apr 2012 17:07:04 +0200
-Message-ID: <11816853.jz81JXdN3I@avalon>
-In-Reply-To: <1334946523-14618-1-git-send-email-arons7@gmail.com>
-References: <1334946523-14618-1-git-send-email-arons7@gmail.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mail-wg0-f44.google.com ([74.125.82.44]:63193 "EHLO
+	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752147Ab2DCAeY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Apr 2012 20:34:24 -0400
+Received: by wgbdr13 with SMTP id dr13so3179019wgb.1
+        for <linux-media@vger.kernel.org>; Mon, 02 Apr 2012 17:34:23 -0700 (PDT)
+From: Gianluca Gennari <gennarone@gmail.com>
+To: linux-media@vger.kernel.org, crope@iki.fi
+Cc: m@bues.ch, hfvogt@gmx.net, mchehab@redhat.com,
+	Gianluca Gennari <gennarone@gmail.com>
+Subject: [PATCH 4/5 v2] af9035: fix warning
+Date: Tue,  3 Apr 2012 02:32:58 +0200
+Message-Id: <1333413178-20737-1-git-send-email-gennarone@gmail.com>
+In-Reply-To: <GmailId1367538da899604d>
+References: <GmailId1367538da899604d>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Renzo,
+On a 32 bit system:
 
-On Friday 20 April 2012 20:28:43 Renzo Dani wrote:
-> From: Renzo Dani <arons7@gmail.com>
-> 
-> Signed-off-by: Renzo Dani <arons7@gmail.com>
+af9035.c: In function 'af9035_download_firmware':
+af9035.c:446:3: warning: format '%lu' expects argument of type 'long unsigned
+int', but argument 3 has type 'unsigned int' [-Wformat]
 
-Thank you for the patch.
+%zu avoids any warning on both 32 and 64 bit systems.
 
-> ---
->  drivers/media/video/uvc/uvc_driver.c |   11 ++++++++++-
->  1 files changed, 10 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/media/video/uvc/uvc_driver.c
-> b/drivers/media/video/uvc/uvc_driver.c index 1d13172..b8c94b4 100644
-> --- a/drivers/media/video/uvc/uvc_driver.c
-> +++ b/drivers/media/video/uvc/uvc_driver.c
-> @@ -2176,7 +2176,16 @@ static struct usb_device_id uvc_ids[] = {
->  	  .bInterfaceSubClass	= 1,
->  	  .bInterfaceProtocol	= 0,
->  	  .driver_info		= UVC_QUIRK_STREAM_NO_FID },
-> -	/* Hercules Classic Silver */
-> +	/* Genesys Logic USB 2.0 BW Microscope */
-> +        { .match_flags          = USB_DEVICE_ID_MATCH_DEVICE
-> +                                | USB_DEVICE_ID_MATCH_INT_INFO,
-> +          .idVendor             = 0x05e3,
-> +          .idProduct            = 0x0511,
-> +          .bInterfaceClass      = USB_CLASS_VIDEO,
-> +          .bInterfaceSubClass   = 1,
-> +          .bInterfaceProtocol   = 0,
+Signed-off-by: Gianluca Gennari <gennarone@gmail.com>
+---
+ drivers/media/dvb/dvb-usb/af9035.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Please use tabs instead of space to indent the code. Running 
-scripts/checkpatch.pl on the patch before sending it catches this kind of 
-issues, it's thus a good practice to do so. As the patch is small I've fixed 
-the issue myself, there's no need to resubmit it.
-
-> +          .driver_info          = UVC_QUIRK_STREAM_NO_FID },
-
-I suppose you have tested the device without this patch and that it didn't 
-work. Could you please confirm that ? Could you please also send me the output 
-of
-
-lsusb -v -d 05e3:0511
-
-> +        /* Hercules Classic Silver */
->  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
-> 
->  				| USB_DEVICE_ID_MATCH_INT_INFO,
-> 
->  	  .idVendor		= 0x06f8,
-
+diff --git a/drivers/media/dvb/dvb-usb/af9035.c b/drivers/media/dvb/dvb-usb/af9035.c
+index f943c57..8bf6367 100644
+--- a/drivers/media/dvb/dvb-usb/af9035.c
++++ b/drivers/media/dvb/dvb-usb/af9035.c
+@@ -443,7 +443,7 @@ static int af9035_download_firmware(struct usb_device *udev,
+ 
+ 		i -= hdr_data_len + HDR_SIZE;
+ 
+-		pr_debug("%s: data uploaded=%lu\n", __func__, fw->size - i);
++		pr_debug("%s: data uploaded=%zu\n", __func__, fw->size - i);
+ 	}
+ 
+ 	/* firmware loaded, request boot */
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.5.4
 
