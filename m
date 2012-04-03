@@ -1,54 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:37836 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757311Ab2D3X3q convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Apr 2012 19:29:46 -0400
-Received: by obbtb18 with SMTP id tb18so123423obb.19
-        for <linux-media@vger.kernel.org>; Mon, 30 Apr 2012 16:29:45 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20120430172703.3052d3a0@lwn.net>
-References: <20120430220627.B4C339D401E@zog.reactivated.net>
-	<20120430172703.3052d3a0@lwn.net>
-Date: Mon, 30 Apr 2012 17:29:45 -0600
-Message-ID: <CAMLZHHT3ASU=dDPfFM1fe64_jLdqCjN0c-_4JjyuvAXFf5up6w@mail.gmail.com>
-Subject: Re: [PATCH] via-camera: specify XO-1.5 camera clock speed
-From: Daniel Drake <dsd@laptop.org>
-To: Jonathan Corbet <corbet@lwn.net>
-Cc: mchehab@infradead.org, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:41467 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754530Ab2DCOK1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Apr 2012 10:10:27 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Date: Tue, 03 Apr 2012 16:10:12 +0200
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCHv24 07/16] mm: page_alloc: change fallbacks array handling
+In-reply-to: <1333462221-3987-1-git-send-email-m.szyprowski@samsung.com>
+To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org
+Cc: Michal Nazarewicz <mina86@mina86.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Chunsang Jeong <chunsang.jeong@linaro.org>,
+	Dave Hansen <dave@linux.vnet.ibm.com>,
+	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+	Rob Clark <rob.clark@linaro.org>,
+	Ohad Ben-Cohen <ohad@wizery.com>,
+	Sandeep Patil <psandeep.s@gmail.com>
+Message-id: <1333462221-3987-8-git-send-email-m.szyprowski@samsung.com>
+References: <1333462221-3987-1-git-send-email-m.szyprowski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Apr 30, 2012 at 5:27 PM, Jonathan Corbet <corbet@lwn.net> wrote:
-> On Mon, 30 Apr 2012 23:06:27 +0100 (BST)
-> Daniel Drake <dsd@laptop.org> wrote:
->
->> For the ov7670 camera to return images at the requested frame rate,
->> it needs to make calculations based on the clock speed, which is
->> a completely external factor (depends on the wiring of the system).
->>
->> On the XO-1.5, which is the only known via-camera user, the camera
->> is clocked at 90MHz.
->>
->> Pass this information to the ov7670 driver, to fix an issue where
->> a framerate of 3x the requested amount was being provided.
->
-> This is big-time weird...this problem has been solved before.  The reason
-> ov7670 *has* a clock speed parameter is because the XO 1.5 - the second
-> user - clocked it so fast.  I'm going to have to go digging through some
-> history to try to figure out where this fix went...
->
-> Meanwhile, this looks fine.
+From: Michal Nazarewicz <mina86@mina86.com>
 
-We solved it with ugly #ifdef things in the OLPC kernel.
-http://dev.laptop.org/ticket/10137
+This commit adds a row for MIGRATE_ISOLATE type to the fallbacks array
+which was missing from it.  It also, changes the array traversal logic
+a little making MIGRATE_RESERVE an end marker.  The letter change,
+removes the implicit MIGRATE_UNMOVABLE from the end of each row which
+was read by __rmqueue_fallback() function.
 
-Then we found and discussed the upstreamable solution, put the
-ov7670_config thing in place, and solved it for XO-1 (cafe).
+Signed-off-by: Michal Nazarewicz <mina86@mina86.com>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Acked-by: Mel Gorman <mel@csn.ul.ie>
+Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Tested-by: Rob Clark <rob.clark@linaro.org>
+Tested-by: Ohad Ben-Cohen <ohad@wizery.com>
+Tested-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Tested-by: Robert Nelson <robertcnelson@gmail.com>
+Tested-by: Barry Song <Baohua.Song@csr.com>
+---
+ mm/page_alloc.c |    9 +++++----
+ 1 files changed, 5 insertions(+), 4 deletions(-)
 
-But for whatever reason it looks like I forgot to fix via-camera --
-maybe via-camera was still in flux and non-upstream at that time.
+diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+index 2c0f68a..8e8cd7e 100644
+--- a/mm/page_alloc.c
++++ b/mm/page_alloc.c
+@@ -875,11 +875,12 @@ struct page *__rmqueue_smallest(struct zone *zone, unsigned int order,
+  * This array describes the order lists are fallen back to when
+  * the free lists for the desirable migrate type are depleted
+  */
+-static int fallbacks[MIGRATE_TYPES][MIGRATE_TYPES-1] = {
++static int fallbacks[MIGRATE_TYPES][3] = {
+ 	[MIGRATE_UNMOVABLE]   = { MIGRATE_RECLAIMABLE, MIGRATE_MOVABLE,   MIGRATE_RESERVE },
+ 	[MIGRATE_RECLAIMABLE] = { MIGRATE_UNMOVABLE,   MIGRATE_MOVABLE,   MIGRATE_RESERVE },
+ 	[MIGRATE_MOVABLE]     = { MIGRATE_RECLAIMABLE, MIGRATE_UNMOVABLE, MIGRATE_RESERVE },
+-	[MIGRATE_RESERVE]     = { MIGRATE_RESERVE,     MIGRATE_RESERVE,   MIGRATE_RESERVE }, /* Never used */
++	[MIGRATE_RESERVE]     = { MIGRATE_RESERVE }, /* Never used */
++	[MIGRATE_ISOLATE]     = { MIGRATE_RESERVE }, /* Never used */
+ };
+ 
+ /*
+@@ -974,12 +975,12 @@ __rmqueue_fallback(struct zone *zone, int order, int start_migratetype)
+ 	/* Find the largest possible block of pages in the other list */
+ 	for (current_order = MAX_ORDER-1; current_order >= order;
+ 						--current_order) {
+-		for (i = 0; i < MIGRATE_TYPES - 1; i++) {
++		for (i = 0;; i++) {
+ 			migratetype = fallbacks[start_migratetype][i];
+ 
+ 			/* MIGRATE_RESERVE handled later if necessary */
+ 			if (migratetype == MIGRATE_RESERVE)
+-				continue;
++				break;
+ 
+ 			area = &(zone->free_area[current_order]);
+ 			if (list_empty(&area->free_list[migratetype]))
+-- 
+1.7.1.569.g6f426
 
-Daniel
