@@ -1,169 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.47]:46217 "EHLO mgw-sa01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750988Ab2D3Mke (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Apr 2012 08:40:34 -0400
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com
-Subject: [PATCH 1/1] v4l: drop v4l2_buffer.input and V4L2_BUF_FLAG_INPUT
-Date: Mon, 30 Apr 2012 15:40:24 +0300
-Message-Id: <1335789624-15940-1-git-send-email-sakari.ailus@iki.fi>
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:53923 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753391Ab2DCDBv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 2 Apr 2012 23:01:51 -0400
+References: <1333400524.30070.83.camel@hp0>
+In-Reply-To: <1333400524.30070.83.camel@hp0>
+MIME-Version: 1.0
+Content-Type: text/plain;
+ charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Subject: Re: NTSC_443 problem in v4l and em28x
+From: Andy Walls <awalls@md.metrocast.net>
+Date: Mon, 02 Apr 2012 23:01:56 -0400
+To: colineby@isallthat.com, linux-media@vger.kernel.org
+Message-ID: <1db8b250-88a6-413f-a365-62f2418a3ace@email.android.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Remove input field in struct v4l2_buffer and flag V4L2_BUF_FLAG_INPUT which
-tells the former is valid. The flag is used by no driver currently.
+Colin Eby <colineby@isallthat.com> wrote:
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
----
-Hi all,
+>All, 
+>
+>Wondered if someone could advise... I'm from an NTSC and PAL capable
+>tape deck, in the UK. I believe that means the signal coming from the
+>deck will be NTSC_443 compliant. What is captured through VLC or XAWTV
+>is slightly grainy black and white (no green band). It kinda looks like
+>the there are no capture distinctions between NTSC_443 and NTSC. I'd
+>try
+>tweaking the code around this, but I'm not clear where it's controlled
+>from. Can someone help guide me?  I have a mountain of these tapes to
+>capture for a museum.
+>
+>Here's the setup:
+>U-matic Sony VO5630 VTR using BNC to RCA video out
+>V4L2 device Pinnacle Dazzle DVC 90/100/101/ using driver: em28xx
+>(version: 0.1.2) 
+>Fedora 14
+>VLC 1.1.12
+>
+>I know about the issue with changing video standards in this VLC UI
+>version. That's not the problem, and I've confirmed it with a slightly
+>more up to date Ubuntu equivalent.  I get the same behaviour in XAWTV
+>and VLC. Here's some of what my experimentation has shown.
+>
+>* On PAL tapes this gear works fine (with the deck switched to PAL and
+>VLC set to PAL)
+>* Direct to TV the gear works fine in NTSC mode (bless modern flat
+>panels)
+>* Using Windows and AmCap I get colour video on the NTSC tapes. __The
+>setting that work there is NTSC_443 with a YUYV colour space.__
+>* I've tried all the different standards available in VLC and XAWTV
+>with
+>the deck set to NTSC and an NTSC tape. I see no visible difference
+>between NTSC, NTSC_M or NTSC_443 -- and based on work in Windows, I
+>believe I should.
+>* Debug from V4L/VLC shows NTSC_443 is supported in the driver.
+>
+>There's clear evidence I can get some kind of tool chain to work in
+>Windows. But I wondered if there wasn't some fine tuning to the driver
+>that would get Linux rig to work.  And I wondered if there were known
+>issues around the NTSC_443 norm. Forgive me if I've missed any, but I
+>haven't found any so far.
+>
+>-- Colin
+>
+>--
+>To unsubscribe from this list: send the line "unsubscribe linux-media"
+>in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-I thought this would be a good time to get rid of the input field in
-v4l2_buffer to avoid writing more useless compat code for it --- the enum
-compat code.
+Well the tape deck does output NTSC 4.43:
+http://umatic.palsite.com/vo5630spec.shtml
 
-Comments are welcome. This patch is compile tested on videobuf and
-videobuf2.
+The horizontal line count seems unusual.
 
- drivers/media/video/v4l2-compat-ioctl32.c |    8 +++-----
- drivers/media/video/videobuf-core.c       |   16 ----------------
- drivers/media/video/videobuf2-core.c      |    4 +---
- include/linux/videodev2.h                 |    4 +---
- include/media/videobuf-core.h             |    2 --
- 5 files changed, 5 insertions(+), 29 deletions(-)
+Anyway, Devin is right, NTSC 4.43 is really rare.
 
-diff --git a/drivers/media/video/v4l2-compat-ioctl32.c b/drivers/media/video/v4l2-compat-ioctl32.c
-index 2829d25..a2ddc37 100644
---- a/drivers/media/video/v4l2-compat-ioctl32.c
-+++ b/drivers/media/video/v4l2-compat-ioctl32.c
-@@ -387,8 +387,7 @@ static int get_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
- 		get_user(kp->index, &up->index) ||
- 		get_user(kp->type, &up->type) ||
- 		get_user(kp->flags, &up->flags) ||
--		get_user(kp->memory, &up->memory) ||
--		get_user(kp->input, &up->input))
-+		get_user(kp->memory, &up->memory)
- 			return -EFAULT;
- 
- 	if (V4L2_TYPE_IS_OUTPUT(kp->type))
-@@ -472,8 +471,7 @@ static int put_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
- 		put_user(kp->index, &up->index) ||
- 		put_user(kp->type, &up->type) ||
- 		put_user(kp->flags, &up->flags) ||
--		put_user(kp->memory, &up->memory) ||
--		put_user(kp->input, &up->input))
-+		put_user(kp->memory, &up->memory)
- 			return -EFAULT;
- 
- 	if (put_user(kp->bytesused, &up->bytesused) ||
-@@ -482,7 +480,7 @@ static int put_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
- 		put_user(kp->timestamp.tv_usec, &up->timestamp.tv_usec) ||
- 		copy_to_user(&up->timecode, &kp->timecode, sizeof(struct v4l2_timecode)) ||
- 		put_user(kp->sequence, &up->sequence) ||
--		put_user(kp->reserved, &up->reserved))
-+		copy_to_user(&kp->reserved, &up->reserved, sizeof(kp->reserved))
- 			return -EFAULT;
- 
- 	if (V4L2_TYPE_IS_MULTIPLANAR(kp->type)) {
-diff --git a/drivers/media/video/videobuf-core.c b/drivers/media/video/videobuf-core.c
-index ffdf59c..bf7a326 100644
---- a/drivers/media/video/videobuf-core.c
-+++ b/drivers/media/video/videobuf-core.c
-@@ -359,11 +359,6 @@ static void videobuf_status(struct videobuf_queue *q, struct v4l2_buffer *b,
- 		break;
- 	}
- 
--	if (vb->input != UNSET) {
--		b->flags |= V4L2_BUF_FLAG_INPUT;
--		b->input  = vb->input;
--	}
--
- 	b->field     = vb->field;
- 	b->timestamp = vb->ts;
- 	b->bytesused = vb->size;
-@@ -402,7 +397,6 @@ int __videobuf_mmap_setup(struct videobuf_queue *q,
- 			break;
- 
- 		q->bufs[i]->i      = i;
--		q->bufs[i]->input  = UNSET;
- 		q->bufs[i]->memory = memory;
- 		q->bufs[i]->bsize  = bsize;
- 		switch (memory) {
-@@ -566,16 +560,6 @@ int videobuf_qbuf(struct videobuf_queue *q, struct v4l2_buffer *b)
- 		goto done;
- 	}
- 
--	if (b->flags & V4L2_BUF_FLAG_INPUT) {
--		if (b->input >= q->inputs) {
--			dprintk(1, "qbuf: wrong input.\n");
--			goto done;
--		}
--		buf->input = b->input;
--	} else {
--		buf->input = UNSET;
--	}
--
- 	switch (b->memory) {
- 	case V4L2_MEMORY_MMAP:
- 		if (0 == buf->baddr) {
-diff --git a/drivers/media/video/videobuf2-core.c b/drivers/media/video/videobuf2-core.c
-index 3786d88..0daaec7 100644
---- a/drivers/media/video/videobuf2-core.c
-+++ b/drivers/media/video/videobuf2-core.c
-@@ -338,8 +338,7 @@ static int __fill_v4l2_buffer(struct vb2_buffer *vb, struct v4l2_buffer *b)
- 
- 	/* Copy back data such as timestamp, flags, input, etc. */
- 	memcpy(b, &vb->v4l2_buf, offsetof(struct v4l2_buffer, m));
--	b->input = vb->v4l2_buf.input;
--	b->reserved = vb->v4l2_buf.reserved;
-+	memcpy(b->reserved, vb->v4l2_buf.reserved, sizeof(b->reserved));
- 
- 	if (V4L2_TYPE_IS_MULTIPLANAR(q->type)) {
- 		ret = __verify_planes_array(vb, b);
-@@ -860,7 +859,6 @@ static int __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b,
- 
- 	vb->v4l2_buf.field = b->field;
- 	vb->v4l2_buf.timestamp = b->timestamp;
--	vb->v4l2_buf.input = b->input;
- 	vb->v4l2_buf.flags = b->flags & ~V4L2_BUFFER_STATE_FLAGS;
- 
- 	return 0;
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index 5a09ac3..ae3062d 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -652,8 +652,7 @@ struct v4l2_buffer {
- 		struct v4l2_plane *planes;
- 	} m;
- 	__u32			length;
--	__u32			input;
--	__u32			reserved;
-+	__u32			reserved[2];
- };
- 
- /*  Flags for 'flags' field */
-@@ -666,7 +665,6 @@ struct v4l2_buffer {
- /* Buffer is ready, but the data contained within is corrupted. */
- #define V4L2_BUF_FLAG_ERROR	0x0040
- #define V4L2_BUF_FLAG_TIMECODE	0x0100	/* timecode field is valid */
--#define V4L2_BUF_FLAG_INPUT     0x0200  /* input field is valid */
- #define V4L2_BUF_FLAG_PREPARED	0x0400	/* Buffer is prepared for queuing */
- /* Cache handling flags */
- #define V4L2_BUF_FLAG_NO_CACHE_INVALIDATE	0x0800
-diff --git a/include/media/videobuf-core.h b/include/media/videobuf-core.h
-index 90ed895..4511d75 100644
---- a/include/media/videobuf-core.h
-+++ b/include/media/videobuf-core.h
-@@ -19,8 +19,6 @@
- #include <linux/poll.h>
- #include <linux/videodev2.h>
- 
--#define UNSET (-1U)
--
- 
- struct videobuf_buffer;
- struct videobuf_queue;
--- 
-1.7.2.5
+My first bit of advice is to ensure the video input is set specifically to NTSC_443, and no other NTSC, PAL, or SECAM standard using v4l2-ctl on the /dev/videoN node.  No chip is likely ever going to autodetect NTSC 4.43 properly (under linux at least).
 
+The CX2584x chips supposedly handle NTSC 4.43.  If you have a PVR-150 card lying around, maybe that will work better.
+
+Regards,
+Andy
