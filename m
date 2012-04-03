@@ -1,88 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:17067 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754620Ab2DHPRW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 8 Apr 2012 11:17:22 -0400
-Message-ID: <4F81AC7C.5070403@redhat.com>
-Date: Sun, 08 Apr 2012 17:19:24 +0200
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 09/10] uvcvideo: Properly report the inactive flag for
- inactive controls
-References: <1332676610-14953-1-git-send-email-hdegoede@redhat.com> <1332676610-14953-10-git-send-email-hdegoede@redhat.com> <4797188.KPbmRBAMVG@avalon>
-In-Reply-To: <4797188.KPbmRBAMVG@avalon>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:12494 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754311Ab2DCOK0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Apr 2012 10:10:26 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Date: Tue, 03 Apr 2012 16:10:06 +0200
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCHv24 01/16] mm: page_alloc: remove trailing whitespace
+In-reply-to: <1333462221-3987-1-git-send-email-m.szyprowski@samsung.com>
+To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org
+Cc: Michal Nazarewicz <mina86@mina86.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Chunsang Jeong <chunsang.jeong@linaro.org>,
+	Dave Hansen <dave@linux.vnet.ibm.com>,
+	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+	Rob Clark <rob.clark@linaro.org>,
+	Ohad Ben-Cohen <ohad@wizery.com>,
+	Sandeep Patil <psandeep.s@gmail.com>
+Message-id: <1333462221-3987-2-git-send-email-m.szyprowski@samsung.com>
+References: <1333462221-3987-1-git-send-email-m.szyprowski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+From: Michal Nazarewicz <mina86@mina86.com>
 
-On 03/28/2012 11:12 AM, Laurent Pinchart wrote:
-> Hi Hans,
->
-> Thanks for the patch.
->
-> On Sunday 25 March 2012 13:56:49 Hans de Goede wrote:
->> Note the unused in this patch slave_ids addition to the mappings will get
->> used in a follow up patch to generate control change events for the slave
->> ctrls when their flags change due to the master control changing value.
->>
->> Signed-off-by: Hans de Goede<hdegoede@redhat.com>
->> ---
->>   drivers/media/video/uvc/uvc_ctrl.c |   33 +++++++++++++++++++++++++++++++++
->> drivers/media/video/uvc/uvcvideo.h |    4 ++++
->>   2 files changed, 37 insertions(+)
->>
->> diff --git a/drivers/media/video/uvc/uvc_ctrl.c
->> b/drivers/media/video/uvc/uvc_ctrl.c index 742496f..91d9007 100644
->> --- a/drivers/media/video/uvc/uvc_ctrl.c
->> +++ b/drivers/media/video/uvc/uvc_ctrl.c
->
-> [snip]
->
->> @@ -943,6 +961,8 @@ static int __uvc_query_v4l2_ctrl(struct uvc_video_chain
->> *chain, struct uvc_control_mapping *mapping,
->>   	struct v4l2_queryctrl *v4l2_ctrl)
->>   {
->> +	struct uvc_control_mapping *master_map;
->> +	struct uvc_control *master_ctrl = NULL;
->>   	struct uvc_menu_info *menu;
->>   	unsigned int i;
->>   	int ret = 0;
->> @@ -958,6 +978,19 @@ static int __uvc_query_v4l2_ctrl(struct uvc_video_chain
->> *chain, if (!(ctrl->info.flags&  UVC_CTRL_FLAG_SET_CUR))
->>   		v4l2_ctrl->flags |= V4L2_CTRL_FLAG_READ_ONLY;
->>
->> +	if (mapping->master_id)
->> +		master_ctrl = uvc_find_control(chain, mapping->master_id,
->> +					&master_map);
->
-> As an optimization, do you think it would make sense to add a struct
-> uvc_contro *master_ctrl field to struct uvc_control_mapping, and fill it in
-> uvc_ctrl_init_ctrl() ? That would require a loop over the mappings at
-> initialization time, but would get rid of the search operation at runtime. The
-> master_ctrl->info.flags&  UVC_CTRL_FLAG_GET_CUR check would be performed at
-> initialization time as well, and master_ctrl would be left NULL it the master
-> control doesn't support the GET_CUR query.
->
+Signed-off-by: Michal Nazarewicz <mina86@mina86.com>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Acked-by: Mel Gorman <mel@csn.ul.ie>
+---
+ mm/page_alloc.c |   14 +++++++-------
+ 1 files changed, 7 insertions(+), 7 deletions(-)
 
-I've just tried to implement this, and it is a bit tricky:
-1) The looking up of master_id cannot be done from uvc_ctrl_init_ctrl(), since
-all the mappings of the entity need to be added before the lookup can be done,
-making it necessary to add another loop to uvc_ctrl_init_device().
-2) Not only the ctrl itself, but also the mapping needs to be cached in the
-uvc_control_mapping, since we need both.
+diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+index a712fb9..0922308 100644
+--- a/mm/page_alloc.c
++++ b/mm/page_alloc.c
+@@ -513,10 +513,10 @@ static inline int page_is_buddy(struct page *page, struct page *buddy,
+  * free pages of length of (1 << order) and marked with _mapcount -2. Page's
+  * order is recorded in page_private(page) field.
+  * So when we are allocating or freeing one, we can derive the state of the
+- * other.  That is, if we allocate a small block, and both were   
+- * free, the remainder of the region must be split into blocks.   
++ * other.  That is, if we allocate a small block, and both were
++ * free, the remainder of the region must be split into blocks.
+  * If a block is freed, and its buddy is also free, then this
+- * triggers coalescing into a block of larger size.            
++ * triggers coalescing into a block of larger size.
+  *
+  * -- wli
+  */
+@@ -1061,17 +1061,17 @@ retry_reserve:
+ 	return page;
+ }
+ 
+-/* 
++/*
+  * Obtain a specified number of elements from the buddy allocator, all under
+  * a single hold of the lock, for efficiency.  Add them to the supplied list.
+  * Returns the number of new pages which were placed at *list.
+  */
+-static int rmqueue_bulk(struct zone *zone, unsigned int order, 
++static int rmqueue_bulk(struct zone *zone, unsigned int order,
+ 			unsigned long count, struct list_head *list,
+ 			int migratetype, int cold)
+ {
+ 	int i;
+-	
++
+ 	spin_lock(&zone->lock);
+ 	for (i = 0; i < count; ++i) {
+ 		struct page *page = __rmqueue(zone, order, migratetype);
+@@ -4301,7 +4301,7 @@ static void __paginginit free_area_init_core(struct pglist_data *pgdat,
+ 	init_waitqueue_head(&pgdat->kswapd_wait);
+ 	pgdat->kswapd_max_order = 0;
+ 	pgdat_page_cgroup_init(pgdat);
+-	
++
+ 	for (j = 0; j < MAX_NR_ZONES; j++) {
+ 		struct zone *zone = pgdat->node_zones + j;
+ 		unsigned long size, realsize, memmap_pages;
+-- 
+1.7.1.569.g6f426
 
-Looking closer at things, I've opted to implement a simpler optimization,
-replacing the uvc_find_control with a __uvc_find_control, since the master
-and it slaves are always part of the same entity. This means we still do
-some searching runtime, but a lot less.
-
-I'll send an updated patchset with this change in it soon.
-
-Regards,
-
-Hans
