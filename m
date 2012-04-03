@@ -1,297 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39069 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1755444Ab2D0IeR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Apr 2012 04:34:17 -0400
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	remi@remlab.net, james.dutton@gmail.com, alan@lxorguk.ukuu.org.uk,
-	linux-kernel@vger.kernel.org
-Subject: [RFC 1/1] v4l: Implement compat handlers for ioctls containing enums
-Date: Fri, 27 Apr 2012 11:24:01 +0300
-Message-Id: <1335515041-6611-1-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <4F8DAD82.4000608@redhat.com>
-References: <4F8DAD82.4000608@redhat.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:58856 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752995Ab2DCKTh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 3 Apr 2012 06:19:37 -0400
+Message-ID: <4F7ACEB6.9020108@iki.fi>
+Date: Tue, 03 Apr 2012 13:19:34 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: gennarone@gmail.com
+CC: linux-media@vger.kernel.org, m@bues.ch, hfvogt@gmx.net,
+	mchehab@redhat.com
+Subject: Re: [PATCH 3/5] tda18218: fix IF frequency for 7MHz bandwidth channels
+References: <1333401917-27203-1-git-send-email-gennarone@gmail.com> <1333401917-27203-4-git-send-email-gennarone@gmail.com> <4F7A2AC9.8040407@iki.fi> <4F7A47E5.8040604@gmail.com>
+In-Reply-To: <4F7A47E5.8040604@gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Quite a few V4L2 IOCTLs contained enum types in IOCTL definitions which are
-considered bad. To get rid of these types, the enum types are replaced with
-integer types with fixed size. This causes the actual IOCTL commands to
-change, which requires special handling during the transition period to new
-IOCTL commands.
+On 03.04.2012 03:44, Gianluca Gennari wrote:
+> Il 03/04/2012 00:40, Antti Palosaari ha scritto:
+>> On 03.04.2012 00:25, Gianluca Gennari wrote:
+>>> This is necessary to tune VHF channels with the AVerMedia A835 stick.
+>>>
+>>> Signed-off-by: Gianluca Gennari<gennarone@gmail.com>
+>>> ---
+>>>    drivers/media/common/tuners/tda18218.c |    2 +-
+>>>    1 files changed, 1 insertions(+), 1 deletions(-)
+>>>
+>>> diff --git a/drivers/media/common/tuners/tda18218.c
+>>> b/drivers/media/common/tuners/tda18218.c
+>>> index dfb3a83..b079696 100644
+>>> --- a/drivers/media/common/tuners/tda18218.c
+>>> +++ b/drivers/media/common/tuners/tda18218.c
+>>> @@ -144,7 +144,7 @@ static int tda18218_set_params(struct dvb_frontend
+>>> *fe)
+>>>            priv->if_frequency = 3000000;
+>>>        } else if (bw<= 7000000) {
+>>>            LP_Fc = 1;
+>>> -        priv->if_frequency = 3500000;
+>>> +        priv->if_frequency = 4000000;
+>>>        } else {
+>>>            LP_Fc = 2;
+>>>            priv->if_frequency = 4000000;
+>>
+>> Kwaak, I will not apply that until I have done background checking. That
+>> driver is used only by AF9015 currently. And I did that driver as
+>> reverse-engineering and thus there is some things guessed. I have only 8
+>> MHz wide signal, thus I never tested 7 and 6 MHz. Have no DVB-T
+>> modulator either... Maybe some AF9015 user can confirm? Is there any
+>> AF9015&  TDA18218 bug reports seen in discussion forums...
+>
+> A friend has a AF9015+TDA18218 stick and told me that it works fine with
+> the patch (including VHF), but to be safe I will ask him to double check
+> with the current media_build tree, with and without the patch. In the
+> worst case, we can add a new parameter (or an array of parameters) for
+> the IF frequency to struct tda18218_config.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
----
-Hi all,
+Public short datasheet [1], page 16, says default IFs are BW=8 MHz IF=4 
+MHz, BW=7 MHz IF=3.5 MHz, BW=6 MHz IF=3 MHz. I suspect it still locks in 
+some cases even IF is off-by 0.5 MHz for BW 7 and 8 but performance is 
+reduced. So there is now something wrong, likely bug in the tda18218 driver.
 
-I'm sending this as RFC and this what it really means: I haven't tested the
-patch, not even compiled it. What I'd like to ask is how do you like the
-approach. Handling for only one IOCTL is implemented.
+Could someone send me Windows sniff from success tune to 7 MHz BW channel?
 
-The compat IOCTLs are recognised and special handling for them is performed
-in place of copy_from_user() and copy_to_user(). I do not handle array
-IOCTLs yet.
-
-I thought of the option of copying everything to kernel space first and then
-performing the conversion there, but doing it at the same time does not seem
-to cause much additional complications. The expense is likely more CPU time
-usage but less stack usage / memory allocation which also can consume
-noteworthy amounts of CPU time.
-
-This patch goes on top of Mauro's earlier patch.
-
- drivers/media/video/v4l2-ioctl.c |  207 ++++++++++++++++++++++++++++++++++++--
- 1 files changed, 198 insertions(+), 9 deletions(-)
-
-diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
-index 5b2ec1f..cb2ed57 100644
---- a/drivers/media/video/v4l2-ioctl.c
-+++ b/drivers/media/video/v4l2-ioctl.c
-@@ -2303,6 +2303,177 @@ static long __video_do_ioctl(struct file *file,
- 	return ret;
- }
- 
-+static long copy_compat_from_user(unsigned int cmd, void *parg,
-+				  void __user *arg)
-+{
-+	union {
-+		struct v4l2_fmtdesc_enum *fmtdesc;
-+		struct v4l2_format_enum *fmt;
-+		struct v4l2_requestbuffers_enum *reqbufs;
-+		struct v4l2_framebuffer_enum *fb;
-+		struct v4l2_buffer_enum *buf;
-+		struct v4l2_streamparm_enum *sparm;
-+		struct v4l2_tuner_enum *tuner;
-+		struct v4l2_queryctrl_enum *qc;
-+		struct v4l2_frequency_enum *freq;
-+		struct v4l2_crop_enumcap_enum *cropcap;
-+		struct v4l2_crop_enum *crop;
-+		struct v4l2_sliced_vbi_cap_enum *vbi_cap;
-+		struct v4l2_hw_freq_seek_enum *hw_freq_seek;
-+		struct v4l2_create_buffers_enum *create_bufs;
-+	} __user cu = arg;
-+	union {
-+		struct v4l2_fmtdesc fmtdesc;
-+		struct v4l2_format fmt;
-+		struct v4l2_requestbuffers reqbufs;
-+		struct v4l2_framebuffer fb;
-+		struct v4l2_buffer buf;
-+		struct v4l2_streamparm sparm;
-+		struct v4l2_tuner tuner;
-+		struct v4l2_queryctrl qc;
-+		struct v4l2_frequency freq;
-+		struct v4l2_crop_enumcap cropcap;
-+		struct v4l2_crop crop;
-+		struct v4l2_sliced_vbi_cap vbi_cap;
-+		struct v4l2_hw_freq_seek hw_freq_seek;
-+		struct v4l2_create_buffers create_bufs;
-+	} k = parg;
-+
-+	switch (cmd) {
-+	case VIDIOC_ENUM_FMT_ENUM:
-+		if (!access_ok(VERIFY_READ, cu, sizeof(*cu->fmtdesc))
-+		    || get_user(k->fmtdesc.index, cu->fmtdesc->index)
-+		    || get_user(k->fmtdesc.type, cu->fmtdesc->type)
-+		    || get_user(k->fmtdesc.flags, cu->fmtdesc->flags)
-+		    || copy_from_user(k->fmtdesc.description,
-+				      cu->fmtdesc->description,
-+				      sizeof(k->fmtdesc.description))
-+		    || get_user(k->fmtdesc.pixelformat,
-+				u->fmtdesc->pixelformat)
-+		    || copy_from_user(k->fmtdesc.reserved,
-+				      cu->fmtdesc->reserved,
-+				      sizeof(k->fmtdesc.reserved)))
-+			return -EFAULT;
-+		return 0;
-+	default:
-+		WARN();
-+		return -EINVAL;
-+	}
-+}
-+
-+static long copy_compat_to_user(unsigned int cmd, void __user *arg,
-+				void *parg)
-+{
-+	union {
-+		struct v4l2_fmtdesc_enum *fmtdesc;
-+		struct v4l2_format_enum *fmt;
-+		struct v4l2_requestbuffers_enum *reqbufs;
-+		struct v4l2_framebuffer_enum *fb;
-+		struct v4l2_buffer_enum *buf;
-+		struct v4l2_streamparm_enum *sparm;
-+		struct v4l2_tuner_enum *tuner;
-+		struct v4l2_queryctrl_enum *qc;
-+		struct v4l2_frequency_enum *freq;
-+		struct v4l2_crop_enumcap_enum *cropcap;
-+		struct v4l2_crop_enum *crop;
-+		struct v4l2_sliced_vbi_cap_enum *vbi_cap;
-+		struct v4l2_hw_freq_seek_enum *hw_freq_seek;
-+		struct v4l2_create_buffers_enum *create_bufs;
-+	} __user cu = arg;
-+	union {
-+		struct v4l2_fmtdesc fmtdesc;
-+		struct v4l2_format fmt;
-+		struct v4l2_requestbuffers reqbufs;
-+		struct v4l2_framebuffer fb;
-+		struct v4l2_buffer buf;
-+		struct v4l2_streamparm sparm;
-+		struct v4l2_tuner tuner;
-+		struct v4l2_queryctrl qc;
-+		struct v4l2_frequency freq;
-+		struct v4l2_crop_enumcap cropcap;
-+		struct v4l2_crop crop;
-+		struct v4l2_sliced_vbi_cap vbi_cap;
-+		struct v4l2_hw_freq_seek hw_freq_seek;
-+		struct v4l2_create_buffers create_bufs;
-+	} k = parg;
-+
-+	switch (cmd) {
-+	case VIDIOC_ENUM_FMT_ENUM:
-+		if (!access_ok(VERIFY_WRITE, cu, sizeof(*cu->fmtdesc))
-+		    || put_user(cu->fmtdesc->index, k->fmtdesc.index)
-+		    || put_user(cu->fmtdesc->type, k->fmtdesc.type)
-+		    || put_user(cu->fmtdesc->flags, k->fmtdesc.flags)
-+		    || copy_to_user(cu->fmtdesc->description,
-+				    k->fmtdesc.description,
-+				    sizeof(k->fmtdesc.description))
-+		    || put_user(cu->fmtdesc->pixelformat,
-+				k->fmtdesc.pixelformat)
-+		    || copy_to_user(cu->fmtdesc->reserved, k->fmtdesc.reserved,
-+				    sizeof(k->fmtdesc.reserved)))
-+			return -EFAULT;
-+		return 0;
-+	default:
-+		WARN();
-+		return -EINVAL;
-+	}
-+}
-+
-+static unsigned int get_non_compat_cmd(unsigned int cmd)
-+{
-+	switch (cmd) {
-+	case VIDIOC_ENUM_FMT_ENUM:
-+		return VIDIOC_ENUM_FMT;
-+	case VIDIOC_G_FMT_ENUM:
-+		return VIDIOC_G_FMT;
-+	case VIDIOC_S_FMT_ENUM:
-+		return VIDIOC_S_FMT;
-+	case VIDIOC_REQBUFS_ENUM:
-+		return VIDIOC_REQBUFS;
-+	case VIDIOC_QUERYBUF_ENUM:
-+		return VIDIOC_QUERYBUF;
-+	case VIDIOC_G_FBUF_ENUM:
-+		return VIDIOC_G_FBUF;
-+	case VIDIOC_S_FBUF_ENUM:
-+		return VIDIOC_S_FBUF;
-+	case VIDIOC_QBUF_ENUM:
-+		return VIDIOC_QBUF;
-+	case VIDIOC_DQBUF_ENUM:
-+		return VIDIOC_DQBUF;
-+	case VIDIOC_G_PARM_ENUM:
-+		return VIDIOC_G_PARM;
-+	case VIDIOC_S_PARM_ENUM:
-+		return VIDIOC_S_PARM;
-+	case VIDIOC_G_TUNER_ENUM:
-+		return VIDIOC_G_TUNER;
-+	case VIDIOC_S_TUNER_ENUM:
-+		return VIDIOC_S_TUNER;
-+	case VIDIOC_QUERYCTRL_ENUM:
-+		return VIDIOC_QUERYCTRL;
-+	case VIDIOC_G_FREQUENCY_ENUM:
-+		return VIDIOC_G_FREQUENCY;
-+	case VIDIOC_S_FREQUENCY_ENUM:
-+		return VIDIOC_S_FREQUENCY;
-+	case VIDIOC_CROPCAP_ENUM:
-+		return VIDIOC_CROPCAP;
-+	case VIDIOC_G_CROP_ENUM:
-+		return VIDIOC_G_CROP;
-+	case VIDIOC_S_CROP_ENUM:
-+		return VIDIOC_S_CROP;
-+	case VIDIOC_TRY_FMT_ENUM:
-+		return VIDIOC_TRY_FMT;
-+	case VIDIOC_G_SLICED_VBI_CAP_ENUM:
-+		return VIDIOC_G_SLICED_VBI_CAP;
-+	case VIDIOC_S_HW_FREQ_SEEK_ENUM:
-+		return VIDIOC_S_HW_FREQ_SEEK;
-+	case VIDIOC_CREATE_BUFS_ENUM:
-+		return VIDIOC_CREATE_BUFS;
-+	case VIDIOC_PREPARE_BUF_ENUM:
-+		return VIDIOC_PREPARE_BUF;
-+	default:
-+		return cmd;
-+	}
-+}
-+
- /* In some cases, only a few fields are used as input, i.e. when the app sets
-  * "index" and then the driver fills in the rest of the structure for the thing
-  * with that index.  We only need to copy up the first non-input field.  */
-@@ -2390,7 +2561,7 @@ static int check_array_args(unsigned int cmd, void *parg, size_t *array_size,
- }
- 
- long
--video_usercopy(struct file *file, unsigned int cmd, unsigned long arg,
-+video_usercopy(struct file *file, unsigned int compat_cmd, unsigned long arg,
- 	       v4l2_kioctl func)
- {
- 	char	sbuf[128];
-@@ -2401,6 +2572,7 @@ video_usercopy(struct file *file, unsigned int cmd, unsigned long arg,
- 	size_t  array_size = 0;
- 	void __user *user_ptr = NULL;
- 	void	**kernel_ptr = NULL;
-+	unsigned int cmd = get_non_compat_cmd(cmd);
- 
- 	/*  Copy arguments into temp kernel buffer  */
- 	if (_IOC_DIR(cmd) != _IOC_NONE) {
-@@ -2418,12 +2590,23 @@ video_usercopy(struct file *file, unsigned int cmd, unsigned long arg,
- 		if (_IOC_DIR(cmd) & _IOC_WRITE) {
- 			unsigned long n = cmd_input_size(cmd);
- 
--			if (copy_from_user(parg, (void __user *)arg, n))
--				goto out;
--
--			/* zero out anything we don't copy from userspace */
--			if (n < _IOC_SIZE(cmd))
--				memset((u8 *)parg + n, 0, _IOC_SIZE(cmd) - n);
-+			if (cmd == compat_cmd) {
-+				if (copy_from_user(
-+					    parg, (void __user *)arg, n))
-+					goto out;
-+
-+				/*
-+				 * zero out anything we don't copy
-+				 * from userspace
-+				 */
-+				if (n < _IOC_SIZE(cmd))
-+					memset((u8 *)parg + n, 0,
-+					       _IOC_SIZE(cmd) - n);
-+			} else {
-+				if (copy_compat_from_user(cmd, parg,
-+							  (void __user *)arg))
-+					goto out;
-+			}
- 		} else {
- 			/* read-only ioctl */
- 			memset(parg, 0, _IOC_SIZE(cmd));
-@@ -2471,8 +2654,14 @@ out_array_args:
- 	switch (_IOC_DIR(cmd)) {
- 	case _IOC_READ:
- 	case (_IOC_WRITE | _IOC_READ):
--		if (copy_to_user((void __user *)arg, parg, _IOC_SIZE(cmd)))
--			err = -EFAULT;
-+		if (cmd == compat_cmd) {
-+			if (copy_to_user((void __user *)arg, parg,
-+					 _IOC_SIZE(cmd)))
-+				err = -EFAULT;
-+		} else {
-+			if (copy_compat_to_user(cmd, arg, parg))
-+				err = -EFAULT;
-+		}
- 		break;
- 	}
- 
+[1] http://www.nxp.com/documents/data_sheet/TDA18218HN.pdf
 -- 
-1.7.2.5
-
+http://palosaari.fi/
