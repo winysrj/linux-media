@@ -1,60 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:43855 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751056Ab2DBJ0R (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Apr 2012 05:26:17 -0400
-Date: Mon, 2 Apr 2012 11:26:10 +0200
-From: Sascha Hauer <s.hauer@pengutronix.de>
-To: Javier Martin <javier.martin@vista-silicon.com>
-Cc: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	u.kleine-koenig@pengutronix.de, mchehab@infradead.org,
-	kernel@pengutronix.de, baruch@tkos.co.il
-Subject: Re: [PATCH v2 2/3] i.MX27: visstrim_m10: Remove use of
- MX2_CAMERA_SWAP16.
-Message-ID: <20120402092610.GW26642@pengutronix.de>
-References: <1332767868-2531-1-git-send-email-javier.martin@vista-silicon.com>
- <1332767868-2531-3-git-send-email-javier.martin@vista-silicon.com>
+Received: from mailout-de.gmx.net ([213.165.64.23]:51168 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1753690Ab2DCU7v (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Apr 2012 16:59:51 -0400
+From: "Hans-Frieder Vogt" <hfvogt@gmx.net>
+To: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH] af9033: implement ber and ucb functions
+Date: Tue, 3 Apr 2012 22:59:43 +0200
+Cc: linux-media@vger.kernel.org
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1332767868-2531-3-git-send-email-javier.martin@vista-silicon.com>
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201204032259.43658.hfvogt@gmx.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Mar 26, 2012 at 03:17:47PM +0200, Javier Martin wrote:
-> 
-> Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
+af9033: implement read_ber and read_ucblocks functions.
 
-Acked-by: Sascha Hauer <s.hauer@pengutronix.de>
+Signed-off-by: Hans-Frieder Vogt <hfvogt@gmx.net>
 
-Should go via the media tree.
+ drivers/media/dvb/frontends/af9033.c |   62 +++++++++++++++++++++++++++++++++--
+ 1 file changed, 60 insertions(+), 2 deletions(-)
 
-Sascha
+diff -Nupr a/drivers/media/dvb/frontends/af9033.c b/drivers/media/dvb/frontends/af9033.c
+--- a/drivers/media/dvb/frontends/af9033.c	2012-04-03 19:07:50.991367619 +0200
++++ b/drivers/media/dvb/frontends/af9033.c	2012-04-03 22:47:34.152121451 +0200
+@@ -29,6 +29,10 @@ struct af9033_state {
+ 	u32 bandwidth_hz;
+ 	bool ts_mode_parallel;
+ 	bool ts_mode_serial;
++
++	u32 ber;
++	u32 ucb;
++	unsigned long last_stat_check;
+ };
+ 
+ /* write multiple registers */
+@@ -645,16 +649,70 @@ err:
+ 	return ret;
+ }
+ 
++static int af9033_update_ch_stat(struct af9033_state *state)
++{
++	int ret = 0;
++	u32 post_err_cnt, post_bit_cnt;
++	u16 abort_cnt;
++	u8 buf[7];
++
++	/* only update data every half second */
++	if (time_after(jiffies, state->last_stat_check + msecs_to_jiffies(500))) {
++		ret = af9033_rd_regs(state, 0x800032, buf, sizeof(buf));
++		if (ret < 0)
++			goto err;
++		abort_cnt = (buf[1] << 8) + buf[0];
++		post_err_cnt = (buf[4] << 16) + (buf[3] << 8) + buf[2];
++		post_bit_cnt = (buf[6] << 8) + buf[5];
++		if (post_bit_cnt == 0) {
++			abort_cnt = 1000;
++			post_err_cnt = 1;
++			post_bit_cnt = 2;
++		} else {
++			post_bit_cnt -= (u32)abort_cnt;
++			if (post_bit_cnt == 0) {
++				post_err_cnt = 1;
++				post_bit_cnt = 2;
++			} else {
++				post_err_cnt -= (u32)abort_cnt * 8 * 8;
++				post_bit_cnt *= 204 * 8;
++			}
++		}
++		state->ber = post_err_cnt * (0xffffffff / post_bit_cnt);
++		state->ucb = abort_cnt;
++		state->last_stat_check = jiffies;
++	}
++
++	return 0;
++err:
++	pr_debug("%s: failed=%d\n", __func__, ret);
++	return ret;
++}
++
+ static int af9033_read_ber(struct dvb_frontend *fe, u32 *ber)
+ {
+-	*ber = 0;
++	struct af9033_state *state = fe->demodulator_priv;
++	int ret;
++
++	ret = af9033_update_ch_stat(state);
++	if (ret < 0)
++		return ret;
++
++	*ber = state->ber;
+ 
+ 	return 0;
+ }
+ 
+ static int af9033_read_ucblocks(struct dvb_frontend *fe, u32 *ucblocks)
+ {
+-	*ucblocks = 0;
++	struct af9033_state *state = fe->demodulator_priv;
++	int ret;
++
++	ret = af9033_update_ch_stat(state);
++	if (ret < 0)
++		return ret;
++
++	*ucblocks = state->ucb;
+ 
+ 	return 0;
+ }
 
-> ---
->  arch/arm/mach-imx/mach-imx27_visstrim_m10.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/arch/arm/mach-imx/mach-imx27_visstrim_m10.c b/arch/arm/mach-imx/mach-imx27_visstrim_m10.c
-> index 3128cfe..4db00c6 100644
-> --- a/arch/arm/mach-imx/mach-imx27_visstrim_m10.c
-> +++ b/arch/arm/mach-imx/mach-imx27_visstrim_m10.c
-> @@ -164,7 +164,7 @@ static struct platform_device visstrim_tvp5150 = {
->  
->  
->  static struct mx2_camera_platform_data visstrim_camera = {
-> -	.flags = MX2_CAMERA_CCIR | MX2_CAMERA_CCIR_INTERLACE | MX2_CAMERA_SWAP16 | MX2_CAMERA_PCLK_SAMPLE_RISING,
-> +	.flags = MX2_CAMERA_CCIR | MX2_CAMERA_CCIR_INTERLACE | MX2_CAMERA_PCLK_SAMPLE_RISING,
->  	.clk = 100000,
->  };
->  
-> -- 
-> 1.7.0.4
-> 
-> 
-
--- 
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+Hans-Frieder Vogt                       e-mail: hfvogt <at> gmx .dot. net
