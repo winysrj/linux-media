@@ -1,186 +1,173 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:47485 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755531Ab2CaJiw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 31 Mar 2012 05:38:52 -0400
-Received: by wgbdr13 with SMTP id dr13so1256784wgb.1
-        for <linux-media@vger.kernel.org>; Sat, 31 Mar 2012 02:38:50 -0700 (PDT)
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Subject: [PATCH/RFC] V4L: Extend V4L2_CID_COLORFX with more image effects
-Date: Sat, 31 Mar 2012 11:38:27 +0200
-Message-Id: <1333186707-15772-1-git-send-email-sylvester.nawrocki@gmail.com>
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:49906 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754810Ab2DCOKf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Apr 2012 10:10:35 -0400
+Date: Tue, 03 Apr 2012 16:10:17 +0200
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCHv24 12/16] mm: trigger page reclaim in alloc_contig_range() to
+ stabilise watermarks
+In-reply-to: <1333462221-3987-1-git-send-email-m.szyprowski@samsung.com>
+To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org
+Cc: Michal Nazarewicz <mina86@mina86.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Chunsang Jeong <chunsang.jeong@linaro.org>,
+	Dave Hansen <dave@linux.vnet.ibm.com>,
+	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+	Rob Clark <rob.clark@linaro.org>,
+	Ohad Ben-Cohen <ohad@wizery.com>,
+	Sandeep Patil <psandeep.s@gmail.com>
+Message-id: <1333462221-3987-13-git-send-email-m.szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1333462221-3987-1-git-send-email-m.szyprowski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds definition of additional color effects:
- - V4L2_COLORFX_AQUA,
- - V4L2_COLORFX_ART_FREEZE,
- - V4L2_COLORFX_SILHOUETTE,
- - V4L2_COLORFX_SOLARIZATION,
- - V4L2_COLORFX_ANTIQUE.
+alloc_contig_range() performs memory allocation so it also should keep
+track on keeping the correct level of memory watermarks. This commit adds
+a call to *_slowpath style reclaim to grab enough pages to make sure that
+the final collection of contiguous pages from freelists will not starve
+the system.
 
-The control's type in the documentation is changed from 'enum' to 'menu'
-- V4L2_CID_COLORFX has always been a menu, not an integer type control.
-
-Signed-off-by: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+CC: Michal Nazarewicz <mina86@mina86.com>
+Tested-by: Rob Clark <rob.clark@linaro.org>
+Tested-by: Ohad Ben-Cohen <ohad@wizery.com>
+Tested-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Tested-by: Robert Nelson <robertcnelson@gmail.com>
+Tested-by: Barry Song <Baohua.Song@csr.com>
 ---
- Documentation/DocBook/media/v4l/controls.xml |   86 ++++++++++++++++++++++----
- drivers/media/video/v4l2-ctrls.c             |    5 ++
- include/linux/videodev2.h                    |   25 +++++---
- 3 files changed, 93 insertions(+), 23 deletions(-)
+ include/linux/mmzone.h |    9 +++++++
+ mm/page_alloc.c        |   60 ++++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 69 insertions(+), 0 deletions(-)
 
-diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
-index b84f25e..582324f 100644
---- a/Documentation/DocBook/media/v4l/controls.xml
-+++ b/Documentation/DocBook/media/v4l/controls.xml
-@@ -284,19 +284,79 @@ minimum value disables backlight compensation.</entry>
- 	  </row>
- 	  <row id="v4l2-colorfx">
- 	    <entry><constant>V4L2_CID_COLORFX</constant></entry>
--	    <entry>enum</entry>
--	    <entry>Selects a color effect. Possible values for
--<constant>enum v4l2_colorfx</constant> are:
--<constant>V4L2_COLORFX_NONE</constant> (0),
--<constant>V4L2_COLORFX_BW</constant> (1),
--<constant>V4L2_COLORFX_SEPIA</constant> (2),
--<constant>V4L2_COLORFX_NEGATIVE</constant> (3),
--<constant>V4L2_COLORFX_EMBOSS</constant> (4),
--<constant>V4L2_COLORFX_SKETCH</constant> (5),
--<constant>V4L2_COLORFX_SKY_BLUE</constant> (6),
--<constant>V4L2_COLORFX_GRASS_GREEN</constant> (7),
--<constant>V4L2_COLORFX_SKIN_WHITEN</constant> (8) and
--<constant>V4L2_COLORFX_VIVID</constant> (9).</entry>
-+	    <entry>menu</entry>
-+	    <entry>Selects a color effect. The following values are defined:
-+	    </entry>
-+	  </row><row>
-+	  <entry></entry>
-+	  <entry></entry>
-+	    <entrytbl spanname="descr" cols="2">
-+	      <tbody valign="top">
-+		<row>
-+		  <entry><constant>V4L2_COLORFX_NONE</constant>&nbsp;</entry>
-+		  <entry>Color effect is disabled.</entry>
-+		</row>
-+		<row>
-+		  <entry><constant>V4L2_COLORFX_ANTIQUE</constant>&nbsp;</entry>
-+		  <entry>An aging (old photo) effect.</entry>
-+		</row>
-+		<row>
-+		  <entry><constant>V4L2_COLORFX_ART_FREEZE</constant>&nbsp;</entry>
-+		  <entry>Frost color effect.</entry>
-+		</row>
-+		<row>
-+		  <entry><constant>V4L2_COLORFX_AQUA</constant>&nbsp;</entry>
-+		  <entry>Water color, cool tone.</entry>
-+		</row>
-+		<row>
-+		  <entry><constant>V4L2_COLORFX_BW</constant>&nbsp;</entry>
-+		  <entry>Black and white.</entry>
-+		</row>
-+		<row>
-+		  <entry><constant>V4L2_COLORFX_EMBOSS</constant>&nbsp;</entry>
-+		  <entry>Emboss, the highlights and shadows replace light/dark boundaries
-+		  and low contrast areas are set to a gray background.</entry>
-+		</row>
-+		<row>
-+		  <entry><constant>V4L2_COLORFX_GRASS_GREEN</constant>&nbsp;</entry>
-+		  <entry>Grass green.</entry>
-+		</row>
-+		<row>
-+		  <entry><constant>V4L2_COLORFX_NEGATIVE</constant>&nbsp;</entry>
-+		  <entry>Negative.</entry>
-+		</row>
-+		<row>
-+		  <entry><constant>V4L2_COLORFX_SEPIA</constant>&nbsp;</entry>
-+		  <entry>Sepia tone.</entry>
-+		</row>
-+		<row>
-+		  <entry><constant>V4L2_COLORFX_SKETCH</constant>&nbsp;</entry>
-+		  <entry>Sketch.</entry>
-+		</row>
-+		<row>
-+		  <entry><constant>V4L2_COLORFX_SKIN_WHITEN</constant>&nbsp;</entry>
-+		  <entry>Skin whiten.</entry>
-+		</row>
-+		<row>
-+		  <entry><constant>V4L2_COLORFX_SKY_BLUE</constant>&nbsp;</entry>
-+		  <entry>Sky blue.</entry>
-+		</row>
-+		<row>
-+		  <entry><constant>V4L2_COLORFX_SOLARIZATION</constant>&nbsp;</entry>
-+		  <entry>Solarization, the image is partially reversed in tone,
-+		  only color values above or below a certain threshold are inverted.
-+		  </entry>
-+		</row>
-+		<row>
-+		  <entry><constant>V4L2_COLORFX_SILHOUETTE</constant>&nbsp;</entry>
-+		  <entry>Silhouette (outline).</entry>
-+		</row>
-+		<row>
-+		  <entry><constant>V4L2_COLORFX_VIVID</constant>&nbsp;</entry>
-+		  <entry>Vivid colors.</entry>
-+		</row>
-+	      </tbody>
-+	    </entrytbl>
- 	  </row>
- 	  <row>
- 	    <entry><constant>V4L2_CID_ROTATE</constant></entry>
-diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
-index 18015c0..7d6617c 100644
---- a/drivers/media/video/v4l2-ctrls.c
-+++ b/drivers/media/video/v4l2-ctrls.c
-@@ -241,6 +241,11 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
- 		"Grass Green",
- 		"Skin Whiten",
- 		"Vivid",
-+		"Aqua",
-+		"Art Freeze",
-+		"Silhouette",
-+		"Solarization",
-+		"Antique",
- 		NULL
- 	};
- 	static const char * const tune_preemphasis[] = {
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index c9c9a46..be50b4d 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -1237,17 +1237,21 @@ enum v4l2_power_line_frequency {
- #define V4L2_CID_COLOR_KILLER                   (V4L2_CID_BASE+30)
- #define V4L2_CID_COLORFX			(V4L2_CID_BASE+31)
- enum v4l2_colorfx {
--	V4L2_COLORFX_NONE	= 0,
--	V4L2_COLORFX_BW		= 1,
--	V4L2_COLORFX_SEPIA	= 2,
--	V4L2_COLORFX_NEGATIVE = 3,
--	V4L2_COLORFX_EMBOSS = 4,
--	V4L2_COLORFX_SKETCH = 5,
--	V4L2_COLORFX_SKY_BLUE = 6,
--	V4L2_COLORFX_GRASS_GREEN = 7,
--	V4L2_COLORFX_SKIN_WHITEN = 8,
--	V4L2_COLORFX_VIVID = 9,
-+	V4L2_COLORFX_NONE			= 0,
-+	V4L2_COLORFX_BW				= 1,
-+	V4L2_COLORFX_SEPIA			= 2,
-+	V4L2_COLORFX_NEGATIVE			= 3,
-+	V4L2_COLORFX_EMBOSS			= 4,
-+	V4L2_COLORFX_SKETCH			= 5,
-+	V4L2_COLORFX_SKY_BLUE			= 6,
-+	V4L2_COLORFX_GRASS_GREEN		= 7,
-+	V4L2_COLORFX_SKIN_WHITEN		= 8,
-+	V4L2_COLORFX_VIVID			= 9,
-+	V4L2_COLORFX_AQUA			= 10,
-+	V4L2_COLORFX_ART_FREEZE			= 11,
-+	V4L2_COLORFX_SILHOUETTE			= 12,
-+	V4L2_COLORFX_SOLARIZATION		= 13,
-+	V4L2_COLORFX_ANTIQUE			= 14,
- };
- #define V4L2_CID_AUTOBRIGHTNESS			(V4L2_CID_BASE+32)
- #define V4L2_CID_BAND_STOP_FILTER		(V4L2_CID_BASE+33)
---
-1.7.4.1
+diff --git a/include/linux/mmzone.h b/include/linux/mmzone.h
+index 8c1335f..26f2040 100644
+--- a/include/linux/mmzone.h
++++ b/include/linux/mmzone.h
+@@ -63,8 +63,10 @@ enum {
+ 
+ #ifdef CONFIG_CMA
+ #  define is_migrate_cma(migratetype) unlikely((migratetype) == MIGRATE_CMA)
++#  define cma_wmark_pages(zone)	zone->min_cma_pages
+ #else
+ #  define is_migrate_cma(migratetype) false
++#  define cma_wmark_pages(zone) 0
+ #endif
+ 
+ #define for_each_migratetype_order(order, type) \
+@@ -371,6 +373,13 @@ struct zone {
+ 	/* see spanned/present_pages for more description */
+ 	seqlock_t		span_seqlock;
+ #endif
++#ifdef CONFIG_CMA
++	/*
++	 * CMA needs to increase watermark levels during the allocation
++	 * process to make sure that the system is not starved.
++	 */
++	unsigned long		min_cma_pages;
++#endif
+ 	struct free_area	free_area[MAX_ORDER];
+ 
+ #ifndef CONFIG_SPARSEMEM
+diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+index 5a90ada..17a5521 100644
+--- a/mm/page_alloc.c
++++ b/mm/page_alloc.c
+@@ -5079,6 +5079,11 @@ static void __setup_per_zone_wmarks(void)
+ 
+ 		zone->watermark[WMARK_LOW]  = min_wmark_pages(zone) + (tmp >> 2);
+ 		zone->watermark[WMARK_HIGH] = min_wmark_pages(zone) + (tmp >> 1);
++
++		zone->watermark[WMARK_MIN] += cma_wmark_pages(zone);
++		zone->watermark[WMARK_LOW] += cma_wmark_pages(zone);
++		zone->watermark[WMARK_HIGH] += cma_wmark_pages(zone);
++
+ 		setup_zone_migrate_reserve(zone);
+ 		spin_unlock_irqrestore(&zone->lock, flags);
+ 	}
+@@ -5684,6 +5689,54 @@ static int __alloc_contig_migrate_range(unsigned long start, unsigned long end)
+ 	return ret > 0 ? 0 : ret;
+ }
+ 
++/*
++ * Update zone's cma pages counter used for watermark level calculation.
++ */
++static inline void __update_cma_watermarks(struct zone *zone, int count)
++{
++	unsigned long flags;
++	spin_lock_irqsave(&zone->lock, flags);
++	zone->min_cma_pages += count;
++	spin_unlock_irqrestore(&zone->lock, flags);
++	setup_per_zone_wmarks();
++}
++
++/*
++ * Trigger memory pressure bump to reclaim some pages in order to be able to
++ * allocate 'count' pages in single page units. Does similar work as
++ *__alloc_pages_slowpath() function.
++ */
++static int __reclaim_pages(struct zone *zone, gfp_t gfp_mask, int count)
++{
++	enum zone_type high_zoneidx = gfp_zone(gfp_mask);
++	struct zonelist *zonelist = node_zonelist(0, gfp_mask);
++	int did_some_progress = 0;
++	int order = 1;
++
++	/*
++	 * Increase level of watermarks to force kswapd do his job
++	 * to stabilise at new watermark level.
++	 */
++	__update_cma_watermarks(zone, count);
++
++	/* Obey watermarks as if the page was being allocated */
++	while (!zone_watermark_ok(zone, 0, low_wmark_pages(zone), 0, 0)) {
++		wake_all_kswapd(order, zonelist, high_zoneidx, zone_idx(zone));
++
++		did_some_progress = __perform_reclaim(gfp_mask, order, zonelist,
++						      NULL);
++		if (!did_some_progress) {
++			/* Exhausted what can be done so it's blamo time */
++			out_of_memory(zonelist, gfp_mask, order, NULL, false);
++		}
++	}
++
++	/* Restore original watermark levels. */
++	__update_cma_watermarks(zone, -count);
++
++	return count;
++}
++
+ /**
+  * alloc_contig_range() -- tries to allocate given range of pages
+  * @start:	start PFN to allocate
+@@ -5782,6 +5835,13 @@ int alloc_contig_range(unsigned long start, unsigned long end,
+ 		goto done;
+ 	}
+ 
++	/*
++	 * Reclaim enough pages to make sure that contiguous allocation
++	 * will not starve the system.
++	 */
++	__reclaim_pages(zone, GFP_HIGHUSER_MOVABLE, end-start);
++
++	/* Grab isolated pages from freelists. */
+ 	outer_end = isolate_freepages_range(outer_start, end);
+ 	if (!outer_end) {
+ 		ret = -EBUSY;
+-- 
+1.7.1.569.g6f426
 
