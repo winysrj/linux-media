@@ -1,125 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:50007 "EHLO mail.kapsi.fi"
+Received: from bues.ch ([80.190.117.144]:45652 "EHLO bues.ch"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753104Ab2DFLLd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 6 Apr 2012 07:11:33 -0400
-Message-ID: <4F7ECF61.5090005@iki.fi>
-Date: Fri, 06 Apr 2012 14:11:29 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org
-CC: Gianluca Gennari <gennarone@gmail.com>,
-	=?windows-1252?Q?Michael_B=FC?= =?windows-1252?Q?sch?=
-	<m@bues.ch>, Hans-Frieder Vogt <hfvogt@gmx.net>,
-	Pierangelo Terzulli <pierigno@gmail.com>
-Subject: Re: [GIT PULL FOR 3.5] AF9035/AF9033/TUA9001 => TerraTec Cinergy
- T Stick [0ccd:0093]
-References: <4F75A7FE.8090405@iki.fi>
-In-Reply-To: <4F75A7FE.8090405@iki.fi>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+	id S1752040Ab2DCGhB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 3 Apr 2012 02:37:01 -0400
+Date: Tue, 3 Apr 2012 08:36:48 +0200
+From: Michael =?UTF-8?B?QsO8c2No?= <m@bues.ch>
+To: Antti Palosaari <crope@iki.fi>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media <linux-media@vger.kernel.org>,
+	Hans-Frieder Vogt <hfvogt@gmx.net>,
+	Gianluca Gennari <gennarone@gmail.com>
+Subject: Re: [PATCH] Add fc0011 tuner driver
+Message-ID: <20120403083648.258257cd@milhouse>
+In-Reply-To: <4F7A1F88.1060109@iki.fi>
+References: <20120402181432.74e8bd50@milhouse>
+	<4F79DA52.2050907@iki.fi>
+	<20120402192011.4edc82ff@milhouse>
+	<4F79E49D.1020802@iki.fi>
+	<20120402195125.771b2c72@milhouse>
+	<4F7A1F88.1060109@iki.fi>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=PGP-SHA1;
+ boundary="Sig_/t_azOEX/Fp4iKxNQD3qsxWu"; protocol="application/pgp-signature"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-PULL-request update.
+--Sig_/t_azOEX/Fp4iKxNQD3qsxWu
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-On 30.03.2012 15:33, Antti Palosaari wrote:
-> Terve Mauro and all the other hackers,
->
-> I did some massive rewrite for my old AF9035/AF9033 driver that was
-> never merged. Anyhow, here it is.
->
-> New drivers here are:
-> Infineon TUA 9001 silicon tuner driver
-> Afatech AF9033 DVB-T demodulator driver
-> Afatech AF9035 DVB USB driver
+On Tue, 03 Apr 2012 00:52:08 +0300
+Antti Palosaari <crope@iki.fi> wrote:
 
-Fitipower FC0011 silicon tuner driver
+> > Well the fc0011 tuner driver still works worse on this af9035 driver
+> > than on Hans' driver. I have absolutely no idea why this is the case.
+> > I'm almost certain that it is not a timing issue of some sort. I tried
+> > a zillion of delays and such.
+>=20
+> And after taking sniffs and comparing those I found the reason. It is=20
+> I2C adapter code. It writes one byte too much =3D> as a FC0011 is=20
+> auto-increment (as almost every I2C client) registers it means it writes=
+=20
+> next register too. Fixing that gives normal tuner sensitivity. I will=20
+> try to make patch for that soon.
 
-> AF9035 integrates AF9033. Both chips are also sold separately. AF9033
-> will not likely work as a stand-alone since I didn't have hardware to
-> test, but in theory it is quite well split out from the DVB USB
-> interface driver (AF9035).
+Awesome! Thanks a lot!
 
-The following changes since commit 26315a507f6acda933f0d41200de8fec51775867:
+--=20
+Greetings, Michael.
 
-   em28xx-dvb: stop URBs when stopping the streaming (2012-03-28 
-15:32:23 +0300)
+PGP encryption is encouraged / 908D8B0E
 
-are available in the git repository at:
-   git://linuxtv.org/anttip/media_tree.git af9035
+--Sig_/t_azOEX/Fp4iKxNQD3qsxWu
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Disposition: attachment; filename=signature.asc
 
-Antti Palosaari (15):
-       Infineon TUA 9001 silicon tuner driver
-       Afatech AF9033 DVB-T demodulator driver
-       Afatech AF9035 DVB USB driver
-       af9035: enhancement for unknown tuner ID handling
-       af9035: reimplement firmware downloader
-       af9035: add missing error check
-       af9033: correct debug print
-       af9033: implement .read_snr()
-       af9035: add log writing if unsupported Xtal freq is given
-       af9035: fix and enhance I2C adapter
-       af9035: initial support for IT9135 chip
-       af9033: do some minor changes for .get_frontend()
-       af9035: minor changes for af9035_fc0011_tuner_callback()
-       af9035: reorganise USB ID and device list
-       af9035: disable frontend0 I2C-gate control
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
 
-Gianluca Gennari (5):
-       af9035: add USB id for 07ca:a867
-       af9035: add support for the tda18218 tuner
-       af9035: use module_usb_driver macro
-       af9035: fix warning
-       af9033: implement get_frontend
+iQIbBAEBAgAGBQJPepqAAAoJEPUyvh2QjYsOzz0P+OC2NhvHl9G4Hqu769vMC1FH
+rFTAXpT9NKdFB0lx1SDeTWizHOxO4R0KIc6k5RtHiMw1wfMiqhgfdGxKcxqFOqGm
+q1qKx9/x6u6B7fXRxsbhihP+PXVb2GW8qJqdBXDMhHIHrd/WKg3hPWriKnFJh6pN
+HBEKQXaTXctO9q3NkVk+ENOuAVL9Wj596QvQ2OThSaRH6WwmpKwOaXQSvjgghHD6
+aBj2iNyiZFzTxWQD1a5Z82U9HS0KFoV4FTwA9kHPSWVKDH566KMxTI/siQg0/5Lz
+fDpxXIj/xdbuKTeJayJUCvtnok3KupP/jMuN+em1hjdFNN5W9S7Hy8qBeO4J+x12
+eutAznFT1YUYDElwkiYi8gqvjaBc0gI/J65cMV8sx8YyX8OVPfX62iinuERTCPiU
+l/SZAHEyNRjK9OZeQn4rXN2Uzk0lZ4c+xB7D8r1JLsjnzgzN9F7YOEF/Kq0UP8vI
+rcwsXK96oQUDFZZGm4OHX6iMe5Wtf6u9KT7W/16nEeRrkA9qdRWzMeYALFem+LcZ
+d7cQQxuyxNrRsEf07srXr8+qyVyF3EWRKxUCuh7V7eI5QL4Hxvh0ebvrIV1tyKN2
+pvzP3mSBkwzlB4orE/X4IyAEI5zbubXIeT0YixnWPU3UTPaO/E3LF7khci29Vt7l
+ak88uByGMnvjxOPueTI=
+=7bAw
+-----END PGP SIGNATURE-----
 
-Hans-Frieder Vogt (2):
-       af9035: i2c read fix
-       af9035: add Avermedia Volar HD (A867R) support
-
-Michael Buesch (7):
-       af9035: Add USB read checksumming
-       Add fc0011 tuner driver
-       af9035: Add fc0011 tuner support
-       af9035: Add Afatech USB PIDs
-       fc0011: use usleep_range()
-       af9035: Use usleep_range() in fc0011 support code
-       fc0011: Reduce number of retries
-
-Pierangelo Terzulli (1):
-       af9035: add AVerMedia Twinstar (A825) [07ca:0825]
-
-  MAINTAINERS                                |    7 +
-  drivers/media/common/tuners/Kconfig        |   13 +
-  drivers/media/common/tuners/Makefile       |    2 +
-  drivers/media/common/tuners/fc0011.c       |  524 +++++++++++++
-  drivers/media/common/tuners/fc0011.h       |   41 +
-  drivers/media/common/tuners/tua9001.c      |  215 +++++
-  drivers/media/common/tuners/tua9001.h      |   46 ++
-  drivers/media/common/tuners/tua9001_priv.h |   34 +
-  drivers/media/dvb/dvb-usb/Kconfig          |   12 +
-  drivers/media/dvb/dvb-usb/Makefile         |    3 +
-  drivers/media/dvb/dvb-usb/af9035.c         | 1164 
-++++++++++++++++++++++++++++
-  drivers/media/dvb/dvb-usb/af9035.h         |  120 +++
-  drivers/media/dvb/dvb-usb/dvb-usb-ids.h    |    8 +
-  drivers/media/dvb/frontends/Kconfig        |    5 +
-  drivers/media/dvb/frontends/Makefile       |    1 +
-  drivers/media/dvb/frontends/af9033.c       |  919 ++++++++++++++++++++++
-  drivers/media/dvb/frontends/af9033.h       |   75 ++
-  drivers/media/dvb/frontends/af9033_priv.h  |  470 +++++++++++
-  18 files changed, 3659 insertions(+), 0 deletions(-)
-  create mode 100644 drivers/media/common/tuners/fc0011.c
-  create mode 100644 drivers/media/common/tuners/fc0011.h
-  create mode 100644 drivers/media/common/tuners/tua9001.c
-  create mode 100644 drivers/media/common/tuners/tua9001.h
-  create mode 100644 drivers/media/common/tuners/tua9001_priv.h
-  create mode 100644 drivers/media/dvb/dvb-usb/af9035.c
-  create mode 100644 drivers/media/dvb/dvb-usb/af9035.h
-  create mode 100644 drivers/media/dvb/frontends/af9033.c
-  create mode 100644 drivers/media/dvb/frontends/af9033.h
-  create mode 100644 drivers/media/dvb/frontends/af9033_priv.h
-
--- 
-http://palosaari.fi/
+--Sig_/t_azOEX/Fp4iKxNQD3qsxWu--
