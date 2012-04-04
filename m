@@ -1,124 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:44018 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751740Ab2DEOHi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Apr 2012 10:07:38 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH v2 4/4] omap3isp: preview: Shorten shadow update delay
-Date: Thu, 05 Apr 2012 16:07:41 +0200
-Message-ID: <5151597.4Olyp2nfFk@avalon>
-In-Reply-To: <20120402215703.GF922@valkosipuli.localdomain>
-References: <1332936001-32603-1-git-send-email-laurent.pinchart@ideasonboard.com> <2856992.ve4AGyBgA4@avalon> <20120402215703.GF922@valkosipuli.localdomain>
+Received: from mail.kapsi.fi ([217.30.184.167]:45792 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756205Ab2DDN13 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 4 Apr 2012 09:27:29 -0400
+Message-ID: <4F7C4C3D.1090702@iki.fi>
+Date: Wed, 04 Apr 2012 16:27:25 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: gennarone@gmail.com
+CC: linux-media@vger.kernel.org, m@bues.ch, hfvogt@gmx.net,
+	mchehab@redhat.com
+Subject: Re: [PATCH 3/5] tda18218: fix IF frequency for 7MHz bandwidth channels
+References: <1333401917-27203-1-git-send-email-gennarone@gmail.com> <1333401917-27203-4-git-send-email-gennarone@gmail.com> <4F7A2AC9.8040407@iki.fi> <4F7A47E5.8040604@gmail.com> <4F7ACEB6.9020108@iki.fi> <4F7C4963.2060100@gmail.com>
+In-Reply-To: <4F7C4963.2060100@gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+On 04.04.2012 16:15, Gianluca Gennari wrote:
+> Il 03/04/2012 12:19, Antti Palosaari ha scritto:
+>> On 03.04.2012 03:44, Gianluca Gennari wrote:
+>>> Il 03/04/2012 00:40, Antti Palosaari ha scritto:
+>>>> On 03.04.2012 00:25, Gianluca Gennari wrote:
+>>>>> This is necessary to tune VHF channels with the AVerMedia A835 stick.
+>>>>>
+>>>>> Signed-off-by: Gianluca Gennari<gennarone@gmail.com>
+>>>>> ---
+>>>>>     drivers/media/common/tuners/tda18218.c |    2 +-
+>>>>>     1 files changed, 1 insertions(+), 1 deletions(-)
+>>>>>
+>>>>> diff --git a/drivers/media/common/tuners/tda18218.c
+>>>>> b/drivers/media/common/tuners/tda18218.c
+>>>>> index dfb3a83..b079696 100644
+>>>>> --- a/drivers/media/common/tuners/tda18218.c
+>>>>> +++ b/drivers/media/common/tuners/tda18218.c
+>>>>> @@ -144,7 +144,7 @@ static int tda18218_set_params(struct dvb_frontend
+>>>>> *fe)
+>>>>>             priv->if_frequency = 3000000;
+>>>>>         } else if (bw<= 7000000) {
+>>>>>             LP_Fc = 1;
+>>>>> -        priv->if_frequency = 3500000;
+>>>>> +        priv->if_frequency = 4000000;
+>>>>>         } else {
+>>>>>             LP_Fc = 2;
+>>>>>             priv->if_frequency = 4000000;
+>>>>
+>>>> Kwaak, I will not apply that until I have done background checking. That
+>>>> driver is used only by AF9015 currently. And I did that driver as
+>>>> reverse-engineering and thus there is some things guessed. I have only 8
+>>>> MHz wide signal, thus I never tested 7 and 6 MHz. Have no DVB-T
+>>>> modulator either... Maybe some AF9015 user can confirm? Is there any
+>>>> AF9015&   TDA18218 bug reports seen in discussion forums...
+>>>
+>>> A friend has a AF9015+TDA18218 stick and told me that it works fine with
+>>> the patch (including VHF), but to be safe I will ask him to double check
+>>> with the current media_build tree, with and without the patch. In the
+>>> worst case, we can add a new parameter (or an array of parameters) for
+>>> the IF frequency to struct tda18218_config.
+>>
+>> Public short datasheet [1], page 16, says default IFs are BW=8 MHz IF=4
+>> MHz, BW=7 MHz IF=3.5 MHz, BW=6 MHz IF=3 MHz. I suspect it still locks in
+>> some cases even IF is off-by 0.5 MHz for BW 7 and 8 but performance is
+>> reduced. So there is now something wrong, likely bug in the tda18218
+>> driver.
+>>
+>> Could someone send me Windows sniff from success tune to 7 MHz BW channel?
+>>
+>> [1] http://www.nxp.com/documents/data_sheet/TDA18218HN.pdf
+>
+> Hi Antti,
+> I did some testing with the A835 and the findings are interesting. With
+> the old tda18218 driver the af9015 sticks required IF=3.5MHz to tune VHF
+> channels, while the A835 required IF=4MHz.
+>
+> With the current driver, both the af9015 and the A835 are much more
+> tolerant to IF frequency variations.
+> In particular, the A835 is capable to successfully tune UHF channels
+> with IF in the range [3.5,5.5] MHz, and VHF channels with IF in the
+> range [3.0,6.5] MHz, inclusive.
 
-On Tuesday 03 April 2012 00:57:03 Sakari Ailus wrote:
-> On Fri, Mar 30, 2012 at 02:30:34AM +0200, Laurent Pinchart wrote:
-> > On Thursday 29 March 2012 23:34:17 Sakari Ailus wrote:
-> > > On Wed, Mar 28, 2012 at 02:00:01PM +0200, Laurent Pinchart wrote:
+IF frequency is frequency used between tuner and demodulator. Thus it 
+should be same for the tuner, it is sender Tx, and for demodulator which 
+receives it. As you can guess it is like radio channel, it will work if 
+it is a little bit wrong but performance will be reduced.
 
-[snip]
+IF frequency is generally more tuner characteristic than demodulator. I 
+mean it is likely tuner decides which is optimal IF for signal tuner is 
+transferring to demod. Earlier we used configuration option for both 
+tuner and demod to set IF. But as the fact is tuner must know it always 
+we added new tuner callback .get_if_frequency() demodulator can ask used 
+IF from the tuner.
 
-> > > > @@ -887,19 +897,19 @@ static int preview_config(struct isp_prev_device
-> > > > *prev,>
-> > > > 
-> > > >  {
-> > > >  
-> > > >  	struct prev_params *params;
-> > > >  	struct preview_update *attr;
-> > > > 
-> > > > +	unsigned long flags;
-> > > > 
-> > > >  	int i, bit, rval = 0;
-> > > > 
-> > > > -	params = &prev->params;
-> > > > 
-> > > >  	if (cfg->update == 0)
-> > > >  	
-> > > >  		return 0;
-> > > > 
-> > > > -	if (prev->state != ISP_PIPELINE_STREAM_STOPPED) {
-> > > > -		unsigned long flags;
-> > > > +	spin_lock_irqsave(&prev->params.lock, flags);
-> > > > +	params = prev->params.shadow;
-> > > > +	memcpy(params, prev->params.active, sizeof(*params));
-> > > 
-> > > Why memcpy()? Couldn't the same be achieved by swapping the pointers?
-> > 
-> > I would prefer just swapping pointers as well, but that wouldn't work.
-> > 
-> > We have two sets of parameters, A and B. At initialization time we fill
-> > set A with initial values, and make active point to A and shadow to B.
-> > Let's assume we also fill set B with the same initial values as set A.
-> > 
-> > Let's imagine the user calls preview_config() to configure the gamma
-> > table. Set B is updated with new gamma table values. The active and shadow
-> > pointers are then swapped at the end of the function (assuming no
-> > interrupt is occuring at the same time). The active pointer points to set
-> > B, and the shadow pointer to set A. Set A contains outdated gamma table
-> > values compared to set B.
-> > 
-> > The user now calls preview_config() a second time before the interrupt
-> > handler gets a chance to run, to configure white balance. We udpate set A
-> > with new white balance values and swap the pointers. The active pointer
-> > points to set A, and the shadow pointer to set B.
-> > 
-> > The interrupt handler now runs, and configures the hardware with the white
-> > balance parameters from set A. The gamma table values from set B are not
-> > applied.
-> > 
-> > Another issue is omap3isp_preview_restore_context(), which must restore
-> > the whole preview engine context with all the latest parameters. If
-> > they're scattered around set A and set B, that will be more complex.
-> > 
-> > Of course, if you can think of a better way to handle this than a memcpy,
-> > I'm all ears :-)
-> 
-> I think it's time to summarise the problem before solutions. :-)
-> 
-> We've got a single IOCTL which is used to configure an array of properties
-> defined by structs like omap3isp_prev_nf and omap3isp_prev_dcor. The
-> configuration of any single property may be set by the user of any point of
-> time, and should be applied as quickly as possible in the next frame
-> blanking period. The user may set the properties either by a single IOCTL
-> call or many of them --- still the end result should be the same. There may
-> well be more than two of these calls.
-> 
-> This means that just considering two complete parameter sets isn't enough to
-> cover these cases. Instead, the parameters the IOCTL configures should be
-> considered independent of the struct prev_params which they were
-> configured.
-> 
-> I think it's probably easiest to present each individual parameter structs
-> belonging to two queues: one queue is called "free" and the other one is
-> "waiting". The free queue contains structs that are not used i.e. they may
-> be used by the preview_config() to copy new settings to from the user space
-> struct, after which they are put to the "waiting" queue. If the waiting
-> queue was not empty, its old contents are thrown to free queue and replaced
-> by the fresh parameter struct. The ISR will then remove struct from the
-> waiting queue, apply the settings in parameter struct and put it back to
-> free queue.
+Recently I converted AF9013 driver to use that .get_if_frequency(). I 
+think at that point I may have introduced some bug.
 
-I wouldn't use queues, just active and shadow pointers, but the general idea 
-of having per-parameter pointers remains the same.
+And one point to mention, it is sometimes used a little bit different 
+IFs that are tuner defaults. It is somehow device design specific, for 
+maximum performance device engineers will ran some test to find out 
+optimal IF which gives best performance. One reason could be example 
+there is RF noise peak (RF spurs) just in used IF which reduces 
+performance => lets shift default IF a little bit for maximum performance.
 
-> It's possible to implement the same with just a few flags without involving
-> linked lists.
-> 
-> What do you think?
+> I don't know if this may be considered the symptom of a bug, but for
+> sure the patch I posted is useless with the current driver.
+> If you are still interested in a USB sniff of the Windows driver, just
+> let me know.
 
-I think there's no way I can disagree with you, even if not doing so means I 
-will have to rework the code :-) I'll post v3 when it will be ready.
+I have used old SniffUSB2.0
+http://www.pcausa.com/Utilities/UsbSnoop/
+Works fine with Windows XP. Sniff is welcome.
 
+regards
+Antti
 -- 
-Regards,
-
-Laurent Pinchart
-
+http://palosaari.fi/
