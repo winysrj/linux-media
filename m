@@ -1,55 +1,26 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:41829 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755793Ab2DHP7d (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 8 Apr 2012 11:59:33 -0400
-From: Hans de Goede <hdegoede@redhat.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Gregor Jasny <gjasny@googlemail.com>,
-	Jaime Velasco Juan <jsagarribay@gmail.com>,
-	Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH] stk-webcam: Don't flip the image by default
-Date: Sun,  8 Apr 2012 18:01:43 +0200
-Message-Id: <1333900903-2585-1-git-send-email-hdegoede@redhat.com>
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:52915 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757286Ab2DDXdY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Apr 2012 19:33:24 -0400
+Received: by wibhj6 with SMTP id hj6so1053278wib.1
+        for <linux-media@vger.kernel.org>; Wed, 04 Apr 2012 16:33:23 -0700 (PDT)
+Message-ID: <4F7CDA41.5020001@googlemail.com>
+Date: Thu, 05 Apr 2012 00:33:21 +0100
+From: Chris Rankin <rankincj@googlemail.com>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: Is xine DVB broken with Linux 3.3.1?
+References: <1333580430.41460.YahooMailNeo@web121705.mail.ne1.yahoo.com>
+In-Reply-To: <1333580430.41460.YahooMailNeo@web121705.mail.ne1.yahoo.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Prior to this patch the stk-webcam driver was enabling the vflip and mirror
-bits in the sensor by default. Which only is the right thing to do if the
-sensor is actually mounted upside down, which it usually is not.
+I have just checked the 3.2.14 kernel, and it seems unaffected by this 
+issue. So I'm guessing it was introduced recently in the 3.3 kernel.
 
-Actually we've received upside down reports for both usb-ids which this
-driver supports, one for an "ASUSTeK Computer Inc." "A3H" laptop with
-a build in 174f:a311 webcam, and one for an "To Be Filled By O.E.M."
-"Z96FM" laptop with a build in 05e1:0501 webcam.
-
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
- drivers/media/video/stk-webcam.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/media/video/stk-webcam.c b/drivers/media/video/stk-webcam.c
-index d427f84..86a0fc5 100644
---- a/drivers/media/video/stk-webcam.c
-+++ b/drivers/media/video/stk-webcam.c
-@@ -38,13 +38,13 @@
- #include "stk-webcam.h"
- 
- 
--static bool hflip = 1;
-+static bool hflip;
- module_param(hflip, bool, 0444);
--MODULE_PARM_DESC(hflip, "Horizontal image flip (mirror). Defaults to 1");
-+MODULE_PARM_DESC(hflip, "Horizontal image flip (mirror). Defaults to 0");
- 
--static bool vflip = 1;
-+static bool vflip;
- module_param(vflip, bool, 0444);
--MODULE_PARM_DESC(vflip, "Vertical image flip. Defaults to 1");
-+MODULE_PARM_DESC(vflip, "Vertical image flip. Defaults to 0");
- 
- static int debug;
- module_param(debug, int, 0444);
--- 
-1.7.9.3
+Cheers,
+Chris
 
