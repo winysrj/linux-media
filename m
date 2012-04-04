@@ -1,155 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:63599 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754215Ab2DMPsK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Apr 2012 11:48:10 -0400
-Received: from euspt1 (mailout2.w1.samsung.com [210.118.77.12])
- by mailout2.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0M2F00CGID7ZD4@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 13 Apr 2012 16:48:02 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0M2F005JLD84XW@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 13 Apr 2012 16:48:04 +0100 (BST)
-Date: Fri, 13 Apr 2012 17:47:47 +0200
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: [PATCH v4 05/14] v4l: vb2-dma-contig: Shorten vb2_dma_contig prefix to
- vb2_dc
-In-reply-to: <1334332076-28489-1-git-send-email-t.stanislaws@samsung.com>
-To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
-Cc: airlied@redhat.com, m.szyprowski@samsung.com,
-	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
-	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
-	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
-	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
-	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:41911 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756415Ab2DDN15 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Apr 2012 09:27:57 -0400
+Received: by eaaq12 with SMTP id q12so91877eaa.19
+        for <linux-media@vger.kernel.org>; Wed, 04 Apr 2012 06:27:55 -0700 (PDT)
+Message-ID: <4F7C4C58.5050703@gmail.com>
+Date: Wed, 04 Apr 2012 15:27:52 +0200
+From: Gianluca Gennari <gennarone@gmail.com>
+Reply-To: gennarone@gmail.com
+MIME-Version: 1.0
+To: Antti Palosaari <crope@iki.fi>
+CC: linux-media@vger.kernel.org, m@bues.ch, hfvogt@gmx.net,
 	mchehab@redhat.com
-Message-id: <1334332076-28489-6-git-send-email-t.stanislaws@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1334332076-28489-1-git-send-email-t.stanislaws@samsung.com>
+Subject: Re: [PATCH] af9035: add several new USB IDs
+References: <1333540034-14002-1-git-send-email-gennarone@gmail.com> <4F7C3787.5020602@iki.fi> <4F7C4141.40004@gmail.com> <4F7C481A.2020203@iki.fi>
+In-Reply-To: <4F7C481A.2020203@iki.fi>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Il 04/04/2012 15:09, Antti Palosaari ha scritto:
+> On 04.04.2012 15:40, Gianluca Gennari wrote:
+>> Il 04/04/2012 13:59, Antti Palosaari ha scritto:
+>>> On 04.04.2012 14:47, Gianluca Gennari wrote:
+>>>> Add several new USB IDs extracted from the Windows and Linux drivers
+>>>> published
+>>>> by the manufacturers (Terratec and AVerMedia).
+>>>> +    [AF9035_07CA_0867] = {
+>>>> +        USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_0867)},
+>>>>        [AF9035_07CA_1867] = {
+>>>>            USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_1867)},
+>>>> +    [AF9035_07CA_3867] = {
+>>>> +        USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_3867)},
+>>>>        [AF9035_07CA_A867] = {
+>>>>            USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_A867)},
+>>>> +    [AF9035_07CA_B867] = {
+>>>> +        USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_B867)},
+>>>
+>>> It have been common practise to use product names for USB PID
+>>> definitions instead of USB ID numbers. I vote to continue that practise.
+>>>
+>>> Also, I am not very sure if it is wise to add new IDs without any
+>>> testing. Likely those are just reference design and will work, but
+>>> sometimes there is also some changes done for schematic wiring.
+>>> Especially for Avermedia, see hacks needed some AF9015 Avermedia
+>>> devices. They have put invalid data to eeprom and thus hacks are needed
+>>> for overriding tuner IDs etc.
+>>> Not to mention, driver supports also dynamic IDs and even device ID is
+>>> missing user can load driver using dynamic ID and report it working or
+>>> non-working.
+>>>
+>>> Anyone else any thoughts about adding IDs without testing ?
+>>>
+>>> regards
+>>> Antti
+>>
+>> Regarding the USB PID definition naming, there is no problem for me.
+>> Actually, some product names were used in the modified versions of your
+>> old driver, so I converted them to the format above just for
+>> convenience. The only problem is that there are so many variations of
+>> the Avermedia sticks that it's hard to give them proper names.
+>>
+>> Some of this IDs are already tested (if we include the several
+>> modifications of your old driver).
+>>
+>> In particular:
+>> AF9035_0CCD_00AA : confirmed working on Ubuntu.it forum with the old
+>> driver (don't have the link);
+>> AF9035_07CA_0825 : confirmed working on OpenPli forum with the old
+>> driver (see link above);
+>>
+>> Others comes from the official Windows drivers so they should be just
+>> little variations of the retail products:
+>> AF9035_07CA_A825, AF9035_07CA_0835, AF9035_07CA_3867.
+>>
+>> This IDs are can be the more problematic:
+>> AF9035_15A4_1000, AF9035_15A4_1002, AF9035_15A4_1003,
+>> AF9035_07CA_A333, AF9035_07CA_0337, AF9035_07CA_F337
+>> since there is little or no information about this products.
+>>
+>> Anyway, this patch can be a reference for users willing to test the new
+>> driver.
+> 
+> I mean those definitions that goes to common file named: dvb-usb-ids.h.
+> Those are named as a USB_PID_<VENDOR_NAME>_<PRODUCT_NAME>
+> 
+> PIDs inside af9035.c (enum af9035_id_entry) are used only for generating
+> table index. Before it was used plain index numbers but that causes in
+> past few times problems when people added new device IDs between then
+> the table. Meaning of that enum is only keep index in order
+> automatically - and it is just fine as it is short unique name as
+> currently AF9035_<VID>_<PID>.
+> 
+> Add those IDs you know working and sent patch. Lets add more IDs when
+> those are confirmed to work. And as I said I added dynamic ID support
+> for that driver, so even there is no USB ID defined inside driver, it
+> can be still used without compiling whole Kernel.
+> 
+> regards
+> Antti
+> 
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/video/videobuf2-dma-contig.c |   36 ++++++++++++++--------------
- 1 files changed, 18 insertions(+), 18 deletions(-)
+Ok, roger.
+As soon as the new driver is merged into the media_build tree, we should
+start getting feedback anyway, so let's wait.
 
-diff --git a/drivers/media/video/videobuf2-dma-contig.c b/drivers/media/video/videobuf2-dma-contig.c
-index f17ad98..5207eb1 100644
---- a/drivers/media/video/videobuf2-dma-contig.c
-+++ b/drivers/media/video/videobuf2-dma-contig.c
-@@ -31,9 +31,9 @@ struct vb2_dc_buf {
- 	struct vb2_vmarea_handler	handler;
- };
- 
--static void vb2_dma_contig_put(void *buf_priv);
-+static void vb2_dc_put(void *buf_priv);
- 
--static void *vb2_dma_contig_alloc(void *alloc_ctx, unsigned long size)
-+static void *vb2_dc_alloc(void *alloc_ctx, unsigned long size)
- {
- 	struct vb2_dc_conf *conf = alloc_ctx;
- 	struct vb2_dc_buf *buf;
-@@ -55,7 +55,7 @@ static void *vb2_dma_contig_alloc(void *alloc_ctx, unsigned long size)
- 	buf->size = size;
- 
- 	buf->handler.refcount = &buf->refcount;
--	buf->handler.put = vb2_dma_contig_put;
-+	buf->handler.put = vb2_dc_put;
- 	buf->handler.arg = buf;
- 
- 	atomic_inc(&buf->refcount);
-@@ -63,7 +63,7 @@ static void *vb2_dma_contig_alloc(void *alloc_ctx, unsigned long size)
- 	return buf;
- }
- 
--static void vb2_dma_contig_put(void *buf_priv)
-+static void vb2_dc_put(void *buf_priv)
- {
- 	struct vb2_dc_buf *buf = buf_priv;
- 
-@@ -74,14 +74,14 @@ static void vb2_dma_contig_put(void *buf_priv)
- 	}
- }
- 
--static void *vb2_dma_contig_cookie(void *buf_priv)
-+static void *vb2_dc_cookie(void *buf_priv)
- {
- 	struct vb2_dc_buf *buf = buf_priv;
- 
- 	return &buf->dma_addr;
- }
- 
--static void *vb2_dma_contig_vaddr(void *buf_priv)
-+static void *vb2_dc_vaddr(void *buf_priv)
- {
- 	struct vb2_dc_buf *buf = buf_priv;
- 	if (!buf)
-@@ -90,14 +90,14 @@ static void *vb2_dma_contig_vaddr(void *buf_priv)
- 	return buf->vaddr;
- }
- 
--static unsigned int vb2_dma_contig_num_users(void *buf_priv)
-+static unsigned int vb2_dc_num_users(void *buf_priv)
- {
- 	struct vb2_dc_buf *buf = buf_priv;
- 
- 	return atomic_read(&buf->refcount);
- }
- 
--static int vb2_dma_contig_mmap(void *buf_priv, struct vm_area_struct *vma)
-+static int vb2_dc_mmap(void *buf_priv, struct vm_area_struct *vma)
- {
- 	struct vb2_dc_buf *buf = buf_priv;
- 
-@@ -110,7 +110,7 @@ static int vb2_dma_contig_mmap(void *buf_priv, struct vm_area_struct *vma)
- 				  &vb2_common_vm_ops, &buf->handler);
- }
- 
--static void *vb2_dma_contig_get_userptr(void *alloc_ctx, unsigned long vaddr,
-+static void *vb2_dc_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 					unsigned long size, int write)
- {
- 	struct vb2_dc_buf *buf;
-@@ -137,7 +137,7 @@ static void *vb2_dma_contig_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 	return buf;
- }
- 
--static void vb2_dma_contig_put_userptr(void *mem_priv)
-+static void vb2_dc_put_userptr(void *mem_priv)
- {
- 	struct vb2_dc_buf *buf = mem_priv;
- 
-@@ -149,14 +149,14 @@ static void vb2_dma_contig_put_userptr(void *mem_priv)
- }
- 
- const struct vb2_mem_ops vb2_dma_contig_memops = {
--	.alloc		= vb2_dma_contig_alloc,
--	.put		= vb2_dma_contig_put,
--	.cookie		= vb2_dma_contig_cookie,
--	.vaddr		= vb2_dma_contig_vaddr,
--	.mmap		= vb2_dma_contig_mmap,
--	.get_userptr	= vb2_dma_contig_get_userptr,
--	.put_userptr	= vb2_dma_contig_put_userptr,
--	.num_users	= vb2_dma_contig_num_users,
-+	.alloc		= vb2_dc_alloc,
-+	.put		= vb2_dc_put,
-+	.cookie		= vb2_dc_cookie,
-+	.vaddr		= vb2_dc_vaddr,
-+	.mmap		= vb2_dc_mmap,
-+	.get_userptr	= vb2_dc_get_userptr,
-+	.put_userptr	= vb2_dc_put_userptr,
-+	.num_users	= vb2_dc_num_users,
- };
- EXPORT_SYMBOL_GPL(vb2_dma_contig_memops);
- 
--- 
-1.7.5.4
-
+Regards,
+Gianluca
