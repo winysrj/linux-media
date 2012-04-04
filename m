@@ -1,54 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:52350 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757590Ab2DFUr7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Apr 2012 16:47:59 -0400
-Received: by wejx9 with SMTP id x9so1643210wej.19
-        for <linux-media@vger.kernel.org>; Fri, 06 Apr 2012 13:47:57 -0700 (PDT)
-Message-ID: <4F7F567B.1040305@gmail.com>
-Date: Fri, 06 Apr 2012 22:47:55 +0200
-From: Sylwester Nawrocki <snjw23@gmail.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:41325 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756288Ab2DDNJu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 4 Apr 2012 09:09:50 -0400
+Message-ID: <4F7C481A.2020203@iki.fi>
+Date: Wed, 04 Apr 2012 16:09:46 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: LMML <linux-media@vger.kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [GIT PATCHES FOR 3.4] s5p/exynos fimc driver updates
-References: <4F69F9ED.8080306@samsung.com>
-In-Reply-To: <4F69F9ED.8080306@samsung.com>
+To: gennarone@gmail.com
+CC: linux-media@vger.kernel.org, m@bues.ch, hfvogt@gmx.net,
+	mchehab@redhat.com
+Subject: Re: [PATCH] af9035: add several new USB IDs
+References: <1333540034-14002-1-git-send-email-gennarone@gmail.com> <4F7C3787.5020602@iki.fi> <4F7C4141.40004@gmail.com>
+In-Reply-To: <4F7C4141.40004@gmail.com>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+On 04.04.2012 15:40, Gianluca Gennari wrote:
+> Il 04/04/2012 13:59, Antti Palosaari ha scritto:
+>> On 04.04.2012 14:47, Gianluca Gennari wrote:
+>>> Add several new USB IDs extracted from the Windows and Linux drivers
+>>> published
+>>> by the manufacturers (Terratec and AVerMedia).
+>>> +    [AF9035_07CA_0867] = {
+>>> +        USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_0867)},
+>>>        [AF9035_07CA_1867] = {
+>>>            USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_1867)},
+>>> +    [AF9035_07CA_3867] = {
+>>> +        USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_3867)},
+>>>        [AF9035_07CA_A867] = {
+>>>            USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_A867)},
+>>> +    [AF9035_07CA_B867] = {
+>>> +        USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_B867)},
+>>
+>> It have been common practise to use product names for USB PID
+>> definitions instead of USB ID numbers. I vote to continue that practise.
+>>
+>> Also, I am not very sure if it is wise to add new IDs without any
+>> testing. Likely those are just reference design and will work, but
+>> sometimes there is also some changes done for schematic wiring.
+>> Especially for Avermedia, see hacks needed some AF9015 Avermedia
+>> devices. They have put invalid data to eeprom and thus hacks are needed
+>> for overriding tuner IDs etc.
+>> Not to mention, driver supports also dynamic IDs and even device ID is
+>> missing user can load driver using dynamic ID and report it working or
+>> non-working.
+>>
+>> Anyone else any thoughts about adding IDs without testing ?
+>>
+>> regards
+>> Antti
+>
+> Regarding the USB PID definition naming, there is no problem for me.
+> Actually, some product names were used in the modified versions of your
+> old driver, so I converted them to the format above just for
+> convenience. The only problem is that there are so many variations of
+> the Avermedia sticks that it's hard to give them proper names.
+>
+> Some of this IDs are already tested (if we include the several
+> modifications of your old driver).
+>
+> In particular:
+> AF9035_0CCD_00AA : confirmed working on Ubuntu.it forum with the old
+> driver (don't have the link);
+> AF9035_07CA_0825 : confirmed working on OpenPli forum with the old
+> driver (see link above);
+>
+> Others comes from the official Windows drivers so they should be just
+> little variations of the retail products:
+> AF9035_07CA_A825, AF9035_07CA_0835, AF9035_07CA_3867.
+>
+> This IDs are can be the more problematic:
+> AF9035_15A4_1000, AF9035_15A4_1002, AF9035_15A4_1003,
+> AF9035_07CA_A333, AF9035_07CA_0337, AF9035_07CA_F337
+> since there is little or no information about this products.
+>
+> Anyway, this patch can be a reference for users willing to test the new
+> driver.
 
-On 03/21/2012 04:55 PM, Sylwester Nawrocki wrote:
-> The following changes since commit bcc15c27c75187016f4402d94967f74b7571bacc:
->
->    Merge remote-tracking branch 'linuxtv/staging/for_v3.4' into fimc-for-next (2012-03-21 10:19:36 +0100)
->
-> are available in the git repository at:
->
->
->    git://git.infradead.org/users/kmpark/linux-samsung fimc-for-next
->
-> for you to fetch changes up to 6576f95e4d74877cf8b385e7591959f78f300dc7:
->
->    s5p-fimc: Handle sub-device interdependencies using deferred probing (2012-03-21 13:58:09 +0100)
->
-> ----------------------------------------------------------------
-> Sylwester Nawrocki (6):
->        s5p-fimc: Don't use platform data for CSI data alignment configuration
->        s5p-fimc: Reinitialize the pipeline properly after VIDIOC_STREAMOFF
+I mean those definitions that goes to common file named: dvb-usb-ids.h. 
+Those are named as a USB_PID_<VENDOR_NAME>_<PRODUCT_NAME>
 
-Could you please pick this one bug fix patch for 3.4-rcX ? And ignore
-the other 5, I would add them to another pull request.
+PIDs inside af9035.c (enum af9035_id_entry) are used only for generating 
+table index. Before it was used plain index numbers but that causes in 
+past few times problems when people added new device IDs between then 
+the table. Meaning of that enum is only keep index in order 
+automatically - and it is just fine as it is short unique name as 
+currently AF9035_<VID>_<PID>.
 
->        s5p-fimc: Simplify locking by removing the context data structure spinlock
->        s5p-fimc: Refactor hardware setup for m2m transaction
->        s5p-fimc: Remove unneeded fields from struct fimc_dev
->        s5p-fimc: Handle sub-device interdependencies using deferred probing
+Add those IDs you know working and sent patch. Lets add more IDs when 
+those are confirmed to work. And as I said I added dynamic ID support 
+for that driver, so even there is no USB ID defined inside driver, it 
+can be still used without compiling whole Kernel.
 
+regards
+Antti
 
-Thanks,
-Sylwester
+-- 
+http://palosaari.fi/
