@@ -1,70 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qa0-f46.google.com ([209.85.216.46]:46919 "EHLO
-	mail-qa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753128Ab2DCK7Q convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Apr 2012 06:59:16 -0400
-Received: by qatm19 with SMTP id m19so2876616qat.19
-        for <linux-media@vger.kernel.org>; Tue, 03 Apr 2012 03:59:15 -0700 (PDT)
+Received: from mail.kapsi.fi ([217.30.184.167]:38863 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755807Ab2DDL7H (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 4 Apr 2012 07:59:07 -0400
+Message-ID: <4F7C3787.5020602@iki.fi>
+Date: Wed, 04 Apr 2012 14:59:03 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <4F7AD4DB.9040403@samsung.com>
-References: <1333440294-382-1-git-send-email-sachin.kamat@linaro.org>
-	<4F7AD4DB.9040403@samsung.com>
-Date: Tue, 3 Apr 2012 16:29:15 +0530
-Message-ID: <CAK9yfHxzveHSG3ihTe3=yL7+oTDY2i72fTydF5Vw3R7TEnezMg@mail.gmail.com>
-Subject: Re: [PATCH] [media] s5p-tv: Fix compiler warning in mixer_video.c file
-From: Sachin Kamat <sachin.kamat@linaro.org>
-To: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Cc: linux-media@vger.kernel.org, mchehab@infradead.org,
-	patches@linaro.org
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8BIT
+To: Gianluca Gennari <gennarone@gmail.com>
+CC: linux-media@vger.kernel.org, m@bues.ch, hfvogt@gmx.net,
+	mchehab@redhat.com
+Subject: Re: [PATCH] af9035: add several new USB IDs
+References: <1333540034-14002-1-git-send-email-gennarone@gmail.com>
+In-Reply-To: <1333540034-14002-1-git-send-email-gennarone@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Ok. Please ignore my patch.
+On 04.04.2012 14:47, Gianluca Gennari wrote:
+> Add several new USB IDs extracted from the Windows and Linux drivers published
+> by the manufacturers (Terratec and AVerMedia).
+> +	[AF9035_07CA_0867] = {
+> +		USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_0867)},
+>   	[AF9035_07CA_1867] = {
+>   		USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_1867)},
+> +	[AF9035_07CA_3867] = {
+> +		USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_3867)},
+>   	[AF9035_07CA_A867] = {
+>   		USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_A867)},
+> +	[AF9035_07CA_B867] = {
+> +		USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_B867)},
 
-Looks like this series has not yet made into mainline.
+It have been common practise to use product names for USB PID 
+definitions instead of USB ID numbers. I vote to continue that practise.
 
-On 03/04/2012, Tomasz Stanislawski <t.stanislaws@samsung.com> wrote:
-> Hi Sachin Kamat,
-> Thanks for the patch.
-> However, the patch is already a duplicate of
->
-> http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/45756/focus=45752
->
-> Regards,
-> Tomasz Stanislawski
->
-> On 04/03/2012 10:04 AM, Sachin Kamat wrote:
->> Fixes the following warning:
->>
->> mixer_video.c:857:3: warning: format ‘%lx’ expects argument of type
->> ‘long unsigned int’, but argument 5 has type ‘unsigned int’ [-Wformat]
->>
->> Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
->> ---
->>  drivers/media/video/s5p-tv/mixer_video.c |    2 +-
->>  1 files changed, 1 insertions(+), 1 deletions(-)
->>
->> diff --git a/drivers/media/video/s5p-tv/mixer_video.c
->> b/drivers/media/video/s5p-tv/mixer_video.c
->> index f7ca5cc..bb33d7c 100644
->> --- a/drivers/media/video/s5p-tv/mixer_video.c
->> +++ b/drivers/media/video/s5p-tv/mixer_video.c
->> @@ -854,7 +854,7 @@ static int queue_setup(struct vb2_queue *vq, const
->> struct v4l2_format *pfmt,
->>  	for (i = 0; i < fmt->num_subframes; ++i) {
->>  		alloc_ctxs[i] = layer->mdev->alloc_ctx;
->>  		sizes[i] = PAGE_ALIGN(planes[i].sizeimage);
->> -		mxr_dbg(mdev, "size[%d] = %08lx\n", i, sizes[i]);
->> +		mxr_dbg(mdev, "size[%d] = %08x\n", i, sizes[i]);
->>  	}
->>
->>  	if (*nbuffers == 0)
->
->
+Also, I am not very sure if it is wise to add new IDs without any 
+testing. Likely those are just reference design and will work, but 
+sometimes there is also some changes done for schematic wiring. 
+Especially for Avermedia, see hacks needed some AF9015 Avermedia 
+devices. They have put invalid data to eeprom and thus hacks are needed 
+for overriding tuner IDs etc.
+Not to mention, driver supports also dynamic IDs and even device ID is 
+missing user can load driver using dynamic ID and report it working or 
+non-working.
 
+Anyone else any thoughts about adding IDs without testing ?
 
+regards
+Antti
 -- 
-With warm regards,
-Sachin
+http://palosaari.fi/
