@@ -1,44 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.47]:44790 "EHLO mgw-sa01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751153Ab2DVKnN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 22 Apr 2012 06:43:13 -0400
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: s.nawrocki@samasung.com
-Subject: [PATCH 1/1] s5p-fimc: media_entity_pipeline_start() may fail
-Date: Sun, 22 Apr 2012 13:43:14 +0300
-Message-Id: <1335091394-26871-1-git-send-email-sakari.ailus@iki.fi>
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:65226 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754434Ab2DEKRv convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Apr 2012 06:17:51 -0400
+Received: by yhmm54 with SMTP id m54so596321yhm.19
+        for <linux-media@vger.kernel.org>; Thu, 05 Apr 2012 03:17:51 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <CAPueXH61Kc0ufek_6Ni+Vq=9GQWZfLBtmrBW9r7Ns4ef8GOz8g@mail.gmail.com>
+References: <CAK2bqVJT-AvRS9NYhRbpiZRHEVpUHUMxmHTW9OaS1+TYbsaVog@mail.gmail.com>
+ <CAPueXH61Kc0ufek_6Ni+Vq=9GQWZfLBtmrBW9r7Ns4ef8GOz8g@mail.gmail.com>
+From: Paulo Assis <pj.assis@gmail.com>
+Date: Thu, 5 Apr 2012 11:17:30 +0100
+Message-ID: <CAPueXH6bZm-PNiKQ7YyrryWJvQAqGU9V3Fq=Mk6rR8o9CAXuWA@mail.gmail.com>
+Subject: Re: UVC video output problem with 3.3.1 kernel
+To: Chris Rankin <rankincj@googlemail.com>
+Cc: linux-media@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Take into account media_entity_pipeline_start() may fail. This patch is
-dependent on "media: Add link_validate() op to check links to the sink pad".
+Hi,
+>From what you describe I would say that during conversion a YUYV (2
+bytes per pixel) size (be it a buffer or loop iterations) is being
+used for RGB3 (3 bytes per pixel), so you only get 2/3 of the picture.
+Does this happen in any resolution ?
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
----
-The dependent patch is part of my pull req to Mauro here:
+Regards,
+Paulo
 
-<URL:http://www.spinics.net/lists/linux-media/msg46296.html>
-
- drivers/media/video/s5p-fimc/fimc-capture.c |    4 +++-
- 1 files changed, 3 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c b/drivers/media/video/s5p-fimc/fimc-capture.c
-index dc18ba5..8fd8095 100644
---- a/drivers/media/video/s5p-fimc/fimc-capture.c
-+++ b/drivers/media/video/s5p-fimc/fimc-capture.c
-@@ -963,7 +963,9 @@ static int fimc_cap_streamon(struct file *file, void *priv,
- 	if (fimc_capture_active(fimc))
- 		return -EBUSY;
- 
--	media_entity_pipeline_start(&p->sensor->entity, p->pipe);
-+	ret = media_entity_pipeline_start(&p->sensor->entity, p->pipe);
-+	if (ret < 0)
-+		return ret;
- 
- 	if (fimc->vid_cap.user_subdev_api) {
- 		ret = fimc_pipeline_validate(fimc);
--- 
-1.7.2.5
-
+2012/4/5 Paulo Assis <pj.assis@gmail.com>:
+> Hi,
+> BGR3, RGB3, YU12 and YV12 are provided through libv4l, the original
+> unconverted stream format provided through uvcvideo driver is YUYV, if
+> this is fine then this is probably an issue with libv4l.
+>
+> Regards,
+> Paulo
+>
+> 2012/4/5 Chris Rankin <rankincj@googlemail.com>:
+>> Hi,
+>>
+>> I have a UVC video device, which lsusb describes as:
+>>
+>> 046d:0992 Logitech, Inc. QuickCam Communicate Deluxe
+>>
+>> With the 3.3.1 kernel, the bottom 3rd of the video window displayed by
+>> guvcview is completely black. This happens whenever I select either
+>> BGR3 or RGB3 as the video output format. However, YUYV, YU12 and YV12
+>> all display fine.
+>>
+>> Does anyone else see this, please?
+>> Thanks,
+>> Chris
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
