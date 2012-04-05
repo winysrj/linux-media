@@ -1,42 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:34509 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751052Ab2DPRIe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Apr 2012 13:08:34 -0400
-Message-ID: <4F8C5210.5030604@iki.fi>
-Date: Mon, 16 Apr 2012 20:08:32 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH v3 5/9] omap3isp: preview: Merge configuration and feature
- bits
-References: <1334582994-6967-1-git-send-email-laurent.pinchart@ideasonboard.com> <1334582994-6967-6-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1334582994-6967-6-git-send-email-laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from plane.gmane.org ([80.91.229.3]:44076 "EHLO plane.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752173Ab2DEUzL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 5 Apr 2012 16:55:11 -0400
+Received: from list by plane.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1SFthv-0004tN-Pi
+	for linux-media@vger.kernel.org; Thu, 05 Apr 2012 22:55:03 +0200
+Received: from lechon.iro.umontreal.ca ([132.204.27.242])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Thu, 05 Apr 2012 22:55:03 +0200
+Received: from monnier by lechon.iro.umontreal.ca with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Thu, 05 Apr 2012 22:55:03 +0200
+To: linux-media@vger.kernel.org
+From: Stefan Monnier <monnier@iro.umontreal.ca>
+Subject: Unknown eMPIA tuner
+Date: Thu, 05 Apr 2012 15:30:07 -0400
+Message-ID: <jwv4nsyx9pr.fsf-monnier+gmane.linux.drivers.video-input-infrastructure@gnu.org>
+Mime-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+I just got a USB tuner ("HD TV ATSC USB stick") which lsusb describes as
+"ID eb1a:1111 eMPIA Technology, Inc." and was wondering how to try to
+get it working.
 
-Thanks for the patch.
+Would the em28xx driver be able to handle it?  If so, how should I modify
+it to try it out?
 
-Laurent Pinchart wrote:
-> The preview engine parameters are referenced by a value suitable for
-> being used in a bitmask. Two macros named OMAP3ISP_PREV_* and PREV_* are
-> declared for each parameter and are used interchangeably. Remove the
-> private macro.
->
-> Replace the configuration bit field in the parameter update attributes
-> structure with a boolean that indicates whether the parameter can be
-> updated through the preview engine configuration ioctl.
->
-> Signed-off-by: Laurent Pinchart<laurent.pinchart@ideasonboard.com>
 
-Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
+        Stefan
 
--- 
-Sakari Ailus
-sakari.ailus@iki.fi
