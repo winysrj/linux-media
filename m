@@ -1,41 +1,28 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vx0-f174.google.com ([209.85.220.174]:35355 "EHLO
-	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752824Ab2DIBq3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 8 Apr 2012 21:46:29 -0400
-Received: by vcqp1 with SMTP id p1so1526142vcq.19
-        for <linux-media@vger.kernel.org>; Sun, 08 Apr 2012 18:46:29 -0700 (PDT)
+Received: from nm4-vm0.bullet.mail.ird.yahoo.com ([77.238.189.211]:40055 "HELO
+	nm4-vm0.bullet.mail.ird.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1755499Ab2DEUNA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 5 Apr 2012 16:13:00 -0400
+Message-ID: <4F7DFCC6.6010504@yahoo.com>
+Date: Thu, 05 Apr 2012 21:12:54 +0100
+From: Chris Rankin <rankincj@yahoo.com>
 MIME-Version: 1.0
-In-Reply-To: <1333927151-13014-1-git-send-email-Larry.Finger@lwfinger.net>
-References: <1333927151-13014-1-git-send-email-Larry.Finger@lwfinger.net>
-Date: Sun, 8 Apr 2012 21:46:28 -0400
-Message-ID: <CAGoCfixO1mUO0VGBL9GzOmaWpQ6rVos095reFfUWnVwCj0CyYg@mail.gmail.com>
-Subject: Re: [PATCH] media: au0828: Convert BUG_ON to WARN_ONCE
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Larry Finger <Larry.Finger@lwfinger.net>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	jrh <jharbestonus@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+To: pj.assis@gmail.com
+CC: linux-media@vger.kernel.org
+Subject: Re: UVC video output problem with 3.3.1 kernel
+References: <CAPueXH6bZm-PNiKQ7YyrryWJvQAqGU9V3Fq=Mk6rR8o9CAXuWA@mail.gmail.com>
+In-Reply-To: <CAPueXH6bZm-PNiKQ7YyrryWJvQAqGU9V3Fq=Mk6rR8o9CAXuWA@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Apr 8, 2012 at 7:19 PM, Larry Finger <Larry.Finger@lwfinger.net> wrote:
-> In the mail thread at http://www.mythtv.org/pipermail/mythtv-users/2012-April/331164.html,
-> a kernel crash is triggered when trying to run mythtv with a HVR950Q tuner.
-> The crash condition is due to res_free() being called to free something that
-> has is not reserved. The actual reason for this mismatch of reserve/free is
-> not known; however, using a BUG_ON rather than a WARN_ON seems unfortunate.
+ > Does this happen in any resolution ?
 
-This patch should be nack'd.  The real reason should be identified,
-and a patch should be submitted for that (and from what I gather, it
-seems like it is easily reproduced by the submitter).  Just add a few
-"dump_stack()" calls in the res_get() and res_free() calls to identify
-the failing call path.
 
-Devin
+All resolutions except 960x720: in this resolution I only get a tiny strip of 
+image across the top of the window.
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Cheers,
+Chris
