@@ -1,109 +1,177 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:52331 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932186Ab2DQLT3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Apr 2012 07:19:29 -0400
-Message-ID: <4F8D51BE.7050808@iki.fi>
-Date: Tue, 17 Apr 2012 14:19:26 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:38504 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755689Ab2DETEF convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Apr 2012 15:04:05 -0400
+Received: by yenl12 with SMTP id l12so922195yen.19
+        for <linux-media@vger.kernel.org>; Thu, 05 Apr 2012 12:04:04 -0700 (PDT)
 MIME-Version: 1.0
-To: Dan Carpenter <dan.carpenter@oracle.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [media] tda10071: NXP TDA10071 DVB-S/S2 driver
-References: <20120417103330.GA13569@elgon.mountain>
-In-Reply-To: <20120417103330.GA13569@elgon.mountain>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <4F7DC65F.7030007@gmail.com>
+References: <1333540034-14002-1-git-send-email-gennarone@gmail.com>
+ <4F7C3787.5020602@iki.fi> <4F7C4141.40004@gmail.com> <4F7C481A.2020203@iki.fi>
+ <4F7C4C58.5050703@gmail.com> <CAN7fRVvX2gEWHAEAqqZ1Jbgx+atU8S_dXVc9Q83_o+-L69nq7g@mail.gmail.com>
+ <CAN7fRVsGqUvmNkYbzmf5dKYjc_+n9T_3TTBp7Bawon3-awjfPQ@mail.gmail.com> <4F7DC65F.7030007@gmail.com>
+From: pierigno <pierigno@gmail.com>
+Date: Thu, 5 Apr 2012 21:03:23 +0200
+Message-ID: <CAN7fRVug2k1VEDEYOaAAg7ecG1jB4bHFWFd2=nsXdvSJuK7AKw@mail.gmail.com>
+Subject: Re: [PATCH] af9035: add several new USB IDs
+To: gennarone@gmail.com
+Cc: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org,
+	m@bues.ch, hfvogt@gmx.net, mchehab@redhat.com
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Moikka Dan,
-and thank you. Comments below.
+Damn!! here it is again, corrected. I'm really sorry, thanks for the patience :)
 
-On 17.04.2012 13:33, Dan Carpenter wrote:
-> Hi Antti,
->
-> Smatch complains about a potential information leak.  I was hoping you
-> could take a look.
->
-> The patch de8e42035014: "[media] tda10071: NXP TDA10071 DVB-S/S2
-> driver" from Aug 1, 2011, leads to the following warning:
-> drivers/media/dvb/frontends/tda10071.c:322
-> tda10071_diseqc_send_master_cmd()
-> 	 error: memcpy() 'diseqc_cmd->msg' too small (6 vs 16)
->
->
-> drivers/media/dvb/frontends/tda10071.c
->     290          if (diseqc_cmd->msg_len<  3 || diseqc_cmd->msg_len>  16) {
->                                                 ^^^^^^^^^^^^^^^^^^^^^^^^
-> We cap ->msg_len at 16 here.  I wasn't able to figure out where the 16
-> came from.  Or the 3 for that matter.
+> Also, I think the name should be something like "AVerMedia Twinstar
+> (A825)" since Avermedia code names usually are "Axxx".
 
-Those numbers are coming from include/linux/dvb/frontend.h struct 
-dvb_diseqc_master_cmd. And initially values are from the DiSEqC spec.
-But you are correct, it is bug. Upper limit for message len should be 6 
-instead of 16 used currently. Likely just typo. Maybe I have done some 
-len testing during the development and changed it temporarily 6 => 16 
-and forgot switch back. Who knows...
+I thought the name between parenthesis was after the usb pvid value so
+I used that value.
+This is what I get with lsusb:
 
+# lsusb
+bus 003 Device 002: ID 07ca:0825 AVerMedia Technologies, Inc.
+
+I've modified the name with "AVermedia Twinstar (A825) as you
+suggested, should I revert it?
+
+
+--- drivers/media/dvb/dvb-usb/af9035.c.origin   2012-04-05
+15:31:55.431075058 +0200
++++ drivers/media/dvb/dvb-usb/af9035.c  2012-04-05 15:26:44.483073976 +0200
+@@ -827,6 +827,7 @@ enum af9035_id_entry {
+      AF9035_07CA_B835,
+      AF9035_07CA_1867,
+      AF9035_07CA_A867,
++       AF9035_07CA_0825,
+ };
+
+ static struct usb_device_id af9035_id[] = {
+@@ -844,6 +845,8 @@ static struct usb_device_id af9035_id[]
+              USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_1867)},
+      [AF9035_07CA_A867] = {
+              USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_A867)},
++       [AF9035_07CA_0825] = {
++               USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_TWINSTAR)},
+      {},
+ };
+
+@@ -886,7 +889,7 @@ static struct dvb_usb_device_properties
+
+              .i2c_algo = &af9035_i2c_algo,
+
+-               .num_device_descs = 4,
++               .num_device_descs = 5,
+              .devices = {
+                      {
+                              .name = "TerraTec Cinergy T Stick",
+@@ -911,6 +914,10 @@ static struct dvb_usb_device_properties
+                                      &af9035_id[AF9035_07CA_1867],
+                                      &af9035_id[AF9035_07CA_A867],
+                              },
++                       }, {
++                               .name = "AVerMedia Twinstar (A825)",
++                               .cold_ids = {
++                                       &af9035_id[AF9035_07CA_0825],
+                      },
+              }
+      },
+
+--- drivers/media/dvb/dvb-usb/dvb-usb-ids.h.origin      2012-04-05
+15:32:15.229075128 +0200
++++ drivers/media/dvb/dvb-usb/dvb-usb-ids.h     2012-04-05
+15:27:22.775074099 +0200
+@@ -228,6 +228,7 @@
+ #define USB_PID_AVERMEDIA_B835                         0xb835
+ #define USB_PID_AVERMEDIA_1867                         0x1867
+ #define USB_PID_AVERMEDIA_A867                         0xa867
++#define USB_PID_AVERMEDIA_TWINSTAR                     0x0825
+ #define USB_PID_TECHNOTREND_CONNECT_S2400               0x3006
+ #define USB_PID_TECHNOTREND_CONNECT_CT3650             0x300d
+ #define USB_PID_TERRATEC_CINERGY_DT_XS_DIVERSITY       0x005a
+
+
+Signed-off-by: Pierangelo Terzulli <pierigno@gmail.com>
+
+Il 05 aprile 2012 18:20, Gianluca Gennari <gennarone@gmail.com> ha scritto:
+> Thanks Pierangelo,
+> but there are still issues with your patch.
+> See in-line comments.
 >
->     291                  ret = -EINVAL;
->     292                  goto error;
->     293          }
->     294
->     295          /* wait LNB TX */
->     296          for (i = 500, tmp = 0; i&&  !tmp; i--) {
->     297                  ret = tda10071_rd_reg_mask(priv, 0x47,&tmp, 0x01);
->     298                  if (ret)
->     299                          goto error;
->     300
->     301                  usleep_range(10000, 20000);
->     302          }
->     303
->     304          dbg("%s: loop=%d", __func__, i);
->     305
->     306          if (i == 0) {
->     307                  ret = -ETIMEDOUT;
->     308                  goto error;
->     309          }
->     310
->     311          ret = tda10071_wr_reg_mask(priv, 0x47, 0x00, 0x01);
->     312          if (ret)
->     313                  goto error;
->     314
->     315          cmd.args[0x00] = CMD_LNB_SEND_DISEQC;
->     316          cmd.args[0x01] = 0;
->     317          cmd.args[0x02] = 0;
->     318          cmd.args[0x03] = 0;
->     319          cmd.args[0x04] = 2;
->     320          cmd.args[0x05] = 0;
->     321          cmd.args[0x06] = diseqc_cmd->msg_len;
->     322          memcpy(&cmd.args[0x07], diseqc_cmd->msg, diseqc_cmd->msg_len);
->                                          ^^^^^^^^^^^^^^^
-> ->msg is only 6 bytes long so we're copying past the end of the array.
+> Il 05/04/2012 16:34, pierigno ha scritto:
+>> gosh!! I pasted the wrong patch, sorry for the noise, here it is (it
+>> should be applied against
+>> http://git.linuxtv.org/anttip/media_tree.git/shortlog/refs/heads/af9035_experimental):
+>>
+>>
+>> --- drivers/media/dvb/dvb-usb/af9035.c.origin 2012-04-05
+>> 15:31:55.431075058 +0200
+>> +++ drivers/media/dvb/dvb-usb/af9035.c        2012-04-05 15:26:44.483073976 +0200
+>> @@ -827,6 +827,7 @@ enum af9035_id_entry {
+>>       AF9035_07CA_B835,
+>>       AF9035_07CA_1867,
+>>       AF9035_07CA_A867,
+>> +     AF9035_07CA_0825,
 >
-> Also cmd.arg is 0x1e (30) bytes long and we only copy 0x07 + 16 bytes
-> into it so it leaves the last 7 bytes of cmd.args unitialized.  Btw,
-> why are the sizes specified in hex instead of decimal here?
+> here you define AF9035_07CA_0825....
 >
->     323          cmd.len = 0x07 + diseqc_cmd->msg_len;
-
-What it happens now is that garbage data will be send to DiSEqC switch - 
-in case of garbage data is sent from the user-space. Anyhow, I would 
-like to rather move these kind of common validly checking to the 
-DVB-core. Not only that case, but for the more commonly too. IMHO there 
-is currently too general checking left for the individual drivers...
-
-And for the usage of hex numbering - I don't remember. Overall I prefer 
-hex numbering unless values are not clearly decimal ones, like 
-frequencies. But I agree indexing like that is seems more readable when 
-decimal numbering is used. I have generally used decimal numbering in 
-such cases.
-
-Feel free to sent patch - or I will fix it someday later when suitable 
-time is found.
-
-thanks,
-Antti
--
-http://palosaari.fi/
+>>  };
+>>
+>>  static struct usb_device_id af9035_id[] = {
+>> @@ -844,6 +845,8 @@ static struct usb_device_id af9035_id[]
+>>               USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_1867)},
+>>       [AF9035_07CA_A867] = {
+>>               USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_A867)},
+>> +     [AF9035_07CA_0825] = {
+>> +             USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_TWINSTAR)},
+>>       {},
+>>  };
+>>
+>> @@ -886,7 +889,7 @@ static struct dvb_usb_device_properties
+>>
+>>               .i2c_algo = &af9035_i2c_algo,
+>>
+>> -             .num_device_descs = 4,
+>> +             .num_device_descs = 5,
+>>               .devices = {
+>>                       {
+>>                               .name = "TerraTec Cinergy T Stick",
+>> @@ -911,6 +914,10 @@ static struct dvb_usb_device_properties
+>>                                       &af9035_id[AF9035_07CA_1867],
+>>                                       &af9035_id[AF9035_07CA_A867],
+>>                               },
+>> +                     }, {
+>> +                             .name = "AVerMedia Twinstar (0825)",
+>> +                             .cold_ids = {
+>> +                                     &af9035_id[AF9035_07CA_0235],
+>
+> ... and here you use AF9035_07CA_0235!
+> Also, I think the name should be something like "AVerMedia Twinstar
+> (A825)" since Avermedia code names usually are "Axxx".
+>
+>
+>>                       },
+>>               }
+>>       },
+>>
+>> --- drivers/media/dvb/dvb-usb/dvb-usb-ids.h.origin    2012-04-05
+>> 15:32:15.229075128 +0200
+>> +++ drivers/media/dvb/dvb-usb/dvb-usb-ids.h   2012-04-05 15:27:22.775074099 +0200
+>> @@ -228,6 +228,7 @@
+>>  #define USB_PID_AVERMEDIA_B835                               0xb835
+>>  #define USB_PID_AVERMEDIA_1867                               0x1867
+>>  #define USB_PID_AVERMEDIA_A867                               0xa867
+>> +#define USB_PID_AVERMEDIA_TWINSTAR                   0x0825
+>>  #define USB_PID_TECHNOTREND_CONNECT_S2400               0x3006
+>>  #define USB_PID_TECHNOTREND_CONNECT_CT3650           0x300d
+>>  #define USB_PID_TERRATEC_CINERGY_DT_XS_DIVERSITY     0x005a
+>>
+>>
+>
+> Also, remember to put your "Signed-off-by" line on the patch.
+>
+> Regards,
+> Gianluca
