@@ -1,157 +1,214 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:54182 "EHLO
-	na3sys009aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754523Ab2D2XSy convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 29 Apr 2012 19:18:54 -0400
-Received: by qabj34 with SMTP id j34so918423qab.4
-        for <linux-media@vger.kernel.org>; Sun, 29 Apr 2012 16:18:53 -0700 (PDT)
+Received: from oyp.chewa.net ([91.121.6.101]:46481 "EHLO oyp.chewa.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753135Ab2DERw4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 5 Apr 2012 13:52:56 -0400
+From: =?UTF-8?q?R=C3=A9mi=20Denis-Courmont?= <remi@remlab.net>
+To: mchehab@infradead.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [RFC] [PATCH] v4l2: use unsigned rather than enums in ioctl() structs
+Date: Thu,  5 Apr 2012 20:52:51 +0300
+Message-Id: <1333648371-24812-1-git-send-email-remi@remlab.net>
 MIME-Version: 1.0
-In-Reply-To: <5199956.DQHiqZsQzV@avalon>
-References: <1335362233-31022-1-git-send-email-saaguirre@ti.com>
- <10045536.FETi1x5lnc@avalon> <CAKnK67TePU85gxXzKqP+K8pNwo=O-qjYFTim6t4m4TAkKbjGDg@mail.gmail.com>
- <5199956.DQHiqZsQzV@avalon>
-From: "Aguirre, Sergio" <saaguirre@ti.com>
-Date: Sun, 29 Apr 2012 18:18:32 -0500
-Message-ID: <CAKnK67Rxx1_D9kX1oijocVO0iuyO9GT=2yg-G=fTbMpdX8TGKA@mail.gmail.com>
-Subject: Re: [media-ctl PATCH] Compare entity name length aswell
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+With an enumeration, the compiler assumes that the integer value is one
+allowed by the underlying enumeration type. With optimization enabled
+this can result in byte code that is unable to cope with other values.
+For instance, GCC can compile a switch() block using a "jump table" to
+avoid repetitive conditional branching.
 
-On Sun, Apr 29, 2012 at 6:13 PM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> Hi Sergio,
->
-> On Sunday 29 April 2012 17:36:43 Aguirre, Sergio wrote:
->> On Sun, Apr 29, 2012 at 12:40 PM, Laurent Pinchart wrote:
->> > On Saturday 28 April 2012 10:04:01 Aguirre, Sergio wrote:
->> >> On Wed, Apr 25, 2012 at 8:57 AM, Sergio Aguirre <saaguirre@ti.com> wrote:
->> >> > Otherwise, some false positives might arise when
->> >> > having 2 subdevices with similar names, like:
->> >> >
->> >> > "OMAP4 ISS ISP IPIPEIF"
->> >> > "OMAP4 ISS ISP IPIPE"
->> >> >
->> >> > Before this patch, trying to find "OMAP4 ISS ISP IPIPE", resulted
->> >> > in a false entity match, retrieving "OMAP4 ISS ISP IPIPEIF"
->> >> > information instead.
->> >> >
->> >> > Checking length should ensure such cases are handled well.
->> >>
->> >> Any feedback about this?
->> >
->> > Thanks for the patch, and sorry for the delay.
->>
->> No problem. :)
->>
->> >> > Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
->> >> > ---
->> >> >  src/mediactl.c |    3 ++-
->> >> >  1 files changed, 2 insertions(+), 1 deletions(-)
->> >> >
->> >> > diff --git a/src/mediactl.c b/src/mediactl.c
->> >> > index 5b8c587..451a386 100644
->> >> > --- a/src/mediactl.c
->> >> > +++ b/src/mediactl.c
->> >> > @@ -66,7 +66,8 @@ struct media_entity *media_get_entity_by_name(struct
->> >> > media_device *media, for (i = 0; i < media->entities_count; ++i) {
->> >> >                struct media_entity *entity = &media->entities[i];
->> >> >
->> >> > -               if (strncmp(entity->info.name, name, length) == 0)
->> >> > +               if ((strncmp(entity->info.name, name, length) == 0) &&
->> >> > +                   (strlen(entity->info.name) == length))
->> >> >                        return entity;
->> >> >        }
->> >
->> > Instead of calling strlen() which has a O(n) complexity, what about just
->> > checking that the entity name has a '\0' in the length'th position ?
->> > Something like the following patch:
->> >
->> > From 46bec667b675573cf1ce698c68112e3dbd31930e Mon Sep 17 00:00:00 2001
->> > From: Sergio Aguirre <saaguirre@ti.com>
->> > Date: Wed, 25 Apr 2012 08:57:13 -0500
->> > Subject: [PATCH] Compare name length to avoid false positives in
->> > media_get_entity_by_name
->> >
->> > If two subdevice have names that only differ by a suffix (such as "OMAP4
->> > ISS ISP IPIPE" and "OMAP4 ISS ISP IPIPEIF") the media_get_entity_by_name
->> > function might return a pointer to the entity with the longest name when
->> > called with the shortest name. Fix this by verifying that the candidate
->> > entity name length is equal to the requested name length.
->> >
->> > Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
->> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->> > ---
->> >  src/mediactl.c |    9 ++++++++-
->> >  src/tools.h    |    1 +
->> >  2 files changed, 9 insertions(+), 1 deletions(-)
->> >
->> > diff --git a/src/mediactl.c b/src/mediactl.c
->> > index 5b8c587..bc6a713 100644
->> > --- a/src/mediactl.c
->> > +++ b/src/mediactl.c
->> > @@ -63,10 +63,17 @@ struct media_entity *media_get_entity_by_name(struct
->> > media_device *media,
->> >  {
->> >        unsigned int i;
->> >
->> > +       /* A match is impossible if the entity name is longer than the
->> > maximum +        * size we can get from the kernel.
->> > +        */
->> > +       if (length >= FIELD_SIZEOF(struct media_entity_desc, name))
->> > +               return NULL;
->> > +
->>
->> Good idea.
->>
->> >        for (i = 0; i < media->entities_count; ++i) {
->> >                struct media_entity *entity = &media->entities[i];
->> >
->> > -               if (strncmp(entity->info.name, name, length) == 0)
->> > +               if (strncmp(entity->info.name, name, length) == 0 &&
->> > +                   entity->info.name[length] == '\0')
->>
->> ACK.
->>
->> Your patch is definitely better.
->>
->> IMHO, I think it'll be more fair if you put yourself as the author of this
->> new patch, and me as: "Reported-by:".
->
-> It's such a small patch, it's fine :-) Thank you for the proposal nonetheless.
->
-> I've pushed the patch to the repository.
+This can be a problem both from user to kernel and kernel to user.
 
-Excellent! Thanks for that :)
+* Evil user space can pass error values to the kernel via system
+calls. There are no sane ways to protect the kernel: the compiler may
+optimize away range checks if it deems that all legitimate values are
+within the range.
 
-Regards,
-Sergio
+* The kernel can break the user space binary interface whenever a new
+value is added to an existing enumeration. A newer kernel can then
+return an enumerated value that was not allowed by older kernel headers
+against which the user program was compiled. In principles, V4L2 user
+space needs to be recompiled whenever videodev2.h has updated enums...
+(This an obvious problem with V4L2_QUERYCTRL.)
 
->
->> >                        return entity;
->> >        }
->> >
->> > diff --git a/src/tools.h b/src/tools.h
->> > index e56edb2..de06cb3 100644
->> > --- a/src/tools.h
->> > +++ b/src/tools.h
->> > @@ -23,6 +23,7 @@
->> >  #define __TOOLS_H__
->> >
->> >  #define ARRAY_SIZE(array)      (sizeof(array) / sizeof((array)[0]))
->> > +#define FIELD_SIZEOF(t, f)     (sizeof(((t*)0)->f))
->> >
->> >  #endif /* __TOOLS_H__ */
->> >
->
-> --
-> Regards,
->
-> Laurent Pinchart
->
+Fortunately, the Linux ABI disables short-enums on all platforms. Even
+the Linux variant of the ARM AAPCS contradicts the standard ARM AAPCS
+in doing so.
+
+Signed-off-by: RÃ©mi Denis-Courmont <remi@remlab.net>
+---
+ include/linux/videodev2.h |   42 +++++++++++++++++++++---------------------
+ 1 file changed, 21 insertions(+), 21 deletions(-)
+
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index c9c9a46..df3b8f0 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -292,10 +292,10 @@ struct v4l2_pix_format {
+ 	__u32         		width;
+ 	__u32			height;
+ 	__u32			pixelformat;
+-	enum v4l2_field  	field;
++	unsigned		field;
+ 	__u32            	bytesperline;	/* for padding, zero if unused */
+ 	__u32          		sizeimage;
+-	enum v4l2_colorspace	colorspace;
++	unsigned		colorspace;
+ 	__u32			priv;		/* private data, depends on pixelformat */
+ };
+ 
+@@ -432,7 +432,7 @@ struct v4l2_pix_format {
+  */
+ struct v4l2_fmtdesc {
+ 	__u32		    index;             /* Format number      */
+-	enum v4l2_buf_type  type;              /* buffer type        */
++	unsigned	    type;              /* buffer type        */
+ 	__u32               flags;
+ 	__u8		    description[32];   /* Description string */
+ 	__u32		    pixelformat;       /* Format fourcc      */
+@@ -573,8 +573,8 @@ struct v4l2_jpegcompression {
+  */
+ struct v4l2_requestbuffers {
+ 	__u32			count;
+-	enum v4l2_buf_type      type;
+-	enum v4l2_memory        memory;
++	unsigned		type;
++	unsigned		memory;
+ 	__u32			reserved[2];
+ };
+ 
+@@ -636,16 +636,16 @@ struct v4l2_plane {
+  */
+ struct v4l2_buffer {
+ 	__u32			index;
+-	enum v4l2_buf_type      type;
++	unsigned		type;
+ 	__u32			bytesused;
+ 	__u32			flags;
+-	enum v4l2_field		field;
++	unsigned		field;
+ 	struct timeval		timestamp;
+ 	struct v4l2_timecode	timecode;
+ 	__u32			sequence;
+ 
+ 	/* memory location */
+-	enum v4l2_memory        memory;
++	unsigned		memory;
+ 	union {
+ 		__u32           offset;
+ 		unsigned long   userptr;
+@@ -708,7 +708,7 @@ struct v4l2_clip {
+ 
+ struct v4l2_window {
+ 	struct v4l2_rect        w;
+-	enum v4l2_field  	field;
++	unsigned		field;
+ 	__u32			chromakey;
+ 	struct v4l2_clip	__user *clips;
+ 	__u32			clipcount;
+@@ -745,14 +745,14 @@ struct v4l2_outputparm {
+  *	I N P U T   I M A G E   C R O P P I N G
+  */
+ struct v4l2_cropcap {
+-	enum v4l2_buf_type      type;
++	unsigned		type;
+ 	struct v4l2_rect        bounds;
+ 	struct v4l2_rect        defrect;
+ 	struct v4l2_fract       pixelaspect;
+ };
+ 
+ struct v4l2_crop {
+-	enum v4l2_buf_type      type;
++	unsigned		type;
+ 	struct v4l2_rect        c;
+ };
+ 
+@@ -1156,7 +1156,7 @@ enum v4l2_ctrl_type {
+ /*  Used in the VIDIOC_QUERYCTRL ioctl for querying controls */
+ struct v4l2_queryctrl {
+ 	__u32		     id;
+-	enum v4l2_ctrl_type  type;
++	unsigned	     type;
+ 	__u8		     name[32];	/* Whatever */
+ 	__s32		     minimum;	/* Note signedness */
+ 	__s32		     maximum;
+@@ -1788,7 +1788,7 @@ enum v4l2_jpeg_chroma_subsampling {
+ struct v4l2_tuner {
+ 	__u32                   index;
+ 	__u8			name[32];
+-	enum v4l2_tuner_type    type;
++	unsigned		type;
+ 	__u32			capability;
+ 	__u32			rangelow;
+ 	__u32			rangehigh;
+@@ -1838,14 +1838,14 @@ struct v4l2_modulator {
+ 
+ struct v4l2_frequency {
+ 	__u32		      tuner;
+-	enum v4l2_tuner_type  type;
++	unsigned	      type;
+ 	__u32		      frequency;
+ 	__u32		      reserved[8];
+ };
+ 
+ struct v4l2_hw_freq_seek {
+ 	__u32		      tuner;
+-	enum v4l2_tuner_type  type;
++	unsigned	      type;
+ 	__u32		      seek_upward;
+ 	__u32		      wrap_around;
+ 	__u32		      spacing;
+@@ -2056,7 +2056,7 @@ struct v4l2_sliced_vbi_cap {
+ 				 (equals frame lines 313-336 for 625 line video
+ 				  standards, 263-286 for 525 line standards) */
+ 	__u16   service_lines[2][24];
+-	enum v4l2_buf_type type;
++	unsigned type;
+ 	__u32   reserved[3];    /* must be 0 */
+ };
+ 
+@@ -2146,8 +2146,8 @@ struct v4l2_pix_format_mplane {
+ 	__u32				width;
+ 	__u32				height;
+ 	__u32				pixelformat;
+-	enum v4l2_field			field;
+-	enum v4l2_colorspace		colorspace;
++	unsigned			field;
++	unsigned			colorspace;
+ 
+ 	struct v4l2_plane_pix_format	plane_fmt[VIDEO_MAX_PLANES];
+ 	__u8				num_planes;
+@@ -2165,7 +2165,7 @@ struct v4l2_pix_format_mplane {
+  * @raw_data:	placeholder for future extensions and custom formats
+  */
+ struct v4l2_format {
+-	enum v4l2_buf_type type;
++	unsigned type;
+ 	union {
+ 		struct v4l2_pix_format		pix;     /* V4L2_BUF_TYPE_VIDEO_CAPTURE */
+ 		struct v4l2_pix_format_mplane	pix_mp;  /* V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE */
+@@ -2179,7 +2179,7 @@ struct v4l2_format {
+ /*	Stream type-dependent parameters
+  */
+ struct v4l2_streamparm {
+-	enum v4l2_buf_type type;
++	unsigned type;
+ 	union {
+ 		struct v4l2_captureparm	capture;
+ 		struct v4l2_outputparm	output;
+@@ -2299,7 +2299,7 @@ struct v4l2_dbg_chip_ident {
+ struct v4l2_create_buffers {
+ 	__u32			index;
+ 	__u32			count;
+-	enum v4l2_memory        memory;
++	unsigned		memory;
+ 	struct v4l2_format	format;
+ 	__u32			reserved[8];
+ };
+-- 
+1.7.9.5
+
