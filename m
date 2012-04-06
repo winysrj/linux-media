@@ -1,129 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:11242 "EHLO mx1.redhat.com"
+Received: from mail.kapsi.fi ([217.30.184.167]:45852 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754256Ab2DXNGA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Apr 2012 09:06:00 -0400
-Message-ID: <4F96A5C2.3070704@redhat.com>
-Date: Tue, 24 Apr 2012 15:08:18 +0200
-From: Hans de Goede <hdegoede@redhat.com>
+	id S1754752Ab2DFJ23 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 6 Apr 2012 05:28:29 -0400
+Message-ID: <4F7EB739.9070506@iki.fi>
+Date: Fri, 06 Apr 2012 12:28:25 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans-Frieder Vogt <hfvogt@gmx.net>
 CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH v2] uvcvideo: Send control change events for slave ctrls
- when the master changes
-References: <25679814.sufWEMM1Zo@avalon> <1335221282-14176-1-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1335221282-14176-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH] af9033: implement ber and ucb functions
+References: <201204032259.43658.hfvogt@gmx.net> <4F7B79F0.7010707@iki.fi> <201204061034.56132.hfvogt@gmx.net>
+In-Reply-To: <201204061034.56132.hfvogt@gmx.net>
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On 06.04.2012 11:34, Hans-Frieder Vogt wrote:
+> Am Mittwoch, 4. April 2012 schrieb Antti Palosaari:
+>> On 03.04.2012 23:59, Hans-Frieder Vogt wrote:
+>>> af9033: implement read_ber and read_ucblocks functions.
+>>>
+>>> Signed-off-by: Hans-Frieder Vogt<hfvogt@gmx.net>
+>>
+>> For my quick test UCB counter seems to reset every query. That is
+>> violation of API. See http://www.kernel.org/doc/htmldocs/media.html>
+>
+> Indeed, interesting.
+> I quickly checked the behaviour with a dibcom based stick (dib7000p
+> demodulator) and the uncorrected block number reduces there as well. It seems,
+> other demodulator drivers ignore this detail as well. But that's not meant to
+> be an excuse.....
 
-Good optimization, ACK.
+Some demod drivers follows API better than others. There is also some 
+problems with current API which makes implementations in practise a 
+little bit different than API.
+At least all demod drivers I have written should follow API on case of 
+UCB counter reset. For a quick test here zl10353 demod seems to follow 
+also. You can likely found out those who are following API just looking 
+whether those stores UCB counter value to state and then increase it 
+every query.
 
-Regards,
+>> Current API does not even define anymore units for BER and UCB, so those
+>> calculations are not necessary. Anyhow, you can add some calculations if
+>> you wish.
 
-Hans
+I tried to calculate what you were doing there but did not understood. 
+Looks like those values read from register are packets and then after 
+all you finally converted those as a bits. 204 * 8 looks like that, 204 
+is common MPEG TS packet size including parity (without parity 188), and 
+8 is bits in one byte. But why abort_cnt, which is UCB I think, goes 
+multiplied to 8 * 8 = 64 (in order to convert to bits?)?
 
-On 04/24/2012 12:48 AM, Laurent Pinchart wrote:
-> From: Hans de Goede<hdegoede@redhat.com>
->
-> This allows v4l2 control UI-s to update the inactive state (ie grey-ing
-> out of controls) for slave controls when the master control changes.
->
-> Signed-off-by: Hans de Goede<hdegoede@redhat.com>
-> [Use __uvc_find_control() to find slave controls, as they're always
-> located in the same entity as the corresponding master control]
-> Signed-off-by: Laurent Pinchart<laurent.pinchart@ideasonboard.com>
-> ---
->   drivers/media/video/uvc/uvc_ctrl.c |   58 ++++++++++++++++++++++++++++++++++-
->   1 files changed, 56 insertions(+), 2 deletions(-)
->
-> Hi Hans,
->
-> This is your 09/10 patch after replacing uvc_find_control() with
-> __uvc_find_control(). Could you please test it ?
->
-> diff --git a/drivers/media/video/uvc/uvc_ctrl.c b/drivers/media/video/uvc/uvc_ctrl.c
-> index ae7371f..03212c7 100644
-> --- a/drivers/media/video/uvc/uvc_ctrl.c
-> +++ b/drivers/media/video/uvc/uvc_ctrl.c
-> @@ -1177,21 +1177,75 @@ static void uvc_ctrl_send_event(struct uvc_fh *handle,
->
->   	list_for_each_entry(sev,&mapping->ev_subs, node)
->   		if (sev->fh&&  (sev->fh !=&handle->vfh ||
-> -		    (sev->flags&  V4L2_EVENT_SUB_FL_ALLOW_FEEDBACK)))
-> +		    (sev->flags&  V4L2_EVENT_SUB_FL_ALLOW_FEEDBACK) ||
-> +		    (changes&  V4L2_EVENT_CTRL_CH_FLAGS)))
->   			v4l2_event_queue_fh(sev->fh,&ev);
->   }
->
-> +static void uvc_ctrl_send_slave_event(struct uvc_fh *handle,
-> +	struct uvc_control *master, u32 slave_id,
-> +	const struct v4l2_ext_control *xctrls, unsigned int xctrls_count)
-> +{
-> +	struct uvc_control_mapping *mapping = NULL;
-> +	struct uvc_control *ctrl = NULL;
-> +	u32 changes = V4L2_EVENT_CTRL_CH_FLAGS;
-> +	unsigned int i;
-> +	s32 val = 0;
-> +
-> +	/*
-> +	 * We can skip sending an event for the slave if the slave
-> +	 * is being modified in the same transaction.
-> +	 */
-> +	for (i = 0; i<  xctrls_count; i++) {
-> +		if (xctrls[i].id == slave_id)
-> +			return;
-> +	}
-> +
-> +	__uvc_find_control(master->entity, slave_id,&mapping,&ctrl, 0);
-> +	if (ctrl == NULL)
-> +		return;
-> +
-> +	if (__uvc_ctrl_get(handle->chain, ctrl, mapping,&val) == 0)
-> +		changes |= V4L2_EVENT_CTRL_CH_VALUE;
-> +
-> +	uvc_ctrl_send_event(handle, ctrl, mapping, val, changes);
-> +}
-> +
->   static void uvc_ctrl_send_events(struct uvc_fh *handle,
->   	const struct v4l2_ext_control *xctrls, unsigned int xctrls_count)
->   {
->   	struct uvc_control_mapping *mapping;
->   	struct uvc_control *ctrl;
-> +	u32 changes = V4L2_EVENT_CTRL_CH_VALUE;
->   	unsigned int i;
-> +	unsigned int j;
->
->   	for (i = 0; i<  xctrls_count; ++i) {
->   		ctrl = uvc_find_control(handle->chain, xctrls[i].id,&mapping);
-> +
-> +		for (j = 0; j<  ARRAY_SIZE(mapping->slave_ids); ++j) {
-> +			if (!mapping->slave_ids[j])
-> +				break;
-> +			uvc_ctrl_send_slave_event(handle, ctrl,
-> +						  mapping->slave_ids[j],
-> +						  xctrls, xctrls_count);
-> +		}
-> +
-> +		/*
-> +		 * If the master is being modified in the same transaction
-> +		 * flags may change too.
-> +		 */
-> +		if (mapping->master_id) {
-> +			for (j = 0; j<  xctrls_count; j++) {
-> +				if (xctrls[j].id == mapping->master_id) {
-> +					changes |= V4L2_EVENT_CTRL_CH_FLAGS;
-> +					break;
-> +				}
-> +			}
-> +		}
-> +
->   		uvc_ctrl_send_event(handle, ctrl, mapping, xctrls[i].value,
-> -				    V4L2_EVENT_CTRL_CH_VALUE);
-> +				    changes);
->   	}
->   }
->
+And the resulting value is some amount of bits, unit is?
+
+And current IT9035 and AF9013 seems to contain very simply UCB & BER 
+implementation.
+
+regards
+Antti
+-- 
+http://palosaari.fi/
