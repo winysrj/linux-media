@@ -1,42 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:46671 "EHLO mx1.redhat.com"
+Received: from mail.kapsi.fi ([217.30.184.167]:42237 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755815Ab2DHP5u (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 8 Apr 2012 11:57:50 -0400
-From: Hans de Goede <hdegoede@redhat.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH 04/10] =?UTF-8?q?uvcvideo:=20Fix=20a=20"ignoring=20return=20?= =?UTF-8?q?value=20of=20=E2=80=98=5F=5Fclear=5Fuser=E2=80=99"=20warning?=
-Date: Sun,  8 Apr 2012 17:59:48 +0200
-Message-Id: <1333900794-1932-5-git-send-email-hdegoede@redhat.com>
-In-Reply-To: <1333900794-1932-1-git-send-email-hdegoede@redhat.com>
-References: <1333900794-1932-1-git-send-email-hdegoede@redhat.com>
+	id S1753216Ab2DFLrz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 6 Apr 2012 07:47:55 -0400
+Message-ID: <4F7ED7E9.203@iki.fi>
+Date: Fri, 06 Apr 2012 14:47:53 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+To: Chris Rankin <rankincj@yahoo.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: DVB ioctl FE_GET_EVENT behaviour broken in 3.3
+References: <4F7CDA41.5020001@googlemail.com> <4F7ECA22.7040604@yahoo.com>
+In-Reply-To: <4F7ECA22.7040604@yahoo.com>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
- drivers/media/video/uvc/uvc_v4l2.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+On 06.04.2012 13:49, Chris Rankin wrote:
+> The reason that DVB playback with xine is broken in 3.3 is that the
+> userspace semantics of FE_GET_EVENT have changed. Xine tunes into a DVB
+> channel as follows:
+>
+> * discards stale frontend events by calling FE_GET_EVENT until there is
+> none left.
+> * calls FE_SET_FRONTEND with the new frequency.
+> * starts polling for new frontend events by calling FE_GET_EVENT again.
+>
+> Xine assumes that *every* FE_GET_EVENT after calling FE_SET_FRONTEND
+> will have dvb_frontend_event.parameters.frequency set to the new
+> frequency, if this channel exists. However, under Linux 3.3, at least
+> the first new event with a newly-plugged-in device has a frequency
+> parameter of zero. I am assuming that Linux is populating the frequency
+> parameter from an internal data structure because xine behaves normally
+> once some other DVB application manages to set it to something other
+> than zero. And xine then continues to behave normally until I unplug the
+> DVB adapter and plug in back in again.
+>
+> So the question is: why is there no frequency for this first
+> FE_GET_EVENT? Are the parameters incomplete, or shouldn't this event
+> have been sent in the first place?
 
-diff --git a/drivers/media/video/uvc/uvc_v4l2.c b/drivers/media/video/uvc/uvc_v4l2.c
-index ff2cddd..8db90ef 100644
---- a/drivers/media/video/uvc/uvc_v4l2.c
-+++ b/drivers/media/video/uvc/uvc_v4l2.c
-@@ -1097,7 +1097,8 @@ static int uvc_v4l2_put_xu_mapping(const struct uvc_xu_control_mapping *kp,
- 	    __put_user(kp->menu_count, &up->menu_count))
- 		return -EFAULT;
- 
--	__clear_user(up->reserved, sizeof(up->reserved));
-+	if (__clear_user(up->reserved, sizeof(up->reserved)))
-+		return -EFAULT;
- 
- 	if (kp->menu_count == 0)
- 		return 0;
+I have no enough experience, but IMHO all frontend parameters should be 
+available just after demod is LOCKed. Before LOCK you cannot know many 
+parameters at all and frequency also can be changed a little bit during 
+tuning process (ZigZag tuning algo).
+
+Could you try to git bisect to find out patch causing that regression?
+
+I suspect it is some change done for DVB core, git log 
+drivers/media/dvb/dvb-core/ shows rather many patches that could be the 
+reason.
+
+regards
+Antti
 -- 
-1.7.9.3
-
+http://palosaari.fi/
