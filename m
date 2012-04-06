@@ -1,93 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from oyp.chewa.net ([91.121.6.101]:43194 "EHLO oyp.chewa.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754705Ab2DTK5J (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Apr 2012 06:57:09 -0400
-To: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: Re: [PATCH v4 02/14] Documentation: media: description of DMABUF importing
- in V4L2
+Received: from mailout-de.gmx.net ([213.165.64.23]:54295 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751588Ab2DFIfG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Apr 2012 04:35:06 -0400
+From: "Hans-Frieder Vogt" <hfvogt@gmx.net>
+To: Antti Palosaari <crope@iki.fi>
+Subject: Re: [PATCH] af9033: implement ber and ucb functions
+Date: Fri, 6 Apr 2012 10:34:56 +0200
+Cc: linux-media@vger.kernel.org
+References: <201204032259.43658.hfvogt@gmx.net> <4F7B79F0.7010707@iki.fi>
+In-Reply-To: <4F7B79F0.7010707@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Date: Fri, 20 Apr 2012 12:56:53 +0200
-From: =?UTF-8?Q?R=C3=A9mi_Denis-Courmont?= <remi@remlab.net>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	<linux-media@vger.kernel.org>, <dri-devel@lists.freedesktop.org>,
-	<airlied@redhat.com>, <m.szyprowski@samsung.com>,
-	<kyungmin.park@samsung.com>, <sumit.semwal@ti.com>,
-	<daeinki@gmail.com>, <daniel.vetter@ffwll.ch>,
-	<robdclark@gmail.com>, <pawel@osciak.com>,
-	<linaro-mm-sig@lists.linaro.org>, <hverkuil@xs4all.nl>,
-	<subashrp@gmail.com>
-In-Reply-To: <4F912141.8060200@samsung.com>
-References: <1334332076-28489-1-git-send-email-t.stanislaws@samsung.com> <1334332076-28489-3-git-send-email-t.stanislaws@samsung.com> <13761406.oTf8ZzmZpQ@avalon> <4F9021FE.2070903@samsung.com> <4F907798.3000304@redhat.com> <4F912141.8060200@samsung.com>
-Message-ID: <d24e8c6e35352ed5800161713f728591@chewa.net>
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201204061034.56132.hfvogt@gmx.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 20 Apr 2012 10:41:37 +0200, Tomasz Stanislawski
+Am Mittwoch, 4. April 2012 schrieb Antti Palosaari:
+> On 03.04.2012 23:59, Hans-Frieder Vogt wrote:
+> > af9033: implement read_ber and read_ucblocks functions.
+> > 
+> > Signed-off-by: Hans-Frieder Vogt<hfvogt@gmx.net>
+> 
+> For my quick test UCB counter seems to reset every query. That is
+> violation of API. See http://www.kernel.org/doc/htmldocs/media.html> 
 
-<t.stanislaws@samsung.com> wrote:
+Indeed, interesting.
+I quickly checked the behaviour with a dibcom based stick (dib7000p 
+demodulator) and the uncorrected block number reduces there as well. It seems, 
+other demodulator drivers ignore this detail as well. But that's not meant to 
+be an excuse.....
 
->> Am I understanding wrong or are you saying that you want to drop
+$ tzap -r sixx
+using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+reading channels from file '/home/xxxx/.tzap/channels.conf'
+tuning to 754000000 Hz
+video pid 0x0111, audio pid 0x0112
+status 1f | signal a7f5 | snr 007c | ber 001fffff | unc 000001f2 | FE_HAS_LOCK
+status 1f | signal a539 | snr 0080 | ber 00091280 | unc 00001071 | FE_HAS_LOCK
+status 1f | signal a5eb | snr 0084 | ber 000a06e0 | unc 00000c6c | FE_HAS_LOCK
+status 1f | signal a620 | snr 0087 | ber 0009f4b0 | unc 00000d78 | FE_HAS_LOCK
+status 1f | signal a60c | snr 0080 | ber 000a5af0 | unc 00000df3 | FE_HAS_LOCK
+status 1f | signal a68f | snr 0082 | ber 0009bfa0 | unc 00000e6f | FE_HAS_LOCK
+status 1f | signal a678 | snr 007e | ber 000a17b0 | unc 00000cb8 | FE_HAS_LOCK
+status 1f | signal a679 | snr 0085 | ber 000ad900 | unc 000009ea | FE_HAS_LOCK
+status 1f | signal a6ee | snr 0082 | ber 000b0fa0 | unc 0000075c | FE_HAS_LOCK
 
-userptr
 
->> from V4L2 API in long-term? If so, why?
+> Do you have attenuator you can run tests yourself? It is very cheap and
+> useful when coding that kind of signal statistics.
+
+I haven't got an attenuator, but some very weak signals (see above), which 
+should serve the same purpose.
 
 > 
+> Current API does not even define anymore units for BER and UCB, so those
+> calculations are not necessary. Anyhow, you can add some calculations if
+> you wish.
+> 
+> 
+> regards
+> Antti
+cheers,
 
-> Dropping userptr is just some brainstorming idea.
-
-> It was found out that userptr is not a good mean
-
-> for buffer exchange between to two devices.
-
-
-
-I can believe that. But I am also inclined to believe that DMABUF is
-
-targetted at device-to-device transfer, while USERPTR is targetted at
-
-device-to-user (or user-to-device) transfers. Are you saying applications
-
-should use DMABUF and memory map the buffers? Or would you care to explain
-
-how DMABUF addresses the problem space of USERPTR?
-
-
-
-> The USERPTR simplifies userspace code but introduce
-
-> a lot of complexity problems for the kernel drivers
-
-> and frameworks.
-
-
-
-It is not only a simplification. In some cases, USERPTR is the only I/O
-
-method that supports zero copy in pretty much any circumstance. When the
-
-user cannot reliably predict the maximum number of required buffers,
-
-predicts a value larger than the device will negotiate, or needs buffers to
-
-outlive STREAMOFF (?), MMAP requires memory copying. USERPTR does not.
-
-
-
-Now, I do realize that some devices cannot support USERPTR efficiently,
-
-then they should not support USERPTR. But for those devices that can, it
-
-seems quite a nice performance enhancement.
-
-
-
--- 
-
-Rémi Denis-Courmont
-
-Sent from my collocated server
+Hans-Frieder Vogt                       e-mail: hfvogt <at> gmx .dot. net
