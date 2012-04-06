@@ -1,33 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:41352 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752256Ab2DRUAt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Apr 2012 16:00:49 -0400
-Message-ID: <4F8F1D6E.3000705@iki.fi>
-Date: Wed, 18 Apr 2012 23:00:46 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:57454 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753845Ab2DFKkP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Apr 2012 06:40:15 -0400
+Received: by eekc41 with SMTP id c41so661216eek.19
+        for <linux-media@vger.kernel.org>; Fri, 06 Apr 2012 03:40:14 -0700 (PDT)
+Message-ID: <4F7EC80A.4010906@gmail.com>
+Date: Fri, 06 Apr 2012 12:40:10 +0200
+From: Gianluca Gennari <gennarone@gmail.com>
+Reply-To: gennarone@gmail.com
 MIME-Version: 1.0
-To: Thomas Mair <thomas.mair86@googlemail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: RTL28XX driver
-References: <CAKZ=SG-pmn2BtqB+ihY9H9bvYCZq-E3uBsSaioPF5SRceq9iDg@mail.gmail.com> <4F804CDC.3030306@gmail.com> <CAKZ=SG_=7U2QShzq+2HE8SVZvyRpG3rNTsDzwUaso=CG8tXOsg@mail.gmail.com> <4F85D787.2050403@iki.fi> <4F85F89A.80107@schinagl.nl> <4F85FE63.1030700@iki.fi> <4F86C66A.4010404@schinagl.nl> <CAKZ=SG8gHbnRGFrajp2=Op7x52UcMT_5CFM5wzgajKCXkggFtA@mail.gmail.com> <4F86CE09.3080601@schinagl.nl> <CAKZ=SG95OA3pOvxM6eypsNaBvzX1wfjPR4tucc8725bnhE3FEg@mail.gmail.com> <4F86D4B8.8060005@iki.fi> <CAKZ=SG8G8w1J_AF-bOCn2n8gcEogGPQ1rmp45wCtmwFgOUPifA@mail.gmail.com> <4F8EFD7B.2020901@iki.fi> <CAKZ=SG8=z6c4-n8wkMK1YmTzWs9rN9JrbM907+K+X0k4ampSJA@mail.gmail.com> <4F8F0975.10605@iki.fi>
-In-Reply-To: <4F8F0975.10605@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: Antti Palosaari <crope@iki.fi>
+CC: linux-media@vger.kernel.org, m@bues.ch, hfvogt@gmx.net,
+	mchehab@redhat.com
+Subject: Re: [PATCH 3/5] tda18218: fix IF frequency for 7MHz bandwidth channels
+References: <1333401917-27203-1-git-send-email-gennarone@gmail.com> <1333401917-27203-4-git-send-email-gennarone@gmail.com> <4F7A2AC9.8040407@iki.fi> <4F7A47E5.8040604@gmail.com> <4F7ACEB6.9020108@iki.fi> <4F7C4963.2060100@gmail.com> <4F7C4C3D.1090702@iki.fi>
+In-Reply-To: <4F7C4C3D.1090702@iki.fi>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 18.04.2012 21:35, Antti Palosaari wrote:
-> The method should be selected based of knowledge if GPIO used for
-> controlling FC0012 tuner OR controlling some other part (LNA, anatenna
-> switch, etc.) So you have to identify meaning first. Look inside FC0012
-> driver to see if there is some mention about that GPIO.
+Il 04/04/2012 15:27, Antti Palosaari ha scritto:
+> IF frequency is frequency used between tuner and demodulator. Thus it
+> should be same for the tuner, it is sender Tx, and for demodulator which
+> receives it. As you can guess it is like radio channel, it will work if
+> it is a little bit wrong but performance will be reduced.
+> 
+> IF frequency is generally more tuner characteristic than demodulator. I
+> mean it is likely tuner decides which is optimal IF for signal tuner is
+> transferring to demod. Earlier we used configuration option for both
+> tuner and demod to set IF. But as the fact is tuner must know it always
+> we added new tuner callback .get_if_frequency() demodulator can ask used
+> IF from the tuner.
+> 
+> Recently I converted AF9013 driver to use that .get_if_frequency(). I
+> think at that point I may have introduced some bug.
+> 
+> And one point to mention, it is sometimes used a little bit different
+> IFs that are tuner defaults. It is somehow device design specific, for
+> maximum performance device engineers will ran some test to find out
+> optimal IF which gives best performance. One reason could be example
+> there is RF noise peak (RF spurs) just in used IF which reduces
+> performance => lets shift default IF a little bit for maximum performance.
 
-It is tuner VHF/UHF filter(?). You should use frontend callback with 
-DVB_FRONTEND_COMPONENT_TUNER and add handler for it. See example from 
-FC0011 & AF9035.
+I found out the origin of the problem: in the old "hacked" driver the
+demodulator IF frequency was erroneously hard-coded to 4.57 MHz (like
+with the mxl5007t tuner) so there was a mismatch between the tuner and
+the demodulator IF setting.
 
-regards
-Antti
--- 
-http://palosaari.fi/
+In UHF band, the difference was only 0.57 MHz, so it still worked
+(probably with reduced performance). Instead, in VHF band the difference
+was over 1 MHz so it was not working. Hacking the tuner IF frequency to
+4 MHz in VHF band was enough to get it working, but of course it was not
+optimal.
+
+In the end, there is no bug in the current code. Sorry for all the
+unnecessary noise about this issue.
+
+Regards,
+Gianluca
