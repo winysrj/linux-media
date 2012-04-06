@@ -1,57 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:55585 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756154Ab2D3LLe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Apr 2012 07:11:34 -0400
-Message-ID: <4F9E73F7.6040207@redhat.com>
-Date: Mon, 30 Apr 2012 13:13:59 +0200
-From: Hans de Goede <hdegoede@redhat.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:44747 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757247Ab2DFNfi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Apr 2012 09:35:38 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	airlied@redhat.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, sumit.semwal@ti.com, daeinki@gmail.com,
+	daniel.vetter@ffwll.ch, robdclark@gmail.com, pawel@osciak.com,
+	linaro-mm-sig@lists.linaro.org, subashrp@gmail.com
+Subject: Re: [PATCH 09/11] v4l: vb2: add prepare/finish callbacks to allocators
+Date: Fri, 06 Apr 2012 15:35:43 +0200
+Message-ID: <1711774.L4gqngXBGP@avalon>
+In-Reply-To: <1333634408-4960-10-git-send-email-t.stanislaws@samsung.com>
+References: <1333634408-4960-1-git-send-email-t.stanislaws@samsung.com> <1333634408-4960-10-git-send-email-t.stanislaws@samsung.com>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org, Jean-Francois Moine <moinejf@free.fr>
-Subject: Re: [RFCv1 PATCH 0/7] gspca: allow use of control framework and other
- fixes
-References: <1335625796-9429-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1335625796-9429-1-git-send-email-hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Tomasz,
 
-On 04/28/2012 05:09 PM, Hans Verkuil wrote:
-> Hi all,
->
-> Here is a patch series that makes it possible to use the control framework
-> in gspca. The gspca core changes are very minor but as a bonus give you
-> priority support as well.
->
-> The hard work is in updating the subdrivers. I've done two, and I intend
-> to do the stv06xx driver as well, but that's the last of my gspca webcams
-> that I can test. Looking through the subdrivers I think that 50-70% are in
-> the category 'easy to convert', the others will take a bit more time
-> (autogain/gain type of constructs are always more complex than just a simple
-> brightness control).
->
-> After applying this patch series the two converted drivers pass the
-> v4l2-compliance test as it stands today.
+On Thursday 05 April 2012 16:00:06 Tomasz Stanislawski wrote:
+> From: Marek Szyprowski <m.szyprowski@samsung.com>
+> 
+> This patch adds support for prepare/finish callbacks in VB2 allocators.
+> These callback are used for buffer flushing.
+> 
+> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+> ---
+>  drivers/media/video/videobuf2-core.c |   11 +++++++++++
+>  include/media/videobuf2-core.h       |    7 +++++++
+>  2 files changed, 18 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/media/video/videobuf2-core.c
+> b/drivers/media/video/videobuf2-core.c index b37feea..abb0592 100644
+> --- a/drivers/media/video/videobuf2-core.c
+> +++ b/drivers/media/video/videobuf2-core.c
+> @@ -834,6 +834,7 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum
+> vb2_buffer_state state) {
+>  	struct vb2_queue *q = vb->vb2_queue;
+>  	unsigned long flags;
+> +	int plane;
 
-I haven't looked at any details yet, but from the description I love the changes :)
+Please make plane an unsigned int, otherwise you will compare a signed and an 
+unsigned int below.
 
-I was actually planning on doing something very similar myself soon-ish, so you've
-saved me a bunch of work :)
+> 
+>  	if (vb->state != VB2_BUF_STATE_ACTIVE)
+>  		return;
+> @@ -844,6 +845,10 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum
+> vb2_buffer_state state) dprintk(4, "Done processing on buffer %d, state:
+> %d\n",
+>  			vb->v4l2_buf.index, vb->state);
+> 
+> +	/* sync buffers */
+> +	for (plane = 0; plane < vb->num_planes; ++plane)
+> +		call_memop(q, finish, vb->planes[plane].mem_priv);
+> +
+>  	/* Add the buffer to the done buffers list */
+>  	spin_lock_irqsave(&q->done_lock, flags);
+>  	vb->state = state;
+> @@ -1131,9 +1136,15 @@ err:
+>  static void __enqueue_in_driver(struct vb2_buffer *vb)
+>  {
+>  	struct vb2_queue *q = vb->vb2_queue;
+> +	int plane;
 
-I'll review this and add these to my tree. Jean-Francois, is it ok for these changes
-to go upstream through my tree? The reason I'm asking is that I plan to convert
-more subdrivers to the control framework for 3.5 and its easiest to have this all
-in one tree then.
+Same here.
 
-If you've remarks to the core changes I will make sure these get addressed in my
-tree of course.
+>  	vb->state = VB2_BUF_STATE_ACTIVE;
+>  	atomic_inc(&q->queued_count);
+> +
+> +	/* sync buffers */
+> +	for (plane = 0; plane < vb->num_planes; ++plane)
+> +		call_memop(q, prepare, vb->planes[plane].mem_priv);
+> +
+>  	q->ops->buf_queue(vb);
+>  }
 
+-- 
 Regards,
 
-Hans (the other Hans :)
-
+Laurent Pinchart
 
