@@ -1,48 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vb0-f46.google.com ([209.85.212.46]:40265 "EHLO
-	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752718Ab2DBOio convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Apr 2012 10:38:44 -0400
-Received: by vbbff1 with SMTP id ff1so1725583vbb.19
-        for <linux-media@vger.kernel.org>; Mon, 02 Apr 2012 07:38:43 -0700 (PDT)
+Received: from mail.kapsi.fi ([217.30.184.167]:55160 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752934Ab2DFMCx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 6 Apr 2012 08:02:53 -0400
+Message-ID: <4F7EDB6B.7000402@iki.fi>
+Date: Fri, 06 Apr 2012 15:02:51 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <4F79AA43.3070109@mlbassoc.com>
-References: <4F799A99.9010209@mlbassoc.com>
-	<CA+2YH7svJoCnvUPQGPr=YOsEQBZ16J5y9QGjFyfNmdjeLum4cA@mail.gmail.com>
-	<4F799F4F.9020606@mlbassoc.com>
-	<CA+2YH7uesV_085_-LyKCm8zuEROy_6FRQg8XkiRsHubdTXF8ig@mail.gmail.com>
-	<4F79AA43.3070109@mlbassoc.com>
-Date: Mon, 2 Apr 2012 16:38:43 +0200
-Message-ID: <CA+2YH7sWJr8oBnPssoQkOAA+7sB+Y=1kYD3Qhacb-56NJFjQgg@mail.gmail.com>
-Subject: Re: OMAP3ISP won't start
-From: Enrico <ebutera@users.berlios.de>
-To: Gary Thomas <gary@mlbassoc.com>
-Cc: linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: linux-media <linux-media@vger.kernel.org>,
+	=?ISO-8859-1?Q?Michael_B?= =?ISO-8859-1?Q?=FCsch?= <m@bues.ch>,
+	Hans-Frieder Vogt <hfvogt@gmx.net>,
+	Gianluca Gennari <gennarone@gmail.com>
+Subject: AF9035/AF9033 development
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Apr 2, 2012 at 3:31 PM, Gary Thomas <gary@mlbassoc.com> wrote:
-> On 2012-04-02 07:15, Enrico wrote:
->>
->> On Mon, Apr 2, 2012 at 2:45 PM, Gary Thomas<gary@mlbassoc.com>  wrote:
->>>
->>> The items you mention are just what I merged from my previous kernel.
->>> My changes are still pretty rough but I can send them to you if you'd
->>> like.
->>
->>
->> Post them here and we will try to spot where the problem is, they
->> could be useful for Laurent too as a reference.
->
->
-> Attached.
+Here is TODO list I took from mail I wrote 31.3.2012:
 
-I just had a quick look and it seems everything is there, i can't test
-it right now but when i did test a mainline 3.3 kernel with my patches
-i had to use the "nohlt" kernel parm. If i'm not wrong without that
-param i had the same error, you can give it a try.
+* fix af9033 IF freq control (now Zero-IF only)
+DONE
 
-Enrico
+* change firmware download to use new firmware syntax
+DONE
+
+* dual tuner support
+
+* check if IT9035 is enough similar (My personal suspicion is that 
+integrated tuner is only main difference, whilst USB-interface and demod 
+are same. But someone has told that it is quite different design though.)
+DONE. It is similar. AF9035 code changes are done. New tuner driver 
+still needed.
+
+* implement SNR, BER and USB counters
+partly DONE!
+
+* implement remote controller
+
+
+
+Remote controller and dual tuner support are main missing features. I 
+will try implement remote controller next, maybe later tonight.
+
+
+regards
+Antti
+-- 
+http://palosaari.fi/
