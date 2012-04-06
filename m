@@ -1,123 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bues.ch ([80.190.117.144]:44249 "EHLO bues.ch"
+Received: from mail.kapsi.fi ([217.30.184.167]:49521 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752361Ab2DBQfB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 2 Apr 2012 12:35:01 -0400
-Date: Mon, 2 Apr 2012 18:34:52 +0200
-From: Michael =?UTF-8?B?QsO8c2No?= <m@bues.ch>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media <linux-media@vger.kernel.org>
-Subject: [PATCH] af9035: Add Afatech USB PIDs
-Message-ID: <20120402183452.68670fb3@milhouse>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=PGP-SHA1;
- boundary="Sig_/r1BlWWc5M6bF5tTyHT6j5/I"; protocol="application/pgp-signature"
+	id S1751887Ab2DFJgs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 6 Apr 2012 05:36:48 -0400
+Message-ID: <4F7EB92E.3050902@iki.fi>
+Date: Fri, 06 Apr 2012 12:36:46 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Thomas Mair <thomas.mair86@googlemail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: RTL28XX driver
+References: <CAKZ=SG-pmn2BtqB+ihY9H9bvYCZq-E3uBsSaioPF5SRceq9iDg@mail.gmail.com>
+In-Reply-To: <CAKZ=SG-pmn2BtqB+ihY9H9bvYCZq-E3uBsSaioPF5SRceq9iDg@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---Sig_/r1BlWWc5M6bF5tTyHT6j5/I
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+On 06.04.2012 12:11, Thomas Mair wrote:
+> i own a TerraTec Cinergy T Stick Black device, and was able to find a
+> working driver for the device. It seems to be, that the driver was
+> originally written by Realtek and has since been updated by different
+> Developers to meet DVB API changes. I was wondering what would be the
+> necessary steps to include the driver into the kernel sources?
+>
+> The one thing that needs to be solved before even thinking about the
+> integration, is the licencing of the code. I did find it on two
+> different locations, but without any licencing information. So
+> probably Realtek should be contacted. I am willing to deal with that,
+> but need furter information on under whitch lisence the code has to be
+> relased.
+>
+> So far, I put up a Github repository for the driver, which enables me
+> to compile the proper kernel modue at
+> https://github.com/tmair/DVB-Realtek-RTL2832U-2.2.2-10tuner-mod_kernel-3.0.0
+> The modificatioins to the driver where taken from openpli
+> http://openpli.git.sourceforge.net/git/gitweb.cgi?p=openpli/openembedded;a=blob;f=recipes/linux/linux-etxx00/dvb-usb-rtl2832.patch;h=063114c8ce4a2dbcf8c8dde1b4ab4f8e329a2afa;hb=HEAD
+>
+> In the driver sources I stumbled accross many different devices
+> containig the RTL28XX chipset, so I suppose the driver would enably
+> quite many products to work.
+>
+> As I am relatively new to the developement of dvb drivers I appreciate
+> any help in stabilizing the driver and proper integration into the dvb
+> API.
 
-Add some generic Afatech USB PIDs used by "Cabstone" sticks and others.
+Biggest problem here is missing demodulator driver. RTL2832U chip 
+integrates demod called RTL2832. DVB USB device contains logically three 
+entity: USB-interface, demodulator and tuner. All those needs own Kernel 
+driver. In case of RTL2832U there is already RTL28XXU USB -interface 
+driver ready as I did it for RTL2831U. Those two chips uses basically 
+same USB -interface but demodulator is different. During the RTL2831U 
+development I also ran RTL2832U device using same USB -interface driver 
+so I know it works.
 
-Signed-off-by: Michael Buesch <m@bues.ch>
+So look example from RTL2831U (which is Kernel modules: dvb_usb_rtl28xxu 
+and rtl2830) and try to implement new demod driver.
 
----
+You will also need RF-tuner driver, which may or may not exists 
+depending your device. There is a lot of existing tuner driver but 
+unfortunately RTL2832U designs uses a lot of new tuners and thus no 
+existing drivers for all.
 
-Index: linux/drivers/media/dvb/dvb-usb/af9035.c
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- linux.orig/drivers/media/dvb/dvb-usb/af9035.c	2012-04-02 18:15:46.94695=
-2566 +0200
-+++ linux/drivers/media/dvb/dvb-usb/af9035.c	2012-04-02 18:27:59.672754125 =
-+0200
-@@ -738,11 +738,17 @@
-=20
- enum af9035_id_entry {
- 	AF9035_0CCD_0093,
-+	AF9035_15A4_9035,
-+	AF9035_15A4_1001,
- };
-=20
- static struct usb_device_id af9035_id[] =3D {
- 	[AF9035_0CCD_0093] =3D {
- 		USB_DEVICE(USB_VID_TERRATEC, USB_PID_TERRATEC_CINERGY_T_STICK)},
-+	[AF9035_15A4_9035] =3D {
-+		USB_DEVICE(USB_VID_AFATECH, USB_PID_AFATECH_AF9035)},
-+	[AF9035_15A4_1001] =3D {
-+		USB_DEVICE(USB_VID_AFATECH, USB_PID_AFATECH_AF9035_2)},
- 	{},
- };
-=20
-@@ -785,14 +791,20 @@
-=20
- 		.i2c_algo =3D &af9035_i2c_algo,
-=20
--		.num_device_descs =3D 1,
-+		.num_device_descs =3D 2,
- 		.devices =3D {
- 			{
- 				.name =3D "TerraTec Cinergy T Stick",
- 				.cold_ids =3D {
- 					&af9035_id[AF9035_0CCD_0093],
- 				},
--			},
-+			}, {
-+				.name =3D "Afatech Technologies DVB-T stick",
-+				.cold_ids =3D {
-+					&af9035_id[AF9035_15A4_9035],
-+					&af9035_id[AF9035_15A4_1001],
-+				},
-+			}
- 		}
- 	},
- };
-Index: linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- linux.orig/drivers/media/dvb/dvb-usb/dvb-usb-ids.h	2012-04-01 11:41:29.=
-094353520 +0200
-+++ linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h	2012-04-02 18:26:34.38627=
-2276 +0200
-@@ -76,6 +76,8 @@
- #define USB_PID_AFATECH_AF9005				0x9020
- #define USB_PID_AFATECH_AF9015_9015			0x9015
- #define USB_PID_AFATECH_AF9015_9016			0x9016
-+#define USB_PID_AFATECH_AF9035				0x9035
-+#define USB_PID_AFATECH_AF9035_2			0x1001
- #define USB_PID_TREKSTOR_DVBT				0x901b
- #define USB_VID_ALINK_DTU				0xf170
- #define USB_PID_ANSONIC_DVBT_USB			0x6000
+There is no developer working for RTL2832U supports currently AFAIK.
 
-
---=20
-Greetings, Michael.
-
-PGP encryption is encouraged / 908D8B0E
-
---Sig_/r1BlWWc5M6bF5tTyHT6j5/I
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Disposition: attachment; filename=signature.asc
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJPedUsAAoJEPUyvh2QjYsOwuYP/0zqAqHBIsbaW8JuMVsCVB2C
-FB92fpr5Ziqkjv7ZmduDi4Ti6Oe0Nfr/WbqFvRPjRKm7xU9AsIoF4zh01dvuSsx3
-X9/zzHjTnODYBQFpU3qPGrTOs3BioiEpqhVYXA83Wgd5j/efIqBekkxB6YCHRgnQ
-SAL3/3sFrThLOgtnbU/xnX/DVeiBnLXzCwkN+Ng+IWMyhyTPClzd3HHh4MayxbBu
-FvjZMLsVgmzKeo6QurELarkTWKS6mKchZ2sx5Zfih3lkNSFLALnqMnQuojYp09zG
-56qK/gJa+PfgT1TjfnrlcO8rvSkG5/KRSbvGq2h1uMp37XKHBng8htjLIPIA4AGV
-GYKMAMkJCDBC2DJtJfB+4FSueTE4RnkKdz5+DR0ywLi+ujTnIwxuoA64U61hIeHQ
-LerGij+5a5kdIA2kZfPR846jm0zPcaiwTj4I9bJg8CGfArSe4b7aNqqG3MPb8DVp
-XVh37ncsjNgnd75D4K2CfE0CsrhtM9I4+DhkJWgDvc1G36xvWsw6ZIAX9n2H2uqG
-4FlNdli+J1d7lzdI/u/txqgiFNGltV5UYFb3zrN5rKyVuiftCxRE05k7W7Ai9gEk
-17FzNQMd4cIirrtZdKZaLnhZgQUaq1UgFyZjlyGpUf66LByGyqjTdLB0y4uMh91D
-OYcNSAziu6CShMRDuPRy
-=CKTz
------END PGP SIGNATURE-----
-
---Sig_/r1BlWWc5M6bF5tTyHT6j5/I--
+regards
+Antti
+-- 
+http://palosaari.fi/
