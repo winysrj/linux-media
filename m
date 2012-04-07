@@ -1,97 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:47277 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752205Ab2DVU5D (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 22 Apr 2012 16:57:03 -0400
-Subject: Re: HVR-1600: Skipped encoder MPEG, MDL 63, 62 times - it must have
- dropped out of rotation
-From: Andy Walls <awalls@md.metrocast.net>
-To: "Brian J. Murrell" <brian@interlinx.bc.ca>
-Cc: linux-media@vger.kernel.org
-Date: Sun, 22 Apr 2012 16:56:52 -0400
-In-Reply-To: <jn1a43$vlj$1@dough.gmane.org>
-References: <jn1a43$vlj$1@dough.gmane.org>
-Content-Type: text/plain; charset="UTF-8"
+Received: from mail-we0-f174.google.com ([74.125.82.174]:61010 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754404Ab2DGOTN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Apr 2012 10:19:13 -0400
+Received: by wejx9 with SMTP id x9so1909193wej.19
+        for <linux-media@vger.kernel.org>; Sat, 07 Apr 2012 07:19:12 -0700 (PDT)
+Message-ID: <4F804CDC.3030306@gmail.com>
+Date: Sat, 07 Apr 2012 16:19:08 +0200
+From: Gianluca Gennari <gennarone@gmail.com>
+Reply-To: gennarone@gmail.com
+MIME-Version: 1.0
+To: Thomas Mair <thomas.mair86@googlemail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: RTL28XX driver
+References: <CAKZ=SG-pmn2BtqB+ihY9H9bvYCZq-E3uBsSaioPF5SRceq9iDg@mail.gmail.com>
+In-Reply-To: <CAKZ=SG-pmn2BtqB+ihY9H9bvYCZq-E3uBsSaioPF5SRceq9iDg@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Message-ID: <1335128213.2602.23.camel@palomino.walls.org>
-Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 2012-04-22 at 12:03 -0400, Brian J. Murrell wrote:
-> I've got an HVR-1600 in a fairly fast machine (P4 3GHz, two cores) on a
-> 3.2.0 kernel and seem to be getting lots of this sort of thing:
+Il 06/04/2012 11:11, Thomas Mair ha scritto:
+> Hello everyone,
 > 
-> Apr 19 20:09:10 pvr kernel: [34651.015170] cx18-0: Skipped encoder MPEG, MDL 63, 62 times - it must have dropped out of rotation
-> Apr 19 20:10:05 pvr kernel: [34705.375793] cx18-0: Skipped encoder IDX, MDL 415, 2 times - it must have dropped out of rotation
-> Apr 19 20:12:45 pvr kernel: [34865.535784] cx18-0: Skipped encoder IDX, MDL 426, 2 times - it must have dropped out of rotation
-> Apr 19 20:12:45 pvr kernel: [34865.609900] cx18-0: Skipped encoder IDX, MDL 430, 1 times - it must have dropped out of rotation
-> Apr 19 20:12:45 pvr kernel: [34865.684180] cx18-0: Could not find MDL 426 for stream encoder IDX
-> Apr 19 20:12:58 pvr kernel: [34878.912976] cx18-0: Could not find MDL 430 for stream encoder IDX
-> Apr 19 20:13:00 pvr kernel: [34880.850172] cx18-0: Skipped encoder MPEG, MDL 53, 62 times - it must have dropped out of rotation
-> Apr 19 20:15:25 pvr kernel: [35025.696747] cx18-0: Skipped encoder IDX, MDL 435, 2 times - it must have dropped out of rotation
-> Apr 19 20:15:25 pvr kernel: [35025.771765] cx18-0: Skipped encoder IDX, MDL 439, 1 times - it must have dropped out of rotation
-> Apr 19 20:15:25 pvr kernel: [35025.847732] cx18-0: Could not find MDL 435 for stream encoder IDX
-> Apr 19 20:15:25 pvr kernel: [35025.901315] cx18-0: Skipped TS, MDL 82, 16 times - it must have dropped out of rotation
-> Apr 19 20:15:32 pvr kernel: [35032.370364] cx18-0: Skipped encoder IDX, MDL 435, 2 times - it must have dropped out of rotation
-> Apr 19 20:15:38 pvr kernel: [35039.074592] cx18-0: Could not find MDL 439 for stream encoder IDX
-> Apr 19 20:15:40 pvr kernel: [35040.938552] cx18-0: Skipped encoder MPEG, MDL 29, 62 times - it must have dropped out of rotation
-> Apr 19 20:18:05 pvr kernel: [35185.859652] cx18-0: Skipped encoder IDX, MDL 445, 2 times - it must have dropped out of rotation
-> Apr 19 20:18:05 pvr kernel: [35185.933816] cx18-0: Skipped encoder IDX, MDL 449, 1 times - it must have dropped out of rotation
-> Apr 19 20:18:05 pvr kernel: [35186.008176] cx18-0: Could not find MDL 445 for stream encoder IDX
-> Apr 19 20:18:19 pvr kernel: [35199.237035] cx18-0: Could not find MDL 449 for stream encoder IDX
-> Apr 19 20:18:19 pvr kernel: [35199.289870] cx18-0: Could not find MDL 49 for stream encoder MPEG
-> Apr 19 20:18:25 pvr kernel: [35205.879310] cx18-0: Skipped encoder IDX, MDL 450, 2 times - it must have dropped out of rotation
-> Apr 19 20:23:26 pvr kernel: [35506.147134] cx18-0: Skipped encoder IDX, MDL 402, 2 times - it must have dropped out of rotation
-> Apr 19 20:24:19 pvr kernel: [35559.705155] cx18-0: Skipped encoder MPEG, MDL 16, 62 times - it must have dropped out of rotation
+> i own a TerraTec Cinergy T Stick Black device, and was able to find a
+> working driver for the device. It seems to be, that the driver was
+> originally written by Realtek and has since been updated by different
+> Developers to meet DVB API changes. I was wondering what would be the
+> necessary steps to include the driver into the kernel sources?
 > 
-> IIRC I was told previously that it was due to interrupts not being
-> serviced quickly enough.  Am I recalling correctly?
+> The one thing that needs to be solved before even thinking about the
+> integration, is the licencing of the code. I did find it on two
+> different locations, but without any licencing information. So
+> probably Realtek should be contacted. I am willing to deal with that,
+> but need furter information on under whitch lisence the code has to be
+> relased.
+> 
+> So far, I put up a Github repository for the driver, which enables me
+> to compile the proper kernel modue at
+> https://github.com/tmair/DVB-Realtek-RTL2832U-2.2.2-10tuner-mod_kernel-3.0.0
+> The modificatioins to the driver where taken from openpli
+> http://openpli.git.sourceforge.net/git/gitweb.cgi?p=openpli/openembedded;a=blob;f=recipes/linux/linux-etxx00/dvb-usb-rtl2832.patch;h=063114c8ce4a2dbcf8c8dde1b4ab4f8e329a2afa;hb=HEAD
+> 
+> In the driver sources I stumbled accross many different devices
+> containig the RTL28XX chipset, so I suppose the driver would enably
+> quite many products to work.
+> 
+> As I am relatively new to the developement of dvb drivers I appreciate
+> any help in stabilizing the driver and proper integration into the dvb
+> API.
+> 
 
-Yes.
+Hi Thomas,
+the Realtek driver you mention is the full version, which supports 3
+demodulators (2832=DVB-T, 2836=DTMB, 2840=DVB-C) and 10 different tuners.
+There is also a simplified version of the driver which supports only
+DVB-T and 4 tuners: this is probably a better starting base for your
+project.
 
-> Could that really be a problem even with a dual core 3GHz P4?
+You can find the simplified driver here:
 
-Yes.  You are looking at the evidence in those log messages.
+https://github.com/ambrosa/DVB-Realtek-RTL2832U-2.2.2-4_tuner
 
-If, in your system, IRQ service for device A under some circumstances
-has precendence over IRQ service for the CX23418 and hence holds off its
-service; and the irq handler in the driver for device A decides to
-perform some some long I/O operations with device A; then it doesn't
-matter how fast your CPU is. 
+My friend Ambrosa got it directly from Realtek. You can mail the 2
+driver authors directly:
 
-You may wish to use perf or ftrace, or some other tool/method of
-measuring kernel interrupt handling latency to find out what causes any
-delays from the CX23418 raising its IRQ line to cx18_irq_handler() being
-called by the kernel.
+author:         Dean Chung <DeanChung@realtek.com>
+author:         Chialing Lu <chialing@realtek.com>
 
-I can tell you that I have optimized cx18_irq_handler(), and the
-functions it calls, to death.  I simply cannot make it perform
-significantly better.  The required PCI MMIO operations to the CX23418
-dominate the time consumed in cx18_irq_handler().
-[I await "Challenge accepted" from anyone. ;) ]
+as they have been quite collaborative last year. I think they can also
+provide you some information about the code license.
 
-> Also, are those messages related to the clearqam path or the
-> MPEG2 hardware encoder path?  i.e. are those digital recording
-> messages or analog recording messages?
+The rtl2832 devices I've seen so far use either the Fitipower fc0012 or
+the Elonics E4000 tuner. For the first one there is a driver from
+Hans-Frieder Vogt that is not yet included in the development tree, but
+it has been posted recently on this list.
 
-MPEG: analog video encoder DMA buffers
-IDX:  MPEG index data DMA buffers from the analog video encoder
-TS:   DTV (ATSC or QAM) DMA buffers
+If your stick uses this tuner, then the problem reduces to write the
+demodulator driver (as Antti already explained).
 
-Every message above in your log, indicates your system "lost" a
-notifcation from the CX23418 as it was too slow to respond to the
-CX23418's interrupt.  Hence your recording/viewing of said stream missed
-some data.
-
-Note, the IDX stream only matters if you have an application that calls
-the VIDIOC_G_ENC_INDEX ioctl() to collect I-Frame offsets in the MPEG
-stream.  That is very rare, so I would not worry about lost IDX buffers.
-
-> Cheers,
-> b.
-
-Regards,
-Andy
+Best regards,
+Gianluca
 
