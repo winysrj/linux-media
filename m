@@ -1,69 +1,152 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:59268 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752823Ab2D1ViB convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 Apr 2012 17:38:01 -0400
-Date: Sat, 28 Apr 2012 23:37:59 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: =?ISO-8859-1?Q?Ezequiel_Garc=EDa?= <elezegarcia@gmail.com>
-cc: linux-media <linux-media@vger.kernel.org>
-Subject: Re: video capture driver interlacing question (easycap)
-In-Reply-To: <CALF0-+Xz8RkGkjSg8n45POLQKWpFUhsNQCPpth4NK9Svhc+4SA@mail.gmail.com>
-Message-ID: <Pine.LNX.4.64.1204282336140.7312@axis700.grange>
-References: <CALF0-+WaMObsjmpqF8akQwaizETsS2zg05yT5fcOTA5CT=wLJA@mail.gmail.com>
- <CALF0-+Xz8RkGkjSg8n45POLQKWpFUhsNQCPpth4NK9Svhc+4SA@mail.gmail.com>
+Received: from na3sys009aog119.obsmtp.com ([74.125.149.246]:50514 "EHLO
+	na3sys009aog119.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752545Ab2DGWFG convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 7 Apr 2012 18:05:06 -0400
+Received: by wera1 with SMTP id a1so2665890wer.34
+        for <linux-media@vger.kernel.org>; Sat, 07 Apr 2012 15:05:03 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+In-Reply-To: <Pine.LNX.4.64.1204072349280.25526@axis700.grange>
+References: <CAKnK67QZ78iTxYWvfpUJ_v_KD7XLUT=o=pkrC2EZ8CJ2r00pCQ@mail.gmail.com>
+ <Pine.LNX.4.64.1204072316460.25526@axis700.grange> <CAKnK67RtoOVV0P_9kdc5q0mQTVhqN6MCbvj0eTLuS98096uAHw@mail.gmail.com>
+ <Pine.LNX.4.64.1204072349280.25526@axis700.grange>
+From: "Aguirre, Sergio" <saaguirre@ti.com>
+Date: Sat, 7 Apr 2012 17:04:43 -0500
+Message-ID: <CAKnK67SCS3LyQcf_bGi8grhkDA8uYKvGCFnjMUj_Z0+3x46Hng@mail.gmail.com>
+Subject: Re: [Query] About NV12 pixel format support in a subdevice
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ezequiel
+Hi Guennadi,
 
-On Sat, 28 Apr 2012, Ezequiel García wrote:
+On Sat, Apr 7, 2012 at 4:51 PM, Guennadi Liakhovetski
+<g.liakhovetski@gmx.de> wrote:
+> On Sat, 7 Apr 2012, Aguirre, Sergio wrote:
+>
+>> Hi Guennadi,
+>>
+>> Thanks for your reply.
+>>
+>> On Sat, Apr 7, 2012 at 4:21 PM, Guennadi Liakhovetski
+>> <g.liakhovetski@gmx.de> wrote:
+>> > Hi Sergio
+>> >
+>> > On Sat, 7 Apr 2012, Aguirre, Sergio wrote:
+>> >
+>> >> Hi everyone,
+>> >>
+>> >> I'll like to request for your advice on adding NV12 support for my omap4iss
+>> >> camera driver, which is done after the resizer block in the OMAP4 ISS ISP
+>> >> (Imaging SubSystem Image Signal Processor).
+>> >>
+>> >> So, the problem with that, is that I don't see a match for V4L2_PIX_FMT_NV12
+>> >> pixel format in "enum v4l2_mbus_pixelcode".
+>> >>
+>> >> Now, I wonder what's the best way to describe the format... Is this correct?
+>> >>
+>> >> V4L2_MBUS_FMT_NV12_1X12
+>> >>
+>> >> Because every pixel is comprised of a 8-bit Y element, and it's UV components
+>> >> are grouped in pairs with the next horizontal pixel, whcih in combination
+>> >> are represented in 8 bits... So it's like that UV component per-pixel is 4-bits.
+>> >> Not exactly, but it's the best representation I could think of to
+>> >> simplify things.
+>> >
+>> > Do I understand it right, that your resizer is sending the data to the DMA
+>> > engine interleaved, not Y and UV planes separately, and it's only the DMA
+>> > engine, that is separating the planes, when writing to buffers? In such a
+>> > case I'd use a suitable YUV420 V4L2_MBUS_FMT_* format for that and have
+>> > the DMA engine convert it to NV12, similar to what sh_mobile_ceu_camera
+>> > does.
+>>
+>> No, it actually has 2 register sets for specifying the start address
+>> for each plane.
+>
+> Sorry, what "it?" The DMA engine, right? Then it still looks pretty
+> similar to the CEU case to me: it also can either write the data
+> interleaved into RAM and produce a YUV420 format, or convert to NV12.
+> Which one to do is decided by the format, configured on the video device
+> node by the driver.
 
-> On Thu, Apr 26, 2012 at 5:33 PM, Ezequiel García <elezegarcia@gmail.com> wrote:
-> > Hi everyone,
-> >
-> > As you may know I'm re-writing from scratch the staging/easycap driver.
-> >
-> > Finally, after digging through the labyrinthic staging/easycap code,
-> > I've reached a point where I'm able to understand isoc packets.
-> > Despite not having any documentation (I asked several times) from chip vendor,
-> > I can separate packets in odd and even.
-> >
-> > So, instead of receiving frames the device is sending me fields, right?
-> >
-> > My doubt now is this:
-> > * Do I have to *merge* this pair of fields for each frame, or can I
-> > give it to v4l?
-> > If affirmative: how should I *merge* them?
-> > * Is this related to multiplanar buffers (should I use vb2_plane_addr)?
-> >
-> > Currently, staging/easycap does some strange and complex conversion,
-> > from the pair of fields buffers, to get a "frame" buffer (!) but I'm
-> > not sure if it's the correct way to do it?
-> >
-> > I guess I can keep staring at em28xx (together with vivi/uvc/pwc) driver,
-> > but if someone cares to give me a small hint or point me at a small portion
-> > of code I'll be grateful.
-> >
-> > Thanks,
-> > Ezequiel.
-> 
-> Anyone?
+Hmm, ok. I think I know what you mean now, sorry.
 
-This might help:
+So you're saying I should really use, say: V4L2_MBUS_FMT_YUYV8_1_5X8 as
+subdevice format, and let the v4l2 device output node either use:
 
-http://linuxtv.org/downloads/v4l-dvb-apis/field-order.html
+- V4L2_PIX_FMT_NV12
+or
+- V4L2_PIX_FMT_YUV420
 
-i.e., no, you should not merge fields in the driver, IIRC, you just hand 
-them over to the user in separate buffers.
+depending on how I want the DMA engine to organize the data.
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Did I got your point correctly?
+
+Thanks for your patience.
+
+Regards,
+Sergio
+
+>
+> Thanks
+> Guennadi
+>
+>> So, I have one register that I program with "Y-start" address, and
+>> another register
+>> that I program with "UV-start" address.
+>>
+>> For both cases, you control the byte offset between every begin of each line.
+>>
+>> So, in theory, you could save it interleaved in memory if you want, or
+>> in 2 separate
+>> buffers depending on how you program the address/offset pair.
+>>
+>> Regards,
+>> Sergio
+>>
+>> >
+>> > Thanks
+>> > Guennadi
+>> >
+>> >> I mean, the HW itself writes in memory to 2 contiguous buffers, so there's 2
+>> >> separate DMA writes. I have to program 2 starting addresses, which, in an
+>> >> internal non-v4l2-subdev implementation, I have been programming like this:
+>> >>
+>> >> paddr = start of 32-byte aligned physical address to store buffer
+>> >> x = width
+>> >> y = height
+>> >>
+>> >> Ysize = (x * y)
+>> >> UVsize = (x / 2) * y
+>> >> Total size = Ysize + UVsize
+>> >>
+>> >> Ystart = paddr
+>> >> UVstart = (paddr + Ysize)
+>> >>
+>> >> But, in the media controller framework, i have a single DMA output pad, that
+>> >> creates a v4l2 capture device node, and i'll be queueing a single buffer.
+>> >>
+>> >> Any advice on how to address this properly? Does anyone has/had a similar need?
+>> >>
+>> >> Regards,
+>> >> Sergio
+>> >> --
+>> >> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> >> the body of a message to majordomo@vger.kernel.org
+>> >> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> >>
+>> >
+>> > ---
+>> > Guennadi Liakhovetski, Ph.D.
+>> > Freelance Open-Source Software Developer
+>> > http://www.open-technology.de/
+>>
+>
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
