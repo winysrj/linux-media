@@ -1,138 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout-de.gmx.net ([213.165.64.22]:38604 "HELO
-	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751022Ab2DUWX1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 21 Apr 2012 18:23:27 -0400
-From: "Hans-Frieder Vogt" <hfvogt@gmx.net>
-To: Antti Palosaari <crope@iki.fi>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: [PATCH v2] af9035: add remote control support
-Date: Sun, 22 Apr 2012 00:23:16 +0200
-Cc: linux-media@vger.kernel.org,
-	Michael =?iso-8859-1?q?B=FCsch?= <m@bues.ch>,
-	Gianluca Gennari <gennarone@gmail.com>
+Received: from moutng.kundenserver.de ([212.227.126.186]:63619 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752245Ab2DGWNc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Apr 2012 18:13:32 -0400
+Date: Sun, 8 Apr 2012 00:13:28 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: "Aguirre, Sergio" <saaguirre@ti.com>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [Query] About NV12 pixel format support in a subdevice
+In-Reply-To: <CAKnK67SCS3LyQcf_bGi8grhkDA8uYKvGCFnjMUj_Z0+3x46Hng@mail.gmail.com>
+Message-ID: <Pine.LNX.4.64.1204080012110.25526@axis700.grange>
+References: <CAKnK67QZ78iTxYWvfpUJ_v_KD7XLUT=o=pkrC2EZ8CJ2r00pCQ@mail.gmail.com>
+ <Pine.LNX.4.64.1204072316460.25526@axis700.grange>
+ <CAKnK67RtoOVV0P_9kdc5q0mQTVhqN6MCbvj0eTLuS98096uAHw@mail.gmail.com>
+ <Pine.LNX.4.64.1204072349280.25526@axis700.grange>
+ <CAKnK67SCS3LyQcf_bGi8grhkDA8uYKvGCFnjMUj_Z0+3x46Hng@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201204220023.16452.hfvogt@gmx.net>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-af9035: support remote controls, version 2 of patch (Currently, no key maps are loaded).
+On Sat, 7 Apr 2012, Aguirre, Sergio wrote:
 
-This version of the patch addresses comments from Antti and Mauro. Thank very much for your comments!
-Compared to the first version of the patch, the remote control is only activated after the EEPROM has been read
-and confirmed that the remote is not working in the HID mode.
-In addition, config variables are no longer needed and unnecessary checks have been removed.
+> Hi Guennadi,
+> 
+> On Sat, Apr 7, 2012 at 4:51 PM, Guennadi Liakhovetski
+> <g.liakhovetski@gmx.de> wrote:
+> > On Sat, 7 Apr 2012, Aguirre, Sergio wrote:
+> >
+> >> Hi Guennadi,
+> >>
+> >> Thanks for your reply.
+> >>
+> >> On Sat, Apr 7, 2012 at 4:21 PM, Guennadi Liakhovetski
+> >> <g.liakhovetski@gmx.de> wrote:
+> >> > Hi Sergio
+> >> >
+> >> > On Sat, 7 Apr 2012, Aguirre, Sergio wrote:
+> >> >
+> >> >> Hi everyone,
+> >> >>
+> >> >> I'll like to request for your advice on adding NV12 support for my omap4iss
+> >> >> camera driver, which is done after the resizer block in the OMAP4 ISS ISP
+> >> >> (Imaging SubSystem Image Signal Processor).
+> >> >>
+> >> >> So, the problem with that, is that I don't see a match for V4L2_PIX_FMT_NV12
+> >> >> pixel format in "enum v4l2_mbus_pixelcode".
+> >> >>
+> >> >> Now, I wonder what's the best way to describe the format... Is this correct?
+> >> >>
+> >> >> V4L2_MBUS_FMT_NV12_1X12
+> >> >>
+> >> >> Because every pixel is comprised of a 8-bit Y element, and it's UV components
+> >> >> are grouped in pairs with the next horizontal pixel, whcih in combination
+> >> >> are represented in 8 bits... So it's like that UV component per-pixel is 4-bits.
+> >> >> Not exactly, but it's the best representation I could think of to
+> >> >> simplify things.
+> >> >
+> >> > Do I understand it right, that your resizer is sending the data to the DMA
+> >> > engine interleaved, not Y and UV planes separately, and it's only the DMA
+> >> > engine, that is separating the planes, when writing to buffers? In such a
+> >> > case I'd use a suitable YUV420 V4L2_MBUS_FMT_* format for that and have
+> >> > the DMA engine convert it to NV12, similar to what sh_mobile_ceu_camera
+> >> > does.
+> >>
+> >> No, it actually has 2 register sets for specifying the start address
+> >> for each plane.
+> >
+> > Sorry, what "it?" The DMA engine, right? Then it still looks pretty
+> > similar to the CEU case to me: it also can either write the data
+> > interleaved into RAM and produce a YUV420 format, or convert to NV12.
+> > Which one to do is decided by the format, configured on the video device
+> > node by the driver.
+> 
+> Hmm, ok. I think I know what you mean now, sorry.
+> 
+> So you're saying I should really use, say: V4L2_MBUS_FMT_YUYV8_1_5X8 as
+> subdevice format, and let the v4l2 device output node either use:
+> 
+> - V4L2_PIX_FMT_NV12
+> or
+> - V4L2_PIX_FMT_YUV420
+> 
+> depending on how I want the DMA engine to organize the data.
+> 
+> Did I got your point correctly?
 
-Signed-off-by: Hans-Frieder Vogt <hfvogt@gmx.net>
+Yes, that's what I meant. Sorry for not explaining properly:-)
 
- af9035.c |   65 
-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- af9035.h |    1 
- 2 files changed, 66 insertions(+)
-
-diff -Nupr a/drivers/media/dvb/dvb-usb/af9035.c b/drivers/media/dvb/dvb-usb/af9035.c
---- a/drivers/media/dvb/dvb-usb/af9035.c	2012-04-10 05:45:26.000000000 +0200
-+++ b/drivers/media/dvb/dvb-usb/af9035.c	2012-04-22 00:11:29.288907184 +0200
-@@ -314,6 +314,37 @@ static struct i2c_algorithm af9035_i2c_a
- 	.functionality = af9035_i2c_functionality,
- };
- 
-+#define AF9035_POLL 250
-+static int af9035_rc_query(struct dvb_usb_device *d)
-+{
-+	unsigned int key;
-+	unsigned char b[4];
-+	int ret;
-+	struct usb_req req = { CMD_IR_GET, 0, 0, NULL, 4, b };
-+
-+	ret = af9035_ctrl_msg(d->udev, &req);
-+	if (ret < 0)
-+		goto err;
-+
-+	if ((b[2] + b[3]) == 0xff) {
-+		if ((b[0] + b[1]) == 0xff) {
-+			/* NEC */
-+			key = b[0] << 8 | b[2];
-+		} else {
-+			/* ext. NEC */
-+			key = b[0] << 16 | b[1] << 8 | b[2];
-+		}
-+	} else {
-+		key = b[0] << 24 | b[1] << 16 | b[2] << 8 | b[3];
-+	}
-+
-+	rc_keydown(d->rc_dev, key, 0);
-+
-+err:
-+	/* ignore errors */
-+	return 0;
-+}
-+
- static int af9035_init(struct dvb_usb_device *d)
- {
- 	int ret, i;
-@@ -628,6 +659,32 @@ static int af9035_read_mac_address(struc
- 	for (i = 0; i < af9035_properties[0].num_adapters; i++)
- 		af9035_af9033_config[i].clock = clock_lut[tmp];
- 
-+	ret = af9035_rd_reg(d, EEPROM_IR_MODE, &tmp);
-+	if (ret < 0)
-+		goto err;
-+	pr_debug("%s: ir_mode=%02x\n", __func__, tmp);
-+
-+	/* don't activate rc if in HID mode or if not available */
-+	if (tmp == 5) {
-+		ret = af9035_rd_reg(d, EEPROM_IR_TYPE, &tmp);
-+		if (ret < 0)
-+			goto err;
-+		pr_debug("%s: ir_type=%02x\n", __func__, tmp);
-+
-+		switch (tmp) {
-+		case 0: /* NEC */
-+		default:
-+			d->props.rc.core.protocol = RC_TYPE_NEC;
-+			d->props.rc.core.allowed_protos = RC_TYPE_NEC;
-+			break;
-+		case 1: /* RC6 */
-+			d->props.rc.core.protocol = RC_TYPE_RC6;
-+			d->props.rc.core.allowed_protos = RC_TYPE_RC6;
-+			break;
-+		}
-+		d->props.rc.core.rc_query = af9035_rc_query;
-+	}
-+
- 	return 0;
- 
- err:
-@@ -1004,6 +1061,14 @@ static struct dvb_usb_device_properties
- 
- 		.i2c_algo = &af9035_i2c_algo,
- 
-+		.rc.core = {
-+			.protocol       = RC_TYPE_UNKNOWN,
-+			.module_name    = "af9035",
-+			.rc_query       = NULL,
-+			.rc_interval    = AF9035_POLL,
-+			.allowed_protos = RC_TYPE_UNKNOWN,
-+			.rc_codes       = RC_MAP_EMPTY,
-+		},
- 		.num_device_descs = 5,
- 		.devices = {
- 			{
-diff -Nupr a/drivers/media/dvb/dvb-usb/af9035.h b/drivers/media/dvb/dvb-usb/af9035.h
---- a/drivers/media/dvb/dvb-usb/af9035.h	2012-04-10 05:45:26.000000000 +0200
-+++ b/drivers/media/dvb/dvb-usb/af9035.h	2012-04-21 17:07:49.201161565 +0200
-@@ -110,6 +110,7 @@ u32 clock_lut_it9135[] = {
- #define CMD_MEM_WR                  0x01
- #define CMD_I2C_RD                  0x02
- #define CMD_I2C_WR                  0x03
-+#define CMD_IR_GET                  0x18
- #define CMD_FW_DL                   0x21
- #define CMD_FW_QUERYINFO            0x22
- #define CMD_FW_BOOT                 0x23
-
-Hans-Frieder Vogt                       e-mail: hfvogt <at> gmx .dot. net
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
