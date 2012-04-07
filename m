@@ -1,80 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rcsinet15.oracle.com ([148.87.113.117]:49690 "EHLO
-	rcsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753070Ab2DQKdl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Apr 2012 06:33:41 -0400
-Date: Tue, 17 Apr 2012 13:33:30 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: crope@iki.fi
-Cc: linux-media@vger.kernel.org
-Subject: re: [media] tda10071: NXP TDA10071 DVB-S/S2 driver
-Message-ID: <20120417103330.GA13569@elgon.mountain>
+Received: from moutng.kundenserver.de ([212.227.17.8]:49214 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751324Ab2DGVV4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Apr 2012 17:21:56 -0400
+Date: Sat, 7 Apr 2012 23:21:51 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: "Aguirre, Sergio" <saaguirre@ti.com>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [Query] About NV12 pixel format support in a subdevice
+In-Reply-To: <CAKnK67QZ78iTxYWvfpUJ_v_KD7XLUT=o=pkrC2EZ8CJ2r00pCQ@mail.gmail.com>
+Message-ID: <Pine.LNX.4.64.1204072316460.25526@axis700.grange>
+References: <CAKnK67QZ78iTxYWvfpUJ_v_KD7XLUT=o=pkrC2EZ8CJ2r00pCQ@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Antti,
+Hi Sergio
 
-Smatch complains about a potential information leak.  I was hoping you
-could take a look.
+On Sat, 7 Apr 2012, Aguirre, Sergio wrote:
 
-The patch de8e42035014: "[media] tda10071: NXP TDA10071 DVB-S/S2 
-driver" from Aug 1, 2011, leads to the following warning:
-drivers/media/dvb/frontends/tda10071.c:322 
-tda10071_diseqc_send_master_cmd()
-	 error: memcpy() 'diseqc_cmd->msg' too small (6 vs 16)
+> Hi everyone,
+> 
+> I'll like to request for your advice on adding NV12 support for my omap4iss
+> camera driver, which is done after the resizer block in the OMAP4 ISS ISP
+> (Imaging SubSystem Image Signal Processor).
+> 
+> So, the problem with that, is that I don't see a match for V4L2_PIX_FMT_NV12
+> pixel format in "enum v4l2_mbus_pixelcode".
+> 
+> Now, I wonder what's the best way to describe the format... Is this correct?
+> 
+> V4L2_MBUS_FMT_NV12_1X12
+> 
+> Because every pixel is comprised of a 8-bit Y element, and it's UV components
+> are grouped in pairs with the next horizontal pixel, whcih in combination
+> are represented in 8 bits... So it's like that UV component per-pixel is 4-bits.
+> Not exactly, but it's the best representation I could think of to
+> simplify things.
 
+Do I understand it right, that your resizer is sending the data to the DMA 
+engine interleaved, not Y and UV planes separately, and it's only the DMA 
+engine, that is separating the planes, when writing to buffers? In such a 
+case I'd use a suitable YUV420 V4L2_MBUS_FMT_* format for that and have 
+the DMA engine convert it to NV12, similar to what sh_mobile_ceu_camera 
+does.
 
-drivers/media/dvb/frontends/tda10071.c
-   290          if (diseqc_cmd->msg_len < 3 || diseqc_cmd->msg_len > 16) {
-                                               ^^^^^^^^^^^^^^^^^^^^^^^^
-We cap ->msg_len at 16 here.  I wasn't able to figure out where the 16
-came from.  Or the 3 for that matter.
+Thanks
+Guennadi
 
-   291                  ret = -EINVAL;
-   292                  goto error;
-   293          }
-   294  
-   295          /* wait LNB TX */
-   296          for (i = 500, tmp = 0; i && !tmp; i--) {
-   297                  ret = tda10071_rd_reg_mask(priv, 0x47, &tmp, 0x01);
-   298                  if (ret)
-   299                          goto error;
-   300  
-   301                  usleep_range(10000, 20000);
-   302          }
-   303  
-   304          dbg("%s: loop=%d", __func__, i);
-   305  
-   306          if (i == 0) {
-   307                  ret = -ETIMEDOUT;
-   308                  goto error;
-   309          }
-   310  
-   311          ret = tda10071_wr_reg_mask(priv, 0x47, 0x00, 0x01);
-   312          if (ret)
-   313                  goto error;
-   314  
-   315          cmd.args[0x00] = CMD_LNB_SEND_DISEQC;
-   316          cmd.args[0x01] = 0;
-   317          cmd.args[0x02] = 0;
-   318          cmd.args[0x03] = 0;
-   319          cmd.args[0x04] = 2;
-   320          cmd.args[0x05] = 0;
-   321          cmd.args[0x06] = diseqc_cmd->msg_len;
-   322          memcpy(&cmd.args[0x07], diseqc_cmd->msg, diseqc_cmd->msg_len);
-                                        ^^^^^^^^^^^^^^^
-->msg is only 6 bytes long so we're copying past the end of the array.
+> I mean, the HW itself writes in memory to 2 contiguous buffers, so there's 2
+> separate DMA writes. I have to program 2 starting addresses, which, in an
+> internal non-v4l2-subdev implementation, I have been programming like this:
+> 
+> paddr = start of 32-byte aligned physical address to store buffer
+> x = width
+> y = height
+> 
+> Ysize = (x * y)
+> UVsize = (x / 2) * y
+> Total size = Ysize + UVsize
+> 
+> Ystart = paddr
+> UVstart = (paddr + Ysize)
+> 
+> But, in the media controller framework, i have a single DMA output pad, that
+> creates a v4l2 capture device node, and i'll be queueing a single buffer.
+> 
+> Any advice on how to address this properly? Does anyone has/had a similar need?
+> 
+> Regards,
+> Sergio
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-Also cmd.arg is 0x1e (30) bytes long and we only copy 0x07 + 16 bytes
-into it so it leaves the last 7 bytes of cmd.args unitialized.  Btw,
-why are the sizes specified in hex instead of decimal here?
-
-   323          cmd.len = 0x07 + diseqc_cmd->msg_len;
-
-regards,
-dan carpenter
-
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
