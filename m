@@ -1,54 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:33927 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751151Ab2DRQGs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Apr 2012 12:06:48 -0400
-From: <manjunatha_halli@ti.com>
-To: <linux-media@vger.kernel.org>
-CC: <benzyg@ti.com>, <linux-kernel@vger.kernel.org>,
-	Manjunatha Halli <x0130808@ti.com>
-Subject: [PATCH V2 3/5] [Media] Add new CID for FM TX RDS Alternate Frequency
-Date: Wed, 18 Apr 2012 11:06:41 -0500
-Message-ID: <1334765203-31844-4-git-send-email-manjunatha_halli@ti.com>
-In-Reply-To: <1334765203-31844-1-git-send-email-manjunatha_halli@ti.com>
-References: <1334765203-31844-1-git-send-email-manjunatha_halli@ti.com>
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:33768 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754318Ab2DGSVg convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Apr 2012 14:21:36 -0400
+Received: by mail-iy0-f174.google.com with SMTP id z16so4335659iag.19
+        for <linux-media@vger.kernel.org>; Sat, 07 Apr 2012 11:21:35 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain
+From: Jan Prunk <janprunk@gmail.com>
+Date: Sat, 7 Apr 2012 20:21:15 +0200
+Message-ID: <CALnoPX4UJuzC9svAVPAs56YfDE7Ex92c1kpj+2X5shWRVQ4JxQ@mail.gmail.com>
+Subject: ASUS U3100 Mini
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Manjunatha Halli <x0130808@ti.com>
+Hi !
 
-Signed-off-by: Manjunatha Halli <x0130808@ti.com>
----
- drivers/media/video/v4l2-ctrls.c |    1 +
- include/linux/videodev2.h        |    1 +
- 2 files changed, 2 insertions(+), 0 deletions(-)
+I have ASUS U3100 Mini USB Dongle and I would like to watch DVB-T
+TV streams with it on Debian. The dongle when its plugged in lights with
+the green light. Performing "(dvb)scan" segfaults.
 
-diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
-index e1bba7d..b4ddd6b 100644
---- a/drivers/media/video/v4l2-ctrls.c
-+++ b/drivers/media/video/v4l2-ctrls.c
-@@ -614,6 +614,7 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_RDS_TX_PTY:		return "RDS Program Type";
- 	case V4L2_CID_RDS_TX_PS_NAME:		return "RDS PS Name";
- 	case V4L2_CID_RDS_TX_RADIO_TEXT:	return "RDS Radio Text";
-+	case V4L2_CID_RDS_TX_AF_FREQ:		return "RDS Alternate Frequency";
- 	case V4L2_CID_AUDIO_LIMITER_ENABLED:	return "Audio Limiter Feature Enabled";
- 	case V4L2_CID_AUDIO_LIMITER_RELEASE_TIME: return "Audio Limiter Release Time";
- 	case V4L2_CID_AUDIO_LIMITER_DEVIATION:	return "Audio Limiter Deviation";
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index 00ac1b7..d1c8c1b 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -1699,6 +1699,7 @@ enum  v4l2_exposure_auto_type {
- #define V4L2_CID_RDS_TX_PTY			(V4L2_CID_FM_TX_CLASS_BASE + 3)
- #define V4L2_CID_RDS_TX_PS_NAME			(V4L2_CID_FM_TX_CLASS_BASE + 5)
- #define V4L2_CID_RDS_TX_RADIO_TEXT		(V4L2_CID_FM_TX_CLASS_BASE + 6)
-+#define V4L2_CID_RDS_TX_AF_FREQ			(V4L2_CID_FM_TX_CLASS_BASE + 7)
- 
- #define V4L2_CID_AUDIO_LIMITER_ENABLED		(V4L2_CID_FM_TX_CLASS_BASE + 64)
- #define V4L2_CID_AUDIO_LIMITER_RELEASE_TIME	(V4L2_CID_FM_TX_CLASS_BASE + 65)
+I (partially) followed these guides:
+
+http://linuxtv.org/wiki/index.php/Asus_U3100_Mini_plus_DVB-T
+
+I am using debian testing and it seems the device gets somehow recognised:
+
+[15120.976095] usb 3-1: USB disconnect, device number 2
+[15124.716041] usb 1-3: new high-speed USB device number 5 using ehci_hcd
+[15124.848958] usb 1-3: New USB device found, idVendor=0b05, idProduct=173f
+[15124.848964] usb 1-3: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+[15124.848970] usb 1-3: Product: ASUS DVBT Tuner
+[15124.848974] usb 1-3: Manufacturer: ASUSTeK
+[15124.848977] usb 1-3: SerialNumber: 8500500875
+[15125.344564] IR NEC protocol handler initialized
+[15125.370992] IR RC5(x) protocol handler initialized
+[15125.409376] dib0700: loaded with support for 21 different device-types
+[15125.409588] dvb-usb: found a 'ASUS My Cinema U3100 Mini DVBT Tuner'
+in cold state, will try to load a firmware
+[15125.412893] IR RC6 protocol handler initialized
+[15125.440888] IR JVC protocol handler initialized
+[15125.463698] dvb-usb: downloading firmware from file 'dvb-usb-dib0700-1.20.fw'
+[15125.465236] IR Sony protocol handler initialized
+[15125.468745] IR MCE Keyboard/mouse protocol handler initialized
+[15125.473597] lirc_dev: IR Remote Control driver registered, major 249
+[15125.474883] IR LIRC bridge handler initialized
+[15125.671203] dib0700: firmware started successfully.
+[15126.172240] dvb-usb: found a 'ASUS My Cinema U3100 Mini DVBT Tuner'
+in warm state.
+[15126.172346] dvb-usb: will pass the complete MPEG2 transport stream
+to the software demuxer.
+[15126.172902] DVB: registering new adapter (ASUS My Cinema U3100 Mini
+DVBT Tuner)
+[15126.390206] DVB: registering adapter 0 frontend 0 (DiBcom 7000PC)...
+[15126.607078] DiB0070: successfully identified
+[15126.708031] Registered IR keymap rc-dib0700-rc5
+[15126.708271] input: IR-receiver inside an USB DVB receiver as
+/devices/pci0000:00/0000:00:1d.7/usb1/1-3/rc/rc0/input12
+[15126.709054] rc0: IR-receiver inside an USB DVB receiver as
+/devices/pci0000:00/0000:00:1d.7/usb1/1-3/rc/rc0
+[15126.710265] dvb-usb: schedule remote query interval to 50 msecs.
+[15126.710273] dvb-usb: ASUS My Cinema U3100 Mini DVBT Tuner
+successfully initialized and connected.
+[15126.710492] usbcore: registered new interface driver dvb_usb_dib0700
+[15557.359129] scan[3798]: segfault at 3 ip b7620aa6 sp bfc268ac error
+4 in libc-2.13.so[b75e2000+156000]
+[15650.161033] scan[3836]: segfault at 3 ip b766faa6 sp bf9974dc error
+4 in libc-2.13.so[b7631000+156000]
+
+After this I used the guide at:
+http://www.linuxtv.org/wiki/index.php/Testing_your_DVB_device
+
+Which resulted into:
+yang@vaio:~$ scan /usr/share/dvb/dvb-t/si-Ljubljana > ~/.tzap/channels.conf
+scanning /usr/share/dvb/dvb-t/si-Ljubljana
+using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+initial transponder 602000000 0 2 9 3 1 3 0
+initial transponder 514000000 0 2 9 3 1 2 0
+>>> tune to: 602000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE
+WARNING: >>> tuning failed!!!
+>>> tune to: 602000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE (tuning failed)
+WARNING: >>> tuning failed!!!
+>>> tune to: 514000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_8:HIERARCHY_NONE
+WARNING: >>> tuning failed!!!
+>>> tune to: 514000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_8:HIERARCHY_NONE (tuning failed)
+WARNING: >>> tuning failed!!!
+ERROR: initial tuning failed
+dumping lists (0 services)
+Done.
+
+So I seem to be stuck here.
+
+I please for some guidance here, thank you !
+
+Kind regards,
+Jan Prunk
 -- 
-1.7.4.1
-
+Jan Prunk   http://www.prunk.si
+0x00E80E86  http://pgp.prunk.si
+http://AS50763.peeringdb.com
