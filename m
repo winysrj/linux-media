@@ -1,124 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:58802 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756035Ab2DJKLl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Apr 2012 06:11:41 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Received: from euspt1 ([210.118.77.14]) by mailout4.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0M29005RCDNLLM40@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 10 Apr 2012 11:11:45 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0M2900BG1DNFBU@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 10 Apr 2012 11:11:39 +0100 (BST)
-Date: Tue, 10 Apr 2012 12:11:30 +0200
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: [PATCH 2/3] v4l: vb2-vmalloc: add support for dmabuf importing
-In-reply-to: <1334052691-5145-1-git-send-email-t.stanislaws@samsung.com>
-To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
-Cc: airlied@redhat.com, m.szyprowski@samsung.com,
-	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
-	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
-	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
-	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
-	subashrp@gmail.com, mchehab@redhat.com
-Message-id: <1334052691-5145-3-git-send-email-t.stanislaws@samsung.com>
-References: <1334052691-5145-1-git-send-email-t.stanislaws@samsung.com>
+Received: from moutng.kundenserver.de ([212.227.126.187]:62065 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755097Ab2DGVwD convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Apr 2012 17:52:03 -0400
+Date: Sat, 7 Apr 2012 23:51:56 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: "Aguirre, Sergio" <saaguirre@ti.com>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [Query] About NV12 pixel format support in a subdevice
+In-Reply-To: <CAKnK67RtoOVV0P_9kdc5q0mQTVhqN6MCbvj0eTLuS98096uAHw@mail.gmail.com>
+Message-ID: <Pine.LNX.4.64.1204072349280.25526@axis700.grange>
+References: <CAKnK67QZ78iTxYWvfpUJ_v_KD7XLUT=o=pkrC2EZ8CJ2r00pCQ@mail.gmail.com>
+ <Pine.LNX.4.64.1204072316460.25526@axis700.grange>
+ <CAKnK67RtoOVV0P_9kdc5q0mQTVhqN6MCbvj0eTLuS98096uAHw@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds support for importing DMABUF files for
-vmalloc allocator in Videobuf2.
+On Sat, 7 Apr 2012, Aguirre, Sergio wrote:
 
-Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> Hi Guennadi,
+> 
+> Thanks for your reply.
+> 
+> On Sat, Apr 7, 2012 at 4:21 PM, Guennadi Liakhovetski
+> <g.liakhovetski@gmx.de> wrote:
+> > Hi Sergio
+> >
+> > On Sat, 7 Apr 2012, Aguirre, Sergio wrote:
+> >
+> >> Hi everyone,
+> >>
+> >> I'll like to request for your advice on adding NV12 support for my omap4iss
+> >> camera driver, which is done after the resizer block in the OMAP4 ISS ISP
+> >> (Imaging SubSystem Image Signal Processor).
+> >>
+> >> So, the problem with that, is that I don't see a match for V4L2_PIX_FMT_NV12
+> >> pixel format in "enum v4l2_mbus_pixelcode".
+> >>
+> >> Now, I wonder what's the best way to describe the format... Is this correct?
+> >>
+> >> V4L2_MBUS_FMT_NV12_1X12
+> >>
+> >> Because every pixel is comprised of a 8-bit Y element, and it's UV components
+> >> are grouped in pairs with the next horizontal pixel, whcih in combination
+> >> are represented in 8 bits... So it's like that UV component per-pixel is 4-bits.
+> >> Not exactly, but it's the best representation I could think of to
+> >> simplify things.
+> >
+> > Do I understand it right, that your resizer is sending the data to the DMA
+> > engine interleaved, not Y and UV planes separately, and it's only the DMA
+> > engine, that is separating the planes, when writing to buffers? In such a
+> > case I'd use a suitable YUV420 V4L2_MBUS_FMT_* format for that and have
+> > the DMA engine convert it to NV12, similar to what sh_mobile_ceu_camera
+> > does.
+> 
+> No, it actually has 2 register sets for specifying the start address
+> for each plane.
+
+Sorry, what "it?" The DMA engine, right? Then it still looks pretty 
+similar to the CEU case to me: it also can either write the data 
+interleaved into RAM and produce a YUV420 format, or convert to NV12. 
+Which one to do is decided by the format, configured on the video device 
+node by the driver.
+
+Thanks
+Guennadi
+
+> So, I have one register that I program with "Y-start" address, and
+> another register
+> that I program with "UV-start" address.
+> 
+> For both cases, you control the byte offset between every begin of each line.
+> 
+> So, in theory, you could save it interleaved in memory if you want, or
+> in 2 separate
+> buffers depending on how you program the address/offset pair.
+> 
+> Regards,
+> Sergio
+> 
+> >
+> > Thanks
+> > Guennadi
+> >
+> >> I mean, the HW itself writes in memory to 2 contiguous buffers, so there's 2
+> >> separate DMA writes. I have to program 2 starting addresses, which, in an
+> >> internal non-v4l2-subdev implementation, I have been programming like this:
+> >>
+> >> paddr = start of 32-byte aligned physical address to store buffer
+> >> x = width
+> >> y = height
+> >>
+> >> Ysize = (x * y)
+> >> UVsize = (x / 2) * y
+> >> Total size = Ysize + UVsize
+> >>
+> >> Ystart = paddr
+> >> UVstart = (paddr + Ysize)
+> >>
+> >> But, in the media controller framework, i have a single DMA output pad, that
+> >> creates a v4l2 capture device node, and i'll be queueing a single buffer.
+> >>
+> >> Any advice on how to address this properly? Does anyone has/had a similar need?
+> >>
+> >> Regards,
+> >> Sergio
+> >> --
+> >> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> >> the body of a message to majordomo@vger.kernel.org
+> >> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >>
+> >
+> > ---
+> > Guennadi Liakhovetski, Ph.D.
+> > Freelance Open-Source Software Developer
+> > http://www.open-technology.de/
+> 
+
 ---
- drivers/media/video/videobuf2-vmalloc.c |   56 +++++++++++++++++++++++++++++++
- 1 files changed, 56 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/media/video/videobuf2-vmalloc.c b/drivers/media/video/videobuf2-vmalloc.c
-index 6b5ca6c..305032f 100644
---- a/drivers/media/video/videobuf2-vmalloc.c
-+++ b/drivers/media/video/videobuf2-vmalloc.c
-@@ -29,6 +29,7 @@ struct vb2_vmalloc_buf {
- 	unsigned int			n_pages;
- 	atomic_t			refcount;
- 	struct vb2_vmarea_handler	handler;
-+	struct dma_buf			*dbuf;
- };
- 
- static void vb2_vmalloc_put(void *buf_priv);
-@@ -206,11 +207,66 @@ static int vb2_vmalloc_mmap(void *buf_priv, struct vm_area_struct *vma)
- 	return 0;
- }
- 
-+/*********************************************/
-+/*       callbacks for DMABUF buffers        */
-+/*********************************************/
-+
-+static int vb2_vmalloc_map_dmabuf(void *mem_priv)
-+{
-+	struct vb2_vmalloc_buf *buf = mem_priv;
-+
-+	buf->vaddr = dma_buf_vmap(buf->dbuf);
-+
-+	return buf->vaddr ? 0 : -EFAULT;
-+}
-+
-+static void vb2_vmalloc_unmap_dmabuf(void *mem_priv)
-+{
-+	struct vb2_vmalloc_buf *buf = mem_priv;
-+
-+	dma_buf_vunmap(buf->dbuf, buf->vaddr);
-+	buf->vaddr = NULL;
-+}
-+
-+static void vb2_vmalloc_detach_dmabuf(void *mem_priv)
-+{
-+	struct vb2_vmalloc_buf *buf = mem_priv;
-+
-+	if (buf->vaddr)
-+		dma_buf_vunmap(buf->dbuf, buf->vaddr);
-+
-+	kfree(buf);
-+}
-+
-+static void *vb2_vmalloc_attach_dmabuf(void *alloc_ctx, struct dma_buf *dbuf,
-+	unsigned long size, int write)
-+{
-+	struct vb2_vmalloc_buf *buf;
-+
-+	if (dbuf->size < size)
-+		return ERR_PTR(-EFAULT);
-+
-+	buf = kzalloc(sizeof *buf, GFP_KERNEL);
-+	if (!buf)
-+		return ERR_PTR(-ENOMEM);
-+
-+	buf->dbuf = dbuf;
-+	buf->write = write;
-+	buf->size = size;
-+
-+	return buf;
-+}
-+
-+
- const struct vb2_mem_ops vb2_vmalloc_memops = {
- 	.alloc		= vb2_vmalloc_alloc,
- 	.put		= vb2_vmalloc_put,
- 	.get_userptr	= vb2_vmalloc_get_userptr,
- 	.put_userptr	= vb2_vmalloc_put_userptr,
-+	.map_dmabuf	= vb2_vmalloc_map_dmabuf,
-+	.unmap_dmabuf	= vb2_vmalloc_unmap_dmabuf,
-+	.attach_dmabuf	= vb2_vmalloc_attach_dmabuf,
-+	.detach_dmabuf	= vb2_vmalloc_detach_dmabuf,
- 	.vaddr		= vb2_vmalloc_vaddr,
- 	.mmap		= vb2_vmalloc_mmap,
- 	.num_users	= vb2_vmalloc_num_users,
--- 
-1.7.5.4
-
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
