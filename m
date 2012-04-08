@@ -1,45 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nm6.bullet.mail.ird.yahoo.com ([77.238.189.63]:47873 "HELO
-	nm6.bullet.mail.ird.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1755867Ab2DFKtL (ORCPT
+Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:48371 "EHLO
+	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753986Ab2DHDyr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 6 Apr 2012 06:49:11 -0400
-Received: from volcano.underworld (volcano.underworld [192.168.0.3])
-	by wellhouse.underworld (8.14.3/8.14.3/Debian-5+lenny1) with ESMTP id q36An6hq012589
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NOT)
-	for <linux-media@vger.kernel.org>; Fri, 6 Apr 2012 11:49:08 +0100
-Message-ID: <4F7ECA22.7040604@yahoo.com>
-Date: Fri, 06 Apr 2012 11:49:06 +0100
-From: Chris Rankin <rankincj@yahoo.com>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: DVB ioctl FE_GET_EVENT behaviour broken in 3.3
-References: <4F7CDA41.5020001@googlemail.com>
-In-Reply-To: <4F7CDA41.5020001@googlemail.com>
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+	Sat, 7 Apr 2012 23:54:47 -0400
+Received: by obbtb4 with SMTP id tb4so5196912obb.31
+        for <linux-media@vger.kernel.org>; Sat, 07 Apr 2012 20:54:46 -0700 (PDT)
+From: saaguirre@ti.com
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, Sergio Aguirre <saaguirre@ti.com>
+Subject: [PATCH] Add support for YUV420 formats
+Date: Sat,  7 Apr 2012 22:54:34 -0500
+Message-Id: <1333857274-9435-1-git-send-email-saaguirre@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The reason that DVB playback with xine is broken in 3.3 is that the userspace 
-semantics of FE_GET_EVENT have changed. Xine tunes into a DVB channel as follows:
+From: Sergio Aguirre <saaguirre@ti.com>
 
-* discards stale frontend events by calling FE_GET_EVENT until there is none left.
-* calls FE_SET_FRONTEND with the new frequency.
-* starts polling for new frontend events by calling FE_GET_EVENT again.
+Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
+---
+ src/v4l2subdev.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-Xine assumes that *every* FE_GET_EVENT after calling FE_SET_FRONTEND will have 
-dvb_frontend_event.parameters.frequency set to the new frequency, if this 
-channel exists. However, under Linux 3.3, at least the first new event with a 
-newly-plugged-in device has a frequency parameter of zero. I am assuming that 
-Linux is populating the frequency parameter from an internal data structure 
-because xine behaves normally once some other DVB application manages to set it 
-to something other than zero. And xine then continues to behave normally until I 
-unplug the DVB adapter and plug in back in again.
+diff --git a/src/v4l2subdev.c b/src/v4l2subdev.c
+index b886b72..e28ed49 100644
+--- a/src/v4l2subdev.c
++++ b/src/v4l2subdev.c
+@@ -498,8 +498,10 @@ static struct {
+ 	{ "Y12", V4L2_MBUS_FMT_Y12_1X12 },
+ 	{ "YUYV", V4L2_MBUS_FMT_YUYV8_1X16 },
+ 	{ "YUYV2X8", V4L2_MBUS_FMT_YUYV8_2X8 },
++	{ "YUYV1_5X8", V4L2_MBUS_FMT_YUYV8_1_5X8 },
+ 	{ "UYVY", V4L2_MBUS_FMT_UYVY8_1X16 },
+ 	{ "UYVY2X8", V4L2_MBUS_FMT_UYVY8_2X8 },
++	{ "UYVY1_5X8", V4L2_MBUS_FMT_UYVY8_1_5X8 },
+ 	{ "SBGGR8", V4L2_MBUS_FMT_SBGGR8_1X8 },
+ 	{ "SGBRG8", V4L2_MBUS_FMT_SGBRG8_1X8 },
+ 	{ "SGRBG8", V4L2_MBUS_FMT_SGRBG8_1X8 },
+-- 
+1.7.5.4
 
-So the question is: why is there no frequency for this first FE_GET_EVENT? Are 
-the parameters incomplete, or shouldn't this event have been sent in the first 
-place?
-
-Cheers,
-Chris
