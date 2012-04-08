@@ -1,61 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vx0-f174.google.com ([209.85.220.174]:59819 "EHLO
-	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754892Ab2DWLBI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Apr 2012 07:01:08 -0400
-Received: by vcqp1 with SMTP id p1so7871481vcq.19
-        for <linux-media@vger.kernel.org>; Mon, 23 Apr 2012 04:01:08 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <CAL9G6WVeXD99FOVNLJ+CVjPEiKrH9dNijM6Rb-G2uz8v_v_j-Q@mail.gmail.com>
-References: <CAL9G6WXZLdJqpivn2qNXb+oP9o4n=uyq6ywiRrzP13vmUYvaxw@mail.gmail.com>
-	<4F6DDB10.8000503@redhat.com>
-	<CAL9G6WUNp1gHibG74L8VXyJ0KPDYY+amKy3JZ7MBkjB8DBwERA@mail.gmail.com>
-	<CALF0-+Uf=1tMKMtOJKEOLiHQ=brkW6JL67A5qtWSJ8uOM3ZfsA@mail.gmail.com>
-	<4F8F13D8.5080407@redhat.com>
-	<CAL9G6WVK=YKGOsB3VV_0B8RRvX0LnTNps1d=zTyV9mdfkirQ8g@mail.gmail.com>
-	<CAJ_iqtbVzU9zg_ERvhrbVr1vdgXXhyxJYdAmT0F1h_2ixP-==Q@mail.gmail.com>
-	<CAL9G6WVeXD99FOVNLJ+CVjPEiKrH9dNijM6Rb-G2uz8v_v_j-Q@mail.gmail.com>
-Date: Mon, 23 Apr 2012 13:01:07 +0200
-Message-ID: <CAJ_iqta7dEdcvi9P_nTTDxAZi0rKBzz5LUZW_cp444L20k58CQ@mail.gmail.com>
-Subject: Re: dvb lock patch
-From: Torfinn Ingolfsen <tingox@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mx1.redhat.com ([209.132.183.28]:45438 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755827Ab2DHP55 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 8 Apr 2012 11:57:57 -0400
+From: Hans de Goede <hdegoede@redhat.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH 09/10] uvcvideo: Send control change events for slave ctrls when the master changes
+Date: Sun,  8 Apr 2012 17:59:53 +0200
+Message-Id: <1333900794-1932-10-git-send-email-hdegoede@redhat.com>
+In-Reply-To: <1333900794-1932-1-git-send-email-hdegoede@redhat.com>
+References: <1333900794-1932-1-git-send-email-hdegoede@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Apr 21, 2012 at 2:18 PM, Josu Lazkano <josu.lazkano@gmail.com> wrote:
->
-> Thanks Torfinn!
->
-> I get it working with modules compilation, that great!
+This allows v4l2 control UI-s to update the inactive state (ie grey-ing
+out of controls) for slave controls when the master control changes.
 
-Good to hear that you got it working.
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+ drivers/media/video/uvc/uvc_ctrl.c |   57 ++++++++++++++++++++++++++++++++++--
+ 1 file changed, 54 insertions(+), 3 deletions(-)
 
->
-> apt-get install linux-source-3.2
-> cd /usr/src/
-> tar -xjvf linux-source-3.2.tar.bz2
-> cd linux-source-3.2/
-> wget http://kipdola.be/subdomain/linux-2.6.38-dvb-mutex.patch
-> patch -p1 linux-2.6.38-dvb-mutex.patch (I must do it manually, maybe
-> for the kernel version)
-> cp /boot/config-3.2.0-2-686-pae .config
-> cp ../linux-headers-3.2.0-2-686-pae/Module.symvers .
-> make oldconfig
-> make prepare
-> make scripts
-> make modules SUBDIRS=drivers/media/dvb/
-> cp drivers/media/dvb/dvb-core/dvb-core.ko
-> /lib/modules/3.2.0-2-686-pae/kernel/drivers/media/dvb/dvb-core/
-> (reboot)
->
-> I am not software developer and I have no idea what means "race
-> conditions", is this sasc-ng or linux driver "problem"?
-
-Sorry, I'm also not a developer, so I can't tell. :)
-As long as the driver works, I'm happy.
+diff --git a/drivers/media/video/uvc/uvc_ctrl.c b/drivers/media/video/uvc/uvc_ctrl.c
+index 75a4995..38d633a 100644
+--- a/drivers/media/video/uvc/uvc_ctrl.c
++++ b/drivers/media/video/uvc/uvc_ctrl.c
+@@ -1177,21 +1177,72 @@ static void uvc_ctrl_send_event(struct uvc_fh *handle,
+ 
+ 	list_for_each_entry(sev, &mapping->ev_subs, node)
+ 		if (sev->fh && (sev->fh != &handle->vfh ||
+-		    (sev->flags & V4L2_EVENT_SUB_FL_ALLOW_FEEDBACK)))
++		    (sev->flags & V4L2_EVENT_SUB_FL_ALLOW_FEEDBACK) ||
++		    (changes & V4L2_EVENT_CTRL_CH_FLAGS)))
+ 			v4l2_event_queue_fh(sev->fh, &ev);
+ }
+ 
+-static void uvc_ctrl_send_events(struct uvc_fh *handle,
++static void uvc_ctrl_send_slave_event(struct uvc_fh *handle, u32 slave_id,
+ 	const struct v4l2_ext_control *xctrls, unsigned int xctrls_count)
+ {
+ 	struct uvc_control_mapping *mapping;
+ 	struct uvc_control *ctrl;
++	u32 changes = V4L2_EVENT_CTRL_CH_FLAGS;
++	s32 val = 0;
+ 	unsigned int i;
+ 
++	/*
++	 * We can skip sending an event for the slave if the slave
++	 * is being modified in the same transaction.
++	 */
++	for (i = 0; i < xctrls_count; i++)
++		if (xctrls[i].id == slave_id)
++			return;
++
++	ctrl = uvc_find_control(handle->chain, slave_id, &mapping);
++	if (ctrl == NULL)
++		return;
++
++	if (__uvc_ctrl_get(handle->chain, ctrl, mapping, &val) == 0)
++		changes |= V4L2_EVENT_CTRL_CH_VALUE;
++
++	uvc_ctrl_send_event(handle, ctrl, mapping, val, changes);
++}
++
++static void uvc_ctrl_send_events(struct uvc_fh *handle,
++	const struct v4l2_ext_control *xctrls, unsigned int xctrls_count)
++{
++	struct uvc_control_mapping *mapping;
++	struct uvc_control *ctrl;
++	u32 changes = V4L2_EVENT_CTRL_CH_VALUE;
++	unsigned int i, j;
++
+ 	for (i = 0; i < xctrls_count; ++i) {
+ 		ctrl = uvc_find_control(handle->chain, xctrls[i].id, &mapping);
++
++		for (j = 0; j < ARRAY_SIZE(mapping->slave_ids); ++j) {
++			if (!mapping->slave_ids[j])
++				break;
++			uvc_ctrl_send_slave_event(handle,
++						  mapping->slave_ids[j],
++						  xctrls, xctrls_count);
++		}
++
++		/*
++		 * If the master is being modified in the same transaction
++		 * flags may change too.
++		 */
++		if (mapping->master_id) {
++			for (j = 0; j < xctrls_count; j++) {
++				if (xctrls[j].id == mapping->master_id) {
++					changes |= V4L2_EVENT_CTRL_CH_FLAGS;
++					break;
++				}
++			}
++		}
++
+ 		uvc_ctrl_send_event(handle, ctrl, mapping, xctrls[i].value,
+-				    V4L2_EVENT_CTRL_CH_VALUE);
++				    changes);
+ 	}
+ }
+ 
 -- 
-Regards,
-Torfinn Ingolfsen
+1.7.9.3
+
