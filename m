@@ -1,44 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:33507 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755430Ab2DWN7K (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Apr 2012 09:59:10 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@iki.fi
-Subject: [PATCH] v4l: aptina-pll: Round up minimum multiplier factor value properly
-Date: Mon, 23 Apr 2012 15:59:25 +0200
-Message-Id: <1335189565-23617-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from moutng.kundenserver.de ([212.227.126.186]:50093 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755230Ab2DHLYH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 8 Apr 2012 07:24:07 -0400
+Date: Sun, 8 Apr 2012 13:23:58 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+cc: linux-sh@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>,
+	Paul Mundt <lethal@linux-sh.org>
+Subject: Re: [PATCH 2/2] ARM: mach-shmobile: sh7372 CEU supports up to
+ 8188x8188 images
+In-Reply-To: <Pine.LNX.4.64.1203141601060.25284@axis700.grange>
+Message-ID: <Pine.LNX.4.64.1204081319520.29005@axis700.grange>
+References: <Pine.LNX.4.64.1203141600210.25284@axis700.grange>
+ <Pine.LNX.4.64.1203141601060.25284@axis700.grange>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The mf_low value must be a multiple of mf_inc. Round it up to the
-nearest mf_inc multiple after computing it.
+On Wed, 14 Mar 2012, Guennadi Liakhovetski wrote:
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> ---
+> 
+> This patch we can push some time after the first one in this series gets 
+> in, no breakage is caused.
+
+Patch 1/2 from this series is now in the mainline, so, also this patch can 
+be applied now. Not sure whether this qualifies as a fix (in the sense, 
+that the default maximum sizes of 2560x1920, used without this patch are 
+wrong for sh7372). Please, either push for 3.4 or queue for 3.5 
+accordingly.
+
+Thanks
+Guennadi
+
+>  arch/arm/mach-shmobile/board-ap4evb.c   |    2 ++
+>  arch/arm/mach-shmobile/board-mackerel.c |    2 ++
+>  2 files changed, 4 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/mach-shmobile/board-ap4evb.c b/arch/arm/mach-shmobile/board-ap4evb.c
+> index aab0a34..f67aa03 100644
+> --- a/arch/arm/mach-shmobile/board-ap4evb.c
+> +++ b/arch/arm/mach-shmobile/board-ap4evb.c
+> @@ -1009,6 +1009,8 @@ static struct sh_mobile_ceu_companion csi2 = {
+>  
+>  static struct sh_mobile_ceu_info sh_mobile_ceu_info = {
+>  	.flags = SH_CEU_FLAG_USE_8BIT_BUS,
+> +	.max_width = 8188,
+> +	.max_height = 8188,
+>  	.csi2 = &csi2,
+>  };
+>  
+> diff --git a/arch/arm/mach-shmobile/board-mackerel.c b/arch/arm/mach-shmobile/board-mackerel.c
+> index 9b42fbd..f790772 100644
+> --- a/arch/arm/mach-shmobile/board-mackerel.c
+> +++ b/arch/arm/mach-shmobile/board-mackerel.c
+> @@ -1270,6 +1270,8 @@ static void mackerel_camera_del(struct soc_camera_device *icd)
+>  
+>  static struct sh_mobile_ceu_info sh_mobile_ceu_info = {
+>  	.flags = SH_CEU_FLAG_USE_8BIT_BUS,
+> +	.max_width = 8188,
+> +	.max_height = 8188,
+>  };
+>  
+>  static struct resource ceu_resources[] = {
+> -- 
+> 1.7.2.5
+> 
+> 
+
 ---
- drivers/media/video/aptina-pll.c |    5 ++---
- 1 files changed, 2 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/media/video/aptina-pll.c b/drivers/media/video/aptina-pll.c
-index 0bd3813..8153a44 100644
---- a/drivers/media/video/aptina-pll.c
-+++ b/drivers/media/video/aptina-pll.c
-@@ -148,9 +148,8 @@ int aptina_pll_calculate(struct device *dev,
- 		unsigned int mf_high;
- 		unsigned int mf_low;
- 
--		mf_low = max(roundup(mf_min, mf_inc),
--			     DIV_ROUND_UP(pll->ext_clock * p1,
--			       limits->int_clock_max * div));
-+		mf_low = roundup(max(mf_min, DIV_ROUND_UP(pll->ext_clock * p1,
-+					limits->int_clock_max * div)), mf_inc);
- 		mf_high = min(mf_max, pll->ext_clock * p1 /
- 			      (limits->int_clock_min * div));
- 
--- 
-Regards,
-
-Laurent Pinchart
-
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
