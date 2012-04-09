@@ -1,103 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:29704 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755528Ab2D0JxQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Apr 2012 05:53:16 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Received: from euspt2 ([210.118.77.13]) by mailout3.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0M34007HVU3UH000@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 27 Apr 2012 10:52:42 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0M34009K4U4JNJ@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 27 Apr 2012 10:53:12 +0100 (BST)
-Date: Fri, 27 Apr 2012 11:52:53 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH 00/13] V4L: Exynos 4x12 camera host interface (FIMC-LITE) driver
-To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	riverful.kim@samsung.com, sw0312.kim@samsung.com,
-	sungchun.kang@samsung.com, subash.ramaswamy@linaro.org,
-	s.nawrocki@samsung.com
-Message-id: <1335520386-20835-1-git-send-email-s.nawrocki@samsung.com>
+Received: from moutng.kundenserver.de ([212.227.17.10]:61201 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751292Ab2DIMLQ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Apr 2012 08:11:16 -0400
+Date: Mon, 9 Apr 2012 14:11:08 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Albert <bluebellice@gmail.com>
+cc: Jonathan Corbet <corbet@lwn.net>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Albert Wang <twang13@marvell.com>,
+	Chao Xie <cxie4@marvell.com>, Kassey Lee <kassey1216@gmail.com>
+Subject: Re: [PATCH 2/7] marvell-cam: Remove broken "owner" logic
+In-Reply-To: <CAJ3tNouhpRvm29aFEaDVMGh1668FMVNpq0tJTySoGdm_iJtTkQ@mail.gmail.com>
+Message-ID: <Pine.LNX.4.64.1204091353430.1002@axis700.grange>
+References: <1331939696-12482-1-git-send-email-corbet@lwn.net>
+ <1331939696-12482-3-git-send-email-corbet@lwn.net>
+ <CAJ3tNouhpRvm29aFEaDVMGh1668FMVNpq0tJTySoGdm_iJtTkQ@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-15
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This change set adds support for FIMC-LITE devices, available in Exynos4x12
-(and Exynos5) SoCs, to the existing s5p-fimc driver.
-I have tested only DMA output operation (through a corresponding video node).
+Hi Albert
 
-The FIMC-LITE differs from regular FIMC in that it doesn't have a scaler,
-rotator and color converter and a DMA input. So it's just basic camera host 
-interface, with additional internal FIFO data output to other SoC sub-modules.
+On Mon, 9 Apr 2012, Albert wrote:
 
-Cropping at the host interface input is exposed on a subdev sink pad through
-the selection API, and composition performed by the output DMA engine can be
-controlled through selection compose targets on the video node.
+> Hi, Jonathan & Guennadi
+> 
+> I'm Albert Wang from Marvell, nice to meet you!
 
-I tried to make the exynos-fimc-lite module as much independent as possible,
-to allow its reuse on any other SoCs that have same IP block.
+Nice to meet you too.
 
-This change set also includes small enhancement of V4L2_CID_COLORFX and
-a patch adding support for this control at the s5p-fimc driver.
+> We found there is a soc camera framework in open source, and we made a
+> Marvell camera driver which based on Soc camera framework + videobuf2.
+> And now it can serve several Marvell SOC chips, such as MMP2 (PXA688), MMP3
+> (PXA2128) and TD (PXA910) which has same CCIC IP.
+> 
+> But it looks Jonathan had write a Marvell ccic camera driver based on
+> café-ccic + videobuf2 for MMP2 on OLPC in open source.
+> 
+> So do you think it’s still OK to push our Marvell camera driver to open
+> source?
 
-Regards,
--- 
-Sylwester Nawrocki
-Samsung Poland R&D Center
+A colleague of yours - Kassey Lee - has been working on this driver:
 
+http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/33775
 
-Sylwester Nawrocki (13):
-  V4L: Extend V4L2_CID_COLORFX with more image effects
-  s5p-fimc: Move m2m node driver into separate file
-  s5p-fimc: Simplify the variant data structure
-  s5p-fimc: Use v4l2_subdev internal ops to register video nodes
-  s5p-fimc: Refactor the register interface functions
-  s5p-fimc: Add FIMC-LITE register definitions
-  s5p-fimc: Rework the video pipeline control functions
-  s5p-fimc: Prefix format enumerations with FIMC_FMT_
-  s5p-fimc: Make sure the interrupt is properly requested
-  s5p-fimc: Minor cleanups
-  s5p-fimc: Add support for Exynos4x12 FIMC-LITE
-  s5p-fimc: Update copyright notices
-  s5p-fimc: Add color effect control
+and it has been agreed, that the camera driver for PXA910 and other SoCs, 
+mentioned above should re-use the same code-base, as the cafe_ccic driver 
+from Jon. One of obstacles has been, that the cafe driver didn't use a 
+standard videobuf scheme, implementing one of its own. Now this has been 
+fixed too, the driver has also been broken down in parts to simplify such 
+code re-use. All this speaks in favour of implementing your driver by 
+using common parts of the marvell-ccic driver. This is also what Kassey 
+has agreed to. Whether or not your new driver will be also using the 
+soc-camera framework is your decision, I think, both ways are possible. 
+Please, try to re-use the marvell-ccic code and report any problems.
 
- Documentation/DocBook/media/v4l/compat.xml   |   10 +
- Documentation/DocBook/media/v4l/controls.xml |   92 +-
- Documentation/DocBook/media/v4l/v4l2.xml     |    5 +-
- drivers/media/video/Kconfig                  |   24 +-
- drivers/media/video/s5p-fimc/Kconfig         |   47 +
- drivers/media/video/s5p-fimc/Makefile        |    6 +-
- drivers/media/video/s5p-fimc/fimc-capture.c  |  301 +++--
- drivers/media/video/s5p-fimc/fimc-core.c     | 1099 +++---------------
- drivers/media/video/s5p-fimc/fimc-core.h     |  251 ++--
- drivers/media/video/s5p-fimc/fimc-lite-reg.c |  301 +++++
- drivers/media/video/s5p-fimc/fimc-lite-reg.h |  153 +++
- drivers/media/video/s5p-fimc/fimc-lite.c     | 1589 ++++++++++++++++++++++++++
- drivers/media/video/s5p-fimc/fimc-lite.h     |  212 ++++
- drivers/media/video/s5p-fimc/fimc-m2m.c      |  820 +++++++++++++
- drivers/media/video/s5p-fimc/fimc-mdevice.c  |  405 ++++---
- drivers/media/video/s5p-fimc/fimc-mdevice.h  |   18 +-
- drivers/media/video/s5p-fimc/fimc-reg.c      |  613 +++++-----
- drivers/media/video/s5p-fimc/fimc-reg.h      |  326 ++++++
- drivers/media/video/s5p-fimc/regs-fimc.h     |  301 -----
- drivers/media/video/v4l2-ctrls.c             |    6 +
- include/linux/videodev2.h                    |   26 +-
- include/media/s5p_fimc.h                     |   16 +
- 22 files changed, 4628 insertions(+), 1993 deletions(-)
- create mode 100644 drivers/media/video/s5p-fimc/Kconfig
- create mode 100644 drivers/media/video/s5p-fimc/fimc-lite-reg.c
- create mode 100644 drivers/media/video/s5p-fimc/fimc-lite-reg.h
- create mode 100644 drivers/media/video/s5p-fimc/fimc-lite.c
- create mode 100644 drivers/media/video/s5p-fimc/fimc-lite.h
- create mode 100644 drivers/media/video/s5p-fimc/fimc-m2m.c
- create mode 100644 drivers/media/video/s5p-fimc/fimc-reg.h
- delete mode 100644 drivers/media/video/s5p-fimc/regs-fimc.h
+Thanks
+Guennadi
 
--- 
-1.7.10
+> Looking for your comments!
+> Thanks a lot in advance!
+> 
+> Thanks
+> Albert Wang
+> On Sat, Mar 17, 2012 at 7:14 AM, Jonathan Corbet <corbet@lwn.net> wrote:
+> 
+> > The marvell cam driver retained just enough of the owner-tracking logic
+> > from cafe_ccic to be broken; it could, conceivably, cause the driver to
+> > release DMA memory while the controller is still active.  Simply remove the
+> > remaining pieces and ensure that the controller is stopped before we free
+> > things.
+> >
+> > Signed-off-by: Jonathan Corbet <corbet@lwn.net>
+> > ---
+> >  drivers/media/video/marvell-ccic/mcam-core.c |    5 +----
+> >  drivers/media/video/marvell-ccic/mcam-core.h |    1 -
+> >  2 files changed, 1 insertion(+), 5 deletions(-)
+> >
+> > diff --git a/drivers/media/video/marvell-ccic/mcam-core.c
+> > b/drivers/media/video/marvell-ccic/mcam-core.c
+> > index 35cd89d..b261182 100644
+> > --- a/drivers/media/video/marvell-ccic/mcam-core.c
+> > +++ b/drivers/media/video/marvell-ccic/mcam-core.c
+> > @@ -1564,11 +1564,8 @@ static int mcam_v4l_release(struct file *filp)
+> >                        singles, delivered);
+> >        mutex_lock(&cam->s_mutex);
+> >        (cam->users)--;
+> > -       if (filp == cam->owner) {
+> > -               mcam_ctlr_stop_dma(cam);
+> > -               cam->owner = NULL;
+> > -       }
+> >        if (cam->users == 0) {
+> > +               mcam_ctlr_stop_dma(cam);
+> >                mcam_cleanup_vb2(cam);
+> >                mcam_ctlr_power_down(cam);
+> >                if (cam->buffer_mode == B_vmalloc && alloc_bufs_at_read)
+> > diff --git a/drivers/media/video/marvell-ccic/mcam-core.h
+> > b/drivers/media/video/marvell-ccic/mcam-core.h
+> > index 917200e..bd6acba 100644
+> > --- a/drivers/media/video/marvell-ccic/mcam-core.h
+> > +++ b/drivers/media/video/marvell-ccic/mcam-core.h
+> > @@ -107,7 +107,6 @@ struct mcam_camera {
+> >        enum mcam_state state;
+> >        unsigned long flags;            /* Buffer status, mainly (dev_lock)
+> > */
+> >        int users;                      /* How many open FDs */
+> > -       struct file *owner;             /* Who has data access (v4l2) */
+> >
+> >        /*
+> >         * Subsystem structures.
+> > --
+> > 1.7.9.3
+> >
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >
+> 
 
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
