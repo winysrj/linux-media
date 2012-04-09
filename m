@@ -1,235 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-1.cisco.com ([144.254.224.140]:46896 "EHLO
-	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754950Ab2DXNsM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Apr 2012 09:48:12 -0400
-From: Hans Verkuil <hans.verkuil@cisco.com>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: [RFCv3 PATCH 1/6] videodev2.h: add enum/query/cap dv_timings ioctls.
-Date: Tue, 24 Apr 2012 15:48:00 +0200
-Message-Id: <c5dd21524394247c53a2d58797c64f974f4bd6ca.1335274503.git.hans.verkuil@cisco.com>
-In-Reply-To: <1335275285-13333-1-git-send-email-hans.verkuil@cisco.com>
-References: <1335275285-13333-1-git-send-email-hans.verkuil@cisco.com>
+Received: from mail-vb0-f46.google.com ([209.85.212.46]:51212 "EHLO
+	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751069Ab2DIMCS convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Apr 2012 08:02:18 -0400
+Received: by vbbff1 with SMTP id ff1so2199570vbb.19
+        for <linux-media@vger.kernel.org>; Mon, 09 Apr 2012 05:02:17 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <4F804CDC.3030306@gmail.com>
+References: <CAKZ=SG-pmn2BtqB+ihY9H9bvYCZq-E3uBsSaioPF5SRceq9iDg@mail.gmail.com>
+	<4F804CDC.3030306@gmail.com>
+Date: Mon, 9 Apr 2012 14:02:17 +0200
+Message-ID: <CAKZ=SG_=7U2QShzq+2HE8SVZvyRpG3rNTsDzwUaso=CG8tXOsg@mail.gmail.com>
+Subject: Re: RTL28XX driver
+From: Thomas Mair <thomas.mair86@googlemail.com>
+To: gennarone@gmail.com
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-These new ioctls make it possible for the dv_timings API to replace
-the dv_preset API eventually.
+Hi Gainluca,
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Reviewed-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- include/linux/videodev2.h |  173 ++++++++++++++++++++++++++++++++++++++-------
- 1 file changed, 149 insertions(+), 24 deletions(-)
+thanks for your information. I did get in touch with Realtek and they
+provided me with the datasheet for the RTL2832U. So what I will try to
+do is write a demodulator driver for the RTL2832 demod chip following
+the information of the datasheet and the Realtek driver. I will follow
+Antti's RTL2830 driver structure.
 
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index 5a09ac3..6062c57 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -986,29 +986,56 @@ struct v4l2_dv_enum_preset {
-  *	D V 	B T	T I M I N G S
-  */
- 
--/* BT.656/BT.1120 timing data */
-+/** struct v4l2_bt_timings - BT.656/BT.1120 timing data
-+ * @width:	total width of the active video in pixels
-+ * @height:	total height of the active video in lines
-+ * @interlaced:	Interlaced or progressive
-+ * @polarities:	Positive or negative polarities
-+ * @pixelclock:	Pixel clock in HZ. Ex. 74.25MHz->74250000
-+ * @hfrontporch:Horizontal front porch in pixels
-+ * @hsync:	Horizontal Sync length in pixels
-+ * @hbackporch:	Horizontal back porch in pixels
-+ * @vfrontporch:Vertical front porch in lines
-+ * @vsync:	Vertical Sync length in lines
-+ * @vbackporch:	Vertical back porch in lines
-+ * @il_vfrontporch:Vertical front porch for the even field
-+ *		(aka field 2) of interlaced field formats
-+ * @il_vsync:	Vertical Sync length for the even field
-+ *		(aka field 2) of interlaced field formats
-+ * @il_vbackporch:Vertical back porch for the even field
-+ *		(aka field 2) of interlaced field formats
-+ * @standards:	Standards the timing belongs to
-+ * @flags:	Flags
-+ * @reserved:	Reserved fields, must be zeroed.
-+ *
-+ * A note regarding vertical interlaced timings: height refers to the total
-+ * height of the active video frame (= two fields). The blanking timings refer
-+ * to the blanking of each field. So the height of the total frame is
-+ * calculated as follows:
-+ *
-+ * tot_height = height + vfrontporch + vsync + vbackporch +
-+ *                       il_vfrontporch + il_vsync + il_vbackporch
-+ *
-+ * The active height of each field is height / 2.
-+ */
- struct v4l2_bt_timings {
--	__u32	width;		/* width in pixels */
--	__u32	height;		/* height in lines */
--	__u32	interlaced;	/* Interlaced or progressive */
--	__u32	polarities;	/* Positive or negative polarity */
--	__u64	pixelclock;	/* Pixel clock in HZ. Ex. 74.25MHz->74250000 */
--	__u32	hfrontporch;	/* Horizpontal front porch in pixels */
--	__u32	hsync;		/* Horizontal Sync length in pixels */
--	__u32	hbackporch;	/* Horizontal back porch in pixels */
--	__u32	vfrontporch;	/* Vertical front porch in pixels */
--	__u32	vsync;		/* Vertical Sync length in lines */
--	__u32	vbackporch;	/* Vertical back porch in lines */
--	__u32	il_vfrontporch;	/* Vertical front porch for bottom field of
--				 * interlaced field formats
--				 */
--	__u32	il_vsync;	/* Vertical sync length for bottom field of
--				 * interlaced field formats
--				 */
--	__u32	il_vbackporch;	/* Vertical back porch for bottom field of
--				 * interlaced field formats
--				 */
--	__u32	reserved[16];
-+	__u32	width;
-+	__u32	height;
-+	__u32	interlaced;
-+	__u32	polarities;
-+	__u64	pixelclock;
-+	__u32	hfrontporch;
-+	__u32	hsync;
-+	__u32	hbackporch;
-+	__u32	vfrontporch;
-+	__u32	vsync;
-+	__u32	vbackporch;
-+	__u32	il_vfrontporch;
-+	__u32	il_vsync;
-+	__u32	il_vbackporch;
-+	__u32	standards;
-+	__u32	flags;
-+	__u32	reserved[14];
- } __attribute__ ((packed));
- 
- /* Interlaced or progressive format */
-@@ -1019,8 +1046,42 @@ struct v4l2_bt_timings {
- #define V4L2_DV_VSYNC_POS_POL	0x00000001
- #define V4L2_DV_HSYNC_POS_POL	0x00000002
- 
--
--/* DV timings */
-+/* Timings standards */
-+#define V4L2_DV_BT_STD_CEA861	(1 << 0)  /* CEA-861 Digital TV Profile */
-+#define V4L2_DV_BT_STD_DMT	(1 << 1)  /* VESA Discrete Monitor Timings */
-+#define V4L2_DV_BT_STD_CVT	(1 << 2)  /* VESA Coordinated Video Timings */
-+#define V4L2_DV_BT_STD_GTF	(1 << 3)  /* VESA Generalized Timings Formula */
-+
-+/* Flags */
-+
-+/* CVT/GTF specific: timing uses reduced blanking (CVT) or the 'Secondary
-+   GTF' curve (GTF). In both cases the horizontal and/or vertical blanking
-+   intervals are reduced, allowing a higher resolution over the same
-+   bandwidth. This is a read-only flag. */
-+#define V4L2_DV_FL_REDUCED_BLANKING		(1 << 0)
-+/* CEA-861 specific: set for CEA-861 formats with a framerate of a multiple
-+   of six. These formats can be optionally played at 1 / 1.001 speed.
-+   This is a read-only flag. */
-+#define V4L2_DV_FL_CAN_REDUCE_FPS		(1 << 1)
-+/* CEA-861 specific: only valid for video transmitters, the flag is cleared
-+   by receivers.
-+   If the framerate of the format is a multiple of six, then the pixelclock
-+   used to set up the transmitter is divided by 1.001 to make it compatible
-+   with 60 Hz based standards such as NTSC and PAL-M that use a framerate of
-+   29.97 Hz. Otherwise this flag is cleared. If the transmitter can't generate
-+   such frequencies, then the flag will also be cleared. */
-+#define V4L2_DV_FL_REDUCED_FPS			(1 << 2)
-+/* Specific to interlaced formats: if set, then field 1 is really one half-line
-+   longer and field 2 is really one half-line shorter, so each field has
-+   exactly the same number of half-lines. Whether half-lines can be detected
-+   or used depends on the hardware. */
-+#define V4L2_DV_FL_HALF_LINE			(1 << 0)
-+
-+
-+/** struct v4l2_dv_timings - DV timings
-+ * @type:	the type of the timings
-+ * @bt:	BT656/1120 timings
-+ */
- struct v4l2_dv_timings {
- 	__u32 type;
- 	union {
-@@ -1032,6 +1093,64 @@ struct v4l2_dv_timings {
- /* Values for the type field */
- #define V4L2_DV_BT_656_1120	0	/* BT.656/1120 timing type */
- 
-+
-+/** struct v4l2_enum_dv_timings - DV timings enumeration
-+ * @index:	enumeration index
-+ * @reserved:	must be zeroed
-+ * @timings:	the timings for the given index
-+ */
-+struct v4l2_enum_dv_timings {
-+	__u32 index;
-+	__u32 reserved[3];
-+	struct v4l2_dv_timings timings;
-+};
-+
-+/** struct v4l2_bt_timings_cap - BT.656/BT.1120 timing capabilities
-+ * @min_width:		width in pixels
-+ * @max_width:		width in pixels
-+ * @min_height:		height in lines
-+ * @max_height:		height in lines
-+ * @min_pixelclock:	Pixel clock in HZ. Ex. 74.25MHz->74250000
-+ * @max_pixelclock:	Pixel clock in HZ. Ex. 74.25MHz->74250000
-+ * @standards:		Supported standards
-+ * @capabilities:	Supported capabilities
-+ * @reserved:		Must be zeroed
-+ */
-+struct v4l2_bt_timings_cap {
-+	__u32	min_width;
-+	__u32	max_width;
-+	__u32	min_height;
-+	__u32	max_height;
-+	__u64	min_pixelclock;
-+	__u64	max_pixelclock;
-+	__u32	standards;
-+	__u32	capabilities;
-+	__u32	reserved[16];
-+} __attribute__ ((packed));
-+
-+/* Supports interlaced formats */
-+#define V4L2_DV_BT_CAP_INTERLACED	(1 << 0)
-+/* Supports progressive formats */
-+#define V4L2_DV_BT_CAP_PROGRESSIVE	(1 << 1)
-+/* Supports CVT/GTF reduced blanking */
-+#define V4L2_DV_BT_CAP_REDUCED_BLANKING	(1 << 2)
-+/* Supports custom formats */
-+#define V4L2_DV_BT_CAP_CUSTOM		(1 << 3)
-+
-+/** struct v4l2_dv_timings_cap - DV timings capabilities
-+ * @type:	the type of the timings (same as in struct v4l2_dv_timings)
-+ * @bt:		the BT656/1120 timings capabilities
-+ */
-+struct v4l2_dv_timings_cap {
-+	__u32 type;
-+	__u32 reserved[3];
-+	union {
-+		struct v4l2_bt_timings_cap bt;
-+		__u32 raw_data[32];
-+	};
-+};
-+
-+
- /*
-  *	V I D E O   I N P U T S
-  */
-@@ -2412,6 +2531,12 @@ struct v4l2_create_buffers {
- #define VIDIOC_DECODER_CMD	_IOWR('V', 96, struct v4l2_decoder_cmd)
- #define VIDIOC_TRY_DECODER_CMD	_IOWR('V', 97, struct v4l2_decoder_cmd)
- 
-+/* Experimental, these three ioctls may change over the next couple of kernel
-+   versions. */
-+#define VIDIOC_ENUM_DV_TIMINGS  _IOWR('V', 96, struct v4l2_enum_dv_timings)
-+#define VIDIOC_QUERY_DV_TIMINGS  _IOR('V', 97, struct v4l2_dv_timings)
-+#define VIDIOC_DV_TIMINGS_CAP   _IOWR('V', 98, struct v4l2_dv_timings_cap)
-+
- /* Reminder: when adding new ioctls please add support for them to
-    drivers/media/video/v4l2-compat-ioctl32.c as well! */
- 
--- 
-1.7.9.5
+For now there is only one question left regarding the testing of the
+drivers. What is the best way to test and debug the drivers. Sould I
+compile the 3.4 kernel and use it, or is it safer to set up a
+structure like the one I already have to test the driver with a stable
+kernel?
 
+Greetings
+Thomas
+
+2012/4/7 Gianluca Gennari <gennarone@gmail.com>:
+> Il 06/04/2012 11:11, Thomas Mair ha scritto:
+>> Hello everyone,
+>>
+>> i own a TerraTec Cinergy T Stick Black device, and was able to find a
+>> working driver for the device. It seems to be, that the driver was
+>> originally written by Realtek and has since been updated by different
+>> Developers to meet DVB API changes. I was wondering what would be the
+>> necessary steps to include the driver into the kernel sources?
+>>
+>> The one thing that needs to be solved before even thinking about the
+>> integration, is the licencing of the code. I did find it on two
+>> different locations, but without any licencing information. So
+>> probably Realtek should be contacted. I am willing to deal with that,
+>> but need furter information on under whitch lisence the code has to be
+>> relased.
+>>
+>> So far, I put up a Github repository for the driver, which enables me
+>> to compile the proper kernel modue at
+>> https://github.com/tmair/DVB-Realtek-RTL2832U-2.2.2-10tuner-mod_kernel-3.0.0
+>> The modificatioins to the driver where taken from openpli
+>> http://openpli.git.sourceforge.net/git/gitweb.cgi?p=openpli/openembedded;a=blob;f=recipes/linux/linux-etxx00/dvb-usb-rtl2832.patch;h=063114c8ce4a2dbcf8c8dde1b4ab4f8e329a2afa;hb=HEAD
+>>
+>> In the driver sources I stumbled accross many different devices
+>> containig the RTL28XX chipset, so I suppose the driver would enably
+>> quite many products to work.
+>>
+>> As I am relatively new to the developement of dvb drivers I appreciate
+>> any help in stabilizing the driver and proper integration into the dvb
+>> API.
+>>
+>
+> Hi Thomas,
+> the Realtek driver you mention is the full version, which supports 3
+> demodulators (2832=DVB-T, 2836=DTMB, 2840=DVB-C) and 10 different tuners.
+> There is also a simplified version of the driver which supports only
+> DVB-T and 4 tuners: this is probably a better starting base for your
+> project.
+>
+> You can find the simplified driver here:
+>
+> https://github.com/ambrosa/DVB-Realtek-RTL2832U-2.2.2-4_tuner
+>
+> My friend Ambrosa got it directly from Realtek. You can mail the 2
+> driver authors directly:
+>
+> author:         Dean Chung <DeanChung@realtek.com>
+> author:         Chialing Lu <chialing@realtek.com>
+>
+> as they have been quite collaborative last year. I think they can also
+> provide you some information about the code license.
+>
+> The rtl2832 devices I've seen so far use either the Fitipower fc0012 or
+> the Elonics E4000 tuner. For the first one there is a driver from
+> Hans-Frieder Vogt that is not yet included in the development tree, but
+> it has been posted recently on this list.
+>
+> If your stick uses this tuner, then the problem reduces to write the
+> demodulator driver (as Antti already explained).
+>
+> Best regards,
+> Gianluca
+>
