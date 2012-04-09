@@ -1,52 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:54471 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752479Ab2DJRUk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Apr 2012 13:20:40 -0400
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:55181 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752213Ab2DIHd1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Apr 2012 03:33:27 -0400
+Received: by obbtb18 with SMTP id tb18so5508139obb.19
+        for <linux-media@vger.kernel.org>; Mon, 09 Apr 2012 00:33:27 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <alpine.DEB.2.00.1204101528390.9354@kernel.research.nokia.com>
-References: <1333462221-3987-1-git-send-email-m.szyprowski@samsung.com> <alpine.DEB.2.00.1204101528390.9354@kernel.research.nokia.com>
-From: Sandeep Patil <psandeep.s@gmail.com>
-Date: Tue, 10 Apr 2012 10:19:56 -0700
-Message-ID: <CA+K6fF5TbhYX_XYXL33h5s8cnSogSna4Cq2-vM4MfX4igSyozg@mail.gmail.com>
-Subject: Re: [PATCHv24 00/16] Contiguous Memory Allocator
-To: Aaro Koskinen <aaro.koskinen@nokia.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org, Ohad Ben-Cohen <ohad@wizery.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Russell King <linux@arm.linux.org.uk>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Jonathan Corbet <corbet@lwn.net>, Mel Gorman <mel@csn.ul.ie>,
-	Chunsang Jeong <chunsang.jeong@linaro.org>,
-	Michal Nazarewicz <mina86@mina86.com>,
-	Dave Hansen <dave@linux.vnet.ibm.com>,
-	Jesse Barker <jesse.barker@linaro.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Rob Clark <rob.clark@linaro.org>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Content-Type: text/plain; charset=ISO-8859-1
+In-Reply-To: <CAO2_v5CZhs0QQcGMzsnA+wxsyLJ_OXhs++9L+HtscSeDc+_uTA@mail.gmail.com>
+References: <1333900903-2585-1-git-send-email-hdegoede@redhat.com>
+	<CAO2_v5CZhs0QQcGMzsnA+wxsyLJ_OXhs++9L+HtscSeDc+_uTA@mail.gmail.com>
+Date: Mon, 9 Apr 2012 08:33:27 +0100
+Message-ID: <CAO2_v5DNzSU0gyocbvuttmZbAHqnR8E5k1Y43uYgiwiD4CxgYw@mail.gmail.com>
+Subject: Re: [PATCH] stk-webcam: Don't flip the image by default
+From: Jaime Velasco <jsagarribay@gmail.com>
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Gregor Jasny <gjasny@googlemail.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Sorry, resending message. Hopefully it gets to the list now. I blame gmail...
+
+2012/4/9 Jaime Velasco <jsagarribay@gmail.com>
+>
+>
+> 2012/4/8 Hans de Goede <hdegoede@redhat.com>
 >>
->> This is (yet another) update of CMA patches.
+>> Prior to this patch the stk-webcam driver was enabling the vflip and
+>> mirror
+>> bits in the sensor by default. Which only is the right thing to do if the
+>> sensor is actually mounted upside down, which it usually is not.
+>>
+>> Actually we've received upside down reports for both usb-ids which this
+>> driver supports, one for an "ASUSTeK Computer Inc." "A3H" laptop with
+>> a build in 174f:a311 webcam, and one for an "To Be Filled By O.E.M."
+>> "Z96FM" laptop with a build in 05e1:0501 webcam.
+>>
+>> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 >
 >
-> How well CMA is supposed to work if you have mlocked processes? I've
-> been testing these patches, and noticed that by creating a small mlocked
-> process you start to get plenty of test_pages_isolated() failure warnings,
-> and bigger allocations will always fail.
-
-CMIIW, I think mlocked pages are never migrated. The reason is because
-__isolate_lru_pages() does not isolate Unevictable pages right now.
-
-Minchan added support to allow this but the patch was dropped.
-
-See the discussion at : https://lkml.org/lkml/2011/8/29/295
-
-Sandeep
+> Hi, I don't know hoy many users of stk-webcam could be, but this will
+> surely cause a small regression for them. I agree it seems neater your way,
+> but I don't think it makes sense to half-break the driver for a set of users
+> in order to fix it for another.
+>
+> That said, if you feel this is the way to go I won't complain. My old
+> laptop broke some years ago and I have not touch nor used this driver since.
+>
+> Regards,
+> Jaime
