@@ -1,55 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:10423 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752936Ab2D1NsW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 Apr 2012 09:48:22 -0400
-Message-ID: <4F9BF5B6.9040203@redhat.com>
-Date: Sat, 28 Apr 2012 15:50:46 +0200
-From: Hans de Goede <hdegoede@redhat.com>
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:33910 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754080Ab2DICQt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 8 Apr 2012 22:16:49 -0400
+Message-ID: <4F82468E.5000308@lwfinger.net>
+Date: Sun, 08 Apr 2012 21:16:46 -0500
+From: Larry Finger <Larry.Finger@lwfinger.net>
 MIME-Version: 1.0
-To: Jean-Francois Moine <moinejf@free.fr>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH v2] tinyjpeg: Dynamic luminance quantization table for
- Pixart JPEG
-References: <20120412122017.0c808009@tele> <4F95CACD.5010403@redhat.com> <20120424123412.3b63810d@tele> <4F98080D.5040901@redhat.com> <20120425180949.2243472b@tele>
-In-Reply-To: <20120425180949.2243472b@tele>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	jrh <jharbestonus@gmail.com>
+Subject: Re: [PATCH] media: au0828: Convert BUG_ON to WARN_ONCE
+References: <1333927151-13014-1-git-send-email-Larry.Finger@lwfinger.net> <CAGoCfixO1mUO0VGBL9GzOmaWpQ6rVos095reFfUWnVwCj0CyYg@mail.gmail.com>
+In-Reply-To: <CAGoCfixO1mUO0VGBL9GzOmaWpQ6rVos095reFfUWnVwCj0CyYg@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On 04/08/2012 08:46 PM, Devin Heitmueller wrote:
+> On Sun, Apr 8, 2012 at 7:19 PM, Larry Finger<Larry.Finger@lwfinger.net>  wrote:
+>> In the mail thread at http://www.mythtv.org/pipermail/mythtv-users/2012-April/331164.html,
+>> a kernel crash is triggered when trying to run mythtv with a HVR950Q tuner.
+>> The crash condition is due to res_free() being called to free something that
+>> has is not reserved. The actual reason for this mismatch of reserve/free is
+>> not known; however, using a BUG_ON rather than a WARN_ON seems unfortunate.
+>
+> This patch should be nack'd.  The real reason should be identified,
+> and a patch should be submitted for that (and from what I gather, it
+> seems like it is easily reproduced by the submitter).  Just add a few
+> "dump_stack()" calls in the res_get() and res_free() calls to identify
+> the failing call path.
 
-On 04/25/2012 06:09 PM, Jean-Francois Moine wrote:
-> Hi Hans,
+I agree that we need to find the real cause; however, I am not the one with the 
+problem, and I do not have the hardware. In addition, I am not sure how much 
+additional debug information the person will be able to provide. He has not 
+built Linux kernels since 1.2. If he can get a kernel built, then we will try to 
+find the real cause.
 
-<snip>
+In any case, why the reluctance to get rid of the BUG_ON? Is this condition so 
+severe that the kernel needs to be stopped immediately?
 
-> BTW, I don't think the exposure and gain controls use the right
-> registers as they are coded in the actual gspca  pac7302 subdriver.
-> The ms-windows driver uses the registers (3-80 / 3-03), (3-05 / 3-04),
-
-3-03, 3-04 and 3-05 are already known and they all influence framerate /
-exposure in some way. I've also ran some tests with 3-80, again it
-influences framerate in some way (*). We already have a well tested and
-working, fine-grained way to control exposure so I think it is best
-to leave things as is exposure wise.
-
-> (3-12)
-
-3-12 is interesting, it is a new gain control. The pull request I've just
-send (with you in the CC) contains a patch to improve gain control using
-both 3-10 and 3-12 together.
-
-> and (1-80)
-
-1-80 is compression balance, since our decompression code for higher
-compression settings (markers > 68) still is not perfect this is best
-left untouched.
-
-*) Note I've documented all registers I've ran tests with as part of
-the patchset for which I've just send a pull request.
-
-Regards,
-
-Hans
+Larry
