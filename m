@@ -1,32 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:57647 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751548Ab2DBREC (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 2 Apr 2012 13:04:02 -0400
-Message-ID: <4F79DC00.4030308@iki.fi>
-Date: Mon, 02 Apr 2012 20:04:00 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-qa0-f53.google.com ([209.85.216.53]:58617 "EHLO
+	mail-qa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753860Ab2DILpa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Apr 2012 07:45:30 -0400
+Received: by qadc11 with SMTP id c11so1363947qad.19
+        for <linux-media@vger.kernel.org>; Mon, 09 Apr 2012 04:45:29 -0700 (PDT)
 MIME-Version: 1.0
-To: =?ISO-8859-1?Q?Michael_B=FCsch?= <m@bues.ch>
-CC: linux-media <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] af9035: Add Afatech USB PIDs
-References: <20120402183452.68670fb3@milhouse>
-In-Reply-To: <20120402183452.68670fb3@milhouse>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+Date: Mon, 9 Apr 2012 12:45:29 +0100
+Message-ID: <CAAMvbhHbJ4sPsp7XRCxFRy7kgYpqu506W2PFYYckA+yeFHkFfw@mail.gmail.com>
+Subject: tbs dtv dvb cards
+From: James Courtier-Dutton <james.dutton@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02.04.2012 19:34, Michael Büsch wrote:
-> Add some generic Afatech USB PIDs used by "Cabstone" sticks and others.
->
-> Signed-off-by: Michael Buesch<m@bues.ch>
+Hi,
 
-Applied, but same checkpatch.pl comments as earlier patches!
+When I download the linux drivers for tbs dtv dvb cards, a lot of the
+driver code is open source, with just a small bit being closed source.
+Is there any effort to get all the open source parts of the driver
+into linux mainline?
+If I submitted a patch against the latest linux git kernel, would it
+get accepted?
+If we could get a majority of the driver code into the mainline
+kernel, users would only have to install a very small part from the
+closed source blob.
+I think this would make life a lot easier for everyone.
 
-http://git.linuxtv.org/anttip/media_tree.git/shortlog/refs/heads/af9035_experimental
+What do you think?
 
-regards
-Antti
--- 
-http://palosaari.fi/
+Kind Regards
+
+James
