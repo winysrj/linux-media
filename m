@@ -1,73 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:46982 "EHLO mx1.redhat.com"
+Received: from plane.gmane.org ([80.91.229.3]:41296 "EHLO plane.gmane.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932124Ab2DSTs4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Apr 2012 15:48:56 -0400
-Message-ID: <4F906C22.6090101@redhat.com>
-Date: Thu, 19 Apr 2012 16:48:50 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Marcos Paulo de Souza <marcos.souza.org@gmail.com>
-CC: linux-kernel@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 07/12] drivers: media: video: tm6000: tm6000.h: Include
- version.h header
-References: <1334723412-5034-1-git-send-email-marcos.souza.org@gmail.com> <1334723412-5034-8-git-send-email-marcos.souza.org@gmail.com>
-In-Reply-To: <1334723412-5034-8-git-send-email-marcos.souza.org@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	id S1752659Ab2DJPYc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 Apr 2012 11:24:32 -0400
+Received: from list by plane.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1SHcvl-0006oV-HY
+	for linux-media@vger.kernel.org; Tue, 10 Apr 2012 17:24:29 +0200
+Received: from lechon.iro.umontreal.ca ([132.204.27.242])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Tue, 10 Apr 2012 17:24:29 +0200
+Received: from monnier by lechon.iro.umontreal.ca with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Tue, 10 Apr 2012 17:24:29 +0200
+To: linux-media@vger.kernel.org
+From: Stefan Monnier <monnier@iro.umontreal.ca>
+Subject: Re: Unknown eMPIA tuner
+Date: Tue, 10 Apr 2012 11:24:14 -0400
+Message-ID: <jwv1unvwrtn.fsf-monnier+gmane.linux.drivers.video-input-infrastructure@gnu.org>
+References: <jwv4nsyx9pr.fsf-monnier+gmane.linux.drivers.video-input-infrastructure@gnu.org>
+	<CAGoCfiwKU1doqvdcHFpVoc2xuRQKdQirWze0oB2QQyXSQcYrKw@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 18-04-2012 01:30, Marcos Paulo de Souza escreveu:
-> The output of "make versioncheck" told us that:
-> 
-> drivers/media/video/tm6000/tm6000.h: 401: need linux/version.h
-> 
-> If we take a look at the code, we can see the use of the macro
-> KERNEL_VERSION. So, we need this include.
-> 
-> In this patch too, the headers of the file were reordered in alphabetic
-> order. No functional changes here.
-> 
-> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-> Cc: <linux-media@vger.kernel.org >
-> Signed-off-by: Marcos Paulo de Souza <marcos.souza.org@gmail.com>
+>> I just got a USB tuner ("HD TV ATSC USB stick") which lsusb describes as
+>> "ID eb1a:1111 eMPIA Technology, Inc." and was wondering how to try to
+>> get it working.
+>> Would the em28xx driver be able to handle it?  If so, how should I modify
+>> it to try it out?
+> You would probably have to start by taking it apart and seeing which
+> demodulator and tuner chips it contained.
 
-Nack. See enclosed.
+Hmm... how would I go about taking it apart without destroying it?
+...hhmmm... apparently, a bit of brute force did the trick (at least
+for the "taking it apart" bit, not sure about the "without destroying
+it" yet).
 
-commit d8a9c01484b258573587a52c3226bbdf6d11cda6
-Author: Mauro Carvalho Chehab <mchehab@redhat.com>
-Date:   Thu Apr 19 16:35:27 2012 -0300
+On one side I see a small IC that says something like "Trident \n DRX
+3933J B2".
 
-    [media] tlg2300: Remove usage of KERNEL_VERSION()
-    
-    As reported by Marcos:
-    
-    On 04-18-2012 01:30, Marcos Paulo de Souza wrote:
-    > The output of "make versioncheck" told us that:
-    >
-    > drivers/media/video/tlg2300/pd-video.c: 1669: need linux/version.h
-    >
-    > If we take a look at the code, we can see that this file uses the macro
-    > KERNEL_VERSION.
-    
-    The V4L2 core now fills it automatically, so drivers shouldn't touch on
-    cap->version anymore.
-    
-    Reported by: Marcos Paulo de Souza <marcos.souza.org@gmail.com>
-    Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+On the other side I see 2 ICs that say respectively "eMPIA \n ?M2874B"
+and "NXP \n TDA182?1HDC2 \n P3KNR" (the ? might be a slash or a 7) plus
+a third tiny "24C??? \n FTG..." but I don't think that one
+is significant.
 
-diff --git a/drivers/media/video/tlg2300/pd-video.c b/drivers/media/video/tlg2300/pd-video.c
-index a794ae6..bfbf9e5 100644
---- a/drivers/media/video/tlg2300/pd-video.c
-+++ b/drivers/media/video/tlg2300/pd-video.c
-@@ -150,7 +150,6 @@ static int vidioc_querycap(struct file *file, void *fh,
- 	strcpy(cap->driver, "tele-video");
- 	strcpy(cap->card, "Telegent Poseidon");
- 	usb_make_path(p->udev, cap->bus_info, sizeof(cap->bus_info));
--	cap->version = KERNEL_VERSION(0, 0, 1);
- 	cap->capabilities = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_TUNER |
- 				V4L2_CAP_AUDIO | V4L2_CAP_STREAMING |
- 				V4L2_CAP_READWRITE | V4L2_CAP_VBI_CAPTURE;
+
+        Stefan
+
