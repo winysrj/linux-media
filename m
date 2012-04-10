@@ -1,42 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vx0-f174.google.com ([209.85.220.174]:53649 "EHLO
-	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750724Ab2DTMg2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Apr 2012 08:36:28 -0400
-Received: by vcqp1 with SMTP id p1so6318973vcq.19
-        for <linux-media@vger.kernel.org>; Fri, 20 Apr 2012 05:36:27 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <CAAMvbhFWno9ibo4Db9Xpdzwsv7+70evR8-ZydYc4RNQtPAD3-Q@mail.gmail.com>
-References: <CAAMvbhFWno9ibo4Db9Xpdzwsv7+70evR8-ZydYc4RNQtPAD3-Q@mail.gmail.com>
-Date: Fri, 20 Apr 2012 08:36:27 -0400
-Message-ID: <CAGoCfiwrOaTRZCRXD7d3cSRVCEnBS7aHQE4O53ynf6MsZ=cf7g@mail.gmail.com>
-Subject: Re: CX23885 MSI
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: James Courtier-Dutton <james.dutton@gmail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from plane.gmane.org ([80.91.229.3]:55159 "EHLO plane.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753398Ab2DJTti (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 Apr 2012 15:49:38 -0400
+Received: from list by plane.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1SHh4J-0003So-OE
+	for linux-media@vger.kernel.org; Tue, 10 Apr 2012 21:49:35 +0200
+Received: from lechon.iro.umontreal.ca ([132.204.27.242])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Tue, 10 Apr 2012 21:49:35 +0200
+Received: from monnier by lechon.iro.umontreal.ca with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Tue, 10 Apr 2012 21:49:35 +0200
+To: linux-media@vger.kernel.org
+From: Stefan Monnier <monnier@iro.umontreal.ca>
+Subject: Re: Unknown eMPIA tuner
+Date: Tue, 10 Apr 2012 15:49:26 -0400
+Message-ID: <jwv4nsrtlo8.fsf-monnier+gmane.linux.drivers.video-input-infrastructure@gnu.org>
+References: <jwv4nsyx9pr.fsf-monnier+gmane.linux.drivers.video-input-infrastructure@gnu.org>
+	<CAGoCfiwKU1doqvdcHFpVoc2xuRQKdQirWze0oB2QQyXSQcYrKw@mail.gmail.com>
+	<jwv1unvwrtn.fsf-monnier+gmane.linux.drivers.video-input-infrastructure@gnu.org>
+	<CAGoCfix+YHc3wPUvdwudqk5rAed09BroPX6wf-5N6BxXV5fV0Q@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Apr 20, 2012 at 7:34 AM, James Courtier-Dutton
-<james.dutton@gmail.com> wrote:
-> Hi,
->
-> I noticed that the CX23885 driver does not set it up to use MSI.
-> I don't have the datasheets. Is there any know reason not to use MSI
-> with this PCI Express card?
-> I just want to know before I spend time enabling MSI for this device.
-> It is my understanding that MSI is generally preferred over previous
-> IRQ methods.
+> Ok, so it's an em2874/drx-j/tda18271 design, which in terms of the
+> components is very similar to the PCTV 80e (which I believe Mauro got
+> into staging recently).  I would probably recommend looking at that
+> code as a starting point.
 
-It was disabled intentionally by Andy due to a compatibility problem.
-Search the ML archives for the following subject for more details:
+Any pointers to actual file names?
 
-"HVR-1250/CX23885 IR Rx"
+> That said, you'll need to figure out the correct IF frequency, the
+> drx-j configuration block, the GPIO layout, and the correct tuner
+> config.  If those terms don't mean anything to you, then you are best
+> to wait until some developer stumbles across the device and has the
+> time to add the needed support.
 
-Devin
+The words aren't meaningless to me, but not too far either.  Maybe if
+someone could give me pointers as to how I could try to figure out the
+corresponding info, I could give it a try.
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+
+        Stefan
+
