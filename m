@@ -1,147 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:45598 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751202Ab2DRJpH (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:17798 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758727Ab2DJNKz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Apr 2012 05:45:07 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: text/plain; charset=UTF-8
-Received: from euspt1 ([210.118.77.14]) by mailout4.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0M2O005Q75RDG390@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 18 Apr 2012 10:45:13 +0100 (BST)
-Received: from [106.116.48.223] by spt1.w1.samsung.com
+	Tue, 10 Apr 2012 09:10:55 -0400
+Received: from euspt2 (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
  (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTPA id <0M2O00MOM5R3C5@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 18 Apr 2012 10:45:04 +0100 (BST)
-Date: Wed, 18 Apr 2012 11:44:59 +0200
+ with ESMTP id <0M29008RKLXYH0@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 10 Apr 2012 14:10:47 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0M2900G94LY0GU@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 10 Apr 2012 14:10:48 +0100 (BST)
+Date: Tue, 10 Apr 2012 15:10:38 +0200
 From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: [PATCH] scatterlist: add sg_alloc_table_by_pages function
-Cc: paul.gortmaker@windriver.com,
-	=?UTF-8?B?J+uwleqyveuvvCc=?= <kyungmin.park@samsung.com>,
-	amwang@redhat.com, dri-devel@lists.freedesktop.org,
-	"'???/Mobile S/W Platform Lab.(???)/E3(??)/????'"
-	<inki.dae@samsung.com>, prashanth.g@samsung.com,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Rob Clark <rob@ti.com>, Dave Airlie <airlied@redhat.com>,
-	"'???/Mobile S/W Platform Lab.(???)/E3(??)/????'"
-	<inki.dae@samsung.com>
-Message-id: <4F8E8D1B.7020901@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Subject: [RFC 04/13] v4l: vb2-dma-contig: add setup of sglist for MMAP buffers
+In-reply-to: <1334063447-16824-1-git-send-email-t.stanislaws@samsung.com>
+To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
+Cc: airlied@redhat.com, m.szyprowski@samsung.com,
+	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
+	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
+	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
+	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
+	subashrp@gmail.com, mchehab@redhat.com
+Message-id: <1334063447-16824-5-git-send-email-t.stanislaws@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1334063447-16824-1-git-send-email-t.stanislaws@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds a new constructor for an sg table. The table is constructed
-from an array of struct pages. All contiguous chunks of the pages are merged
-into a single sg nodes. A user may provide an offset and a size of a buffer if
-the buffer is not page-aligned.
+This patch adds the setup of sglist list for MMAP buffers.
+It is needed for buffer exporting via DMABUF mechanism.
 
-The function is dedicated for DMABUF exporters which often performs conversion
-from an page array to a scatterlist. Moreover the scatterlist should be
-squashed in order to save memory and to speed-up DMA mapping using dma_map_sg.
-
-The code is based on the patch 'v4l: vb2-dma-contig: add support for
-scatterlist in userptr mode' and hints from Laurent Pinchart.
+This patch depends on dma_get_pages extension to DMA api.
 
 Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
 Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- include/linux/scatterlist.h |    4 +++
- lib/scatterlist.c           |   63 +++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 67 insertions(+), 0 deletions(-)
+ drivers/media/video/videobuf2-dma-contig.c |   51 ++++++++++++++++++++++++++-
+ 1 files changed, 49 insertions(+), 2 deletions(-)
 
-diff --git a/include/linux/scatterlist.h b/include/linux/scatterlist.h
-index ac9586d..8d9e6fe 100644
---- a/include/linux/scatterlist.h
-+++ b/include/linux/scatterlist.h
-@@ -214,6 +214,10 @@ void sg_free_table(struct sg_table *);
- int __sg_alloc_table(struct sg_table *, unsigned int, unsigned int, gfp_t,
- 		     sg_alloc_fn *);
- int sg_alloc_table(struct sg_table *, unsigned int, gfp_t);
-+int sg_alloc_table_by_pages(struct sg_table *sgt,
-+	struct page **pages, unsigned int n_pages,
-+	unsigned long offset, unsigned long size,
-+	gfp_t gfp_mask);
-
- size_t sg_copy_from_buffer(struct scatterlist *sgl, unsigned int nents,
- 			   void *buf, size_t buflen);
-diff --git a/lib/scatterlist.c b/lib/scatterlist.c
-index 6096e89..30b9def 100644
---- a/lib/scatterlist.c
-+++ b/lib/scatterlist.c
-@@ -319,6 +319,69 @@ int sg_alloc_table(struct sg_table *table, unsigned int nents, gfp_t gfp_mask)
- EXPORT_SYMBOL(sg_alloc_table);
-
- /**
-+ * sg_alloc_table_by_pages - Allocate and initialize an sg table from an array
-+ *			     of pages
-+ * @sgt:	The sg table header to use
-+ * @pages:	Pointer to an array of page pointers
-+ * @n_pages:	Number of pages in the pages array
-+ * @offset:     Offset from start of the first page to the start of a buffer
-+ * @size:       Number of valid bytes in the buffer (after offset)
-+ * @gfp_mask:	GFP allocation mask
-+ *
-+ *  Description:
-+ *    Allocate and initialize an sg table from a list of pages. Continuous
-+ *    ranges of the pages are squashed into a single scatterlist node. A user
-+ *    may provide an offset at a start and a size of valid data in a buffer
-+ *    specified by the page array. The returned sg table is released by
-+ *    sg_free_table.
-+ *
-+ * Returns:
-+ *   0 on success
-+ **/
-+int sg_alloc_table_by_pages(struct sg_table *sgt,
-+	struct page **pages, unsigned int n_pages,
-+	unsigned long offset, unsigned long size,
-+	gfp_t gfp_mask)
-+{
-+	unsigned int chunks;
-+	unsigned int i;
-+	unsigned int cur_page;
-+	int ret;
-+	struct scatterlist *s;
-+
-+	/* compute number of contiguous chunks */
-+	chunks = 1;
-+	for (i = 1; i < n_pages; ++i)
-+		if (pages[i] != pages[i - 1] + 1)
-+			++chunks;
-+
-+	ret = sg_alloc_table(sgt, chunks, gfp_mask);
-+	if (unlikely(ret))
-+		return ret;
-+
-+	/* merging chunks and putting them into the scatterlist */
-+	cur_page = 0;
-+	for_each_sg(sgt->sgl, s, sgt->orig_nents, i) {
-+		unsigned long chunk_size;
-+		unsigned int j;
-+
-+		/* looking for the end of the current chunk */
-+		for (j = cur_page + 1; j < n_pages; ++j)
-+			if (pages[j] != pages[j - 1] + 1)
-+				break;
-+
-+		chunk_size = ((j - cur_page) << PAGE_SHIFT) - offset;
-+		sg_set_page(s, pages[cur_page], min(size, chunk_size), offset);
-+		size -= chunk_size;
-+		offset = 0;
-+		cur_page = j;
+diff --git a/drivers/media/video/videobuf2-dma-contig.c b/drivers/media/video/videobuf2-dma-contig.c
+index f4df9e2..0cdcd2b 100644
+--- a/drivers/media/video/videobuf2-dma-contig.c
++++ b/drivers/media/video/videobuf2-dma-contig.c
+@@ -31,6 +31,7 @@ struct vb2_dc_buf {
+ 	/* MMAP related */
+ 	struct vb2_vmarea_handler	handler;
+ 	atomic_t			refcount;
++	struct sg_table			*sgt_base;
+ 
+ 	/* USERPTR related */
+ 	struct vm_area_struct		*vma;
+@@ -189,6 +190,7 @@ static void vb2_dc_put(void *buf_priv)
+ 	if (!atomic_dec_and_test(&buf->refcount))
+ 		return;
+ 
++	vb2_dc_release_sgtable(buf->sgt_base);
+ 	dma_free_coherent(buf->dev, buf->size, buf->vaddr, buf->dma_addr);
+ 	kfree(buf);
+ }
+@@ -197,6 +199,9 @@ static void *vb2_dc_alloc(void *alloc_ctx, unsigned long size)
+ {
+ 	struct device *dev = alloc_ctx;
+ 	struct vb2_dc_buf *buf;
++	int ret = -ENOMEM;
++	int n_pages;
++	struct page **pages = NULL;
+ 
+ 	buf = kzalloc(sizeof *buf, GFP_KERNEL);
+ 	if (!buf)
+@@ -205,10 +210,41 @@ static void *vb2_dc_alloc(void *alloc_ctx, unsigned long size)
+ 	buf->vaddr = dma_alloc_coherent(dev, size, &buf->dma_addr, GFP_KERNEL);
+ 	if (!buf->vaddr) {
+ 		dev_err(dev, "dma_alloc_coherent of size %ld failed\n", size);
+-		kfree(buf);
+-		return ERR_PTR(-ENOMEM);
++		goto fail_buf;
 +	}
 +
-+	return 0;
-+}
-+EXPORT_SYMBOL(sg_alloc_table_by_pages);
++	WARN_ON((unsigned long)buf->vaddr & ~PAGE_MASK);
++	WARN_ON(buf->dma_addr & ~PAGE_MASK);
 +
-+/**
-  * sg_miter_start - start mapping iteration over a sg list
-  * @miter: sg mapping iter to be started
-  * @sgl: sg list to iterate over
++	n_pages = PAGE_ALIGN(size) >> PAGE_SHIFT;
++
++	pages = kmalloc(n_pages * sizeof pages[0], GFP_KERNEL);
++	if (!pages) {
++		dev_err(dev, "failed to alloc page table\n");
++		goto fail_dma;
++	}
++
++	ret = dma_get_pages(dev, buf->vaddr, buf->dma_addr, pages, n_pages);
++	if (ret < 0) {
++		dev_err(dev, "failed to get buffer pages from DMA API\n");
++		goto fail_pages;
++	}
++	if (ret != n_pages) {
++		ret = -EFAULT;
++		dev_err(dev, "failed to get all pages from DMA API\n");
++		goto fail_pages;
+ 	}
+ 
++	buf->sgt_base = vb2_dc_pages_to_sgt(pages, n_pages, 0, 0);
++	if (IS_ERR(buf->sgt_base)) {
++		ret = PTR_ERR(buf->sgt_base);
++		dev_err(dev, "failed to prepare sg table\n");
++		goto fail_pages;
++	}
++
++	/* pages are no longer needed */
++	kfree(pages);
++
+ 	buf->dev = dev;
+ 	buf->size = size;
+ 
+@@ -219,6 +255,17 @@ static void *vb2_dc_alloc(void *alloc_ctx, unsigned long size)
+ 	atomic_inc(&buf->refcount);
+ 
+ 	return buf;
++
++fail_pages:
++	kfree(pages);
++
++fail_dma:
++	dma_free_coherent(dev, size, buf->vaddr, buf->dma_addr);
++
++fail_buf:
++	kfree(buf);
++
++	return ERR_PTR(ret);
+ }
+ 
+ static int vb2_dc_mmap(void *buf_priv, struct vm_area_struct *vma)
 -- 
 1.7.5.4
 
