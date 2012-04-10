@@ -1,289 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:57707 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753093Ab2DEJik (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Apr 2012 05:38:40 -0400
-Received: by bkcik5 with SMTP id ik5so1175770bkc.19
-        for <linux-media@vger.kernel.org>; Thu, 05 Apr 2012 02:38:38 -0700 (PDT)
-From: remi schwartz <remi.schwartz@gmail.com>
-To: linux-media@vger.kernel.org
-Subject: patch for Asus My Cinema PS3-100 (1043:48cd)
-Date: Thu, 5 Apr 2012 11:38:31 +0200
-MIME-Version: 1.0
-Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_XgWfPbxP9k25srv"
-Message-Id: <201204051138.31740.remi.schwartz@gmail.com>
+Received: from mail-we0-f174.google.com ([74.125.82.174]:60006 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756662Ab2DJXpm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 Apr 2012 19:45:42 -0400
+Message-ID: <1334101532.3117.4.camel@router7789>
+Subject: Re: [stable for 3.2][patch] Kernel 3.2 add support for IT9135 chip
+ version 2 devices.
+From: Malcolm Priestley <tvboxspy@gmail.com>
+To: Greg KH <gregkh@linuxfoundation.org>
+Cc: stable@vger.kernel.org, linux-media@vger.kernel.org
+Date: Wed, 11 Apr 2012 00:45:32 +0100
+In-Reply-To: <20120410231038.GD6140@kroah.com>
+References: <1333287054.2357.9.camel@tvbox>
+	 <20120401153615.GA17478@kroah.com> <20120410231038.GD6140@kroah.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---Boundary-00=_XgWfPbxP9k25srv
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+On Tue, 2012-04-10 at 16:10 -0700, Greg KH wrote:
+> On Sun, Apr 01, 2012 at 08:36:15AM -0700, Greg KH wrote:
+> > On Sun, Apr 01, 2012 at 02:30:54PM +0100, Malcolm Priestley wrote:
+> > > Originally, IT9135 chip version 2 devices were never intended to be supported in kernel 3.2
+> > > as they were thought at the time only on ID 048d:9006.
+> > > 
+> > > However, they have since been supplied on ID 048d:9135, the following error occurs.
+> > > 
+> > > [   53.512013] usb 2-4: new high-speed USB device number 5 using ehci_hcd
+> > > [   53.648936] it913x: Chip Version=02 Chip Type=9135
+> > > [   53.650434] it913x: Dual mode=0 Remote=5 Tuner Type=5f
+> > > [   53.651556] dvb-usb: found a 'ITE 9135 Generic' in cold state, will try to load a firmware
+> > > [   53.660244] dvb-usb: downloading firmware from file 'dvb-usb-it9137-01.fw'
+> > > [   53.661026] it913x: FRM Starting Firmware Download
+> > > [   54.152006] it913x: FRM Firmware Download Failed (ffffffed)
+> > > [   54.352082] it913x: Chip Version=6f Chip Type=0203
+> > > [   55.188050] it913x: DEV it913x Error
+> > > 
+> > > 
+> > > This patch and the cherry picks fixes the issue and applies firmware differences
+> > > in commit 7330f7c157308166c507da9b9926107d85f960d3 and the 3.2 tree.
+> > > 
+> > > The driver is updated to version it913x 1.24 and it913x-fe 1.12.
+> > > 
+> > > Note existing 048d:9135 version 1 users will need to switch to dvb-usb-it9135-01.fw
+> > > firmware as in kernel 3.3 after this update.
+> > > 
+> > > ./get_dvb_firmware it9135
+> > > extracts
+> > > dvb-usb-it9135-01.fw
+> > > dvb-usb-it9135-02.fw
+> > > 
+> > > ./get_dvb_firmware it9137
+> > > extracts
+> > > dvb-usb-it9137-01.fw
+> > > 
+> > > The following upstream cherry-picks in order need to be applied.
+> > > 
+> > > Cc: <stable@vger.kernel.org> # .32.x: b7d425d39179e125604cbf451a06d3204d2e1398: sched: it913x Support it9135 Verions 2 chip
+> > > Cc: <stable@vger.kernel.org> # .32.x: 2b3c13ecce3bc0fbdeb5ef0596b350dc702d01d5: sched: it913x-fe ver 1.09 amend adc table entries
+> > > Cc: <stable@vger.kernel.org> # .32.x: 3822c7cef7b422833f1b58949a01bd87b822d280: sched: it913x ver 1.09 support for USB 1 devices (IT9135)
+> > > Cc: <stable@vger.kernel.org> # .32.x: 3339a5b165c2769a84346cac342ade67d7b7a510: sched: it913x-fe ver 1.10 correct SNR reading from frontend
+> > > Cc: <stable@vger.kernel.org> # .32.x: ed942c507465287777a5342f83af1638ba05a6ac: sched: it913x-fe: more user and debugging info
+> > > Cc: <stable@vger.kernel.org> # .32.x: fdb5a9111ef77d537efb86e90e8073ebfd0b553e: sched: Support for Sveon STV22 (IT9137)
+> > > Cc: <stable@vger.kernel.org> # .32.x: 9c1133c7c89266d4969e36527ce7be958d1b93c6: sched: it913x: endpoint size changes
+> > > Cc: <stable@vger.kernel.org> # .32.x: 990f49af3f564b9a0f572e06f22e2ae34c79c37d: sched: it913x: support for different tuner regs
+> > > Cc: <stable@vger.kernel.org> # .32.x: c725ff69737313647f981813e8f39a372c99b0f0: sched: it913x: support for NEC extended keys
+> > > Cc: <stable@vger.kernel.org> # .32.x: b69902914803a8bf93f39f0db642430504c800ba: sched: it913x: multi firmware loader
+> > > Cc: <stable@vger.kernel.org> # .32.x: 5e642c06b561fd95d77d13f41adeb6e906acc31d: sched: it9135:  add support for IT9135 9005 devices
+> > > Cc: <stable@vger.kernel.org> # .32.x: 15157c506d742b6767edcd486d6c73ea907fb7cf: sched: it913x add retry to USB bulk endpoints and IO
+> > > Cc: <stable@vger.kernel.org> # .32.x: 50815707eebc7ce12bfd97933a6e68a482c4d7ab: sched: it913x: multiple devices on system.
+> > > Cc: <stable@vger.kernel.org> # .32.x: a7187c324ff5a879b5b0e6bb947664071c870803: sched: [BUG] Re: add support for IT9135 9005 devices
+> > > Cc: <stable@vger.kernel.org> # .32.x: f36472da3a6d62ee46ae773bbbf05ddb24cd970c: sched: it913x stop dual frontend attach in warm state with single devices
+> > > Cc: <stable@vger.kernel.org> # .32.x: 53844c4fc7912fef2f56c1b3f851b30c8ebd1d8a: sched: it913x add support for IT9135 9006 devices
+> > > Cc: <stable@vger.kernel.org> # .32.x: ed3189cf989128fe283d6dbffbbae08b67d9e5bd: sched: it913x ver 1.18 Turn pid filter off by caps option only
+> > > Cc: <stable@vger.kernel.org> # .32.x: d4d5a40710701abd4535d6a5ada601c885a08865: sched: [BUG] it913x ver 1.20. PID filter problems
+> > > Cc: <stable@vger.kernel.org> # .32.x: fa52520cff0b3dce483efa8fb4ae1a4b18a82109: sched: [BUG] it913x ver 1.21 Fixed for issue with 9006 and warm boot
+> > > Cc: <stable@vger.kernel.org> # .32.X: 245900c4a7a7d23c2e5b2b64b70770debcac5814: sched: [media] it913x ver 1.22 corrections to Tuner IDs
+> > > Cc: <stable@vger.kernel.org> # .32.x: f0e07d7658a81bc185b8ba58f062c16b79ac0e2b: sched: it913x changed firmware loader for chip version 2 types
+> > > Cc: <stable@vger.kernel.org> # .32.x: a8ea0218625699a5c635655a17b565bab5888ea1: sched: it913x v1.23 use it913x_config.chip_ver to select firmware
+> > > Cc: <stable@vger.kernel.org> # .32.x: fc594e3e5196d4cf7ace7735eeca399f7a80868b: sched: it913x ver 1.24 Make 0x60 default on version 2 devices
+> > > Cc: <stable@vger.kernel.org> # .32.x
+> > 
+> > You're kidding right?
+> > 
+> > Please read Documentation/stable_kernel_rules.txt.  How do all of these
+> > patches relate to that file?
+> 
+> Not to mention the fact that the above git commit ids are 'trees' not
+> patches, and can not be applied anywhere.
+> 
+Yes, I realised after I sent it, I had done it completely wrong,
+especially as the patch was building locally.
 
-Hi all,
+Regards
 
-This is the patch against kernel 2.6.32 I used to get my TV card Asus=20
-My Cinema PS3-100 (1043:48cd) to work.
+Malcolm
 
-More information on this card can be found on this page :
 
-http://www.0xf8.org/2009/09/asus-mycinema-ps3-100-3-in-1-tv-card/
 
-This card seems to be a clone of the Asus Tiger 3in1, numbered 147 in the
-SAA7134 module, so I gave it the temporary number of 1470.
+> dropped.
+> 
+> greg k-h
 
-DVB-T and remote have been tested and work fine.
-DVB-S, FM and Composite input haven't been tested.
 
-Hope that will help some of you.
-
-R=C3=A9mi
-
---Boundary-00=_XgWfPbxP9k25srv
-Content-Type: text/x-patch;
-  charset="UTF-8";
-  name="ps3_100_patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename="ps3_100_patch"
-
---- ./include/media/ir-common.h.orig	2009-12-03 04:51:21.000000000 +0100
-+++ ./include/media/ir-common.h	2012-03-09 20:23:09.325249426 +0100
-@@ -155,6 +155,7 @@ extern struct ir_scancode_table ir_codes
- extern struct ir_scancode_table ir_codes_proteus_2309_table;
- extern struct ir_scancode_table ir_codes_budget_ci_old_table;
- extern struct ir_scancode_table ir_codes_asus_pc39_table;
-+extern struct ir_scancode_table ir_codes_asus_ps3_100_table;
- extern struct ir_scancode_table ir_codes_encore_enltv_table;
- extern struct ir_scancode_table ir_codes_encore_enltv2_table;
- extern struct ir_scancode_table ir_codes_tt_1500_table;
---- ./drivers/media/common/ir-keymaps.c.orig	2009-12-03 04:51:21.000000000 +0100
-+++ ./drivers/media/common/ir-keymaps.c	2012-03-29 18:43:59.170879721 +0200
-@@ -2064,6 +2064,70 @@ struct ir_scancode_table ir_codes_asus_p
- EXPORT_SYMBOL_GPL(ir_codes_asus_pc39_table);
- 
- 
-+/*
-+ * Remi Schwartz <remi.schwartz@gmail.com>
-+ * this is the remote control that comes with the asus my cinema ps3-100
-+ * base taken from pc39 one
-+ */
-+static struct ir_scancode ir_codes_asus_ps3_100[] = {
-+	{ 0x23, KEY_HOME },		/* home */
-+	{ 0x21, KEY_TV },		/* tv */
-+	{ 0x3c, KEY_TEXT },		/* teletext */
-+	{ 0x16, KEY_POWER },		/* close */
-+	
-+	{ 0x34, KEY_RED },		/* red */
-+	{ 0x32, KEY_YELLOW },		/* yellow */
-+	{ 0x39, KEY_BLUE },		/* blue */
-+	{ 0x38, KEY_GREEN },		/* green */
-+
-+	/* Keys 0 to 9 */
-+	{ 0x15, KEY_0 },
-+	{ 0x29, KEY_1 },
-+	{ 0x2d, KEY_2 },
-+	{ 0x2b, KEY_3 },
-+	{ 0x09, KEY_4 },
-+	{ 0x0d, KEY_5 },
-+	{ 0x0b, KEY_6 },
-+	{ 0x31, KEY_7 },
-+	{ 0x35, KEY_8 },
-+	{ 0x33, KEY_9 },
-+
-+	{ 0x2a, KEY_VOLUMEUP },
-+	{ 0x19, KEY_VOLUMEDOWN },
-+	{ 0x0a, KEY_CHANNELUP },	/* channel / program + */
-+	{ 0x1b, KEY_CHANNELDOWN },	/* channel / program - */
-+	
-+	{ 0x37, KEY_UP },
-+	{ 0x3b, KEY_DOWN },
-+	{ 0x27, KEY_LEFT },
-+	{ 0x2f, KEY_RIGHT },
-+	{ 0x1a, KEY_ENTER },		/* enter */
-+	
-+	{ 0x1d, KEY_EXIT },		/* back */
-+	{ 0x13, KEY_AB },		/* recall */
-+	
-+	{ 0x1f, KEY_AUDIO },		/* TV audio */
-+	{ 0x08, KEY_SCREEN },		/* snapshot */
-+	{ 0x11, KEY_ZOOM },		/* full screen */
-+	{ 0x3d, KEY_MUTE },		/* mute */
-+
-+	{ 0x0e, KEY_REWIND },		/* backward << */
-+	{ 0x2e, KEY_RECORD },		/* recording */
-+	{ 0x36, KEY_STOP },
-+	{ 0x3a, KEY_FASTFORWARD },	/* forward >> */
-+	{ 0x1e, KEY_PREVIOUS },		/* rew */
-+	{ 0x25, KEY_PAUSE },		/* pause */
-+	{ 0x06, KEY_PLAY },		/* play */
-+	{ 0x26, KEY_NEXT },		/* forward */
-+};
-+
-+struct ir_scancode_table ir_codes_asus_ps3_100_table = {
-+	.scan = ir_codes_asus_ps3_100,
-+	.size = ARRAY_SIZE(ir_codes_asus_ps3_100),
-+};
-+EXPORT_SYMBOL_GPL(ir_codes_asus_ps3_100_table);
-+
-+
- /* Encore ENLTV-FM  - black plastic, white front cover with white glowing buttons
-     Juan Pablo Sormani <sorman@gmail.com> */
- static struct ir_scancode ir_codes_encore_enltv[] = {
---- ./drivers/media/video/saa7134/saa7134-input.c.orig	2009-12-03 04:51:21.000000000 +0100
-+++ ./drivers/media/video/saa7134/saa7134-input.c	2012-03-09 20:23:09.337244873 +0100
-@@ -575,6 +575,11 @@ int saa7134_input_init1(struct saa7134_d
- 		mask_keydown = 0x0040000;
- 		rc5_gpio = 1;
- 		break;
-+	case SAA7134_BOARD_ASUSTeK_PS3_100:
-+		ir_codes     = &ir_codes_asus_ps3_100_table;
-+		mask_keydown = 0x0040000;
-+		rc5_gpio = 1;
-+		break;
- 	case SAA7134_BOARD_ENCORE_ENLTV:
- 	case SAA7134_BOARD_ENCORE_ENLTV_FM:
- 		ir_codes     = &ir_codes_encore_enltv_table;
---- ./drivers/media/video/saa7134/saa7134-dvb.c.orig	2012-01-15 06:52:12.000000000 +0100
-+++ ./drivers/media/video/saa7134/saa7134-dvb.c	2012-03-09 20:23:09.337244873 +0100
-@@ -824,6 +824,20 @@ static struct tda1004x_config asus_tiger
- 	.request_firmware = philips_tda1004x_request_firmware
- };
- 
-+static struct tda1004x_config asus_ps3_100_config = {
-+	.demod_address = 0x0b,
-+	.invert        = 1,
-+	.invert_oclk   = 0,
-+	.xtal_freq     = TDA10046_XTAL_16M,
-+	.agc_config    = TDA10046_AGC_TDA827X,
-+	.gpio_config   = TDA10046_GP11_I,
-+	.if_freq       = TDA10046_FREQ_045,
-+	.i2c_gate      = 0x4b,
-+	.tuner_address = 0x61,
-+	.antenna_switch = 1,
-+	.request_firmware = philips_tda1004x_request_firmware
-+};
-+
- /* ------------------------------------------------------------------
-  * special case: this card uses saa713x GPIO22 for the mode switch
-  */
-@@ -1465,6 +1479,31 @@ static int dvb_init(struct saa7134_dev *
- 						" found!\n", __func__);
- 					goto dettach_frontend;
- 				}
-+			}
-+		}
-+		break;
-+	case SAA7134_BOARD_ASUSTeK_PS3_100:
-+		if (!use_frontend) {     /* terrestrial */
-+			if (configure_tda827x_fe(dev, &asus_ps3_100_config,
-+							&tda827x_cfg_2) < 0)
-+				goto dettach_frontend;
-+		} else {  		/* satellite */
-+			fe0->dvb.frontend = dvb_attach(tda10086_attach,
-+						&flydvbs, &dev->i2c_adap);
-+			if (fe0->dvb.frontend) {
-+				if (dvb_attach(tda826x_attach,
-+						fe0->dvb.frontend, 0x60,
-+						&dev->i2c_adap, 0) == NULL) {
-+					wprintk("%s: Asus My Cinema PS3-100, no "
-+						"tda826x found!\n", __func__);
-+					goto dettach_frontend;
-+				}
-+				if (dvb_attach(lnbp21_attach, fe0->dvb.frontend,
-+						&dev->i2c_adap, 0, 0) == NULL) {
-+					wprintk("%s: Asus My Cinema PS3-100, no lnbp21"
-+						" found!\n", __func__);
-+					goto dettach_frontend;
-+				}
- 			}
- 		}
- 		break;
---- ./drivers/media/video/saa7134/saa7134-cards.c.orig	2012-01-15 06:52:12.000000000 +0100
-+++ ./drivers/media/video/saa7134/saa7134-cards.c	2012-03-09 20:23:09.341245848 +0100
-@@ -5012,6 +5012,36 @@ struct saa7134_board saa7134_boards[] =
- 			.gpio = 0x0200000,
- 		},
- 	},
-+	[SAA7134_BOARD_ASUSTeK_PS3_100] = {
-+		.name           = "Asus My Cinema PS3-100",
-+		.audio_clock    = 0x00187de7,
-+		.tuner_type     = TUNER_PHILIPS_TDA8290,
-+		.radio_type     = UNSET,
-+		.tuner_addr     = ADDR_UNSET,
-+		.radio_addr     = ADDR_UNSET,
-+		.tuner_config   = 2,
-+		.gpiomask       = 1 << 21,
-+		.mpeg           = SAA7134_MPEG_DVB,
-+		.inputs         = {{
-+			.name = name_tv,
-+			.vmux = 1,
-+			.amux = TV,
-+			.tv   = 1,
-+		}, {
-+			.name = name_comp,
-+			.vmux = 0,
-+			.amux = LINE2,
-+		}, {
-+			.name = name_svideo,
-+			.vmux = 8,
-+			.amux = LINE2,
-+		} },
-+		.radio = {
-+			.name = name_radio,
-+			.amux = TV,
-+			.gpio = 0x0200000,
-+		},
-+	},
- 	[SAA7134_BOARD_REAL_ANGEL_220] = {
- 		.name           = "Zogis Real Angel 220",
- 		.audio_clock    = 0x00187de7,
-@@ -6407,6 +6437,12 @@ struct pci_device_id saa7134_pci_tbl[] =
- 		.driver_data  = SAA7134_BOARD_ASUSTeK_TIGER_3IN1,
- 	}, {
- 		.vendor       = PCI_VENDOR_ID_PHILIPS,
-+		.device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
-+		.subvendor    = 0x1043,
-+		.subdevice    = 0x48cd,
-+		.driver_data  = SAA7134_BOARD_ASUSTeK_PS3_100,
-+	}, {
-+		.vendor       = PCI_VENDOR_ID_PHILIPS,
- 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7134,
- 		.subvendor    = 0x17de,
- 		.subdevice    = 0x7128,
-@@ -6753,6 +6789,7 @@ int saa7134_board_init1(struct saa7134_d
- 	case SAA7134_BOARD_ASUSTeK_P7131_DUAL:
- 	case SAA7134_BOARD_ASUSTeK_P7131_HYBRID_LNA:
- 	case SAA7134_BOARD_ASUSTeK_P7131_ANALOG:
-+	case SAA7134_BOARD_ASUSTeK_PS3_100:
- 	case SAA7134_BOARD_FLYDVBTDUO:
- 	case SAA7134_BOARD_PROTEUS_2309:
- 	case SAA7134_BOARD_AVERMEDIA_A16AR:
-@@ -7181,6 +7218,14 @@ int saa7134_board_init2(struct saa7134_d
- 	{
- 		u8 data[] = { 0x3c, 0x33, 0x60};
- 		struct i2c_msg msg = {.addr = 0x0b, .flags = 0, .buf = data,
-+							.len = sizeof(data)};
-+		i2c_transfer(&dev->i2c_adap, &msg, 1);
-+		break;
-+	}
-+	case SAA7134_BOARD_ASUSTeK_PS3_100:
-+	{
-+		u8 data[] = { 0x3c, 0x33, 0x60};
-+		struct i2c_msg msg = {.addr = 0x0b, .flags = 0, .buf = data,
- 							.len = sizeof(data)};
- 		i2c_transfer(&dev->i2c_adap, &msg, 1);
- 		break;
---- ./drivers/media/video/saa7134/saa7134.h.orig	2012-01-15 06:52:12.000000000 +0100
-+++ ./drivers/media/video/saa7134/saa7134.h	2012-03-09 20:23:09.341245848 +0100
-@@ -271,6 +271,7 @@ struct saa7134_format {
- #define SAA7134_BOARD_AVERMEDIA_M103    145
- #define SAA7134_BOARD_ASUSTeK_P7131_ANALOG 146
- #define SAA7134_BOARD_ASUSTeK_TIGER_3IN1   147
-+#define SAA7134_BOARD_ASUSTeK_PS3_100   1470
- #define SAA7134_BOARD_ENCORE_ENLTV_FM53 148
- #define SAA7134_BOARD_AVERMEDIA_M135A    149
- #define SAA7134_BOARD_REAL_ANGEL_220     150
-
---Boundary-00=_XgWfPbxP9k25srv--
