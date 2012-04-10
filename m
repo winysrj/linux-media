@@ -1,203 +1,254 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:45008 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755490Ab2DXRBr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Apr 2012 13:01:47 -0400
-Received: by wejx9 with SMTP id x9so557500wej.19
-        for <linux-media@vger.kernel.org>; Tue, 24 Apr 2012 10:01:45 -0700 (PDT)
-Date: Tue, 24 Apr 2012 19:02:44 +0200
-From: Daniel Vetter <daniel@ffwll.ch>
-To: InKi Dae <daeinki@gmail.com>
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>,
-	linaro-mm-sig@lists.linaro.org,
-	LKML <linux-kernel@vger.kernel.org>,
-	DRI Development <dri-devel@lists.freedesktop.org>,
-	Rob Clark <rob.clark@linaro.org>,
-	Rebecca Schultz Zavin <rebecca@android.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH] dma-buf: mmap support
-Message-ID: <20120424170244.GD2017@phenom.ffwll.local>
-References: <1335258532-20739-1-git-send-email-daniel.vetter@ffwll.ch>
- <CAAQKjZMgcxWc44xknM+eZhon4QgvWd92Ci4snwBv2Ziyw1Recw@mail.gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:58764 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758134Ab2DJSUm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 Apr 2012 14:20:42 -0400
+Message-ID: <4F8479E3.3040007@redhat.com>
+Date: Tue, 10 Apr 2012 15:20:19 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAAQKjZMgcxWc44xknM+eZhon4QgvWd92Ci4snwBv2Ziyw1Recw@mail.gmail.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>,
+	Sylwester Nawrocki <snjw23@gmail.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	David Cohen <dacohen@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	tuukkat76@gmail.com, Kamil Debski <k.debski@samsung.com>,
+	Kim HeungJun <riverful@gmail.com>, teturtia@gmail.com,
+	pradeep.sawlani@gmail.com
+Subject: Re: [GIT PULL FOR v3.5] V4L2 subdev and sensor control changes and
+ SMIA++ driver
+References: <20120402162649.GE922@valkosipuli.localdomain>
+In-Reply-To: <20120402162649.GE922@valkosipuli.localdomain>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Apr 25, 2012 at 01:37:51AM +0900, InKi Dae wrote:
-> Hi,
+Em 02-04-2012 13:26, Sakari Ailus escreveu:
+> Hi Mauro,
 > 
-> >
-> > +static int dma_buf_mmap_internal(struct file *file, struct vm_area_struct *vma)
-> > +{
-> > +       struct dma_buf *dmabuf;
-> > +
-> > +       if (!is_dma_buf_file(file))
-> > +               return -EINVAL;
-> > +
-> > +       dmabuf = file->private_data;
-> > +
-> > +       /* check for overflowing the buffer's size */
-> > +       if (vma->vm_pgoff + ((vma->vm_end - vma->vm_start) >> PAGE_SHIFT) >
-> > +           dmabuf->size >> PAGE_SHIFT)
+> This patchset adds
 > 
-> is this condition right? your intention is for checking buffer's size
-> is valid or not. by the way why is vma->vm_pgoff added to vm region
-> size?
-
-This check here is to ensure that userspace cannot mmap beyong the end of
-the dma_buf object. vm_pgoff is the offset userspace passed in at mmap
-time and hence needs to be added. Note that vm_end and vm_start are in
-bytes, wheres vm_pgoff is in pages.
-
-> > +               return -EINVAL;
-> > +
-> > +       return dmabuf->ops->mmap(dmabuf, vma);
-> > +}
-> > +
-> >  static const struct file_operations dma_buf_fops = {
-> >        .release        = dma_buf_release,
-> > +       .mmap           = dma_buf_mmap_internal,
-> >  };
-> >
-> >  /*
-> > @@ -82,7 +100,8 @@ struct dma_buf *dma_buf_export(void *priv, const struct dma_buf_ops *ops,
-> >                          || !ops->unmap_dma_buf
-> >                          || !ops->release
-> >                          || !ops->kmap_atomic
-> > -                         || !ops->kmap)) {
-> > +                         || !ops->kmap
-> > +                         || !ops->mmap)) {
-> >                return ERR_PTR(-EINVAL);
-> >        }
-> >
-> > @@ -406,3 +425,46 @@ void dma_buf_kunmap(struct dma_buf *dmabuf, unsigned long page_num,
-> >                dmabuf->ops->kunmap(dmabuf, page_num, vaddr);
-> >  }
-> >  EXPORT_SYMBOL_GPL(dma_buf_kunmap);
-> > +
-> > +
-> > +/**
-> > + * dma_buf_mmap - Setup up a userspace mmap with the given vma
-> > + * @dma_buf:   [in]    buffer that should back the vma
-> > + * @vma:       [in]    vma for the mmap
-> > + * @pgoff:     [in]    offset in pages where this mmap should start within the
-> > + *                     dma-buf buffer.
-> > + *
-> > + * This function adjusts the passed in vma so that it points at the file of the
-> > + * dma_buf operation. It alsog adjusts the starting pgoff and does bounds
-> > + * checking on the size of the vma. Then it calls the exporters mmap function to
-> > + * set up the mapping.
-> > + *
-> > + * Can return negative error values, returns 0 on success.
-> > + */
-> > +int dma_buf_mmap(struct dma_buf *dmabuf, struct vm_area_struct *vma,
-> > +                unsigned long pgoff)
-> > +{
-> > +       if (WARN_ON(!dmabuf || !vma))
-> > +               return -EINVAL;
-> > +
-> > +       /* check for offset overflow */
-> > +       if (pgoff + ((vma->vm_end - vma->vm_start) >> PAGE_SHIFT) < pgoff)
+> - Integer menu controls,
+> - Selection IOCTL for subdevs,
+> - Sensor control improvements,
+> - link_validate() media entity and V4L2 subdev pad ops,
+> - OMAP 3 ISP driver improvements,
+> - SMIA++ sensor driver and
+> - Other V4L2 and media improvements (see individual patches)
 > 
-> ditto. isn't it checked whether page offset to be mmaped is placed
-> within vm region or not with the condition, if ((vma->vm_end -
-> vma->vm_start) >> PAGE_SHIFT) < pgoff)?
-
-Nope, this check only checks for overflow. The pgoff is the offset within
-the dma_buf object. E.g. a drm driver splits up it mmap space into pieces,
-which map to individual buffers. If userspace just mmaps parts of such a
-buffer, the importer can pass the offset in pgoff. But I expect this to be
-0 for almost all cases.
-
-Note that we don't need this overflow check in the internal mmap function
-because do_mmap will do it for us. But here the importer potentially sets
-a completely different pgoff, so we need to do it. dma_buf documentation
-also mentions this (and that importers do not have to do these checks).
-
-Yours, Daniel
-
+> Changes since pull for 3.4 v3:
 > 
-> > +               return -EOVERFLOW;
-> > +
-> > +       /* check for overflowing the buffer's size */
-> > +       if (pgoff + ((vma->vm_end - vma->vm_start) >> PAGE_SHIFT) >
-> > +           dmabuf->size >> PAGE_SHIFT)
-> > +               return -EINVAL;
-> > +
-> > +       /* readjust the vma */
-> > +       if (vma->vm_file)
-> > +               fput(vma->vm_file);
-> > +
-> > +       vma->vm_file = dmabuf->file;
-> > +       get_file(vma->vm_file);
-> > +
-> > +       vma->vm_pgoff = pgoff;
-> > +
-> > +       return dmabuf->ops->mmap(dmabuf, vma);
-> > +}
-> > +EXPORT_SYMBOL_GPL(dma_buf_mmap);
-> > diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
-> > index 3efbfc2..1f78d15 100644
-> > --- a/include/linux/dma-buf.h
-> > +++ b/include/linux/dma-buf.h
-> > @@ -61,6 +61,10 @@ struct dma_buf_attachment;
-> >  *                This Callback must not sleep.
-> >  * @kmap: maps a page from the buffer into kernel address space.
-> >  * @kunmap: [optional] unmaps a page from the buffer.
-> > + * @mmap: used to expose the backing storage to userspace. Note that the
-> > + *       mapping needs to be coherent - if the exporter doesn't directly
-> > + *       support this, it needs to fake coherency by shooting down any ptes
-> > + *       when transitioning away from the cpu domain.
-> >  */
-> >  struct dma_buf_ops {
-> >        int (*attach)(struct dma_buf *, struct device *,
-> > @@ -92,6 +96,8 @@ struct dma_buf_ops {
-> >        void (*kunmap_atomic)(struct dma_buf *, unsigned long, void *);
-> >        void *(*kmap)(struct dma_buf *, unsigned long);
-> >        void (*kunmap)(struct dma_buf *, unsigned long, void *);
-> > +
-> > +       int (*mmap)(struct dma_buf *, struct vm_area_struct *vma);
-> >  };
-> >
-> >  /**
-> > @@ -167,6 +173,9 @@ void *dma_buf_kmap_atomic(struct dma_buf *, unsigned long);
-> >  void dma_buf_kunmap_atomic(struct dma_buf *, unsigned long, void *);
-> >  void *dma_buf_kmap(struct dma_buf *, unsigned long);
-> >  void dma_buf_kunmap(struct dma_buf *, unsigned long, void *);
-> > +
-> > +int dma_buf_mmap(struct dma_buf *, struct vm_area_struct *,
-> > +                unsigned long);
-> >  #else
-> >
-> >  static inline struct dma_buf_attachment *dma_buf_attach(struct dma_buf *dmabuf,
-> > @@ -248,6 +257,13 @@ static inline void dma_buf_kunmap(struct dma_buf *dmabuf,
-> >                                  unsigned long pnum, void *vaddr)
-> >  {
-> >  }
-> > +
-> > +static inline int dma_buf_mmap(struct dma_buf *dmabuf,
-> > +                              struct vm_area_struct *vma,
-> > +                              unsigned long pgoff)
-> > +{
-> > +       return -ENODEV;
-> > +}
-> >  #endif /* CONFIG_DMA_SHARED_BUFFER */
-> >
-> >  #endif /* __DMA_BUF_H__ */
-> > --
-> > 1.7.10
-> >
-> > _______________________________________________
-> > dri-devel mailing list
-> > dri-devel@lists.freedesktop.org
-> > http://lists.freedesktop.org/mailman/listinfo/dri-devel
+> - Changed kernel revision and V4L2 changelog dates appropriately for Linux
+>   3.5.
+> 
+> Changes since pull v2:
+> 
+> - Fixed incorrect 4CC codes in documentation for compresed raw bayer formats
+> 
+> Changes since pull v1:
+> 
+> - Correct selection rectangle field description in subdev selection
+>   documentation (thanks to Sylwester)
+> - Use roundup() instead of ALIGN() in SMIA++ driver
+> - Rebased on current media_tree.git/staging/for_v3.4
+> 
+> ---
+> 
+> The following changes since commit 296da3cd14db9eb5606924962b2956c9c656dbb0:
+> 
+>   [media] pwc: poll(): Check that the device has not beem claimed for streaming already (2012-03-27 11:42:04 -0300)
+> 
+> are available in the git repository at:
+>   ssh://linuxtv.org/git/sailus/media_tree.git media-for-3.5
+> 
+> Jesper Juhl (1):
+>       adp1653: Remove unneeded include of version.h
+> 
+> Laurent Pinchart (2):
+>       omap3isp: Prevent pipelines that contain a crashed entity from starting
+>       omap3isp: Fix frame number propagation
+> 
+> Sakari Ailus (37):
+>       v4l: Introduce integer menu controls
+>       v4l: Document integer menu controls
+>       vivi: Add an integer menu test control
+>       v4l: VIDIOC_SUBDEV_S_SELECTION and VIDIOC_SUBDEV_G_SELECTION IOCTLs
+>       v4l: vdev_to_v4l2_subdev() should have return type "struct v4l2_subdev *"
+>       v4l: Check pad number in get try pointer functions
+>       v4l: Support s_crop and g_crop through s/g_selection
+>       v4l: Add subdev selections documentation: svg and dia files
+>       v4l: Add subdev selections documentation
 
--- 
-Daniel Vetter
-Mail: daniel@ffwll.ch
-Mobile: +41 (0)79 365 57 48
+There's something wrong here:
+
+Warning: multiple "IDs" for constraint linkend: vidioc-subdev-g-selection.
+Warning: multiple "IDs" for constraint linkend: v4l2-subdev-selection-targets.
+Warning: multiple "IDs" for constraint linkend: v4l2-subdev-selection-targets.
+Warning: multiple "IDs" for constraint linkend: v4l2-subdev-selection-flags.
+Warning: multiple "IDs" for constraint linkend: v4l2-subdev-selection.
+No template for "/book/part/chapter/section/section/section/para" (or any of its leaves) exists in the context named "title" in the "en" localization.
+No template for "/book/part/chapter/section/section/section/para" (or any of its leaves) exists in the context named "title" in the "en" localization.
+Warning: multiple "IDs" for constraint linkend: v4l2-subdev-selection-flags.
+Warning: multiple "IDs" for constraint linkend: vidioc-subdev-g-selection.
+Warning: multiple "IDs" for constraint linkend: vidioc-subdev-g-selection.
+Warning: multiple "IDs" for constraint linkend: vidioc-subdev-g-selection.
+Warning: multiple "IDs" for constraint linkend: vidioc-subdev-g-selection.
+Warning: multiple "IDs" for constraint linkend: v4l2-subdev-selection-targets.
+Warning: multiple "IDs" for constraint linkend: v4l2-subdev-selection-flags.
+Warning: multiple "IDs" for constraint linkend: v4l2-subdev-selection.
+Error: no ID for constraint linkend: v4l2-jpeg-chroma-subsampling.
+Error: no ID for constraint linkend: v4l2-jpeg-chroma-subsampling.
+Warning: multiple "IDs" for constraint linkend: v4l2-subdev-selection.
+
+The index will break if there are two places with the same ID's.
+
+Sylvester,
+
+Btw, you also did a similar mistake: you've added a symbol at the API called
+v4l2_jpeg_chroma_subsampling, but you didn't create any reference for v4l2-jpeg-chroma-subsampling
+at the DocBook. Instead, you've created a jpeg-chroma-subsampling-control ID,
+not sure if it is for the same structure.
+
+Sakari/Sylvester,
+
+The building system adds a link for each structure at the media header files
+to the corresponding structures inside the DocBook. It also adds it to the
+index.
+
+You need to take care that they'll point to the right things when sending us
+a DocBook patch.
+
+PS.: As the previous patches are ok, I'll keep them at the tree.
+
+Regards,
+Mauro.
+
+>       v4l: Mark VIDIOC_SUBDEV_G_CROP and VIDIOC_SUBDEV_S_CROP obsolete
+>       v4l: Image source control class
+>       v4l: Image processing control class
+>       v4l: Document raw bayer 4CC codes
+>       v4l: Add DPCM compressed raw bayer pixel formats
+>       media: Add link_validate() op to check links to the sink pad
+>       v4l: Improve sub-device documentation for pad ops
+>       v4l: Implement v4l2_subdev_link_validate()
+>       v4l: Allow changing control handler lock
+>       omap3isp: Support additional in-memory compressed bayer formats
+>       omap3isp: Move definitions required by board code under include/media.
+>       omap3: add definition for CONTROL_CAMERA_PHY_CTRL
+>       omap3isp: Move setting constaints above media_entity_pipeline_start
+>       omap3isp: Assume media_entity_pipeline_start may fail
+>       omap3isp: Add lane configuration to platform data
+>       omap3isp: Collect entities that are part of the pipeline
+>       omap3isp: Add information on external subdev to struct isp_pipeline
+>       omap3isp: Introduce isp_video_check_external_subdevs()
+>       omap3isp: Use external rate instead of vpcfg
+>       omap3isp: Default link validation for ccp2, csi2, preview and resizer
+>       omap3isp: Move CCDC link validation to ccdc_link_validate()
+>       omap3isp: Configure CSI-2 phy based on platform data
+>       omap3isp: Add resizer data rate configuration to resizer_link_validate
+>       omap3isp: Find source pad from external entity
+>       smiapp: Generic SMIA++/SMIA PLL calculator
+>       smiapp: Add driver
+>       omap3isp: Prevent crash at module unload
+>       omap3isp: Handle omap3isp_csi2_reset() errors
+> 
+>  Documentation/DocBook/media/Makefile               |    4 +-
+>  Documentation/DocBook/media/v4l/compat.xml         |   26 +
+>  Documentation/DocBook/media/v4l/controls.xml       |  168 ++
+>  Documentation/DocBook/media/v4l/dev-subdev.xml     |  202 ++-
+>  Documentation/DocBook/media/v4l/pixfmt-srggb10.xml |    2 +-
+>  .../DocBook/media/v4l/pixfmt-srggb10dpcm8.xml      |   29 +
+>  Documentation/DocBook/media/v4l/pixfmt.xml         |    1 +
+>  .../media/v4l/subdev-image-processing-crop.dia     |  614 +++++
+>  .../media/v4l/subdev-image-processing-crop.svg     |   63 +
+>  .../media/v4l/subdev-image-processing-full.dia     | 1588 +++++++++++
+>  .../media/v4l/subdev-image-processing-full.svg     |  163 ++
+>  ...ubdev-image-processing-scaling-multi-source.dia | 1152 ++++++++
+>  ...ubdev-image-processing-scaling-multi-source.svg |  116 +
+>  Documentation/DocBook/media/v4l/v4l2.xml           |   21 +
+>  .../DocBook/media/v4l/vidioc-g-ext-ctrls.xml       |   12 +
+>  .../DocBook/media/v4l/vidioc-queryctrl.xml         |   39 +-
+>  .../DocBook/media/v4l/vidioc-subdev-g-crop.xml     |    9 +-
+>  .../media/v4l/vidioc-subdev-g-selection.xml        |  228 ++
+>  Documentation/media-framework.txt                  |   19 +
+>  Documentation/video4linux/4CCs.txt                 |   32 +
+>  Documentation/video4linux/v4l2-framework.txt       |   21 +
+>  arch/arm/mach-omap2/control.h                      |    1 +
+>  drivers/media/media-entity.c                       |   57 +-
+>  drivers/media/video/Kconfig                        |    3 +
+>  drivers/media/video/Makefile                       |    3 +
+>  drivers/media/video/adp1653.c                      |   11 +-
+>  drivers/media/video/omap3isp/isp.c                 |   67 +-
+>  drivers/media/video/omap3isp/isp.h                 |   11 +-
+>  drivers/media/video/omap3isp/ispccdc.c             |   74 +-
+>  drivers/media/video/omap3isp/ispccdc.h             |   10 -
+>  drivers/media/video/omap3isp/ispccp2.c             |   24 +-
+>  drivers/media/video/omap3isp/ispcsi2.c             |   21 +-
+>  drivers/media/video/omap3isp/ispcsi2.h             |    1 -
+>  drivers/media/video/omap3isp/ispcsiphy.c           |  172 +-
+>  drivers/media/video/omap3isp/ispcsiphy.h           |   25 +-
+>  drivers/media/video/omap3isp/isppreview.c          |    1 +
+>  drivers/media/video/omap3isp/ispresizer.c          |   16 +
+>  drivers/media/video/omap3isp/ispvideo.c            |  341 ++--
+>  drivers/media/video/omap3isp/ispvideo.h            |    5 +
+>  drivers/media/video/smiapp-pll.c                   |  419 +++
+>  drivers/media/video/smiapp-pll.h                   |  103 +
+>  drivers/media/video/smiapp/Kconfig                 |   13 +
+>  drivers/media/video/smiapp/Makefile                |    3 +
+>  drivers/media/video/smiapp/smiapp-core.c           | 2832 ++++++++++++++++++++
+>  drivers/media/video/smiapp/smiapp-debug.h          |   32 +
+>  drivers/media/video/smiapp/smiapp-limits.c         |  132 +
+>  drivers/media/video/smiapp/smiapp-limits.h         |  128 +
+>  drivers/media/video/smiapp/smiapp-quirk.c          |  264 ++
+>  drivers/media/video/smiapp/smiapp-quirk.h          |   72 +
+>  drivers/media/video/smiapp/smiapp-reg-defs.h       |  503 ++++
+>  drivers/media/video/smiapp/smiapp-reg.h            |  122 +
+>  drivers/media/video/smiapp/smiapp-regs.c           |  213 ++
+>  drivers/media/video/smiapp/smiapp-regs.h           |   46 +
+>  drivers/media/video/smiapp/smiapp.h                |  251 ++
+>  drivers/media/video/v4l2-ctrls.c                   |  133 +-
+>  drivers/media/video/v4l2-subdev.c                  |  143 +-
+>  drivers/media/video/vivi.c                         |   26 +-
+>  include/linux/v4l2-subdev.h                        |   41 +
+>  include/linux/videodev2.h                          |   26 +-
+>  include/media/media-entity.h                       |    5 +-
+>  include/media/omap3isp.h                           |   29 +
+>  include/media/smiapp.h                             |   83 +
+>  include/media/v4l2-ctrls.h                         |   15 +-
+>  include/media/v4l2-subdev.h                        |   49 +-
+>  64 files changed, 10554 insertions(+), 481 deletions(-)
+>  create mode 100644 Documentation/DocBook/media/v4l/pixfmt-srggb10dpcm8.xml
+>  create mode 100644 Documentation/DocBook/media/v4l/subdev-image-processing-crop.dia
+>  create mode 100644 Documentation/DocBook/media/v4l/subdev-image-processing-crop.svg
+>  create mode 100644 Documentation/DocBook/media/v4l/subdev-image-processing-full.dia
+>  create mode 100644 Documentation/DocBook/media/v4l/subdev-image-processing-full.svg
+>  create mode 100644 Documentation/DocBook/media/v4l/subdev-image-processing-scaling-multi-source.dia
+>  create mode 100644 Documentation/DocBook/media/v4l/subdev-image-processing-scaling-multi-source.svg
+>  create mode 100644 Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml
+>  create mode 100644 Documentation/video4linux/4CCs.txt
+>  create mode 100644 drivers/media/video/smiapp-pll.c
+>  create mode 100644 drivers/media/video/smiapp-pll.h
+>  create mode 100644 drivers/media/video/smiapp/Kconfig
+>  create mode 100644 drivers/media/video/smiapp/Makefile
+>  create mode 100644 drivers/media/video/smiapp/smiapp-core.c
+>  create mode 100644 drivers/media/video/smiapp/smiapp-debug.h
+>  create mode 100644 drivers/media/video/smiapp/smiapp-limits.c
+>  create mode 100644 drivers/media/video/smiapp/smiapp-limits.h
+>  create mode 100644 drivers/media/video/smiapp/smiapp-quirk.c
+>  create mode 100644 drivers/media/video/smiapp/smiapp-quirk.h
+>  create mode 100644 drivers/media/video/smiapp/smiapp-reg-defs.h
+>  create mode 100644 drivers/media/video/smiapp/smiapp-reg.h
+>  create mode 100644 drivers/media/video/smiapp/smiapp-regs.c
+>  create mode 100644 drivers/media/video/smiapp/smiapp-regs.h
+>  create mode 100644 drivers/media/video/smiapp/smiapp.h
+>  create mode 100644 include/media/smiapp.h
+> 
+> 
+> 
+> Kind regards,
+> 
+
