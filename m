@@ -1,78 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:57068 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752834Ab2DROYy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Apr 2012 10:24:54 -0400
-Received: by eekc41 with SMTP id c41so1922212eek.19
-        for <linux-media@vger.kernel.org>; Wed, 18 Apr 2012 07:24:53 -0700 (PDT)
-Date: Wed, 18 Apr 2012 16:24:38 +0200
-From: Daniel Vetter <daniel@ffwll.ch>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>,
-	linaro-mm-sig@lists.linaro.org,
-	LKML <linux-kernel@vger.kernel.org>,
-	DRI Development <dri-devel@lists.freedesktop.org>,
-	linux-media@vger.kernel.org, Rob Clark <rob.clark@linaro.org>,
-	Rebecca Schultz Zavin <rebecca@android.com>
-Subject: Re: [PATCH] dma-buf: mmap support
-Message-ID: <20120418142438.GA20469@phenom.ffwll.local>
-References: <1334757146-28335-1-git-send-email-daniel.vetter@ffwll.ch>
- <201204181406.14159.arnd@arndb.de>
+Received: from smtp.nokia.com ([147.243.128.26]:39872 "EHLO mgw-da02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752021Ab2DJNoc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 Apr 2012 09:44:32 -0400
+Date: Tue, 10 Apr 2012 16:41:37 +0300 (EEST)
+From: Aaro Koskinen <aaro.koskinen@nokia.com>
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org, Ohad Ben-Cohen <ohad@wizery.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Russell King <linux@arm.linux.org.uk>,
+	Sandeep Patil <psandeep.s@gmail.com>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Jonathan Corbet <corbet@lwn.net>, Mel Gorman <mel@csn.ul.ie>,
+	Chunsang Jeong <chunsang.jeong@linaro.org>,
+	Michal Nazarewicz <mina86@mina86.com>,
+	Dave Hansen <dave@linux.vnet.ibm.com>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Rob Clark <rob.clark@linaro.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: Re: [PATCHv24 00/16] Contiguous Memory Allocator
+In-Reply-To: <1333462221-3987-1-git-send-email-m.szyprowski@samsung.com>
+Message-ID: <alpine.DEB.2.00.1204101528390.9354@kernel.research.nokia.com>
+References: <1333462221-3987-1-git-send-email-m.szyprowski@samsung.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <201204181406.14159.arnd@arndb.de>
+Content-Type: TEXT/PLAIN; format=flowed; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Apr 18, 2012 at 02:06:13PM +0000, Arnd Bergmann wrote:
-> On Wednesday 18 April 2012, Daniel Vetter wrote:
-> > +   Because existing importing subsystems might presume coherent mappings for
-> > +   userspace, the exporter needs to set up a coherent mapping. If that's not
-> > +   possible, it needs to fake coherency by manually shooting down ptes when
-> > +   leaving the cpu domain and flushing caches at fault time. Note that all the
-> > +   dma_buf files share the same anon inode, hence the exporter needs to replace
-> > +   the dma_buf file stored in vma->vm_file with it's own if pte shootdown is
-> > +   requred. This is because the kernel uses the underlying inode's address_space
-> > +   for vma tracking (and hence pte tracking at shootdown time with
-> > +   unmap_mapping_range).
-> > +
-> > +   If the above shootdown dance turns out to be too expensive in certain
-> > +   scenarios, we can extend dma-buf with a more explicit cache tracking scheme
-> > +   for userspace mappings. But the current assumption is that using mmap is
-> > +   always a slower path, so some inefficiencies should be acceptable.
-> > +
-> > +   Exporters that shoot down mappings (for any reasons) shall not do any
-> > +   synchronization at fault time with outstanding device operations.
-> > +   Synchronization is an orthogonal issue to sharing the backing storage of a
-> > +   buffer and hence should not be handled by dma-buf itself. This is explictly
-> > +   mentioned here because many people seem to want something like this, but if
-> > +   different exporters handle this differently, buffer sharing can fail in
-> > +   interesting ways depending upong the exporter (if userspace starts depending
-> > +   upon this implicit synchronization).
-> 
-> How do you ensure that no device can do DMA on the buffer while it's mapped
-> into user space in a noncoherent manner?
+Hi,
 
-We don't. Letting userspace shoot into it's foot is part of the interface.
-drm drivers and afaik also v4l has some explicit interfaces where
-userspace and the kernel can communicate who is allowed to stomp on a
-buffer (and sync up access with various degrees of sophistication).
-Userspace still needs to use this interfaces to ensure that any dma
-activity it wants to have completed is completed.
+On Tue, 3 Apr 2012, Marek Szyprowski wrote:
+> This is (yet another) update of CMA patches.
 
-To ensure coherency for userspace that does not try to get unnecessary
-holes in its feet, the exporter needs to zap all ptes pointing to a dma
-buf object and flush relevant parts of the cpu cache before device dma
-starts (signalled with dma_buf_map_sg from the importer atm, but we'll
-eventually grow streaming support I guess). On page fault time it has then
-to invalidate any cpu caches, so that userspace does not read stale data.
+How well CMA is supposed to work if you have mlocked processes? I've
+been testing these patches, and noticed that by creating a small mlocked
+process you start to get plenty of test_pages_isolated() failure warnings,
+and bigger allocations will always fail.
 
-Like I've said in the above blurb in the documentation, I think
-synchronization is an orthogonal issue to sharing memory.
--Daniel
--- 
-Daniel Vetter
-Mail: daniel@ffwll.ch
-Mobile: +41 (0)79 365 57 48
+A.
