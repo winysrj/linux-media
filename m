@@ -1,45 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pz0-f52.google.com ([209.85.210.52]:53543 "EHLO
-	mail-pz0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752465Ab2DOPxw (ORCPT
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:35352 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759242Ab2DJTyt convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Apr 2012 11:53:52 -0400
-Received: by mail-pz0-f52.google.com with SMTP id e40so5866938dak.11
-        for <linux-media@vger.kernel.org>; Sun, 15 Apr 2012 08:53:52 -0700 (PDT)
-Date: Sun, 15 Apr 2012 23:53:56 +0800
-From: "=?utf-8?B?bmliYmxlLm1heA==?=" <nibble.max@gmail.com>
-To: "=?utf-8?B?TWF1cm8gQ2FydmFsaG8gQ2hlaGFi?=" <mchehab@redhat.com>
-Cc: "=?utf-8?B?bGludXgtbWVkaWE=?=" <linux-media@vger.kernel.org>
-References: <1327228731.2540.3.camel@tvbox>,
- <4F2185A1.2000402@redhat.com>
-Subject: =?utf-8?B?W1BBVENIIDYvNl0gbTg4ZHMzMTAzLCBkdmJza3kgcmVtb3RlIGNvbnRyb2wgaW5jbHVkZSBoZWFkZXIgZmlsZS4=?=
-Message-ID: <201204152353536717686@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="utf-8"
-Content-Transfer-Encoding: 7bit
+	Tue, 10 Apr 2012 15:54:49 -0400
+Received: by iagz16 with SMTP id z16so198427iag.19
+        for <linux-media@vger.kernel.org>; Tue, 10 Apr 2012 12:54:48 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <jwv4nsrtlo8.fsf-monnier+gmane.linux.drivers.video-input-infrastructure@gnu.org>
+References: <jwv4nsyx9pr.fsf-monnier+gmane.linux.drivers.video-input-infrastructure@gnu.org>
+	<CAGoCfiwKU1doqvdcHFpVoc2xuRQKdQirWze0oB2QQyXSQcYrKw@mail.gmail.com>
+	<jwv1unvwrtn.fsf-monnier+gmane.linux.drivers.video-input-infrastructure@gnu.org>
+	<CAGoCfix+YHc3wPUvdwudqk5rAed09BroPX6wf-5N6BxXV5fV0Q@mail.gmail.com>
+	<jwv4nsrtlo8.fsf-monnier+gmane.linux.drivers.video-input-infrastructure@gnu.org>
+Date: Tue, 10 Apr 2012 15:54:48 -0400
+Message-ID: <CADnq5_MWUU3pjyR8+YqUJYmb-k8Knw_WVCjV0jWcsjsh1vXMEA@mail.gmail.com>
+Subject: Re: Unknown eMPIA tuner
+From: Alex Deucher <alexdeucher@gmail.com>
+To: Stefan Monnier <monnier@iro.umontreal.ca>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-dvbsky remote control include header file for pci/pcie card.
+On Tue, Apr 10, 2012 at 3:49 PM, Stefan Monnier
+<monnier@iro.umontreal.ca> wrote:
+>> Ok, so it's an em2874/drx-j/tda18271 design, which in terms of the
+>> components is very similar to the PCTV 80e (which I believe Mauro got
+>> into staging recently).  I would probably recommend looking at that
+>> code as a starting point.
+>
+> Any pointers to actual file names?
+>
+>> That said, you'll need to figure out the correct IF frequency, the
+>> drx-j configuration block, the GPIO layout, and the correct tuner
+>> config.  If those terms don't mean anything to you, then you are best
+>> to wait until some developer stumbles across the device and has the
+>> time to add the needed support.
+>
+> The words aren't meaningless to me, but not too far either.  Maybe if
+> someone could give me pointers as to how I could try to figure out the
+> corresponding info, I could give it a try.
 
-Signed-off-by: Max nibble <nibble.max@gmail.com>
----
- include/media/rc-map.h |    1 +
- 1 file changed, 1 insertion(+)
+Probably useful to start with the config from a similar card (lots of
+vendors use the same reference design) and see how much of it works
+then tweak from there until you get it fully working.
 
-diff --git a/include/media/rc-map.h b/include/media/rc-map.h
-index 8db6741..7176dac 100644
---- a/include/media/rc-map.h
-+++ b/include/media/rc-map.h
-@@ -85,6 +85,7 @@ void rc_map_init(void);
- #define RC_MAP_DM1105_NEC                "rc-dm1105-nec"
- #define RC_MAP_DNTV_LIVE_DVBT_PRO        "rc-dntv-live-dvbt-pro"
- #define RC_MAP_DNTV_LIVE_DVB_T           "rc-dntv-live-dvb-t"
-+#define RC_MAP_DVBSKY                    "rc-dvbsky"
- #define RC_MAP_EMPTY                     "rc-empty"
- #define RC_MAP_EM_TERRATEC               "rc-em-terratec"
- #define RC_MAP_ENCORE_ENLTV2             "rc-encore-enltv2"
--- 
-1.7.9.5
-
+Alex
