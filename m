@@ -1,86 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:49426 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750721Ab2DRSff (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Apr 2012 14:35:35 -0400
-Message-ID: <4F8F0975.10605@iki.fi>
-Date: Wed, 18 Apr 2012 21:35:33 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Thomas Mair <thomas.mair86@googlemail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: RTL28XX driver
-References: <CAKZ=SG-pmn2BtqB+ihY9H9bvYCZq-E3uBsSaioPF5SRceq9iDg@mail.gmail.com> <4F804CDC.3030306@gmail.com> <CAKZ=SG_=7U2QShzq+2HE8SVZvyRpG3rNTsDzwUaso=CG8tXOsg@mail.gmail.com> <4F85D787.2050403@iki.fi> <4F85F89A.80107@schinagl.nl> <4F85FE63.1030700@iki.fi> <4F86C66A.4010404@schinagl.nl> <CAKZ=SG8gHbnRGFrajp2=Op7x52UcMT_5CFM5wzgajKCXkggFtA@mail.gmail.com> <4F86CE09.3080601@schinagl.nl> <CAKZ=SG95OA3pOvxM6eypsNaBvzX1wfjPR4tucc8725bnhE3FEg@mail.gmail.com> <4F86D4B8.8060005@iki.fi> <CAKZ=SG8G8w1J_AF-bOCn2n8gcEogGPQ1rmp45wCtmwFgOUPifA@mail.gmail.com> <4F8EFD7B.2020901@iki.fi> <CAKZ=SG8=z6c4-n8wkMK1YmTzWs9rN9JrbM907+K+X0k4ampSJA@mail.gmail.com>
-In-Reply-To: <CAKZ=SG8=z6c4-n8wkMK1YmTzWs9rN9JrbM907+K+X0k4ampSJA@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:16881 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758724Ab2DJNKy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 Apr 2012 09:10:54 -0400
+Received: from euspt2 (mailout1.w1.samsung.com [210.118.77.11])
+ by mailout1.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0M2900LLSLWHV7@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 10 Apr 2012 14:09:54 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0M2900G9KLY1GU@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 10 Apr 2012 14:10:49 +0100 (BST)
+Date: Tue, 10 Apr 2012 15:10:44 +0200
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: [RFC 10/13] v4l: s5p-tv: mixer: support for dmabuf exporting
+In-reply-to: <1334063447-16824-1-git-send-email-t.stanislaws@samsung.com>
+To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
+Cc: airlied@redhat.com, m.szyprowski@samsung.com,
+	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
+	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
+	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
+	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
+	subashrp@gmail.com, mchehab@redhat.com
+Message-id: <1334063447-16824-11-git-send-email-t.stanislaws@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1334063447-16824-1-git-send-email-t.stanislaws@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The method should be selected based of knowledge if GPIO used for 
-controlling FC0012 tuner OR controlling some other part (LNA, anatenna 
-switch, etc.) So you have to identify meaning first. Look inside FC0012 
-driver to see if there is some mention about that GPIO.
+This patch enhances s5p-tv with support for DMABUF exporting via
+VIDIOC_EXPBUF ioctl.
 
-UNLESS we cannot identify meaning of GPIO, fe_ioctl_overrid must be used 
-(inside rtl28xxu driver). All unknown "hacks" must reside DVB-USB-driver 
-(in that case dvb_usb_rtl28xxu) leaving demodulator and tuner drivers clean.
+Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/video/s5p-tv/mixer_video.c |   10 ++++++++++
+ 1 files changed, 10 insertions(+), 0 deletions(-)
 
-regards
-Antti
-
-
-On 18.04.2012 21:20, Thomas Mair wrote:
-> I don't know what it really is either but the comments are the following.
->
-> if (frequency>  300000000)
-> {
-> 				
-> 	printk("  %s : Tuner :FC0012 V-band (GPIO6 high)\n", __FUNCTION__);		
-> }
-> else
-> {
-> 	printk("  %s : Tuner :FC0012 U-band (GPIO6 low)\n", __FUNCTION__);	
-> }
->
-> I looked into both mechanisms but can't really decide which one would
-> be the best one for this. What is the correct ioctl constant to listen
-> for or do I define an own constant? And how is the ioctl command
-> issued within the demod driver?
->
-> Thomas
->
-> 2012/4/18 Antti Palosaari<crope@iki.fi>:
->> On 18.04.2012 20:18, Thomas Mair wrote:
->>>
->>> I have been working on the driver over the past days and been making
->>> some progress. Right now I am stuck with a small problem that I have
->>> no idea how to deal with.
->>>
->>> It seems that the fc0012 tuner supports V-Band and U-Band. To switch
->>> between those modes a GPIO output value needs to be changed. In the
->>> original Realtek driver this is done at the beginning of the
->>> set_parameters callback. Is there a different callback that can be
->>> used for this or is it ok to write a RTL2832u register from the
->>> demodulator code?
->>
->>
->> Aah, I suspect it is antenna switch or LNA GPIO. You don't say what is
->> meaning of that GPIO...
->> If it is FC0012 input, which I think it is not, then you should use FE
->> callback (named as callback too) with  DVB_FRONTEND_COMPONENT_TUNER param.
->> But I suspect it is not issue.
->>
->> So lets introduce another solution. It is fe_ioctl_override. Use it.
->>
->> You will find good examples both cases using following GIT greps
->> git grep fe_ioctl_override drivers/media
->> git grep FRONTEND_COMPONENT
->>
->> Antti
->> --
->> http://palosaari.fi/
-
-
+diff --git a/drivers/media/video/s5p-tv/mixer_video.c b/drivers/media/video/s5p-tv/mixer_video.c
+index 6b45d93..f08edbf 100644
+--- a/drivers/media/video/s5p-tv/mixer_video.c
++++ b/drivers/media/video/s5p-tv/mixer_video.c
+@@ -697,6 +697,15 @@ static int mxr_dqbuf(struct file *file, void *priv, struct v4l2_buffer *p)
+ 	return vb2_dqbuf(&layer->vb_queue, p, file->f_flags & O_NONBLOCK);
+ }
+ 
++static int mxr_expbuf(struct file *file, void *priv,
++	struct v4l2_exportbuffer *eb)
++{
++	struct mxr_layer *layer = video_drvdata(file);
++
++	mxr_dbg(layer->mdev, "%s:%d\n", __func__, __LINE__);
++	return vb2_expbuf(&layer->vb_queue, eb);
++}
++
+ static int mxr_streamon(struct file *file, void *priv, enum v4l2_buf_type i)
+ {
+ 	struct mxr_layer *layer = video_drvdata(file);
+@@ -724,6 +733,7 @@ static const struct v4l2_ioctl_ops mxr_ioctl_ops = {
+ 	.vidioc_querybuf = mxr_querybuf,
+ 	.vidioc_qbuf = mxr_qbuf,
+ 	.vidioc_dqbuf = mxr_dqbuf,
++	.vidioc_expbuf = mxr_expbuf,
+ 	/* Streaming control */
+ 	.vidioc_streamon = mxr_streamon,
+ 	.vidioc_streamoff = mxr_streamoff,
 -- 
-http://palosaari.fi/
+1.7.5.4
+
