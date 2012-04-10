@@ -1,364 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:46436 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751263Ab2DRNvl (ORCPT
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:42487 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756128Ab2DJU0v (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Apr 2012 09:51:41 -0400
-Received: by eekc41 with SMTP id c41so1910828eek.19
-        for <linux-media@vger.kernel.org>; Wed, 18 Apr 2012 06:51:40 -0700 (PDT)
-From: Daniel Vetter <daniel.vetter@ffwll.ch>
-To: linaro-mm-sig@lists.linaro.org
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	DRI Development <dri-devel@lists.freedesktop.org>,
-	linux-media@vger.kernel.org,
-	Daniel Vetter <daniel.vetter@ffwll.ch>,
-	Rob Clark <rob.clark@linaro.org>,
-	Rebecca Schultz Zavin <rebecca@android.com>
-Subject: [PATCH] dma-buf: mmap support
-Date: Wed, 18 Apr 2012 15:52:26 +0200
-Message-Id: <1334757146-28335-1-git-send-email-daniel.vetter@ffwll.ch>
+	Tue, 10 Apr 2012 16:26:51 -0400
+Received: by bkcik5 with SMTP id ik5so151993bkc.19
+        for <linux-media@vger.kernel.org>; Tue, 10 Apr 2012 13:26:50 -0700 (PDT)
+Message-ID: <4F849787.6000503@gmail.com>
+Date: Tue, 10 Apr 2012 22:26:47 +0200
+From: Sylwester Nawrocki <snjw23@gmail.com>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Sakari Ailus <sakari.ailus@iki.fi>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	David Cohen <dacohen@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	tuukkat76@gmail.com, Kamil Debski <k.debski@samsung.com>,
+	Kim HeungJun <riverful@gmail.com>, teturtia@gmail.com,
+	pradeep.sawlani@gmail.com
+Subject: Re: [GIT PULL FOR v3.5] V4L2 subdev and sensor control changes and
+ SMIA++ driver
+References: <20120402162649.GE922@valkosipuli.localdomain> <4F8479E3.3040007@redhat.com>
+In-Reply-To: <4F8479E3.3040007@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Compared to Rob Clark's RFC I've ditched the prepare/finish hooks
-and corresponding ioctls on the dma_buf file. The major reason for
-that is that many people seem to be under the impression that this is
-also for synchronization with outstanding asynchronous processsing.
-I'm pretty massively opposed to this because:
+Hi Mauro,
 
-- It boils down reinventing a new rather general-purpose userspace
-  synchronization interface. If we look at things like futexes, this
-  is hard to get right.
-- Furthermore a lot of kernel code has to interact with this
-  synchronization primitive. This smells a look like the dri1 hw_lock,
-  a horror show I prefer not to reinvent.
-- Even more fun is that multiple different subsystems would interact
-  here, so we have plenty of opportunities to create funny deadlock
-  scenarios.
+On 04/10/2012 08:20 PM, Mauro Carvalho Chehab wrote:
+...
+>> The following changes since commit 296da3cd14db9eb5606924962b2956c9c656dbb0:
+>>
+>>    [media] pwc: poll(): Check that the device has not beem claimed for streaming already (2012-03-27 11:42:04 -0300)
+>>
+>> are available in the git repository at:
+>>    ssh://linuxtv.org/git/sailus/media_tree.git media-for-3.5
+>>
+>> Jesper Juhl (1):
+>>        adp1653: Remove unneeded include of version.h
+>>
+>> Laurent Pinchart (2):
+>>        omap3isp: Prevent pipelines that contain a crashed entity from starting
+>>        omap3isp: Fix frame number propagation
+>>
+>> Sakari Ailus (37):
+>>        v4l: Introduce integer menu controls
+>>        v4l: Document integer menu controls
+>>        vivi: Add an integer menu test control
+>>        v4l: VIDIOC_SUBDEV_S_SELECTION and VIDIOC_SUBDEV_G_SELECTION IOCTLs
+>>        v4l: vdev_to_v4l2_subdev() should have return type "struct v4l2_subdev *"
+>>        v4l: Check pad number in get try pointer functions
+>>        v4l: Support s_crop and g_crop through s/g_selection
+>>        v4l: Add subdev selections documentation: svg and dia files
+>>        v4l: Add subdev selections documentation
+> 
+> There's something wrong here:
+> 
+> Warning: multiple "IDs" for constraint linkend: vidioc-subdev-g-selection.
+> Warning: multiple "IDs" for constraint linkend: v4l2-subdev-selection-targets.
+> Warning: multiple "IDs" for constraint linkend: v4l2-subdev-selection-targets.
+> Warning: multiple "IDs" for constraint linkend: v4l2-subdev-selection-flags.
+> Warning: multiple "IDs" for constraint linkend: v4l2-subdev-selection.
+> No template for "/book/part/chapter/section/section/section/para" (or any of its leaves) exists in the context named "title" in the "en" localization.
+> No template for "/book/part/chapter/section/section/section/para" (or any of its leaves) exists in the context named "title" in the "en" localization.
+> Warning: multiple "IDs" for constraint linkend: v4l2-subdev-selection-flags.
+> Warning: multiple "IDs" for constraint linkend: vidioc-subdev-g-selection.
+> Warning: multiple "IDs" for constraint linkend: vidioc-subdev-g-selection.
+> Warning: multiple "IDs" for constraint linkend: vidioc-subdev-g-selection.
+> Warning: multiple "IDs" for constraint linkend: vidioc-subdev-g-selection.
+> Warning: multiple "IDs" for constraint linkend: v4l2-subdev-selection-targets.
+> Warning: multiple "IDs" for constraint linkend: v4l2-subdev-selection-flags.
+> Warning: multiple "IDs" for constraint linkend: v4l2-subdev-selection.
+> Error: no ID for constraint linkend: v4l2-jpeg-chroma-subsampling.
+> Error: no ID for constraint linkend: v4l2-jpeg-chroma-subsampling.
+> Warning: multiple "IDs" for constraint linkend: v4l2-subdev-selection.
+> 
+> The index will break if there are two places with the same ID's.
+> 
+> Sylvester,
+> 
+> Btw, you also did a similar mistake: you've added a symbol at the API called
+> v4l2_jpeg_chroma_subsampling, but you didn't create any reference for v4l2-jpeg-chroma-subsampling
+> at the DocBook. Instead, you've created a jpeg-chroma-subsampling-control ID,
+> not sure if it is for the same structure.
 
-I think synchronization is a wholesale different problem from data
-sharing and should be tackled as an orthogonal problem.
+Yeah, it's for same structure. 
+I remember having some issues with using IDs in the Docbook directly derived 
+from the enum names, and then trying to dereference a particular control 
+description in other Docbook chapter. 
+But that was due to using &foo-id; rather than <link linkend="foo-id">foo_name</link>
+and then I missed somehow to restore the required names.
 
-Now we could demand that prepare/finish may only ensure cache
-coherency (as Rob intended), but that runs up into the next problem:
-We not only need mmap support to facilitate sw-only processing nodes
-in a pipeline (without jumping through hoops by importing the dma_buf
-into some sw-access only importer), which allows for a nicer
-ION->dma-buf upgrade path for existing Android userspace. We also need
-mmap support for existing importing subsystems to support existing
-userspace libraries. And a loot of these subsystems are expected to
-export coherent userspace mappings.
+> Sakari/Sylvester,
+> 
+> The building system adds a link for each structure at the media header files
+> to the corresponding structures inside the DocBook. It also adds it to the
+> index.
+> 
+> You need to take care that they'll point to the right things when sending us
+> a DocBook patch.
 
-So prepare/finish can only ever be optional and the exporter /needs/
-to support coherent mappings. Given that mmap access is always
-somewhat fallback-y in nature I've decided to drop this optimization,
-instead of just making it optional. If we demonstrate a clear need for
-this, supported by benchmark results, we can always add it in again
-later as an optional extension.
+Yes, I noticed that already, a bit too late though, sorry about that. Here is 
+a patch that fixes the issue: http://patchwork.linuxtv.org/patch/10512
 
-Other differences compared to Rob's RFC is the above mentioned support
-for mapping a dma-buf through facilities provided by the importer.
-Which results in mmap support no longer being optional.
+However I'll shortly send an updated version, replacing 
+the jpeg-chroma-subsampling-control symbol directly with v4l2-jpeg-chroma-subsampling.
 
-Note that this dma-buf mmap patch does _not_ support every possible
-insanity an existing subsystem could pull of with mmap: Because it
-does not allow to intercept pagefaults and shoot down ptes importing
-subsystems can't add some magic of their own at these points (e.g. to
-automatically synchronize with outstanding rendering or set up some
-special resources). I've done a cursory read through a few mmap
-implementions of various subsytems and I'm hopeful that we can avoid
-this (and the complexity it'd bring with it).
+--
 
-Additonally I've extended the documentation a bit to explain the hows
-and whys of this mmap extension.
-
-In case we ever want to add support for explicitly cache maneged
-userspace mmap with a prepare/finish ioctl pair, we could specify that
-userspace needs to mmap a different part of the dma_buf, e.g. the
-range starting at dma_buf->size up to dma_buf->size*2. This works
-because the size of a dma_buf is invariant over it's lifetime. The
-exporter would obviously need to fall back to coherent mappings for
-both ranges if a legacy clients maps the coherent range and the
-architecture cannot suppor conflicting caching policies. Also, this
-would obviously be optional and userspace needs to be able to fall
-back to coherent mappings.
-
-v2:
-- Spelling fixes from Rob Clark.
-- Compile fix for !DMA_BUF from Rob Clark.
-- Extend commit message to explain how explicitly cache managed mmap
-  support could be added later.
-- Extend the documentation with implementations notes for exporters
-  that need to manually fake coherency.
-
-Cc: Rob Clark <rob.clark@linaro.org>
-Cc: Rebecca Schultz Zavin <rebecca@android.com>
-Signed-Off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
----
- Documentation/dma-buf-sharing.txt |   98 ++++++++++++++++++++++++++++++++++---
- drivers/base/dma-buf.c            |   64 +++++++++++++++++++++++-
- include/linux/dma-buf.h           |   16 ++++++
- 3 files changed, 170 insertions(+), 8 deletions(-)
-
-diff --git a/Documentation/dma-buf-sharing.txt b/Documentation/dma-buf-sharing.txt
-index 3bbd5c5..5ff4d2b 100644
---- a/Documentation/dma-buf-sharing.txt
-+++ b/Documentation/dma-buf-sharing.txt
-@@ -29,13 +29,6 @@ The buffer-user
-    in memory, mapped into its own address space, so it can access the same area
-    of memory.
- 
--*IMPORTANT*: [see https://lkml.org/lkml/2011/12/20/211 for more details]
--For this first version, A buffer shared using the dma_buf sharing API:
--- *may* be exported to user space using "mmap" *ONLY* by exporter, outside of
--  this framework.
--- with this new iteration of the dma-buf api cpu access from the kernel has been
--  enable, see below for the details.
--
- dma-buf operations for device dma only
- --------------------------------------
- 
-@@ -313,6 +306,83 @@ Access to a dma_buf from the kernel context involves three steps:
- 				  enum dma_data_direction dir);
- 
- 
-+Direct Userspace Access/mmap Support
-+------------------------------------
-+
-+Being able to mmap an export dma-buf buffer object has 2 main use-cases:
-+- CPU fallback processing in a pipeline and
-+- supporting existing mmap interfaces in importers.
-+
-+1. CPU fallback processing in a pipeline
-+
-+   In many processing pipelines it is sometimes required that the cpu can access
-+   the data in a dma-buf (e.g. for thumbnail creation, snapshots, ...). To avoid
-+   the need to handle this specially in userspace frameworks for buffer sharing
-+   it's ideal if the dma_buf fd itself can be used to access the backing storage
-+   from userspace using mmap.
-+
-+   Furthermore Android's ION framework already supports this (and is otherwise
-+   rather similar to dma-buf from a userspace consumer side with using fds as
-+   handles, too). So it's beneficial to support this in a similar fashion on
-+   dma-buf to have a good transition path for existing Android userspace.
-+
-+   No special interfaces, userspace simply calls mmap on the dma-buf fd.
-+
-+2. Supporting existing mmap interfaces in exporters
-+
-+   Similar to the motivation for kernel cpu access it is again important that
-+   the userspace code of a given importing subsystem can use the same interfaces
-+   with a imported dma-buf buffer object as with a native buffer object. This is
-+   especially important for drm where the userspace part of contemporary OpenGL,
-+   X, and other drivers is huge, and reworking them to use a different way to
-+   mmap a buffer rather invasive.
-+
-+   The assumption in the current dma-buf interfaces is that redirecting the
-+   initial mmap is all that's needed. A survey of some of the existing
-+   subsystems shows that no driver seems to do any nefarious thing like syncing
-+   up with outstanding asynchronous processing on the device or allocating
-+   special resources at fault time. So hopefully this is good enough, since
-+   adding interfaces to intercept pagefaults and allow pte shootdowns would
-+   increase the complexity quite a bit.
-+
-+   Interface:
-+      int dma_buf_mmap(struct dma_buf *, struct vm_area_struct *,
-+		       unsigned long);
-+
-+   If the importing subsystem simply provides a special-purpose mmap call to set
-+   up a mapping in userspace, calling do_mmap with dma_buf->file will equally
-+   achieve that for a dma-buf object.
-+
-+3. Implementation notes for exporters
-+
-+   Because dma-buf buffers have invariant size over their lifetime, the dma-buf
-+   core checks whether a vma is too large and rejects such mappings. The
-+   exporter hence does not need to duplicate this check.
-+
-+   Because existing importing subsystems might presume coherent mappings for
-+   userspace, the exporter needs to set up a coherent mapping. If that's not
-+   possible, it needs to fake coherency by manually shooting down ptes when
-+   leaving the cpu domain and flushing caches at fault time. Note that all the
-+   dma_buf files share the same anon inode, hence the exporter needs to replace
-+   the dma_buf file stored in vma->vm_file with it's own if pte shootdown is
-+   requred. This is because the kernel uses the underlying inode's address_space
-+   for vma tracking (and hence pte tracking at shootdown time with
-+   unmap_mapping_range).
-+
-+   If the above shootdown dance turns out to be too expensive in certain
-+   scenarios, we can extend dma-buf with a more explicit cache tracking scheme
-+   for userspace mappings. But the current assumption is that using mmap is
-+   always a slower path, so some inefficiencies should be acceptable.
-+
-+   Exporters that shoot down mappings (for any reasons) shall not do any
-+   synchronization at fault time with outstanding device operations.
-+   Synchronization is an orthogonal issue to sharing the backing storage of a
-+   buffer and hence should not be handled by dma-buf itself. This is explictly
-+   mentioned here because many people seem to want something like this, but if
-+   different exporters handle this differently, buffer sharing can fail in
-+   interesting ways depending upong the exporter (if userspace starts depending
-+   upon this implicit synchronization).
-+
- Miscellaneous notes
- -------------------
- 
-@@ -336,6 +406,20 @@ Miscellaneous notes
-   the exporting driver to create a dmabuf fd must provide a way to let
-   userspace control setting of O_CLOEXEC flag passed in to dma_buf_fd().
- 
-+- If an exporter needs to manually flush caches and hence needs to fake
-+  coherency for mmap support, it needs to be able to zap all the ptes pointing
-+  at the backing storage. Now linux mm needs a struct address_space associated
-+  with the struct file stored in vma->vm_file to do that with the function
-+  unmap_mapping_range. But the dma_buf framework only backs every dma_buf fd
-+  with the anon_file struct file, i.e. all dma_bufs share the same file.
-+
-+  Hence exporters need to setup their own file (and address_space) association
-+  by setting vma->vm_file and adjusting vma->vm_pgoff in the dma_buf mmap
-+  callback. In the specific case of a gem driver the exporter could use the
-+  shmem file already provided by gem (and set vm_pgoff = 0). Exporters can then
-+  zap ptes by unmapping the corresponding range of the struct address_space
-+  associated with their own file.
-+
- References:
- [1] struct dma_buf_ops in include/linux/dma-buf.h
- [2] All interfaces mentioned above defined in include/linux/dma-buf.h
-diff --git a/drivers/base/dma-buf.c b/drivers/base/dma-buf.c
-index 07cbbc6..8a573b9 100644
---- a/drivers/base/dma-buf.c
-+++ b/drivers/base/dma-buf.c
-@@ -44,8 +44,26 @@ static int dma_buf_release(struct inode *inode, struct file *file)
- 	return 0;
- }
- 
-+static int dma_buf_mmap_internal(struct file *file, struct vm_area_struct *vma)
-+{
-+	struct dma_buf *dmabuf;
-+
-+	if (!is_dma_buf_file(file))
-+		return -EINVAL;
-+
-+	/* check for overflowing the buffer's size */
-+	if (vma->vm_pgoff + ((vma->vm_end - vma->vm_start) >> PAGE_SHIFT) >
-+	    dmabuf->size >> PAGE_SHIFT)
-+		return -EINVAL;
-+
-+	dmabuf = file->private_data;
-+
-+	return dmabuf->ops->mmap(dmabuf, vma);
-+}
-+
- static const struct file_operations dma_buf_fops = {
- 	.release	= dma_buf_release,
-+	.mmap		= dma_buf_mmap_internal,
- };
- 
- /*
-@@ -82,7 +100,8 @@ struct dma_buf *dma_buf_export(void *priv, const struct dma_buf_ops *ops,
- 			  || !ops->unmap_dma_buf
- 			  || !ops->release
- 			  || !ops->kmap_atomic
--			  || !ops->kmap)) {
-+			  || !ops->kmap
-+			  || !ops->mmap)) {
- 		return ERR_PTR(-EINVAL);
- 	}
- 
-@@ -406,3 +425,46 @@ void dma_buf_kunmap(struct dma_buf *dmabuf, unsigned long page_num,
- 		dmabuf->ops->kunmap(dmabuf, page_num, vaddr);
- }
- EXPORT_SYMBOL_GPL(dma_buf_kunmap);
-+
-+
-+/**
-+ * dma_buf_mmap - Setup up a userspace mmap with the given vma
-+ * @dma_buf:	[in]	buffer that should back the vma
-+ * @vma:	[in]	vma for the mmap
-+ * @pgoff:	[in]	offset in pages where this mmap should start within the
-+ * 			dma-buf buffer.
-+ *
-+ * This function adjusts the passed in vma so that it points at the file of the
-+ * dma_buf operation. It alsog adjusts the starting pgoff and does bounds
-+ * checking on the size of the vma. Then it calls the exporters mmap function to
-+ * set up the mapping.
-+ *
-+ * Can return negative error values, returns 0 on success.
-+ */
-+int dma_buf_mmap(struct dma_buf *dmabuf, struct vm_area_struct *vma,
-+		 unsigned long pgoff)
-+{
-+	if (WARN_ON(!dmabuf || !vma))
-+		return -EINVAL;
-+
-+	/* check for offset overflow */
-+	if (pgoff + ((vma->vm_end - vma->vm_start) >> PAGE_SHIFT) < pgoff)
-+		return -EOVERFLOW;
-+
-+	/* check for overflowing the buffer's size */
-+	if (pgoff + ((vma->vm_end - vma->vm_start) >> PAGE_SHIFT) >
-+	    dmabuf->size >> PAGE_SHIFT)
-+		return -EINVAL;
-+
-+	/* readjust the vma */
-+	if (vma->vm_file)
-+		fput(vma->vm_file);
-+
-+	vma->vm_file = dmabuf->file;
-+	get_file(vma->vm_file);
-+
-+	vma->vm_pgoff = pgoff;
-+
-+	return dmabuf->ops->mmap(dmabuf, vma);
-+}
-+EXPORT_SYMBOL_GPL(dma_buf_mmap);
-diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
-index 3efbfc2..1f78d15 100644
---- a/include/linux/dma-buf.h
-+++ b/include/linux/dma-buf.h
-@@ -61,6 +61,10 @@ struct dma_buf_attachment;
-  * 		   This Callback must not sleep.
-  * @kmap: maps a page from the buffer into kernel address space.
-  * @kunmap: [optional] unmaps a page from the buffer.
-+ * @mmap: used to expose the backing storage to userspace. Note that the
-+ * 	  mapping needs to be coherent - if the exporter doesn't directly
-+ * 	  support this, it needs to fake coherency by shooting down any ptes
-+ * 	  when transitioning away from the cpu domain.
-  */
- struct dma_buf_ops {
- 	int (*attach)(struct dma_buf *, struct device *,
-@@ -92,6 +96,8 @@ struct dma_buf_ops {
- 	void (*kunmap_atomic)(struct dma_buf *, unsigned long, void *);
- 	void *(*kmap)(struct dma_buf *, unsigned long);
- 	void (*kunmap)(struct dma_buf *, unsigned long, void *);
-+
-+	int (*mmap)(struct dma_buf *, struct vm_area_struct *vma);
- };
- 
- /**
-@@ -167,6 +173,9 @@ void *dma_buf_kmap_atomic(struct dma_buf *, unsigned long);
- void dma_buf_kunmap_atomic(struct dma_buf *, unsigned long, void *);
- void *dma_buf_kmap(struct dma_buf *, unsigned long);
- void dma_buf_kunmap(struct dma_buf *, unsigned long, void *);
-+
-+int dma_buf_mmap(struct dma_buf *, struct vm_area_struct *,
-+		 unsigned long);
- #else
- 
- static inline struct dma_buf_attachment *dma_buf_attach(struct dma_buf *dmabuf,
-@@ -248,6 +257,13 @@ static inline void dma_buf_kunmap(struct dma_buf *dmabuf,
- 				  unsigned long pnum, void *vaddr)
- {
- }
-+
-+static inline int dma_buf_mmap(struct dma_buf *dmabuf,
-+			       struct vm_area_struct *vma,
-+			       unsigned long pgoff)
-+{
-+	return -ENODEV;
-+}
- #endif /* CONFIG_DMA_SHARED_BUFFER */
- 
- #endif /* __DMA_BUF_H__ */
--- 
-1.7.10
-
+Regards
+Sylwester
