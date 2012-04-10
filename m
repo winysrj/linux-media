@@ -1,93 +1,144 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:34175 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752088Ab2DVQBA (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:17798 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758723Ab2DJNKy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 22 Apr 2012 12:01:00 -0400
-Received: by bkcik5 with SMTP id ik5so8055590bkc.19
-        for <linux-media@vger.kernel.org>; Sun, 22 Apr 2012 09:00:59 -0700 (PDT)
-Message-ID: <4F942B31.7050500@gmail.com>
-Date: Sun, 22 Apr 2012 18:00:49 +0200
-From: Sylwester Nawrocki <snjw23@gmail.com>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	=?UTF-8?B?UsOpbWkgRGVuaXM=?= =?UTF-8?B?LUNvdXJtb250?=
-	<remi@remlab.net>, laurent.pinchart@ideasonboard.com,
-	sakari.ailus@iki.fi, g.liakhovetski@gmx.de, hdegoede@redhat.com,
-	moinejf@free.fr, m.szyprowski@samsung.com,
-	riverful.kim@samsung.com, sw0312.kim@samsung.com,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: Re: [PATCH 01/15] V4L: Extend V4L2_CID_COLORFX with more image effects
-References: <1334657396-5737-1-git-send-email-s.nawrocki@samsung.com> <1334657396-5737-2-git-send-email-s.nawrocki@samsung.com> <3eb7475de1e1ce7d7a1dcae7dd11d13c@chewa.net> <4F8D53F7.1050603@samsung.com>
-In-Reply-To: <4F8D53F7.1050603@samsung.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+	Tue, 10 Apr 2012 09:10:54 -0400
+Received: from euspt2 (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0M29008RKLXYH0@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 10 Apr 2012 14:10:47 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0M2900MKDLY0QL@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 10 Apr 2012 14:10:48 +0100 (BST)
+Date: Tue, 10 Apr 2012 15:10:36 +0200
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: [RFC 02/13] v4l: vb2: add buffer exporting via dmabuf
+In-reply-to: <1334063447-16824-1-git-send-email-t.stanislaws@samsung.com>
+To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
+Cc: airlied@redhat.com, m.szyprowski@samsung.com,
+	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
+	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
+	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
+	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
+	subashrp@gmail.com, mchehab@redhat.com
+Message-id: <1334063447-16824-3-git-send-email-t.stanislaws@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1334063447-16824-1-git-send-email-t.stanislaws@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/17/2012 01:28 PM, Sylwester Nawrocki wrote:
-> On 04/17/2012 12:51 PM, Rémi Denis-Courmont wrote:
->> On Tue, 17 Apr 2012 12:09:42 +0200, Sylwester Nawrocki
->> <s.nawrocki@samsung.com>  wrote:
->>> This patch adds definition of additional color effects:
->>>   - V4L2_COLORFX_AQUA,
->>>   - V4L2_COLORFX_ART_FREEZE,
->>>   - V4L2_COLORFX_SILHOUETTE,
->>>   - V4L2_COLORFX_SOLARIZATION,
->>>   - V4L2_COLORFX_ANTIQUE,
->>
->> There starts to be a lot of different color effects with no obvious way to
->> determine which ones the current device actually suppots. Should this not
->> be a menu control instead?
-> 
-> Fortunately this has been a menu control, since it was introduced. Only
-> the DocBook erroneously defined it as an enum. This patch also fixes that,
-> please see the DocBook part.
-> 
->>>   - V4L2_COLORFX_ARBITRARY.
->>>
->>> The control's type in the documentation is changed from 'enum' to 'menu'
->>> - V4L2_CID_COLORFX has always been a menu, not an integer type control.
->>>
->>> The V4L2_COLORFX_ARBITRARY option enables custom color effects, which
->> are
->>> impossible or impractical to define as the menu items. For example, the
->>> devices may provide coefficients for Cb and Cr manipulation, which yield
->>> many permutations, e.g. many slightly different color tints. Such
->> devices
->>> are better exporting their own API for precise control of non-standard
->>> color effects.
->>
->> I don't understand why you need a number for this, if it's going to use
->> another control anyway... ?
-> 
-> In my use case, the hardware has 3 registers: one of them selects the colour
-> effect and two others determine Cr, Cb coefficients (probably I could use
-> V4L2_CID_RED_BALANCE, V4L2_CID_BLUE_BALANCE for that, but so far these are
-> just private controls).
-> 
-> If I would have removed the V4L2_COLORFX_ARBITRARY item, another control
-> would have to be added (let's say boolean V4L2_PRIV_IMG_EFFECT). Just to
-> enable the "arbitrary" effect.
-> 
-> Then, to enable the arbitrary effect V4L2_CID_COLORFX would have to be set
-> to V4L2_COLORFX_NONE, and V4L2_PRIV_IMG_EFFECT to true.
-> 
-> The CB, CR coefficients are meaningful only when the arbitrary effect is
-> selected. So having another option in the menu, which drivers can just mask
-> if they don't support it, appeared better to me.
-> 
-> It's a bit similar to gain/autogain scenario, where gain is active only when
-> autogain is off.
-> Maybe I should just add another private control (V4L2_PRIV_IMG_EFFECT) and
-> remove V4L2_COLORFX_ARBITRARY item.
+This patch adds extension to videobuf2-core. It allow to export a mmap buffer
+as a file descriptor.
 
-Instead of an imprecise V4L2_COLORFX_ARBITRARY, I'm considering adding 
-V4L2_COLORFX_CHROMA_BALANCE item and document that it should be used together 
-with V4L2_CID_RED_BALANCE and V4L2_CID_BLUE_BALANCE controls. Would something 
-like this be acceptable ? I'd like to avoid (many) private controls if possible.
-
+Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
-Regards,
-Sylwester
+ drivers/media/video/videobuf2-core.c |   66 ++++++++++++++++++++++++++++++++++
+ include/media/videobuf2-core.h       |    2 +
+ 2 files changed, 68 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/media/video/videobuf2-core.c b/drivers/media/video/videobuf2-core.c
+index b37feea..ff902aa 100644
+--- a/drivers/media/video/videobuf2-core.c
++++ b/drivers/media/video/videobuf2-core.c
+@@ -1710,6 +1710,72 @@ static int __find_plane_by_offset(struct vb2_queue *q, unsigned long off,
+ }
+ 
+ /**
++ * vb2_expbuf() - Export a buffer as a file descriptor
++ * @q:		videobuf2 queue
++ * @b:		export buffer structure passed from userspace to vidioc_expbuf
++ *		handler in driver
++ *
++ * The return values from this function are intended to be directly returned
++ * from vidioc_expbuf handler in driver.
++ */
++int vb2_expbuf(struct vb2_queue *q, struct v4l2_exportbuffer *eb)
++{
++	struct vb2_buffer *vb = NULL;
++	struct vb2_plane *vb_plane;
++	unsigned int buffer, plane;
++	int ret;
++	struct dma_buf *dbuf;
++
++	if (q->memory != V4L2_MEMORY_MMAP) {
++		dprintk(1, "Queue is not currently set up for mmap\n");
++		return -EINVAL;
++	}
++
++	if (!q->mem_ops->get_dmabuf) {
++		dprintk(1, "Queue does not support DMA buffer exporting\n");
++		return -EINVAL;
++	}
++
++	if (eb->flags & ~O_CLOEXEC) {
++		dprintk(1, "Queue supports only O_CLOEXEC flag\n");
++		return -EINVAL;
++	}
++
++	/*
++	 * Find the plane corresponding to the offset passed by userspace.
++	 */
++	ret = __find_plane_by_offset(q, eb->mem_offset, &buffer, &plane);
++	if (ret) {
++		dprintk(1, "invalid offset %u\n", eb->mem_offset);
++		return ret;
++	}
++
++	vb = q->bufs[buffer];
++	vb_plane = &vb->planes[plane];
++
++	dbuf = call_memop(q, get_dmabuf, vb_plane->mem_priv);
++	if (IS_ERR_OR_NULL(dbuf)) {
++		dprintk(1, "Failed to export buffer %d, plane %d\n",
++			buffer, plane);
++		return -EINVAL;
++	}
++
++	ret = dma_buf_fd(dbuf, eb->flags);
++	if (ret < 0) {
++		dprintk(3, "buffer %d, plane %d failed to export (%d)\n",
++			buffer, plane, ret);
++		return ret;
++	}
++
++	dprintk(3, "buffer %d, plane %d exported as %d descriptor\n",
++		buffer, plane, ret);
++	eb->fd = ret;
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(vb2_expbuf);
++
++/**
+  * vb2_mmap() - map video buffers into application address space
+  * @q:		videobuf2 queue
+  * @vma:	vma passed to the mmap file operation handler in the driver
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index 244165a..3bd4225 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -81,6 +81,7 @@ struct vb2_fileio_data;
+ struct vb2_mem_ops {
+ 	void		*(*alloc)(void *alloc_ctx, unsigned long size);
+ 	void		(*put)(void *buf_priv);
++	struct dma_buf *(*get_dmabuf)(void *buf_priv);
+ 
+ 	void		*(*get_userptr)(void *alloc_ctx, unsigned long vaddr,
+ 					unsigned long size, int write);
+@@ -354,6 +355,7 @@ int vb2_queue_init(struct vb2_queue *q);
+ void vb2_queue_release(struct vb2_queue *q);
+ 
+ int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b);
++int vb2_expbuf(struct vb2_queue *q, struct v4l2_exportbuffer *eb);
+ int vb2_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b, bool nonblocking);
+ 
+ int vb2_streamon(struct vb2_queue *q, enum v4l2_buf_type type);
+-- 
+1.7.5.4
+
