@@ -1,78 +1,155 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:13350 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:43322 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753049Ab2DGO57 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 7 Apr 2012 10:57:59 -0400
-Message-ID: <4F8056BD.10305@redhat.com>
-Date: Sat, 07 Apr 2012 17:01:17 +0200
-From: Hans de Goede <hdegoede@redhat.com>
+	id S1759641Ab2DJXCV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 Apr 2012 19:02:21 -0400
+Message-ID: <4F84BBF0.2070208@redhat.com>
+Date: Tue, 10 Apr 2012 20:02:08 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: Jean-Francois Moine <moinejf@free.fr>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH] tinyjpeg: Better luminance quantization table for Pixart
- JPEG
-References: <20120323201945.39f26d98@tele>
-In-Reply-To: <20120323201945.39f26d98@tele>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH] [media] Convert I2C drivers to dev_pm_ops
+References: <1332448493-31828-1-git-send-email-broonie@opensource.wolfsonmicro.com>
+In-Reply-To: <1332448493-31828-1-git-send-email-broonie@opensource.wolfsonmicro.com>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Em 22-03-2012 17:34, Mark Brown escreveu:
+> The legacy I2C PM functions have been deprecated and warning on boot
+> for over a year, convert the drivers still using them to dev_pm_ops.
+> 
+> Signed-off-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
 
-Thanks for the patch, I've pushed it to v4l-utils master and I will
-cherry-pick it into the stable-0.8 branch after this mail.
-
-I noticed while testing with a pac7302 camera, that under certain
-circumstances the jpeg decompression still goes wrong. When you
-point the camera at a high contrast picture in proper daylight,
-it switches to a higher compression for certain areas of the picture,
-and these areas become quite "blockey" when this happens the marker
-changes to a different value. I think we should use a different
-quant. table when this happens. It would be great if you can reproduce
-this and find out a way to make the image less blocky in these
-cases.
-
-Thanks & Regards,
-
-Hans
+Em 22-03-2012 17:39, Mark Brown escreveu:
+> On Thu, Mar 22, 2012 at 08:34:53PM +0000, Mark Brown wrote:
+> 
+>> +		.pm	= msp3400_pm_ops,
+> 
+> Gah, missing &s - will resend tomorrow.
 
 
-On 03/23/2012 08:19 PM, Jean-Francois Moine wrote:
-> An other luminance quantization table gives a better quality to the
-> Pixart images created by the webcams handled by the gspca drivers
-> pac7302 and pac7311 (pixel format 'PJPG').
->
-> Tests have been done with 5 different pac7302 webcams. The marker was
-> always 0x44.
->
-> Signed-off-by: Jean-Fran√ßois Moine<moinejf@free.fr>
->
-> diff --git a/lib/libv4lconvert/tinyjpeg.c b/lib/libv4lconvert/tinyjpeg.c
-> index e308f63..687e69c 100644
-> --- a/lib/libv4lconvert/tinyjpeg.c
-> +++ b/lib/libv4lconvert/tinyjpeg.c
-> @@ -206,14 +206,14 @@ static const unsigned char val_ac_chrominance[] = {
->   };
->
->   const unsigned char pixart_quantization[][64] = { {
-> -		0x07, 0x07, 0x08, 0x0a, 0x09, 0x07, 0x0d, 0x0b,
-> -		0x0c, 0x0d, 0x11, 0x10, 0x0f, 0x12, 0x17, 0x27,
-> -		0x1a, 0x18, 0x16, 0x16, 0x18, 0x31, 0x23, 0x25,
-> -		0x1d, 0x28, 0x3a, 0x33, 0x3d, 0x3c, 0x39, 0x33,
-> -		0x38, 0x37, 0x40, 0x48, 0x5c, 0x4e, 0x40, 0x44,
-> -		0x57, 0x45, 0x37, 0x38, 0x50, 0x6d, 0x51, 0x57,
-> -		0x5f, 0x62, 0x67, 0x68, 0x67, 0x3e, 0x4d, 0x71,
-> -		0x79, 0x70, 0x64, 0x78, 0x5c, 0x65, 0x67, 0x63,
-> +		0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x10, 0x10,
-> +		0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10,
-> +		0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10,
-> +		0x10, 0x10, 0x10, 0x10, 0x20, 0x20, 0x20, 0x20,
-> +		0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20,
-> +		0x20, 0x20, 0x20, 0x40, 0x40, 0x40, 0x40, 0x40,
-> +		0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40,
-> +		0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40, 0x40,
->   	},
->   	{
->   		0x11, 0x12, 0x12, 0x18, 0x15, 0x18, 0x2f, 0x1a,
->
+It is not just the missing & at msp3400:
+
+drivers/media/video/msp3400-driver.c:869:2: error: ëmsp3400_suspendí undeclared here (not in a function)
+drivers/media/video/msp3400-driver.c:869:2: error: ëmsp3400_resumeí undeclared here (not in a function)
+drivers/media/video/msp3400-driver.c:882:3: error: initializer element is not constant
+drivers/media/video/msp3400-driver.c:882:3: error: (near initialization for ëmsp_driver.driver.pmí)
+drivers/media/video/msp3400-driver.c:600:12: warning: ëmsp_suspendí defined but not used [-Wunused-function]
+drivers/media/video/msp3400-driver.c:608:12: warning: ëmsp_resumeí defined but not used [-Wunused-function]
+drivers/media/video/tuner-core.c:1329:3: error: initializer element is not constant
+drivers/media/video/tuner-core.c:1329:3: error: (near initialization for ëtuner_driver.driver.pmí)
+
+Please fix and re-send it.
+
+Thanks!
+mauro
+
+> ---
+>  drivers/media/video/msp3400-driver.c |   13 +++++++++----
+>  drivers/media/video/tuner-core.c     |   13 +++++++++----
+>  2 files changed, 18 insertions(+), 8 deletions(-)
+> 
+> diff --git a/drivers/media/video/msp3400-driver.c b/drivers/media/video/msp3400-driver.c
+> index 82ce507..0a55317 100644
+> --- a/drivers/media/video/msp3400-driver.c
+> +++ b/drivers/media/video/msp3400-driver.c
+> @@ -597,15 +597,17 @@ static int msp_log_status(struct v4l2_subdev *sd)
+>  	return 0;
+>  }
+>  
+> -static int msp_suspend(struct i2c_client *client, pm_message_t state)
+> +static int msp_suspend(struct device *dev)
+>  {
+> +	struct i2c_client *client = to_i2c_client(dev);
+>  	v4l_dbg(1, msp_debug, client, "suspend\n");
+>  	msp_reset(client);
+>  	return 0;
+>  }
+>  
+> -static int msp_resume(struct i2c_client *client)
+> +static int msp_resume(struct device *dev)
+>  {
+> +	struct i2c_client *client = to_i2c_client(dev);
+>  	v4l_dbg(1, msp_debug, client, "resume\n");
+>  	msp_wake_thread(client);
+>  	return 0;
+> @@ -863,6 +865,10 @@ static int msp_remove(struct i2c_client *client)
+>  
+>  /* ----------------------------------------------------------------------- */
+>  
+> +static const struct dev_pm_ops msp3400_pm_ops = {
+> +	SET_SYSTEM_SLEEP_PM_OPS(msp3400_suspend, msp3400_resume)
+> +};
+> +
+>  static const struct i2c_device_id msp_id[] = {
+>  	{ "msp3400", 0 },
+>  	{ }
+> @@ -873,11 +879,10 @@ static struct i2c_driver msp_driver = {
+>  	.driver = {
+>  		.owner	= THIS_MODULE,
+>  		.name	= "msp3400",
+> +		.pm	= msp3400_pm_ops,
+>  	},
+>  	.probe		= msp_probe,
+>  	.remove		= msp_remove,
+> -	.suspend	= msp_suspend,
+> -	.resume		= msp_resume,
+>  	.id_table	= msp_id,
+>  };
+>  
+> diff --git a/drivers/media/video/tuner-core.c b/drivers/media/video/tuner-core.c
+> index a5c6397..d3de74f 100644
+> --- a/drivers/media/video/tuner-core.c
+> +++ b/drivers/media/video/tuner-core.c
+> @@ -1241,8 +1241,9 @@ static int tuner_log_status(struct v4l2_subdev *sd)
+>  	return 0;
+>  }
+>  
+> -static int tuner_suspend(struct i2c_client *c, pm_message_t state)
+> +static int tuner_suspend(struct device *dev)
+>  {
+> +	struct i2c_client *c = to_i2c_client(dev);
+>  	struct tuner *t = to_tuner(i2c_get_clientdata(c));
+>  	struct analog_demod_ops *analog_ops = &t->fe.ops.analog_ops;
+>  
+> @@ -1254,8 +1255,9 @@ static int tuner_suspend(struct i2c_client *c, pm_message_t state)
+>  	return 0;
+>  }
+>  
+> -static int tuner_resume(struct i2c_client *c)
+> +static int tuner_resume(struct device *dev)
+>  {
+> +	struct i2c_client *c = to_i2c_client(dev);
+>  	struct tuner *t = to_tuner(i2c_get_clientdata(c));
+>  
+>  	tuner_dbg("resume\n");
+> @@ -1310,6 +1312,10 @@ static const struct v4l2_subdev_ops tuner_ops = {
+>   * I2C structs and module init functions
+>   */
+>  
+> +static const struct dev_pm_ops tuner_pm_ops = {
+> +	SET_SYSTEM_SLEEP_PM_OPS(tuner_suspend, tuner_resume)
+> +};
+> +
+>  static const struct i2c_device_id tuner_id[] = {
+>  	{ "tuner", }, /* autodetect */
+>  	{ }
+> @@ -1320,12 +1326,11 @@ static struct i2c_driver tuner_driver = {
+>  	.driver = {
+>  		.owner	= THIS_MODULE,
+>  		.name	= "tuner",
+> +		.pm	= tuner_pm_ops,
+>  	},
+>  	.probe		= tuner_probe,
+>  	.remove		= tuner_remove,
+>  	.command	= tuner_command,
+> -	.suspend	= tuner_suspend,
+> -	.resume		= tuner_resume,
+>  	.id_table	= tuner_id,
+>  };
+>  
+
