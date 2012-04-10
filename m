@@ -1,109 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-2.cisco.com ([144.254.224.141]:15351 "EHLO
-	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753534Ab2D3PUq (ORCPT
+Received: from mail-pz0-f52.google.com ([209.85.210.52]:34783 "EHLO
+	mail-pz0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753585Ab2DJXKn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Apr 2012 11:20:46 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [PATCH/RFC v3 01/14] V4L: Add helper function for standard integer menu controls
-Date: Mon, 30 Apr 2012 17:20:34 +0200
-Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	sakari.ailus@iki.fi, g.liakhovetski@gmx.de, hdegoede@redhat.com,
-	moinejf@free.fr, m.szyprowski@samsung.com,
-	riverful.kim@samsung.com, sw0312.kim@samsung.com,
-	Kyungmin Park <kyungmin.park@samsung.com>
-References: <1335536611-4298-1-git-send-email-s.nawrocki@samsung.com> <1335536611-4298-2-git-send-email-s.nawrocki@samsung.com>
-In-Reply-To: <1335536611-4298-2-git-send-email-s.nawrocki@samsung.com>
+	Tue, 10 Apr 2012 19:10:43 -0400
+Received: by dake40 with SMTP id e40so346547dak.11
+        for <linux-media@vger.kernel.org>; Tue, 10 Apr 2012 16:10:42 -0700 (PDT)
+Date: Tue, 10 Apr 2012 16:10:39 -0700
+From: Greg KH <gregkh@linuxfoundation.org>
+To: Malcolm Priestley <tvboxspy@gmail.com>
+Cc: stable@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [stable for 3.2][patch] Kernel 3.2 add support for IT9135 chip
+ version 2 devices.
+Message-ID: <20120410231038.GD6140@kroah.com>
+References: <1333287054.2357.9.camel@tvbox>
+ <20120401153615.GA17478@kroah.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201204301720.34275.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20120401153615.GA17478@kroah.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester!
-
-Can you also update Documentation/video4linux/v4l2-controls.txt?
-
-Thanks,
-
-	Hans
-
-
-On Friday 27 April 2012 16:23:18 Sylwester Nawrocki wrote:
-> This patch adds v4l2_ctrl_new_std_int_menu() helper function which can
-> be used in drivers for creating standard integer menu control. It is
-> similar to v4l2_ctrl_new_std_menu(), except it doesn't have a mask
-> parameter and an additional qmenu parameter allows passing an array
-> of signed 64-bit integers constituting the menu items.
+On Sun, Apr 01, 2012 at 08:36:15AM -0700, Greg KH wrote:
+> On Sun, Apr 01, 2012 at 02:30:54PM +0100, Malcolm Priestley wrote:
+> > Originally, IT9135 chip version 2 devices were never intended to be supported in kernel 3.2
+> > as they were thought at the time only on ID 048d:9006.
+> > 
+> > However, they have since been supplied on ID 048d:9135, the following error occurs.
+> > 
+> > [   53.512013] usb 2-4: new high-speed USB device number 5 using ehci_hcd
+> > [   53.648936] it913x: Chip Version=02 Chip Type=9135
+> > [   53.650434] it913x: Dual mode=0 Remote=5 Tuner Type=5f
+> > [   53.651556] dvb-usb: found a 'ITE 9135 Generic' in cold state, will try to load a firmware
+> > [   53.660244] dvb-usb: downloading firmware from file 'dvb-usb-it9137-01.fw'
+> > [   53.661026] it913x: FRM Starting Firmware Download
+> > [   54.152006] it913x: FRM Firmware Download Failed (ffffffed)
+> > [   54.352082] it913x: Chip Version=6f Chip Type=0203
+> > [   55.188050] it913x: DEV it913x Error
+> > 
+> > 
+> > This patch and the cherry picks fixes the issue and applies firmware differences
+> > in commit 7330f7c157308166c507da9b9926107d85f960d3 and the 3.2 tree.
+> > 
+> > The driver is updated to version it913x 1.24 and it913x-fe 1.12.
+> > 
+> > Note existing 048d:9135 version 1 users will need to switch to dvb-usb-it9135-01.fw
+> > firmware as in kernel 3.3 after this update.
+> > 
+> > ./get_dvb_firmware it9135
+> > extracts
+> > dvb-usb-it9135-01.fw
+> > dvb-usb-it9135-02.fw
+> > 
+> > ./get_dvb_firmware it9137
+> > extracts
+> > dvb-usb-it9137-01.fw
+> > 
+> > The following upstream cherry-picks in order need to be applied.
+> > 
+> > Cc: <stable@vger.kernel.org> # .32.x: b7d425d39179e125604cbf451a06d3204d2e1398: sched: it913x Support it9135 Verions 2 chip
+> > Cc: <stable@vger.kernel.org> # .32.x: 2b3c13ecce3bc0fbdeb5ef0596b350dc702d01d5: sched: it913x-fe ver 1.09 amend adc table entries
+> > Cc: <stable@vger.kernel.org> # .32.x: 3822c7cef7b422833f1b58949a01bd87b822d280: sched: it913x ver 1.09 support for USB 1 devices (IT9135)
+> > Cc: <stable@vger.kernel.org> # .32.x: 3339a5b165c2769a84346cac342ade67d7b7a510: sched: it913x-fe ver 1.10 correct SNR reading from frontend
+> > Cc: <stable@vger.kernel.org> # .32.x: ed942c507465287777a5342f83af1638ba05a6ac: sched: it913x-fe: more user and debugging info
+> > Cc: <stable@vger.kernel.org> # .32.x: fdb5a9111ef77d537efb86e90e8073ebfd0b553e: sched: Support for Sveon STV22 (IT9137)
+> > Cc: <stable@vger.kernel.org> # .32.x: 9c1133c7c89266d4969e36527ce7be958d1b93c6: sched: it913x: endpoint size changes
+> > Cc: <stable@vger.kernel.org> # .32.x: 990f49af3f564b9a0f572e06f22e2ae34c79c37d: sched: it913x: support for different tuner regs
+> > Cc: <stable@vger.kernel.org> # .32.x: c725ff69737313647f981813e8f39a372c99b0f0: sched: it913x: support for NEC extended keys
+> > Cc: <stable@vger.kernel.org> # .32.x: b69902914803a8bf93f39f0db642430504c800ba: sched: it913x: multi firmware loader
+> > Cc: <stable@vger.kernel.org> # .32.x: 5e642c06b561fd95d77d13f41adeb6e906acc31d: sched: it9135:  add support for IT9135 9005 devices
+> > Cc: <stable@vger.kernel.org> # .32.x: 15157c506d742b6767edcd486d6c73ea907fb7cf: sched: it913x add retry to USB bulk endpoints and IO
+> > Cc: <stable@vger.kernel.org> # .32.x: 50815707eebc7ce12bfd97933a6e68a482c4d7ab: sched: it913x: multiple devices on system.
+> > Cc: <stable@vger.kernel.org> # .32.x: a7187c324ff5a879b5b0e6bb947664071c870803: sched: [BUG] Re: add support for IT9135 9005 devices
+> > Cc: <stable@vger.kernel.org> # .32.x: f36472da3a6d62ee46ae773bbbf05ddb24cd970c: sched: it913x stop dual frontend attach in warm state with single devices
+> > Cc: <stable@vger.kernel.org> # .32.x: 53844c4fc7912fef2f56c1b3f851b30c8ebd1d8a: sched: it913x add support for IT9135 9006 devices
+> > Cc: <stable@vger.kernel.org> # .32.x: ed3189cf989128fe283d6dbffbbae08b67d9e5bd: sched: it913x ver 1.18 Turn pid filter off by caps option only
+> > Cc: <stable@vger.kernel.org> # .32.x: d4d5a40710701abd4535d6a5ada601c885a08865: sched: [BUG] it913x ver 1.20. PID filter problems
+> > Cc: <stable@vger.kernel.org> # .32.x: fa52520cff0b3dce483efa8fb4ae1a4b18a82109: sched: [BUG] it913x ver 1.21 Fixed for issue with 9006 and warm boot
+> > Cc: <stable@vger.kernel.org> # .32.X: 245900c4a7a7d23c2e5b2b64b70770debcac5814: sched: [media] it913x ver 1.22 corrections to Tuner IDs
+> > Cc: <stable@vger.kernel.org> # .32.x: f0e07d7658a81bc185b8ba58f062c16b79ac0e2b: sched: it913x changed firmware loader for chip version 2 types
+> > Cc: <stable@vger.kernel.org> # .32.x: a8ea0218625699a5c635655a17b565bab5888ea1: sched: it913x v1.23 use it913x_config.chip_ver to select firmware
+> > Cc: <stable@vger.kernel.org> # .32.x: fc594e3e5196d4cf7ace7735eeca399f7a80868b: sched: it913x ver 1.24 Make 0x60 default on version 2 devices
+> > Cc: <stable@vger.kernel.org> # .32.x
 > 
-> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> ---
->  drivers/media/video/v4l2-ctrls.c |   21 +++++++++++++++++++++
->  include/media/v4l2-ctrls.h       |   17 +++++++++++++++++
->  2 files changed, 38 insertions(+)
+> You're kidding right?
 > 
-> diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
-> index c93a979..e0725b5 100644
-> --- a/drivers/media/video/v4l2-ctrls.c
-> +++ b/drivers/media/video/v4l2-ctrls.c
-> @@ -1517,6 +1517,27 @@ struct v4l2_ctrl *v4l2_ctrl_new_std_menu(struct v4l2_ctrl_handler *hdl,
->  }
->  EXPORT_SYMBOL(v4l2_ctrl_new_std_menu);
->  
-> +/* Helper function for standard integer menu controls */
-> +struct v4l2_ctrl *v4l2_ctrl_new_std_int_menu(struct v4l2_ctrl_handler *hdl,
-> +			const struct v4l2_ctrl_ops *ops,
-> +			u32 id, s32 max, s32 def, const s64 *qmenu_int)
-> +{
-> +	const char *name;
-> +	enum v4l2_ctrl_type type;
-> +	s32 min;
-> +	s32 step;
-> +	u32 flags;
-> +
-> +	v4l2_ctrl_fill(id, &name, &type, &min, &max, &step, &def, &flags);
-> +	if (type != V4L2_CTRL_TYPE_INTEGER_MENU) {
-> +		handler_set_err(hdl, -EINVAL);
-> +		return NULL;
-> +	}
-> +	return v4l2_ctrl_new(hdl, ops, id, name, type,
-> +			     0, max, 0, def, flags, NULL, qmenu_int, NULL);
-> +}
-> +EXPORT_SYMBOL(v4l2_ctrl_new_std_int_menu);
-> +
->  /* Add a control from another handler to this handler */
->  struct v4l2_ctrl *v4l2_ctrl_add_ctrl(struct v4l2_ctrl_handler *hdl,
->  					  struct v4l2_ctrl *ctrl)
-> diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
-> index 8920f82..15116d2 100644
-> --- a/include/media/v4l2-ctrls.h
-> +++ b/include/media/v4l2-ctrls.h
-> @@ -347,6 +347,23 @@ struct v4l2_ctrl *v4l2_ctrl_new_std_menu(struct v4l2_ctrl_handler *hdl,
->  			const struct v4l2_ctrl_ops *ops,
->  			u32 id, s32 max, s32 mask, s32 def);
->  
-> +/** v4l2_ctrl_new_std_int_menu() - Create a new standard V4L2 integer menu control.
-> +  * @hdl:	The control handler.
-> +  * @ops:	The control ops.
-> +  * @id:	The control ID.
-> +  * @max:	The control's maximum value.
-> +  * @def:	The control's default value.
-> +  * @qmenu_int:	The control's menu entries.
-> +  *
-> +  * Same as v4l2_ctrl_new_std_menu(), but @mask is set to 0 and it additionaly
-> +  * needs an array of integers determining the menu entries.
-> +  *
-> +  * If @id refers to a non-integer-menu control, then this function will return NULL.
-> +  */
-> +struct v4l2_ctrl *v4l2_ctrl_new_std_int_menu(struct v4l2_ctrl_handler *hdl,
-> +			const struct v4l2_ctrl_ops *ops,
-> +			u32 id, s32 max, s32 def, const s64 *qmenu_int);
-> +
->  /** v4l2_ctrl_add_ctrl() - Add a control from another handler to this handler.
->    * @hdl:	The control handler.
->    * @ctrl:	The control to add.
-> 
+> Please read Documentation/stable_kernel_rules.txt.  How do all of these
+> patches relate to that file?
+
+Not to mention the fact that the above git commit ids are 'trees' not
+patches, and can not be applied anywhere.
+
+dropped.
+
+greg k-h
