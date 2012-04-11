@@ -1,113 +1,147 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:40713 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754132Ab2D2RNt (ORCPT
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:39949 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754371Ab2DKIXs (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 29 Apr 2012 13:13:49 -0400
-Received: from localhost.localdomain (unknown [91.178.160.63])
-	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 2AA5035F87
-	for <linux-media@vger.kernel.org>; Sun, 29 Apr 2012 19:13:48 +0200 (CEST)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 1/3] mt9p031: Identify color/mono models using I2C device name
-Date: Sun, 29 Apr 2012 19:14:06 +0200
-Message-Id: <1335719648-18239-2-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1335719648-18239-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1335719648-18239-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Wed, 11 Apr 2012 04:23:48 -0400
+Received: by eaaq12 with SMTP id q12so131633eaa.19
+        for <linux-media@vger.kernel.org>; Wed, 11 Apr 2012 01:23:47 -0700 (PDT)
+From: Gianluca Gennari <gennarone@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@redhat.com
+Cc: hans.verkuil@cisco.com, Gianluca Gennari <gennarone@gmail.com>
+Subject: [PATCH] media_build: fix v2.6.35_i2c_new_probed_device backport patch
+Date: Wed, 11 Apr 2012 10:23:38 +0200
+Message-Id: <1334132618-20124-1-git-send-email-gennarone@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of passing a color/monochrome flag through platform data, rely
-on the I2C device name to identify the chip model.
+This patch:
+http://patchwork.linuxtv.org/patch/10486/
+collides with the v2.6.35_i2c_new_probed_device backport patch.
+Fix it and rebase it on the new media_build tree.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Gianluca Gennari <gennarone@gmail.com>
 ---
- drivers/media/video/mt9p031.c |   14 +++++++++++---
- include/media/mt9p031.h       |    6 ------
- 2 files changed, 11 insertions(+), 9 deletions(-)
+ backports/v2.6.35_i2c_new_probed_device.patch |   46 ++++++++++++------------
+ 1 files changed, 23 insertions(+), 23 deletions(-)
 
-diff --git a/drivers/media/video/mt9p031.c b/drivers/media/video/mt9p031.c
-index c81eaf4..5b8a396 100644
---- a/drivers/media/video/mt9p031.c
-+++ b/drivers/media/video/mt9p031.c
-@@ -99,6 +99,11 @@
- #define MT9P031_TEST_PATTERN_RED			0xa2
- #define MT9P031_TEST_PATTERN_BLUE			0xa3
+diff --git a/backports/v2.6.35_i2c_new_probed_device.patch b/backports/v2.6.35_i2c_new_probed_device.patch
+index d998814..4026dc9 100644
+--- a/backports/v2.6.35_i2c_new_probed_device.patch
++++ b/backports/v2.6.35_i2c_new_probed_device.patch
+@@ -2,14 +2,14 @@
+  drivers/media/video/bt8xx/bttv-input.c    |    2 +-
+  drivers/media/video/cx18/cx18-i2c.c       |    2 +-
+  drivers/media/video/cx23885/cx23885-i2c.c |    5 +++--
+- drivers/media/video/em28xx/em28xx-cards.c |    2 +-
++ drivers/media/video/em28xx/em28xx-input.c |    2 +-
+  drivers/media/video/ivtv/ivtv-i2c.c       |    6 +++---
+  drivers/media/video/v4l2-common.c         |    3 +--
+  6 files changed, 10 insertions(+), 10 deletions(-)
  
-+enum mt9p031_model {
-+	MT9P031_MODEL_COLOR,
-+	MT9P031_MODEL_MONOCHROME,
-+};
-+
- struct mt9p031 {
- 	struct v4l2_subdev subdev;
- 	struct media_pad pad;
-@@ -109,6 +114,7 @@ struct mt9p031 {
- 	struct mutex power_lock; /* lock to protect power_count */
- 	int power_count;
- 
-+	enum mt9p031_model model;
- 	struct aptina_pll pll;
- 
- 	/* Registers cache */
-@@ -764,7 +770,7 @@ static int mt9p031_open(struct v4l2_subdev *subdev, struct v4l2_subdev_fh *fh)
- 
- 	format = v4l2_subdev_get_try_format(fh, 0);
- 
--	if (mt9p031->pdata->version == MT9P031_MONOCHROME_VERSION)
-+	if (mt9p031->model == MT9P031_MODEL_MONOCHROME)
- 		format->code = V4L2_MBUS_FMT_Y12_1X12;
- 	else
- 		format->code = V4L2_MBUS_FMT_SGRBG12_1X12;
-@@ -842,6 +848,7 @@ static int mt9p031_probe(struct i2c_client *client,
- 	mt9p031->pdata = pdata;
- 	mt9p031->output_control	= MT9P031_OUTPUT_CONTROL_DEF;
- 	mt9p031->mode2 = MT9P031_READ_MODE_2_ROW_BLC;
-+	mt9p031->model = did->driver_data;
- 
- 	v4l2_ctrl_handler_init(&mt9p031->ctrls, ARRAY_SIZE(mt9p031_ctrls) + 4);
- 
-@@ -882,7 +889,7 @@ static int mt9p031_probe(struct i2c_client *client,
- 	mt9p031->crop.left = MT9P031_COLUMN_START_DEF;
- 	mt9p031->crop.top = MT9P031_ROW_START_DEF;
- 
--	if (mt9p031->pdata->version == MT9P031_MONOCHROME_VERSION)
-+	if (mt9p031->model == MT9P031_MODEL_MONOCHROME)
- 		mt9p031->format.code = V4L2_MBUS_FMT_Y12_1X12;
- 	else
- 		mt9p031->format.code = V4L2_MBUS_FMT_SGRBG12_1X12;
-@@ -918,7 +925,8 @@ static int mt9p031_remove(struct i2c_client *client)
- }
- 
- static const struct i2c_device_id mt9p031_id[] = {
--	{ "mt9p031", 0 },
-+	{ "mt9p031", MT9P031_MODEL_COLOR },
-+	{ "mt9p031m", MT9P031_MODEL_MONOCHROME },
- 	{ }
- };
- MODULE_DEVICE_TABLE(i2c, mt9p031_id);
-diff --git a/include/media/mt9p031.h b/include/media/mt9p031.h
-index 96448c7..5b5090f 100644
---- a/include/media/mt9p031.h
-+++ b/include/media/mt9p031.h
-@@ -3,17 +3,11 @@
- 
- struct v4l2_subdev;
- 
--enum {
--	MT9P031_COLOR_VERSION,
--	MT9P031_MONOCHROME_VERSION,
--};
--
- struct mt9p031_platform_data {
- 	int (*set_xclk)(struct v4l2_subdev *subdev, int hz);
- 	int (*reset)(struct v4l2_subdev *subdev, int active);
- 	int ext_freq; /* input frequency to the mt9p031 for PLL dividers */
- 	int target_freq; /* frequency target for the PLL */
--	int version; /* MT9P031_COLOR_VERSION or MT9P031_MONOCHROME_VERSION */
- };
- 
- #endif
+---- linux.orig/drivers/media/video/bt8xx/bttv-input.c
+-+++ linux/drivers/media/video/bt8xx/bttv-input.c
+-@@ -399,7 +399,7 @@ void __devinit init_bttv_i2c_ir(struct b
++--- a/drivers/media/video/bt8xx/bttv-input.c
+++++ b/drivers/media/video/bt8xx/bttv-input.c
++@@ -401,7 +401,7 @@ void __devinit init_bttv_i2c_ir(struct bttv *btv)
+  		 * That's why we probe 0x1a (~0x34) first. CB
+  		 */
+  
+@@ -18,9 +18,9 @@
+  		return;
+  	}
+  
+---- linux.orig/drivers/media/video/cx18/cx18-i2c.c
+-+++ linux/drivers/media/video/cx18/cx18-i2c.c
+-@@ -104,7 +104,7 @@ static int cx18_i2c_new_ir(struct cx18 *
++--- a/drivers/media/video/cx18/cx18-i2c.c
+++++ b/drivers/media/video/cx18/cx18-i2c.c
++@@ -104,7 +104,7 @@ static int cx18_i2c_new_ir(struct cx18 *cx, struct i2c_adapter *adap, u32 hw,
+  		break;
+  	}
+  
+@@ -29,9 +29,9 @@
+  	       -1 : 0;
+  }
+  
+---- linux.orig/drivers/media/video/cx23885/cx23885-i2c.c
+-+++ linux/drivers/media/video/cx23885/cx23885-i2c.c
+-@@ -344,7 +344,8 @@ int cx23885_i2c_register(struct cx23885_
++--- a/drivers/media/video/cx23885/cx23885-i2c.c
+++++ b/drivers/media/video/cx23885/cx23885-i2c.c
++@@ -345,7 +345,8 @@ int cx23885_i2c_register(struct cx23885_i2c *bus)
+  	} else
+  		printk(KERN_WARNING "%s: i2c bus %d register FAILED\n",
+  			dev->name, bus->nr);
+@@ -41,7 +41,7 @@
+  	/* Instantiate the IR receiver device, if present */
+  	if (0 == bus->i2c_rc) {
+  		struct i2c_board_info info;
+-@@ -359,7 +360,7 @@ int cx23885_i2c_register(struct cx23885_
++@@ -360,7 +361,7 @@ int cx23885_i2c_register(struct cx23885_i2c *bus)
+  		i2c_new_probed_device(&bus->i2c_adap, &info, addr_list,
+  				      i2c_probe_func_quick_read);
+  	}
+@@ -50,9 +50,9 @@
+  	return bus->i2c_rc;
+  }
+  
+---- linux.orig/drivers/media/video/em28xx/em28xx-cards.c
+-+++ linux/drivers/media/video/em28xx/em28xx-cards.c
+-@@ -2454,7 +2454,7 @@ void em28xx_register_i2c_ir(struct em28x
++--- a/drivers/media/video/em28xx/em28xx-input.c
+++++ b/drivers/media/video/em28xx/em28xx-input.c
++@@ -429,7 +429,7 @@ static void em28xx_register_i2c_ir(struct em28xx *dev)
+  
+  	if (dev->init_data.name)
+  		info.platform_data = &dev->init_data;
+@@ -60,10 +60,10 @@
+ +	i2c_new_probed_device(&dev->i2c_adap, &info, addr_list);
+  }
+  
+- void em28xx_card_setup(struct em28xx *dev)
+---- linux.orig/drivers/media/video/ivtv/ivtv-i2c.c
+-+++ linux/drivers/media/video/ivtv/ivtv-i2c.c
+-@@ -186,7 +186,7 @@ static int ivtv_i2c_new_ir(struct ivtv *
++ /**********************************************************
++--- a/drivers/media/video/ivtv/ivtv-i2c.c
+++++ b/drivers/media/video/ivtv/ivtv-i2c.c
++@@ -186,7 +186,7 @@ static int ivtv_i2c_new_ir(struct ivtv *itv, u32 hw, const char *type, u8 addr)
+  			return -1;
+  		memset(&info, 0, sizeof(struct i2c_board_info));
+  		strlcpy(info.type, type, I2C_NAME_SIZE);
+@@ -72,7 +72,7 @@
+  							   == NULL ? -1 : 0;
+  	}
+  
+-@@ -230,7 +230,7 @@ static int ivtv_i2c_new_ir(struct ivtv *
++@@ -230,7 +230,7 @@ static int ivtv_i2c_new_ir(struct ivtv *itv, u32 hw, const char *type, u8 addr)
+  	info.platform_data = init_data;
+  	strlcpy(info.type, type, I2C_NAME_SIZE);
+  
+@@ -81,7 +81,7 @@
+  	       -1 : 0;
+  }
+  
+-@@ -257,7 +257,7 @@ struct i2c_client *ivtv_i2c_new_ir_legac
++@@ -257,7 +257,7 @@ struct i2c_client *ivtv_i2c_new_ir_legacy(struct ivtv *itv)
+  
+  	memset(&info, 0, sizeof(struct i2c_board_info));
+  	strlcpy(info.type, "ir_video", I2C_NAME_SIZE);
+@@ -90,9 +90,9 @@
+  }
+  
+  int ivtv_i2c_register(struct ivtv *itv, unsigned idx)
+---- linux.orig/drivers/media/video/v4l2-common.c
+-+++ linux/drivers/media/video/v4l2-common.c
+-@@ -316,8 +316,7 @@ struct v4l2_subdev *v4l2_i2c_new_subdev_
++--- a/drivers/media/video/v4l2-common.c
+++++ b/drivers/media/video/v4l2-common.c
++@@ -319,8 +319,7 @@ struct v4l2_subdev *v4l2_i2c_new_subdev_board(struct v4l2_device *v4l2_dev,
+  
+  	/* Create the i2c client */
+  	if (info->addr == 0 && probe_addrs)
 -- 
-1.7.3.4
+1.7.0.4
 
