@@ -1,71 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:50894 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753278Ab2DPN7A (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Apr 2012 09:59:00 -0400
-Received: from euspt2 (mailout1.w1.samsung.com [210.118.77.11])
- by mailout1.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0M2K00F4BS4CJB@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 16 Apr 2012 14:57:48 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0M2K00D6NS673Y@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 16 Apr 2012 14:58:56 +0100 (BST)
-Date: Mon, 16 Apr 2012 15:58:47 +0200
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: [PATCHv2 0/8] Update to S5P-TV drivers
-To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, t.stanislaws@samsung.com,
-	kyungmin.park@samsung.com, laurent.pinchart@ideasonboard.com,
-	mchehab@redhat.com, hverkuil@xs4all.nl, sachin.kamat@linaro.org,
-	u.kleine-koenig@pengutronix.de
-Message-id: <1334584735-12439-1-git-send-email-t.stanislaws@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 8BIT
+Received: from mx1.redhat.com ([209.132.183.28]:12890 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756429Ab2DKLJE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 Apr 2012 07:09:04 -0400
+Message-ID: <4F85664C.3020508@redhat.com>
+Date: Wed, 11 Apr 2012 08:09:00 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Linus Torvalds <torvalds@linux-foundation.org>
+CC: Andrew Morton <akpm@linux-foundation.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: [GIT PULL for v3.4-rc3] media fixes
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patchset contains latest fixes and improvement to S5P-TV drivers.  The
-most important new feature is a support for a variety of new DV presets
-including interlaced ones.
+Hi Linus,
 
-Changelog:
+Please pull from:
+  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media v4l_for_linus
 
-v1:
-- fix for computing plane size
-- fix for variable linkage
-- fix hdmiphy variants to avoid searching for modes
-  only from valid platforms
+For some fixes for the media drivers:
 
-Marek Szyprowski (1):
-  media: s5p-tv: fix plane size calculation
+- dvb core: there is a regression found when used with xine. For whatever unknown
+  reason, xine (and xine-lib clients) wants that the frontend to tell what frequency
+  he is using even before the PLL lock (or at least, it expects a non-zero frequency).
+  On DVB, the frequency is only actually known after a frequency zig-zag seek, done by
+  the DVB core. Anyway, the fix was trivial. That solves Fedora BZ#808871.
 
-Sachin Kamat (1):
-  s5p-tv: Fix section mismatch warning in mixer_video.c
+- ivtv: fix a regression when selecting the language channel;
 
-Tomasz Stanislawski (5):
-  v4l: s5p-tv: mixer: fix compilation warning
-  v4l: s5p-tv: hdmiphy: add support for per-platform variants
-  v4l: s5p-tv: hdmi: parametrize DV timings
-  v4l: s5p-tv: hdmi: fix mode synchronization
-  v4l: s5p-tv: mixer: fix handling of interlaced modes
+- uvc: fix a race-related crash;
 
-Uwe Kleine-König (1):
-  media/video/s5p-tv: mark const init data with __initconst instead of
-    __initdata
+- it913x: fixes firmware loading;
 
- drivers/media/video/s5p-tv/hdmi_drv.c    |  480 ++++++++++++++----------------
- drivers/media/video/s5p-tv/hdmiphy_drv.c |  225 ++++++++++++---
- drivers/media/video/s5p-tv/mixer.h       |    3 +-
- drivers/media/video/s5p-tv/mixer_drv.c   |    2 +-
- drivers/media/video/s5p-tv/mixer_reg.c   |   15 +-
- drivers/media/video/s5p-tv/mixer_video.c |    6 +-
- drivers/media/video/s5p-tv/regs-hdmi.h   |    1 +
- 7 files changed, 427 insertions(+), 305 deletions(-)
+- two few trivial patches (a dependency issue at a radio driver at sound Kconfig,
+  and a warning fix on dvb).
 
--- 
-1.7.5.4
+Regards,
+Mauro
+
+-
+
+Latest commit at the branch: 
+ed0ee0ce0a3224dab5caa088a5f8b6df25924276 [media] uvcvideo: Fix race-related crash in uvc_video_clock_update()
+The following changes since commit 7483d45f0aee3afc0646d185cabd4af9f6cab58c:
+
+  Merge branch 'staging/for_v3.4' into v4l_for_linus (2012-03-23 08:06:43 -0300)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media v4l_for_linus
+
+Chris Rankin (1):
+      [media] dvb_frontend: regression fix: userspace ABI broken for xine
+
+Hans Petter Selasky (1):
+      [media] dvb_frontend: fix compiler warning
+
+Hans Verkuil (2):
+      [media] ivtv: Fix AUDIO_(BILINGUAL_)CHANNEL_SELECT regression
+      [media] Drivers/media/radio: Fix build error
+
+Laurent Pinchart (1):
+      [media] uvcvideo: Fix race-related crash in uvc_video_clock_update()
+
+Malcolm Priestley (1):
+      [media] it913x: fix firmware loading errors
+
+ drivers/media/dvb/dvb-core/dvb_frontend.c |   12 ++++++-
+ drivers/media/dvb/dvb-usb/it913x.c        |   54 +++++++++++++++++++++-------
+ drivers/media/video/ivtv/ivtv-ioctl.c     |    4 +-
+ drivers/media/video/uvc/uvc_video.c       |   50 +++++++++++++++++---------
+ sound/pci/Kconfig                         |    4 +-
+ 5 files changed, 87 insertions(+), 37 deletions(-)
 
