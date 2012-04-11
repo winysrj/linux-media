@@ -1,33 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vb0-f46.google.com ([209.85.212.46]:39844 "EHLO
-	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751919Ab2DZJrJ (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:9121 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750775Ab2DKGsb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Apr 2012 05:47:09 -0400
-Received: by vbbff1 with SMTP id ff1so750958vbb.19
-        for <linux-media@vger.kernel.org>; Thu, 26 Apr 2012 02:47:08 -0700 (PDT)
-MIME-Version: 1.0
-Date: Thu, 26 Apr 2012 17:47:08 +0800
-Message-ID: <CAHG8p1D1EAO3hgYNvwZL6HgVw-995knuf62TdXh944SkAHoWKw@mail.gmail.com>
-Subject: How to implement i2c map device
-From: Scott Jiang <scott.jiang.linux@gmail.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: LMML <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+	Wed, 11 Apr 2012 02:48:31 -0400
+Date: Wed, 11 Apr 2012 08:48:24 +0200
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: RE: [PATCHv24 00/16] Contiguous Memory Allocator
+In-reply-to: <CA+K6fF5TbhYX_XYXL33h5s8cnSogSna4Cq2-vM4MfX4igSyozg@mail.gmail.com>
+To: 'Sandeep Patil' <psandeep.s@gmail.com>,
+	'Aaro Koskinen' <aaro.koskinen@nokia.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org, 'Ohad Ben-Cohen' <ohad@wizery.com>,
+	'Daniel Walker' <dwalker@codeaurora.org>,
+	'Russell King' <linux@arm.linux.org.uk>,
+	'Arnd Bergmann' <arnd@arndb.de>,
+	'Jonathan Corbet' <corbet@lwn.net>,
+	'Mel Gorman' <mel@csn.ul.ie>,
+	'Chunsang Jeong' <chunsang.jeong@linaro.org>,
+	'Michal Nazarewicz' <mina86@mina86.com>,
+	'Dave Hansen' <dave@linux.vnet.ibm.com>,
+	'Jesse Barker' <jesse.barker@linaro.org>,
+	'Kyungmin Park' <kyungmin.park@samsung.com>,
+	'Benjamin Gaignard' <benjamin.gaignard@linaro.org>,
+	'Andrew Morton' <akpm@linux-foundation.org>,
+	'Rob Clark' <rob.clark@linaro.org>,
+	'KAMEZAWA Hiroyuki' <kamezawa.hiroyu@jp.fujitsu.com>
+Message-id: <00c201cd17af$17a3aa50$46eafef0$%szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-language: pl
+Content-transfer-encoding: 7BIT
+References: <1333462221-3987-1-git-send-email-m.szyprowski@samsung.com>
+ <alpine.DEB.2.00.1204101528390.9354@kernel.research.nokia.com>
+ <CA+K6fF5TbhYX_XYXL33h5s8cnSogSna4Cq2-vM4MfX4igSyozg@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hi,
 
-I'm writing a driver for adv7842 video decoder. This chip has 12 i2c
-register maps. IO map is fixed to 0x20 and others are configurable.
-I plan to use 0x20 as the subdevice addr to call
-v4l2_i2c_new_subdev_board, and call i2c_new_device and i2c_add_driver
-in i2c_probe to enumerate other i2c maps. Is it acceptable or any
-other suggestion?
+On Tuesday, April 10, 2012 7:20 PM Sandeep Patil wrote:
 
-By the way, HDMI support seems under discussion, is there any
-framework or guide now?
+> >> This is (yet another) update of CMA patches.
+> >
+> >
+> > How well CMA is supposed to work if you have mlocked processes? I've
+> > been testing these patches, and noticed that by creating a small mlocked
+> > process you start to get plenty of test_pages_isolated() failure warnings,
+> > and bigger allocations will always fail.
+> 
+> CMIIW, I think mlocked pages are never migrated. The reason is because
+> __isolate_lru_pages() does not isolate Unevictable pages right now.
+> 
+> Minchan added support to allow this but the patch was dropped.
+> 
+> See the discussion at : https://lkml.org/lkml/2011/8/29/295
 
-Thanks,
-Scott
+Right, we are aware of this limitation. We are working on solving it but we didn't 
+consider it a blocker for the core CMA patches. Such issues can be easily fixed with 
+the incremental patches.
+
+Best regards
+-- 
+Marek Szyprowski
+Samsung Poland R&D Center
+
+
