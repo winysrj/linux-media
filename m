@@ -1,150 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:24828 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751116Ab2DRIq4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Apr 2012 04:46:56 -0400
-Received: from euspt1 (mailout1.w1.samsung.com [210.118.77.11])
- by mailout1.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0M2O008UZ303RP@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 18 Apr 2012 09:45:39 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0M2O00BT83253V@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 18 Apr 2012 09:46:53 +0100 (BST)
-Date: Wed, 18 Apr 2012 10:46:52 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [PATCH 04/15] V4L: Add camera white balance preset control
-In-reply-to: <4F8D6EB5.5050304@redhat.com>
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	sakari.ailus@iki.fi, g.liakhovetski@gmx.de, moinejf@free.fr,
-	m.szyprowski@samsung.com, riverful.kim@samsung.com,
-	sw0312.kim@samsung.com, Kyungmin Park <kyungmin.park@samsung.com>
-Message-id: <4F8E7F7C.906@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7BIT
-References: <1334657396-5737-1-git-send-email-s.nawrocki@samsung.com>
- <1334657396-5737-5-git-send-email-s.nawrocki@samsung.com>
- <4F8D6EB5.5050304@redhat.com>
+Received: from mx1.redhat.com ([209.132.183.28]:15217 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1761059Ab2DKUIX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 Apr 2012 16:08:23 -0400
+Message-ID: <4F85E4A8.2080506@redhat.com>
+Date: Wed, 11 Apr 2012 17:08:08 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: =?UTF-8?B?UsOpbWkgRGVuaXMtQ291cm1vbnQ=?= <remi@remlab.net>
+CC: mchehab@infradead.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: Re: [RFC] [PATCH] v4l2: use unsigned rather than enums in ioctl()
+ structs
+References: <1333648371-24812-1-git-send-email-remi@remlab.net> <4F85B908.4070404@redhat.com> <201204112147.55348.remi@remlab.net>
+In-Reply-To: <201204112147.55348.remi@remlab.net>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
-
-On 04/17/2012 03:23 PM, Hans de Goede wrote:
-> Hi,
+Em 11-04-2012 15:47, Rémi Denis-Courmont escreveu:
+> 	Hello,
 > 
-> On 04/17/2012 12:09 PM, Sylwester Nawrocki wrote:
->> Add V4L2_CID_WHITE_BALANCE_PRESET control for camera white balance
->> presets. The following items are defined:
->>
->>   - V4L2_WHITE_BALANCE_NONE,
->>   - V4L2_WHITE_BALANCE_INCANDESCENT,
->>   - V4L2_WHITE_BALANCE_FLUORESCENT,
->>   - V4L2_WHITE_BALANCE_HORIZON,
->>   - V4L2_WHITE_BALANCE_DAYLIGHT,
->>   - V4L2_WHITE_BALANCE_FLASH,
->>   - V4L2_WHITE_BALANCE_CLOUDY,
->>   - V4L2_WHITE_BALANCE_SHADE,
->>
->> This is a manual white balance control, in addition to V4L2_CID_RED_BALANCE,
->> V4L2_CID_BLUE_BALANCE and V4L2_CID_WHITE_BALANCE_TEMPERATURE. It's useful
->> for camera devices running more complex firmware and exposing white balance
->> preset selection in their user register interface.
+> Le mercredi 11 avril 2012 20:02:00 Mauro Carvalho Chehab, vous avez écrit :
+>> Using unsigned instead of enum is not a good idea, from API POV, as
+>> unsigned has different sizes on 32 bits and 64 bits.
 > 
-> Hmm, how is this supposed to work together with the v4l2-ctrls framework?
-> The framework has a concept of a master control, which has a manual value,
-> and the slave controls will only get unlocked (V4L2_CTRL_FLAG_INACTIVE
-> will be cleared) when that master control is set at its manual value, now lets
-> say that we've V4L2_CID_AUTO_WHITE_BALANCE as master with
-> V4L2_CID_WHITE_BALANCE_PRESET and V4L2_CID_RED_BALANCE and V4L2_CID_BLUE_BALANCE
-> slaves. Then when the master control changes from auto to manual all 3 will
-> have their inactive flag cleared, but if the preset value !=
-> V4L2_WHITE_BALANCE_NONE
-> then the red- and blue-balance should have kept their inactive flag. And since
-> this
-> clearing of the inactive flag is done after v4l2-ctrls.c has called into the
-> driver there is no way for the driver to fix this.
-> 
-> One could work-around this by not specifying the whitebalance control cluster as
-> being an auto cluster, and doing all the auto cluster stuff from the driver, but
-> that significantly complicates the driver, and we are trying to get away of every
-> driver doing this kinda stuff for itself...
+> Fair enough. But then we can do that instead:
+> typedef XXX __enum_t;
+> where XXX is the unsigned integer with the right number of bits. Since Linux 
+> does not use short enums, this ought to work fine.
 
-I assumed in common cases there will be just pairs of auto/manual controls
-(or control groups) used, e.g. V4L2_CID_AUTO_WHITE_BALANCE and 
-V4L2_CID_RED_BALANCE/V4L2_CID_BLUE_BALANCE, or V4L2_CID_AUTO_WHITE_BALANCE and
-V4L2_CID_WHITE_BALANCE_TEMPERATURE or V4L2_CID_AUTO_WHITE_BALANCE and
-V4L2_CID_WHITE_BALANCE_PRESET, etc.
+I forgot to comment about that on the last e-mail. 
 
-This is really what the control framework support now, i.e. one master cluster
-control with single value that swithes whole cluster into manual mode, AFAICS.
+A solution close to the above one were already proposed:
+	http://www.spinics.net/lists/vfl/msg25707.html
 
-I assumed more complicated cases will have to be coded in drivers for now. Or
-can be handled my the control framework, if those patterns appear to be often
-used and the control framework is enhanced to better support them.
-
-I tried to come up with a solution that could be also used by the pwc driver
-and to expose all functionality available there.
-
-> I still believe that the solution I came up with for pwc is better, the auto
-> whitebalance control really is a tri state when you add presets whitebalance
-> is controlled through one of this 3 options:
-> 1) auto
-> 2) preset
-> 3) manual
-
-2) and 3) will often be exclusive, so we cannot just unlock (clear the 
-V4L2_CTRL_FLAG_INACTIVE flag) on them, when the WB menu is switched to value
-other than "auto". This would happen when the WB menu and 2), 3) would form 
-an auto cluster.
-
-Moreover, we also have V4L2_CID_WHITE_BALANCE_TEMPERATURE as a manual WB control.
-I assumed the WB presets are just form of it, with names (labels).
-
-I am a bit concerned that with the menu control we might exclude at API level
-a possibility of altering some of the controls simultaneously, e.g. preset
-and red/blue balance.
-
-> I know you are worried about having a V4L2_CID_AUTO_WHITE_BALANCE control
-> which is not a boolean breaking apps, well the pwc driver is a quite popular
-> driver and I've had 0 bug reports about my turning it into a menu...
-
-I wish I could simply change the control type to a menu, but breaking ABI doesn't
-sound like an option. I think the patch doing something like the at the core level
-would have been rejected right away. So the new menu control sounds better to me,
-except that it doesn't make our situation much easier, however it might be what
-we wanted in long term.
-
-> Alternatively we could add a new V4L2_CID_WHITE_BALANCE_MENU control and use
-> that for drivers which have presets rather then the old
-> V4L2_CID_AUTO_WHITE_BALANCE
-> to ensure that userspace won't trip over it being a menu all of a sudden, but
-> I believe that it is really important to properly reflect the tri-state nature
-> of the awb once presets come into play, rather then trying to bolt something
-
-Is it really tri-state ? I think it just an auto (perhaps multiple auto at some 
-point?) and multiple manual states. Should we really consider the presets as 
-something other than manual control ?
-
-> on top of / to the side of our current bi-state control. And I hope that my above
-> example of what sort of troubles using the bolt-on solution will give, clearly
-> demonstrates that the bolt-on solution is a bad idea.
-
-If we decided to add a new V4L2_CID_WHITE_BALANCE_MENU control, then we should
-probably deprecate V4L2_CID_AUTO_WHITE_BALANCE, as having both would be confusing.
-Then the V4L2_CID_AUTO_WHITE_BALANCE would have been removed and maybe after some
-time added as an alias for V4L2_CID_WHITE_BALANCE_MENU. Sound terribly painful
-though. This all makes me think we might be missing some reliable API version
-scheme.
-
-I'm also not very happy with appending a _MENU suffix, indicating the control's
-type. 
+There were also another proposal there that might solve:
+	http://www.spinics.net/lists/vfl/msg25702.html
 
 
--- 
+Something like:
+
+#if sizeof(enum) == 1
+	typedef u8	__enum_t;
+#elif sizeof(enum) == 2
+	typedef u16	__enum_t;
+#elif sizeof(enum) == 4
+	typedef u32	__enum_t;
+#elif sizeof(enum) == 8
+	typedef u64	__enum_t;
+#else
+	typedef enum __enum_t;
+#endif
+
+Can actually work. Not sure if I really like adding a typedef, but maybe
+this is the less dirty way to fix it.
+
+We'll need to properly test the v4l2-compat32 code, as it will need 
+to handle a different enum size on userspace. So, there, we'll likely
+need to replace every enum with just "u32". Hmm... arm with 64 bits
+(if/when added) may be an additional issue for the compat stuff.
+
 Regards,
-Sylwester
+Mauro
