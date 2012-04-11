@@ -1,100 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp207.alice.it ([82.57.200.103]:44968 "EHLO smtp207.alice.it"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932512Ab2DTPTj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Apr 2012 11:19:39 -0400
-From: Antonio Ospite <ospite@studenti.unina.it>
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:39288 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754394Ab2DKUFZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 Apr 2012 16:05:25 -0400
+Received: by obbtb18 with SMTP id tb18so1654684obb.19
+        for <linux-media@vger.kernel.org>; Wed, 11 Apr 2012 13:05:24 -0700 (PDT)
+MIME-Version: 1.0
+Date: Wed, 11 Apr 2012 22:05:24 +0200
+Message-ID: <CAGa-wNN2FkLh2az_QRcEVhFOYKZLvNw9KztBfVUjR1g+g2XCJQ@mail.gmail.com>
+Subject: Initial tuning file for Danish cable provider YouSee
+From: Claus Olesen <ceolesen@gmail.com>
 To: linux-media@vger.kernel.org
-Cc: Antonio Ospite <ospite@studenti.unina.it>,
-	Jean-Francois Moine <moinejf@free.fr>,
-	=?UTF-8?q?Erik=20Andr=C3=A9n?= <erik.andren@gmail.com>
-Subject: [RFC PATCH 3/3] [media] gspca - main: implement vidioc_g_ext_ctrls and vidioc_s_ext_ctrls
-Date: Fri, 20 Apr 2012 17:19:11 +0200
-Message-Id: <1334935152-16165-4-git-send-email-ospite@studenti.unina.it>
-In-Reply-To: <1334935152-16165-1-git-send-email-ospite@studenti.unina.it>
-References: <20120418153720.1359c7d2f2a3efc2c7c17b88@studenti.unina.it>
- <1334935152-16165-1-git-send-email-ospite@studenti.unina.it>
+Content-Type: multipart/mixed; boundary=e89a8f6428ec8be67404bd6cc282
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This makes it possible for applications to handle controls with a class
-different than V4L2_CTRL_CLASS_USER for gspca subdevices, like for
-instance V4L2_CID_EXPOSURE_AUTO which some subdrivers use and which
-can't be controlled right now.
+--e89a8f6428ec8be67404bd6cc282
+Content-Type: text/plain; charset=ISO-8859-1
 
-See
-http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/47010
-for an example of a problem fixed by this change.
+I'm in the same area (northen Copenhagen) and attached is what I see
+from YouSee.
+It's a little shorter than your list but contains these frequencies
+not on your list
+C 256000000 6875000 NONE QAM64 (TNT,TNT-HD,TLC-HD)
+C 394000000 6875000 NONE QAM64 (SVT1HD,NickHD,6rn HD)
+C 434000000 6875000 NONE QAM64 (maintenance?)
 
-NOTE: gspca currently won't handle control types like
-V4L2_CTRL_TYPE_INTEGER64 or V4L2_CTRL_TYPE_STRING, so just the
-__s32 field 'value' of 'struct v4l2_ext_control' is handled for now.
+--e89a8f6428ec8be67404bd6cc282
+Content-Type: application/octet-stream;
+	name="scanfile-dk-gentofte-yousee.dvb"
+Content-Disposition: attachment; filename="scanfile-dk-gentofte-yousee.dvb"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_h0wrrqys0
 
-Signed-off-by: Antonio Ospite <ospite@studenti.unina.it>
----
- drivers/media/video/gspca/gspca.c |   42 +++++++++++++++++++++++++++++++++++++
- 1 file changed, 42 insertions(+)
-
-diff --git a/drivers/media/video/gspca/gspca.c b/drivers/media/video/gspca/gspca.c
-index ba1bda9..7906093 100644
---- a/drivers/media/video/gspca/gspca.c
-+++ b/drivers/media/video/gspca/gspca.c
-@@ -1567,6 +1567,46 @@ static int vidioc_g_ctrl(struct file *file, void *priv,
- 	return gspca_get_ctrl(gspca_dev, ctrl->id, &ctrl->value);
- }
- 
-+static int vidioc_s_ext_ctrls(struct file *file, void *priv,
-+			 struct v4l2_ext_controls *ext_ctrls)
-+{
-+	struct gspca_dev *gspca_dev = priv;
-+	int ret = 0;
-+	int i;
-+
-+	for (i = 0; i < ext_ctrls->count; i++) {
-+		struct v4l2_ext_control *ctrl;
-+
-+		ctrl = ext_ctrls->controls + i;
-+		ret = gspca_set_ctrl(gspca_dev, ctrl->id, ctrl->value);
-+		if (ret < 0) {
-+			ext_ctrls->error_idx = i;
-+			return ret;
-+		}
-+	}
-+	return ret;
-+}
-+
-+static int vidioc_g_ext_ctrls(struct file *file, void *priv,
-+			 struct v4l2_ext_controls *ext_ctrls)
-+{
-+	struct gspca_dev *gspca_dev = priv;
-+	int i;
-+	int ret = 0;
-+
-+	for (i = 0; i < ext_ctrls->count; i++) {
-+		struct v4l2_ext_control *ctrl;
-+
-+		ctrl = ext_ctrls->controls + i;
-+		ret = gspca_get_ctrl(gspca_dev, ctrl->id, &ctrl->value);
-+		if (ret < 0) {
-+			ext_ctrls->error_idx = i;
-+			return ret;
-+		}
-+	}
-+	return ret;
-+}
-+
- static int vidioc_querymenu(struct file *file, void *priv,
- 			    struct v4l2_querymenu *qmenu)
- {
-@@ -2260,6 +2300,8 @@ static const struct v4l2_ioctl_ops dev_ioctl_ops = {
- 	.vidioc_queryctrl	= vidioc_queryctrl,
- 	.vidioc_g_ctrl		= vidioc_g_ctrl,
- 	.vidioc_s_ctrl		= vidioc_s_ctrl,
-+	.vidioc_g_ext_ctrls	= vidioc_g_ext_ctrls,
-+	.vidioc_s_ext_ctrls	= vidioc_s_ext_ctrls,
- 	.vidioc_querymenu	= vidioc_querymenu,
- 	.vidioc_enum_input	= vidioc_enum_input,
- 	.vidioc_g_input		= vidioc_g_input,
--- 
-1.7.10
-
+QyAxNDMwMDAwMDAgNjg3NTAwMCBOT05FIFFBTTY0CkMgMTU2MDAwMDAwIDY4NzUwMDAgTk9ORSBR
+QU02NApDIDI0ODAwMDAwMCA2ODc1MDAwIE5PTkUgUUFNNjQKQyAyNTYwMDAwMDAgNjg3NTAwMCBO
+T05FIFFBTTY0CkMgMzc4MDAwMDAwIDY4NzUwMDAgTk9ORSBRQU02NApDIDM5NDAwMDAwMCA2ODc1
+MDAwIE5PTkUgUUFNNjQKQyA0MTgwMDAwMDAgNjg3NTAwMCBOT05FIFFBTTY0CkMgNDM0MDAwMDAw
+IDY4NzUwMDAgTk9ORSBRQU02NApDIDQ0MjAwMDAwMCA2ODc1MDAwIE5PTkUgUUFNNjQKQyA0NTAw
+MDAwMDAgNjg3NTAwMCBOT05FIFFBTTY0CkMgNDgyMDAwMDAwIDY4NzUwMDAgTk9ORSBRQU02NApD
+IDQ5MDAwMDAwMCA2ODc1MDAwIE5PTkUgUUFNNjQKQyA0OTgwMDAwMDAgNjg3NTAwMCBOT05FIFFB
+TTY0CkMgNTA2MDAwMDAwIDY4NzUwMDAgTk9ORSBRQU02NApDIDUxNDAwMDAwMCA2ODc1MDAwIE5P
+TkUgUUFNNjQKQyA1MjIwMDAwMDAgNjg3NTAwMCBOT05FIFFBTTY0CkMgNTMwMDAwMDAwIDY4NzUw
+MDAgTk9ORSBRQU02NApDIDUzODAwMDAwMCA2ODc1MDAwIE5PTkUgUUFNNjQKQyA1NDYwMDAwMDAg
+Njg3NTAwMCBOT05FIFFBTTY0CkMgNTU0MDAwMDAwIDY4NzUwMDAgTk9ORSBRQU02NApDIDU2MjAw
+MDAwMCA2ODc1MDAwIE5PTkUgUUFNNjQKQyA1NzAwMDAwMDAgNjg3NTAwMCBOT05FIFFBTTY0CkMg
+NTc4MDAwMDAwIDY4NzUwMDAgTk9ORSBRQU02NApDIDU4NjAwMDAwMCA2ODc1MDAwIE5PTkUgUUFN
+NjQKQyA1OTQwMDAwMDAgNjg3NTAwMCBOT05FIFFBTTY0CkMgNjAyMDAwMDAwIDY4NzUwMDAgTk9O
+RSBRQU02NAo=
+--e89a8f6428ec8be67404bd6cc282--
