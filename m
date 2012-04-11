@@ -1,434 +1,243 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:22112 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:18564 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756204Ab2DSSL6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Apr 2012 14:11:58 -0400
-Message-ID: <4F90556A.2070508@redhat.com>
-Date: Thu, 19 Apr 2012 15:11:54 -0300
+	id S932860Ab2DKSMU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 Apr 2012 14:12:20 -0400
+Message-ID: <4F85B908.4070404@redhat.com>
+Date: Wed, 11 Apr 2012 14:02:00 -0300
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: "nibble.max" <nibble.max@gmail.com>
-CC: linux-media <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 4/6] m88ds3103, dvbsky dvb-s2 cx23885 pcie card.
-References: <1327228731.2540.3.camel@tvbox>, <4F2185A1.2000402@redhat.com> <201204152353392650604@gmail.com>
-In-Reply-To: <201204152353392650604@gmail.com>
+To: =?UTF-8?B?UsOpbWkgRGVuaXMtQ291cm1vbnQ=?= <remi@remlab.net>
+CC: mchehab@infradead.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: Re: [RFC] [PATCH] v4l2: use unsigned rather than enums in ioctl()
+ structs
+References: <1333648371-24812-1-git-send-email-remi@remlab.net>
+In-Reply-To: <1333648371-24812-1-git-send-email-remi@remlab.net>
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 15-04-2012 12:53, nibble.max escreveu:
-> dvbsky dvb-s2 pcie based on montage m88ds3103 demodulator.
+Em 05-04-2012 14:52, Rémi Denis-Courmont escreveu:
+> With an enumeration, the compiler assumes that the integer value is one
+> allowed by the underlying enumeration type. With optimization enabled
+> this can result in byte code that is unable to cope with other values.
+> For instance, GCC can compile a switch() block using a "jump table" to
+> avoid repetitive conditional branching.
 > 
-> Signed-off-by: Max nibble <nibble.max@gmail.com>
+> This can be a problem both from user to kernel and kernel to user.
+> 
+> * Evil user space can pass error values to the kernel via system
+> calls. There are no sane ways to protect the kernel: the compiler may
+> optimize away range checks if it deems that all legitimate values are
+> within the range.
+> 
+> * The kernel can break the user space binary interface whenever a new
+> value is added to an existing enumeration. A newer kernel can then
+> return an enumerated value that was not allowed by older kernel headers
+> against which the user program was compiled. In principles, V4L2 user
+> space needs to be recompiled whenever videodev2.h has updated enums...
+> (This an obvious problem with V4L2_QUERYCTRL.)
+> 
+> Fortunately, the Linux ABI disables short-enums on all platforms. Even
+> the Linux variant of the ARM AAPCS contradicts the standard ARM AAPCS
+> in doing so.
+
+
+Using unsigned instead of enum is not a good idea, from API POV, as unsigned
+has different sizes on 32 bits and 64 bits. Yet, using enum was really a very
+bad idea, and, on all new stuff, we're not accepting any new enum field.
+
+That's said, a patch like that were proposed in the past. See:
+	http://www.spinics.net/lists/vfl/msg25686.html
+
+Alan said there [1] that:
+	"Its a fundamental change to a public structure from enum to u32. I think you
+	 are right but this change seems too late by several years."
+
+I also didn't like it, because of the same reasons.
+
+[1] http://www.spinics.net/lists/vfl/msg25687.html
+
+I don't think anything has changed since then that would make it easier
+to apply a change like that.
+
+Well, eventually, a compat code at the v4l2-ioctl.c might be written to translate
+a call if the enum size is different than the integer size.
+
+Regards,
+Mauro
+
+> 
+> Signed-off-by: Rémi Denis-Courmont <remi@remlab.net>
 > ---
->  drivers/media/video/cx23885/Kconfig         |    1 +
->  drivers/media/video/cx23885/cx23885-cards.c |  107 +++++++++++++++++++++++++++
->  drivers/media/video/cx23885/cx23885-dvb.c   |   52 +++++++++++++
->  drivers/media/video/cx23885/cx23885-f300.c  |   55 ++++++++++++++
->  drivers/media/video/cx23885/cx23885-f300.h  |    6 ++
->  drivers/media/video/cx23885/cx23885-input.c |   15 ++++
->  drivers/media/video/cx23885/cx23885.h       |    3 +
->  7 files changed, 239 insertions(+)
+>  include/linux/videodev2.h |   42 +++++++++++++++++++++---------------------
+>  1 file changed, 21 insertions(+), 21 deletions(-)
 > 
-> diff --git a/drivers/media/video/cx23885/Kconfig b/drivers/media/video/cx23885/Kconfig
-> index b391e9b..20337c7 100644
-> --- a/drivers/media/video/cx23885/Kconfig
-> +++ b/drivers/media/video/cx23885/Kconfig
-> @@ -20,6 +20,7 @@ config VIDEO_CX23885
->  	select DVB_LNBP21 if !DVB_FE_CUSTOMISE
->  	select DVB_STV6110 if !DVB_FE_CUSTOMISE
->  	select DVB_CX24116 if !DVB_FE_CUSTOMISE
-> +	select DVB_M88DS3103 if !DVB_FE_CUSTOMISE
->  	select DVB_STV0900 if !DVB_FE_CUSTOMISE
->  	select DVB_DS3000 if !DVB_FE_CUSTOMISE
->  	select DVB_STV0367 if !DVB_FE_CUSTOMISE
-> diff --git a/drivers/media/video/cx23885/cx23885-cards.c b/drivers/media/video/cx23885/cx23885-cards.c
-> index 19b5499..fdf9d0f 100644
-> --- a/drivers/media/video/cx23885/cx23885-cards.c
-> +++ b/drivers/media/video/cx23885/cx23885-cards.c
-> @@ -497,6 +497,20 @@ struct cx23885_board cx23885_boards[] = {
->  		.name		= "TerraTec Cinergy T PCIe Dual",
->  		.portb		= CX23885_MPEG_DVB,
->  		.portc		= CX23885_MPEG_DVB,
-> +	},
-> +
-> +	[CX23885_BOARD_BST_PS8512] = {
-> +		.name		= "Bestunar PS8512",
-> +		.portb		= CX23885_MPEG_DVB,
-> +	},
-> +	[CX23885_BOARD_DVBSKY_S950] = {
-> +		.name		= "DVBSKY S950",
-> +		.portb		= CX23885_MPEG_DVB,
-> +	},
-> +	[CX23885_BOARD_DVBSKY_S952] = {
-> +		.name		= "DVBSKY S952",
-> +		.portb		= CX23885_MPEG_DVB,
-> +		.portc		= CX23885_MPEG_DVB,
->  	}
->  };
->  const unsigned int cx23885_bcount = ARRAY_SIZE(cx23885_boards);
-> @@ -705,6 +719,18 @@ struct cx23885_subid cx23885_subids[] = {
->  		.subvendor = 0x153b,
->  		.subdevice = 0x117e,
->  		.card      = CX23885_BOARD_TERRATEC_CINERGY_T_PCIE_DUAL,
-> +	}, {
-> +		.subvendor = 0x14f1,
-> +		.subdevice = 0x8512,
-> +		.card      = CX23885_BOARD_BST_PS8512,
-> +	}, {
-> +		.subvendor = 0x4254,
-> +		.subdevice = 0x0950,
-> +		.card      = CX23885_BOARD_DVBSKY_S950,		
-> +	}, {
-> +		.subvendor = 0x4254,
-> +		.subdevice = 0x0952,
-> +		.card      = CX23885_BOARD_DVBSKY_S952,
->  	},
->  };
->  const unsigned int cx23885_idcount = ARRAY_SIZE(cx23885_subids);
-> @@ -1216,9 +1242,57 @@ void cx23885_gpio_setup(struct cx23885_dev *dev)
->  		/* enable irq */
->  		cx_write(GPIO_ISM, 0x00000000);/* INTERRUPTS active low*/
->  		break;
-> +	case CX23885_BOARD_DVBSKY_S950:
-> +	case CX23885_BOARD_BST_PS8512:			
-> +		cx23885_gpio_enable(dev, GPIO_2, 1);
-> +		cx23885_gpio_clear(dev, GPIO_2);
-> +		msleep(100);		
-> +		cx23885_gpio_set(dev, GPIO_2);
-> +		break;
-> +	case CX23885_BOARD_DVBSKY_S952:		
-> +		cx_write(MC417_CTL, 0x00000037);/* enable GPIO3-18 pins */
-> +		
-> +		cx23885_gpio_enable(dev, GPIO_2, 1);
-> +		cx23885_gpio_enable(dev, GPIO_11, 1);
-> +		
-> +		cx23885_gpio_clear(dev, GPIO_2);
-> +		cx23885_gpio_clear(dev, GPIO_11);
-> +		msleep(100);		
-> +		cx23885_gpio_set(dev, GPIO_2);
-> +		cx23885_gpio_set(dev, GPIO_11);
-> +		
-> +		break;
->  	}
->  }
->  
-> +static int cx23885_ir_patch(struct i2c_adapter *i2c, u8 reg, u8 mask)
-> +{
-> +	struct i2c_msg msgs[2];
-> +	u8 tx_buf[2], rx_buf[1];
-> +	/* Write register address */
-> +	tx_buf[0] = reg;
-> +	msgs[0].addr = 0x4c;
-> +	msgs[0].flags = 0;
-> +	msgs[0].len = 1;
-> +	msgs[0].buf = (char *) tx_buf;
-> +	/* Read data from register */
-> +	msgs[1].addr = 0x4c;
-> +	msgs[1].flags = I2C_M_RD;
-> +	msgs[1].len = 1;
-> +	msgs[1].buf = (char *) rx_buf;	
-> +	
-> +	i2c_transfer(i2c, msgs, 2);
-> +
-> +	tx_buf[0] = reg;
-> +	tx_buf[1] = rx_buf[0] | mask;
-> +	msgs[0].addr = 0x4c;
-> +	msgs[0].flags = 0;
-> +	msgs[0].len = 2;
-> +	msgs[0].buf = (char *) tx_buf;
-> +	
-> +	return i2c_transfer(i2c, msgs, 1);
-> +}
-> +
->  int cx23885_ir_init(struct cx23885_dev *dev)
->  {
->  	static struct v4l2_subdev_io_pin_config ir_rxtx_pin_cfg[] = {
-> @@ -1301,6 +1375,20 @@ int cx23885_ir_init(struct cx23885_dev *dev)
->  		v4l2_subdev_call(dev->sd_cx25840, core, s_io_pin_config,
->  				 ir_rx_pin_cfg_count, ir_rx_pin_cfg);
->  		break;
-> +	case CX23885_BOARD_BST_PS8512:
-> +	case CX23885_BOARD_DVBSKY_S950:
-> +	case CX23885_BOARD_DVBSKY_S952:
-> +		dev->sd_ir = cx23885_find_hw(dev, CX23885_HW_AV_CORE);
-> +		if (dev->sd_ir == NULL) {
-> +			ret = -ENODEV;
-> +			break;
-> +		}
-> +		v4l2_subdev_call(dev->sd_cx25840, core, s_io_pin_config,
-> +				 ir_rx_pin_cfg_count, ir_rx_pin_cfg);
-> +				 
-> +		cx23885_ir_patch(&(dev->i2c_bus[2].i2c_adap),0x1f,0x80);
-> +		cx23885_ir_patch(&(dev->i2c_bus[2].i2c_adap),0x23,0x80);
-> +		break;
->  	case CX23885_BOARD_HAUPPAUGE_HVR1250:
->  		if (!enable_885_ir)
->  			break;
-> @@ -1332,6 +1420,9 @@ void cx23885_ir_fini(struct cx23885_dev *dev)
->  		break;
->  	case CX23885_BOARD_TEVII_S470:
->  	case CX23885_BOARD_HAUPPAUGE_HVR1250:
-> +	case CX23885_BOARD_BST_PS8512:
-> +	case CX23885_BOARD_DVBSKY_S950:
-> +	case CX23885_BOARD_DVBSKY_S952:
->  		cx23885_irq_remove(dev, PCI_MSK_AV_CORE);
->  		/* sd_ir is a duplicate pointer to the AV Core, just clear it */
->  		dev->sd_ir = NULL;
-> @@ -1375,6 +1466,9 @@ void cx23885_ir_pci_int_enable(struct cx23885_dev *dev)
->  		break;
->  	case CX23885_BOARD_TEVII_S470:
->  	case CX23885_BOARD_HAUPPAUGE_HVR1250:
-> +	case CX23885_BOARD_BST_PS8512:
-> +	case CX23885_BOARD_DVBSKY_S950:
-> +	case CX23885_BOARD_DVBSKY_S952:
->  		if (dev->sd_ir)
->  			cx23885_irq_add_enable(dev, PCI_MSK_AV_CORE);
->  		break;
-> @@ -1459,6 +1553,8 @@ void cx23885_card_setup(struct cx23885_dev *dev)
->  		ts1->ts_clk_en_val = 0x1; /* Enable TS_CLK */
->  		ts1->src_sel_val   = CX23885_SRC_SEL_PARALLEL_MPEG_VIDEO;
->  		break;
-> +	case CX23885_BOARD_BST_PS8512:
-> +	case CX23885_BOARD_DVBSKY_S950:
->  	case CX23885_BOARD_TEVII_S470:
->  	case CX23885_BOARD_DVBWORLD_2005:
->  		ts1->gen_ctrl_val  = 0x5; /* Parallel */
-> @@ -1489,6 +1585,14 @@ void cx23885_card_setup(struct cx23885_dev *dev)
->  		ts2->ts_clk_en_val = 0x1; /* Enable TS_CLK */
->  		ts2->src_sel_val   = CX23885_SRC_SEL_PARALLEL_MPEG_VIDEO;
->  		break;
-> +	case CX23885_BOARD_DVBSKY_S952:
-> +		ts1->gen_ctrl_val  = 0x5; /* Parallel */
-> +		ts1->ts_clk_en_val = 0x1; /* Enable TS_CLK */
-> +		ts1->src_sel_val   = CX23885_SRC_SEL_PARALLEL_MPEG_VIDEO;
-> +		ts2->gen_ctrl_val  = 0xe; /* Serial bus + punctured clock */
-> +		ts2->ts_clk_en_val = 0x1; /* Enable TS_CLK */
-> +		ts2->src_sel_val   = CX23885_SRC_SEL_PARALLEL_MPEG_VIDEO;
-> +		break;
->  	case CX23885_BOARD_HAUPPAUGE_HVR1250:
->  	case CX23885_BOARD_HAUPPAUGE_HVR1500:
->  	case CX23885_BOARD_HAUPPAUGE_HVR1500Q:
-> @@ -1541,6 +1645,9 @@ void cx23885_card_setup(struct cx23885_dev *dev)
->  	case CX23885_BOARD_MPX885:
->  	case CX23885_BOARD_MYGICA_X8507:
->  	case CX23885_BOARD_TERRATEC_CINERGY_T_PCIE_DUAL:
-> +	case CX23885_BOARD_BST_PS8512:
-> +	case CX23885_BOARD_DVBSKY_S950:
-> +	case CX23885_BOARD_DVBSKY_S952:
->  		dev->sd_cx25840 = v4l2_i2c_new_subdev(&dev->v4l2_dev,
->  				&dev->i2c_bus[2].i2c_adap,
->  				"cx25840", 0x88 >> 1, NULL);
-> diff --git a/drivers/media/video/cx23885/cx23885-dvb.c b/drivers/media/video/cx23885/cx23885-dvb.c
-> index 6835eb1..c5a3fa3 100644
-> --- a/drivers/media/video/cx23885/cx23885-dvb.c
-> +++ b/drivers/media/video/cx23885/cx23885-dvb.c
-> @@ -51,6 +51,7 @@
->  #include "stv6110.h"
->  #include "lnbh24.h"
->  #include "cx24116.h"
-> +#include "m88ds3103.h"
->  #include "cimax2.h"
->  #include "lgs8gxx.h"
->  #include "netup-eeprom.h"
-> @@ -489,6 +490,30 @@ static struct xc5000_config mygica_x8506_xc5000_config = {
->  	.if_khz = 5380,
+> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+> index c9c9a46..df3b8f0 100644
+> --- a/include/linux/videodev2.h
+> +++ b/include/linux/videodev2.h
+> @@ -292,10 +292,10 @@ struct v4l2_pix_format {
+>  	__u32         		width;
+>  	__u32			height;
+>  	__u32			pixelformat;
+> -	enum v4l2_field  	field;
+> +	unsigned		field;
+>  	__u32            	bytesperline;	/* for padding, zero if unused */
+>  	__u32          		sizeimage;
+> -	enum v4l2_colorspace	colorspace;
+> +	unsigned		colorspace;
+>  	__u32			priv;		/* private data, depends on pixelformat */
 >  };
 >  
-> +/* bestunar single dvb-s2 */
-> +static struct m88ds3103_config bst_ds3103_config = {
-> +	.demod_address = 0x68,
-> +	.ci_mode = 0,
-> +	.pin_ctrl = 0x82,
-> +	.ts_mode = 0,
-> +	.set_voltage = bst_set_voltage,
-> +};
-> +/* DVBSKY dual dvb-s2 */
-> +static struct m88ds3103_config dvbsky_ds3103_config_pri = {
-> +	.demod_address = 0x68,
-> +	.ci_mode = 0,
-> +	.pin_ctrl = 0x82,
-> +	.ts_mode = 0,
-> +	.set_voltage = bst_set_voltage,	
-> +};
-> +static struct m88ds3103_config dvbsky_ds3103_config_sec = {
-> +	.demod_address = 0x68,
-> +	.ci_mode = 0,
-> +	.pin_ctrl = 0x82,
-> +	.ts_mode = 1,
-> +	.set_voltage = dvbsky_set_voltage_sec,	
-> +};
-> +
->  static int cx23885_dvb_set_frontend(struct dvb_frontend *fe)
->  {
->  	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
-> @@ -1173,6 +1198,33 @@ static int dvb_register(struct cx23885_tsport *port)
->  			break;
->  		}
->  		break;
-> +
-> +	case CX23885_BOARD_BST_PS8512:
-> +	case CX23885_BOARD_DVBSKY_S950:
-> +		i2c_bus = &dev->i2c_bus[1];	
-> +		fe0->dvb.frontend = dvb_attach(m88ds3103_attach,
-> +					&bst_ds3103_config,
-> +					&i2c_bus->i2c_adap);
-> +		break;	
-> +			
-> +	case CX23885_BOARD_DVBSKY_S952:
-> +		switch (port->nr) {
-> +		/* port B */
-> +		case 1:
-> +			i2c_bus = &dev->i2c_bus[1];
-> +			fe0->dvb.frontend = dvb_attach(m88ds3103_attach,
-> +						&dvbsky_ds3103_config_pri,
-> +						&i2c_bus->i2c_adap);
-> +			break;
-> +		/* port C */
-> +		case 2:
-> +			i2c_bus = &dev->i2c_bus[0];
-> +			fe0->dvb.frontend = dvb_attach(m88ds3103_attach,
-> +						&dvbsky_ds3103_config_sec,
-> +						&i2c_bus->i2c_adap);		
-> +			break;
-> +		}
-> +		break;
->  	default:
->  		printk(KERN_INFO "%s: The frontend of your DVB/ATSC card "
->  			" isn't supported yet\n",
-> diff --git a/drivers/media/video/cx23885/cx23885-f300.c b/drivers/media/video/cx23885/cx23885-f300.c
-> index 93998f2..6be0369 100644
-> --- a/drivers/media/video/cx23885/cx23885-f300.c
-> +++ b/drivers/media/video/cx23885/cx23885-f300.c
-> @@ -175,3 +175,58 @@ int f300_set_voltage(struct dvb_frontend *fe, fe_sec_voltage_t voltage)
+> @@ -432,7 +432,7 @@ struct v4l2_pix_format {
+>   */
+>  struct v4l2_fmtdesc {
+>  	__u32		    index;             /* Format number      */
+> -	enum v4l2_buf_type  type;              /* buffer type        */
+> +	unsigned	    type;              /* buffer type        */
+>  	__u32               flags;
+>  	__u8		    description[32];   /* Description string */
+>  	__u32		    pixelformat;       /* Format fourcc      */
+> @@ -573,8 +573,8 @@ struct v4l2_jpegcompression {
+>   */
+>  struct v4l2_requestbuffers {
+>  	__u32			count;
+> -	enum v4l2_buf_type      type;
+> -	enum v4l2_memory        memory;
+> +	unsigned		type;
+> +	unsigned		memory;
+>  	__u32			reserved[2];
+>  };
 >  
->  	return f300_xfer(fe, buf);
->  }
-> +
-> +/* bst control */
-> +int bst_set_voltage(struct dvb_frontend *fe, fe_sec_voltage_t voltage)
-> +{
-> +	struct cx23885_tsport *port = fe->dvb->priv;
-> +	struct cx23885_dev *dev = port->dev;
-> +	
-> +	cx23885_gpio_enable(dev, GPIO_1, 1);
-> +	cx23885_gpio_enable(dev, GPIO_0, 1);
-> +
-> +	switch (voltage) {
-> +	case SEC_VOLTAGE_13:
-> +		cx23885_gpio_set(dev, GPIO_1);
-> +		cx23885_gpio_clear(dev, GPIO_0);
-> +		break;
-> +	case SEC_VOLTAGE_18:
-> +		cx23885_gpio_set(dev, GPIO_1);
-> +		cx23885_gpio_set(dev, GPIO_0);
-> +		break;
-> +	case SEC_VOLTAGE_OFF:
-> +		cx23885_gpio_clear(dev, GPIO_1);
-> +		cx23885_gpio_clear(dev, GPIO_0);
-> +		break;
-> +	}
-> +	
-> +
-> +	return 0;
-> +}
-> +
-> +int dvbsky_set_voltage_sec(struct dvb_frontend *fe, fe_sec_voltage_t voltage)
-> +{
-> +	struct cx23885_tsport *port = fe->dvb->priv;
-> +	struct cx23885_dev *dev = port->dev;
-> +	
-> +	cx23885_gpio_enable(dev, GPIO_12, 1);
-> +	cx23885_gpio_enable(dev, GPIO_13, 1);
-> +
-> +	switch (voltage) {
-> +	case SEC_VOLTAGE_13:
-> +		cx23885_gpio_set(dev, GPIO_13);
-> +		cx23885_gpio_clear(dev, GPIO_12);
-> +		break;
-> +	case SEC_VOLTAGE_18:
-> +		cx23885_gpio_set(dev, GPIO_13);
-> +		cx23885_gpio_set(dev, GPIO_12);
-> +		break;
-> +	case SEC_VOLTAGE_OFF:
-> +		cx23885_gpio_clear(dev, GPIO_13);
-> +		cx23885_gpio_clear(dev, GPIO_12);
-> +		break;
-> +	}
-> +	
-> +
-> +	return 0;
-> +}
-> \ No newline at end of file
-
-Please add a new line.
-
-> diff --git a/drivers/media/video/cx23885/cx23885-f300.h b/drivers/media/video/cx23885/cx23885-f300.h
-> index e73344c..cd02d02 100644
-> --- a/drivers/media/video/cx23885/cx23885-f300.h
-> +++ b/drivers/media/video/cx23885/cx23885-f300.h
-> @@ -1,2 +1,8 @@
-> +extern int dvbsky_set_voltage_sec(struct dvb_frontend *fe,
-> +				fe_sec_voltage_t voltage);
-> +				
-> +extern int bst_set_voltage(struct dvb_frontend *fe,
-> +				fe_sec_voltage_t voltage);
-> +
->  extern int f300_set_voltage(struct dvb_frontend *fe,
->  				fe_sec_voltage_t voltage);
-> diff --git a/drivers/media/video/cx23885/cx23885-input.c b/drivers/media/video/cx23885/cx23885-input.c
-> index ce765e3..69c01f3 100644
-> --- a/drivers/media/video/cx23885/cx23885-input.c
-> +++ b/drivers/media/video/cx23885/cx23885-input.c
-> @@ -87,6 +87,9 @@ void cx23885_input_rx_work_handler(struct cx23885_dev *dev, u32 events)
->  	case CX23885_BOARD_HAUPPAUGE_HVR1290:
->  	case CX23885_BOARD_TEVII_S470:
->  	case CX23885_BOARD_HAUPPAUGE_HVR1250:
-> +	case CX23885_BOARD_BST_PS8512:
-> +	case CX23885_BOARD_DVBSKY_S950:
-> +	case CX23885_BOARD_DVBSKY_S952:
->  		/*
->  		 * The only boards we handle right now.  However other boards
->  		 * using the CX2388x integrated IR controller should be similar
-> @@ -138,6 +141,9 @@ static int cx23885_input_ir_start(struct cx23885_dev *dev)
->  	case CX23885_BOARD_HAUPPAUGE_HVR1850:
->  	case CX23885_BOARD_HAUPPAUGE_HVR1290:
->  	case CX23885_BOARD_HAUPPAUGE_HVR1250:
-> +	case CX23885_BOARD_BST_PS8512:
-> +	case CX23885_BOARD_DVBSKY_S950:
-> +	case CX23885_BOARD_DVBSKY_S952:
->  		/*
->  		 * The IR controller on this board only returns pulse widths.
->  		 * Any other mode setting will fail to set up the device.
-> @@ -279,6 +285,15 @@ int cx23885_input_init(struct cx23885_dev *dev)
->  		/* A guess at the remote */
->  		rc_map = RC_MAP_TEVII_NEC;
->  		break;
-> +	case CX23885_BOARD_BST_PS8512:
-> +	case CX23885_BOARD_DVBSKY_S950:
-> +	case CX23885_BOARD_DVBSKY_S952:
-> +		/* Integrated CX2388[58] IR controller */
-> +		driver_type = RC_DRIVER_IR_RAW;
-> +		allowed_protos = RC_TYPE_ALL;
-> +		/* A guess at the remote */
-> +		rc_map = RC_MAP_DVBSKY;
-> +		break;
->  	default:
->  		return -ENODEV;
->  	}
-> diff --git a/drivers/media/video/cx23885/cx23885.h b/drivers/media/video/cx23885/cx23885.h
-> index f020f05..2724148 100644
-> --- a/drivers/media/video/cx23885/cx23885.h
-> +++ b/drivers/media/video/cx23885/cx23885.h
-> @@ -89,6 +89,9 @@
->  #define CX23885_BOARD_MPX885                   32
->  #define CX23885_BOARD_MYGICA_X8507             33
->  #define CX23885_BOARD_TERRATEC_CINERGY_T_PCIE_DUAL 34
-> +#define CX23885_BOARD_BST_PS8512               35
-> +#define CX23885_BOARD_DVBSKY_S952              36
-> +#define CX23885_BOARD_DVBSKY_S950              37
+> @@ -636,16 +636,16 @@ struct v4l2_plane {
+>   */
+>  struct v4l2_buffer {
+>  	__u32			index;
+> -	enum v4l2_buf_type      type;
+> +	unsigned		type;
+>  	__u32			bytesused;
+>  	__u32			flags;
+> -	enum v4l2_field		field;
+> +	unsigned		field;
+>  	struct timeval		timestamp;
+>  	struct v4l2_timecode	timecode;
+>  	__u32			sequence;
 >  
->  #define GPIO_0 0x00000001
->  #define GPIO_1 0x00000002
+>  	/* memory location */
+> -	enum v4l2_memory        memory;
+> +	unsigned		memory;
+>  	union {
+>  		__u32           offset;
+>  		unsigned long   userptr;
+> @@ -708,7 +708,7 @@ struct v4l2_clip {
+>  
+>  struct v4l2_window {
+>  	struct v4l2_rect        w;
+> -	enum v4l2_field  	field;
+> +	unsigned		field;
+>  	__u32			chromakey;
+>  	struct v4l2_clip	__user *clips;
+>  	__u32			clipcount;
+> @@ -745,14 +745,14 @@ struct v4l2_outputparm {
+>   *	I N P U T   I M A G E   C R O P P I N G
+>   */
+>  struct v4l2_cropcap {
+> -	enum v4l2_buf_type      type;
+> +	unsigned		type;
+>  	struct v4l2_rect        bounds;
+>  	struct v4l2_rect        defrect;
+>  	struct v4l2_fract       pixelaspect;
+>  };
+>  
+>  struct v4l2_crop {
+> -	enum v4l2_buf_type      type;
+> +	unsigned		type;
+>  	struct v4l2_rect        c;
+>  };
+>  
+> @@ -1156,7 +1156,7 @@ enum v4l2_ctrl_type {
+>  /*  Used in the VIDIOC_QUERYCTRL ioctl for querying controls */
+>  struct v4l2_queryctrl {
+>  	__u32		     id;
+> -	enum v4l2_ctrl_type  type;
+> +	unsigned	     type;
+>  	__u8		     name[32];	/* Whatever */
+>  	__s32		     minimum;	/* Note signedness */
+>  	__s32		     maximum;
+> @@ -1788,7 +1788,7 @@ enum v4l2_jpeg_chroma_subsampling {
+>  struct v4l2_tuner {
+>  	__u32                   index;
+>  	__u8			name[32];
+> -	enum v4l2_tuner_type    type;
+> +	unsigned		type;
+>  	__u32			capability;
+>  	__u32			rangelow;
+>  	__u32			rangehigh;
+> @@ -1838,14 +1838,14 @@ struct v4l2_modulator {
+>  
+>  struct v4l2_frequency {
+>  	__u32		      tuner;
+> -	enum v4l2_tuner_type  type;
+> +	unsigned	      type;
+>  	__u32		      frequency;
+>  	__u32		      reserved[8];
+>  };
+>  
+>  struct v4l2_hw_freq_seek {
+>  	__u32		      tuner;
+> -	enum v4l2_tuner_type  type;
+> +	unsigned	      type;
+>  	__u32		      seek_upward;
+>  	__u32		      wrap_around;
+>  	__u32		      spacing;
+> @@ -2056,7 +2056,7 @@ struct v4l2_sliced_vbi_cap {
+>  				 (equals frame lines 313-336 for 625 line video
+>  				  standards, 263-286 for 525 line standards) */
+>  	__u16   service_lines[2][24];
+> -	enum v4l2_buf_type type;
+> +	unsigned type;
+>  	__u32   reserved[3];    /* must be 0 */
+>  };
+>  
+> @@ -2146,8 +2146,8 @@ struct v4l2_pix_format_mplane {
+>  	__u32				width;
+>  	__u32				height;
+>  	__u32				pixelformat;
+> -	enum v4l2_field			field;
+> -	enum v4l2_colorspace		colorspace;
+> +	unsigned			field;
+> +	unsigned			colorspace;
+>  
+>  	struct v4l2_plane_pix_format	plane_fmt[VIDEO_MAX_PLANES];
+>  	__u8				num_planes;
+> @@ -2165,7 +2165,7 @@ struct v4l2_pix_format_mplane {
+>   * @raw_data:	placeholder for future extensions and custom formats
+>   */
+>  struct v4l2_format {
+> -	enum v4l2_buf_type type;
+> +	unsigned type;
+>  	union {
+>  		struct v4l2_pix_format		pix;     /* V4L2_BUF_TYPE_VIDEO_CAPTURE */
+>  		struct v4l2_pix_format_mplane	pix_mp;  /* V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE */
+> @@ -2179,7 +2179,7 @@ struct v4l2_format {
+>  /*	Stream type-dependent parameters
+>   */
+>  struct v4l2_streamparm {
+> -	enum v4l2_buf_type type;
+> +	unsigned type;
+>  	union {
+>  		struct v4l2_captureparm	capture;
+>  		struct v4l2_outputparm	output;
+> @@ -2299,7 +2299,7 @@ struct v4l2_dbg_chip_ident {
+>  struct v4l2_create_buffers {
+>  	__u32			index;
+>  	__u32			count;
+> -	enum v4l2_memory        memory;
+> +	unsigned		memory;
+>  	struct v4l2_format	format;
+>  	__u32			reserved[8];
+>  };
 
