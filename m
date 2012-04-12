@@ -1,52 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:39288 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754394Ab2DKUFZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Apr 2012 16:05:25 -0400
-Received: by obbtb18 with SMTP id tb18so1654684obb.19
-        for <linux-media@vger.kernel.org>; Wed, 11 Apr 2012 13:05:24 -0700 (PDT)
+Received: from oyp.chewa.net ([91.121.6.101]:33563 "EHLO oyp.chewa.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932120Ab2DLPmG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 12 Apr 2012 11:42:06 -0400
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [RFC] [PATCH] v4l2: use unsigned rather than enums in ioctl() structs
 MIME-Version: 1.0
-Date: Wed, 11 Apr 2012 22:05:24 +0200
-Message-ID: <CAGa-wNN2FkLh2az_QRcEVhFOYKZLvNw9KztBfVUjR1g+g2XCJQ@mail.gmail.com>
-Subject: Initial tuning file for Danish cable provider YouSee
-From: Claus Olesen <ceolesen@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: multipart/mixed; boundary=e89a8f6428ec8be67404bd6cc282
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Date: Thu, 12 Apr 2012 17:41:53 +0200
+From: =?UTF-8?Q?R=C3=A9mi_Denis-Courmont?= <remi@remlab.net>
+Cc: James Courtier-Dutton <james.dutton@gmail.com>,
+	<mchehab@infradead.org>, <linux-media@vger.kernel.org>,
+	<linux-kernel@vger.kernel.org>, Alan Cox <alan@lxorguk.ukuu.org.uk>
+In-Reply-To: <4F86ECD0.6060708@redhat.com>
+References: <1333648371-24812-1-git-send-email-remi@remlab.net> <4F85B908.4070404@redhat.com> <201204112147.55348.remi@remlab.net> <CAAMvbhHviuwC0ik2ZY91ZgN4hZyqUbuk=qVcAOH0VYMhva4LeA@mail.gmail.com> <4F86ECD0.6060708@redhat.com>
+Message-ID: <0c4d0f509a99540d87224c05fd27d322@chewa.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---e89a8f6428ec8be67404bd6cc282
-Content-Type: text/plain; charset=ISO-8859-1
+On Thu, 12 Apr 2012 11:55:12 -0300, Mauro Carvalho Chehab
 
-I'm in the same area (northen Copenhagen) and attached is what I see
-from YouSee.
-It's a little shorter than your list but contains these frequencies
-not on your list
-C 256000000 6875000 NONE QAM64 (TNT,TNT-HD,TLC-HD)
-C 394000000 6875000 NONE QAM64 (SVT1HD,NickHD,6rn HD)
-C 434000000 6875000 NONE QAM64 (maintenance?)
+<mchehab@redhat.com> wrote:
 
---e89a8f6428ec8be67404bd6cc282
-Content-Type: application/octet-stream;
-	name="scanfile-dk-gentofte-yousee.dvb"
-Content-Disposition: attachment; filename="scanfile-dk-gentofte-yousee.dvb"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_h0wrrqys0
+> I can see only two viable fixes for it:
 
-QyAxNDMwMDAwMDAgNjg3NTAwMCBOT05FIFFBTTY0CkMgMTU2MDAwMDAwIDY4NzUwMDAgTk9ORSBR
-QU02NApDIDI0ODAwMDAwMCA2ODc1MDAwIE5PTkUgUUFNNjQKQyAyNTYwMDAwMDAgNjg3NTAwMCBO
-T05FIFFBTTY0CkMgMzc4MDAwMDAwIDY4NzUwMDAgTk9ORSBRQU02NApDIDM5NDAwMDAwMCA2ODc1
-MDAwIE5PTkUgUUFNNjQKQyA0MTgwMDAwMDAgNjg3NTAwMCBOT05FIFFBTTY0CkMgNDM0MDAwMDAw
-IDY4NzUwMDAgTk9ORSBRQU02NApDIDQ0MjAwMDAwMCA2ODc1MDAwIE5PTkUgUUFNNjQKQyA0NTAw
-MDAwMDAgNjg3NTAwMCBOT05FIFFBTTY0CkMgNDgyMDAwMDAwIDY4NzUwMDAgTk9ORSBRQU02NApD
-IDQ5MDAwMDAwMCA2ODc1MDAwIE5PTkUgUUFNNjQKQyA0OTgwMDAwMDAgNjg3NTAwMCBOT05FIFFB
-TTY0CkMgNTA2MDAwMDAwIDY4NzUwMDAgTk9ORSBRQU02NApDIDUxNDAwMDAwMCA2ODc1MDAwIE5P
-TkUgUUFNNjQKQyA1MjIwMDAwMDAgNjg3NTAwMCBOT05FIFFBTTY0CkMgNTMwMDAwMDAwIDY4NzUw
-MDAgTk9ORSBRQU02NApDIDUzODAwMDAwMCA2ODc1MDAwIE5PTkUgUUFNNjQKQyA1NDYwMDAwMDAg
-Njg3NTAwMCBOT05FIFFBTTY0CkMgNTU0MDAwMDAwIDY4NzUwMDAgTk9ORSBRQU02NApDIDU2MjAw
-MDAwMCA2ODc1MDAwIE5PTkUgUUFNNjQKQyA1NzAwMDAwMDAgNjg3NTAwMCBOT05FIFFBTTY0CkMg
-NTc4MDAwMDAwIDY4NzUwMDAgTk9ORSBRQU02NApDIDU4NjAwMDAwMCA2ODc1MDAwIE5PTkUgUUFN
-NjQKQyA1OTQwMDAwMDAgNjg3NTAwMCBOT05FIFFBTTY0CkMgNjAyMDAwMDAwIDY4NzUwMDAgTk9O
-RSBRQU02NAo=
---e89a8f6428ec8be67404bd6cc282--
+> 
+
+> 1) add a typedef for the enum, using the sizeof(enum) in order to select
+
+> the
+
+> size of the used integer.
+
+> 
+
+> Pros:
+
+> 	- Patch is easy to write/easy to review;
+
+> 	- Won't change the struct size, so applications compiled without
+
+> 	  strong gcc optimization won't break;
+
+> Cons:
+
+> 	- It will add a typedef, with is ugly;
+
+> 	- struct size on 32 bits will be different thant he size on 64 bits
+
+> 	  (not really an issue, as v4l2-compat32 will handle that;
+
+
+
+On which platforms do enums occupy 64-bits? Alpha? More to the point, on
+
+which platform is enum not the same size as unsigned?
+
+
+
+At least on x86-64, enum is 32-bits and so is unsigned.
+
+
+
+> 	- v4l2-compat32 code may require changes.
+
+> 
+
+> 2) just replace it by a 32 bits integer.
+
+> 
+
+> Pros:
+
+> 	- no typedefs;
+
+> 	- struct size won't change between 32/64 bits (except when they also
+
+> 	  have pointers);
+
+> Cons:
+
+> 	- will break ABI. So, a compat code is required;
+
+> 	- will require a "videodev2.h" fork for the legacy API with the enum's;
+
+> 	- will require a compat code to convert from enum into integer and
+
+> 	  vice-versa.
+
+> 
+
+> Comments/Votes?
+
+
+
+-- 
+
+Rémi Denis-Courmont
+
+Sent from my collocated server
