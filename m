@@ -1,173 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:33258 "EHLO mx1.redhat.com"
+Received: from 7of9.schinagl.nl ([88.159.158.68]:42318 "EHLO 7of9.schinagl.nl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755826Ab2DHP5z (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 8 Apr 2012 11:57:55 -0400
-From: Hans de Goede <hdegoede@redhat.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH 08/10] uvcvideo: Properly report the inactive flag for inactive controls
-Date: Sun,  8 Apr 2012 17:59:52 +0200
-Message-Id: <1333900794-1932-9-git-send-email-hdegoede@redhat.com>
-In-Reply-To: <1333900794-1932-1-git-send-email-hdegoede@redhat.com>
-References: <1333900794-1932-1-git-send-email-hdegoede@redhat.com>
+	id S1757566Ab2DLMoC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 12 Apr 2012 08:44:02 -0400
+Message-ID: <4F86CE09.3080601@schinagl.nl>
+Date: Thu, 12 Apr 2012 14:43:53 +0200
+From: Oliver Schinagl <oliver+list@schinagl.nl>
+MIME-Version: 1.0
+To: Thomas Mair <thomas.mair86@googlemail.com>
+CC: linux-media@vger.kernel.org, Antti Palosaari <crope@iki.fi>
+Subject: Re: RTL28XX driver
+References: <CAKZ=SG-pmn2BtqB+ihY9H9bvYCZq-E3uBsSaioPF5SRceq9iDg@mail.gmail.com> <4F804CDC.3030306@gmail.com> <CAKZ=SG_=7U2QShzq+2HE8SVZvyRpG3rNTsDzwUaso=CG8tXOsg@mail.gmail.com> <4F85D787.2050403@iki.fi> <4F85F89A.80107@schinagl.nl> <4F85FE63.1030700@iki.fi> <4F86C66A.4010404@schinagl.nl> <CAKZ=SG8gHbnRGFrajp2=Op7x52UcMT_5CFM5wzgajKCXkggFtA@mail.gmail.com>
+In-Reply-To: <CAKZ=SG8gHbnRGFrajp2=Op7x52UcMT_5CFM5wzgajKCXkggFtA@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Note the unused in this patch slave_ids addition to the mappings will get
-used in a follow up patch to generate control change events for the slave
-ctrls when their flags change due to the master control changing value.
+I accept the challenge :p but where is your fc2580 driver? And in that 
+thought, where is antti's stub driver :)
 
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
- drivers/media/video/uvc/uvc_ctrl.c |   33 +++++++++++++++++++++++++++++++++
- drivers/media/video/uvc/uvcvideo.h |    4 ++++
- 2 files changed, 37 insertions(+)
+That might help me get started :)
 
-diff --git a/drivers/media/video/uvc/uvc_ctrl.c b/drivers/media/video/uvc/uvc_ctrl.c
-index bc837a4..75a4995 100644
---- a/drivers/media/video/uvc/uvc_ctrl.c
-+++ b/drivers/media/video/uvc/uvc_ctrl.c
-@@ -421,6 +421,8 @@ static struct uvc_control_mapping uvc_ctrl_mappings[] = {
- 		.offset		= 0,
- 		.v4l2_type	= V4L2_CTRL_TYPE_INTEGER,
- 		.data_type	= UVC_CTRL_DATA_TYPE_SIGNED,
-+		.master_id	= V4L2_CID_HUE_AUTO,
-+		.master_manual	= 0,
- 	},
- 	{
- 		.id		= V4L2_CID_SATURATION,
-@@ -493,6 +495,7 @@ static struct uvc_control_mapping uvc_ctrl_mappings[] = {
- 		.offset		= 0,
- 		.v4l2_type	= V4L2_CTRL_TYPE_BOOLEAN,
- 		.data_type	= UVC_CTRL_DATA_TYPE_BOOLEAN,
-+		.slave_ids	= { V4L2_CID_HUE, },
- 	},
- 	{
- 		.id		= V4L2_CID_EXPOSURE_AUTO,
-@@ -505,6 +508,7 @@ static struct uvc_control_mapping uvc_ctrl_mappings[] = {
- 		.data_type	= UVC_CTRL_DATA_TYPE_BITMASK,
- 		.menu_info	= exposure_auto_controls,
- 		.menu_count	= ARRAY_SIZE(exposure_auto_controls),
-+		.slave_ids	= { V4L2_CID_EXPOSURE_ABSOLUTE, },
- 	},
- 	{
- 		.id		= V4L2_CID_EXPOSURE_AUTO_PRIORITY,
-@@ -525,6 +529,8 @@ static struct uvc_control_mapping uvc_ctrl_mappings[] = {
- 		.offset		= 0,
- 		.v4l2_type	= V4L2_CTRL_TYPE_INTEGER,
- 		.data_type	= UVC_CTRL_DATA_TYPE_UNSIGNED,
-+		.master_id	= V4L2_CID_EXPOSURE_AUTO,
-+		.master_manual	= V4L2_EXPOSURE_MANUAL,
- 	},
- 	{
- 		.id		= V4L2_CID_AUTO_WHITE_BALANCE,
-@@ -535,6 +541,7 @@ static struct uvc_control_mapping uvc_ctrl_mappings[] = {
- 		.offset		= 0,
- 		.v4l2_type	= V4L2_CTRL_TYPE_BOOLEAN,
- 		.data_type	= UVC_CTRL_DATA_TYPE_BOOLEAN,
-+		.slave_ids	= { V4L2_CID_WHITE_BALANCE_TEMPERATURE, },
- 	},
- 	{
- 		.id		= V4L2_CID_WHITE_BALANCE_TEMPERATURE,
-@@ -545,6 +552,8 @@ static struct uvc_control_mapping uvc_ctrl_mappings[] = {
- 		.offset		= 0,
- 		.v4l2_type	= V4L2_CTRL_TYPE_INTEGER,
- 		.data_type	= UVC_CTRL_DATA_TYPE_UNSIGNED,
-+		.master_id	= V4L2_CID_AUTO_WHITE_BALANCE,
-+		.master_manual	= 0,
- 	},
- 	{
- 		.id		= V4L2_CID_AUTO_WHITE_BALANCE,
-@@ -555,6 +564,8 @@ static struct uvc_control_mapping uvc_ctrl_mappings[] = {
- 		.offset		= 0,
- 		.v4l2_type	= V4L2_CTRL_TYPE_BOOLEAN,
- 		.data_type	= UVC_CTRL_DATA_TYPE_BOOLEAN,
-+		.slave_ids	= { V4L2_CID_BLUE_BALANCE,
-+				    V4L2_CID_RED_BALANCE },
- 	},
- 	{
- 		.id		= V4L2_CID_BLUE_BALANCE,
-@@ -565,6 +576,8 @@ static struct uvc_control_mapping uvc_ctrl_mappings[] = {
- 		.offset		= 0,
- 		.v4l2_type	= V4L2_CTRL_TYPE_INTEGER,
- 		.data_type	= UVC_CTRL_DATA_TYPE_SIGNED,
-+		.master_id	= V4L2_CID_AUTO_WHITE_BALANCE,
-+		.master_manual	= 0,
- 	},
- 	{
- 		.id		= V4L2_CID_RED_BALANCE,
-@@ -575,6 +588,8 @@ static struct uvc_control_mapping uvc_ctrl_mappings[] = {
- 		.offset		= 16,
- 		.v4l2_type	= V4L2_CTRL_TYPE_INTEGER,
- 		.data_type	= UVC_CTRL_DATA_TYPE_SIGNED,
-+		.master_id	= V4L2_CID_AUTO_WHITE_BALANCE,
-+		.master_manual	= 0,
- 	},
- 	{
- 		.id		= V4L2_CID_FOCUS_ABSOLUTE,
-@@ -585,6 +600,8 @@ static struct uvc_control_mapping uvc_ctrl_mappings[] = {
- 		.offset		= 0,
- 		.v4l2_type	= V4L2_CTRL_TYPE_INTEGER,
- 		.data_type	= UVC_CTRL_DATA_TYPE_UNSIGNED,
-+		.master_id	= V4L2_CID_FOCUS_AUTO,
-+		.master_manual	= 0,
- 	},
- 	{
- 		.id		= V4L2_CID_FOCUS_AUTO,
-@@ -595,6 +612,7 @@ static struct uvc_control_mapping uvc_ctrl_mappings[] = {
- 		.offset		= 0,
- 		.v4l2_type	= V4L2_CTRL_TYPE_BOOLEAN,
- 		.data_type	= UVC_CTRL_DATA_TYPE_BOOLEAN,
-+		.slave_ids	= { V4L2_CID_FOCUS_ABSOLUTE, },
- 	},
- 	{
- 		.id		= V4L2_CID_IRIS_ABSOLUTE,
-@@ -943,6 +961,8 @@ static int __uvc_query_v4l2_ctrl(struct uvc_video_chain *chain,
- 	struct uvc_control_mapping *mapping,
- 	struct v4l2_queryctrl *v4l2_ctrl)
- {
-+	struct uvc_control_mapping *master_map = NULL;
-+	struct uvc_control *master_ctrl = NULL;
- 	struct uvc_menu_info *menu;
- 	unsigned int i;
- 
-@@ -957,6 +977,19 @@ static int __uvc_query_v4l2_ctrl(struct uvc_video_chain *chain,
- 	if (!(ctrl->info.flags & UVC_CTRL_FLAG_SET_CUR))
- 		v4l2_ctrl->flags |= V4L2_CTRL_FLAG_READ_ONLY;
- 
-+	if (mapping->master_id)
-+		__uvc_find_control(ctrl->entity, mapping->master_id,
-+				   &master_map, &master_ctrl, 0);
-+	if (master_ctrl && (master_ctrl->info.flags & UVC_CTRL_FLAG_GET_CUR)) {
-+		s32 val;
-+		int ret = __uvc_ctrl_get(chain, master_ctrl, master_map, &val);
-+		if (ret < 0)
-+			return ret;
-+
-+		if (val != mapping->master_manual)
-+				v4l2_ctrl->flags |= V4L2_CTRL_FLAG_INACTIVE;
-+	}
-+
- 	if (!ctrl->cached) {
- 		int ret = uvc_ctrl_populate_cache(chain, ctrl);
- 		if (ret < 0)
-diff --git a/drivers/media/video/uvc/uvcvideo.h b/drivers/media/video/uvc/uvcvideo.h
-index e43deb7..777bb75 100644
---- a/drivers/media/video/uvc/uvcvideo.h
-+++ b/drivers/media/video/uvc/uvcvideo.h
-@@ -172,6 +172,10 @@ struct uvc_control_mapping {
- 	struct uvc_menu_info *menu_info;
- 	__u32 menu_count;
- 
-+	__u32 master_id;
-+	__s32 master_manual;
-+	__u32 slave_ids[2];
-+
- 	__s32 (*get) (struct uvc_control_mapping *mapping, __u8 query,
- 		      const __u8 *data);
- 	void (*set) (struct uvc_control_mapping *mapping, __s32 value,
--- 
-1.7.9.3
+On 12-04-12 14:18, Thomas Mair wrote:
+> Hi Oliver,
+>
+> the Realtek driver sources I have also contain a fc2580 driver. Maybe
+> the source code will help you together with the usb sniff.
+>
+> 2012/4/12 Oliver Schinagl<oliver+list@schinagl.nl>:
+>> Would love to,  even tried a bit, but don't really know how to start, what
+>> to use as a template. I think I can extract the i2c messages from the
+>> dreaded ugly af903 driver however, using src or usbsniff.
+>>
+>> On 11-04-12 23:57, Antti Palosaari wrote:
+>>> On 12.04.2012 00:33, Oliver Schinagl wrote:
+>>>> On 04/11/12 21:12, Antti Palosaari wrote:
+>>>>> I have some old stubbed drivers that just works for one frequency using
+>>>>> combination of RTL2832U + FC2580. Also I have rather well commented USB
+>>>>> sniff from that device. I can sent those if you wish.
+>>>>>
+>>>> FC2580? Do you have anything for/from that driver? My USB stick as an
+>>>> AFA9035 based one, using that specific tuner.
+>>>
+>>> Nothing but stubbed driver that contains static register values taken from
+>>> the sniff and it just tunes to one channel (IIRC 634 MHz / 8 MHz BW).
+>>>
+>>> Feel free to contribute new tuner driver in order to add support for your
+>>> AF9035 device.
+>>>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
