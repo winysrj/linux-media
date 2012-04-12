@@ -1,57 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.insync.za.net ([103.247.152.98]:59416 "EHLO
-	mail.insync.za.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751540Ab2DQVMw (ORCPT
+Received: from abby.lhr1.as41113.net ([91.208.177.20]:17800 "EHLO
+	abby.lhr1.as41113.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752660Ab2DLEmR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Apr 2012 17:12:52 -0400
-Date: Wed, 18 Apr 2012 09:12:48 +1200 (NZST)
-From: Pieter De Wit <pieter@insync.za.net>
-To: =?ISO-8859-15?Q?R=E9mi_Denis-Courmont?= <remi@remlab.net>
-cc: linux-media@vger.kernel.org
-Subject: Re: v4l2 Device with H264 support
-In-Reply-To: <201204172345.47837.remi@remlab.net>
-Message-ID: <alpine.DEB.2.02.1204180912130.3685@eragon.insync.za.net>
-References: <alpine.DEB.2.02.1204171159380.3685@eragon.insync.za.net> <a5a29db4793a36095a2f8746361f6b63@chewa.net> <alpine.DEB.2.02.1204180828510.3685@eragon.insync.za.net> <201204172345.47837.remi@remlab.net>
+	Thu, 12 Apr 2012 00:42:17 -0400
+Received: from [172.16.11.44] (unknown [91.208.177.193])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	(Authenticated sender: lists@rewt.org.uk)
+	by abby.lhr1.as41113.net (Postfix) with ESMTPSA id AF91022814
+	for <linux-media@vger.kernel.org>; Thu, 12 Apr 2012 05:36:47 +0100 (BST)
+Message-ID: <4F865BD6.3010402@rewt.org.uk>
+Date: Thu, 12 Apr 2012 05:36:38 +0100
+From: Joe Holden <lists@rewt.org.uk>
 MIME-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="8323329-647220006-1334697168=:3685"
+To: linux-media@vger.kernel.org
+Subject: pctv452e usb (Technotrend TT Connect S2-3600) & DM1105N
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+Hi guys,
 
---8323329-647220006-1334697168=:3685
-Content-Type: TEXT/PLAIN; charset=iso-8859-15; format=flowed
-Content-Transfer-Encoding: 8BIT
+Since updating to 3.3.1 from 3.2.x my DVB-S2 tuner has stopped working 
+and seems to block when accessed:
 
-On Tue, 17 Apr 2012, Rémi Denis-Courmont wrote:
+[ 6182.111792] pctv452e: I2C error -110; AA 0F  D0 03 00 -> AA 0F  D0 03 00.
+[ 6182.419919] dvb-usb: error -110 while querying for an remote control 
+event.
+[ 6182.989972] dvb-usb: error -110 while querying for an remote control 
+event.
+[ 6184.170082] dvb-usb: bulk message failed: -110 (4/0)
+[ 6184.185065] dvb-usb: error -110 while querying for an remote control 
+event.
+[ 6184.356753] dvb-usb: error -110 while querying for an remote control 
+event.
 
-> Le mardi 17 avril 2012 23:30:43 Pieter De Wit, vous avez écrit :
->> Thanks for the reply. I suspect that there is some tricks needed to get
->> the h264 stream from this device, into something of a player.
->
-> At least for UVC devices, it's pretty damn straight forward. You just need to
-> set pixel format 'H264' with the standard VIDIOC_S_FMT. Then you get the H.264
-> elementary stream with the plain normal streaming or read/write modes of V4L2.
->
-> E.g.:
->
-> # v4l2-ctl --set-fmt-video=width=640,height=480,pixelformat=H264
-> # vlc v4l2c/h264://
->
-> -- 
-> Rémi Denis-Courmont
-> http://www.remlab.net/
-> http://fi.linkedin.com/in/remidenis
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-Yeah - that didn't work so well. I will make up a more detailed report 
-tonight when I have the device on hand.
+The I2C errors were logged under 3.2 also but the card still worked.
+Has anything substantanial changed? Can enable debug and/or ssh access 
+if it would help diagnose the problem...
 
-Cheers,
+I also have a DM1105 based card that doesn't attach:
 
-Pieter
---8323329-647220006-1334697168=:3685--
+[ 1623.471563] DVB: registering new adapter (dm1105)
+[ 1623.721678] dm1105 0000:00:0b.0: MAC 00:00:00:00:00:00
+[ 1645.919891] si21xx: si21xx_attach
+[ 1651.283255] si21xx: si21_readreg: readreg error (reg == 0x01, ret == -6)
+[ 1656.653869] si21xx: si21_writereg: writereg error (reg == 0x01, data 
+== 0x40, ret == -6)
+[ 1662.223209] si21xx: si21_readreg: readreg error (reg == 0x00, ret == -6)
+[ 1662.223235] dm1105 0000:00:0b.0: could not attach frontend
+
+Any idea what I could do to find out whats wrong?
+
+Thanks,
+J
