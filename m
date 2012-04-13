@@ -1,79 +1,395 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from impaqm4.telefonica.net ([213.4.138.20]:49483 "EHLO
-	telefonica.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753058Ab2DVXwT convert rfc822-to-8bit (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:63599 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753625Ab2DMPsM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 22 Apr 2012 19:52:19 -0400
-From: Jose Alberto Reguero <jareguero@telefonica.net>
-To: linux-media@vger.kernel.org
-Subject: Problem with az007 and resume from suspend
-Date: Mon, 23 Apr 2012 01:45:03 +0200
-Message-ID: <4241650.I71sG81dhF@jar7.dominio>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-Content-Type: text/plain; charset="iso-8859-1"
+	Fri, 13 Apr 2012 11:48:12 -0400
+Received: from euspt1 (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0M2F00CGID7ZD4@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 13 Apr 2012 16:48:03 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0M2F006H9D84KA@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 13 Apr 2012 16:48:05 +0100 (BST)
+Date: Fri, 13 Apr 2012 17:47:50 +0200
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: [PATCH v4 08/14] v4l: vb2-dma-contig: add support for scatterlist in
+ userptr mode
+In-reply-to: <1334332076-28489-1-git-send-email-t.stanislaws@samsung.com>
+To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
+Cc: airlied@redhat.com, m.szyprowski@samsung.com,
+	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
+	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
+	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
+	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
+	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
+	mchehab@redhat.com, Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>
+Message-id: <1334332076-28489-9-git-send-email-t.stanislaws@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1334332076-28489-1-git-send-email-t.stanislaws@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When resume from suspend I get:
+From: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
 
-[83245.571382] dvb-usb: found a 'TerraTec DTV StarBox DVB-T/C USB2.0 (az6007)' 
-in cold state, will try to load a firmware
-[83245.571391] ------------[ cut here ]------------
-[83245.571403] WARNING: at drivers/base/firmware_class.c:537 
-_request_firmware+0xea/0x3e5()
-[83245.571408] Hardware name: System Product Name
-[83245.571411] Modules linked in: mt2063(O) drxk(O) dvb_usb_az6007(O) hidp 
-fuse ext2 nfsd lockd nfs_acl auth_rpcgss sunrpc p4_clockmod freq_table 
-speedstep_lib rfcomm bnep rc_nec_terratec_cinergy_xs(O) nvidia(P) mxl5007t(O) 
-ir_lirc_codec(O) lirc_dev(O) ir_mce_kbd_decoder(O) ir_sanyo_decoder(O) 
-ir_sony_decoder(O) ir_jvc_decoder(O) ir_rc6_decoder(O) ir_rc5_decoder(O) 
-af9033(O) ir_nec_decoder(O) dvb_usb_af9035(O) dvb_usb(O) dvb_core(O) 
-rc_core(O) snd_hda_codec_hdmi snd_hda_codec_realtek snd_hda_intel 
-snd_hda_codec snd_hwdep snd_seq snd_seq_device snd_pcm snd_timer snd btusb 
-soundcore bluetooth microcode rfkill snd_page_alloc pcspkr serio_raw i2c_i801 
-iTCO_wdt iTCO_vendor_support xhci_hcd r8169 mii asus_atk0110 uinput ipv6 
-nouveau ttm drm_kms_helper drm i2c_algo_bit i2c_core mxm_wmi wmi video [last 
-unloaded: r8712u]
-[83245.571508] Pid: 5740, comm: pm-suspend Tainted: P        WC O 3.2.1 #1
-[83245.571512] Call Trace:
-[83245.571522]  [<ffffffff81057a92>] warn_slowpath_common+0x83/0x9b
-[83245.571531]  [<ffffffff81057ac4>] warn_slowpath_null+0x1a/0x1c
-[83245.571538]  [<ffffffff8131378a>] _request_firmware+0xea/0x3e5
-[83245.571545]  [<ffffffff81313a9b>] request_firmware+0x16/0x18
-[83245.571559]  [<ffffffffa01ed2a6>] dvb_usb_download_firmware+0x34/0xbe [dvb_usb]
-[83245.571570]  [<ffffffffa01ed6cb>] dvb_usb_device_init+0x1d5/0x602 [dvb_usb]
-[83245.571581]  [<ffffffffa034e145>] az6007_usb_probe+0x25/0x27 [dvb_usb_az6007]
-[83245.571589]  [<ffffffff8136b232>] usb_probe_interface+0x14a/0x1b7
-[83245.571598]  [<ffffffff81309628>] driver_probe_device+0x136/0x25a
-[83245.571605]  [<ffffffff81309804>] __device_attach+0x3a/0x3f
-[83245.571612]  [<ffffffff813097ca>] ? __driver_attach+0x7e/0x7e
-[83245.571619]  [<ffffffff813083aa>] bus_for_each_drv+0x56/0x8c
-[83245.571627]  [<ffffffff81309488>] device_attach+0x7b/0x9f
-[83245.571633]  [<ffffffff8136aee2>] usb_rebind_intf+0x65/0x81
-[83245.571640]  [<ffffffff8136afb1>] do_unbind_rebind+0x63/0x79
-[83245.571647]  [<ffffffff8136b02c>] usb_resume+0x65/0x7c
-[83245.571654]  [<ffffffff8135ecfe>] usb_dev_complete+0x10/0x12
-[83245.571661]  [<ffffffff8130ff99>] dpm_complete+0x137/0x1ad
-[83245.571669]  [<ffffffff81310028>] dpm_resume_end+0x19/0x1d
-[83245.571677]  [<ffffffff8108bb68>] suspend_devices_and_enter+0x1d6/0x21a
-[83245.571684]  [<ffffffff8108bcd5>] enter_state+0x129/0x16e
-[83245.571691]  [<ffffffff8108ab6b>] state_store+0xbc/0x106
-[83245.571699]  [<ffffffff8124b293>] kobj_attr_store+0x17/0x19
-[83245.571707]  [<ffffffff8118551c>] sysfs_write_file+0x101/0x13d
-[83245.571716]  [<ffffffff8112ac6d>] vfs_write+0xac/0xf3
-[83245.571723]  [<ffffffff8112ae5c>] sys_write+0x4a/0x6e
-[83245.571732]  [<ffffffff814ab802>] system_call_fastpath+0x16/0x1b
-[83245.571737] ---[ end trace 46c4416a4ddedede ]---
-[83245.571743] usb 1-5: firmware: dvb-usb-terratec-h7-az6007.fw will not be 
-loaded
-[83245.571750] dvb-usb: did not find the firmware file. (dvb-usb-terratec-h7-
-az6007.fw) Please see linux/Documentation/dvb/ for more details on firmware-
-problems. (-16)
-[83245.571763] dvb_usb_az6007: probe of 1-5:1.0 failed with error -16
+This patch introduces usage of dma_map_sg to map memory behind
+a userspace pointer to a device as dma-contiguous mapping.
 
-¿Anybody know whats wrong?
+Signed-off-by: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+	[bugfixing]
+Signed-off-by: Kamil Debski <k.debski@samsung.com>
+	[bugfixing]
+Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+	[add sglist subroutines/code refactoring]
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/video/videobuf2-dma-contig.c |  287 ++++++++++++++++++++++++++--
+ 1 files changed, 270 insertions(+), 17 deletions(-)
 
-Jose Alberto
-
+diff --git a/drivers/media/video/videobuf2-dma-contig.c b/drivers/media/video/videobuf2-dma-contig.c
+index 476e536..3a1e314 100644
+--- a/drivers/media/video/videobuf2-dma-contig.c
++++ b/drivers/media/video/videobuf2-dma-contig.c
+@@ -11,6 +11,8 @@
+  */
+ 
+ #include <linux/module.h>
++#include <linux/scatterlist.h>
++#include <linux/sched.h>
+ #include <linux/slab.h>
+ #include <linux/dma-mapping.h>
+ 
+@@ -22,6 +24,8 @@ struct vb2_dc_buf {
+ 	void				*vaddr;
+ 	unsigned long			size;
+ 	dma_addr_t			dma_addr;
++	enum dma_data_direction		dma_dir;
++	struct sg_table			*dma_sgt;
+ 
+ 	/* MMAP related */
+ 	struct vb2_vmarea_handler	handler;
+@@ -32,6 +36,103 @@ struct vb2_dc_buf {
+ };
+ 
+ /*********************************************/
++/*        scatterlist table functions        */
++/*********************************************/
++
++static struct sg_table *vb2_dc_pages_to_sgt(struct page **pages,
++	unsigned int n_pages, unsigned long offset, unsigned long size)
++{
++	struct sg_table *sgt;
++	unsigned int chunks;
++	unsigned int i;
++	unsigned int cur_page;
++	int ret;
++	struct scatterlist *s;
++	unsigned int offset_end = n_pages * PAGE_SIZE - size;
++
++	sgt = kzalloc(sizeof *sgt, GFP_KERNEL);
++	if (!sgt)
++		return ERR_PTR(-ENOMEM);
++
++	/* compute number of chunks */
++	chunks = 1;
++	for (i = 1; i < n_pages; ++i)
++		if (pages[i] != pages[i - 1] + 1)
++			++chunks;
++
++	ret = sg_alloc_table(sgt, chunks, GFP_KERNEL);
++	if (ret) {
++		kfree(sgt);
++		return ERR_PTR(-ENOMEM);
++	}
++
++	/* merging chunks and putting them into the scatterlist */
++	cur_page = 0;
++	for_each_sg(sgt->sgl, s, sgt->orig_nents, i) {
++		size_t size = PAGE_SIZE;
++		unsigned int j;
++
++		for (j = cur_page + 1; j < n_pages; ++j) {
++			if (pages[j] != pages[j - 1] + 1)
++				break;
++			size += PAGE_SIZE;
++		}
++
++		/* cut offset if chunk starts at the first page */
++		if (cur_page == 0)
++			size -= offset;
++		/* cut offset_end if chunk ends at the last page */
++		if (j == n_pages)
++			size -= offset_end;
++
++		sg_set_page(s, pages[cur_page], size, offset);
++		offset = 0;
++		cur_page = j;
++	}
++
++	return sgt;
++}
++
++static void vb2_dc_release_sgtable(struct sg_table *sgt)
++{
++	sg_free_table(sgt);
++	kfree(sgt);
++}
++
++static void vb2_dc_sgt_foreach_page(struct sg_table *sgt,
++	void (*cb)(struct page *pg))
++{
++	struct scatterlist *s;
++	unsigned int i;
++
++	for_each_sg(sgt->sgl, s, sgt->nents, i) {
++		struct page *page = sg_page(s);
++		unsigned int n_pages = PAGE_ALIGN(s->offset + s->length)
++			>> PAGE_SHIFT;
++		unsigned int j;
++
++		for (j = 0; j < n_pages; ++j, ++page)
++			cb(page);
++	}
++}
++
++static unsigned long vb2_dc_get_contiguous_size(struct sg_table *sgt)
++{
++	struct scatterlist *s;
++	dma_addr_t expected = sg_dma_address(sgt->sgl);
++	unsigned int i;
++	unsigned long size = 0;
++
++	for_each_sg(sgt->sgl, s, sgt->nents, i) {
++		if (sg_dma_address(s) != expected)
++			break;
++		expected = sg_dma_address(s) + sg_dma_len(s);
++		size += sg_dma_len(s);
++	}
++	return size;
++}
++
++/*********************************************/
+ /*         callbacks for all buffers         */
+ /*********************************************/
+ 
+@@ -116,42 +217,194 @@ static int vb2_dc_mmap(void *buf_priv, struct vm_area_struct *vma)
+ /*       callbacks for USERPTR buffers       */
+ /*********************************************/
+ 
++static inline int vma_is_io(struct vm_area_struct *vma)
++{
++	return !!(vma->vm_flags & (VM_IO | VM_PFNMAP));
++}
++
++static struct vm_area_struct *vb2_dc_get_user_vma(
++	unsigned long start, unsigned long size)
++{
++	struct vm_area_struct *vma;
++
++	/* current->mm->mmap_sem is taken by videobuf2 core */
++	vma = find_vma(current->mm, start);
++	if (!vma) {
++		printk(KERN_ERR "no vma for address %lu\n", start);
++		return ERR_PTR(-EFAULT);
++	}
++
++	if (vma->vm_end - vma->vm_start < size) {
++		printk(KERN_ERR "vma at %lu is too small for %lu bytes\n",
++			start, size);
++		return ERR_PTR(-EFAULT);
++	}
++
++	vma = vb2_get_vma(vma);
++	if (!vma) {
++		printk(KERN_ERR "failed to copy vma\n");
++		return ERR_PTR(-ENOMEM);
++	}
++
++	return vma;
++}
++
++static int vb2_dc_get_user_pages(unsigned long start, struct page **pages,
++	int n_pages, struct vm_area_struct *vma, int write)
++{
++	if (vma_is_io(vma)) {
++		unsigned int i;
++
++		for (i = 0; i < n_pages; ++i, start += PAGE_SIZE) {
++			unsigned long pfn;
++			int ret = follow_pfn(vma, start, &pfn);
++
++			if (ret) {
++				printk(KERN_ERR "no page for address %lu\n",
++					start);
++				return ret;
++			}
++			pages[i] = pfn_to_page(pfn);
++		}
++	} else {
++		unsigned int n;
++
++		n = get_user_pages(current, current->mm, start & PAGE_MASK,
++			n_pages, write, 1, pages, NULL);
++		if (n != n_pages) {
++			printk(KERN_ERR "got only %d of %d user pages\n",
++				n, n_pages);
++			while (n)
++				put_page(pages[--n]);
++			return -EFAULT;
++		}
++	}
++
++	return 0;
++}
++
++static void vb2_dc_put_dirty_page(struct page *page)
++{
++	set_page_dirty_lock(page);
++	put_page(page);
++}
++
++static void vb2_dc_put_userptr(void *buf_priv)
++{
++	struct vb2_dc_buf *buf = buf_priv;
++	struct sg_table *sgt = buf->dma_sgt;
++
++	dma_unmap_sg(buf->dev, sgt->sgl, sgt->orig_nents, buf->dma_dir);
++	if (!vma_is_io(buf->vma))
++		vb2_dc_sgt_foreach_page(sgt, vb2_dc_put_dirty_page);
++
++	vb2_dc_release_sgtable(sgt);
++	vb2_put_vma(buf->vma);
++	kfree(buf);
++}
++
+ static void *vb2_dc_get_userptr(void *alloc_ctx, unsigned long vaddr,
+-					unsigned long size, int write)
++	unsigned long size, int write)
+ {
+ 	struct vb2_dc_buf *buf;
+-	struct vm_area_struct *vma;
+-	dma_addr_t dma_addr = 0;
+-	int ret;
++	unsigned long start;
++	unsigned long end;
++	unsigned long offset;
++	struct page **pages;
++	int n_pages;
++	int ret = 0;
++	struct sg_table *sgt;
++	unsigned long contig_size;
+ 
+ 	buf = kzalloc(sizeof *buf, GFP_KERNEL);
+ 	if (!buf)
+ 		return ERR_PTR(-ENOMEM);
+ 
+-	ret = vb2_get_contig_userptr(vaddr, size, &vma, &dma_addr);
++	buf->dev = alloc_ctx;
++	buf->dma_dir = write ? DMA_FROM_DEVICE : DMA_TO_DEVICE;
++
++	start = vaddr & PAGE_MASK;
++	offset = vaddr & ~PAGE_MASK;
++	end = PAGE_ALIGN(vaddr + size);
++	n_pages = (end - start) >> PAGE_SHIFT;
++
++	pages = kmalloc(n_pages * sizeof pages[0], GFP_KERNEL);
++	if (!pages) {
++		ret = -ENOMEM;
++		printk(KERN_ERR "failed to allocate pages table\n");
++		goto fail_buf;
++	}
++
++	buf->vma = vb2_dc_get_user_vma(start, size);
++	if (IS_ERR(buf->vma)) {
++		printk(KERN_ERR "failed to get VMA\n");
++		ret = PTR_ERR(buf->vma);
++		goto fail_pages;
++	}
++
++	/* extract page list from userspace mapping */
++	ret = vb2_dc_get_user_pages(start, pages, n_pages, buf->vma, write);
+ 	if (ret) {
+-		printk(KERN_ERR "Failed acquiring VMA for vaddr 0x%08lx\n",
+-				vaddr);
+-		kfree(buf);
+-		return ERR_PTR(ret);
++		printk(KERN_ERR "failed to get user pages\n");
++		goto fail_vma;
++	}
++
++	sgt = vb2_dc_pages_to_sgt(pages, n_pages, offset, size);
++	if (IS_ERR(sgt)) {
++		printk(KERN_ERR "failed to create scatterlist table\n");
++		ret = -ENOMEM;
++		goto fail_get_user_pages;
++	}
++
++	/* pages are no longer needed */
++	kfree(pages);
++	pages = NULL;
++
++	sgt->nents = dma_map_sg(buf->dev, sgt->sgl, sgt->orig_nents,
++		buf->dma_dir);
++	if (sgt->nents <= 0) {
++		printk(KERN_ERR "failed to map scatterlist\n");
++		ret = -EIO;
++		goto fail_sgt;
+ 	}
+ 
++	contig_size = vb2_dc_get_contiguous_size(sgt);
++	if (contig_size < size) {
++		printk(KERN_ERR "contiguous mapping is too small %lu/%lu\n",
++			contig_size, size);
++		ret = -EFAULT;
++		goto fail_map_sg;
++	}
++
++	buf->dma_addr = sg_dma_address(sgt->sgl);
+ 	buf->size = size;
+-	buf->dma_addr = dma_addr;
+-	buf->vma = vma;
++	buf->dma_sgt = sgt;
+ 
+ 	return buf;
+-}
+ 
+-static void vb2_dc_put_userptr(void *mem_priv)
+-{
+-	struct vb2_dc_buf *buf = mem_priv;
++fail_map_sg:
++	dma_unmap_sg(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
+ 
+-	if (!buf)
+-		return;
++fail_sgt:
++	if (!vma_is_io(buf->vma))
++		vb2_dc_sgt_foreach_page(sgt, put_page);
++	vb2_dc_release_sgtable(sgt);
++
++fail_get_user_pages:
++	if (pages && !vma_is_io(buf->vma))
++		while (n_pages)
++			put_page(pages[--n_pages]);
+ 
++fail_vma:
+ 	vb2_put_vma(buf->vma);
++
++fail_pages:
++	kfree(pages); /* kfree is NULL-proof */
++
++fail_buf:
+ 	kfree(buf);
++
++	return ERR_PTR(ret);
+ }
+ 
+ /*********************************************/
+-- 
+1.7.5.4
 
