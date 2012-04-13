@@ -1,159 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-1.cisco.com ([144.254.224.140]:30355 "EHLO
-	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753049Ab2D3PyU (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:63599 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754266Ab2DMPsL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Apr 2012 11:54:20 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [PATCH/RFC v3 04/14] V4L: Add camera wide dynamic range control
-Date: Mon, 30 Apr 2012 17:54:07 +0200
-Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	sakari.ailus@iki.fi, g.liakhovetski@gmx.de, hdegoede@redhat.com,
-	moinejf@free.fr, m.szyprowski@samsung.com,
-	riverful.kim@samsung.com, sw0312.kim@samsung.com,
-	Kyungmin Park <kyungmin.park@samsung.com>
-References: <1335536611-4298-1-git-send-email-s.nawrocki@samsung.com> <1335536611-4298-5-git-send-email-s.nawrocki@samsung.com> <201204301750.57488.hverkuil@xs4all.nl>
-In-Reply-To: <201204301750.57488.hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201204301754.07602.hverkuil@xs4all.nl>
+	Fri, 13 Apr 2012 11:48:11 -0400
+Received: from euspt1 (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0M2F00CGID7ZD4@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 13 Apr 2012 16:48:03 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0M2F005JPD84XW@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 13 Apr 2012 16:48:05 +0100 (BST)
+Date: Fri, 13 Apr 2012 17:47:52 +0200
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: [PATCH v4 10/14] v4l: vb2-dma-contig: add prepare/finish to dma-contig
+ allocator
+In-reply-to: <1334332076-28489-1-git-send-email-t.stanislaws@samsung.com>
+To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
+Cc: airlied@redhat.com, m.szyprowski@samsung.com,
+	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
+	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
+	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
+	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
+	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
+	mchehab@redhat.com
+Message-id: <1334332076-28489-11-git-send-email-t.stanislaws@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1334332076-28489-1-git-send-email-t.stanislaws@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday 30 April 2012 17:50:57 Hans Verkuil wrote:
-> On Friday 27 April 2012 16:23:21 Sylwester Nawrocki wrote:
-> > Add V4L2_CID_WIDE_DYNAMIC_RANGE camera class control for camera wide
-> > dynamic range (WDR, HDR) feature. This control has now only menu entries
-> > for enabling and disabling WDR. It can be extended when the wide dynamic
-> > range technique selection is needed.
+From: Marek Szyprowski <m.szyprowski@samsung.com>
 
-Never mind, I get it. It's for future expansion.
+Add prepare/finish callbacks to vb2-dma-contig allocator.
 
-That said, I find it dubious to make this an enum.
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+---
+ drivers/media/video/videobuf2-dma-contig.c |   24 ++++++++++++++++++++++++
+ 1 files changed, 24 insertions(+), 0 deletions(-)
 
-I would go with a boolean control and perhaps make a remark that it might become
-an enum in the future if more options are needed.
+diff --git a/drivers/media/video/videobuf2-dma-contig.c b/drivers/media/video/videobuf2-dma-contig.c
+index 3a1e314..3b1ac77d 100644
+--- a/drivers/media/video/videobuf2-dma-contig.c
++++ b/drivers/media/video/videobuf2-dma-contig.c
+@@ -157,6 +157,28 @@ static unsigned int vb2_dc_num_users(void *buf_priv)
+ 	return atomic_read(&buf->refcount);
+ }
+ 
++static void vb2_dc_prepare(void *buf_priv)
++{
++	struct vb2_dc_buf *buf = buf_priv;
++	struct sg_table *sgt = buf->dma_sgt;
++
++	if (!sgt)
++		return;
++
++	dma_sync_sg_for_device(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
++}
++
++static void vb2_dc_finish(void *buf_priv)
++{
++	struct vb2_dc_buf *buf = buf_priv;
++	struct sg_table *sgt = buf->dma_sgt;
++
++	if (!sgt)
++		return;
++
++	dma_sync_sg_for_cpu(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
++}
++
+ /*********************************************/
+ /*        callbacks for MMAP buffers         */
+ /*********************************************/
+@@ -419,6 +441,8 @@ const struct vb2_mem_ops vb2_dma_contig_memops = {
+ 	.mmap		= vb2_dc_mmap,
+ 	.get_userptr	= vb2_dc_get_userptr,
+ 	.put_userptr	= vb2_dc_put_userptr,
++	.prepare	= vb2_dc_prepare,
++	.finish		= vb2_dc_finish,
+ 	.num_users	= vb2_dc_num_users,
+ };
+ EXPORT_SYMBOL_GPL(vb2_dma_contig_memops);
+-- 
+1.7.5.4
 
-Regards,
-
-	Hans
-
-> > 
-> > Signed-off-by: HeungJun Kim <riverful.kim@samsung.com>
-> > Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> > Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> > ---
-> >  Documentation/DocBook/media/v4l/controls.xml |   28 ++++++++++++++++++++++++++
-> >  drivers/media/video/v4l2-ctrls.c             |    9 +++++++++
-> >  include/linux/videodev2.h                    |    6 ++++++
-> >  3 files changed, 43 insertions(+)
-> > 
-> > diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
-> > index b671a70..487b7b5 100644
-> > --- a/Documentation/DocBook/media/v4l/controls.xml
-> > +++ b/Documentation/DocBook/media/v4l/controls.xml
-> > @@ -3018,6 +3018,34 @@ sky. It corresponds approximately to 9000...10000 K color temperature.
-> >  	  </row>
-> >  	  <row><entry></entry></row>
-> >  
-> > +	  <row id="v4l2-wide-dynamic-range-type">
-> > +	    <entry spanname="id"><constant>V4L2_CID_WIDE_DYNAMIC_RANGE</constant></entry>
-> > +	    <entry>enum&nbsp;v4l2_wide_dynamic_range_type</entry>
-> > +	  </row>
-> > +	  <row>
-> > +	    <entry spanname="descr">Enables or disables the camera's wide dynamic
-> > +range feature. This feature allows to obtain clear images in situations where
-> > +intensity of the illumination varies significantly throughout the scene, i.e.
-> > +there are simultaneously very dark and very bright areas. It is most commonly
-> > +realized in cameras by combining two subsequent frames with different exposure
-> > +times.</entry>
-> > +	  </row>
-> > +	  <row>
-> > +	    <entrytbl spanname="descr" cols="2">
-> > +	      <tbody valign="top">
-> > +		<row>
-> > +		  <entry><constant>V4L2_WIDE_DYNAMIC_RANGE_DISABLED</constant></entry>
-> > +		  <entry>Wide dynamic range is disabled.</entry>
-> > +		</row>
-> > +		<row>
-> > +		  <entry><constant>V4L2_WIDE_DYNAMIC_RANGE_ENABLED</constant></entry>
-> > +		  <entry>Wide dynamic range is enabled.</entry>
-> > +		</row>
-> > +	      </tbody>
-> > +	    </entrytbl>
-> > +	  </row>
-> > +	  <row><entry></entry></row>
-> > +
-> >  	</tbody>
-> >        </tgroup>
-> >      </table>
-> > diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
-> > index 02fa9b0..ad2f035 100644
-> > --- a/drivers/media/video/v4l2-ctrls.c
-> > +++ b/drivers/media/video/v4l2-ctrls.c
-> > @@ -256,6 +256,11 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
-> >  		"Shade",
-> >  		NULL,
-> >  	};
-> > +	static const char * const camera_wide_dynamic_range[] = {
-> > +		"Disabled",
-> > +		"Enabled",
-> > +		NULL
-> > +	};
-> 
-> Huh? Why isn't this a boolean control? This looks very weird.
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> >  	static const char * const tune_preemphasis[] = {
-> >  		"No Preemphasis",
-> >  		"50 Microseconds",
-> > @@ -427,6 +432,8 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
-> >  		return colorfx;
-> >  	case V4L2_CID_AUTO_N_PRESET_WHITE_BALANCE:
-> >  		return auto_n_preset_white_balance;
-> > +	case V4L2_CID_WIDE_DYNAMIC_RANGE:
-> > +		return camera_wide_dynamic_range;
-> >  	case V4L2_CID_TUNE_PREEMPHASIS:
-> >  		return tune_preemphasis;
-> >  	case V4L2_CID_FLASH_LED_MODE:
-> > @@ -614,6 +621,7 @@ const char *v4l2_ctrl_get_name(u32 id)
-> >  	case V4L2_CID_IRIS_RELATIVE:		return "Iris, Relative";
-> >  	case V4L2_CID_AUTO_EXPOSURE_BIAS:	return "Auto Exposure, Bias";
-> >  	case V4L2_CID_AUTO_N_PRESET_WHITE_BALANCE: return "White Balance, Auto & Preset";
-> > +	case V4L2_CID_WIDE_DYNAMIC_RANGE:	return "Wide Dynamic Range";
-> >  
-> >  	/* FM Radio Modulator control */
-> >  	/* Keep the order of the 'case's the same as in videodev2.h! */
-> > @@ -751,6 +759,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
-> >  	case V4L2_CID_MPEG_VIDEO_MPEG4_LEVEL:
-> >  	case V4L2_CID_MPEG_VIDEO_MPEG4_PROFILE:
-> >  	case V4L2_CID_JPEG_CHROMA_SUBSAMPLING:
-> > +	case V4L2_CID_WIDE_DYNAMIC_RANGE:
-> >  		*type = V4L2_CTRL_TYPE_MENU;
-> >  		break;
-> >  	case V4L2_CID_RDS_TX_PS_NAME:
-> > diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-> > index 08891e6..3ca9b10 100644
-> > --- a/include/linux/videodev2.h
-> > +++ b/include/linux/videodev2.h
-> > @@ -1709,6 +1709,12 @@ enum v4l2_auto_n_preset_white_balance_type {
-> >  	V4L2_WHITE_BALANCE_SHADE		= 9,
-> >  };
-> >  
-> > +#define V4L2_CID_WIDE_DYNAMIC_RANGE		(V4L2_CID_CAMERA_CLASS_BASE+21)
-> > +enum v4l2_wide_dynamic_range_type {
-> > +	V4L2_WIDE_DYNAMIC_RANGE_DISABLED	= 0,
-> > +	V4L2_WIDE_DYNAMIC_RANGE_ENABLED		= 1,
-> > +};
-> > +
-> >  /* FM Modulator class control IDs */
-> >  #define V4L2_CID_FM_TX_CLASS_BASE		(V4L2_CTRL_CLASS_FM_TX | 0x900)
-> >  #define V4L2_CID_FM_TX_CLASS			(V4L2_CTRL_CLASS_FM_TX | 1)
-> > 
-> 
