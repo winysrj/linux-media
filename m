@@ -1,60 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:58811 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751769Ab2DCPlR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 3 Apr 2012 11:41:17 -0400
-Message-ID: <4F7B1A1A.5000007@iki.fi>
-Date: Tue, 03 Apr 2012 18:41:14 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:34008 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S932161Ab2DMUNi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 13 Apr 2012 16:13:38 -0400
+Message-ID: <4F8888EF.6040904@iki.fi>
+Date: Fri, 13 Apr 2012 23:13:35 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
 MIME-Version: 1.0
-To: =?UTF-8?B?TWljaGFlbCBCw7xzY2g=?= <m@bues.ch>
-CC: linux-media <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] fc0011: Reduce number of retries
-References: <20120403110503.392c8432@milhouse> <4F7B1624.8020401@iki.fi> <20120403173320.2d3df3f8@milhouse>
-In-Reply-To: <20120403173320.2d3df3f8@milhouse>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [yavta PATCH 1/3] Support integer menus.
+References: <1334220095-1698-1-git-send-email-sakari.ailus@iki.fi> <2967674.Tm7K8VO7YX@avalon>
+In-Reply-To: <2967674.Tm7K8VO7YX@avalon>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03.04.2012 18:33, Michael Büsch wrote:
-> On Tue, 03 Apr 2012 18:24:20 +0300
-> Antti Palosaari<crope@iki.fi>  wrote:
+Hi Laurent,
+
+Thanks for the comments.
+
+Laurent Pinchart wrote:
+> Hi Sakari,
 >
->> On 03.04.2012 12:05, Michael Büsch wrote:
->>> Now that i2c transfers are fixed, 3 retries are enough.
->>>
->>> Signed-off-by: Michael Buesch<m@bues.ch>
->>
->> Applied, thanks!
->> http://git.linuxtv.org/anttip/media_tree.git/shortlog/refs/heads/af9035_experimental
->>
->> I think I will update original af9035 PULL request soon for the same
->> level as af9035_experimental is currently.
+> Thanks for the patch.
 >
-> That's great. The driver really works well for me.
+> The code looks fine, but unfortunately breaks compilation when using kernel
+> headers<  v3.5 (which is a pretty common case as of today ;-)).
 >
-> On another thing:
-> The af9035 driver doesn't look multi-device safe. There are lots of static
-> variables around that keep device state. So it looks like this will
-> blow up if multiple devices are present in the system. Unlikely, but still... .
-> Are there any plans to fix this up?
-> If not, I'll probably take a look at this. But don't hold your breath.
+> V4L2_CTRL_TYPE_INTEGER_MENU is an enumerated value, not a pre-processor
+> #define, so it's difficult to test for it using conditional compilation.
+>
+> Maybe including a copy of videodev2.h in the yavta repository is the best
+> option ?
 
-That's true and same applies for many other DVB USB drivers. Main reason 
-for current hackish situation is DVB USB core limits. For example priv 
-is not available until frontend attach etc. It "just" works even a 
-little bit luck. Good example is that sequence counter, if you have 
-multiple devices it runs wrongly as all increases same counter. But as a 
-firmware does not care sequence numbers it still works. Remote 
-controller is other big problem - coming from same limitations. And that 
-is not first time these are spoken :)
+Yeah; I agree. The value of the enum item we could still #define but the 
+addition of the union to v4l2_queryctrl is more difficult.
 
-I have thought to redesign whole DVB USB framework, but as I am too busy 
-always I haven't done that. Feel free to start fixing.
+I can then remove existing code to cope with different versions of 
+videodev2.h, too.
 
+Cheers,
 
-regards
-Antti
 -- 
-http://palosaari.fi/
+Sakari Ailus
+sakari.ailus@iki.fi
