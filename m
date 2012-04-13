@@ -1,106 +1,147 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:60541 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751546Ab2DBJRw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Apr 2012 05:17:52 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Martin Mokrejs <mmokrejs@fold.natur.cuni.cz>,
-	linux-media@vger.kernel.org
-Subject: Re: linux-3.2.12: uvcvideo: ** UNRECOGNIZED:  24 ff 42 49 53 54 00 01 05 02 10 00 00 00 00 00 01 06 b8 0b 02 07 b8 0b 03 08 b8 0b 04 09 4e 20 05 0a b8 0b
-Date: Mon, 02 Apr 2012 11:17:52 +0200
-Message-ID: <2044622.s86OocRClA@avalon>
-In-Reply-To: <4F771DAA.1000200@fold.natur.cuni.cz>
-References: <4F771DAA.1000200@fold.natur.cuni.cz>
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:52590 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758026Ab2DMJ3O (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 13 Apr 2012 05:29:14 -0400
+Received: by bkcik5 with SMTP id ik5so2127802bkc.19
+        for <linux-media@vger.kernel.org>; Fri, 13 Apr 2012 02:29:12 -0700 (PDT)
+Message-ID: <4F87F195.5080504@gmail.com>
+Date: Fri, 13 Apr 2012 11:27:49 +0200
+From: Florian Fainelli <f.fainelli@gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Oliver Schinagl <oliver+list@schinagl.nl>,
+	linux-media@vger.kernel.org, marbugge@cisco.com
+Subject: Re: [RFC] HDMI-CEC proposal
+References: <4F86F3A6.9040305@gmail.com> <4F873CE7.4040401@schinagl.nl> <201204130703.19005.hverkuil@xs4all.nl>
+In-Reply-To: <201204130703.19005.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Martin,
+Hi Hans,
 
-On Saturday 31 March 2012 17:07:22 Martin Mokrejs wrote:
-> Hi,
->   when inspecting "lsusb -v" output I came across this UNRECOGNIZED message.
-> Anything to worry about?
-> 
-> Bus 001 Device 003: ID 05ca:1820 Ricoh Co., Ltd
-> Device Descriptor:
->   bLength                18
->   bDescriptorType         1
->   bcdUSB               2.00
->   bDeviceClass          239 Miscellaneous Device
->   bDeviceSubClass         2 ?
->   bDeviceProtocol         1 Interface Association
->   bMaxPacketSize0        64
->   idVendor           0x05ca Ricoh Co., Ltd
->   idProduct          0x1820
->   bcdDevice            c.27
->   iManufacturer           1 CN01MWM9724871A4KB28A00
->   iProduct                2 Laptop_Integrated_Webcam_FHD
-> [cut]
->     Interface Descriptor:
->       bLength                 9
->       bDescriptorType         4
->       bInterfaceNumber        1
->       bAlternateSetting      13
->       bNumEndpoints           1
->       bInterfaceClass        14 Video
->       bInterfaceSubClass      2 Video Streaming
->       bInterfaceProtocol      0
->       iInterface              0
->       Endpoint Descriptor:
->         bLength                 7
->         bDescriptorType         5
->         bEndpointAddress     0x82  EP 2 IN
->         bmAttributes            5
->           Transfer Type            Isochronous
->           Synch Type               Asynchronous
->           Usage Type               Data
->         wMaxPacketSize     0x1400  3x 1024 bytes
->         bInterval               1
->         ** UNRECOGNIZED:  24 ff 42 49 53 54 00 01 05 02 10 00 00 00 00 00 01
-> 06 b8 0b 02 07 b8 0b 03 08 b8 0b 04 09 4e 20 05 0a b8 0b
+Le 04/13/12 07:03, Hans Verkuil a écrit :
+> You both hit the main problem of the CEC support: how to implement the API.
 
-That's a vendor-specific descriptor, as reported by the second byte being 
-0xff. Vendor-specific descriptors are not standard (and very often not 
-documented), so lsusb doesn't know how to decode it. The uvcvideo driver 
-happily ignores it completely.
+Well, the API that I propose here [1] is quite simple:
 
-Such descriptors are used for various purposes, often to add proprietary 
-extensions to the device. In this case, as the next 4 bytes decode to 'BIST' 
-(most likely Built-In Self Test) in ASCII, I expect the descriptor to be used 
-for production and QA purpose.
+- a kernel-side API for defining CEC adapters drivers
+- a character device with an ioctl() control path and read/write/poll 
+data-path
 
-> It is about the uvcvideo driver I think. The camera works, at least in skype
-> so probably I should not bother you asking this question at all. ;-)
+[1]: https://github.com/ffainelli/linux-hdmi-cec
 
-Getting a better understanding of Linux is always worth a question :-)
+>
+> Cisco's work on CEC has been stalled as we first want to get HDMI support in
+> V4L. Hopefully that will happen in the next few months. After that we will
+> resume working on the CEC API.
 
-> usb 1-1.5: new high-speed USB device number 3 using ehci_hcd
-> usb 1-1.5: skipped 1 descriptor after configuration
-> usb 1-1.5: skipped 6 descriptors after interface
-> usb 1-1.5: skipped 1 descriptor after endpoint
-> usb 1-1.5: skipped 19 descriptors after interface
-> usb 1-1.5: skipped 1 descriptor after endpoint
-> usb 1-1.5: default language 0x0409
-> usb 1-1.5: udev 3, busnum 1, minor = 2
-> usb 1-1.5: New USB device found, idVendor=05ca, idProduct=1820
-> usb 1-1.5: New USB device strings: Mfr=1, Product=2, SerialNumber=0
-> usb 1-1.5: Product: Laptop_Integrated_Webcam_FHD
-> usb 1-1.5: Manufacturer: CN01MWM9724871A4KB28A00
-> usb 1-1.5: usb_probe_device
-> usb 1-1.5: configuration #1 chosen from 1 choice
-> usb 1-1.5: adding 1-1.5:1.0 (config #1, interface 0)
-> uvcvideo 1-1.5:1.0: usb_probe_interface
-> uvcvideo 1-1.5:1.0: usb_probe_interface - got id
-> uvcvideo: Found UVC 1.00 device Laptop_Integrated_Webcam_FHD (05ca:1820)
-> input: Laptop_Integrated_Webcam_FHD as
-> /devices/pci0000:00/0000:00:1a.0/usb1/1-1/1-1.5/1-1.5:1.0/input/input8 usb
-> 1-1.5: adding 1-1.5:1.1 (config #1, interface 1)
+Well, I don't think that tighting HDMI into V4L is such a good idea 
+either. HDMI is also a separate bus and deserves its own subsystem and 
+even subsystems (audio, video, HDCP, CEC). For instance, the STB I am 
+working with does not use the V4L API at all, however, I would like to 
+be able to integrate within the Linux HDMI stack once there, think about 
+nvidia's driver too.
 
--- 
-Regards,
+I can understand that you want to hold on your efforts on CEC while you 
+want to get HDMI in, but don't make it entirely driven by Cisco and 
+accept the community feedback.
 
-Laurent Pinchart
-
+>
+> Regards,
+>
+> 	Hans
+>
+> On Thursday, April 12, 2012 22:36:55 Oliver Schinagl wrote:
+>> Since a lot of video cards dont' support CEC at all (not even
+>> connected), don't have hdmi, but work perfectly fine with dvi->hdmi
+>> adapters, CEC can be implemented in many other ways (think media centers)
+>>
+>> One such exammple is using USB/Arduino
+>>
+>> http://code.google.com/p/cec-arduino/wiki/ElectricalInterface
+>>
+>> Having an AVR with v-usb code and cec code doesn't look all that hard
+>> nor impossible, so one could simply have a USB plug on one end, and an
+>> HDMI plug on the other end, utilizing only the CEC pins.
+>>
+>> This would make it more something like LIRC if anything.
+>>
+>> On 04/12/12 17:24, Florian Fainelli wrote:
+>>> Hi Hans, Martin,
+>>>
+>>> Sorry to jump in so late in the HDMI-CEC discussion, here are some
+>>> comments from my perspective on your proposal:
+>>>
+>>> - the HDMI-CEC implementation deserves its own bus and class of devices
+>>> because by definition it is a physical bus, which is even electrically
+>>> independant from the rest of the HDMI bus (A/V path)
+>>>
+>>> - I don't think it is a good idea to tight it so closely to v4l, because
+>>> one can perfectly have CEC-capable hardware without video, or at least
+>>> not use v4l and have HDMI-CEC hardware
+>>>
+>>> - it was suggested to use sockets at some point, I think it is
+>>> over-engineered and should only lead
+>>>
+>>> - processing messages in user-space is definitively the way to go, even
+>>> input can be either re-injected using an uinput driver, or be handled in
+>>> user-space entirely, eventually we might want to install "filters" based
+>>> on opcodes to divert some opcodes to a kernel consumer, and the others
+>>> to an user-space one
+>>>
+>>> Right now, I have a very simple implementation that I developed for the
+>>> company I work for which can be found here:
+>>> https://github.com/ffainelli/linux-hdmi-cec
+>>>
+>>> It is designed like this:
+>>>
+>>> 1) A core module, which registers a cec bus, and provides an abstraction
+>>> for a CEC adapter (both device&  driver):
+>>> - basic CEC adapter operations: logical address setting, queueing
+>>> management
+>>> - counters, rx filtering
+>>> - host attaching/detaching in case the hardware is capable of
+>>> self-processing CEC messages (for wakeup in particular)
+>>>
+>>> 2) A character device module, which exposes a character device per CEC
+>>> adapter and only allows one consumer at a time and exposes the following
+>>> ioctl's:
+>>>
+>>> - SET_LOGICAL_ADDRESS
+>>> - RESET_DEVICE
+>>> - GET_COUNTERS
+>>> - SET_RX_MODE (my adapter can be set in a promiscuous mode)
+>>>
+>>> the character device supports read/write/poll, which are the prefered
+>>> ways for transfering/receiving data
+>>>
+>>> 3) A CEC adapter implementation which registers and calls into the core
+>>> module when receiving a CEC message, and which the core module calls in
+>>> response to the IOCTLs described below.
+>>>
+>>> At first I thought about defining a generic netlink family in order to
+>>> allow multiple user-space listeners receive CEC messages, but in the end
+>>> having only one consumer per adapter device is fine by me and a more
+>>> traditionnal approach for programmers.
+>>>
+>>> I am relying on external components for knowing my HDMI physical address.
+>>>
+>>> Hope this is not too late to (re)start the discussion on HDMI-CEC.
+>>>
+>>> Thank you very much.
+>>> --
+>>> Florian
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>>> the body of a message to majordomo@vger.kernel.org
+>>> More majordomo info at http://vger.kernel.org/majordomo-info.html
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
