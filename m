@@ -1,59 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nm23-vm0.bullet.mail.ukl.yahoo.com ([217.146.177.37]:21249 "HELO
-	nm23-vm0.bullet.mail.ukl.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752935Ab2DFUMF (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:49019 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755951Ab2DMTXY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 6 Apr 2012 16:12:05 -0400
-Message-ID: <4F7F4CAF.4010501@yahoo.com>
-Date: Fri, 06 Apr 2012 21:06:07 +0100
-From: Chris Rankin <rankincj@yahoo.com>
+	Fri, 13 Apr 2012 15:23:24 -0400
+References: <4F88739A.4020401@gmail.com>
+In-Reply-To: <4F88739A.4020401@gmail.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: [REGRESSION] Linux 3.3 DVB userspace ABI broken for xine (FE_SET_FRONTEND)
-References: <1333580430.41460.YahooMailNeo@web121705.mail.ne1.yahoo.com>
-In-Reply-To: <1333580430.41460.YahooMailNeo@web121705.mail.ne1.yahoo.com>
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+ charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Subject: Re: media_build compile errors
+From: Andy Walls <awalls@md.metrocast.net>
+Date: Fri, 13 Apr 2012 15:23:22 -0400
+To: =?ISO-8859-1?Q?Roger_M=E5rtensson?= <roger.martensson@gmail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Message-ID: <6160cbc5-9493-44bf-9da1-57b96493fdca@email.android.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+"Roger Mårtensson" <roger.martensson@gmail.com> wrote:
 
-The following commit has broken the DVB ABI for xine:
+>Hi!
+>
+>I get compile errors when trying to build media_build as of 2012-04-13.
+>
+>/home/mythfrontend/media_build/v4l/ivtv-fileops.c: In function 
+>'ivtv_v4l2_enc_poll':
+>/home/mythfrontend/media_build/v4l/ivtv-fileops.c:751:2: error:
+>implicit 
+>declaration of function 'poll_requested_events' 
+>[-Werror=implicit-function-declaration]
+>cc1: some warnings being treated as errors
+>
+>This is on ubuntu and kernel:
+>Linux 3.0.0-16-generic #29-Ubuntu SMP Tue Feb 14 12:49:42 UTC 2012 i686
+>
+>i686 i386 GNU/Linux
+>
+>Anyone else seeing this problem?
+>--
+>To unsubscribe from this list: send the line "unsubscribe linux-media"
+>in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-http://git.linuxtv.org/linux-2.6.git/commitdiff/e399ce77e6e8f0ff2e0b8ef808cbb88fc824c610
+poll_requested_events() likely only exists is very recent kernels.  
+To build with older kernels you need to either change the relevant ivtv function by hand, or wait for someone to submit a backward compatability patch for the media_build repo.
 
-author: Mauro Carvalho Chehab <mchehab@redhat.com>
-  Sun, 1 Jan 2012 19:11:16 +0000 (16:11 -0300)
-committer: Mauro Carvalho Chehab <mchehab@redhat.com>
-  Wed, 4 Jan 2012 19:30:02 +0000 (17:30 -0200)
-
-This var were used during DVBv3 times, in order to keep a copy
-of the parameters used by the events. This is not needed anymore,
-as the parameters are now dynamically generated from the DVBv5
-structure.
-
-So, just get rid of it. That means that a DVBv5 pure call won't
-use anymore any DVBv3 parameters.
-
-
-The problem is that xine is expecting every event after a successful 
-FE_SET_FRONTEND ioctl to have a non-zero frequency parameter, regardless of 
-whether the tuning process has LOCKed yet. What used to happen is that the 
-events inherited the initial tuning parameters from the FE_SET_FRONTEND call. 
-However, the fepriv->parameters_out struct is now not initialised until the 
-status contains the FE_HAS_LOCK bit.
-
-You might argue that this behaviour is intentional, except that if an 
-application other than xine uses the DVB adapter and manages to set the 
-parameters_out.frequency field to something other than zero, then xine no longer 
-has any problems until either the adapter is replugged or the kernel modules 
-reloaded. This can only mean that the fepriv->parameters_out struct still 
-contains the (stale) tuning information from the previous application.
-
-So can we please restore the original ABI behaviour, and have 
-fepriv->parameters_out initialised by FE_SET_FRONTEND again?
-
-Cheers,
-Chris
+Regards,
+Andy
