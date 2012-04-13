@@ -1,65 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp206.alice.it ([82.57.200.102]:43672 "EHLO smtp206.alice.it"
+Received: from smtp.nokia.com ([147.243.1.47]:37408 "EHLO mgw-sa01.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753720Ab2DWNVa (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Apr 2012 09:21:30 -0400
-From: Antonio Ospite <ospite@studenti.unina.it>
+	id S1754257Ab2DMUaU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 13 Apr 2012 16:30:20 -0400
+From: Sakari Ailus <sakari.ailus@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: Antonio Ospite <ospite@studenti.unina.it>,
-	Jean-Francois Moine <moinejf@free.fr>,
-	linux-input@vger.kernel.org,
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Johann Deneux <johann.deneux@gmail.comx>,
-	Anssi Hannula <anssi.hannula@gmail.com>,
-	Jonathan Corbet <corbet@lwn.net>
-Subject: [PATCH 0/3] gspca - ov534: saturation and hue (using fixp-arith.h)
-Date: Mon, 23 Apr 2012 15:21:04 +0200
-Message-Id: <1335187267-27940-1-git-send-email-ospite@studenti.unina.it>
+Cc: laurent.pinchart@ideasonboard.com
+Subject: [yavta PATCH v2 1/3] Support integer menus.
+Date: Fri, 13 Apr 2012 23:34:19 +0300
+Message-Id: <1334349261-11580-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+ yavta.c |   18 +++++++++++-------
+ 1 files changed, 11 insertions(+), 7 deletions(-)
 
-here are a couple more of controls for the gspca ov534 subdriver.
-
-In order to control the HUE value the sensor expects sin(HUE) and
-cos(HUE) to be set so I decided to reuse the fixed point implementation
-of sine and cosine from drivers/input/fixp-arith.h, see patches 2 and 3.
-
-Dmitry, can the movement of fixp-arith.h in patch 2 go via the media
-tree?  That should ease up the integration of patch 3 in this series
-I think.
-
-Jonathan, maybe fixp_sin() and fixp_cos() can be used in
-drivers/media/video/ov7670.c too where currently ov7670_sine() and
-ov7670_cosine() are defined, but I didn't want to send a patch I could
-not test.
-
-BTW What is the usual way to communicate these cross-subsystem stuff?
-I CC-ed everybody only on the cover letter and on patches 2 and 3 which
-are the ones concerning somehow both "input" and "media".
-
-Thanks,
-   Antonio
-
-
-Antonio Ospite (3):
-  [media] gspca - ov534: Add Saturation control
-  Input: move drivers/input/fixp-arith.h to include/linux
-  [media] gspca - ov534: Add Hue control
-
- drivers/input/ff-memless.c        |    3 +-
- drivers/input/fixp-arith.h        |   87 ------------------------------------
- drivers/media/video/gspca/ov534.c |   89 ++++++++++++++++++++++++++++++++++++-
- include/linux/fixp-arith.h        |   87 ++++++++++++++++++++++++++++++++++++
- 4 files changed, 176 insertions(+), 90 deletions(-)
- delete mode 100644 drivers/input/fixp-arith.h
- create mode 100644 include/linux/fixp-arith.h
-
+diff --git a/yavta.c b/yavta.c
+index 541aa1c..e649ac5 100644
+--- a/yavta.c
++++ b/yavta.c
+@@ -567,19 +567,22 @@ static int video_enable(struct device *dev, int enable)
+ 	return 0;
+ }
+ 
+-static void video_query_menu(struct device *dev, unsigned int id,
+-			     unsigned int min, unsigned int max)
++static void video_query_menu(struct device *dev, struct v4l2_queryctrl *query)
+ {
+ 	struct v4l2_querymenu menu;
+ 	int ret;
+ 
+-	for (menu.index = min; menu.index <= max; menu.index++) {
+-		menu.id = id;
++	for (menu.index = query->minimum;
++	     menu.index <= (unsigned)query->maximum; menu.index++) {
++		menu.id = query->id;
+ 		ret = ioctl(dev->fd, VIDIOC_QUERYMENU, &menu);
+ 		if (ret < 0)
+ 			continue;
+ 
+-		printf("  %u: %.32s\n", menu.index, menu.name);
++		if (query->type == V4L2_CTRL_TYPE_MENU)
++			printf("  %u: %.32s\n", menu.index, menu.name);
++		else
++			printf("  %u: %lld\n", menu.index, menu.value);
+ 	};
+ }
+ 
+@@ -624,8 +627,9 @@ static void video_list_controls(struct device *dev)
+ 			query.id, query.name, query.minimum, query.maximum,
+ 			query.step, query.default_value, value);
+ 
+-		if (query.type == V4L2_CTRL_TYPE_MENU)
+-			video_query_menu(dev, query.id, query.minimum, query.maximum);
++		if (query.type == V4L2_CTRL_TYPE_MENU ||
++		    query.type == V4L2_CTRL_TYPE_INTEGER_MENU)
++			video_query_menu(dev, &query);
+ 
+ 		nctrls++;
+ 	}
 -- 
-Antonio Ospite
-http://ao2.it
+1.7.2.5
 
-A: Because it messes up the order in which people normally read text.
-   See http://en.wikipedia.org/wiki/Posting_style
-Q: Why is top-posting such a bad thing?
