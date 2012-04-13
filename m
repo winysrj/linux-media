@@ -1,112 +1,155 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:54574 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758176Ab2DKLpp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Apr 2012 07:45:45 -0400
-Message-ID: <4F856EE1.6070805@redhat.com>
-Date: Wed, 11 Apr 2012 08:45:37 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Jannis <jannis-lists@kripserver.net>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH] Add support for TechniSat SkyStar S2 / CX24120-13Z frontend
-References: <4F7BF437.4090206@kripserver.net>
-In-Reply-To: <4F7BF437.4090206@kripserver.net>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:63599 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754215Ab2DMPsK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 13 Apr 2012 11:48:10 -0400
+Received: from euspt1 (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0M2F00CGID7ZD4@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 13 Apr 2012 16:48:02 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0M2F005JLD84XW@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 13 Apr 2012 16:48:04 +0100 (BST)
+Date: Fri, 13 Apr 2012 17:47:47 +0200
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: [PATCH v4 05/14] v4l: vb2-dma-contig: Shorten vb2_dma_contig prefix to
+ vb2_dc
+In-reply-to: <1334332076-28489-1-git-send-email-t.stanislaws@samsung.com>
+To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
+Cc: airlied@redhat.com, m.szyprowski@samsung.com,
+	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
+	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
+	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
+	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
+	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
+	mchehab@redhat.com
+Message-id: <1334332076-28489-6-git-send-email-t.stanislaws@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1334332076-28489-1-git-send-email-t.stanislaws@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jannis,
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-Em 04-04-2012 04:11, Jannis escreveu:
-> Hi all,
-> 
-> some (longer) time ago, I posted to this list concerning the
-> CX24120-frontend
-> (http://www.spinics.net/lists/linux-media/msg33717.html). By now I
-> modified the patch to work with linux-3.4-r1 (after the DVB-interface
-> changes):
-> 
-> [    2.434181] b2c2-flexcop: B2C2 FlexcopII/II(b)/III digital TV
-> receiver chip loaded successfully
-> [    2.434240] flexcop-pci: will use the HW PID filter.
-> [    2.434242] flexcop-pci: card revision 2
-> [    2.438105] DVB: registering new adapter (FlexCop Digital TV device)
-> [    2.440018] b2c2-flexcop: MAC address = 00:08:c9:e0:87:57
-> [    2.440024] CX24120: cx24120_attach: -> Conexant cx24120/cx24118 -
-> DVBS/S2 Satellite demod/tuner
-> [    2.440025] CX24120: cx24120_attach: -> Driver version: 'SVT - 0.0.4a
->        03.04.2012'
-> [    2.440149] CX24120: cx24120_attach: -> Demod CX24120 rev. 0x07 detected.
-> [    2.440150] CX24120: cx24120_attach: -> Conexant cx24120/cx24118 -
-> DVBS/S2 Satellite demod/tuner ATTACHED.
-> [    2.440440] b2c2-flexcop: ISL6421 successfully attached.
-> [    2.440440] b2c2-flexcop: found 'Conexant CX24120/CX24118' .
-> [    2.440442] DVB: registering adapter 0 frontend 0 (Conexant
-> CX24120/CX24118)...
-> [    2.440648] b2c2-flexcop: initialization of 'Sky2PC/SkyStar S2
-> DVB-S/S2 rev 3.3' at the 'PCI' bus controlled by a 'FlexCopIIb' complete
-> 
-> As stated in the original message, the patch is not written by me, the
-> author is Sergey Tyurin, I just modified it so it keeps working with
-> current kernels. Since I don't know an appropiate location for
-> publishing this, I thought this is best sent upstream.
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/video/videobuf2-dma-contig.c |   36 ++++++++++++++--------------
+ 1 files changed, 18 insertions(+), 18 deletions(-)
 
-If the patch was made by Sergey, you should add, at the beginning of the
-body of the email, a like like:
+diff --git a/drivers/media/video/videobuf2-dma-contig.c b/drivers/media/video/videobuf2-dma-contig.c
+index f17ad98..5207eb1 100644
+--- a/drivers/media/video/videobuf2-dma-contig.c
++++ b/drivers/media/video/videobuf2-dma-contig.c
+@@ -31,9 +31,9 @@ struct vb2_dc_buf {
+ 	struct vb2_vmarea_handler	handler;
+ };
+ 
+-static void vb2_dma_contig_put(void *buf_priv);
++static void vb2_dc_put(void *buf_priv);
+ 
+-static void *vb2_dma_contig_alloc(void *alloc_ctx, unsigned long size)
++static void *vb2_dc_alloc(void *alloc_ctx, unsigned long size)
+ {
+ 	struct vb2_dc_conf *conf = alloc_ctx;
+ 	struct vb2_dc_buf *buf;
+@@ -55,7 +55,7 @@ static void *vb2_dma_contig_alloc(void *alloc_ctx, unsigned long size)
+ 	buf->size = size;
+ 
+ 	buf->handler.refcount = &buf->refcount;
+-	buf->handler.put = vb2_dma_contig_put;
++	buf->handler.put = vb2_dc_put;
+ 	buf->handler.arg = buf;
+ 
+ 	atomic_inc(&buf->refcount);
+@@ -63,7 +63,7 @@ static void *vb2_dma_contig_alloc(void *alloc_ctx, unsigned long size)
+ 	return buf;
+ }
+ 
+-static void vb2_dma_contig_put(void *buf_priv)
++static void vb2_dc_put(void *buf_priv)
+ {
+ 	struct vb2_dc_buf *buf = buf_priv;
+ 
+@@ -74,14 +74,14 @@ static void vb2_dma_contig_put(void *buf_priv)
+ 	}
+ }
+ 
+-static void *vb2_dma_contig_cookie(void *buf_priv)
++static void *vb2_dc_cookie(void *buf_priv)
+ {
+ 	struct vb2_dc_buf *buf = buf_priv;
+ 
+ 	return &buf->dma_addr;
+ }
+ 
+-static void *vb2_dma_contig_vaddr(void *buf_priv)
++static void *vb2_dc_vaddr(void *buf_priv)
+ {
+ 	struct vb2_dc_buf *buf = buf_priv;
+ 	if (!buf)
+@@ -90,14 +90,14 @@ static void *vb2_dma_contig_vaddr(void *buf_priv)
+ 	return buf->vaddr;
+ }
+ 
+-static unsigned int vb2_dma_contig_num_users(void *buf_priv)
++static unsigned int vb2_dc_num_users(void *buf_priv)
+ {
+ 	struct vb2_dc_buf *buf = buf_priv;
+ 
+ 	return atomic_read(&buf->refcount);
+ }
+ 
+-static int vb2_dma_contig_mmap(void *buf_priv, struct vm_area_struct *vma)
++static int vb2_dc_mmap(void *buf_priv, struct vm_area_struct *vma)
+ {
+ 	struct vb2_dc_buf *buf = buf_priv;
+ 
+@@ -110,7 +110,7 @@ static int vb2_dma_contig_mmap(void *buf_priv, struct vm_area_struct *vma)
+ 				  &vb2_common_vm_ops, &buf->handler);
+ }
+ 
+-static void *vb2_dma_contig_get_userptr(void *alloc_ctx, unsigned long vaddr,
++static void *vb2_dc_get_userptr(void *alloc_ctx, unsigned long vaddr,
+ 					unsigned long size, int write)
+ {
+ 	struct vb2_dc_buf *buf;
+@@ -137,7 +137,7 @@ static void *vb2_dma_contig_get_userptr(void *alloc_ctx, unsigned long vaddr,
+ 	return buf;
+ }
+ 
+-static void vb2_dma_contig_put_userptr(void *mem_priv)
++static void vb2_dc_put_userptr(void *mem_priv)
+ {
+ 	struct vb2_dc_buf *buf = mem_priv;
+ 
+@@ -149,14 +149,14 @@ static void vb2_dma_contig_put_userptr(void *mem_priv)
+ }
+ 
+ const struct vb2_mem_ops vb2_dma_contig_memops = {
+-	.alloc		= vb2_dma_contig_alloc,
+-	.put		= vb2_dma_contig_put,
+-	.cookie		= vb2_dma_contig_cookie,
+-	.vaddr		= vb2_dma_contig_vaddr,
+-	.mmap		= vb2_dma_contig_mmap,
+-	.get_userptr	= vb2_dma_contig_get_userptr,
+-	.put_userptr	= vb2_dma_contig_put_userptr,
+-	.num_users	= vb2_dma_contig_num_users,
++	.alloc		= vb2_dc_alloc,
++	.put		= vb2_dc_put,
++	.cookie		= vb2_dc_cookie,
++	.vaddr		= vb2_dc_vaddr,
++	.mmap		= vb2_dc_mmap,
++	.get_userptr	= vb2_dc_get_userptr,
++	.put_userptr	= vb2_dc_put_userptr,
++	.num_users	= vb2_dc_num_users,
+ };
+ EXPORT_SYMBOL_GPL(vb2_dma_contig_memops);
+ 
+-- 
+1.7.5.4
 
-From: Sergey Tyurin <his@email>
-
-
-and add your comments like:
-
-[jannis-lists@kripserver.net: patch ported to the current DVB kernel ABI]
-
-You should also add your Signed-off-by:. It is also highly recommended
-that you would get Sergey's Signed-off-by on it.
-
-Please see LinuxTV developer wiki pages, in order to check the proper ways
-to submit the patch upstream.
-
-In particular, please check the patch using scripts/checkpatch.pl. This
-tool checks the patch CodingStyle. It also checks a few trivial mistakes.
-
-It currently doesn't like this code very much:
-
-ERROR: Missing Signed-off-by: line(s)
-
-total: 515 errors, 394 warnings, 1522 lines checked
-
-NOTE: whitespace errors detected, you may wish to use scripts/cleanpatch or
-      scripts/cleanfile
-
-As you're not the author of the original driver, the better procedure is
-to submit Sergey's driver as-is (but without the Kconfig/Makefile changes,
-in order to avoid it to break compilation), then a patch fixing it to the
-current ABI from you, and patch/patch series from you fixing the CodingStyle 
-issues.
-
-Btw, scripts/Lindent in general solves most of those issues (although it
-is not a perfect tool).
-
-> This patch was tested with some channels (SDTV, HDTV and audio only
-> (radio)) from Astra-19.2E in Europe.
-> 
-> If you have any comments abouth things that stop the patch from going
-> upstream, please feel free to tell me and I'll see if I can change them.
-
-I just did a quick look on it, as it is harder to analyze a code with a
-different CodingStyle.
-
-There are too many EXPORT_SYMBOL() there, several of them for static functions.
-That's wrong. Only non-static functions used by other modules should use
-EXPORT_SYMBOL. Probably, the only function that requires it is cx24120_attach().
-
-Anyway, I'll do a deeper review after you fix the pointed issues.
-> 
-> Best regards,
-> 	Jannis Achstetter
-
-Regards,
-Mauro
