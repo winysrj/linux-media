@@ -1,38 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 124-248-200-83.sunnyvision.com ([124.248.200.83]:35551 "EHLO
-	teamb03.edmhongkong.com" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
-	with ESMTP id S1750766Ab2DYNlb (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:63599 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753625Ab2DMPsG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Apr 2012 09:41:31 -0400
-Message-ID: <7KqUlj2@kimo.com>
-From: woody@cloudluca.com
-Subject: Advanced Cloud Hosting/Server
-Content-Type: text/plain;
-Content-Transfer-Encoding: Quoted-Printable
-Date: Wed, 25 Apr 2012 21:15:10 +0800 (HKT)
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+	Fri, 13 Apr 2012 11:48:06 -0400
+Received: from euspt1 (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0M2F00CGID7ZD4@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 13 Apr 2012 16:48:00 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0M2F006GFD83KA@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 13 Apr 2012 16:48:03 +0100 (BST)
+Date: Fri, 13 Apr 2012 17:47:43 +0200
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: [PATCH v4 01/14] v4l: Add DMABUF as a memory type
+In-reply-to: <1334332076-28489-1-git-send-email-t.stanislaws@samsung.com>
+To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
+Cc: airlied@redhat.com, m.szyprowski@samsung.com,
+	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
+	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
+	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
+	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
+	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
+	mchehab@redhat.com, Sumit Semwal <sumit.semwal@linaro.org>
+Message-id: <1334332076-28489-2-git-send-email-t.stanislaws@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1334332076-28489-1-git-send-email-t.stanislaws@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dear All,
+From: Sumit Semwal <sumit.semwal@ti.com>
 
-Shoud you need Web, Email, EDM, Streaming, FTP.......server or hosting space=3F
+Adds DMABUF memory type to v4l framework. Also adds the related file
+descriptor in v4l2_plane and v4l2_buffer.
 
-We have providing better and lower cost service of Cloud Hosting (Cloud Server / Hosting / CDN)
+Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+   [original work in the PoC for buffer sharing]
+Signed-off-by: Sumit Semwal <sumit.semwal@ti.com>
+Signed-off-by: Sumit Semwal <sumit.semwal@linaro.org>
+---
+ include/linux/videodev2.h |    7 +++++++
+ 1 files changed, 7 insertions(+), 0 deletions(-)
 
-Just USD$1.99 for experience, let's come to join us and enjoy our powerful and stable cloud system.
-
-Please kindly visit our website as following link for more details. Thank you very much.
-
-http://www.cloudluca.com/ 
-
-Best Regards,
-The 36cloud Team
-
-
-
-
-
-If you do not wish to further receive this event message, email "subscriber@dedicatedserver.com.hk" to unsubscribe this message or revoe your email from the list.
-
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index c9c9a46..d884d4a 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -185,6 +185,7 @@ enum v4l2_memory {
+ 	V4L2_MEMORY_MMAP             = 1,
+ 	V4L2_MEMORY_USERPTR          = 2,
+ 	V4L2_MEMORY_OVERLAY          = 3,
++	V4L2_MEMORY_DMABUF           = 4,
+ };
+ 
+ /* see also http://vektor.theorem.ca/graphics/ycbcr/ */
+@@ -588,6 +589,8 @@ struct v4l2_requestbuffers {
+  *			should be passed to mmap() called on the video node)
+  * @userptr:		when memory is V4L2_MEMORY_USERPTR, a userspace pointer
+  *			pointing to this plane
++ * @fd:			when memory is V4L2_MEMORY_DMABUF, a userspace file
++ *			descriptor associated with this plane
+  * @data_offset:	offset in the plane to the start of data; usually 0,
+  *			unless there is a header in front of the data
+  *
+@@ -602,6 +605,7 @@ struct v4l2_plane {
+ 	union {
+ 		__u32		mem_offset;
+ 		unsigned long	userptr;
++		int		fd;
+ 	} m;
+ 	__u32			data_offset;
+ 	__u32			reserved[11];
+@@ -624,6 +628,8 @@ struct v4l2_plane {
+  *		(or a "cookie" that should be passed to mmap() as offset)
+  * @userptr:	for non-multiplanar buffers with memory == V4L2_MEMORY_USERPTR;
+  *		a userspace pointer pointing to this buffer
++ * @fd:		for non-multiplanar buffers with memory == V4L2_MEMORY_DMABUF;
++ *		a userspace file descriptor associated with this buffer
+  * @planes:	for multiplanar buffers; userspace pointer to the array of plane
+  *		info structs for this buffer
+  * @length:	size in bytes of the buffer (NOT its payload) for single-plane
+@@ -650,6 +656,7 @@ struct v4l2_buffer {
+ 		__u32           offset;
+ 		unsigned long   userptr;
+ 		struct v4l2_plane *planes;
++		int		fd;
+ 	} m;
+ 	__u32			length;
+ 	__u32			input;
+-- 
+1.7.5.4
 
