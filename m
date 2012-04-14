@@ -1,136 +1,169 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:60154 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932192Ab2DQKKP (ORCPT
+Received: from relay4-d.mail.gandi.net ([217.70.183.196]:46884 "EHLO
+	relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752129Ab2DNMeu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Apr 2012 06:10:15 -0400
-Received: from euspt2 (mailout2.w1.samsung.com [210.118.77.12])
- by mailout2.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0M2M005QQC8MZN@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 17 Apr 2012 11:09:59 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0M2M009DAC8OYG@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 17 Apr 2012 11:10:00 +0100 (BST)
-Date: Tue, 17 Apr 2012 12:09:53 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH 12/15] V4L: Add auto focus targets to the subdev selections API
-In-reply-to: <1334657396-5737-1-git-send-email-s.nawrocki@samsung.com>
+	Sat, 14 Apr 2012 08:34:50 -0400
+Message-ID: <4F896EEA.8070201@Berthereau.net>
+Date: Sat, 14 Apr 2012 14:34:50 +0200
+From: Daniel <daniel.videodvb@berthereau.net>
+MIME-Version: 1.0
 To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
-	g.liakhovetski@gmx.de, hdegoede@redhat.com, moinejf@free.fr,
-	m.szyprowski@samsung.com, riverful.kim@samsung.com,
-	sw0312.kim@samsung.com, s.nawrocki@samsung.com,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Message-id: <1334657396-5737-13-git-send-email-s.nawrocki@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1334657396-5737-1-git-send-email-s.nawrocki@samsung.com>
+CC: gennarone@gmail.com
+Subject: Re: Add a new usb id for Elgato EyeTV DTT
+References: <4F891F54.6030802@Berthereau.net> <4F894ADE.60703@gmail.com>
+In-Reply-To: <4F894ADE.60703@gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- Documentation/DocBook/media/v4l/dev-subdev.xml     |   27 +++++++++++++++++++-
- .../media/v4l/vidioc-subdev-g-selection.xml        |   14 ++++++++--
- include/linux/v4l2-subdev.h                        |    4 +++
- 3 files changed, 42 insertions(+), 3 deletions(-)
 
-diff --git a/Documentation/DocBook/media/v4l/dev-subdev.xml b/Documentation/DocBook/media/v4l/dev-subdev.xml
-index 4afcbbe..8a212c4 100644
---- a/Documentation/DocBook/media/v4l/dev-subdev.xml
-+++ b/Documentation/DocBook/media/v4l/dev-subdev.xml
-@@ -277,7 +277,7 @@
-     </section>
- 
-     <section>
--      <title>Selections: cropping, scaling and composition</title>
-+      <title>Selections - cropping, scaling and composition</title>
- 
-       <para>Many sub-devices support cropping frames on their input or output
-       pads (or possible even on both). Cropping is used to select the area of
-@@ -330,6 +330,31 @@
-     </section>
- 
-     <section>
-+      <title>Selections - regions of interest</title>
-+    <section>
-+      <title>Automatic focus</title>
-+
-+      <para>The camera automatic focus algorithms may require configuration
-+      of a region or multiple regions of interest in form of rectangle or spot
-+      coordinates.</para>
-+
-+      <para>A single rectangle of interest is represented in &v4l2-rect;
-+      by the coordinates of the top left corner and the rectangle size. Both
-+      the coordinates and sizes are expressed in pixels. When the <structfield>
-+      width</structfield> and <structfield>height</structfield> fields of
-+      &v4l2-rect; are set to 0 the selection determines spot coordinates,
-+      rather than a rectangle.</para>
-+
-+      <para>Auto focus rectangles are reset to their default values when the
-+      output image format is modified. Drivers should use the output image size
-+      as the auto focus rectangle default value, but hardware requirements may
-+      prevent this.
-+      </para>
-+      <para>The auto focus selections on input pads are not defined.</para>
-+    </section>
-+    </section>
-+
-+    <section>
-       <title>Types of selection targets</title>
- 
-       <section>
-diff --git a/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml b/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml
-index 208e9f0..c4ccae5 100644
---- a/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml
-@@ -57,8 +57,8 @@
- 
-     <para>The selections are used to configure various image
-     processing functionality performed by the subdevs which affect the
--    image size. This currently includes cropping, scaling and
--    composition.</para>
-+    image size. This currently includes cropping, scaling, composition
-+    and automatic focus regions of interest.</para>
- 
-     <para>The selection API replaces <link
-     linkend="vidioc-subdev-g-crop">the old subdev crop API</link>. All
-@@ -114,6 +114,16 @@
- 	    <entry>0x0102</entry>
- 	    <entry>Bounds of the compose rectangle.</entry>
- 	  </row>
-+	  <row>
-+	    <entry><constant>V4L2_SUBDEV_SEL_TGT_AUTO_FOCUS_BOUNDS</constant></entry>
-+	    <entry>0x1000</entry>
-+	    <entry>Bounds of the automatic focus region of interest.</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>V4L2_SUBDEV_SEL_TGT_AUTO_FOCUS_ACTUAL</constant></entry>
-+	    <entry>0x1001</entry>
-+	    <entry>Actual automatic focus rectangle or spot coordinates.</entry>
-+	  </row>
- 	</tbody>
-       </tgroup>
-     </table>
-diff --git a/include/linux/v4l2-subdev.h b/include/linux/v4l2-subdev.h
-index 812019e..49b1f14 100644
---- a/include/linux/v4l2-subdev.h
-+++ b/include/linux/v4l2-subdev.h
-@@ -136,6 +136,10 @@ struct v4l2_subdev_frame_interval_enum {
- /* composing bounds */
- #define V4L2_SUBDEV_SEL_TGT_COMPOSE_BOUNDS		0x0102
- 
-+/* auto focus region of interest */
-+#define V4L2_SUBDEV_SEL_TGT_AUTO_FOCUS_ACTUAL		0x1000
-+/* auto focus region (spot coordinates) bounds */
-+#define V4L2_SUBDEV_SEL_TGT_AUTO_FOCUS_BOUNDS		0x1001
- 
- /**
-  * struct v4l2_subdev_selection - selection info
--- 
-1.7.10
+On 14/04/2012 12:01, Gianluca Gennari wrote:
+> Il 14/04/2012 08:55, Daniel ha scritto:
+>> Hi,
+>>
+>> I've got an Elgato EyeTV for Mac and PC
+>> (http://www.linuxtv.org/wiki/index.php/Elgato_EyeTV_DTT). It is given as
+>> compatible since Linux 2.6.31, but the usb id can be not only 0fd9:0021,
+>> but 0fd9:003f too. This id is currently not recognized...
+>>
+>> Some pages explain how to change the id (see
+>> http://ubuntuforums.org/archive/index.php/t-1510188.html,
+>> http://ubuntuforums.org/archive/index.php/t-1756828.html and
+>> https://sites.google.com/site/slackwarestuff/home/elgato-eyetv).
+>>
+>> Why this id is not included by default? When will it be included in the
+>> code?
+>>
+>> Sincerely,
+>>
+> Hi Daniel,
+> new USB PIDs are added when someone reports on this list that they are
+> working.
+> That's exactly what you did, so now it's possible to add it.
+> If you know how to do it, you can create a patch to add the new ID.
+> Of course you have to define a new PID, as you cannot overwrite an
+> existing PID like they suggest on the Ubuntu forums.
+> If you don't know hot to do a patch, I can do it for you, as long as you
+> are willing to test it.
+>
+> It would be nice to know the exact name of the new product. I see people
+> reporting it as a new revision of the Elgato EyeTV DTT and others as the
+> Elgato EyeTV Deluxe. Which one do you have exactly?
+>
+> Regards,
+> Gianluca
+Hi,
+
+The exact name of the product is Elgato EyeTV DTT seen on LinuxTv.org 
+(http://www.linuxtv.org/wiki/index.php/Elgato_EyeTV_DTT) and Elgato site 
+(http://www.elgato.com/elgato/int/mainmenu/products/tuner/DTT08/product1.en.html).
+
+With dmesg, it's:
+usb 1-1: new high-speed USB device number 11 using ehci_hcd
+usb 1-1: New USB device found, idVendor=0fd9, idProduct=003f
+usb 1-1: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+usb 1-1: Product: EyeTV DTT
+usb 1-1: Manufacturer: Elgato
+usb 1-1: SerialNumber: 005
+
+With lsusb, it's:
+Bus 001 Device 011: ID 0fd9:003f Elgato Systems GmbH
+Device Descriptor:
+   bLength                18
+   bDescriptorType         1
+   bcdUSB               2.00
+   bDeviceClass            0 (Defined at Interface level)
+   bDeviceSubClass         0
+   bDeviceProtocol         0
+   bMaxPacketSize0        64
+   idVendor           0x0fd9 Elgato Systems GmbH
+   idProduct          0x003f
+   bcdDevice            1.00
+   iManufacturer           1 Elgato
+   iProduct                2 EyeTV DTT
+   iSerial                 3 005
+   bNumConfigurations      1
+   Configuration Descriptor:
+     bLength                 9
+     bDescriptorType         2
+     wTotalLength           46
+     bNumInterfaces          1
+     bConfigurationValue     1
+     iConfiguration          0
+     bmAttributes         0xa0
+       (Bus Powered)
+       Remote Wakeup
+     MaxPower              500mA
+     Interface Descriptor:
+       bLength                 9
+       bDescriptorType         4
+       bInterfaceNumber        0
+       bAlternateSetting       0
+       bNumEndpoints           4
+       bInterfaceClass       255 Vendor Specific Class
+       bInterfaceSubClass      0
+       bInterfaceProtocol      0
+       iInterface              0
+       Endpoint Descriptor:
+         bLength                 7
+         bDescriptorType         5
+         bEndpointAddress     0x01  EP 1 OUT
+         bmAttributes            2
+           Transfer Type            Bulk
+           Synch Type               None
+           Usage Type               Data
+         wMaxPacketSize     0x0200  1x 512 bytes
+         bInterval               1
+       Endpoint Descriptor:
+         bLength                 7
+         bDescriptorType         5
+         bEndpointAddress     0x81  EP 1 IN
+         bmAttributes            2
+           Transfer Type            Bulk
+           Synch Type               None
+           Usage Type               Data
+         wMaxPacketSize     0x0200  1x 512 bytes
+         bInterval               1
+       Endpoint Descriptor:
+         bLength                 7
+         bDescriptorType         5
+         bEndpointAddress     0x82  EP 2 IN
+         bmAttributes            2
+           Transfer Type            Bulk
+           Synch Type               None
+           Usage Type               Data
+         wMaxPacketSize     0x0200  1x 512 bytes
+         bInterval               1
+       Endpoint Descriptor:
+         bLength                 7
+         bDescriptorType         5
+         bEndpointAddress     0x83  EP 3 IN
+         bmAttributes            2
+           Transfer Type            Bulk
+           Synch Type               None
+           Usage Type               Data
+         wMaxPacketSize     0x0200  1x 512 bytes
+         bInterval               1
+Device Qualifier (for other device speed):
+   bLength                10
+   bDescriptorType         6
+   bcdUSB               2.00
+   bDeviceClass            0 (Defined at Interface level)
+   bDeviceSubClass         0
+   bDeviceProtocol         0
+   bMaxPacketSize0        64
+   bNumConfigurations      1
+Device Status:     0x0000
+   (Bus Powered)
+
+I use Debian Sid and Linux kernel 3.2 and 3.3 (64 bits).
+
+Could you send me your package so I can check it?
+
+Sincerely,
+
+Daniel
+
 
