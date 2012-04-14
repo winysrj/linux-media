@@ -1,37 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:40375 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752426Ab2D3J2t (ORCPT
+Received: from mail-pz0-f52.google.com ([209.85.210.52]:36154 "EHLO
+	mail-pz0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755955Ab2DNUU2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Apr 2012 05:28:49 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [GIT PULL for v3.5] Control events support for uvcvideo
-Date: Mon, 30 Apr 2012 11:29:06 +0200
-Message-ID: <5062483.FgLTOh88GA@avalon>
-In-Reply-To: <201204300830.39501.hverkuil@xs4all.nl>
-References: <3052114.LipUdaOlsN@avalon> <201204300830.39501.hverkuil@xs4all.nl>
+	Sat, 14 Apr 2012 16:20:28 -0400
+Received: by dake40 with SMTP id e40so5247262dak.11
+        for <linux-media@vger.kernel.org>; Sat, 14 Apr 2012 13:20:28 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Date: Sat, 14 Apr 2012 16:20:28 -0400
+Message-ID: <CAJ=kj5xyGhjEUo=nBh8WNB+oRosoAqiyJXPF_oCj4JRXEgtKUA@mail.gmail.com>
+Subject: soundgraph imon pad remote controller generate 'unknown keypress'
+ when used in Keyboard mode
+From: Patrik Dufresne <ikus060@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Using my "15c2:ffdc SoundGraph Inc. iMON PAD Remote Controller" with
+Linux 3.0.0-17-generic in keyboard mode is generating 'unknown
+keypress' in syslog when I use the pad. Looking at the source code,
+imon.c line 1398 is setting the key code to KEY_UNKNOWN whenever a
+direction is not found. Instead, I suggest to leave the function and
+also leave imon_incoming_packet.
 
-On Monday 30 April 2012 08:30:39 Hans Verkuil wrote:
-> Hi Laurent,
-> 
-> I know I am very late with this, but I looked through the event/control core
-> changes and I found a locking bug there. I didn't have a chance to review
-> the patch series when HdG posted it earlier this month, so my apologies for
-> coming up with this only now.
+e.g.:
+Apr 13 11:55:17 ikus060-htpc kernel: [413442.452803] imon 3-6:1.0:
+imon_incoming_packet: unknown keypress, code 0x6882c1b7
 
-No worries. Thank you for catching the bug, I'll send a new pull request.
+Here is the full list of keypress :
+0x688291b7
+0x6882a1b7
+0x6882b1b7
+0x6882c1b7
+0x6892c9b7
+0x689a81b7
+0x689a91b7
+0x689aa1b7
+0x68a281b7
+0x68a299b7
+0x68a2b1b7
+0x68a2c9b7
+0x68aa91b7
+0x68c291b7
+0x68c299b7
+0x68c2a9b7
+0x68c2a9b7
+0x68c2b1b7
+0x68c2b1b7
+0x68c2b9b7
+0x68c2c9b7
+0x68c2f1b7
+0x68d2b9b7
+0x68e281b7
+0x68e291b7
+0x68e2a9b7
+0x68e2b9b7
+0x68e2c1b7
+0x68e2c9b7
+0x68faa1b7
+0x6902c9b7
+0x6902f9b7
+0x691291b7
+0x692299b7
+0x6922a9b7
+0x6922c9b7
+0x6922e9b7
+0x6922f1b7
+0x6942b1b7
+0x6942b9b7
+0x696291b7
+0x6962a9b7
+0x6962b1b7
+0x6962b9b7
+0x6962c9b7
+0x6962d9b7
+0x6962f9b7
+0x697af9b7
+0x69c299b7
+0x6a9a81b7
+0x6a9a81b7
+0x6aaa81b7
+0x6aaaa1b7
+0x6aaac1b7
+0x6abac1b7
+0x6acae1b7
+0x6afa81b7
+0x6afa81bf
+0x6b1ab9b7
+0x6b1af9b7
+0x78aac1f7
+0x78c299b7
 
--- 
-Regards,
-
-Laurent Pinchart
-
+Patrik Dufresne
