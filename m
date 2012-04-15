@@ -1,44 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:58244 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752918Ab2DBV0n (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Apr 2012 17:26:43 -0400
-Received: by mail-wg0-f44.google.com with SMTP id dr13so3083820wgb.1
-        for <linux-media@vger.kernel.org>; Mon, 02 Apr 2012 14:26:42 -0700 (PDT)
-From: Gianluca Gennari <gennarone@gmail.com>
-To: linux-media@vger.kernel.org, crope@iki.fi
-Cc: m@bues.ch, hfvogt@gmx.net, mchehab@redhat.com,
-	Gianluca Gennari <gennarone@gmail.com>
-Subject: [PATCH 4/5] af9035: fix warning
-Date: Mon,  2 Apr 2012 23:25:16 +0200
-Message-Id: <1333401917-27203-5-git-send-email-gennarone@gmail.com>
-In-Reply-To: <1333401917-27203-1-git-send-email-gennarone@gmail.com>
-References: <1333401917-27203-1-git-send-email-gennarone@gmail.com>
+Received: from mail-pz0-f52.google.com ([209.85.210.52]:53543 "EHLO
+	mail-pz0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752465Ab2DOPxw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 15 Apr 2012 11:53:52 -0400
+Received: by mail-pz0-f52.google.com with SMTP id e40so5866938dak.11
+        for <linux-media@vger.kernel.org>; Sun, 15 Apr 2012 08:53:52 -0700 (PDT)
+Date: Sun, 15 Apr 2012 23:53:56 +0800
+From: "=?utf-8?B?bmliYmxlLm1heA==?=" <nibble.max@gmail.com>
+To: "=?utf-8?B?TWF1cm8gQ2FydmFsaG8gQ2hlaGFi?=" <mchehab@redhat.com>
+Cc: "=?utf-8?B?bGludXgtbWVkaWE=?=" <linux-media@vger.kernel.org>
+References: <1327228731.2540.3.camel@tvbox>,
+ <4F2185A1.2000402@redhat.com>
+Subject: =?utf-8?B?W1BBVENIIDYvNl0gbTg4ZHMzMTAzLCBkdmJza3kgcmVtb3RlIGNvbnRyb2wgaW5jbHVkZSBoZWFkZXIgZmlsZS4=?=
+Message-ID: <201204152353536717686@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain;
+	charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-af9035.c: In function 'af9035_download_firmware':
-af9035.c:446:3: warning: format '%lu' expects argument of type 'long unsigned
-int', but argument 3 has type 'unsigned int' [-Wformat]
+dvbsky remote control include header file for pci/pcie card.
 
-Signed-off-by: Gianluca Gennari <gennarone@gmail.com>
+Signed-off-by: Max nibble <nibble.max@gmail.com>
 ---
- drivers/media/dvb/dvb-usb/af9035.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ include/media/rc-map.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/media/dvb/dvb-usb/af9035.c b/drivers/media/dvb/dvb-usb/af9035.c
-index f943c57..8bf6367 100644
---- a/drivers/media/dvb/dvb-usb/af9035.c
-+++ b/drivers/media/dvb/dvb-usb/af9035.c
-@@ -443,7 +443,7 @@ static int af9035_download_firmware(struct usb_device *udev,
- 
- 		i -= hdr_data_len + HDR_SIZE;
- 
--		pr_debug("%s: data uploaded=%lu\n", __func__, fw->size - i);
-+		pr_debug("%s: data uploaded=%u\n", __func__, fw->size - i);
- 	}
- 
- 	/* firmware loaded, request boot */
+diff --git a/include/media/rc-map.h b/include/media/rc-map.h
+index 8db6741..7176dac 100644
+--- a/include/media/rc-map.h
++++ b/include/media/rc-map.h
+@@ -85,6 +85,7 @@ void rc_map_init(void);
+ #define RC_MAP_DM1105_NEC                "rc-dm1105-nec"
+ #define RC_MAP_DNTV_LIVE_DVBT_PRO        "rc-dntv-live-dvbt-pro"
+ #define RC_MAP_DNTV_LIVE_DVB_T           "rc-dntv-live-dvb-t"
++#define RC_MAP_DVBSKY                    "rc-dvbsky"
+ #define RC_MAP_EMPTY                     "rc-empty"
+ #define RC_MAP_EM_TERRATEC               "rc-em-terratec"
+ #define RC_MAP_ENCORE_ENLTV2             "rc-encore-enltv2"
 -- 
-1.7.5.4
+1.7.9.5
 
