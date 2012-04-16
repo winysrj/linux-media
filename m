@@ -1,86 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:47264 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756106Ab2DDMkh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Apr 2012 08:40:37 -0400
-Received: by eaaq12 with SMTP id q12so76181eaa.19
-        for <linux-media@vger.kernel.org>; Wed, 04 Apr 2012 05:40:36 -0700 (PDT)
-Message-ID: <4F7C4141.40004@gmail.com>
-Date: Wed, 04 Apr 2012 14:40:33 +0200
-From: Gianluca Gennari <gennarone@gmail.com>
-Reply-To: gennarone@gmail.com
-MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: linux-media@vger.kernel.org, m@bues.ch, hfvogt@gmx.net,
-	mchehab@redhat.com
-Subject: Re: [PATCH] af9035: add several new USB IDs
-References: <1333540034-14002-1-git-send-email-gennarone@gmail.com> <4F7C3787.5020602@iki.fi>
-In-Reply-To: <4F7C3787.5020602@iki.fi>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Received: from perceval.ideasonboard.com ([95.142.166.194]:52119 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754272Ab2DPN3r (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 Apr 2012 09:29:47 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@iki.fi
+Subject: [PATCH v3 7/9] omap3isp: preview: Rename prev_params fields to match userspace API
+Date: Mon, 16 Apr 2012 15:29:52 +0200
+Message-Id: <1334582994-6967-8-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1334582994-6967-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1334582994-6967-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Il 04/04/2012 13:59, Antti Palosaari ha scritto:
-> On 04.04.2012 14:47, Gianluca Gennari wrote:
->> Add several new USB IDs extracted from the Windows and Linux drivers
->> published
->> by the manufacturers (Terratec and AVerMedia).
->> +    [AF9035_07CA_0867] = {
->> +        USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_0867)},
->>       [AF9035_07CA_1867] = {
->>           USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_1867)},
->> +    [AF9035_07CA_3867] = {
->> +        USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_3867)},
->>       [AF9035_07CA_A867] = {
->>           USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_A867)},
->> +    [AF9035_07CA_B867] = {
->> +        USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_B867)},
-> 
-> It have been common practise to use product names for USB PID
-> definitions instead of USB ID numbers. I vote to continue that practise.
-> 
-> Also, I am not very sure if it is wise to add new IDs without any
-> testing. Likely those are just reference design and will work, but
-> sometimes there is also some changes done for schematic wiring.
-> Especially for Avermedia, see hacks needed some AF9015 Avermedia
-> devices. They have put invalid data to eeprom and thus hacks are needed
-> for overriding tuner IDs etc.
-> Not to mention, driver supports also dynamic IDs and even device ID is
-> missing user can load driver using dynamic ID and report it working or
-> non-working.
-> 
-> Anyone else any thoughts about adding IDs without testing ?
-> 
-> regards
-> Antti
+Rename the blk_adj and rgb2ycbcr fields to blkadj and csc respectively.
 
-Regarding the USB PID definition naming, there is no problem for me.
-Actually, some product names were used in the modified versions of your
-old driver, so I converted them to the format above just for
-convenience. The only problem is that there are so many variations of
-the Avermedia sticks that it's hard to give them proper names.
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/video/omap3isp/isppreview.c |   16 ++++++++--------
+ drivers/media/video/omap3isp/isppreview.h |    8 ++++----
+ 2 files changed, 12 insertions(+), 12 deletions(-)
 
-Some of this IDs are already tested (if we include the several
-modifications of your old driver).
+diff --git a/drivers/media/video/omap3isp/isppreview.c b/drivers/media/video/omap3isp/isppreview.c
+index c487995..b75b675 100644
+--- a/drivers/media/video/omap3isp/isppreview.c
++++ b/drivers/media/video/omap3isp/isppreview.c
+@@ -837,9 +837,9 @@ __preview_get_ptrs(struct prev_params *params, void **param,
+ 		CHKARG(configs, config, dcor)
+ 		return sizeof(params->dcor);
+ 	case OMAP3ISP_PREV_BLKADJ:
+-		*param = &params->blk_adj;
++		*param = &params->blkadj;
+ 		CHKARG(configs, config, blkadj)
+-		return sizeof(params->blk_adj);
++		return sizeof(params->blkadj);
+ 	case OMAP3ISP_PREV_YC_LIMIT:
+ 		*param = &params->yclimit;
+ 		CHKARG(configs, config, yclimit)
+@@ -849,9 +849,9 @@ __preview_get_ptrs(struct prev_params *params, void **param,
+ 		CHKARG(configs, config, rgb2rgb)
+ 		return sizeof(params->rgb2rgb);
+ 	case OMAP3ISP_PREV_COLOR_CONV:
+-		*param = &params->rgb2ycbcr;
++		*param = &params->csc;
+ 		CHKARG(configs, config, csc)
+-		return sizeof(params->rgb2ycbcr);
++		return sizeof(params->csc);
+ 	case OMAP3ISP_PREV_WB:
+ 		*param = &params->wbal;
+ 		CHKARG(configs, config, wbal)
+@@ -1284,11 +1284,11 @@ static void preview_init_params(struct isp_prev_device *prev)
+ 	params->wbal.coef1 = FLR_WBAL_COEF;
+ 	params->wbal.coef2 = FLR_WBAL_COEF;
+ 	params->wbal.coef3 = FLR_WBAL_COEF;
+-	params->blk_adj.red = FLR_BLKADJ_RED;
+-	params->blk_adj.green = FLR_BLKADJ_GREEN;
+-	params->blk_adj.blue = FLR_BLKADJ_BLUE;
++	params->blkadj.red = FLR_BLKADJ_RED;
++	params->blkadj.green = FLR_BLKADJ_GREEN;
++	params->blkadj.blue = FLR_BLKADJ_BLUE;
+ 	params->rgb2rgb = flr_rgb2rgb;
+-	params->rgb2ycbcr = flr_prev_csc;
++	params->csc = flr_prev_csc;
+ 	params->yclimit.minC = ISPPRV_YC_MIN;
+ 	params->yclimit.maxC = ISPPRV_YC_MAX;
+ 	params->yclimit.minY = ISPPRV_YC_MIN;
+diff --git a/drivers/media/video/omap3isp/isppreview.h b/drivers/media/video/omap3isp/isppreview.h
+index a0d2807..6ee8306 100644
+--- a/drivers/media/video/omap3isp/isppreview.h
++++ b/drivers/media/video/omap3isp/isppreview.h
+@@ -77,9 +77,9 @@ enum preview_ycpos_mode {
+  * @dcor: Noise filter coefficients.
+  * @gamma: Gamma coefficients.
+  * @wbal: White Balance parameters.
+- * @blk_adj: Black adjustment parameters.
++ * @blkadj: Black adjustment parameters.
+  * @rgb2rgb: RGB blending parameters.
+- * @rgb2ycbcr: RGB to ycbcr parameters.
++ * @csc: Color space conversion (RGB to YCbCr) parameters.
+  * @hmed: Horizontal median filter.
+  * @yclimit: YC limits parameters.
+  * @contrast: Contrast.
+@@ -94,9 +94,9 @@ struct prev_params {
+ 	struct omap3isp_prev_dcor dcor;
+ 	struct omap3isp_prev_gtables gamma;
+ 	struct omap3isp_prev_wbal wbal;
+-	struct omap3isp_prev_blkadj blk_adj;
++	struct omap3isp_prev_blkadj blkadj;
+ 	struct omap3isp_prev_rgbtorgb rgb2rgb;
+-	struct omap3isp_prev_csc rgb2ycbcr;
++	struct omap3isp_prev_csc csc;
+ 	struct omap3isp_prev_hmed hmed;
+ 	struct omap3isp_prev_yclimit yclimit;
+ 	u8 contrast;
+-- 
+1.7.3.4
 
-In particular:
-AF9035_0CCD_00AA : confirmed working on Ubuntu.it forum with the old
-driver (don't have the link);
-AF9035_07CA_0825 : confirmed working on OpenPli forum with the old
-driver (see link above);
-
-Others comes from the official Windows drivers so they should be just
-little variations of the retail products:
-AF9035_07CA_A825, AF9035_07CA_0835, AF9035_07CA_3867.
-
-This IDs are can be the more problematic:
-AF9035_15A4_1000, AF9035_15A4_1002, AF9035_15A4_1003,
-AF9035_07CA_A333, AF9035_07CA_0337, AF9035_07CA_F337
-since there is little or no information about this products.
-
-Anyway, this patch can be a reference for users willing to test the new
-driver.
-
-Regards,
-Gianluca
