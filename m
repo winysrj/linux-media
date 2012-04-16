@@ -1,56 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:45508 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753134Ab2D3PGm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Apr 2012 11:06:42 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Received: from euspt1 ([210.118.77.14]) by mailout4.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0M3A003R7SNEX030@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 30 Apr 2012 16:06:50 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0M3A0088ASN447@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 30 Apr 2012 16:06:40 +0100 (BST)
-Date: Mon, 30 Apr 2012 17:06:38 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH] s5p-fimc: Avoid crash with null platform_data
-To: linux-media@vger.kernel.org
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Message-id: <1335798398-4704-1-git-send-email-s.nawrocki@samsung.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:52874 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-FAIL-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753776Ab2DPMlU convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 Apr 2012 08:41:20 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: =?ISO-8859-1?Q?R=E9mi?= Denis-Courmont <remi@remlab.net>
+Cc: linux-media@vger.kernel.org
+Subject: Re: UVC frame interval inconsistency
+Date: Mon, 16 Apr 2012 14:40:53 +0200
+Message-ID: <1689657.5vs7Qpi9BC@avalon>
+In-Reply-To: <c29fa93d58ec0a2289435bc92ac63e46@chewa.net>
+References: <c29fa93d58ec0a2289435bc92ac63e46@chewa.net>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In commit "s5p-fimc: Handle sub-device interdependencies using deferred.."
-there was a check added for pdata->num_clients without first checking 
-pdata against NULL. This causes a crash when platform_data is not set, 
-which is a valid use case. Fix this regression by skipping the MIPI-CSIS
-subdev registration also when pdata is null.
+Hi Rémi,
 
-Reported-by: HeungJun Kim <riverful.kim@samsung.com>
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/video/s5p-fimc/fimc-mdevice.c |    2 ++
- 1 file changed, 2 insertions(+)
+On Wednesday 11 April 2012 12:27:08 Rémi Denis-Courmont wrote:
+>    Hello guys,
+> 
+> I have been reworking the V4L2 input in VLC and I hit what looks like a
+> weird bug in the UVC driver. I am using a Logitech HD Pro C920 webcam.
+> 
+> By default, VLC tries to find the highest possible frame rate (actually
+> smallest frame interval in V4L2), then the largest possible resolution at
+> that frame rate.
+> 
+> When enumerating the frame sizes and intervals on the device, the winner
+> is 800x600 at 30 f/s. But when setting 30 f/s with VIDIOC_S_PARM, the
+> system call returns 24 f/s. Does anyone know why it is so? Is this a
+> firmware bug or what?
 
-diff --git a/drivers/media/video/s5p-fimc/fimc-mdevice.c b/drivers/media/video/s5p-fimc/fimc-mdevice.c
-index 1587498..f653259 100644
---- a/drivers/media/video/s5p-fimc/fimc-mdevice.c
-+++ b/drivers/media/video/s5p-fimc/fimc-mdevice.c
-@@ -448,6 +448,8 @@ static int fimc_md_register_platform_entities(struct fimc_md *fmd)
- 	 * Check if there is any sensor on the MIPI-CSI2 bus and
- 	 * if not skip the s5p-csis module loading.
- 	 */
-+	if (pdata == NULL)
-+		return 0;
- 	for (i = 0; i < pdata->num_clients; i++) {
- 		if (pdata->isp_info[i].bus_type == FIMC_MIPI_CSI2) {
- 			ret = 1;
+The frame sizes and intervals returned by the uvcvideo driver during 
+enumeration come directly from the values advertised by the device. When you 
+set a frame rate using VIDIOC_S_PARM, the driver then negotiates the value 
+with the device, and returns the frame rate it received from the device to the 
+application. The device is free to adjust the frame rate (based on current 
+lightning conditions for instance, if auto-exposure is turned on).
+
 -- 
-1.7.10
+Regards,
+
+Laurent Pinchart
 
