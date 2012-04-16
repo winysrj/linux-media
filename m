@@ -1,46 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:52115 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753343Ab2DPN3p (ORCPT
+Received: from mail-vx0-f174.google.com ([209.85.220.174]:48272 "EHLO
+	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751701Ab2DPWQQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Apr 2012 09:29:45 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@iki.fi
-Subject: [PATCH v3 0/9] OMAP3 ISP preview engine configuration improvement
-Date: Mon, 16 Apr 2012 15:29:45 +0200
-Message-Id: <1334582994-6967-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Mon, 16 Apr 2012 18:16:16 -0400
+Received: by vcqp1 with SMTP id p1so3673554vcq.19
+        for <linux-media@vger.kernel.org>; Mon, 16 Apr 2012 15:16:15 -0700 (PDT)
+MIME-Version: 1.0
+Date: Mon, 16 Apr 2012 18:16:15 -0400
+Message-ID: <CAOcJUbx4smLBOGptNPv8ZitGOJQRPw=7ERhZjGCNZSx5-8KbkQ@mail.gmail.com>
+Subject: [GIT PULL v3.4] git://git.linuxtv.org/mkrufky/tuners.git xc5000
+From: Michael Krufky <mkrufky@kernellabs.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Mauro,
 
-Here's the third version of the OMAP3 ISP preview engine configuration
-improvement patches.
+Please merge the following into the v3.4-rc tree -- this alters the
+driver to use the official firmware image for the XC5000C, rather than
+one modified for a specific xtal frequency.  The modified firmware
+will never be released, so we're better off merging this now rather
+than waiting for v3.5.
 
-Patches 1 to 3 have already been acked and haven't changed since v1. Patches 4
-to 8 are new small improvements and cleanups, patch 9 is a complete rework of
-the shadow update issue fix previously submitted as 4/4 in v2.
-
-Laurent Pinchart (9):
-  omap3isp: preview: Skip brightness and contrast in configuration
-    ioctl
-  omap3isp: preview: Optimize parameters setup for the common case
-  omap3isp: preview: Remove averager parameter update flag
-  omap3isp: preview: Remove unused isptables_update structure
-    definition
-  omap3isp: preview: Merge configuration and feature bits
-  omap3isp: preview: Remove update_attrs feature_bit field
-  omap3isp: preview: Rename prev_params fields to match userspace API
-  omap3isp: preview: Simplify configuration parameters access
-  omap3isp: preview: Shorten shadow update delay
-
- drivers/media/video/omap3isp/isppreview.c |  511 +++++++++++++++++------------
- drivers/media/video/omap3isp/isppreview.h |   76 ++---
- 2 files changed, 326 insertions(+), 261 deletions(-)
-
--- 
 Regards,
 
-Laurent Pinchart
+Mike
 
+
+The following changes since commit 296da3cd14db9eb5606924962b2956c9c656dbb0:
+
+  [media] pwc: poll(): Check that the device has not beem claimed for
+streaming already (2012-03-27 11:42:04 -0300)
+
+are available in the git repository at:
+  git://git.linuxtv.org/mkrufky/tuners.git xc5000
+
+Michael Krufky (3):
+      xc5000: support 32MHz & 31.875MHz xtal using the 41.024.5 firmware
+      xc5000: log firmware upload failures in xc5000_fwupload
+      xc5000: xtal_khz should be a u16 rather than a u32
+
+ drivers/media/common/tuners/xc5000.c |   44 ++++++++++++++++++++++++++++++----
+ drivers/media/common/tuners/xc5000.h |    1 +
+ 2 files changed, 40 insertions(+), 5 deletions(-)
