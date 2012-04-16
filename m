@@ -1,64 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from swampdragon.chaosbits.net ([90.184.90.115]:21198 "EHLO
-	swampdragon.chaosbits.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755264Ab2DIUvt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Apr 2012 16:51:49 -0400
-Date: Mon, 9 Apr 2012 22:51:48 +0200 (CEST)
-From: Jesper Juhl <jj@chaosbits.net>
-To: linux-kernel@vger.kernel.org
-cc: trivial@kernel.org, devel@driverdev.osuosl.org,
-	linux-media@vger.kernel.org,
-	Pierrick Hascoet <pierrick.hascoet@abilis.com>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Piotr Chmura <chmooreck@poczta.onet.pl>,
-	Sylwester Nawrocki <snjw23@gmail.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 20/26] [media] staging: as102: Remove redundant NULL check
- before release_firmware() and pointless comments
-In-Reply-To: <alpine.LNX.2.00.1204092157340.13925@swampdragon.chaosbits.net>
-Message-ID: <alpine.LNX.2.00.1204092231330.13925@swampdragon.chaosbits.net>
-References: <alpine.LNX.2.00.1204092157340.13925@swampdragon.chaosbits.net>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from perceval.ideasonboard.com ([95.142.166.194]:52118 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753600Ab2DPN3r (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 Apr 2012 09:29:47 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@iki.fi
+Subject: [PATCH v3 4/9] omap3isp: preview: Remove unused isptables_update structure definition
+Date: Mon, 16 Apr 2012 15:29:49 +0200
+Message-Id: <1334582994-6967-5-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1334582994-6967-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1334582994-6967-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-release_firmware() deals gracefullt with NULL pointers - it's
-redundant to check for them before calling the function.
-
-Also remove a few pointless comments - it's rather obvious from the
-code that kfree() free's a buffer and that release_firmware() releases
-firmware - comments just stating that add no value.
-
-Signed-off-by: Jesper Juhl <jj@chaosbits.net>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/staging/media/as102/as102_fw.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ drivers/media/video/omap3isp/isppreview.h |   20 --------------------
+ 1 files changed, 0 insertions(+), 20 deletions(-)
 
-diff --git a/drivers/staging/media/as102/as102_fw.c b/drivers/staging/media/as102/as102_fw.c
-index 43ebc43..9db275e 100644
---- a/drivers/staging/media/as102/as102_fw.c
-+++ b/drivers/staging/media/as102/as102_fw.c
-@@ -230,11 +230,8 @@ int as102_fw_upload(struct as10x_bus_adapter_t *bus_adap)
- 	pr_info("%s: firmware: %s loaded with success\n",
- 		DRIVER_NAME, fw2);
- error:
--	/* free data buffer */
- 	kfree(cmd_buf);
--	/* release firmware if needed */
--	if (firmware != NULL)
--		release_firmware(firmware);
-+	release_firmware(firmware);
+diff --git a/drivers/media/video/omap3isp/isppreview.h b/drivers/media/video/omap3isp/isppreview.h
+index 67723c7..b7f979a 100644
+--- a/drivers/media/video/omap3isp/isppreview.h
++++ b/drivers/media/video/omap3isp/isppreview.h
+@@ -121,26 +121,6 @@ struct prev_params {
+ 	u8 brightness;
+ };
  
- 	LEAVE();
- 	return errno;
+-/*
+- * struct isptables_update - Structure for Table Configuration.
+- * @update: Specifies which tables should be updated.
+- * @flag: Specifies which tables should be enabled.
+- * @nf: Pointer to structure for Noise Filter
+- * @lsc: Pointer to LSC gain table. (currently not used)
+- * @gamma: Pointer to gamma correction tables.
+- * @cfa: Pointer to color filter array configuration.
+- * @wbal: Pointer to colour and digital gain configuration.
+- */
+-struct isptables_update {
+-	u32 update;
+-	u32 flag;
+-	struct omap3isp_prev_nf *nf;
+-	u32 *lsc;
+-	struct omap3isp_prev_gtables *gamma;
+-	struct omap3isp_prev_cfa *cfa;
+-	struct omap3isp_prev_wbal *wbal;
+-};
+-
+ /* Sink and source previewer pads */
+ #define PREV_PAD_SINK			0
+ #define PREV_PAD_SOURCE			1
 -- 
-1.7.10
-
-
--- 
-Jesper Juhl <jj@chaosbits.net>       http://www.chaosbits.net/
-Don't top-post http://www.catb.org/jargon/html/T/top-post.html
-Plain text mails only, please.
+1.7.3.4
 
