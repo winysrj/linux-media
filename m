@@ -1,60 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:60835 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753726Ab2D1N5Z (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.187]:58984 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753613Ab2DPVJK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 Apr 2012 09:57:25 -0400
-Received: by ghrr11 with SMTP id r11so923311ghr.19
-        for <linux-media@vger.kernel.org>; Sat, 28 Apr 2012 06:57:25 -0700 (PDT)
-From: elezegarcia@gmail.com
-To: mchehab@infradead.org
-Cc: crope@iki.fi, gennarone@gmail.com, linux-media@vger.kernel.org,
-	Ezequiel Garcia <elezegarcia@gmail.com>
-Subject: [PATCH] em28xx: Remove unused list_head struct for queued buffers
-Date: Sat, 28 Apr 2012 10:57:02 -0300
-Message-Id: <4f9bf744.a54dec0a.47ed.ffff85cc@mx.google.com>
-In-Reply-To: <1335621422-4083-1-git-send-email-y>
-References: <1335621422-4083-1-git-send-email-y>
+	Mon, 16 Apr 2012 17:09:10 -0400
+Date: Mon, 16 Apr 2012 23:08:58 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-mmc@vger.kernel.org, linux-sh@vger.kernel.org,
+	Paul Mundt <lethal@linux-sh.org>,
+	Magnus Damm <magnus.damm@gmail.com>
+Subject: Re: outstanding ARM patches
+In-Reply-To: <201204161824.03746.rjw@sisk.pl>
+Message-ID: <Pine.LNX.4.64.1204162303080.29915@axis700.grange>
+References: <1328824636-10553-1-git-send-email-g.liakhovetski@gmx.de>
+ <Pine.LNX.4.64.1204081328100.29005@axis700.grange>
+ <Pine.LNX.4.64.1204131439000.16773@axis700.grange> <201204161824.03746.rjw@sisk.pl>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Ezequiel Garcia <elezegarcia@gmail.com>
+On Mon, 16 Apr 2012, Rafael J. Wysocki wrote:
 
-The list_head struct usage was fully removed by commit
-d7aa80207babe694b316a48200b096cf0336ecb3.
+> On Friday, April 13, 2012, Guennadi Liakhovetski wrote:
+> > Hi
+> > 
+> > Just confirming, that the 3 outstanding ARM patches, that I mentioned in 
+> > recent emails:
+> > 
+> > http://article.gmane.org/gmane.linux.kernel.mmc/12748
+> > http://article.gmane.org/gmane.linux.ports.sh.devel/13535
+> > http://article.gmane.org/gmane.linux.ports.sh.devel/13975
+> > 
+> > still apply to the current Linus' tree, though, the former 2 with a fuzz, 
+> > if needed, I can provide a version, that applies cleanly. Compile-tested.
+> 
+> Can you please repost them in one series on top of v3.2-rc3?
 
-Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
+Sure, this is not really a series, but for your convenience I'll post them 
+in reply to this mail. I'll also drop all recepients from the cc-list 
+except linux-sh to not bother others.
+
+Thanks
+Guennadi
+
+> Rafael
+> 
+>  
+> > On Sun, 8 Apr 2012, Guennadi Liakhovetski wrote:
+> > 
+> > > On Wed, 14 Mar 2012, Guennadi Liakhovetski wrote:
+> > > 
+> > > > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> > > > ---
+> > > > 
+> > > > This patch we can push some time after the first one in this series gets 
+> > > > in, no breakage is caused.
+> > > 
+> > > Patch 1/2 from this series is now in the mainline, so, also this patch can 
+> > > be applied now. Not sure whether this qualifies as a fix (in the sense, 
+> > > that the default maximum sizes of 2560x1920, used without this patch are 
+> > > wrong for sh7372). Please, either push for 3.4 or queue for 3.5 
+> > > accordingly.
+> > ...
+> > > >  arch/arm/mach-shmobile/board-ap4evb.c   |    2 ++
+> > > >  arch/arm/mach-shmobile/board-mackerel.c |    2 ++
+> > > >  2 files changed, 4 insertions(+), 0 deletions(-)
+> > > > 
+> > > > diff --git a/arch/arm/mach-shmobile/board-ap4evb.c b/arch/arm/mach-shmobile/board-ap4evb.c
+> > > > index aab0a34..f67aa03 100644
+> > > > --- a/arch/arm/mach-shmobile/board-ap4evb.c
+> > > > +++ b/arch/arm/mach-shmobile/board-ap4evb.c
+> > > > @@ -1009,6 +1009,8 @@ static struct sh_mobile_ceu_companion csi2 = {
+> > > >  
+> > > >  static struct sh_mobile_ceu_info sh_mobile_ceu_info = {
+> > > >  	.flags = SH_CEU_FLAG_USE_8BIT_BUS,
+> > > > +	.max_width = 8188,
+> > > > +	.max_height = 8188,
+> > > >  	.csi2 = &csi2,
+> > > >  };
+> > > >  
+> > > > diff --git a/arch/arm/mach-shmobile/board-mackerel.c b/arch/arm/mach-shmobile/board-mackerel.c
+> > > > index 9b42fbd..f790772 100644
+> > > > --- a/arch/arm/mach-shmobile/board-mackerel.c
+> > > > +++ b/arch/arm/mach-shmobile/board-mackerel.c
+> > > > @@ -1270,6 +1270,8 @@ static void mackerel_camera_del(struct soc_camera_device *icd)
+> > > >  
+> > > >  static struct sh_mobile_ceu_info sh_mobile_ceu_info = {
+> > > >  	.flags = SH_CEU_FLAG_USE_8BIT_BUS,
+> > > > +	.max_width = 8188,
+> > > > +	.max_height = 8188,
+> > > >  };
+> > > >  
+> > > >  static struct resource ceu_resources[] = {
+> > 
+> > On Sun, 8 Apr 2012, Guennadi Liakhovetski wrote:
+> > 
+> > > Now that MMC patches from this series are in the mainline, also 
+> > > architecture patches can and should be applied. These are patches 5 and 6 
+> > > from this series:
+> > > 
+> > > http://article.gmane.org/gmane.linux.kernel.mmc/12748
+> > > http://article.gmane.org/gmane.linux.ports.sh.devel/13535
+> > > 
+> > > Would be good to have them in 3.4 since they fix modular MMC builds on 
+> > > ag5evm and mackerel.
+> > 
+> > ---
+> > Guennadi Liakhovetski, Ph.D.
+> > Freelance Open-Source Software Developer
+> > http://www.open-technology.de/
+> > 
+> > 
+> 
+
 ---
- drivers/media/video/em28xx/em28xx-cards.c |    2 --
- drivers/media/video/em28xx/em28xx.h       |    1 -
- 2 files changed, 0 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/media/video/em28xx/em28xx-cards.c b/drivers/media/video/em28xx/em28xx-cards.c
-index 5c0fd9f..eea90b0 100644
---- a/drivers/media/video/em28xx/em28xx-cards.c
-+++ b/drivers/media/video/em28xx/em28xx-cards.c
-@@ -3142,9 +3142,7 @@ static int em28xx_init_dev(struct em28xx *dev, struct usb_device *udev,
- 
- 	/* init video dma queues */
- 	INIT_LIST_HEAD(&dev->vidq.active);
--	INIT_LIST_HEAD(&dev->vidq.queued);
- 	INIT_LIST_HEAD(&dev->vbiq.active);
--	INIT_LIST_HEAD(&dev->vbiq.queued);
- 
- 	if (dev->board.has_msp34xx) {
- 		/* Send a reset to other chips via gpio */
-diff --git a/drivers/media/video/em28xx/em28xx.h b/drivers/media/video/em28xx/em28xx.h
-index 100d1e8..87766f1 100644
---- a/drivers/media/video/em28xx/em28xx.h
-+++ b/drivers/media/video/em28xx/em28xx.h
-@@ -269,7 +269,6 @@ struct em28xx_buffer {
- 
- struct em28xx_dmaqueue {
- 	struct list_head       active;
--	struct list_head       queued;
- 
- 	wait_queue_head_t          wq;
- 
--- 
-1.7.3.4
-
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
