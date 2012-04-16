@@ -1,66 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:63358 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756894Ab2DTOpm (ORCPT
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:62753 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753278Ab2DPN7B (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Apr 2012 10:45:42 -0400
-Date: Fri, 20 Apr 2012 16:45:34 +0200
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: [PATCHv5 13/13] v4l: s5p-fimc: support for dmabuf importing
-In-reply-to: <1334933134-4688-1-git-send-email-t.stanislaws@samsung.com>
-To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
-Cc: airlied@redhat.com, m.szyprowski@samsung.com,
-	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
-	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
-	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
-	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
-	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
-	mchehab@redhat.com, linux-doc@vger.kernel.org,
-	g.liakhovetski@gmx.de
-Message-id: <1334933134-4688-14-git-send-email-t.stanislaws@samsung.com>
+	Mon, 16 Apr 2012 09:59:01 -0400
 MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1334933134-4688-1-git-send-email-t.stanislaws@samsung.com>
+Content-transfer-encoding: 8BIT
+Content-type: text/plain; charset=UTF-8
+Received: from euspt2 ([210.118.77.14]) by mailout4.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0M2K007VLS6HJB10@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 16 Apr 2012 14:59:05 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0M2K00D7HS683Y@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 16 Apr 2012 14:58:57 +0100 (BST)
+Date: Mon, 16 Apr 2012 15:58:55 +0200
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: [PATCHv2 8/8] media/video/s5p-tv: mark const init data with
+ __initconst instead of __initdata
+In-reply-to: <1334584735-12439-1-git-send-email-t.stanislaws@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: m.szyprowski@samsung.com, t.stanislaws@samsung.com,
+	kyungmin.park@samsung.com, laurent.pinchart@ideasonboard.com,
+	mchehab@redhat.com, hverkuil@xs4all.nl, sachin.kamat@linaro.org,
+	u.kleine-koenig@pengutronix.de,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-arm-kernel@lists.infradead.org
+Message-id: <1334584735-12439-9-git-send-email-t.stanislaws@samsung.com>
+References: <1334584735-12439-1-git-send-email-t.stanislaws@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch enhances s5p-fimc with support for DMABUF importing via
-V4L2_MEMORY_DMABUF memory type.
+From: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
 
-Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-Acked-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+As long as there is no other non-const variable marked __initdata in the
+same compilation unit it doesn't hurt. If there were one however
+compilation would fail with
+
+	error: $variablename causes a section type conflict
+
+because a section containing const variables is marked read only and so
+cannot contain non-const variables.
+
+Signed-off-by: Uwe Kleine-König <u.kleine-koenig@pengutronix.de>
+Cc: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: linux-arm-kernel@lists.infradead.org
+Cc: linux-media@vger.kernel.org
 ---
- drivers/media/video/Kconfig                 |    1 +
- drivers/media/video/s5p-fimc/fimc-capture.c |    2 +-
- 2 files changed, 2 insertions(+), 1 deletions(-)
+ drivers/media/video/s5p-tv/mixer_drv.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-index f2479c5..9de9ddc 100644
---- a/drivers/media/video/Kconfig
-+++ b/drivers/media/video/Kconfig
-@@ -1133,6 +1133,7 @@ config  VIDEO_SAMSUNG_S5P_FIMC
- 		VIDEO_V4L2_SUBDEV_API && EXPERIMENTAL
- 	select VIDEOBUF2_DMA_CONTIG
- 	select V4L2_MEM2MEM_DEV
-+	select DMA_SHARED_BUFFER
- 	---help---
- 	  This is a v4l2 driver for Samsung S5P and EXYNOS4 camera
- 	  host interface and video postprocessor.
-diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c b/drivers/media/video/s5p-fimc/fimc-capture.c
-index b06efd2..38fb39e 100644
---- a/drivers/media/video/s5p-fimc/fimc-capture.c
-+++ b/drivers/media/video/s5p-fimc/fimc-capture.c
-@@ -1530,7 +1530,7 @@ int fimc_register_capture_device(struct fimc_dev *fimc,
- 	q = &fimc->vid_cap.vbq;
- 	memset(q, 0, sizeof(*q));
- 	q->type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
--	q->io_modes = VB2_MMAP | VB2_USERPTR;
-+	q->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF;
- 	q->drv_priv = fimc->vid_cap.ctx;
- 	q->ops = &fimc_capture_qops;
- 	q->mem_ops = &vb2_dma_contig_memops;
+diff --git a/drivers/media/video/s5p-tv/mixer_drv.c b/drivers/media/video/s5p-tv/mixer_drv.c
+index a2c0c25..edca065 100644
+--- a/drivers/media/video/s5p-tv/mixer_drv.c
++++ b/drivers/media/video/s5p-tv/mixer_drv.c
+@@ -461,7 +461,7 @@ static struct platform_driver mxr_driver __refdata = {
+ static int __init mxr_init(void)
+ {
+ 	int i, ret;
+-	static const char banner[] __initdata = KERN_INFO
++	static const char banner[] __initconst = KERN_INFO
+ 		"Samsung TV Mixer driver, "
+ 		"(c) 2010-2011 Samsung Electronics Co., Ltd.\n";
+ 	printk(banner);
 -- 
 1.7.5.4
 
