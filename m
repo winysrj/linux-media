@@ -1,71 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:4238 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751028Ab2D1LNH (ORCPT
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:47481 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753511Ab2DPPpL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 Apr 2012 07:13:07 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "linux-media" <linux-media@vger.kernel.org>
-Subject: Re: [GIT PULL FOR v3.5] An ivtv fix and support suspend/resume in radio-keene
-Date: Sat, 28 Apr 2012 13:12:48 +0200
-Cc: Andy Walls <awalls@md.metrocast.net>,
-	Ondrej Zary <linux@rainbow-software.org>
-References: <201204271356.37069.hverkuil@xs4all.nl>
-In-Reply-To: <201204271356.37069.hverkuil@xs4all.nl>
+	Mon, 16 Apr 2012 11:45:11 -0400
+Received: by eaaq12 with SMTP id q12so1323190eaa.19
+        for <linux-media@vger.kernel.org>; Mon, 16 Apr 2012 08:45:09 -0700 (PDT)
+Message-ID: <4F8C3E82.4020609@gmail.com>
+Date: Mon, 16 Apr 2012 17:45:06 +0200
+From: Gianluca Gennari <gennarone@gmail.com>
+Reply-To: gennarone@gmail.com
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: Daniel <daniel.videodvb@berthereau.net>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH] dib0700: add new USB PID for the Elgato EyeTV DTT stick
+References: <4F891F54.6030802@Berthereau.net> <1334409247-32467-1-git-send-email-gennarone@gmail.com> <4F8BC15A.3010104@Berthereau.net>
+In-Reply-To: <4F8BC15A.3010104@Berthereau.net>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Message-Id: <201204281312.48543.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Il 16/04/2012 08:51, Daniel ha scritto:
+> Hi,
+> 
+> This patch works fine, but the IR sensor doesn't seem to be enabled.
+> It's not a problem, because the stick isn't sold with a remote control.
+> 
+> Sincerely,
+> 
+> Daniel
+> 
 
-One other fix was added:
-
-      radio-isa: fix memory leak
-
- drivers/media/radio/radio-isa.c        |    8 +++-----
-
-v4l2_ctrl_handler_free wasn't called if there was a problem creating controls.
+Hi Daniel,
+thanks for testing the patch.
+Regarding the remote, the driver apparently supports RC5, RC6 and NEC
+protocols, but defaults to RC5 for almost all devices (including the
+Elgato ones). Maybe you are trying to use a remote with a different
+protocol?
+I think you can switch protocols using something like:
+ir-keytable --protocol=nec --sysdev=rc0
+but I've never used it.
 
 Regards,
+Gianluca
 
-	Hans
+> 
+> On 14/04/2012 15:14, Gianluca Gennari wrote:
+>> Reported working here:
+>> http://ubuntuforums.org/archive/index.php/t-1510188.html
+>> http://ubuntuforums.org/archive/index.php/t-1756828.html
+>> https://sites.google.com/site/slackwarestuff/home/elgato-eyetv
+>>
+>> Signed-off-by: Gianluca Gennari<gennarone@gmail.com>
+>> ---
+>>   drivers/media/dvb/dvb-usb/dib0700_devices.c |    7 ++++++-
+>>   drivers/media/dvb/dvb-usb/dvb-usb-ids.h     |    1 +
+>>   2 files changed, 7 insertions(+), 1 deletions(-)
+>>
+>> diff --git a/drivers/media/dvb/dvb-usb/dib0700_devices.c
+>> b/drivers/media/dvb/dvb-usb/dib0700_devices.c
+>> index f9e966a..510001d 100644
+>> --- a/drivers/media/dvb/dvb-usb/dib0700_devices.c
+>> +++ b/drivers/media/dvb/dvb-usb/dib0700_devices.c
+>> @@ -3569,6 +3569,7 @@ struct usb_device_id dib0700_usb_id_table[] = {
+>>       { USB_DEVICE(USB_VID_DIBCOM,    USB_PID_DIBCOM_TFE7090E) },
+>>       { USB_DEVICE(USB_VID_DIBCOM,    USB_PID_DIBCOM_TFE7790E) },
+>>   /* 80 */{ USB_DEVICE(USB_VID_DIBCOM,    USB_PID_DIBCOM_TFE8096P) },
+>> +    { USB_DEVICE(USB_VID_ELGATO,    USB_PID_ELGATO_EYETV_DTT_2) },
+>>       { 0 }        /* Terminating entry */
+>>   };
+>>   MODULE_DEVICE_TABLE(usb, dib0700_usb_id_table);
+>> @@ -3832,7 +3833,7 @@ struct dvb_usb_device_properties
+>> dib0700_devices[] = {
+>>               },
+>>           },
+>>
+>> -        .num_device_descs = 11,
+>> +        .num_device_descs = 12,
+>>           .devices = {
+>>               {   "DiBcom STK7070P reference design",
+>>                   {&dib0700_usb_id_table[15], NULL },
+>> @@ -3878,6 +3879,10 @@ struct dvb_usb_device_properties
+>> dib0700_devices[] = {
+>>                   {&dib0700_usb_id_table[50], NULL },
+>>                   { NULL },
+>>               },
+>> +            {   "Elgato EyeTV DTT rev. 2",
+>> +                {&dib0700_usb_id_table[81], NULL },
+>> +                { NULL },
+>> +            },
+>>           },
+>>
+>>           .rc.core = {
+>> diff --git a/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
+>> b/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
+>> index 94d3f8a..2418e41 100644
+>> --- a/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
+>> +++ b/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
+>> @@ -335,6 +335,7 @@
+>>   #define USB_PID_MYGICA_D689                0xd811
+>>   #define USB_PID_ELGATO_EYETV_DIVERSITY            0x0011
+>>   #define USB_PID_ELGATO_EYETV_DTT            0x0021
+>> +#define USB_PID_ELGATO_EYETV_DTT_2            0x003f
+>>   #define USB_PID_ELGATO_EYETV_DTT_Dlx            0x0020
+>>   #define USB_PID_ELGATO_EYETV_SAT            0x002a
+>>   #define USB_PID_DVB_T_USB_STICK_HIGH_SPEED_COLD        0x5000
+> 
 
-On Friday, April 27, 2012 13:56:37 Hans Verkuil wrote:
-> Hi Mauro,
-> 
-> One small trivial ivtv fix and a patch that adds support for suspend/resume
-> to the radio-keene driver.
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> The following changes since commit bcb2cf6e0bf033d79821c89e5ccb328bfbd44907:
-> 
->   [media] ngene: remove an unneeded condition (2012-04-26 15:29:23 -0300)
-> 
-> are available in the git repository at:
-> 
->   git://linuxtv.org/hverkuil/media_tree.git fixes
-> 
-> for you to fetch changes up to 71ea18d3e92d834926751f8460cf6893424b3852:
-> 
->   radio-keene: support suspend/resume. (2012-04-27 09:57:02 +0200)
-> 
-> ----------------------------------------------------------------
-> Hans Verkuil (2):
->       ivtv: set max/step to 0 for PTS and FRAME controls.
->       radio-keene: support suspend/resume.
-> 
->  drivers/media/radio/radio-keene.c      |   20 ++++++++++++++++++++
->  drivers/media/video/ivtv/ivtv-driver.c |    4 ++--
->  2 files changed, 22 insertions(+), 2 deletions(-)
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
