@@ -1,306 +1,332 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bues.ch ([80.190.117.144]:44217 "EHLO bues.ch"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751566Ab2DBQSm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 2 Apr 2012 12:18:42 -0400
-Date: Mon, 2 Apr 2012 18:18:36 +0200
-From: Michael =?UTF-8?B?QsO8c2No?= <m@bues.ch>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media <linux-media@vger.kernel.org>
-Subject: [PATCH] af9035: Add fc0011 tuner support
-Message-ID: <20120402181836.0018c6ad@milhouse>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=PGP-SHA1;
- boundary="Sig_/eDQgw.zR=DAAZm90GEVLPNM"; protocol="application/pgp-signature"
+Received: from perceval.ideasonboard.com ([95.142.166.194]:52119 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753855Ab2DPN3r (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 Apr 2012 09:29:47 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@iki.fi
+Subject: [PATCH v3 5/9] omap3isp: preview: Merge configuration and feature bits
+Date: Mon, 16 Apr 2012 15:29:50 +0200
+Message-Id: <1334582994-6967-6-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1334582994-6967-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1334582994-6967-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---Sig_/eDQgw.zR=DAAZm90GEVLPNM
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+The preview engine parameters are referenced by a value suitable for
+being used in a bitmask. Two macros named OMAP3ISP_PREV_* and PREV_* are
+declared for each parameter and are used interchangeably. Remove the
+private macro.
 
-This adds Fitipower fc0011 tuner support to the af9035 driver.
+Replace the configuration bit field in the parameter update attributes
+structure with a boolean that indicates whether the parameter can be
+updated through the preview engine configuration ioctl.
 
-Signed-off-by: Michael Buesch <m@bues.ch>
-
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
+ drivers/media/video/omap3isp/isppreview.c |  103 +++++++++++++++--------------
+ drivers/media/video/omap3isp/isppreview.h |   26 +------
+ 2 files changed, 57 insertions(+), 72 deletions(-)
 
-Index: linux/drivers/media/dvb/dvb-usb/af9035.c
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- linux.orig/drivers/media/dvb/dvb-usb/af9035.c	2012-04-02 18:11:09.97560=
-5484 +0200
-+++ linux/drivers/media/dvb/dvb-usb/af9035.c	2012-04-02 18:15:46.946952566 =
-+0200
-@@ -22,6 +22,7 @@
- #include "af9035.h"
- #include "af9033.h"
- #include "tua9001.h"
-+#include "fc0011.h"
-=20
- DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
- static DEFINE_MUTEX(af9035_usb_mutex);
-@@ -498,6 +499,7 @@
-=20
- 		switch (tmp) {
- 		case AF9033_TUNER_TUA9001:
-+		case AF9033_TUNER_FC0011:
- 			af9035_af9033_config[i].spec_inv =3D 1;
- 			break;
- 		default:
-@@ -542,6 +544,83 @@
- 	return ret;
+diff --git a/drivers/media/video/omap3isp/isppreview.c b/drivers/media/video/omap3isp/isppreview.c
+index 4e803a3..da031c1 100644
+--- a/drivers/media/video/omap3isp/isppreview.c
++++ b/drivers/media/video/omap3isp/isppreview.c
+@@ -653,7 +653,7 @@ preview_update_contrast(struct isp_prev_device *prev, u8 contrast)
+ 
+ 	if (params->contrast != (contrast * ISPPRV_CONTRAST_UNITS)) {
+ 		params->contrast = contrast * ISPPRV_CONTRAST_UNITS;
+-		prev->update |= PREV_CONTRAST;
++		prev->update |= OMAP3ISP_PREV_CONTRAST;
+ 	}
  }
-=20
-+static int af9035_fc0011_tuner_callback(struct dvb_usb_device *d,
-+					int cmd, int arg)
-+{
-+	int err;
-+
-+	switch (cmd) {
-+	case FC0011_FE_CALLBACK_POWER:
-+		/* Tuner enable */
-+		err =3D af9035_wr_reg_mask(d, 0xd8eb, 1, 1);
-+		if (err)
-+			return err;
-+		err =3D af9035_wr_reg_mask(d, 0xd8ec, 1, 1);
-+		if (err)
-+			return err;
-+		err =3D af9035_wr_reg_mask(d, 0xd8ed, 1, 1);
-+		if (err)
-+			return err;
-+		/* LED */
-+		err =3D af9035_wr_reg_mask(d, 0xd8d0, 1, 1);
-+		if (err)
-+			return err;
-+		err =3D af9035_wr_reg_mask(d, 0xd8d1, 1, 1);
-+		if (err)
-+			return err;
-+		msleep(10);
-+		break;
-+	case FC0011_FE_CALLBACK_RESET:
-+		err =3D af9035_wr_reg(d, 0xd8e9, 1);
-+		if (err)
-+			return err;
-+		err =3D af9035_wr_reg(d, 0xd8e8, 1);
-+		if (err)
-+			return err;
-+		err =3D af9035_wr_reg(d, 0xd8e7, 1);
-+		if (err)
-+			return err;
-+		msleep(10);
-+		err =3D af9035_wr_reg(d, 0xd8e7, 0);
-+		if (err)
-+			return err;
-+		msleep(10);
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
-+static int af9035_tuner_callback(struct dvb_usb_device *d, int cmd, int ar=
-g)
-+{
-+	switch (af9035_af9033_config[0].tuner) {
-+	case AF9033_TUNER_FC0011:
-+		return af9035_fc0011_tuner_callback(d, cmd, arg);
-+	default:
-+		break;
-+	}
-+
-+	return -ENODEV;
-+}
-+
-+static int af9035_frontend_callback(void *adapter_priv, int component,
-+				    int cmd, int arg)
-+{
-+	struct i2c_adapter *adap =3D adapter_priv;
-+	struct dvb_usb_device *d =3D i2c_get_adapdata(adap);
-+
-+	switch (component) {
-+	case DVB_FRONTEND_COMPONENT_TUNER:
-+		return af9035_tuner_callback(d, cmd, arg);
-+	default:
-+		break;
-+	}
-+
-+	return -EINVAL;
-+}
-+
- static int af9035_frontend_attach(struct dvb_usb_adapter *adap)
- {
- 	int ret;
-@@ -570,6 +649,7 @@
- 		ret =3D -ENODEV;
- 		goto err;
+ 
+@@ -685,7 +685,7 @@ preview_update_brightness(struct isp_prev_device *prev, u8 brightness)
+ 
+ 	if (params->brightness != (brightness * ISPPRV_BRIGHT_UNITS)) {
+ 		params->brightness = brightness * ISPPRV_BRIGHT_UNITS;
+-		prev->update |= PREV_BRIGHTNESS;
++		prev->update |= OMAP3ISP_PREV_BRIGHTNESS;
  	}
-+	adap->fe_adap[0].fe->callback =3D af9035_frontend_callback;
-=20
- 	return 0;
-=20
-@@ -583,6 +663,10 @@
- 	.i2c_addr =3D 0x60,
+ }
+ 
+@@ -723,70 +723,70 @@ preview_config_yc_range(struct isp_prev_device *prev, const void *yclimit)
+ 
+ /* preview parameters update structure */
+ struct preview_update {
+-	int cfg_bit;
+ 	int feature_bit;
+ 	void (*config)(struct isp_prev_device *, const void *);
+ 	void (*enable)(struct isp_prev_device *, u8);
++	bool skip;
  };
-=20
-+static const struct fc0011_config af9035_fc0011_config =3D {
-+	.i2c_address =3D 0x60,
-+};
-+
- static int af9035_tuner_attach(struct dvb_usb_adapter *adap)
- {
- 	int ret;
-@@ -631,6 +715,10 @@
- 		fe =3D dvb_attach(tua9001_attach, adap->fe_adap[0].fe,
- 				&adap->dev->i2c_adap, &af9035_tua9001_config);
- 		break;
-+	case AF9033_TUNER_FC0011:
-+		fe =3D dvb_attach(fc0011_attach, adap->fe_adap[0].fe,
-+				&adap->dev->i2c_adap, &af9035_fc0011_config);
-+		break;
- 	default:
- 		fe =3D NULL;
+ 
+ static struct preview_update update_attrs[] = {
+-	{OMAP3ISP_PREV_LUMAENH, PREV_LUMA_ENHANCE,
++	{OMAP3ISP_PREV_LUMAENH,
+ 		preview_config_luma_enhancement,
+ 		preview_enable_luma_enhancement},
+-	{OMAP3ISP_PREV_INVALAW, PREV_INVERSE_ALAW,
++	{OMAP3ISP_PREV_INVALAW,
+ 		NULL,
+ 		preview_enable_invalaw},
+-	{OMAP3ISP_PREV_HRZ_MED, PREV_HORZ_MEDIAN_FILTER,
++	{OMAP3ISP_PREV_HRZ_MED,
+ 		preview_config_hmed,
+ 		preview_enable_hmed},
+-	{OMAP3ISP_PREV_CFA, PREV_CFA,
++	{OMAP3ISP_PREV_CFA,
+ 		preview_config_cfa,
+ 		preview_enable_cfa},
+-	{OMAP3ISP_PREV_CHROMA_SUPP, PREV_CHROMA_SUPPRESS,
++	{OMAP3ISP_PREV_CHROMA_SUPP,
+ 		preview_config_chroma_suppression,
+ 		preview_enable_chroma_suppression},
+-	{OMAP3ISP_PREV_WB, PREV_WB,
++	{OMAP3ISP_PREV_WB,
+ 		preview_config_whitebalance,
+ 		NULL},
+-	{OMAP3ISP_PREV_BLKADJ, PREV_BLKADJ,
++	{OMAP3ISP_PREV_BLKADJ,
+ 		preview_config_blkadj,
+ 		NULL},
+-	{OMAP3ISP_PREV_RGB2RGB, PREV_RGB2RGB,
++	{OMAP3ISP_PREV_RGB2RGB,
+ 		preview_config_rgb_blending,
+ 		NULL},
+-	{OMAP3ISP_PREV_COLOR_CONV, PREV_COLOR_CONV,
++	{OMAP3ISP_PREV_COLOR_CONV,
+ 		preview_config_rgb_to_ycbcr,
+ 		NULL},
+-	{OMAP3ISP_PREV_YC_LIMIT, PREV_YCLIMITS,
++	{OMAP3ISP_PREV_YC_LIMIT,
+ 		preview_config_yc_range,
+ 		NULL},
+-	{OMAP3ISP_PREV_DEFECT_COR, PREV_DEFECT_COR,
++	{OMAP3ISP_PREV_DEFECT_COR,
+ 		preview_config_dcor,
+ 		preview_enable_dcor},
+-	{OMAP3ISP_PREV_GAMMABYPASS, PREV_GAMMA_BYPASS,
++	{OMAP3ISP_PREV_GAMMABYPASS,
+ 		NULL,
+ 		preview_enable_gammabypass},
+-	{OMAP3ISP_PREV_DRK_FRM_CAPTURE, PREV_DARK_FRAME_CAPTURE,
++	{OMAP3ISP_PREV_DRK_FRM_CAPTURE,
+ 		NULL,
+ 		preview_enable_drkframe_capture},
+-	{OMAP3ISP_PREV_DRK_FRM_SUBTRACT, PREV_DARK_FRAME_SUBTRACT,
++	{OMAP3ISP_PREV_DRK_FRM_SUBTRACT,
+ 		NULL,
+ 		preview_enable_drkframe},
+-	{OMAP3ISP_PREV_LENS_SHADING, PREV_LENS_SHADING,
++	{OMAP3ISP_PREV_LENS_SHADING,
+ 		preview_config_drkf_shadcomp,
+ 		preview_enable_drkframe},
+-	{OMAP3ISP_PREV_NF, PREV_NOISE_FILTER,
++	{OMAP3ISP_PREV_NF,
+ 		preview_config_noisefilter,
+ 		preview_enable_noisefilter},
+-	{OMAP3ISP_PREV_GAMMA, PREV_GAMMA,
++	{OMAP3ISP_PREV_GAMMA,
+ 		preview_config_gammacorrn,
+ 		NULL},
+-	{-1, PREV_CONTRAST,
++	{OMAP3ISP_PREV_CONTRAST,
+ 		preview_config_contrast,
+-		NULL},
+-	{-1, PREV_BRIGHTNESS,
++		NULL, true},
++	{OMAP3ISP_PREV_BRIGHTNESS,
+ 		preview_config_brightness,
+-		NULL},
++		NULL, true},
+ };
+ 
+ /*
+@@ -810,59 +810,59 @@ __preview_get_ptrs(struct prev_params *params, void **param,
  	}
-Index: linux/drivers/media/dvb/frontends/af9033.c
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- linux.orig/drivers/media/dvb/frontends/af9033.c	2012-04-02 18:11:08.551=
-563486 +0200
-+++ linux/drivers/media/dvb/frontends/af9033.c	2012-04-02 18:11:18.82786544=
-4 +0200
-@@ -297,6 +297,10 @@
- 		len =3D ARRAY_SIZE(tuner_init_tua9001);
- 		init =3D tuner_init_tua9001;
+ 
+ 	switch (bit) {
+-	case PREV_HORZ_MEDIAN_FILTER:
++	case OMAP3ISP_PREV_HRZ_MED:
+ 		*param = &params->hmed;
+ 		CHKARG(configs, config, hmed)
+ 		return sizeof(params->hmed);
+-	case PREV_NOISE_FILTER:
++	case OMAP3ISP_PREV_NF:
+ 		*param = &params->nf;
+ 		CHKARG(configs, config, nf)
+ 		return sizeof(params->nf);
  		break;
-+	case AF9033_TUNER_FC0011:
-+		len =3D ARRAY_SIZE(tuner_init_fc0011);
-+		init =3D tuner_init_fc0011;
-+		break;
+-	case PREV_CFA:
++	case OMAP3ISP_PREV_CFA:
+ 		*param = &params->cfa;
+ 		CHKARG(configs, config, cfa)
+ 		return sizeof(params->cfa);
+-	case PREV_LUMA_ENHANCE:
++	case OMAP3ISP_PREV_LUMAENH:
+ 		*param = &params->luma;
+ 		CHKARG(configs, config, luma)
+ 		return sizeof(params->luma);
+-	case PREV_CHROMA_SUPPRESS:
++	case OMAP3ISP_PREV_CHROMA_SUPP:
+ 		*param = &params->csup;
+ 		CHKARG(configs, config, csup)
+ 		return sizeof(params->csup);
+-	case PREV_DEFECT_COR:
++	case OMAP3ISP_PREV_DEFECT_COR:
+ 		*param = &params->dcor;
+ 		CHKARG(configs, config, dcor)
+ 		return sizeof(params->dcor);
+-	case PREV_BLKADJ:
++	case OMAP3ISP_PREV_BLKADJ:
+ 		*param = &params->blk_adj;
+ 		CHKARG(configs, config, blkadj)
+ 		return sizeof(params->blk_adj);
+-	case PREV_YCLIMITS:
++	case OMAP3ISP_PREV_YC_LIMIT:
+ 		*param = &params->yclimit;
+ 		CHKARG(configs, config, yclimit)
+ 		return sizeof(params->yclimit);
+-	case PREV_RGB2RGB:
++	case OMAP3ISP_PREV_RGB2RGB:
+ 		*param = &params->rgb2rgb;
+ 		CHKARG(configs, config, rgb2rgb)
+ 		return sizeof(params->rgb2rgb);
+-	case PREV_COLOR_CONV:
++	case OMAP3ISP_PREV_COLOR_CONV:
+ 		*param = &params->rgb2ycbcr;
+ 		CHKARG(configs, config, csc)
+ 		return sizeof(params->rgb2ycbcr);
+-	case PREV_WB:
++	case OMAP3ISP_PREV_WB:
+ 		*param = &params->wbal;
+ 		CHKARG(configs, config, wbal)
+ 		return sizeof(params->wbal);
+-	case PREV_GAMMA:
++	case OMAP3ISP_PREV_GAMMA:
+ 		*param = &params->gamma;
+ 		CHKARG(configs, config, gamma)
+ 		return sizeof(params->gamma);
+-	case PREV_CONTRAST:
++	case OMAP3ISP_PREV_CONTRAST:
+ 		*param = &params->contrast;
+ 		return 0;
+-	case PREV_BRIGHTNESS:
++	case OMAP3ISP_PREV_BRIGHTNESS:
+ 		*param = &params->brightness;
+ 		return 0;
  	default:
- 		pr_debug("%s: unsupported tuner ID=3D%d\n", __func__,
- 				state->cfg.tuner);
-Index: linux/drivers/media/dvb/frontends/af9033_priv.h
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- linux.orig/drivers/media/dvb/frontends/af9033_priv.h	2012-04-02 18:11:0=
-8.551563486 +0200
-+++ linux/drivers/media/dvb/frontends/af9033_priv.h	2012-04-02 18:11:18.827=
-865444 +0200
-@@ -336,5 +336,66 @@
- 	{ 0x80f1e6, 0x00 },
- };
-=20
-+/* Fitipower fc0011 tuner init
-+   AF9033_TUNER_FC0011    =3D 0x28 */
-+static const struct reg_val tuner_init_fc0011[] =3D {
-+	{ 0x800046, AF9033_TUNER_FC0011 },
-+	{ 0x800057, 0x00 },
-+	{ 0x800058, 0x01 },
-+	{ 0x80005f, 0x00 },
-+	{ 0x800060, 0x00 },
-+	{ 0x800068, 0xa5 },
-+	{ 0x80006e, 0x01 },
-+	{ 0x800071, 0x0A },
-+	{ 0x800072, 0x02 },
-+	{ 0x800074, 0x01 },
-+	{ 0x800079, 0x01 },
-+	{ 0x800093, 0x00 },
-+	{ 0x800094, 0x00 },
-+	{ 0x800095, 0x00 },
-+	{ 0x800096, 0x00 },
-+	{ 0x80009b, 0x2D },
-+	{ 0x80009c, 0x60 },
-+	{ 0x80009d, 0x23 },
-+	{ 0x8000a4, 0x50 },
-+	{ 0x8000ad, 0x50 },
-+	{ 0x8000b3, 0x01 },
-+	{ 0x8000b7, 0x88 },
-+	{ 0x8000b8, 0xa6 },
-+	{ 0x8000c3, 0x01 },
-+	{ 0x8000c4, 0x01 },
-+	{ 0x8000c7, 0x69 },
-+	{ 0x80F007, 0x00 },
-+	{ 0x80F00A, 0x1B },
-+	{ 0x80F00B, 0x1B },
-+	{ 0x80F00C, 0x1B },
-+	{ 0x80F00D, 0x1B },
-+	{ 0x80F00E, 0xFF },
-+	{ 0x80F00F, 0x01 },
-+	{ 0x80F010, 0x00 },
-+	{ 0x80F011, 0x02 },
-+	{ 0x80F012, 0xFF },
-+	{ 0x80F013, 0x01 },
-+	{ 0x80F014, 0x00 },
-+	{ 0x80F015, 0x02 },
-+	{ 0x80F01B, 0xEF },
-+	{ 0x80F01C, 0x01 },
-+	{ 0x80F01D, 0x0f },
-+	{ 0x80F01E, 0x02 },
-+	{ 0x80F01F, 0x6E },
-+	{ 0x80F020, 0x00 },
-+	{ 0x80F025, 0xDE },
-+	{ 0x80F026, 0x00 },
-+	{ 0x80F027, 0x0A },
-+	{ 0x80F028, 0x03 },
-+	{ 0x80F029, 0x6E },
-+	{ 0x80F02A, 0x00 },
-+	{ 0x80F047, 0x00 },
-+	{ 0x80F054, 0x00 },
-+	{ 0x80F055, 0x00 },
-+	{ 0x80F077, 0x01 },
-+	{ 0x80F1E6, 0x00 },
-+};
-+
- #endif /* AF9033_PRIV_H */
-=20
-Index: linux/drivers/media/dvb/dvb-usb/Kconfig
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- linux.orig/drivers/media/dvb/dvb-usb/Kconfig	2012-04-01 11:41:29.090353=
-449 +0200
-+++ linux/drivers/media/dvb/dvb-usb/Kconfig	2012-04-02 18:16:32.460019436 +=
-0200
-@@ -428,6 +428,7 @@
- 	depends on DVB_USB
- 	select DVB_AF9033
- 	select MEDIA_TUNER_TUA9001 if !MEDIA_TUNER_CUSTOMISE
-+	select MEDIA_TUNER_FC0011 if !MEDIA_TUNER_CUSTOMISE
- 	help
- 	  Say Y here to support the Afatech AF9035 based DVB USB receiver.
-=20
+@@ -905,10 +905,10 @@ static int preview_config(struct isp_prev_device *prev,
+ 		attr = &update_attrs[i];
+ 		bit = 0;
+ 
+-		if (attr->cfg_bit == -1 || !(cfg->update & attr->cfg_bit))
++		if (attr->skip || !(cfg->update & attr->feature_bit))
+ 			continue;
+ 
+-		bit = cfg->flag & attr->cfg_bit;
++		bit = cfg->flag & attr->feature_bit;
+ 		if (bit) {
+ 			void *to = NULL, __user *from = NULL;
+ 			unsigned long sz = 0;
+@@ -1038,23 +1038,24 @@ static void preview_config_input_size(struct isp_prev_device *prev)
+ 	unsigned int slv = prev->crop.top;
+ 	unsigned int elv = prev->crop.top + prev->crop.height - 1;
+ 
+-	if (params->features & PREV_CFA) {
++	if (params->features & OMAP3ISP_PREV_CFA) {
+ 		sph -= 2;
+ 		eph += 2;
+ 		slv -= 2;
+ 		elv += 2;
+ 	}
+-	if (params->features & (PREV_DEFECT_COR | PREV_NOISE_FILTER)) {
++	if (params->features & (OMAP3ISP_PREV_DEFECT_COR | OMAP3ISP_PREV_NF)) {
+ 		sph -= 2;
+ 		eph += 2;
+ 		slv -= 2;
+ 		elv += 2;
+ 	}
+-	if (params->features & PREV_HORZ_MEDIAN_FILTER) {
++	if (params->features & OMAP3ISP_PREV_HRZ_MED) {
+ 		sph -= 2;
+ 		eph += 2;
+ 	}
+-	if (params->features & (PREV_CHROMA_SUPPRESS | PREV_LUMA_ENHANCE))
++	if (params->features & (OMAP3ISP_PREV_CHROMA_SUPP |
++				OMAP3ISP_PREV_LUMAENH))
+ 		sph -= 2;
+ 
+ 	isp_reg_writel(isp, (sph << ISPPRV_HORZ_INFO_SPH_SHIFT) | eph,
+@@ -1189,7 +1190,7 @@ int omap3isp_preview_busy(struct isp_prev_device *prev)
+  */
+ void omap3isp_preview_restore_context(struct isp_device *isp)
+ {
+-	isp->isp_prev.update = PREV_FEATURES_END - 1;
++	isp->isp_prev.update = OMAP3ISP_PREV_FEATURES_END - 1;
+ 	preview_setup_hw(&isp->isp_prev);
+ }
+ 
+@@ -1292,12 +1293,14 @@ static void preview_init_params(struct isp_prev_device *prev)
+ 	params->yclimit.minY = ISPPRV_YC_MIN;
+ 	params->yclimit.maxY = ISPPRV_YC_MAX;
+ 
+-	params->features = PREV_CFA | PREV_DEFECT_COR | PREV_NOISE_FILTER
+-			 | PREV_GAMMA | PREV_BLKADJ | PREV_YCLIMITS
+-			 | PREV_RGB2RGB | PREV_COLOR_CONV | PREV_WB
+-			 | PREV_BRIGHTNESS | PREV_CONTRAST;
++	params->features = OMAP3ISP_PREV_CFA | OMAP3ISP_PREV_DEFECT_COR
++			 | OMAP3ISP_PREV_NF | OMAP3ISP_PREV_GAMMA
++			 | OMAP3ISP_PREV_BLKADJ | OMAP3ISP_PREV_YC_LIMIT
++			 | OMAP3ISP_PREV_RGB2RGB | OMAP3ISP_PREV_COLOR_CONV
++			 | OMAP3ISP_PREV_WB | OMAP3ISP_PREV_BRIGHTNESS
++			 | OMAP3ISP_PREV_CONTRAST;
+ 
+-	prev->update = PREV_FEATURES_END - 1;
++	prev->update = OMAP3ISP_PREV_FEATURES_END - 1;
+ }
+ 
+ /*
+diff --git a/drivers/media/video/omap3isp/isppreview.h b/drivers/media/video/omap3isp/isppreview.h
+index b7f979a..a0d2807 100644
+--- a/drivers/media/video/omap3isp/isppreview.h
++++ b/drivers/media/video/omap3isp/isppreview.h
+@@ -45,28 +45,10 @@
+ #define ISPPRV_CONTRAST_HIGH		0xFF
+ #define ISPPRV_CONTRAST_UNITS		0x1
+ 
+-/* Features list */
+-#define PREV_LUMA_ENHANCE		OMAP3ISP_PREV_LUMAENH
+-#define PREV_INVERSE_ALAW		OMAP3ISP_PREV_INVALAW
+-#define PREV_HORZ_MEDIAN_FILTER		OMAP3ISP_PREV_HRZ_MED
+-#define PREV_CFA			OMAP3ISP_PREV_CFA
+-#define PREV_CHROMA_SUPPRESS		OMAP3ISP_PREV_CHROMA_SUPP
+-#define PREV_WB				OMAP3ISP_PREV_WB
+-#define PREV_BLKADJ			OMAP3ISP_PREV_BLKADJ
+-#define PREV_RGB2RGB			OMAP3ISP_PREV_RGB2RGB
+-#define PREV_COLOR_CONV			OMAP3ISP_PREV_COLOR_CONV
+-#define PREV_YCLIMITS			OMAP3ISP_PREV_YC_LIMIT
+-#define PREV_DEFECT_COR			OMAP3ISP_PREV_DEFECT_COR
+-#define PREV_GAMMA_BYPASS		OMAP3ISP_PREV_GAMMABYPASS
+-#define PREV_DARK_FRAME_CAPTURE		OMAP3ISP_PREV_DRK_FRM_CAPTURE
+-#define PREV_DARK_FRAME_SUBTRACT	OMAP3ISP_PREV_DRK_FRM_SUBTRACT
+-#define PREV_LENS_SHADING		OMAP3ISP_PREV_LENS_SHADING
+-#define PREV_NOISE_FILTER		OMAP3ISP_PREV_NF
+-#define PREV_GAMMA			OMAP3ISP_PREV_GAMMA
+-
+-#define PREV_CONTRAST			(1 << 17)
+-#define PREV_BRIGHTNESS			(1 << 18)
+-#define PREV_FEATURES_END		(1 << 19)
++/* Additional features not listed in linux/omap3isp.h */
++#define OMAP3ISP_PREV_CONTRAST		(1 << 17)
++#define OMAP3ISP_PREV_BRIGHTNESS	(1 << 18)
++#define OMAP3ISP_PREV_FEATURES_END	(1 << 19)
+ 
+ enum preview_input_entity {
+ 	PREVIEW_INPUT_NONE,
+-- 
+1.7.3.4
 
-
---=20
-Greetings, Michael.
-
-PGP encryption is encouraged / 908D8B0E
-
---Sig_/eDQgw.zR=DAAZm90GEVLPNM
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Disposition: attachment; filename=signature.asc
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJPedFdAAoJEPUyvh2QjYsOl4sQAMTndhMMBWAM7Vz/l/MgGaiC
-0WWcBDAgHd/QnQ6CD1W/y4zf1svsYtBBb2u+gTTMQSHf8vjFHk63YDCdx+YKS6cl
-k7HLBSTkDWxlbcIDeBygICAWOpkIDFNM3aSiQa78pCSTOZ1VlUEDTUfEpx1T8XVQ
-p8I+4pfixoDZuThQoMsIUIPGXgBEiMycsSXfpFnvLLRiES5unvya+9Yawpc8dVV7
-sLnHswxLzHctKjHVmE6933fUjwQieGaTqHLkw7RasGmLKm2ZywPydkFr3TBH58rz
-oNBCnWx9dfBRSQnNnswwKwpegb6KWKK0Fap/Hp5OcKqRl8+gt6tAHXTVoKFLyL/q
-F1wYBPBKnf7a8Z6cj4DJfYUrqIowmA90r9U3IdSp1KJWJEqXtyMAb1IyFFLJOQ3+
-lM6bp8q+ZCAYB7nkxpyddXAn5VcQr1GG2NzVYx8o/RnbEt9z/185mKhGIl8xV/z2
-m+ADrI1po72rBy5oTNx/mFRyYs+vHGMJ09xO/+jnE2ZMxk6TEyvluBm7eOerlfEk
-o20YIZGspOOpBR4LWNLATld2M9yOBXBLATSVnUDARyr2XX/MnIby5BSm1jv5LEiw
-c0Lheyt50Ngqc0yKLUsmqCV+X5GR56rYk9WXKIwtQiROnF1VItBHFk56DdyE/b14
-6DEVN5D4ot45m5Kk58MZ
-=lxbW
------END PGP SIGNATURE-----
-
---Sig_/eDQgw.zR=DAAZm90GEVLPNM--
