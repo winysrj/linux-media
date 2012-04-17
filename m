@@ -1,31 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f170.google.com ([209.85.212.170]:47703 "EHLO
-	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753899Ab2DDXu5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Apr 2012 19:50:57 -0400
-Received: by wibhr17 with SMTP id hr17so917515wib.1
-        for <linux-media@vger.kernel.org>; Wed, 04 Apr 2012 16:50:55 -0700 (PDT)
+Received: from perceval.ideasonboard.com ([95.142.166.194]:59335 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932080Ab2DQM4m (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Apr 2012 08:56:42 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	airlied@redhat.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, sumit.semwal@ti.com, daeinki@gmail.com,
+	daniel.vetter@ffwll.ch, robdclark@gmail.com, pawel@osciak.com,
+	linaro-mm-sig@lists.linaro.org, subashrp@gmail.com,
+	mchehab@redhat.com
+Subject: Re: [RFC 03/13] v4l: vb2-dma-contig: let mmap method to use dma_mmap_coherent call
+Date: Tue, 17 Apr 2012 14:56:54 +0200
+Message-ID: <1620523.5SfIscjHXv@avalon>
+In-Reply-To: <1334063447-16824-4-git-send-email-t.stanislaws@samsung.com>
+References: <1334063447-16824-1-git-send-email-t.stanislaws@samsung.com> <1334063447-16824-4-git-send-email-t.stanislaws@samsung.com>
 MIME-Version: 1.0
-Date: Thu, 5 Apr 2012 00:50:55 +0100
-Message-ID: <CAK2bqVJT-AvRS9NYhRbpiZRHEVpUHUMxmHTW9OaS1+TYbsaVog@mail.gmail.com>
-Subject: UVC video output problem with 3.3.1 kernel
-From: Chris Rankin <rankincj@googlemail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Tomasz,
 
-I have a UVC video device, which lsusb describes as:
+Thanks for the patch.
 
-046d:0992 Logitech, Inc. QuickCam Communicate Deluxe
+On Tuesday 10 April 2012 15:10:37 Tomasz Stanislawski wrote:
+> From: Marek Szyprowski <m.szyprowski@samsung.com>
+> 
+> Let mmap method to use dma_mmap_coherent call.  This patch depends on DMA
+> mapping redesign patches because the usage of dma_mmap_coherent breaks
+> dma-contig allocator for architectures other than ARM and AVR.
+> 
+> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+> ---
+>  drivers/media/video/videobuf2-dma-contig.c |   28 +++++++++++++++++++++++--
+>  1 files changed, 26 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/video/videobuf2-dma-contig.c
+> b/drivers/media/video/videobuf2-dma-contig.c index 6329483..f4df9e2 100644
+> --- a/drivers/media/video/videobuf2-dma-contig.c
+> +++ b/drivers/media/video/videobuf2-dma-contig.c
+> @@ -224,14 +224,38 @@ static void *vb2_dc_alloc(void *alloc_ctx, unsigned
+> long size) static int vb2_dc_mmap(void *buf_priv, struct vm_area_struct
+> *vma) {
+>  	struct vb2_dc_buf *buf = buf_priv;
+> +	int ret;
+> 
+>  	if (!buf) {
+>  		printk(KERN_ERR "No buffer to map\n");
+>  		return -EINVAL;
+>  	}
+> 
+> -	return vb2_mmap_pfn_range(vma, buf->dma_addr, buf->size,
+> -				  &vb2_common_vm_ops, &buf->handler);
 
-With the 3.3.1 kernel, the bottom 3rd of the video window displayed by
-guvcview is completely black. This happens whenever I select either
-BGR3 or RGB3 as the video output format. However, YUYV, YU12 and YV12
-all display fine.
+This was the only vb2_mmap_pfn_range() if I'm not mistaken. Should the 
+function be removed ?
 
-Does anyone else see this, please?
-Thanks,
-Chris
+> +	/*
+> +	 * dma_mmap_* uses vm_pgoff as in-buffer offset, but we want to
+> +	 * map whole buffer
+> +	 */
+> +	vma->vm_pgoff = 0;
+
+Is it safe to set vma->vm_pgoff to 0 here behind memory core's back ?
+
+> +	ret = dma_mmap_coherent(buf->dev, vma, buf->vaddr,
+> +		buf->dma_addr, buf->size);
+> +
+> +	if (ret) {
+> +		printk(KERN_ERR "Remapping memory failed, error: %d\n", ret);
+> +		return ret;
+> +	}
+> +
+> +	vma->vm_flags		|= VM_DONTEXPAND | VM_RESERVED;
+> +	vma->vm_private_data	= &buf->handler;
+> +	vma->vm_ops		= &vb2_common_vm_ops;
+> +
+> +	vma->vm_ops->open(vma);
+> +
+> +	printk(KERN_DEBUG "%s: mapped dma addr 0x%08lx at 0x%08lx, size %ld\n",
+> +		__func__, (unsigned long)buf->dma_addr, vma->vm_start,
+> +		buf->size);
+> +
+> +	return 0;
+>  }
+> 
+>  /*********************************************/
+-- 
+Regards,
+
+Laurent Pinchart
+
