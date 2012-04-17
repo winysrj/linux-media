@@ -1,262 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:59161 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932181Ab2DQKKH (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:35190 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756017Ab2DQKGF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Apr 2012 06:10:07 -0400
-Received: from euspt1 (mailout1.w1.samsung.com [210.118.77.11])
- by mailout1.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0M2M00C0TC6Q7O@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 17 Apr 2012 11:08:51 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0M2M0047FC8QI3@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 17 Apr 2012 11:10:03 +0100 (BST)
-Date: Tue, 17 Apr 2012 12:09:50 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH 09/15] V4L: Add camera scene mode control
-In-reply-to: <1334657396-5737-1-git-send-email-s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
-	g.liakhovetski@gmx.de, hdegoede@redhat.com, moinejf@free.fr,
-	m.szyprowski@samsung.com, riverful.kim@samsung.com,
-	sw0312.kim@samsung.com, s.nawrocki@samsung.com,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Message-id: <1334657396-5737-10-git-send-email-s.nawrocki@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1334657396-5737-1-git-send-email-s.nawrocki@samsung.com>
+	Tue, 17 Apr 2012 06:06:05 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: davinci-linux-open-source@linux.davincidsp.com
+Cc: Manjunath Hadli <manjunath.hadli@ti.com>,
+	LMML <linux-media@vger.kernel.org>
+Subject: Re: [PATCH v2 01/13] davinci: vpif: add check for genuine interrupts in the isr
+Date: Tue, 17 Apr 2012 12:06:16 +0200
+Message-ID: <3282000.92FtfC8Du0@avalon>
+In-Reply-To: <1334652791-15833-2-git-send-email-manjunath.hadli@ti.com>
+References: <1334652791-15833-1-git-send-email-manjunath.hadli@ti.com> <1334652791-15833-2-git-send-email-manjunath.hadli@ti.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add control for the scene mode feature available in image sensor
-with more advanced ISP firmware. The V4L2_CID_SCENE_MODE menu
-control allows to select a set of parameters or a specific image
-processing and capture control algorithm optimized for common
-image capture conditions.
+Hi Manjunath,
 
-Signed-off-by: HeungJun Kim <riverful.kim@samsung.com>
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- Documentation/DocBook/media/v4l/controls.xml |  117 ++++++++++++++++++++++++++
- drivers/media/video/v4l2-ctrls.c             |   22 +++++
- include/linux/videodev2.h                    |   18 ++++
- 3 files changed, 157 insertions(+)
+Thanks for the patch.
 
-diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
-index fc05f9d..5a3f78e 100644
---- a/Documentation/DocBook/media/v4l/controls.xml
-+++ b/Documentation/DocBook/media/v4l/controls.xml
-@@ -3158,6 +3158,123 @@ requests.</entry>
- 	  </row>
- 	  <row><entry></entry></row>
- 
-+	  <row id="v4l2-scene-mode">
-+	    <entry spanname="id"><constant>V4L2_CID_SCENE_MODE</constant>&nbsp;</entry>
-+	    <entry>enum&nbsp;v4l2_scene_mode</entry>
-+	  </row><row><entry spanname="descr">This control allows to select
-+scene programs as the camera automatic modes optimized for common shooting
-+scenes. Within these modes the camera determines best exposure, aperture,
-+focusing, light metering, white balance and equivalent sensitivity. The
-+controls of those parameters are influenced by the scene mode control.
-+An exact behaviour in each mode is subject to the camera specification.
-+
-+<para>When the scene mode feature is not used this control should be set to
-+<constant>V4L2_SCENE_MODE_NONE</constant>, to make sure the other possibly
-+related controls are accessible. The following scene programs are defined:
-+</para>
-+</entry>
-+	  </row>
-+	  <row>
-+	    <entrytbl spanname="descr" cols="2">
-+	      <tbody valign="top">
-+		<row>
-+		  <entry><constant>V4L2_SCENE_MODE_NONE</constant>&nbsp;</entry>
-+		  <entry>The scene mode feature is disabled.</entry>
-+		</row>
-+		<row>
-+		  <entry><constant>V4L2_SCENE_MODE_BACKLIGHT</constant>&nbsp;</entry>
-+		  <entry>Backlight. Compensates for dark shadows when light is
-+		  coming from behind a subject, also by automatically turning
-+		  on the flash.</entry>
-+		</row>
-+		<row>
-+		  <entry><constant>V4L2_SCENE_MODE_BEACH_SNOW</constant>&nbsp;</entry>
-+		  <entry>Beach and snow. This mode compensates for all-white or
-+bright scenes, which tend to look gray and low contrast, when camera's automatic
-+exposure is based on an average scene brightness. To compensate, this mode
-+automatically slightly overexposes the frames. The white balance may also be
-+adjusted to compensate for the fact that reflected snow looks bluish rather
-+than white.</entry>
-+		</row>
-+		<row>
-+		  <entry><constant>V4L2_SCENE_MODE_CANDLELIGHT</constant>&nbsp;</entry>
-+		  <entry>Candle light. The camera generally raises the ISO
-+sensitivity and lowers the shutter speed. This mode compensates for relatively
-+close subject in the scene. The flash is disabled in order to preserve the
-+ambiance of the light.</entry>
-+		</row>
-+		<row>
-+		  <entry><constant>V4L2_SCENE_MODE_DAWN_DUSK</constant>&nbsp;</entry>
-+		  <entry>Dawn and dusk. Preserves the colours seen in low
-+natural light before dusk and after down. The camera may turn off the flash,
-+and automatically focus at inifinity. It will usually boost saturation and
-+lower the shutter speed.</entry>
-+		</row>
-+		<row>
-+		  <entry><constant>V4L2_SCENE_MODE_FALL_COLORS</constant>&nbsp;</entry>
-+		  <entry>Fall colors. Increases saturation and adjusts white
-+balance for color enhancement. Pictures of autumn leaves get saturated reds
-+and yellows.</entry>
-+		</row>
-+		<row>
-+		  <entry><constant>V4L2_SCENE_MODE_FIREWORKS</constant>&nbsp;</entry>
-+		  <entry>Fireworks. Long exposure times are used to capture
-+the expanding burst of light from a firework. The camera may invoke image
-+stabilization.</entry>
-+		</row>
-+		<row>
-+		  <entry><constant>V4L2_SCENE_MODE_LANDSCAPE</constant>&nbsp;</entry>
-+		  <entry>Landscape. The camera may choose a small aperture to
-+provide deep depth of field and long exposure duration to help capture detail
-+in dim light conditions. The focus is fixed at infinity. Suitable for distant
-+and wide scenery.</entry>
-+		</row>
-+		<row>
-+		  <entry><constant>V4L2_SCENE_MODE_NIGHT</constant>&nbsp;</entry>
-+		  <entry>Night, also known as Night Landscape. Designed for low
-+light conditions, it preserves detail in the dark areas without blowing out bright
-+objects. The camera generally sets itself to a medium-to-high ISO sensitivity,
-+with a relatively long exposure time, and turns flash off. As such, there will be
-+increased image noise and the possibility of blurred image.</entry>
-+		</row>
-+		<row>
-+		  <entry><constant>V4L2_SCENE_MODE_PARTY_INDOOR</constant>&nbsp;</entry>
-+		  <entry>Party and indoor. Designed to capture indoor scenes
-+that are lit by indoor background lighting as well as the flash. The camera
-+usually increases ISO sensitivity, and adjusts exposure for the low light
-+conditions.</entry>
-+		</row>
-+		<row>
-+		  <entry><constant>V4L2_SCENE_MODE_PORTRAIT</constant>&nbsp;</entry>
-+		  <entry>Portrait. The camera adjusts the aperture so that the
-+depth of field is reduced, which helps to isolate the subject against a smooth
-+background. Most cameras recognize the presence of faces in the scene and focus
-+on them. The color hue is adjusted to enhance skin tones. The intensity of the
-+flash is often reduced.</entry>
-+		</row>
-+		<row>
-+		  <entry><constant>V4L2_SCENE_MODE_SPORTS</constant>&nbsp;</entry>
-+		  <entry>Sports. Significantly increases ISO and uses a fast
-+shutter speed to freeze motion of rapidly-moving subjects. Increased image
-+noise may be seen in this mode.</entry>
-+		</row>
-+		<row>
-+		  <entry><constant>V4L2_SCENE_MODE_SUNSET</constant>&nbsp;</entry>
-+		  <entry>Sunset. Preserves deep hues seen in sunsets and
-+sunrises. It bumps up the saturation.</entry>
-+		</row>
-+		<row>
-+		  <entry><constant>V4L2_SCENE_MODE_TEXT</constant>&nbsp;</entry>
-+		  <entry>Text. It applies extra contrast and sharpness, it is
-+typically a black-and-white mode optimized for readability. Automatic focus
-+may be switched to close-up mode and this setting may also involve some
-+lens-distortion correction.</entry>
-+		</row>
-+	      </tbody>
-+	    </entrytbl>
-+	  </row>
-+	  <row><entry></entry></row>
-+
- 	</tbody>
-       </tgroup>
-     </table>
-diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
-index e037601..f1d1ff2 100644
---- a/drivers/media/video/v4l2-ctrls.c
-+++ b/drivers/media/video/v4l2-ctrls.c
-@@ -266,6 +266,24 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
- 		"Shade",
- 		NULL,
- 	};
-+
-+	static const char * const scene_mode[] = {
-+		"None",
-+		"Backlight",
-+		"Beach/Snow",
-+		"Candle Light",
-+		"Dusk/Dawn",
-+		"Fall Colors",
-+		"Fireworks",
-+		"Landscape",
-+		"Night",
-+		"Party/Indoor",
-+		"Portrait",
-+		"Sports",
-+		"Sunset",
-+		"Text",
-+		NULL,
-+	};
- 	static const char * const tune_preemphasis[] = {
- 		"No Preemphasis",
- 		"50 useconds",
-@@ -443,6 +461,8 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
- 		return colorfx;
- 	case V4L2_CID_WHITE_BALANCE_PRESET:
- 		return white_balance_preset;
-+	case V4L2_CID_SCENE_MODE:
-+		return scene_mode;
- 	case V4L2_CID_TUNE_PREEMPHASIS:
- 		return tune_preemphasis;
- 	case V4L2_CID_FLASH_LED_MODE:
-@@ -635,6 +655,7 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_ISO_SENSITIVITY:		return "ISO Sensitivity";
- 	case V4L2_CID_ISO_SENSITIVITY_AUTO:	return "ISO Sensitivity, Auto";
- 	case V4L2_CID_EXPOSURE_METERING:	return "Exposure, Metering Mode";
-+	case V4L2_CID_SCENE_MODE:		return "Scene Mode";
- 
- 	/* FM Radio Modulator control */
- 	/* Keep the order of the 'case's the same as in videodev2.h! */
-@@ -776,6 +797,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_MPEG_VIDEO_MPEG4_PROFILE:
- 	case V4L2_CID_JPEG_CHROMA_SUBSAMPLING:
- 	case V4L2_CID_EXPOSURE_METERING:
-+	case V4L2_CID_SCENE_MODE:
- 		*type = V4L2_CTRL_TYPE_MENU;
- 		break;
- 	case V4L2_CID_RDS_TX_PS_NAME:
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index 37ecd6a..a1fc9a8 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -1754,6 +1754,24 @@ enum v4l2_exposure_metering_mode {
- 	V4L2_EXPOSURE_METERING_SPOT		= 2,
- };
- 
-+#define V4L2_CID_SCENE_MODE			(V4L2_CID_CAMERA_CLASS_BASE+26)
-+enum v4l2_scene_mode {
-+	V4L2_SCENE_MODE_NONE			= 0,
-+	V4L2_SCENE_MODE_BACKLIGHT		= 1,
-+	V4L2_SCENE_MODE_BEACH_SNOW		= 2,
-+	V4L2_SCENE_MODE_CANDLE_LIGHT		= 3,
-+	V4L2_SCENE_MODE_DAWN_DUSK		= 4,
-+	V4L2_SCENE_MODE_FALL_COLORS		= 5,
-+	V4L2_SCENE_MODE_FIREWORKS		= 6,
-+	V4L2_SCENE_MODE_LANDSCAPE		= 7,
-+	V4L2_SCENE_MODE_NIGHT			= 8,
-+	V4L2_SCENE_MODE_PARTY_INDOOR		= 9,
-+	V4L2_SCENE_MODE_PORTRAIT		= 10,
-+	V4L2_SCENE_MODE_SPORTS			= 11,
-+	V4L2_SCENE_MODE_SUNSET			= 12,
-+	V4L2_SCENE_MODE_TEXT			= 13,
-+};
-+
- /* FM Modulator class control IDs */
- #define V4L2_CID_FM_TX_CLASS_BASE		(V4L2_CTRL_CLASS_FM_TX | 0x900)
- #define V4L2_CID_FM_TX_CLASS			(V4L2_CTRL_CLASS_FM_TX | 1)
+On Tuesday 17 April 2012 14:22:59 Manjunath Hadli wrote:
+> As the same interrupt is shared between capture and display devices,
+> sometimes we get isr calls where the interrupt might not genuinely belong
+> to capture or display. Hence, add a condition in the isr to check for
+> interrupt ownership and channel number to make sure we do not
+> service wrong interrupts.
+> 
+> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+> ---
+>  drivers/media/video/davinci/vpif_capture.c |    5 +++++
+>  drivers/media/video/davinci/vpif_display.c |    5 +++++
+>  include/media/davinci/vpif_types.h         |    2 ++
+>  3 files changed, 12 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/media/video/davinci/vpif_capture.c
+> b/drivers/media/video/davinci/vpif_capture.c index 6504e40..33d865d 100644
+> --- a/drivers/media/video/davinci/vpif_capture.c
+> +++ b/drivers/media/video/davinci/vpif_capture.c
+> @@ -333,6 +333,7 @@ static void vpif_schedule_next_buffer(struct common_obj
+> *common) */
+>  static irqreturn_t vpif_channel_isr(int irq, void *dev_id)
+>  {
+> +	struct vpif_capture_config *config = vpif_dev->platform_data;
+>  	struct vpif_device *dev = &vpif_obj;
+>  	struct common_obj *common;
+>  	struct channel_obj *ch;
+> @@ -341,6 +342,10 @@ static irqreturn_t vpif_channel_isr(int irq, void
+> *dev_id) int fid = -1, i;
+> 
+>  	channel_id = *(int *)(dev_id);
+> +	if (!config->intr_status ||
+> +			!config->intr_status(vpif_base, channel_id))
+> +		return IRQ_NONE;
+> +
+
+I don't think this is the right way to handle the situation. You should 
+instead read the interrupt source register for the VPIF capture device, and 
+return IRQ_NONE if you find that no interrupt source has been flagged (and 
+similarly for the display device below).
+
+>  	ch = dev->dev[channel_id];
+> 
+>  	field = ch->common[VPIF_VIDEO_INDEX].fmt.fmt.pix.field;
+> diff --git a/drivers/media/video/davinci/vpif_display.c
+> b/drivers/media/video/davinci/vpif_display.c index 7fa34b4..9b59e0b 100644
+> --- a/drivers/media/video/davinci/vpif_display.c
+> +++ b/drivers/media/video/davinci/vpif_display.c
+> @@ -299,6 +299,7 @@ static void process_interlaced_mode(int fid, struct
+> common_obj *common) */
+>  static irqreturn_t vpif_channel_isr(int irq, void *dev_id)
+>  {
+> +	struct vpif_display_config *config = vpif_dev->platform_data;
+>  	struct vpif_device *dev = &vpif_obj;
+>  	struct channel_obj *ch;
+>  	struct common_obj *common;
+> @@ -307,6 +308,10 @@ static irqreturn_t vpif_channel_isr(int irq, void
+> *dev_id) int channel_id = 0;
+> 
+>  	channel_id = *(int *)(dev_id);
+> +	if (!config->intr_status ||
+> +		!config->intr_status(vpif_base, channel_id + 2))
+> +		return IRQ_NONE;
+> +
+>  	ch = dev->dev[channel_id];
+>  	field = ch->common[VPIF_VIDEO_INDEX].fmt.fmt.pix.field;
+>  	for (i = 0; i < VPIF_NUMOBJECTS; i++) {
+> diff --git a/include/media/davinci/vpif_types.h
+> b/include/media/davinci/vpif_types.h index bd8217c..2845bda 100644
+> --- a/include/media/davinci/vpif_types.h
+> +++ b/include/media/davinci/vpif_types.h
+> @@ -45,6 +45,7 @@ struct vpif_subdev_info {
+> 
+>  struct vpif_display_config {
+>  	int (*set_clock)(int, int);
+> +	int (*intr_status)(void __iomem *vpif_base, int);
+>  	struct vpif_subdev_info *subdevinfo;
+>  	int subdev_count;
+>  	const char **output;
+> @@ -65,6 +66,7 @@ struct vpif_capture_chan_config {
+>  struct vpif_capture_config {
+>  	int (*setup_input_channel_mode)(int);
+>  	int (*setup_input_path)(int, const char *);
+> +	int (*intr_status)(void __iomem *vpif_base, int);
+>  	struct vpif_capture_chan_config chan_config[VPIF_CAPTURE_MAX_CHANNELS];
+>  	struct vpif_subdev_info *subdev_info;
+>  	int subdev_count;
+
 -- 
-1.7.10
+Regards,
+
+Laurent Pinchart
 
