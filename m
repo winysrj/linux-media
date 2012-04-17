@@ -1,81 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:37616 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754151Ab2DSXuk (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:60154 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932096Ab2DQKKE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Apr 2012 19:50:40 -0400
-Subject: Re: [PATCH] TDA9887 PAL-Nc fix
-From: Andy Walls <awalls@md.metrocast.net>
-To: Gonzalo de la Vega <gadelavega@gmail.com>
-Cc: linux-media@vger.kernel.org
-Date: Thu, 19 Apr 2012 19:50:36 -0400
-In-Reply-To: <4F8EB1F1.1030801@gmail.com>
-References: <4F8EB1F1.1030801@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Message-ID: <1334879437.14608.22.camel@palomino.walls.org>
-Mime-Version: 1.0
+	Tue, 17 Apr 2012 06:10:04 -0400
+Received: from euspt1 (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0M2M005XMC8LYC@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 17 Apr 2012 11:09:57 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0M2M0046SC8PI3@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 17 Apr 2012 11:10:01 +0100 (BST)
+Date: Tue, 17 Apr 2012 12:09:43 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH 02/15] V4L: Add helper function for standard integer menu
+ controls
+In-reply-to: <1334657396-5737-1-git-send-email-s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
+	g.liakhovetski@gmx.de, hdegoede@redhat.com, moinejf@free.fr,
+	m.szyprowski@samsung.com, riverful.kim@samsung.com,
+	sw0312.kim@samsung.com, s.nawrocki@samsung.com,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Message-id: <1334657396-5737-3-git-send-email-s.nawrocki@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1334657396-5737-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 2012-04-18 at 09:22 -0300, Gonzalo de la Vega wrote:
-> The tunner IF for PAL-Nc norm, which AFAIK is used only in Argentina, was being defined as equal to PAL-M but it is not. It actually uses the same video IF as PAL-BG (and unlike PAL-M) but the audio is at 4.5MHz (same as PAL-M). A separate structure member was added for PAL-Nc.
-> 
-> Signed-off-by: Gonzalo A. de la Vega <gadelavega@gmail.com>
+This patch adds v4l2_ctrl_new_std_int_menu() helper function which can
+be used in drivers for creating standard integer menu control. It is
+similar to v4l2_ctrl_new_std_menu(), except it doesn't have a mask
+parameter and an additional qmenu parameter allows passing an array
+of signed 64-bit integers constituting the menu items.
 
-Hmmm.
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/video/v4l2-ctrls.c |   21 +++++++++++++++++++++
+ include/media/v4l2-ctrls.h       |   17 +++++++++++++++++
+ 2 files changed, 38 insertions(+)
 
-The Video IF for N systems is 45.75 MHz according to this popular book
-(see page 29 of the PDF):
-http://www.deetc.isel.ipl.pt/Analisedesinai/sm/downloads/doc/ch08.pdf
-
-The Video IF is really determined by the IF SAW filter used in your
-tuner assembly, and how the tuner data sheet says to program the
-mixer/oscillator chip to mix down from RF to IF.
-
-What model analog tuner assembly are you using?  It could be that the
-linux tuner-simple module is setting up the mixer/oscillator chip wrong.
-
-Regards,
-Andy
-
-> 
-> diff --git a/drivers/media/common/tuners/tda9887.c b/drivers/media/common/tuners/tda9887.c
-> index cdb645d..b560b5d 100644
-> --- a/drivers/media/common/tuners/tda9887.c
-> +++ b/drivers/media/common/tuners/tda9887.c
-> @@ -168,8 +168,8 @@ static struct tvnorm tvnorms[] = {
->  			   cAudioIF_6_5   |
->  			   cVideoIF_38_90 ),
->  	},{
-> -		.std   = V4L2_STD_PAL_M | V4L2_STD_PAL_Nc,
-> -		.name  = "PAL-M/Nc",
-> +		.std   = V4L2_STD_PAL_M,
-> +		.name  = "PAL-M",
->  		.b     = ( cNegativeFmTV  |
->  			   cQSS           ),
->  		.c     = ( cDeemphasisON  |
-> @@ -179,6 +179,17 @@ static struct tvnorm tvnorms[] = {
->  			   cAudioIF_4_5   |
->  			   cVideoIF_45_75 ),
->  	},{
-> +		.std   = V4L2_STD_PAL_Nc,
-> +		.name  = "PAL-Nc",
-> +		.b     = ( cNegativeFmTV  |
-> +			   cQSS           ),
-> +		.c     = ( cDeemphasisON  |
-> +			   cDeemphasis75  |
-> +			   cTopDefault),
-> +		.e     = ( cGating_36     |
-> +			   cAudioIF_4_5   |
-> +			   cVideoIF_38_90 ),
-> +	},{
->  		.std   = V4L2_STD_SECAM_B | V4L2_STD_SECAM_G | V4L2_STD_SECAM_H,
->  		.name  = "SECAM-BGH",
->  		.b     = ( cNegativeFmTV  |
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
+index 13e6e8d..aa0934c 100644
+--- a/drivers/media/video/v4l2-ctrls.c
++++ b/drivers/media/video/v4l2-ctrls.c
+@@ -1522,6 +1522,27 @@ struct v4l2_ctrl *v4l2_ctrl_new_std_menu(struct v4l2_ctrl_handler *hdl,
+ }
+ EXPORT_SYMBOL(v4l2_ctrl_new_std_menu);
+ 
++/* Helper function for standard integer menu controls */
++struct v4l2_ctrl *v4l2_ctrl_new_std_int_menu(struct v4l2_ctrl_handler *hdl,
++			const struct v4l2_ctrl_ops *ops,
++			u32 id, s32 max, s32 def, const s64 *qmenu_int)
++{
++	const char *name;
++	enum v4l2_ctrl_type type;
++	s32 min;
++	s32 step;
++	u32 flags;
++
++	v4l2_ctrl_fill(id, &name, &type, &min, &max, &step, &def, &flags);
++	if (type != V4L2_CTRL_TYPE_INTEGER_MENU) {
++		handler_set_err(hdl, -EINVAL);
++		return NULL;
++	}
++	return v4l2_ctrl_new(hdl, ops, id, name, type,
++			     0, max, 0, def, flags, NULL, qmenu_int, NULL);
++}
++EXPORT_SYMBOL(v4l2_ctrl_new_std_int_menu);
++
+ /* Add a control from another handler to this handler */
+ struct v4l2_ctrl *v4l2_ctrl_add_ctrl(struct v4l2_ctrl_handler *hdl,
+ 					  struct v4l2_ctrl *ctrl)
+diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+index 533315b..16581c0 100644
+--- a/include/media/v4l2-ctrls.h
++++ b/include/media/v4l2-ctrls.h
+@@ -348,6 +348,23 @@ struct v4l2_ctrl *v4l2_ctrl_new_std_menu(struct v4l2_ctrl_handler *hdl,
+ 			const struct v4l2_ctrl_ops *ops,
+ 			u32 id, s32 max, s32 mask, s32 def);
+ 
++/** v4l2_ctrl_new_std_int_menu() - Create a new standard V4L2 integer menu control.
++  * @hdl:	The control handler.
++  * @ops:	The control ops.
++  * @id:	The control ID.
++  * @max:	The control's maximum value.
++  * @def:	The control's default value.
++  * @qmenu_int:	The control's menu entries.
++  *
++  * Same as v4l2_ctrl_new_std_menu(), but @mask is set to 0 and it additionaly
++  * needs an array of integers determining the menu entries.
++  *
++  * If @id refers to a non-integer-menu control, then this function will return NULL.
++  */
++struct v4l2_ctrl *v4l2_ctrl_new_std_int_menu(struct v4l2_ctrl_handler *hdl,
++			const struct v4l2_ctrl_ops *ops,
++			u32 id, s32 max, s32 def, const s64 *qmenu_int);
++
+ /** v4l2_ctrl_add_ctrl() - Add a control from another handler to this handler.
+   * @hdl:	The control handler.
+   * @ctrl:	The control to add.
+-- 
+1.7.10
 
