@@ -1,110 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr18.xs4all.nl ([194.109.24.38]:1814 "EHLO
-	smtp-vbr18.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753233Ab2DWLvq (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:42443 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755640Ab2DQAnj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Apr 2012 07:51:46 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Janne Grunau <j@jannau.net>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Andy Walls <awalls@md.metrocast.net>,
-	"Igor M. Liplianin" <liplianin@me.by>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Manu Abraham <abraham.manu@gmail.com>
-Subject: [RFC PATCH 0/8] Fix compiler warnings
-Date: Mon, 23 Apr 2012 13:51:20 +0200
-Message-Id: <1335181888-4917-1-git-send-email-hverkuil@xs4all.nl>
+	Mon, 16 Apr 2012 20:43:39 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	airlied@redhat.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, sumit.semwal@ti.com, daeinki@gmail.com,
+	daniel.vetter@ffwll.ch, robdclark@gmail.com, pawel@osciak.com,
+	linaro-mm-sig@lists.linaro.org, hverkuil@xs4all.nl,
+	remi@remlab.net, subashrp@gmail.com, mchehab@redhat.com,
+	Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>
+Subject: Re: [PATCH v4 08/14] v4l: vb2-dma-contig: add support for scatterlist in userptr mode
+Date: Tue, 17 Apr 2012 02:43:50 +0200
+Message-ID: <6297844.L9YCZPPyju@avalon>
+In-Reply-To: <1334332076-28489-9-git-send-email-t.stanislaws@samsung.com>
+References: <1334332076-28489-1-git-send-email-t.stanislaws@samsung.com> <1334332076-28489-9-git-send-email-t.stanislaws@samsung.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all!
+Hi Tomasz,
 
-This patch series fixes most of the compiler warnings in the daily build.
-Right now there are way too many, so new warnings aren't noticed.
+Thanks for the patch.
 
-Please review patches for those drivers you are (or feel) responsible for.
+On Friday 13 April 2012 17:47:50 Tomasz Stanislawski wrote:
+> From: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
+> 
+> This patch introduces usage of dma_map_sg to map memory behind
+> a userspace pointer to a device as dma-contiguous mapping.
+> 
+> Signed-off-by: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
+> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+> 	[bugfixing]
+> Signed-off-by: Kamil Debski <k.debski@samsung.com>
+> 	[bugfixing]
+> Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+> 	[add sglist subroutines/code refactoring]
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> ---
+>  drivers/media/video/videobuf2-dma-contig.c |  287 +++++++++++++++++++++++--
+>  1 files changed, 270 insertions(+), 17 deletions(-)
+> 
+> diff --git a/drivers/media/video/videobuf2-dma-contig.c
+> b/drivers/media/video/videobuf2-dma-contig.c index 476e536..3a1e314 100644
+> --- a/drivers/media/video/videobuf2-dma-contig.c
+> +++ b/drivers/media/video/videobuf2-dma-contig.c
 
-Thanks,
+[snip]
 
-	Hans
+> +static struct sg_table *vb2_dc_pages_to_sgt(struct page **pages,
+> +	unsigned int n_pages, unsigned long offset, unsigned long size)
+> +{
+> +	struct sg_table *sgt;
+> +	unsigned int chunks;
+> +	unsigned int i;
+> +	unsigned int cur_page;
+> +	int ret;
+> +	struct scatterlist *s;
+> +	unsigned int offset_end = n_pages * PAGE_SIZE - size;
 
-Hans Verkuil (8):
-dw2102: fix compile warnings
-cx231xx: fix compiler warnings
-ivtv/cx18: fix compiler warnings
-cx25821: fix compiler warnings.
-v4l: fix compiler warnings.
-v4l: fix compiler warnings.
-v4l/dvb: fix compiler warnings.
-v4l/dvb: fix compiler warnings
+Shouldn't offset_end be equal to n_page * PAGE_SIZE - size - offset ?
 
-drivers/media/dvb/bt8xx/dst_ca.c                   |    2 -
-drivers/media/dvb/dvb-usb/dw2102.c                 |   76 +++++------
-drivers/media/dvb/dvb-usb/lmedm04.c                |    3 +-
-drivers/media/dvb/frontends/af9013.c               |   13 +-
-drivers/media/dvb/frontends/cx24110.c              |    7 +-
-drivers/media/dvb/frontends/dib9000.c              |    3 +-
-drivers/media/dvb/frontends/drxk_hard.c            |    9 +-
-drivers/media/dvb/frontends/it913x-fe.c            |   26 ++--
-drivers/media/dvb/frontends/lgs8gxx.c              |    3 +-
-drivers/media/dvb/frontends/m88rs2000.c            |    3 +-
-drivers/media/dvb/frontends/stb0899_drv.c          |    8 +-
-drivers/media/dvb/frontends/stb6100.c              |    3 +-
-drivers/media/dvb/frontends/stv0297.c              |    2 -
-drivers/media/dvb/frontends/stv0900_sw.c           |    2 -
-drivers/media/dvb/frontends/stv090x.c              |    2 -
-drivers/media/dvb/frontends/zl10353.c              |    3 +-
-drivers/media/dvb/mantis/hopper_cards.c            |    3 +-
-drivers/media/dvb/mantis/mantis_cards.c            |    3 +-
-drivers/media/dvb/mantis/mantis_dma.c              |    4 -
-drivers/media/dvb/mantis/mantis_evm.c              |    3 +-
-drivers/media/dvb/siano/smssdio.c                  |    4 +-
-drivers/media/rc/ir-sanyo-decoder.c                |    4 +-
-drivers/media/rc/mceusb.c                          |    4 +-
-drivers/media/video/adv7343.c                      |    4 +-
-drivers/media/video/au0828/au0828-video.c          |    4 +-
-drivers/media/video/c-qcam.c                       |    3 +-
-drivers/media/video/cx18/cx18-alsa-main.c          |    1 +
-drivers/media/video/cx18/cx18-alsa-pcm.c           |   10 +-
-drivers/media/video/cx18/cx18-mailbox.c            |    6 +-
-drivers/media/video/cx18/cx18-streams.c            |    3 -
-drivers/media/video/cx231xx/cx231xx-417.c          |   16 ++-
-drivers/media/video/cx231xx/cx231xx-audio.c        |   17 ++-
-drivers/media/video/cx231xx/cx231xx-avcore.c       |  144 +++++++++-----------
-drivers/media/video/cx231xx/cx231xx-core.c         |   76 +++++------
-drivers/media/video/cx231xx/cx231xx-vbi.c          |    6 +-
-drivers/media/video/cx231xx/cx231xx-video.c        |   16 ---
-drivers/media/video/cx23885/cx23888-ir.c           |    4 +-
-drivers/media/video/cx25821/cx25821-alsa.c         |    2 -
-.../media/video/cx25821/cx25821-audio-upstream.c   |    3 +-
-drivers/media/video/cx25821/cx25821-core.c         |   14 +-
-drivers/media/video/cx25821/cx25821-i2c.c          |    3 +-
-drivers/media/video/cx25821/cx25821-medusa-video.c |   13 +-
-.../video/cx25821/cx25821-video-upstream-ch2.c     |    3 +-
-.../media/video/cx25821/cx25821-video-upstream.c   |    3 +-
-drivers/media/video/cx25821/cx25821-video.c        |   25 +---
-drivers/media/video/cx25821/cx25821-video.h        |    2 -
-drivers/media/video/cx25840/cx25840-ir.c           |    6 +-
-drivers/media/video/em28xx/em28xx-audio.c          |    9 +-
-drivers/media/video/et61x251/et61x251_core.c       |   11 +-
-drivers/media/video/hdpvr/hdpvr-control.c          |    2 +
-drivers/media/video/hdpvr/hdpvr-video.c            |    2 +-
-drivers/media/video/ivtv/ivtv-ioctl.c              |    3 -
-drivers/media/video/ivtv/ivtvfb.c                  |    2 +
-drivers/media/video/pms.c                          |    4 +-
-drivers/media/video/s2255drv.c                     |    4 -
-drivers/media/video/saa7134/saa7134-video.c        |    2 +-
-drivers/media/video/sn9c102/sn9c102_core.c         |    4 +-
-drivers/media/video/tm6000/tm6000-input.c          |    3 +-
-drivers/media/video/tm6000/tm6000-stds.c           |    2 -
-drivers/media/video/tm6000/tm6000-video.c          |    9 +-
-drivers/media/video/tvp5150.c                      |    7 -
-drivers/media/video/tvp7002.c                      |    3 -
-drivers/media/video/usbvision/usbvision-core.c     |   12 +-
-drivers/media/video/videobuf-dvb.c                 |    3 +-
-drivers/media/video/zoran/zoran_device.c           |    2 -
-drivers/media/video/zr364xx.c                      |    2 -
-drivers/staging/media/go7007/go7007-v4l2.c         |    2 -
-67 files changed, 245 insertions(+), 417 deletions(-)
+> +	sgt = kzalloc(sizeof *sgt, GFP_KERNEL);
+> +	if (!sgt)
+> +		return ERR_PTR(-ENOMEM);
+> +
+> +	/* compute number of chunks */
+> +	chunks = 1;
+> +	for (i = 1; i < n_pages; ++i)
+> +		if (pages[i] != pages[i - 1] + 1)
+> +			++chunks;
+> +
+> +	ret = sg_alloc_table(sgt, chunks, GFP_KERNEL);
+> +	if (ret) {
+> +		kfree(sgt);
+> +		return ERR_PTR(-ENOMEM);
+> +	}
+> +
+> +	/* merging chunks and putting them into the scatterlist */
+> +	cur_page = 0;
+> +	for_each_sg(sgt->sgl, s, sgt->orig_nents, i) {
+> +		size_t size = PAGE_SIZE;
+
+This will shadow the size parameter, it's a bit confusing. You could rename it 
+chunk_size.
+
+> +		unsigned int j;
+> +
+> +		for (j = cur_page + 1; j < n_pages; ++j) {
+> +			if (pages[j] != pages[j - 1] + 1)
+> +				break;
+> +			size += PAGE_SIZE;
+> +		}
+
+> +		/* cut offset if chunk starts at the first page */
+> +		if (cur_page == 0)
+> +			size -= offset;
+> +		/* cut offset_end if chunk ends at the last page */
+> +		if (j == n_pages)
+> +			size -= offset_end;
+> +
+> +		sg_set_page(s, pages[cur_page], size, offset);
+> +		offset = 0;
+
+What about just
+
+		chunk_size -= offset;
+		sg_set_page(s, pages[cur_page], min(size, chunk_size), offset);
+		size -= chunk_size;
+		offset = 0;
+
+You could then remove the offset_end calculation above.
+
+> +		cur_page = j;
+> +	}
+> +
+> +	return sgt;
+> +}
+
+-- 
+Regards,
+
+Laurent Pinchart
 
