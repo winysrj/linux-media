@@ -1,100 +1,154 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:47175 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758940Ab2D0TBX convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Apr 2012 15:01:23 -0400
-Received: by eekc41 with SMTP id c41so285101eek.19
-        for <linux-media@vger.kernel.org>; Fri, 27 Apr 2012 12:01:22 -0700 (PDT)
+Received: from arroyo.ext.ti.com ([192.94.94.40]:41647 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753255Ab2DQWRW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Apr 2012 18:17:22 -0400
+From: <manjunatha_halli@ti.com>
+To: <linux-media@vger.kernel.org>
+CC: <benzyg@ti.com>, <linux-kernel@vger.kernel.org>,
+	Manjunatha Halli <x0130808@ti.com>
+Subject: [PATCH 2/4] [Media] Create new control class for FM RX.
+Date: Tue, 17 Apr 2012 17:17:05 -0500
+Message-ID: <1334701027-19159-3-git-send-email-manjunatha_halli@ti.com>
+In-Reply-To: <1334701027-19159-1-git-send-email-manjunatha_halli@ti.com>
+References: <1334701027-19159-1-git-send-email-manjunatha_halli@ti.com>
 MIME-Version: 1.0
-In-Reply-To: <4F95CE59.1020005@redhat.com>
-References: <1327228731.2540.3.camel@tvbox>
-	<4F2185A1.2000402@redhat.com>
-	<201204152353103757288@gmail.com>
-	<201204201601166255937@gmail.com>
-	<4F9130BB.8060107@iki.fi>
-	<201204211045557968605@gmail.com>
-	<4F958640.9010404@iki.fi>
-	<CAF0Ff2nNP6WRUWcs7PqVRxhXHCmUFqqswL4757WijFaKT5P5-w@mail.gmail.com>
-	<4F95CE59.1020005@redhat.com>
-Date: Fri, 27 Apr 2012 22:01:22 +0300
-Message-ID: <CAF0Ff2m_6fM1QV+Jic7viHXQ7edTe8ZwigjjhdtFwMfhCszuKQ@mail.gmail.com>
-Subject: Re: [PATCH 1/6] m88ds3103, montage dvb-s/s2 demodulator driver
-From: Konstantin Dimitrov <kosio.dimitrov@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Antti Palosaari <crope@iki.fi>,
-	"nibble.max" <nibble.max@gmail.com>,
-	linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro, your reasoning makes sense to me. so, let's split them and at
-least settle this part of the discussion - i will do as far as my
-spare time allows, as well make sure there are no some problems
-introduced after the split.
+From: Manjunatha Halli <x0130808@ti.com>
 
-also, in one email i've just sent in answer to Antti there is enough
-argument why such split, i.e. tuner-pass-through-mode is subject to
-discussion about CX24116 and TDA10071 drivers too. currently, majority
-of DVB-S2 demodulator drivers in the kernel are married to particular
-tuners and there is no split.
+Also this patch adds CID's for below new FM features,
+        1) FM RX - De-Emphasis filter mode and RDS AF switch
+	2) FM TX - RDS Alternate frequency set.
 
-On Tue, Apr 24, 2012 at 12:49 AM, Mauro Carvalho Chehab
-<mchehab@redhat.com> wrote:
-> Em 23-04-2012 19:51, Konstantin Dimitrov escreveu:
->> Antti, i already commented about ds3103 drivers months ago:
->
->> also, why Montage tuner code should be spitted from the demodulator
->> code? is there any evidence that any Montage tuner (ts2020 or ts2022)
->> can work with 3rd party demodulator different than ds3000 or ds3103?
->
-> This has nothing to do with Montage devices, but with the way we write
-> those drivers in Kernel.
->
-> There are _several_ examples where the driver for a single silicon were
-> turned into more than one driver. The biggest examples are the SoC chips,
-> that are transformed into a large series of drivers.
->
-> Another example is the cx88 driver: due to technical reasons, it was splitted
-> into 4 drivers, one for each different PCI ID exported by it.
->
-> The cx2341x driver is also an interesting example: while it used to be for a
-> separate chip, the cx2341x functions are now part of IP blocks on newer
-> Conexant chipsets. Those single chips require two drivers to work (cx2341x
-> and the associated media PCI bridge driver).
->
-> Looking into tuners, there are the tda18271 family of devices, with are
-> supported by several drivers: tda827x, tda8290 and tda18271-fe, depending
-> on how the actual device is mounted. Eventually, the actual tuner may
-> also have a tda9887 inside it.
->
-> So, there's nothing wrong on splitting it on separate drivers. In a matter of
-> fact, we strongly prefer to have tuners separate from demods. Having them
-> together can only be justified technically, if there are really strong reasons
-> why they should be at the same driver.
->
-> I probably missed this at my review for ds3000 (that's why it ended by being
-> merged), but, on the review I did on it (accidentally due to m88ds3103 patchset
-> review), it is clear that the tuner has actually a different I2C address (0x60)
-> than the demod, and it is indeed a separate device. Sorry for slipping into it.
->
-> Anyway, now that this is noticed, tuner and demod drivers should be split,
-> especially since there are some patches floating around to add support for ds3103.
->
-> As I said before, the right thing to do is:
->
->        1) split ds3000 from ts2020 at the existing driver;
->        2) add support for the newer chips (ds3103/ts2022) to the ds3000 and ds3103
->           drivers.
->        3) test if the patches adding support for the newer chips didn't break the
->           support for existing hardware.
->
-> My proposal is that tasks (1) and (3) should be handled by you. As Max wants to
-> add support for some devices based on ds3103/ts2022, IMO, he can do the patches
-> for (2) in a way that they would be acceptable by you, as the driver maintainer
-> for ds3000/ts2020, testing with their devices.
->
-> Regards,
-> Mauro
+Signed-off-by: Manjunatha Halli <x0130808@ti.com>
+---
+ drivers/media/video/v4l2-ctrls.c |   18 ++++++++++++++++++
+ include/linux/videodev2.h        |   17 ++++++++++++++++-
+ 2 files changed, 34 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
+index 18015c0..b4ddd6b 100644
+--- a/drivers/media/video/v4l2-ctrls.c
++++ b/drivers/media/video/v4l2-ctrls.c
+@@ -372,6 +372,12 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
+ 		NULL,
+ 	};
+ 
++	static const char * const tune_deemphasis[] = {
++		"No deemphasis",
++		"50 useconds",
++		"75 useconds",
++		NULL,
++	};
+ 	switch (id) {
+ 	case V4L2_CID_MPEG_AUDIO_SAMPLING_FREQ:
+ 		return mpeg_audio_sampling_freq;
+@@ -414,6 +420,8 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
+ 		return colorfx;
+ 	case V4L2_CID_TUNE_PREEMPHASIS:
+ 		return tune_preemphasis;
++	case V4L2_CID_TUNE_DEEMPHASIS:
++		return tune_deemphasis;
+ 	case V4L2_CID_FLASH_LED_MODE:
+ 		return flash_led_mode;
+ 	case V4L2_CID_FLASH_STROBE_SOURCE:
+@@ -606,6 +614,7 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_RDS_TX_PTY:		return "RDS Program Type";
+ 	case V4L2_CID_RDS_TX_PS_NAME:		return "RDS PS Name";
+ 	case V4L2_CID_RDS_TX_RADIO_TEXT:	return "RDS Radio Text";
++	case V4L2_CID_RDS_TX_AF_FREQ:		return "RDS Alternate Frequency";
+ 	case V4L2_CID_AUDIO_LIMITER_ENABLED:	return "Audio Limiter Feature Enabled";
+ 	case V4L2_CID_AUDIO_LIMITER_RELEASE_TIME: return "Audio Limiter Release Time";
+ 	case V4L2_CID_AUDIO_LIMITER_DEVIATION:	return "Audio Limiter Deviation";
+@@ -644,6 +653,12 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_JPEG_COMPRESSION_QUALITY:	return "Compression Quality";
+ 	case V4L2_CID_JPEG_ACTIVE_MARKER:	return "Active Markers";
+ 
++	/* FM Radio Receiver control */
++	/* Keep the order of the 'case's the same as in videodev2.h! */
++	case V4L2_CID_FM_RX_CLASS:		return "FM Radio Receiver Controls";
++	case V4L2_CID_RDS_AF_SWITCH:		return "FM RX RDS AF switch";
++	case V4L2_CID_TUNE_DEEMPHASIS:		return "FM RX De-emphasis settings";
++
+ 	default:
+ 		return NULL;
+ 	}
+@@ -688,6 +703,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_MPEG_VIDEO_H264_8X8_TRANSFORM:
+ 	case V4L2_CID_MPEG_VIDEO_H264_VUI_SAR_ENABLE:
+ 	case V4L2_CID_MPEG_VIDEO_MPEG4_QPEL:
++	case V4L2_CID_RDS_AF_SWITCH:
+ 		*type = V4L2_CTRL_TYPE_BOOLEAN;
+ 		*min = 0;
+ 		*max = *step = 1;
+@@ -733,6 +749,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_MPEG_VIDEO_MPEG4_LEVEL:
+ 	case V4L2_CID_MPEG_VIDEO_MPEG4_PROFILE:
+ 	case V4L2_CID_JPEG_CHROMA_SUBSAMPLING:
++	case V4L2_CID_TUNE_DEEMPHASIS:
+ 		*type = V4L2_CTRL_TYPE_MENU;
+ 		break;
+ 	case V4L2_CID_RDS_TX_PS_NAME:
+@@ -745,6 +762,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_FM_TX_CLASS:
+ 	case V4L2_CID_FLASH_CLASS:
+ 	case V4L2_CID_JPEG_CLASS:
++	case V4L2_CID_FM_RX_CLASS:
+ 		*type = V4L2_CTRL_TYPE_CTRL_CLASS;
+ 		/* You can neither read not write these */
+ 		*flags |= V4L2_CTRL_FLAG_READ_ONLY | V4L2_CTRL_FLAG_WRITE_ONLY;
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index c9c9a46..d1c8c1b 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -1137,6 +1137,7 @@ struct v4l2_ext_controls {
+ #define V4L2_CTRL_CLASS_FM_TX 0x009b0000	/* FM Modulator control class */
+ #define V4L2_CTRL_CLASS_FLASH 0x009c0000	/* Camera flash controls */
+ #define V4L2_CTRL_CLASS_JPEG 0x009d0000		/* JPEG-compression controls */
++#define V4L2_CTRL_CLASS_FM_RX 0x009e0000	/* FM Receiver control class */
+ 
+ #define V4L2_CTRL_ID_MASK      	  (0x0fffffff)
+ #define V4L2_CTRL_ID2CLASS(id)    ((id) & 0x0fff0000UL)
+@@ -1698,6 +1699,7 @@ enum  v4l2_exposure_auto_type {
+ #define V4L2_CID_RDS_TX_PTY			(V4L2_CID_FM_TX_CLASS_BASE + 3)
+ #define V4L2_CID_RDS_TX_PS_NAME			(V4L2_CID_FM_TX_CLASS_BASE + 5)
+ #define V4L2_CID_RDS_TX_RADIO_TEXT		(V4L2_CID_FM_TX_CLASS_BASE + 6)
++#define V4L2_CID_RDS_TX_AF_FREQ			(V4L2_CID_FM_TX_CLASS_BASE + 7)
+ 
+ #define V4L2_CID_AUDIO_LIMITER_ENABLED		(V4L2_CID_FM_TX_CLASS_BASE + 64)
+ #define V4L2_CID_AUDIO_LIMITER_RELEASE_TIME	(V4L2_CID_FM_TX_CLASS_BASE + 65)
+@@ -1782,6 +1784,18 @@ enum v4l2_jpeg_chroma_subsampling {
+ #define	V4L2_JPEG_ACTIVE_MARKER_DQT		(1 << 17)
+ #define	V4L2_JPEG_ACTIVE_MARKER_DHT		(1 << 18)
+ 
++/* FM Receiver class control IDs */
++#define V4L2_CID_FM_RX_CLASS_BASE		(V4L2_CTRL_CLASS_FM_RX | 0x900)
++#define V4L2_CID_FM_RX_CLASS			(V4L2_CTRL_CLASS_FM_RX | 1)
++
++#define V4L2_CID_RDS_AF_SWITCH			(V4L2_CID_FM_RX_CLASS_BASE + 1)
++#define V4L2_CID_TUNE_DEEMPHASIS		(V4L2_CID_FM_RX_CLASS_BASE + 2)
++enum v4l2_deemphasis {
++	V4L2_DEEMPHASIS_DISABLED	= 0,
++	V4L2_DEEMPHASIS_50_uS		= 1,
++	V4L2_DEEMPHASIS_75_uS		= 2,
++};
++
+ /*
+  *	T U N I N G
+  */
+@@ -1849,7 +1863,8 @@ struct v4l2_hw_freq_seek {
+ 	__u32		      seek_upward;
+ 	__u32		      wrap_around;
+ 	__u32		      spacing;
+-	__u32		      reserved[7];
++	__u32		      fm_band;
++	__u32		      reserved[6];
+ };
+ 
+ /*
+-- 
+1.7.4.1
+
