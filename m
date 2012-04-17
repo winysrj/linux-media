@@ -1,112 +1,218 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:38287 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750742Ab2DGVJq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Apr 2012 17:09:46 -0400
-Received: by iagz16 with SMTP id z16so4434304iag.19
-        for <linux-media@vger.kernel.org>; Sat, 07 Apr 2012 14:09:45 -0700 (PDT)
-MIME-Version: 1.0
-Date: Sat, 7 Apr 2012 23:09:45 +0200
-Message-ID: <CAKFSxTcz-2gPP+tO-ML+Ah+7UUGLKO2SPhDt1B_FU3PHNDmg=A@mail.gmail.com>
-Subject: Patches for cinergy_1400 remote control
-From: =?UTF-8?Q?Benjamin_R=C3=A9veill=C3=A9?=
-	<benjamin.reveille@gmail.com>
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:60154 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932180Ab2DQKKG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Apr 2012 06:10:06 -0400
+Received: from euspt1 (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0M2M005XMC8LYC@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 17 Apr 2012 11:09:58 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0M2M0046RC8PI3@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 17 Apr 2012 11:10:01 +0100 (BST)
+Date: Tue, 17 Apr 2012 12:09:42 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH 01/15] V4L: Extend V4L2_CID_COLORFX with more image effects
+In-reply-to: <1334657396-5737-1-git-send-email-s.nawrocki@samsung.com>
 To: linux-media@vger.kernel.org
-Content-Type: multipart/mixed; boundary=14dae934034d4a6e9804bd1d31ca
+Cc: laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
+	g.liakhovetski@gmx.de, hdegoede@redhat.com, moinejf@free.fr,
+	m.szyprowski@samsung.com, riverful.kim@samsung.com,
+	sw0312.kim@samsung.com, s.nawrocki@samsung.com,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Message-id: <1334657396-5737-2-git-send-email-s.nawrocki@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1334657396-5737-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---14dae934034d4a6e9804bd1d31ca
-Content-Type: text/plain; charset=UTF-8
+This patch adds definition of additional color effects:
+ - V4L2_COLORFX_AQUA,
+ - V4L2_COLORFX_ART_FREEZE,
+ - V4L2_COLORFX_SILHOUETTE,
+ - V4L2_COLORFX_SOLARIZATION,
+ - V4L2_COLORFX_ANTIQUE,
+ - V4L2_COLORFX_ARBITRARY.
 
-Hello,
+The control's type in the documentation is changed from 'enum' to 'menu'
+- V4L2_CID_COLORFX has always been a menu, not an integer type control.
 
-Attached you will find the following patches:
-* that I had to use on linux-3.2.12 to get the cinergy 1400 DVB-T
-remote working on my gentoo box.
-* the correspoding correction in cinergy_1400 for /etc/rc_keymaps directory
+The V4L2_COLORFX_ARBITRARY option enables custom color effects, which are
+impossible or impractical to define as the menu items. For example, the
+devices may provide coefficients for Cb and Cr manipulation, which yield
+many permutations, e.g. many slightly different color tints. Such devices
+are better exporting their own API for precise control of non-standard
+color effects.
 
-Regards
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ Documentation/DocBook/media/v4l/controls.xml |   91 ++++++++++++++++++++++----
+ drivers/media/video/v4l2-ctrls.c             |    6 ++
+ include/linux/videodev2.h                    |   26 +++++---
+ 3 files changed, 100 insertions(+), 23 deletions(-)
 
-Benjamin
+diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+index 6e2a2c6..0e2040d 100644
+--- a/Documentation/DocBook/media/v4l/controls.xml
++++ b/Documentation/DocBook/media/v4l/controls.xml
+@@ -284,19 +284,84 @@ minimum value disables backlight compensation.</entry>
+ 	  </row>
+ 	  <row id="v4l2-colorfx">
+ 	    <entry><constant>V4L2_CID_COLORFX</constant></entry>
+-	    <entry>enum</entry>
+-	    <entry>Selects a color effect. Possible values for
+-<constant>enum v4l2_colorfx</constant> are:
+-<constant>V4L2_COLORFX_NONE</constant> (0),
+-<constant>V4L2_COLORFX_BW</constant> (1),
+-<constant>V4L2_COLORFX_SEPIA</constant> (2),
+-<constant>V4L2_COLORFX_NEGATIVE</constant> (3),
+-<constant>V4L2_COLORFX_EMBOSS</constant> (4),
+-<constant>V4L2_COLORFX_SKETCH</constant> (5),
+-<constant>V4L2_COLORFX_SKY_BLUE</constant> (6),
+-<constant>V4L2_COLORFX_GRASS_GREEN</constant> (7),
+-<constant>V4L2_COLORFX_SKIN_WHITEN</constant> (8) and
+-<constant>V4L2_COLORFX_VIVID</constant> (9).</entry>
++	    <entry>menu</entry>
++	    <entry>Selects a color effect. The following values are defined:
++	    </entry>
++	  </row><row>
++	  <entry></entry>
++	  <entry></entry>
++	    <entrytbl spanname="descr" cols="2">
++	      <tbody valign="top">
++		<row>
++		  <entry><constant>V4L2_COLORFX_NONE</constant>&nbsp;</entry>
++		  <entry>Color effect is disabled.</entry>
++		</row>
++		<row>
++		  <entry><constant>V4L2_COLORFX_ANTIQUE</constant>&nbsp;</entry>
++		  <entry>An aging (old photo) effect.</entry>
++		</row>
++		<row>
++		  <entry><constant>V4L2_COLORFX_ART_FREEZE</constant>&nbsp;</entry>
++		  <entry>Frost color effect.</entry>
++		</row>
++		<row>
++		  <entry><constant>V4L2_COLORFX_AQUA</constant>&nbsp;</entry>
++		  <entry>Water color, cool tone.</entry>
++		</row>
++		<row>
++		  <entry><constant>V4L2_COLORFX_BW</constant>&nbsp;</entry>
++		  <entry>Black and white.</entry>
++		</row>
++		<row>
++		  <entry><constant>V4L2_COLORFX_EMBOSS</constant>&nbsp;</entry>
++		  <entry>Emboss, the highlights and shadows replace light/dark boundaries
++		  and low contrast areas are set to a gray background.</entry>
++		</row>
++		<row>
++		  <entry><constant>V4L2_COLORFX_GRASS_GREEN</constant>&nbsp;</entry>
++		  <entry>Grass green.</entry>
++		</row>
++		<row>
++		  <entry><constant>V4L2_COLORFX_NEGATIVE</constant>&nbsp;</entry>
++		  <entry>Negative.</entry>
++		</row>
++		<row>
++		  <entry><constant>V4L2_COLORFX_SEPIA</constant>&nbsp;</entry>
++		  <entry>Sepia tone.</entry>
++		</row>
++		<row>
++		  <entry><constant>V4L2_COLORFX_SKETCH</constant>&nbsp;</entry>
++		  <entry>Sketch.</entry>
++		</row>
++		<row>
++		  <entry><constant>V4L2_COLORFX_SKIN_WHITEN</constant>&nbsp;</entry>
++		  <entry>Skin whiten.</entry>
++		</row>
++		<row>
++		  <entry><constant>V4L2_COLORFX_SKY_BLUE</constant>&nbsp;</entry>
++		  <entry>Sky blue.</entry>
++		</row>
++		<row>
++		  <entry><constant>V4L2_COLORFX_SOLARIZATION</constant>&nbsp;</entry>
++		  <entry>Solarization, the image is partially reversed in tone,
++		  only color values above or below a certain threshold are inverted.
++		  </entry>
++		</row>
++		<row>
++		  <entry><constant>V4L2_COLORFX_SILHOUETTE</constant>&nbsp;</entry>
++		  <entry>Silhouette (outline).</entry>
++		</row>
++		<row>
++		  <entry><constant>V4L2_COLORFX_VIVID</constant>&nbsp;</entry>
++		  <entry>Vivid colors.</entry>
++		</row>
++		<row>
++		  <entry><constant>V4L2_COLORFX_ARBITRARY</constant>&nbsp;</entry>
++		  <entry>Arbitrary color effect, determined by other means, e.g.
++with driver private controls.</entry>
++		</row>
++	      </tbody>
++	    </entrytbl>
+ 	  </row>
+ 	  <row>
+ 	    <entry><constant>V4L2_CID_ROTATE</constant></entry>
+diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
+index 34ff32d..13e6e8d 100644
+--- a/drivers/media/video/v4l2-ctrls.c
++++ b/drivers/media/video/v4l2-ctrls.c
+@@ -241,6 +241,12 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
+ 		"Grass Green",
+ 		"Skin Whiten",
+ 		"Vivid",
++		"Aqua",
++		"Art Freeze",
++		"Silhouette",
++		"Solarization",
++		"Antique",
++		"Arbitrary",
+ 		NULL
+ 	};
+ 	static const char * const tune_preemphasis[] = {
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index 2503857..95ce588 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -1269,16 +1269,22 @@ enum v4l2_power_line_frequency {
+ #define V4L2_CID_COLOR_KILLER                   (V4L2_CID_BASE+30)
+ #define V4L2_CID_COLORFX			(V4L2_CID_BASE+31)
+ enum v4l2_colorfx {
+-	V4L2_COLORFX_NONE	= 0,
+-	V4L2_COLORFX_BW		= 1,
+-	V4L2_COLORFX_SEPIA	= 2,
+-	V4L2_COLORFX_NEGATIVE = 3,
+-	V4L2_COLORFX_EMBOSS = 4,
+-	V4L2_COLORFX_SKETCH = 5,
+-	V4L2_COLORFX_SKY_BLUE = 6,
+-	V4L2_COLORFX_GRASS_GREEN = 7,
+-	V4L2_COLORFX_SKIN_WHITEN = 8,
+-	V4L2_COLORFX_VIVID = 9,
++	V4L2_COLORFX_NONE			= 0,
++	V4L2_COLORFX_BW				= 1,
++	V4L2_COLORFX_SEPIA			= 2,
++	V4L2_COLORFX_NEGATIVE			= 3,
++	V4L2_COLORFX_EMBOSS			= 4,
++	V4L2_COLORFX_SKETCH			= 5,
++	V4L2_COLORFX_SKY_BLUE			= 6,
++	V4L2_COLORFX_GRASS_GREEN		= 7,
++	V4L2_COLORFX_SKIN_WHITEN		= 8,
++	V4L2_COLORFX_VIVID			= 9,
++	V4L2_COLORFX_AQUA			= 10,
++	V4L2_COLORFX_ART_FREEZE			= 11,
++	V4L2_COLORFX_SILHOUETTE			= 12,
++	V4L2_COLORFX_SOLARIZATION		= 13,
++	V4L2_COLORFX_ANTIQUE			= 14,
++	V4L2_COLORFX_ARBITRARY			= 15,
+ };
+ #define V4L2_CID_AUTOBRIGHTNESS			(V4L2_CID_BASE+32)
+ #define V4L2_CID_BAND_STOP_FILTER		(V4L2_CID_BASE+33)
+-- 
+1.7.10
 
---14dae934034d4a6e9804bd1d31ca
-Content-Type: application/octet-stream; name="rc-cinergy-1400.c.patch"
-Content-Disposition: attachment; filename="rc-cinergy-1400.c.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_h0r5g7im0
-
-LS0tIC91c3Ivc3JjL2xpbnV4LTMuMi4xLWdlbnRvby1yMi9kcml2ZXJzL21lZGlhL3JjL2tleW1h
-cHMvcmMtY2luZXJneS0xNDAwLmMJMjAxMi0wMS0wNSAwMDo1NTo0NC4wMDAwMDAwMDAgKzAxMDAK
-KysrIHJjLWNpbmVyZ3ktMTQwMC5jCTIwMTItMDItMTUgMjI6MTI6MjUuNjA5MzgyOTUyICswMTAw
-CkBAIC0xNiw1NCArMTYsNTQgQEAKIC8qIENpbmVyZ3kgMTQwMCBEVkItVCAqLwogCiBzdGF0aWMg
-c3RydWN0IHJjX21hcF90YWJsZSBjaW5lcmd5XzE0MDBbXSA9IHsKLQl7IDB4MDEsIEtFWV9QT1dF
-UiB9LAotCXsgMHgwMiwgS0VZXzEgfSwKLQl7IDB4MDMsIEtFWV8yIH0sCi0JeyAweDA0LCBLRVlf
-MyB9LAotCXsgMHgwNSwgS0VZXzQgfSwKLQl7IDB4MDYsIEtFWV81IH0sCi0JeyAweDA3LCBLRVlf
-NiB9LAotCXsgMHgwOCwgS0VZXzcgfSwKLQl7IDB4MDksIEtFWV84IH0sCi0JeyAweDBhLCBLRVlf
-OSB9LAotCXsgMHgwYywgS0VZXzAgfSwKLQotCXsgMHgwYiwgS0VZX1ZJREVPIH0sCi0JeyAweDBk
-LCBLRVlfUkVGUkVTSCB9LAotCXsgMHgwZSwgS0VZX1NFTEVDVCB9LAotCXsgMHgwZiwgS0VZX0VQ
-RyB9LAotCXsgMHgxMCwgS0VZX1VQIH0sCi0JeyAweDExLCBLRVlfTEVGVCB9LAotCXsgMHgxMiwg
-S0VZX09LIH0sCi0JeyAweDEzLCBLRVlfUklHSFQgfSwKLQl7IDB4MTQsIEtFWV9ET1dOIH0sCi0J
-eyAweDE1LCBLRVlfVEVYVCB9LAotCXsgMHgxNiwgS0VZX0lORk8gfSwKLQotCXsgMHgxNywgS0VZ
-X1JFRCB9LAotCXsgMHgxOCwgS0VZX0dSRUVOIH0sCi0JeyAweDE5LCBLRVlfWUVMTE9XIH0sCi0J
-eyAweDFhLCBLRVlfQkxVRSB9LAotCi0JeyAweDFiLCBLRVlfQ0hBTk5FTFVQIH0sCi0JeyAweDFj
-LCBLRVlfVk9MVU1FVVAgfSwKLQl7IDB4MWQsIEtFWV9NVVRFIH0sCi0JeyAweDFlLCBLRVlfVk9M
-VU1FRE9XTiB9LAotCXsgMHgxZiwgS0VZX0NIQU5ORUxET1dOIH0sCi0KLQl7IDB4NDAsIEtFWV9Q
-QVVTRSB9LAotCXsgMHg0YywgS0VZX1BMQVkgfSwKLQl7IDB4NTgsIEtFWV9SRUNPUkQgfSwKLQl7
-IDB4NTQsIEtFWV9QUkVWSU9VUyB9LAotCXsgMHg0OCwgS0VZX1NUT1AgfSwKLQl7IDB4NWMsIEtF
-WV9ORVhUIH0sCisJeyAweDRlYjAxLCBLRVlfUE9XRVIgfSwKKwl7IDB4NGViMDIsIEtFWV8xIH0s
-CisJeyAweDRlYjAzLCBLRVlfMiB9LAorCXsgMHg0ZWIwNCwgS0VZXzMgfSwKKwl7IDB4NGViMDUs
-IEtFWV80IH0sCisJeyAweDRlYjA2LCBLRVlfNSB9LAorCXsgMHg0ZWIwNywgS0VZXzYgfSwKKwl7
-IDB4NGViMDgsIEtFWV83IH0sCisJeyAweDRlYjA5LCBLRVlfOCB9LAorCXsgMHg0ZWIwYSwgS0VZ
-XzkgfSwKKwl7IDB4NGViMGMsIEtFWV8wIH0sCisKKwl7IDB4NGViMGIsIEtFWV9WSURFTyB9LAor
-CXsgMHg0ZWIwZCwgS0VZX1JFRlJFU0ggfSwKKwl7IDB4NGViMGUsIEtFWV9TRUxFQ1QgfSwKKwl7
-IDB4NGViMGYsIEtFWV9FUEcgfSwKKwl7IDB4NGViMTAsIEtFWV9VUCB9LAorCXsgMHg0ZWIxMSwg
-S0VZX0xFRlQgfSwKKwl7IDB4NGViMTIsIEtFWV9PSyB9LAorCXsgMHg0ZWIxMywgS0VZX1JJR0hU
-IH0sCisJeyAweDRlYjE0LCBLRVlfRE9XTiB9LAorCXsgMHg0ZWIxNSwgS0VZX1RFWFQgfSwKKwl7
-IDB4NGViMTYsIEtFWV9JTkZPIH0sCisKKwl7IDB4NGViMTcsIEtFWV9SRUQgfSwKKwl7IDB4NGVi
-MTgsIEtFWV9HUkVFTiB9LAorCXsgMHg0ZWIxOSwgS0VZX1lFTExPVyB9LAorCXsgMHg0ZWIxYSwg
-S0VZX0JMVUUgfSwKKworCXsgMHg0ZWIxYiwgS0VZX0NIQU5ORUxVUCB9LAorCXsgMHg0ZWIxYywg
-S0VZX1ZPTFVNRVVQIH0sCisJeyAweDRlYjFkLCBLRVlfTVVURSB9LAorCXsgMHg0ZWIxZSwgS0VZ
-X1ZPTFVNRURPV04gfSwKKwl7IDB4NGViMWYsIEtFWV9DSEFOTkVMRE9XTiB9LAorCisJeyAweDRl
-YjQwLCBLRVlfUEFVU0UgfSwKKwl7IDB4NGViNGMsIEtFWV9QTEFZIH0sCisJeyAweDRlYjU4LCBL
-RVlfUkVDT1JEIH0sCisJeyAweDRlYjU0LCBLRVlfUFJFVklPVVMgfSwKKwl7IDB4NGViNDgsIEtF
-WV9TVE9QIH0sCisJeyAweDRlYjVjLCBLRVlfTkVYVCB9LAogfTsKIAogc3RhdGljIHN0cnVjdCBy
-Y19tYXBfbGlzdCBjaW5lcmd5XzE0MDBfbWFwID0gewogCS5tYXAgPSB7CiAJCS5zY2FuICAgID0g
-Y2luZXJneV8xNDAwLAogCQkuc2l6ZSAgICA9IEFSUkFZX1NJWkUoY2luZXJneV8xNDAwKSwKLQkJ
-LnJjX3R5cGUgPSBSQ19UWVBFX1VOS05PV04sCS8qIExlZ2FjeSBJUiB0eXBlICovCisJCS5yY190
-eXBlID0gUkNfVFlQRV9ORUMsCiAJCS5uYW1lICAgID0gUkNfTUFQX0NJTkVSR1lfMTQwMCwKIAl9
-CiB9Owo=
---14dae934034d4a6e9804bd1d31ca
-Content-Type: application/octet-stream; name="cinergy_1400.patch"
-Content-Disposition: attachment; filename="cinergy_1400.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_h0r5ha3g1
-
-LS0tIC9ldGMvcmNfa2V5bWFwcy9jaW5lcmd5XzE0MDAJMjAxMi0wMi0xNSAwODoyMjozMS40NTgz
-Mjg1MTggKzAxMDAKKysrIGNpbmVyZ3lfMTQwMAkyMDEyLTAyLTE1IDIxOjM5OjIyLjI5NTkwMTg3
-MyArMDEwMApAQCAtMSwzOCArMSwzOCBAQAotIyB0YWJsZSBjaW5lcmd5XzE0MDAsIHR5cGU6IFVO
-S05PV04KLTB4MDEgS0VZX1BPV0VSCi0weDAyIEtFWV8xCi0weDAzIEtFWV8yCi0weDA0IEtFWV8z
-Ci0weDA1IEtFWV80Ci0weDA2IEtFWV81Ci0weDA3IEtFWV82Ci0weDA4IEtFWV83Ci0weDA5IEtF
-WV84Ci0weDBhIEtFWV85Ci0weDBjIEtFWV8wCi0weDBiIEtFWV9WSURFTwotMHgwZCBLRVlfUkVG
-UkVTSAotMHgwZSBLRVlfU0VMRUNUCi0weDBmIEtFWV9FUEcKLTB4MTAgS0VZX1VQCi0weDExIEtF
-WV9MRUZUCi0weDEyIEtFWV9PSwotMHgxMyBLRVlfUklHSFQKLTB4MTQgS0VZX0RPV04KLTB4MTUg
-S0VZX1RFWFQKLTB4MTYgS0VZX0lORk8KLTB4MTcgS0VZX1JFRAotMHgxOCBLRVlfR1JFRU4KLTB4
-MTkgS0VZX1lFTExPVwotMHgxYSBLRVlfQkxVRQotMHgxYiBLRVlfQ0hBTk5FTFVQCi0weDFjIEtF
-WV9WT0xVTUVVUAotMHgxZCBLRVlfTVVURQotMHgxZSBLRVlfVk9MVU1FRE9XTgotMHgxZiBLRVlf
-Q0hBTk5FTERPV04KLTB4NDAgS0VZX1BBVVNFCi0weDRjIEtFWV9QTEFZCi0weDU4IEtFWV9SRUNP
-UkQKLTB4NTQgS0VZX1BSRVZJT1VTCi0weDQ4IEtFWV9TVE9QCi0weDVjIEtFWV9ORVhUCisjIHRh
-YmxlIGNpbmVyZ3lfMTQwMCwgdHlwZTogTkVDCisweDRlYjAxIEtFWV9QT1dFUgorMHg0ZWIwMiBL
-RVlfMQorMHg0ZWIwMyBLRVlfMgorMHg0ZWIwNCBLRVlfMworMHg0ZWIwNSBLRVlfNAorMHg0ZWIw
-NiBLRVlfNQorMHg0ZWIwNyBLRVlfNgorMHg0ZWIwOCBLRVlfNworMHg0ZWIwOSBLRVlfOAorMHg0
-ZWIwYSBLRVlfOQorMHg0ZWIwYyBLRVlfMAorMHg0ZWIwYiBLRVlfVklERU8KKzB4NGViMGQgS0VZ
-X1JFRlJFU0gKKzB4NGViMGUgS0VZX1NFTEVDVAorMHg0ZWIwZiBLRVlfRVBHCisweDRlYjEwIEtF
-WV9VUAorMHg0ZWIxMSBLRVlfTEVGVAorMHg0ZWIxMiBLRVlfT0sKKzB4NGViMTMgS0VZX1JJR0hU
-CisweDRlYjE0IEtFWV9ET1dOCisweDRlYjE1IEtFWV9URVhUCisweDRlYjE2IEtFWV9JTkZPCisw
-eDRlYjE3IEtFWV9SRUQKKzB4NGViMTggS0VZX0dSRUVOCisweDRlYjE5IEtFWV9ZRUxMT1cKKzB4
-NGViMWEgS0VZX0JMVUUKKzB4NGViMWIgS0VZX0NIQU5ORUxVUAorMHg0ZWIxYyBLRVlfVk9MVU1F
-VVAKKzB4NGViMWQgS0VZX01VVEUKKzB4NGViMWUgS0VZX1ZPTFVNRURPV04KKzB4NGViMWYgS0VZ
-X0NIQU5ORUxET1dOCisweDRlYjQwIEtFWV9QQVVTRQorMHg0ZWI0YyBLRVlfUExBWQorMHg0ZWI1
-OCBLRVlfUkVDT1JECisweDRlYjU0IEtFWV9QUkVWSU9VUworMHg0ZWI0OCBLRVlfU1RPUAorMHg0
-ZWI1YyBLRVlfTkVYVAo=
---14dae934034d4a6e9804bd1d31ca--
