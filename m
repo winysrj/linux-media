@@ -1,83 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qc0-f174.google.com ([209.85.216.174]:38785 "EHLO
-	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752841Ab2DRSUX convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Apr 2012 14:20:23 -0400
-Received: by qcro28 with SMTP id o28so4699295qcr.19
-        for <linux-media@vger.kernel.org>; Wed, 18 Apr 2012 11:20:23 -0700 (PDT)
+Received: from oyp.chewa.net ([91.121.6.101]:48645 "EHLO oyp.chewa.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750890Ab2DQGh4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Apr 2012 02:37:56 -0400
+To: Pieter De Wit <pieter@insync.za.net>
+Subject: Re: v4l2 Device with H264 support
 MIME-Version: 1.0
-In-Reply-To: <4F8EFD7B.2020901@iki.fi>
-References: <CAKZ=SG-pmn2BtqB+ihY9H9bvYCZq-E3uBsSaioPF5SRceq9iDg@mail.gmail.com>
-	<4F804CDC.3030306@gmail.com>
-	<CAKZ=SG_=7U2QShzq+2HE8SVZvyRpG3rNTsDzwUaso=CG8tXOsg@mail.gmail.com>
-	<4F85D787.2050403@iki.fi>
-	<4F85F89A.80107@schinagl.nl>
-	<4F85FE63.1030700@iki.fi>
-	<4F86C66A.4010404@schinagl.nl>
-	<CAKZ=SG8gHbnRGFrajp2=Op7x52UcMT_5CFM5wzgajKCXkggFtA@mail.gmail.com>
-	<4F86CE09.3080601@schinagl.nl>
-	<CAKZ=SG95OA3pOvxM6eypsNaBvzX1wfjPR4tucc8725bnhE3FEg@mail.gmail.com>
-	<4F86D4B8.8060005@iki.fi>
-	<CAKZ=SG8G8w1J_AF-bOCn2n8gcEogGPQ1rmp45wCtmwFgOUPifA@mail.gmail.com>
-	<4F8EFD7B.2020901@iki.fi>
-Date: Wed, 18 Apr 2012 20:20:22 +0200
-Message-ID: <CAKZ=SG8=z6c4-n8wkMK1YmTzWs9rN9JrbM907+K+X0k4ampSJA@mail.gmail.com>
-Subject: Re: RTL28XX driver
-From: Thomas Mair <thomas.mair86@googlemail.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Date: Tue, 17 Apr 2012 08:37:41 +0200
+From: =?UTF-8?Q?R=C3=A9mi_Denis-Courmont?= <remi@remlab.net>
+Cc: <linux-media@vger.kernel.org>
+In-Reply-To: <alpine.DEB.2.02.1204171159380.3685@eragon.insync.za.net>
+References: <alpine.DEB.2.02.1204171159380.3685@eragon.insync.za.net>
+Message-ID: <a5a29db4793a36095a2f8746361f6b63@chewa.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I don't know what it really is either but the comments are the following.
+   Hello,
 
-if (frequency > 300000000)
-{
-				
-	printk("  %s : Tuner :FC0012 V-band (GPIO6 high)\n", __FUNCTION__);		
-}
-else
-{
-	printk("  %s : Tuner :FC0012 U-band (GPIO6 low)\n", __FUNCTION__);	
-}
 
-I looked into both mechanisms but can't really decide which one would
-be the best one for this. What is the correct ioctl constant to listen
-for or do I define an own constant? And how is the ioctl command
-issued within the demod driver?
 
-Thomas
+On Tue, 17 Apr 2012 12:02:25 +1200 (NZST), Pieter De Wit
 
-2012/4/18 Antti Palosaari <crope@iki.fi>:
-> On 18.04.2012 20:18, Thomas Mair wrote:
->>
->> I have been working on the driver over the past days and been making
->> some progress. Right now I am stuck with a small problem that I have
->> no idea how to deal with.
->>
->> It seems that the fc0012 tuner supports V-Band and U-Band. To switch
->> between those modes a GPIO output value needs to be changed. In the
->> original Realtek driver this is done at the beginning of the
->> set_parameters callback. Is there a different callback that can be
->> used for this or is it ok to write a RTL2832u register from the
->> demodulator code?
->
->
-> Aah, I suspect it is antenna switch or LNA GPIO. You don't say what is
-> meaning of that GPIO...
-> If it is FC0012 input, which I think it is not, then you should use FE
-> callback (named as callback too) with  DVB_FRONTEND_COMPONENT_TUNER param.
-> But I suspect it is not issue.
->
-> So lets introduce another solution. It is fe_ioctl_override. Use it.
->
-> You will find good examples both cases using following GIT greps
-> git grep fe_ioctl_override drivers/media
-> git grep FRONTEND_COMPONENT
->
-> Antti
-> --
-> http://palosaari.fi/
+<pieter@insync.za.net> wrote:
+
+> I would like to stream H264 from a v4l2 device that does hardware 
+
+> encoding. ffmpeg and all of those doesn't seem to understand H264, but 
+
+> v4l2 "does". If I run qv4l2, it shows that H264 is in the encoding list 
+
+> and I can preview that. Using v4l2-ctl, I can set the pixel format to
+
+H264 
+
+> and the "get-fmt" reports it correctly.
+
+> 
+
+> Is there any way I can get a "raw" frame dump from the v4l2 device ? I 
+
+> have used "all" the samples I can find and none seems to work.
+
+
+
+If the device supports read(/write) mode, I suppose you could simply read
+
+the device node as a file.
+
+
+
+'vlc v4l2c:///dev/video0 --demux h264' might work "thanks" to a software
+
+bug whereby the format is not reset, but I have not tried. V4L2 H.264 is
+
+supported in VLC version 2.0.2-git: 'vlc v4l2:///dev/video0:chroma=h264'.
+
+
+
+-- 
+
+RÃ©mi Denis-Courmont
+
+Sent from my collocated server
