@@ -1,61 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vb0-f46.google.com ([209.85.212.46]:56994 "EHLO
-	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756673Ab2D3WGP (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:59161 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932178Ab2DQKKG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Apr 2012 18:06:15 -0400
-Received: by mail-vb0-f46.google.com with SMTP id ff1so2413765vbb.19
-        for <linux-media@vger.kernel.org>; Mon, 30 Apr 2012 15:06:15 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <CAOcJUbxa+WRJi_=Gyk-3La1dvFU4hKD7_Z2754GY2kdQuj9KmQ@mail.gmail.com>
-References: <CAOcJUbxHCo7xfGHJZdeEgReJrpCriweSb9s9+-_NfSODLz_NPQ@mail.gmail.com>
-	<4F9014CD.1040005@redhat.com>
-	<CAHAyoxx+Thhj+EwFbtJcXbkzks=0x+RfdudKOgQT=pqJzePcLw@mail.gmail.com>
-	<CAOcJUbyDNGoSdVV0WMVKavJm=RK6tanQTXS8AFzsHmHkGHOGUw@mail.gmail.com>
-	<CAOcJUbzyqkfOOR72xDc14B139EECjM9f5yCmC=d0yYQU6Js4jw@mail.gmail.com>
-	<CAOcJUbyT7LqdMwWcYa7XRhEvvSQGVftVQmiNBxw4xy+tv4412Q@mail.gmail.com>
-	<CAOcJUbxLdZoo36Jkk1kMOhSfPcneupF6bRsMKOmuY6F5xZcErQ@mail.gmail.com>
-	<CAOcJUbxt1uwMN-ip76t2F5k--vrtOUD0iTJSzDbsM9T2ajRPJw@mail.gmail.com>
-	<CAOcJUbzc=0kQ57XgX7q-2abQAr6Z0cLEreJH6vDbJ_JsFuf6cw@mail.gmail.com>
-	<CAOcJUbwCh9zwmY2_i-nqW1naYp_X9rOuW_BOKisrGUzPNNtzTg@mail.gmail.com>
-	<CAOcJUbxa+WRJi_=Gyk-3La1dvFU4hKD7_Z2754GY2kdQuj9KmQ@mail.gmail.com>
-Date: Mon, 30 Apr 2012 18:06:15 -0400
-Message-ID: <CAOcJUbwfTivwMPLdFY=0xWyaOV70Fu77C1neXu6UjxquyQL6sQ@mail.gmail.com>
-Subject: Re: ATSC-MH driver support for the Hauppauge WinTV Aero-m
-From: Michael Krufky <mkrufky@kernellabs.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media <linux-media@vger.kernel.org>
-Content-Type: multipart/mixed; boundary=20cf307d0126ac2e5104beeca9af
+	Tue, 17 Apr 2012 06:10:06 -0400
+Received: from euspt1 (mailout1.w1.samsung.com [210.118.77.11])
+ by mailout1.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0M2M00C0TC6Q7O@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 17 Apr 2012 11:08:51 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0M2M00KDXC8Q50@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 17 Apr 2012 11:10:03 +0100 (BST)
+Date: Tue, 17 Apr 2012 12:09:51 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH 10/15] V4L: Add camera 3A lock control
+In-reply-to: <1334657396-5737-1-git-send-email-s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
+	g.liakhovetski@gmx.de, hdegoede@redhat.com, moinejf@free.fr,
+	m.szyprowski@samsung.com, riverful.kim@samsung.com,
+	sw0312.kim@samsung.com, s.nawrocki@samsung.com,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Message-id: <1334657396-5737-11-git-send-email-s.nawrocki@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1334657396-5737-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---20cf307d0126ac2e5104beeca9af
-Content-Type: text/plain; charset=ISO-8859-1
+The V4L2_CID_3A_LOCK bitmask control allows applications to pause
+or resume the automatic exposure, focus and wite balance adjustments.
+It can be used, for example, to lock the 3A adjustments right before
+a still image is captured, for pre-focus, etc.
+The applications can control each of the algorithms independently,
+through a corresponding control bit, if driver allows that.
 
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ Documentation/DocBook/media/v4l/controls.xml |   40 ++++++++++++++++++++++++++
+ drivers/media/video/v4l2-ctrls.c             |    2 ++
+ include/linux/videodev2.h                    |    5 ++++
+ 3 files changed, 47 insertions(+)
 
+diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+index 5a3f78e..c0926c3 100644
+--- a/Documentation/DocBook/media/v4l/controls.xml
++++ b/Documentation/DocBook/media/v4l/controls.xml
+@@ -3275,6 +3275,46 @@ lens-distortion correction.</entry>
+ 	  </row>
+ 	  <row><entry></entry></row>
+ 
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_3A_LOCK</constant></entry>
++	    <entry>bitmask</entry>
++	  </row>
++	  <row>
++	    <entry spanname="descr">This control locks or unlocks the automatic
++exposure, white balance and focus. The automatic adjustments can be paused
++independently by setting the coresponding lock bit to 1. The camera then retains
++the relevant 3A settings, until the lock bit is cleared. The value of this
++control may be changed by other, exposure, white balance or focus controls. The
++following are bit mask definitions for locking each algorithm independently:
++</entry>
++	  </row>
++	  <row>
++	    <entrytbl spanname="descr" cols="2">
++	      <tbody valign="top">
++		<row>
++		  <entry><constant>V4L2_3A_LOCK_EXPOSURE</constant></entry>
++		  <entry>Automatic exposure adjustments lock.</entry>
++		</row>
++		<row>
++		  <entry><constant>V4L2_3A_LOCK_WHITE_BALANCE</constant></entry>
++		  <entry>Automatic white balance adjustments lock.</entry>
++		</row>
++		<row>
++		  <entry><constant>V4L2_3A_LOCK_FOCUS</constant></entry>
++		  <entry>Automatic focus adjustments lock.</entry>
++		</row>
++	      </tbody>
++	    </entrytbl>
++	  </row>
++	  <row><entry spanname="descr">
++When a particular algorithm is not enabled, drivers should ignore
++requests to lock it and should return no error. An example might be an
++application setting bit <constant>V4L2_3A_LOCK_WHITE_BALANCE</constant>
++when <constant>V4L2_CID_AUTO_WHITE_BALANCE</constant> control is set to
++<constant>FALSE</constant>.</entry>
++	  </row>
++	  <row><entry></entry></row>
++
+ 	</tbody>
+       </tgroup>
+     </table>
+diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
+index f1d1ff2..e21f210 100644
+--- a/drivers/media/video/v4l2-ctrls.c
++++ b/drivers/media/video/v4l2-ctrls.c
+@@ -656,6 +656,7 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_ISO_SENSITIVITY_AUTO:	return "ISO Sensitivity, Auto";
+ 	case V4L2_CID_EXPOSURE_METERING:	return "Exposure, Metering Mode";
+ 	case V4L2_CID_SCENE_MODE:		return "Scene Mode";
++	case V4L2_CID_3A_LOCK:			return "3A Lock";
+ 
+ 	/* FM Radio Modulator control */
+ 	/* Keep the order of the 'case's the same as in videodev2.h! */
+@@ -828,6 +829,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 		break;
+ 	case V4L2_CID_FLASH_FAULT:
+ 	case V4L2_CID_JPEG_ACTIVE_MARKER:
++	case V4L2_CID_3A_LOCK:
+ 		*type = V4L2_CTRL_TYPE_BITMASK;
+ 		break;
+ 	case V4L2_CID_MIN_BUFFERS_FOR_CAPTURE:
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index a1fc9a8..4a60d5f 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -1772,6 +1772,11 @@ enum v4l2_scene_mode {
+ 	V4L2_SCENE_MODE_TEXT			= 13,
+ };
+ 
++#define V4L2_CID_3A_LOCK			(V4L2_CID_CAMERA_CLASS_BASE+27)
++#define V4L2_3A_LOCK_EXPOSURE			(1 << 0)
++#define V4L2_3A_LOCK_WHITE_BALANCE		(1 << 1)
++#define V4L2_3A_LOCK_FOCUS			(1 << 2)
++
+ /* FM Modulator class control IDs */
+ #define V4L2_CID_FM_TX_CLASS_BASE		(V4L2_CTRL_CLASS_FM_TX | 0x900)
+ #define V4L2_CID_FM_TX_CLASS			(V4L2_CTRL_CLASS_FM_TX | 1)
+-- 
+1.7.10
 
---20cf307d0126ac2e5104beeca9af
-Content-Type: application/octet-stream;
-	name="0009-dvb-usb-increase-MAX_NO_OF_FE_PER_ADAP-from-2-to-3.patch"
-Content-Disposition: attachment;
-	filename="0009-dvb-usb-increase-MAX_NO_OF_FE_PER_ADAP-from-2-to-3.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_h1o2v02r1
-
-RnJvbSA3YzcwYTM2ZWQ3YTUwZmJhNDQ0ZWI2ODE5ZjViZjkwZDNhMjNjZDRiIE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBNaWNoYWVsIEtydWZreSA8bWtydWZreUBsaW51eHR2Lm9yZz4K
-RGF0ZTogU3VuLCAyOSBKYW4gMjAxMiAxMzo1MzoxMiAtMDUwMApTdWJqZWN0OiBbUEFUQ0ggMDkv
-MTBdIGR2Yi11c2I6IGluY3JlYXNlIE1BWF9OT19PRl9GRV9QRVJfQURBUCBmcm9tIDIgdG8gMwoK
-U2lnbmVkLW9mZi1ieTogTWljaGFlbCBLcnVma3kgPG1rcnVma3lAbGludXh0di5vcmc+Ci0tLQog
-ZHJpdmVycy9tZWRpYS9kdmIvZHZiLXVzYi9kdmItdXNiLmggfCAgICAyICstCiAxIGZpbGVzIGNo
-YW5nZWQsIDEgaW5zZXJ0aW9ucygrKSwgMSBkZWxldGlvbnMoLSkKCmRpZmYgLS1naXQgYS9kcml2
-ZXJzL21lZGlhL2R2Yi9kdmItdXNiL2R2Yi11c2IuaCBiL2RyaXZlcnMvbWVkaWEvZHZiL2R2Yi11
-c2IvZHZiLXVzYi5oCmluZGV4IDg2Y2ZhODYuLjk5Zjk0NDAgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMv
-bWVkaWEvZHZiL2R2Yi11c2IvZHZiLXVzYi5oCisrKyBiL2RyaXZlcnMvbWVkaWEvZHZiL2R2Yi11
-c2IvZHZiLXVzYi5oCkBAIC0xNTcsNyArMTU3LDcgQEAgc3RydWN0IGR2Yl91c2JfYWRhcHRlcl9m
-ZV9wcm9wZXJ0aWVzIHsKIAlpbnQgc2l6ZV9vZl9wcml2OwogfTsKIAotI2RlZmluZSBNQVhfTk9f
-T0ZfRkVfUEVSX0FEQVAgMgorI2RlZmluZSBNQVhfTk9fT0ZfRkVfUEVSX0FEQVAgMwogc3RydWN0
-IGR2Yl91c2JfYWRhcHRlcl9wcm9wZXJ0aWVzIHsKIAlpbnQgc2l6ZV9vZl9wcml2OwogCi0tIAox
-LjcuNS40Cgo=
---20cf307d0126ac2e5104beeca9af--
