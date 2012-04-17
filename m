@@ -1,43 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cassarossa.samfundet.no ([129.241.93.19]:40788 "EHLO
-	cassarossa.samfundet.no" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751988Ab2DAPyD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Apr 2012 11:54:03 -0400
-From: "Steinar H. Gunderson" <sgunderson@bigfoot.com>
-To: linux-media@vger.kernel.org
-Cc: "Steinar H. Gunderson" <sesse@samfundet.no>
-Subject: [PATCH 02/11] Clear out MANTIS_INT_RISCSTAT when printing status bits.
-Date: Sun,  1 Apr 2012 17:53:42 +0200
-Message-Id: <1333295631-31866-2-git-send-email-sgunderson@bigfoot.com>
-In-Reply-To: <20120401155330.GA31901@uio.no>
-References: <20120401155330.GA31901@uio.no>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:46155 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752940Ab2DQA5C (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 Apr 2012 20:57:02 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	airlied@redhat.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, sumit.semwal@ti.com, daeinki@gmail.com,
+	daniel.vetter@ffwll.ch, robdclark@gmail.com, pawel@osciak.com,
+	linaro-mm-sig@lists.linaro.org, hverkuil@xs4all.nl,
+	remi@remlab.net, subashrp@gmail.com, mchehab@redhat.com
+Subject: Re: [PATCH v4 09/14] v4l: vb2: add prepare/finish callbacks to allocators
+Date: Tue, 17 Apr 2012 02:57:13 +0200
+Message-ID: <1556146.Ib2pQWG8jG@avalon>
+In-Reply-To: <1334332076-28489-10-git-send-email-t.stanislaws@samsung.com>
+References: <1334332076-28489-1-git-send-email-t.stanislaws@samsung.com> <1334332076-28489-10-git-send-email-t.stanislaws@samsung.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Steinar H. Gunderson" <sesse@samfundet.no>
+Hi Tomasz,
 
-Clear out MANTIS_INT_RISCSTAT for debugging, so that status words
-from the RISC do not show up as "Unknown" bits in the debug display.
+Thanks for the patch.
 
-Signed-off-by: Steinar H. Gunderson <sesse@samfundet.no>
----
- drivers/media/dvb/mantis/mantis_cards.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+On Friday 13 April 2012 17:47:51 Tomasz Stanislawski wrote:
+> From: Marek Szyprowski <m.szyprowski@samsung.com>
+> 
+> This patch adds support for prepare/finish callbacks in VB2 allocators.
+> These callback are used for buffer flushing.
+> 
+> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
 
-diff --git a/drivers/media/dvb/mantis/mantis_cards.c b/drivers/media/dvb/mantis/mantis_cards.c
-index c6c51bd..8e12801 100644
---- a/drivers/media/dvb/mantis/mantis_cards.c
-+++ b/drivers/media/dvb/mantis/mantis_cards.c
-@@ -141,7 +141,8 @@ static irqreturn_t mantis_irq_handler(int irq, void *dev_id)
- 		wake_up(&mantis->i2c_wq);
- 	}
- 	mmwrite(stat, MANTIS_INT_STAT);
--	stat &= ~(MANTIS_INT_RISCEN   | MANTIS_INT_I2CDONE |
-+	stat &= ~(MANTIS_INT_RISCSTAT |
-+	          MANTIS_INT_RISCEN   | MANTIS_INT_I2CDONE |
- 		  MANTIS_INT_I2CRACK  | MANTIS_INT_PCMCIA7 |
- 		  MANTIS_INT_PCMCIA6  | MANTIS_INT_PCMCIA5 |
- 		  MANTIS_INT_PCMCIA4  | MANTIS_INT_PCMCIA3 |
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
 -- 
-1.7.9.5
+Regards,
+
+Laurent Pinchart
 
