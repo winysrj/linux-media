@@ -1,66 +1,262 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bues.ch ([80.190.117.144]:45983 "EHLO bues.ch"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751598Ab2DCKHY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 3 Apr 2012 06:07:24 -0400
-Date: Tue, 3 Apr 2012 12:07:12 +0200
-From: Michael =?UTF-8?B?QsO8c2No?= <m@bues.ch>
-To: David Cohen <david.a.cohen@linux.intel.com>
-Cc: Antti Palosaari <crope@iki.fi>,
-	linux-media <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] fc0011: Reduce number of retries
-Message-ID: <20120403120712.14fea16f@milhouse>
-In-Reply-To: <4F7AC9B8.50200@linux.intel.com>
-References: <20120403110503.392c8432@milhouse>
-	<4F7AC9B8.50200@linux.intel.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=PGP-SHA1;
- boundary="Sig_/Ft0KBjuTNYXJ0X1v7Q1LXe6"; protocol="application/pgp-signature"
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:59161 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932181Ab2DQKKH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Apr 2012 06:10:07 -0400
+Received: from euspt1 (mailout1.w1.samsung.com [210.118.77.11])
+ by mailout1.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0M2M00C0TC6Q7O@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 17 Apr 2012 11:08:51 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0M2M0047FC8QI3@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 17 Apr 2012 11:10:03 +0100 (BST)
+Date: Tue, 17 Apr 2012 12:09:50 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH 09/15] V4L: Add camera scene mode control
+In-reply-to: <1334657396-5737-1-git-send-email-s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
+	g.liakhovetski@gmx.de, hdegoede@redhat.com, moinejf@free.fr,
+	m.szyprowski@samsung.com, riverful.kim@samsung.com,
+	sw0312.kim@samsung.com, s.nawrocki@samsung.com,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Message-id: <1334657396-5737-10-git-send-email-s.nawrocki@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1334657396-5737-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---Sig_/Ft0KBjuTNYXJ0X1v7Q1LXe6
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+Add control for the scene mode feature available in image sensor
+with more advanced ISP firmware. The V4L2_CID_SCENE_MODE menu
+control allows to select a set of parameters or a specific image
+processing and capture control algorithm optimized for common
+image capture conditions.
 
-On Tue, 03 Apr 2012 12:58:16 +0300
-David Cohen <david.a.cohen@linux.intel.com> wrote:
-> > -	while (!(vco_cal&  FC11_VCOCAL_OK)&&  vco_retries<  6) {
-> > +	while (!(vco_cal&  FC11_VCOCAL_OK)&&  vco_retries<  3) {
->=20
-> Do we need to retry at all?
+Signed-off-by: HeungJun Kim <riverful.kim@samsung.com>
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ Documentation/DocBook/media/v4l/controls.xml |  117 ++++++++++++++++++++++++++
+ drivers/media/video/v4l2-ctrls.c             |   22 +++++
+ include/linux/videodev2.h                    |   18 ++++
+ 3 files changed, 157 insertions(+)
 
-It is not an i2c retry. It retries the whole device configuration operation
-after resetting it.
-I shouldn't have mentioned i2c in the commit log, because this really only =
-was
-a side effect.
+diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+index fc05f9d..5a3f78e 100644
+--- a/Documentation/DocBook/media/v4l/controls.xml
++++ b/Documentation/DocBook/media/v4l/controls.xml
+@@ -3158,6 +3158,123 @@ requests.</entry>
+ 	  </row>
+ 	  <row><entry></entry></row>
+ 
++	  <row id="v4l2-scene-mode">
++	    <entry spanname="id"><constant>V4L2_CID_SCENE_MODE</constant>&nbsp;</entry>
++	    <entry>enum&nbsp;v4l2_scene_mode</entry>
++	  </row><row><entry spanname="descr">This control allows to select
++scene programs as the camera automatic modes optimized for common shooting
++scenes. Within these modes the camera determines best exposure, aperture,
++focusing, light metering, white balance and equivalent sensitivity. The
++controls of those parameters are influenced by the scene mode control.
++An exact behaviour in each mode is subject to the camera specification.
++
++<para>When the scene mode feature is not used this control should be set to
++<constant>V4L2_SCENE_MODE_NONE</constant>, to make sure the other possibly
++related controls are accessible. The following scene programs are defined:
++</para>
++</entry>
++	  </row>
++	  <row>
++	    <entrytbl spanname="descr" cols="2">
++	      <tbody valign="top">
++		<row>
++		  <entry><constant>V4L2_SCENE_MODE_NONE</constant>&nbsp;</entry>
++		  <entry>The scene mode feature is disabled.</entry>
++		</row>
++		<row>
++		  <entry><constant>V4L2_SCENE_MODE_BACKLIGHT</constant>&nbsp;</entry>
++		  <entry>Backlight. Compensates for dark shadows when light is
++		  coming from behind a subject, also by automatically turning
++		  on the flash.</entry>
++		</row>
++		<row>
++		  <entry><constant>V4L2_SCENE_MODE_BEACH_SNOW</constant>&nbsp;</entry>
++		  <entry>Beach and snow. This mode compensates for all-white or
++bright scenes, which tend to look gray and low contrast, when camera's automatic
++exposure is based on an average scene brightness. To compensate, this mode
++automatically slightly overexposes the frames. The white balance may also be
++adjusted to compensate for the fact that reflected snow looks bluish rather
++than white.</entry>
++		</row>
++		<row>
++		  <entry><constant>V4L2_SCENE_MODE_CANDLELIGHT</constant>&nbsp;</entry>
++		  <entry>Candle light. The camera generally raises the ISO
++sensitivity and lowers the shutter speed. This mode compensates for relatively
++close subject in the scene. The flash is disabled in order to preserve the
++ambiance of the light.</entry>
++		</row>
++		<row>
++		  <entry><constant>V4L2_SCENE_MODE_DAWN_DUSK</constant>&nbsp;</entry>
++		  <entry>Dawn and dusk. Preserves the colours seen in low
++natural light before dusk and after down. The camera may turn off the flash,
++and automatically focus at inifinity. It will usually boost saturation and
++lower the shutter speed.</entry>
++		</row>
++		<row>
++		  <entry><constant>V4L2_SCENE_MODE_FALL_COLORS</constant>&nbsp;</entry>
++		  <entry>Fall colors. Increases saturation and adjusts white
++balance for color enhancement. Pictures of autumn leaves get saturated reds
++and yellows.</entry>
++		</row>
++		<row>
++		  <entry><constant>V4L2_SCENE_MODE_FIREWORKS</constant>&nbsp;</entry>
++		  <entry>Fireworks. Long exposure times are used to capture
++the expanding burst of light from a firework. The camera may invoke image
++stabilization.</entry>
++		</row>
++		<row>
++		  <entry><constant>V4L2_SCENE_MODE_LANDSCAPE</constant>&nbsp;</entry>
++		  <entry>Landscape. The camera may choose a small aperture to
++provide deep depth of field and long exposure duration to help capture detail
++in dim light conditions. The focus is fixed at infinity. Suitable for distant
++and wide scenery.</entry>
++		</row>
++		<row>
++		  <entry><constant>V4L2_SCENE_MODE_NIGHT</constant>&nbsp;</entry>
++		  <entry>Night, also known as Night Landscape. Designed for low
++light conditions, it preserves detail in the dark areas without blowing out bright
++objects. The camera generally sets itself to a medium-to-high ISO sensitivity,
++with a relatively long exposure time, and turns flash off. As such, there will be
++increased image noise and the possibility of blurred image.</entry>
++		</row>
++		<row>
++		  <entry><constant>V4L2_SCENE_MODE_PARTY_INDOOR</constant>&nbsp;</entry>
++		  <entry>Party and indoor. Designed to capture indoor scenes
++that are lit by indoor background lighting as well as the flash. The camera
++usually increases ISO sensitivity, and adjusts exposure for the low light
++conditions.</entry>
++		</row>
++		<row>
++		  <entry><constant>V4L2_SCENE_MODE_PORTRAIT</constant>&nbsp;</entry>
++		  <entry>Portrait. The camera adjusts the aperture so that the
++depth of field is reduced, which helps to isolate the subject against a smooth
++background. Most cameras recognize the presence of faces in the scene and focus
++on them. The color hue is adjusted to enhance skin tones. The intensity of the
++flash is often reduced.</entry>
++		</row>
++		<row>
++		  <entry><constant>V4L2_SCENE_MODE_SPORTS</constant>&nbsp;</entry>
++		  <entry>Sports. Significantly increases ISO and uses a fast
++shutter speed to freeze motion of rapidly-moving subjects. Increased image
++noise may be seen in this mode.</entry>
++		</row>
++		<row>
++		  <entry><constant>V4L2_SCENE_MODE_SUNSET</constant>&nbsp;</entry>
++		  <entry>Sunset. Preserves deep hues seen in sunsets and
++sunrises. It bumps up the saturation.</entry>
++		</row>
++		<row>
++		  <entry><constant>V4L2_SCENE_MODE_TEXT</constant>&nbsp;</entry>
++		  <entry>Text. It applies extra contrast and sharpness, it is
++typically a black-and-white mode optimized for readability. Automatic focus
++may be switched to close-up mode and this setting may also involve some
++lens-distortion correction.</entry>
++		</row>
++	      </tbody>
++	    </entrytbl>
++	  </row>
++	  <row><entry></entry></row>
++
+ 	</tbody>
+       </tgroup>
+     </table>
+diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
+index e037601..f1d1ff2 100644
+--- a/drivers/media/video/v4l2-ctrls.c
++++ b/drivers/media/video/v4l2-ctrls.c
+@@ -266,6 +266,24 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
+ 		"Shade",
+ 		NULL,
+ 	};
++
++	static const char * const scene_mode[] = {
++		"None",
++		"Backlight",
++		"Beach/Snow",
++		"Candle Light",
++		"Dusk/Dawn",
++		"Fall Colors",
++		"Fireworks",
++		"Landscape",
++		"Night",
++		"Party/Indoor",
++		"Portrait",
++		"Sports",
++		"Sunset",
++		"Text",
++		NULL,
++	};
+ 	static const char * const tune_preemphasis[] = {
+ 		"No Preemphasis",
+ 		"50 useconds",
+@@ -443,6 +461,8 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
+ 		return colorfx;
+ 	case V4L2_CID_WHITE_BALANCE_PRESET:
+ 		return white_balance_preset;
++	case V4L2_CID_SCENE_MODE:
++		return scene_mode;
+ 	case V4L2_CID_TUNE_PREEMPHASIS:
+ 		return tune_preemphasis;
+ 	case V4L2_CID_FLASH_LED_MODE:
+@@ -635,6 +655,7 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_ISO_SENSITIVITY:		return "ISO Sensitivity";
+ 	case V4L2_CID_ISO_SENSITIVITY_AUTO:	return "ISO Sensitivity, Auto";
+ 	case V4L2_CID_EXPOSURE_METERING:	return "Exposure, Metering Mode";
++	case V4L2_CID_SCENE_MODE:		return "Scene Mode";
+ 
+ 	/* FM Radio Modulator control */
+ 	/* Keep the order of the 'case's the same as in videodev2.h! */
+@@ -776,6 +797,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_MPEG_VIDEO_MPEG4_PROFILE:
+ 	case V4L2_CID_JPEG_CHROMA_SUBSAMPLING:
+ 	case V4L2_CID_EXPOSURE_METERING:
++	case V4L2_CID_SCENE_MODE:
+ 		*type = V4L2_CTRL_TYPE_MENU;
+ 		break;
+ 	case V4L2_CID_RDS_TX_PS_NAME:
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index 37ecd6a..a1fc9a8 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -1754,6 +1754,24 @@ enum v4l2_exposure_metering_mode {
+ 	V4L2_EXPOSURE_METERING_SPOT		= 2,
+ };
+ 
++#define V4L2_CID_SCENE_MODE			(V4L2_CID_CAMERA_CLASS_BASE+26)
++enum v4l2_scene_mode {
++	V4L2_SCENE_MODE_NONE			= 0,
++	V4L2_SCENE_MODE_BACKLIGHT		= 1,
++	V4L2_SCENE_MODE_BEACH_SNOW		= 2,
++	V4L2_SCENE_MODE_CANDLE_LIGHT		= 3,
++	V4L2_SCENE_MODE_DAWN_DUSK		= 4,
++	V4L2_SCENE_MODE_FALL_COLORS		= 5,
++	V4L2_SCENE_MODE_FIREWORKS		= 6,
++	V4L2_SCENE_MODE_LANDSCAPE		= 7,
++	V4L2_SCENE_MODE_NIGHT			= 8,
++	V4L2_SCENE_MODE_PARTY_INDOOR		= 9,
++	V4L2_SCENE_MODE_PORTRAIT		= 10,
++	V4L2_SCENE_MODE_SPORTS			= 11,
++	V4L2_SCENE_MODE_SUNSET			= 12,
++	V4L2_SCENE_MODE_TEXT			= 13,
++};
++
+ /* FM Modulator class control IDs */
+ #define V4L2_CID_FM_TX_CLASS_BASE		(V4L2_CTRL_CLASS_FM_TX | 0x900)
+ #define V4L2_CID_FM_TX_CLASS			(V4L2_CTRL_CLASS_FM_TX | 1)
+-- 
+1.7.10
 
---=20
-Greetings, Michael.
-
-PGP encryption is encouraged / 908D8B0E
-
---Sig_/Ft0KBjuTNYXJ0X1v7Q1LXe6
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Disposition: attachment; filename=signature.asc
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJPesvQAAoJEPUyvh2QjYsO+dwP+wYV9zFI96lxn1RqAZrJqxue
-4gll5+wj4bJae8nn3AXBZ/40CD52f8bisQw00az/UioSk5eeEtIlWsA/mmWM9LPn
-b/zECVvfk3J95SMeP9yM2dB+XoJDpF3y1v+ADQmA0DnxvWROMOBbCQjZdtKb8YiX
-dRFtOEpViNmWI5jvVyepFv1i+SBo3cGTB2WbE+tG1iN4cVzEbV6LI2CpIGr4L5dK
-apYrqOtijslrxSQuScZhZX3w1Ddcxj5E3C0IjszYFHkuBYYWEJAUj5TBXb5nI8p4
-BKkMAwCpTnQXgqCz70V80IWrGXrWoBsBdoPk9jTj1MMLffmossGG+njz19oQyBez
-KozVHgWd2AeDWg+/2IUwDWb/y4DyZlS+FKksIRDFVqyv5gQWELVygJ37fVWxOVAn
-nBaoeFMd8HbTSiPhbTBa/Hg5aDmHXnVsdRaX0r60ekW5xXzKvWVzjwAcqCJSfKLI
-BaJTlltaHoj14omPL7l6S+KUwI/mCWaWBhfR32p2MAh4+p6AVf5JSovqw+mFwEic
-qLSeox3IqKxmiQ47puIT3Pvz7jQkxmnUk/g++MBGcJxBGWDKavbrwhXyDj0wzFpg
-elRbbykNRdUdjKaSzgCx7iey7xU3BAqFp3D6PFqqBRT2abM6Wj3JS4fD6mw2wXa9
-UBZD1EVfAVXkMg2I5xqv
-=NITn
------END PGP SIGNATURE-----
-
---Sig_/Ft0KBjuTNYXJ0X1v7Q1LXe6--
