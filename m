@@ -1,53 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:54659 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759810Ab2D0IN4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Apr 2012 04:13:56 -0400
-Date: Fri, 27 Apr 2012 10:13:52 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-cc: Pawel Osciak <p.osciak@samsung.com>
-Subject: [PATCH] V4L: mem2mem: use available list manipulation API
-Message-ID: <Pine.LNX.4.64.1204271008560.31986@axis700.grange>
+Received: from bear.ext.ti.com ([192.94.94.41]:34149 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752584Ab2DQWRV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Apr 2012 18:17:21 -0400
+From: <manjunatha_halli@ti.com>
+To: <linux-media@vger.kernel.org>
+CC: <benzyg@ti.com>, <linux-kernel@vger.kernel.org>,
+	Manjunatha Halli <x0130808@ti.com>
+Subject: [PATCH 0/4] [Media] Radio: Fixes and New features for FM
+Date: Tue, 17 Apr 2012 17:17:03 -0500
+Message-ID: <1334701027-19159-1-git-send-email-manjunatha_halli@ti.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use an available standard list_first_entry() function instead of 
-open-coding.
+From: Manjunatha Halli <x0130808@ti.com>
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
-diff --git a/drivers/media/video/v4l2-mem2mem.c b/drivers/media/video/v4l2-mem2mem.c
-index 975d0fa..aaa67d3 100644
---- a/drivers/media/video/v4l2-mem2mem.c
-+++ b/drivers/media/video/v4l2-mem2mem.c
-@@ -102,7 +102,7 @@ void *v4l2_m2m_next_buf(struct v4l2_m2m_queue_ctx *q_ctx)
- 		return NULL;
- 	}
+Mauro and the list,
  
--	b = list_entry(q_ctx->rdy_queue.next, struct v4l2_m2m_buffer, list);
-+	b = list_first_entry(&q_ctx->rdy_queue, struct v4l2_m2m_buffer, list);
- 	spin_unlock_irqrestore(&q_ctx->rdy_spinlock, flags);
- 	return &b->vb;
- }
-@@ -122,7 +122,7 @@ void *v4l2_m2m_buf_remove(struct v4l2_m2m_queue_ctx *q_ctx)
- 		spin_unlock_irqrestore(&q_ctx->rdy_spinlock, flags);
- 		return NULL;
- 	}
--	b = list_entry(q_ctx->rdy_queue.next, struct v4l2_m2m_buffer, list);
-+	b = list_first_entry(&q_ctx->rdy_queue, struct v4l2_m2m_buffer, list);
- 	list_del(&b->list);
- 	q_ctx->num_rdy--;
- 	spin_unlock_irqrestore(&q_ctx->rdy_spinlock, flags);
-@@ -175,7 +175,7 @@ static void v4l2_m2m_try_run(struct v4l2_m2m_dev *m2m_dev)
- 		return;
- 	}
- 
--	m2m_dev->curr_ctx = list_entry(m2m_dev->job_queue.next,
-+	m2m_dev->curr_ctx = list_first_entry(&m2m_dev->job_queue,
- 				   struct v4l2_m2m_ctx, queue);
- 	m2m_dev->curr_ctx->job_flags |= TRANS_RUNNING;
- 	spin_unlock_irqrestore(&m2m_dev->job_spinlock, flags);
+This patchset sreates new control class 'V4L2_CTRL_CLASS_FM_RX' for FM RX.
+Also this patches set introduces 3 new CID's for FM RX and FM TX.
+  
+Also this patch adds few new features to TI's FM driver fetures
+are listed below,
+   
+1) FM TX RDS Support (RT, PS, AF, PI, PTY)          
+2) FM RX Russian band support
+3) FM RX AF set/get
+4) FM RX De-emphasis mode set/get
+    
+Along with new features this patch also fixes few issues in the driver
+like default rssi level for seek, unnecessory logs etc.
+
+
+Manjunatha Halli (4):
+  [Media] WL128x: Add support for FM TX RDS
+  [Media] Create new control class for FM RX.
+  [Documentation] Add documentation for V4L2 FM new features,
+  [Media] WL12xx: Add support for FM new features.
+
+ Documentation/DocBook/media/v4l/compat.xml         |    3 +
+ Documentation/DocBook/media/v4l/controls.xml       |   78 +++++++++++
+ Documentation/DocBook/media/v4l/dev-rds.xml        |    5 +-
+ .../DocBook/media/v4l/vidioc-g-ext-ctrls.xml       |    7 +
+ drivers/media/radio/wl128x/fmdrv.h                 |    3 +-
+ drivers/media/radio/wl128x/fmdrv_common.c          |   55 ++++++--
+ drivers/media/radio/wl128x/fmdrv_common.h          |   43 +++++-
+ drivers/media/radio/wl128x/fmdrv_rx.c              |   92 ++++++++++---
+ drivers/media/radio/wl128x/fmdrv_rx.h              |    2 +-
+ drivers/media/radio/wl128x/fmdrv_tx.c              |   41 +++----
+ drivers/media/radio/wl128x/fmdrv_tx.h              |    3 +-
+ drivers/media/radio/wl128x/fmdrv_v4l2.c            |  138 +++++++++++++++++++-
+ drivers/media/video/v4l2-ctrls.c                   |   18 +++
+ include/linux/videodev2.h                          |   17 +++-
+ 14 files changed, 429 insertions(+), 76 deletions(-)
+
+-- 
+1.7.4.1
+
