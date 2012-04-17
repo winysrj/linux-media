@@ -1,136 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pz0-f51.google.com ([209.85.210.51]:34237 "EHLO
-	mail-pz0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754237Ab2D0HHc (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:60154 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932125Ab2DQKKD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Apr 2012 03:07:32 -0400
-Received: by dadz8 with SMTP id z8so613001dad.10
-        for <linux-media@vger.kernel.org>; Fri, 27 Apr 2012 00:07:32 -0700 (PDT)
-Date: Fri, 27 Apr 2012 15:07:36 +0800
-From: "nibble.max" <nibble.max@gmail.com>
-To: "Mauro Carvalho Chehab" <mchehab@redhat.com>
-Cc: "Antti Palosaari" <crope@iki.fi>,
-	"linux-media" <linux-media@vger.kernel.org>
-References: <1327228731.2540.3.camel@tvbox>,
- <4F2185A1.2000402@redhat.com>,
- <201204152353103757288@gmail.com>,
- <201204201601166255937@gmail.com>,
- <4F9130BB.8060107@iki.fi>,
- <201204211045557968605@gmail.com>,
- <4F958640.9010404@iki.fi>,
- <CAF0Ff2nNP6WRUWcs7PqVRxhXHCmUFqqswL4757WijFaKT5P5-w@mail.gmail.com>,
- <201204262103053283195@gmail.com>,
- <4F994CA8.8060200@redhat.com>
-Subject: [PATCH 5/6 v2] dvbsky, remote control key map
-Message-ID: <201204271507344377386@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+	Tue, 17 Apr 2012 06:10:03 -0400
+Received: from euspt2 (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0M2M006T8C8L0I@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 17 Apr 2012 11:09:57 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0M2M00189C8MLM@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 17 Apr 2012 11:09:59 +0100 (BST)
+Date: Tue, 17 Apr 2012 12:09:41 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH 00/15] V4L camera control enhancements
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
+	g.liakhovetski@gmx.de, hdegoede@redhat.com, moinejf@free.fr,
+	m.szyprowski@samsung.com, riverful.kim@samsung.com,
+	sw0312.kim@samsung.com, s.nawrocki@samsung.com
+Message-id: <1334657396-5737-1-git-send-email-s.nawrocki@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
----
- drivers/media/rc/keymaps/Makefile    |    1 +
- drivers/media/rc/keymaps/rc-dvbsky.c |   77 ++++++++++++++++++++++++++++++++++
- 2 files changed, 78 insertions(+)
- create mode 100644 drivers/media/rc/keymaps/rc-dvbsky.c
+Hello,
 
-diff --git a/drivers/media/rc/keymaps/Makefile b/drivers/media/rc/keymaps/Makefile
-index 49ce266..e6a882b 100644
---- a/drivers/media/rc/keymaps/Makefile
-+++ b/drivers/media/rc/keymaps/Makefile
-@@ -26,6 +26,7 @@ obj-$(CONFIG_RC_MAP) += rc-adstech-dvb-t-pci.o \
- 			rc-dm1105-nec.o \
- 			rc-dntv-live-dvb-t.o \
- 			rc-dntv-live-dvbt-pro.o \
-+			rc-dvbsky.o \
- 			rc-em-terratec.o \
- 			rc-encore-enltv2.o \
- 			rc-encore-enltv.o \
-diff --git a/drivers/media/rc/keymaps/rc-dvbsky.c b/drivers/media/rc/keymaps/rc-dvbsky.c
-new file mode 100644
-index 0000000..25a531c
---- /dev/null
-+++ b/drivers/media/rc/keymaps/rc-dvbsky.c
-@@ -0,0 +1,77 @@
-+/* rc-dvbsky.c - Keytable for Dvbsky Remote Controllers
-+ *
-+ *
-+ *
-+ *   Copyright (C) 2011 Max nibble<nibble.max@gmail.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ */
-+
-+#include <media/rc-map.h>
-+#include <linux/module.h>
-+/*
-+ * This table contains the complete RC5 code, instead of just the data part
-+ */
-+
-+static struct rc_map_table rc5_dvbsky[] = {
-+	{ 0x0000, KEY_0 },
-+	{ 0x0001, KEY_1 },
-+	{ 0x0002, KEY_2 },
-+	{ 0x0003, KEY_3 },
-+	{ 0x0004, KEY_4 },
-+	{ 0x0005, KEY_5 },
-+	{ 0x0006, KEY_6 },
-+	{ 0x0007, KEY_7 },
-+	{ 0x0008, KEY_8 },
-+	{ 0x0009, KEY_9 },
-+	{ 0x000a, KEY_MUTE },
-+	{ 0x000d, KEY_OK },
-+	{ 0x000b, KEY_STOP },
-+	{ 0x000c, KEY_EXIT },
-+	{ 0x000e, KEY_CAMERA }, /*Snap shot*/
-+	{ 0x000f, KEY_SUBTITLE }, /*PIP*/
-+	{ 0x0010, KEY_VOLUMEUP },
-+	{ 0x0011, KEY_VOLUMEDOWN },
-+	{ 0x0012, KEY_FAVORITES },
-+	{ 0x0013, KEY_LIST }, /*Info*/
-+	{ 0x0016, KEY_PAUSE },
-+	{ 0x0017, KEY_PLAY },
-+	{ 0x001f, KEY_RECORD },
-+	{ 0x0020, KEY_CHANNELDOWN },
-+	{ 0x0021, KEY_CHANNELUP },
-+	{ 0x0025, KEY_POWER2 },
-+	{ 0x0026, KEY_REWIND },
-+	{ 0x0027, KEY_FASTFORWARD },
-+	{ 0x0029, KEY_LAST },
-+	{ 0x002b, KEY_MENU },
-+	{ 0x002c, KEY_EPG },
-+	{ 0x002d, KEY_ZOOM },
-+};
-+
-+static struct rc_map_list rc5_dvbsky_map = {
-+	.map = {
-+		.scan    = rc5_dvbsky,
-+		.size    = ARRAY_SIZE(rc5_dvbsky),
-+		.rc_type = RC_TYPE_RC5,
-+		.name    = RC_MAP_DVBSKY,
-+	}
-+};
-+
-+static int __init init_rc_map_rc5_dvbsky(void)
-+{
-+	return rc_map_register(&rc5_dvbsky_map);
-+}
-+
-+static void __exit exit_rc_map_rc5_dvbsky(void)
-+{
-+	rc_map_unregister(&rc5_dvbsky_map);
-+}
-+
-+module_init(init_rc_map_rc5_dvbsky)
-+module_exit(exit_rc_map_rc5_dvbsky)
-+
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Max nibble <nibble.max@gmail.com>");
+this is a second iteration of my camera control patches. Besides the 
+previous ones, it also includes the scene mode and 3A lock controls.
+The 3A lock bitmask control allows to lock/unlock automatic exposure, 
+white balance and focus adjustments. It is useful for pre-focus 
+for instance.
+
+I had been a little hesitant about introducing the scene mode control, 
+however it is really needed, since some sensors with more advanced ISPs
+or the ISPs inside host processors running their own firmware support 
+the scene modes through a single configuration register.
+
+The controls included in this series have been successfully used in 
+the Samsung Android kernels for several years now. I'd like to extend
+the V4L2 API to include at least most of the basic functionality 
+available there.
+
+Changes since v1 (implicit):
+ - the V4L2_CID_AUTO_FOCUS_FACE_PRIORITY control merged with
+   V4L2_CID_AUTO_FOCUS_FACE_AREA,
+ - many minor documentation corrections,
+ - removed "08/23 V4L: camera control class..." patch, which got 
+   accidentally added at v1,
+ - added V4L2_CID_SCENE_MODE and V4L2_CID_3A_LOCK controls,
+ - added vivi patch for testing.
+
+Any comments are welcome. I'd like to get this patch set merged for v3.5.
+Maybe except the 3 focus related patches, since I'm not entirely happy 
+with those API additions. I'll try to seek some time to complete those 
+too though.
+
+The patches will be also available in few hours at:
+http://git.infradead.org/users/kmpark/linux-samsung/shortlog/refs/heads/v4l-controls-s5c73m3
+
+
+Regards,
+
+Sylwester Nawrocki
+Samsung Poland R&D Center 
+
+
+Sylwester Nawrocki (15):
+  V4L: Extend V4L2_CID_COLORFX with more image effects
+  V4L: Add helper function for standard integer menu controls
+  V4L: Add camera exposure bias control
+  V4L: Add camera white balance preset control
+  V4L: Add camera wide dynamic range control
+  V4L: Add camera image stabilization control
+  V4L: Add camera ISO sensitivity controls
+  V4L: Add camera exposure metering control
+  V4L: Add camera scene mode control
+  V4L: Add camera 3A lock control
+  V4L: Add auto focus targets to the selections API
+  V4L: Add auto focus targets to the subdev selections API
+  V4L: Add camera auto focus controls
+  V4L: Add S5C73M3 sensor sub-device driver
+  vivi: Add controls
+
+ Documentation/DocBook/media/v4l/biblio.xml         |   11 +
+ Documentation/DocBook/media/v4l/controls.xml       |  549 ++++++++-
+ Documentation/DocBook/media/v4l/dev-subdev.xml     |   27 +-
+ Documentation/DocBook/media/v4l/selection-api.xml  |   33 +-
+ .../DocBook/media/v4l/vidioc-g-selection.xml       |   11 +
+ .../media/v4l/vidioc-subdev-g-selection.xml        |   14 +-
+ drivers/media/video/Kconfig                        |    8 +
+ drivers/media/video/Makefile                       |    1 +
+ drivers/media/video/s5c73m3/Makefile               |    3 +
+ drivers/media/video/s5c73m3/s5c73m3-ctrls.c        |  702 +++++++++++
+ drivers/media/video/s5c73m3/s5c73m3-spi.c          |  126 ++
+ drivers/media/video/s5c73m3/s5c73m3.c              | 1235 ++++++++++++++++++++
+ drivers/media/video/s5c73m3/s5c73m3.h              |  446 +++++++
+ drivers/media/video/v4l2-ctrls.c                   |  118 +-
+ drivers/media/video/vivi.c                         |  111 +-
+ include/linux/v4l2-subdev.h                        |    4 +
+ include/linux/videodev2.h                          |  104 +-
+ include/media/s5c73m3.h                            |   62 +
+ include/media/v4l2-ctrls.h                         |   17 +
+ 19 files changed, 3551 insertions(+), 31 deletions(-)
+ create mode 100644 drivers/media/video/s5c73m3/Makefile
+ create mode 100644 drivers/media/video/s5c73m3/s5c73m3-ctrls.c
+ create mode 100644 drivers/media/video/s5c73m3/s5c73m3-spi.c
+ create mode 100644 drivers/media/video/s5c73m3/s5c73m3.c
+ create mode 100644 drivers/media/video/s5c73m3/s5c73m3.h
+ create mode 100644 include/media/s5c73m3.h
+
 -- 
-1.7.9.5
+1.7.10
 
