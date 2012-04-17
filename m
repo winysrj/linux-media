@@ -1,45 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nm17.bullet.mail.ird.yahoo.com ([77.238.189.70]:40313 "HELO
-	nm17.bullet.mail.ird.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1754840Ab2DFO7M (ORCPT
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:49491 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753487Ab2DQPln (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 6 Apr 2012 10:59:12 -0400
-Message-ID: <4F7F04B9.1040802@yahoo.com>
-Date: Fri, 06 Apr 2012 15:59:05 +0100
-From: Chris Rankin <rankincj@yahoo.com>
+	Tue, 17 Apr 2012 11:41:43 -0400
+Received: by mail-gx0-f174.google.com with SMTP id e5so3137828ggh.19
+        for <linux-media@vger.kernel.org>; Tue, 17 Apr 2012 08:41:43 -0700 (PDT)
+Message-ID: <4F8D8F2D.7030704@landley.net>
+Date: Tue, 17 Apr 2012 10:41:33 -0500
+From: Rob Landley <rob@landley.net>
 MIME-Version: 1.0
-To: crope@iki.fi
-CC: linux-media@vger.kernel.org
-Subject: Re: DVB ioctl FE_GET_EVENT behaviour broken in 3.3
-References: <4F7ED7E9.203@iki.fi>
-In-Reply-To: <4F7ED7E9.203@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+To: Jesper Juhl <jj@chaosbits.net>
+CC: linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Randy Dunlap <rdunlap@xenotime.net>, trivial@kernel.org,
+	kjsisson@bellsouth.net, Ben Dooks <ben-linux@fluff.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Ben Dooks <ben@simtec.co.uk>, Jaroslav Kysela <perex@perex.cz>,
+	Takashi Iwai <tiwai@suse.de>, Andy Lutomirski <luto@mit.edu>,
+	"H. Peter Anvin" <hpa@linux.intel.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Josua Dietze <digidietze@draisberghof.de>,
+	Andiry Xu <andiry.xu@amd.com>,
+	Matthew Garrett <mjg@redhat.com>,
+	Sarah Sharp <sarah.a.sharp@linux.intel.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Mike Frysinger <vapier@gentoo.org>,
+	Michael Hennerich <michael.hennerich@analog.com>,
+	linux-media@vger.kernel.org, alsa-devel@alsa-project.org
+Subject: Re: [PATCH] [Trivial] Documentation: Add newline at end-of-file to
+ files lacking one
+References: <alpine.LNX.2.00.1204162329190.21898@swampdragon.chaosbits.net>
+In-Reply-To: <alpine.LNX.2.00.1204162329190.21898@swampdragon.chaosbits.net>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The problem is that the following line was deleted from the FE_SET_FRONTEND 
-ioctl logic:
+On 04/16/2012 04:35 PM, Jesper Juhl wrote:
+> This patch simply adds a newline character at end-of-file to those
+> files in Documentation/ that currently lack one.
+> 
+> This is done for a few different reasons:
+> 
+> A) It's rather annoying when you do "cat some_file.txt" that your
+>    prompt/cursor ends up at the end of the last line of output rather
+>    than on a new line.
+> 
+> B) Some tools that process files line-by-line may get confused by the
+>    lack of a newline on the last line.
+> 
+> C) The "\ No newline at end of file" line in diffs annoys me for some
+>    reason.
+> 
+> So, let's just add the missing newline once and for all.
+> 
+> Signed-off-by: Jesper Juhl <jj@chaosbits.net>
 
-         fepriv->parameters_out = fepriv->parameters_in;
+Acked-by: Rob Landley <rob@landley.net>
 
-The following dirty little patch restores the correct behaviour:
-
---- dvb_frontend.c.orig	2012-04-06 13:28:43.000000000 +0100
-+++ dvb_frontend.c	2012-04-06 15:42:04.000000000 +0100
-@@ -1877,6 +1877,8 @@
-  	if (c->hierarchy == HIERARCHY_NONE && c->code_rate_LP == FEC_NONE)
-  		c->code_rate_LP = FEC_AUTO;
-
-+	fepriv->parameters_out.frequency = c->frequency;
-+
-  	/* get frontend-specific tuning settings */
-  	memset(&fetunesettings, 0, sizeof(struct dvb_frontend_tune_settings));
-  	if (fe->ops.get_tune_settings && (fe->ops.get_tune_settings(fe, 
-&fetunesettings) == 0)) {
-
-I'm hoping that someone out there who understands the new logic better than I 
-can provide a better patch.
-
-Cheers,
-Chris
+Rob
+-- 
+GNU/Linux isn't: Linux=GPLv2, GNU=GPLv3+, they can't share code.
+Either it's "mere aggregation", or a license violation.  Pick one.
