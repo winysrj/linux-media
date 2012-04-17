@@ -1,69 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:9121 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750775Ab2DKGsb (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:34967 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751874Ab2DQSlH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Apr 2012 02:48:31 -0400
-Date: Wed, 11 Apr 2012 08:48:24 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: RE: [PATCHv24 00/16] Contiguous Memory Allocator
-In-reply-to: <CA+K6fF5TbhYX_XYXL33h5s8cnSogSna4Cq2-vM4MfX4igSyozg@mail.gmail.com>
-To: 'Sandeep Patil' <psandeep.s@gmail.com>,
-	'Aaro Koskinen' <aaro.koskinen@nokia.com>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org, 'Ohad Ben-Cohen' <ohad@wizery.com>,
-	'Daniel Walker' <dwalker@codeaurora.org>,
-	'Russell King' <linux@arm.linux.org.uk>,
-	'Arnd Bergmann' <arnd@arndb.de>,
-	'Jonathan Corbet' <corbet@lwn.net>,
-	'Mel Gorman' <mel@csn.ul.ie>,
-	'Chunsang Jeong' <chunsang.jeong@linaro.org>,
-	'Michal Nazarewicz' <mina86@mina86.com>,
-	'Dave Hansen' <dave@linux.vnet.ibm.com>,
-	'Jesse Barker' <jesse.barker@linaro.org>,
-	'Kyungmin Park' <kyungmin.park@samsung.com>,
-	'Benjamin Gaignard' <benjamin.gaignard@linaro.org>,
-	'Andrew Morton' <akpm@linux-foundation.org>,
-	'Rob Clark' <rob.clark@linaro.org>,
-	'KAMEZAWA Hiroyuki' <kamezawa.hiroyu@jp.fujitsu.com>
-Message-id: <00c201cd17af$17a3aa50$46eafef0$%szyprowski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-language: pl
-Content-transfer-encoding: 7BIT
-References: <1333462221-3987-1-git-send-email-m.szyprowski@samsung.com>
- <alpine.DEB.2.00.1204101528390.9354@kernel.research.nokia.com>
- <CA+K6fF5TbhYX_XYXL33h5s8cnSogSna4Cq2-vM4MfX4igSyozg@mail.gmail.com>
+	Tue, 17 Apr 2012 14:41:07 -0400
+Date: Tue, 17 Apr 2012 21:41:01 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH v3 9/9] omap3isp: preview: Shorten shadow update delay
+Message-ID: <20120417184100.GH5356@valkosipuli.localdomain>
+References: <1334582994-6967-1-git-send-email-laurent.pinchart@ideasonboard.com>
+ <1334582994-6967-10-git-send-email-laurent.pinchart@ideasonboard.com>
+ <20120417142600.GD5356@valkosipuli.localdomain>
+ <2049798.AIViuaqhSZ@avalon>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <2049798.AIViuaqhSZ@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Laurent,
 
-On Tuesday, April 10, 2012 7:20 PM Sandeep Patil wrote:
-
-> >> This is (yet another) update of CMA patches.
+On Tue, Apr 17, 2012 at 06:09:27PM +0200, Laurent Pinchart wrote:
+> Hi Sakari,
+> 
+> On Tuesday 17 April 2012 17:26:00 Sakari Ailus wrote:
+> > Hi Laurent,
+> > 
+> > Many thanks for the patch!!
+> 
+> And thank you for the review.
+> 
+> > On Mon, Apr 16, 2012 at 03:29:54PM +0200, Laurent Pinchart wrote:
+> > > When applications modify preview engine parameters, the new values are
+> > > applied to the hardware by the preview engine interrupt handler during
+> > > vertical blanking. If the parameters are being changed when the
+> > > interrupt handler is called, it just delays applying the parameters
+> > > until the next frame.
+> > > 
+> > > If an application modifies the parameters for every frame, and the
+> > > preview engine interrupt is triggerred synchronously, the parameters are
+> > > never applied to the hardware.
+> > > 
+> > > Fix this by storing new parameters in a shadow copy, and switch the
+> > > active parameters with the shadow values atomically.
+> > > 
+> > > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > > ---
+> > > 
+> > >  drivers/media/video/omap3isp/isppreview.c |  298 +++++++++++++++---------
+> > >  drivers/media/video/omap3isp/isppreview.h |   21 ++-
+> > >  2 files changed, 212 insertions(+), 107 deletions(-)
+> > > 
+> > > diff --git a/drivers/media/video/omap3isp/isppreview.c
+> > > b/drivers/media/video/omap3isp/isppreview.c index e12df2c..5ccfe46 100644
+> > > --- a/drivers/media/video/omap3isp/isppreview.c
+> > > +++ b/drivers/media/video/omap3isp/isppreview.c
+> > > @@ -649,12 +649,18 @@ preview_config_rgb_to_ycbcr(struct isp_prev_device
+> > > *prev, const void *prev_csc)
 > >
-> >
-> > How well CMA is supposed to work if you have mlocked processes? I've
-> > been testing these patches, and noticed that by creating a small mlocked
-> > process you start to get plenty of test_pages_isolated() failure warnings,
-> > and bigger allocations will always fail.
+> > Not related to this patch, but shouldn't the above function be called
+> > preview_config_csc()?
 > 
-> CMIIW, I think mlocked pages are never migrated. The reason is because
-> __isolate_lru_pages() does not isolate Unevictable pages right now.
+> That would make sense, yes. I'll add a patch for that.
 > 
-> Minchan added support to allow this but the patch was dropped.
+> > >  static void
+> > >  preview_update_contrast(struct isp_prev_device *prev, u8 contrast)
+> > >  {
+> > > -	struct prev_params *params = &prev->params;
+> > > +	struct prev_params *params;
+> > > +	unsigned long flags;
+> > > +
+> > > +	spin_lock_irqsave(&prev->params.lock, flags);
+> > > +	params = (prev->params.active & OMAP3ISP_PREV_CONTRAST)
+> > > +	       ? &prev->params.params[0] : &prev->params.params[1];
+> > > 
+> > >  	if (params->contrast != (contrast * ISPPRV_CONTRAST_UNITS)) {
+> > >  		params->contrast = contrast * ISPPRV_CONTRAST_UNITS;
+> > > -		prev->update |= OMAP3ISP_PREV_CONTRAST;
+> > > +		params->update |= OMAP3ISP_PREV_CONTRAST;
+> > >  	}
+> > > +	spin_unlock_irqrestore(&prev->params.lock, flags);
+> > >  }
+> > >  
+> > >  /*
+> > > @@ -681,12 +687,18 @@ preview_config_contrast(struct isp_prev_device
+> > > *prev, const void *params)
+> > >  static void
+> > >  preview_update_brightness(struct isp_prev_device *prev, u8 brightness)
+> > >  {
+> > > -	struct prev_params *params = &prev->params;
+> > > +	struct prev_params *params;
+> > > +	unsigned long flags;
+> > > +
+> > > +	spin_lock_irqsave(&prev->params.lock, flags);
+> > > +	params = (prev->params.active & OMAP3ISP_PREV_CONTRAST)
+> > > +	       ? &prev->params.params[0] : &prev->params.params[1];
+> > 
+> > params = prev->params.params[!(prev->params.active &
+> > OMAP3ISP_PREV_CONTRAST)];
 > 
-> See the discussion at : https://lkml.org/lkml/2011/8/29/295
+> I've thought about that, but it doesn't fit on a single line. After being 
+> split in two lines the result is less readable in my opinion. Do you think I 
+> should change it nonetheless ?
 
-Right, we are aware of this limitation. We are working on solving it but we didn't 
-consider it a blocker for the core CMA patches. Such issues can be easily fixed with 
-the incremental patches.
+I would do it as you use similar constructs elsewhere. It's up to you.
 
-Best regards
+Cheers,
+
 -- 
-Marek Szyprowski
-Samsung Poland R&D Center
-
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
