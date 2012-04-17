@@ -1,353 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pz0-f42.google.com ([209.85.210.42]:40599 "EHLO
-	mail-pz0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754114Ab2DTIIi (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:60154 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932177Ab2DQKKF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Apr 2012 04:08:38 -0400
-Received: by dang27 with SMTP id g27so11839649dan.1
-        for <linux-media@vger.kernel.org>; Fri, 20 Apr 2012 01:08:37 -0700 (PDT)
-Date: Fri, 20 Apr 2012 16:08:58 +0800
-From: "=?utf-8?B?bmliYmxlLm1heA==?=" <nibble.max@gmail.com>
-To: "=?utf-8?B?TWF1cm8gQ2FydmFsaG8gQ2hlaGFi?=" <mchehab@redhat.com>
-Cc: "=?utf-8?B?bGludXgtbWVkaWE=?=" <linux-media@vger.kernel.org>
-References: <1327228731.2540.3.camel@tvbox>,
- <4F2185A1.2000402@redhat.com>,
- <201204152353240317150@gmail.com>
-Subject: =?utf-8?B?UmU6IFJlOiBbUEFUQ0ggMi82XSBtODhkczMxMDMsIGR2YnNreSBkdmItczIgdXNiIGJveC4=?=
-Message-ID: <201204201608550936479@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="utf-8"
-Content-Transfer-Encoding: 7bit
+	Tue, 17 Apr 2012 06:10:05 -0400
+Received: from euspt2 (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0M2M006T8C8L0I@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 17 Apr 2012 11:09:58 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0M2M0021GC8NKD@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 17 Apr 2012 11:09:59 +0100 (BST)
+Date: Tue, 17 Apr 2012 12:09:44 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH 03/15] V4L: Add camera exposure bias control
+In-reply-to: <1334657396-5737-1-git-send-email-s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
+	g.liakhovetski@gmx.de, hdegoede@redhat.com, moinejf@free.fr,
+	m.szyprowski@samsung.com, riverful.kim@samsung.com,
+	sw0312.kim@samsung.com, s.nawrocki@samsung.com,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Message-id: <1334657396-5737-4-git-send-email-s.nawrocki@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1334657396-5737-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2012-04-20 16:02:41 nibble.max@gmail.com
->Em 15-04-2012 12:53, nibble.max escreveu:
->> dvbsky dvb-s2 usb box based on montage m88ds3103 demodulator.
->> 
->> Signed-off-by: Max nibble <nibble.max@gmail.com>
->> ---
->>  drivers/media/dvb/dvb-usb/Kconfig  |    1 +
->>  drivers/media/dvb/dvb-usb/dw2102.c |  236 +++++++++++++++++++++++++++++++++++-
->>  2 files changed, 236 insertions(+), 1 deletion(-)
->> 
->> diff --git a/drivers/media/dvb/dvb-usb/Kconfig b/drivers/media/dvb/dvb-usb/Kconfig
->> index be1db75..bf63f29 100644
->> --- a/drivers/media/dvb/dvb-usb/Kconfig
->> +++ b/drivers/media/dvb/dvb-usb/Kconfig
->> @@ -279,6 +279,7 @@ config DVB_USB_DW2102
->>  	select DVB_STV0288 if !DVB_FE_CUSTOMISE
->>  	select DVB_STB6000 if !DVB_FE_CUSTOMISE
->>  	select DVB_CX24116 if !DVB_FE_CUSTOMISE
->> +	select DVB_M88DS3103 if !DVB_FE_CUSTOMISE
->>  	select DVB_SI21XX if !DVB_FE_CUSTOMISE
->>  	select DVB_TDA10023 if !DVB_FE_CUSTOMISE
->>  	select DVB_MT312 if !DVB_FE_CUSTOMISE
->> diff --git a/drivers/media/dvb/dvb-usb/dw2102.c b/drivers/media/dvb/dvb-usb/dw2102.c
->> index 451c5a7..0b1bbd2 100644
->> --- a/drivers/media/dvb/dvb-usb/dw2102.c
->> +++ b/drivers/media/dvb/dvb-usb/dw2102.c
->> @@ -19,6 +19,7 @@
->>  #include "stb6000.h"
->>  #include "eds1547.h"
->>  #include "cx24116.h"
->> +#include "m88ds3103.h"
->>  #include "tda1002x.h"
->>  #include "mt312.h"
->>  #include "zl10039.h"
->> @@ -882,6 +883,44 @@ static int s660_set_voltage(struct dvb_frontend *fe, fe_sec_voltage_t voltage)
->>  	return 0;
->>  }
->>  
->> +static int bstusb_set_voltage(struct dvb_frontend *fe, fe_sec_voltage_t voltage)
->> +{
->> +
->> +	struct dvb_usb_adapter *udev_adap =
->> +		(struct dvb_usb_adapter *)(fe->dvb->priv);
->> +
->> +	u8 obuf[3] = { 0xe, 0x80, 0 };
->> +	u8 ibuf[] = { 0 };
->> +		
->> +	info("US6830: %s!\n", __func__);
->> +				
->> +	if (voltage == SEC_VOLTAGE_OFF)
->> +		obuf[2] = 0;
->> +	else 
->> +		obuf[2] = 1;
->> +		
->> +	if (dvb_usb_generic_rw(udev_adap->dev, obuf, 3, ibuf, 1, 0) < 0)
->> +		err("command 0x0e transfer failed.");
->> +	
->> +	return 0;
->> +}
->> +
->> +static int bstusb_restart(struct dvb_frontend *fe)
->> +{
->> +
->> +	struct dvb_usb_adapter *udev_adap =
->> +		(struct dvb_usb_adapter *)(fe->dvb->priv);
->> +	
->> +	u8 obuf[3] = { 0x36, 3, 0 };
->> +	u8 ibuf[] = { 0 };
->> +			
->> +
->> +	if (dvb_usb_generic_rw(udev_adap->dev, obuf, 3, ibuf, 1, 0) < 0)
->> +		err("command 0x36 transfer failed.");
->> +	
->> +	return 0;
->> +}
->> +
->>  static void dw210x_led_ctrl(struct dvb_frontend *fe, int offon)
->>  {
->>  	static u8 led_off[] = { 0 };
->> @@ -987,6 +1026,24 @@ static struct ds3000_config su3000_ds3000_config = {
->>  	.ci_mode = 1,
->>  };
->>  
->> +static struct m88ds3103_config US6830_ds3103_config = {
->> +	.demod_address = 0x68,
->> +	.ci_mode = 1,
->> +	.pin_ctrl = 0x83,
->> +	.ts_mode = 0,
->> +	.start_ctrl = bstusb_restart,
->> +	.set_voltage = bstusb_set_voltage,
->> +};
->> +
->> +static struct m88ds3103_config US6832_ds3103_config = {
->> +	.demod_address = 0x68,
->> +	.ci_mode = 1,
->> +	.pin_ctrl = 0x80,
->> +	.ts_mode = 0,
->> +	.start_ctrl = bstusb_restart,
->> +	.set_voltage = bstusb_set_voltage,
->> +};
->> +
->>  static int dw2104_frontend_attach(struct dvb_usb_adapter *d)
->>  {
->>  	struct dvb_tuner_ops *tuner_ops = NULL;
->> @@ -1214,6 +1271,72 @@ static int su3000_frontend_attach(struct dvb_usb_adapter *d)
->>  	return 0;
->>  }
->>  
->> +static int US6830_frontend_attach(struct dvb_usb_adapter *d)
->> +{
->> +	u8 obuf[3] = { 0xe, 0x83, 0 };
->> +	u8 ibuf[] = { 0 };
->> +
->> +
->> +	info("US6830: %s!\n", __func__);
->> +	
->> +	if (dvb_usb_generic_rw(d->dev, obuf, 3, ibuf, 1, 0) < 0)
->> +		err("command 0x0e transfer failed.");
->> +
->> +	obuf[0] = 0xe;
->> +	obuf[1] = 0x83;
->> +	obuf[2] = 1;
->> +
->> +	if (dvb_usb_generic_rw(d->dev, obuf, 3, ibuf, 1, 0) < 0)
->> +		err("command 0x0e transfer failed.");
->> +
->> +	obuf[0] = 0x51;
->> +
->> +	if (dvb_usb_generic_rw(d->dev, obuf, 1, ibuf, 1, 0) < 0)
->> +		err("command 0x51 transfer failed.");
->> +
->> +	d->fe_adap[0].fe = dvb_attach(m88ds3103_attach, &US6830_ds3103_config,
->> +					&d->dev->i2c_adap);
->> +	if (d->fe_adap[0].fe == NULL)
->> +		return -EIO;
->> +
->> +	info("Attached M88DS3103!\n");
->> +
->> +	return 0;
->> +}
->> +
->> +static int US6832_frontend_attach(struct dvb_usb_adapter *d)
->> +{
->> +	u8 obuf[3] = { 0xe, 0x83, 0 };
->> +	u8 ibuf[] = { 0 };
->> +
->> +
->> +	info("US6832: %s!\n", __func__);
->> +	
->> +	if (dvb_usb_generic_rw(d->dev, obuf, 3, ibuf, 1, 0) < 0)
->> +		err("command 0x0e transfer failed.");
->> +
->> +	obuf[0] = 0xe;
->> +	obuf[1] = 0x83;
->> +	obuf[2] = 1;
->> +
->> +	if (dvb_usb_generic_rw(d->dev, obuf, 3, ibuf, 1, 0) < 0)
->> +		err("command 0x0e transfer failed.");
->> +
->> +	obuf[0] = 0x51;
->> +
->> +	if (dvb_usb_generic_rw(d->dev, obuf, 1, ibuf, 1, 0) < 0)
->> +		err("command 0x51 transfer failed.");
->> +
->> +	d->fe_adap[0].fe = dvb_attach(m88ds3103_attach, &US6832_ds3103_config,
->> +					&d->dev->i2c_adap);
->> +	if (d->fe_adap[0].fe == NULL)
->> +		return -EIO;
->> +
->> +	info("Attached M88DS3103!\n");
->> +
->> +	return 0;
->> +}
->> +
->>  static int dw2102_tuner_attach(struct dvb_usb_adapter *adap)
->>  {
->>  	dvb_attach(dvb_pll_attach, adap->fe_adap[0].fe, 0x60,
->> @@ -1451,6 +1574,9 @@ enum dw2102_table_entry {
->>  	TEVII_S480_1,
->>  	TEVII_S480_2,
->>  	X3M_SPC1400HD,
->> +	BST_US6830HD,
->> +	BST_US6831HD,
->> +	BST_US6832HD,
->>  };
->>  
->>  static struct usb_device_id dw2102_table[] = {
->> @@ -1469,6 +1595,9 @@ static struct usb_device_id dw2102_table[] = {
->>  	[TEVII_S480_1] = {USB_DEVICE(0x9022, USB_PID_TEVII_S480_1)},
->>  	[TEVII_S480_2] = {USB_DEVICE(0x9022, USB_PID_TEVII_S480_2)},
->>  	[X3M_SPC1400HD] = {USB_DEVICE(0x1f4d, 0x3100)},
->> +	[BST_US6830HD] = {USB_DEVICE(0x0572, 0x6830)},
->> +	[BST_US6831HD] = {USB_DEVICE(0x0572, 0x6831)},
->> +	[BST_US6832HD] = {USB_DEVICE(0x0572, 0x6832)},
->>  	{ }
->>  };
->>  
->> @@ -1874,6 +2003,107 @@ static struct dvb_usb_device_properties su3000_properties = {
->>  	}
->>  };
->>  
->> +static struct dvb_usb_device_properties US6830_properties = {
->> +	.caps = DVB_USB_IS_AN_I2C_ADAPTER,
->> +	.usb_ctrl = DEVICE_SPECIFIC,
->> +	.size_of_priv = sizeof(struct su3000_state),
->> +	.power_ctrl = su3000_power_ctrl,
->> +	.num_adapters = 1,
->> +	.identify_state	= su3000_identify_state,
->> +	.i2c_algo = &su3000_i2c_algo,
->> +
->> +	.rc.legacy = {
->> +		.rc_map_table = rc_map_su3000_table,
->> +		.rc_map_size = ARRAY_SIZE(rc_map_su3000_table),
->> +		.rc_interval = 150,
->> +		.rc_query = dw2102_rc_query,
->> +	},
->
->
->New drivers should use .rc.core instead. For a simple example on how to use,
->please take a look at the az6007 driver.
->
-It is strange to me that I need write two keymaps for one remote controller, one for USB box, the other for pcie cards.
-rc.core will save my time to keep one keymap for all. :)
+The camera may in some conditions incorrectly determine the exposure,
+and a manual automatic exposure correction may be needed. This patch
+adds V4L2_CID_AUTO_EXPOSURE_BIAS control which allows to add some
+offset in the automatic exposure control loop, to compensate for
+frame under- or over-exposure.
 
->> +
->> +	.read_mac_address = su3000_read_mac_address,
->> +
->> +	.generic_bulk_ctrl_endpoint = 0x01,
->> +	
->> +	.adapter = {
->> +		{
->> +		.num_frontends = 1,
->> +		.fe = {{
->> +			.streaming_ctrl   = su3000_streaming_ctrl,
->> +			.frontend_attach  = US6830_frontend_attach,
->> +			.stream = {
->> +				.type = USB_BULK,
->> +				.count = 8,
->> +				.endpoint = 0x82,
->> +				.u = {
->> +					.bulk = {
->> +						.buffersize = 4096,
->> +					}
->> +				}
->> +			}
->> +		}},
->> +		}
->> +	},
->> +	.num_device_descs = 2,
->> +	.devices = {
->> +		{ "Bestunar US6830 HD",
->> +			{ &dw2102_table[BST_US6830HD], NULL },
->> +			{ NULL },
->> +		},
->> +		{ "Bestunar US6831 HD",
->> +			{ &dw2102_table[BST_US6831HD], NULL },
->> +			{ NULL },
->> +		},				
->> +	}
->> +};
->> +
->> +static struct dvb_usb_device_properties US6832_properties = {
->> +	.caps = DVB_USB_IS_AN_I2C_ADAPTER,
->> +	.usb_ctrl = DEVICE_SPECIFIC,
->> +	.size_of_priv = sizeof(struct su3000_state),
->> +	.power_ctrl = su3000_power_ctrl,
->> +	.num_adapters = 1,
->> +	.identify_state	= su3000_identify_state,
->> +	.i2c_algo = &su3000_i2c_algo,
->> +
->> +	.rc.legacy = {
->> +		.rc_map_table = rc_map_su3000_table,
->> +		.rc_map_size = ARRAY_SIZE(rc_map_su3000_table),
->> +		.rc_interval = 150,
->> +		.rc_query = dw2102_rc_query,
->> +	},
->> +
->> +	.read_mac_address = su3000_read_mac_address,
->> +
->> +	.generic_bulk_ctrl_endpoint = 0x01,
->> +
->> +	.adapter = {
->> +		{
->> +		.num_frontends = 1,
->> +		.fe = {{
->> +			.streaming_ctrl   = su3000_streaming_ctrl,
->> +			.frontend_attach  = US6832_frontend_attach,
->> +			.stream = {
->> +				.type = USB_BULK,
->> +				.count = 8,
->> +				.endpoint = 0x82,
->> +				.u = {
->> +					.bulk = {
->> +						.buffersize = 4096,
->> +					}
->> +				}
->> +			}
->> +		}},
->> +		}
->> +	},
->> +	.num_device_descs = 1,
->> +	.devices = {
->> +		{ "Bestunar US6832 HD",
->> +			{ &dw2102_table[BST_US6832HD], NULL },
->> +			{ NULL },
->> +		},
->> +				
->> +	}
->> +};
->> +
->>  static int dw2102_probe(struct usb_interface *intf,
->>  		const struct usb_device_id *id)
->>  {
->> @@ -1930,7 +2160,11 @@ static int dw2102_probe(struct usb_interface *intf,
->>  	    0 == dvb_usb_device_init(intf, p7500,
->>  			THIS_MODULE, NULL, adapter_nr) ||
->>  	    0 == dvb_usb_device_init(intf, &su3000_properties,
->> -				     THIS_MODULE, NULL, adapter_nr))
->> +     			THIS_MODULE, NULL, adapter_nr) ||
->> +	    0 == dvb_usb_device_init(intf, &US6830_properties,
->> +			THIS_MODULE, NULL, adapter_nr) ||
->> +	    0 == dvb_usb_device_init(intf, &US6832_properties,
->> +			THIS_MODULE, NULL, adapter_nr))
->>  		return 0;
->>  
->>  	return -ENODEV;
->
->.
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ Documentation/DocBook/media/v4l/controls.xml |   16 ++++++++++++++++
+ drivers/media/video/v4l2-ctrls.c             |    4 ++++
+ include/linux/videodev2.h                    |    2 ++
+ 3 files changed, 22 insertions(+)
+
+diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+index 0e2040d..69363dc 100644
+--- a/Documentation/DocBook/media/v4l/controls.xml
++++ b/Documentation/DocBook/media/v4l/controls.xml
+@@ -2840,6 +2840,22 @@ remain constant.</entry>
+ 	  <row><entry></entry></row>
+ 
+ 	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_EXPOSURE_BIAS</constant>&nbsp;</entry>
++	    <entry>integer menu</entry>
++	  </row><row><entry spanname="descr"> Determines the automatic
++exposure compensation, it is effective only when <constant>V4L2_CID_EXPOSURE_AUTO</constant>
++control is set to <constant>AUTO</constant>, <constant>SHUTTER_PRIORITY </constant>
++or <constant>APERTURE_PRIORITY</constant>.
++It is expressed in terms of EV, drivers should interpret the values as 0.001 EV
++units, where the value 1000 stands for +1 EV.
++<para>Increasing the exposure compensation value is equivalent to decreasing
++the exposure value (EV) and will increase the amount of light at the image
++sensor. The camera performs the exposure compensation by adjusting absolute
++exposure time and/or aperture.</para></entry>
++	  </row>
++	  <row><entry></entry></row>
++
++	  <row>
+ 	    <entry spanname="id"><constant>V4L2_CID_PAN_RELATIVE</constant>&nbsp;</entry>
+ 	    <entry>integer</entry>
+ 	  </row><row><entry spanname="descr">This control turns the
+diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
+index aa0934c..1f67bf2 100644
+--- a/drivers/media/video/v4l2-ctrls.c
++++ b/drivers/media/video/v4l2-ctrls.c
+@@ -603,6 +603,7 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_PRIVACY:			return "Privacy";
+ 	case V4L2_CID_IRIS_ABSOLUTE:		return "Iris, Absolute";
+ 	case V4L2_CID_IRIS_RELATIVE:		return "Iris, Relative";
++	case V4L2_CID_AUTO_EXPOSURE_BIAS:	return "Auto Exposure, Bias";
+ 
+ 	/* FM Radio Modulator control */
+ 	/* Keep the order of the 'case's the same as in videodev2.h! */
+@@ -745,6 +746,9 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_RDS_TX_RADIO_TEXT:
+ 		*type = V4L2_CTRL_TYPE_STRING;
+ 		break;
++	case V4L2_CID_AUTO_EXPOSURE_BIAS:
++		*type = V4L2_CTRL_TYPE_INTEGER_MENU;
++		break;
+ 	case V4L2_CID_USER_CLASS:
+ 	case V4L2_CID_CAMERA_CLASS:
+ 	case V4L2_CID_MPEG_CLASS:
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index 95ce588..fd2f400 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -1727,6 +1727,8 @@ enum  v4l2_exposure_auto_type {
+ #define V4L2_CID_IRIS_ABSOLUTE			(V4L2_CID_CAMERA_CLASS_BASE+17)
+ #define V4L2_CID_IRIS_RELATIVE			(V4L2_CID_CAMERA_CLASS_BASE+18)
+ 
++#define V4L2_CID_AUTO_EXPOSURE_BIAS		(V4L2_CID_CAMERA_CLASS_BASE+19)
++
+ /* FM Modulator class control IDs */
+ #define V4L2_CID_FM_TX_CLASS_BASE		(V4L2_CTRL_CLASS_FM_TX | 0x900)
+ #define V4L2_CID_FM_TX_CLASS			(V4L2_CTRL_CLASS_FM_TX | 1)
+-- 
+1.7.10
 
