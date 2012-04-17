@@ -1,90 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:60777 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757187Ab2DTPy4 (ORCPT
+Received: from mail.insync.za.net ([103.247.152.98]:59416 "EHLO
+	mail.insync.za.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751540Ab2DQVMw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Apr 2012 11:54:56 -0400
-Date: Fri, 20 Apr 2012 17:54:45 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Alex Gershgorin <alexg@meprolight.com>
-cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
-	"s.hauer@pengutronix.de" <s.hauer@pengutronix.de>,
-	"laurent.pinchart@ideasonboard.com"
-	<laurent.pinchart@ideasonboard.com>,
-	"linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: RE: [PATCH v1] ARM: i.mx: mx3fb: add overlay support
-In-Reply-To: <4875438356E7CA4A8F2145FCD3E61C0B2CC952548B@MEP-EXCH.meprolight.com>
-Message-ID: <Pine.LNX.4.64.1204201746300.3974@axis700.grange>
-References: <1334770715-31064-1-git-send-email-alexg@meprolight.com>,<Pine.LNX.4.64.1204181952580.30514@axis700.grange>
- <4875438356E7CA4A8F2145FCD3E61C0B2CC952548B@MEP-EXCH.meprolight.com>
+	Tue, 17 Apr 2012 17:12:52 -0400
+Date: Wed, 18 Apr 2012 09:12:48 +1200 (NZST)
+From: Pieter De Wit <pieter@insync.za.net>
+To: =?ISO-8859-15?Q?R=E9mi_Denis-Courmont?= <remi@remlab.net>
+cc: linux-media@vger.kernel.org
+Subject: Re: v4l2 Device with H264 support
+In-Reply-To: <201204172345.47837.remi@remlab.net>
+Message-ID: <alpine.DEB.2.02.1204180912130.3685@eragon.insync.za.net>
+References: <alpine.DEB.2.02.1204171159380.3685@eragon.insync.za.net> <a5a29db4793a36095a2f8746361f6b63@chewa.net> <alpine.DEB.2.02.1204180828510.3685@eragon.insync.za.net> <201204172345.47837.remi@remlab.net>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: MULTIPART/MIXED; BOUNDARY="8323329-647220006-1334697168=:3685"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Alex
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-On Fri, 20 Apr 2012, Alex Gershgorin wrote:
+--8323329-647220006-1334697168=:3685
+Content-Type: TEXT/PLAIN; charset=iso-8859-15; format=flowed
+Content-Transfer-Encoding: 8BIT
 
-[snip]
+On Tue, 17 Apr 2012, Rémi Denis-Courmont wrote:
 
-> > Signed-off-by: Alex Gershgorin <alexg@meprolight.com>
-> > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> 
-> > > Thanks for the credit (;-)), but no, putting my Sob after yours means,
-> > > that I took your patch and forwarded it on to the next maintainer, which
-> > > is clearly not the case here:-) The original i.MX31 framebuffer overlay
-> > > code from my old patches also clearly wasn't written by me, since I didn't
-> > > have a chance to test it. So, if you like, you can try to trace back
-> > > original authors of that code and ask them, how they want to be credited
-> > > here,
-> 
-> I would like to thank all the authors of original code.
-> unfortunately I can't thank for each one of you separately by name, i hope
-> that you understand and accept it.
-> 
-> >>  otherwise just mentioning, that this work is based on some earlier
-> > > patch series "i.MX31: dmaengine and framebuffer drivers" from 2008 by ...
-> > > should be enough.
-> 
-> This option is more suitable, I just correct the description of the patch,
-> and leave your signature (if you have any objections?) since 2008 patch version.
+> Le mardi 17 avril 2012 23:30:43 Pieter De Wit, vous avez écrit :
+>> Thanks for the reply. I suspect that there is some tricks needed to get
+>> the h264 stream from this device, into something of a player.
+>
+> At least for UVC devices, it's pretty damn straight forward. You just need to
+> set pixel format 'H264' with the standard VIDIOC_S_FMT. Then you get the H.264
+> elementary stream with the plain normal streaming or read/write modes of V4L2.
+>
+> E.g.:
+>
+> # v4l2-ctl --set-fmt-video=width=640,height=480,pixelformat=H264
+> # vlc v4l2c/h264://
+>
+> -- 
+> Rémi Denis-Courmont
+> http://www.remlab.net/
+> http://fi.linkedin.com/in/remidenis
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+Yeah - that didn't work so well. I will make up a more detailed report 
+tonight when I have the device on hand.
 
-Well, if you wish so...:-) To me it looks like a new patch from you, 
-that's just vaguely based on my previous patch, that was copying some 
-previous work, so, my contribution to this code isn't huge;-) But if you 
-insist - you can keep my Sob, but at least put it above yours.
+Cheers,
 
-[snip]
-
-> > @@ -1333,8 +1534,8 @@ static int init_fb_chan(struct mx3fb_data *mx3fb, struct idmac_channel *ichan)
-> >       ichan->client = mx3fb;
-> >       irq = ichan->eof_irq;
-> >
-> > -     if (ichan->dma_chan.chan_id != IDMAC_SDC_0)
-> > -             return -EINVAL;
-> > +     switch (ichan->dma_chan.chan_id) {
-> > +     case IDMAC_SDC_0:
-> >
-> >       fbi = mx3fb_init_fbinfo(dev, &mx3fb_ops);
-> 
-> > > I would bite the bullet and indent this case block...
-> 
-> This makes a clear separation between the framebuffer and overlay
-> channels during initializing, but if you have any ideas welcome, please
-> send, I could do a test on my hardware :-)
-
-Sorry, I didn't mean any functional change, just a pure formatting issue: 
-you put a "switch-case" statement above, but didn't add an indentation 
-level to the following code. While reducing the patch size by avoiding 
-unnecessary changes is good, I think, following the coding style and 
-improving readability are more important arguments here, so, I would go 
-and do that "unnecessary" change and indent the code.
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Pieter
+--8323329-647220006-1334697168=:3685--
