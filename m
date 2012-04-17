@@ -1,376 +1,152 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:39343 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757801Ab2DLQgz (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:59161 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932176Ab2DQKKF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Apr 2012 12:36:55 -0400
-From: Federico Vaga <federico.vaga@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Alan Cox <alan@linux.intel.com>,
-	Giancarlo Asnaghi <giancarlo.asnaghi@st.com>,
-	Federico Vaga <federico.vaga@gmail.com>
-Subject: [PATCH 2/3] videobuf-dma-contig: add cache support
-Date: Thu, 12 Apr 2012 18:39:37 +0200
-Message-Id: <1334248778-16625-2-git-send-email-federico.vaga@gmail.com>
-In-Reply-To: <1334248778-16625-1-git-send-email-federico.vaga@gmail.com>
-References: <1334248778-16625-1-git-send-email-federico.vaga@gmail.com>
+	Tue, 17 Apr 2012 06:10:05 -0400
+Received: from euspt1 (mailout1.w1.samsung.com [210.118.77.11])
+ by mailout1.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0M2M00C0TC6Q7O@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 17 Apr 2012 11:08:51 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0M2M0047EC8QI3@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 17 Apr 2012 11:10:02 +0100 (BST)
+Date: Tue, 17 Apr 2012 12:09:48 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH 07/15] V4L: Add camera ISO sensitivity controls
+In-reply-to: <1334657396-5737-1-git-send-email-s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
+	g.liakhovetski@gmx.de, hdegoede@redhat.com, moinejf@free.fr,
+	m.szyprowski@samsung.com, riverful.kim@samsung.com,
+	sw0312.kim@samsung.com, s.nawrocki@samsung.com,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Message-id: <1334657396-5737-8-git-send-email-s.nawrocki@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1334657396-5737-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Federico Vaga <federico.vaga@gmail.com>
-Acked-by: Giancarlo Asnaghi <giancarlo.asnaghi@st.com>
-Cc: Alan Cox <alan@linux.intel.com>
----
- drivers/media/video/videobuf-dma-contig.c |  199 +++++++++++++++++++++-------
- include/media/videobuf-dma-contig.h       |   10 ++
- 2 files changed, 159 insertions(+), 50 deletions(-)
+Add ISO sensitivity and ISO auto/manual controls. The sensitivity
+values are related to level of amplification of the analog signal
+between image sensor and ADC. These controls allow to support sensors
+exposing an interface to accept the ISO values directly.
 
-diff --git a/drivers/media/video/videobuf-dma-contig.c b/drivers/media/video/videobuf-dma-contig.c
-index c969111..b6b5cc1 100644
---- a/drivers/media/video/videobuf-dma-contig.c
-+++ b/drivers/media/video/videobuf-dma-contig.c
-@@ -27,6 +27,7 @@ struct videobuf_dma_contig_memory {
- 	u32 magic;
- 	void *vaddr;
- 	dma_addr_t dma_handle;
-+	bool cached;
- 	unsigned long size;
- };
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ Documentation/DocBook/media/v4l/biblio.xml   |   11 +++++++++++
+ Documentation/DocBook/media/v4l/controls.xml |   24 ++++++++++++++++++++++++
+ drivers/media/video/v4l2-ctrls.c             |    5 ++++-
+ include/linux/videodev2.h                    |    3 +++
+ 4 files changed, 42 insertions(+), 1 deletion(-)
+
+diff --git a/Documentation/DocBook/media/v4l/biblio.xml b/Documentation/DocBook/media/v4l/biblio.xml
+index 7dc65c5..66a0ef2 100644
+--- a/Documentation/DocBook/media/v4l/biblio.xml
++++ b/Documentation/DocBook/media/v4l/biblio.xml
+@@ -197,4 +197,15 @@ in the frequency range from 87,5 to 108,0 MHz</title>
+       <title>NTSC-4: United States RBDS Standard</title>
+     </biblioentry>
  
-@@ -37,8 +38,58 @@ struct videobuf_dma_contig_memory {
- 		BUG();							    \
- 	}
- 
--static void
--videobuf_vm_open(struct vm_area_struct *vma)
-+static int __videobuf_dc_alloc(struct device *dev,
-+			       struct videobuf_dma_contig_memory *mem,
-+			       unsigned long size, unsigned long flags)
-+{
-+	mem->size = size;
-+	if (mem->cached) {
-+		mem->vaddr = alloc_pages_exact(mem->size, flags | GFP_DMA);
-+		if (mem->vaddr) {
-+			int err;
++    <biblioentry id="iso12232">
++      <abbrev>ISO&nbsp;12232:2006</abbrev>
++      <authorgroup>
++	<corpauthor>International Organization for Standardization
++(<ulink url="http://www.iso.org">http://www.iso.org</ulink>)</corpauthor>
++      </authorgroup>
++      <title>Photography &mdash; Digital still cameras &mdash; Determination
++      of exposure index, ISO speed ratings, standard output sensitivity, and
++      recommended exposure index</title>
++    </biblioentry>
 +
-+			mem->dma_handle = dma_map_single(dev, mem->vaddr,
-+							 mem->size,
-+							 DMA_FROM_DEVICE);
-+			err = dma_mapping_error(dev, mem->dma_handle);
-+			if (err) {
-+				dev_err(dev, "dma_map_single failed\n");
+   </bibliography>
+diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+index 010edc4..c50941e 100644
+--- a/Documentation/DocBook/media/v4l/controls.xml
++++ b/Documentation/DocBook/media/v4l/controls.xml
+@@ -3105,6 +3105,30 @@ feature.</entry>
+ 	  </row>
+ 	  <row><entry></entry></row>
+ 
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_ISO_SENSITIVITY</constant>&nbsp;</entry>
++	    <entry>integer menu</entry>
++	  </row><row><entry spanname="descr">Determines ISO equivalent of an
++image sensor indicating the sensor's sensitivity to light. The numbers are
++expressed in arithmetic scale, as per <xref linkend="iso12232" /> standard,
++where doubling the sensor sensitivity is represented by doubling the numerical
++ISO value. Applications should interpret the values as standard ISO values
++multiplied by 1000, e.g. control value 800 stands for ISO 0.8. Drivers will
++usually support only a subset of standard ISO values.
++</entry>
++	  </row>
++	  <row><entry></entry></row>
 +
-+				free_pages_exact(mem->vaddr, mem->size);
-+				mem->vaddr = 0;
-+				return err;
-+			}
-+		}
-+	} else
-+		mem->vaddr = dma_alloc_coherent(dev, mem->size,
-+						&mem->dma_handle, flags);
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_ISO_SENSITIVITY_AUTO</constant>&nbsp;</entry>
++	    <entry>boolean</entry>
++	  </row><row><entry spanname="descr">Enables automatic ISO sensitivity
++adjustments. The effect of setting <constant>V4L2_CID_ISO_SENSITIVITY</constant>
++while automatic ISO control is enabled is undefined, drivers should ignore such
++requests.</entry>
++	  </row>
++	  <row><entry></entry></row>
 +
-+	if (!mem->vaddr) {
-+		dev_err(dev, "memory alloc size %ld failed\n", mem->size);
-+		return -ENOMEM;
-+	}
-+
-+	dev_dbg(dev, "dma mapped data is at %p (%ld)\n", mem->vaddr, mem->size);
-+
-+	return 0;
-+}
-+
-+static void __videobuf_dc_free(struct device *dev,
-+			       struct videobuf_dma_contig_memory *mem)
-+{
-+	if (mem->cached) {
-+		if (!mem->vaddr)
-+			return;
-+		dma_unmap_single(dev, mem->dma_handle, mem->size,
-+				 DMA_FROM_DEVICE);
-+		free_pages_exact(mem->vaddr, mem->size);
-+	} else
-+		dma_free_coherent(dev, mem->size, mem->vaddr, mem->dma_handle);
-+
-+	mem->vaddr = NULL;
-+}
-+
-+static void videobuf_vm_open(struct vm_area_struct *vma)
- {
- 	struct videobuf_mapping *map = vma->vm_private_data;
- 
-@@ -91,12 +142,11 @@ static void videobuf_vm_close(struct vm_area_struct *vma)
- 				dev_dbg(q->dev, "buf[%d] freeing %p\n",
- 					i, mem->vaddr);
- 
--				dma_free_coherent(q->dev, mem->size,
--						  mem->vaddr, mem->dma_handle);
-+				__videobuf_dc_free(q->dev, mem);
- 				mem->vaddr = NULL;
- 			}
- 
--			q->bufs[i]->map   = NULL;
-+			q->bufs[i]->map = NULL;
- 			q->bufs[i]->baddr = 0;
- 		}
- 
-@@ -107,8 +157,8 @@ static void videobuf_vm_close(struct vm_area_struct *vma)
- }
- 
- static const struct vm_operations_struct videobuf_vm_ops = {
--	.open     = videobuf_vm_open,
--	.close    = videobuf_vm_close,
-+	.open	= videobuf_vm_open,
-+	.close	= videobuf_vm_close,
- };
- 
- /**
-@@ -178,26 +228,38 @@ static int videobuf_dma_contig_user_get(struct videobuf_dma_contig_memory *mem,
- 		pages_done++;
- 	}
- 
-- out_up:
-+out_up:
- 	up_read(&current->mm->mmap_sem);
- 
- 	return ret;
- }
- 
--static struct videobuf_buffer *__videobuf_alloc_vb(size_t size)
-+static struct videobuf_buffer *__videobuf_alloc_vb(size_t size, bool cached)
- {
- 	struct videobuf_dma_contig_memory *mem;
- 	struct videobuf_buffer *vb;
- 
- 	vb = kzalloc(size + sizeof(*mem), GFP_KERNEL);
- 	if (vb) {
--		mem = vb->priv = ((char *)vb) + size;
-+		vb->priv = ((char *)vb) + size;
-+		mem = vb->priv;
- 		mem->magic = MAGIC_DC_MEM;
-+		mem->cached = cached;
- 	}
- 
- 	return vb;
- }
- 
-+static struct videobuf_buffer *__videobuf_alloc_uncached(size_t size)
-+{
-+	return __videobuf_alloc_vb(size, false);
-+}
-+
-+static struct videobuf_buffer *__videobuf_alloc_cached(size_t size)
-+{
-+	return __videobuf_alloc_vb(size, true);
-+}
-+
- static void *__videobuf_to_vaddr(struct videobuf_buffer *buf)
- {
- 	struct videobuf_dma_contig_memory *mem = buf->priv;
-@@ -235,28 +297,32 @@ static int __videobuf_iolock(struct videobuf_queue *q,
- 			return videobuf_dma_contig_user_get(mem, vb);
- 
- 		/* allocate memory for the read() method */
--		mem->size = PAGE_ALIGN(vb->size);
--		mem->vaddr = dma_alloc_coherent(q->dev, mem->size,
--						&mem->dma_handle, GFP_KERNEL);
--		if (!mem->vaddr) {
--			dev_err(q->dev, "dma_alloc_coherent %ld failed\n",
--					 mem->size);
-+		if (__videobuf_dc_alloc(q->dev, mem, PAGE_ALIGN(vb->size),
-+					GFP_KERNEL))
- 			return -ENOMEM;
--		}
+ 	</tbody>
+       </tgroup>
+     </table>
+diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
+index a0d1b4a..aa3d111 100644
+--- a/drivers/media/video/v4l2-ctrls.c
++++ b/drivers/media/video/v4l2-ctrls.c
+@@ -617,10 +617,11 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_IRIS_ABSOLUTE:		return "Iris, Absolute";
+ 	case V4L2_CID_IRIS_RELATIVE:		return "Iris, Relative";
+ 	case V4L2_CID_AUTO_EXPOSURE_BIAS:	return "Auto Exposure, Bias";
 -
--		dev_dbg(q->dev, "dma_alloc_coherent data is at %p (%ld)\n",
--			mem->vaddr, mem->size);
+ 	case V4L2_CID_WHITE_BALANCE_PRESET:	return "White Balance, Preset";
+ 	case V4L2_CID_WIDE_DYNAMIC_RANGE:	return "Wide Dynamic Range";
+ 	case V4L2_CID_IMAGE_STABILIZATION:	return "Image Stabilization";
++	case V4L2_CID_ISO_SENSITIVITY:		return "ISO Sensitivity";
++	case V4L2_CID_ISO_SENSITIVITY_AUTO:	return "ISO Sensitivity, Auto";
+ 
+ 	/* FM Radio Modulator control */
+ 	/* Keep the order of the 'case's the same as in videodev2.h! */
+@@ -714,6 +715,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_MPEG_VIDEO_MPEG4_QPEL:
+ 	case V4L2_CID_WIDE_DYNAMIC_RANGE:
+ 	case V4L2_CID_IMAGE_STABILIZATION:
++	case V4L2_CID_ISO_SENSITIVITY_AUTO:
+ 		*type = V4L2_CTRL_TYPE_BOOLEAN;
+ 		*min = 0;
+ 		*max = *step = 1;
+@@ -766,6 +768,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_RDS_TX_RADIO_TEXT:
+ 		*type = V4L2_CTRL_TYPE_STRING;
  		break;
- 	case V4L2_MEMORY_OVERLAY:
- 	default:
--		dev_dbg(q->dev, "%s memory method OVERLAY/unknown\n",
--			__func__);
-+		dev_dbg(q->dev, "%s memory method OVERLAY/unknown\n", __func__);
- 		return -EINVAL;
- 	}
++	case V4L2_CID_ISO_SENSITIVITY:
+ 	case V4L2_CID_AUTO_EXPOSURE_BIAS:
+ 		*type = V4L2_CTRL_TYPE_INTEGER_MENU;
+ 		break;
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index 897bf7b..1c6d342 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -1744,6 +1744,9 @@ enum v4l2_white_balance_preset {
+ #define V4L2_CID_WIDE_DYNAMIC_RANGE		(V4L2_CID_CAMERA_CLASS_BASE+21)
+ #define V4L2_CID_IMAGE_STABILIZATION		(V4L2_CID_CAMERA_CLASS_BASE+22)
  
- 	return 0;
- }
- 
-+static int __videobuf_sync(struct videobuf_queue *q,
-+			   struct videobuf_buffer *buf)
-+{
-+	struct videobuf_dma_contig_memory *mem = buf->priv;
-+	BUG_ON(!mem);
-+	MAGIC_CHECK(mem->magic, MAGIC_DC_MEM);
++#define V4L2_CID_ISO_SENSITIVITY		(V4L2_CID_CAMERA_CLASS_BASE+23)
++#define V4L2_CID_ISO_SENSITIVITY_AUTO		(V4L2_CID_CAMERA_CLASS_BASE+24)
 +
-+	dma_sync_single_for_cpu(q->dev, mem->dma_handle, mem->size,
-+				DMA_FROM_DEVICE);
-+
-+	return 0;
-+}
-+
- static int __videobuf_mmap_mapper(struct videobuf_queue *q,
- 				  struct videobuf_buffer *buf,
- 				  struct vm_area_struct *vma)
-@@ -265,6 +331,8 @@ static int __videobuf_mmap_mapper(struct videobuf_queue *q,
- 	struct videobuf_mapping *map;
- 	int retval;
- 	unsigned long size;
-+	unsigned long pos, start = vma->vm_start;
-+	struct page *page;
- 
- 	dev_dbg(q->dev, "%s\n", __func__);
- 
-@@ -282,41 +350,50 @@ static int __videobuf_mmap_mapper(struct videobuf_queue *q,
- 	BUG_ON(!mem);
- 	MAGIC_CHECK(mem->magic, MAGIC_DC_MEM);
- 
--	mem->size = PAGE_ALIGN(buf->bsize);
--	mem->vaddr = dma_alloc_coherent(q->dev, mem->size,
--					&mem->dma_handle, GFP_KERNEL);
--	if (!mem->vaddr) {
--		dev_err(q->dev, "dma_alloc_coherent size %ld failed\n",
--			mem->size);
-+	if (__videobuf_dc_alloc(q->dev, mem, PAGE_ALIGN(buf->bsize),
-+				GFP_KERNEL | __GFP_COMP))
- 		goto error;
--	}
--	dev_dbg(q->dev, "dma_alloc_coherent data is at addr %p (size %ld)\n",
--		mem->vaddr, mem->size);
- 
- 	/* Try to remap memory */
- 
- 	size = vma->vm_end - vma->vm_start;
- 	size = (size < mem->size) ? size : mem->size;
- 
--	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
--	retval = remap_pfn_range(vma, vma->vm_start,
--				 mem->dma_handle >> PAGE_SHIFT,
--				 size, vma->vm_page_prot);
--	if (retval) {
--		dev_err(q->dev, "mmap: remap failed with error %d. ", retval);
--		dma_free_coherent(q->dev, mem->size,
--				  mem->vaddr, mem->dma_handle);
--		goto error;
-+	if (!mem->cached)
-+		vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
-+
-+	pos = (unsigned long)mem->vaddr;
-+
-+	while (size > 0) {
-+		page = virt_to_page((void *)pos);
-+		if (NULL == page) {
-+			dev_err(q->dev, "mmap: virt_to_page failed\n");
-+			__videobuf_dc_free(q->dev, mem);
-+			goto error;
-+		}
-+		retval = vm_insert_page(vma, start, page);
-+		if (retval) {
-+			dev_err(q->dev, "mmap: insert failed with error %d\n",
-+				retval);
-+			__videobuf_dc_free(q->dev, mem);
-+			goto error;
-+		}
-+		start += PAGE_SIZE;
-+		pos += PAGE_SIZE;
-+
-+		if (size > PAGE_SIZE)
-+			size -= PAGE_SIZE;
-+		else
-+			size = 0;
- 	}
- 
--	vma->vm_ops          = &videobuf_vm_ops;
--	vma->vm_flags       |= VM_DONTEXPAND;
-+	vma->vm_ops = &videobuf_vm_ops;
-+	vma->vm_flags |= VM_DONTEXPAND;
- 	vma->vm_private_data = map;
- 
- 	dev_dbg(q->dev, "mmap %p: q=%p %08lx-%08lx (%lx) pgoff %08lx buf %d\n",
- 		map, q, vma->vm_start, vma->vm_end,
--		(long int)buf->bsize,
--		vma->vm_pgoff, buf->i);
-+		(long int)buf->bsize, vma->vm_pgoff, buf->i);
- 
- 	videobuf_vm_open(vma);
- 
-@@ -328,12 +405,20 @@ error:
- }
- 
- static struct videobuf_qtype_ops qops = {
--	.magic        = MAGIC_QTYPE_OPS,
-+	.magic		= MAGIC_QTYPE_OPS,
-+	.alloc_vb	= __videobuf_alloc_uncached,
-+	.iolock		= __videobuf_iolock,
-+	.mmap_mapper	= __videobuf_mmap_mapper,
-+	.vaddr		= __videobuf_to_vaddr,
-+};
- 
--	.alloc_vb     = __videobuf_alloc_vb,
--	.iolock       = __videobuf_iolock,
--	.mmap_mapper  = __videobuf_mmap_mapper,
--	.vaddr        = __videobuf_to_vaddr,
-+static struct videobuf_qtype_ops qops_cached = {
-+	.magic		= MAGIC_QTYPE_OPS,
-+	.alloc_vb	= __videobuf_alloc_cached,
-+	.iolock		= __videobuf_iolock,
-+	.sync		= __videobuf_sync,
-+	.mmap_mapper	= __videobuf_mmap_mapper,
-+	.vaddr		= __videobuf_to_vaddr,
- };
- 
- void videobuf_queue_dma_contig_init(struct videobuf_queue *q,
-@@ -351,6 +436,20 @@ void videobuf_queue_dma_contig_init(struct videobuf_queue *q,
- }
- EXPORT_SYMBOL_GPL(videobuf_queue_dma_contig_init);
- 
-+void videobuf_queue_dma_contig_init_cached(struct videobuf_queue *q,
-+					   const struct videobuf_queue_ops *ops,
-+					   struct device *dev,
-+					   spinlock_t *irqlock,
-+					   enum v4l2_buf_type type,
-+					   enum v4l2_field field,
-+					   unsigned int msize,
-+					   void *priv, struct mutex *ext_lock)
-+{
-+	videobuf_queue_core_init(q, ops, dev, irqlock, type, field, msize,
-+				 priv, &qops_cached, ext_lock);
-+}
-+EXPORT_SYMBOL_GPL(videobuf_queue_dma_contig_init_cached);
-+
- dma_addr_t videobuf_to_dma_contig(struct videobuf_buffer *buf)
- {
- 	struct videobuf_dma_contig_memory *mem = buf->priv;
-@@ -389,7 +488,7 @@ void videobuf_dma_contig_free(struct videobuf_queue *q,
- 
- 	/* read() method */
- 	if (mem->vaddr) {
--		dma_free_coherent(q->dev, mem->size, mem->vaddr, mem->dma_handle);
-+		__videobuf_dc_free(q->dev, mem);
- 		mem->vaddr = NULL;
- 	}
- }
-diff --git a/include/media/videobuf-dma-contig.h b/include/media/videobuf-dma-contig.h
-index f0ed825..f473aeb 100644
---- a/include/media/videobuf-dma-contig.h
-+++ b/include/media/videobuf-dma-contig.h
-@@ -26,6 +26,16 @@ void videobuf_queue_dma_contig_init(struct videobuf_queue *q,
- 				    void *priv,
- 				    struct mutex *ext_lock);
- 
-+void videobuf_queue_dma_contig_init_cached(struct videobuf_queue *q,
-+					   const struct videobuf_queue_ops *ops,
-+					   struct device *dev,
-+					   spinlock_t *irqlock,
-+					   enum v4l2_buf_type type,
-+					   enum v4l2_field field,
-+					   unsigned int msize,
-+					   void *priv,
-+					   struct mutex *ext_lock);
-+
- dma_addr_t videobuf_to_dma_contig(struct videobuf_buffer *buf);
- void videobuf_dma_contig_free(struct videobuf_queue *q,
- 			      struct videobuf_buffer *buf);
+ /* FM Modulator class control IDs */
+ #define V4L2_CID_FM_TX_CLASS_BASE		(V4L2_CTRL_CLASS_FM_TX | 0x900)
+ #define V4L2_CID_FM_TX_CLASS			(V4L2_CTRL_CLASS_FM_TX | 1)
 -- 
-1.7.7.6
+1.7.10
 
