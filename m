@@ -1,96 +1,136 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout-de.gmx.net ([213.165.64.22]:42882 "HELO
-	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751656Ab2DBRCo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Apr 2012 13:02:44 -0400
-From: "Hans-Frieder Vogt" <hfvogt@gmx.net>
-To: Antti Palosaari <crope@iki.fi>
-Subject: Re: [PATCH][GIT PULL FOR 3.5] AF9035/AF9033/TUA9001 support for AverTV A867R (mxl5007t), version 2
-Date: Mon, 2 Apr 2012 19:02:37 +0200
-Cc: linux-media@vger.kernel.org
-References: <4F75A7FE.8090405@iki.fi> <201204012307.31742.hfvogt@gmx.net> <4F78C957.2080102@iki.fi>
-In-Reply-To: <4F78C957.2080102@iki.fi>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201204021902.37469.hfvogt@gmx.net>
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:60154 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932192Ab2DQKKP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Apr 2012 06:10:15 -0400
+Received: from euspt2 (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0M2M005QQC8MZN@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 17 Apr 2012 11:09:59 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0M2M009DAC8OYG@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 17 Apr 2012 11:10:00 +0100 (BST)
+Date: Tue, 17 Apr 2012 12:09:53 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH 12/15] V4L: Add auto focus targets to the subdev selections API
+In-reply-to: <1334657396-5737-1-git-send-email-s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
+	g.liakhovetski@gmx.de, hdegoede@redhat.com, moinejf@free.fr,
+	m.szyprowski@samsung.com, riverful.kim@samsung.com,
+	sw0312.kim@samsung.com, s.nawrocki@samsung.com,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Message-id: <1334657396-5737-13-git-send-email-s.nawrocki@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1334657396-5737-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Antti,
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ Documentation/DocBook/media/v4l/dev-subdev.xml     |   27 +++++++++++++++++++-
+ .../media/v4l/vidioc-subdev-g-selection.xml        |   14 ++++++++--
+ include/linux/v4l2-subdev.h                        |    4 +++
+ 3 files changed, 42 insertions(+), 3 deletions(-)
 
-I am currently working with a simple standalone test environment and therefore 
-have manually (!) included the paths. Well, this went terribly wrong... Sorry.
+diff --git a/Documentation/DocBook/media/v4l/dev-subdev.xml b/Documentation/DocBook/media/v4l/dev-subdev.xml
+index 4afcbbe..8a212c4 100644
+--- a/Documentation/DocBook/media/v4l/dev-subdev.xml
++++ b/Documentation/DocBook/media/v4l/dev-subdev.xml
+@@ -277,7 +277,7 @@
+     </section>
+ 
+     <section>
+-      <title>Selections: cropping, scaling and composition</title>
++      <title>Selections - cropping, scaling and composition</title>
+ 
+       <para>Many sub-devices support cropping frames on their input or output
+       pads (or possible even on both). Cropping is used to select the area of
+@@ -330,6 +330,31 @@
+     </section>
+ 
+     <section>
++      <title>Selections - regions of interest</title>
++    <section>
++      <title>Automatic focus</title>
++
++      <para>The camera automatic focus algorithms may require configuration
++      of a region or multiple regions of interest in form of rectangle or spot
++      coordinates.</para>
++
++      <para>A single rectangle of interest is represented in &v4l2-rect;
++      by the coordinates of the top left corner and the rectangle size. Both
++      the coordinates and sizes are expressed in pixels. When the <structfield>
++      width</structfield> and <structfield>height</structfield> fields of
++      &v4l2-rect; are set to 0 the selection determines spot coordinates,
++      rather than a rectangle.</para>
++
++      <para>Auto focus rectangles are reset to their default values when the
++      output image format is modified. Drivers should use the output image size
++      as the auto focus rectangle default value, but hardware requirements may
++      prevent this.
++      </para>
++      <para>The auto focus selections on input pads are not defined.</para>
++    </section>
++    </section>
++
++    <section>
+       <title>Types of selection targets</title>
+ 
+       <section>
+diff --git a/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml b/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml
+index 208e9f0..c4ccae5 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml
+@@ -57,8 +57,8 @@
+ 
+     <para>The selections are used to configure various image
+     processing functionality performed by the subdevs which affect the
+-    image size. This currently includes cropping, scaling and
+-    composition.</para>
++    image size. This currently includes cropping, scaling, composition
++    and automatic focus regions of interest.</para>
+ 
+     <para>The selection API replaces <link
+     linkend="vidioc-subdev-g-crop">the old subdev crop API</link>. All
+@@ -114,6 +114,16 @@
+ 	    <entry>0x0102</entry>
+ 	    <entry>Bounds of the compose rectangle.</entry>
+ 	  </row>
++	  <row>
++	    <entry><constant>V4L2_SUBDEV_SEL_TGT_AUTO_FOCUS_BOUNDS</constant></entry>
++	    <entry>0x1000</entry>
++	    <entry>Bounds of the automatic focus region of interest.</entry>
++	  </row>
++	  <row>
++	    <entry><constant>V4L2_SUBDEV_SEL_TGT_AUTO_FOCUS_ACTUAL</constant></entry>
++	    <entry>0x1001</entry>
++	    <entry>Actual automatic focus rectangle or spot coordinates.</entry>
++	  </row>
+ 	</tbody>
+       </tgroup>
+     </table>
+diff --git a/include/linux/v4l2-subdev.h b/include/linux/v4l2-subdev.h
+index 812019e..49b1f14 100644
+--- a/include/linux/v4l2-subdev.h
++++ b/include/linux/v4l2-subdev.h
+@@ -136,6 +136,10 @@ struct v4l2_subdev_frame_interval_enum {
+ /* composing bounds */
+ #define V4L2_SUBDEV_SEL_TGT_COMPOSE_BOUNDS		0x0102
+ 
++/* auto focus region of interest */
++#define V4L2_SUBDEV_SEL_TGT_AUTO_FOCUS_ACTUAL		0x1000
++/* auto focus region (spot coordinates) bounds */
++#define V4L2_SUBDEV_SEL_TGT_AUTO_FOCUS_BOUNDS		0x1001
+ 
+ /**
+  * struct v4l2_subdev_selection - selection info
+-- 
+1.7.10
 
-Am Sonntag, 1. April 2012 schrieb Antti Palosaari:
-> On 02.04.2012 00:07, Hans-Frieder Vogt wrote:
-> > Support of AVerMedia AVerTV HD Volar, with tuner MxL5007t, second version
-> > of patch (usage of clock_adc_lut instead of adc config variable)
-> > 
-> > Signed-off-by: Hans-Frieder Vogt<hfvogt@gmx.net>
-> 
-> Patch does not apply.
-> wget -O - http://patchwork.linuxtv.org/patch/10536/mbox/ | git am -s
-> [...]
-> Applying: AF9035/AF9033/TUA9001 support for AverTV A867R (mxl5007t),
-> version 2
-> error: drivers/media/dvb/dvb-usb/af9033.c: does not exist in index
-> error: drivers/media/dvb/dvb-usb/af9033.h: does not exist in index
-> error: drivers/media/dvb/dvb-usb/af9033_priv.h: does not exist in index
-> 
-> How is it possible you have the af9033 demod driver inside dvb-usb
-> directory? Demod drivers are inside drivers/media/dvb/frontends/. DVB
-> USB interface drivers are inside drivers/media/dvb/dvb-usb/.
-> 
-> Now it looks still much better than first version.
-> 
-> Here are still some comments of quick visual review:
-> > +		for (i = 0; i<  ARRAY_SIZE(clock_adc_lut); i++) {
-> > +			if (clock_adc_lut[i].clock == state->cfg.clock)
-> > +				break;
-> > +		}
-> > +		if (i>= ARRAY_SIZE(clock_adc_lut)) {
-> > +			ret = -EINVAL;
-> > +			goto err;
-> > +		}
-I included this as a sanity check. It should not be needed if it can be 
-ensured that the lookup tables clock_lut (in af9035.h) and clock_adc_lut (in 
-af9033_priv.h) always contain the same Xtal frequencies. Maybe these two 
-tables coule be merged...
-
-> That error check is useless in my understanding. It is never taken.
-> Likely some Kernel semantic error checker will report it later...
-> 
-> > +		adc_freq = clock_adc_lut[i].adc;
-> > 
-> > 
-> > -	for (i = 0; i<  af9035_properties[0].num_adapters; i++)
-> > +	for (i = 0; i<  af9035_properties[0].num_adapters; i++) {
-> > 
-> >   		af9035_af9033_config[i].clock = clock_lut[tmp];
-> > 
-> > +	}
-> 
-> No braces allowed here as it is single line. You did not ran
-> checkpatch.pl as it will report those.
-> 
-> Hans-Frieder, fix those findings and remember ran also Kernel
-> checkpatch.pl - it may report some more findings.
-> 
-> You can ran it like that:
-> git diff drivers/media/dvb/frontends/af9033.c | ./scripts/checkpatch.pl -
-> 
-thanks very much. I'll send an updated patch soon...
-
-> Or if you have already added those files as git add then you can:
-> git diff --cached | ./scripts/checkpatch.pl -
-> 
-> Good work still! Next try should be OK :)
-> 
-> regards
-> Antti
-
-regards,
-
-Hans-Frieder Vogt                       e-mail: hfvogt <at> gmx .dot. net
