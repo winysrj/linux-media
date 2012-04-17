@@ -1,124 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fallback2.mail.ru ([94.100.176.87]:58081 "EHLO
-	fallback2.mail.ru" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751567Ab2DUNKx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 21 Apr 2012 09:10:53 -0400
-Date: Sat, 21 Apr 2012 17:04:03 +0400
-From: my84@bk.ru
-To: my84@bk.ru
-Subject: [PATCH] [Trivial] staging: go7007: Framesizes features
-Cc: linux-kernel@vger.kernel.org, devel@driverdev.osuosl.org,
-	linux-media@vger.kernel.org, justinmattock@gmail.com,
-	dhowells@redhat.com, gregkh@linuxfoundation.org,
-	mchehab@infradead.org
-Message-ID: <4f92b043.xYYL+7fcNMQk08OJ%my84@bk.ru>
+Received: from 7of9.schinagl.nl ([88.159.158.68]:59891 "EHLO 7of9.schinagl.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932338Ab2DQNo7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Apr 2012 09:44:59 -0400
+Message-ID: <4F8D73D4.70509@schinagl.nl>
+Date: Tue, 17 Apr 2012 15:44:52 +0200
+From: Oliver Schinagl <oliver+list@schinagl.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+To: Anssi Hannula <anssi.hannula@iki.fi>
+CC: Florian Fainelli <f.fainelli@gmail.com>,
+	linux-media@vger.kernel.org, marbugge@cisco.com, hverkuil@cisco.com
+Subject: Re: [RFC] HDMI-CEC proposal
+References: <4F86F3A6.9040305@gmail.com> <4F873CE7.4040401@schinagl.nl> <4F8D70A7.4050105@iki.fi>
+In-Reply-To: <4F8D70A7.4050105@iki.fi>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Yes, the library to talk to the device is opensource, the hardware, not 
+so much. :)
 
-Correct framesizes
-
-Signed-off-by Volokh Konstantin <my84@bk.ru>
----
- drivers/staging/media/go7007/go7007-v4l2.c |   79 +++++++++++++++++++++++++++-
- 1 files changed, 77 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/staging/media/go7007/go7007-v4l2.c b/drivers/staging/media/go7007/go7007-v4l2.c
-index 3ef4cd8..4759441 100644
---- a/drivers/staging/media/go7007/go7007-v4l2.c
-+++ b/drivers/staging/media/go7007/go7007-v4l2.c
-@@ -1065,10 +1065,85 @@ static int vidioc_enum_framesizes(struct file *filp, void *priv,
- 	struct go7007 *go = ((struct go7007_file *) priv)->go;
- 
- 	/* Return -EINVAL, if it is a TV board */
--	if ((go->board_info->flags & GO7007_BOARD_HAS_TUNER) ||
--	    (go->board_info->sensor_flags & GO7007_SENSOR_TV))
-+	if (go->board_info->flags & GO7007_BOARD_HAS_TUNER)
- 		return -EINVAL;
- 
-+	if (go->board_info->sensor_flags & GO7007_SENSOR_TV) {
-+		switch (go->standard) {
-+		case GO7007_STD_NTSC:
-+			switch (fsize->pixel_format) {
-+			case V4L2_PIX_FMT_MJPEG:
-+			case V4L2_PIX_FMT_MPEG:
-+			case V4L2_PIX_FMT_H263:
-+				switch (fsize->index) {
-+				case 0:
-+					fsize->type = V4L2_FRMSIZE_TYPE_DISCRETE;
-+					fsize->discrete.width = 720;
-+					fsize->discrete.height = 480;
-+					break;
-+				case 1:
-+					fsize->type = V4L2_FRMSIZE_TYPE_DISCRETE;
-+					fsize->discrete.width = 640;
-+					fsize->discrete.height = 480;
-+					break;
-+				case 2:
-+					fsize->type = V4L2_FRMSIZE_TYPE_DISCRETE;
-+					fsize->discrete.width = 352;
-+					fsize->discrete.height = 240;
-+					break;
-+				case 3:
-+					fsize->type = V4L2_FRMSIZE_TYPE_DISCRETE;
-+					fsize->discrete.width = 320;
-+					fsize->discrete.height = 240;
-+					break;
-+				case 4:
-+					fsize->type = V4L2_FRMSIZE_TYPE_DISCRETE;
-+					fsize->discrete.width = 176;
-+					fsize->discrete.height = 112;
-+					break;
-+				default:
-+					return -EINVAL;
-+				}
-+				break;
-+			default:
-+				return -EINVAL;
-+			}
-+			break;
-+		case GO7007_STD_PAL:
-+			switch (fsize->pixel_format) {
-+			case V4L2_PIX_FMT_MJPEG:
-+			case V4L2_PIX_FMT_MPEG:
-+			case V4L2_PIX_FMT_H263:
-+				switch (fsize->index) {
-+				case 0:
-+					fsize->type = V4L2_FRMSIZE_TYPE_DISCRETE;
-+					fsize->discrete.width = 720;
-+					fsize->discrete.height = 576;
-+					break;
-+				case 1:
-+					fsize->type = V4L2_FRMSIZE_TYPE_DISCRETE;
-+					fsize->discrete.width = 352;
-+					fsize->discrete.height = 288;
-+					break;
-+				case 2:
-+					fsize->type = V4L2_FRMSIZE_TYPE_DISCRETE;
-+					fsize->discrete.width = 176;
-+					fsize->discrete.height = 144;
-+					break;
-+				default:
-+					return -EINVAL;
-+				}
-+				break;
-+			default:
-+				return -EINVAL;
-+			}
-+			break;
-+		default:
-+			return -EINVAL;
-+		}
-+		return 0;
-+	}
-+
- 	if (fsize->index > 0)
- 		return -EINVAL;
- 
--- 
-1.7.7.6
+On 17-04-12 15:31, Anssi Hannula wrote:
+> 12.04.2012 23:36, Oliver Schinagl kirjoitti:
+>> Since a lot of video cards dont' support CEC at all (not even
+>> connected), don't have hdmi, but work perfectly fine with dvi->hdmi
+>> adapters, CEC can be implemented in many other ways (think media centers)
+>>
+>> One such exammple is using USB/Arduino
+>>
+>> http://code.google.com/p/cec-arduino/wiki/ElectricalInterface
+>>
+>> Having an AVR with v-usb code and cec code doesn't look all that hard
+>> nor impossible, so one could simply have a USB plug on one end, and an
+>> HDMI plug on the other end, utilizing only the CEC pins.
+>>
+>> This would make it more something like LIRC if anything.
+> There already exists a device like this (USB CEC adapter with hdmi
+> in/out) with open source userspace driver, developed for the XBMC Media
+> Center (apparently MythTV is also supported):
+>
+> http://www.pulse-eight.com/store/products/104-usb-hdmi-cec-adapter.aspx
+> http://libcec.pulse-eight.com/
+> https://github.com/Pulse-Eight/libcec
+>
 
