@@ -1,85 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qa0-f42.google.com ([209.85.216.42]:37863 "EHLO
-	mail-qa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752129Ab2DIVQD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Apr 2012 17:16:03 -0400
-From: Xi Wang <xi.wang@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Xi Wang <xi.wang@gmail.com>
-Subject: [PATCH] [media] zoran: fix integer overflow in setup_window()
-Date: Mon,  9 Apr 2012 17:15:45 -0400
-Message-Id: <1334006145-31859-1-git-send-email-xi.wang@gmail.com>
+Received: from mailout-de.gmx.net ([213.165.64.23]:49742 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751410Ab2DQRBN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Apr 2012 13:01:13 -0400
+From: Nils Kassube <kassube@gmx.net>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+Subject: [Patch] bttv: Enable radio if the card description has no radio flag but the tuner has FM
+Date: Tue, 17 Apr 2012 19:00:38 +0200
+MIME-Version: 1.0
+Message-Id: <201204171900.38809.kassube@gmx.net>
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-`clipcount' is from userspace and thus needs validation.  Otherwise,
-a large `clipcount' could overflow the vmalloc() size, leading to
-out-of-bounds access.
+Some bttv cards (e.g. card=24) have a tuner which can receive FM radio 
+but the card description doesn't have the has_radio flag set, because 
+the description is used for cards with and without FM capability. The 
+function bttv_init_tuner can detect the tuner either automatically or by 
+insmod option. However the original code only partly uses the detected 
+tuner capabilities. While the radio device node is created, the device 
+is not usable due to the wrong mode_mask. This patch uses the has_radio 
+flag from the detected tuner instead of the card description.
 
-| setup_window()
-| zoran_s_fmt_vid_overlay()
-| __video_do_ioctl()
-| video_ioctl2()
+Signed-off-by: Nils Kassube <kassube@gmx.net>
 
-Use 2048 as the maximum `clipcount'.  Also change the corresponding
-parameter type to `unsigned int'.
-
-Signed-off-by: Xi Wang <xi.wang@gmail.com>
----
-The upper bound `2048' is from get_v4l2_window32() in
-drivers/media/video/v4l2-ioctl.c.
-
-bt8xx and saa7134 also use the bound for `clipcount'.
----
- drivers/media/video/zoran/zoran_driver.c |   20 +++++++++++++++++---
- 1 files changed, 17 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/media/video/zoran/zoran_driver.c b/drivers/media/video/zoran/zoran_driver.c
-index 4c09ab7..c573109 100644
---- a/drivers/media/video/zoran/zoran_driver.c
-+++ b/drivers/media/video/zoran/zoran_driver.c
-@@ -1131,8 +1131,14 @@ static int setup_fbuffer(struct zoran_fh *fh,
- }
+--- media_build/linux/drivers/media/video/bt8xx/bttv-cards.c.orig	
+2012-04-17 15:17:55.000000000 +0200
++++ media_build/linux/drivers/media/video/bt8xx/bttv-cards.c	
+2012-04-17 15:50:48.000000000 +0200
+@@ -3665,7 +3665,7 @@
+ 		tun_setup.type = btv->tuner_type;
+ 		tun_setup.addr = addr;
  
+-		if (bttv_tvcards[btv->c.type].has_radio)
++		if (btv->has_radio)
+ 			tun_setup.mode_mask |= T_RADIO;
  
--static int setup_window(struct zoran_fh *fh, int x, int y, int width, int height,
--	struct v4l2_clip __user *clips, int clipcount, void __user *bitmap)
-+static int setup_window(struct zoran_fh *fh,
-+			int x,
-+			int y,
-+			int width,
-+			int height,
-+			struct v4l2_clip __user *clips,
-+			unsigned int clipcount,
-+			void __user *bitmap)
- {
- 	struct zoran *zr = fh->zr;
- 	struct v4l2_clip *vcp = NULL;
-@@ -1155,6 +1161,14 @@ static int setup_window(struct zoran_fh *fh, int x, int y, int width, int height
- 		return -EINVAL;
- 	}
- 
-+	if (clipcount > 2048) {
-+		dprintk(1,
-+			KERN_ERR
-+			"%s: %s - invalid clipcount\n",
-+			 ZR_DEVNAME(zr), __func__);
-+		return -EINVAL;
-+	}
-+
- 	/*
- 	 * The video front end needs 4-byte alinged line sizes, we correct that
- 	 * silently here if necessary
-@@ -1218,7 +1232,7 @@ static int setup_window(struct zoran_fh *fh, int x, int y, int width, int height
- 				   (width * height + 7) / 8)) {
- 			return -EFAULT;
- 		}
--	} else if (clipcount > 0) {
-+	} else if (clipcount) {
- 		/* write our own bitmap from the clips */
- 		vcp = vmalloc(sizeof(struct v4l2_clip) * (clipcount + 4));
- 		if (vcp == NULL) {
--- 
-1.7.5.4
-
+ 		bttv_call_all(btv, tuner, s_type_addr, &tun_setup);
