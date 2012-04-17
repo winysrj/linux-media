@@ -1,63 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vb0-f46.google.com ([209.85.212.46]:63484 "EHLO
-	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754132Ab2D3AJV (ORCPT
+Received: from rcsinet15.oracle.com ([148.87.113.117]:49690 "EHLO
+	rcsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753070Ab2DQKdl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 29 Apr 2012 20:09:21 -0400
-Received: by vbbff1 with SMTP id ff1so1728490vbb.19
-        for <linux-media@vger.kernel.org>; Sun, 29 Apr 2012 17:09:19 -0700 (PDT)
+	Tue, 17 Apr 2012 06:33:41 -0400
+Date: Tue, 17 Apr 2012 13:33:30 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: crope@iki.fi
+Cc: linux-media@vger.kernel.org
+Subject: re: [media] tda10071: NXP TDA10071 DVB-S/S2 driver
+Message-ID: <20120417103330.GA13569@elgon.mountain>
 MIME-Version: 1.0
-In-Reply-To: <CAAMvbhH2o6SZVBU4D2dvUUVuOhtzLdO-R=TCuug7Y9hgZq2gmg@mail.gmail.com>
-References: <jn2ibp$pot$1@dough.gmane.org>
-	<1335307344.8218.11.camel@palomino.walls.org>
-	<jn7pph$qed$1@dough.gmane.org>
-	<1335624964.2665.37.camel@palomino.walls.org>
-	<4F9C38BE.3010301@interlinx.bc.ca>
-	<4F9C559E.6010208@interlinx.bc.ca>
-	<4F9C6D68.3090202@interlinx.bc.ca>
-	<CAAMvbhH2o6SZVBU4D2dvUUVuOhtzLdO-R=TCuug7Y9hgZq2gmg@mail.gmail.com>
-Date: Sun, 29 Apr 2012 20:09:19 -0400
-Message-ID: <CAGoCfiwB2jZfeZ2aSQ7FSG-k5XDGJY_ykLPSD3Y3rbrUXmuOdg@mail.gmail.com>
-Subject: Re: HVR-1600 QAM recordings with slight glitches in them
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: James Courtier-Dutton <james.dutton@gmail.com>
-Cc: "Brian J. Murrell" <brian@interlinx.bc.ca>, stoth@kernellabs.com,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Apr 29, 2012 at 4:27 PM, James Courtier-Dutton
-<james.dutton@gmail.com> wrote:
-> There are two measurements.
-> 1) SNR.
-> This is a measure of the quality of the signal. Bigger is better. 30dB is a
-> good value. Spliters and amplifiers should only slightly reduce the SNR
-> value.
+Hi Antti,
 
-30 dB for ClearQAM is actually a very marginal SNR.  It caps out at 40
-dB, and as Andy pointed out, it's a logarithmic scale.  On a good
-cable plant, you should expect an SNR between 35 and 40.  Anything
-below 32 and you're very likely to have significant error rates.
-Don't confuse it with Over-the-Air ATSC, which will typically cap out
-at 30.0 dB.
+Smatch complains about a potential information leak.  I was hoping you
+could take a look.
 
-I don't know why you're not seeing valid data on femon with the 950q.
-It should be printing out fine, and it's on the same 0.1 dB scale.
-Try running just azap and see if the SNR is reported there.
+The patch de8e42035014: "[media] tda10071: NXP TDA10071 DVB-S/S2 
+driver" from Aug 1, 2011, leads to the following warning:
+drivers/media/dvb/frontends/tda10071.c:322 
+tda10071_diseqc_send_master_cmd()
+	 error: memcpy() 'diseqc_cmd->msg' too small (6 vs 16)
 
-This indeed feels like a marginal signal condition problem, and Andy's
-assertion is well founded that the mxl5005/s5h1409 isn't exactly the
-best combo compared to more modern tuners and demodulators (Hauppauge
-switched to the tda18271 and s5h1411 for the newer revision of the
-HVR-1600).  The Linux driver support should be on-par with Windows
-though in terms of performance as I did a bunch of work some time back
-to analyze the differences which resulted in some fixes.
 
-Cheers,
+drivers/media/dvb/frontends/tda10071.c
+   290          if (diseqc_cmd->msg_len < 3 || diseqc_cmd->msg_len > 16) {
+                                               ^^^^^^^^^^^^^^^^^^^^^^^^
+We cap ->msg_len at 16 here.  I wasn't able to figure out where the 16
+came from.  Or the 3 for that matter.
 
-Devin
+   291                  ret = -EINVAL;
+   292                  goto error;
+   293          }
+   294  
+   295          /* wait LNB TX */
+   296          for (i = 500, tmp = 0; i && !tmp; i--) {
+   297                  ret = tda10071_rd_reg_mask(priv, 0x47, &tmp, 0x01);
+   298                  if (ret)
+   299                          goto error;
+   300  
+   301                  usleep_range(10000, 20000);
+   302          }
+   303  
+   304          dbg("%s: loop=%d", __func__, i);
+   305  
+   306          if (i == 0) {
+   307                  ret = -ETIMEDOUT;
+   308                  goto error;
+   309          }
+   310  
+   311          ret = tda10071_wr_reg_mask(priv, 0x47, 0x00, 0x01);
+   312          if (ret)
+   313                  goto error;
+   314  
+   315          cmd.args[0x00] = CMD_LNB_SEND_DISEQC;
+   316          cmd.args[0x01] = 0;
+   317          cmd.args[0x02] = 0;
+   318          cmd.args[0x03] = 0;
+   319          cmd.args[0x04] = 2;
+   320          cmd.args[0x05] = 0;
+   321          cmd.args[0x06] = diseqc_cmd->msg_len;
+   322          memcpy(&cmd.args[0x07], diseqc_cmd->msg, diseqc_cmd->msg_len);
+                                        ^^^^^^^^^^^^^^^
+->msg is only 6 bytes long so we're copying past the end of the array.
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Also cmd.arg is 0x1e (30) bytes long and we only copy 0x07 + 16 bytes
+into it so it leaves the last 7 bytes of cmd.args unitialized.  Btw,
+why are the sizes specified in hex instead of decimal here?
+
+   323          cmd.len = 0x07 + diseqc_cmd->msg_len;
+
+regards,
+dan carpenter
+
