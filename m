@@ -1,55 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from swampdragon.chaosbits.net ([90.184.90.115]:20802 "EHLO
-	swampdragon.chaosbits.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751701Ab2DIUuF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Apr 2012 16:50:05 -0400
-Date: Mon, 9 Apr 2012 22:50:04 +0200 (CEST)
-From: Jesper Juhl <jj@chaosbits.net>
-To: linux-kernel@vger.kernel.org
-cc: trivial@kernel.org, linux-media@vger.kernel.org,
-	Greg Kroah-Hartman <gregkh@suse.de>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Dan Carpenter <dan.carpenter@oracle.com>,
-	Dean Anderson <linux-dev@sensoray.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 03/26] [media] s2255drv: Remove redundant NULL test before
- release_firmware()
-In-Reply-To: <alpine.LNX.2.00.1204092157340.13925@swampdragon.chaosbits.net>
-Message-ID: <alpine.LNX.2.00.1204092206300.13925@swampdragon.chaosbits.net>
-References: <alpine.LNX.2.00.1204092157340.13925@swampdragon.chaosbits.net>
+Received: from mx1.redhat.com ([209.132.183.28]:65142 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755832Ab2DQQEu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Apr 2012 12:04:50 -0400
+Message-ID: <4F8D9457.2080900@redhat.com>
+Date: Tue, 17 Apr 2012 13:03:35 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Jesper Juhl <jj@chaosbits.net>
+CC: linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Randy Dunlap <rdunlap@xenotime.net>, trivial@kernel.org,
+	kjsisson@bellsouth.net, Ben Dooks <ben-linux@fluff.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Ben Dooks <ben@simtec.co.uk>, Jaroslav Kysela <perex@perex.cz>,
+	Takashi Iwai <tiwai@suse.de>, Andy Lutomirski <luto@mit.edu>,
+	"H. Peter Anvin" <hpa@linux.intel.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Josua Dietze <digidietze@draisberghof.de>,
+	Andiry Xu <andiry.xu@amd.com>,
+	Matthew Garrett <mjg@redhat.com>,
+	Sarah Sharp <sarah.a.sharp@linux.intel.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Mike Frysinger <vapier@gentoo.org>,
+	Michael Hennerich <michael.hennerich@analog.com>,
+	linux-media@vger.kernel.org, alsa-devel@alsa-project.org
+Subject: Re: [PATCH] [Trivial] Documentation: Add newline at end-of-file to
+ files lacking one
+References: <alpine.LNX.2.00.1204162329190.21898@swampdragon.chaosbits.net>
+In-Reply-To: <alpine.LNX.2.00.1204162329190.21898@swampdragon.chaosbits.net>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-release_firmware() tests for NULL pointers on its own - there's no
-reason to do an explicit check before calling the function.
+Em 16-04-2012 18:35, Jesper Juhl escreveu:
+> This patch simply adds a newline character at end-of-file to those
+> files in Documentation/ that currently lack one.
+> 
+> This is done for a few different reasons:
+> 
+> A) It's rather annoying when you do "cat some_file.txt" that your
+>    prompt/cursor ends up at the end of the last line of output rather
+>    than on a new line.
+> 
+> B) Some tools that process files line-by-line may get confused by the
+>    lack of a newline on the last line.
+> 
+> C) The "\ No newline at end of file" line in diffs annoys me for some
+>    reason.
+> 
+> So, let's just add the missing newline once and for all.
+> 
+> Signed-off-by: Jesper Juhl <jj@chaosbits.net>
+> ---
 
-Signed-off-by: Jesper Juhl <jj@chaosbits.net>
----
- drivers/media/video/s2255drv.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+>  Documentation/dvb/opera-firmware.txt                           |    2 +-
+>  Documentation/video4linux/cpia2_overview.txt                   |    2 +-
+>  Documentation/video4linux/stv680.txt                           |    2 +-
 
-diff --git a/drivers/media/video/s2255drv.c b/drivers/media/video/s2255drv.c
-index 4894cbb..37845de 100644
---- a/drivers/media/video/s2255drv.c
-+++ b/drivers/media/video/s2255drv.c
-@@ -1826,8 +1826,7 @@ static void s2255_destroy(struct s2255_dev *dev)
- 		usb_free_urb(dev->fw_data->fw_urb);
- 		dev->fw_data->fw_urb = NULL;
- 	}
--	if (dev->fw_data->fw)
--		release_firmware(dev->fw_data->fw);
-+	release_firmware(dev->fw_data->fw);
- 	kfree(dev->fw_data->pfw_data);
- 	kfree(dev->fw_data);
- 	/* reset the DSP so firmware can be reloaded next time */
--- 
-1.7.10
-
-
--- 
-Jesper Juhl <jj@chaosbits.net>       http://www.chaosbits.net/
-Don't top-post http://www.catb.org/jargon/html/T/top-post.html
-Plain text mails only, please.
-
+Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
