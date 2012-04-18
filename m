@@ -1,173 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:49906 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754810Ab2DCOKf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Apr 2012 10:10:35 -0400
-Date: Tue, 03 Apr 2012 16:10:17 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCHv24 12/16] mm: trigger page reclaim in alloc_contig_range() to
- stabilise watermarks
-In-reply-to: <1333462221-3987-1-git-send-email-m.szyprowski@samsung.com>
-To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org
-Cc: Michal Nazarewicz <mina86@mina86.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
-	Jesse Barker <jesse.barker@linaro.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Chunsang Jeong <chunsang.jeong@linaro.org>,
-	Dave Hansen <dave@linux.vnet.ibm.com>,
-	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-	Rob Clark <rob.clark@linaro.org>,
-	Ohad Ben-Cohen <ohad@wizery.com>,
-	Sandeep Patil <psandeep.s@gmail.com>
-Message-id: <1333462221-3987-13-git-send-email-m.szyprowski@samsung.com>
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:40287 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751202Ab2DRJBN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 18 Apr 2012 05:01:13 -0400
 MIME-version: 1.0
-Content-type: TEXT/PLAIN
 Content-transfer-encoding: 7BIT
-References: <1333462221-3987-1-git-send-email-m.szyprowski@samsung.com>
+Content-type: text/plain; charset=ISO-8859-1
+Received: from euspt2 ([210.118.77.14]) by mailout4.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0M2O0053K3Q7HB90@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 18 Apr 2012 10:01:19 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0M2O00L3U3PW9R@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 18 Apr 2012 10:01:09 +0100 (BST)
+Date: Wed, 18 Apr 2012 11:01:10 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: [PATCH 10/15] V4L: Add camera 3A lock control
+In-reply-to: <20120417160920.GG5356@valkosipuli.localdomain>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	g.liakhovetski@gmx.de, hdegoede@redhat.com, moinejf@free.fr,
+	m.szyprowski@samsung.com, riverful.kim@samsung.com,
+	sw0312.kim@samsung.com, Kyungmin Park <kyungmin.park@samsung.com>
+Message-id: <4F8E82D6.8060008@samsung.com>
+References: <1334657396-5737-1-git-send-email-s.nawrocki@samsung.com>
+ <1334657396-5737-11-git-send-email-s.nawrocki@samsung.com>
+ <20120417160920.GG5356@valkosipuli.localdomain>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-alloc_contig_range() performs memory allocation so it also should keep
-track on keeping the correct level of memory watermarks. This commit adds
-a call to *_slowpath style reclaim to grab enough pages to make sure that
-the final collection of contiguous pages from freelists will not starve
-the system.
+Hi Sakari,
 
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-CC: Michal Nazarewicz <mina86@mina86.com>
-Tested-by: Rob Clark <rob.clark@linaro.org>
-Tested-by: Ohad Ben-Cohen <ohad@wizery.com>
-Tested-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Tested-by: Robert Nelson <robertcnelson@gmail.com>
-Tested-by: Barry Song <Baohua.Song@csr.com>
----
- include/linux/mmzone.h |    9 +++++++
- mm/page_alloc.c        |   60 ++++++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 69 insertions(+), 0 deletions(-)
+On 04/17/2012 06:09 PM, Sakari Ailus wrote:
+> Hi Sylwester,
+> 
+> On Tue, Apr 17, 2012 at 12:09:51PM +0200, Sylwester Nawrocki wrote:
+>> The V4L2_CID_3A_LOCK bitmask control allows applications to pause
+>> or resume the automatic exposure, focus and wite balance adjustments.
+>> It can be used, for example, to lock the 3A adjustments right before
+>> a still image is captured, for pre-focus, etc.
+>> The applications can control each of the algorithms independently,
+>> through a corresponding control bit, if driver allows that.
+> 
+> How is disabling e.g. focus algorithm different from locking focus?
 
-diff --git a/include/linux/mmzone.h b/include/linux/mmzone.h
-index 8c1335f..26f2040 100644
---- a/include/linux/mmzone.h
-+++ b/include/linux/mmzone.h
-@@ -63,8 +63,10 @@ enum {
- 
- #ifdef CONFIG_CMA
- #  define is_migrate_cma(migratetype) unlikely((migratetype) == MIGRATE_CMA)
-+#  define cma_wmark_pages(zone)	zone->min_cma_pages
- #else
- #  define is_migrate_cma(migratetype) false
-+#  define cma_wmark_pages(zone) 0
- #endif
- 
- #define for_each_migratetype_order(order, type) \
-@@ -371,6 +373,13 @@ struct zone {
- 	/* see spanned/present_pages for more description */
- 	seqlock_t		span_seqlock;
- #endif
-+#ifdef CONFIG_CMA
-+	/*
-+	 * CMA needs to increase watermark levels during the allocation
-+	 * process to make sure that the system is not starved.
-+	 */
-+	unsigned long		min_cma_pages;
-+#endif
- 	struct free_area	free_area[MAX_ORDER];
- 
- #ifndef CONFIG_SPARSEMEM
-diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index 5a90ada..17a5521 100644
---- a/mm/page_alloc.c
-+++ b/mm/page_alloc.c
-@@ -5079,6 +5079,11 @@ static void __setup_per_zone_wmarks(void)
- 
- 		zone->watermark[WMARK_LOW]  = min_wmark_pages(zone) + (tmp >> 2);
- 		zone->watermark[WMARK_HIGH] = min_wmark_pages(zone) + (tmp >> 1);
-+
-+		zone->watermark[WMARK_MIN] += cma_wmark_pages(zone);
-+		zone->watermark[WMARK_LOW] += cma_wmark_pages(zone);
-+		zone->watermark[WMARK_HIGH] += cma_wmark_pages(zone);
-+
- 		setup_zone_migrate_reserve(zone);
- 		spin_unlock_irqrestore(&zone->lock, flags);
- 	}
-@@ -5684,6 +5689,54 @@ static int __alloc_contig_migrate_range(unsigned long start, unsigned long end)
- 	return ret > 0 ? 0 : ret;
- }
- 
-+/*
-+ * Update zone's cma pages counter used for watermark level calculation.
-+ */
-+static inline void __update_cma_watermarks(struct zone *zone, int count)
-+{
-+	unsigned long flags;
-+	spin_lock_irqsave(&zone->lock, flags);
-+	zone->min_cma_pages += count;
-+	spin_unlock_irqrestore(&zone->lock, flags);
-+	setup_per_zone_wmarks();
-+}
-+
-+/*
-+ * Trigger memory pressure bump to reclaim some pages in order to be able to
-+ * allocate 'count' pages in single page units. Does similar work as
-+ *__alloc_pages_slowpath() function.
-+ */
-+static int __reclaim_pages(struct zone *zone, gfp_t gfp_mask, int count)
-+{
-+	enum zone_type high_zoneidx = gfp_zone(gfp_mask);
-+	struct zonelist *zonelist = node_zonelist(0, gfp_mask);
-+	int did_some_progress = 0;
-+	int order = 1;
-+
-+	/*
-+	 * Increase level of watermarks to force kswapd do his job
-+	 * to stabilise at new watermark level.
-+	 */
-+	__update_cma_watermarks(zone, count);
-+
-+	/* Obey watermarks as if the page was being allocated */
-+	while (!zone_watermark_ok(zone, 0, low_wmark_pages(zone), 0, 0)) {
-+		wake_all_kswapd(order, zonelist, high_zoneidx, zone_idx(zone));
-+
-+		did_some_progress = __perform_reclaim(gfp_mask, order, zonelist,
-+						      NULL);
-+		if (!did_some_progress) {
-+			/* Exhausted what can be done so it's blamo time */
-+			out_of_memory(zonelist, gfp_mask, order, NULL, false);
-+		}
-+	}
-+
-+	/* Restore original watermark levels. */
-+	__update_cma_watermarks(zone, -count);
-+
-+	return count;
-+}
-+
- /**
-  * alloc_contig_range() -- tries to allocate given range of pages
-  * @start:	start PFN to allocate
-@@ -5782,6 +5835,13 @@ int alloc_contig_range(unsigned long start, unsigned long end,
- 		goto done;
- 	}
- 
-+	/*
-+	 * Reclaim enough pages to make sure that contiguous allocation
-+	 * will not starve the system.
-+	 */
-+	__reclaim_pages(zone, GFP_HIGHUSER_MOVABLE, end-start);
-+
-+	/* Grab isolated pages from freelists. */
- 	outer_end = isolate_freepages_range(outer_start, end);
- 	if (!outer_end) {
- 		ret = -EBUSY;
--- 
-1.7.1.569.g6f426
+The difference looks quite obvious to me. When some AUTO control is
+switched from auto to manual mode there is no guarantee about the
+related parameters the device will end up. E.g. lens may be positioned
+into default position, rather than kept at current one, exposure might
+be set to manual value from before AE was enabled, etc.
 
+I've seen separate registers at the sensor interfaces for AE, AWB
+locking/unlocking and for disabling/enabling those algorithms.
+With the proposed control applications can be sure that, for example,
+exposure is retained when the V4L2_CID_3A_LOCK is set.
+
+Does it answer your question ?
+
+--
+Regards,
+Sylwester
