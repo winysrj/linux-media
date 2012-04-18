@@ -1,104 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:37457 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754093Ab2DWUL7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Apr 2012 16:11:59 -0400
-Date: Mon, 23 Apr 2012 16:11:31 -0400
-From: Jarod Wilson <jarod@redhat.com>
-To: Ravi Kumar V <kumarrav@codeaurora.org>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Anssi Hannula <anssi.hannula@iki.fi>,
-	"Juan J. Garcia de Soria" <skandalfo@gmail.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	tsoni@codeaurora.org, davidb@codeaurora.org, bryanh@codeaurora.org,
-	linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCH v3 1/1] rc: Add support for GPIO based IR Receiver driver.
-Message-ID: <20120423201131.GG31244@redhat.com>
-References: <1330408300-21939-1-git-send-email-kumarrav@codeaurora.org>
+Received: from mail-vx0-f174.google.com ([209.85.220.174]:59136 "EHLO
+	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753311Ab2DROU1 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 18 Apr 2012 10:20:27 -0400
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1330408300-21939-1-git-send-email-kumarrav@codeaurora.org>
+In-Reply-To: <201204181406.14159.arnd@arndb.de>
+References: <1334757146-28335-1-git-send-email-daniel.vetter@ffwll.ch>
+	<201204181406.14159.arnd@arndb.de>
+Date: Wed, 18 Apr 2012 09:20:26 -0500
+Message-ID: <CAF6AEGujx1oN-xoSduSxmZxWv-GmTyw2JCS3kpXSSGLDUgPM6A@mail.gmail.com>
+Subject: Re: [PATCH] dma-buf: mmap support
+From: Rob Clark <rob.clark@linaro.org>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>,
+	linaro-mm-sig@lists.linaro.org,
+	LKML <linux-kernel@vger.kernel.org>,
+	DRI Development <dri-devel@lists.freedesktop.org>,
+	linux-media@vger.kernel.org,
+	Rebecca Schultz Zavin <rebecca@android.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Feb 28, 2012 at 11:21:40AM +0530, Ravi Kumar V wrote:
-> Adds GPIO based IR Receiver driver. It decodes signals using decoders
-> available in rc framework.
+On Wed, Apr 18, 2012 at 9:06 AM, Arnd Bergmann <arnd@arndb.de> wrote:
+> On Wednesday 18 April 2012, Daniel Vetter wrote:
+>> +   Because existing importing subsystems might presume coherent mappings for
+>> +   userspace, the exporter needs to set up a coherent mapping. If that's not
+>> +   possible, it needs to fake coherency by manually shooting down ptes when
+>> +   leaving the cpu domain and flushing caches at fault time. Note that all the
+>> +   dma_buf files share the same anon inode, hence the exporter needs to replace
+>> +   the dma_buf file stored in vma->vm_file with it's own if pte shootdown is
+>> +   requred. This is because the kernel uses the underlying inode's address_space
+>> +   for vma tracking (and hence pte tracking at shootdown time with
+>> +   unmap_mapping_range).
+>> +
+>> +   If the above shootdown dance turns out to be too expensive in certain
+>> +   scenarios, we can extend dma-buf with a more explicit cache tracking scheme
+>> +   for userspace mappings. But the current assumption is that using mmap is
+>> +   always a slower path, so some inefficiencies should be acceptable.
+>> +
+>> +   Exporters that shoot down mappings (for any reasons) shall not do any
+>> +   synchronization at fault time with outstanding device operations.
+>> +   Synchronization is an orthogonal issue to sharing the backing storage of a
+>> +   buffer and hence should not be handled by dma-buf itself. This is explictly
+>> +   mentioned here because many people seem to want something like this, but if
+>> +   different exporters handle this differently, buffer sharing can fail in
+>> +   interesting ways depending upong the exporter (if userspace starts depending
+>> +   upon this implicit synchronization).
+>
+> How do you ensure that no device can do DMA on the buffer while it's mapped
+> into user space in a noncoherent manner?
 
-Been meaning to look at this, but it looks like its already merged
-upstream. Just one question though, inlined below.
+you do unmap_mapping_range() before DMA..
 
-> --- /dev/null
-> +++ b/drivers/media/rc/gpio-ir-recv.c
-> @@ -0,0 +1,205 @@
-> +/* Copyright (c) 2012, Code Aurora Forum. All rights reserved.
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 and
-> + * only version 2 as published by the Free Software Foundation.
-> + *
-> + * This program is distributed in the hope that it will be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + */
-> +
-> +#include <linux/kernel.h>
-> +#include <linux/init.h>
-> +#include <linux/module.h>
-> +#include <linux/interrupt.h>
-> +#include <linux/gpio.h>
-> +#include <linux/slab.h>
-> +#include <linux/platform_device.h>
-> +#include <linux/irq.h>
-> +#include <media/rc-core.h>
-> +#include <media/gpio-ir-recv.h>
-> +
-> +#define GPIO_IR_DRIVER_NAME	"gpio-rc-recv"
-> +#define GPIO_IR_DEVICE_NAME	"gpio_ir_recv"
-> +
-> +struct gpio_rc_dev {
-> +	struct rc_dev *rcdev;
-> +	unsigned int gpio_nr;
-> +	bool active_low;
-> +};
-> +
-> +static irqreturn_t gpio_ir_recv_irq(int irq, void *dev_id)
-> +{
-> +	struct gpio_rc_dev *gpio_dev = dev_id;
-> +	unsigned int gval;
-> +	int rc = 0;
-> +	enum raw_event_type type = IR_SPACE;
-> +
-> +	gval = gpio_get_value_cansleep(gpio_dev->gpio_nr);
-> +
-> +	if (gval < 0)
-> +		goto err_get_value;
-> +
-> +	if (gpio_dev->active_low)
-> +		gval = !gval;
-> +
-> +	if (gval == 1)
-> +		type = IR_PULSE;
+if you have userspace accessing buffer simultaneously with DMA then
+the results are undefined, as they always have been (even w/ uncached
+mappings)
 
-What happens if gval is > 1?
+BR,
+-R
 
-> +	rc = ir_raw_event_store_edge(gpio_dev->rcdev, type);
-> +	if (rc < 0)
-> +		goto err_get_value;
-> +
-> +	ir_raw_event_handle(gpio_dev->rcdev);
-> +
-> +err_get_value:
-> +	return IRQ_HANDLED;
-> +}
-
-Looks like you'll store a space any time you get gval > 1, which may or
-may not be intended here...
-
-
--- 
-Jarod Wilson
-jarod@redhat.com
-
+>
+>        Arnd
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
