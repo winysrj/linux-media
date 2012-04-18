@@ -1,51 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:37445 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753642Ab2D1NvJ convert rfc822-to-8bit (ORCPT
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:42250 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751771Ab2DREeD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 Apr 2012 09:51:09 -0400
-Received: by obbta14 with SMTP id ta14so2238491obb.19
-        for <linux-media@vger.kernel.org>; Sat, 28 Apr 2012 06:51:08 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <CALF0-+WaMObsjmpqF8akQwaizETsS2zg05yT5fcOTA5CT=wLJA@mail.gmail.com>
-References: <CALF0-+WaMObsjmpqF8akQwaizETsS2zg05yT5fcOTA5CT=wLJA@mail.gmail.com>
-Date: Sat, 28 Apr 2012 10:51:08 -0300
-Message-ID: <CALF0-+Xz8RkGkjSg8n45POLQKWpFUhsNQCPpth4NK9Svhc+4SA@mail.gmail.com>
-Subject: Re: video capture driver interlacing question (easycap)
-From: =?ISO-8859-1?Q?Ezequiel_Garc=EDa?= <elezegarcia@gmail.com>
-To: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Wed, 18 Apr 2012 00:34:03 -0400
+From: Marcos Paulo de Souza <marcos.souza.org@gmail.com>
+To: linux-kernel@vger.kernel.org
+Cc: Marcos Paulo de Souza <marcos.souza.org@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	<linux-media@vger.kernel.org>
+Subject: [PATCH 05/12] drivers: media: video: adp1653.c: Remove unneeded include of version.h
+Date: Wed, 18 Apr 2012 01:30:05 -0300
+Message-Id: <1334723412-5034-6-git-send-email-marcos.souza.org@gmail.com>
+In-Reply-To: <1334723412-5034-1-git-send-email-marcos.souza.org@gmail.com>
+References: <1334723412-5034-1-git-send-email-marcos.souza.org@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Apr 26, 2012 at 5:33 PM, Ezequiel García <elezegarcia@gmail.com> wrote:
-> Hi everyone,
->
-> As you may know I'm re-writing from scratch the staging/easycap driver.
->
-> Finally, after digging through the labyrinthic staging/easycap code,
-> I've reached a point where I'm able to understand isoc packets.
-> Despite not having any documentation (I asked several times) from chip vendor,
-> I can separate packets in odd and even.
->
-> So, instead of receiving frames the device is sending me fields, right?
->
-> My doubt now is this:
-> * Do I have to *merge* this pair of fields for each frame, or can I
-> give it to v4l?
-> If affirmative: how should I *merge* them?
-> * Is this related to multiplanar buffers (should I use vb2_plane_addr)?
->
-> Currently, staging/easycap does some strange and complex conversion,
-> from the pair of fields buffers, to get a "frame" buffer (!) but I'm
-> not sure if it's the correct way to do it?
->
-> I guess I can keep staring at em28xx (together with vivi/uvc/pwc) driver,
-> but if someone cares to give me a small hint or point me at a small portion
-> of code I'll be grateful.
->
-> Thanks,
-> Ezequiel.
+The output of "make versioncheck" told us that:
 
-Anyone?
+drivers/media/video/adp1653.c: 37 linux/version.h not needed.
+
+After we take a look at the code, we can afree to remove it.
+
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: <linux-media@vger.kernel.org>
+Signed-off-by: Marcos Paulo de Souza <marcos.souza.org@gmail.com>
+---
+ drivers/media/video/adp1653.c |    1 -
+ 1 files changed, 0 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/media/video/adp1653.c b/drivers/media/video/adp1653.c
+index 5b045b4..24afc99 100644
+--- a/drivers/media/video/adp1653.c
++++ b/drivers/media/video/adp1653.c
+@@ -34,7 +34,6 @@
+ #include <linux/module.h>
+ #include <linux/i2c.h>
+ #include <linux/slab.h>
+-#include <linux/version.h>
+ #include <media/adp1653.h>
+ #include <media/v4l2-device.h>
+ 
+-- 
+1.7.7.6
+
