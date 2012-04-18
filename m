@@ -1,49 +1,33 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:19569 "EHLO mga14.intel.com"
+Received: from mail.kapsi.fi ([217.30.184.167]:41352 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754211Ab2DSNsR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Apr 2012 09:48:17 -0400
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [PATCH] as3645a: move .remove under .devexit.text
-Date: Thu, 19 Apr 2012 16:48:10 +0300
-Message-Id: <1334843290-29668-1-git-send-email-andriy.shevchenko@linux.intel.com>
+	id S1752256Ab2DRUAt (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 18 Apr 2012 16:00:49 -0400
+Message-ID: <4F8F1D6E.3000705@iki.fi>
+Date: Wed, 18 Apr 2012 23:00:46 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Thomas Mair <thomas.mair86@googlemail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: RTL28XX driver
+References: <CAKZ=SG-pmn2BtqB+ihY9H9bvYCZq-E3uBsSaioPF5SRceq9iDg@mail.gmail.com> <4F804CDC.3030306@gmail.com> <CAKZ=SG_=7U2QShzq+2HE8SVZvyRpG3rNTsDzwUaso=CG8tXOsg@mail.gmail.com> <4F85D787.2050403@iki.fi> <4F85F89A.80107@schinagl.nl> <4F85FE63.1030700@iki.fi> <4F86C66A.4010404@schinagl.nl> <CAKZ=SG8gHbnRGFrajp2=Op7x52UcMT_5CFM5wzgajKCXkggFtA@mail.gmail.com> <4F86CE09.3080601@schinagl.nl> <CAKZ=SG95OA3pOvxM6eypsNaBvzX1wfjPR4tucc8725bnhE3FEg@mail.gmail.com> <4F86D4B8.8060005@iki.fi> <CAKZ=SG8G8w1J_AF-bOCn2n8gcEogGPQ1rmp45wCtmwFgOUPifA@mail.gmail.com> <4F8EFD7B.2020901@iki.fi> <CAKZ=SG8=z6c4-n8wkMK1YmTzWs9rN9JrbM907+K+X0k4ampSJA@mail.gmail.com> <4F8F0975.10605@iki.fi>
+In-Reply-To: <4F8F0975.10605@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There is no needs to keep .remove under .exit.text. This driver is for a
-standalone chip that could be on any board and connected to any i2c bus.
+On 18.04.2012 21:35, Antti Palosaari wrote:
+> The method should be selected based of knowledge if GPIO used for
+> controlling FC0012 tuner OR controlling some other part (LNA, anatenna
+> switch, etc.) So you have to identify meaning first. Look inside FC0012
+> driver to see if there is some mention about that GPIO.
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/video/as3645a.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+It is tuner VHF/UHF filter(?). You should use frontend callback with 
+DVB_FRONTEND_COMPONENT_TUNER and add handler for it. See example from 
+FC0011 & AF9035.
 
-diff --git a/drivers/media/video/as3645a.c b/drivers/media/video/as3645a.c
-index 7a3371f..dc2571f 100644
---- a/drivers/media/video/as3645a.c
-+++ b/drivers/media/video/as3645a.c
-@@ -846,7 +846,7 @@ done:
- 	return ret;
- }
- 
--static int __exit as3645a_remove(struct i2c_client *client)
-+static int __devexit as3645a_remove(struct i2c_client *client)
- {
- 	struct v4l2_subdev *subdev = i2c_get_clientdata(client);
- 	struct as3645a *flash = to_as3645a(subdev);
-@@ -877,7 +877,7 @@ static struct i2c_driver as3645a_i2c_driver = {
- 		.pm   = &as3645a_pm_ops,
- 	},
- 	.probe	= as3645a_probe,
--	.remove	= __exit_p(as3645a_remove),
-+	.remove	= __devexit_p(as3645a_remove),
- 	.id_table = as3645a_id_table,
- };
- 
+regards
+Antti
 -- 
-1.7.9.1
-
+http://palosaari.fi/
