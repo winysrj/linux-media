@@ -1,214 +1,150 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from oyp.chewa.net ([91.121.6.101]:46481 "EHLO oyp.chewa.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753135Ab2DERw4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 5 Apr 2012 13:52:56 -0400
-From: =?UTF-8?q?R=C3=A9mi=20Denis-Courmont?= <remi@remlab.net>
-To: mchehab@infradead.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [RFC] [PATCH] v4l2: use unsigned rather than enums in ioctl() structs
-Date: Thu,  5 Apr 2012 20:52:51 +0300
-Message-Id: <1333648371-24812-1-git-send-email-remi@remlab.net>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:24828 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751116Ab2DRIq4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 18 Apr 2012 04:46:56 -0400
+Received: from euspt1 (mailout1.w1.samsung.com [210.118.77.11])
+ by mailout1.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0M2O008UZ303RP@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 18 Apr 2012 09:45:39 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0M2O00BT83253V@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 18 Apr 2012 09:46:53 +0100 (BST)
+Date: Wed, 18 Apr 2012 10:46:52 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: [PATCH 04/15] V4L: Add camera white balance preset control
+In-reply-to: <4F8D6EB5.5050304@redhat.com>
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	sakari.ailus@iki.fi, g.liakhovetski@gmx.de, moinejf@free.fr,
+	m.szyprowski@samsung.com, riverful.kim@samsung.com,
+	sw0312.kim@samsung.com, Kyungmin Park <kyungmin.park@samsung.com>
+Message-id: <4F8E7F7C.906@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7BIT
+References: <1334657396-5737-1-git-send-email-s.nawrocki@samsung.com>
+ <1334657396-5737-5-git-send-email-s.nawrocki@samsung.com>
+ <4F8D6EB5.5050304@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-With an enumeration, the compiler assumes that the integer value is one
-allowed by the underlying enumeration type. With optimization enabled
-this can result in byte code that is unable to cope with other values.
-For instance, GCC can compile a switch() block using a "jump table" to
-avoid repetitive conditional branching.
+Hi Hans,
 
-This can be a problem both from user to kernel and kernel to user.
+On 04/17/2012 03:23 PM, Hans de Goede wrote:
+> Hi,
+> 
+> On 04/17/2012 12:09 PM, Sylwester Nawrocki wrote:
+>> Add V4L2_CID_WHITE_BALANCE_PRESET control for camera white balance
+>> presets. The following items are defined:
+>>
+>>   - V4L2_WHITE_BALANCE_NONE,
+>>   - V4L2_WHITE_BALANCE_INCANDESCENT,
+>>   - V4L2_WHITE_BALANCE_FLUORESCENT,
+>>   - V4L2_WHITE_BALANCE_HORIZON,
+>>   - V4L2_WHITE_BALANCE_DAYLIGHT,
+>>   - V4L2_WHITE_BALANCE_FLASH,
+>>   - V4L2_WHITE_BALANCE_CLOUDY,
+>>   - V4L2_WHITE_BALANCE_SHADE,
+>>
+>> This is a manual white balance control, in addition to V4L2_CID_RED_BALANCE,
+>> V4L2_CID_BLUE_BALANCE and V4L2_CID_WHITE_BALANCE_TEMPERATURE. It's useful
+>> for camera devices running more complex firmware and exposing white balance
+>> preset selection in their user register interface.
+> 
+> Hmm, how is this supposed to work together with the v4l2-ctrls framework?
+> The framework has a concept of a master control, which has a manual value,
+> and the slave controls will only get unlocked (V4L2_CTRL_FLAG_INACTIVE
+> will be cleared) when that master control is set at its manual value, now lets
+> say that we've V4L2_CID_AUTO_WHITE_BALANCE as master with
+> V4L2_CID_WHITE_BALANCE_PRESET and V4L2_CID_RED_BALANCE and V4L2_CID_BLUE_BALANCE
+> slaves. Then when the master control changes from auto to manual all 3 will
+> have their inactive flag cleared, but if the preset value !=
+> V4L2_WHITE_BALANCE_NONE
+> then the red- and blue-balance should have kept their inactive flag. And since
+> this
+> clearing of the inactive flag is done after v4l2-ctrls.c has called into the
+> driver there is no way for the driver to fix this.
+> 
+> One could work-around this by not specifying the whitebalance control cluster as
+> being an auto cluster, and doing all the auto cluster stuff from the driver, but
+> that significantly complicates the driver, and we are trying to get away of every
+> driver doing this kinda stuff for itself...
 
-* Evil user space can pass error values to the kernel via system
-calls. There are no sane ways to protect the kernel: the compiler may
-optimize away range checks if it deems that all legitimate values are
-within the range.
+I assumed in common cases there will be just pairs of auto/manual controls
+(or control groups) used, e.g. V4L2_CID_AUTO_WHITE_BALANCE and 
+V4L2_CID_RED_BALANCE/V4L2_CID_BLUE_BALANCE, or V4L2_CID_AUTO_WHITE_BALANCE and
+V4L2_CID_WHITE_BALANCE_TEMPERATURE or V4L2_CID_AUTO_WHITE_BALANCE and
+V4L2_CID_WHITE_BALANCE_PRESET, etc.
 
-* The kernel can break the user space binary interface whenever a new
-value is added to an existing enumeration. A newer kernel can then
-return an enumerated value that was not allowed by older kernel headers
-against which the user program was compiled. In principles, V4L2 user
-space needs to be recompiled whenever videodev2.h has updated enums...
-(This an obvious problem with V4L2_QUERYCTRL.)
+This is really what the control framework support now, i.e. one master cluster
+control with single value that swithes whole cluster into manual mode, AFAICS.
 
-Fortunately, the Linux ABI disables short-enums on all platforms. Even
-the Linux variant of the ARM AAPCS contradicts the standard ARM AAPCS
-in doing so.
+I assumed more complicated cases will have to be coded in drivers for now. Or
+can be handled my the control framework, if those patterns appear to be often
+used and the control framework is enhanced to better support them.
 
-Signed-off-by: Rémi Denis-Courmont <remi@remlab.net>
----
- include/linux/videodev2.h |   42 +++++++++++++++++++++---------------------
- 1 file changed, 21 insertions(+), 21 deletions(-)
+I tried to come up with a solution that could be also used by the pwc driver
+and to expose all functionality available there.
 
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index c9c9a46..df3b8f0 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -292,10 +292,10 @@ struct v4l2_pix_format {
- 	__u32         		width;
- 	__u32			height;
- 	__u32			pixelformat;
--	enum v4l2_field  	field;
-+	unsigned		field;
- 	__u32            	bytesperline;	/* for padding, zero if unused */
- 	__u32          		sizeimage;
--	enum v4l2_colorspace	colorspace;
-+	unsigned		colorspace;
- 	__u32			priv;		/* private data, depends on pixelformat */
- };
- 
-@@ -432,7 +432,7 @@ struct v4l2_pix_format {
-  */
- struct v4l2_fmtdesc {
- 	__u32		    index;             /* Format number      */
--	enum v4l2_buf_type  type;              /* buffer type        */
-+	unsigned	    type;              /* buffer type        */
- 	__u32               flags;
- 	__u8		    description[32];   /* Description string */
- 	__u32		    pixelformat;       /* Format fourcc      */
-@@ -573,8 +573,8 @@ struct v4l2_jpegcompression {
-  */
- struct v4l2_requestbuffers {
- 	__u32			count;
--	enum v4l2_buf_type      type;
--	enum v4l2_memory        memory;
-+	unsigned		type;
-+	unsigned		memory;
- 	__u32			reserved[2];
- };
- 
-@@ -636,16 +636,16 @@ struct v4l2_plane {
-  */
- struct v4l2_buffer {
- 	__u32			index;
--	enum v4l2_buf_type      type;
-+	unsigned		type;
- 	__u32			bytesused;
- 	__u32			flags;
--	enum v4l2_field		field;
-+	unsigned		field;
- 	struct timeval		timestamp;
- 	struct v4l2_timecode	timecode;
- 	__u32			sequence;
- 
- 	/* memory location */
--	enum v4l2_memory        memory;
-+	unsigned		memory;
- 	union {
- 		__u32           offset;
- 		unsigned long   userptr;
-@@ -708,7 +708,7 @@ struct v4l2_clip {
- 
- struct v4l2_window {
- 	struct v4l2_rect        w;
--	enum v4l2_field  	field;
-+	unsigned		field;
- 	__u32			chromakey;
- 	struct v4l2_clip	__user *clips;
- 	__u32			clipcount;
-@@ -745,14 +745,14 @@ struct v4l2_outputparm {
-  *	I N P U T   I M A G E   C R O P P I N G
-  */
- struct v4l2_cropcap {
--	enum v4l2_buf_type      type;
-+	unsigned		type;
- 	struct v4l2_rect        bounds;
- 	struct v4l2_rect        defrect;
- 	struct v4l2_fract       pixelaspect;
- };
- 
- struct v4l2_crop {
--	enum v4l2_buf_type      type;
-+	unsigned		type;
- 	struct v4l2_rect        c;
- };
- 
-@@ -1156,7 +1156,7 @@ enum v4l2_ctrl_type {
- /*  Used in the VIDIOC_QUERYCTRL ioctl for querying controls */
- struct v4l2_queryctrl {
- 	__u32		     id;
--	enum v4l2_ctrl_type  type;
-+	unsigned	     type;
- 	__u8		     name[32];	/* Whatever */
- 	__s32		     minimum;	/* Note signedness */
- 	__s32		     maximum;
-@@ -1788,7 +1788,7 @@ enum v4l2_jpeg_chroma_subsampling {
- struct v4l2_tuner {
- 	__u32                   index;
- 	__u8			name[32];
--	enum v4l2_tuner_type    type;
-+	unsigned		type;
- 	__u32			capability;
- 	__u32			rangelow;
- 	__u32			rangehigh;
-@@ -1838,14 +1838,14 @@ struct v4l2_modulator {
- 
- struct v4l2_frequency {
- 	__u32		      tuner;
--	enum v4l2_tuner_type  type;
-+	unsigned	      type;
- 	__u32		      frequency;
- 	__u32		      reserved[8];
- };
- 
- struct v4l2_hw_freq_seek {
- 	__u32		      tuner;
--	enum v4l2_tuner_type  type;
-+	unsigned	      type;
- 	__u32		      seek_upward;
- 	__u32		      wrap_around;
- 	__u32		      spacing;
-@@ -2056,7 +2056,7 @@ struct v4l2_sliced_vbi_cap {
- 				 (equals frame lines 313-336 for 625 line video
- 				  standards, 263-286 for 525 line standards) */
- 	__u16   service_lines[2][24];
--	enum v4l2_buf_type type;
-+	unsigned type;
- 	__u32   reserved[3];    /* must be 0 */
- };
- 
-@@ -2146,8 +2146,8 @@ struct v4l2_pix_format_mplane {
- 	__u32				width;
- 	__u32				height;
- 	__u32				pixelformat;
--	enum v4l2_field			field;
--	enum v4l2_colorspace		colorspace;
-+	unsigned			field;
-+	unsigned			colorspace;
- 
- 	struct v4l2_plane_pix_format	plane_fmt[VIDEO_MAX_PLANES];
- 	__u8				num_planes;
-@@ -2165,7 +2165,7 @@ struct v4l2_pix_format_mplane {
-  * @raw_data:	placeholder for future extensions and custom formats
-  */
- struct v4l2_format {
--	enum v4l2_buf_type type;
-+	unsigned type;
- 	union {
- 		struct v4l2_pix_format		pix;     /* V4L2_BUF_TYPE_VIDEO_CAPTURE */
- 		struct v4l2_pix_format_mplane	pix_mp;  /* V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE */
-@@ -2179,7 +2179,7 @@ struct v4l2_format {
- /*	Stream type-dependent parameters
-  */
- struct v4l2_streamparm {
--	enum v4l2_buf_type type;
-+	unsigned type;
- 	union {
- 		struct v4l2_captureparm	capture;
- 		struct v4l2_outputparm	output;
-@@ -2299,7 +2299,7 @@ struct v4l2_dbg_chip_ident {
- struct v4l2_create_buffers {
- 	__u32			index;
- 	__u32			count;
--	enum v4l2_memory        memory;
-+	unsigned		memory;
- 	struct v4l2_format	format;
- 	__u32			reserved[8];
- };
+> I still believe that the solution I came up with for pwc is better, the auto
+> whitebalance control really is a tri state when you add presets whitebalance
+> is controlled through one of this 3 options:
+> 1) auto
+> 2) preset
+> 3) manual
+
+2) and 3) will often be exclusive, so we cannot just unlock (clear the 
+V4L2_CTRL_FLAG_INACTIVE flag) on them, when the WB menu is switched to value
+other than "auto". This would happen when the WB menu and 2), 3) would form 
+an auto cluster.
+
+Moreover, we also have V4L2_CID_WHITE_BALANCE_TEMPERATURE as a manual WB control.
+I assumed the WB presets are just form of it, with names (labels).
+
+I am a bit concerned that with the menu control we might exclude at API level
+a possibility of altering some of the controls simultaneously, e.g. preset
+and red/blue balance.
+
+> I know you are worried about having a V4L2_CID_AUTO_WHITE_BALANCE control
+> which is not a boolean breaking apps, well the pwc driver is a quite popular
+> driver and I've had 0 bug reports about my turning it into a menu...
+
+I wish I could simply change the control type to a menu, but breaking ABI doesn't
+sound like an option. I think the patch doing something like the at the core level
+would have been rejected right away. So the new menu control sounds better to me,
+except that it doesn't make our situation much easier, however it might be what
+we wanted in long term.
+
+> Alternatively we could add a new V4L2_CID_WHITE_BALANCE_MENU control and use
+> that for drivers which have presets rather then the old
+> V4L2_CID_AUTO_WHITE_BALANCE
+> to ensure that userspace won't trip over it being a menu all of a sudden, but
+> I believe that it is really important to properly reflect the tri-state nature
+> of the awb once presets come into play, rather then trying to bolt something
+
+Is it really tri-state ? I think it just an auto (perhaps multiple auto at some 
+point?) and multiple manual states. Should we really consider the presets as 
+something other than manual control ?
+
+> on top of / to the side of our current bi-state control. And I hope that my above
+> example of what sort of troubles using the bolt-on solution will give, clearly
+> demonstrates that the bolt-on solution is a bad idea.
+
+If we decided to add a new V4L2_CID_WHITE_BALANCE_MENU control, then we should
+probably deprecate V4L2_CID_AUTO_WHITE_BALANCE, as having both would be confusing.
+Then the V4L2_CID_AUTO_WHITE_BALANCE would have been removed and maybe after some
+time added as an alias for V4L2_CID_WHITE_BALANCE_MENU. Sound terribly painful
+though. This all makes me think we might be missing some reliable API version
+scheme.
+
+I'm also not very happy with appending a _MENU suffix, indicating the control's
+type. 
+
+
 -- 
-1.7.9.5
-
+Regards,
+Sylwester
