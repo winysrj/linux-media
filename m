@@ -1,62 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:60014 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754102Ab2D2X2o (ORCPT
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:57068 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752834Ab2DROYy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 29 Apr 2012 19:28:44 -0400
-Subject: Re: [GIT PULL FOR v3.5] An ivtv fix and support suspend/resume in
- radio-keene
-From: Andy Walls <awalls@md.metrocast.net>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media <linux-media@vger.kernel.org>
-Date: Sun, 29 Apr 2012 19:28:39 -0400
-In-Reply-To: <201204271356.37069.hverkuil@xs4all.nl>
-References: <201204271356.37069.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Message-ID: <1335742122.25802.8.camel@palomino.walls.org>
-Mime-Version: 1.0
+	Wed, 18 Apr 2012 10:24:54 -0400
+Received: by eekc41 with SMTP id c41so1922212eek.19
+        for <linux-media@vger.kernel.org>; Wed, 18 Apr 2012 07:24:53 -0700 (PDT)
+Date: Wed, 18 Apr 2012 16:24:38 +0200
+From: Daniel Vetter <daniel@ffwll.ch>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>,
+	linaro-mm-sig@lists.linaro.org,
+	LKML <linux-kernel@vger.kernel.org>,
+	DRI Development <dri-devel@lists.freedesktop.org>,
+	linux-media@vger.kernel.org, Rob Clark <rob.clark@linaro.org>,
+	Rebecca Schultz Zavin <rebecca@android.com>
+Subject: Re: [PATCH] dma-buf: mmap support
+Message-ID: <20120418142438.GA20469@phenom.ffwll.local>
+References: <1334757146-28335-1-git-send-email-daniel.vetter@ffwll.ch>
+ <201204181406.14159.arnd@arndb.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <201204181406.14159.arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 2012-04-27 at 13:56 +0200, Hans Verkuil wrote:
-> Hi Mauro,
+On Wed, Apr 18, 2012 at 02:06:13PM +0000, Arnd Bergmann wrote:
+> On Wednesday 18 April 2012, Daniel Vetter wrote:
+> > +   Because existing importing subsystems might presume coherent mappings for
+> > +   userspace, the exporter needs to set up a coherent mapping. If that's not
+> > +   possible, it needs to fake coherency by manually shooting down ptes when
+> > +   leaving the cpu domain and flushing caches at fault time. Note that all the
+> > +   dma_buf files share the same anon inode, hence the exporter needs to replace
+> > +   the dma_buf file stored in vma->vm_file with it's own if pte shootdown is
+> > +   requred. This is because the kernel uses the underlying inode's address_space
+> > +   for vma tracking (and hence pte tracking at shootdown time with
+> > +   unmap_mapping_range).
+> > +
+> > +   If the above shootdown dance turns out to be too expensive in certain
+> > +   scenarios, we can extend dma-buf with a more explicit cache tracking scheme
+> > +   for userspace mappings. But the current assumption is that using mmap is
+> > +   always a slower path, so some inefficiencies should be acceptable.
+> > +
+> > +   Exporters that shoot down mappings (for any reasons) shall not do any
+> > +   synchronization at fault time with outstanding device operations.
+> > +   Synchronization is an orthogonal issue to sharing the backing storage of a
+> > +   buffer and hence should not be handled by dma-buf itself. This is explictly
+> > +   mentioned here because many people seem to want something like this, but if
+> > +   different exporters handle this differently, buffer sharing can fail in
+> > +   interesting ways depending upong the exporter (if userspace starts depending
+> > +   upon this implicit synchronization).
 > 
-> One small trivial ivtv fix and a patch that adds support for suspend/resume
-> to the radio-keene driver.
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> The following changes since commit bcb2cf6e0bf033d79821c89e5ccb328bfbd44907:
-> 
->   [media] ngene: remove an unneeded condition (2012-04-26 15:29:23 -0300)
-> 
-> are available in the git repository at:
-> 
->   git://linuxtv.org/hverkuil/media_tree.git fixes
-> 
-> for you to fetch changes up to 71ea18d3e92d834926751f8460cf6893424b3852:
-> 
->   radio-keene: support suspend/resume. (2012-04-27 09:57:02 +0200)
-> 
-> ----------------------------------------------------------------
-> Hans Verkuil (2):
->       ivtv: set max/step to 0 for PTS and FRAME controls.
->       radio-keene: support suspend/resume.
+> How do you ensure that no device can do DMA on the buffer while it's mapped
+> into user space in a noncoherent manner?
 
-The ivtv change looks OK to me.  Even though v4l2_ctrl_fill() fixes up
-those errors anyway.
+We don't. Letting userspace shoot into it's foot is part of the interface.
+drm drivers and afaik also v4l has some explicit interfaces where
+userspace and the kernel can communicate who is allowed to stomp on a
+buffer (and sync up access with various degrees of sophistication).
+Userspace still needs to use this interfaces to ensure that any dma
+activity it wants to have completed is completed.
 
-Reviewed-by: Andy Walls <awalls@md.metrocast.net>
+To ensure coherency for userspace that does not try to get unnecessary
+holes in its feet, the exporter needs to zap all ptes pointing to a dma
+buf object and flush relevant parts of the cpu cache before device dma
+starts (signalled with dma_buf_map_sg from the importer atm, but we'll
+eventually grow streaming support I guess). On page fault time it has then
+to invalidate any cpu caches, so that userspace does not read stale data.
 
-Regards,
-Andy 
-
-> 
->  drivers/media/radio/radio-keene.c      |   20 ++++++++++++++++++++
->  drivers/media/video/ivtv/ivtv-driver.c |    4 ++--
->  2 files changed, 22 insertions(+), 2 deletions(-)
-
-
+Like I've said in the above blurb in the documentation, I think
+synchronization is an orthogonal issue to sharing memory.
+-Daniel
+-- 
+Daniel Vetter
+Mail: daniel@ffwll.ch
+Mobile: +41 (0)79 365 57 48
