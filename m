@@ -1,129 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:62805 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752224Ab2DMPsG (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.171]:61168 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751202Ab2DRKnL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Apr 2012 11:48:06 -0400
-Received: from euspt1 (mailout1.w1.samsung.com [210.118.77.11])
- by mailout1.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0M2F007BFD6BVO@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 13 Apr 2012 16:46:59 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0M2F006GED83KA@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 13 Apr 2012 16:48:03 +0100 (BST)
-Date: Fri, 13 Apr 2012 17:47:42 +0200
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: [PATCH v4 00/14] Integration of videobuf2 with dmabuf
-To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
-Cc: airlied@redhat.com, m.szyprowski@samsung.com,
-	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
-	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
-	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
-	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
-	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
-	mchehab@redhat.com
-Message-id: <1334332076-28489-1-git-send-email-t.stanislaws@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
+	Wed, 18 Apr 2012 06:43:11 -0400
+Date: Wed, 18 Apr 2012 12:43:09 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: V4L: soc-camera: protect hosts during probing from overzealous
+ user-space
+Message-ID: <Pine.LNX.4.64.1204181236530.30514@axis700.grange>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello everyone,
-This patchset adds support for DMABUF [2] importing to V4L2 stack. 
-The support for DMABUF exporting was moved to separate patchset
-due to dependency on patches for DMA mapping redesign by
-Marek Szyprowski [4].
+If multiple clients are registered on a single camera host interface,
+the user-space hot-plug software can try to access the one, that probed
+first, before probing of the second one has completed. This can be
+handled by individual host drivers, but it is even better to hold back
+the user-space until all the probing on this host has completed. This
+fixes a race on ecovec with two clients registered on the CEU1 host, which
+otherwise triggers a BUG() in sh_mobile_ceu_remove_device().
 
-v4:
-- rebased on mainline 3.4-rc2
-- included missing importing support for s5p-fimc and s5p-tv
-- added patch for changing map/unmap for importers
-- fixes to Documentation part
-- coding style fixes
-- pairing {map/unmap}_dmabuf in vb2-core
-- fixing variable types and semantic of arguments in videobufb2-dma-contig.c
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
 
-v3:
-- rebased on mainline 3.4-rc1
-- split 'code refactor' patch to multiple smaller patches
-- squashed fixes to Sumit's patches
-- patchset is no longer dependant on 'DMA mapping redesign'
-- separated path for handling IO and non-IO mappings
-- add documentation for DMABUF importing to V4L
-- removed all DMABUF exporter related code
-- removed usage of dma_get_pages extension
+Mauro, since this fixes a race, present in the current kernel, I'll push 
+it for 3.4 later. Or you can just pick it up from this mail - I don't have 
+any more pending fixes atm.
 
-v2:
-- extended VIDIOC_EXPBUF argument from integer memoffset to struct
-  v4l2_exportbuffer
-- added patch that breaks DMABUF spec on (un)map_atachment callcacks but allows
-  to work with existing implementation of DMABUF prime in DRM
-- all dma-contig code refactoring patches were squashed
-- bugfixes
+ drivers/media/video/soc_camera.c |    8 ++++++--
+ include/media/soc_camera.h       |    3 ++-
+ 2 files changed, 8 insertions(+), 3 deletions(-)
 
-v1: List of changes since [1].
-- support for DMA api extension dma_get_pages, the function is used to retrieve
-  pages used to create DMA mapping.
-- small fixes/code cleanup to videobuf2
-- added prepare and finish callbacks to vb2 allocators, it is used keep
-  consistency between dma-cpu acess to the memory (by Marek Szyprowski)
-- support for exporting of DMABUF buffer in V4L2 and Videobuf2, originated from
-  [3].
-- support for dma-buf exporting in vb2-dma-contig allocator
-- support for DMABUF for s5p-tv and s5p-fimc (capture interface) drivers,
-  originated from [3]
-- changed handling for userptr buffers (by Marek Szyprowski, Andrzej
-  Pietrasiewicz)
-- let mmap method to use dma_mmap_writecombine call (by Marek Szyprowski)
-
-[1] http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/42966/focus=42968
-[2] https://lkml.org/lkml/2011/12/26/29
-[3] http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/36354/focus=36355
-[4] http://thread.gmane.org/gmane.linux.kernel.cross-arch/12819
-
-Andrzej Pietrasiewicz (1):
-  v4l: vb2-dma-contig: add support for scatterlist in userptr mode
-
-Laurent Pinchart (2):
-  v4l: vb2-dma-contig: Shorten vb2_dma_contig prefix to vb2_dc
-  v4l: vb2-dma-contig: Reorder functions
-
-Marek Szyprowski (2):
-  v4l: vb2: add prepare/finish callbacks to allocators
-  v4l: vb2-dma-contig: add prepare/finish to dma-contig allocator
-
-Sumit Semwal (4):
-  v4l: Add DMABUF as a memory type
-  v4l: vb2: add support for shared buffer (dma_buf)
-  v4l: vb: remove warnings about MEMORY_DMABUF
-  v4l: vb2-dma-contig: add support for dma_buf importing
-
-Tomasz Stanislawski (5):
-  Documentation: media: description of DMABUF importing in V4L2
-  v4l: vb2-dma-contig: Remove unneeded allocation context structure
-  v4l: vb2-dma-contig: change map/unmap behaviour for importers
-  v4l: s5p-tv: mixer: support for dmabuf importing
-  v4l: fimc: support for dmabuf importing
-
- Documentation/DocBook/media/v4l/compat.xml         |    4 +
- Documentation/DocBook/media/v4l/io.xml             |  179 +++++++
- .../DocBook/media/v4l/vidioc-create-bufs.xml       |    1 +
- Documentation/DocBook/media/v4l/vidioc-qbuf.xml    |   15 +
- Documentation/DocBook/media/v4l/vidioc-reqbufs.xml |   47 +-
- drivers/media/video/Kconfig                        |    1 +
- drivers/media/video/s5p-fimc/fimc-capture.c        |    2 +-
- drivers/media/video/s5p-tv/Kconfig                 |    1 +
- drivers/media/video/s5p-tv/mixer_video.c           |    2 +-
- drivers/media/video/videobuf-core.c                |    4 +
- drivers/media/video/videobuf2-core.c               |  207 +++++++-
- drivers/media/video/videobuf2-dma-contig.c         |  553 +++++++++++++++++---
- include/linux/videodev2.h                          |    7 +
- include/media/videobuf2-core.h                     |   34 ++
- 14 files changed, 956 insertions(+), 101 deletions(-)
-
+diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
+index eb25756..aedb970 100644
+--- a/drivers/media/video/soc_camera.c
++++ b/drivers/media/video/soc_camera.c
+@@ -530,7 +530,10 @@ static int soc_camera_open(struct file *file)
+ 		if (icl->reset)
+ 			icl->reset(icd->pdev);
+ 
++		/* Don't mess with the host during probe */
++		mutex_lock(&ici->host_lock);
+ 		ret = ici->ops->add(icd);
++		mutex_unlock(&ici->host_lock);
+ 		if (ret < 0) {
+ 			dev_err(icd->pdev, "Couldn't activate the camera: %d\n", ret);
+ 			goto eiciadd;
+@@ -956,7 +959,7 @@ static void scan_add_host(struct soc_camera_host *ici)
+ {
+ 	struct soc_camera_device *icd;
+ 
+-	mutex_lock(&list_lock);
++	mutex_lock(&ici->host_lock);
+ 
+ 	list_for_each_entry(icd, &devices, list) {
+ 		if (icd->iface == ici->nr) {
+@@ -967,7 +970,7 @@ static void scan_add_host(struct soc_camera_host *ici)
+ 		}
+ 	}
+ 
+-	mutex_unlock(&list_lock);
++	mutex_unlock(&ici->host_lock);
+ }
+ 
+ #ifdef CONFIG_I2C_BOARDINFO
+@@ -1313,6 +1316,7 @@ int soc_camera_host_register(struct soc_camera_host *ici)
+ 	list_add_tail(&ici->list, &hosts);
+ 	mutex_unlock(&list_lock);
+ 
++	mutex_init(&ici->host_lock);
+ 	scan_add_host(ici);
+ 
+ 	return 0;
+diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
+index b5c2b6c..cad374b 100644
+--- a/include/media/soc_camera.h
++++ b/include/media/soc_camera.h
+@@ -59,7 +59,8 @@ struct soc_camera_device {
+ struct soc_camera_host {
+ 	struct v4l2_device v4l2_dev;
+ 	struct list_head list;
+-	unsigned char nr;				/* Host number */
++	struct mutex host_lock;		/* Protect during probing */
++	unsigned char nr;		/* Host number */
+ 	void *priv;
+ 	const char *drv_name;
+ 	struct soc_camera_host_ops *ops;
 -- 
-1.7.5.4
+1.7.2.5
 
