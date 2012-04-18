@@ -1,57 +1,182 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:61182 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752371Ab2DATJn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Apr 2012 15:09:43 -0400
-From: Tracey Dent <tdent48227@gmail.com>
-To: linux-kernel@vger.kernel.org
-Cc: shea@shealevy.com, torvalds@linux-foundation.org,
-	mchehab@infradead.org, hans.verkuil@cisco.com,
-	linux-media@vger.kernel.org, Tracey Dent <tdent48227@gmail.com>
-Subject: [PATCH 1/1] Drivers/media/radio: Fix build error
-Date: Sun,  1 Apr 2012 15:09:34 -0400
-Message-Id: <1333307374-25848-1-git-send-email-tdent48227@gmail.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:48282 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753872Ab2DRQGs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 18 Apr 2012 12:06:48 -0400
+From: <manjunatha_halli@ti.com>
+To: <linux-media@vger.kernel.org>
+CC: <benzyg@ti.com>, <linux-kernel@vger.kernel.org>,
+	Manjunatha Halli <x0130808@ti.com>
+Subject: [PATCH V2 4/5] [Documentation] Media: Update docs for V4L2 FM new features
+Date: Wed, 18 Apr 2012 11:06:42 -0500
+Message-ID: <1334765203-31844-5-git-send-email-manjunatha_halli@ti.com>
+In-Reply-To: <1334765203-31844-1-git-send-email-manjunatha_halli@ti.com>
+References: <1334765203-31844-1-git-send-email-manjunatha_halli@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-radio-maxiradio depends on SND_FM801_TEA575X_BOOL to build or will
-result in an build error such as:
+From: Manjunatha Halli <x0130808@ti.com>
 
-Kernel: arch/x86/boot/bzImage is ready  (#1)
-ERROR: "snd_tea575x_init" [drivers/media/radio/radio-maxiradio.ko] undefined!
-ERROR: "snd_tea575x_exit" [drivers/media/radio/radio-maxiradio.ko] undefined!
-WARNING: modpost: Found 6 section mismatch(es).
-To see full details build your kernel with:
-'make CONFIG_DEBUG_SECTION_MISMATCH=y'
-make[1]: *** [__modpost] Error 1
-make: *** [modules] Error 2
+The list of new features -
+	1) New control class for FM RX
+	2) New FM RX CID's - De-Emphasis filter mode and RDS AF switch
+	3) New FM TX CID - RDS Alternate frequency set.
 
-Select CONFIG_SND_TEA575X to fixes problem and enable
-the driver to be built as desired.
-
-v2:
-instead of selecting CONFIG_SND_FM801_TEA575X_BOOL, select
-CONFIG_SND_TEA575X, which in turns selects CONFIG_SND_FM801_TEA575X_BOOL
-and any other dependencies for it to build.
-
-Reported-by: Shea Levy <shea@shealevy.com>
-Signed-off-by: Tracey Dent <tdent48227@gmail.com>
+Signed-off-by: Manjunatha Halli <x0130808@ti.com>
 ---
- drivers/media/radio/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ Documentation/DocBook/media/v4l/compat.xml         |    3 +
+ Documentation/DocBook/media/v4l/controls.xml       |   78 ++++++++++++++++++++
+ Documentation/DocBook/media/v4l/dev-rds.xml        |    5 +-
+ .../DocBook/media/v4l/vidioc-g-ext-ctrls.xml       |    7 ++
+ 4 files changed, 91 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/radio/Kconfig b/drivers/media/radio/Kconfig
-index 8db2d7f..b518ce5 100644
---- a/drivers/media/radio/Kconfig
-+++ b/drivers/media/radio/Kconfig
-@@ -44,6 +44,7 @@ config USB_DSBR
- config RADIO_MAXIRADIO
- 	tristate "Guillemot MAXI Radio FM 2000 radio"
- 	depends on VIDEO_V4L2 && PCI && SND
-+	select SND_TEA575X
- 	---help---
- 	  Choose Y here if you have this radio card.  This card may also be
- 	  found as Gemtek PCI FM.
+diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
+index bce97c5..df1f345 100644
+--- a/Documentation/DocBook/media/v4l/compat.xml
++++ b/Documentation/DocBook/media/v4l/compat.xml
+@@ -2311,6 +2311,9 @@ more information.</para>
+ 	  <para>Added FM Modulator (FM TX) Extended Control Class: <constant>V4L2_CTRL_CLASS_FM_TX</constant> and their Control IDs.</para>
+ 	</listitem>
+ 	<listitem>
++	<para>Added FM Receiver (FM RX) Extended Control Class: <constant>V4L2_CTRL_CLASS_FM_RX</constant> and their Control IDs.</para>
++	</listitem>
++	<listitem>
+ 	  <para>Added Remote Controller chapter, describing the default Remote Controller mapping for media devices.</para>
+ 	</listitem>
+       </orderedlist>
+diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+index b84f25e..f6c8034 100644
+--- a/Documentation/DocBook/media/v4l/controls.xml
++++ b/Documentation/DocBook/media/v4l/controls.xml
+@@ -3018,6 +3018,12 @@ to find receivers which can scroll strings sized as 32 x N or 64 x N characters.
+ with steps of 32 or 64 characters. The result is it must always contain a string with size multiple of 32 or 64. </entry>
+ 	  </row>
+ 	  <row>
++	  <entry spanname="id"><constant>V4L2_CID_RDS_TX_AF_FREQ</constant>&nbsp;</entry>
++	  <entry>integer</entry>
++	  </row>
++	  <row><entry spanname="descr">Sets the RDS Alternate Frequency value which allows a receiver to re-tune to a different frequency providing the same station when the first signal becomes too weak (e.g., when moving out of range). </entry>
++	  </row>
++	  <row>
+ 	    <entry spanname="id"><constant>V4L2_CID_AUDIO_LIMITER_ENABLED</constant>&nbsp;</entry>
+ 	    <entry>boolean</entry>
+ 	  </row>
+@@ -3146,6 +3152,78 @@ manually or automatically if set to zero. Unit, range and step are driver-specif
+ <xref linkend="en50067" /> document, from CENELEC.</para>
+     </section>
+ 
++    <section id="fm-rx-controls">
++      <title>FM Receiver Control Reference</title>
++
++      <para>The FM Receiver (FM_RX) class includes controls for common features of
++FM Reception capable devices. Currently this class includes parameter for Alternate
++frequency.</para>
++
++      <table pgwide="1" frame="none" id="fm-rx-control-id">
++      <title>FM_RX Control IDs</title>
++
++      <tgroup cols="4">
++        <colspec colname="c1" colwidth="1*" />
++        <colspec colname="c2" colwidth="6*" />
++        <colspec colname="c3" colwidth="2*" />
++        <colspec colname="c4" colwidth="6*" />
++        <spanspec namest="c1" nameend="c2" spanname="id" />
++        <spanspec namest="c2" nameend="c4" spanname="descr" />
++        <thead>
++          <row>
++            <entry spanname="id" align="left">ID</entry>
++            <entry align="left">Type</entry>
++          </row><row rowsep="1"><entry spanname="descr" align="left">Description</entry>
++          </row>
++        </thead>
++        <tbody valign="top">
++          <row><entry></entry></row>
++          <row>
++            <entry spanname="id"><constant>V4L2_CID_FM_RX_CLASS</constant>&nbsp;</entry>
++            <entry>class</entry>
++          </row><row><entry spanname="descr">The FM_RX class
++descriptor. Calling &VIDIOC-QUERYCTRL; for this control will return a
++description of this control class.</entry>
++          </row>
++          <row>
++            <entry spanname="id"><constant>V4L2_CID_RDS_AF_SWITCH</constant>&nbsp;</entry>
++            <entry>boolean</entry>
++          </row>
++          <row><entry spanname="descr">Enable or Disable's FM RX RDS Alternate frequency feature.</entry>
++          </row>
++          <row>
++	    <entry spanname="id"><constant>V4L2_CID_TUNE_DEEMPHASIS</constant>&nbsp;</entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row id="v4l2-deemphasis"><entry spanname="descr">Configures the de-emphasis value for reception.
++A pre-emphasis filter is applied to the broadcast to accentuate the high audio frequencies.
++Depending on the region, a time constant of either 50 or 75 useconds is used. The enum&nbsp;v4l2_deemphasis
++defines possible values for pre-emphasis. Here they are:</entry>
++	</row><row>
++	<entrytbl spanname="descr" cols="2">
++		  <tbody valign="top">
++		    <row>
++		      <entry><constant>V4L2_DEEMPHASIS_DISABLED</constant>&nbsp;</entry>
++		      <entry>No de-emphasis is applied.</entry>
++		    </row>
++		    <row>
++		      <entry><constant>V4L2_DEEMPHASIS_50_uS</constant>&nbsp;</entry>
++		      <entry>A de-emphasis of 50 uS is used.</entry>
++		    </row>
++		    <row>
++		      <entry><constant>V4L2_DEEMPHASIS_75_uS</constant>&nbsp;</entry>
++		      <entry>A de-emphasis of 75 uS is used.</entry>
++		    </row>
++		  </tbody>
++		</entrytbl>
++
++	  </row>
++          <row><entry></entry></row>
++        </tbody>
++      </tgroup>
++      </table>
++
++      </section>
+     <section id="flash-controls">
+       <title>Flash Control Reference</title>
+ 
+diff --git a/Documentation/DocBook/media/v4l/dev-rds.xml b/Documentation/DocBook/media/v4l/dev-rds.xml
+index 38883a4..8188161 100644
+--- a/Documentation/DocBook/media/v4l/dev-rds.xml
++++ b/Documentation/DocBook/media/v4l/dev-rds.xml
+@@ -55,8 +55,9 @@ If the driver only passes RDS blocks without interpreting the data
+ the <constant>V4L2_TUNER_CAP_RDS_BLOCK_IO</constant> flag has to be set. If the
+ tuner is capable of handling RDS entities like program identification codes and radio
+ text, the flag <constant>V4L2_TUNER_CAP_RDS_CONTROLS</constant> should be set,
+-see <link linkend="writing-rds-data">Writing RDS data</link> and
+-<link linkend="fm-tx-controls">FM Transmitter Control Reference</link>.</para>
++see <link linkend="writing-rds-data">Writing RDS data</link>,
++<link linkend="fm-tx-controls">FM Transmitter Control Reference</link>
++<link linkend="fm-rx-controls">FM Receiver Control Reference</link>.</para>
+   </section>
+ 
+   <section  id="reading-rds-data">
+diff --git a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
+index b17a7aa..2a8b44e 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
+@@ -258,6 +258,13 @@ These controls are described in <xref
+ These controls are described in <xref
+ 		linkend="fm-tx-controls" />.</entry>
+ 	  </row>
++          <row>
++            <entry><constant>V4L2_CTRL_CLASS_FM_RX</constant></entry>
++             <entry>0x9c0000</entry>
++             <entry>The class containing FM Receiver (FM RX) controls.
++These controls are described in <xref
++                 linkend="fm-rx-controls" />.</entry>
++           </row>
+ 	  <row>
+ 	    <entry><constant>V4L2_CTRL_CLASS_FLASH</constant></entry>
+ 	    <entry>0x9c0000</entry>
 -- 
-1.7.10.rc3.3.g19a6c
+1.7.4.1
 
