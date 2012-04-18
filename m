@@ -1,51 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:35996 "EHLO
-	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1756784Ab2DYN53 (ORCPT
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:60385 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751274Ab2DREdv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Apr 2012 09:57:29 -0400
-Received: by obbwc18 with SMTP id wc18so143535obb.37
-        for <linux-media@vger.kernel.org>; Wed, 25 Apr 2012 06:57:27 -0700 (PDT)
-From: Sergio Aguirre <saaguirre@ti.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, Sergio Aguirre <saaguirre@ti.com>
-Subject: [media-ctl PATCH] Compare entity name length aswell
-Date: Wed, 25 Apr 2012 08:57:13 -0500
-Message-Id: <1335362233-31022-1-git-send-email-saaguirre@ti.com>
+	Wed, 18 Apr 2012 00:33:51 -0400
+From: Marcos Paulo de Souza <marcos.souza.org@gmail.com>
+To: linux-kernel@vger.kernel.org
+Cc: Marcos Paulo de Souza <marcos.souza.org@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	<linux-media@vger.kernel.org>
+Subject: [PATCH 03/12] drivers: media: dvb: ddbridge: ddbridge-code: Remove unneeded include of version.h
+Date: Wed, 18 Apr 2012 01:30:03 -0300
+Message-Id: <1334723412-5034-4-git-send-email-marcos.souza.org@gmail.com>
+In-Reply-To: <1334723412-5034-1-git-send-email-marcos.souza.org@gmail.com>
+References: <1334723412-5034-1-git-send-email-marcos.souza.org@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Otherwise, some false positives might arise when
-having 2 subdevices with similar names, like:
+The output of "make versioncheck" told us that the file
+drivers/media/dvb/ddbridge/ddbridge-code.c has a incorrect include of
+version.h:
 
-"OMAP4 ISS ISP IPIPEIF"
-"OMAP4 ISS ISP IPIPE"
+linux/drivers/media/dvb/ddbridge/ddbridge-core.c: 34 linux/version.h not
+needed.
 
-Before this patch, trying to find "OMAP4 ISS ISP IPIPE", resulted
-in a false entity match, retrieving "OMAP4 ISS ISP IPIPEIF"
-information instead.
+After take a look in the code, we can agree to remove it.
 
-Checking length should ensure such cases are handled well.
-
-Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: <linux-media@vger.kernel.org>
+Signed-off-by: Marcos Paulo de Souza <marcos.souza.org@gmail.com>
 ---
- src/mediactl.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
+ drivers/media/dvb/ddbridge/ddbridge-core.c |    1 -
+ 1 files changed, 0 insertions(+), 1 deletions(-)
 
-diff --git a/src/mediactl.c b/src/mediactl.c
-index 5b8c587..451a386 100644
---- a/src/mediactl.c
-+++ b/src/mediactl.c
-@@ -66,7 +66,8 @@ struct media_entity *media_get_entity_by_name(struct media_device *media,
- 	for (i = 0; i < media->entities_count; ++i) {
- 		struct media_entity *entity = &media->entities[i];
- 
--		if (strncmp(entity->info.name, name, length) == 0)
-+		if ((strncmp(entity->info.name, name, length) == 0) &&
-+		    (strlen(entity->info.name) == length))
- 			return entity;
- 	}
- 
+diff --git a/drivers/media/dvb/ddbridge/ddbridge-core.c b/drivers/media/dvb/ddbridge/ddbridge-core.c
+index d88c4aa..115777e 100644
+--- a/drivers/media/dvb/ddbridge/ddbridge-core.c
++++ b/drivers/media/dvb/ddbridge/ddbridge-core.c
+@@ -31,7 +31,6 @@
+ #include <linux/pci.h>
+ #include <linux/pci_ids.h>
+ #include <linux/timer.h>
+-#include <linux/version.h>
+ #include <linux/i2c.h>
+ #include <linux/swab.h>
+ #include <linux/vmalloc.h>
 -- 
-1.7.5.4
+1.7.7.6
 
