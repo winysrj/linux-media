@@ -1,44 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:38089 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754037Ab2DXXTt (ORCPT
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:35957 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752218Ab2DREeT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Apr 2012 19:19:49 -0400
-Date: Wed, 25 Apr 2012 02:19:45 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 2/4] omap3isp: preview: Add support for greyscale input
-Message-ID: <20120424231945.GE7913@valkosipuli.localdomain>
-References: <1335180595-27931-1-git-send-email-laurent.pinchart@ideasonboard.com>
- <1335180595-27931-3-git-send-email-laurent.pinchart@ideasonboard.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1335180595-27931-3-git-send-email-laurent.pinchart@ideasonboard.com>
+	Wed, 18 Apr 2012 00:34:19 -0400
+From: Marcos Paulo de Souza <marcos.souza.org@gmail.com>
+To: linux-kernel@vger.kernel.org
+Cc: Marcos Paulo de Souza <marcos.souza.org@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	<linux-media@vger.kernel.org>, <devel@driverdev.osuosl.org>
+Subject: [PATCH 08/12] drivers: staging: media: as102: as102fe.c: Remove include of version.h
+Date: Wed, 18 Apr 2012 01:30:08 -0300
+Message-Id: <1334723412-5034-9-git-send-email-marcos.souza.org@gmail.com>
+In-Reply-To: <1334723412-5034-1-git-send-email-marcos.souza.org@gmail.com>
+References: <1334723412-5034-1-git-send-email-marcos.souza.org@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+The output of "make versioncheck" told us that:
 
-Thanks for the patch!
+drivers/staging/media/as102/as102_fe.c: 20 linux/version.h not needed.
 
-On Mon, Apr 23, 2012 at 01:29:53PM +0200, Laurent Pinchart wrote:
-> Configure CFA interpolation automatically based on the input format.
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> ---
->  drivers/media/video/omap3isp/isppreview.c |   52 ++++++++++++++++------------
->  1 files changed, 30 insertions(+), 22 deletions(-)
+If we take a look at the code, we can agree to remove this include.
 
-Acked-by: <sakari.ailus@iki.fi>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: <linux-media@vger.kernel.org>
+Cc: <devel@driverdev.osuosl.org>
+Signed-off-by: Marcos Paulo de Souza <marcos.souza.org@gmail.com>
+---
+ drivers/staging/media/as102/as102_fe.c |    2 --
+ 1 files changed, 0 insertions(+), 2 deletions(-)
 
-(Same for 1/4, too!)
-
-It looks like the OMAP 3 ISP will be functionally complete soon! 8-)
-
-Regards,
-
+diff --git a/drivers/staging/media/as102/as102_fe.c b/drivers/staging/media/as102/as102_fe.c
+index 5917657..9ce8c9d 100644
+--- a/drivers/staging/media/as102/as102_fe.c
++++ b/drivers/staging/media/as102/as102_fe.c
+@@ -17,8 +17,6 @@
+  * along with this program; if not, write to the Free Software
+  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+-#include <linux/version.h>
+-
+ #include "as102_drv.h"
+ #include "as10x_types.h"
+ #include "as10x_cmd.h"
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+1.7.7.6
+
