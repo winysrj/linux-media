@@ -1,52 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:54354 "EHLO mail.kapsi.fi"
+Received: from bear.ext.ti.com ([192.94.94.41]:33927 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757449Ab2CaO2q (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 31 Mar 2012 10:28:46 -0400
-Message-ID: <4F771496.8080305@iki.fi>
-Date: Sat, 31 Mar 2012 17:28:38 +0300
-From: Antti Palosaari <crope@iki.fi>
+	id S1751151Ab2DRQGs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 18 Apr 2012 12:06:48 -0400
+From: <manjunatha_halli@ti.com>
+To: <linux-media@vger.kernel.org>
+CC: <benzyg@ti.com>, <linux-kernel@vger.kernel.org>,
+	Manjunatha Halli <x0130808@ti.com>
+Subject: [PATCH V2 3/5] [Media] Add new CID for FM TX RDS Alternate Frequency
+Date: Wed, 18 Apr 2012 11:06:41 -0500
+Message-ID: <1334765203-31844-4-git-send-email-manjunatha_halli@ti.com>
+In-Reply-To: <1334765203-31844-1-git-send-email-manjunatha_halli@ti.com>
+References: <1334765203-31844-1-git-send-email-manjunatha_halli@ti.com>
 MIME-Version: 1.0
-To: =?UTF-8?B?TWljaGFlbCBCw7xzY2g=?= <m@bues.ch>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [GIT PULL FOR 3.5] AF9035/AF9033/TUA9001 => TerraTec Cinergy
- T Stick [0ccd:0093]
-References: <4F75A7FE.8090405@iki.fi> <20120330234545.45f4e2e8@milhouse> <4F762CF5.9010303@iki.fi> <20120331001458.33f12d82@milhouse> <20120331160445.71cd1e78@milhouse>
-In-Reply-To: <20120331160445.71cd1e78@milhouse>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 31.03.2012 17:04, Michael Büsch wrote:
-> On Sat, 31 Mar 2012 00:14:58 +0200
-> Michael Büsch<m@bues.ch>  wrote:
->
->> On Sat, 31 Mar 2012 01:00:21 +0300
->> Antti Palosaari<crope@iki.fi>  wrote:
->>
->>> Feel free to do that. Actually, I just tried it about 2 hours ago. But I
->>> failed, since there callbacks given as a param for tuner attach and it
->>> is wrong. There is frontend callback defined just for that. Look example
->>> from some Xceive tuners also hd29l2 demod driver contains one example.
->>> Use git grep DVB_FRONTEND_COMPONENT_ drivers/media/ to see all those
->>> existing callbacks.
->>
->> Cool. Thanks for the hint. I'll fix this.
->
-> Ok, so I cooked something up here.
-> I'm wondering where to get the firmware file from, so I can test it.
+From: Manjunatha Halli <x0130808@ti.com>
 
-Googling the filename reveals many links, here is one:
-http://xgazza.altervista.org/Linux/DVB/dvb-usb-af9035-01.fw
+Signed-off-by: Manjunatha Halli <x0130808@ti.com>
+---
+ drivers/media/video/v4l2-ctrls.c |    1 +
+ include/linux/videodev2.h        |    1 +
+ 2 files changed, 2 insertions(+), 0 deletions(-)
 
-I will try to make new firmware loader during that weekend, now I am 
-busy hacking with it9035 I have. It is rather similar, but for some 
-nasty reason I haven't got lock. If it does not found soon I will jump 
-back for implementing those missing basic features.
-
-regards
-Antti
+diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
+index e1bba7d..b4ddd6b 100644
+--- a/drivers/media/video/v4l2-ctrls.c
++++ b/drivers/media/video/v4l2-ctrls.c
+@@ -614,6 +614,7 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_RDS_TX_PTY:		return "RDS Program Type";
+ 	case V4L2_CID_RDS_TX_PS_NAME:		return "RDS PS Name";
+ 	case V4L2_CID_RDS_TX_RADIO_TEXT:	return "RDS Radio Text";
++	case V4L2_CID_RDS_TX_AF_FREQ:		return "RDS Alternate Frequency";
+ 	case V4L2_CID_AUDIO_LIMITER_ENABLED:	return "Audio Limiter Feature Enabled";
+ 	case V4L2_CID_AUDIO_LIMITER_RELEASE_TIME: return "Audio Limiter Release Time";
+ 	case V4L2_CID_AUDIO_LIMITER_DEVIATION:	return "Audio Limiter Deviation";
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index 00ac1b7..d1c8c1b 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -1699,6 +1699,7 @@ enum  v4l2_exposure_auto_type {
+ #define V4L2_CID_RDS_TX_PTY			(V4L2_CID_FM_TX_CLASS_BASE + 3)
+ #define V4L2_CID_RDS_TX_PS_NAME			(V4L2_CID_FM_TX_CLASS_BASE + 5)
+ #define V4L2_CID_RDS_TX_RADIO_TEXT		(V4L2_CID_FM_TX_CLASS_BASE + 6)
++#define V4L2_CID_RDS_TX_AF_FREQ			(V4L2_CID_FM_TX_CLASS_BASE + 7)
+ 
+ #define V4L2_CID_AUDIO_LIMITER_ENABLED		(V4L2_CID_FM_TX_CLASS_BASE + 64)
+ #define V4L2_CID_AUDIO_LIMITER_RELEASE_TIME	(V4L2_CID_FM_TX_CLASS_BASE + 65)
 -- 
-http://palosaari.fi/
+1.7.4.1
+
