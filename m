@@ -1,88 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:42956 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756025Ab2DMTrE (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.187]:58662 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751252Ab2DRH7E (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Apr 2012 15:47:04 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [yavta PATCH 1/3] Support integer menus.
-Date: Fri, 13 Apr 2012 21:47:14 +0200
-Message-ID: <2967674.Tm7K8VO7YX@avalon>
-In-Reply-To: <1334220095-1698-1-git-send-email-sakari.ailus@iki.fi>
-References: <1334220095-1698-1-git-send-email-sakari.ailus@iki.fi>
+	Wed, 18 Apr 2012 03:59:04 -0400
+Date: Wed, 18 Apr 2012 09:59:01 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: V4L: mt9m032: fix compilation breakage
+Message-ID: <Pine.LNX.4.64.1204180930170.30514@axis700.grange>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Fix the following compilation failure:
 
-Thanks for the patch.
+linux-2.6/drivers/media/video/mt9m032.c: In function '__mt9m032_get_pad_crop':
+linux-2.6/drivers/media/video/mt9m032.c:337: error: implicit declaration of function 'v4l2_subdev_get_try_crop'
+linux-2.6/drivers/media/video/mt9m032.c:337: warning: return makes pointer from integer without a cast
+linux-2.6/drivers/media/video/mt9m032.c: In function '__mt9m032_get_pad_format':
+linux-2.6/drivers/media/video/mt9m032.c:359: error: implicit declaration of function 'v4l2_subdev_get_try_format'
+linux-2.6/drivers/media/video/mt9m032.c:359: warning: return makes pointer from integer without a cast
+linux-2.6/drivers/media/video/mt9m032.c: In function 'mt9m032_probe':
+linux-2.6/drivers/media/video/mt9m032.c:767: error: 'struct v4l2_subdev' has no member named 'entity'
+linux-2.6/drivers/media/video/mt9m032.c:826: error: 'struct v4l2_subdev' has no member named 'entity'
+linux-2.6/drivers/media/video/mt9m032.c: In function 'mt9m032_remove':
+linux-2.6/drivers/media/video/mt9m032.c:842: error: 'struct v4l2_subdev' has no member named 'entity'
+make[4]: *** [drivers/media/video/mt9m032.o] Error 1
 
-The code looks fine, but unfortunately breaks compilation when using kernel 
-headers < v3.5 (which is a pretty common case as of today ;-)).
+by adding a dependency on VIDEO_V4L2_SUBDEV_API.
 
-V4L2_CTRL_TYPE_INTEGER_MENU is an enumerated value, not a pre-processor 
-#define, so it's difficult to test for it using conditional compilation.
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
+ drivers/media/video/Kconfig |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Maybe including a copy of videodev2.h in the yavta repository is the best 
-option ?
-
-On Thursday 12 April 2012 11:41:33 Sakari Ailus wrote:
-> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> ---
->  yavta.c |   18 +++++++++++-------
->  1 files changed, 11 insertions(+), 7 deletions(-)
-> 
-> diff --git a/yavta.c b/yavta.c
-> index 72679c2..8db6e1e 100644
-> --- a/yavta.c
-> +++ b/yavta.c
-> @@ -564,19 +564,22 @@ static int video_enable(struct device *dev, int
-> enable) return 0;
->  }
-> 
-> -static void video_query_menu(struct device *dev, unsigned int id,
-> -			     unsigned int min, unsigned int max)
-> +static void video_query_menu(struct device *dev, struct v4l2_queryctrl
-> *query) {
->  	struct v4l2_querymenu menu;
->  	int ret;
-> 
-> -	for (menu.index = min; menu.index <= max; menu.index++) {
-> -		menu.id = id;
-> +	for (menu.index = query->minimum; menu.index <= query->maximum;
-> +	     menu.index++) {
-> +		menu.id = query->id;
->  		ret = ioctl(dev->fd, VIDIOC_QUERYMENU, &menu);
->  		if (ret < 0)
->  			continue;
-> 
-> -		printf("  %u: %.32s\n", menu.index, menu.name);
-> +		if (query->type == V4L2_CTRL_TYPE_MENU)
-> +			printf("  %u: %.32s\n", menu.index, menu.name);
-> +		else
-> +			printf("  %u: %lld\n", menu.index, menu.value);
->  	};
->  }
-> 
-> @@ -621,8 +624,9 @@ static void video_list_controls(struct device *dev)
->  			query.id, query.name, query.minimum, query.maximum,
->  			query.step, query.default_value, value);
-> 
-> -		if (query.type == V4L2_CTRL_TYPE_MENU)
-> -			video_query_menu(dev, query.id, query.minimum, query.maximum);
-> +		if (query.type == V4L2_CTRL_TYPE_MENU ||
-> +		    query.type == V4L2_CTRL_TYPE_INTEGER_MENU)
-> +			video_query_menu(dev, &query);
-> 
->  		nctrls++;
->  	}
+diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+index f2479c5..ce1e7ba 100644
+--- a/drivers/media/video/Kconfig
++++ b/drivers/media/video/Kconfig
+@@ -492,7 +492,7 @@ config VIDEO_VS6624
+ 
+ config VIDEO_MT9M032
+ 	tristate "MT9M032 camera sensor support"
+-	depends on I2C && VIDEO_V4L2
++	depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
+ 	select VIDEO_APTINA_PLL
+ 	---help---
+ 	  This driver supports MT9M032 camera sensors from Aptina, monochrome
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.2.5
 
