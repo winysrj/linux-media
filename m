@@ -1,47 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:64377 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750752Ab2DUIg3 convert rfc822-to-8bit (ORCPT
+Received: from lxorguk.ukuu.org.uk ([81.2.110.251]:54433 "EHLO
+	lxorguk.ukuu.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754583Ab2DRTHh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 21 Apr 2012 04:36:29 -0400
-Date: Sat, 21 Apr 2012 10:36:24 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Alexander Sedunov <san822@yandex.ru>
-cc: linux-media@vger.kernel.org
-Subject: Re: Camera driver for OV5640 OmniVision CMOS sensor
-In-Reply-To: <23621334982988@web17f.yandex.ru>
-Message-ID: <alpine.DEB.2.00.1204211015540.7880@axis700.grange>
-References: <23621334982988@web17f.yandex.ru>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-15
-Content-Transfer-Encoding: 8BIT
+	Wed, 18 Apr 2012 15:07:37 -0400
+Date: Wed, 18 Apr 2012 20:10:11 +0100
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>,
+	linaro-mm-sig@lists.linaro.org,
+	LKML <linux-kernel@vger.kernel.org>,
+	DRI Development <dri-devel@lists.freedesktop.org>,
+	linux-media@vger.kernel.org, Rob Clark <rob.clark@linaro.org>,
+	Rebecca Schultz Zavin <rebecca@android.com>
+Subject: Re: [PATCH] dma-buf: mmap support
+Message-ID: <20120418201011.46d44f4b@pyramind.ukuu.org.uk>
+In-Reply-To: <201204181406.14159.arnd@arndb.de>
+References: <1334757146-28335-1-git-send-email-daniel.vetter@ffwll.ch>
+	<201204181406.14159.arnd@arndb.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Alexander
+> How do you ensure that no device can do DMA on the buffer while it's mapped
+> into user space in a noncoherent manner?
 
-On Sat, 21 Apr 2012, Alexander Sedunov wrote:
+Why do we want to enforce that ? We provide the appropriate base service
+but you need to know what you are doing. In reality a lot of use cases
+are going to need far more than a simple kernel API could try and guess
+coherency rules about.
 
-> Hi,
-> What kind of hardware did  you used for this project - OMAP, Da Vinci or
-> FPGA ?
-
-If you look in the sources, or even at the "SoC camera" article under 
-"headlines" at the below page (when the link is fixed to work again), 
-you'll see, that currently AT91, i.MX1, i.MX2[57], i.MX3[15], OMAP1, 
-PXA270, sh-mobile (CEU unit on SuperH and ARM SoCs), V4L drivers use the 
-soc-camera framework. So, it is by no means a single "project."
-
-> http://www.open-technology.de/categories/2-SoC-camera 
-> What state have your project ? Is it open or commercial data ? 
-
-It is all Linux kernel mainline, i.e., open-source, GPL.
-
-> Best regards, Alexander.
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
