@@ -1,102 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vb0-f46.google.com ([209.85.212.46]:51212 "EHLO
-	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751069Ab2DIMCS convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Apr 2012 08:02:18 -0400
-Received: by vbbff1 with SMTP id ff1so2199570vbb.19
-        for <linux-media@vger.kernel.org>; Mon, 09 Apr 2012 05:02:17 -0700 (PDT)
+Received: from mail.kapsi.fi ([217.30.184.167]:49426 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750721Ab2DRSff (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 18 Apr 2012 14:35:35 -0400
+Message-ID: <4F8F0975.10605@iki.fi>
+Date: Wed, 18 Apr 2012 21:35:33 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <4F804CDC.3030306@gmail.com>
-References: <CAKZ=SG-pmn2BtqB+ihY9H9bvYCZq-E3uBsSaioPF5SRceq9iDg@mail.gmail.com>
-	<4F804CDC.3030306@gmail.com>
-Date: Mon, 9 Apr 2012 14:02:17 +0200
-Message-ID: <CAKZ=SG_=7U2QShzq+2HE8SVZvyRpG3rNTsDzwUaso=CG8tXOsg@mail.gmail.com>
+To: Thomas Mair <thomas.mair86@googlemail.com>
+CC: linux-media@vger.kernel.org
 Subject: Re: RTL28XX driver
-From: Thomas Mair <thomas.mair86@googlemail.com>
-To: gennarone@gmail.com
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+References: <CAKZ=SG-pmn2BtqB+ihY9H9bvYCZq-E3uBsSaioPF5SRceq9iDg@mail.gmail.com> <4F804CDC.3030306@gmail.com> <CAKZ=SG_=7U2QShzq+2HE8SVZvyRpG3rNTsDzwUaso=CG8tXOsg@mail.gmail.com> <4F85D787.2050403@iki.fi> <4F85F89A.80107@schinagl.nl> <4F85FE63.1030700@iki.fi> <4F86C66A.4010404@schinagl.nl> <CAKZ=SG8gHbnRGFrajp2=Op7x52UcMT_5CFM5wzgajKCXkggFtA@mail.gmail.com> <4F86CE09.3080601@schinagl.nl> <CAKZ=SG95OA3pOvxM6eypsNaBvzX1wfjPR4tucc8725bnhE3FEg@mail.gmail.com> <4F86D4B8.8060005@iki.fi> <CAKZ=SG8G8w1J_AF-bOCn2n8gcEogGPQ1rmp45wCtmwFgOUPifA@mail.gmail.com> <4F8EFD7B.2020901@iki.fi> <CAKZ=SG8=z6c4-n8wkMK1YmTzWs9rN9JrbM907+K+X0k4ampSJA@mail.gmail.com>
+In-Reply-To: <CAKZ=SG8=z6c4-n8wkMK1YmTzWs9rN9JrbM907+K+X0k4ampSJA@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Gainluca,
+The method should be selected based of knowledge if GPIO used for 
+controlling FC0012 tuner OR controlling some other part (LNA, anatenna 
+switch, etc.) So you have to identify meaning first. Look inside FC0012 
+driver to see if there is some mention about that GPIO.
 
-thanks for your information. I did get in touch with Realtek and they
-provided me with the datasheet for the RTL2832U. So what I will try to
-do is write a demodulator driver for the RTL2832 demod chip following
-the information of the datasheet and the Realtek driver. I will follow
-Antti's RTL2830 driver structure.
+UNLESS we cannot identify meaning of GPIO, fe_ioctl_overrid must be used 
+(inside rtl28xxu driver). All unknown "hacks" must reside DVB-USB-driver 
+(in that case dvb_usb_rtl28xxu) leaving demodulator and tuner drivers clean.
 
-For now there is only one question left regarding the testing of the
-drivers. What is the best way to test and debug the drivers. Sould I
-compile the 3.4 kernel and use it, or is it safer to set up a
-structure like the one I already have to test the driver with a stable
-kernel?
+regards
+Antti
 
-Greetings
-Thomas
 
-2012/4/7 Gianluca Gennari <gennarone@gmail.com>:
-> Il 06/04/2012 11:11, Thomas Mair ha scritto:
->> Hello everyone,
+On 18.04.2012 21:20, Thomas Mair wrote:
+> I don't know what it really is either but the comments are the following.
+>
+> if (frequency>  300000000)
+> {
+> 				
+> 	printk("  %s : Tuner :FC0012 V-band (GPIO6 high)\n", __FUNCTION__);		
+> }
+> else
+> {
+> 	printk("  %s : Tuner :FC0012 U-band (GPIO6 low)\n", __FUNCTION__);	
+> }
+>
+> I looked into both mechanisms but can't really decide which one would
+> be the best one for this. What is the correct ioctl constant to listen
+> for or do I define an own constant? And how is the ioctl command
+> issued within the demod driver?
+>
+> Thomas
+>
+> 2012/4/18 Antti Palosaari<crope@iki.fi>:
+>> On 18.04.2012 20:18, Thomas Mair wrote:
+>>>
+>>> I have been working on the driver over the past days and been making
+>>> some progress. Right now I am stuck with a small problem that I have
+>>> no idea how to deal with.
+>>>
+>>> It seems that the fc0012 tuner supports V-Band and U-Band. To switch
+>>> between those modes a GPIO output value needs to be changed. In the
+>>> original Realtek driver this is done at the beginning of the
+>>> set_parameters callback. Is there a different callback that can be
+>>> used for this or is it ok to write a RTL2832u register from the
+>>> demodulator code?
 >>
->> i own a TerraTec Cinergy T Stick Black device, and was able to find a
->> working driver for the device. It seems to be, that the driver was
->> originally written by Realtek and has since been updated by different
->> Developers to meet DVB API changes. I was wondering what would be the
->> necessary steps to include the driver into the kernel sources?
 >>
->> The one thing that needs to be solved before even thinking about the
->> integration, is the licencing of the code. I did find it on two
->> different locations, but without any licencing information. So
->> probably Realtek should be contacted. I am willing to deal with that,
->> but need furter information on under whitch lisence the code has to be
->> relased.
+>> Aah, I suspect it is antenna switch or LNA GPIO. You don't say what is
+>> meaning of that GPIO...
+>> If it is FC0012 input, which I think it is not, then you should use FE
+>> callback (named as callback too) with  DVB_FRONTEND_COMPONENT_TUNER param.
+>> But I suspect it is not issue.
 >>
->> So far, I put up a Github repository for the driver, which enables me
->> to compile the proper kernel modue at
->> https://github.com/tmair/DVB-Realtek-RTL2832U-2.2.2-10tuner-mod_kernel-3.0.0
->> The modificatioins to the driver where taken from openpli
->> http://openpli.git.sourceforge.net/git/gitweb.cgi?p=openpli/openembedded;a=blob;f=recipes/linux/linux-etxx00/dvb-usb-rtl2832.patch;h=063114c8ce4a2dbcf8c8dde1b4ab4f8e329a2afa;hb=HEAD
+>> So lets introduce another solution. It is fe_ioctl_override. Use it.
 >>
->> In the driver sources I stumbled accross many different devices
->> containig the RTL28XX chipset, so I suppose the driver would enably
->> quite many products to work.
+>> You will find good examples both cases using following GIT greps
+>> git grep fe_ioctl_override drivers/media
+>> git grep FRONTEND_COMPONENT
 >>
->> As I am relatively new to the developement of dvb drivers I appreciate
->> any help in stabilizing the driver and proper integration into the dvb
->> API.
->>
->
-> Hi Thomas,
-> the Realtek driver you mention is the full version, which supports 3
-> demodulators (2832=DVB-T, 2836=DTMB, 2840=DVB-C) and 10 different tuners.
-> There is also a simplified version of the driver which supports only
-> DVB-T and 4 tuners: this is probably a better starting base for your
-> project.
->
-> You can find the simplified driver here:
->
-> https://github.com/ambrosa/DVB-Realtek-RTL2832U-2.2.2-4_tuner
->
-> My friend Ambrosa got it directly from Realtek. You can mail the 2
-> driver authors directly:
->
-> author:         Dean Chung <DeanChung@realtek.com>
-> author:         Chialing Lu <chialing@realtek.com>
->
-> as they have been quite collaborative last year. I think they can also
-> provide you some information about the code license.
->
-> The rtl2832 devices I've seen so far use either the Fitipower fc0012 or
-> the Elonics E4000 tuner. For the first one there is a driver from
-> Hans-Frieder Vogt that is not yet included in the development tree, but
-> it has been posted recently on this list.
->
-> If your stick uses this tuner, then the problem reduces to write the
-> demodulator driver (as Antti already explained).
->
-> Best regards,
-> Gianluca
->
+>> Antti
+>> --
+>> http://palosaari.fi/
+
+
+-- 
+http://palosaari.fi/
