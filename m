@@ -1,70 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bues.ch ([80.190.117.144]:42414 "EHLO bues.ch"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751918Ab2DAO4L (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 1 Apr 2012 10:56:11 -0400
-Date: Sun, 1 Apr 2012 16:56:01 +0200
-From: Michael =?UTF-8?B?QsO8c2No?= <m@bues.ch>
-To: "Hans-Frieder Vogt" <hfvogt@gmx.net>
-Cc: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
-Subject: Re: [GIT PULL FOR 3.5] AF9035/AF9033/TUA9001 => TerraTec Cinergy T
- Stick [0ccd:0093]
-Message-ID: <20120401165601.17a76a03@milhouse>
-In-Reply-To: <201204011642.35087.hfvogt@gmx.net>
-References: <4F75A7FE.8090405@iki.fi>
-	<4F784A13.5000704@iki.fi>
-	<20120401151153.637d2393@milhouse>
-	<201204011642.35087.hfvogt@gmx.net>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=PGP-SHA1;
- boundary="Sig_/EFG2Nfzz.s.mRJSh6sudC9h"; protocol="application/pgp-signature"
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:42250 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752218Ab2DREeN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 18 Apr 2012 00:34:13 -0400
+From: Marcos Paulo de Souza <marcos.souza.org@gmail.com>
+To: linux-kernel@vger.kernel.org
+Cc: Marcos Paulo de Souza <marcos.souza.org@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	<linux-media@vger.kernel.org>
+Subject: [PATCH 07/12] drivers: media: video: tm6000: tm6000.h: Include version.h header
+Date: Wed, 18 Apr 2012 01:30:07 -0300
+Message-Id: <1334723412-5034-8-git-send-email-marcos.souza.org@gmail.com>
+In-Reply-To: <1334723412-5034-1-git-send-email-marcos.souza.org@gmail.com>
+References: <1334723412-5034-1-git-send-email-marcos.souza.org@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---Sig_/EFG2Nfzz.s.mRJSh6sudC9h
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+The output of "make versioncheck" told us that:
 
-On Sun, 1 Apr 2012 16:42:34 +0200
-"Hans-Frieder Vogt" <hfvogt@gmx.net> wrote:
-> > [ 3101.940765] i2c i2c-8: Failed to read VCO calibration value (got 20)
-> >=20
-> > It doesn't run into this check on the other af903x driver.
-> > So I suspect an i2c read issue here.
->=20
-> I would first uncomment the i2c read functionality in Antti's driver!
+drivers/media/video/tm6000/tm6000.h: 401: need linux/version.h
 
-I did this.
+If we take a look at the code, we can see the use of the macro
+KERNEL_VERSION. So, we need this include.
 
-> > Attached: The patches.
+In this patch too, the headers of the file were reordered in alphabetic
+order. No functional changes here.
 
-See the patches.
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: <linux-media@vger.kernel.org >
+Signed-off-by: Marcos Paulo de Souza <marcos.souza.org@gmail.com>
+---
+ drivers/media/video/tm6000/tm6000.h |   13 +++++++------
+ 1 files changed, 7 insertions(+), 6 deletions(-)
 
---=20
-Greetings, Michael.
+diff --git a/drivers/media/video/tm6000/tm6000.h b/drivers/media/video/tm6000/tm6000.h
+index 27ba659..e984cf2 100644
+--- a/drivers/media/video/tm6000/tm6000.h
++++ b/drivers/media/video/tm6000/tm6000.h
+@@ -20,18 +20,19 @@
+  *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ 
+-#include <linux/videodev2.h>
+-#include <media/v4l2-common.h>
+-#include <media/videobuf-vmalloc.h>
+-#include "tm6000-usb-isoc.h"
++#include <linux/dvb/frontend.h>
+ #include <linux/i2c.h>
+ #include <linux/mutex.h>
++#include <linux/version.h>
++#include <linux/videodev2.h>
++#include <media/videobuf-vmalloc.h>
++#include <media/v4l2-common.h>
+ #include <media/v4l2-device.h>
+ 
+-#include <linux/dvb/frontend.h>
++#include "dmxdev.h"
+ #include "dvb_demux.h"
+ #include "dvb_frontend.h"
+-#include "dmxdev.h"
++#include "tm6000-usb-isoc.h"
+ 
+ #define TM6000_VERSION KERNEL_VERSION(0, 0, 2)
+ 
+-- 
+1.7.7.6
 
-PGP encryption is encouraged / 908D8B0E
-
---Sig_/EFG2Nfzz.s.mRJSh6sudC9h
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Disposition: attachment; filename=signature.asc
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJPeGyBAAoJEPUyvh2QjYsOdnQQAKGvvAIJpxNtyzl3S42Y1CHn
-giqlYZdzYwaWU2kZPpGJKvYmONkpacIrDJeMtsXtiu7rYLuv8zBpVTXJ0ruHSDmk
-nmCYfULz/3TRRrjMu8jNEqwdjornw8q7X6d4n8PVQGcAVGQPWXPsHW9LPIMge4KU
-3fqre+NmuW93DDKmfvJX+n5/encYBz+a53usBRGkUQeZaB7IrwjkTNqWCYgFWtmp
-bKhkgGi5PHGMq74+C7HB20iY4YYb/wO+mGHY6HPa4TUwkdwr2HuJ1G6oLSXoYlQd
-6u3Tc8XTH6Dgf0kKSwPp0mz3Iq5hwtTWORz4JkZD/ctSol9O35tJyAZHWzB6bhV5
-jfBExo1ZJAlVDr3HLP6Wh+Onw/EI1pHukMChtSXmemuOyr5aXX1IbUcUjC9Rlb1P
-lPQr96VyJTBkyx0qkX63td5YexwCLRCAzwj/x8e63eRVWkNK4NMjwrlGVIkckCTQ
-1Ql+C57DJFnvCCOmQoGbTQgFVAT9JG0BDFoFwEsWxND/OB/gU4y8P/hOjM+GhH1C
-DFHu8QNj+XD9OBYkA9+We6SN8Sg+RdgmYhXMHyCXqGgRKGXn3BX1MQJ8q1AQPind
-GfXly7Bt3URXgZdJ4HFHCVUo7a8ZgWhuesx4kavj0zjXYS/ZQoStlA1KTmDloIAT
-wtukzE01601rFgFP1bGW
-=JyxL
------END PGP SIGNATURE-----
-
---Sig_/EFG2Nfzz.s.mRJSh6sudC9h--
