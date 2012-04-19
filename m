@@ -1,125 +1,509 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:14705 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760040Ab2D0JxX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Apr 2012 05:53:23 -0400
-Received: from euspt1 (mailout2.w1.samsung.com [210.118.77.12])
- by mailout2.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0M34009Q9U4QCI@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 27 Apr 2012 10:53:14 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0M3400JZKU4R62@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 27 Apr 2012 10:53:20 +0100 (BST)
-Date: Fri, 27 Apr 2012 11:53:03 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH 10/13] s5p-fimc: Minor cleanups
-In-reply-to: <1335520386-20835-1-git-send-email-s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	riverful.kim@samsung.com, sw0312.kim@samsung.com,
-	sungchun.kang@samsung.com, subash.ramaswamy@linaro.org,
-	s.nawrocki@samsung.com
-Message-id: <1335520386-20835-11-git-send-email-s.nawrocki@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1335520386-20835-1-git-send-email-s.nawrocki@samsung.com>
+Received: from mail.telros.ru ([83.136.244.21]:62837 "EHLO mail.telros.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753607Ab2DSMCJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 Apr 2012 08:02:09 -0400
+Message-ID: <1334834777.9633.4.camel@VPir>
+Subject: Subject: [PATCH] [Trivial] Staging: go7007: wis-tw2804 upstyle to
+ v4l2
+From: volokh <my84@bk.ru>
+To: volokh@telros.ru
+Cc: my84@bk.ru, Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Jiri Kosina <trivial@kernel.org>,
+	Pradheep Shrinivasan <pradheep.sh@gmail.com>,
+	linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+	linux-kernel@vger.kernel.org
+Date: Thu, 19 Apr 2012 15:26:17 +0400
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/video/s5p-fimc/fimc-capture.c |   31 ++++++++++++++++-----------
- 1 file changed, 18 insertions(+), 13 deletions(-)
+ Some update to new v4l2 controls
 
-diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c b/drivers/media/video/s5p-fimc/fimc-capture.c
-index 18f686a1..fde7033 100644
---- a/drivers/media/video/s5p-fimc/fimc-capture.c
-+++ b/drivers/media/video/s5p-fimc/fimc-capture.c
-@@ -31,7 +31,7 @@
- #include "fimc-core.h"
- #include "fimc-reg.h"
+ Signed-off-by:Volokh Konstantin <my84@bk.ru>
+---
+ drivers/staging/media/go7007/wis-tw2804.c |  378 +++++++++++++++++------------
+ 1 files changed, 228 insertions(+), 150 deletions(-)
+
+diff --git a/drivers/staging/media/go7007/wis-tw2804.c b/drivers/staging/media/go7007/wis-tw2804.c
+index 9134f03..cffaa2b 100644
+--- a/drivers/staging/media/go7007/wis-tw2804.c
++++ b/drivers/staging/media/go7007/wis-tw2804.c
+@@ -21,10 +21,13 @@
+ #include <linux/videodev2.h>
+ #include <linux/ioctl.h>
+ #include <linux/slab.h>
++#include <media/v4l2-subdev.h>
++#include <media/v4l2-device.h>
  
--static int fimc_init_capture(struct fimc_dev *fimc)
-+static int fimc_capture_hw_init(struct fimc_dev *fimc)
+ #include "wis-i2c.h"
+ 
+ struct wis_tw2804 {
++	struct v4l2_subdev sd;
+ 	int channel;
+ 	int norm;
+ 	int brightness;
+@@ -33,6 +36,13 @@ struct wis_tw2804 {
+ 	int hue;
+ };
+ 
++static inline struct wis_tw2804 *to_state(struct v4l2_subdev *sd)
++{
++	return container_of(sd, struct wis_tw2804, sd);
++}
++
++static int tw2804_log_status(struct v4l2_subdev *sd);
++
+ static u8 global_registers[] = {
+ 	0x39, 0x00,
+ 	0x3a, 0xff,
+@@ -105,223 +115,291 @@ static u8 channel_registers[] = {
+ 
+ static int write_reg(struct i2c_client *client, u8 reg, u8 value, int channel)
  {
- 	struct fimc_ctx *ctx = fimc->vid_cap.ctx;
- 	struct fimc_pipeline *p = &fimc->pipeline;
-@@ -73,7 +73,15 @@ static int fimc_init_capture(struct fimc_dev *fimc)
- 	return ret;
+-	return i2c_smbus_write_byte_data(client, reg | (channel << 6), value);
++	int i;
++
++	for (i = 0; i < 10; i++)
++		/*return */if (i2c_smbus_write_byte_data(client,
++				reg|(channel<<6), value) < 0)
++			return -1;
++	return 0;
  }
  
--static int fimc_capture_state_cleanup(struct fimc_dev *fimc, bool suspend)
-+/*
-+ * Reinitialize the driver so it is ready to start the streaming again.
-+ * Set fimc->state to indicate stream off and the hardware shut down state.
-+ * If not suspending (@suspend is false), return any buffers to videobuf2.
-+ * Otherwise put any owned buffers onto the pending buffers queue, so they
-+ * can be re-spun when the device is being resumed. Also perform FIMC
-+ * software reset and disable streaming on the whole pipeline if required.
-+ */
-+static int fimc_capture_reinit(struct fimc_dev *fimc, bool suspend)
++/**static u8 read_reg(struct i2c_client *client, u8 reg, int channel)
++{
++  return i2c_smbus_read_byte_data(client,reg|(channel<<6));
++}*/
++
+ static int write_regs(struct i2c_client *client, u8 *regs, int channel)
  {
- 	struct fimc_vid_cap *cap = &fimc->vid_cap;
- 	struct fimc_vid_buffer *buf;
-@@ -146,9 +154,6 @@ static int fimc_capture_config_update(struct fimc_ctx *ctx)
- 	struct fimc_dev *fimc = ctx->fimc_dev;
- 	int ret;
+ 	int i;
  
--	if (!test_bit(ST_CAPT_APPLY_CFG, &fimc->state))
--		return 0;
+ 	for (i = 0; regs[i] != 0xff; i += 2)
+-		if (i2c_smbus_write_byte_data(client,
+-				regs[i] | (channel << 6), regs[i + 1]) < 0)
++		if (i2c_smbus_write_byte_data(client
++				, regs[i] | (channel << 6), regs[i + 1]) < 0)
+ 			return -1;
+ 	return 0;
+ }
+ 
+-static int wis_tw2804_command(struct i2c_client *client,
+-				unsigned int cmd, void *arg)
++static int wis_tw2804_command(
++	struct i2c_client *client,
++	unsigned int cmd,
++	void *arg)
+ {
+-	struct wis_tw2804 *dec = i2c_get_clientdata(client);
++	struct v4l2_subdev *sd = i2c_get_clientdata(client);
++	struct wis_tw2804 *dec = to_state(sd);
++	int *input;
++
++	printk(KERN_INFO"wis-tw2804: call command %d\n", cmd);
+ 
+ 	if (cmd == DECODER_SET_CHANNEL) {
+-		int *input = arg;
++		printk(KERN_INFO"wis-tw2804: DecoderSetChannel call command %d\n", cmd);
++
++		input = arg;
+ 
+ 		if (*input < 0 || *input > 3) {
+-			printk(KERN_ERR "wis-tw2804: channel %d is not "
+-					"between 0 and 3!\n", *input);
++			printk(KERN_ERR"wis-tw2804: channel %d is not between 0 and 3!\n", *input);
+ 			return 0;
+ 		}
+ 		dec->channel = *input;
+-		printk(KERN_DEBUG "wis-tw2804: initializing TW2804 "
+-				"channel %d\n", dec->channel);
+-		if (dec->channel == 0 &&
+-				write_regs(client, global_registers, 0) < 0) {
+-			printk(KERN_ERR "wis-tw2804: error initializing "
+-					"TW2804 global registers\n");
++		printk(KERN_DEBUG"wis-tw2804: initializing TW2804 channel %d\n", dec->channel);
++		if (dec->channel == 0 && write_regs(client,
++				global_registers, 0) < 0) {
++			printk(KERN_ERR"wis-tw2804: error initializing TW2804 global registers\n");
+ 			return 0;
+ 		}
+ 		if (write_regs(client, channel_registers, dec->channel) < 0) {
+-			printk(KERN_ERR "wis-tw2804: error initializing "
+-					"TW2804 channel %d\n", dec->channel);
++			printk(KERN_ERR"wis-tw2804: error initializing TW2804 channel %d\n", dec->channel);
+ 			return 0;
+ 		}
+ 		return 0;
+ 	}
+ 
+ 	if (dec->channel < 0) {
+-		printk(KERN_DEBUG "wis-tw2804: ignoring command %08x until "
+-				"channel number is set\n", cmd);
++		printk(KERN_DEBUG"wis-tw2804: ignoring command %08x until channel number is set\n", cmd);
+ 		return 0;
+ 	}
+ 
+-	switch (cmd) {
+-	case VIDIOC_S_STD:
+-	{
+-		v4l2_std_id *input = arg;
+-		u8 regs[] = {
+-			0x01, *input & V4L2_STD_NTSC ? 0xc4 : 0x84,
+-			0x09, *input & V4L2_STD_NTSC ? 0x07 : 0x04,
+-			0x0a, *input & V4L2_STD_NTSC ? 0xf0 : 0x20,
+-			0x0b, *input & V4L2_STD_NTSC ? 0x07 : 0x04,
+-			0x0c, *input & V4L2_STD_NTSC ? 0xf0 : 0x20,
+-			0x0d, *input & V4L2_STD_NTSC ? 0x40 : 0x4a,
+-			0x16, *input & V4L2_STD_NTSC ? 0x00 : 0x40,
+-			0x17, *input & V4L2_STD_NTSC ? 0x00 : 0x40,
+-			0x20, *input & V4L2_STD_NTSC ? 0x07 : 0x0f,
+-			0x21, *input & V4L2_STD_NTSC ? 0x07 : 0x0f,
+-			0xff,	0xff,
+-		};
+-		write_regs(client, regs, dec->channel);
+-		dec->norm = *input;
+-		break;
++	return 0;
++}
++
++static int tw2804_log_status(struct v4l2_subdev *sd)
++{
++	struct wis_tw2804 *state = to_state(sd);
++	v4l2_info(sd, "Standard: %s\n", state->norm == V4L2_STD_NTSC
++		? "NTSC" : state->norm == V4L2_STD_PAL
++		? "PAL" : state->norm == V4L2_STD_SECAM
++		? "SECAM" : "unknown");
++	v4l2_info(sd, "Input: %d\n", state->channel);
++	v4l2_info(sd, "Brightness: %d\n", state->brightness);
++	v4l2_info(sd, "Contrast: %d\n", state->contrast);
++	v4l2_info(sd, "Saturation: %d\n", state->saturation);
++	v4l2_info(sd, "Hue: %d\n", state->hue);
++	return 0;
++}
++
++static int tw2804_queryctrl(
++	struct v4l2_subdev *sd,
++	struct v4l2_queryctrl *query)
++{
++	static const u32 user_ctrls[] = {
++		V4L2_CID_USER_CLASS,
++		V4L2_CID_BRIGHTNESS,
++		V4L2_CID_CONTRAST,
++		V4L2_CID_SATURATION,
++		V4L2_CID_HUE,
++		0
++	};
++
++	static const u32 *ctrl_classes[] = {
++		user_ctrls,
++		NULL
++	};
++
++	query->id = v4l2_ctrl_next(ctrl_classes, query->id);
++
++	switch (query->id) {
++	case V4L2_CID_USER_CLASS:
++		return v4l2_ctrl_query_fill(query, 0, 0, 0, 0);
++	case V4L2_CID_BRIGHTNESS:
++		return v4l2_ctrl_query_fill(query, 0, 255, 1, 128);
++	case V4L2_CID_CONTRAST:
++		return v4l2_ctrl_query_fill(query, 0, 255, 1, 128);
++	case V4L2_CID_SATURATION:
++		return v4l2_ctrl_query_fill(query, 0, 255, 1, 128);
++	case V4L2_CID_HUE:
++		return v4l2_ctrl_query_fill(query, 0, 255, 1, 128);
++	default:
++		return -EINVAL;
+ 	}
+-	case VIDIOC_QUERYCTRL:
+-	{
+-		struct v4l2_queryctrl *ctrl = arg;
 -
- 	fimc_hw_set_camera_offset(fimc, &ctx->s_frame);
- 
- 	ret = fimc_set_scaler_info(ctx);
-@@ -224,7 +229,8 @@ void fimc_capture_irq_handler(struct fimc_dev *fimc)
- 		set_bit(ST_CAPT_RUN, &fimc->state);
- 	}
- 
--	fimc_capture_config_update(cap->ctx);
-+	if (test_bit(ST_CAPT_APPLY_CFG, &fimc->state))
-+		fimc_capture_config_update(cap->ctx);
- done:
- 	if (cap->active_buf_cnt == 1) {
- 		fimc_deactivate_capture(fimc);
-@@ -246,9 +252,11 @@ static int start_streaming(struct vb2_queue *q, unsigned int count)
- 
- 	vid_cap->frame_count = 0;
- 
--	ret = fimc_init_capture(fimc);
--	if (ret)
--		goto error;
-+	ret = fimc_capture_hw_init(fimc);
-+	if (ret) {
-+		fimc_capture_reinit(fimc, false);
-+		return ret;
+-		switch (ctrl->id) {
+-		case V4L2_CID_BRIGHTNESS:
+-			ctrl->type = V4L2_CTRL_TYPE_INTEGER;
+-			strncpy(ctrl->name, "Brightness", sizeof(ctrl->name));
+-			ctrl->minimum = 0;
+-			ctrl->maximum = 255;
+-			ctrl->step = 1;
+-			ctrl->default_value = 128;
+-			ctrl->flags = 0;
+-			break;
+-		case V4L2_CID_CONTRAST:
+-			ctrl->type = V4L2_CTRL_TYPE_INTEGER;
+-			strncpy(ctrl->name, "Contrast", sizeof(ctrl->name));
+-			ctrl->minimum = 0;
+-			ctrl->maximum = 255;
+-			ctrl->step = 1;
+-			ctrl->default_value = 128;
+-			ctrl->flags = 0;
+-			break;
+-		case V4L2_CID_SATURATION:
+-			ctrl->type = V4L2_CTRL_TYPE_INTEGER;
+-			strncpy(ctrl->name, "Saturation", sizeof(ctrl->name));
+-			ctrl->minimum = 0;
+-			ctrl->maximum = 255;
+-			ctrl->step = 1;
+-			ctrl->default_value = 128;
+-			ctrl->flags = 0;
+-			break;
+-		case V4L2_CID_HUE:
+-			ctrl->type = V4L2_CTRL_TYPE_INTEGER;
+-			strncpy(ctrl->name, "Hue", sizeof(ctrl->name));
+-			ctrl->minimum = 0;
+-			ctrl->maximum = 255;
+-			ctrl->step = 1;
+-			ctrl->default_value = 128;
+-			ctrl->flags = 0;
+-			break;
+-		}
++}
++
++static int tw2804_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
++{
++	struct wis_tw2804 *dec = to_state(sd);
++	struct i2c_client *client = v4l2_get_subdevdata(sd);
++
++	int Addr = 0x00;
++
++	switch (ctrl->id) {
++	case V4L2_CID_BRIGHTNESS:
++		Addr = 0x12;
+ 		break;
+-	}
+-	case VIDIOC_S_CTRL:
+-	{
+-		struct v4l2_control *ctrl = arg;
+-
+-		switch (ctrl->id) {
+-		case V4L2_CID_BRIGHTNESS:
+-			if (ctrl->value > 255)
+-				dec->brightness = 255;
+-			else if (ctrl->value < 0)
+-				dec->brightness = 0;
+-			else
+-				dec->brightness = ctrl->value;
+-			write_reg(client, 0x12, dec->brightness, dec->channel);
+-			break;
+-		case V4L2_CID_CONTRAST:
+-			if (ctrl->value > 255)
+-				dec->contrast = 255;
+-			else if (ctrl->value < 0)
+-				dec->contrast = 0;
+-			else
+-				dec->contrast = ctrl->value;
+-			write_reg(client, 0x11, dec->contrast, dec->channel);
+-			break;
+-		case V4L2_CID_SATURATION:
+-			if (ctrl->value > 255)
+-				dec->saturation = 255;
+-			else if (ctrl->value < 0)
+-				dec->saturation = 0;
+-			else
+-				dec->saturation = ctrl->value;
+-			write_reg(client, 0x10, dec->saturation, dec->channel);
+-			break;
+-		case V4L2_CID_HUE:
+-			if (ctrl->value > 255)
+-				dec->hue = 255;
+-			else if (ctrl->value < 0)
+-				dec->hue = 0;
+-			else
+-				dec->hue = ctrl->value;
+-			write_reg(client, 0x0f, dec->hue, dec->channel);
+-			break;
+-		}
++	case V4L2_CID_CONTRAST:
++		Addr = 0x11;
+ 		break;
+-	}
+-	case VIDIOC_G_CTRL:
+-	{
+-		struct v4l2_control *ctrl = arg;
+-
+-		switch (ctrl->id) {
+-		case V4L2_CID_BRIGHTNESS:
+-			ctrl->value = dec->brightness;
+-			break;
+-		case V4L2_CID_CONTRAST:
+-			ctrl->value = dec->contrast;
+-			break;
+-		case V4L2_CID_SATURATION:
+-			ctrl->value = dec->saturation;
+-			break;
+-		case V4L2_CID_HUE:
+-			ctrl->value = dec->hue;
+-			break;
+-		}
++	case V4L2_CID_SATURATION:
++		Addr = 0x10;
++		break;
++	case V4L2_CID_HUE:
++		Addr = 0x0f;
+ 		break;
++	default:
++		return -EINVAL;
 +	}
- 
- 	set_bit(ST_CAPT_PEND, &fimc->state);
- 
-@@ -263,9 +271,6 @@ static int start_streaming(struct vb2_queue *q, unsigned int count)
++	ctrl->value = ctrl->value > 255
++	? 255 : (ctrl->value < 0 ? 0 : ctrl->value);
++	Addr = write_reg(client, Addr, ctrl->value, dec->channel);
++
++	if (Addr < 0) {
++		printk(KERN_INFO"wis_tw2804: can`t set_ctrl value:id=%d;value=%d"
++			, ctrl->id, ctrl->value);
++		return Addr;
  	}
++	printk(KERN_INFO"wis_tw2804: set_ctrl value:id=%d;value=%d"
++		, ctrl->id, ctrl->value);
++
++	switch (ctrl->id) {
++	case V4L2_CID_BRIGHTNESS:
++		dec->brightness = ctrl->value;
++		break;
++	case V4L2_CID_CONTRAST:
++		dec->contrast = ctrl->value;
++		break;
++	case V4L2_CID_SATURATION:
++		dec->saturation = ctrl->value;
++		break;
++	case V4L2_CID_HUE:
++		dec->hue = ctrl->value;
++		break;
+ 	default:
++		return -EINVAL;
++	}
++	return 0;
++}
++
++static int tw2804_g_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
++{
++	struct wis_tw2804 *state = to_state(sd);
++	/*/ struct i2c_client *client=v4l2_get_subdevdata(sd);*/
++
++	switch (ctrl->id) {
++	case V4L2_CID_BRIGHTNESS:
++		ctrl->value = state->brightness;
++		/*=read_reg(client,0x12,state->channel);*/
++		break;
++	case V4L2_CID_CONTRAST:
++		ctrl->value = state->contrast;
++		/*=read_reg(client,0x11,state->channel);*/
+ 		break;
++	case V4L2_CID_SATURATION:
++		ctrl->value = state->saturation;
++		/*=read_reg(client,0x10,state->channel);*/
++		break;
++	case V4L2_CID_HUE:
++		ctrl->value = state->hue;
++		/*=read_reg(client,0x0f,state->channel);*/
++		break;
++	default:
++		return -EINVAL;
+ 	}
+ 	return 0;
+ }
+ 
++static int tw2804_s_std(struct v4l2_subdev *sd, v4l2_std_id norm)
++{
++	struct wis_tw2804 *dec = to_state(sd);
++	struct i2c_client *client = v4l2_get_subdevdata(sd);
++
++	/*/      v4l2_std_id *input=arg;*/
++	u8 regs[] = {
++		0x01, norm&V4L2_STD_NTSC ? 0xc4 : 0x84,
++		0x09, norm&V4L2_STD_NTSC ? 0x07 : 0x04,
++		0x0a, norm&V4L2_STD_NTSC ? 0xf0 : 0x20,
++		0x0b, norm&V4L2_STD_NTSC ? 0x07 : 0x04,
++		0x0c, norm&V4L2_STD_NTSC ? 0xf0 : 0x20,
++		0x0d, norm&V4L2_STD_NTSC ? 0x40 : 0x4a,
++		0x16, norm&V4L2_STD_NTSC ? 0x00 : 0x40,
++		0x17, norm&V4L2_STD_NTSC ? 0x00 : 0x40,
++		0x20, norm&V4L2_STD_NTSC ? 0x07 : 0x0f,
++		0x21, norm&V4L2_STD_NTSC ? 0x07 : 0x0f,
++		0xff, 0xff,
++	};
++	write_regs(client, regs, dec->channel);
++	dec->norm = norm;
++	return 0;
++}
++
++static const struct v4l2_subdev_core_ops tw2804_core_ops = {
++	.log_status = tw2804_log_status,
++	.g_ctrl = tw2804_g_ctrl,
++	.s_ctrl = tw2804_s_ctrl,
++	.queryctrl = tw2804_queryctrl,
++	.s_std = tw2804_s_std,
++};
++
++/*
++static const struct v4l2_subdev_video_ops tw2804_video_ops = {
++  .s_routing = tw2804_s_video_routing,
++  .s_fmt = tw2804_s_fmt,
++};*/
++
++static const struct v4l2_subdev_ops tw2804_ops = {
++	.core = &tw2804_core_ops,
++	/*/  .audio = &s2250_audio_ops,*/
++	/*/  .video = &s2250_video_ops,*/
++};
++
+ static int wis_tw2804_probe(struct i2c_client *client,
+-			    const struct i2c_device_id *id)
++	const struct i2c_device_id *id)
+ {
+ 	struct i2c_adapter *adapter = client->adapter;
+ 	struct wis_tw2804 *dec;
++	struct v4l2_subdev *sd;
++
++	printk(KERN_DEBUG "wis_tw2804 :probing %s adapter %s", id->name
++		, client->adapter->name);
+ 
+ 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
+ 		return -ENODEV;
+ 
+ 	dec = kmalloc(sizeof(struct wis_tw2804), GFP_KERNEL);
++
+ 	if (dec == NULL)
+ 		return -ENOMEM;
+ 
++	sd = &dec->sd;
+ 	dec->channel = -1;
+ 	dec->norm = V4L2_STD_NTSC;
+ 	dec->brightness = 128;
+ 	dec->contrast = 128;
+ 	dec->saturation = 128;
+ 	dec->hue = 128;
+-	i2c_set_clientdata(client, dec);
++	v4l2_i2c_subdev_init(sd, client, &tw2804_ops);
++	v4l2_info(sd, "initializing %s at address 0x%x on %s\n"
++		, "tw 2804", client->addr, client->adapter->name);
+ 
+-	printk(KERN_DEBUG "wis-tw2804: creating TW2804 at address %d on %s\n",
+-		client->addr, adapter->name);
++	printk(KERN_DEBUG "wis-tw2804: creating TW2804 at address %d on %s\n"
++		, client->addr, adapter->name);
  
  	return 0;
--error:
--	fimc_capture_state_cleanup(fimc, false);
--	return ret;
  }
  
- static int stop_streaming(struct vb2_queue *q)
-@@ -304,7 +309,7 @@ int fimc_capture_resume(struct fimc_dev *fimc)
- 	vid_cap->buf_index = 0;
- 	fimc_pipeline_initialize(&fimc->pipeline, &vid_cap->vfd->entity,
- 				 false);
--	fimc_init_capture(fimc);
-+	fimc_capture_hw_init(fimc);
- 
- 	clear_bit(ST_CAPT_SUSPENDED, &fimc->state);
+ static int wis_tw2804_remove(struct i2c_client *client)
+ {
+-	struct wis_tw2804 *dec = i2c_get_clientdata(client);
+-
+-	kfree(dec);
++	struct v4l2_subdev *sd = i2c_get_clientdata(client);
++	printk(KERN_INFO"wis_tw2804: remove");
++	v4l2_device_unregister_subdev(sd);
++	kfree(to_state(sd));
+ 	return 0;
+ }
  
 -- 
-1.7.10
+1.7.7.6
+
+
 
