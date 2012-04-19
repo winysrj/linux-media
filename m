@@ -1,122 +1,222 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:1557 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751815Ab2DMFDa (ORCPT
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:62819 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750979Ab2DSFNN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Apr 2012 01:03:30 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Oliver Schinagl <oliver+list@schinagl.nl>
-Subject: Re: [RFC] HDMI-CEC proposal
-Date: Fri, 13 Apr 2012 07:03:18 +0200
-Cc: Florian Fainelli <f.fainelli@gmail.com>,
-	linux-media@vger.kernel.org, marbugge@cisco.com
-References: <4F86F3A6.9040305@gmail.com> <4F873CE7.4040401@schinagl.nl>
-In-Reply-To: <4F873CE7.4040401@schinagl.nl>
+	Thu, 19 Apr 2012 01:13:13 -0400
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201204130703.19005.hverkuil@xs4all.nl>
+In-Reply-To: <1334765203-31844-5-git-send-email-manjunatha_halli@ti.com>
+References: <1334765203-31844-1-git-send-email-manjunatha_halli@ti.com>
+	<1334765203-31844-5-git-send-email-manjunatha_halli@ti.com>
+Date: Thu, 19 Apr 2012 14:13:12 +0900
+Message-ID: <CAH9JG2We=7mD=--0on6_iUC8wPESP2OzNji8t1QuZpENHKyotA@mail.gmail.com>
+Subject: Re: [PATCH V2 4/5] [Documentation] Media: Update docs for V4L2 FM new features
+From: Kyungmin Park <kmpark@infradead.org>
+To: manjunatha_halli@ti.com
+Cc: linux-media@vger.kernel.org, benzyg@ti.com,
+	linux-kernel@vger.kernel.org, Manjunatha Halli <x0130808@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-You both hit the main problem of the CEC support: how to implement the API.
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
 
-Cisco's work on CEC has been stalled as we first want to get HDMI support in
-V4L. Hopefully that will happen in the next few months. After that we will
-resume working on the CEC API.
-
-Regards,
-
-	Hans
-
-On Thursday, April 12, 2012 22:36:55 Oliver Schinagl wrote:
-> Since a lot of video cards dont' support CEC at all (not even 
-> connected), don't have hdmi, but work perfectly fine with dvi->hdmi 
-> adapters, CEC can be implemented in many other ways (think media centers)
-> 
-> One such exammple is using USB/Arduino
-> 
-> http://code.google.com/p/cec-arduino/wiki/ElectricalInterface
-> 
-> Having an AVR with v-usb code and cec code doesn't look all that hard 
-> nor impossible, so one could simply have a USB plug on one end, and an 
-> HDMI plug on the other end, utilizing only the CEC pins.
-> 
-> This would make it more something like LIRC if anything.
-> 
-> On 04/12/12 17:24, Florian Fainelli wrote:
-> > Hi Hans, Martin,
-> >
-> > Sorry to jump in so late in the HDMI-CEC discussion, here are some
-> > comments from my perspective on your proposal:
-> >
-> > - the HDMI-CEC implementation deserves its own bus and class of devices
-> > because by definition it is a physical bus, which is even electrically
-> > independant from the rest of the HDMI bus (A/V path)
-> >
-> > - I don't think it is a good idea to tight it so closely to v4l, because
-> > one can perfectly have CEC-capable hardware without video, or at least
-> > not use v4l and have HDMI-CEC hardware
-> >
-> > - it was suggested to use sockets at some point, I think it is
-> > over-engineered and should only lead
-> >
-> > - processing messages in user-space is definitively the way to go, even
-> > input can be either re-injected using an uinput driver, or be handled in
-> > user-space entirely, eventually we might want to install "filters" based
-> > on opcodes to divert some opcodes to a kernel consumer, and the others
-> > to an user-space one
-> >
-> > Right now, I have a very simple implementation that I developed for the
-> > company I work for which can be found here:
-> > https://github.com/ffainelli/linux-hdmi-cec
-> >
-> > It is designed like this:
-> >
-> > 1) A core module, which registers a cec bus, and provides an abstraction
-> > for a CEC adapter (both device & driver):
-> > - basic CEC adapter operations: logical address setting, queueing
-> > management
-> > - counters, rx filtering
-> > - host attaching/detaching in case the hardware is capable of
-> > self-processing CEC messages (for wakeup in particular)
-> >
-> > 2) A character device module, which exposes a character device per CEC
-> > adapter and only allows one consumer at a time and exposes the following
-> > ioctl's:
-> >
-> > - SET_LOGICAL_ADDRESS
-> > - RESET_DEVICE
-> > - GET_COUNTERS
-> > - SET_RX_MODE (my adapter can be set in a promiscuous mode)
-> >
-> > the character device supports read/write/poll, which are the prefered
-> > ways for transfering/receiving data
-> >
-> > 3) A CEC adapter implementation which registers and calls into the core
-> > module when receiving a CEC message, and which the core module calls in
-> > response to the IOCTLs described below.
-> >
-> > At first I thought about defining a generic netlink family in order to
-> > allow multiple user-space listeners receive CEC messages, but in the end
-> > having only one consumer per adapter device is fine by me and a more
-> > traditionnal approach for programmers.
-> >
-> > I am relying on external components for knowing my HDMI physical address.
-> >
-> > Hope this is not too late to (re)start the discussion on HDMI-CEC.
-> >
-> > Thank you very much.
-> > --
-> > Florian
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at http://vger.kernel.org/majordomo-info.html
-> 
+On 4/19/12, manjunatha_halli@ti.com <manjunatha_halli@ti.com> wrote:
+> From: Manjunatha Halli <x0130808@ti.com>
+>
+> The list of new features -
+> 	1) New control class for FM RX
+> 	2) New FM RX CID's - De-Emphasis filter mode and RDS AF switch
+> 	3) New FM TX CID - RDS Alternate frequency set.
+>
+> Signed-off-by: Manjunatha Halli <x0130808@ti.com>
+> ---
+>  Documentation/DocBook/media/v4l/compat.xml         |    3 +
+>  Documentation/DocBook/media/v4l/controls.xml       |   78
+> ++++++++++++++++++++
+>  Documentation/DocBook/media/v4l/dev-rds.xml        |    5 +-
+>  .../DocBook/media/v4l/vidioc-g-ext-ctrls.xml       |    7 ++
+>  4 files changed, 91 insertions(+), 2 deletions(-)
+>
+> diff --git a/Documentation/DocBook/media/v4l/compat.xml
+> b/Documentation/DocBook/media/v4l/compat.xml
+> index bce97c5..df1f345 100644
+> --- a/Documentation/DocBook/media/v4l/compat.xml
+> +++ b/Documentation/DocBook/media/v4l/compat.xml
+> @@ -2311,6 +2311,9 @@ more information.</para>
+>  	  <para>Added FM Modulator (FM TX) Extended Control Class:
+> <constant>V4L2_CTRL_CLASS_FM_TX</constant> and their Control IDs.</para>
+>  	</listitem>
+>  	<listitem>
+> +	<para>Added FM Receiver (FM RX) Extended Control Class:
+> <constant>V4L2_CTRL_CLASS_FM_RX</constant> and their Control IDs.</para>
+> +	</listitem>
+> +	<listitem>
+>  	  <para>Added Remote Controller chapter, describing the default Remote
+> Controller mapping for media devices.</para>
+>  	</listitem>
+>        </orderedlist>
+> diff --git a/Documentation/DocBook/media/v4l/controls.xml
+> b/Documentation/DocBook/media/v4l/controls.xml
+> index b84f25e..f6c8034 100644
+> --- a/Documentation/DocBook/media/v4l/controls.xml
+> +++ b/Documentation/DocBook/media/v4l/controls.xml
+> @@ -3018,6 +3018,12 @@ to find receivers which can scroll strings sized as
+> 32 x N or 64 x N characters.
+>  with steps of 32 or 64 characters. The result is it must always contain a
+> string with size multiple of 32 or 64. </entry>
+>  	  </row>
+>  	  <row>
+> +	  <entry
+> spanname="id"><constant>V4L2_CID_RDS_TX_AF_FREQ</constant>&nbsp;</entry>
+> +	  <entry>integer</entry>
+> +	  </row>
+> +	  <row><entry spanname="descr">Sets the RDS Alternate Frequency value
+> which allows a receiver to re-tune to a different frequency providing the
+> same station when the first signal becomes too weak (e.g., when moving out
+> of range). </entry>
+> +	  </row>
+> +	  <row>
+>  	    <entry
+> spanname="id"><constant>V4L2_CID_AUDIO_LIMITER_ENABLED</constant>&nbsp;</entry>
+>  	    <entry>boolean</entry>
+>  	  </row>
+> @@ -3146,6 +3152,78 @@ manually or automatically if set to zero. Unit, range
+> and step are driver-specif
+>  <xref linkend="en50067" /> document, from CENELEC.</para>
+>      </section>
+>
+> +    <section id="fm-rx-controls">
+> +      <title>FM Receiver Control Reference</title>
+> +
+> +      <para>The FM Receiver (FM_RX) class includes controls for common
+> features of
+> +FM Reception capable devices. Currently this class includes parameter for
+> Alternate
+> +frequency.</para>
+> +
+> +      <table pgwide="1" frame="none" id="fm-rx-control-id">
+> +      <title>FM_RX Control IDs</title>
+> +
+> +      <tgroup cols="4">
+> +        <colspec colname="c1" colwidth="1*" />
+> +        <colspec colname="c2" colwidth="6*" />
+> +        <colspec colname="c3" colwidth="2*" />
+> +        <colspec colname="c4" colwidth="6*" />
+> +        <spanspec namest="c1" nameend="c2" spanname="id" />
+> +        <spanspec namest="c2" nameend="c4" spanname="descr" />
+> +        <thead>
+> +          <row>
+> +            <entry spanname="id" align="left">ID</entry>
+> +            <entry align="left">Type</entry>
+> +          </row><row rowsep="1"><entry spanname="descr"
+> align="left">Description</entry>
+> +          </row>
+> +        </thead>
+> +        <tbody valign="top">
+> +          <row><entry></entry></row>
+> +          <row>
+> +            <entry
+> spanname="id"><constant>V4L2_CID_FM_RX_CLASS</constant>&nbsp;</entry>
+> +            <entry>class</entry>
+> +          </row><row><entry spanname="descr">The FM_RX class
+> +descriptor. Calling &VIDIOC-QUERYCTRL; for this control will return a
+> +description of this control class.</entry>
+> +          </row>
+> +          <row>
+> +            <entry
+> spanname="id"><constant>V4L2_CID_RDS_AF_SWITCH</constant>&nbsp;</entry>
+> +            <entry>boolean</entry>
+> +          </row>
+> +          <row><entry spanname="descr">Enable or Disable's FM RX RDS
+> Alternate frequency feature.</entry>
+> +          </row>
+> +          <row>
+> +	    <entry
+> spanname="id"><constant>V4L2_CID_TUNE_DEEMPHASIS</constant>&nbsp;</entry>
+> +	    <entry>integer</entry>
+> +	  </row>
+> +	  <row id="v4l2-deemphasis"><entry spanname="descr">Configures the
+> de-emphasis value for reception.
+> +A pre-emphasis filter is applied to the broadcast to accentuate the high
+> audio frequencies.
+> +Depending on the region, a time constant of either 50 or 75 useconds is
+> used. The enum&nbsp;v4l2_deemphasis
+> +defines possible values for pre-emphasis. Here they are:</entry>
+> +	</row><row>
+> +	<entrytbl spanname="descr" cols="2">
+> +		  <tbody valign="top">
+> +		    <row>
+> +		      <entry><constant>V4L2_DEEMPHASIS_DISABLED</constant>&nbsp;</entry>
+> +		      <entry>No de-emphasis is applied.</entry>
+> +		    </row>
+> +		    <row>
+> +		      <entry><constant>V4L2_DEEMPHASIS_50_uS</constant>&nbsp;</entry>
+> +		      <entry>A de-emphasis of 50 uS is used.</entry>
+> +		    </row>
+> +		    <row>
+> +		      <entry><constant>V4L2_DEEMPHASIS_75_uS</constant>&nbsp;</entry>
+> +		      <entry>A de-emphasis of 75 uS is used.</entry>
+> +		    </row>
+> +		  </tbody>
+> +		</entrytbl>
+> +
+> +	  </row>
+> +          <row><entry></entry></row>
+> +        </tbody>
+> +      </tgroup>
+> +      </table>
+> +
+> +      </section>
+>      <section id="flash-controls">
+>        <title>Flash Control Reference</title>
+>
+> diff --git a/Documentation/DocBook/media/v4l/dev-rds.xml
+> b/Documentation/DocBook/media/v4l/dev-rds.xml
+> index 38883a4..8188161 100644
+> --- a/Documentation/DocBook/media/v4l/dev-rds.xml
+> +++ b/Documentation/DocBook/media/v4l/dev-rds.xml
+> @@ -55,8 +55,9 @@ If the driver only passes RDS blocks without interpreting
+> the data
+>  the <constant>V4L2_TUNER_CAP_RDS_BLOCK_IO</constant> flag has to be set. If
+> the
+>  tuner is capable of handling RDS entities like program identification codes
+> and radio
+>  text, the flag <constant>V4L2_TUNER_CAP_RDS_CONTROLS</constant> should be
+> set,
+> -see <link linkend="writing-rds-data">Writing RDS data</link> and
+> -<link linkend="fm-tx-controls">FM Transmitter Control
+> Reference</link>.</para>
+> +see <link linkend="writing-rds-data">Writing RDS data</link>,
+> +<link linkend="fm-tx-controls">FM Transmitter Control Reference</link>
+> +<link linkend="fm-rx-controls">FM Receiver Control Reference</link>.</para>
+>    </section>
+>
+>    <section  id="reading-rds-data">
+> diff --git a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
+> b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
+> index b17a7aa..2a8b44e 100644
+> --- a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
+> +++ b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
+> @@ -258,6 +258,13 @@ These controls are described in <xref
+>  These controls are described in <xref
+>  		linkend="fm-tx-controls" />.</entry>
+>  	  </row>
+> +          <row>
+> +            <entry><constant>V4L2_CTRL_CLASS_FM_RX</constant></entry>
+> +             <entry>0x9c0000</entry>
+> +             <entry>The class containing FM Receiver (FM RX) controls.
+> +These controls are described in <xref
+> +                 linkend="fm-rx-controls" />.</entry>
+> +           </row>
+>  	  <row>
+>  	    <entry><constant>V4L2_CTRL_CLASS_FLASH</constant></entry>
+>  	    <entry>0x9c0000</entry>
+> --
+> 1.7.4.1
+>
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-media" in
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+>
