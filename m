@@ -1,47 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-2.cisco.com ([144.254.224.141]:7222 "EHLO
-	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754608Ab2DXNsg (ORCPT
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:48459 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932255Ab2DSTqi convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Apr 2012 09:48:36 -0400
-From: Hans Verkuil <hans.verkuil@cisco.com>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: [RFCv3 PATCH 6/6] Feature removal: remove invalid DV presets.
-Date: Tue, 24 Apr 2012 15:48:05 +0200
-Message-Id: <53adbed3d23acfd2f340c90d7fb3250eb36d5974.1335274503.git.hans.verkuil@cisco.com>
-In-Reply-To: <1335275285-13333-1-git-send-email-hans.verkuil@cisco.com>
-References: <1335275285-13333-1-git-send-email-hans.verkuil@cisco.com>
-In-Reply-To: <c5dd21524394247c53a2d58797c64f974f4bd6ca.1335274503.git.hans.verkuil@cisco.com>
-References: <c5dd21524394247c53a2d58797c64f974f4bd6ca.1335274503.git.hans.verkuil@cisco.com>
+	Thu, 19 Apr 2012 15:46:38 -0400
+MIME-Version: 1.0
+In-Reply-To: <4F9069F2.8020201@redhat.com>
+References: <1334723412-5034-1-git-send-email-marcos.souza.org@gmail.com>
+	<1334723412-5034-7-git-send-email-marcos.souza.org@gmail.com>
+	<4F9069F2.8020201@redhat.com>
+Date: Thu, 19 Apr 2012 16:46:37 -0300
+Message-ID: <CAH0vN5LoFoCh0f1L01FHmSwBEq+_0RjBVPgmH48MM=FGM=djYg@mail.gmail.com>
+Subject: Re: [PATCH 06/12] drivers: media: video: tlg2300: pd-video.c: Include
+ version.h header
+From: Marcos Souza <marcos.souza.org@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Huang Shijie <shijie8@gmail.com>,
+	Kang Yong <kangyong@telegent.com>,
+	Zhang Xiaobing <xbzhang@telegent.com>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Formats V4L2_DV_1080I25, V4L2_DV_1080I30 and V4L2_DV_1080I29_97
-do not exist, so these presets are bogus. Remove them in 3.6.
+Em 19 de abril de 2012 16:39, Mauro Carvalho Chehab
+<mchehab@redhat.com> escreveu:
+> Em 18-04-2012 01:30, Marcos Paulo de Souza escreveu:
+>> The output of "make versioncheck" told us that:
+>>
+>> drivers/media/video/tlg2300/pd-video.c: 1669: need linux/version.h
+>>
+>> If we take a look at the code, we can see that this file uses the macro
+>> KERNEL_VERSION. So, we need this include.
+>
+> Nack. The right fix here is just the opposite: to remove the KERNEL_VERSION()
+> call. The V4L2 core now fills it automatically, so drivers shouldn't touch on
+> cap->version anymore. See the enclosed patch.
+>
+>>
+>> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+>> Cc: Huang Shijie <shijie8@gmail.com>
+>> Cc: Kang Yong <kangyong@telegent.com>
+>> Cc: Zhang Xiaobing <xbzhang@telegent.com>
+>> Cc: <linux-media@vger.kernel.org>
+>> Signed-off-by: Marcos Paulo de Souza <marcos.souza.org@gmail.com>
+>> ---
+>>  drivers/media/video/tlg2300/pd-video.c |    1 +
+>>  1 files changed, 1 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/drivers/media/video/tlg2300/pd-video.c b/drivers/media/video/tlg2300/pd-video.c
+>> index a794ae6..069db9a 100644
+>> --- a/drivers/media/video/tlg2300/pd-video.c
+>> +++ b/drivers/media/video/tlg2300/pd-video.c
+>> @@ -5,6 +5,7 @@
+>>  #include <linux/mm.h>
+>>  #include <linux/sched.h>
+>>  #include <linux/slab.h>
+>> +#include <linux/version.h>
+>>
+>>  #include <media/v4l2-ioctl.h>
+>>  #include <media/v4l2-dev.h>
+>
+> commit f8bf305b7103857708cd22b504a70ea4a08022fc
+> Author: Mauro Carvalho Chehab <mchehab@redhat.com>
+> Date:   Thu Apr 19 16:35:27 2012 -0300
+>
+>    tlg2300: Remove usage of KERNEL_VERSION()
+>
+>    As reported by Marcos:
+>
+>    On 04-18-2012 01:30, Marcos Paulo de Souza wrote:
+>    > The output of "make versioncheck" told us that:
+>    >
+>    > drivers/media/video/tlg2300/pd-video.c: 1669: need linux/version.h
+>    >
+>    > If we take a look at the code, we can see that this file uses the macro
+>    > KERNEL_VERSION.
+>
+>    The V4L2 core now fills it automatically, so drivers shouldn't touch on
+>    cap->version anymore.
+>
+>    Reported by: Marcos Paulo de Souza <marcos.souza.org@gmail.com>
+>    Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+>
+> diff --git a/drivers/media/video/tlg2300/pd-video.c b/drivers/media/video/tlg2300/pd-video.c
+> index a794ae6..bfbf9e5 100644
+> --- a/drivers/media/video/tlg2300/pd-video.c
+> +++ b/drivers/media/video/tlg2300/pd-video.c
+> @@ -150,7 +150,6 @@ static int vidioc_querycap(struct file *file, void *fh,
+>        strcpy(cap->driver, "tele-video");
+>        strcpy(cap->card, "Telegent Poseidon");
+>        usb_make_path(p->udev, cap->bus_info, sizeof(cap->bus_info));
+> -       cap->version = KERNEL_VERSION(0, 0, 1);
+>        cap->capabilities = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_TUNER |
+>                                V4L2_CAP_AUDIO | V4L2_CAP_STREAMING |
+>                                V4L2_CAP_READWRITE | V4L2_CAP_VBI_CAPTURE;
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- Documentation/feature-removal-schedule.txt |    9 +++++++++
- 1 file changed, 9 insertions(+)
+Better yet :)
 
-diff --git a/Documentation/feature-removal-schedule.txt b/Documentation/feature-removal-schedule.txt
-index 03ca210..efbe878 100644
---- a/Documentation/feature-removal-schedule.txt
-+++ b/Documentation/feature-removal-schedule.txt
-@@ -539,3 +539,12 @@ When:	3.6
- Why:	setitimer is not returning -EFAULT if user pointer is NULL. This
- 	violates the spec.
- Who:	Sasikantha Babu <sasikanth.v19@gmail.com>
-+
-+----------------------------
-+
-+What:	remove bogus DV presets V4L2_DV_1080I29_97, V4L2_DV_1080I30 and
-+	V4L2_DV_1080I25
-+When:	3.6
-+Why:	These HDTV formats do not exist and were added by a confused mind
-+	(that was me, to be precise...)
-+Who:	Hans Verkuil <hans.verkuil@cisco.com>
+Thanks for the feedback Mauro!
+
 -- 
-1.7.9.5
+Att,
 
+Marcos Paulo de Souza
+Acadêmico de Ciencia da Computação - FURB - SC
+"Uma vida sem desafios é uma vida sem razão"
+"A life without challenges, is a non reason life"
