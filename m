@@ -1,66 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f172.google.com ([209.85.212.172]:60145 "EHLO
-	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753027Ab2DBV0q (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Apr 2012 17:26:46 -0400
-Received: by mail-wi0-f172.google.com with SMTP id hj6so3023786wib.1
-        for <linux-media@vger.kernel.org>; Mon, 02 Apr 2012 14:26:46 -0700 (PDT)
-From: Gianluca Gennari <gennarone@gmail.com>
-To: linux-media@vger.kernel.org, crope@iki.fi
-Cc: m@bues.ch, hfvogt@gmx.net, mchehab@redhat.com,
-	Gianluca Gennari <gennarone@gmail.com>
-Subject: [PATCH 5/5] af9035: use module_usb_driver macro
-Date: Mon,  2 Apr 2012 23:25:17 +0200
-Message-Id: <1333401917-27203-6-git-send-email-gennarone@gmail.com>
-In-Reply-To: <1333401917-27203-1-git-send-email-gennarone@gmail.com>
-References: <1333401917-27203-1-git-send-email-gennarone@gmail.com>
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:37616 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754151Ab2DSXuk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 Apr 2012 19:50:40 -0400
+Subject: Re: [PATCH] TDA9887 PAL-Nc fix
+From: Andy Walls <awalls@md.metrocast.net>
+To: Gonzalo de la Vega <gadelavega@gmail.com>
+Cc: linux-media@vger.kernel.org
+Date: Thu, 19 Apr 2012 19:50:36 -0400
+In-Reply-To: <4F8EB1F1.1030801@gmail.com>
+References: <4F8EB1F1.1030801@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Message-ID: <1334879437.14608.22.camel@palomino.walls.org>
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Let's save a few lines of code using the module_usb_driver macro.
+On Wed, 2012-04-18 at 09:22 -0300, Gonzalo de la Vega wrote:
+> The tunner IF for PAL-Nc norm, which AFAIK is used only in Argentina, was being defined as equal to PAL-M but it is not. It actually uses the same video IF as PAL-BG (and unlike PAL-M) but the audio is at 4.5MHz (same as PAL-M). A separate structure member was added for PAL-Nc.
+> 
+> Signed-off-by: Gonzalo A. de la Vega <gadelavega@gmail.com>
 
-Signed-off-by: Gianluca Gennari <gennarone@gmail.com>
----
- drivers/media/dvb/dvb-usb/af9035.c |   26 +-------------------------
- 1 files changed, 1 insertions(+), 25 deletions(-)
+Hmmm.
 
-diff --git a/drivers/media/dvb/dvb-usb/af9035.c b/drivers/media/dvb/dvb-usb/af9035.c
-index 8bf6367..3242312 100644
---- a/drivers/media/dvb/dvb-usb/af9035.c
-+++ b/drivers/media/dvb/dvb-usb/af9035.c
-@@ -973,31 +973,7 @@ static struct usb_driver af9035_usb_driver = {
- 	.id_table = af9035_id,
- };
- 
--/* module stuff */
--static int __init af9035_usb_module_init(void)
--{
--	int ret;
--
--	ret = usb_register(&af9035_usb_driver);
--	if (ret < 0)
--		goto err;
--
--	return 0;
--
--err:
--	pr_debug("%s: failed=%d\n", __func__, ret);
--
--	return ret;
--}
--
--static void __exit af9035_usb_module_exit(void)
--{
--	/* deregister this driver from the USB subsystem */
--	usb_deregister(&af9035_usb_driver);
--}
--
--module_init(af9035_usb_module_init);
--module_exit(af9035_usb_module_exit);
-+module_usb_driver(af9035_usb_driver);
- 
- MODULE_AUTHOR("Antti Palosaari <crope@iki.fi>");
- MODULE_DESCRIPTION("Afatech AF9035 driver");
--- 
-1.7.5.4
+The Video IF for N systems is 45.75 MHz according to this popular book
+(see page 29 of the PDF):
+http://www.deetc.isel.ipl.pt/Analisedesinai/sm/downloads/doc/ch08.pdf
+
+The Video IF is really determined by the IF SAW filter used in your
+tuner assembly, and how the tuner data sheet says to program the
+mixer/oscillator chip to mix down from RF to IF.
+
+What model analog tuner assembly are you using?  It could be that the
+linux tuner-simple module is setting up the mixer/oscillator chip wrong.
+
+Regards,
+Andy
+
+> 
+> diff --git a/drivers/media/common/tuners/tda9887.c b/drivers/media/common/tuners/tda9887.c
+> index cdb645d..b560b5d 100644
+> --- a/drivers/media/common/tuners/tda9887.c
+> +++ b/drivers/media/common/tuners/tda9887.c
+> @@ -168,8 +168,8 @@ static struct tvnorm tvnorms[] = {
+>  			   cAudioIF_6_5   |
+>  			   cVideoIF_38_90 ),
+>  	},{
+> -		.std   = V4L2_STD_PAL_M | V4L2_STD_PAL_Nc,
+> -		.name  = "PAL-M/Nc",
+> +		.std   = V4L2_STD_PAL_M,
+> +		.name  = "PAL-M",
+>  		.b     = ( cNegativeFmTV  |
+>  			   cQSS           ),
+>  		.c     = ( cDeemphasisON  |
+> @@ -179,6 +179,17 @@ static struct tvnorm tvnorms[] = {
+>  			   cAudioIF_4_5   |
+>  			   cVideoIF_45_75 ),
+>  	},{
+> +		.std   = V4L2_STD_PAL_Nc,
+> +		.name  = "PAL-Nc",
+> +		.b     = ( cNegativeFmTV  |
+> +			   cQSS           ),
+> +		.c     = ( cDeemphasisON  |
+> +			   cDeemphasis75  |
+> +			   cTopDefault),
+> +		.e     = ( cGating_36     |
+> +			   cAudioIF_4_5   |
+> +			   cVideoIF_38_90 ),
+> +	},{
+>  		.std   = V4L2_STD_SECAM_B | V4L2_STD_SECAM_G | V4L2_STD_SECAM_H,
+>  		.name  = "SECAM-BGH",
+>  		.b     = ( cNegativeFmTV  |
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
 
