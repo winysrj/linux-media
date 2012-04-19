@@ -1,147 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:32941 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755605Ab2DQM7F (ORCPT
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:31566 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754892Ab2DSLip (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Apr 2012 08:59:05 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	airlied@redhat.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, sumit.semwal@ti.com, daeinki@gmail.com,
-	daniel.vetter@ffwll.ch, robdclark@gmail.com, pawel@osciak.com,
-	linaro-mm-sig@lists.linaro.org, subashrp@gmail.com,
-	mchehab@redhat.com
-Subject: Re: [RFC 02/13] v4l: vb2: add buffer exporting via dmabuf
-Date: Tue, 17 Apr 2012 14:59:17 +0200
-Message-ID: <1459805.RP7MuyMCAo@avalon>
-In-Reply-To: <1334063447-16824-3-git-send-email-t.stanislaws@samsung.com>
-References: <1334063447-16824-1-git-send-email-t.stanislaws@samsung.com> <1334063447-16824-3-git-send-email-t.stanislaws@samsung.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Thu, 19 Apr 2012 07:38:45 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: text/plain; charset=ISO-8859-1
+Received: from euspt1 ([210.118.77.14]) by mailout4.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0M2Q0011Q5OQGP00@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 19 Apr 2012 12:38:51 +0100 (BST)
+Received: from [106.116.48.223] by spt1.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTPA id <0M2Q00M6F5OHZO@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 19 Apr 2012 12:38:42 +0100 (BST)
+Date: Thu, 19 Apr 2012 13:38:37 +0200
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: Re: [PATCH v4 11/14] v4l: vb2-dma-contig: add support for dma_buf
+ importing
+In-reply-to: <1933889.sK9pAxfEdI@avalon>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: pawel@osciak.com, mchehab@redhat.com, daniel.vetter@ffwll.ch,
+	dri-devel@lists.freedesktop.org, subashrp@gmail.com,
+	linaro-mm-sig@lists.linaro.org, kyungmin.park@samsung.com,
+	airlied@redhat.com, remi@remlab.net, linux-media@vger.kernel.org,
+	Sumit Semwal <sumit.semwal@linaro.org>,
+	m.szyprowski@samsung.com
+Message-id: <4F8FF93D.2030501@samsung.com>
+References: <1334332076-28489-1-git-send-email-t.stanislaws@samsung.com>
+ <1334332076-28489-12-git-send-email-t.stanislaws@samsung.com>
+ <1933889.sK9pAxfEdI@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tomasz,
+Hi Laurent,
 
-Thanks for the patch.
+On 04/17/2012 02:57 AM, Laurent Pinchart wrote:
+> Hi Tomasz,
+> 
+> Thanks for the patch.
+> 
+> On Friday 13 April 2012 17:47:53 Tomasz Stanislawski wrote:
+>> From: Sumit Semwal <sumit.semwal@ti.com>
+>>
+>> This patch makes changes for adding dma-contig as a dma_buf user. It
+>> provides function implementations for the {attach, detach, map,
+>> unmap}_dmabuf() mem_ops of DMABUF memory type.
+>>
+>> Signed-off-by: Sumit Semwal <sumit.semwal@ti.com>
+>> Signed-off-by: Sumit Semwal <sumit.semwal@linaro.org>
+>> 	[author of the original patch]
+>> Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+>> 	[integration with refactored dma-contig allocator]
+> 
+> Pending the comment below,
+> 
+> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> 
+>> +static void vb2_dc_detach_dmabuf(void *mem_priv)
+>> +{
+>> +	struct vb2_dc_buf *buf = mem_priv;
+>> +
+>> +	if (WARN_ON(buf->dma_addr))
+>> +		vb2_dc_unmap_dmabuf(buf);
+> 
+> This should never happen, and would be a videobuf2 bug otherwise, right ?
+> 
 
-On Tuesday 10 April 2012 15:10:36 Tomasz Stanislawski wrote:
-> This patch adds extension to videobuf2-core. It allow to export a mmap
-> buffer as a file descriptor.
-> 
-> Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> ---
->  drivers/media/video/videobuf2-core.c |   66 +++++++++++++++++++++++++++++++
->  include/media/videobuf2-core.h       |    2 +
->  2 files changed, 68 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/media/video/videobuf2-core.c
-> b/drivers/media/video/videobuf2-core.c index b37feea..ff902aa 100644
-> --- a/drivers/media/video/videobuf2-core.c
-> +++ b/drivers/media/video/videobuf2-core.c
-> @@ -1710,6 +1710,72 @@ static int __find_plane_by_offset(struct vb2_queue
-> *q, unsigned long off, }
-> 
->  /**
-> + * vb2_expbuf() - Export a buffer as a file descriptor
-> + * @q:		videobuf2 queue
-> + * @b:		export buffer structure passed from userspace to vidioc_expbuf
-> + *		handler in driver
+Theoretically it should not happen with latest vb2-core patches.
+However there is little sense to crash the kernel if it is possible
+to handle this bug. Maybe I should add some comments before the check.
 
-This should be @eb.
+>> +
+>> +	/* detach this attachment */
+>> +	dma_buf_detach(buf->db_attach->dmabuf, buf->db_attach);
+>> +	kfree(buf);
+>> +}
+> 
 
-> + *
-> + *The return values from this function are intended to be directly returned
-> + * from vidioc_expbuf handler in driver.
-> + */
-> +int vb2_expbuf(struct vb2_queue *q, struct v4l2_exportbuffer *eb)
-> +{
-> +	struct vb2_buffer *vb = NULL;
-> +	struct vb2_plane *vb_plane;
-> +	unsigned int buffer, plane;
-> +	int ret;
-> +	struct dma_buf *dbuf;
-> +
-> +	if (q->memory != V4L2_MEMORY_MMAP) {
-> +		dprintk(1, "Queue is not currently set up for mmap\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	if (!q->mem_ops->get_dmabuf) {
-> +		dprintk(1, "Queue does not support DMA buffer exporting\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	if (eb->flags & ~O_CLOEXEC) {
-> +		dprintk(1, "Queue supports only O_CLOEXEC flag\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	/*
-> +	 * Find the plane corresponding to the offset passed by userspace.
-> +	 */
-> +	ret = __find_plane_by_offset(q, eb->mem_offset, &buffer, &plane);
-> +	if (ret) {
-> +		dprintk(1, "invalid offset %u\n", eb->mem_offset);
-> +		return ret;
-> +	}
-> +
-> +	vb = q->bufs[buffer];
-> +	vb_plane = &vb->planes[plane];
-> +
-> +	dbuf = call_memop(q, get_dmabuf, vb_plane->mem_priv);
-> +	if (IS_ERR_OR_NULL(dbuf)) {
-> +		dprintk(1, "Failed to export buffer %d, plane %d\n",
-> +			buffer, plane);
-> +		return -EINVAL;
-> +	}
-> +
-> +	ret = dma_buf_fd(dbuf, eb->flags);
-> +	if (ret < 0) {
-> +		dprintk(3, "buffer %d, plane %d failed to export (%d)\n",
-> +			buffer, plane, ret);
-> +		return ret;
-> +	}
-> +
-> +	dprintk(3, "buffer %d, plane %d exported as %d descriptor\n",
-> +		buffer, plane, ret);
-> +	eb->fd = ret;
-> +
-> +	return 0;
-> +}
-> +EXPORT_SYMBOL_GPL(vb2_expbuf);
-> +
-> +/**
->   * vb2_mmap() - map video buffers into application address space
->   * @q:		videobuf2 queue
->   * @vma:	vma passed to the mmap file operation handler in the driver
-> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-> index 244165a..3bd4225 100644
-> --- a/include/media/videobuf2-core.h
-> +++ b/include/media/videobuf2-core.h
-> @@ -81,6 +81,7 @@ struct vb2_fileio_data;
->  struct vb2_mem_ops {
->  	void		*(*alloc)(void *alloc_ctx, unsigned long size);
->  	void		(*put)(void *buf_priv);
-> +	struct dma_buf *(*get_dmabuf)(void *buf_priv);
-> 
->  	void		*(*get_userptr)(void *alloc_ctx, unsigned long vaddr,
->  					unsigned long size, int write);
-> @@ -354,6 +355,7 @@ int vb2_queue_init(struct vb2_queue *q);
->  void vb2_queue_release(struct vb2_queue *q);
-> 
->  int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b);
-> +int vb2_expbuf(struct vb2_queue *q, struct v4l2_exportbuffer *eb);
->  int vb2_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b, bool
-> nonblocking);
-> 
->  int vb2_streamon(struct vb2_queue *q, enum v4l2_buf_type type);
-
--- 
 Regards,
-
-Laurent Pinchart
-
+Tomasz Stanislawski
