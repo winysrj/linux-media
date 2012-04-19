@@ -1,554 +1,434 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vx0-f174.google.com ([209.85.220.174]:56162 "EHLO
-	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752867Ab2D2QbX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 29 Apr 2012 12:31:23 -0400
-Received: by vcqp1 with SMTP id p1so1583944vcq.19
-        for <linux-media@vger.kernel.org>; Sun, 29 Apr 2012 09:31:23 -0700 (PDT)
+Received: from mx1.redhat.com ([209.132.183.28]:22112 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756204Ab2DSSL6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 Apr 2012 14:11:58 -0400
+Message-ID: <4F90556A.2070508@redhat.com>
+Date: Thu, 19 Apr 2012 15:11:54 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <CAHAyoxzrPdad5ub0YJofJDrjJi-K+=nsqP4qR4pRAAXgG6718A@mail.gmail.com>
-References: <CAOcJUbxHCo7xfGHJZdeEgReJrpCriweSb9s9+-_NfSODLz_NPQ@mail.gmail.com>
-	<4F9014CD.1040005@redhat.com>
-	<CAHAyoxyhHx8nXhPT0iuKZhcM=bTEaSM=rXfs5P92JXsuOLciCw@mail.gmail.com>
-	<CAHAyoxzrPdad5ub0YJofJDrjJi-K+=nsqP4qR4pRAAXgG6718A@mail.gmail.com>
-Date: Sun, 29 Apr 2012 12:31:22 -0400
-Message-ID: <CAOcJUby+KAE2Dp4NeMWhEtfE=FJG4RKSf5sc_Uxpsm0cbejE=A@mail.gmail.com>
-Subject: Re: ATSC-MH driver support for the Hauppauge WinTV Aero-m
-From: Michael Krufky <mkrufky@kernellabs.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+To: "nibble.max" <nibble.max@gmail.com>
+CC: linux-media <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 4/6] m88ds3103, dvbsky dvb-s2 cx23885 pcie card.
+References: <1327228731.2540.3.camel@tvbox>, <4F2185A1.2000402@redhat.com> <201204152353392650604@gmail.com>
+In-Reply-To: <201204152353392650604@gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->From 78d56f9888c1c768b43cc75e0e02d0e60848bcc4 Mon Sep 17 00:00:00 2001
-From: Michael Krufky <mkrufky@linuxtv.org>
-Date: Sun, 29 Jan 2012 13:44:58 -0500
-Subject: [PATCH 1/3] linux-dvb v5 API support for ATSC-MH
+Em 15-04-2012 12:53, nibble.max escreveu:
+> dvbsky dvb-s2 pcie based on montage m88ds3103 demodulator.
+> 
+> Signed-off-by: Max nibble <nibble.max@gmail.com>
+> ---
+>  drivers/media/video/cx23885/Kconfig         |    1 +
+>  drivers/media/video/cx23885/cx23885-cards.c |  107 +++++++++++++++++++++++++++
+>  drivers/media/video/cx23885/cx23885-dvb.c   |   52 +++++++++++++
+>  drivers/media/video/cx23885/cx23885-f300.c  |   55 ++++++++++++++
+>  drivers/media/video/cx23885/cx23885-f300.h  |    6 ++
+>  drivers/media/video/cx23885/cx23885-input.c |   15 ++++
+>  drivers/media/video/cx23885/cx23885.h       |    3 +
+>  7 files changed, 239 insertions(+)
+> 
+> diff --git a/drivers/media/video/cx23885/Kconfig b/drivers/media/video/cx23885/Kconfig
+> index b391e9b..20337c7 100644
+> --- a/drivers/media/video/cx23885/Kconfig
+> +++ b/drivers/media/video/cx23885/Kconfig
+> @@ -20,6 +20,7 @@ config VIDEO_CX23885
+>  	select DVB_LNBP21 if !DVB_FE_CUSTOMISE
+>  	select DVB_STV6110 if !DVB_FE_CUSTOMISE
+>  	select DVB_CX24116 if !DVB_FE_CUSTOMISE
+> +	select DVB_M88DS3103 if !DVB_FE_CUSTOMISE
+>  	select DVB_STV0900 if !DVB_FE_CUSTOMISE
+>  	select DVB_DS3000 if !DVB_FE_CUSTOMISE
+>  	select DVB_STV0367 if !DVB_FE_CUSTOMISE
+> diff --git a/drivers/media/video/cx23885/cx23885-cards.c b/drivers/media/video/cx23885/cx23885-cards.c
+> index 19b5499..fdf9d0f 100644
+> --- a/drivers/media/video/cx23885/cx23885-cards.c
+> +++ b/drivers/media/video/cx23885/cx23885-cards.c
+> @@ -497,6 +497,20 @@ struct cx23885_board cx23885_boards[] = {
+>  		.name		= "TerraTec Cinergy T PCIe Dual",
+>  		.portb		= CX23885_MPEG_DVB,
+>  		.portc		= CX23885_MPEG_DVB,
+> +	},
+> +
+> +	[CX23885_BOARD_BST_PS8512] = {
+> +		.name		= "Bestunar PS8512",
+> +		.portb		= CX23885_MPEG_DVB,
+> +	},
+> +	[CX23885_BOARD_DVBSKY_S950] = {
+> +		.name		= "DVBSKY S950",
+> +		.portb		= CX23885_MPEG_DVB,
+> +	},
+> +	[CX23885_BOARD_DVBSKY_S952] = {
+> +		.name		= "DVBSKY S952",
+> +		.portb		= CX23885_MPEG_DVB,
+> +		.portc		= CX23885_MPEG_DVB,
+>  	}
+>  };
+>  const unsigned int cx23885_bcount = ARRAY_SIZE(cx23885_boards);
+> @@ -705,6 +719,18 @@ struct cx23885_subid cx23885_subids[] = {
+>  		.subvendor = 0x153b,
+>  		.subdevice = 0x117e,
+>  		.card      = CX23885_BOARD_TERRATEC_CINERGY_T_PCIE_DUAL,
+> +	}, {
+> +		.subvendor = 0x14f1,
+> +		.subdevice = 0x8512,
+> +		.card      = CX23885_BOARD_BST_PS8512,
+> +	}, {
+> +		.subvendor = 0x4254,
+> +		.subdevice = 0x0950,
+> +		.card      = CX23885_BOARD_DVBSKY_S950,		
+> +	}, {
+> +		.subvendor = 0x4254,
+> +		.subdevice = 0x0952,
+> +		.card      = CX23885_BOARD_DVBSKY_S952,
+>  	},
+>  };
+>  const unsigned int cx23885_idcount = ARRAY_SIZE(cx23885_subids);
+> @@ -1216,9 +1242,57 @@ void cx23885_gpio_setup(struct cx23885_dev *dev)
+>  		/* enable irq */
+>  		cx_write(GPIO_ISM, 0x00000000);/* INTERRUPTS active low*/
+>  		break;
+> +	case CX23885_BOARD_DVBSKY_S950:
+> +	case CX23885_BOARD_BST_PS8512:			
+> +		cx23885_gpio_enable(dev, GPIO_2, 1);
+> +		cx23885_gpio_clear(dev, GPIO_2);
+> +		msleep(100);		
+> +		cx23885_gpio_set(dev, GPIO_2);
+> +		break;
+> +	case CX23885_BOARD_DVBSKY_S952:		
+> +		cx_write(MC417_CTL, 0x00000037);/* enable GPIO3-18 pins */
+> +		
+> +		cx23885_gpio_enable(dev, GPIO_2, 1);
+> +		cx23885_gpio_enable(dev, GPIO_11, 1);
+> +		
+> +		cx23885_gpio_clear(dev, GPIO_2);
+> +		cx23885_gpio_clear(dev, GPIO_11);
+> +		msleep(100);		
+> +		cx23885_gpio_set(dev, GPIO_2);
+> +		cx23885_gpio_set(dev, GPIO_11);
+> +		
+> +		break;
+>  	}
+>  }
+>  
+> +static int cx23885_ir_patch(struct i2c_adapter *i2c, u8 reg, u8 mask)
+> +{
+> +	struct i2c_msg msgs[2];
+> +	u8 tx_buf[2], rx_buf[1];
+> +	/* Write register address */
+> +	tx_buf[0] = reg;
+> +	msgs[0].addr = 0x4c;
+> +	msgs[0].flags = 0;
+> +	msgs[0].len = 1;
+> +	msgs[0].buf = (char *) tx_buf;
+> +	/* Read data from register */
+> +	msgs[1].addr = 0x4c;
+> +	msgs[1].flags = I2C_M_RD;
+> +	msgs[1].len = 1;
+> +	msgs[1].buf = (char *) rx_buf;	
+> +	
+> +	i2c_transfer(i2c, msgs, 2);
+> +
+> +	tx_buf[0] = reg;
+> +	tx_buf[1] = rx_buf[0] | mask;
+> +	msgs[0].addr = 0x4c;
+> +	msgs[0].flags = 0;
+> +	msgs[0].len = 2;
+> +	msgs[0].buf = (char *) tx_buf;
+> +	
+> +	return i2c_transfer(i2c, msgs, 1);
+> +}
+> +
+>  int cx23885_ir_init(struct cx23885_dev *dev)
+>  {
+>  	static struct v4l2_subdev_io_pin_config ir_rxtx_pin_cfg[] = {
+> @@ -1301,6 +1375,20 @@ int cx23885_ir_init(struct cx23885_dev *dev)
+>  		v4l2_subdev_call(dev->sd_cx25840, core, s_io_pin_config,
+>  				 ir_rx_pin_cfg_count, ir_rx_pin_cfg);
+>  		break;
+> +	case CX23885_BOARD_BST_PS8512:
+> +	case CX23885_BOARD_DVBSKY_S950:
+> +	case CX23885_BOARD_DVBSKY_S952:
+> +		dev->sd_ir = cx23885_find_hw(dev, CX23885_HW_AV_CORE);
+> +		if (dev->sd_ir == NULL) {
+> +			ret = -ENODEV;
+> +			break;
+> +		}
+> +		v4l2_subdev_call(dev->sd_cx25840, core, s_io_pin_config,
+> +				 ir_rx_pin_cfg_count, ir_rx_pin_cfg);
+> +				 
+> +		cx23885_ir_patch(&(dev->i2c_bus[2].i2c_adap),0x1f,0x80);
+> +		cx23885_ir_patch(&(dev->i2c_bus[2].i2c_adap),0x23,0x80);
+> +		break;
+>  	case CX23885_BOARD_HAUPPAUGE_HVR1250:
+>  		if (!enable_885_ir)
+>  			break;
+> @@ -1332,6 +1420,9 @@ void cx23885_ir_fini(struct cx23885_dev *dev)
+>  		break;
+>  	case CX23885_BOARD_TEVII_S470:
+>  	case CX23885_BOARD_HAUPPAUGE_HVR1250:
+> +	case CX23885_BOARD_BST_PS8512:
+> +	case CX23885_BOARD_DVBSKY_S950:
+> +	case CX23885_BOARD_DVBSKY_S952:
+>  		cx23885_irq_remove(dev, PCI_MSK_AV_CORE);
+>  		/* sd_ir is a duplicate pointer to the AV Core, just clear it */
+>  		dev->sd_ir = NULL;
+> @@ -1375,6 +1466,9 @@ void cx23885_ir_pci_int_enable(struct cx23885_dev *dev)
+>  		break;
+>  	case CX23885_BOARD_TEVII_S470:
+>  	case CX23885_BOARD_HAUPPAUGE_HVR1250:
+> +	case CX23885_BOARD_BST_PS8512:
+> +	case CX23885_BOARD_DVBSKY_S950:
+> +	case CX23885_BOARD_DVBSKY_S952:
+>  		if (dev->sd_ir)
+>  			cx23885_irq_add_enable(dev, PCI_MSK_AV_CORE);
+>  		break;
+> @@ -1459,6 +1553,8 @@ void cx23885_card_setup(struct cx23885_dev *dev)
+>  		ts1->ts_clk_en_val = 0x1; /* Enable TS_CLK */
+>  		ts1->src_sel_val   = CX23885_SRC_SEL_PARALLEL_MPEG_VIDEO;
+>  		break;
+> +	case CX23885_BOARD_BST_PS8512:
+> +	case CX23885_BOARD_DVBSKY_S950:
+>  	case CX23885_BOARD_TEVII_S470:
+>  	case CX23885_BOARD_DVBWORLD_2005:
+>  		ts1->gen_ctrl_val  = 0x5; /* Parallel */
+> @@ -1489,6 +1585,14 @@ void cx23885_card_setup(struct cx23885_dev *dev)
+>  		ts2->ts_clk_en_val = 0x1; /* Enable TS_CLK */
+>  		ts2->src_sel_val   = CX23885_SRC_SEL_PARALLEL_MPEG_VIDEO;
+>  		break;
+> +	case CX23885_BOARD_DVBSKY_S952:
+> +		ts1->gen_ctrl_val  = 0x5; /* Parallel */
+> +		ts1->ts_clk_en_val = 0x1; /* Enable TS_CLK */
+> +		ts1->src_sel_val   = CX23885_SRC_SEL_PARALLEL_MPEG_VIDEO;
+> +		ts2->gen_ctrl_val  = 0xe; /* Serial bus + punctured clock */
+> +		ts2->ts_clk_en_val = 0x1; /* Enable TS_CLK */
+> +		ts2->src_sel_val   = CX23885_SRC_SEL_PARALLEL_MPEG_VIDEO;
+> +		break;
+>  	case CX23885_BOARD_HAUPPAUGE_HVR1250:
+>  	case CX23885_BOARD_HAUPPAUGE_HVR1500:
+>  	case CX23885_BOARD_HAUPPAUGE_HVR1500Q:
+> @@ -1541,6 +1645,9 @@ void cx23885_card_setup(struct cx23885_dev *dev)
+>  	case CX23885_BOARD_MPX885:
+>  	case CX23885_BOARD_MYGICA_X8507:
+>  	case CX23885_BOARD_TERRATEC_CINERGY_T_PCIE_DUAL:
+> +	case CX23885_BOARD_BST_PS8512:
+> +	case CX23885_BOARD_DVBSKY_S950:
+> +	case CX23885_BOARD_DVBSKY_S952:
+>  		dev->sd_cx25840 = v4l2_i2c_new_subdev(&dev->v4l2_dev,
+>  				&dev->i2c_bus[2].i2c_adap,
+>  				"cx25840", 0x88 >> 1, NULL);
+> diff --git a/drivers/media/video/cx23885/cx23885-dvb.c b/drivers/media/video/cx23885/cx23885-dvb.c
+> index 6835eb1..c5a3fa3 100644
+> --- a/drivers/media/video/cx23885/cx23885-dvb.c
+> +++ b/drivers/media/video/cx23885/cx23885-dvb.c
+> @@ -51,6 +51,7 @@
+>  #include "stv6110.h"
+>  #include "lnbh24.h"
+>  #include "cx24116.h"
+> +#include "m88ds3103.h"
+>  #include "cimax2.h"
+>  #include "lgs8gxx.h"
+>  #include "netup-eeprom.h"
+> @@ -489,6 +490,30 @@ static struct xc5000_config mygica_x8506_xc5000_config = {
+>  	.if_khz = 5380,
+>  };
+>  
+> +/* bestunar single dvb-s2 */
+> +static struct m88ds3103_config bst_ds3103_config = {
+> +	.demod_address = 0x68,
+> +	.ci_mode = 0,
+> +	.pin_ctrl = 0x82,
+> +	.ts_mode = 0,
+> +	.set_voltage = bst_set_voltage,
+> +};
+> +/* DVBSKY dual dvb-s2 */
+> +static struct m88ds3103_config dvbsky_ds3103_config_pri = {
+> +	.demod_address = 0x68,
+> +	.ci_mode = 0,
+> +	.pin_ctrl = 0x82,
+> +	.ts_mode = 0,
+> +	.set_voltage = bst_set_voltage,	
+> +};
+> +static struct m88ds3103_config dvbsky_ds3103_config_sec = {
+> +	.demod_address = 0x68,
+> +	.ci_mode = 0,
+> +	.pin_ctrl = 0x82,
+> +	.ts_mode = 1,
+> +	.set_voltage = dvbsky_set_voltage_sec,	
+> +};
+> +
+>  static int cx23885_dvb_set_frontend(struct dvb_frontend *fe)
+>  {
+>  	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+> @@ -1173,6 +1198,33 @@ static int dvb_register(struct cx23885_tsport *port)
+>  			break;
+>  		}
+>  		break;
+> +
+> +	case CX23885_BOARD_BST_PS8512:
+> +	case CX23885_BOARD_DVBSKY_S950:
+> +		i2c_bus = &dev->i2c_bus[1];	
+> +		fe0->dvb.frontend = dvb_attach(m88ds3103_attach,
+> +					&bst_ds3103_config,
+> +					&i2c_bus->i2c_adap);
+> +		break;	
+> +			
+> +	case CX23885_BOARD_DVBSKY_S952:
+> +		switch (port->nr) {
+> +		/* port B */
+> +		case 1:
+> +			i2c_bus = &dev->i2c_bus[1];
+> +			fe0->dvb.frontend = dvb_attach(m88ds3103_attach,
+> +						&dvbsky_ds3103_config_pri,
+> +						&i2c_bus->i2c_adap);
+> +			break;
+> +		/* port C */
+> +		case 2:
+> +			i2c_bus = &dev->i2c_bus[0];
+> +			fe0->dvb.frontend = dvb_attach(m88ds3103_attach,
+> +						&dvbsky_ds3103_config_sec,
+> +						&i2c_bus->i2c_adap);		
+> +			break;
+> +		}
+> +		break;
+>  	default:
+>  		printk(KERN_INFO "%s: The frontend of your DVB/ATSC card "
+>  			" isn't supported yet\n",
+> diff --git a/drivers/media/video/cx23885/cx23885-f300.c b/drivers/media/video/cx23885/cx23885-f300.c
+> index 93998f2..6be0369 100644
+> --- a/drivers/media/video/cx23885/cx23885-f300.c
+> +++ b/drivers/media/video/cx23885/cx23885-f300.c
+> @@ -175,3 +175,58 @@ int f300_set_voltage(struct dvb_frontend *fe, fe_sec_voltage_t voltage)
+>  
+>  	return f300_xfer(fe, buf);
+>  }
+> +
+> +/* bst control */
+> +int bst_set_voltage(struct dvb_frontend *fe, fe_sec_voltage_t voltage)
+> +{
+> +	struct cx23885_tsport *port = fe->dvb->priv;
+> +	struct cx23885_dev *dev = port->dev;
+> +	
+> +	cx23885_gpio_enable(dev, GPIO_1, 1);
+> +	cx23885_gpio_enable(dev, GPIO_0, 1);
+> +
+> +	switch (voltage) {
+> +	case SEC_VOLTAGE_13:
+> +		cx23885_gpio_set(dev, GPIO_1);
+> +		cx23885_gpio_clear(dev, GPIO_0);
+> +		break;
+> +	case SEC_VOLTAGE_18:
+> +		cx23885_gpio_set(dev, GPIO_1);
+> +		cx23885_gpio_set(dev, GPIO_0);
+> +		break;
+> +	case SEC_VOLTAGE_OFF:
+> +		cx23885_gpio_clear(dev, GPIO_1);
+> +		cx23885_gpio_clear(dev, GPIO_0);
+> +		break;
+> +	}
+> +	
+> +
+> +	return 0;
+> +}
+> +
+> +int dvbsky_set_voltage_sec(struct dvb_frontend *fe, fe_sec_voltage_t voltage)
+> +{
+> +	struct cx23885_tsport *port = fe->dvb->priv;
+> +	struct cx23885_dev *dev = port->dev;
+> +	
+> +	cx23885_gpio_enable(dev, GPIO_12, 1);
+> +	cx23885_gpio_enable(dev, GPIO_13, 1);
+> +
+> +	switch (voltage) {
+> +	case SEC_VOLTAGE_13:
+> +		cx23885_gpio_set(dev, GPIO_13);
+> +		cx23885_gpio_clear(dev, GPIO_12);
+> +		break;
+> +	case SEC_VOLTAGE_18:
+> +		cx23885_gpio_set(dev, GPIO_13);
+> +		cx23885_gpio_set(dev, GPIO_12);
+> +		break;
+> +	case SEC_VOLTAGE_OFF:
+> +		cx23885_gpio_clear(dev, GPIO_13);
+> +		cx23885_gpio_clear(dev, GPIO_12);
+> +		break;
+> +	}
+> +	
+> +
+> +	return 0;
+> +}
+> \ No newline at end of file
 
-Signed-off-by: Michael Krufky <mkrufky@linuxtv.org>
----
- drivers/media/dvb/dvb-core/dvb_frontend.c |   92 ++++++++++++++++++++++++++++-
- drivers/media/dvb/dvb-core/dvb_frontend.h |   22 +++++++
- include/linux/dvb/frontend.h              |   54 +++++++++++++++++-
- 3 files changed, 166 insertions(+), 2 deletions(-)
+Please add a new line.
 
-diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c
-b/drivers/media/dvb/dvb-core/dvb_frontend.c
-index 4555baa..067f10a 100644
---- a/drivers/media/dvb/dvb-core/dvb_frontend.c
-+++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
-@@ -180,13 +180,13 @@ static enum dvbv3_emulation_type dvbv3_type(u32
-delivery_system)
- 	case SYS_DMBTH:
- 		return DVBV3_OFDM;
- 	case SYS_ATSC:
-+	case SYS_ATSCMH:
- 	case SYS_DVBC_ANNEX_B:
- 		return DVBV3_ATSC;
- 	case SYS_UNDEFINED:
- 	case SYS_ISDBC:
- 	case SYS_DVBH:
- 	case SYS_DAB:
--	case SYS_ATSCMH:
- 	default:
- 		/*
- 		 * Doesn't know how to emulate those types and/or
-@@ -1027,6 +1027,28 @@ static struct dtv_cmds_h
-dtv_cmds[DTV_MAX_COMMAND + 1] = {
- 	_DTV_CMD(DTV_HIERARCHY, 0, 0),
+> diff --git a/drivers/media/video/cx23885/cx23885-f300.h b/drivers/media/video/cx23885/cx23885-f300.h
+> index e73344c..cd02d02 100644
+> --- a/drivers/media/video/cx23885/cx23885-f300.h
+> +++ b/drivers/media/video/cx23885/cx23885-f300.h
+> @@ -1,2 +1,8 @@
+> +extern int dvbsky_set_voltage_sec(struct dvb_frontend *fe,
+> +				fe_sec_voltage_t voltage);
+> +				
+> +extern int bst_set_voltage(struct dvb_frontend *fe,
+> +				fe_sec_voltage_t voltage);
+> +
+>  extern int f300_set_voltage(struct dvb_frontend *fe,
+>  				fe_sec_voltage_t voltage);
+> diff --git a/drivers/media/video/cx23885/cx23885-input.c b/drivers/media/video/cx23885/cx23885-input.c
+> index ce765e3..69c01f3 100644
+> --- a/drivers/media/video/cx23885/cx23885-input.c
+> +++ b/drivers/media/video/cx23885/cx23885-input.c
+> @@ -87,6 +87,9 @@ void cx23885_input_rx_work_handler(struct cx23885_dev *dev, u32 events)
+>  	case CX23885_BOARD_HAUPPAUGE_HVR1290:
+>  	case CX23885_BOARD_TEVII_S470:
+>  	case CX23885_BOARD_HAUPPAUGE_HVR1250:
+> +	case CX23885_BOARD_BST_PS8512:
+> +	case CX23885_BOARD_DVBSKY_S950:
+> +	case CX23885_BOARD_DVBSKY_S952:
+>  		/*
+>  		 * The only boards we handle right now.  However other boards
+>  		 * using the CX2388x integrated IR controller should be similar
+> @@ -138,6 +141,9 @@ static int cx23885_input_ir_start(struct cx23885_dev *dev)
+>  	case CX23885_BOARD_HAUPPAUGE_HVR1850:
+>  	case CX23885_BOARD_HAUPPAUGE_HVR1290:
+>  	case CX23885_BOARD_HAUPPAUGE_HVR1250:
+> +	case CX23885_BOARD_BST_PS8512:
+> +	case CX23885_BOARD_DVBSKY_S950:
+> +	case CX23885_BOARD_DVBSKY_S952:
+>  		/*
+>  		 * The IR controller on this board only returns pulse widths.
+>  		 * Any other mode setting will fail to set up the device.
+> @@ -279,6 +285,15 @@ int cx23885_input_init(struct cx23885_dev *dev)
+>  		/* A guess at the remote */
+>  		rc_map = RC_MAP_TEVII_NEC;
+>  		break;
+> +	case CX23885_BOARD_BST_PS8512:
+> +	case CX23885_BOARD_DVBSKY_S950:
+> +	case CX23885_BOARD_DVBSKY_S952:
+> +		/* Integrated CX2388[58] IR controller */
+> +		driver_type = RC_DRIVER_IR_RAW;
+> +		allowed_protos = RC_TYPE_ALL;
+> +		/* A guess at the remote */
+> +		rc_map = RC_MAP_DVBSKY;
+> +		break;
+>  	default:
+>  		return -ENODEV;
+>  	}
+> diff --git a/drivers/media/video/cx23885/cx23885.h b/drivers/media/video/cx23885/cx23885.h
+> index f020f05..2724148 100644
+> --- a/drivers/media/video/cx23885/cx23885.h
+> +++ b/drivers/media/video/cx23885/cx23885.h
+> @@ -89,6 +89,9 @@
+>  #define CX23885_BOARD_MPX885                   32
+>  #define CX23885_BOARD_MYGICA_X8507             33
+>  #define CX23885_BOARD_TERRATEC_CINERGY_T_PCIE_DUAL 34
+> +#define CX23885_BOARD_BST_PS8512               35
+> +#define CX23885_BOARD_DVBSKY_S952              36
+> +#define CX23885_BOARD_DVBSKY_S950              37
+>  
+>  #define GPIO_0 0x00000001
+>  #define GPIO_1 0x00000002
 
- 	_DTV_CMD(DTV_ENUM_DELSYS, 0, 0),
-+
-+	_DTV_CMD(DTV_ATSCMH_PARADE_ID, 1, 0),
-+	_DTV_CMD(DTV_ATSCMH_RS_FRAME_ENSEMBLE, 1, 0),
-+
-+	_DTV_CMD(DTV_ATSCMH_FIC_VER, 0, 0),
-+	_DTV_CMD(DTV_ATSCMH_PARADE_ID, 0, 0),
-+	_DTV_CMD(DTV_ATSCMH_NOG, 0, 0),
-+	_DTV_CMD(DTV_ATSCMH_TNOG, 0, 0),
-+	_DTV_CMD(DTV_ATSCMH_SGN, 0, 0),
-+	_DTV_CMD(DTV_ATSCMH_PRC, 0, 0),
-+	_DTV_CMD(DTV_ATSCMH_RS_FRAME_MODE, 0, 0),
-+	_DTV_CMD(DTV_ATSCMH_RS_FRAME_ENSEMBLE, 0, 0),
-+	_DTV_CMD(DTV_ATSCMH_RS_CODE_MODE_PRI, 0, 0),
-+	_DTV_CMD(DTV_ATSCMH_RS_CODE_MODE_SEC, 0, 0),
-+	_DTV_CMD(DTV_ATSCMH_SCCC_BLOCK_MODE, 0, 0),
-+	_DTV_CMD(DTV_ATSCMH_SCCC_CODE_MODE_A, 0, 0),
-+	_DTV_CMD(DTV_ATSCMH_SCCC_CODE_MODE_B, 0, 0),
-+	_DTV_CMD(DTV_ATSCMH_SCCC_CODE_MODE_C, 0, 0),
-+	_DTV_CMD(DTV_ATSCMH_SCCC_CODE_MODE_D, 0, 0),
-+	_DTV_CMD(DTV_ATSCMH_FIC_ERR, 0, 0),
-+	_DTV_CMD(DTV_ATSCMH_CRC_ERR, 0, 0),
-+	_DTV_CMD(DTV_ATSCMH_RS_ERR, 0, 0),
- };
-
- static void dtv_property_dump(struct dtv_property *tvp)
-@@ -1118,6 +1140,8 @@ static int dtv_property_cache_sync(struct
-dvb_frontend *fe,
- 	case DVBV3_ATSC:
- 		dprintk("%s() Preparing ATSC req\n", __func__);
- 		c->modulation = p->u.vsb.modulation;
-+		if (c->delivery_system == SYS_ATSCMH)
-+			break;
- 		if ((c->modulation == VSB_8) || (c->modulation == VSB_16))
- 			c->delivery_system = SYS_ATSC;
- 		else
-@@ -1364,6 +1388,63 @@ static int dtv_property_process_get(struct
-dvb_frontend *fe,
- 	case DTV_DVBT2_PLP_ID:
- 		tvp->u.data = c->dvbt2_plp_id;
- 		break;
-+
-+	/* ATSC-MH */
-+	case DTV_ATSCMH_FIC_VER:
-+		tvp->u.data = fe->dtv_property_cache.atscmh_fic_ver;
-+		break;
-+	case DTV_ATSCMH_PARADE_ID:
-+		tvp->u.data = fe->dtv_property_cache.atscmh_parade_id;
-+		break;
-+	case DTV_ATSCMH_NOG:
-+		tvp->u.data = fe->dtv_property_cache.atscmh_nog;
-+		break;
-+	case DTV_ATSCMH_TNOG:
-+		tvp->u.data = fe->dtv_property_cache.atscmh_tnog;
-+		break;
-+	case DTV_ATSCMH_SGN:
-+		tvp->u.data = fe->dtv_property_cache.atscmh_sgn;
-+		break;
-+	case DTV_ATSCMH_PRC:
-+		tvp->u.data = fe->dtv_property_cache.atscmh_prc;
-+		break;
-+	case DTV_ATSCMH_RS_FRAME_MODE:
-+		tvp->u.data = fe->dtv_property_cache.atscmh_rs_frame_mode;
-+		break;
-+	case DTV_ATSCMH_RS_FRAME_ENSEMBLE:
-+		tvp->u.data = fe->dtv_property_cache.atscmh_rs_frame_ensemble;
-+		break;
-+	case DTV_ATSCMH_RS_CODE_MODE_PRI:
-+		tvp->u.data = fe->dtv_property_cache.atscmh_rs_code_mode_pri;
-+		break;
-+	case DTV_ATSCMH_RS_CODE_MODE_SEC:
-+		tvp->u.data = fe->dtv_property_cache.atscmh_rs_code_mode_sec;
-+		break;
-+	case DTV_ATSCMH_SCCC_BLOCK_MODE:
-+		tvp->u.data = fe->dtv_property_cache.atscmh_sccc_block_mode;
-+		break;
-+	case DTV_ATSCMH_SCCC_CODE_MODE_A:
-+		tvp->u.data = fe->dtv_property_cache.atscmh_sccc_code_mode_a;
-+		break;
-+	case DTV_ATSCMH_SCCC_CODE_MODE_B:
-+		tvp->u.data = fe->dtv_property_cache.atscmh_sccc_code_mode_b;
-+		break;
-+	case DTV_ATSCMH_SCCC_CODE_MODE_C:
-+		tvp->u.data = fe->dtv_property_cache.atscmh_sccc_code_mode_c;
-+		break;
-+	case DTV_ATSCMH_SCCC_CODE_MODE_D:
-+		tvp->u.data = fe->dtv_property_cache.atscmh_sccc_code_mode_d;
-+		break;
-+	case DTV_ATSCMH_FIC_ERR:
-+		tvp->u.data = fe->dtv_property_cache.atscmh_fic_err;
-+		break;
-+	case DTV_ATSCMH_CRC_ERR:
-+		tvp->u.data = fe->dtv_property_cache.atscmh_crc_err;
-+		break;
-+	case DTV_ATSCMH_RS_ERR:
-+		tvp->u.data = fe->dtv_property_cache.atscmh_rs_err;
-+		break;
-+
- 	default:
- 		return -EINVAL;
- 	}
-@@ -1682,6 +1763,15 @@ static int dtv_property_process_set(struct
-dvb_frontend *fe,
- 	case DTV_DVBT2_PLP_ID:
- 		c->dvbt2_plp_id = tvp->u.data;
- 		break;
-+
-+	/* ATSC-MH */
-+	case DTV_ATSCMH_PARADE_ID:
-+		fe->dtv_property_cache.atscmh_parade_id = tvp->u.data;
-+		break;
-+	case DTV_ATSCMH_RS_FRAME_ENSEMBLE:
-+		fe->dtv_property_cache.atscmh_rs_frame_ensemble = tvp->u.data;
-+		break;
-+
- 	default:
- 		return -EINVAL;
- 	}
-diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.h
-b/drivers/media/dvb/dvb-core/dvb_frontend.h
-index d63a821..80f5c27 100644
---- a/drivers/media/dvb/dvb-core/dvb_frontend.h
-+++ b/drivers/media/dvb/dvb-core/dvb_frontend.h
-@@ -372,6 +372,28 @@ struct dtv_frontend_properties {
-
- 	/* DVB-T2 specifics */
- 	u32                     dvbt2_plp_id;
-+
-+	/* ATSC-MH specifics */
-+	u8			atscmh_fic_ver;
-+	u8			atscmh_parade_id;
-+	u8			atscmh_nog;
-+	u8			atscmh_tnog;
-+	u8			atscmh_sgn;
-+	u8			atscmh_prc;
-+
-+	u8			atscmh_rs_frame_mode;
-+	u8			atscmh_rs_frame_ensemble;
-+	u8			atscmh_rs_code_mode_pri;
-+	u8			atscmh_rs_code_mode_sec;
-+	u8			atscmh_sccc_block_mode;
-+	u8			atscmh_sccc_code_mode_a;
-+	u8			atscmh_sccc_code_mode_b;
-+	u8			atscmh_sccc_code_mode_c;
-+	u8			atscmh_sccc_code_mode_d;
-+
-+	u16			atscmh_fic_err;
-+	u16			atscmh_crc_err;
-+	u16			atscmh_rs_err;
- };
-
- struct dvb_frontend {
-diff --git a/include/linux/dvb/frontend.h b/include/linux/dvb/frontend.h
-index cb4428a..5aedd5a 100644
---- a/include/linux/dvb/frontend.h
-+++ b/include/linux/dvb/frontend.h
-@@ -320,7 +320,27 @@ struct dvb_frontend_event {
-
- #define DTV_ENUM_DELSYS		44
-
--#define DTV_MAX_COMMAND				DTV_ENUM_DELSYS
-+/* ATSC-MH */
-+#define DTV_ATSCMH_FIC_VER		45
-+#define DTV_ATSCMH_PARADE_ID		46
-+#define DTV_ATSCMH_NOG			47
-+#define DTV_ATSCMH_TNOG			48
-+#define DTV_ATSCMH_SGN			49
-+#define DTV_ATSCMH_PRC			50
-+#define DTV_ATSCMH_RS_FRAME_MODE	51
-+#define DTV_ATSCMH_RS_FRAME_ENSEMBLE	52
-+#define DTV_ATSCMH_RS_CODE_MODE_PRI	53
-+#define DTV_ATSCMH_RS_CODE_MODE_SEC	54
-+#define DTV_ATSCMH_SCCC_BLOCK_MODE	55
-+#define DTV_ATSCMH_SCCC_CODE_MODE_A	56
-+#define DTV_ATSCMH_SCCC_CODE_MODE_B	57
-+#define DTV_ATSCMH_SCCC_CODE_MODE_C	58
-+#define DTV_ATSCMH_SCCC_CODE_MODE_D	59
-+#define DTV_ATSCMH_FIC_ERR		60
-+#define DTV_ATSCMH_CRC_ERR		61
-+#define DTV_ATSCMH_RS_ERR		62
-+
-+#define DTV_MAX_COMMAND				DTV_ATSCMH_RS_ERR
-
- typedef enum fe_pilot {
- 	PILOT_ON,
-@@ -360,6 +380,38 @@ typedef enum fe_delivery_system {
-
- #define SYS_DVBC_ANNEX_AC	SYS_DVBC_ANNEX_A
-
-+/* ATSC-MH */
-+
-+enum atscmh_sccc_block_mode {
-+	ATSCMH_SCCC_BLK_SEP      = 0,
-+	ATSCMH_SCCC_BLK_COMB     = 1,
-+	ATSCMH_SCCC_BLK_RES      = 2,
-+};
-+
-+enum atscmh_sccc_code_mode {
-+	ATSCMH_SCCC_CODE_HLF     = 0,
-+	ATSCMH_SCCC_CODE_QTR     = 1,
-+	ATSCMH_SCCC_CODE_RES     = 2,
-+};
-+
-+enum atscmh_rs_frame_ensemble {
-+	ATSCMH_RSFRAME_ENS_PRI   = 0,
-+	ATSCMH_RSFRAME_ENS_SEC   = 1,
-+};
-+
-+enum atscmh_rs_frame_mode {
-+	ATSCMH_RSFRAME_PRI_ONLY  = 0,
-+	ATSCMH_RSFRAME_PRI_SEC   = 1,
-+	ATSCMH_RSFRAME_RES       = 2,
-+};
-+
-+enum atscmh_rs_code_mode {
-+	ATSCMH_RSCODE_211_187    = 0,
-+	ATSCMH_RSCODE_223_187    = 1,
-+	ATSCMH_RSCODE_235_187    = 2,
-+	ATSCMH_RSCODE_RES        = 3,
-+};
-+
-
- struct dtv_cmds_h {
- 	char	*name;		/* A display name for debugging purposes */
--- 
-1.7.5.4
-
->From 00db48640ebb884688aaff84f7d0d69bc5ab0026 Mon Sep 17 00:00:00 2001
-From: Michael Krufky <mkrufky@linuxtv.org>
-Date: Sun, 29 Apr 2012 11:59:46 -0400
-Subject: [PATCH 2/3] DocBook: document new DTV Properties for ATSC-MH
- delivery system
-
-Signed-off-by: Michael Krufky <mkrufky@linuxtv.org>
----
- Documentation/DocBook/media/dvb/dvbproperty.xml |  178 +++++++++++++++++++++++
- 1 files changed, 178 insertions(+), 0 deletions(-)
-
-diff --git a/Documentation/DocBook/media/dvb/dvbproperty.xml
-b/Documentation/DocBook/media/dvb/dvbproperty.xml
-index c7a4ca5..d631535 100644
---- a/Documentation/DocBook/media/dvb/dvbproperty.xml
-+++ b/Documentation/DocBook/media/dvb/dvbproperty.xml
-@@ -531,6 +531,154 @@ typedef enum fe_delivery_system {
- 				here are referring to what can be found in the TMCC-structure -
- 				independent of the mode.</para>
- 		</section>
-+		<section id="DTV-ATSCMH-FIC-VER">
-+			<title><constant>DTV_ATSCMH_FIC_VER</constant></title>
-+			<para>Version number of the FIC (Fast Information Channel)
-signaling data.</para>
-+			<para>FIC is used for relaying information to allow rapid service
-acquisition by the receiver.</para>
-+			<para>Possible values: 0, 1, 2, 3, ..., 30, 31</para>
-+		</section>
-+		<section id="DTV-ATSCMH-PARADE-ID">
-+			<title><constant>DTV_ATSCMH_PARADE_ID</constant></title>
-+			<para>Parade identification number</para>
-+			<para>A parade is a collection of up to eight MH groups, conveying
-one or two ensembles.</para>
-+			<para>Possible values: 0, 1, 2, 3, ..., 126, 127</para>
-+		</section>
-+		<section id="DTV-ATSCMH-NOG">
-+			<title><constant>DTV_ATSCMH_NOG</constant></title>
-+			<para>Number of MH groups per MH subframe for a designated parade.</para>
-+			<para>Possible values: 1, 2, 3, 4, 5, 6, 7, 8</para>
-+		</section>
-+		<section id="DTV-ATSCMH-TNOG">
-+			<title><constant>DTV_ATSCMH_TNOG</constant></title>
-+			<para>Total number of MH groups including all MH groups belonging
-to all MH parades in one MH subframe.</para>
-+			<para>Possible values: 0, 1, 2, 3, ..., 30, 31</para>
-+		</section>
-+		<section id="DTV-ATSCMH-SGN">
-+			<title><constant>DTV_ATSCMH_SGN</constant></title>
-+			<para>Start group number.</para>
-+			<para>Possible values: 0, 1, 2, 3, ..., 14, 15</para>
-+		</section>
-+		<section id="DTV-ATSCMH-PRC">
-+			<title><constant>DTV_ATSCMH_PRC</constant></title>
-+			<para>Parade repetition cycle.</para>
-+			<para>Possible values: 1, 2, 3, 4, 5, 6, 7, 8</para>
-+		</section>
-+		<section id="DTV-ATSCMH-RS-FRAME-MODE">
-+			<title><constant>DTV_ATSCMH_RS_FRAME_MODE</constant></title>
-+			<para>RS frame mode.</para>
-+			<para>Possible values are:</para>
-+<programlisting>
-+typedef enum atscmh_rs_frame_mode {
-+	ATSCMH_RSFRAME_PRI_ONLY  = 0,
-+	ATSCMH_RSFRAME_PRI_SEC   = 1,
-+} atscmh_rs_frame_mode_t;
-+</programlisting>
-+		</section>
-+		<section id="DTV-ATSCMH-RS-FRAME-ENSEMBLE">
-+			<title><constant>DTV_ATSCMH_RS_FRAME_ENSEMBLE</constant></title>
-+			<para>RS frame ensemble.</para>
-+			<para>Possible values are:</para>
-+<programlisting>
-+typedef enum atscmh_rs_frame_ensemble {
-+	ATSCMH_RSFRAME_ENS_PRI   = 0,
-+	ATSCMH_RSFRAME_ENS_SEC   = 1,
-+} atscmh_rs_frame_ensemble_t;
-+</programlisting>
-+		</section>
-+		<section id="DTV-ATSCMH-RS-CODE-MODE-PRI">
-+			<title><constant>DTV_ATSCMH_RS_CODE_MODE_PRI</constant></title>
-+			<para>RS code mode (primary).</para>
-+			<para>Possible values are:</para>
-+<programlisting>
-+typedef enum atscmh_rs_code_mode {
-+	ATSCMH_RSCODE_211_187    = 0,
-+	ATSCMH_RSCODE_223_187    = 1,
-+	ATSCMH_RSCODE_235_187    = 2,
-+} atscmh_rs_code_mode_t;
-+</programlisting>
-+		</section>
-+		<section id="DTV-ATSCMH-RS-CODE-MODE-SEC">
-+			<title><constant>DTV_ATSCMH_RS_CODE_MODE_SEC</constant></title>
-+			<para>RS code mode (secondary).</para>
-+			<para>Possible values are:</para>
-+<programlisting>
-+typedef enum atscmh_rs_code_mode {
-+	ATSCMH_RSCODE_211_187    = 0,
-+	ATSCMH_RSCODE_223_187    = 1,
-+	ATSCMH_RSCODE_235_187    = 2,
-+} atscmh_rs_code_mode_t;
-+</programlisting>
-+		</section>
-+		<section id="DTV-ATSCMH-SCCC-BLOCK-MODE">
-+			<title><constant>DTV_ATSCMH_SCCC_BLOCK_MODE</constant></title>
-+			<para>Series Concatenated Convolutional Code Block Mode.</para>
-+			<para>Possible values are:</para>
-+<programlisting>
-+typedef enum atscmh_sccc_block_mode {
-+	ATSCMH_SCCC_BLK_SEP      = 0,
-+	ATSCMH_SCCC_BLK_COMB     = 1,
-+} atscmh_sccc_block_mode_t;
-+</programlisting>
-+		</section>
-+		<section id="DTV-ATSCMH-SCCC-CODE-MODE-A">
-+			<title><constant>DTV_ATSCMH_SCCC_CODE_MODE_A</constant></title>
-+			<para>Series Concatenated Convolutional Code Rate.</para>
-+			<para>Possible values are:</para>
-+<programlisting>
-+typedef enum atscmh_sccc_code_mode {
-+	ATSCMH_SCCC_CODE_HLF     = 0,
-+	ATSCMH_SCCC_CODE_QTR     = 1,
-+} atscmh_sccc_code_mode_t;
-+</programlisting>
-+		</section>
-+		<section id="DTV-ATSCMH-SCCC-CODE-MODE-B">
-+			<title><constant>DTV_ATSCMH_SCCC_CODE_MODE_B</constant></title>
-+			<para>Series Concatenated Convolutional Code Rate.</para>
-+			<para>Possible values are:</para>
-+<programlisting>
-+typedef enum atscmh_sccc_code_mode {
-+	ATSCMH_SCCC_CODE_HLF     = 0,
-+	ATSCMH_SCCC_CODE_QTR     = 1,
-+} atscmh_sccc_code_mode_t;
-+</programlisting>
-+		</section>
-+		<section id="DTV-ATSCMH-SCCC-CODE-MODE-C">
-+			<title><constant>DTV_ATSCMH_SCCC_CODE_MODE_C</constant></title>
-+			<para>Series Concatenated Convolutional Code Rate.</para>
-+			<para>Possible values are:</para>
-+<programlisting>
-+typedef enum atscmh_sccc_code_mode {
-+	ATSCMH_SCCC_CODE_HLF     = 0,
-+	ATSCMH_SCCC_CODE_QTR     = 1,
-+} atscmh_sccc_code_mode_t;
-+</programlisting>
-+		</section>
-+		<section id="DTV-ATSCMH-SCCC-CODE-MODE-D">
-+			<title><constant>DTV_ATSCMH_SCCC_CODE_MODE_D</constant></title>
-+			<para>Series Concatenated Convolutional Code Rate.</para>
-+			<para>Possible values are:</para>
-+<programlisting>
-+typedef enum atscmh_sccc_code_mode {
-+	ATSCMH_SCCC_CODE_HLF     = 0,
-+	ATSCMH_SCCC_CODE_QTR     = 1,
-+} atscmh_sccc_code_mode_t;
-+</programlisting>
-+		</section>
-+		<section id="DTV-ATSCMH-FIC-ERR">
-+			<title><constant>DTV_ATSCMH_FIC_ERR</constant></title>
-+			<para>FIC error count.</para>
-+			<para>Possible values: 0, 1, 2, 3, ..., 0xffff</para>
-+		</section>
-+		<section id="DTV-ATSCMH-CRC-ERR">
-+			<title><constant>DTV_ATSCMH_CRC_ERR</constant></title>
-+			<para>CRC error count.</para>
-+			<para>Possible values: 0, 1, 2, 3, ..., 0xffff</para>
-+		</section>
-+		<section id="DTV-ATSCMH-RS-ERR">
-+			<title><constant>DTV_ATSCMH_RS_ERR</constant></title>
-+			<para>RS error count.</para>
-+			<para>Possible values: 0, 1, 2, 3, ..., 0xffff</para>
-+		</section>
- 	</section>
- 	<section id="DTV-API-VERSION">
- 	<title><constant>DTV_API_VERSION</constant></title>
-@@ -774,6 +922,36 @@ typedef enum fe_hierarchy {
- 				<listitem><para><link
-linkend="DTV-BANDWIDTH-HZ"><constant>DTV_BANDWIDTH_HZ</constant></link></para></listitem>
- 			</itemizedlist>
- 		</section>
-+		<section id="atscmh-params">
-+			<title>ATSC-MH delivery system</title>
-+			<para>The following parameters are valid for ATSC-MH:</para>
-+			<itemizedlist mark='opencircle'>
-+				<listitem><para><link
-linkend="DTV-API-VERSION"><constant>DTV_API_VERSION</constant></link></para></listitem>
-+				<listitem><para><link
-linkend="DTV-DELIVERY-SYSTEM"><constant>DTV_DELIVERY_SYSTEM</constant></link></para></listitem>
-+				<listitem><para><link
-linkend="DTV-TUNE"><constant>DTV_TUNE</constant></link></para></listitem>
-+				<listitem><para><link
-linkend="DTV-CLEAR"><constant>DTV_CLEAR</constant></link></para></listitem>
-+				<listitem><para><link
-linkend="DTV-FREQUENCY"><constant>DTV_FREQUENCY</constant></link></para></listitem>
-+				<listitem><para><link
-linkend="DTV-BANDWIDTH-HZ"><constant>DTV_BANDWIDTH_HZ</constant></link></para></listitem>
-+				<listitem><para><link
-linkend="DTV-ATSCMH-FIC-VER"><constant>DTV_ATSCMH_FIC_VER</constant></link></para></listitem>
-+				<listitem><para><link
-linkend="DTV-ATSCMH-PARADE-ID"><constant>DTV_ATSCMH_PARADE_ID</constant></link></para></listitem>
-+				<listitem><para><link
-linkend="DTV-ATSCMH-NOG"><constant>DTV_ATSCMH_NOG</constant></link></para></listitem>
-+				<listitem><para><link
-linkend="DTV-ATSCMH-TNOG"><constant>DTV_ATSCMH_TNOG</constant></link></para></listitem>
-+				<listitem><para><link
-linkend="DTV-ATSCMH-SGN"><constant>DTV_ATSCMH_SGN</constant></link></para></listitem>
-+				<listitem><para><link
-linkend="DTV-ATSCMH-PRC"><constant>DTV_ATSCMH_PRC</constant></link></para></listitem>
-+				<listitem><para><link
-linkend="DTV-ATSCMH-RS-FRAME-MODE"><constant>DTV_ATSCMH_RS_FRAME_MODE</constant></link></para></listitem>
-+				<listitem><para><link
-linkend="DTV-ATSCMH-RS-FRAME-ENSEMBLE"><constant>DTV_ATSCMH_RS_FRAME_ENSEMBLE</constant></link></para></listitem>
-+				<listitem><para><link
-linkend="DTV-ATSCMH-CODE-MODE-PRI"><constant>DTV_ATSCMH_CODE_MODE_PRI</constant></link></para></listitem>
-+				<listitem><para><link
-linkend="DTV-ATSCMH-CODE-MODE-SEC"><constant>DTV_ATSCMH_CODE_MODE_SEC</constant></link></para></listitem>
-+				<listitem><para><link
-linkend="DTV-ATSCMH-SCCC-BLOCK-MODE"><constant>DTV_ATSCMH_SCCC_BLOCK_MODE</constant></link></para></listitem>
-+				<listitem><para><link
-linkend="DTV-ATSCMH-SCCC-CODE_MODE-A"><constant>DTV_ATSCMH_SCCC_CODE_MODE_A</constant></link></para></listitem>
-+				<listitem><para><link
-linkend="DTV-ATSCMH-SCCC-CODE_MODE-B"><constant>DTV_ATSCMH_SCCC_CODE_MODE_B</constant></link></para></listitem>
-+				<listitem><para><link
-linkend="DTV-ATSCMH-SCCC-CODE_MODE-C"><constant>DTV_ATSCMH_SCCC_CODE_MODE_C</constant></link></para></listitem>
-+				<listitem><para><link
-linkend="DTV-ATSCMH-SCCC-CODE_MODE-D"><constant>DTV_ATSCMH_SCCC_CODE_MODE_D</constant></link></para></listitem>
-+				<listitem><para><link
-linkend="DTV-ATSCMH-FIC-ERR"><constant>DTV_ATSCMH_FIC_ERR</constant></link></para></listitem>
-+				<listitem><para><link
-linkend="DTV-ATSCMH-CRC-ERR"><constant>DTV_ATSCMH_CRC_ERR</constant></link></para></listitem>
-+				<listitem><para><link
-linkend="DTV-ATSCMH-RS-ERR"><constant>DTV_ATSCMH_RS_ERR</constant></link></para></listitem>
-+			</itemizedlist>
-+		</section>
- 	</section>
- 	<section id="frontend-property-cable-systems">
- 	<title>Properties used on cable delivery systems</title>
--- 
-1.7.5.4
-
->From 4e35eb1485546d2134c046d547e89a67eda118ca Mon Sep 17 00:00:00 2001
-From: Michael Krufky <mkrufky@linuxtv.org>
-Date: Sun, 29 Apr 2012 12:06:16 -0400
-Subject: [PATCH 3/3] increment DVB API to version 5.6 for ATSC-MH frontend
- control
-
-Signed-off-by: Michael Krufky <mkrufky@linuxtv.org>
----
- include/linux/dvb/version.h |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/include/linux/dvb/version.h b/include/linux/dvb/version.h
-index 0559e2b..43d9e8d 100644
---- a/include/linux/dvb/version.h
-+++ b/include/linux/dvb/version.h
-@@ -24,6 +24,6 @@
- #define _DVBVERSION_H_
-
- #define DVB_API_VERSION 5
--#define DVB_API_VERSION_MINOR 5
-+#define DVB_API_VERSION_MINOR 6
-
- #endif /*_DVBVERSION_H_*/
--- 
-1.7.5.4
