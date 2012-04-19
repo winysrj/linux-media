@@ -1,55 +1,284 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.187]:58662 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751252Ab2DRH7E (ORCPT
+Received: from youngberry.canonical.com ([91.189.89.112]:57263 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933523Ab2DSVhV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Apr 2012 03:59:04 -0400
-Date: Wed, 18 Apr 2012 09:59:01 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: V4L: mt9m032: fix compilation breakage
-Message-ID: <Pine.LNX.4.64.1204180930170.30514@axis700.grange>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+	Thu, 19 Apr 2012 17:37:21 -0400
+From: Luis Henriques <luis.henriques@canonical.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Jarod Wilson <jarod@redhat.com>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, stable@vger.kernel.org,
+	luis.henriques@canonical.com
+Subject: [PATCH v2] [media] rc: Postpone ISR registration
+Date: Thu, 19 Apr 2012 22:37:17 +0100
+Message-Id: <1334871437-26514-1-git-send-email-luis.henriques@canonical.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix the following compilation failure:
+An early registration of an ISR was causing a crash to several users (for
+example, with the ite-cir driver: http://bugs.launchpad.net/bugs/972723).
+The reason was that IRQs were being triggered before a driver
+initialisation was completed.
 
-linux-2.6/drivers/media/video/mt9m032.c: In function '__mt9m032_get_pad_crop':
-linux-2.6/drivers/media/video/mt9m032.c:337: error: implicit declaration of function 'v4l2_subdev_get_try_crop'
-linux-2.6/drivers/media/video/mt9m032.c:337: warning: return makes pointer from integer without a cast
-linux-2.6/drivers/media/video/mt9m032.c: In function '__mt9m032_get_pad_format':
-linux-2.6/drivers/media/video/mt9m032.c:359: error: implicit declaration of function 'v4l2_subdev_get_try_format'
-linux-2.6/drivers/media/video/mt9m032.c:359: warning: return makes pointer from integer without a cast
-linux-2.6/drivers/media/video/mt9m032.c: In function 'mt9m032_probe':
-linux-2.6/drivers/media/video/mt9m032.c:767: error: 'struct v4l2_subdev' has no member named 'entity'
-linux-2.6/drivers/media/video/mt9m032.c:826: error: 'struct v4l2_subdev' has no member named 'entity'
-linux-2.6/drivers/media/video/mt9m032.c: In function 'mt9m032_remove':
-linux-2.6/drivers/media/video/mt9m032.c:842: error: 'struct v4l2_subdev' has no member named 'entity'
-make[4]: *** [drivers/media/video/mt9m032.o] Error 1
+This patch fixes this by moving the invocation to request_irq() and to
+request_region() to a later stage on the driver probe function.
 
-by adding a dependency on VIDEO_V4L2_SUBDEV_API.
-
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: <stable@vger.kernel.org>
+Signed-off-by: Luis Henriques <luis.henriques@canonical.com>
 ---
- drivers/media/video/Kconfig |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/media/rc/ene_ir.c      |   29 ++++++++++----------
+ drivers/media/rc/fintek-cir.c  |   17 ++++++------
+ drivers/media/rc/ite-cir.c     |   18 ++++++-------
+ drivers/media/rc/nuvoton-cir.c |   33 ++++++++++++-----------
+ drivers/media/rc/winbond-cir.c |   58 ++++++++++++++++++++--------------------
+ 5 files changed, 79 insertions(+), 76 deletions(-)
 
-diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-index f2479c5..ce1e7ba 100644
---- a/drivers/media/video/Kconfig
-+++ b/drivers/media/video/Kconfig
-@@ -492,7 +492,7 @@ config VIDEO_VS6624
+diff --git a/drivers/media/rc/ene_ir.c b/drivers/media/rc/ene_ir.c
+index 860c112..b38c5c7 100644
+--- a/drivers/media/rc/ene_ir.c
++++ b/drivers/media/rc/ene_ir.c
+@@ -1018,21 +1018,7 @@ static int ene_probe(struct pnp_dev *pnp_dev, const struct pnp_device_id *id)
  
- config VIDEO_MT9M032
- 	tristate "MT9M032 camera sensor support"
--	depends on I2C && VIDEO_V4L2
-+	depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
- 	select VIDEO_APTINA_PLL
- 	---help---
- 	  This driver supports MT9M032 camera sensors from Aptina, monochrome
+ 	spin_lock_init(&dev->hw_lock);
+ 
+-	/* claim the resources */
+ 	error = -EBUSY;
+-	dev->hw_io = pnp_port_start(pnp_dev, 0);
+-	if (!request_region(dev->hw_io, ENE_IO_SIZE, ENE_DRIVER_NAME)) {
+-		dev->hw_io = -1;
+-		dev->irq = -1;
+-		goto error;
+-	}
+-
+-	dev->irq = pnp_irq(pnp_dev, 0);
+-	if (request_irq(dev->irq, ene_isr,
+-			IRQF_SHARED, ENE_DRIVER_NAME, (void *)dev)) {
+-		dev->irq = -1;
+-		goto error;
+-	}
+ 
+ 	pnp_set_drvdata(pnp_dev, dev);
+ 	dev->pnp_dev = pnp_dev;
+@@ -1086,6 +1072,21 @@ static int ene_probe(struct pnp_dev *pnp_dev, const struct pnp_device_id *id)
+ 	device_set_wakeup_capable(&pnp_dev->dev, true);
+ 	device_set_wakeup_enable(&pnp_dev->dev, true);
+ 
++	/* claim the resources */
++	dev->hw_io = pnp_port_start(pnp_dev, 0);
++	if (!request_region(dev->hw_io, ENE_IO_SIZE, ENE_DRIVER_NAME)) {
++		dev->hw_io = -1;
++		dev->irq = -1;
++		goto error;
++	}
++
++	dev->irq = pnp_irq(pnp_dev, 0);
++	if (request_irq(dev->irq, ene_isr,
++			IRQF_SHARED, ENE_DRIVER_NAME, (void *)dev)) {
++		dev->irq = -1;
++		goto error;
++	}
++
+ 	error = rc_register_device(rdev);
+ 	if (error < 0)
+ 		goto error;
+diff --git a/drivers/media/rc/fintek-cir.c b/drivers/media/rc/fintek-cir.c
+index 392d4be..c6273c5 100644
+--- a/drivers/media/rc/fintek-cir.c
++++ b/drivers/media/rc/fintek-cir.c
+@@ -515,14 +515,6 @@ static int fintek_probe(struct pnp_dev *pdev, const struct pnp_device_id *dev_id
+ 	spin_lock_init(&fintek->fintek_lock);
+ 
+ 	ret = -EBUSY;
+-	/* now claim resources */
+-	if (!request_region(fintek->cir_addr,
+-			    fintek->cir_port_len, FINTEK_DRIVER_NAME))
+-		goto failure;
+-
+-	if (request_irq(fintek->cir_irq, fintek_cir_isr, IRQF_SHARED,
+-			FINTEK_DRIVER_NAME, (void *)fintek))
+-		goto failure;
+ 
+ 	pnp_set_drvdata(pdev, fintek);
+ 	fintek->pdev = pdev;
+@@ -558,6 +550,15 @@ static int fintek_probe(struct pnp_dev *pdev, const struct pnp_device_id *dev_id
+ 	/* rx resolution is hardwired to 50us atm, 1, 25, 100 also possible */
+ 	rdev->rx_resolution = US_TO_NS(CIR_SAMPLE_PERIOD);
+ 
++	/* now claim resources */
++	if (!request_region(fintek->cir_addr,
++			    fintek->cir_port_len, FINTEK_DRIVER_NAME))
++		goto failure;
++
++	if (request_irq(fintek->cir_irq, fintek_cir_isr, IRQF_SHARED,
++			FINTEK_DRIVER_NAME, (void *)fintek))
++		goto failure;
++
+ 	ret = rc_register_device(rdev);
+ 	if (ret)
+ 		goto failure;
+diff --git a/drivers/media/rc/ite-cir.c b/drivers/media/rc/ite-cir.c
+index 682009d..d88b304 100644
+--- a/drivers/media/rc/ite-cir.c
++++ b/drivers/media/rc/ite-cir.c
+@@ -1516,15 +1516,6 @@ static int ite_probe(struct pnp_dev *pdev, const struct pnp_device_id
+ 	init_ir_raw_event(&itdev->rawir);
+ 
+ 	ret = -EBUSY;
+-	/* now claim resources */
+-	if (!request_region(itdev->cir_addr,
+-				dev_desc->io_region_size, ITE_DRIVER_NAME))
+-		goto failure;
+-
+-	if (request_irq(itdev->cir_irq, ite_cir_isr, IRQF_SHARED,
+-			ITE_DRIVER_NAME, (void *)itdev))
+-		goto failure;
+-
+ 	/* set driver data into the pnp device */
+ 	pnp_set_drvdata(pdev, itdev);
+ 	itdev->pdev = pdev;
+@@ -1600,6 +1591,15 @@ static int ite_probe(struct pnp_dev *pdev, const struct pnp_device_id
+ 	rdev->driver_name = ITE_DRIVER_NAME;
+ 	rdev->map_name = RC_MAP_RC6_MCE;
+ 
++	/* now claim resources */
++	if (!request_region(itdev->cir_addr,
++				dev_desc->io_region_size, ITE_DRIVER_NAME))
++		goto failure;
++
++	if (request_irq(itdev->cir_irq, ite_cir_isr, IRQF_SHARED,
++			ITE_DRIVER_NAME, (void *)itdev))
++		goto failure;
++
+ 	ret = rc_register_device(rdev);
+ 	if (ret)
+ 		goto failure;
+diff --git a/drivers/media/rc/nuvoton-cir.c b/drivers/media/rc/nuvoton-cir.c
+index 144f3f5..8afe549 100644
+--- a/drivers/media/rc/nuvoton-cir.c
++++ b/drivers/media/rc/nuvoton-cir.c
+@@ -1022,22 +1022,6 @@ static int nvt_probe(struct pnp_dev *pdev, const struct pnp_device_id *dev_id)
+ 	spin_lock_init(&nvt->tx.lock);
+ 
+ 	ret = -EBUSY;
+-	/* now claim resources */
+-	if (!request_region(nvt->cir_addr,
+-			    CIR_IOREG_LENGTH, NVT_DRIVER_NAME))
+-		goto failure;
+-
+-	if (request_irq(nvt->cir_irq, nvt_cir_isr, IRQF_SHARED,
+-			NVT_DRIVER_NAME, (void *)nvt))
+-		goto failure;
+-
+-	if (!request_region(nvt->cir_wake_addr,
+-			    CIR_IOREG_LENGTH, NVT_DRIVER_NAME))
+-		goto failure;
+-
+-	if (request_irq(nvt->cir_wake_irq, nvt_cir_wake_isr, IRQF_SHARED,
+-			NVT_DRIVER_NAME, (void *)nvt))
+-		goto failure;
+ 
+ 	pnp_set_drvdata(pdev, nvt);
+ 	nvt->pdev = pdev;
+@@ -1085,6 +1069,23 @@ static int nvt_probe(struct pnp_dev *pdev, const struct pnp_device_id *dev_id)
+ 	rdev->tx_resolution = XYZ;
+ #endif
+ 
++	/* now claim resources */
++	if (!request_region(nvt->cir_addr,
++			    CIR_IOREG_LENGTH, NVT_DRIVER_NAME))
++		goto failure;
++
++	if (request_irq(nvt->cir_irq, nvt_cir_isr, IRQF_SHARED,
++			NVT_DRIVER_NAME, (void *)nvt))
++		goto failure;
++
++	if (!request_region(nvt->cir_wake_addr,
++			    CIR_IOREG_LENGTH, NVT_DRIVER_NAME))
++		goto failure;
++
++	if (request_irq(nvt->cir_wake_irq, nvt_cir_wake_isr, IRQF_SHARED,
++			NVT_DRIVER_NAME, (void *)nvt))
++		goto failure;
++
+ 	ret = rc_register_device(rdev);
+ 	if (ret)
+ 		goto failure;
+diff --git a/drivers/media/rc/winbond-cir.c b/drivers/media/rc/winbond-cir.c
+index b09c5fa..8e88c96 100644
+--- a/drivers/media/rc/winbond-cir.c
++++ b/drivers/media/rc/winbond-cir.c
+@@ -991,35 +991,6 @@ wbcir_probe(struct pnp_dev *device, const struct pnp_device_id *dev_id)
+ 		"(w: 0x%lX, e: 0x%lX, s: 0x%lX, i: %u)\n",
+ 		data->wbase, data->ebase, data->sbase, data->irq);
+ 
+-	if (!request_region(data->wbase, WAKEUP_IOMEM_LEN, DRVNAME)) {
+-		dev_err(dev, "Region 0x%lx-0x%lx already in use!\n",
+-			data->wbase, data->wbase + WAKEUP_IOMEM_LEN - 1);
+-		err = -EBUSY;
+-		goto exit_free_data;
+-	}
+-
+-	if (!request_region(data->ebase, EHFUNC_IOMEM_LEN, DRVNAME)) {
+-		dev_err(dev, "Region 0x%lx-0x%lx already in use!\n",
+-			data->ebase, data->ebase + EHFUNC_IOMEM_LEN - 1);
+-		err = -EBUSY;
+-		goto exit_release_wbase;
+-	}
+-
+-	if (!request_region(data->sbase, SP_IOMEM_LEN, DRVNAME)) {
+-		dev_err(dev, "Region 0x%lx-0x%lx already in use!\n",
+-			data->sbase, data->sbase + SP_IOMEM_LEN - 1);
+-		err = -EBUSY;
+-		goto exit_release_ebase;
+-	}
+-
+-	err = request_irq(data->irq, wbcir_irq_handler,
+-			  IRQF_DISABLED, DRVNAME, device);
+-	if (err) {
+-		dev_err(dev, "Failed to claim IRQ %u\n", data->irq);
+-		err = -EBUSY;
+-		goto exit_release_sbase;
+-	}
+-
+ 	led_trigger_register_simple("cir-tx", &data->txtrigger);
+ 	if (!data->txtrigger) {
+ 		err = -ENOMEM;
+@@ -1061,6 +1032,35 @@ wbcir_probe(struct pnp_dev *device, const struct pnp_device_id *dev_id)
+ 	data->dev->priv = data;
+ 	data->dev->dev.parent = &device->dev;
+ 
++	if (!request_region(data->wbase, WAKEUP_IOMEM_LEN, DRVNAME)) {
++		dev_err(dev, "Region 0x%lx-0x%lx already in use!\n",
++			data->wbase, data->wbase + WAKEUP_IOMEM_LEN - 1);
++		err = -EBUSY;
++		goto exit_free_data;
++	}
++
++	if (!request_region(data->ebase, EHFUNC_IOMEM_LEN, DRVNAME)) {
++		dev_err(dev, "Region 0x%lx-0x%lx already in use!\n",
++			data->ebase, data->ebase + EHFUNC_IOMEM_LEN - 1);
++		err = -EBUSY;
++		goto exit_release_wbase;
++	}
++
++	if (!request_region(data->sbase, SP_IOMEM_LEN, DRVNAME)) {
++		dev_err(dev, "Region 0x%lx-0x%lx already in use!\n",
++			data->sbase, data->sbase + SP_IOMEM_LEN - 1);
++		err = -EBUSY;
++		goto exit_release_ebase;
++	}
++
++	err = request_irq(data->irq, wbcir_irq_handler,
++			  IRQF_DISABLED, DRVNAME, device);
++	if (err) {
++		dev_err(dev, "Failed to claim IRQ %u\n", data->irq);
++		err = -EBUSY;
++		goto exit_release_sbase;
++	}
++
+ 	err = rc_register_device(data->dev);
+ 	if (err)
+ 		goto exit_free_rc;
 -- 
-1.7.2.5
+1.7.9.5
 
