@@ -1,429 +1,232 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:8677 "EHLO
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:13035 "EHLO
 	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756949Ab2DTOpo (ORCPT
+	with ESMTP id S1752692Ab2DSKmU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Apr 2012 10:45:44 -0400
-Date: Fri, 20 Apr 2012 16:45:24 +0200
+	Thu, 19 Apr 2012 06:42:20 -0400
+Received: from euspt1 (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0M2Q005AN32D1I@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 19 Apr 2012 11:42:13 +0100 (BST)
+Received: from [106.116.48.223] by spt1.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTPA id <0M2Q0049R32G1R@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 19 Apr 2012 11:42:17 +0100 (BST)
+Date: Thu, 19 Apr 2012 12:42:12 +0200
 From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: [PATCHv5 03/13] v4l: vb2: add support for shared buffer (dma_buf)
-In-reply-to: <1334933134-4688-1-git-send-email-t.stanislaws@samsung.com>
-To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
-Cc: airlied@redhat.com, m.szyprowski@samsung.com,
-	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
-	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
-	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
-	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
-	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
-	mchehab@redhat.com, linux-doc@vger.kernel.org,
-	g.liakhovetski@gmx.de, Sumit Semwal <sumit.semwal@linaro.org>
-Message-id: <1334933134-4688-4-git-send-email-t.stanislaws@samsung.com>
+Subject: Re: [RFC 05/13] v4l: vb2-dma-contig: add support for DMABUF exporting
+In-reply-to: <3143149.ZCeOjVLXgh@avalon>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	airlied@redhat.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, sumit.semwal@ti.com, daeinki@gmail.com,
+	daniel.vetter@ffwll.ch, robdclark@gmail.com, pawel@osciak.com,
+	linaro-mm-sig@lists.linaro.org, subashrp@gmail.com,
+	mchehab@redhat.com
+Message-id: <4F8FEC04.3030700@samsung.com>
 MIME-version: 1.0
-Content-type: TEXT/PLAIN
+Content-type: text/plain; charset=ISO-8859-1
 Content-transfer-encoding: 7BIT
-References: <1334933134-4688-1-git-send-email-t.stanislaws@samsung.com>
+References: <1334063447-16824-1-git-send-email-t.stanislaws@samsung.com>
+ <1334063447-16824-6-git-send-email-t.stanislaws@samsung.com>
+ <3143149.ZCeOjVLXgh@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Sumit Semwal <sumit.semwal@ti.com>
+Hi Laurent,
+Thank you for your review.
+Please refer to the comments below.
 
-This patch adds support for DMABUF memory type in videobuf2. It calls relevant
-APIs of dma_buf for v4l reqbuf / qbuf / dqbuf operations.
+On 04/17/2012 04:08 PM, Laurent Pinchart wrote:
+> Hi Tomasz,
+> 
+> Thanks for the patch.
+> 
+> On Tuesday 10 April 2012 15:10:39 Tomasz Stanislawski wrote:
+>> This patch adds support for exporting a dma-contig buffer using
+>> DMABUF interface.
+>>
+>> Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+>> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+>> ---
 
-For this version, the support is for videobuf2 as a user of the shared buffer;
-so the allocation of the buffer is done outside of V4L2. [A sample allocator of
-dma-buf shared buffer is given at [1]]
+[snip]
 
-[1]: Rob Clark's DRM:
-   https://github.com/robclark/kernel-omap4/commits/drmplane-dmabuf
+>> +static struct sg_table *vb2_dc_dmabuf_ops_map(
+>> +	struct dma_buf_attachment *db_attach, enum dma_data_direction dir)
+>> +{
+>> +	struct dma_buf *dbuf = db_attach->dmabuf;
+>> +	struct vb2_dc_buf *buf = dbuf->priv;
+>> +	struct vb2_dc_attachment *attach = db_attach->priv;
+>> +	struct sg_table *sgt;
+>> +	struct scatterlist *rd, *wr;
+>> +	int i, ret;
+> 
+> You can make i an unsigned int :-)
+> 
 
-Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-   [original work in the PoC for buffer sharing]
-Signed-off-by: Sumit Semwal <sumit.semwal@ti.com>
-Signed-off-by: Sumit Semwal <sumit.semwal@linaro.org>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/video/videobuf2-core.c |  196 +++++++++++++++++++++++++++++++++-
- include/media/videobuf2-core.h       |   27 +++++
- 2 files changed, 219 insertions(+), 4 deletions(-)
+Right.. splitting declaration may be also a good idea :)
 
-diff --git a/drivers/media/video/videobuf2-core.c b/drivers/media/video/videobuf2-core.c
-index 2e8f1df..d26b1cc 100644
---- a/drivers/media/video/videobuf2-core.c
-+++ b/drivers/media/video/videobuf2-core.c
-@@ -106,6 +106,36 @@ static void __vb2_buf_userptr_put(struct vb2_buffer *vb)
- }
- 
- /**
-+ * __vb2_plane_dmabuf_put() - release memory associated with
-+ * a DMABUF shared plane
-+ */
-+static void __vb2_plane_dmabuf_put(struct vb2_queue *q, struct vb2_plane *p)
-+{
-+	if (!p->mem_priv)
-+		return;
-+
-+	if (p->dbuf_mapped)
-+		call_memop(q, unmap_dmabuf, p->mem_priv);
-+
-+	call_memop(q, detach_dmabuf, p->mem_priv);
-+	dma_buf_put(p->dbuf);
-+	memset(p, 0, sizeof *p);
-+}
-+
-+/**
-+ * __vb2_buf_dmabuf_put() - release memory associated with
-+ * a DMABUF shared buffer
-+ */
-+static void __vb2_buf_dmabuf_put(struct vb2_buffer *vb)
-+{
-+	struct vb2_queue *q = vb->vb2_queue;
-+	unsigned int plane;
-+
-+	for (plane = 0; plane < vb->num_planes; ++plane)
-+		__vb2_plane_dmabuf_put(q, &vb->planes[plane]);
-+}
-+
-+/**
-  * __setup_offsets() - setup unique offsets ("cookies") for every plane in
-  * every buffer on the queue
-  */
-@@ -227,6 +257,8 @@ static void __vb2_free_mem(struct vb2_queue *q, unsigned int buffers)
- 		/* Free MMAP buffers or release USERPTR buffers */
- 		if (q->memory == V4L2_MEMORY_MMAP)
- 			__vb2_buf_mem_free(vb);
-+		else if (q->memory == V4L2_MEMORY_DMABUF)
-+			__vb2_buf_dmabuf_put(vb);
- 		else
- 			__vb2_buf_userptr_put(vb);
- 	}
-@@ -349,6 +381,12 @@ static int __fill_v4l2_buffer(struct vb2_buffer *vb, struct v4l2_buffer *b)
- 		 */
- 		memcpy(b->m.planes, vb->v4l2_planes,
- 			b->length * sizeof(struct v4l2_plane));
-+
-+		if (q->memory == V4L2_MEMORY_DMABUF) {
-+			unsigned int plane;
-+			for (plane = 0; plane < vb->num_planes; ++plane)
-+				b->m.planes[plane].m.fd = 0;
-+		}
- 	} else {
- 		/*
- 		 * We use length and offset in v4l2_planes array even for
-@@ -360,6 +398,8 @@ static int __fill_v4l2_buffer(struct vb2_buffer *vb, struct v4l2_buffer *b)
- 			b->m.offset = vb->v4l2_planes[0].m.mem_offset;
- 		else if (q->memory == V4L2_MEMORY_USERPTR)
- 			b->m.userptr = vb->v4l2_planes[0].m.userptr;
-+		else if (q->memory == V4L2_MEMORY_DMABUF)
-+			b->m.fd = 0;
- 	}
- 
- 	/*
-@@ -451,6 +491,20 @@ static int __verify_mmap_ops(struct vb2_queue *q)
- }
- 
- /**
-+ * __verify_dmabuf_ops() - verify that all memory operations required for
-+ * DMABUF queue type have been provided
-+ */
-+static int __verify_dmabuf_ops(struct vb2_queue *q)
-+{
-+	if (!(q->io_modes & VB2_DMABUF) || !q->mem_ops->attach_dmabuf ||
-+	    !q->mem_ops->detach_dmabuf  || !q->mem_ops->map_dmabuf ||
-+	    !q->mem_ops->unmap_dmabuf)
-+		return -EINVAL;
-+
-+	return 0;
-+}
-+
-+/**
-  * vb2_reqbufs() - Initiate streaming
-  * @q:		videobuf2 queue
-  * @req:	struct passed from userspace to vidioc_reqbufs handler in driver
-@@ -483,8 +537,9 @@ int vb2_reqbufs(struct vb2_queue *q, struct v4l2_requestbuffers *req)
- 		return -EBUSY;
- 	}
- 
--	if (req->memory != V4L2_MEMORY_MMAP
--			&& req->memory != V4L2_MEMORY_USERPTR) {
-+	if (req->memory != V4L2_MEMORY_MMAP &&
-+	    req->memory != V4L2_MEMORY_DMABUF &&
-+	    req->memory != V4L2_MEMORY_USERPTR) {
- 		dprintk(1, "reqbufs: unsupported memory type\n");
- 		return -EINVAL;
- 	}
-@@ -513,6 +568,11 @@ int vb2_reqbufs(struct vb2_queue *q, struct v4l2_requestbuffers *req)
- 		return -EINVAL;
- 	}
- 
-+	if (req->memory == V4L2_MEMORY_DMABUF && __verify_dmabuf_ops(q)) {
-+		dprintk(1, "reqbufs: DMABUF for current setup unsupported\n");
-+		return -EINVAL;
-+	}
-+
- 	if (req->count == 0 || q->num_buffers != 0 || q->memory != req->memory) {
- 		/*
- 		 * We already have buffers allocated, so first check if they
-@@ -619,8 +679,9 @@ int vb2_create_bufs(struct vb2_queue *q, struct v4l2_create_buffers *create)
- 		return -EBUSY;
- 	}
- 
--	if (create->memory != V4L2_MEMORY_MMAP
--			&& create->memory != V4L2_MEMORY_USERPTR) {
-+	if (create->memory != V4L2_MEMORY_MMAP &&
-+	    create->memory != V4L2_MEMORY_USERPTR &&
-+	    create->memory != V4L2_MEMORY_DMABUF) {
- 		dprintk(1, "%s(): unsupported memory type\n", __func__);
- 		return -EINVAL;
- 	}
-@@ -644,6 +705,11 @@ int vb2_create_bufs(struct vb2_queue *q, struct v4l2_create_buffers *create)
- 		return -EINVAL;
- 	}
- 
-+	if (create->memory == V4L2_MEMORY_DMABUF && __verify_dmabuf_ops(q)) {
-+		dprintk(1, "%s(): DMABUF for current setup unsupported\n", __func__);
-+		return -EINVAL;
-+	}
-+
- 	if (q->num_buffers == VIDEO_MAX_FRAME) {
- 		dprintk(1, "%s(): maximum number of buffers already allocated\n",
- 			__func__);
-@@ -839,6 +905,14 @@ static int __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b,
- 					b->m.planes[plane].length;
- 			}
- 		}
-+		if (b->memory == V4L2_MEMORY_DMABUF) {
-+			for (plane = 0; plane < vb->num_planes; ++plane) {
-+				v4l2_planes[plane].bytesused =
-+					b->m.planes[plane].bytesused;
-+				v4l2_planes[plane].m.fd =
-+					b->m.planes[plane].m.fd;
-+			}
-+		}
- 	} else {
- 		/*
- 		 * Single-planar buffers do not use planes array,
-@@ -853,6 +927,10 @@ static int __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b,
- 			v4l2_planes[0].m.userptr = b->m.userptr;
- 			v4l2_planes[0].length = b->length;
- 		}
-+
-+		if (b->memory == V4L2_MEMORY_DMABUF)
-+			v4l2_planes[0].m.fd = b->m.fd;
-+
- 	}
- 
- 	vb->v4l2_buf.field = b->field;
-@@ -957,6 +1035,100 @@ static int __qbuf_mmap(struct vb2_buffer *vb, const struct v4l2_buffer *b)
- }
- 
- /**
-+ * __qbuf_dmabuf() - handle qbuf of a DMABUF buffer
-+ */
-+static int __qbuf_dmabuf(struct vb2_buffer *vb, const struct v4l2_buffer *b)
-+{
-+	struct v4l2_plane planes[VIDEO_MAX_PLANES];
-+	struct vb2_queue *q = vb->vb2_queue;
-+	void *mem_priv;
-+	unsigned int plane;
-+	int ret;
-+	int write = !V4L2_TYPE_IS_OUTPUT(q->type);
-+
-+	/* Verify and copy relevant information provided by the userspace */
-+	ret = __fill_vb2_buffer(vb, b, planes);
-+	if (ret)
-+		return ret;
-+
-+	for (plane = 0; plane < vb->num_planes; ++plane) {
-+		struct dma_buf *dbuf = dma_buf_get(planes[plane].m.fd);
-+
-+		if (IS_ERR_OR_NULL(dbuf)) {
-+			dprintk(1, "qbuf: invalid dmabuf fd for "
-+				"plane %d\n", plane);
-+			ret = -EINVAL;
-+			goto err;
-+		}
-+
-+		/* Skip the plane if already verified */
-+		if (dbuf == vb->planes[plane].dbuf) {
-+			planes[plane].length = dbuf->size;
-+			dma_buf_put(dbuf);
-+			continue;
-+		}
-+
-+		dprintk(3, "qbuf: buffer description for plane %d changed, "
-+			"reattaching dma buf\n", plane);
-+
-+		/* Release previously acquired memory if present */
-+		__vb2_plane_dmabuf_put(q, &vb->planes[plane]);
-+
-+		/* Acquire each plane's memory */
-+		mem_priv = call_memop(q, attach_dmabuf, q->alloc_ctx[plane],
-+			dbuf, q->plane_sizes[plane], write);
-+		if (IS_ERR(mem_priv)) {
-+			dprintk(1, "qbuf: failed acquiring dmabuf "
-+				"memory for plane %d\n", plane);
-+			ret = PTR_ERR(mem_priv);
-+			goto err;
-+		}
-+
-+		planes[plane].length = dbuf->size;
-+		vb->planes[plane].dbuf = dbuf;
-+		vb->planes[plane].mem_priv = mem_priv;
-+	}
-+
-+	/* TODO: This pins the buffer(s) with  dma_buf_map_attachment()).. but
-+	 * really we want to do this just before the DMA, not while queueing
-+	 * the buffer(s)..
-+	 */
-+	for (plane = 0; plane < vb->num_planes; ++plane) {
-+		ret = call_memop(q, map_dmabuf, vb->planes[plane].mem_priv);
-+		if (ret) {
-+			dprintk(1, "qbuf: failed mapping dmabuf "
-+				"memory for plane %d\n", plane);
-+			goto err;
-+		}
-+		vb->planes[plane].dbuf_mapped = 1;
-+	}
-+
-+	/*
-+	 * Call driver-specific initialization on the newly acquired buffer,
-+	 * if provided.
-+	 */
-+	ret = call_qop(q, buf_init, vb);
-+	if (ret) {
-+		dprintk(1, "qbuf: buffer initialization failed\n");
-+		goto err;
-+	}
-+
-+	/*
-+	 * Now that everything is in order, copy relevant information
-+	 * provided by userspace.
-+	 */
-+	for (plane = 0; plane < vb->num_planes; ++plane)
-+		vb->v4l2_planes[plane] = planes[plane];
-+
-+	return 0;
-+err:
-+	/* In case of errors, release planes that were already acquired */
-+	__vb2_buf_dmabuf_put(vb);
-+
-+	return ret;
-+}
-+
-+/**
-  * __enqueue_in_driver() - enqueue a vb2_buffer in driver for processing
-  */
- static void __enqueue_in_driver(struct vb2_buffer *vb)
-@@ -980,6 +1152,9 @@ static int __buf_prepare(struct vb2_buffer *vb, const struct v4l2_buffer *b)
- 	case V4L2_MEMORY_USERPTR:
- 		ret = __qbuf_userptr(vb, b);
- 		break;
-+	case V4L2_MEMORY_DMABUF:
-+		ret = __qbuf_dmabuf(vb, b);
-+		break;
- 	default:
- 		WARN(1, "Invalid queue type\n");
- 		ret = -EINVAL;
-@@ -1335,6 +1510,19 @@ int vb2_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b, bool nonblocking)
- 		return ret;
- 	}
- 
-+	/* TODO: this unpins the buffer(dma_buf_unmap_attachment()).. but
-+	 * really we want to do this just after DMA, not when the
-+	 * buffer is dequeued..
-+	 */
-+	if (q->memory == V4L2_MEMORY_DMABUF) {
-+		unsigned int i;
-+
-+		for (i = 0; i < vb->num_planes; ++i) {
-+			call_memop(q, unmap_dmabuf, vb->planes[i].mem_priv);
-+			vb->planes[i].dbuf_mapped = 0;
-+		}
-+	}
-+
- 	switch (vb->state) {
- 	case VB2_BUF_STATE_DONE:
- 		dprintk(3, "dqbuf: Returning done buffer\n");
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index a15d1f1..859bbaf 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -16,6 +16,7 @@
- #include <linux/mutex.h>
- #include <linux/poll.h>
- #include <linux/videodev2.h>
-+#include <linux/dma-buf.h>
- 
- struct vb2_alloc_ctx;
- struct vb2_fileio_data;
-@@ -41,6 +42,20 @@ struct vb2_fileio_data;
-  *		 argument to other ops in this structure
-  * @put_userptr: inform the allocator that a USERPTR buffer will no longer
-  *		 be used
-+ * @attach_dmabuf: attach a shared struct dma_buf for a hardware operation;
-+ *		   used for DMABUF memory types; alloc_ctx is the alloc context
-+ *		   dbuf is the shared dma_buf; returns NULL on failure;
-+ *		   allocator private per-buffer structure on success;
-+ *		   this needs to be used for further accesses to the buffer
-+ * @detach_dmabuf: inform the exporter of the buffer that the current DMABUF
-+ *		   buffer is no longer used; the buf_priv argument is the
-+ *		   allocator private per-buffer structure previously returned
-+ *		   from the attach_dmabuf callback
-+ * @map_dmabuf: request for access to the dmabuf from allocator; the allocator
-+ *		of dmabuf is informed that this driver is going to use the
-+ *		dmabuf
-+ * @unmap_dmabuf: releases access control to the dmabuf - allocator is notified
-+ *		  that this driver is done using the dmabuf for now
-  * @vaddr:	return a kernel virtual address to a given memory buffer
-  *		associated with the passed private structure or NULL if no
-  *		such mapping exists
-@@ -56,6 +71,8 @@ struct vb2_fileio_data;
-  * Required ops for USERPTR types: get_userptr, put_userptr.
-  * Required ops for MMAP types: alloc, put, num_users, mmap.
-  * Required ops for read/write access types: alloc, put, num_users, vaddr
-+ * Required ops for DMABUF types: attach_dmabuf, detach_dmabuf, map_dmabuf,
-+ *				  unmap_dmabuf.
-  */
- struct vb2_mem_ops {
- 	void		*(*alloc)(void *alloc_ctx, unsigned long size);
-@@ -65,6 +82,12 @@ struct vb2_mem_ops {
- 					unsigned long size, int write);
- 	void		(*put_userptr)(void *buf_priv);
- 
-+	void		*(*attach_dmabuf)(void *alloc_ctx, struct dma_buf *dbuf,
-+				unsigned long size, int write);
-+	void		(*detach_dmabuf)(void *buf_priv);
-+	int		(*map_dmabuf)(void *buf_priv);
-+	void		(*unmap_dmabuf)(void *buf_priv);
-+
- 	void		*(*vaddr)(void *buf_priv);
- 	void		*(*cookie)(void *buf_priv);
- 
-@@ -75,6 +98,8 @@ struct vb2_mem_ops {
- 
- struct vb2_plane {
- 	void			*mem_priv;
-+	struct dma_buf		*dbuf;
-+	unsigned int		dbuf_mapped;
- };
- 
- /**
-@@ -83,12 +108,14 @@ struct vb2_plane {
-  * @VB2_USERPTR:	driver supports USERPTR with streaming API
-  * @VB2_READ:		driver supports read() style access
-  * @VB2_WRITE:		driver supports write() style access
-+ * @VB2_DMABUF:		driver supports DMABUF with streaming API
-  */
- enum vb2_io_modes {
- 	VB2_MMAP	= (1 << 0),
- 	VB2_USERPTR	= (1 << 1),
- 	VB2_READ	= (1 << 2),
- 	VB2_WRITE	= (1 << 3),
-+	VB2_DMABUF	= (1 << 4),
- };
- 
- /**
--- 
-1.7.5.4
+>> +
+>> +	/* return previously mapped sg table */
+>> +	if (attach)
+>> +		return &attach->sgt;
+> 
+> This effectively keeps the mapping around as long as the attachment exists. We 
+> don't try to swap out buffers in V4L2 as is done in DRM at the moment, so it 
+> might not be too much of an issue, but the behaviour of the implementation 
+> will change if we later decide to map/unmap the buffers in the map/unmap 
+> handlers. Do you think that could be a problem ?
 
+I don't that it is a problem. If an importer calls dma_map_sg then
+caching sgt on an exporter side reduces a cost of an allocating
+and an initialization of sgt.
+
+> 
+>> +
+>> +	attach = kzalloc(sizeof *attach, GFP_KERNEL);
+>> +	if (!attach)
+>> +		return ERR_PTR(-ENOMEM);
+> 
+> Why don't you allocate the vb2_dc_attachment here instead of 
+> vb2_dc_dmabuf_ops_attach() ?
+> 
+
+Good point.
+The attachment could be allocated at vb2_dc_attachment but all its
+fields would be uninitialized. I mean an empty sgt and an undefined
+dma direction. I decided to allocate the attachment in vb2_dc_dmabuf_ops_map
+because only than all information needed to create a valid attachment
+object are available.
+
+The other solution might be the allocation at vb2_dc_attachment. The field dir
+would be set to DMA_NONE. If this filed is equal to DMA_NONE at
+vb2_dc_dmabuf_ops_map then sgt is allocated and mapped and direction field is
+updated. If value is not DMA_NONE then the sgt is reused.
+
+Do you think that it is a good idea?
+
+>> +	sgt = &attach->sgt;
+>> +	attach->dir = dir;
+>> +
+>> +	/* copying the buf->base_sgt to attachment */
+> 
+> I would add an explanation regarding why you need to copy the SG list. 
+> Something like.
+> 
+> "Copy the buf->base_sgt scatter list to the attachment, as we can't map the 
+> same scatter list to multiple devices at the same time."
+> 
+
+ok
+
+>> +	ret = sg_alloc_table(sgt, buf->sgt_base->orig_nents, GFP_KERNEL);
+>> +	if (ret) {
+>> +		kfree(attach);
+>> +		return ERR_PTR(-ENOMEM);
+>> +	}
+>> +
+>> +	rd = buf->sgt_base->sgl;
+>> +	wr = sgt->sgl;
+>> +	for (i = 0; i < sgt->orig_nents; ++i) {
+>> +		sg_set_page(wr, sg_page(rd), rd->length, rd->offset);
+>> +		rd = sg_next(rd);
+>> +		wr = sg_next(wr);
+>> +	}
+>>
+>> +	/* mapping new sglist to the client */
+>> +	ret = dma_map_sg(db_attach->dev, sgt->sgl, sgt->orig_nents, dir);
+>> +	if (ret <= 0) {
+>> +		printk(KERN_ERR "failed to map scatterlist\n");
+>> +		sg_free_table(sgt);
+>> +		kfree(attach);
+>> +		return ERR_PTR(-EIO);
+>> +	}
+>> +
+>> +	db_attach->priv = attach;
+>> +
+>> +	return sgt;
+>> +}
+>> +
+>> +static void vb2_dc_dmabuf_ops_unmap(struct dma_buf_attachment *db_attach,
+>> +	struct sg_table *sgt, enum dma_data_direction dir)
+>> +{
+>> +	/* nothing to be done here */
+>> +}
+>> +
+>> +static void vb2_dc_dmabuf_ops_release(struct dma_buf *dbuf)
+>> +{
+>> +	/* drop reference obtained in vb2_dc_get_dmabuf */
+>> +	vb2_dc_put(dbuf->priv);
+> 
+> Shouldn't you set vb2_dc_buf::dma_buf to NULL here ? Otherwise the next 
+> vb2_dc_get_dmabuf() call will return a DMABUF object that has been freed.
+> 
+
+No.
+
+The buffer object is destroyed at vb2_dc_put when reference count drops to 0.
+It happens could happen after only REQBUF(count=0) or on last close().
+The DMABUF object is created only for MMAP buffers. The DMABUF object is based
+only on results of dma_alloc_coherent and dma_get_pages (or its future equivalent).
+Therefore the DMABUF object is valid as long as the buffer is valid.
+
+Notice that dmabuf object could be created in vb2_dc_alloc. I moved
+it to vb2_dc_get_dmabuf to avoid a creation of an object that
+may not be used.
+
+>> +}
+>> +
+>> +static struct dma_buf_ops vb2_dc_dmabuf_ops = {
+>> +	.attach = vb2_dc_dmabuf_ops_attach,
+>> +	.detach = vb2_dc_dmabuf_ops_detach,
+>> +	.map_dma_buf = vb2_dc_dmabuf_ops_map,
+>> +	.unmap_dma_buf = vb2_dc_dmabuf_ops_unmap,
+>> +	.release = vb2_dc_dmabuf_ops_release,
+>> +};
+>> +
+>> +static struct dma_buf *vb2_dc_get_dmabuf(void *buf_priv)
+>> +{
+>> +	struct vb2_dc_buf *buf = buf_priv;
+>> +	struct dma_buf *dbuf;
+>> +
+>> +	if (buf->dma_buf)
+>> +		return buf->dma_buf;
+> 
+> Can't there be a race condition here if the user closes the DMABUF file handle 
+> before vb2 core calls dma_buf_fd() ?
+
+The user cannot access the file until it is associated with a file
+descriptor. How can the user close it? Could you give me a more
+detailed description of this potential race condition?
+
+> 
+>> +	/* dmabuf keeps reference to vb2 buffer */
+>> +	atomic_inc(&buf->refcount);
+>> +	dbuf = dma_buf_export(buf, &vb2_dc_dmabuf_ops, buf->size, 0);
+>> +	if (IS_ERR(dbuf)) {
+>> +		atomic_dec(&buf->refcount);
+>> +		return NULL;
+>> +	}
+>> +
+>> +	buf->dma_buf = dbuf;
+>> +
+>> +	return dbuf;
+>> +}
+>> +
+>> +/*********************************************/
+>>  /*       callbacks for USERPTR buffers       */
+>>  /*********************************************/
+>>
+>> @@ -615,6 +742,7 @@ static void *vb2_dc_attach_dmabuf(void *alloc_ctx,
+>> struct dma_buf *dbuf, const struct vb2_mem_ops vb2_dma_contig_memops = {
+>>  	.alloc		= vb2_dc_alloc,
+>>  	.put		= vb2_dc_put,
+>> +	.get_dmabuf	= vb2_dc_get_dmabuf,
+>>  	.cookie		= vb2_dc_cookie,
+>>  	.vaddr		= vb2_dc_vaddr,
+>>  	.mmap		= vb2_dc_mmap,
+
+Regards,
+Tomasz Stanislawski
