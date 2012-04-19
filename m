@@ -1,90 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:20414 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754265Ab2DTOTD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Apr 2012 10:19:03 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Date: Fri, 20 Apr 2012 16:06:08 +0200
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: [PATCHv5 01/13] v4l: Add DMABUF as a memory type
-In-reply-to: <1334930780-28976-1-git-send-email-t.stanislaws@samsung.com>
-To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
-Cc: airlied@redhat.com, m.szyprowski@samsung.com,
-	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
-	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
-	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
-	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
-	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
-	mchehab@redhat.com, linux-doc@vger.kernel.org,
-	g.liakhovetski@gmx.de, Sumit Semwal <sumit.semwal@linaro.org>
-Message-id: <1334930780-28976-2-git-send-email-t.stanislaws@samsung.com>
-References: <1334930780-28976-1-git-send-email-t.stanislaws@samsung.com>
+Received: from plane.gmane.org ([80.91.229.3]:49768 "EHLO plane.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754914Ab2DSMIb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 Apr 2012 08:08:31 -0400
+Received: from list by plane.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1SKqA2-00046H-NR
+	for linux-media@vger.kernel.org; Thu, 19 Apr 2012 14:08:30 +0200
+Received: from d67-193-214-242.home3.cgocable.net ([67.193.214.242])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Thu, 19 Apr 2012 14:08:30 +0200
+Received: from brian by d67-193-214-242.home3.cgocable.net with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Thu, 19 Apr 2012 14:08:30 +0200
+To: linux-media@vger.kernel.org
+From: "Brian J. Murrell" <brian@interlinx.bc.ca>
+Subject: can't rmmod au0828; modprobe au0828 and have a working device
+Date: Thu, 19 Apr 2012 08:08:18 -0400
+Message-ID: <jmov7j$hrc$1@dough.gmane.org>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="------------enig5803467D6FB412107E6868A1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Sumit Semwal <sumit.semwal@ti.com>
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--------------enig5803467D6FB412107E6868A1
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-Adds DMABUF memory type to v4l framework. Also adds the related file
-descriptor in v4l2_plane and v4l2_buffer.
+I have an HVR-950Q:
 
-Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-   [original work in the PoC for buffer sharing]
-Signed-off-by: Sumit Semwal <sumit.semwal@ti.com>
-Signed-off-by: Sumit Semwal <sumit.semwal@linaro.org>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- include/linux/videodev2.h |    7 +++++++
- 1 files changed, 7 insertions(+), 0 deletions(-)
+[44847.234403] tveeprom 0-0050: Hauppauge model 72001, rev B3F0, serial# =
+*******
+[44847.294643] tveeprom 0-0050: MAC address is **:**:**:**:**:**
+[44847.343417] tveeprom 0-0050: tuner model is Xceive XC5000 (idx 150, ty=
+pe 76)
+[44847.402873] tveeprom 0-0050: TV standards NTSC(M) ATSC/DVB Digital (ee=
+prom 0x88)
+[44847.465471] tveeprom 0-0050: audio processor is AU8522 (idx 44)
+[44847.515481] tveeprom 0-0050: decoder processor is AU8522 (idx 42)
+[44847.567162] tveeprom 0-0050: has no radio, has IR receiver, has no IR =
+transmitter
+[44847.630272] hauppauge_eeprom: hauppauge eeprom: model=3D72001
 
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index c9c9a46..d884d4a 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -185,6 +185,7 @@ enum v4l2_memory {
- 	V4L2_MEMORY_MMAP             = 1,
- 	V4L2_MEMORY_USERPTR          = 2,
- 	V4L2_MEMORY_OVERLAY          = 3,
-+	V4L2_MEMORY_DMABUF           = 4,
- };
- 
- /* see also http://vektor.theorem.ca/graphics/ycbcr/ */
-@@ -588,6 +589,8 @@ struct v4l2_requestbuffers {
-  *			should be passed to mmap() called on the video node)
-  * @userptr:		when memory is V4L2_MEMORY_USERPTR, a userspace pointer
-  *			pointing to this plane
-+ * @fd:			when memory is V4L2_MEMORY_DMABUF, a userspace file
-+ *			descriptor associated with this plane
-  * @data_offset:	offset in the plane to the start of data; usually 0,
-  *			unless there is a header in front of the data
-  *
-@@ -602,6 +605,7 @@ struct v4l2_plane {
- 	union {
- 		__u32		mem_offset;
- 		unsigned long	userptr;
-+		int		fd;
- 	} m;
- 	__u32			data_offset;
- 	__u32			reserved[11];
-@@ -624,6 +628,8 @@ struct v4l2_plane {
-  *		(or a "cookie" that should be passed to mmap() as offset)
-  * @userptr:	for non-multiplanar buffers with memory == V4L2_MEMORY_USERPTR;
-  *		a userspace pointer pointing to this buffer
-+ * @fd:		for non-multiplanar buffers with memory == V4L2_MEMORY_DMABUF;
-+ *		a userspace file descriptor associated with this buffer
-  * @planes:	for multiplanar buffers; userspace pointer to the array of plane
-  *		info structs for this buffer
-  * @length:	size in bytes of the buffer (NOT its payload) for single-plane
-@@ -650,6 +656,7 @@ struct v4l2_buffer {
- 		__u32           offset;
- 		unsigned long   userptr;
- 		struct v4l2_plane *planes;
-+		int		fd;
- 	} m;
- 	__u32			length;
- 	__u32			input;
--- 
-1.7.5.4
+I cannot seem to get it to work after removing the au0828 xc5000 au8522
+modules and then modprobing the au0828 module.
+
+If I physically remove the device and plug it back in, it will work
+fine, however using rmmod/modprobe it seems to fail on trying to read
+from it.  For example:
+
+$ gnutv -adapter 0 -out stdout -channels chans 100-3
+
+just yields a:
+
+Using frontend "Auvitek AU8522 QAM/8VSB Frontend", type ATSC
+status       | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |=20
+
+where the value to the right of the signal and snr toggles between
+0000 and 0118 but no output is ever emitted.
+
+Why would I need to use rmmod and modprobe to remove and reinstall
+the driver you might ask?  To be honest I'd prefer not to have to
+but with these drivers loaded suspend-to-ram hangs.  This never used
+to be the case on previous (2.6.32ish) kernels but now with the 3.2
+kernels that I have been using it is the case.
+
+So in fact, if the hanging-on-suspend problem could be fixed, this
+other issue with a failing device after rmmod/modprobe would be moot.
+
+Any ideas on either problem?
+
+Cheers,
+b.
+
+
+--------------enig5803467D6FB412107E6868A1
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
+
+iEYEARECAAYFAk+QADIACgkQl3EQlGLyuXAFgwCdFF301pA7PQYMp7Djoy1z/2KN
+Db0AoMgh4atf5b4952Wj1GUdXEMFquyK
+=8ga3
+-----END PGP SIGNATURE-----
+
+--------------enig5803467D6FB412107E6868A1--
 
