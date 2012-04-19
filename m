@@ -1,67 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:46144 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752940Ab2DQA5A (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Apr 2012 20:57:00 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Received: from mx1.redhat.com ([209.132.183.28]:20889 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756292Ab2DSUiD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 Apr 2012 16:38:03 -0400
+Message-ID: <4F907798.3000304@redhat.com>
+Date: Thu, 19 Apr 2012 17:37:44 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
 To: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
 	airlied@redhat.com, m.szyprowski@samsung.com,
 	kyungmin.park@samsung.com, sumit.semwal@ti.com, daeinki@gmail.com,
 	daniel.vetter@ffwll.ch, robdclark@gmail.com, pawel@osciak.com,
 	linaro-mm-sig@lists.linaro.org, hverkuil@xs4all.nl,
-	remi@remlab.net, subashrp@gmail.com, mchehab@redhat.com,
-	Sumit Semwal <sumit.semwal@linaro.org>
-Subject: Re: [PATCH v4 11/14] v4l: vb2-dma-contig: add support for dma_buf importing
-Date: Tue, 17 Apr 2012 02:57:10 +0200
-Message-ID: <1933889.sK9pAxfEdI@avalon>
-In-Reply-To: <1334332076-28489-12-git-send-email-t.stanislaws@samsung.com>
-References: <1334332076-28489-1-git-send-email-t.stanislaws@samsung.com> <1334332076-28489-12-git-send-email-t.stanislaws@samsung.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	remi@remlab.net, subashrp@gmail.com
+Subject: Re: [PATCH v4 02/14] Documentation: media: description of DMABUF
+ importing in V4L2
+References: <1334332076-28489-1-git-send-email-t.stanislaws@samsung.com> <1334332076-28489-3-git-send-email-t.stanislaws@samsung.com> <13761406.oTf8ZzmZpQ@avalon> <4F9021FE.2070903@samsung.com>
+In-Reply-To: <4F9021FE.2070903@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tomasz,
-
-Thanks for the patch.
-
-On Friday 13 April 2012 17:47:53 Tomasz Stanislawski wrote:
-> From: Sumit Semwal <sumit.semwal@ti.com>
+Em 19-04-2012 11:32, Tomasz Stanislawski escreveu:
+ 
+> Hi Laurent,
 > 
-> This patch makes changes for adding dma-contig as a dma_buf user. It
-> provides function implementations for the {attach, detach, map,
-> unmap}_dmabuf() mem_ops of DMABUF memory type.
+> One may find similar sentences in MMAP, USERPTR and DMABUF.
+> Maybe the common parts like description of STREAMON/OFF,
+> QBUF/DQBUF shuffling should be moved to separate section
+> like "Streaming" :).
 > 
-> Signed-off-by: Sumit Semwal <sumit.semwal@ti.com>
-> Signed-off-by: Sumit Semwal <sumit.semwal@linaro.org>
-> 	[author of the original patch]
-> Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-> 	[integration with refactored dma-contig allocator]
+> Maybe it is worth to introduce a separate patch for this change.
+> 
+> Frankly, I would prefer to keep the Doc in the current form till
+> importer support gets merged. Later the Doc could be fixed.
+> 
+> BTW. What is the sense of merging userptr and dmabuf section
+> if userptr is going to dropped in long-term?
 
-Pending the comment below,
+I didn't read yet the rest of the thread, so sorry, if I'm making wrong assumptions...
+Am I understanding wrong or are you saying that you want to drop userptr
+from V4L2 API in long-term? If so, why?
 
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-> +static void vb2_dc_detach_dmabuf(void *mem_priv)
-> +{
-> +	struct vb2_dc_buf *buf = mem_priv;
-> +
-> +	if (WARN_ON(buf->dma_addr))
-> +		vb2_dc_unmap_dmabuf(buf);
-
-This should never happen, and would be a videobuf2 bug otherwise, right ?
-
-> +
-> +	/* detach this attachment */
-> +	dma_buf_detach(buf->db_attach->dmabuf, buf->db_attach);
-> +	kfree(buf);
-> +}
-
--- 
 Regards,
-
-Laurent Pinchart
-
+Mauro
