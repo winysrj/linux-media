@@ -1,54 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gx0-f174.google.com ([209.85.161.174]:60385 "EHLO
-	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750975Ab2DREeI (ORCPT
+Received: from youngberry.canonical.com ([91.189.89.112]:57246 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756525Ab2DSVcb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Apr 2012 00:34:08 -0400
-From: Marcos Paulo de Souza <marcos.souza.org@gmail.com>
-To: linux-kernel@vger.kernel.org
-Cc: Marcos Paulo de Souza <marcos.souza.org@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Huang Shijie <shijie8@gmail.com>,
-	Kang Yong <kangyong@telegent.com>,
-	Zhang Xiaobing <xbzhang@telegent.com>,
-	<linux-media@vger.kernel.org>
-Subject: [PATCH 06/12] drivers: media: video: tlg2300: pd-video.c: Include version.h header
-Date: Wed, 18 Apr 2012 01:30:06 -0300
-Message-Id: <1334723412-5034-7-git-send-email-marcos.souza.org@gmail.com>
-In-Reply-To: <1334723412-5034-1-git-send-email-marcos.souza.org@gmail.com>
-References: <1334723412-5034-1-git-send-email-marcos.souza.org@gmail.com>
+	Thu, 19 Apr 2012 17:32:31 -0400
+Date: Thu, 19 Apr 2012 22:32:26 +0100
+From: Luis Henriques <luis.henriques@canonical.com>
+To: Jarod Wilson <jarod@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 1/1] [media] ite-cir: postpone ISR registration
+Message-ID: <20120419213226.GC22948@zeus>
+References: <1334782447-8742-1-git-send-email-luis.henriques@canonical.com>
+ <20120419204444.GB5165@redhat.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20120419204444.GB5165@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The output of "make versioncheck" told us that:
+On Thu, Apr 19, 2012 at 04:44:44PM -0400, Jarod Wilson wrote:
+> On Wed, Apr 18, 2012 at 09:54:07PM +0100, Luis Henriques wrote:
+> > An early registration of an ISR was causing a crash to several users (for
+> > example here: http://bugs.launchpad.net/bugs/972723  The reason was that
+> > IRQs were being triggered before the driver initialisation was completed.
+> > 
+> > This patch fixes this by moving the invocation to request_irq() to a later
+> > stage on the driver probe function.
+> 
+> Ugh. Looks like we actually have a similar problem with multiple lpc super
+> i/o based CIR drivers. I'd probably move both the irq and io region
+> requests in ite-cir, fintek-cir, nuvoton-cir, ene_ir and winbond-cir. If
+> I'm thinking clearly, I've actually seen a very similar report for one of
+> the other CIR drivers recently. Good catch. But yeah, lets do the same for
+> all the drivers, and move request_region as well.
 
-drivers/media/video/tlg2300/pd-video.c: 1669: need linux/version.h
+Yeah, I've realised the other drivers had the same issue.  ite-cir was
+just for one that bit us first.
 
-If we take a look at the code, we can see that this file uses the macro
-KERNEL_VERSION. So, we need this include.
+Anyway, I'll be sending in a minute another patch with your comments.
 
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Huang Shijie <shijie8@gmail.com>
-Cc: Kang Yong <kangyong@telegent.com>
-Cc: Zhang Xiaobing <xbzhang@telegent.com>
-Cc: <linux-media@vger.kernel.org>
-Signed-off-by: Marcos Paulo de Souza <marcos.souza.org@gmail.com>
----
- drivers/media/video/tlg2300/pd-video.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/media/video/tlg2300/pd-video.c b/drivers/media/video/tlg2300/pd-video.c
-index a794ae6..069db9a 100644
---- a/drivers/media/video/tlg2300/pd-video.c
-+++ b/drivers/media/video/tlg2300/pd-video.c
-@@ -5,6 +5,7 @@
- #include <linux/mm.h>
- #include <linux/sched.h>
- #include <linux/slab.h>
-+#include <linux/version.h>
- 
- #include <media/v4l2-ioctl.h>
- #include <media/v4l2-dev.h>
--- 
-1.7.7.6
-
+Cheers,
+--
+Luis
