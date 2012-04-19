@@ -1,339 +1,148 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from saarni.dnainternet.net ([83.102.40.136]:36978 "EHLO
-	saarni.dnainternet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752608Ab2DAUxt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Apr 2012 16:53:49 -0400
-From: Anssi Hannula <anssi.hannula@iki.fi>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: linux-media@vger.kernel.org, Stephan Raue <stephan@openelec.tv>,
-	Martin Beyss <Martin.Beyss@rwth-aachen.de>
-Subject: [PATCH 2/2] [media] ati_remote: add support for Medion X10 Digitainer remote
-Date: Sun,  1 Apr 2012 23:41:46 +0300
-Message-Id: <1333312906-9325-3-git-send-email-anssi.hannula@iki.fi>
-In-Reply-To: <1333312906-9325-1-git-send-email-anssi.hannula@iki.fi>
-References: <1333312906-9325-1-git-send-email-anssi.hannula@iki.fi>
+Received: from rcsinet15.oracle.com ([148.87.113.117]:19133 "EHLO
+	rcsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755161Ab2DSMcf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 Apr 2012 08:32:35 -0400
+Date: Thu, 19 Apr 2012 15:33:14 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: volokh <my84@bk.ru>
+Cc: volokh@telros.ru, devel@driverdev.osuosl.org,
+	Jiri Kosina <trivial@kernel.org>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Pradheep Shrinivasan <pradheep.sh@gmail.com>,
+	linux-media@vger.kernel.org
+Subject: Re: Subject: [PATCH] [Trivial] Staging: go7007: wis-tw2804 upstyle
+ to v4l2
+Message-ID: <20120419123314.GP6498@mwanda>
+References: <1334834777.9633.4.camel@VPir>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1334834777.9633.4.camel@VPir>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add support for another Medion X10 remote. This was apparently
-originally used with the Medion Digitainer box, but is now sold
-separately without any Digitainer labeling.
+On Thu, Apr 19, 2012 at 03:26:17PM +0400, volokh wrote:
+>  static int write_reg(struct i2c_client *client, u8 reg, u8 value, int channel)
+>  {
+> -	return i2c_smbus_write_byte_data(client, reg | (channel << 6), value);
+> +	int i;
+> +
+> +	for (i = 0; i < 10; i++)
+> +		/*return */if (i2c_smbus_write_byte_data(client,
+> +				reg|(channel<<6), value) < 0)
+> +			return -1;
+> +	return 0;
+>  }
 
-A peculiarity of this remote is a scrollwheel in place of up/down
-buttons. Each direction is mapped to 8 different scancodes, each
-corresponding to 1..8 notches, allowing multiple notches to the same
-direction to be transmitted in a single scancode. The driver transforms
-the multi-notch scancodes to multiple events of the single-notch
-scancode.
-(0x70..0x77 = 1..8 notches down, 0x78..0x7f = 1..8 notches up)
+There are several style problems with this function.
+1) Bogus comment doesn't add any information.
+2) Multi-line indents get curly parens, for stlye reasons even
+   though it's not needed for semantic reasons.
+3) Preserve the return codes from lower levels.
+4) Don't return -1.  -1 means -EPERM and this is not a permision
+   issue.
+5) Put spaces around math operators.  These were correct in the
+   original code.
 
-Since the scrollwheel scancodes are the same that are used for mouse on
-some other X10 (ati_remote) remotes, the driver will now check whether
-the active keymap has a keycode defined for the single-notch scancode
-when a mouse/scrollwheel scancode (0x70..0x7f) is received. If set,
-scrollwheel is assumed, otherwise mouse is assumed.
+This function should look like:
 
-This remote ships with a different receiver than the already supported
-Medion X10 remote, but they share the same USB ID. The only difference
-in the USB descriptors is that the Digitainer receiver has the Remote
-Wakeup bit set in bmAttributes of the Configuration Descriptor.
-Therefore that is used to select the default keymap.
+static int write_reg(struct i2c_client *client, u8 reg, u8 value, int channel)
+{
+	int ret;
+	int i;
 
-Thanks to Stephan Raue from OpenELEC (www.openelec.tv) for providing me
-both a Medion X10 Digitainer remote+receiver and an already supported
-Medion X10 remote+receiver. Thanks to Martin Beyss for providing some
-useful information about the remote (including the "Digitainer" name).
-This patch has been tested by both of them and myself.
+	for (i = 0; i < 10; i++) {
+		ret = i2c_smbus_write_byte_data(client,	reg | (channel << 6),
+						value);
+		if (ret)
+			return ret;
+	}
+	return 0;
+}
 
-Signed-off-by: Anssi Hannula <anssi.hannula@iki.fi>
-Tested-by: Stephan Raue <stephan@openelec.tv>
-Tested-by: Martin Beyss <Martin.Beyss@rwth-aachen.de>
----
- drivers/media/rc/ati_remote.c                      |   90 ++++++++++-----
- drivers/media/rc/keymaps/Makefile                  |    1 +
- .../media/rc/keymaps/rc-medion-x10-digitainer.c    |  115 ++++++++++++++++++++
- include/media/rc-map.h                             |    1 +
- 4 files changed, 179 insertions(+), 28 deletions(-)
- create mode 100644 drivers/media/rc/keymaps/rc-medion-x10-digitainer.c
+Now that the function is readable, why are we writing to the
+register 10 times?
 
-diff --git a/drivers/media/rc/ati_remote.c b/drivers/media/rc/ati_remote.c
-index 7a35f7a..26fa043 100644
---- a/drivers/media/rc/ati_remote.c
-+++ b/drivers/media/rc/ati_remote.c
-@@ -1,7 +1,7 @@
- /*
-  *  USB ATI Remote support
-  *
-- *                Copyright (c) 2011 Anssi Hannula <anssi.hannula@iki.fi>
-+ *                Copyright (c) 2011, 2012 Anssi Hannula <anssi.hannula@iki.fi>
-  *  Version 2.2.0 Copyright (c) 2004 Torrey Hoffman <thoffman@arnor.net>
-  *  Version 2.1.1 Copyright (c) 2002 Vladimir Dergachev
-  *
-@@ -157,8 +157,20 @@ struct ati_receiver_type {
- 	const char *(*get_default_keymap)(struct usb_interface *interface);
- };
- 
-+static const char *get_medion_keymap(struct usb_interface *interface)
-+{
-+	struct usb_device *udev = interface_to_usbdev(interface);
-+
-+	/* The receiver shipped with the "Digitainer" variant helpfully has
-+	 * a single additional bit set in its descriptor. */
-+	if (udev->actconfig->desc.bmAttributes & USB_CONFIG_ATT_WAKEUP)
-+		return RC_MAP_MEDION_X10_DIGITAINER;
-+
-+	return RC_MAP_MEDION_X10;
-+}
-+
- static const struct ati_receiver_type type_ati		= { .default_keymap = RC_MAP_ATI_X10 };
--static const struct ati_receiver_type type_medion	= { .default_keymap = RC_MAP_MEDION_X10 };
-+static const struct ati_receiver_type type_medion	= { .get_default_keymap = get_medion_keymap };
- static const struct ati_receiver_type type_firefly	= { .default_keymap = RC_MAP_SNAPSTREAM_FIREFLY };
- 
- static struct usb_device_id ati_remote_table[] = {
-@@ -455,6 +467,7 @@ static void ati_remote_input_report(struct urb *urb)
- 	int acc;
- 	int remote_num;
- 	unsigned char scancode;
-+	u32 wheel_keycode = KEY_RESERVED;
- 	int i;
- 
- 	/*
-@@ -494,26 +507,33 @@ static void ati_remote_input_report(struct urb *urb)
- 	 */
- 	scancode = data[2] & 0x7f;
- 
--	/* Look up event code index in the mouse translation table. */
--	for (i = 0; ati_remote_tbl[i].kind != KIND_END; i++) {
--		if (scancode == ati_remote_tbl[i].data) {
--			index = i;
--			break;
-+	dbginfo(&ati_remote->interface->dev,
-+		"channel 0x%02x; key data %02x, scancode %02x\n",
-+		remote_num, data[2], scancode);
-+
-+	if (scancode >= 0x70) {
-+		/*
-+		 * This is either a mouse or scrollwheel event, depending on
-+		 * the remote/keymap.
-+		 * Get the keycode assigned to scancode 0x78/0x70. If it is
-+		 * set, assume this is a scrollwheel up/down event.
-+		 */
-+		wheel_keycode = rc_g_keycode_from_table(ati_remote->rdev,
-+							scancode & 0x78);
-+
-+		if (wheel_keycode == KEY_RESERVED) {
-+			/* scrollwheel was not mapped, assume mouse */
-+
-+			/* Look up event code index in the mouse translation table. */
-+			for (i = 0; ati_remote_tbl[i].kind != KIND_END; i++) {
-+				if (scancode == ati_remote_tbl[i].data) {
-+					index = i;
-+					break;
-+				}
-+			}
- 		}
- 	}
- 
--	if (index >= 0) {
--		dbginfo(&ati_remote->interface->dev,
--			"channel 0x%02x; mouse data %02x; index %d; keycode %d\n",
--			remote_num, data[2], index, ati_remote_tbl[index].code);
--		if (!dev)
--			return; /* no mouse device */
--	} else
--		dbginfo(&ati_remote->interface->dev,
--			"channel 0x%02x; key data %02x, scancode %02x\n",
--			remote_num, data[2], scancode);
--
--
- 	if (index >= 0 && ati_remote_tbl[index].kind == KIND_LITERAL) {
- 		input_event(dev, ati_remote_tbl[index].type,
- 			ati_remote_tbl[index].code,
-@@ -552,15 +572,29 @@ static void ati_remote_input_report(struct urb *urb)
- 
- 		if (index < 0) {
- 			/* Not a mouse event, hand it to rc-core. */
--
--			/*
--			 * We don't use the rc-core repeat handling yet as
--			 * it would cause ghost repeats which would be a
--			 * regression for this driver.
--			 */
--			rc_keydown_notimeout(ati_remote->rdev, scancode,
--					     data[2]);
--			rc_keyup(ati_remote->rdev);
-+			int count = 1;
-+
-+			if (wheel_keycode != KEY_RESERVED) {
-+				/*
-+				 * This is a scrollwheel event, send the
-+				 * scroll up (0x78) / down (0x70) scancode
-+				 * repeatedly as many times as indicated by
-+				 * rest of the scancode.
-+				 */
-+				count = (scancode & 0x07) + 1;
-+				scancode &= 0x78;
-+			}
-+
-+			while (count--) {
-+				/*
-+				* We don't use the rc-core repeat handling yet as
-+				* it would cause ghost repeats which would be a
-+				* regression for this driver.
-+				*/
-+				rc_keydown_notimeout(ati_remote->rdev, scancode,
-+						     data[2]);
-+				rc_keyup(ati_remote->rdev);
-+			}
- 			return;
- 		}
- 
-diff --git a/drivers/media/rc/keymaps/Makefile b/drivers/media/rc/keymaps/Makefile
-index 36e4d5e..c1d977c 100644
---- a/drivers/media/rc/keymaps/Makefile
-+++ b/drivers/media/rc/keymaps/Makefile
-@@ -49,6 +49,7 @@ obj-$(CONFIG_RC_MAP) += rc-adstech-dvb-t-pci.o \
- 			rc-lme2510.o \
- 			rc-manli.o \
- 			rc-medion-x10.o \
-+			rc-medion-x10-digitainer.o \
- 			rc-msi-digivox-ii.o \
- 			rc-msi-digivox-iii.o \
- 			rc-msi-tvanywhere.o \
-diff --git a/drivers/media/rc/keymaps/rc-medion-x10-digitainer.c b/drivers/media/rc/keymaps/rc-medion-x10-digitainer.c
-new file mode 100644
-index 0000000..0a5ce84
---- /dev/null
-+++ b/drivers/media/rc/keymaps/rc-medion-x10-digitainer.c
-@@ -0,0 +1,115 @@
-+/*
-+ * Medion X10 RF remote keytable (Digitainer variant)
-+ *
-+ * Copyright (C) 2012 Anssi Hannula <anssi.hannula@iki.fi>
-+ *
-+ * This keymap is for a variant that has a distinctive scrollwheel instead of
-+ * up/down buttons (tested with P/N 40009936 / 20018268), reportedly
-+ * originally shipped with Medion Digitainer but now sold separately simply as
-+ * an "X10" remote.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License along
-+ * with this program; if not, write to the Free Software Foundation, Inc.,
-+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
-+ */
-+
-+#include <linux/module.h>
-+#include <media/rc-map.h>
-+
-+static struct rc_map_table medion_x10_digitainer[] = {
-+	{ 0x02, KEY_POWER },
-+
-+	{ 0x2c, KEY_TV },
-+	{ 0x2d, KEY_VIDEO },
-+	{ 0x04, KEY_DVD },    /* CD/DVD */
-+	{ 0x16, KEY_TEXT },   /* "teletext" icon, i.e. a screen with lines */
-+	{ 0x06, KEY_AUDIO },
-+	{ 0x2e, KEY_RADIO },
-+	{ 0x31, KEY_EPG },    /* a screen with an open book */
-+	{ 0x05, KEY_IMAGES }, /* Photo */
-+	{ 0x2f, KEY_INFO },
-+
-+	{ 0x78, KEY_UP },     /* scrollwheel up 1 notch */
-+	/* 0x79..0x7f: 2-8 notches, driver repeats 0x78 entry */
-+
-+	{ 0x70, KEY_DOWN },   /* scrollwheel down 1 notch */
-+	/* 0x71..0x77: 2-8 notches, driver repeats 0x70 entry */
-+
-+	{ 0x19, KEY_MENU },
-+	{ 0x1d, KEY_LEFT },
-+	{ 0x1e, KEY_OK },     /* scrollwheel press */
-+	{ 0x1f, KEY_RIGHT },
-+	{ 0x20, KEY_BACK },
-+
-+	{ 0x09, KEY_VOLUMEUP },
-+	{ 0x08, KEY_VOLUMEDOWN },
-+	{ 0x00, KEY_MUTE },
-+
-+	{ 0x1b, KEY_SELECT }, /* also has "U" rotated 90 degrees CCW */
-+
-+	{ 0x0b, KEY_CHANNELUP },
-+	{ 0x0c, KEY_CHANNELDOWN },
-+	{ 0x1c, KEY_LAST },
-+
-+	{ 0x32, KEY_RED },    /* also Audio */
-+	{ 0x33, KEY_GREEN },  /* also Subtitle */
-+	{ 0x34, KEY_YELLOW }, /* also Angle */
-+	{ 0x35, KEY_BLUE },   /* also Title */
-+
-+	{ 0x28, KEY_STOP },
-+	{ 0x29, KEY_PAUSE },
-+	{ 0x25, KEY_PLAY },
-+	{ 0x21, KEY_PREVIOUS },
-+	{ 0x18, KEY_CAMERA },
-+	{ 0x23, KEY_NEXT },
-+	{ 0x24, KEY_REWIND },
-+	{ 0x27, KEY_RECORD },
-+	{ 0x26, KEY_FORWARD },
-+
-+	{ 0x0d, KEY_1 },
-+	{ 0x0e, KEY_2 },
-+	{ 0x0f, KEY_3 },
-+	{ 0x10, KEY_4 },
-+	{ 0x11, KEY_5 },
-+	{ 0x12, KEY_6 },
-+	{ 0x13, KEY_7 },
-+	{ 0x14, KEY_8 },
-+	{ 0x15, KEY_9 },
-+	{ 0x17, KEY_0 },
-+};
-+
-+static struct rc_map_list medion_x10_digitainer_map = {
-+	.map = {
-+		.scan    = medion_x10_digitainer,
-+		.size    = ARRAY_SIZE(medion_x10_digitainer),
-+		.rc_type = RC_TYPE_OTHER,
-+		.name    = RC_MAP_MEDION_X10_DIGITAINER,
-+	}
-+};
-+
-+static int __init init_rc_map_medion_x10_digitainer(void)
-+{
-+	return rc_map_register(&medion_x10_digitainer_map);
-+}
-+
-+static void __exit exit_rc_map_medion_x10_digitainer(void)
-+{
-+	rc_map_unregister(&medion_x10_digitainer_map);
-+}
-+
-+module_init(init_rc_map_medion_x10_digitainer)
-+module_exit(exit_rc_map_medion_x10_digitainer)
-+
-+MODULE_DESCRIPTION("Medion X10 RF remote keytable (Digitainer variant)");
-+MODULE_AUTHOR("Anssi Hannula <anssi.hannula@iki.fi>");
-+MODULE_LICENSE("GPL");
-diff --git a/include/media/rc-map.h b/include/media/rc-map.h
-index f688bde..902d29d 100644
---- a/include/media/rc-map.h
-+++ b/include/media/rc-map.h
-@@ -110,6 +110,7 @@ void rc_map_init(void);
- #define RC_MAP_LME2510                   "rc-lme2510"
- #define RC_MAP_MANLI                     "rc-manli"
- #define RC_MAP_MEDION_X10                "rc-medion-x10"
-+#define RC_MAP_MEDION_X10_DIGITAINER     "rc-medion-x10-digitainer"
- #define RC_MAP_MSI_DIGIVOX_II            "rc-msi-digivox-ii"
- #define RC_MAP_MSI_DIGIVOX_III           "rc-msi-digivox-iii"
- #define RC_MAP_MSI_TVANYWHERE_PLUS       "rc-msi-tvanywhere-plus"
--- 
-1.7.9.3
+>  
+> +/**static u8 read_reg(struct i2c_client *client, u8 reg, int channel)
+> +{
+> +  return i2c_smbus_read_byte_data(client,reg|(channel<<6));
+> +}*/
+> +
+
+Bogus comment adds nothing.
+
+>  static int write_regs(struct i2c_client *client, u8 *regs, int channel)
+>  {
+>  	int i;
+>  
+>  	for (i = 0; regs[i] != 0xff; i += 2)
+> -		if (i2c_smbus_write_byte_data(client,
+> -				regs[i] | (channel << 6), regs[i + 1]) < 0)
+> +		if (i2c_smbus_write_byte_data(client
+> +				, regs[i] | (channel << 6), regs[i + 1]) < 0)
+
+The comma was in the correct place in the original code...  This
+change is wrong.
+
+>  			return -1;
+>  	return 0;
+>  }
+>  
+> -static int wis_tw2804_command(struct i2c_client *client,
+> -				unsigned int cmd, void *arg)
+> +static int wis_tw2804_command(
+> +	struct i2c_client *client,
+> +	unsigned int cmd,
+> +	void *arg)
+
+The style was correct in the original code.  This change is wrong.
+
+>  {
+> -	struct wis_tw2804 *dec = i2c_get_clientdata(client);
+> +	struct v4l2_subdev *sd = i2c_get_clientdata(client);
+> +	struct wis_tw2804 *dec = to_state(sd);
+> +	int *input;
+> +
+> +	printk(KERN_INFO"wis-tw2804: call command %d\n", cmd);
+
+This seems like a very spammy printk().  :/  Put a space after the
+KERN_INFO.
+
+>  
+>  	if (cmd == DECODER_SET_CHANNEL) {
+> -		int *input = arg;
+
+The input was better here, where it was declared originally.
+
+> +		printk(KERN_INFO"wis-tw2804: DecoderSetChannel call command %d\n", cmd);
+> +
+> +		input = arg;
+>  
+>  		if (*input < 0 || *input > 3) {
+> -			printk(KERN_ERR "wis-tw2804: channel %d is not "
+> -					"between 0 and 3!\n", *input);
+> +			printk(KERN_ERR"wis-tw2804: channel %d is not between 0 and 3!\n", *input);
+
+These kinds of unrelated changes don't belong in a new feature
+patch.  Cleanups, fixes, and features don't mix.  In this situation,
+I would just leave it as is.  I know checkpatch.pl complains, but
+it's up to the maintainer to decide what to do.  If you decide to
+change it (in a separate patch) the format would be:
+
+			printk(KERN_ERR
+			       "wis-tw2804: channel %d is not between 0 and 3!\n",
+			       *input);
+
+When people submit big patches there is a lot to complain about and
+they don't get merged.  I'm a hundred lines into the review and I
+haven't even got to any changes which matter or are improvements.
+
+regards,
+dan carpenter
+
 
