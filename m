@@ -1,49 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:56942 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752753Ab2DAWL5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 1 Apr 2012 18:11:57 -0400
-Message-ID: <4F78D2AA.1020503@iki.fi>
-Date: Mon, 02 Apr 2012 01:11:54 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from youngberry.canonical.com ([91.189.89.112]:55565 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754198Ab2DSPIU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 Apr 2012 11:08:20 -0400
+Date: Thu, 19 Apr 2012 16:08:13 +0100
+From: Luis Henriques <luis.henriques@canonical.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Jarod Wilson <jarod@redhat.com>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Subject: Re: [PATCH 1/1] [media] ite-cir: postpone ISR registration
+Message-ID: <20120419150813.GA22948@zeus>
+References: <1334782447-8742-1-git-send-email-luis.henriques@canonical.com>
 MIME-Version: 1.0
-To: Hans-Frieder Vogt <hfvogt@gmx.net>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH] AF9033 read_ber and read_ucblocks implementation
-References: <4F75A7FE.8090405@iki.fi> <201204012011.29830.hfvogt@gmx.net> <201204012307.31742.hfvogt@gmx.net> <201204012319.12575.hfvogt@gmx.net> <4F78CF26.3080704@iki.fi>
-In-Reply-To: <4F78CF26.3080704@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1334782447-8742-1-git-send-email-luis.henriques@canonical.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02.04.2012 00:56, Antti Palosaari wrote:
-> On 02.04.2012 00:19, Hans-Frieder Vogt wrote:
->> Implementation of af9033_read_ber and af9033_read_ucblocks functions.
->> + sw = ~sw;
->
-> I don't see any reason for that?
+On Wed, Apr 18, 2012 at 09:54:07PM +0100, Luis Henriques wrote:
+> An early registration of an ISR was causing a crash to several users (for
+> example here: http://bugs.launchpad.net/bugs/972723  The reason was that
+> IRQs were being triggered before the driver initialisation was completed.
+> 
+> This patch fixes this by moving the invocation to request_irq() to a later
+> stage on the driver probe function.
+> 
+> Signed-off-by: Luis Henriques <luis.henriques@canonical.com>
+> ---
+>  drivers/media/rc/ite-cir.c |    8 ++++----
+>  1 file changed, 4 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/media/rc/ite-cir.c b/drivers/media/rc/ite-cir.c
+> index 682009d..98d8ccf 100644
+> --- a/drivers/media/rc/ite-cir.c
+> +++ b/drivers/media/rc/ite-cir.c
+> @@ -1521,10 +1521,6 @@ static int ite_probe(struct pnp_dev *pdev, const struct pnp_device_id
+>  				dev_desc->io_region_size, ITE_DRIVER_NAME))
+>  		goto failure;
+>  
+> -	if (request_irq(itdev->cir_irq, ite_cir_isr, IRQF_SHARED,
+> -			ITE_DRIVER_NAME, (void *)itdev))
+> -		goto failure;
+> -
+>  	/* set driver data into the pnp device */
+>  	pnp_set_drvdata(pdev, itdev);
+>  	itdev->pdev = pdev;
+> @@ -1600,6 +1596,10 @@ static int ite_probe(struct pnp_dev *pdev, const struct pnp_device_id
+>  	rdev->driver_name = ITE_DRIVER_NAME;
+>  	rdev->map_name = RC_MAP_RC6_MCE;
+>  
+> +	if (request_irq(itdev->cir_irq, ite_cir_isr, IRQF_SHARED,
+> +			ITE_DRIVER_NAME, (void *)itdev))
+> +		goto failure;
+> +
+>  	ret = rc_register_device(rdev);
+>  	if (ret)
+>  		goto failure;
+> -- 
+> 1.7.9.5
 
-Now I see, it is some kind of switch to make operation every second call?
-As it is defined static:
-+	static u8 sw = 0;
-[...]
-+		if (sw)
-+			state->ucb = abort_cnt;
-+		else
-+			state->ucb = +abort_cnt;
-+		sw = ~sw;
+I completely forgot to add:
 
-Unfortunately I am almost sure it will not work as it should. In my 
-understanding this kind of static variables are shared between driver 
-instances... and if you have device where is two or more af9033 demods 
-it will share it. Also if you have multiple af9033 devices, are are 
-shared. It works only if you have one af9033 demodulator in use.
+Cc: <stable@vger.kernel.org>
 
-Instead, this kind of switches should be but to driver private aka 
-state. Also think twice if all that logic is correct and needed.
+to my email.
 
-regards
-Antti
--- 
-http://palosaari.fi/
+Cheers,
+--
+Luis
