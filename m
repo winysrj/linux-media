@@ -1,127 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:23981 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:29618 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754394Ab2DKTxm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Apr 2012 15:53:42 -0400
-Message-ID: <4F85E133.4030404@redhat.com>
-Date: Wed, 11 Apr 2012 16:53:23 -0300
+	id S1753047Ab2DSN7F (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 Apr 2012 09:59:05 -0400
+Message-ID: <4F901A1A.9020908@redhat.com>
+Date: Thu, 19 Apr 2012 10:58:50 -0300
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: =?UTF-8?B?UsOpbWkgRGVuaXMtQ291cm1vbnQ=?= <remi@remlab.net>
-CC: mchehab@infradead.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, Alan Cox <alan@lxorguk.ukuu.org.uk>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [RFC] [PATCH] v4l2: use unsigned rather than enums in ioctl()
- structs
-References: <1333648371-24812-1-git-send-email-remi@remlab.net> <4F85B908.4070404@redhat.com> <201204112147.55348.remi@remlab.net>
-In-Reply-To: <201204112147.55348.remi@remlab.net>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+To: Kamil Debski <k.debski@samsung.com>
+CC: Andrzej Hajda <a.hajda@samsung.com>, linux-media@vger.kernel.org,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	"'Kyungmin Park'" <kyungmin.park@samsung.com>,
+	"'Sakari Ailus'" <sakari.ailus@iki.fi>,
+	"'Hans Verkuil'" <hverkuil@xs4all.nl>
+Subject: Re: [RFC/PATCH] v4l: added V4L2_BUF_FLAG_EOS flag indicating the
+ last frame in the stream
+References: <1334051442-28359-1-git-send-email-a.hajda@samsung.com> <003801cd1992$ddcece50$996c6af0$%debski@samsung.com>
+In-Reply-To: <003801cd1992$ddcece50$996c6af0$%debski@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 11-04-2012 15:47, Rémi Denis-Courmont escreveu:
-> 	Hello,
+Em 13-04-2012 13:31, Kamil Debski escreveu:
+> Hi,
 > 
-> Le mercredi 11 avril 2012 20:02:00 Mauro Carvalho Chehab, vous avez écrit :
->> Using unsigned instead of enum is not a good idea, from API POV, as
->> unsigned has different sizes on 32 bits and 64 bits.
-> 
-> Fair enough. But then we can do that instead:
-> typedef XXX __enum_t;
-> where XXX is the unsigned integer with the right number of bits. Since Linux 
-> does not use short enums, this ought to work fine.
-> 
->> Yet, using enum was really a very bad idea, and, on all new stuff,
->> we're not accepting any new enum field.
-> 
-> That is unfortunately not true. You do follow that rule for new fields to 
-> existing V4L2 structure.
-
-Yes, that's what I meant.
-
-> But you have been royally ignoring that rule when it 
-> comes to extending existing enumerations:
-
-The existing enumerations can be extended, by adding new values for unused
-values, otherwise API functionality can't be extended. Yet, except
-for a gcc bug (or weird optimize option), I fail to see why this would break 
-the ABI. 
-
-If this is all about some gcc optimization with newer gcc versions, then maybe
-the solution may be to add some pragmas at the code to disable such optimization
-when compiling the structs with enum's at videodev2.h.
-
-> linux-media does regularly add new enum values to existing enums. That is new 
-> stuff too, and every single time you do that, you do BREAK THE USERSPACE ABI. 
-> This is entirely unacceptable and against established kernel development 
-> policies.
-> 
-> For instance, in Linux 3.1, V4L2_CTRL_TYPE_BITMASK was added. This broke 
-> userspace.
-
-The patch is:
-
-commit fa4d7096d1fb7c012ebaacefee132007a21e0965
-Author: Hans Verkuil <hans.verkuil@cisco.com>
-Date:   Mon May 23 04:07:05 2011 -0300
-
-    [media] v4l2-ctrls: add new bitmask control type
-    
-    Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-    Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-    Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
-    Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-...
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index f002006..148d1a5 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -1040,6 +1040,7 @@ enum v4l2_ctrl_type {
-        V4L2_CTRL_TYPE_INTEGER64     = 5,
-        V4L2_CTRL_TYPE_CTRL_CLASS    = 6,
-        V4L2_CTRL_TYPE_STRING        = 7,
-+ V4L2_CTRL_TYPE_BITMASK       = 8,
- };
- 
- /*  Used in the VIDIOC_QUERYCTRL ioctl for querying controls */
-
-This doesn't change the existing v4l2_ctrl_type codes. So, it shouldn't be
-producing any harm at the existing code.
-
-> And there are some pending patches adding more of the same thing... 
-> And V4L2_MEMORY_DMABUF will similarly break the user-to-kernel interface, 
-> which is yet worse.
-> 
->> That's said, a patch like that were proposed in the past. See:
->> 	http://www.spinics.net/lists/vfl/msg25686.html
+>> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+>> Sent: 10 April 2012 11:51
 >>
->> Alan said there [1] that:
->> 	"Its a fundamental change to a public structure from enum to u32. I think
->> you are right but this change seems too late by several years."
+>> v4l: added V4L2_BUF_FLAG_EOS flag indicating the last frame in the stream
+>>
+>> Some devices requires indicator if the buffer is the last one in the
+>> stream.
+>> Applications and drivers can use this flag in such case.
+>>
+>> Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
+>> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+>> ---
+>>
+>> Hello,
+>>
+>> This patch adds new v4l2_buffer flag V4L2_BUF_FLAG_EOS. This flag is set
+>> by applications on the output buffer to indicate the last buffer of the
+>> stream.
+>>
+>> Some devices (eg. s5p_mfc) requires presence of the end-of-stream
+>> indicator
+>> together with the last buffer.
+>> Common practice of sending empty buffer to indicate end-of-strem do not
+>> work in
+>> such case.
+>>
+>> I would like to ask for review and comments.
+>>
+>> Apologies for duplicated e-mails - sendmail problems.
+>>
+>> Regards
+>> Andrzej Hajda
+>>
 > 
-> I cannot see how the kernel is protected against userspace injecting error 
-> values into enums. For all I know, depending how the kernel is compiled, 
-> userspace might be able to trigger "undefined" behavior in kernel space.
+> [snip]
 > 
-> Is it be several years too late to fix a bug?
+> Maybe I could throw some more light at the problem.
+> 
+> The problem is that when the encoding is done it is necessary to mark the
+> last frame of the video that is encoded. It is needed because the hardware
+> may need to return some encoded buffers that are kept in the hardware.
 
-No, but causing an ABI breakage like what it would happen by replacing
-"enums" by u32 would break all binaries on x86_64 kernels (and vice-versa
-if using u64, breaking all i386 binaries). 
+Are you talking only about V4L2_BUF_TYPE_VIDEO_OUTPUT? 
 
->From what I remember from the 2006 discussions, even using "unsigned" may 
-lead into breakages on some non-x86 architectures that use u16 for enums,
-as, on those archs, unsigned is 32 bits.
+> Why the buffers are kept in hardware one might ask? The answer to this
+> question is following. The video frames are enqueued in MFC in presentation
+> order and the encoded frames are dequeued in decoding order.
+> 
+> Let's see an example:
+> 			           1234567
+> The presentation order is:   IBBPBBP--
+> The decoding order here is:  --IPBBPBB
+> (the P frames have to be decoded before B frames as B frames reference
+> both preceding and following frame; when no B frames are used then
+> there is no delay)
+> 
+> So there is a delay of two buffers returned on the CAPTURE side to the
+> OUTPUT queue. After the last frame is encoded these buffers have to be
+> returned to the user. Our hardware needs to know that it is the last frame
+> before it is encoded, so the idea is to add a flag that would mark the
+> buffer as the last one.
+> 
+> The flag could also be used to mark the last frame during decoding - now
+> it is done by setting bytesused to 0. The EOS flag could be used in addition
+> to that.
+> 
+> Comments are welcome.
 
-> 
-> (...)
->> I don't think anything has changed since then that would make it easier
->> to apply a change like that.
-> 
-> OK. But then you cannot update extend existing enums... No DMA buffers, no 
-> integer menu controls...
-> 
+For V4L2_BUF_TYPE_VIDEO_CAPTURE, a change like the one proposed has issues
+to be considered: this kind of issue may happen on any driver delivering MPEG
+format. 
+
+So, if we're willing to introduce flags for MPEG-specific handling like that, 
+then all drivers delivering mpeg outputs should be patched, and not only the
+drivers you're maintaining, otherwise userspace applications can't trust that 
+this feature is there.
+
+Btw, the encoder API, designed to mpeg encoders addresses it on a different way:
+V4L2_ENC_CMD_STOP stops an mpeg stream, but it waits until the end of a group
+of pictures:
+    http://linuxtv.org/downloads/v4l-dvb-apis/vidioc-encoder-cmd.html
+
+At least for video capture, this seems to work fine.
+
+For video output, it could make sense to have a flag mark the end of a GoP,
+but, again, if we're thinking that the source could be a V4L2 capture, the
+GoP end should be marked there, and the patches adding support for it will
+need to touch the existing drivers that have mpeg encoders/decoders, in order
+to be sure that, after a certain V4L2 API, all of them will support such
+feature.
 
 Regards,
 Mauro
