@@ -1,53 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from plane.gmane.org ([80.91.229.3]:41296 "EHLO plane.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752659Ab2DJPYc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Apr 2012 11:24:32 -0400
-Received: from list by plane.gmane.org with local (Exim 4.69)
-	(envelope-from <gldv-linux-media@m.gmane.org>)
-	id 1SHcvl-0006oV-HY
-	for linux-media@vger.kernel.org; Tue, 10 Apr 2012 17:24:29 +0200
-Received: from lechon.iro.umontreal.ca ([132.204.27.242])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Tue, 10 Apr 2012 17:24:29 +0200
-Received: from monnier by lechon.iro.umontreal.ca with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Tue, 10 Apr 2012 17:24:29 +0200
-To: linux-media@vger.kernel.org
-From: Stefan Monnier <monnier@iro.umontreal.ca>
-Subject: Re: Unknown eMPIA tuner
-Date: Tue, 10 Apr 2012 11:24:14 -0400
-Message-ID: <jwv1unvwrtn.fsf-monnier+gmane.linux.drivers.video-input-infrastructure@gnu.org>
-References: <jwv4nsyx9pr.fsf-monnier+gmane.linux.drivers.video-input-infrastructure@gnu.org>
-	<CAGoCfiwKU1doqvdcHFpVoc2xuRQKdQirWze0oB2QQyXSQcYrKw@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:22793 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756520Ab2DTOpk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 20 Apr 2012 10:45:40 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Date: Fri, 20 Apr 2012 16:45:33 +0200
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: [PATCHv5 12/13] v4l: s5p-tv: mixer: support for dmabuf importing
+In-reply-to: <1334933134-4688-1-git-send-email-t.stanislaws@samsung.com>
+To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
+Cc: airlied@redhat.com, m.szyprowski@samsung.com,
+	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
+	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
+	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
+	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
+	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
+	mchehab@redhat.com, linux-doc@vger.kernel.org,
+	g.liakhovetski@gmx.de
+Message-id: <1334933134-4688-13-git-send-email-t.stanislaws@samsung.com>
+References: <1334933134-4688-1-git-send-email-t.stanislaws@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->> I just got a USB tuner ("HD TV ATSC USB stick") which lsusb describes as
->> "ID eb1a:1111 eMPIA Technology, Inc." and was wondering how to try to
->> get it working.
->> Would the em28xx driver be able to handle it?  If so, how should I modify
->> it to try it out?
-> You would probably have to start by taking it apart and seeing which
-> demodulator and tuner chips it contained.
+This patch enhances s5p-tv with support for DMABUF importing via
+V4L2_MEMORY_DMABUF memory type.
 
-Hmm... how would I go about taking it apart without destroying it?
-...hhmmm... apparently, a bit of brute force did the trick (at least
-for the "taking it apart" bit, not sure about the "without destroying
-it" yet).
+Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/video/s5p-tv/Kconfig       |    1 +
+ drivers/media/video/s5p-tv/mixer_video.c |    2 +-
+ 2 files changed, 2 insertions(+), 1 deletions(-)
 
-On one side I see a small IC that says something like "Trident \n DRX
-3933J B2".
-
-On the other side I see 2 ICs that say respectively "eMPIA \n ?M2874B"
-and "NXP \n TDA182?1HDC2 \n P3KNR" (the ? might be a slash or a 7) plus
-a third tiny "24C??? \n FTG..." but I don't think that one
-is significant.
-
-
-        Stefan
+diff --git a/drivers/media/video/s5p-tv/Kconfig b/drivers/media/video/s5p-tv/Kconfig
+index f248b28..2e80126 100644
+--- a/drivers/media/video/s5p-tv/Kconfig
++++ b/drivers/media/video/s5p-tv/Kconfig
+@@ -10,6 +10,7 @@ config VIDEO_SAMSUNG_S5P_TV
+ 	bool "Samsung TV driver for S5P platform (experimental)"
+ 	depends on PLAT_S5P && PM_RUNTIME
+ 	depends on EXPERIMENTAL
++	select DMA_SHARED_BUFFER
+ 	default n
+ 	---help---
+ 	  Say Y here to enable selecting the TV output devices for
+diff --git a/drivers/media/video/s5p-tv/mixer_video.c b/drivers/media/video/s5p-tv/mixer_video.c
+index f7ca5cc..6b45d93 100644
+--- a/drivers/media/video/s5p-tv/mixer_video.c
++++ b/drivers/media/video/s5p-tv/mixer_video.c
+@@ -1074,7 +1074,7 @@ struct mxr_layer *mxr_base_layer_create(struct mxr_device *mdev,
+ 
+ 	layer->vb_queue = (struct vb2_queue) {
+ 		.type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE,
+-		.io_modes = VB2_MMAP | VB2_USERPTR,
++		.io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF,
+ 		.drv_priv = layer,
+ 		.buf_struct_size = sizeof(struct mxr_buffer),
+ 		.ops = &mxr_video_qops,
+-- 
+1.7.5.4
 
