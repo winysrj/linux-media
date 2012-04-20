@@ -1,75 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from plane.gmane.org ([80.91.229.3]:54968 "EHLO plane.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751823Ab2D1WVl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 Apr 2012 18:21:41 -0400
-Received: from list by plane.gmane.org with local (Exim 4.69)
-	(envelope-from <gldv-linux-media@m.gmane.org>)
-	id 1SOG1K-0007mD-Rz
-	for linux-media@vger.kernel.org; Sun, 29 Apr 2012 00:21:38 +0200
-Received: from d67-193-214-242.home3.cgocable.net ([67.193.214.242])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Sun, 29 Apr 2012 00:21:38 +0200
-Received: from brian by d67-193-214-242.home3.cgocable.net with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Sun, 29 Apr 2012 00:21:38 +0200
-To: linux-media@vger.kernel.org
-From: "Brian J. Murrell" <brian@interlinx.bc.ca>
-Subject: Re: HVR-1600 QAM recordings with slight glitches in them
-Date: Sat, 28 Apr 2012 18:21:28 -0400
-Message-ID: <4F9C6D68.3090202@interlinx.bc.ca>
-References: <jn2ibp$pot$1@dough.gmane.org>  <1335307344.8218.11.camel@palomino.walls.org>  <jn7pph$qed$1@dough.gmane.org> <1335624964.2665.37.camel@palomino.walls.org> <4F9C38BE.3010301@interlinx.bc.ca> <4F9C559E.6010208@interlinx.bc.ca>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="------------enigACB1966D9C54569E7EEB4539"
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	stoth@kernellabs.com
-In-Reply-To: <4F9C559E.6010208@interlinx.bc.ca>
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:53264 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751016Ab2DTM4h (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 20 Apr 2012 08:56:37 -0400
+Received: from euspt2 (mailout1.w1.samsung.com [210.118.77.11])
+ by mailout1.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0M2S002NA3W512@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 20 Apr 2012 13:55:17 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0M2S008AI3Y8W1@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 20 Apr 2012 13:56:33 +0100 (BST)
+Date: Fri, 20 Apr 2012 14:56:34 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: [PATCH v4 14/14] v4l: fimc: support for dmabuf importing
+In-reply-to: <1334332076-28489-15-git-send-email-t.stanislaws@samsung.com>
+To: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	airlied@redhat.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, laurent.pinchart@ideasonboard.com,
+	sumit.semwal@ti.com, daeinki@gmail.com, daniel.vetter@ffwll.ch,
+	robdclark@gmail.com, pawel@osciak.com,
+	linaro-mm-sig@lists.linaro.org, hverkuil@xs4all.nl,
+	remi@remlab.net, subashrp@gmail.com, mchehab@redhat.com
+Message-id: <4F915D02.9050802@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7BIT
+References: <1334332076-28489-1-git-send-email-t.stanislaws@samsung.com>
+ <1334332076-28489-15-git-send-email-t.stanislaws@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enigACB1966D9C54569E7EEB4539
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Hi Tomasz,
 
-On 12-04-28 04:39 PM, Brian J. Murrell wrote:
-> I typically have one more splitter downstream from that 3 way splitter
-> which is a 4 way splitter to feed all of the tuners on my Mythtv box an=
-d
-> introducing that splitter reduces the SNR at the HVR-1600 to between
-> "13c" and "13e" (31.6 - 31.8 dB).
+On 04/13/2012 05:47 PM, Tomasz Stanislawski wrote:
+> This patch enhances s5p-fimc with support for DMABUF importing via
+> V4L2_MEMORY_DMABUF memory type.
+> 
+> Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 
-Interestingly enough, I moved the Myth backend to it's usual home, in
-the basement, right next to the incoming cable signal and replaced that
-25' run that I had going to where it was temporarily with a smaller, say
-10' run (of RG-59 so still room for improvement) and my SNR at the
-HVR-1600, even after all of the splitters is now "015c" or 34.8 dB.
+Acked-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
 
-I'm still going to go replacing all of that RG-59 with shorter, custom
-made lengths of RG6 cables.  I can't go "too short" when making those
-can I or would even a 6-12 inch cable be perfectly fine?  I'm thinking
-of the runs between that last 4 way splitter and the tuners in the Myth
-backend.
+Just one nitpick, please change the commit summary prefix from
+"v4l: fimc: ..." to "s5p-fimc: ..." when sending upstream.
 
-b.
-
-
---------------enigACB1966D9C54569E7EEB4539
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
-
-iEYEARECAAYFAk+cbWgACgkQl3EQlGLyuXD2agCgnyBGnwnc763jgX+/QkwguM9s
-LXAAoMUTqQIHOQHpV6vhRRQQCKOK53iI
-=N48X
------END PGP SIGNATURE-----
-
---------------enigACB1966D9C54569E7EEB4539--
-
+Thanks.
