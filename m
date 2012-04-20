@@ -1,342 +1,170 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:43835 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753919Ab2DSSJP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Apr 2012 14:09:15 -0400
-Message-ID: <4F9054C7.10201@redhat.com>
-Date: Thu, 19 Apr 2012 15:09:11 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: "nibble.max" <nibble.max@gmail.com>
-CC: linux-media <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 2/6] m88ds3103, dvbsky dvb-s2 usb box.
-References: <1327228731.2540.3.camel@tvbox>, <4F2185A1.2000402@redhat.com> <201204152353240317150@gmail.com>
-In-Reply-To: <201204152353240317150@gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:27257 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754659Ab2DTKih (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 20 Apr 2012 06:38:37 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: text/plain; charset=UTF-8
+Received: from euspt1 ([210.118.77.13]) by mailout3.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0M2R001I8XJKWX80@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 20 Apr 2012 11:38:08 +0100 (BST)
+Received: from [106.116.48.198] by spt1.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTPSA id <0M2R00687XK9AD@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 20 Apr 2012 11:38:34 +0100 (BST)
+Date: Fri, 20 Apr 2012 12:38:32 +0200
+From: Andrzej Hajda <a.hajda@samsung.com>
+Subject: Re: [RFC/PATCH] v4l: added V4L2_BUF_FLAG_EOS flag indicating the last
+ frame in the stream
+In-reply-to: <4F901A1A.9020908@redhat.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Kamil Debski <k.debski@samsung.com>, linux-media@vger.kernel.org,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	'Kyungmin Park' <kyungmin.park@samsung.com>,
+	'Sakari Ailus' <sakari.ailus@iki.fi>,
+	'Hans Verkuil' <hverkuil@xs4all.nl>
+Message-id: <1334918312.1503.138.camel@AMDC1061>
+References: <1334051442-28359-1-git-send-email-a.hajda@samsung.com>
+ <003801cd1992$ddcece50$996c6af0$%debski@samsung.com>
+ <4F901A1A.9020908@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 15-04-2012 12:53, nibble.max escreveu:
-> dvbsky dvb-s2 usb box based on montage m88ds3103 demodulator.
+On Thu, 2012-04-19 at 10:58 -0300, Mauro Carvalho Chehab wrote:
+> Em 13-04-2012 13:31, Kamil Debski escreveu:
+> > Hi,
+> > 
+> >> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+> >> Sent: 10 April 2012 11:51
+> >>
+> >> v4l: added V4L2_BUF_FLAG_EOS flag indicating the last frame in the stream
+> >>
+> >> Some devices requires indicator if the buffer is the last one in the
+> >> stream.
+> >> Applications and drivers can use this flag in such case.
+> >>
+> >> Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
+> >> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> >> ---
+> >>
+> >> Hello,
+> >>
+> >> This patch adds new v4l2_buffer flag V4L2_BUF_FLAG_EOS. This flag is set
+> >> by applications on the output buffer to indicate the last buffer of the
+> >> stream.
+> >>
+> >> Some devices (eg. s5p_mfc) requires presence of the end-of-stream
+> >> indicator
+> >> together with the last buffer.
+> >> Common practice of sending empty buffer to indicate end-of-strem do not
+> >> work in
+> >> such case.
+> >>
+> >> I would like to ask for review and comments.
+> >>
+> >> Apologies for duplicated e-mails - sendmail problems.
+> >>
+> >> Regards
+> >> Andrzej Hajda
+> >>
+> > 
+> > [snip]
+> > 
+> > Maybe I could throw some more light at the problem.
+> > 
+> > The problem is that when the encoding is done it is necessary to mark the
+> > last frame of the video that is encoded. It is needed because the hardware
+> > may need to return some encoded buffers that are kept in the hardware.
 > 
-> Signed-off-by: Max nibble <nibble.max@gmail.com>
-> ---
->  drivers/media/dvb/dvb-usb/Kconfig  |    1 +
->  drivers/media/dvb/dvb-usb/dw2102.c |  236 +++++++++++++++++++++++++++++++++++-
->  2 files changed, 236 insertions(+), 1 deletion(-)
+> Are you talking only about V4L2_BUF_TYPE_VIDEO_OUTPUT? 
+
+Hardware encoder requires that the last frame sent to device should be
+specially marked. So this flag in our case is only for
+V4L2_BUF_TYPE_VIDEO_OUTPUT buffers. As a result of this mark device will
+encode and release all frames cached in internal buffers, so the driver
+can enqueue them in V4L2_BUF_TYPE_VIDEO_CAPTURE queue.
+Sample encoding scenario:
+Frame1 -> Dev
+Frame2 -> Dev
+Dev -> Encoded1
+Frame3 marked as the last one -> Dev
+Dev -> Encoded2
+Dev -> Encoded3
+Dev signals end of encoded stream
+
+Without this mark we will not receive encoded frame 3. And there will be
+no signal from the device about the end of encoded stream.
+
+> > Why the buffers are kept in hardware one might ask? The answer to this
+> > question is following. The video frames are enqueued in MFC in presentation
+> > order and the encoded frames are dequeued in decoding order.
+> > 
+> > Let's see an example:
+> > 			           1234567
+> > The presentation order is:   IBBPBBP--
+> > The decoding order here is:  --IPBBPBB
+> > (the P frames have to be decoded before B frames as B frames reference
+> > both preceding and following frame; when no B frames are used then
+> > there is no delay)
+> > 
+> > So there is a delay of two buffers returned on the CAPTURE side to the
+> > OUTPUT queue. After the last frame is encoded these buffers have to be
+> > returned to the user. Our hardware needs to know that it is the last frame
+> > before it is encoded, so the idea is to add a flag that would mark the
+> > buffer as the last one.
+> > 
+> > The flag could also be used to mark the last frame during decoding - now
+> > it is done by setting bytesused to 0. The EOS flag could be used in addition
+> > to that.
+> > 
+> > Comments are welcome.
 > 
-> diff --git a/drivers/media/dvb/dvb-usb/Kconfig b/drivers/media/dvb/dvb-usb/Kconfig
-> index be1db75..bf63f29 100644
-> --- a/drivers/media/dvb/dvb-usb/Kconfig
-> +++ b/drivers/media/dvb/dvb-usb/Kconfig
-> @@ -279,6 +279,7 @@ config DVB_USB_DW2102
->  	select DVB_STV0288 if !DVB_FE_CUSTOMISE
->  	select DVB_STB6000 if !DVB_FE_CUSTOMISE
->  	select DVB_CX24116 if !DVB_FE_CUSTOMISE
-> +	select DVB_M88DS3103 if !DVB_FE_CUSTOMISE
->  	select DVB_SI21XX if !DVB_FE_CUSTOMISE
->  	select DVB_TDA10023 if !DVB_FE_CUSTOMISE
->  	select DVB_MT312 if !DVB_FE_CUSTOMISE
-> diff --git a/drivers/media/dvb/dvb-usb/dw2102.c b/drivers/media/dvb/dvb-usb/dw2102.c
-> index 451c5a7..0b1bbd2 100644
-> --- a/drivers/media/dvb/dvb-usb/dw2102.c
-> +++ b/drivers/media/dvb/dvb-usb/dw2102.c
-> @@ -19,6 +19,7 @@
->  #include "stb6000.h"
->  #include "eds1547.h"
->  #include "cx24116.h"
-> +#include "m88ds3103.h"
->  #include "tda1002x.h"
->  #include "mt312.h"
->  #include "zl10039.h"
-> @@ -882,6 +883,44 @@ static int s660_set_voltage(struct dvb_frontend *fe, fe_sec_voltage_t voltage)
->  	return 0;
->  }
->  
-> +static int bstusb_set_voltage(struct dvb_frontend *fe, fe_sec_voltage_t voltage)
-> +{
-> +
-> +	struct dvb_usb_adapter *udev_adap =
-> +		(struct dvb_usb_adapter *)(fe->dvb->priv);
-> +
-> +	u8 obuf[3] = { 0xe, 0x80, 0 };
-> +	u8 ibuf[] = { 0 };
-> +		
-> +	info("US6830: %s!\n", __func__);
-> +				
-> +	if (voltage == SEC_VOLTAGE_OFF)
-> +		obuf[2] = 0;
-> +	else 
-> +		obuf[2] = 1;
-> +		
-> +	if (dvb_usb_generic_rw(udev_adap->dev, obuf, 3, ibuf, 1, 0) < 0)
-> +		err("command 0x0e transfer failed.");
-> +	
-> +	return 0;
-> +}
-> +
-> +static int bstusb_restart(struct dvb_frontend *fe)
-> +{
-> +
-> +	struct dvb_usb_adapter *udev_adap =
-> +		(struct dvb_usb_adapter *)(fe->dvb->priv);
-> +	
-> +	u8 obuf[3] = { 0x36, 3, 0 };
-> +	u8 ibuf[] = { 0 };
-> +			
-> +
-> +	if (dvb_usb_generic_rw(udev_adap->dev, obuf, 3, ibuf, 1, 0) < 0)
-> +		err("command 0x36 transfer failed.");
-> +	
-> +	return 0;
-> +}
-> +
->  static void dw210x_led_ctrl(struct dvb_frontend *fe, int offon)
->  {
->  	static u8 led_off[] = { 0 };
-> @@ -987,6 +1026,24 @@ static struct ds3000_config su3000_ds3000_config = {
->  	.ci_mode = 1,
->  };
->  
-> +static struct m88ds3103_config US6830_ds3103_config = {
-> +	.demod_address = 0x68,
-> +	.ci_mode = 1,
-> +	.pin_ctrl = 0x83,
-> +	.ts_mode = 0,
-> +	.start_ctrl = bstusb_restart,
-> +	.set_voltage = bstusb_set_voltage,
-> +};
-> +
-> +static struct m88ds3103_config US6832_ds3103_config = {
-> +	.demod_address = 0x68,
-> +	.ci_mode = 1,
-> +	.pin_ctrl = 0x80,
-> +	.ts_mode = 0,
-> +	.start_ctrl = bstusb_restart,
-> +	.set_voltage = bstusb_set_voltage,
-> +};
-> +
->  static int dw2104_frontend_attach(struct dvb_usb_adapter *d)
->  {
->  	struct dvb_tuner_ops *tuner_ops = NULL;
-> @@ -1214,6 +1271,72 @@ static int su3000_frontend_attach(struct dvb_usb_adapter *d)
->  	return 0;
->  }
->  
-> +static int US6830_frontend_attach(struct dvb_usb_adapter *d)
-> +{
-> +	u8 obuf[3] = { 0xe, 0x83, 0 };
-> +	u8 ibuf[] = { 0 };
-> +
-> +
-> +	info("US6830: %s!\n", __func__);
-> +	
-> +	if (dvb_usb_generic_rw(d->dev, obuf, 3, ibuf, 1, 0) < 0)
-> +		err("command 0x0e transfer failed.");
-> +
-> +	obuf[0] = 0xe;
-> +	obuf[1] = 0x83;
-> +	obuf[2] = 1;
-> +
-> +	if (dvb_usb_generic_rw(d->dev, obuf, 3, ibuf, 1, 0) < 0)
-> +		err("command 0x0e transfer failed.");
-> +
-> +	obuf[0] = 0x51;
-> +
-> +	if (dvb_usb_generic_rw(d->dev, obuf, 1, ibuf, 1, 0) < 0)
-> +		err("command 0x51 transfer failed.");
-> +
-> +	d->fe_adap[0].fe = dvb_attach(m88ds3103_attach, &US6830_ds3103_config,
-> +					&d->dev->i2c_adap);
-> +	if (d->fe_adap[0].fe == NULL)
-> +		return -EIO;
-> +
-> +	info("Attached M88DS3103!\n");
-> +
-> +	return 0;
-> +}
-> +
-> +static int US6832_frontend_attach(struct dvb_usb_adapter *d)
-> +{
-> +	u8 obuf[3] = { 0xe, 0x83, 0 };
-> +	u8 ibuf[] = { 0 };
-> +
-> +
-> +	info("US6832: %s!\n", __func__);
-> +	
-> +	if (dvb_usb_generic_rw(d->dev, obuf, 3, ibuf, 1, 0) < 0)
-> +		err("command 0x0e transfer failed.");
-> +
-> +	obuf[0] = 0xe;
-> +	obuf[1] = 0x83;
-> +	obuf[2] = 1;
-> +
-> +	if (dvb_usb_generic_rw(d->dev, obuf, 3, ibuf, 1, 0) < 0)
-> +		err("command 0x0e transfer failed.");
-> +
-> +	obuf[0] = 0x51;
-> +
-> +	if (dvb_usb_generic_rw(d->dev, obuf, 1, ibuf, 1, 0) < 0)
-> +		err("command 0x51 transfer failed.");
-> +
-> +	d->fe_adap[0].fe = dvb_attach(m88ds3103_attach, &US6832_ds3103_config,
-> +					&d->dev->i2c_adap);
-> +	if (d->fe_adap[0].fe == NULL)
-> +		return -EIO;
-> +
-> +	info("Attached M88DS3103!\n");
-> +
-> +	return 0;
-> +}
-> +
->  static int dw2102_tuner_attach(struct dvb_usb_adapter *adap)
->  {
->  	dvb_attach(dvb_pll_attach, adap->fe_adap[0].fe, 0x60,
-> @@ -1451,6 +1574,9 @@ enum dw2102_table_entry {
->  	TEVII_S480_1,
->  	TEVII_S480_2,
->  	X3M_SPC1400HD,
-> +	BST_US6830HD,
-> +	BST_US6831HD,
-> +	BST_US6832HD,
->  };
->  
->  static struct usb_device_id dw2102_table[] = {
-> @@ -1469,6 +1595,9 @@ static struct usb_device_id dw2102_table[] = {
->  	[TEVII_S480_1] = {USB_DEVICE(0x9022, USB_PID_TEVII_S480_1)},
->  	[TEVII_S480_2] = {USB_DEVICE(0x9022, USB_PID_TEVII_S480_2)},
->  	[X3M_SPC1400HD] = {USB_DEVICE(0x1f4d, 0x3100)},
-> +	[BST_US6830HD] = {USB_DEVICE(0x0572, 0x6830)},
-> +	[BST_US6831HD] = {USB_DEVICE(0x0572, 0x6831)},
-> +	[BST_US6832HD] = {USB_DEVICE(0x0572, 0x6832)},
->  	{ }
->  };
->  
-> @@ -1874,6 +2003,107 @@ static struct dvb_usb_device_properties su3000_properties = {
->  	}
->  };
->  
-> +static struct dvb_usb_device_properties US6830_properties = {
-> +	.caps = DVB_USB_IS_AN_I2C_ADAPTER,
-> +	.usb_ctrl = DEVICE_SPECIFIC,
-> +	.size_of_priv = sizeof(struct su3000_state),
-> +	.power_ctrl = su3000_power_ctrl,
-> +	.num_adapters = 1,
-> +	.identify_state	= su3000_identify_state,
-> +	.i2c_algo = &su3000_i2c_algo,
-> +
-> +	.rc.legacy = {
-> +		.rc_map_table = rc_map_su3000_table,
-> +		.rc_map_size = ARRAY_SIZE(rc_map_su3000_table),
-> +		.rc_interval = 150,
-> +		.rc_query = dw2102_rc_query,
-> +	},
+> For V4L2_BUF_TYPE_VIDEO_CAPTURE, a change like the one proposed has issues
+> to be considered: this kind of issue may happen on any driver delivering MPEG
+> format. 
+> 
+> So, if we're willing to introduce flags for MPEG-specific handling like that, 
+> then all drivers delivering mpeg outputs should be patched, and not only the
+> drivers you're maintaining, otherwise userspace applications can't trust that 
+> this feature is there.
+
+This flag on V4L2_BUF_TYPE_VIDEO_CAPTURE is not required by our
+hardware. Since we cannot eliminate empty buffers for signaling end of
+encoded stream for compatibility reasons, there will be no real profit
+from using it.
+
+> Btw, the encoder API, designed to mpeg encoders addresses it on a different way:
+> V4L2_ENC_CMD_STOP stops an mpeg stream, but it waits until the end of a group
+> of pictures:
+>     http://linuxtv.org/downloads/v4l-dvb-apis/vidioc-encoder-cmd.html
+> 
+> At least for video capture, this seems to work fine.
+
+In case of our hardware we cannot send STOP command after sending the
+last frame, we should sent it together.
+Possible workaround I see is that driver will not send
+V4L2_BUF_TYPE_VIDEO_OUTPUT frame to device unless there is another one
+in V4L2_BUF_TYPE_VIDEO_CAPTURE queue, or it receives V4L2_ENC_CMD_STOP.
+This solution seems to me less straightforward that the proposed one and
+adds phony requirement on number of V4L2_BUF_TYPE_VIDEO_OUTPUT
+buffers(at least 2).
+
+> 
+> For video output, it could make sense to have a flag mark the end of a GoP,
+> but, again, if we're thinking that the source could be a V4L2 capture, the
+> GoP end should be marked there, and the patches adding support for it will
+> need to touch the existing drivers that have mpeg encoders/decoders, in order
+> to be sure that, after a certain V4L2 API, all of them will support such
+> feature.
+> 
+> Regards,
+> Mauro
 
 
-New drivers should use .rc.core instead. For a simple example on how to use,
-please take a look at the az6007 driver.
+Regards,
+Andrzej
 
-> +
-> +	.read_mac_address = su3000_read_mac_address,
-> +
-> +	.generic_bulk_ctrl_endpoint = 0x01,
-> +	
-> +	.adapter = {
-> +		{
-> +		.num_frontends = 1,
-> +		.fe = {{
-> +			.streaming_ctrl   = su3000_streaming_ctrl,
-> +			.frontend_attach  = US6830_frontend_attach,
-> +			.stream = {
-> +				.type = USB_BULK,
-> +				.count = 8,
-> +				.endpoint = 0x82,
-> +				.u = {
-> +					.bulk = {
-> +						.buffersize = 4096,
-> +					}
-> +				}
-> +			}
-> +		}},
-> +		}
-> +	},
-> +	.num_device_descs = 2,
-> +	.devices = {
-> +		{ "Bestunar US6830 HD",
-> +			{ &dw2102_table[BST_US6830HD], NULL },
-> +			{ NULL },
-> +		},
-> +		{ "Bestunar US6831 HD",
-> +			{ &dw2102_table[BST_US6831HD], NULL },
-> +			{ NULL },
-> +		},				
-> +	}
-> +};
-> +
-> +static struct dvb_usb_device_properties US6832_properties = {
-> +	.caps = DVB_USB_IS_AN_I2C_ADAPTER,
-> +	.usb_ctrl = DEVICE_SPECIFIC,
-> +	.size_of_priv = sizeof(struct su3000_state),
-> +	.power_ctrl = su3000_power_ctrl,
-> +	.num_adapters = 1,
-> +	.identify_state	= su3000_identify_state,
-> +	.i2c_algo = &su3000_i2c_algo,
-> +
-> +	.rc.legacy = {
-> +		.rc_map_table = rc_map_su3000_table,
-> +		.rc_map_size = ARRAY_SIZE(rc_map_su3000_table),
-> +		.rc_interval = 150,
-> +		.rc_query = dw2102_rc_query,
-> +	},
-> +
-> +	.read_mac_address = su3000_read_mac_address,
-> +
-> +	.generic_bulk_ctrl_endpoint = 0x01,
-> +
-> +	.adapter = {
-> +		{
-> +		.num_frontends = 1,
-> +		.fe = {{
-> +			.streaming_ctrl   = su3000_streaming_ctrl,
-> +			.frontend_attach  = US6832_frontend_attach,
-> +			.stream = {
-> +				.type = USB_BULK,
-> +				.count = 8,
-> +				.endpoint = 0x82,
-> +				.u = {
-> +					.bulk = {
-> +						.buffersize = 4096,
-> +					}
-> +				}
-> +			}
-> +		}},
-> +		}
-> +	},
-> +	.num_device_descs = 1,
-> +	.devices = {
-> +		{ "Bestunar US6832 HD",
-> +			{ &dw2102_table[BST_US6832HD], NULL },
-> +			{ NULL },
-> +		},
-> +				
-> +	}
-> +};
-> +
->  static int dw2102_probe(struct usb_interface *intf,
->  		const struct usb_device_id *id)
->  {
-> @@ -1930,7 +2160,11 @@ static int dw2102_probe(struct usb_interface *intf,
->  	    0 == dvb_usb_device_init(intf, p7500,
->  			THIS_MODULE, NULL, adapter_nr) ||
->  	    0 == dvb_usb_device_init(intf, &su3000_properties,
-> -				     THIS_MODULE, NULL, adapter_nr))
-> +     			THIS_MODULE, NULL, adapter_nr) ||
-> +	    0 == dvb_usb_device_init(intf, &US6830_properties,
-> +			THIS_MODULE, NULL, adapter_nr) ||
-> +	    0 == dvb_usb_device_init(intf, &US6832_properties,
-> +			THIS_MODULE, NULL, adapter_nr))
->  		return 0;
->  
->  	return -ENODEV;
 
