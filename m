@@ -1,125 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:49786 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761283Ab2D0UlB convert rfc822-to-8bit (ORCPT
+Received: from mail-we0-f174.google.com ([74.125.82.174]:35523 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754963Ab2DTOBo convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Apr 2012 16:41:01 -0400
-Received: by eaaq12 with SMTP id q12so295007eaa.19
-        for <linux-media@vger.kernel.org>; Fri, 27 Apr 2012 13:40:59 -0700 (PDT)
+	Fri, 20 Apr 2012 10:01:44 -0400
+Received: by wejx9 with SMTP id x9so6091553wej.19
+        for <linux-media@vger.kernel.org>; Fri, 20 Apr 2012 07:01:43 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <CAF0Ff2k93ud=kOQujbwU8U9+rpJWbTW+euj6KYWzWjCCO0bxzA@mail.gmail.com>
-References: <1327228731.2540.3.camel@tvbox>
-	<4F2185A1.2000402@redhat.com>
-	<201204152353103757288@gmail.com>
-	<201204201601166255937@gmail.com>
-	<4F9130BB.8060107@iki.fi>
-	<201204211045557968605@gmail.com>
-	<4F958640.9010404@iki.fi>
-	<CAF0Ff2nNP6WRUWcs7PqVRxhXHCmUFqqswL4757WijFaKT5P5-w@mail.gmail.com>
-	<4F95CE59.1020005@redhat.com>
-	<CAF0Ff2m_6fM1QV+Jic7viHXQ7edTe8ZwigjjhdtFwMfhCszuKQ@mail.gmail.com>
-	<4F9AF53C.6030105@redhat.com>
-	<CAF0Ff2k93ud=kOQujbwU8U9+rpJWbTW+euj6KYWzWjCCO0bxzA@mail.gmail.com>
-Date: Fri, 27 Apr 2012 23:40:59 +0300
-Message-ID: <CAF0Ff2k9_kbcrVxretfC_sFqnE+b0EbGzTrX4yBHj4LFXuug2g@mail.gmail.com>
-Subject: Re: [PATCH 1/6] m88ds3103, montage dvb-s/s2 demodulator driver
-From: Konstantin Dimitrov <kosio.dimitrov@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Antti Palosaari <crope@iki.fi>,
-	"nibble.max" <nibble.max@gmail.com>,
-	linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+In-Reply-To: <1334879437.14608.22.camel@palomino.walls.org>
+References: <4F8EB1F1.1030801@gmail.com>
+	<1334879437.14608.22.camel@palomino.walls.org>
+Date: Fri, 20 Apr 2012 11:01:43 -0300
+Message-ID: <CADbd7mHbP0YVQSBo4TgF0ZKqEU5VydWOoHZp__owh2b4k8aZsw@mail.gmail.com>
+Subject: Re: [PATCH] TDA9887 PAL-Nc fix
+From: "Gonzalo A. de la Vega" <gadelavega@gmail.com>
+To: Andy Walls <awalls@md.metrocast.net>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Apr 27, 2012 at 11:37 PM, Konstantin Dimitrov
-<kosio.dimitrov@gmail.com> wrote:
-> hi Mauro,
+On Thu, Apr 19, 2012 at 8:50 PM, Andy Walls <awalls@md.metrocast.net> wrote:
+> On Wed, 2012-04-18 at 09:22 -0300, Gonzalo de la Vega wrote:
+>> The tunner IF for PAL-Nc norm, which AFAIK is used only in Argentina, was being defined as equal to PAL-M but it is not. It actually uses the same video IF as PAL-BG (and unlike PAL-M) but the audio is at 4.5MHz (same as PAL-M). A separate structure member was added for PAL-Nc.
+>>
+>> Signed-off-by: Gonzalo A. de la Vega <gadelavega@gmail.com>
 >
-> in the mean time i was actually pointed out that there is 3rd party
-> tuner that is proved to work in practice with both Montage ds3k
-> demodulator family, as well ST STV090x demods, i.e. there are such
-> reference designs. so, the split further makes sense and in fact that
-> should be make in way that both drivers for STV090x and Montage ds3k
-> demodulator family can share tuners with each other. so, that's just
-> note for the upcoming review of the patches i will submit - in short
-> the split of �Montage tuner and demodulator code i will make it in the
-> same fashion as how the driver code for ST 6100/6110 tuner are split
-> from STV090x driver, because that now, as i've just mentioned, makes
-> sense from practical point of view since of the 3rd party tuner for
-> which there is reference designs with both STV090x and Montage
-> demodulator. also, that way STB0899, STV090x and Montage demodulator
-> drivers can be used together with any other of the DVB-S2 tuners
-> available in the kernel - ST 6100 and 6110 and soon TS2020.
+> Hmmm.
 >
-> however, i want to pointed out few other problems - they are off-topic
-> as not related to drivers for Montage chips, but related as far as
-> we're putting some order and making things in a proper way and those
-> those things are out of that order:
+> The Video IF for N systems is 45.75 MHz according to this popular book
+> (see page 29 of the PDF):
+> http://www.deetc.isel.ipl.pt/Analisedesinai/sm/downloads/doc/ch08.pdf
 >
-> - there are 2 drivers for the same DVB-S2 tuner: ST 6110, respectively
-> "stv6110.c" and "stv6110x.c"
+> The Video IF is really determined by the IF SAW filter used in your
+> tuner assembly, and how the tuner data sheet says to program the
+> mixer/oscillator chip to mix down from RF to IF.
 >
-> - there are 2 drivers for the same DVB-S2 demodulator family:
-> respectively stv090x* and stv0900*
+> What model analog tuner assembly are you using?  It could be that the
+> linux tuner-simple module is setting up the mixer/oscillator chip wrong.
 >
-> the above couldn't be more wrong - in fact i can submit patches to
-> make all drivers that relies on stv090x* and "stv6110.c" to use
-> stv090x* and "stv6110x.c" instead except the NetUP board, for which in
+> Regards,
+> Andy
 
-> my opinion someone should submit patches using stv090x* and
-> "stv6110x.c" and subsequently stv090x* and "stv6110.c" be removed -
+Hi Andy,
+first of all and to clarify things: I could not tune analog TV without
+this patch, or I could barely see a BW image. With the patch applied,
+I can see image in full color and with good sound. So it works with
+the patch, it does not work without it.
 
-to correct a typo: and subsequently stv0900* and "stv6110.c" be removed
+Now, I'm not an expert on TV (I am an electronics engineer thou) so I
+am having some trouble trying to put together what I read in the
+TDA9887 datasheet and the reference you sent. The thing with PAL-Nc is
+that it has a video bandwidth of 4.2MHz not 5.0MHz (page 51) and the
+attenuation of color difference signals for >20dB is at 3.6MHz instead
+of 4MHz (page 54). You can just search for "Argentina" inside the
+document.
 
-> unless someone have some real argument why stv090x* and "stv6110.c"
+So, this works... but now I'm not sure why. I guess cVideoIF_38_90 is
+compensating for the bandwidth difference. I need to study this.
 
-the same: unless someone have some real argument why stv0900* and "stv6110.c"
+Gonzalo
 
-> should stay or even if for why they should replace stv090x* and
-> "stv6110x.c" and subsequently �stv090x* and "stv6110x.c" be removed
-> instead. so, the case with ST 6110 and STV090x support is the most
-> frustrating and out of order thing that i can indicate regarding the
-> support of DVB-S2 chips in the kernel and i hope you will take care as
-> maintainer to be resolved or at least someone to explain why the
-> current state is like that - or point me out to explanation if such
-> was already made to the mailing list. so, what i'm suggesting is
-> "spring cleaning" of all DVB-S2 tuner/demodulator drivers in the
-> kernel - if it's not done now in the future the mess will only
-> increase.
 >
-> thank you,
-> konstantin
+>>
+>> diff --git a/drivers/media/common/tuners/tda9887.c b/drivers/media/common/tuners/tda9887.c
+>> index cdb645d..b560b5d 100644
+>> --- a/drivers/media/common/tuners/tda9887.c
+>> +++ b/drivers/media/common/tuners/tda9887.c
+>> @@ -168,8 +168,8 @@ static struct tvnorm tvnorms[] = {
+>>                          cAudioIF_6_5   |
+>>                          cVideoIF_38_90 ),
+>>       },{
+>> -             .std   = V4L2_STD_PAL_M | V4L2_STD_PAL_Nc,
+>> -             .name  = "PAL-M/Nc",
+>> +             .std   = V4L2_STD_PAL_M,
+>> +             .name  = "PAL-M",
+>>               .b     = ( cNegativeFmTV  |
+>>                          cQSS           ),
+>>               .c     = ( cDeemphasisON  |
+>> @@ -179,6 +179,17 @@ static struct tvnorm tvnorms[] = {
+>>                          cAudioIF_4_5   |
+>>                          cVideoIF_45_75 ),
+>>       },{
+>> +             .std   = V4L2_STD_PAL_Nc,
+>> +             .name  = "PAL-Nc",
+>> +             .b     = ( cNegativeFmTV  |
+>> +                        cQSS           ),
+>> +             .c     = ( cDeemphasisON  |
+>> +                        cDeemphasis75  |
+>> +                        cTopDefault),
+>> +             .e     = ( cGating_36     |
+>> +                        cAudioIF_4_5   |
+>> +                        cVideoIF_38_90 ),
+>> +     },{
+>>               .std   = V4L2_STD_SECAM_B | V4L2_STD_SECAM_G | V4L2_STD_SECAM_H,
+>>               .name  = "SECAM-BGH",
+>>               .b     = ( cNegativeFmTV  |
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 >
-> On Fri, Apr 27, 2012 at 10:36 PM, Mauro Carvalho Chehab
-> <mchehab@redhat.com> wrote:
->> Hi Konstantin,
->>
->> Em 27-04-2012 16:01, Konstantin Dimitrov escreveu:
->>> Mauro, your reasoning makes sense to me. so, let's split them and at
->>> least settle this part of the discussion - i will do as far as my
->>> spare time allows, as well make sure there are no some problems
->>> introduced after the split.
->>
->> Thank you!
->>
->>> also, in one email i've just sent in answer to Antti there is enough
->>> argument why such split, i.e. tuner-pass-through-mode is subject to
->>> discussion about CX24116 and TDA10071 drivers too. currently, majority
->>> of DVB-S2 demodulator drivers in the kernel are married to particular
->>> tuners and there is no split.
->>
->> Besides the reasoning I gave you, having the tuner and the demod on separate
->> drivers help a lot code reviewers to check what's happening inside the code,
->> because the code on each driver becomes more coincide and the two different
->> functions become more decoupled, with reduces the code complexity. So, bugs
->> tend to be reduced and they're easier to fix, especially when someone need
->> to fix bad things at the dvb core.
->>
->> Also, as almost all drivers are like that, it is easier to identify driver
->> patterns, especially when newer patches are adding extra functionality there.
->>
->> Thanks!
->> Mauro
->>
+>
