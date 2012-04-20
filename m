@@ -1,72 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1-g21.free.fr ([212.27.42.1]:35444 "EHLO smtp1-g21.free.fr"
+Received: from mx1.redhat.com ([209.132.183.28]:10519 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756567Ab2D0HwQ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Apr 2012 03:52:16 -0400
-Date: Fri, 27 Apr 2012 09:53:09 +0200
-From: Jean-Francois Moine <moinejf@free.fr>
-To: Antonio Ospite <ospite@studenti.unina.it>
-Cc: linux-media@vger.kernel.org,
-	Erik =?UTF-8?B?QW5kcsOpbg==?= <erik.andren@gmail.com>
-Subject: Re: gspca V4L2_CID_EXPOSURE_AUTO and VIDIOC_G/S/TRY_EXT_CTRLS
-Message-ID: <20120427095309.5d922000@tele>
-In-Reply-To: <20120418153720.1359c7d2f2a3efc2c7c17b88@studenti.unina.it>
-References: <20120418153720.1359c7d2f2a3efc2c7c17b88@studenti.unina.it>
-Mime-Version: 1.0
+	id S1752637Ab2DTRY0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 20 Apr 2012 13:24:26 -0400
+Message-ID: <4F919BBB.5020407@redhat.com>
+Date: Fri, 20 Apr 2012 14:24:11 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Antti Palosaari <crope@iki.fi>
+CC: "nibble.max" <nibble.max@gmail.com>,
+	linux-media <linux-media@vger.kernel.org>,
+	Konstantin Dimitrov <kosio.dimitrov@gmail.com>
+Subject: Re: [PATCH 1/6] m88ds3103, montage dvb-s/s2 demodulator driver
+References: <1327228731.2540.3.camel@tvbox>, <4F2185A1.2000402@redhat.com>, <201204152353103757288@gmail.com> <201204201601166255937@gmail.com> <4F9130BB.8060107@iki.fi>
+In-Reply-To: <4F9130BB.8060107@iki.fi>
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 18 Apr 2012 15:37:20 +0200
-Antonio Ospite <ospite@studenti.unina.it> wrote:
-
-> I noticed that AEC (Automatic Exposure Control, or
-> V4L2_CID_EXPOSURE_AUTO) does not work in the ov534 gspca driver, either
-> from guvcview or qv4l2.
-	[snip]
-> So in ov534, but I think in m5602 too, V4L2_CID_EXPOSURE_AUTO does not
-> work from guvcview, qv4l2, or v4l2-ctrl, for instance the latter fails
-> with the message:
+Em 20-04-2012 06:47, Antti Palosaari escreveu:
+> On 20.04.2012 11:01, nibble.max wrote:
+>> 2012-04-20 15:56:27 nibble.max@gmail.com
+>> At first time, I check it exist so try to patch it.
+>> But with new m88ds3103 features to add and ts2022 tuner include, find it is hard to do simply patch.
+>> It is better to create a new driver for maintain.
+>>> Hi Max,
+>>>
+>>> Em 15-04-2012 12:53, nibble.max escreveu:
+>>>> Montage m88ds3103 demodulator and ts2022 tuner driver.
+>>>
+>>> It was pointed to me that this device were already discussed on:
+>>>
+>>>    http://www.mail-archive.com/linux-media@vger.kernel.org/msg43109.html
+>>>
+>>> If m88ds3103 demod is similar enough to ds3000, it should just add the needed
+>>> bits at the existing driver, and not creating a new driver.
+>>>
+>>> Thanks,
+>>> Mauro
 > 
-> 	error 25 getting ext_ctrl Auto Exposure
+> The main problem of these all existing and upcoming Montage DVB-S/S2 drivers are those are not split originally correct as a tuner and demod and now it causes problems.
 > 
-> I tried adding an hackish implementation of vidioc_g_ext_ctrls and
-> vidioc_s_ext_ctrls to gspca, and with these V4L2_CID_EXPOSURE_AUTO seems
-> to work, but I need to learn more about this kind of controls before
-> I can propose a decent implementation for mainline inclusion myself, so
-> if anyone wants to anticipate me I'd be glad to test :)
+> I really suspect it should be:
+> * single demod driver that supports both DS3000 and DS3103
+> * single tuner driver that supports both TS2020 and TS2022
 > 
-> Unrelated, but maybe worth mentioning is that V4L2_CID_EXPOSURE_AUTO is
-> of type MENU, while some drivers are treating it as a boolean, I think
-> I can fix this one if needed.
+> And now what we have is 2 drivers that contains both tuner and demod. And a lot of same code. :-(
+> 
+> But it is almost impossible to split it correctly at that phase if you don't have both hardware combinations, DS3000/TS2020 and DS3103/TS2022. I think it is best to leave old DS3000 as it is and make new driver for DS3103 *and* TS2022. Maybe after that someone could add DS3000 support to new DS3103 driver and TS2020 support to new TS2022 driver. After that it is possible to remove old DS3000 driver.
+> 
+> And we should really consider make simple rule not to accept any driver which is not split as logical parts: USB/PCI-interface + demodulator + tuner.
 
-Hi Antonio,
+Mixing tuner and demod is not good. Yet, dropping the current ds3000 doesn't
+seem to be the best approach.
 
-Yes, V4L2_CID_EXPOSURE_AUTO is of class V4L2_CTRL_CLASS_CAMERA, and, as
-the associated menu shows, it is not suitable for webcams.
+IMO, Konstantin/Montage should split the ds3000 driver on two drivers, putting
+the ts2020 bits on a separate driver.
 
-In the webcam world, the autoexposure is often the same as the
-autogain: in the knee algorithm
-(http://81.209.78.62:8080/docs/LowLightOptimization.html - also look at
-gspca/sonixb.c), both exposure and gain are concerned. The cases where
-a user wants only autoexposure (fixed gain) or autogain (fixed
-exposure) are rare. If you want people to be able to do that, you
-should add a new webcam control, V4L2_CID_AUTOEXPOSURE, and also add it
-to each driver which implements the knee algorithm, and handle the three
-cases, autogain only, autoexposure only and knee.
+Then, Max should write a patch for ds3000 in order to add support for ds3103 on
+it, and a patch for ts2020 driver, in order to add support for ts2022 on it.
 
-Then, looking about your implementation of vidioc_s_ext_ctrls, I found
-it was a bit simple: setting many controls is atomic, i.e., if any
-error occurs at some point, the previous controls should be reset to
-their original values. Same about vidioc_g_ext_ctrls: the mutex must be
-taken only once for the values do not change. You also do not check if
-the controls are in a same control class. Anyway, are these ioctl's
-needed?
+Of course, Konstantin should check if Max changes don't break support for the
+DS3000/TS2020 configuration.
 
-Regards.
-
--- 
-Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+Regards,
+Mauro
