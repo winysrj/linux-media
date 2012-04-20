@@ -1,84 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from plane.gmane.org ([80.91.229.3]:38774 "EHLO plane.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758014Ab2DYCqT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Apr 2012 22:46:19 -0400
-Received: from list by plane.gmane.org with local (Exim 4.69)
-	(envelope-from <gldv-linux-media@m.gmane.org>)
-	id 1SMsFG-0004A3-IP
-	for linux-media@vger.kernel.org; Wed, 25 Apr 2012 04:46:18 +0200
-Received: from d67-193-214-242.home3.cgocable.net ([67.193.214.242])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Wed, 25 Apr 2012 04:46:18 +0200
-Received: from brian by d67-193-214-242.home3.cgocable.net with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Wed, 25 Apr 2012 04:46:18 +0200
-To: linux-media@vger.kernel.org
-From: "Brian J. Murrell" <brian@interlinx.bc.ca>
-Subject: Re: udev rules for persistent symlinks for adapter?/frontend0 devices
-Date: Tue, 24 Apr 2012 22:46:08 -0400
-Message-ID: <jn7ohg$k5q$1@dough.gmane.org>
-References: <jn6n2e$gu1$1@dough.gmane.org> <1335309978.8218.22.camel@palomino.walls.org>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="------------enigE3E5D636D17FE48340F35D38"
-In-Reply-To: <1335309978.8218.22.camel@palomino.walls.org>
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:63311 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755712Ab2DTSYk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 20 Apr 2012 14:24:40 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: text/plain; charset=ISO-8859-1
+Date: Fri, 20 Apr 2012 20:24:38 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: s5p-fimc VIDIOC_STREAMOFF bug
+In-reply-to: <6126533.0OoG4qIlQU@flatron>
+To: Tomasz Figa <tomasz.figa@gmail.com>
+Cc: linux-samsung-soc@vger.kernel.org,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Message-id: <4F91A9E6.3060402@samsung.com>
+References: <6126533.0OoG4qIlQU@flatron>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enigE3E5D636D17FE48340F35D38
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Hi Tomasz,
 
-On 12-04-24 07:26 PM, Andy Walls wrote:
->=20
-> Maybe by using matches on DEVPATH and/or DEVNAME along with the other
-> attributes you already check?
->=20
-=2E..
-> KERNEL[1335308536.258048] add      /devices/pci0000:00/0000:00:14.4/000=
-0:03:00.0/dvb/dvb0.frontend0 (dvb)
-> UDEV_LOG=3D3
-> ACTION=3Dadd
-> DEVPATH=3D/devices/pci0000:00/0000:00:14.4/0000:03:00.0/dvb/dvb0.fronte=
-nd0
+On 04/19/2012 11:45 PM, Tomasz Figa wrote:
+> Hi,
+> 
+> I have been working on adapting s5p-fimc driver for s3c6410 and everything 
+> seems to be working just fine after some minor changes (except minor loss 
+> of functionality - only codec path is supported, but for most use cases it 
+> does not matter).
+> 
+> However I think that I have spotted a bug in capture stop / capture suspend 
+> handling. In fimc_capture_state_cleanup() the ST_CAPT_SUSPENDED status bit 
+> of fimc->state field is being set regardless of suspend parameter, which 
+> confuses the driver that FIMC is suspended and might not accept buffers 
+> into active queue and so the driver will never start the capture process 
+> unless the device gets closed and reopened (because of the condition 
+> checking the count of active buffers).
+> 
+> In my fork for s3c6410 I have moved the set_bit call into 
+> fimc_capture_suspend(), so the bit gets set only when the device gets 
+> suspended. This seems to solve the problem and I do not see any issues that 
+> this could introduce, so it might be a good solution.
+> 
+> Let me know if I am wrong in anything I have written.
 
-Perhaps this is the ultimate in persistence, but unfortunately is also
-highly dependent on physical location in the machine (i.e. which PCI
-slot even).
+Your conclusions are correct, there was indeed a bug like that.
+There is already a patch fixing this [1], but it is going to be available
+just from v3.4. I'm considering sending it to Greg for inclusion in the
+stable releases, after it gets upstream.
 
-> SUBSYSTEM=3Ddvb
-> DEVNAME=3Ddvb/adapter0/frontend0
+Once I did some preliminary work for the s3c-fimc driver, but dropped this
+due to lack of time. If you ever decide you want to mainline your work,
+just send the patches to linux-media@vger.kernel.org (and perhaps also to
+samsung-soc and ARM Linux) for review.
 
-AFAIU, the "adapter0" is not representative of physical device
-persistence but is rather dependent on probing order.  IOW,
-"dvb/adapter0/frontend0" will always be the first DVB device found but
-won't be a guarantee of which physical device it is.  This is what I
-currently have with /dev/dvb/adapter{0.1} which is unfortunately
-unsuitable since it's so predictable.
+> 
+> Best regards,
+> Tomasz Figa
 
-I might end up having to bite the bullet and using DEVNAME.  :-(
-
-Thanks for the info though, much appreciated,
-b.
+[1] http://patchwork.linuxtv.org/patch/10417
 
 
---------------enigE3E5D636D17FE48340F35D38
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
-
-iEYEARECAAYFAk+XZXAACgkQl3EQlGLyuXCR+wCgs6kDkun5JKEENuNnTRC4XWuG
-GuwAoMBH6zXS8m+46Qq9o3Y6xQwO89y6
-=AoKQ
------END PGP SIGNATURE-----
-
---------------enigE3E5D636D17FE48340F35D38--
-
+Thanks,
+-- 
+Sylwester Nawrocki
+Samsung Poland R&D Center
