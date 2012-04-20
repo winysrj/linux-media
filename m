@@ -1,54 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 124-248-200-70.sunnyvision.com ([124.248.200.70]:45295 "EHLO
-	teamb04.edmhongkong.com" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
-	with ESMTP id S1751463Ab2DBKIV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Apr 2012 06:08:21 -0400
-Message-ID: <npm8nt63IJoBU@mars.seed.net.tw>
-From: boris@cloudluca.com
-Subject: Server Rental Service in HK
-Content-Type: text/plain;
-Content-Transfer-Encoding: Quoted-Printable
-Date: Mon,  2 Apr 2012 17:47:47 +0800 (HKT)
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from mail-wg0-f44.google.com ([74.125.82.44]:40933 "EHLO
+	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754824Ab2DTS3B (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 20 Apr 2012 14:29:01 -0400
+From: Renzo Dani <arons7@gmail.com>
+To: laurent.pinchart@ideasonboard.com
+Cc: mchehab@infradead.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, arons7@gmail.com
+Subject: [PATCH 1/1] Added GenesysLogic BW Microscope device id
+Date: Fri, 20 Apr 2012 20:28:43 +0200
+Message-Id: <1334946523-14618-1-git-send-email-arons7@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dear All,
+From: Renzo Dani <arons7@gmail.com>
 
-We have our own datacenter in Hong Kong & provide email/application/web rental service to clients.We are APNIC member & provide clean IP to clients.
 
-Dell=3F PowerEdge=3F EnterpriseRack Mount Server
--Intel(R) Xeon(R) E3-1240 Processor (3.3GHz, 8M Cache, Turbo, 4C/8T, 80W)
--8GB RAM, 2x4GB, 1333MHz, DDR-3, Dual Ranked UDIMMs
--500GB, 3.5", 6Gbps SAS x 2
--Raid 1 Mirroring Protection
--Remote KVM (iDRAC6 Enterprise)
+Signed-off-by: Renzo Dani <arons7@gmail.com>
+---
+ drivers/media/video/uvc/uvc_driver.c |   11 ++++++++++-
+ 1 files changed, 10 insertions(+), 1 deletions(-)
 
-Dell(TM) PowerEdge(TM) R410 Rack Mount Server
--Intel(R) Quad Core E5606 Xeon(R) CPU, 2.13GHz, 4M Cache, 4.86 GT/s QPI
--4GB Memory (2x2GB), 1333MHz Dual Ranked RDIMMs Fully-Buffered
--500GB 7.2K RPM SATAII 3.5" Hard Drive x 2
--iDRAC6 Enterprise or Express (Remote KVM Management)
-
-Every Dedicated Server Hosting Solution Also Includes: 
- 
-Software Specification 
-- CentOS / Fedora / Debian / FreeBSD / Ubuntu / Redhat Linux 
-- Full root-level access 
-- Data Center Facilities 
-- Shared Local & International Bandwidth 
-- 2 IP Addresses Allocation 
-- Un-interruptible Power Supply (UPS) backed up by private diesel generator 
-- FM200=A1=A7based fire suppression system 
-- 24x7 CRAC Air Conditioning and Humidity Control 
-- 24x7 Security Control 
-- 24x7 Remote Hand Service 
-
-Pls send us email for further information.Thanks,
-
-Boris 
-boris@cloudluca.com
-
-If you do not wish to further receive this event message, email "borislamsv2@gmail.com" to unsubscribe this message or remove your email from the list.
-
+diff --git a/drivers/media/video/uvc/uvc_driver.c b/drivers/media/video/uvc/uvc_driver.c
+index 1d13172..b8c94b4 100644
+--- a/drivers/media/video/uvc/uvc_driver.c
++++ b/drivers/media/video/uvc/uvc_driver.c
+@@ -2176,7 +2176,16 @@ static struct usb_device_id uvc_ids[] = {
+ 	  .bInterfaceSubClass	= 1,
+ 	  .bInterfaceProtocol	= 0,
+ 	  .driver_info		= UVC_QUIRK_STREAM_NO_FID },
+-	/* Hercules Classic Silver */
++	/* Genesys Logic USB 2.0 BW Microscope */
++        { .match_flags          = USB_DEVICE_ID_MATCH_DEVICE
++                                | USB_DEVICE_ID_MATCH_INT_INFO,
++          .idVendor             = 0x05e3,
++          .idProduct            = 0x0511,
++          .bInterfaceClass      = USB_CLASS_VIDEO,
++          .bInterfaceSubClass   = 1,
++          .bInterfaceProtocol   = 0,
++          .driver_info          = UVC_QUIRK_STREAM_NO_FID },
++        /* Hercules Classic Silver */
+ 	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+ 				| USB_DEVICE_ID_MATCH_INT_INFO,
+ 	  .idVendor		= 0x06f8,
+-- 
+1.7.3.4
 
