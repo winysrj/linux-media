@@ -1,126 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:13454 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752224Ab2DMPsJ (ORCPT
+Received: from lon1-post-1.mail.demon.net ([195.173.77.148]:44119 "EHLO
+	lon1-post-1.mail.demon.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754280Ab2DTKhX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Apr 2012 11:48:09 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Received: from euspt2 ([210.118.77.14]) by mailout4.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0M2F00JU0D8AQM20@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 13 Apr 2012 16:48:10 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0M2F002P6D82KL@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 13 Apr 2012 16:48:02 +0100 (BST)
-Date: Fri, 13 Apr 2012 17:47:48 +0200
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: [PATCH v4 06/14] v4l: vb2-dma-contig: Remove unneeded allocation
- context structure
-In-reply-to: <1334332076-28489-1-git-send-email-t.stanislaws@samsung.com>
-To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
-Cc: airlied@redhat.com, m.szyprowski@samsung.com,
-	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
-	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
-	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
-	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
-	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
-	mchehab@redhat.com
-Message-id: <1334332076-28489-7-git-send-email-t.stanislaws@samsung.com>
-References: <1334332076-28489-1-git-send-email-t.stanislaws@samsung.com>
+	Fri, 20 Apr 2012 06:37:23 -0400
+Received: from iarmst.demon.co.uk ([62.49.16.35] helo=spike.localnet)
+	by lon1-post-1.mail.demon.net with esmtp (Exim 4.69)
+	id 1SLBDO-0006Q5-Y0
+	for linux-media@vger.kernel.org; Fri, 20 Apr 2012 10:37:22 +0000
+From: Ian Armstrong <mail01@iarmst.co.uk>
+To: linux-media@vger.kernel.org
+Subject: Re: Tuning file for Crystal Palace, UK (post digital switch-over)
+Date: Fri, 20 Apr 2012 11:37:21 +0100
+References: <4F8EB71A.1010104@googlemail.com> <079b01cd1ecc$d3697d40$7a3c77c0$@co.uk>
+In-Reply-To: <079b01cd1ecc$d3697d40$7a3c77c0$@co.uk>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201204201137.21429.mail01@iarmst.co.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-vb2-dma-contig returns a vb2_dc_conf structure instance as the vb2
-allocation context. That structure only stores a pointer to the physical
-device. Remove it and use the device pointer directly as the allocation
-context.
+On Friday 20 April 2012, Ian Liverton wrote:
 
-Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
----
- drivers/media/video/videobuf2-dma-contig.c |   29 ++++++---------------------
- 1 files changed, 7 insertions(+), 22 deletions(-)
+> Thanks for this - I was in the middle of trying to sort this out when it
+> arrived!  When I use it with dvbscan, however, it seems to mis-detect the
+> modulation on the SDN multiplex.  It's telling me it's QPSK rather than
+> QAM_64.  Did you have any trouble with re-tuning?
+> 
+> >>> tune to:
+> 506000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_3_4:FEC_1_2:QPSK:TRANSMISSION_
+> M ODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
+> WARNING: filter timeout pid 0x0011
+> WARNING: filter timeout pid 0x0000
+> WARNING: filter timeout pid 0x0010
 
-diff --git a/drivers/media/video/videobuf2-dma-contig.c b/drivers/media/video/videobuf2-dma-contig.c
-index 5207eb1..ff0a662 100644
---- a/drivers/media/video/videobuf2-dma-contig.c
-+++ b/drivers/media/video/videobuf2-dma-contig.c
-@@ -17,12 +17,8 @@
- #include <media/videobuf2-core.h>
- #include <media/videobuf2-memops.h>
- 
--struct vb2_dc_conf {
--	struct device		*dev;
--};
--
- struct vb2_dc_buf {
--	struct vb2_dc_conf		*conf;
-+	struct device			*dev;
- 	void				*vaddr;
- 	dma_addr_t			dma_addr;
- 	unsigned long			size;
-@@ -35,23 +31,21 @@ static void vb2_dc_put(void *buf_priv);
- 
- static void *vb2_dc_alloc(void *alloc_ctx, unsigned long size)
- {
--	struct vb2_dc_conf *conf = alloc_ctx;
-+	struct device *dev = alloc_ctx;
- 	struct vb2_dc_buf *buf;
- 
- 	buf = kzalloc(sizeof *buf, GFP_KERNEL);
- 	if (!buf)
- 		return ERR_PTR(-ENOMEM);
- 
--	buf->vaddr = dma_alloc_coherent(conf->dev, size, &buf->dma_addr,
--					GFP_KERNEL);
-+	buf->vaddr = dma_alloc_coherent(dev, size, &buf->dma_addr, GFP_KERNEL);
- 	if (!buf->vaddr) {
--		dev_err(conf->dev, "dma_alloc_coherent of size %ld failed\n",
--			size);
-+		dev_err(dev, "dma_alloc_coherent of size %ld failed\n", size);
- 		kfree(buf);
- 		return ERR_PTR(-ENOMEM);
- 	}
- 
--	buf->conf = conf;
-+	buf->dev = dev;
- 	buf->size = size;
- 
- 	buf->handler.refcount = &buf->refcount;
-@@ -68,7 +62,7 @@ static void vb2_dc_put(void *buf_priv)
- 	struct vb2_dc_buf *buf = buf_priv;
- 
- 	if (atomic_dec_and_test(&buf->refcount)) {
--		dma_free_coherent(buf->conf->dev, buf->size, buf->vaddr,
-+		dma_free_coherent(buf->dev, buf->size, buf->vaddr,
- 				  buf->dma_addr);
- 		kfree(buf);
- 	}
-@@ -162,21 +156,12 @@ EXPORT_SYMBOL_GPL(vb2_dma_contig_memops);
- 
- void *vb2_dma_contig_init_ctx(struct device *dev)
- {
--	struct vb2_dc_conf *conf;
--
--	conf = kzalloc(sizeof *conf, GFP_KERNEL);
--	if (!conf)
--		return ERR_PTR(-ENOMEM);
--
--	conf->dev = dev;
--
--	return conf;
-+	return dev;
- }
- EXPORT_SYMBOL_GPL(vb2_dma_contig_init_ctx);
- 
- void vb2_dma_contig_cleanup_ctx(void *alloc_ctx)
- {
--	kfree(alloc_ctx);
- }
- EXPORT_SYMBOL_GPL(vb2_dma_contig_cleanup_ctx);
- 
+I had problems with MythTV (.23-fixes) which failed to detect any channels on 
+this multiplex. Had to manually add it with the correct info before doing 
+another scan. Using dvbsnoop to dump the NIT also shows QPSK instead of 
+QAM_64.
+
+   DVB-DescriptorTag: 90 (0x5a)  [= terrestrial_delivery_system_descriptor]
+   descriptor_length: 11 (0x0b)
+   Center frequency: 0x03041840 (= 506000.000 kHz)
+   Bandwidth: 0 (0x00)  [= 8 MHz]
+   priority: 1 (0x01)  [= HP (high priority) or Non-hierarch.]
+   Time_Slicing_indicator: 1 (0x01)  [= Time Slicing is not used.)]
+   MPE-FEC_indicator: 1 (0x01)  [= MPE-FEC is not used.)]
+   reserved_1: 3 (0x03)
+   Constellation: 0 (0x00)  [= QPSK]
+   Hierarchy information: 0 (0x00)  [= non-hierarchical (native interleaver)]
+   Code_rate_HP_stream: 2 (0x02)  [= 3/4]
+   Code_rate_LP_stream: 0 (0x00)  [= 1/2]
+   Guard_interval: 0 (0x00)  [= 1/32]
+   Transmission_mode: 1 (0x01)  [= 8k mode]
+   Other_frequency_flag: 1 (0x01)
+   reserved_2: 4294967295 (0xffffffff)
+
 -- 
-1.7.5.4
-
+Ian
