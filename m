@@ -1,183 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:22505 "EHLO mx1.redhat.com"
+Received: from smtp207.alice.it ([82.57.200.103]:44968 "EHLO smtp207.alice.it"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755822Ab2DHP5v (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 8 Apr 2012 11:57:51 -0400
-From: Hans de Goede <hdegoede@redhat.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH 05/10] uvcvideo: Refactor uvc_ctrl_get and query
-Date: Sun,  8 Apr 2012 17:59:49 +0200
-Message-Id: <1333900794-1932-6-git-send-email-hdegoede@redhat.com>
-In-Reply-To: <1333900794-1932-1-git-send-email-hdegoede@redhat.com>
-References: <1333900794-1932-1-git-send-email-hdegoede@redhat.com>
+	id S932512Ab2DTPTj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 20 Apr 2012 11:19:39 -0400
+From: Antonio Ospite <ospite@studenti.unina.it>
+To: linux-media@vger.kernel.org
+Cc: Antonio Ospite <ospite@studenti.unina.it>,
+	Jean-Francois Moine <moinejf@free.fr>,
+	=?UTF-8?q?Erik=20Andr=C3=A9n?= <erik.andren@gmail.com>
+Subject: [RFC PATCH 3/3] [media] gspca - main: implement vidioc_g_ext_ctrls and vidioc_s_ext_ctrls
+Date: Fri, 20 Apr 2012 17:19:11 +0200
+Message-Id: <1334935152-16165-4-git-send-email-ospite@studenti.unina.it>
+In-Reply-To: <1334935152-16165-1-git-send-email-ospite@studenti.unina.it>
+References: <20120418153720.1359c7d2f2a3efc2c7c17b88@studenti.unina.it>
+ <1334935152-16165-1-git-send-email-ospite@studenti.unina.it>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a preparation patch for adding ctrl event support.
+This makes it possible for applications to handle controls with a class
+different than V4L2_CTRL_CLASS_USER for gspca subdevices, like for
+instance V4L2_CID_EXPOSURE_AUTO which some subdrivers use and which
+can't be controlled right now.
 
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+See
+http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/47010
+for an example of a problem fixed by this change.
+
+NOTE: gspca currently won't handle control types like
+V4L2_CTRL_TYPE_INTEGER64 or V4L2_CTRL_TYPE_STRING, so just the
+__s32 field 'value' of 'struct v4l2_ext_control' is handled for now.
+
+Signed-off-by: Antonio Ospite <ospite@studenti.unina.it>
 ---
- drivers/media/video/uvc/uvc_ctrl.c |   77 +++++++++++++++++++++++-------------
- 1 file changed, 49 insertions(+), 28 deletions(-)
+ drivers/media/video/gspca/gspca.c |   42 +++++++++++++++++++++++++++++++++++++
+ 1 file changed, 42 insertions(+)
 
-diff --git a/drivers/media/video/uvc/uvc_ctrl.c b/drivers/media/video/uvc/uvc_ctrl.c
-index 0efd3b1..d20d0de 100644
---- a/drivers/media/video/uvc/uvc_ctrl.c
-+++ b/drivers/media/video/uvc/uvc_ctrl.c
-@@ -899,24 +899,13 @@ static int uvc_ctrl_populate_cache(struct uvc_video_chain *chain,
- 	return 0;
+diff --git a/drivers/media/video/gspca/gspca.c b/drivers/media/video/gspca/gspca.c
+index ba1bda9..7906093 100644
+--- a/drivers/media/video/gspca/gspca.c
++++ b/drivers/media/video/gspca/gspca.c
+@@ -1567,6 +1567,46 @@ static int vidioc_g_ctrl(struct file *file, void *priv,
+ 	return gspca_get_ctrl(gspca_dev, ctrl->id, &ctrl->value);
  }
  
--int uvc_query_v4l2_ctrl(struct uvc_video_chain *chain,
-+static int __uvc_query_v4l2_ctrl(struct uvc_video_chain *chain,
-+	struct uvc_control *ctrl,
-+	struct uvc_control_mapping *mapping,
- 	struct v4l2_queryctrl *v4l2_ctrl)
- {
--	struct uvc_control *ctrl;
--	struct uvc_control_mapping *mapping;
- 	struct uvc_menu_info *menu;
- 	unsigned int i;
--	int ret;
--
--	ret = mutex_lock_interruptible(&chain->ctrl_mutex);
--	if (ret < 0)
--		return -ERESTARTSYS;
--
--	ctrl = uvc_find_control(chain, v4l2_ctrl->id, &mapping);
--	if (ctrl == NULL) {
--		ret = -EINVAL;
--		goto done;
--	}
- 
- 	memset(v4l2_ctrl, 0, sizeof *v4l2_ctrl);
- 	v4l2_ctrl->id = mapping->id;
-@@ -930,9 +919,9 @@ int uvc_query_v4l2_ctrl(struct uvc_video_chain *chain,
- 		v4l2_ctrl->flags |= V4L2_CTRL_FLAG_READ_ONLY;
- 
- 	if (!ctrl->cached) {
--		ret = uvc_ctrl_populate_cache(chain, ctrl);
-+		int ret = uvc_ctrl_populate_cache(chain, ctrl);
- 		if (ret < 0)
--			goto done;
++static int vidioc_s_ext_ctrls(struct file *file, void *priv,
++			 struct v4l2_ext_controls *ext_ctrls)
++{
++	struct gspca_dev *gspca_dev = priv;
++	int ret = 0;
++	int i;
++
++	for (i = 0; i < ext_ctrls->count; i++) {
++		struct v4l2_ext_control *ctrl;
++
++		ctrl = ext_ctrls->controls + i;
++		ret = gspca_set_ctrl(gspca_dev, ctrl->id, ctrl->value);
++		if (ret < 0) {
++			ext_ctrls->error_idx = i;
 +			return ret;
- 	}
- 
- 	if (ctrl->info.flags & UVC_CTRL_FLAG_GET_DEF) {
-@@ -954,19 +943,19 @@ int uvc_query_v4l2_ctrl(struct uvc_video_chain *chain,
- 			}
- 		}
- 
--		goto done;
-+		return 0;
- 
- 	case V4L2_CTRL_TYPE_BOOLEAN:
- 		v4l2_ctrl->minimum = 0;
- 		v4l2_ctrl->maximum = 1;
- 		v4l2_ctrl->step = 1;
--		goto done;
-+		return 0;
- 
- 	case V4L2_CTRL_TYPE_BUTTON:
- 		v4l2_ctrl->minimum = 0;
- 		v4l2_ctrl->maximum = 0;
- 		v4l2_ctrl->step = 0;
--		goto done;
-+		return 0;
- 
- 	default:
- 		break;
-@@ -984,6 +973,27 @@ int uvc_query_v4l2_ctrl(struct uvc_video_chain *chain,
- 		v4l2_ctrl->step = mapping->get(mapping, UVC_GET_RES,
- 				  uvc_ctrl_data(ctrl, UVC_CTRL_DATA_RES));
- 
-+	return 0;
-+}
-+
-+int uvc_query_v4l2_ctrl(struct uvc_video_chain *chain,
-+	struct v4l2_queryctrl *v4l2_ctrl)
-+{
-+	struct uvc_control *ctrl;
-+	struct uvc_control_mapping *mapping;
-+	int ret;
-+
-+	ret = mutex_lock_interruptible(&chain->ctrl_mutex);
-+	if (ret < 0)
-+		return -ERESTARTSYS;
-+
-+	ctrl = uvc_find_control(chain, v4l2_ctrl->id, &mapping);
-+	if (ctrl == NULL) {
-+		ret = -EINVAL;
-+		goto done;
++		}
 +	}
-+
-+	ret = __uvc_query_v4l2_ctrl(chain, ctrl, mapping, v4l2_ctrl);
- done:
- 	mutex_unlock(&chain->ctrl_mutex);
- 	return ret;
-@@ -1148,17 +1158,15 @@ done:
- 	return ret;
- }
- 
--int uvc_ctrl_get(struct uvc_video_chain *chain,
--	struct v4l2_ext_control *xctrl)
-+static int __uvc_ctrl_get(struct uvc_video_chain *chain,
-+	struct uvc_control *ctrl, struct uvc_control_mapping *mapping,
-+	s32 *value)
- {
--	struct uvc_control *ctrl;
--	struct uvc_control_mapping *mapping;
- 	struct uvc_menu_info *menu;
- 	unsigned int i;
- 	int ret;
- 
--	ctrl = uvc_find_control(chain, xctrl->id, &mapping);
--	if (ctrl == NULL || (ctrl->info.flags & UVC_CTRL_FLAG_GET_CUR) == 0)
-+	if ((ctrl->info.flags & UVC_CTRL_FLAG_GET_CUR) == 0)
- 		return -EINVAL;
- 
- 	if (!ctrl->loaded) {
-@@ -1172,14 +1180,14 @@ int uvc_ctrl_get(struct uvc_video_chain *chain,
- 		ctrl->loaded = 1;
- 	}
- 
--	xctrl->value = mapping->get(mapping, UVC_GET_CUR,
-+	*value = mapping->get(mapping, UVC_GET_CUR,
- 		uvc_ctrl_data(ctrl, UVC_CTRL_DATA_CURRENT));
- 
- 	if (mapping->v4l2_type == V4L2_CTRL_TYPE_MENU) {
- 		menu = mapping->menu_info;
- 		for (i = 0; i < mapping->menu_count; ++i, ++menu) {
--			if (menu->value == xctrl->value) {
--				xctrl->value = i;
-+			if (menu->value == *value) {
-+				*value = i;
- 				break;
- 			}
- 		}
-@@ -1188,6 +1196,19 @@ int uvc_ctrl_get(struct uvc_video_chain *chain,
- 	return 0;
- }
- 
-+int uvc_ctrl_get(struct uvc_video_chain *chain,
-+	struct v4l2_ext_control *xctrl)
-+{
-+	struct uvc_control *ctrl;
-+	struct uvc_control_mapping *mapping;
-+
-+	ctrl = uvc_find_control(chain, xctrl->id, &mapping);
-+	if (ctrl == NULL)
-+		return -EINVAL;
-+
-+	return __uvc_ctrl_get(chain, ctrl, mapping, &xctrl->value);
++	return ret;
 +}
 +
- int uvc_ctrl_set(struct uvc_video_chain *chain,
- 	struct v4l2_ext_control *xctrl)
++static int vidioc_g_ext_ctrls(struct file *file, void *priv,
++			 struct v4l2_ext_controls *ext_ctrls)
++{
++	struct gspca_dev *gspca_dev = priv;
++	int i;
++	int ret = 0;
++
++	for (i = 0; i < ext_ctrls->count; i++) {
++		struct v4l2_ext_control *ctrl;
++
++		ctrl = ext_ctrls->controls + i;
++		ret = gspca_get_ctrl(gspca_dev, ctrl->id, &ctrl->value);
++		if (ret < 0) {
++			ext_ctrls->error_idx = i;
++			return ret;
++		}
++	}
++	return ret;
++}
++
+ static int vidioc_querymenu(struct file *file, void *priv,
+ 			    struct v4l2_querymenu *qmenu)
  {
+@@ -2260,6 +2300,8 @@ static const struct v4l2_ioctl_ops dev_ioctl_ops = {
+ 	.vidioc_queryctrl	= vidioc_queryctrl,
+ 	.vidioc_g_ctrl		= vidioc_g_ctrl,
+ 	.vidioc_s_ctrl		= vidioc_s_ctrl,
++	.vidioc_g_ext_ctrls	= vidioc_g_ext_ctrls,
++	.vidioc_s_ext_ctrls	= vidioc_s_ext_ctrls,
+ 	.vidioc_querymenu	= vidioc_querymenu,
+ 	.vidioc_enum_input	= vidioc_enum_input,
+ 	.vidioc_g_input		= vidioc_g_input,
 -- 
-1.7.9.3
+1.7.10
 
