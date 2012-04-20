@@ -1,140 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:40841 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753679Ab2DXM7A (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:8677 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755111Ab2DTOpm (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Apr 2012 08:59:00 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: text/plain; charset=UTF-8
-Date: Tue, 24 Apr 2012 14:58:56 +0200
+	Fri, 20 Apr 2012 10:45:42 -0400
+Date: Fri, 20 Apr 2012 16:45:21 +0200
 From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: [PATCH v2] scatterlist: add sg_alloc_table_from_pages function
-Cc: paul.gortmaker@windriver.com,
-	=?UTF-8?B?J+uwleqyveuvvCc=?= <kyungmin.park@samsung.com>,
-	amwang@redhat.com, dri-devel@lists.freedesktop.org,
-	"'???/Mobile S/W Platform Lab.(???)/E3(??)/????'"
-	<inki.dae@samsung.com>, prashanth.g@samsung.com,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Rob Clark <rob@ti.com>, Dave Airlie <airlied@redhat.com>,
-	"'???/Mobile S/W Platform Lab.(???)/E3(??)/????'"
-	<inki.dae@samsung.com>, linux-kernel@vger.kernel.org
-Message-id: <4F96A390.7080305@samsung.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Subject: [PATCHv5 00/13] Integration of videobuf2 with dmabuf
+To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
+Cc: airlied@redhat.com, m.szyprowski@samsung.com,
+	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
+	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
+	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
+	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
+	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
+	mchehab@redhat.com, linux-doc@vger.kernel.org,
+	g.liakhovetski@gmx.de
+Message-id: <1334933134-4688-1-git-send-email-t.stanislaws@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds a new constructor for an sg table. The table is constructed
-from an array of struct pages. All contiguous chunks of the pages are merged
-into a single sg nodes. A user may provide an offset and a size of a buffer if
-the buffer is not page-aligned.
+Hello everyone,
+This patchset adds support for DMABUF [2] importing to V4L2 stack.
+The support for DMABUF exporting was moved to separate patchset
+due to dependency on patches for DMA mapping redesign by
+Marek Szyprowski [4].
 
-The function is dedicated for DMABUF exporters which often perform conversion
-from an page array to a scatterlist. Moreover the scatterlist should be
-squashed in order to save memory and to speed-up the process of DMA mapping
-using dma_map_sg.
+v5:
+- removed change of importer/exporter behaviour
+- fixes vb2_dc_pages_to_sgt basing on Laurent's hints
+- changed pin/unpin words to lock/unlock in Doc
 
-The code is based on the patch 'v4l: vb2-dma-contig: add support for
-scatterlist in userptr mode' and hints from Laurent Pinchart.
+v4:
+- rebased on mainline 3.4-rc2
+- included missing importing support for s5p-fimc and s5p-tv
+- added patch for changing map/unmap for importers
+- fixes to Documentation part
+- coding style fixes
+- pairing {map/unmap}_dmabuf in vb2-core
+- fixing variable types and semantic of arguments in videobufb2-dma-contig.c
 
-Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- include/linux/scatterlist.h |    4 +++
- lib/scatterlist.c           |   63 +++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 67 insertions(+), 0 deletions(-)
+v3:
+- rebased on mainline 3.4-rc1
+- split 'code refactor' patch to multiple smaller patches
+- squashed fixes to Sumit's patches
+- patchset is no longer dependant on 'DMA mapping redesign'
+- separated path for handling IO and non-IO mappings
+- add documentation for DMABUF importing to V4L
+- removed all DMABUF exporter related code
+- removed usage of dma_get_pages extension
 
-diff --git a/include/linux/scatterlist.h b/include/linux/scatterlist.h
-index ac9586d..7b600da 100644
---- a/include/linux/scatterlist.h
-+++ b/include/linux/scatterlist.h
-@@ -214,6 +214,10 @@ void sg_free_table(struct sg_table *);
- int __sg_alloc_table(struct sg_table *, unsigned int, unsigned int, gfp_t,
- 		     sg_alloc_fn *);
- int sg_alloc_table(struct sg_table *, unsigned int, gfp_t);
-+int sg_alloc_table_from_pages(struct sg_table *sgt,
-+	struct page **pages, unsigned int n_pages,
-+	unsigned long offset, unsigned long size,
-+	gfp_t gfp_mask);
+v2:
+- extended VIDIOC_EXPBUF argument from integer memoffset to struct
+  v4l2_exportbuffer
+- added patch that breaks DMABUF spec on (un)map_atachment callcacks but allows
+  to work with existing implementation of DMABUF prime in DRM
+- all dma-contig code refactoring patches were squashed
+- bugfixes
 
- size_t sg_copy_from_buffer(struct scatterlist *sgl, unsigned int nents,
- 			   void *buf, size_t buflen);
-diff --git a/lib/scatterlist.c b/lib/scatterlist.c
-index 6096e89..90f9265 100644
---- a/lib/scatterlist.c
-+++ b/lib/scatterlist.c
-@@ -319,6 +319,69 @@ int sg_alloc_table(struct sg_table *table, unsigned int nents, gfp_t gfp_mask)
- EXPORT_SYMBOL(sg_alloc_table);
+v1: List of changes since [1].
+- support for DMA api extension dma_get_pages, the function is used to retrieve
+  pages used to create DMA mapping.
+- small fixes/code cleanup to videobuf2
+- added prepare and finish callbacks to vb2 allocators, it is used keep
+  consistency between dma-cpu acess to the memory (by Marek Szyprowski)
+- support for exporting of DMABUF buffer in V4L2 and Videobuf2, originated from
+  [3].
+- support for dma-buf exporting in vb2-dma-contig allocator
+- support for DMABUF for s5p-tv and s5p-fimc (capture interface) drivers,
+  originated from [3]
+- changed handling for userptr buffers (by Marek Szyprowski, Andrzej
+  Pietrasiewicz)
+- let mmap method to use dma_mmap_writecombine call (by Marek Szyprowski)
 
- /**
-+ * sg_alloc_table_from_pages - Allocate and initialize an sg table from
-+ *			       an array of pages
-+ * @sgt:	The sg table header to use
-+ * @pages:	Pointer to an array of page pointers
-+ * @n_pages:	Number of pages in the pages array
-+ * @offset:     Offset from a start of the first page to a start of a buffer
-+ * @size:       Number of valid bytes in the buffer (after offset)
-+ * @gfp_mask:	GFP allocation mask
-+ *
-+ *  Description:
-+ *    Allocate and initialize an sg table from a list of pages. Continuous
-+ *    ranges of the pages are squashed into a single scatterlist node. A user
-+ *    may provide an offset at a start and a size of valid data in a buffer
-+ *    specified by the page array. The returned sg table is released by
-+ *    sg_free_table.
-+ *
-+ * Returns:
-+ *   0 on success, negative error on failure
-+ **/
-+int sg_alloc_table_from_pages(struct sg_table *sgt,
-+	struct page **pages, unsigned int n_pages,
-+	unsigned long offset, unsigned long size,
-+	gfp_t gfp_mask)
-+{
-+	unsigned int chunks;
-+	unsigned int i;
-+	unsigned int cur_page;
-+	int ret;
-+	struct scatterlist *s;
-+
-+	/* compute number of contiguous chunks */
-+	chunks = 1;
-+	for (i = 1; i < n_pages; ++i)
-+		if (pages[i] != pages[i - 1] + 1)
-+			++chunks;
-+
-+	ret = sg_alloc_table(sgt, chunks, gfp_mask);
-+	if (unlikely(ret))
-+		return ret;
-+
-+	/* merging chunks and putting them into the scatterlist */
-+	cur_page = 0;
-+	for_each_sg(sgt->sgl, s, sgt->orig_nents, i) {
-+		unsigned long chunk_size;
-+		unsigned int j;
-+
-+		/* looking for the end of the current chunk */
-+		for (j = cur_page + 1; j < n_pages; ++j)
-+			if (pages[j] != pages[j - 1] + 1)
-+				break;
-+
-+		chunk_size = ((j - cur_page) << PAGE_SHIFT) - offset;
-+		sg_set_page(s, pages[cur_page], min(size, chunk_size), offset);
-+		size -= chunk_size;
-+		offset = 0;
-+		cur_page = j;
-+	}
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL(sg_alloc_table_from_pages);
-+
-+/**
-  * sg_miter_start - start mapping iteration over a sg list
-  * @miter: sg mapping iter to be started
-  * @sgl: sg list to iterate over
+[1] http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/42966/focus=42968
+[2] https://lkml.org/lkml/2011/12/26/29
+[3] http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/36354/focus=36355
+[4] http://thread.gmane.org/gmane.linux.kernel.cross-arch/12819
+
+Andrzej Pietrasiewicz (1):
+  v4l: vb2-dma-contig: add support for scatterlist in userptr mode
+
+Laurent Pinchart (2):
+  v4l: vb2-dma-contig: Shorten vb2_dma_contig prefix to vb2_dc
+  v4l: vb2-dma-contig: Reorder functions
+
+Marek Szyprowski (2):
+  v4l: vb2: add prepare/finish callbacks to allocators
+  v4l: vb2-dma-contig: add prepare/finish to dma-contig allocator
+
+Sumit Semwal (4):
+  v4l: Add DMABUF as a memory type
+  v4l: vb2: add support for shared buffer (dma_buf)
+  v4l: vb: remove warnings about MEMORY_DMABUF
+  v4l: vb2-dma-contig: add support for dma_buf importing
+
+Tomasz Stanislawski (4):
+  Documentation: media: description of DMABUF importing in V4L2
+  v4l: vb2-dma-contig: Remove unneeded allocation context structure
+  v4l: s5p-tv: mixer: support for dmabuf importing
+  v4l: s5p-fimc: support for dmabuf importing
+
+ Documentation/DocBook/media/v4l/compat.xml         |    4 +
+ Documentation/DocBook/media/v4l/io.xml             |  179 +++++++
+ .../DocBook/media/v4l/vidioc-create-bufs.xml       |    1 +
+ Documentation/DocBook/media/v4l/vidioc-qbuf.xml    |   15 +
+ Documentation/DocBook/media/v4l/vidioc-reqbufs.xml |   47 +-
+ drivers/media/video/Kconfig                        |    1 +
+ drivers/media/video/s5p-fimc/fimc-capture.c        |    2 +-
+ drivers/media/video/s5p-tv/Kconfig                 |    1 +
+ drivers/media/video/s5p-tv/mixer_video.c           |    2 +-
+ drivers/media/video/videobuf-core.c                |    4 +
+ drivers/media/video/videobuf2-core.c               |  207 ++++++++-
+ drivers/media/video/videobuf2-dma-contig.c         |  529 +++++++++++++++++---
+ include/linux/videodev2.h                          |    7 +
+ include/media/videobuf2-core.h                     |   34 ++
+ 14 files changed, 932 insertions(+), 101 deletions(-)
+
 -- 
 1.7.5.4
 
