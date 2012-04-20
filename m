@@ -1,142 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:51980 "EHLO
-	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753514Ab2DKIii (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Apr 2012 04:38:38 -0400
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: linux-media@vger.kernel.org,
-	Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: [PATCH] [media] Convert I2C drivers to dev_pm_ops
-Date: Wed, 11 Apr 2012 09:38:35 +0100
-Message-Id: <1334133515-7273-1-git-send-email-broonie@opensource.wolfsonmicro.com>
+Received: from gate.crashing.org ([63.228.1.57]:54173 "EHLO gate.crashing.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754011Ab2DTSb7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 20 Apr 2012 14:31:59 -0400
+Subject: Re: [PATCHv24 00/16] Contiguous Memory Allocator
+Mime-Version: 1.0 (Apple Message framework v1257)
+Content-Type: text/plain; charset=us-ascii
+From: Kumar Gala <galak@kernel.crashing.org>
+In-Reply-To: <20120419124044.632bfa49.akpm@linux-foundation.org>
+Date: Fri, 20 Apr 2012 13:31:12 -0500
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org,
+	Michal Nazarewicz <mina86@mina86.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Chunsang Jeong <chunsang.jeong@linaro.org>,
+	Dave Hansen <dave@linux.vnet.ibm.com>,
+	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+	Rob Clark <rob.clark@linaro.org>,
+	Ohad Ben-Cohen <ohad@wizery.com>,
+	Sandeep Patil <psandeep.s@gmail.com>
+Content-Transfer-Encoding: 7bit
+Message-Id: <4C95F6F5-3B10-42FE-92B7-C1E8AE6A1820@kernel.crashing.org>
+References: <1333462221-3987-1-git-send-email-m.szyprowski@samsung.com> <20120419124044.632bfa49.akpm@linux-foundation.org>
+To: Andrew Morton <akpm@linux-foundation.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The legacy I2C PM functions have been deprecated and warning on boot
-for over a year, convert the drivers still using them to dev_pm_ops.
 
-Signed-off-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
----
- drivers/media/video/msp3400-driver.c |   15 +++++++++++----
- drivers/media/video/tuner-core.c     |   15 +++++++++++----
- 2 files changed, 22 insertions(+), 8 deletions(-)
+On Apr 19, 2012, at 2:40 PM, Andrew Morton wrote:
 
-diff --git a/drivers/media/video/msp3400-driver.c b/drivers/media/video/msp3400-driver.c
-index 82ce507..aeb22be 100644
---- a/drivers/media/video/msp3400-driver.c
-+++ b/drivers/media/video/msp3400-driver.c
-@@ -597,19 +597,23 @@ static int msp_log_status(struct v4l2_subdev *sd)
- 	return 0;
- }
- 
--static int msp_suspend(struct i2c_client *client, pm_message_t state)
-+#ifdef CONFIG_PM_SLEEP
-+static int msp_suspend(struct device *dev)
- {
-+	struct i2c_client *client = to_i2c_client(dev);
- 	v4l_dbg(1, msp_debug, client, "suspend\n");
- 	msp_reset(client);
- 	return 0;
- }
- 
--static int msp_resume(struct i2c_client *client)
-+static int msp_resume(struct device *dev)
- {
-+	struct i2c_client *client = to_i2c_client(dev);
- 	v4l_dbg(1, msp_debug, client, "resume\n");
- 	msp_wake_thread(client);
- 	return 0;
- }
-+#endif
- 
- /* ----------------------------------------------------------------------- */
- 
-@@ -863,6 +867,10 @@ static int msp_remove(struct i2c_client *client)
- 
- /* ----------------------------------------------------------------------- */
- 
-+static const struct dev_pm_ops msp3400_pm_ops = {
-+	SET_SYSTEM_SLEEP_PM_OPS(msp_suspend, msp_resume)
-+};
-+
- static const struct i2c_device_id msp_id[] = {
- 	{ "msp3400", 0 },
- 	{ }
-@@ -873,11 +881,10 @@ static struct i2c_driver msp_driver = {
- 	.driver = {
- 		.owner	= THIS_MODULE,
- 		.name	= "msp3400",
-+		.pm	= &msp3400_pm_ops,
- 	},
- 	.probe		= msp_probe,
- 	.remove		= msp_remove,
--	.suspend	= msp_suspend,
--	.resume		= msp_resume,
- 	.id_table	= msp_id,
- };
- 
-diff --git a/drivers/media/video/tuner-core.c b/drivers/media/video/tuner-core.c
-index a5c6397..3e050e1 100644
---- a/drivers/media/video/tuner-core.c
-+++ b/drivers/media/video/tuner-core.c
-@@ -1241,8 +1241,10 @@ static int tuner_log_status(struct v4l2_subdev *sd)
- 	return 0;
- }
- 
--static int tuner_suspend(struct i2c_client *c, pm_message_t state)
-+#ifdef CONFIG_PM_SLEEP
-+static int tuner_suspend(struct device *dev)
- {
-+	struct i2c_client *c = to_i2c_client(dev);
- 	struct tuner *t = to_tuner(i2c_get_clientdata(c));
- 	struct analog_demod_ops *analog_ops = &t->fe.ops.analog_ops;
- 
-@@ -1254,8 +1256,9 @@ static int tuner_suspend(struct i2c_client *c, pm_message_t state)
- 	return 0;
- }
- 
--static int tuner_resume(struct i2c_client *c)
-+static int tuner_resume(struct device *dev)
- {
-+	struct i2c_client *c = to_i2c_client(dev);
- 	struct tuner *t = to_tuner(i2c_get_clientdata(c));
- 
- 	tuner_dbg("resume\n");
-@@ -1266,6 +1269,7 @@ static int tuner_resume(struct i2c_client *c)
- 
- 	return 0;
- }
-+#endif
- 
- static int tuner_command(struct i2c_client *client, unsigned cmd, void *arg)
- {
-@@ -1310,6 +1314,10 @@ static const struct v4l2_subdev_ops tuner_ops = {
-  * I2C structs and module init functions
-  */
- 
-+static const struct dev_pm_ops tuner_pm_ops = {
-+	SET_SYSTEM_SLEEP_PM_OPS(tuner_suspend, tuner_resume)
-+};
-+
- static const struct i2c_device_id tuner_id[] = {
- 	{ "tuner", }, /* autodetect */
- 	{ }
-@@ -1320,12 +1328,11 @@ static struct i2c_driver tuner_driver = {
- 	.driver = {
- 		.owner	= THIS_MODULE,
- 		.name	= "tuner",
-+		.pm	= &tuner_pm_ops,
- 	},
- 	.probe		= tuner_probe,
- 	.remove		= tuner_remove,
- 	.command	= tuner_command,
--	.suspend	= tuner_suspend,
--	.resume		= tuner_resume,
- 	.id_table	= tuner_id,
- };
- 
--- 
-1.7.9.1
+> On Tue, 03 Apr 2012 16:10:05 +0200
+> Marek Szyprowski <m.szyprowski@samsung.com> wrote:
+> 
+>> This is (yet another) update of CMA patches.
+> 
+> Looks OK to me.  It's a lot of code.
+> 
+> Please move it into linux-next, and if all is well, ask Linus to pull
+> the tree into 3.5-rc1.  Please be sure to cc me on that email.
+> 
+> I suggest that you include additional patches which enable CMA as much
+> as possible on as many architectures as possible so that it gets
+> maximum coverage testing in linux-next.  Remove those Kconfig patches
+> when merging upstream.
+> 
+> All this code will probably mess up my tree, but I'll work that out. 
+> It would be more awkward if the CMA code were to later disappear from
+> linux-next or were not merged into 3.5-rc1.  Let's avoid that.
 
+I'm looking at the patches to see if I can contribute arch support for PPC.
+
+- k
