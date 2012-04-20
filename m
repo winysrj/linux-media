@@ -1,126 +1,760 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.187]:62065 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755097Ab2DGVwD convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Apr 2012 17:52:03 -0400
-Date: Sat, 7 Apr 2012 23:51:56 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: "Aguirre, Sergio" <saaguirre@ti.com>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [Query] About NV12 pixel format support in a subdevice
-In-Reply-To: <CAKnK67RtoOVV0P_9kdc5q0mQTVhqN6MCbvj0eTLuS98096uAHw@mail.gmail.com>
-Message-ID: <Pine.LNX.4.64.1204072349280.25526@axis700.grange>
-References: <CAKnK67QZ78iTxYWvfpUJ_v_KD7XLUT=o=pkrC2EZ8CJ2r00pCQ@mail.gmail.com>
- <Pine.LNX.4.64.1204072316460.25526@axis700.grange>
- <CAKnK67RtoOVV0P_9kdc5q0mQTVhqN6MCbvj0eTLuS98096uAHw@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Received: from mail.meprolight.com ([194.90.149.17]:38797 "EHLO meprolight.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1754938Ab2DTPjJ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 20 Apr 2012 11:39:09 -0400
+From: Alex Gershgorin <alexg@meprolight.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
+	"s.hauer@pengutronix.de" <s.hauer@pengutronix.de>,
+	"laurent.pinchart@ideasonboard.com"
+	<laurent.pinchart@ideasonboard.com>,
+	"linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Fri, 20 Apr 2012 18:38:26 +0300
+Subject: RE: [PATCH v1] ARM: i.mx: mx3fb: add overlay support
+Message-ID: <4875438356E7CA4A8F2145FCD3E61C0B2CC952548B@MEP-EXCH.meprolight.com>
+References: <1334770715-31064-1-git-send-email-alexg@meprolight.com>,<Pine.LNX.4.64.1204181952580.30514@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1204181952580.30514@axis700.grange>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 7 Apr 2012, Aguirre, Sergio wrote:
+Hi Guennadi,
 
-> Hi Guennadi,
-> 
-> Thanks for your reply.
-> 
-> On Sat, Apr 7, 2012 at 4:21 PM, Guennadi Liakhovetski
-> <g.liakhovetski@gmx.de> wrote:
-> > Hi Sergio
-> >
-> > On Sat, 7 Apr 2012, Aguirre, Sergio wrote:
-> >
-> >> Hi everyone,
-> >>
-> >> I'll like to request for your advice on adding NV12 support for my omap4iss
-> >> camera driver, which is done after the resizer block in the OMAP4 ISS ISP
-> >> (Imaging SubSystem Image Signal Processor).
-> >>
-> >> So, the problem with that, is that I don't see a match for V4L2_PIX_FMT_NV12
-> >> pixel format in "enum v4l2_mbus_pixelcode".
-> >>
-> >> Now, I wonder what's the best way to describe the format... Is this correct?
-> >>
-> >> V4L2_MBUS_FMT_NV12_1X12
-> >>
-> >> Because every pixel is comprised of a 8-bit Y element, and it's UV components
-> >> are grouped in pairs with the next horizontal pixel, whcih in combination
-> >> are represented in 8 bits... So it's like that UV component per-pixel is 4-bits.
-> >> Not exactly, but it's the best representation I could think of to
-> >> simplify things.
-> >
-> > Do I understand it right, that your resizer is sending the data to the DMA
-> > engine interleaved, not Y and UV planes separately, and it's only the DMA
-> > engine, that is separating the planes, when writing to buffers? In such a
-> > case I'd use a suitable YUV420 V4L2_MBUS_FMT_* format for that and have
-> > the DMA engine convert it to NV12, similar to what sh_mobile_ceu_camera
-> > does.
-> 
-> No, it actually has 2 register sets for specifying the start address
-> for each plane.
+Thanks for your review.
 
-Sorry, what "it?" The DMA engine, right? Then it still looks pretty 
-similar to the CEU case to me: it also can either write the data 
-interleaved into RAM and produce a YUV420 format, or convert to NV12. 
-Which one to do is decided by the format, configured on the video device 
-node by the driver.
+> > Thanks for reviving, fixing and submitting this code!
+
+I think that this code is beneficial  :-)
+
+> > On Wed, 18 Apr 2012, Alex Gershgorin wrote:
+
+> This patch is based on the original version submitted by Guennadi Liakhovetski,
+> the patch initializes overlay channel, adds ioctl for configuring
+> transparency of the overlay and graphics planes, CONFIG_FB_MX3_OVERLAY
+> is also supported.
+>
+> In case that CONFIG_FB_MX3_OVERLAY is not defined, mx3fb is completely
+> backward compatible.
+>
+> Blend mode, only global alpha blending has been tested.
+>
+> Signed-off-by: Alex Gershgorin <alexg@meprolight.com>
+> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+
+> > Thanks for the credit (;-)), but no, putting my Sob after yours means,
+> > that I took your patch and forwarded it on to the next maintainer, which
+> > is clearly not the case here:-) The original i.MX31 framebuffer overlay
+> > code from my old patches also clearly wasn't written by me, since I didn't
+> > have a chance to test it. So, if you like, you can try to trace back
+> > original authors of that code and ask them, how they want to be credited
+> > here,
+
+I would like to thank all the authors of original code.
+unfortunately I can't thank for each one of you separately by name, i hope
+that you understand and accept it.
+
+>>  otherwise just mentioning, that this work is based on some earlier
+> > patch series "i.MX31: dmaengine and framebuffer drivers" from 2008 by ...
+> > should be enough.
+
+This option is more suitable, I just correct the description of the patch,
+and leave your signature (if you have any objections?) since 2008 patch version.
+
+> > I don't think I can review this patch in sufficient depth, just a couple
+> > of minor comments below
+
+> ---
+>
+> Applies to v3.4-rc3
+> ---
+>  drivers/video/Kconfig |    7 +
+>  drivers/video/mx3fb.c |  318 ++++++++++++++++++++++++++++++++++++++++++++-----
+>  include/linux/mxcfb.h |   93 ++++++++++++++
+>  3 files changed, 388 insertions(+), 30 deletions(-)
+>  create mode 100644 include/linux/mxcfb.h
+>
+> diff --git a/drivers/video/Kconfig b/drivers/video/Kconfig
+> index a290be5..acbfccc 100644
+> --- a/drivers/video/Kconfig
+> +++ b/drivers/video/Kconfig
+> @@ -2368,6 +2368,13 @@ config FB_MX3
+>         far only synchronous displays are supported. If you plan to use
+>         an LCD display with your i.MX31 system, say Y here.
+>
+> +config FB_MX3_OVERLAY
+> +     bool "MX3 Overlay support"
+> +     default n
+> +     depends on FB_MX3
+> +     ---help---
+> +       Say Y here to enable overlay support
+> +
+>  config FB_BROADSHEET
+>       tristate "E-Ink Broadsheet/Epson S1D13521 controller support"
+>       depends on FB
+> diff --git a/drivers/video/mx3fb.c b/drivers/video/mx3fb.c
+> index eec0d7b..0fb8a72 100644
+> --- a/drivers/video/mx3fb.c
+> +++ b/drivers/video/mx3fb.c
+> @@ -26,6 +26,7 @@
+>  #include <linux/console.h>
+>  #include <linux/clk.h>
+>  #include <linux/mutex.h>
+> +#include <linux/mxcfb.h>
+>
+>  #include <mach/dma.h>
+>  #include <mach/hardware.h>
+> @@ -238,6 +239,7 @@ static const struct fb_videomode mx3fb_modedb[] = {
+>
+>  struct mx3fb_data {
+>       struct fb_info          *fbi;
+> +     struct fb_info          *fbi_ovl;
+>       int                     backlight_level;
+>       void __iomem            *reg_base;
+>       spinlock_t              lock;
+> @@ -246,6 +248,9 @@ struct mx3fb_data {
+>       uint32_t                h_start_width;
+>       uint32_t                v_start_width;
+>       enum disp_data_mapping  disp_data_fmt;
+> +
+> +     /* IDMAC / dmaengine interface */
+> +     struct idmac_channel    *idmac_channel[2];      /* We need 2 channels */
+>  };
+>
+>  struct dma_chan_request {
+> @@ -272,6 +277,17 @@ struct mx3fb_info {
+>       u32                             sync;   /* preserve var->sync flags */
+>  };
+>
+> +/* Allocated overlay buffer */
+> +struct mx3fb_alloc_list {
+> +     struct list_head        list;
+> +     dma_addr_t              phy_addr;
+> +     void                    *cpu_addr;
+> +     size_t                  size;
+> +};
+> +
+> +/* A list of overlay buffers */
+> +static LIST_HEAD(fb_alloc_list);
+
+> > Static variables are evil:-) Which you prove below by protecting this
+> > global list-head by a per-device mutex. No, I have no idea whether anyone
+> > ever comes up with an SoC with multiple instances of this device, but at
+> > least this seems inconsistent to me.
+
+ This is descibed bellow... it can will move into struct mx3fb_info ...
+
+> +
+>  static void mx3fb_dma_done(void *);
+>
+>  /* Used fb-mode and bpp. Can be set on kernel command line, therefore file-static. */
+> @@ -303,7 +319,11 @@ static void sdc_fb_init(struct mx3fb_info *fbi)
+>       struct mx3fb_data *mx3fb = fbi->mx3fb;
+>       uint32_t reg;
+>
+> -     reg = mx3fb_read_reg(mx3fb, SDC_COM_CONF);
+> +     reg = mx3fb_read_reg(mx3fb, SDC_COM_CONF) & ~SDC_COM_GWSEL;
+> +
+> +     /* Also enable foreground for overlay graphic window is foreground */
+> +     if (mx3fb->fbi_ovl && fbi == mx3fb->fbi_ovl->par)
+> +             reg |= (SDC_COM_FG_EN | SDC_COM_GWSEL);
+
+> > Superfluous parenthesis.
+
+     Already fixed
+>
+>       mx3fb_write_reg(mx3fb, reg | SDC_COM_BG_EN, SDC_COM_CONF);
+>  }
+> @@ -312,13 +332,24 @@ static void sdc_fb_init(struct mx3fb_info *fbi)
+>  static uint32_t sdc_fb_uninit(struct mx3fb_info *fbi)
+>  {
+>       struct mx3fb_data *mx3fb = fbi->mx3fb;
+> -     uint32_t reg;
+> +     uint32_t reg, chan_mask;
+>
+>       reg = mx3fb_read_reg(mx3fb, SDC_COM_CONF);
+>
+> -     mx3fb_write_reg(mx3fb, reg & ~SDC_COM_BG_EN, SDC_COM_CONF);
+> +     /*
+> +      * Don't we have to automatically disable overlay when disabling
+> +      * background? Attention: cannot test mx3fb->fbi_ovl->par, must
+> +      * test mx3fb->fbi->par, because at the time this function is
+> +      * called for the first time fbi_ovl is not assigned yet.
+> +      */
+> +     if (fbi == mx3fb->fbi->par)
+> +             chan_mask = SDC_COM_BG_EN;
+> +     else
+> +             chan_mask = SDC_COM_FG_EN | SDC_COM_GWSEL;
+> +
+> +     mx3fb_write_reg(mx3fb, reg & ~chan_mask, SDC_COM_CONF);
+>
+> -     return reg & SDC_COM_BG_EN;
+> +     return reg & chan_mask;
+>  }
+>
+>  static void sdc_enable_channel(struct mx3fb_info *mx3_fbi)
+> @@ -412,13 +443,20 @@ static void sdc_disable_channel(struct mx3fb_info *mx3_fbi)
+>  static int sdc_set_window_pos(struct mx3fb_data *mx3fb, enum ipu_channel channel,
+>                             int16_t x_pos, int16_t y_pos)
+>  {
+> -     if (channel != IDMAC_SDC_0)
+> -             return -EINVAL;
+> -
+>       x_pos += mx3fb->h_start_width;
+>       y_pos += mx3fb->v_start_width;
+>
+> -     mx3fb_write_reg(mx3fb, (x_pos << 16) | y_pos, SDC_BG_POS);
+> +     switch (channel) {
+> +     case IDMAC_SDC_0:
+> +             mx3fb_write_reg(mx3fb, (x_pos << 16) | y_pos, SDC_BG_POS);
+> +             break;
+> +     case IDMAC_SDC_1:
+> +             mx3fb_write_reg(mx3fb, (x_pos << 16) | y_pos, SDC_FG_POS);
+> +             break;
+> +     default:
+> +             return -EINVAL;
+> +     }
+> +
+>       return 0;
+>  }
+>
+> @@ -482,14 +520,17 @@ static int sdc_init_panel(struct mx3fb_data *mx3fb, enum ipu_panel panel,
+>       mx3fb->h_start_width = h_start_width;
+>       mx3fb->v_start_width = v_start_width;
+>
+> +     reg = mx3fb_read_reg(mx3fb, SDC_COM_CONF);
+> +
+>       switch (panel) {
+>       case IPU_PANEL_SHARP_TFT:
+>               mx3fb_write_reg(mx3fb, 0x00FD0102L, SDC_SHARP_CONF_1);
+>               mx3fb_write_reg(mx3fb, 0x00F500F4L, SDC_SHARP_CONF_2);
+> -             mx3fb_write_reg(mx3fb, SDC_COM_SHARP | SDC_COM_TFT_COLOR, SDC_COM_CONF);
+> +             mx3fb_write_reg(mx3fb, reg | SDC_COM_SHARP |
+> +                             SDC_COM_TFT_COLOR, SDC_COM_CONF);
+>               break;
+>       case IPU_PANEL_TFT:
+> -             mx3fb_write_reg(mx3fb, SDC_COM_TFT_COLOR, SDC_COM_CONF);
+> +             mx3fb_write_reg(mx3fb, reg | SDC_COM_TFT_COLOR, SDC_COM_CONF);
+>               break;
+>       default:
+>               return -EINVAL;
+> @@ -563,13 +604,12 @@ static int sdc_init_panel(struct mx3fb_data *mx3fb, enum ipu_panel panel,
+>  /**
+>   * sdc_set_color_key() - set the transparent color key for SDC graphic plane.
+>   * @mx3fb:   mx3fb context.
+> - * @channel: IPU DMAC channel ID.
+>   * @enable:  boolean to enable or disable color keyl.
+>   * @color_key:       24-bit RGB color to use as transparent color key.
+>   * @return:  0 on success or negative error code on failure.
+>   */
+> -static int sdc_set_color_key(struct mx3fb_data *mx3fb, enum ipu_channel channel,
+> -                          bool enable, uint32_t color_key)
+> +static int sdc_set_color_key(struct mx3fb_data *mx3fb, bool enable,
+> +                             uint32_t color_key)
+>  {
+>       uint32_t reg, sdc_conf;
+>       unsigned long lock_flags;
+> @@ -577,10 +617,6 @@ static int sdc_set_color_key(struct mx3fb_data *mx3fb, enum ipu_channel channel,
+>       spin_lock_irqsave(&mx3fb->lock, lock_flags);
+>
+>       sdc_conf = mx3fb_read_reg(mx3fb, SDC_COM_CONF);
+> -     if (channel == IDMAC_SDC_0)
+> -             sdc_conf &= ~SDC_COM_GWSEL;
+> -     else
+> -             sdc_conf |= SDC_COM_GWSEL;
+>
+>       if (enable) {
+>               reg = mx3fb_read_reg(mx3fb, SDC_GW_CTRL) & 0xFF000000L;
+> @@ -668,8 +704,12 @@ static int mx3fb_set_fix(struct fb_info *fbi)
+>  {
+>       struct fb_fix_screeninfo *fix = &fbi->fix;
+>       struct fb_var_screeninfo *var = &fbi->var;
+> +     struct mx3fb_info *mx3_fbi = fbi->par;
+>
+> -     strncpy(fix->id, "DISP3 BG", 8);
+> +     if (mx3_fbi->ipu_ch == IDMAC_SDC_1)
+> +             strncpy(fix->id, "DISP3 FG", 8);
+> +     else
+> +             strncpy(fix->id, "DISP3 BG", 8);
+>
+>       fix->line_length = var->xres_virtual * var->bits_per_pixel / 8;
+>
+> @@ -689,13 +729,25 @@ static void mx3fb_dma_done(void *arg)
+>       struct idmac_channel *ichannel = to_idmac_chan(chan);
+>       struct mx3fb_data *mx3fb = ichannel->client;
+>       struct mx3fb_info *mx3_fbi = mx3fb->fbi->par;
+> +     struct mx3fb_info *mx3_fbi_cur;
+> +     struct mx3fb_info *mx3_fbi_ovl = mx3fb->fbi_ovl ? mx3fb->fbi_ovl->par :
+> +             NULL;
+>
+>       dev_dbg(mx3fb->dev, "irq %d callback\n", ichannel->eof_irq);
+>
+> +     if (ichannel == mx3_fbi->idmac_channel) {
+> +             mx3_fbi_cur = mx3_fbi;
+> +     } else if (mx3_fbi_ovl && ichannel == mx3_fbi_ovl->idmac_channel) {
+> +             mx3_fbi_cur = mx3_fbi_ovl;
+> +     } else {
+> +             WARN(1, "Cannot identify channel!\n");
+> +             return;
+> +     }
+> +
+>       /* We only need one interrupt, it will be re-enabled as needed */
+>       disable_irq_nosync(ichannel->eof_irq);
+>
+> -     complete(&mx3_fbi->flip_cmpl);
+> +     complete(&mx3_fbi_cur->flip_cmpl);
+>  }
+>
+>  static int __set_par(struct fb_info *fbi, bool lock)
+> @@ -1151,6 +1203,145 @@ static struct fb_ops mx3fb_ops = {
+>       .fb_blank = mx3fb_blank,
+>  };
+>
+> +#ifdef CONFIG_FB_MX3_OVERLAY
+> +static int mx3fb_blank_ovl(int blank, struct fb_info *fbi)
+> +{
+> +     struct mx3fb_info *mx3_fbi = fbi->par;
+> +
+> +     dev_dbg(fbi->device, "ovl blank = %d\n", blank);
+> +
+> +     if (mx3_fbi->blank == blank)
+> +             return 0;
+> +
+> +     mutex_lock(&mx3_fbi->mutex);
+> +     mx3_fbi->blank = blank;
+> +
+> +     switch (blank) {
+> +     case FB_BLANK_POWERDOWN:
+> +     case FB_BLANK_VSYNC_SUSPEND:
+> +     case FB_BLANK_HSYNC_SUSPEND:
+> +     case FB_BLANK_NORMAL:
+> +             sdc_disable_channel(mx3_fbi);
+> +             break;
+> +     case FB_BLANK_UNBLANK:
+> +             sdc_enable_channel(mx3_fbi);
+> +             break;
+> +     }
+> +     mutex_unlock(&mx3_fbi->mutex);
+> +
+> +     return 0;
+> +}
+> +
+> +/*
+> + * Function to handle custom ioctls for MX3 framebuffer.
+> + *
+> + *  @inode   inode struct
+> + *  @file    file struct
+> + *  @cmd     Ioctl command to handle
+> + *  @arg     User pointer to command arguments
+> + *  @fbi     framebuffer information pointer
+> + */
+> +static int mx3fb_ioctl_ovl(struct fb_info *fbi, unsigned int cmd,
+> +                        unsigned long arg)
+> +{
+> +     struct mx3fb_info *mx3_fbi = fbi->par;
+> +     struct mx3fb_data *mx3fb = mx3_fbi->mx3fb;
+> +     struct mxcfb_gbl_alpha ga;
+> +     struct mxcfb_color_key key;
+> +     int retval = 0;
+> +     int __user *argp = (void __user *)arg;
+> +     struct mx3fb_alloc_list *mem;
+> +     int size;
+> +     unsigned long offset;
+> +
+> +     switch (cmd) {
+> +     case FBIO_ALLOC:
+> +             if (get_user(size, argp))
+> +                     return -EFAULT;
+> +
+> +             mem = kzalloc(sizeof(*mem), GFP_KERNEL);
+> +             if (mem == NULL)
+> +                     return -ENOMEM;
+> +
+> +             mem->size = PAGE_ALIGN(size);
+> +
+> +             mem->cpu_addr = dma_alloc_coherent(fbi->device, size,
+> +                                                &mem->phy_addr,
+> +                                                GFP_DMA);
+> +             if (mem->cpu_addr == NULL) {
+> +                     kfree(mem);
+> +                     return -ENOMEM;
+> +             }
+> +
+> +             mutex_lock(&mx3_fbi->mutex);
+> +             list_add(&mem->list, &fb_alloc_list);
+> +             mutex_unlock(&mx3_fbi->mutex);
+
+> > Here. At the very least you'd need a global mutex. Or put the list-head in
+> > struct mx3fb_info.
+
+I will do it, list-head will go inoto struct mx3fb_info
+
+> +
+> +             dev_dbg(fbi->device, "allocated %d bytes  <at>  0x%08X\n",
+> +                     mem->size, mem->phy_addr);
+> +
+> +             if (put_user(mem->phy_addr, argp))
+> +                     return -EFAULT;
+> +
+> +             break;
+> +     case FBIO_FREE:
+> +             if (get_user(offset, argp))
+> +                     return -EFAULT;
+> +
+> +             retval = -EINVAL;
+> +             mutex_lock(&mx3_fbi->mutex);
+> +             list_for_each_entry(mem, &fb_alloc_list, list) {
+> +                     if (mem->phy_addr == offset) {
+> +                             list_del(&mem->list);
+> +                             dma_free_coherent(fbi->device,
+> +                                               mem->size,
+> +                                               mem->cpu_addr,
+> +                                               mem->phy_addr);
+> +                             kfree(mem);
+> +                             retval = 0;
+> +                             break;
+> +                     }
+> +             }
+> +             mutex_unlock(&mx3_fbi->mutex);
+> +
+> +             break;
+> +     case MXCFB_SET_GBL_ALPHA:
+
+> > Are you using these proprietary ioctl()s?
+
+ Unfortunately yes ...
+
+>> If not, I wouldn't implement
+> > them. If you do need them, maybe it would make sense to add such ioctl()s
+> > globally for fbdev?
+
+It wiil be nice... but I think for this will need a separate patch?
+
+
+> +             if (copy_from_user(&ga, (void *)arg, sizeof(ga)))
+> +                     retval = -EFAULT;
+> +
+> +             sdc_set_global_alpha(mx3fb, (bool)ga.enable, ga.alpha);
+> +             dev_dbg(fbi->device, "Set global alpha to %d\n", ga.alpha);
+> +
+> +             break;
+> +     case MXCFB_SET_CLR_KEY:
+> +             if (copy_from_user(&key, (void *)arg, sizeof(key)))
+> +                     retval = -EFAULT;
+> +
+> +             sdc_set_color_key(mx3fb, (bool)key.enable, key.color_key);
+> +             dev_dbg(fbi->device, "Set color key to %d\n", key.color_key);
+> +
+> +             break;
+> +     default:
+> +             retval = -EINVAL;
+> +     }
+> +
+> +     return retval;
+> +}
+> +
+> +static struct fb_ops mx3fb_ovl_ops = {
+> +     .owner = THIS_MODULE,
+> +     .fb_set_par = mx3fb_set_par,
+> +     .fb_check_var = mx3fb_check_var,
+> +     .fb_setcolreg = mx3fb_setcolreg,
+> +     .fb_pan_display = mx3fb_pan_display,
+> +     .fb_ioctl = mx3fb_ioctl_ovl,
+> +     .fb_fillrect = cfb_fillrect,
+> +     .fb_copyarea = cfb_copyarea,
+> +     .fb_imageblit = cfb_imageblit,
+> +     .fb_blank = mx3fb_blank_ovl,
+> +};
+> +#endif
+> +
+>  #ifdef CONFIG_PM
+>  /*
+>   * Power management hooks.      Note that we won't be called from IRQ context,
+> @@ -1164,11 +1355,16 @@ static int mx3fb_suspend(struct platform_device *pdev, pm_message_t state)
+>  {
+>       struct mx3fb_data *mx3fb = platform_get_drvdata(pdev);
+>       struct mx3fb_info *mx3_fbi = mx3fb->fbi->par;
+> +     struct mx3fb_info *mx3_fbi_ovl = mx3fb->fbi_ovl->par;
+>
+>       console_lock();
+>       fb_set_suspend(mx3fb->fbi, 1);
+> +     fb_set_suspend(mx3fb->fbi_ovl, 1);
+>       console_unlock();
+>
+> +     if (mx3_fbi_ovl->blank == FB_BLANK_UNBLANK)
+> +             sdc_disable_channel(mx3_fbi_ovl);
+> +
+>       if (mx3_fbi->blank == FB_BLANK_UNBLANK) {
+>               sdc_disable_channel(mx3_fbi);
+>               sdc_set_brightness(mx3fb, 0);
+> @@ -1184,14 +1380,19 @@ static int mx3fb_resume(struct platform_device *pdev)
+>  {
+>       struct mx3fb_data *mx3fb = platform_get_drvdata(pdev);
+>       struct mx3fb_info *mx3_fbi = mx3fb->fbi->par;
+> +     struct mx3fb_info *mx3_fbi_ovl = mx3fb->fbi_ovl->par;
+>
+>       if (mx3_fbi->blank == FB_BLANK_UNBLANK) {
+>               sdc_enable_channel(mx3_fbi);
+>               sdc_set_brightness(mx3fb, mx3fb->backlight_level);
+>       }
+>
+> +     if (mx3_fbi_ovl->blank == FB_BLANK_UNBLANK)
+> +             sdc_enable_channel(mx3_fbi_ovl);
+> +
+>       console_lock();
+>       fb_set_suspend(mx3fb->fbi, 0);
+> +     fb_set_suspend(mx3fb->fbi_ovl, 0);
+>       console_unlock();
+>
+>       return 0;
+> @@ -1333,8 +1534,8 @@ static int init_fb_chan(struct mx3fb_data *mx3fb, struct idmac_channel *ichan)
+>       ichan->client = mx3fb;
+>       irq = ichan->eof_irq;
+>
+> -     if (ichan->dma_chan.chan_id != IDMAC_SDC_0)
+> -             return -EINVAL;
+> +     switch (ichan->dma_chan.chan_id) {
+> +     case IDMAC_SDC_0:
+>
+>       fbi = mx3fb_init_fbinfo(dev, &mx3fb_ops);
+
+> > I would bite the bullet and indent this case block...
+
+This makes a clear separation between the framebuffer and overlay
+channels during initializing, but if you have any ideas welcome, please
+send, I could do a test on my hardware :-)
+
+>       if (!fbi)
+> @@ -1375,7 +1576,29 @@ static int init_fb_chan(struct mx3fb_data *mx3fb, struct idmac_channel *ichan)
+>
+>       sdc_set_brightness(mx3fb, 255);
+>       sdc_set_global_alpha(mx3fb, true, 0xFF);
+> -     sdc_set_color_key(mx3fb, IDMAC_SDC_0, false, 0);
+> +     sdc_set_color_key(mx3fb, false, 0);
+> +
+> +     break;
+> +#ifdef CONFIG_FB_MX3_OVERLAY
+> +     case IDMAC_SDC_1:
+> +
+> +             /* We know, that background has been allocated already! */
+> +             fbi = mx3fb_init_fbinfo(dev, &mx3fb_ovl_ops);
+> +             if (!fbi)
+> +                     return -ENOMEM;
+> +
+> +             /* Default Y virtual size is 2x panel size */
+> +             fbi->var = mx3fb->fbi->var;
+> +             /* This shouldn't be necessary, it is already set up above */
+> +             fbi->var.yres_virtual = mx3fb->fbi->var.yres * 2;
+> +
+> +             mx3fb->fbi_ovl = fbi;
+> +
+> +             break;
+> +#endif
+> +     default:
+> +             return -EINVAL;
+> +     }
+>
+>       mx3fbi                  = fbi->par;
+>       mx3fbi->idmac_channel   = ichan;
+> @@ -1392,9 +1615,13 @@ static int init_fb_chan(struct mx3fb_data *mx3fb, struct idmac_channel *ichan)
+>       if (ret < 0)
+>               goto esetpar;
+>
+> -     __blank(FB_BLANK_UNBLANK, fbi);
+> +     /* Overlay stays blanked by default */
+> +     if (ichan->dma_chan.chan_id == IDMAC_SDC_0) {
+> +             mx3fb_blank(FB_BLANK_UNBLANK, fbi);
+>
+> -     dev_info(dev, "registered, using mode %s\n", fb_mode);
+> +             dev_info(dev, "mx3fb: fb registered, using mode %s [%c]\n",
+> +             fb_mode, list_empty(&ichan->queue) ? '-' : '+');
+> +     }
+>
+>       ret = register_framebuffer(fbi);
+>       if (ret < 0)
+> @@ -1492,14 +1719,42 @@ static int mx3fb_probe(struct platform_device *pdev)
+>
+>       mx3fb->backlight_level = 255;
+>
+> +     mx3fb->idmac_channel[0] = to_idmac_chan(chan);
+> +     mx3fb->idmac_channel[0]->client = mx3fb;
+> +
+>       ret = init_fb_chan(mx3fb, to_idmac_chan(chan));
+>       if (ret < 0)
+>               goto eisdc0;
+>
+> +#ifdef CONFIG_FB_MX3_OVERLAY
+> +     dma_cap_zero(mask);
+> +     dma_cap_set(DMA_SLAVE, mask);
+> +     dma_cap_set(DMA_PRIVATE, mask);
+> +     rq.id = IDMAC_SDC_1;
+> +     chan = dma_request_channel(mask, chan_filter, &rq);
+> +     if (!chan) {
+> +             ret = -EBUSY;
+> +             goto ersdc1;
+> +     }
+> +
+> +     mx3fb->idmac_channel[1] = to_idmac_chan(chan);
+> +     mx3fb->idmac_channel[1]->client = mx3fb;
+> +
+> +     ret = init_fb_chan(mx3fb, to_idmac_chan(chan));
+> +     if (ret < 0)
+> +             goto eisdc1;
+> +#endif
+> +
+>       return 0;
+>
+> +#ifdef CONFIG_FB_MX3_OVERLAY
+> +eisdc1:
+> +     dma_release_channel(&mx3fb->idmac_channel[1]->dma_chan);
+> +ersdc1:
+> +     release_fbi(mx3fb->fbi);
+> +#endif
+>  eisdc0:
+> -     dma_release_channel(chan);
+> +     dma_release_channel(&mx3fb->idmac_channel[0]->dma_chan);
+>  ersdc0:
+>       dmaengine_put();
+>       iounmap(mx3fb->reg_base);
+> @@ -1513,13 +1768,16 @@ static int mx3fb_remove(struct platform_device *dev)
+>  {
+>       struct mx3fb_data *mx3fb = platform_get_drvdata(dev);
+>       struct fb_info *fbi = mx3fb->fbi;
+> -     struct mx3fb_info *mx3_fbi = fbi->par;
+> -     struct dma_chan *chan;
+>
+> -     chan = &mx3_fbi->idmac_channel->dma_chan;
+> -     release_fbi(fbi);
+> +     if (fbi)
+> +             release_fbi(fbi);
+> +
+> +     fbi = mx3fb->fbi_ovl;
+> +     if (fbi)
+> +             release_fbi(fbi);
+>
+> -     dma_release_channel(chan);
+> +     dma_release_channel(&mx3fb->idmac_channel[1]->dma_chan);
+> +     dma_release_channel(&mx3fb->idmac_channel[0]->dma_chan);
+>       dmaengine_put();
+>
+>       iounmap(mx3fb->reg_base);
+> diff --git a/include/linux/mxcfb.h b/include/linux/mxcfb.h
+> new file mode 100644
+> index 0000000..54b720d
+> --- /dev/null
+> +++ b/include/linux/mxcfb.h
+> @@ -0,0 +1,93 @@
+> +/*
+> + * File: include/linux/mxcfb.h
+> + * Global header file for the MXC Framebuffer
+> + *
+> + * Copyright 2004-2012 Freescale Semiconductor, Inc. All Rights Reserved.
+> + *
+> + * The code contained herein is licensed under the GNU Lesser General
+> + * Public License.  You may obtain a copy of the GNU Lesser General
+> + * Public License Version 2.1 or later at the following locations:
+> + *
+> + * http://www.opensource.org/licenses/lgpl-license.html
+> + * http://www.gnu.org/copyleft/lgpl.html
+> + */
+> +
+> +#ifndef __LINUX_MXCFB_H__
+> +#define __LINUX_MXCFB_H__
+> +
+> +#include <linux/fb.h>
+
+> > Why is this needed here?
+
+I checked, it is not necessary
+
+> +
+> +#define FB_SYNC_OE_LOW_ACT   0x80000000
+> +#define FB_SYNC_CLK_LAT_FALL 0x40000000
+> +#define FB_SYNC_DATA_INVERT  0x20000000
+> +#define FB_SYNC_CLK_IDLE_EN  0x10000000
+> +#define FB_SYNC_SHARP_MODE   0x08000000
+> +#define FB_SYNC_SWAP_RGB     0x04000000
+> +
+> +struct mxcfb_gbl_alpha {
+> +     int enable;
+> +     int alpha;
+> +};
+> +
+> +struct mxcfb_color_key {
+> +     int enable;
+> +     __u32 color_key;
+> +};
+> +
+> +struct mxcfb_pos {
+> +     __u16 x;
+> +     __u16 y;
+> +};
+> +
+> +struct mxcfb_gamma {
+> +     int enable;
+> +     int constk[16];
+> +     int slopek[16];
+> +};
+> +
+> +struct mxcfb_rect {
+> +     __u32 top;
+> +     __u32 left;
+> +     __u32 width;
+> +     __u32 height;
+> +};
+> +
+> +/*
+> + * Structure used to define waveform modes for driver
+> + * Needed for driver to perform auto-waveform selection
+> + */
+> +struct mxcfb_waveform_modes {
+> +     int mode_init;
+> +     int mode_du;
+> +     int mode_gc4;
+> +     int mode_gc8;
+> +     int mode_gc16;
+> +     int mode_gc32;
+> +};
+> +
+> +/* IOCTL commands. */
+> +
+> +#define MXCFB_WAIT_FOR_VSYNC         _IOW('F', 0x20, u_int32_t)
+> +#define MXCFB_SET_GBL_ALPHA          _IOW('F', 0x21, struct mxcfb_gbl_alpha)
+> +#define MXCFB_SET_CLR_KEY            _IOW('F', 0x22, struct mxcfb_color_key)
+> +#define MXCFB_SET_OVERLAY_POS                _IOWR('F', 0x24, struct mxcfb_pos)
+> +#define MXCFB_GET_FB_IPU_CHAN                _IOR('F', 0x25, u_int32_t)
+> +#define MXCFB_SET_LOC_ALPHA          _IOWR('F', 0x26, struct mxcfb_loc_alpha)
+> +#define MXCFB_SET_LOC_ALP_BUF                _IOW('F', 0x27, unsigned long)
+> +#define MXCFB_SET_GAMMA                      _IOW('F', 0x28, struct mxcfb_gamma)
+> +#define MXCFB_GET_FB_IPU_DI          _IOR('F', 0x29, u_int32_t)
+> +#define MXCFB_GET_DIFMT                      _IOR('F', 0x2A, u_int32_t)
+> +#define MXCFB_GET_FB_BLANK           _IOR('F', 0x2B, u_int32_t)
+
+> > Please, don't add unused identifiers.
+
+Yes, I can remove something.
+
+> +
+> +#ifdef __KERNEL__
+> +
+> +enum {
+> +     MXCFB_REFRESH_OFF,
+> +     MXCFB_REFRESH_AUTO,
+> +     MXCFB_REFRESH_PARTIAL,
+> +};
+> +
+> +#endif
+> +
+> +#endif /* _MXCFB_H */
+> +
+> --
+> 1.7.0.4
+>
 
 Thanks
-Guennadi
-
-> So, I have one register that I program with "Y-start" address, and
-> another register
-> that I program with "UV-start" address.
-> 
-> For both cases, you control the byte offset between every begin of each line.
-> 
-> So, in theory, you could save it interleaved in memory if you want, or
-> in 2 separate
-> buffers depending on how you program the address/offset pair.
-> 
-> Regards,
-> Sergio
-> 
-> >
-> > Thanks
-> > Guennadi
-> >
-> >> I mean, the HW itself writes in memory to 2 contiguous buffers, so there's 2
-> >> separate DMA writes. I have to program 2 starting addresses, which, in an
-> >> internal non-v4l2-subdev implementation, I have been programming like this:
-> >>
-> >> paddr = start of 32-byte aligned physical address to store buffer
-> >> x = width
-> >> y = height
-> >>
-> >> Ysize = (x * y)
-> >> UVsize = (x / 2) * y
-> >> Total size = Ysize + UVsize
-> >>
-> >> Ystart = paddr
-> >> UVstart = (paddr + Ysize)
-> >>
-> >> But, in the media controller framework, i have a single DMA output pad, that
-> >> creates a v4l2 capture device node, and i'll be queueing a single buffer.
-> >>
-> >> Any advice on how to address this properly? Does anyone has/had a similar need?
-> >>
-> >> Regards,
-> >> Sergio
-> >> --
-> >> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> >> the body of a message to majordomo@vger.kernel.org
-> >> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> >>
-> >
-> > ---
-> > Guennadi Liakhovetski, Ph.D.
-> > Freelance Open-Source Software Developer
-> > http://www.open-technology.de/
-> 
-
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Alex
