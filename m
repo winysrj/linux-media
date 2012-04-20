@@ -1,56 +1,181 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtpq3.gn.mail.iss.as9143.net ([212.54.34.166]:43681 "EHLO
-	smtpq3.gn.mail.iss.as9143.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752262Ab2D2HZ7 (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:40850 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753810Ab2DTKm6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 29 Apr 2012 03:25:59 -0400
-Message-ID: <4F9CE796.2030004@grumpydevil.homelinux.org>
-Date: Sun, 29 Apr 2012 09:02:46 +0200
-From: Rudy Zijlstra <rudy@grumpydevil.homelinux.org>
-MIME-Version: 1.0
-To: "Brian J. Murrell" <brian@interlinx.bc.ca>
-CC: linux-media@vger.kernel.org,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	stoth@kernellabs.com
-Subject: Re: HVR-1600 QAM recordings with slight glitches in them
-References: <jn2ibp$pot$1@dough.gmane.org>  <1335307344.8218.11.camel@palomino.walls.org>  <jn7pph$qed$1@dough.gmane.org> <1335624964.2665.37.camel@palomino.walls.org> <4F9C38BE.3010301@interlinx.bc.ca> <4F9C559E.6010208@interlinx.bc.ca> <4F9C6D68.3090202@interlinx.bc.ca>
-In-Reply-To: <4F9C6D68.3090202@interlinx.bc.ca>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+	Fri, 20 Apr 2012 06:42:58 -0400
+Received: from euspt1 (mailout1.w1.samsung.com [210.118.77.11])
+ by mailout1.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0M2R002ZUXPE19@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 20 Apr 2012 11:41:38 +0100 (BST)
+Received: from [106.116.48.198] by spt1.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTPSA id <0M2R00GAIXRJ2P@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 20 Apr 2012 11:42:56 +0100 (BST)
+Date: Fri, 20 Apr 2012 12:42:54 +0200
+From: Andrzej Hajda <a.hajda@samsung.com>
+Subject: Re: [RFC/PATCH] v4l: added V4L2_BUF_FLAG_EOS flag indicating the last
+ frame in the stream
+In-reply-to: <1334918312.1503.138.camel@AMDC1061>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Kamil Debski <k.debski@samsung.com>, linux-media@vger.kernel.org,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	'Kyungmin Park' <kyungmin.park@samsung.com>,
+	'Sakari Ailus' <sakari.ailus@iki.fi>,
+	'Hans Verkuil' <hverkuil@xs4all.nl>
+Message-id: <1334918574.1503.140.camel@AMDC1061>
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8
+Content-transfer-encoding: 7BIT
+References: <1334051442-28359-1-git-send-email-a.hajda@samsung.com>
+ <003801cd1992$ddcece50$996c6af0$%debski@samsung.com>
+ <4F901A1A.9020908@redhat.com> <1334918312.1503.138.camel@AMDC1061>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 29-04-12 00:21, Brian J. Murrell wrote:
-> On 12-04-28 04:39 PM, Brian J. Murrell wrote:
->> I typically have one more splitter downstream from that 3 way splitter
->> which is a 4 way splitter to feed all of the tuners on my Mythtv box and
->> introducing that splitter reduces the SNR at the HVR-1600 to between
->> "13c" and "13e" (31.6 - 31.8 dB).
-> Interestingly enough, I moved the Myth backend to it's usual home, in
-> the basement, right next to the incoming cable signal and replaced that
-> 25' run that I had going to where it was temporarily with a smaller, say
-> 10' run (of RG-59 so still room for improvement) and my SNR at the
-> HVR-1600, even after all of the splitters is now "015c" or 34.8 dB.
->
-> I'm still going to go replacing all of that RG-59 with shorter, custom
-> made lengths of RG6 cables.  I can't go "too short" when making those
-> can I or would even a 6-12 inch cable be perfectly fine?  I'm thinking
-> of the runs between that last 4 way splitter and the tuners in the Myth
-> backend.
->
-> b.
->
-Brian,
+On Fri, 2012-04-20 at 12:38 +0200, Andrzej Hajda wrote:
+> On Thu, 2012-04-19 at 10:58 -0300, Mauro Carvalho Chehab wrote:
+> > Em 13-04-2012 13:31, Kamil Debski escreveu:
+> > > Hi,
+> > > 
+> > >> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+> > >> Sent: 10 April 2012 11:51
+> > >>
+> > >> v4l: added V4L2_BUF_FLAG_EOS flag indicating the last frame in the stream
+> > >>
+> > >> Some devices requires indicator if the buffer is the last one in the
+> > >> stream.
+> > >> Applications and drivers can use this flag in such case.
+> > >>
+> > >> Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
+> > >> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> > >> ---
+> > >>
+> > >> Hello,
+> > >>
+> > >> This patch adds new v4l2_buffer flag V4L2_BUF_FLAG_EOS. This flag is set
+> > >> by applications on the output buffer to indicate the last buffer of the
+> > >> stream.
+> > >>
+> > >> Some devices (eg. s5p_mfc) requires presence of the end-of-stream
+> > >> indicator
+> > >> together with the last buffer.
+> > >> Common practice of sending empty buffer to indicate end-of-strem do not
+> > >> work in
+> > >> such case.
+> > >>
+> > >> I would like to ask for review and comments.
+> > >>
+> > >> Apologies for duplicated e-mails - sendmail problems.
+> > >>
+> > >> Regards
+> > >> Andrzej Hajda
+> > >>
+> > > 
+> > > [snip]
+> > > 
+> > > Maybe I could throw some more light at the problem.
+> > > 
+> > > The problem is that when the encoding is done it is necessary to mark the
+> > > last frame of the video that is encoded. It is needed because the hardware
+> > > may need to return some encoded buffers that are kept in the hardware.
+> > 
+> > Are you talking only about V4L2_BUF_TYPE_VIDEO_OUTPUT? 
+> 
+> Hardware encoder requires that the last frame sent to device should be
+> specially marked. So this flag in our case is only for
+> V4L2_BUF_TYPE_VIDEO_OUTPUT buffers. As a result of this mark device will
+> encode and release all frames cached in internal buffers, so the driver
+> can enqueue them in V4L2_BUF_TYPE_VIDEO_CAPTURE queue.
+> Sample encoding scenario:
+> Frame1 -> Dev
+> Frame2 -> Dev
+> Dev -> Encoded1
+> Frame3 marked as the last one -> Dev
+> Dev -> Encoded2
+> Dev -> Encoded3
+> Dev signals end of encoded stream
+> 
+> Without this mark we will not receive encoded frame 3. And there will be
+> no signal from the device about the end of encoded stream.
+> 
+> > > Why the buffers are kept in hardware one might ask? The answer to this
+> > > question is following. The video frames are enqueued in MFC in presentation
+> > > order and the encoded frames are dequeued in decoding order.
+> > > 
+> > > Let's see an example:
+> > > 			           1234567
+> > > The presentation order is:   IBBPBBP--
+> > > The decoding order here is:  --IPBBPBB
+> > > (the P frames have to be decoded before B frames as B frames reference
+> > > both preceding and following frame; when no B frames are used then
+> > > there is no delay)
+> > > 
+> > > So there is a delay of two buffers returned on the CAPTURE side to the
+> > > OUTPUT queue. After the last frame is encoded these buffers have to be
+> > > returned to the user. Our hardware needs to know that it is the last frame
+> > > before it is encoded, so the idea is to add a flag that would mark the
+> > > buffer as the last one.
+> > > 
+> > > The flag could also be used to mark the last frame during decoding - now
+> > > it is done by setting bytesused to 0. The EOS flag could be used in addition
+> > > to that.
+> > > 
+> > > Comments are welcome.
+> > 
+> > For V4L2_BUF_TYPE_VIDEO_CAPTURE, a change like the one proposed has issues
+> > to be considered: this kind of issue may happen on any driver delivering MPEG
+> > format. 
+> > 
+> > So, if we're willing to introduce flags for MPEG-specific handling like that, 
+> > then all drivers delivering mpeg outputs should be patched, and not only the
+> > drivers you're maintaining, otherwise userspace applications can't trust that 
+> > this feature is there.
+> 
+> This flag on V4L2_BUF_TYPE_VIDEO_CAPTURE is not required by our
+> hardware. Since we cannot eliminate empty buffers for signaling end of
+> encoded stream for compatibility reasons, there will be no real profit
+> from using it.
+> 
+> > Btw, the encoder API, designed to mpeg encoders addresses it on a different way:
+> > V4L2_ENC_CMD_STOP stops an mpeg stream, but it waits until the end of a group
+> > of pictures:
+> >     http://linuxtv.org/downloads/v4l-dvb-apis/vidioc-encoder-cmd.html
+> > 
+> > At least for video capture, this seems to work fine.
+> 
+> In case of our hardware we cannot send STOP command after sending the
+> last frame, we should sent it together.
+> Possible workaround I see is that driver will not send
+> V4L2_BUF_TYPE_VIDEO_OUTPUT frame to device unless there is another one
+> in V4L2_BUF_TYPE_VIDEO_CAPTURE queue, or it receives V4L2_ENC_CMD_STOP.
 
-There is no minimum cable length for RF. Although for practical reasons 
-i rarely go below 30 cm (1 ').
-It should be possible for you to buy "drop cables" which have a length 
-of 1m5 (about 5') and are commonly used in HE to connect equipment.
+Ups, should be "in V4L2_BUF_TYPE_VIDEO_OUTPUT queue".
 
-screw-on F-connectors are another source of problems. Crimping 
-F-connectors are best, but those need a fitting crimp tool.
+> This solution seems to me less straightforward that the proposed one and
+> adds phony requirement on number of V4L2_BUF_TYPE_VIDEO_OUTPUT
+> buffers(at least 2).
+> 
+> > 
+> > For video output, it could make sense to have a flag mark the end of a GoP,
+> > but, again, if we're thinking that the source could be a V4L2 capture, the
+> > GoP end should be marked there, and the patches adding support for it will
+> > need to touch the existing drivers that have mpeg encoders/decoders, in order
+> > to be sure that, after a certain V4L2 API, all of them will support such
+> > feature.
+> > 
+> > Regards,
+> > Mauro
+> 
+> 
+> Regards,
+> Andrzej
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Cheers,
 
-
-Rudy
