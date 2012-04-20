@@ -1,221 +1,160 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:44756 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753470Ab2D2QX3 (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:38839 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753597Ab2DTU5g (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 29 Apr 2012 12:23:29 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@iki.fi
-Subject: [PATCH 3/3] omap3isp: resizer: Replace the crop API by the selection API
-Date: Sun, 29 Apr 2012 18:23:45 +0200
-Message-Id: <1335716625-2388-4-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1335716625-2388-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1335716625-2388-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Fri, 20 Apr 2012 16:57:36 -0400
+Subject: Re: [PATCH] TDA9887 PAL-Nc fix
+From: Andy Walls <awalls@md.metrocast.net>
+To: "Gonzalo A. de la Vega" <gadelavega@gmail.com>
+Cc: linux-media@vger.kernel.org
+Date: Fri, 20 Apr 2012 16:57:30 -0400
+In-Reply-To: <CADbd7mHbP0YVQSBo4TgF0ZKqEU5VydWOoHZp__owh2b4k8aZsw@mail.gmail.com>
+References: <4F8EB1F1.1030801@gmail.com>
+	 <1334879437.14608.22.camel@palomino.walls.org>
+	 <CADbd7mHbP0YVQSBo4TgF0ZKqEU5VydWOoHZp__owh2b4k8aZsw@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Message-ID: <1334955453.2544.21.camel@palomino.walls.org>
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Support for the legacy crop API is emulated in the subdev core.
+On Fri, 2012-04-20 at 11:01 -0300, Gonzalo A. de la Vega wrote:
+> On Thu, Apr 19, 2012 at 8:50 PM, Andy Walls <awalls@md.metrocast.net> wrote:
+> > On Wed, 2012-04-18 at 09:22 -0300, Gonzalo de la Vega wrote:
+> >> The tunner IF for PAL-Nc norm, which AFAIK is used only in Argentina, was being defined as equal to PAL-M but it is not. It actually uses the same video IF as PAL-BG (and unlike PAL-M) but the audio is at 4.5MHz (same as PAL-M). A separate structure member was added for PAL-Nc.
+> >>
+> >> Signed-off-by: Gonzalo A. de la Vega <gadelavega@gmail.com>
+> >
+> > Hmmm.
+> >
+> > The Video IF for N systems is 45.75 MHz according to this popular book
+> > (see page 29 of the PDF):
+> > http://www.deetc.isel.ipl.pt/Analisedesinai/sm/downloads/doc/ch08.pdf
+> >
+> > The Video IF is really determined by the IF SAW filter used in your
+> > tuner assembly, and how the tuner data sheet says to program the
+> > mixer/oscillator chip to mix down from RF to IF.
+> >
+> > What model analog tuner assembly are you using?  It could be that the
+> > linux tuner-simple module is setting up the mixer/oscillator chip wrong.
+> >
+> > Regards,
+> > Andy
+> 
+> Hi Andy,
+> first of all and to clarify things: I could not tune analog TV without
+> this patch, or I could barely see a BW image. With the patch applied,
+> I can see image in full color and with good sound. So it works with
+> the patch, it does not work without it.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/video/omap3isp/ispresizer.c |  138 ++++++++++++++++++-----------
- 1 files changed, 88 insertions(+), 50 deletions(-)
+I believe you.  However, I beleive your fix is in the wrong place.
+Every M/N tuner datahseet that I have seen, specifies a Video IF of
+45.75 MHz.
 
-diff --git a/drivers/media/video/omap3isp/ispresizer.c b/drivers/media/video/omap3isp/ispresizer.c
-index 6958a9e..d7341ab 100644
---- a/drivers/media/video/omap3isp/ispresizer.c
-+++ b/drivers/media/video/omap3isp/ispresizer.c
-@@ -1188,32 +1188,6 @@ static int resizer_set_stream(struct v4l2_subdev *sd, int enable)
- }
- 
- /*
-- * resizer_g_crop - handle get crop subdev operation
-- * @sd : pointer to v4l2 subdev structure
-- * @pad : subdev pad
-- * @crop : pointer to crop structure
-- * @which : active or try format
-- * return zero
-- */
--static int resizer_g_crop(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
--			  struct v4l2_subdev_crop *crop)
--{
--	struct isp_res_device *res = v4l2_get_subdevdata(sd);
--	struct v4l2_mbus_framefmt *format;
--	struct resizer_ratio ratio;
--
--	/* Only sink pad has crop capability */
--	if (crop->pad != RESZ_PAD_SINK)
--		return -EINVAL;
--
--	format = __resizer_get_format(res, fh, RESZ_PAD_SOURCE, crop->which);
--	crop->rect = *__resizer_get_crop(res, fh, crop->which);
--	resizer_calc_ratios(res, &crop->rect, format, &ratio);
--
--	return 0;
--}
--
--/*
-  * resizer_try_crop - mangles crop parameters.
-  */
- static void resizer_try_crop(const struct v4l2_mbus_framefmt *sink,
-@@ -1223,7 +1197,7 @@ static void resizer_try_crop(const struct v4l2_mbus_framefmt *sink,
- 	const unsigned int spv = DEFAULT_PHASE;
- 	const unsigned int sph = DEFAULT_PHASE;
- 
--	/* Crop rectangle is constrained to the output size so that zoom ratio
-+	/* Crop rectangle is constrained by the output size so that zoom ratio
- 	 * cannot exceed +/-4.0.
- 	 */
- 	unsigned int min_width =
-@@ -1248,51 +1222,115 @@ static void resizer_try_crop(const struct v4l2_mbus_framefmt *sink,
- }
- 
- /*
-- * resizer_s_crop - handle set crop subdev operation
-- * @sd : pointer to v4l2 subdev structure
-- * @pad : subdev pad
-- * @crop : pointer to crop structure
-- * @which : active or try format
-- * return -EINVAL or zero when succeed
-+ * resizer_get_selection - Retrieve a selection rectangle on a pad
-+ * @sd: ISP resizer V4L2 subdevice
-+ * @fh: V4L2 subdev file handle
-+ * @sel: Selection rectangle
-+ *
-+ * The only supported rectangles are the crop rectangles on the sink pad.
-+ *
-+ * Return 0 on success or a negative error code otherwise.
-  */
--static int resizer_s_crop(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
--			  struct v4l2_subdev_crop *crop)
-+static int resizer_get_selection(struct v4l2_subdev *sd,
-+				 struct v4l2_subdev_fh *fh,
-+				 struct v4l2_subdev_selection *sel)
-+{
-+	struct isp_res_device *res = v4l2_get_subdevdata(sd);
-+	struct v4l2_mbus_framefmt *format_source;
-+	struct v4l2_mbus_framefmt *format_sink;
-+	struct resizer_ratio ratio;
-+
-+	if (sel->pad != RESZ_PAD_SINK)
-+		return -EINVAL;
-+
-+	format_sink = __resizer_get_format(res, fh, RESZ_PAD_SINK,
-+					   sel->which);
-+	format_source = __resizer_get_format(res, fh, RESZ_PAD_SOURCE,
-+					     sel->which);
-+
-+	switch (sel->target) {
-+	case V4L2_SUBDEV_SEL_TGT_CROP_BOUNDS:
-+		sel->r.left = 0;
-+		sel->r.top = 0;
-+		sel->r.width = INT_MAX;
-+		sel->r.height = INT_MAX;
-+
-+		resizer_try_crop(format_sink, format_source, &sel->r);
-+		resizer_calc_ratios(res, &sel->r, format_source, &ratio);
-+		break;
-+
-+	case V4L2_SUBDEV_SEL_TGT_CROP_ACTUAL:
-+		sel->r = *__resizer_get_crop(res, fh, sel->which);
-+		resizer_calc_ratios(res, &sel->r, format_source, &ratio);
-+		break;
-+
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
-+/*
-+ * resizer_set_selection - Set a selection rectangle on a pad
-+ * @sd: ISP resizer V4L2 subdevice
-+ * @fh: V4L2 subdev file handle
-+ * @sel: Selection rectangle
-+ *
-+ * The only supported rectangle is the actual crop rectangle on the sink pad.
-+ *
-+ * FIXME: This function currently behaves as if the KEEP_CONFIG selection flag
-+ * was always set.
-+ *
-+ * Return 0 on success or a negative error code otherwise.
-+ */
-+static int resizer_set_selection(struct v4l2_subdev *sd,
-+				 struct v4l2_subdev_fh *fh,
-+				 struct v4l2_subdev_selection *sel)
- {
- 	struct isp_res_device *res = v4l2_get_subdevdata(sd);
- 	struct isp_device *isp = to_isp_device(res);
- 	struct v4l2_mbus_framefmt *format_sink, *format_source;
- 	struct resizer_ratio ratio;
- 
--	/* Only sink pad has crop capability */
--	if (crop->pad != RESZ_PAD_SINK)
-+	if (sel->target != V4L2_SUBDEV_SEL_TGT_CROP_ACTUAL ||
-+	    sel->pad != RESZ_PAD_SINK)
- 		return -EINVAL;
- 
- 	format_sink = __resizer_get_format(res, fh, RESZ_PAD_SINK,
--					   crop->which);
-+					   sel->which);
- 	format_source = __resizer_get_format(res, fh, RESZ_PAD_SOURCE,
--					     crop->which);
-+					     sel->which);
- 
- 	dev_dbg(isp->dev, "%s: L=%d,T=%d,W=%d,H=%d,which=%d\n", __func__,
--		crop->rect.left, crop->rect.top, crop->rect.width,
--		crop->rect.height, crop->which);
-+		sel->r.left, sel->r.top, sel->r.width, sel->r.height,
-+		sel->which);
- 
- 	dev_dbg(isp->dev, "%s: input=%dx%d, output=%dx%d\n", __func__,
- 		format_sink->width, format_sink->height,
- 		format_source->width, format_source->height);
- 
--	resizer_try_crop(format_sink, format_source, &crop->rect);
--	*__resizer_get_crop(res, fh, crop->which) = crop->rect;
--	resizer_calc_ratios(res, &crop->rect, format_source, &ratio);
-+	/* Clamp the crop rectangle to the bounds, and then mangle it further to
-+	 * fulfill the TRM equations. Store the clamped but otherwise unmangled
-+	 * rectangle to avoid cropping the input multiple times: when an
-+	 * application sets the output format, the current crop rectangle is
-+	 * mangled during crop rectangle computation, which would lead to a new,
-+	 * smaller input crop rectangle every time the output size is set if we
-+	 * stored the mangled rectangle.
-+	 */
-+	resizer_try_crop(format_sink, format_source, &sel->r);
-+	*__resizer_get_crop(res, fh, sel->which) = sel->r;
-+	resizer_calc_ratios(res, &sel->r, format_source, &ratio);
- 
--	if (crop->which == V4L2_SUBDEV_FORMAT_TRY)
-+	if (sel->which == V4L2_SUBDEV_FORMAT_TRY)
- 		return 0;
- 
- 	res->ratio = ratio;
--	res->crop.active = crop->rect;
-+	res->crop.active = sel->r;
- 
- 	/*
--	 * s_crop can be called while streaming is on. In this case
--	 * the crop values will be set in the next IRQ.
-+	 * set_selection can be called while streaming is on. In this case the
-+	 * crop values will be set in the next IRQ.
- 	 */
- 	if (res->state != ISP_PIPELINE_STREAM_STOPPED)
- 		res->applycrop = 1;
-@@ -1530,8 +1568,8 @@ static const struct v4l2_subdev_pad_ops resizer_v4l2_pad_ops = {
- 	.enum_frame_size = resizer_enum_frame_size,
- 	.get_fmt = resizer_get_format,
- 	.set_fmt = resizer_set_format,
--	.get_crop = resizer_g_crop,
--	.set_crop = resizer_s_crop,
-+	.get_selection = resizer_get_selection,
-+	.set_selection = resizer_set_selection,
- };
- 
- /* subdev operations */
--- 
-1.7.3.4
+> Now, I'm not an expert on TV (I am an electronics engineer thou) so I
+> am having some trouble trying to put together what I read in the
+> TDA9887 datasheet and the reference you sent.
+
+Here's a datasheet for the LG TAPE-H091F tuner (M/N using a TDA9887):
+http://dl.ivtvdriver.org/datasheets/tuners/TAPE-H091F_MK3.pdf
+Look at the block diagram on page 26.  This design is very typical of
+analog tuner assemblies.
+
+The IF SAW filter is fixed.  I could program the mixer/oscialltor chip
+and the TDA9887 IF decoder chip so the Video IF in use was 38.90 MHz,
+and probably get a viewable TV picture.  That doesn't mean using 38.90
+MHz is right, if the IF SAW filter is fixed and centered at 45.75 MHz.
+
+
+>  The thing with PAL-Nc is
+> that it has a video bandwidth of 4.2MHz not 5.0MHz (page 51) and the
+> attenuation of color difference signals for >20dB is at 3.6MHz instead
+> of 4MHz (page 54). You can just search for "Argentina" inside the
+> document.
+> 
+
+Yes, that's fine.
+
+The Video IF is what I am concerned about.  Your change could break
+other tuners and/or the linux tuner-simple.ko module is programming
+some(?) tuners wrong for PAL-N and PAL-Nc
+
+By the way, this document describes PAL Combination N (-Nc) as a
+difference from PAL-N:
+ITU-R BT.470-6
+http://www.itu.int/dms_pubrec/itu-r/rec/bt/R-REC-BT.470-6-199811-S!!PDF-E.pdf
+
+
+Argentine Law 21.895, October 1978, wasn't much help in describing the
+technical aspects of PAL-Nc:
+http://www.infojus.gov.ar/index.php?kk_seccion=documento&registro=LEYNAC&docid=LEY%2520C%2520021895%25201978%252010%252030
+
+
+> So, this works... but now I'm not sure why.
+
+Likely the tuner-simple.ko module is programming the mixer oscillator
+component for the 38.90 MHz IF.  That may be right or wrong, depending
+on you exact tuner model.
+
+Again, what exact tuner assembly are you using?
+
+>  I guess cVideoIF_38_90 is
+> compensating for the bandwidth difference. I need to study this.
+
+Nope.  It is just matching how the tuner-simple.ko module programmed the
+mixer/oscillator chip.
+
+Regards,
+Andy
+
+> Gonzalo
+> 
+> >
+> >>
+> >> diff --git a/drivers/media/common/tuners/tda9887.c b/drivers/media/common/tuners/tda9887.c
+> >> index cdb645d..b560b5d 100644
+> >> --- a/drivers/media/common/tuners/tda9887.c
+> >> +++ b/drivers/media/common/tuners/tda9887.c
+> >> @@ -168,8 +168,8 @@ static struct tvnorm tvnorms[] = {
+> >>                          cAudioIF_6_5   |
+> >>                          cVideoIF_38_90 ),
+> >>       },{
+> >> -             .std   = V4L2_STD_PAL_M | V4L2_STD_PAL_Nc,
+> >> -             .name  = "PAL-M/Nc",
+> >> +             .std   = V4L2_STD_PAL_M,
+> >> +             .name  = "PAL-M",
+> >>               .b     = ( cNegativeFmTV  |
+> >>                          cQSS           ),
+> >>               .c     = ( cDeemphasisON  |
+> >> @@ -179,6 +179,17 @@ static struct tvnorm tvnorms[] = {
+> >>                          cAudioIF_4_5   |
+> >>                          cVideoIF_45_75 ),
+> >>       },{
+> >> +             .std   = V4L2_STD_PAL_Nc,
+> >> +             .name  = "PAL-Nc",
+> >> +             .b     = ( cNegativeFmTV  |
+> >> +                        cQSS           ),
+> >> +             .c     = ( cDeemphasisON  |
+> >> +                        cDeemphasis75  |
+> >> +                        cTopDefault),
+> >> +             .e     = ( cGating_36     |
+> >> +                        cAudioIF_4_5   |
+> >> +                        cVideoIF_38_90 ),
+> >> +     },{
+> >>               .std   = V4L2_STD_SECAM_B | V4L2_STD_SECAM_G | V4L2_STD_SECAM_H,
+> >>               .name  = "SECAM-BGH",
+> >>               .b     = ( cNegativeFmTV  |
+> >> --
+> >> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> >> the body of a message to majordomo@vger.kernel.org
+> >> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >
+> >
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
 
