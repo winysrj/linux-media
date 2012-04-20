@@ -1,15 +1,12 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:51051 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756520Ab2DTOpn (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:8677 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756912Ab2DTOpn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
 	Fri, 20 Apr 2012 10:45:43 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Date: Fri, 20 Apr 2012 16:45:30 +0200
+Date: Fri, 20 Apr 2012 16:45:25 +0200
 From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: [PATCHv5 09/13] v4l: vb2: add prepare/finish callbacks to allocators
+Subject: [PATCHv5 04/13] v4l: vb: remove warnings about MEMORY_DMABUF
 In-reply-to: <1334933134-4688-1-git-send-email-t.stanislaws@samsung.com>
 To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
 Cc: airlied@redhat.com, m.szyprowski@samsung.com,
@@ -20,87 +17,47 @@ Cc: airlied@redhat.com, m.szyprowski@samsung.com,
 	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
 	mchehab@redhat.com, linux-doc@vger.kernel.org,
 	g.liakhovetski@gmx.de
-Message-id: <1334933134-4688-10-git-send-email-t.stanislaws@samsung.com>
+Message-id: <1334933134-4688-5-git-send-email-t.stanislaws@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
 References: <1334933134-4688-1-git-send-email-t.stanislaws@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Marek Szyprowski <m.szyprowski@samsung.com>
+From: Sumit Semwal <sumit.semwal@ti.com>
 
-This patch adds support for prepare/finish callbacks in VB2 allocators. These
-callback are used for buffer flushing.
+Adding DMABUF memory type causes videobuf to complain about not using it
+in some switch cases. This patch removes these warnings.
 
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Signed-off-by: Sumit Semwal <sumit.semwal@ti.com>
 Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/video/videobuf2-core.c |   11 +++++++++++
- include/media/videobuf2-core.h       |    7 +++++++
- 2 files changed, 18 insertions(+), 0 deletions(-)
+ drivers/media/video/videobuf-core.c |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/media/video/videobuf2-core.c b/drivers/media/video/videobuf2-core.c
-index d26b1cc..b431dc6 100644
---- a/drivers/media/video/videobuf2-core.c
-+++ b/drivers/media/video/videobuf2-core.c
-@@ -842,6 +842,7 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
- {
- 	struct vb2_queue *q = vb->vb2_queue;
- 	unsigned long flags;
-+	unsigned int plane;
+diff --git a/drivers/media/video/videobuf-core.c b/drivers/media/video/videobuf-core.c
+index de4fa4e..b457c8b 100644
+--- a/drivers/media/video/videobuf-core.c
++++ b/drivers/media/video/videobuf-core.c
+@@ -335,6 +335,9 @@ static void videobuf_status(struct videobuf_queue *q, struct v4l2_buffer *b,
+ 	case V4L2_MEMORY_OVERLAY:
+ 		b->m.offset  = vb->boff;
+ 		break;
++	case V4L2_MEMORY_DMABUF:
++		/* DMABUF is not handled in videobuf framework */
++		break;
+ 	}
  
- 	if (vb->state != VB2_BUF_STATE_ACTIVE)
- 		return;
-@@ -852,6 +853,10 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
- 	dprintk(4, "Done processing on buffer %d, state: %d\n",
- 			vb->v4l2_buf.index, vb->state);
- 
-+	/* sync buffers */
-+	for (plane = 0; plane < vb->num_planes; ++plane)
-+		call_memop(q, finish, vb->planes[plane].mem_priv);
-+
- 	/* Add the buffer to the done buffers list */
- 	spin_lock_irqsave(&q->done_lock, flags);
- 	vb->state = state;
-@@ -1134,9 +1139,15 @@ err:
- static void __enqueue_in_driver(struct vb2_buffer *vb)
- {
- 	struct vb2_queue *q = vb->vb2_queue;
-+	unsigned int plane;
- 
- 	vb->state = VB2_BUF_STATE_ACTIVE;
- 	atomic_inc(&q->queued_count);
-+
-+	/* sync buffers */
-+	for (plane = 0; plane < vb->num_planes; ++plane)
-+		call_memop(q, prepare, vb->planes[plane].mem_priv);
-+
- 	q->ops->buf_queue(vb);
- }
- 
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index 859bbaf..d079f92 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -56,6 +56,10 @@ struct vb2_fileio_data;
-  *		dmabuf
-  * @unmap_dmabuf: releases access control to the dmabuf - allocator is notified
-  *		  that this driver is done using the dmabuf for now
-+ * @prepare:	called everytime the buffer is passed from userspace to the
-+ *		driver, usefull for cache synchronisation, optional
-+ * @finish:	called everytime the buffer is passed back from the driver
-+ *		to the userspace, also optional
-  * @vaddr:	return a kernel virtual address to a given memory buffer
-  *		associated with the passed private structure or NULL if no
-  *		such mapping exists
-@@ -82,6 +86,9 @@ struct vb2_mem_ops {
- 					unsigned long size, int write);
- 	void		(*put_userptr)(void *buf_priv);
- 
-+	void		(*prepare)(void *buf_priv);
-+	void		(*finish)(void *buf_priv);
-+
- 	void		*(*attach_dmabuf)(void *alloc_ctx, struct dma_buf *dbuf,
- 				unsigned long size, int write);
- 	void		(*detach_dmabuf)(void *buf_priv);
+ 	b->flags    = 0;
+@@ -411,6 +414,7 @@ int __videobuf_mmap_setup(struct videobuf_queue *q,
+ 			break;
+ 		case V4L2_MEMORY_USERPTR:
+ 		case V4L2_MEMORY_OVERLAY:
++		case V4L2_MEMORY_DMABUF:
+ 			/* nothing */
+ 			break;
+ 		}
 -- 
 1.7.5.4
 
