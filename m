@@ -1,44 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:34845 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754361Ab2DXJHy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Apr 2012 05:07:54 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 3/4] omap3isp: ccdc: Add crop support on output formatter source pad
-Date: Tue, 24 Apr 2012 11:08:12 +0200
-Message-ID: <14838654.TrzCLImese@avalon>
-In-Reply-To: <4F95D64A.10505@iki.fi>
-References: <1335180595-27931-1-git-send-email-laurent.pinchart@ideasonboard.com> <1335180595-27931-4-git-send-email-laurent.pinchart@ideasonboard.com> <4F95D64A.10505@iki.fi>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from smtp206.alice.it ([82.57.200.102]:35202 "EHLO smtp206.alice.it"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932197Ab2DTPTh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 20 Apr 2012 11:19:37 -0400
+From: Antonio Ospite <ospite@studenti.unina.it>
+To: linux-media@vger.kernel.org
+Cc: Antonio Ospite <ospite@studenti.unina.it>,
+	Jean-Francois Moine <moinejf@free.fr>,
+	=?UTF-8?q?Erik=20Andr=C3=A9n?= <erik.andren@gmail.com>
+Subject: [RFC PATCH 0/3] gspca: Implement VIDIOC_G_EXT_CTRLS and VIDIOC_S_EXT_CTRLS 
+Date: Fri, 20 Apr 2012 17:19:08 +0200
+Message-Id: <1334935152-16165-1-git-send-email-ospite@studenti.unina.it>
+In-Reply-To: <20120418153720.1359c7d2f2a3efc2c7c17b88@studenti.unina.it>
+References: <20120418153720.1359c7d2f2a3efc2c7c17b88@studenti.unina.it>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Hi,
 
-On Tuesday 24 April 2012 01:23:06 Sakari Ailus wrote:
-> Hi Laurent,
-> 
-> The patch looks good as such on the first glance, but I have another
-> question: why are you not using the selections API instead? It's in
-> Mauro's tree already.
+this is a first attempt at implementing VIDIOC_G_EXT_CTRLS and
+VIDIOC_S_EXT_CTRLS, these ioclt are needed in order to make controls of
+type different than V4L2_CTRL_CLASS_USER work in gspca.
 
-You're totally right, we need to convert the selection API. The reason why 
-I've implemented crop support at the CCDC output was simply that I needed it 
-for a project and didn't have time to implement the selection API. As the code 
-works, I considered it would be good to have it upstream until we switch to 
-the selection API.
+An example of such a control is V4L2_CID_EXPOSURE_AUTO which a couple of gspca
+subdrivers define but which can't be controlled from v4l2 userspace apps right
+now.
 
-> Also, the old S_CROP IOCTL only has been defined for sink pads, not source.
+Let me know what do you think and if you have any suggestion. If needed I will
+add VIDIOC_TRY_EXT_CTRLS too.
 
-We're already using crop on source pads on sensors ;-)
+Thanks,
+   Antonio
+
+Antonio Ospite (3):
+  [media] gspca - main: rename get_ctrl to get_ctrl_index
+  [media] gspca - main: factor out the logic to set and get controls
+  [media] gspca - main: implement vidioc_g_ext_ctrls and
+    vidioc_s_ext_ctrls
+
+ drivers/media/video/gspca/gspca.c |  184 ++++++++++++++++++++++++-------------
+ 1 file changed, 119 insertions(+), 65 deletions(-)
 
 -- 
-Regards,
+Antonio Ospite
+http://ao2.it
 
-Laurent Pinchart
-
+A: Because it messes up the order in which people normally read text.
+   See http://en.wikipedia.org/wiki/Posting_style
+Q: Why is top-posting such a bad thing?
