@@ -1,125 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:38084 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752967Ab2DWWSR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Apr 2012 18:18:17 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 09/10] uvcvideo: Send control change events for slave ctrls when the master changes
-Date: Tue, 24 Apr 2012 00:18:34 +0200
-Message-ID: <25679814.sufWEMM1Zo@avalon>
-In-Reply-To: <1333900794-1932-10-git-send-email-hdegoede@redhat.com>
-References: <1333900794-1932-1-git-send-email-hdegoede@redhat.com> <1333900794-1932-10-git-send-email-hdegoede@redhat.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from smtp209.alice.it ([82.57.200.105]:40422 "EHLO smtp209.alice.it"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932197Ab2DTPTj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 20 Apr 2012 11:19:39 -0400
+From: Antonio Ospite <ospite@studenti.unina.it>
+To: linux-media@vger.kernel.org
+Cc: Antonio Ospite <ospite@studenti.unina.it>,
+	Jean-Francois Moine <moinejf@free.fr>,
+	=?UTF-8?q?Erik=20Andr=C3=A9n?= <erik.andren@gmail.com>
+Subject: [RFC PATCH 1/3] [media] gspca - main: rename get_ctrl to get_ctrl_index
+Date: Fri, 20 Apr 2012 17:19:09 +0200
+Message-Id: <1334935152-16165-2-git-send-email-ospite@studenti.unina.it>
+In-Reply-To: <1334935152-16165-1-git-send-email-ospite@studenti.unina.it>
+References: <20120418153720.1359c7d2f2a3efc2c7c17b88@studenti.unina.it>
+ <1334935152-16165-1-git-send-email-ospite@studenti.unina.it>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+This reflects better what the function does and is also in preparation
+of a refactoring of setting and getting controls.
 
-Thanks for the patch.
+Signed-off-by: Antonio Ospite <ospite@studenti.unina.it>
+---
+ drivers/media/video/gspca/gspca.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-On Sunday 08 April 2012 17:59:53 Hans de Goede wrote:
-> This allows v4l2 control UI-s to update the inactive state (ie grey-ing
-> out of controls) for slave controls when the master control changes.
-> 
-> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-> ---
->  drivers/media/video/uvc/uvc_ctrl.c |   57 +++++++++++++++++++++++++++++++--
->  1 file changed, 54 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/media/video/uvc/uvc_ctrl.c
-> b/drivers/media/video/uvc/uvc_ctrl.c index 75a4995..38d633a 100644
-> --- a/drivers/media/video/uvc/uvc_ctrl.c
-> +++ b/drivers/media/video/uvc/uvc_ctrl.c
-> @@ -1177,21 +1177,72 @@ static void uvc_ctrl_send_event(struct uvc_fh
-> *handle,
-> 
->  	list_for_each_entry(sev, &mapping->ev_subs, node)
->  		if (sev->fh && (sev->fh != &handle->vfh ||
-> -		    (sev->flags & V4L2_EVENT_SUB_FL_ALLOW_FEEDBACK)))
-> +		    (sev->flags & V4L2_EVENT_SUB_FL_ALLOW_FEEDBACK) ||
-> +		    (changes & V4L2_EVENT_CTRL_CH_FLAGS)))
->  			v4l2_event_queue_fh(sev->fh, &ev);
->  }
-> 
-> -static void uvc_ctrl_send_events(struct uvc_fh *handle,
-> +static void uvc_ctrl_send_slave_event(struct uvc_fh *handle, u32 slave_id,
->  	const struct v4l2_ext_control *xctrls, unsigned int xctrls_count)
->  {
->  	struct uvc_control_mapping *mapping;
->  	struct uvc_control *ctrl;
-> +	u32 changes = V4L2_EVENT_CTRL_CH_FLAGS;
-> +	s32 val = 0;
->  	unsigned int i;
-> 
-> +	/*
-> +	 * We can skip sending an event for the slave if the slave
-> +	 * is being modified in the same transaction.
-> +	 */
-> +	for (i = 0; i < xctrls_count; i++)
-> +		if (xctrls[i].id == slave_id)
-> +			return;
-> +
-> +	ctrl = uvc_find_control(handle->chain, slave_id, &mapping);
-
-As an optimization, what do you think about calling __uvc_find_control() 
-instead (with the master control being passed as an argument to 
-uvc_ctrl_send_slave_event() to get the entity) ? There's no need to resubmit, 
-I can modify the patch myself.
-
-> +	if (ctrl == NULL)
-> +		return;
-> +
-> +	if (__uvc_ctrl_get(handle->chain, ctrl, mapping, &val) == 0)
-> +		changes |= V4L2_EVENT_CTRL_CH_VALUE;
-> +
-> +	uvc_ctrl_send_event(handle, ctrl, mapping, val, changes);
-> +}
-> +
-> +static void uvc_ctrl_send_events(struct uvc_fh *handle,
-> +	const struct v4l2_ext_control *xctrls, unsigned int xctrls_count)
-> +{
-> +	struct uvc_control_mapping *mapping;
-> +	struct uvc_control *ctrl;
-> +	u32 changes = V4L2_EVENT_CTRL_CH_VALUE;
-> +	unsigned int i, j;
-> +
->  	for (i = 0; i < xctrls_count; ++i) {
->  		ctrl = uvc_find_control(handle->chain, xctrls[i].id, &mapping);
-> +
-> +		for (j = 0; j < ARRAY_SIZE(mapping->slave_ids); ++j) {
-> +			if (!mapping->slave_ids[j])
-> +				break;
-> +			uvc_ctrl_send_slave_event(handle,
-> +						  mapping->slave_ids[j],
-> +						  xctrls, xctrls_count);
-> +		}
-> +
-> +		/*
-> +		 * If the master is being modified in the same transaction
-> +		 * flags may change too.
-> +		 */
-> +		if (mapping->master_id) {
-> +			for (j = 0; j < xctrls_count; j++) {
-> +				if (xctrls[j].id == mapping->master_id) {
-> +					changes |= V4L2_EVENT_CTRL_CH_FLAGS;
-> +					break;
-> +				}
-> +			}
-> +		}
-> +
->  		uvc_ctrl_send_event(handle, ctrl, mapping, xctrls[i].value,
-> -				    V4L2_EVENT_CTRL_CH_VALUE);
-> +				    changes);
->  	}
->  }
-
+diff --git a/drivers/media/video/gspca/gspca.c b/drivers/media/video/gspca/gspca.c
+index ca5a2b1..bc9d037 100644
+--- a/drivers/media/video/gspca/gspca.c
++++ b/drivers/media/video/gspca/gspca.c
+@@ -1415,7 +1415,7 @@ out:
+ 	return ret;
+ }
+ 
+-static int get_ctrl(struct gspca_dev *gspca_dev,
++static int get_ctrl_index(struct gspca_dev *gspca_dev,
+ 				   int id)
+ {
+ 	const struct ctrl *ctrls;
+@@ -1458,7 +1458,7 @@ static int vidioc_queryctrl(struct file *file, void *priv,
+ 			idx = i;
+ 		}
+ 	} else {
+-		idx = get_ctrl(gspca_dev, id);
++		idx = get_ctrl_index(gspca_dev, id);
+ 	}
+ 	if (idx < 0)
+ 		return -EINVAL;
+@@ -1483,7 +1483,7 @@ static int vidioc_s_ctrl(struct file *file, void *priv,
+ 	struct gspca_ctrl *gspca_ctrl;
+ 	int idx, ret;
+ 
+-	idx = get_ctrl(gspca_dev, ctrl->id);
++	idx = get_ctrl_index(gspca_dev, ctrl->id);
+ 	if (idx < 0)
+ 		return -EINVAL;
+ 	if (gspca_dev->ctrl_inac & (1 << idx))
+@@ -1531,7 +1531,7 @@ static int vidioc_g_ctrl(struct file *file, void *priv,
+ 	const struct ctrl *ctrls;
+ 	int idx, ret;
+ 
+-	idx = get_ctrl(gspca_dev, ctrl->id);
++	idx = get_ctrl_index(gspca_dev, ctrl->id);
+ 	if (idx < 0)
+ 		return -EINVAL;
+ 	ctrls = &gspca_dev->sd_desc->ctrls[idx];
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.10
 
