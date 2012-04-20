@@ -1,94 +1,203 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ims-d13.mx.aol.com ([205.188.249.150]:49823 "EHLO
-	ims-d13.mx.aol.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754121Ab2DSPNV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Apr 2012 11:13:21 -0400
-Message-Id: <201204191513.q3JFDIlN014318@ims-d13.mx.aol.com>
-Reply-To: <peterolu204gh@yahoo.it>
-From: "Gen. Peter Olu" <Bkersner@aol.com>
-Subject: DIPLOMATIC PAYMENT OPEN ATTACHED FOR MORE INFO
-Date: Thu, 19 Apr 2012 16:09:48 +0100
-MIME-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="----=_NextPart_000_003E_01C2A9A6.4A86A688"
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from smtp209.alice.it ([82.57.200.105]:40423 "EHLO smtp209.alice.it"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932470Ab2DTPTj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 20 Apr 2012 11:19:39 -0400
+From: Antonio Ospite <ospite@studenti.unina.it>
+To: linux-media@vger.kernel.org
+Cc: Antonio Ospite <ospite@studenti.unina.it>,
+	Jean-Francois Moine <moinejf@free.fr>,
+	=?UTF-8?q?Erik=20Andr=C3=A9n?= <erik.andren@gmail.com>
+Subject: [RFC PATCH 2/3] [media] gspca - main: factor out the logic to set and get controls
+Date: Fri, 20 Apr 2012 17:19:10 +0200
+Message-Id: <1334935152-16165-3-git-send-email-ospite@studenti.unina.it>
+In-Reply-To: <1334935152-16165-1-git-send-email-ospite@studenti.unina.it>
+References: <20120418153720.1359c7d2f2a3efc2c7c17b88@studenti.unina.it>
+ <1334935152-16165-1-git-send-email-ospite@studenti.unina.it>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
+Factor out the logic to set and get controls from vidioc_s_ctrl()
+and vidioc_g_ctrl() so that the code can be reused in the coming
+implementation of vidioc_s_ext_ctrls() and vidioc_g_ext_ctrls().
 
-------=_NextPart_000_003E_01C2A9A6.4A86A688
-Content-Type: text/plain;
-	charset="Windows-1251"
-Content-Transfer-Encoding: 7bit
+Signed-off-by: Antonio Ospite <ospite@studenti.unina.it>
+---
+ drivers/media/video/gspca/gspca.c |  148 ++++++++++++++++++++-----------------
+ 1 file changed, 80 insertions(+), 68 deletions(-)
 
+diff --git a/drivers/media/video/gspca/gspca.c b/drivers/media/video/gspca/gspca.c
+index bc9d037..ba1bda9 100644
+--- a/drivers/media/video/gspca/gspca.c
++++ b/drivers/media/video/gspca/gspca.c
+@@ -1432,6 +1432,84 @@ static int get_ctrl_index(struct gspca_dev *gspca_dev,
+ 	return -1;
+ }
+ 
++static int gspca_set_ctrl(struct gspca_dev *gspca_dev,
++			  __u32 id, __s32 value)
++{
++	const struct ctrl *ctrls;
++	struct gspca_ctrl *gspca_ctrl;
++	int idx, ret;
++
++	idx = get_ctrl_index(gspca_dev, id);
++	if (idx < 0)
++		return -EINVAL;
++	if (gspca_dev->ctrl_inac & (1 << idx))
++		return -EINVAL;
++	ctrls = &gspca_dev->sd_desc->ctrls[idx];
++	if (gspca_dev->cam.ctrls != NULL) {
++		gspca_ctrl = &gspca_dev->cam.ctrls[idx];
++		if (value < gspca_ctrl->min
++		    || value > gspca_ctrl->max)
++			return -ERANGE;
++	} else {
++		gspca_ctrl = NULL;
++		if (value < ctrls->qctrl.minimum
++		    || value > ctrls->qctrl.maximum)
++			return -ERANGE;
++	}
++	PDEBUG(D_CONF, "set ctrl [%08x] = %d", id, value);
++	if (mutex_lock_interruptible(&gspca_dev->usb_lock))
++		return -ERESTARTSYS;
++	if (!gspca_dev->present) {
++		ret = -ENODEV;
++		goto out;
++	}
++	gspca_dev->usb_err = 0;
++	if (ctrls->set != NULL) {
++		ret = ctrls->set(gspca_dev, value);
++		goto out;
++	}
++	if (gspca_ctrl != NULL) {
++		gspca_ctrl->val = value;
++		if (ctrls->set_control != NULL
++		 && gspca_dev->streaming)
++			ctrls->set_control(gspca_dev);
++	}
++	ret = gspca_dev->usb_err;
++out:
++	mutex_unlock(&gspca_dev->usb_lock);
++	return ret;
++}
++
++static int gspca_get_ctrl(struct gspca_dev *gspca_dev,
++			  __u32 id, __s32 *value)
++{
++	const struct ctrl *ctrls;
++	int idx, ret;
++
++	idx = get_ctrl_index(gspca_dev, id);
++	if (idx < 0)
++		return -EINVAL;
++	ctrls = &gspca_dev->sd_desc->ctrls[idx];
++
++	if (mutex_lock_interruptible(&gspca_dev->usb_lock))
++		return -ERESTARTSYS;
++	if (!gspca_dev->present) {
++		ret = -ENODEV;
++		goto out;
++	}
++	gspca_dev->usb_err = 0;
++	if (ctrls->get != NULL) {
++		ret = ctrls->get(gspca_dev, value);
++		goto out;
++	}
++	if (gspca_dev->cam.ctrls != NULL)
++		*value = gspca_dev->cam.ctrls[idx].val;
++	ret = 0;
++out:
++	mutex_unlock(&gspca_dev->usb_lock);
++	return ret;
++}
++
+ static int vidioc_queryctrl(struct file *file, void *priv,
+ 			   struct v4l2_queryctrl *q_ctrl)
+ {
+@@ -1479,80 +1557,14 @@ static int vidioc_s_ctrl(struct file *file, void *priv,
+ 			 struct v4l2_control *ctrl)
+ {
+ 	struct gspca_dev *gspca_dev = priv;
+-	const struct ctrl *ctrls;
+-	struct gspca_ctrl *gspca_ctrl;
+-	int idx, ret;
+-
+-	idx = get_ctrl_index(gspca_dev, ctrl->id);
+-	if (idx < 0)
+-		return -EINVAL;
+-	if (gspca_dev->ctrl_inac & (1 << idx))
+-		return -EINVAL;
+-	ctrls = &gspca_dev->sd_desc->ctrls[idx];
+-	if (gspca_dev->cam.ctrls != NULL) {
+-		gspca_ctrl = &gspca_dev->cam.ctrls[idx];
+-		if (ctrl->value < gspca_ctrl->min
+-		    || ctrl->value > gspca_ctrl->max)
+-			return -ERANGE;
+-	} else {
+-		gspca_ctrl = NULL;
+-		if (ctrl->value < ctrls->qctrl.minimum
+-		    || ctrl->value > ctrls->qctrl.maximum)
+-			return -ERANGE;
+-	}
+-	PDEBUG(D_CONF, "set ctrl [%08x] = %d", ctrl->id, ctrl->value);
+-	if (mutex_lock_interruptible(&gspca_dev->usb_lock))
+-		return -ERESTARTSYS;
+-	if (!gspca_dev->present) {
+-		ret = -ENODEV;
+-		goto out;
+-	}
+-	gspca_dev->usb_err = 0;
+-	if (ctrls->set != NULL) {
+-		ret = ctrls->set(gspca_dev, ctrl->value);
+-		goto out;
+-	}
+-	if (gspca_ctrl != NULL) {
+-		gspca_ctrl->val = ctrl->value;
+-		if (ctrls->set_control != NULL
+-		 && gspca_dev->streaming)
+-			ctrls->set_control(gspca_dev);
+-	}
+-	ret = gspca_dev->usb_err;
+-out:
+-	mutex_unlock(&gspca_dev->usb_lock);
+-	return ret;
++	return gspca_set_ctrl(gspca_dev, ctrl->id, ctrl->value);
+ }
+ 
+ static int vidioc_g_ctrl(struct file *file, void *priv,
+ 			 struct v4l2_control *ctrl)
+ {
+ 	struct gspca_dev *gspca_dev = priv;
+-	const struct ctrl *ctrls;
+-	int idx, ret;
+-
+-	idx = get_ctrl_index(gspca_dev, ctrl->id);
+-	if (idx < 0)
+-		return -EINVAL;
+-	ctrls = &gspca_dev->sd_desc->ctrls[idx];
+-
+-	if (mutex_lock_interruptible(&gspca_dev->usb_lock))
+-		return -ERESTARTSYS;
+-	if (!gspca_dev->present) {
+-		ret = -ENODEV;
+-		goto out;
+-	}
+-	gspca_dev->usb_err = 0;
+-	if (ctrls->get != NULL) {
+-		ret = ctrls->get(gspca_dev, &ctrl->value);
+-		goto out;
+-	}
+-	if (gspca_dev->cam.ctrls != NULL)
+-		ctrl->value = gspca_dev->cam.ctrls[idx].val;
+-	ret = 0;
+-out:
+-	mutex_unlock(&gspca_dev->usb_lock);
+-	return ret;
++	return gspca_get_ctrl(gspca_dev, ctrl->id, &ctrl->value);
+ }
+ 
+ static int vidioc_querymenu(struct file *file, void *priv,
+-- 
+1.7.10
 
-------=_NextPart_000_003E_01C2A9A6.4A86A688
-Content-Type: application/octet-stream;
-	name="Letter From Gen. Peter Olu.txt"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment;
-	filename="Letter From Gen. Peter Olu.txt"
-
-T0ZGSUNFIE9GIFRIRSBOQVRJT05BTCBTRUNVUklUWSBBRFZJU0VSIA0KVE8g
-VEhFIFBSRVNJREVOVCBGRURFUkFMIFJFUFVCTElDIE9GIE5JR0VSSUEgDQpH
-RVQgQkFDSyBUTyBNRSBBVCBZT1VSIEVBUkxJRVNUIENPTlZJTklFTkNFIA0K
-DQpBdHRlbnRpb24sIA0KDQpJIGFtIEx0LiBHZW4uIFBldGVyIE9sdSwgTmF0
-aW9uYWwgU2VjdXJpdHkgQWR2aXNlciB0byB0aGUgTmV3IFByZXNpZGVudCBE
-ciBHb29kbHVjayBFLiBKb25hdGhhbiBGZWRlcmFsIFJlcHVibGljIG9mIE5p
-Z2VyaWEuIEkgZGVjaWRlZCB0byBjb250YWN0IHlvdSBiZWNhdXNlIG9mIHRo
-ZSBwcmV2YWlsaW5nIHNlY3VyaXR5IHJlcG9ydCByZWFjaGluZyBteSBvZmZp
-Y2UgYW5kIHRoZSBpbnRlbnNlIG5hdHVyZSBvZiBwb2xpY3kgaW4gTmlnZXJp
-YS4gVGhpcyBpcyB0byBpbmZvcm0geW91IGFib3V0IG91ciBwbGFuIHRvIHNl
-bmQgeW91ciBmdW5kIHRvIHlvdSB2aWEgY2FzaCBkZWxpdmVyeS4gVGhpcyBz
-eXN0ZW0gd2lsbCBiZSBlYXNpZXIgZm9yIHlvdSBhbmQgZm9yIHVzLiBXZSBh
-cmUgZ29pbmcgdG8gc2VuZCB5b3VyIGNvbnRyYWN0IHBhcnQgcGF5bWVudCBv
-ZiBVUzEwLjEgTWlsbGlvbiB0byB5b3UgdmlhIGRpcGxvbWF0aWMgY291cmll
-ciBzZXJ2aWNlLiANCg0KTm90ZTogVGhlIG1vbmV5IGlzIGNvbWluZyBvbiB0
-d28gc2VjdXJpdHkgcHJvb2YgYm94ZXMuIFRoZSBib3hlcyBhcmUgc2VhbGVk
-IHdpdGggc3ludGhldGljIG55bG9uIHNlYWwgYW5kIHBhZGRlZCB3aXRoIG1h
-Y2hpbmUuIFRoaXMgZnVuZCB3YXMgYnJvdWdodCB0byB1cyBmcm9tIEFtZXJp
-Y2E7IGl0IHdhcyBtZWFudCBmb3Igb3VyIExvY2FsIEFGRU0gbWFya2V0LiBC
-dXQgc2luY2UgdGhlIG1vbmV5IHdhcyBub3QgdXNlZCwgSSB3aWxsIHVzZSBt
-eSBwb3NpdGlvbiBhcyB0aGUgTmF0aW9uYWwgU2VjdXJpdHkgQWR2aXNlciB0
-byB0aGUgUHJlc2lkZW50IHRvIHNlbmQgdGhpcyBmdW5kIHRvIHlvdS4gDQoN
-ClRoZSBib3hlcyBhcmUgY29taW5nIHdpdGggYSBEaXBsb21hdGljIGFnZW50
-IHdobyB3aWxsIGFjY29tcGFueSB0aGUgYm94ZXMgdG8geW91ciBob3VzZSBh
-ZGRyZXNzLiBBbGwgeW91IG5lZWQgdG8gZG8gbm93IGlzIHRvIHNlbmQgdG8g
-bWUgDQoNCllvdXIgZnVsbCBuYW1lIA0KWW91ciBob3VzZSBhZGRyZXNzIA0K
-WW91ciBhZ2UgDQpZb3VyIG1hcml0YWwgc3RhdHVlIA0KWW91ciBpZGVudGl0
-eSBzdWNoIGFzLCBpbnRlcm5hdGlvbmFsIHBhc3Nwb3J0IG9yIGRyaXZlciBs
-aWNlbnNlIA0KWW91ciBjb250YWN0IHBob25lIGFuZCBmYXggbnVtYmVycywg
-DQoNClRoZSBEaXBsb21hdGljIGF0dGFjaGVkIHdpbGwgdHJhdmVsIHdpdGgg
-aXQuIEhlIHdpbGwgY2FsbCB5b3UgaW1tZWRpYXRlbHkgaGUgYXJyaXZlcyB5
-b3VyIGFpcnBvcnQuIEkgaG9wZSB5b3UgdW5kZXJzdGFuZCBtZS4gDQpJIHdp
-bGwgbGV0IHlvdSBrbm93IGJ5IHRoZSBzcGVjaWFsIGdyYWNlIG9mIEdvZCB3
-aGVuIHRoZSBib3hlcyBhcmUgYWlybGlmdGVkLiANCg0KTm90ZTogVGhlIGRp
-cGxvbWF0aWMgZG9lcyBub3Qga25vdyB0aGUgb3JpZ2luYWwgY29udGVudHMg
-b2YgdGhlIGJveGVzLiBXaGF0IGwgZGVjbGFyZWQgdG8gdGhlbSBhcyB0aGUg
-Y29udGVudHMgaXMgU2Vuc2l0aXZlIFBob3RvZ3JhcGhpYyBGaWxtIE1hdGVy
-aWFsLiBJIGRpZCBub3QgZGVjbGFyZSBtb25leSB0byB0aGVtIHBsZWFzZS4g
-SWYgdGhleSBjYWxsIHlvdSBhbmQgYXNrIHlvdSB0aGUgY29udGVudHMgcGxl
-YXNlIHRlbGwgdGhlbSB0aGUgc2FtZSB0aGluZyBPaywgSSB3aWxsIGxldCB5
-b3Uga25vdyBob3cgZmFyIEkgaGF2ZSBnb25lIHdpdGggdGhlIGFycmFuZ2Vt
-ZW50LiBJIHdpbGwgc2VjdXJlIHRoZSBEaXBsb21hdGljIGltbXVuaXR5IGNs
-ZWFyYW5jZSBjZXJ0aWZpY2F0ZSB0aGF0IHdpbGwgYmUgdGFnZ2VkIG9uIHRo
-ZSBib3hlcyB0byBtYWtlIGl0IHN0YW5kIGFzIGEgZGlwbG9tYXRpYyBjb25z
-aWdubWVudC4gDQoNClRoaXMgY2xlYXJhbmNlIHdpbGwgbWFrZSBpdCBwYXNz
-IGV2ZXJ5IGN1c3RvbSBjaGVja3BvaW50IGFsbCBvdmVyIHRoZSB3b3JsZCB3
-aXRob3V0IGhpdGNoLiBDb25maXJtIHRoZSByZWNlaXB0IG9mIHRoaXMgbWVz
-c2FnZSBhbmQgc2VuZCB0aGUgcmVxdWlyZW1lbnRzIHRvIG1lIGltbWVkaWF0
-ZWx5IHlvdSByZWNlaXZlIHRoaXMgbWVzc2FnZS4gSWYgeW91IG5lZWQgbW9y
-ZSBpbmZvcm1hdGlvbiBhYm91dCB0aGlzLCBJIHdpbGwgZ2l2ZSB5b3UgdGhl
-IGRldGFpbHMgaG93IHRvIGNvbnRhY3QgdGhlIGRpcGxvbWF0IGZvciBtb3Jl
-IGluZm9ybWF0aW9uIG9uIGhvdyB0byBjYXJyeSBvdXQgdGhlIHBsYW4uIA0K
-DQpJIG5lZWQgeW91IHJlc3BvbnNlIGJlY2F1c2UgdGhlIGJveGVzIGFyZSBz
-Y2hlZHVsZSB0byBsZWF2ZSBhcyBzb29uIGFzIHdlIGhlYXIgZnJvbSB5b3Uu
-IFJlcGx5IG1lIGltbWVkaWF0ZWx5IHlvdSByZWNlaXZlIHRoaXMgbWVzc2Fn
-ZSB2aWEgRW1haWwgKHBldGVyb2x1bzE5NjBAeWFob28uY28uanAgKSBDYWxs
-IG1lIG9uIG15IGRpcmVjdCBQSC9GQVg6ICgyMzQtNzA5MjYxMjkyMSkgDQoN
-CkJlc3QgUmVnYXJkcywgDQpMdC4gR2VuLiBQZXRlciBPbHUNCkRJUExPTUFU
-SUMgUEFZTUVOVCBPUEVOIEFUVEFDSEVEIEZPUiBNT1JFIElORk8NCg0K
-
-------=_NextPart_000_003E_01C2A9A6.4A86A688--
