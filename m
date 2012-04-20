@@ -1,38 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:4844 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753709Ab2D1PKF (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:51051 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756918Ab2DTOpo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 Apr 2012 11:10:05 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans de Goede <hdegoede@redhat.com>,
-	Jean-Francois Moine <moinejf@free.fr>
-Subject: [RFCv1 PATCH 0/7] gspca: allow use of control framework and other fixes
-Date: Sat, 28 Apr 2012 17:09:49 +0200
-Message-Id: <1335625796-9429-1-git-send-email-hverkuil@xs4all.nl>
+	Fri, 20 Apr 2012 10:45:44 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Date: Fri, 20 Apr 2012 16:45:31 +0200
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: [PATCHv5 10/13] v4l: vb2-dma-contig: add prepare/finish to dma-contig
+ allocator
+In-reply-to: <1334933134-4688-1-git-send-email-t.stanislaws@samsung.com>
+To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
+Cc: airlied@redhat.com, m.szyprowski@samsung.com,
+	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
+	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
+	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
+	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
+	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
+	mchehab@redhat.com, linux-doc@vger.kernel.org,
+	g.liakhovetski@gmx.de
+Message-id: <1334933134-4688-11-git-send-email-t.stanislaws@samsung.com>
+References: <1334933134-4688-1-git-send-email-t.stanislaws@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+From: Marek Szyprowski <m.szyprowski@samsung.com>
 
-Here is a patch series that makes it possible to use the control framework
-in gspca. The gspca core changes are very minor but as a bonus give you
-priority support as well.
+Add prepare/finish callbacks to vb2-dma-contig allocator.
 
-The hard work is in updating the subdrivers. I've done two, and I intend
-to do the stv06xx driver as well, but that's the last of my gspca webcams
-that I can test. Looking through the subdrivers I think that 50-70% are in
-the category 'easy to convert', the others will take a bit more time
-(autogain/gain type of constructs are always more complex than just a simple
-brightness control).
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+---
+ drivers/media/video/videobuf2-dma-contig.c |   24 ++++++++++++++++++++++++
+ 1 files changed, 24 insertions(+), 0 deletions(-)
 
-After applying this patch series the two converted drivers pass the
-v4l2-compliance test as it stands today.
-
-Comments? Questions?
-
-Regards.
-
-	Hans
+diff --git a/drivers/media/video/videobuf2-dma-contig.c b/drivers/media/video/videobuf2-dma-contig.c
+index 9cbc8d4..93f86a0 100644
+--- a/drivers/media/video/videobuf2-dma-contig.c
++++ b/drivers/media/video/videobuf2-dma-contig.c
+@@ -149,6 +149,28 @@ static unsigned int vb2_dc_num_users(void *buf_priv)
+ 	return atomic_read(&buf->refcount);
+ }
+ 
++static void vb2_dc_prepare(void *buf_priv)
++{
++	struct vb2_dc_buf *buf = buf_priv;
++	struct sg_table *sgt = buf->dma_sgt;
++
++	if (!sgt)
++		return;
++
++	dma_sync_sg_for_device(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
++}
++
++static void vb2_dc_finish(void *buf_priv)
++{
++	struct vb2_dc_buf *buf = buf_priv;
++	struct sg_table *sgt = buf->dma_sgt;
++
++	if (!sgt)
++		return;
++
++	dma_sync_sg_for_cpu(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
++}
++
+ /*********************************************/
+ /*        callbacks for MMAP buffers         */
+ /*********************************************/
+@@ -411,6 +433,8 @@ const struct vb2_mem_ops vb2_dma_contig_memops = {
+ 	.mmap		= vb2_dc_mmap,
+ 	.get_userptr	= vb2_dc_get_userptr,
+ 	.put_userptr	= vb2_dc_put_userptr,
++	.prepare	= vb2_dc_prepare,
++	.finish		= vb2_dc_finish,
+ 	.num_users	= vb2_dc_num_users,
+ };
+ EXPORT_SYMBOL_GPL(vb2_dma_contig_memops);
+-- 
+1.7.5.4
 
