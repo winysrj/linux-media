@@ -1,72 +1,167 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-2.cisco.com ([144.254.224.141]:10595 "EHLO
-	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755290Ab2DZLTu (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:51051 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756903Ab2DTOpm (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Apr 2012 07:19:50 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Scott Jiang <scott.jiang.linux@gmail.com>
-Subject: Re: How to implement i2c map device
-Date: Thu, 26 Apr 2012 13:19:45 +0200
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	LMML <linux-media@vger.kernel.org>
-References: <CAHG8p1D1EAO3hgYNvwZL6HgVw-995knuf62TdXh944SkAHoWKw@mail.gmail.com>
-In-Reply-To: <CAHG8p1D1EAO3hgYNvwZL6HgVw-995knuf62TdXh944SkAHoWKw@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201204261319.45401.hverkuil@xs4all.nl>
+	Fri, 20 Apr 2012 10:45:42 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Date: Fri, 20 Apr 2012 16:45:28 +0200
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: [PATCHv5 07/13] v4l: vb2-dma-contig: Reorder functions
+In-reply-to: <1334933134-4688-1-git-send-email-t.stanislaws@samsung.com>
+To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
+Cc: airlied@redhat.com, m.szyprowski@samsung.com,
+	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
+	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
+	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
+	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
+	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
+	mchehab@redhat.com, linux-doc@vger.kernel.org,
+	g.liakhovetski@gmx.de
+Message-id: <1334933134-4688-8-git-send-email-t.stanislaws@samsung.com>
+References: <1334933134-4688-1-git-send-email-t.stanislaws@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Scott,
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-On Thursday 26 April 2012 11:47:08 Scott Jiang wrote:
-> Hi Laurent,
-> 
-> I'm writing a driver for adv7842 video decoder. This chip has 12 i2c
-> register maps. IO map is fixed to 0x20 and others are configurable.
-> I plan to use 0x20 as the subdevice addr to call
-> v4l2_i2c_new_subdev_board, and call i2c_new_device and i2c_add_driver
-> in i2c_probe to enumerate other i2c maps. Is it acceptable or any
-> other suggestion?
+Group functions by buffer type.
 
-You have to use i2c_new_dummy for all the non-fixed register maps.
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/video/videobuf2-dma-contig.c |   92 ++++++++++++++++-----------
+ 1 files changed, 54 insertions(+), 38 deletions(-)
 
-But I can save you a lot more time: we (Cisco) have a adv7842 driver already 
-that is working for the most part (at least the parts that we need).
+diff --git a/drivers/media/video/videobuf2-dma-contig.c b/drivers/media/video/videobuf2-dma-contig.c
+index ff0a662..476e536 100644
+--- a/drivers/media/video/videobuf2-dma-contig.c
++++ b/drivers/media/video/videobuf2-dma-contig.c
+@@ -20,14 +20,56 @@
+ struct vb2_dc_buf {
+ 	struct device			*dev;
+ 	void				*vaddr;
+-	dma_addr_t			dma_addr;
+ 	unsigned long			size;
+-	struct vm_area_struct		*vma;
+-	atomic_t			refcount;
++	dma_addr_t			dma_addr;
++
++	/* MMAP related */
+ 	struct vb2_vmarea_handler	handler;
++	atomic_t			refcount;
++
++	/* USERPTR related */
++	struct vm_area_struct		*vma;
+ };
+ 
+-static void vb2_dc_put(void *buf_priv);
++/*********************************************/
++/*         callbacks for all buffers         */
++/*********************************************/
++
++static void *vb2_dc_cookie(void *buf_priv)
++{
++	struct vb2_dc_buf *buf = buf_priv;
++
++	return &buf->dma_addr;
++}
++
++static void *vb2_dc_vaddr(void *buf_priv)
++{
++	struct vb2_dc_buf *buf = buf_priv;
++
++	return buf->vaddr;
++}
++
++static unsigned int vb2_dc_num_users(void *buf_priv)
++{
++	struct vb2_dc_buf *buf = buf_priv;
++
++	return atomic_read(&buf->refcount);
++}
++
++/*********************************************/
++/*        callbacks for MMAP buffers         */
++/*********************************************/
++
++static void vb2_dc_put(void *buf_priv)
++{
++	struct vb2_dc_buf *buf = buf_priv;
++
++	if (!atomic_dec_and_test(&buf->refcount))
++		return;
++
++	dma_free_coherent(buf->dev, buf->size, buf->vaddr, buf->dma_addr);
++	kfree(buf);
++}
+ 
+ static void *vb2_dc_alloc(void *alloc_ctx, unsigned long size)
+ {
+@@ -57,40 +99,6 @@ static void *vb2_dc_alloc(void *alloc_ctx, unsigned long size)
+ 	return buf;
+ }
+ 
+-static void vb2_dc_put(void *buf_priv)
+-{
+-	struct vb2_dc_buf *buf = buf_priv;
+-
+-	if (atomic_dec_and_test(&buf->refcount)) {
+-		dma_free_coherent(buf->dev, buf->size, buf->vaddr,
+-				  buf->dma_addr);
+-		kfree(buf);
+-	}
+-}
+-
+-static void *vb2_dc_cookie(void *buf_priv)
+-{
+-	struct vb2_dc_buf *buf = buf_priv;
+-
+-	return &buf->dma_addr;
+-}
+-
+-static void *vb2_dc_vaddr(void *buf_priv)
+-{
+-	struct vb2_dc_buf *buf = buf_priv;
+-	if (!buf)
+-		return 0;
+-
+-	return buf->vaddr;
+-}
+-
+-static unsigned int vb2_dc_num_users(void *buf_priv)
+-{
+-	struct vb2_dc_buf *buf = buf_priv;
+-
+-	return atomic_read(&buf->refcount);
+-}
+-
+ static int vb2_dc_mmap(void *buf_priv, struct vm_area_struct *vma)
+ {
+ 	struct vb2_dc_buf *buf = buf_priv;
+@@ -104,6 +112,10 @@ static int vb2_dc_mmap(void *buf_priv, struct vm_area_struct *vma)
+ 				  &vb2_common_vm_ops, &buf->handler);
+ }
+ 
++/*********************************************/
++/*       callbacks for USERPTR buffers       */
++/*********************************************/
++
+ static void *vb2_dc_get_userptr(void *alloc_ctx, unsigned long vaddr,
+ 					unsigned long size, int write)
+ {
+@@ -142,6 +154,10 @@ static void vb2_dc_put_userptr(void *mem_priv)
+ 	kfree(buf);
+ }
+ 
++/*********************************************/
++/*       DMA CONTIG exported functions       */
++/*********************************************/
++
+ const struct vb2_mem_ops vb2_dma_contig_memops = {
+ 	.alloc		= vb2_dc_alloc,
+ 	.put		= vb2_dc_put,
+-- 
+1.7.5.4
 
-I'll mail the driver to you separately. I intend to make it available in a 
-public repository in the next few weeks.
-
-> 
-> By the way, HDMI support seems under discussion, is there any
-> framework or guide now?
-
-There are two parts to HDMI: the first is a better API for selecting timings. 
-The latest RFC patch series was just posted this week:
-
-http://www.spinics.net/lists/linux-media/msg46813.html
-
-I'm hopeful that this will make kernel 3.5.
-
-The second part is to add some missing HDMI-specific controls and two ioctls 
-to set/get EDIDs. I'm preparing an RFC for that and I expect to post that next 
-week.
-
-There is one final part: CEC support. We have implemented it, but the API 
-needs more discussions. How to present CEC support to userspace seems to be a 
-controversial issue.
-
-Regards,
-
-	Hans
-
-> 
-> Thanks,
-> Scott
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
