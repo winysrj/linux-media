@@ -1,39 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from tex.lwn.net ([70.33.254.29]:40609 "EHLO vena.lwn.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751719Ab2DTQWv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Apr 2012 12:22:51 -0400
-Date: Fri, 20 Apr 2012 10:22:50 -0600
-From: Jonathan Corbet <corbet@lwn.net>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	Mathieu Poirier <mathieu.poirier@linaro.org>,
-	Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH] marvell-cam: fix an ARM build error
-Message-ID: <20120420102250.1389bca8@lwn.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8bit
+Received: from mail-vx0-f174.google.com ([209.85.220.174]:53649 "EHLO
+	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750724Ab2DTMg2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 20 Apr 2012 08:36:28 -0400
+Received: by vcqp1 with SMTP id p1so6318973vcq.19
+        for <linux-media@vger.kernel.org>; Fri, 20 Apr 2012 05:36:27 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <CAAMvbhFWno9ibo4Db9Xpdzwsv7+70evR8-ZydYc4RNQtPAD3-Q@mail.gmail.com>
+References: <CAAMvbhFWno9ibo4Db9Xpdzwsv7+70evR8-ZydYc4RNQtPAD3-Q@mail.gmail.com>
+Date: Fri, 20 Apr 2012 08:36:27 -0400
+Message-ID: <CAGoCfiwrOaTRZCRXD7d3cSRVCEnBS7aHQE4O53ynf6MsZ=cf7g@mail.gmail.com>
+Subject: Re: CX23885 MSI
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: James Courtier-Dutton <james.dutton@gmail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-One of the OLPC changes lost a little in its translation to mainline,
-leading to build errors on the ARM architecture.  Remove the offending
-line, and all will be well.
+On Fri, Apr 20, 2012 at 7:34 AM, James Courtier-Dutton
+<james.dutton@gmail.com> wrote:
+> Hi,
+>
+> I noticed that the CX23885 driver does not set it up to use MSI.
+> I don't have the datasheets. Is there any know reason not to use MSI
+> with this PCI Express card?
+> I just want to know before I spend time enabling MSI for this device.
+> It is my understanding that MSI is generally preferred over previous
+> IRQ methods.
 
-Reported-by: Mathieu Poirier <mathieu.poirier@linaro.org>
-Cc: stable@vger.kernel.org
-Signed-off-by: Jonathan Corbet <corbet@lwn.net>
+It was disabled intentionally by Andy due to a compatibility problem.
+Search the ML archives for the following subject for more details:
 
-diff --git a/drivers/media/video/marvell-ccic/mmp-driver.c b/drivers/media/video/marvell-ccic/mmp-driver.c
-index d235523..c4c17fe 100644
---- a/drivers/media/video/marvell-ccic/mmp-driver.c
-+++ b/drivers/media/video/marvell-ccic/mmp-driver.c
-@@ -181,7 +181,6 @@ static int mmpcam_probe(struct platform_device *pdev)
- 	INIT_LIST_HEAD(&cam->devlist);
- 
- 	mcam = &cam->mcam;
--	mcam->platform = MHP_Armada610;
- 	mcam->plat_power_up = mmpcam_power_up;
- 	mcam->plat_power_down = mmpcam_power_down;
- 	mcam->dev = &pdev->dev;
+"HVR-1250/CX23885 IR Rx"
+
+Devin
+
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
