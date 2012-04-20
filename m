@@ -1,123 +1,217 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:53980 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751444Ab2DUMSa convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 21 Apr 2012 08:18:30 -0400
-Received: by wejx9 with SMTP id x9so6573841wej.19
-        for <linux-media@vger.kernel.org>; Sat, 21 Apr 2012 05:18:29 -0700 (PDT)
+Received: from oyp.chewa.net ([91.121.6.101]:48561 "EHLO oyp.chewa.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750923Ab2DTNDc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 20 Apr 2012 09:03:32 -0400
+To: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: Re: [PATCH v4 02/14] Documentation: media: description of DMABUF importing
+ in V4L2
 MIME-Version: 1.0
-In-Reply-To: <CAJ_iqtbVzU9zg_ERvhrbVr1vdgXXhyxJYdAmT0F1h_2ixP-==Q@mail.gmail.com>
-References: <CAL9G6WXZLdJqpivn2qNXb+oP9o4n=uyq6ywiRrzP13vmUYvaxw@mail.gmail.com>
-	<4F6DDB10.8000503@redhat.com>
-	<CAL9G6WUNp1gHibG74L8VXyJ0KPDYY+amKy3JZ7MBkjB8DBwERA@mail.gmail.com>
-	<CALF0-+Uf=1tMKMtOJKEOLiHQ=brkW6JL67A5qtWSJ8uOM3ZfsA@mail.gmail.com>
-	<4F8F13D8.5080407@redhat.com>
-	<CAL9G6WVK=YKGOsB3VV_0B8RRvX0LnTNps1d=zTyV9mdfkirQ8g@mail.gmail.com>
-	<CAJ_iqtbVzU9zg_ERvhrbVr1vdgXXhyxJYdAmT0F1h_2ixP-==Q@mail.gmail.com>
-Date: Sat, 21 Apr 2012 14:18:29 +0200
-Message-ID: <CAL9G6WVeXD99FOVNLJ+CVjPEiKrH9dNijM6Rb-G2uz8v_v_j-Q@mail.gmail.com>
-Subject: Re: dvb lock patch
-From: Josu Lazkano <josu.lazkano@gmail.com>
-To: Torfinn Ingolfsen <tingox@gmail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Date: Fri, 20 Apr 2012 15:03:17 +0200
+From: =?UTF-8?Q?R=C3=A9mi_Denis-Courmont?= <remi@remlab.net>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	<linux-media@vger.kernel.org>, <dri-devel@lists.freedesktop.org>,
+	<airlied@redhat.com>, <m.szyprowski@samsung.com>,
+	<kyungmin.park@samsung.com>, <sumit.semwal@ti.com>,
+	<daeinki@gmail.com>, <daniel.vetter@ffwll.ch>,
+	<robdclark@gmail.com>, <pawel@osciak.com>,
+	<linaro-mm-sig@lists.linaro.org>, <hverkuil@xs4all.nl>,
+	<subashrp@gmail.com>
+In-Reply-To: <4F91559D.6060900@samsung.com>
+References: <1334332076-28489-1-git-send-email-t.stanislaws@samsung.com> <1334332076-28489-3-git-send-email-t.stanislaws@samsung.com> <13761406.oTf8ZzmZpQ@avalon> <4F9021FE.2070903@samsung.com> <4F907798.3000304@redhat.com> <4F912141.8060200@samsung.com> <d24e8c6e35352ed5800161713f728591@chewa.net> <4F91559D.6060900@samsung.com>
+Message-ID: <b0e35efc1f87894a7a5a7b1acf560566@chewa.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2012/4/20 Torfinn Ingolfsen <tingox@gmail.com>:
-> 2012/4/18 Josu Lazkano <josu.lazkano@gmail.com>:
->> El día 18 de abril de 2012 21:19, Mauro Carvalho Chehab
->> <mchehab@redhat.com> escribió:
->>> Em 18-04-2012 15:58, Ezequiel García escreveu:
->>>> Josu,
->>>>
->>>> On Tue, Apr 17, 2012 at 10:30 AM, Josu Lazkano <josu.lazkano@gmail.com> wrote:
->>>>> 2012/3/24 Mauro Carvalho Chehab <mchehab@redhat.com>:
->>>> [snip]
->>>>>>
->>>>>> That doesn't sound right to me, and can actually cause race issues.
->>>>>>
->>>>>> Regards,
->>>>>> Mauro.
->>>>>
->>>>> Thanks for the patch Mauro.
->>>>>
->>>>
->>>> I think Mauro is *not* giving you a patch, rather the opposite:
->>>> pointing out that the patch can
->>>> cause problems!
->>>
->>> Yes. The driver will be unreliable with a patch like that, due to
->>> race conditions.
->>>
->>>> Regards,
->>>> Ezequiel.
->>>
->>> Regards,
->>> Mauro.
->>
->> Thanks anyway.
->>
->> I am looking for a solution to use virtual adapters on MythTV to use
->> my satellite provider card on two machines.
->> With 2.6.32 kernel is working great, but there is no way to work with
->> 3.x kernel.
->>
->> Is anyone using sasc-ng with latest kernel?
->>
->
-> Would kernel 3.0.0.15 do?
-> If so, descriptions on how I did it here:
-> http://sites.google.com/site/tingox/digitaltv_sascng
-> http://sites.google.com/site/tingox/asrock_e350m1_xubuntu
->
-> Note: these are my work notes, not a how-to!
->
-> As you can see, I'm using this patch:
-> http://kipdola.be/subdomain/linux-2.6.38-dvb-mutex.patch
->
-> It seems to work for me (had it running with Kaffeine on encrypted
-> channesl for two weeks in a row)
->
-> HTH
-> --
-> Regards,
-> Torfinn Ingolfsen
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Fri, 20 Apr 2012 14:25:01 +0200, Tomasz Stanislawski
 
-Thanks Torfinn!
+<t.stanislaws@samsung.com> wrote:
 
-I get it working with modules compilation, that great!
+>>> The USERPTR simplifies userspace code but introduce
 
-apt-get install linux-source-3.2
-cd /usr/src/
-tar -xjvf linux-source-3.2.tar.bz2
-cd linux-source-3.2/
-wget http://kipdola.be/subdomain/linux-2.6.38-dvb-mutex.patch
-patch -p1 linux-2.6.38-dvb-mutex.patch (I must do it manually, maybe
-for the kernel version)
-cp /boot/config-3.2.0-2-686-pae .config
-cp ../linux-headers-3.2.0-2-686-pae/Module.symvers .
-make oldconfig
-make prepare
-make scripts
-make modules SUBDIRS=drivers/media/dvb/
-cp drivers/media/dvb/dvb-core/dvb-core.ko
-/lib/modules/3.2.0-2-686-pae/kernel/drivers/media/dvb/dvb-core/
-(reboot)
+>>> a lot of complexity problems for the kernel drivers
 
-I am not software developer and I have no idea what means "race
-conditions", is this sasc-ng or linux driver "problem"?
+>>> and frameworks.
 
-It will be great to fix it and not patch the driver anymore, but I am
-happy with this solution (module compilation).
+>> 
 
-Thanks and best regards.
+>> It is not only a simplification. In some cases, USERPTR is the only I/O
+
+>> method that supports zero copy in pretty much any circumstance.
+
+> 
+
+> Only for devices that have its own IOMMU that can access system memory.
+
+
+
+Newer versions of the UVC driver have USERTPR, and simingly gspca seems
+
+too. That is practically all USB capture devices... That might be
+
+irrelevant for a smartphone manufacturer. That is very relevant for desktop
+
+applications.
+
+
+
+> Moreover the userptr must come from malloc or be a mmaped file.
+
+> The other case are drivers that touch memory using CPU in the kernel
+
+> space like VIVI or USB drivers.
+
+
+
+I'd argue that USB is the most common case of V4L2 on the desktop...
+
+
+
+>> When the user cannot reliably predict the maximum number of required
+
+>> buffers, predicts a value larger than the device will negotiate, or
+
+>> needs buffers to outlive STREAMOFF (?), MMAP requires memory copying.
+
+>> USERPTR does not.
+
+> 
+
+> What does outlive STREAMOFF means in this context?
+
+
+
+Depending how your multimedia pipeline is built, it is plausible that the
+
+V4L2 source is shutdown (STREAMOFF then close()) before buffers coming from
+
+it are released/destroyed downstream. I might be wrong, but I would expect
+
+that V4L2 MMAP buffers become invalid after STREAMOFF+close()?
+
+
+
+> Anyway, IMO allocation of the buffers at VIDIOC_REQBUFS was not the best
+
+> idea because it introduces an allocation overhead for negotiations of
+
+> the number of the buffers. An allocation at mmap was to late. There is a
+
+> need for some intermediate state between REQBUFS and mmap. The ioctl
+
+> BUF_PREPARE may help here.
+
+> 
+
+> Can you give me an example of a sane application is forced to negotiate
+
+a
+
+> larger number of buffers than it is actually going to use?
+
+
+
+Outside the embedded world, the application typically does not know what
+
+the latency of the multimedia pipeline is. If the latency is not known, the
+
+number of buffers needed for zero copy cannot be precomputed for REQBUFS,
+
+say:
+
+
+
+count = 1 + latency / frame interval.
+
+
+
+Even for a trivial analog TV viewer application, lip synchronization
+
+requires picture frames to be bufferred to be long enough to account for
+
+the latency of the audio input, dejitter, filtering and audio output. Those
+
+values are usually not well determined at the time of requesting buffers
+
+from the video capture device. Also the application may want to play nice
+
+with PulseAudio. Then it will get very long audio buffers with very few
+
+audio periods... more latency.
+
+
+
+It gets harder or outright impossible for frameworks dealing with
+
+complicated or arbitrary pipelines such as LibVLC or gstreamer. There is
+
+far too much unpredictability and variability downstream of the V4L2 source
+
+to estimate latency, and infer the number of buffers needed.
+
+
+
+>> Now, I do realize that some devices cannot support USERPTR efficiently,
+
+>> then they should not support USERPTR. 
+
+> 
+
+> The problem is not there is *NO* device that can handle USERPTR
+
+reliably.
+
+> The can handle USERPTR generated by malloc or page cache (not sure).
+
+> Memory mmaped from other devices, frameworks etc may or may not work.
+
+> Even if the device has its IOMMU the DMA layer provides no generic way
+
+to
+
+> transform from one device to the mapping in some other device.
+
+
+
+I'm not saying that USERPTR should replace DMABUF. I'm saying USERPTR has
+
+advantages over MMAP that DMABUF does not seem to cover as yet (if only
+
+libv4l2 would not inhibit USERPTR...).
+
+
+
+I'm definitely not saying that applications should rely on USERPTR being
+
+supported. We agree that not all devices can support USERPTR.
+
+
+
+> The userptr has its niches were it works pretty well like Web cams or
+
+VIVI.
+
+> I am saying that if ever DMABUF becomes a good alternative for USERPTR
+
+> than maybe we should consider encouraging dropping USERPTR in the new
+
+> drivers as 'obsolete' feature and providing some emulation layer in
+
+libv4l2
+
+> for legacy applications.
+
+
+
+Sure.
+
+
 
 -- 
-Josu Lazkano
+
+RÃ©mi Denis-Courmont
+
+Sent from my collocated server
