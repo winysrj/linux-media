@@ -1,46 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sirokuusama.dnainternet.net ([83.102.40.133]:39437 "EHLO
-	sirokuusama.dnainternet.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932175Ab2DQNhz (ORCPT
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:53591 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751017Ab2DURRk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Apr 2012 09:37:55 -0400
-Message-ID: <4F8D70A7.4050105@iki.fi>
-Date: Tue, 17 Apr 2012 16:31:19 +0300
-From: Anssi Hannula <anssi.hannula@iki.fi>
+	Sat, 21 Apr 2012 13:17:40 -0400
+Received: by iadi9 with SMTP id i9so156149iad.19
+        for <linux-media@vger.kernel.org>; Sat, 21 Apr 2012 10:17:40 -0700 (PDT)
+Message-ID: <4F92D945.1090805@landley.net>
+Date: Sat, 21 Apr 2012 10:59:01 -0500
+From: Rob Landley <rob@landley.net>
 MIME-Version: 1.0
-To: Oliver Schinagl <oliver+list@schinagl.nl>
-CC: Florian Fainelli <f.fainelli@gmail.com>,
-	linux-media@vger.kernel.org, marbugge@cisco.com, hverkuil@cisco.com
-Subject: Re: [RFC] HDMI-CEC proposal
-References: <4F86F3A6.9040305@gmail.com> <4F873CE7.4040401@schinagl.nl>
-In-Reply-To: <4F873CE7.4040401@schinagl.nl>
-Content-Type: text/plain; charset=UTF-8
+To: Tomasz Stanislawski <t.stanislaws@samsung.com>
+CC: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	airlied@redhat.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, laurent.pinchart@ideasonboard.com,
+	sumit.semwal@ti.com, daeinki@gmail.com, daniel.vetter@ffwll.ch,
+	robdclark@gmail.com, pawel@osciak.com,
+	linaro-mm-sig@lists.linaro.org, hverkuil@xs4all.nl,
+	remi@remlab.net, subashrp@gmail.com, mchehab@redhat.com,
+	linux-doc@vger.kernel.org, g.liakhovetski@gmx.de
+Subject: Re: [PATCHv5 00/13] Integration of videobuf2 with dmabuf
+References: <1334933134-4688-1-git-send-email-t.stanislaws@samsung.com>
+In-Reply-To: <1334933134-4688-1-git-send-email-t.stanislaws@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-12.04.2012 23:36, Oliver Schinagl kirjoitti:
-> Since a lot of video cards dont' support CEC at all (not even
-> connected), don't have hdmi, but work perfectly fine with dvi->hdmi
-> adapters, CEC can be implemented in many other ways (think media centers)
-> 
-> One such exammple is using USB/Arduino
-> 
-> http://code.google.com/p/cec-arduino/wiki/ElectricalInterface
-> 
-> Having an AVR with v-usb code and cec code doesn't look all that hard
-> nor impossible, so one could simply have a USB plug on one end, and an
-> HDMI plug on the other end, utilizing only the CEC pins.
-> 
-> This would make it more something like LIRC if anything.
+On 04/20/2012 09:45 AM, Tomasz Stanislawski wrote:
+> Hello everyone,
+> This patchset adds support for DMABUF [2] importing to V4L2 stack.
+> The support for DMABUF exporting was moved to separate patchset
+> due to dependency on patches for DMA mapping redesign by
+> Marek Szyprowski [4].
 
-There already exists a device like this (USB CEC adapter with hdmi
-in/out) with open source userspace driver, developed for the XBMC Media
-Center (apparently MythTV is also supported):
+Would it be an an option to _not_ cc: all 14 patches to the linux-doc
+list when 12 of them have nothing to do with documentation? (Or do the
+tools not allow for that?)
 
-http://www.pulse-eight.com/store/products/104-usb-hdmi-cec-adapter.aspx
-http://libcec.pulse-eight.com/
-https://github.com/Pulse-Eight/libcec
+Just wondering...
 
+Rob
 -- 
-Anssi Hannula
+GNU/Linux isn't: Linux=GPLv2, GNU=GPLv3+, they can't share code.
+Either it's "mere aggregation", or a license violation.  Pick one.
