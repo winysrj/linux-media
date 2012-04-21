@@ -1,56 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:37598 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752361Ab2DWL3j (ORCPT
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:64546 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751257Ab2DURAq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Apr 2012 07:29:39 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+	Sat, 21 Apr 2012 13:00:46 -0400
+Received: by bkcik5 with SMTP id ik5so7782802bkc.19
+        for <linux-media@vger.kernel.org>; Sat, 21 Apr 2012 10:00:44 -0700 (PDT)
+Message-ID: <4F92E7BA.6010106@gmail.com>
+Date: Sat, 21 Apr 2012 19:00:42 +0200
+From: Michael Schmitt <tcwardrobe@gmail.com>
+MIME-Version: 1.0
 To: linux-media@vger.kernel.org
-Cc: sakari.ailus@iki.fi
-Subject: [PATCH 1/4] omap3isp: preview: Rename last occurences of *_rgb_to_ycbcr to *_csc
-Date: Mon, 23 Apr 2012 13:29:52 +0200
-Message-Id: <1335180595-27931-2-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1335180595-27931-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1335180595-27931-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Subject: ir-keytable / in-kernel lirc drivers confusion...
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-For consistency reasons, rename the last remaining occurences of
-rgb_to_ycbcr to csc (color space conversion).
+Hi folks,
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/video/omap3isp/isppreview.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+[  204.360019] usb 4-2: new low-speed USB device number 2 using uhci_hcd
+[  204.540036] usb 4-2: New USB device found, idVendor=0471, idProduct=20cc
+[  204.540041] usb 4-2: New USB device strings: Mfr=1, Product=2, 
+SerialNumber=0
+[  204.540044] usb 4-2: Product: MCE USB IR Receiver- Spinel plus
+[  204.540047] usb 4-2: Manufacturer: PHILIPS
+[  204.603640] input: PHILIPS MCE USB IR Receiver- Spinel plus as 
+/devices/pci0000:00/0000:00:1d.3/usb4/4-2/4-2:1.0/input/input13
+[  204.603895] generic-usb 0003:0471:20CC.0009: input,hiddev0,hidraw4: 
+USB HID v1.00 Keyboard [PHILIPS MCE USB IR Receiver- Spinel plus] on 
+usb-0000:00:1d.3-2/input0
+mschmitt@adrastea:~$ ir-keytable -t
+/sys/class/rc/: No such file or directory
+mschmitt@adrastea:~$
 
-diff --git a/drivers/media/video/omap3isp/isppreview.c b/drivers/media/video/omap3isp/isppreview.c
-index 5bdf9e7..f839cf8 100644
---- a/drivers/media/video/omap3isp/isppreview.c
-+++ b/drivers/media/video/omap3isp/isppreview.c
-@@ -608,12 +608,12 @@ preview_config_rgb_blending(struct isp_prev_device *prev, const void *rgb2rgb)
- }
- 
- /*
-- * Configures the RGB-YCbYCr conversion matrix
-+ * Configures the color space conversion (RGB toYCbYCr) matrix
-  * @prev_csc: Structure containing the RGB to YCbYCr matrix and the
-  *            YCbCr offset.
-  */
- static void
--preview_config_rgb_to_ycbcr(struct isp_prev_device *prev, const void *prev_csc)
-+preview_config_csc(struct isp_prev_device *prev, const void *prev_csc)
- {
- 	struct isp_device *isp = to_isp_device(prev);
- 	const struct omap3isp_prev_csc *csc = prev_csc;
-@@ -860,7 +860,7 @@ static const struct preview_update update_attrs[] = {
- 		FIELD_SIZEOF(struct prev_params, rgb2rgb),
- 		offsetof(struct omap3isp_prev_update_config, rgb2rgb),
- 	}, /* OMAP3ISP_PREV_COLOR_CONV */ {
--		preview_config_rgb_to_ycbcr,
-+		preview_config_csc,
- 		NULL,
- 		offsetof(struct prev_params, csc),
- 		FIELD_SIZEOF(struct prev_params, csc),
--- 
-1.7.3.4
+basically I just want this device to be used with ir-keytable. Other 
+remote receivers "just work". Regardless if built-in a machine or 
+plugged in via USB, in generell they get recognized, a rc-keytable is 
+assigned and ir-keytable works with them automatically (I know 
+ir-keytable -t only works with root privs, but I already checked that, 
+the paste was done afterwards and a missing /sys/class/rc is the issue 
+not privs). So what do I need to do to get ir-keytable working?
 
+Apart from that, if one would be so kind and point me in the right 
+direction for a document explaining the "Linux and RCs today" topic a 
+bit. I used to use plain old lirc but the whole situation has changed as 
+it seems. In genereal I know enough to get things working again IF 
+ir-keytable works and /sys/class/rc IS there, but as it is missing with 
+this receiver and as said I know very little about the whole "new" 
+approach with in-kernel lirc / rc-stuff I have no idea where to poke / 
+look. Is it a kernel issue? At least I tried a fairly recent 3.3 kernel 
+and a stable 3.2 kernel (I am on Debian sid and the 3.3 kernel I got 
+from "experimental)
+
+In addition I am quite confused when a RC is recognized as a keyboard 
+and keypresses are interpreted as a normal dev-input-device. How do I 
+prevent that from happening?
+
+regards
+Michael
