@@ -1,101 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:47290 "EHLO
+Received: from mail-we0-f174.google.com ([74.125.82.174]:53980 "EHLO
 	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753860Ab2DILle (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Apr 2012 07:41:34 -0400
-Received: by wejx9 with SMTP id x9so2573919wej.19
-        for <linux-media@vger.kernel.org>; Mon, 09 Apr 2012 04:41:32 -0700 (PDT)
-Message-ID: <4F82CAEA.9030509@users.sourceforge.net>
-Date: Mon, 09 Apr 2012 14:41:30 +0300
-From: Alberto Mardegan <mardy@users.sourceforge.net>
+	with ESMTP id S1751444Ab2DUMSa convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 21 Apr 2012 08:18:30 -0400
+Received: by wejx9 with SMTP id x9so6573841wej.19
+        for <linux-media@vger.kernel.org>; Sat, 21 Apr 2012 05:18:29 -0700 (PDT)
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Terratec Cinergy T XS
-Content-Type: multipart/mixed;
- boundary="------------090504040407030708000807"
+In-Reply-To: <CAJ_iqtbVzU9zg_ERvhrbVr1vdgXXhyxJYdAmT0F1h_2ixP-==Q@mail.gmail.com>
+References: <CAL9G6WXZLdJqpivn2qNXb+oP9o4n=uyq6ywiRrzP13vmUYvaxw@mail.gmail.com>
+	<4F6DDB10.8000503@redhat.com>
+	<CAL9G6WUNp1gHibG74L8VXyJ0KPDYY+amKy3JZ7MBkjB8DBwERA@mail.gmail.com>
+	<CALF0-+Uf=1tMKMtOJKEOLiHQ=brkW6JL67A5qtWSJ8uOM3ZfsA@mail.gmail.com>
+	<4F8F13D8.5080407@redhat.com>
+	<CAL9G6WVK=YKGOsB3VV_0B8RRvX0LnTNps1d=zTyV9mdfkirQ8g@mail.gmail.com>
+	<CAJ_iqtbVzU9zg_ERvhrbVr1vdgXXhyxJYdAmT0F1h_2ixP-==Q@mail.gmail.com>
+Date: Sat, 21 Apr 2012 14:18:29 +0200
+Message-ID: <CAL9G6WVeXD99FOVNLJ+CVjPEiKrH9dNijM6Rb-G2uz8v_v_j-Q@mail.gmail.com>
+Subject: Re: dvb lock patch
+From: Josu Lazkano <josu.lazkano@gmail.com>
+To: Torfinn Ingolfsen <tingox@gmail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------090504040407030708000807
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+2012/4/20 Torfinn Ingolfsen <tingox@gmail.com>:
+> 2012/4/18 Josu Lazkano <josu.lazkano@gmail.com>:
+>> El día 18 de abril de 2012 21:19, Mauro Carvalho Chehab
+>> <mchehab@redhat.com> escribió:
+>>> Em 18-04-2012 15:58, Ezequiel García escreveu:
+>>>> Josu,
+>>>>
+>>>> On Tue, Apr 17, 2012 at 10:30 AM, Josu Lazkano <josu.lazkano@gmail.com> wrote:
+>>>>> 2012/3/24 Mauro Carvalho Chehab <mchehab@redhat.com>:
+>>>> [snip]
+>>>>>>
+>>>>>> That doesn't sound right to me, and can actually cause race issues.
+>>>>>>
+>>>>>> Regards,
+>>>>>> Mauro.
+>>>>>
+>>>>> Thanks for the patch Mauro.
+>>>>>
+>>>>
+>>>> I think Mauro is *not* giving you a patch, rather the opposite:
+>>>> pointing out that the patch can
+>>>> cause problems!
+>>>
+>>> Yes. The driver will be unreliable with a patch like that, due to
+>>> race conditions.
+>>>
+>>>> Regards,
+>>>> Ezequiel.
+>>>
+>>> Regards,
+>>> Mauro.
+>>
+>> Thanks anyway.
+>>
+>> I am looking for a solution to use virtual adapters on MythTV to use
+>> my satellite provider card on two machines.
+>> With 2.6.32 kernel is working great, but there is no way to work with
+>> 3.x kernel.
+>>
+>> Is anyone using sasc-ng with latest kernel?
+>>
+>
+> Would kernel 3.0.0.15 do?
+> If so, descriptions on how I did it here:
+> http://sites.google.com/site/tingox/digitaltv_sascng
+> http://sites.google.com/site/tingox/asrock_e350m1_xubuntu
+>
+> Note: these are my work notes, not a how-to!
+>
+> As you can see, I'm using this patch:
+> http://kipdola.be/subdomain/linux-2.6.38-dvb-mutex.patch
+>
+> It seems to work for me (had it running with Kaffeine on encrypted
+> channesl for two weeks in a row)
+>
+> HTH
+> --
+> Regards,
+> Torfinn Ingolfsen
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Hi all,
-   I have the DVB-T USB stick written in the subject (ID 0ccd:0043), and 
-I'd like to make it work with Linux.
-The current version of the em28xx driver (both in the Linux kernel and 
-in the media_tree git) gives an error after loading the firmware, as 
-reported here:
-https://bugs.launchpad.net/ubuntu/+source/linux/+bug/460636
+Thanks Torfinn!
 
-I modified the source so that the driver sets the read_not_reliable bit 
-in the xc2028_ctrl structure, and that seems to help in getting past the 
-firmware error. However, the /dev/dvb device is not created.
-Since I'm new to DVB and V4L, can someone give me some hints on what 
-could be going wrong?
+I get it working with modules compilation, that great!
 
-I'm attaching the dmesg output after inserting the device.
+apt-get install linux-source-3.2
+cd /usr/src/
+tar -xjvf linux-source-3.2.tar.bz2
+cd linux-source-3.2/
+wget http://kipdola.be/subdomain/linux-2.6.38-dvb-mutex.patch
+patch -p1 linux-2.6.38-dvb-mutex.patch (I must do it manually, maybe
+for the kernel version)
+cp /boot/config-3.2.0-2-686-pae .config
+cp ../linux-headers-3.2.0-2-686-pae/Module.symvers .
+make oldconfig
+make prepare
+make scripts
+make modules SUBDIRS=drivers/media/dvb/
+cp drivers/media/dvb/dvb-core/dvb-core.ko
+/lib/modules/3.2.0-2-686-pae/kernel/drivers/media/dvb/dvb-core/
+(reboot)
 
-Ciao,
-   Alberto
+I am not software developer and I have no idea what means "race
+conditions", is this sasc-ng or linux driver "problem"?
 
---------------090504040407030708000807
-Content-Type: text/plain;
- name="dmesg.txt"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="dmesg.txt"
+It will be great to fix it and not patch the driver anymore, but I am
+happy with this solution (module compilation).
 
-[ 3514.238137] usb 1-1.3: new high speed USB device using ehci_hcd and address 5
-[ 3514.379164] em28xx: New device TerraTec Electronic GmbH Cinergy T USB XS @ 480 Mbps (0ccd:0043, interface 0, class 0)
-[ 3514.379167] em28xx: Video interface 0 found
-[ 3514.379168] em28xx: DVB interface 0 found
-[ 3514.379268] em28xx #0: chip ID is em2870
-[ 3514.525653] em28xx #0: i2c eeprom 00: 1a eb 67 95 cd 0c 43 00 c0 12 81 00 6a 24 8e 34
-[ 3514.525668] em28xx #0: i2c eeprom 10: 00 00 06 57 02 0c 00 00 00 00 00 00 00 00 00 00
-[ 3514.525681] em28xx #0: i2c eeprom 20: 44 00 00 00 f0 10 01 00 00 00 00 00 5b 00 00 00
-[ 3514.525693] em28xx #0: i2c eeprom 30: 00 00 20 40 20 80 02 20 01 01 00 00 06 c1 66 49
-[ 3514.525706] em28xx #0: i2c eeprom 40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-[ 3514.525718] em28xx #0: i2c eeprom 50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-[ 3514.525730] em28xx #0: i2c eeprom 60: 00 00 00 00 00 00 00 00 00 00 24 03 43 00 69 00
-[ 3514.525743] em28xx #0: i2c eeprom 70: 6e 00 65 00 72 00 67 00 79 00 20 00 54 00 20 00
-[ 3514.525755] em28xx #0: i2c eeprom 80: 55 00 53 00 42 00 20 00 58 00 53 00 00 00 34 03
-[ 3514.525767] em28xx #0: i2c eeprom 90: 54 00 65 00 72 00 72 00 61 00 54 00 65 00 63 00
-[ 3514.525780] em28xx #0: i2c eeprom a0: 20 00 45 00 6c 00 65 00 63 00 74 00 72 00 6f 00
-[ 3514.525792] em28xx #0: i2c eeprom b0: 6e 00 69 00 63 00 20 00 47 00 6d 00 62 00 48 00
-[ 3514.525804] em28xx #0: i2c eeprom c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-[ 3514.525816] em28xx #0: i2c eeprom d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-[ 3514.525828] em28xx #0: i2c eeprom e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-[ 3514.525841] em28xx #0: i2c eeprom f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-[ 3514.525855] em28xx #0: EEPROM ID= 0x9567eb1a, EEPROM hash = 0x084c44df
-[ 3514.525857] em28xx #0: EEPROM info:
-[ 3514.525860] em28xx #0:	No audio on board.
-[ 3514.525862] em28xx #0:	500mA max power
-[ 3514.525865] em28xx #0:	Table at 0x06, strings=0x246a, 0x348e, 0x0000
-[ 3514.527026] em28xx #0: Identified as Terratec Cinergy T XS (card=43)
-[ 3514.527030] em28xx #0: 
-[ 3514.527031] 
-[ 3514.527034] em28xx #0: The support for this board weren't valid yet.
-[ 3514.527037] em28xx #0: Please send a report of having this working
-[ 3514.527039] em28xx #0: not to V4L mailing list (and/or to other addresses)
-[ 3514.527041] 
-[ 3514.532371] Chip ID is not zero. It is not a TEA5767
-[ 3514.532536] tuner 17-0060: Tuner -1 found with type(s) Radio TV.
-[ 3514.532683] xc2028 17-0060: creating new instance
-[ 3514.532687] xc2028 17-0060: type set to XCeive xc2028/xc3028 tuner
-[ 3514.535211] xc2028 17-0060: Loading 80 firmware images from xc3028-v27.fw, type: xc2028 firmware, ver 2.7
-[ 3514.587148] xc2028 17-0060: Loading firmware for type=BASE (1), id 0000000000000000.
-[ 3515.676546] xc2028 17-0060: Loading firmware for type=(0), id 000000000000b700.
-[ 3515.693610] SCODE (20000000), id 000000000000b700:
-[ 3515.693617] xc2028 17-0060: Loading SCODE for type=MONO SCODE HAS_IF_4320 (60008000), id 0000000000008000.
-[ 3515.824193] em28xx #0: v4l2 driver version 0.1.3
-[ 3515.884068] xc2028 17-0060: Loading firmware for type=BASE F8MHZ (3), id 0000000000000000.
-[ 3516.983649] (0), id 00000000000000ff:
-[ 3516.983655] xc2028 17-0060: Loading firmware for type=(0), id 0000000100000007.
-[ 3517.000627] xc2028 17-0060: Loading SCODE for type=MONO SCODE HAS_IF_5320 (60008000), id 0000000f00000007.
-[ 3517.136140] em28xx #0: V4L2 video device registered as video1
-[ 3517.137403] usbcore: registered new interface driver em28xx
+Thanks and best regards.
 
-
---------------090504040407030708000807--
+-- 
+Josu Lazkano
