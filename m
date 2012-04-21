@@ -1,48 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:58989 "EHLO
-	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753791Ab2DWO1z (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:57073 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752180Ab2DUSdJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Apr 2012 10:27:55 -0400
-Received: by qcmt36 with SMTP id t36so7042143qcm.15
-        for <linux-media@vger.kernel.org>; Mon, 23 Apr 2012 07:27:54 -0700 (PDT)
+	Sat, 21 Apr 2012 14:33:09 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Steve Lindell <Steve.Lindell@se.flextronics.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org
+Subject: Re: Mipi csi2
+Date: Sat, 21 Apr 2012 20:11:17 +0200
+Message-ID: <2555152.KT4mQxaHCg@avalon>
+In-Reply-To: <414D8776B339BF44ADF9839A98A591A00467F154@EUDUCEX3.europe.ad.flextronics.com>
+References: <414D8776B339BF44ADF9839A98A591A00467F115@EUDUCEX3.europe.ad.flextronics.com> <Pine.LNX.4.64.1204191507100.2110@axis700.grange> <414D8776B339BF44ADF9839A98A591A00467F154@EUDUCEX3.europe.ad.flextronics.com>
 MIME-Version: 1.0
-In-Reply-To: <CANMsd01DZ=Uvvv9gXHCMro_vT17yvd29y113Y9_WwySfkwqV0Q@mail.gmail.com>
-References: <CANMsd01DZ=Uvvv9gXHCMro_vT17yvd29y113Y9_WwySfkwqV0Q@mail.gmail.com>
-From: "Aguirre, Sergio" <saaguirre@ti.com>
-Date: Mon, 23 Apr 2012 09:27:33 -0500
-Message-ID: <CAKnK67Qe_MjoTSTz+o8WPQg413tt7zFjf+8o3YmVURKCOiK9mg@mail.gmail.com>
-Subject: Re: ics port for camera hal?
-To: Ryan <ryanphilips19@googlemail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ryan
+Hi Steve,
 
-On Sun, Apr 22, 2012 at 6:05 AM, Ryan <ryanphilips19@googlemail.com> wrote:
-> Hi,
->
-> Is there an V4L Port in the camera hal implementations on android ice
-> cream sandwich which makes use
-> of panda v4l camera drivers.
+On Thursday 19 April 2012 15:31:23 Steve Lindell wrote:
+> Hi Guennadi!
+> 
+> Adding Laurent to the loop.
+> 
+> Thanks for your quick answer!
+> You wrote OMAP 4330 but I believe you meant Omap4430.
+> 
+> A longshot, is it possible to use Omap3isp driver on the omap4430, as the
+> Omap4430 has mipi-csi2 support by hardware?
 
-Me and a couple of colleagues in TI are working on this at the moment,
-and we hope to have
-something useful very soon.
+You can't use the OMAP3 ISP driver on the OMAP4, but you can use the OMAP4 ISS 
+driver (git://gitorious.org/omap4-v4l2-camera/omap4-v4l2-camera.git). Please 
+note that the driver is currently under development. Many hardware features 
+are not supported yet, and you might experience crashes. Patches are of course 
+welcome :-)
 
-What we have achieved so far is a PandaBoard bootign ICS with support
-for UVC cameras, so that
-Camera Application can start preview (just that for the moment, plenty
-of things to take care of yet..)
-
-But you can check this out here of you are interested on it:
-
-http://omappedia.org/wiki/Building_L27.IS.2.M1_for_PandaBoard,_with_USB_camera_support
-
+-- 
 Regards,
-Sergio
->
-> Thanks & Regards,
-> Ryan
+
+Laurent Pinchart
+
