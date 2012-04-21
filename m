@@ -1,66 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pz0-f51.google.com ([209.85.210.51]:64019 "EHLO
-	mail-pz0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751582Ab2DWQQl (ORCPT
+Received: from mailout-de.gmx.net ([213.165.64.22]:38604 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751022Ab2DUWX1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Apr 2012 12:16:41 -0400
-Date: Mon, 23 Apr 2012 09:16:34 -0700
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-To: Antonio Ospite <ospite@studenti.unina.it>
-Cc: linux-media@vger.kernel.org, Jean-Francois Moine <moinejf@free.fr>,
-	linux-input@vger.kernel.org,
-	Johann Deneux <johann.deneux@gmail.comx>,
-	Anssi Hannula <anssi.hannula@gmail.com>,
-	Jonathan Corbet <corbet@lwn.net>
-Subject: Re: [PATCH 2/3] Input: move drivers/input/fixp-arith.h to
- include/linux
-Message-ID: <20120423161633.GA29290@core.coreip.homeip.net>
-References: <1335187267-27940-1-git-send-email-ospite@studenti.unina.it>
- <1335187267-27940-3-git-send-email-ospite@studenti.unina.it>
+	Sat, 21 Apr 2012 18:23:27 -0400
+From: "Hans-Frieder Vogt" <hfvogt@gmx.net>
+To: Antti Palosaari <crope@iki.fi>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: [PATCH v2] af9035: add remote control support
+Date: Sun, 22 Apr 2012 00:23:16 +0200
+Cc: linux-media@vger.kernel.org,
+	Michael =?iso-8859-1?q?B=FCsch?= <m@bues.ch>,
+	Gianluca Gennari <gennarone@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1335187267-27940-3-git-send-email-ospite@studenti.unina.it>
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201204220023.16452.hfvogt@gmx.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Apr 23, 2012 at 03:21:06PM +0200, Antonio Ospite wrote:
-> Move drivers/input/fixp-arith.h to include/linux so that the functions
-> defined there can be used by other subsystems, for instance some video
-> devices ISPs can control the output HUE value by setting registers for
-> sin(HUE) and cos(HUE).
-> 
-> Signed-off-by: Antonio Ospite <ospite@studenti.unina.it>
+af9035: support remote controls, version 2 of patch (Currently, no key maps are loaded).
 
-Acked-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+This version of the patch addresses comments from Antti and Mauro. Thank very much for your comments!
+Compared to the first version of the patch, the remote control is only activated after the EEPROM has been read
+and confirmed that the remote is not working in the HID mode.
+In addition, config variables are no longer needed and unnecessary checks have been removed.
 
-> ---
->  drivers/input/ff-memless.c                    |    3 +--
->  {drivers/input => include/linux}/fixp-arith.h |    0
->  2 files changed, 1 insertion(+), 2 deletions(-)
->  rename {drivers/input => include/linux}/fixp-arith.h (100%)
-> 
-> diff --git a/drivers/input/ff-memless.c b/drivers/input/ff-memless.c
-> index 117a59a..5f55885 100644
-> --- a/drivers/input/ff-memless.c
-> +++ b/drivers/input/ff-memless.c
-> @@ -31,8 +31,7 @@
->  #include <linux/mutex.h>
->  #include <linux/spinlock.h>
->  #include <linux/jiffies.h>
-> -
-> -#include "fixp-arith.h"
-> +#include <linux/fixp-arith.h>
->  
->  MODULE_LICENSE("GPL");
->  MODULE_AUTHOR("Anssi Hannula <anssi.hannula@gmail.com>");
-> diff --git a/drivers/input/fixp-arith.h b/include/linux/fixp-arith.h
-> similarity index 100%
-> rename from drivers/input/fixp-arith.h
-> rename to include/linux/fixp-arith.h
-> -- 
-> 1.7.10
-> 
+Signed-off-by: Hans-Frieder Vogt <hfvogt@gmx.net>
 
--- 
-Dmitry
+ af9035.c |   65 
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ af9035.h |    1 
+ 2 files changed, 66 insertions(+)
+
+diff -Nupr a/drivers/media/dvb/dvb-usb/af9035.c b/drivers/media/dvb/dvb-usb/af9035.c
+--- a/drivers/media/dvb/dvb-usb/af9035.c	2012-04-10 05:45:26.000000000 +0200
++++ b/drivers/media/dvb/dvb-usb/af9035.c	2012-04-22 00:11:29.288907184 +0200
+@@ -314,6 +314,37 @@ static struct i2c_algorithm af9035_i2c_a
+ 	.functionality = af9035_i2c_functionality,
+ };
+ 
++#define AF9035_POLL 250
++static int af9035_rc_query(struct dvb_usb_device *d)
++{
++	unsigned int key;
++	unsigned char b[4];
++	int ret;
++	struct usb_req req = { CMD_IR_GET, 0, 0, NULL, 4, b };
++
++	ret = af9035_ctrl_msg(d->udev, &req);
++	if (ret < 0)
++		goto err;
++
++	if ((b[2] + b[3]) == 0xff) {
++		if ((b[0] + b[1]) == 0xff) {
++			/* NEC */
++			key = b[0] << 8 | b[2];
++		} else {
++			/* ext. NEC */
++			key = b[0] << 16 | b[1] << 8 | b[2];
++		}
++	} else {
++		key = b[0] << 24 | b[1] << 16 | b[2] << 8 | b[3];
++	}
++
++	rc_keydown(d->rc_dev, key, 0);
++
++err:
++	/* ignore errors */
++	return 0;
++}
++
+ static int af9035_init(struct dvb_usb_device *d)
+ {
+ 	int ret, i;
+@@ -628,6 +659,32 @@ static int af9035_read_mac_address(struc
+ 	for (i = 0; i < af9035_properties[0].num_adapters; i++)
+ 		af9035_af9033_config[i].clock = clock_lut[tmp];
+ 
++	ret = af9035_rd_reg(d, EEPROM_IR_MODE, &tmp);
++	if (ret < 0)
++		goto err;
++	pr_debug("%s: ir_mode=%02x\n", __func__, tmp);
++
++	/* don't activate rc if in HID mode or if not available */
++	if (tmp == 5) {
++		ret = af9035_rd_reg(d, EEPROM_IR_TYPE, &tmp);
++		if (ret < 0)
++			goto err;
++		pr_debug("%s: ir_type=%02x\n", __func__, tmp);
++
++		switch (tmp) {
++		case 0: /* NEC */
++		default:
++			d->props.rc.core.protocol = RC_TYPE_NEC;
++			d->props.rc.core.allowed_protos = RC_TYPE_NEC;
++			break;
++		case 1: /* RC6 */
++			d->props.rc.core.protocol = RC_TYPE_RC6;
++			d->props.rc.core.allowed_protos = RC_TYPE_RC6;
++			break;
++		}
++		d->props.rc.core.rc_query = af9035_rc_query;
++	}
++
+ 	return 0;
+ 
+ err:
+@@ -1004,6 +1061,14 @@ static struct dvb_usb_device_properties
+ 
+ 		.i2c_algo = &af9035_i2c_algo,
+ 
++		.rc.core = {
++			.protocol       = RC_TYPE_UNKNOWN,
++			.module_name    = "af9035",
++			.rc_query       = NULL,
++			.rc_interval    = AF9035_POLL,
++			.allowed_protos = RC_TYPE_UNKNOWN,
++			.rc_codes       = RC_MAP_EMPTY,
++		},
+ 		.num_device_descs = 5,
+ 		.devices = {
+ 			{
+diff -Nupr a/drivers/media/dvb/dvb-usb/af9035.h b/drivers/media/dvb/dvb-usb/af9035.h
+--- a/drivers/media/dvb/dvb-usb/af9035.h	2012-04-10 05:45:26.000000000 +0200
++++ b/drivers/media/dvb/dvb-usb/af9035.h	2012-04-21 17:07:49.201161565 +0200
+@@ -110,6 +110,7 @@ u32 clock_lut_it9135[] = {
+ #define CMD_MEM_WR                  0x01
+ #define CMD_I2C_RD                  0x02
+ #define CMD_I2C_WR                  0x03
++#define CMD_IR_GET                  0x18
+ #define CMD_FW_DL                   0x21
+ #define CMD_FW_QUERYINFO            0x22
+ #define CMD_FW_BOOT                 0x23
+
+Hans-Frieder Vogt                       e-mail: hfvogt <at> gmx .dot. net
