@@ -1,100 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:52119 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:58816 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754272Ab2DPN3r (ORCPT
+	with ESMTP id S1751814Ab2DUT6K convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Apr 2012 09:29:47 -0400
+	Sat, 21 Apr 2012 15:58:10 -0400
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@iki.fi
-Subject: [PATCH v3 7/9] omap3isp: preview: Rename prev_params fields to match userspace API
-Date: Mon, 16 Apr 2012 15:29:52 +0200
-Message-Id: <1334582994-6967-8-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1334582994-6967-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1334582994-6967-1-git-send-email-laurent.pinchart@ideasonboard.com>
+To: =?ISO-8859-1?Q?R=E9mi?= Denis-Courmont <remi@remlab.net>
+Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	airlied@redhat.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, sumit.semwal@ti.com, daeinki@gmail.com,
+	daniel.vetter@ffwll.ch, robdclark@gmail.com, pawel@osciak.com,
+	linaro-mm-sig@lists.linaro.org, hverkuil@xs4all.nl,
+	subashrp@gmail.com
+Subject: Re: [PATCH v4 02/14] Documentation: media: description of DMABUF importing in V4L2
+Date: Sat, 21 Apr 2012 19:10:27 +0200
+Message-ID: <12963949.ALUT5xjWQF@avalon>
+In-Reply-To: <b0e35efc1f87894a7a5a7b1acf560566@chewa.net>
+References: <1334332076-28489-1-git-send-email-t.stanislaws@samsung.com> <4F91559D.6060900@samsung.com> <b0e35efc1f87894a7a5a7b1acf560566@chewa.net>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Rename the blk_adj and rgb2ycbcr fields to blkadj and csc respectively.
+Hi Rémi,
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/video/omap3isp/isppreview.c |   16 ++++++++--------
- drivers/media/video/omap3isp/isppreview.h |    8 ++++----
- 2 files changed, 12 insertions(+), 12 deletions(-)
+On Friday 20 April 2012 15:03:17 Rémi Denis-Courmont wrote:
+> On Fri, 20 Apr 2012 14:25:01 +0200, Tomasz Stanislawski wrote:
+> >>> The USERPTR simplifies userspace code but introduce
+> >>> a lot of complexity problems for the kernel drivers
+> >>> and frameworks.
+> >> 
+> >> It is not only a simplification. In some cases, USERPTR is the only I/O
+> >> method that supports zero copy in pretty much any circumstance.
+> > 
+> > Only for devices that have its own IOMMU that can access system memory.
+> 
+> Newer versions of the UVC driver have USERTPR, and simingly gspca seems
+> too. That is practically all USB capture devices... That might be
+> irrelevant for a smartphone manufacturer. That is very relevant for desktop
+> applications.
+> 
+> > Moreover the userptr must come from malloc or be a mmaped file.
+> > The other case are drivers that touch memory using CPU in the kernel
+> > space like VIVI or USB drivers.
+> 
+> I'd argue that USB is the most common case of V4L2 on the desktop...
+> 
+> >> When the user cannot reliably predict the maximum number of required
+> >> buffers, predicts a value larger than the device will negotiate, or
+> >> needs buffers to outlive STREAMOFF (?), MMAP requires memory copying.
+> >> USERPTR does not.
+> > 
+> > What does outlive STREAMOFF means in this context?
+> 
+> Depending how your multimedia pipeline is built, it is plausible that the
+> V4L2 source is shutdown (STREAMOFF then close()) before buffers coming from
+> it are released/destroyed downstream. I might be wrong, but I would expect
+> that V4L2 MMAP buffers become invalid after STREAMOFF+close()?
 
-diff --git a/drivers/media/video/omap3isp/isppreview.c b/drivers/media/video/omap3isp/isppreview.c
-index c487995..b75b675 100644
---- a/drivers/media/video/omap3isp/isppreview.c
-+++ b/drivers/media/video/omap3isp/isppreview.c
-@@ -837,9 +837,9 @@ __preview_get_ptrs(struct prev_params *params, void **param,
- 		CHKARG(configs, config, dcor)
- 		return sizeof(params->dcor);
- 	case OMAP3ISP_PREV_BLKADJ:
--		*param = &params->blk_adj;
-+		*param = &params->blkadj;
- 		CHKARG(configs, config, blkadj)
--		return sizeof(params->blk_adj);
-+		return sizeof(params->blkadj);
- 	case OMAP3ISP_PREV_YC_LIMIT:
- 		*param = &params->yclimit;
- 		CHKARG(configs, config, yclimit)
-@@ -849,9 +849,9 @@ __preview_get_ptrs(struct prev_params *params, void **param,
- 		CHKARG(configs, config, rgb2rgb)
- 		return sizeof(params->rgb2rgb);
- 	case OMAP3ISP_PREV_COLOR_CONV:
--		*param = &params->rgb2ycbcr;
-+		*param = &params->csc;
- 		CHKARG(configs, config, csc)
--		return sizeof(params->rgb2ycbcr);
-+		return sizeof(params->csc);
- 	case OMAP3ISP_PREV_WB:
- 		*param = &params->wbal;
- 		CHKARG(configs, config, wbal)
-@@ -1284,11 +1284,11 @@ static void preview_init_params(struct isp_prev_device *prev)
- 	params->wbal.coef1 = FLR_WBAL_COEF;
- 	params->wbal.coef2 = FLR_WBAL_COEF;
- 	params->wbal.coef3 = FLR_WBAL_COEF;
--	params->blk_adj.red = FLR_BLKADJ_RED;
--	params->blk_adj.green = FLR_BLKADJ_GREEN;
--	params->blk_adj.blue = FLR_BLKADJ_BLUE;
-+	params->blkadj.red = FLR_BLKADJ_RED;
-+	params->blkadj.green = FLR_BLKADJ_GREEN;
-+	params->blkadj.blue = FLR_BLKADJ_BLUE;
- 	params->rgb2rgb = flr_rgb2rgb;
--	params->rgb2ycbcr = flr_prev_csc;
-+	params->csc = flr_prev_csc;
- 	params->yclimit.minC = ISPPRV_YC_MIN;
- 	params->yclimit.maxC = ISPPRV_YC_MAX;
- 	params->yclimit.minY = ISPPRV_YC_MIN;
-diff --git a/drivers/media/video/omap3isp/isppreview.h b/drivers/media/video/omap3isp/isppreview.h
-index a0d2807..6ee8306 100644
---- a/drivers/media/video/omap3isp/isppreview.h
-+++ b/drivers/media/video/omap3isp/isppreview.h
-@@ -77,9 +77,9 @@ enum preview_ycpos_mode {
-  * @dcor: Noise filter coefficients.
-  * @gamma: Gamma coefficients.
-  * @wbal: White Balance parameters.
-- * @blk_adj: Black adjustment parameters.
-+ * @blkadj: Black adjustment parameters.
-  * @rgb2rgb: RGB blending parameters.
-- * @rgb2ycbcr: RGB to ycbcr parameters.
-+ * @csc: Color space conversion (RGB to YCbCr) parameters.
-  * @hmed: Horizontal median filter.
-  * @yclimit: YC limits parameters.
-  * @contrast: Contrast.
-@@ -94,9 +94,9 @@ struct prev_params {
- 	struct omap3isp_prev_dcor dcor;
- 	struct omap3isp_prev_gtables gamma;
- 	struct omap3isp_prev_wbal wbal;
--	struct omap3isp_prev_blkadj blk_adj;
-+	struct omap3isp_prev_blkadj blkadj;
- 	struct omap3isp_prev_rgbtorgb rgb2rgb;
--	struct omap3isp_prev_csc rgb2ycbcr;
-+	struct omap3isp_prev_csc csc;
- 	struct omap3isp_prev_hmed hmed;
- 	struct omap3isp_prev_yclimit yclimit;
- 	u8 contrast;
+If the buffer is mmap()ed to userspace, it will not be freed before being 
+munmap()ed.
+
+> > Anyway, IMO allocation of the buffers at VIDIOC_REQBUFS was not the best
+> > idea because it introduces an allocation overhead for negotiations of
+> > the number of the buffers. An allocation at mmap was to late. There is a
+> > need for some intermediate state between REQBUFS and mmap. The ioctl
+> > BUF_PREPARE may help here.
+> > 
+> > Can you give me an example of a sane application is forced to negotiate
+> > a larger number of buffers than it is actually going to use?
+> 
+> Outside the embedded world, the application typically does not know what
+> the latency of the multimedia pipeline is. If the latency is not known, the
+> number of buffers needed for zero copy cannot be precomputed for REQBUFS,
+> say:
+> 
+> count = 1 + latency / frame interval.
+> 
+> Even for a trivial analog TV viewer application, lip synchronization
+> requires picture frames to be bufferred to be long enough to account for
+> the latency of the audio input, dejitter, filtering and audio output. Those
+> values are usually not well determined at the time of requesting buffers
+> from the video capture device. Also the application may want to play nice
+> with PulseAudio. Then it will get very long audio buffers with very few
+> audio periods... more latency.
+> 
+> It gets harder or outright impossible for frameworks dealing with
+> complicated or arbitrary pipelines such as LibVLC or gstreamer. There is
+> far too much unpredictability and variability downstream of the V4L2 source
+> to estimate latency, and infer the number of buffers needed.
+
+If I'm not mistaken VIDIOC_CREATEBUF allows you to create additional buffers 
+at runtime. You can thus cope with a latency increase (provided that the 
+allocation overhead isn't prohibitive, in which case you're stuck whatever 
+method you select). Deleting buffers at runtime is currently not possible 
+though.
+
+> >> Now, I do realize that some devices cannot support USERPTR efficiently,
+> >> then they should not support USERPTR.
+> > 
+> > The problem is not there is *NO* device that can handle USERPTR reliably.
+> > The can handle USERPTR generated by malloc or page cache (not sure).
+> > Memory mmaped from other devices, frameworks etc may or may not work.
+> > Even if the device has its IOMMU the DMA layer provides no generic way to
+> > transform from one device to the mapping in some other device.
+> 
+> I'm not saying that USERPTR should replace DMABUF. I'm saying USERPTR has
+> advantages over MMAP that DMABUF does not seem to cover as yet (if only
+> libv4l2 would not inhibit USERPTR...).
+> 
+> I'm definitely not saying that applications should rely on USERPTR being
+> supported. We agree that not all devices can support USERPTR.
+> 
+> > The userptr has its niches were it works pretty well like Web cams or
+> > VIVI.
+> >
+> > I am saying that if ever DMABUF becomes a good alternative for USERPTR
+> > than maybe we should consider encouraging dropping USERPTR in the new
+> > drivers as 'obsolete' feature and providing some emulation layer in
+> > libv4l2 for legacy applications.
+> 
+> Sure.
 -- 
-1.7.3.4
+Regards,
+
+Laurent Pinchart
 
