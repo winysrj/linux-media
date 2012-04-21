@@ -1,105 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:60541 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751679Ab2D0VBJ convert rfc822-to-8bit (ORCPT
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:56835 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753588Ab2DUCp5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Apr 2012 17:01:09 -0400
-Received: by eekc41 with SMTP id c41so303206eek.19
-        for <linux-media@vger.kernel.org>; Fri, 27 Apr 2012 14:01:07 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <4F9B076E.3040800@iki.fi>
-References: <1327228731.2540.3.camel@tvbox>
-	<4F2185A1.2000402@redhat.com>
-	<201204152353103757288@gmail.com>
-	<201204201601166255937@gmail.com>
-	<4F9130BB.8060107@iki.fi>
-	<201204211045557968605@gmail.com>
-	<4F958640.9010404@iki.fi>
-	<CAF0Ff2nNP6WRUWcs7PqVRxhXHCmUFqqswL4757WijFaKT5P5-w@mail.gmail.com>
-	<4F95CE59.1020005@redhat.com>
-	<CAF0Ff2m_6fM1QV+Jic7viHXQ7edTe8ZwigjjhdtFwMfhCszuKQ@mail.gmail.com>
-	<4F9AF53C.6030105@redhat.com>
-	<CAF0Ff2k93ud=kOQujbwU8U9+rpJWbTW+euj6KYWzWjCCO0bxzA@mail.gmail.com>
-	<CAF0Ff2k9_kbcrVxretfC_sFqnE+b0EbGzTrX4yBHj4LFXuug2g@mail.gmail.com>
-	<4F9B076E.3040800@iki.fi>
-Date: Sat, 28 Apr 2012 00:01:07 +0300
-Message-ID: <CAF0Ff2ncFBAjcwVBkXPXE-egA4eg4qEFKYRZiM-btLOUVJ6giA@mail.gmail.com>
-Subject: Re: [PATCH 1/6] m88ds3103, montage dvb-s/s2 demodulator driver
-From: Konstantin Dimitrov <kosio.dimitrov@gmail.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	"nibble.max" <nibble.max@gmail.com>,
-	linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Fri, 20 Apr 2012 22:45:57 -0400
+Received: by pbcun15 with SMTP id un15so1704969pbc.19
+        for <linux-media@vger.kernel.org>; Fri, 20 Apr 2012 19:45:57 -0700 (PDT)
+Date: Sat, 21 Apr 2012 10:45:58 +0800
+From: "=?utf-8?B?bmliYmxlLm1heA==?=" <nibble.max@gmail.com>
+To: "=?utf-8?B?TWF1cm8gQ2FydmFsaG8gQ2hlaGFi?=" <mchehab@redhat.com>,
+	"=?utf-8?B?QW50dGkgUGFsb3NhYXJp?=" <crope@iki.fi>
+Cc: "=?utf-8?B?bGludXgtbWVkaWE=?=" <linux-media@vger.kernel.org>,
+	"=?utf-8?B?S29uc3RhbnRpbiBEaW1pdHJvdg==?=" <kosio.dimitrov@gmail.com>
+References: <1327228731.2540.3.camel@tvbox>,
+ <4F2185A1.2000402@redhat.com>,
+ <201204152353103757288@gmail.com>,
+ <201204201601166255937@gmail.com>,
+ <4F9130BB.8060107@iki.fi>
+Subject: =?utf-8?B?UmU6IFJlOiBbUEFUQ0ggMS82XSBtODhkczMxMDMsIG1vbnRhZ2UgZHZiLXMvczIgZGVtb2R1bGF0b3IgZHJpdmVy?=
+Message-ID: <201204211045557968605@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain;
+	charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Apr 27, 2012 at 11:54 PM, Antti Palosaari <crope@iki.fi> wrote:
-> On 27.04.2012 23:40, Konstantin Dimitrov wrote:
->>
->> On Fri, Apr 27, 2012 at 11:37 PM, Konstantin Dimitrov
->>>
->>> however, i want to pointed out few other problems - they are off-topic
->>>
->>> as not related to drivers for Montage chips, but related as far as
->>> we're putting some order and making things in a proper way and those
->>> those things are out of that order:
->>>
->>> - there are 2 drivers for the same DVB-S2 tuner: ST 6110, respectively
->>> "stv6110.c" and "stv6110x.c"
->>>
->>> - there are 2 drivers for the same DVB-S2 demodulator family:
->>> respectively stv090x* and stv0900*
->>>
->>> the above couldn't be more wrong - in fact i can submit patches to
->>> make all drivers that relies on stv090x* and "stv6110.c" to use
->>> stv090x* and "stv6110x.c" instead except the NetUP board, for which in
->>
->>
->>> my opinion someone should submit patches using stv090x* and
->>> "stv6110x.c" and subsequently stv090x* and "stv6110.c" be removed -
->>
->>
->> to correct a typo: and subsequently stv0900* and "stv6110.c" be removed
->>
->>> unless someone have some real argument why stv090x* and "stv6110.c"
->>
->>
->> the same: unless someone have some real argument why stv0900* and
->> "stv6110.c"
->>
->>> should stay or even if for why they should replace stv090x* and
->>> "stv6110x.c" and subsequently  stv090x* and "stv6110x.c" be removed
->>> instead. so, the case with ST 6110 and STV090x support is the most
->>> frustrating and out of order thing that i can indicate regarding the
->>> support of DVB-S2 chips in the kernel and i hope you will take care as
->>> maintainer to be resolved or at least someone to explain why the
->>> current state is like that - or point me out to explanation if such
->>> was already made to the mailing list. so, what i'm suggesting is
->>> "spring cleaning" of all DVB-S2 tuner/demodulator drivers in the
->>> kernel - if it's not done now in the future the mess will only
->>> increase.
+2012-04-21 10:38:02 nibble.max@gmail.com
+>Em 20-04-2012 06:47, Antti Palosaari escreveu:
+>> On 20.04.2012 11:01, nibble.max wrote:
+>>> 2012-04-20 15:56:27 nibble.max@gmail.com
+>>> At first time, I check it exist so try to patch it.
+>>> But with new m88ds3103 features to add and ts2022 tuner include, find it is hard to do simply patch.
+>>> It is better to create a new driver for maintain.
+>>>> Hi Max,
+>>>>
+>>>> Em 15-04-2012 12:53, nibble.max escreveu:
+>>>>> Montage m88ds3103 demodulator and ts2022 tuner driver.
+>>>>
+>>>> It was pointed to me that this device were already discussed on:
+>>>>
+>>>>    http://www.mail-archive.com/linux-media@vger.kernel.org/msg43109.html
+>>>>
+>>>> If m88ds3103 demod is similar enough to ds3000, it should just add the needed
+>>>> bits at the existing driver, and not creating a new driver.
+>>>>
+>>>> Thanks,
+>>>> Mauro
+>> 
+>> The main problem of these all existing and upcoming Montage DVB-S/S2 drivers are those are not split originally correct as a tuner and demod and now it causes problems.
+>> 
+>> I really suspect it should be:
+>> * single demod driver that supports both DS3000 and DS3103
+>> * single tuner driver that supports both TS2020 and TS2022
+>> 
+>> And now what we have is 2 drivers that contains both tuner and demod. And a lot of same code. :-(
+>> 
+>> But it is almost impossible to split it correctly at that phase if you don't have both hardware combinations, DS3000/TS2020 and DS3103/TS2022. I think it is best to leave old DS3000 as it is and make new driver for DS3103 *and* TS2022. Maybe after that someone could add DS3000 support to new DS3103 driver and TS2020 support to new TS2022 driver. After that it is possible to remove old DS3000 driver.
+>> 
+>> And we should really consider make simple rule not to accept any driver which is not split as logical parts: USB/PCI-interface + demodulator + tuner.
 >
+>Mixing tuner and demod is not good. Yet, dropping the current ds3000 doesn't
+>seem to be the best approach.
 >
-> That stv090x stuff is discussed many times earlier too. It is mistake done
-> for the some reasons. In theory there should be only one driver per
-> chip/logical entity but for the non-technical reason it was failed. And as
-> it is failed at the very first try it is hard to correct later.
+>IMO, Konstantin/Montage should split the ds3000 driver on two drivers, putting
+>the ts2020 bits on a separate driver.
 >
+>Then, Max should write a patch for ds3000 in order to add support for ds3103 on
+>it, and a patch for ts2020 driver, in order to add support for ts2022 on it.
+>
+>Of course, Konstantin should check if Max changes don't break support for the
+>DS3000/TS2020 configuration.
+>
+>Regards,
+>Mauro
+Actually, I have the following hardware combinations.
+1)DS3000 and TS2020 2)DS3103 and TS2020 3)DS3103 and TS2022
+Should I sumbit the driver for DS3103 and TS2022 in the split files?
+Or I must wait for Konstantin's work. How long should I wait for?
 
-OK, what about i commit to correct it to the degree i can? that degree
-is : patch all bridge drivers to use stv090x* and stv6110x* except the
-driver for the NetUP card since i don't have any similar hardware,
-which i can use for testing and remove the less mature and less
-versatile drivers involved in the mess, i.e. stv6110.* and stv0900*.
-until the NetUP don't submit patch to utilize stv090x* and stv6110x*
-their card will be left in unsupported stage - at least that way 99%
-of the mess will be cleaned and subsequently the whole mess, because i
-guess someone with NetUP hardware will contribute what i can't do.
+BR,
+Max.
 
->
-> regards
-> Antti
-> --
-> http://palosaari.fi/
