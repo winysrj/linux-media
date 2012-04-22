@@ -1,52 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:49019 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755951Ab2DMTXY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Apr 2012 15:23:24 -0400
-References: <4F88739A.4020401@gmail.com>
-In-Reply-To: <4F88739A.4020401@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain;
- charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Subject: Re: media_build compile errors
-From: Andy Walls <awalls@md.metrocast.net>
-Date: Fri, 13 Apr 2012 15:23:22 -0400
-To: =?ISO-8859-1?Q?Roger_M=E5rtensson?= <roger.martensson@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Message-ID: <6160cbc5-9493-44bf-9da1-57b96493fdca@email.android.com>
+Received: from smtp.nokia.com ([147.243.128.24]:28651 "EHLO mgw-da01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751515Ab2DVKok (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 22 Apr 2012 06:44:40 -0400
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: s.nawrocki@samsung.com
+Subject: [PATCH 1/1] s5p-fimc: media_entity_pipeline_start() may fail
+Date: Sun, 22 Apr 2012 13:44:39 +0300
+Message-Id: <1335091479-26943-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-"Roger Mårtensson" <roger.martensson@gmail.com> wrote:
+Take into account media_entity_pipeline_start() may fail. This patch is
+dependent on "media: Add link_validate() op to check links to the sink pad".
 
->Hi!
->
->I get compile errors when trying to build media_build as of 2012-04-13.
->
->/home/mythfrontend/media_build/v4l/ivtv-fileops.c: In function 
->'ivtv_v4l2_enc_poll':
->/home/mythfrontend/media_build/v4l/ivtv-fileops.c:751:2: error:
->implicit 
->declaration of function 'poll_requested_events' 
->[-Werror=implicit-function-declaration]
->cc1: some warnings being treated as errors
->
->This is on ubuntu and kernel:
->Linux 3.0.0-16-generic #29-Ubuntu SMP Tue Feb 14 12:49:42 UTC 2012 i686
->
->i686 i386 GNU/Linux
->
->Anyone else seeing this problem?
->--
->To unsubscribe from this list: send the line "unsubscribe linux-media"
->in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+(Just correct Sylwester's e-mail. Sorry for the noise.)
 
-poll_requested_events() likely only exists is very recent kernels.  
-To build with older kernels you need to either change the relevant ivtv function by hand, or wait for someone to submit a backward compatability patch for the media_build repo.
+The dependent patch is part of my pull req to Mauro here:
 
-Regards,
-Andy
+<URL:http://www.spinics.net/lists/linux-media/msg46296.html>
+
+ drivers/media/video/s5p-fimc/fimc-capture.c |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c b/drivers/media/video/s5p-fimc/fimc-capture.c
+index dc18ba5..8fd8095 100644
+--- a/drivers/media/video/s5p-fimc/fimc-capture.c
++++ b/drivers/media/video/s5p-fimc/fimc-capture.c
+@@ -963,7 +963,9 @@ static int fimc_cap_streamon(struct file *file, void *priv,
+ 	if (fimc_capture_active(fimc))
+ 		return -EBUSY;
+ 
+-	media_entity_pipeline_start(&p->sensor->entity, p->pipe);
++	ret = media_entity_pipeline_start(&p->sensor->entity, p->pipe);
++	if (ret < 0)
++		return ret;
+ 
+ 	if (fimc->vid_cap.user_subdev_api) {
+ 		ret = fimc_pipeline_validate(fimc);
+-- 
+1.7.2.5
+
