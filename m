@@ -1,110 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:47481 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753511Ab2DPPpL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Apr 2012 11:45:11 -0400
-Received: by eaaq12 with SMTP id q12so1323190eaa.19
-        for <linux-media@vger.kernel.org>; Mon, 16 Apr 2012 08:45:09 -0700 (PDT)
-Message-ID: <4F8C3E82.4020609@gmail.com>
-Date: Mon, 16 Apr 2012 17:45:06 +0200
-From: Gianluca Gennari <gennarone@gmail.com>
-Reply-To: gennarone@gmail.com
-MIME-Version: 1.0
-To: Daniel <daniel.videodvb@berthereau.net>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH] dib0700: add new USB PID for the Elgato EyeTV DTT stick
-References: <4F891F54.6030802@Berthereau.net> <1334409247-32467-1-git-send-email-gennarone@gmail.com> <4F8BC15A.3010104@Berthereau.net>
-In-Reply-To: <4F8BC15A.3010104@Berthereau.net>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Received: from plane.gmane.org ([80.91.229.3]:39166 "EHLO plane.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752166Ab2DVQD2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 22 Apr 2012 12:03:28 -0400
+Received: from list by plane.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1SLzG1-0002AV-8J
+	for linux-media@vger.kernel.org; Sun, 22 Apr 2012 18:03:25 +0200
+Received: from d67-193-214-242.home3.cgocable.net ([67.193.214.242])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Sun, 22 Apr 2012 18:03:25 +0200
+Received: from brian by d67-193-214-242.home3.cgocable.net with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Sun, 22 Apr 2012 18:03:25 +0200
+To: linux-media@vger.kernel.org
+From: "Brian J. Murrell" <brian@interlinx.bc.ca>
+Subject: HVR-1600: Skipped encoder MPEG, MDL 63, 62 times - it must have dropped
+ out of rotation
+Date: Sun, 22 Apr 2012 12:03:14 -0400
+Message-ID: <jn1a43$vlj$1@dough.gmane.org>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="------------enig500B52F6747773509B013FE9"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Il 16/04/2012 08:51, Daniel ha scritto:
-> Hi,
-> 
-> This patch works fine, but the IR sensor doesn't seem to be enabled.
-> It's not a problem, because the stick isn't sold with a remote control.
-> 
-> Sincerely,
-> 
-> Daniel
-> 
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--------------enig500B52F6747773509B013FE9
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-Hi Daniel,
-thanks for testing the patch.
-Regarding the remote, the driver apparently supports RC5, RC6 and NEC
-protocols, but defaults to RC5 for almost all devices (including the
-Elgato ones). Maybe you are trying to use a remote with a different
-protocol?
-I think you can switch protocols using something like:
-ir-keytable --protocol=nec --sysdev=rc0
-but I've never used it.
+I've got an HVR-1600 in a fairly fast machine (P4 3GHz, two cores) on a
+3.2.0 kernel and seem to be getting lots of this sort of thing:
 
-Regards,
-Gianluca
+Apr 19 20:09:10 pvr kernel: [34651.015170] cx18-0: Skipped encoder MPEG, =
+MDL 63, 62 times - it must have dropped out of rotation
+Apr 19 20:10:05 pvr kernel: [34705.375793] cx18-0: Skipped encoder IDX, M=
+DL 415, 2 times - it must have dropped out of rotation
+Apr 19 20:12:45 pvr kernel: [34865.535784] cx18-0: Skipped encoder IDX, M=
+DL 426, 2 times - it must have dropped out of rotation
+Apr 19 20:12:45 pvr kernel: [34865.609900] cx18-0: Skipped encoder IDX, M=
+DL 430, 1 times - it must have dropped out of rotation
+Apr 19 20:12:45 pvr kernel: [34865.684180] cx18-0: Could not find MDL 426=
+ for stream encoder IDX
+Apr 19 20:12:58 pvr kernel: [34878.912976] cx18-0: Could not find MDL 430=
+ for stream encoder IDX
+Apr 19 20:13:00 pvr kernel: [34880.850172] cx18-0: Skipped encoder MPEG, =
+MDL 53, 62 times - it must have dropped out of rotation
+Apr 19 20:15:25 pvr kernel: [35025.696747] cx18-0: Skipped encoder IDX, M=
+DL 435, 2 times - it must have dropped out of rotation
+Apr 19 20:15:25 pvr kernel: [35025.771765] cx18-0: Skipped encoder IDX, M=
+DL 439, 1 times - it must have dropped out of rotation
+Apr 19 20:15:25 pvr kernel: [35025.847732] cx18-0: Could not find MDL 435=
+ for stream encoder IDX
+Apr 19 20:15:25 pvr kernel: [35025.901315] cx18-0: Skipped TS, MDL 82, 16=
+ times - it must have dropped out of rotation
+Apr 19 20:15:32 pvr kernel: [35032.370364] cx18-0: Skipped encoder IDX, M=
+DL 435, 2 times - it must have dropped out of rotation
+Apr 19 20:15:38 pvr kernel: [35039.074592] cx18-0: Could not find MDL 439=
+ for stream encoder IDX
+Apr 19 20:15:40 pvr kernel: [35040.938552] cx18-0: Skipped encoder MPEG, =
+MDL 29, 62 times - it must have dropped out of rotation
+Apr 19 20:18:05 pvr kernel: [35185.859652] cx18-0: Skipped encoder IDX, M=
+DL 445, 2 times - it must have dropped out of rotation
+Apr 19 20:18:05 pvr kernel: [35185.933816] cx18-0: Skipped encoder IDX, M=
+DL 449, 1 times - it must have dropped out of rotation
+Apr 19 20:18:05 pvr kernel: [35186.008176] cx18-0: Could not find MDL 445=
+ for stream encoder IDX
+Apr 19 20:18:19 pvr kernel: [35199.237035] cx18-0: Could not find MDL 449=
+ for stream encoder IDX
+Apr 19 20:18:19 pvr kernel: [35199.289870] cx18-0: Could not find MDL 49 =
+for stream encoder MPEG
+Apr 19 20:18:25 pvr kernel: [35205.879310] cx18-0: Skipped encoder IDX, M=
+DL 450, 2 times - it must have dropped out of rotation
+Apr 19 20:23:26 pvr kernel: [35506.147134] cx18-0: Skipped encoder IDX, M=
+DL 402, 2 times - it must have dropped out of rotation
+Apr 19 20:24:19 pvr kernel: [35559.705155] cx18-0: Skipped encoder MPEG, =
+MDL 16, 62 times - it must have dropped out of rotation
 
-> 
-> On 14/04/2012 15:14, Gianluca Gennari wrote:
->> Reported working here:
->> http://ubuntuforums.org/archive/index.php/t-1510188.html
->> http://ubuntuforums.org/archive/index.php/t-1756828.html
->> https://sites.google.com/site/slackwarestuff/home/elgato-eyetv
->>
->> Signed-off-by: Gianluca Gennari<gennarone@gmail.com>
->> ---
->>   drivers/media/dvb/dvb-usb/dib0700_devices.c |    7 ++++++-
->>   drivers/media/dvb/dvb-usb/dvb-usb-ids.h     |    1 +
->>   2 files changed, 7 insertions(+), 1 deletions(-)
->>
->> diff --git a/drivers/media/dvb/dvb-usb/dib0700_devices.c
->> b/drivers/media/dvb/dvb-usb/dib0700_devices.c
->> index f9e966a..510001d 100644
->> --- a/drivers/media/dvb/dvb-usb/dib0700_devices.c
->> +++ b/drivers/media/dvb/dvb-usb/dib0700_devices.c
->> @@ -3569,6 +3569,7 @@ struct usb_device_id dib0700_usb_id_table[] = {
->>       { USB_DEVICE(USB_VID_DIBCOM,    USB_PID_DIBCOM_TFE7090E) },
->>       { USB_DEVICE(USB_VID_DIBCOM,    USB_PID_DIBCOM_TFE7790E) },
->>   /* 80 */{ USB_DEVICE(USB_VID_DIBCOM,    USB_PID_DIBCOM_TFE8096P) },
->> +    { USB_DEVICE(USB_VID_ELGATO,    USB_PID_ELGATO_EYETV_DTT_2) },
->>       { 0 }        /* Terminating entry */
->>   };
->>   MODULE_DEVICE_TABLE(usb, dib0700_usb_id_table);
->> @@ -3832,7 +3833,7 @@ struct dvb_usb_device_properties
->> dib0700_devices[] = {
->>               },
->>           },
->>
->> -        .num_device_descs = 11,
->> +        .num_device_descs = 12,
->>           .devices = {
->>               {   "DiBcom STK7070P reference design",
->>                   {&dib0700_usb_id_table[15], NULL },
->> @@ -3878,6 +3879,10 @@ struct dvb_usb_device_properties
->> dib0700_devices[] = {
->>                   {&dib0700_usb_id_table[50], NULL },
->>                   { NULL },
->>               },
->> +            {   "Elgato EyeTV DTT rev. 2",
->> +                {&dib0700_usb_id_table[81], NULL },
->> +                { NULL },
->> +            },
->>           },
->>
->>           .rc.core = {
->> diff --git a/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
->> b/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
->> index 94d3f8a..2418e41 100644
->> --- a/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
->> +++ b/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
->> @@ -335,6 +335,7 @@
->>   #define USB_PID_MYGICA_D689                0xd811
->>   #define USB_PID_ELGATO_EYETV_DIVERSITY            0x0011
->>   #define USB_PID_ELGATO_EYETV_DTT            0x0021
->> +#define USB_PID_ELGATO_EYETV_DTT_2            0x003f
->>   #define USB_PID_ELGATO_EYETV_DTT_Dlx            0x0020
->>   #define USB_PID_ELGATO_EYETV_SAT            0x002a
->>   #define USB_PID_DVB_T_USB_STICK_HIGH_SPEED_COLD        0x5000
-> 
+IIRC I was told previously that it was due to interrupts not being
+serviced quickly enough.  Am I recalling correctly?
+
+Could that really be a problem even with a dual core 3GHz P4?
+
+Also, are those messages related to the clearqam path or the
+MPEG2 hardware encoder path?  i.e. are those digital recording
+messages or analog recording messages?
+
+Cheers,
+b.
+
+
+--------------enig500B52F6747773509B013FE9
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
+
+iEYEARECAAYFAk+UK8MACgkQl3EQlGLyuXBAfwCfWcErXJQJFTFz3CgduBjCiXBr
+g68AoMX4in1jw4fnEA8TFHfn4dBin/N6
+=u/vM
+-----END PGP SIGNATURE-----
+
+--------------enig500B52F6747773509B013FE9--
 
