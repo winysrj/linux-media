@@ -1,33 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cassarossa.samfundet.no ([129.241.93.19]:33940 "EHLO
-	cassarossa.samfundet.no" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756905Ab2DDQc4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Apr 2012 12:32:56 -0400
-Date: Wed, 4 Apr 2012 18:32:42 +0200
-From: "Steinar H. Gunderson" <sgunderson@bigfoot.com>
-To: Marko Ristola <marko.ristola@kolumbus.fi>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 04/11] Show timeouts on I2C transfers.
-Message-ID: <20120404163242.GA8838@uio.no>
-References: <20120401155330.GA31901@uio.no>
- <1333295631-31866-4-git-send-email-sgunderson@bigfoot.com>
- <4F7C6C0F.3010803@kolumbus.fi>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <4F7C6C0F.3010803@kolumbus.fi>
+Received: from mgw2.diku.dk ([130.225.96.92]:37352 "EHLO mgw2.diku.dk"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750921Ab2DVLyt (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 22 Apr 2012 07:54:49 -0400
+From: Julia Lawall <Julia.Lawall@lip6.fr>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: kernel-janitors@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH] drivers/media/video/au0828/au0828-video.c: add missing video_device_release
+Date: Sun, 22 Apr 2012 13:54:42 +0200
+Message-Id: <1335095682-16530-1-git-send-email-Julia.Lawall@lip6.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Apr 04, 2012 at 06:43:11PM +0300, Marko Ristola wrote:
-> I wrote a patch that uses I2C IRQ.
-> I had a feeling that it worked well (with old single CPU desktop computer):
-> framerate with HDTV was low, but it was glitchless.
-> 
-> Do you want to have the patch to be sent for you?
+From: Julia Lawall <Julia.Lawall@lip6.fr>
 
-Sure, send it if you want to.
+At the point of the call to video_register_device, both dev->vbi_dev and
+dev->vdev have been allocated, and so should be freed on failure.  The
+error-handling code is moved to the end of the function, to avoid code
+duplication.
 
-/* Steinar */
--- 
-Homepage: http://www.sesse.net/
+Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+
+---
+ drivers/media/video/au0828/au0828-video.c |   21 +++++++++++++--------
+ 1 file changed, 13 insertions(+), 8 deletions(-)
+
+diff --git a/drivers/media/video/au0828/au0828-video.c b/drivers/media/video/au0828/au0828-video.c
+index 0b3e481..141f9c2 100644
+--- a/drivers/media/video/au0828/au0828-video.c
++++ b/drivers/media/video/au0828/au0828-video.c
+@@ -1881,7 +1881,7 @@ int au0828_analog_register(struct au0828_dev *dev,
+ 	int retval = -ENOMEM;
+ 	struct usb_host_interface *iface_desc;
+ 	struct usb_endpoint_descriptor *endpoint;
+-	int i;
++	int i, ret;
+ 
+ 	dprintk(1, "au0828_analog_register called!\n");
+ 
+@@ -1951,8 +1951,8 @@ int au0828_analog_register(struct au0828_dev *dev,
+ 	dev->vbi_dev = video_device_alloc();
+ 	if (NULL == dev->vbi_dev) {
+ 		dprintk(1, "Can't allocate vbi_device.\n");
+-		kfree(dev->vdev);
+-		return -ENOMEM;
++		ret = -ENOMEM;
++		goto err_vdev;
+ 	}
+ 
+ 	/* Fill the video capture device struct */
+@@ -1971,8 +1971,8 @@ int au0828_analog_register(struct au0828_dev *dev,
+ 	if (retval != 0) {
+ 		dprintk(1, "unable to register video device (error = %d).\n",
+ 			retval);
+-		video_device_release(dev->vdev);
+-		return -ENODEV;
++		ret = -ENODEV;
++		goto err_vbi_dev;
+ 	}
+ 
+ 	/* Register the vbi device */
+@@ -1981,13 +1981,18 @@ int au0828_analog_register(struct au0828_dev *dev,
+ 	if (retval != 0) {
+ 		dprintk(1, "unable to register vbi device (error = %d).\n",
+ 			retval);
+-		video_device_release(dev->vbi_dev);
+-		video_device_release(dev->vdev);
+-		return -ENODEV;
++		ret = -ENODEV;
++		goto err_vbi_dev;
+ 	}
+ 
+ 	dprintk(1, "%s completed!\n", __func__);
+ 
+ 	return 0;
++
++err_vbi_dev:
++	video_device_release(dev->vbi_dev);
++err_vdev:
++	video_device_release(dev->vdev);
++	return ret;
+ }
+ 
+
