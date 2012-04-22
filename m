@@ -1,73 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bues.ch ([80.190.117.144]:45867 "EHLO bues.ch"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751324Ab2DCInK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 3 Apr 2012 04:43:10 -0400
-Date: Tue, 3 Apr 2012 10:43:02 +0200
-From: Michael =?UTF-8?B?QsO8c2No?= <m@bues.ch>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media@vger.kernel.org, Hans-Frieder Vogt <hfvogt@gmx.net>,
-	Gianluca Gennari <gennarone@gmail.com>
-Subject: Re: [PATCH] af9035: fix and enhance I2C adapter
-Message-ID: <20120403104302.16346945@milhouse>
-In-Reply-To: <1333409555-679-1-git-send-email-crope@iki.fi>
-References: <1333409555-679-1-git-send-email-crope@iki.fi>
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:47277 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752205Ab2DVU5D (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 22 Apr 2012 16:57:03 -0400
+Subject: Re: HVR-1600: Skipped encoder MPEG, MDL 63, 62 times - it must have
+ dropped out of rotation
+From: Andy Walls <awalls@md.metrocast.net>
+To: "Brian J. Murrell" <brian@interlinx.bc.ca>
+Cc: linux-media@vger.kernel.org
+Date: Sun, 22 Apr 2012 16:56:52 -0400
+In-Reply-To: <jn1a43$vlj$1@dough.gmane.org>
+References: <jn1a43$vlj$1@dough.gmane.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Message-ID: <1335128213.2602.23.camel@palomino.walls.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=PGP-SHA1;
- boundary="Sig_/aOWhIbdfzBD_hbntsKVMMwz"; protocol="application/pgp-signature"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---Sig_/aOWhIbdfzBD_hbntsKVMMwz
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+On Sun, 2012-04-22 at 12:03 -0400, Brian J. Murrell wrote:
+> I've got an HVR-1600 in a fairly fast machine (P4 3GHz, two cores) on a
+> 3.2.0 kernel and seem to be getting lots of this sort of thing:
+> 
+> Apr 19 20:09:10 pvr kernel: [34651.015170] cx18-0: Skipped encoder MPEG, MDL 63, 62 times - it must have dropped out of rotation
+> Apr 19 20:10:05 pvr kernel: [34705.375793] cx18-0: Skipped encoder IDX, MDL 415, 2 times - it must have dropped out of rotation
+> Apr 19 20:12:45 pvr kernel: [34865.535784] cx18-0: Skipped encoder IDX, MDL 426, 2 times - it must have dropped out of rotation
+> Apr 19 20:12:45 pvr kernel: [34865.609900] cx18-0: Skipped encoder IDX, MDL 430, 1 times - it must have dropped out of rotation
+> Apr 19 20:12:45 pvr kernel: [34865.684180] cx18-0: Could not find MDL 426 for stream encoder IDX
+> Apr 19 20:12:58 pvr kernel: [34878.912976] cx18-0: Could not find MDL 430 for stream encoder IDX
+> Apr 19 20:13:00 pvr kernel: [34880.850172] cx18-0: Skipped encoder MPEG, MDL 53, 62 times - it must have dropped out of rotation
+> Apr 19 20:15:25 pvr kernel: [35025.696747] cx18-0: Skipped encoder IDX, MDL 435, 2 times - it must have dropped out of rotation
+> Apr 19 20:15:25 pvr kernel: [35025.771765] cx18-0: Skipped encoder IDX, MDL 439, 1 times - it must have dropped out of rotation
+> Apr 19 20:15:25 pvr kernel: [35025.847732] cx18-0: Could not find MDL 435 for stream encoder IDX
+> Apr 19 20:15:25 pvr kernel: [35025.901315] cx18-0: Skipped TS, MDL 82, 16 times - it must have dropped out of rotation
+> Apr 19 20:15:32 pvr kernel: [35032.370364] cx18-0: Skipped encoder IDX, MDL 435, 2 times - it must have dropped out of rotation
+> Apr 19 20:15:38 pvr kernel: [35039.074592] cx18-0: Could not find MDL 439 for stream encoder IDX
+> Apr 19 20:15:40 pvr kernel: [35040.938552] cx18-0: Skipped encoder MPEG, MDL 29, 62 times - it must have dropped out of rotation
+> Apr 19 20:18:05 pvr kernel: [35185.859652] cx18-0: Skipped encoder IDX, MDL 445, 2 times - it must have dropped out of rotation
+> Apr 19 20:18:05 pvr kernel: [35185.933816] cx18-0: Skipped encoder IDX, MDL 449, 1 times - it must have dropped out of rotation
+> Apr 19 20:18:05 pvr kernel: [35186.008176] cx18-0: Could not find MDL 445 for stream encoder IDX
+> Apr 19 20:18:19 pvr kernel: [35199.237035] cx18-0: Could not find MDL 449 for stream encoder IDX
+> Apr 19 20:18:19 pvr kernel: [35199.289870] cx18-0: Could not find MDL 49 for stream encoder MPEG
+> Apr 19 20:18:25 pvr kernel: [35205.879310] cx18-0: Skipped encoder IDX, MDL 450, 2 times - it must have dropped out of rotation
+> Apr 19 20:23:26 pvr kernel: [35506.147134] cx18-0: Skipped encoder IDX, MDL 402, 2 times - it must have dropped out of rotation
+> Apr 19 20:24:19 pvr kernel: [35559.705155] cx18-0: Skipped encoder MPEG, MDL 16, 62 times - it must have dropped out of rotation
+> 
+> IIRC I was told previously that it was due to interrupts not being
+> serviced quickly enough.  Am I recalling correctly?
 
-On Tue,  3 Apr 2012 02:32:35 +0300
-Antti Palosaari <crope@iki.fi> wrote:
+Yes.
 
-> There was a bug I2C adapter writes and reads one byte too much.
-> As the most I2C clients has auto-increment register addressing
-> this leads next register from the target register overwritten by
-> garbage data.
->=20
-> As a change remove whole register address byte usage and write
-> data directly to the I2C bus without saying what are register
-> address bytes to firmware.
->=20
-> Signed-off-by: Antti Palosaari <crope@iki.fi>
-> Cc: Michael Buesch <m@bues.ch>
-> Cc: Hans-Frieder Vogt <hfvogt@gmx.net>
-> Cc: Gianluca Gennari <gennarone@gmail.com>
+> Could that really be a problem even with a dual core 3GHz P4?
 
-I can confirm that this fixes the issue. Thanks!
+Yes.  You are looking at the evidence in those log messages.
 
-Tested-by: Michael Buesch <m@bues.ch>
+If, in your system, IRQ service for device A under some circumstances
+has precendence over IRQ service for the CX23418 and hence holds off its
+service; and the irq handler in the driver for device A decides to
+perform some some long I/O operations with device A; then it doesn't
+matter how fast your CPU is. 
 
---=20
-Greetings, Michael.
+You may wish to use perf or ftrace, or some other tool/method of
+measuring kernel interrupt handling latency to find out what causes any
+delays from the CX23418 raising its IRQ line to cx18_irq_handler() being
+called by the kernel.
 
-PGP encryption is encouraged / 908D8B0E
+I can tell you that I have optimized cx18_irq_handler(), and the
+functions it calls, to death.  I simply cannot make it perform
+significantly better.  The required PCI MMIO operations to the CX23418
+dominate the time consumed in cx18_irq_handler().
+[I await "Challenge accepted" from anyone. ;) ]
 
---Sig_/aOWhIbdfzBD_hbntsKVMMwz
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Disposition: attachment; filename=signature.asc
+> Also, are those messages related to the clearqam path or the
+> MPEG2 hardware encoder path?  i.e. are those digital recording
+> messages or analog recording messages?
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+MPEG: analog video encoder DMA buffers
+IDX:  MPEG index data DMA buffers from the analog video encoder
+TS:   DTV (ATSC or QAM) DMA buffers
 
-iQIcBAEBAgAGBQJPergWAAoJEPUyvh2QjYsOdeMQAKctlWt125R7y+ZeEFPaNVOn
-T1rS997JBh1iAdDRh57gclNNyW9DN3LWeTAZEA1ZzMDA8AQTWDy+hA0PksBTBbO9
-rtjXpypiUooenWCv1uEBfya1OedBdyiDUuPY+LGS6GT2qQLXGH9y27ENYD/lDbm2
-JZZ9SjaPSc448wf6Nq8sM4JpQsf5MdgF0JCGNbyjbeivLC5THMkPPQv9/BOZi6Fz
-aR4mSF5UXEUPpysodDZBTah07LmQIiXzmuRXJDWn3wGPCIRNE3fDX0F0gYTuS9Rp
-ISCJ6ILryzTrOIBJhVzp7ROPEbMNNgla8HrHz0VfG8CMFUZ8w763BDRgeikSk9yW
-0UlP57QY0nh5xyMqoQ6LAkgsKoqyhsMErnOTECOX34/bBwTUPuchajOLmTbp6ao9
-WcFZCSKsd9zcKzQP7TWholPP8L5FFqW1xIXm80I6P1xGCYyjyMlmzHgOjmZcvRGY
-VseFgqQJRd+Ty9Brzbz5ikFtOhH6sn2zviSgZ4WlFA4ahe1AkokUrQxiDTrnsbjP
-Qu77X/j67mDuQL4uqR7glWjJTggak18yaXAMeOaOT7wwkj9H5rLwqgPbGQfHNbUu
-gcPiVgoYkXatBwceBmqIU6AoTsXX+0OIfU6rmYbc9L2PBkmFBJ/G1wU7CvEPBfpG
-njzRiI65U5jOt2/VbQT9
-=Hg23
------END PGP SIGNATURE-----
+Every message above in your log, indicates your system "lost" a
+notifcation from the CX23418 as it was too slow to respond to the
+CX23418's interrupt.  Hence your recording/viewing of said stream missed
+some data.
 
---Sig_/aOWhIbdfzBD_hbntsKVMMwz--
+Note, the IDX stream only matters if you have an application that calls
+the VIDIOC_G_ENC_INDEX ioctl() to collect I-Frame offsets in the MPEG
+stream.  That is very rare, so I would not worry about lost IDX buffers.
+
+> Cheers,
+> b.
+
+Regards,
+Andy
+
