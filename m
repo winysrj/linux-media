@@ -1,36 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f178.google.com ([209.85.212.178]:55531 "EHLO
-	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751184Ab2DAR2w (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Apr 2012 13:28:52 -0400
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:37492 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753640Ab2DWWBv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 Apr 2012 18:01:51 -0400
+Message-ID: <4F95D14C.4020801@iki.fi>
+Date: Tue, 24 Apr 2012 01:01:48 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <1333301014-18692-1-git-send-email-tdent48227@gmail.com>
-References: <1333301014-18692-1-git-send-email-tdent48227@gmail.com>
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Date: Sun, 1 Apr 2012 10:28:30 -0700
-Message-ID: <CA+55aFx8E5DGBmhN0Mna_-BVr_TmTE_Fv2bOPNicDMxJwX7HOA@mail.gmail.com>
-Subject: Re: [PATCH 1/1] drivers/media/radio: Fix build error
-To: Tracey Dent <tdent48227@gmail.com>
-Cc: linux-kernel@vger.kernel.org, shea@shealevy.com,
-	mchehab@infradead.org, hans.verkuil@cisco.com,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH] v4l: aptina-pll: Round up minimum multiplier factor value
+ properly
+References: <1335189565-23617-1-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1335189565-23617-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Apr 1, 2012 at 10:23 AM,  <tdent48227@gmail.com> wrote:
-> From: Tracey <tj@tj-HP-2000-Notebook-PC.(none)>
+Hi Laurent,
 
-Please fix your git config to have proper name and email (or whatever
-tool you used). Your 'cc' list is similarly broken.
+Laurent Pinchart wrote:
+> The mf_low value must be a multiple of mf_inc. Round it up to the
+> nearest mf_inc multiple after computing it.
+>
+> Signed-off-by: Laurent Pinchart<laurent.pinchart@ideasonboard.com>
 
-> Either selecting or depending on the CONFIG_SND_FM801_TEA575X_BOOL
-> fixes the problem, but select seems to be more appropriate
-> for the disire driver.
+Thanks!
 
-Doesn't work. That SND_FM801_TEA575X_BOOL has various things it
-depends on, so you'd need to select them too.
+Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
 
-So the thing is more complicated than just selecting it.
+> ---
+>   drivers/media/video/aptina-pll.c |    5 ++---
+>   1 files changed, 2 insertions(+), 3 deletions(-)
+>
+> diff --git a/drivers/media/video/aptina-pll.c b/drivers/media/video/aptina-pll.c
+> index 0bd3813..8153a44 100644
+> --- a/drivers/media/video/aptina-pll.c
+> +++ b/drivers/media/video/aptina-pll.c
+> @@ -148,9 +148,8 @@ int aptina_pll_calculate(struct device *dev,
+>   		unsigned int mf_high;
+>   		unsigned int mf_low;
+>
+> -		mf_low = max(roundup(mf_min, mf_inc),
+> -			     DIV_ROUND_UP(pll->ext_clock * p1,
+> -			       limits->int_clock_max * div));
+> +		mf_low = roundup(max(mf_min, DIV_ROUND_UP(pll->ext_clock * p1,
+> +					limits->int_clock_max * div)), mf_inc);
+>   		mf_high = min(mf_max, pll->ext_clock * p1 /
+>   			      (limits->int_clock_min * div));
+>
 
-                    Linus
+
+-- 
+Sakari Ailus
+sakari.ailus@iki.fi
