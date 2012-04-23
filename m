@@ -1,35 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:46602 "EHLO
-	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752745Ab2DMSml (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:33507 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755430Ab2DWN7K (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Apr 2012 14:42:41 -0400
-Received: by lahj13 with SMTP id j13so2605015lah.19
-        for <linux-media@vger.kernel.org>; Fri, 13 Apr 2012 11:42:40 -0700 (PDT)
-Message-ID: <4F88739A.4020401@gmail.com>
-Date: Fri, 13 Apr 2012 20:42:34 +0200
-From: =?ISO-8859-1?Q?Roger_M=E5rtensson?= <roger.martensson@gmail.com>
-MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: media_build compile errors
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	Mon, 23 Apr 2012 09:59:10 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@iki.fi
+Subject: [PATCH] v4l: aptina-pll: Round up minimum multiplier factor value properly
+Date: Mon, 23 Apr 2012 15:59:25 +0200
+Message-Id: <1335189565-23617-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi!
+The mf_low value must be a multiple of mf_inc. Round it up to the
+nearest mf_inc multiple after computing it.
 
-I get compile errors when trying to build media_build as of 2012-04-13.
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/video/aptina-pll.c |    5 ++---
+ 1 files changed, 2 insertions(+), 3 deletions(-)
 
-/home/mythfrontend/media_build/v4l/ivtv-fileops.c: In function 
-'ivtv_v4l2_enc_poll':
-/home/mythfrontend/media_build/v4l/ivtv-fileops.c:751:2: error: implicit 
-declaration of function 'poll_requested_events' 
-[-Werror=implicit-function-declaration]
-cc1: some warnings being treated as errors
+diff --git a/drivers/media/video/aptina-pll.c b/drivers/media/video/aptina-pll.c
+index 0bd3813..8153a44 100644
+--- a/drivers/media/video/aptina-pll.c
++++ b/drivers/media/video/aptina-pll.c
+@@ -148,9 +148,8 @@ int aptina_pll_calculate(struct device *dev,
+ 		unsigned int mf_high;
+ 		unsigned int mf_low;
+ 
+-		mf_low = max(roundup(mf_min, mf_inc),
+-			     DIV_ROUND_UP(pll->ext_clock * p1,
+-			       limits->int_clock_max * div));
++		mf_low = roundup(max(mf_min, DIV_ROUND_UP(pll->ext_clock * p1,
++					limits->int_clock_max * div)), mf_inc);
+ 		mf_high = min(mf_max, pll->ext_clock * p1 /
+ 			      (limits->int_clock_min * div));
+ 
+-- 
+Regards,
 
-This is on ubuntu and kernel:
-Linux 3.0.0-16-generic #29-Ubuntu SMP Tue Feb 14 12:49:42 UTC 2012 i686 
-i686 i386 GNU/Linux
+Laurent Pinchart
 
-Anyone else seeing this problem?
