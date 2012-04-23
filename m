@@ -1,187 +1,442 @@
-Return-Path: linux-dvb-bounces+mchehab=redhat.com@linuxtv.org
-Received: from mail.tu-berlin.de ([130.149.7.33])
-	by www.linuxtv.org with esmtp (Exim 4.72)
-	(envelope-from <minhhoang1004@yahoo.com>) id 1S7tcp-00032m-8s
-	for linux-dvb@linuxtv.org; Wed, 14 Mar 2012 20:12:43 +0100
-Received: from nm23.bullet.mail.sp2.yahoo.com ([98.139.91.93])
-	by mail.tu-berlin.de (exim-4.75/mailfrontend-4) with smtp
-	for <linux-dvb@linuxtv.org>
-	id 1S7tcn-00074Y-CK; Wed, 14 Mar 2012 20:12:43 +0100
-Message-ID: <1331752239.9153.YahooMailNeo@web111205.mail.gq1.yahoo.com>
-Date: Wed, 14 Mar 2012 12:10:39 -0700 (PDT)
-From: "Admin@tydaikho.com" <minhhoang1004@yahoo.com>
-To: "linux-dvb@linuxtv.org" <linux-dvb@linuxtv.org>
-MIME-Version: 1.0
-Subject: [linux-dvb] Driver for AverMedia A306 minicard hybrid DVB-T ?
-Reply-To: linux-media@vger.kernel.org,
-        "Admin@tydaikho.com" <minhhoang1004@yahoo.com>
-List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
-	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
-List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
-List-Post: <mailto:linux-dvb@linuxtv.org>
-List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
-List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
-	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1176967314=="
-Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces+mchehab=redhat.com@linuxtv.org
-List-ID: <linux-dvb@linuxtv.org>
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:2635 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752335Ab2DWLvp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 Apr 2012 07:51:45 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Janne Grunau <j@jannau.net>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Andy Walls <awalls@md.metrocast.net>,
+	"Igor M. Liplianin" <liplianin@me.by>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Manu Abraham <abraham.manu@gmail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 6/8] v4l: fix compiler warnings.
+Date: Mon, 23 Apr 2012 13:51:26 +0200
+Message-Id: <a3e409c1e5a1609cf4266fc1b402666cf6dcc068.1335181658.git.hans.verkuil@cisco.com>
+In-Reply-To: <1335181888-4917-1-git-send-email-hverkuil@xs4all.nl>
+References: <1335181888-4917-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <100836b0eeed3d802c1ce4f7645d8beefe26df25.1335181658.git.hans.verkuil@cisco.com>
+References: <100836b0eeed3d802c1ce4f7645d8beefe26df25.1335181658.git.hans.verkuil@cisco.com>
+Sender: linux-media-owner@vger.kernel.org
+List-ID: <linux-media.vger.kernel.org>
 
---===============1176967314==
-Content-Type: multipart/alternative; boundary="1138709303-1498328394-1331752239=:9153"
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
---1138709303-1498328394-1331752239=:9153
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
+media_build/v4l/adv7343.c: In function 'adv7343_setstd':
+media_build/v4l/adv7343.c:133:6: warning: variable 'output_idx' set but not used [-Wunused-but-set-variable]
+media_build/v4l/tvp5150.c: In function 'tvp5150_mbus_fmt':
+media_build/v4l/tvp5150.c:833:14: warning: variable 'std' set but not used [-Wunused-but-set-variable]
+media_build/v4l/tvp7002.c: In function 'tvp7002_query_dv_preset':
+media_build/v4l/tvp7002.c:673:18: warning: variable 'device' set but not used [-Wunused-but-set-variable]
+media_build/v4l/c-qcam.c: In function 'qc_capture':
+media_build/v4l/c-qcam.c:381:33: warning: variable 'bitsperxfer' set but not used [-Wunused-but-set-variable]
+media_build/v4l/pms.c: In function 'pms_s_std':
+media_build/v4l/pms.c:738:6: warning: variable 'ret' set but not used [-Wunused-but-set-variable]
+media_build/v4l/pms.c: In function 'init_mediavision':
+media_build/v4l/pms.c:959:6: warning: variable 'id' set but not used [-Wunused-but-set-variable]
+media_build/v4l/cx25821-alsa.c: In function 'cx25821_irq':
+media_build/v4l/cx25821-alsa.c:294:6: warning: variable 'audint_count' set but not used [-Wunused-but-set-variable]
+media_build/v4l/zr364xx.c: In function 'zr364xx_fillbuff':
+media_build/v4l/zr364xx.c:510:25: warning: variable 'frm' set but not used [-Wunused-but-set-variable]
+media_build/v4l/s2255drv.c: In function 's2255_fillbuff':
+media_build/v4l/s2255drv.c:637:23: warning: variable 'frm' set but not used [-Wunused-but-set-variable]
+media_build/v4l/s2255drv.c: In function 'vidioc_s_fmt_vid_cap':
+media_build/v4l/s2255drv.c:990:6: warning: variable 'norm' set but not used [-Wunused-but-set-variable]
+media_build/v4l/tm6000-stds.c: In function 'tm6000_set_audio_std':
+media_build/v4l/tm6000-stds.c:341:10: warning: variable 'nicam_flag' set but not used [-Wunused-but-set-variable]
+media_build/v4l/tm6000-video.c: In function 'get_next_buf':
+media_build/v4l/tm6000-video.c:172:8: warning: variable 'outp' set but not used [-Wunused-but-set-variable]
+media_build/v4l/tm6000-video.c: In function 'copy_streams':
+media_build/v4l/tm6000-video.c:214:36: warning: variable 'c' set but not used [-Wunused-but-set-variable]
+media_build/v4l/tm6000-input.c: In function 'tm6000_ir_urb_received':
+media_build/v4l/tm6000-input.c:171:6: warning: variable 'rc' set but not used [-Wunused-but-set-variable]
+media_build/v4l/usbvision-core.c: In function 'usbvision_decompress':
+media_build/v4l/usbvision-core.c:604:23: warning: variable 'max_pos' set but not used [-Wunused-but-set-variable]
+media_build/v4l/usbvision-core.c: In function 'usbvision_parse_compress':
+media_build/v4l/usbvision-core.c:705:39: warning: variable 'rc' set but not used [-Wunused-but-set-variable]
+media_build/v4l/usbvision-core.c:705:22: warning: variable 'bytes_per_pixel' set but not used [-Wunused-but-set-variable]
+media_build/v4l/zoran_device.c: In function 'write_overlay_mask':
+media_build/v4l/zoran_device.c:545:6: warning: variable 'reg' set but not used [-Wunused-but-set-variable]
+media_build/v4l/go7007-v4l2.c: In function 'go7007_streamoff':
+media_build/v4l/go7007-v4l2.c:79:6: warning: variable 'retval' set but not used [-Wunused-but-set-variable]
 
-I got my card. My system recorgnize it but Linuxtv driver may not support .=
-=0A=0AHere is my result of "lspci" command:=0A07:00.0 Multimedia video cont=
-roller [0400]: Conexant Systems, Inc. CX23885 PCI Video and Audio Decoder [=
-14f1:8852] (rev 02)=0ASubsystem: Avermedia Technologies Inc Device [1461:c1=
-39]=0AFlags: bus master, fast devsel, latency 0, IRQ 20=0AMemory at f040000=
-0 (64-bit, non-prefetchable) [size=3D2M]=0ACapabilities: [40] Express Endpo=
-int, MSI 00=0ACapabilities: [80] Power Management version 2=0ACapabilities:=
- [90] Vital Product Data=0ACapabilities: [a0] MSI: Enable- Count=3D1/1 Mask=
-able- 64bit+=0ACapabilities: [100] Advanced Error Reporting=0ACapabilities:=
- [200] Virtual Channel=0AKernel driver in use: cx23885=0AAnd here is my "dm=
-esg|grep cx" command result:=0A=0At@debian:/home/hoangnm# dmesg|grep cx=0A[=
- =A0 =A05.293797] 632fba4d012458fd5fedc678fb9b0f8bc59ceda2 [media] cx25821:=
- Add a card definition for No brand cards that have: subvendor =3D 0x0000 s=
-ubdevice =3D 0x0000=0A[ =A0 =A06.173793] 632fba4d012458fd5fedc678fb9b0f8bc5=
-9ceda2 [media] cx25821: Add a card definition for No brand cards that have:=
- subvendor =3D 0x0000 subdevice =3D 0x0000=0A[ =A0 =A06.217052] 632fba4d012=
-458fd5fedc678fb9b0f8bc59ceda2 [media] cx25821: Add a card definition for No=
- brand cards that have: subvendor =3D 0x0000 subdevice =3D 0x0000=0A[ =A0 =
-=A06.581338] cx23885 driver version 0.0.3 loaded=0A[ =A0 =A06.590852] cx238=
-85 0000:07:00.0: PCI INT A -> Link[Z01A] -> GSI 20 (level, low) -> IRQ 20=
-=0A[ =A0 =A06.600404] cx23885[0]: Your board isn't known (yet) to the drive=
-r.=0A[ =A0 =A06.600405] cx23885[0]: Try to pick one of the existing card co=
-nfigs via=0A[ =A0 =A06.600405] cx23885[0]: card=3D<n> insmod option. =A0Upd=
-ating to the latest=0A[ =A0 =A06.600406] cx23885[0]: version might help as =
-well.=0A[ =A0 =A06.667500] cx23885[0]: Here is a list of valid choices for =
-the card=3D<n> insmod option:=0A[ =A0 =A06.677064] cx23885[0]: =A0 =A0card=
-=3D0 -> UNKNOWN/GENERIC=0A[ =A0 =A06.686514] cx23885[0]: =A0 =A0card=3D1 ->=
- Hauppauge WinTV-HVR1800lp=0A..............................................=
-..................=0A[ =A0 =A06.714456] cx23885[0]: =A0 =A0card=3D34 -> Ter=
-raTec Cinergy T PCIe Dual=0A[ =A0 =A06.758272] CORE cx23885[0]: subsystem: =
-1461:c139, board: UNKNOWN/GENERIC [card=3D0,autodetected]=0A[ =A0 =A06.8842=
-19] cx23885_dev_checkrevision() Hardware revision =3D 0xb0=0A[ =A0 =A06.884=
-224] cx23885[0]/0: found at 0000:07:00.0, rev: 2, irq: 20, latency: 0, mmio=
-: 0xf0400000=0A[ =A0 =A06.884229] cx23885 0000:07:00.0: setting latency tim=
-er to 64=0A[ =A0 =A06.884233] IRQ 20/cx23885[0]: IRQF_DISABLED is not guara=
-nteed on shared IRQs=0A=0A=A0I don't know how to get my card works on my sy=
-stem. I must reboot to Windows 7 whenever i want to get some TV programs. I=
-t is not good. I ask to support from you?=0AThank you and good work!=0A----=
-------------------------------------------------------=0AYahoo: minhhoang10=
-04 + Google: minhhoang1004 + Skype: minhhoang1004 + MSN: tydaikho=0A-------=
----------------------------------------------------=0A=0A(http://tydaikho.c=
-om) =A0VS =A0(http://vnluser.net)=0A
---1138709303-1498328394-1331752239=:9153
-Content-Type: text/html; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/video/adv7343.c                  |    4 +---
+ drivers/media/video/c-qcam.c                   |    3 +--
+ drivers/media/video/cx25821/cx25821-alsa.c     |    2 --
+ drivers/media/video/pms.c                      |    4 +---
+ drivers/media/video/s2255drv.c                 |    4 ----
+ drivers/media/video/tm6000/tm6000-input.c      |    3 +--
+ drivers/media/video/tm6000/tm6000-stds.c       |    2 --
+ drivers/media/video/tm6000/tm6000-video.c      |    9 +--------
+ drivers/media/video/tvp5150.c                  |    7 -------
+ drivers/media/video/tvp7002.c                  |    3 ---
+ drivers/media/video/usbvision/usbvision-core.c |   12 +++++-------
+ drivers/media/video/zoran/zoran_device.c       |    2 --
+ drivers/media/video/zr364xx.c                  |    2 --
+ drivers/staging/media/go7007/go7007-v4l2.c     |    2 --
+ 14 files changed, 10 insertions(+), 49 deletions(-)
 
-<html><body><div style=3D"color:#000; background-color:#fff; font-family:ar=
-ial, helvetica, sans-serif;font-size:10pt"><div style=3D"font-family: arial=
-, helvetica, sans-serif; font-size: 10pt; "><span>I got my card. My system =
-recorgnize it but Linuxtv driver may not support .</span></div><div style=
-=3D"font-family: arial, helvetica, sans-serif; font-size: 10pt; "><span><br=
-></span></div><div style=3D"font-family: arial, helvetica, sans-serif; font=
--size: 10pt; "><span>Here is my result of "lspci" command:</span></div><div=
-><span><div><font size=3D"2">07:00.0 Multimedia video controller [0400]: Co=
-nexant Systems, Inc. CX23885 PCI Video and Audio Decoder [14f1:8852] (rev 0=
-2)</font></div><div><font size=3D"2"><span class=3D"Apple-tab-span" style=
-=3D"white-space:pre">=09</span>Subsystem: Avermedia Technologies Inc Device=
- [1461:c139]</font></div><div><font size=3D"2"><span class=3D"Apple-tab-spa=
-n" style=3D"white-space:pre">=09</span>Flags: bus master, fast devsel, late=
-ncy 0, IRQ
- 20</font></div><div><font size=3D"2"><span class=3D"Apple-tab-span" style=
-=3D"white-space:pre">=09</span>Memory at f0400000 (64-bit, non-prefetchable=
-) [size=3D2M]</font></div><div><font size=3D"2"><span class=3D"Apple-tab-sp=
-an" style=3D"white-space:pre">=09</span>Capabilities: [40] Express Endpoint=
-, MSI 00</font></div><div><font size=3D"2"><span class=3D"Apple-tab-span" s=
-tyle=3D"white-space:pre">=09</span>Capabilities: [80] Power Management vers=
-ion 2</font></div><div><font size=3D"2"><span class=3D"Apple-tab-span" styl=
-e=3D"white-space:pre">=09</span>Capabilities: [90] Vital Product Data</font=
-></div><div><font size=3D"2"><span class=3D"Apple-tab-span" style=3D"white-=
-space:pre">=09</span>Capabilities: [a0] MSI: Enable- Count=3D1/1 Maskable- =
-64bit+</font></div><div><font size=3D"2"><span class=3D"Apple-tab-span" sty=
-le=3D"white-space:pre">=09</span>Capabilities: [100] Advanced Error Reporti=
-ng</font></div><div><font size=3D"2"><span class=3D"Apple-tab-span" style=
-=3D"white-space:pre">=09</span>Capabilities: [200]
- Virtual Channel</font></div><div><font size=3D"2"><span class=3D"Apple-tab=
--span" style=3D"white-space:pre">=09</span>Kernel driver in use: cx23885</f=
-ont></div><div style=3D"font-family: arial, helvetica, sans-serif; font-siz=
-e: 10pt; ">And here is my "dmesg|grep cx" command result:</div><div style=
-=3D"font-family: arial, helvetica, sans-serif; font-size: 10pt; "><br></div=
-><div><div><font size=3D"2">t@debian:/home/hoangnm# dmesg|grep cx</font></d=
-iv><div><font size=3D"2">[ &nbsp; &nbsp;5.293797] <span class=3D"Apple-tab-=
-span" style=3D"white-space:pre">=09</span>632fba4d012458fd5fedc678fb9b0f8bc=
-59ceda2 [media] cx25821: Add a card definition for No brand cards that have=
-: subvendor =3D 0x0000 subdevice =3D 0x0000</font></div><div><font size=3D"=
-2">[ &nbsp; &nbsp;6.173793] <span class=3D"Apple-tab-span" style=3D"white-s=
-pace:pre">=09</span>632fba4d012458fd5fedc678fb9b0f8bc59ceda2 [media] cx2582=
-1: Add a card definition for No brand cards that have: subvendor =3D 0x0000=
- subdevice =3D
- 0x0000</font></div><div><font size=3D"2">[ &nbsp; &nbsp;6.217052] <span cl=
-ass=3D"Apple-tab-span" style=3D"white-space:pre">=09</span>632fba4d012458fd=
-5fedc678fb9b0f8bc59ceda2 [media] cx25821: Add a card definition for No bran=
-d cards that have: subvendor =3D 0x0000 subdevice =3D 0x0000</font></div><d=
-iv><font size=3D"2">[ &nbsp; &nbsp;6.581338] cx23885 driver version 0.0.3 l=
-oaded</font></div><div><font size=3D"2">[ &nbsp; &nbsp;6.590852] cx23885 00=
-00:07:00.0: PCI INT A -&gt; Link[Z01A] -&gt; GSI 20 (level, low) -&gt; IRQ =
-20</font></div><div><font size=3D"2">[ &nbsp; &nbsp;6.600404] cx23885[0]: Y=
-our board isn't known (yet) to the driver.</font></div><div><font size=3D"2=
-">[ &nbsp; &nbsp;6.600405] cx23885[0]: Try to pick one of the existing card=
- configs via</font></div><div><font size=3D"2">[ &nbsp; &nbsp;6.600405] cx2=
-3885[0]: card=3D&lt;n&gt; insmod option. &nbsp;Updating to the latest</font=
-></div><div><font size=3D"2">[ &nbsp; &nbsp;6.600406] cx23885[0]: version m=
-ight help as
- well.</font></div><div><font size=3D"2">[ &nbsp; &nbsp;6.667500] cx23885[0=
-]: Here is a list of valid choices for the card=3D&lt;n&gt; insmod option:<=
-/font></div><div><font size=3D"2">[ &nbsp; &nbsp;6.677064] cx23885[0]: &nbs=
-p; &nbsp;card=3D0 -&gt; UNKNOWN/GENERIC</font></div><div><font size=3D"2">[=
- &nbsp; &nbsp;6.686514] cx23885[0]: &nbsp; &nbsp;card=3D1 -&gt; Hauppauge W=
-inTV-HVR1800lp</font></div><div style=3D"font-family: arial, helvetica, san=
-s-serif; font-size: 10pt; ">...............................................=
-.................</div><div><div><font size=3D"2">[ &nbsp; &nbsp;6.714456] =
-cx23885[0]: &nbsp; &nbsp;card=3D34 -&gt; TerraTec Cinergy T PCIe Dual</font=
-></div><div><font size=3D"2">[ &nbsp; &nbsp;6.758272] CORE cx23885[0]: subs=
-ystem: 1461:c139, board: UNKNOWN/GENERIC [card=3D0,autodetected]</font></di=
-v><div><font size=3D"2">[ &nbsp; &nbsp;6.884219] cx23885_dev_checkrevision(=
-) Hardware revision =3D 0xb0</font></div><div><font size=3D"2">[ &nbsp; &nb=
-sp;6.884224]
- cx23885[0]/0: found at 0000:07:00.0, rev: 2, irq: 20, latency: 0, mmio: 0x=
-f0400000</font></div><div><font size=3D"2">[ &nbsp; &nbsp;6.884229] cx23885=
- 0000:07:00.0: setting latency timer to 64</font></div><div><font size=3D"2=
-">[ &nbsp; &nbsp;6.884233] IRQ 20/cx23885[0]: IRQF_DISABLED is not guarante=
-ed on shared IRQs</font></div><div style=3D"font-family: arial, helvetica, =
-sans-serif; font-size: 10pt; "><br></div></div></div></span></div><div styl=
-e=3D"font-family: arial, helvetica, sans-serif; font-size: 10pt; ">&nbsp;I =
-don't know how to get my card works on my system. I must reboot to Windows =
-7 whenever i want to get some TV programs. It is not good. I ask to support=
- from you?</div><div style=3D"font-family: arial, helvetica, sans-serif; fo=
-nt-size: 10pt; ">Thank you and good work!</div><div style=3D"font-family: a=
-rial, helvetica, sans-serif; font-size: 10pt; ">---------------------------=
--------------------------------</div><div style=3D"font-family: arial, helv=
-etica,
- sans-serif; font-size: 10pt; ">Yahoo: minhhoang1004 + Google: minhhoang100=
-4 + Skype: minhhoang1004 + MSN: tydaikho</div><div style=3D"font-family: ar=
-ial, helvetica, sans-serif; font-size: 10pt; ">----------------------------=
-------------------------------<br><center></center><div>(http://tydaikho.co=
-m) &nbsp;VS &nbsp;(http://vnluser.net)</div><div><br></div></div></div></bo=
-dy></html>
---1138709303-1498328394-1331752239=:9153--
+diff --git a/drivers/media/video/adv7343.c b/drivers/media/video/adv7343.c
+index 119b604..2b5aa67 100644
+--- a/drivers/media/video/adv7343.c
++++ b/drivers/media/video/adv7343.c
+@@ -130,14 +130,12 @@ static int adv7343_setstd(struct v4l2_subdev *sd, v4l2_std_id std)
+ {
+ 	struct adv7343_state *state = to_state(sd);
+ 	struct adv7343_std_info *std_info;
+-	int output_idx, num_std;
++	int num_std;
+ 	char *fsc_ptr;
+ 	u8 reg, val;
+ 	int err = 0;
+ 	int i = 0;
+ 
+-	output_idx = state->output;
+-
+ 	std_info = (struct adv7343_std_info *)stdinfo;
+ 	num_std = ARRAY_SIZE(stdinfo);
+ 
+diff --git a/drivers/media/video/c-qcam.c b/drivers/media/video/c-qcam.c
+index fda32f5..73c65c2 100644
+--- a/drivers/media/video/c-qcam.c
++++ b/drivers/media/video/c-qcam.c
+@@ -378,7 +378,7 @@ get_fragment:
+ static long qc_capture(struct qcam *qcam, char __user *buf, unsigned long len)
+ {
+ 	struct v4l2_device *v4l2_dev = &qcam->v4l2_dev;
+-	unsigned lines, pixelsperline, bitsperxfer;
++	unsigned lines, pixelsperline;
+ 	unsigned int is_bi_dir = qcam->bidirectional;
+ 	size_t wantlen, outptr = 0;
+ 	char tmpbuf[BUFSZ];
+@@ -404,7 +404,6 @@ static long qc_capture(struct qcam *qcam, char __user *buf, unsigned long len)
+ 
+ 	lines = qcam->height;
+ 	pixelsperline = qcam->width;
+-	bitsperxfer = (is_bi_dir) ? 24 : 8;
+ 
+ 	if (is_bi_dir) {
+ 		/* Turn the port around */
+diff --git a/drivers/media/video/cx25821/cx25821-alsa.c b/drivers/media/video/cx25821/cx25821-alsa.c
+index 03cfac4..1858a45 100644
+--- a/drivers/media/video/cx25821/cx25821-alsa.c
++++ b/drivers/media/video/cx25821/cx25821-alsa.c
+@@ -290,11 +290,9 @@ static irqreturn_t cx25821_irq(int irq, void *dev_id)
+ 	u32 status, pci_status;
+ 	u32 audint_status, audint_mask;
+ 	int loop, handled = 0;
+-	int audint_count = 0;
+ 
+ 	audint_status = cx_read(AUD_A_INT_STAT);
+ 	audint_mask = cx_read(AUD_A_INT_MSK);
+-	audint_count = cx_read(AUD_A_GPCNT);
+ 	status = cx_read(PCI_INT_STAT);
+ 
+ 	for (loop = 0; loop < 1; loop++) {
+diff --git a/drivers/media/video/pms.c b/drivers/media/video/pms.c
+index e753b5e..2402da7 100644
+--- a/drivers/media/video/pms.c
++++ b/drivers/media/video/pms.c
+@@ -763,7 +763,7 @@ static int pms_s_std(struct file *file, void *fh, v4l2_std_id *std)
+ 		break;
+ 	}*/
+ 	mutex_unlock(&dev->lock);
+-	return 0;
++	return ret;
+ }
+ 
+ static int pms_queryctrl(struct file *file, void *priv,
+@@ -956,7 +956,6 @@ static const struct v4l2_ioctl_ops pms_ioctl_ops = {
+ 
+ static int init_mediavision(struct pms *dev)
+ {
+-	int id;
+ 	int idec, decst;
+ 	int i;
+ 	static const unsigned char i2c_defs[] = {
+@@ -988,7 +987,6 @@ static int init_mediavision(struct pms *dev)
+ 	outb(dev->io >> 4, 0x9a01);	/* Set IO port */
+ 
+ 
+-	id = mvv_read(dev, 3);
+ 	decst = pms_i2c_stat(dev, 0x43);
+ 
+ 	if (decst != -1)
+diff --git a/drivers/media/video/s2255drv.c b/drivers/media/video/s2255drv.c
+index 37845de..21eaa87 100644
+--- a/drivers/media/video/s2255drv.c
++++ b/drivers/media/video/s2255drv.c
+@@ -634,13 +634,11 @@ static void s2255_fillbuff(struct s2255_channel *channel,
+ 	const char *tmpbuf;
+ 	char *vbuf = videobuf_to_vmalloc(&buf->vb);
+ 	unsigned long last_frame;
+-	struct s2255_framei *frm;
+ 
+ 	if (!vbuf)
+ 		return;
+ 	last_frame = channel->last_frame;
+ 	if (last_frame != -1) {
+-		frm = &channel->buffer.frame[last_frame];
+ 		tmpbuf =
+ 		    (const char *)channel->buffer.frame[last_frame].lpvbits;
+ 		switch (buf->fmt->fourcc) {
+@@ -987,7 +985,6 @@ static int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
+ 	struct videobuf_queue *q = &fh->vb_vidq;
+ 	struct s2255_mode mode;
+ 	int ret;
+-	int norm;
+ 
+ 	ret = vidioc_try_fmt_vid_cap(file, fh, f);
+ 
+@@ -1018,7 +1015,6 @@ static int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
+ 	channel->height = f->fmt.pix.height;
+ 	fh->vb_vidq.field = f->fmt.pix.field;
+ 	fh->type = f->type;
+-	norm = norm_minw(&channel->vdev);
+ 	if (channel->width > norm_minw(&channel->vdev)) {
+ 		if (channel->height > norm_minh(&channel->vdev)) {
+ 			if (channel->cap_parm.capturemode &
+diff --git a/drivers/media/video/tm6000/tm6000-input.c b/drivers/media/video/tm6000/tm6000-input.c
+index 859eb90..e80b7e1 100644
+--- a/drivers/media/video/tm6000/tm6000-input.c
++++ b/drivers/media/video/tm6000/tm6000-input.c
+@@ -168,7 +168,6 @@ static void tm6000_ir_urb_received(struct urb *urb)
+ 	struct tm6000_IR *ir = dev->ir;
+ 	struct tm6000_ir_poll_result poll_result;
+ 	char *buf;
+-	int rc;
+ 
+ 	dprintk(2, "%s\n",__func__);
+ 	if (urb->status < 0 || urb->actual_length <= 0) {
+@@ -192,7 +191,7 @@ static void tm6000_ir_urb_received(struct urb *urb)
+ 	dprintk(1, "%s, scancode: 0x%04x\n",__func__, poll_result.rc_data);
+ 	rc_keydown(ir->rc, poll_result.rc_data, 0);
+ 
+-	rc = usb_submit_urb(urb, GFP_ATOMIC);
++	usb_submit_urb(urb, GFP_ATOMIC);
+ 	/*
+ 	 * Flash the led. We can't do it here, as it is running on IRQ context.
+ 	 * So, use the scheduler to do it, in a few ms.
+diff --git a/drivers/media/video/tm6000/tm6000-stds.c b/drivers/media/video/tm6000/tm6000-stds.c
+index 9dc0831..5e28d6a 100644
+--- a/drivers/media/video/tm6000/tm6000-stds.c
++++ b/drivers/media/video/tm6000/tm6000-stds.c
+@@ -338,7 +338,6 @@ static int tm6000_set_audio_std(struct tm6000_core *dev)
+ 	uint8_t areg_02 = 0x04; /* GC1 Fixed gain 0dB */
+ 	uint8_t areg_05 = 0x01; /* Auto 4.5 = M Japan, Auto 6.5 = DK */
+ 	uint8_t areg_06 = 0x02; /* Auto de-emphasis, mannual channel mode */
+-	uint8_t nicam_flag = 0; /* No NICAM */
+ 
+ 	if (dev->radio) {
+ 		tm6000_set_reg(dev, TM6010_REQ08_R01_A_INIT, 0x00);
+@@ -398,7 +397,6 @@ static int tm6000_set_audio_std(struct tm6000_core *dev)
+ 		} else {
+ 			areg_05 = 0x07;
+ 		}
+-		nicam_flag = 1;
+ 		break;
+ 	/* other */
+ 	case 3:
+diff --git a/drivers/media/video/tm6000/tm6000-video.c b/drivers/media/video/tm6000/tm6000-video.c
+index 1ba26d5..011265e 100644
+--- a/drivers/media/video/tm6000/tm6000-video.c
++++ b/drivers/media/video/tm6000/tm6000-video.c
+@@ -169,7 +169,6 @@ static inline void get_next_buf(struct tm6000_dmaqueue *dma_q,
+ 			       struct tm6000_buffer   **buf)
+ {
+ 	struct tm6000_core *dev = container_of(dma_q, struct tm6000_core, vidq);
+-	char *outp;
+ 
+ 	if (list_empty(&dma_q->active)) {
+ 		dprintk(dev, V4L2_DEBUG_QUEUE, "No active queue to serve\n");
+@@ -179,11 +178,6 @@ static inline void get_next_buf(struct tm6000_dmaqueue *dma_q,
+ 
+ 	*buf = list_entry(dma_q->active.next,
+ 			struct tm6000_buffer, vb.queue);
+-
+-	/* Cleans up buffer - Useful for testing for frame/URB loss */
+-	outp = videobuf_to_vmalloc(&(*buf)->vb);
+-
+-	return;
+ }
+ 
+ /*
+@@ -211,7 +205,7 @@ static int copy_streams(u8 *data, unsigned long len,
+ {
+ 	struct tm6000_dmaqueue  *dma_q = urb->context;
+ 	struct tm6000_core *dev = container_of(dma_q, struct tm6000_core, vidq);
+-	u8 *ptr = data, *endp = data+len, c;
++	u8 *ptr = data, *endp = data+len;
+ 	unsigned long header = 0;
+ 	int rc = 0;
+ 	unsigned int cmd, cpysize, pktsize, size, field, block, line, pos = 0;
+@@ -264,7 +258,6 @@ static int copy_streams(u8 *data, unsigned long len,
+ 			}
+ 
+ 			/* split the header fields */
+-			c = (header >> 24) & 0xff;
+ 			size = ((header & 0x7e) << 1);
+ 			if (size > 0)
+ 				size -= 4;
+diff --git a/drivers/media/video/tvp5150.c b/drivers/media/video/tvp5150.c
+index 1326e11..476a6a0 100644
+--- a/drivers/media/video/tvp5150.c
++++ b/drivers/media/video/tvp5150.c
+@@ -830,19 +830,12 @@ static int tvp5150_mbus_fmt(struct v4l2_subdev *sd,
+ 			    struct v4l2_mbus_framefmt *f)
+ {
+ 	struct tvp5150 *decoder = to_tvp5150(sd);
+-	v4l2_std_id std;
+ 
+ 	if (f == NULL)
+ 		return -EINVAL;
+ 
+ 	tvp5150_reset(sd, 0);
+ 
+-	/* Calculate height and width based on current standard */
+-	if (decoder->norm == V4L2_STD_ALL)
+-		std = tvp5150_read_std(sd);
+-	else
+-		std = decoder->norm;
+-
+ 	f->width = decoder->rect.width;
+ 	f->height = decoder->rect.height;
+ 
+diff --git a/drivers/media/video/tvp7002.c b/drivers/media/video/tvp7002.c
+index d7676d8..408b65e 100644
+--- a/drivers/media/video/tvp7002.c
++++ b/drivers/media/video/tvp7002.c
+@@ -670,7 +670,6 @@ static int tvp7002_query_dv_preset(struct v4l2_subdev *sd,
+ 						struct v4l2_dv_preset *qpreset)
+ {
+ 	const struct tvp7002_preset_definition *presets = tvp7002_presets;
+-	struct tvp7002 *device;
+ 	u8 progressive;
+ 	u32 lpfr;
+ 	u32 cpln;
+@@ -684,8 +683,6 @@ static int tvp7002_query_dv_preset(struct v4l2_subdev *sd,
+ 	/* Return invalid preset if no active input is detected */
+ 	qpreset->preset = V4L2_DV_INVALID;
+ 
+-	device = to_tvp7002(sd);
+-
+ 	/* Read standards from device registers */
+ 	tvp7002_read_err(sd, TVP7002_L_FRAME_STAT_LSBS, &lpf_lsb, &error);
+ 	tvp7002_read_err(sd, TVP7002_L_FRAME_STAT_MSBS, &lpf_msb, &error);
+diff --git a/drivers/media/video/usbvision/usbvision-core.c b/drivers/media/video/usbvision/usbvision-core.c
+index f344411..c9b2042 100644
+--- a/drivers/media/video/usbvision/usbvision-core.c
++++ b/drivers/media/video/usbvision/usbvision-core.c
+@@ -601,13 +601,12 @@ static int usbvision_decompress(struct usb_usbvision *usbvision, unsigned char *
+ 								unsigned char *decompressed, int *start_pos,
+ 								int *block_typestart_pos, int len)
+ {
+-	int rest_pixel, idx, max_pos, pos, extra_pos, block_len, block_type_pos, block_type_len;
++	int rest_pixel, idx, pos, extra_pos, block_len, block_type_pos, block_type_len;
+ 	unsigned char block_byte, block_code, block_type, block_type_byte, integrator;
+ 
+ 	integrator = 0;
+ 	pos = *start_pos;
+ 	block_type_pos = *block_typestart_pos;
+-	max_pos = 396; /* pos + len; */
+ 	extra_pos = pos;
+ 	block_len = 0;
+ 	block_byte = 0;
+@@ -702,7 +701,7 @@ static enum parse_state usbvision_parse_compress(struct usb_usbvision *usbvision
+ 	unsigned char strip_data[USBVISION_STRIP_LEN_MAX];
+ 	unsigned char strip_header[USBVISION_STRIP_HEADER_LEN];
+ 	int idx, idx_end, strip_len, strip_ptr, startblock_pos, block_pos, block_type_pos;
+-	int clipmask_index, bytes_per_pixel, rc;
++	int clipmask_index;
+ 	int image_size;
+ 	unsigned char rv, gv, bv;
+ 	static unsigned char *Y, *U, *V;
+@@ -769,7 +768,6 @@ static enum parse_state usbvision_parse_compress(struct usb_usbvision *usbvision
+ 		return parse_state_next_frame;
+ 	}
+ 
+-	bytes_per_pixel = frame->v4l2_format.bytes_per_pixel;
+ 	clipmask_index = frame->curline * MAX_FRAME_WIDTH;
+ 
+ 	scratch_get(usbvision, strip_data, strip_len);
+@@ -781,14 +779,14 @@ static enum parse_state usbvision_parse_compress(struct usb_usbvision *usbvision
+ 
+ 	usbvision->block_pos = block_pos;
+ 
+-	rc = usbvision_decompress(usbvision, strip_data, Y, &block_pos, &block_type_pos, idx_end);
++	usbvision_decompress(usbvision, strip_data, Y, &block_pos, &block_type_pos, idx_end);
+ 	if (strip_len > usbvision->max_strip_len)
+ 		usbvision->max_strip_len = strip_len;
+ 
+ 	if (frame->curline % 2)
+-		rc = usbvision_decompress(usbvision, strip_data, V, &block_pos, &block_type_pos, idx_end / 2);
++		usbvision_decompress(usbvision, strip_data, V, &block_pos, &block_type_pos, idx_end / 2);
+ 	else
+-		rc = usbvision_decompress(usbvision, strip_data, U, &block_pos, &block_type_pos, idx_end / 2);
++		usbvision_decompress(usbvision, strip_data, U, &block_pos, &block_type_pos, idx_end / 2);
+ 
+ 	if (block_pos > usbvision->comprblock_pos)
+ 		usbvision->comprblock_pos = block_pos;
+diff --git a/drivers/media/video/zoran/zoran_device.c b/drivers/media/video/zoran/zoran_device.c
+index e86173b..a4cd504 100644
+--- a/drivers/media/video/zoran/zoran_device.c
++++ b/drivers/media/video/zoran/zoran_device.c
+@@ -542,11 +542,9 @@ void write_overlay_mask(struct zoran_fh *fh, struct v4l2_clip *vp, int count)
+ 	u32 *mask;
+ 	int x, y, width, height;
+ 	unsigned i, j, k;
+-	u32 reg;
+ 
+ 	/* fill mask with one bits */
+ 	memset(fh->overlay_mask, ~0, mask_line_size * 4 * BUZ_MAX_HEIGHT);
+-	reg = 0;
+ 
+ 	for (i = 0; i < count; ++i) {
+ 		/* pick up local copy of clip */
+diff --git a/drivers/media/video/zr364xx.c b/drivers/media/video/zr364xx.c
+index cd2e39f..e44cb33 100644
+--- a/drivers/media/video/zr364xx.c
++++ b/drivers/media/video/zr364xx.c
+@@ -507,14 +507,12 @@ static void zr364xx_fillbuff(struct zr364xx_camera *cam,
+ 	const char *tmpbuf;
+ 	char *vbuf = videobuf_to_vmalloc(&buf->vb);
+ 	unsigned long last_frame;
+-	struct zr364xx_framei *frm;
+ 
+ 	if (!vbuf)
+ 		return;
+ 
+ 	last_frame = cam->last_frame;
+ 	if (last_frame != -1) {
+-		frm = &cam->buffer.frame[last_frame];
+ 		tmpbuf = (const char *)cam->buffer.frame[last_frame].lpvbits;
+ 		switch (buf->fmt->fourcc) {
+ 		case V4L2_PIX_FMT_JPEG:
+diff --git a/drivers/staging/media/go7007/go7007-v4l2.c b/drivers/staging/media/go7007/go7007-v4l2.c
+index 3ef4cd8..c184ad3 100644
+--- a/drivers/staging/media/go7007/go7007-v4l2.c
++++ b/drivers/staging/media/go7007/go7007-v4l2.c
+@@ -76,7 +76,6 @@ static void abort_queued(struct go7007 *go)
+ 
+ static int go7007_streamoff(struct go7007 *go)
+ {
+-	int retval = -EINVAL;
+ 	unsigned long flags;
+ 
+ 	mutex_lock(&go->hw_lock);
+@@ -87,7 +86,6 @@ static int go7007_streamoff(struct go7007 *go)
+ 		abort_queued(go);
+ 		spin_unlock_irqrestore(&go->spinlock, flags);
+ 		go7007_reset_encoder(go);
+-		retval = 0;
+ 	}
+ 	mutex_unlock(&go->hw_lock);
+ 	return 0;
+-- 
+1.7.10
 
-
---===============1176967314==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-dvb users mailing list
-For V4L/DVB development, please use instead linux-media@vger.kernel.org
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1176967314==--
