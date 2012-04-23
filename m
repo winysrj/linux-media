@@ -1,83 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:11859 "EHLO mx1.redhat.com"
+Received: from smtp209.alice.it ([82.57.200.105]:48870 "EHLO smtp209.alice.it"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754958Ab2DKCSF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Apr 2012 22:18:05 -0400
-Message-ID: <4F84E9D2.7000405@redhat.com>
-Date: Tue, 10 Apr 2012 23:17:54 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: "Steinar H. Gunderson" <sgunderson@bigfoot.com>
-CC: linux-media@vger.kernel.org,
-	"Steinar H. Gunderson" <sesse@samfundet.no>
-Subject: Re: [PATCH 03/11] Hack to fix a mutex issue in the DVB layer.
-References: <20120401155330.GA31901@uio.no> <1333295631-31866-3-git-send-email-sgunderson@bigfoot.com>
-In-Reply-To: <1333295631-31866-3-git-send-email-sgunderson@bigfoot.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	id S1753778Ab2DWNVa (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 Apr 2012 09:21:30 -0400
+From: Antonio Ospite <ospite@studenti.unina.it>
+To: linux-media@vger.kernel.org
+Cc: Antonio Ospite <ospite@studenti.unina.it>,
+	Jean-Francois Moine <moinejf@free.fr>,
+	linux-input@vger.kernel.org,
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Johann Deneux <johann.deneux@gmail.comx>,
+	Anssi Hannula <anssi.hannula@gmail.com>,
+	Jonathan Corbet <corbet@lwn.net>
+Subject: [PATCH 2/3] Input: move drivers/input/fixp-arith.h to include/linux
+Date: Mon, 23 Apr 2012 15:21:06 +0200
+Message-Id: <1335187267-27940-3-git-send-email-ospite@studenti.unina.it>
+In-Reply-To: <1335187267-27940-1-git-send-email-ospite@studenti.unina.it>
+References: <1335187267-27940-1-git-send-email-ospite@studenti.unina.it>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 01-04-2012 12:53, Steinar H. Gunderson escreveu:
-> From: "Steinar H. Gunderson" <sesse@samfundet.no>
-> 
-> dvb_usercopy(), which is called on all ioctls, not only copies data to and from
-> userspace, but also takes a lock on the file descriptor, which means that only
-> one ioctl can run at a time. This means that if one thread of mumudvb is busy
-> trying to get, say, the SNR from the frontend (which can hang due to the issue
-> above), the CAM thread's ioctl(fd, CA_GET_SLOT_INFO, ...) will hang, even
-> though it doesn't need to communicate with the hardware at all.  This obviously
-> requires a better fix, but I don't know the generic DVB layer well enough to
-> say what it is. Maybe it's some sort of remnant of from when all ioctl()s took
-> the BKL. Note that on UMP kernels without preemption, mutex_lock is to the best
-> of my knowledge a no-op, so these delay issues would not show up on non-SMP.
-> 
-> Signed-off-by: Steinar H. Gunderson <sesse@samfundet.no>
-> ---
->  drivers/media/dvb/dvb-core/dvbdev.c |    2 --
->  1 file changed, 2 deletions(-)
-> 
-> diff --git a/drivers/media/dvb/dvb-core/dvbdev.c b/drivers/media/dvb/dvb-core/dvbdev.c
-> index 00a6732..e1217f6 100644
-> --- a/drivers/media/dvb/dvb-core/dvbdev.c
-> +++ b/drivers/media/dvb/dvb-core/dvbdev.c
-> @@ -417,10 +417,8 @@ int dvb_usercopy(struct file *file,
->  	}
->  
->  	/* call driver */
-> -	mutex_lock(&dvbdev_mutex);
->  	if ((err = func(file, cmd, parg)) == -ENOIOCTLCMD)
->  		err = -EINVAL;
-> -	mutex_unlock(&dvbdev_mutex);
+Move drivers/input/fixp-arith.h to include/linux so that the functions
+defined there can be used by other subsystems, for instance some video
+devices ISPs can control the output HUE value by setting registers for
+sin(HUE) and cos(HUE).
 
-As-is, this would be too risky, as it may break random drivers. 
+Signed-off-by: Antonio Ospite <ospite@studenti.unina.it>
+---
+ drivers/input/ff-memless.c                    |    3 +--
+ {drivers/input => include/linux}/fixp-arith.h |    0
+ 2 files changed, 1 insertion(+), 2 deletions(-)
+ rename {drivers/input => include/linux}/fixp-arith.h (100%)
 
-A change like that would require to push down the mutex lock into each caller for
-dvb_user_copy:
-
-drivers/media/dvb/dvb-core/dmxdev.c:      return dvb_usercopy(file, cmd, arg, dvb_demux_do_ioctl);
-drivers/media/dvb/dvb-core/dmxdev.c:      return dvb_usercopy(file, cmd, arg, dvb_dvr_do_ioctl);
-drivers/media/dvb/dvb-core/dvb_ca_en50221.c:      return dvb_usercopy(file, cmd, arg, dvb_ca_en50221_io_do_ioctl);
-drivers/media/dvb/dvb-core/dvb_net.c:     return dvb_usercopy(file, cmd, arg, dvb_net_do_ioctl);
-drivers/media/dvb/dvb-core/dvbdev.c:      return dvb_usercopy(file, cmd, arg, dvbdev->kernel_ioctl);
-drivers/media/dvb/dvb-core/dvbdev.c:int dvb_usercopy(struct file *file,
-drivers/media/dvb/dvb-core/dvbdev.h:we simply define out own dvb_usercopy(), which will hopefully become
-drivers/media/dvb/dvb-core/dvbdev.h:extern int dvb_usercopy(struct file *file, unsigned int cmd, unsigned long arg,
-
-$ git grep kernel_ioctl drivers/media/dvb/
-drivers/media/dvb/dvb-core/dvb_frontend.c:                .kernel_ioctl = dvb_frontend_ioctl
-drivers/media/dvb/dvb-core/dvbdev.c:      if (!dvbdev->kernel_ioctl)
-drivers/media/dvb/dvb-core/dvbdev.c:      return dvb_usercopy(file, cmd, arg, dvbdev->kernel_ioctl);
-drivers/media/dvb/dvb-core/dvbdev.h:      int (*kernel_ioctl)(struct file *file, unsigned int cmd, void *arg);
-drivers/media/dvb/firewire/firedtv-ci.c:  .kernel_ioctl   = fdtv_ca_ioctl,
-drivers/media/dvb/ttpci/av7110.c: .kernel_ioctl   = dvb_osd_ioctl,
-drivers/media/dvb/ttpci/av7110_av.c:      .kernel_ioctl   = dvb_video_ioctl,
-drivers/media/dvb/ttpci/av7110_av.c:      .kernel_ioctl   = dvb_audio_ioctl,
-drivers/media/dvb/ttpci/av7110_ca.c:      .kernel_ioctl   = dvb_ca_ioctl,
-
-And optimize the code there to avoid uneeded locks.
-
->  
->  	if (err < 0)
->  		goto out;
+diff --git a/drivers/input/ff-memless.c b/drivers/input/ff-memless.c
+index 117a59a..5f55885 100644
+--- a/drivers/input/ff-memless.c
++++ b/drivers/input/ff-memless.c
+@@ -31,8 +31,7 @@
+ #include <linux/mutex.h>
+ #include <linux/spinlock.h>
+ #include <linux/jiffies.h>
+-
+-#include "fixp-arith.h"
++#include <linux/fixp-arith.h>
+ 
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Anssi Hannula <anssi.hannula@gmail.com>");
+diff --git a/drivers/input/fixp-arith.h b/include/linux/fixp-arith.h
+similarity index 100%
+rename from drivers/input/fixp-arith.h
+rename to include/linux/fixp-arith.h
+-- 
+1.7.10
 
