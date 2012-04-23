@@ -1,120 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:63358 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756598Ab2DTOpk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Apr 2012 10:45:40 -0400
-Date: Fri, 20 Apr 2012 16:45:27 +0200
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: [PATCHv5 06/13] v4l: vb2-dma-contig: Remove unneeded allocation
- context structure
-In-reply-to: <1334933134-4688-1-git-send-email-t.stanislaws@samsung.com>
-To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
-Cc: airlied@redhat.com, m.szyprowski@samsung.com,
-	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
-	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
-	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
-	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
-	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
-	mchehab@redhat.com, linux-doc@vger.kernel.org,
-	g.liakhovetski@gmx.de
-Message-id: <1334933134-4688-7-git-send-email-t.stanislaws@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1334933134-4688-1-git-send-email-t.stanislaws@samsung.com>
+Received: from na3sys009aog120.obsmtp.com ([74.125.149.140]:41542 "EHLO
+	na3sys009aog120.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755343Ab2DWOgY convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 Apr 2012 10:36:24 -0400
+Received: by qcsq13 with SMTP id q13so9106547qcs.17
+        for <linux-media@vger.kernel.org>; Mon, 23 Apr 2012 07:36:22 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20120420204242.GM5356@valkosipuli.localdomain>
+References: <414D8776B339BF44ADF9839A98A591A0046B8C63@EUDUCEX3.europe.ad.flextronics.com>
+ <20120420204242.GM5356@valkosipuli.localdomain>
+From: "Aguirre, Sergio" <saaguirre@ti.com>
+Date: Mon, 23 Apr 2012 09:36:01 -0500
+Message-ID: <CAKnK67R6mZuDBwU5rM20zPjpcUcqdTZ6DPSUzVdq=fkX_A0Tog@mail.gmail.com>
+Subject: Re: Mipi csi2 driver for Omap4
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Steve Lindell <Steve.Lindell@se.flextronics.com>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-vb2-dma-contig returns a vb2_dc_conf structure instance as the vb2
-allocation context. That structure only stores a pointer to the physical
-device. Remove it and use the device pointer directly as the allocation
-context.
+Hi Steve, Sakari,
 
-Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/video/videobuf2-dma-contig.c |   29 ++++++---------------------
- 1 files changed, 7 insertions(+), 22 deletions(-)
+On Fri, Apr 20, 2012 at 3:42 PM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
+> Hi Steve,
+>
+> On Fri, Apr 20, 2012 at 12:11:38PM +0200, Steve Lindell wrote:
+>> Hi! I'm developing a mipi csi2 receiver for test purpose and need some
+>> help of how to capture the data stream from a camera module. I'm using a
+>> phytec board with a Omap4430 processor running Linux kernel 3.0.9.
+>> Connected to the MIPI lanes I have a camera module (soled on a flexfilm)
+>> The camera follows the Mipi csi2 specs and is controlled via an external
+>> I2C controller. I have activated the camera and its now transmitting a
+>> test pattern on the Mipi lines (4 line connection).
+>>
+>> I need to capture the stream and store it as a Raw Bayer snapshot. Is this
+>> possible use Omap4430 and does Linux have the necessary drivers to capture
+>> the stream. If this driver exists are there any documentation of how to
+>> implement the driver?
+>>
+>> Is it possible to get some help of how to get started?
+>
+> Sergio Aguirre has posted the patches for the Omap 4 Iss to this list some
+> time ago. I believe you'll also be able to find them here:
+>
+> <URL:https://gitorious.org/omap4-v4l2-camera/pages/Home>
 
-diff --git a/drivers/media/video/videobuf2-dma-contig.c b/drivers/media/video/videobuf2-dma-contig.c
-index 5207eb1..ff0a662 100644
---- a/drivers/media/video/videobuf2-dma-contig.c
-+++ b/drivers/media/video/videobuf2-dma-contig.c
-@@ -17,12 +17,8 @@
- #include <media/videobuf2-core.h>
- #include <media/videobuf2-memops.h>
- 
--struct vb2_dc_conf {
--	struct device		*dev;
--};
--
- struct vb2_dc_buf {
--	struct vb2_dc_conf		*conf;
-+	struct device			*dev;
- 	void				*vaddr;
- 	dma_addr_t			dma_addr;
- 	unsigned long			size;
-@@ -35,23 +31,21 @@ static void vb2_dc_put(void *buf_priv);
- 
- static void *vb2_dc_alloc(void *alloc_ctx, unsigned long size)
- {
--	struct vb2_dc_conf *conf = alloc_ctx;
-+	struct device *dev = alloc_ctx;
- 	struct vb2_dc_buf *buf;
- 
- 	buf = kzalloc(sizeof *buf, GFP_KERNEL);
- 	if (!buf)
- 		return ERR_PTR(-ENOMEM);
- 
--	buf->vaddr = dma_alloc_coherent(conf->dev, size, &buf->dma_addr,
--					GFP_KERNEL);
-+	buf->vaddr = dma_alloc_coherent(dev, size, &buf->dma_addr, GFP_KERNEL);
- 	if (!buf->vaddr) {
--		dev_err(conf->dev, "dma_alloc_coherent of size %ld failed\n",
--			size);
-+		dev_err(dev, "dma_alloc_coherent of size %ld failed\n", size);
- 		kfree(buf);
- 		return ERR_PTR(-ENOMEM);
- 	}
- 
--	buf->conf = conf;
-+	buf->dev = dev;
- 	buf->size = size;
- 
- 	buf->handler.refcount = &buf->refcount;
-@@ -68,7 +62,7 @@ static void vb2_dc_put(void *buf_priv)
- 	struct vb2_dc_buf *buf = buf_priv;
- 
- 	if (atomic_dec_and_test(&buf->refcount)) {
--		dma_free_coherent(buf->conf->dev, buf->size, buf->vaddr,
-+		dma_free_coherent(buf->dev, buf->size, buf->vaddr,
- 				  buf->dma_addr);
- 		kfree(buf);
- 	}
-@@ -162,21 +156,12 @@ EXPORT_SYMBOL_GPL(vb2_dma_contig_memops);
- 
- void *vb2_dma_contig_init_ctx(struct device *dev)
- {
--	struct vb2_dc_conf *conf;
--
--	conf = kzalloc(sizeof *conf, GFP_KERNEL);
--	if (!conf)
--		return ERR_PTR(-ENOMEM);
--
--	conf->dev = dev;
--
--	return conf;
-+	return dev;
- }
- EXPORT_SYMBOL_GPL(vb2_dma_contig_init_ctx);
- 
- void vb2_dma_contig_cleanup_ctx(void *alloc_ctx)
- {
--	kfree(alloc_ctx);
- }
- EXPORT_SYMBOL_GPL(vb2_dma_contig_cleanup_ctx);
- 
--- 
-1.7.5.4
+Thanks Sakari for the reference.
 
+>
+> I guess you'd be also better off using a newer kernel than that.
+>
+> Hope this helps... Cc Sergio.
+
+Steve,
+
+I think it'll be easier for you to consider my code as a reference, and
+follow as a reference the pandaboard implementation i've been maintaining.
+
+Take a look specially at the "devel" branch, and to these files:
+
+# Board file
+arch/arm/mach-omap2/board-omap4panda-camera.c
+
+# OV5650 Sensor file (which is RAW10)
+drivers/media/video/ov5650.c
+
+Please let me know any questions you might have.
+
+I can help you out on getting what you need.
+
+Regards,
+Sergio
+
+>
+> Regards,
+>
+> --
+> Sakari Ailus
+> e-mail: sakari.ailus@iki.fi     jabber/XMPP/Gmail: sailus@retiisi.org.uk
