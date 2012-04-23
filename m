@@ -1,61 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gate.crashing.org ([63.228.1.57]:54173 "EHLO gate.crashing.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754011Ab2DTSb7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Apr 2012 14:31:59 -0400
-Subject: Re: [PATCHv24 00/16] Contiguous Memory Allocator
-Mime-Version: 1.0 (Apple Message framework v1257)
-Content-Type: text/plain; charset=us-ascii
-From: Kumar Gala <galak@kernel.crashing.org>
-In-Reply-To: <20120419124044.632bfa49.akpm@linux-foundation.org>
-Date: Fri, 20 Apr 2012 13:31:12 -0500
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org,
-	Michal Nazarewicz <mina86@mina86.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
-	Jesse Barker <jesse.barker@linaro.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Chunsang Jeong <chunsang.jeong@linaro.org>,
-	Dave Hansen <dave@linux.vnet.ibm.com>,
-	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-	Rob Clark <rob.clark@linaro.org>,
-	Ohad Ben-Cohen <ohad@wizery.com>,
-	Sandeep Patil <psandeep.s@gmail.com>
-Content-Transfer-Encoding: 7bit
-Message-Id: <4C95F6F5-3B10-42FE-92B7-C1E8AE6A1820@kernel.crashing.org>
-References: <1333462221-3987-1-git-send-email-m.szyprowski@samsung.com> <20120419124044.632bfa49.akpm@linux-foundation.org>
-To: Andrew Morton <akpm@linux-foundation.org>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:37599 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752468Ab2DWL3l (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 Apr 2012 07:29:41 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@iki.fi
+Subject: [PATCH 4/4] omap3isp: Mark probe and cleanup functions with __devinit and __devexit
+Date: Mon, 23 Apr 2012 13:29:55 +0200
+Message-Id: <1335180595-27931-5-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1335180595-27931-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1335180595-27931-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/video/omap3isp/isp.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-On Apr 19, 2012, at 2:40 PM, Andrew Morton wrote:
+diff --git a/drivers/media/video/omap3isp/isp.c b/drivers/media/video/omap3isp/isp.c
+index df6416c..0307ac3 100644
+--- a/drivers/media/video/omap3isp/isp.c
++++ b/drivers/media/video/omap3isp/isp.c
+@@ -1978,7 +1978,7 @@ error_csiphy:
+  *
+  * Always returns 0.
+  */
+-static int isp_remove(struct platform_device *pdev)
++static int __devexit isp_remove(struct platform_device *pdev)
+ {
+ 	struct isp_device *isp = platform_get_drvdata(pdev);
+ 	int i;
+@@ -2059,7 +2059,7 @@ static int isp_map_mem_resource(struct platform_device *pdev,
+  *   -EINVAL if couldn't install ISR,
+  *   or clk_get return error value.
+  */
+-static int isp_probe(struct platform_device *pdev)
++static int __devinit isp_probe(struct platform_device *pdev)
+ {
+ 	struct isp_platform_data *pdata = pdev->dev.platform_data;
+ 	struct isp_device *isp;
+@@ -2227,7 +2227,7 @@ MODULE_DEVICE_TABLE(platform, omap3isp_id_table);
+ 
+ static struct platform_driver omap3isp_driver = {
+ 	.probe = isp_probe,
+-	.remove = isp_remove,
++	.remove = __devexit_p(isp_remove),
+ 	.id_table = omap3isp_id_table,
+ 	.driver = {
+ 		.owner = THIS_MODULE,
+-- 
+1.7.3.4
 
-> On Tue, 03 Apr 2012 16:10:05 +0200
-> Marek Szyprowski <m.szyprowski@samsung.com> wrote:
-> 
->> This is (yet another) update of CMA patches.
-> 
-> Looks OK to me.  It's a lot of code.
-> 
-> Please move it into linux-next, and if all is well, ask Linus to pull
-> the tree into 3.5-rc1.  Please be sure to cc me on that email.
-> 
-> I suggest that you include additional patches which enable CMA as much
-> as possible on as many architectures as possible so that it gets
-> maximum coverage testing in linux-next.  Remove those Kconfig patches
-> when merging upstream.
-> 
-> All this code will probably mess up my tree, but I'll work that out. 
-> It would be more awkward if the CMA code were to later disappear from
-> linux-next or were not merged into 3.5-rc1.  Let's avoid that.
-
-I'm looking at the patches to see if I can contribute arch support for PPC.
-
-- k
