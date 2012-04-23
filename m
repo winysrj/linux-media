@@ -1,83 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from na3sys009aog120.obsmtp.com ([74.125.149.140]:41542 "EHLO
-	na3sys009aog120.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755343Ab2DWOgY convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Apr 2012 10:36:24 -0400
-Received: by qcsq13 with SMTP id q13so9106547qcs.17
-        for <linux-media@vger.kernel.org>; Mon, 23 Apr 2012 07:36:22 -0700 (PDT)
+Received: from perceval.ideasonboard.com ([95.142.166.194]:38084 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752967Ab2DWWSR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 Apr 2012 18:18:17 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 09/10] uvcvideo: Send control change events for slave ctrls when the master changes
+Date: Tue, 24 Apr 2012 00:18:34 +0200
+Message-ID: <25679814.sufWEMM1Zo@avalon>
+In-Reply-To: <1333900794-1932-10-git-send-email-hdegoede@redhat.com>
+References: <1333900794-1932-1-git-send-email-hdegoede@redhat.com> <1333900794-1932-10-git-send-email-hdegoede@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <20120420204242.GM5356@valkosipuli.localdomain>
-References: <414D8776B339BF44ADF9839A98A591A0046B8C63@EUDUCEX3.europe.ad.flextronics.com>
- <20120420204242.GM5356@valkosipuli.localdomain>
-From: "Aguirre, Sergio" <saaguirre@ti.com>
-Date: Mon, 23 Apr 2012 09:36:01 -0500
-Message-ID: <CAKnK67R6mZuDBwU5rM20zPjpcUcqdTZ6DPSUzVdq=fkX_A0Tog@mail.gmail.com>
-Subject: Re: Mipi csi2 driver for Omap4
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Steve Lindell <Steve.Lindell@se.flextronics.com>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Steve, Sakari,
+Hi Hans,
 
-On Fri, Apr 20, 2012 at 3:42 PM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
-> Hi Steve,
->
-> On Fri, Apr 20, 2012 at 12:11:38PM +0200, Steve Lindell wrote:
->> Hi! I'm developing a mipi csi2 receiver for test purpose and need some
->> help of how to capture the data stream from a camera module. I'm using a
->> phytec board with a Omap4430 processor running Linux kernel 3.0.9.
->> Connected to the MIPI lanes I have a camera module (soled on a flexfilm)
->> The camera follows the Mipi csi2 specs and is controlled via an external
->> I2C controller. I have activated the camera and its now transmitting a
->> test pattern on the Mipi lines (4 line connection).
->>
->> I need to capture the stream and store it as a Raw Bayer snapshot. Is this
->> possible use Omap4430 and does Linux have the necessary drivers to capture
->> the stream. If this driver exists are there any documentation of how to
->> implement the driver?
->>
->> Is it possible to get some help of how to get started?
->
-> Sergio Aguirre has posted the patches for the Omap 4 Iss to this list some
-> time ago. I believe you'll also be able to find them here:
->
-> <URL:https://gitorious.org/omap4-v4l2-camera/pages/Home>
+Thanks for the patch.
 
-Thanks Sakari for the reference.
+On Sunday 08 April 2012 17:59:53 Hans de Goede wrote:
+> This allows v4l2 control UI-s to update the inactive state (ie grey-ing
+> out of controls) for slave controls when the master control changes.
+> 
+> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+> ---
+>  drivers/media/video/uvc/uvc_ctrl.c |   57 +++++++++++++++++++++++++++++++--
+>  1 file changed, 54 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/media/video/uvc/uvc_ctrl.c
+> b/drivers/media/video/uvc/uvc_ctrl.c index 75a4995..38d633a 100644
+> --- a/drivers/media/video/uvc/uvc_ctrl.c
+> +++ b/drivers/media/video/uvc/uvc_ctrl.c
+> @@ -1177,21 +1177,72 @@ static void uvc_ctrl_send_event(struct uvc_fh
+> *handle,
+> 
+>  	list_for_each_entry(sev, &mapping->ev_subs, node)
+>  		if (sev->fh && (sev->fh != &handle->vfh ||
+> -		    (sev->flags & V4L2_EVENT_SUB_FL_ALLOW_FEEDBACK)))
+> +		    (sev->flags & V4L2_EVENT_SUB_FL_ALLOW_FEEDBACK) ||
+> +		    (changes & V4L2_EVENT_CTRL_CH_FLAGS)))
+>  			v4l2_event_queue_fh(sev->fh, &ev);
+>  }
+> 
+> -static void uvc_ctrl_send_events(struct uvc_fh *handle,
+> +static void uvc_ctrl_send_slave_event(struct uvc_fh *handle, u32 slave_id,
+>  	const struct v4l2_ext_control *xctrls, unsigned int xctrls_count)
+>  {
+>  	struct uvc_control_mapping *mapping;
+>  	struct uvc_control *ctrl;
+> +	u32 changes = V4L2_EVENT_CTRL_CH_FLAGS;
+> +	s32 val = 0;
+>  	unsigned int i;
+> 
+> +	/*
+> +	 * We can skip sending an event for the slave if the slave
+> +	 * is being modified in the same transaction.
+> +	 */
+> +	for (i = 0; i < xctrls_count; i++)
+> +		if (xctrls[i].id == slave_id)
+> +			return;
+> +
+> +	ctrl = uvc_find_control(handle->chain, slave_id, &mapping);
 
->
-> I guess you'd be also better off using a newer kernel than that.
->
-> Hope this helps... Cc Sergio.
+As an optimization, what do you think about calling __uvc_find_control() 
+instead (with the master control being passed as an argument to 
+uvc_ctrl_send_slave_event() to get the entity) ? There's no need to resubmit, 
+I can modify the patch myself.
 
-Steve,
+> +	if (ctrl == NULL)
+> +		return;
+> +
+> +	if (__uvc_ctrl_get(handle->chain, ctrl, mapping, &val) == 0)
+> +		changes |= V4L2_EVENT_CTRL_CH_VALUE;
+> +
+> +	uvc_ctrl_send_event(handle, ctrl, mapping, val, changes);
+> +}
+> +
+> +static void uvc_ctrl_send_events(struct uvc_fh *handle,
+> +	const struct v4l2_ext_control *xctrls, unsigned int xctrls_count)
+> +{
+> +	struct uvc_control_mapping *mapping;
+> +	struct uvc_control *ctrl;
+> +	u32 changes = V4L2_EVENT_CTRL_CH_VALUE;
+> +	unsigned int i, j;
+> +
+>  	for (i = 0; i < xctrls_count; ++i) {
+>  		ctrl = uvc_find_control(handle->chain, xctrls[i].id, &mapping);
+> +
+> +		for (j = 0; j < ARRAY_SIZE(mapping->slave_ids); ++j) {
+> +			if (!mapping->slave_ids[j])
+> +				break;
+> +			uvc_ctrl_send_slave_event(handle,
+> +						  mapping->slave_ids[j],
+> +						  xctrls, xctrls_count);
+> +		}
+> +
+> +		/*
+> +		 * If the master is being modified in the same transaction
+> +		 * flags may change too.
+> +		 */
+> +		if (mapping->master_id) {
+> +			for (j = 0; j < xctrls_count; j++) {
+> +				if (xctrls[j].id == mapping->master_id) {
+> +					changes |= V4L2_EVENT_CTRL_CH_FLAGS;
+> +					break;
+> +				}
+> +			}
+> +		}
+> +
+>  		uvc_ctrl_send_event(handle, ctrl, mapping, xctrls[i].value,
+> -				    V4L2_EVENT_CTRL_CH_VALUE);
+> +				    changes);
+>  	}
+>  }
 
-I think it'll be easier for you to consider my code as a reference, and
-follow as a reference the pandaboard implementation i've been maintaining.
-
-Take a look specially at the "devel" branch, and to these files:
-
-# Board file
-arch/arm/mach-omap2/board-omap4panda-camera.c
-
-# OV5650 Sensor file (which is RAW10)
-drivers/media/video/ov5650.c
-
-Please let me know any questions you might have.
-
-I can help you out on getting what you need.
-
+-- 
 Regards,
-Sergio
 
->
-> Regards,
->
-> --
-> Sakari Ailus
-> e-mail: sakari.ailus@iki.fi     jabber/XMPP/Gmail: sailus@retiisi.org.uk
+Laurent Pinchart
+
