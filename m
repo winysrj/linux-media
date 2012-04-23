@@ -1,332 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:52119 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753855Ab2DPN3r (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Apr 2012 09:29:47 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@iki.fi
-Subject: [PATCH v3 5/9] omap3isp: preview: Merge configuration and feature bits
-Date: Mon, 16 Apr 2012 15:29:50 +0200
-Message-Id: <1334582994-6967-6-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1334582994-6967-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1334582994-6967-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from nm19.bullet.mail.ukl.yahoo.com ([217.146.183.193]:20773 "HELO
+	nm19.bullet.mail.ukl.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752358Ab2DWLd2 convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 Apr 2012 07:33:28 -0400
+References: <1335179065.92781.YahooMailNeo@web28601.mail.ukl.yahoo.com>
+Message-ID: <1335180408.87756.YahooMailNeo@web28616.mail.ukl.yahoo.com>
+Date: Mon, 23 Apr 2012 12:26:48 +0100 (BST)
+From: cb cb <chrbruno@yahoo.fr>
+Reply-To: cb cb <chrbruno@yahoo.fr>
+Subject: Re : em28xx on beagleboard with dazzle DVC100 + lsusb
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+In-Reply-To: <1335179065.92781.YahooMailNeo@web28601.mail.ukl.yahoo.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The preview engine parameters are referenced by a value suitable for
-being used in a bitmask. Two macros named OMAP3ISP_PREV_* and PREV_* are
-declared for each parameter and are used interchangeably. Remove the
-private macro.
+Sorry, i forgot the lsusb output
+Christian
 
-Replace the configuration bit field in the parameter update attributes
-structure with a boolean that indicates whether the parameter can be
-updated through the preview engine configuration ioctl.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/video/omap3isp/isppreview.c |  103 +++++++++++++++--------------
- drivers/media/video/omap3isp/isppreview.h |   26 +------
- 2 files changed, 57 insertions(+), 72 deletions(-)
+root@aravis:~# lsusb
+Bus 002 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+Bus 001 Device 004: ID 2304:021a Pinnacle Systems, Inc. Dazzle DVC100 Audio Device
+Bus 001 Device 003: ID 0424:ec00 Standard Microsystems Corp.
+Bus 001 Device 002: ID 0424:9514 Standard Microsystems Corp.
+Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
 
-diff --git a/drivers/media/video/omap3isp/isppreview.c b/drivers/media/video/omap3isp/isppreview.c
-index 4e803a3..da031c1 100644
---- a/drivers/media/video/omap3isp/isppreview.c
-+++ b/drivers/media/video/omap3isp/isppreview.c
-@@ -653,7 +653,7 @@ preview_update_contrast(struct isp_prev_device *prev, u8 contrast)
- 
- 	if (params->contrast != (contrast * ISPPRV_CONTRAST_UNITS)) {
- 		params->contrast = contrast * ISPPRV_CONTRAST_UNITS;
--		prev->update |= PREV_CONTRAST;
-+		prev->update |= OMAP3ISP_PREV_CONTRAST;
- 	}
- }
- 
-@@ -685,7 +685,7 @@ preview_update_brightness(struct isp_prev_device *prev, u8 brightness)
- 
- 	if (params->brightness != (brightness * ISPPRV_BRIGHT_UNITS)) {
- 		params->brightness = brightness * ISPPRV_BRIGHT_UNITS;
--		prev->update |= PREV_BRIGHTNESS;
-+		prev->update |= OMAP3ISP_PREV_BRIGHTNESS;
- 	}
- }
- 
-@@ -723,70 +723,70 @@ preview_config_yc_range(struct isp_prev_device *prev, const void *yclimit)
- 
- /* preview parameters update structure */
- struct preview_update {
--	int cfg_bit;
- 	int feature_bit;
- 	void (*config)(struct isp_prev_device *, const void *);
- 	void (*enable)(struct isp_prev_device *, u8);
-+	bool skip;
- };
- 
- static struct preview_update update_attrs[] = {
--	{OMAP3ISP_PREV_LUMAENH, PREV_LUMA_ENHANCE,
-+	{OMAP3ISP_PREV_LUMAENH,
- 		preview_config_luma_enhancement,
- 		preview_enable_luma_enhancement},
--	{OMAP3ISP_PREV_INVALAW, PREV_INVERSE_ALAW,
-+	{OMAP3ISP_PREV_INVALAW,
- 		NULL,
- 		preview_enable_invalaw},
--	{OMAP3ISP_PREV_HRZ_MED, PREV_HORZ_MEDIAN_FILTER,
-+	{OMAP3ISP_PREV_HRZ_MED,
- 		preview_config_hmed,
- 		preview_enable_hmed},
--	{OMAP3ISP_PREV_CFA, PREV_CFA,
-+	{OMAP3ISP_PREV_CFA,
- 		preview_config_cfa,
- 		preview_enable_cfa},
--	{OMAP3ISP_PREV_CHROMA_SUPP, PREV_CHROMA_SUPPRESS,
-+	{OMAP3ISP_PREV_CHROMA_SUPP,
- 		preview_config_chroma_suppression,
- 		preview_enable_chroma_suppression},
--	{OMAP3ISP_PREV_WB, PREV_WB,
-+	{OMAP3ISP_PREV_WB,
- 		preview_config_whitebalance,
- 		NULL},
--	{OMAP3ISP_PREV_BLKADJ, PREV_BLKADJ,
-+	{OMAP3ISP_PREV_BLKADJ,
- 		preview_config_blkadj,
- 		NULL},
--	{OMAP3ISP_PREV_RGB2RGB, PREV_RGB2RGB,
-+	{OMAP3ISP_PREV_RGB2RGB,
- 		preview_config_rgb_blending,
- 		NULL},
--	{OMAP3ISP_PREV_COLOR_CONV, PREV_COLOR_CONV,
-+	{OMAP3ISP_PREV_COLOR_CONV,
- 		preview_config_rgb_to_ycbcr,
- 		NULL},
--	{OMAP3ISP_PREV_YC_LIMIT, PREV_YCLIMITS,
-+	{OMAP3ISP_PREV_YC_LIMIT,
- 		preview_config_yc_range,
- 		NULL},
--	{OMAP3ISP_PREV_DEFECT_COR, PREV_DEFECT_COR,
-+	{OMAP3ISP_PREV_DEFECT_COR,
- 		preview_config_dcor,
- 		preview_enable_dcor},
--	{OMAP3ISP_PREV_GAMMABYPASS, PREV_GAMMA_BYPASS,
-+	{OMAP3ISP_PREV_GAMMABYPASS,
- 		NULL,
- 		preview_enable_gammabypass},
--	{OMAP3ISP_PREV_DRK_FRM_CAPTURE, PREV_DARK_FRAME_CAPTURE,
-+	{OMAP3ISP_PREV_DRK_FRM_CAPTURE,
- 		NULL,
- 		preview_enable_drkframe_capture},
--	{OMAP3ISP_PREV_DRK_FRM_SUBTRACT, PREV_DARK_FRAME_SUBTRACT,
-+	{OMAP3ISP_PREV_DRK_FRM_SUBTRACT,
- 		NULL,
- 		preview_enable_drkframe},
--	{OMAP3ISP_PREV_LENS_SHADING, PREV_LENS_SHADING,
-+	{OMAP3ISP_PREV_LENS_SHADING,
- 		preview_config_drkf_shadcomp,
- 		preview_enable_drkframe},
--	{OMAP3ISP_PREV_NF, PREV_NOISE_FILTER,
-+	{OMAP3ISP_PREV_NF,
- 		preview_config_noisefilter,
- 		preview_enable_noisefilter},
--	{OMAP3ISP_PREV_GAMMA, PREV_GAMMA,
-+	{OMAP3ISP_PREV_GAMMA,
- 		preview_config_gammacorrn,
- 		NULL},
--	{-1, PREV_CONTRAST,
-+	{OMAP3ISP_PREV_CONTRAST,
- 		preview_config_contrast,
--		NULL},
--	{-1, PREV_BRIGHTNESS,
-+		NULL, true},
-+	{OMAP3ISP_PREV_BRIGHTNESS,
- 		preview_config_brightness,
--		NULL},
-+		NULL, true},
- };
- 
- /*
-@@ -810,59 +810,59 @@ __preview_get_ptrs(struct prev_params *params, void **param,
- 	}
- 
- 	switch (bit) {
--	case PREV_HORZ_MEDIAN_FILTER:
-+	case OMAP3ISP_PREV_HRZ_MED:
- 		*param = &params->hmed;
- 		CHKARG(configs, config, hmed)
- 		return sizeof(params->hmed);
--	case PREV_NOISE_FILTER:
-+	case OMAP3ISP_PREV_NF:
- 		*param = &params->nf;
- 		CHKARG(configs, config, nf)
- 		return sizeof(params->nf);
- 		break;
--	case PREV_CFA:
-+	case OMAP3ISP_PREV_CFA:
- 		*param = &params->cfa;
- 		CHKARG(configs, config, cfa)
- 		return sizeof(params->cfa);
--	case PREV_LUMA_ENHANCE:
-+	case OMAP3ISP_PREV_LUMAENH:
- 		*param = &params->luma;
- 		CHKARG(configs, config, luma)
- 		return sizeof(params->luma);
--	case PREV_CHROMA_SUPPRESS:
-+	case OMAP3ISP_PREV_CHROMA_SUPP:
- 		*param = &params->csup;
- 		CHKARG(configs, config, csup)
- 		return sizeof(params->csup);
--	case PREV_DEFECT_COR:
-+	case OMAP3ISP_PREV_DEFECT_COR:
- 		*param = &params->dcor;
- 		CHKARG(configs, config, dcor)
- 		return sizeof(params->dcor);
--	case PREV_BLKADJ:
-+	case OMAP3ISP_PREV_BLKADJ:
- 		*param = &params->blk_adj;
- 		CHKARG(configs, config, blkadj)
- 		return sizeof(params->blk_adj);
--	case PREV_YCLIMITS:
-+	case OMAP3ISP_PREV_YC_LIMIT:
- 		*param = &params->yclimit;
- 		CHKARG(configs, config, yclimit)
- 		return sizeof(params->yclimit);
--	case PREV_RGB2RGB:
-+	case OMAP3ISP_PREV_RGB2RGB:
- 		*param = &params->rgb2rgb;
- 		CHKARG(configs, config, rgb2rgb)
- 		return sizeof(params->rgb2rgb);
--	case PREV_COLOR_CONV:
-+	case OMAP3ISP_PREV_COLOR_CONV:
- 		*param = &params->rgb2ycbcr;
- 		CHKARG(configs, config, csc)
- 		return sizeof(params->rgb2ycbcr);
--	case PREV_WB:
-+	case OMAP3ISP_PREV_WB:
- 		*param = &params->wbal;
- 		CHKARG(configs, config, wbal)
- 		return sizeof(params->wbal);
--	case PREV_GAMMA:
-+	case OMAP3ISP_PREV_GAMMA:
- 		*param = &params->gamma;
- 		CHKARG(configs, config, gamma)
- 		return sizeof(params->gamma);
--	case PREV_CONTRAST:
-+	case OMAP3ISP_PREV_CONTRAST:
- 		*param = &params->contrast;
- 		return 0;
--	case PREV_BRIGHTNESS:
-+	case OMAP3ISP_PREV_BRIGHTNESS:
- 		*param = &params->brightness;
- 		return 0;
- 	default:
-@@ -905,10 +905,10 @@ static int preview_config(struct isp_prev_device *prev,
- 		attr = &update_attrs[i];
- 		bit = 0;
- 
--		if (attr->cfg_bit == -1 || !(cfg->update & attr->cfg_bit))
-+		if (attr->skip || !(cfg->update & attr->feature_bit))
- 			continue;
- 
--		bit = cfg->flag & attr->cfg_bit;
-+		bit = cfg->flag & attr->feature_bit;
- 		if (bit) {
- 			void *to = NULL, __user *from = NULL;
- 			unsigned long sz = 0;
-@@ -1038,23 +1038,24 @@ static void preview_config_input_size(struct isp_prev_device *prev)
- 	unsigned int slv = prev->crop.top;
- 	unsigned int elv = prev->crop.top + prev->crop.height - 1;
- 
--	if (params->features & PREV_CFA) {
-+	if (params->features & OMAP3ISP_PREV_CFA) {
- 		sph -= 2;
- 		eph += 2;
- 		slv -= 2;
- 		elv += 2;
- 	}
--	if (params->features & (PREV_DEFECT_COR | PREV_NOISE_FILTER)) {
-+	if (params->features & (OMAP3ISP_PREV_DEFECT_COR | OMAP3ISP_PREV_NF)) {
- 		sph -= 2;
- 		eph += 2;
- 		slv -= 2;
- 		elv += 2;
- 	}
--	if (params->features & PREV_HORZ_MEDIAN_FILTER) {
-+	if (params->features & OMAP3ISP_PREV_HRZ_MED) {
- 		sph -= 2;
- 		eph += 2;
- 	}
--	if (params->features & (PREV_CHROMA_SUPPRESS | PREV_LUMA_ENHANCE))
-+	if (params->features & (OMAP3ISP_PREV_CHROMA_SUPP |
-+				OMAP3ISP_PREV_LUMAENH))
- 		sph -= 2;
- 
- 	isp_reg_writel(isp, (sph << ISPPRV_HORZ_INFO_SPH_SHIFT) | eph,
-@@ -1189,7 +1190,7 @@ int omap3isp_preview_busy(struct isp_prev_device *prev)
-  */
- void omap3isp_preview_restore_context(struct isp_device *isp)
- {
--	isp->isp_prev.update = PREV_FEATURES_END - 1;
-+	isp->isp_prev.update = OMAP3ISP_PREV_FEATURES_END - 1;
- 	preview_setup_hw(&isp->isp_prev);
- }
- 
-@@ -1292,12 +1293,14 @@ static void preview_init_params(struct isp_prev_device *prev)
- 	params->yclimit.minY = ISPPRV_YC_MIN;
- 	params->yclimit.maxY = ISPPRV_YC_MAX;
- 
--	params->features = PREV_CFA | PREV_DEFECT_COR | PREV_NOISE_FILTER
--			 | PREV_GAMMA | PREV_BLKADJ | PREV_YCLIMITS
--			 | PREV_RGB2RGB | PREV_COLOR_CONV | PREV_WB
--			 | PREV_BRIGHTNESS | PREV_CONTRAST;
-+	params->features = OMAP3ISP_PREV_CFA | OMAP3ISP_PREV_DEFECT_COR
-+			 | OMAP3ISP_PREV_NF | OMAP3ISP_PREV_GAMMA
-+			 | OMAP3ISP_PREV_BLKADJ | OMAP3ISP_PREV_YC_LIMIT
-+			 | OMAP3ISP_PREV_RGB2RGB | OMAP3ISP_PREV_COLOR_CONV
-+			 | OMAP3ISP_PREV_WB | OMAP3ISP_PREV_BRIGHTNESS
-+			 | OMAP3ISP_PREV_CONTRAST;
- 
--	prev->update = PREV_FEATURES_END - 1;
-+	prev->update = OMAP3ISP_PREV_FEATURES_END - 1;
- }
- 
- /*
-diff --git a/drivers/media/video/omap3isp/isppreview.h b/drivers/media/video/omap3isp/isppreview.h
-index b7f979a..a0d2807 100644
---- a/drivers/media/video/omap3isp/isppreview.h
-+++ b/drivers/media/video/omap3isp/isppreview.h
-@@ -45,28 +45,10 @@
- #define ISPPRV_CONTRAST_HIGH		0xFF
- #define ISPPRV_CONTRAST_UNITS		0x1
- 
--/* Features list */
--#define PREV_LUMA_ENHANCE		OMAP3ISP_PREV_LUMAENH
--#define PREV_INVERSE_ALAW		OMAP3ISP_PREV_INVALAW
--#define PREV_HORZ_MEDIAN_FILTER		OMAP3ISP_PREV_HRZ_MED
--#define PREV_CFA			OMAP3ISP_PREV_CFA
--#define PREV_CHROMA_SUPPRESS		OMAP3ISP_PREV_CHROMA_SUPP
--#define PREV_WB				OMAP3ISP_PREV_WB
--#define PREV_BLKADJ			OMAP3ISP_PREV_BLKADJ
--#define PREV_RGB2RGB			OMAP3ISP_PREV_RGB2RGB
--#define PREV_COLOR_CONV			OMAP3ISP_PREV_COLOR_CONV
--#define PREV_YCLIMITS			OMAP3ISP_PREV_YC_LIMIT
--#define PREV_DEFECT_COR			OMAP3ISP_PREV_DEFECT_COR
--#define PREV_GAMMA_BYPASS		OMAP3ISP_PREV_GAMMABYPASS
--#define PREV_DARK_FRAME_CAPTURE		OMAP3ISP_PREV_DRK_FRM_CAPTURE
--#define PREV_DARK_FRAME_SUBTRACT	OMAP3ISP_PREV_DRK_FRM_SUBTRACT
--#define PREV_LENS_SHADING		OMAP3ISP_PREV_LENS_SHADING
--#define PREV_NOISE_FILTER		OMAP3ISP_PREV_NF
--#define PREV_GAMMA			OMAP3ISP_PREV_GAMMA
--
--#define PREV_CONTRAST			(1 << 17)
--#define PREV_BRIGHTNESS			(1 << 18)
--#define PREV_FEATURES_END		(1 << 19)
-+/* Additional features not listed in linux/omap3isp.h */
-+#define OMAP3ISP_PREV_CONTRAST		(1 << 17)
-+#define OMAP3ISP_PREV_BRIGHTNESS	(1 << 18)
-+#define OMAP3ISP_PREV_FEATURES_END	(1 << 19)
- 
- enum preview_input_entity {
- 	PREVIEW_INPUT_NONE,
--- 
-1.7.3.4
+
+
+
+----- Mail original -----
+De : cb cb <chrbruno@yahoo.fr>
+À : "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Cc : 
+Envoyé le : Lundi 23 avril 2012 13h04
+Objet : em28xx on beagleboard with dazzle DVC100
+
+hello,
+
+i'm trying to capture video using a Dazzle DVC 100 RCA to USB converter ( em28xx driver )
+
+the program is the famous "capture.c" sample from the docs
+It is running on a BeagleBoard Xm with kernel 3.2.11
+
+i get timeout errors at the "select" call, either using mmap, read or userp access
+
+the same program works fine on an x86 platform (kernel 2.6.32)
+
+Could you help me figure out what is wrong ?
+
+Thanks a lot for your help,
+Best Regards,
+
+Christian
+
+
+below are the output from dmesg and capture sample program :
+
+[ 1783.364410] em28xx: New device Pinnacle Systems GmbH DVC100 @ 480 Mbps (2304:021a, interface 0, class 0)
+[ 1783.393707] em28xx #0: chip ID is em2820 (or em2710)
+[ 1783.557861] em28xx #0: i2c eeprom 00: 1a eb 67 95 04 23 1a 02 12 00 11 03 98 10 6a 2e
+[ 1783.570831] em28xx #0: i2c eeprom 10: 00 00 06 57 4e 00 00 00 60 00 00 00 02 00 00 00
+[ 1783.583557] em28xx #0: i2c eeprom 20: 02 00 01 00 00 00 00 00 00 00 00 00 00 00 00 00
+[ 1783.596191] em28xx #0: i2c eeprom 30: 00 00 20 40 20 80 02 20 10 01 00 00 00 00 00 00
+[ 1783.608947] em28xx #0: i2c eeprom 40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[ 1783.621582] em28xx #0: i2c eeprom 50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[ 1783.634155] em28xx #0: i2c eeprom 60: 00 00 00 00 00 00 00 00 00 00 2e 03 50 00 69 00
+[ 1783.646667] em28xx #0: i2c eeprom 70: 6e 00 6e 00 61 00 63 00 6c 00 65 00 20 00 53 00
+[ 1783.659301] em28xx #0: i2c eeprom 80: 79 00 73 00 74 00 65 00 6d 00 73 00 20 00 47 00
+[ 1783.672119] em28xx #0: i2c eeprom 90: 6d 00 62 00 48 00 00 00 10 03 44 00 56 00 43 00
+[ 1783.684600] em28xx #0: i2c eeprom a0: 31 00 30 00 30 00 00 00 32 00 30 00 33 00 35 00
+[ 1783.697113] em28xx #0: i2c eeprom b0: 36 00 30 00 37 00 35 00 31 00 33 00 34 00 31 00
+[ 1783.709716] em28xx #0: i2c eeprom c0: 30 00 32 00 30 00 30 00 30 00 31 00 00 00 32 00
+[ 1783.722290] em28xx #0: i2c eeprom d0: 33 00 31 00 32 00 33 00 00 00 00 00 00 00 00 00
+[ 1783.734619] em28xx #0: i2c eeprom e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[ 1783.746826] em28xx #0: i2c eeprom f0: 00 00 00 00 00 00 00 00 bc 6f ec 04 99 62 5d 0e
+[ 1783.759155] em28xx #0: EEPROM ID= 0x9567eb1a, EEPROM hash = 0x30129684
+[ 1783.769622] em28xx #0: EEPROM info:
+[ 1783.776794] em28xx #0:       AC97 audio (5 sample rates)
+[ 1783.785217] em28xx #0:       300mA max power
+[ 1783.792541] em28xx #0:       Table at 0x06, strings=0x1098, 0x2e6a, 0x0000
+[ 1783.804077] em28xx #0: Identified as Pinnacle Dazzle DVC 
+90/100/101/107 / Kaiser Baas Video to DVD maker / Kworld DVD Maker 2 
+(card=9)
+[ 1784.313751] saa7115 4-0025: saa7113 found (1f7113d0e100000) @ 0x4a (em28xx #0)
+[ 1785.320953] em28xx #0: Config register raw data: 0x12
+[ 1785.359527] em28xx #0: AC97 vendor ID = 0xffffffff
+[ 1785.382995] em28xx #0: AC97 features = 0x6a90
+[ 1785.391174] em28xx #0: Empia 202 AC97 audio processor detected
+[ 1785.999938] em28xx #0: v4l2 driver version 0.1.3
+[ 1787.218750] em28xx #0: V4L2 video device registered as video0
+[ 1787.228454] em28xx audio device (2304:021a): interface 1, class 1
+[ 1787.238342] em28xx audio device (2304:021a): interface 2, class 1
+[ 1787.248229] usbcore: registered new interface driver em28xx
+[ 1787.257507] em28xx driver loaded
+[ 1787.348968] ALSA sound/usb/mixer.c:846 2:1: cannot get min/max values for control 2 (id 2)
+
+root@aravis:~# ./a.out -m -d /dev/video0
+select timeout
+root@aravis:~# ./a.out -r -d /dev/video0
+select timeout
+root@aravis:~# ./a.out -u -d /dev/video0
+VIDIOC_QBUF error 22, Invalid argument
+root@aravis:~#
+
+
+
+
+[ 1787.367309] usbcore: registered new interface driver snd-usb-audio
+--
+To unsubscribe from this list: send the line "unsubscribe linux-media" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
