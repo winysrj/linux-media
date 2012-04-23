@@ -1,92 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:35827 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754025Ab2DWUzk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Apr 2012 16:55:40 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Bhupesh SHARMA <bhupesh.sharma@st.com>
-Cc: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"balbi@ti.com" <balbi@ti.com>,
-	"g.liakhovetski@gmx.de" <g.liakhovetski@gmx.de>
-Subject: Re: Using UVC webcam gadget with a real v4l2 device
-Date: Mon, 23 Apr 2012 22:55:57 +0200
-Message-ID: <4085740.9DbpdWgfF6@avalon>
-In-Reply-To: <D5ECB3C7A6F99444980976A8C6D896384FA44457A9@EAPEX1MAIL1.st.com>
-References: <D5ECB3C7A6F99444980976A8C6D896384FA44454C7@EAPEX1MAIL1.st.com> <111268324.hD9BSZaXPY@avalon> <D5ECB3C7A6F99444980976A8C6D896384FA44457A9@EAPEX1MAIL1.st.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mga11.intel.com ([192.55.52.93]:34540 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753444Ab2DWOCt (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 Apr 2012 10:02:49 -0400
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [PATCHv2] as3645a: move relevant code under __devinit/__devexit
+Date: Mon, 23 Apr 2012 17:02:42 +0300
+Message-Id: <1335189762-4991-1-git-send-email-andriy.shevchenko@linux.intel.com>
+In-Reply-To: <1578696.ouKf8xKIQt@avalon>
+References: <1578696.ouKf8xKIQt@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Bhupesh,
+There is no needs to keep .remove under .exit.text. This driver is for a
+standalone chip that could be on any board and connected to any i2c bus.
 
-On Tuesday 24 April 2012 02:46:22 Bhupesh SHARMA wrote:
-> On Monday, April 23, 2012 7:47 PM Laurent Pinchart wrote:
-> > On Monday 23 April 2012 02:24:53 Bhupesh SHARMA wrote:
-> > > Hi Laurent,
-> > > 
-> > > I have been doing some experimentation with the UVC webcam gadget along
-> > > with the UVC user-space application which you have written.
-> > > 
-> > > The UVC webcam gadget works fine with the user space application
-> > > handling the CONTROL events and providing DATA events. Now, I wish to
-> > > interface a real v4l2 device, for e.g. VIVI or more particularly a
-> > > soc_camera based host and subdev pair.
-> > > 
-> > > Now, I see that I can achieve this by opening the UVC and V4L2 devices
-> > > and doing MMAP -> REQBUF -> QBUF -> DQBUF calls on both the devices per
-> > > the UVC control event received. But this will involve copying the video
-> > > buffer in the user-space application from v4l2 (_CAPTURE) to uvc
-> > > (_OUTPUT) domains, which will significantly reduce the video capture
-> > > performance.
-> > > 
-> > > Is there a better solution to this issue? Maybe doing something like a
-> > > RNDIS gadget does with the help of u_ether.c like helper routines. But
-> > > if I remember well it also requires the BRCTL (Bridge Control Utility)
-> > > in userspace to route data arriving on usb0 to eth0 and vice-versa. Not
-> > > sure though, if it does copying of a skb buffer from ethernet to usb
-> > > domain and vice-versa.
-> > 
-> > To avoid copying data between the two devices you should use USERPTR
-> > instead of MMAP on at least one of the two V4L2 devices. The UVC gadget
-> > driver doesn't support USERPTR yet though. This shouldn't be too difficult
-> > to fix, we need toreplace the custom buffers queue implementation with
-> > videobuf2, as has been done in the uvcvideo driver.
-> 
-> I was thinking of using the USERPTR method too, but I realized that
-> currently neither UVC webcam gadget nor soc-camera subsystem supports this
-> IO method. They support only MMAP IO as of now :(
+At the same time we don't need to keep the as3645a_probe() after initializing
+the device. Therefore we mark it and relevant functions with __devinit tag.
 
-Both soc-camera and the UVC gadget driver should be ported to videobuf2 to fix 
-the problem.
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/video/as3645a.c |   10 +++++-----
+ 1 files changed, 5 insertions(+), 5 deletions(-)
 
-> > I'll try to implement this. Would you then be able to test patches ?
-> 
-> For sure, I can test your patches on my setup.
-
-I had a quick look, but there's a bit more work than expected. The UVC gadget 
-driver locking scheme needs to be revisited. I unfortunately won't have time 
-to work on that in the next couple of weeks, and very probably not before end 
-of June. Sorry.
-
-If you want to give it a try, I can provide you with some pointers.
-
-> BTW, I was exploring GSTREAMER to use the data arriving from soc-camera
-> (v4l2) capture device '/dev/video1' via 'v4l2src' plugin and routing the
-> same to the UVC gadget '/dev/video0' via the 'v4l2sink' plugin.
-> 
-> Don't know if this can work cleanly in my setup and whether GSTREAMER
-> actually performs a buffer copy internally. But I will at-least give it a
-> try :)
-
-There will definitely be a buffer copy (and actually two copies, as the UVC 
-gadget driver performs a second copy internally) if you don't use USERPTR.
-
+diff --git a/drivers/media/video/as3645a.c b/drivers/media/video/as3645a.c
+index 7a3371f..c4b0357 100644
+--- a/drivers/media/video/as3645a.c
++++ b/drivers/media/video/as3645a.c
+@@ -713,7 +713,7 @@ static int as3645a_resume(struct device *dev)
+  * The number of LEDs reported in platform data is used to compute default
+  * limits. Parameters passed through platform data can override those limits.
+  */
+-static int as3645a_init_controls(struct as3645a *flash)
++static int __devinit as3645a_init_controls(struct as3645a *flash)
+ {
+ 	const struct as3645a_platform_data *pdata = flash->pdata;
+ 	struct v4l2_ctrl *ctrl;
+@@ -804,8 +804,8 @@ static int as3645a_init_controls(struct as3645a *flash)
+ 	return flash->ctrls.error;
+ }
+ 
+-static int as3645a_probe(struct i2c_client *client,
+-			 const struct i2c_device_id *devid)
++static int __devinit as3645a_probe(struct i2c_client *client,
++				   const struct i2c_device_id *devid)
+ {
+ 	struct as3645a *flash;
+ 	int ret;
+@@ -846,7 +846,7 @@ done:
+ 	return ret;
+ }
+ 
+-static int __exit as3645a_remove(struct i2c_client *client)
++static int __devexit as3645a_remove(struct i2c_client *client)
+ {
+ 	struct v4l2_subdev *subdev = i2c_get_clientdata(client);
+ 	struct as3645a *flash = to_as3645a(subdev);
+@@ -877,7 +877,7 @@ static struct i2c_driver as3645a_i2c_driver = {
+ 		.pm   = &as3645a_pm_ops,
+ 	},
+ 	.probe	= as3645a_probe,
+-	.remove	= __exit_p(as3645a_remove),
++	.remove	= __devexit_p(as3645a_remove),
+ 	.id_table = as3645a_id_table,
+ };
+ 
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.9.1
 
