@@ -1,83 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:49214 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751324Ab2DGVV4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Apr 2012 17:21:56 -0400
-Date: Sat, 7 Apr 2012 23:21:51 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: "Aguirre, Sergio" <saaguirre@ti.com>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [Query] About NV12 pixel format support in a subdevice
-In-Reply-To: <CAKnK67QZ78iTxYWvfpUJ_v_KD7XLUT=o=pkrC2EZ8CJ2r00pCQ@mail.gmail.com>
-Message-ID: <Pine.LNX.4.64.1204072316460.25526@axis700.grange>
-References: <CAKnK67QZ78iTxYWvfpUJ_v_KD7XLUT=o=pkrC2EZ8CJ2r00pCQ@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from smtp1-g21.free.fr ([212.27.42.1]:44274 "EHLO smtp1-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752401Ab2DXKdW convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 24 Apr 2012 06:33:22 -0400
+Date: Tue, 24 Apr 2012 12:34:12 +0200
+From: Jean-Francois Moine <moinejf@free.fr>
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH v2] tinyjpeg: Dynamic luminance quantization table for
+ Pixart JPEG
+Message-ID: <20120424123412.3b63810d@tele>
+In-Reply-To: <4F95CACD.5010403@redhat.com>
+References: <20120412122017.0c808009@tele>
+	<4F95CACD.5010403@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sergio
+On Mon, 23 Apr 2012 23:34:05 +0200
+Hans de Goede <hdegoede@redhat.com> wrote:
 
-On Sat, 7 Apr 2012, Aguirre, Sergio wrote:
+> Thanks for your work on this! I've just spend almost 4 days wrestling
+> which the Pixart JPEG decompression code to try to better understand
+> these cams, and I have learned quite a bit and eventually came up
+> with a different approach.
+> 
+> But your effort is appreciated! After spending so much time on this
+> myself, I can imagine that it took you quite some time to come up
+> with your solution.
+> 
+> Attach is a 4 patch patchset which I plan to push to v4l-utils
+> tomorrow (after running some more tests in daylight). I'll also try
+> to do some kernel patches tomorrow to match...
 
-> Hi everyone,
-> 
-> I'll like to request for your advice on adding NV12 support for my omap4iss
-> camera driver, which is done after the resizer block in the OMAP4 ISS ISP
-> (Imaging SubSystem Image Signal Processor).
-> 
-> So, the problem with that, is that I don't see a match for V4L2_PIX_FMT_NV12
-> pixel format in "enum v4l2_mbus_pixelcode".
-> 
-> Now, I wonder what's the best way to describe the format... Is this correct?
-> 
-> V4L2_MBUS_FMT_NV12_1X12
-> 
-> Because every pixel is comprised of a 8-bit Y element, and it's UV components
-> are grouped in pairs with the next horizontal pixel, whcih in combination
-> are represented in 8 bits... So it's like that UV component per-pixel is 4-bits.
-> Not exactly, but it's the best representation I could think of to
-> simplify things.
+Hi Hans,
 
-Do I understand it right, that your resizer is sending the data to the DMA 
-engine interleaved, not Y and UV planes separately, and it's only the DMA 
-engine, that is separating the planes, when writing to buffers? In such a 
-case I'd use a suitable YUV420 V4L2_MBUS_FMT_* format for that and have 
-the DMA engine convert it to NV12, similar to what sh_mobile_ceu_camera 
-does.
+I tried your patch, but I am not happy with the images I have (pac7302).
 
-Thanks
-Guennadi
+You say that the marker cannot be in the range 0..31 (index 0..7), but
+I have never seen a value lower than 68 (index 17).
 
-> I mean, the HW itself writes in memory to 2 contiguous buffers, so there's 2
-> separate DMA writes. I have to program 2 starting addresses, which, in an
-> internal non-v4l2-subdev implementation, I have been programming like this:
-> 
-> paddr = start of 32-byte aligned physical address to store buffer
-> x = width
-> y = height
-> 
-> Ysize = (x * y)
-> UVsize = (x / 2) * y
-> Total size = Ysize + UVsize
-> 
-> Ystart = paddr
-> UVstart = (paddr + Ysize)
-> 
-> But, in the media controller framework, i have a single DMA output pad, that
-> creates a v4l2 capture device node, and i'll be queueing a single buffer.
-> 
-> Any advice on how to address this properly? Does anyone has/had a similar need?
-> 
-> Regards,
-> Sergio
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+This last marker value (68) is the default when the images have no big
+contrasts. With such images / blocks, the standard JPEG quantization
+table does not work well. It seems that, for this value, the table
+should be full of either 7 or 8 (8 gives a higher contrast).
 
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Here is the sequence which works better (around line 1420 of tinyjpeg.c):
+
+-------------8<--------------
+		/* And another special Pixart feature, the DC quantization
+		   factor is fixed! */
+		qt[0] = 7;			// 8 gives a higher contrast
+// special case for 68
+	if (marker == 68) {
+		for (i = 1; i < 64; i++)
+			qt[i] = 7;		// also works with 8
+	} else {
+		for (i = 1; i < 64; i++) {
+			j = (standard_quantization[0][i] * comp + 50) / 100;
+			qt[i] = (j < 255) ? j : 255;
+		}
+	}
+		build_quantization_table(priv->Q_tables[0], qt);
+-------------8<--------------
+
+About the other marker values, it seems also that the quantization
+tables are not optimal: some blocks are either too much (small
+contrasted lines) or not enough (big pixels) decompressed. As you know,
+a finer adjustment would ask for a long test time, so, I think we can
+live with your code.
+
+Best regards.
+
+-- 
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
