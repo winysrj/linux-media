@@ -1,203 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp209.alice.it ([82.57.200.105]:40423 "EHLO smtp209.alice.it"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932470Ab2DTPTj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Apr 2012 11:19:39 -0400
-From: Antonio Ospite <ospite@studenti.unina.it>
-To: linux-media@vger.kernel.org
-Cc: Antonio Ospite <ospite@studenti.unina.it>,
-	Jean-Francois Moine <moinejf@free.fr>,
-	=?UTF-8?q?Erik=20Andr=C3=A9n?= <erik.andren@gmail.com>
-Subject: [RFC PATCH 2/3] [media] gspca - main: factor out the logic to set and get controls
-Date: Fri, 20 Apr 2012 17:19:10 +0200
-Message-Id: <1334935152-16165-3-git-send-email-ospite@studenti.unina.it>
-In-Reply-To: <1334935152-16165-1-git-send-email-ospite@studenti.unina.it>
-References: <20120418153720.1359c7d2f2a3efc2c7c17b88@studenti.unina.it>
- <1334935152-16165-1-git-send-email-ospite@studenti.unina.it>
+Received: from smtp.alphaone-tech.com ([174.133.83.186]:60487 "EHLO
+	tyler.alphaone-tech.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757484Ab2DXXJ3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 24 Apr 2012 19:09:29 -0400
+Message-ID: <4F9726A7.4060208@non-elite.com>
+Date: Tue, 24 Apr 2012 17:18:15 -0500
+From: Bob W <bob.news@non-elite.com>
+MIME-Version: 1.0
+To: Konstantin Dimitrov <kosio.dimitrov@gmail.com>
+CC: =?ISO-8859-1?Q?Christian_Pr=E4hauser?= <cpraehaus@cosy.sbg.ac.at>,
+	linux-media@vger.kernel.org, Marek Ochaba <ochaba@maindata.sk>
+Subject: Re: DVB-S2 multistream support
+References: <4EF67721.9050102@unixsol.org> <4EF6DD91.2030800@iki.fi> <4EF6F84C.3000307@redhat.com> <CAF0Ff2kkFJYLUjVdmV9d9aWTsi-2ZHHEEjLrVSTCUnP+VTyxRg@mail.gmail.com> <4EF7066C.4070806@redhat.com> <loom.20111227T105753-96@post.gmane.org> <CAF0Ff2mf0tYs3UG3M6Cahep+_kMToVaGgPhTqR7zhRG0UXWuig@mail.gmail.com> <85A7A8FC-150C-4463-B09C-85EED6F851A8@cosy.sbg.ac.at> <CAF0Ff2ncv0PJWSOOw=7WeGyqX3kKiQitY52uEOztfC8Bwj6LgQ@mail.gmail.com> <CAB0B130-3B08-41B4-920A-C54058C43AEE@cosy.sbg.ac.at> <CAF0Ff2kF3VCL4PomOo5zBBrZSPmPvGd9qSZ+XwSp7ALJmq3+kw@mail.gmail.com> <78E6697C-BD32-4062-BC2C-A5F7D0CBD79C@cosy.sbg.ac.at> <CAF0Ff2nCz114LEJFRXy+L7Yq-uD4+sJeHOzNSk=28V_qgbta7A@mail.gmail.com> <loom.20120307T170824-19@post.gmane.org> <CAF0Ff2n1wj5LTu935sR6jxYP8ncHHEA=f6urs8+QKcD2Zd04zg@mail.gmail.com> <4F5F6C2D.1080206@non-elite.com> <A7A0A9AB-3D94-4152-B66D-DDBBF7AE5CAC@cosy.sbg.ac.at> <2FB3FA12-CAFE-4558-9935-1AF14D44DFA9@cosy.sbg.ac.at> <CAF0Ff2=nfGA_jWc4tLnun792C1PN0rZHkGhY=uJz8YHCsFnvKA@mail.gmail.com>
+In-Reply-To: <CAF0Ff2=nfGA_jWc4tLnun792C1PN0rZHkGhY=uJz8YHCsFnvKA@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Factor out the logic to set and get controls from vidioc_s_ctrl()
-and vidioc_g_ctrl() so that the code can be reused in the coming
-implementation of vidioc_s_ext_ctrls() and vidioc_g_ext_ctrls().
 
-Signed-off-by: Antonio Ospite <ospite@studenti.unina.it>
----
- drivers/media/video/gspca/gspca.c |  148 ++++++++++++++++++++-----------------
- 1 file changed, 80 insertions(+), 68 deletions(-)
 
-diff --git a/drivers/media/video/gspca/gspca.c b/drivers/media/video/gspca/gspca.c
-index bc9d037..ba1bda9 100644
---- a/drivers/media/video/gspca/gspca.c
-+++ b/drivers/media/video/gspca/gspca.c
-@@ -1432,6 +1432,84 @@ static int get_ctrl_index(struct gspca_dev *gspca_dev,
- 	return -1;
- }
- 
-+static int gspca_set_ctrl(struct gspca_dev *gspca_dev,
-+			  __u32 id, __s32 value)
-+{
-+	const struct ctrl *ctrls;
-+	struct gspca_ctrl *gspca_ctrl;
-+	int idx, ret;
-+
-+	idx = get_ctrl_index(gspca_dev, id);
-+	if (idx < 0)
-+		return -EINVAL;
-+	if (gspca_dev->ctrl_inac & (1 << idx))
-+		return -EINVAL;
-+	ctrls = &gspca_dev->sd_desc->ctrls[idx];
-+	if (gspca_dev->cam.ctrls != NULL) {
-+		gspca_ctrl = &gspca_dev->cam.ctrls[idx];
-+		if (value < gspca_ctrl->min
-+		    || value > gspca_ctrl->max)
-+			return -ERANGE;
-+	} else {
-+		gspca_ctrl = NULL;
-+		if (value < ctrls->qctrl.minimum
-+		    || value > ctrls->qctrl.maximum)
-+			return -ERANGE;
-+	}
-+	PDEBUG(D_CONF, "set ctrl [%08x] = %d", id, value);
-+	if (mutex_lock_interruptible(&gspca_dev->usb_lock))
-+		return -ERESTARTSYS;
-+	if (!gspca_dev->present) {
-+		ret = -ENODEV;
-+		goto out;
-+	}
-+	gspca_dev->usb_err = 0;
-+	if (ctrls->set != NULL) {
-+		ret = ctrls->set(gspca_dev, value);
-+		goto out;
-+	}
-+	if (gspca_ctrl != NULL) {
-+		gspca_ctrl->val = value;
-+		if (ctrls->set_control != NULL
-+		 && gspca_dev->streaming)
-+			ctrls->set_control(gspca_dev);
-+	}
-+	ret = gspca_dev->usb_err;
-+out:
-+	mutex_unlock(&gspca_dev->usb_lock);
-+	return ret;
-+}
-+
-+static int gspca_get_ctrl(struct gspca_dev *gspca_dev,
-+			  __u32 id, __s32 *value)
-+{
-+	const struct ctrl *ctrls;
-+	int idx, ret;
-+
-+	idx = get_ctrl_index(gspca_dev, id);
-+	if (idx < 0)
-+		return -EINVAL;
-+	ctrls = &gspca_dev->sd_desc->ctrls[idx];
-+
-+	if (mutex_lock_interruptible(&gspca_dev->usb_lock))
-+		return -ERESTARTSYS;
-+	if (!gspca_dev->present) {
-+		ret = -ENODEV;
-+		goto out;
-+	}
-+	gspca_dev->usb_err = 0;
-+	if (ctrls->get != NULL) {
-+		ret = ctrls->get(gspca_dev, value);
-+		goto out;
-+	}
-+	if (gspca_dev->cam.ctrls != NULL)
-+		*value = gspca_dev->cam.ctrls[idx].val;
-+	ret = 0;
-+out:
-+	mutex_unlock(&gspca_dev->usb_lock);
-+	return ret;
-+}
-+
- static int vidioc_queryctrl(struct file *file, void *priv,
- 			   struct v4l2_queryctrl *q_ctrl)
- {
-@@ -1479,80 +1557,14 @@ static int vidioc_s_ctrl(struct file *file, void *priv,
- 			 struct v4l2_control *ctrl)
- {
- 	struct gspca_dev *gspca_dev = priv;
--	const struct ctrl *ctrls;
--	struct gspca_ctrl *gspca_ctrl;
--	int idx, ret;
--
--	idx = get_ctrl_index(gspca_dev, ctrl->id);
--	if (idx < 0)
--		return -EINVAL;
--	if (gspca_dev->ctrl_inac & (1 << idx))
--		return -EINVAL;
--	ctrls = &gspca_dev->sd_desc->ctrls[idx];
--	if (gspca_dev->cam.ctrls != NULL) {
--		gspca_ctrl = &gspca_dev->cam.ctrls[idx];
--		if (ctrl->value < gspca_ctrl->min
--		    || ctrl->value > gspca_ctrl->max)
--			return -ERANGE;
--	} else {
--		gspca_ctrl = NULL;
--		if (ctrl->value < ctrls->qctrl.minimum
--		    || ctrl->value > ctrls->qctrl.maximum)
--			return -ERANGE;
--	}
--	PDEBUG(D_CONF, "set ctrl [%08x] = %d", ctrl->id, ctrl->value);
--	if (mutex_lock_interruptible(&gspca_dev->usb_lock))
--		return -ERESTARTSYS;
--	if (!gspca_dev->present) {
--		ret = -ENODEV;
--		goto out;
--	}
--	gspca_dev->usb_err = 0;
--	if (ctrls->set != NULL) {
--		ret = ctrls->set(gspca_dev, ctrl->value);
--		goto out;
--	}
--	if (gspca_ctrl != NULL) {
--		gspca_ctrl->val = ctrl->value;
--		if (ctrls->set_control != NULL
--		 && gspca_dev->streaming)
--			ctrls->set_control(gspca_dev);
--	}
--	ret = gspca_dev->usb_err;
--out:
--	mutex_unlock(&gspca_dev->usb_lock);
--	return ret;
-+	return gspca_set_ctrl(gspca_dev, ctrl->id, ctrl->value);
- }
- 
- static int vidioc_g_ctrl(struct file *file, void *priv,
- 			 struct v4l2_control *ctrl)
- {
- 	struct gspca_dev *gspca_dev = priv;
--	const struct ctrl *ctrls;
--	int idx, ret;
--
--	idx = get_ctrl_index(gspca_dev, ctrl->id);
--	if (idx < 0)
--		return -EINVAL;
--	ctrls = &gspca_dev->sd_desc->ctrls[idx];
--
--	if (mutex_lock_interruptible(&gspca_dev->usb_lock))
--		return -ERESTARTSYS;
--	if (!gspca_dev->present) {
--		ret = -ENODEV;
--		goto out;
--	}
--	gspca_dev->usb_err = 0;
--	if (ctrls->get != NULL) {
--		ret = ctrls->get(gspca_dev, &ctrl->value);
--		goto out;
--	}
--	if (gspca_dev->cam.ctrls != NULL)
--		ctrl->value = gspca_dev->cam.ctrls[idx].val;
--	ret = 0;
--out:
--	mutex_unlock(&gspca_dev->usb_lock);
--	return ret;
-+	return gspca_get_ctrl(gspca_dev, ctrl->id, &ctrl->value);
- }
- 
- static int vidioc_querymenu(struct file *file, void *priv,
--- 
-1.7.10
+Hi all,
+
+  in playing with these patches, I am noticing the bbframes are only
+partially being delivered by the hardware.  I am only getting the first
+188 bytes of the frame.
+
+I think it is related to the programming of the saa716xx.
+
+In this function:  saa716x_dma_start the params stuct is filled out,
+with 188 in the samples and pitch elements..
+
+does anyone know a little more about this saa716x and how to program
+it correctly to receive more data to account for the big bbframes?
+
+thanks
+
+Bob
+
+
+
+
+On 3/19/2012 10:19 AM, Konstantin Dimitrov wrote:
+> hello Christian,
+> 
+> first of all thank you for the great work. so, i have few follow-ups about it:
+> 
+> 1. since your current patch contains patches that are kernel-specific
+> changes (i.e. some general changes to the V4L code for the kernel you
+> use), changes related to the BBFrame-support and hardware-specific
+> changes (i.e. related to the TBS 6925 card, which at the moment is the
+> only affordable hardware at least i know that can handle BBFrames) in
+> order for more easy use in different kernels as well for the purpose
+> of others to review the changes related to the BBFrame-support in V4L
+> 'dvb-core' i split your patch to 3 separate patches (they are attached
+> to this email):
+> 
+> - 01-bb-dmx.patch : it's supposed to contains all changes you made to
+> the demux part of V4L 'dvb-core' - i didn't make any further changes -
+> just collected your original changes in the patch; it should apply
+> clean to all recent kernel released in the last several months (i
+> believe at least in the last 6 months), because no changes in this
+> parts of 'dvb-core' were made recently
+> 
+> - 02-bb-fe.patch : those are changes for BBFrame-support related to
+> the frontend - i separated those changes and i didn't include them in
+> '01-bb-dmx.patch', because recently a lot of changes were made to that
+> part of V4L. so, this patch will apply clean to
+> "tbs-linux-drivers_v120206" and to other V4L trees most probably it
+> will require to manually apply the changes to the respective files,
+> but since it changes less than 10 lines in only 3 files that's just
+> fine for manual patching
+> 
+> - 03-bb-tbs.patch : those are all changes specific to the TBS 6925
+> hardware. additionally to your changes i defined "tsout" module
+> parameter to both 'stv090x' and 'saa716x_tbs-dvb' - that's convenient
+> to change between TS and BB mode just with reloading the modules with
+> rmmod/modprobe
+> 
+> 2. so i used the above 3 patches with "tbs-linux-drivers_v120206" and
+> after i applied them:
+> 
+> # cd linux-tbs-drivers
+> # patch -p1 < ../01-bb-dmx.patch
+> # patch -p1 < ../02-bb-fe.patch
+> # patch -p1 < ../03-bb-tbs.patch
+> 
+> the driver builds successfully, but i'm not sure if i didn't miss
+> something from your original patch. also, i put file called
+> 'tbs6925.conf' in /etc/modprobe.d with lines in it:
+> 
+> options stv090x tsout=0
+> options saa716x_tbs-dvb tsout=0
+> 
+> for easy enable/disable of the BB mode with just reloading the modules
+> in order to make the testing easier.
+> 
+> 3. so on the test i did every few seconds i get the following errors:
+> 
+> _dvb_dmx_swfilter_bbframe: invalid use of reserved TS/GS value 1
+> 
+> _dvb_dmx_swfilter_bbframe: invalid data field length (length 0, left 10)
+> 
+> and hex-dump of the BBFrame data. is that supposed to happen? please,
+> can you confirm if it happens or not in your environment with your
+> original patch or i messed-up something when i prepared the 3 patches
+> from point 1. so, that request is in relation to my seconds request -
+> please, review the 3 patches from point 1 and confirm they are correct
+> and i didn't miss anything - if they are correct patch 01 and 02 can
+> be used for review of the code.
+> 
+> many thanks,
+> konstantin
+> 
 
