@@ -1,153 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:48345 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751549Ab2DUVOm (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:38057 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754244Ab2DXU7g (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 21 Apr 2012 17:14:42 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Cc: paul.gortmaker@windriver.com,
-	=?utf-8?B?J+uwleqyveuvvCc=?= <kyungmin.park@samsung.com>,
-	amwang@redhat.com, dri-devel@lists.freedesktop.org,
-	"'???/Mobile S/W Platform Lab.(???)/E3(??)/????'"
-	<inki.dae@samsung.com>, prashanth.g@samsung.com,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Rob Clark <rob@ti.com>, Dave Airlie <airlied@redhat.com>
-Subject: Re: [PATCH] scatterlist: add sg_alloc_table_by_pages function
-Date: Sat, 21 Apr 2012 22:09:10 +0200
-Message-ID: <1814562.vqJLsJ8USJ@avalon>
-In-Reply-To: <4F8E8D1B.7020901@samsung.com>
-References: <4F8E8D1B.7020901@samsung.com>
+	Tue, 24 Apr 2012 16:59:36 -0400
+Message-ID: <4F971435.10608@iki.fi>
+Date: Tue, 24 Apr 2012 23:59:33 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Sylwester Nawrocki <snjw23@gmail.com>
+CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	g.liakhovetski@gmx.de, hdegoede@redhat.com, moinejf@free.fr,
+	m.szyprowski@samsung.com, riverful.kim@samsung.com,
+	sw0312.kim@samsung.com, Kyungmin Park <kyungmin.park@samsung.com>
+Subject: Re: [PATCH 10/15] V4L: Add camera 3A lock control
+References: <1334657396-5737-1-git-send-email-s.nawrocki@samsung.com> <1334657396-5737-11-git-send-email-s.nawrocki@samsung.com> <20120417160920.GG5356@valkosipuli.localdomain> <4F8E82D6.8060008@samsung.com> <20120423054627.GA7913@valkosipuli.localdomain> <4F970911.5000404@gmail.com>
+In-Reply-To: <4F970911.5000404@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tomasz,
+Dzien dobry Sylwester,
 
-Thanks for the patch.
+(I hope it's not too wrong time of the day for that! ;))
 
-On Wednesday 18 April 2012 11:44:59 Tomasz Stanislawski wrote:
-> This patch adds a new constructor for an sg table. The table is constructed
-> from an array of struct pages. All contiguous chunks of the pages are merged
-> into a single sg nodes. A user may provide an offset and a size of a buffer
-> if the buffer is not page-aligned.
-> 
-> The function is dedicated for DMABUF exporters which often performs
-> conversion from an page array to a scatterlist. Moreover the scatterlist
-> should be squashed in order to save memory and to speed-up DMA mapping
-> using dma_map_sg.
-> 
-> The code is based on the patch 'v4l: vb2-dma-contig: add support for
-> scatterlist in userptr mode' and hints from Laurent Pinchart.
+Sylwester Nawrocki wrote:
+> Moikka Sakari,
+>
+> On 04/23/2012 07:47 AM, Sakari Ailus wrote:
+>> Sylwester Nawrocki wrote:
+>>> On 04/17/2012 06:09 PM, Sakari Ailus wrote:
+>>>> On Tue, Apr 17, 2012 at 12:09:51PM +0200, Sylwester Nawrocki wrote:
+>>>>> The V4L2_CID_3A_LOCK bitmask control allows applications to pause
+>>>>> or resume the automatic exposure, focus and wite balance adjustments.
+>>>>> It can be used, for example, to lock the 3A adjustments right before
+>>>>> a still image is captured, for pre-focus, etc.
+>>>>> The applications can control each of the algorithms independently,
+>>>>> through a corresponding control bit, if driver allows that.
+>>>>
+>>>> How is disabling e.g. focus algorithm different from locking focus?
+>>>
+>>> The difference looks quite obvious to me. When some AUTO control is
+>>> switched from auto to manual mode there is no guarantee about the
+>>> related parameters the device will end up. E.g. lens may be positioned
+>>> into default position, rather than kept at current one, exposure might
+>>> be set to manual value from before AE was enabled, etc.
+>>>
+>>> I've seen separate registers at the sensor interfaces for AE, AWB
+>>> locking/unlocking and for disabling/enabling those algorithms.
+>>> With the proposed control applications can be sure that, for example,
+>>> exposure is retained when the V4L2_CID_3A_LOCK is set.
+>>>
+>>> Does it answer your question ?
+>>
+>> Yes, it does.
+>>
+>> I was thinking how does the situation really differ from disabling the
+>> corresponding automatic algorithm. There may be subtle differences in
+>> practice albeit in principle the two are no different. And if some of the
+>> sensors implement it as lock, then I guess it gives us few options for the
+>> user space interface.
+>
+> Can you anticipate any any possible issues such diversity might bring to
+> applications ? I imagine such control can be quite useful for snapshot,
+> and with current control API design and the drivers' behaviour applications
+> cannot be sure what settings a device ends up with after switching from
+> "auto" to "manual" - last auto settings or the manual values. Usually its
+> just the previous manual values.
 
-The patch looks good to me. Just a small comment, what do you think about 
-naming the function sg_alloc_table_from_pages instead of 
-sg_table_alloc_by_pages ?
+On software controlled digital cameras, depending on what the manual 
+configuration actually means, you either get the same than by locking 
+the automatic control or the previous manual configuration. If the means 
+for manual configuration are the same than what the automatic algorithm 
+uses then it's the first case. However, I have a feeling that such low 
+level controls might often not work the best for manual control: for 
+white balance users seldom wish to fiddle with SRGB matrix or gamma 
+tables directly. Colour balance might just do mostly the same and be 
+more convenient, with the automatic algorithm still doing some work to 
+configure the underlying low-level configuration.
 
-> Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> ---
->  include/linux/scatterlist.h |    4 +++
->  lib/scatterlist.c           |   63
-> +++++++++++++++++++++++++++++++++++++++++++ 2 files changed, 67
-> insertions(+), 0 deletions(-)
-> 
-> diff --git a/include/linux/scatterlist.h b/include/linux/scatterlist.h
-> index ac9586d..8d9e6fe 100644
-> --- a/include/linux/scatterlist.h
-> +++ b/include/linux/scatterlist.h
-> @@ -214,6 +214,10 @@ void sg_free_table(struct sg_table *);
->  int __sg_alloc_table(struct sg_table *, unsigned int, unsigned int, gfp_t,
->  		     sg_alloc_fn *);
->  int sg_alloc_table(struct sg_table *, unsigned int, gfp_t);
-> +int sg_alloc_table_by_pages(struct sg_table *sgt,
-> +	struct page **pages, unsigned int n_pages,
-> +	unsigned long offset, unsigned long size,
-> +	gfp_t gfp_mask);
->  size_t sg_copy_from_buffer(struct scatterlist *sgl, unsigned int nents,
->  			   void *buf, size_t buflen);
-> diff --git a/lib/scatterlist.c b/lib/scatterlist.c
-> index 6096e89..30b9def 100644
-> --- a/lib/scatterlist.c
-> +++ b/lib/scatterlist.c
-> @@ -319,6 +319,69 @@ int sg_alloc_table(struct sg_table *table, unsigned int
-> nents, gfp_t gfp_mask) EXPORT_SYMBOL(sg_alloc_table);
-> 
->  /**
-> + * sg_alloc_table_by_pages - Allocate and initialize an sg table from an
-> array + *			     of pages
-> + * @sgt:	The sg table header to use
-> + * @pages:	Pointer to an array of page pointers
-> + * @n_pages:	Number of pages in the pages array
-> + * @offset:     Offset from start of the first page to the start of a
-> buffer + * @size:       Number of valid bytes in the buffer (after offset)
-> + * @gfp_mask:	GFP allocation mask
-> + *
-> + *  Description:
-> + *    Allocate and initialize an sg table from a list of pages. Continuous
-> + *    ranges of the pages are squashed into a single scatterlist node. A
-> user + *    may provide an offset at a start and a size of valid data in a
-> buffer + *    specified by the page array. The returned sg table is
-> released by + *    sg_free_table.
-> + *
-> + * Returns:
-> + *   0 on success
+Perhaps it would make sense to suggest that the control algorithm locks 
+should be implemented even in cases where the lock would mean exactly 
+the same than just disabling the algorithm. What do you think?
 
-Maybe you should mention what it returns in case of an error as well.
+Shouldn't the lock be related to contiguous focus only btw.? Regular 
+autofocus is typically a one-time operation, the lens ending up on a 
+position where the AF algorithm left it.
 
-> + **/
-> +int sg_alloc_table_by_pages(struct sg_table *sgt,
-> +	struct page **pages, unsigned int n_pages,
-> +	unsigned long offset, unsigned long size,
-> +	gfp_t gfp_mask)
-> +{
-> +	unsigned int chunks;
-> +	unsigned int i;
-> +	unsigned int cur_page;
-> +	int ret;
-> +	struct scatterlist *s;
-> +
-> +	/* compute number of contiguous chunks */
-> +	chunks = 1;
-> +	for (i = 1; i < n_pages; ++i)
-> +		if (pages[i] != pages[i - 1] + 1)
-> +			++chunks;
-> +
-> +	ret = sg_alloc_table(sgt, chunks, gfp_mask);
-> +	if (unlikely(ret))
-> +		return ret;
-> +
-> +	/* merging chunks and putting them into the scatterlist */
-> +	cur_page = 0;
-> +	for_each_sg(sgt->sgl, s, sgt->orig_nents, i) {
-> +		unsigned long chunk_size;
-> +		unsigned int j;
-> +
-> +		/* looking for the end of the current chunk */
-> +		for (j = cur_page + 1; j < n_pages; ++j)
-> +			if (pages[j] != pages[j - 1] + 1)
-> +				break;
-> +
-> +		chunk_size = ((j - cur_page) << PAGE_SHIFT) - offset;
-> +		sg_set_page(s, pages[cur_page], min(size, chunk_size), offset);
-> +		size -= chunk_size;
-> +		offset = 0;
-> +		cur_page = j;
-> +	}
-> +
-> +	return 0;
-> +}
-> +EXPORT_SYMBOL(sg_alloc_table_by_pages);
-> +
-> +/**
->   * sg_miter_start - start mapping iteration over a sg list
->   * @miter: sg mapping iter to be started
->   * @sgl: sg list to iterate over
+> Such a bitmask control looks quite useful to me. Moreover, at the moment
+> there is no control that would provide similar functionality for auto focus.
+> The bitmask control allows to easily control auto exposure, wb and focus
+> atomically. However that's not a big deal, since this could be well achieved
+> with the extended control API.
+>
+> Although V4L2_CID_3A_LOCK might be hard to implement in driver which use
+> the control framework, since it would depend on multiple other controls.
+> But this could be worked around by updating proper control current values
+> and sending a control event from driver manually, unless you want to cluster
+> almost all controls.
+
+Cheers,
+
 -- 
-Regards,
-
-Laurent Pinchart
-
+Sakari Ailus
+sakari.ailus@iki.fi
