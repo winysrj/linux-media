@@ -1,48 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vx0-f174.google.com ([209.85.220.174]:48272 "EHLO
-	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751701Ab2DPWQQ (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:38048 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1757611Ab2DXUqe (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Apr 2012 18:16:16 -0400
-Received: by vcqp1 with SMTP id p1so3673554vcq.19
-        for <linux-media@vger.kernel.org>; Mon, 16 Apr 2012 15:16:15 -0700 (PDT)
+	Tue, 24 Apr 2012 16:46:34 -0400
+Message-ID: <4F971128.4090305@iki.fi>
+Date: Tue, 24 Apr 2012 23:46:32 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
 MIME-Version: 1.0
-Date: Mon, 16 Apr 2012 18:16:15 -0400
-Message-ID: <CAOcJUbx4smLBOGptNPv8ZitGOJQRPw=7ERhZjGCNZSx5-8KbkQ@mail.gmail.com>
-Subject: [GIT PULL v3.4] git://git.linuxtv.org/mkrufky/tuners.git xc5000
-From: Michael Krufky <mkrufky@kernellabs.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH 3/4] omap3isp: ccdc: Add crop support on output formatter
+ source pad
+References: <1335180595-27931-1-git-send-email-laurent.pinchart@ideasonboard.com> <14838654.TrzCLImese@avalon> <20120424151420.GC7913@valkosipuli.localdomain> <2269542.7YJpMymPLc@avalon>
+In-Reply-To: <2269542.7YJpMymPLc@avalon>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro,
+Laurent Pinchart wrote:
+> Hi Sakari,
+>
+> On Tuesday 24 April 2012 18:14:20 Sakari Ailus wrote:
+>> On Tue, Apr 24, 2012 at 11:08:12AM +0200, Laurent Pinchart wrote:
+>>> On Tuesday 24 April 2012 01:23:06 Sakari Ailus wrote:
+>>>> Hi Laurent,
+>>>>
+>>>> The patch looks good as such on the first glance, but I have another
+>>>> question: why are you not using the selections API instead? It's in
+>>>> Mauro's tree already.
+>>>
+>>> You're totally right, we need to convert the selection API. The reason why
+>>> I've implemented crop support at the CCDC output was simply that I needed
+>>> it for a project and didn't have time to implement the selection API. As
+>>> the code works, I considered it would be good to have it upstream until
+>>> we switch to the selection API.
+>>
+>> "Until we switch to the selection API"? The subdev selection API is in
+>> Mauro's tree already so I see no reason not to use it. Implementing new
+>> functionality in a driver using API we've just marked obsolete is... not
+>> pretty.
+>
+> You're of course totally right. I've pushed back on enough attemps similar to
+> this one to know that I will have to give up here and implement selection
+> support :-)
 
-Please merge the following into the v3.4-rc tree -- this alters the
-driver to use the official firmware image for the XC5000C, rather than
-one modified for a specific xtal frequency.  The modified firmware
-will never be released, so we're better off merging this now rather
-than waiting for v3.5.
+Thanks! :-) You should not need to make many changes to your existing 
+patch, I believe. The additional functionality you should support is the 
+bounds rectangle; other than that, it's primarily just renaming things.
 
-Regards,
+>> The compatibility code for the old crop ioctls exist, too, so you get
+>> exactly the same functionality as well.
+>>
+>>>> Also, the old S_CROP IOCTL only has been defined for sink pads, not
+>>>> source.
+>>>
+>>> We're already using crop on source pads on sensors ;-)
+>>
+>> Is that supposed to work? At the very least least it does not follow the
+>> spec.
+>
+> It doesn't follow the spec. But it works :-)
 
-Mike
+One of the reasons we implemented selections API was to get proper 
+support for source pad crop. Well, at least it wouldn't work _with_ 
+scaling in the same subdev.
 
+Cheers,
 
-The following changes since commit 296da3cd14db9eb5606924962b2956c9c656dbb0:
-
-  [media] pwc: poll(): Check that the device has not beem claimed for
-streaming already (2012-03-27 11:42:04 -0300)
-
-are available in the git repository at:
-  git://git.linuxtv.org/mkrufky/tuners.git xc5000
-
-Michael Krufky (3):
-      xc5000: support 32MHz & 31.875MHz xtal using the 41.024.5 firmware
-      xc5000: log firmware upload failures in xc5000_fwupload
-      xc5000: xtal_khz should be a u16 rather than a u32
-
- drivers/media/common/tuners/xc5000.c |   44 ++++++++++++++++++++++++++++++----
- drivers/media/common/tuners/xc5000.h |    1 +
- 2 files changed, 40 insertions(+), 5 deletions(-)
+-- 
+Sakari Ailus
+sakari.ailus@iki.fi
