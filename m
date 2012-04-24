@@ -1,45 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:52514 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755574Ab2D3KX2 convert rfc822-to-8bit (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:51180 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753856Ab2DXBAo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Apr 2012 06:23:28 -0400
-MIME-Version: 1.0
-Date: Mon, 30 Apr 2012 12:23:27 +0200
-Message-ID: <CAGGh5h01=YdRtmhe1pXpvmXSPP5e1UPBtqGbN3c2tTbjdmEtVw@mail.gmail.com>
-Subject: OMAP3 previewer bayer pattern selection
-From: jean-philippe francois <jp.francois@cynove.com>
-To: linux-media <linux-media@vger.kernel.org>,
-	linux-omap@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Mon, 23 Apr 2012 21:00:44 -0400
+Subject: Re: CX23102 audio; need datasheet
+From: Andy Walls <awalls@md.metrocast.net>
+To: "Dwayne C. Litzenberger" <dlitz@dlitz.net>
+Cc: linux-media@vger.kernel.org
+Date: Mon, 23 Apr 2012 21:00:38 -0400
+In-Reply-To: <20120424004112.GA27441@rivest.dlitz.net>
+References: <20120424004112.GA27441@rivest.dlitz.net>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Message-ID: <1335229238.13891.17.camel@palomino.walls.org>
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Mon, 2012-04-23 at 20:41 -0400, Dwayne C. Litzenberger wrote:
+> Hi there,
+> 
+> I'm working on adding support for another board to the cx231xx driver.  I'm 
+> doing this work on my own time as a volunteer, so I don't have an existing 
+> relationship with Conexant.
+> 
+> I bought an "AVerMedia DVD EZMaker 7" USB analog video digitizer, which is 
+> a board with basically just a CX23102 and some RCA cables connected to it. 
+> I have it mostly working, but the audio is silent (outputs all zeros).  
+> It's probably something really simple to fix, but it's a real pain without 
+> the datasheet.
+> 
+> This might help with other, similar boards, like the Hauppauge USB-Live2, 
+> which is similar and also doesn't work according to the linuxtv wiki[1].
+> 
+> Could someone help me obtain a copy of the CX23102 datasheet?
+>   I'm hoping 
+> to get this done over the next 2 weeks on my vacation[2].
 
-I am trying to get a working preview from a CMOS
-sensor with a CFA bayer pattern.
+The analog section of the CX2310x chips is very similar to the analog
+section of the CX2388[578] chips.  You may get somewhere without the
+datasheet by examining the how the cx23885 (and cx25840) driver do
+things.
 
-Does the CCDC_COLPTN register have any effect on
-previewer CFA interpolation ?
+Regards,
+Andy
 
->From my experience it does not. I can set BGGR or GRBG,
-but the output is always the same. When doing raw capture,
-I get nice image if I use a BGGR pattern for my software bayer
-to rgb interpolation. When using previewer, the output looks like
-BGGR interpreted as GRBG, ie blue and red are green, and green
-turns into purple.
+> 
+> Cheers,
+> - Dwayne
+> 
 
-Looking at the driver code (mainline), there is nothing about bayer order
-in the previewer code. Looking at the TRM, theres is also nothing in
-the previewer
-part about bayer order.
 
-How are we supposed to debayer something different from GRBG ?
-By modifying the cfa_coef_table table ?
-Cropping at the previewer output to start on an odd line ?
-
-Thank you for any pointer on this issue.
-
-Jean-Philippe François
