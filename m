@@ -1,31 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ns1.elopi.com ([98.143.144.34]:25996 "EHLO serv.elopi.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752668Ab2DRMYO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Apr 2012 08:24:14 -0400
-Received: from cpfd6 by serv.elopi.com with local (Exim 4.77 (FreeBSD))
-	(envelope-from <cpfd6@serv.elopi.com>)
-	id 1SKTvh-000MPJ-Ml
-	for linux-media@vger.kernel.org; Wed, 18 Apr 2012 12:24:14 +0000
-To: linux-media@vger.kernel.org
-Subject: HONG LEONG BANK (Malaysia)
-From: Edward Lee <info_2@sify.com>
-Reply-To: edwardlee@mail.mn
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:43200 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757253Ab2DXTnE convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 24 Apr 2012 15:43:04 -0400
+Received: by obbta14 with SMTP id ta14so1584810obb.19
+        for <linux-media@vger.kernel.org>; Tue, 24 Apr 2012 12:43:03 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Message-Id: <E1SKTvh-000MPJ-Ml@serv.elopi.com>
-Date: Wed, 18 Apr 2012 12:24:13 +0000
+In-Reply-To: <4F96FCCA.30106@lysator.liu.se>
+References: <4F96FCCA.30106@lysator.liu.se>
+Date: Tue, 24 Apr 2012 21:43:03 +0200
+Message-ID: <CAJbz7-0T-SSnjWKXLLr_o2KdFTaBxz2u1hP1sC+eKr-0Cn4P5A@mail.gmail.com>
+Subject: Re: New version of Anysee E7 T2C?
+From: =?ISO-8859-2?Q?Honza_Petrou=B9?= <jpetrous@gmail.com>
+To: Magnus Ekhall <koma@lysator.liu.se>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Hi Magnus.
 
-I contacted you to assist in distributing the money left behind by my late client,
+Dne 24. dubna 2012 21:19 Magnus Ekhall <koma@lysator.liu.se> napsal(a):
+> Hi,
+>
+> I just got a new Anysee E7 T2C DVB-USB device.
+>
+> When I load the module dvb-usb-anysee.ko "Driver Anysee E30 DVB-C &
+> DVB-T USB2.0" version 3.2.0-23-generic I get:
+>
+> [    8.353474] DVB: registering new adapter (Anysee DVB USB2.0)
+> [    8.356162] anysee: firmware version:1.0 hardware id:20
+> [    8.356164] anysee: Unsupported Anysee version. Please report the
+> <linux-media@vger.kernel.org>.
+> [    8.356167] dvb-usb: no frontend was attached by 'Anysee DVB USB2.0'
+>
+> Strange thing is that hardware id:20 should be supported by the driver
+> from what I can see in the source?
+>
+> Any ideas?
 
-Regards,
-Mr Edward Lee
-+60146308549
-Fax:+60(0)321784290
+I'm not sure if T2C model is supported in 3.2.0 kernel. You should better
+ask author of the drivers - Antti.
 
+If you are programmer, you can check against some 3.3.x tree, as
+there is supported for sure.
 
+Honza
