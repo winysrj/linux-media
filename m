@@ -1,46 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ch1ehsobe006.messaging.microsoft.com ([216.32.181.186]:41004
-	"EHLO ch1outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751515Ab2DCEyr (ORCPT
+Received: from mail209.messagelabs.com ([216.82.255.3]:9635 "EHLO
+	mail209.messagelabs.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757484Ab2DXXIY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 3 Apr 2012 00:54:47 -0400
-From: Liu Ying <Ying.Liu@freescale.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-CC: <g.liakhovetski@gmx.de>, <hechtb@gmail.com>,
-	<sfr@canb.auug.org.au>, <clalancette@gmail.com>,
-	<linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	Liu Ying <Ying.Liu@freescale.com>
-Subject: [PATCH 1/1] V4L: OV5642:remove redundant code to set cropping w/h
-Date: Tue, 3 Apr 2012 11:58:01 +0800
-Message-ID: <1333425481-14472-1-git-send-email-Ying.Liu@freescale.com>
+	Tue, 24 Apr 2012 19:08:24 -0400
+From: H Hartley Sweeten <hartleys@visionengravers.com>
+To: Linux Kernel <linux-kernel@vger.kernel.org>
+Subject: [PATCH] media: videobuf2-dma-contig: include header for exported symbols
+Date: Tue, 24 Apr 2012 16:08:12 -0700
+CC: <linux-media@vger.kernel.org>, <pawel@osciak.com>,
+	<m.szyprowski@samsung.com>, <kyungmin.park@samsung.com>,
+	<mchehab@infradead.org>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-ID: <201204241608.13305.hartleys@visionengravers.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch contains code change only to remove redundant
-code to set priv->crop_rect.width/height in probe function.
+Include the header to pickup the definitions of the exported symbols.
 
-Signed-off-by: Liu Ying <Ying.Liu@freescale.com>
-Acked-by: Chris Lalancette <clalancette@gmail.com>
+Quiets the following sparse warnings:
+
+warning: symbol 'vb2_dma_contig_memops' was not declared. Should it be static?
+warning: symbol 'vb2_dma_contig_init_ctx' was not declared. Should it be static?
+warning: symbol 'vb2_dma_contig_cleanup_ctx' was not declared. Should it be static?
+
+Signed-off-by: H Hartley Sweeten <hsweeten@visionengravers.com>
+Cc: Pawel Osciak <pawel@osciak.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+
 ---
- drivers/media/video/ov5642.c |    2 --
- 1 files changed, 0 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/video/ov5642.c b/drivers/media/video/ov5642.c
-index bb37ec8..efdd6be 100644
---- a/drivers/media/video/ov5642.c
-+++ b/drivers/media/video/ov5642.c
-@@ -1025,8 +1025,6 @@ static int ov5642_probe(struct i2c_client *client,
- 	priv->crop_rect.height	= OV5642_DEFAULT_HEIGHT;
- 	priv->crop_rect.left	= (OV5642_MAX_WIDTH - OV5642_DEFAULT_WIDTH) / 2;
- 	priv->crop_rect.top	= (OV5642_MAX_HEIGHT - OV5642_DEFAULT_HEIGHT) / 2;
--	priv->crop_rect.width	= OV5642_DEFAULT_WIDTH;
--	priv->crop_rect.height	= OV5642_DEFAULT_HEIGHT;
- 	priv->total_width = OV5642_DEFAULT_WIDTH + BLANKING_EXTRA_WIDTH;
- 	priv->total_height = BLANKING_MIN_HEIGHT;
+diff --git a/drivers/media/video/videobuf2-dma-contig.c b/drivers/media/video/videobuf2-dma-contig.c
+index f17ad98..a1bee6c 100644
+--- a/drivers/media/video/videobuf2-dma-contig.c
++++ b/drivers/media/video/videobuf2-dma-contig.c
+@@ -15,6 +15,7 @@
+ #include <linux/dma-mapping.h>
  
--- 
-1.7.1
-
-
+ #include <media/videobuf2-core.h>
++#include <media/videobuf2-dma-contig.h>
+ #include <media/videobuf2-memops.h>
+ 
+ struct vb2_dc_conf {
