@@ -1,66 +1,252 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from oyp.chewa.net ([91.121.6.101]:48645 "EHLO oyp.chewa.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750890Ab2DQGh4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Apr 2012 02:37:56 -0400
-To: Pieter De Wit <pieter@insync.za.net>
-Subject: Re: v4l2 Device with H264 support
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Date: Tue, 17 Apr 2012 08:37:41 +0200
-From: =?UTF-8?Q?R=C3=A9mi_Denis-Courmont?= <remi@remlab.net>
-Cc: <linux-media@vger.kernel.org>
-In-Reply-To: <alpine.DEB.2.02.1204171159380.3685@eragon.insync.za.net>
-References: <alpine.DEB.2.02.1204171159380.3685@eragon.insync.za.net>
-Message-ID: <a5a29db4793a36095a2f8746361f6b63@chewa.net>
+Received: from ams-iport-1.cisco.com ([144.254.224.140]:46896 "EHLO
+	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754687Ab2DXNsN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 24 Apr 2012 09:48:13 -0400
+From: Hans Verkuil <hans.verkuil@cisco.com>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: [RFCv3 PATCH 5/6] tvp7002: add support for the new dv timings API.
+Date: Tue, 24 Apr 2012 15:48:04 +0200
+Message-Id: <29c1ed0e4e8fe293aefbc32a5d79ef33f9e2f212.1335274503.git.hans.verkuil@cisco.com>
+In-Reply-To: <1335275285-13333-1-git-send-email-hans.verkuil@cisco.com>
+References: <1335275285-13333-1-git-send-email-hans.verkuil@cisco.com>
+In-Reply-To: <c5dd21524394247c53a2d58797c64f974f4bd6ca.1335274503.git.hans.verkuil@cisco.com>
+References: <c5dd21524394247c53a2d58797c64f974f4bd6ca.1335274503.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-   Hello,
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Reviewed-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/video/tvp7002.c |  102 +++++++++++++++++++++++++++++++++++------
+ 1 file changed, 89 insertions(+), 13 deletions(-)
 
-
-
-On Tue, 17 Apr 2012 12:02:25 +1200 (NZST), Pieter De Wit
-
-<pieter@insync.za.net> wrote:
-
-> I would like to stream H264 from a v4l2 device that does hardware 
-
-> encoding. ffmpeg and all of those doesn't seem to understand H264, but 
-
-> v4l2 "does". If I run qv4l2, it shows that H264 is in the encoding list 
-
-> and I can preview that. Using v4l2-ctl, I can set the pixel format to
-
-H264 
-
-> and the "get-fmt" reports it correctly.
-
-> 
-
-> Is there any way I can get a "raw" frame dump from the v4l2 device ? I 
-
-> have used "all" the samples I can find and none seems to work.
-
-
-
-If the device supports read(/write) mode, I suppose you could simply read
-
-the device node as a file.
-
-
-
-'vlc v4l2c:///dev/video0 --demux h264' might work "thanks" to a software
-
-bug whereby the format is not reset, but I have not tried. V4L2 H.264 is
-
-supported in VLC version 2.0.2-git: 'vlc v4l2:///dev/video0:chroma=h264'.
-
-
-
+diff --git a/drivers/media/video/tvp7002.c b/drivers/media/video/tvp7002.c
+index d7676d8..607fd05 100644
+--- a/drivers/media/video/tvp7002.c
++++ b/drivers/media/video/tvp7002.c
+@@ -29,6 +29,7 @@
+ #include <linux/slab.h>
+ #include <linux/videodev2.h>
+ #include <linux/module.h>
++#include <linux/v4l2-dv-timings.h>
+ #include <media/tvp7002.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-chip-ident.h>
+@@ -328,6 +329,7 @@ static const struct i2c_reg_value tvp7002_parms_720P50[] = {
+ /* Preset definition for handling device operation */
+ struct tvp7002_preset_definition {
+ 	u32 preset;
++	struct v4l2_dv_timings timings;
+ 	const struct i2c_reg_value *p_settings;
+ 	enum v4l2_colorspace color_space;
+ 	enum v4l2_field scanmode;
+@@ -341,6 +343,7 @@ struct tvp7002_preset_definition {
+ static const struct tvp7002_preset_definition tvp7002_presets[] = {
+ 	{
+ 		V4L2_DV_720P60,
++		V4L2_DV_BT_CEA_1280X720P60,
+ 		tvp7002_parms_720P60,
+ 		V4L2_COLORSPACE_REC709,
+ 		V4L2_FIELD_NONE,
+@@ -351,6 +354,7 @@ static const struct tvp7002_preset_definition tvp7002_presets[] = {
+ 	},
+ 	{
+ 		V4L2_DV_1080I60,
++		V4L2_DV_BT_CEA_1920X1080I60,
+ 		tvp7002_parms_1080I60,
+ 		V4L2_COLORSPACE_REC709,
+ 		V4L2_FIELD_INTERLACED,
+@@ -361,6 +365,7 @@ static const struct tvp7002_preset_definition tvp7002_presets[] = {
+ 	},
+ 	{
+ 		V4L2_DV_1080I50,
++		V4L2_DV_BT_CEA_1920X1080I50,
+ 		tvp7002_parms_1080I50,
+ 		V4L2_COLORSPACE_REC709,
+ 		V4L2_FIELD_INTERLACED,
+@@ -371,6 +376,7 @@ static const struct tvp7002_preset_definition tvp7002_presets[] = {
+ 	},
+ 	{
+ 		V4L2_DV_720P50,
++		V4L2_DV_BT_CEA_1280X720P50,
+ 		tvp7002_parms_720P50,
+ 		V4L2_COLORSPACE_REC709,
+ 		V4L2_FIELD_NONE,
+@@ -381,6 +387,7 @@ static const struct tvp7002_preset_definition tvp7002_presets[] = {
+ 	},
+ 	{
+ 		V4L2_DV_1080P60,
++		V4L2_DV_BT_CEA_1920X1080P60,
+ 		tvp7002_parms_1080P60,
+ 		V4L2_COLORSPACE_REC709,
+ 		V4L2_FIELD_NONE,
+@@ -391,6 +398,7 @@ static const struct tvp7002_preset_definition tvp7002_presets[] = {
+ 	},
+ 	{
+ 		V4L2_DV_480P59_94,
++		V4L2_DV_BT_CEA_720X480P59_94,
+ 		tvp7002_parms_480P,
+ 		V4L2_COLORSPACE_SMPTE170M,
+ 		V4L2_FIELD_NONE,
+@@ -401,6 +409,7 @@ static const struct tvp7002_preset_definition tvp7002_presets[] = {
+ 	},
+ 	{
+ 		V4L2_DV_576P50,
++		V4L2_DV_BT_CEA_720X576P50,
+ 		tvp7002_parms_576P,
+ 		V4L2_COLORSPACE_SMPTE170M,
+ 		V4L2_FIELD_NONE,
+@@ -605,6 +614,35 @@ static int tvp7002_s_dv_preset(struct v4l2_subdev *sd,
+ 	return -EINVAL;
+ }
+ 
++static int tvp7002_s_dv_timings(struct v4l2_subdev *sd,
++					struct v4l2_dv_timings *dv_timings)
++{
++	struct tvp7002 *device = to_tvp7002(sd);
++	const struct v4l2_bt_timings *bt = &dv_timings->bt;
++	int i;
++
++	if (dv_timings->type != V4L2_DV_BT_656_1120)
++		return -EINVAL;
++	for (i = 0; i < NUM_PRESETS; i++) {
++		const struct v4l2_bt_timings *t = &tvp7002_presets[i].timings.bt;
++
++		if (!memcmp(bt, t, &bt->standards - &bt->width)) {
++			device->current_preset = &tvp7002_presets[i];
++			return tvp7002_write_inittab(sd, tvp7002_presets[i].p_settings);
++		}
++	}
++	return -EINVAL;
++}
++
++static int tvp7002_g_dv_timings(struct v4l2_subdev *sd,
++					struct v4l2_dv_timings *dv_timings)
++{
++	struct tvp7002 *device = to_tvp7002(sd);
++
++	*dv_timings = device->current_preset->timings;
++	return 0;
++}
++
+ /*
+  * tvp7002_s_ctrl() - Set a control
+  * @ctrl: ptr to v4l2_ctrl struct
+@@ -666,8 +704,7 @@ static int tvp7002_mbus_fmt(struct v4l2_subdev *sd, struct v4l2_mbus_framefmt *f
+  * Returns the current DV preset by TVP7002. If no active input is
+  * detected, returns -EINVAL
+  */
+-static int tvp7002_query_dv_preset(struct v4l2_subdev *sd,
+-						struct v4l2_dv_preset *qpreset)
++static int tvp7002_query_dv(struct v4l2_subdev *sd, int *index)
+ {
+ 	const struct tvp7002_preset_definition *presets = tvp7002_presets;
+ 	struct tvp7002 *device;
+@@ -679,10 +716,9 @@ static int tvp7002_query_dv_preset(struct v4l2_subdev *sd,
+ 	u8 lpf_msb;
+ 	u8 cpl_lsb;
+ 	u8 cpl_msb;
+-	int index;
+ 
+-	/* Return invalid preset if no active input is detected */
+-	qpreset->preset = V4L2_DV_INVALID;
++	/* Return invalid index if no active input is detected */
++	*index = NUM_PRESETS;
+ 
+ 	device = to_tvp7002(sd);
+ 
+@@ -705,8 +741,8 @@ static int tvp7002_query_dv_preset(struct v4l2_subdev *sd,
+ 	progressive = (lpf_msb & TVP7002_INPR_MASK) >> TVP7002_IP_SHIFT;
+ 
+ 	/* Do checking of video modes */
+-	for (index = 0; index < NUM_PRESETS; index++, presets++)
+-		if (lpfr  == presets->lines_per_frame &&
++	for (*index = 0; *index < NUM_PRESETS; (*index)++, presets++)
++		if (lpfr == presets->lines_per_frame &&
+ 			progressive == presets->progressive) {
+ 			if (presets->cpl_min == 0xffff)
+ 				break;
+@@ -714,17 +750,42 @@ static int tvp7002_query_dv_preset(struct v4l2_subdev *sd,
+ 				break;
+ 		}
+ 
+-	if (index == NUM_PRESETS) {
++	if (*index == NUM_PRESETS) {
+ 		v4l2_dbg(1, debug, sd, "detection failed: lpf = %x, cpl = %x\n",
+ 								lpfr, cpln);
+-		return 0;
++		return -ENOLINK;
+ 	}
+ 
+-	/* Set values in found preset */
+-	qpreset->preset = presets->preset;
+-
+ 	/* Update lines per frame and clocks per line info */
+-	v4l2_dbg(1, debug, sd, "detected preset: %d\n", presets->preset);
++	v4l2_dbg(1, debug, sd, "detected preset: %d\n", *index);
++	return 0;
++}
++
++static int tvp7002_query_dv_preset(struct v4l2_subdev *sd,
++					struct v4l2_dv_preset *qpreset)
++{
++	int index;
++	int err = tvp7002_query_dv(sd, &index);
++
++	if (err || index == NUM_PRESETS) {
++		qpreset->preset = V4L2_DV_INVALID;
++		if (err == -ENOLINK)
++			err = 0;
++		return err;
++	}
++	qpreset->preset = tvp7002_presets[index].preset;
++	return 0;
++}
++
++static int tvp7002_query_dv_timings(struct v4l2_subdev *sd,
++					struct v4l2_dv_timings *timings)
++{
++	int index;
++	int err = tvp7002_query_dv(sd, &index);
++
++	if (err)
++		return err;
++	*timings = tvp7002_presets[index].timings;
+ 	return 0;
+ }
+ 
+@@ -894,6 +955,17 @@ static int tvp7002_enum_dv_presets(struct v4l2_subdev *sd,
+ 	return v4l_fill_dv_preset_info(tvp7002_presets[preset->index].preset, preset);
+ }
+ 
++static int tvp7002_enum_dv_timings(struct v4l2_subdev *sd,
++		struct v4l2_enum_dv_timings *timings)
++{
++	/* Check requested format index is within range */
++	if (timings->index >= NUM_PRESETS)
++		return -EINVAL;
++
++	timings->timings = tvp7002_presets[timings->index].timings;
++	return 0;
++}
++
+ static const struct v4l2_ctrl_ops tvp7002_ctrl_ops = {
+ 	.s_ctrl = tvp7002_s_ctrl,
+ };
+@@ -920,6 +992,10 @@ static const struct v4l2_subdev_video_ops tvp7002_video_ops = {
+ 	.enum_dv_presets = tvp7002_enum_dv_presets,
+ 	.s_dv_preset = tvp7002_s_dv_preset,
+ 	.query_dv_preset = tvp7002_query_dv_preset,
++	.g_dv_timings = tvp7002_g_dv_timings,
++	.s_dv_timings = tvp7002_s_dv_timings,
++	.enum_dv_timings = tvp7002_enum_dv_timings,
++	.query_dv_timings = tvp7002_query_dv_timings,
+ 	.s_stream = tvp7002_s_stream,
+ 	.g_mbus_fmt = tvp7002_mbus_fmt,
+ 	.try_mbus_fmt = tvp7002_mbus_fmt,
 -- 
+1.7.9.5
 
-Rémi Denis-Courmont
-
-Sent from my collocated server
