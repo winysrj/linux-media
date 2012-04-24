@@ -1,63 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:55898 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750927Ab2D0TzW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Apr 2012 15:55:22 -0400
-Message-ID: <4F9AF9A5.7070606@iki.fi>
-Date: Fri, 27 Apr 2012 22:55:17 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Konstantin Dimitrov <kosio.dimitrov@gmail.com>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	"nibble.max" <nibble.max@gmail.com>,
-	linux-media <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 1/6] m88ds3103, montage dvb-s/s2 demodulator driver
-References: <1327228731.2540.3.camel@tvbox> <4F2185A1.2000402@redhat.com> <201204152353103757288@gmail.com> <201204201601166255937@gmail.com> <4F9130BB.8060107@iki.fi> <201204211045557968605@gmail.com> <4F958640.9010404@iki.fi> <CAF0Ff2nNP6WRUWcs7PqVRxhXHCmUFqqswL4757WijFaKT5P5-w@mail.gmail.com> <4F95CE59.1020005@redhat.com> <CAF0Ff2m_6fM1QV+Jic7viHXQ7edTe8ZwigjjhdtFwMfhCszuKQ@mail.gmail.com>
-In-Reply-To: <CAF0Ff2m_6fM1QV+Jic7viHXQ7edTe8ZwigjjhdtFwMfhCszuKQ@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:40841 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753679Ab2DXM7A (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 24 Apr 2012 08:59:00 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: text/plain; charset=UTF-8
+Date: Tue, 24 Apr 2012 14:58:56 +0200
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: [PATCH v2] scatterlist: add sg_alloc_table_from_pages function
+Cc: paul.gortmaker@windriver.com,
+	=?UTF-8?B?J+uwleqyveuvvCc=?= <kyungmin.park@samsung.com>,
+	amwang@redhat.com, dri-devel@lists.freedesktop.org,
+	"'???/Mobile S/W Platform Lab.(???)/E3(??)/????'"
+	<inki.dae@samsung.com>, prashanth.g@samsung.com,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Rob Clark <rob@ti.com>, Dave Airlie <airlied@redhat.com>,
+	"'???/Mobile S/W Platform Lab.(???)/E3(??)/????'"
+	<inki.dae@samsung.com>, linux-kernel@vger.kernel.org
+Message-id: <4F96A390.7080305@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 27.04.2012 22:01, Konstantin Dimitrov wrote:
-> Mauro, your reasoning makes sense to me. so, let's split them and at
-> least settle this part of the discussion - i will do as far as my
-> spare time allows, as well make sure there are no some problems
-> introduced after the split.
->
-> also, in one email i've just sent in answer to Antti there is enough
-> argument why such split, i.e. tuner-pass-through-mode is subject to
-> discussion about CX24116 and TDA10071 drivers too. currently, majority
-> of DVB-S2 demodulator drivers in the kernel are married to particular
-> tuners and there is no split.
+This patch adds a new constructor for an sg table. The table is constructed
+from an array of struct pages. All contiguous chunks of the pages are merged
+into a single sg nodes. A user may provide an offset and a size of a buffer if
+the buffer is not page-aligned.
 
-I read the mail and as it was long study, I comment only that 
-CX24116+CX24118A and TDA10071+CX24118A demod+tuner combos versus Montage 
-demod+tuner combos. As you may see, CX24116 and TDA10071 are so much 
-different than both needs own driver. But as you said those are married 
-always as a demod+tuner.
+The function is dedicated for DMABUF exporters which often perform conversion
+from an page array to a scatterlist. Moreover the scatterlist should be
+squashed in order to save memory and to speed-up the process of DMA mapping
+using dma_map_sg.
 
-So if I use your logic, what happens if CX24118A tuner is not driven by 
-CX24116 or TDA10071 firmware? ==> it happens we have two drivers, 
-CX24116 and TDA10071 *both* having similar CX24118A tuner driver code 
-inside! Same tuner driver code inside two demods drivers. Could you now 
-understand why we want it split?
-The reason which saves us having CX24118A tuner driver is that it is 
-inside both CX24116 and TDA10071 firmware.
+The code is based on the patch 'v4l: vb2-dma-contig: add support for
+scatterlist in userptr mode' and hints from Laurent Pinchart.
 
-There is mainly two different controlling situation. Most commonly 
-driver controls chip but in some cases it is firmware which is 
-controlling. And I don't see it very important trying always to by-pass 
-firmware control and use driver for that.
+Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ include/linux/scatterlist.h |    4 +++
+ lib/scatterlist.c           |   63 +++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 67 insertions(+), 0 deletions(-)
 
-Patrick explained those few days back in the mailing list:
-http://www.mail-archive.com/linux-media@vger.kernel.org/msg44814.html
+diff --git a/include/linux/scatterlist.h b/include/linux/scatterlist.h
+index ac9586d..7b600da 100644
+--- a/include/linux/scatterlist.h
++++ b/include/linux/scatterlist.h
+@@ -214,6 +214,10 @@ void sg_free_table(struct sg_table *);
+ int __sg_alloc_table(struct sg_table *, unsigned int, unsigned int, gfp_t,
+ 		     sg_alloc_fn *);
+ int sg_alloc_table(struct sg_table *, unsigned int, gfp_t);
++int sg_alloc_table_from_pages(struct sg_table *sgt,
++	struct page **pages, unsigned int n_pages,
++	unsigned long offset, unsigned long size,
++	gfp_t gfp_mask);
 
-You said also we cannot know if Montage demod does some tweaking for the 
-tuner too. Yes true, at that point we don't know. But I think it is 
-rather small probability whilst driver clearly controls it.
+ size_t sg_copy_from_buffer(struct scatterlist *sgl, unsigned int nents,
+ 			   void *buf, size_t buflen);
+diff --git a/lib/scatterlist.c b/lib/scatterlist.c
+index 6096e89..90f9265 100644
+--- a/lib/scatterlist.c
++++ b/lib/scatterlist.c
+@@ -319,6 +319,69 @@ int sg_alloc_table(struct sg_table *table, unsigned int nents, gfp_t gfp_mask)
+ EXPORT_SYMBOL(sg_alloc_table);
 
-regards
-Antti
+ /**
++ * sg_alloc_table_from_pages - Allocate and initialize an sg table from
++ *			       an array of pages
++ * @sgt:	The sg table header to use
++ * @pages:	Pointer to an array of page pointers
++ * @n_pages:	Number of pages in the pages array
++ * @offset:     Offset from a start of the first page to a start of a buffer
++ * @size:       Number of valid bytes in the buffer (after offset)
++ * @gfp_mask:	GFP allocation mask
++ *
++ *  Description:
++ *    Allocate and initialize an sg table from a list of pages. Continuous
++ *    ranges of the pages are squashed into a single scatterlist node. A user
++ *    may provide an offset at a start and a size of valid data in a buffer
++ *    specified by the page array. The returned sg table is released by
++ *    sg_free_table.
++ *
++ * Returns:
++ *   0 on success, negative error on failure
++ **/
++int sg_alloc_table_from_pages(struct sg_table *sgt,
++	struct page **pages, unsigned int n_pages,
++	unsigned long offset, unsigned long size,
++	gfp_t gfp_mask)
++{
++	unsigned int chunks;
++	unsigned int i;
++	unsigned int cur_page;
++	int ret;
++	struct scatterlist *s;
++
++	/* compute number of contiguous chunks */
++	chunks = 1;
++	for (i = 1; i < n_pages; ++i)
++		if (pages[i] != pages[i - 1] + 1)
++			++chunks;
++
++	ret = sg_alloc_table(sgt, chunks, gfp_mask);
++	if (unlikely(ret))
++		return ret;
++
++	/* merging chunks and putting them into the scatterlist */
++	cur_page = 0;
++	for_each_sg(sgt->sgl, s, sgt->orig_nents, i) {
++		unsigned long chunk_size;
++		unsigned int j;
++
++		/* looking for the end of the current chunk */
++		for (j = cur_page + 1; j < n_pages; ++j)
++			if (pages[j] != pages[j - 1] + 1)
++				break;
++
++		chunk_size = ((j - cur_page) << PAGE_SHIFT) - offset;
++		sg_set_page(s, pages[cur_page], min(size, chunk_size), offset);
++		size -= chunk_size;
++		offset = 0;
++		cur_page = j;
++	}
++
++	return 0;
++}
++EXPORT_SYMBOL(sg_alloc_table_from_pages);
++
++/**
+  * sg_miter_start - start mapping iteration over a sg list
+  * @miter: sg mapping iter to be started
+  * @sgl: sg list to iterate over
 -- 
-http://palosaari.fi/
+1.7.5.4
+
