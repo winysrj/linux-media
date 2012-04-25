@@ -1,60 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:37434 "EHLO mail.kapsi.fi"
+Received: from smtp6-g21.free.fr ([212.27.42.6]:59712 "EHLO smtp6-g21.free.fr"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751297Ab2DAM3K (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 1 Apr 2012 08:29:10 -0400
-Message-ID: <4F784A13.5000704@iki.fi>
-Date: Sun, 01 Apr 2012 15:29:07 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: =?UTF-8?B?TWljaGFlbCBCw7xzY2g=?= <m@bues.ch>
-CC: linux-media@vger.kernel.org,
-	=?UTF-8?B?RGFuaWVsIEdsw7Zja25lcg==?= <daniel-gl@gmx.net>
-Subject: Re: [GIT PULL FOR 3.5] AF9035/AF9033/TUA9001 => TerraTec Cinergy
- T Stick [0ccd:0093]
-References: <4F75A7FE.8090405@iki.fi> <20120330234545.45f4e2e8@milhouse> <4F762CF5.9010303@iki.fi> <20120331001458.33f12d82@milhouse> <20120331160445.71cd1e78@milhouse> <4F771496.8080305@iki.fi> <20120331182925.3b85d2bc@milhouse> <4F77320F.8050009@iki.fi> <4F773562.6010008@iki.fi> <20120331185217.2c82c4ad@milhouse> <4F77DED5.2040103@iki.fi> <20120401103315.1149d6bf@milhouse> <20120401141940.04e5220c@milhouse>
-In-Reply-To: <20120401141940.04e5220c@milhouse>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+	id S1759357Ab2DYVkN convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 Apr 2012 17:40:13 -0400
+Received: from mat-laptop (unknown [81.57.151.96])
+	by smtp6-g21.free.fr (Postfix) with ESMTP id D1DBA82250
+	for <linux-media@vger.kernel.org>; Wed, 25 Apr 2012 23:40:05 +0200 (CEST)
+Date: Wed, 25 Apr 2012 23:40:03 +0200
+From: matthieu castet <castet.matthieu@free.fr>
+To: linux-media@vger.kernel.org
+Subject: Fw: tm6000 driver questions
+Message-ID: <20120425234003.7b817ae8@mat-laptop>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01.04.2012 15:19, Michael BÃ¼sch wrote:
->> Great work. I'll rebase my tree on the new branch and check those firmware files asap.
-> Hm, none of these firmwares fix the problem. Maybe it's not a firmware
-> problem after all, but just incorrectly setup tuner-i2c.
->
-> Here's the dmesg log:
-[...]
-> [  132.018549] af9033: firmware version: LINK=11.10.10.0 OFDM=5.33.10.0
-> [  132.018566] DVB: registering adapter 0 frontend 0 (Afatech AF9033 (DVB-T))...
-> [  132.028370] i2c i2c-8: Fitipower FC0011 tuner attached
-> [  132.028388] dvb-usb: Afatech Technologies DVB-T stick successfully initialized and connected.
-> [  132.028405] af9035_init: USB speed=3 frame_size=0ff9 packet_size=80
-> [  132.040019] usbcore: registered new interface driver dvb_usb_af9035
-> [  145.407991] af9035_ctrl_msg: command=03 failed fw error=2
-> [  145.408008] i2c i2c-8: I2C write reg failed, reg: 07, val: 0f
->
-> I also tried the other firmware. Same result.
 
-It must then be I2C adapter or I2C client issue.
-Adapter code is here, and it known to work with TUA9001. TUA9001 sends 
-1x byte register and then followed 2xbytes data.
 
-u8 buf[4 + msg[0].len];
-struct usb_req req = { CMD_I2C_WR, 0, sizeof(buf), buf, 0, NULL };
-buf[0] = msg[0].len;
-buf[1] = msg[0].addr << 1;
-buf[2] = 0x01;
-buf[3] = 0x00;
-memcpy(&buf[4], msg[0].buf, msg[0].len);
-ret = af9035_ctrl_msg(d->udev, &req);
+----- Message Transféré -----
 
-Maybe you have given I2C address as a "8bit" format? Maybe adapter bytes 
-buf[2] and buf[3] are wrong? If you have taken sniffs from windows it is 
-very easy to see what is wrong.
+Date: Wed, 25 Apr 2012 10:16:57 -0700
+De: Vladimir Kerkez <vkerkez@gmail.com>
+À: castet.matthieu@free.fr
+Sujet: tm6000 driver questions
 
-regards
-Antti
--- 
-http://palosaari.fi/
+> Hello,
+> 
+> I would like to thank you for your outstanding work on the tm6000
+> chipset. Because of you (and many other people) I now have a pal tv
+> tuner I can use.
+> 
+> I just recently bought a mac book pro, how ever most of the drivers
+> were not supported under the 3.2 kernel. I pulled down the latestest
+> drivers for my Hauppauge 900H from linux tv (tm6000 edition).
+> 
+> I read the your patch changes that you have made here:
+> http://patchwork.linuxtv.org/patch/8968/
+> 
+> One of the first things I noticed is that the firmware for the tm6000
+> loads about 10-12 seconds faster, my tvtime starting at a normal
+> speed ( it used to take up to 20 seconds to load ). Im assuming this
+> is something you may have patched? If you did thanks so much!
+> 
+> However I am now running into a issue I never saw before with my
+> tm6000 tuner. I noticed that in this new version of the driver the
+> channel switching is a lot faster, but it seems to be causing  kernel
+> panics. I believe the issues is that the channel switches so fast
+> before the tuner gets a signal causing the kernel panic (the usb gets
+> bad data and throws and emi).  This always happens when the channel
+> is changed.
+> 
+> Here is a snippet of the kernel panic:
+> 
+> [ 4760.587553] xc2028 14-0061: xc2028_get_reg 0004 called
+> [ 4760.591160] xc2028 14-0061: xc2028_get_reg 0008 called
+> *[ 4760.633815] hub 2-0:1.0: port 4 disabled by hub (EMI?),
+> re-enabling...* [ 4760.633827] usb 2-4: USB disconnect, device number
+> 3 [ 4760.637748] xc2028 14-0061: Device is Xceive 0 version 2.0,
+> firmware version 3.6
+> [ 4760.637756] xc2028 14-0061: Read invalid device hardware
+> information - tuner hung?
+> [ 4760.650641] tm6000: IR URB failure: status: -71, length 0
+> 
+> Have you seen this issue? I would love to fix this and commit it to
+> linux tv but, im still uncertain as to what changes need to be made.
+> The drivers that do come with the 3.2 kernel work fine but however
+> the firmware loading is taking forever (stable though when it is
+> running).
+> 
+> Any information you may have to help me out here would be much
+> appreciated. I am not working this weekend and was looking forward to
+> take a peak at the driver. I'll let you know where I stand with this
+> next week.
+> 
+> thank you so much for your hard work,
+> 
+> -Vladimir
