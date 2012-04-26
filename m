@@ -1,77 +1,190 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bues.ch ([80.190.117.144]:46553 "EHLO bues.ch"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754854Ab2DCPda (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 3 Apr 2012 11:33:30 -0400
-Date: Tue, 3 Apr 2012 17:33:20 +0200
-From: Michael =?UTF-8?B?QsO8c2No?= <m@bues.ch>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] fc0011: Reduce number of retries
-Message-ID: <20120403173320.2d3df3f8@milhouse>
-In-Reply-To: <4F7B1624.8020401@iki.fi>
-References: <20120403110503.392c8432@milhouse>
-	<4F7B1624.8020401@iki.fi>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=PGP-SHA1;
- boundary="Sig_/wj9_KSHQIg__Z17Ntu_tVX4"; protocol="application/pgp-signature"
+Received: from eu1sys200aog120.obsmtp.com ([207.126.144.149]:34288 "EHLO
+	eu1sys200aog120.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752346Ab2DZFZy convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 Apr 2012 01:25:54 -0400
+From: Bhupesh SHARMA <bhupesh.sharma@st.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"balbi@ti.com" <balbi@ti.com>,
+	"g.liakhovetski@gmx.de" <g.liakhovetski@gmx.de>
+Date: Thu, 26 Apr 2012 13:23:59 +0800
+Subject: RE: Using UVC webcam gadget with a real v4l2 device
+Message-ID: <D5ECB3C7A6F99444980976A8C6D896384FA4445DA8@EAPEX1MAIL1.st.com>
+References: <D5ECB3C7A6F99444980976A8C6D896384FA44454C7@EAPEX1MAIL1.st.com>
+ <111268324.hD9BSZaXPY@avalon>
+ <D5ECB3C7A6F99444980976A8C6D896384FA44457A9@EAPEX1MAIL1.st.com>
+ <4085740.9DbpdWgfF6@avalon>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---Sig_/wj9_KSHQIg__Z17Ntu_tVX4
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Hi Laurent,
 
-On Tue, 03 Apr 2012 18:24:20 +0300
-Antti Palosaari <crope@iki.fi> wrote:
+Sorry to jump-in before your reply on my previous mail,
+but as I was studying the USERPTR stuff in more detail, I have a few more
+queries which I believe you can include in your reply as well..
 
-> On 03.04.2012 12:05, Michael B=C3=BCsch wrote:
-> > Now that i2c transfers are fixed, 3 retries are enough.
+> -----Original Message-----
+> From: Bhupesh SHARMA
+> Sent: Wednesday, April 25, 2012 8:37 PM
+> To: 'Laurent Pinchart'
+> Cc: linux-usb@vger.kernel.org; linux-media@vger.kernel.org;
+> balbi@ti.com; g.liakhovetski@gmx.de
+> Subject: RE: Using UVC webcam gadget with a real v4l2 device
+> 
+> Hi Laurent,
+> 
+> > -----Original Message-----
+> > From: Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com]
+> > Sent: Tuesday, April 24, 2012 2:26 AM
+> > To: Bhupesh SHARMA
+> > Cc: linux-usb@vger.kernel.org; linux-media@vger.kernel.org;
+> > balbi@ti.com; g.liakhovetski@gmx.de
+> > Subject: Re: Using UVC webcam gadget with a real v4l2 device
 > >
-> > Signed-off-by: Michael Buesch<m@bues.ch>
->=20
-> Applied, thanks!
-> http://git.linuxtv.org/anttip/media_tree.git/shortlog/refs/heads/af9035_e=
-xperimental
->=20
-> I think I will update original af9035 PULL request soon for the same=20
-> level as af9035_experimental is currently.
+> > Hi Bhupesh,
+> >
+> > On Tuesday 24 April 2012 02:46:22 Bhupesh SHARMA wrote:
+> > > On Monday, April 23, 2012 7:47 PM Laurent Pinchart wrote:
+> > > > On Monday 23 April 2012 02:24:53 Bhupesh SHARMA wrote:
+> > > > > Hi Laurent,
+> > > > >
+> > > > > I have been doing some experimentation with the UVC webcam
+> gadget
+> > along
+> > > > > with the UVC user-space application which you have written.
+> > > > >
+> > > > > The UVC webcam gadget works fine with the user space
+> application
+> > > > > handling the CONTROL events and providing DATA events. Now, I
+> > wish to
+> > > > > interface a real v4l2 device, for e.g. VIVI or more
+> particularly
+> > a
+> > > > > soc_camera based host and subdev pair.
+> > > > >
+> > > > > Now, I see that I can achieve this by opening the UVC and V4L2
+> > devices
+> > > > > and doing MMAP -> REQBUF -> QBUF -> DQBUF calls on both the
+> > devices per
+> > > > > the UVC control event received. But this will involve copying
+> the
+> > video
+> > > > > buffer in the user-space application from v4l2 (_CAPTURE) to
+> uvc
+> > > > > (_OUTPUT) domains, which will significantly reduce the video
+> > capture
+> > > > > performance.
+> > > > >
+> > > > > Is there a better solution to this issue? Maybe doing something
+> > like a
+> > > > > RNDIS gadget does with the help of u_ether.c like helper
+> > routines. But
+> > > > > if I remember well it also requires the BRCTL (Bridge Control
+> > Utility)
+> > > > > in userspace to route data arriving on usb0 to eth0 and vice-
+> > versa. Not
+> > > > > sure though, if it does copying of a skb buffer from ethernet
+> to
+> > usb
+> > > > > domain and vice-versa.
+> > > >
+> > > > To avoid copying data between the two devices you should use
+> > USERPTR
+> > > > instead of MMAP on at least one of the two V4L2 devices. The UVC
+> > gadget
+> > > > driver doesn't support USERPTR yet though. This shouldn't be too
+> > difficult
+> > > > to fix, we need toreplace the custom buffers queue implementation
+> > with
+> > > > videobuf2, as has been done in the uvcvideo driver.
+> > >
+> > > I was thinking of using the USERPTR method too, but I realized that
+> > > currently neither UVC webcam gadget nor soc-camera subsystem
+> supports
+> > this
+> > > IO method. They support only MMAP IO as of now :(
+> >
+> > Both soc-camera and the UVC gadget driver should be ported to
+> videobuf2
+> > to fix
+> > the problem.
 
-That's great. The driver really works well for me.
+I am now a bit confused on how the entire system will work now:
+	- Does USERPTR method needs to be supported both in UVC gadget and soc-camera side,
+	  or one can still support the MMAP method and the other can now be changed to support USERPTR method
+	  and we can achieve a ZERO buffer copy operation using this method?
 
-On another thing:
-The af9035 driver doesn't look multi-device safe. There are lots of static
-variables around that keep device state. So it looks like this will
-blow up if multiple devices are present in the system. Unlikely, but still.=
-.. .
-Are there any plans to fix this up?
-If not, I'll probably take a look at this. But don't hold your breath.
+	- More specifically, I would like to keep the soc-camera still using MMAP (and hence still using video-buf)
+	  and make changes at the UVC gadget side to support USERPTR and videobuf2. Will this work?
 
---=20
-Greetings, Michael.
+	- At the application side how should we design the flow in case both support USERPTR, i.e. the buffer needs
+	  to be protected from simultaneous access from the UVC gadget driver and soc-camera driver (to ensure that
+	  a single buffer can be shared across them). Also in case we keep soc-camera still using MMAP and UVC gadget
+	  side supporting USERPTR, how can we share a common buffer across the UVC gadget and soc-camera driver.
 
-PGP encryption is encouraged / 908D8B0E
+	- In case of USERPTR method the camera capture hardware should be able to DMA the received data to the user
+	  space buffers. Are there any specific requirements on the DMA capability of these use-space buffers
+	  (scatter-gather or contiguous?).
 
---Sig_/wj9_KSHQIg__Z17Ntu_tVX4
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Disposition: attachment; filename=signature.asc
+Regards,
+Bhupesh
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJPexhAAAoJEPUyvh2QjYsOwvkP/ieEs7biaeP/BC982W2JQkMG
-HfKqJJahnnOaGmRRjrOUrbzQT9R2G7YeV5aKKuFjhZrTmXhKfTrFqYRrMoe0htdQ
-oCFoVAr6GSZaRo2ZjpvdxpBnR4YEdN+hPmflKH+jp11ruLbektFQZL49dcp/ovbR
-5we/hN7w9eV2YAtjGCun3A1IZzoooODLklPC7uMCd+ZtZMoCh/zgps+vMm6QxK0P
-3WKUj6GooX67I8z3DValUOljcgjLsGXebGSfPD580fogkel1jqcAnFE90V7QvAbZ
-NzEqvCBl/PbAgGiiNYF9YSwUk3VDIKktF907pLSydCMxvaP0N9O4aC/MvJ0sP+1k
-0SDkPCEPxdDJpPo5vMS87u6OQdmhRP/s+FQPpKM6ArxvMu8gWQb8T+ADFn1QLbB7
-CB9aeGxo2vVhIszsiNwUPV6AkmXhczGUoW1T4MPbEgCgrIw3XG3vTVg1S/XMBUlE
-+Ke2Xc4aD6S+lDDtac4jb/KmUWDIfzfYuRT8q2Uw6arQgGPxyuchlly9IBcdyVTf
-4XPmGuPrlynwl+GvPr755TeWWT90JADxK/FFkNJ460ihNyVtPujO6k804gLMGZKb
-g6xw0f3AXO26SYxrPcJt94ppHcPHGkN8j9mKAS4Dp0SkB8Du6NMH9Y1ZUkb+5ZD2
-YRwYzX63qLqFBJ8zpM5W
-=AFfu
------END PGP SIGNATURE-----
-
---Sig_/wj9_KSHQIg__Z17Ntu_tVX4--
+> > > > I'll try to implement this. Would you then be able to test
+> patches
+> > ?
+> > >
+> > > For sure, I can test your patches on my setup.
+> >
+> > I had a quick look, but there's a bit more work than expected. The
+> UVC
+> > gadget
+> > driver locking scheme needs to be revisited. I unfortunately won't
+> have
+> > time
+> > to work on that in the next couple of weeks, and very probably not
+> > before end
+> > of June. Sorry.
+> 
+> > If you want to give it a try, I can provide you with some pointers.
+> 
+> It's  a pity. You are the best person to do it as you have in-depth
+> know
+> -how of both v4l2 and UVC webcam gadget. But I can give it a try if you
+> can provide me some pointers..
+> 
+> 
+> > > BTW, I was exploring GSTREAMER to use the data arriving from soc-
+> > camera
+> > > (v4l2) capture device '/dev/video1' via 'v4l2src' plugin and
+> routing
+> > the
+> > > same to the UVC gadget '/dev/video0' via the 'v4l2sink' plugin.
+> > >
+> > > Don't know if this can work cleanly in my setup and whether
+> GSTREAMER
+> > > actually performs a buffer copy internally. But I will at-least
+> give
+> > it a
+> > > try :)
+> >
+> > There will definitely be a buffer copy (and actually two copies, as
+> the
+> > UVC
+> > gadget driver performs a second copy internally) if you don't use
+> > USERPTR.
+> 
+> That's what I was afraid of. But can you let me know where the gadget
+> driver
+> performs a second copy internally, so that I can also start exploring
+> the
+> USERPTR method using the pointers provided by you..
+> 
+> Regards,
+> Bhupesh
