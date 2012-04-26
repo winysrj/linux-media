@@ -1,53 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from jaguar.purple-paw.com ([79.99.64.40]:45594 "EHLO
-	jaguar.purple-paw.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755143Ab2DGSuE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Apr 2012 14:50:04 -0400
-Message-ID: <4F808C01.1070304@rker.me.uk>
-Date: Sat, 07 Apr 2012 19:48:33 +0100
-From: Edd Barker <eddb@rker.me.uk>
+Received: from ams-iport-2.cisco.com ([144.254.224.141]:10595 "EHLO
+	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755290Ab2DZLTu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 Apr 2012 07:19:50 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Scott Jiang <scott.jiang.linux@gmail.com>
+Subject: Re: How to implement i2c map device
+Date: Thu, 26 Apr 2012 13:19:45 +0200
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	LMML <linux-media@vger.kernel.org>
+References: <CAHG8p1D1EAO3hgYNvwZL6HgVw-995knuf62TdXh944SkAHoWKw@mail.gmail.com>
+In-Reply-To: <CAHG8p1D1EAO3hgYNvwZL6HgVw-995knuf62TdXh944SkAHoWKw@mail.gmail.com>
 MIME-Version: 1.0
-To: Michael Hagner <mikahagner@arcor.de>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: DVB-T USB Stick Pinnacle PCTV
-References: <201204070522.06252.mikahagner@arcor.de> <C8B6DA92-5EAC-414F-BCDA-AA48AA750924@rker.me.uk>
-In-Reply-To: <C8B6DA92-5EAC-414F-BCDA-AA48AA750924@rker.me.uk>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201204261319.45401.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Michael.
+Hi Scott,
 
-If I remember right this stick needs the media_build git. Try:
+On Thursday 26 April 2012 11:47:08 Scott Jiang wrote:
+> Hi Laurent,
+> 
+> I'm writing a driver for adv7842 video decoder. This chip has 12 i2c
+> register maps. IO map is fixed to 0x20 and others are configurable.
+> I plan to use 0x20 as the subdevice addr to call
+> v4l2_i2c_new_subdev_board, and call i2c_new_device and i2c_add_driver
+> in i2c_probe to enumerate other i2c maps. Is it acceptable or any
+> other suggestion?
 
-git clone git://linuxtv.org/media_build.git
-cd media_build
-./build
+You have to use i2c_new_dummy for all the non-fixed register maps.
 
-I can check more when I'm at my pc if that doesn't work.
+But I can save you a lot more time: we (Cisco) have a adv7842 driver already 
+that is working for the most part (at least the parts that we need).
 
-Edd
+I'll mail the driver to you separately. I intend to make it available in a 
+public repository in the next few weeks.
 
+> 
+> By the way, HDMI support seems under discussion, is there any
+> framework or guide now?
 
-> On 7 Apr 2012, at 04:22, Michael Hagner <mikahagner@arcor.de
-> <mailto:mikahagner@arcor.de>> wrote:
->
->> Hello,
->>
->> I' ve tried to install the above mentioned USB-device,
->> but the system doesn't work e.g. the device hasn't
->> been recognized from the system.
->>
->> Kubuntu 10.10 Kernel ...35.28
->>
->> Do you have some information to solve that problem ?
->> I believe, that's the USB port....maybe I've to use the insmod....see the
->> bold red mark in the syslog.
->>
->> Thanks in advance...
->>
->> Michael
->>
->> Att.: Syslog
->> <USB_TV.odt>
+There are two parts to HDMI: the first is a better API for selecting timings. 
+The latest RFC patch series was just posted this week:
+
+http://www.spinics.net/lists/linux-media/msg46813.html
+
+I'm hopeful that this will make kernel 3.5.
+
+The second part is to add some missing HDMI-specific controls and two ioctls 
+to set/get EDIDs. I'm preparing an RFC for that and I expect to post that next 
+week.
+
+There is one final part: CEC support. We have implemented it, but the API 
+needs more discussions. How to present CEC support to userspace seems to be a 
+controversial issue.
+
+Regards,
+
+	Hans
+
+> 
+> Thanks,
+> Scott
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
