@@ -1,147 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:39949 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754371Ab2DKIXs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Apr 2012 04:23:48 -0400
-Received: by eaaq12 with SMTP id q12so131633eaa.19
-        for <linux-media@vger.kernel.org>; Wed, 11 Apr 2012 01:23:47 -0700 (PDT)
-From: Gianluca Gennari <gennarone@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@redhat.com
-Cc: hans.verkuil@cisco.com, Gianluca Gennari <gennarone@gmail.com>
-Subject: [PATCH] media_build: fix v2.6.35_i2c_new_probed_device backport patch
-Date: Wed, 11 Apr 2012 10:23:38 +0200
-Message-Id: <1334132618-20124-1-git-send-email-gennarone@gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:19354 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751590Ab2DZNZM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 Apr 2012 09:25:12 -0400
+Message-ID: <4F994CA8.8060200@redhat.com>
+Date: Thu, 26 Apr 2012 10:24:56 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: "nibble.max" <nibble.max@gmail.com>
+CC: Antti Palosaari <crope@iki.fi>,
+	linux-media <linux-media@vger.kernel.org>,
+	Konstantin Dimitrov <kosio.dimitrov@gmail.com>
+Subject: Re: [PATCH 1/6] m88ds3103, montage dvb-s/s2 demodulator driver
+References: <1327228731.2540.3.camel@tvbox>, <4F2185A1.2000402@redhat.com>, <201204152353103757288@gmail.com>, <201204201601166255937@gmail.com>, <4F9130BB.8060107@iki.fi>, <201204211045557968605@gmail.com>, <4F958640.9010404@iki.fi>, <CAF0Ff2nNP6WRUWcs7PqVRxhXHCmUFqqswL4757WijFaKT5P5-w@mail.gmail.com> <201204262103053283195@gmail.com>
+In-Reply-To: <201204262103053283195@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch:
-http://patchwork.linuxtv.org/patch/10486/
-collides with the v2.6.35_i2c_new_probed_device backport patch.
-Fix it and rebase it on the new media_build tree.
+Em 26-04-2012 10:03, nibble.max escreveu:
 
-Signed-off-by: Gianluca Gennari <gennarone@gmail.com>
----
- backports/v2.6.35_i2c_new_probed_device.patch |   46 ++++++++++++------------
- 1 files changed, 23 insertions(+), 23 deletions(-)
+> Hello,
+> I finish the following works.
+> 1)split the montage dvb-s2 frontend into tuner and demodulator files.
 
-diff --git a/backports/v2.6.35_i2c_new_probed_device.patch b/backports/v2.6.35_i2c_new_probed_device.patch
-index d998814..4026dc9 100644
---- a/backports/v2.6.35_i2c_new_probed_device.patch
-+++ b/backports/v2.6.35_i2c_new_probed_device.patch
-@@ -2,14 +2,14 @@
-  drivers/media/video/bt8xx/bttv-input.c    |    2 +-
-  drivers/media/video/cx18/cx18-i2c.c       |    2 +-
-  drivers/media/video/cx23885/cx23885-i2c.c |    5 +++--
-- drivers/media/video/em28xx/em28xx-cards.c |    2 +-
-+ drivers/media/video/em28xx/em28xx-input.c |    2 +-
-  drivers/media/video/ivtv/ivtv-i2c.c       |    6 +++---
-  drivers/media/video/v4l2-common.c         |    3 +--
-  6 files changed, 10 insertions(+), 10 deletions(-)
- 
----- linux.orig/drivers/media/video/bt8xx/bttv-input.c
--+++ linux/drivers/media/video/bt8xx/bttv-input.c
--@@ -399,7 +399,7 @@ void __devinit init_bttv_i2c_ir(struct b
-+--- a/drivers/media/video/bt8xx/bttv-input.c
-++++ b/drivers/media/video/bt8xx/bttv-input.c
-+@@ -401,7 +401,7 @@ void __devinit init_bttv_i2c_ir(struct bttv *btv)
-  		 * That's why we probe 0x1a (~0x34) first. CB
-  		 */
-  
-@@ -18,9 +18,9 @@
-  		return;
-  	}
-  
----- linux.orig/drivers/media/video/cx18/cx18-i2c.c
--+++ linux/drivers/media/video/cx18/cx18-i2c.c
--@@ -104,7 +104,7 @@ static int cx18_i2c_new_ir(struct cx18 *
-+--- a/drivers/media/video/cx18/cx18-i2c.c
-++++ b/drivers/media/video/cx18/cx18-i2c.c
-+@@ -104,7 +104,7 @@ static int cx18_i2c_new_ir(struct cx18 *cx, struct i2c_adapter *adap, u32 hw,
-  		break;
-  	}
-  
-@@ -29,9 +29,9 @@
-  	       -1 : 0;
-  }
-  
----- linux.orig/drivers/media/video/cx23885/cx23885-i2c.c
--+++ linux/drivers/media/video/cx23885/cx23885-i2c.c
--@@ -344,7 +344,8 @@ int cx23885_i2c_register(struct cx23885_
-+--- a/drivers/media/video/cx23885/cx23885-i2c.c
-++++ b/drivers/media/video/cx23885/cx23885-i2c.c
-+@@ -345,7 +345,8 @@ int cx23885_i2c_register(struct cx23885_i2c *bus)
-  	} else
-  		printk(KERN_WARNING "%s: i2c bus %d register FAILED\n",
-  			dev->name, bus->nr);
-@@ -41,7 +41,7 @@
-  	/* Instantiate the IR receiver device, if present */
-  	if (0 == bus->i2c_rc) {
-  		struct i2c_board_info info;
--@@ -359,7 +360,7 @@ int cx23885_i2c_register(struct cx23885_
-+@@ -360,7 +361,7 @@ int cx23885_i2c_register(struct cx23885_i2c *bus)
-  		i2c_new_probed_device(&bus->i2c_adap, &info, addr_list,
-  				      i2c_probe_func_quick_read);
-  	}
-@@ -50,9 +50,9 @@
-  	return bus->i2c_rc;
-  }
-  
----- linux.orig/drivers/media/video/em28xx/em28xx-cards.c
--+++ linux/drivers/media/video/em28xx/em28xx-cards.c
--@@ -2454,7 +2454,7 @@ void em28xx_register_i2c_ir(struct em28x
-+--- a/drivers/media/video/em28xx/em28xx-input.c
-++++ b/drivers/media/video/em28xx/em28xx-input.c
-+@@ -429,7 +429,7 @@ static void em28xx_register_i2c_ir(struct em28xx *dev)
-  
-  	if (dev->init_data.name)
-  		info.platform_data = &dev->init_data;
-@@ -60,10 +60,10 @@
- +	i2c_new_probed_device(&dev->i2c_adap, &info, addr_list);
-  }
-  
-- void em28xx_card_setup(struct em28xx *dev)
----- linux.orig/drivers/media/video/ivtv/ivtv-i2c.c
--+++ linux/drivers/media/video/ivtv/ivtv-i2c.c
--@@ -186,7 +186,7 @@ static int ivtv_i2c_new_ir(struct ivtv *
-+ /**********************************************************
-+--- a/drivers/media/video/ivtv/ivtv-i2c.c
-++++ b/drivers/media/video/ivtv/ivtv-i2c.c
-+@@ -186,7 +186,7 @@ static int ivtv_i2c_new_ir(struct ivtv *itv, u32 hw, const char *type, u8 addr)
-  			return -1;
-  		memset(&info, 0, sizeof(struct i2c_board_info));
-  		strlcpy(info.type, type, I2C_NAME_SIZE);
-@@ -72,7 +72,7 @@
-  							   == NULL ? -1 : 0;
-  	}
-  
--@@ -230,7 +230,7 @@ static int ivtv_i2c_new_ir(struct ivtv *
-+@@ -230,7 +230,7 @@ static int ivtv_i2c_new_ir(struct ivtv *itv, u32 hw, const char *type, u8 addr)
-  	info.platform_data = init_data;
-  	strlcpy(info.type, type, I2C_NAME_SIZE);
-  
-@@ -81,7 +81,7 @@
-  	       -1 : 0;
-  }
-  
--@@ -257,7 +257,7 @@ struct i2c_client *ivtv_i2c_new_ir_legac
-+@@ -257,7 +257,7 @@ struct i2c_client *ivtv_i2c_new_ir_legacy(struct ivtv *itv)
-  
-  	memset(&info, 0, sizeof(struct i2c_board_info));
-  	strlcpy(info.type, "ir_video", I2C_NAME_SIZE);
-@@ -90,9 +90,9 @@
-  }
-  
-  int ivtv_i2c_register(struct ivtv *itv, unsigned idx)
----- linux.orig/drivers/media/video/v4l2-common.c
--+++ linux/drivers/media/video/v4l2-common.c
--@@ -316,8 +316,7 @@ struct v4l2_subdev *v4l2_i2c_new_subdev_
-+--- a/drivers/media/video/v4l2-common.c
-++++ b/drivers/media/video/v4l2-common.c
-+@@ -319,8 +319,7 @@ struct v4l2_subdev *v4l2_i2c_new_subdev_board(struct v4l2_device *v4l2_dev,
-  
-  	/* Create the i2c client */
-  	if (info->addr == 0 && probe_addrs)
--- 
-1.7.0.4
+Send this patch first. As both tuner and demod drivers were written by
+Konstantin, just make sure to preserve the existing copyrights as-is.
 
+After having this patch approved/merged, we can dig into the next ones.
+
+> 2)Fix the issues as Mauro addressed before.
+> 3)Pass scripts/checkpatch.pl check.
+> So what is the next step for me?
+> Is there any schedule of Konstantin's work?
+> Br,
+> Max
+> 
+
+Thanks!
+Mauro
