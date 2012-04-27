@@ -1,91 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from plane.gmane.org ([80.91.229.3]:59606 "EHLO plane.gmane.org"
+Received: from smtp1-g21.free.fr ([212.27.42.1]:35444 "EHLO smtp1-g21.free.fr"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752239Ab2D2PWq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 29 Apr 2012 11:22:46 -0400
-Received: from list by plane.gmane.org with local (Exim 4.69)
-	(envelope-from <gldv-linux-media@m.gmane.org>)
-	id 1SOVxT-0000ry-PK
-	for linux-media@vger.kernel.org; Sun, 29 Apr 2012 17:22:43 +0200
-Received: from d67-193-214-242.home3.cgocable.net ([67.193.214.242])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Sun, 29 Apr 2012 17:22:43 +0200
-Received: from brian by d67-193-214-242.home3.cgocable.net with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Sun, 29 Apr 2012 17:22:43 +0200
-To: linux-media@vger.kernel.org
-From: "Brian J. Murrell" <brian@interlinx.bc.ca>
-Subject: Re: can't rmmod au0828; modprobe au0828 and have a working device
-Date: Sun, 29 Apr 2012 11:22:32 -0400
-Message-ID: <jnjmbo$qhq$1@dough.gmane.org>
-References: <jmov7j$hrc$1@dough.gmane.org>
+	id S1756567Ab2D0HwQ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 27 Apr 2012 03:52:16 -0400
+Date: Fri, 27 Apr 2012 09:53:09 +0200
+From: Jean-Francois Moine <moinejf@free.fr>
+To: Antonio Ospite <ospite@studenti.unina.it>
+Cc: linux-media@vger.kernel.org,
+	Erik =?UTF-8?B?QW5kcsOpbg==?= <erik.andren@gmail.com>
+Subject: Re: gspca V4L2_CID_EXPOSURE_AUTO and VIDIOC_G/S/TRY_EXT_CTRLS
+Message-ID: <20120427095309.5d922000@tele>
+In-Reply-To: <20120418153720.1359c7d2f2a3efc2c7c17b88@studenti.unina.it>
+References: <20120418153720.1359c7d2f2a3efc2c7c17b88@studenti.unina.it>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="------------enig67E99524D0FA210B8855B19B"
-In-Reply-To: <jmov7j$hrc$1@dough.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enig67E99524D0FA210B8855B19B
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+On Wed, 18 Apr 2012 15:37:20 +0200
+Antonio Ospite <ospite@studenti.unina.it> wrote:
 
-On 12-04-19 08:08 AM, Brian J. Murrell wrote:
-> I have an HVR-950Q:
->=20
-> [44847.234403] tveeprom 0-0050: Hauppauge model 72001, rev B3F0, serial=
-# *******
-> [44847.294643] tveeprom 0-0050: MAC address is **:**:**:**:**:**
-> [44847.343417] tveeprom 0-0050: tuner model is Xceive XC5000 (idx 150, =
-type 76)
-> [44847.402873] tveeprom 0-0050: TV standards NTSC(M) ATSC/DVB Digital (=
-eeprom 0x88)
-> [44847.465471] tveeprom 0-0050: audio processor is AU8522 (idx 44)
-> [44847.515481] tveeprom 0-0050: decoder processor is AU8522 (idx 42)
-> [44847.567162] tveeprom 0-0050: has no radio, has IR receiver, has no I=
-R transmitter
-> [44847.630272] hauppauge_eeprom: hauppauge eeprom: model=3D72001
->=20
-> I cannot seem to get it to work after removing the au0828 xc5000 au8522=
+> I noticed that AEC (Automatic Exposure Control, or
+> V4L2_CID_EXPOSURE_AUTO) does not work in the ov534 gspca driver, either
+> from guvcview or qv4l2.
+	[snip]
+> So in ov534, but I think in m5602 too, V4L2_CID_EXPOSURE_AUTO does not
+> work from guvcview, qv4l2, or v4l2-ctrl, for instance the latter fails
+> with the message:
+> 
+> 	error 25 getting ext_ctrl Auto Exposure
+> 
+> I tried adding an hackish implementation of vidioc_g_ext_ctrls and
+> vidioc_s_ext_ctrls to gspca, and with these V4L2_CID_EXPOSURE_AUTO seems
+> to work, but I need to learn more about this kind of controls before
+> I can propose a decent implementation for mainline inclusion myself, so
+> if anyone wants to anticipate me I'd be glad to test :)
+> 
+> Unrelated, but maybe worth mentioning is that V4L2_CID_EXPOSURE_AUTO is
+> of type MENU, while some drivers are treating it as a boolean, I think
+> I can fix this one if needed.
 
-> modules and then modprobing the au0828 module.
+Hi Antonio,
 
-To follow-up on this, it seems that if I remove and insert the au0828
-enough times, it will be functional again.  Race perhaps?
+Yes, V4L2_CID_EXPOSURE_AUTO is of class V4L2_CTRL_CLASS_CAMERA, and, as
+the associated menu shows, it is not suitable for webcams.
 
-It seems when it's inserted and doesn't work, the following is logged in
-the kernel message buffer:
+In the webcam world, the autoexposure is often the same as the
+autogain: in the knee algorithm
+(http://81.209.78.62:8080/docs/LowLightOptimization.html - also look at
+gspca/sonixb.c), both exposure and gain are concerned. The cases where
+a user wants only autoexposure (fixed gain) or autogain (fixed
+exposure) are rare. If you want people to be able to do that, you
+should add a new webcam control, V4L2_CID_AUTOEXPOSURE, and also add it
+to each driver which implements the knee algorithm, and handle the three
+cases, autogain only, autoexposure only and knee.
 
-xc5000: Device not found at addr 0x61 (0xffff)
+Then, looking about your implementation of vidioc_s_ext_ctrls, I found
+it was a bit simple: setting many controls is atomic, i.e., if any
+error occurs at some point, the previous controls should be reset to
+their original values. Same about vidioc_g_ext_ctrls: the mutex must be
+taken only once for the values do not change. You also do not check if
+the controls are in a same control class. Anyway, are these ioctl's
+needed?
 
-and when it's inserted successfully:
+Regards.
 
-xc5000: Successfully identified at address 0x61
-xc5000: Firmware has not been loaded previously
-
-It also seems that the module will become non-functional just as if I
-had removed and inserted it, all on it's own without any removal insertio=
-n.
-
-b.
-
-
---------------enig67E99524D0FA210B8855B19B
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
-
-iEYEARECAAYFAk+dXLgACgkQl3EQlGLyuXBHTACdGLIAeOiX8CFLKp1/89y9Rn45
-tFwAnjKWjj9wM3KHfncJm1z8v9MQIExH
-=jMTh
------END PGP SIGNATURE-----
-
---------------enig67E99524D0FA210B8855B19B--
-
+-- 
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
