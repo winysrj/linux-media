@@ -1,440 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from oyp.chewa.net ([91.121.6.101]:51949 "EHLO oyp.chewa.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755017Ab2DEPBS convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Apr 2012 11:01:18 -0400
-From: "=?iso-8859-15?q?R=E9mi?= Denis-Courmont" <remi@remlab.net>
-To: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: Re: [PATCH 03/11] v4l: vb2: add support for shared buffer (dma_buf)
-Date: Thu, 5 Apr 2012 18:01:13 +0300
-Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	airlied@redhat.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, laurent.pinchart@ideasonboard.com,
-	sumit.semwal@ti.com, daeinki@gmail.com, daniel.vetter@ffwll.ch,
-	robdclark@gmail.com, pawel@osciak.com,
-	linaro-mm-sig@lists.linaro.org, subashrp@gmail.com,
-	Sumit Semwal <sumit.semwal@linaro.org>
-References: <1333634408-4960-1-git-send-email-t.stanislaws@samsung.com> <1333634408-4960-4-git-send-email-t.stanislaws@samsung.com>
-In-Reply-To: <1333634408-4960-4-git-send-email-t.stanislaws@samsung.com>
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:53082 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758303Ab2D0UVG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 27 Apr 2012 16:21:06 -0400
+Received: by eekc41 with SMTP id c41so297977eek.19
+        for <linux-media@vger.kernel.org>; Fri, 27 Apr 2012 13:21:04 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201204051801.15906.remi@remlab.net>
+In-Reply-To: <4F9AF9A5.7070606@iki.fi>
+References: <1327228731.2540.3.camel@tvbox>
+	<4F2185A1.2000402@redhat.com>
+	<201204152353103757288@gmail.com>
+	<201204201601166255937@gmail.com>
+	<4F9130BB.8060107@iki.fi>
+	<201204211045557968605@gmail.com>
+	<4F958640.9010404@iki.fi>
+	<CAF0Ff2nNP6WRUWcs7PqVRxhXHCmUFqqswL4757WijFaKT5P5-w@mail.gmail.com>
+	<4F95CE59.1020005@redhat.com>
+	<CAF0Ff2m_6fM1QV+Jic7viHXQ7edTe8ZwigjjhdtFwMfhCszuKQ@mail.gmail.com>
+	<4F9AF9A5.7070606@iki.fi>
+Date: Fri, 27 Apr 2012 23:21:04 +0300
+Message-ID: <CAF0Ff2nSjT4jJPLVagpSMtyAN_yct=vRDwYz53_G35yKCsCGbw@mail.gmail.com>
+Subject: Re: [PATCH 1/6] m88ds3103, montage dvb-s/s2 demodulator driver
+From: Konstantin Dimitrov <kosio.dimitrov@gmail.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	"nibble.max" <nibble.max@gmail.com>,
+	linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Le jeudi 5 avril 2012 17:00:00 Tomasz Stanislawski, vous avez écrit :
-> From: Sumit Semwal <sumit.semwal@ti.com>
-> 
-> This patch adds support for DMABUF memory type in videobuf2. It calls
-> relevant APIs of dma_buf for v4l reqbuf / qbuf / dqbuf operations.
-> 
-> For this version, the support is for videobuf2 as a user of the shared
-> buffer; so the allocation of the buffer is done outside of V4L2. [A sample
-> allocator of dma-buf shared buffer is given at [1]]
-> 
-> [1]: Rob Clark's DRM:
->    https://github.com/robclark/kernel-omap4/commits/drmplane-dmabuf
-> 
-> Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
->    [original work in the PoC for buffer sharing]
-> Signed-off-by: Sumit Semwal <sumit.semwal@ti.com>
-> Signed-off-by: Sumit Semwal <sumit.semwal@linaro.org>
-> ---
->  drivers/media/video/videobuf2-core.c |  184
-> +++++++++++++++++++++++++++++++++- include/media/videobuf2-core.h       | 
->  31 ++++++
->  2 files changed, 214 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/media/video/videobuf2-core.c
-> b/drivers/media/video/videobuf2-core.c index 2e8f1df..b37feea 100644
-> --- a/drivers/media/video/videobuf2-core.c
-> +++ b/drivers/media/video/videobuf2-core.c
-> @@ -106,6 +106,27 @@ static void __vb2_buf_userptr_put(struct vb2_buffer
-> *vb) }
-> 
->  /**
-> + * __vb2_buf_dmabuf_put() - release memory associated with
-> + * a DMABUF shared buffer
-> + */
-> +static void __vb2_buf_dmabuf_put(struct vb2_buffer *vb)
-> +{
-> +	struct vb2_queue *q = vb->vb2_queue;
-> +	unsigned int plane;
-> +
-> +	for (plane = 0; plane < vb->num_planes; ++plane) {
-> +		void *mem_priv = vb->planes[plane].mem_priv;
-> +
-> +		if (mem_priv) {
-> +			call_memop(q, detach_dmabuf, mem_priv);
-> +			dma_buf_put(vb->planes[plane].dbuf);
-> +			vb->planes[plane].dbuf = NULL;
-> +			vb->planes[plane].mem_priv = NULL;
-> +		}
-> +	}
-> +}
-> +
-> +/**
->   * __setup_offsets() - setup unique offsets ("cookies") for every plane in
->   * every buffer on the queue
->   */
-> @@ -227,6 +248,8 @@ static void __vb2_free_mem(struct vb2_queue *q,
-> unsigned int buffers) /* Free MMAP buffers or release USERPTR buffers */
->  		if (q->memory == V4L2_MEMORY_MMAP)
->  			__vb2_buf_mem_free(vb);
+On Fri, Apr 27, 2012 at 10:55 PM, Antti Palosaari <crope@iki.fi> wrote:
+> On 27.04.2012 22:01, Konstantin Dimitrov wrote:
+>>
+>> Mauro, your reasoning makes sense to me. so, let's split them and at
+>> least settle this part of the discussion - i will do as far as my
+>> spare time allows, as well make sure there are no some problems
+>> introduced after the split.
+>>
+>> also, in one email i've just sent in answer to Antti there is enough
+>> argument why such split, i.e. tuner-pass-through-mode is subject to
+>> discussion about CX24116 and TDA10071 drivers too. currently, majority
+>> of DVB-S2 demodulator drivers in the kernel are married to particular
+>> tuners and there is no split.
+>
+>
+> I read the mail and as it was long study, I comment only that
+> CX24116+CX24118A and TDA10071+CX24118A demod+tuner combos versus Montage
+> demod+tuner combos. As you may see, CX24116 and TDA10071 are so much
+> different than both needs own driver. But as you said those are married
+> always as a demod+tuner.
+>
+> So if I use your logic, what happens if CX24118A tuner is not driven by
+> CX24116 or TDA10071 firmware? ==> it happens we have two drivers, CX24116
+> and TDA10071 *both* having similar CX24118A tuner driver code inside! Same
+> tuner driver code inside two demods drivers. Could you now understand why we
+> want it split?
+> The reason which saves us having CX24118A tuner driver is that it is inside
+> both CX24116 and TDA10071 firmware.
+>
+> There is mainly two different controlling situation. Most commonly driver
+> controls chip but in some cases it is firmware which is controlling. And I
+> don't see it very important trying always to by-pass firmware control and
+> use driver for that.
+>
 
-Missing 'else' here? A switch() statement might be better?
+i got that point, but what happens if tomorrow their is CX24116 or
+TDA10071 design with tuner different than CX14118A? in fact the LG
+datasheet i pointed out to you clearly states that for example there
+is actually such design - case when CX24116 is used with CX24128 tuner
+instead CX24118A in which case the only way is to bypass the firmware
+and control the tuner directly. also, isn't it even double bad the
+current state of CX24116 or TDA10071 drivers - from one side they use
+2 firmwares, part of which is doing the same, i.e control the CX24118A
+and from the other side they depend on proprietary firmware to do
+something that can be done in open-source code? i don't know, but at
+least from my point of view if that's not worse than the current
+status of ds3000 driver, it's at least as wrong as it, i.e. there
+isn't not only separation of tuner and demodulator code in CX24116 or
+TDA10071 drivers, but there is not even a code that can allow they to
+be separated easily, because making CX14118A driver from scratch is
+task that will need some effort. anyway, maybe, it's just me, but i
+prefer to depend as less as possible on proprietary firmwares done is
+such way. however, there is no any doubt current CX24116 or TDA10071
+drivers don't allow any other tuner that is not supported by the
+proprietary firmware to be used and thus they break the rule of tuner
+and demodulator code separation. so, i really don't understand what
+makes CX24116 or TDA10071 drivers different than the others, i.e. why
+they are developed in such way and there is no discussion about them
+to be changed in way that allow use of other tuner like CX24128, which
+is not supported by the proprietary firmwares. so, the only
+explanation from my perspective is lack of such need in real-life, but
+it's the same for ds3000.
 
-> +		if (q->memory == V4L2_MEMORY_DMABUF)
-> +			__vb2_buf_dmabuf_put(vb);
->  		else
->  			__vb2_buf_userptr_put(vb);
->  	}
-> @@ -349,6 +372,12 @@ static int __fill_v4l2_buffer(struct vb2_buffer *vb,
-> struct v4l2_buffer *b) */
->  		memcpy(b->m.planes, vb->v4l2_planes,
->  			b->length * sizeof(struct v4l2_plane));
-> +
-> +		if (q->memory == V4L2_MEMORY_DMABUF) {
-> +			unsigned int plane;
-> +			for (plane = 0; plane < vb->num_planes; ++plane)
-> +				b->m.planes[plane].m.fd = 0;
-> +		}
->  	} else {
->  		/*
->  		 * We use length and offset in v4l2_planes array even for
-> @@ -360,6 +389,8 @@ static int __fill_v4l2_buffer(struct vb2_buffer *vb,
-> struct v4l2_buffer *b) b->m.offset = vb->v4l2_planes[0].m.mem_offset;
->  		else if (q->memory == V4L2_MEMORY_USERPTR)
->  			b->m.userptr = vb->v4l2_planes[0].m.userptr;
-> +		else if (q->memory == V4L2_MEMORY_DMABUF)
-> +			b->m.fd = 0;
->  	}
-> 
->  	/*
-> @@ -451,6 +482,21 @@ static int __verify_mmap_ops(struct vb2_queue *q)
->  }
-> 
->  /**
-> + * __verify_dmabuf_ops() - verify that all memory operations required for
-> + * DMABUF queue type have been provided
-> + */
-> +static int __verify_dmabuf_ops(struct vb2_queue *q)
-> +{
-> +	if (!(q->io_modes & VB2_DMABUF) || !q->mem_ops->attach_dmabuf
-> +			|| !q->mem_ops->detach_dmabuf
-> +			|| !q->mem_ops->map_dmabuf
-> +			|| !q->mem_ops->unmap_dmabuf)
-> +		return -EINVAL;
-> +
-> +	return 0;
-> +}
-> +
-> +/**
->   * vb2_reqbufs() - Initiate streaming
->   * @q:		videobuf2 queue
->   * @req:	struct passed from userspace to vidioc_reqbufs handler in 
-driver
-> @@ -484,6 +530,7 @@ int vb2_reqbufs(struct vb2_queue *q, struct
-> v4l2_requestbuffers *req) }
-> 
->  	if (req->memory != V4L2_MEMORY_MMAP
-> +			&& req->memory != V4L2_MEMORY_DMABUF
->  			&& req->memory != V4L2_MEMORY_USERPTR) {
->  		dprintk(1, "reqbufs: unsupported memory type\n");
->  		return -EINVAL;
-> @@ -513,6 +560,11 @@ int vb2_reqbufs(struct vb2_queue *q, struct
-> v4l2_requestbuffers *req) return -EINVAL;
->  	}
-> 
-> +	if (req->memory == V4L2_MEMORY_DMABUF && __verify_dmabuf_ops(q)) {
-> +		dprintk(1, "reqbufs: DMABUF for current setup unsupported\n");
-> +		return -EINVAL;
-> +	}
-> +
->  	if (req->count == 0 || q->num_buffers != 0 || q->memory != req->memory) {
->  		/*
->  		 * We already have buffers allocated, so first check if they
-> @@ -620,7 +672,8 @@ int vb2_create_bufs(struct vb2_queue *q, struct
-> v4l2_create_buffers *create) }
-> 
->  	if (create->memory != V4L2_MEMORY_MMAP
-> -			&& create->memory != V4L2_MEMORY_USERPTR) {
-> +			&& create->memory != V4L2_MEMORY_USERPTR
-> +			&& create->memory != V4L2_MEMORY_DMABUF) {
->  		dprintk(1, "%s(): unsupported memory type\n", __func__);
->  		return -EINVAL;
->  	}
-> @@ -644,6 +697,11 @@ int vb2_create_bufs(struct vb2_queue *q, struct
-> v4l2_create_buffers *create) return -EINVAL;
->  	}
-> 
-> +	if (create->memory == V4L2_MEMORY_DMABUF && __verify_dmabuf_ops(q)) {
-> +		dprintk(1, "%s(): DMABUF for current setup unsupported\n", __func__);
-> +		return -EINVAL;
-> +	}
-> +
->  	if (q->num_buffers == VIDEO_MAX_FRAME) {
->  		dprintk(1, "%s(): maximum number of buffers already allocated\n",
->  			__func__);
-> @@ -839,6 +897,14 @@ static int __fill_vb2_buffer(struct vb2_buffer *vb,
-> const struct v4l2_buffer *b, b->m.planes[plane].length;
->  			}
->  		}
-> +		if (b->memory == V4L2_MEMORY_DMABUF) {
-> +			for (plane = 0; plane < vb->num_planes; ++plane) {
-> +				v4l2_planes[plane].bytesused =
-> +					b->m.planes[plane].bytesused;
-> +				v4l2_planes[plane].m.fd =
-> +					b->m.planes[plane].m.fd;
-> +			}
-> +		}
->  	} else {
->  		/*
->  		 * Single-planar buffers do not use planes array,
-> @@ -853,6 +919,10 @@ static int __fill_vb2_buffer(struct vb2_buffer *vb,
-> const struct v4l2_buffer *b, v4l2_planes[0].m.userptr = b->m.userptr;
->  			v4l2_planes[0].length = b->length;
->  		}
-> +
-> +		if (b->memory == V4L2_MEMORY_DMABUF)
-> +			v4l2_planes[0].m.fd = b->m.fd;
-> +
->  	}
-> 
->  	vb->v4l2_buf.field = b->field;
-> @@ -957,6 +1027,105 @@ static int __qbuf_mmap(struct vb2_buffer *vb, const
-> struct v4l2_buffer *b) }
-> 
->  /**
-> + * __qbuf_dmabuf() - handle qbuf of a DMABUF buffer
-> + */
-> +static int __qbuf_dmabuf(struct vb2_buffer *vb, const struct v4l2_buffer
-> *b) +{
-> +	struct v4l2_plane planes[VIDEO_MAX_PLANES];
-> +	struct vb2_queue *q = vb->vb2_queue;
-> +	void *mem_priv;
-> +	unsigned int plane;
-> +	int ret;
-> +	int write = !V4L2_TYPE_IS_OUTPUT(q->type);
-> +
-> +	/* Verify and copy relevant information provided by the userspace */
-> +	ret = __fill_vb2_buffer(vb, b, planes);
-> +	if (ret)
-> +		return ret;
-> +
-> +	for (plane = 0; plane < vb->num_planes; ++plane) {
-> +		struct dma_buf *dbuf = dma_buf_get(planes[plane].m.fd);
-> +
-> +		if (IS_ERR_OR_NULL(dbuf)) {
-> +			dprintk(1, "qbuf: invalid dmabuf fd for "
-> +				"plane %d\n", plane);
-> +			ret = -EINVAL;
-> +			goto err;
-> +		}
-> +
-> +		/* Skip the plane if already verified */
-> +		if (dbuf == vb->planes[plane].dbuf) {
-> +			planes[plane].length = dbuf->size;
-> +			dma_buf_put(dbuf);
-> +			continue;
-> +		}
-> +
-> +		dprintk(3, "qbuf: buffer description for plane %d changed, "
-> +			"reattaching dma buf\n", plane);
-> +
-> +		/* Release previously acquired memory if present */
-> +		if (vb->planes[plane].mem_priv) {
-> +			call_memop(q, detach_dmabuf,
-> +				vb->planes[plane].mem_priv);
-> +			dma_buf_put(vb->planes[plane].dbuf);
-> +		}
-> +
-> +		vb->planes[plane].mem_priv = NULL;
-> +
-> +		/* Acquire each plane's memory */
-> +		mem_priv = call_memop(q, attach_dmabuf, q->alloc_ctx[plane],
-> +			dbuf, q->plane_sizes[plane], write);
-> +		if (IS_ERR(mem_priv)) {
-> +			dprintk(1, "qbuf: failed acquiring dmabuf "
-> +				"memory for plane %d\n", plane);
-> +			ret = PTR_ERR(mem_priv);
-> +			goto err;
-> +		}
-> +
-> +		planes[plane].length = dbuf->size;
-> +		vb->planes[plane].dbuf = dbuf;
-> +		vb->planes[plane].mem_priv = mem_priv;
-> +	}
-> +
-> +	/* TODO: This pins the buffer(s) with  dma_buf_map_attachment()).. but
-> +	 * really we want to do this just before the DMA, not while queueing
-> +	 * the buffer(s)..
-> +	 */
-> +	for (plane = 0; plane < vb->num_planes; ++plane) {
-> +		ret = call_memop(q, map_dmabuf, vb->planes[plane].mem_priv);
-> +		if (ret) {
-> +			dprintk(1, "qbuf: failed mapping dmabuf "
-> +				"memory for plane %d\n", plane);
-> +			goto err;
-> +		}
-> +	}
-> +
-> +	/*
-> +	 * Call driver-specific initialization on the newly acquired buffer,
-> +	 * if provided.
-> +	 */
-> +	ret = call_qop(q, buf_init, vb);
-> +	if (ret) {
-> +		dprintk(1, "qbuf: buffer initialization failed\n");
-> +		goto err;
-> +	}
-> +
-> +	/*
-> +	 * Now that everything is in order, copy relevant information
-> +	 * provided by userspace.
-> +	 */
-> +	for (plane = 0; plane < vb->num_planes; ++plane)
-> +		vb->v4l2_planes[plane] = planes[plane];
-> +
-> +	return 0;
-> +err:
-> +	/* In case of errors, release planes that were already acquired */
-> +	__vb2_buf_dmabuf_put(vb);
-> +
-> +	return ret;
-> +}
-> +
-> +/**
->   * __enqueue_in_driver() - enqueue a vb2_buffer in driver for processing
->   */
->  static void __enqueue_in_driver(struct vb2_buffer *vb)
-> @@ -980,6 +1149,9 @@ static int __buf_prepare(struct vb2_buffer *vb, const
-> struct v4l2_buffer *b) case V4L2_MEMORY_USERPTR:
->  		ret = __qbuf_userptr(vb, b);
->  		break;
-> +	case V4L2_MEMORY_DMABUF:
-> +		ret = __qbuf_dmabuf(vb, b);
-> +		break;
->  	default:
->  		WARN(1, "Invalid queue type\n");
->  		ret = -EINVAL;
-> @@ -1312,6 +1484,7 @@ int vb2_dqbuf(struct vb2_queue *q, struct v4l2_buffer
-> *b, bool nonblocking) {
->  	struct vb2_buffer *vb = NULL;
->  	int ret;
-> +	unsigned int plane;
-> 
->  	if (q->fileio) {
->  		dprintk(1, "dqbuf: file io in progress\n");
-> @@ -1335,6 +1508,15 @@ int vb2_dqbuf(struct vb2_queue *q, struct
-> v4l2_buffer *b, bool nonblocking) return ret;
->  	}
-> 
-> +	/* TODO: this unpins the buffer(dma_buf_unmap_attachment()).. but
-> +	 * really we want tot do this just after DMA, not when the
-
-Typo.
-
-> +	 * buffer is dequeued..
-> +	 */
-> +	if (q->memory == V4L2_MEMORY_DMABUF)
-> +		for (plane = 0; plane < vb->num_planes; ++plane)
-> +			call_memop(q, unmap_dmabuf,
-> +				vb->planes[plane].mem_priv);
-> +
->  	switch (vb->state) {
->  	case VB2_BUF_STATE_DONE:
->  		dprintk(3, "dqbuf: Returning done buffer\n");
-> diff --git a/include/media/videobuf2-core.h
-> b/include/media/videobuf2-core.h index a15d1f1..665e846 100644
-> --- a/include/media/videobuf2-core.h
-> +++ b/include/media/videobuf2-core.h
-> @@ -16,6 +16,7 @@
->  #include <linux/mutex.h>
->  #include <linux/poll.h>
->  #include <linux/videodev2.h>
-> +#include <linux/dma-buf.h>
-> 
->  struct vb2_alloc_ctx;
->  struct vb2_fileio_data;
-> @@ -41,6 +42,20 @@ struct vb2_fileio_data;
->   *		 argument to other ops in this structure
->   * @put_userptr: inform the allocator that a USERPTR buffer will no longer
->   *		 be used
-> + * @attach_dmabuf: attach a shared struct dma_buf for a hardware
-> operation; + *		   used for DMABUF memory types; alloc_ctx is the 
-alloc
-> context + *		   dbuf is the shared dma_buf; returns NULL on failure;
-> + *		   allocator private per-buffer structure on success;
-> + *		   this needs to be used for further accesses to the buffer
-> + * @detach_dmabuf: inform the exporter of the buffer that the current
-> DMABUF + *		   buffer is no longer used; the buf_priv argument is the
-> + *		   allocator private per-buffer structure previously returned
-> + *		   from the attach_dmabuf callback
-> + * @map_dmabuf: request for access to the dmabuf from allocator; the
-> allocator + *		of dmabuf is informed that this driver is going to use 
-the
-> + *		dmabuf
-> + * @unmap_dmabuf: releases access control to the dmabuf - allocator is
-> notified + *		  that this driver is done using the dmabuf for now
->   * @vaddr:	return a kernel virtual address to a given memory buffer
->   *		associated with the passed private structure or NULL if no
->   *		such mapping exists
-> @@ -56,6 +71,8 @@ struct vb2_fileio_data;
->   * Required ops for USERPTR types: get_userptr, put_userptr.
->   * Required ops for MMAP types: alloc, put, num_users, mmap.
->   * Required ops for read/write access types: alloc, put, num_users, vaddr
-> + * Required ops for DMABUF types: attach_dmabuf, detach_dmabuf,
-> map_dmabuf, + *				  unmap_dmabuf.
->   */
->  struct vb2_mem_ops {
->  	void		*(*alloc)(void *alloc_ctx, unsigned long size);
-> @@ -65,6 +82,17 @@ struct vb2_mem_ops {
->  					unsigned long size, int write);
->  	void		(*put_userptr)(void *buf_priv);
-> 
-> +	/*
-> +	 * Comment from Rob Clark: XXX: I think the attach / detach could be
-> +	 * handled in the vb2 core, and vb2_mem_ops really just need to get/put
-> +	 * the sglist (and make sure that the sglist fits it's needs..)
-> +	 */
-> +	void		*(*attach_dmabuf)(void *alloc_ctx, struct dma_buf *dbuf,
-> +				unsigned long size, int write);
-> +	void		(*detach_dmabuf)(void *buf_priv);
-> +	int		(*map_dmabuf)(void *buf_priv);
-> +	void		(*unmap_dmabuf)(void *buf_priv);
-> +
->  	void		*(*vaddr)(void *buf_priv);
->  	void		*(*cookie)(void *buf_priv);
-> 
-> @@ -75,6 +103,7 @@ struct vb2_mem_ops {
-> 
->  struct vb2_plane {
->  	void			*mem_priv;
-> +	struct dma_buf		*dbuf;
->  };
-> 
->  /**
-> @@ -83,12 +112,14 @@ struct vb2_plane {
->   * @VB2_USERPTR:	driver supports USERPTR with streaming API
->   * @VB2_READ:		driver supports read() style access
->   * @VB2_WRITE:		driver supports write() style access
-> + * @VB2_DMABUF:		driver supports DMABUF with streaming API
->   */
->  enum vb2_io_modes {
->  	VB2_MMAP	= (1 << 0),
->  	VB2_USERPTR	= (1 << 1),
->  	VB2_READ	= (1 << 2),
->  	VB2_WRITE	= (1 << 3),
-> +	VB2_DMABUF	= (1 << 4),
->  };
-> 
->  /**
-
-
--- 
-Rémi Denis-Courmont
-http://www.remlab.net/
-http://fi.linkedin.com/in/remidenis
+> Patrick explained those few days back in the mailing list:
+> http://www.mail-archive.com/linux-media@vger.kernel.org/msg44814.html
+>
+> You said also we cannot know if Montage demod does some tweaking for the
+> tuner too. Yes true, at that point we don't know. But I think it is rather
+> small probability whilst driver clearly controls it.
+>
+>
+> regards
+> Antti
+> --
+> http://palosaari.fi/
