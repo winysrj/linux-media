@@ -1,96 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:23770 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755011Ab2D3QOr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Apr 2012 12:14:47 -0400
-Received: from euspt1 (mailout2.w1.samsung.com [210.118.77.12])
- by mailout2.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0M3A006ZZVSGNE@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 30 Apr 2012 17:14:40 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0M3A00GV8VSLMM@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 30 Apr 2012 17:14:46 +0100 (BST)
-Date: Mon, 30 Apr 2012 18:14:40 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH v2 11/12] s5p-fimc: Update copyright notices
-In-reply-to: <1335802481-18153-1-git-send-email-s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	riverful.kim@samsung.com, sw0312.kim@samsung.com,
-	sungchun.kang@samsung.com, subash.ramaswamy@linaro.org,
-	s.nawrocki@samsung.com
-Message-id: <1335802481-18153-12-git-send-email-s.nawrocki@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1335802481-18153-1-git-send-email-s.nawrocki@samsung.com>
+Received: from smtp206.alice.it ([82.57.200.102]:40427 "EHLO smtp206.alice.it"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1760056Ab2D0ME0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 27 Apr 2012 08:04:26 -0400
+Date: Fri, 27 Apr 2012 14:04:16 +0200
+From: Antonio Ospite <ospite@studenti.unina.it>
+To: Jean-Francois Moine <moinejf@free.fr>
+Cc: linux-media@vger.kernel.org,
+	Erik =?ISO-8859-1?Q?Andr=E9n?= <erik.andren@gmail.com>
+Subject: Re: gspca V4L2_CID_EXPOSURE_AUTO and VIDIOC_G/S/TRY_EXT_CTRLS
+Message-Id: <20120427140416.79cfd85f36f3f793816fe4d2@studenti.unina.it>
+In-Reply-To: <20120427095309.5d922000@tele>
+References: <20120418153720.1359c7d2f2a3efc2c7c17b88@studenti.unina.it>
+	<20120427095309.5d922000@tele>
+Mime-Version: 1.0
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+ micalg="PGP-SHA1";
+ boundary="Signature=_Fri__27_Apr_2012_14_04_16_+0200_lnYsLEz16JHCPDjR"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/video/s5p-fimc/fimc-capture.c |    4 ++--
- drivers/media/video/s5p-fimc/fimc-core.c    |    4 ++--
- drivers/media/video/s5p-fimc/fimc-core.h    |    2 +-
- drivers/media/video/s5p-fimc/fimc-mdevice.h |    2 +-
- 4 files changed, 6 insertions(+), 6 deletions(-)
+--Signature=_Fri__27_Apr_2012_14_04_16_+0200_lnYsLEz16JHCPDjR
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c b/drivers/media/video/s5p-fimc/fimc-capture.c
-index 3e3ab85..bcf9c1e 100644
---- a/drivers/media/video/s5p-fimc/fimc-capture.c
-+++ b/drivers/media/video/s5p-fimc/fimc-capture.c
-@@ -1,8 +1,8 @@
- /*
-  * Samsung S5P/EXYNOS4 SoC series camera interface (camera capture) driver
-  *
-- * Copyright (C) 2010 - 2011 Samsung Electronics Co., Ltd.
-- * Author: Sylwester Nawrocki, <s.nawrocki@samsung.com>
-+ * Copyright (C) 2010 - 2012 Samsung Electronics Co., Ltd.
-+ * Sylwester Nawrocki <s.nawrocki@samsung.com>
-  *
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License version 2 as
-diff --git a/drivers/media/video/s5p-fimc/fimc-core.c b/drivers/media/video/s5p-fimc/fimc-core.c
-index d59d8c1..8d066c5 100644
---- a/drivers/media/video/s5p-fimc/fimc-core.c
-+++ b/drivers/media/video/s5p-fimc/fimc-core.c
-@@ -1,8 +1,8 @@
- /*
-  * Samsung S5P/EXYNOS4 SoC series FIMC (CAMIF) driver
-  *
-- * Copyright (C) 2010-2011 Samsung Electronics Co., Ltd.
-- * Contact: Sylwester Nawrocki, <s.nawrocki@samsung.com>
-+ * Copyright (C) 2010-2012 Samsung Electronics Co., Ltd.
-+ * Sylwester Nawrocki <s.nawrocki@samsung.com>
-  *
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License as published
-diff --git a/drivers/media/video/s5p-fimc/fimc-core.h b/drivers/media/video/s5p-fimc/fimc-core.h
-index 600cf52..8b7e122 100644
---- a/drivers/media/video/s5p-fimc/fimc-core.h
-+++ b/drivers/media/video/s5p-fimc/fimc-core.h
-@@ -1,5 +1,5 @@
- /*
-- * Copyright (C) 2010 - 2011 Samsung Electronics Co., Ltd.
-+ * Copyright (C) 2010 - 2012 Samsung Electronics Co., Ltd.
-  *
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License version 2 as
-diff --git a/drivers/media/video/s5p-fimc/fimc-mdevice.h b/drivers/media/video/s5p-fimc/fimc-mdevice.h
-index 3524c19..3b8a349 100644
---- a/drivers/media/video/s5p-fimc/fimc-mdevice.h
-+++ b/drivers/media/video/s5p-fimc/fimc-mdevice.h
-@@ -1,5 +1,5 @@
- /*
-- * Copyright (C) 2011 Samsung Electronics Co., Ltd.
-+ * Copyright (C) 2011 - 2012 Samsung Electronics Co., Ltd.
-  *
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License version 2 as
--- 
-1.7.10
+On Fri, 27 Apr 2012 09:53:09 +0200
+Jean-Francois Moine <moinejf@free.fr> wrote:
 
+> On Wed, 18 Apr 2012 15:37:20 +0200
+> Antonio Ospite <ospite@studenti.unina.it> wrote:
+>=20
+> > I noticed that AEC (Automatic Exposure Control, or
+> > V4L2_CID_EXPOSURE_AUTO) does not work in the ov534 gspca driver, either
+> > from guvcview or qv4l2.
+> 	[snip]
+> > So in ov534, but I think in m5602 too, V4L2_CID_EXPOSURE_AUTO does not
+> > work from guvcview, qv4l2, or v4l2-ctrl, for instance the latter fails
+> > with the message:
+> >=20
+> > 	error 25 getting ext_ctrl Auto Exposure
+> >=20
+> > I tried adding an hackish implementation of vidioc_g_ext_ctrls and
+> > vidioc_s_ext_ctrls to gspca, and with these V4L2_CID_EXPOSURE_AUTO seems
+> > to work, but I need to learn more about this kind of controls before
+> > I can propose a decent implementation for mainline inclusion myself, so
+> > if anyone wants to anticipate me I'd be glad to test :)
+> >=20
+> > Unrelated, but maybe worth mentioning is that V4L2_CID_EXPOSURE_AUTO is
+> > of type MENU, while some drivers are treating it as a boolean, I think
+> > I can fix this one if needed.
+>=20
+> Hi Antonio,
+>=20
+> Yes, V4L2_CID_EXPOSURE_AUTO is of class V4L2_CTRL_CLASS_CAMERA, and, as
+> the associated menu shows, it is not suitable for webcams.
+>
+
+Where is that menu you refer to? Maybe camera_exposure_auto in
+drivers/media/video/v4l2-ctrls.c which mentions also "Shutter Priority
+Mode" and "Aperture Priority Mode"?
+
+Naively one would expect that a web _camera_ could use some controls of
+type V4L2_CTRL_CLASS_CAMERA.
+
+> In the webcam world, the autoexposure is often the same as the
+> autogain: in the knee algorithm
+> (http://81.209.78.62:8080/docs/LowLightOptimization.html - also look at
+> gspca/sonixb.c), both exposure and gain are concerned.
+
+=46rom the document you point at I still understand that from a user point
+of view autoexposure and autogain are _independent_ parameters (Table
+1), it's just that for such algorithm to work well they should be _both_
+enabled.
+
+> The cases where
+> a user wants only autoexposure (fixed gain) or autogain (fixed
+> exposure) are rare.
+>
+> If you want people to be able to do that, you
+> should add a new webcam control, V4L2_CID_AUTOEXPOSURE, and also add it
+> to each driver which implements the knee algorithm, and handle the three
+> cases, autogain only, autoexposure only and knee.
+
+The real problem here is that _manual_ exposure does not work in ov534
+because the user cannot turn off what we are currently calling auto
+exposure.
+
+> Then, looking about your implementation of vidioc_s_ext_ctrls, I found
+> it was a bit simple: setting many controls is atomic, i.e., if any
+> error occurs at some point, the previous controls should be reset to
+> their original values. Same about vidioc_g_ext_ctrls: the mutex must be
+> taken only once for the values do not change. You also do not check if
+> the controls are in a same control class.
+
+I see, it was my first shot and I just wanted to start the discussion
+with a "works here" implementation. I think that using some v4l2
+infrastructure like the control-framework like Hans proposes could be
+better in the long run. IIUC this could also prevent drivers having to
+handle menu entries themselves like we are doing now in sd_querymenu(),
+right?
+
+If you two reach an agreement and he gets to do it I'll surely port
+over drivers using V4L2_CID_EXPOSURE_AUTO.
+
+> Anyway, are these ioctl's needed?
+>=20
+
+Whether they are really needed or not, that depends on the definition of
+webcam, the definition of "camera" in V4L2, and the relationship
+between the two.
+
+If a webcam IS-A v4l2 camera, then I'd expect it to be able to use
+V4L2_CTRL_CLASS_CAMERA controls, and then EXT controls should be made
+accessible by gspca somehow.
+
+Thanks,
+   Antonio
+
+--=20
+Antonio Ospite
+http://ao2.it
+
+A: Because it messes up the order in which people normally read text.
+   See http://en.wikipedia.org/wiki/Posting_style
+Q: Why is top-posting such a bad thing?
+
+--Signature=_Fri__27_Apr_2012_14_04_16_+0200_lnYsLEz16JHCPDjR
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iEYEARECAAYFAk+ai0AACgkQ5xr2akVTsAGLHACdEIsXZwE4tCdWeT0nfn/YtFU9
+T4MAoIrRZTKPF7A/jMYLVuSZVD5yidIc
+=EF3z
+-----END PGP SIGNATURE-----
+
+--Signature=_Fri__27_Apr_2012_14_04_16_+0200_lnYsLEz16JHCPDjR--
