@@ -1,59 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:43152 "EHLO
-	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754261Ab2DGRhB (ORCPT
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:2753 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750771Ab2D0LyR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 7 Apr 2012 13:37:01 -0400
-Received: by qcsp15 with SMTP id p15so2945202qcs.16
-        for <linux-media@vger.kernel.org>; Sat, 07 Apr 2012 10:36:59 -0700 (PDT)
+	Fri, 27 Apr 2012 07:54:17 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "linux-media" <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR v3.5] Clean up and fix dsbr100
+Date: Fri, 27 Apr 2012 13:54:10 +0200
+Cc: Alexey Klimov <klimov.linux@gmail.com>
 MIME-Version: 1.0
-From: "Aguirre, Sergio" <saaguirre@ti.com>
-Date: Sat, 7 Apr 2012 12:36:39 -0500
-Message-ID: <CAKnK67QZ78iTxYWvfpUJ_v_KD7XLUT=o=pkrC2EZ8CJ2r00pCQ@mail.gmail.com>
-Subject: [Query] About NV12 pixel format support in a subdevice
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201204271354.10316.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi everyone,
+Next in my quest to get old drivers cleaned up and V4L2 compliant is the
+dsbr100 driver.
 
-I'll like to request for your advice on adding NV12 support for my omap4iss
-camera driver, which is done after the resizer block in the OMAP4 ISS ISP
-(Imaging SubSystem Image Signal Processor).
+Changes:
 
-So, the problem with that, is that I don't see a match for V4L2_PIX_FMT_NV12
-pixel format in "enum v4l2_mbus_pixelcode".
-
-Now, I wonder what's the best way to describe the format... Is this correct?
-
-V4L2_MBUS_FMT_NV12_1X12
-
-Because every pixel is comprised of a 8-bit Y element, and it's UV components
-are grouped in pairs with the next horizontal pixel, whcih in combination
-are represented in 8 bits... So it's like that UV component per-pixel is 4-bits.
-Not exactly, but it's the best representation I could think of to
-simplify things.
-
-I mean, the HW itself writes in memory to 2 contiguous buffers, so there's 2
-separate DMA writes. I have to program 2 starting addresses, which, in an
-internal non-v4l2-subdev implementation, I have been programming like this:
-
-paddr = start of 32-byte aligned physical address to store buffer
-x = width
-y = height
-
-Ysize = (x * y)
-UVsize = (x / 2) * y
-Total size = Ysize + UVsize
-
-Ystart = paddr
-UVstart = (paddr + Ysize)
-
-But, in the media controller framework, i have a single DMA output pad, that
-creates a v4l2 capture device node, and i'll be queueing a single buffer.
-
-Any advice on how to address this properly? Does anyone has/had a similar need?
+- converted to the control framework + control events
+- overall cleanup
+- thorough testing using the radio-keene transmitter and v4l2-compliance.
+- also tested suspend/resume
 
 Regards,
-Sergio
+
+	Hans
+
+The following changes since commit bcb2cf6e0bf033d79821c89e5ccb328bfbd44907:
+
+  [media] ngene: remove an unneeded condition (2012-04-26 15:29:23 -0300)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git dsbr100
+
+for you to fetch changes up to 53b0945ea60f5e781004d71f35a458e4d02063da:
+
+  dsbr100: clean up and update to the latest v4l2 framework (2012-04-27 13:13:26 +0200)
+
+----------------------------------------------------------------
+Hans Verkuil (1):
+      dsbr100: clean up and update to the latest v4l2 framework
+
+ drivers/media/radio/dsbr100.c |  527 +++++++++++++++++++++++++-----------------------------------------------------
+ 1 file changed, 165 insertions(+), 362 deletions(-)
