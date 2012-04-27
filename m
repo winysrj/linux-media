@@ -1,62 +1,181 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lon1-post-1.mail.demon.net ([195.173.77.148]:44119 "EHLO
-	lon1-post-1.mail.demon.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754280Ab2DTKhX (ORCPT
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:56266 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753113Ab2D0VNv convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Apr 2012 06:37:23 -0400
-Received: from iarmst.demon.co.uk ([62.49.16.35] helo=spike.localnet)
-	by lon1-post-1.mail.demon.net with esmtp (Exim 4.69)
-	id 1SLBDO-0006Q5-Y0
-	for linux-media@vger.kernel.org; Fri, 20 Apr 2012 10:37:22 +0000
-From: Ian Armstrong <mail01@iarmst.co.uk>
-To: linux-media@vger.kernel.org
-Subject: Re: Tuning file for Crystal Palace, UK (post digital switch-over)
-Date: Fri, 20 Apr 2012 11:37:21 +0100
-References: <4F8EB71A.1010104@googlemail.com> <079b01cd1ecc$d3697d40$7a3c77c0$@co.uk>
-In-Reply-To: <079b01cd1ecc$d3697d40$7a3c77c0$@co.uk>
+	Fri, 27 Apr 2012 17:13:51 -0400
+Received: by eaaq12 with SMTP id q12so299183eaa.19
+        for <linux-media@vger.kernel.org>; Fri, 27 Apr 2012 14:13:50 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201204201137.21429.mail01@iarmst.co.uk>
+In-Reply-To: <4F9B04A2.6020105@iki.fi>
+References: <1327228731.2540.3.camel@tvbox>
+	<4F2185A1.2000402@redhat.com>
+	<201204152353103757288@gmail.com>
+	<201204201601166255937@gmail.com>
+	<4F9130BB.8060107@iki.fi>
+	<201204211045557968605@gmail.com>
+	<4F958640.9010404@iki.fi>
+	<CAF0Ff2nNP6WRUWcs7PqVRxhXHCmUFqqswL4757WijFaKT5P5-w@mail.gmail.com>
+	<4F95CE59.1020005@redhat.com>
+	<CAF0Ff2m_6fM1QV+Jic7viHXQ7edTe8ZwigjjhdtFwMfhCszuKQ@mail.gmail.com>
+	<4F9AF9A5.7070606@iki.fi>
+	<CAF0Ff2nSjT4jJPLVagpSMtyAN_yct=vRDwYz53_G35yKCsCGbw@mail.gmail.com>
+	<4F9B04A2.6020105@iki.fi>
+Date: Sat, 28 Apr 2012 00:13:50 +0300
+Message-ID: <CAF0Ff2ni9L+mE3vv0b2F4wfPvhaU6qD01a9SiaR4M1WYm-Bm-A@mail.gmail.com>
+Subject: Re: [PATCH 1/6] m88ds3103, montage dvb-s/s2 demodulator driver
+From: Konstantin Dimitrov <kosio.dimitrov@gmail.com>
+To: Antti Palosaari <crope@iki.fi>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: "nibble.max" <nibble.max@gmail.com>,
+	linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday 20 April 2012, Ian Liverton wrote:
+Antti, Mauro,
 
-> Thanks for this - I was in the middle of trying to sort this out when it
-> arrived!  When I use it with dvbscan, however, it seems to mis-detect the
-> modulation on the SDN multiplex.  It's telling me it's QPSK rather than
-> QAM_64.  Did you have any trouble with re-tuning?
-> 
-> >>> tune to:
-> 506000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_3_4:FEC_1_2:QPSK:TRANSMISSION_
-> M ODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
-> WARNING: filter timeout pid 0x0011
-> WARNING: filter timeout pid 0x0000
-> WARNING: filter timeout pid 0x0010
+i believe we're all on the same page here and i just want to summarize
+based on all the discussion so far and if we all agree:
 
-I had problems with MythTV (.23-fixes) which failed to detect any channels on 
-this multiplex. Had to manually add it with the correct info before doing 
-another scan. Using dvbsnoop to dump the NIT also shows QPSK instead of 
-QAM_64.
+1) ds3000 and ts2020 code split, there are already several strong
+arguments about it and most of all that it turned out there is
+reference design with 3rd party tuner that works both with ds3000 and
+stv090x demodulators. i will take care of this task
 
-   DVB-DescriptorTag: 90 (0x5a)  [= terrestrial_delivery_system_descriptor]
-   descriptor_length: 11 (0x0b)
-   Center frequency: 0x03041840 (= 506000.000 kHz)
-   Bandwidth: 0 (0x00)  [= 8 MHz]
-   priority: 1 (0x01)  [= HP (high priority) or Non-hierarch.]
-   Time_Slicing_indicator: 1 (0x01)  [= Time Slicing is not used.)]
-   MPE-FEC_indicator: 1 (0x01)  [= MPE-FEC is not used.)]
-   reserved_1: 3 (0x03)
-   Constellation: 0 (0x00)  [= QPSK]
-   Hierarchy information: 0 (0x00)  [= non-hierarchical (native interleaver)]
-   Code_rate_HP_stream: 2 (0x02)  [= 3/4]
-   Code_rate_LP_stream: 0 (0x00)  [= 1/2]
-   Guard_interval: 0 (0x00)  [= 1/32]
-   Transmission_mode: 1 (0x01)  [= 8k mode]
-   Other_frequency_flag: 1 (0x01)
-   reserved_2: 4294967295 (0xffffffff)
+2) the result of 1) would be that the following DVB-S2 tuner and
+demodulator drivers will be able to work in any combination of each
+other (assuming there is such hardware design available): stb0899*,
+stv090x*, ds3000, stv6110x*, stb6100* and ts2020. that's good, because
+it starts to put order, because those are significant part of the
+DVB-S2 drivers in the kernel
 
--- 
-Ian
+3) not only, because of 2), but in general it's not clear why there is
+stv6110.* driver, which is for the exact same silicone as stv6110x*,
+as well stv0900*, which is for the same family of chips as stv090x*. i
+can help a little here to the degree that i can make all bridge
+drivers depend on stv6110x* and stv090x* except the driver for one
+card made by NetUP - there i can just do it in theory, but i can't
+test and probably break support for it
+
+4) after 1), 2) and if 3) is resolved the only DVB-S2 drivers that
+will continue to be married to one particular tuner (CX24118A) that
+will left are cx24116 and tda10071, which for the time being will be
+left that way until basically there is someone that volunteers to make
+separate CX24118A driver based on the LG, SHARP and Comtech datasheets
+that are available in the public domain, for which i gave details in a
+previous email, and which in my opinion contain sufficient information
+that task to be made
+
+5) ds3103 and ts2022 support, done in form of a patch respectively to
+ds3000 driver and ts2020 driver or if ts2022 happens to be very
+different than ts2020 then ts2022 support be made as separate driver,
+i guess Max will take this
+
+6) if it's necessary bug fixes, improvements, etc to the shared code
+between ds3000 and ds3103, but only after review, discussion and
+argumentation why those changes are actually needed
+
+On Fri, Apr 27, 2012 at 11:42 PM, Antti Palosaari <crope@iki.fi> wrote:
+> On 27.04.2012 23:21, Konstantin Dimitrov wrote:
+>>
+>> On Fri, Apr 27, 2012 at 10:55 PM, Antti Palosaari<crope@iki.fi>  wrote:
+>>>
+>>> On 27.04.2012 22:01, Konstantin Dimitrov wrote:
+>>>>
+>>>>
+>>>> Mauro, your reasoning makes sense to me. so, let's split them and at
+>>>> least settle this part of the discussion - i will do as far as my
+>>>> spare time allows, as well make sure there are no some problems
+>>>> introduced after the split.
+>>>>
+>>>> also, in one email i've just sent in answer to Antti there is enough
+>>>> argument why such split, i.e. tuner-pass-through-mode is subject to
+>>>> discussion about CX24116 and TDA10071 drivers too. currently, majority
+>>>> of DVB-S2 demodulator drivers in the kernel are married to particular
+>>>> tuners and there is no split.
+>>>
+>>>
+>>>
+>>> I read the mail and as it was long study, I comment only that
+>>> CX24116+CX24118A and TDA10071+CX24118A demod+tuner combos versus Montage
+>>> demod+tuner combos. As you may see, CX24116 and TDA10071 are so much
+>>> different than both needs own driver. But as you said those are married
+>>> always as a demod+tuner.
+>>>
+>>> So if I use your logic, what happens if CX24118A tuner is not driven by
+>>> CX24116 or TDA10071 firmware? ==>  it happens we have two drivers,
+>>> CX24116
+>>> and TDA10071 *both* having similar CX24118A tuner driver code inside!
+>>> Same
+>>> tuner driver code inside two demods drivers. Could you now understand why
+>>> we
+>>> want it split?
+>>> The reason which saves us having CX24118A tuner driver is that it is
+>>> inside
+>>> both CX24116 and TDA10071 firmware.
+>>>
+>>> There is mainly two different controlling situation. Most commonly driver
+>>> controls chip but in some cases it is firmware which is controlling. And
+>>> I
+>>> don't see it very important trying always to by-pass firmware control and
+>>> use driver for that.
+>>>
+>>
+>> i got that point, but what happens if tomorrow their is CX24116 or
+>> TDA10071 design with tuner different than CX14118A? in fact the LG
+>> datasheet i pointed out to you clearly states that for example there
+>> is actually such design - case when CX24116 is used with CX24128 tuner
+>> instead CX24118A in which case the only way is to bypass the firmware
+>> and control the tuner directly. also, isn't it even double bad the
+>> current state of CX24116 or TDA10071 drivers - from one side they use
+>> 2 firmwares, part of which is doing the same, i.e control the CX24118A
+>> and from the other side they depend on proprietary firmware to do
+>> something that can be done in open-source code? i don't know, but at
+>> least from my point of view if that's not worse than the current
+>> status of ds3000 driver, it's at least as wrong as it, i.e. there
+>> isn't not only separation of tuner and demodulator code in CX24116 or
+>> TDA10071 drivers, but there is not even a code that can allow they to
+>> be separated easily, because making CX14118A driver from scratch is
+>> task that will need some effort. anyway, maybe, it's just me, but i
+>> prefer to depend as less as possible on proprietary firmwares done is
+>> such way. however, there is no any doubt current CX24116 or TDA10071
+>> drivers don't allow any other tuner that is not supported by the
+>> proprietary firmware to be used and thus they break the rule of tuner
+>> and demodulator code separation. so, i really don't understand what
+>> makes CX24116 or TDA10071 drivers different than the others, i.e. why
+>> they are developed in such way and there is no discussion about them
+>> to be changed in way that allow use of other tuner like CX24128, which
+>> is not supported by the proprietary firmwares. so, the only
+>> explanation from my perspective is lack of such need in real-life, but
+>> it's the same for ds3000.
+>
+>
+> In case of new device having CX24116 or TDA10071, but different tuner than
+> firmware controlled CX14118A, driver must be changed to support new
+> configuration. Or even make new driver if differences are too big. I suspect
+> implementing new .set_frontend() callback is almost everything what is
+> needed. Then add configuration option .tuner_controlled_by_firmware or
+> something like that. There is likely rather similar existing cases.
+>
+> IIRC someone mentioned AF9035/AF9033 firmwares have different versions for
+> different tuners. Also AF9015 uploads firmware to AF9013 demod, external or
+> internal. Still AF9013 driver could upload firmware independently. There is
+> many kind of cases chip/firmware can control other chips. And if you look
+> AF9015/AF9013 and AF9035/AF9033 drivers you can see some examples of
+> splitting drivers even those are many times integrated together. OK, that
+> AF90xx stuff goes to DVB-T side but it is good example of splitting drivers
+> and supporting very wide set of demod/tuner combinations.
+>
+> And it is nice you found CX24116 is sold by two different tuners :) If those
+> tuners are controlled by the driver we can see similar mess than ds3000 +
+> ts2020 or ts2022. At the some point handling different tuner drivers inside
+> one demod driver goes difficult - errors can be done easily and maintaining
+> goes hard.
+>
+>
+> regards
+> Antti
+> --
+> http://palosaari.fi/
