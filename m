@@ -1,90 +1,136 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:8677 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756874Ab2DTOpl (ORCPT
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1734 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932085Ab2D0MRa (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Apr 2012 10:45:41 -0400
-Date: Fri, 20 Apr 2012 16:45:22 +0200
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: [PATCHv5 01/13] v4l: Add DMABUF as a memory type
-In-reply-to: <1334933134-4688-1-git-send-email-t.stanislaws@samsung.com>
-To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
-Cc: airlied@redhat.com, m.szyprowski@samsung.com,
-	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
-	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
-	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
-	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
-	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
-	mchehab@redhat.com, linux-doc@vger.kernel.org,
-	g.liakhovetski@gmx.de, Sumit Semwal <sumit.semwal@linaro.org>
-Message-id: <1334933134-4688-2-git-send-email-t.stanislaws@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1334933134-4688-1-git-send-email-t.stanislaws@samsung.com>
+	Fri, 27 Apr 2012 08:17:30 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Antonio Ospite <ospite@studenti.unina.it>
+Subject: Re: gspca V4L2_CID_EXPOSURE_AUTO and VIDIOC_G/S/TRY_EXT_CTRLS
+Date: Fri, 27 Apr 2012 14:14:48 +0200
+Cc: "Jean-Francois Moine" <moinejf@free.fr>,
+	linux-media@vger.kernel.org,
+	Erik =?iso-8859-15?q?Andr=E9n?= <erik.andren@gmail.com>
+References: <20120418153720.1359c7d2f2a3efc2c7c17b88@studenti.unina.it> <20120427095309.5d922000@tele> <20120427140416.79cfd85f36f3f793816fe4d2@studenti.unina.it>
+In-Reply-To: <20120427140416.79cfd85f36f3f793816fe4d2@studenti.unina.it>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201204271414.48967.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Sumit Semwal <sumit.semwal@ti.com>
+On Friday, April 27, 2012 14:04:16 Antonio Ospite wrote:
+> On Fri, 27 Apr 2012 09:53:09 +0200
+> Jean-Francois Moine <moinejf@free.fr> wrote:
+> 
+> > On Wed, 18 Apr 2012 15:37:20 +0200
+> > Antonio Ospite <ospite@studenti.unina.it> wrote:
+> > 
+> > > I noticed that AEC (Automatic Exposure Control, or
+> > > V4L2_CID_EXPOSURE_AUTO) does not work in the ov534 gspca driver, either
+> > > from guvcview or qv4l2.
+> > 	[snip]
+> > > So in ov534, but I think in m5602 too, V4L2_CID_EXPOSURE_AUTO does not
+> > > work from guvcview, qv4l2, or v4l2-ctrl, for instance the latter fails
+> > > with the message:
+> > > 
+> > > 	error 25 getting ext_ctrl Auto Exposure
+> > > 
+> > > I tried adding an hackish implementation of vidioc_g_ext_ctrls and
+> > > vidioc_s_ext_ctrls to gspca, and with these V4L2_CID_EXPOSURE_AUTO seems
+> > > to work, but I need to learn more about this kind of controls before
+> > > I can propose a decent implementation for mainline inclusion myself, so
+> > > if anyone wants to anticipate me I'd be glad to test :)
+> > > 
+> > > Unrelated, but maybe worth mentioning is that V4L2_CID_EXPOSURE_AUTO is
+> > > of type MENU, while some drivers are treating it as a boolean, I think
+> > > I can fix this one if needed.
+> > 
+> > Hi Antonio,
+> > 
+> > Yes, V4L2_CID_EXPOSURE_AUTO is of class V4L2_CTRL_CLASS_CAMERA, and, as
+> > the associated menu shows, it is not suitable for webcams.
+> >
+> 
+> Where is that menu you refer to? Maybe camera_exposure_auto in
+> drivers/media/video/v4l2-ctrls.c which mentions also "Shutter Priority
+> Mode" and "Aperture Priority Mode"?
+> 
+> Naively one would expect that a web _camera_ could use some controls of
+> type V4L2_CTRL_CLASS_CAMERA.
+> 
+> > In the webcam world, the autoexposure is often the same as the
+> > autogain: in the knee algorithm
+> > (http://81.209.78.62:8080/docs/LowLightOptimization.html - also look at
+> > gspca/sonixb.c), both exposure and gain are concerned.
+> 
+> From the document you point at I still understand that from a user point
+> of view autoexposure and autogain are _independent_ parameters (Table
+> 1), it's just that for such algorithm to work well they should be _both_
+> enabled.
+> 
+> > The cases where
+> > a user wants only autoexposure (fixed gain) or autogain (fixed
+> > exposure) are rare.
+> >
+> > If you want people to be able to do that, you
+> > should add a new webcam control, V4L2_CID_AUTOEXPOSURE, and also add it
+> > to each driver which implements the knee algorithm, and handle the three
+> > cases, autogain only, autoexposure only and knee.
+> 
+> The real problem here is that _manual_ exposure does not work in ov534
+> because the user cannot turn off what we are currently calling auto
+> exposure.
+> 
+> > Then, looking about your implementation of vidioc_s_ext_ctrls, I found
+> > it was a bit simple: setting many controls is atomic, i.e., if any
+> > error occurs at some point, the previous controls should be reset to
+> > their original values. Same about vidioc_g_ext_ctrls: the mutex must be
+> > taken only once for the values do not change. You also do not check if
+> > the controls are in a same control class.
+> 
+> I see, it was my first shot and I just wanted to start the discussion
+> with a "works here" implementation. I think that using some v4l2
+> infrastructure like the control-framework like Hans proposes could be
+> better in the long run. IIUC this could also prevent drivers having to
+> handle menu entries themselves like we are doing now in sd_querymenu(),
+> right?
 
-Adds DMABUF memory type to v4l framework. Also adds the related file
-descriptor in v4l2_plane and v4l2_buffer.
+Correct.
 
-Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-   [original work in the PoC for buffer sharing]
-Signed-off-by: Sumit Semwal <sumit.semwal@ti.com>
-Signed-off-by: Sumit Semwal <sumit.semwal@linaro.org>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- include/linux/videodev2.h |    7 +++++++
- 1 files changed, 7 insertions(+), 0 deletions(-)
+> If you two reach an agreement and he gets to do it I'll surely port
+> over drivers using V4L2_CID_EXPOSURE_AUTO.
+> 
+> > Anyway, are these ioctl's needed?
+> > 
+> 
+> Whether they are really needed or not, that depends on the definition of
+> webcam, the definition of "camera" in V4L2, and the relationship
+> between the two.
+> 
+> If a webcam IS-A v4l2 camera, then I'd expect it to be able to use
+> V4L2_CTRL_CLASS_CAMERA controls, and then EXT controls should be made
+> accessible by gspca somehow.
 
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index c9c9a46..d884d4a 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -185,6 +185,7 @@ enum v4l2_memory {
- 	V4L2_MEMORY_MMAP             = 1,
- 	V4L2_MEMORY_USERPTR          = 2,
- 	V4L2_MEMORY_OVERLAY          = 3,
-+	V4L2_MEMORY_DMABUF           = 4,
- };
- 
- /* see also http://vektor.theorem.ca/graphics/ycbcr/ */
-@@ -588,6 +589,8 @@ struct v4l2_requestbuffers {
-  *			should be passed to mmap() called on the video node)
-  * @userptr:		when memory is V4L2_MEMORY_USERPTR, a userspace pointer
-  *			pointing to this plane
-+ * @fd:			when memory is V4L2_MEMORY_DMABUF, a userspace file
-+ *			descriptor associated with this plane
-  * @data_offset:	offset in the plane to the start of data; usually 0,
-  *			unless there is a header in front of the data
-  *
-@@ -602,6 +605,7 @@ struct v4l2_plane {
- 	union {
- 		__u32		mem_offset;
- 		unsigned long	userptr;
-+		int		fd;
- 	} m;
- 	__u32			data_offset;
- 	__u32			reserved[11];
-@@ -624,6 +628,8 @@ struct v4l2_plane {
-  *		(or a "cookie" that should be passed to mmap() as offset)
-  * @userptr:	for non-multiplanar buffers with memory == V4L2_MEMORY_USERPTR;
-  *		a userspace pointer pointing to this buffer
-+ * @fd:		for non-multiplanar buffers with memory == V4L2_MEMORY_DMABUF;
-+ *		a userspace file descriptor associated with this buffer
-  * @planes:	for multiplanar buffers; userspace pointer to the array of plane
-  *		info structs for this buffer
-  * @length:	size in bytes of the buffer (NOT its payload) for single-plane
-@@ -650,6 +656,7 @@ struct v4l2_buffer {
- 		__u32           offset;
- 		unsigned long   userptr;
- 		struct v4l2_plane *planes;
-+		int		fd;
- 	} m;
- 	__u32			length;
- 	__u32			input;
--- 
-1.7.5.4
+The UVC driver definitely uses the camera class controls. So they are really
+meant for webcam use :-)
 
+Note that for technical reasons the UVC driver is the only driver that will
+not use the control framework (partially due to design of the datastructures
+and partially due to the complex control handling/mapping and the support of
+dynamic controls in UVC).
+
+Perhaps in the future we might try to get it into UVC anyway, but not before
+all other drivers have been converted.
+
+Regards,
+
+	Hans
+
+> 
+> Thanks,
+>    Antonio
+> 
+> 
