@@ -1,68 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:10519 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752637Ab2DTRY0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Apr 2012 13:24:26 -0400
-Message-ID: <4F919BBB.5020407@redhat.com>
-Date: Fri, 20 Apr 2012 14:24:11 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: "nibble.max" <nibble.max@gmail.com>,
-	linux-media <linux-media@vger.kernel.org>,
-	Konstantin Dimitrov <kosio.dimitrov@gmail.com>
-Subject: Re: [PATCH 1/6] m88ds3103, montage dvb-s/s2 demodulator driver
-References: <1327228731.2540.3.camel@tvbox>, <4F2185A1.2000402@redhat.com>, <201204152353103757288@gmail.com> <201204201601166255937@gmail.com> <4F9130BB.8060107@iki.fi>
-In-Reply-To: <4F9130BB.8060107@iki.fi>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:14705 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760015Ab2D0JxW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 27 Apr 2012 05:53:22 -0400
+Received: from euspt1 (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0M34009Q9U4QCI@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 27 Apr 2012 10:53:14 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0M3400JZJU4R62@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 27 Apr 2012 10:53:20 +0100 (BST)
+Date: Fri, 27 Apr 2012 11:53:02 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH 09/13] s5p-fimc: Make sure the interrupt is properly requested
+In-reply-to: <1335520386-20835-1-git-send-email-s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	riverful.kim@samsung.com, sw0312.kim@samsung.com,
+	sungchun.kang@samsung.com, subash.ramaswamy@linaro.org,
+	s.nawrocki@samsung.com
+Message-id: <1335520386-20835-10-git-send-email-s.nawrocki@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1335520386-20835-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 20-04-2012 06:47, Antti Palosaari escreveu:
-> On 20.04.2012 11:01, nibble.max wrote:
->> 2012-04-20 15:56:27 nibble.max@gmail.com
->> At first time, I check it exist so try to patch it.
->> But with new m88ds3103 features to add and ts2022 tuner include, find it is hard to do simply patch.
->> It is better to create a new driver for maintain.
->>> Hi Max,
->>>
->>> Em 15-04-2012 12:53, nibble.max escreveu:
->>>> Montage m88ds3103 demodulator and ts2022 tuner driver.
->>>
->>> It was pointed to me that this device were already discussed on:
->>>
->>>    http://www.mail-archive.com/linux-media@vger.kernel.org/msg43109.html
->>>
->>> If m88ds3103 demod is similar enough to ds3000, it should just add the needed
->>> bits at the existing driver, and not creating a new driver.
->>>
->>> Thanks,
->>> Mauro
-> 
-> The main problem of these all existing and upcoming Montage DVB-S/S2 drivers are those are not split originally correct as a tuner and demod and now it causes problems.
-> 
-> I really suspect it should be:
-> * single demod driver that supports both DS3000 and DS3103
-> * single tuner driver that supports both TS2020 and TS2022
-> 
-> And now what we have is 2 drivers that contains both tuner and demod. And a lot of same code. :-(
-> 
-> But it is almost impossible to split it correctly at that phase if you don't have both hardware combinations, DS3000/TS2020 and DS3103/TS2022. I think it is best to leave old DS3000 as it is and make new driver for DS3103 *and* TS2022. Maybe after that someone could add DS3000 support to new DS3103 driver and TS2020 support to new TS2022 driver. After that it is possible to remove old DS3000 driver.
-> 
-> And we should really consider make simple rule not to accept any driver which is not split as logical parts: USB/PCI-interface + demodulator + tuner.
+Use dev_name() for requesting an interrupt so we don't get an interrupt
+requested with same name for multiple device instances.
 
-Mixing tuner and demod is not good. Yet, dropping the current ds3000 doesn't
-seem to be the best approach.
+While at it, tidy up the driver data handling.
 
-IMO, Konstantin/Montage should split the ds3000 driver on two drivers, putting
-the ts2020 bits on a separate driver.
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/video/s5p-fimc/fimc-core.c |    9 +++------
+ drivers/media/video/s5p-fimc/fimc-core.h |    2 ++
+ 2 files changed, 5 insertions(+), 6 deletions(-)
 
-Then, Max should write a patch for ds3000 in order to add support for ds3103 on
-it, and a patch for ts2020 driver, in order to add support for ts2022 on it.
+diff --git a/drivers/media/video/s5p-fimc/fimc-core.c b/drivers/media/video/s5p-fimc/fimc-core.c
+index 2da6638..f67c3b6 100644
+--- a/drivers/media/video/s5p-fimc/fimc-core.c
++++ b/drivers/media/video/s5p-fimc/fimc-core.c
+@@ -792,15 +792,12 @@ static int fimc_m2m_resume(struct fimc_dev *fimc)
+ 
+ static int fimc_probe(struct platform_device *pdev)
+ {
++	struct fimc_drvdata *drv_data = fimc_get_drvdata(pdev);
++	struct s5p_platform_fimc *pdata;
+ 	struct fimc_dev *fimc;
+ 	struct resource *res;
+-	struct fimc_drvdata *drv_data;
+-	struct s5p_platform_fimc *pdata;
+ 	int ret = 0;
+ 
+-	drv_data = (struct fimc_drvdata *)
+-		platform_get_device_id(pdev)->driver_data;
+-
+ 	if (pdev->id >= ARRAY_SIZE(drv_data->variant)) {
+ 		dev_err(&pdev->dev, "Invalid platform device id: %d\n",
+ 			pdev->id);
+@@ -844,7 +841,7 @@ static int fimc_probe(struct platform_device *pdev)
+ 	platform_set_drvdata(pdev, fimc);
+ 
+ 	ret = devm_request_irq(&pdev->dev, res->start, fimc_irq_handler,
+-			       0, pdev->name, fimc);
++			       0, dev_name(&pdev->dev), fimc);
+ 	if (ret) {
+ 		dev_err(&pdev->dev, "failed to install irq (%d)\n", ret);
+ 		goto err_clk;
+diff --git a/drivers/media/video/s5p-fimc/fimc-core.h b/drivers/media/video/s5p-fimc/fimc-core.h
+index e3078d3..cbd1137 100644
+--- a/drivers/media/video/s5p-fimc/fimc-core.h
++++ b/drivers/media/video/s5p-fimc/fimc-core.h
+@@ -401,6 +401,8 @@ struct fimc_drvdata {
+ 	unsigned long lclk_frequency;
+ };
+ 
++#define fimc_get_drvdata(_pdev) \
++	((struct fimc_drvdata *) platform_get_device_id(_pdev)->driver_data)
+ 
+ struct fimc_ctx;
+ 
+-- 
+1.7.10
 
-Of course, Konstantin should check if Max changes don't break support for the
-DS3000/TS2020 configuration.
-
-Regards,
-Mauro
