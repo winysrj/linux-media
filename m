@@ -1,100 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from imr-ma04.mx.aol.com ([64.12.206.42]:61841 "EHLO
-	imr-ma04.mx.aol.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753695Ab2DKSbg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Apr 2012 14:31:36 -0400
-Message-ID: <4F85CDE2.3050209@netscape.net>
-Date: Wed, 11 Apr 2012 15:30:58 -0300
-From: =?ISO-8859-1?Q?Alfredo_Jes=FAs_Delaiti?=
-	<alfredodelaiti@netscape.net>
+Received: from mail.kapsi.fi ([217.30.184.167]:60423 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751898Ab2D0UyK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 27 Apr 2012 16:54:10 -0400
+Message-ID: <4F9B076E.3040800@iki.fi>
+Date: Fri, 27 Apr 2012 23:54:06 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Steven Toth <stoth@kernellabs.com>
-Subject: Patch Broken driver cx23885 mygica x8507
+To: Konstantin Dimitrov <kosio.dimitrov@gmail.com>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	"nibble.max" <nibble.max@gmail.com>,
+	linux-media <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 1/6] m88ds3103, montage dvb-s/s2 demodulator driver
+References: <1327228731.2540.3.camel@tvbox> <4F2185A1.2000402@redhat.com> <201204152353103757288@gmail.com> <201204201601166255937@gmail.com> <4F9130BB.8060107@iki.fi> <201204211045557968605@gmail.com> <4F958640.9010404@iki.fi> <CAF0Ff2nNP6WRUWcs7PqVRxhXHCmUFqqswL4757WijFaKT5P5-w@mail.gmail.com> <4F95CE59.1020005@redhat.com> <CAF0Ff2m_6fM1QV+Jic7viHXQ7edTe8ZwigjjhdtFwMfhCszuKQ@mail.gmail.com> <4F9AF53C.6030105@redhat.com> <CAF0Ff2k93ud=kOQujbwU8U9+rpJWbTW+euj6KYWzWjCCO0bxzA@mail.gmail.com> <CAF0Ff2k9_kbcrVxretfC_sFqnE+b0EbGzTrX4yBHj4LFXuug2g@mail.gmail.com>
+In-Reply-To: <CAF0Ff2k9_kbcrVxretfC_sFqnE+b0EbGzTrX4yBHj4LFXuug2g@mail.gmail.com>
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all
+On 27.04.2012 23:40, Konstantin Dimitrov wrote:
+> On Fri, Apr 27, 2012 at 11:37 PM, Konstantin Dimitrov
+>> however, i want to pointed out few other problems - they are off-topic
+>> as not related to drivers for Montage chips, but related as far as
+>> we're putting some order and making things in a proper way and those
+>> those things are out of that order:
+>>
+>> - there are 2 drivers for the same DVB-S2 tuner: ST 6110, respectively
+>> "stv6110.c" and "stv6110x.c"
+>>
+>> - there are 2 drivers for the same DVB-S2 demodulator family:
+>> respectively stv090x* and stv0900*
+>>
+>> the above couldn't be more wrong - in fact i can submit patches to
+>> make all drivers that relies on stv090x* and "stv6110.c" to use
+>> stv090x* and "stv6110x.c" instead except the NetUP board, for which in
+>
+>> my opinion someone should submit patches using stv090x* and
+>> "stv6110x.c" and subsequently stv090x* and "stv6110.c" be removed -
+>
+> to correct a typo: and subsequently stv0900* and "stv6110.c" be removed
+>
+>> unless someone have some real argument why stv090x* and "stv6110.c"
+>
+> the same: unless someone have some real argument why stv0900* and "stv6110.c"
+>
+>> should stay or even if for why they should replace stv090x* and
+>> "stv6110x.c" and subsequently  stv090x* and "stv6110x.c" be removed
+>> instead. so, the case with ST 6110 and STV090x support is the most
+>> frustrating and out of order thing that i can indicate regarding the
+>> support of DVB-S2 chips in the kernel and i hope you will take care as
+>> maintainer to be resolved or at least someone to explain why the
+>> current state is like that - or point me out to explanation if such
+>> was already made to the mailing list. so, what i'm suggesting is
+>> "spring cleaning" of all DVB-S2 tuner/demodulator drivers in the
+>> kernel - if it's not done now in the future the mess will only
+>> increase.
 
-I found that this is the patch that makes no sound and deformation image on mygica x8507:
+That stv090x stuff is discussed many times earlier too. It is mistake 
+done for the some reasons. In theory there should be only one driver per 
+chip/logical entity but for the non-technical reason it was failed. And 
+as it is failed at the very first try it is hard to correct later.
 
-http://git.kernellabs.com/?p=stoth/cx23885-hvr1850-fixups.git;a=commit;h=e187d0d51bcd0659eeac1d608284644ec8404239
-
-I will try to find that lines are responsible.
-
-
-Please refer to the patch mentioned above.
-
-lines that leave without sound to the card are these:
-
-@@ -1086,6 +1232,23 @@ static int set_input(struct i2c_client *client,
-enum cx25840_video_input vid_inp
-                 cx25840_write4(client, 0x8d0, 0x1f063870);
-         }
-
-+       if (is_cx2388x(state)) {
-+               /* HVR1850 */
-+               /* AUD_IO_CTRL - I2S Input, Parallel1*/
-+               /*  - Channel 1 src - Parallel1 (Merlin out) */
-+               /*  - Channel 2 src - Parallel2 (Merlin out) */
-+               /*  - Channel 3 src - Parallel3 (Merlin AC97 out) */
-+               /*  - I2S source and dir - Merlin, output */
-+               cx25840_write4(client, 0x124, 0x100);
-+
-->+               if (!is_dif) {
-->+                       /* Stop microcontroller if we don't need it
-->+                        * to avoid audio popping on svideo/compositeuse.
-->+                        */
-->+                       cx25840_and_or(client, 0x803, ~0x10, 0x00);
-->+               }
-+       }
-+
-         return 0;
-  }
-
-Without these lines, have sound.
-
-
-
-And the following line produces a vertical green bar on the right and
-the image is a bit narrow (maybe  taken as  an  image  of 702  pixel).
-If I cancel that line, the image is colored with alternating bars and
-color distorted.
-
-@@ -631,6 +654,37 @@ static void cx23885_initialize(struct i2c_client
-*client)
-         /* Disable and clear audio interrupts - we don't use them */
-         cx25840_write(client, CX25840_AUD_INT_CTRL_REG, 0xff);
-         cx25840_write(client, CX25840_AUD_INT_STAT_REG, 0xff);
-+
-+       /* CC raw enable */
-+       /*  - VIP 1.1 control codes - 10bit, blue field enable.
-+        *  - enable raw data during vertical blanking.
-+        *  - enable ancillary Data insertion for 656 or VIP.
-+        */
-->+       cx25840_write4(client, 0x404, 0x0010253e);
-
-
-
-With kernel 3.0, 3.1 and 3.2 the card worked fine.
-
-
-Thanks,
-
-Alfredo
-
-
-
+regards
+Antti
 -- 
-Dona tu voz
-http://www.voxforge.org/es
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-media" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+http://palosaari.fi/
