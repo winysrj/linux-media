@@ -1,58 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:35309 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756010Ab2DIJvD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Apr 2012 05:51:03 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] V4L: mt9m032: fix two dead-locks
-Date: Mon, 09 Apr 2012 11:51:04 +0200
-Message-ID: <3076345.89Inf54hBS@avalon>
-In-Reply-To: <Pine.LNX.4.64.1204082230360.808@axis700.grange>
-References: <Pine.LNX.4.64.1204082230360.808@axis700.grange>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:56200 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756557Ab2D0H7V (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 27 Apr 2012 03:59:21 -0400
+Received: from euspt2 (mailout1.w1.samsung.com [210.118.77.11])
+ by mailout1.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0M34006Q9OSCV0@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 27 Apr 2012 08:57:48 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0M34005OOOUS42@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 27 Apr 2012 08:59:16 +0100 (BST)
+Date: Fri, 27 Apr 2012 09:59:18 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: [GIT PULL FOR v3.5] Fix for a DocBook typo
+In-reply-to: <201204261303.33224.hverkuil@xs4all.nl>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Message-id: <4F9A51D6.9080601@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7BIT
+References: <201204261303.33224.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
-
-Thanks for the patch.
-
-On Sunday 08 April 2012 22:31:24 Guennadi Liakhovetski wrote:
-> Fix a copy-paste typo and a nested locking function call in mt9m032.
+On 04/26/2012 01:03 PM, Hans Verkuil wrote:
+> The following changes since commit aa6d5f29534a6d1459f9768c591a7a72aadc5941:
 > 
-> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-and applied to my tree.
-
-> ---
->  drivers/media/video/mt9m032.c |    5 +++--
->  1 files changed, 3 insertions(+), 2 deletions(-)
+>   [media] pluto2: remove some dead code (2012-04-19 17:15:32 -0300)
 > 
-> diff --git a/drivers/media/video/mt9m032.c b/drivers/media/video/mt9m032.c
-> index 7636672..645973c 100644
-> --- a/drivers/media/video/mt9m032.c
-> +++ b/drivers/media/video/mt9m032.c
-> @@ -392,10 +392,11 @@ static int mt9m032_set_pad_format(struct v4l2_subdev
-> *subdev, }
+> are available in the git repository at:
 > 
->  	/* Scaling is not supported, the format is thus fixed. */
-> -	ret = mt9m032_get_pad_format(subdev, fh, fmt);
-> +	fmt->format = *__mt9m032_get_pad_format(sensor, fh, fmt->which);
-> +	ret = 0;
+>   git://linuxtv.org/hverkuil/media_tree.git docfix
 > 
->  done:
-> -	mutex_lock(&sensor->lock);
-> +	mutex_unlock(&sensor->lock);
->  	return ret;
->  }
--- 
+> for you to fetch changes up to fada845c248be56ddba1f58a0ca69d335a22712e:
+> 
+>   V4L2 Spec: fix typo. (2012-04-26 12:39:14 +0200)
+> 
+> ----------------------------------------------------------------
+> Hans Verkuil (1):
+>       V4L2 Spec: fix typo.
+> 
+>  Documentation/DocBook/media/v4l/controls.xml |    6 +++---
+>  1 file changed, 3 insertions(+), 3 deletions(-)
+
+Oops, mu fault. Thanks for spotting this. Would be nice to have it in 3.4-rc,
+this way there wouldn't be those typos in any final kernel release.
+
+
 Regards,
-
-Laurent Pinchart
+Sylwester
 
