@@ -1,54 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:53727 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751082Ab2DBIAM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Apr 2012 04:00:12 -0400
-Received: by pbcun15 with SMTP id un15so4235724pbc.19
-        for <linux-media@vger.kernel.org>; Mon, 02 Apr 2012 01:00:12 -0700 (PDT)
-Message-ID: <4F795C8B.4090801@googlemail.com>
-Date: Mon, 02 Apr 2012 10:00:11 +0200
-From: Thomas Steinborn <thestonewell@googlemail.com>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: Hauppauge WinTV-HVR4000 DVB-S/S2/T/Hybrid no longer works properly
- with kernel 3.3
-References: <CACHinyEr=cGYs29YOj1B38GCLtA_9DddUW7GQMCAj5GUg5C0yA@mail.gmail.com>
-In-Reply-To: <CACHinyEr=cGYs29YOj1B38GCLtA_9DddUW7GQMCAj5GUg5C0yA@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from smtp1-g21.free.fr ([212.27.42.1]:35782 "EHLO smtp1-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753188Ab2D0JXu convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 27 Apr 2012 05:23:50 -0400
+Date: Fri, 27 Apr 2012 11:24:43 +0200
+From: Jean-Francois Moine <moinejf@free.fr>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Antonio Ospite <ospite@studenti.unina.it>,
+	linux-media@vger.kernel.org,
+	Erik =?UTF-8?B?QW5kcsOpbg==?= <erik.andren@gmail.com>
+Subject: Re: [RFC PATCH 3/3] [media] gspca - main: implement
+ vidioc_g_ext_ctrls and vidioc_s_ext_ctrls
+Message-ID: <20120427112443.7edd32f3@tele>
+In-Reply-To: <201204271020.23880.hverkuil@xs4all.nl>
+References: <20120418153720.1359c7d2f2a3efc2c7c17b88@studenti.unina.it>
+	<1334935152-16165-1-git-send-email-ospite@studenti.unina.it>
+	<1334935152-16165-4-git-send-email-ospite@studenti.unina.it>
+	<201204271020.23880.hverkuil@xs4all.nl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I got pointed to:
+On Fri, 27 Apr 2012 10:20:23 +0200
+Hans Verkuil <hverkuil@xs4all.nl> wrote:
 
-http://www.spinics.net/lists/linux-media/msg45592.html
+> I might have some time (no guarantees yet) to help with this. It would
+> certainly be interesting to add support for the control framework in the
+> gspca core. Hmm, perhaps that's a job for the weekend...
 
-Has this been applied to the kernel since?
+Hi Hans,
 
-Thomas
+I hope you will not do it! The way gspca treats the controls is static,
+quick and very small. The controls in the subdrivers ask only for the
+declaration of the controls and functions to send the values to the
+webcams. Actually, not all subdrivers have been converted to the new
+gspca control handling, but, when done, it will save more memory.
 
-On 30.03.2012 21:59, Thomas Steinborn wrote:
-> Hi,
->
-> hope you can point me into the right direction.
->
-> I have got 2 Hauppauge WinTV-HVR4000 DVB-S/S2/T/Hybrid cards in my
-> system. They worked perfectly fine with kernel 3.2 (e.g. the last
-> Fedora 16 kernel that worked is 3.2.10-3.fc16.x86_64).
->
-> As soon as Fedora went kernel 3.3 (kernel 3.3.0-4.fc16.x86_64) the
-> problems started. The cards are still recognized and you can tune
-> them. But trying to watch any DVB-S (or DVB-S2) channel just results
-> in block artefacts, loss of audio-video sychronization etc. The only
-> thing /var/log/messages or dmesg tells me is:
->
->
-> cx8802_start_dma() Failed. Unsupported value in .mpeg (0x00000001)
->
-> Same machine, same everything, just rebooting back into the 3.2 kernel
-> the problem is gone.
->
-> Any idea where I could start my investigation, please?
->
-> Thanks
-> Thomas
+Best regards.
+
+-- 
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
