@@ -1,175 +1,145 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vx0-f174.google.com ([209.85.220.174]:54546 "EHLO
-	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756418Ab2D3WEX (ORCPT
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:63374 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759691Ab2D0OXi (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Apr 2012 18:04:23 -0400
-Received: by vcqp1 with SMTP id p1so2391047vcq.19
-        for <linux-media@vger.kernel.org>; Mon, 30 Apr 2012 15:04:23 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <CAHAyoxx+Thhj+EwFbtJcXbkzks=0x+RfdudKOgQT=pqJzePcLw@mail.gmail.com>
-References: <CAOcJUbxHCo7xfGHJZdeEgReJrpCriweSb9s9+-_NfSODLz_NPQ@mail.gmail.com>
-	<4F9014CD.1040005@redhat.com>
-	<CAHAyoxx+Thhj+EwFbtJcXbkzks=0x+RfdudKOgQT=pqJzePcLw@mail.gmail.com>
-Date: Mon, 30 Apr 2012 18:04:22 -0400
-Message-ID: <CAOcJUbyDNGoSdVV0WMVKavJm=RK6tanQTXS8AFzsHmHkGHOGUw@mail.gmail.com>
-Subject: Re: ATSC-MH driver support for the Hauppauge WinTV Aero-m
-From: Michael Krufky <mkrufky@kernellabs.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media <linux-media@vger.kernel.org>
-Content-Type: multipart/mixed; boundary=f46d04389129fd44ac04beeca288
+	Fri, 27 Apr 2012 10:23:38 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Received: from euspt2 ([210.118.77.14]) by mailout4.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0M3500AQJ6NK4Q30@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 27 Apr 2012 15:23:44 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0M3500LMC6N8JR@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 27 Apr 2012 15:23:32 +0100 (BST)
+Date: Fri, 27 Apr 2012 16:23:27 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH/RFC v3 10/14] V4L: Add auto focus targets to the selections API
+In-reply-to: <1335536611-4298-1-git-send-email-s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
+	g.liakhovetski@gmx.de, hdegoede@redhat.com, moinejf@free.fr,
+	hverkuil@xs4all.nl, m.szyprowski@samsung.com,
+	riverful.kim@samsung.com, sw0312.kim@samsung.com,
+	s.nawrocki@samsung.com, Kyungmin Park <kyungmin.park@samsung.com>
+Message-id: <1335536611-4298-11-git-send-email-s.nawrocki@samsung.com>
+References: <1335536611-4298-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---f46d04389129fd44ac04beeca288
-Content-Type: text/plain; charset=ISO-8859-1
+The camera automatic focus algorithms may require setting up
+a spot or rectangle coordinates or multiple such parameters.
 
+The automatic focus selection targets are introduced in order
+to allow applications to query and set such coordinates. Those
+selections are intended to be used together with the automatic
+focus controls available in the camera control class.
 
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ Documentation/DocBook/media/v4l/selection-api.xml  |   33 +++++++++++++++++++-
+ .../DocBook/media/v4l/vidioc-g-selection.xml       |   11 +++++++
+ include/linux/videodev2.h                          |    5 +++
+ 3 files changed, 48 insertions(+), 1 deletion(-)
 
---f46d04389129fd44ac04beeca288
-Content-Type: application/octet-stream;
-	name="0001-linux-dvb-v5-API-support-for-ATSC-MH.patch"
-Content-Disposition: attachment;
-	filename="0001-linux-dvb-v5-API-support-for-ATSC-MH.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_h1o2s5b20
+diff --git a/Documentation/DocBook/media/v4l/selection-api.xml b/Documentation/DocBook/media/v4l/selection-api.xml
+index b299e47..490d29a 100644
+--- a/Documentation/DocBook/media/v4l/selection-api.xml
++++ b/Documentation/DocBook/media/v4l/selection-api.xml
+@@ -1,6 +1,6 @@
+ <section id="selection-api">
+ 
+-  <title>Experimental API for cropping, composing and scaling</title>
++  <title>Experimental selections API</title>
+ 
+       <note>
+ 	<title>Experimental</title>
+@@ -9,6 +9,10 @@
+ interface and may change in the future.</para>
+       </note>
+ 
++ <section>
++
++ <title>Image cropping, composing and scaling</title>
++
+   <section>
+     <title>Introduction</title>
+ 
+@@ -321,5 +325,32 @@ V4L2_BUF_TYPE_VIDEO_OUTPUT </constant> for other devices</para>
+       </example>
+ 
+    </section>
++ </section>
++
++   <section>
++     <title>Automatic focus regions of interest</title>
++
++<para> The camera automatic focus algorithms may require configuration of
++regions of interest in form of rectangle or spot coordinates. The automatic
++focus selection targets allow applications to query and set such coordinates.
++Those selections are intended to be used together with the
++<constant>V4L2_CID_AUTO_FOCUS_AREA</constant> <link linkend="camera-controls">
++camera class</link> control. The <constant>V4L2_SEL_TGT_AUTO_FOCUS_ACTUAL
++</constant> target is used for querying or setting actual spot or rectangle
++coordinates, while <constant>V4L2_SEL_TGT_AUTO_FOCUS_BOUNDS</constant> target
++determines bounds for a single spot or rectangle.
++These selections are only effective when the <constant>V4L2_CID_AUTO_FOCUS_AREA
++</constant>control is set to <constant>V4L2_AUTO_FOCUS_AREA_SPOT</constant> or
++<constant>V4L2_AUTO_FOCUS_AREA_RECTANGLE</constant>. The new coordinates shall
++be accepted and applied to hardware when the focus area control value is
++changed and also during a &VIDIOC-S-SELECTION; ioctl call, only when the focus
++area control is already set to required value.</para>
++
++<para> For the <constant>V4L2_AUTO_FOCUS_AREA_SPOT</constant> case, the selection
++rectangle <structfield> width</structfield> and <structfield>height</structfield>
++are not used, i.e. shall be set to 0 by applications and ignored by drivers for
++the &VIDIOC-S-SELECTION; ioctl and shall be ignored by applications for the
++&VIDIOC-G-SELECTION; ioctl.</para>
++   </section>
+ 
+ </section>
+diff --git a/Documentation/DocBook/media/v4l/vidioc-g-selection.xml b/Documentation/DocBook/media/v4l/vidioc-g-selection.xml
+index bb04eff..87df4da 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-g-selection.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-g-selection.xml
+@@ -195,6 +195,17 @@ exist no rectangle </emphasis> that satisfies the constraints.</para>
+             <entry>0x0103</entry>
+             <entry>The active area and all padding pixels that are inserted or modified by hardware.</entry>
+ 	  </row>
++	  <row>
++            <entry><constant>V4L2_SEL_TGT_AUTO_FOCUS_ACTUAL</constant></entry>
++            <entry>0x1000</entry>
++	    <entry>Actual automatic focus rectangle or spot coordinates.</entry>
++	  </row>
++	  <row>
++            <entry><constant>V4L2_SEL_TGT_AUTO_FOCUS_BOUNDS</constant></entry>
++            <entry>0x1002</entry>
++            <entry>Bounds of the automatic focus region of interest.
++	    </entry>
++	  </row>
+ 	</tbody>
+       </tgroup>
+     </table>
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index 7c30d54..29b84ae 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -777,6 +777,11 @@ struct v4l2_crop {
+ /* Current composing area plus all padding pixels */
+ #define V4L2_SEL_TGT_COMPOSE_PADDED	0x0103
+ 
++/* Auto focus region of interest */
++#define V4L2_SEL_TGT_AUTO_FOCUS_ACTUAL	0x1000
++/* Auto focus region (spot coordinates) bounds */
++#define V4L2_SEL_TGT_AUTO_FOCUS_BOUNDS	0x1001
++
+ /**
+  * struct v4l2_selection - selection info
+  * @type:	buffer type (do not use *_MPLANE types)
+-- 
+1.7.10
 
-RnJvbSA3OGQ1NmY5ODg4YzFjNzY4YjQzY2M3NWUwZTAyZDBlNjA4NDhiY2M0IE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBNaWNoYWVsIEtydWZreSA8bWtydWZreUBsaW51eHR2Lm9yZz4K
-RGF0ZTogU3VuLCAyOSBKYW4gMjAxMiAxMzo0NDo1OCAtMDUwMApTdWJqZWN0OiBbUEFUQ0ggMDEv
-MTBdIGxpbnV4LWR2YiB2NSBBUEkgc3VwcG9ydCBmb3IgQVRTQy1NSAoKU2lnbmVkLW9mZi1ieTog
-TWljaGFlbCBLcnVma3kgPG1rcnVma3lAbGludXh0di5vcmc+Ci0tLQogZHJpdmVycy9tZWRpYS9k
-dmIvZHZiLWNvcmUvZHZiX2Zyb250ZW5kLmMgfCAgIDkyICsrKysrKysrKysrKysrKysrKysrKysr
-KysrKystCiBkcml2ZXJzL21lZGlhL2R2Yi9kdmItY29yZS9kdmJfZnJvbnRlbmQuaCB8ICAgMjIg
-KysrKysrKwogaW5jbHVkZS9saW51eC9kdmIvZnJvbnRlbmQuaCAgICAgICAgICAgICAgfCAgIDU0
-ICsrKysrKysrKysrKysrKysrLQogMyBmaWxlcyBjaGFuZ2VkLCAxNjYgaW5zZXJ0aW9ucygrKSwg
-MiBkZWxldGlvbnMoLSkKCmRpZmYgLS1naXQgYS9kcml2ZXJzL21lZGlhL2R2Yi9kdmItY29yZS9k
-dmJfZnJvbnRlbmQuYyBiL2RyaXZlcnMvbWVkaWEvZHZiL2R2Yi1jb3JlL2R2Yl9mcm9udGVuZC5j
-CmluZGV4IDQ1NTViYWEuLjA2N2YxMGEgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvbWVkaWEvZHZiL2R2
-Yi1jb3JlL2R2Yl9mcm9udGVuZC5jCisrKyBiL2RyaXZlcnMvbWVkaWEvZHZiL2R2Yi1jb3JlL2R2
-Yl9mcm9udGVuZC5jCkBAIC0xODAsMTMgKzE4MCwxMyBAQCBzdGF0aWMgZW51bSBkdmJ2M19lbXVs
-YXRpb25fdHlwZSBkdmJ2M190eXBlKHUzMiBkZWxpdmVyeV9zeXN0ZW0pCiAJY2FzZSBTWVNfRE1C
-VEg6CiAJCXJldHVybiBEVkJWM19PRkRNOwogCWNhc2UgU1lTX0FUU0M6CisJY2FzZSBTWVNfQVRT
-Q01IOgogCWNhc2UgU1lTX0RWQkNfQU5ORVhfQjoKIAkJcmV0dXJuIERWQlYzX0FUU0M7CiAJY2Fz
-ZSBTWVNfVU5ERUZJTkVEOgogCWNhc2UgU1lTX0lTREJDOgogCWNhc2UgU1lTX0RWQkg6CiAJY2Fz
-ZSBTWVNfREFCOgotCWNhc2UgU1lTX0FUU0NNSDoKIAlkZWZhdWx0OgogCQkvKgogCQkgKiBEb2Vz
-bid0IGtub3cgaG93IHRvIGVtdWxhdGUgdGhvc2UgdHlwZXMgYW5kL29yCkBAIC0xMDI3LDYgKzEw
-MjcsMjggQEAgc3RhdGljIHN0cnVjdCBkdHZfY21kc19oIGR0dl9jbWRzW0RUVl9NQVhfQ09NTUFO
-RCArIDFdID0gewogCV9EVFZfQ01EKERUVl9ISUVSQVJDSFksIDAsIDApLAogCiAJX0RUVl9DTUQo
-RFRWX0VOVU1fREVMU1lTLCAwLCAwKSwKKworCV9EVFZfQ01EKERUVl9BVFNDTUhfUEFSQURFX0lE
-LCAxLCAwKSwKKwlfRFRWX0NNRChEVFZfQVRTQ01IX1JTX0ZSQU1FX0VOU0VNQkxFLCAxLCAwKSwK
-KworCV9EVFZfQ01EKERUVl9BVFNDTUhfRklDX1ZFUiwgMCwgMCksCisJX0RUVl9DTUQoRFRWX0FU
-U0NNSF9QQVJBREVfSUQsIDAsIDApLAorCV9EVFZfQ01EKERUVl9BVFNDTUhfTk9HLCAwLCAwKSwK
-KwlfRFRWX0NNRChEVFZfQVRTQ01IX1ROT0csIDAsIDApLAorCV9EVFZfQ01EKERUVl9BVFNDTUhf
-U0dOLCAwLCAwKSwKKwlfRFRWX0NNRChEVFZfQVRTQ01IX1BSQywgMCwgMCksCisJX0RUVl9DTUQo
-RFRWX0FUU0NNSF9SU19GUkFNRV9NT0RFLCAwLCAwKSwKKwlfRFRWX0NNRChEVFZfQVRTQ01IX1JT
-X0ZSQU1FX0VOU0VNQkxFLCAwLCAwKSwKKwlfRFRWX0NNRChEVFZfQVRTQ01IX1JTX0NPREVfTU9E
-RV9QUkksIDAsIDApLAorCV9EVFZfQ01EKERUVl9BVFNDTUhfUlNfQ09ERV9NT0RFX1NFQywgMCwg
-MCksCisJX0RUVl9DTUQoRFRWX0FUU0NNSF9TQ0NDX0JMT0NLX01PREUsIDAsIDApLAorCV9EVFZf
-Q01EKERUVl9BVFNDTUhfU0NDQ19DT0RFX01PREVfQSwgMCwgMCksCisJX0RUVl9DTUQoRFRWX0FU
-U0NNSF9TQ0NDX0NPREVfTU9ERV9CLCAwLCAwKSwKKwlfRFRWX0NNRChEVFZfQVRTQ01IX1NDQ0Nf
-Q09ERV9NT0RFX0MsIDAsIDApLAorCV9EVFZfQ01EKERUVl9BVFNDTUhfU0NDQ19DT0RFX01PREVf
-RCwgMCwgMCksCisJX0RUVl9DTUQoRFRWX0FUU0NNSF9GSUNfRVJSLCAwLCAwKSwKKwlfRFRWX0NN
-RChEVFZfQVRTQ01IX0NSQ19FUlIsIDAsIDApLAorCV9EVFZfQ01EKERUVl9BVFNDTUhfUlNfRVJS
-LCAwLCAwKSwKIH07CiAKIHN0YXRpYyB2b2lkIGR0dl9wcm9wZXJ0eV9kdW1wKHN0cnVjdCBkdHZf
-cHJvcGVydHkgKnR2cCkKQEAgLTExMTgsNiArMTE0MCw4IEBAIHN0YXRpYyBpbnQgZHR2X3Byb3Bl
-cnR5X2NhY2hlX3N5bmMoc3RydWN0IGR2Yl9mcm9udGVuZCAqZmUsCiAJY2FzZSBEVkJWM19BVFND
-OgogCQlkcHJpbnRrKCIlcygpIFByZXBhcmluZyBBVFNDIHJlcVxuIiwgX19mdW5jX18pOwogCQlj
-LT5tb2R1bGF0aW9uID0gcC0+dS52c2IubW9kdWxhdGlvbjsKKwkJaWYgKGMtPmRlbGl2ZXJ5X3N5
-c3RlbSA9PSBTWVNfQVRTQ01IKQorCQkJYnJlYWs7CiAJCWlmICgoYy0+bW9kdWxhdGlvbiA9PSBW
-U0JfOCkgfHwgKGMtPm1vZHVsYXRpb24gPT0gVlNCXzE2KSkKIAkJCWMtPmRlbGl2ZXJ5X3N5c3Rl
-bSA9IFNZU19BVFNDOwogCQllbHNlCkBAIC0xMzY0LDYgKzEzODgsNjMgQEAgc3RhdGljIGludCBk
-dHZfcHJvcGVydHlfcHJvY2Vzc19nZXQoc3RydWN0IGR2Yl9mcm9udGVuZCAqZmUsCiAJY2FzZSBE
-VFZfRFZCVDJfUExQX0lEOgogCQl0dnAtPnUuZGF0YSA9IGMtPmR2YnQyX3BscF9pZDsKIAkJYnJl
-YWs7CisKKwkvKiBBVFNDLU1IICovCisJY2FzZSBEVFZfQVRTQ01IX0ZJQ19WRVI6CisJCXR2cC0+
-dS5kYXRhID0gZmUtPmR0dl9wcm9wZXJ0eV9jYWNoZS5hdHNjbWhfZmljX3ZlcjsKKwkJYnJlYWs7
-CisJY2FzZSBEVFZfQVRTQ01IX1BBUkFERV9JRDoKKwkJdHZwLT51LmRhdGEgPSBmZS0+ZHR2X3By
-b3BlcnR5X2NhY2hlLmF0c2NtaF9wYXJhZGVfaWQ7CisJCWJyZWFrOworCWNhc2UgRFRWX0FUU0NN
-SF9OT0c6CisJCXR2cC0+dS5kYXRhID0gZmUtPmR0dl9wcm9wZXJ0eV9jYWNoZS5hdHNjbWhfbm9n
-OworCQlicmVhazsKKwljYXNlIERUVl9BVFNDTUhfVE5PRzoKKwkJdHZwLT51LmRhdGEgPSBmZS0+
-ZHR2X3Byb3BlcnR5X2NhY2hlLmF0c2NtaF90bm9nOworCQlicmVhazsKKwljYXNlIERUVl9BVFND
-TUhfU0dOOgorCQl0dnAtPnUuZGF0YSA9IGZlLT5kdHZfcHJvcGVydHlfY2FjaGUuYXRzY21oX3Nn
-bjsKKwkJYnJlYWs7CisJY2FzZSBEVFZfQVRTQ01IX1BSQzoKKwkJdHZwLT51LmRhdGEgPSBmZS0+
-ZHR2X3Byb3BlcnR5X2NhY2hlLmF0c2NtaF9wcmM7CisJCWJyZWFrOworCWNhc2UgRFRWX0FUU0NN
-SF9SU19GUkFNRV9NT0RFOgorCQl0dnAtPnUuZGF0YSA9IGZlLT5kdHZfcHJvcGVydHlfY2FjaGUu
-YXRzY21oX3JzX2ZyYW1lX21vZGU7CisJCWJyZWFrOworCWNhc2UgRFRWX0FUU0NNSF9SU19GUkFN
-RV9FTlNFTUJMRToKKwkJdHZwLT51LmRhdGEgPSBmZS0+ZHR2X3Byb3BlcnR5X2NhY2hlLmF0c2Nt
-aF9yc19mcmFtZV9lbnNlbWJsZTsKKwkJYnJlYWs7CisJY2FzZSBEVFZfQVRTQ01IX1JTX0NPREVf
-TU9ERV9QUkk6CisJCXR2cC0+dS5kYXRhID0gZmUtPmR0dl9wcm9wZXJ0eV9jYWNoZS5hdHNjbWhf
-cnNfY29kZV9tb2RlX3ByaTsKKwkJYnJlYWs7CisJY2FzZSBEVFZfQVRTQ01IX1JTX0NPREVfTU9E
-RV9TRUM6CisJCXR2cC0+dS5kYXRhID0gZmUtPmR0dl9wcm9wZXJ0eV9jYWNoZS5hdHNjbWhfcnNf
-Y29kZV9tb2RlX3NlYzsKKwkJYnJlYWs7CisJY2FzZSBEVFZfQVRTQ01IX1NDQ0NfQkxPQ0tfTU9E
-RToKKwkJdHZwLT51LmRhdGEgPSBmZS0+ZHR2X3Byb3BlcnR5X2NhY2hlLmF0c2NtaF9zY2NjX2Js
-b2NrX21vZGU7CisJCWJyZWFrOworCWNhc2UgRFRWX0FUU0NNSF9TQ0NDX0NPREVfTU9ERV9BOgor
-CQl0dnAtPnUuZGF0YSA9IGZlLT5kdHZfcHJvcGVydHlfY2FjaGUuYXRzY21oX3NjY2NfY29kZV9t
-b2RlX2E7CisJCWJyZWFrOworCWNhc2UgRFRWX0FUU0NNSF9TQ0NDX0NPREVfTU9ERV9COgorCQl0
-dnAtPnUuZGF0YSA9IGZlLT5kdHZfcHJvcGVydHlfY2FjaGUuYXRzY21oX3NjY2NfY29kZV9tb2Rl
-X2I7CisJCWJyZWFrOworCWNhc2UgRFRWX0FUU0NNSF9TQ0NDX0NPREVfTU9ERV9DOgorCQl0dnAt
-PnUuZGF0YSA9IGZlLT5kdHZfcHJvcGVydHlfY2FjaGUuYXRzY21oX3NjY2NfY29kZV9tb2RlX2M7
-CisJCWJyZWFrOworCWNhc2UgRFRWX0FUU0NNSF9TQ0NDX0NPREVfTU9ERV9EOgorCQl0dnAtPnUu
-ZGF0YSA9IGZlLT5kdHZfcHJvcGVydHlfY2FjaGUuYXRzY21oX3NjY2NfY29kZV9tb2RlX2Q7CisJ
-CWJyZWFrOworCWNhc2UgRFRWX0FUU0NNSF9GSUNfRVJSOgorCQl0dnAtPnUuZGF0YSA9IGZlLT5k
-dHZfcHJvcGVydHlfY2FjaGUuYXRzY21oX2ZpY19lcnI7CisJCWJyZWFrOworCWNhc2UgRFRWX0FU
-U0NNSF9DUkNfRVJSOgorCQl0dnAtPnUuZGF0YSA9IGZlLT5kdHZfcHJvcGVydHlfY2FjaGUuYXRz
-Y21oX2NyY19lcnI7CisJCWJyZWFrOworCWNhc2UgRFRWX0FUU0NNSF9SU19FUlI6CisJCXR2cC0+
-dS5kYXRhID0gZmUtPmR0dl9wcm9wZXJ0eV9jYWNoZS5hdHNjbWhfcnNfZXJyOworCQlicmVhazsK
-KwogCWRlZmF1bHQ6CiAJCXJldHVybiAtRUlOVkFMOwogCX0KQEAgLTE2ODIsNiArMTc2MywxNSBA
-QCBzdGF0aWMgaW50IGR0dl9wcm9wZXJ0eV9wcm9jZXNzX3NldChzdHJ1Y3QgZHZiX2Zyb250ZW5k
-ICpmZSwKIAljYXNlIERUVl9EVkJUMl9QTFBfSUQ6CiAJCWMtPmR2YnQyX3BscF9pZCA9IHR2cC0+
-dS5kYXRhOwogCQlicmVhazsKKworCS8qIEFUU0MtTUggKi8KKwljYXNlIERUVl9BVFNDTUhfUEFS
-QURFX0lEOgorCQlmZS0+ZHR2X3Byb3BlcnR5X2NhY2hlLmF0c2NtaF9wYXJhZGVfaWQgPSB0dnAt
-PnUuZGF0YTsKKwkJYnJlYWs7CisJY2FzZSBEVFZfQVRTQ01IX1JTX0ZSQU1FX0VOU0VNQkxFOgor
-CQlmZS0+ZHR2X3Byb3BlcnR5X2NhY2hlLmF0c2NtaF9yc19mcmFtZV9lbnNlbWJsZSA9IHR2cC0+
-dS5kYXRhOworCQlicmVhazsKKwogCWRlZmF1bHQ6CiAJCXJldHVybiAtRUlOVkFMOwogCX0KZGlm
-ZiAtLWdpdCBhL2RyaXZlcnMvbWVkaWEvZHZiL2R2Yi1jb3JlL2R2Yl9mcm9udGVuZC5oIGIvZHJp
-dmVycy9tZWRpYS9kdmIvZHZiLWNvcmUvZHZiX2Zyb250ZW5kLmgKaW5kZXggZDYzYTgyMS4uODBm
-NWMyNyAxMDA2NDQKLS0tIGEvZHJpdmVycy9tZWRpYS9kdmIvZHZiLWNvcmUvZHZiX2Zyb250ZW5k
-LmgKKysrIGIvZHJpdmVycy9tZWRpYS9kdmIvZHZiLWNvcmUvZHZiX2Zyb250ZW5kLmgKQEAgLTM3
-Miw2ICszNzIsMjggQEAgc3RydWN0IGR0dl9mcm9udGVuZF9wcm9wZXJ0aWVzIHsKIAogCS8qIERW
-Qi1UMiBzcGVjaWZpY3MgKi8KIAl1MzIgICAgICAgICAgICAgICAgICAgICBkdmJ0Ml9wbHBfaWQ7
-CisKKwkvKiBBVFNDLU1IIHNwZWNpZmljcyAqLworCXU4CQkJYXRzY21oX2ZpY192ZXI7CisJdTgJ
-CQlhdHNjbWhfcGFyYWRlX2lkOworCXU4CQkJYXRzY21oX25vZzsKKwl1OAkJCWF0c2NtaF90bm9n
-OworCXU4CQkJYXRzY21oX3NnbjsKKwl1OAkJCWF0c2NtaF9wcmM7CisKKwl1OAkJCWF0c2NtaF9y
-c19mcmFtZV9tb2RlOworCXU4CQkJYXRzY21oX3JzX2ZyYW1lX2Vuc2VtYmxlOworCXU4CQkJYXRz
-Y21oX3JzX2NvZGVfbW9kZV9wcmk7CisJdTgJCQlhdHNjbWhfcnNfY29kZV9tb2RlX3NlYzsKKwl1
-OAkJCWF0c2NtaF9zY2NjX2Jsb2NrX21vZGU7CisJdTgJCQlhdHNjbWhfc2NjY19jb2RlX21vZGVf
-YTsKKwl1OAkJCWF0c2NtaF9zY2NjX2NvZGVfbW9kZV9iOworCXU4CQkJYXRzY21oX3NjY2NfY29k
-ZV9tb2RlX2M7CisJdTgJCQlhdHNjbWhfc2NjY19jb2RlX21vZGVfZDsKKworCXUxNgkJCWF0c2Nt
-aF9maWNfZXJyOworCXUxNgkJCWF0c2NtaF9jcmNfZXJyOworCXUxNgkJCWF0c2NtaF9yc19lcnI7
-CiB9OwogCiBzdHJ1Y3QgZHZiX2Zyb250ZW5kIHsKZGlmZiAtLWdpdCBhL2luY2x1ZGUvbGludXgv
-ZHZiL2Zyb250ZW5kLmggYi9pbmNsdWRlL2xpbnV4L2R2Yi9mcm9udGVuZC5oCmluZGV4IGNiNDQy
-OGEuLjVhZWRkNWEgMTAwNjQ0Ci0tLSBhL2luY2x1ZGUvbGludXgvZHZiL2Zyb250ZW5kLmgKKysr
-IGIvaW5jbHVkZS9saW51eC9kdmIvZnJvbnRlbmQuaApAQCAtMzIwLDcgKzMyMCwyNyBAQCBzdHJ1
-Y3QgZHZiX2Zyb250ZW5kX2V2ZW50IHsKIAogI2RlZmluZSBEVFZfRU5VTV9ERUxTWVMJCTQ0CiAK
-LSNkZWZpbmUgRFRWX01BWF9DT01NQU5ECQkJCURUVl9FTlVNX0RFTFNZUworLyogQVRTQy1NSCAq
-LworI2RlZmluZSBEVFZfQVRTQ01IX0ZJQ19WRVIJCTQ1CisjZGVmaW5lIERUVl9BVFNDTUhfUEFS
-QURFX0lECQk0NgorI2RlZmluZSBEVFZfQVRTQ01IX05PRwkJCTQ3CisjZGVmaW5lIERUVl9BVFND
-TUhfVE5PRwkJCTQ4CisjZGVmaW5lIERUVl9BVFNDTUhfU0dOCQkJNDkKKyNkZWZpbmUgRFRWX0FU
-U0NNSF9QUkMJCQk1MAorI2RlZmluZSBEVFZfQVRTQ01IX1JTX0ZSQU1FX01PREUJNTEKKyNkZWZp
-bmUgRFRWX0FUU0NNSF9SU19GUkFNRV9FTlNFTUJMRQk1MgorI2RlZmluZSBEVFZfQVRTQ01IX1JT
-X0NPREVfTU9ERV9QUkkJNTMKKyNkZWZpbmUgRFRWX0FUU0NNSF9SU19DT0RFX01PREVfU0VDCTU0
-CisjZGVmaW5lIERUVl9BVFNDTUhfU0NDQ19CTE9DS19NT0RFCTU1CisjZGVmaW5lIERUVl9BVFND
-TUhfU0NDQ19DT0RFX01PREVfQQk1NgorI2RlZmluZSBEVFZfQVRTQ01IX1NDQ0NfQ09ERV9NT0RF
-X0IJNTcKKyNkZWZpbmUgRFRWX0FUU0NNSF9TQ0NDX0NPREVfTU9ERV9DCTU4CisjZGVmaW5lIERU
-Vl9BVFNDTUhfU0NDQ19DT0RFX01PREVfRAk1OQorI2RlZmluZSBEVFZfQVRTQ01IX0ZJQ19FUlIJ
-CTYwCisjZGVmaW5lIERUVl9BVFNDTUhfQ1JDX0VSUgkJNjEKKyNkZWZpbmUgRFRWX0FUU0NNSF9S
-U19FUlIJCTYyCisKKyNkZWZpbmUgRFRWX01BWF9DT01NQU5ECQkJCURUVl9BVFNDTUhfUlNfRVJS
-CiAKIHR5cGVkZWYgZW51bSBmZV9waWxvdCB7CiAJUElMT1RfT04sCkBAIC0zNjAsNiArMzgwLDM4
-IEBAIHR5cGVkZWYgZW51bSBmZV9kZWxpdmVyeV9zeXN0ZW0gewogCiAjZGVmaW5lIFNZU19EVkJD
-X0FOTkVYX0FDCVNZU19EVkJDX0FOTkVYX0EKIAorLyogQVRTQy1NSCAqLworCitlbnVtIGF0c2Nt
-aF9zY2NjX2Jsb2NrX21vZGUgeworCUFUU0NNSF9TQ0NDX0JMS19TRVAgICAgICA9IDAsCisJQVRT
-Q01IX1NDQ0NfQkxLX0NPTUIgICAgID0gMSwKKwlBVFNDTUhfU0NDQ19CTEtfUkVTICAgICAgPSAy
-LAorfTsKKworZW51bSBhdHNjbWhfc2NjY19jb2RlX21vZGUgeworCUFUU0NNSF9TQ0NDX0NPREVf
-SExGICAgICA9IDAsCisJQVRTQ01IX1NDQ0NfQ09ERV9RVFIgICAgID0gMSwKKwlBVFNDTUhfU0ND
-Q19DT0RFX1JFUyAgICAgPSAyLAorfTsKKworZW51bSBhdHNjbWhfcnNfZnJhbWVfZW5zZW1ibGUg
-eworCUFUU0NNSF9SU0ZSQU1FX0VOU19QUkkgICA9IDAsCisJQVRTQ01IX1JTRlJBTUVfRU5TX1NF
-QyAgID0gMSwKK307CisKK2VudW0gYXRzY21oX3JzX2ZyYW1lX21vZGUgeworCUFUU0NNSF9SU0ZS
-QU1FX1BSSV9PTkxZICA9IDAsCisJQVRTQ01IX1JTRlJBTUVfUFJJX1NFQyAgID0gMSwKKwlBVFND
-TUhfUlNGUkFNRV9SRVMgICAgICAgPSAyLAorfTsKKworZW51bSBhdHNjbWhfcnNfY29kZV9tb2Rl
-IHsKKwlBVFNDTUhfUlNDT0RFXzIxMV8xODcgICAgPSAwLAorCUFUU0NNSF9SU0NPREVfMjIzXzE4
-NyAgICA9IDEsCisJQVRTQ01IX1JTQ09ERV8yMzVfMTg3ICAgID0gMiwKKwlBVFNDTUhfUlNDT0RF
-X1JFUyAgICAgICAgPSAzLAorfTsKKwogCiBzdHJ1Y3QgZHR2X2NtZHNfaCB7CiAJY2hhcgkqbmFt
-ZTsJCS8qIEEgZGlzcGxheSBuYW1lIGZvciBkZWJ1Z2dpbmcgcHVycG9zZXMgKi8KLS0gCjEuNy41
-LjQKCg==
---f46d04389129fd44ac04beeca288--
