@@ -1,58 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:43066 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756834Ab2DSWxM (ORCPT
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:57579 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932290Ab2D0Ryy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Apr 2012 18:53:12 -0400
-Subject: Re: v4l-cx23885-enc.fw
-From: Andy Walls <awalls@md.metrocast.net>
-To: Britney Fransen <britney.fransen@gmail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Date: Thu, 19 Apr 2012 18:53:09 -0400
-In-Reply-To: <59883F72-DC46-4AB7-9271-C0A844A7D45F@gmail.com>
-References: <59883F72-DC46-4AB7-9271-C0A844A7D45F@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
+	Fri, 27 Apr 2012 13:54:54 -0400
+Received: by bkuw12 with SMTP id w12so712738bku.19
+        for <linux-media@vger.kernel.org>; Fri, 27 Apr 2012 10:54:52 -0700 (PDT)
+Message-ID: <4F9ADD6A.6040005@gmail.com>
+Date: Fri, 27 Apr 2012 19:54:50 +0200
+From: Sylwester Nawrocki <snjw23@gmail.com>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	linux-media@vger.kernel.org, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, riverful.kim@samsung.com,
+	sw0312.kim@samsung.com, sungchun.kang@samsung.com,
+	subash.ramaswamy@linaro.org
+Subject: Re: [PATCH 01/13] V4L: Extend V4L2_CID_COLORFX with more image effects
+References: <1335520386-20835-1-git-send-email-s.nawrocki@samsung.com> <1335520386-20835-2-git-send-email-s.nawrocki@samsung.com> <201204271212.09323.hverkuil@xs4all.nl>
+In-Reply-To: <201204271212.09323.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Message-ID: <1334875990.14608.16.camel@palomino.walls.org>
-Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 2012-04-17 at 16:18 -0500, Britney Fransen wrote:
-> I am not sure where to report this so if this is the wrong place and
-> someone can point me in the right direction it would be appreciated.
+Hi Hans,
+
+thanks for the review!
+
+On 04/27/2012 12:12 PM, Hans Verkuil wrote:
+> Hi Sylwester!
 > 
-> http://www.linuxtv.org/downloads/firmware/v4l-cx23885-enc.fw &
-> http://www.linuxtv.org/downloads/firmware/v4l-cx23885-avcore-01.fw
-> look to be the same file with different names.
+> On Friday, April 27, 2012 11:52:54 Sylwester Nawrocki wrote:
+>> This patch adds definition of additional color effects:
+>>   - V4L2_COLORFX_AQUA,
+>>   - V4L2_COLORFX_ART_FREEZE,
+>>   - V4L2_COLORFX_SILHOUETTE,
+>>   - V4L2_COLORFX_SOLARIZATION,
+>>   - V4L2_COLORFX_ANTIQUE,
+>>   - V4L2_COLORFX_ARBITRARY_CBCR.
+>>
+>> The control's type in the documentation is changed from 'enum' to 'menu'
+>> - V4L2_CID_COLORFX has always been a menu, not an integer type control.
+>>
+>> The V4L2_COLORFX_ARBITRARY_CBCR option enables custom color effects,
+>> which are impossible or impractical to define as menu items. The
+>> V4L2_CID_BLUE_BALANCE and V4L2_CID_RED_BALANCE controls allow in this
+>> case to configure the Cb, Cr coefficients.
+> 
+> So this just hijacks the RED/BLUE_BALANCE controls for a different purpose?
 
-Well, that's not good.  They should be very different.
+Uh, the meaning is indeed a bit different. Probably not a good idea to reuse
+the controls like this in the standard API.
 
-The "avcore" firmware is for the analog TV audio broadcast standard
-auto-detection.  It is used by the "Merlin" audio core in the integrated
-CX25843 core inside the CX2388[578] chip.
+> If I understand this 'effect' correctly it just replaces the Cb and Cr
+> coefficients with fixed values, basically giving you a B&W picture (the Y
+> coefficient), except that it is really a 'Black&FixedColor' picture.
 
-The "enc" firmware is for a CX2341[67] MPEG-2 encoder chip connected to
-the CX2388[578] chip.
+Yes, this is also my understanding. The TRMs are not very verbose about it,
+but I think it is exactly how it works. The effect is similar to looking
+through a coloured glass, where colour changes from green through red to violet
+when changing the (CR, CB) coefficients gradually from (0, 0) -> (0, 255) -> 
+(255, 255).
+ 
+> I think you should add a new control for setting this. V4L2_CID_COLORFX_COLOR
+> or something.
 
->   However when I extract the firmware from
-> http://steventoth.net/linux/hvr1800/ v4l-cx23885-enc.fw is
-> significantly larger than v4l-cx23885-avcore-01.fw.  When using
-> http://www.linuxtv.org/downloads/firmware/v4l-cx23885-enc.fw I get
-> cx23885_initialize_codec() f/w load failed.  Using the larger
-> v4l-cx23885-enc.fw from http://steventoth.net/linux/hvr1800/ the
-> firmware loads without error.  I believe that the
-> http://www.linuxtv.org/downloads/firmware/v4l-cx23885-enc.fw is
-> incorrect.
-> http://git.kernel.org/?p=linux/kernel/git/firmware/linux-firmware.git;a=tree also has the same incorrect v4l-cx23885-enc.fw file.
+Do you mean something similar to V4L2_CID_BG_COLOR ? When a different colour 
+space is used then the range for those Cb, Cr components changes. It can be 
+0...255 or 16...240. So best would be to have 2 controls, for reporting min/max
+to the user.
 
-I believe you are correct.
+Maybe it would be better to add a V4L2_COLORFX_COLOR menu entry and
+V4L2_CID_COLORFX_CB, V4L2_CID_COLORFX_CR controls ?
+
+
+--
 
 Regards,
-Andy
-
-
-> Thanks,
-> Britney--
-
-
+Sylwester
