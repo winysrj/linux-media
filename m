@@ -1,133 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:42064 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757114Ab2D0NF5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Apr 2012 09:05:57 -0400
-Message-ID: <4F9A9A45.5080100@redhat.com>
-Date: Fri, 27 Apr 2012 15:08:21 +0200
-From: Hans de Goede <hdegoede@redhat.com>
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:49786 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761283Ab2D0UlB convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 27 Apr 2012 16:41:01 -0400
+Received: by eaaq12 with SMTP id q12so295007eaa.19
+        for <linux-media@vger.kernel.org>; Fri, 27 Apr 2012 13:40:59 -0700 (PDT)
 MIME-Version: 1.0
-To: Jean-Francois Moine <moinejf@free.fr>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH v2] tinyjpeg: Dynamic luminance quantization table for
- Pixart JPEG
-References: <20120412122017.0c808009@tele> <4F95CACD.5010403@redhat.com> <20120424123412.3b63810d@tele> <4F98080D.5040901@redhat.com> <20120425180949.2243472b@tele>
-In-Reply-To: <20120425180949.2243472b@tele>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <CAF0Ff2k93ud=kOQujbwU8U9+rpJWbTW+euj6KYWzWjCCO0bxzA@mail.gmail.com>
+References: <1327228731.2540.3.camel@tvbox>
+	<4F2185A1.2000402@redhat.com>
+	<201204152353103757288@gmail.com>
+	<201204201601166255937@gmail.com>
+	<4F9130BB.8060107@iki.fi>
+	<201204211045557968605@gmail.com>
+	<4F958640.9010404@iki.fi>
+	<CAF0Ff2nNP6WRUWcs7PqVRxhXHCmUFqqswL4757WijFaKT5P5-w@mail.gmail.com>
+	<4F95CE59.1020005@redhat.com>
+	<CAF0Ff2m_6fM1QV+Jic7viHXQ7edTe8ZwigjjhdtFwMfhCszuKQ@mail.gmail.com>
+	<4F9AF53C.6030105@redhat.com>
+	<CAF0Ff2k93ud=kOQujbwU8U9+rpJWbTW+euj6KYWzWjCCO0bxzA@mail.gmail.com>
+Date: Fri, 27 Apr 2012 23:40:59 +0300
+Message-ID: <CAF0Ff2k9_kbcrVxretfC_sFqnE+b0EbGzTrX4yBHj4LFXuug2g@mail.gmail.com>
+Subject: Re: [PATCH 1/6] m88ds3103, montage dvb-s/s2 demodulator driver
+From: Konstantin Dimitrov <kosio.dimitrov@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Antti Palosaari <crope@iki.fi>,
+	"nibble.max" <nibble.max@gmail.com>,
+	linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Fri, Apr 27, 2012 at 11:37 PM, Konstantin Dimitrov
+<kosio.dimitrov@gmail.com> wrote:
+> hi Mauro,
+>
+> in the mean time i was actually pointed out that there is 3rd party
+> tuner that is proved to work in practice with both Montage ds3k
+> demodulator family, as well ST STV090x demods, i.e. there are such
+> reference designs. so, the split further makes sense and in fact that
+> should be make in way that both drivers for STV090x and Montage ds3k
+> demodulator family can share tuners with each other. so, that's just
+> note for the upcoming review of the patches i will submit - in short
+> the split of  Montage tuner and demodulator code i will make it in the
+> same fashion as how the driver code for ST 6100/6110 tuner are split
+> from STV090x driver, because that now, as i've just mentioned, makes
+> sense from practical point of view since of the 3rd party tuner for
+> which there is reference designs with both STV090x and Montage
+> demodulator. also, that way STB0899, STV090x and Montage demodulator
+> drivers can be used together with any other of the DVB-S2 tuners
+> available in the kernel - ST 6100 and 6110 and soon TS2020.
+>
+> however, i want to pointed out few other problems - they are off-topic
+> as not related to drivers for Montage chips, but related as far as
+> we're putting some order and making things in a proper way and those
+> those things are out of that order:
+>
+> - there are 2 drivers for the same DVB-S2 tuner: ST 6110, respectively
+> "stv6110.c" and "stv6110x.c"
+>
+> - there are 2 drivers for the same DVB-S2 demodulator family:
+> respectively stv090x* and stv0900*
+>
+> the above couldn't be more wrong - in fact i can submit patches to
+> make all drivers that relies on stv090x* and "stv6110.c" to use
+> stv090x* and "stv6110x.c" instead except the NetUP board, for which in
 
-On 04/25/2012 06:09 PM, Jean-Francois Moine wrote:
-> Hi Hans,
+> my opinion someone should submit patches using stv090x* and
+> "stv6110x.c" and subsequently stv090x* and "stv6110.c" be removed -
+
+to correct a typo: and subsequently stv0900* and "stv6110.c" be removed
+
+> unless someone have some real argument why stv090x* and "stv6110.c"
+
+the same: unless someone have some real argument why stv0900* and "stv6110.c"
+
+> should stay or even if for why they should replace stv090x* and
+> "stv6110x.c" and subsequently  stv090x* and "stv6110x.c" be removed
+> instead. so, the case with ST 6110 and STV090x support is the most
+> frustrating and out of order thing that i can indicate regarding the
+> support of DVB-S2 chips in the kernel and i hope you will take care as
+> maintainer to be resolved or at least someone to explain why the
+> current state is like that - or point me out to explanation if such
+> was already made to the mailing list. so, what i'm suggesting is
+> "spring cleaning" of all DVB-S2 tuner/demodulator drivers in the
+> kernel - if it's not done now in the future the mess will only
+> increase.
 >
-> On Wed, 25 Apr 2012 16:19:57 +0200
-> Hans de Goede<hdegoede@redhat.com>  wrote:
+> thank you,
+> konstantin
 >
->>> You say that the marker cannot be in the range 0..31 (index 0..7), but
->>> I have never seen a value lower than 68 (index 17).
+> On Fri, Apr 27, 2012 at 10:36 PM, Mauro Carvalho Chehab
+> <mchehab@redhat.com> wrote:
+>> Hi Konstantin,
 >>
->> If you change register 0x80 in bank/page 1 to>  42 on pac7311 or larger then
->> circa 100 on pac7302, you will get markers with bit 8 set. When this happens
->> you will initially get markers 0xa0 - 0xa4 ... 0xbc and the stream tends to
->> stabilize on 0xbc. Likewise if you remove the artificial limiting of
->> the pac7302 to 15 fps from the driver you will get markers 0x44 - 0x48 ...
->> 0x7c.
+>> Em 27-04-2012 16:01, Konstantin Dimitrov escreveu:
+>>> Mauro, your reasoning makes sense to me. so, let's split them and at
+>>> least settle this part of the discussion - i will do as far as my
+>>> spare time allows, as well make sure there are no some problems
+>>> introduced after the split.
 >>
->> The images look a lot better with bit 8 set, so I plan to run some tests
->> wrt what framerates can safely handle that (it uses more bandwidth) and set
->> bit 8 on lower framerates.
->
-> I carefully looked at the ms-windows pac7302 traces I have. The
-> register 1-80 stays always in the range 0d..11, except sometimes 19 at
-> start time.
-
-Right, that can mean one of 2 things:
-1) The traces were made during daylight, so low exposure / high framerate,
-and enabling the lower compression modes (which cause bit 7 of the marker
-to get set) is a bad idea at high framerates
-
-2) The windows driver never enables the low compression mode. I seriously
-doubt that this is the case, ie older versions of the pac7311 driver have
-(commented) writes to page 1 register 80 with high enough values to enable
-it and I'm pretty sure those writes come from windows traces.
-
-> In these traces, the images with marker 44 (dec 68) look
-> really better with all 08's as the quantization table.
-
-After having played with the quantization tables you've found I agree.
-
-> [snip]
->> Yeah short of someone disassembling and reverse-engineering the windows driver
->> we will probably never figure out the exact correct tables.
->
-> Well, I got the SPC230NC.SYS of the ms-windows pac7302 driver, but it
-> is not easy to disassemble because it has no symbol table. But, inside,
-> I found this tables just before the Huffman table:
->
-> - 0006C888
-> 	10 10 10 10 10 10 20 20 20 20 20 20 20 20 20 63
-> 	63 63 63 63 63 63 63 63 63 63 63 63 63 63 63 63
-> 	63 63 63 63 63 63 63 63 63 63 63 63 63 63 63 63
-> 	63 63 63 63 63 63 63 63 63 63 63 63 63 63 63 63
-> - 0006C908
-> 	10 10 10 10 10 10 20 20 20 20 20 20 20 20 20 63
-> 	63 63 63 63 63 63 63 63 63 63 63 63 63 63 63 63
-> 	63 63 63 63 63 63 63 63 63 63 63 63 63 63 63 63
-> 	63 63 63 63 63 63 63 63 63 63 63 63 63 63 63 63
-> - 0006C988
-> 	08 08 08 08 08 08 10 10 10 10 10 10 10 10 10 10
-> 	10 10 10 10 10 10 10 10 10 10 10 10 20 20 20 20
-> 	20 20 20 20 20 20 20 20 20 20 20 40 40 40 40 40
-> 	40 40 40 40 40 40 40 40 40 40 40 40 40 40 40 40
-> - 0006CA08
-> 	08 08 08 08 08 08 08 08 08 08 08 08 08 08 08 08
-> 	08 08 08 08 08 08 08 08 08 08 08 08 10 10 10 10
-> 	10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10
-> 	10 10 10 10 10 10 20 20 20 20 20 20 20 20 20 20
-> - 0006CA88
-> 	10 10 10 10 10 10 20 20 20 20 20 20 20 20 20 63
-> 	63 63 63 63 63 63 63 63 63 63 63 63 63 63 63 63
-> 	63 63 63 63 63 63 63 63 63 63 63 63 63 63 63 63
-> 	63 63 63 63 63 63 63 63 63 63 63 63 63 63 63 63
-> - 0006CB08
-> 	08 0b 0b 0b 0b 0b 10 10 10 10 10 10 10 10 10 10
-> 	10 10 10 10 10 20 20 20 20 20 20 20 40 40 40 40
-> 	40 40 40 40 63 63 63 63 63 63 63 63 63 63 63 63
-> 	63 63 63 63 63 63 63 63 63 63 63 63 63 63 63 63
-> - 0006CB88
-> 	11 12 12 18 15 18 2f 1a 1a 2f 63 42 38 42 63 63
-> 	63 63 63 63 63 63 63 63 63 63 63 63 63 63 63 63
-> 	63 63 63 63 63 63 63 63 63 63 63 63 63 63 63 63
-> 	63 63 63 63 63 63 63 63 63 63 63 63 63 63 63 63
-> - 0006CC08
-> 	10 0b 0c 0e 0c 0b 10 0e 0d 0e 12 11 10 13 18 28
-> 	1a 18 16 16 18 31 23 25 1d 28 3a 33 3d 3c 39 33
-> 	38 37 40 48 5c 4e 40 44 57 45 37 38 50 6D 51 57
-> 	5F 62 67 68 67 3E 4D 71 78 70 64 78 5C 65 67 63
->
-> Don't they look like quantization tables?
-
-Yes they do, good find! I've done yet more testing / trial
-and error with these tables and I've just pushed another
-Pixart JPEG patch to v4l-utils git switching to these new
-tables. Thanks! Also with these tables the quality difference
-between high/low compression mode becomes significantly
-less. So much less that I've decided to not further pursue
-enabling low compression mode in the gspca drivers, esp. since
-this will cause pain for people with an older libv4l.
-
-> BTW, I don't think the exposure and gain controls use the right
-> registers as they are coded in the actual gspca  pac7302 subdriver.
-> The ms-windows driver uses the registers (3-80 / 3-03), (3-05 / 3-04),
-> (3-12) and (1-80) for autogain/exposure. The gspca test tarball of my
-> web site includes a new AGC using these registers, but it does not work
-> well. Maybe you could tell me what is wrong with it...
-
-Let me get back on that in a separate mail.
-
-Regards,
-
-Hans
+>> Thank you!
+>>
+>>> also, in one email i've just sent in answer to Antti there is enough
+>>> argument why such split, i.e. tuner-pass-through-mode is subject to
+>>> discussion about CX24116 and TDA10071 drivers too. currently, majority
+>>> of DVB-S2 demodulator drivers in the kernel are married to particular
+>>> tuners and there is no split.
+>>
+>> Besides the reasoning I gave you, having the tuner and the demod on separate
+>> drivers help a lot code reviewers to check what's happening inside the code,
+>> because the code on each driver becomes more coincide and the two different
+>> functions become more decoupled, with reduces the code complexity. So, bugs
+>> tend to be reduced and they're easier to fix, especially when someone need
+>> to fix bad things at the dvb core.
+>>
+>> Also, as almost all drivers are like that, it is easier to identify driver
+>> patterns, especially when newer patches are adding extra functionality there.
+>>
+>> Thanks!
+>> Mauro
+>>
