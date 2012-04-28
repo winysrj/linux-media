@@ -1,113 +1,182 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:58171 "EHLO mail.kapsi.fi"
+Received: from plane.gmane.org ([80.91.229.3]:54581 "EHLO plane.gmane.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760645Ab2D0UmP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Apr 2012 16:42:15 -0400
-Message-ID: <4F9B04A2.6020105@iki.fi>
-Date: Fri, 27 Apr 2012 23:42:10 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Konstantin Dimitrov <kosio.dimitrov@gmail.com>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	"nibble.max" <nibble.max@gmail.com>,
-	linux-media <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 1/6] m88ds3103, montage dvb-s/s2 demodulator driver
-References: <1327228731.2540.3.camel@tvbox> <4F2185A1.2000402@redhat.com> <201204152353103757288@gmail.com> <201204201601166255937@gmail.com> <4F9130BB.8060107@iki.fi> <201204211045557968605@gmail.com> <4F958640.9010404@iki.fi> <CAF0Ff2nNP6WRUWcs7PqVRxhXHCmUFqqswL4757WijFaKT5P5-w@mail.gmail.com> <4F95CE59.1020005@redhat.com> <CAF0Ff2m_6fM1QV+Jic7viHXQ7edTe8ZwigjjhdtFwMfhCszuKQ@mail.gmail.com> <4F9AF9A5.7070606@iki.fi> <CAF0Ff2nSjT4jJPLVagpSMtyAN_yct=vRDwYz53_G35yKCsCGbw@mail.gmail.com>
-In-Reply-To: <CAF0Ff2nSjT4jJPLVagpSMtyAN_yct=vRDwYz53_G35yKCsCGbw@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	id S1751637Ab2D1SIw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 28 Apr 2012 14:08:52 -0400
+Received: from list by plane.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1SOC4f-0006Ie-9Z
+	for linux-media@vger.kernel.org; Sat, 28 Apr 2012 20:08:49 +0200
+Received: from d67-193-214-242.home3.cgocable.net ([67.193.214.242])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Sat, 28 Apr 2012 20:08:49 +0200
+Received: from brian by d67-193-214-242.home3.cgocable.net with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Sat, 28 Apr 2012 20:08:49 +0200
+To: linux-media@vger.kernel.org
+From: "Brian J. Murrell" <brian@interlinx.bc.ca>
+Subject: Re: HVR-1600 QAM recordings with slight glitches in them
+Date: Sat, 28 Apr 2012 14:08:35 -0400
+Message-ID: <4F9C3223.10501@interlinx.bc.ca>
+References: <jn2ibp$pot$1@dough.gmane.org>  <1335307344.8218.11.camel@palomino.walls.org>  <jn7pph$qed$1@dough.gmane.org> <1335624964.2665.37.camel@palomino.walls.org>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="------------enig8E9229CCA8FDACAC533E31A9"
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	stoth@kernellabs.com
+In-Reply-To: <1335624964.2665.37.camel@palomino.walls.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 27.04.2012 23:21, Konstantin Dimitrov wrote:
-> On Fri, Apr 27, 2012 at 10:55 PM, Antti Palosaari<crope@iki.fi>  wrote:
->> On 27.04.2012 22:01, Konstantin Dimitrov wrote:
->>>
->>> Mauro, your reasoning makes sense to me. so, let's split them and at
->>> least settle this part of the discussion - i will do as far as my
->>> spare time allows, as well make sure there are no some problems
->>> introduced after the split.
->>>
->>> also, in one email i've just sent in answer to Antti there is enough
->>> argument why such split, i.e. tuner-pass-through-mode is subject to
->>> discussion about CX24116 and TDA10071 drivers too. currently, majority
->>> of DVB-S2 demodulator drivers in the kernel are married to particular
->>> tuners and there is no split.
->>
->>
->> I read the mail and as it was long study, I comment only that
->> CX24116+CX24118A and TDA10071+CX24118A demod+tuner combos versus Montage
->> demod+tuner combos. As you may see, CX24116 and TDA10071 are so much
->> different than both needs own driver. But as you said those are married
->> always as a demod+tuner.
->>
->> So if I use your logic, what happens if CX24118A tuner is not driven by
->> CX24116 or TDA10071 firmware? ==>  it happens we have two drivers, CX24116
->> and TDA10071 *both* having similar CX24118A tuner driver code inside! Same
->> tuner driver code inside two demods drivers. Could you now understand why we
->> want it split?
->> The reason which saves us having CX24118A tuner driver is that it is inside
->> both CX24116 and TDA10071 firmware.
->>
->> There is mainly two different controlling situation. Most commonly driver
->> controls chip but in some cases it is firmware which is controlling. And I
->> don't see it very important trying always to by-pass firmware control and
->> use driver for that.
->>
->
-> i got that point, but what happens if tomorrow their is CX24116 or
-> TDA10071 design with tuner different than CX14118A? in fact the LG
-> datasheet i pointed out to you clearly states that for example there
-> is actually such design - case when CX24116 is used with CX24128 tuner
-> instead CX24118A in which case the only way is to bypass the firmware
-> and control the tuner directly. also, isn't it even double bad the
-> current state of CX24116 or TDA10071 drivers - from one side they use
-> 2 firmwares, part of which is doing the same, i.e control the CX24118A
-> and from the other side they depend on proprietary firmware to do
-> something that can be done in open-source code? i don't know, but at
-> least from my point of view if that's not worse than the current
-> status of ds3000 driver, it's at least as wrong as it, i.e. there
-> isn't not only separation of tuner and demodulator code in CX24116 or
-> TDA10071 drivers, but there is not even a code that can allow they to
-> be separated easily, because making CX14118A driver from scratch is
-> task that will need some effort. anyway, maybe, it's just me, but i
-> prefer to depend as less as possible on proprietary firmwares done is
-> such way. however, there is no any doubt current CX24116 or TDA10071
-> drivers don't allow any other tuner that is not supported by the
-> proprietary firmware to be used and thus they break the rule of tuner
-> and demodulator code separation. so, i really don't understand what
-> makes CX24116 or TDA10071 drivers different than the others, i.e. why
-> they are developed in such way and there is no discussion about them
-> to be changed in way that allow use of other tuner like CX24128, which
-> is not supported by the proprietary firmwares. so, the only
-> explanation from my perspective is lack of such need in real-life, but
-> it's the same for ds3000.
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--------------enig8E9229CCA8FDACAC533E31A9
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 
-In case of new device having CX24116 or TDA10071, but different tuner 
-than firmware controlled CX14118A, driver must be changed to support new 
-configuration. Or even make new driver if differences are too big. I 
-suspect implementing new .set_frontend() callback is almost everything 
-what is needed. Then add configuration option 
-.tuner_controlled_by_firmware or something like that. There is likely 
-rather similar existing cases.
+On 12-04-28 10:56 AM, Andy Walls wrote:
+>=20
+> grepping out the 0 lines doesn't let one see the trends in Signal to
+> Noise Ratio (SNR) before and after the uncorrectable (unc) block counts=
+=2E
 
-IIRC someone mentioned AF9035/AF9033 firmwares have different versions 
-for different tuners. Also AF9015 uploads firmware to AF9013 demod, 
-external or internal. Still AF9013 driver could upload firmware 
-independently. There is many kind of cases chip/firmware can control 
-other chips. And if you look AF9015/AF9013 and AF9035/AF9033 drivers you 
-can see some examples of splitting drivers even those are many times 
-integrated together. OK, that AF90xx stuff goes to DVB-T side but it is 
-good example of splitting drivers and supporting very wide set of 
-demod/tuner combinations.
+OK.  I have completely reworked the way I use femon.  I now start/stop
+femon along with recordings so I should have a separate femon output for
+each recording (using Mythtv system events and a couple of recording
+start/stop scripts, fwiw).
 
-And it is nice you found CX24116 is sold by two different tuners :) If 
-those tuners are controlled by the driver we can see similar mess than 
-ds3000 + ts2020 or ts2022. At the some point handling different tuner 
-drivers inside one demod driver goes difficult - errors can be done 
-easily and maintaining goes hard.
+> So I see SNR values from 0x138 to 0x13c ( 31.2 dB to 31.6 dB ) when you=
 
-regards
-Antti
--- 
-http://palosaari.fi/
+> have problems.  For 256-QAM cable signals, I think that is considered
+> marginal. =20
+
+OK.  Good to know.
+
+> (Can someone else with 256-QAM North American cable please confirm? I
+> only have OTA)
+
+Would be great if somebody can.  Thanks in advance.
+
+> When you have no errors, what is the SNR?  I'm guessing there are no
+> large swings.
+
+=46rom what I recall of the data, no, the SNR was pretty much the same
+throughout good and bad periods of the recordings.  But with my
+configuration here, we will know for sure soon enough.
+
+> Hard to tell, given that one of the other digital sub-channels may have=
+
+> been effected and not visible on the channel you were recording.
+
+Ahhh.  I see.
+
+> I normally watch DTV live with mplayer, and also have femon open in
+> another window, when performing this sort of test.
+
+That's effectively what I am doing with my recordings.  When a recording
+starts, an femon starts and logs.  When the recording is done I use
+mplayer (-nosound -vo null -benchmark, just to make it run as fast as
+possible) and prune out the per frame counters so that what I am left
+with is the bits that mplayer complains about in the stream along with
+the frame count it happened at.  The femon output is also included for
+cross reference.
+
+> A video or audio
+> glitch, 1 or 2 seconds after a non-zero uncorrectable block count, is
+> usually a good indicator of correlation.
+
+That's what I will look for.
+
+> Well, not the best performer from what I hear.
+
+Indeed.  I don't have any of these problems with my HVR-950Q.  This
+HVR-1600 was a really good deal though, so I can't totally complain.  :-)=
+
+
+Speaking of the HVR-950Q, does femon not work with it?  I seem to always
+get "zero" values across the board trying.
+
+> But certainly works just
+> fine for many people in many contexts.
+
+Yes, and indeed, it works here for the most part even with small
+glitches some of the time.  But some other times, the glitching is bad
+enough to make a recording more or less useless.
+
+> OK.  There are two ways to go here:
+>=20
+> 1. We assume your signal is marginal.  Take a look here for things to
+> check and fix if needed:
+>=20
+> http://ivtvdriver.org/index.php/Howto:Improve_signal_quality
+
+I will see what I can do with those.
+
+> As a test, you you might also want to temporarily change your coax
+> wiring setup to reduce the number of splits and connectors before the
+> signal goes into the HVR-1600, and see if things are better.
+
+Indeed.  That was at the top of my list also, so isolate the rest of the
+cable plant in here.
+
+> Every
+> 2-way splitter will drop 3-5 dB of signal.
+
+OK.  So about splitters.  Given that I'm in a house with 4 cable
+television runs to different rooms, plus a cable modem, plus 4 PVR tuner
+inputs (so yeah, 9 consumers), what is my best splitter plan/options.
+Probably ideally I want to split the incoming signal into two, one for
+the cable modem and one to feed the television consumers.
+
+Once I have the feed off to the televisions though, am I best trying to
+split that into 8, (i.e. equally with an 8-way splitter -- if that's
+even possible) or would I be better served with some more smaller splits
+in somewhat of a tree formation?
+
+I'm also assuming that all splitters are not of the same quality and
+that the "dollar store" ones are likely of inferior quality.  But
+"dollar store" aside, even amongst reasonable retailers, how can I tell
+(without having to get all electronics geeky with an oscilliscope and
+whatnot) what's good and what's bad?
+
+Also, splitting 8 ways, am I into amplification/boosting territory or am
+I likely to just boost noise along with the signal?
+
+> 2. We assume your signal is too strong, and that it is overdriving the
+> MXL5005s digital tuner of the HVR-1600, causing problems for the CX2422=
+7
+> demodulator.
+
+Heh.  I wonder if that could be possible given my description above.  :-)=
+
+
+> Your corrective action here would be to attenuate the incoming RF signa=
+l
+> with either an inline attenuator, or with additional, properly
+> terminated, splitters.
+
+Indeed.
+
+Thanks sooooo much for all of the input here.
+
+Cheers,
+b.
+
+
+--------------enig8E9229CCA8FDACAC533E31A9
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
+
+iEYEARECAAYFAk+cMiMACgkQl3EQlGLyuXCgvQCglORlhXLdCRurcz4liIgOXIpG
+qCQAn3MBD9nAyTOoazwB2qG5WAFzoB/I
+=YPLN
+-----END PGP SIGNATURE-----
+
+--------------enig8E9229CCA8FDACAC533E31A9--
+
