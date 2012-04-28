@@ -1,407 +1,688 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:35284 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754524Ab2DKIYK (ORCPT
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:4820 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754060Ab2D1PKN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Apr 2012 04:24:10 -0400
-Received: by eekc41 with SMTP id c41so137010eek.19
-        for <linux-media@vger.kernel.org>; Wed, 11 Apr 2012 01:24:09 -0700 (PDT)
-From: Gianluca Gennari <gennarone@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@redhat.com
-Cc: hans.verkuil@cisco.com, Gianluca Gennari <gennarone@gmail.com>
-Subject: [PATCH] media_build: fix v2.6.32_kfifo backport patch
-Date: Wed, 11 Apr 2012 10:24:00 +0200
-Message-Id: <1334132640-20201-1-git-send-email-gennarone@gmail.com>
+	Sat, 28 Apr 2012 11:10:13 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans de Goede <hdegoede@redhat.com>,
+	Jean-Francois Moine <moinejf@free.fr>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv1 PATCH 2/7] zc3xx: convert to the control framework.
+Date: Sat, 28 Apr 2012 17:09:51 +0200
+Message-Id: <f5a41eed0541dfa132750639ff0df9c22b9f157c.1335625085.git.hans.verkuil@cisco.com>
+In-Reply-To: <1335625796-9429-1-git-send-email-hverkuil@xs4all.nl>
+References: <1335625796-9429-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <ea7e986dc0fa18da12c22048e9187e9933191d3d.1335625085.git.hans.verkuil@cisco.com>
+References: <ea7e986dc0fa18da12c22048e9187e9933191d3d.1335625085.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch:
-http://patchwork.linuxtv.org/patch/10425/
-collides with the v2.6.32_kfifo backport patch.
-Fix it and rebase it on the new media_build tree.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Gianluca Gennari <gennarone@gmail.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- backports/v2.6.32_kfifo.patch |  130 ++++++++++++++++++++++-------------------
- 1 files changed, 70 insertions(+), 60 deletions(-)
+ drivers/media/video/gspca/zc3xx.c |  451 +++++++++++++++----------------------
+ 1 file changed, 182 insertions(+), 269 deletions(-)
 
-diff --git a/backports/v2.6.32_kfifo.patch b/backports/v2.6.32_kfifo.patch
-index 10075b9..21769a8 100644
---- a/backports/v2.6.32_kfifo.patch
-+++ b/backports/v2.6.32_kfifo.patch
-@@ -1,36 +1,34 @@
- ---
-- drivers/media/rc/ir-raw.c                |   14 +++----
-- drivers/media/rc/rc-core-priv.h          |    2 -
-- drivers/media/video/cx23885/cx23888-ir.c |   33 ++++++-----------
-+ drivers/media/rc/ir-raw.c                |   16 ++++----
-+ drivers/media/rc/rc-core-priv.h          |    2 +-
-+ drivers/media/video/cx23885/cx23888-ir.c |   33 ++++++----------
-  drivers/media/video/cx25840/cx25840-ir.c |   28 +++++---------
-- drivers/media/video/meye.c               |   60 ++++++++++++++-----------------
-+ drivers/media/video/meye.c               |   60 ++++++++++++++----------------
-  drivers/media/video/meye.h               |    4 +-
-  include/media/lirc_dev.h                 |   50 +++++++++----------------
-- 7 files changed, 79 insertions(+), 112 deletions(-)
-+ 7 files changed, 80 insertions(+), 113 deletions(-)
+diff --git a/drivers/media/video/gspca/zc3xx.c b/drivers/media/video/gspca/zc3xx.c
+index 7d9a4f1..e7b7599 100644
+--- a/drivers/media/video/gspca/zc3xx.c
++++ b/drivers/media/video/gspca/zc3xx.c
+@@ -22,6 +22,7 @@
+ #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
  
----- linux.orig/drivers/media/rc/rc-core-priv.h
--+++ linux/drivers/media/rc/rc-core-priv.h
--@@ -35,7 +35,7 @@ struct ir_raw_event_ctrl {
-- 	struct list_head		list;		/* to keep track of raw clients */
-- 	struct task_struct		*thread;
-- 	spinlock_t			lock;
---	struct kfifo			kfifo;		/* fifo for the pulse/space durations */
--+	struct kfifo			*kfifo;		/* fifo for the pulse/space durations */
-- 	ktime_t				last_event;	/* when last event occurred */
-- 	enum raw_event_type		last_type;	/* last event type */
-- 	struct rc_dev			*dev;		/* pointer to the parent rc_dev */
----- linux.orig/drivers/media/rc/ir-raw.c
--+++ linux/drivers/media/rc/ir-raw.c
--@@ -44,7 +44,7 @@ static int ir_raw_event_thread(void *dat
-+--- a/drivers/media/rc/ir-raw.c
-++++ b/drivers/media/rc/ir-raw.c
-+@@ -45,7 +45,7 @@ static int ir_raw_event_thread(void *data)
-  	while (!kthread_should_stop()) {
-  
-  		spin_lock_irq(&raw->lock);
-+-		retval = kfifo_len(&raw->kfifo);
-++		retval = kfifo_len(raw->kfifo);
-+ 
-+ 		if (retval < sizeof(ev)) {
-+ 			set_current_state(TASK_INTERRUPTIBLE);
-+@@ -58,7 +58,7 @@ static int ir_raw_event_thread(void *data)
-+ 			continue;
-+ 		}
-+ 
- -		retval = kfifo_out(&raw->kfifo, &ev, sizeof(ev));
- +		retval = __kfifo_get(raw->kfifo, (void *)&ev, sizeof(ev));
-+ 		spin_unlock_irq(&raw->lock);
-  
-- 		if (!retval) {
-- 			set_current_state(TASK_INTERRUPTIBLE);
--@@ -90,7 +90,7 @@ int ir_raw_event_store(struct rc_dev *de
-+ 		mutex_lock(&ir_raw_handler_lock);
-+@@ -89,7 +89,7 @@ int ir_raw_event_store(struct rc_dev *dev, struct ir_raw_event *ev)
-  	IR_dprintk(2, "sample: (%05dus %s)\n",
-  		   TO_US(ev->duration), TO_STR(ev->pulse));
-  
-@@ -39,7 +37,7 @@
-  		return -ENOMEM;
-  
-  	return 0;
--@@ -258,11 +258,11 @@ int ir_raw_event_register(struct rc_dev 
-+@@ -259,11 +259,11 @@ int ir_raw_event_register(struct rc_dev *dev)
-  
-  	dev->raw->dev = dev;
-  	dev->raw->enabled_protocols = ~0;
-@@ -55,7 +53,7 @@
-  
-  	spin_lock_init(&dev->raw->lock);
-  	dev->raw->thread = kthread_run(ir_raw_event_thread, dev->raw,
--@@ -304,7 +304,7 @@ void ir_raw_event_unregister(struct rc_d
-+@@ -305,7 +305,7 @@ void ir_raw_event_unregister(struct rc_dev *dev)
-  			handler->raw_unregister(dev);
-  	mutex_unlock(&ir_raw_handler_lock);
-  
-@@ -64,8 +62,19 @@
-  	kfree(dev->raw);
-  	dev->raw = NULL;
-  }
----- linux.orig/drivers/media/video/cx23885/cx23888-ir.c
--+++ linux/drivers/media/video/cx23885/cx23888-ir.c
-+--- a/drivers/media/rc/rc-core-priv.h
-++++ b/drivers/media/rc/rc-core-priv.h
-+@@ -35,7 +35,7 @@ struct ir_raw_event_ctrl {
-+ 	struct list_head		list;		/* to keep track of raw clients */
-+ 	struct task_struct		*thread;
-+ 	spinlock_t			lock;
-+-	struct kfifo			kfifo;		/* fifo for the pulse/space durations */
-++	struct kfifo			*kfifo;		/* fifo for the pulse/space durations */
-+ 	ktime_t				last_event;	/* when last event occurred */
-+ 	enum raw_event_type		last_type;	/* last event type */
-+ 	struct rc_dev			*dev;		/* pointer to the parent rc_dev */
-+--- a/drivers/media/video/cx23885/cx23888-ir.c
-++++ b/drivers/media/video/cx23885/cx23888-ir.c
- @@ -138,7 +138,7 @@ struct cx23888_ir_state {
-  	atomic_t rxclk_divider;
-  	atomic_t rx_invert;
-@@ -75,7 +84,7 @@
-  	spinlock_t rx_kfifo_lock;
-  
-  	struct v4l2_subdev_ir_parameters tx_params;
--@@ -540,7 +540,6 @@ static int cx23888_ir_irq_handler(struct
-+@@ -540,7 +540,6 @@ static int cx23888_ir_irq_handler(struct v4l2_subdev *sd, u32 status,
-  {
-  	struct cx23888_ir_state *state = to_state(sd);
-  	struct cx23885_dev *dev = state->dev;
-@@ -83,7 +92,7 @@
-  
-  	u32 cntrl = cx23888_ir_read4(dev, CX23888_IR_CNTRL_REG);
-  	u32 irqen = cx23888_ir_read4(dev, CX23888_IR_IRQEN_REG);
--@@ -613,10 +612,9 @@ static int cx23888_ir_irq_handler(struct
-+@@ -613,10 +612,9 @@ static int cx23888_ir_irq_handler(struct v4l2_subdev *sd, u32 status,
-  			}
-  			if (i == 0)
-  				break;
-@@ -97,7 +106,7 @@
-  			if (k != j)
-  				kror++; /* rx_kfifo over run */
-  		}
--@@ -653,10 +651,8 @@ static int cx23888_ir_irq_handler(struct
-+@@ -653,10 +651,8 @@ static int cx23888_ir_irq_handler(struct v4l2_subdev *sd, u32 status,
-  		*handled = true;
-  	}
-  
-@@ -109,7 +118,7 @@
-  
-  	if (events)
-  		v4l2_subdev_notify(sd, V4L2_SUBDEV_IR_RX_NOTIFY, &events);
--@@ -682,7 +678,7 @@ static int cx23888_ir_rx_read(struct v4l
-+@@ -682,7 +678,7 @@ static int cx23888_ir_rx_read(struct v4l2_subdev *sd, u8 *buf, size_t count,
-  		return 0;
-  	}
-  
-@@ -118,7 +127,7 @@
-  
-  	n /= sizeof(union cx23888_ir_fifo_rec);
-  	*num = n * sizeof(union cx23888_ir_fifo_rec);
--@@ -817,12 +813,7 @@ static int cx23888_ir_rx_s_parameters(st
-+@@ -821,12 +817,7 @@ static int cx23888_ir_rx_s_parameters(struct v4l2_subdev *sd,
-  	o->interrupt_enable = p->interrupt_enable;
-  	o->enable = p->enable;
-  	if (p->enable) {
-@@ -132,7 +141,7 @@
-  		if (p->interrupt_enable)
-  			irqenable_rx(dev, IRQEN_RSE | IRQEN_RTE | IRQEN_ROE);
-  		control_rx_enable(dev, p->enable);
--@@ -1210,8 +1201,10 @@ int cx23888_ir_probe(struct cx23885_dev 
-+@@ -1214,8 +1205,10 @@ int cx23888_ir_probe(struct cx23885_dev *dev)
-  		return -ENOMEM;
-  
-  	spin_lock_init(&state->rx_kfifo_lock);
-@@ -145,7 +154,7 @@
-  
-  	state->dev = dev;
-  	state->id = V4L2_IDENT_CX23888_IR;
--@@ -1243,7 +1236,7 @@ int cx23888_ir_probe(struct cx23885_dev 
-+@@ -1247,7 +1240,7 @@ int cx23888_ir_probe(struct cx23885_dev *dev)
-  		       sizeof(struct v4l2_subdev_ir_parameters));
-  		v4l2_subdev_call(sd, ir, tx_s_parameters, &default_params);
-  	} else {
-@@ -154,7 +163,7 @@
-  	}
-  	return ret;
-  }
--@@ -1262,7 +1255,7 @@ int cx23888_ir_remove(struct cx23885_dev
-+@@ -1266,7 +1259,7 @@ int cx23888_ir_remove(struct cx23885_dev *dev)
-  
-  	state = to_state(sd);
-  	v4l2_device_unregister_subdev(sd);
-@@ -163,9 +172,9 @@
-  	kfree(state);
-  	/* Nothing more to free() as state held the actual v4l2_subdev object */
-  	return 0;
----- linux.orig/drivers/media/video/cx25840/cx25840-ir.c
--+++ linux/drivers/media/video/cx25840/cx25840-ir.c
--@@ -116,7 +116,7 @@ struct cx25840_ir_state {
-+--- a/drivers/media/video/cx25840/cx25840-ir.c
-++++ b/drivers/media/video/cx25840/cx25840-ir.c
-+@@ -117,7 +117,7 @@ struct cx25840_ir_state {
-  	atomic_t rxclk_divider;
-  	atomic_t rx_invert;
-  
-@@ -174,7 +183,7 @@
-  	spinlock_t rx_kfifo_lock; /* protect Rx data kfifo */
-  
-  	struct v4l2_subdev_ir_parameters tx_params;
--@@ -525,7 +525,6 @@ int cx25840_ir_irq_handler(struct v4l2_s
-+@@ -526,7 +526,6 @@ int cx25840_ir_irq_handler(struct v4l2_subdev *sd, u32 status, bool *handled)
-  	struct cx25840_state *state = to_state(sd);
-  	struct cx25840_ir_state *ir_state = to_ir_state(sd);
-  	struct i2c_client *c = NULL;
-@@ -182,7 +191,7 @@
-  
-  	union cx25840_ir_fifo_rec rx_data[FIFO_RX_DEPTH];
-  	unsigned int i, j, k;
--@@ -611,9 +610,8 @@ int cx25840_ir_irq_handler(struct v4l2_s
-+@@ -612,9 +611,8 @@ int cx25840_ir_irq_handler(struct v4l2_subdev *sd, u32 status, bool *handled)
-  			if (i == 0)
-  				break;
-  			j = i * sizeof(union cx25840_ir_fifo_rec);
-@@ -194,7 +203,7 @@
-  			if (k != j)
-  				kror++; /* rx_kfifo over run */
-  		}
--@@ -649,10 +647,8 @@ int cx25840_ir_irq_handler(struct v4l2_s
-+@@ -650,10 +648,8 @@ int cx25840_ir_irq_handler(struct v4l2_subdev *sd, u32 status, bool *handled)
-  		cx25840_write4(c, CX25840_IR_CNTRL_REG, cntrl);
-  		*handled = true;
-  	}
-@@ -206,7 +215,7 @@
-  
-  	if (events)
-  		v4l2_subdev_notify(sd, V4L2_SUBDEV_IR_RX_NOTIFY, &events);
--@@ -683,8 +679,7 @@ static int cx25840_ir_rx_read(struct v4l
-+@@ -684,8 +680,7 @@ static int cx25840_ir_rx_read(struct v4l2_subdev *sd, u8 *buf, size_t count,
-  		return 0;
-  	}
-  
-@@ -216,7 +225,7 @@
-  
-  	n /= sizeof(union cx25840_ir_fifo_rec);
-  	*num = n * sizeof(union cx25840_ir_fifo_rec);
--@@ -836,11 +831,7 @@ static int cx25840_ir_rx_s_parameters(st
-+@@ -841,11 +836,7 @@ static int cx25840_ir_rx_s_parameters(struct v4l2_subdev *sd,
-  	o->interrupt_enable = p->interrupt_enable;
-  	o->enable = p->enable;
-  	if (p->enable) {
-@@ -229,7 +238,7 @@
-  		if (p->interrupt_enable)
-  			irqenable_rx(sd, IRQEN_RSE | IRQEN_RTE | IRQEN_ROE);
-  		control_rx_enable(c, p->enable);
--@@ -1234,8 +1225,9 @@ int cx25840_ir_probe(struct v4l2_subdev 
-+@@ -1239,8 +1230,9 @@ int cx25840_ir_probe(struct v4l2_subdev *sd)
-  		return -ENOMEM;
-  
-  	spin_lock_init(&ir_state->rx_kfifo_lock);
-@@ -241,7 +250,7 @@
-  		kfree(ir_state);
-  		return -ENOMEM;
-  	}
--@@ -1273,7 +1265,7 @@ int cx25840_ir_remove(struct v4l2_subdev
-+@@ -1278,7 +1270,7 @@ int cx25840_ir_remove(struct v4l2_subdev *sd)
-  	cx25840_ir_rx_shutdown(sd);
-  	cx25840_ir_tx_shutdown(sd);
-  
-@@ -250,8 +259,8 @@
-  	kfree(ir_state);
-  	state->ir_state = NULL;
-  	return 0;
----- linux.orig/drivers/media/video/meye.c
--+++ linux/drivers/media/video/meye.c
-+--- a/drivers/media/video/meye.c
-++++ b/drivers/media/video/meye.c
- @@ -802,8 +802,8 @@ again:
-  		return IRQ_HANDLED;
-  
-@@ -315,7 +324,7 @@
-  	mutex_unlock(&meye.lock);
-  
-  	return 0;
--@@ -970,9 +967,7 @@ static int meyeioc_sync(struct file *fil
-+@@ -970,9 +967,7 @@ static int meyeioc_sync(struct file *file, void *fh, int *i)
-  		/* fall through */
-  	case MEYE_BUF_DONE:
-  		meye.grab_buffer[*i].state = MEYE_BUF_UNUSED;
-@@ -326,7 +335,7 @@
-  	}
-  	*i = meye.grab_buffer[*i].size;
-  	mutex_unlock(&meye.lock);
--@@ -1459,8 +1454,7 @@ static int vidioc_qbuf(struct file *file
-+@@ -1459,8 +1454,7 @@ static int vidioc_qbuf(struct file *file, void *fh, struct v4l2_buffer *buf)
-  	buf->flags |= V4L2_BUF_FLAG_QUEUED;
-  	buf->flags &= ~V4L2_BUF_FLAG_DONE;
-  	meye.grab_buffer[buf->index].state = MEYE_BUF_USING;
-@@ -336,7 +345,7 @@
-  	mutex_unlock(&meye.lock);
-  
-  	return 0;
--@@ -1475,19 +1469,19 @@ static int vidioc_dqbuf(struct file *fil
-+@@ -1475,19 +1469,19 @@ static int vidioc_dqbuf(struct file *file, void *fh, struct v4l2_buffer *buf)
-  
-  	mutex_lock(&meye.lock);
-  
-@@ -360,7 +369,7 @@
-  		mutex_unlock(&meye.lock);
-  		return -EBUSY;
-  	}
--@@ -1537,8 +1531,8 @@ static int vidioc_streamoff(struct file 
-+@@ -1537,8 +1531,8 @@ static int vidioc_streamoff(struct file *file, void *fh, enum v4l2_buf_type i)
-  {
-  	mutex_lock(&meye.lock);
-  	mchip_hic_stop();
-@@ -371,7 +380,7 @@
-  
-  	for (i = 0; i < MEYE_MAX_BUFNBRS; i++)
-  		meye.grab_buffer[i].state = MEYE_BUF_UNUSED;
--@@ -1581,7 +1575,7 @@ static unsigned int meye_poll(struct fil
-+@@ -1581,7 +1575,7 @@ static unsigned int meye_poll(struct file *file, poll_table *wait)
-  
-  	mutex_lock(&meye.lock);
-  	poll_wait(file, &meye.proc_list, wait);
-@@ -380,7 +389,7 @@
-  		res = POLLIN | POLLRDNORM;
-  	mutex_unlock(&meye.lock);
-  	return res;
--@@ -1760,14 +1754,16 @@ static int __devinit meye_probe(struct p
-+@@ -1760,14 +1754,16 @@ static int __devinit meye_probe(struct pci_dev *pcidev,
-  	}
-  
-  	spin_lock_init(&meye.grabq_lock);
-@@ -413,7 +422,7 @@
-  outkfifoalloc1:
-  	vfree(meye.grab_temp);
-  outvmalloc:
--@@ -1911,8 +1907,8 @@ static void __devexit meye_remove(struct
-+@@ -1911,8 +1907,8 @@ static void __devexit meye_remove(struct pci_dev *pcidev)
-  
-  	sony_pic_camera_command(SONY_PIC_COMMAND_SETCAMERA, 0);
-  
-@@ -424,8 +433,8 @@
-  
-  	vfree(meye.grab_temp);
-  
----- linux.orig/drivers/media/video/meye.h
--+++ linux/drivers/media/video/meye.h
-+--- a/drivers/media/video/meye.h
-++++ b/drivers/media/video/meye.h
- @@ -304,9 +304,9 @@ struct meye {
-  	struct meye_grab_buffer grab_buffer[MEYE_MAX_BUFNBRS];
-  	int vma_use_count[MEYE_MAX_BUFNBRS]; /* mmap count */
-@@ -438,8 +447,8 @@
-  	spinlock_t doneq_lock;		/* lock protecting the queue */
-  	wait_queue_head_t proc_list;	/* wait queue */
-  	struct video_device *vdev;	/* video device parameters */
----- linux.orig/include/media/lirc_dev.h
--+++ linux/include/media/lirc_dev.h
-+--- a/include/media/lirc_dev.h
-++++ b/include/media/lirc_dev.h
- @@ -28,19 +28,15 @@ struct lirc_buffer {
-  	unsigned int size; /* in chunks */
-  	/* Using chunks instead of bytes pretends to simplify boundary checking
-@@ -464,7 +473,7 @@
-  		WARN(1, "calling %s on an uninitialized lirc_buffer\n",
-  		     __func__);
-  }
--@@ -49,25 +45,23 @@ static inline int lirc_buffer_init(struc
-+@@ -49,25 +45,23 @@ static inline int lirc_buffer_init(struct lirc_buffer *buf,
-  				    unsigned int chunk_size,
-  				    unsigned int size)
-  {
-@@ -498,7 +507,7 @@
-  		WARN(1, "calling %s on an uninitialized lirc_buffer\n",
-  		     __func__);
-  }
--@@ -75,11 +69,8 @@ static inline void lirc_buffer_free(stru
-+@@ -75,11 +69,8 @@ static inline void lirc_buffer_free(struct lirc_buffer *buf)
-  static inline int lirc_buffer_len(struct lirc_buffer *buf)
-  {
-  	int len;
-@@ -511,7 +520,7 @@
-  
-  	return len;
-  }
--@@ -102,24 +93,19 @@ static inline int lirc_buffer_available(
-+@@ -102,24 +93,19 @@ static inline int lirc_buffer_available(struct lirc_buffer *buf)
-  static inline unsigned int lirc_buffer_read(struct lirc_buffer *buf,
-  					    unsigned char *dest)
-  {
-@@ -541,3 +550,4 @@
-  }
-  
-  struct lirc_driver {
+ #include <linux/input.h>
++#include <media/v4l2-ctrls.h>
+ #include "gspca.h"
+ #include "jpeg.h"
+ 
+@@ -35,26 +36,23 @@ static int force_sensor = -1;
+ #define REG08_DEF 3		/* default JPEG compression (70%) */
+ #include "zc3xx-reg.h"
+ 
+-/* controls */
+-enum e_ctrl {
+-	BRIGHTNESS,
+-	CONTRAST,
+-	EXPOSURE,
+-	GAMMA,
+-	AUTOGAIN,
+-	LIGHTFREQ,
+-	SHARPNESS,
+-	QUALITY,
+-	NCTRLS		/* number of controls */
+-};
+-
+-#define AUTOGAIN_DEF 1
+-
+ /* specific webcam descriptor */
+ struct sd {
+ 	struct gspca_dev gspca_dev;	/* !! must be the first item */
+ 
+-	struct gspca_ctrl ctrls[NCTRLS];
++	struct v4l2_ctrl_handler ctrl_handler;
++	struct { /* gamma/brightness/contrast control cluster */
++		struct v4l2_ctrl *gamma;
++		struct v4l2_ctrl *brightness;
++		struct v4l2_ctrl *contrast;
++	};
++	struct { /* autogain/exposure control cluster */
++		struct v4l2_ctrl *autogain;
++		struct v4l2_ctrl *exposure;
++	};
++	struct v4l2_ctrl *plfreq;
++	struct v4l2_ctrl *sharpness;
++	struct v4l2_ctrl *jpegqual;
+ 
+ 	struct work_struct work;
+ 	struct workqueue_struct *work_thread;
+@@ -95,112 +93,6 @@ enum sensors {
+ };
+ 
+ /* V4L2 controls supported by the driver */
+-static void setcontrast(struct gspca_dev *gspca_dev);
+-static void setexposure(struct gspca_dev *gspca_dev);
+-static int sd_setautogain(struct gspca_dev *gspca_dev, __s32 val);
+-static void setlightfreq(struct gspca_dev *gspca_dev);
+-static void setsharpness(struct gspca_dev *gspca_dev);
+-static int sd_setquality(struct gspca_dev *gspca_dev, __s32 val);
+-
+-static const struct ctrl sd_ctrls[NCTRLS] = {
+-[BRIGHTNESS] = {
+-	    {
+-		.id      = V4L2_CID_BRIGHTNESS,
+-		.type    = V4L2_CTRL_TYPE_INTEGER,
+-		.name    = "Brightness",
+-		.minimum = 0,
+-		.maximum = 255,
+-		.step    = 1,
+-		.default_value = 128,
+-	    },
+-	    .set_control = setcontrast
+-	},
+-[CONTRAST] = {
+-	    {
+-		.id      = V4L2_CID_CONTRAST,
+-		.type    = V4L2_CTRL_TYPE_INTEGER,
+-		.name    = "Contrast",
+-		.minimum = 0,
+-		.maximum = 255,
+-		.step    = 1,
+-		.default_value = 128,
+-	    },
+-	    .set_control = setcontrast
+-	},
+-[EXPOSURE] = {
+-	    {
+-		.id      = V4L2_CID_EXPOSURE,
+-		.type    = V4L2_CTRL_TYPE_INTEGER,
+-		.name    = "Exposure",
+-		.minimum = 0x30d,
+-		.maximum	= 0x493e,
+-		.step		= 1,
+-		.default_value  = 0x927
+-	    },
+-	    .set_control = setexposure
+-	},
+-[GAMMA] = {
+-	    {
+-		.id      = V4L2_CID_GAMMA,
+-		.type    = V4L2_CTRL_TYPE_INTEGER,
+-		.name    = "Gamma",
+-		.minimum = 1,
+-		.maximum = 6,
+-		.step    = 1,
+-		.default_value = 4,
+-	    },
+-	    .set_control = setcontrast
+-	},
+-[AUTOGAIN] = {
+-	    {
+-		.id      = V4L2_CID_AUTOGAIN,
+-		.type    = V4L2_CTRL_TYPE_BOOLEAN,
+-		.name    = "Auto Gain",
+-		.minimum = 0,
+-		.maximum = 1,
+-		.step    = 1,
+-		.default_value = AUTOGAIN_DEF,
+-		.flags   = V4L2_CTRL_FLAG_UPDATE
+-	    },
+-	    .set = sd_setautogain
+-	},
+-[LIGHTFREQ] = {
+-	    {
+-		.id	 = V4L2_CID_POWER_LINE_FREQUENCY,
+-		.type    = V4L2_CTRL_TYPE_MENU,
+-		.name    = "Light frequency filter",
+-		.minimum = 0,
+-		.maximum = 2,	/* 0: 0, 1: 50Hz, 2:60Hz */
+-		.step    = 1,
+-		.default_value = 0,
+-	    },
+-	    .set_control = setlightfreq
+-	},
+-[SHARPNESS] = {
+-	    {
+-		.id	 = V4L2_CID_SHARPNESS,
+-		.type    = V4L2_CTRL_TYPE_INTEGER,
+-		.name    = "Sharpness",
+-		.minimum = 0,
+-		.maximum = 3,
+-		.step    = 1,
+-		.default_value = 2,
+-	    },
+-	    .set_control = setsharpness
+-	},
+-[QUALITY] = {
+-	    {
+-		.id	 = V4L2_CID_JPEG_COMPRESSION_QUALITY,
+-		.type    = V4L2_CTRL_TYPE_INTEGER,
+-		.name    = "Compression Quality",
+-		.minimum = 40,
+-		.maximum = 70,
+-		.step    = 1,
+-		.default_value = 70	/* updated in sd_init() */
+-	    },
+-	    .set = sd_setquality
+-	},
+-};
+ 
+ static const struct v4l2_pix_format vga_mode[] = {
+ 	{320, 240, V4L2_PIX_FMT_JPEG, V4L2_FIELD_NONE,
+@@ -5818,10 +5710,8 @@ static void setmatrix(struct gspca_dev *gspca_dev)
+ 		reg_w(gspca_dev, matrix[i], 0x010a + i);
+ }
+ 
+-static void setsharpness(struct gspca_dev *gspca_dev)
++static void setsharpness(struct gspca_dev *gspca_dev, s32 val)
+ {
+-	struct sd *sd = (struct sd *) gspca_dev;
+-	int sharpness;
+ 	static const u8 sharpness_tb[][2] = {
+ 		{0x02, 0x03},
+ 		{0x04, 0x07},
+@@ -5829,19 +5719,18 @@ static void setsharpness(struct gspca_dev *gspca_dev)
+ 		{0x10, 0x1e}
+ 	};
+ 
+-	sharpness = sd->ctrls[SHARPNESS].val;
+-	reg_w(gspca_dev, sharpness_tb[sharpness][0], 0x01c6);
++	reg_w(gspca_dev, sharpness_tb[val][0], 0x01c6);
+ 	reg_r(gspca_dev, 0x01c8);
+ 	reg_r(gspca_dev, 0x01c9);
+ 	reg_r(gspca_dev, 0x01ca);
+-	reg_w(gspca_dev, sharpness_tb[sharpness][1], 0x01cb);
++	reg_w(gspca_dev, sharpness_tb[val][1], 0x01cb);
+ }
+ 
+-static void setcontrast(struct gspca_dev *gspca_dev)
++static void setcontrast(struct gspca_dev *gspca_dev,
++		s32 gamma, s32 brightness, s32 contrast)
+ {
+-	struct sd *sd = (struct sd *) gspca_dev;
+ 	const u8 *Tgamma;
+-	int g, i, brightness, contrast, adj, gp1, gp2;
++	int g, i, adj, gp1, gp2;
+ 	u8 gr[16];
+ 	static const u8 delta_b[16] =		/* delta for brightness */
+ 		{0x50, 0x38, 0x2d, 0x28, 0x24, 0x21, 0x1e, 0x1d,
+@@ -5864,10 +5753,10 @@ static void setcontrast(struct gspca_dev *gspca_dev)
+ 		 0xe0, 0xeb, 0xf4, 0xff, 0xff, 0xff, 0xff, 0xff},
+ 	};
+ 
+-	Tgamma = gamma_tb[sd->ctrls[GAMMA].val - 1];
++	Tgamma = gamma_tb[gamma - 1];
+ 
+-	contrast = ((int) sd->ctrls[CONTRAST].val - 128); /* -128 / 127 */
+-	brightness = ((int) sd->ctrls[BRIGHTNESS].val - 128); /* -128 / 92 */
++	contrast -= 128; /* -128 / 127 */
++	brightness -= 128; /* -128 / 92 */
+ 	adj = 0;
+ 	gp1 = gp2 = 0;
+ 	for (i = 0; i < 16; i++) {
+@@ -5894,25 +5783,23 @@ static void setcontrast(struct gspca_dev *gspca_dev)
+ 		reg_w(gspca_dev, gr[i], 0x0130 + i);	/* gradient */
+ }
+ 
+-static void getexposure(struct gspca_dev *gspca_dev)
++static s32 getexposure(struct gspca_dev *gspca_dev)
+ {
+ 	struct sd *sd = (struct sd *) gspca_dev;
+ 
+ 	if (sd->sensor != SENSOR_HV7131R)
+-		return;
+-	sd->ctrls[EXPOSURE].val = (i2c_read(gspca_dev, 0x25) << 9)
++		return 0;
++	return (i2c_read(gspca_dev, 0x25) << 9)
+ 		| (i2c_read(gspca_dev, 0x26) << 1)
+ 		| (i2c_read(gspca_dev, 0x27) >> 7);
+ }
+ 
+-static void setexposure(struct gspca_dev *gspca_dev)
++static void setexposure(struct gspca_dev *gspca_dev, s32 val)
+ {
+ 	struct sd *sd = (struct sd *) gspca_dev;
+-	int val;
+ 
+ 	if (sd->sensor != SENSOR_HV7131R)
+ 		return;
+-	val = sd->ctrls[EXPOSURE].val;
+ 	i2c_write(gspca_dev, 0x25, val >> 9, 0x00);
+ 	i2c_write(gspca_dev, 0x26, val >> 1, 0x00);
+ 	i2c_write(gspca_dev, 0x27, val << 7, 0x00);
+@@ -5943,7 +5830,7 @@ static void setquality(struct gspca_dev *gspca_dev)
+  *	60Hz, for American lighting
+  *	0 = No Fliker (for outdoore usage)
+  */
+-static void setlightfreq(struct gspca_dev *gspca_dev)
++static void setlightfreq(struct gspca_dev *gspca_dev, s32 val)
+ {
+ 	struct sd *sd = (struct sd *) gspca_dev;
+ 	int i, mode;
+@@ -6027,7 +5914,7 @@ static void setlightfreq(struct gspca_dev *gspca_dev)
+ 		 tas5130c_60HZ, tas5130c_60HZScale},
+ 	};
+ 
+-	i = sd->ctrls[LIGHTFREQ].val * 2;
++	i = val * 2;
+ 	mode = gspca_dev->cam.cam_mode[gspca_dev->curr_mode].priv;
+ 	if (mode)
+ 		i++;			/* 320x240 */
+@@ -6037,14 +5924,14 @@ static void setlightfreq(struct gspca_dev *gspca_dev)
+ 	usb_exchange(gspca_dev, zc3_freq);
+ 	switch (sd->sensor) {
+ 	case SENSOR_GC0305:
+-		if (mode				/* if 320x240 */
+-		    && sd->ctrls[LIGHTFREQ].val == 1)	/* and 50Hz */
++		if (mode		/* if 320x240 */
++		    && val == 1)	/* and 50Hz */
+ 			reg_w(gspca_dev, 0x85, 0x018d);
+ 					/* win: 0x80, 0x018d */
+ 		break;
+ 	case SENSOR_OV7620:
+-		if (!mode) {				/* if 640x480 */
+-			if (sd->ctrls[LIGHTFREQ].val != 0) /* and filter */
++		if (!mode) {		/* if 640x480 */
++			if (val != 0)	/* and filter */
+ 				reg_w(gspca_dev, 0x40, 0x0002);
+ 			else
+ 				reg_w(gspca_dev, 0x44, 0x0002);
+@@ -6056,16 +5943,9 @@ static void setlightfreq(struct gspca_dev *gspca_dev)
+ 	}
+ }
+ 
+-static void setautogain(struct gspca_dev *gspca_dev)
++static void setautogain(struct gspca_dev *gspca_dev, s32 val)
+ {
+-	struct sd *sd = (struct sd *) gspca_dev;
+-	u8 autoval;
+-
+-	if (sd->ctrls[AUTOGAIN].val)
+-		autoval = 0x42;
+-	else
+-		autoval = 0x02;
+-	reg_w(gspca_dev, autoval, 0x0180);
++	reg_w(gspca_dev, val ? 0x42 : 0x02, 0x0180);
+ }
+ 
+ /* update the transfer parameters */
+@@ -6165,7 +6045,6 @@ static void transfer_update(struct work_struct *work)
+ 				 || !gspca_dev->present
+ 				 || !gspca_dev->streaming)
+ 					goto err;
+-				sd->ctrls[QUALITY].val = jpeg_qual[sd->reg08];
+ 				jpeg_set_qual(sd->jpeg_hdr,
+ 						jpeg_qual[sd->reg08]);
+ 			}
+@@ -6503,7 +6382,6 @@ static int sd_config(struct gspca_dev *gspca_dev,
+ 	/* define some sensors from the vendor/product */
+ 	sd->sensor = id->driver_info;
+ 
+-	gspca_dev->cam.ctrls = sd->ctrls;
+ 	sd->reg08 = REG08_DEF;
+ 
+ 	INIT_WORK(&sd->work, transfer_update);
+@@ -6511,10 +6389,117 @@ static int sd_config(struct gspca_dev *gspca_dev,
+ 	return 0;
+ }
+ 
++static int sd_setautogain(struct gspca_dev *gspca_dev, s32 val)
++{
++	if (!gspca_dev->streaming)
++		return 0;
++	setautogain(gspca_dev, val);
 +
++	return gspca_dev->usb_err;
++}
++
++static int sd_setquality(struct gspca_dev *gspca_dev, s32 val)
++{
++	struct sd *sd = (struct sd *) gspca_dev;
++	int i;
++
++	for (i = 0; i < ARRAY_SIZE(jpeg_qual) - 1; i++) {
++		if (val <= jpeg_qual[i])
++			break;
++	}
++	sd->reg08 = i;
++	if (!gspca_dev->streaming)
++		return 0;
++	jpeg_set_qual(sd->jpeg_hdr, val);
++	return gspca_dev->usb_err;
++}
++
++static int sd_set_jcomp(struct gspca_dev *gspca_dev,
++			struct v4l2_jpegcompression *jcomp)
++{
++	struct sd *sd = (struct sd *) gspca_dev;
++
++	if (sd->jpegqual) {
++		v4l2_ctrl_s_ctrl(sd->jpegqual, jcomp->quality);
++		jcomp->quality = v4l2_ctrl_g_ctrl(sd->jpegqual);
++		return gspca_dev->usb_err;
++	}
++	jcomp->quality = jpeg_qual[sd->reg08];
++	return 0;
++}
++
++static int sd_get_jcomp(struct gspca_dev *gspca_dev,
++			struct v4l2_jpegcompression *jcomp)
++{
++	struct sd *sd = (struct sd *) gspca_dev;
++
++	memset(jcomp, 0, sizeof *jcomp);
++	jcomp->quality = jpeg_qual[sd->reg08];
++	jcomp->jpeg_markers = V4L2_JPEG_MARKER_DHT
++			| V4L2_JPEG_MARKER_DQT;
++	return 0;
++}
++
++static int zcxx_g_volatile_ctrl(struct v4l2_ctrl *ctrl)
++{
++	struct sd *sd = container_of(ctrl->handler, struct sd, ctrl_handler);
++
++	switch (ctrl->id) {
++	case V4L2_CID_AUTOGAIN:
++		if (ctrl->val && sd->exposure && sd->gspca_dev.streaming)
++			sd->exposure->val = getexposure(&sd->gspca_dev);
++		break;
++	}
++	return 0;
++}
++
++static int zcxx_s_ctrl(struct v4l2_ctrl *ctrl)
++{
++	struct sd *sd = container_of(ctrl->handler, struct sd, ctrl_handler);
++	int ret;
++	int i;
++
++	switch (ctrl->id) {
++	/* gamma/brightness/contrast cluster */
++	case V4L2_CID_GAMMA:
++		setcontrast(&sd->gspca_dev, sd->gamma->val,
++				sd->brightness->val, sd->contrast->val);
++		return 0;
++	/* autogain/exposure cluster */
++	case V4L2_CID_AUTOGAIN:
++		ret = sd_setautogain(&sd->gspca_dev, ctrl->val);
++		if (!ret && !ctrl->val && sd->exposure)
++			setexposure(&sd->gspca_dev, sd->exposure->val);
++		return ret;
++	case V4L2_CID_POWER_LINE_FREQUENCY:
++		setlightfreq(&sd->gspca_dev, ctrl->val);
++		return 0;
++	case V4L2_CID_SHARPNESS:
++		setsharpness(&sd->gspca_dev, ctrl->val);
++		return 0;
++	case V4L2_CID_JPEG_COMPRESSION_QUALITY:
++		for (i = 0; i < ARRAY_SIZE(jpeg_qual) - 1; i++) {
++			if (ctrl->val <= jpeg_qual[i])
++				break;
++		}
++		if (i > 0 && i == sd->reg08 && ctrl->val < jpeg_qual[sd->reg08])
++			i--;
++		ctrl->val = jpeg_qual[i];
++		return sd_setquality(&sd->gspca_dev, ctrl->val);
++	}
++	return -EINVAL;
++}
++
++static const struct v4l2_ctrl_ops zcxx_ctrl_ops = {
++	.g_volatile_ctrl = zcxx_g_volatile_ctrl,
++	.s_ctrl = zcxx_s_ctrl,
++};
++
+ /* this function is called at probe and resume time */
+ static int sd_init(struct gspca_dev *gspca_dev)
+ {
+ 	struct sd *sd = (struct sd *) gspca_dev;
++	struct v4l2_ctrl_handler *hdl = &sd->ctrl_handler;
+ 	struct cam *cam;
+ 	int sensor;
+ 	static const u8 gamma[SENSOR_MAX] = {
+@@ -6688,7 +6673,6 @@ static int sd_init(struct gspca_dev *gspca_dev)
+ 		case 0x2030:
+ 			PDEBUG(D_PROBE, "Find Sensor PO2030");
+ 			sd->sensor = SENSOR_PO2030;
+-			sd->ctrls[SHARPNESS].def = 0;	/* from win traces */
+ 			break;
+ 		case 0x7620:
+ 			PDEBUG(D_PROBE, "Find Sensor OV7620");
+@@ -6730,30 +6714,40 @@ static int sd_init(struct gspca_dev *gspca_dev)
+ 		break;
+ 	}
+ 
+-	sd->ctrls[GAMMA].def = gamma[sd->sensor];
+-	sd->reg08 = reg08_tb[sd->sensor];
+-	sd->ctrls[QUALITY].def = jpeg_qual[sd->reg08];
+-	sd->ctrls[QUALITY].min = jpeg_qual[0];
+-	sd->ctrls[QUALITY].max = jpeg_qual[ARRAY_SIZE(jpeg_qual) - 1];
+-
+-	switch (sd->sensor) {
+-	case SENSOR_HV7131R:
+-		gspca_dev->ctrl_dis = (1 << QUALITY);
+-		break;
+-	case SENSOR_OV7630C:
+-		gspca_dev->ctrl_dis = (1 << LIGHTFREQ) | (1 << EXPOSURE);
+-		break;
+-	case SENSOR_PAS202B:
+-		gspca_dev->ctrl_dis = (1 << QUALITY) | (1 << EXPOSURE);
+-		break;
+-	default:
+-		gspca_dev->ctrl_dis = (1 << EXPOSURE);
+-		break;
++	gspca_dev->vdev.ctrl_handler = hdl;
++	v4l2_ctrl_handler_init(hdl, 8);
++	sd->brightness = v4l2_ctrl_new_std(hdl, &zcxx_ctrl_ops,
++			V4L2_CID_BRIGHTNESS, 0, 255, 1, 128);
++	sd->contrast = v4l2_ctrl_new_std(hdl, &zcxx_ctrl_ops,
++			V4L2_CID_CONTRAST, 0, 255, 1, 128);
++	sd->gamma = v4l2_ctrl_new_std(hdl, &zcxx_ctrl_ops,
++			V4L2_CID_GAMMA, 1, 6, 1, gamma[sd->sensor]);
++	if (sd->sensor == SENSOR_HV7131R)
++		sd->exposure = v4l2_ctrl_new_std(hdl, &zcxx_ctrl_ops,
++			V4L2_CID_EXPOSURE, 0x30d, 0x493e, 1, 0x927);
++	sd->autogain = v4l2_ctrl_new_std(hdl, &zcxx_ctrl_ops,
++			V4L2_CID_AUTOGAIN, 0, 1, 1, 1);
++	if (sd->sensor != SENSOR_OV7630C && sd->sensor != SENSOR_PAS202B)
++		sd->plfreq = v4l2_ctrl_new_std_menu(hdl, &zcxx_ctrl_ops,
++			V4L2_CID_POWER_LINE_FREQUENCY,
++			V4L2_CID_POWER_LINE_FREQUENCY_60HZ, 0,
++			V4L2_CID_POWER_LINE_FREQUENCY_DISABLED);
++	sd->sharpness = v4l2_ctrl_new_std(hdl, &zcxx_ctrl_ops,
++			V4L2_CID_SHARPNESS, 0, 3, 1,
++			sd->sensor == SENSOR_PO2030 ? 0 : 2);
++	if (sd->sensor != SENSOR_HV7131R && sd->sensor != SENSOR_PAS202B)
++		sd->jpegqual = v4l2_ctrl_new_std(hdl, &zcxx_ctrl_ops,
++			V4L2_CID_JPEG_COMPRESSION_QUALITY,
++			jpeg_qual[0], jpeg_qual[ARRAY_SIZE(jpeg_qual) - 1], 1,
++			jpeg_qual[sd->reg08]);
++	if (hdl->error) {
++		pr_err("Could not initialize controls\n");
++		return hdl->error;
+ 	}
+-#if AUTOGAIN_DEF
+-	if (sd->ctrls[AUTOGAIN].val)
+-		gspca_dev->ctrl_inac = (1 << EXPOSURE);
+-#endif
++	v4l2_ctrl_cluster(3, &sd->gamma);
++	if (sd->sensor == SENSOR_HV7131R)
++		v4l2_ctrl_auto_cluster(2, &sd->autogain, 0, true);
++	sd->reg08 = reg08_tb[sd->sensor];
+ 
+ 	/* switch off the led */
+ 	reg_w(gspca_dev, 0x01, 0x0000);
+@@ -6864,7 +6858,7 @@ static int sd_start(struct gspca_dev *gspca_dev)
+ 		reg_w(gspca_dev, 0x03, 0x0008);
+ 		break;
+ 	}
+-	setsharpness(gspca_dev);
++	setsharpness(gspca_dev, v4l2_ctrl_g_ctrl(sd->sharpness));
+ 
+ 	/* set the gamma tables when not set */
+ 	switch (sd->sensor) {
+@@ -6873,7 +6867,9 @@ static int sd_start(struct gspca_dev *gspca_dev)
+ 	case SENSOR_OV7630C:
+ 		break;
+ 	default:
+-		setcontrast(gspca_dev);
++		setcontrast(&sd->gspca_dev, v4l2_ctrl_g_ctrl(sd->gamma),
++				v4l2_ctrl_g_ctrl(sd->brightness),
++				v4l2_ctrl_g_ctrl(sd->contrast));
+ 		break;
+ 	}
+ 	setmatrix(gspca_dev);			/* one more time? */
+@@ -6886,7 +6882,7 @@ static int sd_start(struct gspca_dev *gspca_dev)
+ 	}
+ 	setquality(gspca_dev);
+ 	jpeg_set_qual(sd->jpeg_hdr, jpeg_qual[sd->reg08]);
+-	setlightfreq(gspca_dev);
++	setlightfreq(gspca_dev, v4l2_ctrl_g_ctrl(sd->plfreq));
+ 
+ 	switch (sd->sensor) {
+ 	case SENSOR_ADCM2700:
+@@ -6897,7 +6893,7 @@ static int sd_start(struct gspca_dev *gspca_dev)
+ 		reg_w(gspca_dev, 0x40, 0x0117);
+ 		break;
+ 	case SENSOR_HV7131R:
+-		setexposure(gspca_dev);
++		setexposure(gspca_dev, v4l2_ctrl_g_ctrl(sd->exposure));
+ 		reg_w(gspca_dev, 0x00, ZC3XX_R1A7_CALCGLOBALMEAN);
+ 		break;
+ 	case SENSOR_GC0305:
+@@ -6921,7 +6917,7 @@ static int sd_start(struct gspca_dev *gspca_dev)
+ 		break;
+ 	}
+ 
+-	setautogain(gspca_dev);
++	setautogain(gspca_dev, v4l2_ctrl_g_ctrl(sd->autogain));
+ 
+ 	/* start the transfer update thread if needed */
+ 	if (gspca_dev->usb_err >= 0) {
+@@ -6987,86 +6983,6 @@ static void sd_pkt_scan(struct gspca_dev *gspca_dev,
+ 	gspca_frame_add(gspca_dev, INTER_PACKET, data, len);
+ }
+ 
+-static int sd_setautogain(struct gspca_dev *gspca_dev, __s32 val)
+-{
+-	struct sd *sd = (struct sd *) gspca_dev;
+-
+-	sd->ctrls[AUTOGAIN].val = val;
+-	if (val) {
+-		gspca_dev->ctrl_inac |= (1 << EXPOSURE);
+-	} else {
+-		gspca_dev->ctrl_inac &= ~(1 << EXPOSURE);
+-		if (gspca_dev->streaming)
+-			getexposure(gspca_dev);
+-	}
+-	if (gspca_dev->streaming)
+-		setautogain(gspca_dev);
+-	return gspca_dev->usb_err;
+-}
+-
+-static int sd_querymenu(struct gspca_dev *gspca_dev,
+-			struct v4l2_querymenu *menu)
+-{
+-	switch (menu->id) {
+-	case V4L2_CID_POWER_LINE_FREQUENCY:
+-		switch (menu->index) {
+-		case 0:		/* V4L2_CID_POWER_LINE_FREQUENCY_DISABLED */
+-			strcpy((char *) menu->name, "NoFliker");
+-			return 0;
+-		case 1:		/* V4L2_CID_POWER_LINE_FREQUENCY_50HZ */
+-			strcpy((char *) menu->name, "50 Hz");
+-			return 0;
+-		case 2:		/* V4L2_CID_POWER_LINE_FREQUENCY_60HZ */
+-			strcpy((char *) menu->name, "60 Hz");
+-			return 0;
+-		}
+-		break;
+-	}
+-	return -EINVAL;
+-}
+-
+-static int sd_setquality(struct gspca_dev *gspca_dev, __s32 val)
+-{
+-	struct sd *sd = (struct sd *) gspca_dev;
+-	int i;
+-
+-	for (i = 0; i < ARRAY_SIZE(jpeg_qual) - 1; i++) {
+-		if (val <= jpeg_qual[i])
+-			break;
+-	}
+-	if (i > 0
+-	 && i == sd->reg08
+-	 && val < jpeg_qual[sd->reg08])
+-		i--;
+-	sd->reg08 = i;
+-	sd->ctrls[QUALITY].val = jpeg_qual[i];
+-	if (gspca_dev->streaming)
+-		jpeg_set_qual(sd->jpeg_hdr, sd->ctrls[QUALITY].val);
+-	return gspca_dev->usb_err;
+-}
+-
+-static int sd_set_jcomp(struct gspca_dev *gspca_dev,
+-			struct v4l2_jpegcompression *jcomp)
+-{
+-	struct sd *sd = (struct sd *) gspca_dev;
+-
+-	sd_setquality(gspca_dev, jcomp->quality);
+-	jcomp->quality = sd->ctrls[QUALITY].val;
+-	return gspca_dev->usb_err;
+-}
+-
+-static int sd_get_jcomp(struct gspca_dev *gspca_dev,
+-			struct v4l2_jpegcompression *jcomp)
+-{
+-	struct sd *sd = (struct sd *) gspca_dev;
+-
+-	memset(jcomp, 0, sizeof *jcomp);
+-	jcomp->quality = sd->ctrls[QUALITY].val;
+-	jcomp->jpeg_markers = V4L2_JPEG_MARKER_DHT
+-			| V4L2_JPEG_MARKER_DQT;
+-	return 0;
+-}
+-
+ #if defined(CONFIG_INPUT) || defined(CONFIG_INPUT_MODULE)
+ static int sd_int_pkt_scan(struct gspca_dev *gspca_dev,
+ 			u8 *data,		/* interrupt packet data */
+@@ -7085,14 +7001,11 @@ static int sd_int_pkt_scan(struct gspca_dev *gspca_dev,
+ 
+ static const struct sd_desc sd_desc = {
+ 	.name = KBUILD_MODNAME,
+-	.ctrls = sd_ctrls,
+-	.nctrls = ARRAY_SIZE(sd_ctrls),
+ 	.config = sd_config,
+ 	.init = sd_init,
+ 	.start = sd_start,
+ 	.stop0 = sd_stop0,
+ 	.pkt_scan = sd_pkt_scan,
+-	.querymenu = sd_querymenu,
+ 	.get_jcomp = sd_get_jcomp,
+ 	.set_jcomp = sd_set_jcomp,
+ #if defined(CONFIG_INPUT) || defined(CONFIG_INPUT_MODULE)
 -- 
-1.7.0.4
+1.7.10
 
