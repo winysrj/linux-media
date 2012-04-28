@@ -1,94 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:41467 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754530Ab2DCOK1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Apr 2012 10:10:27 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Date: Tue, 03 Apr 2012 16:10:12 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCHv24 07/16] mm: page_alloc: change fallbacks array handling
-In-reply-to: <1333462221-3987-1-git-send-email-m.szyprowski@samsung.com>
-To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org
-Cc: Michal Nazarewicz <mina86@mina86.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
-	Jesse Barker <jesse.barker@linaro.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Chunsang Jeong <chunsang.jeong@linaro.org>,
-	Dave Hansen <dave@linux.vnet.ibm.com>,
-	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-	Rob Clark <rob.clark@linaro.org>,
-	Ohad Ben-Cohen <ohad@wizery.com>,
-	Sandeep Patil <psandeep.s@gmail.com>
-Message-id: <1333462221-3987-8-git-send-email-m.szyprowski@samsung.com>
-References: <1333462221-3987-1-git-send-email-m.szyprowski@samsung.com>
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:4238 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751028Ab2D1LNH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 28 Apr 2012 07:13:07 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "linux-media" <linux-media@vger.kernel.org>
+Subject: Re: [GIT PULL FOR v3.5] An ivtv fix and support suspend/resume in radio-keene
+Date: Sat, 28 Apr 2012 13:12:48 +0200
+Cc: Andy Walls <awalls@md.metrocast.net>,
+	Ondrej Zary <linux@rainbow-software.org>
+References: <201204271356.37069.hverkuil@xs4all.nl>
+In-Reply-To: <201204271356.37069.hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201204281312.48543.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Michal Nazarewicz <mina86@mina86.com>
+Hi Mauro,
 
-This commit adds a row for MIGRATE_ISOLATE type to the fallbacks array
-which was missing from it.  It also, changes the array traversal logic
-a little making MIGRATE_RESERVE an end marker.  The letter change,
-removes the implicit MIGRATE_UNMOVABLE from the end of each row which
-was read by __rmqueue_fallback() function.
+One other fix was added:
 
-Signed-off-by: Michal Nazarewicz <mina86@mina86.com>
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Acked-by: Mel Gorman <mel@csn.ul.ie>
-Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Tested-by: Rob Clark <rob.clark@linaro.org>
-Tested-by: Ohad Ben-Cohen <ohad@wizery.com>
-Tested-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Tested-by: Robert Nelson <robertcnelson@gmail.com>
-Tested-by: Barry Song <Baohua.Song@csr.com>
----
- mm/page_alloc.c |    9 +++++----
- 1 files changed, 5 insertions(+), 4 deletions(-)
+      radio-isa: fix memory leak
 
-diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index 2c0f68a..8e8cd7e 100644
---- a/mm/page_alloc.c
-+++ b/mm/page_alloc.c
-@@ -875,11 +875,12 @@ struct page *__rmqueue_smallest(struct zone *zone, unsigned int order,
-  * This array describes the order lists are fallen back to when
-  * the free lists for the desirable migrate type are depleted
-  */
--static int fallbacks[MIGRATE_TYPES][MIGRATE_TYPES-1] = {
-+static int fallbacks[MIGRATE_TYPES][3] = {
- 	[MIGRATE_UNMOVABLE]   = { MIGRATE_RECLAIMABLE, MIGRATE_MOVABLE,   MIGRATE_RESERVE },
- 	[MIGRATE_RECLAIMABLE] = { MIGRATE_UNMOVABLE,   MIGRATE_MOVABLE,   MIGRATE_RESERVE },
- 	[MIGRATE_MOVABLE]     = { MIGRATE_RECLAIMABLE, MIGRATE_UNMOVABLE, MIGRATE_RESERVE },
--	[MIGRATE_RESERVE]     = { MIGRATE_RESERVE,     MIGRATE_RESERVE,   MIGRATE_RESERVE }, /* Never used */
-+	[MIGRATE_RESERVE]     = { MIGRATE_RESERVE }, /* Never used */
-+	[MIGRATE_ISOLATE]     = { MIGRATE_RESERVE }, /* Never used */
- };
- 
- /*
-@@ -974,12 +975,12 @@ __rmqueue_fallback(struct zone *zone, int order, int start_migratetype)
- 	/* Find the largest possible block of pages in the other list */
- 	for (current_order = MAX_ORDER-1; current_order >= order;
- 						--current_order) {
--		for (i = 0; i < MIGRATE_TYPES - 1; i++) {
-+		for (i = 0;; i++) {
- 			migratetype = fallbacks[start_migratetype][i];
- 
- 			/* MIGRATE_RESERVE handled later if necessary */
- 			if (migratetype == MIGRATE_RESERVE)
--				continue;
-+				break;
- 
- 			area = &(zone->free_area[current_order]);
- 			if (list_empty(&area->free_list[migratetype]))
--- 
-1.7.1.569.g6f426
+ drivers/media/radio/radio-isa.c        |    8 +++-----
 
+v4l2_ctrl_handler_free wasn't called if there was a problem creating controls.
+
+Regards,
+
+	Hans
+
+On Friday, April 27, 2012 13:56:37 Hans Verkuil wrote:
+> Hi Mauro,
+> 
+> One small trivial ivtv fix and a patch that adds support for suspend/resume
+> to the radio-keene driver.
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> The following changes since commit bcb2cf6e0bf033d79821c89e5ccb328bfbd44907:
+> 
+>   [media] ngene: remove an unneeded condition (2012-04-26 15:29:23 -0300)
+> 
+> are available in the git repository at:
+> 
+>   git://linuxtv.org/hverkuil/media_tree.git fixes
+> 
+> for you to fetch changes up to 71ea18d3e92d834926751f8460cf6893424b3852:
+> 
+>   radio-keene: support suspend/resume. (2012-04-27 09:57:02 +0200)
+> 
+> ----------------------------------------------------------------
+> Hans Verkuil (2):
+>       ivtv: set max/step to 0 for PTS and FRAME controls.
+>       radio-keene: support suspend/resume.
+> 
+>  drivers/media/radio/radio-keene.c      |   20 ++++++++++++++++++++
+>  drivers/media/video/ivtv/ivtv-driver.c |    4 ++--
+>  2 files changed, 22 insertions(+), 2 deletions(-)
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
