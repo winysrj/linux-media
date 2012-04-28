@@ -1,55 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nm25-vm6.bullet.mail.ukl.yahoo.com ([217.146.177.150]:35295
-	"HELO nm25-vm6.bullet.mail.ukl.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1757617Ab2DFUVJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 6 Apr 2012 16:21:09 -0400
-Message-ID: <4F7F5030.4070205@yahoo.com>
-Date: Fri, 06 Apr 2012 21:21:04 +0100
-From: Chris Rankin <rankincj@yahoo.com>
+Received: from mx1.redhat.com ([209.132.183.28]:62916 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754381Ab2D1OUh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 28 Apr 2012 10:20:37 -0400
+Message-ID: <4F9BF440.7060907@redhat.com>
+Date: Sat, 28 Apr 2012 15:44:32 +0200
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: linux-media@vger.kernel.org
-Subject: [PATCH] Linux 3.3 DVB userspace ABI broken for xine (FE_SET_FRONTEND)
-References: <4F7F4CAF.4010501@yahoo.com>
-In-Reply-To: <4F7F4CAF.4010501@yahoo.com>
-Content-Type: multipart/mixed;
- boundary="------------000300010701050707020300"
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: Jean-Francois Moine <moinejf@free.fr>
+Subject: [GIT PULL FOR 3.5] gspca_pac73XX improvements + misc fixes
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------000300010701050707020300
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Hi Mauro et al,
 
-In fact, the following patch works for me.
+Please pull from my tree for a bunch of gspca_pac73XX
+improvements and 1 other webcam driver fix.
 
-Signed-off-by: Chris Rankin <rankincj@yahoo.com>
+The following changes since commit bcb2cf6e0bf033d79821c89e5ccb328bfbd44907:
 
+   [media] ngene: remove an unneeded condition (2012-04-26 15:29:23 -0300)
 
---------------000300010701050707020300
-Content-Type: text/x-patch;
- name="DVB.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="DVB.diff"
+are available in the git repository at:
 
---- linux-3.3/drivers/media/dvb/dvb-core/dvb_frontend.c.orig	2012-04-06 20:16:02.000000000 +0100
-+++ linux-3.3/drivers/media/dvb/dvb-core/dvb_frontend.c	2012-04-06 21:17:38.000000000 +0100
-@@ -1831,6 +1831,13 @@
- 		return -EINVAL;
- 
- 	/*
-+	 * Initialize output parameters to match the values given by
-+	 * the user. FE_SET_FRONTEND triggers an initial frontend event
-+	 * with status = 0, which copies output parameters to userspace.
-+	 */
-+	dtv_property_legacy_params_sync(fe, &fepriv->parameters_out);
-+
-+	/*
- 	 * Be sure that the bandwidth will be filled for all
- 	 * non-satellite systems, as tuners need to know what
- 	 * low pass/Nyquist half filter should be applied, in
+   git://linuxtv.org/hgoede/gspca.git media-for_v3.5
 
---------------000300010701050707020300--
+for you to fetch changes up to c9b5378afdfc2fa3eecae2cf8d2e20c40e60496c:
+
+   gspca_pac7302: Improve the gain control (2012-04-28 15:37:59 +0200)
+
+----------------------------------------------------------------
+Hans de Goede (12):
+       stk-webcam: Don't flip the image by default
+       gspca/autogain_functions.h: Allow users to declare what they want
+       gspca_pac73xx: Remove comments from before the 7302 / 7311 separation
+       gspca_pac7311: Make sure exposure changes get applied immediately
+       gspca_pac7311: Adjust control scales to match registers
+       gspca_pac7311: Switch to new gspca control mechanism
+       gspca_pac7311: Switch to coarse expo autogain algorithm
+       gspca_pac7311: Convert multi-line comments to standard kernel style
+       gspca_pac7311: Properly set the compression balance
+       gspca_pac7302: Convert multi-line comments to standard kernel style
+       gspca_pac7302: Document some more registers
+       gspca_pac7302: Improve the gain control
+
+  drivers/media/video/gspca/autogain_functions.h |    6 +-
+  drivers/media/video/gspca/nw80x.c              |    2 +
+  drivers/media/video/gspca/pac7302.c            |  184 +++++++-----
+  drivers/media/video/gspca/pac7311.c            |  380 +++++++-----------------
+  drivers/media/video/gspca/sonixb.c             |    2 +
+  drivers/media/video/gspca/sonixj.c             |    5 +-
+  drivers/media/video/gspca/topro.c              |    6 +-
+  drivers/media/video/stk-webcam.c               |    8 +-
+  8 files changed, 239 insertions(+), 354 deletions(-)
+
+Thanks & Regards,
+
+Hans
