@@ -1,66 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:52565 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752453Ab2DTJro (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Apr 2012 05:47:44 -0400
-Message-ID: <4F9130BB.8060107@iki.fi>
-Date: Fri, 20 Apr 2012 12:47:39 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: "nibble.max" <nibble.max@gmail.com>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 1/6] m88ds3103, montage dvb-s/s2 demodulator driver
-References: <1327228731.2540.3.camel@tvbox>, <4F2185A1.2000402@redhat.com>, <201204152353103757288@gmail.com> <201204201601166255937@gmail.com>
-In-Reply-To: <201204201601166255937@gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:39154 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753726Ab2D1N5R (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 28 Apr 2012 09:57:17 -0400
+Received: by yenl12 with SMTP id l12so920633yen.19
+        for <linux-media@vger.kernel.org>; Sat, 28 Apr 2012 06:57:16 -0700 (PDT)
+From: elezegarcia@gmail.com
+To: mchehab@infradead.org
+Cc: crope@iki.fi, gennarone@gmail.com, linux-media@vger.kernel.org,
+	Ezequiel Garcia <elezegarcia@gmail.com>
+Subject: [PATCH] em28xx: Make card_setup() and pre_card_setup() static
+Date: Sat, 28 Apr 2012 10:57:01 -0300
+Message-Id: <4f9bf73c.a54dec0a.47ed.ffff85c4@mx.google.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 20.04.2012 11:01, nibble.max wrote:
-> 2012-04-20 15:56:27 nibble.max@gmail.com
-> At first time, I check it exist so try to patch it.
-> But with new m88ds3103 features to add and ts2022 tuner include, find it is hard to do simply patch.
-> It is better to create a new driver for maintain.
->> Hi Max,
->>
->> Em 15-04-2012 12:53, nibble.max escreveu:
->>> Montage m88ds3103 demodulator and ts2022 tuner driver.
->>
->> It was pointed to me that this device were already discussed on:
->>
->>    http://www.mail-archive.com/linux-media@vger.kernel.org/msg43109.html
->>
->> If m88ds3103 demod is similar enough to ds3000, it should just add the needed
->> bits at the existing driver, and not creating a new driver.
->>
->> Thanks,
->> Mauro
+From: Ezequiel Garcia <elezegarcia@gmail.com>
 
-The main problem of these all existing and upcoming Montage DVB-S/S2 
-drivers are those are not split originally correct as a tuner and demod 
-and now it causes problems.
+This cleans namespace a bit by making em28xx_card_setup()
+em28xx_pre_card_setup() static functions.
 
-I really suspect it should be:
-* single demod driver that supports both DS3000 and DS3103
-* single tuner driver that supports both TS2020 and TS2022
+Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
+---
+ drivers/media/video/em28xx/em28xx-cards.c |    6 ++++--
+ drivers/media/video/em28xx/em28xx.h       |    2 --
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-And now what we have is 2 drivers that contains both tuner and demod. 
-And a lot of same code. :-(
-
-But it is almost impossible to split it correctly at that phase if you 
-don't have both hardware combinations, DS3000/TS2020 and DS3103/TS2022. 
-I think it is best to leave old DS3000 as it is and make new driver for 
-DS3103 *and* TS2022. Maybe after that someone could add DS3000 support 
-to new DS3103 driver and TS2020 support to new TS2022 driver. After that 
-it is possible to remove old DS3000 driver.
-
-And we should really consider make simple rule not to accept any driver 
-which is not split as logical parts: USB/PCI-interface + demodulator + 
-tuner.
-
-regards
-Antti
+diff --git a/drivers/media/video/em28xx/em28xx-cards.c b/drivers/media/video/em28xx/em28xx-cards.c
+index 9fd8cc7..5c0fd9f 100644
+--- a/drivers/media/video/em28xx/em28xx-cards.c
++++ b/drivers/media/video/em28xx/em28xx-cards.c
+@@ -69,6 +69,8 @@ struct em28xx_hash_table {
+ 	unsigned int  tuner;
+ };
+ 
++static void em28xx_pre_card_setup(struct em28xx *dev);
++
+ /*
+  *  Reset sequences for analog/digital modes
+  */
+@@ -2361,7 +2363,7 @@ static int em28xx_hint_sensor(struct em28xx *dev)
+ /* Since em28xx_pre_card_setup() requires a proper dev->model,
+  * this won't work for boards with generic PCI IDs
+  */
+-void em28xx_pre_card_setup(struct em28xx *dev)
++static void em28xx_pre_card_setup(struct em28xx *dev)
+ {
+ 	/* Set the initial XCLK and I2C clock values based on the board
+ 	   definition */
+@@ -2709,7 +2711,7 @@ void em28xx_register_i2c_ir(struct em28xx *dev)
+ 	i2c_new_probed_device(&dev->i2c_adap, &info, addr_list, NULL);
+ }
+ 
+-void em28xx_card_setup(struct em28xx *dev)
++static void em28xx_card_setup(struct em28xx *dev)
+ {
+ 	/*
+ 	 * If the device can be a webcam, seek for a sensor.
+diff --git a/drivers/media/video/em28xx/em28xx.h b/drivers/media/video/em28xx/em28xx.h
+index 2868b19..100d1e8 100644
+--- a/drivers/media/video/em28xx/em28xx.h
++++ b/drivers/media/video/em28xx/em28xx.h
+@@ -710,8 +710,6 @@ void em28xx_release_analog_resources(struct em28xx *dev);
+ 
+ /* Provided by em28xx-cards.c */
+ extern int em2800_variant_detect(struct usb_device *udev, int model);
+-extern void em28xx_pre_card_setup(struct em28xx *dev);
+-extern void em28xx_card_setup(struct em28xx *dev);
+ extern struct em28xx_board em28xx_boards[];
+ extern struct usb_device_id em28xx_id_table[];
+ extern const unsigned int em28xx_bcount;
 -- 
-http://palosaari.fi/
+1.7.3.4
+
