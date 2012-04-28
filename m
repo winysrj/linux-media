@@ -1,86 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mgw2.diku.dk ([130.225.96.92]:37352 "EHLO mgw2.diku.dk"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750921Ab2DVLyt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 22 Apr 2012 07:54:49 -0400
-From: Julia Lawall <Julia.Lawall@lip6.fr>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: kernel-janitors@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH] drivers/media/video/au0828/au0828-video.c: add missing video_device_release
-Date: Sun, 22 Apr 2012 13:54:42 +0200
-Message-Id: <1335095682-16530-1-git-send-email-Julia.Lawall@lip6.fr>
+Received: from mail-pz0-f51.google.com ([209.85.210.51]:48335 "EHLO
+	mail-pz0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753723Ab2D1JR5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 28 Apr 2012 05:17:57 -0400
+Received: by dadz8 with SMTP id z8so1993526dad.10
+        for <linux-media@vger.kernel.org>; Sat, 28 Apr 2012 02:17:57 -0700 (PDT)
+Date: Sat, 28 Apr 2012 17:17:50 +0800
+From: "nibble.max" <nibble.max@gmail.com>
+To: "Antti Palosaari" <crope@iki.fi>
+Cc: "linux-media" <linux-media@vger.kernel.org>
+References: <1327228731.2540.3.camel@tvbox>,
+ <4F2185A1.2000402@redhat.com>,
+ <201204152353103757288@gmail.com>,
+ <201204201601166255937@gmail.com>,
+ <4F9130BB.8060107@iki.fi>,
+ <201204211045557968605@gmail.com>,
+ <4F958640.9010404@iki.fi>,
+ <CAF0Ff2nNP6WRUWcs7PqVRxhXHCmUFqqswL4757WijFaKT5P5-w@mail.gmail.com>,
+ <4F95CE59.1020005@redhat.com>,
+ <CAF0Ff2m_6fM1QV+Jic7viHXQ7edTe8ZwigjjhdtFwMfhCszuKQ@mail.gmail.com>
+Subject: Demod hardware pid filter implement
+Message-ID: <201204281717449375969@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Julia Lawall <Julia.Lawall@lip6.fr>
+Hello Antti,
+As we known that AF9013 has the hardware pid filter capability.
+How to implement the hardware pid filter, which the demodulator has this capability?
 
-At the point of the call to video_register_device, both dev->vbi_dev and
-dev->vdev have been allocated, and so should be freed on failure.  The
-error-handling code is moved to the end of the function, to avoid code
-duplication.
+For usb, i find 
+struct dvb_usb_adapter_fe_properties {
+int (*pid_filter_ctrl) (struct dvb_usb_adapter *, int);
+int (*pid_filter)      (struct dvb_usb_adapter *, int, u16, int);
+.......
+It can implement the hardware filter if the demodulator has.
 
-Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+But on the other interface, i do not find similar solution.
+For example, we have a hardware of AF9013 and CX23885 pcie chip and want to use the hardware pid filter in AF9013.
+i find some codes to hook the dvb.demux to do that pid filtering.
+I think it is demod property, but the current "dvb_frontend_ops" has no definition for this.
+It is better that adding a function pointer of pid filtering in "dvb_frontend_ops" to do in general way.
+What is your idea?
 
----
- drivers/media/video/au0828/au0828-video.c |   21 +++++++++++++--------
- 1 file changed, 13 insertions(+), 8 deletions(-)
-
-diff --git a/drivers/media/video/au0828/au0828-video.c b/drivers/media/video/au0828/au0828-video.c
-index 0b3e481..141f9c2 100644
---- a/drivers/media/video/au0828/au0828-video.c
-+++ b/drivers/media/video/au0828/au0828-video.c
-@@ -1881,7 +1881,7 @@ int au0828_analog_register(struct au0828_dev *dev,
- 	int retval = -ENOMEM;
- 	struct usb_host_interface *iface_desc;
- 	struct usb_endpoint_descriptor *endpoint;
--	int i;
-+	int i, ret;
- 
- 	dprintk(1, "au0828_analog_register called!\n");
- 
-@@ -1951,8 +1951,8 @@ int au0828_analog_register(struct au0828_dev *dev,
- 	dev->vbi_dev = video_device_alloc();
- 	if (NULL == dev->vbi_dev) {
- 		dprintk(1, "Can't allocate vbi_device.\n");
--		kfree(dev->vdev);
--		return -ENOMEM;
-+		ret = -ENOMEM;
-+		goto err_vdev;
- 	}
- 
- 	/* Fill the video capture device struct */
-@@ -1971,8 +1971,8 @@ int au0828_analog_register(struct au0828_dev *dev,
- 	if (retval != 0) {
- 		dprintk(1, "unable to register video device (error = %d).\n",
- 			retval);
--		video_device_release(dev->vdev);
--		return -ENODEV;
-+		ret = -ENODEV;
-+		goto err_vbi_dev;
- 	}
- 
- 	/* Register the vbi device */
-@@ -1981,13 +1981,18 @@ int au0828_analog_register(struct au0828_dev *dev,
- 	if (retval != 0) {
- 		dprintk(1, "unable to register vbi device (error = %d).\n",
- 			retval);
--		video_device_release(dev->vbi_dev);
--		video_device_release(dev->vdev);
--		return -ENODEV;
-+		ret = -ENODEV;
-+		goto err_vbi_dev;
- 	}
- 
- 	dprintk(1, "%s completed!\n", __func__);
- 
- 	return 0;
-+
-+err_vbi_dev:
-+	video_device_release(dev->vbi_dev);
-+err_vdev:
-+	video_device_release(dev->vdev);
-+	return ret;
- }
- 
+BR,
+Max
 
