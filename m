@@ -1,39 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:34569 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752861Ab2DPUBN (ORCPT
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:60835 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753726Ab2D1N5Z (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Apr 2012 16:01:13 -0400
-Date: Mon, 16 Apr 2012 23:01:08 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH v3 8/9] omap3isp: preview: Simplify configuration
- parameters access
-Message-ID: <20120416200108.GC5356@valkosipuli.localdomain>
-References: <1334582994-6967-1-git-send-email-laurent.pinchart@ideasonboard.com>
- <1334582994-6967-9-git-send-email-laurent.pinchart@ideasonboard.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1334582994-6967-9-git-send-email-laurent.pinchart@ideasonboard.com>
+	Sat, 28 Apr 2012 09:57:25 -0400
+Received: by ghrr11 with SMTP id r11so923311ghr.19
+        for <linux-media@vger.kernel.org>; Sat, 28 Apr 2012 06:57:25 -0700 (PDT)
+From: elezegarcia@gmail.com
+To: mchehab@infradead.org
+Cc: crope@iki.fi, gennarone@gmail.com, linux-media@vger.kernel.org,
+	Ezequiel Garcia <elezegarcia@gmail.com>
+Subject: [PATCH] em28xx: Remove unused list_head struct for queued buffers
+Date: Sat, 28 Apr 2012 10:57:02 -0300
+Message-Id: <4f9bf744.a54dec0a.47ed.ffff85cc@mx.google.com>
+In-Reply-To: <1335621422-4083-1-git-send-email-y>
+References: <1335621422-4083-1-git-send-email-y>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+From: Ezequiel Garcia <elezegarcia@gmail.com>
 
-Thanks for the patch.
+The list_head struct usage was fully removed by commit
+d7aa80207babe694b316a48200b096cf0336ecb3.
 
-On Mon, Apr 16, 2012 at 03:29:53PM +0200, Laurent Pinchart wrote:
-> Instead of using a large switch/case statement to return offsets to and
-> sizes of individual preview engine parameters in the parameters and
-> configuration structures, store the information in the update_attrs
-> table and use it at runtime.
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
+---
+ drivers/media/video/em28xx/em28xx-cards.c |    2 --
+ drivers/media/video/em28xx/em28xx.h       |    1 -
+ 2 files changed, 0 insertions(+), 3 deletions(-)
 
-Acked-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-
+diff --git a/drivers/media/video/em28xx/em28xx-cards.c b/drivers/media/video/em28xx/em28xx-cards.c
+index 5c0fd9f..eea90b0 100644
+--- a/drivers/media/video/em28xx/em28xx-cards.c
++++ b/drivers/media/video/em28xx/em28xx-cards.c
+@@ -3142,9 +3142,7 @@ static int em28xx_init_dev(struct em28xx *dev, struct usb_device *udev,
+ 
+ 	/* init video dma queues */
+ 	INIT_LIST_HEAD(&dev->vidq.active);
+-	INIT_LIST_HEAD(&dev->vidq.queued);
+ 	INIT_LIST_HEAD(&dev->vbiq.active);
+-	INIT_LIST_HEAD(&dev->vbiq.queued);
+ 
+ 	if (dev->board.has_msp34xx) {
+ 		/* Send a reset to other chips via gpio */
+diff --git a/drivers/media/video/em28xx/em28xx.h b/drivers/media/video/em28xx/em28xx.h
+index 100d1e8..87766f1 100644
+--- a/drivers/media/video/em28xx/em28xx.h
++++ b/drivers/media/video/em28xx/em28xx.h
+@@ -269,7 +269,6 @@ struct em28xx_buffer {
+ 
+ struct em28xx_dmaqueue {
+ 	struct list_head       active;
+-	struct list_head       queued;
+ 
+ 	wait_queue_head_t          wq;
+ 
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+1.7.3.4
+
