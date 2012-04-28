@@ -1,79 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:46804 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754726Ab2D3KUZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Apr 2012 06:20:25 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Bhupesh SHARMA <bhupesh.sharma@st.com>
-Cc: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"balbi@ti.com" <balbi@ti.com>,
-	"g.liakhovetski@gmx.de" <g.liakhovetski@gmx.de>
-Subject: Re: Using UVC webcam gadget with a real v4l2 device
-Date: Mon, 30 Apr 2012 12:20:47 +0200
-Message-ID: <1649797.NTzsYukYS5@avalon>
-In-Reply-To: <D5ECB3C7A6F99444980976A8C6D896384FA4445DA8@EAPEX1MAIL1.st.com>
-References: <D5ECB3C7A6F99444980976A8C6D896384FA44454C7@EAPEX1MAIL1.st.com> <4085740.9DbpdWgfF6@avalon> <D5ECB3C7A6F99444980976A8C6D896384FA4445DA8@EAPEX1MAIL1.st.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from plane.gmane.org ([80.91.229.3]:54968 "EHLO plane.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751823Ab2D1WVl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 28 Apr 2012 18:21:41 -0400
+Received: from list by plane.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1SOG1K-0007mD-Rz
+	for linux-media@vger.kernel.org; Sun, 29 Apr 2012 00:21:38 +0200
+Received: from d67-193-214-242.home3.cgocable.net ([67.193.214.242])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Sun, 29 Apr 2012 00:21:38 +0200
+Received: from brian by d67-193-214-242.home3.cgocable.net with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Sun, 29 Apr 2012 00:21:38 +0200
+To: linux-media@vger.kernel.org
+From: "Brian J. Murrell" <brian@interlinx.bc.ca>
+Subject: Re: HVR-1600 QAM recordings with slight glitches in them
+Date: Sat, 28 Apr 2012 18:21:28 -0400
+Message-ID: <4F9C6D68.3090202@interlinx.bc.ca>
+References: <jn2ibp$pot$1@dough.gmane.org>  <1335307344.8218.11.camel@palomino.walls.org>  <jn7pph$qed$1@dough.gmane.org> <1335624964.2665.37.camel@palomino.walls.org> <4F9C38BE.3010301@interlinx.bc.ca> <4F9C559E.6010208@interlinx.bc.ca>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="------------enigACB1966D9C54569E7EEB4539"
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	stoth@kernellabs.com
+In-Reply-To: <4F9C559E.6010208@interlinx.bc.ca>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Bhupesh,
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--------------enigACB1966D9C54569E7EEB4539
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 
-On Thursday 26 April 2012 13:23:59 Bhupesh SHARMA wrote:
-> Hi Laurent,
-> 
-> Sorry to jump-in before your reply on my previous mail,
-> but as I was studying the USERPTR stuff in more detail, I have a few more
-> queries which I believe you can include in your reply as well..
+On 12-04-28 04:39 PM, Brian J. Murrell wrote:
+> I typically have one more splitter downstream from that 3 way splitter
+> which is a 4 way splitter to feed all of the tuners on my Mythtv box an=
+d
+> introducing that splitter reduces the SNR at the HVR-1600 to between
+> "13c" and "13e" (31.6 - 31.8 dB).
 
-[snip]
+Interestingly enough, I moved the Myth backend to it's usual home, in
+the basement, right next to the incoming cable signal and replaced that
+25' run that I had going to where it was temporarily with a smaller, say
+10' run (of RG-59 so still room for improvement) and my SNR at the
+HVR-1600, even after all of the splitters is now "015c" or 34.8 dB.
 
-> I am now a bit confused on how the entire system will work now:
-> 	- Does USERPTR method needs to be supported both in UVC gadget and
-> soc-camera side, or one can still support the MMAP method and the other can
-> now be changed to support USERPTR method and we can achieve a ZERO buffer
-> copy operation using this method?
+I'm still going to go replacing all of that RG-59 with shorter, custom
+made lengths of RG6 cables.  I can't go "too short" when making those
+can I or would even a 6-12 inch cable be perfectly fine?  I'm thinking
+of the runs between that last 4 way splitter and the tuners in the Myth
+backend.
 
-You need USERPTR support on one side only. In practice many (all?) soc-camera 
-drivers require physically contiguous memory, so you will need to use MMAP on 
-the soc-camera side and USERPTR on the UVC gadget side. DMABUF, when merged in 
-the kernel, will be a better solution (but will require all drivers to use 
-vb2).
+b.
 
-> 	- More specifically, I would like to keep the soc-camera still using MMAP
-> (and hence still using video-buf) and make changes at the UVC gadget side
-> to support USERPTR and videobuf2. Will this work?
 
-Please see above :-)
+--------------enigACB1966D9C54569E7EEB4539
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
-> 	- At the application side how should we design the flow in case both
-> support USERPTR, i.e. the buffer needs to be protected from simultaneous
-> access from the UVC gadget driver and soc-camera driver (to ensure that a
-> single buffer can be shared across them). Also in case we keep soc-camera
-> still using MMAP and UVC gadget side supporting USERPTR, how can we share a
-> common buffer across the UVC gadget and soc-camera driver.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
 
-That's easy. Request the same number of buffers on both sides with REQBUFS, 
-mmap() them to userspace on the soc-camera side, and then use the user pointer 
-to queue them with QBUF on the UVC side. You just need to ensure that a buffer 
-is never enqueued to two drivers at the same time. Wait for buffers to be 
-ready on both sides with select(), and when a buffer is ready dequeue it and 
-requeue it on the other side.
+iEYEARECAAYFAk+cbWgACgkQl3EQlGLyuXD2agCgnyBGnwnc763jgX+/QkwguM9s
+LXAAoMUTqQIHOQHpV6vhRRQQCKOK53iI
+=N48X
+-----END PGP SIGNATURE-----
 
-> 	- In case of USERPTR method the camera capture hardware should be able to
-> DMA the received data to the user space buffers. Are there any specific
-> requirements on the DMA capability of these use-space buffers
-> (scatter-gather or contiguous?).
-
-DMA to userspace is quite hackish. You should use the MMAP method on the soc-
-camera side.
-
--- 
-Regards,
-
-Laurent Pinchart
+--------------enigACB1966D9C54569E7EEB4539--
 
