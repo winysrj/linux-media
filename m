@@ -1,71 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from plane.gmane.org ([80.91.229.3]:55579 "EHLO plane.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750825Ab2D1ShF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 Apr 2012 14:37:05 -0400
-Received: from list by plane.gmane.org with local (Exim 4.69)
-	(envelope-from <gldv-linux-media@m.gmane.org>)
-	id 1SOCVx-0004lw-8g
-	for linux-media@vger.kernel.org; Sat, 28 Apr 2012 20:37:01 +0200
-Received: from d67-193-214-242.home3.cgocable.net ([67.193.214.242])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Sat, 28 Apr 2012 20:37:01 +0200
-Received: from brian by d67-193-214-242.home3.cgocable.net with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Sat, 28 Apr 2012 20:37:01 +0200
+Received: from perceval.ideasonboard.com ([95.142.166.194]:44318 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751864Ab2D2R6j convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 29 Apr 2012 13:58:39 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-From: "Brian J. Murrell" <brian@interlinx.bc.ca>
-Subject: Re: HVR-1600 QAM recordings with slight glitches in them
-Date: Sat, 28 Apr 2012 14:36:46 -0400
-Message-ID: <4F9C38BE.3010301@interlinx.bc.ca>
-References: <jn2ibp$pot$1@dough.gmane.org>  <1335307344.8218.11.camel@palomino.walls.org>  <jn7pph$qed$1@dough.gmane.org> <1335624964.2665.37.camel@palomino.walls.org>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="------------enig1088C02125DB5A73EEE26A67"
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	stoth@kernellabs.com
-In-Reply-To: <1335624964.2665.37.camel@palomino.walls.org>
+Cc: Hans de Goede <hdegoede@redhat.com>
+Subject: [GIT PULL for v3.5] Control events support for uvcvideo
+Date: Sun, 29 Apr 2012 19:59:01 +0200
+Message-ID: <3052114.LipUdaOlsN@avalon>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enig1088C02125DB5A73EEE26A67
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Hi Mauro,
 
-One more question...
+The following changes since commit bcb2cf6e0bf033d79821c89e5ccb328bfbd44907:
 
-On 12-04-28 10:56 AM, Andy Walls wrote:
->
-> So I see SNR values from 0x138 to 0x13c ( 31.2 dB to 31.6 dB ) when you=
+  [media] ngene: remove an unneeded condition (2012-04-26 15:29:23 -0300)
 
-> have problems.  For 256-QAM cable signals, I think that is considered
-> marginal. =20
+are available in the git repository at:
+  git://linuxtv.org/pinchartl/uvcvideo.git uvcvideo-events
 
-I've never gotten my mind around SNRs and dBs, etc.  Generally speaking,
-am I looking for these "snr" values to go up or down (i.e. closer to 0
-or further away) to make my signal better?
+Hans de Goede (10):
+      media/radio: use v4l2_ctrl_subscribe_event where possible
+      v4l2-event: Add v4l2_subscribed_event_ops
+      v4l2-ctrls: Use v4l2_subscribed_event_ops
+      uvcvideo: Fix a "ignoring return value of ‘__clear_user’" warning
+      uvcvideo: Refactor uvc_ctrl_get and query
+      uvcvideo: Move __uvc_ctrl_get() up
+      uvcvideo: Add support for control events
+      uvcvideo: Properly report the inactive flag for inactive controls
+      uvcvideo: Send control change events for slave ctrls when the master changes
+      uvcvideo: Drop unused ctrl member from struct uvc_control_mapping
 
-Cheers,
-b.
+ Documentation/video4linux/v4l2-framework.txt |   28 ++-
+ drivers/media/radio/radio-isa.c              |   10 +-
+ drivers/media/radio/radio-keene.c            |   14 +-
+ drivers/media/video/ivtv/ivtv-ioctl.c        |    3 +-
+ drivers/media/video/omap3isp/ispccdc.c       |    2 +-
+ drivers/media/video/omap3isp/ispstat.c       |    2 +-
+ drivers/media/video/uvc/uvc_ctrl.c           |  320 +++++++++++++++++++++----
+ drivers/media/video/uvc/uvc_v4l2.c           |   46 +++-
+ drivers/media/video/uvc/uvcvideo.h           |   26 ++-
+ drivers/media/video/v4l2-ctrls.c             |   58 ++++-
+ drivers/media/video/v4l2-event.c             |   71 +++---
+ drivers/usb/gadget/uvc_v4l2.c                |    2 +-
+ include/media/v4l2-ctrls.h                   |    7 +-
+ include/media/v4l2-event.h                   |   24 ++-
+ 14 files changed, 456 insertions(+), 157 deletions(-)
 
+-- 
+Regards,
 
-
---------------enig1088C02125DB5A73EEE26A67
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
-
-iEYEARECAAYFAk+cOL4ACgkQl3EQlGLyuXCpeACgoxzxehFRGfPQzgUfZySaQmKx
-ImMAoIX216uWa0/X03EkqgeOYf9K5S9b
-=S23v
------END PGP SIGNATURE-----
-
---------------enig1088C02125DB5A73EEE26A67--
+Laurent Pinchart
 
