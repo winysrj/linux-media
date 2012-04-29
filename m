@@ -1,60 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail918.opentransfer.com ([98.130.1.193]:57824 "EHLO
-	mail918.opentransfer.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751431Ab2DBVCH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Apr 2012 17:02:07 -0400
-Subject: NTSC_443 problem in v4l and em28x
-From: Colin Eby <colineby@isallthat.com>
-Reply-To: colineby@isallthat.com
+Received: from plane.gmane.org ([80.91.229.3]:34115 "EHLO plane.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750811Ab2D2PaH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 29 Apr 2012 11:30:07 -0400
+Received: from list by plane.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1SOW4a-0006Le-TX
+	for linux-media@vger.kernel.org; Sun, 29 Apr 2012 17:30:04 +0200
+Received: from d67-193-214-242.home3.cgocable.net ([67.193.214.242])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Sun, 29 Apr 2012 17:30:04 +0200
+Received: from brian by d67-193-214-242.home3.cgocable.net with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Sun, 29 Apr 2012 17:30:04 +0200
 To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Date: Mon, 02 Apr 2012 22:02:04 +0100
-Message-ID: <1333400524.30070.83.camel@hp0>
+From: "Brian J. Murrell" <brian@interlinx.bc.ca>
+Subject: Re: HVR-1600 QAM recordings with slight glitches in them
+Date: Sun, 29 Apr 2012 11:27:16 -0400
+Message-ID: <4F9D5DD4.6020200@interlinx.bc.ca>
+References: <jn2ibp$pot$1@dough.gmane.org>  <1335307344.8218.11.camel@palomino.walls.org>  <jn7pph$qed$1@dough.gmane.org> <1335624964.2665.37.camel@palomino.walls.org> <4F9C38BE.3010301@interlinx.bc.ca> <4F9C559E.6010208@interlinx.bc.ca> <4F9C6D68.3090202@interlinx.bc.ca> <4F9CE796.2030004@grumpydevil.homelinux.org>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="------------enig07D827DAFC2E424506A4AFE9"
+In-Reply-To: <4F9CE796.2030004@grumpydevil.homelinux.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-All, 
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--------------enig07D827DAFC2E424506A4AFE9
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 
-Wondered if someone could advise... I'm from an NTSC and PAL capable
-tape deck, in the UK. I believe that means the signal coming from the
-deck will be NTSC_443 compliant. What is captured through VLC or XAWTV
-is slightly grainy black and white (no green band). It kinda looks like
-the there are no capture distinctions between NTSC_443 and NTSC. I'd try
-tweaking the code around this, but I'm not clear where it's controlled
-from. Can someone help guide me?  I have a mountain of these tapes to
-capture for a museum.
+On 12-04-29 03:02 AM, Rudy Zijlstra wrote:
+> Brian,
 
-Here's the setup:
-U-matic Sony VO5630 VTR using BNC to RCA video out
-V4L2 device Pinnacle Dazzle DVC 90/100/101/ using driver: em28xx
-(version: 0.1.2) 
-Fedora 14
-VLC 1.1.12
+Hi Rudy,
 
-I know about the issue with changing video standards in this VLC UI
-version. That's not the problem, and I've confirmed it with a slightly
-more up to date Ubuntu equivalent.  I get the same behaviour in XAWTV
-and VLC. Here's some of what my experimentation has shown.
+> There is no minimum cable length for RF. Although for practical reasons=
 
-* On PAL tapes this gear works fine (with the deck switched to PAL and
-VLC set to PAL)
-* Direct to TV the gear works fine in NTSC mode (bless modern flat
-panels)
-* Using Windows and AmCap I get colour video on the NTSC tapes. __The
-setting that work there is NTSC_443 with a YUYV colour space.__
-* I've tried all the different standards available in VLC and XAWTV with
-the deck set to NTSC and an NTSC tape. I see no visible difference
-between NTSC, NTSC_M or NTSC_443 -- and based on work in Windows, I
-believe I should.
-* Debug from V4L/VLC shows NTSC_443 is supported in the driver.
+> i rarely go below 30 cm (1 ').
 
-There's clear evidence I can get some kind of tool chain to work in
-Windows. But I wondered if there wasn't some fine tuning to the driver
-that would get Linux rig to work.  And I wondered if there were known
-issues around the NTSC_443 norm. Forgive me if I've missed any, but I
-haven't found any so far.
+Indeed.  Especially with RG6 they can get a bit stiff.
 
--- Colin
+> It should be possible for you to buy "drop cables" which have a length
+> of 1m5 (about 5') and are commonly used in HE to connect equipment.
+
+Yeah, I'm trying to reduce the cable "nest" and I only have about 6"
+between the back of the equipment and the wall, where the splitter will
+be so 1' cables will probably do the trick.
+
+> screw-on F-connectors are another source of problems.
+
+Yes.
+
+> Crimping
+> F-connectors are best, but those need a fitting crimp tool.
+
+Indeed, and I have one.  :-)
+
+Thanks for the info!
+
+b.
+
+
+--------------enig07D827DAFC2E424506A4AFE9
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
+
+iEYEARECAAYFAk+dXdQACgkQl3EQlGLyuXDmlwCfdMc9dgM+oODD3gtoi5ALUQhr
+g6AAnjt/hVLFKsA1IUUWRWcOZkK31RBD
+=dxpK
+-----END PGP SIGNATURE-----
+
+--------------enig07D827DAFC2E424506A4AFE9--
 
