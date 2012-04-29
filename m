@@ -1,190 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eu1sys200aog120.obsmtp.com ([207.126.144.149]:34288 "EHLO
-	eu1sys200aog120.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752346Ab2DZFZy convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Apr 2012 01:25:54 -0400
-From: Bhupesh SHARMA <bhupesh.sharma@st.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"balbi@ti.com" <balbi@ti.com>,
-	"g.liakhovetski@gmx.de" <g.liakhovetski@gmx.de>
-Date: Thu, 26 Apr 2012 13:23:59 +0800
-Subject: RE: Using UVC webcam gadget with a real v4l2 device
-Message-ID: <D5ECB3C7A6F99444980976A8C6D896384FA4445DA8@EAPEX1MAIL1.st.com>
-References: <D5ECB3C7A6F99444980976A8C6D896384FA44454C7@EAPEX1MAIL1.st.com>
- <111268324.hD9BSZaXPY@avalon>
- <D5ECB3C7A6F99444980976A8C6D896384FA44457A9@EAPEX1MAIL1.st.com>
- <4085740.9DbpdWgfF6@avalon>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:59650 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754102Ab2D2Xvc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 29 Apr 2012 19:51:32 -0400
+Subject: Re: [GIT PULL FOR v3.5] cpia2: major overhaul to get it in a
+ working state again.
+From: Andy Walls <awalls@md.metrocast.net>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media <linux-media@vger.kernel.org>, andrea.merello@gmail.com
+Date: Sun, 29 Apr 2012 19:51:20 -0400
+In-Reply-To: <201204291357.36484.hverkuil@xs4all.nl>
+References: <201204291357.36484.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Message-ID: <1335743485.25802.15.camel@palomino.walls.org>
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
-
-Sorry to jump-in before your reply on my previous mail,
-but as I was studying the USERPTR stuff in more detail, I have a few more
-queries which I believe you can include in your reply as well..
-
-> -----Original Message-----
-> From: Bhupesh SHARMA
-> Sent: Wednesday, April 25, 2012 8:37 PM
-> To: 'Laurent Pinchart'
-> Cc: linux-usb@vger.kernel.org; linux-media@vger.kernel.org;
-> balbi@ti.com; g.liakhovetski@gmx.de
-> Subject: RE: Using UVC webcam gadget with a real v4l2 device
+On Sun, 2012-04-29 at 13:57 +0200, Hans Verkuil wrote:
+> Hi all,
 > 
-> Hi Laurent,
+> I managed to get hold of a cpia2-based Hanse USB microscope almost a year
+> ago after reports from Andrea that the driver didn't work properly.
 > 
-> > -----Original Message-----
-> > From: Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com]
-> > Sent: Tuesday, April 24, 2012 2:26 AM
-> > To: Bhupesh SHARMA
-> > Cc: linux-usb@vger.kernel.org; linux-media@vger.kernel.org;
-> > balbi@ti.com; g.liakhovetski@gmx.de
-> > Subject: Re: Using UVC webcam gadget with a real v4l2 device
-> >
-> > Hi Bhupesh,
-> >
-> > On Tuesday 24 April 2012 02:46:22 Bhupesh SHARMA wrote:
-> > > On Monday, April 23, 2012 7:47 PM Laurent Pinchart wrote:
-> > > > On Monday 23 April 2012 02:24:53 Bhupesh SHARMA wrote:
-> > > > > Hi Laurent,
-> > > > >
-> > > > > I have been doing some experimentation with the UVC webcam
-> gadget
-> > along
-> > > > > with the UVC user-space application which you have written.
-> > > > >
-> > > > > The UVC webcam gadget works fine with the user space
-> application
-> > > > > handling the CONTROL events and providing DATA events. Now, I
-> > wish to
-> > > > > interface a real v4l2 device, for e.g. VIVI or more
-> particularly
-> > a
-> > > > > soc_camera based host and subdev pair.
-> > > > >
-> > > > > Now, I see that I can achieve this by opening the UVC and V4L2
-> > devices
-> > > > > and doing MMAP -> REQBUF -> QBUF -> DQBUF calls on both the
-> > devices per
-> > > > > the UVC control event received. But this will involve copying
-> the
-> > video
-> > > > > buffer in the user-space application from v4l2 (_CAPTURE) to
-> uvc
-> > > > > (_OUTPUT) domains, which will significantly reduce the video
-> > capture
-> > > > > performance.
-> > > > >
-> > > > > Is there a better solution to this issue? Maybe doing something
-> > like a
-> > > > > RNDIS gadget does with the help of u_ether.c like helper
-> > routines. But
-> > > > > if I remember well it also requires the BRCTL (Bridge Control
-> > Utility)
-> > > > > in userspace to route data arriving on usb0 to eth0 and vice-
-> > versa. Not
-> > > > > sure though, if it does copying of a skb buffer from ethernet
-> to
-> > usb
-> > > > > domain and vice-versa.
-> > > >
-> > > > To avoid copying data between the two devices you should use
-> > USERPTR
-> > > > instead of MMAP on at least one of the two V4L2 devices. The UVC
-> > gadget
-> > > > driver doesn't support USERPTR yet though. This shouldn't be too
-> > difficult
-> > > > to fix, we need toreplace the custom buffers queue implementation
-> > with
-> > > > videobuf2, as has been done in the uvcvideo driver.
-> > >
-> > > I was thinking of using the USERPTR method too, but I realized that
-> > > currently neither UVC webcam gadget nor soc-camera subsystem
-> supports
-> > this
-> > > IO method. They support only MMAP IO as of now :(
-> >
-> > Both soc-camera and the UVC gadget driver should be ported to
-> videobuf2
-> > to fix
-> > the problem.
+> I finally had time to take a really good look at the driver and it was
+> broken in many respects. This patch brings the driver up to speed with
+> respect to the v4l2 framework and it now works as expected, including
+> disconnect handling and suspend/resume handling.
+> 
+> The only thing left to do some day is to convert it to the videobuf2
+> framework.
 
-I am now a bit confused on how the entire system will work now:
-	- Does USERPTR method needs to be supported both in UVC gadget and soc-camera side,
-	  or one can still support the MMAP method and the other can now be changed to support USERPTR method
-	  and we can achieve a ZERO buffer copy operation using this method?
+Hans,
 
-	- More specifically, I would like to keep the soc-camera still using MMAP (and hence still using video-buf)
-	  and make changes at the UVC gadget side to support USERPTR and videobuf2. Will this work?
-
-	- At the application side how should we design the flow in case both support USERPTR, i.e. the buffer needs
-	  to be protected from simultaneous access from the UVC gadget driver and soc-camera driver (to ensure that
-	  a single buffer can be shared across them). Also in case we keep soc-camera still using MMAP and UVC gadget
-	  side supporting USERPTR, how can we share a common buffer across the UVC gadget and soc-camera driver.
-
-	- In case of USERPTR method the camera capture hardware should be able to DMA the received data to the user
-	  space buffers. Are there any specific requirements on the DMA capability of these use-space buffers
-	  (scatter-gather or contiguous?).
+cpia2_s_ctrl() doesn't seem to have a case for V4L2_CID_ILLUMINATORS_2.
+Does control cluster magic take care of that?
 
 Regards,
-Bhupesh
+Andy
 
-> > > > I'll try to implement this. Would you then be able to test
-> patches
-> > ?
-> > >
-> > > For sure, I can test your patches on my setup.
-> >
-> > I had a quick look, but there's a bit more work than expected. The
-> UVC
-> > gadget
-> > driver locking scheme needs to be revisited. I unfortunately won't
-> have
-> > time
-> > to work on that in the next couple of weeks, and very probably not
-> > before end
-> > of June. Sorry.
-> 
-> > If you want to give it a try, I can provide you with some pointers.
-> 
-> It's  a pity. You are the best person to do it as you have in-depth
-> know
-> -how of both v4l2 and UVC webcam gadget. But I can give it a try if you
-> can provide me some pointers..
-> 
-> 
-> > > BTW, I was exploring GSTREAMER to use the data arriving from soc-
-> > camera
-> > > (v4l2) capture device '/dev/video1' via 'v4l2src' plugin and
-> routing
-> > the
-> > > same to the UVC gadget '/dev/video0' via the 'v4l2sink' plugin.
-> > >
-> > > Don't know if this can work cleanly in my setup and whether
-> GSTREAMER
-> > > actually performs a buffer copy internally. But I will at-least
-> give
-> > it a
-> > > try :)
-> >
-> > There will definitely be a buffer copy (and actually two copies, as
-> the
-> > UVC
-> > gadget driver performs a second copy internally) if you don't use
-> > USERPTR.
-> 
-> That's what I was afraid of. But can you let me know where the gadget
-> driver
-> performs a second copy internally, so that I can also start exploring
-> the
-> USERPTR method using the pointers provided by you..
-> 
 > Regards,
-> Bhupesh
+> 
+> 	Hans
+> 
+> The following changes since commit bcb2cf6e0bf033d79821c89e5ccb328bfbd44907:
+> 
+>   [media] ngene: remove an unneeded condition (2012-04-26 15:29:23 -0300)
+> 
+> are available in the git repository at:
+> 
+>   git://linuxtv.org/hverkuil/media_tree.git cpia2
+> 
+> for you to fetch changes up to 14a3d232eb5d25c768f40fbd6a87db48a249a391:
+> 
+>   cpia2: major overhaul to get it in a working state again. (2012-04-29 13:44:44 +0200)
+> 
+> ----------------------------------------------------------------
+> Hans Verkuil (1):
+>       cpia2: major overhaul to get it in a working state again.
+> 
+>  drivers/media/video/cpia2/cpia2.h      |   34 ++-
+>  drivers/media/video/cpia2/cpia2_core.c |  142 +++---------
+>  drivers/media/video/cpia2/cpia2_usb.c  |   78 +++++--
+>  drivers/media/video/cpia2/cpia2_v4l.c  |  846 +++++++++++++++++++++------------------------------------------------
+>  drivers/media/video/cpia2/cpia2dev.h   |   50 -----
+>  5 files changed, 363 insertions(+), 787 deletions(-)
+>  delete mode 100644 drivers/media/video/cpia2/cpia2dev.h
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
