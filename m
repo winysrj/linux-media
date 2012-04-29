@@ -1,47 +1,143 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:35957 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750867Ab2DREd6 (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:41449 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754523Ab2D2XNO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Apr 2012 00:33:58 -0400
-From: Marcos Paulo de Souza <marcos.souza.org@gmail.com>
-To: linux-kernel@vger.kernel.org
-Cc: Marcos Paulo de Souza <marcos.souza.org@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	<linux-media@vger.kernel.org>
-Subject: [PATCH 04/12] drivers: media: radio: radio-keene.c: Remove unneeded include of version.h
-Date: Wed, 18 Apr 2012 01:30:04 -0300
-Message-Id: <1334723412-5034-5-git-send-email-marcos.souza.org@gmail.com>
-In-Reply-To: <1334723412-5034-1-git-send-email-marcos.souza.org@gmail.com>
-References: <1334723412-5034-1-git-send-email-marcos.souza.org@gmail.com>
+	Sun, 29 Apr 2012 19:13:14 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: "Aguirre, Sergio" <saaguirre@ti.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [media-ctl PATCH] Compare entity name length aswell
+Date: Mon, 30 Apr 2012 01:13:36 +0200
+Message-ID: <5199956.DQHiqZsQzV@avalon>
+In-Reply-To: <CAKnK67TePU85gxXzKqP+K8pNwo=O-qjYFTim6t4m4TAkKbjGDg@mail.gmail.com>
+References: <1335362233-31022-1-git-send-email-saaguirre@ti.com> <10045536.FETi1x5lnc@avalon> <CAKnK67TePU85gxXzKqP+K8pNwo=O-qjYFTim6t4m4TAkKbjGDg@mail.gmail.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The output of "make versioncheck" told us that:
+Hi Sergio,
 
-drivers/media/radio/radio-keene.c: 31 linux/version.h not needed.
+On Sunday 29 April 2012 17:36:43 Aguirre, Sergio wrote:
+> On Sun, Apr 29, 2012 at 12:40 PM, Laurent Pinchart wrote:
+> > On Saturday 28 April 2012 10:04:01 Aguirre, Sergio wrote:
+> >> On Wed, Apr 25, 2012 at 8:57 AM, Sergio Aguirre <saaguirre@ti.com> wrote:
+> >> > Otherwise, some false positives might arise when
+> >> > having 2 subdevices with similar names, like:
+> >> > 
+> >> > "OMAP4 ISS ISP IPIPEIF"
+> >> > "OMAP4 ISS ISP IPIPE"
+> >> > 
+> >> > Before this patch, trying to find "OMAP4 ISS ISP IPIPE", resulted
+> >> > in a false entity match, retrieving "OMAP4 ISS ISP IPIPEIF"
+> >> > information instead.
+> >> > 
+> >> > Checking length should ensure such cases are handled well.
+> >> 
+> >> Any feedback about this?
+> > 
+> > Thanks for the patch, and sorry for the delay.
+> 
+> No problem. :)
+> 
+> >> > Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
+> >> > ---
+> >> >  src/mediactl.c |    3 ++-
+> >> >  1 files changed, 2 insertions(+), 1 deletions(-)
+> >> > 
+> >> > diff --git a/src/mediactl.c b/src/mediactl.c
+> >> > index 5b8c587..451a386 100644
+> >> > --- a/src/mediactl.c
+> >> > +++ b/src/mediactl.c
+> >> > @@ -66,7 +66,8 @@ struct media_entity *media_get_entity_by_name(struct
+> >> > media_device *media, for (i = 0; i < media->entities_count; ++i) {
+> >> >                struct media_entity *entity = &media->entities[i];
+> >> > 
+> >> > -               if (strncmp(entity->info.name, name, length) == 0)
+> >> > +               if ((strncmp(entity->info.name, name, length) == 0) &&
+> >> > +                   (strlen(entity->info.name) == length))
+> >> >                        return entity;
+> >> >        }
+> > 
+> > Instead of calling strlen() which has a O(n) complexity, what about just
+> > checking that the entity name has a '\0' in the length'th position ?
+> > Something like the following patch:
+> > 
+> > From 46bec667b675573cf1ce698c68112e3dbd31930e Mon Sep 17 00:00:00 2001
+> > From: Sergio Aguirre <saaguirre@ti.com>
+> > Date: Wed, 25 Apr 2012 08:57:13 -0500
+> > Subject: [PATCH] Compare name length to avoid false positives in
+> > media_get_entity_by_name
+> > 
+> > If two subdevice have names that only differ by a suffix (such as "OMAP4
+> > ISS ISP IPIPE" and "OMAP4 ISS ISP IPIPEIF") the media_get_entity_by_name
+> > function might return a pointer to the entity with the longest name when
+> > called with the shortest name. Fix this by verifying that the candidate
+> > entity name length is equal to the requested name length.
+> > 
+> > Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
+> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > ---
+> >  src/mediactl.c |    9 ++++++++-
+> >  src/tools.h    |    1 +
+> >  2 files changed, 9 insertions(+), 1 deletions(-)
+> > 
+> > diff --git a/src/mediactl.c b/src/mediactl.c
+> > index 5b8c587..bc6a713 100644
+> > --- a/src/mediactl.c
+> > +++ b/src/mediactl.c
+> > @@ -63,10 +63,17 @@ struct media_entity *media_get_entity_by_name(struct
+> > media_device *media,
+> >  {
+> >        unsigned int i;
+> > 
+> > +       /* A match is impossible if the entity name is longer than the
+> > maximum +        * size we can get from the kernel.
+> > +        */
+> > +       if (length >= FIELD_SIZEOF(struct media_entity_desc, name))
+> > +               return NULL;
+> > +
+> 
+> Good idea.
+> 
+> >        for (i = 0; i < media->entities_count; ++i) {
+> >                struct media_entity *entity = &media->entities[i];
+> > 
+> > -               if (strncmp(entity->info.name, name, length) == 0)
+> > +               if (strncmp(entity->info.name, name, length) == 0 &&
+> > +                   entity->info.name[length] == '\0')
+> 
+> ACK.
+> 
+> Your patch is definitely better.
+> 
+> IMHO, I think it'll be more fair if you put yourself as the author of this
+> new patch, and me as: "Reported-by:".
 
-After take a look in the code, we can agree to remove it.
+It's such a small patch, it's fine :-) Thank you for the proposal nonetheless.
 
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: <linux-media@vger.kernel.org>
-Signed-off-by: Marcos Paulo de Souza <marcos.souza.org@gmail.com>
----
- drivers/media/radio/radio-keene.c |    1 -
- 1 files changed, 0 insertions(+), 1 deletions(-)
+I've pushed the patch to the repository.
 
-diff --git a/drivers/media/radio/radio-keene.c b/drivers/media/radio/radio-keene.c
-index 55bd1d2..26a2b7a 100644
---- a/drivers/media/radio/radio-keene.c
-+++ b/drivers/media/radio/radio-keene.c
-@@ -28,7 +28,6 @@
- #include <media/v4l2-ctrls.h>
- #include <media/v4l2-event.h>
- #include <linux/usb.h>
--#include <linux/version.h>
- #include <linux/mutex.h>
- 
- /* driver and module definitions */
+> >                        return entity;
+> >        }
+> > 
+> > diff --git a/src/tools.h b/src/tools.h
+> > index e56edb2..de06cb3 100644
+> > --- a/src/tools.h
+> > +++ b/src/tools.h
+> > @@ -23,6 +23,7 @@
+> >  #define __TOOLS_H__
+> > 
+> >  #define ARRAY_SIZE(array)      (sizeof(array) / sizeof((array)[0]))
+> > +#define FIELD_SIZEOF(t, f)     (sizeof(((t*)0)->f))
+> > 
+> >  #endif /* __TOOLS_H__ */
+> > 
+
 -- 
-1.7.7.6
+Regards,
+
+Laurent Pinchart
 
