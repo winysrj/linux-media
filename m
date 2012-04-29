@@ -1,324 +1,310 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:20065 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753619Ab2DPN7B (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:44753 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752867Ab2D2QX2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Apr 2012 09:59:01 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Received: from euspt2 ([210.118.77.13]) by mailout3.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0M2K007T3S5MNY10@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 16 Apr 2012 14:58:34 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0M2K00D6OS673Y@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 16 Apr 2012 14:58:56 +0100 (BST)
-Date: Mon, 16 Apr 2012 15:58:50 +0200
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: [PATCHv2 3/8] v4l: s5p-tv: hdmiphy: add support for per-platform
- variants
-In-reply-to: <1334584735-12439-1-git-send-email-t.stanislaws@samsung.com>
+	Sun, 29 Apr 2012 12:23:28 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, t.stanislaws@samsung.com,
-	kyungmin.park@samsung.com, laurent.pinchart@ideasonboard.com,
-	mchehab@redhat.com, hverkuil@xs4all.nl, sachin.kamat@linaro.org,
-	u.kleine-koenig@pengutronix.de
-Message-id: <1334584735-12439-4-git-send-email-t.stanislaws@samsung.com>
-References: <1334584735-12439-1-git-send-email-t.stanislaws@samsung.com>
+Cc: sakari.ailus@iki.fi
+Subject: [PATCH 1/3] omap3isp: ccdc: Add selection support on output formatter source pad
+Date: Sun, 29 Apr 2012 18:23:43 +0200
+Message-Id: <1335716625-2388-2-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1335716625-2388-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1335716625-2388-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Adds selection of HDMIPHY configuration tables basing on both preset and
-platform variant.
-
-Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/video/s5p-tv/hdmiphy_drv.c |  225 +++++++++++++++++++++++++-----
- 1 files changed, 188 insertions(+), 37 deletions(-)
+ drivers/media/video/omap3isp/ispccdc.c |  180 +++++++++++++++++++++++++++++---
+ drivers/media/video/omap3isp/ispccdc.h |    2 +
+ 2 files changed, 169 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/media/video/s5p-tv/hdmiphy_drv.c b/drivers/media/video/s5p-tv/hdmiphy_drv.c
-index 0afef77..f67b386 100644
---- a/drivers/media/video/s5p-tv/hdmiphy_drv.c
-+++ b/drivers/media/video/s5p-tv/hdmiphy_drv.c
-@@ -26,53 +26,188 @@ MODULE_DESCRIPTION("Samsung HDMI Physical interface driver");
- MODULE_LICENSE("GPL");
+diff --git a/drivers/media/video/omap3isp/ispccdc.c b/drivers/media/video/omap3isp/ispccdc.c
+index 8d8d6f3..8db8f3e 100644
+--- a/drivers/media/video/omap3isp/ispccdc.c
++++ b/drivers/media/video/omap3isp/ispccdc.c
+@@ -38,6 +38,9 @@
+ #include "ispreg.h"
+ #include "ispccdc.h"
  
- struct hdmiphy_conf {
--	u32 preset;
-+	unsigned long pixclk;
- 	const u8 *data;
- };
- 
--static const u8 hdmiphy_conf27[32] = {
--	0x01, 0x05, 0x00, 0xD8, 0x10, 0x1C, 0x30, 0x40,
--	0x6B, 0x10, 0x02, 0x51, 0xDf, 0xF2, 0x54, 0x87,
--	0x84, 0x00, 0x30, 0x38, 0x00, 0x08, 0x10, 0xE0,
--	0x22, 0x40, 0xe3, 0x26, 0x00, 0x00, 0x00, 0x00,
-+struct hdmiphy_ctx {
-+	struct v4l2_subdev sd;
-+	const struct hdmiphy_conf *conf_tab;
- };
- 
--static const u8 hdmiphy_conf74_175[32] = {
--	0x01, 0x05, 0x00, 0xD8, 0x10, 0x9C, 0xef, 0x5B,
--	0x6D, 0x10, 0x01, 0x51, 0xef, 0xF3, 0x54, 0xb9,
--	0x84, 0x00, 0x30, 0x38, 0x00, 0x08, 0x10, 0xE0,
--	0x22, 0x40, 0xa5, 0x26, 0x01, 0x00, 0x00, 0x00,
-+static const struct hdmiphy_conf hdmiphy_conf_s5pv210[] = {
-+	{ .pixclk = 27000000, .data = (u8 [32]) {
-+		0x01, 0x05, 0x00, 0xD8, 0x10, 0x1C, 0x30, 0x40,
-+		0x6B, 0x10, 0x02, 0x52, 0xDF, 0xF2, 0x54, 0x87,
-+		0x84, 0x00, 0x30, 0x38, 0x00, 0x08, 0x10, 0xE0,
-+		0x22, 0x40, 0xE3, 0x26, 0x00, 0x00, 0x00, 0x00, }
-+	},
-+	{ .pixclk = 27027000, .data = (u8 [32]) {
-+		0x01, 0x05, 0x00, 0xD4, 0x10, 0x9C, 0x09, 0x64,
-+		0x6B, 0x10, 0x02, 0x52, 0xDF, 0xF2, 0x54, 0x87,
-+		0x84, 0x00, 0x30, 0x38, 0x00, 0x08, 0x10, 0xE0,
-+		0x22, 0x40, 0xE2, 0x26, 0x00, 0x00, 0x00, 0x00, }
-+	},
-+	{ .pixclk = 74176000, .data = (u8 [32]) {
-+		0x01, 0x05, 0x00, 0xD8, 0x10, 0x9C, 0xEF, 0x5B,
-+		0x6D, 0x10, 0x01, 0x52, 0xEF, 0xF3, 0x54, 0xB9,
-+		0x84, 0x00, 0x30, 0x38, 0x00, 0x08, 0x10, 0xE0,
-+		0x22, 0x40, 0xA5, 0x26, 0x01, 0x00, 0x00, 0x00, }
-+	},
-+	{ .pixclk = 74250000, .data = (u8 [32]) {
-+		0x01, 0x05, 0x00, 0xD8, 0x10, 0x9C, 0xF8, 0x40,
-+		0x6A, 0x10, 0x01, 0x52, 0xFF, 0xF1, 0x54, 0xBA,
-+		0x84, 0x00, 0x10, 0x38, 0x00, 0x08, 0x10, 0xE0,
-+		0x22, 0x40, 0xA4, 0x26, 0x01, 0x00, 0x00, 0x00, }
-+	},
-+	{ /* end marker */ }
- };
- 
--static const u8 hdmiphy_conf74_25[32] = {
--	0x01, 0x05, 0x00, 0xd8, 0x10, 0x9c, 0xf8, 0x40,
--	0x6a, 0x10, 0x01, 0x51, 0xff, 0xf1, 0x54, 0xba,
--	0x84, 0x00, 0x30, 0x38, 0x00, 0x08, 0x10, 0xe0,
--	0x22, 0x40, 0xa4, 0x26, 0x01, 0x00, 0x00, 0x00,
-+static const struct hdmiphy_conf hdmiphy_conf_exynos4210[] = {
-+	{ .pixclk = 27000000, .data = (u8 [32]) {
-+		0x01, 0x05, 0x00, 0xD8, 0x10, 0x1C, 0x30, 0x40,
-+		0x6B, 0x10, 0x02, 0x51, 0xDF, 0xF2, 0x54, 0x87,
-+		0x84, 0x00, 0x30, 0x38, 0x00, 0x08, 0x10, 0xE0,
-+		0x22, 0x40, 0xE3, 0x26, 0x00, 0x00, 0x00, 0x00, }
-+	},
-+	{ .pixclk = 27027000, .data = (u8 [32]) {
-+		0x01, 0x05, 0x00, 0xD4, 0x10, 0x9C, 0x09, 0x64,
-+		0x6B, 0x10, 0x02, 0x51, 0xDF, 0xF2, 0x54, 0x87,
-+		0x84, 0x00, 0x30, 0x38, 0x00, 0x08, 0x10, 0xE0,
-+		0x22, 0x40, 0xE2, 0x26, 0x00, 0x00, 0x00, 0x00, }
-+	},
-+	{ .pixclk = 74176000, .data = (u8 [32]) {
-+		0x01, 0x05, 0x00, 0xD8, 0x10, 0x9C, 0xEF, 0x5B,
-+		0x6D, 0x10, 0x01, 0x51, 0xEF, 0xF3, 0x54, 0xB9,
-+		0x84, 0x00, 0x30, 0x38, 0x00, 0x08, 0x10, 0xE0,
-+		0x22, 0x40, 0xA5, 0x26, 0x01, 0x00, 0x00, 0x00, }
-+	},
-+	{ .pixclk = 74250000, .data = (u8 [32]) {
-+		0x01, 0x05, 0x00, 0xD8, 0x10, 0x9C, 0xF8, 0x40,
-+		0x6A, 0x10, 0x01, 0x51, 0xFF, 0xF1, 0x54, 0xBA,
-+		0x84, 0x00, 0x10, 0x38, 0x00, 0x08, 0x10, 0xE0,
-+		0x22, 0x40, 0xA4, 0x26, 0x01, 0x00, 0x00, 0x00, }
-+	},
-+	{ .pixclk = 148352000, .data = (u8 [32]) {
-+		0x01, 0x05, 0x00, 0xD8, 0x10, 0x9C, 0xEF, 0x5B,
-+		0x6D, 0x18, 0x00, 0x51, 0xEF, 0xF3, 0x54, 0xB9,
-+		0x84, 0x00, 0x30, 0x38, 0x00, 0x08, 0x10, 0xE0,
-+		0x11, 0x40, 0xA5, 0x26, 0x02, 0x00, 0x00, 0x00, }
-+	},
-+	{ .pixclk = 148500000, .data = (u8 [32]) {
-+		0x01, 0x05, 0x00, 0xD8, 0x10, 0x9C, 0xF8, 0x40,
-+		0x6A, 0x18, 0x00, 0x51, 0xFF, 0xF1, 0x54, 0xBA,
-+		0x84, 0x00, 0x10, 0x38, 0x00, 0x08, 0x10, 0xE0,
-+		0x11, 0x40, 0xA4, 0x26, 0x02, 0x00, 0x00, 0x00, }
-+	},
-+	{ /* end marker */ }
- };
- 
--static const u8 hdmiphy_conf148_5[32] = {
--	0x01, 0x05, 0x00, 0xD8, 0x10, 0x9C, 0xf8, 0x40,
--	0x6A, 0x18, 0x00, 0x51, 0xff, 0xF1, 0x54, 0xba,
--	0x84, 0x00, 0x10, 0x38, 0x00, 0x08, 0x10, 0xE0,
--	0x22, 0x40, 0xa4, 0x26, 0x02, 0x00, 0x00, 0x00,
-+static const struct hdmiphy_conf hdmiphy_conf_exynos4212[] = {
-+	{ .pixclk = 27000000, .data = (u8 [32]) {
-+		0x01, 0x11, 0x2D, 0x75, 0x00, 0x01, 0x00, 0x08,
-+		0x82, 0x00, 0x0E, 0xD9, 0x45, 0xA0, 0x34, 0xC0,
-+		0x0B, 0x80, 0x12, 0x87, 0x08, 0x24, 0x24, 0x71,
-+		0x54, 0xE3, 0x24, 0x00, 0x00, 0x00, 0x01, 0x00, }
-+	},
-+	{ .pixclk = 27027000, .data = (u8 [32]) {
-+		0x01, 0x91, 0x2D, 0x72, 0x00, 0x64, 0x12, 0x08,
-+		0x43, 0x20, 0x0E, 0xD9, 0x45, 0xA0, 0x34, 0xC0,
-+		0x0B, 0x80, 0x12, 0x87, 0x08, 0x24, 0x24, 0x71,
-+		0x54, 0xE2, 0x24, 0x00, 0x00, 0x00, 0x01, 0x00, }
-+	},
-+	{ .pixclk = 74176000, .data = (u8 [32]) {
-+		0x01, 0x91, 0x3E, 0x35, 0x00, 0x5B, 0xDE, 0x08,
-+		0x82, 0x20, 0x73, 0xD9, 0x45, 0xA0, 0x34, 0xC0,
-+		0x0B, 0x80, 0x12, 0x87, 0x08, 0x24, 0x24, 0x52,
-+		0x54, 0xA5, 0x24, 0x01, 0x00, 0x00, 0x01, 0x00, }
-+	},
-+	{ .pixclk = 74250000, .data = (u8 [32]) {
-+		0x01, 0x91, 0x3E, 0x35, 0x00, 0x40, 0xF0, 0x08,
-+		0x82, 0x20, 0x73, 0xD9, 0x45, 0xA0, 0x34, 0xC0,
-+		0x0B, 0x80, 0x12, 0x87, 0x08, 0x24, 0x24, 0x52,
-+		0x54, 0xA4, 0x24, 0x01, 0x00, 0x00, 0x01, 0x00, }
-+	},
-+	{ .pixclk = 148500000, .data = (u8 [32]) {
-+		0x01, 0x91, 0x3E, 0x15, 0x00, 0x40, 0xF0, 0x08,
-+		0x82, 0x20, 0x73, 0xD9, 0x45, 0xA0, 0x34, 0xC0,
-+		0x0B, 0x80, 0x12, 0x87, 0x08, 0x24, 0x24, 0xA4,
-+		0x54, 0x4A, 0x25, 0x03, 0x00, 0x00, 0x01, 0x00, }
-+	},
-+	{ /* end marker */ }
- };
- 
--static const struct hdmiphy_conf hdmiphy_conf[] = {
--	{ V4L2_DV_480P59_94, hdmiphy_conf27 },
--	{ V4L2_DV_1080P30, hdmiphy_conf74_175 },
--	{ V4L2_DV_720P59_94, hdmiphy_conf74_175 },
--	{ V4L2_DV_720P60, hdmiphy_conf74_25 },
--	{ V4L2_DV_1080P50, hdmiphy_conf148_5 },
--	{ V4L2_DV_1080P60, hdmiphy_conf148_5 },
-+static const struct hdmiphy_conf hdmiphy_conf_exynos4412[] = {
-+	{ .pixclk = 27000000, .data = (u8 [32]) {
-+		0x01, 0x11, 0x2D, 0x75, 0x40, 0x01, 0x00, 0x08,
-+		0x82, 0x00, 0x0E, 0xD9, 0x45, 0xA0, 0xAC, 0x80,
-+		0x08, 0x80, 0x11, 0x84, 0x02, 0x22, 0x44, 0x86,
-+		0x54, 0xE4, 0x24, 0x00, 0x00, 0x00, 0x01, 0x00, }
-+	},
-+	{ .pixclk = 27027000, .data = (u8 [32]) {
-+		0x01, 0x91, 0x2D, 0x72, 0x40, 0x64, 0x12, 0x08,
-+		0x43, 0x20, 0x0E, 0xD9, 0x45, 0xA0, 0xAC, 0x80,
-+		0x08, 0x80, 0x11, 0x84, 0x02, 0x22, 0x44, 0x86,
-+		0x54, 0xE3, 0x24, 0x00, 0x00, 0x00, 0x01, 0x00, }
-+	},
-+	{ .pixclk = 74176000, .data = (u8 [32]) {
-+		0x01, 0x91, 0x1F, 0x10, 0x40, 0x5B, 0xEF, 0x08,
-+		0x81, 0x20, 0xB9, 0xD8, 0x45, 0xA0, 0xAC, 0x80,
-+		0x08, 0x80, 0x11, 0x84, 0x02, 0x22, 0x44, 0x86,
-+		0x54, 0xA6, 0x24, 0x01, 0x00, 0x00, 0x01, 0x00, }
-+	},
-+	{ .pixclk = 74250000, .data = (u8 [32]) {
-+		0x01, 0x91, 0x1F, 0x10, 0x40, 0x40, 0xF8, 0x08,
-+		0x81, 0x20, 0xBA, 0xD8, 0x45, 0xA0, 0xAC, 0x80,
-+		0x08, 0x80, 0x11, 0x84, 0x02, 0x22, 0x44, 0x86,
-+		0x54, 0xA5, 0x24, 0x01, 0x00, 0x00, 0x01, 0x00, }
-+	},
-+	{ .pixclk = 148500000, .data = (u8 [32]) {
-+		0x01, 0x91, 0x1F, 0x00, 0x40, 0x40, 0xF8, 0x08,
-+		0x81, 0x20, 0xBA, 0xD8, 0x45, 0xA0, 0xAC, 0x80,
-+		0x08, 0x80, 0x11, 0x84, 0x02, 0x22, 0x44, 0x86,
-+		0x54, 0x4B, 0x25, 0x03, 0x00, 0x00, 0x01, 0x00, }
-+	},
-+	{ /* end marker */ }
- };
- 
--const u8 *hdmiphy_preset2conf(u32 preset)
-+static inline struct hdmiphy_ctx *sd_to_ctx(struct v4l2_subdev *sd)
-+{
-+	return container_of(sd, struct hdmiphy_ctx, sd);
-+}
++#define CCDC_MIN_WIDTH		32
++#define CCDC_MIN_HEIGHT		32
 +
-+static unsigned long hdmiphy_preset_to_pixclk(u32 preset)
+ static struct v4l2_mbus_framefmt *
+ __ccdc_get_format(struct isp_ccdc_device *ccdc, struct v4l2_subdev_fh *fh,
+ 		  unsigned int pad, enum v4l2_subdev_format_whence which);
+@@ -1118,6 +1121,7 @@ static void ccdc_configure(struct isp_ccdc_device *ccdc)
+ 	struct isp_parallel_platform_data *pdata = NULL;
+ 	struct v4l2_subdev *sensor;
+ 	struct v4l2_mbus_framefmt *format;
++	const struct v4l2_rect *crop;
+ 	const struct isp_format_info *fmt_info;
+ 	struct v4l2_subdev_format fmt_src;
+ 	unsigned int depth_out;
+@@ -1211,14 +1215,14 @@ static void ccdc_configure(struct isp_ccdc_device *ccdc)
+ 		       OMAP3_ISP_IOMEM_CCDC, ISPCCDC_VDINT);
+ 
+ 	/* CCDC_PAD_SOURCE_OF */
+-	format = &ccdc->formats[CCDC_PAD_SOURCE_OF];
++	crop = &ccdc->crop;
+ 
+-	isp_reg_writel(isp, (0 << ISPCCDC_HORZ_INFO_SPH_SHIFT) |
+-		       ((format->width - 1) << ISPCCDC_HORZ_INFO_NPH_SHIFT),
++	isp_reg_writel(isp, (crop->left << ISPCCDC_HORZ_INFO_SPH_SHIFT) |
++		       ((crop->width - 1) << ISPCCDC_HORZ_INFO_NPH_SHIFT),
+ 		       OMAP3_ISP_IOMEM_CCDC, ISPCCDC_HORZ_INFO);
+-	isp_reg_writel(isp, 0 << ISPCCDC_VERT_START_SLV0_SHIFT,
++	isp_reg_writel(isp, crop->top << ISPCCDC_VERT_START_SLV0_SHIFT,
+ 		       OMAP3_ISP_IOMEM_CCDC, ISPCCDC_VERT_START);
+-	isp_reg_writel(isp, (format->height - 1)
++	isp_reg_writel(isp, (crop->height - 1)
+ 			<< ISPCCDC_VERT_LINES_NLV_SHIFT,
+ 		       OMAP3_ISP_IOMEM_CCDC, ISPCCDC_VERT_LINES);
+ 
+@@ -1793,6 +1797,16 @@ __ccdc_get_format(struct isp_ccdc_device *ccdc, struct v4l2_subdev_fh *fh,
+ 		return &ccdc->formats[pad];
+ }
+ 
++static struct v4l2_rect *
++__ccdc_get_crop(struct isp_ccdc_device *ccdc, struct v4l2_subdev_fh *fh,
++		enum v4l2_subdev_format_whence which)
 +{
-+	static const unsigned long pixclk[] = {
-+		[V4L2_DV_480P59_94] =  27000000,
-+		[V4L2_DV_576P50]    =  27000000,
-+		[V4L2_DV_720P59_94] =  74176000,
-+		[V4L2_DV_720P50]    =  74250000,
-+		[V4L2_DV_720P60]    =  74250000,
-+		[V4L2_DV_1080P24]   =  74250000,
-+		[V4L2_DV_1080P30]   =  74250000,
-+		[V4L2_DV_1080I50]   =  74250000,
-+		[V4L2_DV_1080I60]   =  74250000,
-+		[V4L2_DV_1080P50]   = 148500000,
-+		[V4L2_DV_1080P60]   = 148500000,
-+	};
-+	if (preset < ARRAY_SIZE(pixclk))
-+		return pixclk[preset];
++	if (which == V4L2_SUBDEV_FORMAT_TRY)
++		return v4l2_subdev_get_try_crop(fh, CCDC_PAD_SOURCE_OF);
 +	else
-+		return 0;
++		return &ccdc->crop;
 +}
 +
-+static const u8 *hdmiphy_find_conf(u32 preset, const struct hdmiphy_conf *conf)
- {
--	int i;
--	for (i = 0; i < ARRAY_SIZE(hdmiphy_conf); ++i)
--		if (hdmiphy_conf[i].preset == preset)
--			return hdmiphy_conf[i].data;
-+	unsigned long pixclk;
-+
-+	pixclk = hdmiphy_preset_to_pixclk(preset);
-+	if (!pixclk)
-+		return NULL;
-+
-+	for (; conf->pixclk; ++conf)
-+		if (conf->pixclk == pixclk)
-+			return conf->data;
- 	return NULL;
+ /*
+  * ccdc_try_format - Try video format on a pad
+  * @ccdc: ISP CCDC device
+@@ -1809,6 +1823,7 @@ ccdc_try_format(struct isp_ccdc_device *ccdc, struct v4l2_subdev_fh *fh,
+ 	const struct isp_format_info *info;
+ 	unsigned int width = fmt->width;
+ 	unsigned int height = fmt->height;
++	struct v4l2_rect *crop;
+ 	unsigned int i;
+ 
+ 	switch (pad) {
+@@ -1834,14 +1849,10 @@ ccdc_try_format(struct isp_ccdc_device *ccdc, struct v4l2_subdev_fh *fh,
+ 		format = __ccdc_get_format(ccdc, fh, CCDC_PAD_SINK, which);
+ 		memcpy(fmt, format, sizeof(*fmt));
+ 
+-		/* The data formatter truncates the number of horizontal output
+-		 * pixels to a multiple of 16. To avoid clipping data, allow
+-		 * callers to request an output size bigger than the input size
+-		 * up to the nearest multiple of 16.
+-		 */
+-		fmt->width = clamp_t(u32, width, 32, fmt->width + 15);
+-		fmt->width &= ~15;
+-		fmt->height = clamp_t(u32, height, 32, fmt->height);
++		/* Hardcode the output size to the crop rectangle size. */
++		crop = __ccdc_get_crop(ccdc, fh, which);
++		fmt->width = crop->width;
++		fmt->height = crop->height;
+ 		break;
+ 
+ 	case CCDC_PAD_SOURCE_VP:
+@@ -1869,6 +1880,49 @@ ccdc_try_format(struct isp_ccdc_device *ccdc, struct v4l2_subdev_fh *fh,
  }
  
-@@ -88,11 +223,12 @@ static int hdmiphy_s_dv_preset(struct v4l2_subdev *sd,
- 	const u8 *data;
- 	u8 buffer[32];
- 	int ret;
-+	struct hdmiphy_ctx *ctx = sd_to_ctx(sd);
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
- 	struct device *dev = &client->dev;
- 
- 	dev_info(dev, "s_dv_preset(preset = %d)\n", preset->preset);
--	data = hdmiphy_preset2conf(preset->preset);
-+	data = hdmiphy_find_conf(preset->preset, ctx->conf_tab);
- 	if (!data) {
- 		dev_err(dev, "format not supported\n");
- 		return -EINVAL;
-@@ -146,21 +282,36 @@ static const struct v4l2_subdev_ops hdmiphy_ops = {
- static int __devinit hdmiphy_probe(struct i2c_client *client,
- 	const struct i2c_device_id *id)
- {
--	static struct v4l2_subdev sd;
-+	struct hdmiphy_ctx *ctx;
+ /*
++ * ccdc_try_crop - Validate a crop rectangle
++ * @ccdc: ISP CCDC device
++ * @sink: format on the sink pad
++ * @crop: crop rectangle to be validated
++ */
++static void ccdc_try_crop(struct isp_ccdc_device *ccdc,
++			  const struct v4l2_mbus_framefmt *sink,
++			  struct v4l2_rect *crop)
++{
++	const struct isp_format_info *info;
++	unsigned int max_width;
 +
-+	ctx = kzalloc(sizeof *ctx, GFP_KERNEL);
-+	if (!ctx)
-+		return -ENOMEM;
++	/* For Bayer formats, restrict left/top and width/height to even values
++	 * to keep the Bayer pattern.
++	 */
++	info = omap3isp_video_format_info(sink->code);
++	if (info->flavor != V4L2_MBUS_FMT_Y8_1X8) {
++		crop->left &= ~1;
++		crop->top &= ~1;
++	}
 +
-+	ctx->conf_tab = (struct hdmiphy_conf *)id->driver_data;
-+	v4l2_i2c_subdev_init(&ctx->sd, client, &hdmiphy_ops);
- 
--	v4l2_i2c_subdev_init(&sd, client, &hdmiphy_ops);
- 	dev_info(&client->dev, "probe successful\n");
- 	return 0;
++	crop->left = clamp_t(u32, crop->left, 0, sink->width - CCDC_MIN_WIDTH);
++	crop->top = clamp_t(u32, crop->top, 0, sink->height - CCDC_MIN_HEIGHT);
++
++	/* The data formatter truncates the number of horizontal output pixels
++	 * to a multiple of 16. To avoid clipping data, allow callers to request
++	 * an output size bigger than the input size up to the nearest multiple
++	 * of 16.
++	 */
++	max_width = (sink->width - crop->left + 15) & ~15;
++	crop->width = clamp_t(u32, crop->width, CCDC_MIN_WIDTH, max_width)
++		    & ~15;
++	crop->height = clamp_t(u32, crop->height, CCDC_MIN_HEIGHT,
++			       sink->height - crop->top);
++
++	/* Odd width/height values don't make sense for Bayer formats. */
++	if (info->flavor != V4L2_MBUS_FMT_Y8_1X8) {
++		crop->width &= ~1;
++		crop->height &= ~1;
++	}
++}
++
++/*
+  * ccdc_enum_mbus_code - Handle pixel format enumeration
+  * @sd     : pointer to v4l2 subdev structure
+  * @fh : V4L2 subdev file handle
+@@ -1940,6 +1994,93 @@ static int ccdc_enum_frame_size(struct v4l2_subdev *sd,
  }
  
- static int __devexit hdmiphy_remove(struct i2c_client *client)
+ /*
++ * ccdc_get_selection - Retrieve a selection rectangle on a pad
++ * @sd: ISP CCDC V4L2 subdevice
++ * @fh: V4L2 subdev file handle
++ * @sel: Selection rectangle
++ *
++ * The only supported rectangles are the crop rectangles on the output formatter
++ * source pad.
++ *
++ * Return 0 on success or a negative error code otherwise.
++ */
++static int ccdc_get_selection(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
++			      struct v4l2_subdev_selection *sel)
++{
++	struct isp_ccdc_device *ccdc = v4l2_get_subdevdata(sd);
++	struct v4l2_mbus_framefmt *format;
++
++	if (sel->pad != CCDC_PAD_SOURCE_OF)
++		return -EINVAL;
++
++	switch (sel->target) {
++	case V4L2_SUBDEV_SEL_TGT_CROP_BOUNDS:
++		sel->r.left = 0;
++		sel->r.top = 0;
++		sel->r.width = INT_MAX;
++		sel->r.height = INT_MAX;
++
++		format = __ccdc_get_format(ccdc, fh, CCDC_PAD_SINK, sel->which);
++		ccdc_try_crop(ccdc, format, &sel->r);
++		break;
++
++	case V4L2_SUBDEV_SEL_TGT_CROP_ACTUAL:
++		sel->r = *__ccdc_get_crop(ccdc, fh, sel->which);
++		break;
++
++	default:
++		return -EINVAL;
++	}
++
++	return 0;
++}
++
++/*
++ * ccdc_set_selection - Set a selection rectangle on a pad
++ * @sd: ISP CCDC V4L2 subdevice
++ * @fh: V4L2 subdev file handle
++ * @sel: Selection rectangle
++ *
++ * The only supported rectangle is the actual crop rectangle on the output
++ * formatter source pad.
++ *
++ * Return 0 on success or a negative error code otherwise.
++ */
++static int ccdc_set_selection(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
++			      struct v4l2_subdev_selection *sel)
++{
++	struct isp_ccdc_device *ccdc = v4l2_get_subdevdata(sd);
++	struct v4l2_mbus_framefmt *format;
++
++	if (sel->target != V4L2_SUBDEV_SEL_TGT_CROP_ACTUAL ||
++	    sel->pad != CCDC_PAD_SOURCE_OF)
++		return -EINVAL;
++
++	/* The crop rectangle can't be changed while streaming. */
++	if (ccdc->state != ISP_PIPELINE_STREAM_STOPPED)
++		return -EBUSY;
++
++	/* Modifying the crop rectangle always changes the format on the source
++	 * pad. If the KEEP_CONFIG flag is set, just return the current crop
++	 * rectangle.
++	 */
++	if (sel->flags & V4L2_SUBDEV_SEL_FLAG_KEEP_CONFIG) {
++		sel->r = *__ccdc_get_crop(ccdc, fh, sel->which);
++		return 0;
++	}
++
++	format = __ccdc_get_format(ccdc, fh, CCDC_PAD_SINK, sel->which);
++	ccdc_try_crop(ccdc, format, &sel->r);
++	*__ccdc_get_crop(ccdc, fh, sel->which) = sel->r;
++
++	/* Update the source format. */
++	format = __ccdc_get_format(ccdc, fh, CCDC_PAD_SOURCE_OF, sel->which);
++	ccdc_try_format(ccdc, fh, CCDC_PAD_SOURCE_OF, format, sel->which);
++
++	return 0;
++}
++
++/*
+  * ccdc_get_format - Retrieve the video format on a pad
+  * @sd : ISP CCDC V4L2 subdevice
+  * @fh : V4L2 subdev file handle
+@@ -1976,6 +2117,7 @@ static int ccdc_set_format(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
  {
-+	struct v4l2_subdev *sd = i2c_get_clientdata(client);
-+	struct hdmiphy_ctx *ctx = sd_to_ctx(sd);
-+
-+	kfree(ctx);
- 	dev_info(&client->dev, "remove successful\n");
-+
- 	return 0;
- }
+ 	struct isp_ccdc_device *ccdc = v4l2_get_subdevdata(sd);
+ 	struct v4l2_mbus_framefmt *format;
++	struct v4l2_rect *crop;
  
- static const struct i2c_device_id hdmiphy_id[] = {
--	{ "hdmiphy", 0 },
-+	{ "hdmiphy", (unsigned long)hdmiphy_conf_exynos4210 },
-+	{ "hdmiphy-s5pv210", (unsigned long)hdmiphy_conf_s5pv210 },
-+	{ "hdmiphy-exynos4210", (unsigned long)hdmiphy_conf_exynos4210 },
-+	{ "hdmiphy-exynos4212", (unsigned long)hdmiphy_conf_exynos4212 },
-+	{ "hdmiphy-exynos4412", (unsigned long)hdmiphy_conf_exynos4412 },
- 	{ },
+ 	format = __ccdc_get_format(ccdc, fh, fmt->pad, fmt->which);
+ 	if (format == NULL)
+@@ -1986,6 +2128,16 @@ static int ccdc_set_format(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
+ 
+ 	/* Propagate the format from sink to source */
+ 	if (fmt->pad == CCDC_PAD_SINK) {
++		/* Reset the crop rectangle. */
++		crop = __ccdc_get_crop(ccdc, fh, fmt->which);
++		crop->left = 0;
++		crop->top = 0;
++		crop->width = fmt->format.width;
++		crop->height = fmt->format.height;
++
++		ccdc_try_crop(ccdc, &fmt->format, crop);
++
++		/* Update the source formats. */
+ 		format = __ccdc_get_format(ccdc, fh, CCDC_PAD_SOURCE_OF,
+ 					   fmt->which);
+ 		*format = fmt->format;
+@@ -2044,6 +2196,8 @@ static const struct v4l2_subdev_pad_ops ccdc_v4l2_pad_ops = {
+ 	.enum_frame_size = ccdc_enum_frame_size,
+ 	.get_fmt = ccdc_get_format,
+ 	.set_fmt = ccdc_set_format,
++	.get_selection = ccdc_get_selection,
++	.set_selection = ccdc_set_selection,
  };
- MODULE_DEVICE_TABLE(i2c, hdmiphy_id);
+ 
+ /* V4L2 subdev operations */
+diff --git a/drivers/media/video/omap3isp/ispccdc.h b/drivers/media/video/omap3isp/ispccdc.h
+index 6d0264b..966bbf8 100644
+--- a/drivers/media/video/omap3isp/ispccdc.h
++++ b/drivers/media/video/omap3isp/ispccdc.h
+@@ -147,6 +147,7 @@ struct ispccdc_lsc {
+  * @subdev: V4L2 subdevice
+  * @pads: Sink and source media entity pads
+  * @formats: Active video formats
++ * @crop: Active crop rectangle on the OF source pad
+  * @input: Active input
+  * @output: Active outputs
+  * @video_out: Output video node
+@@ -173,6 +174,7 @@ struct isp_ccdc_device {
+ 	struct v4l2_subdev subdev;
+ 	struct media_pad pads[CCDC_PADS_NUM];
+ 	struct v4l2_mbus_framefmt formats[CCDC_PADS_NUM];
++	struct v4l2_rect crop;
+ 
+ 	enum ccdc_input_entity input;
+ 	unsigned int output;
 -- 
-1.7.5.4
+1.7.3.4
 
