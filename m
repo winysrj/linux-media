@@ -1,43 +1,157 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from void.printf.net ([89.145.121.20]:39984 "EHLO void.printf.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759178Ab2DZUH2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Apr 2012 16:07:28 -0400
-From: Chris Ball <cjb@laptop.org>
-To: Jonathan Corbet <corbet@lwn.net>
-Cc: linux-media@vger.kernel.org
-Subject: [PATCH 2/2] marvell-cam: Build fix: missing "select VIDEOBUF2_VMALLOC"
-Date: Thu, 26 Apr 2012 16:07:51 -0400
-Message-ID: <87d36u9rzc.fsf@laptop.org>
+Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:54182 "EHLO
+	na3sys009aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754523Ab2D2XSy convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 29 Apr 2012 19:18:54 -0400
+Received: by qabj34 with SMTP id j34so918423qab.4
+        for <linux-media@vger.kernel.org>; Sun, 29 Apr 2012 16:18:53 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+In-Reply-To: <5199956.DQHiqZsQzV@avalon>
+References: <1335362233-31022-1-git-send-email-saaguirre@ti.com>
+ <10045536.FETi1x5lnc@avalon> <CAKnK67TePU85gxXzKqP+K8pNwo=O-qjYFTim6t4m4TAkKbjGDg@mail.gmail.com>
+ <5199956.DQHiqZsQzV@avalon>
+From: "Aguirre, Sergio" <saaguirre@ti.com>
+Date: Sun, 29 Apr 2012 18:18:32 -0500
+Message-ID: <CAKnK67Rxx1_D9kX1oijocVO0iuyO9GT=2yg-G=fTbMpdX8TGKA@mail.gmail.com>
+Subject: Re: [media-ctl PATCH] Compare entity name length aswell
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fixes:
+Hi Laurent,
 
-drivers/built-in.o: In function `mcam_v4l_open':
-/drivers/media/video/marvell-ccic/mcam-core.c:1565: undefined reference to `vb2_vmalloc_memops'
+On Sun, Apr 29, 2012 at 6:13 PM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+> Hi Sergio,
+>
+> On Sunday 29 April 2012 17:36:43 Aguirre, Sergio wrote:
+>> On Sun, Apr 29, 2012 at 12:40 PM, Laurent Pinchart wrote:
+>> > On Saturday 28 April 2012 10:04:01 Aguirre, Sergio wrote:
+>> >> On Wed, Apr 25, 2012 at 8:57 AM, Sergio Aguirre <saaguirre@ti.com> wrote:
+>> >> > Otherwise, some false positives might arise when
+>> >> > having 2 subdevices with similar names, like:
+>> >> >
+>> >> > "OMAP4 ISS ISP IPIPEIF"
+>> >> > "OMAP4 ISS ISP IPIPE"
+>> >> >
+>> >> > Before this patch, trying to find "OMAP4 ISS ISP IPIPE", resulted
+>> >> > in a false entity match, retrieving "OMAP4 ISS ISP IPIPEIF"
+>> >> > information instead.
+>> >> >
+>> >> > Checking length should ensure such cases are handled well.
+>> >>
+>> >> Any feedback about this?
+>> >
+>> > Thanks for the patch, and sorry for the delay.
+>>
+>> No problem. :)
+>>
+>> >> > Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
+>> >> > ---
+>> >> >  src/mediactl.c |    3 ++-
+>> >> >  1 files changed, 2 insertions(+), 1 deletions(-)
+>> >> >
+>> >> > diff --git a/src/mediactl.c b/src/mediactl.c
+>> >> > index 5b8c587..451a386 100644
+>> >> > --- a/src/mediactl.c
+>> >> > +++ b/src/mediactl.c
+>> >> > @@ -66,7 +66,8 @@ struct media_entity *media_get_entity_by_name(struct
+>> >> > media_device *media, for (i = 0; i < media->entities_count; ++i) {
+>> >> >                struct media_entity *entity = &media->entities[i];
+>> >> >
+>> >> > -               if (strncmp(entity->info.name, name, length) == 0)
+>> >> > +               if ((strncmp(entity->info.name, name, length) == 0) &&
+>> >> > +                   (strlen(entity->info.name) == length))
+>> >> >                        return entity;
+>> >> >        }
+>> >
+>> > Instead of calling strlen() which has a O(n) complexity, what about just
+>> > checking that the entity name has a '\0' in the length'th position ?
+>> > Something like the following patch:
+>> >
+>> > From 46bec667b675573cf1ce698c68112e3dbd31930e Mon Sep 17 00:00:00 2001
+>> > From: Sergio Aguirre <saaguirre@ti.com>
+>> > Date: Wed, 25 Apr 2012 08:57:13 -0500
+>> > Subject: [PATCH] Compare name length to avoid false positives in
+>> > media_get_entity_by_name
+>> >
+>> > If two subdevice have names that only differ by a suffix (such as "OMAP4
+>> > ISS ISP IPIPE" and "OMAP4 ISS ISP IPIPEIF") the media_get_entity_by_name
+>> > function might return a pointer to the entity with the longest name when
+>> > called with the shortest name. Fix this by verifying that the candidate
+>> > entity name length is equal to the requested name length.
+>> >
+>> > Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
+>> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>> > ---
+>> >  src/mediactl.c |    9 ++++++++-
+>> >  src/tools.h    |    1 +
+>> >  2 files changed, 9 insertions(+), 1 deletions(-)
+>> >
+>> > diff --git a/src/mediactl.c b/src/mediactl.c
+>> > index 5b8c587..bc6a713 100644
+>> > --- a/src/mediactl.c
+>> > +++ b/src/mediactl.c
+>> > @@ -63,10 +63,17 @@ struct media_entity *media_get_entity_by_name(struct
+>> > media_device *media,
+>> >  {
+>> >        unsigned int i;
+>> >
+>> > +       /* A match is impossible if the entity name is longer than the
+>> > maximum +        * size we can get from the kernel.
+>> > +        */
+>> > +       if (length >= FIELD_SIZEOF(struct media_entity_desc, name))
+>> > +               return NULL;
+>> > +
+>>
+>> Good idea.
+>>
+>> >        for (i = 0; i < media->entities_count; ++i) {
+>> >                struct media_entity *entity = &media->entities[i];
+>> >
+>> > -               if (strncmp(entity->info.name, name, length) == 0)
+>> > +               if (strncmp(entity->info.name, name, length) == 0 &&
+>> > +                   entity->info.name[length] == '\0')
+>>
+>> ACK.
+>>
+>> Your patch is definitely better.
+>>
+>> IMHO, I think it'll be more fair if you put yourself as the author of this
+>> new patch, and me as: "Reported-by:".
+>
+> It's such a small patch, it's fine :-) Thank you for the proposal nonetheless.
+>
+> I've pushed the patch to the repository.
 
-Signed-off-by: Chris Ball <cjb@laptop.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: stable <stable@vger.kernel.org>
----
- drivers/media/video/marvell-ccic/Kconfig |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+Excellent! Thanks for that :)
 
-diff --git a/drivers/media/video/marvell-ccic/Kconfig b/drivers/media/video/marvell-ccic/Kconfig
-index bf739e3..2086b87 100644
---- a/drivers/media/video/marvell-ccic/Kconfig
-+++ b/drivers/media/video/marvell-ccic/Kconfig
-@@ -15,6 +15,7 @@ config VIDEO_MMP_CAMERA
- 	select VIDEO_OV7670
- 	select I2C_GPIO
- 	select VIDEOBUF2_DMA_SG
-+	select VIDEOBUF2_VMALLOC
- 	---help---
- 	  This is a Video4Linux2 driver for the integrated camera
- 	  controller found on Marvell Armada 610 application
--- 
-Chris Ball   <cjb@laptop.org>   <http://printf.net/>
-One Laptop Per Child
+Regards,
+Sergio
+
+>
+>> >                        return entity;
+>> >        }
+>> >
+>> > diff --git a/src/tools.h b/src/tools.h
+>> > index e56edb2..de06cb3 100644
+>> > --- a/src/tools.h
+>> > +++ b/src/tools.h
+>> > @@ -23,6 +23,7 @@
+>> >  #define __TOOLS_H__
+>> >
+>> >  #define ARRAY_SIZE(array)      (sizeof(array) / sizeof((array)[0]))
+>> > +#define FIELD_SIZEOF(t, f)     (sizeof(((t*)0)->f))
+>> >
+>> >  #endif /* __TOOLS_H__ */
+>> >
+>
+> --
+> Regards,
+>
+> Laurent Pinchart
+>
