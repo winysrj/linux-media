@@ -1,67 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:63311 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755712Ab2DTSYk (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:44750 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752780Ab2D2QX2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Apr 2012 14:24:40 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: text/plain; charset=ISO-8859-1
-Date: Fri, 20 Apr 2012 20:24:38 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: s5p-fimc VIDIOC_STREAMOFF bug
-In-reply-to: <6126533.0OoG4qIlQU@flatron>
-To: Tomasz Figa <tomasz.figa@gmail.com>
-Cc: linux-samsung-soc@vger.kernel.org,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Message-id: <4F91A9E6.3060402@samsung.com>
-References: <6126533.0OoG4qIlQU@flatron>
+	Sun, 29 Apr 2012 12:23:28 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@iki.fi
+Subject: [PATCH 0/3] omap3isp: Implement selection API support
+Date: Sun, 29 Apr 2012 18:23:42 +0200
+Message-Id: <1335716625-2388-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tomasz,
+Hi everybody,
 
-On 04/19/2012 11:45 PM, Tomasz Figa wrote:
-> Hi,
-> 
-> I have been working on adapting s5p-fimc driver for s3c6410 and everything 
-> seems to be working just fine after some minor changes (except minor loss 
-> of functionality - only codec path is supported, but for most use cases it 
-> does not matter).
-> 
-> However I think that I have spotted a bug in capture stop / capture suspend 
-> handling. In fimc_capture_state_cleanup() the ST_CAPT_SUSPENDED status bit 
-> of fimc->state field is being set regardless of suspend parameter, which 
-> confuses the driver that FIMC is suspended and might not accept buffers 
-> into active queue and so the driver will never start the capture process 
-> unless the device gets closed and reopened (because of the condition 
-> checking the count of active buffers).
-> 
-> In my fork for s3c6410 I have moved the set_bit call into 
-> fimc_capture_suspend(), so the bit gets set only when the device gets 
-> suspended. This seems to solve the problem and I do not see any issues that 
-> this could introduce, so it might be a good solution.
-> 
-> Let me know if I am wrong in anything I have written.
+There 3 patches implement support for the selection API in the OMAP3 ISP
+driver. Support for the legacy subdev crop API is removed from the driver,
+but still available through the translation layer in the subdev core.
 
-Your conclusions are correct, there was indeed a bug like that.
-There is already a patch fixing this [1], but it is going to be available
-just from v3.4. I'm considering sending it to Greg for inclusion in the
-stable releases, after it gets upstream.
+Laurent Pinchart (3):
+  omap3isp: ccdc: Add selection support on output formatter source pad
+  omap3isp: preview: Replace the crop API by the selection API
+  omap3isp: resizer: Replace the crop API by the selection API
 
-Once I did some preliminary work for the s3c-fimc driver, but dropped this
-due to lack of time. If you ever decide you want to mainline your work,
-just send the patches to linux-media@vger.kernel.org (and perhaps also to
-samsung-soc and ARM Linux) for review.
+ drivers/media/video/omap3isp/ispccdc.c    |  180 ++++++++++++++++++++++++++--
+ drivers/media/video/omap3isp/ispccdc.h    |    2 +
+ drivers/media/video/omap3isp/isppreview.c |   74 +++++++++---
+ drivers/media/video/omap3isp/ispresizer.c |  138 ++++++++++++++--------
+ 4 files changed, 311 insertions(+), 83 deletions(-)
 
-> 
-> Best regards,
-> Tomasz Figa
-
-[1] http://patchwork.linuxtv.org/patch/10417
-
-
-Thanks,
 -- 
-Sylwester Nawrocki
-Samsung Poland R&D Center
+Regards,
+
+Laurent Pinchart
+
