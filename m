@@ -1,94 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cassarossa.samfundet.no ([129.241.93.19]:40853 "EHLO
-	cassarossa.samfundet.no" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752337Ab2DAPyE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Apr 2012 11:54:04 -0400
-From: "Steinar H. Gunderson" <sgunderson@bigfoot.com>
-To: linux-media@vger.kernel.org
-Cc: "Steinar H. Gunderson" <sesse@samfundet.no>
-Subject: [PATCH 08/11] Remove some unused structure members.
-Date: Sun,  1 Apr 2012 17:53:48 +0200
-Message-Id: <1333295631-31866-8-git-send-email-sgunderson@bigfoot.com>
-In-Reply-To: <20120401155330.GA31901@uio.no>
-References: <20120401155330.GA31901@uio.no>
+Received: from mail-vx0-f174.google.com ([209.85.220.174]:60582 "EHLO
+	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756580Ab2D3WFK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 30 Apr 2012 18:05:10 -0400
+Received: by vcqp1 with SMTP id p1so2391425vcq.19
+        for <linux-media@vger.kernel.org>; Mon, 30 Apr 2012 15:05:09 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <CAOcJUbyT7LqdMwWcYa7XRhEvvSQGVftVQmiNBxw4xy+tv4412Q@mail.gmail.com>
+References: <CAOcJUbxHCo7xfGHJZdeEgReJrpCriweSb9s9+-_NfSODLz_NPQ@mail.gmail.com>
+	<4F9014CD.1040005@redhat.com>
+	<CAHAyoxx+Thhj+EwFbtJcXbkzks=0x+RfdudKOgQT=pqJzePcLw@mail.gmail.com>
+	<CAOcJUbyDNGoSdVV0WMVKavJm=RK6tanQTXS8AFzsHmHkGHOGUw@mail.gmail.com>
+	<CAOcJUbzyqkfOOR72xDc14B139EECjM9f5yCmC=d0yYQU6Js4jw@mail.gmail.com>
+	<CAOcJUbyT7LqdMwWcYa7XRhEvvSQGVftVQmiNBxw4xy+tv4412Q@mail.gmail.com>
+Date: Mon, 30 Apr 2012 18:05:09 -0400
+Message-ID: <CAOcJUbxLdZoo36Jkk1kMOhSfPcneupF6bRsMKOmuY6F5xZcErQ@mail.gmail.com>
+Subject: Re: ATSC-MH driver support for the Hauppauge WinTV Aero-m
+From: Michael Krufky <mkrufky@kernellabs.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media <linux-media@vger.kernel.org>
+Content-Type: multipart/mixed; boundary=20cf307c9e4acae54904beeca597
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Steinar H. Gunderson" <sesse@samfundet.no>
+--20cf307c9e4acae54904beeca597
+Content-Type: text/plain; charset=ISO-8859-1
 
-Signed-off-by: Steinar H. Gunderson <sesse@samfundet.no>
----
- drivers/media/dvb/mantis/mantis_evm.c  |   12 ++++--------
- drivers/media/dvb/mantis/mantis_link.h |    8 --------
- 2 files changed, 4 insertions(+), 16 deletions(-)
 
-diff --git a/drivers/media/dvb/mantis/mantis_evm.c b/drivers/media/dvb/mantis/mantis_evm.c
-index 0fdf51c..e6012cf 100644
---- a/drivers/media/dvb/mantis/mantis_evm.c
-+++ b/drivers/media/dvb/mantis/mantis_evm.c
-@@ -42,10 +42,7 @@ static void mantis_hifevm_work(struct work_struct *work)
- 	struct mantis_ca *ca = container_of(work, struct mantis_ca, hif_evm_work);
- 	struct mantis_pci *mantis = ca->ca_priv;
- 
--	u32 gpif_stat, gpif_mask;
--
--	gpif_stat = mmread(MANTIS_GPIF_STATUS);
--	gpif_mask = mmread(MANTIS_GPIF_IRQCFG);
-+	u32 gpif_stat = mmread(MANTIS_GPIF_STATUS);
- 
- 	if (gpif_stat & MANTIS_GPIF_DETSTAT) {
- 		if (gpif_stat & MANTIS_CARD_PLUGIN) {
-@@ -67,13 +64,13 @@ static void mantis_hifevm_work(struct work_struct *work)
- 		}
- 	}
- 
--	if (mantis->gpif_status & MANTIS_GPIF_EXTIRQ)
-+	if (gpif_stat & MANTIS_GPIF_EXTIRQ)
- 		dprintk(MANTIS_DEBUG, 1, "Event Mgr: Adapter(%d) Slot(0): Ext IRQ", mantis->num);
- 
--	if (mantis->gpif_status & MANTIS_SBUF_WSTO)
-+	if (gpif_stat & MANTIS_SBUF_WSTO)
- 		dprintk(MANTIS_DEBUG, 1, "Event Mgr: Adapter(%d) Slot(0): Smart Buffer Timeout", mantis->num);
- 
--	if (mantis->gpif_status & MANTIS_GPIF_OTHERR)
-+	if (gpif_stat & MANTIS_GPIF_OTHERR)
- 		dprintk(MANTIS_DEBUG, 1, "Event Mgr: Adapter(%d) Slot(0): Alignment Error", mantis->num);
- 
- 	if (gpif_stat & MANTIS_SBUF_OVFLW)
-@@ -92,7 +89,6 @@ static void mantis_hifevm_work(struct work_struct *work)
- 		dprintk(MANTIS_DEBUG, 1, "Event Mgr: Adapter(%d) Slot(0): Smart Buffer operation complete", mantis->num);
- 
- 	if (gpif_stat & MANTIS_SBUF_OPDONE) {
--		ca->sbuf_status = MANTIS_SBUF_DATA_AVAIL;
- 		if (test_and_set_bit(MANTIS_SBUF_OPDONE_BIT, &ca->hif_event)) {
- 			dprintk(MANTIS_NOTICE, 1, "Operation done, but SBUF_OPDONE bit was already set!");
- 		}
-diff --git a/drivers/media/dvb/mantis/mantis_link.h b/drivers/media/dvb/mantis/mantis_link.h
-index d8fefdf..a0f1428 100644
---- a/drivers/media/dvb/mantis/mantis_link.h
-+++ b/drivers/media/dvb/mantis/mantis_link.h
-@@ -25,12 +25,6 @@
- #include <linux/workqueue.h>
- #include "dvb_ca_en50221.h"
- 
--enum mantis_sbuf_status {
--	MANTIS_SBUF_DATA_AVAIL		= 1,
--	MANTIS_SBUF_DATA_EMPTY		= 2,
--	MANTIS_SBUF_DATA_OVFLW		= 3
--};
--
- struct mantis_slot {
- 	u32				timeout;
- 	u32				slave_cfg;
-@@ -54,8 +48,6 @@ struct mantis_ca {
- 	wait_queue_head_t		hif_data_wq;
- 	wait_queue_head_t		hif_write_wq; /* HIF Write op */
- 
--	enum mantis_sbuf_status		sbuf_status;
--
- 	enum mantis_slot_state		slot_state;
- 
- 	void				*ca_priv;
--- 
-1.7.9.5
 
+--20cf307c9e4acae54904beeca597
+Content-Type: application/octet-stream;
+	name="0004-mxl111sf-tuner-tune-SYS_ATSCMH-just-like-SYS_ATSC.patch"
+Content-Disposition: attachment;
+	filename="0004-mxl111sf-tuner-tune-SYS_ATSCMH-just-like-SYS_ATSC.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_h1o2tlfr1
+
+RnJvbSAyOTE5YmJiZTVhM2JkZmUxNWNkNzRkMGVlNmM5MmQ3M2VjNThjNjRhIE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBNaWNoYWVsIEtydWZreSA8bWtydWZreUBsaW51eHR2Lm9yZz4K
+RGF0ZTogU3VuLCAyOSBKYW4gMjAxMiAxNzozNToyNCAtMDUwMApTdWJqZWN0OiBbUEFUQ0ggMDQv
+MTBdIG14bDExMXNmLXR1bmVyOiB0dW5lIFNZU19BVFNDTUgganVzdCBsaWtlIFNZU19BVFNDCgpT
+aWduZWQtb2ZmLWJ5OiBNaWNoYWVsIEtydWZreSA8bWtydWZreUBsaW51eHR2Lm9yZz4KLS0tCiBk
+cml2ZXJzL21lZGlhL2R2Yi9kdmItdXNiL214bDExMXNmLXR1bmVyLmMgfCAgICAxICsKIDEgZmls
+ZXMgY2hhbmdlZCwgMSBpbnNlcnRpb25zKCspLCAwIGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBh
+L2RyaXZlcnMvbWVkaWEvZHZiL2R2Yi11c2IvbXhsMTExc2YtdHVuZXIuYyBiL2RyaXZlcnMvbWVk
+aWEvZHZiL2R2Yi11c2IvbXhsMTExc2YtdHVuZXIuYwppbmRleCA3MmRiNmVlLi43NGRhNWJiMSAx
+MDA2NDQKLS0tIGEvZHJpdmVycy9tZWRpYS9kdmIvZHZiLXVzYi9teGwxMTFzZi10dW5lci5jCisr
+KyBiL2RyaXZlcnMvbWVkaWEvZHZiL2R2Yi11c2IvbXhsMTExc2YtdHVuZXIuYwpAQCAtMjg0LDYg
+KzI4NCw3IEBAIHN0YXRpYyBpbnQgbXhsMTExc2ZfdHVuZXJfc2V0X3BhcmFtcyhzdHJ1Y3QgZHZi
+X2Zyb250ZW5kICpmZSkKIAogCXN3aXRjaCAoZGVsc3lzKSB7CiAJY2FzZSBTWVNfQVRTQzoKKwlj
+YXNlIFNZU19BVFNDTUg6CiAJCWJ3ID0gMDsgLyogQVRTQyAqLwogCQlicmVhazsKIAljYXNlIFNZ
+U19EVkJDX0FOTkVYX0I6Ci0tIAoxLjcuNS40Cgo=
+--20cf307c9e4acae54904beeca597--
