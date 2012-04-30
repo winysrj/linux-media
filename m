@@ -1,64 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:40287 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751202Ab2DRJBN (ORCPT
+Received: from bgl-iport-2.cisco.com ([72.163.197.26]:5100 "EHLO
+	bgl-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755858Ab2D3J77 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Apr 2012 05:01:13 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: text/plain; charset=ISO-8859-1
-Received: from euspt2 ([210.118.77.14]) by mailout4.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0M2O0053K3Q7HB90@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 18 Apr 2012 10:01:19 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0M2O00L3U3PW9R@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 18 Apr 2012 10:01:09 +0100 (BST)
-Date: Wed, 18 Apr 2012 11:01:10 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [PATCH 10/15] V4L: Add camera 3A lock control
-In-reply-to: <20120417160920.GG5356@valkosipuli.localdomain>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	g.liakhovetski@gmx.de, hdegoede@redhat.com, moinejf@free.fr,
-	m.szyprowski@samsung.com, riverful.kim@samsung.com,
-	sw0312.kim@samsung.com, Kyungmin Park <kyungmin.park@samsung.com>
-Message-id: <4F8E82D6.8060008@samsung.com>
-References: <1334657396-5737-1-git-send-email-s.nawrocki@samsung.com>
- <1334657396-5737-11-git-send-email-s.nawrocki@samsung.com>
- <20120417160920.GG5356@valkosipuli.localdomain>
+	Mon, 30 Apr 2012 05:59:59 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [GIT PULL for v3.5] (v2) Control events support for uvcvideo
+Date: Mon, 30 Apr 2012 11:49:54 +0200
+Cc: linux-media@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>
+References: <3052114.LipUdaOlsN@avalon> <2717715.JRhGBvOjaF@avalon>
+In-Reply-To: <2717715.JRhGBvOjaF@avalon>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201204301149.54269.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Hi Laurent!
 
-On 04/17/2012 06:09 PM, Sakari Ailus wrote:
-> Hi Sylwester,
+On Monday 30 April 2012 11:43:10 Laurent Pinchart wrote:
+> Hi Mauro,
 > 
-> On Tue, Apr 17, 2012 at 12:09:51PM +0200, Sylwester Nawrocki wrote:
->> The V4L2_CID_3A_LOCK bitmask control allows applications to pause
->> or resume the automatic exposure, focus and wite balance adjustments.
->> It can be used, for example, to lock the 3A adjustments right before
->> a still image is captured, for pre-focus, etc.
->> The applications can control each of the algorithms independently,
->> through a corresponding control bit, if driver allows that.
-> 
-> How is disabling e.g. focus algorithm different from locking focus?
+> A locking bug was present in the previous pull request. Please ignore it
+> and pull this one instead.
 
-The difference looks quite obvious to me. When some AUTO control is
-switched from auto to manual mode there is no guarantee about the
-related parameters the device will end up. E.g. lens may be positioned
-into default position, rather than kept at current one, exposure might
-be set to manual value from before AE was enabled, etc.
+I hate to say it, but while you did update v4l2_ctrl_add_event, you forgot to
+update v4l2_ctrl_del_event as well. That one still has the same locking 
+issue...
 
-I've seen separate registers at the sensor interfaces for AE, AWB
-locking/unlocking and for disabling/enabling those algorithms.
-With the proposed control applications can be sure that, for example,
-exposure is retained when the V4L2_CID_3A_LOCK is set.
+Time for a v3 :-)
 
-Does it answer your question ?
-
---
 Regards,
-Sylwester
+
+	Hans
+
+> 
+> The following changes since commit
+> bcb2cf6e0bf033d79821c89e5ccb328bfbd44907:
+> 
+>   [media] ngene: remove an unneeded condition (2012-04-26 15:29:23 -0300)
+> 
+> are available in the git repository at:
+>   git://linuxtv.org/pinchartl/uvcvideo.git uvcvideo-events
+> 
+> Hans de Goede (10):
+>       media/radio: use v4l2_ctrl_subscribe_event where possible
+>       v4l2-event: Add v4l2_subscribed_event_ops
+>       v4l2-ctrls: Use v4l2_subscribed_event_ops
+>       uvcvideo: Fix a "ignoring return value of ‘__clear_user’" warning
+>       uvcvideo: Refactor uvc_ctrl_get and query
+>       uvcvideo: Move __uvc_ctrl_get() up
+>       uvcvideo: Add support for control events
+>       uvcvideo: Properly report the inactive flag for inactive controls
+>       uvcvideo: Send control change events for slave ctrls when the master
+> changes uvcvideo: Drop unused ctrl member from struct uvc_control_mapping
+> 
+>  Documentation/video4linux/v4l2-framework.txt |   28 ++-
+>  drivers/media/radio/radio-isa.c              |   10 +-
+>  drivers/media/radio/radio-keene.c            |   14 +-
+>  drivers/media/video/ivtv/ivtv-ioctl.c        |    3 +-
+>  drivers/media/video/omap3isp/ispccdc.c       |    2 +-
+>  drivers/media/video/omap3isp/ispstat.c       |    2 +-
+>  drivers/media/video/uvc/uvc_ctrl.c           |  320
+> ++++++++++++++++++++++---- drivers/media/video/uvc/uvc_v4l2.c           | 
+>  46 +++-
+>  drivers/media/video/uvc/uvcvideo.h           |   26 ++-
+>  drivers/media/video/v4l2-ctrls.c             |   47 +++-
+>  drivers/media/video/v4l2-event.c             |   71 +++---
+>  drivers/usb/gadget/uvc_v4l2.c                |    2 +-
+>  include/media/v4l2-ctrls.h                   |    7 +-
+>  include/media/v4l2-event.h                   |   24 ++-
+>  14 files changed, 447 insertions(+), 155 deletions(-)
