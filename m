@@ -1,202 +1,169 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vx0-f174.google.com ([209.85.220.174]:35533 "EHLO
-	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751539Ab2DEOYZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Apr 2012 10:24:25 -0400
-Received: by vcqp1 with SMTP id p1so537265vcq.19
-        for <linux-media@vger.kernel.org>; Thu, 05 Apr 2012 07:24:24 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <4F7C4C58.5050703@gmail.com>
-References: <1333540034-14002-1-git-send-email-gennarone@gmail.com>
- <4F7C3787.5020602@iki.fi> <4F7C4141.40004@gmail.com> <4F7C481A.2020203@iki.fi>
- <4F7C4C58.5050703@gmail.com>
-From: pierigno <pierigno@gmail.com>
-Date: Thu, 5 Apr 2012 16:23:42 +0200
-Message-ID: <CAN7fRVvX2gEWHAEAqqZ1Jbgx+atU8S_dXVc9Q83_o+-L69nq7g@mail.gmail.com>
-Subject: Re: [PATCH] af9035: add several new USB IDs
-To: gennarone@gmail.com
-Cc: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org,
-	m@bues.ch, hfvogt@gmx.net, mchehab@redhat.com
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from smtp.nokia.com ([147.243.1.47]:46217 "EHLO mgw-sa01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750988Ab2D3Mke (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 30 Apr 2012 08:40:34 -0400
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com
+Subject: [PATCH 1/1] v4l: drop v4l2_buffer.input and V4L2_BUF_FLAG_INPUT
+Date: Mon, 30 Apr 2012 15:40:24 +0300
+Message-Id: <1335789624-15940-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-hello,
+Remove input field in struct v4l2_buffer and flag V4L2_BUF_FLAG_INPUT which
+tells the former is valid. The flag is used by no driver currently.
 
-these are the definitions needed for AVermedia Twinstar. The stick
-works correctly so far: I was also able to tune many channels through
-kaffeine (~300 channels here in Turin, Italy). and watching
-continuously a channel for 4 hours without interruptions or visual
-glitches. Switching from one channel to another takes ~1 sec. Just one
-tuner is recognized at the moment.
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+Hi all,
 
-Regards,
-Pierangelo Terzulli
+I thought this would be a good time to get rid of the input field in
+v4l2_buffer to avoid writing more useless compat code for it --- the enum
+compat code.
 
+Comments are welcome. This patch is compile tested on videobuf and
+videobuf2.
 
---- a/drivers/media/dvb/dvb-usb/af9035.c
-+++ b/drivers/media/dvb/dvb-usb/af9035.c
-@@ -821,29 +821,68 @@ err:
+ drivers/media/video/v4l2-compat-ioctl32.c |    8 +++-----
+ drivers/media/video/videobuf-core.c       |   16 ----------------
+ drivers/media/video/videobuf2-core.c      |    4 +---
+ include/linux/videodev2.h                 |    4 +---
+ include/media/videobuf-core.h             |    2 --
+ 5 files changed, 5 insertions(+), 29 deletions(-)
 
- enum af9035_id_entry {
-       AF9035_0CCD_0093,
-+       AF9035_0CCD_00AA,
-       AF9035_15A4_9035,
-+       AF9035_15A4_1000,
-       AF9035_15A4_1001,
-+       AF9035_15A4_1002,
-+       AF9035_15A4_1003,
-+       AF9035_07CA_0825,
-+       AF9035_07CA_A825,
-+       AF9035_07CA_0835,
-       AF9035_07CA_A835,
-       AF9035_07CA_B835,
-+       AF9035_07CA_A333,
-+       AF9035_07CA_0337,
-+       AF9035_07CA_F337,
-+       AF9035_07CA_0867,
-       AF9035_07CA_1867,
-+       AF9035_07CA_3867,
-       AF9035_07CA_A867,
-+       AF9035_07CA_B867,
+diff --git a/drivers/media/video/v4l2-compat-ioctl32.c b/drivers/media/video/v4l2-compat-ioctl32.c
+index 2829d25..a2ddc37 100644
+--- a/drivers/media/video/v4l2-compat-ioctl32.c
++++ b/drivers/media/video/v4l2-compat-ioctl32.c
+@@ -387,8 +387,7 @@ static int get_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
+ 		get_user(kp->index, &up->index) ||
+ 		get_user(kp->type, &up->type) ||
+ 		get_user(kp->flags, &up->flags) ||
+-		get_user(kp->memory, &up->memory) ||
+-		get_user(kp->input, &up->input))
++		get_user(kp->memory, &up->memory)
+ 			return -EFAULT;
+ 
+ 	if (V4L2_TYPE_IS_OUTPUT(kp->type))
+@@ -472,8 +471,7 @@ static int put_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
+ 		put_user(kp->index, &up->index) ||
+ 		put_user(kp->type, &up->type) ||
+ 		put_user(kp->flags, &up->flags) ||
+-		put_user(kp->memory, &up->memory) ||
+-		put_user(kp->input, &up->input))
++		put_user(kp->memory, &up->memory)
+ 			return -EFAULT;
+ 
+ 	if (put_user(kp->bytesused, &up->bytesused) ||
+@@ -482,7 +480,7 @@ static int put_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
+ 		put_user(kp->timestamp.tv_usec, &up->timestamp.tv_usec) ||
+ 		copy_to_user(&up->timecode, &kp->timecode, sizeof(struct v4l2_timecode)) ||
+ 		put_user(kp->sequence, &up->sequence) ||
+-		put_user(kp->reserved, &up->reserved))
++		copy_to_user(&kp->reserved, &up->reserved, sizeof(kp->reserved))
+ 			return -EFAULT;
+ 
+ 	if (V4L2_TYPE_IS_MULTIPLANAR(kp->type)) {
+diff --git a/drivers/media/video/videobuf-core.c b/drivers/media/video/videobuf-core.c
+index ffdf59c..bf7a326 100644
+--- a/drivers/media/video/videobuf-core.c
++++ b/drivers/media/video/videobuf-core.c
+@@ -359,11 +359,6 @@ static void videobuf_status(struct videobuf_queue *q, struct v4l2_buffer *b,
+ 		break;
+ 	}
+ 
+-	if (vb->input != UNSET) {
+-		b->flags |= V4L2_BUF_FLAG_INPUT;
+-		b->input  = vb->input;
+-	}
+-
+ 	b->field     = vb->field;
+ 	b->timestamp = vb->ts;
+ 	b->bytesused = vb->size;
+@@ -402,7 +397,6 @@ int __videobuf_mmap_setup(struct videobuf_queue *q,
+ 			break;
+ 
+ 		q->bufs[i]->i      = i;
+-		q->bufs[i]->input  = UNSET;
+ 		q->bufs[i]->memory = memory;
+ 		q->bufs[i]->bsize  = bsize;
+ 		switch (memory) {
+@@ -566,16 +560,6 @@ int videobuf_qbuf(struct videobuf_queue *q, struct v4l2_buffer *b)
+ 		goto done;
+ 	}
+ 
+-	if (b->flags & V4L2_BUF_FLAG_INPUT) {
+-		if (b->input >= q->inputs) {
+-			dprintk(1, "qbuf: wrong input.\n");
+-			goto done;
+-		}
+-		buf->input = b->input;
+-	} else {
+-		buf->input = UNSET;
+-	}
+-
+ 	switch (b->memory) {
+ 	case V4L2_MEMORY_MMAP:
+ 		if (0 == buf->baddr) {
+diff --git a/drivers/media/video/videobuf2-core.c b/drivers/media/video/videobuf2-core.c
+index 3786d88..0daaec7 100644
+--- a/drivers/media/video/videobuf2-core.c
++++ b/drivers/media/video/videobuf2-core.c
+@@ -338,8 +338,7 @@ static int __fill_v4l2_buffer(struct vb2_buffer *vb, struct v4l2_buffer *b)
+ 
+ 	/* Copy back data such as timestamp, flags, input, etc. */
+ 	memcpy(b, &vb->v4l2_buf, offsetof(struct v4l2_buffer, m));
+-	b->input = vb->v4l2_buf.input;
+-	b->reserved = vb->v4l2_buf.reserved;
++	memcpy(b->reserved, vb->v4l2_buf.reserved, sizeof(b->reserved));
+ 
+ 	if (V4L2_TYPE_IS_MULTIPLANAR(q->type)) {
+ 		ret = __verify_planes_array(vb, b);
+@@ -860,7 +859,6 @@ static int __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b,
+ 
+ 	vb->v4l2_buf.field = b->field;
+ 	vb->v4l2_buf.timestamp = b->timestamp;
+-	vb->v4l2_buf.input = b->input;
+ 	vb->v4l2_buf.flags = b->flags & ~V4L2_BUFFER_STATE_FLAGS;
+ 
+ 	return 0;
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index 5a09ac3..ae3062d 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -652,8 +652,7 @@ struct v4l2_buffer {
+ 		struct v4l2_plane *planes;
+ 	} m;
+ 	__u32			length;
+-	__u32			input;
+-	__u32			reserved;
++	__u32			reserved[2];
  };
+ 
+ /*  Flags for 'flags' field */
+@@ -666,7 +665,6 @@ struct v4l2_buffer {
+ /* Buffer is ready, but the data contained within is corrupted. */
+ #define V4L2_BUF_FLAG_ERROR	0x0040
+ #define V4L2_BUF_FLAG_TIMECODE	0x0100	/* timecode field is valid */
+-#define V4L2_BUF_FLAG_INPUT     0x0200  /* input field is valid */
+ #define V4L2_BUF_FLAG_PREPARED	0x0400	/* Buffer is prepared for queuing */
+ /* Cache handling flags */
+ #define V4L2_BUF_FLAG_NO_CACHE_INVALIDATE	0x0800
+diff --git a/include/media/videobuf-core.h b/include/media/videobuf-core.h
+index 90ed895..4511d75 100644
+--- a/include/media/videobuf-core.h
++++ b/include/media/videobuf-core.h
+@@ -19,8 +19,6 @@
+ #include <linux/poll.h>
+ #include <linux/videodev2.h>
+ 
+-#define UNSET (-1U)
+-
+ 
+ struct videobuf_buffer;
+ struct videobuf_queue;
+-- 
+1.7.2.5
 
- static struct usb_device_id af9035_id[] = {
-       [AF9035_0CCD_0093] = {
-               USB_DEVICE(USB_VID_TERRATEC, USB_PID_TERRATEC_CINERGY_T_STICK)},
-+       [AF9035_0CCD_00AA] = {
-+               USB_DEVICE(USB_VID_TERRATEC,
-USB_PID_TERRATEC_CINERGY_T_STICK_2)},
-       [AF9035_15A4_9035] = {
-               USB_DEVICE(USB_VID_AFATECH, USB_PID_AFATECH_AF9035)},
--       [AF9035_15A4_1001] = {
-+       [AF9035_15A4_1000] = {
-               USB_DEVICE(USB_VID_AFATECH, USB_PID_AFATECH_AF9035_2)},
-+       [AF9035_15A4_1001] = {
-+               USB_DEVICE(USB_VID_AFATECH, USB_PID_AFATECH_AF9035_3)},
-+       [AF9035_15A4_1002] = {
-+               USB_DEVICE(USB_VID_AFATECH, USB_PID_AFATECH_AF9035_4)},
-+       [AF9035_15A4_1003] = {
-+               USB_DEVICE(USB_VID_AFATECH, USB_PID_AFATECH_AF9035_5)},
-+       [AF9035_07CA_0825] = {
-+               USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_0825)},
-+       [AF9035_07CA_A825] = {
-+               USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_A825)},
-+       [AF9035_07CA_0835] = {
-+               USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_0835)},
-       [AF9035_07CA_A835] = {
-               USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_A835)},
-       [AF9035_07CA_B835] = {
-               USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_B835)},
-+       [AF9035_07CA_A333] = {
-+               USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_A333)},
-+       [AF9035_07CA_0337] = {
-+               USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_0337)},
-+       [AF9035_07CA_F337] = {
-+               USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_F337)},
-+       [AF9035_07CA_0867] = {
-+               USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_0867)},
-       [AF9035_07CA_1867] = {
-               USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_1867)},
-+       [AF9035_07CA_3867] = {
-+               USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_3867)},
-       [AF9035_07CA_A867] = {
-               USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_A867)},
-+       [AF9035_07CA_B867] = {
-+               USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_B867)},
-       {},
- };
-
-@@ -886,30 +925,47 @@ static struct dvb_usb_device_properties
-af9035_properties[] = {
-
-               .i2c_algo = &af9035_i2c_algo,
-
--               .num_device_descs = 4,
-+               .num_device_descs = 5,
-               .devices = {
-                       {
-                               .name = "TerraTec Cinergy T Stick",
-                               .cold_ids = {
-                                       &af9035_id[AF9035_0CCD_0093],
-+                                       &af9035_id[AF9035_0CCD_00AA],
-                               },
-                       }, {
-                               .name = "Afatech Technologies DVB-T stick",
-                               .cold_ids = {
-                                       &af9035_id[AF9035_15A4_9035],
-+                                       &af9035_id[AF9035_15A4_1000],
-                                       &af9035_id[AF9035_15A4_1001],
-+                                       &af9035_id[AF9035_15A4_1002],
-+                                       &af9035_id[AF9035_15A4_1003],
-+                               },
-+                       }, {
-+                               .name = "AVerMedia AVerTV TwinStar (A825)",
-+                               .cold_ids = {
-+                                       &af9035_id[AF9035_07CA_0825],
-+                                       &af9035_id[AF9035_07CA_A825],
-                               },
-                       }, {
-                               .name = "AVerMedia AVerTV Volar HD/PRO (A835)",
-                               .cold_ids = {
-+                                       &af9035_id[AF9035_07CA_0835],
-                                       &af9035_id[AF9035_07CA_A835],
-                                       &af9035_id[AF9035_07CA_B835],
-                               },
-                       }, {
-                               .name = "AVerMedia HD Volar (A867)",
-                               .cold_ids = {
-+                                       &af9035_id[AF9035_07CA_A333],
-+                                       &af9035_id[AF9035_07CA_0337],
-+                                       &af9035_id[AF9035_07CA_F337],
-+                                       &af9035_id[AF9035_07CA_0867],
-                                       &af9035_id[AF9035_07CA_1867],
-+                                       &af9035_id[AF9035_07CA_3867],
-                                       &af9035_id[AF9035_07CA_A867],
-+                                       &af9035_id[AF9035_07CA_B867],
-                               },
-                       },
-               }
-
---- a/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
-+++ b/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
-@@ -77,7 +77,10 @@
- #define USB_PID_AFATECH_AF9015_9015                    0x9015
- #define USB_PID_AFATECH_AF9015_9016                    0x9016
- #define USB_PID_AFATECH_AF9035                         0x9035
--#define USB_PID_AFATECH_AF9035_2                       0x1001
-+#define USB_PID_AFATECH_AF9035_2                       0x1000
-+#define USB_PID_AFATECH_AF9035_3                       0x1001
-+#define USB_PID_AFATECH_AF9035_4                       0x1002
-+#define USB_PID_AFATECH_AF9035_5                       0x1003
- #define USB_PID_TREKSTOR_DVBT                          0x901b
- #define USB_VID_ALINK_DTU                              0xf170
- #define USB_PID_ANSONIC_DVBT_USB                       0x6000
-@@ -155,6 +158,7 @@
- #define USB_PID_TERRATEC_CINERGY_T_USB_XE              0x0055
- #define USB_PID_TERRATEC_CINERGY_T_USB_XE_REV2         0x0069
- #define USB_PID_TERRATEC_CINERGY_T_STICK               0x0093
-+#define USB_PID_TERRATEC_CINERGY_T_STICK_2             0x00aa
- #define USB_PID_TERRATEC_CINERGY_T_STICK_RC            0x0097
- #define USB_PID_TERRATEC_CINERGY_T_STICK_DUAL_RC       0x0099
- #define USB_PID_TWINHAN_VP7041_COLD                    0x3201
-@@ -224,10 +228,19 @@
- #define USB_PID_AVERMEDIA_A850T                                0x850b
- #define USB_PID_AVERMEDIA_A805                         0xa805
- #define USB_PID_AVERMEDIA_A815M                                0x815a
-+#define USB_PID_AVERMEDIA_0825                         0x0825
-+#define USB_PID_AVERMEDIA_A825                         0xa825
-+#define USB_PID_AVERMEDIA_0835                         0x0835
- #define USB_PID_AVERMEDIA_A835                         0xa835
- #define USB_PID_AVERMEDIA_B835                         0xb835
-+#define USB_PID_AVERMEDIA_A333                         0xa333
-+#define USB_PID_AVERMEDIA_0337                         0x0337
-+#define USB_PID_AVERMEDIA_F337                         0xf337
-+#define USB_PID_AVERMEDIA_0867                         0x0867
- #define USB_PID_AVERMEDIA_1867                         0x1867
-+#define USB_PID_AVERMEDIA_3867                         0x3867
- #define USB_PID_AVERMEDIA_A867                         0xa867
-+#define USB_PID_AVERMEDIA_B867                         0xb867
- #define USB_PID_TECHNOTREND_CONNECT_S2400               0x3006
- #define USB_PID_TECHNOTREND_CONNECT_CT3650             0x300d
- #define USB_PID_TERRATEC_CINERGY_DT_XS_DIVERSITY       0x005a
