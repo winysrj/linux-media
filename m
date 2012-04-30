@@ -1,677 +1,405 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from blu0-omc2-s21.blu0.hotmail.com ([65.55.111.96]:12543 "EHLO
-	blu0-omc2-s21.blu0.hotmail.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752166Ab2DUA7I (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:23770 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755126Ab2D3QOs (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Apr 2012 20:59:08 -0400
-Message-ID: <BLU0-SMTP387053873CD770C7D4E9FA4D8230@phx.gbl>
-From: Manoel Pinheiro <pinusdtv@hotmail.com>
+	Mon, 30 Apr 2012 12:14:48 -0400
+Received: from euspt2 (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0M3A00DWSVSGJ7@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 30 Apr 2012 17:14:40 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0M3A0058RVSJB8@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 30 Apr 2012 17:14:44 +0100 (BST)
+Date: Mon, 30 Apr 2012 18:14:41 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH v2 12/12] s5p-fimc: Add color effect control
+In-reply-to: <1335802481-18153-1-git-send-email-s.nawrocki@samsung.com>
 To: linux-media@vger.kernel.org
-Subject: [PATCH 2/2] [media for 3.5] Add support for TBS-Tech ISDB-T Full Seg DTB08: Modifications for frontend mb86a20s
-Date: Fri, 20 Apr 2012 21:58:57 -0300
-MIME-Version: 1.0
-Content-Type: text/plain
+Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	riverful.kim@samsung.com, sw0312.kim@samsung.com,
+	sungchun.kang@samsung.com, subash.ramaswamy@linaro.org,
+	s.nawrocki@samsung.com
+Message-id: <1335802481-18153-13-git-send-email-s.nawrocki@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1335802481-18153-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Driver for TBS-Tech ISDB-T USB2.0 Receiver (DTB08 Full Seg).
+Add support for V4L2_CID_COLORFX control at the mem-to-mem and capture
+video nodes.
 
-The device used as a reference is described in the link
-http://linuxtv.org/wiki/index.php/JH_Full_HD_Digital_TV_Receiver
-
-Modifications to allow use the mb86a20s frontend.
-
-
-Signed-off-by: Manoel Pinheiro <pinusdtv@hotmail.com>
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- drivers/media/dvb/dvb-usb/tbs-dtb08-fe.c |  570 ++++++++++++++++++++++++++++++
- drivers/media/dvb/dvb-usb/tbs-dtb08-fe.h |   60 ++++
- 2 files changed, 630 insertions(+)
- create mode 100644 drivers/media/dvb/dvb-usb/tbs-dtb08-fe.c
- create mode 100644 drivers/media/dvb/dvb-usb/tbs-dtb08-fe.h
+ drivers/media/video/s5p-fimc/fimc-capture.c |   11 +--
+ drivers/media/video/s5p-fimc/fimc-core.c    |  124 +++++++++++++++++++++------
+ drivers/media/video/s5p-fimc/fimc-core.h    |   38 +++++---
+ drivers/media/video/s5p-fimc/fimc-m2m.c     |    4 +-
+ drivers/media/video/s5p-fimc/fimc-reg.c     |    4 +-
+ drivers/media/video/s5p-fimc/fimc-reg.h     |    2 +-
+ 6 files changed, 133 insertions(+), 50 deletions(-)
 
-diff --git a/drivers/media/dvb/dvb-usb/tbs-dtb08-fe.c b/drivers/media/dvb/dvb-usb/tbs-dtb08-fe.c
-new file mode 100644
-index 0000000..955de70
---- /dev/null
-+++ b/drivers/media/dvb/dvb-usb/tbs-dtb08-fe.c
-@@ -0,0 +1,570 @@
-+/*
-+ *   TBS-Tech ISDB-T Full Seg DTB08 device driver
-+ *
-+ *   Copyright (C) 2010-2012 Manoel Pinheiro <pinusdtv@hotmail.com>
-+ *
-+ *   This program is free software; you can redistribute it and/or modify
-+ *   it under the terms of the GNU General Public License as published by
-+ *   the Free Software Foundation; either version 2 of the License, or
-+ *   (at your option) any later version.
-+ *
-+ *   This program is distributed in the hope that it will be useful,
-+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ *   GNU General Public License for more details.
-+ *
-+ *   You should have received a copy of the GNU General Public License
-+ *   along with this program; if not, write to the Free Software
-+ *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-+ */
-+
-+/* This file is part of tbs-dtb08 module and can be removed in the future. */
-+
-+#include "tbs-dtb08-fe.h"
-+
-+struct dtb08_a20s_reg_subreg_val {
-+	u8 reg;
-+	u8 subreg;
-+	u8 type;	/* 0=8 bits wo/sub, 1=8 bits w/sub
-+			 * 2=16 bits wo/sub, 3=16 bits w/sub, 4=24 bits */
-+	u32 val;
-+};
-+
-+static struct dtb08_a20s_reg_subreg_val dtb08_a20s_regs_val[] = {
-+	{ 0x70, 0x00, 0x00, 0x0f },
-+	{ 0x70, 0x00, 0x00, 0xff },
-+	{ 0x08, 0x00, 0x00, 0x01 },
-+	{ 0x09, 0x00, 0x00, 0x3e },
-+	{ 0x50, 0xd1, 0x01, 0x22 },
-+	{ 0x39, 0x00, 0x00, 0x01 },
-+	{ 0x71, 0x00, 0x00, 0x00 },
-+	{ 0x28, 0x2a, 0x04, 0xff80 },
-+	{ 0x28, 0x20, 0x04, 0x33dfa9 },
-+	{ 0x28, 0x22, 0x04, 0x1ff0 },
-+	{ 0x3b, 0x00, 0x00, 0x21 },
-+	{ 0x3c, 0x00, 0x00, 0x3a },
-+	{ 0x01, 0x00, 0x00, 0x0d },
-+	{ 0x04, 0x08, 0x01, 0x05 },
-+	{ 0x04, 0x0e, 0x03, 0x0014 },
-+	{ 0x04, 0x0b, 0x01, 0x8c },
-+	{ 0x04, 0x00, 0x03, 0x0007 },
-+	{ 0x04, 0x02, 0x03, 0x0fa0 },
-+	{ 0x04, 0x09, 0x01, 0x00 },
-+	{ 0x04, 0x0a, 0x01, 0xff },
-+	{ 0x04, 0x27, 0x01, 0x64 },
-+	{ 0x04, 0x28, 0x01, 0x00 },
-+	{ 0x04, 0x1e, 0x01, 0xff },
-+	{ 0x04, 0x29, 0x01, 0x0a },
-+	{ 0x04, 0x32, 0x01, 0x0a },
-+	{ 0x04, 0x14, 0x01, 0x02 },
-+	{ 0x04, 0x04, 0x03, 0x0022 },
-+	{ 0x04, 0x06, 0x03, 0x0ed8 },
-+	{ 0x04, 0x12, 0x01, 0x00 },
-+	{ 0x04, 0x13, 0x01, 0xff },
-+	{ 0x04, 0x15, 0x01, 0x4e },
-+	{ 0x04, 0x16, 0x01, 0x20 },
-+	{ 0x52, 0x00, 0x00, 0x01 },
-+	{ 0x50, 0xa7, 0x04, 0xffff },
-+	{ 0x50, 0xaa, 0x04, 0xffff },
-+	{ 0x50, 0xad, 0x04, 0xffff },
-+	{ 0x5e, 0x00, 0x00, 0x07 },
-+	{ 0x50, 0xdc, 0x03, 0x01f4 },
-+	{ 0x50, 0xde, 0x03, 0x01f4 },
-+	{ 0x50, 0xe0, 0x03, 0x01f4 },
-+	{ 0x50, 0xb0, 0x01, 0x07 },
-+	{ 0x50, 0xb2, 0x03, 0xffff },
-+	{ 0x50, 0xb4, 0x03, 0xffff },
-+	{ 0x50, 0xb6, 0x03, 0xffff },
-+	{ 0x50, 0x50, 0x01, 0x02 },
-+	{ 0x50, 0x51, 0x01, 0x04 },
-+	{ 0x45, 0x00, 0x00, 0x04 },
-+	{ 0x48, 0x00, 0x00, 0x04 },
-+	{ 0x50, 0xd5, 0x01, 0x01 },
-+	{ 0x50, 0xd6, 0x01, 0x1f },
-+	{ 0x50, 0xd2, 0x01, 0x03 },
-+	{ 0x50, 0xd7, 0x01, 0x3f },
-+	{ 0x28, 0x74, 0x04, 0x0040 },
-+	{ 0x28, 0x46, 0x04, 0x2c0c },
-+	{ 0x04, 0x40, 0x01, 0x01 },
-+	{ 0x28, 0x00, 0x01, 0x10 },
-+	{ 0x28, 0x05, 0x01, 0x02 },
-+	{ 0x1c, 0x00, 0x00, 0x01 },
-+	{ 0x28, 0x06, 0x04, 0x0003 },
-+	{ 0x28, 0x07, 0x04, 0x000d },
-+	{ 0x28, 0x08, 0x04, 0x0002 },
-+	{ 0x28, 0x09, 0x04, 0x0001 },
-+	{ 0x28, 0x0a, 0x04, 0x0021 },
-+	{ 0x28, 0x0b, 0x04, 0x0029 },
-+	{ 0x28, 0x0c, 0x04, 0x0016 },
-+	{ 0x28, 0x0d, 0x04, 0x0031 },
-+	{ 0x28, 0x0e, 0x04, 0x000e },
-+	{ 0x28, 0x0f, 0x04, 0x004e },
-+	{ 0x28, 0x10, 0x04, 0x0046 },
-+	{ 0x28, 0x11, 0x04, 0x000f },
-+	{ 0x28, 0x12, 0x04, 0x0056 },
-+	{ 0x28, 0x13, 0x04, 0x0035 },
-+	{ 0x28, 0x14, 0x04, 0x01be },
-+	{ 0x28, 0x15, 0x04, 0x0184 },
-+	{ 0x28, 0x16, 0x04, 0x03ee },
-+	{ 0x28, 0x17, 0x04, 0x0098 },
-+	{ 0x28, 0x18, 0x04, 0x009f },
-+	{ 0x28, 0x19, 0x04, 0x07b2 },
-+	{ 0x28, 0x1a, 0x04, 0x06c2 },
-+	{ 0x28, 0x1b, 0x04, 0x074a },
-+	{ 0x28, 0x1c, 0x04, 0x01bc },
-+	{ 0x28, 0x1d, 0x04, 0x04ba },
-+	{ 0x28, 0x1e, 0x04, 0x0614 },
-+	{ 0x50, 0x1e, 0x01, 0x5d },
-+	{ 0x50, 0x22, 0x01, 0x00 },
-+	{ 0x50, 0x23, 0x01, 0xc8 },
-+	{ 0x50, 0x24, 0x01, 0x00 },
-+	{ 0x50, 0x25, 0x01, 0xf0 },
-+	{ 0x50, 0x26, 0x01, 0x00 },
-+	{ 0x50, 0x27, 0x01, 0xc3 },
-+	{ 0x50, 0x39, 0x01, 0x02 },
-+	{ 0x28, 0x6a, 0x04, 0x0000 }
-+};
-+
-+static u8 dtb08_a20s_soft_reset[] = {
-+	0x70, 0xf0, 0x70, 0xff, 0x08, 0x01, 0x08, 0x00
-+};
-+
-+int dtb08_a20s_read_reg(struct dtb08_a20s_state *state, u8 reg, u8 *val)
+diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c b/drivers/media/video/s5p-fimc/fimc-capture.c
+index bcf9c1e..88903e5 100644
+--- a/drivers/media/video/s5p-fimc/fimc-capture.c
++++ b/drivers/media/video/s5p-fimc/fimc-capture.c
+@@ -62,7 +62,7 @@ static int fimc_capture_hw_init(struct fimc_dev *fimc)
+ 		fimc_hw_set_mainscaler(ctx);
+ 		fimc_hw_set_target_format(ctx);
+ 		fimc_hw_set_rotation(ctx);
+-		fimc_hw_set_effect(ctx, false);
++		fimc_hw_set_effect(ctx);
+ 		fimc_hw_set_output_path(ctx);
+ 		fimc_hw_set_out_dma(ctx);
+ 		if (fimc->variant->has_alpha)
+@@ -164,6 +164,7 @@ static int fimc_capture_config_update(struct fimc_ctx *ctx)
+ 	fimc_hw_set_mainscaler(ctx);
+ 	fimc_hw_set_target_format(ctx);
+ 	fimc_hw_set_rotation(ctx);
++	fimc_hw_set_effect(ctx);
+ 	fimc_prepare_dma_offset(ctx, &ctx->d_frame);
+ 	fimc_hw_set_out_dma(ctx);
+ 	if (fimc->variant->has_alpha)
+@@ -457,14 +458,14 @@ int fimc_capture_ctrls_create(struct fimc_dev *fimc)
+ 
+ 	if (WARN_ON(vid_cap->ctx == NULL))
+ 		return -ENXIO;
+-	if (vid_cap->ctx->ctrls_rdy)
++	if (vid_cap->ctx->ctrls.ready)
+ 		return 0;
+ 
+ 	ret = fimc_ctrls_create(vid_cap->ctx);
+-	if (ret || vid_cap->user_subdev_api)
++	if (ret || vid_cap->user_subdev_api || !vid_cap->ctx->ctrls.ready)
+ 		return ret;
+ 
+-	return v4l2_ctrl_add_handler(&vid_cap->ctx->ctrl_handler,
++	return v4l2_ctrl_add_handler(&vid_cap->ctx->ctrls.handler,
+ 		    fimc->pipeline.subdevs[IDX_SENSOR]->ctrl_handler);
+ }
+ 
+@@ -1579,7 +1580,7 @@ static int fimc_register_capture_device(struct fimc_dev *fimc,
+ 	v4l2_info(v4l2_dev, "Registered %s as /dev/%s\n",
+ 		  vfd->name, video_device_node_name(vfd));
+ 
+-	vfd->ctrl_handler = &ctx->ctrl_handler;
++	vfd->ctrl_handler = &ctx->ctrls.handler;
+ 	return 0;
+ 
+ err_vd:
+diff --git a/drivers/media/video/s5p-fimc/fimc-core.c b/drivers/media/video/s5p-fimc/fimc-core.c
+index 8d066c5..0d7ef6d 100644
+--- a/drivers/media/video/s5p-fimc/fimc-core.c
++++ b/drivers/media/video/s5p-fimc/fimc-core.c
+@@ -461,11 +461,53 @@ void fimc_prepare_dma_offset(struct fimc_ctx *ctx, struct fimc_frame *f)
+ 	    f->fmt->color, f->dma_offset.y_h, f->dma_offset.y_v);
+ }
+ 
++int fimc_set_color_effect(struct fimc_ctx *ctx, enum v4l2_colorfx colorfx)
 +{
-+	int ret;
-+	*val = 0;
-+	ret = state->i2c_read(state->udev, state->demod_addr, reg, val, 1);
-+	return (ret < 0) ? ret : 0;
-+}
++	struct fimc_effect *effect = &ctx->effect;
 +
-+int dtb08_a20s_write_reg(struct dtb08_a20s_state *state, u8 reg, u8 val)
-+{
-+	int ret;
-+	ret = state->i2c_write(state->udev, state->demod_addr, reg, &val, 1);
-+	return (ret < 0) ? ret : 0;
-+}
-+
-+int dtb08_a20s_read_subreg(struct dtb08_a20s_state *state,
-+			   u8 reg, u8 subreg, u8 *val)
-+{
-+	int ret;
-+
-+	*val = 0;
-+	ret = dtb08_a20s_write_reg(state, reg, subreg);
-+	if (ret < 0)
-+		return ret;
-+	return dtb08_a20s_read_reg(state, reg + 1, val);
-+}
-+
-+static u32 get_config_reg_val(struct dtb08_a20s_state *state,
-+			      struct dtb08_a20s_reg_subreg_val *reg_val)
-+{
-+	struct dtb08_a20s_reg_subreg_config *config_regs;
-+	int i;
-+
-+	if (!reg_val)
-+		return 0;
-+	if (!state || !state->config_regs)
-+		return reg_val->val;
-+
-+	config_regs = state->config_regs;
-+	for (i = 0; i < state->config_size; i++) {
-+		if (config_regs->reg == reg_val->reg &&
-+		    config_regs->subreg == reg_val->subreg)
-+			return config_regs->val;
-+		config_regs++;
-+	}
-+	return reg_val->val;
-+}
-+
-+static int dtb08_a20s_init_regs(struct dtb08_a20s_state *state)
-+{
-+	u8 *buf;
-+	u32 val;
-+	int i, i2, count, ret = 0;
-+
-+	state->need_init = true;
-+	buf = kmalloc(12 , GFP_KERNEL);
-+	if (!buf)
-+		return -ENOMEM;
-+
-+	for (i = 0; i < ARRAY_SIZE(dtb08_a20s_regs_val); i++) {
-+		struct dtb08_a20s_reg_subreg_val *reg_val;
-+
-+		reg_val = &dtb08_a20s_regs_val[i];
-+		val = get_config_reg_val(state, reg_val);
-+		buf[0] = reg_val->reg;
-+		count = 1;
-+		switch (reg_val->type) {
-+		case 1:
-+			buf[count++] = reg_val->subreg;
-+			if (buf[0] == 0x28)
-+				buf[count++] = 0x2b;
-+			else
-+				buf[count++] = buf[0] + 1;
-+			break;
-+		case 2:
-+			buf[count++] = (u8)(val >> 0x08);
-+			buf[count++] = buf[0] + 1;
-+			buf[count++] = (u8)val;
-+			break;
-+		case 3:
-+			buf[count++] = reg_val->subreg;
-+			buf[count++] = buf[0] + 1;
-+			buf[count++] = (u8)(val >> 0x08);
-+			buf[count++] = buf[0];
-+			buf[count++] = reg_val->subreg + 1;
-+			buf[count++] = buf[0] + 1;
-+			break;
-+		case 4:
-+			if (buf[0] == 0x28) {
-+				buf[count++] = reg_val->subreg;
-+				buf[count++] = 0x29;
-+				buf[count++] = (u8)(val >> 0x10);
-+				buf[count++] = 0x2a;
-+				buf[count++] = (u8)(val >> 0x08);
-+				buf[count++] = 0x2b;
-+			} else if (buf[0] == 0x50) {
-+				buf[count++] = reg_val->subreg;
-+				buf[count++] = 0x51;
-+				buf[count++] = (u8)(val >> 0x10);
-+				buf[count++] = 0x50;
-+				buf[count++] = reg_val->subreg + 1;
-+				buf[count++] = 0x51;
-+				buf[count++] = (u8)(val >> 0x08);
-+				buf[count++] = 0x50;
-+				buf[count++] = reg_val->subreg + 2;
-+				buf[count++] = 0x51;
-+			} else {
-+				ret = -1;
-+				goto ret_err;
-+			}
-+			break;
-+		}
-+		buf[count++] = (u8)val;
-+		i2 = 0;
-+		while (i2 < count) {
-+			ret = dtb08_a20s_write_reg(state, buf[i2], buf[i2 + 1]);
-+			if (ret < 0)
-+				goto ret_err;
-+			i2 += 2;
-+		}
-+	}
-+	state->need_init = false;
-+	kfree(buf);
-+	return 0;
-+
-+ret_err:
-+	err("%s: dtb08_a20s init failed.", __func__);
-+	kfree(buf);
-+	return ret;
-+}
-+
-+static int dtb08_a20s_init_fe(struct dvb_frontend *fe)
-+{
-+	int n;
-+	struct dtb08_a20s_state *state = fe->sec_priv;
-+
-+	fe->dtv_property_cache.delivery_system = SYS_ISDBT;
-+
-+	n = dtb08_a20s_init_regs(state);
-+	if (n < 0)
-+		return n;
-+	else
-+		return 0;
-+}
-+
-+static int dtb08_a20s_i2c_gate_ctrl(struct dvb_frontend *fe, int enable)
-+{
-+	struct dtb08_a20s_state *state = fe->sec_priv;
-+	u8 val = 1;
-+
-+	/*
-+	 * In the document "OFDM-LSI for Digital Terrestrial Broadcasting
-+	 * Reception MB86A20S" says:
-+	 * I2C bus and I2C bus for tuner control
-+	 * This product realizes I2C bus for register setup in the main
-+	 * unit and I2C bus for tuner control to shut off the bus noise from
-+	 * the tuner by connecting the tuner to the I2C bus line only when
-+	 * it is controlled.
-+	 */
-+
-+	if (!state->tuner_ctrl)
-+		return 0;
-+
-+	if (enable)
-+		val = 0;
-+
-+	/* Enable/Disable I2C bus for tuner control */
-+	return dtb08_a20s_write_reg(state, 0xfe, val);
-+}
-+
-+static int dtb08_a20s_sleep(struct dvb_frontend *fe)
-+{
-+	struct dtb08_a20s_state *state = fe->sec_priv;
-+
-+	if (state->led_control)
-+		state->led_control(state->udev, 0);
-+	state->current_frequency = 0;
-+	state->need_init = 1;
-+	return 0;
-+}
-+
-+static int dtb08_a20s_set_frontend(struct dvb_frontend *fe)
-+{
-+	int i, ret;
-+	u8 val;
-+	struct dtb08_a20s_state *state = fe->sec_priv;
-+	struct dtv_frontend_properties *dpc = &fe->dtv_property_cache;
-+
-+	if (time_before(jiffies, state->next_set_frontend_check) &&
-+		state->current_frequency == dpc->frequency)
-+			return 0;
-+
-+	state->current_frequency = dpc->frequency;
-+	state->next_set_frontend_check = jiffies + msecs_to_jiffies(200);
-+
-+	/* turn off the led */
-+	if (state->led_control)
-+		state->led_control(state->udev, 0);
-+
-+	if (state->need_init) {
-+		ret = dtb08_a20s_init_regs(state);
-+		if (ret < 0)
-+			return ret;
-+	}
-+
-+	/* program tuner */
-+	if (fe->ops.tuner_ops.set_params) {
-+		state->tuner_ctrl = true;
-+		fe->ops.tuner_ops.set_params(fe);
-+		/* disable I2C bus tuner control */
-+		if (fe->ops.i2c_gate_ctrl)
-+			fe->ops.i2c_gate_ctrl(fe, 0);
-+		state->tuner_ctrl = false;
-+		msleep(100);
-+	}
-+
-+	for (i = 0; i < sizeof(dtb08_a20s_soft_reset); i += 2) {
-+		ret = dtb08_a20s_write_reg(state, dtb08_a20s_soft_reset[i],
-+					dtb08_a20s_soft_reset[i+1]);
-+		if (ret < 0)
-+			return ret;
-+	}
-+
-+	for (i = 0; i < 10; i++) {
-+		ret = dtb08_a20s_read_reg(state, 0x0a, &val);
-+		if (ret == 0 && val >= 2)
-+			break;
-+		msleep(100);
-+	}
-+
-+	/* turn on the led */
-+	if (state->led_control)
-+		state->led_control(state->udev, 1);
-+
-+	return 0;
-+}
-+
-+static int dtb08_a20s_get_tune_settings(struct dvb_frontend *fe,
-+				struct dvb_frontend_tune_settings *feset)
-+{
-+	feset->min_delay_ms = 600;
-+	feset->step_size = 0;
-+	feset->max_drift = 0;
-+
-+	return 0;
-+}
-+
-+static int dtb08_a20s_read_status(struct dvb_frontend *fe, fe_status_t *status)
-+{
-+	int i;
-+	u8 val = 0;
-+	struct dtb08_a20s_state *state = fe->sec_priv;
-+
-+	if (time_before(jiffies, state->next_status_check)) {
-+		*status = state->status;
-+		return 0;
-+	}
-+
-+	state->next_status_check = jiffies + msecs_to_jiffies(100);
-+	for (i = 0; i < 10; i++) {
-+		dtb08_a20s_read_reg(state, 0x0a, &val);
-+		if (val >= 2)
-+			break;
-+		msleep(10);
-+	}
-+
-+	*status = 0;
-+
-+	if (val >= 2)
-+		*status |= FE_HAS_SIGNAL;
-+	if (val >= 4)
-+		*status |= FE_HAS_CARRIER;
-+	if (val >= 5)
-+		*status |= FE_HAS_VITERBI;
-+	if (val >= 7)
-+		*status |= FE_HAS_SYNC;
-+	if (val >= 8)
-+		*status |= FE_HAS_LOCK;
-+
-+	state->status = *status;
-+
-+	return 0;
-+}
-+
-+static int dtb08_a20s_get_property(struct dvb_frontend *fe,
-+				 struct dtv_property *tvp)
-+{
-+	struct dtv_frontend_properties *dpc = &fe->dtv_property_cache;
-+
-+	switch (tvp->cmd) {
-+	case DTV_DELIVERY_SYSTEM:
-+		tvp->u.data = dpc->delivery_system = SYS_ISDBT;
++	switch (colorfx) {
++	case V4L2_COLORFX_NONE:
++		effect->type = FIMC_REG_CIIMGEFF_FIN_BYPASS;
 +		break;
-+	}
-+	return 0;
-+}
-+
-+static int dtb08_a20s_read_signal_strength(struct dvb_frontend *fe,
-+					   u16 *strength)
-+{
-+	struct dtb08_a20s_state *state = fe->sec_priv;
-+	int i, n;
-+
-+	if (time_before(jiffies, state->next_strength_check)) {
-+		*strength = state->strength;
-+		return 0;
-+	}
-+	state->next_strength_check = jiffies + msecs_to_jiffies(100);
-+	*strength = state->strength = 0;
-+	for (i = 0; i < 10; i++) {
-+		u8 val = 0;
-+		dtb08_a20s_read_reg(state, 0x0a, &val);
-+		if (val < 2)
-+			goto next;
-+#if 0
-+		if (dtb08_a20s_read_subreg(state, 0x04, 0x3a, &val) < 0)
-+			goto next;
-+		n = ((255 - val) * 10000) / 255;
-+		state->strength = *strength = (u16)((65535 * n) / 10000);
-+
-+		info("%s: val=%d, n=%d, strength=%d %d%%",
-+			__func__, val, n, *strength, (255-val) * 100 / 255);
-+		return 0;
-+#else
-+		if (dtb08_a20s_read_subreg(state, 0x04, 0x25, &val) < 0)
-+			goto next;
-+		n = val;
-+		if (dtb08_a20s_read_subreg(state, 0x04, 0x26, &val) < 0)
-+			goto next;
-+		n = (((n << 8) | val) * 0x100100) >> 16;
-+		*strength = state->strength = n ;
-+		return 0;
-+#endif
-+next:
-+		msleep(20);
++	case V4L2_COLORFX_BW:
++		effect->type = FIMC_REG_CIIMGEFF_FIN_ARBITRARY;
++		effect->pat_cb = 128;
++		effect->pat_cr = 128;
++		break;
++	case V4L2_COLORFX_SEPIA:
++		effect->type = FIMC_REG_CIIMGEFF_FIN_ARBITRARY;
++		effect->pat_cb = 115;
++		effect->pat_cr = 145;
++		break;
++	case V4L2_COLORFX_NEGATIVE:
++		effect->type = FIMC_REG_CIIMGEFF_FIN_NEGATIVE;
++		break;
++	case V4L2_COLORFX_EMBOSS:
++		effect->type = FIMC_REG_CIIMGEFF_FIN_EMBOSSING;
++		break;
++	case V4L2_COLORFX_ART_FREEZE:
++		effect->type = FIMC_REG_CIIMGEFF_FIN_ARTFREEZE;
++		break;
++	case V4L2_COLORFX_SILHOUETTE:
++		effect->type = FIMC_REG_CIIMGEFF_FIN_SILHOUETTE;
++		break;
++	case V4L2_COLORFX_SET_CBCR:
++		effect->type = FIMC_REG_CIIMGEFF_FIN_ARBITRARY;
++		effect->pat_cb = ctx->ctrls.colorfx_cbcr->val >> 8;
++		effect->pat_cr = ctx->ctrls.colorfx_cbcr->val & 0xff;
++		break;
++	default:
++		return -EINVAL;
 +	}
 +
 +	return 0;
 +}
 +
-+static int dtb08_a20s_read_snr(struct dvb_frontend *fe, u16 *snr)
-+{
-+	struct dtb08_a20s_state *state = fe->sec_priv;
-+	int i, n, cnr;
+ /*
+  * V4L2 controls handling
+  */
+ #define ctrl_to_ctx(__ctrl) \
+-	container_of((__ctrl)->handler, struct fimc_ctx, ctrl_handler)
++	container_of((__ctrl)->handler, struct fimc_ctx, ctrls.handler)
+ 
+ static int __fimc_s_ctrl(struct fimc_ctx *ctx, struct v4l2_ctrl *ctrl)
+ {
+@@ -505,7 +547,14 @@ static int __fimc_s_ctrl(struct fimc_ctx *ctx, struct v4l2_ctrl *ctrl)
+ 	case V4L2_CID_ALPHA_COMPONENT:
+ 		ctx->d_frame.alpha = ctrl->val;
+ 		break;
 +
-+	if (time_before(jiffies, state->next_snr_check)) {
-+		*snr = state->snr;
-+		return 0;
-+	}
-+
-+	state->next_snr_check = jiffies + msecs_to_jiffies(100);
-+	*snr = state->snr = 0;
-+	for (i = 0; i < 10; i++) {
-+		u8 val = 0;
-+		n = dtb08_a20s_read_reg(state, 0x0a, &val);
-+		if (n < 0 || val < 2)
-+			goto next;
-+		if (dtb08_a20s_read_reg(state, 0x45, &val) < 0)
-+			goto next;
-+		/* read cnr_flag */
-+		if (((val >> 6) & 1) != 0) {
-+			if (dtb08_a20s_read_reg(state, 0x46, &val) < 0)
-+				goto next;
-+			n = val;
-+			if (dtb08_a20s_read_reg(state, 0x47, &val) < 0)
-+				goto next;
-+			cnr = (n << 0x08) | val;
-+			/* reset cnr_counter */
-+			dtb08_a20s_read_reg(state, 0x45, &val);
-+			val |= 0x10;
-+			dtb08_a20s_write_reg(state, 0x45, val);
-+			msleep(5);
-+			val &= 0x6f; /* FIXME: or 0xef ? */
-+			dtb08_a20s_write_reg(state, 0x45, val);
-+			if (cnr > 0x4cc0)
-+				cnr = 0x4cc0;
-+			n = ((0x4cc0 - cnr) * 10000) / 0x4cc0;
-+			n = (65535 * n) / 10000;
-+			*snr = state->snr = n;
-+			return 0;
-+		}
-+next:
-+		msleep(20);
-+	}
-+
-+	return 0;
-+}
-+
-+static int dtb08_a20s_tune(struct dvb_frontend *fe, bool re_tune,
-+			   unsigned int mode_flags, unsigned int *delay,
-+			   fe_status_t *status)
-+{
-+	int ret = 0;
-+
-+	if (re_tune) {
-+		ret = dtb08_a20s_set_frontend(fe);
-+		if (ret < 0)
++	case V4L2_CID_COLORFX:
++		ret = fimc_set_color_effect(ctx, ctrl->val);
++		if (ret)
 +			return ret;
++		break;
+ 	}
++
+ 	ctx->state |= FIMC_PARAMS;
+ 	set_bit(ST_CAPT_APPLY_CFG, &fimc->state);
+ 	return 0;
+@@ -532,69 +581,88 @@ int fimc_ctrls_create(struct fimc_ctx *ctx)
+ {
+ 	struct fimc_variant *variant = ctx->fimc_dev->variant;
+ 	unsigned int max_alpha = fimc_get_alpha_mask(ctx->d_frame.fmt);
++	struct fimc_ctrls *ctrls = &ctx->ctrls;
++	struct v4l2_ctrl_handler *handler = &ctrls->handler;
+ 
+-	if (ctx->ctrls_rdy)
++	if (ctx->ctrls.ready)
+ 		return 0;
+-	v4l2_ctrl_handler_init(&ctx->ctrl_handler, 4);
+ 
+-	ctx->ctrl_rotate = v4l2_ctrl_new_std(&ctx->ctrl_handler, &fimc_ctrl_ops,
++	v4l2_ctrl_handler_init(handler, 6);
++
++	ctrls->rotate = v4l2_ctrl_new_std(handler, &fimc_ctrl_ops,
+ 					V4L2_CID_ROTATE, 0, 270, 90, 0);
+-	ctx->ctrl_hflip = v4l2_ctrl_new_std(&ctx->ctrl_handler, &fimc_ctrl_ops,
++	ctrls->hflip = v4l2_ctrl_new_std(handler, &fimc_ctrl_ops,
+ 					V4L2_CID_HFLIP, 0, 1, 1, 0);
+-	ctx->ctrl_vflip = v4l2_ctrl_new_std(&ctx->ctrl_handler, &fimc_ctrl_ops,
++	ctrls->vflip = v4l2_ctrl_new_std(handler, &fimc_ctrl_ops,
+ 					V4L2_CID_VFLIP, 0, 1, 1, 0);
++
+ 	if (variant->has_alpha)
+-		ctx->ctrl_alpha = v4l2_ctrl_new_std(&ctx->ctrl_handler,
+-				    &fimc_ctrl_ops, V4L2_CID_ALPHA_COMPONENT,
+-				    0, max_alpha, 1, 0);
++		ctrls->alpha = v4l2_ctrl_new_std(handler, &fimc_ctrl_ops,
++					V4L2_CID_ALPHA_COMPONENT,
++					0, max_alpha, 1, 0);
+ 	else
+-		ctx->ctrl_alpha = NULL;
++		ctrls->alpha = NULL;
++
++	ctrls->colorfx = v4l2_ctrl_new_std_menu(handler, &fimc_ctrl_ops,
++				V4L2_CID_COLORFX, V4L2_COLORFX_SET_CBCR,
++				~0x983f, V4L2_COLORFX_NONE);
++
++	ctrls->colorfx_cbcr = v4l2_ctrl_new_std(handler, &fimc_ctrl_ops,
++				V4L2_CID_COLORFX_CBCR, 0, 0xffff, 1, 0);
+ 
+-	ctx->ctrls_rdy = ctx->ctrl_handler.error == 0;
++	ctx->effect.type = FIMC_REG_CIIMGEFF_FIN_BYPASS;
+ 
+-	return ctx->ctrl_handler.error;
++	if (!handler->error) {
++		v4l2_ctrl_cluster(3, &ctrls->colorfx);
++		ctrls->ready = true;
 +	}
 +
-+	if (!(mode_flags & FE_TUNE_MODE_ONESHOT))
-+		ret = dtb08_a20s_read_status(fe, status);
++	return handler->error;
+ }
+ 
+ void fimc_ctrls_delete(struct fimc_ctx *ctx)
+ {
+-	if (ctx->ctrls_rdy) {
+-		v4l2_ctrl_handler_free(&ctx->ctrl_handler);
+-		ctx->ctrls_rdy = false;
+-		ctx->ctrl_alpha = NULL;
++	struct fimc_ctrls *ctrls = &ctx->ctrls;
 +
-+	return ret;
-+}
-+
-+int dtb08_a20s_frontend_attach(struct dtb08_a20s_state *state,
-+			       struct dvb_usb_adapter *adap,
-+			       const struct mb86a20s_config *config)
-+{
-+	struct dvb_frontend *fe;
-+
-+	if (!state->i2c_read || !state->i2c_write)
-+		return -EOPNOTSUPP;
-+
-+	if (dtb08_a20s_init_regs(state) != 0)
-+		return -ENODEV;
-+
-+	fe = dvb_attach(mb86a20s_attach, config, &adap->dev->i2c_adap);
-+	if (!fe)
-+		return -ENODEV;
-+
-+	state->need_init = true;
-+	adap->fe_adap[0].fe = fe;
-+
-+	fe->sec_priv = state;
-+	fe->ops.init = dtb08_a20s_init_fe;
-+	fe->ops.sleep = dtb08_a20s_sleep;
-+	fe->ops.set_frontend = dtb08_a20s_set_frontend;
-+	fe->ops.read_status = dtb08_a20s_read_status;
-+	fe->ops.read_signal_strength = dtb08_a20s_read_signal_strength;
-+	fe->ops.read_snr = dtb08_a20s_read_snr;
-+	fe->ops.get_tune_settings = dtb08_a20s_get_tune_settings;
-+	fe->ops.get_property = dtb08_a20s_get_property;
-+	fe->ops.i2c_gate_ctrl = dtb08_a20s_i2c_gate_ctrl;
-+	fe->ops.tune = dtb08_a20s_tune;
-+
-+	return 0;
-+}
-diff --git a/drivers/media/dvb/dvb-usb/tbs-dtb08-fe.h b/drivers/media/dvb/dvb-usb/tbs-dtb08-fe.h
-new file mode 100644
-index 0000000..6cd82f7
---- /dev/null
-+++ b/drivers/media/dvb/dvb-usb/tbs-dtb08-fe.h
-@@ -0,0 +1,60 @@
-+/*
-+ *   TBS-Tech ISDB-T Full Seg DTB08 device driver
-+ *
-+ *   Copyright (C) 2010-2012 Manoel Pinheiro <pinusdtv@hotmail.com>
-+ *
-+ *   This program is free software; you can redistribute it and/or modify
-+ *   it under the terms of the GNU General Public License as published by
-+ *   the Free Software Foundation; either version 2 of the License, or
-+ *   (at your option) any later version.
-+ *
-+ *   This program is distributed in the hope that it will be useful,
-+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ *   GNU General Public License for more details.
-+ *
-+ *   You should have received a copy of the GNU General Public License
-+ *   along with this program; if not, write to the Free Software
-+ *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++	if (ctrls->ready) {
++		v4l2_ctrl_handler_free(&ctrls->handler);
++		ctrls->ready = false;
++		ctrls->alpha = NULL;
+ 	}
+ }
+ 
+ void fimc_ctrls_activate(struct fimc_ctx *ctx, bool active)
+ {
+ 	unsigned int has_alpha = ctx->d_frame.fmt->flags & FMT_HAS_ALPHA;
++	struct fimc_ctrls *ctrls = &ctx->ctrls;
+ 
+-	if (!ctx->ctrls_rdy)
++	if (!ctrls->ready)
+ 		return;
+ 
+-	mutex_lock(&ctx->ctrl_handler.lock);
+-	v4l2_ctrl_activate(ctx->ctrl_rotate, active);
+-	v4l2_ctrl_activate(ctx->ctrl_hflip, active);
+-	v4l2_ctrl_activate(ctx->ctrl_vflip, active);
+-	if (ctx->ctrl_alpha)
+-		v4l2_ctrl_activate(ctx->ctrl_alpha, active && has_alpha);
++	mutex_lock(&ctrls->handler.lock);
++	v4l2_ctrl_activate(ctrls->rotate, active);
++	v4l2_ctrl_activate(ctrls->hflip, active);
++	v4l2_ctrl_activate(ctrls->vflip, active);
++	if (ctrls->alpha)
++		v4l2_ctrl_activate(ctrls->alpha, active && has_alpha);
+ 
+ 	if (active) {
+-		ctx->rotation = ctx->ctrl_rotate->val;
+-		ctx->hflip    = ctx->ctrl_hflip->val;
+-		ctx->vflip    = ctx->ctrl_vflip->val;
++		ctx->rotation = ctrls->rotate->val;
++		ctx->hflip    = ctrls->hflip->val;
++		ctx->vflip    = ctrls->vflip->val;
+ 	} else {
+ 		ctx->rotation = 0;
+ 		ctx->hflip    = 0;
+ 		ctx->vflip    = 0;
+ 	}
+-	mutex_unlock(&ctx->ctrl_handler.lock);
++	mutex_unlock(&ctrls->handler.lock);
+ }
+ 
+ /* Update maximum value of the alpha color control */
+ void fimc_alpha_ctrl_update(struct fimc_ctx *ctx)
+ {
+ 	struct fimc_dev *fimc = ctx->fimc_dev;
+-	struct v4l2_ctrl *ctrl = ctx->ctrl_alpha;
++	struct v4l2_ctrl *ctrl = ctx->ctrls.alpha;
+ 
+ 	if (ctrl == NULL || !fimc->variant->has_alpha)
+ 		return;
+diff --git a/drivers/media/video/s5p-fimc/fimc-core.h b/drivers/media/video/s5p-fimc/fimc-core.h
+index 8b7e122..8985fb5 100644
+--- a/drivers/media/video/s5p-fimc/fimc-core.h
++++ b/drivers/media/video/s5p-fimc/fimc-core.h
+@@ -446,6 +446,30 @@ struct fimc_dev {
+ };
+ 
+ /**
++ * struct fimc_ctrls - v4l2 controls structure
++ * @handler: the control handler
++ * @colorfx: image effect control
++ * @colorfx_cbcr: Cb/Cr coefficients control
++ * @rotate: image rotation control
++ * @hflip: horizontal flip control
++ * @vflip: vertical flip control
++ * @alpha: RGB alpha control
++ * @ready: true if @handler is initialized
 + */
-+
-+#include <linux/dvb/frontend.h>
-+
-+#ifndef DVB_USB_LOG_PREFIX
-+#define DVB_USB_LOG_PREFIX "tbs_dtb08-fe"
-+#endif
-+
-+#include "dvb-usb.h"
-+#include "mb86a20s.h"
-+
-+struct dtb08_a20s_reg_subreg_config {
-+	u8 reg;
-+	u8 subreg;
-+	u32 val;
++struct fimc_ctrls {
++	struct v4l2_ctrl_handler handler;
++	struct {
++		struct v4l2_ctrl *colorfx;
++		struct v4l2_ctrl *colorfx_cbcr;
++	};
++	struct v4l2_ctrl *rotate;
++	struct v4l2_ctrl *hflip;
++	struct v4l2_ctrl *vflip;
++	struct v4l2_ctrl *alpha;
++	bool ready;
 +};
 +
-+struct dtb08_a20s_state {
-+	struct usb_device *udev;
-+	int demod_addr;
-+	u32 current_frequency;
-+	fe_status_t status;
-+	u16 snr;
-+	u16 strength;
-+	unsigned long next_snr_check;
-+	unsigned long next_strength_check;
-+	unsigned long next_set_frontend_check;
-+	unsigned long next_status_check;
-+	int config_size;
-+	struct dtb08_a20s_reg_subreg_config *config_regs;
-+	int (*i2c_read)(struct usb_device *udev,
-+			u8 addr, u8 reg, u8 *data, u8 len);
-+	int (*i2c_write)(struct usb_device *udev,
-+			 u8 addr, u8 reg, u8 *data, u8 len);
-+	int (*led_control)(struct usb_device *udev, int onoff);
-+	bool need_init;
-+	bool tuner_ctrl;
-+};
-+
-+int dtb08_a20s_frontend_attach(struct dtb08_a20s_state *state,
-+			       struct dvb_usb_adapter *adap,
-+			       const struct mb86a20s_config *config);
++/**
+  * fimc_ctx - the device context data
+  * @s_frame:		source frame properties
+  * @d_frame:		destination frame properties
+@@ -465,12 +489,7 @@ struct fimc_dev {
+  * @fimc_dev:		the FIMC device this context applies to
+  * @m2m_ctx:		memory-to-memory device context
+  * @fh:			v4l2 file handle
+- * @ctrl_handler:	v4l2 controls handler
+- * @ctrl_rotate		image rotation control
+- * @ctrl_hflip		horizontal flip control
+- * @ctrl_vflip		vertical flip control
+- * @ctrl_alpha		RGB alpha control
+- * @ctrls_rdy:		true if the control handler is initialized
++ * @ctrls:		v4l2 controls structure
+  */
+ struct fimc_ctx {
+ 	struct fimc_frame	s_frame;
+@@ -491,12 +510,7 @@ struct fimc_ctx {
+ 	struct fimc_dev		*fimc_dev;
+ 	struct v4l2_m2m_ctx	*m2m_ctx;
+ 	struct v4l2_fh		fh;
+-	struct v4l2_ctrl_handler ctrl_handler;
+-	struct v4l2_ctrl	*ctrl_rotate;
+-	struct v4l2_ctrl	*ctrl_hflip;
+-	struct v4l2_ctrl	*ctrl_vflip;
+-	struct v4l2_ctrl	*ctrl_alpha;
+-	bool			ctrls_rdy;
++	struct fimc_ctrls	ctrls;
+ };
+ 
+ #define fh_to_ctx(__fh) container_of(__fh, struct fimc_ctx, fh)
+diff --git a/drivers/media/video/s5p-fimc/fimc-m2m.c b/drivers/media/video/s5p-fimc/fimc-m2m.c
+index 0f15b26..117a167 100644
+--- a/drivers/media/video/s5p-fimc/fimc-m2m.c
++++ b/drivers/media/video/s5p-fimc/fimc-m2m.c
+@@ -150,7 +150,7 @@ static void fimc_device_run(void *priv)
+ 		fimc_hw_set_mainscaler(ctx);
+ 		fimc_hw_set_target_format(ctx);
+ 		fimc_hw_set_rotation(ctx);
+-		fimc_hw_set_effect(ctx, false);
++		fimc_hw_set_effect(ctx);
+ 		fimc_hw_set_out_dma(ctx);
+ 		if (fimc->variant->has_alpha)
+ 			fimc_hw_set_rgb_alpha(ctx);
+@@ -669,7 +669,7 @@ static int fimc_m2m_open(struct file *file)
+ 		goto error_fh;
+ 
+ 	/* Use separate control handler per file handle */
+-	ctx->fh.ctrl_handler = &ctx->ctrl_handler;
++	ctx->fh.ctrl_handler = &ctx->ctrls.handler;
+ 	file->private_data = &ctx->fh;
+ 	v4l2_fh_add(&ctx->fh);
+ 
+diff --git a/drivers/media/video/s5p-fimc/fimc-reg.c b/drivers/media/video/s5p-fimc/fimc-reg.c
+index 78c95d7..1fc4ce8 100644
+--- a/drivers/media/video/s5p-fimc/fimc-reg.c
++++ b/drivers/media/video/s5p-fimc/fimc-reg.c
+@@ -368,13 +368,13 @@ void fimc_hw_en_capture(struct fimc_ctx *ctx)
+ 	writel(cfg, dev->regs + FIMC_REG_CIIMGCPT);
+ }
+ 
+-void fimc_hw_set_effect(struct fimc_ctx *ctx, bool active)
++void fimc_hw_set_effect(struct fimc_ctx *ctx)
+ {
+ 	struct fimc_dev *dev = ctx->fimc_dev;
+ 	struct fimc_effect *effect = &ctx->effect;
+ 	u32 cfg = 0;
+ 
+-	if (active) {
++	if (effect->type != FIMC_REG_CIIMGEFF_FIN_BYPASS) {
+ 		cfg |= FIMC_REG_CIIMGEFF_IE_SC_AFTER |
+ 			FIMC_REG_CIIMGEFF_IE_ENABLE;
+ 		cfg |= effect->type;
+diff --git a/drivers/media/video/s5p-fimc/fimc-reg.h b/drivers/media/video/s5p-fimc/fimc-reg.h
+index a612f07..d18ecbb 100644
+--- a/drivers/media/video/s5p-fimc/fimc-reg.h
++++ b/drivers/media/video/s5p-fimc/fimc-reg.h
+@@ -288,7 +288,7 @@ void fimc_hw_en_irq(struct fimc_dev *fimc, int enable);
+ void fimc_hw_set_prescaler(struct fimc_ctx *ctx);
+ void fimc_hw_set_mainscaler(struct fimc_ctx *ctx);
+ void fimc_hw_en_capture(struct fimc_ctx *ctx);
+-void fimc_hw_set_effect(struct fimc_ctx *ctx, bool active);
++void fimc_hw_set_effect(struct fimc_ctx *ctx);
+ void fimc_hw_set_rgb_alpha(struct fimc_ctx *ctx);
+ void fimc_hw_set_in_dma(struct fimc_ctx *ctx);
+ void fimc_hw_set_input_path(struct fimc_ctx *ctx);
 -- 
 1.7.10
 
