@@ -1,300 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:2205 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751315Ab2DTUuZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Apr 2012 16:50:25 -0400
-Date: Fri, 20 Apr 2012 16:50:02 -0400
-From: Jarod Wilson <jarod@redhat.com>
-To: Luis Henriques <luis.henriques@canonical.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	stable@vger.kernel.org
-Subject: Re: [PATCH v2] [media] rc: Postpone ISR registration
-Message-ID: <20120420205002.GD17452@redhat.com>
-References: <1334871437-26514-1-git-send-email-luis.henriques@canonical.com>
+Received: from ams-iport-1.cisco.com ([144.254.224.140]:20486 "EHLO
+	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753044Ab2D3P76 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 30 Apr 2012 11:59:58 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: [PATCH/RFC v3 09/14] V4L: Add camera 3A lock control
+Date: Mon, 30 Apr 2012 17:59:46 +0200
+Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	sakari.ailus@iki.fi, g.liakhovetski@gmx.de, hdegoede@redhat.com,
+	moinejf@free.fr, m.szyprowski@samsung.com,
+	riverful.kim@samsung.com, sw0312.kim@samsung.com,
+	Kyungmin Park <kyungmin.park@samsung.com>
+References: <1335536611-4298-1-git-send-email-s.nawrocki@samsung.com> <1335536611-4298-10-git-send-email-s.nawrocki@samsung.com>
+In-Reply-To: <1335536611-4298-10-git-send-email-s.nawrocki@samsung.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1334871437-26514-1-git-send-email-luis.henriques@canonical.com>
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201204301759.46192.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Apr 19, 2012 at 10:37:17PM +0100, Luis Henriques wrote:
-> An early registration of an ISR was causing a crash to several users (for
-> example, with the ite-cir driver: http://bugs.launchpad.net/bugs/972723).
-> The reason was that IRQs were being triggered before a driver
-> initialisation was completed.
+On Friday 27 April 2012 16:23:26 Sylwester Nawrocki wrote:
+> The V4L2_CID_3A_LOCK bitmask control allows applications to pause
+> or resume the automatic exposure, focus and wite balance adjustments.
+> It can be used, for example, to lock the 3A adjustments right before
+> a still image is captured, for pre-focus, etc.
+> The applications can control each of the algorithms independently,
+> through a corresponding control bit, if driver allows that.
 > 
-> This patch fixes this by moving the invocation to request_irq() and to
-> request_region() to a later stage on the driver probe function.
-> 
-> Cc: <stable@vger.kernel.org>
-> Signed-off-by: Luis Henriques <luis.henriques@canonical.com>
+> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 > ---
->  drivers/media/rc/ene_ir.c      |   29 ++++++++++----------
->  drivers/media/rc/fintek-cir.c  |   17 ++++++------
->  drivers/media/rc/ite-cir.c     |   18 ++++++-------
->  drivers/media/rc/nuvoton-cir.c |   33 ++++++++++++-----------
->  drivers/media/rc/winbond-cir.c |   58 ++++++++++++++++++++--------------------
->  5 files changed, 79 insertions(+), 76 deletions(-)
+>  Documentation/DocBook/media/v4l/controls.xml |   40 ++++++++++++++++++++++++++
+>  drivers/media/video/v4l2-ctrls.c             |    2 ++
+>  include/linux/videodev2.h                    |    5 ++++
+>  3 files changed, 47 insertions(+)
 > 
-> diff --git a/drivers/media/rc/ene_ir.c b/drivers/media/rc/ene_ir.c
-> index 860c112..b38c5c7 100644
-> --- a/drivers/media/rc/ene_ir.c
-> +++ b/drivers/media/rc/ene_ir.c
-> @@ -1018,21 +1018,7 @@ static int ene_probe(struct pnp_dev *pnp_dev, const struct pnp_device_id *id)
+> diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+> index bf481d4..51509f4 100644
+> --- a/Documentation/DocBook/media/v4l/controls.xml
+> +++ b/Documentation/DocBook/media/v4l/controls.xml
+> @@ -3253,6 +3253,46 @@ lens-distortion correction.</entry>
+>  	  </row>
+>  	  <row><entry></entry></row>
 >  
->  	spin_lock_init(&dev->hw_lock);
->  
-> -	/* claim the resources */
->  	error = -EBUSY;
+> +	  <row>
+> +	    <entry spanname="id"><constant>V4L2_CID_3A_LOCK</constant></entry>
+> +	    <entry>bitmask</entry>
+> +	  </row>
+> +	  <row>
+> +	    <entry spanname="descr">This control locks or unlocks the automatic
+> +exposure, white balance and focus. The automatic adjustments can be paused
+> +independently by setting the coresponding lock bit to 1. The camera then retains
 
-In each of these, I believe the setting of retval to -EBUSY needs to be
-moved as well, or you're passing along a success retval from another
-operatoin between here and where the request_foo functions moved.
+Small typo: coresponding -> corresponding
 
+> +the corresponding 3A settings, until the lock bit is cleared. The value of this
+> +control may be changed by other, exposure, white balance or focus controls. The
 
-> -	dev->hw_io = pnp_port_start(pnp_dev, 0);
-> -	if (!request_region(dev->hw_io, ENE_IO_SIZE, ENE_DRIVER_NAME)) {
-> -		dev->hw_io = -1;
-> -		dev->irq = -1;
-> -		goto error;
-> -	}
-> -
-> -	dev->irq = pnp_irq(pnp_dev, 0);
-> -	if (request_irq(dev->irq, ene_isr,
-> -			IRQF_SHARED, ENE_DRIVER_NAME, (void *)dev)) {
-> -		dev->irq = -1;
-> -		goto error;
-> -	}
+The sentence 'The value ... focus controls' doesn't parse. I think 'other, ' needs
+to be removed.
+
+Regards,
+
+	Hans
+
+> +following control bits are defined :
+> +</entry>
+> +	  </row>
+> +	  <row>
+> +	    <entrytbl spanname="descr" cols="2">
+> +	      <tbody valign="top">
+> +		<row>
+> +		  <entry><constant>V4L2_3A_LOCK_EXPOSURE</constant></entry>
+> +		  <entry>Automatic exposure adjustments lock.</entry>
+> +		</row>
+> +		<row>
+> +		  <entry><constant>V4L2_3A_LOCK_WHITE_BALANCE</constant></entry>
+> +		  <entry>Automatic white balance adjustments lock.</entry>
+> +		</row>
+> +		<row>
+> +		  <entry><constant>V4L2_3A_LOCK_FOCUS</constant></entry>
+> +		  <entry>Automatic focus adjustments lock.</entry>
+> +		</row>
+> +	      </tbody>
+> +	    </entrytbl>
+> +	  </row>
+> +	  <row><entry spanname="descr">
+> +When a particular algorithm is not enabled, drivers should ignore requests
+> +to lock it and should return no error. An example might be an application
+> +setting bit <constant>V4L2_3A_LOCK_WHITE_BALANCE</constant> when the
+> +<constant>V4L2_CID_AUTO_WHITE_BALANCE</constant> control is set to
+> +<constant>FALSE</constant>.</entry>
+> +	  </row>
+> +	  <row><entry></entry></row>
+> +
+>  	</tbody>
+>        </tgroup>
+>      </table>
+> diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
+> index 8b48893..d45f00c 100644
+> --- a/drivers/media/video/v4l2-ctrls.c
+> +++ b/drivers/media/video/v4l2-ctrls.c
+> @@ -671,6 +671,7 @@ const char *v4l2_ctrl_get_name(u32 id)
+>  	case V4L2_CID_ISO_SENSITIVITY_AUTO:	return "ISO Sensitivity, Auto";
+>  	case V4L2_CID_EXPOSURE_METERING:	return "Exposure, Metering Mode";
+>  	case V4L2_CID_SCENE_MODE:		return "Scene Mode";
+> +	case V4L2_CID_3A_LOCK:			return "3A Lock";
 >  
->  	pnp_set_drvdata(pnp_dev, dev);
->  	dev->pnp_dev = pnp_dev;
-> @@ -1086,6 +1072,21 @@ static int ene_probe(struct pnp_dev *pnp_dev, const struct pnp_device_id *id)
->  	device_set_wakeup_capable(&pnp_dev->dev, true);
->  	device_set_wakeup_enable(&pnp_dev->dev, true);
+>  	/* FM Radio Modulator control */
+>  	/* Keep the order of the 'case's the same as in videodev2.h! */
+> @@ -843,6 +844,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+>  		break;
+>  	case V4L2_CID_FLASH_FAULT:
+>  	case V4L2_CID_JPEG_ACTIVE_MARKER:
+> +	case V4L2_CID_3A_LOCK:
+>  		*type = V4L2_CTRL_TYPE_BITMASK;
+>  		break;
+>  	case V4L2_CID_MIN_BUFFERS_FOR_CAPTURE:
+> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+> index 2c82fd9..7c30d54 100644
+> --- a/include/linux/videodev2.h
+> +++ b/include/linux/videodev2.h
+> @@ -1752,6 +1752,11 @@ enum v4l2_scene_mode {
+>  	V4L2_SCENE_MODE_TEXT			= 13,
+>  };
 >  
-> +	/* claim the resources */
-> +	dev->hw_io = pnp_port_start(pnp_dev, 0);
-> +	if (!request_region(dev->hw_io, ENE_IO_SIZE, ENE_DRIVER_NAME)) {
-> +		dev->hw_io = -1;
-> +		dev->irq = -1;
-> +		goto error;
-> +	}
+> +#define V4L2_CID_3A_LOCK			(V4L2_CID_CAMERA_CLASS_BASE+27)
+> +#define V4L2_3A_LOCK_EXPOSURE			(1 << 0)
+> +#define V4L2_3A_LOCK_WHITE_BALANCE		(1 << 1)
+> +#define V4L2_3A_LOCK_FOCUS			(1 << 2)
 > +
-> +	dev->irq = pnp_irq(pnp_dev, 0);
-> +	if (request_irq(dev->irq, ene_isr,
-> +			IRQF_SHARED, ENE_DRIVER_NAME, (void *)dev)) {
-> +		dev->irq = -1;
-> +		goto error;
-> +	}
-> +
->  	error = rc_register_device(rdev);
->  	if (error < 0)
->  		goto error;
-> diff --git a/drivers/media/rc/fintek-cir.c b/drivers/media/rc/fintek-cir.c
-> index 392d4be..c6273c5 100644
-> --- a/drivers/media/rc/fintek-cir.c
-> +++ b/drivers/media/rc/fintek-cir.c
-> @@ -515,14 +515,6 @@ static int fintek_probe(struct pnp_dev *pdev, const struct pnp_device_id *dev_id
->  	spin_lock_init(&fintek->fintek_lock);
->  
->  	ret = -EBUSY;
-> -	/* now claim resources */
-> -	if (!request_region(fintek->cir_addr,
-> -			    fintek->cir_port_len, FINTEK_DRIVER_NAME))
-> -		goto failure;
-> -
-> -	if (request_irq(fintek->cir_irq, fintek_cir_isr, IRQF_SHARED,
-> -			FINTEK_DRIVER_NAME, (void *)fintek))
-> -		goto failure;
->  
->  	pnp_set_drvdata(pdev, fintek);
->  	fintek->pdev = pdev;
-> @@ -558,6 +550,15 @@ static int fintek_probe(struct pnp_dev *pdev, const struct pnp_device_id *dev_id
->  	/* rx resolution is hardwired to 50us atm, 1, 25, 100 also possible */
->  	rdev->rx_resolution = US_TO_NS(CIR_SAMPLE_PERIOD);
->  
-> +	/* now claim resources */
-> +	if (!request_region(fintek->cir_addr,
-> +			    fintek->cir_port_len, FINTEK_DRIVER_NAME))
-> +		goto failure;
-> +
-> +	if (request_irq(fintek->cir_irq, fintek_cir_isr, IRQF_SHARED,
-> +			FINTEK_DRIVER_NAME, (void *)fintek))
-> +		goto failure;
-> +
->  	ret = rc_register_device(rdev);
->  	if (ret)
->  		goto failure;
-> diff --git a/drivers/media/rc/ite-cir.c b/drivers/media/rc/ite-cir.c
-> index 682009d..d88b304 100644
-> --- a/drivers/media/rc/ite-cir.c
-> +++ b/drivers/media/rc/ite-cir.c
-> @@ -1516,15 +1516,6 @@ static int ite_probe(struct pnp_dev *pdev, const struct pnp_device_id
->  	init_ir_raw_event(&itdev->rawir);
->  
->  	ret = -EBUSY;
-> -	/* now claim resources */
-> -	if (!request_region(itdev->cir_addr,
-> -				dev_desc->io_region_size, ITE_DRIVER_NAME))
-> -		goto failure;
-> -
-> -	if (request_irq(itdev->cir_irq, ite_cir_isr, IRQF_SHARED,
-> -			ITE_DRIVER_NAME, (void *)itdev))
-> -		goto failure;
-> -
->  	/* set driver data into the pnp device */
->  	pnp_set_drvdata(pdev, itdev);
->  	itdev->pdev = pdev;
-> @@ -1600,6 +1591,15 @@ static int ite_probe(struct pnp_dev *pdev, const struct pnp_device_id
->  	rdev->driver_name = ITE_DRIVER_NAME;
->  	rdev->map_name = RC_MAP_RC6_MCE;
->  
-> +	/* now claim resources */
-> +	if (!request_region(itdev->cir_addr,
-> +				dev_desc->io_region_size, ITE_DRIVER_NAME))
-> +		goto failure;
-> +
-> +	if (request_irq(itdev->cir_irq, ite_cir_isr, IRQF_SHARED,
-> +			ITE_DRIVER_NAME, (void *)itdev))
-> +		goto failure;
-> +
->  	ret = rc_register_device(rdev);
->  	if (ret)
->  		goto failure;
-> diff --git a/drivers/media/rc/nuvoton-cir.c b/drivers/media/rc/nuvoton-cir.c
-> index 144f3f5..8afe549 100644
-> --- a/drivers/media/rc/nuvoton-cir.c
-> +++ b/drivers/media/rc/nuvoton-cir.c
-> @@ -1022,22 +1022,6 @@ static int nvt_probe(struct pnp_dev *pdev, const struct pnp_device_id *dev_id)
->  	spin_lock_init(&nvt->tx.lock);
->  
->  	ret = -EBUSY;
-> -	/* now claim resources */
-> -	if (!request_region(nvt->cir_addr,
-> -			    CIR_IOREG_LENGTH, NVT_DRIVER_NAME))
-> -		goto failure;
-> -
-> -	if (request_irq(nvt->cir_irq, nvt_cir_isr, IRQF_SHARED,
-> -			NVT_DRIVER_NAME, (void *)nvt))
-> -		goto failure;
-> -
-> -	if (!request_region(nvt->cir_wake_addr,
-> -			    CIR_IOREG_LENGTH, NVT_DRIVER_NAME))
-> -		goto failure;
-> -
-> -	if (request_irq(nvt->cir_wake_irq, nvt_cir_wake_isr, IRQF_SHARED,
-> -			NVT_DRIVER_NAME, (void *)nvt))
-> -		goto failure;
->  
->  	pnp_set_drvdata(pdev, nvt);
->  	nvt->pdev = pdev;
-> @@ -1085,6 +1069,23 @@ static int nvt_probe(struct pnp_dev *pdev, const struct pnp_device_id *dev_id)
->  	rdev->tx_resolution = XYZ;
->  #endif
->  
-> +	/* now claim resources */
-> +	if (!request_region(nvt->cir_addr,
-> +			    CIR_IOREG_LENGTH, NVT_DRIVER_NAME))
-> +		goto failure;
-> +
-> +	if (request_irq(nvt->cir_irq, nvt_cir_isr, IRQF_SHARED,
-> +			NVT_DRIVER_NAME, (void *)nvt))
-> +		goto failure;
-> +
-> +	if (!request_region(nvt->cir_wake_addr,
-> +			    CIR_IOREG_LENGTH, NVT_DRIVER_NAME))
-> +		goto failure;
-> +
-> +	if (request_irq(nvt->cir_wake_irq, nvt_cir_wake_isr, IRQF_SHARED,
-> +			NVT_DRIVER_NAME, (void *)nvt))
-> +		goto failure;
-> +
->  	ret = rc_register_device(rdev);
->  	if (ret)
->  		goto failure;
-> diff --git a/drivers/media/rc/winbond-cir.c b/drivers/media/rc/winbond-cir.c
-> index b09c5fa..8e88c96 100644
-> --- a/drivers/media/rc/winbond-cir.c
-> +++ b/drivers/media/rc/winbond-cir.c
-> @@ -991,35 +991,6 @@ wbcir_probe(struct pnp_dev *device, const struct pnp_device_id *dev_id)
->  		"(w: 0x%lX, e: 0x%lX, s: 0x%lX, i: %u)\n",
->  		data->wbase, data->ebase, data->sbase, data->irq);
->  
-> -	if (!request_region(data->wbase, WAKEUP_IOMEM_LEN, DRVNAME)) {
-> -		dev_err(dev, "Region 0x%lx-0x%lx already in use!\n",
-> -			data->wbase, data->wbase + WAKEUP_IOMEM_LEN - 1);
-> -		err = -EBUSY;
-> -		goto exit_free_data;
-> -	}
-> -
-> -	if (!request_region(data->ebase, EHFUNC_IOMEM_LEN, DRVNAME)) {
-> -		dev_err(dev, "Region 0x%lx-0x%lx already in use!\n",
-> -			data->ebase, data->ebase + EHFUNC_IOMEM_LEN - 1);
-> -		err = -EBUSY;
-> -		goto exit_release_wbase;
-> -	}
-> -
-> -	if (!request_region(data->sbase, SP_IOMEM_LEN, DRVNAME)) {
-> -		dev_err(dev, "Region 0x%lx-0x%lx already in use!\n",
-> -			data->sbase, data->sbase + SP_IOMEM_LEN - 1);
-> -		err = -EBUSY;
-> -		goto exit_release_ebase;
-> -	}
-> -
-> -	err = request_irq(data->irq, wbcir_irq_handler,
-> -			  IRQF_DISABLED, DRVNAME, device);
-> -	if (err) {
-> -		dev_err(dev, "Failed to claim IRQ %u\n", data->irq);
-> -		err = -EBUSY;
-> -		goto exit_release_sbase;
-> -	}
-> -
->  	led_trigger_register_simple("cir-tx", &data->txtrigger);
->  	if (!data->txtrigger) {
->  		err = -ENOMEM;
-> @@ -1061,6 +1032,35 @@ wbcir_probe(struct pnp_dev *device, const struct pnp_device_id *dev_id)
->  	data->dev->priv = data;
->  	data->dev->dev.parent = &device->dev;
->  
-> +	if (!request_region(data->wbase, WAKEUP_IOMEM_LEN, DRVNAME)) {
-> +		dev_err(dev, "Region 0x%lx-0x%lx already in use!\n",
-> +			data->wbase, data->wbase + WAKEUP_IOMEM_LEN - 1);
-> +		err = -EBUSY;
-> +		goto exit_free_data;
-> +	}
-> +
-> +	if (!request_region(data->ebase, EHFUNC_IOMEM_LEN, DRVNAME)) {
-> +		dev_err(dev, "Region 0x%lx-0x%lx already in use!\n",
-> +			data->ebase, data->ebase + EHFUNC_IOMEM_LEN - 1);
-> +		err = -EBUSY;
-> +		goto exit_release_wbase;
-> +	}
-> +
-> +	if (!request_region(data->sbase, SP_IOMEM_LEN, DRVNAME)) {
-> +		dev_err(dev, "Region 0x%lx-0x%lx already in use!\n",
-> +			data->sbase, data->sbase + SP_IOMEM_LEN - 1);
-> +		err = -EBUSY;
-> +		goto exit_release_ebase;
-> +	}
-> +
-> +	err = request_irq(data->irq, wbcir_irq_handler,
-> +			  IRQF_DISABLED, DRVNAME, device);
-> +	if (err) {
-> +		dev_err(dev, "Failed to claim IRQ %u\n", data->irq);
-> +		err = -EBUSY;
-> +		goto exit_release_sbase;
-> +	}
-> +
->  	err = rc_register_device(data->dev);
->  	if (err)
->  		goto exit_free_rc;
-> -- 
-> 1.7.9.5
+>  /* FM Modulator class control IDs */
+>  #define V4L2_CID_FM_TX_CLASS_BASE		(V4L2_CTRL_CLASS_FM_TX | 0x900)
+>  #define V4L2_CID_FM_TX_CLASS			(V4L2_CTRL_CLASS_FM_TX | 1)
 > 
-
--- 
-Jarod Wilson
-jarod@redhat.com
-
