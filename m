@@ -1,128 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout-de.gmx.net ([213.165.64.22]:48334 "HELO
-	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752115Ab2DGOem (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Apr 2012 10:34:42 -0400
-From: "Hans-Frieder Vogt" <hfvogt@gmx.net>
-To: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH v2] af9033: implement ber and ucb functions
-Date: Sat, 7 Apr 2012 16:34:34 +0200
-Cc: linux-media@vger.kernel.org,
-	Michael =?iso-8859-1?q?B=FCsch?= <m@bues.ch>,
-	Gianluca Gennari <gennarone@gmail.com>
+Received: from smtp1.kolej.mff.cuni.cz ([78.128.192.10]:52500 "EHLO
+	smtp1.kolej.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751131Ab2D3HQj convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 30 Apr 2012 03:16:39 -0400
+Received: from daenerys.khirnov.net (zohar.kolej.mff.cuni.cz [78.128.198.199])
+	by smtp1.kolej.mff.cuni.cz (8.14.4/8.14.4) with ESMTP id q3U6TDPT052710
+	for <linux-media@vger.kernel.org>; Mon, 30 Apr 2012 08:29:14 +0200 (CEST)
+	(envelope-from anton@khirnov.net)
+Received: from daenerys.khirnov.net (localhost [127.0.0.1])
+	by daenerys.khirnov.net (Postfix) with ESMTP id 2E9E61203B6
+	for <linux-media@vger.kernel.org>; Mon, 30 Apr 2012 08:29:13 +0200 (CEST)
+Content-Type: text/plain; charset="utf-8"
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201204071634.34179.hfvogt@gmx.net>
+Content-Transfer-Encoding: 8BIT
+Message-ID: <20120430062913.4214.261@daenerys.khirnov.net>
+Date: Mon, 30 Apr 2012 08:29:13 +0200
+To: linux-media@vger.kernel.org
+From: anton@khirnov.net
+Subject: Pinnacle PCTV IR trouble
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-af9033: implement read_ber and read_ucblocks functions. Version 2 of patch that
-reflects my findings on the behaviour of abort_cnt, err_cnt and bit_cnt:
 
-- bit_cnt is always 0x2710 (10000)
-- abort_cnt is between 0 and 0x2710
-- err_cnt is between 0 and 640000 (= 0x2710 * 8 * 8)
+Hi,
+I have a Pinnacle PCTV 310i PCI DVB-T card and I have some problems with
+getting the IR remote working.
 
-in the current implementation BER is calculated as the number of bit errors per
-processed bits, ignoring those bits that are already discarded and counted in
-abort_cnt, i.e. UCBLOCKS.
+The card identifies itself as:
+saa7130/34: v4l2 driver version 0, 2, 17 loaded
+saa7133[0]: found at 0000:02:00.0, rev: 209, irq: 16, latency: 32, mmio: 0xfe600000
+saa7133[0]: subsystem: 11bd:002f, board: Pinnacle PCTV 310i [card=101,autodetected]
+saa7133[0]: board init: gpio is 600e000
+saa7133[0]: i2c eeprom 00: bd 11 2f 00 54 20 1c 00 43 43 a9 1c 55 d2 b2 92
+saa7133[0]: i2c eeprom 10: ff e0 60 06 ff 20 ff ff 00 30 8d 36 74 54 ff ff
+saa7133[0]: i2c eeprom 20: 01 2c 01 23 23 01 04 30 98 ff 00 e7 ff 21 00 c2
+saa7133[0]: i2c eeprom 30: 96 10 03 32 15 20 ff 15 0e 6c a3 eb 04 e6 48 c6
+saa7133[0]: i2c eeprom 40: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom 80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom 90: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom a0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+i2c-core: driver [tuner] using legacy suspend method
+i2c-core: driver [tuner] using legacy resume method
+tuner 12-004b: Tuner -1 found with type(s) Radio TV.
+tda829x 12-004b: setting tuner address to 61
+tda829x 12-004b: type set to tda8290+75a
+saa7133[0]: registered device video0 [v4l2]
+saa7133[0]: registered device vbi0
+saa7133[0]: registered device radio0
+dvb_init() allocating 1 frontend
+DVB: registering new adapter (saa7133[0])
+DVB: registering adapter 0 frontend 0 (Philips TDA10046H DVB-T)...
+tda1004x: setting up plls for 48MHz sampling clock
+tda1004x: found firmware revision 20 -- ok
+saa7134 ALSA driver for DMA sound loaded
+saa7133[0]/alsa: saa7133[0] at 0xfe600000 irq 16 registered as card -1
 
-Signed-off-by: Hans-Frieder Vogt <hfvogt@gmx.net>
+The first problem is that with current 3.4.0-rc4 kernel the IR input
+device is not recognized with
+ir-kbd-i2c: : Unsupported device at address 0x47
+I've found a Debian bug [1], which describes a similar problem. It has a
+patch attached which fixes this. I have no idea if it's correct, but
+it'd be nice to get it upstream if it is.
 
- drivers/media/dvb/frontends/af9033.c |   65 +++++++++++++++++++++++++++++++++--
- 1 file changed, 63 insertions(+), 2 deletions(-)
+With the patch applied, the IR device is detected as
 
-diff -Nupr a/drivers/media/dvb/frontends/af9033.c b/drivers/media/dvb/frontends/af9033.c
---- a/drivers/media/dvb/frontends/af9033.c	2012-04-07 16:00:45.615402757 +0200
-+++ b/drivers/media/dvb/frontends/af9033.c	2012-04-07 16:27:21.534741880 +0200
-@@ -29,6 +29,10 @@ struct af9033_state {
- 	u32 bandwidth_hz;
- 	bool ts_mode_parallel;
- 	bool ts_mode_serial;
-+
-+	u32 ber;
-+	u32 ucb;
-+	unsigned long last_stat_check;
- };
- 
- /* write multiple registers */
-@@ -772,16 +776,73 @@ err:
- 	return ret;
- }
- 
-+static int af9033_update_ch_stat(struct af9033_state *state)
-+{
-+	int ret = 0;
-+	u32 err_cnt, bit_cnt;
-+	u16 abort_cnt;
-+	u8 buf[7];
-+
-+	/* only update data every half second */
-+	if (time_after(jiffies, state->last_stat_check + msecs_to_jiffies(500))) {
-+		ret = af9033_rd_regs(state, 0x800032, buf, sizeof(buf));
-+		if (ret < 0)
-+			goto err;
-+		/* in 8 byte packets? */
-+		abort_cnt = (buf[1] << 8) + buf[0];
-+		/* in bits */
-+		err_cnt = (buf[4] << 16) + (buf[3] << 8) + buf[2];
-+		/* in 8 byte packets? always(?) 0x2710 = 10000 */
-+		bit_cnt = (buf[6] << 8) + buf[5];
-+
-+		if (bit_cnt < abort_cnt) {
-+			abort_cnt = 1000;
-+			state->ber = 0xffffffff;
-+		} else {
-+			/* 8 byte packets, that have not been rejected already */
-+			bit_cnt -= (u32)abort_cnt;
-+			if (bit_cnt == 0) {
-+				state->ber = 0xffffffff;
-+			} else {
-+				err_cnt -= (u32)abort_cnt * 8 * 8;
-+				bit_cnt *= 8 * 8;
-+				state->ber = err_cnt * (0xffffffff / bit_cnt);
-+			}
-+		}
-+		state->ucb += abort_cnt;
-+		state->last_stat_check = jiffies;
-+	}
-+
-+	return 0;
-+err:
-+	pr_debug("%s: failed=%d\n", __func__, ret);
-+	return ret;
-+}
-+
- static int af9033_read_ber(struct dvb_frontend *fe, u32 *ber)
- {
--	*ber = 0;
-+	struct af9033_state *state = fe->demodulator_priv;
-+	int ret;
-+
-+	ret = af9033_update_ch_stat(state);
-+	if (ret < 0)
-+		return ret;
-+
-+	*ber = state->ber;
- 
- 	return 0;
- }
- 
- static int af9033_read_ucblocks(struct dvb_frontend *fe, u32 *ucblocks)
- {
--	*ucblocks = 0;
-+	struct af9033_state *state = fe->demodulator_priv;
-+	int ret;
-+
-+	ret = af9033_update_ch_stat(state);
-+	if (ret < 0)
-+		return ret;
-+
-+	*ucblocks = state->ucb;
- 
- 	return 0;
- }
+Registered IR keymap rc-pinnacle-color
+input: i2c IR (Pinnacle PCTV) as /devices/virtual/rc/rc1/input17
+rc1: i2c IR (Pinnacle PCTV) as /devices/virtual/rc/rc1
+ir-kbd-i2c: i2c IR (Pinnacle PCTV) detected at i2c-12/12-0047/ir0 [saa7133[0]]
 
-Hans-Frieder Vogt                       e-mail: hfvogt <at> gmx .dot. net
+However, pressing a button on a remote results (with i2c_debug=1) in the
+following messages
+
+saa7133[0]: i2c xfer: < 8f ERROR: NO_DEVICE
+i2c IR (Pinnacle PCTV)/ir: read error
+saa7133[0]: i2c xfer: < 8f ERROR: NO_DEVICE
+i2c IR (Pinnacle PCTV)/ir: read error
+saa7133[0]: i2c xfer: < 8f ERROR: NO_DEVICE
+i2c IR (Pinnacle PCTV)/ir: read error
+
+and LIRC doesn't read anything. catting the event device spits out some
+data after a few minutes, but i don't know if it's garbage or what. It's
+not usable in any case
+
+I'd much appreciate any help with this.
+
+[1] http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=617488
+
+-- 
+Anton Khirnov
