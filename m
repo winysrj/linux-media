@@ -1,49 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:52874 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-FAIL-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753776Ab2DPMlU convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Apr 2012 08:41:20 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: =?ISO-8859-1?Q?R=E9mi?= Denis-Courmont <remi@remlab.net>
-Cc: linux-media@vger.kernel.org
-Subject: Re: UVC frame interval inconsistency
-Date: Mon, 16 Apr 2012 14:40:53 +0200
-Message-ID: <1689657.5vs7Qpi9BC@avalon>
-In-Reply-To: <c29fa93d58ec0a2289435bc92ac63e46@chewa.net>
-References: <c29fa93d58ec0a2289435bc92ac63e46@chewa.net>
+Received: from mail-vx0-f174.google.com ([209.85.220.174]:60582 "EHLO
+	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756418Ab2D3WFx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 30 Apr 2012 18:05:53 -0400
+Received: by mail-vx0-f174.google.com with SMTP id p1so2391425vcq.19
+        for <linux-media@vger.kernel.org>; Mon, 30 Apr 2012 15:05:52 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-Content-Type: text/plain; charset="iso-8859-1"
+In-Reply-To: <CAOcJUbzc=0kQ57XgX7q-2abQAr6Z0cLEreJH6vDbJ_JsFuf6cw@mail.gmail.com>
+References: <CAOcJUbxHCo7xfGHJZdeEgReJrpCriweSb9s9+-_NfSODLz_NPQ@mail.gmail.com>
+	<4F9014CD.1040005@redhat.com>
+	<CAHAyoxx+Thhj+EwFbtJcXbkzks=0x+RfdudKOgQT=pqJzePcLw@mail.gmail.com>
+	<CAOcJUbyDNGoSdVV0WMVKavJm=RK6tanQTXS8AFzsHmHkGHOGUw@mail.gmail.com>
+	<CAOcJUbzyqkfOOR72xDc14B139EECjM9f5yCmC=d0yYQU6Js4jw@mail.gmail.com>
+	<CAOcJUbyT7LqdMwWcYa7XRhEvvSQGVftVQmiNBxw4xy+tv4412Q@mail.gmail.com>
+	<CAOcJUbxLdZoo36Jkk1kMOhSfPcneupF6bRsMKOmuY6F5xZcErQ@mail.gmail.com>
+	<CAOcJUbxt1uwMN-ip76t2F5k--vrtOUD0iTJSzDbsM9T2ajRPJw@mail.gmail.com>
+	<CAOcJUbzc=0kQ57XgX7q-2abQAr6Z0cLEreJH6vDbJ_JsFuf6cw@mail.gmail.com>
+Date: Mon, 30 Apr 2012 18:05:52 -0400
+Message-ID: <CAOcJUbwCh9zwmY2_i-nqW1naYp_X9rOuW_BOKisrGUzPNNtzTg@mail.gmail.com>
+Subject: Re: ATSC-MH driver support for the Hauppauge WinTV Aero-m
+From: Michael Krufky <mkrufky@kernellabs.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media <linux-media@vger.kernel.org>
+Content-Type: multipart/mixed; boundary=f46d043d6469565f6404beeca86a
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Rémi,
+--f46d043d6469565f6404beeca86a
+Content-Type: text/plain; charset=ISO-8859-1
 
-On Wednesday 11 April 2012 12:27:08 Rémi Denis-Courmont wrote:
->    Hello guys,
-> 
-> I have been reworking the V4L2 input in VLC and I hit what looks like a
-> weird bug in the UVC driver. I am using a Logitech HD Pro C920 webcam.
-> 
-> By default, VLC tries to find the highest possible frame rate (actually
-> smallest frame interval in V4L2), then the largest possible resolution at
-> that frame rate.
-> 
-> When enumerating the frame sizes and intervals on the device, the winner
-> is 800x600 at 30 f/s. But when setting 30 f/s with VIDIOC_S_PARM, the
-> system call returns 24 f/s. Does anyone know why it is so? Is this a
-> firmware bug or what?
 
-The frame sizes and intervals returned by the uvcvideo driver during 
-enumeration come directly from the values advertised by the device. When you 
-set a frame rate using VIDIOC_S_PARM, the driver then negotiates the value 
-with the device, and returns the frame rate it received from the device to the 
-application. The device is free to adjust the frame rate (based on current 
-lightning conditions for instance, if auto-exposure is turned on).
 
--- 
-Regards,
+--f46d043d6469565f6404beeca86a
+Content-Type: application/octet-stream;
+	name="0007-dvb-demux-add-functionality-to-send-raw-payload-to-t.patch"
+Content-Disposition: attachment;
+	filename="0007-dvb-demux-add-functionality-to-send-raw-payload-to-t.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_h1o2ugcp1
 
-Laurent Pinchart
-
+RnJvbSBlM2E2ZmZkZTE3MjA3MDU1MDZhMTc3YWY3M2FiZjEzZjc3ZDZlYTNjIE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBNaWNoYWVsIEtydWZreSA8bWtydWZreUBrZXJuZWxsYWJzLmNv
+bT4KRGF0ZTogU2F0LCAyNyBBdWcgMjAxMSAxNzo0NjozNyAtMDQwMApTdWJqZWN0OiBbUEFUQ0gg
+MDcvMTBdIGR2Yi1kZW11eDogYWRkIGZ1bmN0aW9uYWxpdHkgdG8gc2VuZCByYXcgcGF5bG9hZCB0
+bwogdGhlIGR2ciBkZXZpY2UKCklmIHlvdXIgZHJpdmVyIG5lZWRzIHRvIGRlbGl2ZXIgdGhlIHJh
+dyBwYXlsb2FkIHRvIHVzZXJzcGFjZSB3aXRob3V0CnBhc3NpbmcgdGhyb3VnaCB0aGUga2VybmVs
+IGRlbXV4LCB1c2UgZnVuY3Rpb246IGR2Yl9kbXhfc3dmaWx0ZXJfcmF3CgpTaWduZWQtb2ZmLWJ5
+OiBNaWNoYWVsIEtydWZreSA8bWtydWZreUBsaW51eHR2Lm9yZz4KLS0tCiBkcml2ZXJzL21lZGlh
+L2R2Yi9kdmItY29yZS9kdmJfZGVtdXguYyB8ICAgMTAgKysrKysrKysrKwogZHJpdmVycy9tZWRp
+YS9kdmIvZHZiLWNvcmUvZHZiX2RlbXV4LmggfCAgICAyICsrCiAyIGZpbGVzIGNoYW5nZWQsIDEy
+IGluc2VydGlvbnMoKyksIDAgZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEvZHJpdmVycy9tZWRp
+YS9kdmIvZHZiLWNvcmUvZHZiX2RlbXV4LmMgYi9kcml2ZXJzL21lZGlhL2R2Yi9kdmItY29yZS9k
+dmJfZGVtdXguYwppbmRleCBmYWEzNjcxLi5kODI0NjlmIDEwMDY0NAotLS0gYS9kcml2ZXJzL21l
+ZGlhL2R2Yi9kdmItY29yZS9kdmJfZGVtdXguYworKysgYi9kcml2ZXJzL21lZGlhL2R2Yi9kdmIt
+Y29yZS9kdmJfZGVtdXguYwpAQCAtNTY4LDYgKzU2OCwxNiBAQCB2b2lkIGR2Yl9kbXhfc3dmaWx0
+ZXJfMjA0KHN0cnVjdCBkdmJfZGVtdXggKmRlbXV4LCBjb25zdCB1OCAqYnVmLCBzaXplX3QgY291
+bnQpCiB9CiBFWFBPUlRfU1lNQk9MKGR2Yl9kbXhfc3dmaWx0ZXJfMjA0KTsKIAordm9pZCBkdmJf
+ZG14X3N3ZmlsdGVyX3JhdyhzdHJ1Y3QgZHZiX2RlbXV4ICpkZW11eCwgY29uc3QgdTggKmJ1Ziwg
+c2l6ZV90IGNvdW50KQoreworCXNwaW5fbG9jaygmZGVtdXgtPmxvY2spOworCisJZGVtdXgtPmZl
+ZWQtPmNiLnRzKGJ1ZiwgY291bnQsIE5VTEwsIDAsICZkZW11eC0+ZmVlZC0+ZmVlZC50cywgRE1Y
+X09LKTsKKworCXNwaW5fdW5sb2NrKCZkZW11eC0+bG9jayk7Cit9CitFWFBPUlRfU1lNQk9MKGR2
+Yl9kbXhfc3dmaWx0ZXJfcmF3KTsKKwogc3RhdGljIHN0cnVjdCBkdmJfZGVtdXhfZmlsdGVyICpk
+dmJfZG14X2ZpbHRlcl9hbGxvYyhzdHJ1Y3QgZHZiX2RlbXV4ICpkZW11eCkKIHsKIAlpbnQgaTsK
+ZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWVkaWEvZHZiL2R2Yi1jb3JlL2R2Yl9kZW11eC5oIGIvZHJp
+dmVycy9tZWRpYS9kdmIvZHZiLWNvcmUvZHZiX2RlbXV4LmgKaW5kZXggYTdkODc2Zi4uZmE3MTg4
+YSAxMDA2NDQKLS0tIGEvZHJpdmVycy9tZWRpYS9kdmIvZHZiLWNvcmUvZHZiX2RlbXV4LmgKKysr
+IGIvZHJpdmVycy9tZWRpYS9kdmIvZHZiLWNvcmUvZHZiX2RlbXV4LmgKQEAgLTE0NSw1ICsxNDUs
+NyBAQCB2b2lkIGR2Yl9kbXhfc3dmaWx0ZXJfcGFja2V0cyhzdHJ1Y3QgZHZiX2RlbXV4ICpkdmJk
+bXgsIGNvbnN0IHU4ICpidWYsCiB2b2lkIGR2Yl9kbXhfc3dmaWx0ZXIoc3RydWN0IGR2Yl9kZW11
+eCAqZGVtdXgsIGNvbnN0IHU4ICpidWYsIHNpemVfdCBjb3VudCk7CiB2b2lkIGR2Yl9kbXhfc3dm
+aWx0ZXJfMjA0KHN0cnVjdCBkdmJfZGVtdXggKmRlbXV4LCBjb25zdCB1OCAqYnVmLAogCQkJICBz
+aXplX3QgY291bnQpOwordm9pZCBkdmJfZG14X3N3ZmlsdGVyX3JhdyhzdHJ1Y3QgZHZiX2RlbXV4
+ICpkZW11eCwgY29uc3QgdTggKmJ1ZiwKKwkJCSAgc2l6ZV90IGNvdW50KTsKIAogI2VuZGlmIC8q
+IF9EVkJfREVNVVhfSF8gKi8KLS0gCjEuNy41LjQKCg==
+--f46d043d6469565f6404beeca86a--
