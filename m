@@ -1,79 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:16881 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758721Ab2DJNKx (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:39946 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752432Ab2D3O1D (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Apr 2012 09:10:53 -0400
-Received: from euspt2 (mailout1.w1.samsung.com [210.118.77.11])
- by mailout1.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0M2900LLSLWHV7@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 10 Apr 2012 14:09:54 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0M2900ML4LY1QL@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 10 Apr 2012 14:10:49 +0100 (BST)
-Date: Tue, 10 Apr 2012 15:10:40 +0200
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: [RFC 06/13] v4l: vb2-dma-contig: add vmap/kmap for dmabuf exporting
-In-reply-to: <1334063447-16824-1-git-send-email-t.stanislaws@samsung.com>
-To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
-Cc: airlied@redhat.com, m.szyprowski@samsung.com,
-	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
-	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
-	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
-	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
-	subashrp@gmail.com, mchehab@redhat.com
-Message-id: <1334063447-16824-7-git-send-email-t.stanislaws@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1334063447-16824-1-git-send-email-t.stanislaws@samsung.com>
+	Mon, 30 Apr 2012 10:27:03 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/1] v4l: drop v4l2_buffer.input and V4L2_BUF_FLAG_INPUT
+Date: Mon, 30 Apr 2012 16:27:24 +0200
+Message-ID: <2396617.gGNm1rAEoQ@avalon>
+In-Reply-To: <201204301615.30954.hverkuil@xs4all.nl>
+References: <20120430130413.GL7913@valkosipuli.localdomain> <20120430140615.GM7913@valkosipuli.localdomain> <201204301615.30954.hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds support for vmap and kmap callbacks
-for DMABUF exporter.
+On Monday 30 April 2012 16:15:30 Hans Verkuil wrote:
+> On Monday 30 April 2012 16:06:16 Sakari Ailus wrote:
 
-Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/video/videobuf2-dma-contig.c |   17 +++++++++++++++++
- 1 files changed, 17 insertions(+), 0 deletions(-)
+[snip]
 
-diff --git a/drivers/media/video/videobuf2-dma-contig.c b/drivers/media/video/videobuf2-dma-contig.c
-index e1ad47e..537926b 100644
---- a/drivers/media/video/videobuf2-dma-contig.c
-+++ b/drivers/media/video/videobuf2-dma-contig.c
-@@ -403,11 +403,28 @@ static void vb2_dc_dmabuf_ops_release(struct dma_buf *dbuf)
- 	vb2_dc_put(dbuf->priv);
- }
- 
-+static void *vb2_dc_dmabuf_ops_kmap(struct dma_buf *dbuf, unsigned long pgnum)
-+{
-+	struct vb2_dc_buf *buf = dbuf->priv;
-+
-+	return buf->vaddr + pgnum * PAGE_SIZE;
-+}
-+
-+static void *vb2_dc_dmabuf_ops_vmap(struct dma_buf *dbuf)
-+{
-+	struct vb2_dc_buf *buf = dbuf->priv;
-+
-+	return buf->vaddr;
-+}
-+
- static struct dma_buf_ops vb2_dc_dmabuf_ops = {
- 	.attach = vb2_dc_dmabuf_ops_attach,
- 	.detach = vb2_dc_dmabuf_ops_detach,
- 	.map_dma_buf = vb2_dc_dmabuf_ops_map,
- 	.unmap_dma_buf = vb2_dc_dmabuf_ops_unmap,
-+	.kmap = vb2_dc_dmabuf_ops_kmap,
-+	.kmap_atomic = vb2_dc_dmabuf_ops_kmap,
-+	.vmap = vb2_dc_dmabuf_ops_vmap,
- 	.release = vb2_dc_dmabuf_ops_release,
- };
- 
+> > One option is to keep the reserved fields as array even there was just one
+> > of them or if it no longer was there. If so, reserved should have been
+> > reserved[1] in the first place. This would make it easier to deal with
+> > the changing size of the reserved field.
+> 
+> Definitely. But I think struct v4l2_buffer has been like this for a long
+> time (Laurent would know when the input field was added).
+
+That was 8 to 9 years ago. I'm responsible for that terrible idea, so I'd be 
+happy to see the input field removed ;-)
+
 -- 
-1.7.5.4
+Regards,
+
+Laurent Pinchart
 
