@@ -1,395 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:63599 "EHLO
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:23770 "EHLO
 	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753625Ab2DMPsM (ORCPT
+	with ESMTP id S1755011Ab2D3QOq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Apr 2012 11:48:12 -0400
-Received: from euspt1 (mailout2.w1.samsung.com [210.118.77.12])
+	Mon, 30 Apr 2012 12:14:46 -0400
+Received: from euspt2 (mailout2.w1.samsung.com [210.118.77.12])
  by mailout2.w1.samsung.com
  (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0M2F00CGID7ZD4@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 13 Apr 2012 16:48:03 +0100 (BST)
+ with ESMTP id <0M3A00M9FVSE14@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 30 Apr 2012 17:14:38 +0100 (BST)
 Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0M2F006H9D84KA@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 13 Apr 2012 16:48:05 +0100 (BST)
-Date: Fri, 13 Apr 2012 17:47:50 +0200
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: [PATCH v4 08/14] v4l: vb2-dma-contig: add support for scatterlist in
- userptr mode
-In-reply-to: <1334332076-28489-1-git-send-email-t.stanislaws@samsung.com>
-To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
-Cc: airlied@redhat.com, m.szyprowski@samsung.com,
-	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
-	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
-	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
-	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
-	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
-	mchehab@redhat.com, Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>
-Message-id: <1334332076-28489-9-git-send-email-t.stanislaws@samsung.com>
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0M3A00C1SVSHRE@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 30 Apr 2012 17:14:42 +0100 (BST)
+Date: Mon, 30 Apr 2012 18:14:29 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH v2 00/12] V4L: Exynos 4x12 camera host interface (FIMC-LITE)
+ driver
+To: linux-media@vger.kernel.org
+Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	riverful.kim@samsung.com, sw0312.kim@samsung.com,
+	sungchun.kang@samsung.com, subash.ramaswamy@linaro.org,
+	s.nawrocki@samsung.com
+Message-id: <1335802481-18153-1-git-send-email-s.nawrocki@samsung.com>
 MIME-version: 1.0
 Content-type: TEXT/PLAIN
 Content-transfer-encoding: 7BIT
-References: <1334332076-28489-1-git-send-email-t.stanislaws@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
+This change set adds support for FIMC-LITE devices, available in Exynos4x12
+(and Exynos5) SoCs, to the existing s5p-fimc driver.
 
-This patch introduces usage of dma_map_sg to map memory behind
-a userspace pointer to a device as dma-contiguous mapping.
+The FIMC-LITE differs from regular FIMC in that it doesn't have a scaler,
+rotator, color converter and the DMA input. So it's just a basic camera host
+interface, with additional internal FIFO data output to other SoC sub-modules.
 
-Signed-off-by: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-	[bugfixing]
-Signed-off-by: Kamil Debski <k.debski@samsung.com>
-	[bugfixing]
-Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-	[add sglist subroutines/code refactoring]
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/video/videobuf2-dma-contig.c |  287 ++++++++++++++++++++++++++--
- 1 files changed, 270 insertions(+), 17 deletions(-)
+Cropping at the host interface input is exposed on a subdev sink pad through
+the selection API, and composition performed by the output DMA engine can be
+controlled through selection compose targets on the video node.
 
-diff --git a/drivers/media/video/videobuf2-dma-contig.c b/drivers/media/video/videobuf2-dma-contig.c
-index 476e536..3a1e314 100644
---- a/drivers/media/video/videobuf2-dma-contig.c
-+++ b/drivers/media/video/videobuf2-dma-contig.c
-@@ -11,6 +11,8 @@
-  */
- 
- #include <linux/module.h>
-+#include <linux/scatterlist.h>
-+#include <linux/sched.h>
- #include <linux/slab.h>
- #include <linux/dma-mapping.h>
- 
-@@ -22,6 +24,8 @@ struct vb2_dc_buf {
- 	void				*vaddr;
- 	unsigned long			size;
- 	dma_addr_t			dma_addr;
-+	enum dma_data_direction		dma_dir;
-+	struct sg_table			*dma_sgt;
- 
- 	/* MMAP related */
- 	struct vb2_vmarea_handler	handler;
-@@ -32,6 +36,103 @@ struct vb2_dc_buf {
- };
- 
- /*********************************************/
-+/*        scatterlist table functions        */
-+/*********************************************/
-+
-+static struct sg_table *vb2_dc_pages_to_sgt(struct page **pages,
-+	unsigned int n_pages, unsigned long offset, unsigned long size)
-+{
-+	struct sg_table *sgt;
-+	unsigned int chunks;
-+	unsigned int i;
-+	unsigned int cur_page;
-+	int ret;
-+	struct scatterlist *s;
-+	unsigned int offset_end = n_pages * PAGE_SIZE - size;
-+
-+	sgt = kzalloc(sizeof *sgt, GFP_KERNEL);
-+	if (!sgt)
-+		return ERR_PTR(-ENOMEM);
-+
-+	/* compute number of chunks */
-+	chunks = 1;
-+	for (i = 1; i < n_pages; ++i)
-+		if (pages[i] != pages[i - 1] + 1)
-+			++chunks;
-+
-+	ret = sg_alloc_table(sgt, chunks, GFP_KERNEL);
-+	if (ret) {
-+		kfree(sgt);
-+		return ERR_PTR(-ENOMEM);
-+	}
-+
-+	/* merging chunks and putting them into the scatterlist */
-+	cur_page = 0;
-+	for_each_sg(sgt->sgl, s, sgt->orig_nents, i) {
-+		size_t size = PAGE_SIZE;
-+		unsigned int j;
-+
-+		for (j = cur_page + 1; j < n_pages; ++j) {
-+			if (pages[j] != pages[j - 1] + 1)
-+				break;
-+			size += PAGE_SIZE;
-+		}
-+
-+		/* cut offset if chunk starts at the first page */
-+		if (cur_page == 0)
-+			size -= offset;
-+		/* cut offset_end if chunk ends at the last page */
-+		if (j == n_pages)
-+			size -= offset_end;
-+
-+		sg_set_page(s, pages[cur_page], size, offset);
-+		offset = 0;
-+		cur_page = j;
-+	}
-+
-+	return sgt;
-+}
-+
-+static void vb2_dc_release_sgtable(struct sg_table *sgt)
-+{
-+	sg_free_table(sgt);
-+	kfree(sgt);
-+}
-+
-+static void vb2_dc_sgt_foreach_page(struct sg_table *sgt,
-+	void (*cb)(struct page *pg))
-+{
-+	struct scatterlist *s;
-+	unsigned int i;
-+
-+	for_each_sg(sgt->sgl, s, sgt->nents, i) {
-+		struct page *page = sg_page(s);
-+		unsigned int n_pages = PAGE_ALIGN(s->offset + s->length)
-+			>> PAGE_SHIFT;
-+		unsigned int j;
-+
-+		for (j = 0; j < n_pages; ++j, ++page)
-+			cb(page);
-+	}
-+}
-+
-+static unsigned long vb2_dc_get_contiguous_size(struct sg_table *sgt)
-+{
-+	struct scatterlist *s;
-+	dma_addr_t expected = sg_dma_address(sgt->sgl);
-+	unsigned int i;
-+	unsigned long size = 0;
-+
-+	for_each_sg(sgt->sgl, s, sgt->nents, i) {
-+		if (sg_dma_address(s) != expected)
-+			break;
-+		expected = sg_dma_address(s) + sg_dma_len(s);
-+		size += sg_dma_len(s);
-+	}
-+	return size;
-+}
-+
-+/*********************************************/
- /*         callbacks for all buffers         */
- /*********************************************/
- 
-@@ -116,42 +217,194 @@ static int vb2_dc_mmap(void *buf_priv, struct vm_area_struct *vma)
- /*       callbacks for USERPTR buffers       */
- /*********************************************/
- 
-+static inline int vma_is_io(struct vm_area_struct *vma)
-+{
-+	return !!(vma->vm_flags & (VM_IO | VM_PFNMAP));
-+}
-+
-+static struct vm_area_struct *vb2_dc_get_user_vma(
-+	unsigned long start, unsigned long size)
-+{
-+	struct vm_area_struct *vma;
-+
-+	/* current->mm->mmap_sem is taken by videobuf2 core */
-+	vma = find_vma(current->mm, start);
-+	if (!vma) {
-+		printk(KERN_ERR "no vma for address %lu\n", start);
-+		return ERR_PTR(-EFAULT);
-+	}
-+
-+	if (vma->vm_end - vma->vm_start < size) {
-+		printk(KERN_ERR "vma at %lu is too small for %lu bytes\n",
-+			start, size);
-+		return ERR_PTR(-EFAULT);
-+	}
-+
-+	vma = vb2_get_vma(vma);
-+	if (!vma) {
-+		printk(KERN_ERR "failed to copy vma\n");
-+		return ERR_PTR(-ENOMEM);
-+	}
-+
-+	return vma;
-+}
-+
-+static int vb2_dc_get_user_pages(unsigned long start, struct page **pages,
-+	int n_pages, struct vm_area_struct *vma, int write)
-+{
-+	if (vma_is_io(vma)) {
-+		unsigned int i;
-+
-+		for (i = 0; i < n_pages; ++i, start += PAGE_SIZE) {
-+			unsigned long pfn;
-+			int ret = follow_pfn(vma, start, &pfn);
-+
-+			if (ret) {
-+				printk(KERN_ERR "no page for address %lu\n",
-+					start);
-+				return ret;
-+			}
-+			pages[i] = pfn_to_page(pfn);
-+		}
-+	} else {
-+		unsigned int n;
-+
-+		n = get_user_pages(current, current->mm, start & PAGE_MASK,
-+			n_pages, write, 1, pages, NULL);
-+		if (n != n_pages) {
-+			printk(KERN_ERR "got only %d of %d user pages\n",
-+				n, n_pages);
-+			while (n)
-+				put_page(pages[--n]);
-+			return -EFAULT;
-+		}
-+	}
-+
-+	return 0;
-+}
-+
-+static void vb2_dc_put_dirty_page(struct page *page)
-+{
-+	set_page_dirty_lock(page);
-+	put_page(page);
-+}
-+
-+static void vb2_dc_put_userptr(void *buf_priv)
-+{
-+	struct vb2_dc_buf *buf = buf_priv;
-+	struct sg_table *sgt = buf->dma_sgt;
-+
-+	dma_unmap_sg(buf->dev, sgt->sgl, sgt->orig_nents, buf->dma_dir);
-+	if (!vma_is_io(buf->vma))
-+		vb2_dc_sgt_foreach_page(sgt, vb2_dc_put_dirty_page);
-+
-+	vb2_dc_release_sgtable(sgt);
-+	vb2_put_vma(buf->vma);
-+	kfree(buf);
-+}
-+
- static void *vb2_dc_get_userptr(void *alloc_ctx, unsigned long vaddr,
--					unsigned long size, int write)
-+	unsigned long size, int write)
- {
- 	struct vb2_dc_buf *buf;
--	struct vm_area_struct *vma;
--	dma_addr_t dma_addr = 0;
--	int ret;
-+	unsigned long start;
-+	unsigned long end;
-+	unsigned long offset;
-+	struct page **pages;
-+	int n_pages;
-+	int ret = 0;
-+	struct sg_table *sgt;
-+	unsigned long contig_size;
- 
- 	buf = kzalloc(sizeof *buf, GFP_KERNEL);
- 	if (!buf)
- 		return ERR_PTR(-ENOMEM);
- 
--	ret = vb2_get_contig_userptr(vaddr, size, &vma, &dma_addr);
-+	buf->dev = alloc_ctx;
-+	buf->dma_dir = write ? DMA_FROM_DEVICE : DMA_TO_DEVICE;
-+
-+	start = vaddr & PAGE_MASK;
-+	offset = vaddr & ~PAGE_MASK;
-+	end = PAGE_ALIGN(vaddr + size);
-+	n_pages = (end - start) >> PAGE_SHIFT;
-+
-+	pages = kmalloc(n_pages * sizeof pages[0], GFP_KERNEL);
-+	if (!pages) {
-+		ret = -ENOMEM;
-+		printk(KERN_ERR "failed to allocate pages table\n");
-+		goto fail_buf;
-+	}
-+
-+	buf->vma = vb2_dc_get_user_vma(start, size);
-+	if (IS_ERR(buf->vma)) {
-+		printk(KERN_ERR "failed to get VMA\n");
-+		ret = PTR_ERR(buf->vma);
-+		goto fail_pages;
-+	}
-+
-+	/* extract page list from userspace mapping */
-+	ret = vb2_dc_get_user_pages(start, pages, n_pages, buf->vma, write);
- 	if (ret) {
--		printk(KERN_ERR "Failed acquiring VMA for vaddr 0x%08lx\n",
--				vaddr);
--		kfree(buf);
--		return ERR_PTR(ret);
-+		printk(KERN_ERR "failed to get user pages\n");
-+		goto fail_vma;
-+	}
-+
-+	sgt = vb2_dc_pages_to_sgt(pages, n_pages, offset, size);
-+	if (IS_ERR(sgt)) {
-+		printk(KERN_ERR "failed to create scatterlist table\n");
-+		ret = -ENOMEM;
-+		goto fail_get_user_pages;
-+	}
-+
-+	/* pages are no longer needed */
-+	kfree(pages);
-+	pages = NULL;
-+
-+	sgt->nents = dma_map_sg(buf->dev, sgt->sgl, sgt->orig_nents,
-+		buf->dma_dir);
-+	if (sgt->nents <= 0) {
-+		printk(KERN_ERR "failed to map scatterlist\n");
-+		ret = -EIO;
-+		goto fail_sgt;
- 	}
- 
-+	contig_size = vb2_dc_get_contiguous_size(sgt);
-+	if (contig_size < size) {
-+		printk(KERN_ERR "contiguous mapping is too small %lu/%lu\n",
-+			contig_size, size);
-+		ret = -EFAULT;
-+		goto fail_map_sg;
-+	}
-+
-+	buf->dma_addr = sg_dma_address(sgt->sgl);
- 	buf->size = size;
--	buf->dma_addr = dma_addr;
--	buf->vma = vma;
-+	buf->dma_sgt = sgt;
- 
- 	return buf;
--}
- 
--static void vb2_dc_put_userptr(void *mem_priv)
--{
--	struct vb2_dc_buf *buf = mem_priv;
-+fail_map_sg:
-+	dma_unmap_sg(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
- 
--	if (!buf)
--		return;
-+fail_sgt:
-+	if (!vma_is_io(buf->vma))
-+		vb2_dc_sgt_foreach_page(sgt, put_page);
-+	vb2_dc_release_sgtable(sgt);
-+
-+fail_get_user_pages:
-+	if (pages && !vma_is_io(buf->vma))
-+		while (n_pages)
-+			put_page(pages[--n_pages]);
- 
-+fail_vma:
- 	vb2_put_vma(buf->vma);
-+
-+fail_pages:
-+	kfree(pages); /* kfree is NULL-proof */
-+
-+fail_buf:
- 	kfree(buf);
-+
-+	return ERR_PTR(ret);
- }
- 
- /*********************************************/
+I tried to make the exynos-fimc-lite module as much independent as possible,
+to allow its reuse on any other SoCs that have same IP block.
+
+This change set also includes small enhancement of V4L2_CID_COLORFX and
+a patch adding support for this control at the s5p-fimc driver.
+
+Changes since first version:
+ - modified V4L2_CID_COLORFX control patches, added V4L2_CID_COLORFX_CBCR
+   control according to suggestions from Hans Verkuil;
+ - fixed VIDIOC_S_FMT ioctl handler so it is now possible to configure
+   random output memory buffer for composition, not only with same 
+   resolution as at the subdev's source pad;
+ - corrected completely broken cropping handling at the subdev
+   (looks like someone has forgotten to test it...);
+ - dropped patch 03/13 "s5p-fimc: Simplify..." which was wrong.
+
+TODOs:
+ - power management testing (when proper platform support for exynos4x12
+   is available in the mainline kernel),
+ - complete internal FIFO output support to the internal ISP (should just
+   require filling in the subdev ops stubs);
+ - improve the interrupt handler.
+
+
+Regards,
+--
+Sylwester Nawrocki
+Samsung Poland R&D Center
+
+
+Sylwester Nawrocki (12):
+  V4L: Extend V4L2_CID_COLORFX with more image effects
+  s5p-fimc: Move m2m node driver into separate file
+  s5p-fimc: Use v4l2_subdev internal ops to register video nodes
+  s5p-fimc: Refactor the register interface functions
+  s5p-fimc: Add FIMC-LITE register definitions
+  s5p-fimc: Rework the video pipeline control functions
+  s5p-fimc: Prefix format enumerations with FIMC_FMT_
+  s5p-fimc: Minor cleanups
+  s5p-fimc: Make sure an interrupt is properly requested
+  s5p-fimc: Add support for Exynos4x12 FIMC-LITE
+  s5p-fimc: Update copyright notices
+  s5p-fimc: Add color effect control
+
+ Documentation/DocBook/media/v4l/compat.xml   |   13 +
+ Documentation/DocBook/media/v4l/controls.xml |  100 +-
+ Documentation/DocBook/media/v4l/v4l2.xml     |    5 +-
+ drivers/media/video/Kconfig                  |   24 +-
+ drivers/media/video/s5p-fimc/Kconfig         |   48 +
+ drivers/media/video/s5p-fimc/Makefile        |    6 +-
+ drivers/media/video/s5p-fimc/fimc-capture.c  |  297 +++--
+ drivers/media/video/s5p-fimc/fimc-core.c     | 1091 +++---------------
+ drivers/media/video/s5p-fimc/fimc-core.h     |  252 ++---
+ drivers/media/video/s5p-fimc/fimc-lite-reg.c |  301 +++++
+ drivers/media/video/s5p-fimc/fimc-lite-reg.h |  153 +++
+ drivers/media/video/s5p-fimc/fimc-lite.c     | 1547 ++++++++++++++++++++++++++
+ drivers/media/video/s5p-fimc/fimc-lite.h     |  209 ++++
+ drivers/media/video/s5p-fimc/fimc-m2m.c      |  820 ++++++++++++++
+ drivers/media/video/s5p-fimc/fimc-mdevice.c  |  405 ++++---
+ drivers/media/video/s5p-fimc/fimc-mdevice.h  |   18 +-
+ drivers/media/video/s5p-fimc/fimc-reg.c      |  613 +++++-----
+ drivers/media/video/s5p-fimc/fimc-reg.h      |  326 ++++++
+ drivers/media/video/s5p-fimc/regs-fimc.h     |  301 -----
+ drivers/media/video/v4l2-ctrls.c             |    7 +
+ include/linux/videodev2.h                    |   29 +-
+ include/media/s5p_fimc.h                     |   16 +
+ 22 files changed, 4593 insertions(+), 1988 deletions(-)
+ create mode 100644 drivers/media/video/s5p-fimc/Kconfig
+ create mode 100644 drivers/media/video/s5p-fimc/fimc-lite-reg.c
+ create mode 100644 drivers/media/video/s5p-fimc/fimc-lite-reg.h
+ create mode 100644 drivers/media/video/s5p-fimc/fimc-lite.c
+ create mode 100644 drivers/media/video/s5p-fimc/fimc-lite.h
+ create mode 100644 drivers/media/video/s5p-fimc/fimc-m2m.c
+ create mode 100644 drivers/media/video/s5p-fimc/fimc-reg.h
+ delete mode 100644 drivers/media/video/s5p-fimc/regs-fimc.h
+
 -- 
-1.7.5.4
+1.7.10
 
