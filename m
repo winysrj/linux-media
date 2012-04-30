@@ -1,66 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:36420 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754467Ab2DKJ7T (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39808 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754786Ab2D3OGU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Apr 2012 05:59:19 -0400
-Received: by iagz16 with SMTP id z16so1059648iag.19
-        for <linux-media@vger.kernel.org>; Wed, 11 Apr 2012 02:59:19 -0700 (PDT)
+	Mon, 30 Apr 2012 10:06:20 -0400
+Date: Mon, 30 Apr 2012 17:06:16 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com
+Subject: Re: [PATCH 1/1] v4l: drop v4l2_buffer.input and V4L2_BUF_FLAG_INPUT
+Message-ID: <20120430140615.GM7913@valkosipuli.localdomain>
+References: <20120430130413.GL7913@valkosipuli.localdomain>
+ <1335792898-28620-1-git-send-email-sakari.ailus@iki.fi>
+ <201204301548.14618.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Date: Wed, 11 Apr 2012 11:59:18 +0200
-Message-ID: <CALF3rRsCycmwzMVbQWXTFcdxfU_vhcy=TkvLY6XKtQdsrmv4vw@mail.gmail.com>
-Subject: Initial tuning file for Danish cable provider YouSee
-From: Martin Leopold <martin.leopold@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: multipart/mixed; boundary=bcaec529a029f719b004bd644a53
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <201204301548.14618.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---bcaec529a029f719b004bd644a53
-Content-Type: text/plain; charset=ISO-8859-1
+Hi Hans,
 
-Hi,
-I recently setup a tuning back-end, but unfortunately an initial,
-preliminary scan config was not available for my cable provider. My
-back end of choice was TV headend and the guys there let me know that
-they draw their data from the dvb-apps package and that the proper
-channel for inclusion would be to post it on this list.
+Thanks for your comments.
 
-So attached is an initial scan file for the cable provider YouSee in
-the Copenhagen area. It is based on the best available data, as the
-provider doesn't provide a frequency list. It is identical to the
-frequencies that I can manually collect using the 'scan' tool.
+On Mon, Apr 30, 2012 at 03:48:14PM +0200, Hans Verkuil wrote:
+> On Monday 30 April 2012 15:34:58 Sakari Ailus wrote:
+> > Remove input field in struct v4l2_buffer and flag V4L2_BUF_FLAG_INPUT which
+> > tells the former is valid. The flag is used by no driver currently.
+> > 
+> > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> > ---
+> > Hi all,
+> > 
+> > I thought this would be a good time to get rid of the input field in
+> > v4l2_buffer to avoid writing more useless compat code for it --- the enum
+> > compat code.
+> > 
+> > Comments are welcome. This patch is compile tested on videobuf and
+> > videobuf2.
+> 
+> I'm all in favor of this. Don't forget to update the documentation as well, 
+> though!
 
-Let me know if I'm in the wrong place or need to clear something up.
+Good point. I'll go through that next.
 
-Br,
-Martin
+> What would the impact be on applications, though? Any app that currently does 
+> 'reserved = 0' would fail to compile after this change.
 
---bcaec529a029f719b004bd644a53
-Content-Type: application/octet-stream; name=dk-YouSee-Copenhagen
-Content-Disposition: attachment; filename=dk-YouSee-Copenhagen
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_h0w7ednz0
+I had a bit of that in drivers and videobuf(2), too.
 
-IyBzY2FuIGNvbmZpZyBmb3IgWW91U2VlIGNhYmxlIHByb3ZpZGVyIGluIENvcGVuaGFnZW4KIyBi
-YXNlZCBvbiB0aGlzIFVSTDogaHR0cDovL3d3dy5zdW9kZW5qb2tpLmRrL3lvdXNlZV9kdmJjX2No
-YW5uZWxzLmh0bQojIGZyZXEgc3IgZmVjIG1vZApDIDE0MzAwMDAwMCA2ODc1MDAwIE5PTkUgUUFN
-NjQKQyAxNTYwMDAwMDAgNjg3NTAwMCBOT05FIFFBTTY0CkMgMjQ4MDAwMDAwIDY4NzUwMDAgTk9O
-RSBRQU02NApDIDMzMDAwMDAwMCA2ODc1MDAwIE5PTkUgUUFNNjQKQyAzNDYwMDAwMDAgNjg3NTAw
-MCBOT05FIFFBTTY0CkMgMzc4MDAwMDAwIDY4NzUwMDAgTk9ORSBRQU02NApDIDQxODAwMDAwMCA2
-ODc1MDAwIE5PTkUgUUFNNjQKQyA0NDIwMDAwMDAgNjg3NTAwMCBOT05FIFFBTTY0CkMgNDUwMDAw
-MDAwIDY4NzUwMDAgTk9ORSBRQU02NApDIDQ1ODAwMDAwMCA2ODc1MDAwIE5PTkUgUUFNNjQKQyA0
-ODIwMDAwMDAgNjg3NTAwMCBOT05FIFFBTTY0CkMgNDkwMDAwMDAwIDY4NzUwMDAgTk9ORSBRQU02
-NApDIDQ5ODAwMDAwMCA2ODc1MDAwIE5PTkUgUUFNNjQKQyA1MDYwMDAwMDAgNjg3NTAwMCBOT05F
-IFFBTTY0CkMgNTE0MDAwMDAwIDY4NzUwMDAgTk9ORSBRQU02NApDIDUyMjAwMDAwMCA2ODc1MDAw
-IE5PTkUgUUFNNjQKQyA1MzAwMDAwMDAgNjg3NTAwMCBOT05FIFFBTTY0CkMgNTM4MDAwMDAwIDY4
-NzUwMDAgTk9ORSBRQU02NApDIDU0NjAwMDAwMCA2ODc1MDAwIE5PTkUgUUFNNjQKQyA1NTQwMDAw
-MDAgNjg3NTAwMCBOT05FIFFBTTY0CkMgNTYyMDAwMDAwIDY4NzUwMDAgTk9ORSBRQU02NApDIDU3
-MDAwMDAwMCA2ODc1MDAwIE5PTkUgUUFNNjQKQyA1NzgwMDAwMDAgNjg3NTAwMCBOT05FIFFBTTY0
-CkMgNTg2MDAwMDAwIDY4NzUwMDAgTk9ORSBRQU02NApDIDU5NDAwMDAwMCA2ODc1MDAwIE5PTkUg
-UUFNNjQKQyA2MDIwMDAwMDAgNjg3NTAwMCBOT05FIFFBTTY0CkMgNjE4MDAwMDAwIDY4NzUwMDAg
-Tk9ORSBRQU02NApDIDYyNjAwMDAwMCA2ODc1MDAwIE5PTkUgUUFNNjQKQyA3MTQwMDAwMDAgNjg3
-NTAwMCBOT05FIFFBTTY0CkMgNzMwMDAwMDAwIDY4NzUwMDAgTk9ORSBRQU02NApDIDc3MDAwMDAw
-MCA2ODc1MDAwIE5PTkUgUUFNNjQKQyA3ODYwMDAwMDAgNjg3NTAwMCBOT05FIFFBTTY0CkMgNzk0
-MDAwMDAwIDY4NzUwMDAgTk9ORSBRQU02NAo=
---bcaec529a029f719b004bd644a53--
+Is there a known good practice of dealing with this? The reserved fields are
+supposed to be set to zero by applications but the reserved fields may even
+vanish over time from some structs.
+
+One option is to keep the reserved fields as array even there was just one
+of them or if it no longer was there. If so, reserved should have been
+reserved[1] in the first place. This would make it easier to deal with
+the changing size of the reserved field.
+
+> Perhaps rather than removing 'input' and changing 'reserved' to 'reserved[2]' 
+> we should do something like this:
+> 
+> union {
+> 	u32 input;
+> 	u32 reserved2;
+> };
+> u32 reserved;
+> 
+> Or perhaps leave out the union and just replace 'input' by 'reserved2'.
+
+That sounds like a good option to me, too.
+
+Kind regards,
+
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
