@@ -1,91 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:14705 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760015Ab2D0JxW (ORCPT
+Received: from mail-vx0-f174.google.com ([209.85.220.174]:60582 "EHLO
+	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756720Ab2D3WFj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Apr 2012 05:53:22 -0400
-Received: from euspt1 (mailout2.w1.samsung.com [210.118.77.12])
- by mailout2.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0M34009Q9U4QCI@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 27 Apr 2012 10:53:14 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0M3400JZJU4R62@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 27 Apr 2012 10:53:20 +0100 (BST)
-Date: Fri, 27 Apr 2012 11:53:02 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH 09/13] s5p-fimc: Make sure the interrupt is properly requested
-In-reply-to: <1335520386-20835-1-git-send-email-s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	riverful.kim@samsung.com, sw0312.kim@samsung.com,
-	sungchun.kang@samsung.com, subash.ramaswamy@linaro.org,
-	s.nawrocki@samsung.com
-Message-id: <1335520386-20835-10-git-send-email-s.nawrocki@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1335520386-20835-1-git-send-email-s.nawrocki@samsung.com>
+	Mon, 30 Apr 2012 18:05:39 -0400
+Received: by mail-vx0-f174.google.com with SMTP id p1so2391425vcq.19
+        for <linux-media@vger.kernel.org>; Mon, 30 Apr 2012 15:05:39 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <CAOcJUbxt1uwMN-ip76t2F5k--vrtOUD0iTJSzDbsM9T2ajRPJw@mail.gmail.com>
+References: <CAOcJUbxHCo7xfGHJZdeEgReJrpCriweSb9s9+-_NfSODLz_NPQ@mail.gmail.com>
+	<4F9014CD.1040005@redhat.com>
+	<CAHAyoxx+Thhj+EwFbtJcXbkzks=0x+RfdudKOgQT=pqJzePcLw@mail.gmail.com>
+	<CAOcJUbyDNGoSdVV0WMVKavJm=RK6tanQTXS8AFzsHmHkGHOGUw@mail.gmail.com>
+	<CAOcJUbzyqkfOOR72xDc14B139EECjM9f5yCmC=d0yYQU6Js4jw@mail.gmail.com>
+	<CAOcJUbyT7LqdMwWcYa7XRhEvvSQGVftVQmiNBxw4xy+tv4412Q@mail.gmail.com>
+	<CAOcJUbxLdZoo36Jkk1kMOhSfPcneupF6bRsMKOmuY6F5xZcErQ@mail.gmail.com>
+	<CAOcJUbxt1uwMN-ip76t2F5k--vrtOUD0iTJSzDbsM9T2ajRPJw@mail.gmail.com>
+Date: Mon, 30 Apr 2012 18:05:38 -0400
+Message-ID: <CAOcJUbzc=0kQ57XgX7q-2abQAr6Z0cLEreJH6vDbJ_JsFuf6cw@mail.gmail.com>
+Subject: Re: ATSC-MH driver support for the Hauppauge WinTV Aero-m
+From: Michael Krufky <mkrufky@kernellabs.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media <linux-media@vger.kernel.org>
+Content-Type: multipart/mixed; boundary=f46d0438909789214a04beeca7ba
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use dev_name() for requesting an interrupt so we don't get an interrupt
-requested with same name for multiple device instances.
+--f46d0438909789214a04beeca7ba
+Content-Type: text/plain; charset=ISO-8859-1
 
-While at it, tidy up the driver data handling.
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/video/s5p-fimc/fimc-core.c |    9 +++------
- drivers/media/video/s5p-fimc/fimc-core.h |    2 ++
- 2 files changed, 5 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/media/video/s5p-fimc/fimc-core.c b/drivers/media/video/s5p-fimc/fimc-core.c
-index 2da6638..f67c3b6 100644
---- a/drivers/media/video/s5p-fimc/fimc-core.c
-+++ b/drivers/media/video/s5p-fimc/fimc-core.c
-@@ -792,15 +792,12 @@ static int fimc_m2m_resume(struct fimc_dev *fimc)
- 
- static int fimc_probe(struct platform_device *pdev)
- {
-+	struct fimc_drvdata *drv_data = fimc_get_drvdata(pdev);
-+	struct s5p_platform_fimc *pdata;
- 	struct fimc_dev *fimc;
- 	struct resource *res;
--	struct fimc_drvdata *drv_data;
--	struct s5p_platform_fimc *pdata;
- 	int ret = 0;
- 
--	drv_data = (struct fimc_drvdata *)
--		platform_get_device_id(pdev)->driver_data;
--
- 	if (pdev->id >= ARRAY_SIZE(drv_data->variant)) {
- 		dev_err(&pdev->dev, "Invalid platform device id: %d\n",
- 			pdev->id);
-@@ -844,7 +841,7 @@ static int fimc_probe(struct platform_device *pdev)
- 	platform_set_drvdata(pdev, fimc);
- 
- 	ret = devm_request_irq(&pdev->dev, res->start, fimc_irq_handler,
--			       0, pdev->name, fimc);
-+			       0, dev_name(&pdev->dev), fimc);
- 	if (ret) {
- 		dev_err(&pdev->dev, "failed to install irq (%d)\n", ret);
- 		goto err_clk;
-diff --git a/drivers/media/video/s5p-fimc/fimc-core.h b/drivers/media/video/s5p-fimc/fimc-core.h
-index e3078d3..cbd1137 100644
---- a/drivers/media/video/s5p-fimc/fimc-core.h
-+++ b/drivers/media/video/s5p-fimc/fimc-core.h
-@@ -401,6 +401,8 @@ struct fimc_drvdata {
- 	unsigned long lclk_frequency;
- };
- 
-+#define fimc_get_drvdata(_pdev) \
-+	((struct fimc_drvdata *) platform_get_device_id(_pdev)->driver_data)
- 
- struct fimc_ctx;
- 
--- 
-1.7.10
+--f46d0438909789214a04beeca7ba
+Content-Type: application/octet-stream;
+	name="0006-lg2160-update-internal-api-interfaces-and-enable-bui.patch"
+Content-Disposition: attachment;
+	filename="0006-lg2160-update-internal-api-interfaces-and-enable-bui.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_h1o2u6rt1
 
+RnJvbSA0YmNiNGIwOGMxM2IxOWVjMWVjM2YzMzI4MmExYTk3YmZkNWNhMjViIE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBNaWNoYWVsIEtydWZreSA8bWtydWZreUBsaW51eHR2Lm9yZz4K
+RGF0ZTogU3VuLCAyOSBKYW4gMjAxMiAxMzo0OToyMCAtMDUwMApTdWJqZWN0OiBbUEFUQ0ggMDYv
+MTBdIGxnMjE2MDogdXBkYXRlIGludGVybmFsIGFwaSBpbnRlcmZhY2VzIGFuZCBlbmFibGUKIGJ1
+aWxkCgpTaWduZWQtb2ZmLWJ5OiBNaWNoYWVsIEtydWZreSA8bWtydWZreUBsaW51eHR2Lm9yZz4K
+LS0tCiBkcml2ZXJzL21lZGlhL2R2Yi9mcm9udGVuZHMvS2NvbmZpZyAgfCAgICA4ICsrKysrKysr
+CiBkcml2ZXJzL21lZGlhL2R2Yi9mcm9udGVuZHMvbGcyMTYwLmMgfCAgIDI1ICsrKysrKysrKy0t
+LS0tLS0tLS0tLS0tLS0KIDIgZmlsZXMgY2hhbmdlZCwgMTcgaW5zZXJ0aW9ucygrKSwgMTYgZGVs
+ZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEvZHJpdmVycy9tZWRpYS9kdmIvZnJvbnRlbmRzL0tjb25m
+aWcgYi9kcml2ZXJzL21lZGlhL2R2Yi9mcm9udGVuZHMvS2NvbmZpZwppbmRleCAyMTI0NjcwLi4w
+OWUyMWM5IDEwMDY0NAotLS0gYS9kcml2ZXJzL21lZGlhL2R2Yi9mcm9udGVuZHMvS2NvbmZpZwor
+KysgYi9kcml2ZXJzL21lZGlhL2R2Yi9mcm9udGVuZHMvS2NvbmZpZwpAQCAtNTMxLDYgKzUzMSwx
+NCBAQCBjb25maWcgRFZCX0xHRFQzMzA1CiAJICBBbiBBVFNDIDhWU0IgYW5kIFFBTTY0LzI1NiB0
+dW5lciBtb2R1bGUuIFNheSBZIHdoZW4geW91IHdhbnQKIAkgIHRvIHN1cHBvcnQgdGhpcyBmcm9u
+dGVuZC4KIAorY29uZmlnIERWQl9MRzIxNjAKKwl0cmlzdGF0ZSAiTEcgRWxlY3Ryb25pY3MgTEcy
+MTZ4IGJhc2VkIgorCWRlcGVuZHMgb24gRFZCX0NPUkUgJiYgSTJDCisJZGVmYXVsdCBtIGlmIERW
+Ql9GRV9DVVNUT01JU0UKKwloZWxwCisJICBBbiBBVFNDL01IIGRlbW9kdWxhdG9yIG1vZHVsZS4g
+U2F5IFkgd2hlbiB5b3Ugd2FudAorCSAgdG8gc3VwcG9ydCB0aGlzIGZyb250ZW5kLgorCiBjb25m
+aWcgRFZCX1M1SDE0MDkKIAl0cmlzdGF0ZSAiU2Ftc3VuZyBTNUgxNDA5IGJhc2VkIgogCWRlcGVu
+ZHMgb24gRFZCX0NPUkUgJiYgSTJDCmRpZmYgLS1naXQgYS9kcml2ZXJzL21lZGlhL2R2Yi9mcm9u
+dGVuZHMvbGcyMTYwLmMgYi9kcml2ZXJzL21lZGlhL2R2Yi9mcm9udGVuZHMvbGcyMTYwLmMKaW5k
+ZXggMjY5YWI3Yi4uZGFhODU5NiAxMDA2NDQKLS0tIGEvZHJpdmVycy9tZWRpYS9kdmIvZnJvbnRl
+bmRzL2xnMjE2MC5jCisrKyBiL2RyaXZlcnMvbWVkaWEvZHZiL2Zyb250ZW5kcy9sZzIxNjAuYwpA
+QCAtOTM5LDE3ICs5MzksMTUgQEAgc3RhdGljIGludCBsZzIxNnhfcmVhZF9yc19lcnJfY291bnQo
+c3RydWN0IGxnMjE2eF9zdGF0ZSAqc3RhdGUsIHUxNiAqZXJyKQogCiAvKiAtLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0gKi8KIAotc3RhdGljIGludCBsZzIxNnhfZ2V0X2Zyb250ZW5kKHN0cnVjdCBkdmJfZnJvbnRl
+bmQgKmZlLAotCQkJICAgICAgIHN0cnVjdCBkdmJfZnJvbnRlbmRfcGFyYW1ldGVycyAqcGFyYW0p
+CitzdGF0aWMgaW50IGxnMjE2eF9nZXRfZnJvbnRlbmQoc3RydWN0IGR2Yl9mcm9udGVuZCAqZmUp
+CiB7CiAJc3RydWN0IGxnMjE2eF9zdGF0ZSAqc3RhdGUgPSBmZS0+ZGVtb2R1bGF0b3JfcHJpdjsK
+IAlpbnQgcmV0OwogCiAJbGdfZGJnKCJcbiIpOwogCi0JcGFyYW0tPnUudnNiLm1vZHVsYXRpb24g
+PSBWU0JfODsgLyogRklYTUUgKE1IKSAqLwotCXBhcmFtLT5mcmVxdWVuY3kgPSBzdGF0ZS0+Y3Vy
+cmVudF9mcmVxdWVuY3k7Ci0KKwlmZS0+ZHR2X3Byb3BlcnR5X2NhY2hlLm1vZHVsYXRpb24gPSBW
+U0JfODsKKwlmZS0+ZHR2X3Byb3BlcnR5X2NhY2hlLmZyZXF1ZW5jeSA9IHN0YXRlLT5jdXJyZW50
+X2ZyZXF1ZW5jeTsKIAlmZS0+ZHR2X3Byb3BlcnR5X2NhY2hlLmRlbGl2ZXJ5X3N5c3RlbSA9IFNZ
+U19BVFNDTUg7CiAKIAlyZXQgPSBsZzIxNnhfZ2V0X2ZpY192ZXJzaW9uKHN0YXRlLApAQCAtMTA1
+MSwyOCArMTA0OSwyNSBAQCBmYWlsOgogc3RhdGljIGludCBsZzIxNnhfZ2V0X3Byb3BlcnR5KHN0
+cnVjdCBkdmJfZnJvbnRlbmQgKmZlLAogCQkJICAgICAgIHN0cnVjdCBkdHZfcHJvcGVydHkgKnR2
+cCkKIHsKLQlzdHJ1Y3QgZHZiX2Zyb250ZW5kX3BhcmFtZXRlcnMgcGFyYW07Ci0KIAlyZXR1cm4g
+KERUVl9BVFNDTUhfRklDX1ZFUiA9PSB0dnAtPmNtZCkgPwotCQlsZzIxNnhfZ2V0X2Zyb250ZW5k
+KGZlLCAmcGFyYW0pIDogMDsKKwkJbGcyMTZ4X2dldF9mcm9udGVuZChmZSkgOiAwOwogfQogCiAK
+LXN0YXRpYyBpbnQgbGcyMTYwX3NldF9mcm9udGVuZChzdHJ1Y3QgZHZiX2Zyb250ZW5kICpmZSwK
+LQkJCSAgICAgICBzdHJ1Y3QgZHZiX2Zyb250ZW5kX3BhcmFtZXRlcnMgKnBhcmFtKQorc3RhdGlj
+IGludCBsZzIxNjBfc2V0X2Zyb250ZW5kKHN0cnVjdCBkdmJfZnJvbnRlbmQgKmZlKQogewogCXN0
+cnVjdCBsZzIxNnhfc3RhdGUgKnN0YXRlID0gZmUtPmRlbW9kdWxhdG9yX3ByaXY7CiAJaW50IHJl
+dDsKIAotCWxnX2RiZygiKCVkLCAlZClcbiIsIHBhcmFtLT5mcmVxdWVuY3ksIHBhcmFtLT51LnZz
+Yi5tb2R1bGF0aW9uKTsKKwlsZ19kYmcoIiglZClcbiIsIGZlLT5kdHZfcHJvcGVydHlfY2FjaGUu
+ZnJlcXVlbmN5KTsKIAogCWlmIChmZS0+b3BzLnR1bmVyX29wcy5zZXRfcGFyYW1zKSB7Ci0JCXJl
+dCA9IGZlLT5vcHMudHVuZXJfb3BzLnNldF9wYXJhbXMoZmUsIHBhcmFtKTsKKwkJcmV0ID0gZmUt
+Pm9wcy50dW5lcl9vcHMuc2V0X3BhcmFtcyhmZSk7CiAJCWlmIChmZS0+b3BzLmkyY19nYXRlX2N0
+cmwpCiAJCQlmZS0+b3BzLmkyY19nYXRlX2N0cmwoZmUsIDApOwogCQlpZiAobGdfZmFpbChyZXQp
+KQogCQkJZ290byBmYWlsOwotCQlzdGF0ZS0+Y3VycmVudF9mcmVxdWVuY3kgPSBwYXJhbS0+ZnJl
+cXVlbmN5OworCQlzdGF0ZS0+Y3VycmVudF9mcmVxdWVuY3kgPSBmZS0+ZHR2X3Byb3BlcnR5X2Nh
+Y2hlLmZyZXF1ZW5jeTsKIAl9CiAKIAlyZXQgPSBsZzIxNjBfYWdjX2ZpeChzdGF0ZSwgMCwgMCk7
+CkBAIC0xMTI5LDcgKzExMjQsNyBAQCBzdGF0aWMgaW50IGxnMjE2MF9zZXRfZnJvbnRlbmQoc3Ry
+dWN0IGR2Yl9mcm9udGVuZCAqZmUsCiAJcmV0ID0gbGcyMTZ4X2VuYWJsZV9maWMoc3RhdGUsIDEp
+OwogCWxnX2ZhaWwocmV0KTsKIAotCWxnMjE2eF9nZXRfZnJvbnRlbmQoZmUsIHBhcmFtKTsKKwls
+ZzIxNnhfZ2V0X2Zyb250ZW5kKGZlKTsKIGZhaWw6CiAJcmV0dXJuIHJldDsKIH0KQEAgLTEzNTks
+NyArMTM1NCw2IEBAIHN0YXRpYyBzdHJ1Y3QgZHZiX2Zyb250ZW5kX29wcyBsZzIxNjBfb3BzID0g
+ewogCQkuZnJlcXVlbmN5X21pbiAgICAgID0gNTQwMDAwMDAsCiAJCS5mcmVxdWVuY3lfbWF4ICAg
+ICAgPSA4NTgwMDAwMDAsCiAJCS5mcmVxdWVuY3lfc3RlcHNpemUgPSA2MjUwMCwKLQkJLmNhcHMg
+PSBGRV9DQU5fOFZTQiB8IEZFX0hBU19FWFRFTkRFRF9DQVBTIC8qIEZJWE1FIChNSCkgKi8KIAl9
+LAogCS5pMmNfZ2F0ZV9jdHJsICAgICAgICA9IGxnMjE2eF9pMmNfZ2F0ZV9jdHJsLAogI2lmIDAK
+QEAgLTEzODksNyArMTM4Myw2IEBAIHN0YXRpYyBzdHJ1Y3QgZHZiX2Zyb250ZW5kX29wcyBsZzIx
+NjFfb3BzID0gewogCQkuZnJlcXVlbmN5X21pbiAgICAgID0gNTQwMDAwMDAsCiAJCS5mcmVxdWVu
+Y3lfbWF4ICAgICAgPSA4NTgwMDAwMDAsCiAJCS5mcmVxdWVuY3lfc3RlcHNpemUgPSA2MjUwMCwK
+LQkJLmNhcHMgPSBGRV9DQU5fOFZTQiB8IEZFX0hBU19FWFRFTkRFRF9DQVBTIC8qIEZJWE1FIChN
+SCkgKi8KIAl9LAogCS5pMmNfZ2F0ZV9jdHJsICAgICAgICA9IGxnMjE2eF9pMmNfZ2F0ZV9jdHJs
+LAogI2lmIDAKLS0gCjEuNy41LjQKCg==
+--f46d0438909789214a04beeca7ba--
