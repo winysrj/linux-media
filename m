@@ -1,136 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:35950 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753240Ab2DBRkx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 2 Apr 2012 13:40:53 -0400
-Message-ID: <4F79E49D.1020802@iki.fi>
-Date: Mon, 02 Apr 2012 20:40:45 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-vb0-f46.google.com ([209.85.212.46]:56994 "EHLO
+	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756418Ab2D3WGF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 30 Apr 2012 18:06:05 -0400
+Received: by vbbff1 with SMTP id ff1so2413765vbb.19
+        for <linux-media@vger.kernel.org>; Mon, 30 Apr 2012 15:06:05 -0700 (PDT)
 MIME-Version: 1.0
-To: =?UTF-8?B?TWljaGFlbCBCw7xzY2g=?= <m@bues.ch>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: linux-media <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] Add fc0011 tuner driver
-References: <20120402181432.74e8bd50@milhouse> <4F79DA52.2050907@iki.fi> <20120402192011.4edc82ff@milhouse>
-In-Reply-To: <20120402192011.4edc82ff@milhouse>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAOcJUbwCh9zwmY2_i-nqW1naYp_X9rOuW_BOKisrGUzPNNtzTg@mail.gmail.com>
+References: <CAOcJUbxHCo7xfGHJZdeEgReJrpCriweSb9s9+-_NfSODLz_NPQ@mail.gmail.com>
+	<4F9014CD.1040005@redhat.com>
+	<CAHAyoxx+Thhj+EwFbtJcXbkzks=0x+RfdudKOgQT=pqJzePcLw@mail.gmail.com>
+	<CAOcJUbyDNGoSdVV0WMVKavJm=RK6tanQTXS8AFzsHmHkGHOGUw@mail.gmail.com>
+	<CAOcJUbzyqkfOOR72xDc14B139EECjM9f5yCmC=d0yYQU6Js4jw@mail.gmail.com>
+	<CAOcJUbyT7LqdMwWcYa7XRhEvvSQGVftVQmiNBxw4xy+tv4412Q@mail.gmail.com>
+	<CAOcJUbxLdZoo36Jkk1kMOhSfPcneupF6bRsMKOmuY6F5xZcErQ@mail.gmail.com>
+	<CAOcJUbxt1uwMN-ip76t2F5k--vrtOUD0iTJSzDbsM9T2ajRPJw@mail.gmail.com>
+	<CAOcJUbzc=0kQ57XgX7q-2abQAr6Z0cLEreJH6vDbJ_JsFuf6cw@mail.gmail.com>
+	<CAOcJUbwCh9zwmY2_i-nqW1naYp_X9rOuW_BOKisrGUzPNNtzTg@mail.gmail.com>
+Date: Mon, 30 Apr 2012 18:06:04 -0400
+Message-ID: <CAOcJUbxa+WRJi_=Gyk-3La1dvFU4hKD7_Z2754GY2kdQuj9KmQ@mail.gmail.com>
+Subject: Re: ATSC-MH driver support for the Hauppauge WinTV Aero-m
+From: Michael Krufky <mkrufky@kernellabs.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media <linux-media@vger.kernel.org>
+Content-Type: multipart/mixed; boundary=20cf3071d0b613632304beeca941
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02.04.2012 20:20, Michael Büsch wrote:
-> On Mon, 02 Apr 2012 19:56:50 +0300
-> Antti Palosaari<crope@iki.fi>  wrote:
->
->> On 02.04.2012 19:14, Michael Büsch wrote:
->>> This adds support for the Fitipower fc0011 DVB-t tuner.
->>>
->>> Signed-off-by: Michael Buesch<m@bues.ch>
->>
->> Applied, thanks!
->> http://git.linuxtv.org/anttip/media_tree.git/shortlog/refs/heads/af9035_experimental
->>
->> I looked it through quickly, no big issues. Anyhow, when I ran
->> checkpatch.pl and it complains rather much. All Kernel developers must
->> use checkpatch.pl before sent patches and fix findings if possible,
->> errors must be fixed and warnings too if there is no good reason to
->> leave as it is.
->
-> Well, I _did_ run it on the patch.
-> There is no error. Only (IMO bogus) warnings. Most of them
-> are about the 80 char limit. Which isn't really a hard limit. And those lines
-> only exceed the 80 char limit by a few chars (one, two or such). Splitting
-> those line serves no readability purpose. In fact, it just worsens it.
+--20cf3071d0b613632304beeca941
+Content-Type: text/plain; charset=ISO-8859-1
 
 
-git show --pretty=email b650f4d701859ccff76870208c9fd8093cc64209 | 
-./scripts/checkpatch.pl -
-WARNING: please write a paragraph that describes the config symbol fully
-#37: FILE: drivers/media/common/tuners/Kconfig:207:
-+config MEDIA_TUNER_FC0011
 
-WARNING: msleep < 20ms can sleep for up to 20ms; see 
-Documentation/timers/timers-howto.txt
-+	msleep(10);
-WARNING: quoted string split across lines
-#334: FILE: drivers/media/common/tuners/fc0011.c:270:
-+		dev_warn(&priv->i2c->dev, "Unsupported bandwidth %u kHz. "
-+			 "Using 6000 kHz.\n",
+--20cf3071d0b613632304beeca941
+Content-Type: application/octet-stream;
+	name="0008-dvb-usb-add-support-for-dvb-usb-adapters-that-delive.patch"
+Content-Disposition: attachment;
+	filename="0008-dvb-usb-add-support-for-dvb-usb-adapters-that-delive.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_h1o2urjp1
 
-WARNING: line over 80 characters
-#397: FILE: drivers/media/common/tuners/fc0011.c:333:
-+		err |= fc0011_writereg(priv, FC11_REG_RCCAL, regs[FC11_REG_RCCAL]);
-
-WARNING: line over 80 characters
-#420: FILE: drivers/media/common/tuners/fc0011.c:356:
-+			regs[FC11_REG_VCOSEL] &= ~(FC11_VCOSEL_1 | FC11_VCOSEL_2);
-
-WARNING: line over 80 characters
-#430: FILE: drivers/media/common/tuners/fc0011.c:366:
-+			regs[FC11_REG_VCOSEL] &= ~(FC11_VCOSEL_1 | FC11_VCOSEL_2);
-
-WARNING: line over 80 characters
-#439: FILE: drivers/media/common/tuners/fc0011.c:375:
-+			regs[FC11_REG_VCOSEL] &= ~(FC11_VCOSEL_1 | FC11_VCOSEL_2);
-
-WARNING: line over 80 characters
-#449: FILE: drivers/media/common/tuners/fc0011.c:385:
-+			regs[FC11_REG_VCOSEL] &= ~(FC11_VCOSEL_1 | FC11_VCOSEL_2);
-
-WARNING: line over 80 characters
-#456: FILE: drivers/media/common/tuners/fc0011.c:392:
-+			regs[FC11_REG_VCOSEL] &= ~(FC11_VCOSEL_1 | FC11_VCOSEL_2);
-
-WARNING: line over 80 characters
-#468: FILE: drivers/media/common/tuners/fc0011.c:404:
-+			regs[FC11_REG_VCOSEL] &= ~(FC11_VCOSEL_1 | FC11_VCOSEL_2);
-
-WARNING: line over 80 characters
-#478: FILE: drivers/media/common/tuners/fc0011.c:414:
-+			regs[FC11_REG_VCOSEL] &= ~(FC11_VCOSEL_1 | FC11_VCOSEL_2);
-
-WARNING: msleep < 20ms can sleep for up to 20ms; see 
-Documentation/timers/timers-howto.txt
-+	msleep(10);
-WARNING: quoted string split across lines
-#504: FILE: drivers/media/common/tuners/fc0011.c:440:
-+	dev_dbg(&priv->i2c->dev, "Tuned to "
-+		"fa=%02X fp=%02X xin=%02X%02X vco=%02X vcosel=%02X "
-
-WARNING: please, no spaces at the start of a line
-#620: FILE: drivers/media/common/tuners/fc0011.h:26:
-+    defined(CONFIG_MEDIA_TUNER_FC0011_MODULE)$
-
-total: 0 errors, 14 warnings, 598 lines checked
-
-Your patch has style problems, please review.
-
-If any of these errors are false positives, please report
-them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-
-hmmmm, I think Mauro will at least complain when I ask he to PULL that 
-master. Personally I would like to see line len something more than 80 
-chars, but as checkpatch.pl complains it I have shortened lines despite 
-very few cases.
-
-@Mauro what do you think are that kind of WARNINGs, those are not 
-errors, allowed?
-
->> And one note about tuner driver, my AF9035 + FC0011 device founds only 1
->> mux of 4. Looks like some performance issues still to resolve.
->
-> I have no idea what this means.
-> So I have no remote idea of what could possibly be wrong here.
-> Is this a bug on af903x or the tuner driver?
-
-Likely tuner driver, or demod driver. But as demod tuner initialization 
-tables are likely correct I suspect it is tuner issue at first hand. And 
-secondly my other hardware with TUA9001 performs very well, better than 
-old AF9015 sticks.
-
-
-regards
-Antti
--- 
-http://palosaari.fi/
+RnJvbSBmMGQwNzllY2IyNTU0MDc5MmY3MzZmYzBkOWRlOGE4NzIwZjEzMGIyIE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBNaWNoYWVsIEtydWZreSA8bWtydWZreUBrZXJuZWxsYWJzLmNv
+bT4KRGF0ZTogVGh1LCA4IFNlcCAyMDExIDAzOjQ3OjIwIC0wNDAwClN1YmplY3Q6IFtQQVRDSCAw
+OC8xMF0gZHZiLXVzYjogYWRkIHN1cHBvcnQgZm9yIGR2Yi11c2ItYWRhcHRlcnMgdGhhdCBkZWxp
+dmVyCiByYXcgcGF5bG9hZAoKU2VsZWN0IHRoaXMgZmVhdHVyZSBzZXR0aW5nIHRoZSBkdmItdXNi
+LWFkYXB0ZXIgY2FwcyBmaWVsZCB3aXRoCkRWQl9VU0JfQURBUF9SRUNFSVZFU19SQVdfUEFZTE9B
+RAoKU2lnbmVkLW9mZi1ieTogTWljaGFlbCBLcnVma3kgPG1rcnVma3lAbGludXh0di5vcmc+Ci0t
+LQogZHJpdmVycy9tZWRpYS9kdmIvZHZiLXVzYi9kdmItdXNiLXVyYi5jIHwgICAxMiArKysrKysr
+KysrKysKIGRyaXZlcnMvbWVkaWEvZHZiL2R2Yi11c2IvZHZiLXVzYi5oICAgICB8ICAgIDEgKwog
+MiBmaWxlcyBjaGFuZ2VkLCAxMyBpbnNlcnRpb25zKCspLCAwIGRlbGV0aW9ucygtKQoKZGlmZiAt
+LWdpdCBhL2RyaXZlcnMvbWVkaWEvZHZiL2R2Yi11c2IvZHZiLXVzYi11cmIuYyBiL2RyaXZlcnMv
+bWVkaWEvZHZiL2R2Yi11c2IvZHZiLXVzYi11cmIuYwppbmRleCA1M2E1YzMwLi41YzhmNjUxIDEw
+MDY0NAotLS0gYS9kcml2ZXJzL21lZGlhL2R2Yi9kdmItdXNiL2R2Yi11c2ItdXJiLmMKKysrIGIv
+ZHJpdmVycy9tZWRpYS9kdmIvZHZiLXVzYi9kdmItdXNiLXVyYi5jCkBAIC04MCw2ICs4MCwxNCBA
+QCBzdGF0aWMgdm9pZCBkdmJfdXNiX2RhdGFfY29tcGxldGVfMjA0KHN0cnVjdCB1c2JfZGF0YV9z
+dHJlYW0gKnN0cmVhbSwgdTggKmJ1ZmZlcgogCQlkdmJfZG14X3N3ZmlsdGVyXzIwNCgmYWRhcC0+
+ZGVtdXgsIGJ1ZmZlciwgbGVuZ3RoKTsKIH0KIAorc3RhdGljIHZvaWQgZHZiX3VzYl9kYXRhX2Nv
+bXBsZXRlX3JhdyhzdHJ1Y3QgdXNiX2RhdGFfc3RyZWFtICpzdHJlYW0sCisJCQkJICAgICAgdTgg
+KmJ1ZmZlciwgc2l6ZV90IGxlbmd0aCkKK3sKKwlzdHJ1Y3QgZHZiX3VzYl9hZGFwdGVyICphZGFw
+ID0gc3RyZWFtLT51c2VyX3ByaXY7CisJaWYgKGFkYXAtPmZlZWRjb3VudCA+IDAgJiYgYWRhcC0+
+c3RhdGUgJiBEVkJfVVNCX0FEQVBfU1RBVEVfRFZCKQorCQlkdmJfZG14X3N3ZmlsdGVyX3Jhdygm
+YWRhcC0+ZGVtdXgsIGJ1ZmZlciwgbGVuZ3RoKTsKK30KKwogaW50IGR2Yl91c2JfYWRhcHRlcl9z
+dHJlYW1faW5pdChzdHJ1Y3QgZHZiX3VzYl9hZGFwdGVyICphZGFwKQogewogCWludCBpLCByZXQg
+PSAwOwpAQCAtOTAsNiArOTgsMTAgQEAgaW50IGR2Yl91c2JfYWRhcHRlcl9zdHJlYW1faW5pdChz
+dHJ1Y3QgZHZiX3VzYl9hZGFwdGVyICphZGFwKQogCQkJYWRhcC0+ZmVfYWRhcFtpXS5zdHJlYW0u
+Y29tcGxldGUgPQogCQkJCWR2Yl91c2JfZGF0YV9jb21wbGV0ZV8yMDQ7CiAJCWVsc2UKKwkJaWYg
+KGFkYXAtPnByb3BzLmZlW2ldLmNhcHMgJiBEVkJfVVNCX0FEQVBfUkVDRUlWRVNfUkFXX1BBWUxP
+QUQpCisJCQlhZGFwLT5mZV9hZGFwW2ldLnN0cmVhbS5jb21wbGV0ZSA9CisJCQkJZHZiX3VzYl9k
+YXRhX2NvbXBsZXRlX3JhdzsKKwkJZWxzZQogCQlhZGFwLT5mZV9hZGFwW2ldLnN0cmVhbS5jb21w
+bGV0ZSAgPSBkdmJfdXNiX2RhdGFfY29tcGxldGU7CiAJCWFkYXAtPmZlX2FkYXBbaV0uc3RyZWFt
+LnVzZXJfcHJpdiA9IGFkYXA7CiAJCXJldCA9IHVzYl91cmJfaW5pdCgmYWRhcC0+ZmVfYWRhcFtp
+XS5zdHJlYW0sCmRpZmYgLS1naXQgYS9kcml2ZXJzL21lZGlhL2R2Yi9kdmItdXNiL2R2Yi11c2Iu
+aCBiL2RyaXZlcnMvbWVkaWEvZHZiL2R2Yi11c2IvZHZiLXVzYi5oCmluZGV4IDZkN2QxM2YuLjg2
+Y2ZhODYgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvbWVkaWEvZHZiL2R2Yi11c2IvZHZiLXVzYi5oCisr
+KyBiL2RyaXZlcnMvbWVkaWEvZHZiL2R2Yi11c2IvZHZiLXVzYi5oCkBAIC0xNDEsNiArMTQxLDcg
+QEAgc3RydWN0IGR2Yl91c2JfYWRhcHRlcl9mZV9wcm9wZXJ0aWVzIHsKICNkZWZpbmUgRFZCX1VT
+Ql9BREFQX1BJRF9GSUxURVJfQ0FOX0JFX1RVUk5FRF9PRkYgMHgwMgogI2RlZmluZSBEVkJfVVNC
+X0FEQVBfTkVFRF9QSURfRklMVEVSSU5HICAgICAgICAgICAweDA0CiAjZGVmaW5lIERWQl9VU0Jf
+QURBUF9SRUNFSVZFU18yMDRfQllURV9UUyAgICAgICAgIDB4MDgKKyNkZWZpbmUgRFZCX1VTQl9B
+REFQX1JFQ0VJVkVTX1JBV19QQVlMT0FEICAgICAgICAgMHgxMAogCWludCBjYXBzOwogCWludCBw
+aWRfZmlsdGVyX2NvdW50OwogCi0tIAoxLjcuNS40Cgo=
+--20cf3071d0b613632304beeca941--
