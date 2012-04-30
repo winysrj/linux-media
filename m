@@ -1,40 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:45079 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751638Ab2DWSIP (ORCPT
+Received: from youngberry.canonical.com ([91.189.89.112]:42985 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753636Ab2D3S4J (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Apr 2012 14:08:15 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 00/10] uvcvideo: Add support for control events (v2)
-Date: Mon, 23 Apr 2012 20:08:33 +0200
-Message-ID: <2269416.VnjMkZNKGV@avalon>
-In-Reply-To: <1333900794-1932-1-git-send-email-hdegoede@redhat.com>
-References: <1333900794-1932-1-git-send-email-hdegoede@redhat.com>
+	Mon, 30 Apr 2012 14:56:09 -0400
+Date: Mon, 30 Apr 2012 19:56:05 +0100
+From: Luis Henriques <luis.henriques@canonical.com>
+To: Jarod Wilson <jarod@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	stable@vger.kernel.org
+Subject: Re: [PATCH v3] [media] rc: Postpone ISR registration
+Message-ID: <20120430185605.GA11906@zeus>
+References: <20120420205002.GD17452@redhat.com>
+ <1335025521-7979-1-git-send-email-luis.henriques@canonical.com>
+ <20120423183811.GC31244@redhat.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20120423183811.GC31244@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
-
-On Sunday 08 April 2012 17:59:44 Hans de Goede wrote:
-> Here is v2 of my uvcvideo ctrl events patchset. It hopefully addresses
-> all remarks you had wrt the previous version.
+On Mon, Apr 23, 2012 at 02:38:11PM -0400, Jarod Wilson wrote:
+> On Sat, Apr 21, 2012 at 05:25:21PM +0100, Luis Henriques wrote:
+> > An early registration of an ISR was causing a crash to several users (for
+> > example, with the ite-cir driver: http://bugs.launchpad.net/bugs/972723).
+> > The reason was that IRQs were being triggered before a driver
+> > initialisation was completed.
+> > 
+> > This patch fixes this by moving the invocation to request_irq() and to
+> > request_region() to a later stage on the driver probe function.
 > 
-> As discussed before this also contains some none uvcvideo changes, which
-> are necessary for the uvcvideo ctrl event support. Since these patches
-> have already been reviewed and they are a dependency of the further patches
-> in this set it is probably best for these patches to go upstream through
-> your tree too.
+> From what I can tell, it looks like v3 should do the job for all affected
+> drivers.
+> 
+> Acked-by: Jarod Wilson <jarod@redhat.com>
 
-Thank you for the patches. I haven't forgotten about you, but I've been very 
-busy lately. I'll try to go through your patches in the next couple of days.
+Hi Jarod,
 
--- 
-Regards,
+I was wondering whether there are any news about this patch.  I've checked
+linux-media tree, and it looks like it hasn't been applied.
 
-Laurent Pinchart
-
+Cheers,
+--
+Luis
