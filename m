@@ -1,160 +1,729 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:54524 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759016Ab2DZSfg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Apr 2012 14:35:36 -0400
-Message-ID: <4F999572.8040102@redhat.com>
-Date: Thu, 26 Apr 2012 15:35:30 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Manoel PN <pinusdtv@hotmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [media next v3.4] Add support for TBS-Tech ISDB-T Full Seg DTB08
-References: <BLU157-W6519D7CC9237EFB29FB24ED8230@phx.gbl>
-In-Reply-To: <BLU157-W6519D7CC9237EFB29FB24ED8230@phx.gbl>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:19042 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755850Ab2D3QO7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 30 Apr 2012 12:14:59 -0400
+Received: from euspt2 (mailout1.w1.samsung.com [210.118.77.11])
+ by mailout1.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0M3A00JR5VPZS7@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 30 Apr 2012 17:13:11 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0M3A00C24VSIRE@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 30 Apr 2012 17:14:45 +0100 (BST)
+Date: Mon, 30 Apr 2012 18:14:34 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH v2 05/12] s5p-fimc: Add FIMC-LITE register definitions
+In-reply-to: <1335802481-18153-1-git-send-email-s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	riverful.kim@samsung.com, sw0312.kim@samsung.com,
+	sungchun.kang@samsung.com, subash.ramaswamy@linaro.org,
+	s.nawrocki@samsung.com
+Message-id: <1335802481-18153-6-git-send-email-s.nawrocki@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1335802481-18153-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 21-04-2012 00:56, Manoel PN escreveu:
-> 
->>> +static u8 mb86a20s_soft_reset[] = {
->>> + 0x70, 0xf0, 0x70, 0xff, 0x08, 0x01, 0x08, 0x00
->>> +};
->>
->> Huh? Why do you need to add mb86 stuff here? That sounds wrong.
->>
-> 
-> Need?  Don't need.
-> 
-> The device tbs_dtb08 does not work with the configurations that are in the
-> mb86a20s module, but various suggestions submitted were rejected.
+Add register definitions and register API for FIMC-LITE devices.
 
-[resending message, as it were not c/c to the linux-media ML]
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/video/s5p-fimc/fimc-lite-reg.c |  301 ++++++++++++++++++++++++++
+ drivers/media/video/s5p-fimc/fimc-lite-reg.h |  153 +++++++++++++
+ drivers/media/video/s5p-fimc/fimc-lite.h     |  209 ++++++++++++++++++
+ 3 files changed, 663 insertions(+)
+ create mode 100644 drivers/media/video/s5p-fimc/fimc-lite-reg.c
+ create mode 100644 drivers/media/video/s5p-fimc/fimc-lite-reg.h
+ create mode 100644 drivers/media/video/s5p-fimc/fimc-lite.h
 
-Yes, because you didn't just add there what it were needed for your driver.
-You did several other changes that weren't needed.
+diff --git a/drivers/media/video/s5p-fimc/fimc-lite-reg.c b/drivers/media/video/s5p-fimc/fimc-lite-reg.c
+new file mode 100644
+index 0000000..7a20c45
+--- /dev/null
++++ b/drivers/media/video/s5p-fimc/fimc-lite-reg.c
+@@ -0,0 +1,301 @@
++/*
++ * Register interface file for EXYNOS FIMC-LITE (camera interface) driver
++ *
++ * Copyright (C) 2012 Samsung Electronics Co., Ltd.
++ * Sylwester Nawrocki <s.nawrocki@samsung.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++*/
++
++#include <linux/io.h>
++#include <linux/delay.h>
++#include <media/s5p_fimc.h>
++
++#include "fimc-lite-reg.h"
++#include "fimc-lite.h"
++#include "fimc-core.h"
++
++#define FLITE_RESET_TIMEOUT 50 /* in ms FIXME: */
++
++void flite_hw_reset(struct fimc_lite *dev)
++{
++	unsigned long end = jiffies + msecs_to_jiffies(FLITE_RESET_TIMEOUT);
++	u32 cfg;
++
++	cfg = readl(dev->regs + FLITE_REG_CIGCTRL);
++	cfg |= FLITE_REG_CIGCTRL_SWRST_REQ;
++	writel(cfg, dev->regs + FLITE_REG_CIGCTRL);
++
++	while (time_is_after_jiffies(end)) {
++		cfg = readl(dev->regs + FLITE_REG_CIGCTRL);
++		if (cfg & FLITE_REG_CIGCTRL_SWRST_RDY)
++			break;
++		usleep_range(1000, 5000);
++	}
++
++	cfg |= FLITE_REG_CIGCTRL_SWRST;
++	writel(cfg, dev->regs + FLITE_REG_CIGCTRL);
++}
++
++void flite_hw_clear_pending_irq(struct fimc_lite *dev)
++{
++	u32 cfg = readl(dev->regs + FLITE_REG_CISTATUS);
++	cfg &= ~FLITE_REG_CISTATUS_IRQ_CAM;
++	writel(cfg, dev->regs + FLITE_REG_CISTATUS);
++}
++
++u32 flite_hw_get_interrupt_source(struct fimc_lite *dev)
++{
++	u32 intsrc = readl(dev->regs + FLITE_REG_CISTATUS);
++	return intsrc & FLITE_REG_CISTATUS_IRQ_MASK;
++}
++
++void flite_hw_clear_last_capture_end(struct fimc_lite *dev)
++{
++
++	u32 cfg = readl(dev->regs + FLITE_REG_CISTATUS2);
++	cfg &= ~FLITE_REG_CISTATUS2_LASTCAPEND;
++	writel(cfg, dev->regs + FLITE_REG_CISTATUS2);
++}
++
++void flite_hw_set_interrupt_mask(struct fimc_lite *dev)
++{
++	u32 cfg, intsrc;
++
++	/* Select interrupts to be enabled for each output mode */
++	if (dev->out_path == FIMC_IO_DMA) {
++		intsrc = FLITE_REG_CIGCTRL_IRQ_OVFEN |
++			 FLITE_REG_CIGCTRL_IRQ_LASTEN |
++			 /* FLITE_REG_CIGCTRL_IRQ_ENDEN0 | */
++			FLITE_REG_CIGCTRL_IRQ_STARTEN;
++	} else {
++		/* An output to the FIMC-IS */
++		intsrc = FLITE_REG_CIGCTRL_IRQ_OVFEN |
++			 FLITE_REG_CIGCTRL_IRQ_LASTEN;
++	}
++
++	cfg = readl(dev->regs + FLITE_REG_CIGCTRL);
++	cfg |= FLITE_REG_CIGCTRL_IRQ_DISABLE_MASK;
++	cfg &= ~intsrc;
++	writel(cfg, dev->regs + FLITE_REG_CIGCTRL);
++}
++
++void flite_hw_capture_start(struct fimc_lite *dev)
++{
++	u32 cfg = readl(dev->regs + FLITE_REG_CIIMGCPT);
++	cfg |= FLITE_REG_CIIMGCPT_IMGCPTEN;
++	writel(cfg, dev->regs + FLITE_REG_CIIMGCPT);
++}
++
++void flite_hw_capture_stop(struct fimc_lite *dev)
++{
++	u32 cfg = readl(dev->regs + FLITE_REG_CIIMGCPT);
++	cfg &= ~FLITE_REG_CIIMGCPT_IMGCPTEN;
++	writel(cfg, dev->regs + FLITE_REG_CIIMGCPT);
++}
++
++/*
++ * Test pattern (color bars) enable/disable. External sensor
++ * pixel clock must be active for the test pattern to work.
++ */
++void flite_hw_set_test_pattern(struct fimc_lite *dev, bool on)
++{
++	u32 cfg = readl(dev->regs + FLITE_REG_CIGCTRL);
++	if (on)
++		cfg |= FLITE_REG_CIGCTRL_TEST_PATTERN_COLORBAR;
++	else
++		cfg &= ~FLITE_REG_CIGCTRL_TEST_PATTERN_COLORBAR;
++	writel(cfg, dev->regs + FLITE_REG_CIGCTRL);
++}
++
++static const u32 src_pixfmt_map[8][3] = {
++	{ V4L2_MBUS_FMT_YUYV8_2X8, FLITE_REG_CISRCSIZE_ORDER422_IN_YCBYCR,
++	  FLITE_REG_CIGCTRL_YUV422_1P },
++	{ V4L2_MBUS_FMT_YVYU8_2X8, FLITE_REG_CISRCSIZE_ORDER422_IN_YCRYCB,
++	  FLITE_REG_CIGCTRL_YUV422_1P },
++	{ V4L2_MBUS_FMT_UYVY8_2X8, FLITE_REG_CISRCSIZE_ORDER422_IN_CBYCRY,
++	  FLITE_REG_CIGCTRL_YUV422_1P },
++	{ V4L2_MBUS_FMT_VYUY8_2X8, FLITE_REG_CISRCSIZE_ORDER422_IN_CRYCBY,
++	  FLITE_REG_CIGCTRL_YUV422_1P },
++	{ V4L2_PIX_FMT_SGRBG8, 0, FLITE_REG_CIGCTRL_RAW8 },
++	{ V4L2_PIX_FMT_SGRBG10, 0, FLITE_REG_CIGCTRL_RAW10 },
++	{ V4L2_PIX_FMT_SGRBG12, 0, FLITE_REG_CIGCTRL_RAW12 },
++	{ V4L2_MBUS_FMT_JPEG_1X8, 0, FLITE_REG_CIGCTRL_USER(1) },
++};
++
++/* Set camera input pixel format and resolution */
++void flite_hw_set_source_format(struct fimc_lite *dev, struct flite_frame *f)
++{
++	enum v4l2_mbus_pixelcode pixelcode = dev->fmt->mbus_code;
++	unsigned int i = ARRAY_SIZE(src_pixfmt_map);
++	u32 cfg;
++
++	while (i-- >= 0) {
++		if (src_pixfmt_map[i][0] == pixelcode)
++			break;
++	}
++
++	if (i == 0 && src_pixfmt_map[i][0] != pixelcode) {
++		v4l2_err(dev->vfd,
++			 "Unsupported pixel code, falling back to %#08x\n",
++			 src_pixfmt_map[i][0]);
++	}
++
++	cfg = readl(dev->regs + FLITE_REG_CIGCTRL);
++	cfg &= ~FLITE_REG_CIGCTRL_FMT_MASK;
++	cfg |= src_pixfmt_map[i][2];
++	writel(cfg, dev->regs + FLITE_REG_CIGCTRL);
++
++	cfg = readl(dev->regs + FLITE_REG_CISRCSIZE);
++	cfg &= ~(FLITE_REG_CISRCSIZE_ORDER422_MASK |
++		 FLITE_REG_CISRCSIZE_SIZE_CAM_MASK);
++	cfg |= (f->f_width << 16) | f->f_height;
++	cfg |= src_pixfmt_map[i][1];
++	writel(cfg, dev->regs + FLITE_REG_CISRCSIZE);
++}
++
++/* Set the camera host input window offsets (cropping) */
++void flite_hw_set_window_offset(struct fimc_lite *dev, struct flite_frame *f)
++{
++	u32 hoff2, voff2;
++	u32 cfg;
++
++	cfg = readl(dev->regs + FLITE_REG_CIWDOFST);
++	cfg &= ~FLITE_REG_CIWDOFST_OFST_MASK;
++	cfg |= (f->rect.left << 16) | f->rect.top;
++	cfg |= FLITE_REG_CIWDOFST_WINOFSEN;
++	writel(cfg, dev->regs + FLITE_REG_CIWDOFST);
++
++	hoff2 = f->f_width - f->rect.width - f->rect.left;
++	voff2 = f->f_height - f->rect.height - f->rect.top;
++
++	cfg = (hoff2 << 16) | voff2;
++	writel(cfg, dev->regs + FLITE_REG_CIWDOFST2);
++}
++
++/* Select camera port (A, B) */
++static void flite_hw_set_camera_port(struct fimc_lite *dev, int id)
++{
++	u32 cfg = readl(dev->regs + FLITE_REG_CIGENERAL);
++	if (id == 0)
++		cfg &= ~FLITE_REG_CIGENERAL_CAM_B;
++	else
++		cfg |= FLITE_REG_CIGENERAL_CAM_B;
++	writel(cfg, dev->regs + FLITE_REG_CIGENERAL);
++}
++
++/* Select serial or parallel bus, camera port (A,B) and set signals polarity */
++void flite_hw_set_camera_bus(struct fimc_lite *dev,
++			     struct s5p_fimc_isp_info *s_info)
++{
++	u32 cfg = readl(dev->regs + FLITE_REG_CIGCTRL);
++	unsigned int flags = s_info->flags;
++
++	if (s_info->bus_type != FIMC_MIPI_CSI2) {
++		cfg &= ~(FLITE_REG_CIGCTRL_SELCAM_MIPI |
++			 FLITE_REG_CIGCTRL_INVPOLPCLK |
++			 FLITE_REG_CIGCTRL_INVPOLVSYNC |
++			 FLITE_REG_CIGCTRL_INVPOLHREF);
++
++		if (flags & V4L2_MBUS_PCLK_SAMPLE_FALLING)
++			cfg |= FLITE_REG_CIGCTRL_INVPOLPCLK;
++
++		if (flags & V4L2_MBUS_VSYNC_ACTIVE_LOW)
++			cfg |= FLITE_REG_CIGCTRL_INVPOLVSYNC;
++
++		if (flags & V4L2_MBUS_HSYNC_ACTIVE_LOW)
++			cfg |= FLITE_REG_CIGCTRL_INVPOLHREF;
++	} else {
++		cfg |= FLITE_REG_CIGCTRL_SELCAM_MIPI;
++	}
++
++	writel(cfg, dev->regs + FLITE_REG_CIGCTRL);
++
++	flite_hw_set_camera_port(dev, s_info->mux_id);
++}
++
++void flite_hw_set_out_order(struct fimc_lite *dev, struct flite_frame *f)
++{
++	static const u32 pixcode[4][2] = {
++		{ V4L2_MBUS_FMT_YUYV8_2X8, FLITE_REG_CIODMAFMT_YCBYCR },
++		{ V4L2_MBUS_FMT_YVYU8_2X8, FLITE_REG_CIODMAFMT_YCRYCB },
++		{ V4L2_MBUS_FMT_UYVY8_2X8, FLITE_REG_CIODMAFMT_CBYCRY },
++		{ V4L2_MBUS_FMT_VYUY8_2X8, FLITE_REG_CIODMAFMT_CRYCBY },
++	};
++	u32 cfg = readl(dev->regs + FLITE_REG_CIODMAFMT);
++	unsigned int i = ARRAY_SIZE(pixcode);
++
++	while (i-- >= 0)
++		if (pixcode[i][0] == dev->fmt->mbus_code)
++			break;
++	cfg &= ~FLITE_REG_CIODMAFMT_YCBCR_ORDER_MASK;
++	writel(cfg | pixcode[i][1], dev->regs + FLITE_REG_CIODMAFMT);
++}
++
++void flite_hw_set_dma_window(struct fimc_lite *dev, struct flite_frame *f)
++{
++	u32 cfg;
++
++	/* Maximum output pixel size */
++	cfg = readl(dev->regs + FLITE_REG_CIOCAN);
++	cfg &= ~FLITE_REG_CIOCAN_MASK;
++	cfg = (f->f_height << 16) | f->f_width;
++	writel(cfg, dev->regs + FLITE_REG_CIOCAN);
++
++	/* DMA offsets */
++	cfg = readl(dev->regs + FLITE_REG_CIOOFF);
++	cfg &= ~FLITE_REG_CIOOFF_MASK;
++	cfg |= (f->rect.top << 16) | f->rect.left;
++	writel(cfg, dev->regs + FLITE_REG_CIOOFF);
++}
++
++/* Enable/disable output DMA, set output pixel size and offsets (composition) */
++void flite_hw_set_output_dma(struct fimc_lite *dev, struct flite_frame *f,
++			     bool enable)
++{
++	u32 cfg = readl(dev->regs + FLITE_REG_CIGCTRL);
++
++	if (!enable) {
++		cfg |= FLITE_REG_CIGCTRL_ODMA_DISABLE;
++		writel(cfg, dev->regs + FLITE_REG_CIGCTRL);
++		return;
++	}
++
++	cfg &= ~FLITE_REG_CIGCTRL_ODMA_DISABLE;
++	writel(cfg, dev->regs + FLITE_REG_CIGCTRL);
++
++	flite_hw_set_out_order(dev, f);
++	flite_hw_set_dma_window(dev, f);
++}
++
++void flite_hw_dump_regs(struct fimc_lite *dev, const char *label)
++{
++	struct {
++		u32 offset;
++		const char * const name;
++	} registers[] = {
++		{ 0x00, "CISRCSIZE" },
++		{ 0x04, "CIGCTRL" },
++		{ 0x08, "CIIMGCPT" },
++		{ 0x0c, "CICPTSEQ" },
++		{ 0x10, "CIWDOFST" },
++		{ 0x14, "CIWDOFST2" },
++		{ 0x18, "CIODMAFMT" },
++		{ 0x20, "CIOCAN" },
++		{ 0x24, "CIOOFF" },
++		{ 0x30, "CIOSA" },
++		{ 0x40, "CISTATUS" },
++		{ 0x44, "CISTATUS2" },
++		{ 0xf0, "CITHOLD" },
++		{ 0xfc, "CIGENERAL" },
++	};
++	u32 i;
++
++	pr_info("--- %s ---\n", label);
++	for (i = 0; i < ARRAY_SIZE(registers); i++) {
++		u32 cfg = readl(dev->regs + registers[i].offset);
++		pr_info("%s: %s:\t0x%08x\n", __func__, registers[i].name, cfg);
++	}
++}
+diff --git a/drivers/media/video/s5p-fimc/fimc-lite-reg.h b/drivers/media/video/s5p-fimc/fimc-lite-reg.h
+new file mode 100644
+index 0000000..44064e5
+--- /dev/null
++++ b/drivers/media/video/s5p-fimc/fimc-lite-reg.h
+@@ -0,0 +1,153 @@
++/*
++ * Register interface file for EXYNOS4 FIMC-LITE (camera interface) driver
++ *
++ * Copyright (C) 2012 Samsung Electronics Co., Ltd.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#ifndef FIMC_LITE_REG_H_
++#define FIMC_LITE_REG_H_
++
++#include "fimc-lite.h"
++
++/* Camera Source size */
++#define FLITE_REG_CISRCSIZE			0x00
++#define FLITE_REG_CISRCSIZE_ORDER422_IN_YCBYCR	(0 << 14)
++#define FLITE_REG_CISRCSIZE_ORDER422_IN_YCRYCB	(1 << 14)
++#define FLITE_REG_CISRCSIZE_ORDER422_IN_CBYCRY	(2 << 14)
++#define FLITE_REG_CISRCSIZE_ORDER422_IN_CRYCBY	(3 << 14)
++#define FLITE_REG_CISRCSIZE_ORDER422_MASK	(0x3 << 14)
++#define FLITE_REG_CISRCSIZE_SIZE_CAM_MASK	(0x3fff << 16 | 0x3fff)
++
++/* Global control */
++#define FLITE_REG_CIGCTRL			0x04
++#define FLITE_REG_CIGCTRL_YUV422_1P		(0x1e << 24)
++#define FLITE_REG_CIGCTRL_RAW8			(0x2a << 24)
++#define FLITE_REG_CIGCTRL_RAW10			(0x2b << 24)
++#define FLITE_REG_CIGCTRL_RAW12			(0x2c << 24)
++#define FLITE_REG_CIGCTRL_RAW14			(0x2d << 24)
++/* User defined formats. x = 0...15 */
++#define FLITE_REG_CIGCTRL_USER(x)		((0x30 + x - 1) << 24)
++#define FLITE_REG_CIGCTRL_FMT_MASK		(0x3f << 24)
++#define FLITE_REG_CIGCTRL_SHADOWMASK_DISABLE	(1 << 21)
++#define FLITE_REG_CIGCTRL_ODMA_DISABLE		(1 << 20)
++#define FLITE_REG_CIGCTRL_SWRST_REQ		(1 << 19)
++#define FLITE_REG_CIGCTRL_SWRST_RDY		(1 << 18)
++#define FLITE_REG_CIGCTRL_SWRST			(1 << 17)
++#define FLITE_REG_CIGCTRL_TEST_PATTERN_COLORBAR	(1 << 15)
++#define FLITE_REG_CIGCTRL_INVPOLPCLK		(1 << 14)
++#define FLITE_REG_CIGCTRL_INVPOLVSYNC		(1 << 13)
++#define FLITE_REG_CIGCTRL_INVPOLHREF		(1 << 12)
++/* Interrupts mask bits (1 disables an interrupt) */
++#define FLITE_REG_CIGCTRL_IRQ_LASTEN		(1 << 8)
++#define FLITE_REG_CIGCTRL_IRQ_ENDEN		(1 << 7)
++#define FLITE_REG_CIGCTRL_IRQ_STARTEN		(1 << 6)
++#define FLITE_REG_CIGCTRL_IRQ_OVFEN		(1 << 5)
++#define FLITE_REG_CIGCTRL_IRQ_DISABLE_MASK	(0xf << 5)
++#define FLITE_REG_CIGCTRL_SELCAM_MIPI		(1 << 3)
++
++/* Image Capture Enable */
++#define FLITE_REG_CIIMGCPT			0x08
++#define FLITE_REG_CIIMGCPT_IMGCPTEN		(1 << 31)
++#define FLITE_REG_CIIMGCPT_CPT_FREN		(1 << 25)
++#define FLITE_REG_CIIMGCPT_CPT_MOD_FRCNT	(1 << 18)
++#define FLITE_REG_CIIMGCPT_CPT_MOD_FREN		(0 << 18)
++
++/* Capture Sequence */
++#define FLITE_REG_CICPTSEQ			0x0c
++
++/* Camera Window Offset */
++#define FLITE_REG_CIWDOFST			0x10
++#define FLITE_REG_CIWDOFST_WINOFSEN		(1 << 31)
++#define FLITE_REG_CIWDOFST_CLROVIY		(1 << 31)
++#define FLITE_REG_CIWDOFST_CLROVFICB		(1 << 15)
++#define FLITE_REG_CIWDOFST_CLROVFICR		(1 << 14)
++#define FLITE_REG_CIWDOFST_OFST_MASK		((0x1fff << 16) | 0x1fff)
++
++/* Cmaera Window Offset2 */
++#define FLITE_REG_CIWDOFST2			0x14
++
++/* Camera Output DMA Format */
++#define FLITE_REG_CIODMAFMT			0x18
++#define FLITE_REG_CIODMAFMT_RAW_CON		(1 << 15)
++#define FLITE_REG_CIODMAFMT_PACK12		(1 << 14)
++#define FLITE_REG_CIODMAFMT_CRYCBY		(0 << 4)
++#define FLITE_REG_CIODMAFMT_CBYCRY		(1 << 4)
++#define FLITE_REG_CIODMAFMT_YCRYCB		(2 << 4)
++#define FLITE_REG_CIODMAFMT_YCBYCR		(3 << 4)
++#define FLITE_REG_CIODMAFMT_YCBCR_ORDER_MASK	(0x3 << 4)
++
++/* Camera Output Canvas */
++#define FLITE_REG_CIOCAN			0x20
++#define FLITE_REG_CIOCAN_MASK			((0x3fff << 16) | 0x3fff)
++
++/* Camera Output DMA Offset */
++#define FLITE_REG_CIOOFF			0x24
++#define FLITE_REG_CIOOFF_MASK			((0x3fff << 16) | 0x3fff)
++
++/* Camera Output DMA Start Address */
++#define FLITE_REG_CIOSA				0x30
++
++/* Camera Status */
++#define FLITE_REG_CISTATUS			0x40
++#define FLITE_REG_CISTATUS_MIPI_VVALID		(1 << 22)
++#define FLITE_REG_CISTATUS_MIPI_HVALID		(1 << 21)
++#define FLITE_REG_CISTATUS_MIPI_DVALID		(1 << 20)
++#define FLITE_REG_CISTATUS_ITU_VSYNC		(1 << 14)
++#define FLITE_REG_CISTATUS_ITU_HREFF		(1 << 13)
++#define FLITE_REG_CISTATUS_OVFIY		(1 << 10)
++#define FLITE_REG_CISTATUS_OVFICB		(1 << 9)
++#define FLITE_REG_CISTATUS_OVFICR		(1 << 8)
++#define FLITE_REG_CISTATUS_IRQ_SRC_OVERFLOW	(1 << 7)
++#define FLITE_REG_CISTATUS_IRQ_SRC_LASTCAPEND	(1 << 6)
++#define FLITE_REG_CISTATUS_IRQ_SRC_FRMSTART	(1 << 5)
++#define FLITE_REG_CISTATUS_IRQ_SRC_FRMEND	(1 << 4)
++#define FLITE_REG_CISTATUS_IRQ_CAM		(1 << 0)
++#define FLITE_REG_CISTATUS_IRQ_MASK		(0xf << 4)
++
++/* Camera Status2 */
++#define FLITE_REG_CISTATUS2			0x44
++#define FLITE_REG_CISTATUS2_LASTCAPEND		(1 << 1)
++#define FLITE_REG_CISTATUS2_FRMEND		(1 << 0)
++
++/* Qos Threshold */
++#define FLITE_REG_CITHOLD			0xf0
++#define FLITE_REG_CITHOLD_W_QOS_EN		(1 << 30)
++
++/* Camera General Purpose */
++#define FLITE_REG_CIGENERAL			0xfc
++/* b0: 1 - camera B, 0 - camera A */
++#define FLITE_REG_CIGENERAL_CAM_B		(1 << 0)
++
++/* ----------------------------------------------------------------------------
++ * Function declarations
++ */
++void flite_hw_reset(struct fimc_lite *dev);
++void flite_hw_clear_pending_irq(struct fimc_lite *dev);
++u32 flite_hw_get_interrupt_source(struct fimc_lite *dev);
++void flite_hw_clear_last_capture_end(struct fimc_lite *dev);
++void flite_hw_set_interrupt_mask(struct fimc_lite *dev);
++void flite_hw_capture_start(struct fimc_lite *dev);
++void flite_hw_capture_stop(struct fimc_lite *dev);
++void flite_hw_set_camera_bus(struct fimc_lite *dev,
++			     struct s5p_fimc_isp_info *s_info);
++void flite_hw_set_camera_polarity(struct fimc_lite *dev,
++				  struct s5p_fimc_isp_info *cam);
++void flite_hw_set_window_offset(struct fimc_lite *dev, struct flite_frame *f);
++void flite_hw_set_source_format(struct fimc_lite *dev, struct flite_frame *f);
++
++void flite_hw_set_output_dma(struct fimc_lite *dev, struct flite_frame *f,
++			     bool enable);
++
++static inline void flite_hw_set_output_addr(struct fimc_lite *dev, u32 paddr)
++{
++	writel(paddr, dev->regs + FLITE_REG_CIOSA);
++}
++
++void flite_hw_dump_regs(struct fimc_lite *dev, const char *label);
++
++void flite_hw_set_dma_window(struct fimc_lite *dev, struct flite_frame *f);
++#endif /* FIMC_LITE_REG_H */
+diff --git a/drivers/media/video/s5p-fimc/fimc-lite.h b/drivers/media/video/s5p-fimc/fimc-lite.h
+new file mode 100644
+index 0000000..8100e0d
+--- /dev/null
++++ b/drivers/media/video/s5p-fimc/fimc-lite.h
+@@ -0,0 +1,209 @@
++/*
++ * Copyright (C) 2012 Samsung Electronics Co., Ltd.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#ifndef FIMC_LITE_H_
++#define FIMC_LITE_H_
++
++#include <asm/sizes.h>
++#include <linux/io.h>
++#include <linux/irqreturn.h>
++#include <linux/platform_device.h>
++#include <linux/sched.h>
++#include <linux/spinlock.h>
++#include <linux/types.h>
++#include <linux/videodev2.h>
++
++#include <media/media-entity.h>
++#include <media/videobuf2-core.h>
++#include <media/v4l2-device.h>
++#include <media/v4l2-mediabus.h>
++#include <media/s5p_fimc.h>
++
++#include "fimc-core.h"
++
++#define FIMC_LITE_DRV_NAME	"exynos-fimc-lite"
++#define FLITE_CLK_NAME		"flite"
++#define FIMC_LITE_MAX_DEVS	2
++#define FLITE_REQ_BUFS_MIN	2
++
++/* Bit index definitions for struct fimc_lite::state */
++enum {
++	ST_FLITE_LPM,
++	ST_FLITE_PENDING,
++	ST_FLITE_RUN,
++	ST_FLITE_STREAM,
++	ST_FLITE_SUSPENDED,
++	ST_FLITE_OFF,
++	ST_FLITE_IN_USE,
++	ST_FLITE_CONFIG,
++	ST_SENSOR_STREAM,
++};
++
++#define FLITE_SD_PAD_SINK	0
++#define FLITE_SD_PAD_SOURCE	1
++#define FLITE_SD_PADS_NUM	2
++
++struct flite_variant {
++	unsigned short max_width;
++	unsigned short max_height;
++	unsigned short out_width_align;
++	unsigned short win_hor_offs_align;
++	unsigned short out_hor_offs_align;
++};
++
++struct flite_drvdata {
++	struct flite_variant *variant[FIMC_LITE_MAX_DEVS];
++};
++
++#define fimc_lite_get_drvdata(_pdev) \
++	((struct flite_drvdata *) platform_get_device_id(_pdev)->driver_data)
++
++struct fimc_lite_events {
++	unsigned int data_overflow;
++};
++
++#define FLITE_MAX_PLANES	1
++
++/**
++ * struct flite_frame - source/target frame properties
++ * @f_width: full pixel width
++ * @f_height: full pixel height
++ * @rect: crop/composition rectangle
++ */
++struct flite_frame {
++	u16 f_width;
++	u16 f_height;
++	struct v4l2_rect rect;
++};
++
++/**
++ * struct flite_buffer - video buffer structure
++ * @vb:    vb2 buffer
++ * @list:  list head for the buffers queue
++ * @paddr: precalculated physical address
++ */
++struct flite_buffer {
++	struct vb2_buffer vb;
++	struct list_head list;
++	dma_addr_t paddr;
++};
++
++/**
++ * struct fimc_lite - fimc lite structure
++ * @pdev: pointer to FIMC-LITE platform device
++ * @variant: variant information for this IP
++ * @v4l2_dev: pointer to top the level v4l2_device
++ * @vfd: video device node
++ * @fh: v4l2 file handle
++ * @alloc_ctx: videobuf2 memory allocator context
++ * @subdev: FIMC-LITE subdev
++ * @vd_pad: media (sink) pad for the capture video node
++ * @subdev_pads: the subdev media pads
++ * @id: FIMC-LITE platform device index
++ * @pipeline: video capture pipeline data structure
++ * @slock: spinlock protecting this data structure and the hw registers
++ * @lock: mutex serializing video device and the subdev operations
++ * @clock: FIMC-LITE gate clock
++ * @regs: memory mapped io registers
++ * @irq_queue: interrupt handler waitqueue
++ * @fmt: pointer to color format description structure
++ * @payload: image size in bytes (w x h x bpp)
++ * @inp_frame: camera input frame structure
++ * @out_frame: DMA output frame structure
++ * @out_path: output data path (DMA or FIFO)
++ * @source_subdev_grp_id: source subdev group id
++ * @state: driver state flags
++ * @pending_buf_q: pending buffers queue head
++ * @active_buf_q: the queue head of buffers scheduled in hardware
++ * @vb_queue: vb2 buffers queue
++ * @active_buf_count: number of video buffers scheduled in hardware
++ * @frame_count: the captured frames counter
++ * @reqbufs_count: the number of buffers requested with REQBUFS ioctl
++ * @ref_count: driver's private reference counter
++ */
++struct fimc_lite {
++	struct platform_device	*pdev;
++	struct flite_variant	*variant;
++	struct v4l2_device	*v4l2_dev;
++	struct video_device	*vfd;
++	struct v4l2_fh		fh;
++	struct vb2_alloc_ctx	*alloc_ctx;
++	struct v4l2_subdev	subdev;
++	struct media_pad	vd_pad;
++	struct media_pad	subdev_pads[FLITE_SD_PADS_NUM];
++	u16			id;
++	struct fimc_pipeline	pipeline;
++
++	struct mutex		lock;
++	spinlock_t		slock;
++
++	struct clk		*clock;
++	void __iomem		*regs;
++	wait_queue_head_t	irq_queue;
++
++	const struct fimc_fmt	*fmt;
++	unsigned long		payload[FLITE_MAX_PLANES];
++	struct flite_frame	inp_frame;
++	struct flite_frame	out_frame;
++	enum fimc_datapath	out_path;
++	unsigned int		source_subdev_grp_id;
++
++	unsigned long		state;
++	struct list_head	pending_buf_q;
++	struct list_head	active_buf_q;
++	struct vb2_queue	vb_queue;
++	unsigned int		frame_count;
++	unsigned int		reqbufs_count;
++	int			ref_count;
++
++	struct fimc_lite_events	events;
++};
++
++static inline bool fimc_lite_active(struct fimc_lite *fimc)
++{
++	unsigned long flags;
++	bool ret;
++
++	spin_lock_irqsave(&fimc->slock, flags);
++	ret = fimc->state & (1 << ST_FLITE_RUN) ||
++		fimc->state & (1 << ST_FLITE_PENDING);
++	spin_unlock_irqrestore(&fimc->slock, flags);
++	return ret;
++}
++
++static inline void fimc_lite_active_queue_add(struct fimc_lite *dev,
++					 struct flite_buffer *buf)
++{
++	list_add_tail(&buf->list, &dev->active_buf_q);
++}
++
++static inline struct flite_buffer *fimc_lite_active_queue_pop(
++					struct fimc_lite *dev)
++{
++	struct flite_buffer *buf = list_entry(dev->active_buf_q.next,
++					      struct flite_buffer, list);
++	list_del(&buf->list);
++	return buf;
++}
++
++static inline void fimc_lite_pending_queue_add(struct fimc_lite *dev,
++					struct flite_buffer *buf)
++{
++	list_add_tail(&buf->list, &dev->pending_buf_q);
++}
++
++static inline struct flite_buffer *fimc_lite_pending_queue_pop(
++					struct fimc_lite *dev)
++{
++	struct flite_buffer *buf = list_entry(dev->pending_buf_q.next,
++					      struct flite_buffer, list);
++	list_del(&buf->list);
++	return buf;
++}
++
++#endif /* FIMC_LITE_H_ */
+-- 
+1.7.10
 
-That made very hard to discover what you really changed there.
-
-I had to manually dig into each change you've proposed, at the string
-initialization, in order to double check what was there, and manually
-apply each change using the current struct. Anyway, I did it back in
-January, and tested that the changes there didn't break for the existing
-devices using mb86a20s:
-
-commit ebe967492c681da781dbc0f7c0d6a1b5c1977d45
-Author: Mauro Carvalho Chehab <mchehab@redhat.com>
-Date:   Wed Jan 11 11:00:28 2012 -0200
-
-    mb86a20s: Add a few more register settings at the init seq
-    
-    Some time ago, Manoel sent us a patch adding more stuff
-    to the init sequence. However, his patch were also doing
-    non-related stuff, by changing the init logic without
-    any good reason. So, it was asked for him to submit a
-    patch with just the data that has changed, in order to
-    allow us to better analyze it.
-    
-    As he didn't what it was requested, I finally found some
-    time to dig into his init sequence and add it here.
-    
-    Basically, new stuff is added there. There are a few changes:
-    
-    1) The removal of the extra (duplicated) logic that puts
-       the chip into the serial mode;
-    2) Some Viterbi VBER measurement init data was changed from
-       0x00 to 0xff for layer A, to match what was done for
-       layers B and C.
-    
-    None of those caused any regressions and both make sense
-    on my eyes.
-    
-    The other parameters additions actually increased the
-    tuning quality for some channels. Yet, some channels that
-    were previously discovered with scan disappered, while
-    others appeared instead. This were tested in Brasilia,
-    with an external antena.
-    
-    At the overall, it is now a little better. So, better to
-    add these, and then try to figure out a configuration that
-    would get even better scanning results.
-    
-    Reported-by: Manoel Pinheiro <pinusdtv@hotmail.com>
-    Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-
-> The idea is to allow individual configuration of the mb86a20s registers.
-> And these modifications here make exactly this.
-> Besides adding/modifying functions that do not work on this device.
-> 
-> For example:
-> 
-> static struct mb86a20s_reg_subreg_val mb86a20s_regs_val[] = {
-> ...
->   { 0x28, 0x20, 0x04, 0x33dfa9 },
-> ...
-> };
-> 
-> static struct mb86a20s_reg_subreg_config dtb08_a20s_config_regs[] = {
->     { 0x28, 0x20, 0x33dd00 },  /* modif reg 0x28 sub 0x20 to 0x33dfa9 */
->     { 0x3C, 0x00, 0x38 }       /* modif reg 0x3c to 0x38 */
-> };
-> 
-> struct mb86a20s_state *state;
-> ...
-> state->config_size = ARRAY_SIZE(dtb08_a20s_config_regs);
-> state->config_regs = dtb08_a20s_config_regs;
-> 
-> if (mb86a20s_init_regs(state) != 0)
->     return -ENODEV;
-> ...
-> 
-
-Individual configuration for the registers is a very bad idea. No driver
-does that, as it becomes a maintenance nightmare. 
-
-What drivers do, instead, is to have a config struct with the options that
-are different. In the case of mb8a20s, there are currently only two options:
-
-struct mb86a20s_config {
-	u8 demod_address;
-	bool is_serial;
-};
-
-But other drivers, like DRX-K (with supports both DVB-C and DVB-T) have
-much more parameters to configure:
-
-struct drxk_config {
-	u8	adr;
-	bool	single_master;
-	bool	no_i2c_bridge;
-	bool	parallel_ts;
-	bool	dynamic_clk;
-	bool	enable_merr_cfg;
-
-	bool	antenna_dvbt;
-	u16	antenna_gpio;
-
-	u8	mpeg_out_clk_strength;
-	int	chunk_size;
-
-	const char *microcode_name;
-};
-
-So, if two devices require to set different configurations, it is clear for
-reviewers and other developers that may be working with the same chipset for
-what those changes are.
-
->>> +MODULE_AUTHOR("Manoel Pinheiro <pinusdtv@hotmail.com>");
->>> +MODULE_DESCRIPTION("Driver for TBS-Tech ISDB-T USB2.0 Receiver (DTB08 Full Seg)");
->>> +MODULE_LICENSE("GPL");
->>
-> 
-> Well I will send the last modification and stop here because no one else besides me have this device.
-
-There aren't many Brazilian people reading this ML. That may explain why there's not much
-comments about that. 
-
-Regards,
-Mauro
