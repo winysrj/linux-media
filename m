@@ -1,46 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:57246 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756525Ab2DSVcb (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:51460 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753049Ab2D3PhS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Apr 2012 17:32:31 -0400
-Date: Thu, 19 Apr 2012 22:32:26 +0100
-From: Luis Henriques <luis.henriques@canonical.com>
-To: Jarod Wilson <jarod@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 1/1] [media] ite-cir: postpone ISR registration
-Message-ID: <20120419213226.GC22948@zeus>
-References: <1334782447-8742-1-git-send-email-luis.henriques@canonical.com>
- <20120419204444.GB5165@redhat.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20120419204444.GB5165@redhat.com>
+	Mon, 30 Apr 2012 11:37:18 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: text/plain; charset=UTF-8
+Received: from euspt2 ([210.118.77.13]) by mailout3.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0M3A0032FU162L40@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 30 Apr 2012 16:36:42 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0M3A00064U21K0@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 30 Apr 2012 16:37:14 +0100 (BST)
+Date: Mon, 30 Apr 2012 17:37:14 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: [PATCH/RFC v3 01/14] V4L: Add helper function for standard integer
+ menu controls
+In-reply-to: <201204301720.34275.hverkuil@xs4all.nl>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	sakari.ailus@iki.fi, g.liakhovetski@gmx.de, hdegoede@redhat.com,
+	moinejf@free.fr, m.szyprowski@samsung.com,
+	riverful.kim@samsung.com, sw0312.kim@samsung.com,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Message-id: <4F9EB1AA.7090307@samsung.com>
+References: <1335536611-4298-1-git-send-email-s.nawrocki@samsung.com>
+ <1335536611-4298-2-git-send-email-s.nawrocki@samsung.com>
+ <201204301720.34275.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Apr 19, 2012 at 04:44:44PM -0400, Jarod Wilson wrote:
-> On Wed, Apr 18, 2012 at 09:54:07PM +0100, Luis Henriques wrote:
-> > An early registration of an ISR was causing a crash to several users (for
-> > example here: http://bugs.launchpad.net/bugs/972723  The reason was that
-> > IRQs were being triggered before the driver initialisation was completed.
-> > 
-> > This patch fixes this by moving the invocation to request_irq() to a later
-> > stage on the driver probe function.
+Hi!
+
+On 04/30/2012 05:20 PM, Hans Verkuil wrote:
+> Hi Sylwester!
 > 
-> Ugh. Looks like we actually have a similar problem with multiple lpc super
-> i/o based CIR drivers. I'd probably move both the irq and io region
-> requests in ite-cir, fintek-cir, nuvoton-cir, ene_ir and winbond-cir. If
-> I'm thinking clearly, I've actually seen a very similar report for one of
-> the other CIR drivers recently. Good catch. But yeah, lets do the same for
-> all the drivers, and move request_region as well.
+> Can you also update Documentation/video4linux/v4l2-controls.txt?
 
-Yeah, I've realised the other drivers had the same issue.  ite-cir was
-just for one that bit us first.
+I think I have to :-) I'll do, sorry for forgetting about it.
 
-Anyway, I'll be sending in a minute another patch with your comments.
-
-Cheers,
 --
-Luis
+
+Regards,
+Sylwester
+
