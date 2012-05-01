@@ -1,49 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:4085 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751892Ab2E1L6q (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:53452 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752759Ab2EAWK3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 May 2012 07:58:46 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [RFCv2 PATCH 0/5] Add hwseek caps and frequency bands
-Date: Mon, 28 May 2012 13:58:40 +0200
-Cc: linux-media@vger.kernel.org,
-	halli manjunatha <hallimanju@gmail.com>
-References: <1338202005-10208-1-git-send-email-hverkuil@xs4all.nl> <4FC35F8F.7090703@redhat.com>
-In-Reply-To: <4FC35F8F.7090703@redhat.com>
+	Tue, 1 May 2012 18:10:29 -0400
+Date: Wed, 2 May 2012 01:10:25 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH 2/3] omap3isp: preview: Replace the crop API by the
+ selection API
+Message-ID: <20120501221025.GB852@valkosipuli.localdomain>
+References: <1335716625-2388-1-git-send-email-laurent.pinchart@ideasonboard.com>
+ <1335716625-2388-3-git-send-email-laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201205281358.40725.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1335716625-2388-3-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon May 28 2012 13:20:47 Hans de Goede wrote:
-> Hi,
-> 
-> Looks good, the entire series is:
-> 
-> Acked-by: Hans de Goede <hdegoede@redhat.com>
-> 
-> I was thinking that it would be a good idea to add a:
-> #define V4L2_TUNER_CAP_BANDS_MASK 0x001f0000
-> 
-> to videodev2.h, which apps can then easily use to test
-> if the driver supports any bands other then the default,
-> and decide to show band selection elements of the UI or
-> not based on a test on the tuner-caps using that mask.
-> 
-> This can be done in a separate patch, or merged into
-> "PATCH 4/6 videodev2.h: add frequency band information"
+Thanks!
 
-Good idea, I've merged it into patch 4 and 5 (documenting it).
+On Sun, Apr 29, 2012 at 06:23:44PM +0200, Laurent Pinchart wrote:
+> Support for the legacy crop API is emulated in the subdev core.
+> 
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-It's here:
+Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
 
-http://git.linuxtv.org/hverkuil/media_tree.git/shortlog/refs/heads/bands
-
-Regards,
-
-	Hans
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
