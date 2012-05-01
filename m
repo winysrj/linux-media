@@ -1,64 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:38363 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752636Ab2EFBk7 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 5 May 2012 21:40:59 -0400
-Received: by obbtb18 with SMTP id tb18so6194476obb.19
-        for <linux-media@vger.kernel.org>; Sat, 05 May 2012 18:40:58 -0700 (PDT)
-From: "Hector Catre" <hcatre@gmail.com>
-To: "'Andy Walls'" <awalls@md.metrocast.net>,
-	<linux-media@vger.kernel.org>
-References: <CACOfU4NXM5itsw17bRhtNeDP+-dbCM+Ms84k47NbPf6NjzOmtw@mail.gmail.com> <5dd58a2c-0789-423d-8bd1-e583edcba17d@email.android.com>
-In-Reply-To: <5dd58a2c-0789-423d-8bd1-e583edcba17d@email.android.com>
-Subject: RE: error - cx18 driver
-Date: Sat, 5 May 2012 21:41:10 -0400
-Message-ID: <0ace01cd2b29$513a4840$f3aed8c0$@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain;
-	charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
-Content-Language: en-ca
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:4750 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753880Ab2EAJGB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 May 2012 05:06:01 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 6/7] Feature removal: remove invalid DV presets.
+Date: Tue,  1 May 2012 11:05:51 +0200
+Message-Id: <b2077c2a56c33a65c9625ab04fe1ef166ea95f60.1335862609.git.hans.verkuil@cisco.com>
+In-Reply-To: <1335863152-15791-1-git-send-email-hverkuil@xs4all.nl>
+References: <1335863152-15791-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <de77f3452a3710c48282ebe24937731b252a1ef7.1335862609.git.hans.verkuil@cisco.com>
+References: <de77f3452a3710c48282ebe24937731b252a1ef7.1335862609.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Thanks Andy.
-Again I'm a n00b, thus, can you point me to a page or resource where I can find and install i2c_algo_bit?
-Thanks again,
-H
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
------Original Message-----
-From: Andy Walls [mailto:awalls@md.metrocast.net] 
-Sent: May-05-12 8:43 PM
-To: Hector Catre; linux-media@vger.kernel.org
-Subject: Re: error - cx18 driver
+Formats V4L2_DV_1080I25, V4L2_DV_1080I30 and V4L2_DV_1080I29_97
+do not exist, so these presets are bogus. Remove them in 3.6.
 
-Hector Catre <hcatre@gmail.com> wrote:
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ Documentation/feature-removal-schedule.txt |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
->Note: I’m a relatively n00b trying to set up mythtv and having issues 
->installing the hauppage hvr-1600 tuner/capture card.
->
->When I run dmesg, I get the following:
->
->[  117.013178]  a1ac5dc28d2b4ca78e183229f7c595ffd725241c [media] gspca
->- sn9c20x: Change the exposure setting of Omnivision sensors [  
->117.013183]  4fb8137c43ebc0f5bc0dde6b64faa9dd1b1d7970 [media] gspca
->- sn9c20x: Don't do sensor update before the capture is started [  
->117.013188]  c4407fe86d3856f60ec711e025bbe9a0159354a3 [media] gspca
->- sn9c20x: Set the i2c interface speed
->[  117.028665] cx18: Unknown symbol i2c_bit_add_bus (err 0)
->
->Help.
->
->Thanks,
->H
->--
->To unsubscribe from this list: send the line "unsubscribe linux-media"
->in
->the body of a message to majordomo@vger.kernel.org More majordomo info 
->at  http://vger.kernel.org/majordomo-info.html
-
-You must ensure i2c_algo_bit.ko exists as a kernel module or that i2c_algo_bit is built into your kernel.
-
-Regards,
-Andy
+diff --git a/Documentation/feature-removal-schedule.txt b/Documentation/feature-removal-schedule.txt
+index 03ca210..efbe878 100644
+--- a/Documentation/feature-removal-schedule.txt
++++ b/Documentation/feature-removal-schedule.txt
+@@ -539,3 +539,12 @@ When:	3.6
+ Why:	setitimer is not returning -EFAULT if user pointer is NULL. This
+ 	violates the spec.
+ Who:	Sasikantha Babu <sasikanth.v19@gmail.com>
++
++----------------------------
++
++What:	remove bogus DV presets V4L2_DV_1080I29_97, V4L2_DV_1080I30 and
++	V4L2_DV_1080I25
++When:	3.6
++Why:	These HDTV formats do not exist and were added by a confused mind
++	(that was me, to be precise...)
++Who:	Hans Verkuil <hans.verkuil@cisco.com>
+-- 
+1.7.10
 
