@@ -1,215 +1,251 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:53447 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752642Ab2EWNHr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 May 2012 09:07:47 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Received: from euspt1 ([210.118.77.14]) by mailout4.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0M4H00B1E8HCEU30@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 23 May 2012 14:08:00 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0M4H00KL28GX5D@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 23 May 2012 14:07:45 +0100 (BST)
-Date: Wed, 23 May 2012 15:07:34 +0200
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: [PATCH 11/12] v4l: vb2-dma-contig: use sg_alloc_table_from_pages
- function
-In-reply-to: <1337778455-27912-1-git-send-email-t.stanislaws@samsung.com>
-To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
-Cc: airlied@redhat.com, m.szyprowski@samsung.com,
-	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
-	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
-	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
-	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
-	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
-	mchehab@redhat.com, g.liakhovetski@gmx.de
-Message-id: <1337778455-27912-12-git-send-email-t.stanislaws@samsung.com>
-References: <1337778455-27912-1-git-send-email-t.stanislaws@samsung.com>
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:3011 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753470Ab2EAJF7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 May 2012 05:05:59 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 2/7] v4l2 framework: add support for the new dv_timings ioctls.
+Date: Tue,  1 May 2012 11:05:47 +0200
+Message-Id: <bf03c9a4ce1f14c723ad28947ba20927bc6616b4.1335862609.git.hans.verkuil@cisco.com>
+In-Reply-To: <1335863152-15791-1-git-send-email-hverkuil@xs4all.nl>
+References: <1335863152-15791-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <de77f3452a3710c48282ebe24937731b252a1ef7.1335862609.git.hans.verkuil@cisco.com>
+References: <de77f3452a3710c48282ebe24937731b252a1ef7.1335862609.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch makes use of sg_alloc_table_from_pages to simplify
-handling of sg tables.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Reviewed-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
- drivers/media/video/videobuf2-dma-contig.c |   90 ++++++++--------------------
- 1 file changed, 25 insertions(+), 65 deletions(-)
+ drivers/media/video/v4l2-compat-ioctl32.c |    3 +
+ drivers/media/video/v4l2-ioctl.c          |  126 ++++++++++++++++++++---------
+ include/media/v4l2-ioctl.h                |    6 ++
+ include/media/v4l2-subdev.h               |    6 ++
+ 4 files changed, 104 insertions(+), 37 deletions(-)
 
-diff --git a/drivers/media/video/videobuf2-dma-contig.c b/drivers/media/video/videobuf2-dma-contig.c
-index 59ee81c..b5caf1d 100644
---- a/drivers/media/video/videobuf2-dma-contig.c
-+++ b/drivers/media/video/videobuf2-dma-contig.c
-@@ -32,7 +32,7 @@ struct vb2_dc_buf {
- 	/* MMAP related */
- 	struct vb2_vmarea_handler	handler;
- 	atomic_t			refcount;
--	struct sg_table			*sgt_base;
-+	struct sg_table			sgt_base;
+diff --git a/drivers/media/video/v4l2-compat-ioctl32.c b/drivers/media/video/v4l2-compat-ioctl32.c
+index 2829d25..aa43f76 100644
+--- a/drivers/media/video/v4l2-compat-ioctl32.c
++++ b/drivers/media/video/v4l2-compat-ioctl32.c
+@@ -1023,6 +1023,9 @@ long v4l2_compat_ioctl32(struct file *file, unsigned int cmd, unsigned long arg)
+ 	case VIDIOC_UNSUBSCRIBE_EVENT:
+ 	case VIDIOC_CREATE_BUFS32:
+ 	case VIDIOC_PREPARE_BUF32:
++	case VIDIOC_ENUM_DV_TIMINGS:
++	case VIDIOC_QUERY_DV_TIMINGS:
++	case VIDIOC_DV_TIMINGS_CAP:
+ 		ret = do_video_ioctl(file, cmd, arg);
+ 		break;
  
- 	/* USERPTR related */
- 	struct vm_area_struct		*vma;
-@@ -45,57 +45,6 @@ struct vb2_dc_buf {
- /*        scatterlist table functions        */
- /*********************************************/
+diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
+index 5b2ec1f..594715a 100644
+--- a/drivers/media/video/v4l2-ioctl.c
++++ b/drivers/media/video/v4l2-ioctl.c
+@@ -279,6 +279,9 @@ static const char *v4l2_ioctls[] = {
+ 	[_IOC_NR(VIDIOC_UNSUBSCRIBE_EVENT)] = "VIDIOC_UNSUBSCRIBE_EVENT",
+ 	[_IOC_NR(VIDIOC_CREATE_BUFS)]      = "VIDIOC_CREATE_BUFS",
+ 	[_IOC_NR(VIDIOC_PREPARE_BUF)]      = "VIDIOC_PREPARE_BUF",
++	[_IOC_NR(VIDIOC_ENUM_DV_TIMINGS)]  = "VIDIOC_ENUM_DV_TIMINGS",
++	[_IOC_NR(VIDIOC_QUERY_DV_TIMINGS)] = "VIDIOC_QUERY_DV_TIMINGS",
++	[_IOC_NR(VIDIOC_DV_TIMINGS_CAP)]   = "VIDIOC_DV_TIMINGS_CAP",
+ };
+ #define V4L2_IOCTLS ARRAY_SIZE(v4l2_ioctls)
  
--static struct sg_table *vb2_dc_pages_to_sgt(struct page **pages,
--	unsigned int n_pages, unsigned long offset, unsigned long size)
--{
--	struct sg_table *sgt;
--	unsigned int chunks;
--	unsigned int i;
--	unsigned int cur_page;
--	int ret;
--	struct scatterlist *s;
--
--	sgt = kzalloc(sizeof *sgt, GFP_KERNEL);
--	if (!sgt)
--		return ERR_PTR(-ENOMEM);
--
--	/* compute number of chunks */
--	chunks = 1;
--	for (i = 1; i < n_pages; ++i)
--		if (pages[i] != pages[i - 1] + 1)
--			++chunks;
--
--	ret = sg_alloc_table(sgt, chunks, GFP_KERNEL);
--	if (ret) {
--		kfree(sgt);
--		return ERR_PTR(-ENOMEM);
--	}
--
--	/* merging chunks and putting them into the scatterlist */
--	cur_page = 0;
--	for_each_sg(sgt->sgl, s, sgt->orig_nents, i) {
--		unsigned long chunk_size;
--		unsigned int j;
--
--		for (j = cur_page + 1; j < n_pages; ++j)
--			if (pages[j] != pages[j - 1] + 1)
--				break;
--
--		chunk_size = ((j - cur_page) << PAGE_SHIFT) - offset;
--		sg_set_page(s, pages[cur_page], min(size, chunk_size), offset);
--		size -= chunk_size;
--		offset = 0;
--		cur_page = j;
--	}
--
--	return sgt;
--}
--
--static void vb2_dc_release_sgtable(struct sg_table *sgt)
--{
--	sg_free_table(sgt);
--	kfree(sgt);
--}
+@@ -359,6 +362,34 @@ static inline void dbgrect(struct video_device *vfd, char *s,
+ 						r->width, r->height);
+ };
  
- static void vb2_dc_sgt_foreach_page(struct sg_table *sgt,
- 	void (*cb)(struct page *pg))
-@@ -190,7 +139,7 @@ static void vb2_dc_put(void *buf_priv)
- 	if (!atomic_dec_and_test(&buf->refcount))
- 		return;
- 
--	vb2_dc_release_sgtable(buf->sgt_base);
-+	sg_free_table(&buf->sgt_base);
- 	dma_free_coherent(buf->dev, buf->size, buf->vaddr, buf->dma_addr);
- 	kfree(buf);
- }
-@@ -254,9 +203,9 @@ static void *vb2_dc_alloc(void *alloc_ctx, unsigned long size)
- 		goto fail_pages;
- 	}
- 
--	buf->sgt_base = vb2_dc_pages_to_sgt(pages, n_pages, 0, size);
--	if (IS_ERR(buf->sgt_base)) {
--		ret = PTR_ERR(buf->sgt_base);
-+	ret = sg_alloc_table_from_pages(&buf->sgt_base,
-+		pages, n_pages, 0, size, GFP_KERNEL);
-+	if (ret) {
- 		dev_err(dev, "failed to prepare sg table\n");
- 		goto fail_pages;
- 	}
-@@ -379,13 +328,13 @@ static struct sg_table *vb2_dc_dmabuf_ops_map(
- 	attach->dir = dir;
- 
- 	/* copying the buf->base_sgt to attachment */
--	ret = sg_alloc_table(sgt, buf->sgt_base->orig_nents, GFP_KERNEL);
-+	ret = sg_alloc_table(sgt, buf->sgt_base.orig_nents, GFP_KERNEL);
- 	if (ret) {
- 		kfree(attach);
- 		return ERR_PTR(-ENOMEM);
- 	}
- 
--	rd = buf->sgt_base->sgl;
-+	rd = buf->sgt_base.sgl;
- 	wr = sgt->sgl;
- 	for (i = 0; i < sgt->orig_nents; ++i) {
- 		sg_set_page(wr, sg_page(rd), rd->length, rd->offset);
-@@ -519,7 +468,8 @@ static void vb2_dc_put_userptr(void *buf_priv)
- 	if (!vma_is_io(buf->vma))
- 		vb2_dc_sgt_foreach_page(sgt, vb2_dc_put_dirty_page);
- 
--	vb2_dc_release_sgtable(sgt);
-+	sg_free_table(sgt);
-+	kfree(sgt);
- 	vb2_put_vma(buf->vma);
- 	kfree(buf);
- }
-@@ -586,13 +536,20 @@ static void *vb2_dc_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 		goto fail_vma;
- 	}
- 
--	sgt = vb2_dc_pages_to_sgt(pages, n_pages, offset, size);
--	if (IS_ERR(sgt)) {
--		printk(KERN_ERR "failed to create scatterlist table\n");
-+	sgt = kzalloc(sizeof *sgt, GFP_KERNEL);
-+	if (!sgt) {
-+		printk(KERN_ERR "failed to allocate sg table\n");
- 		ret = -ENOMEM;
- 		goto fail_get_user_pages;
- 	}
- 
-+	ret = sg_alloc_table_from_pages(sgt, pages, n_pages,
-+		offset, size, GFP_KERNEL);
-+	if (ret) {
-+		printk(KERN_ERR "failed to initialize sg table\n");
-+		goto fail_sgt;
++static void dbgtimings(struct video_device *vfd,
++			const struct v4l2_dv_timings *p)
++{
++	switch (p->type) {
++	case V4L2_DV_BT_656_1120:
++		dbgarg2("bt-656/1120:interlaced=%d,"
++				" pixelclock=%lld,"
++				" width=%d, height=%d, polarities=%x,"
++				" hfrontporch=%d, hsync=%d,"
++				" hbackporch=%d, vfrontporch=%d,"
++				" vsync=%d, vbackporch=%d,"
++				" il_vfrontporch=%d, il_vsync=%d,"
++				" il_vbackporch=%d, standards=%x, flags=%x\n",
++				p->bt.interlaced, p->bt.pixelclock,
++				p->bt.width, p->bt.height,
++				p->bt.polarities, p->bt.hfrontporch,
++				p->bt.hsync, p->bt.hbackporch,
++				p->bt.vfrontporch, p->bt.vsync,
++				p->bt.vbackporch, p->bt.il_vfrontporch,
++				p->bt.il_vsync, p->bt.il_vbackporch,
++				p->bt.standards, p->bt.flags);
++		break;
++	default:
++		dbgarg2("Unknown type %d!\n", p->type);
++		break;
 +	}
++}
 +
- 	/* pages are no longer needed */
- 	kfree(pages);
- 	pages = NULL;
-@@ -602,7 +559,7 @@ static void *vb2_dc_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 	if (sgt->nents <= 0) {
- 		printk(KERN_ERR "failed to map scatterlist\n");
- 		ret = -EIO;
--		goto fail_sgt;
-+		goto fail_sgt_init;
+ static inline void v4l_print_pix_fmt(struct video_device *vfd,
+ 						struct v4l2_pix_format *fmt)
+ {
+@@ -2146,25 +2177,13 @@ static long __video_do_ioctl(struct file *file,
+ 			break;
+ 		}
+ 
++		dbgtimings(vfd, p);
+ 		switch (p->type) {
+ 		case V4L2_DV_BT_656_1120:
+-			dbgarg2("bt-656/1120:interlaced=%d, pixelclock=%lld,"
+-				" width=%d, height=%d, polarities=%x,"
+-				" hfrontporch=%d, hsync=%d, hbackporch=%d,"
+-				" vfrontporch=%d, vsync=%d, vbackporch=%d,"
+-				" il_vfrontporch=%d, il_vsync=%d,"
+-				" il_vbackporch=%d\n",
+-				p->bt.interlaced, p->bt.pixelclock,
+-				p->bt.width, p->bt.height, p->bt.polarities,
+-				p->bt.hfrontporch, p->bt.hsync,
+-				p->bt.hbackporch, p->bt.vfrontporch,
+-				p->bt.vsync, p->bt.vbackporch,
+-				p->bt.il_vfrontporch, p->bt.il_vsync,
+-				p->bt.il_vbackporch);
+ 			ret = ops->vidioc_s_dv_timings(file, fh, p);
+ 			break;
+ 		default:
+-			dbgarg2("Unknown type %d!\n", p->type);
++			ret = -EINVAL;
+ 			break;
+ 		}
+ 		break;
+@@ -2177,29 +2196,60 @@ static long __video_do_ioctl(struct file *file,
+ 			break;
+ 
+ 		ret = ops->vidioc_g_dv_timings(file, fh, p);
++		if (!ret)
++			dbgtimings(vfd, p);
++		break;
++	}
++	case VIDIOC_ENUM_DV_TIMINGS:
++	{
++		struct v4l2_enum_dv_timings *p = arg;
++
++		if (!ops->vidioc_enum_dv_timings)
++			break;
++
++		ret = ops->vidioc_enum_dv_timings(file, fh, p);
+ 		if (!ret) {
+-			switch (p->type) {
+-			case V4L2_DV_BT_656_1120:
+-				dbgarg2("bt-656/1120:interlaced=%d,"
+-					" pixelclock=%lld,"
+-					" width=%d, height=%d, polarities=%x,"
+-					" hfrontporch=%d, hsync=%d,"
+-					" hbackporch=%d, vfrontporch=%d,"
+-					" vsync=%d, vbackporch=%d,"
+-					" il_vfrontporch=%d, il_vsync=%d,"
+-					" il_vbackporch=%d\n",
+-					p->bt.interlaced, p->bt.pixelclock,
+-					p->bt.width, p->bt.height,
+-					p->bt.polarities, p->bt.hfrontporch,
+-					p->bt.hsync, p->bt.hbackporch,
+-					p->bt.vfrontporch, p->bt.vsync,
+-					p->bt.vbackporch, p->bt.il_vfrontporch,
+-					p->bt.il_vsync, p->bt.il_vbackporch);
+-				break;
+-			default:
+-				dbgarg2("Unknown type %d!\n", p->type);
+-				break;
+-			}
++			dbgarg(cmd, "index=%d: ", p->index);
++			dbgtimings(vfd, &p->timings);
++		}
++		break;
++	}
++	case VIDIOC_QUERY_DV_TIMINGS:
++	{
++		struct v4l2_dv_timings *p = arg;
++
++		if (!ops->vidioc_query_dv_timings)
++			break;
++
++		ret = ops->vidioc_query_dv_timings(file, fh, p);
++		if (!ret)
++			dbgtimings(vfd, p);
++		break;
++	}
++	case VIDIOC_DV_TIMINGS_CAP:
++	{
++		struct v4l2_dv_timings_cap *p = arg;
++
++		if (!ops->vidioc_dv_timings_cap)
++			break;
++
++		ret = ops->vidioc_dv_timings_cap(file, fh, p);
++		if (ret)
++			break;
++		switch (p->type) {
++		case V4L2_DV_BT_656_1120:
++			dbgarg(cmd,
++			       "type=%d, width=%u-%u, height=%u-%u, "
++			       "pixelclock=%llu-%llu, standards=%x, capabilities=%x ",
++			       p->type,
++			       p->bt.min_width, p->bt.max_width,
++			       p->bt.min_height, p->bt.max_height,
++			       p->bt.min_pixelclock, p->bt.max_pixelclock,
++			       p->bt.standards, p->bt.capabilities);
++			break;
++		default:
++			dbgarg(cmd, "unknown type ");
++			break;
+ 		}
+ 		break;
  	}
+@@ -2463,7 +2513,9 @@ video_usercopy(struct file *file, unsigned int cmd, unsigned long arg,
+ 			err = -EFAULT;
+ 		goto out_array_args;
+ 	}
+-	if (err < 0)
++	/* VIDIOC_QUERY_DV_TIMINGS can return an error, but still have valid
++	   results that must be returned. */
++	if (err < 0 && cmd != VIDIOC_QUERY_DV_TIMINGS)
+ 		goto out;
  
- 	contig_size = vb2_dc_get_contiguous_size(sgt);
-@@ -622,10 +579,13 @@ static void *vb2_dc_get_userptr(void *alloc_ctx, unsigned long vaddr,
- fail_map_sg:
- 	dma_unmap_sg(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
+ out_array_args:
+diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
+index 3cb939c..d8b76f7 100644
+--- a/include/media/v4l2-ioctl.h
++++ b/include/media/v4l2-ioctl.h
+@@ -271,6 +271,12 @@ struct v4l2_ioctl_ops {
+ 				    struct v4l2_dv_timings *timings);
+ 	int (*vidioc_g_dv_timings) (struct file *file, void *fh,
+ 				    struct v4l2_dv_timings *timings);
++	int (*vidioc_query_dv_timings) (struct file *file, void *fh,
++				    struct v4l2_dv_timings *timings);
++	int (*vidioc_enum_dv_timings) (struct file *file, void *fh,
++				    struct v4l2_enum_dv_timings *timings);
++	int (*vidioc_dv_timings_cap) (struct file *file, void *fh,
++				    struct v4l2_dv_timings_cap *cap);
  
--fail_sgt:
-+fail_sgt_init:
- 	if (!vma_is_io(buf->vma))
- 		vb2_dc_sgt_foreach_page(sgt, put_page);
--	vb2_dc_release_sgtable(sgt);
-+	sg_free_table(sgt);
-+
-+fail_sgt:
-+	kfree(sgt);
- 
- fail_get_user_pages:
- 	if (pages && !vma_is_io(buf->vma))
+ 	int (*vidioc_subscribe_event)  (struct v4l2_fh *fh,
+ 					struct v4l2_event_subscription *sub);
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index 7e85035..0ddbe91 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -307,6 +307,12 @@ struct v4l2_subdev_video_ops {
+ 			struct v4l2_dv_timings *timings);
+ 	int (*g_dv_timings)(struct v4l2_subdev *sd,
+ 			struct v4l2_dv_timings *timings);
++	int (*enum_dv_timings)(struct v4l2_subdev *sd,
++			struct v4l2_enum_dv_timings *timings);
++	int (*query_dv_timings)(struct v4l2_subdev *sd,
++			struct v4l2_dv_timings *timings);
++	int (*dv_timings_cap)(struct v4l2_subdev *sd,
++			struct v4l2_dv_timings_cap *cap);
+ 	int (*enum_mbus_fmt)(struct v4l2_subdev *sd, unsigned int index,
+ 			     enum v4l2_mbus_pixelcode *code);
+ 	int (*enum_mbus_fsizes)(struct v4l2_subdev *sd,
 -- 
-1.7.9.5
+1.7.10
 
