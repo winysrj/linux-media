@@ -1,130 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:26475 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751256Ab2EHH5J (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 8 May 2012 03:57:09 -0400
-Message-ID: <4FA8D1D2.50705@redhat.com>
-Date: Tue, 08 May 2012 09:57:06 +0200
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH for v3.5] v4l2-event: fix regression with initial event
- handling.
-References: <d89c2be6827e0801d4637a80e8b667c611f0c7a9.1336424000.git.hans.verkuil@cisco.com>
-In-Reply-To: <d89c2be6827e0801d4637a80e8b667c611f0c7a9.1336424000.git.hans.verkuil@cisco.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:3381 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753694Ab2EAJGB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 May 2012 05:06:01 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 7/7] V4L2: Mark the DV Preset API as deprecated.
+Date: Tue,  1 May 2012 11:05:52 +0200
+Message-Id: <bdf36b3c1ef4796e021ac8d46685c1bc741150bc.1335862609.git.hans.verkuil@cisco.com>
+In-Reply-To: <1335863152-15791-1-git-send-email-hverkuil@xs4all.nl>
+References: <1335863152-15791-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <de77f3452a3710c48282ebe24937731b252a1ef7.1335862609.git.hans.verkuil@cisco.com>
+References: <de77f3452a3710c48282ebe24937731b252a1ef7.1335862609.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Good one, ACK.
+The DV Preset API will be phased out in favor of the more flexible DV Timings
+API. Mark the preset API accordingly in the header and documentation.
 
-Acked-by: Hans de Goede <hdegoede@redhat.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ Documentation/DocBook/media/v4l/common.xml                 |    6 ++++--
+ Documentation/DocBook/media/v4l/compat.xml                 |    4 ++++
+ Documentation/DocBook/media/v4l/vidioc-g-dv-preset.xml     |    6 ++++++
+ Documentation/DocBook/media/v4l/vidioc-query-dv-preset.xml |    4 ++++
+ include/linux/videodev2.h                                  |    6 ++++++
+ 5 files changed, 24 insertions(+), 2 deletions(-)
 
-Regards,
+diff --git a/Documentation/DocBook/media/v4l/common.xml b/Documentation/DocBook/media/v4l/common.xml
+index 81b7cf3..4101aeb 100644
+--- a/Documentation/DocBook/media/v4l/common.xml
++++ b/Documentation/DocBook/media/v4l/common.xml
+@@ -744,11 +744,13 @@ header can be used to get the timings of the formats in the <xref linkend="cea86
+ 	</para>
+ 	</listitem>
+ 	<listitem>
+-	<para>DV Presets: Digital Video (DV) presets. These are IDs representing a
++	<para>DV Presets: Digital Video (DV) presets (<emphasis role="bold">deprecated</emphasis>).
++	These are IDs representing a
+ video timing at the input/output. Presets are pre-defined timings implemented
+ by the hardware according to video standards. A __u32 data type is used to represent
+ a preset unlike the bit mask that is used in &v4l2-std-id; allowing future extensions
+-to support as many different presets as needed.</para>
++to support as many different presets as needed. This API is deprecated in favor of the DV Timings
++API.</para>
+ 	</listitem>
+ 	</itemizedlist>
+ 	<para>To enumerate and query the attributes of the DV timings supported by a device,
+diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
+index 21424a6..001ecdf 100644
+--- a/Documentation/DocBook/media/v4l/compat.xml
++++ b/Documentation/DocBook/media/v4l/compat.xml
+@@ -2571,6 +2571,10 @@ interfaces and should not be implemented in new drivers.</para>
+ <xref linkend="extended-controls" />.</para>
+         </listitem>
+         <listitem>
++	  <para>&VIDIOC-G-DV-PRESET;, &VIDIOC-S-DV-PRESET;, &VIDIOC-ENUM-DV-PRESETS; and
++	  &VIDIOC-QUERY-DV-PRESET; ioctls. Use the DV Timings API (<xref linkend="dv-timings" />).</para>
++        </listitem>
++        <listitem>
+ 	  <para><constant>VIDIOC_SUBDEV_G_CROP</constant> and
+ 	  <constant>VIDIOC_SUBDEV_S_CROP</constant> ioctls. Use
+ 	  <constant>VIDIOC_SUBDEV_G_SELECTION</constant> and
+diff --git a/Documentation/DocBook/media/v4l/vidioc-g-dv-preset.xml b/Documentation/DocBook/media/v4l/vidioc-g-dv-preset.xml
+index 7940c11..61be9fa 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-g-dv-preset.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-g-dv-preset.xml
+@@ -48,6 +48,12 @@
+ 
+   <refsect1>
+     <title>Description</title>
++
++    <para>These ioctls are <emphasis role="bold">deprecated</emphasis>.
++    New drivers and applications should use &VIDIOC-G-DV-TIMINGS; and &VIDIOC-S-DV-TIMINGS;
++    instead.
++    </para>
++
+     <para>To query and select the current DV preset, applications
+ use the <constant>VIDIOC_G_DV_PRESET</constant> and <constant>VIDIOC_S_DV_PRESET</constant>
+ ioctls which take a pointer to a &v4l2-dv-preset; type as argument.
+diff --git a/Documentation/DocBook/media/v4l/vidioc-query-dv-preset.xml b/Documentation/DocBook/media/v4l/vidioc-query-dv-preset.xml
+index 23b17f6..1bc8aeb 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-query-dv-preset.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-query-dv-preset.xml
+@@ -49,6 +49,10 @@ input</refpurpose>
+   <refsect1>
+     <title>Description</title>
+ 
++    <para>This ioctl is <emphasis role="bold">deprecated</emphasis>.
++    New drivers and applications should use &VIDIOC-QUERY-DV-TIMINGS; instead.
++    </para>
++
+     <para>The hardware may be able to detect the current DV preset
+ automatically, similar to sensing the video standard. To do so, applications
+ call <constant> VIDIOC_QUERY_DV_PRESET</constant> with a pointer to a
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index 6062c57..8e2e827 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -939,6 +939,9 @@ struct v4l2_standard {
+ 	__u32		     reserved[4];
+ };
+ 
++/* The DV Preset API is deprecated in favor of the DV Timings API.
++   New drivers shouldn't use this anymore! */
++
+ /*
+  *	V I D E O	T I M I N G S	D V	P R E S E T
+  */
+@@ -2507,6 +2510,9 @@ struct v4l2_create_buffers {
+ #endif
+ 
+ #define VIDIOC_S_HW_FREQ_SEEK	 _IOW('V', 82, struct v4l2_hw_freq_seek)
++
++/* These four DV Preset ioctls are deprecated in favor of the DV Timings
++   ioctls. */
+ #define	VIDIOC_ENUM_DV_PRESETS	_IOWR('V', 83, struct v4l2_dv_enum_preset)
+ #define	VIDIOC_S_DV_PRESET	_IOWR('V', 84, struct v4l2_dv_preset)
+ #define	VIDIOC_G_DV_PRESET	_IOWR('V', 85, struct v4l2_dv_preset)
+-- 
+1.7.10
 
-Hans
-
-On 05/07/2012 10:53 PM, Hans Verkuil wrote:
-> From: Hans Verkuil<hans.verkuil@cisco.com>
->
-> If the V4L2_EVENT_SUB_FL_SEND_INITIAL was set, then the application expects
-> to receive an initial event of the initial value of the control.
->
-> However, commit c53c2549333b340e2662dc64ec81323476b69a97 that added the new
-> v4l2_subscribed_event_ops introduced a regression: while the code still queued
-> that initial event the __v4l2_event_queue_fh() function was modified to ignore
-> such requests if sev->elems was 0 (meaning that the event subscription wasn't
-> finished yet).
->
-> And sev->elems was only set to a non-zero value after the add operation
-> returned.
->
-> This patch fixes this by passing the elems value to the add function. Then the
-> add function can set it before queuing the initial event.
->
-> Signed-off-by: Hans Verkuil<hans.verkuil@cisco.com>
-> ---
->   drivers/media/video/uvc/uvc_ctrl.c |    5 ++++-
->   drivers/media/video/v4l2-ctrls.c   |    5 ++++-
->   drivers/media/video/v4l2-event.c   |    2 +-
->   include/media/v4l2-event.h         |    2 +-
->   4 files changed, 10 insertions(+), 4 deletions(-)
->
-> diff --git a/drivers/media/video/uvc/uvc_ctrl.c b/drivers/media/video/uvc/uvc_ctrl.c
-> index 28363b7..f3bd66c 100644
-> --- a/drivers/media/video/uvc/uvc_ctrl.c
-> +++ b/drivers/media/video/uvc/uvc_ctrl.c
-> @@ -1250,7 +1250,7 @@ static void uvc_ctrl_send_events(struct uvc_fh *handle,
->   	}
->   }
->
-> -static int uvc_ctrl_add_event(struct v4l2_subscribed_event *sev)
-> +static int uvc_ctrl_add_event(struct v4l2_subscribed_event *sev, unsigned elems)
->   {
->   	struct uvc_fh *handle = container_of(sev->fh, struct uvc_fh, vfh);
->   	struct uvc_control_mapping *mapping;
-> @@ -1278,6 +1278,9 @@ static int uvc_ctrl_add_event(struct v4l2_subscribed_event *sev)
->
->   		uvc_ctrl_fill_event(handle->chain,&ev, ctrl, mapping, val,
->   				    changes);
-> +		/* Mark the queue as active, allowing this initial
-> +		   event to be accepted. */
-> +		sev->elems = elems;
->   		v4l2_event_queue_fh(sev->fh,&ev);
->   	}
->
-> diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
-> index ae544d8..20873c2 100644
-> --- a/drivers/media/video/v4l2-ctrls.c
-> +++ b/drivers/media/video/v4l2-ctrls.c
-> @@ -2424,7 +2424,7 @@ int v4l2_ctrl_s_ctrl(struct v4l2_ctrl *ctrl, s32 val)
->   }
->   EXPORT_SYMBOL(v4l2_ctrl_s_ctrl);
->
-> -static int v4l2_ctrl_add_event(struct v4l2_subscribed_event *sev)
-> +static int v4l2_ctrl_add_event(struct v4l2_subscribed_event *sev, unsigned elems)
->   {
->   	struct v4l2_ctrl *ctrl = v4l2_ctrl_find(sev->fh->ctrl_handler, sev->id);
->
-> @@ -2441,6 +2441,9 @@ static int v4l2_ctrl_add_event(struct v4l2_subscribed_event *sev)
->   		if (!(ctrl->flags&  V4L2_CTRL_FLAG_WRITE_ONLY))
->   			changes |= V4L2_EVENT_CTRL_CH_VALUE;
->   		fill_event(&ev, ctrl, changes);
-> +		/* Mark the queue as active, allowing this initial
-> +		   event to be accepted. */
-> +		sev->elems = elems;
->   		v4l2_event_queue_fh(sev->fh,&ev);
->   	}
->   	v4l2_ctrl_unlock(ctrl);
-> diff --git a/drivers/media/video/v4l2-event.c b/drivers/media/video/v4l2-event.c
-> index 60b4e2e..ef2a33c 100644
-> --- a/drivers/media/video/v4l2-event.c
-> +++ b/drivers/media/video/v4l2-event.c
-> @@ -239,7 +239,7 @@ int v4l2_event_subscribe(struct v4l2_fh *fh,
->   	}
->
->   	if (sev->ops&&  sev->ops->add) {
-> -		int ret = sev->ops->add(sev);
-> +		int ret = sev->ops->add(sev, elems);
->   		if (ret) {
->   			sev->ops = NULL;
->   			v4l2_event_unsubscribe(fh, sub);
-> diff --git a/include/media/v4l2-event.h b/include/media/v4l2-event.h
-> index 88fa9a1..2885a81 100644
-> --- a/include/media/v4l2-event.h
-> +++ b/include/media/v4l2-event.h
-> @@ -85,7 +85,7 @@ struct v4l2_kevent {
->     * @merge:	Optional callback that can merge event 'old' into event 'new'.
->     */
->   struct v4l2_subscribed_event_ops {
-> -	int  (*add)(struct v4l2_subscribed_event *sev);
-> +	int  (*add)(struct v4l2_subscribed_event *sev, unsigned elems);
->   	void (*del)(struct v4l2_subscribed_event *sev);
->   	void (*replace)(struct v4l2_event *old, const struct v4l2_event *new);
->   	void (*merge)(const struct v4l2_event *old, struct v4l2_event *new);
