@@ -1,437 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:1867 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756646Ab2EBUqI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 2 May 2012 16:46:08 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [RFC v3 1/2] v4l: Do not use enums in IOCTL structs
-Date: Wed, 2 May 2012 22:45:22 +0200
-Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	mchehab@redhat.com, remi@remlab.net, nbowler@elliptictech.com,
-	james.dutton@gmail.com
-References: <20120502191324.GE852@valkosipuli.localdomain> <1335986028-23618-1-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1335986028-23618-1-git-send-email-sakari.ailus@iki.fi>
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:53690 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757769Ab2EAQUC convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 May 2012 12:20:02 -0400
+Received: by wibhj6 with SMTP id hj6so3859428wib.1
+        for <linux-media@vger.kernel.org>; Tue, 01 May 2012 09:20:01 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201205022245.22585.hverkuil@xs4all.nl>
+In-Reply-To: <201205011146.30295.hverkuil@xs4all.nl>
+References: <201205011146.30295.hverkuil@xs4all.nl>
+From: halli manjunatha <manjunatha_halli@ti.com>
+Date: Tue, 1 May 2012 11:19:39 -0500
+Message-ID: <CAMT6PyeUBbfN3pQH_pofPv4HiVuXMP=f2SVXmy9BUByHeG_vqQ@mail.gmail.com>
+Subject: Re: RFC: Improve VIDIOC_S_HW_FREQ_SEEK
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Ondrej Zary <linux@rainbow-software.org>,
+	Joonyoung Shim <jy0922.shim@samsung.com>,
+	Tobias Lorenz <tobias.lorenz@gmx.net>,
+	"Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed May 2 2012 21:13:47 Sakari Ailus wrote:
-> Replace enums in IOCTL structs by __u32. The size of enums is variable and
-> thus problematic. Compatibility structs having exactly the same as original
-> definition are provided for compatibility with old binaries with the
-> required conversion code.
+On Tue, May 1, 2012 at 4:46 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> Hi all!
+>
+> While working on a test function for the hardware seek functionality in
+> v4l2-compliance I realized that the specification is rather vague and
+> incomplete, making it hard to write a decent test for it.
+>
+> There are a number of issues with this API:
+>
+> 1) There is no way for the application to know whether the hardware supports
+>   wrap around scanning or not (or both). It is only reported because the
+>   ioctl will return EINVAL if it doesn't support it, which is rather awkward.
+>   It's important for applications to know what to do here.
+>
+>   The solution would be to add two new capability flags to struct v4l2_tuner:
+>   V4L2_TUNER_CAP_SEEK_BOUNDED and V4L2_TUNER_CAP_SEEK_WRAP.
+>
+> 2) What happens when the seek didn't find anything? It's not a timeout, it has
+>   to return some decent error code. I propose ENODATA for this.
+>
+> 3) What should the frequency be if the seek returns an error? I think the original
+>   frequency should be restored in that case.
+Isn't this the way how it is now? means driver won't change the
+G_FREQUENCY value till it gets the new valid station during seek.
 
-Does someone actually have hard proof that there really is a problem? You know,
-demonstrate it with actual example code?
-
-It's pretty horrible that you have to do all those conversions and that code
-will be with us for years to come.
-
-For most (if not all!) architectures sizeof(enum) == sizeof(u32), so there is
-no need for any compat code for those.
-
-Note that I don't question that using u32 is better than using enums, but I
-really wonder if there is any need for all the conversions.
-
-Regards,
-
-	Hans
-
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> ---
->  include/linux/videodev2.h  |   42 +++++-----
->  include/media/v4l2-ioctl.h |  209 ++++++++++++++++++++++++++++++++++++++++++++
->  2 files changed, 230 insertions(+), 21 deletions(-)
-> 
-> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-> index fed1d40..ec0928d 100644
-> --- a/include/linux/videodev2.h
-> +++ b/include/linux/videodev2.h
-> @@ -292,10 +292,10 @@ struct v4l2_pix_format {
->  	__u32         		width;
->  	__u32			height;
->  	__u32			pixelformat;
-> -	enum v4l2_field  	field;
-> +	__u32			field;		/* enum v4l2_field */
->  	__u32            	bytesperline;	/* for padding, zero if unused */
->  	__u32          		sizeimage;
-> -	enum v4l2_colorspace	colorspace;
-> +	__u32			colorspace;	/* enum v4l2_colorspace */
->  	__u32			priv;		/* private data, depends on pixelformat */
->  };
->  
-> @@ -432,7 +432,7 @@ struct v4l2_pix_format {
->   */
->  struct v4l2_fmtdesc {
->  	__u32		    index;             /* Format number      */
-> -	enum v4l2_buf_type  type;              /* buffer type        */
-> +	__u32		    type;	       /* buffer type (enum v4l2_buf_type) */
->  	__u32               flags;
->  	__u8		    description[32];   /* Description string */
->  	__u32		    pixelformat;       /* Format fourcc      */
-> @@ -573,8 +573,8 @@ struct v4l2_jpegcompression {
->   */
->  struct v4l2_requestbuffers {
->  	__u32			count;
-> -	enum v4l2_buf_type      type;
-> -	enum v4l2_memory        memory;
-> +	__u32		      type;		/* enum v4l2_buf_type */
-> +	__u32		        memory;		/* enum v4l2_memory */
->  	__u32			reserved[2];
->  };
->  
-> @@ -636,16 +636,16 @@ struct v4l2_plane {
->   */
->  struct v4l2_buffer {
->  	__u32			index;
-> -	enum v4l2_buf_type      type;
-> +	__u32			type;		/* enum v4l2_buf_type */
->  	__u32			bytesused;
->  	__u32			flags;
-> -	enum v4l2_field		field;
-> +	__u32			field;		/* enum v4l2_field */
->  	struct timeval		timestamp;
->  	struct v4l2_timecode	timecode;
->  	__u32			sequence;
->  
->  	/* memory location */
-> -	enum v4l2_memory        memory;
-> +	__u32		        memory;		/* enum v4l2_memory */
->  	union {
->  		__u32           offset;
->  		unsigned long   userptr;
-> @@ -707,7 +707,7 @@ struct v4l2_clip {
->  
->  struct v4l2_window {
->  	struct v4l2_rect        w;
-> -	enum v4l2_field  	field;
-> +	__u32			field;		/* enum v4l2_field */
->  	__u32			chromakey;
->  	struct v4l2_clip	__user *clips;
->  	__u32			clipcount;
-> @@ -744,14 +744,14 @@ struct v4l2_outputparm {
->   *	I N P U T   I M A G E   C R O P P I N G
->   */
->  struct v4l2_cropcap {
-> -	enum v4l2_buf_type      type;
-> +	__u32			type;		/* enum v4l2_buf_type */
->  	struct v4l2_rect        bounds;
->  	struct v4l2_rect        defrect;
->  	struct v4l2_fract       pixelaspect;
->  };
->  
->  struct v4l2_crop {
-> -	enum v4l2_buf_type      type;
-> +	__u32			type;		/* enum v4l2_buf_type */
->  	struct v4l2_rect        c;
->  };
->  
-> @@ -1156,7 +1156,7 @@ enum v4l2_ctrl_type {
->  /*  Used in the VIDIOC_QUERYCTRL ioctl for querying controls */
->  struct v4l2_queryctrl {
->  	__u32		     id;
-> -	enum v4l2_ctrl_type  type;
-> +	__u32		     type;	/* enum v4l2_ctrl_type */
->  	__u8		     name[32];	/* Whatever */
->  	__s32		     minimum;	/* Note signedness */
->  	__s32		     maximum;
-> @@ -1791,7 +1791,7 @@ enum v4l2_jpeg_chroma_subsampling {
->  struct v4l2_tuner {
->  	__u32                   index;
->  	__u8			name[32];
-> -	enum v4l2_tuner_type    type;
-> +	__u32			type;		/* enum v4l2_tuner_type */
->  	__u32			capability;
->  	__u32			rangelow;
->  	__u32			rangehigh;
-> @@ -1841,14 +1841,14 @@ struct v4l2_modulator {
->  
->  struct v4l2_frequency {
->  	__u32		      tuner;
-> -	enum v4l2_tuner_type  type;
-> +	__u32		      type;		/* enum v4l2_tuner_type */
->  	__u32		      frequency;
->  	__u32		      reserved[8];
->  };
->  
->  struct v4l2_hw_freq_seek {
->  	__u32		      tuner;
-> -	enum v4l2_tuner_type  type;
-> +	__u32		      type;		/* enum v4l2_tuner_type */
->  	__u32		      seek_upward;
->  	__u32		      wrap_around;
->  	__u32		      spacing;
-> @@ -2059,7 +2059,7 @@ struct v4l2_sliced_vbi_cap {
->  				 (equals frame lines 313-336 for 625 line video
->  				  standards, 263-286 for 525 line standards) */
->  	__u16   service_lines[2][24];
-> -	enum v4l2_buf_type type;
-> +	__u32	 type;		/* enum v4l2_buf_type */
->  	__u32   reserved[3];    /* must be 0 */
->  };
->  
-> @@ -2149,8 +2149,8 @@ struct v4l2_pix_format_mplane {
->  	__u32				width;
->  	__u32				height;
->  	__u32				pixelformat;
-> -	enum v4l2_field			field;
-> -	enum v4l2_colorspace		colorspace;
-> +	__u32				field;		/* enum v4l2_field */
-> +	__u32				colorspace;	/* enum v4l2_colorspace */
->  
->  	struct v4l2_plane_pix_format	plane_fmt[VIDEO_MAX_PLANES];
->  	__u8				num_planes;
-> @@ -2168,7 +2168,7 @@ struct v4l2_pix_format_mplane {
->   * @raw_data:	placeholder for future extensions and custom formats
->   */
->  struct v4l2_format {
-> -	enum v4l2_buf_type type;
-> +	__u32	type;		/* enum v4l2_buf_type */
->  	union {
->  		struct v4l2_pix_format		pix;     /* V4L2_BUF_TYPE_VIDEO_CAPTURE */
->  		struct v4l2_pix_format_mplane	pix_mp;  /* V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE */
-> @@ -2182,7 +2182,7 @@ struct v4l2_format {
->  /*	Stream type-dependent parameters
->   */
->  struct v4l2_streamparm {
-> -	enum v4l2_buf_type type;
-> +	__u32	type;		/* enum v4l2_buf_type */
->  	union {
->  		struct v4l2_captureparm	capture;
->  		struct v4l2_outputparm	output;
-> @@ -2302,7 +2302,7 @@ struct v4l2_dbg_chip_ident {
->  struct v4l2_create_buffers {
->  	__u32			index;
->  	__u32			count;
-> -	enum v4l2_memory        memory;
-> +	__u32		        memory;		/* enum v4l2_memory */
->  	struct v4l2_format	format;
->  	__u32			reserved[8];
->  };
-> diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
-> index 3cb939c..77018d8 100644
-> --- a/include/media/v4l2-ioctl.h
-> +++ b/include/media/v4l2-ioctl.h
-> @@ -333,4 +333,213 @@ extern long video_usercopy(struct file *file, unsigned int cmd,
->  extern long video_ioctl2(struct file *file,
->  			unsigned int cmd, unsigned long arg);
->  
-> +/*
-> + * Backward-compatible IOCTL's to be used by V4L2 core to work with the
-> + * old ioctl's defined with "enum's" inside the structures
-> + */
-> +
-> +#ifdef CONFIG_V4L2_COMPAT
-> +
-> +struct v4l2_pix_format_enum {
-> +	__u32			width;
-> +	__u32			height;
-> +	__u32			pixelformat;
-> +	enum v4l2_field		field;
-> +	__u32			bytesperline;	/* for padding, zero if unused */
-> +	__u32			sizeimage;
-> +	enum v4l2_colorspace	colorspace;
-> +	__u32			priv;		/* private data, depends on pixelformat */
-> +};
-> +
-> +struct v4l2_fmtdesc_enum {
-> +	__u32			index;             /* Format number      */
-> +	enum v4l2_buf_type	type;              /* buffer type        */
-> +	__u32			flags;
-> +	__u8			description[32];   /* Description string */
-> +	__u32			pixelformat;       /* Format fourcc      */
-> +	__u32			reserved[4];
-> +};
-> +
-> +struct v4l2_requestbuffers_enum {
-> +	__u32			count;
-> +	enum v4l2_buf_type	type;
-> +	enum v4l2_memory	memory;
-> +	__u32			reserved[2];
-> +};
-> +
-> +struct v4l2_buffer_enum {
-> +	__u32			index;
-> +	enum v4l2_buf_type	type;
-> +	__u32			bytesused;
-> +	__u32			flags;
-> +	enum v4l2_field		field;
-> +	struct timeval		timestamp;
-> +	struct v4l2_timecode	timecode;
-> +	__u32			sequence;
-> +
-> +	/* memory location */
-> +	enum v4l2_memory	memory;
-> +	union {
-> +		__u32		offset;
-> +		unsigned long	userptr;
-> +		struct v4l2_plane *planes;
-> +	} m;
-> +	__u32			length;
-> +	__u32			reserved2;
-> +	__u32			reserved;
-> +};
-> +
-> +struct v4l2_framebuffer_enum {
-> +	__u32			capability;
-> +	__u32			flags;
-> +/* FIXME: in theory we should pass something like PCI device + memory
-> + * region + offset instead of some physical address */
-> +	void			*base;
-> +	struct v4l2_pix_format_enum fmt;
-> +};
-> +
-> +struct v4l2_window_enum {
-> +	struct v4l2_rect	w;
-> +	enum v4l2_field		field;
-> +	__u32			chromakey;
-> +	struct v4l2_clip	__user *clips;
-> +	__u32			clipcount;
-> +	void			__user *bitmap;
-> +	__u8			global_alpha;
-> +};
-> +
-> +struct v4l2_cropcap_enum {
-> +	enum v4l2_buf_type	type;
-> +	struct v4l2_rect	bounds;
-> +	struct v4l2_rect	defrect;
-> +	struct v4l2_fract	pixelaspect;
-> +};
-> +
-> +struct v4l2_crop_enum {
-> +	enum v4l2_buf_type	type;
-> +	struct v4l2_rect	c;
-> +};
-> +
-> +struct v4l2_queryctrl_enum {
-> +	__u32			id;
-> +	enum v4l2_ctrl_type	type;
-> +	__u8			name[32];	/* Whatever */
-> +	__s32			minimum;	/* Note signedness */
-> +	__s32			maximum;
-> +	__s32			step;
-> +	__s32			default_value;
-> +	__u32			flags;
-> +	__u32			reserved[2];
-> +};
-> +
-> +struct v4l2_tuner_enum {
-> +	__u32			index;
-> +	__u8			name[32];
-> +	enum v4l2_tuner_type	type;
-> +	__u32			capability;
-> +	__u32			rangelow;
-> +	__u32			rangehigh;
-> +	__u32			rxsubchans;
-> +	__u32			audmode;
-> +	__s32			signal;
-> +	__s32			afc;
-> +	__u32			reserved[4];
-> +};
-> +
-> +struct v4l2_frequency_enum {
-> +	__u32			tuner;
-> +	enum v4l2_tuner_type	type;
-> +	__u32			frequency;
-> +	__u32			reserved[8];
-> +};
-> +
-> +struct v4l2_hw_freq_seek_enum {
-> +	__u32			tuner;
-> +	enum v4l2_tuner_type	type;
-> +	__u32			seek_upward;
-> +	__u32			wrap_around;
-> +	__u32			spacing;
-> +	__u32			reserved[7];
-> +};
-> +
-> +struct v4l2_sliced_vbi_cap_enum {
-> +	__u16	service_set;
-> +	/* service_lines[0][...] specifies lines 0-23 (1-23 used) of the first field
-> +	   service_lines[1][...] specifies lines 0-23 (1-23 used) of the second field
-> +				 (equals frame lines 313-336 for 625 line video
-> +				  standards, 263-286 for 525 line standards) */
-> +	__u16	service_lines[2][24];
-> +	enum v4l2_buf_type type;
-> +	__u32	reserved[3];    /* must be 0 */
-> +};
-> +
-> +struct v4l2_pix_format_mplane_enum {
-> +	__u32				width;
-> +	__u32				height;
-> +	__u32				pixelformat;
-> +	enum v4l2_field			field;
-> +	enum v4l2_colorspace		colorspace;
-> +
-> +	struct v4l2_plane_pix_format	plane_fmt[VIDEO_MAX_PLANES];
-> +	__u8				num_planes;
-> +	__u8				reserved[11];
-> +} __packed;
-> +
-> +struct v4l2_format_enum {
-> +	enum v4l2_buf_type type;
-> +	union {
-> +		struct v4l2_pix_format_enum	pix;     /* V4L2_BUF_TYPE_VIDEO_CAPTURE */
-> +		struct v4l2_pix_format_mplane_enum	pix_mp;  /* V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE */
-> +		struct v4l2_window_enum		win;     /* V4L2_BUF_TYPE_VIDEO_OVERLAY */
-> +		struct v4l2_vbi_format		vbi;     /* V4L2_BUF_TYPE_VBI_CAPTURE */
-> +		struct v4l2_sliced_vbi_format	sliced;  /* V4L2_BUF_TYPE_SLICED_VBI_CAPTURE */
-> +		__u8	raw_data[200];                   /* user-defined */
-> +	} fmt;
-> +};
-> +
-> +/*	Stream type-dependent parameters
-> + */
-> +struct v4l2_streamparm_enum {
-> +	enum v4l2_buf_type type;
-> +	union {
-> +		struct v4l2_captureparm	capture;
-> +		struct v4l2_outputparm	output;
-> +		__u8	raw_data[200];  /* user-defined */
-> +	} parm;
-> +};
-> +
-> +struct v4l2_create_buffers_enum {
-> +	__u32			index;
-> +	__u32			count;
-> +	enum v4l2_memory	memory;
-> +	struct v4l2_format_enum	format;
-> +	__u32			reserved[8];
-> +};
-> +
-> +#define VIDIOC_ENUM_FMT_ENUM		_IOWR('V',  2, struct v4l2_fmtdesc_enum)
-> +#define VIDIOC_G_FMT_ENUM		_IOWR('V',  4, struct v4l2_format_enum)
-> +#define VIDIOC_S_FMT_ENUM		_IOWR('V',  5, struct v4l2_format_enum)
-> +#define VIDIOC_REQBUFS_ENUM		_IOWR('V',  8, struct v4l2_requestbuffers_enum)
-> +#define VIDIOC_QUERYBUF_ENUM		_IOWR('V',  9, struct v4l2_buffer_enum)
-> +#define VIDIOC_G_FBUF_ENUM		_IOR('V', 10, struct v4l2_framebuffer_enum)
-> +#define VIDIOC_S_FBUF_ENUM		_IOW('V', 11, struct v4l2_framebuffer_enum)
-> +#define VIDIOC_QBUF_ENUM		_IOWR('V', 15, struct v4l2_buffer_enum)
-> +#define VIDIOC_DQBUF_ENUM		_IOWR('V', 17, struct v4l2_buffer_enum)
-> +#define VIDIOC_G_PARM_ENUM		_IOWR('V', 21, struct v4l2_streamparm_enum)
-> +#define VIDIOC_S_PARM_ENUM		_IOWR('V', 22, struct v4l2_streamparm_enum)
-> +#define VIDIOC_G_TUNER_ENUM		_IOWR('V', 29, struct v4l2_tuner_enum)
-> +#define VIDIOC_S_TUNER_ENUM		_IOW('V', 30, struct v4l2_tuner_enum)
-> +#define VIDIOC_QUERYCTRL_ENUM		_IOWR('V', 36, struct v4l2_queryctrl_enum)
-> +#define VIDIOC_G_FREQUENCY_ENUM		_IOWR('V', 56, struct v4l2_frequency_enum)
-> +#define VIDIOC_S_FREQUENCY_ENUM		_IOW('V', 57, struct v4l2_frequency_enum)
-> +#define VIDIOC_CROPCAP_ENUM		_IOWR('V', 58, struct v4l2_cropcap_enum)
-> +#define VIDIOC_G_CROP_ENUM		_IOWR('V', 59, struct v4l2_crop_enum)
-> +#define VIDIOC_S_CROP_ENUM		_IOW('V', 60, struct v4l2_crop_enum)
-> +#define VIDIOC_TRY_FMT_ENUM		_IOWR('V', 64, struct v4l2_format_enum)
-> +#define VIDIOC_G_SLICED_VBI_CAP_ENUM	_IOWR('V', 69, struct v4l2_sliced_vbi_cap_enum)
-> +#define VIDIOC_S_HW_FREQ_SEEK_ENUM	_IOW('V', 82, struct v4l2_hw_freq_seek_enum)
-> +#define VIDIOC_CREATE_BUFS_ENUM		_IOWR('V', 92, struct v4l2_create_buffers_enum)
-> +#define VIDIOC_PREPARE_BUF_ENUM		_IOWR('V', 93, struct v4l2_buffer_enum)
-> +#endif /* CONFIG_V4L2_COMPAT */
-> +
->  #endif /* _V4L2_IOCTL_H */
-> 
+>
+> 4) What should happen if you try to set the frequency while a seek is in operation?
+>   In that case -EBUSY should be returned by VIDIOC_S_FREQUENCY.
+>
+> 5) What should happen if you try to get the frequency while a seek is in operation?
+>   It would be nice if you could get the frequency that is currently being scanned.
+>
+>   There are two options to implement this:
+>
+>   a) Add a new 'scan_frequency' field to struct v4l2_frequency. So the frequency
+>      field would always contain the frequency that was set when the seek started,
+>      and the scan_frequency is either 0 (no seek is in progress), a special value
+>      V4L2_SCAN_IN_PROGRESS (seek is in progress, but the hardware can't tell what
+>      the current seek frequency is) or it contains the frequency that is currently
+>      being scanned.
+>
+>   b) Add a new V4L2_TUNER_CAP_HAS_SEEK_FREQ capability to struct v4l2_tuner. If
+>      set, then VIDIOC_G_FREQUENCY will return the scan frequency when scanning,
+>      otherwise it will return the normal frequency.
+>
+>   I think I like option a) better. It gives you all the information you need.
+Even I prefer option A here.
+>
+> 6) What does it mean when you get a time out? The spec just says 'Try again'. But
+>   try what? If it times out due to hardware issues, then a proper error should be
+>   returned. That leaves a time out due to the scan not finding any channels, but not
+>   reaching the end of the scan either (because that would be a ENODATA return code).
+>
+>   What should be the frequency in this case? The original frequency or the last
+>   scanned frequency? And on older hardware you may not be able to get that last scanned
+>   frequency.
+>
+>   I suggest one of two options:
+>
+>   a) Abolish the time out altogether. The driver author has to set the internal
+>      timeout to such a large value that if you time out, then you can just return
+>      -ENODATA.
+>
+>   b) Hardware that cannot detect the current scan frequency behaves as a). Hardware
+>      that can detect the scan frequency will return -EAGAIN, but sets the frequency
+>      at the last scanned frequency.
+>
+> 7) It would be nice if the ioctl was RW instead of just a write ioctl. That way the
+>   driver could report the proper spacing value that it used. I'm not entirely sure
+>   it is worth the effort at this moment though.
+>
+> Comments? Questions?
+>
+> Regards,
+>
+>        Hans
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
