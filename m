@@ -1,74 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rcsinet15.oracle.com ([148.87.113.117]:19367 "EHLO
-	rcsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760036Ab2EQHKz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 May 2012 03:10:55 -0400
-Date: Thu, 17 May 2012 10:10:51 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: linux-media@vger.kernel.org
-Cc: abraham.manu@gmail.com
-Subject: bug report: null dereference in error handling in mantis_dvb_init()
-Message-ID: <20120517071051.GF14660@elgon.mountain>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Received: from hermes.a1a-server.de ([62.146.15.7]:56380 "EHLO
+	hermes.a1a-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754737Ab2EALFQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 May 2012 07:05:16 -0400
+Subject: RDS help needed
+From: Matthias Bock <mail@matthiasbock.net>
+To: linux-media@vger.kernel.org, v4l2-library@linuxtv.org
+Content-Type: text/plain; charset="ISO-8859-15"
+Date: Tue, 01 May 2012 12:56:49 +0200
+Message-ID: <1335869809.4592.14.camel@localhost>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi there!
 
-I'm working on some new Smatch stuff and so I'm finding old bugs and
-emailing bug reports.
+I hacked a RDS TMC-message receiver to work on the serial port.
 
-----
-This is a semi-automatic email about new static checker warnings.
+http://www.matthiasbock.net/wiki/?title=Kategorie:GNS_TrafficBox_FM9_RDS_TMC-Receiver
 
-The patch 68fe255cd15c: "V4L/DVB (13799): [Mantis] Unregister 
-frontend" from Dec 4, 2009, leads to the following Smatch complaint:
+According to
+ http://linuxtv.org/wiki/index.php/Radio_Data_System_(RDS)
+already several different receivers are available for usage
+with Linux but development of the RDS message daemon,
+that would be required to collect, decode and distribute
+the RDS messages to client applications
+ http://rdsd.berlios.de/
+kindof stucked, didn't progress since 2009 (!)
 
-drivers/media/dvb/mantis/mantis_dvb.c:251 mantis_dvb_init()
-	 error: we previously assumed 'mantis->fe' could be null (see line 228)
+The available SVN sources only support
+SAA6588-based RDS receivers.
 
-drivers/media/dvb/mantis/mantis_dvb.c
-   227			} else {
-   228				if (mantis->fe == NULL) {
-   229					dprintk(MANTIS_ERROR, 1, "FE <NULL>");
-   230					goto err5;
+Is RDS support still an important task to
+someone on this list ?
 
-"mantis->fe" is NULL on this path.
+Is there someone, who would consider assisting me a little
+in writing some documentation on the RDS daemon project,
+some code maybe, lateron some linux kernel modules ?
 
-   231				}
-   232	
-   233				if (dvb_register_frontend(&mantis->dvb_adapter, mantis->fe)) {
-   234					dprintk(MANTIS_ERROR, 1, "ERROR: Frontend registration failed");
-   235	
-   236					if (mantis->fe->ops.release)
-   237						mantis->fe->ops.release(mantis->fe);
-   238	
-   239					mantis->fe = NULL;
+Cheers! Matthias
 
-And here.
-
-   240					goto err5;
-   241				}
-   242			}
-   243		}
-   244	
-   245		return 0;
-   246	
-   247		/* Error conditions ..	*/
-   248	err5:
-   249		tasklet_kill(&mantis->tasklet);
-   250		dvb_net_release(&mantis->dvbnet);
-   251		dvb_unregister_frontend(mantis->fe);
-                ^^^^^^^^^^^^^^^^^^^^^^^
-This new call to dvb_unregister_frontend() was added but it can't handle
-NULL pointers.
-
-   252		dvb_frontend_detach(mantis->fe);
-   253	err4:
-
-regards,
-dan carpenter
 
