@@ -1,62 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:43037 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751601Ab2ELE6y (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 12 May 2012 00:58:54 -0400
-Received: by wgbdr13 with SMTP id dr13so3057733wgb.1
-        for <linux-media@vger.kernel.org>; Fri, 11 May 2012 21:58:53 -0700 (PDT)
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:2256 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754329Ab2EAJqs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 May 2012 05:46:48 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "linux-media" <linux-media@vger.kernel.org>
+Subject: RFC: Improve VIDIOC_S_HW_FREQ_SEEK
+Date: Tue, 1 May 2012 11:46:30 +0200
+Cc: Ondrej Zary <linux@rainbow-software.org>,
+	Joonyoung Shim <jy0922.shim@samsung.com>,
+	Tobias Lorenz <tobias.lorenz@gmx.net>,
+	"Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>,
+	Manjunatha Halli <manjunatha_halli@ti.com>
 MIME-Version: 1.0
-Date: Sat, 12 May 2012 14:58:52 +1000
-Message-ID: <CA+i0-i8mZ6Wn4r71MRQoOGSRyj8LhmqYWpUW=K2jq0S1QU9Msw@mail.gmail.com>
-Subject: Attempting to get Kworld PE355-2T working: where can I get the
- current NXT SAA716x work?
-From: Robert Backhaus <robbak@robbak.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201205011146.30295.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I am trying to see what I can do to get the Kworld PE355-2T PCIe Dual
-DVB-T card working. I've put all the details I can find up at
-http://www.linuxtv.org/wiki/index.php/Kworld_pe355-2T_PCI-E_Dual_DVB-T_TV_Card_Pro
+Hi all!
 
-The first step is to get the current experimental NXT SAA716x drivers,
-but I cannot find them. Can anyone point me in the right direction?
+While working on a test function for the hardware seek functionality in
+v4l2-compliance I realized that the specification is rather vague and
+incomplete, making it hard to write a decent test for it.
 
-For completeness:
-$ uname -a
-Linux mythtv-server 3.2.0-24-generic #37-Ubuntu SMP Wed Apr 25
-08:43:52 UTC 2012 i686 i686 i386 GNU/Linux
-$ sudo lspci -vvvnn -s03:00.0
-03:00.0 Multimedia controller [0480]: Philips Semiconductors SAA7160
-[1131:7160] (rev 03)
-	Subsystem: KWorld Computer Co. Ltd. Device [17de:7547]
-	Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-
-Stepping- SERR- FastB2B- DisINTx-
-	Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort-
-<TAbort- <MAbort- >SERR- <PERR- INTx-
-	Latency: 0, Cache Line Size: 32 bytes
-	Interrupt: pin A routed to IRQ 11
-	Region 0: Memory at fea00000 (64-bit, non-prefetchable) [size=1M]
-	Capabilities: [40] MSI: Enable- Count=1/32 Maskable- 64bit+
-		Address: 0000000000000000  Data: 0000
-	Capabilities: [50] Express (v1) Endpoint, MSI 00
-		DevCap:	MaxPayload 128 bytes, PhantFunc 0, Latency L0s <256ns, L1 <1us
-			ExtTag- AttnBtn- AttnInd- PwrInd- RBE- FLReset-
-		DevCtl:	Report errors: Correctable- Non-Fatal- Fatal- Unsupported-
-			RlxdOrd+ ExtTag- PhantFunc- AuxPwr- NoSnoop-
-			MaxPayload 128 bytes, MaxReadReq 128 bytes
-		DevSta:	CorrErr- UncorrErr+ FatalErr- UnsuppReq+ AuxPwr- TransPend-
-		LnkCap:	Port #1, Speed 2.5GT/s, Width x1, ASPM L0s L1, Latency L0
-<4us, L1 <64us
-			ClockPM- Surprise- LLActRep- BwNot-
-		LnkCtl:	ASPM Disabled; RCB 128 bytes Disabled- Retrain- CommClk-
-			ExtSynch- ClockPM- AutWidDis- BWInt- AutBWInt-
-		LnkSta:	Speed 2.5GT/s, Width x1, TrErr- Train- SlotClk- DLActive-
-BWMgmt- ABWMgmt-
-	Capabilities: [74] Power Management version 2
-		Flags: PMEClk- DSI- D1+ D2+ AuxCurrent=0mA PME(D0+,D1+,D2+,D3hot-,D3cold-)
-		Status: D0 NoSoftRst- PME-Enable- DSel=0 DScale=0 PME-
-	Capabilities: [80] Vendor Specific Information: Len=50 <?>
-	Capabilities: [100 v1] Vendor Specific Information: ID=0000 Rev=0 Len=088 <?>
+There are a number of issues with this API:
+
+1) There is no way for the application to know whether the hardware supports
+   wrap around scanning or not (or both). It is only reported because the
+   ioctl will return EINVAL if it doesn't support it, which is rather awkward.
+   It's important for applications to know what to do here.
+
+   The solution would be to add two new capability flags to struct v4l2_tuner:
+   V4L2_TUNER_CAP_SEEK_BOUNDED and V4L2_TUNER_CAP_SEEK_WRAP.
+
+2) What happens when the seek didn't find anything? It's not a timeout, it has
+   to return some decent error code. I propose ENODATA for this.
+
+3) What should the frequency be if the seek returns an error? I think the original
+   frequency should be restored in that case.
+
+4) What should happen if you try to set the frequency while a seek is in operation?
+   In that case -EBUSY should be returned by VIDIOC_S_FREQUENCY.
+
+5) What should happen if you try to get the frequency while a seek is in operation?
+   It would be nice if you could get the frequency that is currently being scanned.
+
+   There are two options to implement this:
+
+   a) Add a new 'scan_frequency' field to struct v4l2_frequency. So the frequency
+      field would always contain the frequency that was set when the seek started,
+      and the scan_frequency is either 0 (no seek is in progress), a special value
+      V4L2_SCAN_IN_PROGRESS (seek is in progress, but the hardware can't tell what
+      the current seek frequency is) or it contains the frequency that is currently
+      being scanned.
+
+   b) Add a new V4L2_TUNER_CAP_HAS_SEEK_FREQ capability to struct v4l2_tuner. If
+      set, then VIDIOC_G_FREQUENCY will return the scan frequency when scanning,
+      otherwise it will return the normal frequency.
+
+   I think I like option a) better. It gives you all the information you need.
+
+6) What does it mean when you get a time out? The spec just says 'Try again'. But
+   try what? If it times out due to hardware issues, then a proper error should be
+   returned. That leaves a time out due to the scan not finding any channels, but not
+   reaching the end of the scan either (because that would be a ENODATA return code).
+
+   What should be the frequency in this case? The original frequency or the last
+   scanned frequency? And on older hardware you may not be able to get that last scanned
+   frequency.
+
+   I suggest one of two options:
+
+   a) Abolish the time out altogether. The driver author has to set the internal
+      timeout to such a large value that if you time out, then you can just return
+      -ENODATA.
+
+   b) Hardware that cannot detect the current scan frequency behaves as a). Hardware
+      that can detect the scan frequency will return -EAGAIN, but sets the frequency
+      at the last scanned frequency.
+
+7) It would be nice if the ioctl was RW instead of just a write ioctl. That way the
+   driver could report the proper spacing value that it used. I'm not entirely sure
+   it is worth the effort at this moment though.
+
+Comments? Questions?
+
+Regards,
+
+	Hans
