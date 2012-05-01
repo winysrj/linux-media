@@ -1,86 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:46191 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754520Ab2EXMOg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 May 2012 08:14:36 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: text/plain; charset=us-ascii
-Received: from euspt1 ([210.118.77.13]) by mailout3.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0M4J006WN0MU9O50@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 24 May 2012 13:13:42 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0M4J00F6V0O808@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 24 May 2012 13:14:33 +0100 (BST)
-Date: Thu, 24 May 2012 14:14:29 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: RE: [Q] vb2 userptr: struct vb2_ops::buf_cleanup() is called without
- buf_init()
-In-reply-to: <1400345.yHxUgq6vV0@avalon>
-To: 'Laurent Pinchart' <laurent.pinchart@ideasonboard.com>,
-	'Guennadi Liakhovetski' <g.liakhovetski@gmx.de>
-Cc: 'Linux Media Mailing List' <linux-media@vger.kernel.org>,
-	'Pawel Osciak' <pawel@osciak.com>
-Message-id: <01db01cd39a6$c4b84f20$4e28ed60$%szyprowski@samsung.com>
-Content-language: pl
-References: <Pine.LNX.4.64.1205210902060.30522@axis700.grange>
- <1400345.yHxUgq6vV0@avalon>
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:47488 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757924Ab2EAR62 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 May 2012 13:58:28 -0400
+Received: by bkcji2 with SMTP id ji2so1095216bkc.19
+        for <linux-media@vger.kernel.org>; Tue, 01 May 2012 10:58:25 -0700 (PDT)
+Message-ID: <4FA02440.806@gmail.com>
+Date: Tue, 01 May 2012 19:58:24 +0200
+From: Sylwester Nawrocki <snjw23@gmail.com>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	sakari.ailus@iki.fi, g.liakhovetski@gmx.de, hdegoede@redhat.com,
+	moinejf@free.fr, m.szyprowski@samsung.com,
+	riverful.kim@samsung.com, sw0312.kim@samsung.com
+Subject: Re: [PATCH/RFC v3 00/14] V4L camera control enhancements
+References: <1335536611-4298-1-git-send-email-s.nawrocki@samsung.com> <201204301811.40034.hverkuil@xs4all.nl>
+In-Reply-To: <201204301811.40034.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hi Hans,
 
-Thanks for CC.
-
-On Tuesday, May 22, 2012 6:22 PM Laurent Pinchart wrote:
-
-> Hi Guennadi,
+On 04/30/2012 06:11 PM, Hans Verkuil wrote:
+> Hi Sylwester!
 > 
-> (CC'ing Pawel and Marek)
+> I've finished my review. You made excellent documentation for the new controls!
+
+Thank you, and thanks for your time! :-) It took me quite a few hours to prepare 
+it, and lack of proper sensor datasheets didn't make this task any easier.
+
+> Other than some small stuff the only thing I am unhappy about is the use of menu
+> controls for what are currently just boolean controls.
 > 
-> On Monday 21 May 2012 10:30:19 Guennadi Liakhovetski wrote:
-> > Hi
-> >
-> > A recent report
-> >
-> > http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/47594
-> >
-> > has revealed the following asymmetry in how videobuf2 functions:
-> >
-> > as is also documented in videobuf2-core.h, the user's struct
-> > vb2_ops::buf_init() method in the MMAP case is called after allocating the
-> > respective buffer, which happens at REQBUFS time, in the USERPTR case it
-> > is called after acquiring a new buffer at QBUF time. If the allocation in
-> > MMAP case fails, the respective buffer simply doesn't get created.
-> > However, if acquiring a new USERPTR buffer at QBUF time fails, the buffer
-> > object remains on the queue, but the user-provided .buf_init() method is
-> > not called for it. When the queue is destroyed, the user's .buf_cleanup()
-> > method is called on an uninitialised buffer. This is exactly the reason
-> > for the BUG() in the above referenced report.
-> >
-> > Therefore my question: is this videobuf2-core behaviour really correct and
-> > we should be prepared in .buf_cleanup() to process uninitialised buffers,
-> > or should the videobuf2-core be adjusted?
-> 
-> From a driver's point of view, it would make sense not to call .buf_cleanup()
-> if .buf_init() hasn't been called. Otherwise each driver would need to check
-> whether the buffer has been initialized, which would lead to code duplication.
-> 
-> A new buffer state would help tracking this in the vb2 core. I haven't tried
-> to implement it though, so I might be underestimating the effort.
+> I am inclined to make them boolean controls and add a comment that they may be
+> changed to menu controls in the future. That shouldn't be a problem as long as 
+> the control values 0 and 1 retain their meaning.
 
-That's definitely a bug in videobuf2. The initial idea was to call buf_cleanup 
-only if buf_init has been called earlier for the given buffer. Like Laurent 
-pointed out a new buffer state might help in resolving all possible cases, 
-especially if you consider that vb2_queue_release might be called almost at any
-point in the buffer state machine.
+OK, I like the idea. The menus looked rather ugly, I agree. I'll revert 
+those controls back to a boolean type and add a small note in the 
+documentation. In fact this solves one of the major open issues I had.
 
-Best regards
--- 
-Marek Szyprowski
-Samsung Poland R&D Center
+I tried to align start of second columns in the nested 2-column tables
+(<entrytbl></entrytbl>) containing a menu item identifiers and their
+description. I tried 'align', 'colspec', 'spanspec' but could get 
+expected results and I gave up, spending hours on modify/re-compile.
+I couldn't even enable the column border inside 'entrytbl'. I could 
+only align the columns by getting rid of 'entrytbl', but that's not
+a solution. It doesn't look that bad with different indentation at
+each control's description after all, maybe I'll find some time to 
+dig in it later.
 
+I'm going to incorporate all comments and resend whole patch set at 
+end of the week.
 
+--
+
+Regards,
+Sylwester
