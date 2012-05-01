@@ -1,65 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:58074 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752749Ab2ETJ42 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 20 May 2012 05:56:28 -0400
-Received: by bkcji2 with SMTP id ji2so3241504bkc.19
-        for <linux-media@vger.kernel.org>; Sun, 20 May 2012 02:56:27 -0700 (PDT)
-Message-ID: <4FB8BFC9.2080704@googlemail.com>
-Date: Sun, 20 May 2012 11:56:25 +0200
-From: Thomas Mair <thomas.mair86@googlemail.com>
-MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: linux-media@vger.kernel.org, pomidorabelisima@gmail.com
-Subject: Re: [PATCH v5 0/5] support for rtl2832
-References: <1> <1337366864-1256-1-git-send-email-thomas.mair86@googlemail.com> <4FB6B55D.4060500@iki.fi>
-In-Reply-To: <4FB6B55D.4060500@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from smtp1-g21.free.fr ([212.27.42.1]:43753 "EHLO smtp1-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754197Ab2EAK13 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 May 2012 06:27:29 -0400
+Date: Tue, 1 May 2012 12:28:30 +0200
+From: Jean-Francois Moine <moinejf@free.fr>
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Subject: Re: [RFCv1 PATCH 0/7] gspca: allow use of control framework and
+ other fixes
+Message-ID: <20120501122830.2c4d4cbe@tele>
+In-Reply-To: <4F9E73F7.6040207@redhat.com>
+References: <1335625796-9429-1-git-send-email-hverkuil@xs4all.nl>
+	<4F9E73F7.6040207@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 18.05.2012 22:47, Antti Palosaari wrote:
-> Good evening!
-> 
-> On 18.05.2012 21:47, Thomas Mair wrote:
->> Good Evening!
->>
->> This is the corrected version of the patch series to support the
->> RTL2832 demodulator. There where no major changes. The majority of
->> the changes consist in fixing style issues and adhering to proper
->> naming conventions.
-> 
-> Review done and seems to be OK for my eyes.
+On Mon, 30 Apr 2012 13:13:59 +0200
+Hans de Goede <hdegoede@redhat.com> wrote:
 
-Thanks Antti! You have been a big help for developing the driver.
-What are the next steps? I think the fc0012 and fc0013 driver 
-need to be reviewed before the patch may be included in 
-staging. Is that the way it works?
- 
->> The next question for me is how to proceed when including new
->> devices. Poma already sent an extensive list a little while
->> ago (http://patchwork.linuxtv.org/patch/10982/). Should they
->> all be included at once, or should I wait until somone confirms
->> they are working correctly and include them one by one?
-> 
-> It has been rule that device is added after known to work.
-> 
+> I'll review this and add these to my tree. Jean-Francois, is it ok for these changes
+> to go upstream through my tree? The reason I'm asking is that I plan to convert
+> more subdrivers to the control framework for 3.5 and its easiest to have this all
+> in one tree then.
 
-That sounds good to me. In the meantime I will try to set up a 
-page for the driver on the linuxtv.org wiki to keep information
-about the driver and the devices in one place.
+Hi Hans,
 
-> Unfortunately DVB USB do not support dynamic USB ID. In order to workaround that I have done some small hackish solution for the dvb_usb_rtl28xxu driver. Currently it works for RTL2831U based devices, but I see it could be easily extended for RTL2832U too by adding module parameter.
-> 
+As you know, I don't like them, but no matter, I am a bit tired
+about the webcams (4 years now) and I'd be glad to change for new
+applications (wayland, haiku, ARM?). Is anybody interested in
+maintaining the gspca stuff?
 
-If I understand it right, the problem is that the tuner/demod 
-combination is also hard coded in the dvb_usb_rtl28xxu driver?
+Regards.
 
-> regards
-> Antti
-
-Regards
-Thomas
-
+-- 
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
