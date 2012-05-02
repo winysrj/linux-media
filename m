@@ -1,91 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:37895 "EHLO mail.kapsi.fi"
+Received: from smtp1-g21.free.fr ([212.27.42.1]:50035 "EHLO smtp1-g21.free.fr"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965941Ab2EOWcq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 May 2012 18:32:46 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH] rtl2830: implement .read_snr()
-Date: Wed, 16 May 2012 01:32:33 +0300
-Message-Id: <1337121153-16982-1-git-send-email-crope@iki.fi>
+	id S1752124Ab2EBGq6 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 May 2012 02:46:58 -0400
+Date: Wed, 2 May 2012 08:47:58 +0200
+From: Jean-Francois Moine <moinejf@free.fr>
+To: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: Re: [patch] [media] gspca: passing wrong length parameter to
+ reg_w()
+Message-ID: <20120502084758.1a08823f@tele>
+In-Reply-To: <20120502061525.GC28894@elgon.mountain>
+References: <20120502061525.GC28894@elgon.mountain>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Reports value as a 0.1 dB.
+On Wed, 2 May 2012 09:15:25 +0300
+Dan Carpenter <dan.carpenter@oracle.com> wrote:
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/dvb/frontends/rtl2830.c      |   42 +++++++++++++++++++++++++++-
- drivers/media/dvb/frontends/rtl2830_priv.h |    1 +
- 2 files changed, 42 insertions(+), 1 deletions(-)
+> This looks like a cut an paste error.  This is a two byte array but we
+> use 8 as a length parameter.
+> 
+> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+> ---
+> This is a static checker fix.  I don't own the hardware.
+> 
+> diff --git a/drivers/media/video/gspca/conex.c b/drivers/media/video/gspca/conex.c
+> index ea17b5d..f39fee0 100644
+> --- a/drivers/media/video/gspca/conex.c
+> +++ b/drivers/media/video/gspca/conex.c
+> @@ -306,7 +306,7 @@ static void cx_sensor(struct gspca_dev*gspca_dev)
+>  
+>  	reg_w(gspca_dev, 0x0020, reg20, 8);
+>  	reg_w(gspca_dev, 0x0028, reg28, 8);
+> -	reg_w(gspca_dev, 0x0010, reg10, 8);
+> +	reg_w(gspca_dev, 0x0010, reg10, 2);
+>  	reg_w_val(gspca_dev, 0x0092, 0x03);
+>  
+>  	switch (gspca_dev->cam.cam_mode[(int) gspca_dev->curr_mode].priv) {
+> @@ -326,7 +326,7 @@ static void cx_sensor(struct gspca_dev*gspca_dev)
+>  	}
+>  	reg_w(gspca_dev, 0x007b, reg7b, 6);
+>  	reg_w_val(gspca_dev, 0x00f8, 0x00);
+> -	reg_w(gspca_dev, 0x0010, reg10, 8);
+> +	reg_w(gspca_dev, 0x0010, reg10, 2);
+>  	reg_w_val(gspca_dev, 0x0098, 0x41);
+>  	for (i = 0; i < 11; i++) {
+>  		if (i == 3 || i == 5 || i == 8)
 
-diff --git a/drivers/media/dvb/frontends/rtl2830.c b/drivers/media/dvb/frontends/rtl2830.c
-index 45196c5..bd18dbe 100644
---- a/drivers/media/dvb/frontends/rtl2830.c
-+++ b/drivers/media/dvb/frontends/rtl2830.c
-@@ -404,8 +404,48 @@ err:
- 
- static int rtl2830_read_snr(struct dvb_frontend *fe, u16 *snr)
- {
--	*snr = 0;
-+	struct rtl2830_priv *priv = fe->demodulator_priv;
-+	int ret, hierarchy, constellation;
-+	u8 buf[2], tmp;
-+	u16 tmp16;
-+#define CONSTELLATION_NUM 3
-+#define HIERARCHY_NUM 4
-+	static const u32 snr_constant[CONSTELLATION_NUM][HIERARCHY_NUM] = {
-+		{ 70705899, 70705899, 70705899, 70705899 },
-+		{ 82433173, 82433173, 87483115, 94445660 },
-+		{ 92888734, 92888734, 95487525, 99770748 },
-+	};
-+
-+	/* reports SNR in resolution of 0.1 dB */
-+
-+	ret = rtl2830_rd_reg(priv, 0x33c, &tmp);
-+	if (ret)
-+		goto err;
-+
-+	constellation = (tmp >> 2) & 0x03; /* [3:2] */
-+	if (constellation > CONSTELLATION_NUM - 1)
-+		goto err;
-+
-+	hierarchy = (tmp >> 4) & 0x03; /* [5:4] */
-+	if (hierarchy > HIERARCHY_NUM - 1)
-+		goto err;
-+
-+	ret = rtl2830_rd_regs(priv, 0x40c, buf, 2);
-+	if (ret)
-+		goto err;
-+
-+	tmp16 = buf[0] << 8 | buf[1];
-+
-+	if (tmp16)
-+		*snr = (snr_constant[constellation][hierarchy] -
-+				intlog10(tmp16)) / ((1 << 24) / 100);
-+	else
-+		*snr = 0;
-+
- 	return 0;
-+err:
-+	dbg("%s: failed=%d", __func__, ret);
-+	return ret;
- }
- 
- static int rtl2830_read_ber(struct dvb_frontend *fe, u32 *ber)
-diff --git a/drivers/media/dvb/frontends/rtl2830_priv.h b/drivers/media/dvb/frontends/rtl2830_priv.h
-index 4a46476..9b20557 100644
---- a/drivers/media/dvb/frontends/rtl2830_priv.h
-+++ b/drivers/media/dvb/frontends/rtl2830_priv.h
-@@ -22,6 +22,7 @@
- #define RTL2830_PRIV_H
- 
- #include "dvb_frontend.h"
-+#include "dvb_math.h"
- #include "rtl2830.h"
- 
- #define LOG_PREFIX "rtl2830"
+Hi Dan,
+
+Thanks for the patch. The bug is very very old (6 years, at least -
+neither have I such a webcam).
+
+Maybe the fix could have been
+
+	reg_w(gspca_dev, 0x0010, reg10, sizeof reg10);
+
+but it is OK for me.
+
+Acked-by: Jean-Francois Moine <http://moinejf.free.fr>
+
 -- 
-1.7.7.6
-
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
