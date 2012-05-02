@@ -1,171 +1,290 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:44273 "EHLO
-	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932960Ab2EWJyv (ORCPT
+Received: from na3sys009aog136.obsmtp.com ([74.125.149.85]:42812 "EHLO
+	na3sys009aog136.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754573Ab2EBPQY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 May 2012 05:54:51 -0400
-Subject: [PATCH 08/43] rc-core: use a device table rather than an atomic number
+	Wed, 2 May 2012 11:16:24 -0400
+Received: by obhx4 with SMTP id x4so1351991obh.34
+        for <linux-media@vger.kernel.org>; Wed, 02 May 2012 08:16:23 -0700 (PDT)
+From: Sergio Aguirre <saaguirre@ti.com>
 To: linux-media@vger.kernel.org
-From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
-Cc: mchehab@redhat.com, jarod@redhat.com
-Date: Wed, 23 May 2012 11:42:42 +0200
-Message-ID: <20120523094242.14474.68002.stgit@felix.hardeman.nu>
-In-Reply-To: <20120523094157.14474.24367.stgit@felix.hardeman.nu>
-References: <20120523094157.14474.24367.stgit@felix.hardeman.nu>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Cc: linux-omap@vger.kernel.org, Sergio Aguirre <saaguirre@ti.com>
+Subject: [PATCH v3 08/10] arm: omap4panda: Add support for omap4iss camera
+Date: Wed,  2 May 2012 10:15:47 -0500
+Message-Id: <1335971749-21258-9-git-send-email-saaguirre@ti.com>
+In-Reply-To: <1335971749-21258-1-git-send-email-saaguirre@ti.com>
+References: <1335971749-21258-1-git-send-email-saaguirre@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch changes rc-core to use a device table rather than atomic integers
-to assign unique numbers to each rc device. This is in preparation for
-introducing rc-core chardevs.
+This adds support for camera interface with the support for
+following sensors:
 
-Signed-off-by: David Härdeman <david@hardeman.nu>
+- OV5640
+- OV5650
+
+Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
 ---
- drivers/media/rc/ir-raw.c  |    2 +-
- drivers/media/rc/rc-main.c |   41 +++++++++++++++++++++++++++++++++++------
- include/media/rc-core.h    |    4 ++--
- 3 files changed, 38 insertions(+), 9 deletions(-)
+ arch/arm/mach-omap2/Kconfig                   |   16 ++
+ arch/arm/mach-omap2/Makefile                  |    1 +
+ arch/arm/mach-omap2/board-omap4panda-camera.c |  209 +++++++++++++++++++++++++
+ 3 files changed, 226 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/board-omap4panda-camera.c
 
-diff --git a/drivers/media/rc/ir-raw.c b/drivers/media/rc/ir-raw.c
-index 6b3c9e5..7729abe 100644
---- a/drivers/media/rc/ir-raw.c
-+++ b/drivers/media/rc/ir-raw.c
-@@ -268,7 +268,7 @@ int ir_raw_event_register(struct rc_dev *dev)
+diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
+index 54645aa..4b267a6 100644
+--- a/arch/arm/mach-omap2/Kconfig
++++ b/arch/arm/mach-omap2/Kconfig
+@@ -359,6 +359,22 @@ config MACH_OMAP4_PANDA
+ 	select OMAP_PACKAGE_CBS
+ 	select REGULATOR_FIXED_VOLTAGE if REGULATOR
  
- 	spin_lock_init(&dev->raw->lock);
- 	dev->raw->thread = kthread_run(ir_raw_event_thread, dev->raw,
--				       "rc%ld", dev->devno);
-+				       "rc%u", dev->minor);
- 
- 	if (IS_ERR(dev->raw->thread)) {
- 		rc = PTR_ERR(dev->raw->thread);
-diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-index 6e02314..8da7701 100644
---- a/drivers/media/rc/rc-main.c
-+++ b/drivers/media/rc/rc-main.c
-@@ -24,6 +24,7 @@
- /* Sizes are in bytes, 256 bytes allows for 32 entries on x64 */
- #define IR_TAB_MIN_SIZE	256
- #define IR_TAB_MAX_SIZE	8192
-+#define RC_DEV_MAX	32
- 
- /* FIXME: IR_KEYPRESS_TIMEOUT should be protocol specific */
- #define IR_KEYPRESS_TIMEOUT 250
-@@ -32,6 +33,10 @@
- static LIST_HEAD(rc_map_list);
- static DEFINE_SPINLOCK(rc_map_lock);
- 
-+/* Various bits and pieces to keep track of rc devices */
-+static struct rc_dev *rc_dev_table[RC_DEV_MAX];
-+static DEFINE_MUTEX(rc_dev_table_mutex);
++config MACH_OMAP4_PANDA_CAMERA_SUPPORT
++	bool "OMAP4 Panda Board Camera support"
++	depends on MACH_OMAP4_PANDA
++	select MEDIA_SUPPORT
++	select MEDIA_CONTROLLER
++	select VIDEO_DEV
++	select VIDEO_V4L2_SUBDEV_API
++	select V4L_PLATFORM_DRIVERS
++	select VIDEO_OMAP4
++	select VIDEO_OV5640
++	select VIDEO_OV5650
++	help
++	  Enable Camera HW support for PandaBoard.
++	  This is for using the OMAP4 ISS CSI2A Camera sensor
++	  interface.
 +
- static struct rc_map_list *seek_rc_map(const char *name)
- {
- 	struct rc_map_list *map = NULL;
-@@ -1138,10 +1143,10 @@ EXPORT_SYMBOL_GPL(rc_free_device);
- int rc_register_device(struct rc_dev *dev)
- {
- 	static bool raw_init = false; /* raw decoders loaded? */
--	static atomic_t devno = ATOMIC_INIT(0);
- 	struct rc_map *rc_map;
- 	const char *path;
- 	int rc;
-+	unsigned int i;
+ config OMAP3_EMU
+ 	bool "OMAP3 debugging peripherals"
+ 	depends on ARCH_OMAP3
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index ebd8f63..e6724c4 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -240,6 +240,7 @@ obj-$(CONFIG_MACH_TI8148EVM)		+= board-ti8168evm.o
+ # Platform specific device init code
  
- 	if (!dev || !dev->map_name)
- 		return -EINVAL;
-@@ -1161,6 +1166,26 @@ int rc_register_device(struct rc_dev *dev)
- 	if (dev->close)
- 		dev->input_dev->close = ir_close;
+ obj-$(CONFIG_MACH_OMAP_4430SDP_CAMERA_SUPPORT)	+= board-4430sdp-camera.o
++obj-$(CONFIG_MACH_OMAP4_PANDA_CAMERA_SUPPORT)	+= board-omap4panda-camera.o
  
-+	rc = mutex_lock_interruptible(&rc_dev_table_mutex);
-+	if (rc)
-+		return rc;
+ omap-flash-$(CONFIG_MTD_NAND_OMAP2)	:= board-flash.o
+ omap-flash-$(CONFIG_MTD_ONENAND_OMAP2)	:= board-flash.o
+diff --git a/arch/arm/mach-omap2/board-omap4panda-camera.c b/arch/arm/mach-omap2/board-omap4panda-camera.c
+new file mode 100644
+index 0000000..a5f7863
+--- /dev/null
++++ b/arch/arm/mach-omap2/board-omap4panda-camera.c
+@@ -0,0 +1,209 @@
++#include <linux/gpio.h>
++#include <linux/clk.h>
++#include <linux/delay.h>
 +
-+	for (i = 0; i < ARRAY_SIZE(rc_dev_table); i++) {
-+		if (!rc_dev_table[i]) {
-+			rc_dev_table[i] = dev;
-+			break;
++#include <plat/i2c.h>
++#include <plat/omap-pm.h>
++
++#include <asm/mach-types.h>
++
++#include <media/ov5640.h>
++#include <media/ov5650.h>
++
++#include "devices.h"
++#include "../../../drivers/media/video/omap4iss/iss.h"
++
++#include "control.h"
++#include "mux.h"
++
++#define PANDA_GPIO_CAM_PWRDN		45
++#define PANDA_GPIO_CAM_RESET		83
++
++static struct clk *panda_cam_aux_clk;
++
++static int panda_ov_power(struct v4l2_subdev *subdev, int on)
++{
++	struct device *dev = subdev->v4l2_dev->dev;
++
++	if (on) {
++		int ret;
++
++		gpio_set_value(PANDA_GPIO_CAM_PWRDN, 0);
++		ret = clk_enable(panda_cam_aux_clk);
++		if (ret) {
++			dev_err(dev,
++				"Error in clk_enable() in %s(%d)\n",
++				__func__, on);
++			gpio_set_value(PANDA_GPIO_CAM_PWRDN, 1);
++			return ret;
 +		}
++		mdelay(2);
++	} else {
++		clk_disable(panda_cam_aux_clk);
++		gpio_set_value(PANDA_GPIO_CAM_PWRDN, 1);
 +	}
 +
-+	mutex_unlock(&rc_dev_table_mutex);
++	return 0;
++}
 +
-+	if (i >= ARRAY_SIZE(rc_dev_table))
-+		return -ENFILE;
++#define OV5640_I2C_ADDRESS   (0x3C)
 +
-+	dev->minor = i;
-+	dev_set_name(&dev->dev, "rc%u", dev->minor);
-+	dev_set_drvdata(&dev->dev, dev);
++static struct ov5640_platform_data ov5640_platform_data = {
++      .s_power = panda_ov_power,
++};
 +
- 	/*
- 	 * Take the lock here, as the device sysfs node will appear
- 	 * when device_add() is called, which may trigger an ir-keytable udev
-@@ -1170,9 +1195,6 @@ int rc_register_device(struct rc_dev *dev)
- 	 */
- 	mutex_lock(&dev->lock);
- 
--	dev->devno = (unsigned long)(atomic_inc_return(&devno) - 1);
--	dev_set_name(&dev->dev, "rc%ld", dev->devno);
--	dev_set_drvdata(&dev->dev, dev);
- 	rc = device_add(&dev->dev);
- 	if (rc)
- 		goto out_unlock;
-@@ -1231,8 +1253,8 @@ int rc_register_device(struct rc_dev *dev)
- 
- 	mutex_unlock(&dev->lock);
- 
--	IR_dprintk(1, "Registered rc%ld (driver: %s, remote: %s, mode %s)\n",
--		   dev->devno,
-+	IR_dprintk(1, "Registered rc%u (driver: %s, remote: %s, mode %s)\n",
-+		   dev->minor,
- 		   dev->driver_name ? dev->driver_name : "unknown",
- 		   rc_map->name ? rc_map->name : "unknown",
- 		   dev->driver_type == RC_DRIVER_IR_RAW ? "raw" : "cooked");
-@@ -1251,6 +1273,9 @@ out_dev:
- 	device_del(&dev->dev);
- out_unlock:
- 	mutex_unlock(&dev->lock);
-+	mutex_lock(&rc_dev_table_mutex);
-+	rc_dev_table[dev->minor] = NULL;
-+	mutex_unlock(&rc_dev_table_mutex);
- 	return rc;
- }
- EXPORT_SYMBOL_GPL(rc_register_device);
-@@ -1260,6 +1285,10 @@ void rc_unregister_device(struct rc_dev *dev)
- 	if (!dev)
- 		return;
- 
-+	mutex_lock(&rc_dev_table_mutex);
-+	rc_dev_table[dev->minor] = NULL;
-+	mutex_unlock(&rc_dev_table_mutex);
++static struct i2c_board_info ov5640_camera_i2c_device = {
++	I2C_BOARD_INFO("ov5640", OV5640_I2C_ADDRESS),
++	.platform_data = &ov5640_platform_data,
++};
 +
- 	del_timer_sync(&dev->timer_keyup);
- 
- 	if (dev->driver_type == RC_DRIVER_IR_RAW)
-diff --git a/include/media/rc-core.h b/include/media/rc-core.h
-index 0045292..1d4f5a0 100644
---- a/include/media/rc-core.h
-+++ b/include/media/rc-core.h
-@@ -63,7 +63,7 @@ struct rc_keymap_entry {
-  * @rc_map: current scan/key table
-  * @lock: used to ensure we've filled in all protocol details before
-  *	anyone can call show_protocols or store_protocols
-- * @devno: unique remote control device number
-+ * @minor: unique minor remote control device number
-  * @raw: additional data for raw pulse/space devices
-  * @input_dev: the input child device used to communicate events to userspace
-  * @driver_type: specifies if protocol decoding is done in hardware or software
-@@ -111,7 +111,7 @@ struct rc_dev {
- 	const char			*map_name;
- 	struct rc_map			rc_map;
- 	struct mutex			lock;
--	unsigned long			devno;
-+	unsigned int			minor;
- 	struct ir_raw_event_ctrl	*raw;
- 	struct input_dev		*input_dev;
- 	enum rc_driver_type		driver_type;
++#define OV5650_I2C_ADDRESS   (0x36)
++
++static struct ov5650_platform_data ov5650_platform_data = {
++      .s_power = panda_ov_power,
++};
++
++static struct i2c_board_info ov5650_camera_i2c_device = {
++	I2C_BOARD_INFO("ov5650", OV5650_I2C_ADDRESS),
++	.platform_data = &ov5650_platform_data,
++};
++
++static struct iss_subdev_i2c_board_info ov5640_camera_subdevs[] = {
++	{
++		.board_info = &ov5640_camera_i2c_device,
++		.i2c_adapter_id = 3,
++	},
++	{ NULL, 0, },
++};
++
++static struct iss_subdev_i2c_board_info ov5650_camera_subdevs[] = {
++	{
++		.board_info = &ov5650_camera_i2c_device,
++		.i2c_adapter_id = 3,
++	},
++	{ NULL, 0, },
++};
++
++static struct iss_v4l2_subdevs_group panda_camera_subdevs[] = {
++	{
++		.subdevs = ov5640_camera_subdevs,
++		.interface = ISS_INTERFACE_CSI2A_PHY1,
++		.bus = { .csi2 = {
++			.lanecfg	= {
++				.clk = {
++					.pol = 0,
++					.pos = 1,
++				},
++				.data[0] = {
++					.pol = 0,
++					.pos = 2,
++				},
++			},
++		} },
++	},
++	{
++		.subdevs = ov5650_camera_subdevs,
++		.interface = ISS_INTERFACE_CSI2A_PHY1,
++		.bus = { .csi2 = {
++			.lanecfg	= {
++				.clk = {
++					.pol = 0,
++					.pos = 1,
++				},
++				.data[0] = {
++					.pol = 0,
++					.pos = 2,
++				},
++			},
++		} },
++	},
++	{ },
++};
++
++static void panda_omap4iss_set_constraints(struct iss_device *iss, bool enable)
++{
++	if (!iss)
++		return;
++
++	/* FIXME: Look for something more precise as a good throughtput limit */
++	omap_pm_set_min_bus_tput(iss->dev, OCP_INITIATOR_AGENT,
++				 enable ? 800000 : -1);
++}
++
++static struct iss_platform_data panda_iss_platform_data = {
++	.subdevs = panda_camera_subdevs,
++	.set_constraints = panda_omap4iss_set_constraints,
++};
++
++
++static struct omap_device_pad omap4iss_pads[] = {
++	{
++		.name   = "csi21_dx0.csi21_dx0",
++		.enable = OMAP_MUX_MODE0 | OMAP_INPUT_EN,
++	},
++	{
++		.name   = "csi21_dy0.csi21_dy0",
++		.enable = OMAP_MUX_MODE0 | OMAP_INPUT_EN,
++	},
++	{
++		.name   = "csi21_dx1.csi21_dx1",
++		.enable = OMAP_MUX_MODE0 | OMAP_INPUT_EN,
++	},
++	{
++		.name   = "csi21_dy1.csi21_dy1",
++		.enable = OMAP_MUX_MODE0 | OMAP_INPUT_EN,
++	},
++	{
++		.name   = "csi21_dx2.csi21_dx2",
++		.enable = OMAP_MUX_MODE0 | OMAP_INPUT_EN,
++	},
++	{
++		.name   = "csi21_dy2.csi21_dy2",
++		.enable = OMAP_MUX_MODE0 | OMAP_INPUT_EN,
++	},
++};
++
++static struct omap_board_data omap4iss_data = {
++	.id	    		= 1,
++	.pads	 		= omap4iss_pads,
++	.pads_cnt       	= ARRAY_SIZE(omap4iss_pads),
++};
++
++static int __init panda_camera_init(void)
++{
++	if (!machine_is_omap4_panda())
++		return 0;
++
++	panda_cam_aux_clk = clk_get(NULL, "auxclk1_ck");
++	if (IS_ERR(panda_cam_aux_clk)) {
++		printk(KERN_ERR "Unable to get auxclk1_ck\n");
++		return -ENODEV;
++	}
++
++	if (clk_set_rate(panda_cam_aux_clk,
++			clk_round_rate(panda_cam_aux_clk, 24000000)))
++		return -EINVAL;
++
++	/* Select GPIO 45 */
++	omap_mux_init_gpio(PANDA_GPIO_CAM_PWRDN, OMAP_PIN_OUTPUT);
++
++	/* Select GPIO 83 */
++	omap_mux_init_gpio(PANDA_GPIO_CAM_RESET, OMAP_PIN_OUTPUT);
++
++	/* Init FREF_CLK1_OUT */
++	omap_mux_init_signal("fref_clk1_out", OMAP_PIN_OUTPUT);
++
++	if (gpio_request_one(PANDA_GPIO_CAM_PWRDN, GPIOF_OUT_INIT_HIGH,
++			     "CAM_PWRDN"))
++		printk(KERN_WARNING "Cannot request GPIO %d\n",
++			PANDA_GPIO_CAM_PWRDN);
++
++	if (gpio_request_one(PANDA_GPIO_CAM_RESET, GPIOF_OUT_INIT_HIGH,
++			     "CAM_RESET"))
++		printk(KERN_WARNING "Cannot request GPIO %d\n",
++			PANDA_GPIO_CAM_RESET);
++
++	omap4_init_camera(&panda_iss_platform_data, &omap4iss_data);
++	return 0;
++}
++late_initcall(panda_camera_init);
+-- 
+1.7.5.4
 
