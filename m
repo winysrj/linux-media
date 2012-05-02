@@ -1,55 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vc0-f174.google.com ([209.85.220.174]:48389 "EHLO
-	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754842Ab2ECOso (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:53911 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1756261Ab2EBTrF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 3 May 2012 10:48:44 -0400
-Received: by vcqp1 with SMTP id p1so1311479vcq.19
-        for <linux-media@vger.kernel.org>; Thu, 03 May 2012 07:48:44 -0700 (PDT)
+	Wed, 2 May 2012 15:47:05 -0400
+Date: Wed, 2 May 2012 22:47:00 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Sergio Aguirre <saaguirre@ti.com>
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org
+Subject: Re: [PATCH v3 07/10] arm: omap4430sdp: Add support for omap4iss
+ camera
+Message-ID: <20120502194700.GF852@valkosipuli.localdomain>
+References: <1335971749-21258-1-git-send-email-saaguirre@ti.com>
+ <1335971749-21258-8-git-send-email-saaguirre@ti.com>
 MIME-Version: 1.0
-In-Reply-To: <4FA293AA.5000601@iki.fi>
-References: <4FA293AA.5000601@iki.fi>
-Date: Thu, 3 May 2012 10:48:43 -0400
-Message-ID: <CAGoCfiw9h8ZqAnrdpg3J8rtnna=JiXj6JYL-gU58xS2HmMuT_w@mail.gmail.com>
-Subject: Re: common DVB USB issues we has currently
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Antti Palosaari <Antti.Palosaari@iki.fi>
-Cc: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1335971749-21258-8-git-send-email-saaguirre@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Antti,
 
-On Thu, May 3, 2012 at 10:18 AM, Antti Palosaari
-> 1)
-> Current static structure is too limited as devices are more dynamics
-> nowadays. Driver should be able to probe/read from eeprom device
-> configuration.
->
-> Fixing all of those means rather much work - I think new version of DVB USB
-> is needed.
->
-> http://www.mail-archive.com/linux-media@vger.kernel.org/msg44996.html
+Hi Sergio,
 
-What does this link above have to do with problem #1?  Did you perhaps
-cut/paste the wrong link?
+Thanks for the patches!!
 
-> 2)
-> Suspend/resume is not supported and crashes Kernel. I have no idea what is
-> wrong here and what is needed. But as it has been long term known problem I
-> suspect it is not trivial.
->
-> http://www.spinics.net/lists/linux-media/msg10293.html
+On Wed, May 02, 2012 at 10:15:46AM -0500, Sergio Aguirre wrote:
+...
+> +static int sdp4430_ov_cam1_power(struct v4l2_subdev *subdev, int on)
+> +{
+> +	struct device *dev = subdev->v4l2_dev->dev;
+> +	int ret;
+> +
+> +	if (on) {
+> +		if (!regulator_is_enabled(sdp4430_cam2pwr_reg)) {
+> +			ret = regulator_enable(sdp4430_cam2pwr_reg);
+> +			if (ret) {
+> +				dev_err(dev,
+> +					"Error in enabling sensor power regulator 'cam2pwr'\n");
+> +				return ret;
+> +			}
+> +
+> +			msleep(50);
+> +		}
+> +
+> +		gpio_set_value(OMAP4430SDP_GPIO_CAM_PDN_B, 1);
+> +		msleep(10);
+> +		ret = clk_enable(sdp4430_cam1_aux_clk); /* Enable XCLK */
+> +		if (ret) {
+> +			dev_err(dev,
+> +				"Error in clk_enable() in %s(%d)\n",
+> +				__func__, on);
+> +			gpio_set_value(OMAP4430SDP_GPIO_CAM_PDN_B, 0);
+> +			return ret;
+> +		}
+> +		msleep(10);
+> +	} else {
+> +		clk_disable(sdp4430_cam1_aux_clk);
+> +		msleep(1);
+> +		gpio_set_value(OMAP4430SDP_GPIO_CAM_PDN_B, 0);
+> +		if (regulator_is_enabled(sdp4430_cam2pwr_reg)) {
+> +			ret = regulator_disable(sdp4430_cam2pwr_reg);
+> +			if (ret) {
+> +				dev_err(dev,
+> +					"Error in disabling sensor power regulator 'cam2pwr'\n");
+> +				return ret;
+> +			}
+> +		}
+> +	}
+> +
+> +	return 0;
+> +}
 
-I doubt this is a dvb-usb problem, but rather something specific to
-the realtek parts (suspend/resume does work with other devices that
-rely on dvb-usb).
+Isn't this something that should be part of the sensor driver? There's
+nothing in the above code that would be board specific, except the names of
+the clocks, regulators and GPIOs. The sensor driver could hold the names
+instead; this would be also compatible with the device tree.
 
-Cheers,
+It should be possible to have s_power() callback NULL, too.
 
-Devin
+> +static int sdp4430_ov_cam2_power(struct v4l2_subdev *subdev, int on)
+> +{
+> +	struct device *dev = subdev->v4l2_dev->dev;
+> +	int ret;
+> +
+> +	if (on) {
+> +		u8 gpoctl = 0;
+> +
+> +		ret = regulator_enable(sdp4430_cam2pwr_reg);
+> +		if (ret) {
+> +			dev_err(dev,
+> +				"Error in enabling sensor power regulator 'cam2pwr'\n");
+> +			return ret;
+> +		}
+> +
+> +		msleep(50);
+> +
+> +		if (twl_i2c_read_u8(TWL_MODULE_AUDIO_VOICE, &gpoctl,
+> +				    TWL6040_REG_GPOCTL))
+> +			return -ENODEV;
+> +		if (twl_i2c_write_u8(TWL_MODULE_AUDIO_VOICE,
+> +				     gpoctl | TWL6040_GPO3,
+> +				     TWL6040_REG_GPOCTL))
+> +			return -ENODEV;
+
+The above piece of code looks quite interesting. What does it do?
+
+Kind regards,
 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
