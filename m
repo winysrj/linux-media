@@ -1,50 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:55162 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759228Ab2EIM4C (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 May 2012 08:56:02 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@iki.fi
-Subject: [PATCH 2/3] mt9p031: Implement V4L2_CID_PIXEL_RATE control
-Date: Wed,  9 May 2012 14:55:58 +0200
-Message-Id: <1336568159-23378-3-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1336568159-23378-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1336568159-23378-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:50751 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752191Ab2EBVme (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 May 2012 17:42:34 -0400
+From: <manjunatha_halli@ti.com>
+To: <linux-media@vger.kernel.org>
+CC: <linux-kernel@vger.kernel.org>, Manjunatha Halli <x0130808@ti.com>
+Subject: [PATCH V3 0/5] [Media] Radio: Fixes and New features for FM
+Date: Wed, 2 May 2012 16:42:26 -0500
+Message-ID: <1335994951-15842-1-git-send-email-manjunatha_halli@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The pixel rate control is required by the OMAP3 ISP driver and should be
-implemented by all media controller-compatible sensor drivers.
+From: Manjunatha Halli <x0130808@ti.com>
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/video/mt9p031.c |    5 ++++-
- 1 files changed, 4 insertions(+), 1 deletions(-)
+Mauro and the list,
 
-diff --git a/drivers/media/video/mt9p031.c b/drivers/media/video/mt9p031.c
-index d0b8e36..e790100 100644
---- a/drivers/media/video/mt9p031.c
-+++ b/drivers/media/video/mt9p031.c
-@@ -968,7 +968,7 @@ static int mt9p031_probe(struct i2c_client *client,
- 	mt9p031->vdd_core = devm_regulator_get(&client->dev, "cam_core");
- 	mt9p031->vdd_io = devm_regulator_get(&client->dev, "cam_io");
- 
--	v4l2_ctrl_handler_init(&mt9p031->ctrls, ARRAY_SIZE(mt9p031_ctrls) + 4);
-+	v4l2_ctrl_handler_init(&mt9p031->ctrls, ARRAY_SIZE(mt9p031_ctrls) + 5);
- 
- 	v4l2_ctrl_new_std(&mt9p031->ctrls, &mt9p031_ctrl_ops,
- 			  V4L2_CID_EXPOSURE, MT9P031_SHUTTER_WIDTH_MIN,
-@@ -981,6 +981,9 @@ static int mt9p031_probe(struct i2c_client *client,
- 			  V4L2_CID_HFLIP, 0, 1, 1, 0);
- 	v4l2_ctrl_new_std(&mt9p031->ctrls, &mt9p031_ctrl_ops,
- 			  V4L2_CID_VFLIP, 0, 1, 1, 0);
-+	v4l2_ctrl_new_std(&mt9p031->ctrls, &mt9p031_ctrl_ops,
-+			  V4L2_CID_PIXEL_RATE, pdata->target_freq,
-+			  pdata->target_freq, 1, pdata->target_freq);
- 
- 	for (i = 0; i < ARRAY_SIZE(mt9p031_ctrls); ++i)
- 		v4l2_ctrl_new_custom(&mt9p031->ctrls, &mt9p031_ctrls[i], NULL);
+This version 3 of patchset resolves the comments received from
+Han's on patchset v2.
+  
+This patchset creates new control class 'V4L2_CTRL_CLASS_FM_RX' for FM RX,
+introduces 2 new CID's for FM RX and and 1 new CID for FM TX. Also adds 1
+field in struct v4l2_hw_freq_seek.
+
+This patch adds few new features to TI's FM driver features
+are listed below,
+   
+1) FM TX RDS Support (RT, PS, AF, PI, PTY)
+2) FM RX Russian band support
+3) FM RX AF set/get
+4) FM RX De-emphasis mode set/get
+    
+Along with new features this patch also fixes few issues in the driver
+like default rssi level for seek, unnecessory logs etc.
+
+Manjunatha Halli (5):
+  [Media] WL128x: Add support for FM TX RDS
+  [Media] New control class and features for FM RX
+  [Media] Add new CID for FM TX RDS Alternate Frequency
+  [Documentation] Media: Update docs for V4L2 FM new features
+  [Media] WL12xx: Add support for FM new features.
+
+ Documentation/DocBook/media/v4l/compat.xml         |    3 +
+ Documentation/DocBook/media/v4l/controls.xml       |   78 +++++++++++
+ Documentation/DocBook/media/v4l/dev-rds.xml        |    5 +-
+ .../DocBook/media/v4l/vidioc-g-ext-ctrls.xml       |    7 +
+ .../DocBook/media/v4l/vidioc-s-hw-freq-seek.xml    |    7 +-
+ drivers/media/radio/wl128x/fmdrv.h                 |    3 +-
+ drivers/media/radio/wl128x/fmdrv_common.c          |   55 ++++++--
+ drivers/media/radio/wl128x/fmdrv_common.h          |   43 +++++-
+ drivers/media/radio/wl128x/fmdrv_rx.c              |   92 ++++++++++---
+ drivers/media/radio/wl128x/fmdrv_rx.h              |    2 +-
+ drivers/media/radio/wl128x/fmdrv_tx.c              |   41 +++----
+ drivers/media/radio/wl128x/fmdrv_tx.h              |    3 +-
+ drivers/media/radio/wl128x/fmdrv_v4l2.c            |  138 +++++++++++++++++++-
+ drivers/media/video/v4l2-ctrls.c                   |   18 +++
+ include/linux/videodev2.h                          |   12 ++-
+ 15 files changed, 430 insertions(+), 77 deletions(-)
+
 -- 
-1.7.3.4
+1.7.4.1
 
