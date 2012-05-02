@@ -1,52 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gg0-f174.google.com ([209.85.161.174]:39391 "EHLO
-	mail-gg0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751214Ab2E1Q3M (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 May 2012 12:29:12 -0400
-Received: by gglu4 with SMTP id u4so1929759ggl.19
-        for <linux-media@vger.kernel.org>; Mon, 28 May 2012 09:29:12 -0700 (PDT)
+Received: from exprod5og115.obsmtp.com ([64.18.0.246]:51316 "EHLO
+	exprod5og115.obsmtp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753898Ab2EBLoh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 May 2012 07:44:37 -0400
+Date: Wed, 2 May 2012 13:44:30 +0200
+From: Karl Kiniger <karl.kiniger@med.ge.com>
+To: Paulo Assis <pj.assis@gmail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: logitech quickcam 9000 uvcdynctrl broken since kernel 3.2 - PING
+Message-ID: <20120502114430.GA4608@kipc2.localdomain>
+References: <20120424122156.GA16769@kipc2.localdomain>
+ <20120502084318.GA21181@kipc2.localdomain>
+ <CAPueXH4-VSxHYjryO8kN5R-hG6seFrwCu3Kjrq4TXV=XFKLETg@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <CALF0-+WuL=b8OXARVkzqdd5dhe9_tvqb=Rh0kqTk78_co9JpYg@mail.gmail.com>
-References: <2396617.gGNm1rAEoQ@avalon>
-	<1335962403-20706-1-git-send-email-sakari.ailus@iki.fi>
-	<201205281227.46866.hverkuil@xs4all.nl>
-	<CALF0-+WuL=b8OXARVkzqdd5dhe9_tvqb=Rh0kqTk78_co9JpYg@mail.gmail.com>
-Date: Mon, 28 May 2012 13:29:11 -0300
-Message-ID: <CALF0-+UEJg9O=9uyrbK3UwvkQ96EeKYm5_G_cGCV6k1nGTiCng@mail.gmail.com>
-Subject: Re: [PATCH v3 1/1] v4l: drop v4l2_buffer.input and V4L2_BUF_FLAG_INPUT
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org,
-	laurent.pinchart@ideasonboard.com
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAPueXH4-VSxHYjryO8kN5R-hG6seFrwCu3Kjrq4TXV=XFKLETg@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi again,
+Hi Paulo,
 
-On Mon, May 28, 2012 at 8:52 AM, Ezequiel Garcia <elezegarcia@gmail.com> wrote:
->> I'm just bringing this proposal to your attention as I am wondering how your driver (and
->> the old easycap driver that your driver will replace) handle the easycap device with
->> multiple inputs? Is it cycling through all inputs? In that case we might need the input
->> field.
+I am running plain Fedora 16 on x86_64.
 
-What do you mean by "cycling through all inputs"?
+The last kernel where UVC dyncontrols worked was 3.1.10-2.
+(If I remember correctly...) The first kernel with failing
+dyncontrols was 3.2.1-1 and all later kernels up to 3.3.2-6
+fail as well.
 
-Do you mean registering one video node per video input
-and support simultaneous streaming?
+libwebcam version is libwebcam-0.2.0-4.20100322svn and guvcview
+is guvcview-1.5.1-1.
 
-In that case, I don't have that in mind and I'm not sure if the hw
-supports it.
+http://www.quickcamteam.net/software/libwebcam seems to be offline/
+discontinued since a few months.
 
-On the contrary, I was thinking in registering just one video device
-and let user select input through ioctl. All that's needed
-it to set some stk1160 (and maybe saa711x) registers to route
-the selected input.
+what software versions are you running? Is there a later libwebcam
+available from somewhere else?
 
-I may be missing something, but I don't see any relation between
-video buffer queue and selected input.
-(Perhaps this is OT and we should discuss this in another thread)
+pls look also at:
+http://permalink.gmane.org/gmane.linux.kernel/1257500
 
-Regards,
-Ezequiel.
+Greetings,
+Karl
+
+On Wed 120502, Paulo Assis wrote:
+> Karl Hi,
+> I'm using a 3.2 kernel and I haven't notice this problem, can you
+> check the exact version that causes it.
+> 
+> Regards,
+> Paulo
+> 
