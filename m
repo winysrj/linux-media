@@ -1,34 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:60234 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1030488Ab2EQWmV (ORCPT
+Received: from na3sys009aog120.obsmtp.com ([74.125.149.140]:48018 "EHLO
+	na3sys009aog120.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754281Ab2EBPQG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 May 2012 18:42:21 -0400
-Date: Fri, 18 May 2012 01:42:17 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH v2] V4L: DocBook: Improve V4L2_CID_AUTO_N_WHITE_BALANCE
- control description
-Message-ID: <20120517224217.GP3373@valkosipuli.retiisi.org.uk>
-References: <20120514000234.GG3373@valkosipuli.retiisi.org.uk>
- <1337119524-6921-1-git-send-email-sylvester.nawrocki@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1337119524-6921-1-git-send-email-sylvester.nawrocki@gmail.com>
+	Wed, 2 May 2012 11:16:06 -0400
+Received: by qcsd1 with SMTP id d1so570915qcs.35
+        for <linux-media@vger.kernel.org>; Wed, 02 May 2012 08:16:04 -0700 (PDT)
+From: Sergio Aguirre <saaguirre@ti.com>
+To: linux-media@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, Sergio Aguirre <saaguirre@ti.com>
+Subject: [PATCH v3 03/10] OMAP4: Add base addresses for ISS
+Date: Wed,  2 May 2012 10:15:42 -0500
+Message-Id: <1335971749-21258-4-git-send-email-saaguirre@ti.com>
+In-Reply-To: <1335971749-21258-1-git-send-email-saaguirre@ti.com>
+References: <1335971749-21258-1-git-send-email-saaguirre@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, May 16, 2012 at 12:05:24AM +0200, Sylwester Nawrocki wrote:
-> This patch removes the estimate color temperature range specification
-> for the white balance presets for which exact values heavily depend
-> on a particular camera specification.
-> 
-> Signed-off-by: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+NOTE: This isn't the whole list of features that the
+ISS supports, but the only ones supported at the moment.
 
-Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
+Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
+---
+ arch/arm/mach-omap2/devices.c |   32 ++++++++++++++++++++++++++++++++
+ 1 files changed, 32 insertions(+), 0 deletions(-)
 
+diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+index e433603..2b8cf73 100644
+--- a/arch/arm/mach-omap2/devices.c
++++ b/arch/arm/mach-omap2/devices.c
+@@ -19,6 +19,8 @@
+ #include <linux/of.h>
+ #include <linux/platform_data/omap4-keypad.h>
+ 
++#include <media/omap4iss.h>
++
+ #include <mach/hardware.h>
+ #include <mach/irqs.h>
+ #include <asm/mach-types.h>
+@@ -236,6 +238,36 @@ int omap3_init_camera(struct isp_platform_data *pdata)
+ 
+ #endif
+ 
++int omap4_init_camera(struct iss_platform_data *pdata, struct omap_board_data *bdata)
++{
++	struct platform_device *pdev;
++	struct omap_hwmod *oh;
++	struct iss_platform_data *omap4iss_pdata;
++	const char *oh_name = "iss";
++	const char *name = "omap4iss";
++
++	oh = omap_hwmod_lookup(oh_name);
++	if (!oh) {
++		pr_err("Could not look up %s\n", oh_name);
++		return -ENODEV;
++	}
++
++	omap4iss_pdata = pdata;
++
++	pdev = omap_device_build(name, -1, oh, omap4iss_pdata,
++			sizeof(struct iss_platform_data), NULL, 0, 0);
++
++	if (IS_ERR(pdev)) {
++		WARN(1, "Can't build omap_device for %s:%s.\n",
++						name, oh->name);
++		return PTR_ERR(pdev);
++	}
++
++	oh->mux = omap_hwmod_mux_init(bdata->pads, bdata->pads_cnt);
++
++	return 0;
++}
++
+ static inline void omap_init_camera(void)
+ {
+ #if defined(CONFIG_VIDEO_OMAP2) || defined(CONFIG_VIDEO_OMAP2_MODULE)
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+1.7.5.4
+
