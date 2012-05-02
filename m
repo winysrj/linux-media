@@ -1,281 +1,776 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:3503 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752763Ab2E1K2X (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 May 2012 06:28:23 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Ezequiel Garcia <elezegarcia@gmail.com>
-Subject: Re: [PATCH v3 1/1] v4l: drop v4l2_buffer.input and V4L2_BUF_FLAG_INPUT
-Date: Mon, 28 May 2012 12:27:46 +0200
-Cc: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org,
-	laurent.pinchart@ideasonboard.com
-References: <2396617.gGNm1rAEoQ@avalon> <1335962403-20706-1-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1335962403-20706-1-git-send-email-sakari.ailus@iki.fi>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201205281227.46866.hverkuil@xs4all.nl>
+Received: from smtp.nokia.com ([147.243.128.26]:50460 "EHLO mgw-da02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756133Ab2EBTOI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 2 May 2012 15:14:08 -0400
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, mchehab@redhat.com,
+	remi@remlab.net, nbowler@elliptictech.com, james.dutton@gmail.com
+Subject: [RFC v3 2/2] v4l: Implement compat functions for enum to __u32 change
+Date: Wed,  2 May 2012 22:13:48 +0300
+Message-Id: <1335986028-23618-2-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <20120502191324.GE852@valkosipuli.localdomain>
+References: <20120502191324.GE852@valkosipuli.localdomain>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ezequiel,
+Implement compat functions to provide conversion between structs containing
+enums and those not. The functions are intended to be removed when the
+support for such old binaries is no longer necessary.
 
-I'm just bringing this proposal to your attention as I am wondering how your driver (and
-the old easycap driver that your driver will replace) handle the easycap device with
-multiple inputs? Is it cycling through all inputs? In that case we might need the input
-field.
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+ drivers/media/video/Kconfig      |   12 +
+ drivers/media/video/v4l2-ioctl.c |  684 +++++++++++++++++++++++++++++++++++++-
+ 2 files changed, 687 insertions(+), 9 deletions(-)
 
-Regards,
+diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+index f2479c5..949f804 100644
+--- a/drivers/media/video/Kconfig
++++ b/drivers/media/video/Kconfig
+@@ -7,6 +7,18 @@ config VIDEO_V4L2
+ 	depends on VIDEO_DEV && VIDEO_V4L2_COMMON
+ 	default VIDEO_DEV && VIDEO_V4L2_COMMON
+ 
++config V4L2_COMPAT
++	bool "Compatibility for old binaries"
++	depends on VIDEO_V4L2
++	default y
++	---help---
++	  Compatibility code to support binaries compiled with old V4L2
++	  IOCTL definitions containing enums that have been replaced by
++	  __u32. If you do not need to use such binaries you can disable
++	  this option.
++
++	  When in doubt, say Y.
++
+ config VIDEOBUF_GEN
+ 	tristate
+ 
+diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
+index 5b2ec1f..9b88360 100644
+--- a/drivers/media/video/v4l2-ioctl.c
++++ b/drivers/media/video/v4l2-ioctl.c
+@@ -2303,6 +2303,653 @@ static long __video_do_ioctl(struct file *file,
+ 	return ret;
+ }
+ 
++#ifdef CONFIG_V4L2_COMPAT
++
++static inline unsigned int get_non_compat_cmd(unsigned int cmd)
++{
++	switch (cmd) {
++	case VIDIOC_ENUM_FMT_ENUM:
++		return VIDIOC_ENUM_FMT;
++	case VIDIOC_G_FMT_ENUM:
++		return VIDIOC_G_FMT;
++	case VIDIOC_S_FMT_ENUM:
++		return VIDIOC_S_FMT;
++	case VIDIOC_REQBUFS_ENUM:
++		return VIDIOC_REQBUFS;
++	case VIDIOC_QUERYBUF_ENUM:
++		return VIDIOC_QUERYBUF;
++	case VIDIOC_G_FBUF_ENUM:
++		return VIDIOC_G_FBUF;
++	case VIDIOC_S_FBUF_ENUM:
++		return VIDIOC_S_FBUF;
++	case VIDIOC_QBUF_ENUM:
++		return VIDIOC_QBUF;
++	case VIDIOC_DQBUF_ENUM:
++		return VIDIOC_DQBUF;
++	case VIDIOC_G_PARM_ENUM:
++		return VIDIOC_G_PARM;
++	case VIDIOC_S_PARM_ENUM:
++		return VIDIOC_S_PARM;
++	case VIDIOC_G_TUNER_ENUM:
++		return VIDIOC_G_TUNER;
++	case VIDIOC_S_TUNER_ENUM:
++		return VIDIOC_S_TUNER;
++	case VIDIOC_QUERYCTRL_ENUM:
++		return VIDIOC_QUERYCTRL;
++	case VIDIOC_G_FREQUENCY_ENUM:
++		return VIDIOC_G_FREQUENCY;
++	case VIDIOC_S_FREQUENCY_ENUM:
++		return VIDIOC_S_FREQUENCY;
++	case VIDIOC_CROPCAP_ENUM:
++		return VIDIOC_CROPCAP;
++	case VIDIOC_G_CROP_ENUM:
++		return VIDIOC_G_CROP;
++	case VIDIOC_S_CROP_ENUM:
++		return VIDIOC_S_CROP;
++	case VIDIOC_TRY_FMT_ENUM:
++		return VIDIOC_TRY_FMT;
++	case VIDIOC_G_SLICED_VBI_CAP_ENUM:
++		return VIDIOC_G_SLICED_VBI_CAP;
++	case VIDIOC_S_HW_FREQ_SEEK_ENUM:
++		return VIDIOC_S_HW_FREQ_SEEK;
++	case VIDIOC_CREATE_BUFS_ENUM:
++		return VIDIOC_CREATE_BUFS;
++	case VIDIOC_PREPARE_BUF_ENUM:
++		return VIDIOC_PREPARE_BUF;
++	default:
++		return cmd;
++	}
++}
++
++#define get_user_conv(x, ptr)			\
++	({					\
++		typeof (*ptr) tmp;		\
++		int rval;			\
++						\
++		rval = get_user(tmp, ptr);	\
++		if (!rval)			\
++			x = (typeof (x))tmp;	\
++						\
++		rval;				\
++	})
++
++static int get_user_pix_format(struct v4l2_pix_format *k,
++			       struct v4l2_pix_format_enum *u)
++{
++	return get_user(k->width, &u->width)
++		|| get_user(k->height, &u->height)
++		|| get_user(k->pixelformat, &u->pixelformat)
++		|| get_user_conv(k->field, &u->field)
++		|| get_user(k->bytesperline, &u->bytesperline)
++		|| get_user(k->sizeimage, &u->sizeimage)
++		|| get_user_conv(k->colorspace, &u->colorspace)
++		|| get_user(k->priv, &u->priv);
++}
++
++static int get_user_pix_format_mplane(struct v4l2_pix_format_mplane *k,
++				      struct v4l2_pix_format_mplane_enum *u)
++{
++	return get_user(k->width, &u->width)
++		|| get_user(k->height, &u->height)
++		|| get_user(k->pixelformat, &u->pixelformat)
++		|| get_user_conv(k->field, &u->field)
++		|| get_user_conv(k->colorspace, &u->colorspace)
++		|| copy_from_user(k->plane_fmt, u->plane_fmt,
++				  sizeof(k->plane_fmt))
++		|| get_user(k->num_planes, &u->num_planes)
++		|| copy_from_user(k->reserved, u->reserved,
++				  sizeof(k->reserved));
++}
++
++static int get_user_window(struct v4l2_window *k,
++			   struct v4l2_window_enum *u)
++{
++	return copy_from_user(&k->w, &u->w, sizeof(k->w))
++		|| get_user_conv(k->field, &u->field)
++		|| get_user(k->chromakey, &u->chromakey)
++		|| get_user(k->clips, &u->clips)
++		|| get_user(k->clipcount, &u->clipcount)
++		|| get_user(k->bitmap, &u->bitmap)
++		|| get_user(k->global_alpha, &u->global_alpha);
++}
++
++static int get_user_format(struct v4l2_format *k,
++			   struct v4l2_format_enum *u)
++{
++	if (get_user(k->type, &u->type))
++		return -EFAULT;
++
++	switch (k->type) {
++	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
++	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
++		if (get_user_pix_format(&k->fmt.pix, &u->fmt.pix))
++			return -EFAULT;
++		return 0;
++	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
++	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
++		if (get_user_pix_format_mplane(&k->fmt.pix_mp, &u->fmt.pix_mp))
++			return -EFAULT;
++		return 0;
++	case V4L2_BUF_TYPE_VIDEO_OVERLAY:
++	case V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY:
++		if (get_user_window(&k->fmt.win, &u->fmt.win))
++			return -EFAULT;
++		return 0;
++	default:
++		if (copy_from_user(k->fmt.raw_data, u->fmt.raw_data,
++				   sizeof(k->fmt.raw_data)))
++			return -EFAULT;
++		return 0;
++	}
++}
++
++static long copy_compat_from_user(unsigned int cmd, void *parg,
++				  void __user *arg)
++{
++	union {
++		struct v4l2_fmtdesc_enum fmtdesc;
++		struct v4l2_format_enum fmt;
++		struct v4l2_requestbuffers_enum reqbufs;
++		struct v4l2_framebuffer_enum fb;
++		struct v4l2_buffer_enum buf;
++		struct v4l2_streamparm_enum sparm;
++		struct v4l2_tuner_enum tuner;
++		struct v4l2_queryctrl_enum qc;
++		struct v4l2_frequency_enum freq;
++		struct v4l2_cropcap_enum cropcap;
++		struct v4l2_crop_enum crop;
++		struct v4l2_sliced_vbi_cap_enum vbi_cap;
++		struct v4l2_hw_freq_seek_enum freq_seek;
++		struct v4l2_create_buffers_enum create_bufs;
++	} __user *u = arg;
++	union {
++		struct v4l2_fmtdesc fmtdesc;
++		struct v4l2_format fmt;
++		struct v4l2_requestbuffers reqbufs;
++		struct v4l2_framebuffer fb;
++		struct v4l2_buffer buf;
++		struct v4l2_streamparm sparm;
++		struct v4l2_tuner tuner;
++		struct v4l2_queryctrl qc;
++		struct v4l2_frequency freq;
++		struct v4l2_cropcap cropcap;
++		struct v4l2_crop crop;
++		struct v4l2_sliced_vbi_cap vbi_cap;
++		struct v4l2_hw_freq_seek freq_seek;
++		struct v4l2_create_buffers create_bufs;
++	} *k = parg;
++
++	if (!access_ok(VERIFY_READ, u, _IOC_SIZE(cmd)))
++		return -EFAULT;
++
++	switch (cmd) {
++	case VIDIOC_ENUM_FMT_ENUM:
++		if (get_user(k->fmtdesc.index, &u->fmtdesc.index)
++		    || get_user_conv(k->fmtdesc.type, &u->fmtdesc.type)
++		    || get_user(k->fmtdesc.flags, &u->fmtdesc.flags)
++		    || copy_from_user(k->fmtdesc.description,
++				      u->fmtdesc.description,
++				      sizeof(k->fmtdesc.description))
++		    || get_user(k->fmtdesc.pixelformat,
++				&u->fmtdesc.pixelformat)
++		    || copy_from_user(k->fmtdesc.reserved,
++				      u->fmtdesc.reserved,
++				      sizeof(k->fmtdesc.reserved)))
++			return -EFAULT;
++		return 0;
++	case VIDIOC_G_FMT_ENUM:
++	case VIDIOC_S_FMT_ENUM:
++	case VIDIOC_TRY_FMT_ENUM:
++		if (get_user_format(&k->fmt, &u->fmt))
++			return -EFAULT;
++		return 0;
++	case VIDIOC_REQBUFS_ENUM:
++		if (get_user(k->reqbufs.count, &u->reqbufs.count)
++		    || get_user_conv(k->reqbufs.type, &u->reqbufs.type)
++		    || get_user_conv(k->reqbufs.memory, &u->reqbufs.memory)
++		    || copy_from_user(k->reqbufs.reserved,
++				      u->reqbufs.reserved,
++				      sizeof(k->reqbufs.reserved)))
++			return -EFAULT;
++		return 0;
++	case VIDIOC_QUERYBUF_ENUM:
++	case VIDIOC_QBUF_ENUM:
++	case VIDIOC_DQBUF_ENUM:
++	case VIDIOC_PREPARE_BUF_ENUM:
++		if (get_user(k->buf.index, &u->buf.index)
++		    || get_user_conv(k->buf.type, &u->buf.type)
++		    || get_user(k->buf.bytesused, &u->buf.bytesused)
++		    || get_user(k->buf.flags, &u->buf.flags)
++		    || get_user_conv(k->buf.field, &u->buf.field)
++		    || copy_from_user(&k->buf.timestamp, &u->buf.timestamp,
++				      sizeof(k->buf.timestamp))
++		    || copy_from_user(&k->buf.timecode, &u->buf.timecode,
++				      sizeof(k->buf.timecode))
++		    || get_user(k->buf.sequence, &u->buf.sequence)
++		    || get_user_conv(k->buf.memory, &u->buf.memory)
++		    || copy_from_user(&k->buf.m, &u->buf.m, sizeof(k->buf.m))
++		    || get_user(k->buf.length, &u->buf.length)
++		    || get_user(k->buf.reserved2, &u->buf.reserved2)
++		    || get_user(k->buf.reserved, &u->buf.reserved))
++			return -EFAULT;
++		return 0;
++	case VIDIOC_G_FBUF_ENUM:
++	case VIDIOC_S_FBUF_ENUM:
++		if (get_user(k->fb.capability, &u->fb.capability)
++		    || get_user(k->fb.flags, &u->fb.flags)
++		    || get_user(k->fb.base, &u->fb.base)
++		    || get_user_pix_format(&k->fb.fmt, &u->fb.fmt))
++			return -EFAULT;
++		return 0;
++	case VIDIOC_G_PARM_ENUM:
++	case VIDIOC_S_PARM_ENUM:
++		if (get_user_conv(k->sparm.type, &u->sparm.type)
++		    || copy_from_user(&k->sparm.parm, &u->sparm.parm,
++				      sizeof(k->sparm.parm)))
++			return -EFAULT;
++		return 0;
++	case VIDIOC_G_TUNER_ENUM:
++	case VIDIOC_S_TUNER_ENUM:
++		if (get_user(k->tuner.index, &u->tuner.index)
++		    || copy_from_user(k->tuner.name, u->tuner.name,
++				      sizeof(k->tuner.name))
++		    || get_user_conv(k->tuner.type, &u->tuner.type)
++		    || get_user(k->tuner.capability, &u->tuner.capability)
++		    || get_user(k->tuner.rangelow, &u->tuner.rangelow)
++		    || get_user(k->tuner.rangehigh, &u->tuner.rangehigh)
++		    || get_user(k->tuner.rxsubchans, &u->tuner.rxsubchans)
++		    || get_user(k->tuner.audmode, &u->tuner.audmode)
++		    || get_user(k->tuner.signal, &u->tuner.signal)
++		    || get_user(k->tuner.afc, &u->tuner.afc)
++		    || copy_from_user(k->tuner.reserved, u->tuner.reserved,
++				      sizeof(k->tuner.reserved)))
++			return -EFAULT;
++		return 0;
++	case VIDIOC_QUERYCTRL_ENUM:
++		if (get_user(k->qc.id, &u->qc.id)
++		    || get_user_conv(k->qc.type, &u->qc.type)
++		    || copy_from_user(k->qc.name, u->qc.name,
++				      sizeof(k->qc.name))
++		    || get_user(k->qc.minimum, &u->qc.minimum)
++		    || get_user(k->qc.maximum, &u->qc.maximum)
++		    || get_user(k->qc.step, &u->qc.step)
++		    || get_user(k->qc.default_value, &u->qc.default_value)
++		    || get_user(k->qc.flags, &u->qc.flags)
++		    || copy_from_user(k->qc.reserved, u->qc.reserved,
++				      sizeof(k->qc.reserved)))
++			return -EFAULT;
++		return 0;
++	case VIDIOC_G_FREQUENCY_ENUM:
++	case VIDIOC_S_FREQUENCY_ENUM:
++		if (get_user(k->freq.tuner, &u->freq.tuner)
++		    || get_user_conv(k->freq.type, &u->freq.type)
++		    || get_user(k->freq.frequency, &u->freq.frequency)
++		    || copy_from_user(k->freq.reserved, u->freq.reserved,
++				      sizeof(k->freq.reserved)))
++			return -EFAULT;
++		return 0;
++	case VIDIOC_CROPCAP_ENUM:
++		if (get_user_conv(k->cropcap.type, &u->cropcap.type)
++		    || copy_from_user(&k->cropcap.bounds, &u->cropcap.bounds,
++				      sizeof(k->cropcap.bounds))
++		    || copy_from_user(&k->cropcap.defrect, &u->cropcap.defrect,
++				      sizeof(k->cropcap.bounds))
++		    || copy_from_user(&k->cropcap.pixelaspect,
++				      &u->cropcap.pixelaspect,
++				      sizeof(k->cropcap.pixelaspect)))
++			return -EFAULT;
++		return 0;
++	case VIDIOC_G_CROP_ENUM:
++	case VIDIOC_S_CROP_ENUM:
++		if (get_user_conv(k->crop.type, &u->crop.type)
++		    || copy_from_user(&k->crop.c, &u->crop.c,
++				      sizeof(k->crop.c)))
++			return -EFAULT;
++		return 0;
++	case VIDIOC_G_SLICED_VBI_CAP_ENUM:
++		if (get_user(k->vbi_cap.service_set, &u->vbi_cap.service_set)
++		    || copy_from_user(k->vbi_cap.service_lines,
++				      u->vbi_cap.service_lines,
++				      sizeof(k->vbi_cap.service_lines))
++		    || get_user_conv(k->vbi_cap.type, &u->vbi_cap.type)
++		    || copy_from_user(k->vbi_cap.reserved, u->vbi_cap.reserved,
++				      sizeof(k->vbi_cap.reserved)))
++			return -EFAULT;
++		return 0;
++	case VIDIOC_S_HW_FREQ_SEEK_ENUM:
++		if (get_user(k->freq_seek.tuner, &u->freq_seek.tuner)
++		    || get_user_conv(k->freq_seek.type, &u->freq_seek.type)
++		    || get_user(k->freq_seek.seek_upward,
++				&u->freq_seek.seek_upward)
++		    || get_user(k->freq_seek.wrap_around,
++				&u->freq_seek.wrap_around)
++		    || get_user(k->freq_seek.spacing, &u->freq_seek.spacing)
++		    || copy_from_user(k->freq_seek.reserved,
++				      u->freq_seek.reserved,
++				      sizeof(k->freq_seek.reserved)))
++			return -EFAULT;
++		return 0;
++	case VIDIOC_CREATE_BUFS_ENUM:
++		if (get_user(k->create_bufs.index, &u->create_bufs.index)
++		    || get_user(k->create_bufs.count, &u->create_bufs.count)
++		    || get_user_conv(k->create_bufs.memory,
++				     &u->create_bufs.memory)
++		    || get_user_format(&k->create_bufs.format,
++				       &u->create_bufs.format)
++		    || copy_from_user(k->create_bufs.reserved,
++				      u->create_bufs.reserved,
++				      sizeof(k->create_bufs.reserved)))
++			return -EFAULT;
++		return 0;
++	default:
++		WARN(1, "%s: bad compat cmd %8.8x\n", __func__, cmd);
++		return -EINVAL;
++	}
++}
++
++#define put_user_conv(x, ptr)			\
++	({					\
++		typeof (*ptr) tmp;		\
++						\
++		tmp = (typeof (*ptr))x;		\
++		put_user(tmp, ptr);		\
++	})
++
++static int put_user_pix_format(struct v4l2_pix_format *k,
++			       struct v4l2_pix_format_enum *u)
++{
++	return put_user(k->width, &u->width)
++		|| put_user(k->height, &u->height)
++		|| put_user(k->pixelformat, &u->pixelformat)
++		|| put_user_conv(k->field, &u->field)
++		|| put_user(k->bytesperline, &u->bytesperline)
++		|| put_user(k->sizeimage, &u->sizeimage)
++		|| put_user_conv(k->colorspace, &u->colorspace)
++		|| put_user(k->priv, &u->priv);
++}
++
++static int put_user_pix_format_mplane(struct v4l2_pix_format_mplane *k,
++				      struct v4l2_pix_format_mplane_enum *u)
++{
++	return put_user(k->width, &u->width)
++		|| put_user(k->height, &u->height)
++		|| put_user(k->pixelformat, &u->pixelformat)
++		|| put_user_conv(k->field, &u->field)
++		|| put_user_conv(k->colorspace, &u->colorspace)
++		|| copy_to_user(u->plane_fmt, k->plane_fmt,
++				sizeof(k->plane_fmt))
++		|| put_user(k->num_planes, &u->num_planes)
++		|| copy_to_user(u->reserved, k->reserved,
++				sizeof(k->reserved));
++}
++
++static int put_user_window(struct v4l2_window *k,
++			   struct v4l2_window_enum *u)
++{
++	return copy_to_user(&u->w, &k->w, sizeof(k->w))
++		|| put_user_conv(k->field, &u->field)
++		|| put_user(k->chromakey, &u->chromakey)
++		|| put_user(k->clips, &u->clips)
++		|| put_user(k->clipcount, &u->clipcount)
++		|| put_user(k->bitmap, &u->bitmap)
++		|| put_user(k->global_alpha, &u->global_alpha);
++}
++
++static int put_user_format(struct v4l2_format *k,
++			   struct v4l2_format_enum *u)
++{
++	if (put_user(k->type, &u->type))
++		return -EFAULT;
++
++	switch (k->type) {
++	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
++	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
++		if (put_user_pix_format(&k->fmt.pix, &u->fmt.pix))
++			return -EFAULT;
++		return 0;
++	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
++	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
++		if (put_user_pix_format_mplane(&k->fmt.pix_mp, &u->fmt.pix_mp))
++			return -EFAULT;
++		return 0;
++	case V4L2_BUF_TYPE_VIDEO_OVERLAY:
++	case V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY:
++		if (put_user_window(&k->fmt.win, &u->fmt.win))
++			return -EFAULT;
++		return 0;
++	default:
++		if (copy_to_user(u->fmt.raw_data, k->fmt.raw_data,
++				 sizeof(k->fmt.raw_data)))
++			return -EFAULT;
++		return 0;
++	}
++}
++
++static long copy_compat_to_user(unsigned int cmd, void __user *arg,
++				void *parg)
++{
++	union {
++		struct v4l2_fmtdesc_enum fmtdesc;
++		struct v4l2_format_enum fmt;
++		struct v4l2_requestbuffers_enum reqbufs;
++		struct v4l2_framebuffer_enum fb;
++		struct v4l2_buffer_enum buf;
++		struct v4l2_streamparm_enum sparm;
++		struct v4l2_tuner_enum tuner;
++		struct v4l2_queryctrl_enum qc;
++		struct v4l2_frequency_enum freq;
++		struct v4l2_cropcap_enum cropcap;
++		struct v4l2_crop_enum crop;
++		struct v4l2_sliced_vbi_cap_enum vbi_cap;
++		struct v4l2_hw_freq_seek_enum freq_seek;
++		struct v4l2_create_buffers_enum create_bufs;
++	} __user *u = arg;
++	union {
++		struct v4l2_fmtdesc fmtdesc;
++		struct v4l2_format fmt;
++		struct v4l2_requestbuffers reqbufs;
++		struct v4l2_framebuffer fb;
++		struct v4l2_buffer buf;
++		struct v4l2_streamparm sparm;
++		struct v4l2_tuner tuner;
++		struct v4l2_queryctrl qc;
++		struct v4l2_frequency freq;
++		struct v4l2_cropcap cropcap;
++		struct v4l2_crop crop;
++		struct v4l2_sliced_vbi_cap vbi_cap;
++		struct v4l2_hw_freq_seek freq_seek;
++		struct v4l2_create_buffers create_bufs;
++	} *k = parg;
++
++	if (!access_ok(VERIFY_WRITE, u, _IOC_SIZE(cmd)))
++		return -EFAULT;
++
++	switch (cmd) {
++	case VIDIOC_ENUM_FMT_ENUM:
++		if (put_user(k->fmtdesc.index, &u->fmtdesc.index)
++		    || put_user_conv(k->fmtdesc.type, &u->fmtdesc.type)
++		    || put_user(k->fmtdesc.flags, &u->fmtdesc.flags)
++		    || copy_to_user(u->fmtdesc.description,
++				    k->fmtdesc.description,
++				    sizeof(k->fmtdesc.description))
++		    || put_user(k->fmtdesc.pixelformat,
++				&u->fmtdesc.pixelformat)
++		    || copy_to_user(u->fmtdesc.reserved,
++				    k->fmtdesc.reserved,
++				    sizeof(k->fmtdesc.reserved)))
++			return -EFAULT;
++		return 0;
++	case VIDIOC_G_FMT_ENUM:
++	case VIDIOC_S_FMT_ENUM:
++	case VIDIOC_TRY_FMT_ENUM:
++		if (put_user_format(&k->fmt, &u->fmt))
++			return -EFAULT;
++		return 0;
++	case VIDIOC_REQBUFS_ENUM:
++		if (put_user(k->reqbufs.count, &u->reqbufs.count)
++		    || put_user_conv(k->reqbufs.type, &u->reqbufs.type)
++		    || put_user_conv(k->reqbufs.memory, &u->reqbufs.memory)
++		    || copy_to_user(u->reqbufs.reserved,
++				    k->reqbufs.reserved,
++				    sizeof(k->reqbufs.reserved)))
++			return -EFAULT;
++		return 0;
++	case VIDIOC_QUERYBUF_ENUM:
++	case VIDIOC_QBUF_ENUM:
++	case VIDIOC_DQBUF_ENUM:
++	case VIDIOC_PREPARE_BUF_ENUM:
++		if (put_user(k->buf.index, &u->buf.index)
++		    || put_user_conv(k->buf.type, &u->buf.type)
++		    || put_user(k->buf.bytesused, &u->buf.bytesused)
++		    || put_user(k->buf.flags, &u->buf.flags)
++		    || put_user_conv(k->buf.field, &u->buf.field)
++		    || copy_to_user(&u->buf.timestamp, &k->buf.timestamp,
++				    sizeof(k->buf.timestamp))
++		    || copy_to_user(&u->buf.timecode, &k->buf.timecode,
++				    sizeof(k->buf.timecode))
++		    || put_user(k->buf.sequence, &u->buf.sequence)
++		    || put_user_conv(k->buf.memory, &u->buf.memory)
++		    || copy_to_user(&u->buf.m, &k->buf.m, sizeof(k->buf.m))
++		    || put_user(k->buf.length, &u->buf.length)
++		    || put_user(k->buf.reserved2, &u->buf.reserved2)
++		    || put_user(k->buf.reserved, &u->buf.reserved))
++			return -EFAULT;
++		return 0;
++	case VIDIOC_G_FBUF_ENUM:
++	case VIDIOC_S_FBUF_ENUM:
++		if (put_user(k->fb.capability, &u->fb.capability)
++		    || put_user(k->fb.flags, &u->fb.flags)
++		    || put_user(k->fb.base, &u->fb.base)
++		    || put_user_pix_format(&k->fb.fmt, &u->fb.fmt))
++			return -EFAULT;
++		return 0;
++	case VIDIOC_G_PARM_ENUM:
++	case VIDIOC_S_PARM_ENUM:
++		if (put_user_conv(k->sparm.type, &u->sparm.type)
++		    || copy_to_user(&u->sparm.parm, &k->sparm.parm,
++				    sizeof(k->sparm.parm)))
++			return -EFAULT;
++		return 0;
++	case VIDIOC_G_TUNER_ENUM:
++	case VIDIOC_S_TUNER_ENUM:
++		if (put_user(k->tuner.index, &u->tuner.index)
++		    || copy_to_user(u->tuner.name, k->tuner.name,
++				    sizeof(k->tuner.name))
++		    || put_user_conv(k->tuner.type, &u->tuner.type)
++		    || put_user(k->tuner.capability, &u->tuner.capability)
++		    || put_user(k->tuner.rangelow, &u->tuner.rangelow)
++		    || put_user(k->tuner.rangehigh, &u->tuner.rangehigh)
++		    || put_user(k->tuner.rxsubchans, &u->tuner.rxsubchans)
++		    || put_user(k->tuner.audmode, &u->tuner.audmode)
++		    || put_user(k->tuner.signal, &u->tuner.signal)
++		    || put_user(k->tuner.afc, &u->tuner.afc)
++		    || copy_to_user(u->tuner.reserved, k->tuner.reserved,
++				    sizeof(k->tuner.reserved)))
++			return -EFAULT;
++		return 0;
++	case VIDIOC_QUERYCTRL_ENUM:
++		if (put_user(k->qc.id, &u->qc.id)
++		    || put_user_conv(k->qc.type, &u->qc.type)
++		    || copy_to_user(u->qc.name, k->qc.name,
++				    sizeof(k->qc.name))
++		    || put_user(k->qc.minimum, &u->qc.minimum)
++		    || put_user(k->qc.maximum, &u->qc.maximum)
++		    || put_user(k->qc.step, &u->qc.step)
++		    || put_user(k->qc.default_value, &u->qc.default_value)
++		    || put_user(k->qc.flags, &u->qc.flags)
++		    || copy_to_user(u->qc.reserved, k->qc.reserved,
++				    sizeof(k->qc.reserved)))
++			return -EFAULT;
++		return 0;
++	case VIDIOC_G_FREQUENCY_ENUM:
++	case VIDIOC_S_FREQUENCY_ENUM:
++		if (put_user(k->freq.tuner, &u->freq.tuner)
++		    || put_user_conv(k->freq.type, &u->freq.type)
++		    || put_user(k->freq.frequency, &u->freq.frequency)
++		    || copy_to_user(u->freq.reserved, k->freq.reserved,
++				    sizeof(k->freq.reserved)))
++			return -EFAULT;
++		return 0;
++	case VIDIOC_CROPCAP_ENUM:
++		if (put_user_conv(k->cropcap.type, &u->cropcap.type)
++		    || copy_to_user(&u->cropcap.bounds, &k->cropcap.bounds,
++				    sizeof(k->cropcap.bounds))
++		    || copy_to_user(&u->cropcap.defrect, &k->cropcap.defrect,
++				    sizeof(k->cropcap.bounds))
++		    || copy_to_user(&u->cropcap.pixelaspect,
++				    &k->cropcap.pixelaspect,
++				    sizeof(k->cropcap.pixelaspect)))
++			return -EFAULT;
++		return 0;
++	case VIDIOC_G_CROP_ENUM:
++	case VIDIOC_S_CROP_ENUM:
++		if (put_user_conv(k->crop.type, &u->crop.type)
++		    || copy_to_user(&u->crop.c, &k->crop.c,
++				    sizeof(k->crop.c)))
++			return -EFAULT;
++		return 0;
++	case VIDIOC_G_SLICED_VBI_CAP_ENUM:
++		if (put_user(k->vbi_cap.service_set, &u->vbi_cap.service_set)
++		    || copy_to_user(u->vbi_cap.service_lines,
++				    k->vbi_cap.service_lines,
++				    sizeof(k->vbi_cap.service_lines))
++		    || put_user_conv(k->vbi_cap.type, &u->vbi_cap.type)
++		    || copy_to_user(u->vbi_cap.reserved, k->vbi_cap.reserved,
++				    sizeof(k->vbi_cap.reserved)))
++			return -EFAULT;
++		return 0;
++	case VIDIOC_S_HW_FREQ_SEEK_ENUM:
++		if (put_user(k->freq_seek.tuner, &u->freq_seek.tuner)
++		    || put_user_conv(k->freq_seek.type, &u->freq_seek.type)
++		    || put_user(k->freq_seek.seek_upward,
++				&u->freq_seek.seek_upward)
++		    || put_user(k->freq_seek.wrap_around,
++				&u->freq_seek.wrap_around)
++		    || put_user(k->freq_seek.spacing, &u->freq_seek.spacing)
++		    || copy_to_user(u->freq_seek.reserved,
++				    k->freq_seek.reserved,
++				    sizeof(k->freq_seek.reserved)))
++			return -EFAULT;
++		return 0;
++	case VIDIOC_CREATE_BUFS_ENUM:
++		if (put_user(k->create_bufs.index, &u->create_bufs.index)
++		    || put_user(k->create_bufs.count, &u->create_bufs.count)
++		    || put_user_conv(k->create_bufs.memory,
++				     &u->create_bufs.memory)
++		    || put_user_format(&k->create_bufs.format,
++				       &u->create_bufs.format)
++		    || copy_to_user(u->create_bufs.reserved,
++				    k->create_bufs.reserved,
++				    sizeof(k->create_bufs.reserved)))
++			return -EFAULT;
++		return 0;
++	default:
++		WARN(1, "%s: bad compat cmd %8.8x\n", __func__, cmd);
++		return -EINVAL;
++	}
++}
++
++#else /* CONFIG_V4L2_COMPAT */
++
++static inline unsigned int get_non_compat_cmd(unsigned int cmd)
++{
++	return cmd;
++}
++
++static inline long copy_compat_from_user(unsigned int cmd, void __user *arg,
++					 void *parg)
++{
++	return 0;
++}
++
++static inline long copy_compat_to_user(unsigned int cmd, void __user *arg,
++				       void *parg)
++{
++	return 0;
++}
++
++#endif /* CONFIG_V4L2_COMPAT */
++
+ /* In some cases, only a few fields are used as input, i.e. when the app sets
+  * "index" and then the driver fills in the rest of the structure for the thing
+  * with that index.  We only need to copy up the first non-input field.  */
+@@ -2390,7 +3037,7 @@ static int check_array_args(unsigned int cmd, void *parg, size_t *array_size,
+ }
+ 
+ long
+-video_usercopy(struct file *file, unsigned int cmd, unsigned long arg,
++video_usercopy(struct file *file, unsigned int compat_cmd, unsigned long arg,
+ 	       v4l2_kioctl func)
+ {
+ 	char	sbuf[128];
+@@ -2401,6 +3048,7 @@ video_usercopy(struct file *file, unsigned int cmd, unsigned long arg,
+ 	size_t  array_size = 0;
+ 	void __user *user_ptr = NULL;
+ 	void	**kernel_ptr = NULL;
++	unsigned int cmd = get_non_compat_cmd(compat_cmd);
+ 
+ 	/*  Copy arguments into temp kernel buffer  */
+ 	if (_IOC_DIR(cmd) != _IOC_NONE) {
+@@ -2418,12 +3066,23 @@ video_usercopy(struct file *file, unsigned int cmd, unsigned long arg,
+ 		if (_IOC_DIR(cmd) & _IOC_WRITE) {
+ 			unsigned long n = cmd_input_size(cmd);
+ 
+-			if (copy_from_user(parg, (void __user *)arg, n))
+-				goto out;
+-
+-			/* zero out anything we don't copy from userspace */
+-			if (n < _IOC_SIZE(cmd))
+-				memset((u8 *)parg + n, 0, _IOC_SIZE(cmd) - n);
++			if (cmd == compat_cmd) {
++				if (copy_from_user(
++					    parg, (void __user *)arg, n))
++					goto out;
++
++				/*
++				 * zero out anything we don't copy
++				 * from userspace
++				 */
++				if (n < _IOC_SIZE(cmd))
++					memset((u8 *)parg + n, 0,
++					       _IOC_SIZE(cmd) - n);
++			} else {
++				if (copy_compat_from_user(compat_cmd, parg,
++							  (void __user *)arg))
++					goto out;
++			}
+ 		} else {
+ 			/* read-only ioctl */
+ 			memset(parg, 0, _IOC_SIZE(cmd));
+@@ -2471,8 +3130,15 @@ out_array_args:
+ 	switch (_IOC_DIR(cmd)) {
+ 	case _IOC_READ:
+ 	case (_IOC_WRITE | _IOC_READ):
+-		if (copy_to_user((void __user *)arg, parg, _IOC_SIZE(cmd)))
+-			err = -EFAULT;
++		if (cmd == compat_cmd) {
++			if (copy_to_user((void __user *)arg, parg,
++					 _IOC_SIZE(cmd)))
++				err = -EFAULT;
++		} else {
++			if (copy_compat_to_user(compat_cmd, (void __user *)arg,
++						parg))
++				err = -EFAULT;
++		}
+ 		break;
+ 	}
+ 
+-- 
+1.7.2.5
 
-	Hans
-
-On Wed May 2 2012 14:40:03 Sakari Ailus wrote:
-> Remove input field in struct v4l2_buffer and flag V4L2_BUF_FLAG_INPUT which
-> tells the former is valid. The flag is used by no driver currently.
-> 
-> Also change the documentation accordingly.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> ---
-> Hi,
-> 
-> This is the third version of the v4l2_buffer.input field removal patch.
-> 
-> What has changed since the previous version:
-> 
-> - Rename input as reserved2 instead of combining it to reserved and making
->   it an array.
-> - cpia compile fix.
-> - Change documentation accordingly.
-> 
->  Documentation/DocBook/media/v4l/compat.xml      |    6 ++++++
->  Documentation/DocBook/media/v4l/io.xml          |   19 +++++--------------
->  Documentation/DocBook/media/v4l/vidioc-qbuf.xml |    9 +++------
->  drivers/media/video/cpia2/cpia2_v4l.c           |    2 +-
->  drivers/media/video/v4l2-compat-ioctl32.c       |   11 +++++------
->  drivers/media/video/videobuf-core.c             |   16 ----------------
->  drivers/media/video/videobuf2-core.c            |    5 ++---
->  include/linux/videodev2.h                       |    3 +--
->  8 files changed, 23 insertions(+), 48 deletions(-)
-> 
-> diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
-> index 87339b2..b939457 100644
-> --- a/Documentation/DocBook/media/v4l/compat.xml
-> +++ b/Documentation/DocBook/media/v4l/compat.xml
-> @@ -2422,6 +2422,12 @@ details.</para>
->  	  &VIDIOC-SUBDEV-G-SELECTION; and
->  	  &VIDIOC-SUBDEV-S-SELECTION;.</para>
->          </listitem>
-> +	<listitem>
-> +	  <para>Replaced <structfield>input</structfield> in
-> +	  <structname>v4l2_buffer</structname> by
-> +	  <structfield>reserved2</structfield> and removed
-> +	  <constant>V4L2_BUF_FLAG_INPUT</constant>.</para>
-> +	</listitem>
->        </orderedlist>
->      </section>
->  
-> diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
-> index b815929..e4cb063 100644
-> --- a/Documentation/DocBook/media/v4l/io.xml
-> +++ b/Documentation/DocBook/media/v4l/io.xml
-> @@ -681,14 +681,12 @@ memory, set by the application. See <xref linkend="userp" /> for details.
->  	  </row>
->  	  <row>
->  	    <entry>__u32</entry>
-> -	    <entry><structfield>input</structfield></entry>
-> +	    <entry><structfield>reserved2</structfield></entry>
->  	    <entry></entry>
-> -	    <entry>Some video capture drivers support rapid and
-> -synchronous video input changes, a function useful for example in
-> -video surveillance applications. For this purpose applications set the
-> -<constant>V4L2_BUF_FLAG_INPUT</constant> flag, and this field to the
-> -number of a video input as in &v4l2-input; field
-> -<structfield>index</structfield>.</entry>
-> +	    <entry>A place holder for future extensions and custom
-> +(driver defined) buffer types
-> +<constant>V4L2_BUF_TYPE_PRIVATE</constant> and higher. Applications
-> +should set this to 0.</entry>
->  	  </row>
->  	  <row>
->  	    <entry>__u32</entry>
-> @@ -921,13 +919,6 @@ Drivers set or clear this flag when the <constant>VIDIOC_DQBUF</constant>
->  ioctl is called.</entry>
->  	  </row>
->  	  <row>
-> -	    <entry><constant>V4L2_BUF_FLAG_INPUT</constant></entry>
-> -	    <entry>0x0200</entry>
-> -	    <entry>The <structfield>input</structfield> field is valid.
-> -Applications set or clear this flag before calling the
-> -<constant>VIDIOC_QBUF</constant> ioctl.</entry>
-> -	  </row>
-> -	  <row>
->  	    <entry><constant>V4L2_BUF_FLAG_PREPARED</constant></entry>
->  	    <entry>0x0400</entry>
->  	    <entry>The buffer has been prepared for I/O and can be queued by the
-> diff --git a/Documentation/DocBook/media/v4l/vidioc-qbuf.xml b/Documentation/DocBook/media/v4l/vidioc-qbuf.xml
-> index 9caa49a..77ff5be 100644
-> --- a/Documentation/DocBook/media/v4l/vidioc-qbuf.xml
-> +++ b/Documentation/DocBook/media/v4l/vidioc-qbuf.xml
-> @@ -71,12 +71,9 @@ initialize the <structfield>bytesused</structfield>,
->  <structfield>field</structfield> and
->  <structfield>timestamp</structfield> fields, see <xref
->  linkend="buffer" /> for details.
-> -Applications must also set <structfield>flags</structfield> to 0. If a driver
-> -supports capturing from specific video inputs and you want to specify a video
-> -input, then <structfield>flags</structfield> should be set to
-> -<constant>V4L2_BUF_FLAG_INPUT</constant> and the field
-> -<structfield>input</structfield> must be initialized to the desired input.
-> -The <structfield>reserved</structfield> field must be set to 0. When using
-> +Applications must also set <structfield>flags</structfield> to 0.
-> +The <structfield>reserved2</structfield> and
-> +<structfield>reserved</structfield> fields must be set to 0. When using
->  the <link linkend="planar-apis">multi-planar API</link>, the
->  <structfield>m.planes</structfield> field must contain a userspace pointer
->  to a filled-in array of &v4l2-plane; and the <structfield>length</structfield>
-> diff --git a/drivers/media/video/cpia2/cpia2_v4l.c b/drivers/media/video/cpia2/cpia2_v4l.c
-> index 077eb1d..c105612 100644
-> --- a/drivers/media/video/cpia2/cpia2_v4l.c
-> +++ b/drivers/media/video/cpia2/cpia2_v4l.c
-> @@ -1289,7 +1289,7 @@ static int cpia2_dqbuf(struct file *file, void *fh, struct v4l2_buffer *buf)
->  	buf->sequence = cam->buffers[buf->index].seq;
->  	buf->m.offset = cam->buffers[buf->index].data - cam->frame_buffer;
->  	buf->length = cam->frame_size;
-> -	buf->input = 0;
-> +	buf->reserved2 = 0;
->  	buf->reserved = 0;
->  	memset(&buf->timecode, 0, sizeof(buf->timecode));
->  
-> diff --git a/drivers/media/video/v4l2-compat-ioctl32.c b/drivers/media/video/v4l2-compat-ioctl32.c
-> index 2829d25..6d566b3 100644
-> --- a/drivers/media/video/v4l2-compat-ioctl32.c
-> +++ b/drivers/media/video/v4l2-compat-ioctl32.c
-> @@ -327,7 +327,7 @@ struct v4l2_buffer32 {
->  		compat_caddr_t  planes;
->  	} m;
->  	__u32			length;
-> -	__u32			input;
-> +	__u32			reserved2;
->  	__u32			reserved;
->  };
->  
-> @@ -387,8 +387,7 @@ static int get_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
->  		get_user(kp->index, &up->index) ||
->  		get_user(kp->type, &up->type) ||
->  		get_user(kp->flags, &up->flags) ||
-> -		get_user(kp->memory, &up->memory) ||
-> -		get_user(kp->input, &up->input))
-> +		get_user(kp->memory, &up->memory)
->  			return -EFAULT;
->  
->  	if (V4L2_TYPE_IS_OUTPUT(kp->type))
-> @@ -472,8 +471,7 @@ static int put_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
->  		put_user(kp->index, &up->index) ||
->  		put_user(kp->type, &up->type) ||
->  		put_user(kp->flags, &up->flags) ||
-> -		put_user(kp->memory, &up->memory) ||
-> -		put_user(kp->input, &up->input))
-> +		put_user(kp->memory, &up->memory)
->  			return -EFAULT;
->  
->  	if (put_user(kp->bytesused, &up->bytesused) ||
-> @@ -482,7 +480,8 @@ static int put_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
->  		put_user(kp->timestamp.tv_usec, &up->timestamp.tv_usec) ||
->  		copy_to_user(&up->timecode, &kp->timecode, sizeof(struct v4l2_timecode)) ||
->  		put_user(kp->sequence, &up->sequence) ||
-> -		put_user(kp->reserved, &up->reserved))
-> +		put_user(kp->reserved2, &up->reserved2) ||
-> +		put_user(kp->reserved, &up->reserved)
->  			return -EFAULT;
->  
->  	if (V4L2_TYPE_IS_MULTIPLANAR(kp->type)) {
-> diff --git a/drivers/media/video/videobuf-core.c b/drivers/media/video/videobuf-core.c
-> index ffdf59c..bf7a326 100644
-> --- a/drivers/media/video/videobuf-core.c
-> +++ b/drivers/media/video/videobuf-core.c
-> @@ -359,11 +359,6 @@ static void videobuf_status(struct videobuf_queue *q, struct v4l2_buffer *b,
->  		break;
->  	}
->  
-> -	if (vb->input != UNSET) {
-> -		b->flags |= V4L2_BUF_FLAG_INPUT;
-> -		b->input  = vb->input;
-> -	}
-> -
->  	b->field     = vb->field;
->  	b->timestamp = vb->ts;
->  	b->bytesused = vb->size;
-> @@ -402,7 +397,6 @@ int __videobuf_mmap_setup(struct videobuf_queue *q,
->  			break;
->  
->  		q->bufs[i]->i      = i;
-> -		q->bufs[i]->input  = UNSET;
->  		q->bufs[i]->memory = memory;
->  		q->bufs[i]->bsize  = bsize;
->  		switch (memory) {
-> @@ -566,16 +560,6 @@ int videobuf_qbuf(struct videobuf_queue *q, struct v4l2_buffer *b)
->  		goto done;
->  	}
->  
-> -	if (b->flags & V4L2_BUF_FLAG_INPUT) {
-> -		if (b->input >= q->inputs) {
-> -			dprintk(1, "qbuf: wrong input.\n");
-> -			goto done;
-> -		}
-> -		buf->input = b->input;
-> -	} else {
-> -		buf->input = UNSET;
-> -	}
-> -
->  	switch (b->memory) {
->  	case V4L2_MEMORY_MMAP:
->  		if (0 == buf->baddr) {
-> diff --git a/drivers/media/video/videobuf2-core.c b/drivers/media/video/videobuf2-core.c
-> index 3786d88..ccc71f2 100644
-> --- a/drivers/media/video/videobuf2-core.c
-> +++ b/drivers/media/video/videobuf2-core.c
-> @@ -336,9 +336,9 @@ static int __fill_v4l2_buffer(struct vb2_buffer *vb, struct v4l2_buffer *b)
->  	struct vb2_queue *q = vb->vb2_queue;
->  	int ret;
->  
-> -	/* Copy back data such as timestamp, flags, input, etc. */
-> +	/* Copy back data such as timestamp, flags, etc. */
->  	memcpy(b, &vb->v4l2_buf, offsetof(struct v4l2_buffer, m));
-> -	b->input = vb->v4l2_buf.input;
-> +	b->reserved2 = vb->v4l2_buf.reserved2;
->  	b->reserved = vb->v4l2_buf.reserved;
->  
->  	if (V4L2_TYPE_IS_MULTIPLANAR(q->type)) {
-> @@ -860,7 +860,6 @@ static int __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b,
->  
->  	vb->v4l2_buf.field = b->field;
->  	vb->v4l2_buf.timestamp = b->timestamp;
-> -	vb->v4l2_buf.input = b->input;
->  	vb->v4l2_buf.flags = b->flags & ~V4L2_BUFFER_STATE_FLAGS;
->  
->  	return 0;
-> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-> index 5a09ac3..fed1d40 100644
-> --- a/include/linux/videodev2.h
-> +++ b/include/linux/videodev2.h
-> @@ -652,7 +652,7 @@ struct v4l2_buffer {
->  		struct v4l2_plane *planes;
->  	} m;
->  	__u32			length;
-> -	__u32			input;
-> +	__u32			reserved2;
->  	__u32			reserved;
->  };
->  
-> @@ -666,7 +666,6 @@ struct v4l2_buffer {
->  /* Buffer is ready, but the data contained within is corrupted. */
->  #define V4L2_BUF_FLAG_ERROR	0x0040
->  #define V4L2_BUF_FLAG_TIMECODE	0x0100	/* timecode field is valid */
-> -#define V4L2_BUF_FLAG_INPUT     0x0200  /* input field is valid */
->  #define V4L2_BUF_FLAG_PREPARED	0x0400	/* Buffer is prepared for queuing */
->  /* Cache handling flags */
->  #define V4L2_BUF_FLAG_NO_CACHE_INVALIDATE	0x0800
-> 
