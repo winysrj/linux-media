@@ -1,85 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:56814 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755265Ab2ELXW7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 12 May 2012 19:22:59 -0400
-Received: by obbtb18 with SMTP id tb18so5245390obb.19
-        for <linux-media@vger.kernel.org>; Sat, 12 May 2012 16:22:59 -0700 (PDT)
-Message-ID: <4FAEF0D0.4080801@gmail.com>
-Date: Sat, 12 May 2012 18:22:56 -0500
-From: Mike Slegeir <tehpola@gmail.com>
+Received: from rcsinet15.oracle.com ([148.87.113.117]:51795 "EHLO
+	rcsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751985Ab2EBGPe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 May 2012 02:15:34 -0400
+Date: Wed, 2 May 2012 09:15:25 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Jean-Francois Moine <moinejf@free.fr>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: [patch] [media] gspca: passing wrong length parameter to reg_w()
+Message-ID: <20120502061525.GC28894@elgon.mountain>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: atsc_epg 64-bit bug / fault tolerance
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I was looking at using the dvb-apps when I had a hangup with atsc_epg.  
-This issue had been previously reported from what I found at 
-http://www.mail-archive.com/linux-media@vger.kernel.org/msg44661.html 
-but had not been resolved from what I could tell.
-Below I'm including a patch to fix the segfault on 64-bit builds and 
-also to improve tolerance of the fault I found when a segment was read 
-with a mode of '?' (don't ask me why, but I could try to give more 
-information if desired).
-The first three changes in the patch are about using an appropriately 
-sized type rather than casting a pointer to a larger type; this fixes 
-the segfault.  The last change involves nulling the title text when it 
-fails to parse rather than failing altogether.
+This looks like a cut an paste error.  This is a two byte array but we
+use 8 as a length parameter.
 
-Thanks,
-Mike Slegeir
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+---
+This is a static checker fix.  I don't own the hardware.
 
-diff -r 4030c51d6e7b util/atsc_epg/atsc_epg.c
---- a/util/atsc_epg/atsc_epg.c    Tue Apr 10 16:44:06 2012 +0200
-+++ b/util/atsc_epg/atsc_epg.c    Sat May 12 18:15:04 2012 -0500
-@@ -60,8 +60,8 @@
-  void (*old_handler)(int);
-
-  struct atsc_string_buffer {
--    int buf_len;
--    int buf_pos;
-+    size_t buf_len;
-+    size_t buf_pos;
-      char *string;
-  };
-
-@@ -507,8 +507,8 @@
-              event->msg_pos = channel->msg_buf.buf_pos;
-              if(0 > atsc_text_segment_decode(seg,
-                  (uint8_t **)&channel->msg_buf.string,
--                (size_t *)&channel->msg_buf.buf_len,
--                (size_t *)&channel->msg_buf.buf_pos)) {
-+ &channel->msg_buf.buf_len,
-+ &channel->msg_buf.buf_pos)) {
-                  fprintf(stderr, "%s(): error calling "
-                      "atsc_text_segment_decode()\n",
-                      __FUNCTION__);
-@@ -653,15 +653,18 @@
-                  e_info->title_pos = curr_info->title_buf.buf_pos;
-                  if(0 > atsc_text_segment_decode(seg,
-                      (uint8_t **)&curr_info->title_buf.string,
--                    (size_t *)&curr_info->title_buf.buf_len,
--                    (size_t *)&curr_info->title_buf.buf_pos)) {
-+ &curr_info->title_buf.buf_len,
-+ &curr_info->title_buf.buf_pos)) {
-                      fprintf(stderr, "%s(): error calling "
-                          "atsc_text_segment_decode()\n",
-                          __FUNCTION__);
--                    return -1;
-+                    e_info->title_len = 0;
-                  }
--                e_info->title_len = curr_info->title_buf.buf_pos -
--                    e_info->title_pos + 1;
-+                else
-+                {
-+                    e_info->title_len = curr_info->title_buf.buf_pos -
-+                        e_info->title_pos + 1;
-+                }
-              }
-          }
-      }
-
+diff --git a/drivers/media/video/gspca/conex.c b/drivers/media/video/gspca/conex.c
+index ea17b5d..f39fee0 100644
+--- a/drivers/media/video/gspca/conex.c
++++ b/drivers/media/video/gspca/conex.c
+@@ -306,7 +306,7 @@ static void cx_sensor(struct gspca_dev*gspca_dev)
+ 
+ 	reg_w(gspca_dev, 0x0020, reg20, 8);
+ 	reg_w(gspca_dev, 0x0028, reg28, 8);
+-	reg_w(gspca_dev, 0x0010, reg10, 8);
++	reg_w(gspca_dev, 0x0010, reg10, 2);
+ 	reg_w_val(gspca_dev, 0x0092, 0x03);
+ 
+ 	switch (gspca_dev->cam.cam_mode[(int) gspca_dev->curr_mode].priv) {
+@@ -326,7 +326,7 @@ static void cx_sensor(struct gspca_dev*gspca_dev)
+ 	}
+ 	reg_w(gspca_dev, 0x007b, reg7b, 6);
+ 	reg_w_val(gspca_dev, 0x00f8, 0x00);
+-	reg_w(gspca_dev, 0x0010, reg10, 8);
++	reg_w(gspca_dev, 0x0010, reg10, 2);
+ 	reg_w_val(gspca_dev, 0x0098, 0x41);
+ 	for (i = 0; i < 11; i++) {
+ 		if (i == 3 || i == 5 || i == 8)
