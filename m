@@ -1,53 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:41622 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932116Ab2EWHzc convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 May 2012 03:55:32 -0400
-Received: by yenm10 with SMTP id m10so6190512yen.19
-        for <linux-media@vger.kernel.org>; Wed, 23 May 2012 00:55:31 -0700 (PDT)
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:36363 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754392Ab2EBLiQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 May 2012 07:38:16 -0400
+Received: by eaaq12 with SMTP id q12so137201eaa.19
+        for <linux-media@vger.kernel.org>; Wed, 02 May 2012 04:38:14 -0700 (PDT)
+From: Patrick Boettcher <pboettcher@kernellabs.com>
+To: Michael Krufky <mkrufky@kernellabs.com>
+Subject: Re: [PATCH 07/10] dvb-demux: add functionality to send raw payload to the dvr device
+Date: Wed, 2 May 2012 13:38:09 +0200
+Cc: "linux-media" <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+References: <1335845545-20879-1-git-send-email-mkrufky@linuxtv.org> <1335845545-20879-7-git-send-email-mkrufky@linuxtv.org>
+In-Reply-To: <1335845545-20879-7-git-send-email-mkrufky@linuxtv.org>
 MIME-Version: 1.0
-In-Reply-To: <Pine.LNX.4.64.1205230938470.21980@axis700.grange>
-References: <E1SUH8r-0005cc-3k@www.linuxtv.org>
-	<Pine.LNX.4.64.1205160050270.25352@axis700.grange>
-	<Pine.LNX.4.64.1205221918150.11851@axis700.grange>
-	<CACKLOr0e7_UXSnq9GwRQx35eaGbZ1mwQMQ7-L8Riprz3rerzcw@mail.gmail.com>
-	<Pine.LNX.4.64.1205230938470.21980@axis700.grange>
-Date: Wed, 23 May 2012 09:55:31 +0200
-Message-ID: <CACKLOr0vp5WM-ow2UETbXUcMOzKyBPJrbhX3b=RapS-VOoRT5w@mail.gmail.com>
-Subject: Re: [git:v4l-dvb/for_v3.5] [media] media: mx2_camera: Fix mbus format handling
-From: javier Martin <javier.martin@vista-silicon.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201205021338.09817.pboettcher@kernellabs.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->> Is this the way to proceed or should I send a fix on top of it? This
->> patch is merged in 'for_v3.5', if Mauro reverts it and I send a new
->> version,  would it be also merged 'for_v3.5' or should it wait for
->> version 3.6?
->
-> I think, it would be better to revert and re-do it for the following
-> reason: since neither you nor me can test those pass-through cases, I
-> think, it is easier to review patches and try to avoid regressions by
-> looking at patches, that take you from a (presumably working) state A step
-> by step to a state B, where each patch is seemingly correct, than by
-> looking at a patch "a" that introduces a breakage and "b" that hopefully
-> should fix it back.
+Hi Mike,
 
-All right. Then Mauro can revert this patch and I'll get my hands on a
-new version whenever I have some spare time.
-Sorry for the inconvenience.
+On Tuesday 01 May 2012 06:12:22 Michael Krufky wrote:
+> From: Michael Krufky <mkrufky@kernellabs.com>
+> 
+> If your driver needs to deliver the raw payload to userspace without
+> passing through the kernel demux, use function: dvb_dmx_swfilter_raw
 
-Regards.
--- 
-Javier Martin
-Vista Silicon S.L.
-CDTUC - FASE C - Oficina S-345
-Avda de los Castros s/n
-39005- Santander. Cantabria. Spain
-+34 942 25 32 60
-www.vista-silicon.com
+I like this one very much. I had a background task sleeping in my head 
+which was how to add non-Transport-Stream standards to Linux-dvb. This 
+one I can now cancel, thanks to this change.
+
+We now can add CMMB-support and DAB to linux-dvb (after more discussions 
+on the API of course).
+
+Do you have user-space-tool ready which uses the new RAW-payload 
+mechanism? Something which can be used as an example.
+
+Thanks for this development.
+
+--
+Patrick 
+
+Kernel Labs Inc.
+http://www.kernellabs.com/
