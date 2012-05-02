@@ -1,44 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:28080 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755239Ab2ECKjY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 3 May 2012 06:39:24 -0400
-Message-ID: <4FA26047.2090004@redhat.com>
-Date: Thu, 03 May 2012 07:39:03 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Andy Walls <awalls@md.metrocast.net>
-CC: Hans Verkuil <hverkuil@xs4all.nl>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	remi@remlab.net, nbowler@elliptictech.com, james.dutton@gmail.com
-Subject: Re: [RFC v3 1/2] v4l: Do not use enums in IOCTL structs
-References: <20120502191324.GE852@valkosipuli.localdomain>  <1335986028-23618-1-git-send-email-sakari.ailus@iki.fi>  <201205022245.22585.hverkuil@xs4all.nl> <4FA1B27A.2030405@redhat.com> <1336005780.24477.7.camel@palomino.walls.org>
-In-Reply-To: <1336005780.24477.7.camel@palomino.walls.org>
+Received: from elasmtp-masked.atl.sa.earthlink.net ([209.86.89.68]:59933 "EHLO
+	elasmtp-masked.atl.sa.earthlink.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755986Ab2EBTXP convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 2 May 2012 15:23:15 -0400
+Message-ID: <25369268.1335986594418.JavaMail.root@mswamui-thinleaf.atl.sa.earthlink.net>
+Date: Wed, 2 May 2012 15:23:14 -0400 (GMT-04:00)
+From: sitten74490@mypacks.net
+To: sitten74490@mypacks.net,
+	Devin Heitmueller <dheitmueller@kernellabs.com>
+Subject: Re: HVR-1800 Analog Driver: MPEG video broken
+Cc: linux-media@vger.kernel.org
+Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 02-05-2012 21:42, Andy Walls escreveu:
-> On Wed, 2012-05-02 at 19:17 -0300, Mauro Carvalho Chehab wrote:
-> 
->> We can speed-up the conversions, with something like:
->>
->> enum foo {
->> 	BAR
->> };
->>
->> if (sizeof(foo) != sizeof(u32))
->> 	call_compat_logic().
->>
->> I suspect that sizeof() won't work inside a macro. 
-> 
-> sizeof() is evaluated at compile time, after preprocessing. 
-> It should work inside of a macro.
-
-According with Dennis Ritchie, testing for sizeof on a macro never worked:
-	http://groups.google.com/group/comp.std.c/msg/4852afc61a060d89?dmode=source&pli=1
+I just tried again with a live CD running kernel 3.2 and got clean video with cat /dev/video1 > /tmp/foo.mpg.  So there is a definitely a regression here.  Please let me know what I can do to help track it down.
 
 Regards,
-Mauro
+
+Jonathan
+-----Original Message-----
+>From: sitten74490@mypacks.net
+>Sent: May 2, 2012 11:53 AM
+>To: Devin Heitmueller <dheitmueller@kernellabs.com>
+>Cc: linux-media@vger.kernel.org
+>Subject: Re: HVR-1800 Analog Driver: MPEG video broken
+>
+>In case it might be helpful, here's the output of v4l2-ctl -d /dev/video1 --log-status:
+>
+>http://pastebin.com/4iTcXDNP
+>
+>Thanks,
+>
+>Jonathan
+>-----Original Message-----
+>>From: Devin Heitmueller <dheitmueller@kernellabs.com>
+>>Sent: May 2, 2012 9:58 AM
+>>To: sitten74490@mypacks.net
+>>Cc: linux-media@vger.kernel.org
+>>Subject: Re: HVR-1800 Analog Driver: MPEG video broken
+>>
+>>On Wed, May 2, 2012 at 9:32 AM,  <sitten74490@mypacks.net> wrote:
+>>> I have been testing the latest cx23885 driver built from http://git.kernellabs.com/?p=stoth/cx23885-hvr1850-fixups.git;a=summary running on kernel 3.3.4 with my HVR-1800 (model 78521).  I am able to watch analog TV with tvtime using the raw device, /dev/video0.  But if I try to use it with the MPEG device, /dev/video1, I briefly get a blue screen and then tvtime segfaults.
+>>
+>>Tvtime segfaulting if you try to use it on an MPEG device is a known
+>>tvtime bug.  Tvtime lacks an MPEG decoder, and only works with devices
+>>that support raw video.
+>>
+>>cat /dev/video1 > /tmp/foo.mpg gives video with moving, distorted,
+>>mostly black and white diagonal lines just like @Britney posted here:
+>>http://www.kernellabs.com/blog/?p=1636.
+>>
+>>Yup, I've been going back and forth with bfransen on this.  I received
+>>a board last week, and am hoping to debug it this week.
+>>
+>>Regards,
+>>
+>>Devin
+>>
+>>-- 
+>>Devin J. Heitmueller - Kernel Labs
+>>http://www.kernellabs.com
+>
+>--
+>To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
