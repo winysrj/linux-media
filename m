@@ -1,373 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:60689 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:15083 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751076Ab2E0SLt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 27 May 2012 14:11:49 -0400
-Message-ID: <4FC26E68.1020704@redhat.com>
-Date: Sun, 27 May 2012 20:11:52 +0200
-From: Hans de Goede <hdegoede@redhat.com>
+	id S1752226Ab2EBWRu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 2 May 2012 18:17:50 -0400
+Message-ID: <4FA1B27A.2030405@redhat.com>
+Date: Wed, 02 May 2012 19:17:30 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
 To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org,
-	halli manjunatha <hallimanju@gmail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFCv1 PATCH 5/5] V4L2 spec: add frequency band documentation.
-References: <1338119425-17274-1-git-send-email-hverkuil@xs4all.nl> <04d04591632a7db503981b27335eaad27c73d332.1338118975.git.hans.verkuil@cisco.com>
-In-Reply-To: <04d04591632a7db503981b27335eaad27c73d332.1338118975.git.hans.verkuil@cisco.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+CC: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org,
+	laurent.pinchart@ideasonboard.com, remi@remlab.net,
+	nbowler@elliptictech.com, james.dutton@gmail.com
+Subject: Re: [RFC v3 1/2] v4l: Do not use enums in IOCTL structs
+References: <20120502191324.GE852@valkosipuli.localdomain> <1335986028-23618-1-git-send-email-sakari.ailus@iki.fi> <201205022245.22585.hverkuil@xs4all.nl>
+In-Reply-To: <201205022245.22585.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Hans,
 
-Comments inline.
+Em 02-05-2012 17:45, Hans Verkuil escreveu:
+> On Wed May 2 2012 21:13:47 Sakari Ailus wrote:
+>> Replace enums in IOCTL structs by __u32. The size of enums is variable and
+>> thus problematic. Compatibility structs having exactly the same as original
+>> definition are provided for compatibility with old binaries with the
+>> required conversion code.
+> 
+> Does someone actually have hard proof that there really is a problem? You know,
+> demonstrate it with actual example code?
+> 
+> It's pretty horrible that you have to do all those conversions and that code
+> will be with us for years to come.
+> 
+> For most (if not all!) architectures sizeof(enum) == sizeof(u32), so there is
+> no need for any compat code for those.
 
-On 05/27/2012 01:50 PM, Hans Verkuil wrote:
-> From: Hans Verkuil<hans.verkuil@cisco.com>
->
-> Based in part on an earlier patch from<hallimanju@gmail.com>.
->
-> Signed-off-by: Hans Verkuil<hans.verkuil@cisco.com>
-> ---
->   Documentation/DocBook/media/v4l/common.xml         |   28 ++++--
->   .../DocBook/media/v4l/vidioc-g-modulator.xml       |   38 +++++---
->   Documentation/DocBook/media/v4l/vidioc-g-tuner.xml |   97 +++++++++++++++++---
->   .../DocBook/media/v4l/vidioc-s-hw-freq-seek.xml    |    3 +-
->   4 files changed, 131 insertions(+), 35 deletions(-)
->
-> diff --git a/Documentation/DocBook/media/v4l/common.xml b/Documentation/DocBook/media/v4l/common.xml
-> index 4101aeb..4e7082d 100644
-> --- a/Documentation/DocBook/media/v4l/common.xml
-> +++ b/Documentation/DocBook/media/v4l/common.xml
-> @@ -464,17 +464,18 @@ The<structfield>type</structfield>  field of the respective
->   <structfield>tuner</structfield>  field contains the index number of
->   the tuner.</para>
->
-> -<para>Radio devices have exactly one tuner with index zero, no
-> -video inputs.</para>
-> +<para>Radio input devices have one or more tuners, but these are
-> +obviously not associated with any video inputs.</para>
->
+"Most" is not enough. We need a solution for all.
 
-This is about having multiple tuners for radio devices, not about
-the band support, IMHO as such this belongs in a different patch.
+Also, the usage of -fshort-enum compilation directive would cause a V4L2 application 
+to not work.
 
-Also it seems we never finished the earlier discussions of how to handle
-radio devices which really have multiple tuners, so it seems premature
-to change this at all atm.
+  I've checked with a gcc developer: he said that,
+C standard says that the type should be represented as an integer, but it does allow
+that it could be represented by a sorter type, like char. Gcc also allows using larger
+enumber types, as a compatible extension, but doesn't use (by default) sorter types,
+except if packed attribute is used.
 
->         <para>To query and change tuner properties applications use the
->   &VIDIOC-G-TUNER; and&VIDIOC-S-TUNER; ioctl, respectively. The
->   &v4l2-tuner; returned by<constant>VIDIOC_G_TUNER</constant>  also
->   contains signal status information applicable when the tuner of the
-> -current video input, or a radio tuner is queried. Note that
-> +current video input or a radio tuner is queried. Note that
->   <constant>VIDIOC_S_TUNER</constant>  does not switch the current tuner,
->   when there is more than one at all. The tuner is solely determined by
-> -the current video input. Drivers must support both ioctls and set the
-> +the current video input or by calling&VIDIOC-S-FREQUENCY; for radio
-> +tuners. Drivers must support both ioctls and set the
->   <constant>V4L2_CAP_TUNER</constant>  flag in the&v4l2-capability;
->   returned by the&VIDIOC-QUERYCAP; ioctl when the device has one or
->   more tuners.</para>
+As we use __packed on several structs, this can cause troubles.
 
-Again this seems about having multiple tuners on radio devices. If a radio device
-has multiple tuners, I would expect both to be able to be active at the same
-time (ie for recording one show and listening an other), so I would expect there
-to be a mapping between audio-inputs and tuners, just like we have one between
-video inputs and tuners for video. Which means that the language of S_FREQ
-selecting a tuner makes no sense, as both can be active at the same time ...
+It seems that the compiler may also choose to use either signed or unsigned integers
+for enums.
 
-All in all I think the whole what to do with radio devices with multiple tuners
-discussion can best be deferred until we actually encounter such a device.
+He also doesn't recommend to use enums for any bitfield, as this is not defined on
+C standard, and the way GCC implements it can cause troubles.
 
-> @@ -491,14 +492,24 @@ the modulator. The<structfield>type</structfield>  field of the
->   respective&v4l2-output; returned by the&VIDIOC-ENUMOUTPUT; ioctl is
->   set to<constant>V4L2_OUTPUT_TYPE_MODULATOR</constant>  and its
->   <structfield>modulator</structfield>  field contains the index number
-> -of the modulator. This specification does not define radio output
-> -devices.</para>
-> +of the modulator.</para>
-> +
-> +<para>Radio output devices have one or more modulators, but these
-> +are obviously not associated with any video outputs.</para>
-> +
-> +<para>A video or radio device cannot support both a tuner and a
-> +modulator. Two separate device nodes will have to be used for such
-> +hardware, one that supports the tuner functionality and one that supports
-> +the modulator functionality. The reason is a limitation with the
-> +&VIDIOC-S-FREQUENCY; ioctl where you cannot specify whether the frequency
-> +is for a tuner or a modulator.</para>
->
->         <para>To query and change modulator properties applications use
->   the&VIDIOC-G-MODULATOR; and&VIDIOC-S-MODULATOR; ioctl. Note that
->   <constant>VIDIOC_S_MODULATOR</constant>  does not switch the current
->   modulator, when there is more than one at all. The modulator is solely
-> -determined by the current video output. Drivers must support both
-> +determined by the current video output or by calling&VIDIOC-S-FREQUENCY;
-> +for radio modulators. Drivers must support both
->   ioctls and set the<constant>V4L2_CAP_MODULATOR</constant>  flag in
->   the&v4l2-capability; returned by the&VIDIOC-QUERYCAP; ioctl when the
->   device has one or more modulators.</para>
+I would prefer a simpler solution, but, after thinking for some time, we should really
+do something like that. Yes, compat code sucks, but, on the long term, we'll get rid
+of all those mess. If we don't do that, I'm sure that this problem will return back in
+the future (as this is the second time it returned. If we had fixed it on that time,
+all our problems would already be solved nowadays).
 
-Same again, who says if there are 2 modulators they cannot be both active
-at the same time, which means the whole notion of selecting one is wrong.
+> 
+> Note that I don't question that using u32 is better than using enums, but I
+> really wonder if there is any need for all the conversions.
 
-> @@ -511,8 +522,7 @@ device has one or more modulators.</para>
->   applications use the&VIDIOC-G-FREQUENCY; and&VIDIOC-S-FREQUENCY;
->   ioctl which both take a pointer to a&v4l2-frequency;. These ioctls
->   are used for TV and radio devices alike. Drivers must support both
-> -ioctls when the tuner or modulator ioctls are supported, or
-> -when the device is a radio device.</para>
-> +ioctls when the tuner or modulator ioctls are supported.</para>
->       </section>
->     </section>
->
-> diff --git a/Documentation/DocBook/media/v4l/vidioc-g-modulator.xml b/Documentation/DocBook/media/v4l/vidioc-g-modulator.xml
-> index 7f4ac7e..713ba06 100644
-> --- a/Documentation/DocBook/media/v4l/vidioc-g-modulator.xml
-> +++ b/Documentation/DocBook/media/v4l/vidioc-g-modulator.xml
-> @@ -68,17 +68,17 @@ to this structure. Drivers fill the rest of the structure or return an
->   applications shall begin at index zero, incrementing by one until the
->   driver returns<errorcode>EINVAL</errorcode>.</para>
->
-> -<para>Modulators have two writable properties, an audio
-> -modulation set and the radio frequency. To change the modulated audio
-> -subprograms, applications initialize the<structfield>index
-> -</structfield>  and<structfield>txsubchans</structfield>  fields and the
-> -<structfield>reserved</structfield>  array and call the
-> -<constant>VIDIOC_S_MODULATOR</constant>  ioctl. Drivers may choose a
-> -different audio modulation if the request cannot be satisfied. However
-> -this is a write-only ioctl, it does not return the actual audio
-> +<para>Modulators have three writable properties, an audio
-> +modulation set, the frequency band and the radio frequency. To change the
-> +modulated audio subprograms or frequency band, applications initialize the
-> +<structfield>index</structfield>,<structfield>band</structfield>,
-> +<structfield>txsubchans</structfield>  and<structfield>reserved</structfield>
-> +fields and call the<constant>VIDIOC_S_MODULATOR</constant>  ioctl. Drivers
-> +may choose a different audio modulation if the request cannot be satisfied.
-> +However this is a write-only ioctl, it does not return the actual audio
->   modulation selected.</para>
->
-> -<para>To change the radio frequency the&VIDIOC-S-FREQUENCY; ioctl
-> +<para>To change the frequency the&VIDIOC-S-FREQUENCY; ioctl
->   is available.</para>
->
->       <table pgwide="1" frame="none" id="v4l2-modulator">
-> @@ -110,16 +110,16 @@ change for example with the current video standard.</entry>
->   	<row>
->   	<entry>__u32</entry>
->   	<entry><structfield>rangelow</structfield></entry>
-> -	<entry>The lowest tunable frequency in units of 62.5
-> -KHz, or if the<structfield>capability</structfield>  flag
-> +	<entry>The lowest tunable frequency of the current frequency band
-> +in units of 62.5 kHz, or if the<structfield>capability</structfield>  flag
->   <constant>V4L2_TUNER_CAP_LOW</constant>  is set, in units of 62.5
->   Hz.</entry>
->   	</row>
->   	<row>
->   	<entry>__u32</entry>
->   	<entry><structfield>rangehigh</structfield></entry>
-> -	<entry>The highest tunable frequency in units of 62.5
-> -KHz, or if the<structfield>capability</structfield>  flag
-> +	<entry>The highest tunable frequency of the current frequency band
-> +in units of 62.5 kHz, or if the<structfield>capability</structfield>  flag
->   <constant>V4L2_TUNER_CAP_LOW</constant>  is set, in units of 62.5
->   Hz.</entry>
->   	</row>
-> @@ -138,7 +138,17 @@ indicator, for example a stereo pilot tone.</entry>
->   	</row>
->   	<row>
->   	<entry>__u32</entry>
-> -	<entry><structfield>reserved</structfield>[4]</entry>
-> +	<entry><structfield>band</structfield></entry>
-> +	<entry spanname="hspan">The frequency band. The available bands are
-> +	    defined in the<structfield>capability</structfield>  field. The band
-> +	<constant>V4L2_TUNER_BAND_DEFAULT</constant>  is always available. After changing
-> +	    the band the current frequency will be clamped to the new frequency range.
-> +	    See<xref linkend="radio-bands" />  for valid band values.
-> +	</entry>
-> +	</row>
-> +	<row>
-> +	<entry>__u32</entry>
-> +	<entry><structfield>reserved</structfield>[3]</entry>
->   	<entry>Reserved for future extensions. Drivers and
->   applications must set the array to zero.</entry>
->   	</row>
-> diff --git a/Documentation/DocBook/media/v4l/vidioc-g-tuner.xml b/Documentation/DocBook/media/v4l/vidioc-g-tuner.xml
-> index 95d5371..27a8916 100644
-> --- a/Documentation/DocBook/media/v4l/vidioc-g-tuner.xml
-> +++ b/Documentation/DocBook/media/v4l/vidioc-g-tuner.xml
-> @@ -68,10 +68,10 @@ structure. Drivers fill the rest of the structure or return an
->   applications shall begin at index zero, incrementing by one until the
->   driver returns<errorcode>EINVAL</errorcode>.</para>
->
-> -<para>Tuners have two writable properties, the audio mode and
-> -the radio frequency. To change the audio mode, applications initialize
-> -the<structfield>index</structfield>,
-> -<structfield>audmode</structfield>  and
-> +<para>Tuners have three writable properties, the audio mode, the frequency
-> +band and the radio frequency. To change the audio mode and band, applications
-> +initialize the<structfield>index</structfield>,
-> +<structfield>audmode</structfield>,<structfield>band</structfield>  and
->   <structfield>reserved</structfield>  fields and call the
->   <constant>VIDIOC_S_TUNER</constant>  ioctl. This will
->   <emphasis>not</emphasis>  change the current tuner, which is determined
-> @@ -80,7 +80,7 @@ if the requested mode is invalid or unsupported. Since this is a
->   <!-- FIXME -->write-only ioctl, it does not return the actually
->   selected audio mode.</para>
->
-> -<para>To change the radio frequency the&VIDIOC-S-FREQUENCY; ioctl
-> +<para>To change the frequency the&VIDIOC-S-FREQUENCY; ioctl
->   is available.</para>
->
->       <table pgwide="1" frame="none" id="v4l2-tuner">
-> @@ -127,16 +127,16 @@ the structure refers to a radio tuner only the
->   	<row>
->   	<entry>__u32</entry>
->   	<entry><structfield>rangelow</structfield></entry>
-> -	<entry spanname="hspan">The lowest tunable frequency in
-> -units of 62.5 kHz, or if the<structfield>capability</structfield>
-> +	<entry spanname="hspan">The lowest tunable frequency of the current
-> +frequency band in units of 62.5 kHz, or if the<structfield>capability</structfield>
->   flag<constant>V4L2_TUNER_CAP_LOW</constant>  is set, in units of 62.5
->   Hz.</entry>
->   	</row>
->   	<row>
->   	<entry>__u32</entry>
->   	<entry><structfield>rangehigh</structfield></entry>
-> -	<entry spanname="hspan">The highest tunable frequency in
-> -units of 62.5 kHz, or if the<structfield>capability</structfield>
-> +	<entry spanname="hspan">The highest tunable frequency of the current
-> +frequency band in units of 62.5 kHz, or if the<structfield>capability</structfield>
->   flag<constant>V4L2_TUNER_CAP_LOW</constant>  is set, in units of 62.5
->   Hz.</entry>
->   	</row>
-> @@ -226,7 +226,17 @@ settles at zero,&ie; range is what? --></entry>
->   	</row>
->   	<row>
->   	<entry>__u32</entry>
-> -	<entry><structfield>reserved</structfield>[4]</entry>
-> +	<entry><structfield>band</structfield></entry>
-> +	<entry spanname="hspan">The frequency band. The available bands are
-> +	    defined in the<structfield>capability</structfield>  field. The band
-> +	<constant>V4L2_TUNER_BAND_DEFAULT</constant>  is always available. After changing
-> +	    the band the current frequency will be clamped to the new frequency range.
-> +	    See<xref linkend="radio-bands" />  for valid band values.
-> +	</entry>
-> +	</row>
-> +	<row>
-> +	<entry>__u32</entry>
-> +	<entry><structfield>reserved</structfield>[3]</entry>
->   	<entry spanname="hspan">Reserved for future extensions. Drivers and
->   applications must set the array to zero.</entry>
->   	</row>
-> @@ -340,6 +350,31 @@ radio tuners.</entry>
->   	<entry>0x0200</entry>
->   	<entry>The RDS data is parsed by the hardware and set via controls.</entry>
->   	</row>
-> +	<row>
-> +	<entry><constant>V4L2_TUNER_CAP_BAND_FM_EUROPE_US</constant></entry>
-> +	<entry>0x010000</entry>
-> +	<entry>FM radio European or US band (87.5 Mhz - 108 MHz, exact range is hardware dependent).</entry>
-> +	</row>
-> +	<row>
-> +	<entry><constant>V4L2_TUNER_CAP_BAND_FM_JAPAN</constant></entry>
-> +	<entry>0x020000</entry>
-> +	<entry>FM radio Japan band (76 MHz - 90 MHz, exact range is hardware dependent).</entry>
-> +	</row>
-> +	<row>
-> +	<entry><constant>V4L2_TUNER_CAP_BAND_FM_RUSSIAN</constant></entry>
-> +	<entry>0x040000</entry>
-> +	<entry>FM radio OIRT or Russian band (65.8 MHz - 74 MHz, exact range is hardware dependent).</entry>
-> +	</row>
-> +	<row>
-> +	<entry><constant>V4L2_TUNER_CAP_BAND_FM_WEATHER</constant></entry>
-> +	<entry>0x080000</entry>
-> +	<entry>FM radio weather band (162.4 MHz - 162.55 MHz, exact range is hardware dependent).</entry>
-> +	</row>
-> +	<row>
-> +	<entry><constant>V4L2_TUNER_CAP_BAND_AM_MW</constant></entry>
-> +	<entry>0x100000</entry>
-> +	<entry>AM radio medium wave band (520 kHz - 1710 kHz, exact range is hardware dependent).</entry>
-> +	</row>
->   	</tbody>
->         </tgroup>
->       </table>
-> @@ -532,6 +567,39 @@ Lang1/Lang1</entry>
->         </tgroup>
->       </table>
->     </refsect1>
-> +<table pgwide="1" frame="none" id="radio-bands">
-> +<title>Radio Band Types</title>
-> +<tgroup cols="2">
-> +	&cs-str;
-> +	<tbody valign="top">
-> +		<row>
-> +		<entry><constant>V4L2_TUNER_BAND_DEFAULT</constant>&nbsp;</entry>
-> +		<entry>This is the default band, which should be the widest frequency range supported by
-> +		      the hardware. This band is always available.</entry>
-> +		</row>
-> +		<row>
-> +		<entry><constant>V4L2_TUNER_BAND_FM_EUROPE_US</constant>&nbsp;</entry>
-> +		<entry>FM radio European or US band (87.5 Mhz - 108 MHz, exact range is hardware dependent).</entry>
-> +		</row>
-> +		<row>
-> +		<entry><constant>V4L2_TUNER_BAND_FM_JAPAN</constant>&nbsp;</entry>
-> +		<entry>FM radio Japan band (76 MHz - 90 MHz, exact range is hardware dependent).</entry>
-> +		</row>
-> +		<row>
-> +		<entry><constant>V4L2_TUNER_BAND_FM_RUSSIAN</constant>&nbsp;</entry>
-> +		<entry>FM radio OIRT or Russian band (65.8 MHz - 74 MHz, exact range is hardware dependent).</entry>
-> +		</row>
-> +		<row>
-> +		<entry><constant>V4L2_TUNER_BAND_FM_WEATHER</constant>&nbsp;</entry>
-> +		<entry>FM radio weather band (162.4 MHz - 162.55 MHz, exact range is hardware dependent).</entry>
-> +		</row>
-> +		<row>
-> +		<entry><constant>V4L2_TUNER_BAND_AM_MW</constant>&nbsp;</entry>
-> +		<entry>AM radio medium wave band (520 kHz - 1710 kHz, exact range is hardware dependent).</entry>
-> +		</row>
-> +	</tbody>
-> +</tgroup>
-> +</table>
->
->     <refsect1>
->       &return-value;
-> @@ -541,7 +609,14 @@ Lang1/Lang1</entry>
->   	<term><errorcode>EINVAL</errorcode></term>
->   	<listitem>
->   	<para>The&v4l2-tuner;<structfield>index</structfield>  is
-> -out of bounds.</para>
-> +out of bounds or the<structfield>band</structfield>  is invalid.</para>
-> +	</listitem>
-> +</varlistentry>
-> +<varlistentry>
-> +	<term><errorcode>EBUSY</errorcode></term>
-> +	<listitem>
-> +	<para>An attempt was made to change the frequency band while a hardware
-> +frequency seek was in progress.</para>
->   	</listitem>
->         </varlistentry>
->       </variablelist>
-> diff --git a/Documentation/DocBook/media/v4l/vidioc-s-hw-freq-seek.xml b/Documentation/DocBook/media/v4l/vidioc-s-hw-freq-seek.xml
-> index d58b648..d893d67 100644
-> --- a/Documentation/DocBook/media/v4l/vidioc-s-hw-freq-seek.xml
-> +++ b/Documentation/DocBook/media/v4l/vidioc-s-hw-freq-seek.xml
-> @@ -49,7 +49,8 @@
->     <refsect1>
->       <title>Description</title>
->
-> -<para>Start a hardware frequency seek from the current frequency.
-> +<para>Start a hardware frequency seek from the current frequency covering
-> +the current frequency band.
->   To do this applications initialize the<structfield>tuner</structfield>,
->   <structfield>type</structfield>,<structfield>seek_upward</structfield>,
->   <structfield>spacing</structfield>  and
+We can speed-up the conversions, with something like:
 
-The actual frequency band documentation part looks good :)
+enum foo {
+	BAR
+};
+
+if (sizeof(foo) != sizeof(u32))
+	call_compat_logic().
+
+I suspect that sizeof() won't work inside a macro. 
 
 Regards,
-
-Hans
+Mauro
