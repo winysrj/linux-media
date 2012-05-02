@@ -1,51 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:3588 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759657Ab2EQIux (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 May 2012 04:50:53 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from smtp1-g21.free.fr ([212.27.42.1]:56648 "EHLO smtp1-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751283Ab2EBHLA convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 May 2012 03:11:00 -0400
+Received: from tele (unknown [IPv6:2a01:e35:2f5c:9de0:212:bfff:fe1e:9ce4])
+	by smtp1-g21.free.fr (Postfix) with ESMTP id 8F6BC9400EF
+	for <linux-media@vger.kernel.org>; Wed,  2 May 2012 09:10:54 +0200 (CEST)
+Date: Wed, 2 May 2012 09:12:05 +0200
+From: Jean-Francois Moine <moinejf@free.fr>
 To: linux-media@vger.kernel.org
-Subject: Re: [RFC PATCH 0/2] Proposal to deprecate four drivers
-Date: Thu, 17 May 2012 10:50:46 +0200
-Cc: Hans de Goede <hdegoede@redhat.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-References: <1337022719-13868-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1337022719-13868-1-git-send-email-hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201205171050.46082.hverkuil@xs4all.nl>
+Subject: [GIT PATCHES FOR 3.4] gspca for_v3.4
+Message-ID: <20120502091205.115daf99@tele>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon May 14 2012 21:11:57 Hans Verkuil wrote:
-> Hi all,
-> 
-> These two patches deprecate the ISA video capture pms driver and the three
-> parallel port webcam drivers bw-qcam, c-qcam and w9966.
-> 
-> Nobody has hardware for the three parallel port webcams anymore (and we really
-> tried to get hold of some), and my ISA pms board also no longer works (I suspect
-> the Pentium motherboard I use for testing ISA cards is too fast :-) ).
-> 
-> I've given up on these drivers. I've posted a pull request to get these drivers
-> up to speed with regards to the latest frameworks (the pms update has already
-> been merged), and I think that should be the last change before removing them
-> altogether. If someone ever gets working hardware for these drivers, then they
-> are easy to resurrect from the git history should there be a desire to do so.
-> 
-> ISA and parallel port are both unsuitable for streaming video, so this hardware
-> is really obsolete.
+The following changes since commit 976a87b9ce3172065e21f0d136353a01df06d0d6:
 
-I'm shelving this RFC for the time being. I suddenly have leads on all three
-parallel port webcams so with a bit of luck I might have actual hardware to
-test these drivers in a few weeks time.
+  [media] gspca - sn9c20x: Change the exposure setting of Omnivision sensors (2012-04-09 14:22:52 -0300)
 
-It's still not useful to anyone of course, but as long as I can test ancient
-hardware I'm happy :-)
+are available in the git repository at:
 
-Regards,
+  git://linuxtv.org/jfrancois/gspca.git for_v3.4
 
-	Hans
+for you to fetch changes up to 3f46715c09b017bfdfa8c0f5ea284d42a9c213a2:
+
+  gspca - sonixj: Fix a zero divide in isoc interrupt (2012-05-02 09:05:18 +0200)
+
+----------------------------------------------------------------
+Jean-François Moine (1):
+      gspca - sonixj: Fix a zero divide in isoc interrupt
+
+ drivers/media/video/gspca/sonixj.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+-- 
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
