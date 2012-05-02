@@ -1,47 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:36207 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933256Ab2EVUig convert rfc822-to-8bit (ORCPT
+Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:33472 "EHLO
+	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754819Ab2EBPQ2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 May 2012 16:38:36 -0400
-Received: by obbtb18 with SMTP id tb18so10063136obb.19
-        for <linux-media@vger.kernel.org>; Tue, 22 May 2012 13:38:36 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <4FBBF83C.8040201@gmail.com>
-References: <4FBBF83C.8040201@gmail.com>
-Date: Tue, 22 May 2012 16:38:36 -0400
-Message-ID: <CAGoCfiwgpnAFZ0axsZqzWBzjGffLZPeZ8bnA_vaL1jcia0rk5A@mail.gmail.com>
-Subject: Re: HVR1600 and Centos 6.2 x86_64 -- Strange Behavior
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Bob Lightfoot <boblfoot@gmail.com>
-Cc: linux-media@vger.kernel.org, atrpms-users@atrpms.net
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Wed, 2 May 2012 11:16:28 -0400
+Received: by qcsc20 with SMTP id c20so588946qcs.32
+        for <linux-media@vger.kernel.org>; Wed, 02 May 2012 08:16:26 -0700 (PDT)
+From: Sergio Aguirre <saaguirre@ti.com>
+To: linux-media@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, Sergio Aguirre <saaguirre@ti.com>
+Subject: [PATCH v3 09/10] omap2plus: Add support for omap4iss camera
+Date: Wed,  2 May 2012 10:15:48 -0500
+Message-Id: <1335971749-21258-10-git-send-email-saaguirre@ti.com>
+In-Reply-To: <1335971749-21258-1-git-send-email-saaguirre@ti.com>
+References: <1335971749-21258-1-git-send-email-saaguirre@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, May 22, 2012 at 4:34 PM, Bob Lightfoot <boblfoot@gmail.com> wrote:
-> -----BEGIN PGP SIGNED MESSAGE-----
-> Hash: SHA1
->
-> Dear LinuxTv and AtRpms Communities:
->     In the most recent three kernels {2.6.32-220.7.1 ;
-> 2.6.32-220.13.1 ; 2.6.32-220.17.1} released for CentOS 6.2 I have
-> experienced what can only be described as a strange behavior of the
-> V4L kernel modules with the Hauppage HVR 1600 Card.  If I reboot the
-> PC in question {HP Pavillion Elite M9040n} I will lose sound on the
-> Analog TV Tuner.  If I Power off the PC, leave it off for 30-60
-> seconds and start it back up then I have sound with the Analog TV
-> Tuner every time.  Not sure what is causing this, but thought the
-> condition was worth sharing.
+Also add support for following sensors:
+- OV5640
+- OV5650
 
-Could you please clarify which HVR-1600 board you have (e.g. the PCI
-ID)?  I suspect we're probably not resetting the audio processor
-properly, but I would need to know exactly which board you have in
-order to check that.
+Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
+---
+ arch/arm/configs/omap2plus_defconfig |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-Devin
-
+diff --git a/arch/arm/configs/omap2plus_defconfig b/arch/arm/configs/omap2plus_defconfig
+index d5f00d7..ea7e8e9 100644
+--- a/arch/arm/configs/omap2plus_defconfig
++++ b/arch/arm/configs/omap2plus_defconfig
+@@ -23,6 +23,8 @@ CONFIG_MODULE_SRCVERSION_ALL=y
+ CONFIG_ARCH_OMAP=y
+ CONFIG_OMAP_RESET_CLOCKS=y
+ CONFIG_OMAP_MUX_DEBUG=y
++CONFIG_MACH_OMAP_4430SDP_CAMERA_SUPPORT=y
++CONFIG_MACH_OMAP4_PANDA_CAMERA_SUPPORT=y
+ CONFIG_ARM_THUMBEE=y
+ CONFIG_ARM_ERRATA_411920=y
+ CONFIG_NO_HZ=y
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+1.7.5.4
+
