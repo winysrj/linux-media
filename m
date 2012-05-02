@@ -1,52 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from einhorn.in-berlin.de ([192.109.42.8]:46624 "EHLO
-	einhorn.in-berlin.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751486Ab2E1OOi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 May 2012 10:14:38 -0400
-Date: Mon, 28 May 2012 16:14:32 +0200
-From: Stefan Richter <stefanr@s5r6.in-berlin.de>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 2/2] [media] firedtv: Port it to use rc_core
-Message-ID: <20120528161432.50a6ca45@stein>
-In-Reply-To: <20120528160132.2041d761@stein>
-References: <1338210875-4620-1-git-send-email-mchehab@redhat.com>
-	<1338210875-4620-2-git-send-email-mchehab@redhat.com>
-	<20120528160132.2041d761@stein>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from acsinet15.oracle.com ([141.146.126.227]:43402 "EHLO
+	acsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752866Ab2EBHCF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 May 2012 03:02:05 -0400
+Date: Wed, 2 May 2012 10:05:07 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Jean-Francois Moine <moinejf@free.fr>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: Re: [patch] [media] gspca: passing wrong length parameter to reg_w()
+Message-ID: <20120502070507.GO6447@mwanda>
+References: <20120502061525.GC28894@elgon.mountain>
+ <20120502084758.1a08823f@tele>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20120502084758.1a08823f@tele>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On May 28 Stefan Richter wrote:
-> > +	idev->phys = "/ir0";		/* FIXME */  
+On Wed, May 02, 2012 at 08:47:58AM +0200, Jean-Francois Moine wrote:
+> Thanks for the patch. The bug is very very old (6 years, at least -
+> neither have I such a webcam).
 > 
-> Something similar to drivers/media/dvb/dvb-usb/dvb-usb-remote.c::
+
+My guess is that it's harmless to write a few extra garbage bits,
+but it's still worth fixing as a cleanup.
+
+> Maybe the fix could have been
 > 
-> 	usb_make_path(d->udev, d->rc_phys, sizeof(d->rc_phys));
-> 	strlcat(d->rc_phys, "/ir0", sizeof(d->rc_phys));
+> 	reg_w(gspca_dev, 0x0010, reg10, sizeof reg10);
 > 
-> should be implemented for this, right?
+> but it is OK for me.
+> 
+> Acked-by: Jean-Francois Moine <http://moinejf.free.fr>
 
-PS:
-The current input device looks like this:
+Thanks.
 
-/sys/devices/pci0000:00/0000:00:02.0/0000:02:00.0/0000:03:01.0/0000:04:00.0/fw7/fw7.0/input/input8/device -> ../../../fw7.0
+regards,
+dan carpenter
 
-"fw7.0" is dev_name(dev) in fdtv_register_rc() or dev_name(fdtv->device)
-in general in firedtv.
-
-The last numeric name before fw7, i.e. 0000:04:00.0, is the name of the PCI
-device of the FireWire controller.  fw7 is the name of the FireDTV node;
-fw7.0 is the name of the (only) unit within the FireDTV node which
-implements the DVB receiver and IR receiver.  What would be needed from
-this?
-
-FWIW, usb_make_path() results in "usb-%s-%s" % (usb_device.bus.bus_name,
-usb_device.devpath).
--- 
-Stefan Richter
--=====-===-- -=-= ===--
-http://arcgraph.de/sr/
