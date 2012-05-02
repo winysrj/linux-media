@@ -1,102 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f47.google.com ([74.125.82.47]:58975 "EHLO
-	mail-wg0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758329Ab2EEAds (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 May 2012 20:33:48 -0400
-Received: by wgbfa7 with SMTP id fa7so2971840wgb.4
-        for <linux-media@vger.kernel.org>; Fri, 04 May 2012 17:33:47 -0700 (PDT)
-Message-ID: <4FA47568.5070906@gmail.com>
-Date: Sat, 05 May 2012 02:33:44 +0200
-From: poma <pomidorabelisima@gmail.com>
+Received: from mail-qa0-f49.google.com ([209.85.216.49]:51531 "EHLO
+	mail-qa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754276Ab2EBPhv convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 May 2012 11:37:51 -0400
+Received: by qabj40 with SMTP id j40so869910qab.1
+        for <linux-media@vger.kernel.org>; Wed, 02 May 2012 08:37:50 -0700 (PDT)
 MIME-Version: 1.0
-To: gennarone@gmail.com, linux-media@vger.kernel.org
-Subject: Re: [PATCH v2] add support for DeLOCK-USB-2.0-DVB-T-Receiver-61744
-References: <4F9E5D91.30503@gmail.com> <1335800374-22012-2-git-send-email-thomas.mair86@googlemail.com> <4F9F8752.40609@gmail.com> <4FA232CE.8010404@gmail.com> <4FA249DE.7000702@gmail.com> <4FA33084.7050204@gmail.com> <4FA3DE7A.1080709@gmail.com>
-In-Reply-To: <4FA3DE7A.1080709@gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAPueXH4nx=mtwF1WR+7NYG0Ze9Arne17j2Sfw439PrS9nPWFaQ@mail.gmail.com>
+References: <20120424122156.GA16769@kipc2.localdomain> <20120502084318.GA21181@kipc2.localdomain>
+ <CAPueXH4-VSxHYjryO8kN5R-hG6seFrwCu3Kjrq4TXV=XFKLETg@mail.gmail.com>
+ <20120502114430.GA4608@kipc2.localdomain> <CAPueXH7TjHo-Dx2wUCQEcDvn=5L_xobYVKrf+b6wnmLGwOSeRg@mail.gmail.com>
+ <20120502133108.GA19522@kipc2.localdomain> <CAPueXH4nx=mtwF1WR+7NYG0Ze9Arne17j2Sfw439PrS9nPWFaQ@mail.gmail.com>
+From: Paulo Assis <pj.assis@gmail.com>
+Date: Wed, 2 May 2012 16:37:30 +0100
+Message-ID: <CAPueXH6Gw_YHEF47vCvkU9XJDt2BO2EjfStTBQEaswhm0RdZ-Q@mail.gmail.com>
+Subject: Re: logitech quickcam 9000 uvcdynctrl broken since kernel 3.2 - PING
+To: Karl Kiniger <karl.kiniger@med.ge.com>
+Cc: linux-media@vger.kernel.org, linux-uvc-devel@lists.sourceforge.net
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/04/2012 03:49 PM, Gianluca Gennari wrote:
-> Hi poma,
-> thanks for the very interesting links.
-> 
-;)
+OK, so UVCIOC_CTRL_ADD is no longer available, now we have:
 
-> Il 04/05/2012 03:27, poma ha scritto:
->> On 05/03/2012 11:03 AM, Gianluca Gennari wrote:
->>> Hi poma,
->>> I have a 0BDA:2838 (Easycap EZTV646) and a 0BDA:2832 (no name 20x20mm
->>> mini DVB-T stick) and both are based on the E4000 tuner, which is not
->>> supported in the kernel at the moment.
->>> I have no idea if there are sticks with the same USB PID and the fc0012
->>> tuner.
->>
->> OK, second one - no name device is "Realtek RTL2832U reference design"**.
->>
->> First one:
->> Once upon a time there was a "EasyCAP"ï¿½
->> "After while crocodile!"
->> ï¿½and "EzCAP" was born.
->> http://szforwardvideo.en.alibaba.com/aboutus.html
->> Obviously Easycap EZTV646 != EzCAP EzTV646
->> http://www.reddit.com/r/RTLSDR/comments/s6ddo/rtlsdr_compatibility_list_v2_work_in_progress/
->> ezcap EzTV646	0BDA:2838	RTL2832U/FC0012		Some revisions may have the E4000*
->> http://i.imgur.com/mFD1X.jpg
->> (Generic)	0BDa:2838	RTL2832U/E4000*
->> ï¿½
->> And, in addition:
->> http://sdr.osmocom.org/trac/wiki/rtl-sdr
->> 0x0bda	0x2832	all of them	Generic RTL2832U (e.g. hama nano)**
->> 0x0bda	0x2838	E4000	ezcap USB 2.0 DVB-T/DAB/FM dongle
->> ï¿½
->> Maybe?
->> https://sites.google.com/site/myrtlsdr/
-> 
-> That's it. Opening the device enclosure, I can read this on the PCB:
-> "EzTV668 1.0"
-> and it looks identical to the picture posted there.
-> 
-Groovy!
+UVCIOC_CTRL_MAP and UVCIOC_CTRL_QUERY, so I guess some changes are
+needed, I'll try to fix this ASAP.
 
->> "EzCap EZTV646 has got RTL2832U/FC0012. However rtl-sdr must be tweaked
->> to force FC0012 tuner because it has the same PID as EZTV668 (PID:
->> 0x2838) so running it whithout a tweak will select Elonics E4000 tuner.
->> Works, not so good at filtering."
->> ï¿½
->> Conclusion:
->> At least two devices share same vid/pid with different tuners - fc0012
->> vs e4000.
->> How to resolve this from a drivers perspective in a proper way?
-> 
-> This is not a big problem: the rtl2832 driver should read the tuner type
-> from an internal register and load the proper module (or exit with an
-> error message if the tuner is unsupported).
-> 
-Ack, thanks!
+Regards,
+Paulo
 
->> Beside,
->> there is GPL'ed 'e4k' tuner source code aka 'e4000 improved'*** (Elonics
->> E4000)
->> by Harald Welte
->> http://cgit.osmocom.org/cgit/osmo-sdr/tree/firmware/src/tuner_e4k.c
->> http://sdr.osmocom.org/trac/
->> http://sdr.osmocom.org/trac/wiki/rtl-sdr
->> http://wiki.spench.net/wiki/RTL2832U***
-> 
-> Very nice. So we should ask Harald Welte if he is willing to have his
-> driver merged in the kernel.
+2012/5/2 Paulo Assis <pj.assis@gmail.com>:
+> Hi,
+> yes, libwebcam depends on uvcvideo.h, I've only added this as a patch
+> since it was missing from debian kernel headers at the time. I think
+> you should be able to get it from there now, not sure if the new
+> header breaks anything, I'll have to run some tests.
+> The other patches are not needed, but they do increase functionality
+> to some extent.
 >
-Undoubtedly!
-Please ping Thomas and Antti, accordingly.
-
->> regards,
->> poma
+> Anyway if this was just a libwebcam issue, guvcview should still be
+> able to add the controls, and apparently that's failing also.
+>
+> Best regards,
+> Paulo
+>
+> 2012/5/2 Karl Kiniger <karl.kiniger@med.ge.com>:
+>> On Wed 120502, Paulo Assis wrote:
+>>> karl,
+>>> I've run some tests under ubuntu 12.04 with kernel 3.2.0 and
+>>> everything seems to be working fine.
+>>> I know some changes were made to the uvcvideo module regarding XU
+>>> controls, but I was under the impression that they wouldn't break
+>>> userspace.
+>>>
+>>> Logitech shutdown the quickcamteam site, so you won't be able to
+>>> download libwebcam from there.
+>>> I'm currently the debian mantainer of that package, so I'll try to
+>>> test it on a newer kernel and patch it as necessary.
+>>> I'll also fix guvcview if needed.
 >>
-> 
-> Regards,
-> Gianluca
-
-regards,
-poma
+>> Very much appreciated, Paulo!
+>>
+>> In the meantime I poked  around at Ubuntu and found
+>> libwebcam_0.2.1.orig.tar.gz - will try to compiled it but they
+>> have a couple of kernel patches to 3.2.x as well and perhaps there
+>> is a depency.
+>>
+>> Karl
+>>
+>>>
+>>> Regards,
+>>> Paulo
+>>
