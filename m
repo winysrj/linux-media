@@ -1,158 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp207.alice.it ([82.57.200.103]:35782 "EHLO smtp207.alice.it"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753163Ab2EFKPP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 6 May 2012 06:15:15 -0400
-From: Antonio Ospite <ospite@studenti.unina.it>
+Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:48569 "EHLO
+	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754281Ab2EBPQB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 2 May 2012 11:16:01 -0400
+Received: by qady23 with SMTP id y23so609711qad.0
+        for <linux-media@vger.kernel.org>; Wed, 02 May 2012 08:15:59 -0700 (PDT)
+From: Sergio Aguirre <saaguirre@ti.com>
 To: linux-media@vger.kernel.org
-Cc: Antonio Ospite <ospite@studenti.unina.it>,
-	Jean-Francois Moine <moinejf@free.fr>,
-	linux-input@vger.kernel.org,
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: [PATCH v2 3/3] gspca - ov534: Add Hue control
-Date: Sun,  6 May 2012 12:14:58 +0200
-Message-Id: <1336299298-17517-4-git-send-email-ospite@studenti.unina.it>
-In-Reply-To: <1336299298-17517-1-git-send-email-ospite@studenti.unina.it>
-References: <20120505102614.31395c2979f0b7aac0c8a107@studenti.unina.it>
- <1336299298-17517-1-git-send-email-ospite@studenti.unina.it>
+Cc: linux-omap@vger.kernel.org, Sergio Aguirre <saaguirre@ti.com>
+Subject: [PATCH v3 00/10] v4l2: OMAP4 ISS driver + Sensor + Board support
+Date: Wed,  2 May 2012 10:15:39 -0500
+Message-Id: <1335971749-21258-1-git-send-email-saaguirre@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Antonio Ospite <ospite@studenti.unina.it>
----
+Hi everyone,
 
-Changes since version 1:
+It's been a long time since last version (5 months)! :)
 
-  - Disabled the HUE control for SENSOR_OV767x
+This is the third version of the OMAP4 ISS driver,
+which uses Media Controller and videobuf2 frameworks.
 
- drivers/media/video/gspca/ov534.c |   65 +++++++++++++++++++++++++++++++++++--
- 1 file changed, 63 insertions(+), 2 deletions(-)
+This patchset should apply cleanly on top of v3.4-rc5 kernel tag.
 
-diff --git a/drivers/media/video/gspca/ov534.c b/drivers/media/video/gspca/ov534.c
-index c15cf23..b5acb1e 100644
---- a/drivers/media/video/gspca/ov534.c
-+++ b/drivers/media/video/gspca/ov534.c
-@@ -34,6 +34,8 @@
- 
- #include "gspca.h"
- 
-+#include <linux/fixp-arith.h>
-+
- #define OV534_REG_ADDRESS	0xf1	/* sensor address */
- #define OV534_REG_SUBADDR	0xf2
- #define OV534_REG_WRITE		0xf3
-@@ -53,6 +55,7 @@ MODULE_LICENSE("GPL");
- 
- /* controls */
- enum e_ctrl {
-+	HUE,
- 	SATURATION,
- 	BRIGHTNESS,
- 	CONTRAST,
-@@ -87,6 +90,7 @@ enum sensors {
- };
- 
- /* V4L2 controls supported by the driver */
-+static void sethue(struct gspca_dev *gspca_dev);
- static void setsaturation(struct gspca_dev *gspca_dev);
- static void setbrightness(struct gspca_dev *gspca_dev);
- static void setcontrast(struct gspca_dev *gspca_dev);
-@@ -103,6 +107,18 @@ static int sd_start(struct gspca_dev *gspca_dev);
- static void sd_stopN(struct gspca_devSENSOR_OV767x *gspca_dev);
- 
- static const struct ctrl sd_ctrls[] = {
-+[HUE] = {
-+		{
-+			.id      = V4L2_CID_HUE,
-+			.type    = V4L2_CTRL_TYPE_INTEGER,
-+			.name    = "Hue",
-+			.minimum = -90,
-+			.maximum = 90,
-+			.step    = 1,
-+			.default_value = 0,
-+		},
-+		.set_control = sethue
-+	},
- [SATURATION] = {
- 		{
- 			.id      = V4L2_CID_SATURATION,
-@@ -684,7 +700,7 @@ static const u8 sensor_init_772x[][2] = {
- 	{ 0x9c, 0x20 },
- 	{ 0x9e, 0x81 },
- 
--	{ 0xa6, 0x06 },
-+	{ 0xa6, 0x07 },
- 	{ 0x7e, 0x0c },
- 	{ 0x7f, 0x16 },
- 	{ 0x80, 0x2a },
-@@ -955,6 +971,48 @@ static void set_frame_rate(struct gspca_dev *gspca_dev)
- 	PDEBUG(D_PROBE, "frame_rate: %d", r->fps);
- }
- 
-+static void sethue(struct gspca_dev *gspca_dev)
-+{
-+	struct sd *sd = (struct sd *) gspca_dev;
-+	int val;
-+
-+	val = sd->ctrls[HUE].val;
-+	if (sd->sensor == SENSOR_OV767x) {
-+		/* TBD */
-+	} else {
-+		s16 huesin;
-+		s16 huecos;
-+
-+		/* fixp_sin and fixp_cos accept only positive values, while
-+		 * our val is between -90 and 90
-+		 */
-+		val += 360;
-+
-+		/* According to the datasheet the registers expect HUESIN and
-+		 * HUECOS to be the result of the trigonometric functions,
-+		 * scaled by 0x80.
-+		 *
-+		 * The 0x100 here represents the maximun absolute value
-+		 * returned byt fixp_sin and fixp_cos, so the scaling will
-+		 * consider the result like in the interval [-1.0, 1.0].
-+		 */
-+		huesin = fixp_sin(val) * 0x80 / 0x100;
-+		huecos = fixp_cos(val) * 0x80 / 0x100;
-+
-+		if (huesin < 0) {
-+			sccb_reg_write(gspca_dev, 0xab,
-+				sccb_reg_read(gspca_dev, 0xab) | 0x2);
-+			huesin = -huesin;
-+		} else {
-+			sccb_reg_write(gspca_dev, 0xab,
-+				sccb_reg_read(gspca_dev, 0xab) & ~0x2);
-+
-+		}
-+		sccb_reg_write(gspca_dev, 0xa9, (u8)huecos);
-+		sccb_reg_write(gspca_dev, 0xaa, (u8)huesin);
-+	}
-+}
-+
- static void setsaturation(struct gspca_dev *gspca_dev)
- {
- 	struct sd *sd = (struct sd *) gspca_dev;
-@@ -1231,7 +1289,8 @@ static int sd_init(struct gspca_dev *gspca_dev)
- 
- 	if ((sensor_id & 0xfff0) == 0x7670) {
- 		sd->sensor = SENSOR_OV767x;
--		gspca_dev->ctrl_dis = (1 << GAIN) |
-+		gspca_dev->ctrl_dis = (1 << HUE) |
-+					(1 << GAIN) |
- 					(1 << AGC) |
- 					(1 << SHARPNESS);	/* auto */
- 		sd->ctrls[SATURATION].min = 0,
-@@ -1310,6 +1369,8 @@ static int sd_start(struct gspca_dev *gspca_dev)
- 
- 	set_frame_rate(gspca_dev);
- 
-+	if (!(gspca_dev->ctrl_dis & (1 << HUE)))
-+		sethue(gspca_dev);
- 	setsaturation(gspca_dev);
- 	if (!(gspca_dev->ctrl_dis & (1 << AGC)))
- 		setagc(gspca_dev);
+This driver attempts to provide an fully open source solution to
+control the OMAP4 Imaging SubSystem (a.k.a. ISS).
+
+Starts with just CSI2-A/B interface support, and pretends to be
+ready for expansion to add support to the many ISS block modules
+as possible.
+
+Please see newly added documentation for more details:
+
+Documentation/video4linux/omap4_camera.txt
+
+Any comments/complaints are welcome. :)
+
+Changes since v2:
+- Supports CSI2B now!
+- Add support for RAW8.
+- Usage of V4L2_CID_PIXEL_RATE, instead of dphy configuration in boardfile
+  (similar to omap3isp)
+- Removes save/restore support for now, as it is broken.
+- Attend several comments form Sakari Ailus (Thanks Sakari!)
+- Populate hw_revision in media_dev struct.
+- Ported several fixes pushed for omap3isp (Thanks Laurent!)
+- Use module_platform_driver.
+- Use proposed generic v4l2_subdev_link_validate.
+- Move OMAP4_CTRL_MODULE_PAD_CORE_CONTROL_CAMERA_RX handle to omap4iss code,
+  instead of board file.
+
+Changes since v1:
+- Simplification of auxclk handlign in board files
+- Use of HWMOD declaration for assisted platform_device creation.
+- Videobuf2 migration (Removal of custom iss_queue buffer handling driver)
+
+Regards,
+Sergio
+
+Sergio Aguirre (10):
+  mfd: twl6040: Fix wrong TWL6040_GPO3 bitfield value
+  OMAP4: hwmod: Include CSI2A/B and CSIPHY1/2 memory sections
+  OMAP4: Add base addresses for ISS
+  v4l: Add support for omap4iss driver
+  v4l: Add support for ov5640 sensor
+  v4l: Add support for ov5650 sensor
+  arm: omap4430sdp: Add support for omap4iss camera
+  arm: omap4panda: Add support for omap4iss camera
+  omap2plus: Add support for omap4iss camera
+  arm: Add support for CMA for omap4iss driver
+
+ Documentation/video4linux/omap4_camera.txt    |   64 ++
+ arch/arm/configs/omap2plus_defconfig          |    2 +
+ arch/arm/mach-omap2/Kconfig                   |   32 +
+ arch/arm/mach-omap2/Makefile                  |    3 +
+ arch/arm/mach-omap2/board-4430sdp-camera.c    |  415 ++++++++
+ arch/arm/mach-omap2/board-4430sdp.c           |   20 +
+ arch/arm/mach-omap2/board-omap4panda-camera.c |  209 ++++
+ arch/arm/mach-omap2/devices.c                 |   40 +
+ arch/arm/mach-omap2/devices.h                 |    4 +
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c    |   22 +-
+ drivers/media/video/Kconfig                   |   25 +
+ drivers/media/video/Makefile                  |    3 +
+ drivers/media/video/omap4iss/Makefile         |    6 +
+ drivers/media/video/omap4iss/iss.c            | 1159 +++++++++++++++++++++
+ drivers/media/video/omap4iss/iss.h            |  121 +++
+ drivers/media/video/omap4iss/iss_csi2.c       | 1368 +++++++++++++++++++++++++
+ drivers/media/video/omap4iss/iss_csi2.h       |  155 +++
+ drivers/media/video/omap4iss/iss_csiphy.c     |  281 +++++
+ drivers/media/video/omap4iss/iss_csiphy.h     |   51 +
+ drivers/media/video/omap4iss/iss_regs.h       |  244 +++++
+ drivers/media/video/omap4iss/iss_video.c      | 1123 ++++++++++++++++++++
+ drivers/media/video/omap4iss/iss_video.h      |  201 ++++
+ drivers/media/video/ov5640.c                  |  948 +++++++++++++++++
+ drivers/media/video/ov5650.c                  |  733 +++++++++++++
+ include/linux/mfd/twl6040.h                   |    2 +-
+ include/media/omap4iss.h                      |   65 ++
+ include/media/ov5640.h                        |   10 +
+ include/media/ov5650.h                        |   10 +
+ 28 files changed, 7314 insertions(+), 2 deletions(-)
+ create mode 100644 Documentation/video4linux/omap4_camera.txt
+ create mode 100644 arch/arm/mach-omap2/board-4430sdp-camera.c
+ create mode 100644 arch/arm/mach-omap2/board-omap4panda-camera.c
+ create mode 100644 drivers/media/video/omap4iss/Makefile
+ create mode 100644 drivers/media/video/omap4iss/iss.c
+ create mode 100644 drivers/media/video/omap4iss/iss.h
+ create mode 100644 drivers/media/video/omap4iss/iss_csi2.c
+ create mode 100644 drivers/media/video/omap4iss/iss_csi2.h
+ create mode 100644 drivers/media/video/omap4iss/iss_csiphy.c
+ create mode 100644 drivers/media/video/omap4iss/iss_csiphy.h
+ create mode 100644 drivers/media/video/omap4iss/iss_regs.h
+ create mode 100644 drivers/media/video/omap4iss/iss_video.c
+ create mode 100644 drivers/media/video/omap4iss/iss_video.h
+ create mode 100644 drivers/media/video/ov5640.c
+ create mode 100644 drivers/media/video/ov5650.c
+ create mode 100644 include/media/omap4iss.h
+ create mode 100644 include/media/ov5640.h
+ create mode 100644 include/media/ov5650.h
+
 -- 
-1.7.10
+1.7.5.4
 
