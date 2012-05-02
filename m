@@ -1,114 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:53466 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755393Ab2EQUn6 (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:53880 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1755726Ab2EBTNa (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 May 2012 16:43:58 -0400
-Received: by bkcji2 with SMTP id ji2so1870211bkc.19
-        for <linux-media@vger.kernel.org>; Thu, 17 May 2012 13:43:57 -0700 (PDT)
-Message-ID: <4FB56309.1000601@gmail.com>
-Date: Thu, 17 May 2012 22:43:53 +0200
-From: poma <pomidorabelisima@gmail.com>
+	Wed, 2 May 2012 15:13:30 -0400
+Date: Wed, 2 May 2012 22:13:24 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, mchehab@redhat.com,
+	remi@remlab.net, nbowler@elliptictech.com, james.dutton@gmail.com
+Subject: [RFC v2 0/2] V4L2 IOCTL enum compat wrapper
+Message-ID: <20120502191324.GE852@valkosipuli.localdomain>
 MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>,
-	Thomas Mair <thomas.mair86@googlemail.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH v4 4/5] rtl28xxu: support G-Tek Electronics Group Lifeview
- LV5TDLX DVB-T
-References: <1> <1337206420-23810-1-git-send-email-thomas.mair86@googlemail.com> <1337206420-23810-5-git-send-email-thomas.mair86@googlemail.com> <4FB50F66.50301@iki.fi>
-In-Reply-To: <4FB50F66.50301@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/17/2012 04:47 PM, Antti Palosaari wrote:
-> On 17.05.2012 01:13, Thomas Mair wrote:
->> Signed-off-by: Thomas Mair<thomas.mair86@googlemail.com>
-> 
-> Nacked.
-> Better PID definition is required.
-> 
->> ---
->>   drivers/media/dvb/dvb-usb/dvb-usb-ids.h |    1 +
->>   drivers/media/dvb/dvb-usb/rtl28xxu.c    |   11 ++++++++++-
->>   2 files changed, 11 insertions(+), 1 deletions(-)
->>
->> diff --git a/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
->> b/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
->> index fd37be0..b0a86e9 100644
->> --- a/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
->> +++ b/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
->> @@ -135,6 +135,7 @@
->>   #define USB_PID_GENIUS_TVGO_DVB_T03            0x4012
->>   #define USB_PID_GRANDTEC_DVBT_USB_COLD            0x0fa0
->>   #define USB_PID_GRANDTEC_DVBT_USB_WARM            0x0fa1
->> +#define USB_PID_GTEK                    0xb803
-> 
-> You must give better name for the device. Vendor name is not enough as
-> many vendors has surely more than one device model.
-> 
-> Correct PID is something like USB_PID_GTEK_LIFEVIEW_LV5TDLX
->
+Hi all,
 
-Precisely - USB_PID_DELOCK_USB2_DVBT according to the device:
-http://www.delock.de/produkte/G_61744/merkmale.html
-regardless of what's in '/usr/share/hwdata/usb.ids'
-;)
+This is my first intended-to-be-complete RFC patch to get rid of the enums
+in V4L2 IOCTL structs. The approach is the one outlined first by Mauro
+(AFAIR):
 
->>   #define USB_PID_INTEL_CE9500                0x9500
->>   #define USB_PID_ITETECH_IT9135                0x9135
->>   #define USB_PID_ITETECH_IT9135_9005            0x9005
->> diff --git a/drivers/media/dvb/dvb-usb/rtl28xxu.c
->> b/drivers/media/dvb/dvb-usb/rtl28xxu.c
->> index 6817ef7..9056d28 100644
->> --- a/drivers/media/dvb/dvb-usb/rtl28xxu.c
->> +++ b/drivers/media/dvb/dvb-usb/rtl28xxu.c
->> @@ -1135,6 +1135,7 @@ enum rtl28xxu_usb_table_entry {
->>       RTL2831U_14AA_0160,
->>       RTL2831U_14AA_0161,
->>       RTL2832U_0CCD_00A9,
->> +    RTL2832U_1F4D_B803,
->>   };
->>
->>   static struct usb_device_id rtl28xxu_table[] = {
->> @@ -1149,6 +1150,8 @@ static struct usb_device_id rtl28xxu_table[] = {
->>       /* RTL2832U */
->>       [RTL2832U_0CCD_00A9] = {
->>           USB_DEVICE(USB_VID_TERRATEC,
->> USB_PID_TERRATEC_CINERGY_T_STICK_BLACK_REV1)},
->> +    [RTL2832U_1F4D_B803] = {
->> +        USB_DEVICE(USB_VID_GTEK, USB_PID_GTEK)},
->>       {} /* terminating entry */
->>   };
->>
->> @@ -1262,7 +1265,7 @@ static struct dvb_usb_device_properties
->> rtl28xxu_properties[] = {
->>
->>           .i2c_algo =&rtl28xxu_i2c_algo,
->>
->> -        .num_device_descs = 1,
->> +        .num_device_descs = 2,
->>           .devices = {
->>               {
->>                   .name = "Terratec Cinergy T Stick Black",
->> @@ -1270,6 +1273,12 @@ static struct dvb_usb_device_properties
->> rtl28xxu_properties[] = {
->>                       &rtl28xxu_table[RTL2832U_0CCD_00A9],
->>                   },
->>               },
->> +            {
->> +                .name = "G-Tek Electronics Group Lifeview LV5TDLX
->> DVB-T [RTL2832U]",
->> +                .warm_ids = {
->> +                    &rtl28xxu_table[RTL2832U_1F4D_B803],
->> +                },
->> +            },
->>           }
->>       },
->>
-> 
-> 
+<URL:http://www.spinics.net/lists/linux-media/msg46504.html>
 
-regards,
-poma
+A set of compat structs (and compat IOCTLs) are created and there are a few
+functions to convert between the in-kernel representation and the old
+representation with enums the user space may well be using. On many archs
+the two IOCTLs are actually the same.
+
+This patchset depends on my earlier patch to remove v4l2_buffer.input:
+
+<URL:http://www.spinics.net/lists/linux-media/msg47144.html>
+
+All three patches are also available here:
+
+<URL:http://git.linuxtv.org/sailus/media_tree.git/shortlog/refs/heads/enum-fix>
+
+Open questions:
+
+- Orring the return values of {get,put}_user etc. is time-consuming on
+  modern CPUs with deep pipelines. Would if be better to use | (logical or)
+  instead? The regular case where the access is successful would be
+  optimised on the expense of the error case. The end result in error cases
+  may be different, too, but does that matter?
+
+- Testing this patch completely is difficult. I've only got access to
+  capture hardware on 32-bit systems which generally do not easily exhibit
+  problems with enums in IOCTLs (since they're 32-bit ints) in first place.
+  I've tested this by changing fields from __u32 to __u64 where the old code
+  had enums; that works, so at least something is working correctly. Help in
+  testing would be very much appreciated.
+
+Questions and comments are welcome.
+
+Kind regards,
+
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
