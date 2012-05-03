@@ -1,113 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2372 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751552Ab2EEJOo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 5 May 2012 05:14:44 -0400
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:4582 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754573Ab2ECHCr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 May 2012 03:02:47 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [RFCv1 PATCH 1/7] gspca: allow subdrivers to use the control framework.
-Date: Sat, 5 May 2012 11:14:31 +0200
-Cc: linux-media@vger.kernel.org,
-	"Jean-Francois Moine" <moinejf@free.fr>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-References: <1335625796-9429-1-git-send-email-hverkuil@xs4all.nl> <ea7e986dc0fa18da12c22048e9187e9933191d3d.1335625085.git.hans.verkuil@cisco.com> <4FA4DA05.5030001@redhat.com>
-In-Reply-To: <4FA4DA05.5030001@redhat.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [RFC v3 1/2] v4l: Do not use enums in IOCTL structs
+Date: Thu, 3 May 2012 09:02:04 +0200
+Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	mchehab@redhat.com, remi@remlab.net, nbowler@elliptictech.com,
+	james.dutton@gmail.com
+References: <20120502191324.GE852@valkosipuli.localdomain> <201205022245.22585.hverkuil@xs4all.nl> <20120502213915.GG852@valkosipuli.localdomain>
+In-Reply-To: <20120502213915.GG852@valkosipuli.localdomain>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201205051114.31531.hverkuil@xs4all.nl>
+Message-Id: <201205030902.05011.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat May 5 2012 09:43:01 Hans de Goede wrote:
-> Hi,
+On Wed May 2 2012 23:39:15 Sakari Ailus wrote:
+> Hi Hans,
 > 
-> I'm slowly working my way though this series today (both review, as well
-> as some tweaks and testing).
+> On Wed, May 02, 2012 at 10:45:22PM +0200, Hans Verkuil wrote:
+> > On Wed May 2 2012 21:13:47 Sakari Ailus wrote:
+> > > Replace enums in IOCTL structs by __u32. The size of enums is variable and
+> > > thus problematic. Compatibility structs having exactly the same as original
+> > > definition are provided for compatibility with old binaries with the
+> > > required conversion code.
+> > 
+> > Does someone actually have hard proof that there really is a problem? You know,
+> > demonstrate it with actual example code?
+> > 
+> > It's pretty horrible that you have to do all those conversions and that code
+> > will be with us for years to come.
+> > 
+> > For most (if not all!) architectures sizeof(enum) == sizeof(u32), so there is
+> > no need for any compat code for those.
 > 
-> More comments inline...
+> Cases I know where this can go wrong are, but there may well be others:
 > 
-> On 04/28/2012 05:09 PM, Hans Verkuil wrote:
-> > From: Hans Verkuil<hans.verkuil@cisco.com>
-> >
-> > Make the necessary changes to allow subdrivers to use the control framework.
-> > This does not add control event support, that needs more work.
-> >
-> > Signed-off-by: Hans Verkuil<hans.verkuil@cisco.com>
-> > ---
-> >   drivers/media/video/gspca/gspca.c |   13 +++++++++----
-> >   1 file changed, 9 insertions(+), 4 deletions(-)
-> >
-> > diff --git a/drivers/media/video/gspca/gspca.c b/drivers/media/video/gspca/gspca.c
-> > index ca5a2b1..56dff10 100644
-> > --- a/drivers/media/video/gspca/gspca.c
-> > +++ b/drivers/media/video/gspca/gspca.c
-> > @@ -38,6 +38,7 @@
-> >   #include<linux/uaccess.h>
-> >   #include<linux/ktime.h>
-> >   #include<media/v4l2-ioctl.h>
-> > +#include<media/v4l2-ctrls.h>
-> >
-> >   #include "gspca.h"
-> >
-> > @@ -1006,6 +1007,8 @@ static void gspca_set_default_mode(struct gspca_dev *gspca_dev)
-> >
-> >   	/* set the current control values to their default values
-> >   	 * which may have changed in sd_init() */
-> > +	/* does nothing if ctrl_handler == NULL */
-> > +	v4l2_ctrl_handler_setup(gspca_dev->vdev.ctrl_handler);
-> >   	ctrl = gspca_dev->cam.ctrls;
-> >   	if (ctrl != NULL) {
-> >   		for (i = 0;
-> > @@ -1323,6 +1326,7 @@ static void gspca_release(struct video_device *vfd)
-> >   	PDEBUG(D_PROBE, "%s released",
-> >   		video_device_node_name(&gspca_dev->vdev));
-> >
-> > +	v4l2_ctrl_handler_free(gspca_dev->vdev.ctrl_handler);
-> >   	kfree(gspca_dev->usb_buf);
-> >   	kfree(gspca_dev);
-> >   }
-> > @@ -2347,6 +2351,10 @@ int gspca_dev_probe2(struct usb_interface *intf,
-> >   	gspca_dev->sd_desc = sd_desc;
-> >   	gspca_dev->nbufread = 2;
-> >   	gspca_dev->empty_packet = -1;	/* don't check the empty packets */
-> > +	gspca_dev->vdev = gspca_template;
-> > +	gspca_dev->vdev.parent =&intf->dev;
-> > +	gspca_dev->module = module;
-> > +	gspca_dev->present = 1;
-> >
-> >   	/* configure the subdriver and initialize the USB device */
-> >   	ret = sd_desc->config(gspca_dev, id);
-> 
-> You also need to move the initialization of the mutexes here, as the
-> v4l2_ctrl_handler_setup will call s_ctrl on all the controls, and s_ctrl
-> should take the usb_lock (see my review of the next patch in this series),
-> I'll make this change myself and merge it into your patch.
+> - ppc64: int is 64 bits there, and thus also enums,
 
-Looking at how usb_lock is used I am inclined to just set video_device->lock
-to it and let the v4l2 core do all the locking for me, which will automatically
-fix the missing s_ctrl lock too.
+Are you really, really certain that's the case? If I look at
+arch/powerpc/include/asm/types.h it includes either asm-generic/int-l64.h
+or asm-generic/int-ll64.h and both of those headers define u32 as unsigned int.
+Also, if sizeof(int) != 4, then how would you define u32?
 
-I've realized that there is a problem if you do your own locking *and* use the
-control framework: if you need to set a control from within the driver, then
-you do that using v4l2_ctrl_s_ctrl. But if s_ctrl has to take the driver's lock,
-then you can't call v4l2_ctrl_s_ctrl with that lock already taken!
+Ask a ppc64 kernel maintainer what sizeof(int) and sizeof(enum) are in the kernel
+before we start doing lots of work for no reason.
 
-So you get:
+Looking at arch/*/include/asm/types.h it seems all architectures define sizeof(int)
+as 4.
 
-vidioc_foo()
-	lock(mylock)
-	v4l2_ctrl_s_ctrl(ctrl, val)
-		s_ctrl(ctrl, val)
-			lock(mylock)
-
-If the core takes care of locking then everything is fine.
-
-All the current drivers that use v4l2_ctrl_g/s_ctrl use core locking. But this
-can be a problem in the future. The only way to resolve this is to tell v4l2-ioctl.c
-about your own lock so it can take it for you when calling into the control framework.
+What sizeof(long) is will actually differ between architectures, but char, short
+and int seem to be fixed everywhere.
 
 Regards,
 
 	Hans
+
+> 
+> - Enums are quite a different concept in C++ than in C --- the compiler may
+>   make assumpton based on the value range of the enums --- videodev2.h should
+>   be included with extern "C" in that case, though,
+> 
+> - C does not specify which integer type enums actually use; this is what GCC
+>   manual says about it:
+> 
+>   <URL:http://www.gnu.org/software/gnu-c-manual/gnu-c-manual.html#Enumerations>
+> 
+>   So a compiler other than GCC should use 16-bit enums and conform to C
+>   while breaking V4L2. This might be a theoretical issue, though.
+> 
+> More discussion took place in this thread:
+> 
+> <URL:http://www.spinics.net/lists/linux-media/msg46167.html>
+> 
+> Regards,
+> 
+> 
