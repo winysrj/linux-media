@@ -1,56 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:46897 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751460Ab2EGKWQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 May 2012 06:22:16 -0400
-Received: by bkcji2 with SMTP id ji2so3533224bkc.19
-        for <linux-media@vger.kernel.org>; Mon, 07 May 2012 03:22:14 -0700 (PDT)
-Message-ID: <4FA7A254.3040204@gmail.com>
-Date: Mon, 07 May 2012 12:22:12 +0200
-From: =?ISO-8859-15?Q?Ludovic_BOU=C9?= <ludovic.boue@gmail.com>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org, Oliver Endriss <o.endriss@gmx.de>
-CC: Brice Dubost <mumudvb@braice.net>
-Subject: Re: How to toggle Cine CT V6 to DVB-T mode?
-References: <CAO+XwZc5xHCaggg_LCmWNtnCuFWVNGFHY=Dm-eFLchcamrF-ZQ@mail.gmail.com> <201205062226.18652@orion.escape-edv.de>
-In-Reply-To: <201205062226.18652@orion.escape-edv.de>
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 8bit
+Received: from plane.gmane.org ([80.91.229.3]:40988 "EHLO plane.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752250Ab2ECPAV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 3 May 2012 11:00:21 -0400
+Received: from list by plane.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1SPxVt-0003EN-Vr
+	for linux-media@vger.kernel.org; Thu, 03 May 2012 17:00:13 +0200
+Received: from d67-193-214-242.home3.cgocable.net ([67.193.214.242])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Thu, 03 May 2012 17:00:13 +0200
+Received: from brian by d67-193-214-242.home3.cgocable.net with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Thu, 03 May 2012 17:00:13 +0200
+To: linux-media@vger.kernel.org
+From: "Brian J. Murrell" <brian@interlinx.bc.ca>
+Subject: Re: common DVB USB issues we has currently
+Date: Thu, 03 May 2012 10:59:59 -0400
+Message-ID: <4FA29D6F.3090507@interlinx.bc.ca>
+References: <4FA293AA.5000601@iki.fi> <CAGoCfiw9h8ZqAnrdpg3J8rtnna=JiXj6JYL-gU58xS2HmMuT_w@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="------------enig8A904BB3E33247C5833016E1"
+Cc: Antti Palosaari <Antti.Palosaari@iki.fi>
+In-Reply-To: <CAGoCfiw9h8ZqAnrdpg3J8rtnna=JiXj6JYL-gU58xS2HmMuT_w@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Le 06/05/2012 22:26, Oliver Endriss a écrit :
-> Hi,
->
-> On Saturday 05 May 2012 16:39:42 Ludovic BOUE wrote:
->> Hello Oliver,
->>
->> I am facing an issue with my Cine CT V6&  DuoFlex CT cards. All tuners are
->> recognized in DVB-C mode and I don't know how to switch to DVB-T mode.
->> Could you tell me how to do that ?
-> If you use an application which is unable to switch the delivery system,
-> you may use 'dvb-fe-tool' (part of http://git.linuxtv.org/v4l-utils.git)
-> to do so.
->
-> Applications should be updated to support this new feature.
-> Recent vdr developer versions switch the delivery system
-> automatically.
->
-> CU
-> Oliver
->
-Oliver,
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--------------enig8A904BB3E33247C5833016E1
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-Thanks a lot for your advice about 'dvb-fe-tool'. The following command 
-work perfectly:
-dvb-fe-tool -a 0 -d DVBT
+On 12-05-03 10:48 AM, Devin Heitmueller wrote:
+>=20
+> I doubt this is a dvb-usb problem, but rather something specific to
+> the realtek parts (suspend/resume does work with other devices that
+> rely on dvb-usb).
 
-But cloning the git repository don't work. I downloaded the archive on 
-web interface:
-git clone http://git.linuxtv.org/v4l-utils.git
-Cloning into v4l-utils...
-warning: remote HEAD refers to nonexistent ref, unable to checkout.
+Dunno if it's at all relevant but I used to be able (circa 2.6.32
+perhaps?  it's a bit foggy now) to suspend/resume with my HVR-950q
+installed and modules loaded.  Now suspending with them loaded hangs the
+suspend and they can't even reliably be rmmod/modprobed pre and post
+suspend/resume.
 
-Brice and I will fix MuMuDVB support switching delivery system.
+I just wonder if that change in behavior is pointing at something.
 
-Regards,
+Cheers,
+b.
+
+
+
+
+--------------enig8A904BB3E33247C5833016E1
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
+
+iEYEARECAAYFAk+inW8ACgkQl3EQlGLyuXDQwQCgpj+2OreH5HjALRDLle1gjxc4
+JX4AnRrwv3ojcM0niKo4VfECgXHgVWgj
+=NyA9
+-----END PGP SIGNATURE-----
+
+--------------enig8A904BB3E33247C5833016E1--
+
