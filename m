@@ -1,58 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:40524 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752084Ab2EHRxE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 May 2012 13:53:04 -0400
-Received: from avalon.localnet (unknown [193.190.208.38])
-	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 980DB7B0B
-	for <linux-media@vger.kernel.org>; Tue,  8 May 2012 19:53:02 +0200 (CEST)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Subject: [GIT PULL for v3.5] Miscellaneous sensor drivers and control framework fixes
-Date: Tue, 08 May 2012 19:53:04 +0200
-Message-ID: <1931104.XfbWenVRRx@avalon>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:51180 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758907Ab2ECWWf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 May 2012 18:22:35 -0400
+Received: by pbbrp8 with SMTP id rp8so3032860pbb.19
+        for <linux-media@vger.kernel.org>; Thu, 03 May 2012 15:22:34 -0700 (PDT)
+From: mathieu.poirier@linaro.org
+To: mchehab@infradead.org
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	arnd@arndb.de, mathieu.poirier@linaro.org
+Subject: [PATCH 2/6] v4l/dvb: fix Kconfig dependencies on VIDEO_CAPTURE_DRIVERS
+Date: Thu,  3 May 2012 16:22:23 -0600
+Message-Id: <1336083747-3142-3-git-send-email-mathieu.poirier@linaro.org>
+In-Reply-To: <1336083747-3142-1-git-send-email-mathieu.poirier@linaro.org>
+References: <1336083747-3142-1-git-send-email-mathieu.poirier@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+From: Arnd Bergmann <arnd@arndb.de>
 
-The following changes since commit aeebb1b3146a70bf02d0115a2be690d856d12e8c:
+Kconfig warns about unsatisfied dependencies of symbols that
+are directly selected.
 
-  [media] pvrusb2: For querystd, start with list of hardware-supported 
-standards (2012-05-07 16:58:00 -0300)
+Many capture drivers depend on DVB capture drivers, which
+are hidden behind the CONFIG_DVB_CAPTURE_DRIVERS setting.
 
-are available in the git repository at:
-  git://linuxtv.org/pinchartl/media.git omap3isp-sensors-next
+The solution here is to enable DVB_CAPTURE_DRIVERS unconditionally
+when both DVB and VIDEO_CAPTURE_DRIVERS are enabled.
 
-Guennadi Liakhovetski (3):
-      mt9m032: fix two dead-locks
-      mt9m032: fix compilation breakage
-      mt9m032: use the available subdev pointer, don't re-calculate it
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Mathieu Poirier <mathieu.poirier@linaro.org>
+---
+ drivers/media/dvb/Kconfig |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Kartik Mohta (1):
-      mt9v032: Correct the logic for the auto-exposure setting
-
-Laurent Pinchart (5):
-      mt9p031: Identify color/mono models using I2C device name
-      mt9p031: Replace the reset board callback by a GPIO number
-      mt9p031: Implement black level compensation control
-      v4l: aptina-pll: Round up minimum multiplier factor value properly
-      v4l: v4l2-ctrls: Add forward declaration of struct file
-
- drivers/media/video/Kconfig      |    2 +-
- drivers/media/video/aptina-pll.c |    5 +-
- drivers/media/video/mt9m032.c    |    9 +-
- drivers/media/video/mt9p031.c    |  161 +++++++++++++++++++++++++++++++++----
- drivers/media/video/mt9v032.c    |    2 +-
- include/media/mt9p031.h          |   19 +++--
- include/media/v4l2-ctrls.h       |    1 +
- 7 files changed, 165 insertions(+), 34 deletions(-)
-
+diff --git a/drivers/media/dvb/Kconfig b/drivers/media/dvb/Kconfig
+index f6e40b3..c617996 100644
+--- a/drivers/media/dvb/Kconfig
++++ b/drivers/media/dvb/Kconfig
+@@ -29,7 +29,7 @@ config DVB_DYNAMIC_MINORS
+ 	  If you are unsure about this, say N here.
+ 
+ menuconfig DVB_CAPTURE_DRIVERS
+-	bool "DVB/ATSC adapters"
++	bool "DVB/ATSC adapters" if !VIDEO_CAPTURE_DRIVERS
+ 	depends on DVB_CORE
+ 	default y
+ 	---help---
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.5.4
 
