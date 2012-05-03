@@ -1,65 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:62432 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755569Ab2EJGpj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 May 2012 02:45:39 -0400
-Received: by pbbrp8 with SMTP id rp8so1502829pbb.19
-        for <linux-media@vger.kernel.org>; Wed, 09 May 2012 23:45:39 -0700 (PDT)
-From: Sachin Kamat <sachin.kamat@linaro.org>
-To: linux-media@vger.kernel.org
-Cc: mchehab@infradead.org, k.debski@samsung.com,
-	kyungmin.park@samsung.com, sachin.kamat@linaro.org,
-	patches@linaro.org
-Subject: [PATCH 2/2] [media] s5p-g2d: Add missing static storage class in g2d.c file
-Date: Thu, 10 May 2012 12:05:48 +0530
-Message-Id: <1336631748-25160-2-git-send-email-sachin.kamat@linaro.org>
-In-Reply-To: <1336631748-25160-1-git-send-email-sachin.kamat@linaro.org>
-References: <1336631748-25160-1-git-send-email-sachin.kamat@linaro.org>
+Received: from mail.kapsi.fi ([217.30.184.167]:56840 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754559Ab2ECOU2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 3 May 2012 10:20:28 -0400
+Received: from dyn2-212-50-134-8.psoas.suomi.net ([212.50.134.8] helo=localhost.localdomain)
+	by mail.kapsi.fi with esmtpsa (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
+	(Exim 4.72)
+	(envelope-from <crope@iki.fi>)
+	id 1SPwtM-0004Dm-2n
+	for linux-media@vger.kernel.org; Thu, 03 May 2012 17:20:24 +0300
+Message-ID: <4FA29427.4080603@iki.fi>
+Date: Thu, 03 May 2012 17:20:23 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: linux-media <linux-media@vger.kernel.org>
+Subject: DVB USB issues we has currently
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fixes the following sparse warnings:
-drivers/media/video/s5p-g2d/g2d.c:68:18: warning: symbol 'def_frame' was not declared. Should it be static?
-drivers/media/video/s5p-g2d/g2d.c:80:16: warning: symbol 'find_fmt' was not declared. Should it be static?
-drivers/media/video/s5p-g2d/g2d.c:205:5: warning: symbol 'g2d_setup_ctrls' was not declared. Should it be static?
+Hello,
+Here we are, that's the first part I am going to fix as a GSoC project. 
+Work is planned to start after two weeks but better to discuss beforehand.
 
-Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
----
- drivers/media/video/s5p-g2d/g2d.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+And wish-list is now open!
 
-diff --git a/drivers/media/video/s5p-g2d/g2d.c b/drivers/media/video/s5p-g2d/g2d.c
-index 70bee1c..115b936 100644
---- a/drivers/media/video/s5p-g2d/g2d.c
-+++ b/drivers/media/video/s5p-g2d/g2d.c
-@@ -65,7 +65,7 @@ static struct g2d_fmt formats[] = {
- };
- #define NUM_FORMATS ARRAY_SIZE(formats)
- 
--struct g2d_frame def_frame = {
-+static struct g2d_frame def_frame = {
- 	.width		= DEFAULT_WIDTH,
- 	.height		= DEFAULT_HEIGHT,
- 	.c_width	= DEFAULT_WIDTH,
-@@ -77,7 +77,7 @@ struct g2d_frame def_frame = {
- 	.bottom		= DEFAULT_HEIGHT,
- };
- 
--struct g2d_fmt *find_fmt(struct v4l2_format *f)
-+static struct g2d_fmt *find_fmt(struct v4l2_format *f)
- {
- 	unsigned int i;
- 	for (i = 0; i < NUM_FORMATS; i++) {
-@@ -202,7 +202,7 @@ static const struct v4l2_ctrl_ops g2d_ctrl_ops = {
- 	.s_ctrl		= g2d_s_ctrl,
- };
- 
--int g2d_setup_ctrls(struct g2d_ctx *ctx)
-+static int g2d_setup_ctrls(struct g2d_ctx *ctx)
- {
- 	struct g2d_dev *dev = ctx->dev;
- 
+I see two big DVB USB issues including multiple small issues;
+
+1)
+Current static structure is too limited as devices are more dynamics 
+nowadays. Driver should be able to probe/read from eeprom device 
+configuration.
+
+Fixing all of those means rather much work - I think new version of DVB 
+USB is needed.
+
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg44996.html
+
+
+2)
+Suspend/resume is not supported and crashes Kernel. I have no idea what 
+is wrong here and what is needed. But as it has been long term known 
+problem I suspect it is not trivial.
+
+http://www.spinics.net/lists/linux-media/msg10293.html
+
+regards
+Antti
 -- 
-1.7.4.1
-
+http://palosaari.fi/
