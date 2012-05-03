@@ -1,48 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:16933 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754064Ab2EXPQC (ORCPT
+Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:61204 "EHLO
+	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755767Ab2ECOkJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 May 2012 11:16:02 -0400
-Received: from euspt1 (mailout1.w1.samsung.com [210.118.77.11])
- by mailout1.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0M4J000AI93HGAA0@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 24 May 2012 16:16:29 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0M4J001R892NW1@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 24 May 2012 16:15:59 +0100 (BST)
-Date: Thu, 24 May 2012 17:15:49 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH 0/7] s5p-fimc driver fixes
-To: linux-media@vger.kernel.org
-Cc: kyungmin.park@samsung.com, m.szyprowski@samsung.com,
-	riverful.kim@samsung.com, sw0312.kim@samsung.com,
-	s.nawrocki@samsung.com
-Message-id: <1337872556-26406-1-git-send-email-s.nawrocki@samsung.com>
-Content-transfer-encoding: 7BIT
+	Thu, 3 May 2012 10:40:09 -0400
+From: Emil Goode <emilgoode@gmail.com>
+To: mchehab@infradead.org, jareguero@telefonica.net
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	kernel-janitors@vger.kernel.org, Emil Goode <emilgoode@gmail.com>
+Subject: [PATCH] [media] az6007: Fix dubious use of !x & y
+Date: Thu,  3 May 2012 16:42:01 +0200
+Message-Id: <1336056121-27100-1-git-send-email-emilgoode@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following is a couple of s5p-fimc driver bug fixes for v3.4-rcX. 
+The intent here must be to check if the right most bit
+of msgs[i].flags is set and then do the logical negation.
 
-Sylwester Nawrocki (7):
-  s5p-fimc: Fix bug in capture node open()
-  s5p-fimc: Don't create multiple active links to same sink entity
-  s5p-fimc: Honour sizeimage in VIDIOC_S_FMT
-  s5p-fimc: Remove superfluous checks for buffer type
-  s5p-fimc: Prevent lock-up in multiple sensor systems
-  s5p-fimc: Fix fimc-lite system wide suspend procedure
-  s5p-fimc: Shorten pixel formats description
+Used macro:
+#define I2C_M_RD        0x0001
 
- drivers/media/video/s5p-fimc/fimc-capture.c |   61 ++++++++++++---------------
- drivers/media/video/s5p-fimc/fimc-core.c    |   15 ++++---
- drivers/media/video/s5p-fimc/fimc-lite.c    |   16 ++++---
- drivers/media/video/s5p-fimc/fimc-mdevice.c |   48 ++++++++++-----------
- drivers/media/video/s5p-fimc/fimc-mdevice.h |    2 -
- 5 files changed, 69 insertions(+), 73 deletions(-)
+Sparse warns about this:
+drivers/media/dvb/dvb-usb/az6007.c:714:40:
+	warning: dubious: !x & y
 
+Signed-off-by: Emil Goode <emilgoode@gmail.com>
+---
+ drivers/media/dvb/dvb-usb/az6007.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/media/dvb/dvb-usb/az6007.c b/drivers/media/dvb/dvb-usb/az6007.c
+index 4008b9c..0019335a 100644
+--- a/drivers/media/dvb/dvb-usb/az6007.c
++++ b/drivers/media/dvb/dvb-usb/az6007.c
+@@ -711,7 +711,7 @@ static int az6007_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msgs[],
+ 		addr = msgs[i].addr << 1;
+ 		if (((i + 1) < num)
+ 		    && (msgs[i].len == 1)
+-		    && (!msgs[i].flags & I2C_M_RD)
++		    && !(msgs[i].flags & I2C_M_RD)
+ 		    && (msgs[i + 1].flags & I2C_M_RD)
+ 		    && (msgs[i].addr == msgs[i + 1].addr)) {
+ 			/*
 -- 
-1.7.10
+1.7.9.5
 
