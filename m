@@ -1,40 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-3.cisco.com ([144.254.224.146]:48729 "EHLO
-	ams-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757066Ab2EVJZe convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 May 2012 05:25:34 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "linux-media" <linux-media@vger.kernel.org>,
-	Vaibhav Hiremath <hvaibhav@ti.com>,
-	Archit Taneja <archit@ti.com>
-Subject: Warning in omap_vout.c
-Date: Tue, 22 May 2012 11:24:45 +0200
+Received: from mail.kapsi.fi ([217.30.184.167]:45078 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753382Ab2ECVyU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 3 May 2012 17:54:20 -0400
+Message-ID: <b37539c729c3a38be7953e4d06f09229.squirrel@webmail.kapsi.fi>
+In-Reply-To: <1866189.GQUT4OxER7@jar7.dominio>
+References: <4FA293AA.5000601@iki.fi>
+    <CAGoCfiw9h8ZqAnrdpg3J8rtnna=JiXj6JYL-gU58xS2HmMuT_w@mail.gmail.com>
+    <1866189.GQUT4OxER7@jar7.dominio>
+Date: Fri, 4 May 2012 00:54:16 +0300
+From: "Antti Palosaari" <crope@iki.fi>
+To: "Jose Alberto Reguero" <jareguero@telefonica.net>
+Cc: "Devin Heitmueller" <dheitmueller@kernellabs.com>,
+	"Antti Palosaari" <antti.palosaari@iki.fi>,
+	"linux-media" <linux-media@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201205221124.45834.hverkuil@xs4all.nl>
+Content-Type: text/plain;charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Subject: Re: common DVB USB issues we has currently
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-(Repost, this time without using HTML. My mailer switches to HTML once in a while
-for no reason. Very annoying.)
+to 3.5.2012 20:03 Jose Alberto Reguero kirjoitti:
+> On Jueves, 3 de mayo de 2012 10:48:43 Devin Heitmueller escribi�:
+>> Hi Antti,
+>>
+>> > 2)
+>> > Suspend/resume is not supported and crashes Kernel. I have no idea
+>> what is
+>> > wrong here and what is needed. But as it has been long term known
+>> problem
+>> > I
+>> > suspect it is not trivial.
+>> >
+>> > http://www.spinics.net/lists/linux-media/msg10293.html
+>>
+>> I doubt this is a dvb-usb problem, but rather something specific to
+>> the realtek parts (suspend/resume does work with other devices that
+>> rely on dvb-usb).
+>>
+>> Cheers,
+>>
+>> Devin
+>
+> I have the resume problem with the terratec H7.
+>
+> http://www.mail-archive.com/linux-media@vger.kernel.org/msg45590.html
+>
+> Jose Alberto
 
-The daily build has this warning:
+It crashes Kernel for every DVB USB device having DVB USB firmware.
 
-v4l-dvb-git/drivers/media/video/omap/omap_vout.c: In function ‘omapvid_init’:
-v4l-dvb-git/drivers/media/video/omap/omap_vout.c:381:17: warning: ‘mode’ may be used uninitialized in this function [-Wuninitialized]
-v4l-dvb-git/drivers/media/video/omap/omap_vout.c:331:23: note: ‘mode’ was declared here
+regards
+Antti
 
-Can someone check this?
-
-The problem is that video_mode_to_dss_mode() has a 'case 0:' that never sets
-the mode. I suspect that the case 0 can be removed so that it goes to the
-default case.
-
-Can someone verify this?
-
-Regards,
-
-        Hans
