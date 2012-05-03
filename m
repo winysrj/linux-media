@@ -1,74 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:25463 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756085Ab2EYT6I (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 May 2012 15:58:08 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: text/plain; charset=ISO-8859-1
-Received: from euspt1 ([210.118.77.14]) by mailout4.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0M4L0019TGT89N10@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 25 May 2012 20:58:20 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0M4L0058CGSUMI@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 25 May 2012 20:58:06 +0100 (BST)
-Date: Fri, 25 May 2012 21:58:05 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [GIT PATCHES FOR 3.5] s5p-fimc driver fixes
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Message-id: <4FBFE44D.7050006@samsung.com>
+Received: from plane.gmane.org ([80.91.229.3]:36182 "EHLO plane.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754081Ab2ECQHH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 3 May 2012 12:07:07 -0400
+Received: from list by plane.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1SPyYW-0007dY-Aa
+	for linux-media@vger.kernel.org; Thu, 03 May 2012 18:07:00 +0200
+Received: from d67-193-214-242.home3.cgocable.net ([67.193.214.242])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Thu, 03 May 2012 18:07:00 +0200
+Received: from brian by d67-193-214-242.home3.cgocable.net with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Thu, 03 May 2012 18:07:00 +0200
+To: linux-media@vger.kernel.org
+From: "Brian J. Murrell" <brian@interlinx.bc.ca>
+Subject: Re: HVR-1600 QAM recordings with slight glitches in them
+Date: Thu, 03 May 2012 12:06:46 -0400
+Message-ID: <4FA2AD16.6080807@interlinx.bc.ca>
+References: <jn2ibp$pot$1@dough.gmane.org> <1335307344.8218.11.camel@palomino.walls.org> <jn7pph$qed$1@dough.gmane.org> <1335624964.2665.37.camel@palomino.walls.org> <4F9C38BE.3010301@interlinx.bc.ca> <4F9C559E.6010208@interlinx.bc.ca> <4F9C6D68.3090202@interlinx.bc.ca> <CAAMvbhH2o6SZVBU4D2dvUUVuOhtzLdO-R=TCuug7Y9hgZq2gmg@mail.gmail.com> <CAGoCfiwB2jZfeZ2aSQ7FSG-k5XDGJY_ykLPSD3Y3rbrUXmuOdg@mail.gmail.com> <4FA1FBB5.8050106@interlinx.bc.ca> <CAGoCfixTLjnW=q+SHiiRzXaFtqp56Ng5nRMn-u1YfZ1f-zmtwA@mail.gmail.com> <e2d13409-d6fc-47aa-9597-727dd6f7c3ec@email.android.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="------------enigE304EA8C3DC31B5EBEA4FD1B"
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	stoth@kernellabs.com
+In-Reply-To: <e2d13409-d6fc-47aa-9597-727dd6f7c3ec@email.android.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--------------enigE304EA8C3DC31B5EBEA4FD1B
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 
-The following changes since commit 5472d3f17845c4398c6a510b46855820920c2181:
+On 12-05-03 11:37 AM, Andy Walls wrote:
+> Devin Heitmueller <dheitmueller@kernellabs.com> wrote:
+>>
+>> Also, which version of the HVR-1600 is this?  The one with the
+>> mxl5005s or the tda18271?  You can check the dmesg output to tell (and=
 
-  [media] mt9m032: Implement V4L2_CID_PIXEL_RATE control (2012-05-24 09:27:24
--0300)
+>> if you cannot tell, please pastebin the dmesg output so I can look).
 
-are available in the git repository at:
+http://brian.interlinx.bc.ca/hvr-1600-dmesg
 
-  git://git.infradead.org/users/kmpark/linux-samsung v4l-fimc-fixes
+> IIRC, Brian had a MXL5005s/S5H1409 variant.
 
-for you to fetch changes up to e17efe77cc112420a5a9169a77402cc590a96908:
-
-  s5p-fimc: Stop media entity pipeline if fimc_pipeline_validate fails
-(2012-05-25 12:18:27 +0200)
-
-----------------------------------------------------------------
-Sachin Kamat (2):
-      s5p-fimc: Fix compiler warning in fimc-lite.c
-      s5p-fimc: Stop media entity pipeline if fimc_pipeline_validate fails
-
-Sakari Ailus (1):
-      s5p-fimc: media_entity_pipeline_start() may fail
-
-Sylwester Nawrocki (8):
-      s5p-fimc: Fix bug in capture node open()
-      s5p-fimc: Don't create multiple active links to same sink entity
-      s5p-fimc: Honour sizeimage in VIDIOC_S_FMT
-      s5p-fimc: Remove superfluous checks for buffer type
-      s5p-fimc: Prevent lock-up in multiple sensor systems
-      s5p-fimc: Fix fimc-lite system wide suspend procedure
-      s5p-fimc: Shorten pixel formats description
-      s5p-fimc: Update to the control handler lock changes
-
- drivers/media/video/s5p-fimc/fimc-capture.c |   69
-++++++++++++++++++++++++++++++++++-----------------------------------
- drivers/media/video/s5p-fimc/fimc-core.c    |   19 ++++++++++---------
- drivers/media/video/s5p-fimc/fimc-lite.c    |   20 ++++++++++++--------
- drivers/media/video/s5p-fimc/fimc-mdevice.c |   48
-++++++++++++++++++++++++------------------------
- drivers/media/video/s5p-fimc/fimc-mdevice.h |    2 --
- 5 files changed, 80 insertions(+), 78 deletions(-)
-
-I'm sending it early as I'm going to be offline for coming few weeks.
+The latter part sounds familiar from femon and gnutv.
 
 
-Kind regards,
-Sylwester
+> I think Brian might have a bad cable or connector or splitter in the ru=
+n feeding the hvr1600.
+
+
+The same 4-way splitter fed the HVR-950Q and the HVR-1600 and cables
+were swapped just about every way they could be to try to get the
+HVR-1600's SNR up.
+
+But as I mentioned before, it's now completely non-functional due to the
+coax connector on the card having become loose enough to turn (with some
+effort, so screwing an female F-connector on/off was still quite
+doable).  Perhaps it was marginal before due to that same problem.  I
+guess I will never know... unless I try cracking this thing open and
+reconnecting whatever has gotten disconnected -- if Hauppage won't RMA
+it for me.  They seem to be pretty silent about that now though after an
+initial e-mail exchange.
+
+If not, I've got my eye on a KWorld UB435-Q if I can determine that it's
+a hardware rev. 1 unit somehow since the store doesn't want to take it
+out of the box to check for me.  It's less than half the price of an
+HVR-950Q at $40, as much as I would love to stay loyal with Hauppage --
+this coax connector on my HVR-1600 coming loose, aside.
+
+Cheers,
+b.
+
+
+--------------enigE304EA8C3DC31B5EBEA4FD1B
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
+
+iEYEARECAAYFAk+irRgACgkQl3EQlGLyuXCKnACeJP4RPdqDn7KczyLHXX2+k3BR
+xloAoJhtO+1AewbN/hHmO+8uPH7KBu0j
+=Bgiu
+-----END PGP SIGNATURE-----
+
+--------------enigE304EA8C3DC31B5EBEA4FD1B--
+
