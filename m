@@ -1,146 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:2695 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755701Ab2EDNao (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 May 2012 09:30:44 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Joonyoung Shim <jy0922.shim@samsung.com>,
-	Tobias Lorenz <tobias.lorenz@gmx.net>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 2/4] si470x: add control event support and more v4l2 compliancy fixes.
-Date: Fri,  4 May 2012 15:30:30 +0200
-Message-Id: <0acaad8cb3d59f5301a67f7378e7e540fab3196e.1336137768.git.hans.verkuil@cisco.com>
-In-Reply-To: <1336138232-17528-1-git-send-email-hverkuil@xs4all.nl>
-References: <1336138232-17528-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <e9c50530e84fcff80f9928f679eb1d02ba8c349d.1336137768.git.hans.verkuil@cisco.com>
-References: <e9c50530e84fcff80f9928f679eb1d02ba8c349d.1336137768.git.hans.verkuil@cisco.com>
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:63204 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751162Ab2ECOfS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 May 2012 10:35:18 -0400
+Received: by eekc41 with SMTP id c41so545019eek.19
+        for <linux-media@vger.kernel.org>; Thu, 03 May 2012 07:35:16 -0700 (PDT)
+Date: Thu, 3 May 2012 16:34:54 +0200
+From: Anisse Astier <anisse@astier.eu>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Oleksij Rempel <bug-track@fisher-privat.net>
+Cc: linux-uvc-devel@lists.sourceforge.net, linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org
+Subject: Re: UVCvideo:  Failed to resubmit video URB (-27) with Linux 3.3.3
+Message-ID: <20120503163454.1a835d87@destiny.ordissimo>
+In-Reply-To: <1682934.ZponbpoO2x@avalon>
+References: <20120426200721.0c3ca642@destiny.ordissimo>
+	<1682934.ZponbpoO2x@avalon>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Wed, 02 May 2012 14:24:11 +0200, Laurent Pinchart <laurent.pinchart@ideasonboard.com> wrote :
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/radio/si470x/radio-si470x-common.c |   45 ++++++++++++++--------
- 1 file changed, 28 insertions(+), 17 deletions(-)
+> Hi Anisse,
+> 
+> On Thursday 26 April 2012 20:07:21 Anisse Astier wrote:
+> > Hi,
+> > 
+> > I'm experiencing a problem with uvcvideo with kernel 3.3.3 and today's
+> > Linus' tree.
+> > 
+> > Problem not reproduced in 3.2.15, so this could be labelled as a regression.
+> > 
+> > See webcam lsusb and (verbose!) dmesg log in attachment, which exhibits
+> > the problem.
+> > 
+> > We see lots of error (-18 = -EXDEV), that indicate that URB was too late
+> > and then dropped, and they add up until we reach the "Failed to resubmit
+> > video URB" scheduling issue.
+> 
+> Those are USB controller issues. The uvcvideo driver submits URBs with the 
+> URB_ISO_ASAP transfer flag, so the controller should not fail to schedule 
+> them.
+Yes, it's weird.
 
-diff --git a/drivers/media/radio/si470x/radio-si470x-common.c b/drivers/media/radio/si470x/radio-si470x-common.c
-index de9475f..e70badf 100644
---- a/drivers/media/radio/si470x/radio-si470x-common.c
-+++ b/drivers/media/radio/si470x/radio-si470x-common.c
-@@ -262,7 +262,7 @@ static int si470x_get_freq(struct si470x_device *radio, unsigned int *freq)
-  */
- int si470x_set_freq(struct si470x_device *radio, unsigned int freq)
- {
--	unsigned int spacing, band_bottom;
-+	unsigned int spacing, band_bottom, band_top;
- 	unsigned short chan;
- 
- 	/* Spacing (kHz) */
-@@ -278,19 +278,26 @@ int si470x_set_freq(struct si470x_device *radio, unsigned int freq)
- 		spacing = 0.050 * FREQ_MUL; break;
- 	};
- 
--	/* Bottom of Band (MHz) */
-+	/* Bottom/Top of Band (MHz) */
- 	switch ((radio->registers[SYSCONFIG2] & SYSCONFIG2_BAND) >> 6) {
- 	/* 0: 87.5 - 108 MHz (USA, Europe) */
- 	case 0:
--		band_bottom = 87.5 * FREQ_MUL; break;
-+		band_bottom = 87.5 * FREQ_MUL;
-+		band_top = 108 * FREQ_MUL;
-+		break;
- 	/* 1: 76   - 108 MHz (Japan wide band) */
- 	default:
--		band_bottom = 76   * FREQ_MUL; break;
-+		band_bottom = 76 * FREQ_MUL;
-+		band_top = 108 * FREQ_MUL;
-+		break;
- 	/* 2: 76   -  90 MHz (Japan) */
- 	case 2:
--		band_bottom = 76   * FREQ_MUL; break;
-+		band_bottom = 76 * FREQ_MUL;
-+		band_top = 90 * FREQ_MUL;
-+		break;
- 	};
- 
-+	freq = clamp(freq, band_bottom, band_top);
- 	/* Chan = [ Freq (Mhz) - Bottom of Band (MHz) ] / Spacing (kHz) */
- 	chan = (freq - band_bottom) / spacing;
- 
-@@ -515,17 +522,19 @@ static unsigned int si470x_fops_poll(struct file *file,
- 		struct poll_table_struct *pts)
- {
- 	struct si470x_device *radio = video_drvdata(file);
--	int retval = 0;
--
--	/* switch on rds reception */
-+	unsigned long req_events = poll_requested_events(pts);
-+	int retval = v4l2_ctrl_poll(file, pts);
- 
--	if ((radio->registers[SYSCONFIG1] & SYSCONFIG1_RDS) == 0)
--		si470x_rds_on(radio);
-+	if (req_events & (POLLIN | POLLRDNORM)) {
-+		/* switch on rds reception */
-+		if ((radio->registers[SYSCONFIG1] & SYSCONFIG1_RDS) == 0)
-+			si470x_rds_on(radio);
- 
--	poll_wait(file, &radio->read_queue, pts);
-+		poll_wait(file, &radio->read_queue, pts);
- 
--	if (radio->rd_index != radio->wr_index)
--		retval = POLLIN | POLLRDNORM;
-+		if (radio->rd_index != radio->wr_index)
-+			retval |= POLLIN | POLLRDNORM;
-+	}
- 
- 	return retval;
- }
-@@ -637,6 +646,8 @@ static int si470x_vidioc_g_tuner(struct file *file, void *priv,
- 	tuner->signal = (radio->registers[STATUSRSSI] & STATUSRSSI_RSSI);
- 	/* the ideal factor is 0xffff/75 = 873,8 */
- 	tuner->signal = (tuner->signal * 873) + (8 * tuner->signal / 10);
-+	if (tuner->signal > 0xffff)
-+		tuner->signal = 0xffff;
- 
- 	/* automatic frequency control: -1: freq to low, 1 freq to high */
- 	/* AFCRL does only indicate that freq. differs, not if too low/high */
-@@ -660,7 +671,7 @@ static int si470x_vidioc_s_tuner(struct file *file, void *priv,
- 	int retval = 0;
- 
- 	if (tuner->index != 0)
--		goto done;
-+		return -EINVAL;
- 
- 	/* mono/stereo selector */
- 	switch (tuner->audmode) {
-@@ -668,15 +679,13 @@ static int si470x_vidioc_s_tuner(struct file *file, void *priv,
- 		radio->registers[POWERCFG] |= POWERCFG_MONO;  /* force mono */
- 		break;
- 	case V4L2_TUNER_MODE_STEREO:
-+	default:
- 		radio->registers[POWERCFG] &= ~POWERCFG_MONO; /* try stereo */
- 		break;
--	default:
--		goto done;
- 	}
- 
- 	retval = si470x_set_register(radio, POWERCFG);
- 
--done:
- 	if (retval < 0)
- 		dev_warn(&radio->videodev.dev,
- 			"set tuner failed with %d\n", retval);
-@@ -770,6 +779,8 @@ static const struct v4l2_ioctl_ops si470x_ioctl_ops = {
- 	.vidioc_g_frequency	= si470x_vidioc_g_frequency,
- 	.vidioc_s_frequency	= si470x_vidioc_s_frequency,
- 	.vidioc_s_hw_freq_seek	= si470x_vidioc_s_hw_freq_seek,
-+	.vidioc_subscribe_event = v4l2_ctrl_subscribe_event,
-+	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
- };
- 
- 
--- 
-1.7.10
+So I followed Oleksij's adviced and reverted the following commit groups:
+ - 66847ef [media] uvcvideo: Add UVC timestamps support, 3afedb9 [media]
+   uvcvideo: Don't skip erroneous payloads and ed0ee0c [media] uvcvideo:
+   Fix race-related crash in uvc_video_clock_update()
+ - ab86e9e [media] uvcvideo: Allow userptr IO mode and 6998b6f [media]
+   uvcvideo: Use videobuf2-vmalloc
+ - 3d95e93 [media] uvcvideo: Move fields from uvc_buffer::buf to
+   uvc_buffer
+ - c4d99f8 [media] uvcvideo: Ignore GET_RES error for XU controls
+ - 806e23e [media] uvcvideo: Fix integer overflow in uvc_ioctl_ctrl_map()
+ - d0d9748 [media] uvcvideo: Use kcalloc instead of kzalloc to allocate
+   array
+None of this fixed the issue.
 
+So I just decided to revert the whole uvc driver: git checkout v3.2 --
+drivers/media/video/uvc.
+But, the problem was still here.
+
+I reverted the usb host code in drivers/usb/host/. Again the problem was
+reproduced (both with and without 3.2's uvcvideo driver)
+
+Then I tested the whole kernel v3.2, and indeed it still works very well.
+
+So this problem could have it's root in USB core changes, or even a
+combilation of USB and UVC changes.
+
+
+> 
+> > Installed libv4l version is 0.8.6.
+> > I'm reproducing this with: gst-launch-0.10 --verbose v4l2src  ! xvimagesink
+> > (Skype exhibits the problem too, while it isn't using gstreamer, so it
+> > really seems to come from kernel. Also, doesn't happen with 3.2)
+> > 
+> > This is the first part of the problem. The second part is that if I
+> > restart the webcam with gst-launch after the first failure, I have a
+> > total freeze, just after these messages in the log (fetched with
+> > netconsole, I wasn't able to get a panic trace):
+> > 
+> > [  191.796217] uvcvideo: Marking buffer as bad (error bit set).
+> > [  191.796233] uvcvideo: Marking buffer as bad (error bit set).
+> > [  191.796244] uvcvideo: Marking buffer as bad (error bit set).
+> > [  191.796252] uvcvideo: Marking buffer as bad (error bit set).
+> > [  191.796259] uvcvideo: Frame complete (EOF found).
+> > [  191.796265] uvcvideo: EOF in empty payload.
+> > [  192.972803] uvcvideo: Marking buffer as bad (error bit set).
+> > [  192.972818] uvcvideo: Dropping payload (out of sync).
+> > [  194.289463] uvcvideo: Marking buffer as bad (error bit set).
+> > [  194.289478] uvcvideo: Frame complete (FID bit toggled).
+> > [  194.289486] uvcvideo: Marking buffer as bad (error bit set).
+> > [  194.289493] uvcvideo: Frame complete (FID bit toggled).
+> > [  194.289499] uvcvideo: Marking buffer as bad (error bit set).
+> > [  194.289505] uvcvideo: Frame complete (FID bit toggled).
+> > [  194.289511] uvcvideo: Marking buffer as bad (error bit set).
+> > [  194.289518] uvcvideo: Frame complete (FID bit toggled).
+> > [  194.289524] uvcvideo: Marking buffer as bad (error bit set).
+> > [  194.289531] uvcvideo: Frame complete (FID bit toggled).
+> >
+> > Last but not least, uvcvideo is un-bisectable because there were a few
+> > crash-fixes during the 3.3 development cycle. I started bisecting and got
+> > kernel panics.
+> 
+> Are the kernel panics related to uvcvideo ? There's one known bug introduced 
+> between v3.2 and v3.3 and fixed (before v3.3) in commit 
+> 8e57dec0454d8a3ba987d18b3ab19922c766d4bc.
+I don't think that's it. As I've said, problem exists with both 3.3.3 and
+Linus' 3.4-rc5.
+
+
+--
+Anisse
