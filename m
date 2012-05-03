@@ -1,50 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:21649 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751892Ab2EWIM3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 May 2012 04:12:29 -0400
-From: Hans de Goede <hdegoede@redhat.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Jean-Francois Moine <moinejf@free.fr>,
-	Hans de Goede <hdegoede@redhat.com>, stable@kernel.org
-Subject: [PATCH] gspca-core: Fix buffers staying in queued state after a stream_off
-Date: Wed, 23 May 2012 10:12:30 +0200
-Message-Id: <1337760750-2561-1-git-send-email-hdegoede@redhat.com>
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:58538 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752517Ab2ECAnT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 2 May 2012 20:43:19 -0400
+Subject: Re: [RFC v3 1/2] v4l: Do not use enums in IOCTL structs
+From: Andy Walls <awalls@md.metrocast.net>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	remi@remlab.net, nbowler@elliptictech.com, james.dutton@gmail.com
+Date: Wed, 02 May 2012 20:42:59 -0400
+In-Reply-To: <4FA1B27A.2030405@redhat.com>
+References: <20120502191324.GE852@valkosipuli.localdomain>
+	 <1335986028-23618-1-git-send-email-sakari.ailus@iki.fi>
+	 <201205022245.22585.hverkuil@xs4all.nl> <4FA1B27A.2030405@redhat.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Message-ID: <1336005780.24477.7.camel@palomino.walls.org>
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This fixes a regression introduced by commit f7059ea and should be
-backported to all supported stable kernels which have this commit.
+On Wed, 2012-05-02 at 19:17 -0300, Mauro Carvalho Chehab wrote:
 
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-Tested-by: Antonio Ospite <ospite@studenti.unina.it>
-CC: stable@kernel.org
----
- drivers/media/video/gspca/gspca.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+> We can speed-up the conversions, with something like:
+> 
+> enum foo {
+> 	BAR
+> };
+> 
+> if (sizeof(foo) != sizeof(u32))
+> 	call_compat_logic().
+> 
+> I suspect that sizeof() won't work inside a macro. 
 
-diff --git a/drivers/media/video/gspca/gspca.c b/drivers/media/video/gspca/gspca.c
-index 137166d..31721ea 100644
---- a/drivers/media/video/gspca/gspca.c
-+++ b/drivers/media/video/gspca/gspca.c
-@@ -1653,7 +1653,7 @@ static int vidioc_streamoff(struct file *file, void *priv,
- 				enum v4l2_buf_type buf_type)
- {
- 	struct gspca_dev *gspca_dev = video_drvdata(file);
--	int ret;
-+	int i, ret;
- 
- 	if (buf_type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
- 		return -EINVAL;
-@@ -1678,6 +1678,8 @@ static int vidioc_streamoff(struct file *file, void *priv,
- 	wake_up_interruptible(&gspca_dev->wq);
- 
- 	/* empty the transfer queues */
-+	for (i = 0; i < gspca_dev->nframes; i++)
-+		gspca_dev->frame[i].v4l2_buf.flags &= ~BUF_ALL_FLAGS;
- 	atomic_set(&gspca_dev->fr_q, 0);
- 	atomic_set(&gspca_dev->fr_i, 0);
- 	gspca_dev->fr_o = 0;
--- 
-1.7.10
+sizeof() is evaluated at compile time, after preprocessing. 
+It should work inside of a macro.
+
+See the ARRAY_SIZE() macro in include/linux/kernel.h for a well tested
+example.
+
+Regards,
+Andy
+
+
 
