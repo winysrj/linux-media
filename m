@@ -1,76 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:2752 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751195Ab2EZTTn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 26 May 2012 15:19:43 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Ezequiel Garcia <elezegarcia@gmail.com>
-Subject: Re: [RFC/PATCH] media: Add stk1160 new driver
-Date: Sat, 26 May 2012 21:19:37 +0200
-Cc: mchehab@redhat.com, linux-media@vger.kernel.org,
-	hdegoede@redhat.com
-References: <201205261950.06022.hverkuil@xs4all.nl> <CALF0-+UbhYq7fPYsJLQZ+phuTtv4WEdQ9BwbCGA_5XUKHONCXw@mail.gmail.com>
-In-Reply-To: <CALF0-+UbhYq7fPYsJLQZ+phuTtv4WEdQ9BwbCGA_5XUKHONCXw@mail.gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:37351 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752751Ab2EDKKB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 4 May 2012 06:10:01 -0400
+Message-ID: <4FA3AAF5.4070000@redhat.com>
+Date: Fri, 04 May 2012 12:09:57 +0200
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: Jean-Francois Moine <moinejf@free.fr>
+Subject: [GIT PULL FOR 3.5] gspca_pac73XX improvements + misc fixes
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <201205262119.37644.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat May 26 2012 20:38:00 Ezequiel Garcia wrote:
-> Hi Hans,
-> 
-> Thanks for your review (I'm a bit amazed at how fast you went through
-> the code :).
-> I'll address your excellent comments soon.
-> 
-> I'm still unsure about a numbre of things. Two of them:
-> 
-> 1. It seems to mee tracing is not too nice and
-> I wasn't really sure how to handle it: dev_xxx, pr_xxx, v4l2_xxx.
-> What's the current trend?
+Hi Mauro et al,
 
-dev_xxx with v4l2_xxx as a second option. If you don't need a driver/device
-prefix, then pr_xxx is best.
+Please pull from my tree for:
+-a small stk driver fix
+-a bunch of gspca_pac73XX improvements
+-removal of the long deprecated et61x251 driver
 
-It's messy and it's on my TODO list to simplify this. Unfortunately it's quite
-low on that list.
+Note this pull request obsoletes my previous pull req.
 
-> 2. The original driver allowed to set frame size, but it seemed to me that
-> could be done at userspace.
+The following changes since commit a1ac5dc28d2b4ca78e183229f7c595ffd725241c:
 
-You mean that the original driver allowed hardware resizing? It would be nice
-to keep support for that. For a first version you don't have to, though.
+   [media] gspca - sn9c20x: Change the exposure setting of Omnivision sensors (2012-05-03 15:29:56 -0300)
 
-> Hence, my implementation says:
-> 
-> V4L2_STD_625_50 is 720x756 and V4L2_STD_525_60 is 720x480.
-> 
-> (This is related to the way the video decoder saa711x also assuming that sizes.)
-> So userspace is supposed to get frame size, right after changing video standard
-> and handle buffer of appropriate size.
-> 
-> What do you think?
+are available in the git repository at:
 
-After the video standard is changed that framesize should always be set to the
-default size for that standard. An application can then change it to another
-size if there is a hardware scaler.
+   git://linuxtv.org/hgoede/gspca.git media-for_v3.5
 
-Regards,
+for you to fetch changes up to cfe42cea7b4040c6e18f113a0494426764bfa21b:
 
-	Hans
+   media/video/et61x251: Remove this deprecated driver (2012-05-04 11:38:43 +0200)
 
-> 
-> 
-> On Sat, May 26, 2012 at 2:50 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> > (Ezequiel, your original CC list was mangled, so I'm reposting this)
-> >
-> Sorry about this :(
-> I'll check my git-send-mail config.
-> 
-> Thanks again,
-> Ezequiel.
-> 
+----------------------------------------------------------------
+Hans de Goede (13):
+       stk-webcam: Don't flip the image by default
+       gspca/autogain_functions.h: Allow users to declare what they want
+       gspca_pac73xx: Remove comments from before the 7302 / 7311 separation
+       gspca_pac7311: Make sure exposure changes get applied immediately
+       gspca_pac7311: Adjust control scales to match registers
+       gspca_pac7311: Switch to new gspca control mechanism
+       gspca_pac7311: Switch to coarse expo autogain algorithm
+       gspca_pac7311: Convert multi-line comments to standard kernel style
+       gspca_pac7311: Properly set the compression balance
+       gspca_pac7302: Convert multi-line comments to standard kernel style
+       gspca_pac7302: Document some more registers
+       gspca_pac7302: Improve the gain control
+       media/video/et61x251: Remove this deprecated driver
+
+  drivers/media/video/Kconfig                        |    2 -
+  drivers/media/video/Makefile                       |    1 -
+  drivers/media/video/et61x251/Kconfig               |   18 -
+  drivers/media/video/et61x251/Makefile              |    4 -
+  drivers/media/video/et61x251/et61x251.h            |  213 --
+  drivers/media/video/et61x251/et61x251_core.c       | 2683 --------------------
+  drivers/media/video/et61x251/et61x251_sensor.h     |  108 -
+  drivers/media/video/et61x251/et61x251_tas5130d1b.c |  143 --
+  drivers/media/video/gspca/autogain_functions.h     |    6 +-
+  drivers/media/video/gspca/nw80x.c                  |    2 +
+  drivers/media/video/gspca/pac7302.c                |  184 +-
+  drivers/media/video/gspca/pac7311.c                |  380 +--
+  drivers/media/video/gspca/sonixb.c                 |    2 +
+  drivers/media/video/gspca/sonixj.c                 |    5 +-
+  drivers/media/video/gspca/topro.c                  |    6 +-
+  drivers/media/video/stk-webcam.c                   |    8 +-
+  16 files changed, 239 insertions(+), 3526 deletions(-)
+  delete mode 100644 drivers/media/video/et61x251/Kconfig
+  delete mode 100644 drivers/media/video/et61x251/Makefile
+  delete mode 100644 drivers/media/video/et61x251/et61x251.h
+  delete mode 100644 drivers/media/video/et61x251/et61x251_core.c
+  delete mode 100644 drivers/media/video/et61x251/et61x251_sensor.h
+  delete mode 100644 drivers/media/video/et61x251/et61x251_tas5130d1b.c
+
+Thanks & Regards,
+
+Hans
