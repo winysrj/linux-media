@@ -1,69 +1,299 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:43070 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754053Ab2EDB1g (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 May 2012 21:27:36 -0400
-Received: by wgbdr13 with SMTP id dr13so2262109wgb.1
-        for <linux-media@vger.kernel.org>; Thu, 03 May 2012 18:27:35 -0700 (PDT)
-Message-ID: <4FA33084.7050204@gmail.com>
-Date: Fri, 04 May 2012 03:27:32 +0200
-From: poma <pomidorabelisima@gmail.com>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org, gennarone@gmail.com
-Subject: Re: [PATCH v2] add support for DeLOCK-USB-2.0-DVB-T-Receiver-61744
-References: <4F9E5D91.30503@gmail.com> <1335800374-22012-2-git-send-email-thomas.mair86@googlemail.com> <4F9F8752.40609@gmail.com> <4FA232CE.8010404@gmail.com> <4FA249DE.7000702@gmail.com>
-In-Reply-To: <4FA249DE.7000702@gmail.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1330 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755701Ab2EDNar (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 May 2012 09:30:47 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Joonyoung Shim <jy0922.shim@samsung.com>,
+	Tobias Lorenz <tobias.lorenz@gmx.net>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 4/4] radio-si470x-usb: remove autosuspend, implement suspend/resume.
+Date: Fri,  4 May 2012 15:30:32 +0200
+Message-Id: <342493035eca72981784eef475d96f53c5412957.1336137768.git.hans.verkuil@cisco.com>
+In-Reply-To: <1336138232-17528-1-git-send-email-hverkuil@xs4all.nl>
+References: <1336138232-17528-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <e9c50530e84fcff80f9928f679eb1d02ba8c349d.1336137768.git.hans.verkuil@cisco.com>
+References: <e9c50530e84fcff80f9928f679eb1d02ba8c349d.1336137768.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/03/2012 11:03 AM, Gianluca Gennari wrote:
-> Hi poma,
-> I have a 0BDA:2838 (Easycap EZTV646) and a 0BDA:2832 (no name 20x20mm
-> mini DVB-T stick) and both are based on the E4000 tuner, which is not
-> supported in the kernel at the moment.
-> I have no idea if there are sticks with the same USB PID and the fc0012
-> tuner.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-OK, second one - no name device is "Realtek RTL2832U reference design"**.
+The radio-si470x-usb driver supported both autosuspend and it stopped the
+radio the moment the last user of the radio device closed it. However, that
+was very confusing since if you play the audio from the device (e.g. through
+arecord -D ... | aplay) then no sound would play unless you had the radio
+device open at the same time, even though there is no need to do anything
+with that node.
 
-First one:
-Once upon a time there was a "EasyCAP"…
-"After while crocodile!"
-…and "EzCAP" was born.
-http://szforwardvideo.en.alibaba.com/aboutus.html
-Obviously Easycap EZTV646 != EzCAP EzTV646
-http://www.reddit.com/r/RTLSDR/comments/s6ddo/rtlsdr_compatibility_list_v2_work_in_progress/
-ezcap EzTV646	0BDA:2838	RTL2832U/FC0012		Some revisions may have the E4000*
-http://i.imgur.com/mFD1X.jpg
-(Generic)	0BDa:2838	RTL2832U/E4000*
-…
-And, in addition:
-http://sdr.osmocom.org/trac/wiki/rtl-sdr
-0x0bda	0x2832	all of them	Generic RTL2832U (e.g. hama nano)**
-0x0bda	0x2838	E4000	ezcap USB 2.0 DVB-T/DAB/FM dongle
-…
-Maybe?
-https://sites.google.com/site/myrtlsdr/
-"EzCap EZTV646 has got RTL2832U/FC0012. However rtl-sdr must be tweaked
-to force FC0012 tuner because it has the same PID as EZTV668 (PID:
-0x2838) so running it whithout a tweak will select Elonics E4000 tuner.
-Works, not so good at filtering."
-…
-Conclusion:
-At least two devices share same vid/pid with different tuners - fc0012
-vs e4000.
-How to resolve this from a drivers perspective in a proper way?
+On the other hand, the actual suspend/resume functions didn't do anything,
+which would fail if you *did* have the radio node open at that time.
 
-Beside,
-there is GPL'ed 'e4k' tuner source code aka 'e4000 improved'*** (Elonics
-E4000)
-by Harald Welte
-http://cgit.osmocom.org/cgit/osmo-sdr/tree/firmware/src/tuner_e4k.c
-http://sdr.osmocom.org/trac/
-http://sdr.osmocom.org/trac/wiki/rtl-sdr
-http://wiki.spench.net/wiki/RTL2832U***
+So:
 
-regards,
-poma
+- remove autosuspend (bad idea in general for USB radio devices)
+- move the start/stop out of the open/release functions into the resume/suspend
+  functions.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/radio/si470x/radio-si470x-common.c |    1 -
+ drivers/media/radio/si470x/radio-si470x-usb.c    |  149 ++++++++++------------
+ 2 files changed, 70 insertions(+), 80 deletions(-)
+
+diff --git a/drivers/media/radio/si470x/radio-si470x-common.c b/drivers/media/radio/si470x/radio-si470x-common.c
+index b9a44d4..969cf49 100644
+--- a/drivers/media/radio/si470x/radio-si470x-common.c
++++ b/drivers/media/radio/si470x/radio-si470x-common.c
+@@ -570,7 +570,6 @@ static int si470x_s_ctrl(struct v4l2_ctrl *ctrl)
+ 		else
+ 			radio->registers[POWERCFG] |= POWERCFG_DMUTE;
+ 		return si470x_set_register(radio, POWERCFG);
+-		break;
+ 	default:
+ 		return -EINVAL;
+ 	}
+diff --git a/drivers/media/radio/si470x/radio-si470x-usb.c b/drivers/media/radio/si470x/radio-si470x-usb.c
+index f133c3d..e9f6387 100644
+--- a/drivers/media/radio/si470x/radio-si470x-usb.c
++++ b/drivers/media/radio/si470x/radio-si470x-usb.c
+@@ -481,91 +481,20 @@ resubmit:
+ }
+ 
+ 
+-
+-/**************************************************************************
+- * File Operations Interface
+- **************************************************************************/
+-
+-/*
+- * si470x_fops_open - file open
+- */
+ int si470x_fops_open(struct file *file)
+ {
+-	struct si470x_device *radio = video_drvdata(file);
+-	int retval = v4l2_fh_open(file);
+-
+-	if (retval)
+-		return retval;
+-
+-	retval = usb_autopm_get_interface(radio->intf);
+-	if (retval < 0)
+-		goto done;
+-
+-	if (v4l2_fh_is_singular_file(file)) {
+-		/* start radio */
+-		retval = si470x_start(radio);
+-		if (retval < 0) {
+-			usb_autopm_put_interface(radio->intf);
+-			goto done;
+-		}
+-
+-		/* initialize interrupt urb */
+-		usb_fill_int_urb(radio->int_in_urb, radio->usbdev,
+-			usb_rcvintpipe(radio->usbdev,
+-			radio->int_in_endpoint->bEndpointAddress),
+-			radio->int_in_buffer,
+-			le16_to_cpu(radio->int_in_endpoint->wMaxPacketSize),
+-			si470x_int_in_callback,
+-			radio,
+-			radio->int_in_endpoint->bInterval);
+-
+-		radio->int_in_running = 1;
+-		mb();
+-
+-		retval = usb_submit_urb(radio->int_in_urb, GFP_KERNEL);
+-		if (retval) {
+-			dev_info(&radio->intf->dev,
+-				 "submitting int urb failed (%d)\n", retval);
+-			radio->int_in_running = 0;
+-			usb_autopm_put_interface(radio->intf);
+-		}
+-	}
+-
+-done:
+-	if (retval)
+-		v4l2_fh_release(file);
+-	return retval;
++	return v4l2_fh_open(file);
+ }
+ 
+-
+-/*
+- * si470x_fops_release - file release
+- */
+ int si470x_fops_release(struct file *file)
+ {
+-	struct si470x_device *radio = video_drvdata(file);
+-
+-	if (v4l2_fh_is_singular_file(file)) {
+-		/* shutdown interrupt handler */
+-		if (radio->int_in_running) {
+-			radio->int_in_running = 0;
+-			if (radio->int_in_urb)
+-				usb_kill_urb(radio->int_in_urb);
+-		}
+-
+-		/* cancel read processes */
+-		wake_up_interruptible(&radio->read_queue);
+-
+-		/* stop radio */
+-		si470x_stop(radio);
+-		usb_autopm_put_interface(radio->intf);
+-	}
+ 	return v4l2_fh_release(file);
+ }
+ 
+-static void si470x_usb_release(struct video_device *vdev)
++static void si470x_usb_release(struct v4l2_device *v4l2_dev)
+ {
+-	struct si470x_device *radio = video_get_drvdata(vdev);
++	struct si470x_device *radio =
++		container_of(v4l2_dev, struct si470x_device, v4l2_dev);
+ 
+ 	usb_free_urb(radio->int_in_urb);
+ 	v4l2_ctrl_handler_free(&radio->hdl);
+@@ -599,6 +528,38 @@ int si470x_vidioc_querycap(struct file *file, void *priv,
+ }
+ 
+ 
++static int si470x_start_usb(struct si470x_device *radio)
++{
++	int retval;
++
++	/* start radio */
++	retval = si470x_start(radio);
++	if (retval < 0)
++		return retval;
++
++	v4l2_ctrl_handler_setup(&radio->hdl);
++
++	/* initialize interrupt urb */
++	usb_fill_int_urb(radio->int_in_urb, radio->usbdev,
++			usb_rcvintpipe(radio->usbdev,
++				radio->int_in_endpoint->bEndpointAddress),
++			radio->int_in_buffer,
++			le16_to_cpu(radio->int_in_endpoint->wMaxPacketSize),
++			si470x_int_in_callback,
++			radio,
++			radio->int_in_endpoint->bInterval);
++
++	radio->int_in_running = 1;
++	mb();
++
++	retval = usb_submit_urb(radio->int_in_urb, GFP_KERNEL);
++	if (retval) {
++		dev_info(&radio->intf->dev,
++				"submitting int urb failed (%d)\n", retval);
++		radio->int_in_running = 0;
++	}
++	return retval;
++}
+ 
+ /**************************************************************************
+  * USB Interface
+@@ -658,6 +619,7 @@ static int si470x_usb_driver_probe(struct usb_interface *intf,
+ 		goto err_intbuffer;
+ 	}
+ 
++	radio->v4l2_dev.release = si470x_usb_release;
+ 	retval = v4l2_device_register(&intf->dev, &radio->v4l2_dev);
+ 	if (retval < 0) {
+ 		dev_err(&intf->dev, "couldn't register v4l2_device\n");
+@@ -678,7 +640,7 @@ static int si470x_usb_driver_probe(struct usb_interface *intf,
+ 	radio->videodev.ctrl_handler = &radio->hdl;
+ 	radio->videodev.lock = &radio->lock;
+ 	radio->videodev.v4l2_dev = &radio->v4l2_dev;
+-	radio->videodev.release = si470x_usb_release;
++	radio->videodev.release = video_device_release_empty;
+ 	set_bit(V4L2_FL_USE_FH_PRIO, &radio->videodev.flags);
+ 	video_set_drvdata(&radio->videodev, radio);
+ 
+@@ -754,11 +716,16 @@ static int si470x_usb_driver_probe(struct usb_interface *intf,
+ 	init_waitqueue_head(&radio->read_queue);
+ 	usb_set_intfdata(intf, radio);
+ 
++	/* start radio */
++	retval = si470x_start_usb(radio);
++	if (retval < 0)
++		goto err_all;
++
+ 	/* register video device */
+ 	retval = video_register_device(&radio->videodev, VFL_TYPE_RADIO,
+ 			radio_nr);
+ 	if (retval) {
+-		dev_warn(&intf->dev, "Could not register video device\n");
++		dev_err(&intf->dev, "Could not register video device\n");
+ 		goto err_all;
+ 	}
+ 
+@@ -786,8 +753,22 @@ err_initial:
+ static int si470x_usb_driver_suspend(struct usb_interface *intf,
+ 		pm_message_t message)
+ {
++	struct si470x_device *radio = usb_get_intfdata(intf);
++
+ 	dev_info(&intf->dev, "suspending now...\n");
+ 
++	/* shutdown interrupt handler */
++	if (radio->int_in_running) {
++		radio->int_in_running = 0;
++		if (radio->int_in_urb)
++			usb_kill_urb(radio->int_in_urb);
++	}
++
++	/* cancel read processes */
++	wake_up_interruptible(&radio->read_queue);
++
++	/* stop radio */
++	si470x_stop(radio);
+ 	return 0;
+ }
+ 
+@@ -797,9 +778,12 @@ static int si470x_usb_driver_suspend(struct usb_interface *intf,
+  */
+ static int si470x_usb_driver_resume(struct usb_interface *intf)
+ {
++	struct si470x_device *radio = usb_get_intfdata(intf);
++
+ 	dev_info(&intf->dev, "resuming now...\n");
+ 
+-	return 0;
++	/* start radio */
++	return si470x_start_usb(radio);
+ }
+ 
+ 
+@@ -815,11 +799,18 @@ static void si470x_usb_driver_disconnect(struct usb_interface *intf)
+ 	video_unregister_device(&radio->videodev);
+ 	usb_set_intfdata(intf, NULL);
+ 	mutex_unlock(&radio->lock);
++	v4l2_device_put(&radio->v4l2_dev);
+ }
+ 
+ 
+ /*
+  * si470x_usb_driver - usb driver interface
++ *
++ * A note on suspend/resume: this driver had only empty suspend/resume
++ * functions, and when I tried to test suspend/resume it always disconnected
++ * instead of resuming (using my ADS InstantFM stick). So I've decided to
++ * remove these callbacks until someone else with better hardware can
++ * implement and test this.
+  */
+ static struct usb_driver si470x_usb_driver = {
+ 	.name			= DRIVER_NAME,
+@@ -827,8 +818,8 @@ static struct usb_driver si470x_usb_driver = {
+ 	.disconnect		= si470x_usb_driver_disconnect,
+ 	.suspend		= si470x_usb_driver_suspend,
+ 	.resume			= si470x_usb_driver_resume,
++	.reset_resume		= si470x_usb_driver_resume,
+ 	.id_table		= si470x_usb_driver_id_table,
+-	.supports_autosuspend	= 1,
+ };
+ 
+ module_usb_driver(si470x_usb_driver);
+-- 
+1.7.10
+
