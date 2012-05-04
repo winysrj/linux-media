@@ -1,142 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:49326 "EHLO
-	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755404Ab2ECKyz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 3 May 2012 06:54:55 -0400
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: linux-media@vger.kernel.org,
-	Mark Brown <broonie@opensource.wolfsonmicro.com>
-Subject: [PATCH] [media] Convert I2C drivers to dev_pm_ops
-Date: Thu,  3 May 2012 11:54:51 +0100
-Message-Id: <1336042491-28403-1-git-send-email-broonie@opensource.wolfsonmicro.com>
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:58214 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753729Ab2EDScY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 May 2012 14:32:24 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Received: from euspt2 ([210.118.77.13]) by mailout3.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0M3I00AUCGSVRTA0@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 04 May 2012 19:31:44 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0M3I00CZXGTT58@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 04 May 2012 19:32:18 +0100 (BST)
+Date: Fri, 04 May 2012 20:32:08 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH/RFC v4 04/12] V4L: Add camera wide dynamic range control
+In-reply-to: <1336156337-10935-1-git-send-email-s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
+	g.liakhovetski@gmx.de, hdegoede@redhat.com, moinejf@free.fr,
+	hverkuil@xs4all.nl, m.szyprowski@samsung.com,
+	riverful.kim@samsung.com, sw0312.kim@samsung.com,
+	s.nawrocki@samsung.com, Kyungmin Park <kyungmin.park@samsung.com>
+Message-id: <1336156337-10935-5-git-send-email-s.nawrocki@samsung.com>
+References: <1336156337-10935-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The legacy I2C PM functions have been deprecated and warning on boot
-for over a year, convert the drivers still using them to dev_pm_ops.
+Add V4L2_CID_WIDE_DYNAMIC_RANGE camera class control for the
+camera wide dynamic range (WDR, HDR) feature. This control
+can be used to enable/disable wide dynamic range. It might
+get converted to a menu control in future if more options
+are needed.
 
-Signed-off-by: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Signed-off-by: HeungJun Kim <riverful.kim@samsung.com>
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- drivers/media/video/msp3400-driver.c |   15 +++++++++++----
- drivers/media/video/tuner-core.c     |   15 +++++++++++----
- 2 files changed, 22 insertions(+), 8 deletions(-)
+ Documentation/DocBook/media/v4l/controls.xml |   15 +++++++++++++++
+ drivers/media/video/v4l2-ctrls.c             |    2 ++
+ include/linux/videodev2.h                    |    2 ++
+ 3 files changed, 19 insertions(+)
 
-diff --git a/drivers/media/video/msp3400-driver.c b/drivers/media/video/msp3400-driver.c
-index 82ce507..aeb22be 100644
---- a/drivers/media/video/msp3400-driver.c
-+++ b/drivers/media/video/msp3400-driver.c
-@@ -597,19 +597,23 @@ static int msp_log_status(struct v4l2_subdev *sd)
- 	return 0;
- }
+diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+index e3f9277..0256a02 100644
+--- a/Documentation/DocBook/media/v4l/controls.xml
++++ b/Documentation/DocBook/media/v4l/controls.xml
+@@ -3018,6 +3018,21 @@ sky. It corresponds approximately to 9000...10000 K color temperature.
+ 	  </row>
+ 	  <row><entry></entry></row>
  
--static int msp_suspend(struct i2c_client *client, pm_message_t state)
-+#ifdef CONFIG_PM_SLEEP
-+static int msp_suspend(struct device *dev)
- {
-+	struct i2c_client *client = to_i2c_client(dev);
- 	v4l_dbg(1, msp_debug, client, "suspend\n");
- 	msp_reset(client);
- 	return 0;
- }
- 
--static int msp_resume(struct i2c_client *client)
-+static int msp_resume(struct device *dev)
- {
-+	struct i2c_client *client = to_i2c_client(dev);
- 	v4l_dbg(1, msp_debug, client, "resume\n");
- 	msp_wake_thread(client);
- 	return 0;
- }
-+#endif
- 
- /* ----------------------------------------------------------------------- */
- 
-@@ -863,6 +867,10 @@ static int msp_remove(struct i2c_client *client)
- 
- /* ----------------------------------------------------------------------- */
- 
-+static const struct dev_pm_ops msp3400_pm_ops = {
-+	SET_SYSTEM_SLEEP_PM_OPS(msp_suspend, msp_resume)
-+};
++	  <row id="v4l2-wide-dynamic-range">
++	    <entry spanname="id"><constant>V4L2_CID_WIDE_DYNAMIC_RANGE</constant></entry>
++	    <entry>boolean</entry>
++	  </row>
++	  <row>
++	    <entry spanname="descr">Enables or disables the camera's wide dynamic
++range feature. This feature allows to obtain clear images in situations where
++intensity of the illumination varies significantly throughout the scene, i.e.
++there are simultaneously very dark and very bright areas. It is most commonly
++realized in cameras by combining two subsequent frames with different exposure
++times. <footnote id="ctypeconv"><para> This control may be changed to a menu
++control in future, if more options are required.</para></footnote></entry>
++	  </row>
++	  <row><entry></entry></row>
 +
- static const struct i2c_device_id msp_id[] = {
- 	{ "msp3400", 0 },
- 	{ }
-@@ -873,11 +881,10 @@ static struct i2c_driver msp_driver = {
- 	.driver = {
- 		.owner	= THIS_MODULE,
- 		.name	= "msp3400",
-+		.pm	= &msp3400_pm_ops,
- 	},
- 	.probe		= msp_probe,
- 	.remove		= msp_remove,
--	.suspend	= msp_suspend,
--	.resume		= msp_resume,
- 	.id_table	= msp_id,
+ 	</tbody>
+       </tgroup>
+     </table>
+diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
+index 02fa9b0..8b47c05 100644
+--- a/drivers/media/video/v4l2-ctrls.c
++++ b/drivers/media/video/v4l2-ctrls.c
+@@ -614,6 +614,7 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_IRIS_RELATIVE:		return "Iris, Relative";
+ 	case V4L2_CID_AUTO_EXPOSURE_BIAS:	return "Auto Exposure, Bias";
+ 	case V4L2_CID_AUTO_N_PRESET_WHITE_BALANCE: return "White Balance, Auto & Preset";
++	case V4L2_CID_WIDE_DYNAMIC_RANGE:	return "Wide Dynamic Range";
+ 
+ 	/* FM Radio Modulator control */
+ 	/* Keep the order of the 'case's the same as in videodev2.h! */
+@@ -705,6 +706,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_MPEG_VIDEO_H264_8X8_TRANSFORM:
+ 	case V4L2_CID_MPEG_VIDEO_H264_VUI_SAR_ENABLE:
+ 	case V4L2_CID_MPEG_VIDEO_MPEG4_QPEL:
++	case V4L2_CID_WIDE_DYNAMIC_RANGE:
+ 		*type = V4L2_CTRL_TYPE_BOOLEAN;
+ 		*min = 0;
+ 		*max = *step = 1;
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index 1460419..8964ebc 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -1709,6 +1709,8 @@ enum v4l2_auto_n_preset_white_balance {
+ 	V4L2_WHITE_BALANCE_SHADE		= 9,
  };
  
-diff --git a/drivers/media/video/tuner-core.c b/drivers/media/video/tuner-core.c
-index a5c6397..3e050e1 100644
---- a/drivers/media/video/tuner-core.c
-+++ b/drivers/media/video/tuner-core.c
-@@ -1241,8 +1241,10 @@ static int tuner_log_status(struct v4l2_subdev *sd)
- 	return 0;
- }
- 
--static int tuner_suspend(struct i2c_client *c, pm_message_t state)
-+#ifdef CONFIG_PM_SLEEP
-+static int tuner_suspend(struct device *dev)
- {
-+	struct i2c_client *c = to_i2c_client(dev);
- 	struct tuner *t = to_tuner(i2c_get_clientdata(c));
- 	struct analog_demod_ops *analog_ops = &t->fe.ops.analog_ops;
- 
-@@ -1254,8 +1256,9 @@ static int tuner_suspend(struct i2c_client *c, pm_message_t state)
- 	return 0;
- }
- 
--static int tuner_resume(struct i2c_client *c)
-+static int tuner_resume(struct device *dev)
- {
-+	struct i2c_client *c = to_i2c_client(dev);
- 	struct tuner *t = to_tuner(i2c_get_clientdata(c));
- 
- 	tuner_dbg("resume\n");
-@@ -1266,6 +1269,7 @@ static int tuner_resume(struct i2c_client *c)
- 
- 	return 0;
- }
-+#endif
- 
- static int tuner_command(struct i2c_client *client, unsigned cmd, void *arg)
- {
-@@ -1310,6 +1314,10 @@ static const struct v4l2_subdev_ops tuner_ops = {
-  * I2C structs and module init functions
-  */
- 
-+static const struct dev_pm_ops tuner_pm_ops = {
-+	SET_SYSTEM_SLEEP_PM_OPS(tuner_suspend, tuner_resume)
-+};
++#define V4L2_CID_WIDE_DYNAMIC_RANGE		(V4L2_CID_CAMERA_CLASS_BASE+21)
 +
- static const struct i2c_device_id tuner_id[] = {
- 	{ "tuner", }, /* autodetect */
- 	{ }
-@@ -1320,12 +1328,11 @@ static struct i2c_driver tuner_driver = {
- 	.driver = {
- 		.owner	= THIS_MODULE,
- 		.name	= "tuner",
-+		.pm	= &tuner_pm_ops,
- 	},
- 	.probe		= tuner_probe,
- 	.remove		= tuner_remove,
- 	.command	= tuner_command,
--	.suspend	= tuner_suspend,
--	.resume		= tuner_resume,
- 	.id_table	= tuner_id,
- };
- 
+ /* FM Modulator class control IDs */
+ #define V4L2_CID_FM_TX_CLASS_BASE		(V4L2_CTRL_CLASS_FM_TX | 0x900)
+ #define V4L2_CID_FM_TX_CLASS			(V4L2_CTRL_CLASS_FM_TX | 1)
 -- 
 1.7.10
 
