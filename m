@@ -1,127 +1,223 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:44279 "EHLO
-	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933259Ab2EWJyx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 May 2012 05:54:53 -0400
-Subject: [PATCH 20/43] rc-core: add an ioctl for getting IR TX settings
+Received: from smtp.nokia.com ([147.243.1.48]:35164 "EHLO mgw-sa02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752131Ab2EDIUm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 4 May 2012 04:20:42 -0400
+From: Sakari Ailus <sakari.ailus@iki.fi>
 To: linux-media@vger.kernel.org
-From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
-Cc: mchehab@redhat.com, jarod@redhat.com
-Date: Wed, 23 May 2012 11:43:45 +0200
-Message-ID: <20120523094345.14474.65215.stgit@felix.hardeman.nu>
-In-Reply-To: <20120523094157.14474.24367.stgit@felix.hardeman.nu>
-References: <20120523094157.14474.24367.stgit@felix.hardeman.nu>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Cc: laurent.pinchart@ideasonboard.com
+Subject: [media-ctl PATCH 2/3] New, more flexible syntax for media-ctl
+Date: Fri,  4 May 2012 11:24:42 +0300
+Message-Id: <1336119883-14978-2-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1336119883-14978-1-git-send-email-sakari.ailus@iki.fi>
+References: <1336119883-14978-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This ioctl follows the same rationale and structure as the ioctl for
-getting IR RX settings (RCIOCGIRRX) but it works on TX settings instead.
+More flexible and extensible syntax for media-ctl which allows better usage
+of the selection API.
 
-As with the RX ioctl, it would be nice if people could check struct
-rc_ir_tx carefully to make sure that their favourite parameter
-hasn't been left out.
-
-Signed-off-by: David Härdeman <david@hardeman.nu>
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
 ---
- drivers/media/rc/rc-main.c |   12 ++++++++++++
- include/media/rc-core.h    |   38 ++++++++++++++++++++++++++++++++++++++
- 2 files changed, 50 insertions(+)
+ src/main.c       |   17 +++++++++---
+ src/options.c    |    9 ++++--
+ src/v4l2subdev.c |   73 +++++++++++++++++++++++++++++++----------------------
+ 3 files changed, 62 insertions(+), 37 deletions(-)
 
-diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-index 390673c..e2b2e8c 100644
---- a/drivers/media/rc/rc-main.c
-+++ b/drivers/media/rc/rc-main.c
-@@ -1703,6 +1703,7 @@ static long rc_do_ioctl(struct rc_dev *dev, unsigned int cmd, unsigned long arg)
- 	void __user *p = (void __user *)arg;
- 	unsigned int __user *ip = (unsigned int __user *)p;
- 	struct rc_ir_rx rx;
-+	struct rc_ir_tx tx;
- 	int error;
+diff --git a/src/main.c b/src/main.c
+index 53964e4..6de1031 100644
+--- a/src/main.c
++++ b/src/main.c
+@@ -59,15 +59,24 @@ static void v4l2_subdev_print_format(struct media_entity *entity,
+ 	if (ret != 0)
+ 		return;
  
- 	switch (cmd) {
-@@ -1740,6 +1741,17 @@ static long rc_do_ioctl(struct rc_dev *dev, unsigned int cmd, unsigned long arg)
- 			return -EFAULT;
+-	printf("[%s %ux%u", v4l2_subdev_pixelcode_to_string(format.code),
+-	       format.width, format.height);
++	printf("\t\t[fmt:%s/%ux%u",
++	       v4l2_subdev_pixelcode_to_string(format.code),
++ 	       format.width, format.height);
++
++	ret = v4l2_subdev_get_selection(entity, &rect, pad,
++					V4L2_SUBDEV_SEL_TGT_CROP_BOUNDS,
++					which);
++	if (ret == 0)
++		printf("\n\t\t crop.bounds:%u,%u/%ux%u", rect.left, rect.top,
++		       rect.width, rect.height);
  
- 		return 0;
+ 	ret = v4l2_subdev_get_selection(entity, &rect, pad,
+ 					V4L2_SUBDEV_SEL_TGT_CROP_ACTUAL,
+ 					which);
+ 	if (ret == 0)
+-		printf(" (%u,%u)/%ux%u", rect.left, rect.top,
++		printf("\n\t\t crop.actual:%u,%u/%ux%u", rect.left, rect.top,
+ 		       rect.width, rect.height);
 +
-+	case RCIOCGIRTX:
-+		memset(&tx, 0, sizeof(tx));
+ 	printf("]");
+ }
+ 
+@@ -252,7 +261,7 @@ static void media_print_topology_text(struct media_device *media)
+ 		for (j = 0; j < entity->info.pads; j++) {
+ 			struct media_pad *pad = &entity->pads[j];
+ 
+-			printf("\tpad%u: %s ", j, media_pad_type_to_string(pad->flags));
++			printf("\tpad%u: %s\n", j, media_pad_type_to_string(pad->flags));
+ 
+ 			if (media_entity_type(entity) == MEDIA_ENT_T_V4L2_SUBDEV)
+ 				v4l2_subdev_print_format(entity, j, V4L2_SUBDEV_FORMAT_ACTIVE);
+diff --git a/src/options.c b/src/options.c
+index 60cf6d5..4d9d48f 100644
+--- a/src/options.c
++++ b/src/options.c
+@@ -53,12 +53,15 @@ static void usage(const char *argv0, int verbose)
+ 	printf("\n");
+ 	printf("Links and formats are defined as\n");
+ 	printf("\tlink            = pad, '->', pad, '[', flags, ']' ;\n");
+-	printf("\tformat          = pad, '[', fcc, ' ', size, [ ' ', crop ], [ ' ', '@', frame interval ], ']' ;\n");
++	printf("\tformat          = pad, '[', formats ']' ;\n");
++	printf("\tformats         = formats ',' formats ;\n");
++	printf("\tformats         = fmt | crop | frame interval ;\n");
++	printf("\fmt              = 'fmt:', fcc, '/', size ;\n");
+ 	printf("\tpad             = entity, ':', pad number ;\n");
+ 	printf("\tentity          = entity number | ( '\"', entity name, '\"' ) ;\n");
+ 	printf("\tsize            = width, 'x', height ;\n");
+-	printf("\tcrop            = '(', left, ',', top, ')', '/', size ;\n");
+-	printf("\tframe interval  = numerator, '/', denominator ;\n");
++	printf("\tcrop            = 'crop.actual:', left, ',', top, '/', size ;\n");
++	printf("\tframe interval  = '@', numerator, '/', denominator ;\n");
+ 	printf("where the fields are\n");
+ 	printf("\tentity number   Entity numeric identifier\n");
+ 	printf("\tentity name     Entity name (string) \n");
+diff --git a/src/v4l2subdev.c b/src/v4l2subdev.c
+index 92360bb..87b22fc 100644
+--- a/src/v4l2subdev.c
++++ b/src/v4l2subdev.c
+@@ -235,13 +235,13 @@ static int v4l2_subdev_parse_format(struct v4l2_mbus_framefmt *format,
+ 	char *end;
+ 
+ 	for (; isspace(*p); ++p);
+-	for (end = (char *)p; !isspace(*end) && *end != '\0'; ++end);
++	for (end = (char *)p; *end != '/' && *end != '\0'; ++end);
+ 
+ 	code = v4l2_subdev_string_to_pixelcode(p, end - p);
+ 	if (code == (enum v4l2_mbus_pixelcode)-1)
+ 		return -EINVAL;
+ 
+-	for (p = end; isspace(*p); ++p);
++	p = end + 1;
+ 	width = strtoul(p, &end, 10);
+ 	if (*end != 'x')
+ 		return -EINVAL;
+@@ -258,32 +258,27 @@ static int v4l2_subdev_parse_format(struct v4l2_mbus_framefmt *format,
+ 	return 0;
+ }
+ 
+-static int v4l2_subdev_parse_crop(
+-	struct v4l2_rect *crop, const char *p, char **endp)
++static int v4l2_subdev_parse_rectangle(
++	struct v4l2_rect *r, const char *p, char **endp)
+ {
+ 	char *end;
+ 
+-	if (*p++ != '(')
+-		return -EINVAL;
+-
+-	crop->left = strtoul(p, &end, 10);
++	r->left = strtoul(p, &end, 10);
+ 	if (*end != ',')
+ 		return -EINVAL;
+ 
+ 	p = end + 1;
+-	crop->top = strtoul(p, &end, 10);
+-	if (*end++ != ')')
+-		return -EINVAL;
++	r->top = strtoul(p, &end, 10);
+ 	if (*end != '/')
+ 		return -EINVAL;
+ 
+ 	p = end + 1;
+-	crop->width = strtoul(p, &end, 10);
++	r->width = strtoul(p, &end, 10);
+ 	if (*end != 'x')
+ 		return -EINVAL;
+ 
+ 	p = end + 1;
+-	crop->height = strtoul(p, &end, 10);
++	r->height = strtoul(p, &end, 10);
+ 	*endp = end;
+ 
+ 	return 0;
+@@ -309,6 +304,17 @@ static int v4l2_subdev_parse_frame_interval(struct v4l2_fract *interval,
+ 	return 0;
+ }
+ 
++static int strhazit(const char *str, const char **p)
++{
++	int len = strlen(str);
 +
-+		if (dev->get_ir_tx)
-+			dev->get_ir_tx(dev, &tx);
++	if (strncmp(str, *p, len))
++		return -ENOENT;
 +
-+		if (copy_to_user(p, &tx, sizeof(tx)))
-+			return -EFAULT;
++	*p += len;
++	return 0;
++}
 +
-+		return 0;
+ static struct media_pad *v4l2_subdev_parse_pad_format(
+ 	struct media_device *media, struct v4l2_mbus_framefmt *format,
+ 	struct v4l2_rect *crop, struct v4l2_fract *interval, const char *p,
+@@ -330,28 +336,35 @@ static struct media_pad *v4l2_subdev_parse_pad_format(
+ 
+ 	for (; isspace(*p); ++p);
+ 
+-	if (isalnum(*p)) {
+-		ret = v4l2_subdev_parse_format(format, p, &end);
+-		if (ret < 0)
+-			return NULL;
++	for (;;) {
++		if (!strhazit("fmt:", &p)) {
++			ret = v4l2_subdev_parse_format(format, p, &end);
++			if (ret < 0)
++				return NULL;
+ 
+-		for (p = end; isspace(*p); p++);
+-	}
++			for (p = end; isspace(*p); p++);
++			continue;
++		}
+ 
+-	if (*p == '(') {
+-		ret = v4l2_subdev_parse_crop(crop, p, &end);
+-		if (ret < 0)
+-			return NULL;
++		if (!strhazit("crop.actual:", &p)) {
++			ret = v4l2_subdev_parse_rectangle(crop, p, &end);
++			if (ret < 0)
++				return NULL;
+ 
+-		for (p = end; isspace(*p); p++);
+-	}
++			for (p = end; isspace(*p); p++);
++			continue;
++		}
+ 
+-	if (*p == '@') {
+-		ret = v4l2_subdev_parse_frame_interval(interval, ++p, &end);
+-		if (ret < 0)
+-			return NULL;
++		if (*p == '@') {
++			ret = v4l2_subdev_parse_frame_interval(interval, ++p, &end);
++			if (ret < 0)
++				return NULL;
++
++			for (p = end; isspace(*p); p++);
++			continue;
++		}
+ 
+-		for (p = end; isspace(*p); p++);
++		break;
  	}
  
- 	return -EINVAL;
-diff --git a/include/media/rc-core.h b/include/media/rc-core.h
-index 213b642..9f3645b 100644
---- a/include/media/rc-core.h
-+++ b/include/media/rc-core.h
-@@ -112,6 +112,42 @@ struct rc_ir_rx {
- 	__u32 reserved[9];
- } __packed;
- 
-+/* get ir tx parameters */
-+#define RCIOCGIRTX	_IOC(_IOC_READ, RC_IOC_MAGIC, 0x05, sizeof(struct rc_ir_tx))
-+
-+/**
-+ * struct rc_ir_tx - used to get all IR TX parameters in one go
-+ * @flags: device specific flags
-+ * @tx_supported: bitmask of supported transmitters
-+ * @tx_enabled: bitmask of enabled transmitters
-+ * @tx_connected: bitmask of connected transmitters
-+ * @freq: current carrier frequency
-+ * @freq_min: min carrier frequency
-+ * @freq_max: max carrier frequency
-+ * @duty: current duty cycle
-+ * @duty_min: min duty cycle
-+ * @duty_max: max duty cycle
-+ * @resolution: current resolution
-+ * @resolution_min: min resolution
-+ * @resolution_max: max resolution
-+ * @reserved: for future use, set to zero
-+ */
-+struct rc_ir_tx {
-+	__u32 flags;
-+	__u32 tx_supported;
-+	__u32 tx_enabled;
-+	__u32 tx_connected;
-+	__u32 freq;
-+	__u32 freq_min;
-+	__u32 freq_max;
-+	__u32 duty;
-+	__u32 duty_min;
-+	__u32 duty_max;
-+	__u32 resolution;
-+	__u32 resolution_min;
-+	__u32 resolution_max;
-+	__u32 reserved[9];
-+} __packed;
- 
- 
- enum rc_driver_type {
-@@ -213,6 +249,7 @@ struct ir_raw_event {
-  * @s_carrier_report: enable carrier reports (deprecated)
-  * @get_ir_rx: allow driver to provide rx settings
-  * @set_ir_rx: allow driver to change rx settings
-+ * @get_ir_tx: allow driver to provide tx settings
-  */
- struct rc_dev {
- 	struct device			dev;
-@@ -265,6 +302,7 @@ struct rc_dev {
- 	int				(*s_carrier_report) (struct rc_dev *dev, int enable);
- 	void				(*get_ir_rx)(struct rc_dev *dev, struct rc_ir_rx *rx);
- 	int				(*set_ir_rx)(struct rc_dev *dev, struct rc_ir_rx *rx);
-+	void				(*get_ir_tx)(struct rc_dev *dev, struct rc_ir_tx *tx);
- };
- 
- #define to_rc_dev(d) container_of(d, struct rc_dev, dev)
+ 	if (*p != ']')
+-- 
+1.7.2.5
 
