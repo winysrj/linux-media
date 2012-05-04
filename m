@@ -1,133 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:35963 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751340Ab2EJKbL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 May 2012 06:31:11 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Received: from euspt1 ([210.118.77.14]) by mailout4.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0M3S008ZYYK5CW40@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 10 May 2012 11:31:17 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0M3S007H4YJSFC@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 10 May 2012 11:31:05 +0100 (BST)
-Date: Thu, 10 May 2012 12:30:46 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH 11/23] V4L: Add auto focus targets to the subdev selections API
-In-reply-to: <1336645858-30366-1-git-send-email-s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, riverful.kim@samsung.com,
-	sw0312.kim@samsung.com, s.nawrocki@samsung.com,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Message-id: <1336645858-30366-12-git-send-email-s.nawrocki@samsung.com>
-References: <1336645858-30366-1-git-send-email-s.nawrocki@samsung.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:42837 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932871Ab2EDUtG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 May 2012 16:49:06 -0400
+From: <manjunatha_halli@ti.com>
+To: <linux-media@vger.kernel.org>
+CC: <linux-kernel@vger.kernel.org>, Manjunatha Halli <x0130808@ti.com>
+Subject: [PATCH V4 0/5] [Media] Radio: Fixes and New features for FM
+Date: Fri, 4 May 2012 15:48:57 -0500
+Message-ID: <1336164542-11014-1-git-send-email-manjunatha_halli@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- Documentation/DocBook/media/v4l/dev-subdev.xml     |   27 +++++++++++++++++++-
- .../media/v4l/vidioc-subdev-g-selection.xml        |   14 ++++++++--
- include/linux/v4l2-subdev.h                        |    4 +++
- 3 files changed, 42 insertions(+), 3 deletions(-)
+From: Manjunatha Halli <x0130808@ti.com>
 
-diff --git a/Documentation/DocBook/media/v4l/dev-subdev.xml b/Documentation/DocBook/media/v4l/dev-subdev.xml
-index 4afcbbe..8a212c4 100644
---- a/Documentation/DocBook/media/v4l/dev-subdev.xml
-+++ b/Documentation/DocBook/media/v4l/dev-subdev.xml
-@@ -277,7 +277,7 @@
-     </section>
- 
-     <section>
--      <title>Selections: cropping, scaling and composition</title>
-+      <title>Selections - cropping, scaling and composition</title>
- 
-       <para>Many sub-devices support cropping frames on their input or output
-       pads (or possible even on both). Cropping is used to select the area of
-@@ -330,6 +330,31 @@
-     </section>
- 
-     <section>
-+      <title>Selections - regions of interest</title>
-+    <section>
-+      <title>Automatic focus</title>
-+
-+      <para>The camera automatic focus algorithms may require configuration
-+      of a region or multiple regions of interest in form of rectangle or spot
-+      coordinates.</para>
-+
-+      <para>A single rectangle of interest is represented in &v4l2-rect;
-+      by the coordinates of the top left corner and the rectangle size. Both
-+      the coordinates and sizes are expressed in pixels. When the <structfield>
-+      width</structfield> and <structfield>height</structfield> fields of
-+      &v4l2-rect; are set to 0 the selection determines spot coordinates,
-+      rather than a rectangle.</para>
-+
-+      <para>Auto focus rectangles are reset to their default values when the
-+      output image format is modified. Drivers should use the output image size
-+      as the auto focus rectangle default value, but hardware requirements may
-+      prevent this.
-+      </para>
-+      <para>The auto focus selections on input pads are not defined.</para>
-+    </section>
-+    </section>
-+
-+    <section>
-       <title>Types of selection targets</title>
- 
-       <section>
-diff --git a/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml b/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml
-index 208e9f0..c4ccae5 100644
---- a/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml
-@@ -57,8 +57,8 @@
- 
-     <para>The selections are used to configure various image
-     processing functionality performed by the subdevs which affect the
--    image size. This currently includes cropping, scaling and
--    composition.</para>
-+    image size. This currently includes cropping, scaling, composition
-+    and automatic focus regions of interest.</para>
- 
-     <para>The selection API replaces <link
-     linkend="vidioc-subdev-g-crop">the old subdev crop API</link>. All
-@@ -114,6 +114,16 @@
- 	    <entry>0x0102</entry>
- 	    <entry>Bounds of the compose rectangle.</entry>
- 	  </row>
-+	  <row>
-+	    <entry><constant>V4L2_SUBDEV_SEL_TGT_AUTO_FOCUS_BOUNDS</constant></entry>
-+	    <entry>0x1000</entry>
-+	    <entry>Bounds of the automatic focus region of interest.</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>V4L2_SUBDEV_SEL_TGT_AUTO_FOCUS_ACTUAL</constant></entry>
-+	    <entry>0x1001</entry>
-+	    <entry>Actual automatic focus rectangle or spot coordinates.</entry>
-+	  </row>
- 	</tbody>
-       </tgroup>
-     </table>
-diff --git a/include/linux/v4l2-subdev.h b/include/linux/v4l2-subdev.h
-index 812019e..49b1f14 100644
---- a/include/linux/v4l2-subdev.h
-+++ b/include/linux/v4l2-subdev.h
-@@ -136,6 +136,10 @@ struct v4l2_subdev_frame_interval_enum {
- /* composing bounds */
- #define V4L2_SUBDEV_SEL_TGT_COMPOSE_BOUNDS		0x0102
- 
-+/* auto focus region of interest */
-+#define V4L2_SUBDEV_SEL_TGT_AUTO_FOCUS_ACTUAL		0x1000
-+/* auto focus region (spot coordinates) bounds */
-+#define V4L2_SUBDEV_SEL_TGT_AUTO_FOCUS_BOUNDS		0x1001
- 
- /**
-  * struct v4l2_subdev_selection - selection info
+Mauro and the list,
+
+This version 4 of patchset resolves the comments received from
+Han's on patchset v3.
+
+This patchset creates new control class 'V4L2_CTRL_CLASS_FM_RX' for FM RX,
+introduces 2 new CID's for FM RX and and 1 new CID for FM TX. Also adds 1
+field in struct v4l2_hw_freq_seek.
+
+This patch adds few new features to TI's FM driver features
+are listed below,
+
+1) FM TX RDS Support (RT, PS, AF, PI, PTY)
+2) FM RX Russian band support
+3) FM RX AF set/get
+4) FM RX De-emphasis mode set/get
+
+Along with new features this patch also fixes few issues in the driver
+like default rssi level for seek, unnecessory logs etc.
+
+Manjunatha Halli (5):
+  WL128x: Add support for FM TX RDS
+  New control class and features for FM RX
+  Add new CID for FM TX RDS Alternate Frequency
+  Media: Update docs for V4L2 FM new features
+  WL12xx: Add support for FM new features.
+
+ Documentation/DocBook/media/v4l/compat.xml         |    3 +
+ Documentation/DocBook/media/v4l/controls.xml       |   77 +++++++++++
+ Documentation/DocBook/media/v4l/dev-rds.xml        |    5 +-
+ .../DocBook/media/v4l/vidioc-g-ext-ctrls.xml       |    7 +
+ .../DocBook/media/v4l/vidioc-s-hw-freq-seek.xml    |   35 +++++-
+ drivers/media/radio/wl128x/fmdrv.h                 |    3 +-
+ drivers/media/radio/wl128x/fmdrv_common.c          |   55 ++++++--
+ drivers/media/radio/wl128x/fmdrv_common.h          |   43 +++++-
+ drivers/media/radio/wl128x/fmdrv_rx.c              |   92 ++++++++++---
+ drivers/media/radio/wl128x/fmdrv_rx.h              |    2 +-
+ drivers/media/radio/wl128x/fmdrv_tx.c              |   41 +++----
+ drivers/media/radio/wl128x/fmdrv_tx.h              |    3 +-
+ drivers/media/radio/wl128x/fmdrv_v4l2.c            |  138 +++++++++++++++++++-
+ drivers/media/video/v4l2-ctrls.c                   |   18 ++-
+ include/linux/videodev2.h                          |   20 +++-
+ 15 files changed, 462 insertions(+), 80 deletions(-)
+
 -- 
-1.7.10
+1.7.4.1
 
