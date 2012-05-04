@@ -1,17 +1,16 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:60771 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756731Ab2EURMJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 May 2012 13:12:09 -0400
+Received: from comal.ext.ti.com ([198.47.26.152]:52318 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932873Ab2EDUtG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 4 May 2012 16:49:06 -0400
 From: <manjunatha_halli@ti.com>
 To: <linux-media@vger.kernel.org>
 CC: <linux-kernel@vger.kernel.org>, Manjunatha Halli <x0130808@ti.com>
-Subject: [PATCH V7 1/5] WL128x: Add support for FM TX RDS
-Date: Mon, 21 May 2012 12:12:02 -0500
-Message-ID: <1337620326-18593-2-git-send-email-manjunatha_halli@ti.com>
-In-Reply-To: <1337620326-18593-1-git-send-email-manjunatha_halli@ti.com>
-References: <1337620326-18593-1-git-send-email-manjunatha_halli@ti.com>
+Subject: [PATCH V4 1/5] WL128x: Add support for FM TX RDS
+Date: Fri, 4 May 2012 15:48:58 -0500
+Message-ID: <1336164542-11014-2-git-send-email-manjunatha_halli@ti.com>
+In-Reply-To: <1336164542-11014-1-git-send-email-manjunatha_halli@ti.com>
+References: <1336164542-11014-1-git-send-email-manjunatha_halli@ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
@@ -28,7 +27,6 @@ This patch adds support for following FM TX RDS features,
 Along with above this patch fixes few other minor issues(like
 fm tx get frequency, unnecessary error messages etc).
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 Signed-off-by: Manjunatha Halli <x0130808@ti.com>
 ---
  drivers/media/radio/wl128x/fmdrv_common.c |   17 +++++++---
@@ -312,7 +310,7 @@ index 11ae2e4..8ed71bd 100644
  #endif
  
 diff --git a/drivers/media/radio/wl128x/fmdrv_v4l2.c b/drivers/media/radio/wl128x/fmdrv_v4l2.c
-index 077d369..494faaf 100644
+index 077d369..b9da1ae 100644
 --- a/drivers/media/radio/wl128x/fmdrv_v4l2.c
 +++ b/drivers/media/radio/wl128x/fmdrv_v4l2.c
 @@ -210,6 +210,8 @@ static int fm_v4l2_s_ctrl(struct v4l2_ctrl *ctrl)
@@ -376,16 +374,16 @@ index 077d369..494faaf 100644
  			V4L2_CID_AUDIO_MUTE, 0, 1, 1, 1);
  
 +	v4l2_ctrl_new_std(&fmdev->ctrl_handler, &fm_ctrl_ops,
-+			V4L2_CID_RDS_TX_PI, 0x0, 0xf, 1, 0x0);
++			V4L2_CID_RDS_TX_PI, 0x0, 0xffff, 1, 0x0);
 +
 +	v4l2_ctrl_new_std(&fmdev->ctrl_handler, &fm_ctrl_ops,
 +			V4L2_CID_RDS_TX_PTY, 0, 32, 1, 0);
 +
 +	v4l2_ctrl_new_std(&fmdev->ctrl_handler, &fm_ctrl_ops,
-+			V4L2_CID_RDS_TX_PS_NAME, 0, 0xf, 1, 0);
++			V4L2_CID_RDS_TX_PS_NAME, 0, 0xffff, 1, 0);
 +
 +	v4l2_ctrl_new_std(&fmdev->ctrl_handler, &fm_ctrl_ops,
-+			V4L2_CID_RDS_TX_RADIO_TEXT, 0, 0xff, 1, 0);
++			V4L2_CID_RDS_TX_RADIO_TEXT, 0, 0xffff, 1, 0);
 +
  	v4l2_ctrl_new_std_menu(&fmdev->ctrl_handler, &fm_ctrl_ops,
  			V4L2_CID_TUNE_PREEMPHASIS, V4L2_PREEMPHASIS_75_uS,
