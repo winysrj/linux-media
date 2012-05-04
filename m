@@ -1,34 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:64861 "EHLO
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:58214 "EHLO
 	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751364Ab2EXPTh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 May 2012 11:19:37 -0400
+	with ESMTP id S1759340Ab2EDScZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 May 2012 14:32:25 -0400
 MIME-version: 1.0
 Content-transfer-encoding: 7BIT
-Content-type: text/plain; charset=ISO-8859-1
+Content-type: TEXT/PLAIN
 Received: from euspt2 ([210.118.77.13]) by mailout3.w1.samsung.com
  (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0M4J00A1H9796L80@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 24 May 2012 16:18:45 +0100 (BST)
+ with ESMTP id <0M3I00AUFGSWRTA0@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 04 May 2012 19:31:44 +0100 (BST)
 Received: from linux.samsung.com ([106.116.38.10])
  by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0M4J00L8O98L1H@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 24 May 2012 16:19:33 +0100 (BST)
-Received: from [106.116.37.156] (unknown [106.116.37.156])
-	by linux.samsung.com (Postfix) with ESMTP id 9948C27004B	for
- <linux-media@vger.kernel.org>; Thu, 24 May 2012 17:31:21 +0200 (CEST)
-Date: Thu, 24 May 2012 17:19:35 +0200
+ 2004)) with ESMTPA id <0M3I00C09GTU58@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 04 May 2012 19:32:19 +0100 (BST)
+Date: Fri, 04 May 2012 20:32:13 +0200
 From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [PATCH 0/7] s5p-fimc driver fixes
-In-reply-to: <1337872556-26406-1-git-send-email-s.nawrocki@samsung.com>
+Subject: [PATCH/RFC v4 09/12] V4L: Add camera 3A lock control
+In-reply-to: <1336156337-10935-1-git-send-email-s.nawrocki@samsung.com>
 To: linux-media@vger.kernel.org
-Message-id: <4FBE5187.4070002@samsung.com>
-References: <1337872556-26406-1-git-send-email-s.nawrocki@samsung.com>
+Cc: laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
+	g.liakhovetski@gmx.de, hdegoede@redhat.com, moinejf@free.fr,
+	hverkuil@xs4all.nl, m.szyprowski@samsung.com,
+	riverful.kim@samsung.com, sw0312.kim@samsung.com,
+	s.nawrocki@samsung.com, Kyungmin Park <kyungmin.park@samsung.com>
+Message-id: <1336156337-10935-10-git-send-email-s.nawrocki@samsung.com>
+References: <1336156337-10935-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/24/2012 05:15 PM, Sylwester Nawrocki wrote:
-> The following is a couple of s5p-fimc driver bug fixes for v3.4-rcX. 
-                                                            ^^^^^^^
-Oops, of course v3.5-rc, not v3.4-rc.
+The V4L2_CID_3A_LOCK bitmask control allows applications to pause
+or resume the automatic exposure, focus and wite balance adjustments.
+It can be used, for example, to lock the 3A adjustments right before
+a still image is captured, for pre-focus, etc.
+The applications can control each of the algorithms independently,
+through a corresponding control bit, if driver allows that.
+
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ Documentation/DocBook/media/v4l/controls.xml |   39 ++++++++++++++++++++++++++
+ drivers/media/video/v4l2-ctrls.c             |    2 ++
+ include/linux/videodev2.h                    |    5 ++++
+ 3 files changed, 46 insertions(+)
+
+diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+index 88608f6..4a463d3 100644
+--- a/Documentation/DocBook/media/v4l/controls.xml
++++ b/Documentation/DocBook/media/v4l/controls.xml
+@@ -3227,6 +3227,45 @@ lens-distortion correction.</entry>
+ 	  </row>
+ 	  <row><entry></entry></row>
+ 
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_3A_LOCK</constant></entry>
++	    <entry>bitmask</entry>
++	  </row>
++	  <row>
++	    <entry spanname="descr">This control locks or unlocks the automatic
++focus, exposure and white balance. The automatic adjustments can be paused
++independently by setting the corresponding lock bit to 1. The camera then retains
++the settings until the lock bit is cleared. The following lock bits are defined:
++</entry>
++	  </row>
++	  <row>
++	    <entrytbl spanname="descr" cols="2">
++	      <tbody valign="top">
++		<row>
++		  <entry><constant>V4L2_LOCK_EXPOSURE</constant></entry>
++		  <entry>Automatic exposure adjustments lock.</entry>
++		</row>
++		<row>
++		  <entry><constant>V4L2_LOCK_WHITE_BALANCE</constant></entry>
++		  <entry>Automatic white balance adjustments lock.</entry>
++		</row>
++		<row>
++		  <entry><constant>V4L2_LOCK_FOCUS</constant></entry>
++		  <entry>Automatic focus lock.</entry>
++		</row>
++	      </tbody>
++	    </entrytbl>
++	  </row>
++	  <row><entry spanname="descr">
++When a given algorithm is not enabled, drivers should ignore requests
++to lock it and should return no error. An example might be an application
++setting bit <constant>V4L2_LOCK_WHITE_BALANCE</constant> when the
++<constant>V4L2_CID_AUTO_WHITE_BALANCE</constant> control is set to
++<constant>FALSE</constant>. The value of this control may be changed
++by exposure, white balance or focus controls.</entry>
++	  </row>
++	  <row><entry></entry></row>
++
+ 	</tbody>
+       </tgroup>
+     </table>
+diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
+index 386f20c..6346978 100644
+--- a/drivers/media/video/v4l2-ctrls.c
++++ b/drivers/media/video/v4l2-ctrls.c
+@@ -654,6 +654,7 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_ISO_SENSITIVITY_AUTO:	return "ISO Sensitivity, Auto";
+ 	case V4L2_CID_EXPOSURE_METERING:	return "Exposure, Metering Mode";
+ 	case V4L2_CID_SCENE_MODE:		return "Scene Mode";
++	case V4L2_CID_3A_LOCK:			return "3A Lock";
+ 
+ 	/* FM Radio Modulator control */
+ 	/* Keep the order of the 'case's the same as in videodev2.h! */
+@@ -826,6 +827,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 		break;
+ 	case V4L2_CID_FLASH_FAULT:
+ 	case V4L2_CID_JPEG_ACTIVE_MARKER:
++	case V4L2_CID_3A_LOCK:
+ 		*type = V4L2_CTRL_TYPE_BITMASK;
+ 		break;
+ 	case V4L2_CID_MIN_BUFFERS_FOR_CAPTURE:
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index c672c13..c1fae94 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -1744,6 +1744,11 @@ enum v4l2_scene_mode {
+ 	V4L2_SCENE_MODE_TEXT			= 13,
+ };
+ 
++#define V4L2_CID_3A_LOCK			(V4L2_CID_CAMERA_CLASS_BASE+27)
++#define V4L2_LOCK_EXPOSURE			(1 << 0)
++#define V4L2_LOCK_WHITE_BALANCE			(1 << 1)
++#define V4L2_LOCK_FOCUS				(1 << 2)
++
+ /* FM Modulator class control IDs */
+ #define V4L2_CID_FM_TX_CLASS_BASE		(V4L2_CTRL_CLASS_FM_TX | 0x900)
+ #define V4L2_CID_FM_TX_CLASS			(V4L2_CTRL_CLASS_FM_TX | 1)
+-- 
+1.7.10
+
