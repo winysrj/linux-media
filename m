@@ -1,100 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout-de.gmx.net ([213.165.64.22]:48105 "HELO
-	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1754151Ab2EFR3k (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 6 May 2012 13:29:40 -0400
-From: "Hans-Frieder Vogt" <hfvogt@gmx.net>
-To: Thomas Mair <thomas.mair86@googlemail.com>
-Subject: [RFC] tuner callback name in RTL28xxu driver
-Date: Sun, 6 May 2012 19:29:30 +0200
-Cc: linux-media@vger.kernel.org
-References: <CAKZ=SG9U48d=eE3avccR-Auao5UMo0OANw8KKb=MP1XPtkHwmg@mail.gmail.com> <201205061737.18561.hfvogt@gmx.net> <4FA6A67B.5080508@googlemail.com>
-In-Reply-To: <4FA6A67B.5080508@googlemail.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201205061929.30682.hfvogt@gmx.net>
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:58214 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759345Ab2EDSc0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 May 2012 14:32:26 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Received: from euspt2 ([210.118.77.13]) by mailout3.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0M3I00AUFGSWRTA0@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 04 May 2012 19:31:44 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0M3I00C0AGTU58@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 04 May 2012 19:32:19 +0100 (BST)
+Date: Fri, 04 May 2012 20:32:15 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH/RFC v4 11/12] V4L: Add auto focus targets to the subdev
+ selections API
+In-reply-to: <1336156337-10935-1-git-send-email-s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
+	g.liakhovetski@gmx.de, hdegoede@redhat.com, moinejf@free.fr,
+	hverkuil@xs4all.nl, m.szyprowski@samsung.com,
+	riverful.kim@samsung.com, sw0312.kim@samsung.com,
+	s.nawrocki@samsung.com, Kyungmin Park <kyungmin.park@samsung.com>
+Message-id: <1336156337-10935-12-git-send-email-s.nawrocki@samsung.com>
+References: <1336156337-10935-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Thomas,
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ Documentation/DocBook/media/v4l/dev-subdev.xml     |   27 +++++++++++++++++++-
+ .../media/v4l/vidioc-subdev-g-selection.xml        |   14 ++++++++--
+ include/linux/v4l2-subdev.h                        |    4 +++
+ 3 files changed, 42 insertions(+), 3 deletions(-)
 
-in your patch for the RTL28xxu you introduce a tuner callback (see below). You 
-called the command FC0012_FE_CALLBACK_UHF_ENABLE.
-Since the argument is currently defined to be true if the frequency is below 
-300MHz, i.e. the argument is true if the frequency is a VHF frequency.
-Therefore I would rather recommend to call the command 
-..._FE_CALLBACK_VHF_ENABLE.
-What do you think?
-I am just about to send out a patch for the fc0013 tuner, and since this tuner 
-has a lot in common with the fc0012, I intend to put the callback definition 
-into a separate fc001x-common.h header. I just like to know if you have any 
-objections me renaming the callback command.
+diff --git a/Documentation/DocBook/media/v4l/dev-subdev.xml b/Documentation/DocBook/media/v4l/dev-subdev.xml
+index 4afcbbe..8a212c4 100644
+--- a/Documentation/DocBook/media/v4l/dev-subdev.xml
++++ b/Documentation/DocBook/media/v4l/dev-subdev.xml
+@@ -277,7 +277,7 @@
+     </section>
+ 
+     <section>
+-      <title>Selections: cropping, scaling and composition</title>
++      <title>Selections - cropping, scaling and composition</title>
+ 
+       <para>Many sub-devices support cropping frames on their input or output
+       pads (or possible even on both). Cropping is used to select the area of
+@@ -330,6 +330,31 @@
+     </section>
+ 
+     <section>
++      <title>Selections - regions of interest</title>
++    <section>
++      <title>Automatic focus</title>
++
++      <para>The camera automatic focus algorithms may require configuration
++      of a region or multiple regions of interest in form of rectangle or spot
++      coordinates.</para>
++
++      <para>A single rectangle of interest is represented in &v4l2-rect;
++      by the coordinates of the top left corner and the rectangle size. Both
++      the coordinates and sizes are expressed in pixels. When the <structfield>
++      width</structfield> and <structfield>height</structfield> fields of
++      &v4l2-rect; are set to 0 the selection determines spot coordinates,
++      rather than a rectangle.</para>
++
++      <para>Auto focus rectangles are reset to their default values when the
++      output image format is modified. Drivers should use the output image size
++      as the auto focus rectangle default value, but hardware requirements may
++      prevent this.
++      </para>
++      <para>The auto focus selections on input pads are not defined.</para>
++    </section>
++    </section>
++
++    <section>
+       <title>Types of selection targets</title>
+ 
+       <section>
+diff --git a/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml b/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml
+index 208e9f0..c4ccae5 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml
+@@ -57,8 +57,8 @@
+ 
+     <para>The selections are used to configure various image
+     processing functionality performed by the subdevs which affect the
+-    image size. This currently includes cropping, scaling and
+-    composition.</para>
++    image size. This currently includes cropping, scaling, composition
++    and automatic focus regions of interest.</para>
+ 
+     <para>The selection API replaces <link
+     linkend="vidioc-subdev-g-crop">the old subdev crop API</link>. All
+@@ -114,6 +114,16 @@
+ 	    <entry>0x0102</entry>
+ 	    <entry>Bounds of the compose rectangle.</entry>
+ 	  </row>
++	  <row>
++	    <entry><constant>V4L2_SUBDEV_SEL_TGT_AUTO_FOCUS_BOUNDS</constant></entry>
++	    <entry>0x1000</entry>
++	    <entry>Bounds of the automatic focus region of interest.</entry>
++	  </row>
++	  <row>
++	    <entry><constant>V4L2_SUBDEV_SEL_TGT_AUTO_FOCUS_ACTUAL</constant></entry>
++	    <entry>0x1001</entry>
++	    <entry>Actual automatic focus rectangle or spot coordinates.</entry>
++	  </row>
+ 	</tbody>
+       </tgroup>
+     </table>
+diff --git a/include/linux/v4l2-subdev.h b/include/linux/v4l2-subdev.h
+index 812019e..49b1f14 100644
+--- a/include/linux/v4l2-subdev.h
++++ b/include/linux/v4l2-subdev.h
+@@ -136,6 +136,10 @@ struct v4l2_subdev_frame_interval_enum {
+ /* composing bounds */
+ #define V4L2_SUBDEV_SEL_TGT_COMPOSE_BOUNDS		0x0102
+ 
++/* auto focus region of interest */
++#define V4L2_SUBDEV_SEL_TGT_AUTO_FOCUS_ACTUAL		0x1000
++/* auto focus region (spot coordinates) bounds */
++#define V4L2_SUBDEV_SEL_TGT_AUTO_FOCUS_BOUNDS		0x1001
+ 
+ /**
+  * struct v4l2_subdev_selection - selection info
+-- 
+1.7.10
 
-Cheers,
-Hans-Frieder
-
-> +
-> +
-> +static int rtl2832u_fc0012_tuner_callback(struct dvb_usb_device *d,
-> +		int cmd, int arg)
-> +{
-> +	int ret;
-> +	u8 val;
-> +
-> +	deb_info("%s cmd=%d arg=%d", __func__, cmd, arg);
-> +	switch (cmd) {
-> +	case FC0012_FE_CALLBACK_UHF_ENABLE:
-> +		/* set output values */
-> +
-> +		ret = rtl28xx_rd_reg(d, SYS_GPIO_DIR, &val);
-> +		if (ret)
-> +			goto err;
-> +
-> +		val &= 0xbf;
-> +
-> +		ret = rtl28xx_wr_reg(d, SYS_GPIO_DIR, val);
-> +		if (ret)
-> +			goto err;
-> +
-> +
-> +		ret = rtl28xx_rd_reg(d, SYS_GPIO_OUT_EN, &val);
-> +		if (ret)
-> +			goto err;
-> +
-> +		val |= 0x40;
-> +
-> +		ret = rtl28xx_wr_reg(d, SYS_GPIO_OUT_EN, val);
-> +		if (ret)
-> +			goto err;
-> +
-> +
-> +		ret = rtl28xx_rd_reg(d, SYS_GPIO_OUT_VAL, &val);
-> +		if (ret)
-> +			goto err;
-> +
-> +		if (arg)
-> +			val &= 0xbf; /* set GPIO6 low */
-> +		else
-> +			val |= 0x40; /* set GPIO6 high */
-> +
-> +
-> +		ret = rtl28xx_wr_reg(d, SYS_GPIO_OUT_VAL, val);
-> +		if (ret)
-> +			goto err;
-> +		break;
-> +	default:
-> +		ret = -EINVAL;
-> +		goto err;
-> +	}
-> +	return 0;
-> +
-> +err:
-> +	err("%s: failed=%d", __func__, ret);
-> +
->  	return ret;
->  }
-> 
-
-Hans-Frieder Vogt                       e-mail: hfvogt <at> gmx .dot. net
