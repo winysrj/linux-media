@@ -1,93 +1,208 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:2256 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754329Ab2EAJqs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 1 May 2012 05:46:48 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "linux-media" <linux-media@vger.kernel.org>
-Subject: RFC: Improve VIDIOC_S_HW_FREQ_SEEK
-Date: Tue, 1 May 2012 11:46:30 +0200
-Cc: Ondrej Zary <linux@rainbow-software.org>,
-	Joonyoung Shim <jy0922.shim@samsung.com>,
-	Tobias Lorenz <tobias.lorenz@gmx.net>,
-	"Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>,
-	Manjunatha Halli <manjunatha_halli@ti.com>
+Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:34982 "EHLO
+	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750807Ab2EDRV5 convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 4 May 2012 13:21:57 -0400
+Received: by qcsu28 with SMTP id u28so2578060qcs.22
+        for <linux-media@vger.kernel.org>; Fri, 04 May 2012 10:21:51 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201205011146.30295.hverkuil@xs4all.nl>
+In-Reply-To: <Pine.LNX.4.64.1205041541100.21890@axis700.grange>
+References: <CAKnK67SK+CKBL-Dx0V0nyYtEWN3wp3D90M9irFCQOmqiX2fKPw@mail.gmail.com>
+ <Pine.LNX.4.64.1205041541100.21890@axis700.grange>
+From: "Aguirre, Sergio" <saaguirre@ti.com>
+Date: Fri, 4 May 2012 12:21:30 -0500
+Message-ID: <CAKnK67SLmeU869TsW3Ls+gs4iX_DvYo32_2rKmtKE-mCMtzpzg@mail.gmail.com>
+Subject: Re: [PATCH] v4l: soc-camera: Add support for enum_frameintervals ioctl
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>, Qing Xu <qingx@marvell.com>,
+	Jonathan Corbet <corbet@lwn.net>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all!
+Hi Guennadi,
 
-While working on a test function for the hardware seek functionality in
-v4l2-compliance I realized that the specification is rather vague and
-incomplete, making it hard to write a decent test for it.
+No problem.
 
-There are a number of issues with this API:
+On Fri, May 4, 2012 at 10:05 AM, Guennadi Liakhovetski
+<g.liakhovetski@gmx.de> wrote:
+> Hi Sergio
+>
+> Sorry about the delay.
+>
+> On Wed, 18 Apr 2012, Aguirre, Sergio wrote:
+>
+>> From: Sergio Aguirre <saaguirre@ti.com>
+>>
+>> Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
+>> ---
+>>  drivers/media/video/soc_camera.c |   37 +++++++++++++++++++++++++++++++++++++
+>>  include/media/soc_camera.h       |    1 +
+>>  2 files changed, 38 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
+>> index eb25756..62c8956 100644
+>> --- a/drivers/media/video/soc_camera.c
+>> +++ b/drivers/media/video/soc_camera.c
+>> @@ -266,6 +266,15 @@ static int soc_camera_enum_fsizes(struct file
+>> *file, void *fh,
+>>       return ici->ops->enum_fsizes(icd, fsize);
+>>  }
+>>
+>> +static int soc_camera_enum_fivals(struct file *file, void *fh,
+>
+> "fivals" is a bit short for my taste. Yes, I know about the
+> *_enum_fsizes() precedent in soc_camera.c, we should have used a more
+> descriptive name for that too. So, maybe I'll push a patch to change that
+> to enum_frmsizes() or enum_framesizes().
 
-1) There is no way for the application to know whether the hardware supports
-   wrap around scanning or not (or both). It is only reported because the
-   ioctl will return EINVAL if it doesn't support it, which is rather awkward.
-   It's important for applications to know what to do here.
+Agreed.
 
-   The solution would be to add two new capability flags to struct v4l2_tuner:
-   V4L2_TUNER_CAP_SEEK_BOUNDED and V4L2_TUNER_CAP_SEEK_WRAP.
+>
+> But that brings in a larger question, which is also the reason, why I
+> added a couple more people to the CC: the following 3 operations in struct
+> v4l2_subdev_video_ops don't make me particularly happy:
+>
+>        int (*enum_framesizes)(struct v4l2_subdev *sd, struct v4l2_frmsizeenum *fsize);
+>        int (*enum_frameintervals)(struct v4l2_subdev *sd, struct v4l2_frmivalenum *fival);
+>        int (*enum_mbus_fsizes)(struct v4l2_subdev *sd,
+>                             struct v4l2_frmsizeenum *fsize);
+>
+> The problems are:
+>
+> 1. enum_framesizes and enum_mbus_fsizes seem to be identical (yes, I see
+> my Sob under the latter:-()
 
-2) What happens when the seek didn't find anything? It's not a timeout, it has
-   to return some decent error code. I propose ENODATA for this.
+Yeah, IMHO, the mbus one should go, since there's no mbus specific structure
+being handed as a parameter.
 
-3) What should the frequency be if the seek returns an error? I think the original
-   frequency should be restored in that case.
+> 2. both struct v4l2_frmsizeenum and struct v4l2_frmivalenum are the
+> structs, used in the respective V4L2 ioctl()s, and they both contain a
+> field for a fourcc value, which doesn't make sense to subdevice drivers.
+> So far the only driver combination in the mainline, that I see, that uses
+> these operations is marvell-ccic & ov7670. These drivers just ignore the
+> pixel format. Relatively recently enum_mbus_fsizes() has been added to
+> soc-camera, and this patch is adding enum_frameintervals(). Both these
+> implementations abuse the .pixel_format field to pass a media-bus code
+> value in it to subdevice drivers. This sends meaningful information to
+> subdevice drivers, but is really a hack, rather than a proper
+> implementation.
 
-4) What should happen if you try to set the frequency while a seek is in operation?
-   In that case -EBUSY should be returned by VIDIOC_S_FREQUENCY.
+True.
 
-5) What should happen if you try to get the frequency while a seek is in operation?
-   It would be nice if you could get the frequency that is currently being scanned.
+>
+> Any idea how to improve this? Shall we create mediabus clones of those
+> structs with an mbus code instead of fourcc, and drop one of the above
+> enum_framesizes() operations?
 
-   There are two options to implement this:
+Well, to add more confusion to this.. :)
 
-   a) Add a new 'scan_frequency' field to struct v4l2_frequency. So the frequency
-      field would always contain the frequency that was set when the seek started,
-      and the scan_frequency is either 0 (no seek is in progress), a special value
-      V4L2_SCAN_IN_PROGRESS (seek is in progress, but the hardware can't tell what
-      the current seek frequency is) or it contains the frequency that is currently
-      being scanned.
+We have this v4l2-subdev IOCTLs exported to userspace:
 
-   b) Add a new V4L2_TUNER_CAP_HAS_SEEK_FREQ capability to struct v4l2_tuner. If
-      set, then VIDIOC_G_FREQUENCY will return the scan frequency when scanning,
-      otherwise it will return the normal frequency.
+#define VIDIOC_SUBDEV_ENUM_FRAME_SIZE \
+			_IOWR('V', 74, struct v4l2_subdev_frame_size_enum)
+#define VIDIOC_SUBDEV_ENUM_FRAME_INTERVAL \
+			_IOWR('V', 75, struct v4l2_subdev_frame_interval_enum)
 
-   I think I like option a) better. It gives you all the information you need.
+Which in "drivers/media/video/v4l2-subdev.c", are translated to pad ops:
+- v4l2_subdev_call(... enum_frame_size ...);
+- v4l2_subdev_call(... enum_frame_interval ...);
 
-6) What does it mean when you get a time out? The spec just says 'Try again'. But
-   try what? If it times out due to hardware issues, then a proper error should be
-   returned. That leaves a time out due to the scan not finding any channels, but not
-   reaching the end of the scan either (because that would be a ENODATA return code).
+respectively.
 
-   What should be the frequency in this case? The original frequency or the last
-   scanned frequency? And on older hardware you may not be able to get that last scanned
-   frequency.
+So, this is also another thing that's causing some confusion.
 
-   I suggest one of two options:
-
-   a) Abolish the time out altogether. The driver author has to set the internal
-      timeout to such a large value that if you time out, then you can just return
-      -ENODATA.
-
-   b) Hardware that cannot detect the current scan frequency behaves as a). Hardware
-      that can detect the scan frequency will return -EAGAIN, but sets the frequency
-      at the last scanned frequency.
-
-7) It would be nice if the ioctl was RW instead of just a write ioctl. That way the
-   driver could report the proper spacing value that it used. I'm not entirely sure
-   it is worth the effort at this moment though.
-
-Comments? Questions?
+Does soc_camera use pad ops?
 
 Regards,
+Sergio
 
-	Hans
+>
+> Thanks
+> Guennadi
+>
+>> +                                struct v4l2_frmivalenum *fival)
+>> +{
+>> +     struct soc_camera_device *icd = file->private_data;
+>> +     struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
+>> +
+>> +     return ici->ops->enum_fivals(icd, fival);
+>> +}
+>> +
+>>  static int soc_camera_reqbufs(struct file *file, void *priv,
+>>                             struct v4l2_requestbuffers *p)
+>>  {
+>> @@ -1266,6 +1275,31 @@ static int default_enum_fsizes(struct
+>> soc_camera_device *icd,
+>>       return 0;
+>>  }
+>>
+>> +static int default_enum_fivals(struct soc_camera_device *icd,
+>> +                       struct v4l2_frmivalenum *fival)
+>> +{
+>> +     int ret;
+>> +     struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
+>> +     const struct soc_camera_format_xlate *xlate;
+>> +     __u32 pixfmt = fival->pixel_format;
+>> +     struct v4l2_frmivalenum fival_sd = *fival;
+>> +
+>> +     xlate = soc_camera_xlate_by_fourcc(icd, pixfmt);
+>> +     if (!xlate)
+>> +             return -EINVAL;
+>> +     /* map xlate-code to pixel_format, sensor only handle xlate-code*/
+>> +     fival_sd.pixel_format = xlate->code;
+>> +
+>> +     ret = v4l2_subdev_call(sd, video, enum_frameintervals, &fival_sd);
+>> +     if (ret < 0)
+>> +             return ret;
+>> +
+>> +     *fival = fival_sd;
+>> +     fival->pixel_format = pixfmt;
+>> +
+>> +     return 0;
+>> +}
+>> +
+>>  int soc_camera_host_register(struct soc_camera_host *ici)
+>>  {
+>>       struct soc_camera_host *ix;
+>> @@ -1297,6 +1331,8 @@ int soc_camera_host_register(struct soc_camera_host *ici)
+>>               ici->ops->get_parm = default_g_parm;
+>>       if (!ici->ops->enum_fsizes)
+>>               ici->ops->enum_fsizes = default_enum_fsizes;
+>> +     if (!ici->ops->enum_fivals)
+>> +             ici->ops->enum_fivals = default_enum_fivals;
+>>
+>>       mutex_lock(&list_lock);
+>>       list_for_each_entry(ix, &hosts, list) {
+>> @@ -1387,6 +1423,7 @@ static const struct v4l2_ioctl_ops
+>> soc_camera_ioctl_ops = {
+>>       .vidioc_s_std            = soc_camera_s_std,
+>>       .vidioc_g_std            = soc_camera_g_std,
+>>       .vidioc_enum_framesizes  = soc_camera_enum_fsizes,
+>> +     .vidioc_enum_frameintervals  = soc_camera_enum_fivals,
+>>       .vidioc_reqbufs          = soc_camera_reqbufs,
+>>       .vidioc_querybuf         = soc_camera_querybuf,
+>>       .vidioc_qbuf             = soc_camera_qbuf,
+>> diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
+>> index b5c2b6c..0a3ac07 100644
+>> --- a/include/media/soc_camera.h
+>> +++ b/include/media/soc_camera.h
+>> @@ -98,6 +98,7 @@ struct soc_camera_host_ops {
+>>       int (*get_parm)(struct soc_camera_device *, struct v4l2_streamparm *);
+>>       int (*set_parm)(struct soc_camera_device *, struct v4l2_streamparm *);
+>>       int (*enum_fsizes)(struct soc_camera_device *, struct v4l2_frmsizeenum *);
+>> +     int (*enum_fivals)(struct soc_camera_device *, struct v4l2_frmivalenum *);
+>>       unsigned int (*poll)(struct file *, poll_table *);
+>>  };
+>>
+>> --
+>> 1.7.5.4
+>>
+>
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
