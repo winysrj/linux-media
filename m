@@ -1,83 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.meprolight.com ([194.90.149.17]:52323 "EHLO meprolight.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752672Ab2EBNxM convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 2 May 2012 09:53:12 -0400
-From: Alex Gershgorin <alexg@meprolight.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"laurent.pinchart@ideasonboard.com"
-	<laurent.pinchart@ideasonboard.com>
-Date: Wed, 2 May 2012 16:52:17 +0300
-Subject: RE: SoC i.mx35 userptr method failure while running capture-example
- utility
-Message-ID: <4875438356E7CA4A8F2145FCD3E61C0B2CC9525493@MEP-EXCH.meprolight.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from arroyo.ext.ti.com ([192.94.94.40]:55730 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932879Ab2EDUtH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 4 May 2012 16:49:07 -0400
+From: <manjunatha_halli@ti.com>
+To: <linux-media@vger.kernel.org>
+CC: <linux-kernel@vger.kernel.org>, Manjunatha Halli <x0130808@ti.com>
+Subject: [PATCH V4 3/5] Add new CID for FM TX RDS Alternate Frequency
+Date: Fri, 4 May 2012 15:49:00 -0500
+Message-ID: <1336164542-11014-4-git-send-email-manjunatha_halli@ti.com>
+In-Reply-To: <1336164542-11014-1-git-send-email-manjunatha_halli@ti.com>
+References: <1336164542-11014-1-git-send-email-manjunatha_halli@ti.com>
 MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Manjunatha Halli <x0130808@ti.com>
 
-Hi Guennadi,
+Signed-off-by: Manjunatha Halli <x0130808@ti.com>
+---
+ drivers/media/video/v4l2-ctrls.c |    1 +
+ include/linux/videodev2.h        |    1 +
+ 2 files changed, 2 insertions(+), 0 deletions(-)
 
-Thanks for your quick response.
-
-> ./capture-example -u -f -d /dev/video0
-> mx3-camera mx3-camera.0: MX3 Camera driver attached to camera 0
-> Failed acquiring VMA for vaddr 0x76cd9008
-> VIDIOC_QBUF error 22, Invalid arg
-
->> It doesn't surprise me, that this doesn't work. capture-example allocates
->> absolutely normal user-space buffers, when called with USERPTR, and those
->> buffers are very likely discontiguous. Whereas mx3-camera needs physically
->> contiguous buffers, so, this can only fail. This means, you either have to
->> use MMAP or you need to allocate USERPTR buffers in a special way to
->> guarantee their contiguity.
-
-I have a little progress:-) 
-In thread "i.mx35 live video" you and Sylvester gave me advice on how to get the live video
-with using the display panning method ... thanks for this invaluable support :-)
-I took note of this and I'm currently trying to implement this.
-
-Instead of discontiguous memory allocation I use framebuffer memory allocation
-to userspace and this solves the problem.
+diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
+index 9d7608e..610076c 100644
+--- a/drivers/media/video/v4l2-ctrls.c
++++ b/drivers/media/video/v4l2-ctrls.c
+@@ -608,6 +608,7 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_RDS_TX_PTY:		return "RDS Program Type";
+ 	case V4L2_CID_RDS_TX_PS_NAME:		return "RDS PS Name";
+ 	case V4L2_CID_RDS_TX_RADIO_TEXT:	return "RDS Radio Text";
++	case V4L2_CID_RDS_TX_AF_FREQ:		return "RDS Alternate Frequency";
+ 	case V4L2_CID_AUDIO_LIMITER_ENABLED:	return "Audio Limiter Feature Enabled";
+ 	case V4L2_CID_AUDIO_LIMITER_RELEASE_TIME: return "Audio Limiter Release Time";
+ 	case V4L2_CID_AUDIO_LIMITER_DEVIATION:	return "Audio Limiter Deviation";
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index 534a3f1..e7a8e96 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -1699,6 +1699,7 @@ enum  v4l2_exposure_auto_type {
+ #define V4L2_CID_RDS_TX_PTY			(V4L2_CID_FM_TX_CLASS_BASE + 3)
+ #define V4L2_CID_RDS_TX_PS_NAME			(V4L2_CID_FM_TX_CLASS_BASE + 5)
+ #define V4L2_CID_RDS_TX_RADIO_TEXT		(V4L2_CID_FM_TX_CLASS_BASE + 6)
++#define V4L2_CID_RDS_TX_AF_FREQ			(V4L2_CID_FM_TX_CLASS_BASE + 7)
  
-Now I'm starting to see a live video for 3 seconds, after this video freezes
-(it looks like a flickering pause), but the application continues to run without errors.
+ #define V4L2_CID_AUDIO_LIMITER_ENABLED		(V4L2_CID_FM_TX_CLASS_BASE + 64)
+ #define V4L2_CID_AUDIO_LIMITER_RELEASE_TIME	(V4L2_CID_FM_TX_CLASS_BASE + 65)
+-- 
+1.7.4.1
 
-can see bellow my strace diagnostic:  
-
-ioctl(3, VIDIOC_STREAMON, 0x7ece99f0)   = 0
-select(4, [3], NULL, NULL, {2, 0})      = 1 (in [3], left {1, 884508})
-ioctl(3, VIDIOC_DQBUF, 0x7ece990c)      = 0
-ioctl(4, FBIOPAN_DISPLAY, 0x7ece9854)   = 0
-ioctl(3, VIDIOC_QBUF or VT_SETACTIVATE, 0x7ece990c) = 0
-select(4, [3], NULL, NULL, {2, 0})      = 1 (in [3], left {1, 919066})
-ioctl(3, VIDIOC_DQBUF, 0x7ece990c)      = 0
-ioctl(4, FBIOPAN_DISPLAY, 0x7ece9854)   = 0
-ioctl(3, VIDIOC_QBUF or VT_SETACTIVATE, 0x7ece990c) = 0
-select(4, [3], NULL, NULL, {2, 0})      = 1 (in [3], left {1, 918928})
-ioctl(3, VIDIOC_DQBUF, 0x7ece990c)      = 0
-ioctl(4, FBIOPAN_DISPLAY, 0x7ece9854)   = 0
-
-[snip] 
-
-ioctl(3, VIDIOC_QBUF or VT_SETACTIVATE, 0x7ece990c) = 0
-select(4, [3], NULL, NULL, {2, 0})      = 1 (in [3], left {1, 999987})
-ioctl(3, VIDIOC_DQBUF, 0x7ece990c)      = 0
-ioctl(4, FBIOPAN_DISPLAY, 0x7ece9854)   = 0
-ioctl(3, VIDIOC_QBUF or VT_SETACTIVATE, 0x7ece990c) = 0
-select(4, [3], NULL, NULL, {2, 0})      = 1 (in [3], left {1, 999988})
-ioctl(3, VIDIOC_DQBUF, 0x7ece990c)      = 0
-ioctl(4, FBIOPAN_DISPLAY, 0x7ece9854)   = 0
-ioctl(3, VIDIOC_QBUF or VT_SETACTIVATE, 0x7ece990c) = 0
-
-I do not understand what's the problem, maybe need to implement 
-FBIO_WAITFORVSYNC ioctl for mx3fb ? 
-
-Thanks,
-Alex
- 
- 
