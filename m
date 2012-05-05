@@ -1,37 +1,32 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:34292 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751255Ab2EXWkj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 May 2012 18:40:39 -0400
+Received: from mx1.redhat.com ([209.132.183.28]:29346 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755624Ab2EEPlG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 5 May 2012 11:41:06 -0400
+Message-ID: <4FA54A0F.4010401@redhat.com>
+Date: Sat, 05 May 2012 17:41:03 +0200
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <4FBEB72D.4040905@redhat.com>
-References: <4FBE5518.5090705@redhat.com> <CA+55aFyt2OFOsr5uCpQ6nrur4zhHhmWUJrvMgLH_Wy1niTbC6w@mail.gmail.com>
- <4FBEB72D.4040905@redhat.com>
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Date: Thu, 24 May 2012 15:40:17 -0700
-Message-ID: <CA+55aFyYQkrtgvG99ZOOhAzoKi8w5rJfRgZQy3Dqs39p1n=FPA@mail.gmail.com>
-Subject: Re: [GIT PULL for v3.5-rc1] media updates for v3.5
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media@vger.kernel.org, Jean-Francois Moine <moinejf@free.fr>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFCv1 PATCH 1/7] gspca: allow subdrivers to use the control
+ framework.
+References: <1335625796-9429-1-git-send-email-hverkuil@xs4all.nl> <201205051114.31531.hverkuil@xs4all.nl> <4FA53CD2.1010706@redhat.com> <201205051702.48318.hverkuil@xs4all.nl>
+In-Reply-To: <201205051702.48318.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, May 24, 2012 at 3:33 PM, Mauro Carvalho Chehab
-<mchehab@redhat.com> wrote:
->
-> The Kconfig default for DVB_FE_CUSTOMISE is 'n'. So, if no DVB bridge is selected,
-> nothing will be compiled.
+Hi,
 
-Sadly, it looks like the default for distro kernels is 'y'.
+On 05/05/2012 05:02 PM, Hans Verkuil wrote:
+> BTW, this is getting messy: both of us producing patches for the same driver :-)
 
-Which means that if you start with a distro kernel config, and then
-try to cut it down to match your system, you end up screwed in the
-future - all the new hardware will default to on.
+For those reading along on the mailinglist, we've got together on irc and
+coordinated how we are going to handle this there.
 
-At least that's how I noticed it. Very annoying.
+Regards,
 
-                    Linus
+Hans
