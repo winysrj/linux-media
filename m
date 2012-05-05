@@ -1,131 +1,232 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:58047 "EHLO mail.kapsi.fi"
+Received: from smtp.nokia.com ([147.243.1.48]:27988 "EHLO mgw-sa02.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759986Ab2ERNBl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 May 2012 09:01:41 -0400
-Message-ID: <4FB64833.2040206@iki.fi>
-Date: Fri, 18 May 2012 16:01:39 +0300
-From: Antti Palosaari <crope@iki.fi>
+	id S1752170Ab2EEK0A (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 5 May 2012 06:26:00 -0400
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Cc: hverkuil@xs4all.nl, mchehab@redhat.com, remi@remlab.net
+Subject: [PATCH 1/1] v4l2: use __u32 rather than enums in ioctl() structs
+Date: Sat,  5 May 2012 13:25:45 +0300
+Message-Id: <1336213545-8549-1-git-send-email-sakari.ailus@iki.fi>
 MIME-Version: 1.0
-To: Niklas Brunlid <prefect47@gmail.com>
-CC: linux-media <linux-media@vger.kernel.org>
-Subject: Re: PCTV 290e with DVB-C on Fedora 16?
-References: <CABXDEG=PgB9bYUBN8XTPipEz1QJ__t4O8xTNH8kbfnD+fqhOgg@mail.gmail.com>
-In-Reply-To: <CABXDEG=PgB9bYUBN8XTPipEz1QJ__t4O8xTNH8kbfnD+fqhOgg@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 18.05.2012 11:38, Niklas Brunlid wrote:
+From: Rémi Denis-Courmont <remi@remlab.net>
 
-That whole issues is related of MFE (multi-frontend) => SFE 
-(single-frontend) change.
-And there is still known issues like only one frontend parameters, as we 
-still have three different delivery systems.... Due to that currently 
-applications should not trust parameters frontend is advertising. Only 
-valid parameter is supported delivery systems.
+V4L2 uses the enum type in IOCTL arguments in IOCTLs that were defined until
+the use of enum was considered less than ideal. Recently Rémi Denis-Courmont
+brought up the issue by proposing a patch to convert the enums to unsigned:
 
-Needless to say it took about one week for me to fix all cxd2820r bugs 
-after that...
+<URL:http://www.spinics.net/lists/linux-media/msg46167.html>
 
-> As seen in mythtv-users
-> (http://www.gossamer-threads.com/lists/mythtv/users/514948?search_string=290e;#514948)
-> and mythtv-dev (http://www.gossamer-threads.com/lists/mythtv/dev/514946?search_string=290e;#514946),
-> I'm trying to figure out why my PCTV 290e (which I use for DVB-C only)
-> stopped working when I upgraded to Fedora 16. It was most likely with
-> the switch to the new API (5.x)?
->
-> Some highlights from the thread(s):
->
-> ---- begin cut ----
->
-> $ w_scan -A2 -fc -cSE -G -X |tee .czap/channels.conf
-> w_scan version 20120112 (compiled for DVB API 5.3)
+This sparked a long discussion where another solution to the issue was
+proposed: two sets of IOCTL structures, one with __u32 and the other with
+enums, and conversion code between the two:
 
-w_scan version 20120112 (compiled for DVB API 5.3)
+<URL:http://www.spinics.net/lists/linux-media/msg47168.html>
 
-> using settings for SWEDEN
-> DVB cable
-> DVB-C
-> scan type CABLE, channellist 7
-> output format czap/tzap/szap/xine
-> WARNING: could not guess your codepage. Falling back to 'UTF-8'
-> output charset 'UTF-8', use -C<charset>  to override
-> Info: using DVB adapter auto detection.
-> /dev/dvb/adapter0/frontend0 ->  CABLE "Sony CXD2820R": very good :-))
->
-> Using CABLE frontend (adapter /dev/dvb/adapter0/frontend0)
-> -_-_-_-_ Getting frontend capabilities-_-_-_-_
-> Using DVB API 5.5
-> frontend 'Sony CXD2820R' supports
-> DVB-C2
-> INVERSION_AUTO
-> QAM_AUTO
-> FEC_AUTO
-> FREQ (45.00MHz ... 864.00MHz)
-> This dvb driver is *buggy*: the symbol rate limits are undefined - please
-> report to linuxtv.org
-> -_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_
-> 73000: sr6900 (time: 00:00) sr6875 (time: 00:05)
+Both approaches implement a complete solution that resolves the problem. The
+first one is simple but requires assuming enums and __u32 are the same in
+size (so we won't break the ABI) while the second one is more complex and
+less clean but does not require making that assumption.
 
-w_scan works? At least for me.
+The issue boils down to whether enums are fundamentally different from __u32
+or not, and can the former be substituted by the latter. During the
+discussion it was concluded that the __u32 has the same size as enums on all
+archs Linux is supported: it has not been shown that replacing those enums
+in IOCTL arguments would break neither source or binary compatibility. If no
+such reason is found, just replacing the enums with __u32s is the way to go.
 
-> After trying dvb-fe-tool to force the card to DVB-C:
->
-> ---- begin cut ----
->
-> Didn't help, unfortunately - mythtvsetup still complains:
->
-> 2012-05-13 17:25:32.385665 E  FE_GET_INFO ioctl failed
-> (/dev/dvb/adapter0/frontend0)
->    eno: No such device (19)
+This is what this patch does. This patch is slightly different from Remi's
+first RFC (link above): it uses __u32 instead of unsigned and also changes
+the arguments of VIDIOC_G_PRIORITY and VIDIOC_S_PRIORITY.
 
-I looked frontend code and I do not see where that error is coming.
-Maybe there is no such file at all?
+Signed-off-by: Rémi Denis-Courmont <remi@remlab.net>
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+ include/linux/videodev2.h |   46 ++++++++++++++++++++++----------------------
+ 1 files changed, 23 insertions(+), 23 deletions(-)
 
-> 2012-05-13 17:25:33.865334 E  FE_GET_INFO ioctl failed
-> (/dev/dvb/adapter_290e/frontend0) eno: No such device (19)
-
-"/adapter_290e/" something unusual.
-
-> The backend says:
->
-> 2012-05-13 17:33:23.922804 I [9042/9059] TVRecEvent tv_rec.cpp:1014
-> (HandleStateChange) - TVRec(24): Changing from None to WatchingLiveTV
-> 2012-05-13 17:33:23.926627 I [9042/9059] TVRecEvent tv_rec.cpp:3456
-> (TuningCheckForHWChange) - TVRec(24): HW Tuner: 24->24
-> 2012-05-13 17:33:23.960061 N [9042/9042] CoreContext
-> autoexpire.cpp:263 (CalcParams) - AutoExpire: CalcParams(): Max
-> required Free Space: 2.0 GB w/freq: 14 min
-> 2012-05-13 17:33:24.171394 E [9042/9164] DVBRead
-> dvbstreamhandler.cpp:626 (Open) -
-> PIDInfo(/dev/dvb/adapter_290e/frontend0): Failed to set TS filter (pid
-> 0x0)
->
->
-> dvb-fe-tol says:
->
-> # dvb-fe-tool
-> Device Sony CXD2820R (/dev/dvb/adapter0/frontend0) capabilities:
->          CAN_2G_MODULATION CAN_FEC_1_2 CAN_FEC_2_3 CAN_FEC_3_4
-> CAN_FEC_5_6 CAN_FEC_7_8 CAN_FEC_AUTO CAN_GUARD_INTERVAL_AUTO
-> CAN_HIERARCHY_AUTO CAN_INVERSION_AUTO CAN_MUTE_TS CAN_QAM_16
-> CAN_QAM_32 CAN_QAM_64 CAN_QAM_128 CAN_QAM_256 CAN_QAM_AUTO CAN_QPSK
-> CAN_TRANSMISSION_MODE_AUTO
-> DVB API Version 5.5, Current v5 delivery system: DVBC/ANNEX_A
-> Supported delivery systems: DVBT DVBT2 [DVBC/ANNEX_A]
->
-> ...so the card should be set to DVB-C already, or at least a variant
-> of DVB-C. Is it possible that the kernel module simply doesn't
-> understand the v3 API? Or is v5 backwards compatible?
->
-> ---- end cut ----
-
-I am using Fedora 16 and latest development Kernel. VLC, czap, w_scan, 
-etc. are working fine.
-
-regards
-Antti
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index 5a09ac3..585e4b4 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -292,10 +292,10 @@ struct v4l2_pix_format {
+ 	__u32         		width;
+ 	__u32			height;
+ 	__u32			pixelformat;
+-	enum v4l2_field  	field;
++	__u32			field;
+ 	__u32            	bytesperline;	/* for padding, zero if unused */
+ 	__u32          		sizeimage;
+-	enum v4l2_colorspace	colorspace;
++	__u32			colorspace;
+ 	__u32			priv;		/* private data, depends on pixelformat */
+ };
+ 
+@@ -432,7 +432,7 @@ struct v4l2_pix_format {
+  */
+ struct v4l2_fmtdesc {
+ 	__u32		    index;             /* Format number      */
+-	enum v4l2_buf_type  type;              /* buffer type        */
++	__u32		    type;              /* buffer type        */
+ 	__u32               flags;
+ 	__u8		    description[32];   /* Description string */
+ 	__u32		    pixelformat;       /* Format fourcc      */
+@@ -573,8 +573,8 @@ struct v4l2_jpegcompression {
+  */
+ struct v4l2_requestbuffers {
+ 	__u32			count;
+-	enum v4l2_buf_type      type;
+-	enum v4l2_memory        memory;
++	__u32			type;
++	__u32			memory;
+ 	__u32			reserved[2];
+ };
+ 
+@@ -636,16 +636,16 @@ struct v4l2_plane {
+  */
+ struct v4l2_buffer {
+ 	__u32			index;
+-	enum v4l2_buf_type      type;
++	__u32			type;
+ 	__u32			bytesused;
+ 	__u32			flags;
+-	enum v4l2_field		field;
++	__u32			field;
+ 	struct timeval		timestamp;
+ 	struct v4l2_timecode	timecode;
+ 	__u32			sequence;
+ 
+ 	/* memory location */
+-	enum v4l2_memory        memory;
++	__u32			memory;
+ 	union {
+ 		__u32           offset;
+ 		unsigned long   userptr;
+@@ -708,7 +708,7 @@ struct v4l2_clip {
+ 
+ struct v4l2_window {
+ 	struct v4l2_rect        w;
+-	enum v4l2_field  	field;
++	__u32			field;
+ 	__u32			chromakey;
+ 	struct v4l2_clip	__user *clips;
+ 	__u32			clipcount;
+@@ -745,14 +745,14 @@ struct v4l2_outputparm {
+  *	I N P U T   I M A G E   C R O P P I N G
+  */
+ struct v4l2_cropcap {
+-	enum v4l2_buf_type      type;
++	__u32			type;
+ 	struct v4l2_rect        bounds;
+ 	struct v4l2_rect        defrect;
+ 	struct v4l2_fract       pixelaspect;
+ };
+ 
+ struct v4l2_crop {
+-	enum v4l2_buf_type      type;
++	__u32			type;
+ 	struct v4l2_rect        c;
+ };
+ 
+@@ -1157,7 +1157,7 @@ enum v4l2_ctrl_type {
+ /*  Used in the VIDIOC_QUERYCTRL ioctl for querying controls */
+ struct v4l2_queryctrl {
+ 	__u32		     id;
+-	enum v4l2_ctrl_type  type;
++	__u32		     type;
+ 	__u8		     name[32];	/* Whatever */
+ 	__s32		     minimum;	/* Note signedness */
+ 	__s32		     maximum;
+@@ -1792,7 +1792,7 @@ enum v4l2_jpeg_chroma_subsampling {
+ struct v4l2_tuner {
+ 	__u32                   index;
+ 	__u8			name[32];
+-	enum v4l2_tuner_type    type;
++	__u32			type;
+ 	__u32			capability;
+ 	__u32			rangelow;
+ 	__u32			rangehigh;
+@@ -1842,14 +1842,14 @@ struct v4l2_modulator {
+ 
+ struct v4l2_frequency {
+ 	__u32		      tuner;
+-	enum v4l2_tuner_type  type;
++	__u32		      type;
+ 	__u32		      frequency;
+ 	__u32		      reserved[8];
+ };
+ 
+ struct v4l2_hw_freq_seek {
+ 	__u32		      tuner;
+-	enum v4l2_tuner_type  type;
++	__u32		      type;
+ 	__u32		      seek_upward;
+ 	__u32		      wrap_around;
+ 	__u32		      spacing;
+@@ -2060,7 +2060,7 @@ struct v4l2_sliced_vbi_cap {
+ 				 (equals frame lines 313-336 for 625 line video
+ 				  standards, 263-286 for 525 line standards) */
+ 	__u16   service_lines[2][24];
+-	enum v4l2_buf_type type;
++	__u32	type;
+ 	__u32   reserved[3];    /* must be 0 */
+ };
+ 
+@@ -2150,8 +2150,8 @@ struct v4l2_pix_format_mplane {
+ 	__u32				width;
+ 	__u32				height;
+ 	__u32				pixelformat;
+-	enum v4l2_field			field;
+-	enum v4l2_colorspace		colorspace;
++	__u32				field;
++	__u32				colorspace;
+ 
+ 	struct v4l2_plane_pix_format	plane_fmt[VIDEO_MAX_PLANES];
+ 	__u8				num_planes;
+@@ -2169,7 +2169,7 @@ struct v4l2_pix_format_mplane {
+  * @raw_data:	placeholder for future extensions and custom formats
+  */
+ struct v4l2_format {
+-	enum v4l2_buf_type type;
++	__u32	 type;
+ 	union {
+ 		struct v4l2_pix_format		pix;     /* V4L2_BUF_TYPE_VIDEO_CAPTURE */
+ 		struct v4l2_pix_format_mplane	pix_mp;  /* V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE */
+@@ -2183,7 +2183,7 @@ struct v4l2_format {
+ /*	Stream type-dependent parameters
+  */
+ struct v4l2_streamparm {
+-	enum v4l2_buf_type type;
++	__u32	 type;
+ 	union {
+ 		struct v4l2_captureparm	capture;
+ 		struct v4l2_outputparm	output;
+@@ -2303,7 +2303,7 @@ struct v4l2_dbg_chip_ident {
+ struct v4l2_create_buffers {
+ 	__u32			index;
+ 	__u32			count;
+-	enum v4l2_memory        memory;
++	__u32			memory;
+ 	struct v4l2_format	format;
+ 	__u32			reserved[8];
+ };
+@@ -2360,8 +2360,8 @@ struct v4l2_create_buffers {
+ #define VIDIOC_TRY_FMT      	_IOWR('V', 64, struct v4l2_format)
+ #define VIDIOC_ENUMAUDIO	_IOWR('V', 65, struct v4l2_audio)
+ #define VIDIOC_ENUMAUDOUT	_IOWR('V', 66, struct v4l2_audioout)
+-#define VIDIOC_G_PRIORITY        _IOR('V', 67, enum v4l2_priority)
+-#define VIDIOC_S_PRIORITY        _IOW('V', 68, enum v4l2_priority)
++#define VIDIOC_G_PRIORITY	 _IOR('V', 67, __u32)
++#define VIDIOC_S_PRIORITY	 _IOW('V', 68, __u32)
+ #define VIDIOC_G_SLICED_VBI_CAP _IOWR('V', 69, struct v4l2_sliced_vbi_cap)
+ #define VIDIOC_LOG_STATUS         _IO('V', 70)
+ #define VIDIOC_G_EXT_CTRLS	_IOWR('V', 71, struct v4l2_ext_controls)
 -- 
-http://palosaari.fi/
+1.7.2.5
+
