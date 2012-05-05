@@ -1,38 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:45651 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751921Ab2E0JGW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 27 May 2012 05:06:22 -0400
-Message-ID: <4FC1EE93.9020003@redhat.com>
-Date: Sun, 27 May 2012 11:06:27 +0200
-From: Hans de Goede <hdegoede@redhat.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:55065 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1755711Ab2EENPt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 5 May 2012 09:15:49 -0400
+Message-ID: <4FA52803.3040206@iki.fi>
+Date: Sat, 05 May 2012 16:15:47 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
 MIME-Version: 1.0
-To: halli manjunatha <hallimanju@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Discussion: How to deal with radio tuners which can tune to multiple
- bands
-References: <1337032913-18646-1-git-send-email-manjunatha_halli@ti.com> <1337032913-18646-3-git-send-email-manjunatha_halli@ti.com> <201205201152.12948.hverkuil@xs4all.nl> <CAMT6Pyd6e8zgkLEk_dpGTxiPZDippDe_YgedNRpUkJzA9X5hvw@mail.gmail.com> <4FBD2C80.3060406@redhat.com>
-In-Reply-To: <4FBD2C80.3060406@redhat.com>
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+CC: linux-media@vger.kernel.org, t.stanislaws@samsung.com
+Subject: Re: [RFC] V4L: Rename V4L2_SEL_TGT_*_ACTIVE to V4L2_SEL_TGT_*_ACTUAL
+References: <1336221247-6543-1-git-send-email-sylvester.nawrocki@gmail.com>
+In-Reply-To: <1336221247-6543-1-git-send-email-sylvester.nawrocki@gmail.com>
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Sylwester,
 
-Just noticed the following on:
-http://linuxtv.org/downloads/v4l-dvb-apis/tuner.html#id2570531
+Sylwester Nawrocki wrote:
+> After introduction of the selection API on subdevs we have following sets
+> of selection targets:
+>
+>      /dev/v4l-subdev?               |   /dev/video?
+> -------------------------------------------------------------------------
+> V4L2_SUBDEV_SEL_TGT_CROP_ACTUAL    | V4L2_SEL_TGT_CROP_ACTIVE
+> V4L2_SUBDEV_SEL_TGT_CROP_BOUNDS    | V4L2_SEL_TGT_CROP_BOUNDS
+>                                     | V4L2_SEL_TGT_CROP_DEFAULT
+>                                     | V4L2_SEL_TGT_CROP_PADDED
+> V4L2_SUBDEV_SEL_TGT_COMPOSE_ACTUAL | V4L2_SEL_TGT_COMPOSE_ACTIVE
+> V4L2_SUBDEV_SEL_TGT_COMPOSE_BOUNDS | V4L2_SEL_TGT_COMPOSE_BOUNDS
+>                                     | V4L2_SEL_TGT_COMPOSE_DEFAULT
+>                                     | V4L2_SEL_TGT_COMPOSE_PADDED
+>
+> Although not exactly the same, the meaning of V4L2_SEL_TGT_*_ACTIVE
+> and V4L2_SUBDEV_SEL_TGT_*_ACTUAL selection targets is logically the
+> same. Different names add to confusion where both APIs are used in
+> a single driver or an application.
+> Then, rename the V4l2_SEL_TGT_[CROP/COMPOSE]_ACTIVE to
+> V4l2_SEL_TGT_[CROP/COMPOSE]_ACTUAL to avoid the API inconsistencies.
+> The selections API is experimental, so no any compatibility layer
+> is added. The ABI remains unchanged.
 
-"This specification does not define radio output devices.", iow no
-radio modulators, but we agreed upon making the band changes to
-the modulator too, and this makes sense because AFAIK we do support
-radio modulators.
+I'm definitely for keeping the two sets of target as uniform as possible.
 
-I hit this while working on adding support for the proposed API to
-v4l2-ctl, as I wanted to only print the band stuff for radio type
-devices, but the modulator struct has no type!
+I have one question, though: how about dropping the ACTIVE / ACTUAL 
+altogether? Then we'd have V4L2_SUBDEV_SEL_TGT_CROP and 
+V4L2_SUBDEV_SEL_TGT_CROP_BOUNDS etc. I feel that the ACTIVE or ACTUAL 
+doesn't really say anything there, and don't think it's an issue that a 
+target name is a part of another one.
 
-Regards,
+What's your opinion?
 
-Hans
+Kind regards,
+
+-- 
+Sakari Ailus
+sakari.ailus@iki.fi
