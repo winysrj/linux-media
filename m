@@ -1,201 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-1.cisco.com ([144.254.224.140]:19755 "EHLO
-	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753381Ab2EXPBa (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:55035 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754214Ab2EELOP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 May 2012 11:01:30 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: Discussion: How to deal with radio tuners which can tune to multiple bands
-Date: Thu, 24 May 2012 17:00:35 +0200
-Cc: halli manjunatha <hallimanju@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <1337032913-18646-1-git-send-email-manjunatha_halli@ti.com> <CAMT6Pyd6e8zgkLEk_dpGTxiPZDippDe_YgedNRpUkJzA9X5hvw@mail.gmail.com> <4FBD2C80.3060406@redhat.com>
-In-Reply-To: <4FBD2C80.3060406@redhat.com>
+	Sat, 5 May 2012 07:14:15 -0400
+Date: Sat, 5 May 2012 14:14:10 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	mchehab@redhat.com, remi@remlab.net
+Subject: Re: [PATCH 1/1] v4l2: use __u32 rather than enums in ioctl()
+ structs
+Message-ID: <20120505111410.GH852@valkosipuli.localdomain>
+References: <1336213545-8549-1-git-send-email-sakari.ailus@iki.fi>
+ <201205051255.01321.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201205241700.36022.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <201205051255.01321.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed 23 May 2012 20:29:20 Hans de Goede wrote:
-> Hi,
-> 
-> As discussed before 2 different use-cases have come up where we want some
-> knowledge of there being different radio bands added to the v4l2 API.
-> 
-> In Manjunatha Halli's case, if I understand things correctly, he wants
-> to limit hw_freq_seek to a certain band, rather then the receiver happily
-> trying to seek to frequencies which are not relevant for the use case in
-> question. To that purpose his patch proposes adding a band field to the
-> v4l2_hw_freq_seek struct, which can have one of the following values:
-> 
-> FM_BAND_TYPE_ALL	All Bands from 65.8 MHz till 108 Mhz or 162.55 MHz if weather band
+Hi Hans,
 
-I suggested that this be renamed to FM_BAND_DEFAULT (and that the _TYPE part
-of the names will be removed). The default band is usually the widest band
-(often 76-108) that the hardware can handle.
+On Sat, May 05, 2012 at 12:55:01PM +0200, Hans Verkuil wrote:
+> On Sat May 5 2012 12:25:45 Sakari Ailus wrote:
+> > From: Rémi Denis-Courmont <remi@remlab.net>
+> > 
+> > V4L2 uses the enum type in IOCTL arguments in IOCTLs that were defined until
+> > the use of enum was considered less than ideal. Recently Rémi Denis-Courmont
+> > brought up the issue by proposing a patch to convert the enums to unsigned:
+> > 
+> > <URL:http://www.spinics.net/lists/linux-media/msg46167.html>
+> > 
+> > This sparked a long discussion where another solution to the issue was
+> > proposed: two sets of IOCTL structures, one with __u32 and the other with
+> > enums, and conversion code between the two:
+> > 
+> > <URL:http://www.spinics.net/lists/linux-media/msg47168.html>
+> > 
+> > Both approaches implement a complete solution that resolves the problem. The
+> > first one is simple but requires assuming enums and __u32 are the same in
+> > size (so we won't break the ABI) while the second one is more complex and
+> > less clean but does not require making that assumption.
+> > 
+> > The issue boils down to whether enums are fundamentally different from __u32
+> > or not, and can the former be substituted by the latter. During the
+> > discussion it was concluded that the __u32 has the same size as enums on all
+> > archs Linux is supported: it has not been shown that replacing those enums
+> > in IOCTL arguments would break neither source or binary compatibility. If no
+> > such reason is found, just replacing the enums with __u32s is the way to go.
+> > 
+> > This is what this patch does. This patch is slightly different from Remi's
+> > first RFC (link above): it uses __u32 instead of unsigned and also changes
+> > the arguments of VIDIOC_G_PRIORITY and VIDIOC_S_PRIORITY.
+> > 
+> > Signed-off-by: Rémi Denis-Courmont <remi@remlab.net>
+> > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> > ---
+> >  include/linux/videodev2.h |   46 ++++++++++++++++++++++----------------------
+> >  1 files changed, 23 insertions(+), 23 deletions(-)
+> > 
+> > diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+> > index 5a09ac3..585e4b4 100644
+> > --- a/include/linux/videodev2.h
+> > +++ b/include/linux/videodev2.h
+> > @@ -292,10 +292,10 @@ struct v4l2_pix_format {
+> >  	__u32         		width;
+> >  	__u32			height;
+> >  	__u32			pixelformat;
+> > -	enum v4l2_field  	field;
+> > +	__u32			field;
+> 
+> One suggestion: add a comment like this:
+> 
+> 	__u32			field; /* refer to enum v4l2_field */
+> 
+> This keeps the link between the u32 and the enum values.
+> 
+> Note that the DocBook documentation also has to be updated.
+> 
+> Looks good to me otherwise.
 
-> FM_BAND_TYPE_EUROPE_US	Europe or US band(87.5 Mhz - 108 MHz)
-> FM_BAND_TYPE_JAPAN	Japan band(76 MHz - 90 MHz)
-> FM_BAND_TYPE_RUSSIAN	OIRT or Russian band(65.8 MHz - 74 MHz)
-> FM_BAND_TYPE_WEATHER	Weather band(162.4 MHz - 162.55 MHz)
-> 
-> In my case the problem is that the TEA5757 tuner can tune both AM
-> and FM (but note at the same time, it is a single tuner):
-> AM  530   - 1710 kHz
-> FM   87.5 -  108 MHz
-> 
-> In my case part of the problem is that the userspace UI for the tuner
-> cannot simply depict the frequency range as one large slider.
-> 
-> For FM devices having a slider going from 65.8 - 162.55 MHz is
-> far from ideal, esp. as there is a large whole of nothing in the
-> 108-162 Mhz making the non functional area of the sliders range
-> larger then the functional area.
-> 
-> For AM and FM capable devices representing the entire range
-> (530 Khz - 162.55 Mhz) is not just not ideal it is simply unworkable!
-> 
-> So we don't just want to limit the range a VIDIOC_S_HW_FREQ_SEEK can
-> seek over, we also want to let user space know for manual tuning
-> that we've several ranges, and allow it to query information
-> such as min / max freq, stereo capable, etc. per range.
-> 
-> As discussed with Hans V. this can best be done by extending
-> struct v4l2_tuner with a band field.
-> 
-> Our (Hans V. and me) first idea here was to let this field
-> work like an index, where userspace can enumerate available
-> bands by calling VIDIOC_G_TUNER, incrementing band each time until
-> -EINVAL gets returned.
+Thanks for the comments. I'll make the above changes.
 
-Not quite. The available bands are signaled through the v4l2_tuner capabilities
-field, so the app will know which bands there are. So there is no need to
-increment the band.
+Cheers,
 
-> So that completes the intro, also known as setting the stage :)
-> 
-> ###
-> 
-> Taking the intersection between the 2 proposals and the 2 problems
-> makes things interesting :)
-> 
-> Dividing the VIDIOC_G_TUNER results into bands also makes sense for
-> the FM case, at least in a 65.8 - 108 Mhz and a  162 Mhz band, to
-> avoid having a not tunable gap in the range reported to userspace.
-> 
-> But, allowing a EU citizen to tune below 87.5 is also not really
-> useful, nor allowing a Japanese citizen to tune above the 90 Mhz, etc.
-> 
-> So from presenting the user with a sensible UI pov, it makes sense
-> to not use 2 bands with FM, but to expose all supported bands
-> to userspace as they really are. This also makes sense from a demod
-> pov, since FM demodulation for Japanese FM is different then for
-> EU/US FM, so maybe the hardware needs to be poked to switch modes.
-
-Right.
-
-> Note that some radio chip drivers already do this effectively by having
-> a module parameter to select which band to use.
-> 
-> So lets expose all the FM bands from Manjunatha Halli's proposal
-> in VIDIOC_G_TUNER results. If we then go for the classic enumeration
-> strategy where userspace can enumerate available bands by calling
-> VIDIOC_G_TUNER, incrementing band each time until -EINVAL gets
-> returned, we get another problem...
-> 
-> How does user space know which band is which (other then checking
-> min/max frequency which is ugly!) ? We could make the tuner name field
-> different for each band, and let the app display a menu with tuner names
-> for the user to select a band, but that is ugly too.
-> 
-> Not only would doing something like that be ugly, it also makes it
-> as good as impossible for userspace to automatically select the
-> right band based on location.
-> 
-> So doing the classic v4l2 enum trick where we increment band each
-> time until we get -EINVAL is not a good idea IMHO.
-> 
-> Luckily Manjunatha Halli's proposal already gives us a solution,
-> we can define a fixed set of bands (adding SW/MW/LW bands for AM),
-> and userspace can enumerate by trying a G_TUNER for all
-> bands it is interested in.
-> 
-> ###
-> 
-> So given all of the above I would like to propose the following:
-> 
-> 1) Add a "band" field to struct v4l2_tuner, and a capability
->     indicating if the driver understands / uses this field
-> 2) This field is only valid for radio tuners, for tv tuners it
-> should always be 0 (as it was sofar as it is reserved atm)
-> 3) This field can have a number of fixed values, for now we have:
-> 
-> 0 RADIO_BAND_DEFAULT	Entire FM band supported by the tuner, or "default"
->                          band if different bands require switching the tuner to
->                          a different mode, or entire AM band supported by the
-> 			tuner for AM only tuners.
-> 1 RADIO_BAND_FM_EUROPE_US Europe or US band(87.5 Mhz - 108 MHz) *
-> 2 RADIO_BAND_FM_JAPAN	Japan band(76 MHz - 90 MHz) *
-> 3 RADIO_BAND_FM_RUSSIAN	OIRT or Russian band(65.8 MHz - 74 MHz) *
-> 4 RADIO_BAND_FM_WEATHER	Weather band(162.4 MHz - 162.55 MHz) *
-> 
-> 256 RADIO_BAND_AM_MW	Mid Wave AM band, covered frequencies are tuner dependent
-> 257 RADIO_BAND_AM_LW	Long Wave AM band, covered frequencies are tuner dependent
-> 258 RADIO_BAND_AM_SW	Short Wave AM band, covered frequencies are tuner dependent
-
-I wouldn't add LW and SW as long as we don't have hardware that supports it.
-
-> 
-> *) Reported (and available) frequency range might be different based on hardware
-> capabilities
-> 
-> Notice how 0, which the current reserved field should be set to for old apps,
-> should always cover as much of FM as possible, or AM for AM only tuners, to
-> preserve functionality for old non band aware v4l2 radio apps.
-> 
-> A (radio) tuner should always support RADIO_BAND_DEFAULT
-> 
-> 4) Apps can find out which bands are supported by doing a VIDIOC_G_TUNER
-> with band set to the desired value. If the passed band is not available
-> -EINVAL will be returned.
-
-I would propose to add capability flags signaling the presence of each bands.
-There are 24 bits available, and the number of bands is very limited. I see
-no problem here.
-
-This way an application doesn't need to cycle through all possible bands, but
-it can select one immediately.
-
-> 
-> 5) Apps can select the active band by doing a VIDIOC_S_TUNER with the band
-> field set to the desired band.
-
-OK. Note that the current frequency will have to be clamped to the new band.
-
-> 6) Doing a VIDIOC_S_FREQUENCY with a frequency which falls outside of the
-> current band will *not* result in an automatic band switch, instead the
-> passed frequency will be clamped to fit into the current band.
- 
-OK.
-
-> 7) Doing a VIDIOC_S_HW_FREQ_SEEK will seek in the currently active band,
-> this matches existing behavior where the seek starts at the currently
-> active frequency.
-
-Sounds good. Then we don't need to add a band field here as was in Halli's
-first proposal.
-
-> I think / hope that covers everything we need. Suggestions ? Comments ?
-
-Modulators. v4l2_modulator needs a band field as well. The capabilities are
-already shared with v4l2_tuner, so that doesn't need to change.
-
-Other than that it looks OK to me.
-
-Regards,
-
-	Hans
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
