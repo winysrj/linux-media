@@ -1,87 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:40889 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752826Ab2EZSis (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 26 May 2012 14:38:48 -0400
-Message-ID: <4FC1233C.8000007@redhat.com>
-Date: Sat, 26 May 2012 20:38:52 +0200
-From: Hans de Goede <hdegoede@redhat.com>
+Received: from mail-wg0-f47.google.com ([74.125.82.47]:58975 "EHLO
+	mail-wg0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758329Ab2EEAds (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 May 2012 20:33:48 -0400
+Received: by wgbfa7 with SMTP id fa7so2971840wgb.4
+        for <linux-media@vger.kernel.org>; Fri, 04 May 2012 17:33:47 -0700 (PDT)
+Message-ID: <4FA47568.5070906@gmail.com>
+Date: Sat, 05 May 2012 02:33:44 +0200
+From: poma <pomidorabelisima@gmail.com>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: halli manjunatha <hallimanju@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Discussion: How to deal with radio tuners which can tune to multiple
- bands
-References: <1337032913-18646-1-git-send-email-manjunatha_halli@ti.com> <201205261840.27204.hverkuil@xs4all.nl> <4FC11C71.7090104@redhat.com> <201205262022.57154.hverkuil@xs4all.nl>
-In-Reply-To: <201205262022.57154.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+To: gennarone@gmail.com, linux-media@vger.kernel.org
+Subject: Re: [PATCH v2] add support for DeLOCK-USB-2.0-DVB-T-Receiver-61744
+References: <4F9E5D91.30503@gmail.com> <1335800374-22012-2-git-send-email-thomas.mair86@googlemail.com> <4F9F8752.40609@gmail.com> <4FA232CE.8010404@gmail.com> <4FA249DE.7000702@gmail.com> <4FA33084.7050204@gmail.com> <4FA3DE7A.1080709@gmail.com>
+In-Reply-To: <4FA3DE7A.1080709@gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On 05/04/2012 03:49 PM, Gianluca Gennari wrote:
+> Hi poma,
+> thanks for the very interesting links.
+> 
+;)
 
-On 05/26/2012 08:22 PM, Hans Verkuil wrote:
-> On Sat May 26 2012 20:09:53 Hans de Goede wrote:
->> Hi,
+> Il 04/05/2012 03:27, poma ha scritto:
+>> On 05/03/2012 11:03 AM, Gianluca Gennari wrote:
+>>> Hi poma,
+>>> I have a 0BDA:2838 (Easycap EZTV646) and a 0BDA:2832 (no name 20x20mm
+>>> mini DVB-T stick) and both are based on the E4000 tuner, which is not
+>>> supported in the kernel at the moment.
+>>> I have no idea if there are sticks with the same USB PID and the fc0012
+>>> tuner.
 >>
->> On 05/26/2012 06:40 PM, Hans Verkuil wrote:
->>> On Sat May 26 2012 18:02:34 Hans de Goede wrote:
->>>> Hi,
->>>>
->>>> On 05/24/2012 09:12 PM, Hans de Goede wrote:
->>>>> Hi,
->>>>>
->>>>> On 05/24/2012 05:00 PM, Hans Verkuil wrote:
->>>>>>> I think / hope that covers everything we need. Suggestions ? Comments ?
->>>>>>
->>>>>> Modulators. v4l2_modulator needs a band field as well. The capabilities are
->>>>>> already shared with v4l2_tuner, so that doesn't need to change.
->>>>>
->>>>> Ah, yes modulators, good one, ack.
->>>>>
->>>>> Manjunatha, since the final proposal is close to yours, and you already have
->>>>> a patch for that including all the necessary documentation updates, can I ask
->>>>> you to update your patch to implement this proposal?
->>>>>
->>>>
->>>> So I've been working a bit on adding AM support to the tea575x driver using
->>>> the agreed upon API, some observations from this:
->>>>
->>>> 1) There is no way to get which band is currently active
->>>
->>> Huh? Didn't G_TUNER return the current band? That's how I interpreted the
->>> proposal. G_TUNER returns the available bands in capabilities and the current
->>> band and its frequency range. You want to find the frequency range of another
->>> band you call have to call S_TUNER first to select that other band, and then
->>> G_TUNER to discover its range.
+>> OK, second one - no name device is "Realtek RTL2832U reference design"**.
 >>
->> Ah, we misunderstood each other there, I thought G_TUNER would honor the band
->> passed in and return info on that band.
->>
->>> That also solves case 2. No need for an extra band in v4l2_frequency.
->>
->> Right, the downside to this is that there is no way to just enumerate things
->> without actually changing anything. It would be nice if for example v4l2-ctl
->> could lists all bands including ranges as a 100% read-only operation.
->>
->> Note I'm ok with the way you propose to handle things, just pointing out
->> one (obvious) shortcoming of doing things this way. I think it is a short coming
->> we can live with, but we should be aware of it.
+>> First one:
+>> Once upon a time there was a "EasyCAP"�
+>> "After while crocodile!"
+>> �and "EzCAP" was born.
+>> http://szforwardvideo.en.alibaba.com/aboutus.html
+>> Obviously Easycap EZTV646 != EzCAP EzTV646
+>> http://www.reddit.com/r/RTLSDR/comments/s6ddo/rtlsdr_compatibility_list_v2_work_in_progress/
+>> ezcap EzTV646	0BDA:2838	RTL2832U/FC0012		Some revisions may have the E4000*
+>> http://i.imgur.com/mFD1X.jpg
+>> (Generic)	0BDa:2838	RTL2832U/E4000*
+>> �
+>> And, in addition:
+>> http://sdr.osmocom.org/trac/wiki/rtl-sdr
+>> 0x0bda	0x2832	all of them	Generic RTL2832U (e.g. hama nano)**
+>> 0x0bda	0x2838	E4000	ezcap USB 2.0 DVB-T/DAB/FM dongle
+>> �
+>> Maybe?
+>> https://sites.google.com/site/myrtlsdr/
+> 
+> That's it. Opening the device enclosure, I can read this on the PCB:
+> "EzTV668 1.0"
+> and it looks identical to the picture posted there.
+> 
+Groovy!
+
+>> "EzCap EZTV646 has got RTL2832U/FC0012. However rtl-sdr must be tweaked
+>> to force FC0012 tuner because it has the same PID as EZTV668 (PID:
+>> 0x2838) so running it whithout a tweak will select Elonics E4000 tuner.
+>> Works, not so good at filtering."
+>> �
+>> Conclusion:
+>> At least two devices share same vid/pid with different tuners - fc0012
+>> vs e4000.
+>> How to resolve this from a drivers perspective in a proper way?
+> 
+> This is not a big problem: the rtl2832 driver should read the tuner type
+> from an internal register and load the proper module (or exit with an
+> error message if the tuner is unsupported).
+> 
+Ack, thanks!
+
+>> Beside,
+>> there is GPL'ed 'e4k' tuner source code aka 'e4000 improved'*** (Elonics
+>> E4000)
+>> by Harald Welte
+>> http://cgit.osmocom.org/cgit/osmo-sdr/tree/firmware/src/tuner_e4k.c
+>> http://sdr.osmocom.org/trac/
+>> http://sdr.osmocom.org/trac/wiki/rtl-sdr
+>> http://wiki.spench.net/wiki/RTL2832U***
+> 
+> Very nice. So we should ask Harald Welte if he is willing to have his
+> driver merged in the kernel.
 >
-> Well, the important thing is that you know what bands are supported, and you
-> know because of the capabilities.
+Undoubtedly!
+Please ping Thomas and Antti, accordingly.
 
-I agree.
+>> regards,
+>> poma
+>>
+> 
+> Regards,
+> Gianluca
 
-> I don't really think you have to query the
-> exact range of other than the current band: the band's name is already a good
-> indication of what the range will be, you just don't know the exact boundaries
-> until you switch to that band. Which I believe is perfectly reasonable.
-
-I agree, so lets go with your proposal / my original proposal as interpreted by
-you :)
-
-Regards,
-
-Hans
+regards,
+poma
