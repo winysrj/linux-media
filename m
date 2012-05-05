@@ -1,91 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:24781 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965368Ab2EOPpe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 May 2012 11:45:34 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: text/plain; charset=ISO-8859-1
-Received: from euspt2 ([210.118.77.14]) by mailout4.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0M42009MYMG9AQ80@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 15 May 2012 16:45:45 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0M42002NHMFHSW@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 15 May 2012 16:45:30 +0100 (BST)
-Date: Tue, 15 May 2012 17:45:19 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [GIT PULL FOR 3.5] DMABUF importer feature in V4L2 API
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	"Tomasz Stanislawski/Poland R&D Center-Linux (MSS)/./????"
-	<t.stanislaws@samsung.com>
-Message-id: <4FB27A0F.9060700@samsung.com>
+Received: from mx1.redhat.com ([209.132.183.28]:12067 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753285Ab2EEHjL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 5 May 2012 03:39:11 -0400
+Message-ID: <4FA4DA05.5030001@redhat.com>
+Date: Sat, 05 May 2012 09:43:01 +0200
+From: Hans de Goede <hdegoede@redhat.com>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media@vger.kernel.org, Jean-Francois Moine <moinejf@free.fr>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFCv1 PATCH 1/7] gspca: allow subdrivers to use the control
+ framework.
+References: <1335625796-9429-1-git-send-email-hverkuil@xs4all.nl> <ea7e986dc0fa18da12c22048e9187e9933191d3d.1335625085.git.hans.verkuil@cisco.com>
+In-Reply-To: <ea7e986dc0fa18da12c22048e9187e9933191d3d.1335625085.git.hans.verkuil@cisco.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi,
 
-The following patch series adds DMABUF importer role to V4L2 API.
-I'm sending this on behalf of Tomasz Stanislawski. Please pull for v3.5.
+I'm slowly working my way though this series today (both review, as well
+as some tweaks and testing).
 
-The following changes since commit d509835e32bd761a2b7b446034a273da568e5573:
+More comments inline...
 
-  [media] media: mx2_camera: Fix mbus format handling (2012-05-15 09:42:17 -0300)
+On 04/28/2012 05:09 PM, Hans Verkuil wrote:
+> From: Hans Verkuil<hans.verkuil@cisco.com>
+>
+> Make the necessary changes to allow subdrivers to use the control framework.
+> This does not add control event support, that needs more work.
+>
+> Signed-off-by: Hans Verkuil<hans.verkuil@cisco.com>
+> ---
+>   drivers/media/video/gspca/gspca.c |   13 +++++++++----
+>   1 file changed, 9 insertions(+), 4 deletions(-)
+>
+> diff --git a/drivers/media/video/gspca/gspca.c b/drivers/media/video/gspca/gspca.c
+> index ca5a2b1..56dff10 100644
+> --- a/drivers/media/video/gspca/gspca.c
+> +++ b/drivers/media/video/gspca/gspca.c
+> @@ -38,6 +38,7 @@
+>   #include<linux/uaccess.h>
+>   #include<linux/ktime.h>
+>   #include<media/v4l2-ioctl.h>
+> +#include<media/v4l2-ctrls.h>
+>
+>   #include "gspca.h"
+>
+> @@ -1006,6 +1007,8 @@ static void gspca_set_default_mode(struct gspca_dev *gspca_dev)
+>
+>   	/* set the current control values to their default values
+>   	 * which may have changed in sd_init() */
+> +	/* does nothing if ctrl_handler == NULL */
+> +	v4l2_ctrl_handler_setup(gspca_dev->vdev.ctrl_handler);
+>   	ctrl = gspca_dev->cam.ctrls;
+>   	if (ctrl != NULL) {
+>   		for (i = 0;
+> @@ -1323,6 +1326,7 @@ static void gspca_release(struct video_device *vfd)
+>   	PDEBUG(D_PROBE, "%s released",
+>   		video_device_node_name(&gspca_dev->vdev));
+>
+> +	v4l2_ctrl_handler_free(gspca_dev->vdev.ctrl_handler);
+>   	kfree(gspca_dev->usb_buf);
+>   	kfree(gspca_dev);
+>   }
+> @@ -2347,6 +2351,10 @@ int gspca_dev_probe2(struct usb_interface *intf,
+>   	gspca_dev->sd_desc = sd_desc;
+>   	gspca_dev->nbufread = 2;
+>   	gspca_dev->empty_packet = -1;	/* don't check the empty packets */
+> +	gspca_dev->vdev = gspca_template;
+> +	gspca_dev->vdev.parent =&intf->dev;
+> +	gspca_dev->module = module;
+> +	gspca_dev->present = 1;
+>
+>   	/* configure the subdriver and initialize the USB device */
+>   	ret = sd_desc->config(gspca_dev, id);
 
-are available in the git repository at:
+You also need to move the initialization of the mutexes here, as the
+v4l2_ctrl_handler_setup will call s_ctrl on all the controls, and s_ctrl
+should take the usb_lock (see my review of the next patch in this series),
+I'll make this change myself and merge it into your patch.
 
-  git://git.infradead.org/users/kmpark/linux-samsung v4l2_dmabuf
+> @@ -2368,10 +2376,6 @@ int gspca_dev_probe2(struct usb_interface *intf,
+>   	init_waitqueue_head(&gspca_dev->wq);
+>
+>   	/* init video stuff */
+> -	memcpy(&gspca_dev->vdev,&gspca_template, sizeof gspca_template);
+> -	gspca_dev->vdev.parent =&intf->dev;
+> -	gspca_dev->module = module;
+> -	gspca_dev->present = 1;
+>   	ret = video_register_device(&gspca_dev->vdev,
+>   				  VFL_TYPE_GRABBER,
+>   				  -1);
+> @@ -2391,6 +2395,7 @@ out:
+>   	if (gspca_dev->input_dev)
+>   		input_unregister_device(gspca_dev->input_dev);
+>   #endif
+> +	v4l2_ctrl_handler_free(gspca_dev->vdev.ctrl_handler);
+>   	kfree(gspca_dev->usb_buf);
+>   	kfree(gspca_dev);
+>   	return ret;
 
-for you to fetch changes up to ac768fa8ad56774b0084dccb727b515e23e467cd:
+Otherwise looks good, I've added it to my local tree (with the
+described change), and will include it in my next pullreq.
 
-  v4l: s5p-fimc: support for dmabuf importing (2012-05-15 15:46:49 +0200)
-
-----------------------------------------------------------------
-Andrzej Pietrasiewicz (1):
-      v4l: vb2-dma-contig: add support for scatterlist in userptr mode
-
-Laurent Pinchart (2):
-      v4l: vb2-dma-contig: Shorten vb2_dma_contig prefix to vb2_dc
-      v4l: vb2-dma-contig: Reorder functions
-
-Marek Szyprowski (2):
-      v4l: vb2: add prepare/finish callbacks to allocators
-      v4l: vb2-dma-contig: add prepare/finish to dma-contig allocator
-
-Sumit Semwal (4):
-      v4l: Add DMABUF as a memory type
-      v4l: vb2: add support for shared buffer (dma_buf)
-      v4l: vb: remove warnings about MEMORY_DMABUF
-      v4l: vb2-dma-contig: add support for dma_buf importing
-
-Tomasz Stanislawski (4):
-      Documentation: media: description of DMABUF importing in V4L2
-      v4l: vb2-dma-contig: Remove unneeded allocation context structure
-      v4l: s5p-tv: mixer: support for dmabuf importing
-      v4l: s5p-fimc: support for dmabuf importing
-
- Documentation/DocBook/media/v4l/compat.xml             |    4 +
- Documentation/DocBook/media/v4l/io.xml                 |  179
-+++++++++++++++++++++++++++++++
- Documentation/DocBook/media/v4l/vidioc-create-bufs.xml |    1 +
- Documentation/DocBook/media/v4l/vidioc-qbuf.xml        |   15 +++
- Documentation/DocBook/media/v4l/vidioc-reqbufs.xml     |   45 ++++----
- drivers/media/video/Kconfig                            |    1 +
- drivers/media/video/s5p-fimc/fimc-capture.c            |    2 +-
- drivers/media/video/s5p-tv/Kconfig                     |    1 +
- drivers/media/video/s5p-tv/mixer_video.c               |    2 +-
- drivers/media/video/videobuf-core.c                    |    4 +
- drivers/media/video/videobuf2-core.c                   |  207
-+++++++++++++++++++++++++++++++++++-
- drivers/media/video/videobuf2-dma-contig.c             |  518
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-------------
- include/linux/videodev2.h                              |    7 ++
- include/media/videobuf2-core.h                         |   34 ++++++
- 14 files changed, 921 insertions(+), 99 deletions(-)
-
---
 Regards,
-Sylwester
+
+Hans
