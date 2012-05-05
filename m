@@ -1,90 +1,208 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:53260 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752500Ab2EQUlJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 May 2012 16:41:09 -0400
-Message-ID: <4FB56262.5020803@iki.fi>
-Date: Thu, 17 May 2012 23:41:06 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from mailout-de.gmx.net ([213.165.64.22]:48930 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1755250Ab2EEMFe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 5 May 2012 08:05:34 -0400
+From: Tobias Lorenz <tobias.lorenz@gmx.net>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [RFC PATCH 3/4] radio-si470x-common.c: remove unnecessary kernel log spam.
+Date: Sat, 5 May 2012 14:05:28 +0200
+Cc: linux-media@vger.kernel.org,
+	Joonyoung Shim <jy0922.shim@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+References: <1336138232-17528-1-git-send-email-hverkuil@xs4all.nl> <6bc768e0c1d1664d96f8a051324c9fc1ef71ff8c.1336137768.git.hans.verkuil@cisco.com>
+In-Reply-To: <6bc768e0c1d1664d96f8a051324c9fc1ef71ff8c.1336137768.git.hans.verkuil@cisco.com>
 MIME-Version: 1.0
-To: poma <pomidorabelisima@gmail.com>
-CC: Thomas Mair <thomas.mair86@googlemail.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH v4 1/5] rtl2832 ver. 0.4: removed signal statistics
-References: <1> <1337206420-23810-1-git-send-email-thomas.mair86@googlemail.com> <1337206420-23810-2-git-send-email-thomas.mair86@googlemail.com> <4FB50909.7030101@iki.fi> <4FB55F2D.8060000@gmail.com>
-In-Reply-To: <4FB55F2D.8060000@gmail.com>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201205051405.29313.tobias.lorenz@gmx.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 17.05.2012 23:27, poma wrote:
-> On 05/17/2012 04:19 PM, Antti Palosaari wrote:
->> Moikka Thomas,
->>
->> Here is the review. See comments below.
->>
->> And conclusion is that it is ready for the Kernel merge. I did not see
->> any big functiuonality problems - only some small issues that are likely
->> considered as a coding style etc. Feel free to fix those and sent new
->> patc serie or just new patch top of that.
->>
->> Reviewed-by: Antti Palosaari<crope@iki.fi>
+Hello Hans,
 
-[...]
+thanks for the improvements. Looks good to me.
 
-> rtl2832.c.diff:
-> - static int ->  static const
-> - struct ->  static const struct
-> - newline between function call and error check ->  […]
-> - 5 indications apropos 'spaces' regarding 'CodingStyle'- line 206
-> (/usr/share/doc/kernel-doc-3.3.5/Documentation/CodingStyle)
-> […]
-> Use one space around (on each side of) most binary and ternary operators,
-> such as any of these:
->
->          =  +  -<   >   *  /  %  |&   ^<=>=  ==  !=  ?  :
->
-> […]
->
-> grep '>>\|<<' v4-1-5-rtl2832-ver.-0.4-removed-signal-statistics.patch.orig
-> +	len = (msb>>  3) + 1;
-> +		reading_tmp |= reading[i]<<  ((len-1-i)*8);
-> +	*val = (reading_tmp>>  lsb)&  mask;
-> +	len = (msb>>  3) + 1;
-> +		reading_tmp |= reading[i]<<  ((len-1-i)*8);
-> +	writing_tmp = reading_tmp&  ~(mask<<  lsb);
-> +	writing_tmp |= ((val&  mask)<<  lsb);
-> +		writing[i] = (writing_tmp>>  ((len-1-i)*8))&  0xff;
-> +	num = bw_mode<<  20;
->
-> Bitshift operators seems to be OK.
-> Something else?
+Acked-by: Tobias Lorenz <tobias.lorenz@gmx.net>
 
-(len-1-i)*8
+Bye,
+Toby
 
-> - 1 indication apropos 'media/dvb/frontends/rtl2832_priv.h:30'
-> Compared to 'rtl2830_priv.h' seems to be OK.
->
-> ./checkpatch.pl --no-tree
-> v4-1-5-rtl2832-ver.-0.4-removed-signal-statistics.patch.orig
-> ERROR: Missing Signed-off-by: line(s)
->
-> total: 1 errors, 0 warnings, 1177 lines checked
->
-> v4-1-5-rtl2832-ver.-0.4-removed-signal-statistics.patch.orig has style
-> problems, please review.  If any of these errors
-> are false positives report them to the maintainer, see
-> CHECKPATCH in MAINTAINERS.
->
-> How do you produce this error:
-> "ERROR: Macros with complex values should be enclosed in parenthesis…"?
+Am Freitag, 4. Mai 2012, 15:30:31 schrieb Hans Verkuil:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> There is no need to report an error in the log, you are already returning
+> that error to userspace after all.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  drivers/media/radio/si470x/radio-si470x-common.c |   78
+> +++++----------------- 1 file changed, 17 insertions(+), 61 deletions(-)
+> 
+> diff --git a/drivers/media/radio/si470x/radio-si470x-common.c
+> b/drivers/media/radio/si470x/radio-si470x-common.c index e70badf..b9a44d4
+> 100644
+> --- a/drivers/media/radio/si470x/radio-si470x-common.c
+> +++ b/drivers/media/radio/si470x/radio-si470x-common.c
+> @@ -327,7 +327,7 @@ static int si470x_set_seek(struct si470x_device *radio,
+>  		radio->registers[POWERCFG] &= ~POWERCFG_SEEKUP;
+>  	retval = si470x_set_register(radio, POWERCFG);
+>  	if (retval < 0)
+> -		goto done;
+> +		return retval;
+> 
+>  	/* currently I2C driver only uses interrupt way to seek */
+>  	if (radio->stci_enabled) {
+> @@ -355,20 +355,15 @@ static int si470x_set_seek(struct si470x_device
+> *radio, if (radio->registers[STATUSRSSI] & STATUSRSSI_SF)
+>  		dev_warn(&radio->videodev.dev,
+>  			"seek failed / band limit reached\n");
+> -	if (timed_out)
+> -		dev_warn(&radio->videodev.dev,
+> -			"seek timed out after %u ms\n", seek_timeout);
+> 
+>  stop:
+>  	/* stop seeking */
+>  	radio->registers[POWERCFG] &= ~POWERCFG_SEEK;
+>  	retval = si470x_set_register(radio, POWERCFG);
+> 
+> -done:
+>  	/* try again, if timed out */
+> -	if ((retval == 0) && timed_out)
+> -		retval = -EAGAIN;
+> -
+> +	if (retval == 0 && timed_out)
+> +		return -EAGAIN;
+>  	return retval;
+>  }
+> 
+> @@ -589,16 +584,14 @@ static int si470x_vidioc_g_tuner(struct file *file,
+> void *priv, struct v4l2_tuner *tuner)
+>  {
+>  	struct si470x_device *radio = video_drvdata(file);
+> -	int retval = 0;
+> +	int retval;
+> 
+> -	if (tuner->index != 0) {
+> -		retval = -EINVAL;
+> -		goto done;
+> -	}
+> +	if (tuner->index != 0)
+> +		return -EINVAL;
+> 
+>  	retval = si470x_get_register(radio, STATUSRSSI);
+>  	if (retval < 0)
+> -		goto done;
+> +		return retval;
+> 
+>  	/* driver constants */
+>  	strcpy(tuner->name, "FM");
+> @@ -653,10 +646,6 @@ static int si470x_vidioc_g_tuner(struct file *file,
+> void *priv, /* AFCRL does only indicate that freq. differs, not if too
+> low/high */ tuner->afc = (radio->registers[STATUSRSSI] & STATUSRSSI_AFCRL)
+> ? 1 : 0;
+> 
+> -done:
+> -	if (retval < 0)
+> -		dev_warn(&radio->videodev.dev,
+> -			"get tuner failed with %d\n", retval);
+>  	return retval;
+>  }
+> 
+> @@ -668,7 +657,6 @@ static int si470x_vidioc_s_tuner(struct file *file,
+> void *priv, struct v4l2_tuner *tuner)
+>  {
+>  	struct si470x_device *radio = video_drvdata(file);
+> -	int retval = 0;
+> 
+>  	if (tuner->index != 0)
+>  		return -EINVAL;
+> @@ -684,12 +672,7 @@ static int si470x_vidioc_s_tuner(struct file *file,
+> void *priv, break;
+>  	}
+> 
+> -	retval = si470x_set_register(radio, POWERCFG);
+> -
+> -	if (retval < 0)
+> -		dev_warn(&radio->videodev.dev,
+> -			"set tuner failed with %d\n", retval);
+> -	return retval;
+> +	return si470x_set_register(radio, POWERCFG);
+>  }
+> 
+> 
+> @@ -700,21 +683,12 @@ static int si470x_vidioc_g_frequency(struct file
+> *file, void *priv, struct v4l2_frequency *freq)
+>  {
+>  	struct si470x_device *radio = video_drvdata(file);
+> -	int retval = 0;
+> 
+> -	if (freq->tuner != 0) {
+> -		retval = -EINVAL;
+> -		goto done;
+> -	}
+> +	if (freq->tuner != 0)
+> +		return -EINVAL;
+> 
+>  	freq->type = V4L2_TUNER_RADIO;
+> -	retval = si470x_get_freq(radio, &freq->frequency);
+> -
+> -done:
+> -	if (retval < 0)
+> -		dev_warn(&radio->videodev.dev,
+> -			"get frequency failed with %d\n", retval);
+> -	return retval;
+> +	return si470x_get_freq(radio, &freq->frequency);
+>  }
+> 
+> 
+> @@ -725,20 +699,11 @@ static int si470x_vidioc_s_frequency(struct file
+> *file, void *priv, struct v4l2_frequency *freq)
+>  {
+>  	struct si470x_device *radio = video_drvdata(file);
+> -	int retval = 0;
+> -
+> -	if (freq->tuner != 0) {
+> -		retval = -EINVAL;
+> -		goto done;
+> -	}
+> 
+> -	retval = si470x_set_freq(radio, freq->frequency);
+> +	if (freq->tuner != 0)
+> +		return -EINVAL;
+> 
+> -done:
+> -	if (retval < 0)
+> -		dev_warn(&radio->videodev.dev,
+> -			"set frequency failed with %d\n", retval);
+> -	return retval;
+> +	return si470x_set_freq(radio, freq->frequency);
+>  }
+> 
+> 
+> @@ -749,20 +714,11 @@ static int si470x_vidioc_s_hw_freq_seek(struct file
+> *file, void *priv, struct v4l2_hw_freq_seek *seek)
+>  {
+>  	struct si470x_device *radio = video_drvdata(file);
+> -	int retval = 0;
+> -
+> -	if (seek->tuner != 0) {
+> -		retval = -EINVAL;
+> -		goto done;
+> -	}
+> 
+> -	retval = si470x_set_seek(radio, seek->wrap_around, seek->seek_upward);
+> +	if (seek->tuner != 0)
+> +		return -EINVAL;
+> 
+> -done:
+> -	if (retval < 0)
+> -		dev_warn(&radio->videodev.dev,
+> -			"set hardware frequency seek failed with %d\n", retval);
+> -	return retval;
+> +	return si470x_set_seek(radio, seek->wrap_around, seek->seek_upward);
+>  }
+> 
+>  const struct v4l2_ctrl_ops si470x_ctrl_ops = {
 
-Just running checkpatch.pl --file foo
-
-And it is ERROR which means it *must* be corrected.
-
-regards
-Antti
--- 
-http://palosaari.fi/
