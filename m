@@ -1,218 +1,155 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:23502 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756516Ab2EEPkW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 5 May 2012 11:40:22 -0400
-Message-ID: <4FA549E2.7080509@redhat.com>
-Date: Sat, 05 May 2012 17:40:18 +0200
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
+Received: from mailout-de.gmx.net ([213.165.64.23]:52731 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1755250Ab2EEMFX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 5 May 2012 08:05:23 -0400
+From: Tobias Lorenz <tobias.lorenz@gmx.net>
 To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org, Jean-Francois Moine <moinejf@free.fr>,
+Subject: Re: [RFC PATCH 2/4] si470x: add control event support and more v4l2 compliancy fixes.
+Date: Sat, 5 May 2012 14:05:17 +0200
+Cc: linux-media@vger.kernel.org,
+	Joonyoung Shim <jy0922.shim@samsung.com>,
 	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFCv1 PATCH 1/7] gspca: allow subdrivers to use the control
- framework.
-References: <1335625796-9429-1-git-send-email-hverkuil@xs4all.nl> <ea7e986dc0fa18da12c22048e9187e9933191d3d.1335625085.git.hans.verkuil@cisco.com> <4FA4DA05.5030001@redhat.com> <201205051114.31531.hverkuil@xs4all.nl> <4FA53CD2.1010706@redhat.com> <4FA541B8.4080507@redhat.com>
-In-Reply-To: <4FA541B8.4080507@redhat.com>
-Content-Type: multipart/mixed;
- boundary="------------020007030207050206070701"
+References: <1336138232-17528-1-git-send-email-hverkuil@xs4all.nl> <0acaad8cb3d59f5301a67f7378e7e540fab3196e.1336137768.git.hans.verkuil@cisco.com>
+In-Reply-To: <0acaad8cb3d59f5301a67f7378e7e540fab3196e.1336137768.git.hans.verkuil@cisco.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201205051405.18225.tobias.lorenz@gmx.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------020007030207050206070701
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Hello Hans,
 
-Hi,
+thanks for the improvements. Looks good to me.
 
-Oops, forgot the attachment it is here now...
+Acked-by: Tobias Lorenz <tobias.lorenz@gmx.net>
 
-Regards,
+Bye,
+Toby
 
-Hans
+Am Freitag, 4. Mai 2012, 15:30:30 schrieb Hans Verkuil:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  drivers/media/radio/si470x/radio-si470x-common.c |   45
+> ++++++++++++++-------- 1 file changed, 28 insertions(+), 17 deletions(-)
+> 
+> diff --git a/drivers/media/radio/si470x/radio-si470x-common.c
+> b/drivers/media/radio/si470x/radio-si470x-common.c index de9475f..e70badf
+> 100644
+> --- a/drivers/media/radio/si470x/radio-si470x-common.c
+> +++ b/drivers/media/radio/si470x/radio-si470x-common.c
+> @@ -262,7 +262,7 @@ static int si470x_get_freq(struct si470x_device *radio,
+> unsigned int *freq) */
+>  int si470x_set_freq(struct si470x_device *radio, unsigned int freq)
+>  {
+> -	unsigned int spacing, band_bottom;
+> +	unsigned int spacing, band_bottom, band_top;
+>  	unsigned short chan;
+> 
+>  	/* Spacing (kHz) */
+> @@ -278,19 +278,26 @@ int si470x_set_freq(struct si470x_device *radio,
+> unsigned int freq) spacing = 0.050 * FREQ_MUL; break;
+>  	};
+> 
+> -	/* Bottom of Band (MHz) */
+> +	/* Bottom/Top of Band (MHz) */
+>  	switch ((radio->registers[SYSCONFIG2] & SYSCONFIG2_BAND) >> 6) {
+>  	/* 0: 87.5 - 108 MHz (USA, Europe) */
+>  	case 0:
+> -		band_bottom = 87.5 * FREQ_MUL; break;
+> +		band_bottom = 87.5 * FREQ_MUL;
+> +		band_top = 108 * FREQ_MUL;
+> +		break;
+>  	/* 1: 76   - 108 MHz (Japan wide band) */
+>  	default:
+> -		band_bottom = 76   * FREQ_MUL; break;
+> +		band_bottom = 76 * FREQ_MUL;
+> +		band_top = 108 * FREQ_MUL;
+> +		break;
+>  	/* 2: 76   -  90 MHz (Japan) */
+>  	case 2:
+> -		band_bottom = 76   * FREQ_MUL; break;
+> +		band_bottom = 76 * FREQ_MUL;
+> +		band_top = 90 * FREQ_MUL;
+> +		break;
+>  	};
+> 
+> +	freq = clamp(freq, band_bottom, band_top);
+>  	/* Chan = [ Freq (Mhz) - Bottom of Band (MHz) ] / Spacing (kHz) */
+>  	chan = (freq - band_bottom) / spacing;
+> 
+> @@ -515,17 +522,19 @@ static unsigned int si470x_fops_poll(struct file
+> *file, struct poll_table_struct *pts)
+>  {
+>  	struct si470x_device *radio = video_drvdata(file);
+> -	int retval = 0;
+> -
+> -	/* switch on rds reception */
+> +	unsigned long req_events = poll_requested_events(pts);
+> +	int retval = v4l2_ctrl_poll(file, pts);
+> 
+> -	if ((radio->registers[SYSCONFIG1] & SYSCONFIG1_RDS) == 0)
+> -		si470x_rds_on(radio);
+> +	if (req_events & (POLLIN | POLLRDNORM)) {
+> +		/* switch on rds reception */
+> +		if ((radio->registers[SYSCONFIG1] & SYSCONFIG1_RDS) == 0)
+> +			si470x_rds_on(radio);
+> 
+> -	poll_wait(file, &radio->read_queue, pts);
+> +		poll_wait(file, &radio->read_queue, pts);
+> 
+> -	if (radio->rd_index != radio->wr_index)
+> -		retval = POLLIN | POLLRDNORM;
+> +		if (radio->rd_index != radio->wr_index)
+> +			retval |= POLLIN | POLLRDNORM;
+> +	}
+> 
+>  	return retval;
+>  }
+> @@ -637,6 +646,8 @@ static int si470x_vidioc_g_tuner(struct file *file,
+> void *priv, tuner->signal = (radio->registers[STATUSRSSI] &
+> STATUSRSSI_RSSI); /* the ideal factor is 0xffff/75 = 873,8 */
+>  	tuner->signal = (tuner->signal * 873) + (8 * tuner->signal / 10);
+> +	if (tuner->signal > 0xffff)
+> +		tuner->signal = 0xffff;
+> 
+>  	/* automatic frequency control: -1: freq to low, 1 freq to high */
+>  	/* AFCRL does only indicate that freq. differs, not if too low/high */
+> @@ -660,7 +671,7 @@ static int si470x_vidioc_s_tuner(struct file *file,
+> void *priv, int retval = 0;
+> 
+>  	if (tuner->index != 0)
+> -		goto done;
+> +		return -EINVAL;
+> 
+>  	/* mono/stereo selector */
+>  	switch (tuner->audmode) {
+> @@ -668,15 +679,13 @@ static int si470x_vidioc_s_tuner(struct file *file,
+> void *priv, radio->registers[POWERCFG] |= POWERCFG_MONO;  /* force mono */
+>  		break;
+>  	case V4L2_TUNER_MODE_STEREO:
+> +	default:
+>  		radio->registers[POWERCFG] &= ~POWERCFG_MONO; /* try stereo */
+>  		break;
+> -	default:
+> -		goto done;
+>  	}
+> 
+>  	retval = si470x_set_register(radio, POWERCFG);
+> 
+> -done:
+>  	if (retval < 0)
+>  		dev_warn(&radio->videodev.dev,
+>  			"set tuner failed with %d\n", retval);
+> @@ -770,6 +779,8 @@ static const struct v4l2_ioctl_ops si470x_ioctl_ops = {
+>  	.vidioc_g_frequency	= si470x_vidioc_g_frequency,
+>  	.vidioc_s_frequency	= si470x_vidioc_s_frequency,
+>  	.vidioc_s_hw_freq_seek	= si470x_vidioc_s_hw_freq_seek,
+> +	.vidioc_subscribe_event = v4l2_ctrl_subscribe_event,
+> +	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
+>  };
 
-
-On 05/05/2012 05:05 PM, Hans de Goede wrote:
-> Hi,
->
-> On 05/05/2012 04:44 PM, Hans de Goede wrote:
->> Hi,
->>
->> On 05/05/2012 11:14 AM, Hans Verkuil wrote:
->>> So you get:
->>>
->>> vidioc_foo()
->>> lock(mylock)
->>> v4l2_ctrl_s_ctrl(ctrl, val)
->>> s_ctrl(ctrl, val)
->>> lock(mylock)
->>
->> Easy solution here, remove the first lock(mylock), since we are not using v4l2-dev's
->> locking, we are the one doing the first lock, and if we are going to call v4l2_ctrl_s_ctrl
->> we should simply not do that!
->>
->> Now I see that we are doing exactly that in for example vidioc_g_jpegcomp in gspca.c, so
->> we should stop doing that. We can make vidioc_g/s_jpegcomp only do the usb locking if
->> gspca_dev->vdev.ctrl_handler == NULL, and once all sub drivers are converted simply remove
->> it. Actually I'm thinking about making the jpegqual control part of the gspca_dev struct
->> itself and move all handling of vidioc_g/s_jpegcomp out of the sub drivers and into
->> the core.
->
-> Here is an updated version of this patch implementing this approach for
-> vidioc_g/s_jpegcomp. We may need to do something similar in other places, although I cannot
-> think of any such places atm,
->
-> Regards,
->
-> Hans
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at http://vger.kernel.org/majordomo-info.html
-
---------------020007030207050206070701
-Content-Type: text/x-patch;
- name="0001-gspca-allow-subdrivers-to-use-the-control-framework.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename*0="0001-gspca-allow-subdrivers-to-use-the-control-framework.pat";
- filename*1="ch"
-
->From eb7eb7c63156c1c040a7fddaeddcf1b1891f0fb7 Mon Sep 17 00:00:00 2001
-From: Hans Verkuil <hans.verkuil@cisco.com>
-Date: Sat, 28 Apr 2012 17:09:50 +0200
-Subject: [PATCH 1/8] gspca: allow subdrivers to use the control framework.
-
-Make the necessary changes to allow subdrivers to use the control framework.
-This does not add control event support, that needs more work.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
- drivers/media/video/gspca/gspca.c |   47 ++++++++++++++++++++++++++-----------
- 1 file changed, 33 insertions(+), 14 deletions(-)
-
-diff --git a/drivers/media/video/gspca/gspca.c b/drivers/media/video/gspca/gspca.c
-index ca5a2b1..dfe2e8a 100644
---- a/drivers/media/video/gspca/gspca.c
-+++ b/drivers/media/video/gspca/gspca.c
-@@ -38,6 +38,7 @@
- #include <linux/uaccess.h>
- #include <linux/ktime.h>
- #include <media/v4l2-ioctl.h>
-+#include <media/v4l2-ctrls.h>
- 
- #include "gspca.h"
- 
-@@ -1006,6 +1007,8 @@ static void gspca_set_default_mode(struct gspca_dev *gspca_dev)
- 
- 	/* set the current control values to their default values
- 	 * which may have changed in sd_init() */
-+	/* does nothing if ctrl_handler == NULL */
-+	v4l2_ctrl_handler_setup(gspca_dev->vdev.ctrl_handler);
- 	ctrl = gspca_dev->cam.ctrls;
- 	if (ctrl != NULL) {
- 		for (i = 0;
-@@ -1323,6 +1326,7 @@ static void gspca_release(struct video_device *vfd)
- 	PDEBUG(D_PROBE, "%s released",
- 		video_device_node_name(&gspca_dev->vdev));
- 
-+	v4l2_ctrl_handler_free(gspca_dev->vdev.ctrl_handler);
- 	kfree(gspca_dev->usb_buf);
- 	kfree(gspca_dev);
- }
-@@ -1771,14 +1775,21 @@ static int vidioc_g_jpegcomp(struct file *file, void *priv,
- 
- 	if (!gspca_dev->sd_desc->get_jcomp)
- 		return -EINVAL;
--	if (mutex_lock_interruptible(&gspca_dev->usb_lock))
--		return -ERESTARTSYS;
-+
-+	/* Don't take the usb_lock when using the v4l2-ctrls framework */
-+	if (gspca_dev->vdev.ctrl_handler == NULL)
-+		if (mutex_lock_interruptible(&gspca_dev->usb_lock))
-+			return -ERESTARTSYS;
-+
- 	gspca_dev->usb_err = 0;
- 	if (gspca_dev->present)
- 		ret = gspca_dev->sd_desc->get_jcomp(gspca_dev, jpegcomp);
- 	else
- 		ret = -ENODEV;
--	mutex_unlock(&gspca_dev->usb_lock);
-+
-+	if (gspca_dev->vdev.ctrl_handler == NULL)
-+		mutex_unlock(&gspca_dev->usb_lock);
-+
- 	return ret;
- }
- 
-@@ -1790,14 +1801,21 @@ static int vidioc_s_jpegcomp(struct file *file, void *priv,
- 
- 	if (!gspca_dev->sd_desc->set_jcomp)
- 		return -EINVAL;
--	if (mutex_lock_interruptible(&gspca_dev->usb_lock))
--		return -ERESTARTSYS;
-+
-+	/* Don't take the usb_lock when using the v4l2-ctrls framework */
-+	if (gspca_dev->vdev.ctrl_handler == NULL)
-+		if (mutex_lock_interruptible(&gspca_dev->usb_lock))
-+			return -ERESTARTSYS;
-+
- 	gspca_dev->usb_err = 0;
- 	if (gspca_dev->present)
- 		ret = gspca_dev->sd_desc->set_jcomp(gspca_dev, jpegcomp);
- 	else
- 		ret = -ENODEV;
--	mutex_unlock(&gspca_dev->usb_lock);
-+
-+	if (gspca_dev->vdev.ctrl_handler == NULL)
-+		mutex_unlock(&gspca_dev->usb_lock);
-+
- 	return ret;
- }
- 
-@@ -2347,6 +2365,14 @@ int gspca_dev_probe2(struct usb_interface *intf,
- 	gspca_dev->sd_desc = sd_desc;
- 	gspca_dev->nbufread = 2;
- 	gspca_dev->empty_packet = -1;	/* don't check the empty packets */
-+	gspca_dev->vdev = gspca_template;
-+	gspca_dev->vdev.parent = &intf->dev;
-+	gspca_dev->module = module;
-+	gspca_dev->present = 1;
-+
-+	mutex_init(&gspca_dev->usb_lock);
-+	mutex_init(&gspca_dev->queue_lock);
-+	init_waitqueue_head(&gspca_dev->wq);
- 
- 	/* configure the subdriver and initialize the USB device */
- 	ret = sd_desc->config(gspca_dev, id);
-@@ -2363,15 +2389,7 @@ int gspca_dev_probe2(struct usb_interface *intf,
- 	if (ret)
- 		goto out;
- 
--	mutex_init(&gspca_dev->usb_lock);
--	mutex_init(&gspca_dev->queue_lock);
--	init_waitqueue_head(&gspca_dev->wq);
--
- 	/* init video stuff */
--	memcpy(&gspca_dev->vdev, &gspca_template, sizeof gspca_template);
--	gspca_dev->vdev.parent = &intf->dev;
--	gspca_dev->module = module;
--	gspca_dev->present = 1;
- 	ret = video_register_device(&gspca_dev->vdev,
- 				  VFL_TYPE_GRABBER,
- 				  -1);
-@@ -2391,6 +2409,7 @@ out:
- 	if (gspca_dev->input_dev)
- 		input_unregister_device(gspca_dev->input_dev);
- #endif
-+	v4l2_ctrl_handler_free(gspca_dev->vdev.ctrl_handler);
- 	kfree(gspca_dev->usb_buf);
- 	kfree(gspca_dev);
- 	return ret;
--- 
-1.7.10
-
-
---------------020007030207050206070701--
