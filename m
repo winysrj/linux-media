@@ -1,111 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:49339 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757548Ab2EJI4z (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 May 2012 04:56:55 -0400
-Received: from epcpsbgm1.samsung.com (mailout3.samsung.com [203.254.224.33])
- by mailout3.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0M3S0098SU4X7XS0@mailout3.samsung.com> for
- linux-media@vger.kernel.org; Thu, 10 May 2012 17:56:47 +0900 (KST)
-Received: from AMDN157 ([106.116.48.215])
- by mmp2.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTPA id <0M3S00HB6U6JXB20@mmp2.samsung.com> for
- linux-media@vger.kernel.org; Thu, 10 May 2012 17:56:47 +0900 (KST)
-From: Kamil Debski <k.debski@samsung.com>
-To: 'Sachin Kamat' <sachin.kamat@linaro.org>,
-	linux-media@vger.kernel.org
-Cc: mchehab@infradead.org, kyungmin.park@samsung.com,
-	patches@linaro.org
-References: <1336631748-25160-1-git-send-email-sachin.kamat@linaro.org>
-In-reply-to: <1336631748-25160-1-git-send-email-sachin.kamat@linaro.org>
-Subject: RE: [PATCH 1/2] [media] s5p-g2d: Fix NULL pointer warnings in g2d.c
- file
-Date: Thu, 10 May 2012 10:56:42 +0200
-Message-id: <017301cd2e8a$d4940f50$7dbc2df0$%debski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: en-gb
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2372 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751552Ab2EEJOo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 5 May 2012 05:14:44 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: [RFCv1 PATCH 1/7] gspca: allow subdrivers to use the control framework.
+Date: Sat, 5 May 2012 11:14:31 +0200
+Cc: linux-media@vger.kernel.org,
+	"Jean-Francois Moine" <moinejf@free.fr>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+References: <1335625796-9429-1-git-send-email-hverkuil@xs4all.nl> <ea7e986dc0fa18da12c22048e9187e9933191d3d.1335625085.git.hans.verkuil@cisco.com> <4FA4DA05.5030001@redhat.com>
+In-Reply-To: <4FA4DA05.5030001@redhat.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201205051114.31531.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sachin,
+On Sat May 5 2012 09:43:01 Hans de Goede wrote:
+> Hi,
+> 
+> I'm slowly working my way though this series today (both review, as well
+> as some tweaks and testing).
+> 
+> More comments inline...
+> 
+> On 04/28/2012 05:09 PM, Hans Verkuil wrote:
+> > From: Hans Verkuil<hans.verkuil@cisco.com>
+> >
+> > Make the necessary changes to allow subdrivers to use the control framework.
+> > This does not add control event support, that needs more work.
+> >
+> > Signed-off-by: Hans Verkuil<hans.verkuil@cisco.com>
+> > ---
+> >   drivers/media/video/gspca/gspca.c |   13 +++++++++----
+> >   1 file changed, 9 insertions(+), 4 deletions(-)
+> >
+> > diff --git a/drivers/media/video/gspca/gspca.c b/drivers/media/video/gspca/gspca.c
+> > index ca5a2b1..56dff10 100644
+> > --- a/drivers/media/video/gspca/gspca.c
+> > +++ b/drivers/media/video/gspca/gspca.c
+> > @@ -38,6 +38,7 @@
+> >   #include<linux/uaccess.h>
+> >   #include<linux/ktime.h>
+> >   #include<media/v4l2-ioctl.h>
+> > +#include<media/v4l2-ctrls.h>
+> >
+> >   #include "gspca.h"
+> >
+> > @@ -1006,6 +1007,8 @@ static void gspca_set_default_mode(struct gspca_dev *gspca_dev)
+> >
+> >   	/* set the current control values to their default values
+> >   	 * which may have changed in sd_init() */
+> > +	/* does nothing if ctrl_handler == NULL */
+> > +	v4l2_ctrl_handler_setup(gspca_dev->vdev.ctrl_handler);
+> >   	ctrl = gspca_dev->cam.ctrls;
+> >   	if (ctrl != NULL) {
+> >   		for (i = 0;
+> > @@ -1323,6 +1326,7 @@ static void gspca_release(struct video_device *vfd)
+> >   	PDEBUG(D_PROBE, "%s released",
+> >   		video_device_node_name(&gspca_dev->vdev));
+> >
+> > +	v4l2_ctrl_handler_free(gspca_dev->vdev.ctrl_handler);
+> >   	kfree(gspca_dev->usb_buf);
+> >   	kfree(gspca_dev);
+> >   }
+> > @@ -2347,6 +2351,10 @@ int gspca_dev_probe2(struct usb_interface *intf,
+> >   	gspca_dev->sd_desc = sd_desc;
+> >   	gspca_dev->nbufread = 2;
+> >   	gspca_dev->empty_packet = -1;	/* don't check the empty packets */
+> > +	gspca_dev->vdev = gspca_template;
+> > +	gspca_dev->vdev.parent =&intf->dev;
+> > +	gspca_dev->module = module;
+> > +	gspca_dev->present = 1;
+> >
+> >   	/* configure the subdriver and initialize the USB device */
+> >   	ret = sd_desc->config(gspca_dev, id);
+> 
+> You also need to move the initialization of the mutexes here, as the
+> v4l2_ctrl_handler_setup will call s_ctrl on all the controls, and s_ctrl
+> should take the usb_lock (see my review of the next patch in this series),
+> I'll make this change myself and merge it into your patch.
 
-Thanks for the patch.
+Looking at how usb_lock is used I am inclined to just set video_device->lock
+to it and let the v4l2 core do all the locking for me, which will automatically
+fix the missing s_ctrl lock too.
 
-Best regards,
---
-Kamil Debski
-Linux Platform Group
-Samsung Poland R&D Center
+I've realized that there is a problem if you do your own locking *and* use the
+control framework: if you need to set a control from within the driver, then
+you do that using v4l2_ctrl_s_ctrl. But if s_ctrl has to take the driver's lock,
+then you can't call v4l2_ctrl_s_ctrl with that lock already taken!
 
+So you get:
 
-> -----Original Message-----
-> From: Sachin Kamat [mailto:sachin.kamat@linaro.org]
-> Sent: 10 May 2012 08:36
-> To: linux-media@vger.kernel.org
-> Cc: mchehab@infradead.org; k.debski@samsung.com;
-> kyungmin.park@samsung.com; sachin.kamat@linaro.org; patches@linaro.org
-> Subject: [PATCH 1/2] [media] s5p-g2d: Fix NULL pointer warnings in g2d.c
-> file
-> 
-> Fixes the following warnings detected by sparse:
-> warning: Using plain integer as NULL pointer
-> 
-> Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+vidioc_foo()
+	lock(mylock)
+	v4l2_ctrl_s_ctrl(ctrl, val)
+		s_ctrl(ctrl, val)
+			lock(mylock)
 
-Acked-by: Kamil Debski <k.debski@samsung.com>
+If the core takes care of locking then everything is fine.
 
-> ---
->  drivers/media/video/s5p-g2d/g2d.c |   12 ++++++------
->  1 files changed, 6 insertions(+), 6 deletions(-)
-> 
-> diff --git a/drivers/media/video/s5p-g2d/g2d.c b/drivers/media/video/s5p-
-> g2d/g2d.c
-> index 789de74..70bee1c 100644
-> --- a/drivers/media/video/s5p-g2d/g2d.c
-> +++ b/drivers/media/video/s5p-g2d/g2d.c
-> @@ -546,11 +546,11 @@ static void job_abort(void *prv)
->  	struct g2d_dev *dev = ctx->dev;
->  	int ret;
-> 
-> -	if (dev->curr == 0) /* No job currently running */
-> +	if (dev->curr == NULL) /* No job currently running */
->  		return;
-> 
->  	ret = wait_event_timeout(dev->irq_queue,
-> -		dev->curr == 0,
-> +		dev->curr == NULL,
->  		msecs_to_jiffies(G2D_TIMEOUT));
->  }
-> 
-> @@ -599,19 +599,19 @@ static irqreturn_t g2d_isr(int irq, void *prv)
->  	g2d_clear_int(dev);
->  	clk_disable(dev->gate);
-> 
-> -	BUG_ON(ctx == 0);
-> +	BUG_ON(ctx == NULL);
-> 
->  	src = v4l2_m2m_src_buf_remove(ctx->m2m_ctx);
->  	dst = v4l2_m2m_dst_buf_remove(ctx->m2m_ctx);
-> 
-> -	BUG_ON(src == 0);
-> -	BUG_ON(dst == 0);
-> +	BUG_ON(src == NULL);
-> +	BUG_ON(dst == NULL);
-> 
->  	v4l2_m2m_buf_done(src, VB2_BUF_STATE_DONE);
->  	v4l2_m2m_buf_done(dst, VB2_BUF_STATE_DONE);
->  	v4l2_m2m_job_finish(dev->m2m_dev, ctx->m2m_ctx);
-> 
-> -	dev->curr = 0;
-> +	dev->curr = NULL;
->  	wake_up(&dev->irq_queue);
->  	return IRQ_HANDLED;
->  }
-> --
-> 1.7.4.1
+All the current drivers that use v4l2_ctrl_g/s_ctrl use core locking. But this
+can be a problem in the future. The only way to resolve this is to tell v4l2-ioctl.c
+about your own lock so it can take it for you when calling into the control framework.
 
+Regards,
+
+	Hans
