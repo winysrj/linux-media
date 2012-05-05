@@ -1,134 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:55606 "EHLO mail.kapsi.fi"
+Received: from cnc.isely.net ([75.149.91.89]:59352 "EHLO cnc.isely.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754583Ab2EHNMc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 8 May 2012 09:12:32 -0400
-Message-ID: <4FA91BBF.5060405@iki.fi>
-Date: Tue, 08 May 2012 16:12:31 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: linux-media <linux-media@vger.kernel.org>
-CC: Patrick Boettcher <pboettcher@kernellabs.com>
-Subject: [RFCv1] DVB-USB improvements
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+	id S1751740Ab2EEDW6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 4 May 2012 23:22:58 -0400
+Date: Fri, 4 May 2012 22:17:56 -0500 (CDT)
+From: Mike Isely <isely@isely.net>
+To: linux-media@vger.kernel.org
+cc: Mike Isely <isely@isely.net>
+Subject: [GIT PULL FOR 3.5] pvrusb2 driver updates
+Message-ID: <alpine.DEB.2.00.1205042212081.5355@ivanova.isely.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Factors behind the changes are mostly coming from the fact current 
-struct dvb_usb_device_properties contains so many static configuration 
-options. You cannot change single dvb_usb_device_properties easily 
-(safely) at runtime since it is usually driver global struct and thus 
-shared between all the DVB USB driver instances. That fits just fine for 
-the traditional devices where all configuration is same for the devices 
-having single USB ID. Nowadays we have more and more devices that are 
-based of chipset vendor reference designs - even using just single USB 
-ID chipset vendor have given for that chipset. These reference designs 
-still varies much about used chips and configurations. Configuring 
-different base chips, USB-bridge, demod, tuner, and also peripheral 
-properties like dual tuners, remotes and CI is needed to do runtime 
-because of single USB ID is used for that all.
 
-My personal innovator behind all these is problems I met when developing 
-AF9015 and AF9035 drivers. Also RTL2831U and RTL2832U are kinda similar 
-and have given some more motivation.
+Mauro:
 
-Here is small list what I am planning to do. It is surely so much work 
-that everything is not possible, but lets try to select most important 
-and easiest as a higher priority.
+Please pull - this includes a long-awaited change courtesy of Hans 
+Verkuil which finally transitions the driver to video_ioctl2.
+
+  -Mike Isely
 
 
-resume / suspend support
--------------------
-* very important feature
-* crashes currently when DVB USB tries to download firmware when 
-resuming from suspend
+The following changes since commit a1ac5dc28d2b4ca78e183229f7c595ffd725241c:
 
-read_config1
--------------------
-* new callback to do initial tweaks
-* very first callback
-* is that really needed?
+  [media] gspca - sn9c20x: Change the exposure setting of Omnivision sensors (2012-05-03 15:29:56 -0300)
 
-read_mac_address => read_config2
--------------------
-* rename it read_config2 or read_config if read_config1 is not 
-implemented at all
-* rename old callback and extend it usage as a more general
-* only 8 devices use currently
-* when returned mac != 0 => print mac address as earlier, otherwise work 
-as a general callback
+are available in the git repository at:
+  git://git.linuxtv.org/mcisely/pvrusb2-20120504.git pvrusb2-merge-20120504
 
-new callback init()
--------------------
-* called after tuner attach to initialize rest of device
-* good place to do some general settings
-   - configure endpoints
-   - configure remote controller
-   - configure + attach CI
+Hans Verkuil (1):
+      pvrusb2: convert to video_ioctl2
 
-change DVB-USB to dynamic debug
--------------------
-* use Kernel new dynamic debugs instead of own proprietary system
+Mike Isely (9):
+      pvrusb2: Stop statically initializing reserved struct fields to zero
+      pvrusb2: Clean up pvr2_hdw_get_detected_std()
+      pvrusb2: Implement querystd for videodev_ioctl2
+      pvrusb2: Transform video standard detection result into read-only control ID
+      pvrusb2: Fix truncated video standard names (trivial)
+      pvrusb2: Base available video standards on what hardware supports
+      pvrusb2: Trivial tweak to get rid of some redundant dereferences
+      pvrusb2: Get rid of obsolete code for video standard enumeration
+      pvrusb2: For querystd, start with list of hardware-supported standards
 
-download_firmware
--------------------
-* struct usb_device => struct dvb_usb_device
-* we need access for the DVB USB driver state in every callback
-
-identify_state
--------------------
-* struct usb_device => struct dvb_usb_device
-* we need access for the DVB USB driver state in every callback
-
-attach all given adapter frontends as once
--------------------
-* for the MFE devices attach all frontends as once
-* deregister all frontends if error returned
-* small effect only for MFE
-
-attach all given adapter tuners as once
--------------------
-* deregister all frontends if error returned
-* small effect only for MFE
-
-make remote dynamically configurable
--------------------
-* default keytable mapped same level with USB-ID & device name etc.
-* there is generally 3 things that could be mapped to USB ID
-   - USB IDs (cold + warm)
-   - device name
-   - remote controller keytable
-   - all the others could be resolved & configured dynamically
-* it is not only keytable but whole remote should be changed dynamically 
-configurable
-
-make stream dynamically configurable
--------------------
-* we need change stream parameters in certain situations
-   - there is multiple endpoints but shared MFE
-   - need to set params according to stream bandwidth (USB1.1, DVB-T, 
-DVB-C2 in same device)
-   - leave old static configrations as those are but add callbacks to 
-get new values at runtime
-
-dynamically growing device list in dvb_usb_device_properties
--------------------
-* currently number of devices are limited statically
-* there is devices having ~50 or more IDs which means multiple 
-dvb_usb_device_properties are needed
-
-dynamic USB ID support
--------------------
-* currently not supported by DVB USB
-
-analog support for the DVB USB
--------------------
-* currently not supported by DVB USB
-* I have no experience
-* em28xx can be converted?
-
-
+ drivers/media/video/pvrusb2/pvrusb2-hdw-internal.h |    6 +-
+ drivers/media/video/pvrusb2/pvrusb2-hdw.c          |  193 +---
+ drivers/media/video/pvrusb2/pvrusb2-hdw.h          |    9 +-
+ drivers/media/video/pvrusb2/pvrusb2-v4l2.c         | 1343 ++++++++++----------
+ 4 files changed, 735 insertions(+), 816 deletions(-)
 
 -- 
-http://palosaari.fi/
+
+Mike Isely
+isely @ isely (dot) net
+PGP: 03 54 43 4D 75 E5 CC 92 71 16 01 E2 B5 F5 C1 E8
