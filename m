@@ -1,45 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:42282 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758911Ab2ECWWh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 May 2012 18:22:37 -0400
-Received: by mail-pz0-f46.google.com with SMTP id y13so2478171dad.5
-        for <linux-media@vger.kernel.org>; Thu, 03 May 2012 15:22:36 -0700 (PDT)
-From: mathieu.poirier@linaro.org
-To: mchehab@infradead.org
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	arnd@arndb.de, mathieu.poirier@linaro.org
-Subject: [PATCH 4/6] media/video: add I2C dependencies
-Date: Thu,  3 May 2012 16:22:25 -0600
-Message-Id: <1336083747-3142-5-git-send-email-mathieu.poirier@linaro.org>
-In-Reply-To: <1336083747-3142-1-git-send-email-mathieu.poirier@linaro.org>
-References: <1336083747-3142-1-git-send-email-mathieu.poirier@linaro.org>
+Received: from smtp1-g21.free.fr ([212.27.42.1]:50710 "EHLO smtp1-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755999Ab2EERW4 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 5 May 2012 13:22:56 -0400
+Date: Sat, 5 May 2012 19:24:05 +0200
+From: Jean-Francois Moine <moinejf@free.fr>
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFCv1 PATCH 1/7] gspca: allow subdrivers to use the control
+ framework.
+Message-ID: <20120505192405.18bb588e@tele>
+In-Reply-To: <4FA541B8.4080507@redhat.com>
+References: <1335625796-9429-1-git-send-email-hverkuil@xs4all.nl>
+	<ea7e986dc0fa18da12c22048e9187e9933191d3d.1335625085.git.hans.verkuil@cisco.com>
+	<4FA4DA05.5030001@redhat.com>
+	<201205051114.31531.hverkuil@xs4all.nl>
+	<4FA53CD2.1010706@redhat.com>
+	<4FA541B8.4080507@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Arnd Bergmann <arnd@arndb.de>
+On Sat, 05 May 2012 17:05:28 +0200
+Hans de Goede <hdegoede@redhat.com> wrote:
 
-Davinci VIDEO_VPFE_CAPTURE depends on I2C, so reflect that
-in Kconfig to avoid build failures in random configurations.
+> > Now I see that we are doing exactly that in for example vidioc_g_jpegcomp in gspca.c, so
+> > we should stop doing that. We can make vidioc_g/s_jpegcomp only do the usb locking if
+> > gspca_dev->vdev.ctrl_handler == NULL, and once all sub drivers are converted simply remove
+> > it. Actually I'm thinking about making the jpegqual control part of the gspca_dev struct
+> > itself and move all handling of vidioc_g/s_jpegcomp out of the sub drivers and into
+> > the core.  
+> 
+> Here is an updated version of this patch implementing this approach for
+> vidioc_g/s_jpegcomp. We may need to do something similar in other places, although I cannot
+> think of any such places atm,
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Signed-off-by: Mathieu Poirier <mathieu.poirier@linaro.org>
----
- drivers/media/video/davinci/Kconfig |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+As the JPEG parameters have been redefined as standard controls, and as
+there should be only a very few applications which use it, I think the
+vidioc_g/s_jpegcomp code could be fully removed.
 
-diff --git a/drivers/media/video/davinci/Kconfig b/drivers/media/video/davinci/Kconfig
-index 60a456e..9337b56 100644
---- a/drivers/media/video/davinci/Kconfig
-+++ b/drivers/media/video/davinci/Kconfig
-@@ -40,6 +40,7 @@ config VIDEO_VPSS_SYSTEM
- config VIDEO_VPFE_CAPTURE
- 	tristate "VPFE Video Capture Driver"
- 	depends on VIDEO_V4L2 && (ARCH_DAVINCI || ARCH_OMAP3)
-+	depends on I2C
- 	select VIDEOBUF_DMA_CONTIG
- 	help
- 	  Support for DMx/AMx VPFE based frame grabber. This is the
 -- 
-1.7.5.4
-
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
