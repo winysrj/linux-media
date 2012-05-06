@@ -1,37 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-1-out2.atlantis.sk ([80.94.52.71]:52177 "EHLO
-	mail.atlantis.sk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S933007Ab2EVUhd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 May 2012 16:37:33 -0400
-From: Ondrej Zary <linux@rainbow-software.org>
-To: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [PATCH 0/6] snd_tea575x: Various patches
-Date: Tue, 22 May 2012 22:37:01 +0200
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <1337477131-21578-1-git-send-email-hdegoede@redhat.com>
-In-Reply-To: <1337477131-21578-1-git-send-email-hdegoede@redhat.com>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <201205222237.04867.linux@rainbow-software.org>
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:1073 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753482Ab2EFM2o (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 May 2012 08:28:44 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans de Goede <hdegoede@redhat.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv2 PATCH 12/17] gscpa_zc3xx: Disable the highest quality setting as it is not usable
+Date: Sun,  6 May 2012 14:28:26 +0200
+Message-Id: <f9aa206cc2ea9257086e6023edac350022fced4a.1336305565.git.hans.verkuil@cisco.com>
+In-Reply-To: <1336307311-10227-1-git-send-email-hverkuil@xs4all.nl>
+References: <1336307311-10227-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <a5a075c580858f4484be5c4cfadd195492858505.1336305565.git.hans.verkuil@cisco.com>
+References: <a5a075c580858f4484be5c4cfadd195492858505.1336305565.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sunday 20 May 2012 03:25:25 Hans de Goede wrote:
-> Hi All,
->
-> This patch series contains various patches for the tea575x driver to
-> prepare for adding support for the Griffin radioSHARK device. The 6th patch
-> adds support for tuning AM, which depends on the discussions surrounding
-> the v4l2 API and radio devices with multiple tuners. I plan to add patches
-> 1-5 to my next pull request to Mauro, I will leave patch 6 out until the
-> API discussion is done.
+From: Hans de Goede <hdegoede@redhat.com>
 
-I tested the patches with FM-only card (SF16-FMD2) and haven't found any 
-problems.
+Even with BRC the highest quality setting is not usable, BRC strips so
+much data from each MCU that the quality becomes worse then using a lower
+quality setting to begin with.
 
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/video/gspca/zc3xx.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/media/video/gspca/zc3xx.c b/drivers/media/video/gspca/zc3xx.c
+index 18ef68d..a8282b8 100644
+--- a/drivers/media/video/gspca/zc3xx.c
++++ b/drivers/media/video/gspca/zc3xx.c
+@@ -194,7 +194,7 @@ static const struct ctrl sd_ctrls[NCTRLS] = {
+ 		.type    = V4L2_CTRL_TYPE_INTEGER,
+ 		.name    = "Compression Quality",
+ 		.minimum = 50,
+-		.maximum = 94,
++		.maximum = 87,
+ 		.step    = 1,
+ 		.default_value = 75,
+ 	    },
+@@ -241,8 +241,11 @@ static const struct v4l2_pix_format sif_mode[] = {
+ 		.priv = 0},
+ };
+ 
+-/* bridge reg08 bits 1-2 -> JPEG quality conversion table */
+-static u8 jpeg_qual[] = {50, 75, 87, 94};
++/*
++ * Bridge reg08 bits 1-2 -> JPEG quality conversion table. Note the highest
++ * quality setting is not usable as USB 1 does not have enough bandwidth.
++ */
++static u8 jpeg_qual[] = {50, 75, 87, /* 94 */};
+ 
+ /* usb exchanges */
+ struct usb_action {
 -- 
-Ondrej Zary
+1.7.10
+
