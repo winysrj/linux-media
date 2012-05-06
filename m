@@ -1,53 +1,1595 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:51702 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757812Ab2ENU13 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 May 2012 16:27:29 -0400
-From: <manjunatha_halli@ti.com>
-To: <linux-media@vger.kernel.org>
-CC: <linux-kernel@vger.kernel.org>, Manjunatha Halli <x0130808@ti.com>
-Subject: [PATCH V6 3/5] Add new CID for FM TX RDS Alternate Frequency
-Date: Mon, 14 May 2012 15:27:22 -0500
-Message-ID: <1337027244-2595-4-git-send-email-manjunatha_halli@ti.com>
-In-Reply-To: <1337027244-2595-1-git-send-email-manjunatha_halli@ti.com>
-References: <1337027244-2595-1-git-send-email-manjunatha_halli@ti.com>
+Received: from mailout-de.gmx.net ([213.165.64.23]:36570 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1753950Ab2EFQsh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 May 2012 12:48:37 -0400
+From: "Hans-Frieder Vogt" <hfvogt@gmx.net>
+To: Thomas Mair <thomas.mair86@googlemail.com>
+Subject: Re: [PATCH v3 2/3] RTL2832 demodulator driver.
+Date: Sun, 6 May 2012 18:48:25 +0200
+Cc: linux-media@vger.kernel.org, poma <pomidorabelisima@gmail.com>,
+	gennarone@gmail.com, Antti Palosaari <crope@iki.fi>
+References: <CAKZ=SG_f8qxRTbeRFXvBJBbbb6AQCuD4d7YT+XdxT3ROrDLrnQ@mail.gmail.com>
+In-Reply-To: <CAKZ=SG_f8qxRTbeRFXvBJBbbb6AQCuD4d7YT+XdxT3ROrDLrnQ@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201205061848.25899.hfvogt@gmx.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Manjunatha Halli <x0130808@ti.com>
+Thomas,
 
-Signed-off-by: Manjunatha Halli <x0130808@ti.com>
----
- drivers/media/video/v4l2-ctrls.c |    1 +
- include/linux/videodev2.h        |    1 +
- 2 files changed, 2 insertions(+), 0 deletions(-)
+I had a few problems with that patch. Please see below.
 
-diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
-index 9d7608e..610076c 100644
---- a/drivers/media/video/v4l2-ctrls.c
-+++ b/drivers/media/video/v4l2-ctrls.c
-@@ -608,6 +608,7 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_RDS_TX_PTY:		return "RDS Program Type";
- 	case V4L2_CID_RDS_TX_PS_NAME:		return "RDS PS Name";
- 	case V4L2_CID_RDS_TX_RADIO_TEXT:	return "RDS Radio Text";
-+	case V4L2_CID_RDS_TX_AF_FREQ:		return "RDS Alternate Frequency";
- 	case V4L2_CID_AUDIO_LIMITER_ENABLED:	return "Audio Limiter Feature Enabled";
- 	case V4L2_CID_AUDIO_LIMITER_RELEASE_TIME: return "Audio Limiter Release Time";
- 	case V4L2_CID_AUDIO_LIMITER_DEVIATION:	return "Audio Limiter Deviation";
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index 91bc47b..3931a99 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -1699,6 +1699,7 @@ enum  v4l2_exposure_auto_type {
- #define V4L2_CID_RDS_TX_PTY			(V4L2_CID_FM_TX_CLASS_BASE + 3)
- #define V4L2_CID_RDS_TX_PS_NAME			(V4L2_CID_FM_TX_CLASS_BASE + 5)
- #define V4L2_CID_RDS_TX_RADIO_TEXT		(V4L2_CID_FM_TX_CLASS_BASE + 6)
-+#define V4L2_CID_RDS_TX_AF_FREQ			(V4L2_CID_FM_TX_CLASS_BASE + 7)
- 
- #define V4L2_CID_AUDIO_LIMITER_ENABLED		(V4L2_CID_FM_TX_CLASS_BASE + 64)
- #define V4L2_CID_AUDIO_LIMITER_RELEASE_TIME	(V4L2_CID_FM_TX_CLASS_BASE + 65)
--- 
-1.7.4.1
+Am Sonntag, 6. Mai 2012 schrieb Thomas Mair:
+> - currently only support for the FC0012 tuner is included
+> - The driver uses a custom log2 function. Maybe it should be changed
+> to use ilog2 or a similar function.
+> 
+> Signed-off-by: Thomas Mair <thomas.mair86@googlemail.com>
+> ---
+>  drivers/media/dvb/frontends/rtl2832.c      | 1214
+> ++++++++++++++++++++++++++++ drivers/media/dvb/frontends/rtl2832.h      | 
+> 296 +++++++
+>  drivers/media/dvb/frontends/rtl2832_priv.h |   60 ++
+>  3 files changed, 1570 insertions(+), 0 deletions(-)
+>  create mode 100644 drivers/media/dvb/frontends/rtl2832.c
+>  create mode 100644 drivers/media/dvb/frontends/rtl2832.h
+>  create mode 100644 drivers/media/dvb/frontends/rtl2832_priv.h
+> 
+> diff --git a/drivers/media/dvb/frontends/rtl2832.c
+> b/drivers/media/dvb/frontends/rtl2832.c
+> new file mode 100644
+> index 0000000..fb4f577
+> --- /dev/null
+> +++ b/drivers/media/dvb/frontends/rtl2832.c
+> @@ -0,0 +1,1214 @@
+> +/*
+> + * Realtek RTL2832 DVB-T demodulator driver
+> + *
+> + * Copyright (C) 2012 Thomas Mair <thomas.mair86@gmail.com>
+> + *
+> + *	This program is free software; you can redistribute it and/or modify
+> + *	it under the terms of the GNU General Public License as published by
+> + *	the Free Software Foundation; either version 2 of the License, or
+> + *	(at your option) any later version.
+> + *
+> + *	This program is distributed in the hope that it will be useful,
+> + *	but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + *	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + *	GNU General Public License for more details.
+> + *
+> + *	You should have received a copy of the GNU General Public License 
+along
+> + *	with this program; if not, write to the Free Software Foundation, 
+Inc.,
+> + *	51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+> + */
+> +
+> +#include "rtl2832_priv.h"
+> +#include "rtl28xxu_tuners.h"
+> +
+> +
+> +
+> +int rtl2832_debug;
+> +module_param_named(debug, rtl2832_debug, int, 0644);
+> +MODULE_PARM_DESC(debug, "Turn on/off frontend debugging (default:off).");
+> +
+> +
+> +static int reg_mask[32] = {
+> +	0x00000001,
+> +	0x00000003,
+> +	0x00000007,
+> +	0x0000000f,
+> +	0x0000001f,
+> +	0x0000003f,
+> +	0x0000007f,
+> +	0x000000ff,
+> +	0x000001ff,
+> +	0x000003ff,
+> +	0x000007ff,
+> +	0x00000fff,
+> +	0x00001fff,
+> +	0x00003fff,
+> +	0x00007fff,
+> +	0x0000ffff,
+> +	0x0001ffff,
+> +	0x0003ffff,
+> +	0x0007ffff,
+> +	0x000fffff,
+> +	0x001fffff,
+> +	0x003fffff,
+> +	0x007fffff,
+> +	0x00ffffff,
+> +	0x01ffffff,
+> +	0x03ffffff,
+> +	0x07ffffff,
+> +	0x0fffffff,
+> +	0x1fffffff,
+> +	0x3fffffff,
+> +	0x7fffffff,
+> +	0xffffffff
+> +};
+> +
+> +static const rtl2832_reg_entry registers[] = {
+> +	[DVBT_SOFT_RST] = {0x1, 0x1, 2, 2},
+> +	[DVBT_IIC_REPEAT] = {0x1,  0x1,   3,  3},
+> +	[DVBT_TR_WAIT_MIN_8K]   = {0x1,  0x88,   11,  2},
+> +	[DVBT_RSD_BER_FAIL_VAL] = {0x1,  0x8f,   15,  0},
+> +	[DVBT_EN_BK_TRK]		= {0x1,  0xa6,   7,  7},
+> +	[DVBT_AD_EN_REG]		= {0x0,  0x8,   7,  7},
+> +	[DVBT_AD_EN_REG1]	   = {0x0,  0x8,   6,  6},
+> +	[DVBT_EN_BBIN]		  = {0x1,  0xb1,   0,  0},
+> +	[DVBT_MGD_THD0]		 = {0x1,  0x95,   7,  0},
+> +	[DVBT_MGD_THD1]		 = {0x1,  0x96,   7,  0},
+> +	[DVBT_MGD_THD2]		 = {0x1,  0x97,   7,  0},
+> +	[DVBT_MGD_THD3]		 = {0x1,  0x98,   7,  0},
+> +	[DVBT_MGD_THD4]		 = {0x1,  0x99,   7,  0},
+> +	[DVBT_MGD_THD5]		 = {0x1,  0x9a,   7,  0},
+> +	[DVBT_MGD_THD6]		 = {0x1,  0x9b,   7,  0},
+> +	[DVBT_MGD_THD7]		 = {0x1,  0x9c,   7,  0},
+> +	[DVBT_EN_CACQ_NOTCH]	= {0x1,  0x61,   4,  4},
+> +	[DVBT_AD_AV_REF]		= {0x0,  0x9,   6,  0},
+> +	[DVBT_REG_PI]		   = {0x0,  0xa,   2,  0},
+> +	[DVBT_PIP_ON]		   = {0x0,  0x21,   3,  3},
+> +	[DVBT_SCALE1_B92]	   = {0x2,  0x92,   7,  0},
+> +	[DVBT_SCALE1_B93]	   = {0x2,  0x93,   7,  0},
+> +	[DVBT_SCALE1_BA7]	   = {0x2,  0xa7,   7,  0},
+> +	[DVBT_SCALE1_BA9]	   = {0x2,  0xa9,   7,  0},
+> +	[DVBT_SCALE1_BAA]	   = {0x2,  0xaa,   7,  0},
+> +	[DVBT_SCALE1_BAB]	   = {0x2,  0xab,   7,  0},
+> +	[DVBT_SCALE1_BAC]	   = {0x2,  0xac,   7,  0},
+> +	[DVBT_SCALE1_BB0]	   = {0x2,  0xb0,   7,  0},
+> +	[DVBT_SCALE1_BB1]	   = {0x2,  0xb1,   7,  0},
+> +	[DVBT_KB_P1]			= {0x1,  0x64,   3,  1},
+> +	[DVBT_KB_P2]			= {0x1,  0x64,   6,  4},
+> +	[DVBT_KB_P3]			= {0x1,  0x65,   2,  0},
+> +	[DVBT_OPT_ADC_IQ]	   = {0x0,  0x6,   5,  4},
+> +	[DVBT_AD_AVI]		   = {0x0,  0x9,   1,  0},
+> +	[DVBT_AD_AVQ]		   = {0x0,  0x9,   3,  2},
+> +	[DVBT_K1_CR_STEP12]	 = {0x2,  0xad,   9,  4},
+> +	[DVBT_TRK_KS_P2]		= {0x1,  0x6f,   2,  0},
+> +	[DVBT_TRK_KS_I2]		= {0x1,  0x70,   5,  3},
+> +	[DVBT_TR_THD_SET2]	  = {0x1,  0x72,   3,  0},
+> +	[DVBT_TRK_KC_P2]		= {0x1,  0x73,   5,  3},
+> +	[DVBT_TRK_KC_I2]		= {0x1,  0x75,   2,  0},
+> +	[DVBT_CR_THD_SET2]	  = {0x1,  0x76,   7,  6},
+> +	[DVBT_PSET_IFFREQ]	 = {0x1,  0x19,   21,  0},
+> +	[DVBT_SPEC_INV]		= {0x1,  0x15,   0,  0},
+> +	[DVBT_RSAMP_RATIO]	 = {0x1,  0x9f,   27,  2},
+> +	[DVBT_CFREQ_OFF_RATIO] = {0x1,  0x9d,   23,  4},
+> +	[DVBT_FSM_STAGE]	   = {0x3,  0x51,   6,  3},
+> +	[DVBT_RX_CONSTEL]	  = {0x3,  0x3c,   3,  2},
+> +	[DVBT_RX_HIER]		 = {0x3,  0x3c,   6,  4},
+> +	[DVBT_RX_C_RATE_LP]	= {0x3,  0x3d,   2,  0},
+> +	[DVBT_RX_C_RATE_HP]	= {0x3,  0x3d,   5,  3},
+> +	[DVBT_GI_IDX]		  = {0x3,  0x51,   1,  0},
+> +	[DVBT_FFT_MODE_IDX]	= {0x3,  0x51,   2,  2},
+> +	[DVBT_RSD_BER_EST]	 = {0x3,  0x4e,   15,  0},
+> +	[DVBT_CE_EST_EVM]	  = {0x4,  0xc,   15,  0},
+> +	[DVBT_RF_AGC_VAL]	  = {0x3,  0x5b,   13,  0},
+> +	[DVBT_IF_AGC_VAL]	  = {0x3,  0x59,   13,  0},
+> +	[DVBT_DAGC_VAL]		= {0x3,  0x5,   7,  0},
+> +	[DVBT_SFREQ_OFF]	   = {0x3,  0x18,   13,  0},
+> +	[DVBT_CFREQ_OFF]	   = {0x3,  0x5f,   17,  0},
+> +	[DVBT_POLAR_RF_AGC]	= {0x0,  0xe,   1,  1},
+> +	[DVBT_POLAR_IF_AGC]	= {0x0,  0xe,   0,  0},
+> +	[DVBT_AAGC_HOLD]	   = {0x1,  0x4,   5,  5},
+> +	[DVBT_EN_RF_AGC]	   = {0x1,  0x4,   6,  6},
+> +	[DVBT_EN_IF_AGC]	   = {0x1,  0x4,   7,  7},
+> +	[DVBT_IF_AGC_MIN]	  = {0x1,  0x8,   7,  0},
+> +	[DVBT_IF_AGC_MAX]	  = {0x1,  0x9,   7,  0},
+> +	[DVBT_RF_AGC_MIN]	  = {0x1,  0xa,   7,  0},
+> +	[DVBT_RF_AGC_MAX]	  = {0x1,  0xb,   7,  0},
+> +	[DVBT_IF_AGC_MAN]	  = {0x1,  0xc,   6,  6},
+> +	[DVBT_IF_AGC_MAN_VAL]  = {0x1,  0xc,   13,  0},
+> +	[DVBT_RF_AGC_MAN]	  = {0x1,  0xe,   6,  6},
+> +	[DVBT_RF_AGC_MAN_VAL]  = {0x1,  0xe,   13,  0},
+> +	[DVBT_DAGC_TRG_VAL]	= {0x1,  0x12,   7,  0},
+> +	[DVBT_AGC_TARG_VAL_0]  = {0x1,  0x2,   0,  0},
+> +	[DVBT_AGC_TARG_VAL_8_1] = {0x1,  0x3,   7,  0},
+> +	[DVBT_AAGC_LOOP_GAIN]  = {0x1,  0xc7,   5,  1},
+> +	[DVBT_LOOP_GAIN2_3_0]  = {0x1,  0x4,   4,  1},
+> +	[DVBT_LOOP_GAIN2_4]	= {0x1,  0x5,   7,  7},
+> +	[DVBT_LOOP_GAIN3]	  = {0x1,  0xc8,   4,  0},
+> +	[DVBT_VTOP1]		   = {0x1,  0x6,   5,  0},
+> +	[DVBT_VTOP2]		   = {0x1,  0xc9,   5,  0},
+> +	[DVBT_VTOP3]		   = {0x1,  0xca,   5,  0},
+> +	[DVBT_KRF1]			= {0x1,  0xcb,   7,  0},
+> +	[DVBT_KRF2]			= {0x1,  0x7,   7,  0},
+> +	[DVBT_KRF3]			= {0x1,  0xcd,   7,  0},
+> +	[DVBT_KRF4]			= {0x1,  0xce,   7,  0},
+> +	[DVBT_EN_GI_PGA]	   = {0x1,  0xe5,   0,  0},
+> +	[DVBT_THD_LOCK_UP]	 = {0x1,  0xd9,   8,  0},
+> +	[DVBT_THD_LOCK_DW]	 = {0x1,  0xdb,   8,  0},
+> +	[DVBT_THD_UP1]		 = {0x1,  0xdd,   7,  0},
+> +	[DVBT_THD_DW1]		 = {0x1,  0xde,   7,  0},
+> +	[DVBT_INTER_CNT_LEN]   = {0x1,  0xd8,   3,  0},
+> +	[DVBT_GI_PGA_STATE]	= {0x1,  0xe6,   3,  3},
+> +	[DVBT_EN_AGC_PGA]	  = {0x1,  0xd7,   0,  0},
+> +	[DVBT_CKOUTPAR]		= {0x1,  0x7b,   5,  5},
+> +	[DVBT_CKOUT_PWR]	   = {0x1,  0x7b,   6,  6},
+> +	[DVBT_SYNC_DUR]		= {0x1,  0x7b,   7,  7},
+> +	[DVBT_ERR_DUR]		 = {0x1,  0x7c,   0,  0},
+> +	[DVBT_SYNC_LVL]		= {0x1,  0x7c,   1,  1},
+> +	[DVBT_ERR_LVL]		 = {0x1,  0x7c,   2,  2},
+> +	[DVBT_VAL_LVL]		 = {0x1,  0x7c,   3,  3},
+> +	[DVBT_SERIAL]		  = {0x1,  0x7c,   4,  4},
+> +	[DVBT_SER_LSB]		 = {0x1,  0x7c,   5,  5},
+> +	[DVBT_CDIV_PH0]		= {0x1,  0x7d,   3,  0},
+> +	[DVBT_CDIV_PH1]		= {0x1,  0x7d,   7,  4},
+> +	[DVBT_MPEG_IO_OPT_2_2] = {0x0,  0x6,   7,  7},
+> +	[DVBT_MPEG_IO_OPT_1_0] = {0x0,  0x7,   7,  6},
+> +	[DVBT_CKOUTPAR_PIP]	= {0x0,  0xb7,   4,  4},
+> +	[DVBT_CKOUT_PWR_PIP]   = {0x0,  0xb7,   3,  3},
+> +	[DVBT_SYNC_LVL_PIP]	= {0x0,  0xb7,   2,  2},
+> +	[DVBT_ERR_LVL_PIP]	 = {0x0,  0xb7,   1,  1},
+> +	[DVBT_VAL_LVL_PIP]	 = {0x0,  0xb7,   0,  0},
+> +	[DVBT_CKOUTPAR_PID]	= {0x0,  0xb9,   4,  4},
+> +	[DVBT_CKOUT_PWR_PID]   = {0x0,  0xb9,   3,  3},
+> +	[DVBT_SYNC_LVL_PID]	= {0x0,  0xb9,   2,  2},
+> +	[DVBT_ERR_LVL_PID]	 = {0x0,  0xb9,   1,  1},
+> +	[DVBT_VAL_LVL_PID]	 = {0x0,  0xb9,   0,  0},
+> +	[DVBT_SM_PASS]		 = {0x1,  0x93,   11,  0},
+> +	[DVBT_AD7_SETTING]	 = {0x0,  0x11,   15,  0},
+> +	[DVBT_RSSI_R]		  = {0x3,  0x1,   6,  0},
+> +	[DVBT_ACI_DET_IND]	 = {0x3,  0x12,   0,  0},
+> +	[DVBT_REG_MON]		= {0x0,  0xd,   1,  0},
+> +	[DVBT_REG_MONSEL]	 = {0x0,  0xd,   2,  2},
+> +	[DVBT_REG_GPE]		= {0x0,  0xd,   7,  7},
+> +	[DVBT_REG_GPO]		= {0x0,  0x10,   0,  0},
+> +	[DVBT_REG_4MSEL]	  = {0x0,  0x13,   0,  0},
+> +};
+> +
+> +
+> +/* Write multiple hardware registers with address */
+> +static int rtl2832_wr_i2c(struct rtl2832_priv *priv, u8 addr, u8 reg, u8
+> *val, +	int len)
+> +{
+> +	int ret;
+> +	u8 buf[1+len];
+> +	struct i2c_msg msg[1] = {
+> +		{
+> +			.addr = addr,
+> +			.flags = 0,
+> +			.len = 1+len,
+> +			.buf = buf,
+> +		}
+> +	};
+> +
+> +	buf[0] = reg;
+> +	memcpy(&buf[1], val, len);
+> +
+> +	ret = i2c_transfer(priv->i2c, msg, 1);
+> +	if (ret == 1) {
+> +		ret = 0;
+> +	} else {
+> +		warn("i2c wr failed=%d reg=%02x len=%d", ret, reg, len);
+> +		ret = -EREMOTEIO;
+> +	}
+> +	return ret;
+> +}
+> +
+> +/* Read multiple hardware registers with address */
+> +static int rtl2832_rd_i2c(struct rtl2832_priv *priv, u8 addr, u8 reg, u8
+> *val, +	int len)
+> +{
+> +	 int ret;
+> +	 struct i2c_msg msg[2] = {
+> +		{
+> +			.addr = addr,
+> +			.flags = 0,
+> +			.len = 1,
+> +			.buf = &reg,
+> +		}, {
+> +			 .addr = addr,
+> +			.flags = I2C_M_RD,
+> +			.len = len,
+> +			.buf = val,
+> +		}
+> +	 };
+> +
+> +	ret = i2c_transfer(priv->i2c, msg, 2);
+> +	if (ret == 2) {
+> +		ret = 0;
+> +	} else {
+> +		warn("i2c rd failed=%d reg=%02x len=%d", ret, reg, len);
+> +		ret = -EREMOTEIO;
+> +	}
+> +	return ret;
+> +}
+> +
+> +
+> +/* write multiple hardware registers */
+> +static int rtl2832_wr(struct rtl2832_priv *priv, u8 reg, u8 *val, int len)
+> +{
+> +	int ret;
+> +	u8 buf[1+len];
+> +	struct i2c_msg msg[1] = {
+> +		{
+> +			.addr = priv->cfg.i2c_addr,
+> +			.flags = 0,
+> +			.len = 1+len,
+> +			.buf = buf,
+> +		}
+> +	};
+> +
+> +	buf[0] = reg;
+> +	memcpy(&buf[1], val, len);
+> +
+> +	ret = i2c_transfer(priv->i2c, msg, 1);
+> +	if (ret == 1) {
+> +		ret = 0;
+> +	} else {
+> +		warn("i2c wr failed=%d reg=%02x len=%d", ret, reg, len);
+> +		ret = -EREMOTEIO;
+> +	}
+> +	return ret;
+> +}
+> +
+> +/* read multiple hardware registers */
+> +static int rtl2832_rd(struct rtl2832_priv *priv, u8 reg, u8 *val, int len)
+> +{
+> +	int ret;
+> +	struct i2c_msg msg[2] = {
+> +		{
+> +			.addr = priv->cfg.i2c_addr,
+> +			.flags = 0,
+> +			.len = 1,
+> +			.buf = &reg,
+> +		}, {
+> +			.addr = priv->cfg.i2c_addr,
+> +			.flags = I2C_M_RD,
+> +			.len = len,
+> +			.buf = val,
+> +		}
+> +	};
+> +
+> +	ret = i2c_transfer(priv->i2c, msg, 2);
+> +	if (ret == 2) {
+> +		ret = 0;
+> +	} else {
+> +		warn("i2c rd failed=%d reg=%02x len=%d", ret, reg, len);
+> +		ret = -EREMOTEIO;
+> +}
+> +return ret;
+> +}
+> +
+> +/* write multiple registers */
+> +static int rtl2832_wr_regs(struct rtl2832_priv *priv, u8 reg, u8 page, u8
+> *val, +	int len)
+> +{
+> +	int ret;
+> +
+> +
+> +	/* switch bank if needed */
+> +	if (page != priv->page) {
+> +		ret = rtl2832_wr(priv, 0x00, &page, 1);
+> +		if (ret)
+> +			return ret;
+> +
+> +		priv->page = page;
+> +}
+> +
+> +return rtl2832_wr(priv, reg, val, len);
+> +}
+> +
+> +/* read multiple registers */
+> +static int rtl2832_rd_regs(struct rtl2832_priv *priv, u8 reg, u8 page, u8
+> *val, +	int len)
+> +{
+> +	int ret;
+> +
+> +	/* switch bank if needed */
+> +	if (page != priv->page) {
+> +		ret = rtl2832_wr(priv, 0x00, &page, 1);
+> +		if (ret)
+> +			return ret;
+> +
+> +		priv->page = page;
+> +	}
+> +
+> +	return rtl2832_rd(priv, reg, val, len);
+> +}
+> +
+> +#if 0 /* currently not used */
+> +/* write single register */
+> +static int rtl2832_wr_reg(struct rtl2832_priv *priv, u8 reg, u8 page, u8
+> val) +{
+> +	return rtl2832_wr_regs(priv, reg, page, &val, 1);
+> +}
+> +#endif
+> +
+> +/* read single register */
+> +static int rtl2832_rd_reg(struct rtl2832_priv *priv, u8 reg, u8 page, u8
+> *val) +{
+> +	return rtl2832_rd_regs(priv, reg, page, val, 1);
+> +}
+> +
+> +int rtl2832_rd_demod_reg(struct rtl2832_priv *priv, int reg, u32 *val)
+> +{
+> +	int ret;
+> +
+> +	u8 reg_start_addr;
+> +	u8 msb, lsb;
+> +	u8 page;
+> +	u8 reading[4];
+> +	u32 reading_tmp;
+> +	int i;
+> +
+> +	u8 len;
+> +	u32 mask;
+> +
+> +	reg_start_addr = registers[reg].start_address;
+> +	msb = registers[reg].msb;
+> +	lsb = registers[reg].lsb;
+> +	page = registers[reg].page;
+> +
+> +	len = (msb >> 3) + 1;
+> +	mask = reg_mask[msb-lsb];
+> +
+> +
+> +	ret = rtl2832_rd_regs(priv, reg_start_addr, page, &reading[0], len);
+> +	if (ret)
+> +		goto err;
+> +
+> +	reading_tmp = 0;
+> +	for (i = 0; i < len; i++)
+> +		reading_tmp |= reading[i] << ((len-1-i)*8);
+> +
+> +	*val = (reading_tmp >> lsb) & mask;
+> +
+> +	return ret;
+> +
+> +err:
+> +	return ret;
+> +
+> +}
+> +
+> +int rtl2832_wr_demod_reg(struct rtl2832_priv *priv, int reg, u32 val)
+> +{
+> +	int ret, i;
+> +	u8 len;
+> +	u8 reg_start_addr;
+> +	u8 msb, lsb;
+> +	u8 page;
+> +	u32 mask;
+> +
+> +
+> +	u8 reading[4];
+> +	u8 writing[4];
+> +	u32 reading_tmp;
+> +	u32 writing_tmp;
+> +
+> +
+> +	reg_start_addr = registers[reg].start_address;
+> +	msb = registers[reg].msb;
+> +	lsb = registers[reg].lsb;
+> +	page = registers[reg].page;
+> +
+> +	len = (msb >> 3) + 1;
+> +	mask = reg_mask[msb-lsb];
+> +
+> +
+> +	ret = rtl2832_rd_regs(priv, reg_start_addr, page, &reading[0], len);
+> +	if (ret)
+> +		goto err;
+> +
+> +	reading_tmp = 0;
+> +	for (i = 0; i < len; i++)
+> +		reading_tmp |= reading[i] << ((len-1-i)*8);
+> +
+> +	writing_tmp = reading_tmp & ~(mask << lsb);
+> +	writing_tmp |= ((val & mask) << lsb);
+> +
+> +
+> +	for (i = 0; i < len; i++)
+> +		writing[i] = (writing_tmp >> ((len-1-i)*8)) & 0xff;
+> +
+> +	ret = rtl2832_wr_regs(priv, reg_start_addr, page, &writing[0], len);
+> +	if (ret)
+> +		goto err;
+> +
+> +	return ret;
+> +
+> +err:
+> +	return ret;
+> +
+> +}
+> +
+> +
+> +static int rtl2832_i2c_gate_ctrl(struct dvb_frontend *fe, int enable)
+> +{
+> +	int ret;
+> +	struct rtl2832_priv *priv = fe->demodulator_priv;
+> +
+> +	dbg("%s: enable=%d", __func__, enable);
+> +
+> +	/* gate already open or close */
+> +	if (priv->i2c_gate_state == enable)
+> +		return 0;
+> +
+> +	ret = rtl2832_wr_demod_reg(priv, DVBT_IIC_REPEAT, (enable ? 0x1 : 0x0));
+> +
+> +	if (ret)
+> +		goto err;
+> +
+> +	priv->i2c_gate_state = enable;
+> +
+> +	return ret;
+> +err:
+> +	dbg("%s: failed=%d", __func__, ret);
+> +	return ret;
+> +}
+> +
+> +
+> +
+> +static int rtl2832_init(struct dvb_frontend *fe)
+> +{
+> +	struct rtl2832_priv *priv = fe->demodulator_priv;
+> +	int i, ret;
+> +
+> +	u8 en_bbin;
+> +	u64 pset_iffreq;
+> +
+> +	/* initialization values for the demodulator registers */
+> +	static rtl2832_reg_value rtl2832_initial_regs_1[] = {
+> +		{DVBT_AD_EN_REG,			0x1},
+> +		{DVBT_AD_EN_REG1,			0x1},
+> +		{DVBT_RSD_BER_FAIL_VAL,		0x2800},
+> +		{DVBT_MGD_THD0,				0x10},
+> +		{DVBT_MGD_THD1,				0x20},
+> +		{DVBT_MGD_THD2,				0x20},
+> +		{DVBT_MGD_THD3,				0x40},
+> +		{DVBT_MGD_THD4,				0x22},
+> +		{DVBT_MGD_THD5,				0x32},
+> +		{DVBT_MGD_THD6,				0x37},
+> +		{DVBT_MGD_THD7,				0x39},
+> +		{DVBT_EN_BK_TRK,			0x0},
+> +		{DVBT_EN_CACQ_NOTCH,		0x0},
+> +		{DVBT_AD_AV_REF,			0x2a},
+> +		{DVBT_REG_PI,				0x6},
+> +		{DVBT_PIP_ON,				0x0},
+> +		{DVBT_CDIV_PH0,				0x8},
+> +		{DVBT_CDIV_PH1,				0x8},
+> +		{DVBT_SCALE1_B92,			0x4},
+> +		{DVBT_SCALE1_B93,			0xb0},
+> +		{DVBT_SCALE1_BA7,			0x78},
+> +		{DVBT_SCALE1_BA9,			0x28},
+> +		{DVBT_SCALE1_BAA,			0x59},
+> +		{DVBT_SCALE1_BAB,			0x83},
+> +		{DVBT_SCALE1_BAC,			0xd4},
+> +		{DVBT_SCALE1_BB0,			0x65},
+> +		{DVBT_SCALE1_BB1,			0x43},
+> +		{DVBT_KB_P1,				0x1},
+> +		{DVBT_KB_P2,				0x4},
+> +		{DVBT_KB_P3,				0x7},
+> +		{DVBT_K1_CR_STEP12,			0xa},
+> +		{DVBT_REG_GPE,				0x1},
+> +		{DVBT_SERIAL,				0x0},
+> +		{DVBT_CDIV_PH0,				0x9},
+> +		{DVBT_CDIV_PH1,				0x9},
+> +		{DVBT_MPEG_IO_OPT_2_2,		0x0},
+> +		{DVBT_MPEG_IO_OPT_1_0,		0x0},
+> +		{DVBT_TRK_KS_P2,			0x4},
+> +		{DVBT_TRK_KS_I2,			0x7},
+> +		{DVBT_TR_THD_SET2,			0x6},
+> +		{DVBT_TRK_KC_I2,			0x5},
+> +		{DVBT_CR_THD_SET2,			0x1},
+> +
+> +
+> +	};
+> +
+> +	static rtl2832_reg_value rtl2832_initial_regs_2[] = {
+> +		{DVBT_SPEC_INV,				0x0},
+> +		{DVBT_DAGC_TRG_VAL,			0x5a},
+> +		{DVBT_AGC_TARG_VAL_0,		0x0},
+> +		{DVBT_AGC_TARG_VAL_8_1,		0x5a},
+> +		{DVBT_AAGC_LOOP_GAIN,		0x16},
+> +		{DVBT_LOOP_GAIN2_3_0,		0x6},
+> +		{DVBT_LOOP_GAIN2_4,			0x1},
+> +		{DVBT_LOOP_GAIN3,			0x16},
+> +		{DVBT_VTOP1,				0x35},
+> +		{DVBT_VTOP2,				0x21},
+> +		{DVBT_VTOP3,				0x21},
+> +		{DVBT_KRF1,					0x0},
+> +		{DVBT_KRF2,					0x40},
+> +		{DVBT_KRF3,					0x10},
+> +		{DVBT_KRF4,					0x10},
+> +		{DVBT_IF_AGC_MIN,			0x80},
+> +		{DVBT_IF_AGC_MAX,			0x7f},
+> +		{DVBT_RF_AGC_MIN,			0x80},
+> +		{DVBT_RF_AGC_MAX,			0x7f},
+> +		{DVBT_POLAR_RF_AGC,			0x0},
+> +		{DVBT_POLAR_IF_AGC,			0x0},
+> +		{DVBT_AD7_SETTING,			0xe9bf},
+> +		{DVBT_EN_GI_PGA,			0x0},
+> +		{DVBT_THD_LOCK_UP,			0x0},
+> +		{DVBT_THD_LOCK_DW,			0x0},
+> +		{DVBT_THD_UP1,				0x11},
+> +		{DVBT_THD_DW1,				0xef},
+> +		{DVBT_INTER_CNT_LEN,		0xc},
+> +		{DVBT_GI_PGA_STATE,			0x0},
+> +		{DVBT_EN_AGC_PGA,			0x1},
+> +		{DVBT_IF_AGC_MAN,			0x0},
+> +	};
+> +
+> +
+> +	dbg("%s", __func__);
+> +
+> +	en_bbin = (priv->cfg.if_dvbt == 0 ? 0x1 : 0x0);
+> +
+> +	/*
+> +	* PSET_IFFREQ = - floor((IfFreqHz % CrystalFreqHz) * pow(2, 22)
+> +	*		/ CrystalFreqHz)
+> +	*/
+> +	pset_iffreq = priv->cfg.if_dvbt % priv->cfg.xtal;
+> +	pset_iffreq *= 0x400000;
+> +	pset_iffreq = div_u64(pset_iffreq, priv->cfg.xtal);
+> +	pset_iffreq = pset_iffreq & 0x3fffff;
+> +
+> +
+> +
+> +	for (i = 0; i < 42; i++) {
+> +		ret = rtl2832_wr_demod_reg(priv, rtl2832_initial_regs_1[i].reg,
+> +			rtl2832_initial_regs_1[i].value);
+> +		if (ret)
+> +			goto err;
+> +	}
+> +
+> +	/* if frequency settings */
+> +	ret = rtl2832_wr_demod_reg(priv, DVBT_EN_BBIN, en_bbin);
+> +		if (ret)
+> +			goto err;
+> +
+> +	ret = rtl2832_wr_demod_reg(priv, DVBT_PSET_IFFREQ, pset_iffreq);
+> +		if (ret)
+> +			goto err;
+> +
+> +	for (i = 0; i < 31; i++) {
+> +		ret = rtl2832_wr_demod_reg(priv, rtl2832_initial_regs_2[i].reg,
+> +			rtl2832_initial_regs_2[i].value);
+> +		if (ret)
+> +			goto err;
+> +	}
+> +
+> +	priv->sleeping = false;
+> +
+> +	return ret;
+> +
+> +err:
+> +	return ret;
+> +}
+> +
+> +static int rtl2832_sleep(struct dvb_frontend *fe)
+> +{
+> +	struct rtl2832_priv *priv = fe->demodulator_priv;
+> +
+> +	dbg("%s", __func__);
+> +	priv->sleeping = true;
+> +	return 0;
+> +}
+> +
+> +int rtl2832_get_tune_settings(struct dvb_frontend *fe,
+> +	struct dvb_frontend_tune_settings *s)
+> +{
+> +	dbg("%s", __func__);
+> +	s->min_delay_ms = 1000;
+> +	s->step_size = fe->ops.info.frequency_stepsize * 2;
+> +	s->max_drift = (fe->ops.info.frequency_stepsize * 2) + 1;
+> +	return 0;
+> +}
+> +
+> +static int rtl2832_set_frontend(struct dvb_frontend *fe)
+> +{
+> +	struct rtl2832_priv *priv = fe->demodulator_priv;
+> +	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+> +	int ret, i, j;
+> +	u64 bw_mode, num, num2;
+> +	u32 resamp_ratio, cfreq_off_ratio;
+> +
+> +
+> +	static u8 bw_params[3][32] = {
+> +	/* 6 MHz bandwidth */
+> +		{
+> +			0xf5, 0xff, 0x15, 0x38, 0x5d, 0x6d, 0x52, 0x07, 0xfa, 0x2f,
+> +			0x53, 0xf5, 0x3f, 0xca, 0x0b, 0x91, 0xea, 0x30, 0x63, 0xb2,
+> +			0x13, 0xda, 0x0b, 0xc4, 0x18, 0x7e, 0x16, 0x66, 0x08, 0x67,
+> +			0x19, 0xe0,
+> +		},
+> +
+> +	/*  7 MHz bandwidth */
+> +		{
+> +			0xe7, 0xcc, 0xb5, 0xba, 0xe8, 0x2f, 0x67, 0x61, 0x00, 0xaf,
+> +			0x86, 0xf2, 0xbf, 0x59, 0x04, 0x11, 0xb6, 0x33, 0xa4, 0x30,
+> +			0x15, 0x10, 0x0a, 0x42, 0x18, 0xf8, 0x17, 0xd9, 0x07, 0x22,
+> +			0x19, 0x10,
+> +		},
+> +
+> +	/*  8 MHz bandwidth */
+> +		{
+> +			0x09, 0xf6, 0xd2, 0xa7, 0x9a, 0xc9, 0x27, 0x77, 0x06, 0xbf,
+> +			0xec, 0xf4, 0x4f, 0x0b, 0xfc, 0x01, 0x63, 0x35, 0x54, 0xa7,
+> +			0x16, 0x66, 0x08, 0xb4, 0x19, 0x6e, 0x19, 0x65, 0x05, 0xc8,
+> +			0x19, 0xe0,
+> +		},
+> +	};
+> +
+> +
+> +	dbg("%s: frequency=%d bandwidth_hz=%d inversion=%d", __func__,
+> +		c->frequency, c->bandwidth_hz, c->inversion);
+> +
+> +
+> +	/* program tuner */
+> +	if (fe->ops.tuner_ops.set_params)
+> +		fe->ops.tuner_ops.set_params(fe);
+> +
+> +
+> +	switch (c->bandwidth_hz) {
+> +	case 6000000:
+> +		i = 0;
+> +		bw_mode = 48000000;
+> +		break;
+> +	case 7000000:
+> +		i = 1;
+> +		bw_mode = 56000000;
+> +		break;
+> +	case 8000000:
+> +		i = 2;
+> +		bw_mode = 64000000;
+> +		break;
+> +	default:
+> +		dbg("invalid bandwidth");
+> +		return -EINVAL;
+> +	}
+> +
+> +	for (j = 0; j < 32; j++) {
+> +		ret = rtl2832_wr_regs(priv, 0x1c+j, 1, &bw_params[i][j], 1);
+> +		if (ret)
+> +			goto err;
+> +	}
+> +
+> +	/* calculate and set resample ratio
+> +	* RSAMP_RATIO = floor(CrystalFreqHz * 7 * pow(2, 22)
+> +	* 	/ ConstWithBandwidthMode)
+> +	*/
+> +	num = priv->cfg.xtal * 7;
+> +	num *= 0x400000;
+> +	num = div_u64(num, bw_mode);
+> +	resamp_ratio =  num & 0x3ffffff;
+> +	ret = rtl2832_wr_demod_reg(priv, DVBT_RSAMP_RATIO, resamp_ratio);
+> +	if (ret)
+> +		goto err;
+> +
+> +	/* calculate and set cfreq off ratio
+> +	* CFREQ_OFF_RATIO = - floor(ConstWithBandwidthMode * pow(2, 20)
+> +	* 	/ (CrystalFreqHz * 7))
+> +	*/
+> +	num = bw_mode << 20;
+> +	num2 = priv->cfg.xtal * 7;
+> +	num = div_u64(num, num2);
+> +	num = -num;
+> +	cfreq_off_ratio = num & 0xfffff;
+> +	ret = rtl2832_wr_demod_reg(priv, DVBT_CFREQ_OFF_RATIO, cfreq_off_ratio);
+> +	if (ret)
+> +		goto err;
+> +
+> +
+> +	/* soft reset */
+> +	ret = rtl2832_wr_demod_reg(priv, DVBT_SOFT_RST, 0x1);
+> +	if (ret)
+> +		goto err;
+> +
+> +	ret = rtl2832_wr_demod_reg(priv, DVBT_SOFT_RST, 0x0);
+> +	if (ret)
+> +		goto err;
+> +
+> +	return ret;
+> +err:
+> +	info("%s: failed=%d", __func__, ret);
+> +	return ret;
+> +}
+> +
+> +static int rtl2832_read_status(struct dvb_frontend *fe, fe_status_t
+> *status) +{
+> +	struct rtl2832_priv *priv = fe->demodulator_priv;
+> +	int ret;
+> +	u32 tmp;
+> +	*status = 0;
+> +
+> +
+> +	dbg("%s", __func__);
+> +	if (priv->sleeping)
+> +		return 0;
+> +
+> +	ret = rtl2832_rd_demod_reg(priv, DVBT_FSM_STAGE, &tmp);
+> +	if (ret)
+> +		goto err;
+> +
+> +	if (tmp == 11) {
+> +		*status |= FE_HAS_SIGNAL | FE_HAS_CARRIER |
+> +				FE_HAS_VITERBI | FE_HAS_SYNC | FE_HAS_LOCK;
+> +	}
+> +	/* TODO find out if this is also true */
+> +	/*else if (tmp == 10) {
+> +		*status |= FE_HAS_SIGNAL | FE_HAS_CARRIER |
+> +				FE_HAS_VITERBI;
+> +	}*/
+> +
+> +	return ret;
+> +err:
+> +	info("%s: failed=%d", __func__, ret);
+> +	return ret;
+> +}
+> +
+> +
+> +/*
+> + * Calculates log2 with fixed point arithmetic in Q10 format.
+> + *
+> + * Basically the result of the function is log2(x) * pow(2, precision)
+> + *
+> + * For more information see:
+> + * http://en.wikipedia.org/wiki/Binary_logarithm#Algorithm
+> + */
+> +static u16 log2(u16 x, u8 precision)
 
+the compiler warns because of a builtin log2 function. Maybe you want to 
+rename it?
+
+> +{
+> +	u8 pos;
+> +	u16 res;
+> +	u64 tmp;
+> +	int i;
+> +	u16 t, tt;
+> +
+> +	/* calculate highest bit position: floor(log2(x))*/
+> +	static const char LogTable256[256] = {
+> +		-1, 0, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3,
+> +		#define LT(n) (n), (n), (n), (n), (n), (n), (n), (n), (n), \
+> +			(n), (n), (n), (n), (n), (n), (n)
+
+checkpatch complains:
+ERROR: Macros with complex values should be enclosed in parenthesis
+#817: FILE: drivers/media/dvb/frontends/rtl2832.c:797:
++               #define LT(n) (n), (n), (n), (n), (n), (n), (n), (n), (n), \
++                       (n), (n), (n), (n), (n), (n), (n)
+
+
+> +		LT(4), LT(5), LT(5), LT(6), LT(6), LT(6), LT(6),
+> +		LT(7), LT(7), LT(7), LT(7), LT(7), LT(7), LT(7), LT(7)
+> +	};
+> +
+> +	tt = x >> 16;
+> +	if (tt)
+> +		pos = ((t = tt >> 8)) ? 24 + LogTable256[t] : 16 +
+> +			LogTable256[tt];
+> +	else
+> +		pos = ((t = x >> 8)) ? 8 + LogTable256[t] : LogTable256[x];
+> +
+> +	tmp = x;
+> +
+> +	/* set integer part of result */
+> +	res = pos;
+> +
+> +	/* calculate fraction part of result */
+> +	for (i = 0; i < precision; i++) {
+> +		res <<= 1;
+> +		tmp *= tmp;
+> +		pos *= 2;
+> +		if (pos > 30) {
+> +			tmp >>= (pos - 30);
+> +			pos = 30;
+> +		}
+> +		if (tmp >> (pos + 1) & 0x1) {
+> +			tmp >>= 1;
+> +			res |= 0x1;
+> +		}
+> +	}
+> +
+> +	return res;
+> +}
+> +
+> +#define RTL2832_CE_EST_EVM_MAX_VALUE 65535
+> +#define RTL2832_SNR_FRAC_BIT_NUM 10
+> +#define RTL2832_SNR_DB_DEN 3402
+> +
+> +static int rtl2832_read_snr(struct dvb_frontend *fe, u16 *snr)
+> +{
+> +	struct rtl2832_priv *priv = fe->demodulator_priv;
+> +	int ret;
+> +	u64 num;
+> +	u32 ce_est_evm, fsm_stage, constellation, hierarchy;
+> +
+> +	/* Calculated by: 10 * log2(Norm * pow(2, 11)) * pow(2, 10) */
+> +	static const long SnrDbNum[3][4] = {
+> +		{122880, 122880, 122880, 122880, },
+> +		{146657, 146657, 156897, 171013, },
+> +		{167857, 167857, 173127, 181810, },
+> +	};
+> +
+> +	static const int snrMaxDb[3] = {  23,  26,  29, };
+> +
+> +	dbg("%s", __func__);
+> +
+> +	/* get FSM Stage */
+> +	ret = rtl2832_rd_demod_reg(priv, DVBT_FSM_STAGE, &fsm_stage);
+> +	if (ret)
+> +		goto err;
+> +
+> +	if (fsm_stage < 10) {
+> +		ce_est_evm = RTL2832_CE_EST_EVM_MAX_VALUE;
+> +	} else {
+> +		ret = rtl2832_rd_demod_reg(priv, DVBT_CE_EST_EVM, &ce_est_evm);
+> +		if (ret)
+> +			goto err;
+> +	}
+> +
+> +	/* get constellation */
+> +	ret = rtl2832_rd_demod_reg(priv, DVBT_RX_CONSTEL, &constellation);
+> +	if (ret)
+> +		goto err;
+> +	if (constellation > 2)
+> +		goto err;
+> +
+> +	/* get hierarchy */
+> +	ret = rtl2832_rd_demod_reg(priv, DVBT_RX_HIER, &hierarchy);
+> +	if (ret)
+> +		goto err;
+> +	if (hierarchy > 3)
+> +		goto err;
+> +
+> +
+> +	 /*
+> +	 SNR dB formula
+> +	 Original formula: SNR_dB = 10 * log10(Norm * pow(2, 11) / CeEstEvm)
+> +	 Adjusted formula: SNR_dB = (SNR_DB_NUM_CONST - 10 * log2(CeEstEvm) *
+> +			    pow(2, 10)) / SNR_DB_DEN
+> +			   SNR_DB_NUM_CONST = 10 * log2(Norm * pow(2, 11)) *
+> +			    pow(2, 10)
+> +			   SNR_DB_DEN = log2(10) * pow(2, 10) = 3402 = 0xd4a
+> +		Norm:
+> +		None	Alpha=1	Alpha=2	Alpha=4
+> +		4-QAM	2	2	2	2
+> +		16-QAM	10	10	20	52
+> +		64-QAM	42	42	60	108
+> +	*/
+> +
+> +	num = log2(ce_est_evm, RTL2832_SNR_FRAC_BIT_NUM);
+> +	num = SnrDbNum[constellation][hierarchy] - 10 * num;
+> +
+> +	num = div_u64(num, RTL2832_SNR_DB_DEN);
+> +	num *= 0xffff;
+> +	num = div_u64(num, snrMaxDb[constellation]);
+> +
+> +	if (num > 0xffff)
+> +		*snr = 0xffff;
+> +	else if (num < 0)
+> +		*snr = 0;
+> +	else
+> +		*snr = 0xffff & num;
+> +
+> +	return ret;
+> +
+> +err:
+> +	info("%s: failed=%d", __func__, ret);
+> +	return ret;
+> +}
+> +
+> +static int rtl2832_read_ber(struct dvb_frontend *fe, u32 *ber)
+> +{
+> +	struct rtl2832_priv *priv = fe->demodulator_priv;
+> +	int ret;
+> +	u32 tmp;
+> +
+> +	dbg("%s", __func__);
+> +
+> +	/* get BER */
+> +	ret = rtl2832_rd_demod_reg(priv, DVBT_RSD_BER_EST, &tmp);
+> +	if (ret)
+> +		goto err;
+> +
+> +	*ber = tmp;
+> +	return ret;
+> +
+> +err:
+> +	info("%s: failed=%d", __func__, ret);
+> +	*ber = 19616;
+> +	return ret;
+> +}
+> +
+> +static int rtl2832_read_ucblocks(struct dvb_frontend *fe, u32 *ucblocks)
+> +{
+> +	struct rtl2832_priv *priv = fe->demodulator_priv;
+> +	int ret;
+> +	u32 tmp;
+> +	u16 num;
+> +
+> +	dbg("%s", __func__);
+> +
+> +
+> +	/* get FSM Stage */
+> +	ret = rtl2832_rd_demod_reg(priv, DVBT_FSM_STAGE, &tmp);
+> +	if (ret)
+> +		goto err;
+> +
+> +	/* if signal is not locked quality is zero */
+> +	if (tmp < 10) {
+> +		*ucblocks = 0;
+> +		return 0;
+> +	}
+> +
+> +	/* get BER */
+> +	ret = rtl2832_rd_demod_reg(priv, DVBT_RSD_BER_EST, &tmp);
+> +	if (ret)
+> +		goto err;
+> +
+> +	/*
+> +	 Determine signal quality according to RSD_BER_EST.
+> +	 Note: Map RSD_BER_EST value 8192 ~ 128 to 10 ~ 100
+> +		 Original formula: SignalQuality = 205 - 15 * log2(RSD_BER_EST)
+> +		 Adjusted formula: SignalQuality = ((205 << 5) - 15 *
+> +			(log2(RSD_BER_EST) << 5)) >> 5
+> +		 If RSD_BER_EST > 8192, signal quality is 10.
+> +		 If RSD_BER_EST < 128, signal quality is 100.
+> +	*/
+> +
+> +	if (tmp > 8192) {
+> +		*ucblocks =  10;
+> +	 else if (tmp < 128) {
+
+closing bracket of first if-block missing.
+
+> +		*ucblocks = 100;
+> +	} else {
+> +		num = log2(tmp, 5);
+> +		*ucblocks = ((205 << 5) - 15 * num) >> 5;
+> +	}
+> +
+> +	return 0;
+> +
+> +err:
+> +	info("%s: failed=%d", __func__, ret);
+> +	*ucblocks = 0;
+> +	return ret;
+> +}
+> +
+> +#define INPUT_ADC_LEVEL   -8
+> +
+> +/* For FC0012 and FC0013 read the signal strength from the tuner */
+> +static int rtl2832_fc001x_read_signal_strength(struct dvb_frontend *fe,
+> +	u16 *strength)
+> +{
+> +	struct rtl2832_priv *priv = fe->demodulator_priv;
+> +	int ret;
+> +	u8 val, reg;
+> +	int int_temp, lna_gain, int_lna, tot_agc_gain, power;
+> +
+> +	const int fc001x_lna_gain_table[] = {
+> +		/* low gain */
+> +		-63, -58, -99, -73,
+> +		-63, -65, -54, -60,
+> +		/* middle gain */
+> +		 71,  70,  68,  67,
+> +		 65,  63,  61,  58,
+> +		/* high gain */
+> +		197, 191, 188, 186,
+> +		184, 182, 181, 179,
+> +	};
+> +
+> +	dbg("%s", __func__);
+> +	if (priv->tuner == TUNER_RTL28XX_FC0013)
+> +		reg = 0x13;
+> +	else
+> +		reg = 0x12;
+> +
+> +	ret = rtl2832_i2c_gate_ctrl(fe, true);
+> +	if (ret)
+> +		goto err;
+> +
+> +	val = 0x00;
+> +	ret = rtl2832_wr_i2c(priv, 0xc6 >> 1, reg, &val, 1);
+> +	if (ret) {
+> +		err("%s: rtl2832_wr_i2c failed, ret=%d", __func__, ret);
+> +		goto err_gate;
+> +	} else {
+> +		ret = rtl2832_rd_i2c(priv, 0xc6 >> 1, reg, &val, 1);
+> +		if (ret) {
+> +			err("%s: rtl2832_rd_i2c failed, ret=%d", __func__, ret);
+> +			goto err_gate;
+> +		}
+> +		int_temp = val;
+> +
+> +		ret = rtl2832_rd_i2c(priv, 0xc6 >> 1, reg + 1, &val, 1);
+> +		if (ret) {
+> +			err("%s: rtl2832_rd_i2c failed, ret=%d", __func__, ret);
+> +			goto err_gate;
+> +		}
+> +		lna_gain = val & (priv->tuner == TUNER_RTL28XX_FC0013 ?
+> +			0x1f : 0x7f);
+> +	}
+> +
+> +	ret = rtl2832_i2c_gate_ctrl(fe, false);
+> +	if (ret)
+> +		goto err;
+> +
+> +	if (lna_gain < ARRAY_SIZE(fc001x_lna_gain_table)) {
+> +		int_lna = fc001x_lna_gain_table[lna_gain];
+> +		tot_agc_gain = (abs((int_temp >> 5) - 7) - 2) * 2 +
+> +				(int_temp & 0x1f) * 2;
+> +		power = INPUT_ADC_LEVEL - tot_agc_gain - int_lna / 10;
+> +
+> +		if (power >= 45)
+> +			*strength = 255;	    /* 100% */
+> +		else if (power < -95)
+> +			*strength = 0;
+> +		else
+> +			*strength = (power + 95) * 255 / 140;
+> +
+> +		*strength |= *strength << 8;
+> +	} else {
+> +		ret = -1;
+> +		goto err;
+> +	}
+> +
+> +	return 0;
+> +
+> +err_gate:
+> +	ret = rtl2832_i2c_gate_ctrl(fe, false);
+> +err:
+> +	*strength = 0;
+> +	return ret;
+> +}
+> +
+> +
+> +static int rtl2832_read_signal_strength(struct dvb_frontend *fe, u16
+> *strength) +{
+> +	struct rtl2832_priv *priv = fe->demodulator_priv;
+> +	int ret, if_agc;
+> +	u32 fsm_stage, if_agc_raw;
+> +
+> +	dbg("%s", __func__);
+> +
+> +	if ((priv->tuner == TUNER_RTL28XX_FC0012) ||
+> +		(priv->tuner == TUNER_RTL28XX_FC0013))
+> +		return rtl2832_fc001x_read_signal_strength(fe, strength);
+> +
+> +	ret = rtl2832_rd_demod_reg(priv, DVBT_FSM_STAGE, &fsm_stage);
+> +	if (ret)
+> +			goto err;
+> +
+> +	if (fsm_stage < 10)
+> +			*strength = 0;
+> +	else {
+> +		/* if_agc is read as a 10bit binary */
+> +		ret = rtl2832_rd_demod_reg(priv, DVBT_IF_AGC_VAL, &if_agc_raw);
+> +		if (ret)
+> +			goto err;
+> +
+> +			if (if_agc_raw < (1 << 9))
+> +				if_agc = if_agc_raw;
+> +			else
+> +				if_agc = -(~(if_agc_raw-1) & 0x1ff);
+> +
+> +			*strength = 55 - if_agc / 182;
+> +			*strength |= *strength << 8;
+> +	}
+> +	return 0;
+> +err:
+> +	info("%s: failed=%d", __func__, ret);
+> +	return ret;
+> +}
+> +
+> +static struct dvb_frontend_ops rtl2832_ops;
+> +
+> +static void rtl2832_release(struct dvb_frontend *fe)
+> +{
+> +	struct rtl2832_priv *priv = fe->demodulator_priv;
+> +
+> +	dbg("%s", __func__);
+> +	kfree(priv);
+> +}
+> +
+> +struct dvb_frontend *rtl2832_attach(const struct rtl2832_config *cfg,
+> +	struct i2c_adapter *i2c)
+> +{
+> +	struct rtl2832_priv *priv = NULL;
+> +	int ret = 0;
+> +	u8 tmp;
+> +
+> +	dbg("%s", __func__);
+> +
+> +	/* allocate memory for the internal state */
+> +	priv = kzalloc(sizeof(struct rtl2832_priv), GFP_KERNEL);
+> +	if (priv == NULL)
+> +		goto err;
+> +
+> +	/* setup the priv */
+> +	priv->i2c = i2c;
+> +	priv->tuner = cfg->tuner;
+> +	memcpy(&priv->cfg, cfg, sizeof(struct rtl2832_config));
+> +
+> +	/* check if the demod is there */
+> +	ret = rtl2832_rd_reg(priv, 0x00, 0x0, &tmp);
+> +	if (ret)
+> +		goto err;
+> +
+> +	/* create dvb_frontend */
+> +	memcpy(&priv->fe.ops, &rtl2832_ops, sizeof(struct dvb_frontend_ops));
+> +	priv->fe.demodulator_priv = priv;
+> +
+> +	/* TODO implement sleep mode depending on RC */
+> +	priv->sleeping = true;
+> +
+> +	return &priv->fe;
+> +err:
+> +	dbg("%s: failed=%d", __func__, ret);
+> +	kfree(priv);
+> +	return NULL;
+> +}
+> +EXPORT_SYMBOL(rtl2832_attach);
+> +
+> +static struct dvb_frontend_ops rtl2832_ops = {
+> +	 .delsys = { SYS_DVBT },
+> +	 .info = {
+> +		 .name = "Realtek RTL2832 (DVB-T)",
+> +		 .type			   = FE_OFDM,
+> +		 .frequency_min	  = 50000000,
+> +		 .frequency_max	  = 862000000,
+> +		 .frequency_stepsize = 166667,
+> +		 .caps = FE_CAN_FEC_1_2 |
+> +			FE_CAN_FEC_2_3 |
+> +			FE_CAN_FEC_3_4 |
+> +			FE_CAN_FEC_5_6 |
+> +			FE_CAN_FEC_7_8 |
+> +			FE_CAN_FEC_AUTO |
+> +			FE_CAN_QPSK |
+> +			FE_CAN_QAM_16 |
+> +			FE_CAN_QAM_64 |
+> +			FE_CAN_QAM_AUTO |
+> +			FE_CAN_TRANSMISSION_MODE_AUTO |
+> +			FE_CAN_GUARD_INTERVAL_AUTO |
+> +			FE_CAN_HIERARCHY_AUTO |
+> +			FE_CAN_RECOVER |
+> +			FE_CAN_MUTE_TS
+> +	 },
+> +
+> +	.release = rtl2832_release,
+> +
+> +	.init = rtl2832_init,
+> +	.sleep = rtl2832_sleep,
+> +
+> +	.get_tune_settings = rtl2832_get_tune_settings,
+> +
+> +	.set_frontend = rtl2832_set_frontend,
+> +
+> +	.read_status = rtl2832_read_status,
+> +	.read_snr = rtl2832_read_snr,
+> +	.read_ber = rtl2832_read_ber,
+> +	.read_ucblocks = rtl2832_read_ucblocks,
+> +	.read_signal_strength = rtl2832_read_signal_strength,
+> +	.i2c_gate_ctrl = rtl2832_i2c_gate_ctrl,
+> +};
+> +
+> +MODULE_AUTHOR("Thomas Mair <mair.thomas86@gmail.com>");
+> +MODULE_DESCRIPTION("Realtek RTL2832 DVB-T demodulator driver");
+> +MODULE_LICENSE("GPL");
+> +MODULE_VERSION("0.2");
+> diff --git a/drivers/media/dvb/frontends/rtl2832.h
+> b/drivers/media/dvb/frontends/rtl2832.h
+> new file mode 100644
+> index 0000000..594a7cd
+> --- /dev/null
+> +++ b/drivers/media/dvb/frontends/rtl2832.h
+> @@ -0,0 +1,296 @@
+> +/*
+> + * Realtek RTL2832 DVB-T demodulator driver
+> + *
+> + * Copyright (C) 2012 Thomas Mair <thomas.mair86@gmail.com>
+> + *
+> + *	This program is free software; you can redistribute it and/or modify
+> + *	it under the terms of the GNU General Public License as published by
+> + *	the Free Software Foundation; either version 2 of the License, or
+> + *	(at your option) any later version.
+> + *
+> + *	This program is distributed in the hope that it will be useful,
+> + *	but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + *	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + *	GNU General Public License for more details.
+> + *
+> + *	You should have received a copy of the GNU General Public License 
+along
+> + *	with this program; if not, write to the Free Software Foundation, 
+Inc.,
+> + *	51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+> + */
+> +
+> +#ifndef RTL2832_H
+> +#define RTL2832_H
+> +
+> +#include <linux/dvb/frontend.h>
+> +
+> +struct rtl2832_config {
+> +	/*
+> +	 * Demodulator I2C address.
+> +	 */
+> +	u8 i2c_addr;
+> +
+> +	/*
+> +	 * Xtal frequency.
+> +	 * Hz
+> +	 * 4000000, 16000000, 25000000, 28800000
+> +	 */
+> +	u32 xtal;
+> +
+> +	/*
+> +	 * IFs for all used modes.
+> +	 * Hz
+> +	 * 4570000, 4571429, 36000000, 36125000, 36166667, 44000000
+> +	 */
+> +	u32 if_dvbt;
+> +
+> +	/*
+> +	 */
+> +	u8 tuner;
+> +};
+> +
+> +
+> +#if defined(CONFIG_DVB_RTL2832) || \
+> +	(defined(CONFIG_DVB_RTL2832_MODULE) && defined(MODULE))
+> +extern struct dvb_frontend *rtl2832_attach(
+> +	const struct rtl2832_config *cfg,
+> +	struct i2c_adapter *i2c
+> +);
+> +
+> +extern struct i2c_adapter *rtl2832_get_tuner_i2c_adapter(
+> +	struct dvb_frontend *fe
+> +);
+> +#else
+> +static inline struct dvb_frontend *rtl2832_attach(
+> +	const struct rtl2832_config *config,
+> +	struct i2c_adapter *i2c
+> +)
+> +{
+> +	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
+> +	return NULL;
+> +}
+> +
+> +static inline struct i2c_adapter *rtl2832_get_tuner_i2c_adapter(
+> +	struct dvb_frontend *fe
+> +)
+> +{
+> +	return NULL;
+> +}
+> +#endif
+> +
+> +
+> +/* Demod register bit names */
+> +enum DVBT_REG_BIT_NAME {
+> +	DVBT_SOFT_RST,
+> +	DVBT_IIC_REPEAT,
+> +	DVBT_TR_WAIT_MIN_8K,
+> +	DVBT_RSD_BER_FAIL_VAL,
+> +	DVBT_EN_BK_TRK,
+> +	DVBT_REG_PI,
+> +	DVBT_REG_PFREQ_1_0,
+> +	DVBT_PD_DA8,
+> +	DVBT_LOCK_TH,
+> +	DVBT_BER_PASS_SCAL,
+> +	DVBT_CE_FFSM_BYPASS,
+> +	DVBT_ALPHAIIR_N,
+> +	DVBT_ALPHAIIR_DIF,
+> +	DVBT_EN_TRK_SPAN,
+> +	DVBT_LOCK_TH_LEN,
+> +	DVBT_CCI_THRE,
+> +	DVBT_CCI_MON_SCAL,
+> +	DVBT_CCI_M0,
+> +	DVBT_CCI_M1,
+> +	DVBT_CCI_M2,
+> +	DVBT_CCI_M3,
+> +	DVBT_SPEC_INIT_0,
+> +	DVBT_SPEC_INIT_1,
+> +	DVBT_SPEC_INIT_2,
+> +	DVBT_AD_EN_REG,
+> +	DVBT_AD_EN_REG1,
+> +	DVBT_EN_BBIN,
+> +	DVBT_MGD_THD0,
+> +	DVBT_MGD_THD1,
+> +	DVBT_MGD_THD2,
+> +	DVBT_MGD_THD3,
+> +	DVBT_MGD_THD4,
+> +	DVBT_MGD_THD5,
+> +	DVBT_MGD_THD6,
+> +	DVBT_MGD_THD7,
+> +	DVBT_EN_CACQ_NOTCH,
+> +	DVBT_AD_AV_REF,
+> +	DVBT_PIP_ON,
+> +	DVBT_SCALE1_B92,
+> +	DVBT_SCALE1_B93,
+> +	DVBT_SCALE1_BA7,
+> +	DVBT_SCALE1_BA9,
+> +	DVBT_SCALE1_BAA,
+> +	DVBT_SCALE1_BAB,
+> +	DVBT_SCALE1_BAC,
+> +	DVBT_SCALE1_BB0,
+> +	DVBT_SCALE1_BB1,
+> +	DVBT_KB_P1,
+> +	DVBT_KB_P2,
+> +	DVBT_KB_P3,
+> +	DVBT_OPT_ADC_IQ,
+> +	DVBT_AD_AVI,
+> +	DVBT_AD_AVQ,
+> +	DVBT_K1_CR_STEP12,
+> +	DVBT_TRK_KS_P2,
+> +	DVBT_TRK_KS_I2,
+> +	DVBT_TR_THD_SET2,
+> +	DVBT_TRK_KC_P2,
+> +	DVBT_TRK_KC_I2,
+> +	DVBT_CR_THD_SET2,
+> +	DVBT_PSET_IFFREQ,
+> +	DVBT_SPEC_INV,
+> +	DVBT_BW_INDEX,
+> +	DVBT_RSAMP_RATIO,
+> +	DVBT_CFREQ_OFF_RATIO,
+> +	DVBT_FSM_STAGE,
+> +	DVBT_RX_CONSTEL,
+> +	DVBT_RX_HIER,
+> +	DVBT_RX_C_RATE_LP,
+> +	DVBT_RX_C_RATE_HP,
+> +	DVBT_GI_IDX,
+> +	DVBT_FFT_MODE_IDX,
+> +	DVBT_RSD_BER_EST,
+> +	DVBT_CE_EST_EVM,
+> +	DVBT_RF_AGC_VAL,
+> +	DVBT_IF_AGC_VAL,
+> +	DVBT_DAGC_VAL,
+> +	DVBT_SFREQ_OFF,
+> +	DVBT_CFREQ_OFF,
+> +	DVBT_POLAR_RF_AGC,
+> +	DVBT_POLAR_IF_AGC,
+> +	DVBT_AAGC_HOLD,
+> +	DVBT_EN_RF_AGC,
+> +	DVBT_EN_IF_AGC,
+> +	DVBT_IF_AGC_MIN,
+> +	DVBT_IF_AGC_MAX,
+> +	DVBT_RF_AGC_MIN,
+> +	DVBT_RF_AGC_MAX,
+> +	DVBT_IF_AGC_MAN,
+> +	DVBT_IF_AGC_MAN_VAL,
+> +	DVBT_RF_AGC_MAN,
+> +	DVBT_RF_AGC_MAN_VAL,
+> +	DVBT_DAGC_TRG_VAL,
+> +	DVBT_AGC_TARG_VAL,
+> +	DVBT_LOOP_GAIN_3_0,
+> +	DVBT_LOOP_GAIN_4,
+> +	DVBT_VTOP,
+> +	DVBT_KRF,
+> +	DVBT_AGC_TARG_VAL_0,
+> +	DVBT_AGC_TARG_VAL_8_1,
+> +	DVBT_AAGC_LOOP_GAIN,
+> +	DVBT_LOOP_GAIN2_3_0,
+> +	DVBT_LOOP_GAIN2_4,
+> +	DVBT_LOOP_GAIN3,
+> +	DVBT_VTOP1,
+> +	DVBT_VTOP2,
+> +	DVBT_VTOP3,
+> +	DVBT_KRF1,
+> +	DVBT_KRF2,
+> +	DVBT_KRF3,
+> +	DVBT_KRF4,
+> +	DVBT_EN_GI_PGA,
+> +	DVBT_THD_LOCK_UP,
+> +	DVBT_THD_LOCK_DW,
+> +	DVBT_THD_UP1,
+> +	DVBT_THD_DW1,
+> +	DVBT_INTER_CNT_LEN,
+> +	DVBT_GI_PGA_STATE,
+> +	DVBT_EN_AGC_PGA,
+> +	DVBT_CKOUTPAR,
+> +	DVBT_CKOUT_PWR,
+> +	DVBT_SYNC_DUR,
+> +	DVBT_ERR_DUR,
+> +	DVBT_SYNC_LVL,
+> +	DVBT_ERR_LVL,
+> +	DVBT_VAL_LVL,
+> +	DVBT_SERIAL,
+> +	DVBT_SER_LSB,
+> +	DVBT_CDIV_PH0,
+> +	DVBT_CDIV_PH1,
+> +	DVBT_MPEG_IO_OPT_2_2,
+> +	DVBT_MPEG_IO_OPT_1_0,
+> +	DVBT_CKOUTPAR_PIP,
+> +	DVBT_CKOUT_PWR_PIP,
+> +	DVBT_SYNC_LVL_PIP,
+> +	DVBT_ERR_LVL_PIP,
+> +	DVBT_VAL_LVL_PIP,
+> +	DVBT_CKOUTPAR_PID,
+> +	DVBT_CKOUT_PWR_PID,
+> +	DVBT_SYNC_LVL_PID,
+> +	DVBT_ERR_LVL_PID,
+> +	DVBT_VAL_LVL_PID,
+> +	DVBT_SM_PASS,
+> +	DVBT_UPDATE_REG_2,
+> +	DVBT_BTHD_P3,
+> +	DVBT_BTHD_D3,
+> +	DVBT_FUNC4_REG0,
+> +	DVBT_FUNC4_REG1,
+> +	DVBT_FUNC4_REG2,
+> +	DVBT_FUNC4_REG3,
+> +	DVBT_FUNC4_REG4,
+> +	DVBT_FUNC4_REG5,
+> +	DVBT_FUNC4_REG6,
+> +	DVBT_FUNC4_REG7,
+> +	DVBT_FUNC4_REG8,
+> +	DVBT_FUNC4_REG9,
+> +	DVBT_FUNC4_REG10,
+> +	DVBT_FUNC5_REG0,
+> +	DVBT_FUNC5_REG1,
+> +	DVBT_FUNC5_REG2,
+> +	DVBT_FUNC5_REG3,
+> +	DVBT_FUNC5_REG4,
+> +	DVBT_FUNC5_REG5,
+> +	DVBT_FUNC5_REG6,
+> +	DVBT_FUNC5_REG7,
+> +	DVBT_FUNC5_REG8,
+> +	DVBT_FUNC5_REG9,
+> +	DVBT_FUNC5_REG10,
+> +	DVBT_FUNC5_REG11,
+> +	DVBT_FUNC5_REG12,
+> +	DVBT_FUNC5_REG13,
+> +	DVBT_FUNC5_REG14,
+> +	DVBT_FUNC5_REG15,
+> +	DVBT_FUNC5_REG16,
+> +	DVBT_FUNC5_REG17,
+> +	DVBT_FUNC5_REG18,
+> +	DVBT_AD7_SETTING,
+> +	DVBT_RSSI_R,
+> +	DVBT_ACI_DET_IND,
+> +	DVBT_REG_MON,
+> +	DVBT_REG_MONSEL,
+> +	DVBT_REG_GPE,
+> +	DVBT_REG_GPO,
+> +	DVBT_REG_4MSEL,
+> +	DVBT_TEST_REG_1,
+> +	DVBT_TEST_REG_2,
+> +	DVBT_TEST_REG_3,
+> +	DVBT_TEST_REG_4,
+> +	DVBT_REG_BIT_NAME_ITEM_TERMINATOR,
+> +};
+> +
+> +
+> +/* Register table length */
+> +#define RTL2832_REG_TABLE_LEN	DVBT_REG_BIT_NAME_ITEM_TERMINATOR
+> +
+> +struct {
+> +	u8 page;
+> +	u8 start_address;
+> +	u8 msb;
+> +	u8 lsb;
+> +}
+> +rtl2832_reg_entry;
+
+must remain typedef struct ... (as you had it in your initial patch) from 29th 
+April. Otherwise you are just defining a struct with the name rtl2832_reg_entry 
+and cannot use it in a type definition in rtl2832.c as you did.
+
+> +
+> +struct {
+> +	int reg;
+> +	u32 value;
+> +}
+> +rtl2832_reg_value;
+
+same here.
+
+> +
+> +
+> +
+> +
+> +
+> +#endif /* RTL2832_H */
+[...]
+
+Hans-Frieder Vogt                       e-mail: hfvogt <at> gmx .dot. net
