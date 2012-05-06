@@ -1,146 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.48]:43621 "EHLO mgw-sa02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753947Ab2EVWbK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 May 2012 18:31:10 -0400
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com
-Subject: [media-ctl PATCH v3 2/4] Compose rectangle support for libv4l2subdev
-Date: Wed, 23 May 2012 01:30:58 +0300
-Message-Id: <1337725860-11048-2-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <4FBC1396.9090109@iki.fi>
-References: <4FBC1396.9090109@iki.fi>
+Received: from mailout-de.gmx.net ([213.165.64.22]:39429 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1754557Ab2EFU7f (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 May 2012 16:59:35 -0400
+From: Oliver Endriss <o.endriss@gmx.de>
+Reply-To: linux-media@vger.kernel.org
+To: Ludovic BOUE <ludovic.boue@gmail.com>
+Subject: Re: How to toggle Cine CT V6 to DVB-T mode?
+Date: Sun, 6 May 2012 22:26:17 +0200
+Cc: linux-media@vger.kernel.org, Brice Dubost <mumudvb@braice.net>
+References: <CAO+XwZc5xHCaggg_LCmWNtnCuFWVNGFHY=Dm-eFLchcamrF-ZQ@mail.gmail.com>
+In-Reply-To: <CAO+XwZc5xHCaggg_LCmWNtnCuFWVNGFHY=Dm-eFLchcamrF-ZQ@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <201205062226.18652@orion.escape-edv.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
----
- src/main.c       |   14 ++++++++++++++
- src/options.c    |    6 ++++--
- src/v4l2subdev.c |   32 +++++++++++++++++++++++---------
- 3 files changed, 41 insertions(+), 11 deletions(-)
+Hi,
 
-diff --git a/src/main.c b/src/main.c
-index 5d88b46..0b94f2a 100644
---- a/src/main.c
-+++ b/src/main.c
-@@ -77,6 +77,20 @@ static void v4l2_subdev_print_format(struct media_entity *entity,
- 		printf("\n\t\t crop:(%u,%u)/%ux%u", rect.left, rect.top,
- 		       rect.width, rect.height);
- 
-+	ret = v4l2_subdev_get_selection(entity, &rect, pad,
-+					V4L2_SUBDEV_SEL_TGT_COMPOSE_BOUNDS,
-+					which);
-+	if (ret == 0)
-+		printf("\n\t\t compose.bounds:%u,%u/%ux%u",
-+		       rect.left, rect.top, rect.width, rect.height);
-+
-+	ret = v4l2_subdev_get_selection(entity, &rect, pad,
-+					V4L2_SUBDEV_SEL_TGT_COMPOSE_ACTUAL,
-+					which);
-+	if (ret == 0)
-+		printf("\n\t\t compose:%u,%u/%ux%u",
-+		       rect.left, rect.top, rect.width, rect.height);
-+
- 	printf("]");
- }
- 
-diff --git a/src/options.c b/src/options.c
-index 46f6bef..8e80bd0 100644
---- a/src/options.c
-+++ b/src/options.c
-@@ -56,12 +56,14 @@ static void usage(const char *argv0, int verbose)
- 	printf("\tv4l2                = pad, '[', v4l2-cfgs ']' ;\n");
- 	printf("\tv4l2-cfgs           = v4l2-cfg [ ',' v4l2-cfg ] ;\n");
- 	printf("\tv4l2-cfg            = v4l2-mbusfmt | v4l2-crop\n");
--	printf("\t                      | v4l2 frame interval ;\n");
-+	printf("\t                      | v4l2-compose | v4l2 frame interval ;\n");
- 	printf("\tv4l2-mbusfmt        = 'fmt:', fcc, '/', size ;\n");
- 	printf("\tpad                 = entity, ':', pad number ;\n");
- 	printf("\tentity              = entity number | ( '\"', entity name, '\"' ) ;\n");
- 	printf("\tsize                = width, 'x', height ;\n");
--	printf("\tv4l2-crop           = 'crop:(', left, ',', top, ')/', size ;\n");
-+	printf("\tv4l2-crop           = 'crop:', v4l2-rectangle ;\n");
-+	printf("\tv4l2-compose        = 'compose:', v4l2-rectangle ;\n");
-+	printf("\tv4l2-rectangle      = '(', left, ',', top, ')/', size ;\n");
- 	printf("\tv4l2 frame interval = '@', numerator, '/', denominator ;\n");
- 	printf("where the fields are\n");
- 	printf("\tentity number   Entity numeric identifier\n");
-diff --git a/src/v4l2subdev.c b/src/v4l2subdev.c
-index cf7c1ca..297e9d5 100644
---- a/src/v4l2subdev.c
-+++ b/src/v4l2subdev.c
-@@ -325,8 +325,8 @@ static int strhazit(const char *str, const char **p)
- 
- static struct media_pad *v4l2_subdev_parse_pad_format(
- 	struct media_device *media, struct v4l2_mbus_framefmt *format,
--	struct v4l2_rect *crop, struct v4l2_fract *interval, const char *p,
--	char **endp)
-+	struct v4l2_rect *crop, struct v4l2_rect *compose,
-+	struct v4l2_fract *interval, const char *p, char **endp)
- {
- 	struct media_pad *pad;
- 	char *end;
-@@ -373,6 +373,15 @@ static struct media_pad *v4l2_subdev_parse_pad_format(
- 			continue;
- 		}
- 
-+		if (!strhazit("compose:", &p)) {
-+			ret = v4l2_subdev_parse_rectangle(compose, p, &end);
-+			if (ret < 0)
-+				return NULL;
-+
-+			for (p = end; isspace(*p); p++);
-+			continue;
-+		}
-+
- 		if (*p == '@') {
- 			ret = v4l2_subdev_parse_frame_interval(interval, ++p, &end);
- 			if (ret < 0)
-@@ -486,30 +495,35 @@ static int v4l2_subdev_parse_setup_format(struct media_device *media,
- 	struct v4l2_mbus_framefmt format = { 0, 0, 0 };
- 	struct media_pad *pad;
- 	struct v4l2_rect crop = { -1, -1, -1, -1 };
-+	struct v4l2_rect compose = crop;
- 	struct v4l2_fract interval = { 0, 0 };
- 	unsigned int i;
- 	char *end;
- 	int ret;
- 
--	pad = v4l2_subdev_parse_pad_format(media, &format, &crop, &interval,
--					   p, &end);
-+	pad = v4l2_subdev_parse_pad_format(media, &format, &crop, &compose,
-+					   &interval, p, &end);
- 	if (pad == NULL) {
- 		media_dbg(media, "Unable to parse format\n");
- 		return -EINVAL;
- 	}
- 
--	if (pad->flags & MEDIA_PAD_FL_SOURCE) {
--		ret = set_selection(pad, V4L2_SUBDEV_SEL_TGT_CROP_ACTUAL, &crop);
-+	if (pad->flags & MEDIA_PAD_FL_SINK) {
-+		ret = set_format(pad, &format);
- 		if (ret < 0)
- 			return ret;
- 	}
- 
--	ret = set_format(pad, &format);
-+	ret = set_selection(pad, V4L2_SUBDEV_SEL_TGT_CROP_ACTUAL, &crop);
- 	if (ret < 0)
- 		return ret;
- 
--	if (pad->flags & MEDIA_PAD_FL_SINK) {
--		ret = set_selection(pad, V4L2_SUBDEV_SEL_TGT_CROP_ACTUAL, &crop);
-+	ret = set_selection(pad, V4L2_SUBDEV_SEL_TGT_COMPOSE_ACTUAL, &compose);
-+	if (ret < 0)
-+		return ret;
-+
-+	if (pad->flags & MEDIA_PAD_FL_SOURCE) {
-+		ret = set_format(pad, &format);
- 		if (ret < 0)
- 			return ret;
- 	}
+On Saturday 05 May 2012 16:39:42 Ludovic BOUE wrote:
+> Hello Oliver,
+> 
+> I am facing an issue with my Cine CT V6 & DuoFlex CT cards. All tuners are
+> recognized in DVB-C mode and I don't know how to switch to DVB-T mode.
+> Could you tell me how to do that ?
+
+If you use an application which is unable to switch the delivery system,
+you may use 'dvb-fe-tool' (part of http://git.linuxtv.org/v4l-utils.git)
+to do so.
+
+Applications should be updated to support this new feature.
+Recent vdr developer versions switch the delivery system
+automatically.
+
+CU
+Oliver
+
 -- 
-1.7.2.5
-
+----------------------------------------------------------------
+VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
+4 MByte Mod: http://www.escape-edv.de/endriss/dvb-mem-mod/
+Full-TS Mod: http://www.escape-edv.de/endriss/dvb-full-ts-mod/
+----------------------------------------------------------------
