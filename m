@@ -1,59 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vb0-f46.google.com ([209.85.212.46]:45059 "EHLO
-	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751761Ab2ELKVw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 12 May 2012 06:21:52 -0400
-Received: by vbbff1 with SMTP id ff1so3519279vbb.19
-        for <linux-media@vger.kernel.org>; Sat, 12 May 2012 03:21:51 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20120512000858.3d9e41a8@pirotess>
-References: <1336716892-5446-1-git-send-email-ismael.luceno@gmail.com>
-	<1336716892-5446-2-git-send-email-ismael.luceno@gmail.com>
-	<CAGoCfiydH48uY86w3oHbRDoJddX5qS1Va7vo4-vXwAn9JeSaaQ@mail.gmail.com>
-	<20120512000858.3d9e41a8@pirotess>
-Date: Sat, 12 May 2012 06:21:51 -0400
-Message-ID: <CAGoCfizjD0wMpd+p4zxATfe+NKJqTqRTE4UEAZTTNdq9yCkxXg@mail.gmail.com>
-Subject: Re: [PATCH 2/2] au0828: Move under dvb
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Ismael Luceno <ismael.luceno@gmail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:3779 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753438Ab2EFM2l (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 May 2012 08:28:41 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans de Goede <hdegoede@redhat.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv2 PATCH 08/17] gspca: fix locking issues related to suspend/resume.
+Date: Sun,  6 May 2012 14:28:22 +0200
+Message-Id: <a4f3c638d6b9cc93f143ffecc3a8025562319faa.1336305565.git.hans.verkuil@cisco.com>
+In-Reply-To: <1336307311-10227-1-git-send-email-hverkuil@xs4all.nl>
+References: <1336307311-10227-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <a5a075c580858f4484be5c4cfadd195492858505.1336305565.git.hans.verkuil@cisco.com>
+References: <a5a075c580858f4484be5c4cfadd195492858505.1336305565.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, May 11, 2012 at 11:08 PM, Ismael Luceno <ismael.luceno@gmail.com> wrote:
-> On Fri, 11 May 2012 08:04:59 -0400
-> Devin Heitmueller <dheitmueller@kernellabs.com> wrote:
-> ...
->> What is the motivation for moving these files?
->
-> Well, the device was on the wrong Kconfig section, and while thinking
-> about changing that, I just thought to move it under DVB.
->
->> The au0828 is a hybrid bridge, and every other hybrid bridge is
->> under video?
->
-> Sorry, the devices I got don't support analog, so I didn't thought
-> about it that much...
->
-> I guess it's arbitrary... isn't it? wouldn't it be better to have an
-> hybrid section? (just thinking out loud)
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Yeah, in this case it's largely historical (a product from before the
-V4L and DVB subsystems were merged).  At this point I don't see any
-real advantage to arbitrarily moving the stuff around.  And in fact in
-some areas it's even more ambiguous because some drivers are hybrid
-drivers but support both hybrid chips as well as analog-only (the
-em28xx driver is one such example).
+There are two bugs here: first the calls to stop0 (in gspca_suspend) and
+gspca_init_transfer (in gspca_resume) need to be called with the usb_lock held.
+That's true for the other places they are called and it is what subdrivers
+expect. Quite a few will unlock the usb_lock in stop0 while waiting for a
+worker thread to finish, and if usb_lock isn't held then that can cause a
+kernel oops.
 
-Anyway, Mauro is welcome to offer his opinion if it differs, but as
-far as I'm concerned this patch shouldn't get applied.
+The other problem is that a worker thread needs to detect that it has to
+halt due to a suspend. Otherwise it will just go on looping. So add tests
+against gspca_dev->frozen in the worker threads that need it.
 
-Cheers,
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/video/gspca/finepix.c   |    2 +-
+ drivers/media/video/gspca/gspca.c     |   15 +++++++++++----
+ drivers/media/video/gspca/jl2005bcd.c |    2 +-
+ drivers/media/video/gspca/sq905.c     |    2 +-
+ drivers/media/video/gspca/sq905c.c    |    2 +-
+ drivers/media/video/gspca/vicam.c     |    2 +-
+ 6 files changed, 16 insertions(+), 9 deletions(-)
 
-Devin
-
+diff --git a/drivers/media/video/gspca/finepix.c b/drivers/media/video/gspca/finepix.c
+index 0107513..1d11976 100644
+--- a/drivers/media/video/gspca/finepix.c
++++ b/drivers/media/video/gspca/finepix.c
+@@ -102,7 +102,7 @@ again:
+ 		mutex_unlock(&gspca_dev->usb_lock);
+ 		if (ret < 0)
+ 			break;
+-		if (!gspca_dev->present || !gspca_dev->streaming)
++		if (gspca_dev->frozen || !gspca_dev->present || !gspca_dev->streaming)
+ 			break;
+ 
+ 		/* the frame comes in parts */
+diff --git a/drivers/media/video/gspca/gspca.c b/drivers/media/video/gspca/gspca.c
+index 730d8eb..f840bed 100644
+--- a/drivers/media/video/gspca/gspca.c
++++ b/drivers/media/video/gspca/gspca.c
+@@ -2499,8 +2499,11 @@ int gspca_suspend(struct usb_interface *intf, pm_message_t message)
+ 	destroy_urbs(gspca_dev);
+ 	gspca_input_destroy_urb(gspca_dev);
+ 	gspca_set_alt0(gspca_dev);
+-	if (gspca_dev->sd_desc->stop0)
++	if (gspca_dev->sd_desc->stop0) {
++		mutex_lock(&gspca_dev->usb_lock);
+ 		gspca_dev->sd_desc->stop0(gspca_dev);
++		mutex_unlock(&gspca_dev->usb_lock);
++	}
+ 	return 0;
+ }
+ EXPORT_SYMBOL(gspca_suspend);
+@@ -2508,14 +2511,18 @@ EXPORT_SYMBOL(gspca_suspend);
+ int gspca_resume(struct usb_interface *intf)
+ {
+ 	struct gspca_dev *gspca_dev = usb_get_intfdata(intf);
++	int ret = 0;
+ 
+ 	gspca_dev->frozen = 0;
+ 	gspca_dev->sd_desc->init(gspca_dev);
+ 	gspca_set_default_mode(gspca_dev);
+ 	gspca_input_create_urb(gspca_dev);
+-	if (gspca_dev->streaming)
+-		return gspca_init_transfer(gspca_dev);
+-	return 0;
++	if (gspca_dev->streaming) {
++		mutex_lock(&gspca_dev->queue_lock);
++		ret = gspca_init_transfer(gspca_dev);
++		mutex_unlock(&gspca_dev->queue_lock);
++	}
++	return ret;
+ }
+ EXPORT_SYMBOL(gspca_resume);
+ #endif
+diff --git a/drivers/media/video/gspca/jl2005bcd.c b/drivers/media/video/gspca/jl2005bcd.c
+index 53f58ef..f5b88e9 100644
+--- a/drivers/media/video/gspca/jl2005bcd.c
++++ b/drivers/media/video/gspca/jl2005bcd.c
+@@ -335,7 +335,7 @@ static void jl2005c_dostream(struct work_struct *work)
+ 		goto quit_stream;
+ 	}
+ 
+-	while (gspca_dev->present && gspca_dev->streaming) {
++	while (!gspca_dev->frozen && gspca_dev->present && gspca_dev->streaming) {
+ 		/* Check if this is a new frame. If so, start the frame first */
+ 		if (!header_read) {
+ 			mutex_lock(&gspca_dev->usb_lock);
+diff --git a/drivers/media/video/gspca/sq905.c b/drivers/media/video/gspca/sq905.c
+index 2fe3c29..7b72a20 100644
+--- a/drivers/media/video/gspca/sq905.c
++++ b/drivers/media/video/gspca/sq905.c
+@@ -232,7 +232,7 @@ static void sq905_dostream(struct work_struct *work)
+ 	frame_sz = gspca_dev->cam.cam_mode[gspca_dev->curr_mode].sizeimage
+ 			+ FRAME_HEADER_LEN;
+ 
+-	while (gspca_dev->present && gspca_dev->streaming) {
++	while (!gspca_dev->frozen && gspca_dev->present && gspca_dev->streaming) {
+ 		/* request some data and then read it until we have
+ 		 * a complete frame. */
+ 		bytes_left = frame_sz;
+diff --git a/drivers/media/video/gspca/sq905c.c b/drivers/media/video/gspca/sq905c.c
+index ae78363..52e42ca 100644
+--- a/drivers/media/video/gspca/sq905c.c
++++ b/drivers/media/video/gspca/sq905c.c
+@@ -150,7 +150,7 @@ static void sq905c_dostream(struct work_struct *work)
+ 		goto quit_stream;
+ 	}
+ 
+-	while (gspca_dev->present && gspca_dev->streaming) {
++	while (!gspca_dev->frozen && gspca_dev->present && gspca_dev->streaming) {
+ 		/* Request the header, which tells the size to download */
+ 		ret = usb_bulk_msg(gspca_dev->dev,
+ 				usb_rcvbulkpipe(gspca_dev->dev, 0x81),
+diff --git a/drivers/media/video/gspca/vicam.c b/drivers/media/video/gspca/vicam.c
+index e48ec4d..0d532ec 100644
+--- a/drivers/media/video/gspca/vicam.c
++++ b/drivers/media/video/gspca/vicam.c
+@@ -225,7 +225,7 @@ static void vicam_dostream(struct work_struct *work)
+ 		goto exit;
+ 	}
+ 
+-	while (gspca_dev->present && gspca_dev->streaming) {
++	while (!gspca_dev->frozen && gspca_dev->present && gspca_dev->streaming) {
+ 		ret = vicam_read_frame(gspca_dev, buffer, frame_sz);
+ 		if (ret < 0)
+ 			break;
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+1.7.10
+
