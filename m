@@ -1,135 +1,211 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:58837 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752903Ab2EBVmg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 2 May 2012 17:42:36 -0400
-From: <manjunatha_halli@ti.com>
-To: <linux-media@vger.kernel.org>
-CC: <linux-kernel@vger.kernel.org>, Manjunatha Halli <x0130808@ti.com>
-Subject: [PATCH V3 2/5] [Media] New control class and features for FM RX
-Date: Wed, 2 May 2012 16:42:28 -0500
-Message-ID: <1335994951-15842-3-git-send-email-manjunatha_halli@ti.com>
-In-Reply-To: <1335994951-15842-1-git-send-email-manjunatha_halli@ti.com>
-References: <1335994951-15842-1-git-send-email-manjunatha_halli@ti.com>
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:1863 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753786Ab2EFPvL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 May 2012 11:51:11 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: [RFCv2 PATCH 13/17] gspca: switch to V4L2 core locking, except for the buffer queuing ioctls.
+Date: Sun, 6 May 2012 17:51:03 +0200
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+References: <1336307311-10227-1-git-send-email-hverkuil@xs4all.nl> <4e0d537b1e1baf060981580d93f400a92ecfe427.1336305565.git.hans.verkuil@cisco.com> <4FA69803.20605@redhat.com>
+In-Reply-To: <4FA69803.20605@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201205061751.03303.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Manjunatha Halli <x0130808@ti.com>
+On Sun May 6 2012 17:25:55 Hans de Goede wrote:
+> Hi Hans,
+> 
+> The entire series looks great, I do have a few remarks wrt this
+> patch, which I have fixed in my own tree (new version attached,
+> note untested sofar).
+> 
+> On 05/06/2012 02:28 PM, Hans Verkuil wrote:
+> > From: Hans Verkuil<hans.verkuil@cisco.com>
+> >
+> > Due to latency concerns the VIDIOC_QBUF, DQBUF and QUERYBUF do not use the
+> > core lock, instead they rely only on queue_lock.
+> >
+> > Signed-off-by: Hans Verkuil<hans.verkuil@cisco.com>
+> > ---
+> >   drivers/media/video/gspca/gspca.c |  203 ++++++++-----------------------------
+> >   1 file changed, 41 insertions(+), 162 deletions(-)
+> >
+> > diff --git a/drivers/media/video/gspca/gspca.c b/drivers/media/video/gspca/gspca.c
+> > index f840bed..edca4f3 100644
+> > --- a/drivers/media/video/gspca/gspca.c
+> > +++ b/drivers/media/video/gspca/gspca.c
+> > @@ -850,14 +850,6 @@ static int gspca_init_transfer(struct gspca_dev *gspca_dev)
+> >   	struct ep_tb_s ep_tb[MAX_ALT];
+> >   	int n, ret, xfer, alt, alt_idx;
+> >
+> > -	if (mutex_lock_interruptible(&gspca_dev->usb_lock))
+> > -		return -ERESTARTSYS;
+> > -
+> > -	if (!gspca_dev->present) {
+> > -		ret = -ENODEV;
+> > -		goto unlock;
+> > -	}
+> > -
+> >   	/* reset the streaming variables */
+> >   	gspca_dev->image = NULL;
+> >   	gspca_dev->image_len = 0;
+> 
+> You're removing a lot of checks for gspca_dev->present, relying on the
+> video_is_registered checks in v4l2-dev instead I assume,
 
-This patch creates new ctrl class for FM RX and adds new CID's for
-below FM features,
-        1) De-Emphasis filter mode
-	2) RDS AF switch
+Right. It's likely that all the present checks can be removed, but I just
+remove the ones that I knew where unnecessary.
 
-Also this patch adds a field for band selection in struct v4l2_hw_freq_seek
+> this is a good
+> idea, *but* it requires a small hack in disconnect to close a race.
+> 
+> Currently the end of gspca_disconnect looks like this:
+> 
+>          gspca_dev->dev = NULL;
+>          v4l2_device_disconnect(&gspca_dev->v4l2_dev);
+>          mutex_unlock(&gspca_dev->usb_lock);
+> 
+>          usb_set_intfdata(intf, NULL);
+> 
+>          /* release the device */
+>          /* (this will call gspca_release() immediately or on last close) */
+>          video_unregister_device(&gspca_dev->vdev);
+> }
+> 
+> Notice that usb_lock is unlocked before video_unregister_device gets called,
+> which means that any ioctl or other fops waiting for usb_lock can run
+> before video_unregister_device runs, and thus before they are protected
+> against being called on an disconnected device by the
+> video_is_registered checks in v4l2-dev.
 
-Signed-off-by: Manjunatha Halli <x0130808@ti.com>
----
- drivers/media/video/v4l2-ctrls.c |   17 +++++++++++++++++
- include/linux/videodev2.h        |   11 ++++++++++-
- 2 files changed, 27 insertions(+), 1 deletions(-)
+True, good catch, I missed that one.
 
-diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
-index 18015c0..e1bba7d 100644
---- a/drivers/media/video/v4l2-ctrls.c
-+++ b/drivers/media/video/v4l2-ctrls.c
-@@ -372,6 +372,12 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
- 		NULL,
- 	};
- 
-+	static const char * const tune_deemphasis[] = {
-+		"No deemphasis",
-+		"50 useconds",
-+		"75 useconds",
-+		NULL,
-+	};
- 	switch (id) {
- 	case V4L2_CID_MPEG_AUDIO_SAMPLING_FREQ:
- 		return mpeg_audio_sampling_freq;
-@@ -414,6 +420,8 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
- 		return colorfx;
- 	case V4L2_CID_TUNE_PREEMPHASIS:
- 		return tune_preemphasis;
-+	case V4L2_CID_TUNE_DEEMPHASIS:
-+		return tune_deemphasis;
- 	case V4L2_CID_FLASH_LED_MODE:
- 		return flash_led_mode;
- 	case V4L2_CID_FLASH_STROBE_SOURCE:
-@@ -644,6 +652,12 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_JPEG_COMPRESSION_QUALITY:	return "Compression Quality";
- 	case V4L2_CID_JPEG_ACTIVE_MARKER:	return "Active Markers";
- 
-+	/* FM Radio Receiver control */
-+	/* Keep the order of the 'case's the same as in videodev2.h! */
-+	case V4L2_CID_FM_RX_CLASS:		return "FM Radio Receiver Controls";
-+	case V4L2_CID_RDS_AF_SWITCH:		return "FM RX RDS AF switch";
-+	case V4L2_CID_TUNE_DEEMPHASIS:		return "FM RX De-emphasis settings";
-+
- 	default:
- 		return NULL;
- 	}
-@@ -688,6 +702,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_MPEG_VIDEO_H264_8X8_TRANSFORM:
- 	case V4L2_CID_MPEG_VIDEO_H264_VUI_SAR_ENABLE:
- 	case V4L2_CID_MPEG_VIDEO_MPEG4_QPEL:
-+	case V4L2_CID_RDS_AF_SWITCH:
- 		*type = V4L2_CTRL_TYPE_BOOLEAN;
- 		*min = 0;
- 		*max = *step = 1;
-@@ -733,6 +748,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_MPEG_VIDEO_MPEG4_LEVEL:
- 	case V4L2_CID_MPEG_VIDEO_MPEG4_PROFILE:
- 	case V4L2_CID_JPEG_CHROMA_SUBSAMPLING:
-+	case V4L2_CID_TUNE_DEEMPHASIS:
- 		*type = V4L2_CTRL_TYPE_MENU;
- 		break;
- 	case V4L2_CID_RDS_TX_PS_NAME:
-@@ -745,6 +761,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_FM_TX_CLASS:
- 	case V4L2_CID_FLASH_CLASS:
- 	case V4L2_CID_JPEG_CLASS:
-+	case V4L2_CID_FM_RX_CLASS:
- 		*type = V4L2_CTRL_TYPE_CTRL_CLASS;
- 		/* You can neither read not write these */
- 		*flags |= V4L2_CTRL_FLAG_READ_ONLY | V4L2_CTRL_FLAG_WRITE_ONLY;
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index c9c9a46..f94acfd 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -1137,6 +1137,7 @@ struct v4l2_ext_controls {
- #define V4L2_CTRL_CLASS_FM_TX 0x009b0000	/* FM Modulator control class */
- #define V4L2_CTRL_CLASS_FLASH 0x009c0000	/* Camera flash controls */
- #define V4L2_CTRL_CLASS_JPEG 0x009d0000		/* JPEG-compression controls */
-+#define V4L2_CTRL_CLASS_FM_RX 0x009e0000	/* FM Receiver control class */
- 
- #define V4L2_CTRL_ID_MASK      	  (0x0fffffff)
- #define V4L2_CTRL_ID2CLASS(id)    ((id) & 0x0fff0000UL)
-@@ -1782,6 +1783,13 @@ enum v4l2_jpeg_chroma_subsampling {
- #define	V4L2_JPEG_ACTIVE_MARKER_DQT		(1 << 17)
- #define	V4L2_JPEG_ACTIVE_MARKER_DHT		(1 << 18)
- 
-+/* FM Receiver class control IDs */
-+#define V4L2_CID_FM_RX_CLASS_BASE		(V4L2_CTRL_CLASS_FM_RX | 0x900)
-+#define V4L2_CID_FM_RX_CLASS			(V4L2_CTRL_CLASS_FM_RX | 1)
-+
-+#define V4L2_CID_RDS_AF_SWITCH			(V4L2_CID_FM_RX_CLASS_BASE + 1)
-+#define V4L2_CID_TUNE_DEEMPHASIS		(V4L2_CID_FM_RX_CLASS_BASE + 2)
-+
- /*
-  *	T U N I N G
-  */
-@@ -1849,7 +1857,8 @@ struct v4l2_hw_freq_seek {
- 	__u32		      seek_upward;
- 	__u32		      wrap_around;
- 	__u32		      spacing;
--	__u32		      reserved[7];
-+	__u32		      fm_band;
-+	__u32		      reserved[6];
- };
- 
- /*
--- 
-1.7.4.1
+> Unfortunately simply moving the unlock down won't work, because if there
+> are no open file handles referencing the device, then the memory
+> referenced by gspca_dev will be free-ed after the video_unregister_device
+> call.
 
+What you should do (refer to the disconnect implementation in radio/dsbr100.c)
+is to use the release callback of struct v4l2_device instead. That way the
+memory will be released after you call v4l2_device_put() as the last line in
+the disconnect(). The advantage of using the v4l2_device release callback is
+that it also works if you have more than one video/radio/vbi node. Only when
+the very last user of the very last node exits will the release be called.
+
+Actually, that was the main reason I added it since trying to keep track of
+multiple device node references in a driver is doomed to fail.
+
+> So I've changed disconnect to the following in my version, to allow the
+> present check removal you've did, as I quite like being able to
+> remove all those present checks :)   :
+> 
+>          /* The USB-interface device is freed at exit of this function */
+>          gspca_dev->dev = NULL;
+>          v4l2_device_disconnect(&gspca_dev->v4l2_dev);
+> 
+>          /* Ensure gspca_dev sticks around for the usb_lock unlock! */
+>          get_device(&gspca_dev->vdev.dev);
+>          video_unregister_device(&gspca_dev->vdev);
+>          mutex_unlock(&gspca_dev->usb_lock);
+>          /* (this will call gspca_release() immediately or on last close) */
+>          put_device(&gspca_dev->vdev.dev);
+> 
+>          usb_set_intfdata(intf, NULL);
+> }
+> 
+> 
+> <snip chunks on which I've no comments>
+> 
+> > @@ -1736,10 +1658,8 @@ static int vidioc_streamoff(struct file *file, void *priv,
+> >   	if (mutex_lock_interruptible(&gspca_dev->queue_lock))
+> >   		return -ERESTARTSYS;
+> >
+> > -	if (!gspca_dev->streaming) {
+> > -		ret = 0;
+> > -		goto out;
+> > -	}
+> > +	if (!gspca_dev->streaming)
+> > +		return 0;
+> >
+> 
+> BAD! queue_lock is held here, so you cannot just change this to a return!
+
+Good catch. I never tested calling STREAMOFF when not streaming :-)
+
+> 
+> >   	/* check the capture file */
+> >   	if (gspca_dev->capt_file != file) {
+> 
+> <snip chunks on which I've no comments>
+> 
+> > @@ -2009,11 +1883,9 @@ static int vidioc_dqbuf(struct file *file, void *priv,
+> >   	gspca_dev->fr_o = (i + 1) % GSPCA_MAX_FRAMES;
+> >
+> >   	if (gspca_dev->sd_desc->dq_callback) {
+> > -		mutex_lock(&gspca_dev->usb_lock);
+> >   		gspca_dev->usb_err = 0;
+> >   		if (gspca_dev->present)
+> >   			gspca_dev->sd_desc->dq_callback(gspca_dev);
+> > -		mutex_unlock(&gspca_dev->usb_lock);
+> >   	}
+> >
+> >   	frame->v4l2_buf.flags&= ~V4L2_BUF_FLAG_DONE;
+> 
+> You cannot remove the locking here, as dq_callback expects to be
+> called with the usb-lock locked.
+> 
+> Since usb-lock now is the device lock and thus gets locked before
+> the queue_lock, we cannot simply drop this chunk. Instead I've
+> moved the dq_callback to the end of vidioc_dqbuf, so after the
+> stream_lock has been released (there is no reason to have
+> the stream_lock hold when calling the dq_callback).
+> 
+> The dq_callback is used to do camera control adjustments which
+> need to be done after every X frames, and which cannot be done
+> from the isoc frame interrupts since they should not be done under
+> interrupt. When the drivers using dq_callback are converted to the
+> control framework, they will likely end up calling v4l2_ctrl_s_ctrl
+> from the dq_callback.
+
+Can't dq_callback be called at the end of the function? After the
+mutex_unlock(&queue_lock)? There we can take the usb_lock, call dq_callback
+and unlock usb_lock again:
+
+out:
+		mutex_unlock(&gspca_dev->queue_lock);
+        if (!ret && gspca_dev->sd_desc->dq_callback) {
+		        if (mutex_lock_interruptible(&gspca_dev->usb_lock))
+            		    return -ERESTARTSYS;
+                gspca_dev->usb_err = 0;
+                gspca_dev->sd_desc->dq_callback(gspca_dev);
+				mutex_unlock(&gspca_dev->usb_lock);
+        }
+		return ret;
+
+It seems reasonable, but I haven't looked in detail at what dq_callback
+does.
+
+Regards,
+
+	Hans
+
+
+> 
+> <snip chunks on which I've no comments>
+> 
+> Regards,
+> 
+> Hans
+> 
+> 
+> p.s.
+> 
+> I've yet to take a good look at the driver conversions other then
+> the zc3xx conversion.
+> 
