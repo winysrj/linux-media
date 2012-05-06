@@ -1,73 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:9045 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755390Ab2EWMKs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 May 2012 08:10:48 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Received: from euspt2 ([210.118.77.13]) by mailout3.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0M4H00A0C5SH9A60@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 23 May 2012 13:09:54 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0M4H00FO15TTCC@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 23 May 2012 13:10:42 +0100 (BST)
-Date: Wed, 23 May 2012 14:10:27 +0200
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: [PATCHv6 13/13] v4l: s5p-fimc: support for dmabuf importing
-In-reply-to: <1337775027-9489-1-git-send-email-t.stanislaws@samsung.com>
-To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
-Cc: airlied@redhat.com, m.szyprowski@samsung.com,
-	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
-	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
-	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
-	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
-	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
-	mchehab@redhat.com, g.liakhovetski@gmx.de
-Message-id: <1337775027-9489-14-git-send-email-t.stanislaws@samsung.com>
-References: <1337775027-9489-1-git-send-email-t.stanislaws@samsung.com>
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:38507 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753960Ab2EFRAz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 May 2012 13:00:55 -0400
+Received: by bkcji2 with SMTP id ji2so3160476bkc.19
+        for <linux-media@vger.kernel.org>; Sun, 06 May 2012 10:00:54 -0700 (PDT)
+Message-ID: <4FA6AE43.3080907@gmail.com>
+Date: Sun, 06 May 2012 19:00:51 +0200
+From: Sylwester Nawrocki <snjw23@gmail.com>
+MIME-Version: 1.0
+To: Sakari Ailus <sakari.ailus@iki.fi>
+CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	g.liakhovetski@gmx.de, hdegoede@redhat.com, moinejf@free.fr,
+	hverkuil@xs4all.nl, m.szyprowski@samsung.com,
+	riverful.kim@samsung.com, sw0312.kim@samsung.com,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: Re: [PATCH/RFC v4 01/12] V4L: Add helper function for standard integer
+ menu controls
+References: <1336156337-10935-1-git-send-email-s.nawrocki@samsung.com> <1336156337-10935-2-git-send-email-s.nawrocki@samsung.com> <4FA64EAB.20600@iki.fi>
+In-Reply-To: <4FA64EAB.20600@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch enhances s5p-fimc with support for DMABUF importing via
-V4L2_MEMORY_DMABUF memory type.
+Hi Sakari,
 
-Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-Acked-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
----
- drivers/media/video/s5p-fimc/Kconfig        |    1 +
- drivers/media/video/s5p-fimc/fimc-capture.c |    2 +-
- 2 files changed, 2 insertions(+), 1 deletion(-)
+On 05/06/2012 12:12 PM, Sakari Ailus wrote:
+> Hi Sylwester,
+>
+> Sylwester Nawrocki wrote:
+>> This patch adds v4l2_ctrl_new_std_int_menu() helper function which can
+>> be used in drivers for creating standard integer menu control. It is
+>> similar to v4l2_ctrl_new_std_menu(), except it doesn't have a mask
+>> parameter and an additional qmenu parameter allows passing an array
+>> of signed 64-bit integers constituting the menu items.
+>
+> It would make sense to have the mask and no pointer to the menu items if
+> the menu items are universally the same. This could come into question
+> on some standards, for example. For example, we currently have bit rates
+> in controls but they are strings, not integers. I could imagine we will
+> have such menus in the future.
+>
+> I'd suggest to rename v4l2_ctrl_new_std_int_menu() as
+> v4l2_ctrl_new_int_menu(), as opposed to the former which would use
+> standardised items in the menu --- to be implemented when needed.
 
-diff --git a/drivers/media/video/s5p-fimc/Kconfig b/drivers/media/video/s5p-fimc/Kconfig
-index a564f7e..3106026 100644
---- a/drivers/media/video/s5p-fimc/Kconfig
-+++ b/drivers/media/video/s5p-fimc/Kconfig
-@@ -14,6 +14,7 @@ config VIDEO_S5P_FIMC
- 	depends on I2C
- 	select VIDEOBUF2_DMA_CONTIG
- 	select V4L2_MEM2MEM_DEV
-+	select DMA_SHARED_BUFFER
- 	help
- 	  This is a V4L2 driver for Samsung S5P and EXYNOS4 SoC camera host
- 	  interface and video postprocessor (FIMC and FIMC-LITE) devices.
-diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c b/drivers/media/video/s5p-fimc/fimc-capture.c
-index 3545745..cd27e33 100644
---- a/drivers/media/video/s5p-fimc/fimc-capture.c
-+++ b/drivers/media/video/s5p-fimc/fimc-capture.c
-@@ -1609,7 +1609,7 @@ static int fimc_register_capture_device(struct fimc_dev *fimc,
- 	q = &fimc->vid_cap.vbq;
- 	memset(q, 0, sizeof(*q));
- 	q->type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
--	q->io_modes = VB2_MMAP | VB2_USERPTR;
-+	q->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF;
- 	q->drv_priv = fimc->vid_cap.ctx;
- 	q->ops = &fimc_capture_qops;
- 	q->mem_ops = &vb2_dma_contig_memops;
--- 
-1.7.9.5
+Thank you for pointing it out. Let me just correct this and resend
+the patch.
 
+Best regards,
+Sylwester
