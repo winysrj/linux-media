@@ -1,356 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:1128 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755579Ab2EKHzd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 May 2012 03:55:33 -0400
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:1809 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753500Ab2EFM2q (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 May 2012 08:28:46 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Michael Hunold <hunold@linuxtv.org>,
+Cc: Hans de Goede <hdegoede@redhat.com>,
 	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv1 PATCH 05/16] mxb: first round of cleanups.
-Date: Fri, 11 May 2012 09:54:59 +0200
-Message-Id: <526eb2db7e251331c5c8b6aa72712c33b8e8b446.1336722502.git.hans.verkuil@cisco.com>
-In-Reply-To: <1336722910-31733-1-git-send-email-hverkuil@xs4all.nl>
-References: <1336722910-31733-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <09c2b1c7ef8bbb53930311b9fdeeb89f877fdaa9.1336722502.git.hans.verkuil@cisco.com>
-References: <09c2b1c7ef8bbb53930311b9fdeeb89f877fdaa9.1336722502.git.hans.verkuil@cisco.com>
+Subject: [RFCv2 PATCH 03/17] gspca: allow subdrivers to use the control framework.
+Date: Sun,  6 May 2012 14:28:17 +0200
+Message-Id: <52db668fa7c8a6edbb269e19e2c87992b7a81c75.1336305565.git.hans.verkuil@cisco.com>
+In-Reply-To: <1336307311-10227-1-git-send-email-hverkuil@xs4all.nl>
+References: <1336307311-10227-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <a5a075c580858f4484be5c4cfadd195492858505.1336305565.git.hans.verkuil@cisco.com>
+References: <a5a075c580858f4484be5c4cfadd195492858505.1336305565.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Convert to the control framework, fix the easy v4l2-compliance failures.
+Make the necessary changes to allow subdrivers to use the control framework.
+This does not add control event support, that comes later.
+
+It add a init_control cam_op that is called after init in probe that allows
+the subdriver to set up the controls.
 
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/video/mxb.c |  175 ++++++++++++++++++++++-----------------------
- drivers/media/video/mxb.h |   29 --------
- 2 files changed, 87 insertions(+), 117 deletions(-)
+ drivers/media/video/gspca/gspca.c |   26 ++++++++++++++++++--------
+ drivers/media/video/gspca/gspca.h |    1 +
+ 2 files changed, 19 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/media/video/mxb.c b/drivers/media/video/mxb.c
-index ca3f70f..e289e83 100644
---- a/drivers/media/video/mxb.c
-+++ b/drivers/media/video/mxb.c
-@@ -64,8 +64,8 @@ enum { TUNER, AUX1, AUX3, AUX3_YC };
- static struct v4l2_input mxb_inputs[MXB_INPUTS] = {
- 	{ TUNER,	"Tuner",		V4L2_INPUT_TYPE_TUNER,	1, 0, V4L2_STD_PAL_BG|V4L2_STD_NTSC_M, 0, V4L2_IN_CAP_STD },
- 	{ AUX1,		"AUX1",			V4L2_INPUT_TYPE_CAMERA,	2, 0, V4L2_STD_PAL_BG|V4L2_STD_NTSC_M, 0, V4L2_IN_CAP_STD },
--	{ AUX3,		"AUX3 Composite",	V4L2_INPUT_TYPE_CAMERA,	4, 0, V4L2_STD_PAL_BG|V4L2_STD_NTSC_M, 0, V4L2_IN_CAP_STD },
--	{ AUX3_YC,	"AUX3 S-Video",		V4L2_INPUT_TYPE_CAMERA,	4, 0, V4L2_STD_PAL_BG|V4L2_STD_NTSC_M, 0, V4L2_IN_CAP_STD },
-+	{ AUX3,		"AUX3 Composite",	V4L2_INPUT_TYPE_CAMERA,	8, 0, V4L2_STD_PAL_BG|V4L2_STD_NTSC_M, 0, V4L2_IN_CAP_STD },
-+	{ AUX3_YC,	"AUX3 S-Video",		V4L2_INPUT_TYPE_CAMERA,	8, 0, V4L2_STD_PAL_BG|V4L2_STD_NTSC_M, 0, V4L2_IN_CAP_STD },
- };
+diff --git a/drivers/media/video/gspca/gspca.c b/drivers/media/video/gspca/gspca.c
+index ca5a2b1..7668e24 100644
+--- a/drivers/media/video/gspca/gspca.c
++++ b/drivers/media/video/gspca/gspca.c
+@@ -38,6 +38,7 @@
+ #include <linux/uaccess.h>
+ #include <linux/ktime.h>
+ #include <media/v4l2-ioctl.h>
++#include <media/v4l2-ctrls.h>
  
- /* this array holds the information, which port of the saa7146 each
-@@ -90,6 +90,36 @@ struct mxb_routing {
- 	u32 output;
- };
+ #include "gspca.h"
  
-+/* these are the available audio sources, which can switched
-+   to the line- and cd-output individually */
-+static struct v4l2_audio mxb_audios[MXB_AUDIOS] = {
-+	    {
-+		.index	= 0,
-+		.name	= "Tuner",
-+		.capability = V4L2_AUDCAP_STEREO,
-+	} , {
-+		.index	= 1,
-+		.name	= "AUX1",
-+		.capability = V4L2_AUDCAP_STEREO,
-+	} , {
-+		.index	= 2,
-+		.name	= "AUX2",
-+		.capability = V4L2_AUDCAP_STEREO,
-+	} , {
-+		.index	= 3,
-+		.name	= "AUX3",
-+		.capability = V4L2_AUDCAP_STEREO,
-+	} , {
-+		.index	= 4,
-+		.name	= "Radio (X9)",
-+		.capability = V4L2_AUDCAP_STEREO,
-+	} , {
-+		.index	= 5,
-+		.name	= "CD-ROM (X10)",
-+		.capability = V4L2_AUDCAP_STEREO,
-+	}
-+};
-+
- /* These are the necessary input-output-pins for bringing one audio source
-    (see above) to the CD-output. Note that gain is set to 0 in this table. */
- static struct mxb_routing TEA6420_cd[MXB_AUDIOS + 1][2] = {
-@@ -114,11 +144,6 @@ static struct mxb_routing TEA6420_line[MXB_AUDIOS + 1][2] = {
- 	{ { 6, 3 }, { 6, 2 } }	/* Mute */
- };
+@@ -1006,6 +1007,8 @@ static void gspca_set_default_mode(struct gspca_dev *gspca_dev)
  
--#define MAXCONTROLS	1
--static struct v4l2_queryctrl mxb_controls[] = {
--	{ V4L2_CID_AUDIO_MUTE, V4L2_CTRL_TYPE_BOOLEAN, "Mute", 0, 1, 1, 0, 0 },
--};
--
- struct mxb
- {
- 	struct video_device	*video_dev;
-@@ -168,16 +193,45 @@ static inline void tea6420_route_line(struct mxb *mxb, int idx)
+ 	/* set the current control values to their default values
+ 	 * which may have changed in sd_init() */
++	/* does nothing if ctrl_handler == NULL */
++	v4l2_ctrl_handler_setup(gspca_dev->vdev.ctrl_handler);
+ 	ctrl = gspca_dev->cam.ctrls;
+ 	if (ctrl != NULL) {
+ 		for (i = 0;
+@@ -1323,6 +1326,7 @@ static void gspca_release(struct video_device *vfd)
+ 	PDEBUG(D_PROBE, "%s released",
+ 		video_device_node_name(&gspca_dev->vdev));
  
- static struct saa7146_extension extension;
- 
-+static int mxb_s_ctrl(struct v4l2_ctrl *ctrl)
-+{
-+	struct saa7146_dev *dev = container_of(ctrl->handler,
-+				struct saa7146_dev, ctrl_handler);
-+	struct mxb *mxb = dev->ext_priv;
-+
-+	switch (ctrl->id) {
-+	case V4L2_CID_AUDIO_MUTE:
-+		mxb->cur_mute = ctrl->val;
-+		/* switch the audio-source */
-+		tea6420_route_line(mxb, ctrl->val ? 6 :
-+				video_audio_connect[mxb->cur_input]);
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+	return 0;
-+}
-+
-+static const struct v4l2_ctrl_ops mxb_ctrl_ops = {
-+	.s_ctrl = mxb_s_ctrl,
-+};
-+
- static int mxb_probe(struct saa7146_dev *dev)
- {
-+	struct v4l2_ctrl_handler *hdl = &dev->ctrl_handler;
- 	struct mxb *mxb = NULL;
- 
-+	v4l2_ctrl_new_std(hdl, &mxb_ctrl_ops,
-+			V4L2_CID_AUDIO_MUTE, 0, 1, 1, 0);
-+	if (hdl->error)
-+		return hdl->error;
- 	mxb = kzalloc(sizeof(struct mxb), GFP_KERNEL);
- 	if (mxb == NULL) {
- 		DEB_D("not enough kernel memory\n");
- 		return -ENOMEM;
- 	}
- 
-+
- 	snprintf(mxb->i2c_adapter.name, sizeof(mxb->i2c_adapter.name), "mxb%d", mxb_num);
- 
- 	saa7146_i2c_adapter_prepare(dev, &mxb->i2c_adapter, SAA7146_I2C_BUS_BIT_RATE_480);
-@@ -214,6 +268,8 @@ static int mxb_probe(struct saa7146_dev *dev)
- 	/* we store the pointer in our private data field */
- 	dev->ext_priv = mxb;
- 
-+	v4l2_ctrl_handler_setup(hdl);
-+
- 	return 0;
++	v4l2_ctrl_handler_free(gspca_dev->vdev.ctrl_handler);
+ 	kfree(gspca_dev->usb_buf);
+ 	kfree(gspca_dev);
  }
- 
-@@ -385,69 +441,6 @@ void mxb_irq_bh(struct saa7146_dev* dev, u32* irq_mask)
- }
- */
- 
--static int vidioc_queryctrl(struct file *file, void *fh, struct v4l2_queryctrl *qc)
--{
--	struct saa7146_dev *dev = ((struct saa7146_fh *)fh)->dev;
--	int i;
--
--	for (i = MAXCONTROLS - 1; i >= 0; i--) {
--		if (mxb_controls[i].id == qc->id) {
--			*qc = mxb_controls[i];
--			DEB_D("VIDIOC_QUERYCTRL %d\n", qc->id);
--			return 0;
--		}
--	}
--	return dev->ext_vv_data->core_ops->vidioc_queryctrl(file, fh, qc);
--}
--
--static int vidioc_g_ctrl(struct file *file, void *fh, struct v4l2_control *vc)
--{
--	struct saa7146_dev *dev = ((struct saa7146_fh *)fh)->dev;
--	struct mxb *mxb = (struct mxb *)dev->ext_priv;
--	int i;
--
--	for (i = MAXCONTROLS - 1; i >= 0; i--) {
--		if (mxb_controls[i].id == vc->id)
--			break;
--	}
--
--	if (i < 0)
--		return dev->ext_vv_data->core_ops->vidioc_g_ctrl(file, fh, vc);
--
--	if (vc->id == V4L2_CID_AUDIO_MUTE) {
--		vc->value = mxb->cur_mute;
--		DEB_D("VIDIOC_G_CTRL V4L2_CID_AUDIO_MUTE:%d\n", vc->value);
--		return 0;
--	}
--
--	DEB_EE("VIDIOC_G_CTRL V4L2_CID_AUDIO_MUTE:%d\n", vc->value);
--	return 0;
--}
--
--static int vidioc_s_ctrl(struct file *file, void *fh, struct v4l2_control *vc)
--{
--	struct saa7146_dev *dev = ((struct saa7146_fh *)fh)->dev;
--	struct mxb *mxb = (struct mxb *)dev->ext_priv;
--	int i = 0;
--
--	for (i = MAXCONTROLS - 1; i >= 0; i--) {
--		if (mxb_controls[i].id == vc->id)
--			break;
--	}
--
--	if (i < 0)
--		return dev->ext_vv_data->core_ops->vidioc_s_ctrl(file, fh, vc);
--
--	if (vc->id == V4L2_CID_AUDIO_MUTE) {
--		mxb->cur_mute = vc->value;
--		/* switch the audio-source */
--		tea6420_route_line(mxb, vc->value ? 6 :
--				video_audio_connect[mxb->cur_input]);
--		DEB_EE("VIDIOC_S_CTRL, V4L2_CID_AUDIO_MUTE: %d\n", vc->value);
--	}
--	return 0;
--}
--
- static int vidioc_enum_input(struct file *file, void *fh, struct v4l2_input *i)
- {
- 	DEB_EE("VIDIOC_ENUMINPUT %d\n", i->index);
-@@ -568,12 +561,8 @@ static int vidioc_g_frequency(struct file *file, void *fh, struct v4l2_frequency
- 	struct saa7146_dev *dev = ((struct saa7146_fh *)fh)->dev;
- 	struct mxb *mxb = (struct mxb *)dev->ext_priv;
- 
--	if (mxb->cur_input) {
--		DEB_D("VIDIOC_G_FREQ: channel %d does not have a tuner!\n",
--		      mxb->cur_input);
-+	if (f->tuner)
- 		return -EINVAL;
--	}
--
- 	*f = mxb->cur_freq;
- 
- 	DEB_EE("VIDIOC_G_FREQ: freq:0x%08x\n", mxb->cur_freq.frequency);
-@@ -592,17 +581,16 @@ static int vidioc_s_frequency(struct file *file, void *fh, struct v4l2_frequency
- 	if (V4L2_TUNER_ANALOG_TV != f->type)
- 		return -EINVAL;
- 
--	if (mxb->cur_input) {
--		DEB_D("VIDIOC_S_FREQ: channel %d does not have a tuner!\n",
--		      mxb->cur_input);
--		return -EINVAL;
--	}
--
--	mxb->cur_freq = *f;
- 	DEB_EE("VIDIOC_S_FREQUENCY: freq:0x%08x\n", mxb->cur_freq.frequency);
- 
- 	/* tune in desired frequency */
--	tuner_call(mxb, tuner, s_frequency, &mxb->cur_freq);
-+	tuner_call(mxb, tuner, s_frequency, f);
-+	/* let the tuner subdev clamp the frequency to the tuner range */
-+	tuner_call(mxb, tuner, g_frequency, f);
-+	mxb->cur_freq = *f;
+@@ -2347,6 +2351,14 @@ int gspca_dev_probe2(struct usb_interface *intf,
+ 	gspca_dev->sd_desc = sd_desc;
+ 	gspca_dev->nbufread = 2;
+ 	gspca_dev->empty_packet = -1;	/* don't check the empty packets */
++	gspca_dev->vdev = gspca_template;
++	gspca_dev->vdev.parent = &intf->dev;
++	gspca_dev->module = module;
++	gspca_dev->present = 1;
 +
-+	if (mxb->cur_input)
-+		return 0;
++	mutex_init(&gspca_dev->usb_lock);
++	mutex_init(&gspca_dev->queue_lock);
++	init_waitqueue_head(&gspca_dev->wq);
  
- 	/* hack: changing the frequency should invalidate the vbi-counter (=> alevt) */
- 	spin_lock(&dev->slock);
-@@ -612,6 +600,14 @@ static int vidioc_s_frequency(struct file *file, void *fh, struct v4l2_frequency
- 	return 0;
- }
+ 	/* configure the subdriver and initialize the USB device */
+ 	ret = sd_desc->config(gspca_dev, id);
+@@ -2357,21 +2369,17 @@ int gspca_dev_probe2(struct usb_interface *intf,
+ 	ret = sd_desc->init(gspca_dev);
+ 	if (ret < 0)
+ 		goto out;
++	if (sd_desc->init_controls)
++		ret = sd_desc->init_controls(gspca_dev);
++	if (ret < 0)
++		goto out;
+ 	gspca_set_default_mode(gspca_dev);
  
-+static int vidioc_enumaudio(struct file *file, void *fh, struct v4l2_audio *a)
-+{
-+	if (a->index >= MXB_AUDIOS)
-+		return -EINVAL;
-+	*a = mxb_audios[a->index];
-+	return 0;
-+}
-+
- static int vidioc_g_audio(struct file *file, void *fh, struct v4l2_audio *a)
- {
- 	struct saa7146_dev *dev = ((struct saa7146_fh *)fh)->dev;
-@@ -629,8 +625,13 @@ static int vidioc_g_audio(struct file *file, void *fh, struct v4l2_audio *a)
+ 	ret = gspca_input_connect(gspca_dev);
+ 	if (ret)
+ 		goto out;
  
- static int vidioc_s_audio(struct file *file, void *fh, struct v4l2_audio *a)
- {
-+	struct saa7146_dev *dev = ((struct saa7146_fh *)fh)->dev;
-+	struct mxb *mxb = (struct mxb *)dev->ext_priv;
-+
- 	DEB_D("VIDIOC_S_AUDIO %d\n", a->index);
--	return 0;
-+	if (mxb_inputs[mxb->cur_input].audioset & (1 << a->index))
-+		return 0;
-+	return -EINVAL;
- }
- 
- #ifdef CONFIG_VIDEO_ADV_DEBUG
-@@ -709,9 +710,6 @@ static int mxb_attach(struct saa7146_dev *dev, struct saa7146_pci_extension_data
- 	}
- 	mxb = (struct mxb *)dev->ext_priv;
- 
--	vv_data.ops.vidioc_queryctrl = vidioc_queryctrl;
--	vv_data.ops.vidioc_g_ctrl = vidioc_g_ctrl;
--	vv_data.ops.vidioc_s_ctrl = vidioc_s_ctrl;
- 	vv_data.ops.vidioc_enum_input = vidioc_enum_input;
- 	vv_data.ops.vidioc_g_input = vidioc_g_input;
- 	vv_data.ops.vidioc_s_input = vidioc_s_input;
-@@ -719,6 +717,7 @@ static int mxb_attach(struct saa7146_dev *dev, struct saa7146_pci_extension_data
- 	vv_data.ops.vidioc_s_tuner = vidioc_s_tuner;
- 	vv_data.ops.vidioc_g_frequency = vidioc_g_frequency;
- 	vv_data.ops.vidioc_s_frequency = vidioc_s_frequency;
-+	vv_data.ops.vidioc_enumaudio = vidioc_enumaudio;
- 	vv_data.ops.vidioc_g_audio = vidioc_g_audio;
- 	vv_data.ops.vidioc_s_audio = vidioc_s_audio;
- #ifdef CONFIG_VIDEO_ADV_DEBUG
-@@ -836,7 +835,7 @@ MODULE_DEVICE_TABLE(pci, pci_tbl);
- 
- static struct saa7146_ext_vv vv_data = {
- 	.inputs		= MXB_INPUTS,
--	.capabilities	= V4L2_CAP_TUNER | V4L2_CAP_VBI_CAPTURE,
-+	.capabilities	= V4L2_CAP_TUNER | V4L2_CAP_VBI_CAPTURE | V4L2_CAP_AUDIO,
- 	.stds		= &standard[0],
- 	.num_stds	= sizeof(standard)/sizeof(struct saa7146_standard),
- 	.std_callback	= &std_callback,
-diff --git a/drivers/media/video/mxb.h b/drivers/media/video/mxb.h
-index 400a57b..dfa4b1c 100644
---- a/drivers/media/video/mxb.h
-+++ b/drivers/media/video/mxb.h
-@@ -10,33 +10,4 @@
- 
- #define MXB_AUDIOS	6
- 
--/* these are the available audio sources, which can switched
--   to the line- and cd-output individually */
--static struct v4l2_audio mxb_audios[MXB_AUDIOS] = {
--	    {
--		.index	= 0,
--		.name	= "Tuner",
--		.capability = V4L2_AUDCAP_STEREO,
--	} , {
--		.index	= 1,
--		.name	= "AUX1",
--		.capability = V4L2_AUDCAP_STEREO,
--	} , {
--		.index	= 2,
--		.name	= "AUX2",
--		.capability = V4L2_AUDCAP_STEREO,
--	} , {
--		.index	= 3,
--		.name	= "AUX3",
--		.capability = V4L2_AUDCAP_STEREO,
--	} , {
--		.index	= 4,
--		.name	= "Radio (X9)",
--		.capability = V4L2_AUDCAP_STEREO,
--	} , {
--		.index	= 5,
--		.name	= "CD-ROM (X10)",
--		.capability = V4L2_AUDCAP_STEREO,
--	}
--};
+-	mutex_init(&gspca_dev->usb_lock);
+-	mutex_init(&gspca_dev->queue_lock);
+-	init_waitqueue_head(&gspca_dev->wq);
+-
+ 	/* init video stuff */
+-	memcpy(&gspca_dev->vdev, &gspca_template, sizeof gspca_template);
+-	gspca_dev->vdev.parent = &intf->dev;
+-	gspca_dev->module = module;
+-	gspca_dev->present = 1;
+ 	ret = video_register_device(&gspca_dev->vdev,
+ 				  VFL_TYPE_GRABBER,
+ 				  -1);
+@@ -2391,6 +2399,7 @@ out:
+ 	if (gspca_dev->input_dev)
+ 		input_unregister_device(gspca_dev->input_dev);
  #endif
++	v4l2_ctrl_handler_free(gspca_dev->vdev.ctrl_handler);
+ 	kfree(gspca_dev->usb_buf);
+ 	kfree(gspca_dev);
+ 	return ret;
+@@ -2492,6 +2501,7 @@ int gspca_resume(struct usb_interface *intf)
+ 
+ 	gspca_dev->frozen = 0;
+ 	gspca_dev->sd_desc->init(gspca_dev);
++	gspca_set_default_mode(gspca_dev);
+ 	gspca_input_create_urb(gspca_dev);
+ 	if (gspca_dev->streaming)
+ 		return gspca_init_transfer(gspca_dev);
+diff --git a/drivers/media/video/gspca/gspca.h b/drivers/media/video/gspca/gspca.h
+index 589009f..8140416 100644
+--- a/drivers/media/video/gspca/gspca.h
++++ b/drivers/media/video/gspca/gspca.h
+@@ -115,6 +115,7 @@ struct sd_desc {
+ /* mandatory operations */
+ 	cam_cf_op config;	/* called on probe */
+ 	cam_op init;		/* called on probe and resume */
++	cam_op init_controls;	/* called on probe */
+ 	cam_op start;		/* called on stream on after URBs creation */
+ 	cam_pkt_op pkt_scan;
+ /* optional operations */
 -- 
 1.7.10
 
