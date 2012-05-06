@@ -1,26 +1,26 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vc0-f174.google.com ([209.85.220.174]:63154 "EHLO
-	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753469Ab2EFMq6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 6 May 2012 08:46:58 -0400
-Received: by vcqp1 with SMTP id p1so2861647vcq.19
-        for <linux-media@vger.kernel.org>; Sun, 06 May 2012 05:46:57 -0700 (PDT)
-MIME-Version: 1.0
-Date: Sun, 6 May 2012 14:46:57 +0200
-Message-ID: <CAKZ=SG_f8qxRTbeRFXvBJBbbb6AQCuD4d7YT+XdxT3ROrDLrnQ@mail.gmail.com>
-Subject: [PATCH v3 2/3] RTL2832 demodulator driver.
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:52410 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753857Ab2EFQ3j (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 May 2012 12:29:39 -0400
+Received: by bkcji2 with SMTP id ji2so3151236bkc.19
+        for <linux-media@vger.kernel.org>; Sun, 06 May 2012 09:29:37 -0700 (PDT)
+Message-ID: <4FA6A6EE.40105@googlemail.com>
+Date: Sun, 06 May 2012 18:29:34 +0200
 From: Thomas Mair <thomas.mair86@googlemail.com>
+MIME-Version: 1.0
 To: linux-media@vger.kernel.org
-Cc: hfvogt@gmx.net, poma <pomidorabelisima@gmail.com>,
-	gennarone@gmail.com, Antti Palosaari <crope@iki.fi>
+Subject: Re: [PATCH v3 2/3] RTL2832 demodulator driver.
+References: <CAKZ=SG_f8qxRTbeRFXvBJBbbb6AQCuD4d7YT+XdxT3ROrDLrnQ@mail.gmail.com>
+In-Reply-To: <CAKZ=SG_f8qxRTbeRFXvBJBbbb6AQCuD4d7YT+XdxT3ROrDLrnQ@mail.gmail.com>
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+
 - currently only support for the FC0012 tuner is included
-- The driver uses a custom log2 function. Maybe it should be changed
-to use ilog2 or a similar function.
+- The driver uses a custom log2 function. Maybe it should be changed to use ilog2 or a similar function.
 
 Signed-off-by: Thomas Mair <thomas.mair86@googlemail.com>
 ---
@@ -32,8 +32,7 @@ Signed-off-by: Thomas Mair <thomas.mair86@googlemail.com>
  create mode 100644 drivers/media/dvb/frontends/rtl2832.h
  create mode 100644 drivers/media/dvb/frontends/rtl2832_priv.h
 
-diff --git a/drivers/media/dvb/frontends/rtl2832.c
-b/drivers/media/dvb/frontends/rtl2832.c
+diff --git a/drivers/media/dvb/frontends/rtl2832.c b/drivers/media/dvb/frontends/rtl2832.c
 new file mode 100644
 index 0000000..fb4f577
 --- /dev/null
@@ -1253,8 +1252,7 @@ index 0000000..fb4f577
 +MODULE_DESCRIPTION("Realtek RTL2832 DVB-T demodulator driver");
 +MODULE_LICENSE("GPL");
 +MODULE_VERSION("0.2");
-diff --git a/drivers/media/dvb/frontends/rtl2832.h
-b/drivers/media/dvb/frontends/rtl2832.h
+diff --git a/drivers/media/dvb/frontends/rtl2832.h b/drivers/media/dvb/frontends/rtl2832.h
 new file mode 100644
 index 0000000..594a7cd
 --- /dev/null
@@ -1556,8 +1554,7 @@ index 0000000..594a7cd
 +
 +
 +#endif /* RTL2832_H */
-diff --git a/drivers/media/dvb/frontends/rtl2832_priv.h
-b/drivers/media/dvb/frontends/rtl2832_priv.h
+diff --git a/drivers/media/dvb/frontends/rtl2832_priv.h b/drivers/media/dvb/frontends/rtl2832_priv.h
 new file mode 100644
 index 0000000..e266190
 --- /dev/null
@@ -1625,3 +1622,4 @@ index 0000000..e266190
 +#endif /* RTL2832_PRIV_H */
 -- 
 1.7.7.6
+
