@@ -1,203 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:44278 "EHLO
-	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933148Ab2EWJyw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 May 2012 05:54:52 -0400
-Subject: [PATCH 26/43] rc-core: do not take mutex on rc_dev registration
-To: linux-media@vger.kernel.org
-From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
-Cc: mchehab@redhat.com, jarod@redhat.com
-Date: Wed, 23 May 2012 11:44:17 +0200
-Message-ID: <20120523094416.14474.67184.stgit@felix.hardeman.nu>
-In-Reply-To: <20120523094157.14474.24367.stgit@felix.hardeman.nu>
-References: <20120523094157.14474.24367.stgit@felix.hardeman.nu>
+Received: from smtp.nokia.com ([147.243.128.26]:44630 "EHLO mgw-da02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751143Ab2EGEze (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 7 May 2012 00:55:34 -0400
+Message-ID: <4FA6BF6A.4030902@iki.fi>
+Date: Sun, 06 May 2012 21:14:02 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [media-ctl PATCH 2/3] New, more flexible syntax for media-ctl
+References: <1336119883-14978-1-git-send-email-sakari.ailus@iki.fi> <14849350.mp0nWfDsvJ@avalon> <20120505130933.GI852@valkosipuli.localdomain> <2542901.vLyHxKHSqR@avalon>
+In-Reply-To: <2542901.vLyHxKHSqR@avalon>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Change the rc_register_device() code so that it isn't necessary to hold any
-mutex. When device_add() is called, the norm is that the device should
-actually be ready for use.
+Hi Laurent,
 
-Holding the mutex is a recipe for deadlocks as (for example) calling
-input_register_device() is quite likely to end up in a call to
-input_dev->open() which might take the same mutex (to update the user
-count, see later patches).
+Laurent Pinchart wrote:
+> On Saturday 05 May 2012 16:09:33 Sakari Ailus wrote:
+...
+>> The pixel format and the image size at the pad are clearly format
+>> (VIDIOC_SUBDEV_S_FMT) but the other things are related to pads but not
+>> format.
+>>
+>> I see them different kinds of properties of pads. That suggests we might be
+>> better renaming the option (-f) to something else as well.
+> 
+> You like breaking interfaces, don't you ? :-D
 
-Signed-off-by: David Härdeman <david@hardeman.nu>
----
- drivers/media/rc/rc-main.c |   95 ++++++++++++++++++--------------------------
- include/media/rc-core.h    |    3 -
- 2 files changed, 40 insertions(+), 58 deletions(-)
+I thought you said we have no stable release yet. :-D
 
-diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-index 83ea507..620cd8d 100644
---- a/drivers/media/rc/rc-main.c
-+++ b/drivers/media/rc/rc-main.c
-@@ -214,8 +214,8 @@ static struct {
-  * It returns the protocol names of supported protocols.
-  * Enabled protocols are printed in brackets.
-  *
-- * dev->lock is taken to guard against races between device
-- * registration, store_protocols and show_protocols.
-+ * dev->lock is taken to guard against races between store_protocols
-+ * and show_protocols.
-  */
- static ssize_t show_protocols(struct device *device,
- 			      struct device_attribute *mattr, char *buf)
-@@ -276,8 +276,8 @@ static ssize_t show_protocols(struct device *device,
-  * Returns -EINVAL if an invalid protocol combination or unknown protocol name
-  * is used, otherwise @len.
-  *
-- * dev->lock is taken to guard against races between device
-- * registration, store_protocols and show_protocols.
-+ * dev->lock is taken to guard against races between store_protocols and
-+ * show_protocols.
-  */
- static ssize_t store_protocols(struct device *device,
- 			       struct device_attribute *mattr,
-@@ -492,17 +492,14 @@ int rc_register_device(struct rc_dev *dev)
- 	if (rc)
- 		return rc;
- 
--	for (i = 0; i < ARRAY_SIZE(rc_dev_table); i++) {
--		if (!rc_dev_table[i]) {
--			rc_dev_table[i] = dev;
-+	for (i = 0; i < ARRAY_SIZE(rc_dev_table); i++)
-+		if (!rc_dev_table[i])
- 			break;
--		}
--	}
--
--	mutex_unlock(&rc_dev_table_mutex);
- 
--	if (i >= ARRAY_SIZE(rc_dev_table))
--		return -ENFILE;
-+	if (i >= ARRAY_SIZE(rc_dev_table)) {
-+		rc = -ENFILE;
-+		goto out;
-+	}
- 
- 	dev->minor = i;
- 	dev->dev.devt = MKDEV(rc_major, dev->minor);
-@@ -512,35 +509,9 @@ int rc_register_device(struct rc_dev *dev)
- 	if (dev->tx_ir) {
- 		rc = kfifo_alloc(&dev->txfifo, RC_TX_KFIFO_SIZE, GFP_KERNEL);
- 		if (rc)
--			goto out_minor;
--	}
--
--	/*
--	 * Take the lock here, as the device sysfs node will appear
--	 * when device_add() is called, which may trigger an ir-keytable udev
--	 * rule, which will in turn call show_protocols and access either
--	 * dev->rc_map.rc_type or dev->raw->enabled_protocols before it has
--	 * been initialized.
--	 */
--	mutex_lock(&dev->lock);
--
--	dev->kt = rc_keytable_create(dev, dev->map_name);
--	if (!dev->kt) {
--		rc = -ENOMEM;
--		goto out_unlock;
-+			goto out;
- 	}
- 
--	rc = device_add(&dev->dev);
--	if (rc)
--		goto out_keytable;
--
--	path = kobject_get_path(&dev->dev.kobj, GFP_KERNEL);
--	printk(KERN_INFO "%s: %s as %s\n",
--		dev_name(&dev->dev),
--		dev->input_name ? dev->input_name : "Unspecified device",
--		path ? path : "N/A");
--	kfree(path);
--
- 	if (dev->driver_type == RC_DRIVER_IR_RAW) {
- 		/* Load raw decoders, if they aren't already */
- 		if (!raw_init) {
-@@ -550,7 +521,7 @@ int rc_register_device(struct rc_dev *dev)
- 		}
- 		rc = ir_raw_event_register(dev);
- 		if (rc < 0)
--			goto out_dev;
-+			goto out_kfifo;
- 	}
- 
- 	if (dev->change_protocol) {
-@@ -559,29 +530,41 @@ int rc_register_device(struct rc_dev *dev)
- 			goto out_raw;
- 	}
- 
-+	rc_dev_table[i] = dev;
- 	dev->exist = true;
--	mutex_unlock(&dev->lock);
- 
--	IR_dprintk(1, "Registered rc%u (driver: %s, remote: %s, mode %s)\n",
--		   dev->minor,
--		   dev->driver_name ? dev->driver_name : "unknown",
--		   dev->map_name ? dev->map_name : "unknown",
--		   dev->driver_type == RC_DRIVER_IR_RAW ? "raw" : "cooked");
-+	/* Once device_add is called, userspace might access e.g. sysfs files */
-+	rc = device_add(&dev->dev);
-+	if (rc)
-+		goto out_chardev;
-+
-+	dev->kt = rc_keytable_create(dev, dev->map_name);
-+	if (!dev->kt) {
-+		rc = -ENOMEM;
-+		goto out_device;
-+	}
-+
-+	mutex_unlock(&rc_dev_table_mutex);
-+
-+	path = kobject_get_path(&dev->dev.kobj, GFP_KERNEL);
-+	printk(KERN_INFO "%s: %s as %s\n",
-+		dev_name(&dev->dev),
-+		dev->input_name ? dev->input_name : "Unspecified device",
-+		path ? path : "N/A");
-+	kfree(path);
- 
- 	return 0;
- 
-+out_device:
-+	device_del(&dev->dev);
-+out_chardev:
-+	rc_dev_table[dev->minor] = NULL;
- out_raw:
- 	if (dev->driver_type == RC_DRIVER_IR_RAW)
- 		ir_raw_event_unregister(dev);
--out_dev:
--	device_del(&dev->dev);
--out_keytable:
--	rc_keytable_destroy(dev->kt);
--out_unlock:
--	mutex_unlock(&dev->lock);
--out_minor:
--	mutex_lock(&rc_dev_table_mutex);
--	rc_dev_table[dev->minor] = NULL;
-+out_kfifo:
-+	kfifo_free(&dev->txfifo);
-+out:
- 	mutex_unlock(&rc_dev_table_mutex);
- 	return rc;
- }
-diff --git a/include/media/rc-core.h b/include/media/rc-core.h
-index 20bd1ce..e34815b 100644
---- a/include/media/rc-core.h
-+++ b/include/media/rc-core.h
-@@ -203,8 +203,7 @@ struct ir_raw_event {
-  * @driver_name: name of the hardware driver which registered this device
-  * @map_name: name of the default keymap
-  * @rc_map: current scan/key table
-- * @lock: used to ensure we've filled in all protocol details before
-- *	anyone can call show_protocols or store_protocols
-+ * @lock: used where a more specific lock/mutex/etc is not available
-  * @minor: unique minor remote control device number
-  * @exist: used to determine if the device is still valid
-  * @client_list: list of clients (processes which have opened the rc chardev)
+The selection interface on subdevs is currently used to change format
+related things (cropping and scaling, for example) but it was one of
+Sylwester's patches ("V4L: Add auto focus targets to the selections
+API") that adds a focus window target to the V4L2 selection interface. I
+don't see why it couldn't be present on subdevs, too. That's got nothing
+to do with the image format.
 
+I've been pondering a bit using another option to configure things
+related to selections. Conveniently "-s" is free. We could leave the
+crop things to -f but remove the documentation related to them.
+
+I'm fine with keeping the things as they are for now, too, but in that
+case we should recognise that -f will not be for formats only. Or we
+split handling selections into separate options, but I don't like that
+idea either.
+
+>>> I find the '/' a bit confusing compared to the ' ' (but I think you find
+>>> the space confusing compared to '/' :-)). I also wonder whether we
+>>> shouldn't just drop 'fmt:', as there can be a single format only.
+>>
+>> You can set it multiple times, or you may not set it at all. That's why I
+>> think we should explicitly say it's the format.
+> 
+> Not at all makes sense, but why would you set it multiple times ?
+
+I guess that's not a very practical use case, albeit there may be
+dependencies between the two: Guennadi had a piece of hardware where the
+hardware cropping or scaling capabilities depended on the format. But
+not setting it at all definitely is a valid use case.
+
+Kind regards,
+
+-- 
+Sakari Ailus
+sakari.ailus@iki.fi
