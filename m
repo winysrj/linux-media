@@ -1,74 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:53918 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757676Ab2EGVZp convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 May 2012 17:25:45 -0400
-Date: Mon, 7 May 2012 23:25:43 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: "Aguirre, Sergio" <saaguirre@ti.com>
-cc: Sriram V <vshrirama@gmail.com>, linux-media@vger.kernel.org
-Subject: Re: Android Support for camera?
-In-Reply-To: <CAKnK67Qdte8qJ9L18OL2ft=YaF4YEAD-5rTP_bk7+_nQAn4u+A@mail.gmail.com>
-Message-ID: <Pine.LNX.4.64.1205072321530.3564@axis700.grange>
-References: <CAH9_wRP4+hzFpCdcZWmyyTZpTTFi+9wyTJxX2vPd+3r0QNhLkA@mail.gmail.com>
- <CAKnK67Qdte8qJ9L18OL2ft=YaF4YEAD-5rTP_bk7+_nQAn4u+A@mail.gmail.com>
+Received: from mailout-de.gmx.net ([213.165.64.23]:46769 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1754557Ab2EFU4w (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 May 2012 16:56:52 -0400
+From: "Hans-Frieder Vogt" <hfvogt@gmx.net>
+To: linux-media@vger.kernel.org,
+	Thomas Mair <thomas.mair86@googlemail.com>
+Subject: [PATCH 1/3] fc001x: common header file for FC0012 and FC0013
+Date: Sun, 6 May 2012 22:56:50 +0200
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201205062256.50092.hfvogt@gmx.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sergio
+Common defines for the FC0012 (v0.5) and FC0013 tuner drivers
 
-On Mon, 7 May 2012, Aguirre, Sergio wrote:
+Signed-off-by: Hans-Frieder Vogt <hfvogt@gmx.net>
 
-> Hi Sriram,
-> 
-> On Mon, May 7, 2012 at 10:33 AM, Sriram V <vshrirama@gmail.com> wrote:
-> > Hi Sergio,
-> >  I understand that you are working on providing Android HAL Support
-> > for camera on omap4.
-> 
-> That's right. Not an active task at the moment, due to some other
-> stuff going on,
-> but yes, I have that task pending to do.
-> 
-> >  Were you able to capture and record?
-> 
-> Well, I'm trying to take these patches as a reference:
-> 
-> http://review.omapzoom.org/#/q/project:platform/hardware/ti/omap4xxx+topic:usbcamera,n,z
-> 
-> Which are implementing V4L2 camera support for the CameraHAL,
-> currently tested with
-> the UVC camera driver only.
+ drivers/media/common/tuners/fc001x-common.h |   39 ++++++++++++++++++++++++++++
+ 1 file changed, 39 insertions(+)
 
-I've implemented a (pretty basic so far) V4L2 camera HAL for android 
-(ICS), patche submission is pending legal clarifications... I hope to 
-manage to push them into the upstream android, after which they shall 
-become available to all platforms. I've implemented the HAL as a 
-platform-agnostic library in C with a minimal (and naive;-)) C++ glue. I'm 
-sure, those patches will need some improvements, but I'd be happy, if they 
-could be taken as a basis.
+diff -up --new-file --recursive a/drivers/media/common/tuners/fc001x-common.h 
+b/drivers/media/common/tuners/fc001x-common.h
+--- a/drivers/media/common/tuners/fc001x-common.h	1970-01-01 01:00:00.000000000 +0100
++++ b/drivers/media/common/tuners/fc001x-common.h	2012-05-06 19:42:16.785457023 +0200
+@@ -0,0 +1,39 @@
++/*
++ * Fitipower FC0012 & FC0013 tuner driver - common defines
++ *
++ * Copyright (C) 2012 Hans-Frieder Vogt <hfvogt@gmx.net>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++ */
++
++#ifndef _FC001X_COMMON_H_
++#define _FC001X_COMMON_H_
++
++enum fc001x_xtal_freq {
++	FC_XTAL_27_MHZ,		/* 27000000 */
++	FC_XTAL_28_8_MHZ,	/* 28800000 */
++	FC_XTAL_36_MHZ,		/* 36000000 */
++};
++
++/*
++ * enum fc001x_fe_callback_commands - Frontend callbacks
++ *
++ * @FC_FE_CALLBACK_VHF_ENABLE: enable VHF or UHF
++ */
++enum fc001x_fe_callback_commands {
++	FC_FE_CALLBACK_VHF_ENABLE,
++};
++
++#endif
 
-Thanks
-Guennadi
-
-> So, I need to set the IOCTLs to program the omap4iss media controller
-> device, to set a
-> usecase, and start preview.
-> 
-> I'll keep you posted.
-> 
-> Regards,
-> Sergio
-> 
-> >
-> >  --
-> > Regards,
-> > Sriram
-
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Hans-Frieder Vogt                       e-mail: hfvogt <at> gmx .dot. net
