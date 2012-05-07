@@ -1,70 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vc0-f174.google.com ([209.85.220.174]:48497 "EHLO
-	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753360Ab2EVMiz convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 May 2012 08:38:55 -0400
-Received: by vcbf11 with SMTP id f11so506563vcb.19
-        for <linux-media@vger.kernel.org>; Tue, 22 May 2012 05:38:53 -0700 (PDT)
+Received: from mail.kapsi.fi ([217.30.184.167]:41643 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753941Ab2EGT2L (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 7 May 2012 15:28:11 -0400
+Message-ID: <4FA82244.9020804@iki.fi>
+Date: Mon, 07 May 2012 22:28:04 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <E1SW6Oa-00026y-9q@www.linuxtv.org>
-References: <E1SW6Oa-00026y-9q@www.linuxtv.org>
-Date: Tue, 22 May 2012 08:38:53 -0400
-Message-ID: <CAOcJUbw9uxkaE19k03T+0oKBq7ftj4LjfMb4ROtHB5E2B1n8Zg@mail.gmail.com>
-Subject: Re: [git:v4l-dvb/for_v3.5] [media] au0828: Add USB ID used by many dongles
-From: Michael Krufky <mkrufky@linuxtv.org>
-To: linux-media@vger.kernel.org
-Cc: linuxtv-commits@linuxtv.org,
-	Ismael Luceno <ismael.luceno@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: Thomas Mair <thomas.mair86@googlemail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH v3 1/3] Modified RTL28xxU driver to work with RTL2832
+References: <CAKZ=SG9U48d=eE3avccR-Auao5UMo0OANw8KKb=MP1XPtkHwmg@mail.gmail.com> <4FA780DB.1030800@iki.fi> <4FA8168E.3040807@googlemail.com>
+In-Reply-To: <4FA8168E.3040807@googlemail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I'm glad that we were able to add support for additional devices, but
-this device is not in fact the "Hauppauge Woodbury" that it claims to
-be -- I think it would be a better idea to copy the
-AU0828_BOARD_HAUPPAUGE_WOODBURY configuration into a new structure,
-rename it to something more appropriate, and use that instead.
+On 07.05.2012 21:38, Thomas Mair wrote:
+> On 07.05.2012 09:59, Antti Palosaari wrote:
 
--Mike
+>>> @@ -330,12 +335,12 @@ static int rtl2831u_frontend_attach(struct
+>>> dvb_usb_adapter *adap)
+>>>        /* check QT1010 ID(?) register; reg=0f val=2c */
+>>>        ret = rtl28xxu_ctrl_msg(adap->dev,&req_qt1010);
+>>>        if (ret == 0&&   buf[0] == 0x2c) {
+>>> -        priv->tuner = TUNER_RTL2830_QT1010;
+>>> +        priv->tuner = TUNER_RTL28XX_QT1010;
+>>
+>> The idea why I named it as a TUNER_RTL2830_QT1010 was to map RTL2830 and given tuner. It could be nice to identify used demod/tuner combination in some cases if there will even be such combination same tuner used for multiple RTL28XXU chips.
+> Ok. Should we use the TUNER_RTL2830/TUNER_RTL2832 approach or the RUNER_RTL28XX?
 
-On Sun, May 20, 2012 at 9:30 AM, Mauro Carvalho Chehab
-<mchehab@redhat.com> wrote:
-> This is an automatic generated email to let you know that the following patch were queued at the
-> http://git.linuxtv.org/media_tree.git tree:
+I vote for style example; RTL2830_QT1010 versus RTL2832_QT1010, just in 
+case same tuner could be used for multiple configurations.
+
+But it is not big issue for RTL2830 as it supports only 3 tuners 
+currently - and there will not be likely any new. But there is some 
+other RTL28XXU chips, like DVB-C model and etc.
+
+>> It is ~same function that existing one but without LED GPIO. Hmmm, dunno what to do. Maybe it is OK still as switching "random" GPIOs during streaming control is not good idea.
 >
-> Subject: [media] au0828: Add USB ID used by many dongles
-> Author:  Ismael Luceno <ismael.luceno@gmail.com>
-> Date:    Fri May 11 02:14:51 2012 -0300
+> I know. I had the same thougths and could not come up with a more elegant idea.
+> Maybe here the TUNER_RTL2832 definition could be used. But that is too not the
+> ideal solution I guess.
+
+I dont even care if whole LED GPIO is removed. It is not needed at all 
+and I even suspect it is not on same GPIO for all RTL2831U devices... Do 
+what you want - leave it as you already did.
+
+>> This looks weird as you write demod register. Is that really needed?
+>>
+>> If you has some problems I suspect those are coming from the fact page cached by the driver isdifferent than page used by chip. Likely demod is reseted and page is 0 after that.
+>>
+>> If you really have seen some problems then set page 0 in demod sleep. Or set page directly to that driver priv.
+> I'll check that.
+
+>>> +#define RTL28XXU_TUNERS_H
+>>> +
+>>> +enum rtl28xxu_tuner {
+>>> +       TUNER_NONE,
+>>> +       TUNER_RTL28XX_QT1010,
+>>> +       TUNER_RTL28XX_MT2060,
+>>> +       TUNER_RTL28XX_MT2266,
+>>> +       TUNER_RTL28XX_MT2063,
+>>> +       TUNER_RTL28XX_MAX3543,
+>>> +       TUNER_RTL28XX_TUA9001,
+>>> +       TUNER_RTL28XX_MXL5005S,
+>>> +       TUNER_RTL28XX_MXL5007T,
+>>> +       TUNER_RTL28XX_FC2580,
+>>> +       TUNER_RTL28XX_FC0012,
+>>> +       TUNER_RTL28XX_FC0013,
+>>> +       TUNER_RTL28XX_E4000,
+>>> +       TUNER_RTL28XX_TDA18272,
+>>> +};
+>>> +
+>>> +#endif
+>>
+>> I don't see it good idea to export tuners from the DVB-USB-driver to the demodulator. Demod drivers should be independent. For the other direction it is OK, I mean you can add tuners for demod config (rtl2832.h).
 >
-> Tested with Yfeng 680 ATV dongle.
+> Ok. So the definitions of the tuners would go into the rtl2830.h and rtl2832.h.
+
+Put those to the demod as a af9013 and af9033 for example has. rtl2830.h 
+does not need to know tuner at all, not need to add.
+
 >
-> Signed-off-by: Ismael Luceno <ismael.luceno@gmail.com>
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+>> After all, you have done rather much changes. Even such changes that are not relevant for the RTL2832 support. One patch per one change is the rule. Also that patch serie is wrong order, it will break compilation for example very bad when git bisect is taken. It should be done in order first tuner or demod driver then DVB-USB-driver.
 >
->  drivers/media/video/au0828/au0828-cards.c |    2 ++
->  1 files changed, 2 insertions(+), 0 deletions(-)
->
-> ---
->
-> http://git.linuxtv.org/media_tree.git?a=commitdiff;h=e2b710bfde37dcc5e5c55fe09e640c1a218a81a2
->
-> diff --git a/drivers/media/video/au0828/au0828-cards.c b/drivers/media/video/au0828/au0828-cards.c
-> index 1c6015a..e3fe9a6 100644
-> --- a/drivers/media/video/au0828/au0828-cards.c
-> +++ b/drivers/media/video/au0828/au0828-cards.c
-> @@ -325,6 +325,8 @@ struct usb_device_id au0828_usb_id_table[] = {
->                .driver_info = AU0828_BOARD_HAUPPAUGE_HVR950Q_MXL },
->        { USB_DEVICE(0x2040, 0x7281),
->                .driver_info = AU0828_BOARD_HAUPPAUGE_HVR950Q_MXL },
-> +       { USB_DEVICE(0x05e1, 0x0480),
-> +               .driver_info = AU0828_BOARD_HAUPPAUGE_WOODBURY },
->        { USB_DEVICE(0x2040, 0x8200),
->                .driver_info = AU0828_BOARD_HAUPPAUGE_WOODBURY },
->        { USB_DEVICE(0x2040, 0x7260),
->
-> _______________________________________________
-> linuxtv-commits mailing list
-> linuxtv-commits@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linuxtv-commits
+> Sorry for the inconsistent patches. I will go over my changes again and split them
+> into smaller chunks, trying to keep the changes to a minimum. That includes to change
+> the order of the patches to tuner, demod and finally dvb-usb driver. Thanks for all
+> the comments. They really help me getting the driver nice and neat. I will probably
+> not be able to do the changes before next weekend.
+
+
+regards
+Antti
+
+
+-- 
+http://palosaari.fi/
