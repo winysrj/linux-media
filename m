@@ -1,69 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:35260 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753395Ab2E2KWU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 May 2012 06:22:20 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Enrico <ebutera@users.berlios.de>
-Cc: jean-philippe francois <jp.francois@cynove.com>,
-	Alex Gershgorin <alexg@meprolight.com>,
-	Ritesh <yuva_dashing@yahoo.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: FW: OMAP 3 ISP
-Date: Tue, 29 May 2012 12:22:39 +0200
-Message-ID: <12509952.dDkgsjd7gb@avalon>
-In-Reply-To: <CA+2YH7s9F+4WQuQ9zioCetpJ5f8_3pihf5wcNVp5SjLuiq3k3g@mail.gmail.com>
-References: <B9D34818-CE30-4125-997B-71C50CFC4F0D@yahoo.com> <CAGGh5h13ks+yN44OJvFogjj9jWr9HeN7_OzE2Aob9T2n3e9nMA@mail.gmail.com> <CA+2YH7s9F+4WQuQ9zioCetpJ5f8_3pihf5wcNVp5SjLuiq3k3g@mail.gmail.com>
+Received: from na3sys009aog137.obsmtp.com ([74.125.149.18]:60704 "EHLO
+	na3sys009aog137.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753016Ab2EGWEe convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 7 May 2012 18:04:34 -0400
+Received: by qcsu28 with SMTP id u28so1382677qcs.22
+        for <linux-media@vger.kernel.org>; Mon, 07 May 2012 15:04:32 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <Pine.LNX.4.64.1205072321530.3564@axis700.grange>
+References: <CAH9_wRP4+hzFpCdcZWmyyTZpTTFi+9wyTJxX2vPd+3r0QNhLkA@mail.gmail.com>
+ <CAKnK67Qdte8qJ9L18OL2ft=YaF4YEAD-5rTP_bk7+_nQAn4u+A@mail.gmail.com> <Pine.LNX.4.64.1205072321530.3564@axis700.grange>
+From: "Aguirre, Sergio" <saaguirre@ti.com>
+Date: Mon, 7 May 2012 17:04:12 -0500
+Message-ID: <CAKnK67SpO-roU_d_5DV4bq4J5URX0Niw=hCjXY3N=GUAumZLig@mail.gmail.com>
+Subject: Re: Android Support for camera?
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Sriram V <vshrirama@gmail.com>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Enrico,
+Hi Guennadi,
 
-On Tuesday 29 May 2012 12:08:43 Enrico wrote:
-> On Tue, May 29, 2012 at 10:15 AM, jean-philippe francois wrote:
-> > 2012/5/29 Alex Gershgorin <alexg@meprolight.com>:
-> >> Hi Ritesh,
-> >> 
-> >> Please send in the future CC to laurent.pinchart@ideasonboard.com and
-> >> linux-media@vger.kernel.org>> 
-> >>> Hi Alex,
-> >>> I also started working with OMAP35x torpedo kit, I successful compile
-> >>> Linux 3.0 and ported on the board. Device is booting correctly but
-> >>> probe function in omap3isp module not getting called. Please help me
-> >> 
-> >> You have relevant Kernel boot messages?
-> >> You can also find information in media archives OMAP 3 ISP thread.
-> >> 
-> >> Regards,
-> >> Alex
-> > 
-> > Hi, I had a similar problem with a 2.6.39 kernel, that was solved with
-> > a 3.2 kernel.
-> > When compiled as a module, the probe function was called, but was failing
-> > later.
-> > 
-> > The single message I would see was "ISP revision x.y found" [1]
-> > 
-> > When compiled in the kernel image, everything was fine.
-> > 
-> > 
-> > [1]
-> > http://lxr.linux.no/linux+v2.6.39.4/drivers/media/video/omap3isp/isp.c#L2
-> > 103
-> I think with kernel version 3.0 i had the same problem, i had to
-> modprobe iommu2 before omap3isp, removing (if already loaded) iommu.
-> Probably later on it was fixed and you don't need that anymore.
+On Mon, May 7, 2012 at 4:25 PM, Guennadi Liakhovetski
+<g.liakhovetski@gmx.de> wrote:
+> Hi Sergio
+>
+> On Mon, 7 May 2012, Aguirre, Sergio wrote:
+>
+>> Hi Sriram,
+>>
+>> On Mon, May 7, 2012 at 10:33 AM, Sriram V <vshrirama@gmail.com> wrote:
+>> > Hi Sergio,
+>> >  I understand that you are working on providing Android HAL Support
+>> > for camera on omap4.
+>>
+>> That's right. Not an active task at the moment, due to some other
+>> stuff going on,
+>> but yes, I have that task pending to do.
+>>
+>> >  Were you able to capture and record?
+>>
+>> Well, I'm trying to take these patches as a reference:
+>>
+>> http://review.omapzoom.org/#/q/project:platform/hardware/ti/omap4xxx+topic:usbcamera,n,z
+>>
+>> Which are implementing V4L2 camera support for the CameraHAL,
+>> currently tested with
+>> the UVC camera driver only.
+>
+> I've implemented a (pretty basic so far) V4L2 camera HAL for android
+> (ICS), patche submission is pending legal clarifications... I hope to
+> manage to push them into the upstream android, after which they shall
+> become available to all platforms. I've implemented the HAL as a
+> platform-agnostic library in C with a minimal (and naive;-)) C++ glue. I'm
+> sure, those patches will need some improvements, but I'd be happy, if they
+> could be taken as a basis.
 
-That's right. The OMAP3 ISP driver indirectly depended on the iommu2 module, 
-which wasn't loaded automatically. Nowadays OMAP IOMMU support is a boolean 
-option, so it will get compiled in the kernel directly.
+Ok, good to know.
 
--- 
+Please share them whenever you get over those legal clarifications :)
+
+Maybe we can work out a nice and complete solution all together!
+
 Regards,
+Sergio
 
-Laurent Pinchart
+Regards,
+Sergio
 
+>
+> Thanks
+> Guennadi
+>
+>> So, I need to set the IOCTLs to program the omap4iss media controller
+>> device, to set a
+>> usecase, and start preview.
+>>
+>> I'll keep you posted.
+>>
+>> Regards,
+>> Sergio
+>>
+>> >
+>> >  --
+>> > Regards,
+>> > Sriram
+>
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
