@@ -1,97 +1,25 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:41735 "EHLO mail.kapsi.fi"
+Received: from mx1.redhat.com ([209.132.183.28]:13825 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759873Ab2EQOrD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 May 2012 10:47:03 -0400
-Message-ID: <4FB50F66.50301@iki.fi>
-Date: Thu, 17 May 2012 17:47:02 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Thomas Mair <thomas.mair86@googlemail.com>
-CC: pomidorabelisima@gmail.com,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH v4 4/5] rtl28xxu: support G-Tek Electronics Group Lifeview
- LV5TDLX DVB-T
-References: <1> <1337206420-23810-1-git-send-email-thomas.mair86@googlemail.com> <1337206420-23810-5-git-send-email-thomas.mair86@googlemail.com>
-In-Reply-To: <1337206420-23810-5-git-send-email-thomas.mair86@googlemail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	id S1757651Ab2EGTUj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 7 May 2012 15:20:39 -0400
+From: Hans de Goede <hdegoede@redhat.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: hverkuil@xs4all.nl
+Subject: gspca: allow use of control framework and other fixes (v3)
+Date: Mon,  7 May 2012 21:01:11 +0200
+Message-Id: <1336417294-4566-1-git-send-email-hdegoede@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 17.05.2012 01:13, Thomas Mair wrote:
-> Signed-off-by: Thomas Mair<thomas.mair86@googlemail.com>
+Hi all,
 
-Nacked.
-Better PID definition is required.
+Here is version 3 of the patchset the 2 Hans-s have been working on to
+move gspca over to the control framework. Note that this also includes
+some resulting v4l2-core patches!
 
-> ---
->   drivers/media/dvb/dvb-usb/dvb-usb-ids.h |    1 +
->   drivers/media/dvb/dvb-usb/rtl28xxu.c    |   11 ++++++++++-
->   2 files changed, 11 insertions(+), 1 deletions(-)
->
-> diff --git a/drivers/media/dvb/dvb-usb/dvb-usb-ids.h b/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
-> index fd37be0..b0a86e9 100644
-> --- a/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
-> +++ b/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
-> @@ -135,6 +135,7 @@
->   #define USB_PID_GENIUS_TVGO_DVB_T03			0x4012
->   #define USB_PID_GRANDTEC_DVBT_USB_COLD			0x0fa0
->   #define USB_PID_GRANDTEC_DVBT_USB_WARM			0x0fa1
-> +#define USB_PID_GTEK					0xb803
+Comments very much welcome.
 
-You must give better name for the device. Vendor name is not enough as 
-many vendors has surely more than one device model.
+Regards,
 
-Correct PID is something like USB_PID_GTEK_LIFEVIEW_LV5TDLX
-
->   #define USB_PID_INTEL_CE9500				0x9500
->   #define USB_PID_ITETECH_IT9135				0x9135
->   #define USB_PID_ITETECH_IT9135_9005			0x9005
-> diff --git a/drivers/media/dvb/dvb-usb/rtl28xxu.c b/drivers/media/dvb/dvb-usb/rtl28xxu.c
-> index 6817ef7..9056d28 100644
-> --- a/drivers/media/dvb/dvb-usb/rtl28xxu.c
-> +++ b/drivers/media/dvb/dvb-usb/rtl28xxu.c
-> @@ -1135,6 +1135,7 @@ enum rtl28xxu_usb_table_entry {
->   	RTL2831U_14AA_0160,
->   	RTL2831U_14AA_0161,
->   	RTL2832U_0CCD_00A9,
-> +	RTL2832U_1F4D_B803,
->   };
->
->   static struct usb_device_id rtl28xxu_table[] = {
-> @@ -1149,6 +1150,8 @@ static struct usb_device_id rtl28xxu_table[] = {
->   	/* RTL2832U */
->   	[RTL2832U_0CCD_00A9] = {
->   		USB_DEVICE(USB_VID_TERRATEC, USB_PID_TERRATEC_CINERGY_T_STICK_BLACK_REV1)},
-> +	[RTL2832U_1F4D_B803] = {
-> +		USB_DEVICE(USB_VID_GTEK, USB_PID_GTEK)},
->   	{} /* terminating entry */
->   };
->
-> @@ -1262,7 +1265,7 @@ static struct dvb_usb_device_properties rtl28xxu_properties[] = {
->
->   		.i2c_algo =&rtl28xxu_i2c_algo,
->
-> -		.num_device_descs = 1,
-> +		.num_device_descs = 2,
->   		.devices = {
->   			{
->   				.name = "Terratec Cinergy T Stick Black",
-> @@ -1270,6 +1273,12 @@ static struct dvb_usb_device_properties rtl28xxu_properties[] = {
->   					&rtl28xxu_table[RTL2832U_0CCD_00A9],
->   				},
->   			},
-> +			{
-> +				.name = "G-Tek Electronics Group Lifeview LV5TDLX DVB-T [RTL2832U]",
-> +				.warm_ids = {
-> +					&rtl28xxu_table[RTL2832U_1F4D_B803],
-> +				},
-> +			},
->   		}
->   	},
->
-
-
--- 
-http://palosaari.fi/
+Hans
