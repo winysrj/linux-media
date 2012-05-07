@@ -1,101 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:49915 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755522Ab2ECKp1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 May 2012 06:45:27 -0400
-Received: by bkcji2 with SMTP id ji2so1218466bkc.19
-        for <linux-media@vger.kernel.org>; Thu, 03 May 2012 03:45:26 -0700 (PDT)
-Message-ID: <4FA261C4.3010405@gmail.com>
-Date: Thu, 03 May 2012 12:45:24 +0200
-From: Sylwester Nawrocki <snjw23@gmail.com>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Andy Walls <awalls@md.metrocast.net>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	remi@remlab.net, nbowler@elliptictech.com, james.dutton@gmail.com
-Subject: Re: [RFC v3 1/2] v4l: Do not use enums in IOCTL structs
-References: <20120502191324.GE852@valkosipuli.localdomain>  <1335986028-23618-1-git-send-email-sakari.ailus@iki.fi>  <201205022245.22585.hverkuil@xs4all.nl> <4FA1B27A.2030405@redhat.com> <1336005780.24477.7.camel@palomino.walls.org> <4FA25C65.2020700@redhat.com>
-In-Reply-To: <4FA25C65.2020700@redhat.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mx1.redhat.com ([209.132.183.28]:51798 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757604Ab2EGTUh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 7 May 2012 15:20:37 -0400
+From: Hans de Goede <hdegoede@redhat.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: hverkuil@xs4all.nl, Hans Verkuil <hans.verkuil@cisco.com>,
+	Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH 03/23] v4l2-framework.txt: add paragraph on driver locking and the control framework.
+Date: Mon,  7 May 2012 21:01:14 +0200
+Message-Id: <1336417294-4566-4-git-send-email-hdegoede@redhat.com>
+In-Reply-To: <1336417294-4566-1-git-send-email-hdegoede@redhat.com>
+References: <1336417294-4566-1-git-send-email-hdegoede@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/03/2012 12:22 PM, Mauro Carvalho Chehab wrote:
-> Em 02-05-2012 21:42, Andy Walls escreveu:
->> On Wed, 2012-05-02 at 19:17 -0300, Mauro Carvalho Chehab wrote:
->>
->>> We can speed-up the conversions, with something like:
->>>
->>> enum foo {
->>> 	BAR
->>> };
->>>
->>> if (sizeof(foo) != sizeof(u32))
->>> 	call_compat_logic().
->>>
->>> I suspect that sizeof() won't work inside a macro.
->>
->> sizeof() is evaluated at compile time, after preprocessing.
->> It should work inside of a macro.
->
-> I tried to compile this small piece of code:
->
-> enum foo { BAR };
-> #if sizeof(foo) != sizeof(int)
-> void main(void) { printf("different sizes\n"); }
-> #else
-> void main(void) { printf("same size\n"); }
-> #endif
->
-> It gives an error:
->
-> /tmp/foo.c:2:11: error: missing binary operator before token "("
->
-> So, either this doesn't work, because sizeof() is evaluated too late,
-> or some trick is needed.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-The GCC C preprocessor documentation [1] states it won't work that way:
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+ Documentation/video4linux/v4l2-framework.txt |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-"The preprocessor does not know anything about types in the language. 
-Therefore, sizeof operators are not recognized in `#if', and neither are 
-enum constants. They will be taken as identifiers which are not macros, 
-and replaced by zero. In the case of sizeof, this is likely to cause the 
-expression to be invalid."
+diff --git a/Documentation/video4linux/v4l2-framework.txt b/Documentation/video4linux/v4l2-framework.txt
+index c2e6591..33ac07a 100644
+--- a/Documentation/video4linux/v4l2-framework.txt
++++ b/Documentation/video4linux/v4l2-framework.txt
+@@ -661,6 +661,14 @@ wait_prepare and wait_finish.
+ The implementation of a hotplug disconnect should also take the lock before
+ calling v4l2_device_disconnect.
+ 
++Note that if you do your own locking and want to use the control framework,
++then you have to implement the control callbacks yourself so you can take
++your own lock before calling into the control framework. Otherwise your lock
++won't be held when the v4l2_ctrl_ops are called. You can't take your lock
++there because a driver can also call e.g. v4l2_ctrl_s_ctrl with your lock
++already held, which in turn will call the s_ctrl op, which will attempt to
++take your lock again: deadlock!
++
+ video_device registration
+ -------------------------
+ 
+-- 
+1.7.10
 
-[1] http://gcc.gnu.org/onlinedocs/cpp/If.html#If
-
-
-Regards,
-Sylwester
-
-> Weird enough, cpp generates the error, but the expression is well-evaluated:
->
-> $ cpp /tmp/foo.c
-> # 1 "/tmp/foo.c"
-> # 1 "<built-in>"
-> # 1 "<command-line>"
-> # 1 "/tmp/foo.c"
-> /tmp/foo.c:2:11: error: missing binary operator before token "("
-> enum foo { BAR };
->
->
->
-> void main(void) { printf("same size\n"); }
->
->
-> Changing from "sizeof(foo)" to "sizeof foo" also doesn't solve:
->
-> /tmp/foo.c:2:12: error: missing binary operator before token "foo"
->
-> Maybe some trick is needed for it to work.
->
->> See the ARRAY_SIZE() macro in include/linux/kernel.h for a well tested
->> example.
->
-> ARRAY_SIZE() doesn't have an #if on it.
->
-> Regards,
-> Mauro
