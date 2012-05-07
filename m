@@ -1,66 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qc0-f174.google.com ([209.85.216.174]:44497 "EHLO
-	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753405Ab2EBPJu convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 2 May 2012 11:09:50 -0400
-Received: by qcro28 with SMTP id o28so429579qcr.19
-        for <linux-media@vger.kernel.org>; Wed, 02 May 2012 08:09:50 -0700 (PDT)
+Received: from ams-iport-1.cisco.com ([144.254.224.140]:53937 "EHLO
+	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755929Ab2EGLxU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 7 May 2012 07:53:20 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [ 3960.758784] 1 lock held by motion/7776: [ 3960.758788]  #0:  (&queue->mutex){......}, at: [<ffffffff815c62d2>] uvc_queue_enable+0x32/0xc0
+Date: Mon, 7 May 2012 13:52:57 +0200
+Cc: Sander Eikelenboom <linux@eikelenboom.it>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, hans.verkuil@cisco.com
+References: <4410483770.20120428220246@eikelenboom.it> <201205071344.59861.hverkuil@xs4all.nl> <190915616.lpsK6E9b1z@avalon>
+In-Reply-To: <190915616.lpsK6E9b1z@avalon>
 MIME-Version: 1.0
-In-Reply-To: <20120502133108.GA19522@kipc2.localdomain>
-References: <20120424122156.GA16769@kipc2.localdomain> <20120502084318.GA21181@kipc2.localdomain>
- <CAPueXH4-VSxHYjryO8kN5R-hG6seFrwCu3Kjrq4TXV=XFKLETg@mail.gmail.com>
- <20120502114430.GA4608@kipc2.localdomain> <CAPueXH7TjHo-Dx2wUCQEcDvn=5L_xobYVKrf+b6wnmLGwOSeRg@mail.gmail.com>
- <20120502133108.GA19522@kipc2.localdomain>
-From: Paulo Assis <pj.assis@gmail.com>
-Date: Wed, 2 May 2012 16:09:30 +0100
-Message-ID: <CAPueXH4nx=mtwF1WR+7NYG0Ze9Arne17j2Sfw439PrS9nPWFaQ@mail.gmail.com>
-Subject: Re: logitech quickcam 9000 uvcdynctrl broken since kernel 3.2 - PING
-To: Karl Kiniger <karl.kiniger@med.ge.com>
-Cc: linux-media@vger.kernel.org, linux-uvc-devel@lists.sourceforge.net
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201205071352.57292.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-yes, libwebcam depends on uvcvideo.h, I've only added this as a patch
-since it was missing from debian kernel headers at the time. I think
-you should be able to get it from there now, not sure if the new
-header breaks anything, I'll have to run some tests.
-The other patches are not needed, but they do increase functionality
-to some extent.
+On Monday 07 May 2012 13:47:45 Laurent Pinchart wrote:
+> Hi Hans,
+> 
+> On Monday 07 May 2012 13:44:59 Hans Verkuil wrote:
+> > On Monday 07 May 2012 13:06:01 Laurent Pinchart wrote:
+> > > On Sunday 06 May 2012 16:54:40 Sander Eikelenboom wrote:
+> > > > Hello Laurent / Mauro,
+> > > > 
+> > > > I have updated to latest 3.4-rc5-tip, running multiple video grabbers.
+> > > > I don't see anything specific to uvcvideo anymore, but i do get the
+> > > > possible circular locking dependency below.
+> > > 
+> > > Thanks for the report.
+> > > 
+> > > We indeed have a serious issue there (CC'ing Hans Verkuil).
+> > > 
+> > > Hans, serializing both ioctl handling an mmap with a single device lock as
+> > > we currently do in V4L2 is prone to AB-BA deadlocks (uvcvideo shouldn't
+> > > be affected as it has no device-wide lock).
+> > > 
+> > > If we want to keep a device-wide lock we need to take it after the mm-
+> > > 
+> > > >mmap_sem lock in all code paths, as there's no way we can change the lock
+> > > 
+> > > ordering for mmap(). The copy_from_user/copy_to_user issue could be solved
+> > > by moving locking from v4l2_ioctl to __video_do_ioctl (device-wide locks
+> > > would then require using video_ioctl2), but I'm not sure whether that
+> > > will play nicely with the QBUF implementation in videobuf2 (which already
+> > > includes a workaround for this particular AB-BA deadlock issue).
+> > 
+> > I've seen the same thing. It was on my TODO list of things to look into. I
+> > think mmap shouldn't take the device wide lock at all. But it will mean
+> > reviewing affected drivers before I can remove it.
+> > 
+> > To be honest, I wasn't sure whether or not to take the device lock for mmap
+> > when I first wrote that code.
+> >
+> > If you look at irc I had a discussion today with HdG about adding flags to
+> > selectively disable locks for fops. It may be an idea to implement this soon
+> > so we can start updating drivers one-by-one.
+> > 
+> > Frankly, I do not believe this 'possible circular locking' thing to be a
+> > real bug as I am not aware of drivers that use the device lock *and* lock
+> > mmap_sem. If I understand Sander correctly 'motion' no longer locks up
+> > after moving to 3.4-rc5-tip, right?
+> 
+> copy_from_user()/copy_to_user() perform a down_read(&mm->mmap_sem) when a page 
+> fault occurs. All drivers thus potentially take mm->mmap_sem when an ioctl is 
+> performed.
 
-Anyway if this was just a libwebcam issue, guvcview should still be
-able to add the controls, and apparently that's failing also.
+Ah, I didn't know that. Interesting.
 
-Best regards,
-Paulo
+Regards,
 
-2012/5/2 Karl Kiniger <karl.kiniger@med.ge.com>:
-> On Wed 120502, Paulo Assis wrote:
->> karl,
->> I've run some tests under ubuntu 12.04 with kernel 3.2.0 and
->> everything seems to be working fine.
->> I know some changes were made to the uvcvideo module regarding XU
->> controls, but I was under the impression that they wouldn't break
->> userspace.
->>
->> Logitech shutdown the quickcamteam site, so you won't be able to
->> download libwebcam from there.
->> I'm currently the debian mantainer of that package, so I'll try to
->> test it on a newer kernel and patch it as necessary.
->> I'll also fix guvcview if needed.
->
-> Very much appreciated, Paulo!
->
-> In the meantime I poked  around at Ubuntu and found
-> libwebcam_0.2.1.orig.tar.gz - will try to compiled it but they
-> have a couple of kernel patches to 3.2.x as well and perhaps there
-> is a depency.
->
-> Karl
->
->>
->> Regards,
->> Paulo
->
+	Hans
+
+>  
+> > I have to look into a bit more to see what the best approach it so we can
+> > prevent this message from appearing.
+> 
+> 
