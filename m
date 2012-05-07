@@ -1,71 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:29798 "EHLO mx1.redhat.com"
+Received: from mail.kapsi.fi ([217.30.184.167]:47015 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752574Ab2ETBVa (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 19 May 2012 21:21:30 -0400
-From: Hans de Goede <hdegoede@redhat.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Ondrej Zary <linux@rainbow-software.org>,
-	Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH 1/6] snd_tea575x: Add write_/read_val operations
-Date: Sun, 20 May 2012 03:25:26 +0200
-Message-Id: <1337477131-21578-2-git-send-email-hdegoede@redhat.com>
-In-Reply-To: <1337477131-21578-1-git-send-email-hdegoede@redhat.com>
-References: <1337477131-21578-1-git-send-email-hdegoede@redhat.com>
+	id S1756090Ab2EGNZu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 7 May 2012 09:25:50 -0400
+Message-ID: <4FA7CD5B.3020902@iki.fi>
+Date: Mon, 07 May 2012 16:25:47 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Hans-Frieder Vogt <hfvogt@gmx.net>
+CC: linux-media@vger.kernel.org,
+	=?ISO-8859-1?Q?Michael_B=FCsch?= <m@bues.ch>,
+	Gianluca Gennari <gennarone@gmail.com>
+Subject: Re: [PATCH v2] af9033: implement ber and ucb functions
+References: <201204071634.34179.hfvogt@gmx.net>
+In-Reply-To: <201204071634.34179.hfvogt@gmx.net>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Some devices which use the tea575x tuner chip don't allow bit banging the
-lines, instead they offer a method to directly set / get the contents of the
-25 bit shift-register in the chip. Notably the Griffin radioSHARK USB radio
-receiver does this.
+On 07.04.2012 17:34, Hans-Frieder Vogt wrote:
+> af9033: implement read_ber and read_ucblocks functions. Version 2 of patch that
+> reflects my findings on the behaviour of abort_cnt, err_cnt and bit_cnt:
+>
+> - bit_cnt is always 0x2710 (10000)
+> - abort_cnt is between 0 and 0x2710
+> - err_cnt is between 0 and 640000 (= 0x2710 * 8 * 8)
+>
+> in the current implementation BER is calculated as the number of bit errors per
+> processed bits, ignoring those bits that are already discarded and counted in
+> abort_cnt, i.e. UCBLOCKS.
 
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-CC: Ondrej Zary <linux@rainbow-software.org>
----
- include/sound/tea575x-tuner.h   |    4 ++++
- sound/i2c/other/tea575x-tuner.c |    6 ++++++
- 2 files changed, 10 insertions(+)
+It still increases UCBLOCKS counter every query even there is no signal 
+at all. BER is in that case always maximum value. Hymps, maybe I just 
+apply that still in order to go ahead...
 
-diff --git a/include/sound/tea575x-tuner.h b/include/sound/tea575x-tuner.h
-index ec3f910..1ae933f 100644
---- a/include/sound/tea575x-tuner.h
-+++ b/include/sound/tea575x-tuner.h
-@@ -37,6 +37,10 @@
- struct snd_tea575x;
- 
- struct snd_tea575x_ops {
-+	/* Drivers using snd_tea575x must either define read_ and write_val */
-+	void (*write_val)(struct snd_tea575x *tea, u32 val);
-+	u32 (*read_val)(struct snd_tea575x *tea);
-+	/* Or define the 3 pin functions */
- 	void (*set_pins)(struct snd_tea575x *tea, u8 pins);
- 	u8 (*get_pins)(struct snd_tea575x *tea);
- 	void (*set_direction)(struct snd_tea575x *tea, bool output);
-diff --git a/sound/i2c/other/tea575x-tuner.c b/sound/i2c/other/tea575x-tuner.c
-index 582aace..b74fc63 100644
---- a/sound/i2c/other/tea575x-tuner.c
-+++ b/sound/i2c/other/tea575x-tuner.c
-@@ -71,6 +71,9 @@ static void snd_tea575x_write(struct snd_tea575x *tea, unsigned int val)
- 	u16 l;
- 	u8 data;
- 
-+	if (tea->ops->write_val)
-+		return tea->ops->write_val(tea, val);
-+
- 	tea->ops->set_direction(tea, 1);
- 	udelay(16);
- 
-@@ -94,6 +97,9 @@ static u32 snd_tea575x_read(struct snd_tea575x *tea)
- 	u16 l, rdata;
- 	u32 data = 0;
- 
-+	if (tea->ops->read_val)
-+		return tea->ops->read_val(tea);
-+
- 	tea->ops->set_direction(tea, 0);
- 	tea->ops->set_pins(tea, 0);
- 	udelay(16);
+status 00 | signal 0000 | snr 0000 | ber ffffffff | unc 0024b105 |
+status 00 | signal 0000 | snr 0000 | ber ffffffff | unc 0024d815 |
+
+One of my plans is to block that kind of "illegal" situations in 
+frontend core level. As UCB and BER counters are only valid in case of 
+demod is LOCKed.
+
+regards
+Antti
 -- 
-1.7.10
-
+http://palosaari.fi/
