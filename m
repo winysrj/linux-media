@@ -1,476 +1,1089 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:1935 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753451Ab2EFM2q (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 6 May 2012 08:28:46 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans de Goede <hdegoede@redhat.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv2 PATCH 17/17] gspca-mars: convert to the control framework.
-Date: Sun,  6 May 2012 14:28:31 +0200
-Message-Id: <60c9df5e6da635f7443a071fa1a898719f4dd68e.1336305565.git.hans.verkuil@cisco.com>
-In-Reply-To: <1336307311-10227-1-git-send-email-hverkuil@xs4all.nl>
-References: <1336307311-10227-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <a5a075c580858f4484be5c4cfadd195492858505.1336305565.git.hans.verkuil@cisco.com>
-References: <a5a075c580858f4484be5c4cfadd195492858505.1336305565.git.hans.verkuil@cisco.com>
+Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:57791 "EHLO
+	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756099Ab2EGOe1 convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 7 May 2012 10:34:27 -0400
+Received: by qcso7 with SMTP id o7so180878qcs.6
+        for <linux-media@vger.kernel.org>; Mon, 07 May 2012 07:34:26 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <CAGGh5h1P0F2skcMTZa_RFnZhhVuER+wkiSw6iT6HwWyQGaPg=A@mail.gmail.com>
+References: <1335971749-21258-1-git-send-email-saaguirre@ti.com>
+ <1335971749-21258-6-git-send-email-saaguirre@ti.com> <CAGGh5h1P0F2skcMTZa_RFnZhhVuER+wkiSw6iT6HwWyQGaPg=A@mail.gmail.com>
+From: "Aguirre, Sergio" <saaguirre@ti.com>
+Date: Mon, 7 May 2012 09:34:05 -0500
+Message-ID: <CAKnK67Q8d01toa83eB7AeyW4TSMvygHukeEbDEUMECuV+ycbag@mail.gmail.com>
+Subject: Re: [PATCH v3 05/10] v4l: Add support for ov5640 sensor
+To: jean-philippe francois <jp.francois@cynove.com>
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Jean-Philippe,
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/video/gspca/mars.c |  292 ++++++++++++++++----------------------
- 1 file changed, 126 insertions(+), 166 deletions(-)
+On Mon, May 7, 2012 at 2:27 AM, jean-philippe francois
+<jp.francois@cynove.com> wrote:
+> 2012/5/2 Sergio Aguirre <saaguirre@ti.com>:
+>> This adds a very limited driver for ov5640, which
+>> only supports:
+>>  - 2592x1944 @ ~7.5 fps
+>>  - 1920x1080 @ ~15 fps,
+>>  - 1280x720 @ ~24 fps,
+>>  - 640x480 @ ~24 fps,
+>>  - 320x240 @ ~24 fps,
+>>
+>> All in YUV422i format, using 1 CSI2 datalane @ 333 MHz.
+>>
+>
+> There is already a limited driver in mainline for ov5642.
+> How does the 5642 differ from 5640 ?
 
-diff --git a/drivers/media/video/gspca/mars.c b/drivers/media/video/gspca/mars.c
-index b023146..b1a1fec 100644
---- a/drivers/media/video/gspca/mars.c
-+++ b/drivers/media/video/gspca/mars.c
-@@ -25,27 +25,26 @@
- 
- #include "gspca.h"
- #include "jpeg.h"
-+#include <media/v4l2-ctrls.h>
- 
- MODULE_AUTHOR("Michel Xhaard <mxhaard@users.sourceforge.net>");
- MODULE_DESCRIPTION("GSPCA/Mars USB Camera Driver");
- MODULE_LICENSE("GPL");
- 
--/* controls */
--enum e_ctrl {
--	BRIGHTNESS,
--	COLORS,
--	GAMMA,
--	SHARPNESS,
--	ILLUM_TOP,
--	ILLUM_BOT,
--	NCTRLS		/* number of controls */
--};
--
- /* specific webcam descriptor */
- struct sd {
- 	struct gspca_dev gspca_dev;	/* !! must be the first item */
- 
--	struct gspca_ctrl ctrls[NCTRLS];
-+	struct v4l2_ctrl_handler ctrl_handler;
-+	struct v4l2_ctrl *brightness;
-+	struct v4l2_ctrl *saturation;
-+	struct v4l2_ctrl *sharpness;
-+	struct v4l2_ctrl *gamma;
-+	struct { /* illuminator control cluster */
-+		struct v4l2_ctrl *illum_top;
-+		struct v4l2_ctrl *illum_bottom;
-+	};
-+	struct v4l2_ctrl *jpegqual;
- 
- 	u8 quality;
- #define QUALITY_MIN 40
-@@ -56,89 +55,10 @@ struct sd {
- };
- 
- /* V4L2 controls supported by the driver */
--static void setbrightness(struct gspca_dev *gspca_dev);
--static void setcolors(struct gspca_dev *gspca_dev);
--static void setgamma(struct gspca_dev *gspca_dev);
--static void setsharpness(struct gspca_dev *gspca_dev);
--static int sd_setilluminator1(struct gspca_dev *gspca_dev, __s32 val);
--static int sd_setilluminator2(struct gspca_dev *gspca_dev, __s32 val);
--
--static const struct ctrl sd_ctrls[NCTRLS] = {
--[BRIGHTNESS] = {
--	    {
--		.id      = V4L2_CID_BRIGHTNESS,
--		.type    = V4L2_CTRL_TYPE_INTEGER,
--		.name    = "Brightness",
--		.minimum = 0,
--		.maximum = 30,
--		.step    = 1,
--		.default_value = 15,
--	    },
--	    .set_control = setbrightness
--	},
--[COLORS] = {
--	    {
--		.id      = V4L2_CID_SATURATION,
--		.type    = V4L2_CTRL_TYPE_INTEGER,
--		.name    = "Color",
--		.minimum = 1,
--		.maximum = 255,
--		.step    = 1,
--		.default_value = 200,
--	    },
--	    .set_control = setcolors
--	},
--[GAMMA] = {
--	    {
--		.id      = V4L2_CID_GAMMA,
--		.type    = V4L2_CTRL_TYPE_INTEGER,
--		.name    = "Gamma",
--		.minimum = 0,
--		.maximum = 3,
--		.step    = 1,
--		.default_value = 1,
--	    },
--	    .set_control = setgamma
--	},
--[SHARPNESS] = {
--	    {
--		.id	 = V4L2_CID_SHARPNESS,
--		.type    = V4L2_CTRL_TYPE_INTEGER,
--		.name    = "Sharpness",
--		.minimum = 0,
--		.maximum = 2,
--		.step    = 1,
--		.default_value = 1,
--	    },
--	    .set_control = setsharpness
--	},
--[ILLUM_TOP] = {
--	    {
--		.id	 = V4L2_CID_ILLUMINATORS_1,
--		.type    = V4L2_CTRL_TYPE_BOOLEAN,
--		.name    = "Top illuminator",
--		.minimum = 0,
--		.maximum = 1,
--		.step    = 1,
--		.default_value = 0,
--		.flags = V4L2_CTRL_FLAG_UPDATE,
--	    },
--	    .set = sd_setilluminator1
--	},
--[ILLUM_BOT] = {
--	    {
--		.id	 = V4L2_CID_ILLUMINATORS_2,
--		.type    = V4L2_CTRL_TYPE_BOOLEAN,
--		.name    = "Bottom illuminator",
--		.minimum = 0,
--		.maximum = 1,
--		.step    = 1,
--		.default_value = 0,
--		.flags = V4L2_CTRL_FLAG_UPDATE,
--	    },
--	    .set = sd_setilluminator2
--	},
--};
-+static void setbrightness(struct gspca_dev *gspca_dev, s32 val);
-+static void setcolors(struct gspca_dev *gspca_dev, s32 val);
-+static void setgamma(struct gspca_dev *gspca_dev, s32 val);
-+static void setsharpness(struct gspca_dev *gspca_dev, s32 val);
- 
- static const struct v4l2_pix_format vga_mode[] = {
- 	{320, 240, V4L2_PIX_FMT_JPEG, V4L2_FIELD_NONE,
-@@ -198,59 +118,129 @@ static void mi_w(struct gspca_dev *gspca_dev,
- 	reg_w(gspca_dev, 4);
- }
- 
--static void setbrightness(struct gspca_dev *gspca_dev)
-+static void setbrightness(struct gspca_dev *gspca_dev, s32 val)
- {
--	struct sd *sd = (struct sd *) gspca_dev;
--
- 	gspca_dev->usb_buf[0] = 0x61;
--	gspca_dev->usb_buf[1] = sd->ctrls[BRIGHTNESS].val;
-+	gspca_dev->usb_buf[1] = val;
- 	reg_w(gspca_dev, 2);
- }
- 
--static void setcolors(struct gspca_dev *gspca_dev)
-+static void setcolors(struct gspca_dev *gspca_dev, s32 val)
- {
--	struct sd *sd = (struct sd *) gspca_dev;
--	s16 val;
--
--	val = sd->ctrls[COLORS].val;
- 	gspca_dev->usb_buf[0] = 0x5f;
- 	gspca_dev->usb_buf[1] = val << 3;
- 	gspca_dev->usb_buf[2] = ((val >> 2) & 0xf8) | 0x04;
- 	reg_w(gspca_dev, 3);
- }
- 
--static void setgamma(struct gspca_dev *gspca_dev)
-+static void setgamma(struct gspca_dev *gspca_dev, s32 val)
- {
--	struct sd *sd = (struct sd *) gspca_dev;
--
- 	gspca_dev->usb_buf[0] = 0x06;
--	gspca_dev->usb_buf[1] = sd->ctrls[GAMMA].val * 0x40;
-+	gspca_dev->usb_buf[1] = val * 0x40;
- 	reg_w(gspca_dev, 2);
- }
- 
--static void setsharpness(struct gspca_dev *gspca_dev)
-+static void setsharpness(struct gspca_dev *gspca_dev, s32 val)
- {
--	struct sd *sd = (struct sd *) gspca_dev;
--
- 	gspca_dev->usb_buf[0] = 0x67;
--	gspca_dev->usb_buf[1] = sd->ctrls[SHARPNESS].val * 4 + 3;
-+	gspca_dev->usb_buf[1] = val * 4 + 3;
- 	reg_w(gspca_dev, 2);
- }
- 
--static void setilluminators(struct gspca_dev *gspca_dev)
-+static void setilluminators(struct gspca_dev *gspca_dev, bool top, bool bottom)
- {
--	struct sd *sd = (struct sd *) gspca_dev;
--
-+	/* both are off if not streaming */
- 	gspca_dev->usb_buf[0] = 0x22;
--	if (sd->ctrls[ILLUM_TOP].val)
-+	if (top)
- 		gspca_dev->usb_buf[1] = 0x76;
--	else if (sd->ctrls[ILLUM_BOT].val)
-+	else if (bottom)
- 		gspca_dev->usb_buf[1] = 0x7a;
- 	else
- 		gspca_dev->usb_buf[1] = 0x7e;
- 	reg_w(gspca_dev, 2);
- }
- 
-+static int mars_s_ctrl(struct v4l2_ctrl *ctrl)
-+{
-+	struct sd *sd = container_of(ctrl->handler, struct sd, ctrl_handler);
-+	struct gspca_dev *gspca_dev = &sd->gspca_dev;
-+
-+	gspca_dev->usb_err = 0;
-+
-+	if (ctrl->id == V4L2_CID_ILLUMINATORS_1) {
-+		/* only one can be on at a time */
-+		if (ctrl->is_new && ctrl->val)
-+			sd->illum_bottom->val = 0;
-+		if (sd->illum_bottom->is_new && sd->illum_bottom->val)
-+			sd->illum_top->val = 0;
-+	}
-+
-+	if (!gspca_dev->streaming)
-+		return 0;
-+
-+	switch (ctrl->id) {
-+	case V4L2_CID_BRIGHTNESS:
-+		setbrightness(&sd->gspca_dev, ctrl->val);
-+		break;
-+	case V4L2_CID_SATURATION:
-+		setcolors(&sd->gspca_dev, ctrl->val);
-+		break;
-+	case V4L2_CID_GAMMA:
-+		setgamma(&sd->gspca_dev, ctrl->val);
-+		break;
-+	case V4L2_CID_ILLUMINATORS_1:
-+		setilluminators(&sd->gspca_dev, sd->illum_top->val,
-+						sd->illum_bottom->val);
-+		break;
-+	case V4L2_CID_SHARPNESS:
-+		setsharpness(&sd->gspca_dev, ctrl->val);
-+		break;
-+	case V4L2_CID_JPEG_COMPRESSION_QUALITY:
-+		jpeg_set_qual(sd->jpeg_hdr, ctrl->val);
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+	return gspca_dev->usb_err;
-+}
-+
-+static const struct v4l2_ctrl_ops mars_ctrl_ops = {
-+	.s_ctrl = mars_s_ctrl,
-+};
-+
-+/* this function is called at probe time */
-+static int sd_init_controls(struct gspca_dev *gspca_dev)
-+{
-+	struct sd *sd = (struct sd *) gspca_dev;
-+	struct v4l2_ctrl_handler *hdl = &sd->ctrl_handler;
-+
-+	gspca_dev->vdev.ctrl_handler = hdl;
-+	v4l2_ctrl_handler_init(hdl, 7);
-+	sd->brightness = v4l2_ctrl_new_std(hdl, &mars_ctrl_ops,
-+			V4L2_CID_BRIGHTNESS, 0, 30, 1, 15);
-+	sd->saturation = v4l2_ctrl_new_std(hdl, &mars_ctrl_ops,
-+			V4L2_CID_SATURATION, 0, 255, 1, 200);
-+	sd->gamma = v4l2_ctrl_new_std(hdl, &mars_ctrl_ops,
-+			V4L2_CID_GAMMA, 0, 3, 1, 1);
-+	sd->sharpness = v4l2_ctrl_new_std(hdl, &mars_ctrl_ops,
-+			V4L2_CID_SHARPNESS, 0, 2, 1, 1);
-+	sd->illum_top = v4l2_ctrl_new_std(hdl, &mars_ctrl_ops,
-+			V4L2_CID_ILLUMINATORS_1, 0, 1, 1, 0);
-+	sd->illum_top->flags |= V4L2_CTRL_FLAG_UPDATE;
-+	sd->illum_bottom = v4l2_ctrl_new_std(hdl, &mars_ctrl_ops,
-+			V4L2_CID_ILLUMINATORS_2, 0, 1, 1, 0);
-+	sd->illum_bottom->flags |= V4L2_CTRL_FLAG_UPDATE;
-+	sd->jpegqual = v4l2_ctrl_new_std(hdl, &mars_ctrl_ops,
-+			V4L2_CID_JPEG_COMPRESSION_QUALITY,
-+			QUALITY_MIN, QUALITY_MAX, 1, QUALITY_DEF);
-+	if (hdl->error) {
-+		pr_err("Could not initialize controls\n");
-+		return hdl->error;
-+	}
-+	v4l2_ctrl_cluster(2, &sd->illum_top);
-+	return 0;
-+}
-+
- /* this function is called at probe time */
- static int sd_config(struct gspca_dev *gspca_dev,
- 			const struct usb_device_id *id)
-@@ -261,7 +251,6 @@ static int sd_config(struct gspca_dev *gspca_dev,
- 	cam = &gspca_dev->cam;
- 	cam->cam_mode = vga_mode;
- 	cam->nmodes = ARRAY_SIZE(vga_mode);
--	cam->ctrls = sd->ctrls;
- 	sd->quality = QUALITY_DEF;
- 	return 0;
- }
-@@ -269,7 +258,6 @@ static int sd_config(struct gspca_dev *gspca_dev,
- /* this function is called at probe and resume time */
- static int sd_init(struct gspca_dev *gspca_dev)
- {
--	gspca_dev->ctrl_inac = (1 << ILLUM_TOP) | (1 << ILLUM_BOT);
- 	return 0;
- }
- 
-@@ -282,7 +270,7 @@ static int sd_start(struct gspca_dev *gspca_dev)
- 	/* create the JPEG header */
- 	jpeg_define(sd->jpeg_hdr, gspca_dev->height, gspca_dev->width,
- 			0x21);		/* JPEG 422 */
--	jpeg_set_qual(sd->jpeg_hdr, sd->quality);
-+	jpeg_set_qual(sd->jpeg_hdr, v4l2_ctrl_g_ctrl(sd->jpegqual));
- 
- 	data = gspca_dev->usb_buf;
- 
-@@ -301,7 +289,7 @@ static int sd_start(struct gspca_dev *gspca_dev)
- 	data[5] = 0x30;		/* reg 4, MI, PAS5101 :
- 				 *	0x30 for 24mhz , 0x28 for 12mhz */
- 	data[6] = 0x02;		/* reg 5, H start - was 0x04 */
--	data[7] = sd->ctrls[GAMMA].val * 0x40;	/* reg 0x06: gamma */
-+	data[7] = v4l2_ctrl_g_ctrl(sd->gamma) * 0x40;	/* reg 0x06: gamma */
- 	data[8] = 0x01;		/* reg 7, V start - was 0x03 */
- /*	if (h_size == 320 ) */
- /*		data[9]= 0x56;	 * reg 8, 24MHz, 2:1 scale down */
-@@ -333,16 +321,16 @@ static int sd_start(struct gspca_dev *gspca_dev)
- 				/* reg 0x5f/0x60 (LE) = saturation */
- 				/* h (60): xxxx x100
- 				 * l (5f): xxxx x000 */
--	data[2] = sd->ctrls[COLORS].val << 3;
--	data[3] = ((sd->ctrls[COLORS].val >> 2) & 0xf8) | 0x04;
--	data[4] = sd->ctrls[BRIGHTNESS].val; /* reg 0x61 = brightness */
-+	data[2] = v4l2_ctrl_g_ctrl(sd->saturation) << 3;
-+	data[3] = ((v4l2_ctrl_g_ctrl(sd->saturation) >> 2) & 0xf8) | 0x04;
-+	data[4] = v4l2_ctrl_g_ctrl(sd->brightness); /* reg 0x61 = brightness */
- 	data[5] = 0x00;
- 
- 	reg_w(gspca_dev, 6);
- 
- 	data[0] = 0x67;
- /*jfm: from win trace*/
--	data[1] = sd->ctrls[SHARPNESS].val * 4 + 3;
-+	data[1] = v4l2_ctrl_g_ctrl(sd->sharpness) * 4 + 3;
- 	data[2] = 0x14;
- 	reg_w(gspca_dev, 3);
- 
-@@ -365,7 +353,9 @@ static int sd_start(struct gspca_dev *gspca_dev)
- 	data[1] = 0x4d;		/* ISOC transferring enable... */
- 	reg_w(gspca_dev, 2);
- 
--	gspca_dev->ctrl_inac = 0; /* activate the illuminator controls */
-+	setilluminators(gspca_dev, v4l2_ctrl_g_ctrl(sd->illum_top),
-+				   v4l2_ctrl_g_ctrl(sd->illum_bottom));
-+
- 	return gspca_dev->usb_err;
- }
- 
-@@ -373,11 +363,8 @@ static void sd_stopN(struct gspca_dev *gspca_dev)
- {
- 	struct sd *sd = (struct sd *) gspca_dev;
- 
--	gspca_dev->ctrl_inac = (1 << ILLUM_TOP) | (1 << ILLUM_BOT);
--	if (sd->ctrls[ILLUM_TOP].val || sd->ctrls[ILLUM_BOT].val) {
--		sd->ctrls[ILLUM_TOP].val = 0;
--		sd->ctrls[ILLUM_BOT].val = 0;
--		setilluminators(gspca_dev);
-+	if (v4l2_ctrl_g_ctrl(sd->illum_top) || v4l2_ctrl_g_ctrl(sd->illum_bottom)) {
-+		setilluminators(gspca_dev, false, false);
- 		msleep(20);
- 	}
- 
-@@ -424,43 +411,16 @@ static void sd_pkt_scan(struct gspca_dev *gspca_dev,
- 	gspca_frame_add(gspca_dev, INTER_PACKET, data, len);
- }
- 
--static int sd_setilluminator1(struct gspca_dev *gspca_dev, __s32 val)
--{
--	struct sd *sd = (struct sd *) gspca_dev;
--
--	/* only one illuminator may be on */
--	sd->ctrls[ILLUM_TOP].val = val;
--	if (val)
--		sd->ctrls[ILLUM_BOT].val = 0;
--	setilluminators(gspca_dev);
--	return gspca_dev->usb_err;
--}
--
--static int sd_setilluminator2(struct gspca_dev *gspca_dev, __s32 val)
--{
--	struct sd *sd = (struct sd *) gspca_dev;
--
--	/* only one illuminator may be on */
--	sd->ctrls[ILLUM_BOT].val = val;
--	if (val)
--		sd->ctrls[ILLUM_TOP].val = 0;
--	setilluminators(gspca_dev);
--	return gspca_dev->usb_err;
--}
--
- static int sd_set_jcomp(struct gspca_dev *gspca_dev,
- 			struct v4l2_jpegcompression *jcomp)
- {
- 	struct sd *sd = (struct sd *) gspca_dev;
-+	int ret;
- 
--	if (jcomp->quality < QUALITY_MIN)
--		sd->quality = QUALITY_MIN;
--	else if (jcomp->quality > QUALITY_MAX)
--		sd->quality = QUALITY_MAX;
--	else
--		sd->quality = jcomp->quality;
--	if (gspca_dev->streaming)
--		jpeg_set_qual(sd->jpeg_hdr, sd->quality);
-+	ret = v4l2_ctrl_s_ctrl(sd->jpegqual, jcomp->quality);
-+	if (ret)
-+		return ret;
-+	jcomp->quality = v4l2_ctrl_g_ctrl(sd->jpegqual);
- 	return 0;
- }
- 
-@@ -470,7 +430,7 @@ static int sd_get_jcomp(struct gspca_dev *gspca_dev,
- 	struct sd *sd = (struct sd *) gspca_dev;
- 
- 	memset(jcomp, 0, sizeof *jcomp);
--	jcomp->quality = sd->quality;
-+	jcomp->quality = v4l2_ctrl_g_ctrl(sd->jpegqual);
- 	jcomp->jpeg_markers = V4L2_JPEG_MARKER_DHT
- 			| V4L2_JPEG_MARKER_DQT;
- 	return 0;
-@@ -479,10 +439,9 @@ static int sd_get_jcomp(struct gspca_dev *gspca_dev,
- /* sub-driver description */
- static const struct sd_desc sd_desc = {
- 	.name = MODULE_NAME,
--	.ctrls = sd_ctrls,
--	.nctrls = NCTRLS,
- 	.config = sd_config,
- 	.init = sd_init,
-+	.init_controls = sd_init_controls,
- 	.start = sd_start,
- 	.stopN = sd_stopN,
- 	.pkt_scan = sd_pkt_scan,
-@@ -513,6 +472,7 @@ static struct usb_driver sd_driver = {
- #ifdef CONFIG_PM
- 	.suspend = gspca_suspend,
- 	.resume = gspca_resume,
-+	.reset_resume = gspca_resume,
- #endif
- };
- 
--- 
-1.7.10
+Well, it has several differences, see:
 
+- OV5640 product brief:
+http://www.ovt.com/download_document.php?type=sensor&sensorid=93
+- OV5642 product brief:
+http://www.ovt.com/download_document.php?type=sensor&sensorid=65
+
+Some of the most notable differences are:
+- OV5642 has a MIPI input, for using OV ISP with an external sensor.
+- OV5640 has JPEG compression, OV5642 apparently not...
+- OV5640 supports anti-shake, OV5640 apparently not...
+
+> Can a single driver handle both chip ?
+
+Maybe, yeah..
+
+Now, for the OV5640 differences above, I'm not enabling much nice
+features so far,
+so it might be worth a try to attempt the ov5642 driver on my OV5640
+as-is, to see
+if we can expand it to support both.
+
+I'll also see if I can reach people at OmniVision to consult
+feasibility of register settings
+sharing.
+
+Regards,
+Sergio
+
+>
+>
+>> Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
+>> ---
+>>  drivers/media/video/Kconfig  |    6 +
+>>  drivers/media/video/Makefile |    1 +
+>>  drivers/media/video/ov5640.c |  948 ++++++++++++++++++++++++++++++++++++++++++
+>>  include/media/ov5640.h       |   10 +
+>>  4 files changed, 965 insertions(+), 0 deletions(-)
+>>  create mode 100644 drivers/media/video/ov5640.c
+>>  create mode 100644 include/media/ov5640.h
+>>
+>> diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+>> index 4482ac4..cc76652 100644
+>> --- a/drivers/media/video/Kconfig
+>> +++ b/drivers/media/video/Kconfig
+>> @@ -480,6 +480,12 @@ config VIDEO_OV7670
+>>          OV7670 VGA camera.  It currently only works with the M88ALP01
+>>          controller.
+>>
+>> +config VIDEO_OV5640
+>> +       tristate "OmniVision OV5640 sensor support"
+>> +       depends on I2C && VIDEO_V4L2
+>> +       help
+>> +         This is a ov5640 camera driver
+>> +
+>>  config VIDEO_VS6624
+>>        tristate "ST VS6624 sensor support"
+>>        depends on VIDEO_V4L2 && I2C
+>> diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
+>> index c95cc0d..da40ab3 100644
+>> --- a/drivers/media/video/Makefile
+>> +++ b/drivers/media/video/Makefile
+>> @@ -68,6 +68,7 @@ obj-$(CONFIG_VIDEO_CX25840) += cx25840/
+>>  obj-$(CONFIG_VIDEO_UPD64031A) += upd64031a.o
+>>  obj-$(CONFIG_VIDEO_UPD64083) += upd64083.o
+>>  obj-$(CONFIG_VIDEO_OV7670)     += ov7670.o
+>> +obj-$(CONFIG_VIDEO_OV5640)     += ov5640.o
+>>  obj-$(CONFIG_VIDEO_TCM825X) += tcm825x.o
+>>  obj-$(CONFIG_VIDEO_TVEEPROM) += tveeprom.o
+>>  obj-$(CONFIG_VIDEO_MT9M032) += mt9m032.o
+>> diff --git a/drivers/media/video/ov5640.c b/drivers/media/video/ov5640.c
+>> new file mode 100644
+>> index 0000000..2a64d50
+>> --- /dev/null
+>> +++ b/drivers/media/video/ov5640.c
+>> @@ -0,0 +1,948 @@
+>> +/*
+>> + * OmniVision OV5640 sensor driver
+>> + *
+>> + * Copyright (C) 2011 Texas Instruments Incorporated - http://www.ti.com/
+>> + *
+>> + * This program is free software; you can redistribute it and/or
+>> + * modify it under the terms of the GNU General Public License as
+>> + * published by the Free Software Foundation version 2.
+>> + *
+>> + * This program is distributed "as is" WITHOUT ANY WARRANTY of any
+>> + * kind, whether express or implied; without even the implied warranty
+>> + * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+>> + * GNU General Public License for more details.
+>> + */
+>> +
+>> +#include <linux/videodev2.h>
+>> +#include <linux/slab.h>
+>> +#include <linux/i2c.h>
+>> +#include <linux/log2.h>
+>> +#include <linux/delay.h>
+>> +#include <linux/module.h>
+>> +
+>> +#include <media/v4l2-device.h>
+>> +#include <media/v4l2-subdev.h>
+>> +#include <media/v4l2-ctrls.h>
+>> +
+>> +#include <media/ov5640.h>
+>> +
+>> +/* OV5640 has only one fixed colorspace per pixelcode */
+>> +struct ov5640_datafmt {
+>> +       enum v4l2_mbus_pixelcode        code;
+>> +       enum v4l2_colorspace            colorspace;
+>> +};
+>> +
+>> +struct ov5640_timing_cfg {
+>> +       u16 x_addr_start;
+>> +       u16 y_addr_start;
+>> +       u16 x_addr_end;
+>> +       u16 y_addr_end;
+>> +       u16 h_output_size;
+>> +       u16 v_output_size;
+>> +       u16 h_total_size;
+>> +       u16 v_total_size;
+>> +       u16 isp_h_offset;
+>> +       u16 isp_v_offset;
+>> +       u8 h_odd_ss_inc;
+>> +       u8 h_even_ss_inc;
+>> +       u8 v_odd_ss_inc;
+>> +       u8 v_even_ss_inc;
+>> +};
+>> +
+>> +enum ov5640_size {
+>> +       OV5640_SIZE_QVGA,
+>> +       OV5640_SIZE_VGA,
+>> +       OV5640_SIZE_720P,
+>> +       OV5640_SIZE_1080P,
+>> +       OV5640_SIZE_5MP,
+>> +       OV5640_SIZE_LAST,
+>> +};
+>> +
+>> +static const struct v4l2_frmsize_discrete ov5640_frmsizes[OV5640_SIZE_LAST] = {
+>> +       {  320,  240 },
+>> +       {  640,  480 },
+>> +       { 1280,  720 },
+>> +       { 1920, 1080 },
+>> +       { 2592, 1944 },
+>> +};
+>> +
+>> +/* Find a frame size in an array */
+>> +static int ov5640_find_framesize(u32 width, u32 height)
+>> +{
+>> +       int i;
+>> +
+>> +       for (i = 0; i < OV5640_SIZE_LAST; i++) {
+>> +               if ((ov5640_frmsizes[i].width >= width) &&
+>> +                   (ov5640_frmsizes[i].height >= height))
+>> +                       break;
+>> +       }
+>> +
+>> +       /* If not found, select biggest */
+>> +       if (i >= OV5640_SIZE_LAST)
+>> +               i = OV5640_SIZE_LAST - 1;
+>> +
+>> +       return i;
+>> +}
+>> +
+>> +struct ov5640 {
+>> +       struct v4l2_subdev subdev;
+>> +       struct media_pad pad;
+>> +       struct v4l2_mbus_framefmt format;
+>> +
+>> +       struct v4l2_ctrl_handler ctrl_handler;
+>> +
+>> +       const struct ov5640_platform_data *pdata;
+>> +
+>> +       struct v4l2_ctrl *pixel_rate;
+>> +};
+>> +
+>> +static inline struct ov5640 *to_ov5640(struct v4l2_subdev *sd)
+>> +{
+>> +       return container_of(sd, struct ov5640, subdev);
+>> +}
+>> +
+>> +/**
+>> + * struct ov5640_reg - ov5640 register format
+>> + * @reg: 16-bit offset to register
+>> + * @val: 8/16/32-bit register value
+>> + * @length: length of the register
+>> + *
+>> + * Define a structure for OV5640 register initialization values
+>> + */
+>> +struct ov5640_reg {
+>> +       u16     reg;
+>> +       u8      val;
+>> +};
+>> +
+>> +/* TODO: Divide this properly */
+>> +static const struct ov5640_reg configscript_common1[] = {
+>> +       { 0x3103, 0x03 },
+>> +       { 0x3017, 0x00 },
+>> +       { 0x3018, 0x00 },
+>> +       { 0x3630, 0x2e },
+>> +       { 0x3632, 0xe2 },
+>> +       { 0x3633, 0x23 },
+>> +       { 0x3634, 0x44 },
+>> +       { 0x3621, 0xe0 },
+>> +       { 0x3704, 0xa0 },
+>> +       { 0x3703, 0x5a },
+>> +       { 0x3715, 0x78 },
+>> +       { 0x3717, 0x01 },
+>> +       { 0x370b, 0x60 },
+>> +       { 0x3705, 0x1a },
+>> +       { 0x3905, 0x02 },
+>> +       { 0x3906, 0x10 },
+>> +       { 0x3901, 0x0a },
+>> +       { 0x3731, 0x12 },
+>> +       { 0x3600, 0x04 },
+>> +       { 0x3601, 0x22 },
+>> +       { 0x471c, 0x50 },
+>> +       { 0x3002, 0x1c },
+>> +       { 0x3006, 0xc3 },
+>> +       { 0x300e, 0x05 },
+>> +       { 0x302e, 0x08 },
+>> +       { 0x3612, 0x4b },
+>> +       { 0x3618, 0x04 },
+>> +       { 0x3034, 0x18 },
+>> +       { 0x3035, 0x11 },
+>> +       { 0x3036, 0x54 },
+>> +       { 0x3037, 0x13 },
+>> +       { 0x3708, 0x21 },
+>> +       { 0x3709, 0x12 },
+>> +       { 0x370c, 0x00 },
+>> +};
+>> +
+>> +/* TODO: Divide this properly */
+>> +static const struct ov5640_reg configscript_common2[] = {
+>> +       { 0x3a02, 0x01 },
+>> +       { 0x3a03, 0xec },
+>> +       { 0x3a08, 0x01 },
+>> +       { 0x3a09, 0x27 },
+>> +       { 0x3a0a, 0x00 },
+>> +       { 0x3a0b, 0xf6 },
+>> +       { 0x3a0e, 0x06 },
+>> +       { 0x3a0d, 0x08 },
+>> +       { 0x3a14, 0x01 },
+>> +       { 0x3a15, 0xec },
+>> +       { 0x4001, 0x02 },
+>> +       { 0x4004, 0x06 },
+>> +       { 0x460b, 0x37 },
+>> +       { 0x4750, 0x00 },
+>> +       { 0x4751, 0x00 },
+>> +       { 0x4800, 0x24 },
+>> +       { 0x5a00, 0x08 },
+>> +       { 0x5a21, 0x00 },
+>> +       { 0x5a24, 0x00 },
+>> +       { 0x5000, 0x27 },
+>> +       { 0x5001, 0x87 },
+>> +       { 0x3820, 0x40 },
+>> +       { 0x3821, 0x06 },
+>> +       { 0x3824, 0x01 },
+>> +       { 0x5481, 0x08 },
+>> +       { 0x5482, 0x14 },
+>> +       { 0x5483, 0x28 },
+>> +       { 0x5484, 0x51 },
+>> +       { 0x5485, 0x65 },
+>> +       { 0x5486, 0x71 },
+>> +       { 0x5487, 0x7d },
+>> +       { 0x5488, 0x87 },
+>> +       { 0x5489, 0x91 },
+>> +       { 0x548a, 0x9a },
+>> +       { 0x548b, 0xaa },
+>> +       { 0x548c, 0xb8 },
+>> +       { 0x548d, 0xcd },
+>> +       { 0x548e, 0xdd },
+>> +       { 0x548f, 0xea },
+>> +       { 0x5490, 0x1d },
+>> +       { 0x5381, 0x20 },
+>> +       { 0x5382, 0x64 },
+>> +       { 0x5383, 0x08 },
+>> +       { 0x5384, 0x20 },
+>> +       { 0x5385, 0x80 },
+>> +       { 0x5386, 0xa0 },
+>> +       { 0x5387, 0xa2 },
+>> +       { 0x5388, 0xa0 },
+>> +       { 0x5389, 0x02 },
+>> +       { 0x538a, 0x01 },
+>> +       { 0x538b, 0x98 },
+>> +       { 0x5300, 0x08 },
+>> +       { 0x5301, 0x30 },
+>> +       { 0x5302, 0x10 },
+>> +       { 0x5303, 0x00 },
+>> +       { 0x5304, 0x08 },
+>> +       { 0x5305, 0x30 },
+>> +       { 0x5306, 0x08 },
+>> +       { 0x5307, 0x16 },
+>> +       { 0x5580, 0x00 },
+>> +       { 0x5587, 0x00 },
+>> +       { 0x5588, 0x00 },
+>> +       { 0x5583, 0x40 },
+>> +       { 0x5584, 0x10 },
+>> +       { 0x5589, 0x10 },
+>> +       { 0x558a, 0x00 },
+>> +       { 0x558b, 0xf8 },
+>> +       { 0x3a0f, 0x36 },
+>> +       { 0x3a10, 0x2e },
+>> +       { 0x3a1b, 0x38 },
+>> +       { 0x3a1e, 0x2c },
+>> +       { 0x3a11, 0x70 },
+>> +       { 0x3a1f, 0x18 },
+>> +       { 0x3a18, 0x00 },
+>> +       { 0x3a19, 0xf8 },
+>> +       { 0x3003, 0x03 },
+>> +       { 0x3003, 0x01 },
+>> +};
+>> +
+>> +static const struct ov5640_timing_cfg timing_cfg[OV5640_SIZE_LAST] = {
+>> +       [OV5640_SIZE_QVGA] = {
+>> +               .x_addr_start = 0,
+>> +               .y_addr_start = 0,
+>> +               .x_addr_end = 2623,
+>> +               .y_addr_end = 1951,
+>> +               .h_output_size = 320,
+>> +               .v_output_size = 240,
+>> +               .h_total_size = 2844,
+>> +               .v_total_size = 1968,
+>> +               .isp_h_offset = 16,
+>> +               .isp_v_offset = 6,
+>> +               .h_odd_ss_inc = 1,
+>> +               .h_even_ss_inc = 1,
+>> +               .v_odd_ss_inc = 1,
+>> +               .v_even_ss_inc = 1,
+>> +       },
+>> +       [OV5640_SIZE_VGA] = {
+>> +               .x_addr_start = 0,
+>> +               .y_addr_start = 0,
+>> +               .x_addr_end = 2623,
+>> +               .y_addr_end = 1951,
+>> +               .h_output_size = 640,
+>> +               .v_output_size = 480,
+>> +               .h_total_size = 2844,
+>> +               .v_total_size = 1968,
+>> +               .isp_h_offset = 16,
+>> +               .isp_v_offset = 6,
+>> +               .h_odd_ss_inc = 1,
+>> +               .h_even_ss_inc = 1,
+>> +               .v_odd_ss_inc = 1,
+>> +               .v_even_ss_inc = 1,
+>> +       },
+>> +       [OV5640_SIZE_720P] = {
+>> +               .x_addr_start = 336,
+>> +               .y_addr_start = 434,
+>> +               .x_addr_end = 2287,
+>> +               .y_addr_end = 1522,
+>> +               .h_output_size = 1280,
+>> +               .v_output_size = 720,
+>> +               .h_total_size = 2500,
+>> +               .v_total_size = 1120,
+>> +               .isp_h_offset = 16,
+>> +               .isp_v_offset = 4,
+>> +               .h_odd_ss_inc = 1,
+>> +               .h_even_ss_inc = 1,
+>> +               .v_odd_ss_inc = 1,
+>> +               .v_even_ss_inc = 1,
+>> +       },
+>> +       [OV5640_SIZE_1080P] = {
+>> +               .x_addr_start = 336,
+>> +               .y_addr_start = 434,
+>> +               .x_addr_end = 2287,
+>> +               .y_addr_end = 1522,
+>> +               .h_output_size = 1920,
+>> +               .v_output_size = 1080,
+>> +               .h_total_size = 2500,
+>> +               .v_total_size = 1120,
+>> +               .isp_h_offset = 16,
+>> +               .isp_v_offset = 4,
+>> +               .h_odd_ss_inc = 1,
+>> +               .h_even_ss_inc = 1,
+>> +               .v_odd_ss_inc = 1,
+>> +               .v_even_ss_inc = 1,
+>> +       },
+>> +       [OV5640_SIZE_5MP] = {
+>> +               .x_addr_start = 0,
+>> +               .y_addr_start = 0,
+>> +               .x_addr_end = 2623,
+>> +               .y_addr_end = 1951,
+>> +               .h_output_size = 2592,
+>> +               .v_output_size = 1944,
+>> +               .h_total_size = 2844,
+>> +               .v_total_size = 1968,
+>> +               .isp_h_offset = 16,
+>> +               .isp_v_offset = 6,
+>> +               .h_odd_ss_inc = 1,
+>> +               .h_even_ss_inc = 1,
+>> +               .v_odd_ss_inc = 1,
+>> +               .v_even_ss_inc = 1,
+>> +       },
+>> +};
+>> +
+>> +/**
+>> + * ov5640_reg_read - Read a value from a register in an ov5640 sensor device
+>> + * @client: i2c driver client structure
+>> + * @reg: register address / offset
+>> + * @val: stores the value that gets read
+>> + *
+>> + * Read a value from a register in an ov5640 sensor device.
+>> + * The value is returned in 'val'.
+>> + * Returns zero if successful, or non-zero otherwise.
+>> + */
+>> +static int ov5640_reg_read(struct i2c_client *client, u16 reg, u8 *val)
+>> +{
+>> +       int ret;
+>> +       u8 data[2] = {0};
+>> +       struct i2c_msg msg = {
+>> +               .addr   = client->addr,
+>> +               .flags  = 0,
+>> +               .len    = 2,
+>> +               .buf    = data,
+>> +       };
+>> +
+>> +       data[0] = (u8)(reg >> 8);
+>> +       data[1] = (u8)(reg & 0xff);
+>> +
+>> +       ret = i2c_transfer(client->adapter, &msg, 1);
+>> +       if (ret < 0)
+>> +               goto err;
+>> +
+>> +       msg.flags = I2C_M_RD;
+>> +       msg.len = 1;
+>> +       ret = i2c_transfer(client->adapter, &msg, 1);
+>> +       if (ret < 0)
+>> +               goto err;
+>> +
+>> +       *val = data[0];
+>> +       return 0;
+>> +
+>> +err:
+>> +       dev_err(&client->dev, "Failed reading register 0x%02x!\n", reg);
+>> +       return ret;
+>> +}
+>> +
+>> +/**
+>> + * Write a value to a register in ov5640 sensor device.
+>> + * @client: i2c driver client structure.
+>> + * @reg: Address of the register to read value from.
+>> + * @val: Value to be written to a specific register.
+>> + * Returns zero if successful, or non-zero otherwise.
+>> + */
+>> +static int ov5640_reg_write(struct i2c_client *client, u16 reg, u8 val)
+>> +{
+>> +       int ret;
+>> +       unsigned char data[3] = { (u8)(reg >> 8), (u8)(reg & 0xff), val };
+>> +       struct i2c_msg msg = {
+>> +               .addr   = client->addr,
+>> +               .flags  = 0,
+>> +               .len    = 3,
+>> +               .buf    = data,
+>> +       };
+>> +
+>> +       ret = i2c_transfer(client->adapter, &msg, 1);
+>> +       if (ret < 0) {
+>> +               dev_err(&client->dev, "Failed writing register 0x%02x!\n", reg);
+>> +               return ret;
+>> +       }
+>> +
+>> +       return 0;
+>> +}
+>> +
+>> +/**
+>> + * Initialize a list of ov5640 registers.
+>> + * The list of registers is terminated by the pair of values
+>> + * @client: i2c driver client structure.
+>> + * @reglist[]: List of address of the registers to write data.
+>> + * Returns zero if successful, or non-zero otherwise.
+>> + */
+>> +static int ov5640_reg_writes(struct i2c_client *client,
+>> +                            const struct ov5640_reg reglist[],
+>> +                            int size)
+>> +{
+>> +       int err = 0, i;
+>> +
+>> +       for (i = 0; i < size; i++) {
+>> +               err = ov5640_reg_write(client, reglist[i].reg,
+>> +                               reglist[i].val);
+>> +               if (err)
+>> +                       return err;
+>> +       }
+>> +       return 0;
+>> +}
+>> +
+>> +static int ov5640_reg_set(struct i2c_client *client, u16 reg, u8 val)
+>> +{
+>> +       int ret;
+>> +       u8 tmpval = 0;
+>> +
+>> +       ret = ov5640_reg_read(client, reg, &tmpval);
+>> +       if (ret)
+>> +               return ret;
+>> +
+>> +       return ov5640_reg_write(client, reg, tmpval | val);
+>> +}
+>> +
+>> +static int ov5640_reg_clr(struct i2c_client *client, u16 reg, u8 val)
+>> +{
+>> +       int ret;
+>> +       u8 tmpval = 0;
+>> +
+>> +       ret = ov5640_reg_read(client, reg, &tmpval);
+>> +       if (ret)
+>> +               return ret;
+>> +
+>> +       return ov5640_reg_write(client, reg, tmpval & ~val);
+>> +}
+>> +
+>> +static int ov5640_config_timing(struct v4l2_subdev *sd)
+>> +{
+>> +       struct i2c_client *client = v4l2_get_subdevdata(sd);
+>> +       struct ov5640 *ov5640 = to_ov5640(sd);
+>> +       int ret, i;
+>> +
+>> +       i = ov5640_find_framesize(ov5640->format.width, ov5640->format.height);
+>> +
+>> +       ret = ov5640_reg_write(client,
+>> +                       0x3800,
+>> +                       (timing_cfg[i].x_addr_start & 0xFF00) >> 8);
+>> +       if (ret)
+>> +               return ret;
+>> +
+>> +       ret = ov5640_reg_write(client,
+>> +                       0x3801,
+>> +                       timing_cfg[i].x_addr_start & 0xFF);
+>> +       if (ret)
+>> +               return ret;
+>> +
+>> +       ret = ov5640_reg_write(client,
+>> +                       0x3802,
+>> +                       (timing_cfg[i].y_addr_start & 0xFF00) >> 8);
+>> +       if (ret)
+>> +               return ret;
+>> +
+>> +       ret = ov5640_reg_write(client,
+>> +                       0x3803,
+>> +                       timing_cfg[i].y_addr_start & 0xFF);
+>> +       if (ret)
+>> +               return ret;
+>> +
+>> +       ret = ov5640_reg_write(client,
+>> +                       0x3804,
+>> +                       (timing_cfg[i].x_addr_end & 0xFF00) >> 8);
+>> +       if (ret)
+>> +               return ret;
+>> +
+>> +       ret = ov5640_reg_write(client,
+>> +                       0x3805,
+>> +                       timing_cfg[i].x_addr_end & 0xFF);
+>> +       if (ret)
+>> +               return ret;
+>> +
+>> +       ret = ov5640_reg_write(client,
+>> +                       0x3806,
+>> +                       (timing_cfg[i].y_addr_end & 0xFF00) >> 8);
+>> +       if (ret)
+>> +               return ret;
+>> +
+>> +       ret = ov5640_reg_write(client,
+>> +                       0x3807,
+>> +                       timing_cfg[i].y_addr_end & 0xFF);
+>> +       if (ret)
+>> +               return ret;
+>> +
+>> +       ret = ov5640_reg_write(client,
+>> +                       0x3808,
+>> +                       (timing_cfg[i].h_output_size & 0xFF00) >> 8);
+>> +       if (ret)
+>> +               return ret;
+>> +
+>> +       ret = ov5640_reg_write(client,
+>> +                       0x3809,
+>> +                       timing_cfg[i].h_output_size & 0xFF);
+>> +       if (ret)
+>> +               return ret;
+>> +
+>> +       ret = ov5640_reg_write(client,
+>> +                       0x380A,
+>> +                       (timing_cfg[i].v_output_size & 0xFF00) >> 8);
+>> +       if (ret)
+>> +               return ret;
+>> +
+>> +       ret = ov5640_reg_write(client,
+>> +                       0x380B,
+>> +                       timing_cfg[i].v_output_size & 0xFF);
+>> +       if (ret)
+>> +               return ret;
+>> +
+>> +       ret = ov5640_reg_write(client,
+>> +                       0x380C,
+>> +                       (timing_cfg[i].h_total_size & 0xFF00) >> 8);
+>> +       if (ret)
+>> +               return ret;
+>> +
+>> +       ret = ov5640_reg_write(client,
+>> +                       0x380D,
+>> +                       timing_cfg[i].h_total_size & 0xFF);
+>> +       if (ret)
+>> +               return ret;
+>> +
+>> +       ret = ov5640_reg_write(client,
+>> +                       0x380E,
+>> +                       (timing_cfg[i].v_total_size & 0xFF00) >> 8);
+>> +       if (ret)
+>> +               return ret;
+>> +
+>> +       ret = ov5640_reg_write(client,
+>> +                       0x380F,
+>> +                       timing_cfg[i].v_total_size & 0xFF);
+>> +       if (ret)
+>> +               return ret;
+>> +
+>> +       ret = ov5640_reg_write(client,
+>> +                       0x3810,
+>> +                       (timing_cfg[i].isp_h_offset & 0xFF00) >> 8);
+>> +       if (ret)
+>> +               return ret;
+>> +
+>> +       ret = ov5640_reg_write(client,
+>> +                       0x3811,
+>> +                       timing_cfg[i].isp_h_offset & 0xFF);
+>> +       if (ret)
+>> +               return ret;
+>> +
+>> +       ret = ov5640_reg_write(client,
+>> +                       0x3812,
+>> +                       (timing_cfg[i].isp_v_offset & 0xFF00) >> 8);
+>> +       if (ret)
+>> +               return ret;
+>> +
+>> +       ret = ov5640_reg_write(client,
+>> +                       0x3813,
+>> +                       timing_cfg[i].isp_v_offset & 0xFF);
+>> +       if (ret)
+>> +               return ret;
+>> +
+>> +       ret = ov5640_reg_write(client,
+>> +                       0x3814,
+>> +                       ((timing_cfg[i].h_odd_ss_inc & 0xF) << 4) |
+>> +                       (timing_cfg[i].h_even_ss_inc & 0xF));
+>> +       if (ret)
+>> +               return ret;
+>> +
+>> +       ret = ov5640_reg_write(client,
+>> +                       0x3815,
+>> +                       ((timing_cfg[i].v_odd_ss_inc & 0xF) << 4) |
+>> +                       (timing_cfg[i].v_even_ss_inc & 0xF));
+>> +
+>> +       return ret;
+>> +}
+>> +
+>> +static struct v4l2_mbus_framefmt *
+>> +__ov5640_get_pad_format(struct ov5640 *ov5640, struct v4l2_subdev_fh *fh,
+>> +                        unsigned int pad, enum v4l2_subdev_format_whence which)
+>> +{
+>> +       switch (which) {
+>> +       case V4L2_SUBDEV_FORMAT_TRY:
+>> +               return v4l2_subdev_get_try_format(fh, pad);
+>> +       case V4L2_SUBDEV_FORMAT_ACTIVE:
+>> +               return &ov5640->format;
+>> +       default:
+>> +               return NULL;
+>> +       }
+>> +}
+>> +
+>> +/* -----------------------------------------------------------------------------
+>> + * V4L2 subdev internal operations
+>> + */
+>> +
+>> +static int ov5640_s_power(struct v4l2_subdev *sd, int on)
+>> +{
+>> +       struct ov5640 *ov5640 = to_ov5640(sd);
+>> +
+>> +       return ov5640->pdata->s_power(sd, on);
+>> +}
+>> +
+>> +static struct v4l2_subdev_core_ops ov5640_subdev_core_ops = {
+>> +       .s_power        = ov5640_s_power,
+>> +};
+>> +
+>> +static int ov5640_g_fmt(struct v4l2_subdev *sd,
+>> +                       struct v4l2_subdev_fh *fh,
+>> +                       struct v4l2_subdev_format *format)
+>> +{
+>> +       struct ov5640 *ov5640 = to_ov5640(sd);
+>> +
+>> +       format->format = *__ov5640_get_pad_format(ov5640, fh, format->pad,
+>> +                                                  format->which);
+>> +
+>> +       return 0;
+>> +}
+>> +
+>> +static int ov5640_s_fmt(struct v4l2_subdev *sd,
+>> +                       struct v4l2_subdev_fh *fh,
+>> +                       struct v4l2_subdev_format *format)
+>> +{
+>> +       struct ov5640 *ov5640 = to_ov5640(sd);
+>> +       struct v4l2_mbus_framefmt *__format;
+>> +
+>> +       __format = __ov5640_get_pad_format(ov5640, fh, format->pad,
+>> +                                           format->which);
+>> +
+>> +       *__format = format->format;
+>> +
+>> +       /* NOTE: This is always true for now, revisit later. */
+>> +       ov5640->pixel_rate->cur.val64 = 42000000;
+>> +
+>> +       return 0;
+>> +}
+>> +
+>> +static int ov5640_enum_fmt(struct v4l2_subdev *subdev,
+>> +                          struct v4l2_subdev_fh *fh,
+>> +                          struct v4l2_subdev_mbus_code_enum *code)
+>> +{
+>> +       if (code->index >= 2)
+>> +               return -EINVAL;
+>> +
+>> +       switch (code->index) {
+>> +       case 0:
+>> +               code->code = V4L2_MBUS_FMT_UYVY8_1X16;
+>> +               break;
+>> +       case 1:
+>> +               code->code = V4L2_MBUS_FMT_YUYV8_1X16;
+>> +               break;
+>> +       }
+>> +       return 0;
+>> +}
+>> +
+>> +static int ov5640_enum_framesizes(struct v4l2_subdev *subdev,
+>> +                                  struct v4l2_subdev_fh *fh,
+>> +                                  struct v4l2_subdev_frame_size_enum *fse)
+>> +{
+>> +       if ((fse->index >= OV5640_SIZE_LAST) ||
+>> +           (fse->code != V4L2_MBUS_FMT_UYVY8_1X16 &&
+>> +            fse->code != V4L2_MBUS_FMT_YUYV8_1X16))
+>> +               return -EINVAL;
+>> +
+>> +       fse->min_width = ov5640_frmsizes[fse->index].width;
+>> +       fse->max_width = fse->min_width;
+>> +       fse->min_height = ov5640_frmsizes[fse->index].height;
+>> +       fse->max_height = fse->min_height;
+>> +
+>> +       return 0;
+>> +}
+>> +
+>> +static int ov5640_s_stream(struct v4l2_subdev *sd, int enable)
+>> +{
+>> +       struct ov5640 *ov5640 = to_ov5640(sd);
+>> +       struct i2c_client *client = v4l2_get_subdevdata(sd);
+>> +       int ret = 0;
+>> +
+>> +       if (enable) {
+>> +               u8 fmtreg = 0, fmtmuxreg = 0;
+>> +               int i;
+>> +
+>> +               switch ((u32)ov5640->format.code) {
+>> +               case V4L2_MBUS_FMT_UYVY8_1X16:
+>> +                       fmtreg = 0x32;
+>> +                       fmtmuxreg = 0;
+>> +                       break;
+>> +               case V4L2_MBUS_FMT_YUYV8_1X16:
+>> +                       fmtreg = 0x30;
+>> +                       fmtmuxreg = 0;
+>> +                       break;
+>> +               default:
+>> +                       /* This shouldn't happen */
+>> +                       ret = -EINVAL;
+>> +                       return ret;
+>> +               }
+>> +
+>> +               ret = ov5640_reg_write(client, 0x4300, fmtreg);
+>> +               if (ret)
+>> +                       return ret;
+>> +
+>> +               ret = ov5640_reg_write(client, 0x501F, fmtmuxreg);
+>> +               if (ret)
+>> +                       return ret;
+>> +
+>> +               ret = ov5640_config_timing(sd);
+>> +               if (ret)
+>> +                       return ret;
+>> +
+>> +               i = ov5640_find_framesize(ov5640->format.width, ov5640->format.height);
+>> +               if ((i == OV5640_SIZE_QVGA) ||
+>> +                   (i == OV5640_SIZE_VGA) ||
+>> +                   (i == OV5640_SIZE_720P)) {
+>> +                       ret = ov5640_reg_write(client, 0x3108,
+>> +                                       (i == OV5640_SIZE_720P) ? 0x1 : 0);
+>> +                       if (ret)
+>> +                               return ret;
+>> +                       ret = ov5640_reg_set(client, 0x5001, 0x20);
+>> +               } else {
+>> +                       ret = ov5640_reg_clr(client, 0x5001, 0x20);
+>> +                       if (ret)
+>> +                               return ret;
+>> +                       ret = ov5640_reg_write(client, 0x3108, 0x2);
+>> +               }
+>> +
+>> +               ret = ov5640_reg_clr(client, 0x3008, 0x40);
+>> +               if (ret)
+>> +                       goto out;
+>> +       } else {
+>> +               u8 tmpreg = 0;
+>> +
+>> +               ret = ov5640_reg_read(client, 0x3008, &tmpreg);
+>> +               if (ret)
+>> +                       goto out;
+>> +
+>> +               ret = ov5640_reg_write(client, 0x3008, tmpreg | 0x40);
+>> +               if (ret)
+>> +                       goto out;
+>> +       }
+>> +
+>> +out:
+>> +       return ret;
+>> +}
+>> +
+>> +static struct v4l2_subdev_video_ops ov5640_subdev_video_ops = {
+>> +       .s_stream       = ov5640_s_stream,
+>> +};
+>> +
+>> +static struct v4l2_subdev_pad_ops ov5640_subdev_pad_ops = {
+>> +       .enum_mbus_code = ov5640_enum_fmt,
+>> +       .enum_frame_size = ov5640_enum_framesizes,
+>> +       .get_fmt = ov5640_g_fmt,
+>> +       .set_fmt = ov5640_s_fmt,
+>> +};
+>> +
+>> +static int ov5640_g_skip_frames(struct v4l2_subdev *sd, u32 *frames)
+>> +{
+>> +       /* Quantity of initial bad frames to skip. Revisit. */
+>> +       *frames = 3;
+>> +
+>> +       return 0;
+>> +}
+>> +
+>> +static struct v4l2_subdev_sensor_ops ov5640_subdev_sensor_ops = {
+>> +       .g_skip_frames  = ov5640_g_skip_frames,
+>> +};
+>> +
+>> +static struct v4l2_subdev_ops ov5640_subdev_ops = {
+>> +       .core   = &ov5640_subdev_core_ops,
+>> +       .video  = &ov5640_subdev_video_ops,
+>> +       .pad    = &ov5640_subdev_pad_ops,
+>> +       .sensor = &ov5640_subdev_sensor_ops,
+>> +};
+>> +
+>> +static int ov5640_registered(struct v4l2_subdev *subdev)
+>> +{
+>> +       struct i2c_client *client = v4l2_get_subdevdata(subdev);
+>> +       struct ov5640 *ov5640 = to_ov5640(subdev);
+>> +       int ret = 0;
+>> +       u8 revision = 0;
+>> +
+>> +       ret = ov5640_s_power(subdev, 1);
+>> +       if (ret < 0) {
+>> +               dev_err(&client->dev, "OV5640 power up failed\n");
+>> +               return ret;
+>> +       }
+>> +
+>> +       ret = ov5640_reg_read(client, 0x302A, &revision);
+>> +       if (ret) {
+>> +               dev_err(&client->dev, "Failure to detect OV5640 chip\n");
+>> +               goto out;
+>> +       }
+>> +
+>> +       revision &= 0xF;
+>> +
+>> +       dev_info(&client->dev, "Detected a OV5640 chip, revision %x\n",
+>> +                revision);
+>> +
+>> +       /* SW Reset */
+>> +       ret = ov5640_reg_set(client, 0x3008, 0x80);
+>> +       if (ret)
+>> +               goto out;
+>> +
+>> +       msleep(2);
+>> +
+>> +       ret = ov5640_reg_clr(client, 0x3008, 0x80);
+>> +       if (ret)
+>> +               goto out;
+>> +
+>> +       /* SW Powerdown */
+>> +       ret = ov5640_reg_set(client, 0x3008, 0x40);
+>> +       if (ret)
+>> +               goto out;
+>> +
+>> +       ret = ov5640_reg_writes(client, configscript_common1,
+>> +                       ARRAY_SIZE(configscript_common1));
+>> +       if (ret)
+>> +               goto out;
+>> +
+>> +       ret = ov5640_reg_writes(client, configscript_common2,
+>> +                       ARRAY_SIZE(configscript_common2));
+>> +       if (ret)
+>> +               goto out;
+>> +
+>> +       /* Init controls */
+>> +       ret = v4l2_ctrl_handler_init(&ov5640->ctrl_handler, 1);
+>> +       if (ret)
+>> +               goto out;
+>> +
+>> +       ov5640->pixel_rate = v4l2_ctrl_new_std(
+>> +                               &ov5640->ctrl_handler, NULL,
+>> +                               V4L2_CID_PIXEL_RATE,
+>> +                               0, 0, 1, 0);
+>> +
+>> +       subdev->ctrl_handler = &ov5640->ctrl_handler;
+>> +out:
+>> +       ov5640_s_power(subdev, 0);
+>> +
+>> +       return ret;
+>> +}
+>> +
+>> +static int ov5640_open(struct v4l2_subdev *subdev, struct v4l2_subdev_fh *fh)
+>> +{
+>> +       struct v4l2_mbus_framefmt *format;
+>> +
+>> +       format = v4l2_subdev_get_try_format(fh, 0);
+>> +       format->code = V4L2_MBUS_FMT_UYVY8_1X16;
+>> +       format->width = ov5640_frmsizes[OV5640_SIZE_VGA].width;
+>> +       format->height = ov5640_frmsizes[OV5640_SIZE_VGA].height;
+>> +       format->field = V4L2_FIELD_NONE;
+>> +       format->colorspace = V4L2_COLORSPACE_JPEG;
+>> +
+>> +       return 0;
+>> +}
+>> +
+>> +static int ov5640_close(struct v4l2_subdev *subdev, struct v4l2_subdev_fh *fh)
+>> +{
+>> +       return 0;
+>> +}
+>> +
+>> +static struct v4l2_subdev_internal_ops ov5640_subdev_internal_ops = {
+>> +       .registered = ov5640_registered,
+>> +       .open = ov5640_open,
+>> +       .close = ov5640_close,
+>> +};
+>> +
+>> +static int ov5640_probe(struct i2c_client *client,
+>> +                        const struct i2c_device_id *did)
+>> +{
+>> +       struct ov5640 *ov5640;
+>> +       int ret;
+>> +
+>> +       if (!client->dev.platform_data) {
+>> +               dev_err(&client->dev, "No platform data!!\n");
+>> +               return -ENODEV;
+>> +       }
+>> +
+>> +       ov5640 = kzalloc(sizeof(*ov5640), GFP_KERNEL);
+>> +       if (!ov5640)
+>> +               return -ENOMEM;
+>> +
+>> +       ov5640->pdata = client->dev.platform_data;
+>> +
+>> +       ov5640->format.code = V4L2_MBUS_FMT_UYVY8_1X16;
+>> +       ov5640->format.width = ov5640_frmsizes[OV5640_SIZE_VGA].width;
+>> +       ov5640->format.height = ov5640_frmsizes[OV5640_SIZE_VGA].height;
+>> +       ov5640->format.field = V4L2_FIELD_NONE;
+>> +       ov5640->format.colorspace = V4L2_COLORSPACE_JPEG;
+>> +
+>> +       v4l2_i2c_subdev_init(&ov5640->subdev, client, &ov5640_subdev_ops);
+>> +       ov5640->subdev.internal_ops = &ov5640_subdev_internal_ops;
+>> +       ov5640->subdev.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+>> +       ov5640->subdev.entity.type = MEDIA_ENT_T_V4L2_SUBDEV_SENSOR;
+>> +
+>> +       ov5640->pad.flags = MEDIA_PAD_FL_SOURCE;
+>> +       ret = media_entity_init(&ov5640->subdev.entity, 1, &ov5640->pad, 0);
+>> +       if (ret < 0)
+>> +               goto err_mediainit;
+>> +
+>> +       return ret;
+>> +
+>> +err_mediainit:
+>> +       v4l2_device_unregister_subdev(&ov5640->subdev);
+>> +       kfree(ov5640);
+>> +       return ret;
+>> +}
+>> +
+>> +static int ov5640_remove(struct i2c_client *client)
+>> +{
+>> +       struct v4l2_subdev *subdev = i2c_get_clientdata(client);
+>> +       struct ov5640 *ov5640 = to_ov5640(subdev);
+>> +
+>> +       v4l2_ctrl_handler_free(&ov5640->ctrl_handler);
+>> +       v4l2_device_unregister_subdev(subdev);
+>> +       media_entity_cleanup(&subdev->entity);
+>> +       kfree(ov5640);
+>> +       return 0;
+>> +}
+>> +
+>> +static const struct i2c_device_id ov5640_id[] = {
+>> +       { "ov5640", 0 },
+>> +       { }
+>> +};
+>> +MODULE_DEVICE_TABLE(i2c, ov5640_id);
+>> +
+>> +static struct i2c_driver ov5640_i2c_driver = {
+>> +       .driver = {
+>> +               .name = "ov5640",
+>> +       },
+>> +       .probe          = ov5640_probe,
+>> +       .remove         = ov5640_remove,
+>> +       .id_table       = ov5640_id,
+>> +};
+>> +
+>> +static int __init ov5640_mod_init(void)
+>> +{
+>> +       return i2c_add_driver(&ov5640_i2c_driver);
+>> +}
+>> +
+>> +static void __exit ov5640_mod_exit(void)
+>> +{
+>> +       i2c_del_driver(&ov5640_i2c_driver);
+>> +}
+>> +
+>> +module_init(ov5640_mod_init);
+>> +module_exit(ov5640_mod_exit);
+>> +
+>> +MODULE_DESCRIPTION("OmniVision OV5640 Camera driver");
+>> +MODULE_AUTHOR("Sergio Aguirre <saaguirre@ti.com>");
+>> +MODULE_LICENSE("GPL v2");
+>> diff --git a/include/media/ov5640.h b/include/media/ov5640.h
+>> new file mode 100644
+>> index 0000000..65625ce
+>> --- /dev/null
+>> +++ b/include/media/ov5640.h
+>> @@ -0,0 +1,10 @@
+>> +#ifndef _MEDIA_OV5640_H
+>> +#define _MEDIA_OV5640_H
+>> +
+>> +#include <media/v4l2-subdev.h>
+>> +
+>> +struct ov5640_platform_data {
+>> +      int (*s_power)(struct v4l2_subdev *subdev, int on);
+>> +};
+>> +
+>> +#endif
+>> --
+>> 1.7.5.4
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
