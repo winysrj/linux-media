@@ -1,312 +1,157 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout-de.gmx.net ([213.165.64.22]:49108 "HELO
-	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1755250Ab2EEMFn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 5 May 2012 08:05:43 -0400
-From: Tobias Lorenz <tobias.lorenz@gmx.net>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [RFC PATCH 4/4] radio-si470x-usb: remove autosuspend, implement suspend/resume.
-Date: Sat, 5 May 2012 14:05:38 +0200
-Cc: linux-media@vger.kernel.org,
-	Joonyoung Shim <jy0922.shim@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-References: <1336138232-17528-1-git-send-email-hverkuil@xs4all.nl> <342493035eca72981784eef475d96f53c5412957.1336137768.git.hans.verkuil@cisco.com>
-In-Reply-To: <342493035eca72981784eef475d96f53c5412957.1336137768.git.hans.verkuil@cisco.com>
+Received: from ams-iport-2.cisco.com ([144.254.224.141]:56800 "EHLO
+	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756463Ab2EGLpX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 7 May 2012 07:45:23 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [ 3960.758784] 1 lock held by motion/7776: [ 3960.758788]  #0:  (&queue->mutex){......}, at: [<ffffffff815c62d2>] uvc_queue_enable+0x32/0xc0
+Date: Mon, 7 May 2012 13:44:59 +0200
+Cc: Sander Eikelenboom <linux@eikelenboom.it>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, hans.verkuil@cisco.com
+References: <4410483770.20120428220246@eikelenboom.it> <21221178.20120506165440@eikelenboom.it> <1363463.HQ7LJLv1Qi@avalon>
+In-Reply-To: <1363463.HQ7LJLv1Qi@avalon>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="iso-8859-15"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201205051405.39046.tobias.lorenz@gmx.net>
+Message-Id: <201205071344.59861.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Hans,
+On Monday 07 May 2012 13:06:01 Laurent Pinchart wrote:
+> Hi Sanser,
+> 
+> On Sunday 06 May 2012 16:54:40 Sander Eikelenboom wrote:
+> > Hello Laurent / Mauro,
+> > 
+> > I have updated to latest 3.4-rc5-tip, running multiple video grabbers.
+> > I don't see anything specific to uvcvideo anymore, but i do get the possible
+> > circular locking dependency below.
+> 
+> Thanks for the report.
+> 
+> We indeed have a serious issue there (CC'ing Hans Verkuil).
+> 
+> Hans, serializing both ioctl handling an mmap with a single device lock as we 
+> currently do in V4L2 is prone to AB-BA deadlocks (uvcvideo shouldn't be 
+> affected as it has no device-wide lock).
+> 
+> If we want to keep a device-wide lock we need to take it after the mm-
+> >mmap_sem lock in all code paths, as there's no way we can change the lock 
+> ordering for mmap(). The copy_from_user/copy_to_user issue could be solved by 
+> moving locking from v4l2_ioctl to __video_do_ioctl (device-wide locks would 
+> then require using video_ioctl2), but I'm not sure whether that will play 
+> nicely with the QBUF implementation in videobuf2 (which already includes a 
+> workaround for this particular AB-BA deadlock issue).
 
-thanks for the improvements. Looks good to me.
+I've seen the same thing. It was on my TODO list of things to look into. I think
+mmap shouldn't take the device wide lock at all. But it will mean reviewing
+affected drivers before I can remove it.
 
-Acked-by: Tobias Lorenz <tobias.lorenz@gmx.net>
+To be honest, I wasn't sure whether or not to take the device lock for mmap when
+I first wrote that code.
 
-Bye,
-Toby
+If you look at irc I had a discussion today with HdG about adding flags to
+selectively disable locks for fops. It may be an idea to implement this soon so
+we can start updating drivers one-by-one.
 
-Am Freitag, 4. Mai 2012, 15:30:32 schrieb Hans Verkuil:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> The radio-si470x-usb driver supported both autosuspend and it stopped the
-> radio the moment the last user of the radio device closed it. However, that
-> was very confusing since if you play the audio from the device (e.g.
-> through arecord -D ... | aplay) then no sound would play unless you had
-> the radio device open at the same time, even though there is no need to do
-> anything with that node.
-> 
-> On the other hand, the actual suspend/resume functions didn't do anything,
-> which would fail if you *did* have the radio node open at that time.
-> 
-> So:
-> 
-> - remove autosuspend (bad idea in general for USB radio devices)
-> - move the start/stop out of the open/release functions into the
-> resume/suspend functions.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  drivers/media/radio/si470x/radio-si470x-common.c |    1 -
->  drivers/media/radio/si470x/radio-si470x-usb.c    |  149
-> ++++++++++------------ 2 files changed, 70 insertions(+), 80 deletions(-)
-> 
-> diff --git a/drivers/media/radio/si470x/radio-si470x-common.c
-> b/drivers/media/radio/si470x/radio-si470x-common.c index b9a44d4..969cf49
-> 100644
-> --- a/drivers/media/radio/si470x/radio-si470x-common.c
-> +++ b/drivers/media/radio/si470x/radio-si470x-common.c
-> @@ -570,7 +570,6 @@ static int si470x_s_ctrl(struct v4l2_ctrl *ctrl)
->  		else
->  			radio->registers[POWERCFG] |= POWERCFG_DMUTE;
->  		return si470x_set_register(radio, POWERCFG);
-> -		break;
->  	default:
->  		return -EINVAL;
->  	}
-> diff --git a/drivers/media/radio/si470x/radio-si470x-usb.c
-> b/drivers/media/radio/si470x/radio-si470x-usb.c index f133c3d..e9f6387
-> 100644
-> --- a/drivers/media/radio/si470x/radio-si470x-usb.c
-> +++ b/drivers/media/radio/si470x/radio-si470x-usb.c
-> @@ -481,91 +481,20 @@ resubmit:
->  }
-> 
-> 
-> -
-> -/*************************************************************************
-> * - * File Operations Interface
-> -
-> **************************************************************************
-> / -
-> -/*
-> - * si470x_fops_open - file open
-> - */
->  int si470x_fops_open(struct file *file)
->  {
-> -	struct si470x_device *radio = video_drvdata(file);
-> -	int retval = v4l2_fh_open(file);
-> -
-> -	if (retval)
-> -		return retval;
-> -
-> -	retval = usb_autopm_get_interface(radio->intf);
-> -	if (retval < 0)
-> -		goto done;
-> -
-> -	if (v4l2_fh_is_singular_file(file)) {
-> -		/* start radio */
-> -		retval = si470x_start(radio);
-> -		if (retval < 0) {
-> -			usb_autopm_put_interface(radio->intf);
-> -			goto done;
-> -		}
-> -
-> -		/* initialize interrupt urb */
-> -		usb_fill_int_urb(radio->int_in_urb, radio->usbdev,
-> -			usb_rcvintpipe(radio->usbdev,
-> -			radio->int_in_endpoint->bEndpointAddress),
-> -			radio->int_in_buffer,
-> -			le16_to_cpu(radio->int_in_endpoint->wMaxPacketSize),
-> -			si470x_int_in_callback,
-> -			radio,
-> -			radio->int_in_endpoint->bInterval);
-> -
-> -		radio->int_in_running = 1;
-> -		mb();
-> -
-> -		retval = usb_submit_urb(radio->int_in_urb, GFP_KERNEL);
-> -		if (retval) {
-> -			dev_info(&radio->intf->dev,
-> -				 "submitting int urb failed (%d)\n", retval);
-> -			radio->int_in_running = 0;
-> -			usb_autopm_put_interface(radio->intf);
-> -		}
-> -	}
-> -
-> -done:
-> -	if (retval)
-> -		v4l2_fh_release(file);
-> -	return retval;
-> +	return v4l2_fh_open(file);
->  }
-> 
-> -
-> -/*
-> - * si470x_fops_release - file release
-> - */
->  int si470x_fops_release(struct file *file)
->  {
-> -	struct si470x_device *radio = video_drvdata(file);
-> -
-> -	if (v4l2_fh_is_singular_file(file)) {
-> -		/* shutdown interrupt handler */
-> -		if (radio->int_in_running) {
-> -			radio->int_in_running = 0;
-> -			if (radio->int_in_urb)
-> -				usb_kill_urb(radio->int_in_urb);
-> -		}
-> -
-> -		/* cancel read processes */
-> -		wake_up_interruptible(&radio->read_queue);
-> -
-> -		/* stop radio */
-> -		si470x_stop(radio);
-> -		usb_autopm_put_interface(radio->intf);
-> -	}
->  	return v4l2_fh_release(file);
->  }
-> 
-> -static void si470x_usb_release(struct video_device *vdev)
-> +static void si470x_usb_release(struct v4l2_device *v4l2_dev)
->  {
-> -	struct si470x_device *radio = video_get_drvdata(vdev);
-> +	struct si470x_device *radio =
-> +		container_of(v4l2_dev, struct si470x_device, v4l2_dev);
-> 
->  	usb_free_urb(radio->int_in_urb);
->  	v4l2_ctrl_handler_free(&radio->hdl);
-> @@ -599,6 +528,38 @@ int si470x_vidioc_querycap(struct file *file, void
-> *priv, }
-> 
-> 
-> +static int si470x_start_usb(struct si470x_device *radio)
-> +{
-> +	int retval;
-> +
-> +	/* start radio */
-> +	retval = si470x_start(radio);
-> +	if (retval < 0)
-> +		return retval;
-> +
-> +	v4l2_ctrl_handler_setup(&radio->hdl);
-> +
-> +	/* initialize interrupt urb */
-> +	usb_fill_int_urb(radio->int_in_urb, radio->usbdev,
-> +			usb_rcvintpipe(radio->usbdev,
-> +				radio->int_in_endpoint->bEndpointAddress),
-> +			radio->int_in_buffer,
-> +			le16_to_cpu(radio->int_in_endpoint->wMaxPacketSize),
-> +			si470x_int_in_callback,
-> +			radio,
-> +			radio->int_in_endpoint->bInterval);
-> +
-> +	radio->int_in_running = 1;
-> +	mb();
-> +
-> +	retval = usb_submit_urb(radio->int_in_urb, GFP_KERNEL);
-> +	if (retval) {
-> +		dev_info(&radio->intf->dev,
-> +				"submitting int urb failed (%d)\n", retval);
-> +		radio->int_in_running = 0;
-> +	}
-> +	return retval;
-> +}
-> 
->  /*************************************************************************
-> * * USB Interface
-> @@ -658,6 +619,7 @@ static int si470x_usb_driver_probe(struct usb_interface
-> *intf, goto err_intbuffer;
->  	}
-> 
-> +	radio->v4l2_dev.release = si470x_usb_release;
->  	retval = v4l2_device_register(&intf->dev, &radio->v4l2_dev);
->  	if (retval < 0) {
->  		dev_err(&intf->dev, "couldn't register v4l2_device\n");
-> @@ -678,7 +640,7 @@ static int si470x_usb_driver_probe(struct usb_interface
-> *intf, radio->videodev.ctrl_handler = &radio->hdl;
->  	radio->videodev.lock = &radio->lock;
->  	radio->videodev.v4l2_dev = &radio->v4l2_dev;
-> -	radio->videodev.release = si470x_usb_release;
-> +	radio->videodev.release = video_device_release_empty;
->  	set_bit(V4L2_FL_USE_FH_PRIO, &radio->videodev.flags);
->  	video_set_drvdata(&radio->videodev, radio);
-> 
-> @@ -754,11 +716,16 @@ static int si470x_usb_driver_probe(struct
-> usb_interface *intf, init_waitqueue_head(&radio->read_queue);
->  	usb_set_intfdata(intf, radio);
-> 
-> +	/* start radio */
-> +	retval = si470x_start_usb(radio);
-> +	if (retval < 0)
-> +		goto err_all;
-> +
->  	/* register video device */
->  	retval = video_register_device(&radio->videodev, VFL_TYPE_RADIO,
->  			radio_nr);
->  	if (retval) {
-> -		dev_warn(&intf->dev, "Could not register video device\n");
-> +		dev_err(&intf->dev, "Could not register video device\n");
->  		goto err_all;
->  	}
-> 
-> @@ -786,8 +753,22 @@ err_initial:
->  static int si470x_usb_driver_suspend(struct usb_interface *intf,
->  		pm_message_t message)
->  {
-> +	struct si470x_device *radio = usb_get_intfdata(intf);
-> +
->  	dev_info(&intf->dev, "suspending now...\n");
-> 
-> +	/* shutdown interrupt handler */
-> +	if (radio->int_in_running) {
-> +		radio->int_in_running = 0;
-> +		if (radio->int_in_urb)
-> +			usb_kill_urb(radio->int_in_urb);
-> +	}
-> +
-> +	/* cancel read processes */
-> +	wake_up_interruptible(&radio->read_queue);
-> +
-> +	/* stop radio */
-> +	si470x_stop(radio);
->  	return 0;
->  }
-> 
-> @@ -797,9 +778,12 @@ static int si470x_usb_driver_suspend(struct
-> usb_interface *intf, */
->  static int si470x_usb_driver_resume(struct usb_interface *intf)
->  {
-> +	struct si470x_device *radio = usb_get_intfdata(intf);
-> +
->  	dev_info(&intf->dev, "resuming now...\n");
-> 
-> -	return 0;
-> +	/* start radio */
-> +	return si470x_start_usb(radio);
->  }
-> 
-> 
-> @@ -815,11 +799,18 @@ static void si470x_usb_driver_disconnect(struct
-> usb_interface *intf) video_unregister_device(&radio->videodev);
->  	usb_set_intfdata(intf, NULL);
->  	mutex_unlock(&radio->lock);
-> +	v4l2_device_put(&radio->v4l2_dev);
->  }
-> 
-> 
->  /*
->   * si470x_usb_driver - usb driver interface
-> + *
-> + * A note on suspend/resume: this driver had only empty suspend/resume
-> + * functions, and when I tried to test suspend/resume it always
-> disconnected + * instead of resuming (using my ADS InstantFM stick). So
-> I've decided to + * remove these callbacks until someone else with better
-> hardware can + * implement and test this.
->   */
->  static struct usb_driver si470x_usb_driver = {
->  	.name			= DRIVER_NAME,
-> @@ -827,8 +818,8 @@ static struct usb_driver si470x_usb_driver = {
->  	.disconnect		= si470x_usb_driver_disconnect,
->  	.suspend		= si470x_usb_driver_suspend,
->  	.resume			= si470x_usb_driver_resume,
-> +	.reset_resume		= si470x_usb_driver_resume,
->  	.id_table		= si470x_usb_driver_id_table,
-> -	.supports_autosuspend	= 1,
->  };
-> 
->  module_usb_driver(si470x_usb_driver);
+Frankly, I do not believe this 'possible circular locking' thing to be a real
+bug as I am not aware of drivers that use the device lock *and* lock mmap_sem.
+If I understand Sander correctly 'motion' no longer locks up after moving to
+3.4-rc5-tip, right?
 
+I have to look into a bit more to see what the best approach it so we can prevent
+this message from appearing.
+
+Regards,
+
+	Hans
+
+> 
+> > [   96.257129] ======================================================
+> > [   96.257129] [ INFO: possible circular locking dependency detected ]
+> > [   96.257129] 3.4.0-rc5-20120506+ #4 Not tainted
+> > [   96.257129] -------------------------------------------------------
+> > [   96.257129] motion/2289 is trying to acquire lock:
+> > [   96.257129]  (&dev->lock){+.+.+.}, at: [<ffffffff8156c04c>]
+> > v4l2_mmap+0xbc/0xd0
+> > [   96.257129]
+> > [   96.257129] but task is already holding lock:
+> > [   96.257129]  (&mm->mmap_sem){++++++}, at: [<ffffffff81113cca>]
+> > sys_mmap_pgoff+0x1ca/0x220
+> > [   96.257129]
+> > [   96.257129] which lock already depends on the new lock.
+> > [   96.257129]
+> > [   96.257129]
+> > [   96.257129] the existing dependency chain (in reverse order) is:
+> > [   96.257129]
+> > [   96.257129] -> #1 (&mm->mmap_sem){++++++}:
+> > [   96.257129]        [<ffffffff810aa972>] __lock_acquire+0x3a2/0xc50
+> > [   96.257129]        [<ffffffff810ab2e8>] lock_acquire+0xc8/0x110
+> > [   96.257129]        [<ffffffff81108cb8>] might_fault+0x68/0x90
+> > [   96.257129]        [<ffffffff8156d2a1>] video_usercopy+0x1d1/0x4e0
+> > [   96.257129]        [<ffffffff8156d5c0>] video_ioctl2+0x10/0x20
+> > [   96.257129]        [<ffffffff8156c110>] v4l2_ioctl+0xb0/0x180
+> > [   96.257129]        [<ffffffff8114dc3c>] do_vfs_ioctl+0x9c/0x580
+> > [   96.257129]        [<ffffffff8114e16a>] sys_ioctl+0x4a/0x80
+> > [   96.257129]        [<ffffffff81813039>] system_call_fastpath+0x16/0x1b
+> > [   96.257129]
+> > [   96.257129] -> #0 (&dev->lock){+.+.+.}:
+> > [   96.257129]        [<ffffffff810aa529>] validate_chain+0x1259/0x1300
+> > [   96.257129]        [<ffffffff810aa972>] __lock_acquire+0x3a2/0xc50
+> > [   96.257129]        [<ffffffff810ab2e8>] lock_acquire+0xc8/0x110
+> > [   96.257129]        [<ffffffff8180e58c>]
+> > mutex_lock_interruptible_nested+0x5c/0x550
+> > [   96.257129]        [<ffffffff8156c04c>] v4l2_mmap+0xbc/0xd0
+> > [   96.257129]        [<ffffffff8111359a>] mmap_region+0x3da/0x5a0
+> > [   96.257129]        [<ffffffff81113ab4>] do_mmap_pgoff+0x354/0x3a0
+> > [   96.257129]        [<ffffffff81113ce9>] sys_mmap_pgoff+0x1e9/0x220
+> > [   96.257129]        [<ffffffff81011ee9>] sys_mmap+0x29/0x30
+> > [   96.257129]        [<ffffffff81813039>] system_call_fastpath+0x16/0x1b
+> > [   96.257129]
+> > [   96.257129] other info that might help us debug this:
+> > [   96.257129]
+> > [   96.257129]  Possible unsafe locking scenario:
+> > [   96.257129]
+> > [   96.257129]        CPU0                    CPU1
+> > [   96.257129]        ----                    ----
+> > [   96.257129]   lock(&mm->mmap_sem);
+> > [   96.257129]                                lock(&dev->lock);
+> > [   96.257129]                                lock(&mm->mmap_sem);
+> > [   96.257129]   lock(&dev->lock);
+> > [   96.257129]
+> > [   96.257129]  *** DEADLOCK ***
+> > [   96.257129]
+> > [   96.257129] 1 lock held by motion/2289:
+> > [   96.257129]  #0:  (&mm->mmap_sem){++++++}, at: [<ffffffff81113cca>]
+> > sys_mmap_pgoff+0x1ca/0x220
+> > [   96.257129]
+> > [   96.257129] stack backtrace:
+> > [   96.257129] Pid: 2289, comm: motion Not tainted 3.4.0-rc5-20120506+ #4
+> > [   96.257129] Call Trace:
+> > [   96.257129]  [<ffffffff810a8fb6>] print_circular_bug+0x206/0x300
+> > [   96.257129]  [<ffffffff810aa529>] validate_chain+0x1259/0x1300
+> > [   96.257129]  [<ffffffff810a9417>] ? validate_chain+0x147/0x1300
+> > [   96.257129]  [<ffffffff810ab773>] ? lock_release+0x113/0x260
+> > [   96.257129]  [<ffffffff810aa972>] __lock_acquire+0x3a2/0xc50
+> > [   96.257129]  [<ffffffff810aa993>] ? __lock_acquire+0x3c3/0xc50
+> > [   96.257129]  [<ffffffff8156024c>] ? tda18271_tune+0x71c/0x9c0
+> > [   96.257129]  [<ffffffff810ab2e8>] lock_acquire+0xc8/0x110
+> > [   96.257129]  [<ffffffff8156c04c>] ? v4l2_mmap+0xbc/0xd0
+> > [   96.257129]  [<ffffffff8180e58c>]
+> > mutex_lock_interruptible_nested+0x5c/0x550
+> > [   96.257129]  [<ffffffff8156c04c>] ? v4l2_mmap+0xbc/0xd0
+> > [   96.257129]  [<ffffffff810a77ce>] ? mark_held_locks+0x9e/0x130
+> > [   96.257129]  [<ffffffff8156c04c>] ? v4l2_mmap+0xbc/0xd0
+> > [   96.257129]  [<ffffffff811134de>] ? mmap_region+0x31e/0x5a0
+> > [   96.257129]  [<ffffffff810a7900>] ? lockdep_trace_alloc+0xa0/0x130
+> > [   96.257129]  [<ffffffff8156c04c>] v4l2_mmap+0xbc/0xd0
+> > [   96.257129]  [<ffffffff8111359a>] mmap_region+0x3da/0x5a0
+> > [   96.257129]  [<ffffffff81113ab4>] do_mmap_pgoff+0x354/0x3a0
+> > [   96.257129]  [<ffffffff81113ce9>] sys_mmap_pgoff+0x1e9/0x220
+> > [   96.257129]  [<ffffffff8132554e>] ? trace_hardirqs_on_thunk+0x3a/0x3f
+> > [   96.257129]  [<ffffffff81011ee9>] sys_mmap+0x29/0x30
+> 
+> 
