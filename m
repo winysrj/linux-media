@@ -1,45 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:58277 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932374Ab2E3JaR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 May 2012 05:30:17 -0400
-Received: by obbtb18 with SMTP id tb18so8155948obb.19
-        for <linux-media@vger.kernel.org>; Wed, 30 May 2012 02:30:16 -0700 (PDT)
-Date: Wed, 30 May 2012 12:28:46 +0300
-From: Janne Huttunen <jahuttun@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: crope@iki.fi
-Subject: [PATCH] cxd2820r: Fix an incorrect modulation type bitmask.
-Message-ID: <4fc5e84e.wuZo+kOvJkJ3ZYIx%jahuttun@gmail.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:47614 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757382Ab2EGSoq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 7 May 2012 14:44:46 -0400
+Message-ID: <4FA81818.1000006@iki.fi>
+Date: Mon, 07 May 2012 21:44:40 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+CC: Gianluca Gennari <gennarone@gmail.com>,
+	=?windows-1252?Q?Michael_B=FC?= =?windows-1252?Q?sch?=
+	<m@bues.ch>, Hans-Frieder Vogt <hfvogt@gmx.net>
+Subject: [GIT PULL FOR 3.5] AF9035/AF9033
+References: <4F75A7FE.8090405@iki.fi>
+In-Reply-To: <4F75A7FE.8090405@iki.fi>
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Moikka Mauro,
 
-Fix an incorrect modulation type bitmask. This allows QAM256 also to be
-correctly reported.
+Some AF9035/AF9033 changes for the 3.5!
 
-Signed-off-by: Janne Huttunen <jahuttun@gmail.com>
----
- drivers/media/dvb/frontends/cxd2820r_c.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Do you have idea about last date for the 3.5 PULL requests?
 
-diff --git a/drivers/media/dvb/frontends/cxd2820r_c.c b/drivers/media/dvb/frontends/cxd2820r_c.c
-index 9454049..ed3b0ba6 100644
---- a/drivers/media/dvb/frontends/cxd2820r_c.c
-+++ b/drivers/media/dvb/frontends/cxd2820r_c.c
-@@ -121,7 +121,7 @@ int cxd2820r_get_frontend_c(struct dvb_frontend *fe)
- 	if (ret)
- 		goto error;
- 
--	switch ((buf[0] >> 0) & 0x03) {
-+	switch ((buf[0] >> 0) & 0x07) {
- 	case 0:
- 		c->modulation = QAM_16;
- 		break;
+regards
+Antti
+
+
+
+The following changes since commit cd58ef79264198a905367d19b1a110c2f6ac1156:
+
+   af9035: disable frontend0 I2C-gate control (2012-04-06 13:09:23 +0300)
+
+are available in the git repository at:
+   git://linuxtv.org/anttip/media_tree.git af9035
+
+Antti Palosaari (5):
+       af9035: various small changes for af9035_ctrl_msg()
+       af9035: remove unused struct
+       af9035: move device configuration to the state
+       af9035: remove one config parameter
+       af9035: add few new reference design USB IDs
+
+Hans-Frieder Vogt (2):
+       af9035: add remote control support
+       af9033: implement ber and ucb functions
+
+  drivers/media/dvb/dvb-usb/af9035.c      |  174 
+++++++++++++++++++++++---------
+  drivers/media/dvb/dvb-usb/af9035.h      |   23 ++---
+  drivers/media/dvb/dvb-usb/dvb-usb-ids.h |    7 +-
+  drivers/media/dvb/frontends/af9033.c    |   65 +++++++++++-
+  4 files changed, 202 insertions(+), 67 deletions(-)
+
+
 -- 
-1.7.9.5
-
+http://palosaari.fi/
