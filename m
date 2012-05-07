@@ -1,46 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:47015 "EHLO mail.kapsi.fi"
+Received: from mail.kapsi.fi ([217.30.184.167]:41107 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756090Ab2EGNZu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 7 May 2012 09:25:50 -0400
-Message-ID: <4FA7CD5B.3020902@iki.fi>
-Date: Mon, 07 May 2012 16:25:47 +0300
+	id S1751486Ab2EGSxZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 7 May 2012 14:53:25 -0400
+Message-ID: <4FA81A23.4000102@iki.fi>
+Date: Mon, 07 May 2012 21:53:23 +0300
 From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Hans-Frieder Vogt <hfvogt@gmx.net>
-CC: linux-media@vger.kernel.org,
-	=?ISO-8859-1?Q?Michael_B=FCsch?= <m@bues.ch>,
-	Gianluca Gennari <gennarone@gmail.com>
-Subject: Re: [PATCH v2] af9033: implement ber and ucb functions
-References: <201204071634.34179.hfvogt@gmx.net>
-In-Reply-To: <201204071634.34179.hfvogt@gmx.net>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+To: =?UTF-8?B?TWljaGFlbCBCw7xzY2g=?= <m@bues.ch>
+CC: linux-media <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] fc0011: Reduce number of retries
+References: <20120403110503.392c8432@milhouse> <4F7B1624.8020401@iki.fi> <20120403173320.2d3df3f8@milhouse>
+In-Reply-To: <20120403173320.2d3df3f8@milhouse>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07.04.2012 17:34, Hans-Frieder Vogt wrote:
-> af9033: implement read_ber and read_ucblocks functions. Version 2 of patch that
-> reflects my findings on the behaviour of abort_cnt, err_cnt and bit_cnt:
->
-> - bit_cnt is always 0x2710 (10000)
-> - abort_cnt is between 0 and 0x2710
-> - err_cnt is between 0 and 640000 (= 0x2710 * 8 * 8)
->
-> in the current implementation BER is calculated as the number of bit errors per
-> processed bits, ignoring those bits that are already discarded and counted in
-> abort_cnt, i.e. UCBLOCKS.
+On 03.04.2012 18:33, Michael Büsch wrote:
+> On another thing:
+> The af9035 driver doesn't look multi-device safe. There are lots of static
+> variables around that keep device state. So it looks like this will
+> blow up if multiple devices are present in the system. Unlikely, but still... .
+> Are there any plans to fix this up?
+> If not, I'll probably take a look at this. But don't hold your breath.
 
-It still increases UCBLOCKS counter every query even there is no signal 
-at all. BER is in that case always maximum value. Hymps, maybe I just 
-apply that still in order to go ahead...
+I fixed what was possible by moving af9033 and af9035 configurations for 
+the state. That at least resolves most significant issues - like your 
+fc0011 tuner callback.
 
-status 00 | signal 0000 | snr 0000 | ber ffffffff | unc 0024b105 |
-status 00 | signal 0000 | snr 0000 | ber ffffffff | unc 0024d815 |
-
-One of my plans is to block that kind of "illegal" situations in 
-frontend core level. As UCB and BER counters are only valid in case of 
-demod is LOCKed.
+But there is still some stuff in "static struct 
+dvb_usb_device_properties" which cannot be fixed. Like dynamic remote 
+configuration, dual mode, etc. I am going to make RFC for those maybe 
+even this week after some analysis is done.
 
 regards
 Antti
