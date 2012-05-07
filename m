@@ -1,100 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qa0-f49.google.com ([209.85.216.49]:43111 "EHLO
-	mail-qa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751808Ab2EYJRb convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 May 2012 05:17:31 -0400
-Received: by qabj40 with SMTP id j40so1285742qab.1
-        for <linux-media@vger.kernel.org>; Fri, 25 May 2012 02:17:30 -0700 (PDT)
+Received: from perceval.ideasonboard.com ([95.142.166.194]:37943 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756232Ab2EGLrq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 7 May 2012 07:47:46 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Sander Eikelenboom <linux@eikelenboom.it>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, hans.verkuil@cisco.com
+Subject: Re: [ 3960.758784] 1 lock held by motion/7776: [ 3960.758788]  #0:  (&queue->mutex){......}, at: [<ffffffff815c62d2>] uvc_queue_enable+0x32/0xc0
+Date: Mon, 07 May 2012 13:47:45 +0200
+Message-ID: <190915616.lpsK6E9b1z@avalon>
+In-Reply-To: <201205071344.59861.hverkuil@xs4all.nl>
+References: <4410483770.20120428220246@eikelenboom.it> <1363463.HQ7LJLv1Qi@avalon> <201205071344.59861.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <CAO_48GFE3=yQjKS4w7=pGjNe3yENbRrd4bcMTfADJSn7LKekPQ@mail.gmail.com>
-References: <CAO_48GFE3=yQjKS4w7=pGjNe3yENbRrd4bcMTfADJSn7LKekPQ@mail.gmail.com>
-From: Sumit Semwal <sumit.semwal@linaro.org>
-Date: Fri, 25 May 2012 14:47:10 +0530
-Message-ID: <CAO_48GGRRvCKVyY_s=oFgTb1vfjf8pSkHRf3jA8iFcdEHhwxVg@mail.gmail.com>
-Subject: Re: [GIT PULL]: dma-buf updates for 3.5
-To: torvalds@linux-foundation.org, linux-kernel@vger.kernel.org,
-	DRI mailing list <dri-devel@lists.freedesktop.org>,
-	linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org
-Cc: Jesse Barker <jesse.barker@linaro.org>, akpm@linux-foundation.org,
-	Daniel Vetter <daniel@ffwll.ch>, Arnd Bergmann <arnd@arndb.de>,
-	Dave Airlie <airlied@linux.ie>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Linus,
+Hi Hans,
 
-On 25 May 2012 13:25, Sumit Semwal <sumit.semwal@linaro.org> wrote:
-> Hi Linus,
+On Monday 07 May 2012 13:44:59 Hans Verkuil wrote:
+> On Monday 07 May 2012 13:06:01 Laurent Pinchart wrote:
+> > On Sunday 06 May 2012 16:54:40 Sander Eikelenboom wrote:
+> > > Hello Laurent / Mauro,
+> > > 
+> > > I have updated to latest 3.4-rc5-tip, running multiple video grabbers.
+> > > I don't see anything specific to uvcvideo anymore, but i do get the
+> > > possible circular locking dependency below.
+> > 
+> > Thanks for the report.
+> > 
+> > We indeed have a serious issue there (CC'ing Hans Verkuil).
+> > 
+> > Hans, serializing both ioctl handling an mmap with a single device lock as
+> > we currently do in V4L2 is prone to AB-BA deadlocks (uvcvideo shouldn't
+> > be affected as it has no device-wide lock).
+> > 
+> > If we want to keep a device-wide lock we need to take it after the mm-
+> > 
+> > >mmap_sem lock in all code paths, as there's no way we can change the lock
+> > 
+> > ordering for mmap(). The copy_from_user/copy_to_user issue could be solved
+> > by moving locking from v4l2_ioctl to __video_do_ioctl (device-wide locks
+> > would then require using video_ioctl2), but I'm not sure whether that
+> > will play nicely with the QBUF implementation in videobuf2 (which already
+> > includes a workaround for this particular AB-BA deadlock issue).
+> 
+> I've seen the same thing. It was on my TODO list of things to look into. I
+> think mmap shouldn't take the device wide lock at all. But it will mean
+> reviewing affected drivers before I can remove it.
+> 
+> To be honest, I wasn't sure whether or not to take the device lock for mmap
+> when I first wrote that code.
 >
-> Here's the first signed-tag pull request for dma-buf framework.
->
-> Could you please pull the dma-buf updates for 3.5? This includes the
-> following key items:
-> - mmap support
-> - vmap support
-> - related documentation updates
->
-> These are needed by various drivers to allow mmap/vmap of dma-buf
-> shared buffers. Dave Airlie has some prime patches dependent on the
-> vmap pull as well.
->
-> Thanks and best regards,
-> ~Sumit.
->
->
-> The following changes since commit 76e10d158efb6d4516018846f60c2ab5501900bc:
->
->  Linux 3.4 (2012-05-20 15:29:13 -0700)
->
-> are available in the git repository at:
->
->  ssh://sumitsemwal@git.linaro.org/~/public_git/linux-dma-buf.git
-> tags/tag-for-linus-3.5
-I am really sorry - I goofed up in the git URL (sent the ssh URL
-instead). Could you please use
+> If you look at irc I had a discussion today with HdG about adding flags to
+> selectively disable locks for fops. It may be an idea to implement this soon
+> so we can start updating drivers one-by-one.
+> 
+> Frankly, I do not believe this 'possible circular locking' thing to be a
+> real bug as I am not aware of drivers that use the device lock *and* lock
+> mmap_sem. If I understand Sander correctly 'motion' no longer locks up
+> after moving to 3.4-rc5-tip, right?
 
-git://git.linaro.org/people/sumitsemwal/linux-dma-buf.git tags/tag-for-linus-3.5
-
-instead, or should I send a new pull request with the corrected URL?
-
-Thanks, and best regards,
-~Sumit.
->
-> for you to fetch changes up to b25b086d23eb852bf3cfdeb60409b4967ebb3c0c:
->
->  dma-buf: add initial vmap documentation (2012-05-25 12:51:11 +0530)
->
-> ----------------------------------------------------------------
-> dma-buf updates for 3.5
->
-> ----------------------------------------------------------------
-> Daniel Vetter (1):
->      dma-buf: mmap support
->
-> Dave Airlie (2):
->      dma-buf: add vmap interface
->      dma-buf: add initial vmap documentation
->
-> Sumit Semwal (1):
->      dma-buf: minor documentation fixes.
->
->  Documentation/dma-buf-sharing.txt |  109 ++++++++++++++++++++++++++++++++++---
->  drivers/base/dma-buf.c            |   99 ++++++++++++++++++++++++++++++++-
->  include/linux/dma-buf.h           |   33 +++++++++++
->  3 files changed, 233 insertions(+), 8 deletions(-)
-
-
+copy_from_user()/copy_to_user() perform a down_read(&mm->mmap_sem) when a page 
+fault occurs. All drivers thus potentially take mm->mmap_sem when an ioctl is 
+performed.
+ 
+> I have to look into a bit more to see what the best approach it so we can
+> prevent this message from appearing.
 
 -- 
-Thanks and regards,
+Regards,
 
-Sumit Semwal
+Laurent Pinchart
 
-Linaro Kernel Engineer - Graphics working group
-
-Linaro.org │ Open source software for ARM SoCs
-
-Follow Linaro: Facebook | Twitter | Blog
