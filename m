@@ -1,135 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:30657 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965266Ab2EOPlr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 May 2012 11:41:47 -0400
-Received: from euspt1 (mailout1.w1.samsung.com [210.118.77.11])
- by mailout1.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0M42003I4M63H3@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 15 May 2012 16:39:39 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0M4200D63M9GTJ@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 15 May 2012 16:41:45 +0100 (BST)
-Date: Tue, 15 May 2012 17:41:36 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [GIT PULL FOR 3.5] s5p-fimc driver updates
-In-reply-to: <4FB17B79.2000207@gmail.com>
-To: Sylwester Nawrocki <snjw23@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Message-id: <4FB27930.9020408@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 7BIT
-References: <4FA3F635.60409@samsung.com> <4FAB80D5.50500@samsung.com>
- <4FB17B79.2000207@gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:1028 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757614Ab2EGTUh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 7 May 2012 15:20:37 -0400
+From: Hans de Goede <hdegoede@redhat.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: hverkuil@xs4all.nl, Hans de Goede <hdegoede@redhat.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 12/23] gspca_zc3xx: Disable the highest quality setting as it is not usable
+Date: Mon,  7 May 2012 21:01:23 +0200
+Message-Id: <1336417294-4566-13-git-send-email-hdegoede@redhat.com>
+In-Reply-To: <1336417294-4566-1-git-send-email-hdegoede@redhat.com>
+References: <1336417294-4566-1-git-send-email-hdegoede@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Even with BRC the highest quality setting is not usable, BRC strips so
+much data from each MCU that the quality becomes worse then using a lower
+quality setting to begin with.
 
-On 05/14/2012 11:39 PM, Sylwester Nawrocki wrote:
-> On 05/10/2012 10:48 AM, Sylwester Nawrocki wrote:
->> On 05/04/2012 05:31 PM, Sylwester Nawrocki wrote:
-...
->> Mauro,
->>
->> I've found a few issues in this series afterwards and re-edited 3 commits there.
->> Here is an updated pull request:
->>
->> The following changes since commit ae45d3e9aea0ab951dbbca2238fbfbf3993f1e7f:
->>
->>    s5p-fimc: Correct memory allocation for VIDIOC_CREATE_BUFS (2012-05-09 16:07:49 +0200)
->>
->> are available in the git repository at:
->>
->>    git://git.infradead.org/users/kmpark/linux-samsung v4l-fimc-exynos4x12
->>
->> for you to fetch changes up to 5feefe6656583de6fd4ef1d53b19031dd5efeec1:
->>
->>    s5p-fimc: Use selection API in place of crop operations (2012-05-09 16:11:29 +0200)
->>
->> ----------------------------------------------------------------
->> Sylwester Nawrocki (14):
->>        V4L: Extend V4L2_CID_COLORFX with more image effects
->>        s5p-fimc: Avoid crash with null platform_data
->>        s5p-fimc: Move m2m node driver into separate file
-> 
-> It seems there is a conflict now with this patch:
-> http://git.linuxtv.org/media_tree.git/commit/5126f2590bee412e3053de851cb07f531e4be36a
-> 
-> Attached are updated versions of the two conflicting patches, the others 
-> don't need touching.
-> 
-> I could provide rebased version of the whole change set tomorrow - if needed.
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/video/gspca/zc3xx.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-Here comes the updated change set:
+diff --git a/drivers/media/video/gspca/zc3xx.c b/drivers/media/video/gspca/zc3xx.c
+index 18ef68d..a8282b8 100644
+--- a/drivers/media/video/gspca/zc3xx.c
++++ b/drivers/media/video/gspca/zc3xx.c
+@@ -194,7 +194,7 @@ static const struct ctrl sd_ctrls[NCTRLS] = {
+ 		.type    = V4L2_CTRL_TYPE_INTEGER,
+ 		.name    = "Compression Quality",
+ 		.minimum = 50,
+-		.maximum = 94,
++		.maximum = 87,
+ 		.step    = 1,
+ 		.default_value = 75,
+ 	    },
+@@ -241,8 +241,11 @@ static const struct v4l2_pix_format sif_mode[] = {
+ 		.priv = 0},
+ };
+ 
+-/* bridge reg08 bits 1-2 -> JPEG quality conversion table */
+-static u8 jpeg_qual[] = {50, 75, 87, 94};
++/*
++ * Bridge reg08 bits 1-2 -> JPEG quality conversion table. Note the highest
++ * quality setting is not usable as USB 1 does not have enough bandwidth.
++ */
++static u8 jpeg_qual[] = {50, 75, 87, /* 94 */};
+ 
+ /* usb exchanges */
+ struct usb_action {
+-- 
+1.7.10
 
-The following changes since commit 152a3a7320d1582009db85d8be365ce430d079af:
-
-  [media] v4l2-dev: rename two functions (2012-05-14 15:06:50 -0300)
-
-are available in the git repository at:
-
-  git://git.infradead.org/users/kmpark/linux-samsung v4l-fimc-exynos4x12
-
-for you to fetch changes up to 7df337fdecb908d6b7762b0b6d9160a911d0cafe:
-
-  s5p-fimc: Use selection API in place of crop operations (2012-05-15 11:02:53
-+0200)
-
-----------------------------------------------------------------
-Sylwester Nawrocki (14):
-      s5p-fimc: Correct memory allocation for VIDIOC_CREATE_BUFS
-      s5p-fimc: Avoid crash with null platform_data
-      s5p-fimc: Move m2m node driver into separate file
-      s5p-fimc: Use v4l2_subdev internal ops to register video nodes
-      s5p-fimc: Refactor the register interface functions
-      s5p-fimc: Add FIMC-LITE register definitions
-      s5p-fimc: Rework the video pipeline control functions
-      s5p-fimc: Prefix format enumerations with FIMC_FMT_
-      s5p-fimc: Minor cleanups
-      s5p-fimc: Make sure an interrupt is properly requested
-      s5p-fimc: Add support for Exynos4x12 FIMC-LITE
-      s5p-fimc: Update copyright notices
-      s5p-fimc: Add color effect control
-      s5p-fimc: Use selection API in place of crop operations
-
- drivers/media/video/Kconfig                  |   24 +-
- drivers/media/video/s5p-fimc/Kconfig         |   48 +++
- drivers/media/video/s5p-fimc/Makefile        |    6 +-
- drivers/media/video/s5p-fimc/fimc-capture.c  |  500
-++++++++++++++++++++------------
- drivers/media/video/s5p-fimc/fimc-core.c     | 1109
-+++++++++++----------------------------------------------------------
- drivers/media/video/s5p-fimc/fimc-core.h     |  256 +++++-----------
- drivers/media/video/s5p-fimc/fimc-lite-reg.c |  300 +++++++++++++++++++
- drivers/media/video/s5p-fimc/fimc-lite-reg.h |  150 ++++++++++
- drivers/media/video/s5p-fimc/fimc-lite.c     | 1576
-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- drivers/media/video/s5p-fimc/fimc-lite.h     |  213 ++++++++++++++
- drivers/media/video/s5p-fimc/fimc-m2m.c      |  824
-++++++++++++++++++++++++++++++++++++++++++++++++++++
- drivers/media/video/s5p-fimc/fimc-mdevice.c  |  407 +++++++++++++++++---------
- drivers/media/video/s5p-fimc/fimc-mdevice.h  |   18 +-
- drivers/media/video/s5p-fimc/fimc-reg.c      |  613
-+++++++++++++++++++++------------------
- drivers/media/video/s5p-fimc/fimc-reg.h      |  326 +++++++++++++++++++++
- drivers/media/video/s5p-fimc/regs-fimc.h     |  301 -------------------
- include/media/s5p_fimc.h                     |   16 +
- 17 files changed, 4635 insertions(+), 2052 deletions(-)
- create mode 100644 drivers/media/video/s5p-fimc/Kconfig
- create mode 100644 drivers/media/video/s5p-fimc/fimc-lite-reg.c
- create mode 100644 drivers/media/video/s5p-fimc/fimc-lite-reg.h
- create mode 100644 drivers/media/video/s5p-fimc/fimc-lite.c
- create mode 100644 drivers/media/video/s5p-fimc/fimc-lite.h
- create mode 100644 drivers/media/video/s5p-fimc/fimc-m2m.c
- create mode 100644 drivers/media/video/s5p-fimc/fimc-reg.h
- delete mode 100644 drivers/media/video/s5p-fimc/regs-fimc.h
-
---
-Regards,
-Sylwester
