@@ -1,154 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:59959 "EHLO
-	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1750739Ab2E3P04 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 May 2012 11:26:56 -0400
-Received: by ghrr14 with SMTP id r14so3667373ghr.18
-        for <linux-media@vger.kernel.org>; Wed, 30 May 2012 08:26:55 -0700 (PDT)
+Received: from mail.kapsi.fi ([217.30.184.167]:55385 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932226Ab2EGUvD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 7 May 2012 16:51:03 -0400
+Message-ID: <4FA835B3.40802@iki.fi>
+Date: Mon, 07 May 2012 23:50:59 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <5090892.Z3RkLXNQ1U@avalon>
-References: <1337775027-9489-1-git-send-email-t.stanislaws@samsung.com> <5090892.Z3RkLXNQ1U@avalon>
-From: "Semwal, Sumit" <sumit.semwal@ti.com>
-Date: Wed, 30 May 2012 23:26:34 +0800
-Message-ID: <CAB2ybb-0D4vs=k6GjBuw8OitDpPSjDdyOcEqogFtGdZUk0pasQ@mail.gmail.com>
-Subject: Re: [PATCHv6 00/13] Integration of videobuf2 with dmabuf
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	airlied@redhat.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, daeinki@gmail.com,
-	daniel.vetter@ffwll.ch, robdclark@gmail.com, pawel@osciak.com,
-	linaro-mm-sig@lists.linaro.org, hverkuil@xs4all.nl,
-	remi@remlab.net, subashrp@gmail.com, mchehab@redhat.com,
-	g.liakhovetski@gmx.de
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: Hin-Tak Leung <hintak_leung@yahoo.co.uk>
+CC: linux-media <linux-media@vger.kernel.org>,
+	will.cooke@canonical.com, Greg KH <greg@kroah.com>
+Subject: Re: GSoC 2012 Linux-Media!
+References: <4FA291F5.3000103@iki.fi> <4FA49DB4.9080206@yahoo.co.uk>
+In-Reply-To: <4FA49DB4.9080206@yahoo.co.uk>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, May 29, 2012 at 6:25 AM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> Hi Tomasz,
-Hi Tomasz, Laurent, Mauro,
+Hello!
+
+On 05.05.2012 06:25, Hin-Tak Leung wrote:
+> Hi Antti,
 >
-> On Wednesday 23 May 2012 14:10:14 Tomasz Stanislawski wrote:
->> Hello everyone,
->> This patchset adds support for DMABUF [2] importing to V4L2 stack.
->> The support for DMABUF exporting was moved to separate patchset
->> due to dependency on patches for DMA mapping redesign by
->> Marek Szyprowski [4].
+> I promised to put you in touch with some more knowledgeable people, so
+> here they are. Will made a few comments during our discussions (inserted
+> verbatim below - may or may not be relevant)... Please feel free to
+> respond to Mr Cooke and/or write to him and Greg.
 >
-> Except for the small issue with patches 01/13 and 02/13, the set is ready for
-> upstream as far as I'm concerned.
-+1; Mauro: how do you think about this series? Getting it landed into
-3.5 would make life lot easier :)
+> Hin-Tak
 >
->> v6:
->> - fixed missing entry in v4l2_memory_names
->> - fixed a bug occuring after get_user_pages failure
+> Will Cooke wrote:
+>  > The hacks with USB stick are entirely reliant on the chips inside the
+> stick. In
+>  > this case, the demod (Realtek RTL2832U)has the ability to pass
+> through to the
+>  > USB bus raw 8-bit sampled RF called I/Q
+>  > (http://zone.ni.com/devzone/cda/tut/p/id/4805).
+>  >
+>  > Once you have this raw I/Q data you can demodulate the signals and
+> process them
+>  > in software. So it's possible to build an FM radio, an AM radio, a
+> DAB radio,
+>  > Ham radio, Packet radio, slow scan TV, basically anything which
+> modulates a sine
+>  > wave within the frequency range of the tuner inside the DVB stick.
+> Not all DVB
+>  > tuners are created equal. Some will be limited to n hundred MHz, some
+> have a
+>  > range as low as 50 or 60 MHz up to a few GHz.
+>  >
+>  > Chips that have this functionality AND are built in to DVB USB sticks
+> AND cost
+>  > less than 20 Dollars are few and far between. So it's pretty rare to
+> find a
+>  > compatible USB stick, and not every USB stick can pull off this neat
+> trick.
+>  >
+>  > There is probably scope to run a project around a single targeted DVB
+> USB stick,
+>  > but hardware support would be limited. GNU Radio is a good tool to
+> build the
+>  > remodulators. As an example real world application, how about
+> building one of
+>  > these sticks in to a laptop and integrating it with the audio stack.
+> Now my
+>  > laptop comes with a TV tuner, an FM tuner, a DAB tuner, and so on.
+>  >
+>  > I hope that helps set the scene a little bit more. Let me know if you
+> need any
+>  > more help.
+>  >
+>  > Cheers, Will
 >
-> I've missed that one, what was it ?
->
->> - fixed a bug caused by using invalid vma for get_user_pages
->> - prepare/finish no longer call dma_sync for dmabuf buffers
->>
->> v5:
->> - removed change of importer/exporter behaviour
->> - fixes vb2_dc_pages_to_sgt basing on Laurent's hints
->> - changed pin/unpin words to lock/unlock in Doc
->>
->> v4:
->> - rebased on mainline 3.4-rc2
->> - included missing importing support for s5p-fimc and s5p-tv
->> - added patch for changing map/unmap for importers
->> - fixes to Documentation part
->> - coding style fixes
->> - pairing {map/unmap}_dmabuf in vb2-core
->> - fixing variable types and semantic of arguments in videobufb2-dma-contig.c
->>
->> v3:
->> - rebased on mainline 3.4-rc1
->> - split 'code refactor' patch to multiple smaller patches
->> - squashed fixes to Sumit's patches
->> - patchset is no longer dependant on 'DMA mapping redesign'
->> - separated path for handling IO and non-IO mappings
->> - add documentation for DMABUF importing to V4L
->> - removed all DMABUF exporter related code
->> - removed usage of dma_get_pages extension
->>
->> v2:
->> - extended VIDIOC_EXPBUF argument from integer memoffset to struct
->>   v4l2_exportbuffer
->> - added patch that breaks DMABUF spec on (un)map_atachment callcacks but
->> allows to work with existing implementation of DMABUF prime in DRM
->> - all dma-contig code refactoring patches were squashed
->> - bugfixes
->>
->> v1: List of changes since [1].
->> - support for DMA api extension dma_get_pages, the function is used to
->> retrieve pages used to create DMA mapping.
->> - small fixes/code cleanup to videobuf2
->> - added prepare and finish callbacks to vb2 allocators, it is used keep
->>   consistency between dma-cpu acess to the memory (by Marek Szyprowski)
->> - support for exporting of DMABUF buffer in V4L2 and Videobuf2, originated
->> from [3].
->> - support for dma-buf exporting in vb2-dma-contig allocator
->> - support for DMABUF for s5p-tv and s5p-fimc (capture interface) drivers,
->>   originated from [3]
->> - changed handling for userptr buffers (by Marek Szyprowski, Andrzej
->>   Pietrasiewicz)
->> - let mmap method to use dma_mmap_writecombine call (by Marek Szyprowski)
->>
->> [1]
->> http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/4296
->> 6/focus=42968 [2] https://lkml.org/lkml/2011/12/26/29
->> [3]
->> http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/3635
->> 4/focus=36355 [4]
->> http://thread.gmane.org/gmane.linux.kernel.cross-arch/12819
->>
->> Laurent Pinchart (2):
->>   v4l: vb2-dma-contig: Shorten vb2_dma_contig prefix to vb2_dc
->>   v4l: vb2-dma-contig: Reorder functions
->>
->> Marek Szyprowski (2):
->>   v4l: vb2: add prepare/finish callbacks to allocators
->>   v4l: vb2-dma-contig: add prepare/finish to dma-contig allocator
->>
->> Sumit Semwal (4):
->>   v4l: Add DMABUF as a memory type
->>   v4l: vb2: add support for shared buffer (dma_buf)
->>   v4l: vb: remove warnings about MEMORY_DMABUF
->>   v4l: vb2-dma-contig: add support for dma_buf importing
->>
->> Tomasz Stanislawski (5):
->>   Documentation: media: description of DMABUF importing in V4L2
->>   v4l: vb2-dma-contig: Remove unneeded allocation context structure
->>   v4l: vb2-dma-contig: add support for scatterlist in userptr mode
->>   v4l: s5p-tv: mixer: support for dmabuf importing
->>   v4l: s5p-fimc: support for dmabuf importing
->>
->>  Documentation/DocBook/media/v4l/compat.xml         |    4 +
->>  Documentation/DocBook/media/v4l/io.xml             |  179 +++++++
->>  .../DocBook/media/v4l/vidioc-create-bufs.xml       |    1 +
->>  Documentation/DocBook/media/v4l/vidioc-qbuf.xml    |   15 +
->>  Documentation/DocBook/media/v4l/vidioc-reqbufs.xml |   45 +-
->>  drivers/media/video/s5p-fimc/Kconfig               |    1 +
->>  drivers/media/video/s5p-fimc/fimc-capture.c        |    2 +-
->>  drivers/media/video/s5p-tv/Kconfig                 |    1 +
->>  drivers/media/video/s5p-tv/mixer_video.c           |    2 +-
->>  drivers/media/video/v4l2-ioctl.c                   |    1 +
->>  drivers/media/video/videobuf-core.c                |    4 +
->>  drivers/media/video/videobuf2-core.c               |  207 +++++++-
->>  drivers/media/video/videobuf2-dma-contig.c         |  520 ++++++++++++++---
->>  include/linux/videodev2.h                          |    7 +
->>  include/media/videobuf2-core.h                     |   34 ++
->>  15 files changed, 924 insertions(+), 99 deletions(-)
-> --
-> Regards,
->
-> Laurent Pinchart
->
-Best regards,
-~Sumit.
+> Will Cooke wrote:
+>  > Hi Till!
+>  >
+>  > I am familiar with what a USB-DVB stick is, how it works, the inside
+> of a DVB
+>  > transport stream, and so on, but... I'm in no way an expert, and I'm
+> in no way a
+>  > developer!
+>  >
+>  > Depending on what sort of mentoring you had in mind, I would be happy
+> to get
+>  > involved.
+>  >
+>  > Can you let me know a little more about the project and what kind of
+> input you
+>  > need from me.
+>  >
+>  > Cheers, Will
+
+Yes I know that RTL2832U SDR since I did a little bit initial stuff for it:
+http://comments.gmane.org/gmane.linux.drivers.video-input-infrastructure/44461
+
+Actually, RTL2832U GNU Radio driver, is accepted as my Bachelor's 
+Thesis. But I don't see idea to do that no longer since it was already 
+done by the others...
+
+I have still some interest of hacking with that area. One thing what I 
+have been thinking in my brains is Kernel DVB interface support for 
+SDRs. It is not very much work for adding Kernel support. Define new 
+dilivery system for frontend and some changes for the DVB core to pass 
+raw payload data. Some very simple conversion is also needed as RTL2832U 
+supports only 8 bit samples what we know. And then suitable driver for 
+the GNU Radio which can speak our Kernel DVB "API" language ;)
+
+But there is currently only that one DVB device we known how to use as a 
+general SDR. There is surely some others available and more is coming as 
+all new radios are less or more SDRs. For example Dibcom Octopus. I 
+still suspect vendors are not very willingly releasing needed 
+information which could slow down things...
+
+I do not have clear vision how that kind of SDR radios should be 
+integrated to the existing desktop. But likely Linux DVB -interface + 
+userspace stuff for the signal handling?
+
+regards
+Antti
+-- 
+http://palosaari.fi/
