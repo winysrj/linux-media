@@ -1,115 +1,392 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gh0-f174.google.com ([209.85.160.174]:62118 "EHLO
-	mail-gh0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750951Ab2E2IYq convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 May 2012 04:24:46 -0400
-Received: by ghrr11 with SMTP id r11so1569794ghr.19
-        for <linux-media@vger.kernel.org>; Tue, 29 May 2012 01:24:45 -0700 (PDT)
+Received: from mail-pz0-f46.google.com ([209.85.210.46]:49768 "EHLO
+	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756644Ab2EGOih (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 7 May 2012 10:38:37 -0400
+Message-ID: <4FA7DE61.7000705@gmail.com>
+Date: Mon, 07 May 2012 20:08:25 +0530
+From: Subash Patel <subashrp@gmail.com>
 MIME-Version: 1.0
-Date: Tue, 29 May 2012 10:24:45 +0200
-Message-ID: <CAGGh5h3jNpbPty6Qzrz9XhmBJci2GcHZhaF8w3dmG_Ce9dpSRQ@mail.gmail.com>
-Subject: [RFC PATCH] omap3isp : fix cfa demosaicing for format other than GRBG
-From: jean-philippe francois <jp.francois@cynove.com>
-To: linux-media <linux-media@vger.kernel.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: Tomasz Stanislawski <t.stanislaws@samsung.com>
+CC: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	airlied@redhat.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, laurent.pinchart@ideasonboard.com,
+	sumit.semwal@ti.com, daeinki@gmail.com, daniel.vetter@ffwll.ch,
+	robdclark@gmail.com, pawel@osciak.com,
+	linaro-mm-sig@lists.linaro.org, hverkuil@xs4all.nl,
+	remi@remlab.net, mchehab@redhat.com, linux-doc@vger.kernel.org,
+	g.liakhovetski@gmx.de,
+	Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>
+Subject: Re: [PATCHv5 08/13] v4l: vb2-dma-contig: add support for scatterlist
+ in userptr mode
+References: <1334933134-4688-1-git-send-email-t.stanislaws@samsung.com> <1334933134-4688-9-git-send-email-t.stanislaws@samsung.com>
+In-Reply-To: <1334933134-4688-9-git-send-email-t.stanislaws@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hello Thomasz, Laurent,
 
-omap3 ISP previewer block can convert a raw bayer image
-into a UYVY image. Debayering coefficient are stored in
-an undocumented table. In the current form, only
-GRBG format are converted correctly.
+I found an issue in the function vb2_dc_pages_to_sgt() below. I saw that 
+during the attach, the size of the SGT and size requested mis-matched 
+(by atleast 8k bytes). Hence I made a small correction to the code as 
+below. I could then attach the importer properly.
 
-However, the other CFA arrangement can be transformed
-in GRBG arrangement by shifting the image window one pixel
-to the left or to the bottom.
+Regards,
+Subash
 
-Here is a patch against vanilla 3.2.17, that was only tested with a
-BGGR arrangement.
-Is it the right way to fix this issue ?
+On 04/20/2012 08:15 PM, Tomasz Stanislawski wrote:
+> From: Andrzej Pietrasiewicz<andrzej.p@samsung.com>
+>
+> This patch introduces usage of dma_map_sg to map memory behind
+> a userspace pointer to a device as dma-contiguous mapping.
+>
+> Signed-off-by: Andrzej Pietrasiewicz<andrzej.p@samsung.com>
+> Signed-off-by: Marek Szyprowski<m.szyprowski@samsung.com>
+> 	[bugfixing]
+> Signed-off-by: Kamil Debski<k.debski@samsung.com>
+> 	[bugfixing]
+> Signed-off-by: Tomasz Stanislawski<t.stanislaws@samsung.com>
+> 	[add sglist subroutines/code refactoring]
+> Signed-off-by: Kyungmin Park<kyungmin.park@samsung.com>
+> ---
+>   drivers/media/video/videobuf2-dma-contig.c |  279 ++++++++++++++++++++++++++--
+>   1 files changed, 262 insertions(+), 17 deletions(-)
+>
+> diff --git a/drivers/media/video/videobuf2-dma-contig.c b/drivers/media/video/videobuf2-dma-contig.c
+> index 476e536..9cbc8d4 100644
+> --- a/drivers/media/video/videobuf2-dma-contig.c
+> +++ b/drivers/media/video/videobuf2-dma-contig.c
+> @@ -11,6 +11,8 @@
+>    */
+>
+>   #include<linux/module.h>
+> +#include<linux/scatterlist.h>
+> +#include<linux/sched.h>
+>   #include<linux/slab.h>
+>   #include<linux/dma-mapping.h>
+>
+> @@ -22,6 +24,8 @@ struct vb2_dc_buf {
+>   	void				*vaddr;
+>   	unsigned long			size;
+>   	dma_addr_t			dma_addr;
+> +	enum dma_data_direction		dma_dir;
+> +	struct sg_table			*dma_sgt;
+>
+>   	/* MMAP related */
+>   	struct vb2_vmarea_handler	handler;
+> @@ -32,6 +36,95 @@ struct vb2_dc_buf {
+>   };
+>
+>   /*********************************************/
+> +/*        scatterlist table functions        */
+> +/*********************************************/
+> +
+> +static struct sg_table *vb2_dc_pages_to_sgt(struct page **pages,
+> +	unsigned int n_pages, unsigned long offset, unsigned long size)
+> +{
+> +	struct sg_table *sgt;
+> +	unsigned int chunks;
+> +	unsigned int i;
+> +	unsigned int cur_page;
+> +	int ret;
+> +	struct scatterlist *s;
+> +
+> +	sgt = kzalloc(sizeof *sgt, GFP_KERNEL);
+> +	if (!sgt)
+> +		return ERR_PTR(-ENOMEM);
+> +
+> +	/* compute number of chunks */
+> +	chunks = 1;
+> +	for (i = 1; i<  n_pages; ++i)
+> +		if (pages[i] != pages[i - 1] + 1)
+> +			++chunks;
+> +
+> +	ret = sg_alloc_table(sgt, chunks, GFP_KERNEL);
+> +	if (ret) {
+> +		kfree(sgt);
+> +		return ERR_PTR(-ENOMEM);
+> +	}
+> +
+> +	/* merging chunks and putting them into the scatterlist */
+> +	cur_page = 0;
+> +	for_each_sg(sgt->sgl, s, sgt->orig_nents, i) {
+> +		unsigned long chunk_size;
+> +		unsigned int j;
+		size = PAGE_SIZE;
 
-Thank you,
-
-Jean-Philippe François
-
-
-Index: b/drivers/media/video/omap3isp/isppreview.c
-===================================================================
---- a/drivers/media/video/omap3isp/isppreview.c
-+++ b/drivers/media/video/omap3isp/isppreview.c
-@@ -96,21 +96,26 @@
-  *					  2 lines in other modes
-  * Color suppression		2 pixels
-  * or luma enhancement
-+ *
-+ * Bayer pattern shifting 2 pixels, 1 line
-  * -------------------------------------------------------------
-- * Maximum total		14 pixels, 8 lines
-+ * Maximum total		18 pixels, 9 lines
-  *
-  * The color suppression and luma enhancement filters are applied
-after bayer to
-  * YUV conversion. They thus can crop one pixel on the left and one
-pixel on the
-  * right side of the image without changing the color pattern. When both those
-  * filters are disabled, the driver must crop the two pixels on the
-same side of
-- * the image to avoid changing the bayer pattern. The left margin is
-thus set to
-- * 8 pixels and the right margin to 6 pixels.
-+ * the image to avoid changing the bayer pattern.
-+ *
-+ * Bayer pattern shifting is needed for some bayer pattern. Shifting
-+ * will be in the right and bottom direction.
-+ * The left margin is thus set to 8 pixels and the right margin to 10 pixels.
-  */
-
- #define PREV_MARGIN_LEFT	8
--#define PREV_MARGIN_RIGHT	6
-+#define PREV_MARGIN_RIGHT	10
- #define PREV_MARGIN_TOP		4
--#define PREV_MARGIN_BOTTOM	4
-+#define PREV_MARGIN_BOTTOM	5
-
- #define PREV_MIN_IN_WIDTH	64
- #define PREV_MIN_IN_HEIGHT	8
-@@ -1038,6 +1043,34 @@
- 		eph += 2;
- 		slv -= 2;
- 		elv += 2;
-+		/* CFA table coef only handle GRBG format. Other format
-+		 * can be transformed in GRBG by shifting the pattern :
-+		 * BGGR -> GRBG is obtained by a 1 row shift
-+		 * RGGB -> GRBG is obtained by a 1 column shift
-+		 * GBRG -> GRBG is obtained by a row and column shift
-+		 */
-+		switch(prev->formats[PREV_PAD_SINK].code) {
-+		case V4L2_MBUS_FMT_SRGGB10_1X10:
-+			sph += 1;
-+			eph += 1;
-+			break;
-+
-+		case V4L2_MBUS_FMT_SBGGR10_1X10:
-+			slv += 1;
-+			elv += 1;
-+			break;
-+
-+		case V4L2_MBUS_FMT_SGBRG10_1X10:
-+			sph += 1;
-+			eph += 1;
-+			slv += 1;
-+			elv += 1;
-+			break;
-+
-+		default:
-+			break;
-+		}
-+
- 	}
- 	if (params->features & (PREV_DEFECT_COR | PREV_NOISE_FILTER)) {
- 		sph -= 2;
+> +
+> +		for (j = cur_page + 1; j<  n_pages; ++j)
+		for (j = cur_page + 1; j < n_pages; ++j) {
+> +			if (pages[j] != pages[j - 1] + 1)
+> +				break;
+			size += PAGE
+		}
+> +
+> +		chunk_size = ((j - cur_page)<<  PAGE_SHIFT) - offset;
+> +		sg_set_page(s, pages[cur_page], min(size, chunk_size), offset);
+		[DELETE] size -= chunk_size;
+> +		offset = 0;
+> +		cur_page = j;
+> +	}
+> +
+> +	return sgt;
+> +}
+> +
+> +static void vb2_dc_release_sgtable(struct sg_table *sgt)
+> +{
+> +	sg_free_table(sgt);
+> +	kfree(sgt);
+> +}
+> +
+> +static void vb2_dc_sgt_foreach_page(struct sg_table *sgt,
+> +	void (*cb)(struct page *pg))
+> +{
+> +	struct scatterlist *s;
+> +	unsigned int i;
+> +
+> +	for_each_sg(sgt->sgl, s, sgt->nents, i) {
+> +		struct page *page = sg_page(s);
+> +		unsigned int n_pages = PAGE_ALIGN(s->offset + s->length)
+> +			>>  PAGE_SHIFT;
+> +		unsigned int j;
+> +
+> +		for (j = 0; j<  n_pages; ++j, ++page)
+> +			cb(page);
+> +	}
+> +}
+> +
+> +static unsigned long vb2_dc_get_contiguous_size(struct sg_table *sgt)
+> +{
+> +	struct scatterlist *s;
+> +	dma_addr_t expected = sg_dma_address(sgt->sgl);
+> +	unsigned int i;
+> +	unsigned long size = 0;
+> +
+> +	for_each_sg(sgt->sgl, s, sgt->nents, i) {
+> +		if (sg_dma_address(s) != expected)
+> +			break;
+> +		expected = sg_dma_address(s) + sg_dma_len(s);
+> +		size += sg_dma_len(s);
+> +	}
+> +	return size;
+> +}
+> +
+> +/*********************************************/
+>   /*         callbacks for all buffers         */
+>   /*********************************************/
+>
+> @@ -116,42 +209,194 @@ static int vb2_dc_mmap(void *buf_priv, struct vm_area_struct *vma)
+>   /*       callbacks for USERPTR buffers       */
+>   /*********************************************/
+>
+> +static inline int vma_is_io(struct vm_area_struct *vma)
+> +{
+> +	return !!(vma->vm_flags&  (VM_IO | VM_PFNMAP));
+> +}
+> +
+> +static struct vm_area_struct *vb2_dc_get_user_vma(
+> +	unsigned long start, unsigned long size)
+> +{
+> +	struct vm_area_struct *vma;
+> +
+> +	/* current->mm->mmap_sem is taken by videobuf2 core */
+> +	vma = find_vma(current->mm, start);
+> +	if (!vma) {
+> +		printk(KERN_ERR "no vma for address %lu\n", start);
+> +		return ERR_PTR(-EFAULT);
+> +	}
+> +
+> +	if (vma->vm_end - vma->vm_start<  size) {
+> +		printk(KERN_ERR "vma at %lu is too small for %lu bytes\n",
+> +			start, size);
+> +		return ERR_PTR(-EFAULT);
+> +	}
+> +
+> +	vma = vb2_get_vma(vma);
+> +	if (!vma) {
+> +		printk(KERN_ERR "failed to copy vma\n");
+> +		return ERR_PTR(-ENOMEM);
+> +	}
+> +
+> +	return vma;
+> +}
+> +
+> +static int vb2_dc_get_user_pages(unsigned long start, struct page **pages,
+> +	int n_pages, struct vm_area_struct *vma, int write)
+> +{
+> +	if (vma_is_io(vma)) {
+> +		unsigned int i;
+> +
+> +		for (i = 0; i<  n_pages; ++i, start += PAGE_SIZE) {
+> +			unsigned long pfn;
+> +			int ret = follow_pfn(vma, start,&pfn);
+> +
+> +			if (ret) {
+> +				printk(KERN_ERR "no page for address %lu\n",
+> +					start);
+> +				return ret;
+> +			}
+> +			pages[i] = pfn_to_page(pfn);
+> +		}
+> +	} else {
+> +		unsigned int n;
+> +
+> +		n = get_user_pages(current, current->mm, start&  PAGE_MASK,
+> +			n_pages, write, 1, pages, NULL);
+> +		if (n != n_pages) {
+> +			printk(KERN_ERR "got only %d of %d user pages\n",
+> +				n, n_pages);
+> +			while (n)
+> +				put_page(pages[--n]);
+> +			return -EFAULT;
+> +		}
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static void vb2_dc_put_dirty_page(struct page *page)
+> +{
+> +	set_page_dirty_lock(page);
+> +	put_page(page);
+> +}
+> +
+> +static void vb2_dc_put_userptr(void *buf_priv)
+> +{
+> +	struct vb2_dc_buf *buf = buf_priv;
+> +	struct sg_table *sgt = buf->dma_sgt;
+> +
+> +	dma_unmap_sg(buf->dev, sgt->sgl, sgt->orig_nents, buf->dma_dir);
+> +	if (!vma_is_io(buf->vma))
+> +		vb2_dc_sgt_foreach_page(sgt, vb2_dc_put_dirty_page);
+> +
+> +	vb2_dc_release_sgtable(sgt);
+> +	vb2_put_vma(buf->vma);
+> +	kfree(buf);
+> +}
+> +
+>   static void *vb2_dc_get_userptr(void *alloc_ctx, unsigned long vaddr,
+> -					unsigned long size, int write)
+> +	unsigned long size, int write)
+>   {
+>   	struct vb2_dc_buf *buf;
+> -	struct vm_area_struct *vma;
+> -	dma_addr_t dma_addr = 0;
+> -	int ret;
+> +	unsigned long start;
+> +	unsigned long end;
+> +	unsigned long offset;
+> +	struct page **pages;
+> +	int n_pages;
+> +	int ret = 0;
+> +	struct sg_table *sgt;
+> +	unsigned long contig_size;
+>
+>   	buf = kzalloc(sizeof *buf, GFP_KERNEL);
+>   	if (!buf)
+>   		return ERR_PTR(-ENOMEM);
+>
+> -	ret = vb2_get_contig_userptr(vaddr, size,&vma,&dma_addr);
+> +	buf->dev = alloc_ctx;
+> +	buf->dma_dir = write ? DMA_FROM_DEVICE : DMA_TO_DEVICE;
+> +
+> +	start = vaddr&  PAGE_MASK;
+> +	offset = vaddr&  ~PAGE_MASK;
+> +	end = PAGE_ALIGN(vaddr + size);
+> +	n_pages = (end - start)>>  PAGE_SHIFT;
+> +
+> +	pages = kmalloc(n_pages * sizeof pages[0], GFP_KERNEL);
+> +	if (!pages) {
+> +		ret = -ENOMEM;
+> +		printk(KERN_ERR "failed to allocate pages table\n");
+> +		goto fail_buf;
+> +	}
+> +
+> +	buf->vma = vb2_dc_get_user_vma(start, size);
+> +	if (IS_ERR(buf->vma)) {
+> +		printk(KERN_ERR "failed to get VMA\n");
+> +		ret = PTR_ERR(buf->vma);
+> +		goto fail_pages;
+> +	}
+> +
+> +	/* extract page list from userspace mapping */
+> +	ret = vb2_dc_get_user_pages(start, pages, n_pages, buf->vma, write);
+>   	if (ret) {
+> -		printk(KERN_ERR "Failed acquiring VMA for vaddr 0x%08lx\n",
+> -				vaddr);
+> -		kfree(buf);
+> -		return ERR_PTR(ret);
+> +		printk(KERN_ERR "failed to get user pages\n");
+> +		goto fail_vma;
+> +	}
+> +
+> +	sgt = vb2_dc_pages_to_sgt(pages, n_pages, offset, size);
+> +	if (IS_ERR(sgt)) {
+> +		printk(KERN_ERR "failed to create scatterlist table\n");
+> +		ret = -ENOMEM;
+> +		goto fail_get_user_pages;
+> +	}
+> +
+> +	/* pages are no longer needed */
+> +	kfree(pages);
+> +	pages = NULL;
+> +
+> +	sgt->nents = dma_map_sg(buf->dev, sgt->sgl, sgt->orig_nents,
+> +		buf->dma_dir);
+> +	if (sgt->nents<= 0) {
+> +		printk(KERN_ERR "failed to map scatterlist\n");
+> +		ret = -EIO;
+> +		goto fail_sgt;
+>   	}
+>
+> +	contig_size = vb2_dc_get_contiguous_size(sgt);
+> +	if (contig_size<  size) {
+> +		printk(KERN_ERR "contiguous mapping is too small %lu/%lu\n",
+> +			contig_size, size);
+> +		ret = -EFAULT;
+> +		goto fail_map_sg;
+> +	}
+> +
+> +	buf->dma_addr = sg_dma_address(sgt->sgl);
+>   	buf->size = size;
+> -	buf->dma_addr = dma_addr;
+> -	buf->vma = vma;
+> +	buf->dma_sgt = sgt;
+>
+>   	return buf;
+> -}
+>
+> -static void vb2_dc_put_userptr(void *mem_priv)
+> -{
+> -	struct vb2_dc_buf *buf = mem_priv;
+> +fail_map_sg:
+> +	dma_unmap_sg(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
+>
+> -	if (!buf)
+> -		return;
+> +fail_sgt:
+> +	if (!vma_is_io(buf->vma))
+> +		vb2_dc_sgt_foreach_page(sgt, put_page);
+> +	vb2_dc_release_sgtable(sgt);
+> +
+> +fail_get_user_pages:
+> +	if (pages&&  !vma_is_io(buf->vma))
+> +		while (n_pages)
+> +			put_page(pages[--n_pages]);
+>
+> +fail_vma:
+>   	vb2_put_vma(buf->vma);
+> +
+> +fail_pages:
+> +	kfree(pages); /* kfree is NULL-proof */
+> +
+> +fail_buf:
+>   	kfree(buf);
+> +
+> +	return ERR_PTR(ret);
+>   }
+>
+>   /*********************************************/
