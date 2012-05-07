@@ -1,58 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:48636 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750864Ab2ETXKu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 20 May 2012 19:10:50 -0400
-Received: by obbtb18 with SMTP id tb18so7259679obb.19
-        for <linux-media@vger.kernel.org>; Sun, 20 May 2012 16:10:49 -0700 (PDT)
+Received: from perceval.ideasonboard.com ([95.142.166.194]:40457 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754153Ab2EGKoq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 7 May 2012 06:44:46 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [media-ctl PATCH 2/3] New, more flexible syntax for media-ctl
+Date: Mon, 07 May 2012 12:44:45 +0200
+Message-ID: <24750495.xAecYja1VB@avalon>
+In-Reply-To: <4FA6BF6A.4030902@iki.fi>
+References: <1336119883-14978-1-git-send-email-sakari.ailus@iki.fi> <2542901.vLyHxKHSqR@avalon> <4FA6BF6A.4030902@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <CAA7C2qiDQJ33OTfq9WxtAgqm0+iaLANoNVKSrvbZ3JpCD=ZGrA@mail.gmail.com>
-References: <4FB95A3B.9070800@iki.fi>
-	<CAA7C2qiDQJ33OTfq9WxtAgqm0+iaLANoNVKSrvbZ3JpCD=ZGrA@mail.gmail.com>
-Date: Sun, 20 May 2012 19:10:49 -0400
-Message-ID: <CAGoCfiz_LpOet3qDpW1H6M=1oEdzKGuXVd6zD_ZprNKkZQgs+g@mail.gmail.com>
-Subject: Re: [RFCv1] DVB-USB improvements [alternative 2]
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: VDR User <user.vdr@gmail.com>
-Cc: Antti Palosaari <crope@iki.fi>,
-	linux-media <linux-media@vger.kernel.org>,
-	Patrick Boettcher <pboettcher@kernellabs.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, May 20, 2012 at 6:30 PM, VDR User <user.vdr@gmail.com> wrote:
-> On Sun, May 20, 2012 at 1:55 PM, Antti Palosaari <crope@iki.fi> wrote:
->> I did some more planning and made alternative RFC.
->> As the earlier alternative was more like changing old functionality that new
->> one goes much more deeper.
->
->> Functionality enhancement mentioned earlier RFC are valid too:
->> http://www.mail-archive.com/linux-media@vger.kernel.org/msg46352.html
->
-> One thing I didn't see mentioned in your post or the one your linked
-> is the rc dependency for _all_ usb devices, whether they even have rc
-> capability or not. It makes sense that is dvb usb is going to get
-> overhauled, that rc functionality be at the very least optional rather
-> than forced it on all usb devices.
+Hi Sakari,
 
-If you think this is important, then you should feel free to submit
-patches to Antti's tree.  Otherwise, this is the sort of optimization
-that brings so little value as to not really be worth the engineering
-effort.  The time is better spent working on problems that *actually*
-have a visible effect to users (and a few extra modules being loaded
-does not fall into this category).
+On Sunday 06 May 2012 21:14:02 Sakari Ailus wrote:
+> Laurent Pinchart wrote:
+> > On Saturday 05 May 2012 16:09:33 Sakari Ailus wrote:
+> ...
+> 
+> >> The pixel format and the image size at the pad are clearly format
+> >> (VIDIOC_SUBDEV_S_FMT) but the other things are related to pads but not
+> >> format.
+> >> 
+> >> I see them different kinds of properties of pads. That suggests we might
+> >> be better renaming the option (-f) to something else as well.
+> > 
+> > You like breaking interfaces, don't you ? :-D
+> 
+> I thought you said we have no stable release yet. :-D
+> 
+> The selection interface on subdevs is currently used to change format
+> related things (cropping and scaling, for example) but it was one of
+> Sylwester's patches ("V4L: Add auto focus targets to the selections
+> API") that adds a focus window target to the V4L2 selection interface. I
+> don't see why it couldn't be present on subdevs, too. That's got nothing
+> to do with the image format.
+> 
+> I've been pondering a bit using another option to configure things
+> related to selections. Conveniently "-s" is free. We could leave the
+> crop things to -f but remove the documentation related to them.
 
-I think you'll find after spending a few hours trying to abstract out
-the logic and the ugly solution that results that it *really* isn't
-worth it.
+It would then become much more complex to setup a complete pipeline in a 
+single command line, unless we completely modify the way the command line is 
+parsed.
 
-Regards,
+What would you think about renaming -f to -V (long option --video or --v4l2) ? 
+media-ctl will hopefully be used for non-V4L2 devices in the future, so 
+subsystem-specific options will likely be needed.
 
-Devin
+> I'm fine with keeping the things as they are for now, too, but in that
+> case we should recognise that -f will not be for formats only. Or we
+> split handling selections into separate options, but I don't like that
+> idea either.
+> 
+> >>> I find the '/' a bit confusing compared to the ' ' (but I think you find
+> >>> the space confusing compared to '/' :-)). I also wonder whether we
+> >>> shouldn't just drop 'fmt:', as there can be a single format only.
+> >> 
+> >> You can set it multiple times, or you may not set it at all. That's why I
+> >> think we should explicitly say it's the format.
+> > 
+> > Not at all makes sense, but why would you set it multiple times ?
+> 
+> I guess that's not a very practical use case, albeit there may be
+> dependencies between the two: Guennadi had a piece of hardware where the
+> hardware cropping or scaling capabilities depended on the format.
+
+We don't have a way to handle that cleanly in the V4L2 API, do we ?
+
+> But not setting it at all definitely is a valid use case.
 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Regards,
+
+Laurent Pinchart
+
