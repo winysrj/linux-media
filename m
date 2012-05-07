@@ -1,95 +1,146 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:55603 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754136Ab2EQUpl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 May 2012 16:45:41 -0400
-Received: by bkcji2 with SMTP id ji2so1871254bkc.19
-        for <linux-media@vger.kernel.org>; Thu, 17 May 2012 13:45:40 -0700 (PDT)
-Message-ID: <4FB56371.1070605@googlemail.com>
-Date: Thu, 17 May 2012 22:45:37 +0200
-From: Thomas Mair <thomas.mair86@googlemail.com>
-MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: poma <pomidorabelisima@gmail.com>, linux-media@vger.kernel.org
-Subject: Re: [PATCH v4 1/5] rtl2832 ver. 0.4: removed signal statistics
-References: <1> <1337206420-23810-1-git-send-email-thomas.mair86@googlemail.com> <1337206420-23810-2-git-send-email-thomas.mair86@googlemail.com> <4FB50909.7030101@iki.fi> <4FB55F2D.8060000@gmail.com> <4FB56262.5020803@iki.fi>
-In-Reply-To: <4FB56262.5020803@iki.fi>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+Received: from smtp.nokia.com ([147.243.1.48]:39494 "EHLO mgw-sa02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756147Ab2EGNq7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 7 May 2012 09:46:59 -0400
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com
+Subject: [media-ctl PATCH v2 2/2] Compose rectangle support for libv4l2subdev
+Date: Mon,  7 May 2012 16:46:36 +0300
+Message-Id: <1336398396-31526-2-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1336398396-31526-1-git-send-email-sakari.ailus@iki.fi>
+References: <1336398396-31526-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 17.05.2012 22:41, Antti Palosaari wrote:
-> On 17.05.2012 23:27, poma wrote:
->> On 05/17/2012 04:19 PM, Antti Palosaari wrote:
->>> Moikka Thomas,
->>>
->>> Here is the review. See comments below.
->>>
->>> And conclusion is that it is ready for the Kernel merge. I did not see
->>> any big functiuonality problems - only some small issues that are likely
->>> considered as a coding style etc. Feel free to fix those and sent new
->>> patc serie or just new patch top of that.
->>>
->>> Reviewed-by: Antti Palosaari<crope@iki.fi>
-> 
-> [...]
-> 
->> rtl2832.c.diff:
->> - static int ->  static const
->> - struct ->  static const struct
->> - newline between function call and error check ->  […]
->> - 5 indications apropos 'spaces' regarding 'CodingStyle'- line 206
->> (/usr/share/doc/kernel-doc-3.3.5/Documentation/CodingStyle)
->> […]
->> Use one space around (on each side of) most binary and ternary operators,
->> such as any of these:
->>
->>          =  +  -<   >   *  /  %  |&   ^<=>=  ==  !=  ?  :
->>
->> […]
->>
->> grep '>>\|<<' v4-1-5-rtl2832-ver.-0.4-removed-signal-statistics.patch.orig
->> +    len = (msb>>  3) + 1;
->> +        reading_tmp |= reading[i]<<  ((len-1-i)*8);
->> +    *val = (reading_tmp>>  lsb)&  mask;
->> +    len = (msb>>  3) + 1;
->> +        reading_tmp |= reading[i]<<  ((len-1-i)*8);
->> +    writing_tmp = reading_tmp&  ~(mask<<  lsb);
->> +    writing_tmp |= ((val&  mask)<<  lsb);
->> +        writing[i] = (writing_tmp>>  ((len-1-i)*8))&  0xff;
->> +    num = bw_mode<<  20;
->>
->> Bitshift operators seems to be OK.
->> Something else?
-> 
-> (len-1-i)*8
-I almost have a new corrected version of the patch series ready, fixing this issues and the 
-other ones you mentioned. 
-> 
->> - 1 indication apropos 'media/dvb/frontends/rtl2832_priv.h:30'
->> Compared to 'rtl2830_priv.h' seems to be OK.
->>
->> ./checkpatch.pl --no-tree
->> v4-1-5-rtl2832-ver.-0.4-removed-signal-statistics.patch.orig
->> ERROR: Missing Signed-off-by: line(s)
->>
->> total: 1 errors, 0 warnings, 1177 lines checked
->>
->> v4-1-5-rtl2832-ver.-0.4-removed-signal-statistics.patch.orig has style
->> problems, please review.  If any of these errors
->> are false positives report them to the maintainer, see
->> CHECKPATCH in MAINTAINERS.
->>
->> How do you produce this error:
->> "ERROR: Macros with complex values should be enclosed in parenthesis…"?
-> 
-> Just running checkpatch.pl --file foo
-> 
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+ src/main.c       |   14 ++++++++++++++
+ src/options.c    |    6 ++++--
+ src/v4l2subdev.c |   32 +++++++++++++++++++++++---------
+ 3 files changed, 41 insertions(+), 11 deletions(-)
 
-For me checkpath.pl also does not report the error you reported. It does seem
-strange to me, as the makros are the same as in rtl2830_priv.h
+diff --git a/src/main.c b/src/main.c
+index 2f57352..a989669 100644
+--- a/src/main.c
++++ b/src/main.c
+@@ -77,6 +77,20 @@ static void v4l2_subdev_print_format(struct media_entity *entity,
+ 		printf("\n\t\t crop:%u,%u/%ux%u", rect.left, rect.top,
+ 		       rect.width, rect.height);
+ 
++	ret = v4l2_subdev_get_selection(entity, &rect, pad,
++					V4L2_SUBDEV_SEL_TGT_COMPOSE_BOUNDS,
++					which);
++	if (ret == 0)
++		printf("\n\t\t compose.bounds:%u,%u/%ux%u",
++		       rect.left, rect.top, rect.width, rect.height);
++
++	ret = v4l2_subdev_get_selection(entity, &rect, pad,
++					V4L2_SUBDEV_SEL_TGT_COMPOSE_ACTUAL,
++					which);
++	if (ret == 0)
++		printf("\n\t\t compose:%u,%u/%ux%u",
++		       rect.left, rect.top, rect.width, rect.height);
++
+ 	printf("]");
+ }
+ 
+diff --git a/src/options.c b/src/options.c
+index 46f6bef..8e80bd0 100644
+--- a/src/options.c
++++ b/src/options.c
+@@ -56,12 +56,14 @@ static void usage(const char *argv0, int verbose)
+ 	printf("\tv4l2                = pad, '[', v4l2-cfgs ']' ;\n");
+ 	printf("\tv4l2-cfgs           = v4l2-cfg [ ',' v4l2-cfg ] ;\n");
+ 	printf("\tv4l2-cfg            = v4l2-mbusfmt | v4l2-crop\n");
+-	printf("\t                      | v4l2 frame interval ;\n");
++	printf("\t                      | v4l2-compose | v4l2 frame interval ;\n");
+ 	printf("\tv4l2-mbusfmt        = 'fmt:', fcc, '/', size ;\n");
+ 	printf("\tpad                 = entity, ':', pad number ;\n");
+ 	printf("\tentity              = entity number | ( '\"', entity name, '\"' ) ;\n");
+ 	printf("\tsize                = width, 'x', height ;\n");
+-	printf("\tv4l2-crop           = 'crop:(', left, ',', top, ')/', size ;\n");
++	printf("\tv4l2-crop           = 'crop:', v4l2-rectangle ;\n");
++	printf("\tv4l2-compose        = 'compose:', v4l2-rectangle ;\n");
++	printf("\tv4l2-rectangle      = '(', left, ',', top, ')/', size ;\n");
+ 	printf("\tv4l2 frame interval = '@', numerator, '/', denominator ;\n");
+ 	printf("where the fields are\n");
+ 	printf("\tentity number   Entity numeric identifier\n");
+diff --git a/src/v4l2subdev.c b/src/v4l2subdev.c
+index 6881553..0abb4f4 100644
+--- a/src/v4l2subdev.c
++++ b/src/v4l2subdev.c
+@@ -320,8 +320,8 @@ static int strhazit(const char *str, const char **p)
+ 
+ static struct media_pad *v4l2_subdev_parse_pad_format(
+ 	struct media_device *media, struct v4l2_mbus_framefmt *format,
+-	struct v4l2_rect *crop, struct v4l2_fract *interval, const char *p,
+-	char **endp)
++	struct v4l2_rect *crop, struct v4l2_rect *compose,
++	struct v4l2_fract *interval, const char *p, char **endp)
+ {
+ 	struct media_pad *pad;
+ 	char *end;
+@@ -358,6 +358,15 @@ static struct media_pad *v4l2_subdev_parse_pad_format(
+ 			continue;
+ 		}
+ 
++		if (!strhazit("compose:", &p)) {
++			ret = v4l2_subdev_parse_rectangle(compose, p, &end);
++			if (ret < 0)
++				return NULL;
++
++			for (p = end; isspace(*p); p++);
++			continue;
++		}
++
+ 		if (*p == '@') {
+ 			ret = v4l2_subdev_parse_frame_interval(interval, ++p, &end);
+ 			if (ret < 0)
+@@ -471,30 +480,35 @@ static int v4l2_subdev_parse_setup_format(struct media_device *media,
+ 	struct v4l2_mbus_framefmt format = { 0, 0, 0 };
+ 	struct media_pad *pad;
+ 	struct v4l2_rect crop = { -1, -1, -1, -1 };
++	struct v4l2_rect compose = crop;
+ 	struct v4l2_fract interval = { 0, 0 };
+ 	unsigned int i;
+ 	char *end;
+ 	int ret;
+ 
+-	pad = v4l2_subdev_parse_pad_format(media, &format, &crop, &interval,
+-					   p, &end);
++	pad = v4l2_subdev_parse_pad_format(media, &format, &crop, &compose,
++					   &interval, p, &end);
+ 	if (pad == NULL) {
+ 		media_dbg(media, "Unable to parse format\n");
+ 		return -EINVAL;
+ 	}
+ 
+-	if (pad->flags & MEDIA_PAD_FL_SOURCE) {
+-		ret = set_selection(pad, V4L2_SUBDEV_SEL_TGT_CROP_ACTUAL, &crop);
++	if (pad->flags & MEDIA_PAD_FL_SINK) {
++		ret = set_format(pad, &format);
+ 		if (ret < 0)
+ 			return ret;
+ 	}
+ 
+-	ret = set_format(pad, &format);
++	ret = set_selection(pad, V4L2_SUBDEV_SEL_TGT_CROP_ACTUAL, &crop);
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	if (pad->flags & MEDIA_PAD_FL_SINK) {
+-		ret = set_selection(pad, V4L2_SUBDEV_SEL_TGT_CROP_ACTUAL, &crop);
++	ret = set_selection(pad, V4L2_SUBDEV_SEL_TGT_COMPOSE_ACTUAL, &compose);
++	if (ret < 0)
++		return ret;
++
++	if (pad->flags & MEDIA_PAD_FL_SOURCE) {
++		ret = set_format(pad, &format);
+ 		if (ret < 0)
+ 			return ret;
+ 	}
+-- 
+1.7.2.5
 
-Regards 
-Thomas
