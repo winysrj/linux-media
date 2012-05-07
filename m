@@ -1,58 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:33811 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1946103Ab2ERXfV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 May 2012 19:35:21 -0400
-Received: by weyu7 with SMTP id u7so2103903wey.19
-        for <linux-media@vger.kernel.org>; Fri, 18 May 2012 16:35:20 -0700 (PDT)
-Message-ID: <4FB6DCB4.3020909@gmail.com>
-Date: Sat, 19 May 2012 01:35:16 +0200
-From: poma <pomidorabelisima@gmail.com>
+Received: from na3sys009aog128.obsmtp.com ([74.125.149.141]:47366 "EHLO
+	na3sys009aog128.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753941Ab2EGTxI convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 7 May 2012 15:53:08 -0400
+Received: by qabj40 with SMTP id j40so4249046qab.1
+        for <linux-media@vger.kernel.org>; Mon, 07 May 2012 12:53:07 -0700 (PDT)
 MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>,
-	Thomas Mair <thomas.mair86@googlemail.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH v5 0/5] support for rtl2832
-References: <1> <1337366864-1256-1-git-send-email-thomas.mair86@googlemail.com> <4FB6B55D.4060500@iki.fi>
-In-Reply-To: <4FB6B55D.4060500@iki.fi>
+In-Reply-To: <CAH9_wRP4+hzFpCdcZWmyyTZpTTFi+9wyTJxX2vPd+3r0QNhLkA@mail.gmail.com>
+References: <CAH9_wRP4+hzFpCdcZWmyyTZpTTFi+9wyTJxX2vPd+3r0QNhLkA@mail.gmail.com>
+From: "Aguirre, Sergio" <saaguirre@ti.com>
+Date: Mon, 7 May 2012 14:52:47 -0500
+Message-ID: <CAKnK67Qdte8qJ9L18OL2ft=YaF4YEAD-5rTP_bk7+_nQAn4u+A@mail.gmail.com>
+Subject: Re: Android Support for camera?
+To: Sriram V <vshrirama@gmail.com>
+Cc: linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/18/2012 10:47 PM, Antti Palosaari wrote:
-> Good evening!
-> 
-> On 18.05.2012 21:47, Thomas Mair wrote:
->> Good Evening!
->>
->> This is the corrected version of the patch series to support the
->> RTL2832 demodulator. There where no major changes. The majority of
->> the changes consist in fixing style issues and adhering to proper
->> naming conventions.
-> 
-> Review done and seems to be OK for my eyes.
-> 
->> The next question for me is how to proceed when including new
->> devices. Poma already sent an extensive list a little while
->> ago (http://patchwork.linuxtv.org/patch/10982/). Should they
->> all be included at once, or should I wait until somone confirms
->> they are working correctly and include them one by one?
-> 
-> It has been rule that device is added after known to work.
-> 
-I second that.
-'rtl28xxu-v2-rtl2832-fc0012.patch' is reference&template.
+Hi Sriram,
 
-> Unfortunately DVB USB do not support dynamic USB ID. In order to
-> workaround that I have done some small hackish solution for the
-> dvb_usb_rtl28xxu driver. Currently it works for RTL2831U based devices,
-> but I see it could be easily extended for RTL2832U too by adding module
-> parameter.
-> 
-> regards
-> Antti
+On Mon, May 7, 2012 at 10:33 AM, Sriram V <vshrirama@gmail.com> wrote:
+> Hi Sergio,
+>  I understand that you are working on providing Android HAL Support
+> for camera on omap4.
 
-regards,
-poma
+That's right. Not an active task at the moment, due to some other
+stuff going on,
+but yes, I have that task pending to do.
+
+>  Were you able to capture and record?
+
+Well, I'm trying to take these patches as a reference:
+
+http://review.omapzoom.org/#/q/project:platform/hardware/ti/omap4xxx+topic:usbcamera,n,z
+
+Which are implementing V4L2 camera support for the CameraHAL,
+currently tested with
+the UVC camera driver only.
+
+So, I need to set the IOCTLs to program the omap4iss media controller
+device, to set a
+usecase, and start preview.
+
+I'll keep you posted.
+
+Regards,
+Sergio
+
+>
+>  --
+> Regards,
+> Sriram
