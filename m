@@ -1,72 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:9045 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752979Ab2EWMKr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 May 2012 08:10:47 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Received: from euspt2 ([210.118.77.13]) by mailout3.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0M4H00A0C5SH9A60@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 23 May 2012 13:09:53 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0M4H0034M5TTN0@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 23 May 2012 13:10:42 +0100 (BST)
-Date: Wed, 23 May 2012 14:10:26 +0200
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: [PATCHv6 12/13] v4l: s5p-tv: mixer: support for dmabuf importing
-In-reply-to: <1337775027-9489-1-git-send-email-t.stanislaws@samsung.com>
-To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
-Cc: airlied@redhat.com, m.szyprowski@samsung.com,
-	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
-	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
-	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
-	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
-	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
-	mchehab@redhat.com, g.liakhovetski@gmx.de
-Message-id: <1337775027-9489-13-git-send-email-t.stanislaws@samsung.com>
-References: <1337775027-9489-1-git-send-email-t.stanislaws@samsung.com>
+Received: from mail-pz0-f46.google.com ([209.85.210.46]:64382 "EHLO
+	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752194Ab2EHLPw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 May 2012 07:15:52 -0400
+Message-ID: <4FA9005F.6020901@gmail.com>
+Date: Tue, 08 May 2012 16:45:43 +0530
+From: Subash Patel <subashrp@gmail.com>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	airlied@redhat.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, sumit.semwal@ti.com, daeinki@gmail.com,
+	daniel.vetter@ffwll.ch, robdclark@gmail.com, pawel@osciak.com,
+	linaro-mm-sig@lists.linaro.org, hverkuil@xs4all.nl,
+	remi@remlab.net, mchehab@redhat.com, linux-doc@vger.kernel.org,
+	g.liakhovetski@gmx.de,
+	Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>
+Subject: Re: [PATCHv5 08/13] v4l: vb2-dma-contig: add support for scatterlist
+ in userptr mode
+References: <1334933134-4688-1-git-send-email-t.stanislaws@samsung.com> <1334933134-4688-9-git-send-email-t.stanislaws@samsung.com> <4FA7DE61.7000705@gmail.com> <4675433.ieio0xx0Y0@avalon>
+In-Reply-To: <4675433.ieio0xx0Y0@avalon>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch enhances s5p-tv with support for DMABUF importing via
-V4L2_MEMORY_DMABUF memory type.
+Hi Laurent,
 
-Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/video/s5p-tv/Kconfig       |    1 +
- drivers/media/video/s5p-tv/mixer_video.c |    2 +-
- 2 files changed, 2 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/media/video/s5p-tv/Kconfig b/drivers/media/video/s5p-tv/Kconfig
-index f248b28..2e80126 100644
---- a/drivers/media/video/s5p-tv/Kconfig
-+++ b/drivers/media/video/s5p-tv/Kconfig
-@@ -10,6 +10,7 @@ config VIDEO_SAMSUNG_S5P_TV
- 	bool "Samsung TV driver for S5P platform (experimental)"
- 	depends on PLAT_S5P && PM_RUNTIME
- 	depends on EXPERIMENTAL
-+	select DMA_SHARED_BUFFER
- 	default n
- 	---help---
- 	  Say Y here to enable selecting the TV output devices for
-diff --git a/drivers/media/video/s5p-tv/mixer_video.c b/drivers/media/video/s5p-tv/mixer_video.c
-index 33fde2a..cff974a 100644
---- a/drivers/media/video/s5p-tv/mixer_video.c
-+++ b/drivers/media/video/s5p-tv/mixer_video.c
-@@ -1078,7 +1078,7 @@ struct mxr_layer *mxr_base_layer_create(struct mxr_device *mdev,
- 
- 	layer->vb_queue = (struct vb2_queue) {
- 		.type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE,
--		.io_modes = VB2_MMAP | VB2_USERPTR,
-+		.io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF,
- 		.drv_priv = layer,
- 		.buf_struct_size = sizeof(struct mxr_buffer),
- 		.ops = &mxr_video_qops,
--- 
-1.7.9.5
-
+On 05/08/2012 02:44 PM, Laurent Pinchart wrote:
+> Hi Subash,
+>
+> On Monday 07 May 2012 20:08:25 Subash Patel wrote:
+>> Hello Thomasz, Laurent,
+>>
+>> I found an issue in the function vb2_dc_pages_to_sgt() below. I saw that
+>> during the attach, the size of the SGT and size requested mis-matched
+>> (by atleast 8k bytes). Hence I made a small correction to the code as
+>> below. I could then attach the importer properly.
+>
+> Thank you for the report.
+>
+> Could you print the content of the sglist (number of chunks and size of each
+> chunk) before and after your modifications, as well as the values of n_pages,
+> offset and size ?
+I will put back all the printk's and generate this. As of now, my setup 
+has changed and will do this when I get sometime.
+>
+>> On 04/20/2012 08:15 PM, Tomasz Stanislawski wrote:
+>
+> [snip]
+>
+>>> +static struct sg_table *vb2_dc_pages_to_sgt(struct page **pages,
+>>> +	unsigned int n_pages, unsigned long offset, unsigned long size)
+>>> +{
+>>> +	struct sg_table *sgt;
+>>> +	unsigned int chunks;
+>>> +	unsigned int i;
+>>> +	unsigned int cur_page;
+>>> +	int ret;
+>>> +	struct scatterlist *s;
+>>> +
+>>> +	sgt = kzalloc(sizeof *sgt, GFP_KERNEL);
+>>> +	if (!sgt)
+>>> +		return ERR_PTR(-ENOMEM);
+>>> +
+>>> +	/* compute number of chunks */
+>>> +	chunks = 1;
+>>> +	for (i = 1; i<   n_pages; ++i)
+>>> +		if (pages[i] != pages[i - 1] + 1)
+>>> +			++chunks;
+>>> +
+>>> +	ret = sg_alloc_table(sgt, chunks, GFP_KERNEL);
+>>> +	if (ret) {
+>>> +		kfree(sgt);
+>>> +		return ERR_PTR(-ENOMEM);
+>>> +	}
+>>> +
+>>> +	/* merging chunks and putting them into the scatterlist */
+>>> +	cur_page = 0;
+>>> +	for_each_sg(sgt->sgl, s, sgt->orig_nents, i) {
+>>> +		unsigned long chunk_size;
+>>> +		unsigned int j;
+>>
+>> 		size = PAGE_SIZE;
+>>
+>>> +
+>>> +		for (j = cur_page + 1; j<   n_pages; ++j)
+>>
+>> 		for (j = cur_page + 1; j<  n_pages; ++j) {
+>>
+>>> +			if (pages[j] != pages[j - 1] + 1)
+>>> +				break;
+>>
+>> 			size += PAGE
+>> 		}
+>>
+>>> +
+>>> +		chunk_size = ((j - cur_page)<<   PAGE_SHIFT) - offset;
+>>> +		sg_set_page(s, pages[cur_page], min(size, chunk_size), offset);
+>>
+>> 		[DELETE] size -= chunk_size;
+>>
+>>> +		offset = 0;
+>>> +		cur_page = j;
+>>> +	}
+>>> +
+>>> +	return sgt;
+>>> +}
+>
+Regards,
+Subash
