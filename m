@@ -1,54 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:38507 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753960Ab2EFRAz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 6 May 2012 13:00:55 -0400
-Received: by bkcji2 with SMTP id ji2so3160476bkc.19
-        for <linux-media@vger.kernel.org>; Sun, 06 May 2012 10:00:54 -0700 (PDT)
-Message-ID: <4FA6AE43.3080907@gmail.com>
-Date: Sun, 06 May 2012 19:00:51 +0200
-From: Sylwester Nawrocki <snjw23@gmail.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:35890 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752653Ab2EHLMl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 May 2012 07:12:41 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Kartik Mohta <kartikmohta@gmail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH] mt9v032: Correct the logic for the auto-exposure setting
+Date: Tue, 08 May 2012 13:12:41 +0200
+Message-ID: <8912304.YZOJNbqn9K@avalon>
+In-Reply-To: <1335997148-4915-1-git-send-email-kartikmohta@gmail.com>
+References: <1335997148-4915-1-git-send-email-kartikmohta@gmail.com>
 MIME-Version: 1.0
-To: Sakari Ailus <sakari.ailus@iki.fi>
-CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	g.liakhovetski@gmx.de, hdegoede@redhat.com, moinejf@free.fr,
-	hverkuil@xs4all.nl, m.szyprowski@samsung.com,
-	riverful.kim@samsung.com, sw0312.kim@samsung.com,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: Re: [PATCH/RFC v4 01/12] V4L: Add helper function for standard integer
- menu controls
-References: <1336156337-10935-1-git-send-email-s.nawrocki@samsung.com> <1336156337-10935-2-git-send-email-s.nawrocki@samsung.com> <4FA64EAB.20600@iki.fi>
-In-Reply-To: <4FA64EAB.20600@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Hi Kartik,
 
-On 05/06/2012 12:12 PM, Sakari Ailus wrote:
-> Hi Sylwester,
->
-> Sylwester Nawrocki wrote:
->> This patch adds v4l2_ctrl_new_std_int_menu() helper function which can
->> be used in drivers for creating standard integer menu control. It is
->> similar to v4l2_ctrl_new_std_menu(), except it doesn't have a mask
->> parameter and an additional qmenu parameter allows passing an array
->> of signed 64-bit integers constituting the menu items.
->
-> It would make sense to have the mask and no pointer to the menu items if
-> the menu items are universally the same. This could come into question
-> on some standards, for example. For example, we currently have bit rates
-> in controls but they are strings, not integers. I could imagine we will
-> have such menus in the future.
->
-> I'd suggest to rename v4l2_ctrl_new_std_int_menu() as
-> v4l2_ctrl_new_int_menu(), as opposed to the former which would use
-> standardised items in the menu --- to be implemented when needed.
+Thank you for the patch.
 
-Thank you for pointing it out. Let me just correct this and resend
-the patch.
+On Wednesday 02 May 2012 18:19:08 Kartik Mohta wrote:
+> The driver uses the ctrl value passed in as a bool to determine whether
+> to enable auto-exposure, but the auto-exposure setting is defined as an
+> enum where AUTO has a value of 0 and MANUAL has a value of 1. This leads
+> to a reversed logic where if you send in AUTO, it actually sets manual
+> exposure and vice-versa.
+> 
+> Signed-off-by: Kartik Mohta <kartikmohta@gmail.com>
+> ---
+>  drivers/media/video/mt9v032.c |    8 +++++++-
+>  1 file changed, 7 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/video/mt9v032.c b/drivers/media/video/mt9v032.c
+> index 75e253a..8ea8737 100644
+> --- a/drivers/media/video/mt9v032.c
+> +++ b/drivers/media/video/mt9v032.c
+> @@ -470,6 +470,7 @@ static int mt9v032_s_ctrl(struct v4l2_ctrl *ctrl)
+>  			container_of(ctrl->handler, struct mt9v032, ctrls);
+>  	struct i2c_client *client = v4l2_get_subdevdata(&mt9v032->subdev);
+>  	u16 data;
+> +	int aec_value;
+> 
+>  	switch (ctrl->id) {
+>  	case V4L2_CID_AUTOGAIN:
+> @@ -480,8 +481,13 @@ static int mt9v032_s_ctrl(struct v4l2_ctrl *ctrl)
+>  		return mt9v032_write(client, MT9V032_ANALOG_GAIN, ctrl->val);
+> 
+>  	case V4L2_CID_EXPOSURE_AUTO:
+> +		if(ctrl->val == V4L2_EXPOSURE_MANUAL)
+> +			aec_value = 0;
+> +		else
+> +			aec_value = 1;
+> +
+>  		return mt9v032_update_aec_agc(mt9v032, MT9V032_AEC_ENABLE,
+> -					      ctrl->val);
+> +					      aec_value);
 
-Best regards,
-Sylwester
+What about just
+
+		return mt9v032_update_aec_agc(mt9v032, MT9V032_AEC_ENABLE,
+					      !ctrl->val);
+
+If you're fine with that change I'll modify the patch accordingly, there's no 
+need to resubmit (I'll of course keep the patch attribution).
+
+> 
+>  	case V4L2_CID_EXPOSURE:
+>  		return mt9v032_write(client, MT9V032_TOTAL_SHUTTER_WIDTH,
+
+-- 
+Regards,
+
+Laurent Pinchart
+
