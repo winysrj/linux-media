@@ -1,78 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:59900 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758075Ab2EVLGO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 May 2012 07:06:14 -0400
-References: <201205221127.16629.hverkuil@xs4all.nl>
-In-Reply-To: <201205221127.16629.hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:49135 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755254Ab2EHSxV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 8 May 2012 14:53:21 -0400
+Message-ID: <4FA96B9E.3080600@iki.fi>
+Date: Tue, 08 May 2012 21:53:18 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain;
- charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Subject: Re: Warning in cx24110: how to fix?
-From: Andy Walls <awalls@md.metrocast.net>
-Date: Tue, 22 May 2012 07:06:25 -0400
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	linux-media <linux-media@vger.kernel.org>
-Message-ID: <74b696e9-3ff5-46f0-9d7d-e70ec02596b0@email.android.com>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: CB <chrbruno@yahoo.fr>, linux-media <linux-media@vger.kernel.org>
+Subject: Re: em28xx : can work on ARM beagleboard ?
+References: <4FA96365.3090705@yahoo.fr> <4FA964E8.8080209@iki.fi> <CAGoCfiy4qkVQwy+zPH+r8jMxMX7heJk6BLPnOMJxF73FnBms+A@mail.gmail.com>
+In-Reply-To: <CAGoCfiy4qkVQwy+zPH+r8jMxMX7heJk6BLPnOMJxF73FnBms+A@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hans Verkuil <hverkuil@xs4all.nl> wrote
+On 08.05.2012 21:47, Devin Heitmueller wrote:
+> On Tue, May 8, 2012 at 2:24 PM, Antti Palosaari<crope@iki.fi>  wrote:
+>> It should work as I know one person ran PCTV NanoStick T2 290e using
+>> Pandaboard which is rather similar ARM hw.
+>> http://www.youtube.com/watch?v=Wuwyuw0y1Fo
+>
+> I ran into a couple of issues related to em28xx analog on ARM.
+> Haven't had a chance to submit patches yet.  To answer the question
+> though:  yes, analog support for the em28xx is known to be broken on
+> ARM right now.
 
->I'm getting this warning in the daily build:
->
->v4l-dvb-git/drivers/media/dvb/frontends/cx24110.c: In function
->‘cx24110_read_ucblocks’:
->v4l-dvb-git/drivers/media/dvb/frontends/cx24110.c:520:40: warning:
->value computed is not used [-Wunused-value]
->
->It comes from this code:
->
->static int cx24110_read_ucblocks(struct dvb_frontend* fe, u32*
->ucblocks)
->{
->        struct cx24110_state *state = fe->demodulator_priv;
->
->        if(cx24110_readreg(state,0x10)&0x40) {
->            /* the RS error counter has finished one counting window */
->           cx24110_writereg(state,0x10,0x60); /* select the byer reg */
->                cx24110_readreg(state, 0x12) |
->                        (cx24110_readreg(state, 0x13) << 8) |
->                        (cx24110_readreg(state, 0x14) << 16);
->           cx24110_writereg(state,0x10,0x70); /* select the bler reg */
->                state->lastbler=cx24110_readreg(state,0x12)|
->                        (cx24110_readreg(state,0x13)<<8)|
->                        (cx24110_readreg(state,0x14)<<16);
->        cx24110_writereg(state,0x10,0x20); /* start new count window */
->        }
->        *ucblocks = state->lastbler;
->
->        return 0;
->}
->
->This is the offending code:
->
->                cx24110_readreg(state, 0x12) |
->                        (cx24110_readreg(state, 0x13) << 8) |
->                        (cx24110_readreg(state, 0x14) << 16);
->
->Is there a reason these registers are read without storing their value?
->Or is it a bug?
->
->Regards,
->
->	Hans
->--
->To unsubscribe from this list: send the line "unsubscribe linux-media"
->in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Aah, OK. I missed that was analog capture device. Devin surely knows 
+what he speaks.
 
-I would guess the safest thing to do is still perform the registers reads.
-
-Will adding a "(void)" cast to the beginning of the statement work?
-
-Regards,
-Andy
+regards
+Antti
+-- 
+http://palosaari.fi/
