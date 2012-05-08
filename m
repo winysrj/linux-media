@@ -1,42 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:54188 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753243Ab2ECMUi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 3 May 2012 08:20:38 -0400
-Message-ID: <4FA27814.9060107@iki.fi>
-Date: Thu, 03 May 2012 15:20:36 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
+Received: from moutng.kundenserver.de ([212.227.17.9]:49357 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756695Ab2EHRAx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 May 2012 13:00:53 -0400
+Date: Tue, 8 May 2012 19:00:51 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+cc: "Aguirre, Sergio" <saaguirre@ti.com>
+Subject: [PATCH] V4L: soc-camera: (cosmetic) use a more explicit name for a
+ host handler
+Message-ID: <Pine.LNX.4.64.1205081856180.7085@axis700.grange>
 MIME-Version: 1.0
-To: =?ISO-8859-1?Q?R=E9mi_Denis-Courmont?= <remi@remlab.net>
-CC: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	laurent.pinchart@ideasonboard.com, mchehab@redhat.com,
-	nbowler@elliptictech.com, james.dutton@gmail.com
-Subject: Re: [RFC v3 1/2] v4l: Do not use enums in IOCTL structs
-References: <20120502191324.GE852@valkosipuli.localdomain> <1335986028-23618-1-git-send-email-sakari.ailus@iki.fi> <201205022245.22585.hverkuil@xs4all.nl> <20120502213915.GG852@valkosipuli.localdomain> <2ce6f5bbb2d0c3b1c7e9e77a2e4a89cf@chewa.net> <3b9e7aa585169179c0140508e72cf97b@chewa.net>
-In-Reply-To: <3b9e7aa585169179c0140508e72cf97b@chewa.net>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Rémi Denis-Courmont wrote:
-> Answering myself.
->
-> On Thu, 03 May 2012 12:57:00 +0200, Rémi Denis-Courmont<remi@remlab.net>
-> wrote:
->> On Thu, 3 May 2012 00:39:15 +0300, Sakari Ailus<sakari.ailus@iki.fi>
->> wrote:
->>> - ppc64: int is 64 bits there, and thus also enums,
->>
->> Really?
->
-> No, really not:
-> http://refspecs.linuxfoundation.org/ELF/ppc64/PPC-elf64abi-1.9.html#FUND-TYPE
+Use "enum_framesizes" instead of "enum_fsizes" to more precisely follow
+the name of the respective ioctl().
 
-Right. Someone brought that up AFAIR and I didn't check it from other 
-sources. Thanks for the correction.
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
+ drivers/media/video/soc_camera.c |   14 +++++++-------
+ include/media/soc_camera.h       |    2 +-
+ 2 files changed, 8 insertions(+), 8 deletions(-)
 
+diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
+index eb25756..b980f99 100644
+--- a/drivers/media/video/soc_camera.c
++++ b/drivers/media/video/soc_camera.c
+@@ -257,13 +257,13 @@ static int soc_camera_g_std(struct file *file, void *priv, v4l2_std_id *a)
+ 	return v4l2_subdev_call(sd, core, g_std, a);
+ }
+ 
+-static int soc_camera_enum_fsizes(struct file *file, void *fh,
++static int soc_camera_enum_framesizes(struct file *file, void *fh,
+ 					 struct v4l2_frmsizeenum *fsize)
+ {
+ 	struct soc_camera_device *icd = file->private_data;
+ 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
+ 
+-	return ici->ops->enum_fsizes(icd, fsize);
++	return ici->ops->enum_framesizes(icd, fsize);
+ }
+ 
+ static int soc_camera_reqbufs(struct file *file, void *priv,
+@@ -1241,8 +1241,8 @@ static int default_s_parm(struct soc_camera_device *icd,
+ 	return v4l2_subdev_call(sd, video, s_parm, parm);
+ }
+ 
+-static int default_enum_fsizes(struct soc_camera_device *icd,
+-			  struct v4l2_frmsizeenum *fsize)
++static int default_enum_framesizes(struct soc_camera_device *icd,
++				   struct v4l2_frmsizeenum *fsize)
+ {
+ 	int ret;
+ 	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
+@@ -1295,8 +1295,8 @@ int soc_camera_host_register(struct soc_camera_host *ici)
+ 		ici->ops->set_parm = default_s_parm;
+ 	if (!ici->ops->get_parm)
+ 		ici->ops->get_parm = default_g_parm;
+-	if (!ici->ops->enum_fsizes)
+-		ici->ops->enum_fsizes = default_enum_fsizes;
++	if (!ici->ops->enum_framesizes)
++		ici->ops->enum_framesizes = default_enum_framesizes;
+ 
+ 	mutex_lock(&list_lock);
+ 	list_for_each_entry(ix, &hosts, list) {
+@@ -1386,7 +1386,7 @@ static const struct v4l2_ioctl_ops soc_camera_ioctl_ops = {
+ 	.vidioc_s_input		 = soc_camera_s_input,
+ 	.vidioc_s_std		 = soc_camera_s_std,
+ 	.vidioc_g_std		 = soc_camera_g_std,
+-	.vidioc_enum_framesizes  = soc_camera_enum_fsizes,
++	.vidioc_enum_framesizes  = soc_camera_enum_framesizes,
+ 	.vidioc_reqbufs		 = soc_camera_reqbufs,
+ 	.vidioc_querybuf	 = soc_camera_querybuf,
+ 	.vidioc_qbuf		 = soc_camera_qbuf,
+diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
+index b5c2b6c..00039d8 100644
+--- a/include/media/soc_camera.h
++++ b/include/media/soc_camera.h
+@@ -97,7 +97,7 @@ struct soc_camera_host_ops {
+ 	int (*set_bus_param)(struct soc_camera_device *);
+ 	int (*get_parm)(struct soc_camera_device *, struct v4l2_streamparm *);
+ 	int (*set_parm)(struct soc_camera_device *, struct v4l2_streamparm *);
+-	int (*enum_fsizes)(struct soc_camera_device *, struct v4l2_frmsizeenum *);
++	int (*enum_framesizes)(struct soc_camera_device *, struct v4l2_frmsizeenum *);
+ 	unsigned int (*poll)(struct file *, poll_table *);
+ };
+ 
 -- 
-Sakari Ailus
-sakari.ailus@iki.fi
+1.7.2.5
+
