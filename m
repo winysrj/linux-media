@@ -1,50 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:16716 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752446Ab2EEOqf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 5 May 2012 10:46:35 -0400
-Message-ID: <4FA53D48.6020004@redhat.com>
-Date: Sat, 05 May 2012 16:46:32 +0200
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org, Jean-Francois Moine <moinejf@free.fr>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFCv1 PATCH 1/7] gspca: allow subdrivers to use the control
- framework.
-References: <1335625796-9429-1-git-send-email-hverkuil@xs4all.nl> <ea7e986dc0fa18da12c22048e9187e9933191d3d.1335625085.git.hans.verkuil@cisco.com> <4FA4DA05.5030001@redhat.com> <201205051034.30484.hverkuil@xs4all.nl>
-In-Reply-To: <201205051034.30484.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from perceval.ideasonboard.com ([95.142.166.194]:37729 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755013Ab2EHNsf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 May 2012 09:48:35 -0400
+Received: from localhost.localdomain (unknown [91.178.164.92])
+	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 67A637B0B
+	for <linux-media@vger.kernel.org>; Tue,  8 May 2012 15:48:34 +0200 (CEST)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH] mt9p031: Add support for core and I/O regulators
+Date: Tue,  8 May 2012 15:48:34 +0200
+Message-Id: <1336484914-12007-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+The regulators are optional. If present, enable them when powering the
+sensor up, and disable them when powering it down.
 
-On 05/05/2012 10:34 AM, Hans Verkuil wrote:
-> On Sat May 5 2012 09:43:01 Hans de Goede wrote:
->> Hi,
->>
->> I'm slowly working my way though this series today (both review, as well
->> as some tweaks and testing).
->
-> Thanks for that!
->
-> One note: I initialized the controls in sd_init. That's wrong, it should be
-> sd_config. sd_init is also called on resume, so that would initialize the
-> controls twice.
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/video/mt9p031.c |   18 ++++++++++++++++++
+ 1 files changed, 18 insertions(+), 0 deletions(-)
 
-You cannot move the initializing of the controls to sd_config, since in many
-cases the sensor probing is done in sd_init, and we need to know the sensor
-type to init the controls. I suggest that instead you give the sd_init
-function a resume parameter and only init the controls if the resume parameter
-is false.
-
-> I'm working on this as well today, together with finishing the stv06xx and
-> mars conversion.
-
-Cool!
-
+diff --git a/drivers/media/video/mt9p031.c b/drivers/media/video/mt9p031.c
+index 8f061d9..d0b8e36 100644
+--- a/drivers/media/video/mt9p031.c
++++ b/drivers/media/video/mt9p031.c
+@@ -19,6 +19,7 @@
+ #include <linux/i2c.h>
+ #include <linux/log2.h>
+ #include <linux/pm.h>
++#include <linux/regulator/consumer.h>
+ #include <linux/slab.h>
+ #include <linux/videodev2.h>
+ 
+@@ -121,6 +122,9 @@ struct mt9p031 {
+ 	struct mutex power_lock; /* lock to protect power_count */
+ 	int power_count;
+ 
++	struct regulator *vdd_core;
++	struct regulator *vdd_io;
++
+ 	enum mt9p031_model model;
+ 	struct aptina_pll pll;
+ 	int reset;
+@@ -264,6 +268,12 @@ static int mt9p031_power_on(struct mt9p031 *mt9p031)
+ 		usleep_range(1000, 2000);
+ 	}
+ 
++	/* Bring up the supplies */
++	if (mt9p031->vdd_core)
++		regulator_enable(mt9p031->vdd_core);
++	if (mt9p031->vdd_io)
++		regulator_enable(mt9p031->vdd_io);
++
+ 	/* Emable clock */
+ 	if (mt9p031->pdata->set_xclk)
+ 		mt9p031->pdata->set_xclk(&mt9p031->subdev,
+@@ -285,6 +295,11 @@ static void mt9p031_power_off(struct mt9p031 *mt9p031)
+ 		usleep_range(1000, 2000);
+ 	}
+ 
++	if (mt9p031->vdd_io)
++		regulator_disable(mt9p031->vdd_io);
++	if (mt9p031->vdd_core)
++		regulator_disable(mt9p031->vdd_core);
++
+ 	if (mt9p031->pdata->set_xclk)
+ 		mt9p031->pdata->set_xclk(&mt9p031->subdev, 0);
+ }
+@@ -950,6 +965,9 @@ static int mt9p031_probe(struct i2c_client *client,
+ 	mt9p031->model = did->driver_data;
+ 	mt9p031->reset = -1;
+ 
++	mt9p031->vdd_core = devm_regulator_get(&client->dev, "cam_core");
++	mt9p031->vdd_io = devm_regulator_get(&client->dev, "cam_io");
++
+ 	v4l2_ctrl_handler_init(&mt9p031->ctrls, ARRAY_SIZE(mt9p031_ctrls) + 4);
+ 
+ 	v4l2_ctrl_new_std(&mt9p031->ctrls, &mt9p031_ctrl_ops,
+-- 
 Regards,
 
-Hans
+Laurent Pinchart
+
