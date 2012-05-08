@@ -1,93 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:51468 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755425Ab2ESKTs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 19 May 2012 06:19:48 -0400
-Received: by weyu7 with SMTP id u7so2271751wey.19
-        for <linux-media@vger.kernel.org>; Sat, 19 May 2012 03:19:47 -0700 (PDT)
-From: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
-Subject: [PATCH 1/5] dvb_cmd_name function
-Date: Sat, 19 May 2012 12:18:48 +0200
-Message-Id: <1337422732-2001-1-git-send-email-neolynx@gmail.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:35374 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751600Ab2EHRag (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 May 2012 13:30:36 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Kartik Mohta <kartikmohta@gmail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH] mt9v032: Correct the logic for the auto-exposure setting
+Date: Tue, 08 May 2012 19:30:36 +0200
+Message-ID: <5479985.bGgdD70iaC@avalon>
+In-Reply-To: <CABPY-JfB7sHDsCSPMWEfaHW5GpgrDtn6On48YQLEQ4+WG=0Fmw@mail.gmail.com>
+References: <1335997148-4915-1-git-send-email-kartikmohta@gmail.com> <8912304.YZOJNbqn9K@avalon> <CABPY-JfB7sHDsCSPMWEfaHW5GpgrDtn6On48YQLEQ4+WG=0Fmw@mail.gmail.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
----
- lib/include/dvb-fe.h  |    1 +
- lib/libdvbv5/dvb-fe.c |   21 +++++++++++++++------
- 2 files changed, 16 insertions(+), 6 deletions(-)
+Hi Kartik,
 
-diff --git a/lib/include/dvb-fe.h b/lib/include/dvb-fe.h
-index 872a558..b4c5279 100644
---- a/lib/include/dvb-fe.h
-+++ b/lib/include/dvb-fe.h
-@@ -108,6 +108,7 @@ int dvb_set_sys(struct dvb_v5_fe_parms *parms,
- 		   fe_delivery_system_t sys);
- int dvb_set_compat_delivery_system(struct dvb_v5_fe_parms *parms,
- 				   uint32_t desired_system);
-+const char *dvb_cmd_name(int cmd);
- void dvb_fe_prt_parms(FILE *fp, const struct dvb_v5_fe_parms *parms);
- int dvb_fe_set_parms(struct dvb_v5_fe_parms *parms);
- int dvb_fe_get_parms(struct dvb_v5_fe_parms *parms);
-diff --git a/lib/libdvbv5/dvb-fe.c b/lib/libdvbv5/dvb-fe.c
-index 87f48db..9ec9893 100644
---- a/lib/libdvbv5/dvb-fe.c
-+++ b/lib/libdvbv5/dvb-fe.c
-@@ -382,6 +382,15 @@ int dvb_set_compat_delivery_system(struct dvb_v5_fe_parms *parms,
- 	return 0;
- }
- 
-+const char *dvb_cmd_name(int cmd)
-+{
-+  if (cmd < DTV_USER_COMMAND_START)
-+    return dvb_v5_name[cmd];
-+  else if (cmd <= DTV_MAX_USER_COMMAND)
-+    return dvb_user_name[cmd - DTV_USER_COMMAND_START];
-+  return NULL;
-+}
-+
- void dvb_fe_prt_parms(FILE *fp, const struct dvb_v5_fe_parms *parms)
- {
- 	int i;
-@@ -400,11 +409,11 @@ void dvb_fe_prt_parms(FILE *fp, const struct dvb_v5_fe_parms *parms)
- 
- 		if (!attr_name || !*attr_name)
- 			fprintf(fp, "%s = %u\n",
--				dvb_v5_name[parms->dvb_prop[i].cmd],
-+				dvb_cmd_name(parms->dvb_prop[i].cmd),
- 				parms->dvb_prop[i].u.data);
- 		else
- 			fprintf(fp, "%s = %s\n",
--				dvb_v5_name[parms->dvb_prop[i].cmd],
-+				dvb_cmd_name(parms->dvb_prop[i].cmd),
- 				*attr_name);
- 	}
- };
-@@ -419,8 +428,8 @@ int dvb_fe_retrieve_parm(struct dvb_v5_fe_parms *parms,
- 		*value = parms->dvb_prop[i].u.data;
- 		return 0;
- 	}
--	fprintf(stderr, "%s (%d) command not found during retrieve\n",
--		dvb_v5_name[cmd], cmd);
-+	fprintf(stderr, "command %s (%d) not found during retrieve\n",
-+		dvb_cmd_name(cmd), cmd);
- 
- 	return EINVAL;
- }
-@@ -435,8 +444,8 @@ int dvb_fe_store_parm(struct dvb_v5_fe_parms *parms,
- 		parms->dvb_prop[i].u.data = value;
- 		return 0;
- 	}
--	fprintf(stderr, "%s (%d) command not found during store\n",
--		dvb_v5_name[cmd], cmd);
-+	fprintf(stderr, "command %s (%d) not found during store\n",
-+		dvb_cmd_name(cmd), cmd);
- 
- 	return EINVAL;
- }
+On Tuesday 08 May 2012 11:51:29 Kartik Mohta wrote:
+> On Tue, May 8, 2012 at 7:12 AM, Laurent Pinchart wrote:
+> > On Wednesday 02 May 2012 18:19:08 Kartik Mohta wrote:
+> >> The driver uses the ctrl value passed in as a bool to determine whether
+> >> to enable auto-exposure, but the auto-exposure setting is defined as an
+> >> enum where AUTO has a value of 0 and MANUAL has a value of 1. This leads
+> >> to a reversed logic where if you send in AUTO, it actually sets manual
+> >> exposure and vice-versa.
+> >> 
+> >> Signed-off-by: Kartik Mohta <kartikmohta@gmail.com>
+> >> ---
+> >>  drivers/media/video/mt9v032.c |    8 +++++++-
+> >>  1 file changed, 7 insertions(+), 1 deletion(-)
+> >> 
+> >> diff --git a/drivers/media/video/mt9v032.c
+> >> b/drivers/media/video/mt9v032.c
+> >> index 75e253a..8ea8737 100644
+> >> --- a/drivers/media/video/mt9v032.c
+> >> +++ b/drivers/media/video/mt9v032.c
+> >> @@ -470,6 +470,7 @@ static int mt9v032_s_ctrl(struct v4l2_ctrl *ctrl)
+> >>                       container_of(ctrl->handler, struct mt9v032, ctrls);
+> >>       struct i2c_client *client = v4l2_get_subdevdata(&mt9v032->subdev);
+> >>       u16 data;
+> >> +     int aec_value;
+> >> 
+> >>       switch (ctrl->id) {
+> >>       case V4L2_CID_AUTOGAIN:
+> >> @@ -480,8 +481,13 @@ static int mt9v032_s_ctrl(struct v4l2_ctrl *ctrl)
+> >>               return mt9v032_write(client, MT9V032_ANALOG_GAIN,
+> >> ctrl->val);
+> >> 
+> >>       case V4L2_CID_EXPOSURE_AUTO:
+> >> +             if(ctrl->val == V4L2_EXPOSURE_MANUAL)
+> >> +                     aec_value = 0;
+> >> +             else
+> >> +                     aec_value = 1;
+> >> +
+> >>               return mt9v032_update_aec_agc(mt9v032, MT9V032_AEC_ENABLE,
+> >> -                                           ctrl->val);
+> >> +                                           aec_value);
+> > 
+> > What about just
+> > 
+> >                return mt9v032_update_aec_agc(mt9v032, MT9V032_AEC_ENABLE,
+> >                                              !ctrl->val);
+> > 
+> > If you're fine with that change I'll modify the patch accordingly, there's
+> > no need to resubmit (I'll of course keep the patch attribution).
+> 
+> That should work since the only supported exposure modes are auto and manual
+> with enum values 0 and 1 respectively, but then aren't you depending on the
+> values of the enum to not change in the future?
+
+The values are part of the V4L2 public API so they can't change.
+
+> Also the change gives an impression that the value is a bool which it is
+> not. If that is fine, you can change it.
+
+OK thank you.
+
 -- 
-1.7.2.5
+Regards,
+
+Laurent Pinchart
 
