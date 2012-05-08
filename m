@@ -1,81 +1,139 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:59499 "EHLO mx1.redhat.com"
+Received: from smtp.nokia.com ([147.243.128.24]:20441 "EHLO mgw-da01.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753387Ab2EUDo6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 20 May 2012 23:44:58 -0400
-Message-ID: <4FB9BA2D.7080107@redhat.com>
-Date: Mon, 21 May 2012 00:44:45 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+	id S1751981Ab2EHHbI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 8 May 2012 03:31:08 -0400
+Message-ID: <4FA8CBAD.8020608@iki.fi>
+Date: Tue, 08 May 2012 10:30:53 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
 MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: VDR User <user.vdr@gmail.com>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	linux-media <linux-media@vger.kernel.org>,
-	Patrick Boettcher <pboettcher@kernellabs.com>
-Subject: Re: [RFCv1] DVB-USB improvements [alternative 2]
-References: <4FB95A3B.9070800@iki.fi>    <CAA7C2qiDQJ33OTfq9WxtAgqm0+iaLANoNVKSrvbZ3JpCD=ZGrA@mail.gmail.com>    <CAGoCfiz_LpOet3qDpW1H6M=1oEdzKGuXVd6zD_ZprNKkZQgs+g@mail.gmail.com>    <CAA7C2qiTesB+bZ0pzPvWTmO7p=_3oaoR+egw_WpEmiowidAD4g@mail.gmail.com>    <4FB9A6D9.8020603@iki.fi>    <CAA7C2qhoxSrT7od6OrXyANGYtnw0cuez+tSGHMq-mzrWPHBjLA@mail.gmail.com> <db7c5a642248378318b5c89e99819eb5.squirrel@webmail.kapsi.fi>
-In-Reply-To: <db7c5a642248378318b5c89e99819eb5.squirrel@webmail.kapsi.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	mchehab@redhat.com, remi@remlab.net
+Subject: Re: [PATCH v2 1/1] v4l2: use __u32 rather than enums in ioctl() structs
+References: <1336400869-32421-1-git-send-email-sakari.ailus@iki.fi> <201205071728.52329.hverkuil@xs4all.nl>
+In-Reply-To: <201205071728.52329.hverkuil@xs4all.nl>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 21-05-2012 00:20, Antti Palosaari escreveu:
-> ma 21.5.2012 5:42 VDR User kirjoitti:
->> On Sun, May 20, 2012 at 7:22 PM, Antti Palosaari <crope@iki.fi> wrote:
->>>> So you think that it makes more sense to ignore existing issues rather
->>>> than fix them. Isn't fixing issues&  flaws the whole point of an
->>>> overhaul/redesign? Yes, it is. I do get the point you're trying to
->>>> make -- there are bigger fish to fry. But this is not an urgent
->>>> project and I disagree with the attitude to just disregard whatever
->>>> you deem unimportant. If you're going to do it, do it right.
->>>
->>> I am not sure what you trying to say. Do you mean I should try to get
->>> remote
->>> controller totally optional module which can be left out?
+Hi Hans,
+
+Thanks for your coments.
+
+Hans Verkuil wrote:
+> On Mon May 7 2012 16:27:49 Sakari Ailus wrote:
+>> From: Rémi Denis-Courmont <remi@remlab.net>
 >>
->> I am saying it's a dependency that is currently forced onto every usb
->> device whether the device even supports rc or not. This is clearly
->> poor design. For that matter, the whole usb handling must be poor
->> design if it needs to be overhauled.
+>> V4L2 uses the enum type in IOCTL arguments in IOCTLs that were defined until
+>> the use of enum was considered less than ideal. Recently Rémi Denis-Courmont
+>> brought up the issue by proposing a patch to convert the enums to unsigned:
 >>
->>> How much memory will be saved if remote can be left out as unloaded?
+>> <URL:http://www.spinics.net/lists/linux-media/msg46167.html>
 >>
->> I don't know. I'm merely pointing out just one of the issues that
->> should be resolved if the idea is to fix things that are wrong with
->> usb handling. If nobody cares, doesn't think it matters, or simply
->> doesn't want to bother, so be it. I guess I'm crazy but when I'm
->> facing an overhaul, especially when there's no rush, I compile a list
->> of _everything_ that's wrong and make sure the overhaul fixes it all.
->> I guess there's quite a difference between my idea of what an overhaul
->> should be, and other peoples.
+>> This sparked a long discussion where another solution to the issue was
+>> proposed: two sets of IOCTL structures, one with __u32 and the other with
+>> enums, and conversion code between the two:
 >>
->> If you really want, there's probably people who deal with embedded
->> systems where every wasted byte counts, that would agree cleaning up
->> the waste is a good idea.
+>> <URL:http://www.spinics.net/lists/linux-media/msg47168.html>
 >>
->> Since nobody thinks it should be fixed, just pretend I didn't even
->> bring it up. Problem solved.
+>> Both approaches implement a complete solution that resolves the problem. The
+>> first one is simple but requires assuming enums and __u32 are the same in
+>> size (so we won't break the ABI) while the second one is more complex and
+>> less clean but does not require making that assumption.
+>>
+>> The issue boils down to whether enums are fundamentally different from __u32
+>> or not, and can the former be substituted by the latter. During the
+>> discussion it was concluded that the __u32 has the same size as enums on all
+>> archs Linux is supported: it has not been shown that replacing those enums
+>> in IOCTL arguments would break neither source or binary compatibility. If no
+>> such reason is found, just replacing the enums with __u32s is the way to go.
+>>
+>> This is what this patch does. This patch is slightly different from Remi's
+>> first RFC (link above): it uses __u32 instead of unsigned and also changes
+>> the arguments of VIDIOC_G_PRIORITY and VIDIOC_S_PRIORITY.
+>>
+>> Signed-off-by: Rémi Denis-Courmont <remi@remlab.net>
+>> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+>> ---
+>> Changes since v1:
+>>
+>> - Fixes according to comments by Hans Verkuil:
+>>   - Update documentation
+>>   - Also remove enums in compat32 code
+>>
+>>  Documentation/DocBook/media/v4l/io.xml             |   12 +++--
+>>  .../DocBook/media/v4l/vidioc-create-bufs.xml       |   10 +++--
+>>  Documentation/DocBook/media/v4l/vidioc-cropcap.xml |    4 +-
+>>  .../DocBook/media/v4l/vidioc-enum-fmt.xml          |    4 +-
+>>  Documentation/DocBook/media/v4l/vidioc-g-crop.xml  |    4 +-
+>>  Documentation/DocBook/media/v4l/vidioc-g-fmt.xml   |    2 +-
+>>  .../DocBook/media/v4l/vidioc-g-frequency.xml       |    6 +-
+>>  Documentation/DocBook/media/v4l/vidioc-g-parm.xml  |    5 +-
+>>  .../DocBook/media/v4l/vidioc-g-sliced-vbi-cap.xml  |    2 +-
+>>  Documentation/DocBook/media/v4l/vidioc-g-tuner.xml |    2 +-
+>>  .../DocBook/media/v4l/vidioc-queryctrl.xml         |    2 +-
+>>  Documentation/DocBook/media/v4l/vidioc-reqbufs.xml |    7 ++-
+>>  .../DocBook/media/v4l/vidioc-s-hw-freq-seek.xml    |    5 +-
+>>  drivers/media/video/v4l2-compat-ioctl32.c          |   12 +++---
+>>  include/linux/videodev2.h                          |   46 ++++++++++----------
+>>  15 files changed, 65 insertions(+), 58 deletions(-)
+>>
+>> diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
+>> index b815929..fd6aca2 100644
+>> --- a/Documentation/DocBook/media/v4l/io.xml
+>> +++ b/Documentation/DocBook/media/v4l/io.xml
+>> @@ -543,12 +543,13 @@ and can range from zero to the number of buffers allocated
+>>  with the &VIDIOC-REQBUFS; ioctl (&v4l2-requestbuffers; <structfield>count</structfield>) minus one.</entry>
+>>  	  </row>
+>>  	  <row>
+>> -	    <entry>&v4l2-buf-type;</entry>
+>> +	    <entry>__u32</entry>
 > 
-> There is quite few devices that are shipped without remote. I agree that
-> it could be better and more modular. And it is asked multiple times during
-> these years. But my main motivation is to fix problems first and then do
-> enhancements. I will look if I can found some time for that too.
+> The problem with replacing &v4l2-buf-type; by __u32 is that you loose the link
+> to the v4l2-buf-type enum.
+> 
+>>  	    <entry><structfield>type</structfield></entry>
+>>  	    <entry></entry>
+>>  	    <entry>Type of the buffer, same as &v4l2-format;
+> 
+> I would change this to something like:
+> 
+> Type of the buffer (see enum &v4l2-buf-type;), same as...
+> 
+> Same for all the other similar cases. Annoying, I know, but I believe it is
+> important to have these links available.
 
-I see two separate issues here:
+The links are available in each of the spots enums were replaced. In
+many cases they already existed so I haven't added new ones in that
+case. The typical from I've used is "See <xref linkend="enum" />." This
+could be mentioned to have more direct relation to the enum.
 
-1) the dvb_usb properties struct needs to point if the device has RC or not.
-It could be possible to optimize it if the remote code is not enabled, but
-provided that the structure is properly designed, the only per-device information
-is the RC keytable. Optimizing it when IR is not compiled will save just
-a few bytes per card. Not worth, IMHO.
+In many cases the IOCTL documentation itself specifies the valid values.
+Especially in those cases the enum should be given as reference only.
+Perhaps it'll also make sense to revisit these places where e.g. only
+some buffer types are mentioned to be valid in a context of an IOCTL,
+but this is out of the scope of this patch IMO.
 
-2) Remove the RC dependency from dvb-usb, and making the dvb-usb-remote code
-as a module. This can bring some savings, as the RC core and IR decoders won't
-be loaded.
+>> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+>> index 5a09ac3..585e4b4 100644
+>> --- a/include/linux/videodev2.h
+>> +++ b/include/linux/videodev2.h
+>> @@ -292,10 +292,10 @@ struct v4l2_pix_format {
+>>  	__u32         		width;
+>>  	__u32			height;
+>>  	__u32			pixelformat;
+>> -	enum v4l2_field  	field;
+>> +	__u32			field;
+> 
+> Same here: you need a comment like "/* see enum v4l2_field */" to keep the
+> association between the field and the possible value.
 
-I think (2) is valuable to do, but this can be done latter with a likely simple
-patch, and won't require any changes at the DVB structures.
+These ones I simply forgot. I'll fix this and repost.
 
-Regards,
-Mauro
+Cheers,
+
+-- 
+Sakari Ailus
+sakari.ailus@iki.fi
