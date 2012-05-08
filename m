@@ -1,776 +1,633 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.26]:50460 "EHLO mgw-da02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756133Ab2EBTOI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 2 May 2012 15:14:08 -0400
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, mchehab@redhat.com,
-	remi@remlab.net, nbowler@elliptictech.com, james.dutton@gmail.com
-Subject: [RFC v3 2/2] v4l: Implement compat functions for enum to __u32 change
-Date: Wed,  2 May 2012 22:13:48 +0300
-Message-Id: <1335986028-23618-2-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <20120502191324.GE852@valkosipuli.localdomain>
-References: <20120502191324.GE852@valkosipuli.localdomain>
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:60699 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751256Ab2EHHtf convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 May 2012 03:49:35 -0400
+Received: by bkcji2 with SMTP id ji2so4330083bkc.19
+        for <linux-media@vger.kernel.org>; Tue, 08 May 2012 00:49:33 -0700 (PDT)
+From: "Igor M. Liplianin" <liplianin@me.by>
+To: Konstantin Dimitrov <kosio.dimitrov@gmail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: Re: [PATCH 2/3] ts2020: add ts2020 tuner driver
+Date: Tue, 08 May 2012 10:49:41 +0300
+Message-ID: <2460134.Dt7ONZjyvc@useri>
+In-Reply-To: <CAF0Ff2kwMb87svyKyTh_20ou6=Quvxf4JUx8LpDLV_bTqUF2eA@mail.gmail.com>
+References: <CAF0Ff2=_mLSCvnE2mrwGHuJRWfJ0mGowrNxEXhc0PioiuT9gEw@mail.gmail.com> <14221045.uNfrtNFNKi@useri> <CAF0Ff2kwMb87svyKyTh_20ou6=Quvxf4JUx8LpDLV_bTqUF2eA@mail.gmail.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="ISO-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Implement compat functions to provide conversion between structs containing
-enums and those not. The functions are intended to be removed when the
-support for such old binaries is no longer necessary.
+On 8 Ð¼Ð°Ñ 2012 10:09:47 Konstantin Dimitrov wrote:
+> On Tue, May 8, 2012 at 9:32 AM, Igor M. Liplianin <liplianin@me.by> wrote:
+> > On 7 ÃÂ¼ÃÂ°Ã‘ Â 2012 00:22:30 Konstantin Dimitrov wrote:
+> >> add separate ts2020 tuner driver
+> >> 
+> >> Signed-off-by: Konstantin Dimitrov <kosio.dimitrov@gmail.com>
+> >> 
+> >> --- a/linux/drivers/media/dvb/frontends/Kconfig Â  Â  Â  2012-04-20
+> >> 06:45:55.000000000 +0300
+> >> +++ b/linux/drivers/media/dvb/frontends/Kconfig Â  Â  Â  2012-05-07
+> >> 00:58:26.888543350 +0300
+> >> @@ -221,6 +221,13 @@
+> >> Â  Â  Â  help
+> >> Â  Â  Â  Â  A DVB-S tuner module. Say Y when you want to support this
+> >> frontend.
+> >> 
+> >> +config DVB_TS2020
+> >> + Â  Â  tristate "Montage Tehnology TS2020 based tuners"
+> >> + Â  Â  depends on DVB_CORE && I2C
+> >> + Â  Â  default m if DVB_FE_CUSTOMISE
+> >> + Â  Â  help
+> >> + Â  Â  Â  A DVB-S/S2 silicon tuner. Say Y when you want to support this
+> >> tuner. +
+> >> Â config DVB_DS3000
+> >> Â  Â  Â  tristate "Montage Tehnology DS3000 based"
+> >> Â  Â  Â  depends on DVB_CORE && I2C
+> >> --- a/linux/drivers/media/dvb/frontends/Makefile Â  Â  Â 2012-04-20
+> >> 06:45:55.000000000 +0300
+> >> +++ b/linux/drivers/media/dvb/frontends/Makefile Â  Â  Â 2012-05-07
+> >> 00:54:44.624546145 +0300
+> >> @@ -87,6 +87,7 @@
+> >> Â obj-$(CONFIG_DVB_EC100) += ec100.o
+> >> Â obj-$(CONFIG_DVB_HD29L2) += hd29l2.o
+> >> Â obj-$(CONFIG_DVB_DS3000) += ds3000.o
+> >> +obj-$(CONFIG_DVB_TS2020) += ts2020.o
+> >> Â obj-$(CONFIG_DVB_MB86A16) += mb86a16.o
+> >> Â obj-$(CONFIG_DVB_MB86A20S) += mb86a20s.o
+> >> Â obj-$(CONFIG_DVB_IX2505V) += ix2505v.o
+> >> --- a/linux/drivers/media/dvb/frontends/ts2020.h Â  Â  Â 2012-05-07
+> >> 01:36:49.876514403 +0300
+> >> +++ b/linux/drivers/media/dvb/frontends/ts2020.h Â  Â  Â 2012-05-07
+> >> 01:12:54.148532449 +0300
+> >> @@ -0,0 +1,68 @@
+> >> +/*
+> >> + Â  Â Montage Technology TS2020 - Silicon Tuner driver
+> >> + Â  Â Copyright (C) 2009-2012 Konstantin Dimitrov
+> >> <kosio.dimitrov@gmail.com>
+> >> +
+> >> + Â  Â Copyright (C) 2009-2012 TurboSight.com
+> >> +
+> >> + Â  Â This program is free software; you can redistribute it and/or 
+modify
+> >> + Â  Â it under the terms of the GNU General Public License as published 
+by
+> >> + Â  Â the Free Software Foundation; either version 2 of the License, or
+> >> + Â  Â (at your option) any later version.
+> >> +
+> >> + Â  Â This program is distributed in the hope that it will be useful,
+> >> + Â  Â but WITHOUT ANY WARRANTY; without even the implied warranty of
+> >> + Â  Â MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. Â See the
+> >> + Â  Â GNU General Public License for more details.
+> >> +
+> >> + Â  Â You should have received a copy of the GNU General Public License
+> >> + Â  Â along with this program; if not, write to the Free Software
+> >> + Â  Â Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+> >> + */
+> >> +
+> >> +#ifndef TS2020_H
+> >> +#define TS2020_H
+> >> +
+> >> +#include <linux/dvb/frontend.h>
+> >> +
+> >> +struct ts2020_config {
+> >> + Â  Â  u8 tuner_address;
+> >> +};
+> >> +
+> >> +struct ts2020_state {
+> >> + Â  Â  struct i2c_adapter *i2c;
+> >> + Â  Â  const struct ts2020_config *config;
+> >> + Â  Â  struct dvb_frontend *frontend;
+> >> + Â  Â  int status;
+> >> +};
+> >> +
+> >> +#if defined(CONFIG_DVB_TS2020) || \
+> >> + Â  Â  (defined(CONFIG_DVB_TS2020_MODULE) && defined(MODULE))
+> >> +
+> >> +extern struct dvb_frontend *ts2020_attach(
+> >> + Â  Â  struct dvb_frontend *fe,
+> >> + Â  Â  const struct ts2020_config *config,
+> >> + Â  Â  struct i2c_adapter *i2c);
+> >> +
+> >> +extern int ts2020_get_signal_strength(
+> >> + Â  Â  struct dvb_frontend *fe,
+> >> + Â  Â  u16 *strength);
+> >> +#else
+> >> +static inline struct dvb_frontend *ts2020_attach(
+> >> + Â  Â  struct dvb_frontend *fe,
+> >> + Â  Â  const struct ts2020_config *config,
+> >> + Â  Â  struct i2c_adapter *i2c)
+> >> +{
+> >> + Â  Â  printk(KERN_WARNING "%s: driver disabled by Kconfig\n", 
+__func__);
+> >> + Â  Â  return NULL;
+> >> +}
+> >> +
+> >> +static inline int ts2020_get_signal_strength(
+> >> + Â  Â  struct dvb_frontend *fe,
+> >> + Â  Â  u16 *strength)
+> >> +{
+> >> + Â  Â  printk(KERN_WARNING "%s: driver disabled by Kconfig\n", 
+__func__);
+> >> + Â  Â  return NULL;
+> >> +}
+> >> +#endif
+> >> +
+> >> +#endif /* TS2020_H */
+> >> --- a/linux/drivers/media/dvb/frontends/ts2020_cfg.h Â 2012-05-07
+> >> 01:36:59.836514279 +0300
+> >> +++ b/linux/drivers/media/dvb/frontends/ts2020_cfg.h Â 2012-05-07
+> >> 01:12:56.248532422 +0300
+> >> @@ -0,0 +1,64 @@
+> >> +/*
+> >> + Â  Â Montage Technology TS2020 - Silicon Tuner driver
+> >> + Â  Â Copyright (C) 2009-2012 Konstantin Dimitrov
+> >> <kosio.dimitrov@gmail.com>
+> >> +
+> >> + Â  Â Copyright (C) 2009-2012 TurboSight.com
+> >> +
+> >> + Â  Â This program is free software; you can redistribute it and/or 
+modify
+> >> + Â  Â it under the terms of the GNU General Public License as published 
+by
+> >> + Â  Â the Free Software Foundation; either version 2 of the License, or
+> >> + Â  Â (at your option) any later version.
+> >> +
+> >> + Â  Â This program is distributed in the hope that it will be useful,
+> >> + Â  Â but WITHOUT ANY WARRANTY; without even the implied warranty of
+> >> + Â  Â MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. Â See the
+> >> + Â  Â GNU General Public License for more details.
+> >> +
+> >> + Â  Â You should have received a copy of the GNU General Public License
+> >> + Â  Â along with this program; if not, write to the Free Software
+> >> + Â  Â Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+> >> + */
+> >> +
+> >> +static int ts2020_get_frequency(struct dvb_frontend *fe, u32 *frequency)
+> >> +{
+> >> + Â  Â  struct dvb_frontend_ops *frontend_ops = NULL;
+> >> + Â  Â  struct dvb_tuner_ops *tuner_ops = NULL;
+> >> + Â  Â  struct tuner_state t_state;
+> >> + Â  Â  int ret = 0;
+> >> +
+> >> + Â  Â  if (&fe->ops)
+> >> + Â  Â  Â  Â  Â  Â  frontend_ops = &fe->ops;
+> >> + Â  Â  if (&frontend_ops->tuner_ops)
+> >> + Â  Â  Â  Â  Â  Â  tuner_ops = &frontend_ops->tuner_ops;
+> >> + Â  Â  if (tuner_ops->get_state) {
+> >> + Â  Â  Â  Â  Â  Â  ret = tuner_ops->get_state(fe, DVBFE_TUNER_FREQUENCY,
+> >> &t_state); + Â  Â  Â  Â  Â  Â  if (ret < 0) {
+> >> + Â  Â  Â  Â  Â  Â  Â  Â  Â  Â  printk(KERN_ERR "%s: Invalid 
+parameter\n",
+> >> __func__);
+> >> + Â  Â  Â  Â  Â  Â  Â  Â  Â  Â  return ret;
+> >> + Â  Â  Â  Â  Â  Â  }
+> >> + Â  Â  Â  Â  Â  Â  *frequency = t_state.frequency;
+> >> + Â  Â  }
+> >> + Â  Â  return 0;
+> >> +}
+> >> +
+> >> +static int ts2020_set_frequency(struct dvb_frontend *fe, u32 frequency)
+> >> +{
+> >> + Â  Â  struct dvb_frontend_ops *frontend_ops = NULL;
+> >> + Â  Â  struct dvb_tuner_ops *tuner_ops = NULL;
+> >> + Â  Â  struct tuner_state t_state;
+> >> + Â  Â  int ret = 0;
+> >> +
+> >> + Â  Â  t_state.frequency = frequency;
+> >> + Â  Â  if (&fe->ops)
+> >> + Â  Â  Â  Â  Â  Â  frontend_ops = &fe->ops;
+> >> + Â  Â  if (&frontend_ops->tuner_ops)
+> >> + Â  Â  Â  Â  Â  Â  tuner_ops = &frontend_ops->tuner_ops;
+> >> + Â  Â  if (tuner_ops->set_state) {
+> >> + Â  Â  Â  Â  Â  Â  ret = tuner_ops->set_state(fe, DVBFE_TUNER_FREQUENCY,
+> >> &t_state); + Â  Â  Â  Â  Â  Â  if (ret < 0) {
+> >> + Â  Â  Â  Â  Â  Â  Â  Â  Â  Â  printk(KERN_ERR "%s: Invalid 
+parameter\n",
+> >> __func__);
+> >> + Â  Â  Â  Â  Â  Â  Â  Â  Â  Â  return ret;
+> >> + Â  Â  Â  Â  Â  Â  }
+> >> + Â  Â  }
+> >> + Â  Â  return 0;
+> >> +}
+> >> --- a/linux/drivers/media/dvb/frontends/ts2020.c Â  Â  Â 2012-05-07
+> >> 01:36:51.428514382 +0300
+> >> +++ b/linux/drivers/media/dvb/frontends/ts2020.c Â  Â  Â 2012-05-07
+> >> 01:27:55.832521116 +0300
+> >> @@ -0,0 +1,369 @@
+> >> +/*
+> >> + Â  Â Montage Technology TS2020 - Silicon Tuner driver
+> >> + Â  Â Copyright (C) 2009-2012 Konstantin Dimitrov
+> >> <kosio.dimitrov@gmail.com>
+> >> +
+> >> + Â  Â Copyright (C) 2009-2012 TurboSight.com
+> >> +
+> >> + Â  Â This program is free software; you can redistribute it and/or 
+modify
+> >> + Â  Â it under the terms of the GNU General Public License as published 
+by
+> >> + Â  Â the Free Software Foundation; either version 2 of the License, or
+> >> + Â  Â (at your option) any later version.
+> >> +
+> >> + Â  Â This program is distributed in the hope that it will be useful,
+> >> + Â  Â but WITHOUT ANY WARRANTY; without even the implied warranty of
+> >> + Â  Â MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. Â See the
+> >> + Â  Â GNU General Public License for more details.
+> >> +
+> >> + Â  Â You should have received a copy of the GNU General Public License
+> >> + Â  Â along with this program; if not, write to the Free Software
+> >> + Â  Â Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+> >> + */
+> >> +
+> >> +#include "dvb_frontend.h"
+> >> +#include "ts2020.h"
+> >> +
+> >> +#define TS2020_XTAL_FREQ Â  27000 /* in kHz */
+> >> +
+> >> +static int ts2020_readreg(struct dvb_frontend *fe, u8 reg)
+> >> +{
+> >> + Â  Â  struct ts2020_state *state = fe->tuner_priv;
+> >> +
+> >> + Â  Â  int ret;
+> >> + Â  Â  u8 b0[] = { reg };
+> >> + Â  Â  u8 b1[] = { 0 };
+> >> + Â  Â  struct i2c_msg msg[] = {
+> >> + Â  Â  Â  Â  Â  Â  {
+> >> + Â  Â  Â  Â  Â  Â  Â  Â  Â  Â  .addr = state->config->tuner_address,
+> >> + Â  Â  Â  Â  Â  Â  Â  Â  Â  Â  .flags = 0,
+> >> + Â  Â  Â  Â  Â  Â  Â  Â  Â  Â  .buf = b0,
+> >> + Â  Â  Â  Â  Â  Â  Â  Â  Â  Â  .len = 1
+> >> + Â  Â  Â  Â  Â  Â  }, {
+> >> + Â  Â  Â  Â  Â  Â  Â  Â  Â  Â  .addr = state->config->tuner_address,
+> >> + Â  Â  Â  Â  Â  Â  Â  Â  Â  Â  .flags = I2C_M_RD,
+> >> + Â  Â  Â  Â  Â  Â  Â  Â  Â  Â  .buf = b1,
+> >> + Â  Â  Â  Â  Â  Â  Â  Â  Â  Â  .len = 1
+> >> + Â  Â  Â  Â  Â  Â  }
+> >> + Â  Â  };
+> >> +
+> >> + Â  Â  if (fe->ops.i2c_gate_ctrl)
+> >> + Â  Â  Â  Â  Â  Â  fe->ops.i2c_gate_ctrl(fe, 1);
+> >> +
+> >> + Â  Â  ret = i2c_transfer(state->i2c, msg, 2);
+> >> +
+> >> + Â  Â  if (fe->ops.i2c_gate_ctrl)
+> >> + Â  Â  Â  Â  Â  Â  fe->ops.i2c_gate_ctrl(fe, 0);
+> >> +
+> >> + Â  Â  if (ret != 2) {
+> >> + Â  Â  Â  Â  Â  Â  printk(KERN_ERR "%s: reg=0x%x(error=%d)\n", __func__, 
+reg,
+> >> ret); + Â  Â  Â  Â  Â  Â  return ret;
+> >> + Â  Â  }
+> >> +
+> >> + Â  Â  return b1[0];
+> >> +}
+> >> +
+> >> +static int ts2020_writereg(struct dvb_frontend *fe, int reg, int data)
+> >> +{
+> >> + Â  Â  struct ts2020_state *state = fe->tuner_priv;
+> >> +
+> >> + Â  Â  u8 buf[] = { reg, data };
+> >> + Â  Â  struct i2c_msg msg = { .addr = state->config->tuner_address,
+> >> + Â  Â  Â  Â  Â  Â  .flags = 0, .buf = buf, .len = 2 };
+> >> + Â  Â  int err;
+> >> +
+> >> +
+> >> + Â  Â  if (fe->ops.i2c_gate_ctrl)
+> >> + Â  Â  Â  Â  Â  Â  fe->ops.i2c_gate_ctrl(fe, 1);
+> >> +
+> >> + Â  Â  err = i2c_transfer(state->i2c, &msg, 1);
+> >> +
+> >> + Â  Â  if (fe->ops.i2c_gate_ctrl)
+> >> + Â  Â  Â  Â  Â  Â  fe->ops.i2c_gate_ctrl(fe, 0);
+> >> +
+> >> + Â  Â  if (err != 1) {
+> >> + Â  Â  Â  Â  Â  Â  printk(KERN_ERR "%s: writereg error(err == %i, reg ==
+> >> 0x%02x," + Â  Â  Â  Â  Â  Â  Â  Â  Â  Â  Â " value == 0x%02x)\n", 
+__func__, err,
+> >> reg, data); + Â  Â  Â  Â  Â  Â  return -EREMOTEIO;
+> >> + Â  Â  }
+> >> +
+> >> + Â  Â  return 0;
+> >> +}
+> >> +
+> >> +static int ts2020_get_status(struct dvb_frontend *fe, u32 *status)
+> >> +{
+> >> + Â  Â  return TUNER_STATUS_LOCKED;
+> >> +}
+> >> +
+> >> +static int ts2020_init(struct dvb_frontend *fe)
+> >> +{
+> >> + Â  Â  return 0;
+> >> +}
+> >> +
+> >> +static int ts2020_get_frequency(struct dvb_frontend *fe, u32 *frequency)
+> >> +{
+> >> + Â  Â  u16 ndiv, div4;
+> >> +
+> >> + Â  Â  div4 = (ts2020_readreg(fe, 0x10) & 0x10) >> 4;
+> >> +
+> >> + Â  Â  ndiv = ts2020_readreg(fe, 0x01);
+> >> + Â  Â  ndiv &= 0x0f;
+> >> + Â  Â  ndiv <<= 8;
+> >> + Â  Â  ndiv |= ts2020_readreg(fe, 0x02);
+> >> +
+> >> + Â  Â  /* actual tuned frequency, i.e. including the offset */
+> >> + Â  Â  *frequency = (ndiv - ndiv % 2 + 1024) * TS2020_XTAL_FREQ
+> >> + Â  Â  Â  Â  Â  Â  / (6 + 8) / (div4 + 1) / 2;
+> >> +
+> >> + Â  Â  return 0;
+> >> +}
+> >> +
+> >> +static int ts2020_set_frequency(struct dvb_frontend *fe, u32 frequency)
+> >> +{
+> >> + Â  Â  struct ts2020_state *state = fe->tuner_priv;
+> >> + Â  Â  struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+> >> +
+> >> + Â  Â  u8 mlpf, mlpf_new, mlpf_max, mlpf_min, nlpf, div4;
+> >> + Â  Â  u16 value, ndiv;
+> >> + Â  Â  u32 srate = 0, f3db;
+> >> +
+> >> + Â  Â  if (state->status == 0) {
+> >> + Â  Â  Â  Â  Â  Â  /* TS2020 init */
+> >> + Â  Â  Â  Â  Â  Â  ts2020_writereg(fe, 0x42, 0x73);
+> >> + Â  Â  Â  Â  Â  Â  ts2020_writereg(fe, 0x05, 0x01);
+> >> + Â  Â  Â  Â  Â  Â  ts2020_writereg(fe, 0x62, 0xf5);
+> >> +
+> >> + Â  Â  Â  Â  Â  Â  state->status = 1;
+> >> + Â  Â  }
+> >> +
+> >> + Â  Â  /* unknown */
+> >> + Â  Â  ts2020_writereg(fe, 0x07, 0x02);
+> >> + Â  Â  ts2020_writereg(fe, 0x10, 0x00);
+> >> + Â  Â  ts2020_writereg(fe, 0x60, 0x79);
+> >> + Â  Â  ts2020_writereg(fe, 0x08, 0x01);
+> >> + Â  Â  ts2020_writereg(fe, 0x00, 0x01);
+> >> + Â  Â  div4 = 0;
+> >> +
+> >> + Â  Â  /* calculate and set freq divider */
+> >> + Â  Â  if (frequency < 1146000) {
+> >> + Â  Â  Â  Â  Â  Â  ts2020_writereg(fe, 0x10, 0x11);
+> >> + Â  Â  Â  Â  Â  Â  div4 = 1;
+> >> + Â  Â  Â  Â  Â  Â  ndiv = ((frequency * (6 + 8) * 4) +
+> >> + Â  Â  Â  Â  Â  Â  Â  Â  Â  Â  Â  Â  Â  Â  (TS2020_XTAL_FREQ / 2)) /
+> >> + Â  Â  Â  Â  Â  Â  Â  Â  Â  Â  Â  Â  Â  Â  TS2020_XTAL_FREQ - 1024;
+> >> + Â  Â  } else {
+> >> + Â  Â  Â  Â  Â  Â  ts2020_writereg(fe, 0x10, 0x01);
+> >> + Â  Â  Â  Â  Â  Â  ndiv = ((frequency * (6 + 8) * 2) +
+> >> + Â  Â  Â  Â  Â  Â  Â  Â  Â  Â  Â  Â  Â  Â  (TS2020_XTAL_FREQ / 2)) /
+> >> + Â  Â  Â  Â  Â  Â  Â  Â  Â  Â  Â  Â  Â  Â  TS2020_XTAL_FREQ - 1024;
+> >> + Â  Â  }
+> >> +
+> >> + Â  Â  ts2020_writereg(fe, 0x01, (ndiv & 0x0f00) >> 8);
+> >> + Â  Â  ts2020_writereg(fe, 0x02, ndiv & 0x00ff);
+> >> +
+> >> + Â  Â  /* set pll */
+> >> + Â  Â  ts2020_writereg(fe, 0x03, 0x06);
+> >> + Â  Â  ts2020_writereg(fe, 0x51, 0x0f);
+> >> + Â  Â  ts2020_writereg(fe, 0x51, 0x1f);
+> >> + Â  Â  ts2020_writereg(fe, 0x50, 0x10);
+> >> + Â  Â  ts2020_writereg(fe, 0x50, 0x00);
+> >> + Â  Â  msleep(5);
+> >> +
+> >> + Â  Â  /* unknown */
+> >> + Â  Â  ts2020_writereg(fe, 0x51, 0x17);
+> >> + Â  Â  ts2020_writereg(fe, 0x51, 0x1f);
+> >> + Â  Â  ts2020_writereg(fe, 0x50, 0x08);
+> >> + Â  Â  ts2020_writereg(fe, 0x50, 0x00);
+> >> + Â  Â  msleep(5);
+> >> +
+> >> + Â  Â  value = ts2020_readreg(fe, 0x3d);
+> >> + Â  Â  value &= 0x0f;
+> >> + Â  Â  if ((value > 4) && (value < 15)) {
+> >> + Â  Â  Â  Â  Â  Â  value -= 3;
+> >> + Â  Â  Â  Â  Â  Â  if (value < 4)
+> >> + Â  Â  Â  Â  Â  Â  Â  Â  Â  Â  value = 4;
+> >> + Â  Â  Â  Â  Â  Â  value = ((value << 3) | 0x01) & 0x79;
+> >> + Â  Â  }
+> >> +
+> >> + Â  Â  ts2020_writereg(fe, 0x60, value);
+> >> + Â  Â  ts2020_writereg(fe, 0x51, 0x17);
+> >> + Â  Â  ts2020_writereg(fe, 0x51, 0x1f);
+> >> + Â  Â  ts2020_writereg(fe, 0x50, 0x08);
+> >> + Â  Â  ts2020_writereg(fe, 0x50, 0x00);
+> >> +
+> >> + Â  Â  /* set low-pass filter period */
+> >> + Â  Â  ts2020_writereg(fe, 0x04, 0x2e);
+> >> + Â  Â  ts2020_writereg(fe, 0x51, 0x1b);
+> >> + Â  Â  ts2020_writereg(fe, 0x51, 0x1f);
+> >> + Â  Â  ts2020_writereg(fe, 0x50, 0x04);
+> >> + Â  Â  ts2020_writereg(fe, 0x50, 0x00);
+> >> + Â  Â  msleep(5);
+> >> +
+> >> + Â  Â  /* get current symbol rate */
+> >> + Â  Â  if (fe->ops.get_frontend)
+> >> + Â  Â  Â  Â  Â  Â  fe->ops.get_frontend(fe);
+> >> + Â  Â  srate = p->symbol_rate / 1000;
+> >> +
+> >> + Â  Â  f3db = (srate << 2) / 5 + 2000;
+> >> + Â  Â  if (srate < 5000)
+> >> + Â  Â  Â  Â  Â  Â  f3db += 3000;
+> >> + Â  Â  if (f3db < 7000)
+> >> + Â  Â  Â  Â  Â  Â  f3db = 7000;
+> >> + Â  Â  if (f3db > 40000)
+> >> + Â  Â  Â  Â  Â  Â  f3db = 40000;
+> >> +
+> >> + Â  Â  /* set low-pass filter baseband */
+> >> + Â  Â  value = ts2020_readreg(fe, 0x26);
+> >> + Â  Â  mlpf = 0x2e * 207 / ((value << 1) + 151);
+> >> + Â  Â  mlpf_max = mlpf * 135 / 100;
+> >> + Â  Â  mlpf_min = mlpf * 78 / 100;
+> >> + Â  Â  if (mlpf_max > 63)
+> >> + Â  Â  Â  Â  Â  Â  mlpf_max = 63;
+> >> +
+> >> + Â  Â  /* rounded to the closest integer */
+> >> + Â  Â  nlpf = ((mlpf * f3db * 1000) + (2766 * TS2020_XTAL_FREQ / 2))
+> >> + Â  Â  Â  Â  Â  Â  Â  Â  Â  Â  / (2766 * TS2020_XTAL_FREQ);
+> >> + Â  Â  if (nlpf > 23)
+> >> + Â  Â  Â  Â  Â  Â  nlpf = 23;
+> >> + Â  Â  if (nlpf < 1)
+> >> + Â  Â  Â  Â  Â  Â  nlpf = 1;
+> >> +
+> >> + Â  Â  /* rounded to the closest integer */
+> >> + Â  Â  mlpf_new = ((TS2020_XTAL_FREQ * nlpf * 2766) +
+> >> + Â  Â  Â  Â  Â  Â  Â  Â  Â  Â  (1000 * f3db / 2)) / (1000 * f3db);
+> >> +
+> >> + Â  Â  if (mlpf_new < mlpf_min) {
+> >> + Â  Â  Â  Â  Â  Â  nlpf++;
+> >> + Â  Â  Â  Â  Â  Â  mlpf_new = ((TS2020_XTAL_FREQ * nlpf * 2766) +
+> >> + Â  Â  Â  Â  Â  Â  Â  Â  Â  Â  Â  Â  Â  Â  (1000 * f3db / 2)) / (1000 * 
+f3db);
+> >> + Â  Â  }
+> >> +
+> >> + Â  Â  if (mlpf_new > mlpf_max)
+> >> + Â  Â  Â  Â  Â  Â  mlpf_new = mlpf_max;
+> >> +
+> >> + Â  Â  ts2020_writereg(fe, 0x04, mlpf_new);
+> >> + Â  Â  ts2020_writereg(fe, 0x06, nlpf);
+> >> + Â  Â  ts2020_writereg(fe, 0x51, 0x1b);
+> >> + Â  Â  ts2020_writereg(fe, 0x51, 0x1f);
+> >> + Â  Â  ts2020_writereg(fe, 0x50, 0x04);
+> >> + Â  Â  ts2020_writereg(fe, 0x50, 0x00);
+> >> + Â  Â  msleep(5);
+> >> +
+> >> + Â  Â  /* unknown */
+> >> + Â  Â  ts2020_writereg(fe, 0x51, 0x1e);
+> >> + Â  Â  ts2020_writereg(fe, 0x51, 0x1f);
+> >> + Â  Â  ts2020_writereg(fe, 0x50, 0x01);
+> >> + Â  Â  ts2020_writereg(fe, 0x50, 0x00);
+> >> + Â  Â  msleep(60);
+> >> +
+> >> + Â  Â  return 0;
+> >> +}
+> >> +
+> >> +static int ts2020_sleep(struct dvb_frontend *fe)
+> >> +{
+> >> + Â  Â  /* TODO: power down */
+> >> + Â  Â  return 0;
+> >> +}
+> >> +
+> >> +static int ts2020_release(struct dvb_frontend *fe)
+> >> +{
+> >> + Â  Â  struct ts2020_state *state = fe->tuner_priv;
+> >> +
+> >> + Â  Â  fe->tuner_priv = NULL;
+> >> + Â  Â  kfree(state);
+> >> +
+> >> + Â  Â  return 0;
+> >> +}
+> >> +
+> >> +static int ts2020_get_state(struct dvb_frontend *fe,
+> >> + Â  Â  Â  Â  Â  Â  Â  Â  Â  Â  enum tuner_param param, struct 
+tuner_state *state)
+> >> +{
+> >> + Â  Â  switch (param) {
+> >> + Â  Â  case DVBFE_TUNER_FREQUENCY:
+> >> + Â  Â  Â  Â  Â  Â  ts2020_get_frequency(fe, &state->frequency);
+> >> + Â  Â  Â  Â  Â  Â  break;
+> >> + Â  Â  default:
+> >> + Â  Â  Â  Â  Â  Â  break;
+> >> + Â  Â  }
+> >> +
+> >> + Â  Â  return 0;
+> >> +}
+> >> +
+> >> +static int ts2020_set_state(struct dvb_frontend *fe,
+> >> + Â  Â  Â  Â  Â  Â  Â  Â  Â  Â  enum tuner_param param, struct 
+tuner_state *state)
+> >> +{
+> >> + Â  Â  switch (param) {
+> >> + Â  Â  case DVBFE_TUNER_FREQUENCY:
+> >> + Â  Â  Â  Â  Â  Â  ts2020_set_frequency(fe, state->frequency);
+> >> + Â  Â  Â  Â  Â  Â  break;
+> >> + Â  Â  default:
+> >> + Â  Â  Â  Â  Â  Â  return -EINVAL;
+> >> + Â  Â  Â  Â  Â  Â  break;
+> >> + Â  Â  }
+> >> +
+> >> + Â  Â  return 0;
+> >> +}
+> >> +
+> >> +static struct dvb_tuner_ops ts2020_ops = {
+> >> + Â  Â  .info = {
+> >> + Â  Â  Â  Â  Â  Â  .name = "Montage Technology TS2020 Silicon Tuner",
+> >> + Â  Â  Â  Â  Â  Â  .frequency_min = 950000,
+> >> + Â  Â  Â  Â  Â  Â  .frequency_max = 2150000,
+> >> + Â  Â  Â  Â  Â  Â  .frequency_step = 0,
+> >> + Â  Â  },
+> >> +
+> >> + Â  Â  .init = ts2020_init,
+> >> + Â  Â  .sleep = ts2020_sleep,
+> >> + Â  Â  .get_status = ts2020_get_status,
+> >> + Â  Â  .get_state = ts2020_get_state,
+> >> + Â  Â  .set_state = ts2020_set_state,
+> > 
+> > Why not to use set_frequency/get_frequency directly, without payload of
+> > state structure and get_state/set_state and separate header file?
+> > Truly, it is expansion of code for just simple operation.
+> > I don't buy that stuff.
+> 
+> Igor, one of the main motivations behind splitting the ts2020 tuner
+> code from the ds3000 demodulator driver code was that it turned out
+> there is actually 3rd party tuner, which is at least confirmed to work
+> both with Montage and ST Microelectronics DVB-S2 demodulators
+> (reference design available) - that's why what you're asking is made
+> in that way - to make it for sure be compatible with the way how
+> drivers for ST Microelectronics DVB-S2 tuners and demodulators in the
+> kernel are made since i have no hardware to test anything about them.
+> so, i get your point, but it's just legacy situation, because of those
+> other drivers. however, in my opinion too, your suggestion is the
+> better way if there wasn't such legacy situation.
+It is like virus, one frontend or tuner inserted here - all others must go by 
+chain.
+Konstantin, it is the same old stuff, don't get me wrong. The way of 
+programming, nothing more. What we have here, it is for future which maybe 
+never comes. Let's do things simple for ds3000/ts2020/rs2000, and make 
+separate wrapper header for future designs if and when needed.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
----
- drivers/media/video/Kconfig      |   12 +
- drivers/media/video/v4l2-ioctl.c |  684 +++++++++++++++++++++++++++++++++++++-
- 2 files changed, 687 insertions(+), 9 deletions(-)
-
-diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-index f2479c5..949f804 100644
---- a/drivers/media/video/Kconfig
-+++ b/drivers/media/video/Kconfig
-@@ -7,6 +7,18 @@ config VIDEO_V4L2
- 	depends on VIDEO_DEV && VIDEO_V4L2_COMMON
- 	default VIDEO_DEV && VIDEO_V4L2_COMMON
- 
-+config V4L2_COMPAT
-+	bool "Compatibility for old binaries"
-+	depends on VIDEO_V4L2
-+	default y
-+	---help---
-+	  Compatibility code to support binaries compiled with old V4L2
-+	  IOCTL definitions containing enums that have been replaced by
-+	  __u32. If you do not need to use such binaries you can disable
-+	  this option.
-+
-+	  When in doubt, say Y.
-+
- config VIDEOBUF_GEN
- 	tristate
- 
-diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
-index 5b2ec1f..9b88360 100644
---- a/drivers/media/video/v4l2-ioctl.c
-+++ b/drivers/media/video/v4l2-ioctl.c
-@@ -2303,6 +2303,653 @@ static long __video_do_ioctl(struct file *file,
- 	return ret;
- }
- 
-+#ifdef CONFIG_V4L2_COMPAT
-+
-+static inline unsigned int get_non_compat_cmd(unsigned int cmd)
-+{
-+	switch (cmd) {
-+	case VIDIOC_ENUM_FMT_ENUM:
-+		return VIDIOC_ENUM_FMT;
-+	case VIDIOC_G_FMT_ENUM:
-+		return VIDIOC_G_FMT;
-+	case VIDIOC_S_FMT_ENUM:
-+		return VIDIOC_S_FMT;
-+	case VIDIOC_REQBUFS_ENUM:
-+		return VIDIOC_REQBUFS;
-+	case VIDIOC_QUERYBUF_ENUM:
-+		return VIDIOC_QUERYBUF;
-+	case VIDIOC_G_FBUF_ENUM:
-+		return VIDIOC_G_FBUF;
-+	case VIDIOC_S_FBUF_ENUM:
-+		return VIDIOC_S_FBUF;
-+	case VIDIOC_QBUF_ENUM:
-+		return VIDIOC_QBUF;
-+	case VIDIOC_DQBUF_ENUM:
-+		return VIDIOC_DQBUF;
-+	case VIDIOC_G_PARM_ENUM:
-+		return VIDIOC_G_PARM;
-+	case VIDIOC_S_PARM_ENUM:
-+		return VIDIOC_S_PARM;
-+	case VIDIOC_G_TUNER_ENUM:
-+		return VIDIOC_G_TUNER;
-+	case VIDIOC_S_TUNER_ENUM:
-+		return VIDIOC_S_TUNER;
-+	case VIDIOC_QUERYCTRL_ENUM:
-+		return VIDIOC_QUERYCTRL;
-+	case VIDIOC_G_FREQUENCY_ENUM:
-+		return VIDIOC_G_FREQUENCY;
-+	case VIDIOC_S_FREQUENCY_ENUM:
-+		return VIDIOC_S_FREQUENCY;
-+	case VIDIOC_CROPCAP_ENUM:
-+		return VIDIOC_CROPCAP;
-+	case VIDIOC_G_CROP_ENUM:
-+		return VIDIOC_G_CROP;
-+	case VIDIOC_S_CROP_ENUM:
-+		return VIDIOC_S_CROP;
-+	case VIDIOC_TRY_FMT_ENUM:
-+		return VIDIOC_TRY_FMT;
-+	case VIDIOC_G_SLICED_VBI_CAP_ENUM:
-+		return VIDIOC_G_SLICED_VBI_CAP;
-+	case VIDIOC_S_HW_FREQ_SEEK_ENUM:
-+		return VIDIOC_S_HW_FREQ_SEEK;
-+	case VIDIOC_CREATE_BUFS_ENUM:
-+		return VIDIOC_CREATE_BUFS;
-+	case VIDIOC_PREPARE_BUF_ENUM:
-+		return VIDIOC_PREPARE_BUF;
-+	default:
-+		return cmd;
-+	}
-+}
-+
-+#define get_user_conv(x, ptr)			\
-+	({					\
-+		typeof (*ptr) tmp;		\
-+		int rval;			\
-+						\
-+		rval = get_user(tmp, ptr);	\
-+		if (!rval)			\
-+			x = (typeof (x))tmp;	\
-+						\
-+		rval;				\
-+	})
-+
-+static int get_user_pix_format(struct v4l2_pix_format *k,
-+			       struct v4l2_pix_format_enum *u)
-+{
-+	return get_user(k->width, &u->width)
-+		|| get_user(k->height, &u->height)
-+		|| get_user(k->pixelformat, &u->pixelformat)
-+		|| get_user_conv(k->field, &u->field)
-+		|| get_user(k->bytesperline, &u->bytesperline)
-+		|| get_user(k->sizeimage, &u->sizeimage)
-+		|| get_user_conv(k->colorspace, &u->colorspace)
-+		|| get_user(k->priv, &u->priv);
-+}
-+
-+static int get_user_pix_format_mplane(struct v4l2_pix_format_mplane *k,
-+				      struct v4l2_pix_format_mplane_enum *u)
-+{
-+	return get_user(k->width, &u->width)
-+		|| get_user(k->height, &u->height)
-+		|| get_user(k->pixelformat, &u->pixelformat)
-+		|| get_user_conv(k->field, &u->field)
-+		|| get_user_conv(k->colorspace, &u->colorspace)
-+		|| copy_from_user(k->plane_fmt, u->plane_fmt,
-+				  sizeof(k->plane_fmt))
-+		|| get_user(k->num_planes, &u->num_planes)
-+		|| copy_from_user(k->reserved, u->reserved,
-+				  sizeof(k->reserved));
-+}
-+
-+static int get_user_window(struct v4l2_window *k,
-+			   struct v4l2_window_enum *u)
-+{
-+	return copy_from_user(&k->w, &u->w, sizeof(k->w))
-+		|| get_user_conv(k->field, &u->field)
-+		|| get_user(k->chromakey, &u->chromakey)
-+		|| get_user(k->clips, &u->clips)
-+		|| get_user(k->clipcount, &u->clipcount)
-+		|| get_user(k->bitmap, &u->bitmap)
-+		|| get_user(k->global_alpha, &u->global_alpha);
-+}
-+
-+static int get_user_format(struct v4l2_format *k,
-+			   struct v4l2_format_enum *u)
-+{
-+	if (get_user(k->type, &u->type))
-+		return -EFAULT;
-+
-+	switch (k->type) {
-+	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
-+	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
-+		if (get_user_pix_format(&k->fmt.pix, &u->fmt.pix))
-+			return -EFAULT;
-+		return 0;
-+	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
-+	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
-+		if (get_user_pix_format_mplane(&k->fmt.pix_mp, &u->fmt.pix_mp))
-+			return -EFAULT;
-+		return 0;
-+	case V4L2_BUF_TYPE_VIDEO_OVERLAY:
-+	case V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY:
-+		if (get_user_window(&k->fmt.win, &u->fmt.win))
-+			return -EFAULT;
-+		return 0;
-+	default:
-+		if (copy_from_user(k->fmt.raw_data, u->fmt.raw_data,
-+				   sizeof(k->fmt.raw_data)))
-+			return -EFAULT;
-+		return 0;
-+	}
-+}
-+
-+static long copy_compat_from_user(unsigned int cmd, void *parg,
-+				  void __user *arg)
-+{
-+	union {
-+		struct v4l2_fmtdesc_enum fmtdesc;
-+		struct v4l2_format_enum fmt;
-+		struct v4l2_requestbuffers_enum reqbufs;
-+		struct v4l2_framebuffer_enum fb;
-+		struct v4l2_buffer_enum buf;
-+		struct v4l2_streamparm_enum sparm;
-+		struct v4l2_tuner_enum tuner;
-+		struct v4l2_queryctrl_enum qc;
-+		struct v4l2_frequency_enum freq;
-+		struct v4l2_cropcap_enum cropcap;
-+		struct v4l2_crop_enum crop;
-+		struct v4l2_sliced_vbi_cap_enum vbi_cap;
-+		struct v4l2_hw_freq_seek_enum freq_seek;
-+		struct v4l2_create_buffers_enum create_bufs;
-+	} __user *u = arg;
-+	union {
-+		struct v4l2_fmtdesc fmtdesc;
-+		struct v4l2_format fmt;
-+		struct v4l2_requestbuffers reqbufs;
-+		struct v4l2_framebuffer fb;
-+		struct v4l2_buffer buf;
-+		struct v4l2_streamparm sparm;
-+		struct v4l2_tuner tuner;
-+		struct v4l2_queryctrl qc;
-+		struct v4l2_frequency freq;
-+		struct v4l2_cropcap cropcap;
-+		struct v4l2_crop crop;
-+		struct v4l2_sliced_vbi_cap vbi_cap;
-+		struct v4l2_hw_freq_seek freq_seek;
-+		struct v4l2_create_buffers create_bufs;
-+	} *k = parg;
-+
-+	if (!access_ok(VERIFY_READ, u, _IOC_SIZE(cmd)))
-+		return -EFAULT;
-+
-+	switch (cmd) {
-+	case VIDIOC_ENUM_FMT_ENUM:
-+		if (get_user(k->fmtdesc.index, &u->fmtdesc.index)
-+		    || get_user_conv(k->fmtdesc.type, &u->fmtdesc.type)
-+		    || get_user(k->fmtdesc.flags, &u->fmtdesc.flags)
-+		    || copy_from_user(k->fmtdesc.description,
-+				      u->fmtdesc.description,
-+				      sizeof(k->fmtdesc.description))
-+		    || get_user(k->fmtdesc.pixelformat,
-+				&u->fmtdesc.pixelformat)
-+		    || copy_from_user(k->fmtdesc.reserved,
-+				      u->fmtdesc.reserved,
-+				      sizeof(k->fmtdesc.reserved)))
-+			return -EFAULT;
-+		return 0;
-+	case VIDIOC_G_FMT_ENUM:
-+	case VIDIOC_S_FMT_ENUM:
-+	case VIDIOC_TRY_FMT_ENUM:
-+		if (get_user_format(&k->fmt, &u->fmt))
-+			return -EFAULT;
-+		return 0;
-+	case VIDIOC_REQBUFS_ENUM:
-+		if (get_user(k->reqbufs.count, &u->reqbufs.count)
-+		    || get_user_conv(k->reqbufs.type, &u->reqbufs.type)
-+		    || get_user_conv(k->reqbufs.memory, &u->reqbufs.memory)
-+		    || copy_from_user(k->reqbufs.reserved,
-+				      u->reqbufs.reserved,
-+				      sizeof(k->reqbufs.reserved)))
-+			return -EFAULT;
-+		return 0;
-+	case VIDIOC_QUERYBUF_ENUM:
-+	case VIDIOC_QBUF_ENUM:
-+	case VIDIOC_DQBUF_ENUM:
-+	case VIDIOC_PREPARE_BUF_ENUM:
-+		if (get_user(k->buf.index, &u->buf.index)
-+		    || get_user_conv(k->buf.type, &u->buf.type)
-+		    || get_user(k->buf.bytesused, &u->buf.bytesused)
-+		    || get_user(k->buf.flags, &u->buf.flags)
-+		    || get_user_conv(k->buf.field, &u->buf.field)
-+		    || copy_from_user(&k->buf.timestamp, &u->buf.timestamp,
-+				      sizeof(k->buf.timestamp))
-+		    || copy_from_user(&k->buf.timecode, &u->buf.timecode,
-+				      sizeof(k->buf.timecode))
-+		    || get_user(k->buf.sequence, &u->buf.sequence)
-+		    || get_user_conv(k->buf.memory, &u->buf.memory)
-+		    || copy_from_user(&k->buf.m, &u->buf.m, sizeof(k->buf.m))
-+		    || get_user(k->buf.length, &u->buf.length)
-+		    || get_user(k->buf.reserved2, &u->buf.reserved2)
-+		    || get_user(k->buf.reserved, &u->buf.reserved))
-+			return -EFAULT;
-+		return 0;
-+	case VIDIOC_G_FBUF_ENUM:
-+	case VIDIOC_S_FBUF_ENUM:
-+		if (get_user(k->fb.capability, &u->fb.capability)
-+		    || get_user(k->fb.flags, &u->fb.flags)
-+		    || get_user(k->fb.base, &u->fb.base)
-+		    || get_user_pix_format(&k->fb.fmt, &u->fb.fmt))
-+			return -EFAULT;
-+		return 0;
-+	case VIDIOC_G_PARM_ENUM:
-+	case VIDIOC_S_PARM_ENUM:
-+		if (get_user_conv(k->sparm.type, &u->sparm.type)
-+		    || copy_from_user(&k->sparm.parm, &u->sparm.parm,
-+				      sizeof(k->sparm.parm)))
-+			return -EFAULT;
-+		return 0;
-+	case VIDIOC_G_TUNER_ENUM:
-+	case VIDIOC_S_TUNER_ENUM:
-+		if (get_user(k->tuner.index, &u->tuner.index)
-+		    || copy_from_user(k->tuner.name, u->tuner.name,
-+				      sizeof(k->tuner.name))
-+		    || get_user_conv(k->tuner.type, &u->tuner.type)
-+		    || get_user(k->tuner.capability, &u->tuner.capability)
-+		    || get_user(k->tuner.rangelow, &u->tuner.rangelow)
-+		    || get_user(k->tuner.rangehigh, &u->tuner.rangehigh)
-+		    || get_user(k->tuner.rxsubchans, &u->tuner.rxsubchans)
-+		    || get_user(k->tuner.audmode, &u->tuner.audmode)
-+		    || get_user(k->tuner.signal, &u->tuner.signal)
-+		    || get_user(k->tuner.afc, &u->tuner.afc)
-+		    || copy_from_user(k->tuner.reserved, u->tuner.reserved,
-+				      sizeof(k->tuner.reserved)))
-+			return -EFAULT;
-+		return 0;
-+	case VIDIOC_QUERYCTRL_ENUM:
-+		if (get_user(k->qc.id, &u->qc.id)
-+		    || get_user_conv(k->qc.type, &u->qc.type)
-+		    || copy_from_user(k->qc.name, u->qc.name,
-+				      sizeof(k->qc.name))
-+		    || get_user(k->qc.minimum, &u->qc.minimum)
-+		    || get_user(k->qc.maximum, &u->qc.maximum)
-+		    || get_user(k->qc.step, &u->qc.step)
-+		    || get_user(k->qc.default_value, &u->qc.default_value)
-+		    || get_user(k->qc.flags, &u->qc.flags)
-+		    || copy_from_user(k->qc.reserved, u->qc.reserved,
-+				      sizeof(k->qc.reserved)))
-+			return -EFAULT;
-+		return 0;
-+	case VIDIOC_G_FREQUENCY_ENUM:
-+	case VIDIOC_S_FREQUENCY_ENUM:
-+		if (get_user(k->freq.tuner, &u->freq.tuner)
-+		    || get_user_conv(k->freq.type, &u->freq.type)
-+		    || get_user(k->freq.frequency, &u->freq.frequency)
-+		    || copy_from_user(k->freq.reserved, u->freq.reserved,
-+				      sizeof(k->freq.reserved)))
-+			return -EFAULT;
-+		return 0;
-+	case VIDIOC_CROPCAP_ENUM:
-+		if (get_user_conv(k->cropcap.type, &u->cropcap.type)
-+		    || copy_from_user(&k->cropcap.bounds, &u->cropcap.bounds,
-+				      sizeof(k->cropcap.bounds))
-+		    || copy_from_user(&k->cropcap.defrect, &u->cropcap.defrect,
-+				      sizeof(k->cropcap.bounds))
-+		    || copy_from_user(&k->cropcap.pixelaspect,
-+				      &u->cropcap.pixelaspect,
-+				      sizeof(k->cropcap.pixelaspect)))
-+			return -EFAULT;
-+		return 0;
-+	case VIDIOC_G_CROP_ENUM:
-+	case VIDIOC_S_CROP_ENUM:
-+		if (get_user_conv(k->crop.type, &u->crop.type)
-+		    || copy_from_user(&k->crop.c, &u->crop.c,
-+				      sizeof(k->crop.c)))
-+			return -EFAULT;
-+		return 0;
-+	case VIDIOC_G_SLICED_VBI_CAP_ENUM:
-+		if (get_user(k->vbi_cap.service_set, &u->vbi_cap.service_set)
-+		    || copy_from_user(k->vbi_cap.service_lines,
-+				      u->vbi_cap.service_lines,
-+				      sizeof(k->vbi_cap.service_lines))
-+		    || get_user_conv(k->vbi_cap.type, &u->vbi_cap.type)
-+		    || copy_from_user(k->vbi_cap.reserved, u->vbi_cap.reserved,
-+				      sizeof(k->vbi_cap.reserved)))
-+			return -EFAULT;
-+		return 0;
-+	case VIDIOC_S_HW_FREQ_SEEK_ENUM:
-+		if (get_user(k->freq_seek.tuner, &u->freq_seek.tuner)
-+		    || get_user_conv(k->freq_seek.type, &u->freq_seek.type)
-+		    || get_user(k->freq_seek.seek_upward,
-+				&u->freq_seek.seek_upward)
-+		    || get_user(k->freq_seek.wrap_around,
-+				&u->freq_seek.wrap_around)
-+		    || get_user(k->freq_seek.spacing, &u->freq_seek.spacing)
-+		    || copy_from_user(k->freq_seek.reserved,
-+				      u->freq_seek.reserved,
-+				      sizeof(k->freq_seek.reserved)))
-+			return -EFAULT;
-+		return 0;
-+	case VIDIOC_CREATE_BUFS_ENUM:
-+		if (get_user(k->create_bufs.index, &u->create_bufs.index)
-+		    || get_user(k->create_bufs.count, &u->create_bufs.count)
-+		    || get_user_conv(k->create_bufs.memory,
-+				     &u->create_bufs.memory)
-+		    || get_user_format(&k->create_bufs.format,
-+				       &u->create_bufs.format)
-+		    || copy_from_user(k->create_bufs.reserved,
-+				      u->create_bufs.reserved,
-+				      sizeof(k->create_bufs.reserved)))
-+			return -EFAULT;
-+		return 0;
-+	default:
-+		WARN(1, "%s: bad compat cmd %8.8x\n", __func__, cmd);
-+		return -EINVAL;
-+	}
-+}
-+
-+#define put_user_conv(x, ptr)			\
-+	({					\
-+		typeof (*ptr) tmp;		\
-+						\
-+		tmp = (typeof (*ptr))x;		\
-+		put_user(tmp, ptr);		\
-+	})
-+
-+static int put_user_pix_format(struct v4l2_pix_format *k,
-+			       struct v4l2_pix_format_enum *u)
-+{
-+	return put_user(k->width, &u->width)
-+		|| put_user(k->height, &u->height)
-+		|| put_user(k->pixelformat, &u->pixelformat)
-+		|| put_user_conv(k->field, &u->field)
-+		|| put_user(k->bytesperline, &u->bytesperline)
-+		|| put_user(k->sizeimage, &u->sizeimage)
-+		|| put_user_conv(k->colorspace, &u->colorspace)
-+		|| put_user(k->priv, &u->priv);
-+}
-+
-+static int put_user_pix_format_mplane(struct v4l2_pix_format_mplane *k,
-+				      struct v4l2_pix_format_mplane_enum *u)
-+{
-+	return put_user(k->width, &u->width)
-+		|| put_user(k->height, &u->height)
-+		|| put_user(k->pixelformat, &u->pixelformat)
-+		|| put_user_conv(k->field, &u->field)
-+		|| put_user_conv(k->colorspace, &u->colorspace)
-+		|| copy_to_user(u->plane_fmt, k->plane_fmt,
-+				sizeof(k->plane_fmt))
-+		|| put_user(k->num_planes, &u->num_planes)
-+		|| copy_to_user(u->reserved, k->reserved,
-+				sizeof(k->reserved));
-+}
-+
-+static int put_user_window(struct v4l2_window *k,
-+			   struct v4l2_window_enum *u)
-+{
-+	return copy_to_user(&u->w, &k->w, sizeof(k->w))
-+		|| put_user_conv(k->field, &u->field)
-+		|| put_user(k->chromakey, &u->chromakey)
-+		|| put_user(k->clips, &u->clips)
-+		|| put_user(k->clipcount, &u->clipcount)
-+		|| put_user(k->bitmap, &u->bitmap)
-+		|| put_user(k->global_alpha, &u->global_alpha);
-+}
-+
-+static int put_user_format(struct v4l2_format *k,
-+			   struct v4l2_format_enum *u)
-+{
-+	if (put_user(k->type, &u->type))
-+		return -EFAULT;
-+
-+	switch (k->type) {
-+	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
-+	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
-+		if (put_user_pix_format(&k->fmt.pix, &u->fmt.pix))
-+			return -EFAULT;
-+		return 0;
-+	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
-+	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
-+		if (put_user_pix_format_mplane(&k->fmt.pix_mp, &u->fmt.pix_mp))
-+			return -EFAULT;
-+		return 0;
-+	case V4L2_BUF_TYPE_VIDEO_OVERLAY:
-+	case V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY:
-+		if (put_user_window(&k->fmt.win, &u->fmt.win))
-+			return -EFAULT;
-+		return 0;
-+	default:
-+		if (copy_to_user(u->fmt.raw_data, k->fmt.raw_data,
-+				 sizeof(k->fmt.raw_data)))
-+			return -EFAULT;
-+		return 0;
-+	}
-+}
-+
-+static long copy_compat_to_user(unsigned int cmd, void __user *arg,
-+				void *parg)
-+{
-+	union {
-+		struct v4l2_fmtdesc_enum fmtdesc;
-+		struct v4l2_format_enum fmt;
-+		struct v4l2_requestbuffers_enum reqbufs;
-+		struct v4l2_framebuffer_enum fb;
-+		struct v4l2_buffer_enum buf;
-+		struct v4l2_streamparm_enum sparm;
-+		struct v4l2_tuner_enum tuner;
-+		struct v4l2_queryctrl_enum qc;
-+		struct v4l2_frequency_enum freq;
-+		struct v4l2_cropcap_enum cropcap;
-+		struct v4l2_crop_enum crop;
-+		struct v4l2_sliced_vbi_cap_enum vbi_cap;
-+		struct v4l2_hw_freq_seek_enum freq_seek;
-+		struct v4l2_create_buffers_enum create_bufs;
-+	} __user *u = arg;
-+	union {
-+		struct v4l2_fmtdesc fmtdesc;
-+		struct v4l2_format fmt;
-+		struct v4l2_requestbuffers reqbufs;
-+		struct v4l2_framebuffer fb;
-+		struct v4l2_buffer buf;
-+		struct v4l2_streamparm sparm;
-+		struct v4l2_tuner tuner;
-+		struct v4l2_queryctrl qc;
-+		struct v4l2_frequency freq;
-+		struct v4l2_cropcap cropcap;
-+		struct v4l2_crop crop;
-+		struct v4l2_sliced_vbi_cap vbi_cap;
-+		struct v4l2_hw_freq_seek freq_seek;
-+		struct v4l2_create_buffers create_bufs;
-+	} *k = parg;
-+
-+	if (!access_ok(VERIFY_WRITE, u, _IOC_SIZE(cmd)))
-+		return -EFAULT;
-+
-+	switch (cmd) {
-+	case VIDIOC_ENUM_FMT_ENUM:
-+		if (put_user(k->fmtdesc.index, &u->fmtdesc.index)
-+		    || put_user_conv(k->fmtdesc.type, &u->fmtdesc.type)
-+		    || put_user(k->fmtdesc.flags, &u->fmtdesc.flags)
-+		    || copy_to_user(u->fmtdesc.description,
-+				    k->fmtdesc.description,
-+				    sizeof(k->fmtdesc.description))
-+		    || put_user(k->fmtdesc.pixelformat,
-+				&u->fmtdesc.pixelformat)
-+		    || copy_to_user(u->fmtdesc.reserved,
-+				    k->fmtdesc.reserved,
-+				    sizeof(k->fmtdesc.reserved)))
-+			return -EFAULT;
-+		return 0;
-+	case VIDIOC_G_FMT_ENUM:
-+	case VIDIOC_S_FMT_ENUM:
-+	case VIDIOC_TRY_FMT_ENUM:
-+		if (put_user_format(&k->fmt, &u->fmt))
-+			return -EFAULT;
-+		return 0;
-+	case VIDIOC_REQBUFS_ENUM:
-+		if (put_user(k->reqbufs.count, &u->reqbufs.count)
-+		    || put_user_conv(k->reqbufs.type, &u->reqbufs.type)
-+		    || put_user_conv(k->reqbufs.memory, &u->reqbufs.memory)
-+		    || copy_to_user(u->reqbufs.reserved,
-+				    k->reqbufs.reserved,
-+				    sizeof(k->reqbufs.reserved)))
-+			return -EFAULT;
-+		return 0;
-+	case VIDIOC_QUERYBUF_ENUM:
-+	case VIDIOC_QBUF_ENUM:
-+	case VIDIOC_DQBUF_ENUM:
-+	case VIDIOC_PREPARE_BUF_ENUM:
-+		if (put_user(k->buf.index, &u->buf.index)
-+		    || put_user_conv(k->buf.type, &u->buf.type)
-+		    || put_user(k->buf.bytesused, &u->buf.bytesused)
-+		    || put_user(k->buf.flags, &u->buf.flags)
-+		    || put_user_conv(k->buf.field, &u->buf.field)
-+		    || copy_to_user(&u->buf.timestamp, &k->buf.timestamp,
-+				    sizeof(k->buf.timestamp))
-+		    || copy_to_user(&u->buf.timecode, &k->buf.timecode,
-+				    sizeof(k->buf.timecode))
-+		    || put_user(k->buf.sequence, &u->buf.sequence)
-+		    || put_user_conv(k->buf.memory, &u->buf.memory)
-+		    || copy_to_user(&u->buf.m, &k->buf.m, sizeof(k->buf.m))
-+		    || put_user(k->buf.length, &u->buf.length)
-+		    || put_user(k->buf.reserved2, &u->buf.reserved2)
-+		    || put_user(k->buf.reserved, &u->buf.reserved))
-+			return -EFAULT;
-+		return 0;
-+	case VIDIOC_G_FBUF_ENUM:
-+	case VIDIOC_S_FBUF_ENUM:
-+		if (put_user(k->fb.capability, &u->fb.capability)
-+		    || put_user(k->fb.flags, &u->fb.flags)
-+		    || put_user(k->fb.base, &u->fb.base)
-+		    || put_user_pix_format(&k->fb.fmt, &u->fb.fmt))
-+			return -EFAULT;
-+		return 0;
-+	case VIDIOC_G_PARM_ENUM:
-+	case VIDIOC_S_PARM_ENUM:
-+		if (put_user_conv(k->sparm.type, &u->sparm.type)
-+		    || copy_to_user(&u->sparm.parm, &k->sparm.parm,
-+				    sizeof(k->sparm.parm)))
-+			return -EFAULT;
-+		return 0;
-+	case VIDIOC_G_TUNER_ENUM:
-+	case VIDIOC_S_TUNER_ENUM:
-+		if (put_user(k->tuner.index, &u->tuner.index)
-+		    || copy_to_user(u->tuner.name, k->tuner.name,
-+				    sizeof(k->tuner.name))
-+		    || put_user_conv(k->tuner.type, &u->tuner.type)
-+		    || put_user(k->tuner.capability, &u->tuner.capability)
-+		    || put_user(k->tuner.rangelow, &u->tuner.rangelow)
-+		    || put_user(k->tuner.rangehigh, &u->tuner.rangehigh)
-+		    || put_user(k->tuner.rxsubchans, &u->tuner.rxsubchans)
-+		    || put_user(k->tuner.audmode, &u->tuner.audmode)
-+		    || put_user(k->tuner.signal, &u->tuner.signal)
-+		    || put_user(k->tuner.afc, &u->tuner.afc)
-+		    || copy_to_user(u->tuner.reserved, k->tuner.reserved,
-+				    sizeof(k->tuner.reserved)))
-+			return -EFAULT;
-+		return 0;
-+	case VIDIOC_QUERYCTRL_ENUM:
-+		if (put_user(k->qc.id, &u->qc.id)
-+		    || put_user_conv(k->qc.type, &u->qc.type)
-+		    || copy_to_user(u->qc.name, k->qc.name,
-+				    sizeof(k->qc.name))
-+		    || put_user(k->qc.minimum, &u->qc.minimum)
-+		    || put_user(k->qc.maximum, &u->qc.maximum)
-+		    || put_user(k->qc.step, &u->qc.step)
-+		    || put_user(k->qc.default_value, &u->qc.default_value)
-+		    || put_user(k->qc.flags, &u->qc.flags)
-+		    || copy_to_user(u->qc.reserved, k->qc.reserved,
-+				    sizeof(k->qc.reserved)))
-+			return -EFAULT;
-+		return 0;
-+	case VIDIOC_G_FREQUENCY_ENUM:
-+	case VIDIOC_S_FREQUENCY_ENUM:
-+		if (put_user(k->freq.tuner, &u->freq.tuner)
-+		    || put_user_conv(k->freq.type, &u->freq.type)
-+		    || put_user(k->freq.frequency, &u->freq.frequency)
-+		    || copy_to_user(u->freq.reserved, k->freq.reserved,
-+				    sizeof(k->freq.reserved)))
-+			return -EFAULT;
-+		return 0;
-+	case VIDIOC_CROPCAP_ENUM:
-+		if (put_user_conv(k->cropcap.type, &u->cropcap.type)
-+		    || copy_to_user(&u->cropcap.bounds, &k->cropcap.bounds,
-+				    sizeof(k->cropcap.bounds))
-+		    || copy_to_user(&u->cropcap.defrect, &k->cropcap.defrect,
-+				    sizeof(k->cropcap.bounds))
-+		    || copy_to_user(&u->cropcap.pixelaspect,
-+				    &k->cropcap.pixelaspect,
-+				    sizeof(k->cropcap.pixelaspect)))
-+			return -EFAULT;
-+		return 0;
-+	case VIDIOC_G_CROP_ENUM:
-+	case VIDIOC_S_CROP_ENUM:
-+		if (put_user_conv(k->crop.type, &u->crop.type)
-+		    || copy_to_user(&u->crop.c, &k->crop.c,
-+				    sizeof(k->crop.c)))
-+			return -EFAULT;
-+		return 0;
-+	case VIDIOC_G_SLICED_VBI_CAP_ENUM:
-+		if (put_user(k->vbi_cap.service_set, &u->vbi_cap.service_set)
-+		    || copy_to_user(u->vbi_cap.service_lines,
-+				    k->vbi_cap.service_lines,
-+				    sizeof(k->vbi_cap.service_lines))
-+		    || put_user_conv(k->vbi_cap.type, &u->vbi_cap.type)
-+		    || copy_to_user(u->vbi_cap.reserved, k->vbi_cap.reserved,
-+				    sizeof(k->vbi_cap.reserved)))
-+			return -EFAULT;
-+		return 0;
-+	case VIDIOC_S_HW_FREQ_SEEK_ENUM:
-+		if (put_user(k->freq_seek.tuner, &u->freq_seek.tuner)
-+		    || put_user_conv(k->freq_seek.type, &u->freq_seek.type)
-+		    || put_user(k->freq_seek.seek_upward,
-+				&u->freq_seek.seek_upward)
-+		    || put_user(k->freq_seek.wrap_around,
-+				&u->freq_seek.wrap_around)
-+		    || put_user(k->freq_seek.spacing, &u->freq_seek.spacing)
-+		    || copy_to_user(u->freq_seek.reserved,
-+				    k->freq_seek.reserved,
-+				    sizeof(k->freq_seek.reserved)))
-+			return -EFAULT;
-+		return 0;
-+	case VIDIOC_CREATE_BUFS_ENUM:
-+		if (put_user(k->create_bufs.index, &u->create_bufs.index)
-+		    || put_user(k->create_bufs.count, &u->create_bufs.count)
-+		    || put_user_conv(k->create_bufs.memory,
-+				     &u->create_bufs.memory)
-+		    || put_user_format(&k->create_bufs.format,
-+				       &u->create_bufs.format)
-+		    || copy_to_user(u->create_bufs.reserved,
-+				    k->create_bufs.reserved,
-+				    sizeof(k->create_bufs.reserved)))
-+			return -EFAULT;
-+		return 0;
-+	default:
-+		WARN(1, "%s: bad compat cmd %8.8x\n", __func__, cmd);
-+		return -EINVAL;
-+	}
-+}
-+
-+#else /* CONFIG_V4L2_COMPAT */
-+
-+static inline unsigned int get_non_compat_cmd(unsigned int cmd)
-+{
-+	return cmd;
-+}
-+
-+static inline long copy_compat_from_user(unsigned int cmd, void __user *arg,
-+					 void *parg)
-+{
-+	return 0;
-+}
-+
-+static inline long copy_compat_to_user(unsigned int cmd, void __user *arg,
-+				       void *parg)
-+{
-+	return 0;
-+}
-+
-+#endif /* CONFIG_V4L2_COMPAT */
-+
- /* In some cases, only a few fields are used as input, i.e. when the app sets
-  * "index" and then the driver fills in the rest of the structure for the thing
-  * with that index.  We only need to copy up the first non-input field.  */
-@@ -2390,7 +3037,7 @@ static int check_array_args(unsigned int cmd, void *parg, size_t *array_size,
- }
- 
- long
--video_usercopy(struct file *file, unsigned int cmd, unsigned long arg,
-+video_usercopy(struct file *file, unsigned int compat_cmd, unsigned long arg,
- 	       v4l2_kioctl func)
- {
- 	char	sbuf[128];
-@@ -2401,6 +3048,7 @@ video_usercopy(struct file *file, unsigned int cmd, unsigned long arg,
- 	size_t  array_size = 0;
- 	void __user *user_ptr = NULL;
- 	void	**kernel_ptr = NULL;
-+	unsigned int cmd = get_non_compat_cmd(compat_cmd);
- 
- 	/*  Copy arguments into temp kernel buffer  */
- 	if (_IOC_DIR(cmd) != _IOC_NONE) {
-@@ -2418,12 +3066,23 @@ video_usercopy(struct file *file, unsigned int cmd, unsigned long arg,
- 		if (_IOC_DIR(cmd) & _IOC_WRITE) {
- 			unsigned long n = cmd_input_size(cmd);
- 
--			if (copy_from_user(parg, (void __user *)arg, n))
--				goto out;
--
--			/* zero out anything we don't copy from userspace */
--			if (n < _IOC_SIZE(cmd))
--				memset((u8 *)parg + n, 0, _IOC_SIZE(cmd) - n);
-+			if (cmd == compat_cmd) {
-+				if (copy_from_user(
-+					    parg, (void __user *)arg, n))
-+					goto out;
-+
-+				/*
-+				 * zero out anything we don't copy
-+				 * from userspace
-+				 */
-+				if (n < _IOC_SIZE(cmd))
-+					memset((u8 *)parg + n, 0,
-+					       _IOC_SIZE(cmd) - n);
-+			} else {
-+				if (copy_compat_from_user(compat_cmd, parg,
-+							  (void __user *)arg))
-+					goto out;
-+			}
- 		} else {
- 			/* read-only ioctl */
- 			memset(parg, 0, _IOC_SIZE(cmd));
-@@ -2471,8 +3130,15 @@ out_array_args:
- 	switch (_IOC_DIR(cmd)) {
- 	case _IOC_READ:
- 	case (_IOC_WRITE | _IOC_READ):
--		if (copy_to_user((void __user *)arg, parg, _IOC_SIZE(cmd)))
--			err = -EFAULT;
-+		if (cmd == compat_cmd) {
-+			if (copy_to_user((void __user *)arg, parg,
-+					 _IOC_SIZE(cmd)))
-+				err = -EFAULT;
-+		} else {
-+			if (copy_compat_to_user(compat_cmd, (void __user *)arg,
-+						parg))
-+				err = -EFAULT;
-+		}
- 		break;
- 	}
- 
+> 
+> >> + Â  Â  .release = ts2020_release
+> >> +};
+> >> +
+> >> +int ts2020_get_signal_strength(struct dvb_frontend *fe,
+> >> + Â  Â  u16 *signal_strength)
+> >> +{
+> >> + Â  Â  u16 sig_reading, sig_strength;
+> >> + Â  Â  u8 rfgain, bbgain;
+> >> +
+> >> + Â  Â  rfgain = ts2020_readreg(fe, 0x3d) & 0x1f;
+> >> + Â  Â  bbgain = ts2020_readreg(fe, 0x21) & 0x1f;
+> >> +
+> >> + Â  Â  if (rfgain > 15)
+> >> + Â  Â  Â  Â  Â  Â  rfgain = 15;
+> >> + Â  Â  if (bbgain > 13)
+> >> + Â  Â  Â  Â  Â  Â  bbgain = 13;
+> >> +
+> >> + Â  Â  sig_reading = rfgain * 2 + bbgain * 3;
+> >> +
+> >> + Â  Â  sig_strength = 40 + (64 - sig_reading) * 50 / 64 ;
+> >> +
+> >> + Â  Â  /* cook the value to be suitable for szap-s2 human readable 
+output
+> >> */
+> >> + Â  Â  *signal_strength = sig_strength * 1000;
+> >> +
+> >> + Â  Â  return 0;
+> >> +}
+> >> +EXPORT_SYMBOL(ts2020_get_signal_strength);
+> >> +
+> >> +struct dvb_frontend *ts2020_attach(struct dvb_frontend *fe,
+> >> + Â  Â  const struct ts2020_config *config, struct i2c_adapter *i2c)
+> >> +{
+> >> + Â  Â  struct ts2020_state *state = NULL;
+> >> +
+> >> + Â  Â  /* allocate memory for the internal state */
+> >> + Â  Â  state = kzalloc(sizeof(struct ts2020_state), GFP_KERNEL);
+> >> + Â  Â  if (!state)
+> >> + Â  Â  Â  Â  Â  Â  return NULL;
+> >> +
+> >> + Â  Â  /* setup the state */
+> >> + Â  Â  state->config = config;
+> >> + Â  Â  state->i2c = i2c;
+> >> + Â  Â  state->frontend = fe;
+> >> + Â  Â  fe->tuner_priv = state;
+> >> + Â  Â  fe->ops.tuner_ops = ts2020_ops;
+> >> +
+> >> + Â  Â  return fe;
+> >> +}
+> >> +EXPORT_SYMBOL(ts2020_attach);
+> >> +
+> >> +MODULE_AUTHOR("Konstantin Dimitrov <kosio.dimitrov@gmail.com>");
+> >> +MODULE_DESCRIPTION("Montage Technology TS2020 - Silicon tuner driver
+> >> module"); +MODULE_LICENSE("GPL");
+> >> --
+> >> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> >> the body of a message to majordomo@vger.kernel.org
+> >> More majordomo info at Â http://vger.kernel.org/majordomo-info.html
+> > 
+> > --
+> > Igor M. Liplianin
+> > Microsoft Windows Free Zone - Linux used for all Computing Tasks
 -- 
-1.7.2.5
-
+Igor M. Liplianin
+Microsoft Windows Free Zone - Linux used for all Computing Tasks
