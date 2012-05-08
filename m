@@ -1,268 +1,760 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.26]:25549 "EHLO mgw-da02.nokia.com"
+Received: from mail.kapsi.fi ([217.30.184.167]:33416 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756147Ab2EGNqy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 7 May 2012 09:46:54 -0400
-From: Sakari Ailus <sakari.ailus@iki.fi>
+	id S1753767Ab2EHKEn (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 8 May 2012 06:04:43 -0400
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com
-Subject: [media-ctl PATCH v2 1/2] New, more flexible syntax for format
-Date: Mon,  7 May 2012 16:46:35 +0300
-Message-Id: <1336398396-31526-1-git-send-email-sakari.ailus@iki.fi>
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH] af9015: various small changes and clean-ups
+Date: Tue,  8 May 2012 13:04:24 +0300
+Message-Id: <1336471464-4839-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-More flexible and extensible syntax for format which allows better usage
-of the selection API.
+Clean-up dvb_usb_device_properties and fix errors
+reported by checkpatch.pl.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Some other very minor changes. Functionality remains
+untouched.
+
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
- src/main.c       |   17 ++++++++++---
- src/options.c    |   27 +++++++++++++-------
- src/v4l2subdev.c |   70 ++++++++++++++++++++++++++++++++++--------------------
- 3 files changed, 74 insertions(+), 40 deletions(-)
+ drivers/media/dvb/dvb-usb/af9015.c |  495 +++++++++++++++--------------------
+ 1 files changed, 212 insertions(+), 283 deletions(-)
 
-diff --git a/src/main.c b/src/main.c
-index 53964e4..2f57352 100644
---- a/src/main.c
-+++ b/src/main.c
-@@ -59,15 +59,24 @@ static void v4l2_subdev_print_format(struct media_entity *entity,
- 	if (ret != 0)
- 		return;
+diff --git a/drivers/media/dvb/dvb-usb/af9015.c b/drivers/media/dvb/dvb-usb/af9015.c
+index 7e70ea5..677fed7 100644
+--- a/drivers/media/dvb/dvb-usb/af9015.c
++++ b/drivers/media/dvb/dvb-usb/af9015.c
+@@ -244,8 +244,7 @@ static int af9015_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msg[],
+ 	u8 uninitialized_var(mbox), addr_len;
+ 	struct req_t req;
  
--	printf("[%s %ux%u", v4l2_subdev_pixelcode_to_string(format.code),
--	       format.width, format.height);
-+	printf("\t\t[fmt:%s/%ux%u",
-+	       v4l2_subdev_pixelcode_to_string(format.code),
-+ 	       format.width, format.height);
-+
-+	ret = v4l2_subdev_get_selection(entity, &rect, pad,
-+					V4L2_SUBDEV_SEL_TGT_CROP_BOUNDS,
-+					which);
-+	if (ret == 0)
-+		printf("\n\t\t crop.bounds:%u,%u/%ux%u", rect.left, rect.top,
-+		       rect.width, rect.height);
+-/* TODO: implement bus lock
+-
++/*
+ The bus lock is needed because there is two tuners both using same I2C-address.
+ Due to that the only way to select correct tuner is use demodulator I2C-gate.
  
- 	ret = v4l2_subdev_get_selection(entity, &rect, pad,
- 					V4L2_SUBDEV_SEL_TGT_CROP_ACTUAL,
- 					which);
- 	if (ret == 0)
--		printf(" (%u,%u)/%ux%u", rect.left, rect.top,
-+		printf("\n\t\t crop:%u,%u/%ux%u", rect.left, rect.top,
- 		       rect.width, rect.height);
-+
- 	printf("]");
- }
+@@ -789,7 +788,7 @@ static void af9015_set_remote_config(struct usb_device *udev,
+ 	/* try to load remote based USB ID */
+ 	if (!props->rc.core.rc_codes)
+ 		props->rc.core.rc_codes = af9015_rc_setup_match(
+-			(vid << 16) + pid, af9015_rc_setup_usbids);
++			(vid << 16) | pid, af9015_rc_setup_usbids);
  
-@@ -252,7 +261,7 @@ static void media_print_topology_text(struct media_device *media)
- 		for (j = 0; j < entity->info.pads; j++) {
- 			struct media_pad *pad = &entity->pads[j];
- 
--			printf("\tpad%u: %s ", j, media_pad_type_to_string(pad->flags));
-+			printf("\tpad%u: %s\n", j, media_pad_type_to_string(pad->flags));
- 
- 			if (media_entity_type(entity) == MEDIA_ENT_T_V4L2_SUBDEV)
- 				v4l2_subdev_print_format(entity, j, V4L2_SUBDEV_FORMAT_ACTIVE);
-diff --git a/src/options.c b/src/options.c
-index 60cf6d5..46f6bef 100644
---- a/src/options.c
-+++ b/src/options.c
-@@ -37,8 +37,8 @@ static void usage(const char *argv0, int verbose)
- 	printf("%s [options] device\n", argv0);
- 	printf("-d, --device dev	Media device name (default: %s)\n", MEDIA_DEVNAME_DEFAULT);
- 	printf("-e, --entity name	Print the device name associated with the given entity\n");
--	printf("-f, --set-format	Comma-separated list of formats to setup\n");
--	printf("    --get-format pad	Print the active format on a given pad\n");
-+	printf("-V, --set-v4l2 v4l2	Comma-separated list of formats to setup\n");
-+	printf("    --get-v4l2 pad	Print the active format on a given pad\n");
- 	printf("-h, --help		Show verbose help and exit\n");
- 	printf("-i, --interactive	Modify links interactively\n");
- 	printf("-l, --links		Comma-separated list of links descriptors to setup\n");
-@@ -52,13 +52,17 @@ static void usage(const char *argv0, int verbose)
- 
- 	printf("\n");
- 	printf("Links and formats are defined as\n");
--	printf("\tlink            = pad, '->', pad, '[', flags, ']' ;\n");
--	printf("\tformat          = pad, '[', fcc, ' ', size, [ ' ', crop ], [ ' ', '@', frame interval ], ']' ;\n");
--	printf("\tpad             = entity, ':', pad number ;\n");
--	printf("\tentity          = entity number | ( '\"', entity name, '\"' ) ;\n");
--	printf("\tsize            = width, 'x', height ;\n");
--	printf("\tcrop            = '(', left, ',', top, ')', '/', size ;\n");
--	printf("\tframe interval  = numerator, '/', denominator ;\n");
-+	printf("\tlink                = pad, '->', pad, '[', flags, ']' ;\n");
-+	printf("\tv4l2                = pad, '[', v4l2-cfgs ']' ;\n");
-+	printf("\tv4l2-cfgs           = v4l2-cfg [ ',' v4l2-cfg ] ;\n");
-+	printf("\tv4l2-cfg            = v4l2-mbusfmt | v4l2-crop\n");
-+	printf("\t                      | v4l2 frame interval ;\n");
-+	printf("\tv4l2-mbusfmt        = 'fmt:', fcc, '/', size ;\n");
-+	printf("\tpad                 = entity, ':', pad number ;\n");
-+	printf("\tentity              = entity number | ( '\"', entity name, '\"' ) ;\n");
-+	printf("\tsize                = width, 'x', height ;\n");
-+	printf("\tv4l2-crop           = 'crop:(', left, ',', top, ')/', size ;\n");
-+	printf("\tv4l2 frame interval = '@', numerator, '/', denominator ;\n");
- 	printf("where the fields are\n");
- 	printf("\tentity number   Entity numeric identifier\n");
- 	printf("\tentity name     Entity name (string) \n");
-@@ -77,7 +81,9 @@ static void usage(const char *argv0, int verbose)
- static struct option opts[] = {
- 	{"device", 1, 0, 'd'},
- 	{"entity", 1, 0, 'e'},
-+	{"set-v4l2", 1, 0, 'V'},
- 	{"set-format", 1, 0, 'f'},
-+	{"get-v4l2", 1, 0, OPT_GET_FORMAT},
- 	{"get-format", 1, 0, OPT_GET_FORMAT},
- 	{"help", 0, 0, 'h'},
- 	{"interactive", 0, 0, 'i'},
-@@ -98,7 +104,7 @@ int parse_cmdline(int argc, char **argv)
+ 	/* try to load remote based USB iManufacturer string */
+ 	if (!props->rc.core.rc_codes && vid == USB_VID_AFATECH) {
+@@ -1220,8 +1219,8 @@ static int af9015_af9013_frontend_attach(struct dvb_usb_adapter *adap)
  	}
  
- 	/* parse options */
--	while ((opt = getopt_long(argc, argv, "d:e:f:hil:prv", opts, NULL)) != -1) {
-+	while ((opt = getopt_long(argc, argv, "d:e:V:f:hil:prv", opts, NULL)) != -1) {
- 		switch (opt) {
- 		case 'd':
- 			media_opts.devname = optarg;
-@@ -108,6 +114,7 @@ int parse_cmdline(int argc, char **argv)
- 			media_opts.entity = optarg;
- 			break;
+ 	/* attach demodulator */
+-	adap->fe_adap[0].fe = dvb_attach(af9013_attach, &af9015_af9013_config[adap->id],
+-		&adap->dev->i2c_adap);
++	adap->fe_adap[0].fe = dvb_attach(af9013_attach,
++		&af9015_af9013_config[adap->id], &adap->dev->i2c_adap);
  
-+		case 'V':
- 		case 'f':
- 			media_opts.formats = optarg;
- 			break;
-diff --git a/src/v4l2subdev.c b/src/v4l2subdev.c
-index a2ab0c4..6881553 100644
---- a/src/v4l2subdev.c
-+++ b/src/v4l2subdev.c
-@@ -233,13 +233,13 @@ static int v4l2_subdev_parse_format(struct v4l2_mbus_framefmt *format,
- 	char *end;
+ 	/*
+ 	 * AF9015 firmware does not like if it gets interrupted by I2C adapter
+@@ -1324,14 +1323,15 @@ static int af9015_tuner_attach(struct dvb_usb_adapter *adap)
+ 	switch (af9015_af9013_config[adap->id].tuner) {
+ 	case AF9013_TUNER_MT2060:
+ 	case AF9013_TUNER_MT2060_2:
+-		ret = dvb_attach(mt2060_attach, adap->fe_adap[0].fe, &adap->dev->i2c_adap,
+-			&af9015_mt2060_config,
++		ret = dvb_attach(mt2060_attach, adap->fe_adap[0].fe,
++			&adap->dev->i2c_adap, &af9015_mt2060_config,
+ 			af9015_config.mt2060_if1[adap->id])
+ 			== NULL ? -ENODEV : 0;
+ 		break;
+ 	case AF9013_TUNER_QT1010:
+ 	case AF9013_TUNER_QT1010A:
+-		ret = dvb_attach(qt1010_attach, adap->fe_adap[0].fe, &adap->dev->i2c_adap,
++		ret = dvb_attach(qt1010_attach, adap->fe_adap[0].fe,
++			&adap->dev->i2c_adap,
+ 			&af9015_qt1010_config) == NULL ? -ENODEV : 0;
+ 		break;
+ 	case AF9013_TUNER_TDA18271:
+@@ -1434,69 +1434,85 @@ enum af9015_usb_table_entry {
+ };
  
- 	for (; isspace(*p); ++p);
--	for (end = (char *)p; !isspace(*end) && *end != '\0'; ++end);
-+	for (end = (char *)p; *end != '/' && *end != '\0'; ++end);
- 
- 	code = v4l2_subdev_string_to_pixelcode(p, end - p);
- 	if (code == (enum v4l2_mbus_pixelcode)-1)
- 		return -EINVAL;
- 
--	for (p = end; isspace(*p); ++p);
-+	p = end + 1;
- 	width = strtoul(p, &end, 10);
- 	if (*end != 'x')
- 		return -EINVAL;
-@@ -256,32 +256,32 @@ static int v4l2_subdev_parse_format(struct v4l2_mbus_framefmt *format,
- 	return 0;
- }
- 
--static int v4l2_subdev_parse_crop(
--	struct v4l2_rect *crop, const char *p, char **endp)
-+static int v4l2_subdev_parse_rectangle(
-+	struct v4l2_rect *r, const char *p, char **endp)
- {
- 	char *end;
- 
- 	if (*p++ != '(')
- 		return -EINVAL;
- 
--	crop->left = strtoul(p, &end, 10);
-+	r->left = strtoul(p, &end, 10);
- 	if (*end != ',')
- 		return -EINVAL;
- 
- 	p = end + 1;
--	crop->top = strtoul(p, &end, 10);
-+	r->top = strtoul(p, &end, 10);
- 	if (*end++ != ')')
- 		return -EINVAL;
- 	if (*end != '/')
- 		return -EINVAL;
- 
- 	p = end + 1;
--	crop->width = strtoul(p, &end, 10);
-+	r->width = strtoul(p, &end, 10);
- 	if (*end != 'x')
- 		return -EINVAL;
- 
- 	p = end + 1;
--	crop->height = strtoul(p, &end, 10);
-+	r->height = strtoul(p, &end, 10);
- 	*endp = end;
- 
- 	return 0;
-@@ -307,6 +307,17 @@ static int v4l2_subdev_parse_frame_interval(struct v4l2_fract *interval,
- 	return 0;
- }
- 
-+static int strhazit(const char *str, const char **p)
-+{
-+	int len = strlen(str);
+ static struct usb_device_id af9015_usb_table[] = {
+-	[AFATECH_9015] =
+-		{USB_DEVICE(USB_VID_AFATECH, USB_PID_AFATECH_AF9015_9015)},
+-	[AFATECH_9016] =
+-		{USB_DEVICE(USB_VID_AFATECH, USB_PID_AFATECH_AF9015_9016)},
+-	[WINFAST_DTV_GOLD] =
+-		{USB_DEVICE(USB_VID_LEADTEK, USB_PID_WINFAST_DTV_DONGLE_GOLD)},
+-	[PINNACLE_PCTV_71E] =
+-		{USB_DEVICE(USB_VID_PINNACLE, USB_PID_PINNACLE_PCTV71E)},
+-	[KWORLD_PLUSTV_399U] =
+-		{USB_DEVICE(USB_VID_KWORLD_2, USB_PID_KWORLD_399U)},
+-	[TINYTWIN] = {USB_DEVICE(USB_VID_VISIONPLUS, USB_PID_TINYTWIN)},
+-	[AZUREWAVE_TU700] =
+-		{USB_DEVICE(USB_VID_VISIONPLUS, USB_PID_AZUREWAVE_AD_TU700)},
+-	[TERRATEC_AF9015] = {USB_DEVICE(USB_VID_TERRATEC,
++	[AFATECH_9015] = {
++		USB_DEVICE(USB_VID_AFATECH, USB_PID_AFATECH_AF9015_9015)},
++	[AFATECH_9016] = {
++		USB_DEVICE(USB_VID_AFATECH, USB_PID_AFATECH_AF9015_9016)},
++	[WINFAST_DTV_GOLD] = {
++		USB_DEVICE(USB_VID_LEADTEK, USB_PID_WINFAST_DTV_DONGLE_GOLD)},
++	[PINNACLE_PCTV_71E] = {
++		USB_DEVICE(USB_VID_PINNACLE, USB_PID_PINNACLE_PCTV71E)},
++	[KWORLD_PLUSTV_399U] = {
++		USB_DEVICE(USB_VID_KWORLD_2, USB_PID_KWORLD_399U)},
++	[TINYTWIN] = {
++		USB_DEVICE(USB_VID_VISIONPLUS, USB_PID_TINYTWIN)},
++	[AZUREWAVE_TU700] = {
++		USB_DEVICE(USB_VID_VISIONPLUS, USB_PID_AZUREWAVE_AD_TU700)},
++	[TERRATEC_AF9015] = {
++		USB_DEVICE(USB_VID_TERRATEC,
+ 				USB_PID_TERRATEC_CINERGY_T_USB_XE_REV2)},
+-	[KWORLD_PLUSTV_PC160] =
+-		{USB_DEVICE(USB_VID_KWORLD_2, USB_PID_KWORLD_PC160_2T)},
+-	[AVERTV_VOLAR_X] =
+-		{USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_VOLAR_X)},
+-	[XTENSIONS_380U] =
+-		{USB_DEVICE(USB_VID_XTENSIONS, USB_PID_XTENSIONS_XD_380)},
+-	[MSI_DIGIVOX_DUO] =
+-		{USB_DEVICE(USB_VID_MSI_2, USB_PID_MSI_DIGIVOX_DUO)},
+-	[AVERTV_VOLAR_X_REV2] =
+-		{USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_VOLAR_X_2)},
+-	[TELESTAR_STARSTICK_2] =
+-		{USB_DEVICE(USB_VID_TELESTAR,  USB_PID_TELESTAR_STARSTICK_2)},
+-	[AVERMEDIA_A309_USB] =
+-		{USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_A309)},
+-	[MSI_DIGIVOX_MINI_III] =
+-		{USB_DEVICE(USB_VID_MSI_2, USB_PID_MSI_DIGI_VOX_MINI_III)},
+-	[KWORLD_E396] = {USB_DEVICE(USB_VID_KWORLD_2, USB_PID_KWORLD_395U)},
+-	[KWORLD_E39B] = {USB_DEVICE(USB_VID_KWORLD_2, USB_PID_KWORLD_395U_2)},
+-	[KWORLD_E395] = {USB_DEVICE(USB_VID_KWORLD_2, USB_PID_KWORLD_395U_3)},
+-	[TREKSTOR_DVBT] = {USB_DEVICE(USB_VID_AFATECH, USB_PID_TREKSTOR_DVBT)},
+-	[AVERTV_A850] = {USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_A850)},
+-	[AVERTV_A805] = {USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_A805)},
+-	[CONCEPTRONIC_CTVDIGRCU] =
+-		{USB_DEVICE(USB_VID_KWORLD_2, USB_PID_CONCEPTRONIC_CTVDIGRCU)},
+-	[KWORLD_MC810] = {USB_DEVICE(USB_VID_KWORLD_2, USB_PID_KWORLD_MC810)},
+-	[GENIUS_TVGO_DVB_T03] =
+-		{USB_DEVICE(USB_VID_KYE, USB_PID_GENIUS_TVGO_DVB_T03)},
+-	[KWORLD_399U_2] = {USB_DEVICE(USB_VID_KWORLD_2, USB_PID_KWORLD_399U_2)},
+-	[KWORLD_PC160_T] =
+-		{USB_DEVICE(USB_VID_KWORLD_2, USB_PID_KWORLD_PC160_T)},
+-	[SVEON_STV20] = {USB_DEVICE(USB_VID_KWORLD_2, USB_PID_SVEON_STV20)},
+-	[TINYTWIN_2] = {USB_DEVICE(USB_VID_KWORLD_2, USB_PID_TINYTWIN_2)},
+-	[WINFAST_DTV2000DS] =
+-		{USB_DEVICE(USB_VID_LEADTEK, USB_PID_WINFAST_DTV2000DS)},
+-	[KWORLD_UB383_T] =
+-		{USB_DEVICE(USB_VID_KWORLD_2, USB_PID_KWORLD_UB383_T)},
+-	[KWORLD_E39A] =
+-		{USB_DEVICE(USB_VID_KWORLD_2, USB_PID_KWORLD_395U_4)},
+-	[AVERMEDIA_A815M] =
+-		{USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_A815M)},
+-	[CINERGY_T_STICK_RC] = {USB_DEVICE(USB_VID_TERRATEC,
++	[KWORLD_PLUSTV_PC160] = {
++		USB_DEVICE(USB_VID_KWORLD_2, USB_PID_KWORLD_PC160_2T)},
++	[AVERTV_VOLAR_X] = {
++		USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_VOLAR_X)},
++	[XTENSIONS_380U] = {
++		USB_DEVICE(USB_VID_XTENSIONS, USB_PID_XTENSIONS_XD_380)},
++	[MSI_DIGIVOX_DUO] = {
++		USB_DEVICE(USB_VID_MSI_2, USB_PID_MSI_DIGIVOX_DUO)},
++	[AVERTV_VOLAR_X_REV2] = {
++		USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_VOLAR_X_2)},
++	[TELESTAR_STARSTICK_2] = {
++		USB_DEVICE(USB_VID_TELESTAR,  USB_PID_TELESTAR_STARSTICK_2)},
++	[AVERMEDIA_A309_USB] = {
++		USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_A309)},
++	[MSI_DIGIVOX_MINI_III] = {
++		USB_DEVICE(USB_VID_MSI_2, USB_PID_MSI_DIGI_VOX_MINI_III)},
++	[KWORLD_E396] = {
++		USB_DEVICE(USB_VID_KWORLD_2, USB_PID_KWORLD_395U)},
++	[KWORLD_E39B] = {
++		USB_DEVICE(USB_VID_KWORLD_2, USB_PID_KWORLD_395U_2)},
++	[KWORLD_E395] = {
++		USB_DEVICE(USB_VID_KWORLD_2, USB_PID_KWORLD_395U_3)},
++	[TREKSTOR_DVBT] = {
++		USB_DEVICE(USB_VID_AFATECH, USB_PID_TREKSTOR_DVBT)},
++	[AVERTV_A850] = {
++		USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_A850)},
++	[AVERTV_A805] = {
++		USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_A805)},
++	[CONCEPTRONIC_CTVDIGRCU] = {
++		USB_DEVICE(USB_VID_KWORLD_2, USB_PID_CONCEPTRONIC_CTVDIGRCU)},
++	[KWORLD_MC810] = {
++		USB_DEVICE(USB_VID_KWORLD_2, USB_PID_KWORLD_MC810)},
++	[GENIUS_TVGO_DVB_T03] = {
++		USB_DEVICE(USB_VID_KYE, USB_PID_GENIUS_TVGO_DVB_T03)},
++	[KWORLD_399U_2] = {
++		USB_DEVICE(USB_VID_KWORLD_2, USB_PID_KWORLD_399U_2)},
++	[KWORLD_PC160_T] = {
++		USB_DEVICE(USB_VID_KWORLD_2, USB_PID_KWORLD_PC160_T)},
++	[SVEON_STV20] = {
++		USB_DEVICE(USB_VID_KWORLD_2, USB_PID_SVEON_STV20)},
++	[TINYTWIN_2] = {
++		USB_DEVICE(USB_VID_KWORLD_2, USB_PID_TINYTWIN_2)},
++	[WINFAST_DTV2000DS] = {
++		USB_DEVICE(USB_VID_LEADTEK, USB_PID_WINFAST_DTV2000DS)},
++	[KWORLD_UB383_T] = {
++		USB_DEVICE(USB_VID_KWORLD_2, USB_PID_KWORLD_UB383_T)},
++	[KWORLD_E39A] = {
++		USB_DEVICE(USB_VID_KWORLD_2, USB_PID_KWORLD_395U_4)},
++	[AVERMEDIA_A815M] = {
++		USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_A815M)},
++	[CINERGY_T_STICK_RC] = {
++		USB_DEVICE(USB_VID_TERRATEC,
+ 				USB_PID_TERRATEC_CINERGY_T_STICK_RC)},
+-	[CINERGY_T_DUAL_RC] = {USB_DEVICE(USB_VID_TERRATEC,
++	[CINERGY_T_DUAL_RC] = {
++		USB_DEVICE(USB_VID_TERRATEC,
+ 				USB_PID_TERRATEC_CINERGY_T_STICK_DUAL_RC)},
+-	[AVERTV_A850T] =
+-		{USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_A850T)},
+-	[TINYTWIN_3] = {USB_DEVICE(USB_VID_GTEK, USB_PID_TINYTWIN_3)},
+-	[SVEON_STV22] = {USB_DEVICE(USB_VID_KWORLD_2, USB_PID_SVEON_STV22)},
++	[AVERTV_A850T] = {
++		USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_A850T)},
++	[TINYTWIN_3] = {
++		USB_DEVICE(USB_VID_GTEK, USB_PID_TINYTWIN_3)},
++	[SVEON_STV22] = {
++		USB_DEVICE(USB_VID_KWORLD_2, USB_PID_SVEON_STV22)},
+ 	{ }
+ };
+ MODULE_DEVICE_TABLE(usb, af9015_usb_table);
+@@ -1516,43 +1532,44 @@ static struct dvb_usb_device_properties af9015_properties[] = {
+ 		.num_adapters = 2,
+ 		.adapter = {
+ 			{
+-			.num_frontends = 1,
+-			.fe = {{
+-				.caps = DVB_USB_ADAP_HAS_PID_FILTER |
+-				DVB_USB_ADAP_PID_FILTER_CAN_BE_TURNED_OFF,
+-
+-				.pid_filter_count = 32,
+-				.pid_filter       = af9015_pid_filter,
+-				.pid_filter_ctrl  = af9015_pid_filter_ctrl,
+-
+-				.frontend_attach =
+-					af9015_af9013_frontend_attach,
+-				.tuner_attach    = af9015_tuner_attach,
+-				.stream = {
+-					.type = USB_BULK,
+-					.count = 6,
+-					.endpoint = 0x84,
++				.num_frontends = 1,
++				.fe = {
++					{
++						.caps = DVB_USB_ADAP_HAS_PID_FILTER |
++							DVB_USB_ADAP_PID_FILTER_CAN_BE_TURNED_OFF,
 +
-+	if (strncmp(str, *p, len))
-+		return -ENOENT;
++						.pid_filter_count = 32,
++						.pid_filter       = af9015_pid_filter,
++						.pid_filter_ctrl  = af9015_pid_filter_ctrl,
 +
-+	*p += len;
-+	return 0;
-+}
++						.frontend_attach = af9015_af9013_frontend_attach,
++						.tuner_attach    = af9015_tuner_attach,
++						.stream = {
++							.type = USB_BULK,
++							.count = 6,
++							.endpoint = 0x84,
++						},
++					}
+ 				},
+-			}},
+ 			},
+ 			{
+-			.num_frontends = 1,
+-			.fe = {{
+-				.frontend_attach =
+-					af9015_af9013_frontend_attach,
+-				.tuner_attach    = af9015_tuner_attach,
+-				.stream = {
+-					.type = USB_BULK,
+-					.count = 6,
+-					.endpoint = 0x85,
+-					.u = {
+-						.bulk = {
+-							.buffersize =
+-						TS_USB20_FRAME_SIZE,
+-						}
++				.num_frontends = 1,
++				.fe = {
++					{
++						.frontend_attach = af9015_af9013_frontend_attach,
++						.tuner_attach    = af9015_tuner_attach,
++						.stream = {
++							.type = USB_BULK,
++							.count = 6,
++							.endpoint = 0x85,
++							.u = {
++								.bulk = {
++									.buffersize = TS_USB20_FRAME_SIZE,
++								}
++							}
++						},
+ 					}
+ 				},
+-			}},
+ 			}
+ 		},
+ 
+@@ -1575,102 +1592,67 @@ static struct dvb_usb_device_properties af9015_properties[] = {
+ 				.cold_ids = {
+ 					&af9015_usb_table[AFATECH_9015],
+ 					&af9015_usb_table[AFATECH_9016],
+-					NULL
+ 				},
+-				.warm_ids = {NULL},
+-			},
+-			{
++			}, {
+ 				.name = "Leadtek WinFast DTV Dongle Gold",
+ 				.cold_ids = {
+ 					&af9015_usb_table[WINFAST_DTV_GOLD],
+-					NULL
+ 				},
+-				.warm_ids = {NULL},
+-			},
+-			{
++			}, {
+ 				.name = "Pinnacle PCTV 71e",
+ 				.cold_ids = {
+ 					&af9015_usb_table[PINNACLE_PCTV_71E],
+-					NULL
+ 				},
+-				.warm_ids = {NULL},
+-			},
+-			{
++			}, {
+ 				.name = "KWorld PlusTV Dual DVB-T Stick " \
+ 					"(DVB-T 399U)",
+ 				.cold_ids = {
+ 					&af9015_usb_table[KWORLD_PLUSTV_399U],
+ 					&af9015_usb_table[KWORLD_399U_2],
+-					NULL
+ 				},
+-				.warm_ids = {NULL},
+-			},
+-			{
++			}, {
+ 				.name = "DigitalNow TinyTwin DVB-T Receiver",
+ 				.cold_ids = {
+ 					&af9015_usb_table[TINYTWIN],
+ 					&af9015_usb_table[TINYTWIN_2],
+ 					&af9015_usb_table[TINYTWIN_3],
+-					NULL
+ 				},
+-				.warm_ids = {NULL},
+-			},
+-			{
++			}, {
+ 				.name = "TwinHan AzureWave AD-TU700(704J)",
+ 				.cold_ids = {
+ 					&af9015_usb_table[AZUREWAVE_TU700],
+-					NULL
+ 				},
+-				.warm_ids = {NULL},
+-			},
+-			{
++			}, {
+ 				.name = "TerraTec Cinergy T USB XE",
+ 				.cold_ids = {
+ 					&af9015_usb_table[TERRATEC_AF9015],
+-					NULL
+ 				},
+-				.warm_ids = {NULL},
+-			},
+-			{
++			}, {
+ 				.name = "KWorld PlusTV Dual DVB-T PCI " \
+ 					"(DVB-T PC160-2T)",
+ 				.cold_ids = {
+ 					&af9015_usb_table[KWORLD_PLUSTV_PC160],
+-					NULL
+ 				},
+-				.warm_ids = {NULL},
+-			},
+-			{
++			}, {
+ 				.name = "AVerMedia AVerTV DVB-T Volar X",
+ 				.cold_ids = {
+ 					&af9015_usb_table[AVERTV_VOLAR_X],
+-					NULL
+ 				},
+-				.warm_ids = {NULL},
+-			},
+-			{
++			}, {
+ 				.name = "TerraTec Cinergy T Stick RC",
+ 				.cold_ids = {
+ 					&af9015_usb_table[CINERGY_T_STICK_RC],
+-					NULL
+ 				},
+-				.warm_ids = {NULL},
+-			},
+-			{
++			}, {
+ 				.name = "TerraTec Cinergy T Stick Dual RC",
+ 				.cold_ids = {
+ 					&af9015_usb_table[CINERGY_T_DUAL_RC],
+-					NULL
+ 				},
+-				.warm_ids = {NULL},
+-			},
+-			{
++			}, {
+ 				.name = "AverMedia AVerTV Red HD+ (A850T)",
+ 				.cold_ids = {
+ 					&af9015_usb_table[AVERTV_A850T],
+-					NULL
+ 				},
+-				.warm_ids = {NULL},
+ 			},
+ 		}
+ 	}, {
+@@ -1686,43 +1668,44 @@ static struct dvb_usb_device_properties af9015_properties[] = {
+ 		.num_adapters = 2,
+ 		.adapter = {
+ 			{
+-			.num_frontends = 1,
+-			.fe = {{
+-				.caps = DVB_USB_ADAP_HAS_PID_FILTER |
+-				DVB_USB_ADAP_PID_FILTER_CAN_BE_TURNED_OFF,
+-
+-				.pid_filter_count = 32,
+-				.pid_filter       = af9015_pid_filter,
+-				.pid_filter_ctrl  = af9015_pid_filter_ctrl,
+-
+-				.frontend_attach =
+-					af9015_af9013_frontend_attach,
+-				.tuner_attach    = af9015_tuner_attach,
+-				.stream = {
+-					.type = USB_BULK,
+-					.count = 6,
+-					.endpoint = 0x84,
++				.num_frontends = 1,
++				.fe = {
++					{
++						.caps = DVB_USB_ADAP_HAS_PID_FILTER |
++							DVB_USB_ADAP_PID_FILTER_CAN_BE_TURNED_OFF,
 +
- static struct media_pad *v4l2_subdev_parse_pad_format(
- 	struct media_device *media, struct v4l2_mbus_framefmt *format,
- 	struct v4l2_rect *crop, struct v4l2_fract *interval, const char *p,
-@@ -326,30 +337,37 @@ static struct media_pad *v4l2_subdev_parse_pad_format(
- 	if (*p++ != '[')
- 		return NULL;
- 
--	for (; isspace(*p); ++p);
-+	for (;;) {
-+		for (; isspace(*p); p++);
- 
--	if (isalnum(*p)) {
--		ret = v4l2_subdev_parse_format(format, p, &end);
--		if (ret < 0)
--			return NULL;
-+		if (!strhazit("fmt:", &p)) {
-+			ret = v4l2_subdev_parse_format(format, p, &end);
-+			if (ret < 0)
-+				return NULL;
- 
--		for (p = end; isspace(*p); p++);
--	}
-+			p = end;
-+			continue;
-+		}
- 
--	if (*p == '(') {
--		ret = v4l2_subdev_parse_crop(crop, p, &end);
--		if (ret < 0)
--			return NULL;
-+		if (!strhazit("crop:", &p) || *p == '(') {
-+			ret = v4l2_subdev_parse_rectangle(crop, p, &end);
-+			if (ret < 0)
-+				return NULL;
- 
--		for (p = end; isspace(*p); p++);
--	}
-+			p = end;
-+			continue;
-+		}
- 
--	if (*p == '@') {
--		ret = v4l2_subdev_parse_frame_interval(interval, ++p, &end);
--		if (ret < 0)
--			return NULL;
-+		if (*p == '@') {
-+			ret = v4l2_subdev_parse_frame_interval(interval, ++p, &end);
-+			if (ret < 0)
-+				return NULL;
++						.pid_filter_count = 32,
++						.pid_filter       = af9015_pid_filter,
++						.pid_filter_ctrl  = af9015_pid_filter_ctrl,
 +
-+			p = end;
-+			continue;
-+		}
++						.frontend_attach = af9015_af9013_frontend_attach,
++						.tuner_attach    = af9015_tuner_attach,
++						.stream = {
++							.type = USB_BULK,
++							.count = 6,
++							.endpoint = 0x84,
++						},
++					}
+ 				},
+-			}},
+ 			},
+ 			{
+-			.num_frontends = 1,
+-			.fe = {{
+-				.frontend_attach =
+-					af9015_af9013_frontend_attach,
+-				.tuner_attach    = af9015_tuner_attach,
+-				.stream = {
+-					.type = USB_BULK,
+-					.count = 6,
+-					.endpoint = 0x85,
+-					.u = {
+-						.bulk = {
+-							.buffersize =
+-						TS_USB20_FRAME_SIZE,
+-						}
++				.num_frontends = 1,
++				.fe = {
++					{
++						.frontend_attach = af9015_af9013_frontend_attach,
++						.tuner_attach    = af9015_tuner_attach,
++						.stream = {
++							.type = USB_BULK,
++							.count = 6,
++							.endpoint = 0x85,
++							.u = {
++								.bulk = {
++									.buffersize = TS_USB20_FRAME_SIZE,
++								}
++							}
++						},
+ 					}
+ 				},
+-			}},
+ 			}
+ 		},
  
--		for (p = end; isspace(*p); p++);
-+		break;
- 	}
+@@ -1744,51 +1727,33 @@ static struct dvb_usb_device_properties af9015_properties[] = {
+ 				.name = "Xtensions XD-380",
+ 				.cold_ids = {
+ 					&af9015_usb_table[XTENSIONS_380U],
+-					NULL
+ 				},
+-				.warm_ids = {NULL},
+-			},
+-			{
++			}, {
+ 				.name = "MSI DIGIVOX Duo",
+ 				.cold_ids = {
+ 					&af9015_usb_table[MSI_DIGIVOX_DUO],
+-					NULL
+ 				},
+-				.warm_ids = {NULL},
+-			},
+-			{
++			}, {
+ 				.name = "Fujitsu-Siemens Slim Mobile USB DVB-T",
+ 				.cold_ids = {
+ 					&af9015_usb_table[AVERTV_VOLAR_X_REV2],
+-					NULL
+ 				},
+-				.warm_ids = {NULL},
+-			},
+-			{
++			}, {
+ 				.name = "Telestar Starstick 2",
+ 				.cold_ids = {
+ 					&af9015_usb_table[TELESTAR_STARSTICK_2],
+-					NULL
+ 				},
+-				.warm_ids = {NULL},
+-			},
+-			{
++			}, {
+ 				.name = "AVerMedia A309",
+ 				.cold_ids = {
+ 					&af9015_usb_table[AVERMEDIA_A309_USB],
+-					NULL
+ 				},
+-				.warm_ids = {NULL},
+-			},
+-			{
++			}, {
+ 				.name = "MSI Digi VOX mini III",
+ 				.cold_ids = {
+ 					&af9015_usb_table[MSI_DIGIVOX_MINI_III],
+-					NULL
+ 				},
+-				.warm_ids = {NULL},
+-			},
+-			{
++			}, {
+ 				.name = "KWorld USB DVB-T TV Stick II " \
+ 					"(VS-DVB-T 395U)",
+ 				.cold_ids = {
+@@ -1796,34 +1761,23 @@ static struct dvb_usb_device_properties af9015_properties[] = {
+ 					&af9015_usb_table[KWORLD_E39B],
+ 					&af9015_usb_table[KWORLD_E395],
+ 					&af9015_usb_table[KWORLD_E39A],
+-					NULL
+ 				},
+-				.warm_ids = {NULL},
+-			},
+-			{
++			}, {
+ 				.name = "TrekStor DVB-T USB Stick",
+ 				.cold_ids = {
+ 					&af9015_usb_table[TREKSTOR_DVBT],
+-					NULL
+ 				},
+-				.warm_ids = {NULL},
+-			},
+-			{
++			}, {
+ 				.name = "AverMedia AVerTV Volar Black HD " \
+ 					"(A850)",
+ 				.cold_ids = {
+ 					&af9015_usb_table[AVERTV_A850],
+-					NULL
+ 				},
+-				.warm_ids = {NULL},
+-			},
+-			{
++			}, {
+ 				.name = "Sveon STV22 Dual USB DVB-T Tuner HDTV",
+ 				.cold_ids = {
+ 					&af9015_usb_table[SVEON_STV22],
+-					NULL
+ 				},
+-				.warm_ids = {NULL},
+ 			},
+ 		}
+ 	}, {
+@@ -1839,43 +1793,44 @@ static struct dvb_usb_device_properties af9015_properties[] = {
+ 		.num_adapters = 2,
+ 		.adapter = {
+ 			{
+-			.num_frontends = 1,
+-			.fe = {{
+-				.caps = DVB_USB_ADAP_HAS_PID_FILTER |
+-				DVB_USB_ADAP_PID_FILTER_CAN_BE_TURNED_OFF,
+-
+-				.pid_filter_count = 32,
+-				.pid_filter       = af9015_pid_filter,
+-				.pid_filter_ctrl  = af9015_pid_filter_ctrl,
+-
+-				.frontend_attach =
+-					af9015_af9013_frontend_attach,
+-				.tuner_attach    = af9015_tuner_attach,
+-				.stream = {
+-					.type = USB_BULK,
+-					.count = 6,
+-					.endpoint = 0x84,
++				.num_frontends = 1,
++				.fe = {
++					{
++						.caps = DVB_USB_ADAP_HAS_PID_FILTER |
++							DVB_USB_ADAP_PID_FILTER_CAN_BE_TURNED_OFF,
++
++						.pid_filter_count = 32,
++						.pid_filter       = af9015_pid_filter,
++						.pid_filter_ctrl  = af9015_pid_filter_ctrl,
++
++						.frontend_attach = af9015_af9013_frontend_attach,
++						.tuner_attach    = af9015_tuner_attach,
++						.stream = {
++							.type = USB_BULK,
++							.count = 6,
++							.endpoint = 0x84,
++						},
++					}
+ 				},
+-			}},
+ 			},
+ 			{
+-			.num_frontends = 1,
+-			.fe = {{
+-				.frontend_attach =
+-					af9015_af9013_frontend_attach,
+-				.tuner_attach    = af9015_tuner_attach,
+-				.stream = {
+-					.type = USB_BULK,
+-					.count = 6,
+-					.endpoint = 0x85,
+-					.u = {
+-						.bulk = {
+-							.buffersize =
+-						TS_USB20_FRAME_SIZE,
+-						}
++				.num_frontends = 1,
++				.fe = {
++					{
++						.frontend_attach = af9015_af9013_frontend_attach,
++						.tuner_attach    = af9015_tuner_attach,
++						.stream = {
++							.type = USB_BULK,
++							.count = 6,
++							.endpoint = 0x85,
++							.u = {
++								.bulk = {
++									.buffersize = TS_USB20_FRAME_SIZE,
++								}
++							}
++						},
+ 					}
+ 				},
+-			}},
+ 			}
+ 		},
  
- 	if (*p != ']')
+@@ -1897,76 +1852,50 @@ static struct dvb_usb_device_properties af9015_properties[] = {
+ 				.name = "AverMedia AVerTV Volar GPS 805 (A805)",
+ 				.cold_ids = {
+ 					&af9015_usb_table[AVERTV_A805],
+-					NULL
+ 				},
+-				.warm_ids = {NULL},
+-			},
+-			{
++			}, {
+ 				.name = "Conceptronic USB2.0 DVB-T CTVDIGRCU " \
+ 					"V3.0",
+ 				.cold_ids = {
+ 					&af9015_usb_table[CONCEPTRONIC_CTVDIGRCU],
+-					NULL
+ 				},
+-				.warm_ids = {NULL},
+-			},
+-			{
++			}, {
+ 				.name = "KWorld Digial MC-810",
+ 				.cold_ids = {
+ 					&af9015_usb_table[KWORLD_MC810],
+-					NULL
+ 				},
+-				.warm_ids = {NULL},
+-			},
+-			{
++			}, {
+ 				.name = "Genius TVGo DVB-T03",
+ 				.cold_ids = {
+ 					&af9015_usb_table[GENIUS_TVGO_DVB_T03],
+-					NULL
+ 				},
+-				.warm_ids = {NULL},
+-			},
+-			{
++			}, {
+ 				.name = "KWorld PlusTV DVB-T PCI Pro Card " \
+ 					"(DVB-T PC160-T)",
+ 				.cold_ids = {
+ 					&af9015_usb_table[KWORLD_PC160_T],
+-					NULL
+ 				},
+-				.warm_ids = {NULL},
+-			},
+-			{
++			}, {
+ 				.name = "Sveon STV20 Tuner USB DVB-T HDTV",
+ 				.cold_ids = {
+ 					&af9015_usb_table[SVEON_STV20],
+-					NULL
+ 				},
+-				.warm_ids = {NULL},
+-			},
+-			{
++			}, {
+ 				.name = "Leadtek WinFast DTV2000DS",
+ 				.cold_ids = {
+ 					&af9015_usb_table[WINFAST_DTV2000DS],
+-					NULL
+ 				},
+-				.warm_ids = {NULL},
+-			},
+-			{
++			}, {
+ 				.name = "KWorld USB DVB-T Stick Mobile " \
+ 					"(UB383-T)",
+ 				.cold_ids = {
+ 					&af9015_usb_table[KWORLD_UB383_T],
+-					NULL
+ 				},
+-				.warm_ids = {NULL},
+-			},
+-			{
++			}, {
+ 				.name = "AverMedia AVerTV Volar M (A815Mac)",
+ 				.cold_ids = {
+ 					&af9015_usb_table[AVERMEDIA_A815M],
+-					NULL
+ 				},
+-				.warm_ids = {NULL},
+ 			},
+ 		}
+ 	},
+@@ -2019,5 +1948,5 @@ static struct usb_driver af9015_usb_driver = {
+ module_usb_driver(af9015_usb_driver);
+ 
+ MODULE_AUTHOR("Antti Palosaari <crope@iki.fi>");
+-MODULE_DESCRIPTION("Driver for Afatech AF9015 DVB-T");
++MODULE_DESCRIPTION("Afatech AF9015 driver");
+ MODULE_LICENSE("GPL");
 -- 
-1.7.2.5
+1.7.7.6
 
