@@ -1,400 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:46217 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964842Ab2ERSsn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 May 2012 14:48:43 -0400
-Received: by mail-bk0-f46.google.com with SMTP id ji2so2596772bkc.19
-        for <linux-media@vger.kernel.org>; Fri, 18 May 2012 11:48:43 -0700 (PDT)
-From: Thomas Mair <thomas.mair86@googlemail.com>
-To: linux-media@vger.kernel.org
-Cc: crope@iki.fi, pomidorabelisima@gmail.com,
-	Thomas Mair <thomas.mair86@googlemail.com>
-Subject: [PATCH v5 3/5] rtl28xxu: renamed rtl2831_rd/rtl2831_wr to rtl28xx_rd/rtl28xx_wr
-Date: Fri, 18 May 2012 20:47:42 +0200
-Message-Id: <1337366864-1256-4-git-send-email-thomas.mair86@googlemail.com>
-In-Reply-To: <1337366864-1256-1-git-send-email-thomas.mair86@googlemail.com>
-References: <1>
- <1337366864-1256-1-git-send-email-thomas.mair86@googlemail.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:55606 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754583Ab2EHNMc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 8 May 2012 09:12:32 -0400
+Message-ID: <4FA91BBF.5060405@iki.fi>
+Date: Tue, 08 May 2012 16:12:31 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: linux-media <linux-media@vger.kernel.org>
+CC: Patrick Boettcher <pboettcher@kernellabs.com>
+Subject: [RFCv1] DVB-USB improvements
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Thomas Mair <thomas.mair86@googlemail.com>
----
- drivers/media/dvb/dvb-usb/rtl28xxu.c |  102 +++++++++++++++++-----------------
- 1 files changed, 51 insertions(+), 51 deletions(-)
+Factors behind the changes are mostly coming from the fact current 
+struct dvb_usb_device_properties contains so many static configuration 
+options. You cannot change single dvb_usb_device_properties easily 
+(safely) at runtime since it is usually driver global struct and thus 
+shared between all the DVB USB driver instances. That fits just fine for 
+the traditional devices where all configuration is same for the devices 
+having single USB ID. Nowadays we have more and more devices that are 
+based of chipset vendor reference designs - even using just single USB 
+ID chipset vendor have given for that chipset. These reference designs 
+still varies much about used chips and configurations. Configuring 
+different base chips, USB-bridge, demod, tuner, and also peripheral 
+properties like dual tuners, remotes and CI is needed to do runtime 
+because of single USB ID is used for that all.
 
-diff --git a/drivers/media/dvb/dvb-usb/rtl28xxu.c b/drivers/media/dvb/dvb-usb/rtl28xxu.c
-index 5285f3d..5586715 100644
---- a/drivers/media/dvb/dvb-usb/rtl28xxu.c
-+++ b/drivers/media/dvb/dvb-usb/rtl28xxu.c
-@@ -84,7 +84,7 @@ err:
- 	return ret;
- }
- 
--static int rtl2831_wr_regs(struct dvb_usb_device *d, u16 reg, u8 *val, int len)
-+static int rtl28xx_wr_regs(struct dvb_usb_device *d, u16 reg, u8 *val, int len)
- {
- 	struct rtl28xxu_req req;
- 
-@@ -120,12 +120,12 @@ static int rtl2831_rd_regs(struct dvb_usb_device *d, u16 reg, u8 *val, int len)
- 	return rtl28xxu_ctrl_msg(d, &req);
- }
- 
--static int rtl2831_wr_reg(struct dvb_usb_device *d, u16 reg, u8 val)
-+static int rtl28xx_wr_reg(struct dvb_usb_device *d, u16 reg, u8 val)
- {
--	return rtl2831_wr_regs(d, reg, &val, 1);
-+	return rtl28xx_wr_regs(d, reg, &val, 1);
- }
- 
--static int rtl2831_rd_reg(struct dvb_usb_device *d, u16 reg, u8 *val)
-+static int rtl28xx_rd_reg(struct dvb_usb_device *d, u16 reg, u8 *val)
- {
- 	return rtl2831_rd_regs(d, reg, val, 1);
- }
-@@ -312,12 +312,12 @@ static int rtl2831u_frontend_attach(struct dvb_usb_adapter *adap)
- 	 */
- 
- 	/* GPIO direction */
--	ret = rtl2831_wr_reg(adap->dev, SYS_GPIO_DIR, 0x0a);
-+	ret = rtl28xx_wr_reg(adap->dev, SYS_GPIO_DIR, 0x0a);
- 	if (ret)
- 		goto err;
- 
- 	/* enable as output GPIO0, GPIO2, GPIO4 */
--	ret = rtl2831_wr_reg(adap->dev, SYS_GPIO_OUT_EN, 0x15);
-+	ret = rtl28xx_wr_reg(adap->dev, SYS_GPIO_OUT_EN, 0x15);
- 	if (ret)
- 		goto err;
- 
-@@ -406,7 +406,7 @@ static int rtl2832u_fc0012_tuner_callback(struct dvb_usb_device *d,
- 	switch (cmd) {
- 	case FC_FE_CALLBACK_VHF_ENABLE:
- 		/* set output values */
--		ret = rtl2831_rd_reg(d, SYS_GPIO_OUT_VAL, &val);
-+		ret = rtl28xx_rd_reg(d, SYS_GPIO_OUT_VAL, &val);
- 		if (ret)
- 			goto err;
- 
-@@ -416,7 +416,7 @@ static int rtl2832u_fc0012_tuner_callback(struct dvb_usb_device *d,
- 			val |= 0x40; /* set GPIO6 high */
- 
- 
--		ret = rtl2831_wr_reg(d, SYS_GPIO_OUT_VAL, val);
-+		ret = rtl28xx_wr_reg(d, SYS_GPIO_OUT_VAL, val);
- 		if (ret)
- 			goto err;
- 		break;
-@@ -511,25 +511,25 @@ static int rtl2832u_frontend_attach(struct dvb_usb_adapter *adap)
- 	deb_info("%s:\n", __func__);
- 
- 
--	ret = rtl2831_rd_reg(adap->dev, SYS_GPIO_DIR, &val);
-+	ret = rtl28xx_rd_reg(adap->dev, SYS_GPIO_DIR, &val);
- 	if (ret)
- 		goto err;
- 
- 	val &= 0xbf;
- 
--	ret = rtl2831_wr_reg(adap->dev, SYS_GPIO_DIR, val);
-+	ret = rtl28xx_wr_reg(adap->dev, SYS_GPIO_DIR, val);
- 	if (ret)
- 		goto err;
- 
- 
- 	/* enable as output GPIO3 and GPIO6*/
--	ret = rtl2831_rd_reg(adap->dev, SYS_GPIO_OUT_EN, &val);
-+	ret = rtl28xx_rd_reg(adap->dev, SYS_GPIO_OUT_EN, &val);
- 	if (ret)
- 		goto err;
- 
- 	val |= 0x48;
- 
--	ret = rtl2831_wr_reg(adap->dev, SYS_GPIO_OUT_EN, val);
-+	ret = rtl28xx_wr_reg(adap->dev, SYS_GPIO_OUT_EN, val);
- 	if (ret)
- 		goto err;
- 
-@@ -790,7 +790,7 @@ static int rtl2831u_streaming_ctrl(struct dvb_usb_adapter *adap , int onoff)
- 
- 	deb_info("%s: onoff=%d\n", __func__, onoff);
- 
--	ret = rtl2831_rd_reg(adap->dev, SYS_GPIO_OUT_VAL, &gpio);
-+	ret = rtl28xx_rd_reg(adap->dev, SYS_GPIO_OUT_VAL, &gpio);
- 	if (ret)
- 		goto err;
- 
-@@ -804,11 +804,11 @@ static int rtl2831u_streaming_ctrl(struct dvb_usb_adapter *adap , int onoff)
- 		gpio &= (~0x04); /* LED off */
- 	}
- 
--	ret = rtl2831_wr_reg(adap->dev, SYS_GPIO_OUT_VAL, gpio);
-+	ret = rtl28xx_wr_reg(adap->dev, SYS_GPIO_OUT_VAL, gpio);
- 	if (ret)
- 		goto err;
- 
--	ret = rtl2831_wr_regs(adap->dev, USB_EPA_CTL, buf, 2);
-+	ret = rtl28xx_wr_regs(adap->dev, USB_EPA_CTL, buf, 2);
- 	if (ret)
- 		goto err;
- 
-@@ -834,7 +834,7 @@ static int rtl2832u_streaming_ctrl(struct dvb_usb_adapter *adap , int onoff)
- 		buf[1] = 0x02; /* reset EPA */
- 	}
- 
--	ret = rtl2831_wr_regs(adap->dev, USB_EPA_CTL, buf, 2);
-+	ret = rtl28xx_wr_regs(adap->dev, USB_EPA_CTL, buf, 2);
- 	if (ret)
- 		goto err;
- 
-@@ -852,12 +852,12 @@ static int rtl2831u_power_ctrl(struct dvb_usb_device *d, int onoff)
- 	deb_info("%s: onoff=%d\n", __func__, onoff);
- 
- 	/* demod adc */
--	ret = rtl2831_rd_reg(d, SYS_SYS0, &sys0);
-+	ret = rtl28xx_rd_reg(d, SYS_SYS0, &sys0);
- 	if (ret)
- 		goto err;
- 
- 	/* tuner power, read GPIOs */
--	ret = rtl2831_rd_reg(d, SYS_GPIO_OUT_VAL, &gpio);
-+	ret = rtl28xx_rd_reg(d, SYS_GPIO_OUT_VAL, &gpio);
- 	if (ret)
- 		goto err;
- 
-@@ -877,12 +877,12 @@ static int rtl2831u_power_ctrl(struct dvb_usb_device *d, int onoff)
- 	deb_info("%s: WR SYS0=%02x GPIO_OUT_VAL=%02x\n", __func__, sys0, gpio);
- 
- 	/* demod adc */
--	ret = rtl2831_wr_reg(d, SYS_SYS0, sys0);
-+	ret = rtl28xx_wr_reg(d, SYS_SYS0, sys0);
- 	if (ret)
- 		goto err;
- 
- 	/* tuner power, write GPIOs */
--	ret = rtl2831_wr_reg(d, SYS_GPIO_OUT_VAL, gpio);
-+	ret = rtl28xx_wr_reg(d, SYS_GPIO_OUT_VAL, gpio);
- 	if (ret)
- 		goto err;
- 
-@@ -901,107 +901,107 @@ static int rtl2832u_power_ctrl(struct dvb_usb_device *d, int onoff)
- 
- 	if (onoff) {
- 		/* set output values */
--		ret = rtl2831_rd_reg(d, SYS_GPIO_OUT_VAL, &val);
-+		ret = rtl28xx_rd_reg(d, SYS_GPIO_OUT_VAL, &val);
- 		if (ret)
- 			goto err;
- 
- 		val |= 0x08;
- 		val &= 0xef;
- 
--		ret = rtl2831_wr_reg(d, SYS_GPIO_OUT_VAL, val);
-+		ret = rtl28xx_wr_reg(d, SYS_GPIO_OUT_VAL, val);
- 		if (ret)
- 			goto err;
- 
- 		/* demod_ctl_1 */
--		ret = rtl2831_rd_reg(d, SYS_DEMOD_CTL1, &val);
-+		ret = rtl28xx_rd_reg(d, SYS_DEMOD_CTL1, &val);
- 		if (ret)
- 			goto err;
- 
- 		val &= 0xef;
- 
--		ret = rtl2831_wr_reg(d, SYS_DEMOD_CTL1, val);
-+		ret = rtl28xx_wr_reg(d, SYS_DEMOD_CTL1, val);
- 		if (ret)
- 			goto err;
- 
- 		/* demod control */
- 		/* PLL enable */
--		ret = rtl2831_rd_reg(d, SYS_DEMOD_CTL, &val);
-+		ret = rtl28xx_rd_reg(d, SYS_DEMOD_CTL, &val);
- 		if (ret)
- 			goto err;
- 
- 		/* bit 7 to 1 */
- 		val |= 0x80;
- 
--		ret = rtl2831_wr_reg(d, SYS_DEMOD_CTL, val);
-+		ret = rtl28xx_wr_reg(d, SYS_DEMOD_CTL, val);
- 		if (ret)
- 			goto err;
- 
- 		/* demod HW reset */
--		ret = rtl2831_rd_reg(d, SYS_DEMOD_CTL, &val);
-+		ret = rtl28xx_rd_reg(d, SYS_DEMOD_CTL, &val);
- 		if (ret)
- 			goto err;
- 		/* bit 5 to 0 */
- 		val &= 0xdf;
- 
--		ret = rtl2831_wr_reg(d, SYS_DEMOD_CTL, val);
-+		ret = rtl28xx_wr_reg(d, SYS_DEMOD_CTL, val);
- 		if (ret)
- 			goto err;
- 
--		ret = rtl2831_rd_reg(d, SYS_DEMOD_CTL, &val);
-+		ret = rtl28xx_rd_reg(d, SYS_DEMOD_CTL, &val);
- 		if (ret)
- 			goto err;
- 
- 		val |= 0x20;
- 
--		ret = rtl2831_wr_reg(d, SYS_DEMOD_CTL, val);
-+		ret = rtl28xx_wr_reg(d, SYS_DEMOD_CTL, val);
- 		if (ret)
- 			goto err;
- 
- 		mdelay(5);
- 
- 		/*enable ADC_Q and ADC_I */
--		ret = rtl2831_rd_reg(d, SYS_DEMOD_CTL, &val);
-+		ret = rtl28xx_rd_reg(d, SYS_DEMOD_CTL, &val);
- 		if (ret)
- 			goto err;
- 
- 		val |= 0x48;
- 
--		ret = rtl2831_wr_reg(d, SYS_DEMOD_CTL, val);
-+		ret = rtl28xx_wr_reg(d, SYS_DEMOD_CTL, val);
- 		if (ret)
- 			goto err;
- 
- 
- 	} else {
- 		/* demod_ctl_1 */
--		ret = rtl2831_rd_reg(d, SYS_DEMOD_CTL1, &val);
-+		ret = rtl28xx_rd_reg(d, SYS_DEMOD_CTL1, &val);
- 		if (ret)
- 			goto err;
- 
- 		val |= 0x0c;
- 
--		ret = rtl2831_wr_reg(d, SYS_DEMOD_CTL1, val);
-+		ret = rtl28xx_wr_reg(d, SYS_DEMOD_CTL1, val);
- 		if (ret)
- 			goto err;
- 
- 		/* set output values */
--		ret = rtl2831_rd_reg(d, SYS_GPIO_OUT_VAL, &val);
-+		ret = rtl28xx_rd_reg(d, SYS_GPIO_OUT_VAL, &val);
- 		if (ret)
- 				goto err;
- 
- 		val |= 0x10;
- 
--		ret = rtl2831_wr_reg(d, SYS_GPIO_OUT_VAL, val);
-+		ret = rtl28xx_wr_reg(d, SYS_GPIO_OUT_VAL, val);
- 		if (ret)
- 			goto err;
- 
- 		/* demod control */
--		ret = rtl2831_rd_reg(d, SYS_DEMOD_CTL, &val);
-+		ret = rtl28xx_rd_reg(d, SYS_DEMOD_CTL, &val);
- 		if (ret)
- 			goto err;
- 
- 		val &= 0x37;
- 
--		ret = rtl2831_wr_reg(d, SYS_DEMOD_CTL, val);
-+		ret = rtl28xx_wr_reg(d, SYS_DEMOD_CTL, val);
- 		if (ret)
- 			goto err;
- 
-@@ -1040,7 +1040,7 @@ static int rtl2831u_rc_query(struct dvb_usb_device *d)
- 	/* init remote controller */
- 	if (!priv->rc_active) {
- 		for (i = 0; i < ARRAY_SIZE(rc_nec_tab); i++) {
--			ret = rtl2831_wr_reg(d, rc_nec_tab[i].reg,
-+			ret = rtl28xx_wr_reg(d, rc_nec_tab[i].reg,
- 					rc_nec_tab[i].val);
- 			if (ret)
- 				goto err;
-@@ -1070,12 +1070,12 @@ static int rtl2831u_rc_query(struct dvb_usb_device *d)
- 
- 		rc_keydown(d->rc_dev, rc_code, 0);
- 
--		ret = rtl2831_wr_reg(d, SYS_IRRC_SR, 1);
-+		ret = rtl28xx_wr_reg(d, SYS_IRRC_SR, 1);
- 		if (ret)
- 			goto err;
- 
- 		/* repeated intentionally to avoid extra keypress */
--		ret = rtl2831_wr_reg(d, SYS_IRRC_SR, 1);
-+		ret = rtl28xx_wr_reg(d, SYS_IRRC_SR, 1);
- 		if (ret)
- 			goto err;
- 	}
-@@ -1112,7 +1112,7 @@ static int rtl2832u_rc_query(struct dvb_usb_device *d)
- 	/* init remote controller */
- 	if (!priv->rc_active) {
- 		for (i = 0; i < ARRAY_SIZE(rc_nec_tab); i++) {
--			ret = rtl2831_wr_reg(d, rc_nec_tab[i].reg,
-+			ret = rtl28xx_wr_reg(d, rc_nec_tab[i].reg,
- 					rc_nec_tab[i].val);
- 			if (ret)
- 				goto err;
-@@ -1120,14 +1120,14 @@ static int rtl2832u_rc_query(struct dvb_usb_device *d)
- 		priv->rc_active = true;
- 	}
- 
--	ret = rtl2831_rd_reg(d, IR_RX_IF, &buf[0]);
-+	ret = rtl28xx_rd_reg(d, IR_RX_IF, &buf[0]);
- 	if (ret)
- 		goto err;
- 
- 	if (buf[0] != 0x83)
- 		goto exit;
- 
--	ret = rtl2831_rd_reg(d, IR_RX_BC, &buf[0]);
-+	ret = rtl28xx_rd_reg(d, IR_RX_BC, &buf[0]);
- 	if (ret)
- 		goto err;
- 
-@@ -1136,9 +1136,9 @@ static int rtl2832u_rc_query(struct dvb_usb_device *d)
- 
- 	/* TODO: pass raw IR to Kernel IR decoder */
- 
--	ret = rtl2831_wr_reg(d, IR_RX_IF, 0x03);
--	ret = rtl2831_wr_reg(d, IR_RX_BUF_CTRL, 0x80);
--	ret = rtl2831_wr_reg(d, IR_RX_CTRL, 0x80);
-+	ret = rtl28xx_wr_reg(d, IR_RX_IF, 0x03);
-+	ret = rtl28xx_wr_reg(d, IR_RX_BUF_CTRL, 0x80);
-+	ret = rtl28xx_wr_reg(d, IR_RX_CTRL, 0x80);
- 
- exit:
- 	return ret;
-@@ -1343,23 +1343,23 @@ static int rtl28xxu_probe(struct usb_interface *intf,
- 
- 
- 	/* init USB endpoints */
--	ret = rtl2831_rd_reg(d, USB_SYSCTL_0, &val);
-+	ret = rtl28xx_rd_reg(d, USB_SYSCTL_0, &val);
- 	if (ret)
- 			goto err;
- 
- 	/* enable DMA and Full Packet Mode*/
- 	val |= 0x09;
--	ret = rtl2831_wr_reg(d, USB_SYSCTL_0, val);
-+	ret = rtl28xx_wr_reg(d, USB_SYSCTL_0, val);
- 	if (ret)
- 		goto err;
- 
- 	/* set EPA maximum packet size to 0x0200 */
--	ret = rtl2831_wr_regs(d, USB_EPA_MAXPKT, "\x00\x02\x00\x00", 4);
-+	ret = rtl28xx_wr_regs(d, USB_EPA_MAXPKT, "\x00\x02\x00\x00", 4);
- 	if (ret)
- 		goto err;
- 
- 	/* change EPA FIFO length */
--	ret = rtl2831_wr_regs(d, USB_EPA_FIFO_CFG, "\x14\x00\x00\x00", 4);
-+	ret = rtl28xx_wr_regs(d, USB_EPA_FIFO_CFG, "\x14\x00\x00\x00", 4);
- 	if (ret)
- 		goto err;
- 
+My personal innovator behind all these is problems I met when developing 
+AF9015 and AF9035 drivers. Also RTL2831U and RTL2832U are kinda similar 
+and have given some more motivation.
+
+Here is small list what I am planning to do. It is surely so much work 
+that everything is not possible, but lets try to select most important 
+and easiest as a higher priority.
+
+
+resume / suspend support
+-------------------
+* very important feature
+* crashes currently when DVB USB tries to download firmware when 
+resuming from suspend
+
+read_config1
+-------------------
+* new callback to do initial tweaks
+* very first callback
+* is that really needed?
+
+read_mac_address => read_config2
+-------------------
+* rename it read_config2 or read_config if read_config1 is not 
+implemented at all
+* rename old callback and extend it usage as a more general
+* only 8 devices use currently
+* when returned mac != 0 => print mac address as earlier, otherwise work 
+as a general callback
+
+new callback init()
+-------------------
+* called after tuner attach to initialize rest of device
+* good place to do some general settings
+   - configure endpoints
+   - configure remote controller
+   - configure + attach CI
+
+change DVB-USB to dynamic debug
+-------------------
+* use Kernel new dynamic debugs instead of own proprietary system
+
+download_firmware
+-------------------
+* struct usb_device => struct dvb_usb_device
+* we need access for the DVB USB driver state in every callback
+
+identify_state
+-------------------
+* struct usb_device => struct dvb_usb_device
+* we need access for the DVB USB driver state in every callback
+
+attach all given adapter frontends as once
+-------------------
+* for the MFE devices attach all frontends as once
+* deregister all frontends if error returned
+* small effect only for MFE
+
+attach all given adapter tuners as once
+-------------------
+* deregister all frontends if error returned
+* small effect only for MFE
+
+make remote dynamically configurable
+-------------------
+* default keytable mapped same level with USB-ID & device name etc.
+* there is generally 3 things that could be mapped to USB ID
+   - USB IDs (cold + warm)
+   - device name
+   - remote controller keytable
+   - all the others could be resolved & configured dynamically
+* it is not only keytable but whole remote should be changed dynamically 
+configurable
+
+make stream dynamically configurable
+-------------------
+* we need change stream parameters in certain situations
+   - there is multiple endpoints but shared MFE
+   - need to set params according to stream bandwidth (USB1.1, DVB-T, 
+DVB-C2 in same device)
+   - leave old static configrations as those are but add callbacks to 
+get new values at runtime
+
+dynamically growing device list in dvb_usb_device_properties
+-------------------
+* currently number of devices are limited statically
+* there is devices having ~50 or more IDs which means multiple 
+dvb_usb_device_properties are needed
+
+dynamic USB ID support
+-------------------
+* currently not supported by DVB USB
+
+analog support for the DVB USB
+-------------------
+* currently not supported by DVB USB
+* I have no experience
+* em28xx can be converted?
+
+
+
 -- 
-1.7.7.6
-
+http://palosaari.fi/
