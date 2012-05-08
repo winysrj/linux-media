@@ -1,234 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:52982 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754679Ab2EFVZH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 6 May 2012 17:25:07 -0400
-Received: by eaaq12 with SMTP id q12so1231723eaa.19
-        for <linux-media@vger.kernel.org>; Sun, 06 May 2012 14:25:06 -0700 (PDT)
-MIME-Version: 1.0
-Date: Mon, 7 May 2012 00:25:04 +0300
-Message-ID: <CAF0Ff2m+CEqxgX0i0XbRR=+7Esf6czJKUyEUvAGeRFOm5iRD_g@mail.gmail.com>
-Subject: [PATCH 3/3] make the other drivers take use of the new ts2020 driver
-From: Konstantin Dimitrov <kosio.dimitrov@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:30238 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751797Ab2EHJug (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 May 2012 05:50:36 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: text/plain; charset=UTF-8
+Date: Tue, 08 May 2012 11:50:33 +0200
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: [PATCH v3] scatterlist: add sg_alloc_table_from_pages function
+Cc: paul.gortmaker@windriver.com,
+	=?UTF-8?B?J+uwleqyveuvvCc=?= <kyungmin.park@samsung.com>,
+	amwang@redhat.com, dri-devel@lists.freedesktop.org,
+	"'???/Mobile S/W Platform Lab.(???)/E3(??)/????'"
+	<inki.dae@samsung.com>, prashanth.g@samsung.com,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Rob Clark <rob@ti.com>, Dave Airlie <airlied@redhat.com>,
+	"'???/Mobile S/W Platform Lab.(???)/E3(??)/????'"
+	<inki.dae@samsung.com>, linux-kernel@vger.kernel.org
+Message-id: <4FA8EC69.8010805@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-make the other drivers take use of the separate ts2020 driver
+This patch adds a new constructor for an sg table. The table is constructed
+from an array of struct pages. All contiguous chunks of the pages are merged
+into a single sg nodes. A user may provide an offset and a size of a buffer if
+the buffer is not page-aligned.
 
-Signed-off-by: Konstantin Dimitrov <kosio.dimitrov@gmail.com>
+The function is dedicated for DMABUF exporters which often perform conversion
+from an page array to a scatterlist. Moreover the scatterlist should be
+squashed in order to save memory and to speed-up the process of DMA mapping
+using dma_map_sg.
 
---- a/linux/drivers/media/dvb/frontends/ds3000.c	2012-05-07
-02:24:25.900920554 +0300
-+++ b/linux/drivers/media/dvb/frontends/ds3000.c	2012-05-07
-02:26:01.728919348 +0300
-@@ -27,6 +27,7 @@
- #include <linux/firmware.h>
+The code is based on the patch 'v4l: vb2-dma-contig: add support for
+scatterlist in userptr mode' and hints from Laurent Pinchart.
 
- #include "dvb_frontend.h"
-+#include "ts2020.h"
- #include "ds3000.h"
+Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ include/linux/scatterlist.h |    4 +++
+ lib/scatterlist.c           |   64 +++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 68 insertions(+), 0 deletions(-)
 
- static int debug;
-@@ -539,8 +540,7 @@
- static int ds3000_read_signal_strength(struct dvb_frontend *fe,
- 						u16 *signal_strength)
- {
--	/* temporary disabled until seperate ts2020 tuner driver is merged */
--	*signal_strength = 0xffff;
-+	ts2020_get_signal_strength(fe, signal_strength);
+diff --git a/include/linux/scatterlist.h b/include/linux/scatterlist.h
+index ac9586d..7b600da 100644
+--- a/include/linux/scatterlist.h
++++ b/include/linux/scatterlist.h
+@@ -214,6 +214,10 @@ void sg_free_table(struct sg_table *);
+ int __sg_alloc_table(struct sg_table *, unsigned int, unsigned int, gfp_t,
+ 		     sg_alloc_fn *);
+ int sg_alloc_table(struct sg_table *, unsigned int, gfp_t);
++int sg_alloc_table_from_pages(struct sg_table *sgt,
++	struct page **pages, unsigned int n_pages,
++	unsigned long offset, unsigned long size,
++	gfp_t gfp_mask);
 
- 	return 0;
- }
---- a/linux/drivers/media/video/cx23885/cx23885-dvb.c	2012-01-17
-06:45:50.000000000 +0200
-+++ b/linux/drivers/media/video/cx23885/cx23885-dvb.c	2012-05-07
-01:48:37.352505509 +0300
-@@ -57,6 +57,8 @@
- #include "netup-init.h"
- #include "lgdt3305.h"
- #include "atbm8830.h"
-+#include "ts2020.h"
-+#include "ts2020_cfg.h"
- #include "ds3000.h"
- #include "cx23885-f300.h"
- #include "altera-ci.h"
-@@ -464,6 +466,13 @@
+ size_t sg_copy_from_buffer(struct scatterlist *sgl, unsigned int nents,
+ 			   void *buf, size_t buflen);
+diff --git a/lib/scatterlist.c b/lib/scatterlist.c
+index 6096e89..85868a1 100644
+--- a/lib/scatterlist.c
++++ b/lib/scatterlist.c
+@@ -319,6 +319,70 @@ int sg_alloc_table(struct sg_table *table, unsigned int nents, gfp_t gfp_mask)
+ EXPORT_SYMBOL(sg_alloc_table);
 
- static struct ds3000_config tevii_ds3000_config = {
- 	.demod_address = 0x68,
+ /**
++ * sg_alloc_table_from_pages - Allocate and initialize an sg table from
++ *			       an array of pages
++ * @sgt:	The sg table header to use
++ * @pages:	Pointer to an array of page pointers
++ * @n_pages:	Number of pages in the pages array
++ * @offset:     Offset from start of the first page to the start of a buffer
++ * @size:       Number of valid bytes in the buffer (after offset)
++ * @gfp_mask:	GFP allocation mask
++ *
++ *  Description:
++ *    Allocate and initialize an sg table from a list of pages. Continuous
++ *    ranges of the pages are squashed into a single scatterlist node. A user
++ *    may provide an offset at a start and a size of valid data in a buffer
++ *    specified by the page array. The returned sg table is released by
++ *    sg_free_table.
++ *
++ * Returns:
++ *   0 on success, negative error on failure
++ **/
++int sg_alloc_table_from_pages(struct sg_table *sgt,
++	struct page **pages, unsigned int n_pages,
++	unsigned long offset, unsigned long size,
++	gfp_t gfp_mask)
++{
++	unsigned int chunks;
++	unsigned int i;
++	unsigned int cur_page;
++	int ret;
++	struct scatterlist *s;
 +
-+	.tuner_get_frequency = ts2020_get_frequency,
-+	.tuner_set_frequency = ts2020_set_frequency,
-+};
++	/* compute number of contiguous chunks */
++	chunks = 1;
++	for (i = 1; i < n_pages; ++i)
++		if (page_to_pfn(pages[i]) != page_to_pfn(pages[i - 1]) + 1)
++			++chunks;
 +
-+static struct ts2020_config tevii_ts2020_config  = {
-+	.tuner_address = 0x60,
- };
-
- static struct cx24116_config dvbworld_cx24116_config = {
-@@ -966,8 +975,11 @@
- 		fe0->dvb.frontend = dvb_attach(ds3000_attach,
- 					&tevii_ds3000_config,
- 					&i2c_bus->i2c_adap);
--		if (fe0->dvb.frontend != NULL)
-+		if (fe0->dvb.frontend != NULL) {
-+			dvb_attach(ts2020_attach, fe0->dvb.frontend,
-+				&tevii_ts2020_config, &i2c_bus->i2c_adap);
- 			fe0->dvb.frontend->ops.set_voltage = f300_set_voltage;
-+		}
-
- 		break;
- 	case CX23885_BOARD_DVBWORLD_2005:
---- a/linux/drivers/media/video/cx88/cx88-dvb.c	2012-01-08
-06:45:35.000000000 +0200
-+++ b/linux/drivers/media/video/cx88/cx88-dvb.c	2012-05-07
-03:02:54.359917746 +0300
-@@ -58,6 +58,8 @@
- #include "stb6100.h"
- #include "stb6100_proc.h"
- #include "mb86a16.h"
-+#include "ts2020.h"
-+#include "ts2020_cfg.h"
- #include "ds3000.h"
-
- MODULE_DESCRIPTION("driver for cx2388x based DVB cards");
-@@ -698,6 +700,13 @@
- static struct ds3000_config tevii_ds3000_config = {
- 	.demod_address = 0x68,
- 	.set_ts_params = ds3000_set_ts_param,
++	ret = sg_alloc_table(sgt, chunks, gfp_mask);
++	if (unlikely(ret))
++		return ret;
 +
-+	.tuner_get_frequency = ts2020_get_frequency,
-+	.tuner_set_frequency = ts2020_set_frequency,
-+};
++	/* merging chunks and putting them into the scatterlist */
++	cur_page = 0;
++	for_each_sg(sgt->sgl, s, sgt->orig_nents, i) {
++		unsigned long chunk_size;
++		unsigned int j;
 +
-+static struct ts2020_config tevii_ts2020_config  = {
-+	.tuner_address = 0x60,
- };
-
- static const struct stv0900_config prof_7301_stv0900_config = {
-@@ -1466,9 +1475,12 @@
- 		fe0->dvb.frontend = dvb_attach(ds3000_attach,
- 						&tevii_ds3000_config,
- 						&core->i2c_adap);
--		if (fe0->dvb.frontend != NULL)
-+		if (fe0->dvb.frontend != NULL) {
-+			dvb_attach(ts2020_attach, fe0->dvb.frontend,
-+				&tevii_ts2020_config, &core->i2c_adap);
- 			fe0->dvb.frontend->ops.set_voltage =
- 							tevii_dvbs_set_voltage;
-+		}
- 		break;
- 	case CX88_BOARD_OMICOM_SS4_PCI:
- 	case CX88_BOARD_TBS_8920:
---- a/linux/drivers/media/dvb/dm1105/dm1105.c	2012-01-08
-06:45:35.000000000 +0200
-+++ b/linux/drivers/media/dvb/dm1105/dm1105.c	2012-05-07
-03:03:10.899917539 +0300
-@@ -45,6 +45,8 @@
- #include "si21xx.h"
- #include "cx24116.h"
- #include "z0194a.h"
-+#include "ts2020.h"
-+#include "ts2020_cfg.h"
- #include "ds3000.h"
-
- #define MODULE_NAME "dm1105"
-@@ -847,6 +849,13 @@
-
- static struct ds3000_config dvbworld_ds3000_config = {
- 	.demod_address = 0x68,
++		/* looking for the end of the current chunk */
++		for (j = cur_page + 1; j < n_pages; ++j)
++			if (page_to_pfn(pages[j]) !=
++			    page_to_pfn(pages[j - 1]) + 1)
++				break;
 +
-+	.tuner_get_frequency = ts2020_get_frequency,
-+	.tuner_set_frequency = ts2020_set_frequency,
-+};
++		chunk_size = ((j - cur_page) << PAGE_SHIFT) - offset;
++		sg_set_page(s, pages[cur_page], min(size, chunk_size), offset);
++		size -= chunk_size;
++		offset = 0;
++		cur_page = j;
++	}
 +
-+static struct ts2020_config dvbworld_ts2020_config  = {
-+	.tuner_address = 0x60,
- };
-
- static int __devinit frontend_init(struct dm1105_dev *dev)
-@@ -898,8 +907,11 @@
- 		dev->fe = dvb_attach(
- 			ds3000_attach, &dvbworld_ds3000_config,
- 			&dev->i2c_adap);
--		if (dev->fe)
-+		if (dev->fe) {
-+			dvb_attach(ts2020_attach, dev->fe,
-+				&dvbworld_ts2020_config, &dev->i2c_adap);
- 			dev->fe->ops.set_voltage = dm1105_set_voltage;
-+		}
-
- 		break;
- 	case DM1105_BOARD_DVBWORLD_2002:
---- a/linux/drivers/media/dvb/dvb-usb/dw2102.c	2012-01-22
-03:53:17.000000000 +0200
-+++ b/linux/drivers/media/dvb/dvb-usb/dw2102.c	2012-05-07
-03:03:22.739917389 +0300
-@@ -22,6 +22,8 @@
- #include "tda1002x.h"
- #include "mt312.h"
- #include "zl10039.h"
-+#include "ts2020.h"
-+#include "ts2020_cfg.h"
- #include "ds3000.h"
- #include "stv0900.h"
- #include "stv6110.h"
-@@ -934,6 +936,13 @@
-
- static struct ds3000_config dw2104_ds3000_config = {
- 	.demod_address = 0x68,
++	return 0;
++}
++EXPORT_SYMBOL(sg_alloc_table_from_pages);
 +
-+	.tuner_get_frequency = ts2020_get_frequency,
-+	.tuner_set_frequency = ts2020_set_frequency,
-+};
-+
-+static struct ts2020_config dw2104_ts2020_config  = {
-+	.tuner_address = 0x60,
- };
++/**
+  * sg_miter_start - start mapping iteration over a sg list
+  * @miter: sg mapping iter to be started
+  * @sgl: sg list to iterate over
+-- 
+1.7.5.4
 
- static struct stv0900_config dw2104a_stv0900_config = {
-@@ -985,6 +994,13 @@
- static struct ds3000_config su3000_ds3000_config = {
- 	.demod_address = 0x68,
- 	.ci_mode = 1,
-+
-+	.tuner_get_frequency = ts2020_get_frequency,
-+	.tuner_set_frequency = ts2020_set_frequency,
-+};
-+
-+static struct ts2020_config su3000_ts2020_config  = {
-+	.tuner_address = 0x60,
- };
-
- static int dw2104_frontend_attach(struct dvb_usb_adapter *d)
-@@ -1037,6 +1053,8 @@
- 	d->fe_adap[0].fe = dvb_attach(ds3000_attach, &dw2104_ds3000_config,
- 			&d->dev->i2c_adap);
- 	if (d->fe_adap[0].fe != NULL) {
-+		dvb_attach(ts2020_attach, d->fe_adap[0].fe,
-+			&dw2104_ts2020_config, &d->dev->i2c_adap);
- 		d->fe_adap[0].fe->ops.set_voltage = dw210x_set_voltage;
- 		info("Attached DS3000!\n");
- 		return 0;
-@@ -1149,6 +1167,9 @@
- 	if (d->fe_adap[0].fe == NULL)
- 		return -EIO;
-
-+	dvb_attach(ts2020_attach, d->fe_adap[0].fe, &dw2104_ts2020_config,
-+		&d->dev->i2c_adap);
-+
- 	st->old_set_voltage = d->fe_adap[0].fe->ops.set_voltage;
- 	d->fe_adap[0].fe->ops.set_voltage = s660_set_voltage;
-
-@@ -1209,6 +1230,9 @@
- 	if (d->fe_adap[0].fe == NULL)
- 		return -EIO;
-
-+	dvb_attach(ts2020_attach, d->fe_adap[0].fe, &su3000_ts2020_config,
-+		&d->dev->i2c_adap);
-+
- 	info("Attached DS3000!\n");
-
- 	return 0;
