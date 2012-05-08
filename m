@@ -1,54 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from plane.gmane.org ([80.91.229.3]:39539 "EHLO plane.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750931Ab2E3EUP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 May 2012 00:20:15 -0400
-Received: from list by plane.gmane.org with local (Exim 4.69)
-	(envelope-from <gldv-linux-media@m.gmane.org>)
-	id 1SZaOI-0006NU-8G
-	for linux-media@vger.kernel.org; Wed, 30 May 2012 06:20:10 +0200
-Received: from 203.116.198.71 ([203.116.198.71])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Wed, 30 May 2012 06:20:10 +0200
-Received: from soby.mathew by 203.116.198.71 with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Wed, 30 May 2012 06:20:10 +0200
-To: linux-media@vger.kernel.org
-From: Soby Mathew <soby.mathew@st.com>
-Subject: Re: Preliminary proposal, new APIs for HDMI and DVI control in v4l2
-Date: Sun, 27 May 2012 17:30:20 +0000 (UTC)
-Message-ID: <loom.20120527T192755-466@post.gmane.org>
-References: <4D7E42AE.2080506@cisco.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Received: from moutng.kundenserver.de ([212.227.126.186]:50985 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752567Ab2EHVBZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 May 2012 17:01:25 -0400
+Date: Tue, 8 May 2012 23:01:22 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+cc: Qing Xu <qingx@marvell.com>
+Subject: [PATCH 1/2] V4L: soc-camera: switch to using the existing
+ .enum_framesizes()
+Message-ID: <Pine.LNX.4.64.1205082259390.7085@axis700.grange>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Martin Bugge (marbugge <marbugge <at> cisco.com> writes:
+The recently introduced .enum_mbus_fsizes() v4l2-subdev video operation is
+a duplicate of the .enum_framesizes() operation, introduced earlier. Switch
+soc-camera over to using the original one.
 
-> 
-> 
-> This is a preliminary proposal for an extension to the v4l2 api.
-> To be discussed at the  V4L2 'brainstorming' meeting in Warsaw, March 2011
-> 
-> Purpose: Provide basic controls for HDMI and DVI devices.
-> 
-> 
-reposting the query since the earlier post did not appear in mailing list.
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Qing Xu <qingx@marvell.com>
+---
+ drivers/media/video/soc_camera.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Hi Martin,
-   We are also in requirement of these controls as described by you. I did a 
-search in the archives but could not find a suitable conclusion to the RFC. I 
-could find that the dv_timings structure has been modified as a result of 
-further discussions. But for many items like S_EDID, DV_CABLE_DETECT, Info 
-frames etc , I could not find the logical conclusion to this RFC. Could please 
-let me know the further updates on these requirements?
-
-
-Thanks in Advance
-Best Regards
-Soby Mathew
-
+diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
+index b08696f..6707df4 100644
+--- a/drivers/media/video/soc_camera.c
++++ b/drivers/media/video/soc_camera.c
+@@ -1259,7 +1259,7 @@ static int default_enum_framesizes(struct soc_camera_device *icd,
+ 	/* map xlate-code to pixel_format, sensor only handle xlate-code*/
+ 	fsize_mbus.pixel_format = xlate->code;
+ 
+-	ret = v4l2_subdev_call(sd, video, enum_mbus_fsizes, &fsize_mbus);
++	ret = v4l2_subdev_call(sd, video, enum_framesizes, &fsize_mbus);
+ 	if (ret < 0)
+ 		return ret;
+ 
+-- 
+1.7.2.5
 
