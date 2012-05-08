@@ -1,162 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:61314 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934114Ab2EYWGk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 May 2012 18:06:40 -0400
-Date: Sat, 26 May 2012 00:06:33 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Javier Martin <javier.martin@vista-silicon.com>
-Subject: [PATCH] Revert "[media] media: mx2_camera: Fix mbus format handling"
-Message-ID: <Pine.LNX.4.64.1205260005230.13353@axis700.grange>
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:51689 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755223Ab2EHQ2l (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 May 2012 12:28:41 -0400
+Received: by bkcji2 with SMTP id ji2so4793758bkc.19
+        for <linux-media@vger.kernel.org>; Tue, 08 May 2012 09:28:40 -0700 (PDT)
+From: "Igor M. Liplianin" <liplianin@me.by>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Terratec Cinergy S2 USB HD Rev.2
+Date: Tue, 08 May 2012 19:28:47 +0300
+Message-ID: <4473281.HKDuWdYvZs@useri>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: multipart/mixed; boundary="nextPart58111857.oOTXLxZvOp"
+Content-Transfer-Encoding: 7Bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This reverts commit d509835e32bd761a2b7b446034a273da568e5573. That commit
-breaks support for the generic pass-through mode in the driver for formats,
-not natively supported by it. Besides due to a merge conflict it also breaks
-driver compilation:
 
-drivers/media/video/mx2_camera.c: In function 'mx2_camera_set_bus_param':
-drivers/media/video/mx2_camera.c:937: error: 'pixfmt' undeclared (first use in this function)
-drivers/media/video/mx2_camera.c:937: error: (Each undeclared identifier is reported only once
-drivers/media/video/mx2_camera.c:937: error: for each function it appears in.)
+--nextPart58111857.oOTXLxZvOp
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Javier Martin <javier.martin@vista-silicon.com>
----
- arch/arm/plat-mxc/include/mach/mx2_cam.h |    2 +
- drivers/media/video/mx2_camera.c         |   52 +++---------------------------
- 2 files changed, 7 insertions(+), 47 deletions(-)
+Terratec Cinergy S2 USB HD Rev.2 support.
 
-diff --git a/arch/arm/plat-mxc/include/mach/mx2_cam.h b/arch/arm/plat-mxc/include/mach/mx2_cam.h
-index 7ded6f1..3c080a3 100644
---- a/arch/arm/plat-mxc/include/mach/mx2_cam.h
-+++ b/arch/arm/plat-mxc/include/mach/mx2_cam.h
-@@ -23,6 +23,7 @@
- #ifndef __MACH_MX2_CAM_H_
- #define __MACH_MX2_CAM_H_
+Signed-off-by: Igor M. Liplianin <liplianin@me.by>
+--nextPart58111857.oOTXLxZvOp
+Content-Disposition: inline; filename="TERR_S2_R2.patch"
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/x-patch; charset="utf-8"; name="TERR_S2_R2.patch"
+
+diff --git a/drivers/media/dvb/dvb-usb/dw2102.c b/drivers/media/dvb/dvb-usb/dw2102.c
+index 7ced62d..9a7a333 100644
+--- a/drivers/media/dvb/dvb-usb/dw2102.c
++++ b/drivers/media/dvb/dvb-usb/dw2102.c
+@@ -1243,6 +1243,13 @@ static int su3000_frontend_attach(struct dvb_usb_adapter *d)
+ {
+ 	u8 obuf[3] = { 0xe, 0x80, 0 };
+ 	u8 ibuf[] = { 0 };
++	
++	if (dvb_usb_generic_rw(d->dev, obuf, 3, ibuf, 1, 0) < 0)
++		err("command 0x0e transfer failed.");
++
++	obuf[0] = 0xe;
++	obuf[1] = 0x02;
++	obuf[2] = 1;
  
-+#define MX2_CAMERA_SWAP16		(1 << 0)
- #define MX2_CAMERA_EXT_VSYNC		(1 << 1)
- #define MX2_CAMERA_CCIR			(1 << 2)
- #define MX2_CAMERA_CCIR_INTERLACE	(1 << 3)
-@@ -30,6 +31,7 @@
- #define MX2_CAMERA_GATED_CLOCK		(1 << 5)
- #define MX2_CAMERA_INV_DATA		(1 << 6)
- #define MX2_CAMERA_PCLK_SAMPLE_RISING	(1 << 7)
-+#define MX2_CAMERA_PACK_DIR_MSB		(1 << 8)
- 
- /**
-  * struct mx2_camera_platform_data - optional platform data for mx2_camera
-diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
-index ded26b7..41f9a25 100644
---- a/drivers/media/video/mx2_camera.c
-+++ b/drivers/media/video/mx2_camera.c
-@@ -345,19 +345,6 @@ static struct mx2_fmt_cfg mx27_emma_prp_table[] = {
- 					PRP_INTR_CH2OVF,
- 		}
- 	},
--	{
--		.in_fmt		= V4L2_MBUS_FMT_UYVY8_2X8,
--		.out_fmt	= V4L2_PIX_FMT_YUV420,
--		.cfg		= {
--			.channel	= 2,
--			.in_fmt		= PRP_CNTL_DATA_IN_YUV422,
--			.out_fmt	= PRP_CNTL_CH2_OUT_YUV420,
--			.src_pixel	= 0x22000888, /* YUV422 (YUYV) */
--			.irq_flags	= PRP_INTR_RDERR | PRP_INTR_CH2WERR |
--					PRP_INTR_CH2FC | PRP_INTR_LBOVF |
--					PRP_INTR_CH2OVF,
--		}
--	},
+ 	if (dvb_usb_generic_rw(d->dev, obuf, 3, ibuf, 1, 0) < 0)
+ 		err("command 0x0e transfer failed.");
+@@ -1536,6 +1543,7 @@ enum dw2102_table_entry {
+ 	X3M_SPC1400HD,
+ 	TEVII_S421,
+ 	TEVII_S632,
++	TERRATEC_CINERGY_S2_R2,
  };
  
- static struct mx2_fmt_cfg *mx27_emma_prp_get_format(
-@@ -984,7 +971,6 @@ static int mx2_camera_set_bus_param(struct soc_camera_device *icd)
- 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
- 	struct mx2_camera_dev *pcdev = ici->priv;
- 	struct v4l2_mbus_config cfg = {.type = V4L2_MBUS_PARALLEL,};
--	const struct soc_camera_format_xlate *xlate;
- 	unsigned long common_flags;
- 	int ret;
- 	int bytesperline;
-@@ -1029,31 +1015,14 @@ static int mx2_camera_set_bus_param(struct soc_camera_device *icd)
- 		return ret;
- 	}
+ static struct usb_device_id dw2102_table[] = {
+@@ -1556,6 +1564,7 @@ static struct usb_device_id dw2102_table[] = {
+ 	[X3M_SPC1400HD] = {USB_DEVICE(0x1f4d, 0x3100)},
+ 	[TEVII_S421] = {USB_DEVICE(0x9022, USB_PID_TEVII_S421)},
+ 	[TEVII_S632] = {USB_DEVICE(0x9022, USB_PID_TEVII_S632)},
++	[TERRATEC_CINERGY_S2_R2] = {USB_DEVICE(USB_VID_TERRATEC, 0x00b0)},
+ 	{ }
+ };
  
--	xlate = soc_camera_xlate_by_fourcc(icd, pixfmt);
--	if (!xlate) {
--		dev_warn(icd->parent, "Format %x not found\n", pixfmt);
--		return -EINVAL;
--	}
--
--	if (xlate->code == V4L2_MBUS_FMT_YUYV8_2X8) {
--		csicr1 |= CSICR1_PACK_DIR;
--		csicr1 &= ~CSICR1_SWAP16_EN;
--		dev_dbg(icd->parent, "already yuyv format, don't convert\n");
--	} else if (xlate->code == V4L2_MBUS_FMT_UYVY8_2X8) {
--		csicr1 &= ~CSICR1_PACK_DIR;
--		csicr1 |= CSICR1_SWAP16_EN;
--		dev_dbg(icd->parent, "convert uyvy mbus format into yuyv\n");
--	} else {
--		dev_warn(icd->parent, "mbus format not supported\n");
--		return -EINVAL;
--	}
--
- 	if (common_flags & V4L2_MBUS_PCLK_SAMPLE_RISING)
- 		csicr1 |= CSICR1_REDGE;
- 	if (common_flags & V4L2_MBUS_VSYNC_ACTIVE_HIGH)
- 		csicr1 |= CSICR1_SOF_POL;
- 	if (common_flags & V4L2_MBUS_HSYNC_ACTIVE_HIGH)
- 		csicr1 |= CSICR1_HSYNC_POL;
-+	if (pcdev->platform_flags & MX2_CAMERA_SWAP16)
-+		csicr1 |= CSICR1_SWAP16_EN;
- 	if (pcdev->platform_flags & MX2_CAMERA_EXT_VSYNC)
- 		csicr1 |= CSICR1_EXT_VSYNC;
- 	if (pcdev->platform_flags & MX2_CAMERA_CCIR)
-@@ -1064,6 +1033,8 @@ static int mx2_camera_set_bus_param(struct soc_camera_device *icd)
- 		csicr1 |= CSICR1_GCLK_MODE;
- 	if (pcdev->platform_flags & MX2_CAMERA_INV_DATA)
- 		csicr1 |= CSICR1_INV_DATA;
-+	if (pcdev->platform_flags & MX2_CAMERA_PACK_DIR_MSB)
-+		csicr1 |= CSICR1_PACK_DIR;
- 
- 	pcdev->csicr1 = csicr1;
- 
-@@ -1138,8 +1109,7 @@ static int mx2_camera_get_formats(struct soc_camera_device *icd,
- 		return 0;
- 	}
- 
--	if (code == V4L2_MBUS_FMT_YUYV8_2X8 ||
--	    code == V4L2_MBUS_FMT_UYVY8_2X8) {
-+	if (code == V4L2_MBUS_FMT_YUYV8_2X8) {
- 		formats++;
- 		if (xlate) {
- 			/*
-@@ -1155,18 +1125,6 @@ static int mx2_camera_get_formats(struct soc_camera_device *icd,
+@@ -1957,7 +1966,7 @@ static struct dvb_usb_device_properties su3000_properties = {
+ 		}},
  		}
+ 	},
+-	.num_device_descs = 3,
++	.num_device_descs = 4,
+ 	.devices = {
+ 		{ "SU3000HD DVB-S USB2.0",
+ 			{ &dw2102_table[GENIATECH_SU3000], NULL },
+@@ -1971,6 +1980,10 @@ static struct dvb_usb_device_properties su3000_properties = {
+ 			{ &dw2102_table[X3M_SPC1400HD], NULL },
+ 			{ NULL },
+ 		},
++		{ "Terratec Cinergy S2 USB HD Rev.2",
++			{ &dw2102_table[TERRATEC_CINERGY_S2_R2], NULL },
++			{ NULL },
++		},
  	}
+ };
  
--	if (code == V4L2_MBUS_FMT_UYVY8_2X8) {
--		formats++;
--		if (xlate) {
--			xlate->host_fmt =
--				soc_mbus_get_fmtdesc(V4L2_MBUS_FMT_YUYV8_2X8);
--			xlate->code	= code;
--			dev_dbg(dev, "Providing host format %s for sensor code %d\n",
--				xlate->host_fmt->name, code);
--			xlate++;
--		}
--	}
--
- 	/* Generic pass-trough */
- 	formats++;
- 	if (xlate) {
--- 
-1.7.2.5
+--nextPart58111857.oOTXLxZvOp--
 
