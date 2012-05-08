@@ -1,99 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:36492 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751964Ab2EVP1L convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 May 2012 11:27:11 -0400
-Date: Tue, 22 May 2012 17:27:03 +0200
-From: =?iso-8859-1?Q?Llu=EDs?= Batlle i Rossell <viric@viric.name>
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Paulo Assis <pj.assis@gmail.com>, linux-media@vger.kernel.org
-Subject: Re: Problems with the gspca_ov519 driver
-Message-ID: <20120522152703.GA1927@vicerveza.homeunix.net>
-References: <20120522110018.GX1927@vicerveza.homeunix.net>
- <CAPueXH6uN4UQO_WL_pc9wBoZV=v_7AVtQKcruKY=BCMeJOw-2Q@mail.gmail.com>
- <4FBBA515.7010006@redhat.com>
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:49148 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1749667Ab2EHFlS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 May 2012 01:41:18 -0400
+Message-ID: <4FA8B1F4.2000200@gmail.com>
+Date: Tue, 08 May 2012 11:11:08 +0530
+From: Subash Patel <subashrp@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-In-Reply-To: <4FBBA515.7010006@redhat.com>
-Content-Transfer-Encoding: 8BIT
+To: Tomasz Stanislawski <t.stanislaws@samsung.com>
+CC: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	airlied@redhat.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, laurent.pinchart@ideasonboard.com,
+	sumit.semwal@ti.com, daeinki@gmail.com, daniel.vetter@ffwll.ch,
+	robdclark@gmail.com, pawel@osciak.com,
+	linaro-mm-sig@lists.linaro.org, hverkuil@xs4all.nl,
+	remi@remlab.net, mchehab@redhat.com, linux-doc@vger.kernel.org,
+	g.liakhovetski@gmx.de,
+	Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>
+Subject: Re: [PATCHv5 08/13] v4l: vb2-dma-contig: add support for scatterlist
+ in userptr mode
+References: <1334933134-4688-1-git-send-email-t.stanislaws@samsung.com> <1334933134-4688-9-git-send-email-t.stanislaws@samsung.com> <4FA7DE61.7000705@gmail.com> <4FA7E623.2060500@samsung.com>
+In-Reply-To: <4FA7E623.2060500@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Is this over linux 3.4 mainline? Because I can't get the patch applied over it.
+Hi Thomasz,
+
+I have extended the MFC-FIMC testcase posted by Kamil sometime ago to 
+sanity test the UMM patches. This test is multi-threaded(further 
+explanation for developers who may not have seen it yet), where thread 
+one parses the encoded stream and feeds into the codec  IP driver(aka 
+MFC driver). Second thread will dequeue the buffer from MFC driver 
+(DMA_BUF export) and queues it into a CSC IP(aka FIMC) driver(DMA_BUF 
+import). Third thread dequeues the frame from FIMC driver and either 
+pushes it into LCD driver for display or dumps to a flat file for analysis.
+
+MFC driver exports the fd's and FIMC driver imports and attaches it. 
+During FIMC QBUF (thats when the attach and map happens), it is observed 
+that in the function vb2_dc_map_dmabuf() call to 
+vb2_dc_get_contiguous_size() fails. This is because contig_size < 
+buf->size. contig_size is calculated from the SGT which we would have 
+constructed in the function vb2_dc_pages_to_sgt().
+
+Let me know if you need more details.
 
 Regards,
-Lluís.
+Subash
 
-On Tue, May 22, 2012 at 04:39:17PM +0200, Hans de Goede wrote:
-> Hi,
-> 
-> On 05/22/2012 04:08 PM, Paulo Assis wrote:
-> >Hi,
-> >This bug also causes the camera to crash when changing fps in
-> >guvcview, uvc devices (at least all the ones I tested) require the
-> >stream to be restarted for fps to change, so in the case of this
-> >driver after STREAMOFF the camera just becomes unresponsive.
-> >
-> >Regards,
-> >Paulo
-> >
-> >2012/5/22 Lluís Batlle i Rossell<viric@viric.name>:
-> >>Hello,
-> >>
-> >>I'm trying to get video using v4l2 ioctls from a gspca_ov519 camera, and after
-> >>STREAMOFF all buffers are still flagged as QUEUED, and QBUF fails.  DQBUF also
-> >>fails (blocking for a 3 sec timeout), after streamoff. So I'm stuck, after
-> >>STREAMOFF, unable to get pictures coming in again. (Linux 3.3.5).
-> >>
-> >>As an additional note, pinchartl on irc #v4l says to favour a moving of gspca to
-> >>vb2. I don't know what it means.
-> >>
-> >>Can someone take care of the bug, or should I consider the camera 'non working'
-> >>in linux?
-> 
-> We talked about this on irc, attached it a patch which should fix this, feedback
-> appreciated.
-> 
+On 05/07/2012 08:41 PM, Tomasz Stanislawski wrote:
+> Hi Subash,
+> Could you provide a detailed description of a test case
+> that causes a failure of vb2_dc_pages_to_sgt?
+>
 > Regards,
-> 
-> Hans
-
-> From b0eefa00c72e9dfe9eaa5f425c0d346b19ea01cd Mon Sep 17 00:00:00 2001
-> From: Hans de Goede <hdegoede@redhat.com>
-> Date: Tue, 22 May 2012 16:24:05 +0200
-> Subject: [PATCH] gspca-core: Fix buffers staying in queued state after a
->  stream_off
-> 
-> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-> ---
->  drivers/media/video/gspca/gspca.c |    4 +++-
->  1 file changed, 3 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/video/gspca/gspca.c b/drivers/media/video/gspca/gspca.c
-> index 137166d..31721ea 100644
-> --- a/drivers/media/video/gspca/gspca.c
-> +++ b/drivers/media/video/gspca/gspca.c
-> @@ -1653,7 +1653,7 @@ static int vidioc_streamoff(struct file *file, void *priv,
->  				enum v4l2_buf_type buf_type)
->  {
->  	struct gspca_dev *gspca_dev = video_drvdata(file);
-> -	int ret;
-> +	int i, ret;
->  
->  	if (buf_type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
->  		return -EINVAL;
-> @@ -1678,6 +1678,8 @@ static int vidioc_streamoff(struct file *file, void *priv,
->  	wake_up_interruptible(&gspca_dev->wq);
->  
->  	/* empty the transfer queues */
-> +	for (i = 0; i < gspca_dev->nframes; i++)
-> +		gspca_dev->frame[i].v4l2_buf.flags &= ~BUF_ALL_FLAGS;
->  	atomic_set(&gspca_dev->fr_q, 0);
->  	atomic_set(&gspca_dev->fr_i, 0);
->  	gspca_dev->fr_o = 0;
-> -- 
-> 1.7.10
-> 
-
+> Tomasz Stanislawski
