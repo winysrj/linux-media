@@ -1,85 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:45967 "EHLO mx1.redhat.com"
+Received: from smtp.nokia.com ([147.243.1.48]:36765 "EHLO mgw-sa02.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751298Ab2E0SAq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 27 May 2012 14:00:46 -0400
-Message-ID: <4FC26BD3.5080007@redhat.com>
-Date: Sun, 27 May 2012 20:00:51 +0200
-From: Hans de Goede <hdegoede@redhat.com>
+	id S1750853Ab2EIE0E (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 9 May 2012 00:26:04 -0400
+Message-ID: <4FA9F1D3.9000706@iki.fi>
+Date: Wed, 09 May 2012 07:25:55 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org,
-	halli manjunatha <hallimanju@gmail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFCv1 PATCH 4/5] videodev2.h: add frequency band information.
-References: <1338119425-17274-1-git-send-email-hverkuil@xs4all.nl> <5b4d3e3600717fb74365814a34a97e8cfefd40f7.1338118975.git.hans.verkuil@cisco.com>
-In-Reply-To: <5b4d3e3600717fb74365814a34a97e8cfefd40f7.1338118975.git.hans.verkuil@cisco.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [media-ctl PATCH v2 1/2] New, more flexible syntax for format
+References: <1336398396-31526-1-git-send-email-sakari.ailus@iki.fi> <1529968.u1eeiRTNpn@avalon> <4FA97776.3030408@iki.fi> <1763414.OFvOj7o1m5@avalon>
+In-Reply-To: <1763414.OFvOj7o1m5@avalon>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Looks good:
+Hi Laurent,
 
-Acked-by: Hans de Goede <hdegoede@redhat.com>
+Laurent Pinchart wrote:
+> Hi Sakari,
+> 
+> On Tuesday 08 May 2012 22:43:50 Sakari Ailus wrote:
+>> Laurent Pinchart wrote:
+>>> On Monday 07 May 2012 16:46:35 Sakari Ailus wrote:
+>>>> More flexible and extensible syntax for format which allows better usage
+>>>> of the selection API.
+> 
+> [snip]
+> 
+>>>> diff --git a/src/v4l2subdev.c b/src/v4l2subdev.c
+>>>> index a2ab0c4..6881553 100644
+>>>> --- a/src/v4l2subdev.c
+>>>> +++ b/src/v4l2subdev.c
+>>>> @@ -233,13 +233,13 @@ static int v4l2_subdev_parse_format(struct
+>>>> v4l2_mbus_framefmt *format, char *end;
+>>>>
+>>>>  	for (; isspace(*p); ++p);
+>>>>
+>>>> -	for (end = (char *)p; !isspace(*end) && *end != '\0'; ++end);
+>>>> +	for (end = (char *)p; *end != '/' && *end != '\0'; ++end);
+>>>
+>>> I wouldn't change this to keep compatibility with the existing syntax.
+>>
+>> Ok. How about allowing both '/' and ' '?
+> 
+> Do you hate the space that much ? :-) The format code and the resolution are 
+> not that closely related, / somehow doesn't look intuitive to me.
 
+I don't hate the space --- what I would prefer is to keep distinct sets
+of configurations separated by something, and space is good for that. If
+it was possible to choose pixel format without having to specify width
+and height, I'd probably vote for the space.
 
-On 05/27/2012 01:50 PM, Hans Verkuil wrote:
-> From: Hans Verkuil<hans.verkuil@cisco.com>
->
-> Signed-off-by: Hans Verkuil<hans.verkuil@cisco.com>
-> ---
->   include/linux/videodev2.h |   19 +++++++++++++++++--
->   1 file changed, 17 insertions(+), 2 deletions(-)
->
-> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-> index 2339678..013ee46 100644
-> --- a/include/linux/videodev2.h
-> +++ b/include/linux/videodev2.h
-> @@ -2023,7 +2023,8 @@ struct v4l2_tuner {
->   	__u32			audmode;
->   	__s32			signal;
->   	__s32			afc;
-> -	__u32			reserved[4];
-> +	__u32			band;
-> +	__u32			reserved[3];
->   };
->
->   struct v4l2_modulator {
-> @@ -2033,7 +2034,8 @@ struct v4l2_modulator {
->   	__u32			rangelow;
->   	__u32			rangehigh;
->   	__u32			txsubchans;
-> -	__u32			reserved[4];
-> +	__u32			band;
-> +	__u32			reserved[3];
->   };
->
->   /*  Flags for the 'capability' field */
-> @@ -2048,6 +2050,11 @@ struct v4l2_modulator {
->   #define V4L2_TUNER_CAP_RDS		0x0080
->   #define V4L2_TUNER_CAP_RDS_BLOCK_IO	0x0100
->   #define V4L2_TUNER_CAP_RDS_CONTROLS	0x0200
-> +#define V4L2_TUNER_CAP_BAND_FM_EUROPE_US     0x00010000
-> +#define V4L2_TUNER_CAP_BAND_FM_JAPAN         0x00020000
-> +#define V4L2_TUNER_CAP_BAND_FM_RUSSIAN       0x00040000
-> +#define V4L2_TUNER_CAP_BAND_FM_WEATHER       0x00080000
-> +#define V4L2_TUNER_CAP_BAND_AM_MW            0x00100000
->
->   /*  Flags for the 'rxsubchans' field */
->   #define V4L2_TUNER_SUB_MONO		0x0001
-> @@ -2065,6 +2072,14 @@ struct v4l2_modulator {
->   #define V4L2_TUNER_MODE_LANG1		0x0003
->   #define V4L2_TUNER_MODE_LANG1_LANG2	0x0004
->
-> +/*  Values for the 'band' field */
-> +#define V4L2_TUNER_BAND_DEFAULT       0
-> +#define V4L2_TUNER_BAND_FM_EUROPE_US  1       /* 87.5 Mhz - 108 MHz */
-> +#define V4L2_TUNER_BAND_FM_JAPAN      2       /* 76 MHz - 90 MHz */
-> +#define V4L2_TUNER_BAND_FM_RUSSIAN    3       /* 65.8 MHz - 74 MHz */
-> +#define V4L2_TUNER_BAND_FM_WEATHER    4       /* 162.4 MHz - 162.55 MHz */
-> +#define V4L2_TUNER_BAND_AM_MW         5
-> +
->   struct v4l2_frequency {
->   	__u32		      tuner;
->   	__u32		      type;	/* enum v4l2_tuner_type */
+That makes parsing easier, too, not that it would matter that much though.
+
+>>>>  	code = v4l2_subdev_string_to_pixelcode(p, end - p);
+>>>>  	if (code == (enum v4l2_mbus_pixelcode)-1)
+>>>>  	
+>>>>  		return -EINVAL;
+>>>>
+>>>> -	for (p = end; isspace(*p); ++p);
+>>>> +	p = end + 1;
+>>>>
+>>>>  	width = strtoul(p, &end, 10);
+>>>>  	if (*end != 'x')
+>>>>  	
+>>>>  		return -EINVAL;
+>>>>
+> 
+> [snip]
+> 
+>>>> @@ -326,30 +337,37 @@ static struct media_pad
+>>>> *v4l2_subdev_parse_pad_format( if (*p++ != '[')
+>>>>
+>>>>  		return NULL;
+>>>>
+>>>> -	for (; isspace(*p); ++p);
+>>>> +	for (;;) {
+>>>> +		for (; isspace(*p); p++);
+>>>>
+>>>> -	if (isalnum(*p)) {
+>>>> -		ret = v4l2_subdev_parse_format(format, p, &end);
+>>>> -		if (ret < 0)
+>>>> -			return NULL;
+>>>> +		if (!strhazit("fmt:", &p)) {
+>>>> +			ret = v4l2_subdev_parse_format(format, p, &end);
+>>>> +			if (ret < 0)
+>>>> +				return NULL;
+>>>>
+>>>> -		for (p = end; isspace(*p); p++);
+>>>> -	}
+>>>> +			p = end;
+>>>> +			continue;
+>>>> +		}
+>>>
+>>> I'd like to keep compatibility with the existing syntax here. Checking
+>>> whether this is the first argument and whether it starts with an
+>>> uppercase letter should be enough, would you be OK with that ?
+>>
+>> Right. I may have missed something related to keeping the compatibility.
+>>
+>> Capital letter might not be enough in the future; for now it's ok
+>> though. How about this: if the string doesn't match with anything else,
+>> interpret it as format?
+> 
+> I've thought about this, but I'm not sure it's a good idea to introduce 
+> extensions to the existing syntax (we currently have no format starting with 
+> something else than an uppercase letter) as we're deprecating it.
+
+I'm fine with considering capital letters to begin format.
+
+I also thing we should make parsing to return just one configuration at
+a time rather than parse everything and return a bunch of structs that
+may or may not have been set according to the string given by the user.
+
+But that's for later definitely.
+
+Cheers,
+
+-- 
+Sakari Ailus
+sakari.ailus@iki.fi
