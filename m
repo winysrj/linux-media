@@ -1,106 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:48844 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757608Ab2EJIzw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 May 2012 04:55:52 -0400
-Received: from epcpsbgm1.samsung.com (mailout3.samsung.com [203.254.224.33])
- by mailout3.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0M3S0098SU4X7XS0@mailout3.samsung.com> for
- linux-media@vger.kernel.org; Thu, 10 May 2012 17:55:51 +0900 (KST)
-Received: from AMDN157 ([106.116.48.215])
- by mmp2.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTPA id <0M3S00HZMU4ZXB10@mmp2.samsung.com> for
- linux-media@vger.kernel.org; Thu, 10 May 2012 17:55:51 +0900 (KST)
-From: Kamil Debski <k.debski@samsung.com>
-To: 'Sachin Kamat' <sachin.kamat@linaro.org>,
-	linux-media@vger.kernel.org
-Cc: mchehab@infradead.org, kyungmin.park@samsung.com,
-	patches@linaro.org
-References: <1336631521-24820-1-git-send-email-sachin.kamat@linaro.org>
- <1336631521-24820-2-git-send-email-sachin.kamat@linaro.org>
-In-reply-to: <1336631521-24820-2-git-send-email-sachin.kamat@linaro.org>
-Subject: RE: [PATCH 2/2] [media] s5p-mfc: Add missing static storage class to
- silence warnings
-Date: Thu, 10 May 2012 10:55:46 +0200
-Message-id: <017201cd2e8a$b2efd8c0$18cf8a40$%debski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: en-gb
+Received: from hapkido.dreamhost.com ([66.33.216.122]:40168 "EHLO
+	hapkido.dreamhost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751398Ab2EINtL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 May 2012 09:49:11 -0400
+Received: from homiemail-a97.g.dreamhost.com (caiajhbdccac.dreamhost.com [208.97.132.202])
+	by hapkido.dreamhost.com (Postfix) with ESMTP id 46EB7179830
+	for <linux-media@vger.kernel.org>; Wed,  9 May 2012 06:49:06 -0700 (PDT)
+Received: from homiemail-a97.g.dreamhost.com (localhost [127.0.0.1])
+	by homiemail-a97.g.dreamhost.com (Postfix) with ESMTP id 9CB6D28606F
+	for <linux-media@vger.kernel.org>; Wed,  9 May 2012 06:48:26 -0700 (PDT)
+Received: from [10.0.0.26] (a95-93-70-140.cpe.netcabo.pt [95.93.70.140])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	(Authenticated sender: bruno@skorzen.net)
+	by homiemail-a97.g.dreamhost.com (Postfix) with ESMTPSA id 2A568286058
+	for <linux-media@vger.kernel.org>; Wed,  9 May 2012 06:48:25 -0700 (PDT)
+Message-ID: <4FAA75A7.5030807@skorzen.net>
+Date: Wed, 09 May 2012 14:48:23 +0100
+From: Bruno Martins <lists@skorzen.net>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: Dazzle DVC80 under FC16
+References: <4FAA57A3.2030701@skorzen.net>
+In-Reply-To: <4FAA57A3.2030701@skorzen.net>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sachin,
+Hello guys,
 
-Thanks for the patch.
+Has anyone ever got this to working under any Linux distro, including
+Fedora?
+
+I have just plugged it in and I get this on dmesg:
+
+[ 1365.932522] usb 2-1.1: new full-speed USB device number 26 using
+ehci_hcd
+[ 1366.073145] usb 2-1.1: New USB device found, idVendor=07d0,
+idProduct=0004
+[ 1366.073153] usb 2-1.1: New USB device strings: Mfr=0, Product=0,
+SerialNumber=0
+[ 1366.091741] usbvision_probe: Dazzle Fusion Model DVC-80 Rev 1 (PAL)
+found
+[ 1366.092072] USBVision[0]: registered USBVision Video device video1
+[v4l2]
+[ 1366.092091] usbvision_probe: Dazzle Fusion Model DVC-80 Rev 1 (PAL)
+found
+[ 1366.092149] USBVision[1]: registered USBVision Video device video2
+[v4l2]
+[ 1366.092182] usbcore: registered new interface driver usbvision
+[ 1366.092184] USBVision USB Video Device Driver for Linux : 0.9.11
+[ 1366.189268] saa7115 15-0025: saa7113 found (1f7113d0e100000) @ 0x4a
+(usbvision-2-1.1)
+[ 1366.319647] usb 2-1.1: selecting invalid altsetting 1
+[ 1366.319658] usb 2-1.1: cannot change alternate number to 1 (error=-22)
+
+Device is recognized since it appears in lsusb:
+
+[skorzen@g62 ~]$ lsusb | grep DVC
+Bus 002 Device 026: ID 07d0:0004 Dazzle DVC-800 (PAL) Grabber
+
+However, I cannot make it work (my goal is to capture video from a
+camcorder).
+I've tried using cheese for this, but it just crashes and ABRT
+launches for me to fill a bug.
+
+Any ideas?
 
 Best regards,
---
-Kamil Debski
-Linux Platform Group
-Samsung Poland R&D Center
-
-
-> -----Original Message-----
-> From: Sachin Kamat [mailto:sachin.kamat@linaro.org]
-> Sent: 10 May 2012 08:32
-> To: linux-media@vger.kernel.org
-> Cc: mchehab@infradead.org; k.debski@samsung.com;
-> kyungmin.park@samsung.com; sachin.kamat@linaro.org; patches@linaro.org
-> Subject: [PATCH 2/2] [media] s5p-mfc: Add missing static storage class to
-> silence warnings
-> 
-> Fixes the following sparse warnings:
-> 
-> drivers/media/video/s5p-mfc/s5p_mfc.c:73:6
-> 	warning: symbol 's5p_mfc_watchdog' was not declared. Should it be
-> static?
-> drivers/media/video/s5p-mfc/s5p_mfc_opr.c:299:6:
-> 	warning: symbol 's5p_mfc_set_shared_buffer' was not declared.
-> Should it be static?
-> 
-> Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
-
-Acked-by: Kamil Debski <k.debski@samsung.com>
-
-> ---
->  drivers/media/video/s5p-mfc/s5p_mfc.c     |    2 +-
->  drivers/media/video/s5p-mfc/s5p_mfc_opr.c |    2 +-
->  2 files changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/video/s5p-mfc/s5p_mfc.c
-> b/drivers/media/video/s5p-mfc/s5p_mfc.c
-> index ac2dac9..2de6c72 100644
-> --- a/drivers/media/video/s5p-mfc/s5p_mfc.c
-> +++ b/drivers/media/video/s5p-mfc/s5p_mfc.c
-> @@ -70,7 +70,7 @@ static void wake_up_dev(struct s5p_mfc_dev *dev,
-> unsigned int reason,
->  	wake_up(&dev->queue);
->  }
-> 
-> -void s5p_mfc_watchdog(unsigned long arg)
-> +static void s5p_mfc_watchdog(unsigned long arg)
->  {
->  	struct s5p_mfc_dev *dev = (struct s5p_mfc_dev *)arg;
-> 
-> diff --git a/drivers/media/video/s5p-mfc/s5p_mfc_opr.c
-> b/drivers/media/video/s5p-mfc/s5p_mfc_opr.c
-> index a802829..e6217cb 100644
-> --- a/drivers/media/video/s5p-mfc/s5p_mfc_opr.c
-> +++ b/drivers/media/video/s5p-mfc/s5p_mfc_opr.c
-> @@ -296,7 +296,7 @@ void s5p_mfc_set_dec_desc_buffer(struct s5p_mfc_ctx
-> *ctx)
->  }
-> 
->  /* Set registers for shared buffer */
-> -void s5p_mfc_set_shared_buffer(struct s5p_mfc_ctx *ctx)
-> +static void s5p_mfc_set_shared_buffer(struct s5p_mfc_ctx *ctx)
->  {
->  	struct s5p_mfc_dev *dev = ctx->dev;
->  	mfc_write(dev, ctx->shm_ofs, S5P_FIMV_SI_CH0_HOST_WR_ADR);
-> --
-> 1.7.4.1
-
