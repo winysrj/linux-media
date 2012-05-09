@@ -1,52 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:56840 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754559Ab2ECOU2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 3 May 2012 10:20:28 -0400
-Received: from dyn2-212-50-134-8.psoas.suomi.net ([212.50.134.8] helo=localhost.localdomain)
-	by mail.kapsi.fi with esmtpsa (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
-	(Exim 4.72)
-	(envelope-from <crope@iki.fi>)
-	id 1SPwtM-0004Dm-2n
-	for linux-media@vger.kernel.org; Thu, 03 May 2012 17:20:24 +0300
-Message-ID: <4FA29427.4080603@iki.fi>
-Date: Thu, 03 May 2012 17:20:23 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from moutng.kundenserver.de ([212.227.17.8]:52231 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932162Ab2EIV4w (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 May 2012 17:56:52 -0400
+Date: Wed, 9 May 2012 23:56:49 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+cc: linux-media@vger.kernel.org
+Subject: [PATCH v3 10/9] sh_mobile_ceu_camera: Support user-configurable line
+ stride
+In-Reply-To: <1332328565-6260-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Message-ID: <Pine.LNX.4.64.1205092355260.8599@axis700.grange>
+References: <1332327808-6056-1-git-send-email-laurent.pinchart@ideasonboard.com>
+ <1332328565-6260-1-git-send-email-laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-To: linux-media <linux-media@vger.kernel.org>
-Subject: DVB USB issues we has currently
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
-Here we are, that's the first part I am going to fix as a GSoC project. 
-Work is planned to start after two weeks but better to discuss beforehand.
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-And wish-list is now open!
+In image mode, the CEU allows configurable line strides up to 8188
+pixels.
 
-I see two big DVB USB issues including multiple small issues;
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+[g.liakhovetski@gmx.de: unify sh_mobile_ceu_set_rect() in data-fetch mode]
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
 
-1)
-Current static structure is too limited as devices are more dynamics 
-nowadays. Driver should be able to probe/read from eeprom device 
-configuration.
+Laurent, are you ok with this version?
 
-Fixing all of those means rather much work - I think new version of DVB 
-USB is needed.
+ drivers/media/video/sh_mobile_ceu_camera.c |   33 +++++++++++++++------------
+ 1 files changed, 18 insertions(+), 15 deletions(-)
 
-http://www.mail-archive.com/linux-media@vger.kernel.org/msg44996.html
-
-
-2)
-Suspend/resume is not supported and crashes Kernel. I have no idea what 
-is wrong here and what is needed. But as it has been long term known 
-problem I suspect it is not trivial.
-
-http://www.spinics.net/lists/linux-media/msg10293.html
-
-regards
-Antti
+diff --git a/drivers/media/video/sh_mobile_ceu_camera.c b/drivers/media/video/sh_mobile_ceu_camera.c
+index 79bec15..2ffeb21 100644
+--- a/drivers/media/video/sh_mobile_ceu_camera.c
++++ b/drivers/media/video/sh_mobile_ceu_camera.c
+@@ -342,19 +342,15 @@ static int sh_mobile_ceu_capture(struct sh_mobile_ceu_dev *pcdev)
+ 
+ 	ceu_write(pcdev, top1, phys_addr_top);
+ 	if (V4L2_FIELD_NONE != pcdev->field) {
+-		if (planar)
+-			phys_addr_bottom = phys_addr_top + icd->user_width;
+-		else
+-			phys_addr_bottom = phys_addr_top + icd->bytesperline;
++		phys_addr_bottom = phys_addr_top + icd->bytesperline;
+ 		ceu_write(pcdev, bottom1, phys_addr_bottom);
+ 	}
+ 
+ 	if (planar) {
+-		phys_addr_top += icd->user_width *
+-			icd->user_height;
++		phys_addr_top += icd->bytesperline * icd->user_height;
+ 		ceu_write(pcdev, top2, phys_addr_top);
+ 		if (V4L2_FIELD_NONE != pcdev->field) {
+-			phys_addr_bottom = phys_addr_top + icd->user_width;
++			phys_addr_bottom = phys_addr_top + icd->bytesperline;
+ 			ceu_write(pcdev, bottom2, phys_addr_bottom);
+ 		}
+ 	}
+@@ -681,10 +677,7 @@ static void sh_mobile_ceu_set_rect(struct soc_camera_device *icd)
+ 			in_width *= 2;
+ 			left_offset *= 2;
+ 		}
+-		cdwdr_width = width;
+ 	} else {
+-		int bytes_per_line = soc_mbus_bytes_per_line(width,
+-						icd->current_fmt->host_fmt);
+ 		unsigned int w_factor;
+ 
+ 		switch (icd->current_fmt->host_fmt->packing) {
+@@ -697,13 +690,10 @@ static void sh_mobile_ceu_set_rect(struct soc_camera_device *icd)
+ 
+ 		in_width = cam->width * w_factor;
+ 		left_offset *= w_factor;
+-
+-		if (bytes_per_line < 0)
+-			cdwdr_width = width;
+-		else
+-			cdwdr_width = bytes_per_line;
+ 	}
+ 
++	cdwdr_width = icd->bytesperline;
++
+ 	height = icd->user_height;
+ 	in_height = cam->height;
+ 	if (V4L2_FIELD_NONE != pcdev->field) {
+@@ -1848,6 +1838,8 @@ static int sh_mobile_ceu_set_fmt(struct soc_camera_device *icd,
+ 	return 0;
+ }
+ 
++#define CEU_CHDW_MAX	8188U	/* Maximum line stride */
++
+ static int sh_mobile_ceu_try_fmt(struct soc_camera_device *icd,
+ 				 struct v4l2_format *f)
+ {
+@@ -1926,10 +1918,20 @@ static int sh_mobile_ceu_try_fmt(struct soc_camera_device *icd,
+ 			pix->width = width;
+ 		if (mf.height > height)
+ 			pix->height = height;
++
++		pix->bytesperline = max(pix->bytesperline, pix->width);
++		pix->bytesperline = min(pix->bytesperline, CEU_CHDW_MAX);
++		pix->bytesperline &= ~3;
++		break;
++
++	default:
++		/* Configurable stride isn't supported in pass-through mode. */
++		pix->bytesperline  = 0;
+ 	}
+ 
+ 	pix->width	&= ~3;
+ 	pix->height	&= ~3;
++	pix->sizeimage	= 0;
+ 
+ 	dev_geo(icd->parent, "%s(): return %d, fmt 0x%x, %ux%u\n",
+ 		__func__, ret, pix->pixelformat, pix->width, pix->height);
+@@ -2148,6 +2150,7 @@ static int __devinit sh_mobile_ceu_probe(struct platform_device *pdev)
+ 	pcdev->ici.nr = pdev->id;
+ 	pcdev->ici.drv_name = dev_name(&pdev->dev);
+ 	pcdev->ici.ops = &sh_mobile_ceu_host_ops;
++	pcdev->ici.capabilities = SOCAM_HOST_CAP_STRIDE;
+ 
+ 	pcdev->alloc_ctx = vb2_dma_contig_init_ctx(&pdev->dev);
+ 	if (IS_ERR(pcdev->alloc_ctx)) {
 -- 
-http://palosaari.fi/
+1.7.2.5
+
