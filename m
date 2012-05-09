@@ -1,46 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1-g21.free.fr ([212.27.42.1]:45243 "EHLO smtp1-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750797Ab2E1RF3 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 May 2012 13:05:29 -0400
-Date: Mon, 28 May 2012 19:05:25 +0200
-From: Jean-Francois Moine <moinejf@free.fr>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH] gspca - sonixj: Fix bad values of webcam 0458:7025
-Message-ID: <20120528190525.06a348e3@tele>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:55159 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759224Ab2EIM4A (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 May 2012 08:56:00 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@iki.fi
+Subject: [PATCH 0/3] V4L2_CID_PIXEL_RATE support in sensor drivers
+Date: Wed,  9 May 2012 14:55:56 +0200
+Message-Id: <1336568159-23378-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The webcam 0458:7025 (Eye911Q) has:
-- an inverted power pin,
-- a sensor mi0360b which cannot be probed.
+Hi everybody,
 
-Signed-off-by: Jean-François Moine <moinejf@free.fr>
----
- drivers/media/video/gspca/sonixj.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+This patch implements support for the V4L2_CID_PIXEL_RATE control in the
+mt9t001, mt9p031 and mt9m032 sensor drivers.
 
-diff --git a/drivers/media/video/gspca/sonixj.c b/drivers/media/video/gspca/sonixj.c
-index 4d1696d..f38faa9 100644
---- a/drivers/media/video/gspca/sonixj.c
-+++ b/drivers/media/video/gspca/sonixj.c
-@@ -3120,7 +3120,7 @@ static const struct sd_desc sd_desc = {
- 			| (SENSOR_ ## sensor << 8) \
- 			| (flags)
- static const struct usb_device_id device_table[] = {
--	{USB_DEVICE(0x0458, 0x7025), BS(SN9C120, MI0360)},
-+	{USB_DEVICE(0x0458, 0x7025), BSF(SN9C120, MI0360B, F_PDN_INV)},
- 	{USB_DEVICE(0x0458, 0x702e), BS(SN9C120, OV7660)},
- 	{USB_DEVICE(0x045e, 0x00f5), BSF(SN9C105, OV7660, F_PDN_INV)},
- 	{USB_DEVICE(0x045e, 0x00f7), BSF(SN9C105, OV7660, F_PDN_INV)},
+Recent changes to the OMAP3 ISP driver (see the media-for-3.5 branch in the
+http://git.linuxtv.org/sailus/media_tree.git repository) made support for that
+control mandatory for sensor drivers that are to be used with the OMAP3 ISP.
+
+Sakari, would you like to take these patches in your tree and push them for
+v3.5 ? V4L2_CID_PIXEL_RATE support for the mt9v032 driver is also still
+missing, the patch you've sent to the list two months ago needs to be rebased.
+Will you do that or should I do it ? I'm also wondering whether that patch
+shouldn't mark the V4L2_CID_PIXEL_RATE control as volatile, calling
+v4l2_s_ext_ctrls() from inside the driver looks quite hackish to me. The
+alternative would be to create a 64-bit version of v4l2_ctrl_s_ctrl().
+
+Laurent Pinchart (3):
+  mt9t001: Implement V4L2_CID_PIXEL_RATE control
+  mt9p031: Implement V4L2_CID_PIXEL_RATE control
+  mt9m032: Implement V4L2_CID_PIXEL_RATE control
+
+ drivers/media/video/mt9m032.c |   13 +++++++++++--
+ drivers/media/video/mt9p031.c |    5 ++++-
+ drivers/media/video/mt9t001.c |   13 +++++++++++--
+ include/media/mt9t001.h       |    1 +
+ 4 files changed, 27 insertions(+), 5 deletions(-)
+
 -- 
-1.7.10
+Regards,
 
--- 
-Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+Laurent Pinchart
+
