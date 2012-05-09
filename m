@@ -1,109 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:29800 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757651Ab2EGTUh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 7 May 2012 15:20:37 -0400
-From: Hans de Goede <hdegoede@redhat.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: hverkuil@xs4all.nl, Hans Verkuil <hans.verkuil@cisco.com>,
-	Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH 08/23] gspca: fix querycap and incorrect return codes.
-Date: Mon,  7 May 2012 21:01:19 +0200
-Message-Id: <1336417294-4566-9-git-send-email-hdegoede@redhat.com>
-In-Reply-To: <1336417294-4566-1-git-send-email-hdegoede@redhat.com>
-References: <1336417294-4566-1-git-send-email-hdegoede@redhat.com>
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:54882 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751308Ab2EILXG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 May 2012 07:23:06 -0400
+Received: by bkcji2 with SMTP id ji2so146377bkc.19
+        for <linux-media@vger.kernel.org>; Wed, 09 May 2012 04:23:04 -0700 (PDT)
+From: "Igor M. Liplianin" <liplianin@me.by>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Manu Abraham <abraham.manu@gmail.com>
+Subject: [PATCH] Terratec Cinergy C PCI HD (CI)
+Date: Wed, 09 May 2012 14:23:14 +0300
+Message-ID: <1543153.gDfgtO0cjd@useri>
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="nextPart4518749.8EDGmXpGgU"
+Content-Transfer-Encoding: 7Bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Add V4L2_CAP_DEVICE_CAPS support to querycap and replace -EINVAL by
--ENOTTY whenever an ioctl is not supported.
+--nextPart4518749.8EDGmXpGgU
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
- drivers/media/video/gspca/gspca.c |   19 ++++++++++---------
- 1 file changed, 10 insertions(+), 9 deletions(-)
+This patch seems for rectifying a typo. But actually the difference between
+mantis_vp2040.c and mantis_vp2033.c code is a card name only.
 
-diff --git a/drivers/media/video/gspca/gspca.c b/drivers/media/video/gspca/gspca.c
-index 48e4d34..7577e99 100644
---- a/drivers/media/video/gspca/gspca.c
-+++ b/drivers/media/video/gspca/gspca.c
-@@ -1066,10 +1066,10 @@ static int vidioc_g_register(struct file *file, void *priv,
- 	struct gspca_dev *gspca_dev = video_drvdata(file);
- 
- 	if (!gspca_dev->sd_desc->get_chip_ident)
--		return -EINVAL;
-+		return -ENOTTY;
- 
- 	if (!gspca_dev->sd_desc->get_register)
--		return -EINVAL;
-+		return -ENOTTY;
- 
- 	if (mutex_lock_interruptible(&gspca_dev->usb_lock))
- 		return -ERESTARTSYS;
-@@ -1090,10 +1090,10 @@ static int vidioc_s_register(struct file *file, void *priv,
- 	struct gspca_dev *gspca_dev = video_drvdata(file);
- 
- 	if (!gspca_dev->sd_desc->get_chip_ident)
--		return -EINVAL;
-+		return -ENOTTY;
- 
- 	if (!gspca_dev->sd_desc->set_register)
--		return -EINVAL;
-+		return -ENOTTY;
- 
- 	if (mutex_lock_interruptible(&gspca_dev->usb_lock))
- 		return -ERESTARTSYS;
-@@ -1115,7 +1115,7 @@ static int vidioc_g_chip_ident(struct file *file, void *priv,
- 	struct gspca_dev *gspca_dev = video_drvdata(file);
- 
- 	if (!gspca_dev->sd_desc->get_chip_ident)
--		return -EINVAL;
-+		return -ENOTTY;
- 
- 	if (mutex_lock_interruptible(&gspca_dev->usb_lock))
- 		return -ERESTARTSYS;
-@@ -1410,9 +1410,10 @@ static int vidioc_querycap(struct file *file, void  *priv,
- 	}
- 	usb_make_path(gspca_dev->dev, (char *) cap->bus_info,
- 			sizeof(cap->bus_info));
--	cap->capabilities = V4L2_CAP_VIDEO_CAPTURE
-+	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE
- 			  | V4L2_CAP_STREAMING
- 			  | V4L2_CAP_READWRITE;
-+	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
- 	ret = 0;
- out:
- 	mutex_unlock(&gspca_dev->usb_lock);
-@@ -1565,7 +1566,7 @@ static int vidioc_querymenu(struct file *file, void *priv,
- 	struct gspca_dev *gspca_dev = video_drvdata(file);
- 
- 	if (!gspca_dev->sd_desc->querymenu)
--		return -EINVAL;
-+		return -ENOTTY;
- 	return gspca_dev->sd_desc->querymenu(gspca_dev, qmenu);
- }
- 
-@@ -1774,7 +1775,7 @@ static int vidioc_g_jpegcomp(struct file *file, void *priv,
- 	int ret;
- 
- 	if (!gspca_dev->sd_desc->get_jcomp)
--		return -EINVAL;
-+		return -ENOTTY;
- 	if (mutex_lock_interruptible(&gspca_dev->usb_lock))
- 		return -ERESTARTSYS;
- 	gspca_dev->usb_err = 0;
-@@ -1793,7 +1794,7 @@ static int vidioc_s_jpegcomp(struct file *file, void *priv,
- 	int ret;
- 
- 	if (!gspca_dev->sd_desc->set_jcomp)
--		return -EINVAL;
-+		return -ENOTTY;
- 	if (mutex_lock_interruptible(&gspca_dev->usb_lock))
- 		return -ERESTARTSYS;
- 	gspca_dev->usb_err = 0;
--- 
-1.7.10
+Signed-off-by: Igor M. Liplianin <liplianin@me.by>
+--nextPart4518749.8EDGmXpGgU
+Content-Disposition: inline; filename="1.patch"
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/x-patch; charset="UTF-8"; name="1.patch"
+
+diff -r 990a92e2410f linux/drivers/media/dvb/mantis/mantis_cards.c
+--- a/linux/drivers/media/dvb/mantis/mantis_cards.c	Wed May 09 01:37:05 2012 +0300
++++ b/linux/drivers/media/dvb/mantis/mantis_cards.c	Wed May 09 14:04:31 2012 +0300
+@@ -276,7 +276,7 @@
+ 	MAKE_ENTRY(TWINHAN_TECHNOLOGIES, MANTIS_VP_2033_DVB_C, &vp2033_config),
+ 	MAKE_ENTRY(TWINHAN_TECHNOLOGIES, MANTIS_VP_2040_DVB_C, &vp2040_config),
+ 	MAKE_ENTRY(TECHNISAT, CABLESTAR_HD2, &vp2040_config),
+-	MAKE_ENTRY(TERRATEC, CINERGY_C, &vp2033_config),
++	MAKE_ENTRY(TERRATEC, CINERGY_C, &vp2040_config),
+ 	MAKE_ENTRY(TWINHAN_TECHNOLOGIES, MANTIS_VP_3030_DVB_T, &vp3030_config),
+ 	{ }
+ };
+diff -r 990a92e2410f linux/drivers/media/dvb/mantis/mantis_core.c
+--- a/linux/drivers/media/dvb/mantis/mantis_core.c	Wed May 09 01:37:05 2012 +0300
++++ b/linux/drivers/media/dvb/mantis/mantis_core.c	Wed May 09 14:04:31 2012 +0300
+@@ -121,7 +121,7 @@
+ 		mantis->hwconfig = &vp2033_mantis_config;
+ 		break;
+ 	case MANTIS_VP_2040_DVB_C:	/* VP-2040 */
+-	case TERRATEC_CINERGY_C_PCI:	/* VP-2040 clone */
++	case CINERGY_C:	/* VP-2040 clone */
+ 	case TECHNISAT_CABLESTAR_HD2:
+ 		mantis->hwconfig = &vp2040_mantis_config;
+ 		break;
+
+--nextPart4518749.8EDGmXpGgU--
 
