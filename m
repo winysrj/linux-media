@@ -1,53 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:58755 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1755830Ab2ENMqQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 May 2012 08:46:16 -0400
-Date: Mon, 14 May 2012 15:46:11 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: s.nawrocki@samsung.com, t.stanislaws@samsung.com,
-	laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl
-Subject: Re: [ANN] Selection API naming meeting #v4l-meeting next Monday
-Message-ID: <20120514124611.GI3373@valkosipuli.retiisi.org.uk>
-References: <20120510201849.GC3373@valkosipuli.retiisi.org.uk>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:43814 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751783Ab2EINyR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 May 2012 09:54:17 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/8] soc_camera: Use soc_camera_device::sizeimage to compute buffer sizes
+Date: Wed, 09 May 2012 15:54:18 +0200
+Message-ID: <4595836.oa9lg8deDZ@avalon>
+In-Reply-To: <Pine.LNX.4.64.1204242359420.21239@axis700.grange>
+References: <1327504351-24413-1-git-send-email-laurent.pinchart@ideasonboard.com> <201201262118.09750.laurent.pinchart@ideasonboard.com> <Pine.LNX.4.64.1204242359420.21239@axis700.grange>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20120510201849.GC3373@valkosipuli.retiisi.org.uk>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, May 10, 2012 at 11:18:49PM +0300, Sakari Ailus wrote:
-> Hi all,
+Hi Guennadi,
+
+On Wednesday 25 April 2012 00:06:03 Guennadi Liakhovetski wrote:
+> Hi Laurent
 > 
-> Let's have a quick meeting 14:00 Finnish time (GMT + 3) next Monday on
-> #v4l-meeting on two topics:
+> Sorry for a slightly delayed reply;-)
+
+So slightly :-)
+
+> On Thu, 26 Jan 2012, Laurent Pinchart wrote:
 > 
-> - Selection target naming. It has been proposed that the _ACTUAL / _ACTIVE
->   be removed and e.g. the crop targets would be then called
->   V4L2_SEL_TGT_CROP and V4L2_SUBDEV_SEL_TGT_CROP on V4L2 and subdve
->   interfaces, respectively.
+> [snip]
 > 
-> - Unifying selection targets on subdevs and V4L2 API. Currently the IDs of
->   mostly equivalent targets are the same, but there are subtle differences
->   between the targets in some cases. We still have documented everything
->   twice, even if the differences are subtle. Would it make sese to unify the
->   two, and just mention the differences?
+> > > > diff --git a/drivers/media/video/sh_mobile_ceu_camera.c
+> > > > b/drivers/media/video/sh_mobile_ceu_camera.c index c51decf..f4eb9e1
+> > > > 100644
+> > > > --- a/drivers/media/video/sh_mobile_ceu_camera.c
+> > > > +++ b/drivers/media/video/sh_mobile_ceu_camera.c
+> 
+> [snip]
+> 
+> > > Looks like sh_mobile_ceu_set_rect() can also be simplified, since there
+> > > bytes_per_line is calculated for data-fetch mode, for which the
+> > > ->bytesperline can also be used?
+> > 
+> > Is sh_mobile_ceu_set_rect() guaranteed to be called after try_fmt(), with
+> > the ->bytesperline value set to the correct value for the current format
+> > ?
+>
+> I think it is, yes. soc_camera.c always configures the pipeline upon the
+> first .open() call by calling soc_camera_set_fmt(), at which point
+> ->bytesperline is set too. Also, just to avoid confusion - above you meant
+> set_fmt(), not try_fmt(), right? *try* are not supposed to set anything.
 
-Hi all,
+Yes, I meant set_fmt(), sorry.
 
-The meeting log is available here:
+I've just checked the code paths in which sh_mobile_ceu_set_rect() is called, 
+and I don't see any issue there. We can thus simplify the data-fetch mode code 
+in sh_mobile_ceu_set_rect().
 
-<URL:http://www.retiisi.org.uk/v4l2/notes/v4l2-selections-rename-2012-05-14.txt>
+> So, if you agree, either you can do a patch 11/9 or I can do it myself. Or
+> you could do a v3 of just one patch 3/9.
 
-Short summary: we decided that the _ACTUAL/_ACTIVE can be removed from
-selection target names, and that the selection targets can be unified
-between V4L2 and V4L2 subdev interfaces.
-
-Kind regards,
+I'd rather avoid a v3 if possible :-) If you could add a 11/9 patch that would 
+be great.
 
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+Regards,
+
+Laurent Pinchart
+
