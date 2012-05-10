@@ -1,62 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:53880 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1755726Ab2EBTNa (ORCPT
+Received: from mail-qc0-f174.google.com ([209.85.216.174]:54988 "EHLO
+	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751756Ab2EJOjH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 2 May 2012 15:13:30 -0400
-Date: Wed, 2 May 2012 22:13:24 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, mchehab@redhat.com,
-	remi@remlab.net, nbowler@elliptictech.com, james.dutton@gmail.com
-Subject: [RFC v2 0/2] V4L2 IOCTL enum compat wrapper
-Message-ID: <20120502191324.GE852@valkosipuli.localdomain>
+	Thu, 10 May 2012 10:39:07 -0400
+Received: by qcro28 with SMTP id o28so1156393qcr.19
+        for <linux-media@vger.kernel.org>; Thu, 10 May 2012 07:39:06 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+In-Reply-To: <4FABCD4B.1050803@redhat.com>
+References: <4FA91BBF.5060405@iki.fi>
+	<4FABCD4B.1050803@redhat.com>
+Date: Thu, 10 May 2012 10:39:06 -0400
+Message-ID: <CAGoCfiytCkzcTsDuSFkAqFw02rNkBFQB+Eq6AyPeB81RowXrmw@mail.gmail.com>
+Subject: Re: [RFCv1] DVB-USB improvements
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Antti Palosaari <crope@iki.fi>,
+	linux-media <linux-media@vger.kernel.org>,
+	Patrick Boettcher <pboettcher@kernellabs.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+On Thu, May 10, 2012 at 10:14 AM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+> In order to add analog support, it is likely simpler to take em28xx (mainly em28xx-video) as an
+> example on how things are implemented on analog side. The gspca implementation may also help a
+> lot, but it doesn't contain the tuner bits.
 
-This is my first intended-to-be-complete RFC patch to get rid of the enums
-in V4L2 IOCTL structs. The approach is the one outlined first by Mauro
-(AFAIR):
+Antti,
 
-<URL:http://www.spinics.net/lists/linux-media/msg46504.html>
+If you do decide to take on analog in dvb-usb and use em28xx as a
+model, bear in mind that the locking between analog and digital is
+*totally* broken.  You can open both the analog and digital devices
+simultaneously, causing completely unpredictable behavior.  I'm just
+mentioning this because this is something you should *not* model after
+em28xx, and because it's a huge headache for real users (lack of
+locking causes all sorts of end-user problems in MythTV and other
+applications that support both analog and digital).
 
-A set of compat structs (and compat IOCTLs) are created and there are a few
-functions to convert between the in-kernel representation and the old
-representation with enums the user space may well be using. On many archs
-the two IOCTLs are actually the same.
-
-This patchset depends on my earlier patch to remove v4l2_buffer.input:
-
-<URL:http://www.spinics.net/lists/linux-media/msg47144.html>
-
-All three patches are also available here:
-
-<URL:http://git.linuxtv.org/sailus/media_tree.git/shortlog/refs/heads/enum-fix>
-
-Open questions:
-
-- Orring the return values of {get,put}_user etc. is time-consuming on
-  modern CPUs with deep pipelines. Would if be better to use | (logical or)
-  instead? The regular case where the access is successful would be
-  optimised on the expense of the error case. The end result in error cases
-  may be different, too, but does that matter?
-
-- Testing this patch completely is difficult. I've only got access to
-  capture hardware on 32-bit systems which generally do not easily exhibit
-  problems with enums in IOCTLs (since they're 32-bit ints) in first place.
-  I've tested this by changing fields from __u32 to __u64 where the old code
-  had enums; that works, so at least something is working correctly. Help in
-  testing would be very much appreciated.
-
-Questions and comments are welcome.
-
-Kind regards,
+Devin
 
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
