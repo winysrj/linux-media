@@ -1,66 +1,206 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:37253 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752370Ab2EVWHF (ORCPT
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:41441 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751938Ab2EJLpJ convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 May 2012 18:07:05 -0400
-References: <4FBBF83C.8040201@gmail.com> <CAGoCfiwgpnAFZ0axsZqzWBzjGffLZPeZ8bnA_vaL1jcia0rk5A@mail.gmail.com>
-In-Reply-To: <CAGoCfiwgpnAFZ0axsZqzWBzjGffLZPeZ8bnA_vaL1jcia0rk5A@mail.gmail.com>
+	Thu, 10 May 2012 07:45:09 -0400
+Received: by bkcji2 with SMTP id ji2so1181723bkc.19
+        for <linux-media@vger.kernel.org>; Thu, 10 May 2012 04:45:08 -0700 (PDT)
+From: Florian Fainelli <f.fainelli@gmail.com>
+To: muralidhar dixit <muralidhar.dixit@gmail.com>
+Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl
+Subject: Re: [RFC] HDMI-CEC proposal
+Date: Thu, 10 May 2012 13:43:16 +0200
+Message-ID: <1622612.qhoKdLnT7W@flexo>
+In-Reply-To: <CAH-Z1=WtUrS0HYMsOb9CarAcXhR72cO8QWAnUJdP+zDuj92Rxg@mail.gmail.com>
+References: <CAH-Z1=WtUrS0HYMsOb9CarAcXhR72cO8QWAnUJdP+zDuj92Rxg@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
- charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Subject: Re: HVR1600 and Centos 6.2 x86_64 -- Strange Behavior
-From: Andy Walls <awalls@md.metrocast.net>
-Date: Tue, 22 May 2012 18:06:41 -0400
-To: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Bob Lightfoot <boblfoot@gmail.com>
-CC: linux-media@vger.kernel.org, atrpms-users@atrpms.net
-Message-ID: <e95d008d-1d5a-4fde-b858-0041a9253a47@email.android.com>
+Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Devin Heitmueller <dheitmueller@kernellabs.com> wrote:
+Hello Murali,
 
->On Tue, May 22, 2012 at 4:34 PM, Bob Lightfoot <boblfoot@gmail.com>
->wrote:
->> -----BEGIN PGP SIGNED MESSAGE-----
->> Hash: SHA1
->>
->> Dear LinuxTv and AtRpms Communities:
->>     In the most recent three kernels {2.6.32-220.7.1 ;
->> 2.6.32-220.13.1 ; 2.6.32-220.17.1} released for CentOS 6.2 I have
->> experienced what can only be described as a strange behavior of the
->> V4L kernel modules with the Hauppage HVR 1600 Card.  If I reboot the
->> PC in question {HP Pavillion Elite M9040n} I will lose sound on the
->> Analog TV Tuner.  If I Power off the PC, leave it off for 30-60
->> seconds and start it back up then I have sound with the Analog TV
->> Tuner every time.  Not sure what is causing this, but thought the
->> condition was worth sharing.
->
->Could you please clarify which HVR-1600 board you have (e.g. the PCI
->ID)?  I suspect we're probably not resetting the audio processor
->properly, but I would need to know exactly which board you have in
->order to check that.
->
->Devin
->
->-- 
->Devin J. Heitmueller - Kernel Labs
->http://www.kernellabs.com
->--
->To unsubscribe from this list: send the line "unsubscribe linux-media"
->in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Thursday 10 May 2012 12:40:05 muralidhar dixit wrote:
+> Hello Florian,
+> 
+> I do have similar implementation for my CEC driver.
+> And I prefer most of the CEC messaged to be handled in the user space and
+> have the kernel driver bare minimum with interfaces to
+> 1) REGISTER CEC device( I have support for multiple logical devices)
+> 2) SEND CEC MESSAGE
+> 3) RECV CEC MESSAGE
+> 
+> But one issue with this was the response time to the TV remote actions.
 
-Also, if you not done so already, verify that it is not a sound card playback issue.   Make a recording when you suspect the HVR1600 is not capturing sound. Then play the recording when you know your sound is working.
+Well, I think this is specific to your platform, because I don't have any such 
+issue here with my implementation. The specification says that the desired 
+response time is of 200 ms and the maximum 1s, even with multiple context 
+switches you should be able to achieve that. Not knowing exactly how your 
+hardware works, maybe there is a bottleneck somewhere.
 
-Also, does audio line in with Svideo or CVBS exhibit the same symptoms?
+> Initially I was sending the UI control messages also to user space but
+> response time was too bad. Hence I wrote a CEC Keyboard driver which will
+> process the CEC UI control messages. From the CEC driver if I recv any CEC
+> UI control messages I will route it to CEC Keyboard driver in the kernel
+> and all other messages have to be handled by user space application.
 
-I had to go through a good bit of trial and error to get the CX23418's APU to capture audio reliably after boot up, so I am reluctant to mess with that unless needed.
+This is the kind of thing that I want to avoid, on my platform, all the input 
+is processed in user-land and exposed as a HID device (thus self-describing), 
+forwarding CEC UI key codes to the kernel does not seem like a good solution 
+to me because it means we have to know about the CEC protocol itself.
 
-We will want to try to narrow the problem down to one of the analog tuner, integrated CX25843, or APU.
+I fear that if we start doing this with the CEC UI codes, we end-up doing the 
+same for the system-related messages (Power, standby etc ...) and this is also 
+to be avoided.
 
-Regards,
-Andy
+> 
+> Best Regards,
+> Murali
+> From: Florian Fainelli <f.fainelli <at> gmail.com>
+> Subject: Re: [RFC] HDMI-CEC
+> proposal<http://news.gmane.org/find-
+root.php?message_id=%3c4F87F195.5080504%40gmail.com%3e>
+> Newsgroups: gmane.linux.drivers.video-input-
+infrastructure<http://news.gmane.org/gmane.linux.drivers.video-input-
+infrastructure>
+> Date: 2012-04-13 09:27:49 GMT (3 weeks, 5 days, 21 hours and 33 minutes ago)
+> 
+> Hi Hans,
+> 
+> Le 04/13/12 07:03, Hans Verkuil a �crit :
+> > You both hit the main problem of the *CEC* support: how to implement the 
+API.
+> 
+> Well, the API that I propose here [1] is quite simple:
+> 
+> - a kernel-side API for defining *CEC* adapters drivers
+> - a character device with an ioctl() control path and read/write/poll
+> data-path
+> 
+> [1]: https://github.com/ffainelli/linux-*hdmi*-*cec*
+> <https://github.com/ffainelli/linux-hdmi-cec>
+> 
+> >
+> > Cisco's work on *CEC* has been stalled as we first want to get *HDMI* 
+support in
+> > V4L. Hopefully that will happen in the next few months. After that we will
+> > resume working on the *CEC* API.
+> 
+> Well, I don't think that tighting *HDMI* into V4L is such a good idea
+> either. *HDMI* is also a separate bus and deserves its own subsystem and
+> even subsystems (audio, video, HDCP, *CEC*). For instance, the STB I am
+> working with does not use the V4L API at all, however, I would like to
+> be able to integrate within the Linux *HDMI* stack once there, think about
+> nvidia's driver too.
+> 
+> I can understand that you want to hold on your efforts on *CEC* while you
+> want to get *HDMI* in, but don't make it entirely driven by Cisco and
+> accept the community feedback.
+> 
+> >
+> > Regards,
+> >
+> > 	Hans
+> >
+> > On Thursday, April 12, 2012 22:36:55 Oliver Schinagl wrote:
+> >> Since a lot of video cards dont' support *CEC* at all (not even
+> >> connected), don't have *hdmi*, but work perfectly fine with dvi->*hdmi*
+> >> adapters, *CEC* can be implemented in many other ways (think media 
+centers)
+> >>
+> >> One such exammple is using USB/Arduino
+> >>
+> >> http://code.google.com/p/*cec*-arduino/wiki/ElectricalInterface 
+<http://code.google.com/p/cec-arduino/wiki/ElectricalInterface>
+> >>
+> >> Having an AVR with v-usb code and *cec* code doesn't look all that hard
+> >> nor impossible, so one could simply have a USB plug on one end, and an
+> >> *HDMI* plug on the other end, utilizing only the *CEC* pins.
+> >>
+> >> This would make it more something like LIRC if anything.
+> >>
+> >> On 04/12/12 17:24, Florian Fainelli wrote:
+> >>> Hi Hans, Martin,
+> >>>
+> >>> Sorry to jump in so late in the *HDMI*-*CEC* discussion, here are some
+> >>> comments from my perspective on your *proposal*:
+> >>>
+> >>> - the *HDMI*-*CEC* implementation deserves its own bus and class of 
+devices
+> >>> because by definition it is a physical bus, which is even electrically
+> >>> independant from the rest of the *HDMI* bus (A/V path)
+> >>>
+> >>> - I don't think it is a good idea to tight it so closely to v4l, because
+> >>> one can perfectly have *CEC*-capable hardware without video, or at least
+> >>> not use v4l and have *HDMI*-*CEC* hardware
+> >>>
+> >>> - it was suggested to use sockets at some point, I think it is
+> >>> over-engineered and should only lead
+> >>>
+> >>> - processing messages in user-space is definitively the way to go, even
+> >>> input can be either re-injected using an uinput driver, or be handled in
+> >>> user-space entirely, eventually we might want to install "filters" based
+> >>> on opcodes to divert some opcodes to a kernel consumer, and the others
+> >>> to an user-space one
+> >>>
+> >>> Right now, I have a very simple implementation that I developed for the
+> >>> company I work for which can be found here:
+> >>> https://github.com/ffainelli/linux-*hdmi*-*cec* 
+<https://github.com/ffainelli/linux-hdmi-cec>
+> >>>
+> >>> It is designed like this:
+> >>>
+> >>> 1) A core module, which registers a *cec* bus, and provides an 
+abstraction
+> >>> for a *CEC* adapter (both device&  driver):
+> >>> - basic *CEC* adapter operations: logical address setting, queueing
+> >>> management
+> >>> - counters, rx filtering
+> >>> - host attaching/detaching in case the hardware is capable of
+> >>> self-processing *CEC* messages (for wakeup in particular)
+> >>>
+> >>> 2) A character device module, which exposes a character device per *CEC*
+> >>> adapter and only allows one consumer at a time and exposes the following
+> >>> ioctl's:
+> >>>
+> >>> - SET_LOGICAL_ADDRESS
+> >>> - RESET_DEVICE
+> >>> - GET_COUNTERS
+> >>> - SET_RX_MODE (my adapter can be set in a promiscuous mode)
+> >>>
+> >>> the character device supports read/write/poll, which are the prefered
+> >>> ways for transfering/receiving data
+> >>>
+> >>> 3) A *CEC* adapter implementation which registers and calls into the 
+core
+> >>> module when receiving a *CEC* message, and which the core module calls 
+in
+> >>> response to the IOCTLs described below.
+> >>>
+> >>> At first I thought about defining a generic netlink family in order to
+> >>> allow multiple user-space listeners receive *CEC* messages, but in the 
+end
+> >>> having only one consumer per adapter device is fine by me and a more
+> >>> traditionnal approach for programmers.
+> >>>
+> >>> I am relying on external components for knowing my *HDMI* physical 
+address.
+> >>>
+> >>> Hope this is not too late to (re)start the discussion on *HDMI*-*CEC*.
+> >>>
+> >>> Thank you very much.
+> >>> --
+> >>> Florian
+> >>> --
+> >>> To unsubscribe from this list: send the line "unsubscribe linux-media" 
+in
+> >>> the body of a message to majordomo <at> vger.kernel.org
+> >>> More majordomo info at http://vger.kernel.org/majordomo-info.html
+> >>
+> >> --
+> >> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> >> the body of a message to majordomo <at> vger.kernel.org
+> >> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >>
