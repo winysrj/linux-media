@@ -1,897 +1,421 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:4517 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754436Ab2EIGtP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 May 2012 02:49:15 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: Re: [PATCH 3/7] v4l2-dv-timings.h: definitions for CEA-861 and VESA DMT timings.
-Date: Wed, 9 May 2012 08:49:09 +0200
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-References: <1335863152-15791-1-git-send-email-hverkuil@xs4all.nl> <69fba2589bf3eed77216ddeb21d5df83443a7c16.1335862609.git.hans.verkuil@cisco.com>
-In-Reply-To: <69fba2589bf3eed77216ddeb21d5df83443a7c16.1335862609.git.hans.verkuil@cisco.com>
+Received: from mx1.redhat.com ([209.132.183.28]:1381 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756288Ab2EJIAP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 May 2012 04:00:15 -0400
+Message-ID: <4FAB758F.4040903@redhat.com>
+Date: Thu, 10 May 2012 10:00:15 +0200
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFCv1 PATCH 1/5] v4l2-dev: make it possible to skip locking
+ for selected ioctls.
+References: <1336633514-4972-1-git-send-email-hverkuil@xs4all.nl> <0f97ebe03ff17602c7a62e8a6a16414f1f897270.1336632433.git.hans.verkuil@cisco.com>
+In-Reply-To: <0f97ebe03ff17602c7a62e8a6a16414f1f897270.1336632433.git.hans.verkuil@cisco.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <201205090849.09068.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi,
 
-I've made a change to this patch. The new patch is included below and the
-full patch series can be found in my timingsv4b branch:
+Looks good, ack.
 
-git://linuxtv.org/hverkuil/media_tree.git timingsv4b
-
-I've also rebased that branch to the current v3.5.
-
-The problem is that v4l2-dv-timings.h relies on the initialization of an
-anonymous union, and gcc compilers < 4.6 do not conform to the C1x standard
-and need additional curly brackets.
-
-I've changed the header to also support older gcc versions. I've tested it
-with gcc-4.4/5/6/7.
-
-I have thought about always adding those extra brackets, but based on posts
-like this:
-
-http://stackoverflow.com/questions/5063548/initialization-of-anonymous-structures-or-unions-in-c1x
-
-that is a solution that will work for gcc (for now), but not for other compilers.
+Acked-by: Hans de Goede <hdegoede@redhat.com>
 
 Regards,
 
-	Hans
+Hans
 
-v4l2-dv-timings.h: definitions for CEA-861 and VESA DMT timings.
 
-This header contains the timings for the common CEA-861 and all VESA
-DMT formats for use with the V4L2 dv_timings API.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Reviewed-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- include/linux/Kbuild            |    1 +
- include/linux/v4l2-dv-timings.h |  816 +++++++++++++++++++++++++++++++++++++++
- 2 files changed, 817 insertions(+)
- create mode 100644 include/linux/v4l2-dv-timings.h
-
-diff --git a/include/linux/Kbuild b/include/linux/Kbuild
-index 3c9b616..d38b3a8 100644
---- a/include/linux/Kbuild
-+++ b/include/linux/Kbuild
-@@ -382,6 +382,7 @@ header-y += usbdevice_fs.h
- header-y += utime.h
- header-y += utsname.h
- header-y += uvcvideo.h
-+header-y += v4l2-dv-timings.h
- header-y += v4l2-mediabus.h
- header-y += v4l2-subdev.h
- header-y += veth.h
-diff --git a/include/linux/v4l2-dv-timings.h b/include/linux/v4l2-dv-timings.h
-new file mode 100644
-index 0000000..9ef8172
---- /dev/null
-+++ b/include/linux/v4l2-dv-timings.h
-@@ -0,0 +1,816 @@
-+/*
-+ * V4L2 DV timings header.
-+ *
-+ * Copyright (C) 2012  Hans Verkuil <hans.verkuil@cisco.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * version 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-+ * 02110-1301 USA
-+ */
-+
-+#ifndef _V4L2_DV_TIMINGS_H
-+#define _V4L2_DV_TIMINGS_H
-+
-+#if __GNUC__ < 4 || (__GNUC__ == 4 && (__GNUC_MINOR__ < 6))
-+/* Sadly gcc versions older than 4.6 have a bug in how they initialize
-+   anonymous unions where they require additional curly brackets.
-+   This violates the C1x standard. This workaround adds the curly brackets
-+   if needed. */
-+#define V4L2_INIT_BT_TIMINGS(_width, args...) \
-+	{ .bt = { _width , ## args } }
-+#else
-+#define V4L2_INIT_BT_TIMINGS(_width, args...) \
-+	.bt = { _width , ## args }
-+#endif
-+
-+/* CEA-861-E timings (i.e. standard HDTV timings) */
-+
-+#define V4L2_DV_BT_CEA_640X480P59_94 { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(640, 480, 0, 0, \
-+		25175000, 16, 96, 48, 10, 2, 33, 0, 0, 0, \
-+		V4L2_DV_BT_STD_DMT | V4L2_DV_BT_STD_CEA861, 0) \
-+}
-+
-+#define V4L2_DV_BT_CEA_720X480P59_94 { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(720, 480, 0, 0, \
-+		27000000, 16, 62, 60, 9, 6, 30, 0, 0, 0, \
-+		V4L2_DV_BT_STD_CEA861, 0) \
-+}
-+
-+#define V4L2_DV_BT_CEA_720X576P50 { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(720, 576, 0, 0, \
-+		27000000, 12, 64, 68, 5, 5, 39, 0, 0, 0, \
-+		V4L2_DV_BT_STD_CEA861, 0) \
-+}
-+
-+#define V4L2_DV_BT_CEA_1280X720P24 { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(1280, 720, 0, \
-+		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
-+		59400000, 1760, 40, 220, 5, 5, 20, 0, 0, 0, \
-+		V4L2_DV_BT_STD_DMT | V4L2_DV_BT_STD_CEA861, \
-+		V4L2_DV_FL_CAN_REDUCE_FPS) \
-+}
-+
-+#define V4L2_DV_BT_CEA_1280X720P25 { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(1280, 720, 0, \
-+		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
-+		74250000, 2420, 40, 220, 5, 5, 20, 0, 0, 0, \
-+		V4L2_DV_BT_STD_CEA861, 0) \
-+}
-+
-+#define V4L2_DV_BT_CEA_1280X720P30 { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(1280, 720, 0, \
-+		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
-+		74250000, 1760, 40, 220, 5, 5, 20, 0, 0, 0, \
-+		V4L2_DV_BT_STD_CEA861, V4L2_DV_FL_CAN_REDUCE_FPS) \
-+}
-+
-+#define V4L2_DV_BT_CEA_1280X720P50 { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(1280, 720, 0, \
-+		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
-+		74250000, 440, 40, 220, 5, 5, 20, 0, 0, 0, \
-+		V4L2_DV_BT_STD_CEA861, 0) \
-+}
-+
-+#define V4L2_DV_BT_CEA_1280X720P60 { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(1280, 720, 0, \
-+		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
-+		74250000, 110, 40, 220, 5, 5, 20, 0, 0, 0, \
-+		V4L2_DV_BT_STD_CEA861, V4L2_DV_FL_CAN_REDUCE_FPS) \
-+}
-+
-+#define V4L2_DV_BT_CEA_1920X1080P24 { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(1920, 1080, 0, \
-+		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
-+		74250000, 638, 44, 148, 4, 5, 36, 0, 0, 0, \
-+		V4L2_DV_BT_STD_CEA861, V4L2_DV_FL_CAN_REDUCE_FPS) \
-+}
-+
-+#define V4L2_DV_BT_CEA_1920X1080P25 { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(1920, 1080, 0, \
-+		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
-+		74250000, 528, 44, 148, 4, 5, 36, 0, 0, 0, \
-+		V4L2_DV_BT_STD_CEA861, 0) \
-+}
-+
-+#define V4L2_DV_BT_CEA_1920X1080P30 { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(1920, 1080, 0, \
-+		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
-+		74250000, 88, 44, 148, 4, 5, 36, 0, 0, 0, \
-+		V4L2_DV_BT_STD_CEA861, V4L2_DV_FL_CAN_REDUCE_FPS) \
-+}
-+
-+#define V4L2_DV_BT_CEA_1920X1080I50 { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(1920, 1080, 1, \
-+		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
-+		74250000, 528, 44, 148, 2, 5, 15, 2, 5, 16, \
-+		V4L2_DV_BT_STD_CEA861, V4L2_DV_FL_HALF_LINE) \
-+}
-+
-+#define V4L2_DV_BT_CEA_1920X1080P50 { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(1920, 1080, 0, \
-+		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
-+		148500000, 528, 44, 148, 4, 5, 36, 0, 0, 0, \
-+		V4L2_DV_BT_STD_CEA861, 0) \
-+}
-+
-+#define V4L2_DV_BT_CEA_1920X1080I60 { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(1920, 1080, 1, \
-+		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
-+		74250000, 88, 44, 148, 2, 5, 15, 2, 5, 16, \
-+		V4L2_DV_BT_STD_CEA861, \
-+		V4L2_DV_FL_CAN_REDUCE_FPS | V4L2_DV_FL_HALF_LINE) \
-+}
-+
-+#define V4L2_DV_BT_CEA_1920X1080P60 { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(1920, 1080, 0, \
-+		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
-+		148500000, 88, 44, 148, 4, 5, 36, 0, 0, 0, \
-+		V4L2_DV_BT_STD_DMT | V4L2_DV_BT_STD_CEA861, \
-+		V4L2_DV_FL_CAN_REDUCE_FPS) \
-+}
-+
-+
-+/* VESA Discrete Monitor Timings as per version 1.0, revision 12 */
-+
-+#define V4L2_DV_BT_DMT_640X350P85 { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(640, 350, 0, V4L2_DV_HSYNC_POS_POL, \
-+		31500000, 32, 64, 96, 32, 3, 60, 0, 0, 0, \
-+		V4L2_DV_BT_STD_DMT, 0) \
-+}
-+
-+#define V4L2_DV_BT_DMT_640X400P85 { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(640, 400, 0, V4L2_DV_VSYNC_POS_POL, \
-+		31500000, 32, 64, 96, 1, 3, 41, 0, 0, 0, \
-+		V4L2_DV_BT_STD_DMT, 0) \
-+}
-+
-+#define V4L2_DV_BT_DMT_720X400P85 { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(720, 400, 0, V4L2_DV_VSYNC_POS_POL, \
-+		35500000, 36, 72, 108, 1, 3, 42, 0, 0, 0, \
-+		V4L2_DV_BT_STD_DMT, 0) \
-+}
-+
-+/* VGA resolutions */
-+#define V4L2_DV_BT_DMT_640X480P60 V4L2_DV_BT_CEA_640X480P59_94
-+
-+#define V4L2_DV_BT_DMT_640X480P72 { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(640, 480, 0, 0, \
-+		31500000, 24, 40, 128, 9, 3, 28, 0, 0, 0, \
-+		V4L2_DV_BT_STD_DMT, 0) \
-+}
-+
-+#define V4L2_DV_BT_DMT_640X480P75 { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(640, 480, 0, 0, \
-+		31500000, 16, 64, 120, 1, 3, 16, 0, 0, 0, \
-+		V4L2_DV_BT_STD_DMT, 0) \
-+}
-+
-+#define V4L2_DV_BT_DMT_640X480P85 { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(640, 480, 0, 0, \
-+		36000000, 56, 56, 80, 1, 3, 25, 0, 0, 0, \
-+		V4L2_DV_BT_STD_DMT, 0) \
-+}
-+
-+/* SVGA resolutions */
-+#define V4L2_DV_BT_DMT_800X600P56 { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(800, 600, 0, \
-+		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
-+		36000000, 24, 72, 128, 1, 2, 22, 0, 0, 0, \
-+		V4L2_DV_BT_STD_DMT, 0) \
-+}
-+
-+#define V4L2_DV_BT_DMT_800X600P60 { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(800, 600, 0, \
-+		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
-+		40000000, 40, 128, 88, 1, 4, 23, 0, 0, 0, \
-+		V4L2_DV_BT_STD_DMT, 0) \
-+}
-+
-+#define V4L2_DV_BT_DMT_800X600P72 { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(800, 600, 0, \
-+		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
-+		50000000, 56, 120, 64, 37, 6, 23, 0, 0, 0, \
-+		V4L2_DV_BT_STD_DMT, 0) \
-+}
-+
-+#define V4L2_DV_BT_DMT_800X600P75 { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(800, 600, 0, \
-+		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
-+		49500000, 16, 80, 160, 1, 3, 21, 0, 0, 0, \
-+		V4L2_DV_BT_STD_DMT, 0) \
-+}
-+
-+#define V4L2_DV_BT_DMT_800X600P85 { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(800, 600, 0, \
-+		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
-+		56250000, 32, 64, 152, 1, 3, 27, 0, 0, 0, \
-+		V4L2_DV_BT_STD_DMT, 0) \
-+}
-+
-+#define V4L2_DV_BT_DMT_800X600P120_RB { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(800, 600, 0, V4L2_DV_HSYNC_POS_POL, \
-+		73250000, 48, 32, 80, 3, 4, 29, 0, 0, 0, \
-+		V4L2_DV_BT_STD_DMT | V4L2_DV_BT_STD_CVT, \
-+		V4L2_DV_FL_REDUCED_BLANKING) \
-+}
-+
-+#define V4L2_DV_BT_DMT_848X480P60 { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(848, 480, 0, \
-+		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
-+		33750000, 16, 112, 112, 6, 8, 23, 0, 0, 0, \
-+		V4L2_DV_BT_STD_DMT, 0) \
-+}
-+
-+#define V4L2_DV_BT_DMT_1024X768I43 { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(1024, 768, 1, \
-+		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
-+		44900000, 8, 176, 56, 0, 4, 20, 0, 4, 21, \
-+		V4L2_DV_BT_STD_DMT, 0) \
-+}
-+
-+/* XGA resolutions */
-+#define V4L2_DV_BT_DMT_1024X768P60 { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(1024, 768, 0, 0, \
-+		65000000, 24, 136, 160, 3, 6, 29, 0, 0, 0, \
-+		V4L2_DV_BT_STD_DMT, 0) \
-+}
-+
-+#define V4L2_DV_BT_DMT_1024X768P70 { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(1024, 768, 0, 0, \
-+		75000000, 24, 136, 144, 3, 6, 29, 0, 0, 0, \
-+		V4L2_DV_BT_STD_DMT, 0) \
-+}
-+
-+#define V4L2_DV_BT_DMT_1024X768P75 { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(1024, 768, 0, \
-+		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
-+		78750000, 16, 96, 176, 1, 3, 28, 0, 0, 0, \
-+		V4L2_DV_BT_STD_DMT, 0) \
-+}
-+
-+#define V4L2_DV_BT_DMT_1024X768P85 { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(1024, 768, 0, \
-+		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
-+		94500000, 48, 96, 208, 1, 3, 36, 0, 0, 0, \
-+		V4L2_DV_BT_STD_DMT, 0) \
-+}
-+
-+#define V4L2_DV_BT_DMT_1024X768P120_RB { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(1024, 768, 0, V4L2_DV_HSYNC_POS_POL, \
-+		115500000, 48, 32, 80, 3, 4, 38, 0, 0, 0, \
-+		V4L2_DV_BT_STD_DMT | V4L2_DV_BT_STD_CVT, \
-+		V4L2_DV_FL_REDUCED_BLANKING) \
-+}
-+
-+/* XGA+ resolution */
-+#define V4L2_DV_BT_DMT_1152X864P75 { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(1152, 864, 0, \
-+		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
-+		108000000, 64, 128, 256, 1, 3, 32, 0, 0, 0, \
-+		V4L2_DV_BT_STD_DMT, 0) \
-+}
-+
-+#define V4L2_DV_BT_DMT_1280X720P60 V4L2_DV_BT_CEA_1280X720P60
-+
-+/* WXGA resolutions */
-+#define V4L2_DV_BT_DMT_1280X768P60_RB { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(1280, 768, 0, V4L2_DV_HSYNC_POS_POL, \
-+		68250000, 48, 32, 80, 3, 7, 12, 0, 0, 0, \
-+		V4L2_DV_BT_STD_DMT | V4L2_DV_BT_STD_CVT, \
-+		V4L2_DV_FL_REDUCED_BLANKING) \
-+}
-+
-+#define V4L2_DV_BT_DMT_1280X768P60 { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(1280, 768, 0, V4L2_DV_VSYNC_POS_POL, \
-+		79500000, 64, 128, 192, 3, 7, 20, 0, 0, 0, \
-+		V4L2_DV_BT_STD_DMT | V4L2_DV_BT_STD_CVT, 0) \
-+}
-+
-+#define V4L2_DV_BT_DMT_1280X768P75 { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(1280, 768, 0, V4L2_DV_VSYNC_POS_POL, \
-+		102250000, 80, 128, 208, 3, 7, 27, 0, 0, 0, \
-+		V4L2_DV_BT_STD_DMT | V4L2_DV_BT_STD_CVT, 0) \
-+}
-+
-+#define V4L2_DV_BT_DMT_1280X768P85 { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(1280, 768, 0, V4L2_DV_VSYNC_POS_POL, \
-+		117500000, 80, 136, 216, 3, 7, 31, 0, 0, 0, \
-+		V4L2_DV_BT_STD_DMT | V4L2_DV_BT_STD_CVT, 0) \
-+}
-+
-+#define V4L2_DV_BT_DMT_1280X768P120_RB { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(1280, 768, 0, V4L2_DV_HSYNC_POS_POL, \
-+		140250000, 48, 32, 80, 3, 7, 35, 0, 0, 0, \
-+		V4L2_DV_BT_STD_DMT | V4L2_DV_BT_STD_CVT, \
-+		V4L2_DV_FL_REDUCED_BLANKING) \
-+}
-+
-+#define V4L2_DV_BT_DMT_1280X800P60_RB { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(1280, 800, 0, V4L2_DV_HSYNC_POS_POL, \
-+		71000000, 48, 32, 80, 3, 6, 14, 0, 0, 0, \
-+		V4L2_DV_BT_STD_DMT | V4L2_DV_BT_STD_CVT, \
-+		V4L2_DV_FL_REDUCED_BLANKING) \
-+}
-+
-+#define V4L2_DV_BT_DMT_1280X800P60 { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(1280, 800, 0, V4L2_DV_VSYNC_POS_POL, \
-+		83500000, 72, 128, 200, 3, 6, 22, 0, 0, 0, \
-+		V4L2_DV_BT_STD_DMT | V4L2_DV_BT_STD_CVT, 0) \
-+}
-+
-+#define V4L2_DV_BT_DMT_1280X800P75 { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(1280, 800, 0, V4L2_DV_VSYNC_POS_POL, \
-+		106500000, 80, 128, 208, 3, 6, 29, 0, 0, 0, \
-+		V4L2_DV_BT_STD_DMT | V4L2_DV_BT_STD_CVT, 0) \
-+}
-+
-+#define V4L2_DV_BT_DMT_1280X800P85 { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(1280, 800, 0, V4L2_DV_VSYNC_POS_POL, \
-+		122500000, 80, 136, 216, 3, 6, 34, 0, 0, 0, \
-+		V4L2_DV_BT_STD_DMT | V4L2_DV_BT_STD_CVT, 0) \
-+}
-+
-+#define V4L2_DV_BT_DMT_1280X800P120_RB { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(1280, 800, 0, V4L2_DV_HSYNC_POS_POL, \
-+		146250000, 48, 32, 80, 3, 6, 38, 0, 0, 0, \
-+		V4L2_DV_BT_STD_DMT | V4L2_DV_BT_STD_CVT, \
-+		V4L2_DV_FL_REDUCED_BLANKING) \
-+}
-+
-+#define V4L2_DV_BT_DMT_1280X960P60 { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(1280, 960, 0, \
-+		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
-+		108000000, 96, 112, 312, 1, 3, 36, 0, 0, 0, \
-+		V4L2_DV_BT_STD_DMT, 0) \
-+}
-+
-+#define V4L2_DV_BT_DMT_1280X960P85 { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(1280, 960, 0, \
-+		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
-+		148500000, 64, 160, 224, 1, 3, 47, 0, 0, 0, \
-+		V4L2_DV_BT_STD_DMT, 0) \
-+}
-+
-+#define V4L2_DV_BT_DMT_1280X960P120_RB { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(1280, 960, 0, V4L2_DV_HSYNC_POS_POL, \
-+		175500000, 48, 32, 80, 3, 4, 50, 0, 0, 0, \
-+		V4L2_DV_BT_STD_DMT | V4L2_DV_BT_STD_CVT, \
-+		V4L2_DV_FL_REDUCED_BLANKING) \
-+}
-+
-+/* SXGA resolutions */
-+#define V4L2_DV_BT_DMT_1280X1024P60 { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(1280, 1024, 0, \
-+		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
-+		108000000, 48, 112, 248, 1, 3, 38, 0, 0, 0, \
-+		V4L2_DV_BT_STD_DMT, 0) \
-+}
-+
-+#define V4L2_DV_BT_DMT_1280X1024P75 { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(1280, 1024, 0, \
-+		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
-+		135000000, 16, 144, 248, 1, 3, 38, 0, 0, 0, \
-+		V4L2_DV_BT_STD_DMT, 0) \
-+}
-+
-+#define V4L2_DV_BT_DMT_1280X1024P85 { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(1280, 1024, 0, \
-+		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
-+		157500000, 64, 160, 224, 1, 3, 44, 0, 0, 0, \
-+		V4L2_DV_BT_STD_DMT, 0) \
-+}
-+
-+#define V4L2_DV_BT_DMT_1280X1024P120_RB { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(1280, 1024, 0, V4L2_DV_HSYNC_POS_POL, \
-+		187250000, 48, 32, 80, 3, 7, 50, 0, 0, 0, \
-+		V4L2_DV_BT_STD_DMT | V4L2_DV_BT_STD_CVT, \
-+		V4L2_DV_FL_REDUCED_BLANKING) \
-+}
-+
-+#define V4L2_DV_BT_DMT_1360X768P60 { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(1360, 768, 0, \
-+		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
-+		85500000, 64, 112, 256, 3, 6, 18, 0, 0, 0, \
-+		V4L2_DV_BT_STD_DMT, 0) \
-+}
-+
-+#define V4L2_DV_BT_DMT_1360X768P120_RB { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(1360, 768, 0, V4L2_DV_HSYNC_POS_POL, \
-+		148250000, 48, 32, 80, 3, 5, 37, 0, 0, 0, \
-+		V4L2_DV_BT_STD_DMT | V4L2_DV_BT_STD_CVT, \
-+		V4L2_DV_FL_REDUCED_BLANKING) \
-+}
-+
-+#define V4L2_DV_BT_DMT_1366X768P60 { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(1366, 768, 0, \
-+		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
-+		85500000, 70, 143, 213, 3, 3, 24, 0, 0, 0, \
-+		V4L2_DV_BT_STD_DMT, 0) \
-+}
-+
-+#define V4L2_DV_BT_DMT_1366X768P60_RB { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(1366, 768, 0, \
-+		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
-+		72000000, 14, 56, 64, 1, 3, 28, 0, 0, 0, \
-+		V4L2_DV_BT_STD_DMT, V4L2_DV_FL_REDUCED_BLANKING) \
-+}
-+
-+/* SXGA+ resolutions */
-+#define V4L2_DV_BT_DMT_1400X1050P60_RB { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(1400, 1050, 0, V4L2_DV_HSYNC_POS_POL, \
-+		101000000, 48, 32, 80, 3, 4, 23, 0, 0, 0, \
-+		V4L2_DV_BT_STD_DMT | V4L2_DV_BT_STD_CVT, \
-+		V4L2_DV_FL_REDUCED_BLANKING) \
-+}
-+
-+#define V4L2_DV_BT_DMT_1400X1050P60 { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(1400, 1050, 0, V4L2_DV_VSYNC_POS_POL, \
-+		121750000, 88, 144, 232, 3, 4, 32, 0, 0, 0, \
-+		V4L2_DV_BT_STD_DMT | V4L2_DV_BT_STD_CVT, 0) \
-+}
-+
-+#define V4L2_DV_BT_DMT_1400X1050P75 { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(1400, 1050, 0, V4L2_DV_VSYNC_POS_POL, \
-+		156000000, 104, 144, 248, 3, 4, 42, 0, 0, 0, \
-+		V4L2_DV_BT_STD_DMT | V4L2_DV_BT_STD_CVT, 0) \
-+}
-+
-+#define V4L2_DV_BT_DMT_1400X1050P85 { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(1400, 1050, 0, V4L2_DV_VSYNC_POS_POL, \
-+		179500000, 104, 152, 256, 3, 4, 48, 0, 0, 0, \
-+		V4L2_DV_BT_STD_DMT | V4L2_DV_BT_STD_CVT, 0) \
-+}
-+
-+#define V4L2_DV_BT_DMT_1400X1050P120_RB { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(1400, 1050, 0, V4L2_DV_HSYNC_POS_POL, \
-+		208000000, 48, 32, 80, 3, 4, 55, 0, 0, 0, \
-+		V4L2_DV_BT_STD_DMT | V4L2_DV_BT_STD_CVT, \
-+		V4L2_DV_FL_REDUCED_BLANKING) \
-+}
-+
-+/* WXGA+ resolutions */
-+#define V4L2_DV_BT_DMT_1440X900P60_RB { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(1440, 900, 0, V4L2_DV_HSYNC_POS_POL, \
-+		88750000, 48, 32, 80, 3, 6, 17, 0, 0, 0, \
-+		V4L2_DV_BT_STD_DMT | V4L2_DV_BT_STD_CVT, \
-+		V4L2_DV_FL_REDUCED_BLANKING) \
-+}
-+
-+#define V4L2_DV_BT_DMT_1440X900P60 { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(1440, 900, 0, V4L2_DV_VSYNC_POS_POL, \
-+		106500000, 80, 152, 232, 3, 6, 25, 0, 0, 0, \
-+		V4L2_DV_BT_STD_DMT | V4L2_DV_BT_STD_CVT, 0) \
-+}
-+
-+#define V4L2_DV_BT_DMT_1440X900P75 { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(1440, 900, 0, V4L2_DV_VSYNC_POS_POL, \
-+		136750000, 96, 152, 248, 3, 6, 33, 0, 0, 0, \
-+		V4L2_DV_BT_STD_DMT | V4L2_DV_BT_STD_CVT, 0) \
-+}
-+
-+#define V4L2_DV_BT_DMT_1440X900P85 { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(1440, 900, 0, V4L2_DV_VSYNC_POS_POL, \
-+		157000000, 104, 152, 256, 3, 6, 39, 0, 0, 0, \
-+		V4L2_DV_BT_STD_DMT | V4L2_DV_BT_STD_CVT, 0) \
-+}
-+
-+#define V4L2_DV_BT_DMT_1440X900P120_RB { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(1440, 900, 0, V4L2_DV_HSYNC_POS_POL, \
-+		182750000, 48, 32, 80, 3, 6, 44, 0, 0, 0, \
-+		V4L2_DV_BT_STD_DMT | V4L2_DV_BT_STD_CVT, \
-+		V4L2_DV_FL_REDUCED_BLANKING) \
-+}
-+
-+#define V4L2_DV_BT_DMT_1600X900P60_RB { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(1600, 900, 0, \
-+		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
-+		108000000, 24, 80, 96, 1, 3, 96, 0, 0, 0, \
-+		V4L2_DV_BT_STD_DMT, V4L2_DV_FL_REDUCED_BLANKING) \
-+}
-+
-+/* UXGA resolutions */
-+#define V4L2_DV_BT_DMT_1600X1200P60 { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(1600, 1200, 0, \
-+		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
-+		162000000, 64, 192, 304, 1, 3, 46, 0, 0, 0, \
-+		V4L2_DV_BT_STD_DMT, 0) \
-+}
-+
-+#define V4L2_DV_BT_DMT_1600X1200P65 { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(1600, 1200, 0, \
-+		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
-+		175500000, 64, 192, 304, 1, 3, 46, 0, 0, 0, \
-+		V4L2_DV_BT_STD_DMT, 0) \
-+}
-+
-+#define V4L2_DV_BT_DMT_1600X1200P70 { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(1600, 1200, 0, \
-+		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
-+		189000000, 64, 192, 304, 1, 3, 46, 0, 0, 0, \
-+		V4L2_DV_BT_STD_DMT, 0) \
-+}
-+
-+#define V4L2_DV_BT_DMT_1600X1200P75 { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(1600, 1200, 0, \
-+		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
-+		202500000, 64, 192, 304, 1, 3, 46, 0, 0, 0, \
-+		V4L2_DV_BT_STD_DMT, 0) \
-+}
-+
-+#define V4L2_DV_BT_DMT_1600X1200P85 { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(1600, 1200, 0, \
-+		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
-+		229500000, 64, 192, 304, 1, 3, 46, 0, 0, 0, \
-+		V4L2_DV_BT_STD_DMT, 0) \
-+}
-+
-+#define V4L2_DV_BT_DMT_1600X1200P120_RB { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(1600, 1200, 0, V4L2_DV_HSYNC_POS_POL, \
-+		268250000, 48, 32, 80, 3, 4, 64, 0, 0, 0, \
-+		V4L2_DV_BT_STD_DMT | V4L2_DV_BT_STD_CVT, \
-+		V4L2_DV_FL_REDUCED_BLANKING) \
-+}
-+
-+/* WSXGA+ resolutions */
-+#define V4L2_DV_BT_DMT_1680X1050P60_RB { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(1680, 1050, 0, V4L2_DV_HSYNC_POS_POL, \
-+		119000000, 48, 32, 80, 3, 6, 21, 0, 0, 0, \
-+		V4L2_DV_BT_STD_DMT | V4L2_DV_BT_STD_CVT, \
-+		V4L2_DV_FL_REDUCED_BLANKING) \
-+}
-+
-+#define V4L2_DV_BT_DMT_1680X1050P60 { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(1680, 1050, 0, V4L2_DV_VSYNC_POS_POL, \
-+		146250000, 104, 176, 280, 3, 6, 30, 0, 0, 0, \
-+		V4L2_DV_BT_STD_DMT | V4L2_DV_BT_STD_CVT, 0) \
-+}
-+
-+#define V4L2_DV_BT_DMT_1680X1050P75 { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(1680, 1050, 0, V4L2_DV_VSYNC_POS_POL, \
-+		187000000, 120, 176, 296, 3, 6, 40, 0, 0, 0, \
-+		V4L2_DV_BT_STD_DMT | V4L2_DV_BT_STD_CVT, 0) \
-+}
-+
-+#define V4L2_DV_BT_DMT_1680X1050P85 { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(1680, 1050, 0, V4L2_DV_VSYNC_POS_POL, \
-+		214750000, 128, 176, 304, 3, 6, 46, 0, 0, 0, \
-+		V4L2_DV_BT_STD_DMT | V4L2_DV_BT_STD_CVT, 0) \
-+}
-+
-+#define V4L2_DV_BT_DMT_1680X1050P120_RB { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(1680, 1050, 0, V4L2_DV_HSYNC_POS_POL, \
-+		245500000, 48, 32, 80, 3, 6, 53, 0, 0, 0, \
-+		V4L2_DV_BT_STD_DMT | V4L2_DV_BT_STD_CVT, \
-+		V4L2_DV_FL_REDUCED_BLANKING) \
-+}
-+
-+#define V4L2_DV_BT_DMT_1792X1344P60 { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(1792, 1344, 0, V4L2_DV_VSYNC_POS_POL, \
-+		204750000, 128, 200, 328, 1, 3, 46, 0, 0, 0, \
-+		V4L2_DV_BT_STD_DMT, 0) \
-+}
-+
-+#define V4L2_DV_BT_DMT_1792X1344P75 { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(1792, 1344, 0, V4L2_DV_VSYNC_POS_POL, \
-+		261000000, 96, 216, 352, 1, 3, 69, 0, 0, 0, \
-+		V4L2_DV_BT_STD_DMT, 0) \
-+}
-+
-+#define V4L2_DV_BT_DMT_1792X1344P120_RB { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(1792, 1344, 0, V4L2_DV_HSYNC_POS_POL, \
-+		333250000, 48, 32, 80, 3, 4, 72, 0, 0, 0, \
-+		V4L2_DV_BT_STD_DMT | V4L2_DV_BT_STD_CVT, \
-+		V4L2_DV_FL_REDUCED_BLANKING) \
-+}
-+
-+#define V4L2_DV_BT_DMT_1856X1392P60 { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(1856, 1392, 0, V4L2_DV_VSYNC_POS_POL, \
-+		218250000, 96, 224, 352, 1, 3, 43, 0, 0, 0, \
-+		V4L2_DV_BT_STD_DMT, 0) \
-+}
-+
-+#define V4L2_DV_BT_DMT_1856X1392P75 { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(1856, 1392, 0, V4L2_DV_VSYNC_POS_POL, \
-+		288000000, 128, 224, 352, 1, 3, 104, 0, 0, 0, \
-+		V4L2_DV_BT_STD_DMT, 0) \
-+}
-+
-+#define V4L2_DV_BT_DMT_1856X1392P120_RB { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(1856, 1392, 0, V4L2_DV_HSYNC_POS_POL, \
-+		356500000, 48, 32, 80, 3, 4, 75, 0, 0, 0, \
-+		V4L2_DV_BT_STD_DMT | V4L2_DV_BT_STD_CVT, \
-+		V4L2_DV_FL_REDUCED_BLANKING) \
-+}
-+
-+#define V4L2_DV_BT_DMT_1920X1080P60 V4L2_DV_BT_CEA_1920X1080P60
-+
-+/* WUXGA resolutions */
-+#define V4L2_DV_BT_DMT_1920X1200P60_RB { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(1920, 1200, 0, V4L2_DV_HSYNC_POS_POL, \
-+		154000000, 48, 32, 80, 3, 6, 26, 0, 0, 0, \
-+		V4L2_DV_BT_STD_DMT | V4L2_DV_BT_STD_CVT, \
-+		V4L2_DV_FL_REDUCED_BLANKING) \
-+}
-+
-+#define V4L2_DV_BT_DMT_1920X1200P60 { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(1920, 1200, 0, V4L2_DV_VSYNC_POS_POL, \
-+		193250000, 136, 200, 336, 3, 6, 36, 0, 0, 0, \
-+		V4L2_DV_BT_STD_DMT | V4L2_DV_BT_STD_CVT, 0) \
-+}
-+
-+#define V4L2_DV_BT_DMT_1920X1200P75 { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(1920, 1200, 0, V4L2_DV_VSYNC_POS_POL, \
-+		245250000, 136, 208, 344, 3, 6, 46, 0, 0, 0, \
-+		V4L2_DV_BT_STD_DMT | V4L2_DV_BT_STD_CVT, 0) \
-+}
-+
-+#define V4L2_DV_BT_DMT_1920X1200P85 { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(1920, 1200, 0, V4L2_DV_VSYNC_POS_POL, \
-+		281250000, 144, 208, 352, 3, 6, 53, 0, 0, 0, \
-+		V4L2_DV_BT_STD_DMT | V4L2_DV_BT_STD_CVT, 0) \
-+}
-+
-+#define V4L2_DV_BT_DMT_1920X1200P120_RB { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(1920, 1200, 0, V4L2_DV_HSYNC_POS_POL, \
-+		317000000, 48, 32, 80, 3, 6, 62, 0, 0, 0, \
-+		V4L2_DV_BT_STD_DMT | V4L2_DV_BT_STD_CVT, \
-+		V4L2_DV_FL_REDUCED_BLANKING) \
-+}
-+
-+#define V4L2_DV_BT_DMT_1920X1440P60 { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(1920, 1440, 0, V4L2_DV_VSYNC_POS_POL, \
-+		234000000, 128, 208, 344, 1, 3, 56, 0, 0, 0, \
-+		V4L2_DV_BT_STD_DMT, 0) \
-+}
-+
-+#define V4L2_DV_BT_DMT_1920X1440P75 { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(1920, 1440, 0, V4L2_DV_VSYNC_POS_POL, \
-+		297000000, 144, 224, 352, 1, 3, 56, 0, 0, 0, \
-+		V4L2_DV_BT_STD_DMT, 0) \
-+}
-+
-+#define V4L2_DV_BT_DMT_1920X1440P120_RB { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(1920, 1440, 0, V4L2_DV_HSYNC_POS_POL, \
-+		380500000, 48, 32, 80, 3, 4, 78, 0, 0, 0, \
-+		V4L2_DV_BT_STD_DMT | V4L2_DV_BT_STD_CVT, \
-+		V4L2_DV_FL_REDUCED_BLANKING) \
-+}
-+
-+#define V4L2_DV_BT_DMT_2048X1152P60_RB { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(2048, 1152, 0, \
-+		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
-+		162000000, 26, 80, 96, 1, 3, 44, 0, 0, 0, \
-+		V4L2_DV_BT_STD_DMT, V4L2_DV_FL_REDUCED_BLANKING) \
-+}
-+
-+/* WQXGA resolutions */
-+#define V4L2_DV_BT_DMT_2560X1600P60_RB { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(2560, 1600, 0, V4L2_DV_HSYNC_POS_POL, \
-+		268500000, 48, 32, 80, 3, 6, 37, 0, 0, 0, \
-+		V4L2_DV_BT_STD_DMT | V4L2_DV_BT_STD_CVT, \
-+		V4L2_DV_FL_REDUCED_BLANKING) \
-+}
-+
-+#define V4L2_DV_BT_DMT_2560X1600P60 { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(2560, 1600, 0, V4L2_DV_VSYNC_POS_POL, \
-+		348500000, 192, 280, 472, 3, 6, 49, 0, 0, 0, \
-+		V4L2_DV_BT_STD_DMT | V4L2_DV_BT_STD_CVT, 0) \
-+}
-+
-+#define V4L2_DV_BT_DMT_2560X1600P75 { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(2560, 1600, 0, V4L2_DV_VSYNC_POS_POL, \
-+		443250000, 208, 280, 488, 3, 6, 63, 0, 0, 0, \
-+		V4L2_DV_BT_STD_DMT | V4L2_DV_BT_STD_CVT, 0) \
-+}
-+
-+#define V4L2_DV_BT_DMT_2560X1600P85 { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(2560, 1600, 0, V4L2_DV_VSYNC_POS_POL, \
-+		505250000, 208, 280, 488, 3, 6, 73, 0, 0, 0, \
-+		V4L2_DV_BT_STD_DMT | V4L2_DV_BT_STD_CVT, 0) \
-+}
-+
-+#define V4L2_DV_BT_DMT_2560X1600P120_RB { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(2560, 1600, 0, V4L2_DV_HSYNC_POS_POL, \
-+		552750000, 48, 32, 80, 3, 6, 85, 0, 0, 0, \
-+		V4L2_DV_BT_STD_DMT | V4L2_DV_BT_STD_CVT, \
-+		V4L2_DV_FL_REDUCED_BLANKING) \
-+}
-+
-+#define V4L2_DV_BT_DMT_1366X768P60 { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(1366, 768, 0, \
-+		V4L2_DV_HSYNC_POS_POL | V4L2_DV_VSYNC_POS_POL, \
-+		85500000, 70, 143, 213, 3, 3, 24, 0, 0, 0, \
-+		V4L2_DV_BT_STD_DMT, 0) \
-+}
-+
-+#endif
--- 
-1.7.10
-
+On 05/10/2012 09:05 AM, Hans Verkuil wrote:
+> From: Hans Verkuil<hans.verkuil@cisco.com>
+>
+> Using the V4L2 core lock is a very robust method that is usually very good
+> at doing the right thing. But some drivers, particularly USB drivers, may
+> want to prevent the core from taking the lock for specific ioctls, particularly
+> buffer queuing ioctls.
+>
+> The reason is that certain commands like S_CTRL can take a long time to process
+> over USB and all the time the core has the lock, preventing VIDIOC_DQBUF from
+> proceeding, even though a frame may be ready in the queue.
+>
+> This introduces unwanted latency.
+>
+> Since the buffer queuing commands often have their own internal lock it is
+> often not necessary to take the core lock. Drivers can now say that they don't
+> want the core to take the lock for specific ioctls.
+>
+> As it is a specific opt-out it makes it clear to the reviewer that those
+> ioctls will need more care when reviewing.
+>
+> Signed-off-by: Hans Verkuil<hans.verkuil@cisco.com>
+> ---
+>   Documentation/video4linux/v4l2-framework.txt |   27 +++-
+>   drivers/media/video/v4l2-dev.c               |   14 +-
+>   drivers/media/video/v4l2-ioctl.c             |  189 ++++++++++++++------------
+>   include/media/v4l2-dev.h                     |   11 ++
+>   4 files changed, 148 insertions(+), 93 deletions(-)
+>
+> diff --git a/Documentation/video4linux/v4l2-framework.txt b/Documentation/video4linux/v4l2-framework.txt
+> index 369d4bc..4b9b407 100644
+> --- a/Documentation/video4linux/v4l2-framework.txt
+> +++ b/Documentation/video4linux/v4l2-framework.txt
+> @@ -559,19 +559,25 @@ allocated memory.
+>   You should also set these fields:
+>
+>   - v4l2_dev: set to the v4l2_device parent device.
+> +
+>   - name: set to something descriptive and unique.
+> +
+>   - fops: set to the v4l2_file_operations struct.
+> +
+>   - ioctl_ops: if you use the v4l2_ioctl_ops to simplify ioctl maintenance
+>     (highly recommended to use this and it might become compulsory in the
+>     future!), then set this to your v4l2_ioctl_ops struct.
+> +
+>   - lock: leave to NULL if you want to do all the locking in the driver.
+>     Otherwise you give it a pointer to a struct mutex_lock and before any
+>     of the v4l2_file_operations is called this lock will be taken by the
+> -  core and released afterwards.
+> +  core and released afterwards. See the next section for more details.
+> +
+>   - prio: keeps track of the priorities. Used to implement VIDIOC_G/S_PRIORITY.
+>     If left to NULL, then it will use the struct v4l2_prio_state in v4l2_device.
+>     If you want to have a separate priority state per (group of) device node(s),
+>     then you can point it to your own struct v4l2_prio_state.
+> +
+>   - parent: you only set this if v4l2_device was registered with NULL as
+>     the parent device struct. This only happens in cases where one hardware
+>     device has multiple PCI devices that all share the same v4l2_device core.
+> @@ -581,6 +587,7 @@ You should also set these fields:
+>     (cx8802). Since the v4l2_device cannot be associated with a particular
+>     PCI device it is setup without a parent device. But when the struct
+>     video_device is setup you do know which parent PCI device to use.
+> +
+>   - flags: optional. Set to V4L2_FL_USE_FH_PRIO if you want to let the framework
+>     handle the VIDIOC_G/S_PRIORITY ioctls. This requires that you use struct
+>     v4l2_fh. Eventually this flag will disappear once all drivers use the core
+> @@ -613,8 +620,22 @@ v4l2_file_operations and locking
+>   --------------------------------
+>
+>   You can set a pointer to a mutex_lock in struct video_device. Usually this
+> -will be either a top-level mutex or a mutex per device node. If you want
+> -finer-grained locking then you have to set it to NULL and do you own locking.
+> +will be either a top-level mutex or a mutex per device node. By default this
+> +lock will be used for each file operation and ioctl, but you can disable
+> +locking for selected ioctls by calling:
+> +
+> +	void v4l2_dont_use_lock(struct video_device *vdev, unsigned int cmd);
+> +
+> +E.g.: v4l2_dont_use_lock(vdev, VIDIOC_DQBUF);
+> +
+> +You have to call this before you register the video_device.
+> +
+> +Particularly with USB drivers where certain commands such as setting controls
+> +can take a long time you may want to do your own locking for the buffer queuing
+> +ioctls.
+> +
+> +If you want still finer-grained locking then you have to set mutex_lock to NULL
+> +and do you own locking completely.
+>
+>   It is up to the driver developer to decide which method to use. However, if
+>   your driver has high-latency operations (for example, changing the exposure
+> diff --git a/drivers/media/video/v4l2-dev.c b/drivers/media/video/v4l2-dev.c
+> index 70bec54..a51a061 100644
+> --- a/drivers/media/video/v4l2-dev.c
+> +++ b/drivers/media/video/v4l2-dev.c
+> @@ -322,11 +322,19 @@ static long v4l2_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+>   	int ret = -ENODEV;
+>
+>   	if (vdev->fops->unlocked_ioctl) {
+> -		if (vdev->lock&&  mutex_lock_interruptible(vdev->lock))
+> -			return -ERESTARTSYS;
+> +		bool locked = false;
+> +
+> +		if (vdev->lock) {
+> +			/* always lock unless the cmd is marked as "don't use lock" */
+> +			locked = !v4l2_is_valid_ioctl(cmd) ||
+> +				 !test_bit(_IOC_NR(cmd), vdev->dont_use_lock);
+> +
+> +			if (locked&&  mutex_lock_interruptible(vdev->lock))
+> +				return -ERESTARTSYS;
+> +		}
+>   		if (video_is_registered(vdev))
+>   			ret = vdev->fops->unlocked_ioctl(filp, cmd, arg);
+> -		if (vdev->lock)
+> +		if (locked)
+>   			mutex_unlock(vdev->lock);
+>   	} else if (vdev->fops->ioctl) {
+>   		/* This code path is a replacement for the BKL. It is a major
+> diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
+> index 5b2ec1f..3f34098 100644
+> --- a/drivers/media/video/v4l2-ioctl.c
+> +++ b/drivers/media/video/v4l2-ioctl.c
+> @@ -195,93 +195,106 @@ static const char *v4l2_memory_names[] = {
+>
+>   /* ------------------------------------------------------------------ */
+>   /* debug help functions                                               */
+> -static const char *v4l2_ioctls[] = {
+> -	[_IOC_NR(VIDIOC_QUERYCAP)]         = "VIDIOC_QUERYCAP",
+> -	[_IOC_NR(VIDIOC_RESERVED)]         = "VIDIOC_RESERVED",
+> -	[_IOC_NR(VIDIOC_ENUM_FMT)]         = "VIDIOC_ENUM_FMT",
+> -	[_IOC_NR(VIDIOC_G_FMT)]            = "VIDIOC_G_FMT",
+> -	[_IOC_NR(VIDIOC_S_FMT)]            = "VIDIOC_S_FMT",
+> -	[_IOC_NR(VIDIOC_REQBUFS)]          = "VIDIOC_REQBUFS",
+> -	[_IOC_NR(VIDIOC_QUERYBUF)]         = "VIDIOC_QUERYBUF",
+> -	[_IOC_NR(VIDIOC_G_FBUF)]           = "VIDIOC_G_FBUF",
+> -	[_IOC_NR(VIDIOC_S_FBUF)]           = "VIDIOC_S_FBUF",
+> -	[_IOC_NR(VIDIOC_OVERLAY)]          = "VIDIOC_OVERLAY",
+> -	[_IOC_NR(VIDIOC_QBUF)]             = "VIDIOC_QBUF",
+> -	[_IOC_NR(VIDIOC_DQBUF)]            = "VIDIOC_DQBUF",
+> -	[_IOC_NR(VIDIOC_STREAMON)]         = "VIDIOC_STREAMON",
+> -	[_IOC_NR(VIDIOC_STREAMOFF)]        = "VIDIOC_STREAMOFF",
+> -	[_IOC_NR(VIDIOC_G_PARM)]           = "VIDIOC_G_PARM",
+> -	[_IOC_NR(VIDIOC_S_PARM)]           = "VIDIOC_S_PARM",
+> -	[_IOC_NR(VIDIOC_G_STD)]            = "VIDIOC_G_STD",
+> -	[_IOC_NR(VIDIOC_S_STD)]            = "VIDIOC_S_STD",
+> -	[_IOC_NR(VIDIOC_ENUMSTD)]          = "VIDIOC_ENUMSTD",
+> -	[_IOC_NR(VIDIOC_ENUMINPUT)]        = "VIDIOC_ENUMINPUT",
+> -	[_IOC_NR(VIDIOC_G_CTRL)]           = "VIDIOC_G_CTRL",
+> -	[_IOC_NR(VIDIOC_S_CTRL)]           = "VIDIOC_S_CTRL",
+> -	[_IOC_NR(VIDIOC_G_TUNER)]          = "VIDIOC_G_TUNER",
+> -	[_IOC_NR(VIDIOC_S_TUNER)]          = "VIDIOC_S_TUNER",
+> -	[_IOC_NR(VIDIOC_G_AUDIO)]          = "VIDIOC_G_AUDIO",
+> -	[_IOC_NR(VIDIOC_S_AUDIO)]          = "VIDIOC_S_AUDIO",
+> -	[_IOC_NR(VIDIOC_QUERYCTRL)]        = "VIDIOC_QUERYCTRL",
+> -	[_IOC_NR(VIDIOC_QUERYMENU)]        = "VIDIOC_QUERYMENU",
+> -	[_IOC_NR(VIDIOC_G_INPUT)]          = "VIDIOC_G_INPUT",
+> -	[_IOC_NR(VIDIOC_S_INPUT)]          = "VIDIOC_S_INPUT",
+> -	[_IOC_NR(VIDIOC_G_OUTPUT)]         = "VIDIOC_G_OUTPUT",
+> -	[_IOC_NR(VIDIOC_S_OUTPUT)]         = "VIDIOC_S_OUTPUT",
+> -	[_IOC_NR(VIDIOC_ENUMOUTPUT)]       = "VIDIOC_ENUMOUTPUT",
+> -	[_IOC_NR(VIDIOC_G_AUDOUT)]         = "VIDIOC_G_AUDOUT",
+> -	[_IOC_NR(VIDIOC_S_AUDOUT)]         = "VIDIOC_S_AUDOUT",
+> -	[_IOC_NR(VIDIOC_G_MODULATOR)]      = "VIDIOC_G_MODULATOR",
+> -	[_IOC_NR(VIDIOC_S_MODULATOR)]      = "VIDIOC_S_MODULATOR",
+> -	[_IOC_NR(VIDIOC_G_FREQUENCY)]      = "VIDIOC_G_FREQUENCY",
+> -	[_IOC_NR(VIDIOC_S_FREQUENCY)]      = "VIDIOC_S_FREQUENCY",
+> -	[_IOC_NR(VIDIOC_CROPCAP)]          = "VIDIOC_CROPCAP",
+> -	[_IOC_NR(VIDIOC_G_CROP)]           = "VIDIOC_G_CROP",
+> -	[_IOC_NR(VIDIOC_S_CROP)]           = "VIDIOC_S_CROP",
+> -	[_IOC_NR(VIDIOC_G_SELECTION)]      = "VIDIOC_G_SELECTION",
+> -	[_IOC_NR(VIDIOC_S_SELECTION)]      = "VIDIOC_S_SELECTION",
+> -	[_IOC_NR(VIDIOC_G_JPEGCOMP)]       = "VIDIOC_G_JPEGCOMP",
+> -	[_IOC_NR(VIDIOC_S_JPEGCOMP)]       = "VIDIOC_S_JPEGCOMP",
+> -	[_IOC_NR(VIDIOC_QUERYSTD)]         = "VIDIOC_QUERYSTD",
+> -	[_IOC_NR(VIDIOC_TRY_FMT)]          = "VIDIOC_TRY_FMT",
+> -	[_IOC_NR(VIDIOC_ENUMAUDIO)]        = "VIDIOC_ENUMAUDIO",
+> -	[_IOC_NR(VIDIOC_ENUMAUDOUT)]       = "VIDIOC_ENUMAUDOUT",
+> -	[_IOC_NR(VIDIOC_G_PRIORITY)]       = "VIDIOC_G_PRIORITY",
+> -	[_IOC_NR(VIDIOC_S_PRIORITY)]       = "VIDIOC_S_PRIORITY",
+> -	[_IOC_NR(VIDIOC_G_SLICED_VBI_CAP)] = "VIDIOC_G_SLICED_VBI_CAP",
+> -	[_IOC_NR(VIDIOC_LOG_STATUS)]       = "VIDIOC_LOG_STATUS",
+> -	[_IOC_NR(VIDIOC_G_EXT_CTRLS)]      = "VIDIOC_G_EXT_CTRLS",
+> -	[_IOC_NR(VIDIOC_S_EXT_CTRLS)]      = "VIDIOC_S_EXT_CTRLS",
+> -	[_IOC_NR(VIDIOC_TRY_EXT_CTRLS)]    = "VIDIOC_TRY_EXT_CTRLS",
+> -#if 1
+> -	[_IOC_NR(VIDIOC_ENUM_FRAMESIZES)]  = "VIDIOC_ENUM_FRAMESIZES",
+> -	[_IOC_NR(VIDIOC_ENUM_FRAMEINTERVALS)] = "VIDIOC_ENUM_FRAMEINTERVALS",
+> -	[_IOC_NR(VIDIOC_G_ENC_INDEX)] 	   = "VIDIOC_G_ENC_INDEX",
+> -	[_IOC_NR(VIDIOC_ENCODER_CMD)] 	   = "VIDIOC_ENCODER_CMD",
+> -	[_IOC_NR(VIDIOC_TRY_ENCODER_CMD)]  = "VIDIOC_TRY_ENCODER_CMD",
+> -
+> -	[_IOC_NR(VIDIOC_DECODER_CMD)]	   = "VIDIOC_DECODER_CMD",
+> -	[_IOC_NR(VIDIOC_TRY_DECODER_CMD)]  = "VIDIOC_TRY_DECODER_CMD",
+> -	[_IOC_NR(VIDIOC_DBG_S_REGISTER)]   = "VIDIOC_DBG_S_REGISTER",
+> -	[_IOC_NR(VIDIOC_DBG_G_REGISTER)]   = "VIDIOC_DBG_G_REGISTER",
+> -
+> -	[_IOC_NR(VIDIOC_DBG_G_CHIP_IDENT)] = "VIDIOC_DBG_G_CHIP_IDENT",
+> -	[_IOC_NR(VIDIOC_S_HW_FREQ_SEEK)]   = "VIDIOC_S_HW_FREQ_SEEK",
+> -#endif
+> -	[_IOC_NR(VIDIOC_ENUM_DV_PRESETS)]  = "VIDIOC_ENUM_DV_PRESETS",
+> -	[_IOC_NR(VIDIOC_S_DV_PRESET)]	   = "VIDIOC_S_DV_PRESET",
+> -	[_IOC_NR(VIDIOC_G_DV_PRESET)]	   = "VIDIOC_G_DV_PRESET",
+> -	[_IOC_NR(VIDIOC_QUERY_DV_PRESET)]  = "VIDIOC_QUERY_DV_PRESET",
+> -	[_IOC_NR(VIDIOC_S_DV_TIMINGS)]     = "VIDIOC_S_DV_TIMINGS",
+> -	[_IOC_NR(VIDIOC_G_DV_TIMINGS)]     = "VIDIOC_G_DV_TIMINGS",
+> -	[_IOC_NR(VIDIOC_DQEVENT)]	   = "VIDIOC_DQEVENT",
+> -	[_IOC_NR(VIDIOC_SUBSCRIBE_EVENT)]  = "VIDIOC_SUBSCRIBE_EVENT",
+> -	[_IOC_NR(VIDIOC_UNSUBSCRIBE_EVENT)] = "VIDIOC_UNSUBSCRIBE_EVENT",
+> -	[_IOC_NR(VIDIOC_CREATE_BUFS)]      = "VIDIOC_CREATE_BUFS",
+> -	[_IOC_NR(VIDIOC_PREPARE_BUF)]      = "VIDIOC_PREPARE_BUF",
+> +
+> +struct v4l2_ioctl_info {
+> +	unsigned int ioctl;
+> +	const char * const name;
+> +};
+> +
+> +#define IOCTL_INFO(_ioctl) [_IOC_NR(_ioctl)] = {	\
+> +	.ioctl = _ioctl,				\
+> +	.name = #_ioctl,				\
+> +}
+> +
+> +static struct v4l2_ioctl_info v4l2_ioctls[] = {
+> +	IOCTL_INFO(VIDIOC_QUERYCAP),
+> +	IOCTL_INFO(VIDIOC_ENUM_FMT),
+> +	IOCTL_INFO(VIDIOC_G_FMT),
+> +	IOCTL_INFO(VIDIOC_S_FMT),
+> +	IOCTL_INFO(VIDIOC_REQBUFS),
+> +	IOCTL_INFO(VIDIOC_QUERYBUF),
+> +	IOCTL_INFO(VIDIOC_G_FBUF),
+> +	IOCTL_INFO(VIDIOC_S_FBUF),
+> +	IOCTL_INFO(VIDIOC_OVERLAY),
+> +	IOCTL_INFO(VIDIOC_QBUF),
+> +	IOCTL_INFO(VIDIOC_DQBUF),
+> +	IOCTL_INFO(VIDIOC_STREAMON),
+> +	IOCTL_INFO(VIDIOC_STREAMOFF),
+> +	IOCTL_INFO(VIDIOC_G_PARM),
+> +	IOCTL_INFO(VIDIOC_S_PARM),
+> +	IOCTL_INFO(VIDIOC_G_STD),
+> +	IOCTL_INFO(VIDIOC_S_STD),
+> +	IOCTL_INFO(VIDIOC_ENUMSTD),
+> +	IOCTL_INFO(VIDIOC_ENUMINPUT),
+> +	IOCTL_INFO(VIDIOC_G_CTRL),
+> +	IOCTL_INFO(VIDIOC_S_CTRL),
+> +	IOCTL_INFO(VIDIOC_G_TUNER),
+> +	IOCTL_INFO(VIDIOC_S_TUNER),
+> +	IOCTL_INFO(VIDIOC_G_AUDIO),
+> +	IOCTL_INFO(VIDIOC_S_AUDIO),
+> +	IOCTL_INFO(VIDIOC_QUERYCTRL),
+> +	IOCTL_INFO(VIDIOC_QUERYMENU),
+> +	IOCTL_INFO(VIDIOC_G_INPUT),
+> +	IOCTL_INFO(VIDIOC_S_INPUT),
+> +	IOCTL_INFO(VIDIOC_G_OUTPUT),
+> +	IOCTL_INFO(VIDIOC_S_OUTPUT),
+> +	IOCTL_INFO(VIDIOC_ENUMOUTPUT),
+> +	IOCTL_INFO(VIDIOC_G_AUDOUT),
+> +	IOCTL_INFO(VIDIOC_S_AUDOUT),
+> +	IOCTL_INFO(VIDIOC_G_MODULATOR),
+> +	IOCTL_INFO(VIDIOC_S_MODULATOR),
+> +	IOCTL_INFO(VIDIOC_G_FREQUENCY),
+> +	IOCTL_INFO(VIDIOC_S_FREQUENCY),
+> +	IOCTL_INFO(VIDIOC_CROPCAP),
+> +	IOCTL_INFO(VIDIOC_G_CROP),
+> +	IOCTL_INFO(VIDIOC_S_CROP),
+> +	IOCTL_INFO(VIDIOC_G_SELECTION),
+> +	IOCTL_INFO(VIDIOC_S_SELECTION),
+> +	IOCTL_INFO(VIDIOC_G_JPEGCOMP),
+> +	IOCTL_INFO(VIDIOC_S_JPEGCOMP),
+> +	IOCTL_INFO(VIDIOC_QUERYSTD),
+> +	IOCTL_INFO(VIDIOC_TRY_FMT),
+> +	IOCTL_INFO(VIDIOC_ENUMAUDIO),
+> +	IOCTL_INFO(VIDIOC_ENUMAUDOUT),
+> +	IOCTL_INFO(VIDIOC_G_PRIORITY),
+> +	IOCTL_INFO(VIDIOC_S_PRIORITY),
+> +	IOCTL_INFO(VIDIOC_G_SLICED_VBI_CAP),
+> +	IOCTL_INFO(VIDIOC_LOG_STATUS),
+> +	IOCTL_INFO(VIDIOC_G_EXT_CTRLS),
+> +	IOCTL_INFO(VIDIOC_S_EXT_CTRLS),
+> +	IOCTL_INFO(VIDIOC_TRY_EXT_CTRLS),
+> +	IOCTL_INFO(VIDIOC_ENUM_FRAMESIZES),
+> +	IOCTL_INFO(VIDIOC_ENUM_FRAMEINTERVALS),
+> +	IOCTL_INFO(VIDIOC_G_ENC_INDEX),
+> +	IOCTL_INFO(VIDIOC_ENCODER_CMD),
+> +	IOCTL_INFO(VIDIOC_TRY_ENCODER_CMD),
+> +	IOCTL_INFO(VIDIOC_DECODER_CMD),
+> +	IOCTL_INFO(VIDIOC_TRY_DECODER_CMD),
+> +	IOCTL_INFO(VIDIOC_DBG_S_REGISTER),
+> +	IOCTL_INFO(VIDIOC_DBG_G_REGISTER),
+> +	IOCTL_INFO(VIDIOC_DBG_G_CHIP_IDENT),
+> +	IOCTL_INFO(VIDIOC_S_HW_FREQ_SEEK),
+> +	IOCTL_INFO(VIDIOC_ENUM_DV_PRESETS),
+> +	IOCTL_INFO(VIDIOC_S_DV_PRESET),
+> +	IOCTL_INFO(VIDIOC_G_DV_PRESET),
+> +	IOCTL_INFO(VIDIOC_QUERY_DV_PRESET),
+> +	IOCTL_INFO(VIDIOC_S_DV_TIMINGS),
+> +	IOCTL_INFO(VIDIOC_G_DV_TIMINGS),
+> +	IOCTL_INFO(VIDIOC_DQEVENT),
+> +	IOCTL_INFO(VIDIOC_SUBSCRIBE_EVENT),
+> +	IOCTL_INFO(VIDIOC_UNSUBSCRIBE_EVENT),
+> +	IOCTL_INFO(VIDIOC_CREATE_BUFS),
+> +	IOCTL_INFO(VIDIOC_PREPARE_BUF),
+>   };
+>   #define V4L2_IOCTLS ARRAY_SIZE(v4l2_ioctls)
+>
+> +bool v4l2_is_valid_ioctl(unsigned int cmd)
+> +{
+> +	if (_IOC_NR(cmd)>= V4L2_IOCTLS)
+> +		return false;
+> +	return v4l2_ioctls[_IOC_NR(cmd)].ioctl == cmd;
+> +}
+> +
+>   /* Common ioctl debug function. This function can be used by
+>      external ioctl messages as well as internal V4L ioctl */
+>   void v4l_printk_ioctl(unsigned int cmd)
+> @@ -297,7 +310,7 @@ void v4l_printk_ioctl(unsigned int cmd)
+>   			type = "v4l2";
+>   			break;
+>   		}
+> -		printk("%s", v4l2_ioctls[_IOC_NR(cmd)]);
+> +		printk("%s", v4l2_ioctls[_IOC_NR(cmd)].name);
+>   		return;
+>   	default:
+>   		type = "unknown";
+> @@ -1948,9 +1961,9 @@ static long __video_do_ioctl(struct file *file,
+>   				vfd->v4l2_dev->name);
+>   		break;
+>   	}
+> -#ifdef CONFIG_VIDEO_ADV_DEBUG
+>   	case VIDIOC_DBG_G_REGISTER:
+>   	{
+> +#ifdef CONFIG_VIDEO_ADV_DEBUG
+>   		struct v4l2_dbg_register *p = arg;
+>
+>   		if (ops->vidioc_g_register) {
+> @@ -1959,10 +1972,12 @@ static long __video_do_ioctl(struct file *file,
+>   			else
+>   				ret = ops->vidioc_g_register(file, fh, p);
+>   		}
+> +#endif
+>   		break;
+>   	}
+>   	case VIDIOC_DBG_S_REGISTER:
+>   	{
+> +#ifdef CONFIG_VIDEO_ADV_DEBUG
+>   		struct v4l2_dbg_register *p = arg;
+>
+>   		if (ops->vidioc_s_register) {
+> @@ -1971,9 +1986,9 @@ static long __video_do_ioctl(struct file *file,
+>   			else
+>   				ret = ops->vidioc_s_register(file, fh, p);
+>   		}
+> +#endif
+>   		break;
+>   	}
+> -#endif
+>   	case VIDIOC_DBG_G_CHIP_IDENT:
+>   	{
+>   		struct v4l2_dbg_chip_ident *p = arg;
+> diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
+> index 96d2221..0da84dc 100644
+> --- a/include/media/v4l2-dev.h
+> +++ b/include/media/v4l2-dev.h
+> @@ -128,6 +128,7 @@ struct video_device
+>   	const struct v4l2_ioctl_ops *ioctl_ops;
+>
+>   	/* serialization lock */
+> +	DECLARE_BITMAP(dont_use_lock, BASE_VIDIOC_PRIVATE);
+>   	struct mutex *lock;
+>   };
+>
+> @@ -173,6 +174,16 @@ void video_device_release(struct video_device *vdev);
+>      a dubious construction at best. */
+>   void video_device_release_empty(struct video_device *vdev);
+>
+> +/* returns true if cmd is a valid V4L2 ioctl */
+> +bool v4l2_is_valid_ioctl(unsigned int cmd);
+> +
+> +/* mark that this command shouldn't use core locking */
+> +static inline void v4l2_dont_use_lock(struct video_device *vdev, unsigned int cmd)
+> +{
+> +	if (_IOC_NR(cmd)<  BASE_VIDIOC_PRIVATE)
+> +		set_bit(_IOC_NR(cmd), vdev->dont_use_lock);
+> +}
+> +
+>   /* helper functions to access driver private data. */
+>   static inline void *video_get_drvdata(struct video_device *vdev)
+>   {
