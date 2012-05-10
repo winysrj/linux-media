@@ -1,168 +1,182 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:47098 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932328Ab2ENWB5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 May 2012 18:01:57 -0400
-From: <manjunatha_halli@ti.com>
-To: <linux-media@vger.kernel.org>
-CC: <linux-kernel@vger.kernel.org>, Manjunatha Halli <x0130808@ti.com>
-Subject: [PATCH V6 2/5] New control class and features for FM RX
-Date: Mon, 14 May 2012 17:01:50 -0500
-Message-ID: <1337032913-18646-3-git-send-email-manjunatha_halli@ti.com>
-In-Reply-To: <1337032913-18646-1-git-send-email-manjunatha_halli@ti.com>
-References: <1337032913-18646-1-git-send-email-manjunatha_halli@ti.com>
+Received: from mx1.redhat.com ([209.132.183.28]:50955 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932130Ab2EJOOs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 May 2012 10:14:48 -0400
+Message-ID: <4FABCD4B.1050803@redhat.com>
+Date: Thu, 10 May 2012 11:14:35 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+To: Antti Palosaari <crope@iki.fi>
+CC: linux-media <linux-media@vger.kernel.org>,
+	Patrick Boettcher <pboettcher@kernellabs.com>
+Subject: Re: [RFCv1] DVB-USB improvements
+References: <4FA91BBF.5060405@iki.fi>
+In-Reply-To: <4FA91BBF.5060405@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Manjunatha Halli <x0130808@ti.com>
+Em 08-05-2012 10:12, Antti Palosaari escreveu:
+> Factors behind the changes are mostly coming from the fact current struct dvb_usb_device_properties contains so many static configuration options.
+> You cannot change single dvb_usb_device_properties easily (safely) at runtime since it is usually driver global struct and thus shared between all 
+> the DVB USB driver instances. That fits just fine for the traditional devices where all configuration is same for the devices having single USB ID.
+> Nowadays we have more and more devices that are based of chipset vendor reference designs - even using just single USB ID chipset vendor have given 
+> for that chipset. These reference designs still varies much about used chips and configurations. Configuring different base chips, USB-bridge, demod, 
+> tuner, and also peripheral properties like dual tuners, remotes and CI is needed to do runtime because of single USB ID is used for that all.
 
-This patch creates new ctrl class for FM RX and adds new CID's for
-below FM features,
-      1) De-Emphasis filter mode
-      2) RDS Alternate Frequency switch
+Drivers waste lots of space with dvb_usb_device_properties, as this struct is HUGE.
+Also, the structure index number need to match the USB ID table index, which causes
+merge troubles from time to time, breaking existing cards when new ones are added.
 
-Also this patch adds a field for band selection in struct v4l2_hw_freq_seek
-and adds new capability flags for all below FM bands
-	1) V4L2_TUNER_CAP_BAND_TYPE_DEFAULT -> Default Band
-	2) V4L2_TUNER_CAP_BAND_TYPE_EUROPE_US -> Europe/US Band
-	3) V4L2_TUNER_CAP_BAND_TYPE_JAPAN   -> Japan Band
-	4) V4L2_TUNER_CAP_BAND_TYPE_RUSSIAN -> Russian Band
-	5) V4L2_TUNER_CAP_BAND_TYPE_WEATHER -> Weather Band
+Also, if the remote controller is different, a series of data needs to be duplicated
+into a separate entry.
 
-Signed-off-by: Manjunatha Halli <x0130808@ti.com>
----
- drivers/media/video/v4l2-ctrls.c |   17 ++++++++++++++---
- include/linux/videodev2.h        |   24 +++++++++++++++++++++++-
- 2 files changed, 37 insertions(+), 4 deletions(-)
+IMHO, it would be better to re-design it to avoid wasting space without need.
 
-diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
-index 18015c0..9d7608e 100644
---- a/drivers/media/video/v4l2-ctrls.c
-+++ b/drivers/media/video/v4l2-ctrls.c
-@@ -243,8 +243,8 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
- 		"Vivid",
- 		NULL
- 	};
--	static const char * const tune_preemphasis[] = {
--		"No Preemphasis",
-+	static const char * const tune_emphasis[] = {
-+		"None",
- 		"50 Microseconds",
- 		"75 Microseconds",
- 		NULL,
-@@ -413,7 +413,9 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
- 	case V4L2_CID_COLORFX:
- 		return colorfx;
- 	case V4L2_CID_TUNE_PREEMPHASIS:
--		return tune_preemphasis;
-+		return tune_emphasis;
-+	case V4L2_CID_TUNE_DEEMPHASIS:
-+		return tune_emphasis;
- 	case V4L2_CID_FLASH_LED_MODE:
- 		return flash_led_mode;
- 	case V4L2_CID_FLASH_STROBE_SOURCE:
-@@ -644,6 +646,12 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_JPEG_COMPRESSION_QUALITY:	return "Compression Quality";
- 	case V4L2_CID_JPEG_ACTIVE_MARKER:	return "Active Markers";
- 
-+	/* FM Radio Receiver control */
-+	/* Keep the order of the 'case's the same as in videodev2.h! */
-+	case V4L2_CID_FM_RX_CLASS:		return "FM Radio Receiver Controls";
-+	case V4L2_CID_RDS_AF_SWITCH:		return "RDS Alternate Frequency Switch";
-+	case V4L2_CID_TUNE_DEEMPHASIS:		return "De-Emphasis";
-+
- 	default:
- 		return NULL;
- 	}
-@@ -688,6 +696,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_MPEG_VIDEO_H264_8X8_TRANSFORM:
- 	case V4L2_CID_MPEG_VIDEO_H264_VUI_SAR_ENABLE:
- 	case V4L2_CID_MPEG_VIDEO_MPEG4_QPEL:
-+	case V4L2_CID_RDS_AF_SWITCH:
- 		*type = V4L2_CTRL_TYPE_BOOLEAN;
- 		*min = 0;
- 		*max = *step = 1;
-@@ -733,6 +742,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_MPEG_VIDEO_MPEG4_LEVEL:
- 	case V4L2_CID_MPEG_VIDEO_MPEG4_PROFILE:
- 	case V4L2_CID_JPEG_CHROMA_SUBSAMPLING:
-+	case V4L2_CID_TUNE_DEEMPHASIS:
- 		*type = V4L2_CTRL_TYPE_MENU;
- 		break;
- 	case V4L2_CID_RDS_TX_PS_NAME:
-@@ -745,6 +755,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_FM_TX_CLASS:
- 	case V4L2_CID_FLASH_CLASS:
- 	case V4L2_CID_JPEG_CLASS:
-+	case V4L2_CID_FM_RX_CLASS:
- 		*type = V4L2_CTRL_TYPE_CTRL_CLASS;
- 		/* You can neither read not write these */
- 		*flags |= V4L2_CTRL_FLAG_READ_ONLY | V4L2_CTRL_FLAG_WRITE_ONLY;
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index c9c9a46..7b3dd95 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -1137,6 +1137,7 @@ struct v4l2_ext_controls {
- #define V4L2_CTRL_CLASS_FM_TX 0x009b0000	/* FM Modulator control class */
- #define V4L2_CTRL_CLASS_FLASH 0x009c0000	/* Camera flash controls */
- #define V4L2_CTRL_CLASS_JPEG 0x009d0000		/* JPEG-compression controls */
-+#define V4L2_CTRL_CLASS_FM_RX 0x009e0000	/* FM Receiver control class */
- 
- #define V4L2_CTRL_ID_MASK      	  (0x0fffffff)
- #define V4L2_CTRL_ID2CLASS(id)    ((id) & 0x0fff0000UL)
-@@ -1782,6 +1783,13 @@ enum v4l2_jpeg_chroma_subsampling {
- #define	V4L2_JPEG_ACTIVE_MARKER_DQT		(1 << 17)
- #define	V4L2_JPEG_ACTIVE_MARKER_DHT		(1 << 18)
- 
-+/* FM Receiver class control IDs */
-+#define V4L2_CID_FM_RX_CLASS_BASE		(V4L2_CTRL_CLASS_FM_RX | 0x900)
-+#define V4L2_CID_FM_RX_CLASS			(V4L2_CTRL_CLASS_FM_RX | 1)
-+
-+#define V4L2_CID_RDS_AF_SWITCH			(V4L2_CID_FM_RX_CLASS_BASE + 1)
-+#define V4L2_CID_TUNE_DEEMPHASIS		(V4L2_CID_FM_RX_CLASS_BASE + 2)
-+
- /*
-  *	T U N I N G
-  */
-@@ -1819,6 +1827,12 @@ struct v4l2_modulator {
- #define V4L2_TUNER_CAP_RDS		0x0080
- #define V4L2_TUNER_CAP_RDS_BLOCK_IO	0x0100
- #define V4L2_TUNER_CAP_RDS_CONTROLS	0x0200
-+#define V4L2_TUNER_CAP_BAND_TYPE_DEFAULT	0x00000000	/* Default band */
-+#define V4L2_TUNER_CAP_BAND_TYPE_EUROPE_US	0x00010000	/* Europe/US band */
-+#define V4L2_TUNER_CAP_BAND_TYPE_JAPAN		0x00020000	/* Japan band */
-+#define V4L2_TUNER_CAP_BAND_TYPE_RUSSIAN	0x00030000	/* Russian band */
-+#define V4L2_TUNER_CAP_BAND_TYPE_WEATHER	0x00040000	/* Weather band */
-+
- 
- /*  Flags for the 'rxsubchans' field */
- #define V4L2_TUNER_SUB_MONO		0x0001
-@@ -1843,13 +1857,21 @@ struct v4l2_frequency {
- 	__u32		      reserved[8];
- };
- 
-+
-+#define V4L2_FM_BAND_DEFAULT	0
-+#define V4L2_FM_BAND_EUROPE_US	1	/* 87.5 Mhz - 108 MHz */
-+#define V4L2_FM_BAND_JAPAN	2	/* 76 MHz - 90 MHz */
-+#define V4L2_FM_BAND_RUSSIAN	3	/* 65.8 MHz - 74 MHz */
-+#define V4L2_FM_BAND_WEATHER	4	/* 162.4 MHz - 162.55 MHz */
-+
- struct v4l2_hw_freq_seek {
- 	__u32		      tuner;
- 	enum v4l2_tuner_type  type;
- 	__u32		      seek_upward;
- 	__u32		      wrap_around;
- 	__u32		      spacing;
--	__u32		      reserved[7];
-+	__u32		      band;
-+	__u32		      reserved[6];
- };
- 
- /*
--- 
-1.7.4.1
+> 
+> My personal innovator behind all these is problems I met when developing AF9015 and AF9035 drivers. Also RTL2831U and RTL2832U are kinda similar and have given some more motivation.
+> 
+> Here is small list what I am planning to do. It is surely so much work that everything is not possible, but lets try to select most important and easiest as a higher priority.
+> 
+> 
+> resume / suspend support
+> -------------------
+> * very important feature
+> * crashes currently when DVB USB tries to download firmware when resuming from suspend
+> 
+> read_config1
+> -------------------
+> * new callback to do initial tweaks
+> * very first callback
+> * is that really needed?
 
+Calling it as "read_config1" is not nice, as "1" has no strong meaning.
+
+It would be better to name it as "read_config_early", if this is needed.
+
+> 
+> read_mac_address => read_config2
+> -------------------
+> * rename it read_config2 or read_config if read_config1 is not implemented at all
+
+"read_config" seems a good name for it.
+
+> * rename old callback and extend it usage as a more general
+> * only 8 devices use currently
+
+> * when returned mac != 0 => print mac address as earlier, otherwise work as a general callback
+
+Please, don't do that. Different behaviors if mac is filled (or not) is a very bad idea.
+
+> 
+> new callback init()
+> -------------------
+> * called after tuner attach to initialize rest of device
+> * good place to do some general settings
+>   - configure endpoints
+>   - configure remote controller
+>   - configure + attach CI
+> 
+> change DVB-USB to dynamic debug
+> -------------------
+> * use Kernel new dynamic debugs instead of own proprietary system
+> 
+> download_firmware
+> -------------------
+> * struct usb_device => struct dvb_usb_device
+> * we need access for the DVB USB driver state in every callback
+> 
+> identify_state
+> -------------------
+> * struct usb_device => struct dvb_usb_device
+> * we need access for the DVB USB driver state in every callback
+
+IMO, all callbacks should use the same argument (either usb_device or dvb_usb_device).
+
+> 
+> attach all given adapter frontends as once
+> -------------------
+> * for the MFE devices attach all frontends as once
+
+We should first clean-up the bad/legacy MFE drivers, as most use MFE to
+implement a single FE chipset that supports more than one delivery system.
+
+> * deregister all frontends if error returned
+> * small effect only for MFE
+> 
+> attach all given adapter tuners as once
+> -------------------
+> * deregister all frontends if error returned
+> * small effect only for MFE
+> 
+> make remote dynamically configurable
+> -------------------
+
+The first step here is to remove rc.legacy stuff.
+
+> * default keytable mapped same level with USB-ID & device name etc.
+> * there is generally 3 things that could be mapped to USB ID
+>   - USB IDs (cold + warm)
+>   - device name
+>   - remote controller keytable
+>   - all the others could be resolved & configured dynamically
+> * it is not only keytable but whole remote should be changed dynamically configurable
+
+The issue with IR is because of the issue with struct dvb_usb_device_properties.
+
+If you take a look at em28xx implementation, for example, there's just one
+parameter for the IR keytables that determine if a device will be loaded with
+or without IR: the RC keytable.
+
+re-designing dvb_usb_device_properties should fix it.
+
+> 
+> make stream dynamically configurable
+> -------------------
+> * we need change stream parameters in certain situations
+>   - there is multiple endpoints but shared MFE
+>   - need to set params according to stream bandwidth (USB1.1, DVB-T, DVB-C2 in same device)
+>   - leave old static configrations as those are but add callbacks to get new values at runtime
+> 
+> dynamically growing device list in dvb_usb_device_properties
+> -------------------
+> * currently number of devices are limited statically
+> * there is devices having ~50 or more IDs which means multiple dvb_usb_device_properties are needed
+> 
+> dynamic USB ID support
+> -------------------
+> * currently not supported by DVB USB
+> 
+> analog support for the DVB USB
+> -------------------
+> * currently not supported by DVB USB
+
+In order to add analog support, it is likely simpler to take em28xx (mainly em28xx-video) as an 
+example on how things are implemented on analog side. The gspca implementation may also help a 
+lot, but it doesn't contain the tuner bits.
+
+It would be great to have an "usb_media" core implementation that would merge gspca_core,
+dvb_usb and USB TV bits (found on em28xx/tm6000) into a single core, but if we're taking
+this road, then I think you should start with this new design. 
+
+The conceptual architecture used by gspca, em28xx and dvb_core are different. Merging them
+into a single architectural design will be a really nice project, but that would probably
+mean to write a new design from scratch, and then importing bits from each of the above.
+
+This is likely a big project.
+
+> * I have no experience
+
+The easiest way to start working with analog is to take a look at vivi.c driver. It is just a
+test driver that requires no hardware, and implements the basic stuff for analog. It doesn't
+implement the tuner logic, though.
+
+> * em28xx can be converted?
+
+If you implement the analog code, it shouldn't be hard to convert em28xx. The hardest part
+will likely to integrate DVB USB with videobuf2 and with tuner-core.
+
+Regards,
+Mauro
