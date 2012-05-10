@@ -1,80 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from dimen.winder.org.uk ([87.127.116.10]:33121 "EHLO
-	dimen.winder.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752142Ab2EMPLz (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:54972 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750992Ab2EJKbQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 May 2012 11:11:55 -0400
-Message-ID: <1336921909.9715.3.camel@anglides.winder.org.uk>
-Subject: Re: Fwd: Bug#669715: dvb-apps: Channel/frequency/etc. data needs
- updating for London transmitters
-From: Russel Winder <russel@winder.org.uk>
-To: Andy Furniss <andyqos@ukfsn.org>
-Cc: Mark Purcell <mark@purcell.id.au>, linux-media@vger.kernel.org,
-	Darren Salt <linux@youmustbejoking.demon.co.uk>,
-	669715-forwarded@bugs.debian.org
-Date: Sun, 13 May 2012 16:11:49 +0100
-In-Reply-To: <4FAFC3CA.7070008@ukfsn.org>
-References: <201205132005.47858.mark@purcell.id.au>
-	  <4FAF89DB.9020004@ukfsn.org>
-	 <1336906328.19220.277.camel@launcelot.winder.org.uk>
-	 <4FAFC3CA.7070008@ukfsn.org>
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-8Id4RejDv0xDO1atr5dQ"
-Mime-Version: 1.0
+	Thu, 10 May 2012 06:31:16 -0400
+Received: from euspt2 (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0M3S005EIYJLKG@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 10 May 2012 11:30:57 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0M3S00537YJQUK@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 10 May 2012 11:31:03 +0100 (BST)
+Date: Thu, 10 May 2012 12:30:55 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH 20/23] m5mols: Add image stabilization control
+In-reply-to: <1336645858-30366-1-git-send-email-s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: m.szyprowski@samsung.com, riverful.kim@samsung.com,
+	sw0312.kim@samsung.com, s.nawrocki@samsung.com,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Message-id: <1336645858-30366-21-git-send-email-s.nawrocki@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1336645858-30366-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/video/m5mols/m5mols.h          |    2 ++
+ drivers/media/video/m5mols/m5mols_controls.c |   20 ++++++++++++++++++++
+ 2 files changed, 22 insertions(+)
 
---=-8Id4RejDv0xDO1atr5dQ
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
-
-On Sun, 2012-05-13 at 15:23 +0100, Andy Furniss wrote:
-[...]
-> > Should that be 545833000 instead of 545833330, and 529833000 instead of=
- 529833330?
-> >
-> Possibly - I think if you calculate by hand from channel number and add=
-=20
-> or take the offset if it it <channel>+ or - then you do get the extra 33.
-
-If I remember correctly the OfCom documentation states the +/- offset is
-0.166.  Certainly that is what I used for my manual calculation.
-
-> I don't live in London, but using a slightly newer w_scan for my=20
-> transmitter gave different output from that, with the 330 -> 000.
-
-Where did you get this w_scan command from, I don't seem to have one.
-
-[...]
-> T2 0 16417 802000000 8MHz AUTO AUTO     AUTO AUTO AUTO AUTO     # East=
-=20
-
-I wonder if the 0 and 16417 can be ascertained from OfCom documents?
-
---=20
-Russel.
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D
-Dr Russel Winder      t: +44 20 7585 2200   voip: sip:russel.winder@ekiga.n=
-et
-41 Buckmaster Road    m: +44 7770 465 077   xmpp: russel@winder.org.uk
-London SW11 1EN, UK   w: www.russel.org.uk  skype: russel_winder
-
---=-8Id4RejDv0xDO1atr5dQ
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iEYEABECAAYFAk+vzzUACgkQ+ooS3F10Be8ZIACfQKyrLuwks3VrZ5OOZgVmM7li
-SpcAnjU5HxutI9yMnYDxOBPRC5t+9sCD
-=W2Tl
------END PGP SIGNATURE-----
-
---=-8Id4RejDv0xDO1atr5dQ--
+diff --git a/drivers/media/video/m5mols/m5mols.h b/drivers/media/video/m5mols/m5mols.h
+index 978a4ab..305a75b 100644
+--- a/drivers/media/video/m5mols/m5mols.h
++++ b/drivers/media/video/m5mols/m5mols.h
+@@ -170,6 +170,7 @@ struct m5mols_version {
+  * @saturation: saturation control
+  * @zoom: zoom control
+  * @wdr: wide dynamic range control
++ * @stabilization: image stabilization control
+  * @ver: information of the version
+  * @cap: the capture mode attributes
+  * @power: current sensor's power status
+@@ -209,6 +210,7 @@ struct m5mols_info {
+ 	struct v4l2_ctrl *saturation;
+ 	struct v4l2_ctrl *zoom;
+ 	struct v4l2_ctrl *wdr;
++	struct v4l2_ctrl *stabilization;
+ 
+ 	struct m5mols_version ver;
+ 	struct m5mols_capture cap;
+diff --git a/drivers/media/video/m5mols/m5mols_controls.c b/drivers/media/video/m5mols/m5mols_controls.c
+index 512c360..6c607d4 100644
+--- a/drivers/media/video/m5mols/m5mols_controls.c
++++ b/drivers/media/video/m5mols/m5mols_controls.c
+@@ -375,6 +375,19 @@ static int m5mols_set_wdr(struct m5mols_info *info, int wdr)
+ 	return m5mols_write(&info->sd, CAPP_WDR_EN, wdr);
+ }
+ 
++static int m5mols_set_stabilization(struct m5mols_info *info, int val)
++{
++	struct v4l2_subdev *sd = &info->sd;
++	unsigned int evp = val ? 0xe : 0x0;
++	int ret;
++
++	ret = m5mols_write(sd, AE_EV_PRESET_MONITOR, evp);
++	if (ret < 0)
++		return ret;
++
++	return m5mols_write(sd, AE_EV_PRESET_CAPTURE, evp);
++}
++
+ static int m5mols_g_volatile_ctrl(struct v4l2_ctrl *ctrl)
+ {
+ 	struct v4l2_subdev *sd = to_sd(ctrl);
+@@ -455,6 +468,10 @@ static int m5mols_s_ctrl(struct v4l2_ctrl *ctrl)
+ 	case V4L2_CID_WIDE_DYNAMIC_RANGE:
+ 		ret = m5mols_set_wdr(info, ctrl->val);
+ 		break;
++
++	case V4L2_CID_IMAGE_STABILIZATION:
++		ret = m5mols_set_stabilization(info, ctrl->val);
++		break;
+ 	}
+ 
+ 	if (ret == 0 && info->mode != last_mode)
+@@ -535,6 +552,9 @@ int m5mols_init_controls(struct v4l2_subdev *sd)
+ 	info->wdr = v4l2_ctrl_new_std(&info->handle, &m5mols_ctrl_ops,
+ 			V4L2_CID_WIDE_DYNAMIC_RANGE, 0, 1, 1, 0);
+ 
++	info->stabilization = v4l2_ctrl_new_std(&info->handle, &m5mols_ctrl_ops,
++			V4L2_CID_IMAGE_STABILIZATION, 0, 1, 1, 0);
++
+ 	if (info->handle.error) {
+ 		int ret = info->handle.error;
+ 		v4l2_err(sd, "Failed to initialize controls: %d\n", ret);
+-- 
+1.7.10
 
