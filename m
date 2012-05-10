@@ -1,49 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:1573 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754517Ab2ERLn5 (ORCPT
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:35963 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751340Ab2EJKbG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 May 2012 07:43:57 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Thu, 10 May 2012 06:31:06 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Received: from euspt1 ([210.118.77.14]) by mailout4.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0M3S008ZYYK5CW40@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 10 May 2012 11:31:17 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0M3S00251YJSNB@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 10 May 2012 11:31:05 +0100 (BST)
+Date: Thu, 10 May 2012 12:30:48 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH 13/23] m5mols: Convert macros to inline functions
+In-reply-to: <1336645858-30366-1-git-send-email-s.nawrocki@samsung.com>
 To: linux-media@vger.kernel.org
-Subject: [GIT PULL FOR v3.5] Fix gspca compile error if CONFIG_PM is not set
-Date: Fri, 18 May 2012 13:43:46 +0200
-Cc: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201205181343.46414.hverkuil@xs4all.nl>
+Cc: m.szyprowski@samsung.com, riverful.kim@samsung.com,
+	sw0312.kim@samsung.com, s.nawrocki@samsung.com,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Message-id: <1336645858-30366-14-git-send-email-s.nawrocki@samsung.com>
+References: <1336645858-30366-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The field 'frozen' is only there if CONFIG_PM is set, so don't use it
-directly, always check for CONFIG_PM first.
+Make to_sd and to_m5mols macros static inline functions
+for better type safety.
 
-Regards,
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/video/m5mols/m5mols.h |   17 ++++++++++++-----
+ 1 file changed, 12 insertions(+), 5 deletions(-)
 
-	Hans
+diff --git a/drivers/media/video/m5mols/m5mols.h b/drivers/media/video/m5mols/m5mols.h
+index 4b021e1..0acc3d6 100644
+--- a/drivers/media/video/m5mols/m5mols.h
++++ b/drivers/media/video/m5mols/m5mols.h
+@@ -21,11 +21,6 @@
+ 
+ extern int m5mols_debug;
+ 
+-#define to_m5mols(__sd)	container_of(__sd, struct m5mols_info, sd)
+-
+-#define to_sd(__ctrl) \
+-	(&container_of(__ctrl->handler, struct m5mols_info, handle)->sd)
+-
+ enum m5mols_restype {
+ 	M5MOLS_RESTYPE_MONITOR,
+ 	M5MOLS_RESTYPE_CAPTURE,
+@@ -296,4 +291,16 @@ int m5mols_set_ctrl(struct v4l2_ctrl *ctrl);
+ int m5mols_update_fw(struct v4l2_subdev *sd,
+ 		     int (*set_power)(struct m5mols_info *, bool));
+ 
++static inline struct m5mols_info *to_m5mols(struct v4l2_subdev *subdev)
++{
++	return container_of(subdev, struct m5mols_info, sd);
++}
++
++static inline struct v4l2_subdev *to_sd(struct v4l2_ctrl *ctrl)
++{
++	struct m5mols_info *info = container_of(ctrl->handler,
++						struct m5mols_info, handle);
++	return &info->sd;
++}
++
+ #endif	/* M5MOLS_H */
+-- 
+1.7.10
 
-The following changes since commit 61282daf505f3c8def09332ca337ac257b792029:
-
-  [media] V4L2: mt9t112: fixup JPEG initialization workaround (2012-05-15 16:15:35 -0300)
-
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git frozenfix
-
-for you to fetch changes up to 4ba342204948e9df49dc1f639ffdbfe49579e626:
-
-  gspca: the field 'frozen' is under CONFIG_PM (2012-05-18 13:40:42 +0200)
-
-----------------------------------------------------------------
-Hans Verkuil (1):
-      gspca: the field 'frozen' is under CONFIG_PM
-
- drivers/media/video/gspca/finepix.c   |   20 +++++++++++++++-----
- drivers/media/video/gspca/jl2005bcd.c |    6 +++++-
- drivers/media/video/gspca/sq905.c     |    6 +++++-
- drivers/media/video/gspca/sq905c.c    |    6 +++++-
- drivers/media/video/gspca/vicam.c     |    6 +++++-
- drivers/media/video/gspca/zc3xx.c     |    7 +++++--
- 6 files changed, 40 insertions(+), 11 deletions(-)
