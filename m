@@ -1,165 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:63244 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754043Ab2EXTeZ convert rfc822-to-8bit (ORCPT
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:35963 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757753Ab2EJKbJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 May 2012 15:34:25 -0400
-Received: by wgbdr13 with SMTP id dr13so120603wgb.1
-        for <linux-media@vger.kernel.org>; Thu, 24 May 2012 12:34:24 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <4FBE8819.80704@redhat.com>
-References: <1337032913-18646-1-git-send-email-manjunatha_halli@ti.com>
- <CAMT6Pyd6e8zgkLEk_dpGTxiPZDippDe_YgedNRpUkJzA9X5hvw@mail.gmail.com>
- <4FBD2C80.3060406@redhat.com> <201205241700.36022.hverkuil@xs4all.nl> <4FBE8819.80704@redhat.com>
-From: halli manjunatha <hallimanju@gmail.com>
-Date: Thu, 24 May 2012 14:34:03 -0500
-Message-ID: <CAMT6PyeXe3gd5KpPhAfPBcfJssde1E+U6z-11_ND6Yz0vww8fg@mail.gmail.com>
-Subject: Re: Discussion: How to deal with radio tuners which can tune to
- multiple bands
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Thu, 10 May 2012 06:31:09 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Received: from euspt1 ([210.118.77.14]) by mailout4.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0M3S008ZYYK5CW40@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 10 May 2012 11:31:17 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0M3S00DEQYJS3I@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 10 May 2012 11:31:05 +0100 (BST)
+Date: Thu, 10 May 2012 12:30:44 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH 09/23] V4L: Add camera 3A lock control
+In-reply-to: <1336645858-30366-1-git-send-email-s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: m.szyprowski@samsung.com, riverful.kim@samsung.com,
+	sw0312.kim@samsung.com, s.nawrocki@samsung.com,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Message-id: <1336645858-30366-10-git-send-email-s.nawrocki@samsung.com>
+References: <1336645858-30366-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, May 24, 2012 at 2:12 PM, Hans de Goede <hdegoede@redhat.com> wrote:
-> Hi,
->
->
-> On 05/24/2012 05:00 PM, Hans Verkuil wrote:
->>
->> On Wed 23 May 2012 20:29:20 Hans de Goede wrote:
->
->
-> <snip>
->
->
->>> ###
->>>
->>> So given all of the above I would like to propose the following:
->>>
->>> 1) Add a "band" field to struct v4l2_tuner, and a capability
->>>     indicating if the driver understands / uses this field
->>> 2) This field is only valid for radio tuners, for tv tuners it
->>> should always be 0 (as it was sofar as it is reserved atm)
->>> 3) This field can have a number of fixed values, for now we have:
->>>
->>> 0 RADIO_BAND_DEFAULT    Entire FM band supported by the tuner, or
->>> "default"
->>>                          band if different bands require switching the
->>> tuner to
->>>                          a different mode, or entire AM band supported by
->>> the
->>>                        tuner for AM only tuners.
->>> 1 RADIO_BAND_FM_EUROPE_US Europe or US band(87.5 Mhz - 108 MHz) *
->>> 2 RADIO_BAND_FM_JAPAN   Japan band(76 MHz - 90 MHz) *
->>> 3 RADIO_BAND_FM_RUSSIAN OIRT or Russian band(65.8 MHz - 74 MHz) *
->>> 4 RADIO_BAND_FM_WEATHER Weather band(162.4 MHz - 162.55 MHz) *
->>>
->>> 256 RADIO_BAND_AM_MW    Mid Wave AM band, covered frequencies are tuner
->>> dependent
->>> 257 RADIO_BAND_AM_LW    Long Wave AM band, covered frequencies are tuner
->>> dependent
->>> 258 RADIO_BAND_AM_SW    Short Wave AM band, covered frequencies are tuner
->>> dependent
->>
->>
->> I wouldn't add LW and SW as long as we don't have hardware that supports
->> it.
->
->
-> Ok.
->
->
->>>
->>> *) Reported (and available) frequency range might be different based on
->>> hardware
->>> capabilities
->>>
->>> Notice how 0, which the current reserved field should be set to for old
->>> apps,
->>> should always cover as much of FM as possible, or AM for AM only tuners,
->>> to
->>> preserve functionality for old non band aware v4l2 radio apps.
->>>
->>> A (radio) tuner should always support RADIO_BAND_DEFAULT
->>>
->>> 4) Apps can find out which bands are supported by doing a VIDIOC_G_TUNER
->>> with band set to the desired value. If the passed band is not available
->>> -EINVAL will be returned.
->>
->>
->> I would propose to add capability flags signaling the presence of each
->> bands.
->> There are 24 bits available, and the number of bands is very limited. I
->> see
->> no problem here.
->>
->> This way an application doesn't need to cycle through all possible bands,
->> but
->> it can select one immediately.
->
->
-> Ok so that is 2 votes for using capability bits, so lets go with that
-> solution
-> rather then requiring the app to do a g_tuner with all possible bands to
-> find out which bands are available.
->
->
->>> 5) Apps can select the active band by doing a VIDIOC_S_TUNER with the
->>> band
->>> field set to the desired band.
->>
->>
->> OK. Note that the current frequency will have to be clamped to the new
->> band.
->>
->>> 6) Doing a VIDIOC_S_FREQUENCY with a frequency which falls outside of the
->>> current band will *not* result in an automatic band switch, instead the
->>> passed frequency will be clamped to fit into the current band.
->>
->>
->> OK.
->>
->>> 7) Doing a VIDIOC_S_HW_FREQ_SEEK will seek in the currently active band,
->>> this matches existing behavior where the seek starts at the currently
->>> active frequency.
->>
->>
->> Sounds good. Then we don't need to add a band field here as was in Halli's
->> first proposal.
->>
->>> I think / hope that covers everything we need. Suggestions ? Comments ?
->>
->>
->> Modulators. v4l2_modulator needs a band field as well. The capabilities
->> are
->> already shared with v4l2_tuner, so that doesn't need to change.
->
->
-> Ah, yes modulators, good one, ack.
->
-> Manjunatha, since the final proposal is close to yours, and you already have
-> a patch for that including all the necessary documentation updates, can I
-> ask
-> you to update your patch to implement this proposal?
->
-> I must admit another reason is that I don't really have a lot of time to
-> work
-> on this atm, and it would be good to get this finalized soon, so that we
-> will
-> be ready well in advance of the 3.6 cycle start :)
+The V4L2_CID_3A_LOCK bitmask control allows applications to pause
+or resume the automatic exposure, focus and wite balance adjustments.
+It can be used, for example, to lock the 3A adjustments right before
+a still image is captured, for pre-focus, etc.
+The applications can control each of the algorithms independently,
+through a corresponding control bit, if driver allows that.
 
-Sure... I will implement this proposal and send the patches :)
->
-> Thanks & Regards,
->
-> Hans
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ Documentation/DocBook/media/v4l/controls.xml |   39 ++++++++++++++++++++++++++
+ drivers/media/video/v4l2-ctrls.c             |    2 ++
+ include/linux/videodev2.h                    |    5 ++++
+ 3 files changed, 46 insertions(+)
 
-
-
+diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+index c0256a0..ccb1df9 100644
+--- a/Documentation/DocBook/media/v4l/controls.xml
++++ b/Documentation/DocBook/media/v4l/controls.xml
+@@ -3301,6 +3301,45 @@ lens-distortion correction.</entry>
+ 	  </row>
+ 	  <row><entry></entry></row>
+ 
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_3A_LOCK</constant></entry>
++	    <entry>bitmask</entry>
++	  </row>
++	  <row>
++	    <entry spanname="descr">This control locks or unlocks the automatic
++focus, exposure and white balance. The automatic adjustments can be paused
++independently by setting the corresponding lock bit to 1. The camera then retains
++the settings until the lock bit is cleared. The following lock bits are defined:
++</entry>
++	  </row>
++	  <row>
++	    <entrytbl spanname="descr" cols="2">
++	      <tbody valign="top">
++		<row>
++		  <entry><constant>V4L2_LOCK_EXPOSURE</constant></entry>
++		  <entry>Automatic exposure adjustments lock.</entry>
++		</row>
++		<row>
++		  <entry><constant>V4L2_LOCK_WHITE_BALANCE</constant></entry>
++		  <entry>Automatic white balance adjustments lock.</entry>
++		</row>
++		<row>
++		  <entry><constant>V4L2_LOCK_FOCUS</constant></entry>
++		  <entry>Automatic focus lock.</entry>
++		</row>
++	      </tbody>
++	    </entrytbl>
++	  </row>
++	  <row><entry spanname="descr">
++When a given algorithm is not enabled, drivers should ignore requests
++to lock it and should return no error. An example might be an application
++setting bit <constant>V4L2_LOCK_WHITE_BALANCE</constant> when the
++<constant>V4L2_CID_AUTO_WHITE_BALANCE</constant> control is set to
++<constant>FALSE</constant>. The value of this control may be changed
++by exposure, white balance or focus controls.</entry>
++	  </row>
++	  <row><entry></entry></row>
++
+ 	</tbody>
+       </tgroup>
+     </table>
+diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
+index 4758e61..877ce60 100644
+--- a/drivers/media/video/v4l2-ctrls.c
++++ b/drivers/media/video/v4l2-ctrls.c
+@@ -661,6 +661,7 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_ISO_SENSITIVITY_AUTO:	return "ISO Sensitivity, Auto";
+ 	case V4L2_CID_EXPOSURE_METERING:	return "Exposure, Metering Mode";
+ 	case V4L2_CID_SCENE_MODE:		return "Scene Mode";
++	case V4L2_CID_3A_LOCK:			return "3A Lock";
+ 
+ 	/* FM Radio Modulator control */
+ 	/* Keep the order of the 'case's the same as in videodev2.h! */
+@@ -833,6 +834,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 		break;
+ 	case V4L2_CID_FLASH_FAULT:
+ 	case V4L2_CID_JPEG_ACTIVE_MARKER:
++	case V4L2_CID_3A_LOCK:
+ 		*type = V4L2_CTRL_TYPE_BITMASK;
+ 		break;
+ 	case V4L2_CID_MIN_BUFFERS_FOR_CAPTURE:
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index 6f1c5de..dae57ed 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -1751,6 +1751,11 @@ enum v4l2_scene_mode {
+ 	V4L2_SCENE_MODE_TEXT			= 13,
+ };
+ 
++#define V4L2_CID_3A_LOCK			(V4L2_CID_CAMERA_CLASS_BASE+27)
++#define V4L2_LOCK_EXPOSURE			(1 << 0)
++#define V4L2_LOCK_WHITE_BALANCE			(1 << 1)
++#define V4L2_LOCK_FOCUS				(1 << 2)
++
+ /* FM Modulator class control IDs */
+ #define V4L2_CID_FM_TX_CLASS_BASE		(V4L2_CTRL_CLASS_FM_TX | 0x900)
+ #define V4L2_CID_FM_TX_CLASS			(V4L2_CTRL_CLASS_FM_TX | 1)
 -- 
-Regards
-Halli
+1.7.10
+
