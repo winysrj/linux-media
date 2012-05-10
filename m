@@ -1,44 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:1025 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751002Ab2E0Lud (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:33186 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761528Ab2EJVpy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 27 May 2012 07:50:33 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans de Goede <hdegoede@redhat.com>,
-	halli manjunatha <hallimanju@gmail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv1 PATCH 1/5] videodev2.h: add new hwseek capability bits.
-Date: Sun, 27 May 2012 13:50:21 +0200
-Message-Id: <04a877e6f6310b83c3980cd6963f52d3b9ae658f.1338118975.git.hans.verkuil@cisco.com>
-In-Reply-To: <1338119425-17274-1-git-send-email-hverkuil@xs4all.nl>
-References: <1338119425-17274-1-git-send-email-hverkuil@xs4all.nl>
+	Thu, 10 May 2012 17:45:54 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, s.nawrocki@samsung.com,
+	t.stanislaws@samsung.com, hverkuil@xs4all.nl
+Subject: Re: [ANN] Selection API naming meeting #v4l-meeting next Monday
+Date: Thu, 10 May 2012 23:45:57 +0200
+Message-ID: <3438748.kTlMYi3f8e@avalon>
+In-Reply-To: <20120510201849.GC3373@valkosipuli.retiisi.org.uk>
+References: <20120510201849.GC3373@valkosipuli.retiisi.org.uk>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Sakari,
 
-Tell the application whether the hardware seek is bounded and/or wraps around.
+On Thursday 10 May 2012 23:18:49 Sakari Ailus wrote:
+> Hi all,
+> 
+> Let's have a quick meeting 14:00 Finnish time (GMT + 3) next Monday on
+> #v4l-meeting on two topics:
+> 
+> - Selection target naming. It has been proposed that the _ACTUAL / _ACTIVE
+>   be removed and e.g. the crop targets would be then called
+>   V4L2_SEL_TGT_CROP and V4L2_SUBDEV_SEL_TGT_CROP on V4L2 and subdve
+>   interfaces, respectively.
+> 
+> - Unifying selection targets on subdevs and V4L2 API. Currently the IDs of
+>   mostly equivalent targets are the same, but there are subtle differences
+>   between the targets in some cases. We still have documented everything
+>   twice, even if the differences are subtle. Would it make sese to unify the
+>   two, and just mention the differences?
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- include/linux/videodev2.h |    2 ++
- 1 file changed, 2 insertions(+)
+I'll be there.
 
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index 370d111..2339678 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -2039,6 +2039,8 @@ struct v4l2_modulator {
- /*  Flags for the 'capability' field */
- #define V4L2_TUNER_CAP_LOW		0x0001
- #define V4L2_TUNER_CAP_NORM		0x0002
-+#define V4L2_TUNER_CAP_HWSEEK_BOUNDED	0x0004
-+#define V4L2_TUNER_CAP_HWSEEK_WRAP	0x0008
- #define V4L2_TUNER_CAP_STEREO		0x0010
- #define V4L2_TUNER_CAP_LANG2		0x0020
- #define V4L2_TUNER_CAP_SAP		0x0020
 -- 
-1.7.10
+Regards,
+
+Laurent Pinchart
 
