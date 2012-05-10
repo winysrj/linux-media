@@ -1,194 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:59215 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965990Ab2EOWze (ORCPT
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:35963 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751340Ab2EJKbL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 May 2012 18:55:34 -0400
-Date: Wed, 16 May 2012 00:55:30 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-cc: Javier Martin <javier.martin@vista-silicon.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [git:v4l-dvb/for_v3.5] [media] media: mx2_camera: Fix mbus format
- handling
-In-Reply-To: <E1SUH8r-0005cc-3k@www.linuxtv.org>
-Message-ID: <Pine.LNX.4.64.1205160050270.25352@axis700.grange>
-References: <E1SUH8r-0005cc-3k@www.linuxtv.org>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+	Thu, 10 May 2012 06:31:11 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Received: from euspt1 ([210.118.77.14]) by mailout4.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0M3S008ZYYK5CW40@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 10 May 2012 11:31:17 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0M3S007H4YJSFC@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 10 May 2012 11:31:05 +0100 (BST)
+Date: Thu, 10 May 2012 12:30:46 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH 11/23] V4L: Add auto focus targets to the subdev selections API
+In-reply-to: <1336645858-30366-1-git-send-email-s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: m.szyprowski@samsung.com, riverful.kim@samsung.com,
+	sw0312.kim@samsung.com, s.nawrocki@samsung.com,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Message-id: <1336645858-30366-12-git-send-email-s.nawrocki@samsung.com>
+References: <1336645858-30366-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro, Javier
-
-On Tue, 15 May 2012, Mauro Carvalho Chehab wrote:
-
-> This is an automatic generated email to let you know that the following patch were queued at the 
-> http://git.linuxtv.org/media_tree.git tree:
-> 
-> Subject: [media] media: mx2_camera: Fix mbus format handling
-> Author:  Javier Martin <javier.martin@vista-silicon.com>
-> Date:    Mon Mar 26 09:17:48 2012 -0300
-
-Looks like I have missed this patch, unfortunately, it hasn't been cc'ed 
-to me. It would have been better to merge it via my soc-camera tree, also 
-because with this merge window there are a couple more changes, that 
-affect the generic soc-camera API and the mx2-camera driver in particular. 
-So far I don't see anything, what could break here, but if something does 
-- we know who will have to fix it;-)
-
-Thanks
-Guennadi
-
-> 
-> Remove MX2_CAMERA_SWAP16 and MX2_CAMERA_PACK_DIR_MSB flags
-> so that the driver can negotiate with the attached sensor
-> whether the mbus format needs convertion from UYUV to YUYV
-> or not.
-> 
-> Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> 
->  arch/arm/plat-mxc/include/mach/mx2_cam.h |    2 -
->  drivers/media/video/mx2_camera.c         |   52 +++++++++++++++++++++++++++---
->  2 files changed, 47 insertions(+), 7 deletions(-)
-> 
-> ---
-> 
-> http://git.linuxtv.org/media_tree.git?a=commitdiff;h=d509835e32bd761a2b7b446034a273da568e5573
-> 
-> diff --git a/arch/arm/plat-mxc/include/mach/mx2_cam.h b/arch/arm/plat-mxc/include/mach/mx2_cam.h
-> index 3c080a3..7ded6f1 100644
-> --- a/arch/arm/plat-mxc/include/mach/mx2_cam.h
-> +++ b/arch/arm/plat-mxc/include/mach/mx2_cam.h
-> @@ -23,7 +23,6 @@
->  #ifndef __MACH_MX2_CAM_H_
->  #define __MACH_MX2_CAM_H_
->  
-> -#define MX2_CAMERA_SWAP16		(1 << 0)
->  #define MX2_CAMERA_EXT_VSYNC		(1 << 1)
->  #define MX2_CAMERA_CCIR			(1 << 2)
->  #define MX2_CAMERA_CCIR_INTERLACE	(1 << 3)
-> @@ -31,7 +30,6 @@
->  #define MX2_CAMERA_GATED_CLOCK		(1 << 5)
->  #define MX2_CAMERA_INV_DATA		(1 << 6)
->  #define MX2_CAMERA_PCLK_SAMPLE_RISING	(1 << 7)
-> -#define MX2_CAMERA_PACK_DIR_MSB		(1 << 8)
->  
->  /**
->   * struct mx2_camera_platform_data - optional platform data for mx2_camera
-> diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
-> index 18afaee..7c3c0e8 100644
-> --- a/drivers/media/video/mx2_camera.c
-> +++ b/drivers/media/video/mx2_camera.c
-> @@ -344,6 +344,19 @@ static struct mx2_fmt_cfg mx27_emma_prp_table[] = {
->  					PRP_INTR_CH2OVF,
->  		}
->  	},
-> +	{
-> +		.in_fmt		= V4L2_MBUS_FMT_UYVY8_2X8,
-> +		.out_fmt	= V4L2_PIX_FMT_YUV420,
-> +		.cfg		= {
-> +			.channel	= 2,
-> +			.in_fmt		= PRP_CNTL_DATA_IN_YUV422,
-> +			.out_fmt	= PRP_CNTL_CH2_OUT_YUV420,
-> +			.src_pixel	= 0x22000888, /* YUV422 (YUYV) */
-> +			.irq_flags	= PRP_INTR_RDERR | PRP_INTR_CH2WERR |
-> +					PRP_INTR_CH2FC | PRP_INTR_LBOVF |
-> +					PRP_INTR_CH2OVF,
-> +		}
-> +	},
->  };
->  
->  static struct mx2_fmt_cfg *mx27_emma_prp_get_format(
-> @@ -980,6 +993,7 @@ static int mx2_camera_set_bus_param(struct soc_camera_device *icd)
->  	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
->  	struct mx2_camera_dev *pcdev = ici->priv;
->  	struct v4l2_mbus_config cfg = {.type = V4L2_MBUS_PARALLEL,};
-> +	const struct soc_camera_format_xlate *xlate;
->  	unsigned long common_flags;
->  	int ret;
->  	int bytesperline;
-> @@ -1024,14 +1038,31 @@ static int mx2_camera_set_bus_param(struct soc_camera_device *icd)
->  		return ret;
->  	}
->  
-> +	xlate = soc_camera_xlate_by_fourcc(icd, pixfmt);
-> +	if (!xlate) {
-> +		dev_warn(icd->parent, "Format %x not found\n", pixfmt);
-> +		return -EINVAL;
-> +	}
-> +
-> +	if (xlate->code == V4L2_MBUS_FMT_YUYV8_2X8) {
-> +		csicr1 |= CSICR1_PACK_DIR;
-> +		csicr1 &= ~CSICR1_SWAP16_EN;
-> +		dev_dbg(icd->parent, "already yuyv format, don't convert\n");
-> +	} else if (xlate->code == V4L2_MBUS_FMT_UYVY8_2X8) {
-> +		csicr1 &= ~CSICR1_PACK_DIR;
-> +		csicr1 |= CSICR1_SWAP16_EN;
-> +		dev_dbg(icd->parent, "convert uyvy mbus format into yuyv\n");
-> +	} else {
-> +		dev_warn(icd->parent, "mbus format not supported\n");
-> +		return -EINVAL;
-> +	}
-> +
->  	if (common_flags & V4L2_MBUS_PCLK_SAMPLE_RISING)
->  		csicr1 |= CSICR1_REDGE;
->  	if (common_flags & V4L2_MBUS_VSYNC_ACTIVE_HIGH)
->  		csicr1 |= CSICR1_SOF_POL;
->  	if (common_flags & V4L2_MBUS_HSYNC_ACTIVE_HIGH)
->  		csicr1 |= CSICR1_HSYNC_POL;
-> -	if (pcdev->platform_flags & MX2_CAMERA_SWAP16)
-> -		csicr1 |= CSICR1_SWAP16_EN;
->  	if (pcdev->platform_flags & MX2_CAMERA_EXT_VSYNC)
->  		csicr1 |= CSICR1_EXT_VSYNC;
->  	if (pcdev->platform_flags & MX2_CAMERA_CCIR)
-> @@ -1042,8 +1073,6 @@ static int mx2_camera_set_bus_param(struct soc_camera_device *icd)
->  		csicr1 |= CSICR1_GCLK_MODE;
->  	if (pcdev->platform_flags & MX2_CAMERA_INV_DATA)
->  		csicr1 |= CSICR1_INV_DATA;
-> -	if (pcdev->platform_flags & MX2_CAMERA_PACK_DIR_MSB)
-> -		csicr1 |= CSICR1_PACK_DIR;
->  
->  	pcdev->csicr1 = csicr1;
->  
-> @@ -1118,7 +1147,8 @@ static int mx2_camera_get_formats(struct soc_camera_device *icd,
->  		return 0;
->  	}
->  
-> -	if (code == V4L2_MBUS_FMT_YUYV8_2X8) {
-> +	if (code == V4L2_MBUS_FMT_YUYV8_2X8 ||
-> +	    code == V4L2_MBUS_FMT_UYVY8_2X8) {
->  		formats++;
->  		if (xlate) {
->  			/*
-> @@ -1134,6 +1164,18 @@ static int mx2_camera_get_formats(struct soc_camera_device *icd,
->  		}
->  	}
->  
-> +	if (code == V4L2_MBUS_FMT_UYVY8_2X8) {
-> +		formats++;
-> +		if (xlate) {
-> +			xlate->host_fmt =
-> +				soc_mbus_get_fmtdesc(V4L2_MBUS_FMT_YUYV8_2X8);
-> +			xlate->code	= code;
-> +			dev_dbg(dev, "Providing host format %s for sensor code %d\n",
-> +				xlate->host_fmt->name, code);
-> +			xlate++;
-> +		}
-> +	}
-> +
->  	/* Generic pass-trough */
->  	formats++;
->  	if (xlate) {
-> 
-> _______________________________________________
-> linuxtv-commits mailing list
-> linuxtv-commits@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linuxtv-commits
-> 
-
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ Documentation/DocBook/media/v4l/dev-subdev.xml     |   27 +++++++++++++++++++-
+ .../media/v4l/vidioc-subdev-g-selection.xml        |   14 ++++++++--
+ include/linux/v4l2-subdev.h                        |    4 +++
+ 3 files changed, 42 insertions(+), 3 deletions(-)
+
+diff --git a/Documentation/DocBook/media/v4l/dev-subdev.xml b/Documentation/DocBook/media/v4l/dev-subdev.xml
+index 4afcbbe..8a212c4 100644
+--- a/Documentation/DocBook/media/v4l/dev-subdev.xml
++++ b/Documentation/DocBook/media/v4l/dev-subdev.xml
+@@ -277,7 +277,7 @@
+     </section>
+ 
+     <section>
+-      <title>Selections: cropping, scaling and composition</title>
++      <title>Selections - cropping, scaling and composition</title>
+ 
+       <para>Many sub-devices support cropping frames on their input or output
+       pads (or possible even on both). Cropping is used to select the area of
+@@ -330,6 +330,31 @@
+     </section>
+ 
+     <section>
++      <title>Selections - regions of interest</title>
++    <section>
++      <title>Automatic focus</title>
++
++      <para>The camera automatic focus algorithms may require configuration
++      of a region or multiple regions of interest in form of rectangle or spot
++      coordinates.</para>
++
++      <para>A single rectangle of interest is represented in &v4l2-rect;
++      by the coordinates of the top left corner and the rectangle size. Both
++      the coordinates and sizes are expressed in pixels. When the <structfield>
++      width</structfield> and <structfield>height</structfield> fields of
++      &v4l2-rect; are set to 0 the selection determines spot coordinates,
++      rather than a rectangle.</para>
++
++      <para>Auto focus rectangles are reset to their default values when the
++      output image format is modified. Drivers should use the output image size
++      as the auto focus rectangle default value, but hardware requirements may
++      prevent this.
++      </para>
++      <para>The auto focus selections on input pads are not defined.</para>
++    </section>
++    </section>
++
++    <section>
+       <title>Types of selection targets</title>
+ 
+       <section>
+diff --git a/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml b/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml
+index 208e9f0..c4ccae5 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml
+@@ -57,8 +57,8 @@
+ 
+     <para>The selections are used to configure various image
+     processing functionality performed by the subdevs which affect the
+-    image size. This currently includes cropping, scaling and
+-    composition.</para>
++    image size. This currently includes cropping, scaling, composition
++    and automatic focus regions of interest.</para>
+ 
+     <para>The selection API replaces <link
+     linkend="vidioc-subdev-g-crop">the old subdev crop API</link>. All
+@@ -114,6 +114,16 @@
+ 	    <entry>0x0102</entry>
+ 	    <entry>Bounds of the compose rectangle.</entry>
+ 	  </row>
++	  <row>
++	    <entry><constant>V4L2_SUBDEV_SEL_TGT_AUTO_FOCUS_BOUNDS</constant></entry>
++	    <entry>0x1000</entry>
++	    <entry>Bounds of the automatic focus region of interest.</entry>
++	  </row>
++	  <row>
++	    <entry><constant>V4L2_SUBDEV_SEL_TGT_AUTO_FOCUS_ACTUAL</constant></entry>
++	    <entry>0x1001</entry>
++	    <entry>Actual automatic focus rectangle or spot coordinates.</entry>
++	  </row>
+ 	</tbody>
+       </tgroup>
+     </table>
+diff --git a/include/linux/v4l2-subdev.h b/include/linux/v4l2-subdev.h
+index 812019e..49b1f14 100644
+--- a/include/linux/v4l2-subdev.h
++++ b/include/linux/v4l2-subdev.h
+@@ -136,6 +136,10 @@ struct v4l2_subdev_frame_interval_enum {
+ /* composing bounds */
+ #define V4L2_SUBDEV_SEL_TGT_COMPOSE_BOUNDS		0x0102
+ 
++/* auto focus region of interest */
++#define V4L2_SUBDEV_SEL_TGT_AUTO_FOCUS_ACTUAL		0x1000
++/* auto focus region (spot coordinates) bounds */
++#define V4L2_SUBDEV_SEL_TGT_AUTO_FOCUS_BOUNDS		0x1001
+ 
+ /**
+  * struct v4l2_subdev_selection - selection info
+-- 
+1.7.10
+
