@@ -1,78 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:57605 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756741Ab2EAS17 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 1 May 2012 14:27:59 -0400
-Received: by bkcji2 with SMTP id ji2so1112346bkc.19
-        for <linux-media@vger.kernel.org>; Tue, 01 May 2012 11:27:57 -0700 (PDT)
-Message-ID: <4FA02B2C.1020407@gmail.com>
-Date: Tue, 01 May 2012 20:27:56 +0200
-From: Sylwester Nawrocki <snjw23@gmail.com>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	sakari.ailus@iki.fi, g.liakhovetski@gmx.de, hdegoede@redhat.com,
-	moinejf@free.fr, m.szyprowski@samsung.com,
-	riverful.kim@samsung.com, sw0312.kim@samsung.com,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: Re: [PATCH/RFC v3 14/14] vivi: Add controls
-References: <1335536611-4298-1-git-send-email-s.nawrocki@samsung.com> <201204301809.04891.hverkuil@xs4all.nl> <4FA02027.30909@gmail.com> <201205011948.53191.hverkuil@xs4all.nl>
-In-Reply-To: <201205011948.53191.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:38165 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755241Ab2EJIsY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 May 2012 04:48:24 -0400
+Received: from euspt2 (mailout1.w1.samsung.com [210.118.77.11])
+ by mailout1.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0M3S0046JTPD37@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 10 May 2012 09:46:25 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0M3S00JR5TSJPL@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 10 May 2012 09:48:19 +0100 (BST)
+Date: Thu, 10 May 2012 10:48:21 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: [GIT PULL FOR 3.5] s5p-fimc driver updates
+In-reply-to: <4FA3F635.60409@samsung.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Message-id: <4FAB80D5.50500@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8
+Content-transfer-encoding: 7BIT
+References: <4FA3F635.60409@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/01/2012 07:48 PM, Hans Verkuil wrote:
-> On Tue May 1 2012 19:40:55 Sylwester Nawrocki wrote:
->> On 04/30/2012 06:09 PM, Hans Verkuil wrote:
->>> On Friday 27 April 2012 16:23:31 Sylwester Nawrocki wrote:
-...
->>> Why add these controls to vivi? It doesn't belong here.
->>
->> Yeah, my intention was to provide some basic means for validating the
->> new controls, especially integer menu ones. I really don't use vivi
->> for testing, but I think not many people have currently access to the
->> hardware I work with. So this is just in case Mauro wants to do tests
->> of the core control framework changes. I agree this patch doesn't
->> make sense for anything other than that.
->>
->> I have also a small patch for v4l2-ctl to support integer menu
->> control enumeration. However I run into some weird problems when
->> I cross compiled it for ARM (individual menu names are not listed)
->> and didn't get around to fix that yet. So I didn't yet send that
->> v4l2-ctl patch out.
+On 05/04/2012 05:31 PM, Sylwester Nawrocki wrote:
+> Hi Mauro,
 > 
-> There is already an int-menu control in vivi, and v4l2-ctl already
-> support integer menus as well (as does qv4l2 and v4l2-compliance).
+> The following changes since commit 34b2debaa62bfa384ef91b61cf2c40c48e86a5e2:
 > 
-> So this should be all ready for you.
+>   s5p-fimc: Correct memory allocation for VIDIOC_CREATE_BUFS (2012-05-04 17:07:24 +0200)
+> 
+> are available in the git repository at:
+> 
+>   git://git.infradead.org/users/kmpark/linux-samsung v4l-fimc-exynos4x12
+> 
+> for you to fetch changes up to bab96b068afa07105139be09d3830cc9ed580382:
+> 
+>   s5p-fimc: Use selection API in place of crop operations (2012-05-04 17:18:38 +0200)
 
-Oh, it is there already! Must have been too busy to notice that :/
+Mauro,
 
-> BTW, it would be nice to get g/s_selection support in v4l2-ctl, that is
-> still missing. And a good test in v4l2-compliance would be great as well.
+I've found a few issues in this series afterwards and re-edited 3 commits there.
+Here is an updated pull request:
 
-Yeah, I noticed that too recently, we use selections on video nodes 
-in some drivers and media-ctl can be only used for subdevs. I'll try
-to find some time to add selection ioctls support to v4l2-ctl first,
-perhaps this weekend.
+The following changes since commit ae45d3e9aea0ab951dbbca2238fbfbf3993f1e7f:
 
-> Have you run v4l2-compliance lately? It's getting pretty good at 
-> catching all sorts of inconsistencies.
+  s5p-fimc: Correct memory allocation for VIDIOC_CREATE_BUFS (2012-05-09 16:07:49 +0200)
 
-No, I haven't used it for a while. I know from the last run I need to
-add G/S_PRIORITY support in one of the drivers. :)
+are available in the git repository at:
 
-I'm going to give it a try, however I'm going to need to deal with 
-more and more media controller nodes. For example the fimc-lite
-camera host driver I posted recently can be used with media controller
-API only, I set only V4L2_CAP_STREAMING at the video node, as it was 
-agreed previously. I assume some support for media controller API 
-needs to be added to v4l2-compliance as well ?
+  git://git.infradead.org/users/kmpark/linux-samsung v4l-fimc-exynos4x12
+
+for you to fetch changes up to 5feefe6656583de6fd4ef1d53b19031dd5efeec1:
+
+  s5p-fimc: Use selection API in place of crop operations (2012-05-09 16:11:29 +0200)
+
+----------------------------------------------------------------
+Sylwester Nawrocki (14):
+      V4L: Extend V4L2_CID_COLORFX with more image effects
+      s5p-fimc: Avoid crash with null platform_data
+      s5p-fimc: Move m2m node driver into separate file
+      s5p-fimc: Use v4l2_subdev internal ops to register video nodes
+      s5p-fimc: Refactor the register interface functions
+      s5p-fimc: Add FIMC-LITE register definitions
+      s5p-fimc: Rework the video pipeline control functions
+      s5p-fimc: Prefix format enumerations with FIMC_FMT_
+      s5p-fimc: Minor cleanups
+      s5p-fimc: Make sure an interrupt is properly requested
+      s5p-fimc: Add support for Exynos4x12 FIMC-LITE
+      s5p-fimc: Update copyright notices
+      s5p-fimc: Add color effect control
+      s5p-fimc: Use selection API in place of crop operations
+
+ Documentation/DocBook/media/v4l/compat.xml   |   13 +
+ Documentation/DocBook/media/v4l/controls.xml |   98 ++++++-
+ Documentation/DocBook/media/v4l/v4l2.xml     |    5 +-
+ drivers/media/video/Kconfig                  |   24 +-
+ drivers/media/video/s5p-fimc/Kconfig         |   48 +++
+ drivers/media/video/s5p-fimc/Makefile        |    6 +-
+ drivers/media/video/s5p-fimc/fimc-capture.c  |  469 +++++++++++++++++++-----------
+ drivers/media/video/s5p-fimc/fimc-core.c     | 1101 +++++++++++----------------------------------------------------------
+ drivers/media/video/s5p-fimc/fimc-core.h     |  254 +++++-----------
+ drivers/media/video/s5p-fimc/fimc-lite-reg.c |  300 +++++++++++++++++++
+ drivers/media/video/s5p-fimc/fimc-lite-reg.h |  150 ++++++++++
+ drivers/media/video/s5p-fimc/fimc-lite.c     | 1576 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ drivers/media/video/s5p-fimc/fimc-lite.h     |  213 ++++++++++++++
+ drivers/media/video/s5p-fimc/fimc-m2m.c      |  820 +++++++++++++++++++++++++++++++++++++++++++++++++++
+ drivers/media/video/s5p-fimc/fimc-mdevice.c  |  407 +++++++++++++++++---------
+ drivers/media/video/s5p-fimc/fimc-mdevice.h  |   18 +-
+ drivers/media/video/s5p-fimc/fimc-reg.c      |  613 +++++++++++++++++++++------------------
+ drivers/media/video/s5p-fimc/fimc-reg.h      |  326 +++++++++++++++++++++
+ drivers/media/video/s5p-fimc/regs-fimc.h     |  301 -------------------
+ drivers/media/video/v4l2-ctrls.c             |    7 +
+ include/linux/videodev2.h                    |   29 +-
+ include/media/s5p_fimc.h                     |   16 +
+ 22 files changed, 4735 insertions(+), 2059 deletions(-)
+ create mode 100644 drivers/media/video/s5p-fimc/Kconfig
+ create mode 100644 drivers/media/video/s5p-fimc/fimc-lite-reg.c
+ create mode 100644 drivers/media/video/s5p-fimc/fimc-lite-reg.h
+ create mode 100644 drivers/media/video/s5p-fimc/fimc-lite.c
+ create mode 100644 drivers/media/video/s5p-fimc/fimc-lite.h
+ create mode 100644 drivers/media/video/s5p-fimc/fimc-m2m.c
+ create mode 100644 drivers/media/video/s5p-fimc/fimc-reg.h
+ delete mode 100644 drivers/media/video/s5p-fimc/regs-fimc.h
+
+Sorry for the noise.
 
 --
 
-Regards,
+Thanks,
 Sylwester
