@@ -1,118 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:33289 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751875Ab2EVSZK convert rfc822-to-8bit (ORCPT
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:57785 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758249Ab2EJPXP convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 May 2012 14:25:10 -0400
-Date: Tue, 22 May 2012 20:25:04 +0200
-From: =?iso-8859-1?Q?Llu=EDs?= Batlle i Rossell <viric@viric.name>
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Paulo Assis <pj.assis@gmail.com>, linux-media@vger.kernel.org
-Subject: Re: Problems with the gspca_ov519 driver
-Message-ID: <20120522182504.GD1927@vicerveza.homeunix.net>
-References: <20120522110018.GX1927@vicerveza.homeunix.net>
- <CAPueXH6uN4UQO_WL_pc9wBoZV=v_7AVtQKcruKY=BCMeJOw-2Q@mail.gmail.com>
- <4FBBA515.7010006@redhat.com>
- <20120522152703.GA1927@vicerveza.homeunix.net>
- <4FBBBEA2.5050200@redhat.com>
+	Thu, 10 May 2012 11:23:15 -0400
+Received: by bkcji2 with SMTP id ji2so1408269bkc.19
+        for <linux-media@vger.kernel.org>; Thu, 10 May 2012 08:23:13 -0700 (PDT)
+From: "Igor M. Liplianin" <liplianin@me.by>
+To: =?ISO-8859-1?Q?Bj=F8rn?= Mork <bjorn@mork.no>
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Manu Abraham <abraham.manu@gmail.com>
+Subject: Re: Re: [PATCH] Terratec Cinergy C PCI HD (CI)
+Date: Thu, 10 May 2012 18:23:23 +0300
+Message-ID: <1859889.AVKT8ZT1ng@useri>
+In-Reply-To: <87fwb95gia.fsf@nemi.mork.no>
+References: <1543153.gDfgtO0cjd@useri> <87fwb95gia.fsf@nemi.mork.no>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-In-Reply-To: <4FBBBEA2.5050200@redhat.com>
 Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, May 22, 2012 at 06:28:18PM +0200, Hans de Goede wrote:
-> On 05/22/2012 05:27 PM, Lluís Batlle i Rossell wrote:
-> >Is this over linux 3.4 mainline? Because I can't get the patch applied over it.
+On 9 Ð¼Ð°Ñ 2012 20:57:49 BjÃ¸rn Mork wrote:
+> "Igor M. Liplianin" <liplianin@me.by> writes:
+> > This patch seems for rectifying a typo. But actually the difference
+> > between
+> > mantis_vp2040.c and mantis_vp2033.c code is a card name only.
 > 
-> No it is against:
-> http://git.linuxtv.org/media_tree.git/shortlog/refs/heads/staging/for_v3.5
+> Yes, there are major code duplication issues in this driver.
 > 
-> But it should be trivial to backport, the patch is only 3 lines.
+> > Signed-off-by: Igor M. Liplianin <liplianin@me.by>
+> > diff -r 990a92e2410f linux/drivers/media/dvb/mantis/mantis_cards.c
+> > --- a/linux/drivers/media/dvb/mantis/mantis_cards.c	Wed May 09 01:37:05
+> > 2012 +0300 +++ b/linux/drivers/media/dvb/mantis/mantis_cards.c	Wed May 09
+> > 14:04:31 2012 +0300 @@ -276,7 +276,7 @@
+> > 
+> >  	MAKE_ENTRY(TWINHAN_TECHNOLOGIES, MANTIS_VP_2033_DVB_C, &vp2033_config),
+> >  	MAKE_ENTRY(TWINHAN_TECHNOLOGIES, MANTIS_VP_2040_DVB_C, &vp2040_config),
+> >  	MAKE_ENTRY(TECHNISAT, CABLESTAR_HD2, &vp2040_config),
+> > 
+> > -	MAKE_ENTRY(TERRATEC, CINERGY_C, &vp2033_config),
+> > +	MAKE_ENTRY(TERRATEC, CINERGY_C, &vp2040_config),
+> > 
+> >  	MAKE_ENTRY(TWINHAN_TECHNOLOGIES, MANTIS_VP_3030_DVB_T, &vp3030_config),
+> >  	{ }
+> >  
+> >  };
+> 
+> What's the point? It's a constructed difference.  Makes more sense to
+> refactor and merge all the duplicated code instead of maintaining this
+> meaningless code split.
+> 
+> > diff -r 990a92e2410f linux/drivers/media/dvb/mantis/mantis_core.c
+> > --- a/linux/drivers/media/dvb/mantis/mantis_core.c	Wed May 09 01:37:05
+> > 2012 +0300 +++ b/linux/drivers/media/dvb/mantis/mantis_core.c	Wed May 09
+> > 14:04:31 2012 +0300 @@ -121,7 +121,7 @@
+> > 
+> >  		mantis->hwconfig = &vp2033_mantis_config;
+> >  		break;
+> >  	
+> >  	case MANTIS_VP_2040_DVB_C:	/* VP-2040 */
+> > 
+> > -	case TERRATEC_CINERGY_C_PCI:	/* VP-2040 clone */
+> > +	case CINERGY_C:	/* VP-2040 clone */
+> > 
+> >  	case TECHNISAT_CABLESTAR_HD2:
+> >  		mantis->hwconfig = &vp2040_mantis_config;
+> >  		break;
+> 
+> And this file should never have been merged into the mainline kernel at
+> all.  If you wonder how a bug like that could survive without being
+> noticed, then the explanation is simple:  This code has never been built
+> as part of the driver in the mainline kernel.
+> 
+> I tried submitting a cleanup patch to have it removed a long time ago:
+> http://patchwork.linuxtv.org/patch/3680/
+Oh, I wasn't aware of that.
 
-Hello,
+> but it doesn't seem to have gone anywhere, like most of the patches for
+> this driver -  silently ignored until everyone forgets it and moves on.
+> 
+> The code could certainly benefit from a major cleanup, but I don't see
+> how that would ever happen.  It sort of works.  Better leave it there
+> and spend valuable time elsewhere.
+This patch is just a remainder. Seriously, I don't anticipate something.
 
-
-I ported your patch to 3.4, and it works for me. I can stream off and on as I
-can with other cameras.
-
-Thank you,
-Lluís.
-
-> >On Tue, May 22, 2012 at 04:39:17PM +0200, Hans de Goede wrote:
-> >>Hi,
-> >>
-> >>On 05/22/2012 04:08 PM, Paulo Assis wrote:
-> >>>Hi,
-> >>>This bug also causes the camera to crash when changing fps in
-> >>>guvcview, uvc devices (at least all the ones I tested) require the
-> >>>stream to be restarted for fps to change, so in the case of this
-> >>>driver after STREAMOFF the camera just becomes unresponsive.
-> >>>
-> >>>Regards,
-> >>>Paulo
-> >>>
-> >>>2012/5/22 Lluís Batlle i Rossell<viric@viric.name>:
-> >>>>Hello,
-> >>>>
-> >>>>I'm trying to get video using v4l2 ioctls from a gspca_ov519 camera, and after
-> >>>>STREAMOFF all buffers are still flagged as QUEUED, and QBUF fails.  DQBUF also
-> >>>>fails (blocking for a 3 sec timeout), after streamoff. So I'm stuck, after
-> >>>>STREAMOFF, unable to get pictures coming in again. (Linux 3.3.5).
-> >>>>
-> >>>>As an additional note, pinchartl on irc #v4l says to favour a moving of gspca to
-> >>>>vb2. I don't know what it means.
-> >>>>
-> >>>>Can someone take care of the bug, or should I consider the camera 'non working'
-> >>>>in linux?
-> >>
-> >>We talked about this on irc, attached it a patch which should fix this, feedback
-> >>appreciated.
-> >>
-> >>Regards,
-> >>
-> >>Hans
-> >
-> >> From b0eefa00c72e9dfe9eaa5f425c0d346b19ea01cd Mon Sep 17 00:00:00 2001
-> >>From: Hans de Goede<hdegoede@redhat.com>
-> >>Date: Tue, 22 May 2012 16:24:05 +0200
-> >>Subject: [PATCH] gspca-core: Fix buffers staying in queued state after a
-> >>  stream_off
-> >>
-> >>Signed-off-by: Hans de Goede<hdegoede@redhat.com>
-> >>---
-> >>  drivers/media/video/gspca/gspca.c |    4 +++-
-> >>  1 file changed, 3 insertions(+), 1 deletion(-)
-> >>
-> >>diff --git a/drivers/media/video/gspca/gspca.c b/drivers/media/video/gspca/gspca.c
-> >>index 137166d..31721ea 100644
-> >>--- a/drivers/media/video/gspca/gspca.c
-> >>+++ b/drivers/media/video/gspca/gspca.c
-> >>@@ -1653,7 +1653,7 @@ static int vidioc_streamoff(struct file *file, void *priv,
-> >>  				enum v4l2_buf_type buf_type)
-> >>  {
-> >>  	struct gspca_dev *gspca_dev = video_drvdata(file);
-> >>-	int ret;
-> >>+	int i, ret;
-> >>
-> >>  	if (buf_type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
-> >>  		return -EINVAL;
-> >>@@ -1678,6 +1678,8 @@ static int vidioc_streamoff(struct file *file, void *priv,
-> >>  	wake_up_interruptible(&gspca_dev->wq);
-> >>
-> >>  	/* empty the transfer queues */
-> >>+	for (i = 0; i<  gspca_dev->nframes; i++)
-> >>+		gspca_dev->frame[i].v4l2_buf.flags&= ~BUF_ALL_FLAGS;
-> >>  	atomic_set(&gspca_dev->fr_q, 0);
-> >>  	atomic_set(&gspca_dev->fr_i, 0);
-> >>  	gspca_dev->fr_o = 0;
-> >>--
-> >>1.7.10
-> >>
-> >
-> >--
-> >To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> >the body of a message to majordomo@vger.kernel.org
-> >More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Igor.
+> 
+> 
+> 
+> BjÃ¸rn
+-- 
+Igor M. Liplianin
+Microsoft Windows Free Zone - Linux used for all Computing Tasks
