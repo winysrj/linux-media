@@ -1,58 +1,32 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from na3sys009aog122.obsmtp.com ([74.125.149.147]:60026 "EHLO
-	na3sys009aog122.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757049Ab2EIHmA convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 9 May 2012 03:42:00 -0400
-From: Qing Xu <qingx@marvell.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Jiaquan Su <jqsu@marvell.com>, Angela Wan <jwan@marvell.com>,
-	Bin Zhou <zhoub@marvell.com>
-Date: Wed, 9 May 2012 00:39:50 -0700
-Subject: RE: [PATCH 1/2] V4L: soc-camera: switch to using the existing
- .enum_framesizes()
-Message-ID: <7BAC95F5A7E67643AAFB2C31BEE662D015E3B3AD62@SC-VEXCH2.marvell.com>
-References: <Pine.LNX.4.64.1205082259390.7085@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1205082259390.7085@axis700.grange>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:57665 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1756628Ab2EJUZE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 May 2012 16:25:04 -0400
+Date: Thu, 10 May 2012 23:25:00 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	mchehab@redhat.com, remi@remlab.net,
+	laurent.pinchart@ideasonboard.com
+Subject: Re: [PATCH v3 1/1] v4l2: use __u32 rather than enums in ioctl()
+ structs
+Message-ID: <20120510202500.GD3373@valkosipuli.retiisi.org.uk>
+References: <1336629727-11111-1-git-send-email-sakari.ailus@iki.fi>
+ <201205101317.16101.hverkuil@xs4all.nl>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <201205101317.16101.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Thanks for the patch! I am ok with it.
+On Thu, May 10, 2012 at 01:17:16PM +0200, Hans Verkuil wrote:
+> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-> -----Original Message-----
-> From: Guennadi Liakhovetski [mailto:g.liakhovetski@gmx.de] 
-> Sent: Wednesday, May 09, 2012 5:01 AM
-> To: Linux Media Mailing List
-> Cc: Qing Xu
-> Subject: [PATCH 1/2] V4L: soc-camera: switch to using the existing .enum_framesizes()
-> 
-> The recently introduced .enum_mbus_fsizes() v4l2-subdev video operation is
-> a duplicate of the .enum_framesizes() operation, introduced earlier. Switch
-> soc-camera over to using the original one.
-> 
-> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> Cc: Qing Xu <qingx@marvell.com>
-> ---
->  drivers/media/video/soc_camera.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
-> index b08696f..6707df4 100644
-> --- a/drivers/media/video/soc_camera.c
-> +++ b/drivers/media/video/soc_camera.c
-> @@ -1259,7 +1259,7 @@ static int default_enum_framesizes(struct soc_camera_device *icd,
->  	/* map xlate-code to pixel_format, sensor only handle xlate-code*/
->  	fsize_mbus.pixel_format = xlate->code;
->  
-> -	ret = v4l2_subdev_call(sd, video, enum_mbus_fsizes, &fsize_mbus);
-> +	ret = v4l2_subdev_call(sd, video, enum_framesizes, &fsize_mbus);
->  	if (ret < 0)
->  		return ret;
->  
-> -- 
-> 1.7.2.5
+Thanks!!!
+
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
