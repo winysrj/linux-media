@@ -1,56 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:60364 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757564Ab2EGTCU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 7 May 2012 15:02:20 -0400
-Message-ID: <4FA81C3A.1020108@iki.fi>
-Date: Mon, 07 May 2012 22:02:18 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:57658 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751976Ab2EJUSy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 May 2012 16:18:54 -0400
+Date: Thu, 10 May 2012 23:18:49 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: s.nawrocki@samsung.com, t.stanislaws@samsung.com,
+	laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl
+Subject: [ANN] Selection API naming meeting #v4l-meeting next Monday
+Message-ID: <20120510201849.GC3373@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-To: =?ISO-8859-1?Q?Michael_B=FCsch?= <m@bues.ch>
-CC: linux-media <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] Add fc0011 tuner driver
-References: <20120402181432.74e8bd50@milhouse>
-In-Reply-To: <20120402181432.74e8bd50@milhouse>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02.04.2012 19:14, Michael Büsch wrote:
-> This adds support for the Fitipower fc0011 DVB-t tuner.
->
-> Signed-off-by: Michael Buesch<m@bues.ch>
+Hi all,
 
-> +	unsigned int i, vco_retries;
-> +	u32 freq = p->frequency / 1000;
-> +	u32 bandwidth = p->bandwidth_hz / 1000;
-> +	u32 fvco, xin, xdiv, xdivr;
-> +	u16 frac;
-> +	u8 fa, fp, vco_sel, vco_cal;
-> +	u8 regs[FC11_NR_REGS] = { };
+Let's have a quick meeting 14:00 Finnish time (GMT + 3) next Monday on
+#v4l-meeting on two topics:
 
-> +
-> +	dev_dbg(&priv->i2c->dev, "Tuned to "
-> +		"fa=%02X fp=%02X xin=%02X%02X vco=%02X vcosel=%02X "
-> +		"vcocal=%02X(%u) bw=%u\n",
-> +		(unsigned int)regs[FC11_REG_FA],
-> +		(unsigned int)regs[FC11_REG_FP],
-> +		(unsigned int)regs[FC11_REG_XINHI],
-> +		(unsigned int)regs[FC11_REG_XINLO],
-> +		(unsigned int)regs[FC11_REG_VCO],
-> +		(unsigned int)regs[FC11_REG_VCOSEL],
-> +		(unsigned int)vco_cal, vco_retries,
-> +		(unsigned int)bandwidth);
+- Selection target naming. It has been proposed that the _ACTUAL / _ACTIVE
+  be removed and e.g. the crop targets would be then called
+  V4L2_SEL_TGT_CROP and V4L2_SUBDEV_SEL_TGT_CROP on V4L2 and subdve
+  interfaces, respectively.
 
-Just for the interest, is there any reason you use so much casting or is 
-that only your style?
+- Unifying selection targets on subdevs and V4L2 API. Currently the IDs of
+  mostly equivalent targets are the same, but there are subtle differences
+  between the targets in some cases. We still have documented everything
+  twice, even if the differences are subtle. Would it make sese to unify the
+  two, and just mention the differences?
 
-I removed some similar castings from the AF9035 log writings you added 
-as I did not see need for those. I even think casting should be avoided 
-as it can hide possible meaningful compiler warnings on bad case.
+Regards,
 
-regards
-Antti
 -- 
-http://palosaari.fi/
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
