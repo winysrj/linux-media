@@ -1,416 +1,314 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.47]:35093 "EHLO mgw-sa01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755726Ab2EBTOG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 2 May 2012 15:14:06 -0400
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, mchehab@redhat.com,
-	remi@remlab.net, nbowler@elliptictech.com, james.dutton@gmail.com
-Subject: [RFC v3 1/2] v4l: Do not use enums in IOCTL structs
-Date: Wed,  2 May 2012 22:13:47 +0300
-Message-Id: <1335986028-23618-1-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <20120502191324.GE852@valkosipuli.localdomain>
-References: <20120502191324.GE852@valkosipuli.localdomain>
+Received: from mailout2.samsung.com ([203.254.224.25]:13929 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756428Ab2EJIzd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 May 2012 04:55:33 -0400
+Received: from epcpsbgm2.samsung.com (mailout2.samsung.com [203.254.224.25])
+ by mailout2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0M3S00BJ0U4GU3O0@mailout2.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 10 May 2012 17:55:31 +0900 (KST)
+Received: from AMDN157 ([106.116.48.215])
+ by mmp2.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTPA id <0M3S00HW4U4EI040@mmp2.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 10 May 2012 17:55:31 +0900 (KST)
+From: Kamil Debski <k.debski@samsung.com>
+To: 'Sachin Kamat' <sachin.kamat@linaro.org>,
+	linux-media@vger.kernel.org
+Cc: mchehab@infradead.org, kyungmin.park@samsung.com,
+	patches@linaro.org
+References: <1336631521-24820-1-git-send-email-sachin.kamat@linaro.org>
+In-reply-to: <1336631521-24820-1-git-send-email-sachin.kamat@linaro.org>
+Subject: RE: [PATCH 1/2] [media] s5p-mfc: Fix NULL pointer warnings
+Date: Thu, 10 May 2012 10:55:25 +0200
+Message-id: <017101cd2e8a$a708aaa0$f519ffe0$%debski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-language: en-gb
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Replace enums in IOCTL structs by __u32. The size of enums is variable and
-thus problematic. Compatibility structs having exactly the same as original
-definition are provided for compatibility with old binaries with the
-required conversion code.
+Hi Sachin,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- include/linux/videodev2.h  |   42 +++++-----
- include/media/v4l2-ioctl.h |  209 ++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 230 insertions(+), 21 deletions(-)
+Thanks for the patch.
 
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index fed1d40..ec0928d 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -292,10 +292,10 @@ struct v4l2_pix_format {
- 	__u32         		width;
- 	__u32			height;
- 	__u32			pixelformat;
--	enum v4l2_field  	field;
-+	__u32			field;		/* enum v4l2_field */
- 	__u32            	bytesperline;	/* for padding, zero if unused */
- 	__u32          		sizeimage;
--	enum v4l2_colorspace	colorspace;
-+	__u32			colorspace;	/* enum v4l2_colorspace */
- 	__u32			priv;		/* private data, depends on pixelformat */
- };
- 
-@@ -432,7 +432,7 @@ struct v4l2_pix_format {
-  */
- struct v4l2_fmtdesc {
- 	__u32		    index;             /* Format number      */
--	enum v4l2_buf_type  type;              /* buffer type        */
-+	__u32		    type;	       /* buffer type (enum v4l2_buf_type) */
- 	__u32               flags;
- 	__u8		    description[32];   /* Description string */
- 	__u32		    pixelformat;       /* Format fourcc      */
-@@ -573,8 +573,8 @@ struct v4l2_jpegcompression {
-  */
- struct v4l2_requestbuffers {
- 	__u32			count;
--	enum v4l2_buf_type      type;
--	enum v4l2_memory        memory;
-+	__u32		      type;		/* enum v4l2_buf_type */
-+	__u32		        memory;		/* enum v4l2_memory */
- 	__u32			reserved[2];
- };
- 
-@@ -636,16 +636,16 @@ struct v4l2_plane {
-  */
- struct v4l2_buffer {
- 	__u32			index;
--	enum v4l2_buf_type      type;
-+	__u32			type;		/* enum v4l2_buf_type */
- 	__u32			bytesused;
- 	__u32			flags;
--	enum v4l2_field		field;
-+	__u32			field;		/* enum v4l2_field */
- 	struct timeval		timestamp;
- 	struct v4l2_timecode	timecode;
- 	__u32			sequence;
- 
- 	/* memory location */
--	enum v4l2_memory        memory;
-+	__u32		        memory;		/* enum v4l2_memory */
- 	union {
- 		__u32           offset;
- 		unsigned long   userptr;
-@@ -707,7 +707,7 @@ struct v4l2_clip {
- 
- struct v4l2_window {
- 	struct v4l2_rect        w;
--	enum v4l2_field  	field;
-+	__u32			field;		/* enum v4l2_field */
- 	__u32			chromakey;
- 	struct v4l2_clip	__user *clips;
- 	__u32			clipcount;
-@@ -744,14 +744,14 @@ struct v4l2_outputparm {
-  *	I N P U T   I M A G E   C R O P P I N G
-  */
- struct v4l2_cropcap {
--	enum v4l2_buf_type      type;
-+	__u32			type;		/* enum v4l2_buf_type */
- 	struct v4l2_rect        bounds;
- 	struct v4l2_rect        defrect;
- 	struct v4l2_fract       pixelaspect;
- };
- 
- struct v4l2_crop {
--	enum v4l2_buf_type      type;
-+	__u32			type;		/* enum v4l2_buf_type */
- 	struct v4l2_rect        c;
- };
- 
-@@ -1156,7 +1156,7 @@ enum v4l2_ctrl_type {
- /*  Used in the VIDIOC_QUERYCTRL ioctl for querying controls */
- struct v4l2_queryctrl {
- 	__u32		     id;
--	enum v4l2_ctrl_type  type;
-+	__u32		     type;	/* enum v4l2_ctrl_type */
- 	__u8		     name[32];	/* Whatever */
- 	__s32		     minimum;	/* Note signedness */
- 	__s32		     maximum;
-@@ -1791,7 +1791,7 @@ enum v4l2_jpeg_chroma_subsampling {
- struct v4l2_tuner {
- 	__u32                   index;
- 	__u8			name[32];
--	enum v4l2_tuner_type    type;
-+	__u32			type;		/* enum v4l2_tuner_type */
- 	__u32			capability;
- 	__u32			rangelow;
- 	__u32			rangehigh;
-@@ -1841,14 +1841,14 @@ struct v4l2_modulator {
- 
- struct v4l2_frequency {
- 	__u32		      tuner;
--	enum v4l2_tuner_type  type;
-+	__u32		      type;		/* enum v4l2_tuner_type */
- 	__u32		      frequency;
- 	__u32		      reserved[8];
- };
- 
- struct v4l2_hw_freq_seek {
- 	__u32		      tuner;
--	enum v4l2_tuner_type  type;
-+	__u32		      type;		/* enum v4l2_tuner_type */
- 	__u32		      seek_upward;
- 	__u32		      wrap_around;
- 	__u32		      spacing;
-@@ -2059,7 +2059,7 @@ struct v4l2_sliced_vbi_cap {
- 				 (equals frame lines 313-336 for 625 line video
- 				  standards, 263-286 for 525 line standards) */
- 	__u16   service_lines[2][24];
--	enum v4l2_buf_type type;
-+	__u32	 type;		/* enum v4l2_buf_type */
- 	__u32   reserved[3];    /* must be 0 */
- };
- 
-@@ -2149,8 +2149,8 @@ struct v4l2_pix_format_mplane {
- 	__u32				width;
- 	__u32				height;
- 	__u32				pixelformat;
--	enum v4l2_field			field;
--	enum v4l2_colorspace		colorspace;
-+	__u32				field;		/* enum v4l2_field */
-+	__u32				colorspace;	/* enum v4l2_colorspace */
- 
- 	struct v4l2_plane_pix_format	plane_fmt[VIDEO_MAX_PLANES];
- 	__u8				num_planes;
-@@ -2168,7 +2168,7 @@ struct v4l2_pix_format_mplane {
-  * @raw_data:	placeholder for future extensions and custom formats
-  */
- struct v4l2_format {
--	enum v4l2_buf_type type;
-+	__u32	type;		/* enum v4l2_buf_type */
- 	union {
- 		struct v4l2_pix_format		pix;     /* V4L2_BUF_TYPE_VIDEO_CAPTURE */
- 		struct v4l2_pix_format_mplane	pix_mp;  /* V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE */
-@@ -2182,7 +2182,7 @@ struct v4l2_format {
- /*	Stream type-dependent parameters
-  */
- struct v4l2_streamparm {
--	enum v4l2_buf_type type;
-+	__u32	type;		/* enum v4l2_buf_type */
- 	union {
- 		struct v4l2_captureparm	capture;
- 		struct v4l2_outputparm	output;
-@@ -2302,7 +2302,7 @@ struct v4l2_dbg_chip_ident {
- struct v4l2_create_buffers {
- 	__u32			index;
- 	__u32			count;
--	enum v4l2_memory        memory;
-+	__u32		        memory;		/* enum v4l2_memory */
- 	struct v4l2_format	format;
- 	__u32			reserved[8];
- };
-diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
-index 3cb939c..77018d8 100644
---- a/include/media/v4l2-ioctl.h
-+++ b/include/media/v4l2-ioctl.h
-@@ -333,4 +333,213 @@ extern long video_usercopy(struct file *file, unsigned int cmd,
- extern long video_ioctl2(struct file *file,
- 			unsigned int cmd, unsigned long arg);
- 
-+/*
-+ * Backward-compatible IOCTL's to be used by V4L2 core to work with the
-+ * old ioctl's defined with "enum's" inside the structures
-+ */
-+
-+#ifdef CONFIG_V4L2_COMPAT
-+
-+struct v4l2_pix_format_enum {
-+	__u32			width;
-+	__u32			height;
-+	__u32			pixelformat;
-+	enum v4l2_field		field;
-+	__u32			bytesperline;	/* for padding, zero if unused */
-+	__u32			sizeimage;
-+	enum v4l2_colorspace	colorspace;
-+	__u32			priv;		/* private data, depends on pixelformat */
-+};
-+
-+struct v4l2_fmtdesc_enum {
-+	__u32			index;             /* Format number      */
-+	enum v4l2_buf_type	type;              /* buffer type        */
-+	__u32			flags;
-+	__u8			description[32];   /* Description string */
-+	__u32			pixelformat;       /* Format fourcc      */
-+	__u32			reserved[4];
-+};
-+
-+struct v4l2_requestbuffers_enum {
-+	__u32			count;
-+	enum v4l2_buf_type	type;
-+	enum v4l2_memory	memory;
-+	__u32			reserved[2];
-+};
-+
-+struct v4l2_buffer_enum {
-+	__u32			index;
-+	enum v4l2_buf_type	type;
-+	__u32			bytesused;
-+	__u32			flags;
-+	enum v4l2_field		field;
-+	struct timeval		timestamp;
-+	struct v4l2_timecode	timecode;
-+	__u32			sequence;
-+
-+	/* memory location */
-+	enum v4l2_memory	memory;
-+	union {
-+		__u32		offset;
-+		unsigned long	userptr;
-+		struct v4l2_plane *planes;
-+	} m;
-+	__u32			length;
-+	__u32			reserved2;
-+	__u32			reserved;
-+};
-+
-+struct v4l2_framebuffer_enum {
-+	__u32			capability;
-+	__u32			flags;
-+/* FIXME: in theory we should pass something like PCI device + memory
-+ * region + offset instead of some physical address */
-+	void			*base;
-+	struct v4l2_pix_format_enum fmt;
-+};
-+
-+struct v4l2_window_enum {
-+	struct v4l2_rect	w;
-+	enum v4l2_field		field;
-+	__u32			chromakey;
-+	struct v4l2_clip	__user *clips;
-+	__u32			clipcount;
-+	void			__user *bitmap;
-+	__u8			global_alpha;
-+};
-+
-+struct v4l2_cropcap_enum {
-+	enum v4l2_buf_type	type;
-+	struct v4l2_rect	bounds;
-+	struct v4l2_rect	defrect;
-+	struct v4l2_fract	pixelaspect;
-+};
-+
-+struct v4l2_crop_enum {
-+	enum v4l2_buf_type	type;
-+	struct v4l2_rect	c;
-+};
-+
-+struct v4l2_queryctrl_enum {
-+	__u32			id;
-+	enum v4l2_ctrl_type	type;
-+	__u8			name[32];	/* Whatever */
-+	__s32			minimum;	/* Note signedness */
-+	__s32			maximum;
-+	__s32			step;
-+	__s32			default_value;
-+	__u32			flags;
-+	__u32			reserved[2];
-+};
-+
-+struct v4l2_tuner_enum {
-+	__u32			index;
-+	__u8			name[32];
-+	enum v4l2_tuner_type	type;
-+	__u32			capability;
-+	__u32			rangelow;
-+	__u32			rangehigh;
-+	__u32			rxsubchans;
-+	__u32			audmode;
-+	__s32			signal;
-+	__s32			afc;
-+	__u32			reserved[4];
-+};
-+
-+struct v4l2_frequency_enum {
-+	__u32			tuner;
-+	enum v4l2_tuner_type	type;
-+	__u32			frequency;
-+	__u32			reserved[8];
-+};
-+
-+struct v4l2_hw_freq_seek_enum {
-+	__u32			tuner;
-+	enum v4l2_tuner_type	type;
-+	__u32			seek_upward;
-+	__u32			wrap_around;
-+	__u32			spacing;
-+	__u32			reserved[7];
-+};
-+
-+struct v4l2_sliced_vbi_cap_enum {
-+	__u16	service_set;
-+	/* service_lines[0][...] specifies lines 0-23 (1-23 used) of the first field
-+	   service_lines[1][...] specifies lines 0-23 (1-23 used) of the second field
-+				 (equals frame lines 313-336 for 625 line video
-+				  standards, 263-286 for 525 line standards) */
-+	__u16	service_lines[2][24];
-+	enum v4l2_buf_type type;
-+	__u32	reserved[3];    /* must be 0 */
-+};
-+
-+struct v4l2_pix_format_mplane_enum {
-+	__u32				width;
-+	__u32				height;
-+	__u32				pixelformat;
-+	enum v4l2_field			field;
-+	enum v4l2_colorspace		colorspace;
-+
-+	struct v4l2_plane_pix_format	plane_fmt[VIDEO_MAX_PLANES];
-+	__u8				num_planes;
-+	__u8				reserved[11];
-+} __packed;
-+
-+struct v4l2_format_enum {
-+	enum v4l2_buf_type type;
-+	union {
-+		struct v4l2_pix_format_enum	pix;     /* V4L2_BUF_TYPE_VIDEO_CAPTURE */
-+		struct v4l2_pix_format_mplane_enum	pix_mp;  /* V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE */
-+		struct v4l2_window_enum		win;     /* V4L2_BUF_TYPE_VIDEO_OVERLAY */
-+		struct v4l2_vbi_format		vbi;     /* V4L2_BUF_TYPE_VBI_CAPTURE */
-+		struct v4l2_sliced_vbi_format	sliced;  /* V4L2_BUF_TYPE_SLICED_VBI_CAPTURE */
-+		__u8	raw_data[200];                   /* user-defined */
-+	} fmt;
-+};
-+
-+/*	Stream type-dependent parameters
-+ */
-+struct v4l2_streamparm_enum {
-+	enum v4l2_buf_type type;
-+	union {
-+		struct v4l2_captureparm	capture;
-+		struct v4l2_outputparm	output;
-+		__u8	raw_data[200];  /* user-defined */
-+	} parm;
-+};
-+
-+struct v4l2_create_buffers_enum {
-+	__u32			index;
-+	__u32			count;
-+	enum v4l2_memory	memory;
-+	struct v4l2_format_enum	format;
-+	__u32			reserved[8];
-+};
-+
-+#define VIDIOC_ENUM_FMT_ENUM		_IOWR('V',  2, struct v4l2_fmtdesc_enum)
-+#define VIDIOC_G_FMT_ENUM		_IOWR('V',  4, struct v4l2_format_enum)
-+#define VIDIOC_S_FMT_ENUM		_IOWR('V',  5, struct v4l2_format_enum)
-+#define VIDIOC_REQBUFS_ENUM		_IOWR('V',  8, struct v4l2_requestbuffers_enum)
-+#define VIDIOC_QUERYBUF_ENUM		_IOWR('V',  9, struct v4l2_buffer_enum)
-+#define VIDIOC_G_FBUF_ENUM		_IOR('V', 10, struct v4l2_framebuffer_enum)
-+#define VIDIOC_S_FBUF_ENUM		_IOW('V', 11, struct v4l2_framebuffer_enum)
-+#define VIDIOC_QBUF_ENUM		_IOWR('V', 15, struct v4l2_buffer_enum)
-+#define VIDIOC_DQBUF_ENUM		_IOWR('V', 17, struct v4l2_buffer_enum)
-+#define VIDIOC_G_PARM_ENUM		_IOWR('V', 21, struct v4l2_streamparm_enum)
-+#define VIDIOC_S_PARM_ENUM		_IOWR('V', 22, struct v4l2_streamparm_enum)
-+#define VIDIOC_G_TUNER_ENUM		_IOWR('V', 29, struct v4l2_tuner_enum)
-+#define VIDIOC_S_TUNER_ENUM		_IOW('V', 30, struct v4l2_tuner_enum)
-+#define VIDIOC_QUERYCTRL_ENUM		_IOWR('V', 36, struct v4l2_queryctrl_enum)
-+#define VIDIOC_G_FREQUENCY_ENUM		_IOWR('V', 56, struct v4l2_frequency_enum)
-+#define VIDIOC_S_FREQUENCY_ENUM		_IOW('V', 57, struct v4l2_frequency_enum)
-+#define VIDIOC_CROPCAP_ENUM		_IOWR('V', 58, struct v4l2_cropcap_enum)
-+#define VIDIOC_G_CROP_ENUM		_IOWR('V', 59, struct v4l2_crop_enum)
-+#define VIDIOC_S_CROP_ENUM		_IOW('V', 60, struct v4l2_crop_enum)
-+#define VIDIOC_TRY_FMT_ENUM		_IOWR('V', 64, struct v4l2_format_enum)
-+#define VIDIOC_G_SLICED_VBI_CAP_ENUM	_IOWR('V', 69, struct v4l2_sliced_vbi_cap_enum)
-+#define VIDIOC_S_HW_FREQ_SEEK_ENUM	_IOW('V', 82, struct v4l2_hw_freq_seek_enum)
-+#define VIDIOC_CREATE_BUFS_ENUM		_IOWR('V', 92, struct v4l2_create_buffers_enum)
-+#define VIDIOC_PREPARE_BUF_ENUM		_IOWR('V', 93, struct v4l2_buffer_enum)
-+#endif /* CONFIG_V4L2_COMPAT */
-+
- #endif /* _V4L2_IOCTL_H */
--- 
-1.7.2.5
+Best regards,
+--
+Kamil Debski
+Linux Platform Group
+Samsung Poland R&D Center
+
+> From: Sachin Kamat [mailto:sachin.kamat@linaro.org]
+> Sent: 10 May 2012 08:32
+> 
+> Fixes the following type of warnings detected by sparse:
+> warning: Using plain integer as NULL pointer.
+> 
+> Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+
+Acked-by: Kamil Debski <k.debski@samsung.com>
+
+> ---
+>  drivers/media/video/s5p-mfc/s5p_mfc.c      |   10 +++++-----
+>  drivers/media/video/s5p-mfc/s5p_mfc_ctrl.c |   16 ++++++++--------
+>  drivers/media/video/s5p-mfc/s5p_mfc_opr.c  |   26 +++++++++++++---------
+> ----
+>  3 files changed, 26 insertions(+), 26 deletions(-)
+> 
+> diff --git a/drivers/media/video/s5p-mfc/s5p_mfc.c
+> b/drivers/media/video/s5p-mfc/s5p_mfc.c
+> index 83fe461..ac2dac9 100644
+> --- a/drivers/media/video/s5p-mfc/s5p_mfc.c
+> +++ b/drivers/media/video/s5p-mfc/s5p_mfc.c
+> @@ -373,7 +373,7 @@ static void s5p_mfc_handle_error(struct s5p_mfc_ctx
+> *ctx,
+> 
+>  	/* If no context is available then all necessary
+>  	 * processing has been done. */
+> -	if (ctx == 0)
+> +	if (ctx == NULL)
+>  		return;
+> 
+>  	dev = ctx->dev;
+> @@ -429,7 +429,7 @@ static void s5p_mfc_handle_seq_done(struct
+> s5p_mfc_ctx *ctx,
+>  	struct s5p_mfc_dev *dev;
+>  	unsigned int guard_width, guard_height;
+> 
+> -	if (ctx == 0)
+> +	if (ctx == NULL)
+>  		return;
+>  	dev = ctx->dev;
+>  	if (ctx->c_ops->post_seq_start) {
+> @@ -496,7 +496,7 @@ static void s5p_mfc_handle_init_buffers(struct
+> s5p_mfc_ctx *ctx,
+>  	struct s5p_mfc_dev *dev;
+>  	unsigned long flags;
+> 
+> -	if (ctx == 0)
+> +	if (ctx == NULL)
+>  		return;
+>  	dev = ctx->dev;
+>  	s5p_mfc_clear_int_flags(dev);
+> @@ -772,7 +772,7 @@ err_queue_init:
+>  err_init_hw:
+>  	s5p_mfc_release_firmware(dev);
+>  err_alloc_fw:
+> -	dev->ctx[ctx->num] = 0;
+> +	dev->ctx[ctx->num] = NULL;
+>  	del_timer_sync(&dev->watchdog_timer);
+>  	s5p_mfc_clock_off();
+>  err_pwr_enable:
+> @@ -849,7 +849,7 @@ static int s5p_mfc_release(struct file *file)
+>  	}
+>  	mfc_debug(2, "Shutting down clock\n");
+>  	s5p_mfc_clock_off();
+> -	dev->ctx[ctx->num] = 0;
+> +	dev->ctx[ctx->num] = NULL;
+>  	s5p_mfc_dec_ctrls_delete(ctx);
+>  	v4l2_fh_del(&ctx->fh);
+>  	v4l2_fh_exit(&ctx->fh);
+> diff --git a/drivers/media/video/s5p-mfc/s5p_mfc_ctrl.c
+> b/drivers/media/video/s5p-mfc/s5p_mfc_ctrl.c
+> index f2481a8..08a5cfe 100644
+> --- a/drivers/media/video/s5p-mfc/s5p_mfc_ctrl.c
+> +++ b/drivers/media/video/s5p-mfc/s5p_mfc_ctrl.c
+> @@ -52,7 +52,7 @@ int s5p_mfc_alloc_and_load_firmware(struct s5p_mfc_dev
+> *dev)
+>  	s5p_mfc_bitproc_buf = vb2_dma_contig_memops.alloc(
+>  		dev->alloc_ctx[MFC_BANK1_ALLOC_CTX], dev->fw_size);
+>  	if (IS_ERR(s5p_mfc_bitproc_buf)) {
+> -		s5p_mfc_bitproc_buf = 0;
+> +		s5p_mfc_bitproc_buf = NULL;
+>  		mfc_err("Allocating bitprocessor buffer failed\n");
+>  		release_firmware(fw_blob);
+>  		return -ENOMEM;
+> @@ -63,7 +63,7 @@ int s5p_mfc_alloc_and_load_firmware(struct s5p_mfc_dev
+> *dev)
+>  		mfc_err("The base memory for bank 1 is not aligned to
+> 128KB\n");
+>  		vb2_dma_contig_memops.put(s5p_mfc_bitproc_buf);
+>  		s5p_mfc_bitproc_phys = 0;
+> -		s5p_mfc_bitproc_buf = 0;
+> +		s5p_mfc_bitproc_buf = NULL;
+>  		release_firmware(fw_blob);
+>  		return -EIO;
+>  	}
+> @@ -72,7 +72,7 @@ int s5p_mfc_alloc_and_load_firmware(struct s5p_mfc_dev
+> *dev)
+>  		mfc_err("Bitprocessor memory remap failed\n");
+>  		vb2_dma_contig_memops.put(s5p_mfc_bitproc_buf);
+>  		s5p_mfc_bitproc_phys = 0;
+> -		s5p_mfc_bitproc_buf = 0;
+> +		s5p_mfc_bitproc_buf = NULL;
+>  		release_firmware(fw_blob);
+>  		return -EIO;
+>  	}
+> @@ -82,7 +82,7 @@ int s5p_mfc_alloc_and_load_firmware(struct s5p_mfc_dev
+> *dev)
+>  	if (IS_ERR(b_base)) {
+>  		vb2_dma_contig_memops.put(s5p_mfc_bitproc_buf);
+>  		s5p_mfc_bitproc_phys = 0;
+> -		s5p_mfc_bitproc_buf = 0;
+> +		s5p_mfc_bitproc_buf = NULL;
+>  		mfc_err("Allocating bank2 base failed\n");
+>  	release_firmware(fw_blob);
+>  		return -ENOMEM;
+> @@ -94,7 +94,7 @@ int s5p_mfc_alloc_and_load_firmware(struct s5p_mfc_dev
+> *dev)
+>  		mfc_err("The base memory for bank 2 is not aligned to
+> 128KB\n");
+>  		vb2_dma_contig_memops.put(s5p_mfc_bitproc_buf);
+>  		s5p_mfc_bitproc_phys = 0;
+> -		s5p_mfc_bitproc_buf = 0;
+> +		s5p_mfc_bitproc_buf = NULL;
+>  		release_firmware(fw_blob);
+>  		return -EIO;
+>  	}
+> @@ -126,7 +126,7 @@ int s5p_mfc_reload_firmware(struct s5p_mfc_dev *dev)
+>  		release_firmware(fw_blob);
+>  		return -ENOMEM;
+>  	}
+> -	if (s5p_mfc_bitproc_buf == 0 || s5p_mfc_bitproc_phys == 0) {
+> +	if (s5p_mfc_bitproc_buf == NULL || s5p_mfc_bitproc_phys == 0) {
+>  		mfc_err("MFC firmware is not allocated or was not mapped
+> correctly\n");
+>  		release_firmware(fw_blob);
+>  		return -EINVAL;
+> @@ -146,9 +146,9 @@ int s5p_mfc_release_firmware(struct s5p_mfc_dev *dev)
+>  	if (!s5p_mfc_bitproc_buf)
+>  		return -EINVAL;
+>  	vb2_dma_contig_memops.put(s5p_mfc_bitproc_buf);
+> -	s5p_mfc_bitproc_virt =  0;
+> +	s5p_mfc_bitproc_virt = NULL;
+>  	s5p_mfc_bitproc_phys = 0;
+> -	s5p_mfc_bitproc_buf = 0;
+> +	s5p_mfc_bitproc_buf = NULL;
+>  	return 0;
+>  }
+> 
+> diff --git a/drivers/media/video/s5p-mfc/s5p_mfc_opr.c
+> b/drivers/media/video/s5p-mfc/s5p_mfc_opr.c
+> index e08b21c..a802829 100644
+> --- a/drivers/media/video/s5p-mfc/s5p_mfc_opr.c
+> +++ b/drivers/media/video/s5p-mfc/s5p_mfc_opr.c
+> @@ -43,7 +43,7 @@ int s5p_mfc_alloc_dec_temp_buffers(struct s5p_mfc_ctx
+> *ctx)
+>  	ctx->desc_buf = vb2_dma_contig_memops.alloc(
+>  			dev->alloc_ctx[MFC_BANK1_ALLOC_CTX], DESC_BUF_SIZE);
+>  	if (IS_ERR_VALUE((int)ctx->desc_buf)) {
+> -		ctx->desc_buf = 0;
+> +		ctx->desc_buf = NULL;
+>  		mfc_err("Allocating DESC buffer failed\n");
+>  		return -ENOMEM;
+>  	}
+> @@ -54,7 +54,7 @@ int s5p_mfc_alloc_dec_temp_buffers(struct s5p_mfc_ctx
+> *ctx)
+>  	if (desc_virt == NULL) {
+>  		vb2_dma_contig_memops.put(ctx->desc_buf);
+>  		ctx->desc_phys = 0;
+> -		ctx->desc_buf = 0;
+> +		ctx->desc_buf = NULL;
+>  		mfc_err("Remapping DESC buffer failed\n");
+>  		return -ENOMEM;
+>  	}
+> @@ -69,7 +69,7 @@ void s5p_mfc_release_dec_desc_buffer(struct s5p_mfc_ctx
+> *ctx)
+>  	if (ctx->desc_phys) {
+>  		vb2_dma_contig_memops.put(ctx->desc_buf);
+>  		ctx->desc_phys = 0;
+> -		ctx->desc_buf = 0;
+> +		ctx->desc_buf = NULL;
+>  	}
+>  }
+> 
+> @@ -186,7 +186,7 @@ int s5p_mfc_alloc_codec_buffers(struct s5p_mfc_ctx
+> *ctx)
+>  		ctx->bank1_buf = vb2_dma_contig_memops.alloc(
+>  		dev->alloc_ctx[MFC_BANK1_ALLOC_CTX], ctx->bank1_size);
+>  		if (IS_ERR(ctx->bank1_buf)) {
+> -			ctx->bank1_buf = 0;
+> +			ctx->bank1_buf = NULL;
+>  			printk(KERN_ERR
+>  			       "Buf alloc for decoding failed (port A)\n");
+>  			return -ENOMEM;
+> @@ -200,7 +200,7 @@ int s5p_mfc_alloc_codec_buffers(struct s5p_mfc_ctx
+> *ctx)
+>  		ctx->bank2_buf = vb2_dma_contig_memops.alloc(
+>  		dev->alloc_ctx[MFC_BANK2_ALLOC_CTX], ctx->bank2_size);
+>  		if (IS_ERR(ctx->bank2_buf)) {
+> -			ctx->bank2_buf = 0;
+> +			ctx->bank2_buf = NULL;
+>  			mfc_err("Buf alloc for decoding failed (port B)\n");
+>  			return -ENOMEM;
+>  		}
+> @@ -216,13 +216,13 @@ void s5p_mfc_release_codec_buffers(struct
+> s5p_mfc_ctx *ctx)
+>  {
+>  	if (ctx->bank1_buf) {
+>  		vb2_dma_contig_memops.put(ctx->bank1_buf);
+> -		ctx->bank1_buf = 0;
+> +		ctx->bank1_buf = NULL;
+>  		ctx->bank1_phys = 0;
+>  		ctx->bank1_size = 0;
+>  	}
+>  	if (ctx->bank2_buf) {
+>  		vb2_dma_contig_memops.put(ctx->bank2_buf);
+> -		ctx->bank2_buf = 0;
+> +		ctx->bank2_buf = NULL;
+>  		ctx->bank2_phys = 0;
+>  		ctx->bank2_size = 0;
+>  	}
+> @@ -244,7 +244,7 @@ int s5p_mfc_alloc_instance_buffer(struct s5p_mfc_ctx
+> *ctx)
+>  	if (IS_ERR(ctx->ctx_buf)) {
+>  		mfc_err("Allocating context buffer failed\n");
+>  		ctx->ctx_phys = 0;
+> -		ctx->ctx_buf = 0;
+> +		ctx->ctx_buf = NULL;
+>  		return -ENOMEM;
+>  	}
+>  	ctx->ctx_phys = s5p_mfc_mem_cookie(
+> @@ -256,7 +256,7 @@ int s5p_mfc_alloc_instance_buffer(struct s5p_mfc_ctx
+> *ctx)
+>  		mfc_err("Remapping instance buffer failed\n");
+>  		vb2_dma_contig_memops.put(ctx->ctx_buf);
+>  		ctx->ctx_phys = 0;
+> -		ctx->ctx_buf = 0;
+> +		ctx->ctx_buf = NULL;
+>  		return -ENOMEM;
+>  	}
+>  	/* Zero content of the allocated memory */
+> @@ -265,7 +265,7 @@ int s5p_mfc_alloc_instance_buffer(struct s5p_mfc_ctx
+> *ctx)
+>  	if (s5p_mfc_init_shm(ctx) < 0) {
+>  		vb2_dma_contig_memops.put(ctx->ctx_buf);
+>  		ctx->ctx_phys = 0;
+> -		ctx->ctx_buf = 0;
+> +		ctx->ctx_buf = NULL;
+>  		return -ENOMEM;
+>  	}
+>  	return 0;
+> @@ -277,12 +277,12 @@ void s5p_mfc_release_instance_buffer(struct
+> s5p_mfc_ctx *ctx)
+>  	if (ctx->ctx_buf) {
+>  		vb2_dma_contig_memops.put(ctx->ctx_buf);
+>  		ctx->ctx_phys = 0;
+> -		ctx->ctx_buf = 0;
+> +		ctx->ctx_buf = NULL;
+>  	}
+>  	if (ctx->shm_alloc) {
+>  		vb2_dma_contig_memops.put(ctx->shm_alloc);
+> -		ctx->shm_alloc = 0;
+> -		ctx->shm = 0;
+> +		ctx->shm_alloc = NULL;
+> +		ctx->shm = NULL;
+>  	}
+>  }
+> 
+> --
+> 1.7.4.1
 
