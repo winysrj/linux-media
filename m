@@ -1,65 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:35347 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755180Ab2EWHd0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 May 2012 03:33:26 -0400
-Received: by yhmm54 with SMTP id m54so6241583yhm.19
-        for <linux-media@vger.kernel.org>; Wed, 23 May 2012 00:33:25 -0700 (PDT)
+Received: from mx1.redhat.com ([209.132.183.28]:9952 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751197Ab2EJOUq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 May 2012 10:20:46 -0400
+Message-ID: <4FABCEBA.7080609@redhat.com>
+Date: Thu, 10 May 2012 16:20:42 +0200
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <Pine.LNX.4.64.1205221918150.11851@axis700.grange>
-References: <E1SUH8r-0005cc-3k@www.linuxtv.org>
-	<Pine.LNX.4.64.1205160050270.25352@axis700.grange>
-	<Pine.LNX.4.64.1205221918150.11851@axis700.grange>
-Date: Wed, 23 May 2012 09:33:25 +0200
-Message-ID: <CACKLOr0e7_UXSnq9GwRQx35eaGbZ1mwQMQ7-L8Riprz3rerzcw@mail.gmail.com>
-Subject: Re: [git:v4l-dvb/for_v3.5] [media] media: mx2_camera: Fix mbus format handling
-From: javier Martin <javier.martin@vista-silicon.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Sergio Aguirre <sergio.a.aguirre@gmail.com>
+CC: linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Atsuo Kuwahara <kuwahara@ti.com>
+Subject: Re: Advice on extending libv4l for media controller support
+References: <CAC-OdnBNiT35tc_50QAXvVp8+b5tWLMWqc5i1q3qWYTp5c360g@mail.gmail.com> <CAC-OdnCmXiz1wKST-YAambJFToeqNJhEaMVKYwz_FHV0N+sbyw@mail.gmail.com>
+In-Reply-To: <CAC-OdnCmXiz1wKST-YAambJFToeqNJhEaMVKYwz_FHV0N+sbyw@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi, Mauro,
+Hi,
 
->> Looks like I have missed this patch, unfortunately, it hasn't been cc'ed
->> to me. It would have been better to merge it via my soc-camera tree, also
->> because with this merge window there are a couple more changes, that
->> affect the generic soc-camera API and the mx2-camera driver in particular.
->> So far I don't see anything, what could break here, but if something does
->> - we know who will have to fix it;-)
+I somehow missed the original mail. This is in essence the same problem
+as with the omap3 and Laurent and Sakari and I did a design for that
+in Brussels in the last quarter of 2011, Laurent and Sakari would work
+on fleshing that out, so it is probably best to talk to them about this.
 
-Sorry about that. I usually send patches for mx2-camera to you as well
-but this time I missed it. The fact that your name does not appear
-when executing 'get_mantainer' doesn't help me to remember either.
+Regards,
 
+Hans
+
+
+On 05/10/2012 03:54 PM, Sergio Aguirre wrote:
+> +Atsuo
 >
-> I'm afraid, I get an impression, that your patch breaks support for the
-> pass-through mode in the mx2-camera driver. Where previously not natively
-> supported formats would be just read in by the camera interface without
-> any conversion (see the first entry in the mx27_emma_prp_table[] array),
-> you now return an error in mx2_camera_set_bus_param().
-
-I think you are right. It seems I should provide a default for other
-mbus formats instead of returning an error. It's good you noticed
-because I haven't got any device to test this pass-through mode, so I
-try my best to add new functionallity without breaking it.
-
->If I'm write, I'll ask Mauro to revert your patch. Please correct me if I'm mistaken.
-
-Is this the way to proceed or should I send a fix on top of it? This
-patch is merged in 'for_v3.5', if Mauro reverts it and I send a new
-version,  would it be also merged 'for_v3.5' or should it wait for
-version 3.6?
-
-Regards.
--- 
-Javier Martin
-Vista Silicon S.L.
-CDTUC - FASE C - Oficina S-345
-Avda de los Castros s/n
-39005- Santander. Cantabria. Spain
-+34 942 25 32 60
-www.vista-silicon.com
+> On Wed, May 9, 2012 at 7:08 PM, Sergio Aguirre
+> <sergio.a.aguirre@gmail.com>  wrote:
+>> Hi Hans,
+>>
+>> I'm interested in using libv4l along with my omap4 camera project to
+>> adapt it more easily
+>> to Android CameraHAL, and other applications, to reduce complexity of
+>> them mostly...
+>>
+>> So, but the difference is that, this is a media controller device I'm
+>> trying to add support for,
+>> in which I want to create some sort of plugin with specific media
+>> controller configurations,
+>> to avoid userspace to worry about component names and specific
+>> usecases (use sensor resizer, or SoC ISP resizer, etc.).
+>>
+>> So, I just wanted to know your advice on some things before I start
+>> hacking your library:
+>>
+>> 1. Should it be the right thing to add a new subfolder under "lib/",
+>> named like "libomap4iss-mediactl" or something like that ?
+>> 2. Do you know if anyone is working on something similar for any other
+>> Media Controller device ?
+>>
+>> Thanks in advance for your inputs.
+>>
+>> Regards,
+>> Sergio
