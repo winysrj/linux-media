@@ -1,69 +1,33 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:48656 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751555Ab2EEWPk convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 5 May 2012 18:15:40 -0400
-Received: by obbtb18 with SMTP id tb18so5987773obb.19
-        for <linux-media@vger.kernel.org>; Sat, 05 May 2012 15:15:39 -0700 (PDT)
-MIME-Version: 1.0
-Date: Sun, 6 May 2012 01:15:39 +0300
-Message-ID: <CAAUE0ermCoVR-Q5k+LPoK54takYUdaUvZdZ55MX2X=zZEEmpwA@mail.gmail.com>
-Subject: Initial scan file update for fi-sonera
-From: Mikko Autio <mikko.autio1@gmail.com>
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:2928 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752345Ab2EKHz2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 May 2012 03:55:28 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Cc: Michael Hunold <hunold@linuxtv.org>
+Subject: saa7146 & related drivers clean up
+Date: Fri, 11 May 2012 09:54:54 +0200
+Message-Id: <1336722910-31733-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Update for fi-sonera. Modulation for all channels were changed to
-QAM256 in April 2012.
+This patch series cleans up saa7146, mxb, hexium-orion, hexium-gemini and
+av7110. These drivers now all pass the v4l2-compliance tests.
 
-Source: http://www5.sonera.fi/ohjeet/Kaapeli-TV-taajuudet
+I've tested with all of these cards, the only driver I was unable to test is the
+budget driver as I don't have hardware for it.
 
+All changes only apply to the V4L2 side of these drivers.
 
-Mikko
---
-diff -r 4030c51d6e7b util/scan/dvb-c/fi-sonera
---- a/util/scan/dvb-c/fi-sonera Tue Apr 10 16:44:06 2012 +0200
-+++ b/util/scan/dvb-c/fi-sonera Wed Apr 25 00:33:44 2012 +0300
-@@ -2,22 +2,25 @@
- # Maksuttomat kanavat ovat 162 ja 170 MHz:n muxeissa
- #
- # freq      sr      fec  mod
--C 154000000 6900000 NONE QAM128
--C 162000000 6900000 NONE QAM128
--C 170000000 6900000 NONE QAM128
-+C 154000000 6900000 NONE QAM256
-+C 162000000 6900000 NONE QAM256
-+C 170000000 6900000 NONE QAM256
-+C 178000000 6900000 NONE QAM256
- C 234000000 6900000 NONE QAM256
- C 242000000 6900000 NONE QAM256
- C 250000000 6900000 NONE QAM256
- C 258000000 6900000 NONE QAM256
- C 266000000 6900000 NONE QAM256
--C 314000000 6900000 NONE QAM128
--C 322000000 6900000 NONE QAM128
--C 338000000 6900000 NONE QAM128
--C 346000000 6900000 NONE QAM128
--C 354000000 6900000 NONE QAM128
--C 362000000 6900000 NONE QAM128
--C 370000000 6900000 NONE QAM128
--C 378000000 6900000 NONE QAM128
--C 386000000 6900000 NONE QAM128
--C 394000000 6900000 NONE QAM128
--C 402000000 6900000 NONE QAM128
-+C 274000000 6900000 NONE QAM256
-+C 314000000 6900000 NONE QAM256
-+C 322000000 6900000 NONE QAM256
-+C 330000000 6900000 NONE QAM256
-+C 338000000 6900000 NONE QAM256
-+C 346000000 6900000 NONE QAM256
-+C 354000000 6900000 NONE QAM256
-+C 362000000 6900000 NONE QAM256
-+C 370000000 6900000 NONE QAM256
-+C 378000000 6900000 NONE QAM256
-+C 386000000 6900000 NONE QAM256
-+C 394000000 6900000 NONE QAM256
-+C 402000000 6900000 NONE QAM256
+Two patches relate to vivi: I've extended the number of supported pixelformats.
+This makes it easier to test the various variants.
+
+If someone happens to have a budget card and can run test-compliance for it,
+then I'd appreciate this.
+
+Regards,
+
+	Hans
+
