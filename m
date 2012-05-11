@@ -1,8 +1,8 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.telros.ru ([83.136.244.21]:53283 "EHLO mail.telros.ru"
+Received: from mail.telros.ru ([83.136.244.21]:57394 "EHLO mail.telros.ru"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753018Ab2EKGSy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 May 2012 02:18:54 -0400
+	id S1755331Ab2EKGH2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 May 2012 02:07:28 -0400
 From: volokh84@gmail.com
 To: mchehab@infradead.org
 Cc: gregkh@linuxfoundation.org, dhowells@redhat.com,
@@ -10,8 +10,8 @@ Cc: gregkh@linuxfoundation.org, dhowells@redhat.com,
 	pradheep.sh@gmail.com, linux-media@vger.kernel.org,
 	linux-kernel@vger.kernel.org, Volokh Konstantin <my84@bk.ru>
 Subject: [PATCH] staging: media: go7007: Adlink MPG24 board issues
-Date: Fri, 11 May 2012 10:18:37 +0400
-Message-Id: <1336717117-13964-1-git-send-email-volokh84@gmail.com>
+Date: Fri, 11 May 2012 09:43:00 +0400
+Message-Id: <1336714980-13460-1-git-send-email-volokh84@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
