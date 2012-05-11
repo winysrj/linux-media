@@ -1,23 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-out.abv.bg ([194.153.145.99]:51087 "EHLO smtp-out.abv.bg"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757194Ab2EGSTz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 7 May 2012 14:19:55 -0400
-Received: from nm23.abv.bg (nm23.ni.bg [192.168.151.172])
-	by smtp-out.abv.bg (Postfix) with ESMTP id 4424F14EDB3
-	for <linux-media@vger.kernel.org>; Mon,  7 May 2012 21:10:07 +0300 (EEST)
-Received: from nm23.abv.bg (localhost.localdomain [127.0.0.1])
-	by nm23.abv.bg (Postfix) with ESMTP id B6257239D4C
-	for <linux-media@vger.kernel.org>; Mon,  7 May 2012 21:10:06 +0300 (EEST)
-Date: Mon, 7 May 2012 21:10:06 +0300 (EEST)
-From: "N. D." <named2@abv.bg>
-To: linux-media@vger.kernel.org
-Message-ID: <370939420.27387.1336414206737.JavaMail.apache@nm23.abv.bg>
-Subject: tt3200 and fec=5/6
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:55204 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1946251Ab2EKWHi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 May 2012 18:07:38 -0400
+Received: by obbtb18 with SMTP id tb18so3805624obb.19
+        for <linux-media@vger.kernel.org>; Fri, 11 May 2012 15:07:38 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <20120511170625.GB16306@VPir.telros.lan>
+References: <1336714980-13460-1-git-send-email-volokh84@gmail.com>
+	<4FAD1FAD.4020508@gmail.com>
+	<20120511164907.GA16306@VPir.telros.lan>
+	<CALF0-+Xc6cA9Myt05yWCFFnYMuynTQO8NNs5JEcD7Gc8bMw2WA@mail.gmail.com>
+	<20120511170625.GB16306@VPir.telros.lan>
+Date: Fri, 11 May 2012 19:07:38 -0300
+Message-ID: <CALF0-+WG8aCSh0Kfxy65nQ=OOnE1xUSTKQv7APofOuOC97ez8A@mail.gmail.com>
+Subject: Re: [PATCH] staging: media: go7007: Adlink MPG24 board issues
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: volokh@telros.ru
+Cc: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi, I have a tt3200 and I am currently using stock 3.3.2 drivers. However I have trouble with a particular transponder on Astra23.5E, namely 11817 V27500 5/6 8PSK. Achieving a stable lock on the said transponder is virtually impossible for me. I have googled around and seen some infos that the tt3200 is not able to lock with FEC 5/6. Could someone confirm this? Or is there some patch to remedy this situation?
+On Fri, May 11, 2012 at 2:06 PM,  <volokh@telros.ru> wrote:
+>>
+>> One question... shouldn't this changeset be splitted into shorter patches?
+>>
+>
+> Yes, should it.
+> In next iteration i`ll learn how to do that.
+
+As a git newbie I've found very useful to work like this:
+
+1. Always work on a branch that's different from master
+that way you can always do
+
+git-rebase --interactive master
+
+and quickly review your commits or even rewrite them.
+
+2. If unsure on changeset, add files interactively
+to stage area (aka the index) with
+
+git-add --patch
+
+3. Once you've commit a few stuff, you can simply
+turn them into patches with
+
+git-format-patch master.
+
+This way it's very easy to split a change into patches.
+And with git rebase it's very easy to review and clean
+commits, to get a cleaner set of patches to keep
+maintainers happy.
+
+Just my two cents,
+Hope it helps,
+Ezequiel.
