@@ -1,65 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:55179 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752501Ab2EYRjQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 May 2012 13:39:16 -0400
-Received: by pbbrp8 with SMTP id rp8so2035056pbb.19
-        for <linux-media@vger.kernel.org>; Fri, 25 May 2012 10:39:15 -0700 (PDT)
-From: Sachin Kamat <sachin.kamat@linaro.org>
+Received: from smtp207.alice.it ([82.57.200.103]:49536 "EHLO smtp207.alice.it"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1760671Ab2EKPB3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 May 2012 11:01:29 -0400
+Date: Fri, 11 May 2012 17:01:24 +0200
+From: Antonio Ospite <ospite@studenti.unina.it>
 To: linux-media@vger.kernel.org
-Cc: s.nawrocki@samsung.com, mchehab@infradead.org,
-	sachin.kamat@linaro.org, patches@linaro.org
-Subject: [PATCH 2/4] [media] s5p-fimc: Add missing static storage class in fimc-mdevice.c file
-Date: Fri, 25 May 2012 23:08:51 +0530
-Message-Id: <1337967533-22240-2-git-send-email-sachin.kamat@linaro.org>
-In-Reply-To: <1337967533-22240-1-git-send-email-sachin.kamat@linaro.org>
-References: <1337967533-22240-1-git-send-email-sachin.kamat@linaro.org>
+Cc: Antonio Ospite <ospite@studenti.unina.it>,
+	Jean-Francois Moine <moinejf@free.fr>,
+	linux-input@vger.kernel.org,
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Hans de Goede <hdegoede@redhat.com>
+Subject: Re: [PATCH v2 0/3] gspca - ov534: saturation and hue (using
+ fixp-arith.h)
+Message-Id: <20120511170124.5d6f2726c62dd67423f29a72@studenti.unina.it>
+In-Reply-To: <1336299298-17517-1-git-send-email-ospite@studenti.unina.it>
+References: <20120505102614.31395c2979f0b7aac0c8a107@studenti.unina.it>
+	<1336299298-17517-1-git-send-email-ospite@studenti.unina.it>
+Mime-Version: 1.0
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+ micalg="PGP-SHA1";
+ boundary="Signature=_Fri__11_May_2012_17_01_24_+0200_KE4lbiThZL9QMWOC"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fixes the following sparse warnings:
-drivers/media/video/s5p-fimc/fimc-mdevice.c:183:5: warning: symbol '__fimc_pipeline_shutdown' was not declared. Should it be static?
-drivers/media/video/s5p-fimc/fimc-mdevice.c:1013:12: warning: symbol 'fimc_md_init' was not declared. Should it be static?
-drivers/media/video/s5p-fimc/fimc-mdevice.c:1024:13: warning: symbol 'fimc_md_exit' was not declared. Should it be static?
+--Signature=_Fri__11_May_2012_17_01_24_+0200_KE4lbiThZL9QMWOC
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
----
- drivers/media/video/s5p-fimc/fimc-mdevice.c |    7 ++++---
- 1 files changed, 4 insertions(+), 3 deletions(-)
+On Sun,  6 May 2012 12:14:55 +0200
+Antonio Ospite <ospite@studenti.unina.it> wrote:
 
-diff --git a/drivers/media/video/s5p-fimc/fimc-mdevice.c b/drivers/media/video/s5p-fimc/fimc-mdevice.c
-index 52cef48..e65bb28 100644
---- a/drivers/media/video/s5p-fimc/fimc-mdevice.c
-+++ b/drivers/media/video/s5p-fimc/fimc-mdevice.c
-@@ -180,7 +180,7 @@ EXPORT_SYMBOL_GPL(fimc_pipeline_initialize);
-  * sensor clock.
-  * Called with the graph mutex held.
-  */
--int __fimc_pipeline_shutdown(struct fimc_pipeline *p)
-+static int __fimc_pipeline_shutdown(struct fimc_pipeline *p)
- {
- 	int ret = 0;
- 
-@@ -1010,7 +1010,7 @@ static struct platform_driver fimc_md_driver = {
- 	}
- };
- 
--int __init fimc_md_init(void)
-+static int __init fimc_md_init(void)
- {
- 	int ret;
- 
-@@ -1021,7 +1021,8 @@ int __init fimc_md_init(void)
- 
- 	return platform_driver_register(&fimc_md_driver);
- }
--void __exit fimc_md_exit(void)
-+
-+static void __exit fimc_md_exit(void)
- {
- 	platform_driver_unregister(&fimc_md_driver);
- 	fimc_unregister_driver();
--- 
-1.7.5.4
+> Hi,
+>=20
+> I am sending a second version of this patchset, changes since version 1 a=
+re
+> annotated per-patch.
+>=20
+> Just FYI I intend to work on porting ov534 to v4l2 framework too once the=
+se
+> ones go in and the gspca core changes about that settle a bit.
+>=20
+> Thanks,
+>    Antonio
+>
 
+Ping.
+
+Added HdG to CC.
+
+Dmitry agreed to carry the small drivers/input changes through the media
+tree.
+
+> Antonio Ospite (3):
+>   gspca - ov534: Add Saturation control
+>   Input: move drivers/input/fixp-arith.h to include/linux
+>   gspca - ov534: Add Hue control
+>=20
+>  drivers/input/ff-memless.c        |    3 +-
+>  drivers/input/fixp-arith.h        |   87 ----------------------
+>  drivers/media/video/gspca/ov534.c |  146 +++++++++++++++++++++++++++----=
+------
+>  include/linux/fixp-arith.h        |   87 ++++++++++++++++++++++
+>  4 files changed, 195 insertions(+), 128 deletions(-)
+>  delete mode 100644 drivers/input/fixp-arith.h
+>  create mode 100644 include/linux/fixp-arith.h
+>=20
+
+--=20
+Antonio Ospite
+http://ao2.it
+
+A: Because it messes up the order in which people normally read text.
+   See http://en.wikipedia.org/wiki/Posting_style
+Q: Why is top-posting such a bad thing?
+
+--Signature=_Fri__11_May_2012_17_01_24_+0200_KE4lbiThZL9QMWOC
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iEYEARECAAYFAk+tKcQACgkQ5xr2akVTsAEv9gCgmb1Fh1jB6MHHhtkNjr+kEne9
+1DwAoKBJH2DvZqVR64CSgrd4KaMidxNR
+=Al57
+-----END PGP SIGNATURE-----
+
+--Signature=_Fri__11_May_2012_17_01_24_+0200_KE4lbiThZL9QMWOC--
