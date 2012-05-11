@@ -1,93 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f172.google.com ([209.85.212.172]:36776 "EHLO
-	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1762233Ab2EQSAY (ORCPT
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:55126 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752397Ab2EKGPc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 May 2012 14:00:24 -0400
-Received: by wibhj8 with SMTP id hj8so5312568wib.1
-        for <linux-media@vger.kernel.org>; Thu, 17 May 2012 11:00:22 -0700 (PDT)
-From: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
+	Fri, 11 May 2012 02:15:32 -0400
+Received: by pbbrp8 with SMTP id rp8so2872245pbb.19
+        for <linux-media@vger.kernel.org>; Thu, 10 May 2012 23:15:32 -0700 (PDT)
+From: Ismael Luceno <ismael.luceno@gmail.com>
 To: linux-media@vger.kernel.org
-Cc: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
-Subject: [PATCH 1/2] dvb_cmd_name function
-Date: Thu, 17 May 2012 19:59:41 +0200
-Message-Id: <1337277582-14128-1-git-send-email-neolynx@gmail.com>
+Cc: Ismael Luceno <ismael.luceno@gmail.com>
+Subject: [PATCH 1/2] au0828: Add USB ID used by many dongles
+Date: Fri, 11 May 2012 03:14:51 -0300
+Message-Id: <1336716892-5446-1-git-send-email-ismael.luceno@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
----
- lib/include/dvb-fe.h  |    1 +
- lib/libdvbv5/dvb-fe.c |   21 +++++++++++++++------
- 2 files changed, 16 insertions(+), 6 deletions(-)
+Tested with Yfeng 680 ATV dongle.
 
-diff --git a/lib/include/dvb-fe.h b/lib/include/dvb-fe.h
-index 872a558..b4c5279 100644
---- a/lib/include/dvb-fe.h
-+++ b/lib/include/dvb-fe.h
-@@ -108,6 +108,7 @@ int dvb_set_sys(struct dvb_v5_fe_parms *parms,
- 		   fe_delivery_system_t sys);
- int dvb_set_compat_delivery_system(struct dvb_v5_fe_parms *parms,
- 				   uint32_t desired_system);
-+const char *dvb_cmd_name(int cmd);
- void dvb_fe_prt_parms(FILE *fp, const struct dvb_v5_fe_parms *parms);
- int dvb_fe_set_parms(struct dvb_v5_fe_parms *parms);
- int dvb_fe_get_parms(struct dvb_v5_fe_parms *parms);
-diff --git a/lib/libdvbv5/dvb-fe.c b/lib/libdvbv5/dvb-fe.c
-index 1fa4ef5..4f7a217 100644
---- a/lib/libdvbv5/dvb-fe.c
-+++ b/lib/libdvbv5/dvb-fe.c
-@@ -380,6 +380,15 @@ int dvb_set_compat_delivery_system(struct dvb_v5_fe_parms *parms,
- 	return 0;
- }
- 
-+const char *dvb_cmd_name(int cmd)
-+{
-+  if (cmd < DTV_USER_COMMAND_START)
-+    return dvb_v5_name[cmd];
-+  else if (cmd <= DTV_MAX_USER_COMMAND)
-+    return dvb_user_name[cmd - DTV_USER_COMMAND_START];
-+  return NULL;
-+}
-+
- void dvb_fe_prt_parms(FILE *fp, const struct dvb_v5_fe_parms *parms)
- {
- 	int i;
-@@ -398,11 +407,11 @@ void dvb_fe_prt_parms(FILE *fp, const struct dvb_v5_fe_parms *parms)
- 
- 		if (!attr_name || !*attr_name)
- 			fprintf(fp, "%s = %u\n",
--				dvb_v5_name[parms->dvb_prop[i].cmd],
-+				dvb_cmd_name(parms->dvb_prop[i].cmd),
- 				parms->dvb_prop[i].u.data);
- 		else
- 			fprintf(fp, "%s = %s\n",
--				dvb_v5_name[parms->dvb_prop[i].cmd],
-+				dvb_cmd_name(parms->dvb_prop[i].cmd),
- 				*attr_name);
- 	}
- };
-@@ -417,8 +426,8 @@ int dvb_fe_retrieve_parm(struct dvb_v5_fe_parms *parms,
- 		*value = parms->dvb_prop[i].u.data;
- 		return 0;
- 	}
--	fprintf(stderr, "%s (%d) command not found during retrieve\n",
--		dvb_v5_name[cmd], cmd);
-+	fprintf(stderr, "command %s (%d) not found during retrieve\n",
-+		dvb_cmd_name(cmd), cmd);
- 
- 	return EINVAL;
- }
-@@ -433,8 +442,8 @@ int dvb_fe_store_parm(struct dvb_v5_fe_parms *parms,
- 		parms->dvb_prop[i].u.data = value;
- 		return 0;
- 	}
--	fprintf(stderr, "%s (%d) command not found during store\n",
--		dvb_v5_name[cmd], cmd);
-+	fprintf(stderr, "command %s (%d) not found during store\n",
-+		dvb_cmd_name(cmd), cmd);
- 
- 	return EINVAL;
- }
+Signed-off-by: Ismael Luceno <ismael.luceno@gmail.com>
+---
+ drivers/media/video/au0828/au0828-cards.c |    2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/drivers/media/video/au0828/au0828-cards.c b/drivers/media/video/au0828/au0828-cards.c
+index 1c6015a..e3fe9a6 100644
+--- a/drivers/media/video/au0828/au0828-cards.c
++++ b/drivers/media/video/au0828/au0828-cards.c
+@@ -325,6 +325,8 @@ struct usb_device_id au0828_usb_id_table[] = {
+ 		.driver_info = AU0828_BOARD_HAUPPAUGE_HVR950Q_MXL },
+ 	{ USB_DEVICE(0x2040, 0x7281),
+ 		.driver_info = AU0828_BOARD_HAUPPAUGE_HVR950Q_MXL },
++	{ USB_DEVICE(0x05e1, 0x0480),
++		.driver_info = AU0828_BOARD_HAUPPAUGE_WOODBURY },
+ 	{ USB_DEVICE(0x2040, 0x8200),
+ 		.driver_info = AU0828_BOARD_HAUPPAUGE_WOODBURY },
+ 	{ USB_DEVICE(0x2040, 0x7260),
 -- 
-1.7.2.5
+1.7.10
 
