@@ -1,42 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:55637 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1757204Ab2EGPF1 (ORCPT
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:53654 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756006Ab2EKQvl convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 7 May 2012 11:05:27 -0400
-Date: Mon, 7 May 2012 18:05:22 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Cc: linux-media@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: Re: [PATCH v5 01/12] V4L: Add helper function for standard integer
- menu controls
-Message-ID: <20120507150522.GK852@valkosipuli.localdomain>
-References: <4FA64EAB.20600@iki.fi>
- <1336330263-13802-1-git-send-email-s.nawrocki@samsung.com>
+	Fri, 11 May 2012 12:51:41 -0400
+Received: by obbtb18 with SMTP id tb18so3475105obb.19
+        for <linux-media@vger.kernel.org>; Fri, 11 May 2012 09:51:40 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1336330263-13802-1-git-send-email-s.nawrocki@samsung.com>
+In-Reply-To: <20120511164907.GA16306@VPir.telros.lan>
+References: <1336714980-13460-1-git-send-email-volokh84@gmail.com>
+	<4FAD1FAD.4020508@gmail.com>
+	<20120511164907.GA16306@VPir.telros.lan>
+Date: Fri, 11 May 2012 13:51:40 -0300
+Message-ID: <CALF0-+Xc6cA9Myt05yWCFFnYMuynTQO8NNs5JEcD7Gc8bMw2WA@mail.gmail.com>
+Subject: Re: [PATCH] staging: media: go7007: Adlink MPG24 board issues
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: volokh@telros.ru
+Cc: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+Hi,
 
-On Sun, May 06, 2012 at 08:51:03PM +0200, Sylwester Nawrocki wrote:
-> This patch adds v4l2_ctrl_new_int_menu() helper function which can be used
-> in drivers for creating standard integer menu control with driver-specific
-> menu item list. It is similar to v4l2_ctrl_new_std_menu(), except it doesn't
-> have a mask parameter and an additional qmenu parameter allows passing
-> an array of signed 64-bit integers as the menu item list.
-> 
-> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Another one here, hope you don't mind ;)
 
-Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
-Tested-by: Sakari Ailus <sakari.ailus@iki.fi>
+>
+>> This is minimal changes needed for start up go7007&wis2804 to work correctly
+>>    in 3.4 branch
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+^^^^^^^^^^^^^^^
+These are minimal changes.....
+
+---
+
+One question... shouldn't this changeset be splitted into shorter patches?
+
+Good luck!
+Ezequiel.
