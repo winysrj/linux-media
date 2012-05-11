@@ -1,54 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:3288 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756122Ab2EJHFa (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 May 2012 03:05:30 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from plane.gmane.org ([80.91.229.3]:60484 "EHLO plane.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755524Ab2EKTyR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 May 2012 15:54:17 -0400
+Received: from list by plane.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1SSvuq-0007GF-8p
+	for linux-media@vger.kernel.org; Fri, 11 May 2012 21:54:16 +0200
+Received: from 89-69-21-174.dynamic.chello.pl ([89.69.21.174])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Fri, 11 May 2012 21:54:16 +0200
+Received: from arekm by 89-69-21-174.dynamic.chello.pl with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Fri, 11 May 2012 21:54:16 +0200
 To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv1 PATCH 3/5] tea575x-tuner: mark VIDIOC_S_HW_FREQ_SEEK as an invalid ioctl.
-Date: Thu, 10 May 2012 09:05:12 +0200
-Message-Id: <c1bd86921cf9aba29d8edfc30712e9d39fb3dd87.1336632433.git.hans.verkuil@cisco.com>
-In-Reply-To: <1336633514-4972-1-git-send-email-hverkuil@xs4all.nl>
-References: <1336633514-4972-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <0f97ebe03ff17602c7a62e8a6a16414f1f897270.1336632433.git.hans.verkuil@cisco.com>
-References: <0f97ebe03ff17602c7a62e8a6a16414f1f897270.1336632433.git.hans.verkuil@cisco.com>
+From: Arkadiusz =?ISO-8859-2?Q?Mi=B6kiewicz?= <arekm@maven.pl>
+Subject: Re: IT9135 on kernel 3.3.4 and frequent firmware loading problems
+Date: Fri, 11 May 2012 21:54:06 +0200
+Message-ID: <jojqou$sj2$1@dough.gmane.org>
+References: <jojps1$mei$1@dough.gmane.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-2"
+Content-Transfer-Encoding: 8Bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Arkadiusz Mi¶kiewicz wrote:
 
-The tea575x-tuner framework can support the VIDIOC_S_HW_FREQ_SEEK for only
-some of the tea575x-based boards. Mark this ioctl as invalid if the board
-doesn't support it.
+> 
+> Hello.
+> 
+> I'm trying to use it9135 v1 device on 3.3.4 kernel.
+> 
+> Unfortunately most of the time there are problems with loading firmware
+> (udev 182).
+> 
+> Firmware file is there:
+> -rw-r--r-- 1 root root 8128 05-03 21:31 /lib/firmware/dvb-usb-it9135-01.fw
+> 
+> In most cases dmesg log below shows what happens. Sometimes udev also
+> logs:
+> 
+> May 11 21:33:23 serarm udevd[13078]: error: can not open
+> '/sys/devices/pci0000:00/0000:00:13.2/usb2/2-1/firmware/2-1/loading'
+> 
+> Rarely it succeeds. Both logs below. Any ideas/patches to test?
 
-This fixes an issue with S_HW_FREQ_SEEK in combination with priority handling:
-since the priority check is done first it could return -EBUSY, even though
-calling the S_HW_FREQ_SEEK ioctl would return -ENOTTY. It should always return
-ENOTTY in such a case.
+Just figured out that after reloading dvb_usb_it913x and it913x_fe things 
+started to work! Not sure if reloading both drivers was required - I 
+reloaded both and noticed.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- sound/i2c/other/tea575x-tuner.c |    3 +++
- 1 file changed, 3 insertions(+)
+[691819.504534] usb 2-1: USB disconnect, device number 9
+[691819.730964] usb 2-1: new high-speed USB device number 10 using ehci_hcd
+[691819.862773] usb 2-1: New USB device found, idVendor=048d, idProduct=9005
+[691819.862788] usb 2-1: New USB device strings: Mfr=1, Product=0, 
+SerialNumber=3
+[691819.862797] usb 2-1: Manufacturer: ITE Technologies, Inc.
+[691819.862804] usb 2-1: SerialNumber: AF0102020700001
+[691819.866632] it913x: Chip Version=01 Chip Type=9135
+[691819.874190] it913x: Dual mode=0 Remote=5 Tuner Type=0
+[691819.875804] dvb-usb: found a 'ITE 9135(9005) Generic' in cold state, 
+will try to load a firmware
+[691880.304615] dvb-usb: did not find the firmware file. (dvb-usb-
+it9135-01.fw) Please see linux/Documentation/dvb/ for more details on 
+firmware-problems. (-2)
+[691880.304623] it913x: DEV it913x Error
+[692002.417084] usbcore: deregistering interface driver it913x
+[692014.227789] it913x: Chip Version=00 Chip Type=0000
+[692014.229766] it913x: Dual mode=0 Remote=5 Tuner Type=0
+[692014.230972] dvb-usb: found a 'ITE 9135(9005) Generic' in cold state, 
+will try to load a firmware
+[692014.250426] dvb-usb: downloading firmware from file 'dvb-usb-
+it9135-01.fw'
+[692014.252269] it913x: FRM Starting Firmware Download
+[692014.784323] it913x: FRM Firmware Download Completed - Resetting Device
+[692014.784985] it913x: Chip Version=01 Chip Type=9135
+[692014.785484] it913x: Firmware Version 204869120
+[692014.819723] dvb-usb: found a 'ITE 9135(9005) Generic' in warm state.
+[692014.819854] dvb-usb: will use the device's hardware PID filter (table 
+count: 31).
+[692014.820254] DVB: registering new adapter (ITE 9135(9005) Generic)
+[692014.825878] it913x-fe: ADF table value      :00
+[692014.830000] it913x-fe: Crystal Frequency :12000000 Adc Frequency 
+:20250000 ADC X2: 01
+[692014.879249] it913x-fe: Tuner LNA type :38
+[692014.938472] DVB: registering adapter 0 frontend 0 (ITE 9135(9005) 
+Generic_1)...
+[692014.938968] Registered IR keymap rc-msi-digivox-iii
+[692014.939210] input: IR-receiver inside an USB DVB receiver as 
+/devices/pci0000:00/0000:00:13.2/usb2/2-1/rc/rc2/input14
+[692014.941686] rc2: IR-receiver inside an USB DVB receiver as 
+/devices/pci0000:00/0000:00:13.2/usb2/2-1/rc/rc2
+[692014.941702] dvb-usb: schedule remote query interval to 250 msecs.
+[692014.941714] dvb-usb: ITE 9135(9005) Generic successfully initialized and 
+connected.
+[692014.941721] it913x: DEV registering device driver
+[692014.941814] usbcore: registered new interface driver it913x
 
-diff --git a/sound/i2c/other/tea575x-tuner.c b/sound/i2c/other/tea575x-tuner.c
-index a63faec..6e9ca7b 100644
---- a/sound/i2c/other/tea575x-tuner.c
-+++ b/sound/i2c/other/tea575x-tuner.c
-@@ -375,6 +375,9 @@ int snd_tea575x_init(struct snd_tea575x *tea)
- 	tea->vd.v4l2_dev = tea->v4l2_dev;
- 	tea->vd.ctrl_handler = &tea->ctrl_handler;
- 	set_bit(V4L2_FL_USE_FH_PRIO, &tea->vd.flags);
-+	/* disable hw_freq_seek if we can't use it */
-+	if (tea->cannot_read_data)
-+		v4l2_dont_use_cmd(&tea->vd, VIDIOC_S_HW_FREQ_SEEK);
- 
- 	v4l2_ctrl_handler_init(&tea->ctrl_handler, 1);
- 	v4l2_ctrl_new_std(&tea->ctrl_handler, &tea575x_ctrl_ops, V4L2_CID_AUDIO_MUTE, 0, 1, 1, 1);
 -- 
-1.7.10
+Arkadiusz Mi¶kiewicz        PLD/Linux Team
+arekm / maven.pl            http://ftp.pld-linux.org/
 
