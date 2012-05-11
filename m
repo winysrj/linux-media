@@ -1,82 +1,27 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:46204 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756004Ab2EWIQj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 May 2012 04:16:39 -0400
-Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q4N8GdZf018152
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Wed, 23 May 2012 04:16:39 -0400
-Received: from shalem.localdomain (vpn1-4-108.ams2.redhat.com [10.36.4.108])
-	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id q4N8Gb6C004973
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Wed, 23 May 2012 04:16:38 -0400
-Message-ID: <4FBC9CEB.5050604@redhat.com>
-Date: Wed, 23 May 2012 10:16:43 +0200
-From: Hans de Goede <hdegoede@redhat.com>
+Received: from mail.vvsu.ru ([217.74.113.15]:50627 "EHLO vvsu.ru"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751838Ab2ELJji (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 12 May 2012 05:39:38 -0400
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [GIT PULL FIXES FOR 3.5]: gspca & radio fixes (updated)
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=UTF-8;
+ format=flowed
 Content-Transfer-Encoding: 7bit
+Date: Fri, 11 May 2012 20:36:44 +0200
+From: WONG HUI <wongwong@postino.net>
+To: undisclosed-recipients:;
+Reply-To: <wonghui23@postino.net>
+Message-ID: <b28208be05c5984bd1567008dd0a94cf@vvsu.ru>
+Subject: BUSINESS PROPOSAL!!
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro et al,
 
-<This is an updated version of this pull request, including a
-regression fix in the gspca core>
 
-Here is a bunch of fixes for gspca and a couple of fixes for
-good old radio support :)
-
-The following changes since commit abed623ca59a7d1abed6c4e7459be03e25a90a1e:
-
-   [media] radio-sf16fmi: add support for SF16-FMD (2012-05-20 16:10:05 -0300)
-
-are available in the git repository at:
-
-   git://linuxtv.org/hgoede/gspca.git media-for_v3.5
-
-for you to fetch changes up to 49f3b5b2fb39a045e5742ed4a0b4b706c98c244b:
-
-   gspca-core: Fix buffers staying in queued state after a stream_off (2012-05-23 10:09:24 +0200)
-
-----------------------------------------------------------------
-Antonio Ospite (1):
-       gspca_ov534: make AGC and AWB controls independent
-
-Hans de Goede (10):
-       radio/si470x: Add support for the Axentia ALERT FM USB Receiver
-       snd_tea575x: Report correct frequency range for EU/US versus JA models
-       snd_tea575x: Make the module using snd_tea575x the fops owner
-       snd_tea575x: set_freq: update cached freq to the actual achieved frequency
-       bttv: Use btv->has_radio rather then the card info when registering the tuner
-       bttv: Remove unused needs_tvaudio card variable
-       bttv: The Hauppauge 61334 needs the msp3410 to do radio demodulation
-       gspca_pac7311: Correct number of controls
-       gscpa_sn9c20x: Move clustering of controls to after error checking
-       gspca-core: Fix buffers staying in queued state after a stream_off
-
-  drivers/hid/hid-core.c                        |    1 +
-  drivers/hid/hid-ids.h                         |    3 +
-  drivers/media/radio/radio-maxiradio.c         |    2 +-
-  drivers/media/radio/radio-sf16fmr2.c          |    2 +-
-  drivers/media/radio/si470x/radio-si470x-usb.c |    2 +
-  drivers/media/video/bt8xx/bttv-cards.c        |   84 ++-----------------------
-  drivers/media/video/bt8xx/bttv-driver.c       |    5 ++
-  drivers/media/video/bt8xx/bttv.h              |    1 -
-  drivers/media/video/bt8xx/bttvp.h             |    1 +
-  drivers/media/video/gspca/gspca.c             |    4 +-
-  drivers/media/video/gspca/ov534.c             |   31 +--------
-  drivers/media/video/gspca/pac7311.c           |    2 +-
-  drivers/media/video/gspca/sn9c20x.c           |   24 ++++---
-  include/sound/tea575x-tuner.h                 |    3 +-
-  sound/i2c/other/tea575x-tuner.c               |   21 ++++---
-  sound/pci/es1968.c                            |    2 +-
-  sound/pci/fm801.c                             |    4 +-
-  17 files changed, 59 insertions(+), 133 deletions(-)
-
-Regards,
-
-Hans
+-- 
+  Please I would like you to keep this proposal as a top secret and 
+delete it if you are not interested and get back to me if you are 
+interested for details as regards to the transfer of $24,500,000 to you 
+from my bank where I am the bank director here in Hong Kong.
+Yours Truly,
+Wong Hui.
