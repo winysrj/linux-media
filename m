@@ -1,38 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f172.google.com ([209.85.212.172]:57005 "EHLO
-	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752265Ab2EMMSS (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:53489 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760012Ab2EKNz6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 May 2012 08:18:18 -0400
-Received: by wibhj8 with SMTP id hj8so837366wib.1
-        for <linux-media@vger.kernel.org>; Sun, 13 May 2012 05:18:17 -0700 (PDT)
-From: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
+	Fri, 11 May 2012 09:55:58 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
-Subject: [PATCH 5/8] added m4 directory to gitignore
-Date: Sun, 13 May 2012 14:17:27 +0200
-Message-Id: <1336911450-23661-5-git-send-email-neolynx@gmail.com>
-In-Reply-To: <1336911450-23661-1-git-send-email-neolynx@gmail.com>
-References: <1336911450-23661-1-git-send-email-neolynx@gmail.com>
+Cc: hdegoede@redhat.com
+Subject: [PATCH] uvcvideo: Fix V4L2 button controls that share the same UVC control
+Date: Fri, 11 May 2012 15:55:59 +0200
+Message-Id: <1336744559-9247-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
----
- .gitignore |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+The Logitech pan/tilt reset UVC control contains two V4L2 button
+controls to reset pan and tilt. As the UVC control is not marked as
+auto-update, the button bits are set but never reset. A pan reset that
+follows a tilt reset would thus reset both pan and tilt.
 
-diff --git a/.gitignore b/.gitignore
-index f33eb98..d6bb3a3 100644
---- a/.gitignore
-+++ b/.gitignore
-@@ -18,6 +18,7 @@ config.status
- Makefile
- Makefile.in
- configure
-+m4
- aclocal.m4
- autom4te.cache
- build-aux
+Fix this by not caching the control value of write-only controls. All
+standard UVC controls are either readable or auto-update, so this will
+not cause any regression and will not result in extra USB requests.
+
+Reported-by: Hans de Goede <hdegoede@redhat.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/video/uvc/uvc_ctrl.c |    7 +++++--
+ 1 files changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/video/uvc/uvc_ctrl.c b/drivers/media/video/uvc/uvc_ctrl.c
+index 28363b7..3bc119b 100644
+--- a/drivers/media/video/uvc/uvc_ctrl.c
++++ b/drivers/media/video/uvc/uvc_ctrl.c
+@@ -1348,9 +1348,12 @@ static int uvc_ctrl_commit_entity(struct uvc_device *dev,
+ 
+ 		/* Reset the loaded flag for auto-update controls that were
+ 		 * marked as loaded in uvc_ctrl_get/uvc_ctrl_set to prevent
+-		 * uvc_ctrl_get from using the cached value.
++		 * uvc_ctrl_get from using the cached value, and for write-only
++		 * controls to prevent uvc_ctrl_set from setting bits not
++		 * explicitly set by the user.
+ 		 */
+-		if (ctrl->info.flags & UVC_CTRL_FLAG_AUTO_UPDATE)
++		if (ctrl->info.flags & UVC_CTRL_FLAG_AUTO_UPDATE ||
++		    !(ctrl->info.flags & UVC_CTRL_FLAG_GET_CUR))
+ 			ctrl->loaded = 0;
+ 
+ 		if (!ctrl->dirty)
 -- 
-1.7.2.5
+1.7.3.4
 
