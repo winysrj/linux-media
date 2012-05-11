@@ -1,165 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:45154 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752512Ab2EMMSU (ORCPT
+Received: from mail-vb0-f46.google.com ([209.85.212.46]:39098 "EHLO
+	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753556Ab2EKMFA convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 May 2012 08:18:20 -0400
-Received: by mail-we0-f174.google.com with SMTP id u7so1236697wey.19
-        for <linux-media@vger.kernel.org>; Sun, 13 May 2012 05:18:19 -0700 (PDT)
-From: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
-Subject: [PATCH 8/8] split README for utils/dvb/ and lib/libdvbv5
-Date: Sun, 13 May 2012 14:17:30 +0200
-Message-Id: <1336911450-23661-8-git-send-email-neolynx@gmail.com>
-In-Reply-To: <1336911450-23661-1-git-send-email-neolynx@gmail.com>
-References: <1336911450-23661-1-git-send-email-neolynx@gmail.com>
+	Fri, 11 May 2012 08:05:00 -0400
+Received: by vbbff1 with SMTP id ff1so2613659vbb.19
+        for <linux-media@vger.kernel.org>; Fri, 11 May 2012 05:04:59 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1336716892-5446-2-git-send-email-ismael.luceno@gmail.com>
+References: <1336716892-5446-1-git-send-email-ismael.luceno@gmail.com>
+	<1336716892-5446-2-git-send-email-ismael.luceno@gmail.com>
+Date: Fri, 11 May 2012 08:04:59 -0400
+Message-ID: <CAGoCfiydH48uY86w3oHbRDoJddX5qS1Va7vo4-vXwAn9JeSaaQ@mail.gmail.com>
+Subject: Re: [PATCH 2/2] au0828: Move under dvb
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Ismael Luceno <ismael.luceno@gmail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
----
- lib/libdvbv5/Makefile.am |    2 +-
- lib/libdvbv5/README      |   59 ++++++++++++++++++++++++++++++++++++++++++++++
- utils/dvb/README         |   47 ------------------------------------
- 3 files changed, 60 insertions(+), 48 deletions(-)
- create mode 100644 lib/libdvbv5/README
+On Fri, May 11, 2012 at 2:14 AM, Ismael Luceno <ismael.luceno@gmail.com> wrote:
+> Signed-off-by: Ismael Luceno <ismael.luceno@gmail.com>
+> ---
+>  drivers/media/dvb/Kconfig                          |    1 +
+>  drivers/media/dvb/Makefile                         |    1 +
+>  drivers/media/{video => dvb}/au0828/Kconfig        |    0
+>  drivers/media/{video => dvb}/au0828/Makefile       |    0
+>  drivers/media/{video => dvb}/au0828/au0828-cards.c |    0
+>  drivers/media/{video => dvb}/au0828/au0828-cards.h |    0
+>  drivers/media/{video => dvb}/au0828/au0828-core.c  |    0
+>  drivers/media/{video => dvb}/au0828/au0828-dvb.c   |    0
+>  drivers/media/{video => dvb}/au0828/au0828-i2c.c   |    0
+>  drivers/media/{video => dvb}/au0828/au0828-reg.h   |    0
+>  drivers/media/{video => dvb}/au0828/au0828-vbi.c   |    0
+>  drivers/media/{video => dvb}/au0828/au0828-video.c |    0
+>  drivers/media/{video => dvb}/au0828/au0828.h       |    0
+>  drivers/media/video/Kconfig                        |    2 --
+>  drivers/media/video/Makefile                       |    2 --
+>  15 files changed, 2 insertions(+), 4 deletions(-)
+>  rename drivers/media/{video => dvb}/au0828/Kconfig (100%)
+>  rename drivers/media/{video => dvb}/au0828/Makefile (100%)
+>  rename drivers/media/{video => dvb}/au0828/au0828-cards.c (100%)
+>  rename drivers/media/{video => dvb}/au0828/au0828-cards.h (100%)
+>  rename drivers/media/{video => dvb}/au0828/au0828-core.c (100%)
+>  rename drivers/media/{video => dvb}/au0828/au0828-dvb.c (100%)
+>  rename drivers/media/{video => dvb}/au0828/au0828-i2c.c (100%)
+>  rename drivers/media/{video => dvb}/au0828/au0828-reg.h (100%)
+>  rename drivers/media/{video => dvb}/au0828/au0828-vbi.c (100%)
+>  rename drivers/media/{video => dvb}/au0828/au0828-video.c (100%)
+>  rename drivers/media/{video => dvb}/au0828/au0828.h (100%)
 
-diff --git a/lib/libdvbv5/Makefile.am b/lib/libdvbv5/Makefile.am
-index 682869b..a41b611 100644
---- a/lib/libdvbv5/Makefile.am
-+++ b/lib/libdvbv5/Makefile.am
-@@ -14,7 +14,7 @@ libdvbv5_la_SOURCES = \
- #libdvbv5_la_CPPFLAGS = -fvisibility=hidden
- #libdvbv5_la_LDFLAGS = -version-info 0 -lpthread
- 
--EXTRA_DIST = gen_dvb_structs.pl
-+EXTRA_DIST = README gen_dvb_structs.pl
- 
- sync-with-kernel:
- 	./gen_dvb_structs.pl $(KERNEL_DIR)/include/
-diff --git a/lib/libdvbv5/README b/lib/libdvbv5/README
-new file mode 100644
-index 0000000..e14235a
---- /dev/null
-+++ b/lib/libdvbv5/README
-@@ -0,0 +1,59 @@
-+DVBv5 LIBRARY
-+=============
-+
-+This is the DVBv5 API library. It is backward compatible and makes use of the
-+DVBv3 API if needed.
-+
-+CONTENTS OF THE TREE
-+====================
-+
-+parse_string.c/parse_string.h: MPEG-TS string decoder with charset translator
-+
-+Used to decode NIT/SDT service name, network provider and provider name.
-+It parses the charsets according with the DVB specs, converting them into
-+UTF-8 (or other charset), using iconv library.
-+
-+descriptors.c/descriptors.h:  MPEG-TS descriptors parser
-+
-+The code there is generig enough to decode the MPEG-TS descriptors,
-+with the DVB and other Digital TV extensions.
-+
-+libscan.c/libscan/h: DVBv5 scanning library
-+
-+This library is used to retrieve DVB information from the MPEG TS
-+headers, discovering the services associated to each DVB channel or
-+transponder. The services information is the basic info that most
-+DVB tools need to tune into a channel.
-+
-+dvb-file.c/dvb-file.h: DVB file read/write library.
-+
-+Allows parsing a DVB file (legacy or not) and to write data into a
-+DVB file (new format only).
-+
-+dvb-fe.c/dvb-fe.h: DVB frontend library.
-+
-+Allows talking with a DVB frontend via DVBv5 or DVBv3 API.
-+
-+dvb-zap-format.c/dvb-legacy-channel-format.c:
-+
-+Contains the data structures required in order to read from the legacy
-+formats (zap or scan "initial-tuning-data-file").
-+
-+dvb-frontend.h: DVBv5 frontend API.
-+
-+This is just a copy of the newest linux/dvb/frontend.h header.
-+I opted to keep a copy there, in order to allow working with the tools
-+without needing to copy the latest header into /usr/include.
-+
-+dvb-v5.h/dvb-v5-std.h:
-+
-+Ancillary files linked into dvb-fe code, used to parse DVB tables. The
-+dvbv5.h is generated by a small perl util, from the DVB FE API file.
-+
-+dvb-demux.c/dvb-demux.h: DVB demux library.
-+
-+Patches are welcome!
-+
-+Regards,
-+Mauro Carvalho Chehab
-+2012-January-15
-diff --git a/utils/dvb/README b/utils/dvb/README
-index 2711f36..0f1e46b 100644
---- a/utils/dvb/README
-+++ b/utils/dvb/README
-@@ -26,53 +26,6 @@ generic code that will become a library in the future.
- CONTENTS OF THE TREE
- ====================
- 
--parse_string.c/parse_string.h: MPEG-TS string decoder with charset translator
--
--Used to decode NIT/SDT service name, network provider and provider name.
--It parses the charsets according with the DVB specs, converting them into
--UTF-8 (or other charset), using iconv library.
--
--descriptors.c/descriptors.h:  MPEG-TS descriptors parser
--
--The code there is generig enough to decode the MPEG-TS descriptors,
--with the DVB and other Digital TV extensions.
--
--libscan.c/libscan/h: DVBv5 scanning library
--
--This library is used to retrieve DVB information from the MPEG TS
--headers, discovering the services associated to each DVB channel or
--transponder. The services information is the basic info that most
--DVB tools need to tune into a channel.
--
--dvb-file.c/dvb-file.h: DVB file read/write library.
--
--Allows parsing a DVB file (legacy or not) and to write data into a
--DVB file (new format only).
--
--dvb-fe.c/dvb-fe.h: DVB frontend library.
--
--Allows talking with a DVB frontend via DVBv5 or DVBv3 API.
--
--dvb-zap-format.c/dvb-legacy-channel-format.c:
--
--Contains the data structures required in order to read from the legacy
--formats (zap or scan "initial-tuning-data-file").
--
--dvb-frontend.h: DVBv5 frontend API.
--
--This is just a copy of the newest linux/dvb/frontend.h header.
--I opted to keep a copy there, in order to allow working with the tools
--without needing to copy the latest header into /usr/include.
--
--dvb-v5.h/dvb-v5-std.h:
--
--Ancillary files linked into dvb-fe code, used to parse DVB tables. The
--dvbv5.h is generated by a small perl util, from the DVB FE API file.
--
--dvb-demux.c/dvb-demux.h: DVB demux library.
--
--Used by the dvbv5-zap utility.
--
- dvb-fe-tool.c, dvb-format-convert.c, dvbv5-zap.c, dvbv5-scan.c: tools code.
- 
- Basically, parses the options from userspace and calls the other code
+What is the motivation for moving these files?  The au0828 is a hybrid
+bridge, and every other hybrid bridge is under video?
+
+NACK unless somebody can provide a good reason for doing this.
+
+Devin
+
 -- 
-1.7.2.5
-
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
