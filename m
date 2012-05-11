@@ -1,365 +1,358 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:1382 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754417Ab2EaJWy (ORCPT
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:3069 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753765Ab2EKHzc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 31 May 2012 05:22:54 -0400
+	Fri, 11 May 2012 03:55:32 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: marbugge@cisco.com, Soby Mathew <soby.mathew@st.com>,
-	mats.randgaard@cisco.com, manjunath.hadli@ti.com,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Scott Jiang <scott.jiang.linux@gmail.com>,
+Cc: Michael Hunold <hunold@linuxtv.org>,
 	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv1 PATCH 2/3] V4L2 spec: document the new DV controls and ioctls.
-Date: Thu, 31 May 2012 11:22:43 +0200
-Message-Id: <7334405f1da0f87a9e86a90fd48b972059d815ed.1338455197.git.hans.verkuil@cisco.com>
-In-Reply-To: <1338456164-25080-1-git-send-email-hverkuil@xs4all.nl>
-References: <1338456164-25080-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <87c4b987f7b13776196612029786df388f43ad0a.1338455197.git.hans.verkuil@cisco.com>
-References: <87c4b987f7b13776196612029786df388f43ad0a.1338455197.git.hans.verkuil@cisco.com>
+Subject: [RFCv1 PATCH 13/16] saa7146: fix querycap, vbi/video separation and g/s_register
+Date: Fri, 11 May 2012 09:55:07 +0200
+Message-Id: <c0ca322310df780003d36102e0e6f91c83b593a1.1336722502.git.hans.verkuil@cisco.com>
+In-Reply-To: <1336722910-31733-1-git-send-email-hverkuil@xs4all.nl>
+References: <1336722910-31733-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <09c2b1c7ef8bbb53930311b9fdeeb89f877fdaa9.1336722502.git.hans.verkuil@cisco.com>
+References: <09c2b1c7ef8bbb53930311b9fdeeb89f877fdaa9.1336722502.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 From: Hans Verkuil <hans.verkuil@cisco.com>
 
+The querycap ioctl returned an incorrect version number and incorrect
+capabilities (mixing up vbi and video caps).
+
+The reason for that was that video nodes could do vbi activities: that
+should be separated between the vbi and video nodes.
+
+There were also a few minor problems with dbg_g/s_register that have
+been resolved. The mxb/saa7146 driver now passes the v4l2_compliance tests.
+
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- Documentation/DocBook/media/v4l/controls.xml       |  149 +++++++++++++++++++
- Documentation/DocBook/media/v4l/v4l2.xml           |    1 +
- .../DocBook/media/v4l/vidioc-subdev-g-edid.xml     |  152 ++++++++++++++++++++
- 3 files changed, 302 insertions(+)
- create mode 100644 Documentation/DocBook/media/v4l/vidioc-subdev-g-edid.xml
+ drivers/media/common/saa7146_fops.c  |    8 +++++--
+ drivers/media/common/saa7146_video.c |   35 +++++++++++++++++++++++----
+ drivers/media/dvb/ttpci/av7110_v4l.c |   34 +++++++++++++++++----------
+ drivers/media/dvb/ttpci/budget-av.c  |    6 ++---
+ drivers/media/video/hexium_gemini.c  |   12 +++++-----
+ drivers/media/video/hexium_orion.c   |    6 ++---
+ drivers/media/video/mxb.c            |   43 +++++++++++++++++++++++-----------
+ include/media/saa7146.h              |    2 --
+ include/media/saa7146_vv.h           |    4 +++-
+ 9 files changed, 103 insertions(+), 47 deletions(-)
 
-diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
-index 8994132..da41504 100644
---- a/Documentation/DocBook/media/v4l/controls.xml
-+++ b/Documentation/DocBook/media/v4l/controls.xml
-@@ -4269,4 +4269,153 @@ interface and may change in the future.</para>
-       </table>
+diff --git a/drivers/media/common/saa7146_fops.c b/drivers/media/common/saa7146_fops.c
+index afa922f..9242ec7 100644
+--- a/drivers/media/common/saa7146_fops.c
++++ b/drivers/media/common/saa7146_fops.c
+@@ -478,7 +478,8 @@ int saa7146_vv_init(struct saa7146_dev* dev, struct saa7146_ext_vv *ext_vv)
+ 		v4l2_ctrl_handler_free(hdl);
+ 		return -ENOMEM;
+ 	}
+-	ext_vv->ops = saa7146_video_ioctl_ops;
++	ext_vv->vid_ops = saa7146_video_ioctl_ops;
++	ext_vv->vbi_ops = saa7146_vbi_ioctl_ops;
+ 	ext_vv->core_ops = &saa7146_video_ioctl_ops;
  
-     </section>
+ 	DEB_EE("dev:%p\n", dev);
+@@ -579,7 +580,10 @@ int saa7146_register_device(struct video_device **vid, struct saa7146_dev* dev,
+ 		return -ENOMEM;
+ 
+ 	vfd->fops = &video_fops;
+-	vfd->ioctl_ops = &dev->ext_vv_data->ops;
++	if (type == VFL_TYPE_GRABBER)
++		vfd->ioctl_ops = &dev->ext_vv_data->vid_ops;
++	else
++		vfd->ioctl_ops = &dev->ext_vv_data->vbi_ops;
+ 	vfd->release = video_device_release;
+ 	vfd->lock = &dev->v4l2_lock;
+ 	vfd->v4l2_dev = &dev->v4l2_dev;
+diff --git a/drivers/media/common/saa7146_video.c b/drivers/media/common/saa7146_video.c
+index 4ca9a25..9d19320 100644
+--- a/drivers/media/common/saa7146_video.c
++++ b/drivers/media/common/saa7146_video.c
+@@ -446,18 +446,24 @@ static int video_end(struct saa7146_fh *fh, struct file *file)
+ 
+ static int vidioc_querycap(struct file *file, void *fh, struct v4l2_capability *cap)
+ {
++	struct video_device *vdev = video_devdata(file);
+ 	struct saa7146_dev *dev = ((struct saa7146_fh *)fh)->dev;
+ 
+ 	strcpy((char *)cap->driver, "saa7146 v4l2");
+ 	strlcpy((char *)cap->card, dev->ext->name, sizeof(cap->card));
+ 	sprintf((char *)cap->bus_info, "PCI:%s", pci_name(dev->pci));
+-	cap->version = SAA7146_VERSION_CODE;
+ 	cap->device_caps =
+ 		V4L2_CAP_VIDEO_CAPTURE |
+ 		V4L2_CAP_VIDEO_OVERLAY |
+ 		V4L2_CAP_READWRITE |
+ 		V4L2_CAP_STREAMING;
+ 	cap->device_caps |= dev->ext_vv_data->capabilities;
++	if (vdev->vfl_type == VFL_TYPE_GRABBER)
++		cap->device_caps &=
++			~(V4L2_CAP_VBI_CAPTURE | V4L2_CAP_SLICED_VBI_OUTPUT);
++	else
++		cap->device_caps &=
++			~(V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_VIDEO_OVERLAY);
+ 	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
+ 	return 0;
+ }
+@@ -990,10 +996,14 @@ static int vidioc_g_chip_ident(struct file *file, void *__fh,
+ 
+ 	chip->ident = V4L2_IDENT_NONE;
+ 	chip->revision = 0;
+-	if (chip->match.type == V4L2_CHIP_MATCH_HOST && !chip->match.addr) {
+-		chip->ident = V4L2_IDENT_SAA7146;
++	if (chip->match.type == V4L2_CHIP_MATCH_HOST) {
++		if (v4l2_chip_match_host(&chip->match))
++			chip->ident = V4L2_IDENT_SAA7146;
+ 		return 0;
+ 	}
++	if (chip->match.type != V4L2_CHIP_MATCH_I2C_DRIVER &&
++	    chip->match.type != V4L2_CHIP_MATCH_I2C_ADDR)
++		return -EINVAL;
+ 	return v4l2_device_call_until_err(&dev->v4l2_dev, 0,
+ 			core, g_chip_ident, chip);
+ }
+@@ -1008,7 +1018,6 @@ const struct v4l2_ioctl_ops saa7146_video_ioctl_ops = {
+ 	.vidioc_g_fmt_vid_overlay    = vidioc_g_fmt_vid_overlay,
+ 	.vidioc_try_fmt_vid_overlay  = vidioc_try_fmt_vid_overlay,
+ 	.vidioc_s_fmt_vid_overlay    = vidioc_s_fmt_vid_overlay,
+-	.vidioc_g_fmt_vbi_cap        = vidioc_g_fmt_vbi_cap,
+ 	.vidioc_g_chip_ident         = vidioc_g_chip_ident,
+ 
+ 	.vidioc_overlay 	     = vidioc_overlay,
+@@ -1027,6 +1036,24 @@ const struct v4l2_ioctl_ops saa7146_video_ioctl_ops = {
+ 	.vidioc_unsubscribe_event    = v4l2_event_unsubscribe,
+ };
+ 
++const struct v4l2_ioctl_ops saa7146_vbi_ioctl_ops = {
++	.vidioc_querycap             = vidioc_querycap,
++	.vidioc_g_fmt_vbi_cap        = vidioc_g_fmt_vbi_cap,
++	.vidioc_g_chip_ident         = vidioc_g_chip_ident,
 +
-+    <section id="dv-controls">
-+      <title>Digital Video Control Reference</title>
++	.vidioc_reqbufs              = vidioc_reqbufs,
++	.vidioc_querybuf             = vidioc_querybuf,
++	.vidioc_qbuf                 = vidioc_qbuf,
++	.vidioc_dqbuf                = vidioc_dqbuf,
++	.vidioc_g_std                = vidioc_g_std,
++	.vidioc_s_std                = vidioc_s_std,
++	.vidioc_streamon             = vidioc_streamon,
++	.vidioc_streamoff            = vidioc_streamoff,
++	.vidioc_g_parm		     = vidioc_g_parm,
++	.vidioc_subscribe_event      = v4l2_ctrl_subscribe_event,
++	.vidioc_unsubscribe_event    = v4l2_event_unsubscribe,
++};
 +
-+      <note>
-+	<title>Experimental</title>
+ /*********************************************************************************/
+ /* buffer handling functions                                                  */
+ 
+diff --git a/drivers/media/dvb/ttpci/av7110_v4l.c b/drivers/media/dvb/ttpci/av7110_v4l.c
+index ee8ee1d..3b7a624 100644
+--- a/drivers/media/dvb/ttpci/av7110_v4l.c
++++ b/drivers/media/dvb/ttpci/av7110_v4l.c
+@@ -802,18 +802,28 @@ int av7110_init_v4l(struct av7110 *av7110)
+ 		ERR("cannot init capture device. skipping\n");
+ 		return -ENODEV;
+ 	}
+-	vv_data->ops.vidioc_enum_input = vidioc_enum_input;
+-	vv_data->ops.vidioc_g_input = vidioc_g_input;
+-	vv_data->ops.vidioc_s_input = vidioc_s_input;
+-	vv_data->ops.vidioc_g_tuner = vidioc_g_tuner;
+-	vv_data->ops.vidioc_s_tuner = vidioc_s_tuner;
+-	vv_data->ops.vidioc_g_frequency = vidioc_g_frequency;
+-	vv_data->ops.vidioc_s_frequency = vidioc_s_frequency;
+-	vv_data->ops.vidioc_g_audio = vidioc_g_audio;
+-	vv_data->ops.vidioc_s_audio = vidioc_s_audio;
+-	vv_data->ops.vidioc_g_sliced_vbi_cap = vidioc_g_sliced_vbi_cap;
+-	vv_data->ops.vidioc_g_fmt_sliced_vbi_out = vidioc_g_fmt_sliced_vbi_out;
+-	vv_data->ops.vidioc_s_fmt_sliced_vbi_out = vidioc_s_fmt_sliced_vbi_out;
++	vv_data->vid_ops.vidioc_enum_input = vidioc_enum_input;
++	vv_data->vid_ops.vidioc_g_input = vidioc_g_input;
++	vv_data->vid_ops.vidioc_s_input = vidioc_s_input;
++	vv_data->vid_ops.vidioc_g_tuner = vidioc_g_tuner;
++	vv_data->vid_ops.vidioc_s_tuner = vidioc_s_tuner;
++	vv_data->vid_ops.vidioc_g_frequency = vidioc_g_frequency;
++	vv_data->vid_ops.vidioc_s_frequency = vidioc_s_frequency;
++	vv_data->vid_ops.vidioc_g_audio = vidioc_g_audio;
++	vv_data->vid_ops.vidioc_s_audio = vidioc_s_audio;
 +
-+	<para>This is an <link
-+	linkend="experimental">experimental</link> interface and may
-+	change in the future.</para>
-+      </note>
-+
-+      <para>
-+	The Digital Video control class is intended to control receivers
-+	and transmitters for VGA, DVI, HDMI and DisplayPort. These controls
-+	are generally expected to be private to the receiver or transmitter
-+	subdevice that implements them, so they are only exposed on the
-+	<filename>/dev/v4l-subdev*</filename> device node.
-+      </para>
-+
-+      <para>Note that these devices can have multiple input or output pads which are
-+      hooked up to e.g. HDMI connectors. Even though the subdevice will receive or
-+      transmit video from/to only one of those pads, the other pads can still be
-+      active when it comes to EDID and HDCP processing, allowing the device
-+      to do the fairly slow EDID/HDCP handling in advance. This allows for quick
-+      switching between connectors.</para>
-+
-+      <para>These pads appear in several of the controls in this section as
-+      bitmasks, one bit for each pad starting at bit 0. The maximum value of
-+      the control is the set of valid pads.</para>
-+
-+      <table pgwide="1" frame="none" id="dv-control-id">
-+      <title>Digital Video Control IDs</title>
-+
-+      <tgroup cols="4">
-+	<colspec colname="c1" colwidth="1*" />
-+	<colspec colname="c2" colwidth="6*" />
-+	<colspec colname="c3" colwidth="2*" />
-+	<colspec colname="c4" colwidth="6*" />
-+	<spanspec namest="c1" nameend="c2" spanname="id" />
-+	<spanspec namest="c2" nameend="c4" spanname="descr" />
-+	<thead>
-+	  <row>
-+	    <entry spanname="id" align="left">ID</entry>
-+	    <entry align="left">Type</entry>
-+	  </row><row rowsep="1"><entry spanname="descr" align="left">Description</entry>
-+	  </row>
-+	</thead>
-+	<tbody valign="top">
-+	  <row><entry></entry></row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_DV_CLASS</constant></entry>
-+	    <entry>class</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="descr">The DV class descriptor.</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_DV_TX_HOTPLUG</constant></entry>
-+	    <entry>bitmask</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="descr">Many connectors have a hotplug pin which is high
-+	    if EDID information is available from the source. This control shows the
-+	    state of the hotplug pin as seen by the transmitter.
-+	    Each bit corresponds to an output pad on the transmitter.
-+	    This read-only control is applicable to DVI-D, HDMI and DisplayPort connectors.
-+	    </entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_DV_TX_RXSENSE</constant></entry>
-+	    <entry>bitmask</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="descr">Rx Sense is the detection of pull-ups on the TMDS
-+            clock lines. This normally means that the sink has left/entered standby (i.e.
-+	    the transmitter can sense that the receiver is ready to receive video).
-+	    Each bit corresponds to an output pad on the transmitter.
-+	    This read-only control is applicable to DVI-D and HDMI devices.
-+	    </entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_DV_TX_EDID_PRESENT</constant></entry>
-+	    <entry>bitmask</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="descr">When the transmitter sees the hotplug signal from the
-+	    receiver it will attempt to read the EDID. If set, then the transmitter has read
-+	    at least the first block (= 128 bytes).
-+	    Each bit corresponds to an output pad on the transmitter.
-+	    This read-only control is applicable to VGA, DVI-A/D, HDMI and DisplayPort connectors.
-+	    </entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_DV_TX_MODE</constant></entry>
-+	    <entry id="v4l2-dv-tx-mode">enum v4l2_dv_tx_mode</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="descr">HDMI transmitters can transmit in DVI-D mode (just video)
-+	    or in HDMI mode (video + audio + auxiliary data). This control selects which mode
-+	    to use: V4L2_DV_TX_MODE_DVI_D or V4L2_DV_TX_MODE_HDMI.
-+	    This control is applicable to HDMI connectors.
-+	    </entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_DV_TX_RGB_RANGE</constant></entry>
-+	    <entry id="v4l2-dv-rgb-range">enum v4l2_dv_rgb_range</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="descr">Select the quantization range for RGB output. V4L2_DV_RANGE_AUTO
-+	    follows the RGB quantization range specified in the standard for the video interface
-+	    (ie. CEA-861 for HDMI). V4L2_DV_RANGE_LIMITED and V4L2_DV_RANGE_FULL override the standard
-+	    to be compatible with sinks that have not implemented the standard correctly
-+	    (unfortunately quite common for HDMI and DVI-D).
-+	    This control is applicable to VGA, DVI-A/D, HDMI and DisplayPort connectors.
-+	    </entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_DV_RX_POWER_PRESENT</constant></entry>
-+	    <entry>bitmask</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="descr">Detects whether the receiver receives power from the source
-+	    (e.g. HDMI carries 5V on one of the pins). This is often used to power an eeprom
-+	    which contains EDID information, such that the source can read the EDID even if
-+	    the sink is in standby/power off.
-+	    Each bit corresponds to an input pad on the receiver.
-+	    This read-only control is applicable to DVI-D, HDMI and DisplayPort connectors.
-+	    </entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_DV_RX_RGB_RANGE</constant></entry>
-+	    <entry>enum v4l2_dv_rgb_range</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="descr">Select the quantization range for RGB input. V4L2_DV_RANGE_AUTO
-+	    follows the RGB quantization range specified in the standard for the video interface
-+	    (ie. CEA-861 for HDMI). V4L2_DV_RANGE_LIMITED and V4L2_DV_RANGE_FULL override the standard
-+	    to be compatible with sources that have not implemented the standard correctly
-+	    (unfortunately quite common for HDMI and DVI-D).
-+	    This control is applicable to VGA, DVI-A/D, HDMI and DisplayPort connectors.
-+	    </entry>
-+	  </row>
-+	  <row><entry></entry></row>
-+	</tbody>
-+      </tgroup>
-+      </table>
-+
-+    </section>
- </section>
-diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
-index 015c561..6b25035 100644
---- a/Documentation/DocBook/media/v4l/v4l2.xml
-+++ b/Documentation/DocBook/media/v4l/v4l2.xml
-@@ -575,6 +575,7 @@ and discussions on the V4L mailing list.</revremark>
-     &sub-subdev-enum-frame-size;
-     &sub-subdev-enum-mbus-code;
-     &sub-subdev-g-crop;
-+    &sub-subdev-g-edid;
-     &sub-subdev-g-fmt;
-     &sub-subdev-g-frame-interval;
-     &sub-subdev-g-selection;
-diff --git a/Documentation/DocBook/media/v4l/vidioc-subdev-g-edid.xml b/Documentation/DocBook/media/v4l/vidioc-subdev-g-edid.xml
-new file mode 100644
-index 0000000..05371db
---- /dev/null
-+++ b/Documentation/DocBook/media/v4l/vidioc-subdev-g-edid.xml
-@@ -0,0 +1,152 @@
-+<refentry id="vidioc-subdev-g-edid">
-+  <refmeta>
-+    <refentrytitle>ioctl VIDIOC_SUBDEV_G_EDID, VIDIOC_SUBDEV_S_EDID</refentrytitle>
-+    &manvol;
-+  </refmeta>
-+
-+  <refnamediv>
-+    <refname>VIDIOC_SUBDEV_G_EDID</refname>
-+    <refname>VIDIOC_SUBDEV_S_EDID</refname>
-+    <refpurpose>Get or set the EDID of a video receiver/transmitter</refpurpose>
-+  </refnamediv>
-+
-+  <refsynopsisdiv>
-+    <funcsynopsis>
-+      <funcprototype>
-+	<funcdef>int <function>ioctl</function></funcdef>
-+	<paramdef>int <parameter>fd</parameter></paramdef>
-+	<paramdef>int <parameter>request</parameter></paramdef>
-+	<paramdef>struct v4l2_subdev_edid *<parameter>argp</parameter></paramdef>
-+      </funcprototype>
-+    </funcsynopsis>
-+    <funcsynopsis>
-+      <funcprototype>
-+	<funcdef>int <function>ioctl</function></funcdef>
-+	<paramdef>int <parameter>fd</parameter></paramdef>
-+	<paramdef>int <parameter>request</parameter></paramdef>
-+	<paramdef>const struct v4l2_subdev_edid *<parameter>argp</parameter></paramdef>
-+      </funcprototype>
-+    </funcsynopsis>
-+  </refsynopsisdiv>
-+
-+  <refsect1>
-+    <title>Arguments</title>
-+
-+    <variablelist>
-+      <varlistentry>
-+	<term><parameter>fd</parameter></term>
-+	<listitem>
-+	  <para>&fd;</para>
-+	</listitem>
-+      </varlistentry>
-+      <varlistentry>
-+	<term><parameter>request</parameter></term>
-+	<listitem>
-+	  <para>VIDIOC_SUBDEV_G_EDID, VIDIOC_SUBDEV_S_EDID</para>
-+	</listitem>
-+      </varlistentry>
-+      <varlistentry>
-+	<term><parameter>argp</parameter></term>
-+	<listitem>
-+	  <para></para>
-+	</listitem>
-+      </varlistentry>
-+    </variablelist>
-+  </refsect1>
-+
-+  <refsect1>
-+    <title>Description</title>
-+    <para>These ioctls can be used to get or set an EDID associated with an input pad
-+    from a receiver or an output pad of a transmitter subdevice.</para>
-+
-+    <para>To get the EDID data the application has to fill in the <structfield>pad</structfield>,
-+    <structfield>start_block</structfield>, <structfield>blocks</structfield> and <structfield>edid</structfield>
-+    fields and call <constant>VIDIOC_SUBDEV_G_EDID</constant>. The current EDID from block
-+    <structfield>start_block</structfield> and of size <structfield>blocks</structfield>
-+    will be placed in the memory <structfield>edid</structfield> points to. The <structfield>edid</structfield>
-+    pointer must point to memory at least <structfield>blocks</structfield>&nbsp;*&nbsp;128 bytes
-+    large (the size of one block is 128 bytes).</para>
-+
-+    <para>If there are fewer blocks than specified, then the driver will set <structfield>blocks</structfield>
-+    to the actual number of blocks. If there are no EDID blocks available at all, then the error code
-+    ENODATA is set.</para>
-+
-+    <para>If blocks have to be retrieved from the sink, then this call will block until they
-+    have been read.</para>
-+
-+    <para>To set the EDID blocks of a receiver the application has to fill in the <structfield>pad</structfield>,
-+    <structfield>blocks</structfield> and <structfield>edid</structfield> fields and set
-+    <structfield>start_block</structfield> to 0. It is not possible to set part of an EDID,
-+    it is always all or nothing. Setting the EDID data is only valid for receivers as it makes
-+    no sense for a transmitter.</para>
-+
-+    <para>The driver assumes that the full EDID is passed in. If there are more EDID blocks than
-+    the hardware can handle then the EDID is not written, but instead the error code E2BIG is set
-+    and <structfield>blocks</structfield> is set to the maximum that the hardware supports.
-+    If <structfield>start_block</structfield> is any
-+    value other than 0 then the error code EINVAL is set.</para>
-+
-+    <para>To disable an EDID you set <structfield>blocks</structfield> to 0. Depending on the
-+    hardware this will drive the hotplug pin low and/or block the source from reading the EDID
-+    data in some way. In any case, the end result is the same: the EDID is no longer available.
-+    </para>
-+
-+    <table pgwide="1" frame="none" id="v4l2-subdev-edid">
-+      <title>struct <structname>v4l2_subdev_edid</structname></title>
-+      <tgroup cols="3">
-+        &cs-str;
-+	<tbody valign="top">
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>pad</structfield></entry>
-+	    <entry>Pad for which to get/set the EDID blocks.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>start_block</structfield></entry>
-+	    <entry>Read the EDID from starting with this block. Must be 0 when setting
-+	    the EDID.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>blocks</structfield></entry>
-+	    <entry>The number of blocks to get or set. Must be less or equal to 255 (the
-+	    maximum block number defined by the standard). When you set the EDID and
-+	    <structfield>blocks</structfield> is 0, then the EDID is disabled or erased.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u8&nbsp;*</entry>
-+	    <entry><structfield>edid</structfield></entry>
-+	    <entry>Pointer to memory that contains the EDID. The minimum size is
-+	    <structfield>blocks</structfield>&nbsp;*&nbsp;128.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>reserved</structfield>[5]</entry>
-+	    <entry>Reserved for future extensions. Applications and drivers must
-+	    set the array to zero.</entry>
-+	  </row>
-+	</tbody>
-+      </tgroup>
-+    </table>
-+  </refsect1>
-+
-+  <refsect1>
-+    &return-value;
-+
-+    <variablelist>
-+      <varlistentry>
-+	<term><errorcode>ENODATA</errorcode></term>
-+	<listitem>
-+	  <para>The EDID data is not available.</para>
-+	</listitem>
-+      </varlistentry>
-+      <varlistentry>
-+	<term><errorcode>E2BIG</errorcode></term>
-+	<listitem>
-+	  <para>The EDID data you provided is more than the hardware can handle.</para>
-+	</listitem>
-+      </varlistentry>
-+    </variablelist>
-+  </refsect1>
-+</refentry>
++	vv_data->vbi_ops.vidioc_enum_input = vidioc_enum_input;
++	vv_data->vbi_ops.vidioc_g_input = vidioc_g_input;
++	vv_data->vbi_ops.vidioc_s_input = vidioc_s_input;
++	vv_data->vbi_ops.vidioc_g_tuner = vidioc_g_tuner;
++	vv_data->vbi_ops.vidioc_s_tuner = vidioc_s_tuner;
++	vv_data->vbi_ops.vidioc_g_frequency = vidioc_g_frequency;
++	vv_data->vbi_ops.vidioc_s_frequency = vidioc_s_frequency;
++	vv_data->vbi_ops.vidioc_g_audio = vidioc_g_audio;
++	vv_data->vbi_ops.vidioc_s_audio = vidioc_s_audio;
++	vv_data->vbi_ops.vidioc_g_sliced_vbi_cap = vidioc_g_sliced_vbi_cap;
++	vv_data->vbi_ops.vidioc_g_fmt_sliced_vbi_out = vidioc_g_fmt_sliced_vbi_out;
++	vv_data->vbi_ops.vidioc_s_fmt_sliced_vbi_out = vidioc_s_fmt_sliced_vbi_out;
+ 
+ 	if (saa7146_register_device(&av7110->v4l_dev, dev, "av7110", VFL_TYPE_GRABBER)) {
+ 		ERR("cannot register capture device. skipping\n");
+diff --git a/drivers/media/dvb/ttpci/budget-av.c b/drivers/media/dvb/ttpci/budget-av.c
+index 8b32e28..12ddb53 100644
+--- a/drivers/media/dvb/ttpci/budget-av.c
++++ b/drivers/media/dvb/ttpci/budget-av.c
+@@ -1483,9 +1483,9 @@ static int budget_av_attach(struct saa7146_dev *dev, struct saa7146_pci_extensio
+ 			ERR("cannot init vv subsystem\n");
+ 			return err;
+ 		}
+-		vv_data.ops.vidioc_enum_input = vidioc_enum_input;
+-		vv_data.ops.vidioc_g_input = vidioc_g_input;
+-		vv_data.ops.vidioc_s_input = vidioc_s_input;
++		vv_data.vid_ops.vidioc_enum_input = vidioc_enum_input;
++		vv_data.vid_ops.vidioc_g_input = vidioc_g_input;
++		vv_data.vid_ops.vidioc_s_input = vidioc_s_input;
+ 
+ 		if ((err = saa7146_register_device(&budget_av->vd, dev, "knc1", VFL_TYPE_GRABBER))) {
+ 			/* fixme: proper cleanup here */
+diff --git a/drivers/media/video/hexium_gemini.c b/drivers/media/video/hexium_gemini.c
+index a62322d..2265032 100644
+--- a/drivers/media/video/hexium_gemini.c
++++ b/drivers/media/video/hexium_gemini.c
+@@ -399,12 +399,12 @@ static int hexium_attach(struct saa7146_dev *dev, struct saa7146_pci_extension_d
+ 	hexium->cur_input = 0;
+ 
+ 	saa7146_vv_init(dev, &vv_data);
+-	vv_data.ops.vidioc_queryctrl = vidioc_queryctrl;
+-	vv_data.ops.vidioc_g_ctrl = vidioc_g_ctrl;
+-	vv_data.ops.vidioc_s_ctrl = vidioc_s_ctrl;
+-	vv_data.ops.vidioc_enum_input = vidioc_enum_input;
+-	vv_data.ops.vidioc_g_input = vidioc_g_input;
+-	vv_data.ops.vidioc_s_input = vidioc_s_input;
++	vv_data.vid_ops.vidioc_queryctrl = vidioc_queryctrl;
++	vv_data.vid_ops.vidioc_g_ctrl = vidioc_g_ctrl;
++	vv_data.vid_ops.vidioc_s_ctrl = vidioc_s_ctrl;
++	vv_data.vid_ops.vidioc_enum_input = vidioc_enum_input;
++	vv_data.vid_ops.vidioc_g_input = vidioc_g_input;
++	vv_data.vid_ops.vidioc_s_input = vidioc_s_input;
+ 	ret = saa7146_register_device(&hexium->video_dev, dev, "hexium gemini", VFL_TYPE_GRABBER);
+ 	if (ret < 0) {
+ 		pr_err("cannot register capture v4l2 device. skipping.\n");
+diff --git a/drivers/media/video/hexium_orion.c b/drivers/media/video/hexium_orion.c
+index 23debc9..e549339 100644
+--- a/drivers/media/video/hexium_orion.c
++++ b/drivers/media/video/hexium_orion.c
+@@ -371,9 +371,9 @@ static int hexium_attach(struct saa7146_dev *dev, struct saa7146_pci_extension_d
+ 	DEB_EE("\n");
+ 
+ 	saa7146_vv_init(dev, &vv_data);
+-	vv_data.ops.vidioc_enum_input = vidioc_enum_input;
+-	vv_data.ops.vidioc_g_input = vidioc_g_input;
+-	vv_data.ops.vidioc_s_input = vidioc_s_input;
++	vv_data.vid_ops.vidioc_enum_input = vidioc_enum_input;
++	vv_data.vid_ops.vidioc_g_input = vidioc_g_input;
++	vv_data.vid_ops.vidioc_s_input = vidioc_s_input;
+ 	if (0 != saa7146_register_device(&hexium->video_dev, dev, "hexium orion", VFL_TYPE_GRABBER)) {
+ 		pr_err("cannot register capture v4l2 device. skipping.\n");
+ 		return -1;
+diff --git a/drivers/media/video/mxb.c b/drivers/media/video/mxb.c
+index 0ea221d..b520a45 100644
+--- a/drivers/media/video/mxb.c
++++ b/drivers/media/video/mxb.c
+@@ -669,13 +669,28 @@ static int vidioc_g_register(struct file *file, void *fh, struct v4l2_dbg_regist
+ {
+ 	struct saa7146_dev *dev = ((struct saa7146_fh *)fh)->dev;
+ 
+-	return call_all(dev, core, g_register, reg);
++	if (!capable(CAP_SYS_ADMIN))
++		return -EPERM;
++	if (v4l2_chip_match_host(&reg->match)) {
++		reg->val = saa7146_read(dev, reg->reg);
++		reg->size = 4;
++		return 0;
++	}
++	call_all(dev, core, g_register, reg);
++	return 0;
+ }
+ 
+ static int vidioc_s_register(struct file *file, void *fh, struct v4l2_dbg_register *reg)
+ {
+ 	struct saa7146_dev *dev = ((struct saa7146_fh *)fh)->dev;
+ 
++	if (!capable(CAP_SYS_ADMIN))
++		return -EPERM;
++	if (v4l2_chip_match_host(&reg->match)) {
++		saa7146_write(dev, reg->reg, reg->val);
++		reg->size = 4;
++		return 0;
++	}
+ 	return call_all(dev, core, s_register, reg);
+ }
+ #endif
+@@ -696,20 +711,20 @@ static int mxb_attach(struct saa7146_dev *dev, struct saa7146_pci_extension_data
+ 	}
+ 	mxb = (struct mxb *)dev->ext_priv;
+ 
+-	vv_data.ops.vidioc_enum_input = vidioc_enum_input;
+-	vv_data.ops.vidioc_g_input = vidioc_g_input;
+-	vv_data.ops.vidioc_s_input = vidioc_s_input;
+-	vv_data.ops.vidioc_querystd = vidioc_querystd;
+-	vv_data.ops.vidioc_g_tuner = vidioc_g_tuner;
+-	vv_data.ops.vidioc_s_tuner = vidioc_s_tuner;
+-	vv_data.ops.vidioc_g_frequency = vidioc_g_frequency;
+-	vv_data.ops.vidioc_s_frequency = vidioc_s_frequency;
+-	vv_data.ops.vidioc_enumaudio = vidioc_enumaudio;
+-	vv_data.ops.vidioc_g_audio = vidioc_g_audio;
+-	vv_data.ops.vidioc_s_audio = vidioc_s_audio;
++	vv_data.vid_ops.vidioc_enum_input = vidioc_enum_input;
++	vv_data.vid_ops.vidioc_g_input = vidioc_g_input;
++	vv_data.vid_ops.vidioc_s_input = vidioc_s_input;
++	vv_data.vid_ops.vidioc_querystd = vidioc_querystd;
++	vv_data.vid_ops.vidioc_g_tuner = vidioc_g_tuner;
++	vv_data.vid_ops.vidioc_s_tuner = vidioc_s_tuner;
++	vv_data.vid_ops.vidioc_g_frequency = vidioc_g_frequency;
++	vv_data.vid_ops.vidioc_s_frequency = vidioc_s_frequency;
++	vv_data.vid_ops.vidioc_enumaudio = vidioc_enumaudio;
++	vv_data.vid_ops.vidioc_g_audio = vidioc_g_audio;
++	vv_data.vid_ops.vidioc_s_audio = vidioc_s_audio;
+ #ifdef CONFIG_VIDEO_ADV_DEBUG
+-	vv_data.ops.vidioc_g_register = vidioc_g_register;
+-	vv_data.ops.vidioc_s_register = vidioc_s_register;
++	vv_data.vid_ops.vidioc_g_register = vidioc_g_register;
++	vv_data.vid_ops.vidioc_s_register = vidioc_s_register;
+ #endif
+ 	if (saa7146_register_device(&mxb->video_dev, dev, "mxb", VFL_TYPE_GRABBER)) {
+ 		ERR("cannot register capture v4l2 device. skipping.\n");
+diff --git a/include/media/saa7146.h b/include/media/saa7146.h
+index c791940..773e527 100644
+--- a/include/media/saa7146.h
++++ b/include/media/saa7146.h
+@@ -18,8 +18,6 @@
+ #include <linux/vmalloc.h>	/* for vmalloc() */
+ #include <linux/mm.h>		/* for vmalloc_to_page() */
+ 
+-#define SAA7146_VERSION_CODE 0x000600	/* 0.6.0 */
+-
+ #define saa7146_write(sxy,adr,dat)    writel((dat),(sxy->mem+(adr)))
+ #define saa7146_read(sxy,adr)         readl(sxy->mem+(adr))
+ 
+diff --git a/include/media/saa7146_vv.h b/include/media/saa7146_vv.h
+index 2bbdf30..944ecdf 100644
+--- a/include/media/saa7146_vv.h
++++ b/include/media/saa7146_vv.h
+@@ -161,7 +161,8 @@ struct saa7146_ext_vv
+ 	int (*std_callback)(struct saa7146_dev*, struct saa7146_standard *);
+ 
+ 	/* the extension can override this */
+-	struct v4l2_ioctl_ops ops;
++	struct v4l2_ioctl_ops vid_ops;
++	struct v4l2_ioctl_ops vbi_ops;
+ 	/* pointer to the saa7146 core ops */
+ 	const struct v4l2_ioctl_ops *core_ops;
+ 
+@@ -200,6 +201,7 @@ void saa7146_set_gpio(struct saa7146_dev *saa, u8 pin, u8 data);
+ 
+ /* from saa7146_video.c */
+ extern const struct v4l2_ioctl_ops saa7146_video_ioctl_ops;
++extern const struct v4l2_ioctl_ops saa7146_vbi_ioctl_ops;
+ extern struct saa7146_use_ops saa7146_video_uops;
+ int saa7146_start_preview(struct saa7146_fh *fh);
+ int saa7146_stop_preview(struct saa7146_fh *fh);
 -- 
 1.7.10
 
