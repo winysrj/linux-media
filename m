@@ -1,61 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-3.cisco.com ([144.254.224.146]:7472 "EHLO
-	ams-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753124Ab2E3MLf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 May 2012 08:11:35 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Soby Mathew <soby.mathew@st.com>
-Subject: Re: Preliminary proposal, new APIs for HDMI and DVI control in v4l2
-Date: Wed, 30 May 2012 14:10:34 +0200
-Cc: "Martin Bugge (marbugge)" <marbugge@cisco.com>,
-	linux-media@vger.kernel.org
-References: <4D7E42AE.2080506@cisco.com> <loom.20120527T192755-466@post.gmane.org> <4FC600D7.1020203@cisco.com>
-In-Reply-To: <4FC600D7.1020203@cisco.com>
+Received: from mail.telros.ru ([83.136.244.21]:63389 "EHLO mail.telros.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754992Ab2EKQtP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 May 2012 12:49:15 -0400
+Date: Fri, 11 May 2012 20:49:07 +0400
+From: volokh@telros.ru
+To: "Justin P. Mattock" <justinmattock@gmail.com>
+Cc: volokh84@gmail.com, mchehab@infradead.org,
+	gregkh@linuxfoundation.org, dhowells@redhat.com,
+	rdunlap@xenotime.net, pete@sensoray.com, pradheep.sh@gmail.com,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Volokh Konstantin <my84@bk.ru>
+Subject: Re: [PATCH] staging: media: go7007: Adlink MPG24 board issues
+Message-ID: <20120511164907.GA16306@VPir.telros.lan>
+References: <1336714980-13460-1-git-send-email-volokh84@gmail.com>
+ <4FAD1FAD.4020508@gmail.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201205301410.34174.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4FAD1FAD.4020508@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed 30 May 2012 13:13:27 Martin Bugge (marbugge) wrote:
-> Hi Soby
-> 
-> On 05/27/2012 07:30 PM, Soby Mathew wrote:
-> > Martin Bugge (marbugge<marbugge<at>  cisco.com>  writes:
-> >
-> >>
-> >> This is a preliminary proposal for an extension to the v4l2 api.
-> >> To be discussed at the  V4L2 'brainstorming' meeting in Warsaw, March 2011
-> >>
-> >> Purpose: Provide basic controls for HDMI and DVI devices.
-> >>
-> >>
-> > reposting the query since the earlier post did not appear in mailing list.
-> >
-> > Hi Martin,
-> >     We are also in requirement of these controls as described by you. I did a
-> > search in the archives but could not find a suitable conclusion to the RFC. I
-> > could find that the dv_timings structure has been modified as a result of
-> > further discussions. But for many items like S_EDID, DV_CABLE_DETECT, Info
-> > frames etc , I could not find the logical conclusion to this RFC. Could please
-> > let me know the further updates on these requirements?
-> It has been on hold for a very long time, but just last week Hans 
-> Verkuil posted a RFC
-> which is a follow up on this subject.
-> 
-> http://www.spinics.net/lists/linux-media/msg47671.html
-> 
-> So that thread has taken over.
+>>some simple stuff I found along the way..
 
-And expect to see a small patch series to be posted in the next few days containing
-a slightly changed version of the proposal, including DocBook documentation.
+On 05/10/2012 10:43 PM, volokh84@gmail.com wrote:
+> From: Volokh Konstantin<my84@bk.ru>                                                                          
+>                                                                                                              
+> This issuses applyed only for Adlink MPG24 board with go7007                                                 
 
-Please review those patches when they are posted and let us know if you are OK with
-it or if you have additional requirements.
+>>this issue applies only for...
 
-Regards,
+>   &  wis2804, all whese changes was tested for continuos                                                     
+>   load&restart mode                                                                                          
+>                                                                                                              
 
-	Hans
+>>these changes were tested for continuous
+
+> This is minimal changes needed for start up go7007&wis2804 to work correctly                                 
+>    in 3.4 branch                                                                                             
+>                                                                                                              
+> Changes:                                                                                                     
+>    - When go7007 reset device, i2c was not worked (need rewrite GPIO5)                                       
+
+>>working
+
+>    - As wis2804 has i2c_addr=0x00/*really*/, so Need set I2C_CLIENT_TEN flag for validity                    
+>    - some main nonzero initialization, rewrites with kzalloc instead kmalloc                                 
+>    - STATUS_SHUTDOWN was pl
+
+
+Thanks for english language notation.
+I`ve never used it in real word.
