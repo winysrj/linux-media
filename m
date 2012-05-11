@@ -1,53 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:55609 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757029Ab2EEQi4 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 5 May 2012 12:38:56 -0400
-Received: by obbtb18 with SMTP id tb18so5643306obb.19
-        for <linux-media@vger.kernel.org>; Sat, 05 May 2012 09:38:56 -0700 (PDT)
+Received: from moutng.kundenserver.de ([212.227.17.10]:61642 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757976Ab2EKIzz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 May 2012 04:55:55 -0400
+Date: Fri, 11 May 2012 10:55:44 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PULL] soc-camera for 3.5
+Message-ID: <Pine.LNX.4.64.1205110952190.27035@axis700.grange>
 MIME-Version: 1.0
-In-Reply-To: <CAPfPbo0x7vWh_KjQXWBoU2AkKYu_7xbE1BKAX-5fLQJzdkg-mg@mail.gmail.com>
-References: <CAPfPbo0V0v25PbUYXgiFxuS3w-J2u8U10Q9ebV_rJPBTmcOZUw@mail.gmail.com>
-	<CAPfPbo0x7vWh_KjQXWBoU2AkKYu_7xbE1BKAX-5fLQJzdkg-mg@mail.gmail.com>
-Date: Sat, 5 May 2012 13:38:56 -0300
-Message-ID: <CALF0-+X-uKkAK-wLNzG5kzYDvRsPLjfmM+GcBDfaVPC4GuGSEg@mail.gmail.com>
-Subject: Re: GENIUS TV-GO A12 tv analog card
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: =?ISO-8859-1?Q?Sebasti=E1n_Misuraca?= <smisuraca@3way.com.ar>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hola Sebastián, :)
+Hi Mauro
 
-On Fri, May 4, 2012 at 12:13 PM, Sebastián Misuraca
-<smisuraca@3way.com.ar> wrote:
-> Hi,
->
-> I add a tv card support for saa7134 driver, the card name is "Genius
-> TV Go A12" and i test the RF capture with pal-nc and I test the
-> composite input too. I want to known if I would make a patch or what i
-> have to do to give us the patch. Here is the code:
->
+Here go soc-camera patches for 3.5. This is mainly a series from Laurent, 
+adding support for user-specified stride to soc-camera (thanks again) and 
+a couple of minor improvements from myself. I'm not including the patch, 
+that I recently posted:
 
-This is not the right way to submit patches and probably
-maintainers won't apply it. For instance, your patch is not
-"unified style" (take a look at other patches).
+http://patchwork.linuxtv.org/patch/11116/
 
-You should read Documentation/SubmittingPatches.
+in this pull request, since it is not soc-camera specific. Please, either 
+apply it yourself after this pull, or feel free to ask me to push it via 
+my tree.
 
-Also, I think you will find much easier to use
-git-format-patch and git-send-email to create and
-send patches.
+The patch for marvell-ccic is also not for soc-camera, but I've got an ack 
+from Jonathan, so, it should be ok.
 
-Here is a talk that explains how to use it:
-"Write and Submit your first Linux kernel Patch"
-http://www.youtube.com/watch?v=LLBrBBImJt4
+The following changes since commit 121b3ddbe4ad17df77cb7284239be0a63d9a66bd:
 
-If you have any doubts about this process feel free to ask,
-I'll be glad to help.
+  [media] media: videobuf2-dma-contig: quiet sparse noise about plain integer as NULL pointer (2012-05-08 14:35:14 -0300)
 
-Regards,
-Ezequiel.
+are available in the git repository at:
+  git://linuxtv.org/gliakhovetski/v4l-dvb.git for-3.5
+
+Guennadi Liakhovetski (5):
+      V4L: soc-camera: (cosmetic) use a more explicit name for a host handler
+      V4L: mx2-camera: avoid overflowing 32-bits
+      V4L: soc-camera: switch to using the existing .enum_framesizes()
+      V4L: sh_mobile_ceu_camera: don't fail TRY_FMT
+      V4L: marvell-ccic: (cosmetic) remove redundant variable assignment
+
+Kuninori Morimoto (1):
+      V4L2: sh_mobile_ceu: manage lower 8bit bus
+
+Laurent Pinchart (10):
+      mx2_camera: Fix sizeimage computation in try_fmt()
+      soc_camera: Use soc_camera_device::sizeimage to compute buffer sizes
+      soc_camera: Use soc_camera_device::bytesperline to compute line sizes
+      soc-camera: Add plane layout information to struct soc_mbus_pixelfmt
+      soc-camera: Fix bytes per line computation for planar formats
+      soc-camera: Add soc_mbus_image_size
+      soc-camera: Honor user-requested bytesperline and sizeimage
+      mx2_camera: Use soc_mbus_image_size() instead of manual computation
+      soc-camera: Support user-configurable line stride
+      sh_mobile_ceu_camera: Support user-configurable line stride
+
+Masahiro Nakai (1):
+      V4L2: mt9t112: fixup JPEG initialization workaround
+
+ drivers/media/video/atmel-isi.c              |   18 +----
+ drivers/media/video/marvell-ccic/mcam-core.c |    1 -
+ drivers/media/video/mt9t112.c                |    1 +
+ drivers/media/video/mx1_camera.c             |   14 +----
+ drivers/media/video/mx2_camera.c             |   26 +++----
+ drivers/media/video/mx3_camera.c             |   41 +++++++-----
+ drivers/media/video/omap1_camera.c           |   22 +++----
+ drivers/media/video/pxa_camera.c             |   15 +----
+ drivers/media/video/sh_mobile_ceu_camera.c   |   92 +++++++++++++++-----------
+ drivers/media/video/soc_camera.c             |   51 ++++++++-------
+ drivers/media/video/soc_mediabus.c           |   54 +++++++++++++++
+ include/media/sh_mobile_ceu.h                |    1 +
+ include/media/soc_camera.h                   |    6 ++-
+ include/media/soc_mediabus.h                 |   21 ++++++
+ 14 files changed, 214 insertions(+), 149 deletions(-)
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
