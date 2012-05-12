@@ -1,64 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:4977 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932245Ab2EQHxX (ORCPT
+Received: from mail-vb0-f46.google.com ([209.85.212.46]:45059 "EHLO
+	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751761Ab2ELKVw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 May 2012 03:53:23 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Jun Nie <niej0001@gmail.com>
-Subject: Re: Kernel Display and Video API Consolidation mini-summit at ELC 2012 - Notes
-Date: Thu, 17 May 2012 09:53:03 +0200
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Daniel Vetter <daniel@ffwll.ch>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	linux-fbdev@vger.kernel.org,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Marcus Lorentzon <marcus.lorentzon@linaro.org>,
-	dri-devel@lists.freedesktop.org,
-	Alexander Deucher <alexander.deucher@amd.com>,
-	Rob Clark <rob@ti.com>, linux-media@vger.kernel.org,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-References: <201201171126.42675.laurent.pinchart@ideasonboard.com> <Pine.LNX.4.64.1202201633100.2836@axis700.grange> <CAGA24M+OEwi-ayBrXcMPg5PzndRF4mSr2dOOQAxhDCu6ShZLjQ@mail.gmail.com>
-In-Reply-To: <CAGA24M+OEwi-ayBrXcMPg5PzndRF4mSr2dOOQAxhDCu6ShZLjQ@mail.gmail.com>
+	Sat, 12 May 2012 06:21:52 -0400
+Received: by vbbff1 with SMTP id ff1so3519279vbb.19
+        for <linux-media@vger.kernel.org>; Sat, 12 May 2012 03:21:51 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201205170953.03093.hverkuil@xs4all.nl>
+In-Reply-To: <20120512000858.3d9e41a8@pirotess>
+References: <1336716892-5446-1-git-send-email-ismael.luceno@gmail.com>
+	<1336716892-5446-2-git-send-email-ismael.luceno@gmail.com>
+	<CAGoCfiydH48uY86w3oHbRDoJddX5qS1Va7vo4-vXwAn9JeSaaQ@mail.gmail.com>
+	<20120512000858.3d9e41a8@pirotess>
+Date: Sat, 12 May 2012 06:21:51 -0400
+Message-ID: <CAGoCfizjD0wMpd+p4zxATfe+NKJqTqRTE4UEAZTTNdq9yCkxXg@mail.gmail.com>
+Subject: Re: [PATCH 2/2] au0828: Move under dvb
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Ismael Luceno <ismael.luceno@gmail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu May 17 2012 04:46:37 Jun Nie wrote:
->     Is there any discussion on HDCP on the summit? It is tightly
-> coupled with HDMI and DVI and should be managed together with the
-> transmitter. But there is not code to handle HDCP in DRM/FB/V4L in
-> latest kernel. Any thoughts on HDCP? Or you guys think there is risk
-> to support it in kernel? Thanks for your comments!
+On Fri, May 11, 2012 at 11:08 PM, Ismael Luceno <ismael.luceno@gmail.com> wrote:
+> On Fri, 11 May 2012 08:04:59 -0400
+> Devin Heitmueller <dheitmueller@kernellabs.com> wrote:
+> ...
+>> What is the motivation for moving these files?
+>
+> Well, the device was on the wrong Kconfig section, and while thinking
+> about changing that, I just thought to move it under DVB.
+>
+>> The au0828 is a hybrid bridge, and every other hybrid bridge is
+>> under video?
+>
+> Sorry, the devices I got don't support analog, so I didn't thought
+> about it that much...
+>
+> I guess it's arbitrary... isn't it? wouldn't it be better to have an
+> hybrid section? (just thinking out loud)
 
-There is no risk to support it in the kernel, the risk is all for the
-implementer (usually by having to lock down the system preventing access
-to the box). You'd better read the HDCP license very carefully before deciding
-to use HDCP under linux!
+Yeah, in this case it's largely historical (a product from before the
+V4L and DVB subsystems were merged).  At this point I don't see any
+real advantage to arbitrarily moving the stuff around.  And in fact in
+some areas it's even more ambiguous because some drivers are hybrid
+drivers but support both hybrid chips as well as analog-only (the
+em28xx driver is one such example).
 
-I'm working on V4L HDMI receivers and transmitters myself, but not on HDCP.
-But I'd be happy to review/comment on proposals for adding HDCP support.
+Anyway, Mauro is welcome to offer his opinion if it differs, but as
+far as I'm concerned this patch shouldn't get applied.
 
-Note that there is very little work to be done to add this for simple
-receivers and transmitters. The hard part will be supporting repeaters.
+Cheers,
 
-For simple receivers all you need in V4L2 is a flag telling you that the
-received video was encrypted and for a transmitter I think you just need a
-control to turn encryption on or off (AFAIK, I'd have to verify that statement
-regarding the transmitter to be 100% certain). All the actual encryption and
-decryption is handled by the receiver/transmitter hardware, at least on the
-hardware that I have seen.
+Devin
 
-Repeaters are a lot harder as you have to handle key exchanges. I don't know
-off-hand what that would involve API-wise in V4L2.
-
-Regards,
-
-	Hans
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
