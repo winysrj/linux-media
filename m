@@ -1,208 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout-de.gmx.net ([213.165.64.22]:48930 "HELO
+Received: from mailout-de.gmx.net ([213.165.64.23]:59969 "HELO
 	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1755250Ab2EEMFe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 5 May 2012 08:05:34 -0400
-From: Tobias Lorenz <tobias.lorenz@gmx.net>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [RFC PATCH 3/4] radio-si470x-common.c: remove unnecessary kernel log spam.
-Date: Sat, 5 May 2012 14:05:28 +0200
-Cc: linux-media@vger.kernel.org,
-	Joonyoung Shim <jy0922.shim@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-References: <1336138232-17528-1-git-send-email-hverkuil@xs4all.nl> <6bc768e0c1d1664d96f8a051324c9fc1ef71ff8c.1336137768.git.hans.verkuil@cisco.com>
-In-Reply-To: <6bc768e0c1d1664d96f8a051324c9fc1ef71ff8c.1336137768.git.hans.verkuil@cisco.com>
+	with SMTP id S1752203Ab2ELJLn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 12 May 2012 05:11:43 -0400
+From: "Hans-Frieder Vogt" <hfvogt@gmx.net>
+To: linux-media@vger.kernel.org,
+	Thomas Mair <thomas.mair86@googlemail.com>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [PATCH] fc0012 ver. 0.6: introduction of get_rf_strength function
+Date: Sat, 12 May 2012 11:11:36 +0200
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="iso-8859-15"
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201205051405.29313.tobias.lorenz@gmx.net>
+Message-Id: <201205121111.36181.hfvogt@gmx.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Hans,
+Changes compared to version 0.5 of driver (sent 6 May):
+- Initial implementation of get_rf_strength function.
 
-thanks for the improvements. Looks good to me.
+Signed-off-by: Hans-Frieder Vogt <hfvogt@gmx.net>
 
-Acked-by: Tobias Lorenz <tobias.lorenz@gmx.net>
+ fc0012.c |   72 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 71 insertions(+), 1 deletion(-)
 
-Bye,
-Toby
+diff -up --new-file --recursive a/drivers/media/common/tuners/fc0012.c b/drivers/media/common/tuners/fc0012.c
+--- a/drivers/media/common/tuners/fc0012.c	2012-05-12 10:53:55.330058209 +0200
++++ b/drivers/media/common/tuners/fc0012.c	2012-05-09 23:27:37.781193720 +0200
+@@ -343,6 +343,74 @@ static int fc0012_get_bandwidth(struct d
+ 	return 0;
+ }
+ 
++#define INPUT_ADC_LEVEL	-8
++
++static int fc0012_get_rf_strength(struct dvb_frontend *fe, u16 *strength)
++{
++	struct fc0012_priv *priv = fe->tuner_priv;
++	int ret;
++	unsigned char tmp;
++	int int_temp, lna_gain, int_lna, tot_agc_gain, power;
++	const int fc0012_lna_gain_table[] = {
++		/* low gain */
++		-63, -58, -99, -73,
++		-63, -65, -54, -60,
++		/* middle gain */
++		 71,  70,  68,  67,
++		 65,  63,  61,  58,
++		/* high gain */
++		197, 191, 188, 186,
++		184, 182, 181, 179,
++	};
++
++	if (fe->ops.i2c_gate_ctrl)
++		fe->ops.i2c_gate_ctrl(fe, 1); /* open I2C-gate */
++
++	ret = fc0012_writereg(priv, 0x12, 0x00);
++	if (ret)
++		goto err;
++
++	ret = fc0012_readreg(priv, 0x12, &tmp);
++	if (ret)
++		goto err;
++	int_temp = tmp;
++
++	ret = fc0012_readreg(priv, 0x13, &tmp);
++	if (ret)
++		goto err;
++	lna_gain = tmp & 0x1f;
++
++	if (fe->ops.i2c_gate_ctrl)
++		fe->ops.i2c_gate_ctrl(fe, 0); /* close I2C-gate */
++
++	if (lna_gain < ARRAY_SIZE(fc0012_lna_gain_table)) {
++		int_lna = fc0012_lna_gain_table[lna_gain];
++		tot_agc_gain = (abs((int_temp >> 5) - 7) - 2 +
++				(int_temp & 0x1f)) * 2;
++		power = INPUT_ADC_LEVEL - tot_agc_gain - int_lna / 10;
++
++		if (power >= 45)
++			*strength = 255;	/* 100% */
++		else if (power < -95)
++			*strength = 0;
++		else
++			*strength = (power + 95) * 255 / 140;
++
++		*strength |= *strength << 8;
++	} else {
++		ret = -1;
++	}
++
++	goto exit;
++
++err:
++	if (fe->ops.i2c_gate_ctrl)
++		fe->ops.i2c_gate_ctrl(fe, 0); /* close I2C-gate */
++exit:
++	if (ret)
++		warn("%s: failed: %d", __func__, ret);
++	return ret;
++}
+ 
+ static const struct dvb_tuner_ops fc0012_tuner_ops = {
+ 	.info = {
+@@ -363,6 +431,8 @@ static const struct dvb_tuner_ops fc0012
+ 	.get_frequency	= fc0012_get_frequency,
+ 	.get_if_frequency = fc0012_get_if_frequency,
+ 	.get_bandwidth	= fc0012_get_bandwidth,
++
++	.get_rf_strength = fc0012_get_rf_strength,
+ };
+ 
+ struct dvb_frontend *fc0012_attach(struct dvb_frontend *fe,
+@@ -394,4 +464,4 @@ EXPORT_SYMBOL(fc0012_attach);
+ MODULE_DESCRIPTION("Fitipower FC0012 silicon tuner driver");
+ MODULE_AUTHOR("Hans-Frieder Vogt <hfvogt@gmx.net>");
+ MODULE_LICENSE("GPL");
+-MODULE_VERSION("0.5");
++MODULE_VERSION("0.6");
 
-Am Freitag, 4. Mai 2012, 15:30:31 schrieb Hans Verkuil:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> There is no need to report an error in the log, you are already returning
-> that error to userspace after all.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  drivers/media/radio/si470x/radio-si470x-common.c |   78
-> +++++----------------- 1 file changed, 17 insertions(+), 61 deletions(-)
-> 
-> diff --git a/drivers/media/radio/si470x/radio-si470x-common.c
-> b/drivers/media/radio/si470x/radio-si470x-common.c index e70badf..b9a44d4
-> 100644
-> --- a/drivers/media/radio/si470x/radio-si470x-common.c
-> +++ b/drivers/media/radio/si470x/radio-si470x-common.c
-> @@ -327,7 +327,7 @@ static int si470x_set_seek(struct si470x_device *radio,
->  		radio->registers[POWERCFG] &= ~POWERCFG_SEEKUP;
->  	retval = si470x_set_register(radio, POWERCFG);
->  	if (retval < 0)
-> -		goto done;
-> +		return retval;
-> 
->  	/* currently I2C driver only uses interrupt way to seek */
->  	if (radio->stci_enabled) {
-> @@ -355,20 +355,15 @@ static int si470x_set_seek(struct si470x_device
-> *radio, if (radio->registers[STATUSRSSI] & STATUSRSSI_SF)
->  		dev_warn(&radio->videodev.dev,
->  			"seek failed / band limit reached\n");
-> -	if (timed_out)
-> -		dev_warn(&radio->videodev.dev,
-> -			"seek timed out after %u ms\n", seek_timeout);
-> 
->  stop:
->  	/* stop seeking */
->  	radio->registers[POWERCFG] &= ~POWERCFG_SEEK;
->  	retval = si470x_set_register(radio, POWERCFG);
-> 
-> -done:
->  	/* try again, if timed out */
-> -	if ((retval == 0) && timed_out)
-> -		retval = -EAGAIN;
-> -
-> +	if (retval == 0 && timed_out)
-> +		return -EAGAIN;
->  	return retval;
->  }
-> 
-> @@ -589,16 +584,14 @@ static int si470x_vidioc_g_tuner(struct file *file,
-> void *priv, struct v4l2_tuner *tuner)
->  {
->  	struct si470x_device *radio = video_drvdata(file);
-> -	int retval = 0;
-> +	int retval;
-> 
-> -	if (tuner->index != 0) {
-> -		retval = -EINVAL;
-> -		goto done;
-> -	}
-> +	if (tuner->index != 0)
-> +		return -EINVAL;
-> 
->  	retval = si470x_get_register(radio, STATUSRSSI);
->  	if (retval < 0)
-> -		goto done;
-> +		return retval;
-> 
->  	/* driver constants */
->  	strcpy(tuner->name, "FM");
-> @@ -653,10 +646,6 @@ static int si470x_vidioc_g_tuner(struct file *file,
-> void *priv, /* AFCRL does only indicate that freq. differs, not if too
-> low/high */ tuner->afc = (radio->registers[STATUSRSSI] & STATUSRSSI_AFCRL)
-> ? 1 : 0;
-> 
-> -done:
-> -	if (retval < 0)
-> -		dev_warn(&radio->videodev.dev,
-> -			"get tuner failed with %d\n", retval);
->  	return retval;
->  }
-> 
-> @@ -668,7 +657,6 @@ static int si470x_vidioc_s_tuner(struct file *file,
-> void *priv, struct v4l2_tuner *tuner)
->  {
->  	struct si470x_device *radio = video_drvdata(file);
-> -	int retval = 0;
-> 
->  	if (tuner->index != 0)
->  		return -EINVAL;
-> @@ -684,12 +672,7 @@ static int si470x_vidioc_s_tuner(struct file *file,
-> void *priv, break;
->  	}
-> 
-> -	retval = si470x_set_register(radio, POWERCFG);
-> -
-> -	if (retval < 0)
-> -		dev_warn(&radio->videodev.dev,
-> -			"set tuner failed with %d\n", retval);
-> -	return retval;
-> +	return si470x_set_register(radio, POWERCFG);
->  }
-> 
-> 
-> @@ -700,21 +683,12 @@ static int si470x_vidioc_g_frequency(struct file
-> *file, void *priv, struct v4l2_frequency *freq)
->  {
->  	struct si470x_device *radio = video_drvdata(file);
-> -	int retval = 0;
-> 
-> -	if (freq->tuner != 0) {
-> -		retval = -EINVAL;
-> -		goto done;
-> -	}
-> +	if (freq->tuner != 0)
-> +		return -EINVAL;
-> 
->  	freq->type = V4L2_TUNER_RADIO;
-> -	retval = si470x_get_freq(radio, &freq->frequency);
-> -
-> -done:
-> -	if (retval < 0)
-> -		dev_warn(&radio->videodev.dev,
-> -			"get frequency failed with %d\n", retval);
-> -	return retval;
-> +	return si470x_get_freq(radio, &freq->frequency);
->  }
-> 
-> 
-> @@ -725,20 +699,11 @@ static int si470x_vidioc_s_frequency(struct file
-> *file, void *priv, struct v4l2_frequency *freq)
->  {
->  	struct si470x_device *radio = video_drvdata(file);
-> -	int retval = 0;
-> -
-> -	if (freq->tuner != 0) {
-> -		retval = -EINVAL;
-> -		goto done;
-> -	}
-> 
-> -	retval = si470x_set_freq(radio, freq->frequency);
-> +	if (freq->tuner != 0)
-> +		return -EINVAL;
-> 
-> -done:
-> -	if (retval < 0)
-> -		dev_warn(&radio->videodev.dev,
-> -			"set frequency failed with %d\n", retval);
-> -	return retval;
-> +	return si470x_set_freq(radio, freq->frequency);
->  }
-> 
-> 
-> @@ -749,20 +714,11 @@ static int si470x_vidioc_s_hw_freq_seek(struct file
-> *file, void *priv, struct v4l2_hw_freq_seek *seek)
->  {
->  	struct si470x_device *radio = video_drvdata(file);
-> -	int retval = 0;
-> -
-> -	if (seek->tuner != 0) {
-> -		retval = -EINVAL;
-> -		goto done;
-> -	}
-> 
-> -	retval = si470x_set_seek(radio, seek->wrap_around, seek->seek_upward);
-> +	if (seek->tuner != 0)
-> +		return -EINVAL;
-> 
-> -done:
-> -	if (retval < 0)
-> -		dev_warn(&radio->videodev.dev,
-> -			"set hardware frequency seek failed with %d\n", retval);
-> -	return retval;
-> +	return si470x_set_seek(radio, seek->wrap_around, seek->seek_upward);
->  }
-> 
->  const struct v4l2_ctrl_ops si470x_ctrl_ops = {
-
+Hans-Frieder Vogt                       e-mail: hfvogt <at> gmx .dot. net
