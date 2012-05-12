@@ -1,65 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:1503 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754340Ab2EaJWy (ORCPT
+Received: from mailout-de.gmx.net ([213.165.64.23]:36412 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752203Ab2ELJLv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 31 May 2012 05:22:54 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: marbugge@cisco.com, Soby Mathew <soby.mathew@st.com>,
-	mats.randgaard@cisco.com, manjunath.hadli@ti.com,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Scott Jiang <scott.jiang.linux@gmail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv1 PATCH 3/3] v4l2-subdev: hook up the new ioctls in v4l2-subdev.
-Date: Thu, 31 May 2012 11:22:44 +0200
-Message-Id: <63576281f33b0fce8b59823cb0e21b9329f3a26f.1338455197.git.hans.verkuil@cisco.com>
-In-Reply-To: <1338456164-25080-1-git-send-email-hverkuil@xs4all.nl>
-References: <1338456164-25080-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <87c4b987f7b13776196612029786df388f43ad0a.1338455197.git.hans.verkuil@cisco.com>
-References: <87c4b987f7b13776196612029786df388f43ad0a.1338455197.git.hans.verkuil@cisco.com>
+	Sat, 12 May 2012 05:11:51 -0400
+From: "Hans-Frieder Vogt" <hfvogt@gmx.net>
+To: linux-media@vger.kernel.org,
+	Thomas Mair <thomas.mair86@googlemail.com>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [PATCH] fc0013 ver. 0.2: introduction of get_rf_strength function
+Date: Sat, 12 May 2012 11:11:47 +0200
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201205121111.47754.hfvogt@gmx.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Changes compared to version 0.1 of driver (sent 6 May):
+- Initial implementation of get_rf_strength function.
+- Introduction of a warning message
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/video/v4l2-subdev.c |    6 ++++++
- include/media/v4l2-subdev.h       |    2 ++
- 2 files changed, 8 insertions(+)
+Signed-off-by: Hans-Frieder Vogt <hfvogt@gmx.net>
 
-diff --git a/drivers/media/video/v4l2-subdev.c b/drivers/media/video/v4l2-subdev.c
-index db6e859..3d46cd6 100644
---- a/drivers/media/video/v4l2-subdev.c
-+++ b/drivers/media/video/v4l2-subdev.c
-@@ -348,6 +348,12 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 		return v4l2_subdev_call(
- 			sd, pad, set_selection, subdev_fh, sel);
- 	}
+ fc0013.c |   74 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 73 insertions(+), 1 deletion(-)
+
+diff -up --new-file --recursive a/drivers/media/common/tuners/fc0013.c b/drivers/media/common/tuners/fc0013.c
+--- a/drivers/media/common/tuners/fc0013.c	2012-05-12 10:54:01.093352494 +0200
++++ b/drivers/media/common/tuners/fc0013.c	2012-05-12 11:00:29.940455095 +0200
+@@ -484,6 +484,8 @@ static int fc0013_set_params(struct dvb_
+ exit:
+ 	if (fe->ops.i2c_gate_ctrl)
+ 		fe->ops.i2c_gate_ctrl(fe, 0); /* close I2C-gate */
++	if (ret)
++		warn("%s: failed: %d", __func__, ret);
+ 	return ret;
+ }
+ 
+@@ -508,6 +510,74 @@ static int fc0013_get_bandwidth(struct d
+ 	return 0;
+ }
+ 
++#define INPUT_ADC_LEVEL	-8
 +
-+	case VIDIOC_SUBDEV_G_EDID:
-+		return v4l2_subdev_call(sd, pad, get_edid, arg);
++static int fc0013_get_rf_strength(struct dvb_frontend *fe, u16 *strength)
++{
++	struct fc0013_priv *priv = fe->tuner_priv;
++	int ret;
++	unsigned char tmp;
++	int int_temp, lna_gain, int_lna, tot_agc_gain, power;
++	const int fc0013_lna_gain_table[] = {
++		/* low gain */
++		-63, -58, -99, -73,
++		-63, -65, -54, -60,
++		/* middle gain */
++		 71,  70,  68,  67,
++		 65,  63,  61,  58,
++		/* high gain */
++		197, 191, 188, 186,
++		184, 182, 181, 179,
++	};
 +
-+	case VIDIOC_SUBDEV_S_EDID:
-+		return v4l2_subdev_call(sd, pad, set_edid, arg);
- #endif
- 	default:
- 		return v4l2_subdev_call(sd, core, ioctl, cmd, arg);
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index c35a354..74c578f 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -476,6 +476,8 @@ struct v4l2_subdev_pad_ops {
- 			     struct v4l2_subdev_selection *sel);
- 	int (*set_selection)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
- 			     struct v4l2_subdev_selection *sel);
-+	int (*get_edid)(struct v4l2_subdev *sd, struct v4l2_subdev_edid *edid);
-+	int (*set_edid)(struct v4l2_subdev *sd, struct v4l2_subdev_edid *edid);
- #ifdef CONFIG_MEDIA_CONTROLLER
- 	int (*link_validate)(struct v4l2_subdev *sd, struct media_link *link,
- 			     struct v4l2_subdev_format *source_fmt,
--- 
-1.7.10
++	if (fe->ops.i2c_gate_ctrl)
++		fe->ops.i2c_gate_ctrl(fe, 1); /* open I2C-gate */
++
++	ret = fc0013_writereg(priv, 0x13, 0x00);
++	if (ret)
++		goto err;
++
++	ret = fc0013_readreg(priv, 0x13, &tmp);
++	if (ret)
++		goto err;
++	int_temp = tmp;
++
++	ret = fc0013_readreg(priv, 0x14, &tmp);
++	if (ret)
++		goto err;
++	lna_gain = tmp & 0x1f;
++
++	if (fe->ops.i2c_gate_ctrl)
++		fe->ops.i2c_gate_ctrl(fe, 0); /* close I2C-gate */
++
++	if (lna_gain < ARRAY_SIZE(fc0013_lna_gain_table)) {
++		int_lna = fc0013_lna_gain_table[lna_gain];
++		tot_agc_gain = (abs((int_temp >> 5) - 7) - 2 +
++				(int_temp & 0x1f)) * 2;
++		power = INPUT_ADC_LEVEL - tot_agc_gain - int_lna / 10;
++
++		if (power >= 45)
++			*strength = 255;	/* 100% */
++		else if (power < -95)
++			*strength = 0;
++		else
++			*strength = (power + 95) * 255 / 140;
++
++		*strength |= *strength << 8;
++	} else {
++		ret = -1;
++	}
++
++	goto exit;
++
++err:
++	if (fe->ops.i2c_gate_ctrl)
++		fe->ops.i2c_gate_ctrl(fe, 0); /* close I2C-gate */
++exit:
++	if (ret)
++		warn("%s: failed: %d", __func__, ret);
++	return ret;
++}
+ 
+ static const struct dvb_tuner_ops fc0013_tuner_ops = {
+ 	.info = {
+@@ -528,6 +598,8 @@ static const struct dvb_tuner_ops fc0013
+ 	.get_frequency	= fc0013_get_frequency,
+ 	.get_if_frequency = fc0013_get_if_frequency,
+ 	.get_bandwidth	= fc0013_get_bandwidth,
++
++	.get_rf_strength = fc0013_get_rf_strength,
+ };
+ 
+ struct dvb_frontend *fc0013_attach(struct dvb_frontend *fe,
+@@ -559,4 +631,4 @@ EXPORT_SYMBOL(fc0013_attach);
+ MODULE_DESCRIPTION("Fitipower FC0013 silicon tuner driver");
+ MODULE_AUTHOR("Hans-Frieder Vogt <hfvogt@gmx.net>");
+ MODULE_LICENSE("GPL");
+-MODULE_VERSION("0.1");
++MODULE_VERSION("0.2");
 
+Hans-Frieder Vogt                       e-mail: hfvogt <at> gmx .dot. net
