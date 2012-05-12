@@ -1,143 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:39881 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751154Ab2E0Xkl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 27 May 2012 19:40:41 -0400
-Message-ID: <4FC2BB76.4050404@iki.fi>
-Date: Mon, 28 May 2012 02:40:38 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:59279 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756359Ab2ELUro (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 12 May 2012 16:47:44 -0400
+Received: by bkcji2 with SMTP id ji2so2977097bkc.19
+        for <linux-media@vger.kernel.org>; Sat, 12 May 2012 13:47:43 -0700 (PDT)
+Message-ID: <4FAECC6C.6050602@googlemail.com>
+Date: Sat, 12 May 2012 22:47:40 +0200
+From: Thomas Mair <thomas.mair86@googlemail.com>
 MIME-Version: 1.0
-To: gennarone@gmail.com
-CC: linux-media <linux-media@vger.kernel.org>
-Subject: Re: DVB USB: change USB stream settings dynamically
-References: <4FC00C11.10403@iki.fi> <4FC227C7.3080309@iki.fi> <4FC259AC.100@gmail.com>
-In-Reply-To: <4FC259AC.100@gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+To: linux-media@vger.kernel.org
+Subject: Re: [PATCH 5/5] rtl28xxu: support Terratec Noxon DAB/DAB+ stick
+References: <1336846109-30070-1-git-send-email-thomas.mair86@googlemail.com> <1336846109-30070-6-git-send-email-thomas.mair86@googlemail.com>
+In-Reply-To: <1336846109-30070-6-git-send-email-thomas.mair86@googlemail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 27.05.2012 19:43, Gianluca Gennari wrote:
-> Hi Antti,
->
-> Il 27/05/2012 15:10, Antti Palosaari ha scritto:
->> On 26.05.2012 01:47, Antti Palosaari wrote:
->>> I was planning make DVB USB be able to switch USB streaming parameters
->>> dynamically. I mean [struct usb_data_stream_properties] parameters.
->>>
->>> Currently it reserves USB streaming buffers when device is plugged. Own
->>> buffer is reserved for each frontend, which means currently 1-3
->>> streaming buffers depending on device.
->>>
->>> Basically I see USB TS as a DVB USB device property - not property of
->>> frontend. USB TS is interface between computer and USB-bridge and amount
->>> of parallel USB TS or TS configurations depends on USB-bridge
->>> capabilities. Sometimes used USB TS could be configured to fit better
->>> used stream. Smaller buffers for the narrow radio stream and biggest
->>> buffers for the wide DVB-S2 stream.
->>>
->>> I was wondering how to resolve that situation? It is not very big
->>> problem currently but I still want to make it better as there is surely
->>> coming new devices that needs better control for the USB streaming
->>> parameters. Currently there is mxl111sf driver which seems to offer 6
->>> different streaming configurations but AFAIK only three is currently
->>> used as there is 3 frontends and each one has own streaming parameters -
->>> and buffers - even only one can be used at the time.
->>>
->>> 1. Configure streaming parameters (alloc buffers) every time when
->>> streaming is started? IIRC that causes some problems lately for em28xx
->>> as memory goes dis-coherent and buffers cannot allocated.
->>>
->>> 2. Allocate buffers (streaming configuration) for all needed device use
->>> configurations at very beginning. Then add some logic to map streaming
->>> config to frontend at runtime. That is quite near what mxl111sf does
->>> currently.
->>
->> After looking existing code carefully and doing some tests I think I
->> will implement that a way it changes buffers at runtime to fit current
->> needs.
->>
->> int usb_urb_submit(struct usb_data_stream *stream) is called when
->> streaming is started. At that point it is possible to compare already
->> reserved buffers and buffers needed. If needed buffers are larger it is
->> possible to reallocate bigger buffers. Of course it is not needed to
->> decrease buffers even smaller stream configurations is asked, just to
->> avoid repetitive allocations of large chunks of coherent memory.
->
-> I have a patch that enables a similar behavior on the em28xx driver (for
-> digital devices). I used it to play with the buffer size in order to
-> determine the minimum working size. I added a couple of parameters to
-> the em28xx module that can be used to change the buffer number and size
-> at runtime. If anybody is interested, I can post this patch to the list
-> for comments.
+The patch contains two small errors that prevent its application. This is the fixed version.
 
-Maybe there is no idea of merge it but it could be interesting to see still.
+Signed-off-by: Hans-Frieder Vogt <hfvogt@gmx.net>
+Signed-off-by: Thomas Mair <thomas.mair86@googlemail.com>
+---
+ drivers/media/dvb/dvb-usb/dvb-usb-ids.h |    1 +
+ drivers/media/dvb/dvb-usb/rtl28xxu.c    |   27 ++++++++++++++++++++++++++-
+ 2 files changed, 27 insertions(+), 1 deletions(-)
 
->> 1) allocate buffers at the init as now (callback to read stream
->> properties from the driver)
->> 2) re-allocate bigger buffers in runtime if needed (callback to read
->> stream properties from the driver)
->> 3) free all buffers when device is disconnected
->
-> I think the deciding factor here is the ratio between the default
-> initial size and the maximum buffer size. If it is something like 2X,
-> then maybe it's better to keep the code simple and just allocate the
-> bigger size from the beginning. If the difference is an order of
-> magnitude or more, then using dynamic allocation is probably worth the
-> effort.
-
-The problem is here driver author could make buffer size calculation 
-error easily :) But as it will likely crash very soon or at least some 
-other effects like broken stream it should never go to the public. And 
-it is cheap to add check for that too, just few lines of code that 
-compares buffer sizes when streaming is started.
-
-I think I will go to that as it is very simple.
-
-
-> Another possibility is to allocate a single memory pool of coherent
-> memory at the init, big enough to cover all the possible modes for the
-> given device. Then it is possible to map the URB buffers into this
-> memory pool at runtime, choosing the optimal size for each mode.
-> The memory pool is freed when the device is disconnected.
-> This approach avoids any reallocation so it's safer on ARM/MIPS hardware.
-
-I do not see any difference to the situation largest needed buffers are 
-reserved at the device initialization unless dynamically re-allocate. 
-But I am going to skip it as it is easier to alloc just as big buffer as 
-needed at worst case.
-
-> For example, the as102 driver allocates a single memory pool in
-> dev->stream, then it maps the URB buffers into this area (see function
-> as102_alloc_usb_stream_buffer() ). In this case the URBs are mapped
-> statically, but nothing prevents to dynamically remap the URB buffers at
-> runtime if needed.
-
-I should look that driver too. But it sounds a little bit more complex 
-to implement than alloc own buffer in the loop for every used URB. There 
-is also drawback that it needs very large, 5-6 times larger, coherent 
-chunk than per URB buffer.
-
->> Basically those USB buffers are type of (buffer count) x (buffer size).
->> Buffer count is same as used count of URBs, typically ~5, and buffer
->> size is the payload size of one URB.
->>
->> Here is some background info (em28xx buffer alloc failures) why to avoid
->> continuous buffer allocs / frees.
->> http://www.spinics.net/lists/linux-media/msg44209.html
->
-> There is also the old thread about the issue:
-> http://www.mail-archive.com/linux-media@vger.kernel.org/msg42776.html
-
-I have one remaining unclear question still. Is there any other drawback 
-to use more URBs at the same time than it eats memory?
-
-So if I have DVB-T (~22Mbit/sec) frontend which uses 5 URBs in chain and 
-then I have DVB-C (~44Mbit/sec) frontend which uses same buffersize but 
-there is 6 URBs in chain. In my understanding I will not lose anything 
-but memory when I use more URBs in parallel to move data from the device.
-
-regards
-Antti
+diff --git a/drivers/media/dvb/dvb-usb/dvb-usb-ids.h b/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
+index b0a86e9..95c9c14 100644
+--- a/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
++++ b/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
+@@ -244,6 +244,7 @@
+ #define USB_PID_TERRATEC_H7_2				0x10a3
+ #define USB_PID_TERRATEC_T3				0x10a0
+ #define USB_PID_TERRATEC_T5				0x10a1
++#define USB_PID_NOXON_DAB_STICK				0x00b3
+ #define USB_PID_PINNACLE_EXPRESSCARD_320CX		0x022e
+ #define USB_PID_PINNACLE_PCTV2000E			0x022c
+ #define USB_PID_PINNACLE_PCTV_DVB_T_FLASH		0x0228
+diff --git a/drivers/media/dvb/dvb-usb/rtl28xxu.c b/drivers/media/dvb/dvb-usb/rtl28xxu.c
+index 699da68..bacc783 100644
+--- a/drivers/media/dvb/dvb-usb/rtl28xxu.c
++++ b/drivers/media/dvb/dvb-usb/rtl28xxu.c
+@@ -29,6 +29,7 @@
+ #include "mt2060.h"
+ #include "mxl5005s.h"
+ #include "fc0012.h"
++#include "fc0013.h"
+ 
+ /* debug */
+ static int dvb_usb_rtl28xxu_debug;
+@@ -388,6 +389,12 @@ static struct rtl2832_config rtl28xxu_rtl2832_fc0012_config = {
+ 	.tuner = TUNER_RTL2832_FC0012
+ };
+ 
++static struct rtl2832_config rtl28xxu_rtl2832_fc0013_config = {
++	.i2c_addr = 0x10, /* 0x20 */
++	.xtal = 28800000,
++	.if_dvbt = 0,
++	.tuner = TUNER_RTL2832_FC0013
++};
+ 
+ static int rtl2832u_fc0012_tuner_callback(struct dvb_usb_device *d,
+ 		int cmd, int arg)
+@@ -553,6 +560,7 @@ static int rtl2832u_frontend_attach(struct dvb_usb_adapter *adap)
+ 	ret = rtl28xxu_ctrl_msg(adap->dev, &req_fc0013);
+ 	if (ret == 0 && buf[0] == 0xa3) {
+ 		priv->tuner = TUNER_RTL2832_FC0013;
++		rtl2832_config = &rtl28xxu_rtl2832_fc0013_config;
+ 		info("%s: FC0013 tuner found\n", __func__);
+ 		goto found;
+ 	}
+@@ -750,6 +758,14 @@ static int rtl2832u_tuner_attach(struct dvb_usb_adapter *adap)
+ 				fe->ops.tuner_ops.get_rf_strength;
+ 		return 0;
+ 		break;
++	case TUNER_RTL2832_FC0013:
++		fe = dvb_attach(fc0013_attach, adap->fe_adap[0].fe,
++			&adap->dev->i2c_adap, 0xc6>>1, 0, FC_XTAL_28_8_MHZ);
++
++		/* fc0013 also supports signal strength reading */
++		adap->fe_adap[0].fe->ops.read_signal_strength = adap->fe_adap[0]
++			.fe->ops.tuner_ops.get_rf_strength;
++		return 0;
+ 	default:
+ 		fe = NULL;
+ 		err("unknown tuner=%d", priv->tuner);
+@@ -1136,6 +1152,7 @@ enum rtl28xxu_usb_table_entry {
+ 	RTL2831U_14AA_0161,
+ 	RTL2832U_0CCD_00A9,
+ 	RTL2832U_1F4D_B803,
++	RTL2832U_0CCD_00B3,
+ };
+ 
+ static struct usb_device_id rtl28xxu_table[] = {
+@@ -1152,6 +1169,8 @@ static struct usb_device_id rtl28xxu_table[] = {
+ 		USB_DEVICE(USB_VID_TERRATEC, USB_PID_TERRATEC_CINERGY_T_STICK_BLACK_REV1)},
+ 	[RTL2832U_1F4D_B803] = {
+ 		USB_DEVICE(USB_VID_GTEK, USB_PID_GTEK)},
++	[RTL2832U_0CCD_00B3] = {
++		USB_DEVICE(USB_VID_TERRATEC, USB_PID_NOXON_DAB_STICK)},
+ 	{} /* terminating entry */
+ };
+ 
+@@ -1265,7 +1284,7 @@ static struct dvb_usb_device_properties rtl28xxu_properties[] = {
+ 
+ 		.i2c_algo = &rtl28xxu_i2c_algo,
+ 
+-		.num_device_descs = 2,
++		.num_device_descs = 3,
+ 		.devices = {
+ 			{
+ 				.name = "Terratec Cinergy T Stick Black",
+@@ -1279,6 +1298,12 @@ static struct dvb_usb_device_properties rtl28xxu_properties[] = {
+ 					&rtl28xxu_table[RTL2832U_1F4D_B803],
+ 				},
+ 			},
++			{
++				.name = "NOXON DAB/DAB+ USB dongle",
++				.warm_ids = {
++					&rtl28xxu_table[RTL2832U_0CCD_00B3],
++				},
++			},
+ 		}
+ 	},
+ 
 -- 
-http://palosaari.fi/
+1.7.7.6
+
