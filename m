@@ -1,68 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr19.xs4all.nl ([194.109.24.39]:2385 "EHLO
-	smtp-vbr19.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753452Ab2EaIOs (ORCPT
+Received: from dimen.winder.org.uk ([87.127.116.10]:42168 "EHLO
+	dimen.winder.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751296Ab2EMK6s (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 31 May 2012 04:14:48 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "linux-media" <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR v3.6] Improve HW_FREQ_SEEK and add frequency band support
-Date: Thu, 31 May 2012 10:14:34 +0200
-Cc: Hans de Goede <hdegoede@redhat.com>,
-	halli manjunatha <hallimanju@gmail.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201205311014.34625.hverkuil@xs4all.nl>
+	Sun, 13 May 2012 06:58:48 -0400
+Message-ID: <1336906328.19220.277.camel@launcelot.winder.org.uk>
+Subject: Re: Fwd: Bug#669715: dvb-apps: Channel/frequency/etc. data needs
+ updating for London transmitters
+From: Russel Winder <russel@winder.org.uk>
+To: Andy Furniss <andyqos@ukfsn.org>
+Cc: Mark Purcell <mark@purcell.id.au>, linux-media@vger.kernel.org,
+	Darren Salt <linux@youmustbejoking.demon.co.uk>,
+	669715-forwarded@bugs.debian.org
+Date: Sun, 13 May 2012 11:52:08 +0100
+In-Reply-To: <4FAF89DB.9020004@ukfsn.org>
+References: <201205132005.47858.mark@purcell.id.au>
+	 <4FAF89DB.9020004@ukfsn.org>
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+	boundary="=-s0cXo8u3PvrintUbYjkn"
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
 
-These patches improve VIDIOC_S_HW_FREQ_SEEK and add frequency band support.
-These changes are needed for both existing drivers (wl128x and radio-cadet)
-and new drivers (the Griffin RadioShark driver that Hans de Goede made).
+--=-s0cXo8u3PvrintUbYjkn
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Once this is in these drivers can follow.
+On Sun, 2012-05-13 at 11:15 +0100, Andy Furniss wrote:
+[...]
+> Transmission mode changed from 2k to 8k in the uk after analogue switch o=
+ff.
 
-Regards,
+Of course. I just failed to make that change in my files. With that
+changed I got some response from gnome-dvb-setup but it only analysed
+one multiplex.
 
-	Hans
+> Chris Rankin already posted UK, Crystal Palace on here.
+[...]
+> T 490000000 8MHz 2/3 NONE QAM64 8k 1/32 NONE # London .
+> T 514000000 8MHz 2/3 NONE QAM64 8k 1/32 NONE # London .
+> T 545833330 8MHz 2/3 NONE QAM256 AUTO AUTO AUTO # London .
+> T 482000000 8MHz 3/4 NONE QAM64 8k 1/32 NONE # London .
+> T 506000000 8MHz 3/4 NONE QAM64 8k 1/32 NONE # London .
+> T 529833330 8MHz 3/4 NONE QAM64 8k 1/32 NONE # London .
 
-The following changes since commit 5472d3f17845c4398c6a510b46855820920c2181:
+Should that be 545833000 instead of 545833330, and 529833000 instead of 529=
+833330?
 
-  [media] mt9m032: Implement V4L2_CID_PIXEL_RATE control (2012-05-24 09:27:24 -0300)
+--=20
+Russel.
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D
+Dr Russel Winder      t: +44 20 7585 2200   voip: sip:russel.winder@ekiga.n=
+et
+41 Buckmaster Road    m: +44 7770 465 077   xmpp: russel@winder.org.uk
+London SW11 1EN, UK   w: www.russel.org.uk  skype: russel_winder
 
-are available in the git repository at:
+--=-s0cXo8u3PvrintUbYjkn
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
 
-  git://linuxtv.org/hverkuil/media_tree.git bands
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
 
-for you to fetch changes up to a89deec1006c7489302fdcb63977a3a2da48b0a6:
+iEYEABECAAYFAk+vklgACgkQ+ooS3F10Be813wCePgw7j+XMCU/T7Pib/FosNal+
+7ZEAoKCqgYlZKJmkYf5AddJegxt1ODhM
+=dFs5
+-----END PGP SIGNATURE-----
 
-  V4L2 Spec: fix typo: NTSC -> NRSC (2012-05-31 10:09:08 +0200)
+--=-s0cXo8u3PvrintUbYjkn--
 
-----------------------------------------------------------------
-Hans Verkuil (7):
-      videodev2.h: add new hwseek capability bits.
-      v4l2 spec: document the new v4l2_tuner capabilities
-      S_HW_FREQ_SEEK: set capability flags and return ENODATA instead of EAGAIN.
-      videodev2.h: add frequency band information.
-      V4L2 spec: add frequency band documentation.
-      V4L2 spec: clarify a few modulator issues.
-      V4L2 Spec: fix typo: NTSC -> NRSC
-
- Documentation/DocBook/media/v4l/biblio.xml                |    2 +-
- Documentation/DocBook/media/v4l/common.xml                |   17 ++++++++---
- Documentation/DocBook/media/v4l/vidioc-g-frequency.xml    |    6 ++++
- Documentation/DocBook/media/v4l/vidioc-g-modulator.xml    |   38 ++++++++++++++++---------
- Documentation/DocBook/media/v4l/vidioc-g-tuner.xml        |  114 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-------
- Documentation/DocBook/media/v4l/vidioc-s-hw-freq-seek.xml |   21 +++++++++++---
- drivers/media/radio/radio-mr800.c                         |    5 ++--
- drivers/media/radio/radio-wl1273.c                        |    3 +-
- drivers/media/radio/si470x/radio-si470x-common.c          |    6 ++--
- drivers/media/radio/wl128x/fmdrv_rx.c                     |    2 +-
- drivers/media/radio/wl128x/fmdrv_v4l2.c                   |    4 ++-
- include/linux/videodev2.h                                 |   22 ++++++++++++--
- sound/i2c/other/tea575x-tuner.c                           |    4 ++-
- 13 files changed, 200 insertions(+), 44 deletions(-)
