@@ -1,96 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.47]:30305 "EHLO mgw-sa01.nokia.com"
+Received: from mail.ukfsn.org ([77.75.108.3]:36286 "EHLO mail.ukfsn.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1762194Ab2EQQae (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 May 2012 12:30:34 -0400
-Received: from maxwell.research.nokia.com (maxwell.research.nokia.com [172.21.199.25])
-	by mgw-sa01.nokia.com (Sentrion-MTA-4.2.2/Sentrion-MTA-4.2.2) with ESMTP id q4HGUW8s029805
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Thu, 17 May 2012 19:30:33 +0300
-Received: from lanttu (lanttu-o.localdomain [192.168.239.74])
-	by maxwell.research.nokia.com (Postfix) with ESMTPS id 600021F4C5A
-	for <linux-media@vger.kernel.org>; Thu, 17 May 2012 19:30:32 +0300 (EEST)
-Received: from sakke by lanttu with local (Exim 4.72)
-	(envelope-from <sakari.ailus@maxwell.research.nokia.com>)
-	id 1SV3at-000871-7H
-	for linux-media@vger.kernel.org; Thu, 17 May 2012 19:30:27 +0300
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 07/10] smiapp: Use non-binning limits if the binning limit is zero
-Date: Thu, 17 May 2012 19:30:06 +0300
-Message-Id: <1337272209-31061-7-git-send-email-sakari.ailus@maxwell.research.nokia.com>
-In-Reply-To: <4FB52770.9000400@maxwell.research.nokia.com>
-References: <4FB52770.9000400@maxwell.research.nokia.com>
+	id S1753887Ab2EMQHw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 13 May 2012 12:07:52 -0400
+Message-ID: <4FAFDC55.9030703@ukfsn.org>
+Date: Sun, 13 May 2012 17:07:49 +0100
+From: Andy Furniss <andyqos@ukfsn.org>
+MIME-Version: 1.0
+To: Russel Winder <russel@winder.org.uk>
+CC: Mark Purcell <mark@purcell.id.au>, linux-media@vger.kernel.org,
+	Darren Salt <linux@youmustbejoking.demon.co.uk>,
+	669715-forwarded@bugs.debian.org
+Subject: Re: Fwd: Bug#669715: dvb-apps: Channel/frequency/etc. data needs
+ updating for London transmitters
+References: <201205132005.47858.mark@purcell.id.au>   <4FAF89DB.9020004@ukfsn.org>  <1336906328.19220.277.camel@launcelot.winder.org.uk>  <4FAFC3CA.7070008@ukfsn.org> <1336921909.9715.3.camel@anglides.winder.org.uk>
+In-Reply-To: <1336921909.9715.3.camel@anglides.winder.org.uk>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Some sensors do use binning but do not have valid limits in binning
-registers. Use non-binning limits in that case.
+Russel Winder wrote:
+> On Sun, 2012-05-13 at 15:23 +0100, Andy Furniss wrote:
+> [...]
+>>> Should that be 545833000 instead of 545833330, and 529833000 instead of 529833330?
+>>>
+>> Possibly - I think if you calculate by hand from channel number and add
+>> or take the offset if it it<channel>+ or - then you do get the extra 33.
+>
+> If I remember correctly the OfCom documentation states the +/- offset is
+> 0.166.  Certainly that is what I used for my manual calculation.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
----
- drivers/media/video/smiapp/smiapp-core.c |   31 +++++++++++++++++++++++++++--
- 1 files changed, 28 insertions(+), 3 deletions(-)
+I was told when asking on uk.tech.broadcast that the offset was 167000, 
+perhaps, if that's rounded up, then 166670 may also be valid and would 
+give the extra 330.
 
-diff --git a/drivers/media/video/smiapp/smiapp-core.c b/drivers/media/video/smiapp/smiapp-core.c
-index 6524091..47d6901 100644
---- a/drivers/media/video/smiapp/smiapp-core.c
-+++ b/drivers/media/video/smiapp/smiapp-core.c
-@@ -653,6 +653,7 @@ static int smiapp_get_all_limits(struct smiapp_sensor *sensor)
- 
- static int smiapp_get_limits_binning(struct smiapp_sensor *sensor)
- {
-+	struct i2c_client *client = v4l2_get_subdevdata(&sensor->src->sd);
- 	static u32 const limits[] = {
- 		SMIAPP_LIMIT_MIN_FRAME_LENGTH_LINES_BIN,
- 		SMIAPP_LIMIT_MAX_FRAME_LENGTH_LINES_BIN,
-@@ -671,11 +672,11 @@ static int smiapp_get_limits_binning(struct smiapp_sensor *sensor)
- 		SMIAPP_LIMIT_FINE_INTEGRATION_TIME_MIN,
- 		SMIAPP_LIMIT_FINE_INTEGRATION_TIME_MAX_MARGIN,
- 	};
-+	unsigned int i;
-+	int rval;
- 
- 	if (sensor->limits[SMIAPP_LIMIT_BINNING_CAPABILITY] ==
- 	    SMIAPP_BINNING_CAPABILITY_NO) {
--		unsigned int i;
--
- 		for (i = 0; i < ARRAY_SIZE(limits); i++)
- 			sensor->limits[limits[i]] =
- 				sensor->limits[limits_replace[i]];
-@@ -683,7 +684,31 @@ static int smiapp_get_limits_binning(struct smiapp_sensor *sensor)
- 		return 0;
- 	}
- 
--	return smiapp_get_limits(sensor, limits, ARRAY_SIZE(limits));
-+	rval = smiapp_get_limits(sensor, limits, ARRAY_SIZE(limits));
-+	if (rval < 0)
-+		return rval;
-+
-+	/*
-+	 * Sanity check whether the binning limits are valid. If not,
-+	 * use the non-binning ones.
-+	 */
-+	if (sensor->limits[SMIAPP_LIMIT_MIN_FRAME_LENGTH_LINES_BIN]
-+	    && sensor->limits[SMIAPP_LIMIT_MIN_LINE_LENGTH_PCK_BIN]
-+	    && sensor->limits[SMIAPP_LIMIT_MIN_LINE_BLANKING_PCK_BIN])
-+		return 0;
-+
-+	for (i = 0; i < ARRAY_SIZE(limits); i++) {
-+		dev_dbg(&client->dev,
-+			"replace limit 0x%8.8x \"%s\" = %d, 0x%x\n",
-+			smiapp_reg_limits[limits[i]].addr,
-+			smiapp_reg_limits[limits[i]].what,
-+			sensor->limits[limits_replace[i]],
-+			sensor->limits[limits_replace[i]]);
-+		sensor->limits[limits[i]] =
-+			sensor->limits[limits_replace[i]];
-+	}
-+
-+	return 0;
- }
- 
- static int smiapp_get_mbus_formats(struct smiapp_sensor *sensor)
--- 
-1.7.2.5
+I don't know about ofcom docs but you can get other info if you check 
+the "I am in the trade" box and enter your postcode here -
+
+http://www.digitaluk.co.uk/postcodechecker/
+
+for the details you have to hover mouse over channel numbers, and of 
+course convert channels to freq. The formula I was told was -
+
+(306 + (N x 8)) x 1000000 then if required +/- 167000
+
+>
+>> I don't live in London, but using a slightly newer w_scan for my
+>> transmitter gave different output from that, with the 330 ->  000.
+>
+> Where did you get this w_scan command from, I don't seem to have one.
+
+wirbel.htpc-forum.de/w_scan/index_en.html
+
+To download there is a link at the bottom of the German page which is 
+linked to from that page.
+
+
+>
+> [...]
+>> T2 0 16417 802000000 8MHz AUTO AUTO     AUTO AUTO AUTO AUTO     # East
+>
+> I wonder if the 0 and 16417 can be ascertained from OfCom documents?
+
+  I don't have a clue about that.
+
+
+
 
