@@ -1,107 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:1655 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754417Ab2EaJW5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 31 May 2012 05:22:57 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: marbugge@cisco.com, Soby Mathew <soby.mathew@st.com>,
-	mats.randgaard@cisco.com, manjunath.hadli@ti.com,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Scott Jiang <scott.jiang.linux@gmail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv1 PATCH 1/3] v4l2 core: add the missing pieces to support DVI/HDMI/DisplayPort.
-Date: Thu, 31 May 2012 11:22:42 +0200
-Message-Id: <87c4b987f7b13776196612029786df388f43ad0a.1338455197.git.hans.verkuil@cisco.com>
-In-Reply-To: <1338456164-25080-1-git-send-email-hverkuil@xs4all.nl>
-References: <1338456164-25080-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mail.ukfsn.org ([77.75.108.3]:40272 "EHLO mail.ukfsn.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751599Ab2EMOXJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 13 May 2012 10:23:09 -0400
+Message-ID: <4FAFC3CA.7070008@ukfsn.org>
+Date: Sun, 13 May 2012 15:23:06 +0100
+From: Andy Furniss <andyqos@ukfsn.org>
+MIME-Version: 1.0
+To: Russel Winder <russel@winder.org.uk>
+CC: Mark Purcell <mark@purcell.id.au>, linux-media@vger.kernel.org,
+	Darren Salt <linux@youmustbejoking.demon.co.uk>,
+	669715-forwarded@bugs.debian.org
+Subject: Re: Fwd: Bug#669715: dvb-apps: Channel/frequency/etc. data needs
+ updating for London transmitters
+References: <201205132005.47858.mark@purcell.id.au>  <4FAF89DB.9020004@ukfsn.org> <1336906328.19220.277.camel@launcelot.winder.org.uk>
+In-Reply-To: <1336906328.19220.277.camel@launcelot.winder.org.uk>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Russel Winder wrote:
+> On Sun, 2012-05-13 at 11:15 +0100, Andy Furniss wrote:
+> [...]
+>> Transmission mode changed from 2k to 8k in the uk after analogue switch off.
+>
+> Of course. I just failed to make that change in my files. With that
+> changed I got some response from gnome-dvb-setup but it only analysed
+> one multiplex.
+>
+>> Chris Rankin already posted UK, Crystal Palace on here.
+> [...]
+>> T 490000000 8MHz 2/3 NONE QAM64 8k 1/32 NONE # London .
+>> T 514000000 8MHz 2/3 NONE QAM64 8k 1/32 NONE # London .
+>> T 545833330 8MHz 2/3 NONE QAM256 AUTO AUTO AUTO # London .
+>> T 482000000 8MHz 3/4 NONE QAM64 8k 1/32 NONE # London .
+>> T 506000000 8MHz 3/4 NONE QAM64 8k 1/32 NONE # London .
+>> T 529833330 8MHz 3/4 NONE QAM64 8k 1/32 NONE # London .
+>
+> Should that be 545833000 instead of 545833330, and 529833000 instead of 529833330?
+>
+Possibly - I think if you calculate by hand from channel number and add 
+or take the offset if it it <channel>+ or - then you do get the extra 33.
 
-These new controls and two new ioctls make it possible to properly support
-VGA, DVI-A/D/I, HDMI and DisplayPort connectors. All these controls and the
-ioctls are all at the sub-device level. They are meant for V4L2 bridge/platform
-drivers or to be accessed on embedded systems through /dev/v4l-subdev* device
-nodes.
+I don't live in London, but using a slightly newer w_scan for my 
+transmitter gave different output from that, with the 330 -> 000.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- include/linux/v4l2-subdev.h |   10 ++++++++++
- include/linux/videodev2.h   |   23 +++++++++++++++++++++++
- 2 files changed, 33 insertions(+)
+Maybe it depends on the device, mine was a DVB T2 pctv nanostick and gave -
 
-diff --git a/include/linux/v4l2-subdev.h b/include/linux/v4l2-subdev.h
-index 812019e..158a784 100644
---- a/include/linux/v4l2-subdev.h
-+++ b/include/linux/v4l2-subdev.h
-@@ -160,6 +160,14 @@ struct v4l2_subdev_selection {
- 	__u32 reserved[8];
- };
- 
-+struct v4l2_subdev_edid {
-+	__u32 pad;
-+	__u32 start_block;
-+	__u32 blocks;
-+	__u32 reserved[5];
-+	__u8 __user *edid;
-+};
-+
- #define VIDIOC_SUBDEV_G_FMT	_IOWR('V',  4, struct v4l2_subdev_format)
- #define VIDIOC_SUBDEV_S_FMT	_IOWR('V',  5, struct v4l2_subdev_format)
- #define VIDIOC_SUBDEV_G_FRAME_INTERVAL \
-@@ -178,5 +186,7 @@ struct v4l2_subdev_selection {
- 	_IOWR('V', 61, struct v4l2_subdev_selection)
- #define VIDIOC_SUBDEV_S_SELECTION \
- 	_IOWR('V', 62, struct v4l2_subdev_selection)
-+#define VIDIOC_SUBDEV_G_EDID	_IOWR('V', 63, struct v4l2_subdev_edid)
-+#define VIDIOC_SUBDEV_S_EDID	_IOWR('V', 64, struct v4l2_subdev_edid)
- 
- #endif
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index 370d111..d24bbad 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -1266,6 +1266,7 @@ struct v4l2_ext_controls {
- #define V4L2_CTRL_CLASS_JPEG 0x009d0000		/* JPEG-compression controls */
- #define V4L2_CTRL_CLASS_IMAGE_SOURCE 0x009e0000	/* Image source controls */
- #define V4L2_CTRL_CLASS_IMAGE_PROC 0x009f0000	/* Image processing controls */
-+#define V4L2_CTRL_CLASS_DV 0x009e0000		/* Digital Video controls */
- 
- #define V4L2_CTRL_ID_MASK      	  (0x0fffffff)
- #define V4L2_CTRL_ID2CLASS(id)    ((id) & 0x0fff0000UL)
-@@ -2009,6 +2010,28 @@ enum v4l2_jpeg_chroma_subsampling {
- #define V4L2_CID_LINK_FREQ			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 1)
- #define V4L2_CID_PIXEL_RATE			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 2)
- 
-+/*  DV-class control IDs defined by V4L2 */
-+#define V4L2_CID_DV_CLASS_BASE			(V4L2_CTRL_CLASS_DV | 0x900)
-+#define V4L2_CID_DV_CLASS			(V4L2_CTRL_CLASS_DV | 1)
-+
-+#define	V4L2_CID_DV_TX_HOTPLUG			(V4L2_CID_DV_CLASS_BASE + 1)
-+#define	V4L2_CID_DV_TX_RXSENSE			(V4L2_CID_DV_CLASS_BASE + 2)
-+#define	V4L2_CID_DV_TX_EDID_PRESENT		(V4L2_CID_DV_CLASS_BASE + 3)
-+#define	V4L2_CID_DV_TX_MODE			(V4L2_CID_DV_CLASS_BASE + 4)
-+enum v4l2_dv_tx_mode {
-+	V4L2_DV_TX_MODE_DVI_D	= 0,
-+	V4L2_DV_TX_MODE_HDMI	= 1,
-+};
-+#define V4L2_CID_DV_TX_RGB_RANGE		(V4L2_CID_DV_CLASS_BASE + 5)
-+enum v4l2_dv_rgb_range {
-+	V4L2_DV_RGB_RANGE_AUTO	  = 0,
-+	V4L2_DV_RGB_RANGE_LIMITED = 1,
-+	V4L2_DV_RGB_RANGE_FULL	  = 2,
-+};
-+
-+#define	V4L2_CID_DV_RX_POWER_PRESENT		(V4L2_CID_DV_CLASS_BASE + 100)
-+#define V4L2_CID_DV_RX_RGB_RANGE		(V4L2_CID_DV_CLASS_BASE + 101)
-+
- /*
-  *	T U N I N G
-  */
--- 
-1.7.10
+#------------------------------------------------------------------------------
+# file automatically generated by w_scan
+# (http://wirbel.htpc-forum.de/w_scan/index2.html)
+#! <w_scan> 20120128 1 0 TERRESTRIAL GB </w_scan>
+#------------------------------------------------------------------------------
+# location and provider: Tacolneston UK
+# date (yyyy-mm-dd)    : 2012-03-10
+#
+# T[2] [plp_id] [system_id] <freq> <bw> <fec_hi> <fec_lo> <mod> <tm> 
+<guard> <hi> [# comment]
+#------------------------------------------------------------------------------
+T 642000000 8MHz  2/3 NONE    QAM64   8k 1/32 NONE      # East Anglia
+T 745833000 8MHz  2/3 NONE    QAM64   8k 1/32 NONE      # East Anglia
+T 777833000 8MHz  2/3 NONE    QAM64   8k 1/32 NONE      # East Anglia
+T 666000000 8MHz  3/4 NONE    QAM64   8k 1/32 NONE      # East Anglia
+T 706000000 8MHz  3/4 NONE    QAM64   8k 1/32 NONE      # East Anglia
+T2 0 16417 802000000 8MHz AUTO AUTO     AUTO AUTO AUTO AUTO     # East 
+Anglia
 
