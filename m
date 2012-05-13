@@ -1,70 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gh0-f174.google.com ([209.85.160.174]:43847 "EHLO
-	mail-gh0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760300Ab2EVT7a convert rfc822-to-8bit (ORCPT
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:64446 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751653Ab2EMVVB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 May 2012 15:59:30 -0400
-MIME-Version: 1.0
-In-Reply-To: <24289717.tQzdZ5Ax07@avalon>
-References: <4F12D7A0.7030804@redhat.com>
-	<CAMuHMdV+ub7t_O5mu1vWrZFZOhZ7NYZfnoBWPyfK2bYQUT4yPw@mail.gmail.com>
-	<24289717.tQzdZ5Ax07@avalon>
-Date: Tue, 22 May 2012 21:59:29 +0200
-Message-ID: <CAMuHMdUox7MKzAM6etq6ptLyyxUMSZwSyXrfuTc-bvLiVrMhwA@mail.gmail.com>
-Subject: Re: [GIT PULL for 3.3-rc1] media updates
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Bob Liu <lliubbo@gmail.com>,
-	Linus Torvalds <torvalds@linux-foundation.org>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	Sun, 13 May 2012 17:21:01 -0400
+Received: by bkcji2 with SMTP id ji2so3312672bkc.19
+        for <linux-media@vger.kernel.org>; Sun, 13 May 2012 14:21:00 -0700 (PDT)
+From: Thomas Mair <thomas.mair86@googlemail.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: Thomas Mair <thomas.mair86@googlemail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH] rtl28xxu: removed newlines from info strings
+Date: Sun, 13 May 2012 23:18:57 +0200
+Message-Id: <1336943937-19422-1-git-send-email-thomas.mair86@googlemail.com>
+In-Reply-To: <1336846109-30070-1-git-send-email-thomas.mair86@googlemail.com>
+References: <1336846109-30070-1-git-send-email-thomas.mair86@googlemail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Signed-off-by: Thomas Mair <thomas.mair86@googlemail.com>
+---
+ drivers/media/dvb/dvb-usb/rtl28xxu.c |   20 ++++++++++----------
+ 1 files changed, 10 insertions(+), 10 deletions(-)
 
-On Mon, Apr 30, 2012 at 1:23 PM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> On Wednesday 25 April 2012 17:12:49 Geert Uytterhoeven wrote:
->> On Sun, Jan 15, 2012 at 14:41, Mauro Carvalho Chehab wrote:
->> > Laurent Pinchart (18):
->> >      [media] uvcvideo: Move fields from uvc_buffer::buf to uvc_buffer
->> >      [media] uvcvideo: Use videobuf2-vmalloc
->>
->> It seems these change (3d95e932573c316ad56b8e2f283e26de0b9c891c
->> resp. 6998b6fb4b1c8f320adeee938d399c4d8dcc90e2) broke the
->> build for nommu a while ago, as uvc_queue_get_unmapped_area() was not
->> or was incorrectly updated:
->>
->> drivers/media/video/uvc/uvc_queue.c:254:23: error: 'struct
->> uvc_video_queue' has no member named 'count'
->> drivers/media/video/uvc/uvc_queue.c:255:18: error: 'struct
->> uvc_video_queue' has no member named 'buffer'
->> drivers/media/video/uvc/uvc_queue.c:256:19: error: 'struct vb2_buffer'
->> has no member named 'm'
->> drivers/media/video/uvc/uvc_queue.c:259:16: error: 'struct
->> uvc_video_queue' has no member named 'count'
->> drivers/media/video/uvc/uvc_queue.c:263:23: error: 'buf' undeclared
->> (first use in this function)
->>
->> Cfr. http://kisskb.ellerman.id.au/kisskb/buildresult/6171077/
->
-> My bad, and thanks for the report. The following patch should fix this. Do you
-> have a NOMMU system to test it on ?
+diff --git a/drivers/media/dvb/dvb-usb/rtl28xxu.c b/drivers/media/dvb/dvb-usb/rtl28xxu.c
+index ef02f0f..f10cac2 100644
+--- a/drivers/media/dvb/dvb-usb/rtl28xxu.c
++++ b/drivers/media/dvb/dvb-usb/rtl28xxu.c
+@@ -552,7 +552,7 @@ static int rtl2832u_frontend_attach(struct dvb_usb_adapter *adap)
+ 	if (ret == 0 && buf[0] == 0xa1) {
+ 		priv->tuner = TUNER_RTL2832_FC0012;
+ 		rtl2832_config = &rtl28xxu_rtl2832_fc0012_config;
+-		info("%s: FC0012 tuner found\n", __func__);
++		info("%s: FC0012 tuner found", __func__);
+ 		goto found;
+ 	}
+ 
+@@ -561,7 +561,7 @@ static int rtl2832u_frontend_attach(struct dvb_usb_adapter *adap)
+ 	if (ret == 0 && buf[0] == 0xa3) {
+ 		priv->tuner = TUNER_RTL2832_FC0013;
+ 		rtl2832_config = &rtl28xxu_rtl2832_fc0013_config;
+-		info("%s: FC0013 tuner found\n", __func__);
++		info("%s: FC0013 tuner found", __func__);
+ 		goto found;
+ 	}
+ 
+@@ -570,7 +570,7 @@ static int rtl2832u_frontend_attach(struct dvb_usb_adapter *adap)
+ 	if (ret == 0 && buf[0] == 0x85) {
+ 		priv->tuner = TUNER_RTL2832_MT2266;
+ 		/* TODO implement tuner */
+-		info("%s: MT2266 tuner found\n", __func__);
++		info("%s: MT2266 tuner found", __func__);
+ 		goto found;
+ 	}
+ 
+@@ -579,7 +579,7 @@ static int rtl2832u_frontend_attach(struct dvb_usb_adapter *adap)
+ 	if (ret == 0 && buf[0] == 0x56) {
+ 		priv->tuner = TUNER_RTL2832_FC2580;
+ 		/* TODO implement tuner */
+-		info("%s: FC2580 tuner found\n", __func__);
++		info("%s: FC2580 tuner found", __func__);
+ 		goto found;
+ 	}
+ 
+@@ -588,7 +588,7 @@ static int rtl2832u_frontend_attach(struct dvb_usb_adapter *adap)
+ 	if (ret == 0 && (buf[0] == 0x9e || buf[0] == 0x9c)) {
+ 		priv->tuner = TUNER_RTL2832_MT2063;
+ 		/* TODO implement tuner */
+-		info("%s: MT2063 tuner found\n", __func__);
++		info("%s: MT2063 tuner found", __func__);
+ 		goto found;
+ 	}
+ 
+@@ -597,7 +597,7 @@ static int rtl2832u_frontend_attach(struct dvb_usb_adapter *adap)
+ 	if (ret == 0 && buf[0] == 0x38) {
+ 		priv->tuner = TUNER_RTL2832_MAX3543;
+ 		/* TODO implement tuner */
+-		info("%s: MAX3534 tuner found\n", __func__);
++		info("%s: MAX3534 tuner found", __func__);
+ 		goto found;
+ 	}
+ 
+@@ -606,7 +606,7 @@ static int rtl2832u_frontend_attach(struct dvb_usb_adapter *adap)
+ 	if (ret == 0 && buf[0] == 0x23 && buf[1] == 0x28) {
+ 		priv->tuner = TUNER_RTL2832_TUA9001;
+ 		/* TODO implement tuner */
+-		info("%s: TUA9001 tuner found\n", __func__);
++		info("%s: TUA9001 tuner found", __func__);
+ 		goto found;
+ 	}
+ 
+@@ -615,7 +615,7 @@ static int rtl2832u_frontend_attach(struct dvb_usb_adapter *adap)
+ 	if (ret == 0 && buf[0] == 0x14) {
+ 		priv->tuner = TUNER_RTL2832_MXL5007T;
+ 		/* TODO implement tuner */
+-		info("%s: MXL5007T tuner found\n", __func__);
++		info("%s: MXL5007T tuner found", __func__);
+ 		goto found;
+ 	}
+ 
+@@ -624,7 +624,7 @@ static int rtl2832u_frontend_attach(struct dvb_usb_adapter *adap)
+ 	if (ret == 0 && buf[0] == 0x40) {
+ 		priv->tuner = TUNER_RTL2832_E4000;
+ 		/* TODO implement tuner */
+-		info("%s: E4000 tuner found\n", __func__);
++		info("%s: E4000 tuner found", __func__);
+ 		goto found;
+ 	}
+ 
+@@ -633,7 +633,7 @@ static int rtl2832u_frontend_attach(struct dvb_usb_adapter *adap)
+ 	if (ret == 0 && (buf[0] == 0xc7 || buf[1] == 0x60)) {
+ 		priv->tuner = TUNER_RTL2832_TDA18272;
+ 		/* TODO implement tuner */
+-		info("%s: TDA18272 tuner found\n", __func__);
++		info("%s: TDA18272 tuner found", __func__);
+ 		goto found;
+ 	}
+ 
+-- 
+1.7.7.6
 
-No, I don't.
-
-Gr{oetje,eeting}s,
-
-                        Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
