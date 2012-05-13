@@ -1,87 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.186]:63439 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755197Ab2ESXQ6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 19 May 2012 19:16:58 -0400
-Date: Sun, 20 May 2012 01:16:52 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
-cc: Linux-V4L2 <linux-media@vger.kernel.org>,
-	Magnus <magnus.damm@gmail.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Kuninori Morimoto <kuninori.morimoto.gx@gmail.com>
-Subject: [PATCH] V4L: sh-mobile-ceu-camera: restore the bus-width test
-In-Reply-To: <87d36yezag.wl%kuninori.morimoto.gx@renesas.com>
-Message-ID: <Pine.LNX.4.64.1205200044490.12577@axis700.grange>
-References: <87ehrf9fjo.wl%kuninori.morimoto.gx@renesas.com>
- <Pine.LNX.4.64.1204231325300.19312@axis700.grange>
- <87d36yezag.wl%kuninori.morimoto.gx@renesas.com>
+Received: from 7of9.schinagl.nl ([88.159.158.68]:52721 "EHLO 7of9.schinagl.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751717Ab2EMR04 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 13 May 2012 13:26:56 -0400
+Message-ID: <4FAFEED8.7080903@schinagl.nl>
+Date: Sun, 13 May 2012 19:26:48 +0200
+From: Oliver Schinagl <oliver+list@schinagl.nl>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Antti Palosaari <crope@iki.fi>
+CC: linux-media <linux-media@vger.kernel.org>
+Subject: Re: AF9035 experimental header changes
+References: <4FAFD21D.9000801@schinagl.nl> <4FAFD888.8080801@iki.fi>
+In-Reply-To: <4FAFD888.8080801@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-An earlier commit "[media] V4L: sh_mobile_ceu_camera: convert to the new 
-mbus-config subdev operations" has inadvertantly removed the check in the 
-sh-mobile-ceu-camera driver, whether a specific bus-width is supported. 
-This patch restores the check for formats, requiring wider than 8-bit 
-video bus. The other check from the above commit - whether 8-bits per 
-sample are supported - is, however, not restored. All currently known set 
-ups support 8 bits per sample, hence, this check so far seems redundant. 
-The respective SH_CEU_FLAG_USE_8BIT_BUS flag will be kept for now, but may 
-be removed in the future.
-
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
-
-On Mon, 23 Apr 2012, Kuninori Morimoto wrote:
-
-> 
-> Hi Guennadi
-> 
-> Thanks for reply.
-> 
-> > AFAICS, all these platforms only use 8 bits, so, none of them is broken. 
-> > OTOH, I'm not sure any more, what was the motivation behind that removal. 
-> > Maybe exactly because we didn't have any platforms with 16-bit camera 
-> > connections and maybe I saw a problem with it, so, I decided to remove 
-> > them until we get a chance to properly implement and test 16-bits? Do you 
-> > have such a board?
-> 
-> about 16bit camera, one guy has it, but he is using v3.0 kernel,
-> so, it is not in trouble at this point.
-> (it is working)
-> 
-> The motivation was just "misunderstand-able", not super important at this point.
-> So please keep considering about it.
-
-Would be nice if the below patch could be tested with a 16-bit set up. But 
-it should be tested "negatively." This means: I think, also now 16-bit set 
-ups work. The only problem is, that even if your board only connects 8 
-data lines, an attempt to set a 16-bit format wouldn't fail and would, 
-probably, deliver corrupt data. So, the test would be:
-- take a 16-bit set up and choose a 16-bit format - it should work
-- remove the 16-bit flag from the platform data - it would, presumably, 
-  still work, which is a bug
-- apply the patch
-- now verify that 16-bits formats can only be used, if the board specifies 
-  the respective flag in platform data
-
-Thanks
-Guennadi
-
-diff --git a/drivers/media/video/sh_mobile_ceu_camera.c b/drivers/media/video/sh_mobile_ceu_camera.c
-index 424dfac..3e7b794 100644
---- a/drivers/media/video/sh_mobile_ceu_camera.c
-+++ b/drivers/media/video/sh_mobile_ceu_camera.c
-@@ -951,7 +951,8 @@ static int sh_mobile_ceu_try_bus_param(struct soc_camera_device *icd,
- 	else if (ret != -ENOIOCTLCMD)
- 		return ret;
- 
--	if (!common_flags || buswidth > 16)
-+	if (!common_flags || buswidth > 16 ||
-+	    (buswidth > 8 && !(pcdev->pdata->flags & SH_CEU_FLAG_USE_16BIT_BUS)))
- 		return -EINVAL;
- 
- 	return 0;
+On 13-05-12 17:51, Antti Palosaari wrote:
+> On 13.05.2012 18:24, Oliver Schinagl wrote:
+>> Hi antti,
+>>
+>> I've just updated my local branch of your experimental branch and got
+>> some conflicts because you moved the header inclusions from the C file
+>> to the header file. Why is that? I thought it was really bad practice to
+>> have includes in header files.
+>>
+>> http://git.linuxtv.org/anttip/media_tree.git/commitdiff/7d28d8226cffd1ad6e555b36f6f9855d8bba8645 
+>>
+>
+> Because "struct state" was inside af9013.h and I added "struct 
+> af9033_config" to state. Due to that af9033_config visibility I was 
+> forced to move af9013.h include to the af9015.h and moved all the 
+> others too.
+>
+I see, I just learnedthat having includes in headers is just something 
+really bad, possibly causing include loops etc etc. Its just something 
+that's generally not needed and should be avoided. ideally anyway :)
+> What is problem you has met?
+Well it's just movement of those headers caused merges to conflict and 
+fail :)
+>
+> DVB USB driver header file is something like private place for data 
+> other than code as it is not included by any other driver.
+>
+> regards
+> Antti
+Oliver
