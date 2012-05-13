@@ -1,61 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:54882 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751308Ab2EILXG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 May 2012 07:23:06 -0400
-Received: by bkcji2 with SMTP id ji2so146377bkc.19
-        for <linux-media@vger.kernel.org>; Wed, 09 May 2012 04:23:04 -0700 (PDT)
-From: "Igor M. Liplianin" <liplianin@me.by>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Manu Abraham <abraham.manu@gmail.com>
-Subject: [PATCH] Terratec Cinergy C PCI HD (CI)
-Date: Wed, 09 May 2012 14:23:14 +0300
-Message-ID: <1543153.gDfgtO0cjd@useri>
+Received: from mail.kapsi.fi ([217.30.184.167]:44105 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751254Ab2EMRVK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 13 May 2012 13:21:10 -0400
+Message-ID: <4FAFED82.1000801@iki.fi>
+Date: Sun, 13 May 2012 20:21:06 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="nextPart4518749.8EDGmXpGgU"
-Content-Transfer-Encoding: 7Bit
+To: Hans-Frieder Vogt <hfvogt@gmx.net>
+CC: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	=?ISO-8859-1?Q?Michael_B=FCsch?= <m@bues.ch>
+Subject: Re: [PATCH] Support for tuner FC0012, revised version 0.4
+References: <201202222321.35533.hfvogt@gmx.net> <4F67CED1.407@redhat.com> <201203202314.35920.hfvogt@gmx.net> <201204010026.28542.hfvogt@gmx.net>
+In-Reply-To: <201204010026.28542.hfvogt@gmx.net>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On 01.04.2012 01:26, Hans-Frieder Vogt wrote:
+> Support for tuner Fitipower FC0012, revised version 0.4.
+> Changes compared to version 0.3:
+> - write function for multiple bytes at once removed again (because the maximum allowable length of an i2c
+> transfer may be different between various demodulators),
+> - introduction of i2c_gate_ctrl calls,
+> - usage of pr_debug instead of self designed deb_info,
+> - corrected setting of priv->frequency. Error spotted by Michael Büsch, thanks very much!
+> - replaced a few spaces with tabs (superfluous spaces also identified by Michael Büsch),
+>
+> The patch is against the snapshot linux-media-2012-03-28.
+>
+> Support for tuner Fitipower FC0012
+>
+> Signed-off-by: Hans-Frieder Vogt<hfvogt@gmx.net>
 
---nextPart4518749.8EDGmXpGgU
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+This patch is no longer valid as new version is sent. Please drop.
 
-This patch seems for rectifying a typo. But actually the difference between
-mantis_vp2040.c and mantis_vp2033.c code is a card name only.
-
-Signed-off-by: Igor M. Liplianin <liplianin@me.by>
---nextPart4518749.8EDGmXpGgU
-Content-Disposition: inline; filename="1.patch"
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/x-patch; charset="UTF-8"; name="1.patch"
-
-diff -r 990a92e2410f linux/drivers/media/dvb/mantis/mantis_cards.c
---- a/linux/drivers/media/dvb/mantis/mantis_cards.c	Wed May 09 01:37:05 2012 +0300
-+++ b/linux/drivers/media/dvb/mantis/mantis_cards.c	Wed May 09 14:04:31 2012 +0300
-@@ -276,7 +276,7 @@
- 	MAKE_ENTRY(TWINHAN_TECHNOLOGIES, MANTIS_VP_2033_DVB_C, &vp2033_config),
- 	MAKE_ENTRY(TWINHAN_TECHNOLOGIES, MANTIS_VP_2040_DVB_C, &vp2040_config),
- 	MAKE_ENTRY(TECHNISAT, CABLESTAR_HD2, &vp2040_config),
--	MAKE_ENTRY(TERRATEC, CINERGY_C, &vp2033_config),
-+	MAKE_ENTRY(TERRATEC, CINERGY_C, &vp2040_config),
- 	MAKE_ENTRY(TWINHAN_TECHNOLOGIES, MANTIS_VP_3030_DVB_T, &vp3030_config),
- 	{ }
- };
-diff -r 990a92e2410f linux/drivers/media/dvb/mantis/mantis_core.c
---- a/linux/drivers/media/dvb/mantis/mantis_core.c	Wed May 09 01:37:05 2012 +0300
-+++ b/linux/drivers/media/dvb/mantis/mantis_core.c	Wed May 09 14:04:31 2012 +0300
-@@ -121,7 +121,7 @@
- 		mantis->hwconfig = &vp2033_mantis_config;
- 		break;
- 	case MANTIS_VP_2040_DVB_C:	/* VP-2040 */
--	case TERRATEC_CINERGY_C_PCI:	/* VP-2040 clone */
-+	case CINERGY_C:	/* VP-2040 clone */
- 	case TECHNISAT_CABLESTAR_HD2:
- 		mantis->hwconfig = &vp2040_mantis_config;
- 		break;
-
---nextPart4518749.8EDGmXpGgU--
-
+regards
+Antti
+-- 
+http://palosaari.fi/
