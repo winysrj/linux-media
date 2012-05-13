@@ -1,51 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rcsinet15.oracle.com ([148.87.113.117]:40244 "EHLO
-	rcsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755179Ab2ENJrL (ORCPT
+Received: from mail-wi0-f178.google.com ([209.85.212.178]:42304 "EHLO
+	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751976Ab2EMMSR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 May 2012 05:47:11 -0400
-Date: Mon, 14 May 2012 12:50:04 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: volokh@telros.ru
-Cc: devel@driverdev.osuosl.org, hverkuil@xs4all.nl, my84@bk.ru,
-	gregkh@linuxfoundation.org, Volokh Konstantin <volokh84@gmail.com>,
-	linux-kernel@vger.kernel.org, mchehab@infradead.org,
-	dhowells@redhat.com, justinmattock@gmail.com,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/2] staging: media: go7007: Adlink MPG24 board
-Message-ID: <20120514095004.GE16999@mwanda>
-References: <1336935162-5068-1-git-send-email-volokh84@gmail.com>
- <20120513192148.GE16984@mwanda>
- <20120514080918.GC1497@VPir.telros.lan>
- <20120514090415.GG16984@mwanda>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20120514090415.GG16984@mwanda>
+	Sun, 13 May 2012 08:18:17 -0400
+Received: by wibhn6 with SMTP id hn6so1584101wib.1
+        for <linux-media@vger.kernel.org>; Sun, 13 May 2012 05:18:16 -0700 (PDT)
+From: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
+Subject: [PATCH 4/8] use extern C for c++
+Date: Sun, 13 May 2012 14:17:26 +0200
+Message-Id: <1336911450-23661-4-git-send-email-neolynx@gmail.com>
+In-Reply-To: <1336911450-23661-1-git-send-email-neolynx@gmail.com>
+References: <1336911450-23661-1-git-send-email-neolynx@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+---
+ lib/include/dvb-fe.h |    8 ++++++++
+ 1 files changed, 8 insertions(+), 0 deletions(-)
 
-On Mon, May 14, 2012 at 01:25:43PM +0400, volokh@telros.ru wrote:
-> On Mon, May 14, 2012 at 12:04:15PM +0300, Dan Carpenter wrote:
-> > On Mon, May 14, 2012 at 12:09:18PM +0400, volokh@telros.ru wrote:
-> > > It`s very horrible to describe every changing...
-> > 
-> > Maybe, but that's the rules.  There has to be a reason for every
-> > change otherwise why are you doing crap for no reason?
-> > 
-> > It's not hard to break changes up into separate commits by the way.
-> > Just use "git citool", highlight the lines you want, right click,
-> > and choose "commit selected lines".
-> > 
-> > regards,
-> > dan carpenter
->
-> Excuse for crap, I`ll not do so.
+diff --git a/lib/include/dvb-fe.h b/lib/include/dvb-fe.h
+index a453424..4207ffe 100644
+--- a/lib/include/dvb-fe.h
++++ b/lib/include/dvb-fe.h
+@@ -88,6 +88,10 @@ struct dvb_v5_fe_parms {
+ 
+ /* Open/close methods */
+ 
++#ifdef __cplusplus
++extern "C" {
++#endif
++
+ struct dvb_v5_fe_parms *dvb_fe_open(int adapter, int frontend,
+ 				    unsigned verbose, unsigned use_legacy_call);
+ void dvb_fe_close(struct dvb_v5_fe_parms *parms);
+@@ -150,6 +154,10 @@ int dvb_fe_diseqc_cmd(struct dvb_v5_fe_parms *parms, const unsigned len,
+ int dvb_fe_diseqc_reply(struct dvb_v5_fe_parms *parms, unsigned *len, char *buf,
+ 		       int timeout);
+ 
++#ifdef __cplusplus
++}
++#endif
++
+ /* Arrays from dvb-v5.h */
+ 
+ extern const unsigned fe_bandwidth_name[8];
+-- 
+1.7.2.5
 
-Uh.  Ok.  That's your call to make.
-
-Please don't drop the other people from the CC list.
-
-regards,
-dan carpenter
