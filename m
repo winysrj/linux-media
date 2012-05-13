@@ -1,86 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-1.cisco.com ([144.254.224.140]:13800 "EHLO
-	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756059Ab2ECOMZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 May 2012 10:12:25 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [RFC v3 1/2] v4l: Do not use enums in IOCTL structs
-Date: Thu, 3 May 2012 16:12:07 +0200
-Cc: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org,
-	laurent.pinchart@ideasonboard.com, remi@remlab.net,
-	nbowler@elliptictech.com, james.dutton@gmail.com
-References: <20120502191324.GE852@valkosipuli.localdomain> <201205030902.05011.hverkuil@xs4all.nl> <4FA28B56.1070801@redhat.com>
-In-Reply-To: <4FA28B56.1070801@redhat.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:58371 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751731Ab2EMAGx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 12 May 2012 20:06:53 -0400
+Date: Sun, 13 May 2012 03:06:47 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	g.liakhovetski@gmx.de, hdegoede@redhat.com, moinejf@free.fr,
+	hverkuil@xs4all.nl, m.szyprowski@samsung.com,
+	riverful.kim@samsung.com, sw0312.kim@samsung.com,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: Re: [PATCH/RFC v4 10/12] V4L: Add auto focus targets to the
+ selections API
+Message-ID: <20120513000645.GE3373@valkosipuli.retiisi.org.uk>
+References: <1336156337-10935-1-git-send-email-s.nawrocki@samsung.com>
+ <1336156337-10935-11-git-send-email-s.nawrocki@samsung.com>
+ <4FA6C155.6030100@iki.fi>
+ <4FA8F977.8020707@samsung.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201205031612.07952.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4FA8F977.8020707@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thursday 03 May 2012 15:42:46 Mauro Carvalho Chehab wrote:
-> Em 03-05-2012 04:02, Hans Verkuil escreveu:
-> > On Wed May 2 2012 23:39:15 Sakari Ailus wrote:
-> >> Hi Hans,
-> >>
-> >> On Wed, May 02, 2012 at 10:45:22PM +0200, Hans Verkuil wrote:
-> >>> On Wed May 2 2012 21:13:47 Sakari Ailus wrote:
-> >>>> Replace enums in IOCTL structs by __u32. The size of enums is variable and
-> >>>> thus problematic. Compatibility structs having exactly the same as original
-> >>>> definition are provided for compatibility with old binaries with the
-> >>>> required conversion code.
-> >>>
-> >>> Does someone actually have hard proof that there really is a problem? You know,
-> >>> demonstrate it with actual example code?
-> >>>
-> >>> It's pretty horrible that you have to do all those conversions and that code
-> >>> will be with us for years to come.
-> >>>
-> >>> For most (if not all!) architectures sizeof(enum) == sizeof(u32), so there is
-> >>> no need for any compat code for those.
-> >>
-> >> Cases I know where this can go wrong are, but there may well be others:
-> >>
-> >> - ppc64: int is 64 bits there, and thus also enums,
-> > 
-> > Are you really, really certain that's the case? If I look at
-> > arch/powerpc/include/asm/types.h it includes either asm-generic/int-l64.h
-> > or asm-generic/int-ll64.h and both of those headers define u32 as unsigned int.
-> > Also, if sizeof(int) != 4, then how would you define u32?
-> > 
-> > Ask a ppc64 kernel maintainer what sizeof(int) and sizeof(enum) are in the kernel
-> > before we start doing lots of work for no reason.
-> > 
-> > Looking at arch/*/include/asm/types.h it seems all architectures define sizeof(int)
-> > as 4.
-> > 
-> > What sizeof(long) is will actually differ between architectures, but char, short
-> > and int seem to be fixed everywhere.
+Hi Sylwester,
+
+On Tue, May 08, 2012 at 12:46:15PM +0200, Sylwester Nawrocki wrote:
+> Hi Sakari!
 > 
-> Yes, it seems that, inside the Kernel, "int" it will always be 32 bits. It doesn't
-> necessarily means that "enum" will be 32 bits.
+> On 05/06/2012 08:22 PM, Sakari Ailus wrote:
+> > Hi Sylwester,
+> > 
+> > Thanks for the patch.
+> > 
+> > Sylwester Nawrocki wrote:
+> >> The camera automatic focus algorithms may require setting up
+> >> a spot or rectangle coordinates or multiple such parameters.
+> >>
+> >> The automatic focus selection targets are introduced in order
+> >> to allow applications to query and set such coordinates. Those
+> >> selections are intended to be used together with the automatic
+> >> focus controls available in the camera control class.
+> > 
+> > Have you thought about multiple autofocus windows, and how could they be
+> > implemented on top of this patch?
+> > 
+> > I'm not saying that we should implement them now, but at least we should
+> > think how we _would_ implement them when needed. They aren't that exotic
+> > functionality these days after all.
+> > 
+> > I'd guess this would involve an additional bitmask control and defining
+> > a set of new targets. A comment in the source might help here ---
+> > perhaps a good rule is to start new ranges at 0x1000 as you're doing
+> > already.
+> 
+> There was also an idea to convert part of the reserved[] field to a window
+> index IIRC. Not sure which approach is better. I didn't want to make any
+> assumptions about features I don't have exact knowledge about, neither that
+> I currently need. The large offset in the auto focus target is to better
+> indicate they are really different than current selection targets we have,
+> I also had in mind reserving a target pool for AF targets as you are
+> pointing out.
+> That said I'm not really sure right now what additional exact comments
+> would need to be added.
 
-Actually, I believe it is. It is my understanding that --short-enums is not allowed
-inside the kernel and so enums are the same size as int. But I'd like to have some
-confirmation about that first. That compiler option isn't used anywhere in the kernel
-in any case and gcc on ARM will default to int-sized enums on linux.
+I was thinking about reserving a bunch of targets for just AF windows, but
+the idea of adding a window ID is interesting. Then there's only need for a
+single target which does sound a lot cleaner.
 
-So just changing all the enums in videodev2.h to u32 should almost certainly be all
-we need to do.
+This would be a quite nice way to implement passing the face detection info
+to user space, too: face detection target and object identifier. The target
+field would map nicely to id in events, too.
 
-> Also, as it is recommended to not use "int/unsigned int/long/unsigned long" at 
-> kernel<->userspace API, I bet that this will cause problems on userspace (maybe
-> with non-gcc compilers?)
+It might make sense to implement a new IOCTL for passing multiple events but
+that's fine optimisation.
 
-'long' is certainly known to change size depending on the compiler. 'int' can be
-two bytes on *really* old hardware/compilers.
+> Hopefully there isn't anything blocking further expansion in this patches.
+> 
+> I didn't decided yet if I want to send this selection/auto focus patches
+> out for v3.5. I'm also considering dropping just the V4L2_AUTO_FOCUS_AREA
+> control from "12/12 V4L: Add camera auto focus controls" patch this time.
+> 
+> The bitmask control for multiple windows selection makes a lot of sense
+> to me. I suppose it would be better to use an additional 'index' field
+> in the selection data structures for AF window selection.
 
-struct v4l2_jpegcompression is the only place where int is still used. I wouldn't
-mind if that changes to u32 at the same time (those ints should have been unsigned
-anyway).
+I agree.
 
-Regards,
+I'd like to get a conclusion to whether or not to drop ACTUAL / ACTIVE
+before I give my ack to this patch.
 
-	Hans
+Kind regards,
+
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
