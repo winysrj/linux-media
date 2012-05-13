@@ -1,80 +1,165 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:37809 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756525Ab2EVPFa convert rfc822-to-8bit (ORCPT
+Received: from mail-we0-f174.google.com ([74.125.82.174]:45154 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752512Ab2EMMSU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 May 2012 11:05:30 -0400
-Received: by yenm10 with SMTP id m10so5457432yen.19
-        for <linux-media@vger.kernel.org>; Tue, 22 May 2012 08:05:29 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <4FBBAA0F.6090503@samsung.com>
-References: <1331913881-13105-1-git-send-email-rob.clark@linaro.org>
-	<4FBB98E0.8040600@samsung.com>
-	<20120522143234.GC4629@phenom.ffwll.local>
-	<4FBBAA0F.6090503@samsung.com>
-Date: Tue, 22 May 2012 17:05:29 +0200
-Message-ID: <CAKMK7uGwAo48cGpevwfjcnvMkNiimsq0nwkZJT6cSsGWP8FRWw@mail.gmail.com>
-Subject: Re: [PATCH] dma-buf: add get_dma_buf()
-From: Daniel Vetter <daniel@ffwll.ch>
-To: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Cc: Rob Clark <rob.clark@linaro.org>, linaro-mm-sig@lists.linaro.org,
-	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-	patches@linaro.org, sumit.semwal@linaro.org, airlied@redhat.com,
-	Rob Clark <rob@ti.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	=?UTF-8?B?67CV6rK966+8?= <kyungmin.park@samsung.com>,
-	InKi Dae <daeinki@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Sun, 13 May 2012 08:18:20 -0400
+Received: by mail-we0-f174.google.com with SMTP id u7so1236697wey.19
+        for <linux-media@vger.kernel.org>; Sun, 13 May 2012 05:18:19 -0700 (PDT)
+From: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
+Subject: [PATCH 8/8] split README for utils/dvb/ and lib/libdvbv5
+Date: Sun, 13 May 2012 14:17:30 +0200
+Message-Id: <1336911450-23661-8-git-send-email-neolynx@gmail.com>
+In-Reply-To: <1336911450-23661-1-git-send-email-neolynx@gmail.com>
+References: <1336911450-23661-1-git-send-email-neolynx@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, May 22, 2012 at 5:00 PM, Tomasz Stanislawski
-<t.stanislaws@samsung.com> wrote:
-> On 05/22/2012 04:32 PM, Daniel Vetter wrote:
->> On Tue, May 22, 2012 at 03:47:12PM +0200, Tomasz Stanislawski wrote:
->>> Hi,
->>> I think I discovered an interesting issue with dma_buf.
->>> I found out that dma_buf_fd does not increase reference
->>> count for dma_buf::file. This leads to potential kernel
->>> crash triggered by user space. Please, take a look on
->>> the scenario below:
->>>
->>> The applications spawns two thread. One of them is exporting DMABUF.
->>>
->>>       Thread I         |   Thread II       | Comments
->>> -----------------------+-------------------+-----------------------------------
->>> dbuf = dma_buf_export  |                   | dma_buf is creates, refcount is 1
->>> fd = dma_buf_fd(dbuf)  |                   | assume fd is set to 42, refcount is still 1
->>>                        |      close(42)    | The file descriptor is closed asynchronously, dbuf's refcount drops to 0
->>>                        |  dma_buf_release  | dbuf structure is freed, dbuf becomes a dangling pointer
->>> int size = dbuf->size; |                   | the dbuf is dereferenced, causing a kernel crash
->>> -----------------------+-------------------+-----------------------------------
->>>
->>> I think that the problem could be fixed in two ways.
->>> a) forcing driver developer to call get_dma_buf just before calling dma_buf_fd.
->>> b) increasing dma_buf->file's reference count at dma_buf_fd
->>>
->>> I prefer solution (b) because it prevents symmetry between dma_buf_fd and close.
->>> I mean that dma_buf_fd increases reference count, close decreases it.
->>>
->>> What is your opinion about the issue?
->>
->> I guess most exporters would like to hang onto the exported dma_buf a bit
->> and hence need a reference (e.g. to cache the dma_buf as long as the
->> underlying buffer object exists). So I guess we can change the semantics
->> of dma_buf_fd from transferring the reference you currently have (and
->> hence forbidding any further access by the caller) to grabbing a reference
->> of it's on for the fd that is created.
->> -Daniel
->
-> Hi Daniel,
-> Would it be simpler, safer and more intuitive if dma_buf_fd increased
-> dmabuf->file's reference counter?
+---
+ lib/libdvbv5/Makefile.am |    2 +-
+ lib/libdvbv5/README      |   59 ++++++++++++++++++++++++++++++++++++++++++++++
+ utils/dvb/README         |   47 ------------------------------------
+ 3 files changed, 60 insertions(+), 48 deletions(-)
+ create mode 100644 lib/libdvbv5/README
 
-That's actually what I wanted to say. Message seems to have been lost
-in transit ;-)
--Daniel
+diff --git a/lib/libdvbv5/Makefile.am b/lib/libdvbv5/Makefile.am
+index 682869b..a41b611 100644
+--- a/lib/libdvbv5/Makefile.am
++++ b/lib/libdvbv5/Makefile.am
+@@ -14,7 +14,7 @@ libdvbv5_la_SOURCES = \
+ #libdvbv5_la_CPPFLAGS = -fvisibility=hidden
+ #libdvbv5_la_LDFLAGS = -version-info 0 -lpthread
+ 
+-EXTRA_DIST = gen_dvb_structs.pl
++EXTRA_DIST = README gen_dvb_structs.pl
+ 
+ sync-with-kernel:
+ 	./gen_dvb_structs.pl $(KERNEL_DIR)/include/
+diff --git a/lib/libdvbv5/README b/lib/libdvbv5/README
+new file mode 100644
+index 0000000..e14235a
+--- /dev/null
++++ b/lib/libdvbv5/README
+@@ -0,0 +1,59 @@
++DVBv5 LIBRARY
++=============
++
++This is the DVBv5 API library. It is backward compatible and makes use of the
++DVBv3 API if needed.
++
++CONTENTS OF THE TREE
++====================
++
++parse_string.c/parse_string.h: MPEG-TS string decoder with charset translator
++
++Used to decode NIT/SDT service name, network provider and provider name.
++It parses the charsets according with the DVB specs, converting them into
++UTF-8 (or other charset), using iconv library.
++
++descriptors.c/descriptors.h:  MPEG-TS descriptors parser
++
++The code there is generig enough to decode the MPEG-TS descriptors,
++with the DVB and other Digital TV extensions.
++
++libscan.c/libscan/h: DVBv5 scanning library
++
++This library is used to retrieve DVB information from the MPEG TS
++headers, discovering the services associated to each DVB channel or
++transponder. The services information is the basic info that most
++DVB tools need to tune into a channel.
++
++dvb-file.c/dvb-file.h: DVB file read/write library.
++
++Allows parsing a DVB file (legacy or not) and to write data into a
++DVB file (new format only).
++
++dvb-fe.c/dvb-fe.h: DVB frontend library.
++
++Allows talking with a DVB frontend via DVBv5 or DVBv3 API.
++
++dvb-zap-format.c/dvb-legacy-channel-format.c:
++
++Contains the data structures required in order to read from the legacy
++formats (zap or scan "initial-tuning-data-file").
++
++dvb-frontend.h: DVBv5 frontend API.
++
++This is just a copy of the newest linux/dvb/frontend.h header.
++I opted to keep a copy there, in order to allow working with the tools
++without needing to copy the latest header into /usr/include.
++
++dvb-v5.h/dvb-v5-std.h:
++
++Ancillary files linked into dvb-fe code, used to parse DVB tables. The
++dvbv5.h is generated by a small perl util, from the DVB FE API file.
++
++dvb-demux.c/dvb-demux.h: DVB demux library.
++
++Patches are welcome!
++
++Regards,
++Mauro Carvalho Chehab
++2012-January-15
+diff --git a/utils/dvb/README b/utils/dvb/README
+index 2711f36..0f1e46b 100644
+--- a/utils/dvb/README
++++ b/utils/dvb/README
+@@ -26,53 +26,6 @@ generic code that will become a library in the future.
+ CONTENTS OF THE TREE
+ ====================
+ 
+-parse_string.c/parse_string.h: MPEG-TS string decoder with charset translator
+-
+-Used to decode NIT/SDT service name, network provider and provider name.
+-It parses the charsets according with the DVB specs, converting them into
+-UTF-8 (or other charset), using iconv library.
+-
+-descriptors.c/descriptors.h:  MPEG-TS descriptors parser
+-
+-The code there is generig enough to decode the MPEG-TS descriptors,
+-with the DVB and other Digital TV extensions.
+-
+-libscan.c/libscan/h: DVBv5 scanning library
+-
+-This library is used to retrieve DVB information from the MPEG TS
+-headers, discovering the services associated to each DVB channel or
+-transponder. The services information is the basic info that most
+-DVB tools need to tune into a channel.
+-
+-dvb-file.c/dvb-file.h: DVB file read/write library.
+-
+-Allows parsing a DVB file (legacy or not) and to write data into a
+-DVB file (new format only).
+-
+-dvb-fe.c/dvb-fe.h: DVB frontend library.
+-
+-Allows talking with a DVB frontend via DVBv5 or DVBv3 API.
+-
+-dvb-zap-format.c/dvb-legacy-channel-format.c:
+-
+-Contains the data structures required in order to read from the legacy
+-formats (zap or scan "initial-tuning-data-file").
+-
+-dvb-frontend.h: DVBv5 frontend API.
+-
+-This is just a copy of the newest linux/dvb/frontend.h header.
+-I opted to keep a copy there, in order to allow working with the tools
+-without needing to copy the latest header into /usr/include.
+-
+-dvb-v5.h/dvb-v5-std.h:
+-
+-Ancillary files linked into dvb-fe code, used to parse DVB tables. The
+-dvbv5.h is generated by a small perl util, from the DVB FE API file.
+-
+-dvb-demux.c/dvb-demux.h: DVB demux library.
+-
+-Used by the dvbv5-zap utility.
+-
+ dvb-fe-tool.c, dvb-format-convert.c, dvbv5-zap.c, dvbv5-scan.c: tools code.
+ 
+ Basically, parses the options from userspace and calls the other code
 -- 
-Daniel Vetter
-daniel.vetter@ffwll.ch - +41 (0) 79 364 57 48 - http://blog.ffwll.ch
+1.7.2.5
+
