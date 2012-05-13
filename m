@@ -1,309 +1,215 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:30109 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753235Ab2ETBVf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 19 May 2012 21:21:35 -0400
-From: Hans de Goede <hdegoede@redhat.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Ondrej Zary <linux@rainbow-software.org>,
-	Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH 6/6] snd_tea575x: Add support for tuning AM
-Date: Sun, 20 May 2012 03:25:31 +0200
-Message-Id: <1337477131-21578-7-git-send-email-hdegoede@redhat.com>
-In-Reply-To: <1337477131-21578-1-git-send-email-hdegoede@redhat.com>
-References: <1337477131-21578-1-git-send-email-hdegoede@redhat.com>
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:39989 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752596Ab2EMTid (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 13 May 2012 15:38:33 -0400
+Received: by bkcji2 with SMTP id ji2so3285485bkc.19
+        for <linux-media@vger.kernel.org>; Sun, 13 May 2012 12:38:31 -0700 (PDT)
+Message-ID: <4FB00DAC.2010808@gmail.com>
+Date: Sun, 13 May 2012 21:38:20 +0200
+From: poma <pomidorabelisima@gmail.com>
+MIME-Version: 1.0
+To: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
+Subject: Re: [PATCH] fc0012 ver. 0.6: introduction of get_rf_strength function
+References: <201205121111.36181.hfvogt@gmx.net> <4FAF6DD1.6080709@gmail.com> <4FAF941D.7020808@iki.fi>
+In-Reply-To: <4FAF941D.7020808@iki.fi>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-CC: Ondrej Zary <linux@rainbow-software.org>
----
- include/sound/tea575x-tuner.h   |    3 +
- sound/i2c/other/tea575x-tuner.c |  164 ++++++++++++++++++++++++++++-----------
- 2 files changed, 121 insertions(+), 46 deletions(-)
+On 05/13/2012 12:59 PM, Antti Palosaari wrote:
+> On 13.05.2012 11:16, poma wrote:
+>> On 05/12/2012 11:11 AM, Hans-Frieder Vogt wrote:
+>>> Changes compared to version 0.5 of driver (sent 6 May):
+>>> - Initial implementation of get_rf_strength function.
+>>>
+>>> Signed-off-by: Hans-Frieder Vogt<hfvogt@gmx.net>
+>>>
+>>>   fc0012.c |   72
+>>> ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-
+>>>   1 file changed, 71 insertions(+), 1 deletion(-)
+>>>
+>>> diff -up --new-file --recursive
+>>> a/drivers/media/common/tuners/fc0012.c
+>>> b/drivers/media/common/tuners/fc0012.c
+>>> --- a/drivers/media/common/tuners/fc0012.c    2012-05-12
+>>> 10:53:55.330058209 +0200
+>>> +++ b/drivers/media/common/tuners/fc0012.c    2012-05-09
+>>> 23:27:37.781193720 +0200
+>>> @@ -343,6 +343,74 @@ static int fc0012_get_bandwidth(struct d
+>>>       return 0;
+>>>   }
+>>>
+>>> +#define INPUT_ADC_LEVEL    -8
+>>> +
+>>> +static int fc0012_get_rf_strength(struct dvb_frontend *fe, u16
+>>> *strength)
+>>> +{
+>>> +    struct fc0012_priv *priv = fe->tuner_priv;
+>>> +    int ret;
+>>> +    unsigned char tmp;
+>>> +    int int_temp, lna_gain, int_lna, tot_agc_gain, power;
+>>> +    const int fc0012_lna_gain_table[] = {
+>>> +        /* low gain */
+>>> +        -63, -58, -99, -73,
+>>> +        -63, -65, -54, -60,
+>>> +        /* middle gain */
+>>> +         71,  70,  68,  67,
+>>> +         65,  63,  61,  58,
+>>> +        /* high gain */
+>>> +        197, 191, 188, 186,
+>>> +        184, 182, 181, 179,
+>>> +    };
+>>> +
+>>> +    if (fe->ops.i2c_gate_ctrl)
+>>> +        fe->ops.i2c_gate_ctrl(fe, 1); /* open I2C-gate */
+>>> +
+>>> +    ret = fc0012_writereg(priv, 0x12, 0x00);
+>>> +    if (ret)
+>>> +        goto err;
+>>> +
+>>> +    ret = fc0012_readreg(priv, 0x12,&tmp);
+>>> +    if (ret)
+>>> +        goto err;
+>>> +    int_temp = tmp;
+>>> +
+>>> +    ret = fc0012_readreg(priv, 0x13,&tmp);
+>>> +    if (ret)
+>>> +        goto err;
+>>> +    lna_gain = tmp&  0x1f;
+>>> +
+>>> +    if (fe->ops.i2c_gate_ctrl)
+>>> +        fe->ops.i2c_gate_ctrl(fe, 0); /* close I2C-gate */
+>>> +
+>>> +    if (lna_gain<  ARRAY_SIZE(fc0012_lna_gain_table)) {
+>>> +        int_lna = fc0012_lna_gain_table[lna_gain];
+>>> +        tot_agc_gain = (abs((int_temp>>  5) - 7) - 2 +
+>>> +                (int_temp&  0x1f)) * 2;
+>>> +        power = INPUT_ADC_LEVEL - tot_agc_gain - int_lna / 10;
+>>> +
+>>> +        if (power>= 45)
+>>> +            *strength = 255;    /* 100% */
+>>> +        else if (power<  -95)
+>>> +            *strength = 0;
+>>> +        else
+>>> +            *strength = (power + 95) * 255 / 140;
+>>> +
+>>> +        *strength |= *strength<<  8;
+>>> +    } else {
+>>> +        ret = -1;
+>>> +    }
+>>> +
+>>> +    goto exit;
+>>> +
+>>> +err:
+>>> +    if (fe->ops.i2c_gate_ctrl)
+>>> +        fe->ops.i2c_gate_ctrl(fe, 0); /* close I2C-gate */
+>>> +exit:
+>>> +    if (ret)
+>>> +        warn("%s: failed: %d", __func__, ret);
+>>> +    return ret;
+>>> +}
+>>>
+>>>   static const struct dvb_tuner_ops fc0012_tuner_ops = {
+>>>       .info = {
+>>> @@ -363,6 +431,8 @@ static const struct dvb_tuner_ops fc0012
+>>>       .get_frequency    = fc0012_get_frequency,
+>>>       .get_if_frequency = fc0012_get_if_frequency,
+>>>       .get_bandwidth    = fc0012_get_bandwidth,
+>>> +
+>>> +    .get_rf_strength = fc0012_get_rf_strength,
+>>>   };
+>>>
+>>>   struct dvb_frontend *fc0012_attach(struct dvb_frontend *fe,
+>>> @@ -394,4 +464,4 @@ EXPORT_SYMBOL(fc0012_attach);
+>>>   MODULE_DESCRIPTION("Fitipower FC0012 silicon tuner driver");
+>>>   MODULE_AUTHOR("Hans-Frieder Vogt<hfvogt@gmx.net>");
+>>>   MODULE_LICENSE("GPL");
+>>> -MODULE_VERSION("0.5");
+>>> +MODULE_VERSION("0.6");
+>>>
+>>
+>> rtl2832/fc0012:
+>>
+>> femon -H -a 2 -c 10:
+>> FE: Realtek RTL2832 (DVB-T) (DVBT)
+>> status SCVYL | signal  23% | snr  79% | ber 0 | unc 100 | FE_HAS_LOCK
+>> status SCVYL | signal  23% | snr  79% | ber 0 | unc 100 | FE_HAS_LOCK
+>> status SCVYL | signal  23% | snr  79% | ber 0 | unc 100 | FE_HAS_LOCK
+>> status SCVYL | signal  23% | snr  79% | ber 0 | unc 100 | FE_HAS_LOCK
+>> status SCVYL | signal  23% | snr  82% | ber 0 | unc 100 | FE_HAS_LOCK
+>> // without tzap/lock:
+>> Problem retrieving frontend information: Remote I/O error
+>> status       | signal  23% | snr  82% | ber 0 | unc 100 |
+>> Problem retrieving frontend information: Remote I/O error
+>> status       | signal  23% | snr  82% | ber 0 | unc 100 |
+>> Problem retrieving frontend information: Remote I/O error
+>> status       | signal  23% | snr  82% | ber 0 | unc 100 |
+>> Problem retrieving frontend information: Remote I/O error
+>> status       | signal  23% | snr  82% | ber 0 | unc 100 |
+>> Problem retrieving frontend information: Remote I/O error
+>> status       | signal  23% | snr  82% | ber 0 | unc 100 |
+>>
+>> dmesg:
+>> […]
+>> // without tzap/lock:
+>> rtl2832: i2c rd failed=-32 reg=4e len=2
+>> rtl2832: rtl2832_read_ber: failed=-121
+>> rtl2832: i2c rd failed=-32 reg=01 len=1
+>> fc0012: I2C write reg failed, reg: 12, val: 00
+>> fc0012: fc0012_get_rf_strength: failed: -121
+>> rtl2832: i2c rd failed=-32 reg=51 len=1
+>> rtl2832: rtl2832_read_snr: failed=-121
+>> rtl2832: i2c rd failed=-32 reg=51 len=1
+>> rtl2832: rtl2832_read_ucblocks: failed=-121
+>>
+>>
+>> Comparable readings - af9013/mxl5007t:
+>>
+>> femon -H -a 1 -c 10
+>> FE: Afatech AF9013 (DVBT)
+>> status SCVYL | signal  55% | snr   0% | ber 0 | unc 0 | FE_HAS_LOCK
+>> status SCVYL | signal  55% | snr   0% | ber 0 | unc 0 | FE_HAS_LOCK
+>> status SCVYL | signal  55% | snr   0% | ber 0 | unc 0 | FE_HAS_LOCK
+>> status SCVYL | signal  55% | snr   0% | ber 0 | unc 0 | FE_HAS_LOCK
+>> status SCVYL | signal  55% | snr   0% | ber 0 | unc 0 | FE_HAS_LOCK
+>> // without tzap/lock:
+>> status SCV   | signal  55% | snr   0% | ber 0 | unc 0 |
+>> status SCV   | signal  55% | snr   0% | ber 0 | unc 0 |
+>> status SCV   | signal  55% | snr   0% | ber 0 | unc 0 |
+>> status SCV   | signal  55% | snr   0% | ber 0 | unc 0 |
+>> status SCV   | signal  55% | snr   0% | ber 0 | unc 0 |
+>>
+>> dmesg:
+>> […]
+>> // without tzap/lock:
+>> 'NONE'
+>>
+>>
+>> Is it necessary to populate a log buffer while frontend not locking?
+> 
+> It is not nice and should not happen.
+> But let me explain issues behind it. It fails since device is put sleep
+> in that case those chips even does not respond to control messages.
+> RTL2830 has similar problem - I resolved it just adding some clue to
+> demod driver not access to the hw when when it is sleeping.
+> 
+> IMHO whole issues is DVB CORE issue as it should not pass any calls to
+> the individual chip drivers when device is clearly in the state those
+> calls are invalid.
+> 
+> For example when we are sleeping only legal call is .init() in order to
+> wake it up. Also BER and UCB are invalid until LOCK is gained.
+> 
+> I have already listed those issues as a my GSoC DVB CORE enhancements -
+> so I think it is not worth to make any chip driver hacks in that case.
+> 
+> regards
+> Antti
 
-diff --git a/include/sound/tea575x-tuner.h b/include/sound/tea575x-tuner.h
-index fe8590c..602bddc 100644
---- a/include/sound/tea575x-tuner.h
-+++ b/include/sound/tea575x-tuner.h
-@@ -28,6 +28,7 @@
- #include <media/v4l2-device.h>
- 
- #define TEA575X_FMIF	10700
-+#define TEA575X_AMIF	  450
- 
- #define TEA575X_DATA	(1 << 0)
- #define TEA575X_CLK	(1 << 1)
-@@ -52,12 +53,14 @@ struct snd_tea575x {
- 	struct video_device vd;		/* video device */
- 	int radio_nr;			/* radio_nr */
- 	bool tea5759;			/* 5759 chip is present */
-+	bool has_am;			/* Device can tune to AM freqs */
- 	bool cannot_read_data;		/* Device cannot read the data pin */
- 	bool cannot_mute;		/* Device cannot mute */
- 	bool mute;			/* Device is muted? */
- 	bool stereo;			/* receiving stereo */
- 	bool tuned;			/* tuned to a station */
- 	unsigned int val;		/* hw value */
-+	u32 tuner;			/* 0 == FM tuner, 1 == AM tuner */
- 	u32 freq;			/* frequency */
- 	struct mutex mutex;
- 	struct snd_tea575x_ops *ops;
-diff --git a/sound/i2c/other/tea575x-tuner.c b/sound/i2c/other/tea575x-tuner.c
-index d16f7b7..90e06e9 100644
---- a/sound/i2c/other/tea575x-tuner.c
-+++ b/sound/i2c/other/tea575x-tuner.c
-@@ -37,8 +37,15 @@ MODULE_AUTHOR("Jaroslav Kysela <perex@perex.cz>");
- MODULE_DESCRIPTION("Routines for control of TEA5757/5759 Philips AM/FM radio tuner chips");
- MODULE_LICENSE("GPL");
- 
--#define FREQ_LO		((tea->tea5759 ? 760 :  875) * 1600U)
--#define FREQ_HI		((tea->tea5759 ? 910 : 1080) * 1600U)
-+#define FM_FREQ_LO		((tea->tea5759 ? 760 :  875) * 1600U)
-+#define FM_FREQ_HI		((tea->tea5759 ? 910 : 1080) * 1600U)
-+/* These are based on what the Griffin radioSHARK can do */
-+#define AM_FREQ_LO		( 530 * 16U)
-+#define AM_FREQ_HI		(1710 * 16U)
-+
-+#define TUNER_FM 0
-+#define TUNER_AM 1
-+#define TUNER_MAX (tea->has_am ? TUNER_AM : TUNER_FM)
- 
- /*
-  * definitions
-@@ -50,8 +57,8 @@ MODULE_LICENSE("GPL");
- #define TEA575X_BIT_BAND_MASK	(3<<20)
- #define TEA575X_BIT_BAND_FM	(0<<20)
- #define TEA575X_BIT_BAND_MW	(1<<20)
--#define TEA575X_BIT_BAND_LW	(1<<21)
--#define TEA575X_BIT_BAND_SW	(1<<22)
-+#define TEA575X_BIT_BAND_LW	(2<<20)
-+#define TEA575X_BIT_BAND_SW	(3<<20)
- #define TEA575X_BIT_PORT_0	(1<<19)		/* user bit */
- #define TEA575X_BIT_PORT_1	(1<<18)		/* user bit */
- #define TEA575X_BIT_SEARCH_MASK	(3<<16)		/* search level */
-@@ -133,16 +140,25 @@ static u32 snd_tea575x_val_to_freq(struct snd_tea575x *tea, u32 val)
- 	if (freq == 0)
- 		return freq;
- 
--	/* freq *= 12.5 */
--	freq *= 125;
--	freq /= 10;
--	/* crystal fixup */
--	if (tea->tea5759)
--		freq += TEA575X_FMIF;
--	else
--		freq -= TEA575X_FMIF;
-+	switch(tea->tuner) {
-+	case TUNER_FM:
-+		/* freq *= 12.5 */
-+		freq *= 125;
-+		freq /= 10;
-+		/* crystal fixup */
-+		if (tea->tea5759)
-+			freq += TEA575X_FMIF;
-+		else
-+			freq -= TEA575X_FMIF;
-+
-+		return clamp(freq * 16, FM_FREQ_LO, FM_FREQ_HI); /* from kHz */
-+	case TUNER_AM:
-+		/* crystal fixup */
-+		freq -= TEA575X_AMIF;
-+		return clamp(freq * 16, AM_FREQ_LO, AM_FREQ_HI); /* from kHz */
-+	}
- 
--	return clamp(freq * 16, FREQ_LO, FREQ_HI); /* from kHz */
-+	return 0; /* Never reached */
- }
- 
- static u32 snd_tea575x_get_freq(struct snd_tea575x *tea)
-@@ -154,16 +170,30 @@ static void snd_tea575x_set_freq(struct snd_tea575x *tea)
- {
- 	u32 freq = tea->freq;
- 
--	freq /= 16;		/* to kHz */
--	/* crystal fixup */
--	if (tea->tea5759)
--		freq -= TEA575X_FMIF;
--	else
--		freq += TEA575X_FMIF;
--	/* freq /= 12.5 */
--	freq *= 10;
--	freq /= 125;
--
-+	switch(tea->tuner) {
-+	case TUNER_FM:
-+		freq = clamp(freq, FM_FREQ_LO, FM_FREQ_HI) / 16; /* to kHz */
-+		/* crystal fixup */
-+		if (tea->tea5759)
-+			freq -= TEA575X_FMIF;
-+		else
-+			freq += TEA575X_FMIF;
-+		/* freq /= 12.5 */
-+		freq *= 10;
-+		freq /= 125;
-+
-+		tea->val &= ~TEA575X_BIT_BAND_MASK;
-+		tea->val |= TEA575X_BIT_BAND_FM;
-+		break;
-+	case TUNER_AM:
-+		freq = clamp(freq, AM_FREQ_LO, AM_FREQ_HI) / 16; /* to kHz */
-+		/* crystal fixup */
-+		freq += TEA575X_AMIF;
-+
-+		tea->val &= ~TEA575X_BIT_BAND_MASK;
-+		tea->val |= TEA575X_BIT_BAND_MW;
-+		break;
-+	}
- 	tea->val &= ~TEA575X_BIT_FREQ_MASK;
- 	tea->val |= freq & TEA575X_BIT_FREQ_MASK;
- 	snd_tea575x_write(tea, tea->val);
-@@ -194,21 +224,39 @@ static int vidioc_g_tuner(struct file *file, void *priv,
- 					struct v4l2_tuner *v)
- {
- 	struct snd_tea575x *tea = video_drvdata(file);
-+	u32 tuner = v->index;
- 
--	if (v->index > 0)
-+	if (tuner > TUNER_MAX)
- 		return -EINVAL;
- 
- 	snd_tea575x_read(tea);
- 
--	strcpy(v->name, "FM");
-+	memset(v, 0, sizeof(*v));
-+	v->index = tuner;
- 	v->type = V4L2_TUNER_RADIO;
--	v->capability = V4L2_TUNER_CAP_LOW | V4L2_TUNER_CAP_STEREO;
--	v->rangelow = FREQ_LO;
--	v->rangehigh = FREQ_HI;
--	v->rxsubchans = tea->stereo ? V4L2_TUNER_SUB_STEREO : V4L2_TUNER_SUB_MONO;
--	v->audmode = (tea->val & TEA575X_BIT_MONO) ?
--		V4L2_TUNER_MODE_MONO : V4L2_TUNER_MODE_STEREO;
--	v->signal = tea->tuned ? 0xffff : 0;
-+	v->signal = (tuner == tea->tuner && tea->tuned) ? 0xffff : 0;
-+	v->capability = V4L2_TUNER_CAP_LOW;
-+
-+	switch (tuner) {
-+	case TUNER_FM:
-+		strcpy(v->name, "FM");
-+		v->capability |= V4L2_TUNER_CAP_STEREO;
-+		v->rangelow = FM_FREQ_LO;
-+		v->rangehigh = FM_FREQ_HI;
-+		v->rxsubchans = tea->stereo ? V4L2_TUNER_SUB_STEREO :
-+					      V4L2_TUNER_SUB_MONO;
-+		v->audmode = (tea->val & TEA575X_BIT_MONO) ?
-+			V4L2_TUNER_MODE_MONO : V4L2_TUNER_MODE_STEREO;
-+		break;
-+	case TUNER_AM:
-+		strcpy(v->name, "AM");
-+		v->rangelow = AM_FREQ_LO;
-+		v->rangehigh = AM_FREQ_HI;
-+		v->rxsubchans = V4L2_TUNER_SUB_MONO;
-+		v->audmode = V4L2_TUNER_MODE_MONO;
-+		break;
-+	}
-+
- 	return 0;
- }
- 
-@@ -216,13 +264,26 @@ static int vidioc_s_tuner(struct file *file, void *priv,
- 					struct v4l2_tuner *v)
- {
- 	struct snd_tea575x *tea = video_drvdata(file);
-+	u32 orig_val = tea->val;
- 
--	if (v->index)
-+	if (v->index > TUNER_MAX)
- 		return -EINVAL;
--	tea->val &= ~TEA575X_BIT_MONO;
--	if (v->audmode == V4L2_TUNER_MODE_MONO)
--		tea->val |= TEA575X_BIT_MONO;
--	snd_tea575x_write(tea, tea->val);
-+
-+	switch (v->index) {
-+	case TUNER_FM:
-+		tea->val &= ~TEA575X_BIT_MONO;
-+		if (v->audmode == V4L2_TUNER_MODE_MONO)
-+			tea->val |= TEA575X_BIT_MONO;
-+
-+		/* Only apply changes if currently tuning FM */
-+		if (tea->tuner == TUNER_FM && tea->val != orig_val)
-+			snd_tea575x_set_freq(tea);
-+		break;
-+	case TUNER_AM:
-+		/* There are no modifiable settings on the AM tuner */
-+		break;
-+	}
-+
- 	return 0;
- }
- 
-@@ -231,8 +292,7 @@ static int vidioc_g_frequency(struct file *file, void *priv,
- {
- 	struct snd_tea575x *tea = video_drvdata(file);
- 
--	if (f->tuner != 0)
--		return -EINVAL;
-+	f->tuner = tea->tuner;
- 	f->type = V4L2_TUNER_RADIO;
- 	f->frequency = tea->freq;
- 	return 0;
-@@ -243,11 +303,12 @@ static int vidioc_s_frequency(struct file *file, void *priv,
- {
- 	struct snd_tea575x *tea = video_drvdata(file);
- 
--	if (f->tuner != 0 || f->type != V4L2_TUNER_RADIO)
-+	if (f->tuner > TUNER_MAX || f->type != V4L2_TUNER_RADIO)
- 		return -EINVAL;
- 
- 	tea->val &= ~TEA575X_BIT_SEARCH;
--	tea->freq = clamp(f->frequency, FREQ_LO, FREQ_HI);
-+	tea->tuner = f->tuner;
-+	tea->freq  = f->frequency;
- 	snd_tea575x_set_freq(tea);
- 	return 0;
- }
-@@ -257,12 +318,23 @@ static int vidioc_s_hw_freq_seek(struct file *file, void *fh,
- {
- 	struct snd_tea575x *tea = video_drvdata(file);
- 	unsigned long timeout;
--	int i;
-+	int i, spacing;
- 
- 	if (tea->cannot_read_data)
- 		return -ENOTTY;
--	if (a->tuner || a->wrap_around)
-+	if (a->tuner > TUNER_MAX || a->wrap_around)
- 		return -EINVAL;
-+        if (a->tuner != tea->tuner)
-+		return -EBUSY;
-+
-+        switch (tea->tuner) {
-+        case TUNER_FM:
-+                spacing = 50; /* kHz */
-+                break;
-+        case TUNER_AM:
-+                spacing = 5; /* kHz */
-+                break;
-+        }
- 
- 	/* clear the frequency, HW will fill it in */
- 	tea->val &= ~TEA575X_BIT_FREQ_MASK;
-@@ -295,10 +367,10 @@ static int vidioc_s_hw_freq_seek(struct file *file, void *fh,
- 			if (freq == 0) /* shouldn't happen */
- 				break;
- 			/*
--			 * if we moved by less than 50 kHz, or in the wrong
--			 * direction, continue seeking
-+			 * if we moved by less than the spacing, or in the
-+			 * wrong direction, continue seeking
- 			 */
--			if (abs(tea->freq - freq) < 16 * 50 ||
-+			if (abs(tea->freq - freq) < 16 * spacing ||
- 					(a->seek_upward && freq < tea->freq) ||
- 					(!a->seek_upward && freq > tea->freq)) {
- 				snd_tea575x_write(tea, tea->val);
--- 
-1.7.10
+Fair enough.
 
+May the Force be with you,
+poma
