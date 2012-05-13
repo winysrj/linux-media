@@ -1,115 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-2.cisco.com ([144.254.224.141]:7141 "EHLO
-	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757077Ab2EJI2H (ORCPT
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:56366 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755925Ab2EMA36 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 May 2012 04:28:07 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [RFCv1 PATCH 2/5] v4l2-dev/ioctl: determine the valid ioctls upfront.
-Date: Thu, 10 May 2012 10:27:38 +0200
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-References: <1336633514-4972-1-git-send-email-hverkuil@xs4all.nl> <e75979b946d3934cbfb12e8b5518bcbbb891ceee.1336632433.git.hans.verkuil@cisco.com> <4FAB77ED.9000105@redhat.com>
-In-Reply-To: <4FAB77ED.9000105@redhat.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201205101027.38882.hverkuil@xs4all.nl>
+	Sat, 12 May 2012 20:29:58 -0400
+Received: by obbtb18 with SMTP id tb18so5307207obb.19
+        for <linux-media@vger.kernel.org>; Sat, 12 May 2012 17:29:57 -0700 (PDT)
+Message-ID: <1336868991.13856.22.camel@dcky-ubuntu64>
+Subject: Re: How I must report that a driver has been broken?
+From: Patrick Dickey <pdickeybeta@gmail.com>
+Reply-To: pdickeybeta@gmail.com
+To: Alfredo =?ISO-8859-1?Q?Jes=FAs?= Delaiti
+	<alfredodelaiti@netscape.net>
+Cc: linux-media@vger.kernel.org
+Date: Sat, 12 May 2012 19:29:51 -0500
+In-Reply-To: <4FAEB948.7080800@netscape.net>
+References: <4FADE682.3090005@netscape.net> <4FAE1CA1.1010203@redhat.com>
+	 <4FAEB948.7080800@netscape.net>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu 10 May 2012 10:10:21 Hans de Goede wrote:
-> Hi,
+I'm not an expert (or anywhere near one), but I'm guessing that the
+reason you didn't get a response to your two previous (actually three or
+four previous) emails is because you "submitted" a patch that was
+already in the kernel.
+
+You were intending to show that the patch breaks something, yet instead
+of submitting the fix for the problem, you resubmitted the patch that
+was already applied.  Either that, or for some other reason, the patch
+that you submitted was rejected.
+
+My suggestion is to take what you've submitted (if it was the fix for
+the problem) and resubmit it. If you were just pointing out the broken
+code, then submit your fix for the issue (by creating a patch that fixes
+or removes the broken code).
+
+Also one other thing I found is that you submitted the original patches
+for the card.  Or at least you submitted some patches for it around
+November of last year. So my question is, do the patches that you
+submitted back then work, or are they the broken code now?
+
+Have a great day:)
+Patrick.
+
+P.S. Again, I'm not an expert here, nor do I claim to be. So if someone
+else gives you an answer, I'd put more weight on theirs--as they
+probably have more experience than I do.
+
+
+On Sat, 2012-05-12 at 16:26 -0300, Alfredo Jesús Delaiti wrote: 
+> Hi
 > 
-> Comments inline.
+> Thanks for your response Hans and Patrick
 > 
-> On 05/10/2012 09:05 AM, Hans Verkuil wrote:
-> > From: Hans Verkuil<hans.verkuil@cisco.com>
+> Maybe I doing wrong this, because it reports twice:
+> 
+> http://www.mail-archive.com/linux-media@vger.kernel.org/msg45199.html
+> http://www.mail-archive.com/linux-media@vger.kernel.org/msg44846.html
+> 
+> and I have not had any response.
+> 
+> 
+> Thanks again,
+> 
+> Alfredo
+> 
+> 
+> 
+> 
+> 
+> El 12/05/12 05:17, Hans de Goede escribió:
+> > Hi
 > >
-> > Rather than testing whether an ioctl is implemented in the driver or not
-> > every time the ioctl is called, do it upfront when the device is registered.
+> > On 05/12/2012 06:26 AM, Alfredo Jesús Delaiti wrote:
+> >> Hi
+> >>
+> >> New features of the driver has left a card does not work.
+> >> How I must report that a driver has been broken?
 > >
-> > This also allows a driver to disable certain ioctls based on the capabilities
-> > of the detected board, something you can't do today without creating separate
-> > v4l2_ioctl_ops structs for each new variation.
+> > Well this list would be a good place for starters, please
+> > send a *detailed* bug report to this list, including
+> > things like what is the last (kernel) version it worked
+> > with, what is the first version it is broken.
 > >
-> > For the most part it is pretty straightforward, but for control ioctls a flag
-> > is needed since it is possible that you have per-filehandle controls, and that
-> > can't be determined upfront of course.
+> > What did it do before breaking what know now longer works,
+> > etc.
 > >
-> > Signed-off-by: Hans Verkuil<hans.verkuil@cisco.com>
-> > ---
-> >   drivers/media/video/v4l2-dev.c   |  171 +++++++++++++++++
-> >   drivers/media/video/v4l2-ioctl.c |  391 +++++++++++---------------------------
-> >   include/media/v4l2-dev.h         |   11 ++
-> >   3 files changed, 297 insertions(+), 276 deletions(-)
+> > Regards,
 > >
-
-...
-
-> > diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
-> > index 3f34098..21da16d 100644
-> > --- a/drivers/media/video/v4l2-ioctl.c
-> > +++ b/drivers/media/video/v4l2-ioctl.c
-> > @@ -526,19 +518,28 @@ static long __video_do_ioctl(struct file *file,
-> >   		return ret;
-> >   	}
-> >
-> > -	if ((vfd->debug&  V4L2_DEBUG_IOCTL)&&
-> > -				!(vfd->debug&  V4L2_DEBUG_IOCTL_ARG)) {
-> > -		v4l_print_ioctl(vfd->name, cmd);
-> > -		printk(KERN_CONT "\n");
-> > -	}
-> > -
-> >   	if (test_bit(V4L2_FL_USES_V4L2_FH,&vfd->flags)) {
-> >   		vfh = file->private_data;
-> >   		use_fh_prio = test_bit(V4L2_FL_USE_FH_PRIO,&vfd->flags);
-> > +		if (use_fh_prio)
-> > +			ret_prio = v4l2_prio_check(vfd->prio, vfh->prio);
-> >   	}
-> >
-> > -	if (use_fh_prio)
-> > -		ret_prio = v4l2_prio_check(vfd->prio, vfh->prio);
-> > +	if (v4l2_is_valid_ioctl(cmd)) {
+> > Hans
 > 
-> I would prefer for this check to be the first check in the function
-> in the form of:
 > 
-> 	if (!v4l2_is_valid_ioctl(cmd))
-> 		return -ENOTTY;
-> 
-> This will drop an indentation level from the code below and also drop an
-> indentation level from the prio check introduced in a later patch,
-> making the end result much more readable IMHO.
 
-Ah, no. That's why I renamed v4l2_is_valid_ioctl to v4l2_is_known_ioctl in my
-new ioctlv2 branch. v4l2_is_known_ioctl means whether it is a known, standard
-v4l2 ioctl. If it is, then it is handled by the table, if it isn't, then it
-will be handled by the vidioc_default callback.
-
-I realized myself that that name was very ambiguous.
-
-> 
-> > +		struct v4l2_ioctl_info *info =&v4l2_ioctls[_IOC_NR(cmd)];
-> > +
-> > +		if (!test_bit(_IOC_NR(cmd), vfd->valid_ioctls)) {
-> > +			if (!(info->flags&  INFO_FL_CTRL) ||
-> > +			    !(vfh&&  vfh->ctrl_handler))
-> > +				return -ENOTTY;
->  > +		}
->  > +	}
-> 
-> Sort of hard to read, IMHO the below is easier to parse by us humans:
-> 
-> 	if (!test_bit(_IOC_NR(cmd), vfd->valid_ioctls) &&
-> 	    !((info->flags & INFO_FL_CTRL) && vfh && vfh->ctrl_handler))
-> 		return -ENOTTY;
-
-Yeah, I agree. That's better.
-
-Regards,
-
-	Hans
