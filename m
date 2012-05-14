@@ -1,45 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:38460 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754159Ab2EJAIv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 May 2012 20:08:51 -0400
-Received: by obbtb18 with SMTP id tb18so995177obb.19
-        for <linux-media@vger.kernel.org>; Wed, 09 May 2012 17:08:50 -0700 (PDT)
+Received: from perceval.ideasonboard.com ([95.142.166.194]:43613 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758247Ab2ENXU7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 May 2012 19:20:59 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: linux-media@vger.kernel.org, sakari.ailus@iki.fi,
+	t.stanislaws@samsung.com, Kyungmin Park <kyungmin.park@samsung.com>
+Subject: Re: [PATCH] V4L: Rename V4L2_SEL_TGT_[CROP/COMPOSE]_ACTIVE to V4L2_SEL_TGT_[CROP/COMPOSE]
+Date: Tue, 15 May 2012 01:21:07 +0200
+Message-ID: <12276297.m66sSU3uS4@avalon>
+In-Reply-To: <1337015823-13603-1-git-send-email-s.nawrocki@samsung.com>
+References: <1337015823-13603-1-git-send-email-s.nawrocki@samsung.com>
 MIME-Version: 1.0
-Date: Wed, 9 May 2012 19:08:50 -0500
-Message-ID: <CAC-OdnBNiT35tc_50QAXvVp8+b5tWLMWqc5i1q3qWYTp5c360g@mail.gmail.com>
-Subject: Advice on extending libv4l for media controller support
-From: Sergio Aguirre <sergio.a.aguirre@gmail.com>
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Hi Sylwester,
 
-I'm interested in using libv4l along with my omap4 camera project to
-adapt it more easily
-to Android CameraHAL, and other applications, to reduce complexity of
-them mostly...
+Thanks for the patch.
 
-So, but the difference is that, this is a media controller device I'm
-trying to add support for,
-in which I want to create some sort of plugin with specific media
-controller configurations,
-to avoid userspace to worry about component names and specific
-usecases (use sensor resizer, or SoC ISP resizer, etc.).
+On Monday 14 May 2012 19:17:03 Sylwester Nawrocki wrote:
+> This patch drops the _ACTIVE part from the selection target names as
+> a prerequisite to unify the selection target names on subdevs and regular
+> video nodes.
+> 
+> Although not exactly the same, the meaning of V4L2_SEL_TGT_*_ACTIVE and
+> V4L2_SUBDEV_SEL_TGT_*_ACTUAL selection targets is logically the same.
+> Different names add to confusion where both APIs are used in a single
+> driver or an application.
+> The selections API is experimental, so no compatibility layer is added.
+> The ABI remains unchanged.
+> 
+> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 
-So, I just wanted to know your advice on some things before I start
-hacking your library:
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-1. Should it be the right thing to add a new subfolder under "lib/",
-named like "libomap4iss-mediactl" or something like that ?
-2. Do you know if anyone is working on something similar for any other
-Media Controller device ?
-
-Thanks in advance for your inputs.
-
+-- 
 Regards,
-Sergio
+
+Laurent Pinchart
+
