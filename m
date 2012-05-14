@@ -1,150 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:3403 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750720Ab2E0Lue (ORCPT
+Received: from mail-qa0-f46.google.com ([209.85.216.46]:44218 "EHLO
+	mail-qa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932498Ab2ENWL2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 27 May 2012 07:50:34 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Mon, 14 May 2012 18:11:28 -0400
+Received: by qadb17 with SMTP id b17so3179725qad.19
+        for <linux-media@vger.kernel.org>; Mon, 14 May 2012 15:11:27 -0700 (PDT)
+From: Michael Krufky <mkrufky@kernellabs.com>
 To: linux-media@vger.kernel.org
-Cc: Hans de Goede <hdegoede@redhat.com>,
-	halli manjunatha <hallimanju@gmail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv1 PATCH 3/5] S_HW_FREQ_SEEK: set capability flags and return ENODATA instead of EAGAIN.
-Date: Sun, 27 May 2012 13:50:23 +0200
-Message-Id: <99eeb0aa2d5cee617d456ff85925a329d9553153.1338118975.git.hans.verkuil@cisco.com>
-In-Reply-To: <1338119425-17274-1-git-send-email-hverkuil@xs4all.nl>
-References: <1338119425-17274-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <04a877e6f6310b83c3980cd6963f52d3b9ae658f.1338118975.git.hans.verkuil@cisco.com>
-References: <04a877e6f6310b83c3980cd6963f52d3b9ae658f.1338118975.git.hans.verkuil@cisco.com>
+Cc: mchehab@infradead.org, Michael Krufky <mkrufky@kernellabs.com>,
+	Michael Krufky <mkrufky@linuxtv.org>
+Subject: [PATCH 07/11] dvb-demux: add functionality to send raw payload to the dvr device
+Date: Mon, 14 May 2012 18:10:49 -0400
+Message-Id: <1337033453-22119-7-git-send-email-mkrufky@linuxtv.org>
+In-Reply-To: <1337033453-22119-1-git-send-email-mkrufky@linuxtv.org>
+References: <1337033453-22119-1-git-send-email-mkrufky@linuxtv.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+From: Michael Krufky <mkrufky@kernellabs.com>
 
-Set the new capability flags in G_TUNER and return ENODATA if no channels
-were found.
+If your driver needs to deliver the raw payload to userspace without
+passing through the kernel demux, use function: dvb_dmx_swfilter_raw
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Michael Krufky <mkrufky@linuxtv.org>
 ---
- drivers/media/radio/radio-mr800.c                |    5 +++--
- drivers/media/radio/radio-wl1273.c               |    3 ++-
- drivers/media/radio/si470x/radio-si470x-common.c |    6 ++++--
- drivers/media/radio/wl128x/fmdrv_rx.c            |    2 +-
- drivers/media/radio/wl128x/fmdrv_v4l2.c          |    4 +++-
- sound/i2c/other/tea575x-tuner.c                  |    4 +++-
- 6 files changed, 16 insertions(+), 8 deletions(-)
+ drivers/media/dvb/dvb-core/dvb_demux.c |   10 ++++++++++
+ drivers/media/dvb/dvb-core/dvb_demux.h |    2 ++
+ 2 files changed, 12 insertions(+)
 
-diff --git a/drivers/media/radio/radio-mr800.c b/drivers/media/radio/radio-mr800.c
-index 94cb6bc..3182b26 100644
---- a/drivers/media/radio/radio-mr800.c
-+++ b/drivers/media/radio/radio-mr800.c
-@@ -295,7 +295,8 @@ static int vidioc_g_tuner(struct file *file, void *priv,
- 	v->type = V4L2_TUNER_RADIO;
- 	v->rangelow = FREQ_MIN * FREQ_MUL;
- 	v->rangehigh = FREQ_MAX * FREQ_MUL;
--	v->capability = V4L2_TUNER_CAP_LOW | V4L2_TUNER_CAP_STEREO;
-+	v->capability = V4L2_TUNER_CAP_LOW | V4L2_TUNER_CAP_STEREO |
-+		V4L2_TUNER_CAP_HWSEEK_WRAP;
- 	v->rxsubchans = is_stereo ? V4L2_TUNER_SUB_STEREO : V4L2_TUNER_SUB_MONO;
- 	v->audmode = radio->stereo ?
- 		V4L2_TUNER_MODE_STEREO : V4L2_TUNER_MODE_MONO;
-@@ -372,7 +373,7 @@ static int vidioc_s_hw_freq_seek(struct file *file, void *priv,
- 	timeout = jiffies + msecs_to_jiffies(30000);
- 	for (;;) {
- 		if (time_after(jiffies, timeout)) {
--			retval = -EAGAIN;
-+			retval = -ENODATA;
- 			break;
- 		}
- 		if (schedule_timeout_interruptible(msecs_to_jiffies(10))) {
-diff --git a/drivers/media/radio/radio-wl1273.c b/drivers/media/radio/radio-wl1273.c
-index f1b6070..e8428f5 100644
---- a/drivers/media/radio/radio-wl1273.c
-+++ b/drivers/media/radio/radio-wl1273.c
-@@ -1514,7 +1514,8 @@ static int wl1273_fm_vidioc_g_tuner(struct file *file, void *priv,
- 	tuner->rangehigh = WL1273_FREQ(WL1273_BAND_OTHER_HIGH);
- 
- 	tuner->capability = V4L2_TUNER_CAP_LOW | V4L2_TUNER_CAP_RDS |
--		V4L2_TUNER_CAP_STEREO | V4L2_TUNER_CAP_RDS_BLOCK_IO;
-+		V4L2_TUNER_CAP_STEREO | V4L2_TUNER_CAP_RDS_BLOCK_IO |
-+		V4L2_TUNER_CAP_HWSEEK_BOUNDED | V4L2_TUNER_CAP_HWSEEK_WRAP;
- 
- 	if (radio->stereo)
- 		tuner->audmode = V4L2_TUNER_MODE_STEREO;
-diff --git a/drivers/media/radio/si470x/radio-si470x-common.c b/drivers/media/radio/si470x/radio-si470x-common.c
-index 969cf49..d485b79 100644
---- a/drivers/media/radio/si470x/radio-si470x-common.c
-+++ b/drivers/media/radio/si470x/radio-si470x-common.c
-@@ -363,7 +363,7 @@ stop:
- 
- 	/* try again, if timed out */
- 	if (retval == 0 && timed_out)
--		return -EAGAIN;
-+		return -ENODATA;
- 	return retval;
+diff --git a/drivers/media/dvb/dvb-core/dvb_demux.c b/drivers/media/dvb/dvb-core/dvb_demux.c
+index faa3671..d82469f 100644
+--- a/drivers/media/dvb/dvb-core/dvb_demux.c
++++ b/drivers/media/dvb/dvb-core/dvb_demux.c
+@@ -568,6 +568,16 @@ void dvb_dmx_swfilter_204(struct dvb_demux *demux, const u8 *buf, size_t count)
  }
+ EXPORT_SYMBOL(dvb_dmx_swfilter_204);
  
-@@ -596,7 +596,9 @@ static int si470x_vidioc_g_tuner(struct file *file, void *priv,
- 	strcpy(tuner->name, "FM");
- 	tuner->type = V4L2_TUNER_RADIO;
- 	tuner->capability = V4L2_TUNER_CAP_LOW | V4L2_TUNER_CAP_STEREO |
--			    V4L2_TUNER_CAP_RDS | V4L2_TUNER_CAP_RDS_BLOCK_IO;
-+			    V4L2_TUNER_CAP_RDS | V4L2_TUNER_CAP_RDS_BLOCK_IO |
-+			    V4L2_TUNER_CAP_HWSEEK_BOUNDED |
-+			    V4L2_TUNER_CAP_HWSEEK_WRAP;
++void dvb_dmx_swfilter_raw(struct dvb_demux *demux, const u8 *buf, size_t count)
++{
++	spin_lock(&demux->lock);
++
++	demux->feed->cb.ts(buf, count, NULL, 0, &demux->feed->feed.ts, DMX_OK);
++
++	spin_unlock(&demux->lock);
++}
++EXPORT_SYMBOL(dvb_dmx_swfilter_raw);
++
+ static struct dvb_demux_filter *dvb_dmx_filter_alloc(struct dvb_demux *demux)
+ {
+ 	int i;
+diff --git a/drivers/media/dvb/dvb-core/dvb_demux.h b/drivers/media/dvb/dvb-core/dvb_demux.h
+index a7d876f..fa7188a 100644
+--- a/drivers/media/dvb/dvb-core/dvb_demux.h
++++ b/drivers/media/dvb/dvb-core/dvb_demux.h
+@@ -145,5 +145,7 @@ void dvb_dmx_swfilter_packets(struct dvb_demux *dvbdmx, const u8 *buf,
+ void dvb_dmx_swfilter(struct dvb_demux *demux, const u8 *buf, size_t count);
+ void dvb_dmx_swfilter_204(struct dvb_demux *demux, const u8 *buf,
+ 			  size_t count);
++void dvb_dmx_swfilter_raw(struct dvb_demux *demux, const u8 *buf,
++			  size_t count);
  
- 	/* range limits */
- 	switch ((radio->registers[SYSCONFIG2] & SYSCONFIG2_BAND) >> 6) {
-diff --git a/drivers/media/radio/wl128x/fmdrv_rx.c b/drivers/media/radio/wl128x/fmdrv_rx.c
-index 43fb722..3dd9fc0 100644
---- a/drivers/media/radio/wl128x/fmdrv_rx.c
-+++ b/drivers/media/radio/wl128x/fmdrv_rx.c
-@@ -251,7 +251,7 @@ again:
- 	if (!timeleft) {
- 		fmerr("Timeout(%d sec),didn't get tune ended int\n",
- 			   jiffies_to_msecs(FM_DRV_RX_SEEK_TIMEOUT) / 1000);
--		return -ETIMEDOUT;
-+		return -ENODATA;
- 	}
- 
- 	int_reason = fmdev->irq_info.flag & (FM_TUNE_COMPLETE | FM_BAND_LIMIT);
-diff --git a/drivers/media/radio/wl128x/fmdrv_v4l2.c b/drivers/media/radio/wl128x/fmdrv_v4l2.c
-index 080b96a..49a11ec 100644
---- a/drivers/media/radio/wl128x/fmdrv_v4l2.c
-+++ b/drivers/media/radio/wl128x/fmdrv_v4l2.c
-@@ -285,7 +285,9 @@ static int fm_v4l2_vidioc_g_tuner(struct file *file, void *priv,
- 	tuner->rxsubchans = V4L2_TUNER_SUB_MONO | V4L2_TUNER_SUB_STEREO |
- 	((fmdev->rx.rds.flag == FM_RDS_ENABLE) ? V4L2_TUNER_SUB_RDS : 0);
- 	tuner->capability = V4L2_TUNER_CAP_STEREO | V4L2_TUNER_CAP_RDS |
--			    V4L2_TUNER_CAP_LOW;
-+			    V4L2_TUNER_CAP_LOW |
-+			    V4L2_TUNER_CAP_HWSEEK_BOUNDED |
-+			    V4L2_TUNER_CAP_HWSEEK_WRAP;
- 	tuner->audmode = (stereo_mono_mode ?
- 			  V4L2_TUNER_MODE_MONO : V4L2_TUNER_MODE_STEREO);
- 
-diff --git a/sound/i2c/other/tea575x-tuner.c b/sound/i2c/other/tea575x-tuner.c
-index 582aace..ba2bc51 100644
---- a/sound/i2c/other/tea575x-tuner.c
-+++ b/sound/i2c/other/tea575x-tuner.c
-@@ -191,6 +191,8 @@ static int vidioc_g_tuner(struct file *file, void *priv,
- 	strcpy(v->name, "FM");
- 	v->type = V4L2_TUNER_RADIO;
- 	v->capability = V4L2_TUNER_CAP_LOW | V4L2_TUNER_CAP_STEREO;
-+	if (!tea->cannot_read_data)
-+		v->capability |= V4L2_TUNER_CAP_HWSEEK_BOUNDED;
- 	v->rangelow = FREQ_LO;
- 	v->rangehigh = FREQ_HI;
- 	v->rxsubchans = tea->stereo ? V4L2_TUNER_SUB_STEREO : V4L2_TUNER_SUB_MONO;
-@@ -299,7 +301,7 @@ static int vidioc_s_hw_freq_seek(struct file *file, void *fh,
- 	}
- 	tea->val &= ~TEA575X_BIT_SEARCH;
- 	snd_tea575x_set_freq(tea);
--	return -EAGAIN;
-+	return -ENODATA;
- }
- 
- static int tea575x_s_ctrl(struct v4l2_ctrl *ctrl)
+ #endif /* _DVB_DEMUX_H_ */
 -- 
-1.7.10
+1.7.9.5
 
