@@ -1,70 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from shadbolt.e.decadent.org.uk ([88.96.1.126]:45260 "EHLO
-	shadbolt.e.decadent.org.uk" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755616Ab2EUN44 (ORCPT
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:3260 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752402Ab2ENOh1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 May 2012 09:56:56 -0400
-Message-ID: <1337608600.10262.8.camel@deadeye>
-Subject: Firmware blob in vs6624 driver
-From: Ben Hutchings <ben@decadent.org.uk>
-To: Scott Jiang <scott.jiang.linux@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media <linux-media@vger.kernel.org>
-Date: Mon, 21 May 2012 14:56:40 +0100
-Content-Type: multipart/signed; micalg="pgp-sha512";
-	protocol="application/pgp-signature"; boundary="=-RHWkLYRp0GVnurJMKfyk"
-Mime-Version: 1.0
+	Mon, 14 May 2012 10:37:27 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [GIT PULL FOR v3.5] Three small improvements
+Date: Mon, 14 May 2012 16:37:23 +0200
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201205141637.23510.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Mauro, Laurent,
 
---=-RHWkLYRp0GVnurJMKfyk
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+I hope that these three patches address the comments Laurent made.
 
-The array vs6624_p1 is a list of bytes to write to the VS6624's
-microcontroller registers/memory, written before it starts running code:
+The only remaining item is to take the ioctl lock after copy_from user is
+called. But that's for 3.6.
 
-	vs6624_writeregs(sd, vs6624_p1);
-	vs6624_write(sd, VS6624_MICRO_EN, 0x2);
-	vs6624_write(sd, VS6624_DIO_EN, 0x1);
-	mdelay(10);
+Regards,
 
-This doesn't touch any of the documented registers, so presumably it's a
-patch to the firmware loaded from non-volatile memory.  Unless you can
-provide source code for the patch, this should go in the linux-firmware
-repository and be loaded with request_firmware() instead of embedded in
-the GPL driver source.
+	Hans
 
-Also, shouldn't you check the loaded firmware version first to verify
-that it's safe to apply the patch?
+The following changes since commit e89fca923f32de26b69bf4cd604f7b960b161551:
 
-Ben.
+  [media] gspca - ov534: Add Hue control (2012-05-14 09:48:00 -0300)
 
---=20
-Ben Hutchings
-You can't have everything.  Where would you put it?
+are available in the git repository at:
 
---=-RHWkLYRp0GVnurJMKfyk
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
+  git://linuxtv.org/hverkuil/media_tree.git update
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+for you to fetch changes up to 308cb1f20bcaba72c8234794479cf8962c13032f:
 
-iQIVAwUAT7pJmOe/yOyVhhEJAQph4xAAwLfh8Zpl6x08MN5Tfgxf3Rg+Gt/+co5N
-4HX9IH5Y4Q0Kkf+3Am9kRQwPwHfPWXRKn1UTRVwzqwddpXAN6iHBln9wf7gStz3W
-Xt/zkG5SqYKkpB0XRNokyjl3JAiRmH97z69mjBzvUZjVyMcUqVnn6LvA5ps1UjVt
-6F0vmIT07Ei0X6w5h0QwAv9858wLMZlfgX8q4DZoPtstDG18NuRgTrMNEE7kKNUt
-B4rCjy2fc3hccw6WmGCqaOTbksiIiNcXRqn8udSJYt6993R4yXHxbF+0hh7uZIQq
-p3o0UUEuWorB8XlTEXB2iQlt4Wq1VrKeVA3e4HrqXEisck88oXOeWUq3xFtbrehI
-ZQxRVmktV3xgzbgABLYb7E9WBxadUKoxZtr9cbBMwJuR/0PWiXKh9/KTwjSofsRN
-fIERuSRax3i7xCqthw6y3tlNPzOFrvi0xt5Urhtysc6NBPs+kTVINzpXB13rouGz
-8lEiKWJFzzYR6f94w2CYLzH7wuHjuYyNUK63FDyd9Ate1M/SLWiXLH48rlyUX1fw
-jtRwAmWABMxhl1LHdg9y0XwjcvBCIOnUr31TsHTwjYp/inEXHttSQO5qnnaWkcm0
-eAXYgtYM11sXsQjaLZ0PV3RDGGnYeE94QPbfTofgBcFoJvr3arvpQ7lH6Oh3wSRg
-kHteZitOVPs=
-=z4d2
------END PGP SIGNATURE-----
+  v4l2-dev: rename two functions. (2012-05-14 16:32:48 +0200)
 
---=-RHWkLYRp0GVnurJMKfyk--
+----------------------------------------------------------------
+Hans Verkuil (3):
+      v4l2-framework.txt: update the core lock documentation.
+      v4l2-dev.h: add comment not to use V4L2_FL_LOCK_ALL_FOPS in new drivers.
+      v4l2-dev: rename two functions.
+
+ Documentation/video4linux/v4l2-framework.txt |   18 +++++++++---------
+ drivers/media/video/gspca/gspca.c            |    6 +++---
+ drivers/media/video/pwc/pwc-if.c             |    6 +++---
+ drivers/media/video/v4l2-dev.c               |    2 +-
+ include/media/v4l2-dev.h                     |   12 ++++++------
+ sound/i2c/other/tea575x-tuner.c              |    2 +-
+ 6 files changed, 23 insertions(+), 23 deletions(-)
