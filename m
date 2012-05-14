@@ -1,162 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:44271 "EHLO
-	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932625Ab2EWJyv (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:58514 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752855Ab2ENAYf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 May 2012 05:54:51 -0400
-Subject: [PATCH 14/43] rc-core: allow chardev to be written
-To: linux-media@vger.kernel.org
-From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
-Cc: mchehab@redhat.com, jarod@redhat.com
-Date: Wed, 23 May 2012 11:43:14 +0200
-Message-ID: <20120523094314.14474.95103.stgit@felix.hardeman.nu>
-In-Reply-To: <20120523094157.14474.24367.stgit@felix.hardeman.nu>
-References: <20120523094157.14474.24367.stgit@felix.hardeman.nu>
+	Sun, 13 May 2012 20:24:35 -0400
+Date: Mon, 14 May 2012 03:24:30 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: "Aguirre, Sergio" <saaguirre@ti.com>
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org
+Subject: Re: [PATCH v3 07/10] arm: omap4430sdp: Add support for omap4iss
+ camera
+Message-ID: <20120514002430.GH3373@valkosipuli.retiisi.org.uk>
+References: <1335971749-21258-1-git-send-email-saaguirre@ti.com>
+ <1335971749-21258-8-git-send-email-saaguirre@ti.com>
+ <20120502194700.GF852@valkosipuli.localdomain>
+ <CAKnK67S5zZW0HAUYrg4ZqudiQqcOY+kbZeDeQ1OGU+s+cShBDQ@mail.gmail.com>
+ <CAKnK67SZGES33T02Ki3imZi20OKRSRe+u9nONsq2KoEGVz4_0w@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAKnK67SZGES33T02Ki3imZi20OKRSRe+u9nONsq2KoEGVz4_0w@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add write functionality to the rc chardev (for use in transmitting remote
-control commands on capable hardware).
+Hi Sergio,
 
-The data format of the TX data is probably going to have to be dependent
-on the rc_driver_type.
+On Thu, May 03, 2012 at 10:20:47PM -0500, Aguirre, Sergio wrote:
+> Hi Sakari,
+> 
+> On Thu, May 3, 2012 at 7:03 AM, Aguirre, Sergio <saaguirre@ti.com> wrote:
+> > Hi Sakari,
+> >
+> > Thanks for reviewing.
+> >
+> > On Wed, May 2, 2012 at 2:47 PM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
+> >>
+> >> Hi Sergio,
+> >>
+> >> Thanks for the patches!!
+> >>
+> >> On Wed, May 02, 2012 at 10:15:46AM -0500, Sergio Aguirre wrote:
+> >> ...
+> >>> +static int sdp4430_ov_cam1_power(struct v4l2_subdev *subdev, int on)
+> >>> +{
+> >>> +     struct device *dev = subdev->v4l2_dev->dev;
+> >>> +     int ret;
+> >>> +
+> >>> +     if (on) {
+> >>> +             if (!regulator_is_enabled(sdp4430_cam2pwr_reg)) {
+> >>> +                     ret = regulator_enable(sdp4430_cam2pwr_reg);
+> >>> +                     if (ret) {
+> >>> +                             dev_err(dev,
+> >>> +                                     "Error in enabling sensor power regulator 'cam2pwr'\n");
+> >>> +                             return ret;
+> >>> +                     }
+> >>> +
+> >>> +                     msleep(50);
+> >>> +             }
+> >>> +
+> >>> +             gpio_set_value(OMAP4430SDP_GPIO_CAM_PDN_B, 1);
+> >>> +             msleep(10);
+> >>> +             ret = clk_enable(sdp4430_cam1_aux_clk); /* Enable XCLK */
+> >>> +             if (ret) {
+> >>> +                     dev_err(dev,
+> >>> +                             "Error in clk_enable() in %s(%d)\n",
+> >>> +                             __func__, on);
+> >>> +                     gpio_set_value(OMAP4430SDP_GPIO_CAM_PDN_B, 0);
+> >>> +                     return ret;
+> >>> +             }
+> >>> +             msleep(10);
+> >>> +     } else {
+> >>> +             clk_disable(sdp4430_cam1_aux_clk);
+> >>> +             msleep(1);
+> >>> +             gpio_set_value(OMAP4430SDP_GPIO_CAM_PDN_B, 0);
+> >>> +             if (regulator_is_enabled(sdp4430_cam2pwr_reg)) {
+> >>> +                     ret = regulator_disable(sdp4430_cam2pwr_reg);
+> >>> +                     if (ret) {
+> >>> +                             dev_err(dev,
+> >>> +                                     "Error in disabling sensor power regulator 'cam2pwr'\n");
+> >>> +                             return ret;
+> >>> +                     }
+> >>> +             }
+> >>> +     }
+> >>> +
+> >>> +     return 0;
+> >>> +}
+> >>
+> >> Isn't this something that should be part of the sensor driver? There's
+> >> nothing in the above code that would be board specific, except the names of
+> >> the clocks, regulators and GPIOs. The sensor driver could hold the names
+> >> instead; this would be also compatible with the device tree.
+> >
+> > Agreed. I see what you mean...
+> >
+> > I'll take care of that.
+> 
+> Can you please check out these patches?
+> 
+> 1. http://gitorious.org/omap4-v4l2-camera/omap4-v4l2-camera/commit/cb6c10d58053180364461e6bc8d30d1ec87e6e22
 
-Signed-off-by: David HÃ¤rdeman <david@hardeman.nu>
----
- drivers/media/rc/rc-main.c |   68 ++++++++++++++++++++++++++++++++++++++++++++
- include/media/rc-core.h    |    2 +
- 2 files changed, 70 insertions(+)
+Ideally we should really get rid of the board code callbacks. What do you
+need to do there?
 
-diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-index 80d6dac..3389822 100644
---- a/drivers/media/rc/rc-main.c
-+++ b/drivers/media/rc/rc-main.c
-@@ -1211,6 +1211,7 @@ struct rc_dev *rc_allocate_device(void)
- 	INIT_KFIFO(dev->txfifo);
- 	spin_lock_init(&dev->txlock);
- 	init_waitqueue_head(&dev->rxwait);
-+	init_waitqueue_head(&dev->txwait);
- 	spin_lock_init(&dev->rc_map.lock);
- 	spin_lock_init(&dev->keylock);
- 	mutex_init(&dev->lock);
-@@ -1409,6 +1410,7 @@ void rc_unregister_device(struct rc_dev *dev)
- 		kill_fasync(&client->fasync, SIGIO, POLL_HUP);
- 	spin_unlock(&dev->client_lock);
- 	wake_up_interruptible_all(&dev->rxwait);
-+	wake_up_interruptible_all(&dev->txwait);
- 
- 	del_timer_sync(&dev->timer_keyup);
- 
-@@ -1560,6 +1562,69 @@ static ssize_t rc_read(struct file *file, char __user *buffer,
- }
- 
- /**
-+ * rc_write() - allows userspace to write data to transmit
-+ * @file:	the &struct file corresponding to the previous open()
-+ * @buffer:	the userspace buffer to read data from
-+ * @count:	the number of bytes to read
-+ * @ppos:	the file offset
-+ * @return:	the number of bytes written, or a negative error code
-+ *
-+ * This function (which implements write in &struct file_operations)
-+ * allows userspace to transmit data using a suitable rc device
-+ */
-+static ssize_t rc_write(struct file *file, const char __user *buffer,
-+			size_t count, loff_t *ppos)
-+{
-+	struct rc_client *client = file->private_data;
-+	struct rc_dev *dev = client->dev;
-+	ssize_t ret;
-+	DEFINE_IR_RAW_EVENT(event);
-+	bool pulse = true;
-+	u32 value;
-+
-+	if (!dev->tx_ir)
-+		return -ENOSYS;
-+
-+	if ((count < sizeof(u32)) || (count % sizeof(u32)))
-+		return -EINVAL;
-+
-+again:
-+	if (kfifo_is_full(&dev->txfifo) && dev->exist &&
-+	    (file->f_flags & O_NONBLOCK))
-+		return -EAGAIN;
-+
-+	ret = wait_event_interruptible(dev->txwait,
-+				       !kfifo_is_full(&dev->txfifo) ||
-+				       !dev->exist);
-+	if (ret)
-+		return ret;
-+
-+	if (!dev->exist)
-+		return -ENODEV;
-+
-+	for (ret = 0; ret + sizeof(value) <= count; ret += sizeof(value)) {
-+		if (copy_from_user(&value, buffer + ret, sizeof(value)))
-+			return -EFAULT;
-+
-+		event.duration = US_TO_NS(value);
-+		event.pulse = pulse;
-+		pulse = !pulse;
-+
-+		if (kfifo_in_spinlocked(&dev->txfifo, &event, 1, &dev->txlock)
-+		    != 1)
-+			break;
-+	}
-+
-+	if (ret == 0)
-+		goto again;
-+
-+	dev->tx_ir(dev);
-+	wake_up_interruptible(&dev->txwait);
-+
-+	return ret;
-+}
-+
-+/**
-  * rc_poll() - allows userspace to poll rc device files
-  * @file:	the &struct file corresponding to the previous open()
-  * @wait:	used to keep track of processes waiting for poll events
-@@ -1573,8 +1638,10 @@ static unsigned int rc_poll(struct file *file, poll_table *wait)
- 	struct rc_client *client = file->private_data;
- 	struct rc_dev *dev = client->dev;
- 
-+	poll_wait(file, &dev->txwait, wait);
- 	poll_wait(file, &dev->rxwait, wait);
- 	return ((kfifo_is_empty(&client->rxfifo) ? 0 : (POLLIN | POLLRDNORM)) |
-+		(kfifo_is_full(&dev->txfifo) ? 0 : (POLLOUT | POLLWRNORM)) |
- 		(dev->exist ? 0 : (POLLHUP | POLLERR)));
- }
- 
-@@ -1601,6 +1668,7 @@ static const struct file_operations rc_fops = {
- 	.open		= rc_open,
- 	.release	= rc_release,
- 	.read		= rc_read,
-+	.write		= rc_write,
- 	.poll		= rc_poll,
- 	.fasync		= rc_fasync,
- };
-diff --git a/include/media/rc-core.h b/include/media/rc-core.h
-index 4a5dbcb..1810984 100644
---- a/include/media/rc-core.h
-+++ b/include/media/rc-core.h
-@@ -87,6 +87,7 @@ struct ir_raw_event {
-  * @client_lock: protects client_list
-  * @txfifo: fifo with tx data to transmit
-  * @txlock: protects txfifo
-+ * @txwait: waitqueue for processes waiting to write data to the txfifo
-  * @rxwait: waitqueue for processes waiting for data to read
-  * @raw: additional data for raw pulse/space devices
-  * @input_dev: the input child device used to communicate events to userspace
-@@ -141,6 +142,7 @@ struct rc_dev {
- 	spinlock_t			client_lock;
- 	DECLARE_KFIFO_PTR(txfifo, struct ir_raw_event);
- 	spinlock_t			txlock;
-+	wait_queue_head_t		txwait;
- 	wait_queue_head_t		rxwait;
- 	struct ir_raw_event_ctrl	*raw;
- 	struct input_dev		*input_dev;
+> 2. http://gitorious.org/omap4-v4l2-camera/omap4-v4l2-camera/commit/6732e0db25c6647b34ef8f01c244a49a1fd6b45d
 
+Isn't reset voltage level (high or low) a property of the sensor rather than
+the board?
+
+Well, I know sometimes the people who typically design the hardware can be
+quite inventive. ;)
+
+> 3. http://gitorious.org/omap4-v4l2-camera/omap4-v4l2-camera/commit/d61c4e3142dc9cae972f9128fe73d986838c0ca1
+
+> 4. http://gitorious.org/omap4-v4l2-camera/omap4-v4l2-camera/commit/e83f36001c7f7cbe184ad094d9b0c95c39e5028f
+
+Cheers,
+
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
