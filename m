@@ -1,53 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mtaout01-winn.ispmail.ntl.com ([81.103.221.47]:20225 "EHLO
-	mtaout01-winn.ispmail.ntl.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966000Ab2EOTnh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 May 2012 15:43:37 -0400
-From: Daniel Drake <dsd@laptop.org>
-To: mchehab@infradead.org, corbet@lwn.net
-Cc: linux-media@vger.kernel.org
-Subject: [PATCH] mmp-camera: specify XO-1.75 clock speed
-Message-Id: <20120515194331.77C519D401E@zog.reactivated.net>
-Date: Tue, 15 May 2012 20:43:31 +0100 (BST)
+Received: from arroyo.ext.ti.com ([192.94.94.40]:41035 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756466Ab2ENTYc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 May 2012 15:24:32 -0400
+From: <manjunatha_halli@ti.com>
+To: <linux-media@vger.kernel.org>
+CC: <linux-kernel@vger.kernel.org>, Manjunatha Halli <x0130808@ti.com>
+Subject: [PATCH V5 0/5] [Media] Radio: Fixes and New features for FM
+Date: Mon, 14 May 2012 14:24:24 -0500
+Message-ID: <1337023469-24990-1-git-send-email-manjunatha_halli@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-For the ov7670 camera to return images at the requested frame rate,
-it needs to make calculations based on the clock speed, which is
-a completely external factor (depends on the wiring of the system).
+From: Manjunatha Halli <x0130808@ti.com>
 
-On the XO-1.75, which is the only known mmp-camera user, the camera
-is clocked at 48MHz.
+Mauro and the list,
 
-Pass this information to the ov7670 driver, to fix an issue where
-a framerate faster than the requested amount was being provided.
+This version 5 of patchset resolves the comments received from
+Han's on patchset v4.
 
-Signed-off-by: Daniel Drake <dsd@laptop.org>
----
- drivers/media/video/marvell-ccic/mmp-driver.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+This patchset creates new control class 'V4L2_CTRL_CLASS_FM_RX' for FM RX,
+introduces 2 new CID's for FM RX and and 1 new CID for FM TX. Also adds 1
+field in struct v4l2_hw_freq_seek.
 
-Jon, is it OK to assume that XO-1.75 is the only mmp-camera user?
+This patch adds few new features to TI's FM driver features
+are listed below,
 
-diff --git a/drivers/media/video/marvell-ccic/mmp-driver.c b/drivers/media/video/marvell-ccic/mmp-driver.c
-index c4c17fe..0ba49c7 100644
---- a/drivers/media/video/marvell-ccic/mmp-driver.c
-+++ b/drivers/media/video/marvell-ccic/mmp-driver.c
-@@ -188,6 +188,13 @@ static int mmpcam_probe(struct platform_device *pdev)
- 	mcam->chip_id = V4L2_IDENT_ARMADA610;
- 	mcam->buffer_mode = B_DMA_sg;
- 	spin_lock_init(&mcam->dev_lock);
-+
-+	/*
-+	 * Set the clock speed for the XO-1.75; I don't believe this
-+	 * driver has ever run anywhere else.
-+	 */
-+	mcam->clock_speed = 48;
-+
- 	/*
- 	 * Get our I/O memory.
- 	 */
+1) FM TX RDS Support (RT, PS, AF, PI, PTY)
+2) FM RX Russian band support
+3) FM RX AF set/get
+4) FM RX De-emphasis mode set/get
+
+Along with new features this patch also fixes few issues in the driver
+like default rssi level for seek, unnecessory logs etc.
+
+Manjunatha Halli (5):
+  WL128x: Add support for FM TX RDS
+  New control class and features for FM RX
+  Add new CID for FM TX RDS Alternate Frequency
+  Media: Update docs for V4L2 FM new features
+  WL12xx: Add support for FM new features.
+
+ Documentation/DocBook/media/v4l/compat.xml         |    3 +
+ Documentation/DocBook/media/v4l/controls.xml       |   77 ++++++++++
+ Documentation/DocBook/media/v4l/dev-rds.xml        |    5 +-
+ .../DocBook/media/v4l/vidioc-g-ext-ctrls.xml       |    7 +
+ Documentation/DocBook/media/v4l/vidioc-g-tuner.xml |   25 ++++
+ .../DocBook/media/v4l/vidioc-s-hw-freq-seek.xml    |   38 +++++-
+ drivers/media/radio/wl128x/fmdrv.h                 |    3 +-
+ drivers/media/radio/wl128x/fmdrv_common.c          |   55 ++++++--
+ drivers/media/radio/wl128x/fmdrv_common.h          |   43 +++++-
+ drivers/media/radio/wl128x/fmdrv_rx.c              |   92 ++++++++++---
+ drivers/media/radio/wl128x/fmdrv_rx.h              |    2 +-
+ drivers/media/radio/wl128x/fmdrv_tx.c              |   41 +++---
+ drivers/media/radio/wl128x/fmdrv_tx.h              |    3 +-
+ drivers/media/radio/wl128x/fmdrv_v4l2.c            |  148 +++++++++++++++++++-
+ drivers/media/video/v4l2-ctrls.c                   |   18 ++-
+ include/linux/videodev2.h                          |   26 ++++-
+ 16 files changed, 504 insertions(+), 82 deletions(-)
+
 -- 
-1.7.10.1
+1.7.4.1
 
