@@ -1,73 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:15163 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751734Ab2EWNHr (ORCPT
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:3249 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754957Ab2ENNmp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 May 2012 09:07:47 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Received: from euspt1 ([210.118.77.13]) by mailout3.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0M4H00MXJ8FJYI60@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 23 May 2012 14:06:55 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0M4H0015L8GWJF@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 23 May 2012 14:07:45 +0100 (BST)
-Date: Wed, 23 May 2012 15:07:30 +0200
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: [PATCH 07/12] v4l: s5p-fimc: support for dmabuf exporting
-In-reply-to: <1337778455-27912-1-git-send-email-t.stanislaws@samsung.com>
-To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
-Cc: airlied@redhat.com, m.szyprowski@samsung.com,
-	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
-	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
-	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
-	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
-	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
-	mchehab@redhat.com, g.liakhovetski@gmx.de
-Message-id: <1337778455-27912-8-git-send-email-t.stanislaws@samsung.com>
-References: <1337778455-27912-1-git-send-email-t.stanislaws@samsung.com>
+	Mon, 14 May 2012 09:42:45 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [RFCv1 PATCH 5/5] v4l2-dev: add flag to have the core lock all file operations.
+Date: Mon, 14 May 2012 15:42:37 +0200
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+References: <1336633514-4972-1-git-send-email-hverkuil@xs4all.nl> <67416de571ea793e612f65501fa7499deb31283d.1336632433.git.hans.verkuil@cisco.com> <9761581.bJ0QrOc7Gv@avalon>
+In-Reply-To: <9761581.bJ0QrOc7Gv@avalon>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201205141542.37504.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch enhances s5p-fimc with support for DMABUF exporting via
-VIDIOC_EXPBUF ioctl.
+Hi Laurent,
 
-Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/video/s5p-fimc/fimc-capture.c |    9 +++++++++
- 1 file changed, 9 insertions(+)
+Thanks for the review!
 
-diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c b/drivers/media/video/s5p-fimc/fimc-capture.c
-index cd27e33..52c9b36 100644
---- a/drivers/media/video/s5p-fimc/fimc-capture.c
-+++ b/drivers/media/video/s5p-fimc/fimc-capture.c
-@@ -1101,6 +1101,14 @@ static int fimc_cap_qbuf(struct file *file, void *priv,
- 	return vb2_qbuf(&fimc->vid_cap.vbq, buf);
- }
- 
-+static int fimc_cap_expbuf(struct file *file, void *priv,
-+			  struct v4l2_exportbuffer *eb)
-+{
-+	struct fimc_dev *fimc = video_drvdata(file);
-+
-+	return vb2_expbuf(&fimc->vid_cap.vbq, eb);
-+}
-+
- static int fimc_cap_dqbuf(struct file *file, void *priv,
- 			   struct v4l2_buffer *buf)
- {
-@@ -1225,6 +1233,7 @@ static const struct v4l2_ioctl_ops fimc_capture_ioctl_ops = {
- 
- 	.vidioc_qbuf			= fimc_cap_qbuf,
- 	.vidioc_dqbuf			= fimc_cap_dqbuf,
-+	.vidioc_expbuf			= fimc_cap_expbuf,
- 
- 	.vidioc_prepare_buf		= fimc_cap_prepare_buf,
- 	.vidioc_create_bufs		= fimc_cap_create_bufs,
--- 
-1.7.9.5
+On Mon May 14 2012 14:31:32 Laurent Pinchart wrote:
+> Hi Hans,
+> 
+> Thanks for the patch.
+> 
+> On Thursday 10 May 2012 09:05:14 Hans Verkuil wrote:
+> > From: Hans Verkuil <hans.verkuil@cisco.com>
+> > 
+> > This used to be the default if the lock pointer was set, but now that lock
+> > is by default only used for ioctl serialization.
+> 
+> Shouldn't that be documented ? Documentation/video4linux/v4l2-framework.txt 
+> still states that the lock is taken for each file operation.
 
+I'd have sworn I'd done that, but obviously my memory is playing tricks on me.
+
+Will fix.
+
+> > Those drivers that already used core locking have this flag set explicitly,
+> > except for some drivers where it was obvious that there was no need to
+> > serialize any file operations other than ioctl.
+> > 
+> > The drivers that didn't need this flag were:
+> > 
+> > drivers/media/radio/dsbr100.c
+> > drivers/media/radio/radio-isa.c
+> > drivers/media/radio/radio-keene.c
+> > drivers/media/radio/radio-miropcm20.c
+> > drivers/media/radio/radio-mr800.c
+> > drivers/media/radio/radio-tea5764.c
+> > drivers/media/radio/radio-timb.c
+> > drivers/media/video/vivi.c
+> > sound/i2c/other/tea575x-tuner.c
+> 
+> Be careful that drivers for hot-pluggable devices can use the core lock to 
+> serialize open/disconnect. The dsbr100 driver takes the core lock in its 
+> disconnect handler for instance. Have you double-checked that no race 
+> condition exists in those cases ?
+
+Yes. This drivers use core helper functions for open/release/poll where we
+know that there is no race condition.
+
+> 
+> > The other drivers that use core locking and where it was not immediately
+> > obvious that this flag wasn't needed were changed so that the flag is set
+> > together with a comment that that driver needs work to avoid having to
+> > set that flag. This will often involve taking the core lock in the fops
+> > themselves.
+> 
+> Or not using the core lock :-)
+> 
+> > Eventually this flag should go and it should not be used in new drivers.
+> 
+> Could you please add a comment above the flag to state that new drivers must 
+> not use it ?
+
+Good one. Will do.
+
+> > There are a few reasons why we want to avoid core locking of non-ioctl
+> > fops: in the case of mmap this can lead to a deadlock in rare situations
+> > since when mmap is called the mmap_sem is held and it is possible for
+> > other parts of the code to take that lock as well
+> > (copy_from_user()/copy_to_user() perform a down_read(&mm->mmap_sem) when a
+> > page fault occurs).
+> 
+> This patch won't solve the problem. We have (at least) two AB-BA deadlock 
+> issues with the mm->mmap_sem. Both of them share the fact that the mmap() 
+> handler is called with mm->mmap_sem held and will then take a device-related 
+> lock (could be a global driver lock, a device-wide lock or a queue-specific 
+> lock). I don't think we can do anything about that.
+> 
+> The first problem was solved some time ago. VIDIOC_QBUF is called with the 
+> same device-related lock held and then needs to take mm->mmap_sem. We solved 
+> that be calling the queue wait_prepare() and wait_finish() around down(&mm-
+> >mmap_sem) and up(&mm->mmap_sem). Maybe not ideal, but that seems to work.
+> 
+> The second problem comes from the copy_from_user()/copy_to_user() code in 
+> video_usercopy(). That function is called by video_ioctl2() which is itself 
+> called with the device lock held. Copying from/to user can fault if the 
+> userspace memory has been paged out, in which case the fault handler needs to 
+> take mm->mmap_sem to solve the fault. This can deadlock with mmap().
+> 
+> To solve the second issue we must delay taking the device lock until after 
+> copying from user, as we can't forbid the mmap() handler from taking the 
+> device lock (that would introduce race conditions). I think that can be done 
+> by pushing the device lock into __video_do_ioctl.
+
+Good idea, but for 3.6. This will be a nice one to combine with my v4l2-ioctl.c
+reorganization.
+
+Regards,
+
+	Hans
