@@ -1,77 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:34454 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934162Ab2EXWDH (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:58805 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1756614Ab2ENP40 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 May 2012 18:03:07 -0400
-Received: by wgbdr13 with SMTP id dr13so224736wgb.1
-        for <linux-media@vger.kernel.org>; Thu, 24 May 2012 15:03:05 -0700 (PDT)
-From: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
+	Mon, 14 May 2012 11:56:26 -0400
+Date: Mon, 14 May 2012 18:56:22 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
-Subject: [PATCH 2/2] LNB calculation fixed
-Date: Fri, 25 May 2012 00:02:10 +0200
-Message-Id: <1337896930-19554-2-git-send-email-neolynx@gmail.com>
-In-Reply-To: <1337896930-19554-1-git-send-email-neolynx@gmail.com>
-References: <1337896930-19554-1-git-send-email-neolynx@gmail.com>
+Cc: mchehab@redhat.com, laurent.pinchart@ideasonboard.com
+Subject: [GIT PULL FOR v3.5] Implement V4L2_CID_PIXEL_RATE in various
+ drivers
+Message-ID: <20120514155622.GJ3373@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: André Roth <neolynx@gmail.com>
+Hi all,
+
+Here are a few patches that implement V4L2_CID_PIXEL_RATE in a couple of
+drivers. The control is soon required by some CSI-2 receivers to configure
+the hardware, such as the OMAP 3 ISP one.
+
 ---
- lib/libdvbv5/dvb-sat.c |   14 +++++++-------
- 1 files changed, 7 insertions(+), 7 deletions(-)
 
-diff --git a/lib/libdvbv5/dvb-sat.c b/lib/libdvbv5/dvb-sat.c
-index 0cef091..c93b882 100644
---- a/lib/libdvbv5/dvb-sat.c
-+++ b/lib/libdvbv5/dvb-sat.c
-@@ -349,7 +349,7 @@ int dvb_sat_set_parms(struct dvb_v5_fe_parms *parms)
- {
- 	struct dvb_sat_lnb *lnb = parms->lnb;
- 	enum dvb_sat_polarization pol;
--	dvb_fe_retrieve_parm(parms, DTV_POLARIZATION,& pol);
-+	dvb_fe_retrieve_parm(parms, DTV_POLARIZATION, &pol);
- 	uint32_t freq;
- 	uint16_t t = 0;
- 	uint32_t voltage = SEC_VOLTAGE_13;
-@@ -364,27 +364,27 @@ int dvb_sat_set_parms(struct dvb_v5_fe_parms *parms)
- 
- 	/* Simple case: LNBf with just Single LO */
- 	if (!lnb->highfreq) {
--		parms->freq_offset = lnb->lowfreq;
-+		parms->freq_offset = lnb->lowfreq * 1000;
- 		goto ret;
- 	}
- 
- 	/* polarization-controlled multi LNBf */
- 	if (!lnb->rangeswitch) {
- 		if ((pol == POLARIZATION_V) || (pol == POLARIZATION_R))
--			parms->freq_offset = lnb->lowfreq;
-+			parms->freq_offset = lnb->lowfreq * 1000;
- 		else
--			parms->freq_offset = lnb->highfreq;
-+			parms->freq_offset = lnb->highfreq * 1000;
- 		goto ret;
- 	}
- 
- 	/* Voltage-controlled multiband switch */
--	parms->high_band = (freq > lnb->rangeswitch) ? 1 : 0;
-+	parms->high_band = (freq > lnb->rangeswitch * 1000) ? 1 : 0;
- 
- 	/* Adjust frequency */
- 	if (parms->high_band)
--		parms->freq_offset = lnb->highfreq;
-+		parms->freq_offset = lnb->highfreq * 1000;
- 	else
--		parms->freq_offset = lnb->lowfreq;
-+		parms->freq_offset = lnb->lowfreq * 1000;
- 
- 	/* For SCR/Unicable setups */
- 	if (parms->freq_bpf) {
+The following changes since commit e89fca923f32de26b69bf4cd604f7b960b161551:
+
+  [media] gspca - ov534: Add Hue control (2012-05-14 09:48:00 -0300)
+
+are available in the git repository at:
+  ssh://linuxtv.org/git/sailus/media_tree.git media-for-3.5
+
+Laurent Pinchart (3):
+      mt9t001: Implement V4L2_CID_PIXEL_RATE control
+      mt9p031: Implement V4L2_CID_PIXEL_RATE control
+      mt9m032: Implement V4L2_CID_PIXEL_RATE control
+
+ drivers/media/video/mt9m032.c |   13 +++++++++++--
+ drivers/media/video/mt9p031.c |    5 ++++-
+ drivers/media/video/mt9t001.c |   13 +++++++++++--
+ include/media/mt9t001.h       |    1 +
+ 4 files changed, 27 insertions(+), 5 deletions(-)
+
+
+
 -- 
-1.7.2.5
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
