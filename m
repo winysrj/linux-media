@@ -1,44 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.187]:57787 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755734Ab2EHVB3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 May 2012 17:01:29 -0400
-Date: Tue, 8 May 2012 23:01:27 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-cc: Qing Xu <qingx@marvell.com>
-Subject: [PATCH 2/2] V4L: remove unused .enum_mbus_fsizes() subdev video
- operation
-In-Reply-To: <Pine.LNX.4.64.1205082259390.7085@axis700.grange>
-Message-ID: <Pine.LNX.4.64.1205082300510.7085@axis700.grange>
-References: <Pine.LNX.4.64.1205082259390.7085@axis700.grange>
+Received: from bear.ext.ti.com ([192.94.94.41]:51702 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757812Ab2ENU13 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 May 2012 16:27:29 -0400
+From: <manjunatha_halli@ti.com>
+To: <linux-media@vger.kernel.org>
+CC: <linux-kernel@vger.kernel.org>, Manjunatha Halli <x0130808@ti.com>
+Subject: [PATCH V6 3/5] Add new CID for FM TX RDS Alternate Frequency
+Date: Mon, 14 May 2012 15:27:22 -0500
+Message-ID: <1337027244-2595-4-git-send-email-manjunatha_halli@ti.com>
+In-Reply-To: <1337027244-2595-1-git-send-email-manjunatha_halli@ti.com>
+References: <1337027244-2595-1-git-send-email-manjunatha_halli@ti.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-.enum_mbus_fsizes() subdev video operation is a duplicate of
-.enum_framesizes() and is unused. Remove it.
+From: Manjunatha Halli <x0130808@ti.com>
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Qing Xu <qingx@marvell.com>
+Signed-off-by: Manjunatha Halli <x0130808@ti.com>
 ---
- include/media/v4l2-subdev.h |    2 --
- 1 files changed, 0 insertions(+), 2 deletions(-)
+ drivers/media/video/v4l2-ctrls.c |    1 +
+ include/linux/videodev2.h        |    1 +
+ 2 files changed, 2 insertions(+), 0 deletions(-)
 
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index f0f3358..9e68464 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -309,8 +309,6 @@ struct v4l2_subdev_video_ops {
- 			struct v4l2_dv_timings *timings);
- 	int (*enum_mbus_fmt)(struct v4l2_subdev *sd, unsigned int index,
- 			     enum v4l2_mbus_pixelcode *code);
--	int (*enum_mbus_fsizes)(struct v4l2_subdev *sd,
--			     struct v4l2_frmsizeenum *fsize);
- 	int (*g_mbus_fmt)(struct v4l2_subdev *sd,
- 			  struct v4l2_mbus_framefmt *fmt);
- 	int (*try_mbus_fmt)(struct v4l2_subdev *sd,
+diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
+index 9d7608e..610076c 100644
+--- a/drivers/media/video/v4l2-ctrls.c
++++ b/drivers/media/video/v4l2-ctrls.c
+@@ -608,6 +608,7 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_RDS_TX_PTY:		return "RDS Program Type";
+ 	case V4L2_CID_RDS_TX_PS_NAME:		return "RDS PS Name";
+ 	case V4L2_CID_RDS_TX_RADIO_TEXT:	return "RDS Radio Text";
++	case V4L2_CID_RDS_TX_AF_FREQ:		return "RDS Alternate Frequency";
+ 	case V4L2_CID_AUDIO_LIMITER_ENABLED:	return "Audio Limiter Feature Enabled";
+ 	case V4L2_CID_AUDIO_LIMITER_RELEASE_TIME: return "Audio Limiter Release Time";
+ 	case V4L2_CID_AUDIO_LIMITER_DEVIATION:	return "Audio Limiter Deviation";
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index 91bc47b..3931a99 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -1699,6 +1699,7 @@ enum  v4l2_exposure_auto_type {
+ #define V4L2_CID_RDS_TX_PTY			(V4L2_CID_FM_TX_CLASS_BASE + 3)
+ #define V4L2_CID_RDS_TX_PS_NAME			(V4L2_CID_FM_TX_CLASS_BASE + 5)
+ #define V4L2_CID_RDS_TX_RADIO_TEXT		(V4L2_CID_FM_TX_CLASS_BASE + 6)
++#define V4L2_CID_RDS_TX_AF_FREQ			(V4L2_CID_FM_TX_CLASS_BASE + 7)
+ 
+ #define V4L2_CID_AUDIO_LIMITER_ENABLED		(V4L2_CID_FM_TX_CLASS_BASE + 64)
+ #define V4L2_CID_AUDIO_LIMITER_RELEASE_TIME	(V4L2_CID_FM_TX_CLASS_BASE + 65)
 -- 
-1.7.2.5
+1.7.4.1
 
