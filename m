@@ -1,491 +1,290 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vb0-f46.google.com ([209.85.212.46]:39557 "EHLO
-	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753469Ab2EFMrB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 6 May 2012 08:47:01 -0400
-Received: by mail-vb0-f46.google.com with SMTP id ff1so302894vbb.19
-        for <linux-media@vger.kernel.org>; Sun, 06 May 2012 05:47:00 -0700 (PDT)
-MIME-Version: 1.0
-Date: Sun, 6 May 2012 14:47:00 +0200
-Message-ID: <CAKZ=SG_d9Oc5uZX6Wo56MRYp3fr5on9wE9v1RoM7k=1UM6zX3Q@mail.gmail.com>
-Subject: [PATCH v3 3/3] FC0012 tuner driver.
-From: Thomas Mair <thomas.mair86@googlemail.com>
+Received: from mail-qa0-f49.google.com ([209.85.216.49]:44405 "EHLO
+	mail-qa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757910Ab2ENWLT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 May 2012 18:11:19 -0400
+Received: by qabj40 with SMTP id j40so5345287qab.1
+        for <linux-media@vger.kernel.org>; Mon, 14 May 2012 15:11:18 -0700 (PDT)
+From: Michael Krufky <mkrufky@kernellabs.com>
 To: linux-media@vger.kernel.org
-Cc: hfvogt@gmx.net, poma <pomidorabelisima@gmail.com>,
-	gennarone@gmail.com, Antti Palosaari <crope@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1
+Cc: mchehab@infradead.org, Michael Krufky <mkrufky@linuxtv.org>
+Subject: [PATCH 01/11] linux-dvb v5 API support for ATSC-MH
+Date: Mon, 14 May 2012 18:10:43 -0400
+Message-Id: <1337033453-22119-1-git-send-email-mkrufky@linuxtv.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This driver is based on the driver written by Hans-Frieder Vogt. The
-following modifications hav been made
-- added callback for UHF/VFH band selection in fc0012_set_params
-(needed by Cinergy T Stick Black)
-- modified some parameters when initialiting the tuner (maybe the
-initialization should be done by passing parameters to the init
-functions to be usable with different demods)
+Add the following properties for controlling an ATSC-MH frontend:
 
-Signed-off-by: Thomas Mair <thomas.mair86@googlemail.com>
+DTV_ATSCMH_FIC_VER
+DTV_ATSCMH_PARADE_ID
+DTV_ATSCMH_NOG
+DTV_ATSCMH_TNOG
+DTV_ATSCMH_SGN
+DTV_ATSCMH_PRC
+DTV_ATSCMH_RS_FRAME_MODE
+DTV_ATSCMH_RS_FRAME_ENSEMBLE
+DTV_ATSCMH_RS_CODE_MODE_PRI
+DTV_ATSCMH_RS_CODE_MODE_SEC
+DTV_ATSCMH_SCCC_BLOCK_MODE
+DTV_ATSCMH_SCCC_CODE_MODE_A
+DTV_ATSCMH_SCCC_CODE_MODE_B
+DTV_ATSCMH_SCCC_CODE_MODE_C
+DTV_ATSCMH_SCCC_CODE_MODE_D
+DTV_ATSCMH_FIC_ERR
+DTV_ATSCMH_CRC_ERR
+DTV_ATSCMH_RS_ERR
+
+Signed-off-by: Michael Krufky <mkrufky@linuxtv.org>
 ---
- drivers/media/common/tuners/fc0012-priv.h |   42 +++
- drivers/media/common/tuners/fc0012.c      |  398 +++++++++++++++++++++++++++++
- drivers/media/common/tuners/fc0012.h      |   60 +++++
- 3 files changed, 500 insertions(+), 0 deletions(-)
- create mode 100644 drivers/media/common/tuners/fc0012-priv.h
- create mode 100644 drivers/media/common/tuners/fc0012.c
- create mode 100644 drivers/media/common/tuners/fc0012.h
+ drivers/media/dvb/dvb-core/dvb_frontend.c |   92 ++++++++++++++++++++++++++++-
+ drivers/media/dvb/dvb-core/dvb_frontend.h |   22 +++++++
+ include/linux/dvb/frontend.h              |   54 ++++++++++++++++-
+ 3 files changed, 166 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/common/tuners/fc0012-priv.h
-b/drivers/media/common/tuners/fc0012-priv.h
-new file mode 100644
-index 0000000..c2c3c47
---- /dev/null
-+++ b/drivers/media/common/tuners/fc0012-priv.h
-@@ -0,0 +1,42 @@
-+/*
-+ * Fitipower FC0012 tuner driver - private includes
-+ *
-+ * Copyright (C) 2012 Hans-Frieder Vogt <hfv...@gmx.net>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-+ */
+diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-core/dvb_frontend.c
+index 4555baa..067f10a 100644
+--- a/drivers/media/dvb/dvb-core/dvb_frontend.c
++++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
+@@ -180,13 +180,13 @@ static enum dvbv3_emulation_type dvbv3_type(u32 delivery_system)
+ 	case SYS_DMBTH:
+ 		return DVBV3_OFDM;
+ 	case SYS_ATSC:
++	case SYS_ATSCMH:
+ 	case SYS_DVBC_ANNEX_B:
+ 		return DVBV3_ATSC;
+ 	case SYS_UNDEFINED:
+ 	case SYS_ISDBC:
+ 	case SYS_DVBH:
+ 	case SYS_DAB:
+-	case SYS_ATSCMH:
+ 	default:
+ 		/*
+ 		 * Doesn't know how to emulate those types and/or
+@@ -1027,6 +1027,28 @@ static struct dtv_cmds_h dtv_cmds[DTV_MAX_COMMAND + 1] = {
+ 	_DTV_CMD(DTV_HIERARCHY, 0, 0),
+ 
+ 	_DTV_CMD(DTV_ENUM_DELSYS, 0, 0),
 +
-+#ifndef _FC0012_PRIV_H_
-+#define _FC0012_PRIV_H_
++	_DTV_CMD(DTV_ATSCMH_PARADE_ID, 1, 0),
++	_DTV_CMD(DTV_ATSCMH_RS_FRAME_ENSEMBLE, 1, 0),
 +
-+#define LOG_PREFIX "fc0012"
++	_DTV_CMD(DTV_ATSCMH_FIC_VER, 0, 0),
++	_DTV_CMD(DTV_ATSCMH_PARADE_ID, 0, 0),
++	_DTV_CMD(DTV_ATSCMH_NOG, 0, 0),
++	_DTV_CMD(DTV_ATSCMH_TNOG, 0, 0),
++	_DTV_CMD(DTV_ATSCMH_SGN, 0, 0),
++	_DTV_CMD(DTV_ATSCMH_PRC, 0, 0),
++	_DTV_CMD(DTV_ATSCMH_RS_FRAME_MODE, 0, 0),
++	_DTV_CMD(DTV_ATSCMH_RS_FRAME_ENSEMBLE, 0, 0),
++	_DTV_CMD(DTV_ATSCMH_RS_CODE_MODE_PRI, 0, 0),
++	_DTV_CMD(DTV_ATSCMH_RS_CODE_MODE_SEC, 0, 0),
++	_DTV_CMD(DTV_ATSCMH_SCCC_BLOCK_MODE, 0, 0),
++	_DTV_CMD(DTV_ATSCMH_SCCC_CODE_MODE_A, 0, 0),
++	_DTV_CMD(DTV_ATSCMH_SCCC_CODE_MODE_B, 0, 0),
++	_DTV_CMD(DTV_ATSCMH_SCCC_CODE_MODE_C, 0, 0),
++	_DTV_CMD(DTV_ATSCMH_SCCC_CODE_MODE_D, 0, 0),
++	_DTV_CMD(DTV_ATSCMH_FIC_ERR, 0, 0),
++	_DTV_CMD(DTV_ATSCMH_CRC_ERR, 0, 0),
++	_DTV_CMD(DTV_ATSCMH_RS_ERR, 0, 0),
+ };
+ 
+ static void dtv_property_dump(struct dtv_property *tvp)
+@@ -1118,6 +1140,8 @@ static int dtv_property_cache_sync(struct dvb_frontend *fe,
+ 	case DVBV3_ATSC:
+ 		dprintk("%s() Preparing ATSC req\n", __func__);
+ 		c->modulation = p->u.vsb.modulation;
++		if (c->delivery_system == SYS_ATSCMH)
++			break;
+ 		if ((c->modulation == VSB_8) || (c->modulation == VSB_16))
+ 			c->delivery_system = SYS_ATSC;
+ 		else
+@@ -1364,6 +1388,63 @@ static int dtv_property_process_get(struct dvb_frontend *fe,
+ 	case DTV_DVBT2_PLP_ID:
+ 		tvp->u.data = c->dvbt2_plp_id;
+ 		break;
 +
-+#undef err
-+#define err(f, arg...)  printk(KERN_ERR     LOG_PREFIX": " f "\n" , ## arg)
-+#undef info
-+#define info(f, arg...) printk(KERN_INFO    LOG_PREFIX": " f "\n" , ## arg)
-+#undef warn
-+#define warn(f, arg...) printk(KERN_WARNING LOG_PREFIX": " f "\n" , ## arg)
++	/* ATSC-MH */
++	case DTV_ATSCMH_FIC_VER:
++		tvp->u.data = fe->dtv_property_cache.atscmh_fic_ver;
++		break;
++	case DTV_ATSCMH_PARADE_ID:
++		tvp->u.data = fe->dtv_property_cache.atscmh_parade_id;
++		break;
++	case DTV_ATSCMH_NOG:
++		tvp->u.data = fe->dtv_property_cache.atscmh_nog;
++		break;
++	case DTV_ATSCMH_TNOG:
++		tvp->u.data = fe->dtv_property_cache.atscmh_tnog;
++		break;
++	case DTV_ATSCMH_SGN:
++		tvp->u.data = fe->dtv_property_cache.atscmh_sgn;
++		break;
++	case DTV_ATSCMH_PRC:
++		tvp->u.data = fe->dtv_property_cache.atscmh_prc;
++		break;
++	case DTV_ATSCMH_RS_FRAME_MODE:
++		tvp->u.data = fe->dtv_property_cache.atscmh_rs_frame_mode;
++		break;
++	case DTV_ATSCMH_RS_FRAME_ENSEMBLE:
++		tvp->u.data = fe->dtv_property_cache.atscmh_rs_frame_ensemble;
++		break;
++	case DTV_ATSCMH_RS_CODE_MODE_PRI:
++		tvp->u.data = fe->dtv_property_cache.atscmh_rs_code_mode_pri;
++		break;
++	case DTV_ATSCMH_RS_CODE_MODE_SEC:
++		tvp->u.data = fe->dtv_property_cache.atscmh_rs_code_mode_sec;
++		break;
++	case DTV_ATSCMH_SCCC_BLOCK_MODE:
++		tvp->u.data = fe->dtv_property_cache.atscmh_sccc_block_mode;
++		break;
++	case DTV_ATSCMH_SCCC_CODE_MODE_A:
++		tvp->u.data = fe->dtv_property_cache.atscmh_sccc_code_mode_a;
++		break;
++	case DTV_ATSCMH_SCCC_CODE_MODE_B:
++		tvp->u.data = fe->dtv_property_cache.atscmh_sccc_code_mode_b;
++		break;
++	case DTV_ATSCMH_SCCC_CODE_MODE_C:
++		tvp->u.data = fe->dtv_property_cache.atscmh_sccc_code_mode_c;
++		break;
++	case DTV_ATSCMH_SCCC_CODE_MODE_D:
++		tvp->u.data = fe->dtv_property_cache.atscmh_sccc_code_mode_d;
++		break;
++	case DTV_ATSCMH_FIC_ERR:
++		tvp->u.data = fe->dtv_property_cache.atscmh_fic_err;
++		break;
++	case DTV_ATSCMH_CRC_ERR:
++		tvp->u.data = fe->dtv_property_cache.atscmh_crc_err;
++		break;
++	case DTV_ATSCMH_RS_ERR:
++		tvp->u.data = fe->dtv_property_cache.atscmh_rs_err;
++		break;
 +
-+struct fc0012_priv {
-+       struct i2c_adapter *i2c;
-+       u8 addr;
-+       u8 xtal_freq;
+ 	default:
+ 		return -EINVAL;
+ 	}
+@@ -1682,6 +1763,15 @@ static int dtv_property_process_set(struct dvb_frontend *fe,
+ 	case DTV_DVBT2_PLP_ID:
+ 		c->dvbt2_plp_id = tvp->u.data;
+ 		break;
 +
-+       u32 frequency;
-+       u32 bandwidth;
++	/* ATSC-MH */
++	case DTV_ATSCMH_PARADE_ID:
++		fe->dtv_property_cache.atscmh_parade_id = tvp->u.data;
++		break;
++	case DTV_ATSCMH_RS_FRAME_ENSEMBLE:
++		fe->dtv_property_cache.atscmh_rs_frame_ensemble = tvp->u.data;
++		break;
++
+ 	default:
+ 		return -EINVAL;
+ 	}
+diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.h b/drivers/media/dvb/dvb-core/dvb_frontend.h
+index d63a821..80f5c27 100644
+--- a/drivers/media/dvb/dvb-core/dvb_frontend.h
++++ b/drivers/media/dvb/dvb-core/dvb_frontend.h
+@@ -372,6 +372,28 @@ struct dtv_frontend_properties {
+ 
+ 	/* DVB-T2 specifics */
+ 	u32                     dvbt2_plp_id;
++
++	/* ATSC-MH specifics */
++	u8			atscmh_fic_ver;
++	u8			atscmh_parade_id;
++	u8			atscmh_nog;
++	u8			atscmh_tnog;
++	u8			atscmh_sgn;
++	u8			atscmh_prc;
++
++	u8			atscmh_rs_frame_mode;
++	u8			atscmh_rs_frame_ensemble;
++	u8			atscmh_rs_code_mode_pri;
++	u8			atscmh_rs_code_mode_sec;
++	u8			atscmh_sccc_block_mode;
++	u8			atscmh_sccc_code_mode_a;
++	u8			atscmh_sccc_code_mode_b;
++	u8			atscmh_sccc_code_mode_c;
++	u8			atscmh_sccc_code_mode_d;
++
++	u16			atscmh_fic_err;
++	u16			atscmh_crc_err;
++	u16			atscmh_rs_err;
+ };
+ 
+ struct dvb_frontend {
+diff --git a/include/linux/dvb/frontend.h b/include/linux/dvb/frontend.h
+index cb4428a..5aedd5a 100644
+--- a/include/linux/dvb/frontend.h
++++ b/include/linux/dvb/frontend.h
+@@ -320,7 +320,27 @@ struct dvb_frontend_event {
+ 
+ #define DTV_ENUM_DELSYS		44
+ 
+-#define DTV_MAX_COMMAND				DTV_ENUM_DELSYS
++/* ATSC-MH */
++#define DTV_ATSCMH_FIC_VER		45
++#define DTV_ATSCMH_PARADE_ID		46
++#define DTV_ATSCMH_NOG			47
++#define DTV_ATSCMH_TNOG			48
++#define DTV_ATSCMH_SGN			49
++#define DTV_ATSCMH_PRC			50
++#define DTV_ATSCMH_RS_FRAME_MODE	51
++#define DTV_ATSCMH_RS_FRAME_ENSEMBLE	52
++#define DTV_ATSCMH_RS_CODE_MODE_PRI	53
++#define DTV_ATSCMH_RS_CODE_MODE_SEC	54
++#define DTV_ATSCMH_SCCC_BLOCK_MODE	55
++#define DTV_ATSCMH_SCCC_CODE_MODE_A	56
++#define DTV_ATSCMH_SCCC_CODE_MODE_B	57
++#define DTV_ATSCMH_SCCC_CODE_MODE_C	58
++#define DTV_ATSCMH_SCCC_CODE_MODE_D	59
++#define DTV_ATSCMH_FIC_ERR		60
++#define DTV_ATSCMH_CRC_ERR		61
++#define DTV_ATSCMH_RS_ERR		62
++
++#define DTV_MAX_COMMAND				DTV_ATSCMH_RS_ERR
+ 
+ typedef enum fe_pilot {
+ 	PILOT_ON,
+@@ -360,6 +380,38 @@ typedef enum fe_delivery_system {
+ 
+ #define SYS_DVBC_ANNEX_AC	SYS_DVBC_ANNEX_A
+ 
++/* ATSC-MH */
++
++enum atscmh_sccc_block_mode {
++	ATSCMH_SCCC_BLK_SEP      = 0,
++	ATSCMH_SCCC_BLK_COMB     = 1,
++	ATSCMH_SCCC_BLK_RES      = 2,
 +};
 +
-+#endif
-diff --git a/drivers/media/common/tuners/fc0012.c
-b/drivers/media/common/tuners/fc0012.c
-new file mode 100644
-index 0000000..5beae31
---- /dev/null
-+++ b/drivers/media/common/tuners/fc0012.c
-@@ -0,0 +1,398 @@
-+/*
-+ * Fitipower FC0012 tuner driver
-+ *
-+ * Copyright (C) 2012 Hans-Frieder Vogt <hfv...@gmx.net>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-+ */
-+
-+#include "fc0012.h"
-+#include "fc0012-priv.h"
-+
-+static int fc0012_writereg(struct fc0012_priv *priv, u8 reg, u8 val)
-+{
-+	u8 buf[2] = {reg, val};
-+	struct i2c_msg msg = { .addr = priv->addr, .flags = 0, .buf = buf,
-+		.len = 2 };
-+
-+	if (i2c_transfer(priv->i2c, &msg, 1) != 1) {
-+		err("I2C write reg failed, reg: %02x, val: %02x", reg, val);
-+	return -EREMOTEIO;
-+	}
-+	return 0;
-+}
-+
-+static int fc0012_readreg(struct fc0012_priv *priv, u8 reg, u8 *val)
-+{
-+	struct i2c_msg msg[2] = {
-+		{ .addr = priv->addr, .flags = 0, .buf = &reg, .len = 1 },
-+		{ .addr = priv->addr, .flags = I2C_M_RD, .buf = val,
-+		.len = 1 },
-+	};
-+
-+	if (i2c_transfer(priv->i2c, msg, 2) != 2) {
-+		err("I2C read failed, reg: %02x", reg);
-+		return -EREMOTEIO;
-+	}
-+	return 0;
-+}
-+
-+static int fc0012_release(struct dvb_frontend *fe)
-+{
-+	kfree(fe->tuner_priv);
-+	fe->tuner_priv = NULL;
-+	return 0;
-+}
-+
-+static int fc0012_init(struct dvb_frontend *fe)
-+{
-+	struct fc0012_priv *priv = fe->tuner_priv;
-+	int i, ret = 0;
-+	unsigned char reg[] = {
-+		0x00,   /* dummy reg. 0 */
-+		0x05,   /* reg. 0x01 */
-+		0x10,   /* reg. 0x02 */
-+		0x00,   /* reg. 0x03 */
-+		0x00,   /* reg. 0x04 */
-+		0x0f,   /* reg. 0x05 CHECK: correct? */
-+			/* changed for rtl2832 */
-+		0x00,   /* reg. 0x06: divider 2, VCO slow */
-+		0x00,   /* reg. 0x07 */
-+			/* changed for rtl2832 */
-+		0xff,   /* reg. 0x08: AGC Clock divide by 256, AGC gain 1/256,
-+			   Loop Bw 1/8 */
-+		0x6e,   /* reg. 0x09: Disable LoopThrough,
-+			   Enable LoopThrough: 0x6f */
-+		0xb8,   /* reg. 0x0a: Disable LO Test Buffer */
-+		0x82,   /* reg. 0x0b: Output Clock is same as clock
-+			   frequency */
-+			/* changed for rtl2832 */
-+		0xfc,   /* reg. 0x0c: depending on AGC Up-Down mode,
-+			   may need 0xf8 */
-+			/* changed for rtl2832 */
-+		0x02,   /* reg. 0x0d: AGC Not Forcing & LNA Forcing,
-+			   0x02 for DVB-T */
-+		0x00,   /* reg. 0x0e */
-+		0x00,   /* reg. 0x0f */
-+		0x00,   /* reg. 0x10 */
-+			/* changed for rtl2832 */
-+		0x00,   /* reg. 0x11 */
-+		0x1f,   /* reg. 0x12: Set to maximum gain */
-+		0x08,   /* reg. 0x13: Enable IX2, Set to Middle Gain: 0x08,
-+			   Low Gain: 0x00, High Gain: 0x10 */
-+		0x00,   /* reg. 0x14 */
-+		0x04,   /* reg. 0x15: Enable LNA COMPS */
-+	};
-+
-+	info("%s", __func__);
-+
-+	switch (priv->xtal_freq) {
-+	case FC_XTAL_27_MHZ:
-+	case FC_XTAL_28_8_MHZ:
-+		reg[0x07] |= 0x20;
-+		break;
-+	case FC_XTAL_36_MHZ:
-+	default:
-+		break;
-+	}
-+
-+	if (fe->ops.i2c_gate_ctrl)
-+		fe->ops.i2c_gate_ctrl(fe, 1); /* open I2C-gate */
-+
-+	for (i = 1; i < sizeof(reg); i++) {
-+		ret = fc0012_writereg(priv, i, reg[i]);
-+	if (ret)
-+		break;
-+	}
-+
-+	if (fe->ops.i2c_gate_ctrl)
-+		fe->ops.i2c_gate_ctrl(fe, 0); /* close I2C-gate */
-+
-+	if (ret)
-+		warn("%s: failed: %d", __func__, ret);
-+	return ret;
-+}
-+
-+static int fc0012_sleep(struct dvb_frontend *fe)
-+{
-+	/* nothing to do here */
-+	return 0;
-+}
-+
-+static int fc0012_set_params(struct dvb_frontend *fe)
-+{
-+	struct fc0012_priv *priv = fe->tuner_priv;
-+	int i, ret = 0;
-+	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
-+	u32 freq = p->frequency / 1000;
-+	u32 delsys = p->delivery_system;
-+	unsigned char reg[0x16], am, pm, multi;
-+	unsigned long fVCO;
-+	unsigned short xtal_freq_khz_2, xin, xdiv;
-+	int vco_select = false;
-+
-+	info("%s", __func__);
-+
-+	if (fe->callback) {
-+		ret = fe->callback(priv->i2c, DVB_FRONTEND_COMPONENT_TUNER,
-+			FC0012_FE_CALLBACK_UHF_ENABLE,
-+			(freq > 300000 ? 0 : 1));
-+		if (ret)
-+			goto exit;
-+	}
-+
-+	switch (priv->xtal_freq) {
-+	case FC_XTAL_27_MHZ:
-+		xtal_freq_khz_2 = 27000 / 2;
-+		break;
-+	case FC_XTAL_36_MHZ:
-+		xtal_freq_khz_2 = 36000 / 2;
-+		break;
-+	case FC_XTAL_28_8_MHZ:
-+	default:
-+		xtal_freq_khz_2 = 28800 / 2;
-+		break;
-+	}
-+
-+	/* select frequency divider and the frequency of VCO */
-+	if (freq * 96 < 3560000) {
-+		multi = 96;
-+		reg[5] = 0x82;
-+		reg[6] = 0x00;
-+	} else if (freq * 64 < 3560000) {
-+		multi = 64;
-+		reg[5] = 0x82;
-+		reg[6] = 0x02;
-+	} else if (freq * 48 < 3560000) {
-+		multi = 48;
-+		reg[5] = 0x42;
-+		reg[6] = 0x00;
-+	} else if (freq * 32 < 3560000) {
-+		multi = 32;
-+		reg[5] = 0x42;
-+		reg[6] = 0x02;
-+	} else if (freq * 24 < 3560000) {
-+		multi = 24;
-+		reg[5] = 0x22;
-+		reg[6] = 0x00;
-+	} else if (freq * 16 < 3560000) {
-+		multi = 16;
-+		reg[5] = 0x22;
-+		reg[6] = 0x02;
-+	} else if (freq * 12 < 3560000) {
-+		multi = 12;
-+		reg[5] = 0x12;
-+		reg[6] = 0x00;
-+	} else if (freq * 8 < 3560000) {
-+		multi = 8;
-+		reg[5] = 0x12;
-+		reg[6] = 0x02;
-+	} else if (freq * 6 < 3560000) {
-+		multi = 6;
-+		reg[5] = 0x0a;
-+		reg[6] = 0x00;
-+	} else {
-+		multi = 4;
-+		reg[5] = 0x0a;
-+		reg[6] = 0x02;
-+	}
-+
-+	fVCO = freq * multi;
-+
-+	reg[6] |= 0x08;
-+	vco_select = true;
-+
-+	/* From divided value (XDIV) determined the FA and FP value */
-+	xdiv = (unsigned short)(fVCO / xtal_freq_khz_2);
-+	if ((fVCO - xdiv * xtal_freq_khz_2) >= (xtal_freq_khz_2 / 2))
-+		xdiv++;
-+
-+	pm = (unsigned char)(xdiv / 8);
-+	am = (unsigned char)(xdiv - (8 * pm));
-+
-+	if (am < 2) {
-+		reg[1] = am + 8;
-+		reg[2] = pm - 1;
-+	} else {
-+		reg[1] = am;
-+		reg[2] = pm;
-+	}
-+
-+
-+	/* From VCO frequency determines the XIN ( fractional part of Delta
-+	Sigma PLL) and divided value (XDIV) */
-+	xin = (unsigned short)(fVCO - (fVCO / xtal_freq_khz_2) *
-+		xtal_freq_khz_2);
-+	xin = (xin << 15) / xtal_freq_khz_2;
-+	if (xin >= 16384)
-+		xin += 32768;
-+
-+	reg[3] = xin >> 8;      /* xin with 9 bit resolution */
-+	reg[4] = xin & 0xff;
-+
-+	if (delsys == SYS_DVBT) {
-+		reg[6] &= 0x3f; /* bits 6 and 7 describe the bandwidth */
-+		switch (p->bandwidth_hz) {
-+		case 6000000:
-+			reg[6] |= 0x80;
-+			break;
-+		case 7000000:
-+			reg[6] &= ~0x80;
-+			reg[6] |= 0x40;
-+			break;
-+		case 8000000:
-+		default:
-+			reg[6] &= ~0xc0;
-+			break;
-+	}
-+	} else {
-+		err("%s: modulation type not supported!", __func__);
-+		return -EINVAL;
-+	}
-+
-+	/* modified for Realtek demod */
-+	reg[5] |= 0x07;
-+
-+	if (fe->ops.i2c_gate_ctrl)
-+		fe->ops.i2c_gate_ctrl(fe, 1); /* open I2C-gate */
-+
-+	for (i = 1; i <= 6; i++) {
-+		ret = fc0012_writereg(priv, i, reg[i]);
-+		if (ret)
-+			goto exit;
-+      }
-+
-+	/* VCO Calibration */
-+	ret = fc0012_writereg(priv, 0x0e, 0x80);
-+	if (!ret)
-+		ret = fc0012_writereg(priv, 0x0e, 0x00);
-+
-+	/* VCO Re-Calibration if needed */
-+	if (!ret)
-+		ret = fc0012_writereg(priv, 0x0e, 0x00);
-+
-+	if (!ret) {
-+		msleep(10);
-+		ret = fc0012_readreg(priv, 0x0e, &reg[0x0e]);
-+	}
-+	if (ret)
-+		goto exit;
-+
-+	/* vco selection */
-+	reg[0x0e] &= 0x3f;
-+
-+	if (vco_select) {
-+		if (reg[0x0e] > 0x3c) {
-+			reg[6] &= ~0x08;
-+			ret = fc0012_writereg(priv, 0x06, reg[6]);
-+		if (!ret)
-+			ret = fc0012_writereg(priv, 0x0e, 0x80);
-+		if (!ret)
-+			ret = fc0012_writereg(priv, 0x0e, 0x00);
-+	       }
-+	} else {
-+		if (reg[0x0e] < 0x02) {
-+			reg[6] |= 0x08;
-+			ret = fc0012_writereg(priv, 0x06, reg[6]);
-+			if (!ret)
-+				ret = fc0012_writereg(priv, 0x0e, 0x80);
-+			if (!ret)
-+				ret = fc0012_writereg(priv, 0x0e, 0x00);
-+		}
-+	}
-+
-+	priv->frequency = p->frequency;
-+	priv->bandwidth = p->bandwidth_hz;
-+
-+exit:
-+	if (fe->ops.i2c_gate_ctrl)
-+		fe->ops.i2c_gate_ctrl(fe, 0); /* close I2C-gate */
-+	if (ret)
-+		pr_debug("%s: failed: %d", __func__, ret);
-+	return ret;
-+}
-+
-+static int fc0012_get_frequency(struct dvb_frontend *fe, u32 *frequency)
-+{
-+	struct fc0012_priv *priv = fe->tuner_priv;
-+	*frequency = priv->frequency;
-+	return 0;
-+}
-+
-+static int fc0012_get_if_frequency(struct dvb_frontend *fe, u32 *frequency)
-+{
-+	/* CHECK: always ? */
-+	*frequency = 0;
-+	return 0;
-+}
-+
-+static int fc0012_get_bandwidth(struct dvb_frontend *fe, u32 *bandwidth)
-+{
-+	struct fc0012_priv *priv = fe->tuner_priv;
-+	*bandwidth = priv->bandwidth;
-+	return 0;
-+}
-+
-+
-+static const struct dvb_tuner_ops fc0012_tuner_ops = {
-+	.info = {
-+		.name = "Fitipower FC0012",
-+
-+		.frequency_min	= 170000000,
-+		.frequency_max	= 860000000,
-+		.frequency_step	= 0,
-+	},
-+
-+	.release	= fc0012_release,
-+
-+	.init = fc0012_init,
-+	.sleep = fc0012_sleep,
-+
-+	.set_params = fc0012_set_params,
-+
-+	.get_frequency = fc0012_get_frequency,
-+	.get_if_frequency = fc0012_get_if_frequency,
-+	.get_bandwidth = fc0012_get_bandwidth,
++enum atscmh_sccc_code_mode {
++	ATSCMH_SCCC_CODE_HLF     = 0,
++	ATSCMH_SCCC_CODE_QTR     = 1,
++	ATSCMH_SCCC_CODE_RES     = 2,
 +};
 +
-+struct dvb_frontend *fc0012_attach(struct dvb_frontend *fe,
-+	struct i2c_adapter *i2c, u8 i2c_address,
-+	enum fc0012_xtal_freq xtal_freq)
-+{
-+	struct fc0012_priv *priv = NULL;
++enum atscmh_rs_frame_ensemble {
++	ATSCMH_RSFRAME_ENS_PRI   = 0,
++	ATSCMH_RSFRAME_ENS_SEC   = 1,
++};
 +
-+	priv = kzalloc(sizeof(struct fc0012_priv), GFP_KERNEL);
-+	if (priv == NULL)
-+		return NULL;
++enum atscmh_rs_frame_mode {
++	ATSCMH_RSFRAME_PRI_ONLY  = 0,
++	ATSCMH_RSFRAME_PRI_SEC   = 1,
++	ATSCMH_RSFRAME_RES       = 2,
++};
 +
-+	priv->i2c = i2c;
-+	priv->addr = i2c_address;
-+	priv->xtal_freq = xtal_freq;
++enum atscmh_rs_code_mode {
++	ATSCMH_RSCODE_211_187    = 0,
++	ATSCMH_RSCODE_223_187    = 1,
++	ATSCMH_RSCODE_235_187    = 2,
++	ATSCMH_RSCODE_RES        = 3,
++};
 +
-+	info("Fitipower FC0012 successfully attached.");
-+
-+	fe->tuner_priv = priv;
-+
-+	memcpy(&fe->ops.tuner_ops, &fc0012_tuner_ops,
-+		sizeof(struct dvb_tuner_ops));
-+
-+	return fe;
-+}
-+EXPORT_SYMBOL(fc0012_attach);
-+
-+MODULE_DESCRIPTION("Fitipower FC0012 silicon tuner driver");
-+MODULE_AUTHOR("Hans-Frieder Vogt <hfv...@gmx.net>");
-+MODULE_LICENSE("GPL");
-+MODULE_VERSION("0.4");
+ 
+ struct dtv_cmds_h {
+ 	char	*name;		/* A display name for debugging purposes */
+-- 
+1.7.9.5
+
