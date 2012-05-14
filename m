@@ -1,44 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qa0-f49.google.com ([209.85.216.49]:45358 "EHLO
-	mail-qa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751205Ab2EREMe (ORCPT
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:3253 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757555Ab2ENTMO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 May 2012 00:12:34 -0400
-Received: by qabj40 with SMTP id j40so3127056qab.1
-        for <linux-media@vger.kernel.org>; Thu, 17 May 2012 21:12:33 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <CAF6AEGtnoS1BrezYMg8Y8UegaLOzkgNFzcH7NjPvMeSeToJv6Q@mail.gmail.com>
-References: <1335258532-20739-1-git-send-email-daniel.vetter@ffwll.ch> <CAF6AEGtnoS1BrezYMg8Y8UegaLOzkgNFzcH7NjPvMeSeToJv6Q@mail.gmail.com>
-From: Sumit Semwal <sumit.semwal@linaro.org>
-Date: Fri, 18 May 2012 09:42:12 +0530
-Message-ID: <CAO_48GHALp2npyxjqJzN1vLNF2nfy-jw31KhvQxVuFtt4Od+DA@mail.gmail.com>
-Subject: Re: [PATCH] dma-buf: mmap support
-To: Rob Clark <rob.clark@linaro.org>
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>,
-	linaro-mm-sig@lists.linaro.org,
-	LKML <linux-kernel@vger.kernel.org>,
-	DRI Development <dri-devel@lists.freedesktop.org>,
-	linux-media@vger.kernel.org,
-	Rebecca Schultz Zavin <rebecca@android.com>
-Content-Type: text/plain; charset=ISO-8859-1
+	Mon, 14 May 2012 15:12:14 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans de Goede <hdegoede@redhat.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 2/2] feature-removal: ISA video capture and parport webcams drivers
+Date: Mon, 14 May 2012 21:11:59 +0200
+Message-Id: <b92d0c68f094e8e8bf9b18158eeca000e7ce4eff.1337022203.git.hans.verkuil@cisco.com>
+In-Reply-To: <1337022719-13868-1-git-send-email-hverkuil@xs4all.nl>
+References: <1337022719-13868-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <c367be3c7c534b7b3124bd45dbdd87776e86fec7.1337022203.git.hans.verkuil@cisco.com>
+References: <c367be3c7c534b7b3124bd45dbdd87776e86fec7.1337022203.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Daniel, Rob,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-On 11 May 2012 21:00, Rob Clark <rob.clark@linaro.org> wrote:
-> On Tue, Apr 24, 2012 at 4:08 AM, Daniel Vetter <daniel.vetter@ffwll.ch> wrote:
->> Compared to Rob Clark's RFC I've ditched the prepare/finish hooks
-<snip>
->>
->> Cc: Rob Clark <rob.clark@linaro.org>
->> Cc: Rebecca Schultz Zavin <rebecca@android.com>
->> Signed-Off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
->
-> Acked-by: Rob Clark <rob.clark@linaro.org>
-Thanks, applied to my for-next.
-Sorry, I was away due to some medical reasons for some time, hence the delay.
->
-<snip>
-Best regards,
-~Sumit.
+Announce the removal of the pms ISA video capture driver and the
+parallel port w9966, bw-qcam and c-qcam drivers.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ Documentation/feature-removal-schedule.txt |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+diff --git a/Documentation/feature-removal-schedule.txt b/Documentation/feature-removal-schedule.txt
+index 03ca210..65b8883 100644
+--- a/Documentation/feature-removal-schedule.txt
++++ b/Documentation/feature-removal-schedule.txt
+@@ -539,3 +539,13 @@ When:	3.6
+ Why:	setitimer is not returning -EFAULT if user pointer is NULL. This
+ 	violates the spec.
+ Who:	Sasikantha Babu <sasikanth.v19@gmail.com>
++
++----------------------------
++
++What:	Remove the ISA video capture driver pms and parallel port webcam
++	drivers bw-qcam, c-qcam and w9966.
++When:	3.6
++Why:	Nobody has the hardware anymore to test these, and ISA video boards and
++	parallel port webcams are really obsolete these days. Time to retire
++	these drivers.
++Who:	Hans Verkuil <hans.verkuil@cisco.com>
+-- 
+1.7.10
+
