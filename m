@@ -1,42 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:49151 "EHLO mail.kapsi.fi"
+Received: from bear.ext.ti.com ([192.94.94.41]:56526 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757382Ab2EGSrL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 7 May 2012 14:47:11 -0400
-Message-ID: <4FA818AA.6020709@iki.fi>
-Date: Mon, 07 May 2012 21:47:06 +0300
-From: Antti Palosaari <crope@iki.fi>
+	id S1757935Ab2ENWB4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 May 2012 18:01:56 -0400
+From: <manjunatha_halli@ti.com>
+To: <linux-media@vger.kernel.org>
+CC: <linux-kernel@vger.kernel.org>, Manjunatha Halli <x0130808@ti.com>
+Subject: [PATCH V6 0/5] [Media] Radio: Fixes and New features for FM
+Date: Mon, 14 May 2012 17:01:48 -0500
+Message-ID: <1337032913-18646-1-git-send-email-manjunatha_halli@ti.com>
 MIME-Version: 1.0
-To: Hans-Frieder Vogt <hfvogt@gmx.net>
-CC: linux-media@vger.kernel.org,
-	=?ISO-8859-1?Q?Michael_B=FCsch?= <m@bues.ch>,
-	Gianluca Gennari <gennarone@gmail.com>
-Subject: Re: [PATCH v2] af9033: implement ber and ucb functions
-References: <201204071634.34179.hfvogt@gmx.net>
-In-Reply-To: <201204071634.34179.hfvogt@gmx.net>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07.04.2012 17:34, Hans-Frieder Vogt wrote:
-> af9033: implement read_ber and read_ucblocks functions. Version 2 of patch that
-> reflects my findings on the behaviour of abort_cnt, err_cnt and bit_cnt:
->
-> - bit_cnt is always 0x2710 (10000)
-> - abort_cnt is between 0 and 0x2710
-> - err_cnt is between 0 and 640000 (= 0x2710 * 8 * 8)
->
-> in the current implementation BER is calculated as the number of bit errors per
-> processed bits, ignoring those bits that are already discarded and counted in
-> abort_cnt, i.e. UCBLOCKS.
->
-> Signed-off-by: Hans-Frieder Vogt<hfvogt@gmx.net>
+From: Manjunatha Halli <x0130808@ti.com>
 
-Applied and PULL requested via my tree. Thanks!
+Mauro and the list,
 
-regards
-Antti
+Fixed version 6 of patchset 2/5.
+ 
+This version 6 of patchset resolves the comments received from
+Han's on patchset v5.
+     
+This patchset creates new control class 'V4L2_CTRL_CLASS_FM_RX' for FM RX,
+introduces 2 new CID's for FM RX and and 1 new CID for FM TX. Also adds 1
+field in struct v4l2_hw_freq_seek.
+      
+This patch adds few new features to TI's FM driver features
+are listed below,
+       
+1) FM TX RDS Support (RT, PS, AF, PI, PTY)          
+2) FM RX Russian band support
+3) FM RX AF set/get
+4) FM RX De-emphasis mode set/get
+        
+Along with new features this patch also fixes few issues in the driver
+like default rssi level for seek, unnecessory logs etc.
+
+Manjunatha Halli (5):
+  WL128x: Add support for FM TX RDS
+  New control class and features for FM RX
+  Add new CID for FM TX RDS Alternate Frequency
+  Media: Update docs for V4L2 FM new features
+  WL12xx: Add support for FM new features.
+
+ Documentation/DocBook/media/v4l/compat.xml         |    3 +
+ Documentation/DocBook/media/v4l/controls.xml       |   77 ++++++++++
+ Documentation/DocBook/media/v4l/dev-rds.xml        |    5 +-
+ .../DocBook/media/v4l/vidioc-g-ext-ctrls.xml       |    7 +
+ Documentation/DocBook/media/v4l/vidioc-g-tuner.xml |   25 ++++
+ .../DocBook/media/v4l/vidioc-s-hw-freq-seek.xml    |   38 +++++-
+ drivers/media/radio/wl128x/fmdrv.h                 |    3 +-
+ drivers/media/radio/wl128x/fmdrv_common.c          |   55 ++++++--
+ drivers/media/radio/wl128x/fmdrv_common.h          |   43 +++++-
+ drivers/media/radio/wl128x/fmdrv_rx.c              |   92 ++++++++++---
+ drivers/media/radio/wl128x/fmdrv_rx.h              |    2 +-
+ drivers/media/radio/wl128x/fmdrv_tx.c              |   41 +++---
+ drivers/media/radio/wl128x/fmdrv_tx.h              |    3 +-
+ drivers/media/radio/wl128x/fmdrv_v4l2.c            |  148 +++++++++++++++++++-
+ drivers/media/video/v4l2-ctrls.c                   |   18 ++-
+ include/linux/videodev2.h                          |   25 +++-
+ 16 files changed, 503 insertions(+), 82 deletions(-)
 
 -- 
-http://palosaari.fi/
+1.7.4.1
+
