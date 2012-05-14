@@ -1,61 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:55065 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1755711Ab2EENPt (ORCPT
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2347 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756803Ab2ENTom (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 5 May 2012 09:15:49 -0400
-Message-ID: <4FA52803.3040206@iki.fi>
-Date: Sat, 05 May 2012 16:15:47 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
+	Mon, 14 May 2012 15:44:42 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: manjunatha_halli@ti.com
+Subject: Re: [PATCH V5 2/5] New control class and features for FM RX
+Date: Mon, 14 May 2012 21:44:36 +0200
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Manjunatha Halli <x0130808@ti.com>
+References: <1337023469-24990-1-git-send-email-manjunatha_halli@ti.com> <1337023469-24990-3-git-send-email-manjunatha_halli@ti.com>
+In-Reply-To: <1337023469-24990-3-git-send-email-manjunatha_halli@ti.com>
 MIME-Version: 1.0
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-CC: linux-media@vger.kernel.org, t.stanislaws@samsung.com
-Subject: Re: [RFC] V4L: Rename V4L2_SEL_TGT_*_ACTIVE to V4L2_SEL_TGT_*_ACTUAL
-References: <1336221247-6543-1-git-send-email-sylvester.nawrocki@gmail.com>
-In-Reply-To: <1336221247-6543-1-git-send-email-sylvester.nawrocki@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201205142144.36771.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+Hi Manjunatha,
 
-Sylwester Nawrocki wrote:
-> After introduction of the selection API on subdevs we have following sets
-> of selection targets:
->
->      /dev/v4l-subdev?               |   /dev/video?
-> -------------------------------------------------------------------------
-> V4L2_SUBDEV_SEL_TGT_CROP_ACTUAL    | V4L2_SEL_TGT_CROP_ACTIVE
-> V4L2_SUBDEV_SEL_TGT_CROP_BOUNDS    | V4L2_SEL_TGT_CROP_BOUNDS
->                                     | V4L2_SEL_TGT_CROP_DEFAULT
->                                     | V4L2_SEL_TGT_CROP_PADDED
-> V4L2_SUBDEV_SEL_TGT_COMPOSE_ACTUAL | V4L2_SEL_TGT_COMPOSE_ACTIVE
-> V4L2_SUBDEV_SEL_TGT_COMPOSE_BOUNDS | V4L2_SEL_TGT_COMPOSE_BOUNDS
->                                     | V4L2_SEL_TGT_COMPOSE_DEFAULT
->                                     | V4L2_SEL_TGT_COMPOSE_PADDED
->
-> Although not exactly the same, the meaning of V4L2_SEL_TGT_*_ACTIVE
-> and V4L2_SUBDEV_SEL_TGT_*_ACTUAL selection targets is logically the
-> same. Different names add to confusion where both APIs are used in
-> a single driver or an application.
-> Then, rename the V4l2_SEL_TGT_[CROP/COMPOSE]_ACTIVE to
-> V4l2_SEL_TGT_[CROP/COMPOSE]_ACTUAL to avoid the API inconsistencies.
-> The selections API is experimental, so no any compatibility layer
-> is added. The ABI remains unchanged.
+I wish I could ack this series, but there is one thing that really needs
+to change:
 
-I'm definitely for keeping the two sets of target as uniform as possible.
+On Mon May 14 2012 21:24:26 manjunatha_halli@ti.com wrote:
+> @@ -1843,13 +1857,22 @@ struct v4l2_frequency {
+>  	__u32		      reserved[8];
+>  };
+>  
+> +
+> +#define FM_BAND_TYPE_DEFAULT	0	/* All Bands 65.8 MHz till 108 Mhz
+> +					   or 162.55 MHz if weather band */
+> +#define FM_BAND_TYPE_EUROPE_US	1	/* 87.5 Mhz - 108 MHz*/
+> +#define FM_BAND_TYPE_JAPAN	2	/* 76 MHz - 90 MHz*/
+> +#define FM_BAND_TYPE_RUSSIAN	3	/* 65.8 MHz - 74 MHz*/
+> +#define FM_BAND_TYPE_WEATHER	4	/* 162.4 MHz - 162.55 MHz*/
 
-I have one question, though: how about dropping the ACTIVE / ACTUAL 
-altogether? Then we'd have V4L2_SUBDEV_SEL_TGT_CROP and 
-V4L2_SUBDEV_SEL_TGT_CROP_BOUNDS etc. I feel that the ACTIVE or ACTUAL 
-doesn't really say anything there, and don't think it's an issue that a 
-target name is a part of another one.
+This needs a V4L2_ prefix. And in my opinion the _TYPE part can be dropped.
 
-What's your opinion?
+So it becomes:
 
-Kind regards,
+#define V4L2_FM_BAND_DEFAULT	0
+#define V4L2_FM_BAND_EUROPE_US	1	/* 87.5 Mhz - 108 MHz */
+#define V4L2_FM_BAND_JAPAN	2	/* 76 MHz - 90 MHz */
+#define V4L2_FM_BAND_RUSSIAN	3	/* 65.8 MHz - 74 MHz */
+#define V4L2_FM_BAND_WEATHER	4	/* 162.4 MHz - 162.55 MHz */
 
--- 
-Sakari Ailus
-sakari.ailus@iki.fi
+BTW, also put a space before '*/'.
+
+If you can make this change quickly (i.e. today) and post the fixed version
+(don't forget to update the documentation as well!) then I'll ack it and
+there is a change you can get it merged for 3.5.
+
+Regards,
+
+	Hans
+
+> +
+>  struct v4l2_hw_freq_seek {
+>  	__u32		      tuner;
+>  	enum v4l2_tuner_type  type;
+>  	__u32		      seek_upward;
+>  	__u32		      wrap_around;
+>  	__u32		      spacing;
+> -	__u32		      reserved[7];
+> +	__u32		      band;
+> +	__u32		      reserved[6];
+>  };
+>  
+>  /*
+> 
