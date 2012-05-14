@@ -1,175 +1,159 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:20878 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753584Ab2EIK7k convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 May 2012 06:59:40 -0400
-Date: Wed, 09 May 2012 12:59:34 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: RE: [PATCH 1/1] v4l: mem2mem_testdev: Fix race conditions in driver.
-In-reply-to: <1336423141-10956-1-git-send-email-desowin@gmail.com>
-To: =?utf-8?Q?'Tomasz_Mo=C5=84'?= <desowin@gmail.com>,
-	'Mauro Carvalho Chehab' <mchehab@infradead.org>,
-	'Guennadi Liakhovetski' <g.liakhovetski@gmx.de>,
-	'Kyungmin Park' <kyungmin.park@samsung.com>,
-	linux-media@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, pawel@osciak.com
-Message-id: <005301cd2dd2$d1972ca0$74c585e0$%szyprowski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=utf-8
-Content-language: pl
-Content-transfer-encoding: 8BIT
-References: <1336423141-10956-1-git-send-email-desowin@gmail.com>
+Received: from mail-pz0-f46.google.com ([209.85.210.46]:53932 "EHLO
+	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755235Ab2ENJnd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 May 2012 05:43:33 -0400
+Received: by mail-pz0-f46.google.com with SMTP id y13so5696681dad.19
+        for <linux-media@vger.kernel.org>; Mon, 14 May 2012 02:43:33 -0700 (PDT)
+From: Sachin Kamat <sachin.kamat@linaro.org>
+To: linux-media@vger.kernel.org
+Cc: mchehab@infradead.org, andrzej.p@samsung.com,
+	sachin.kamat@linaro.org, patches@linaro.org
+Subject: [PATCH] s5p-jpeg: Use devm_* functions in jpeg-core.c file
+Date: Mon, 14 May 2012 15:03:34 +0530
+Message-Id: <1336988014-27071-1-git-send-email-sachin.kamat@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tomasz,
+devm_* functions are used to replace kzalloc, request_mem_region, ioremap
+and request_irq functions in probe call. With the usage of devm_* functions
+explicit freeing and unmapping is not required.
 
-On Monday, May 07, 2012 10:39 PM Tomasz Moń wrote:
+Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+---
+ drivers/media/video/s5p-jpeg/jpeg-core.c |   58 +++++------------------------
+ drivers/media/video/s5p-jpeg/jpeg-core.h |    2 -
+ 2 files changed, 10 insertions(+), 50 deletions(-)
 
-> The mem2mem_testdev allows multiple instances to be opened in parallel.
-> Source and destination queue data are being shared between all
-> instances, which can lead to kernel oops due to race conditions (most
-> likely to happen inside device_run()).
-> 
-> Attached patch fixes mentioned problem by storing queue data per device
-> context.
-> 
-> Signed-off-by: Tomasz Moń <desowin@gmail.com>
-
-Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
-
-Thanks for fixing this bug!
-
-> ---
->  drivers/media/video/mem2mem_testdev.c |   50 +++++++++++++++++----------------
->  1 file changed, 26 insertions(+), 24 deletions(-)
-> 
-> diff --git a/drivers/media/video/mem2mem_testdev.c b/drivers/media/video/mem2mem_testdev.c
-> index 12897e8..ae7ca12 100644
-> --- a/drivers/media/video/mem2mem_testdev.c
-> +++ b/drivers/media/video/mem2mem_testdev.c
-> @@ -110,22 +110,6 @@ enum {
->  	V4L2_M2M_DST = 1,
->  };
-> 
-> -/* Source and destination queue data */
-> -static struct m2mtest_q_data q_data[2];
-> -
-> -static struct m2mtest_q_data *get_q_data(enum v4l2_buf_type type)
-> -{
-> -	switch (type) {
-> -	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
-> -		return &q_data[V4L2_M2M_SRC];
-> -	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
-> -		return &q_data[V4L2_M2M_DST];
-> -	default:
-> -		BUG();
-> -	}
-> -	return NULL;
-> -}
-> -
->  #define V4L2_CID_TRANS_TIME_MSEC	V4L2_CID_PRIVATE_BASE
->  #define V4L2_CID_TRANS_NUM_BUFS		(V4L2_CID_PRIVATE_BASE + 1)
-> 
-> @@ -198,8 +182,26 @@ struct m2mtest_ctx {
->  	int			aborting;
-> 
->  	struct v4l2_m2m_ctx	*m2m_ctx;
-> +
-> +	/* Source and destination queue data */
-> +	struct m2mtest_q_data   q_data[2];
->  };
-> 
-> +static struct m2mtest_q_data *get_q_data(struct m2mtest_ctx *ctx,
-> +					 enum v4l2_buf_type type)
-> +{
-> +	switch (type) {
-> +	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
-> +		return &ctx->q_data[V4L2_M2M_SRC];
-> +	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
-> +		return &ctx->q_data[V4L2_M2M_DST];
-> +	default:
-> +		BUG();
-> +	}
-> +	return NULL;
-> +}
-> +
-> +
->  static struct v4l2_queryctrl *get_ctrl(int id)
->  {
->  	int i;
-> @@ -223,7 +225,7 @@ static int device_process(struct m2mtest_ctx *ctx,
->  	int tile_w, bytes_left;
->  	int width, height, bytesperline;
-> 
-> -	q_data = get_q_data(V4L2_BUF_TYPE_VIDEO_OUTPUT);
-> +	q_data = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_OUTPUT);
-> 
->  	width	= q_data->width;
->  	height	= q_data->height;
-> @@ -436,7 +438,7 @@ static int vidioc_g_fmt(struct m2mtest_ctx *ctx, struct v4l2_format *f)
->  	if (!vq)
->  		return -EINVAL;
-> 
-> -	q_data = get_q_data(f->type);
-> +	q_data = get_q_data(ctx, f->type);
-> 
->  	f->fmt.pix.width	= q_data->width;
->  	f->fmt.pix.height	= q_data->height;
-> @@ -535,7 +537,7 @@ static int vidioc_s_fmt(struct m2mtest_ctx *ctx, struct v4l2_format *f)
->  	if (!vq)
->  		return -EINVAL;
-> 
-> -	q_data = get_q_data(f->type);
-> +	q_data = get_q_data(ctx, f->type);
->  	if (!q_data)
->  		return -EINVAL;
-> 
-> @@ -747,7 +749,7 @@ static int m2mtest_queue_setup(struct vb2_queue *vq,
->  	struct m2mtest_q_data *q_data;
->  	unsigned int size, count = *nbuffers;
-> 
-> -	q_data = get_q_data(vq->type);
-> +	q_data = get_q_data(ctx, vq->type);
-> 
->  	size = q_data->width * q_data->height * q_data->fmt->depth >> 3;
-> 
-> @@ -775,7 +777,7 @@ static int m2mtest_buf_prepare(struct vb2_buffer *vb)
-> 
->  	dprintk(ctx->dev, "type: %d\n", vb->vb2_queue->type);
-> 
-> -	q_data = get_q_data(vb->vb2_queue->type);
-> +	q_data = get_q_data(ctx, vb->vb2_queue->type);
-> 
->  	if (vb2_plane_size(vb, 0) < q_data->sizeimage) {
->  		dprintk(ctx->dev, "%s data will not fit into plane (%lu < %lu)\n",
-> @@ -860,6 +862,9 @@ static int m2mtest_open(struct file *file)
->  	ctx->transtime = MEM2MEM_DEF_TRANSTIME;
->  	ctx->num_processed = 0;
-> 
-> +	ctx->q_data[V4L2_M2M_SRC].fmt = &formats[0];
-> +	ctx->q_data[V4L2_M2M_DST].fmt = &formats[0];
-> +
->  	ctx->m2m_ctx = v4l2_m2m_ctx_init(dev->m2m_dev, ctx, &queue_init);
-> 
->  	if (IS_ERR(ctx->m2m_ctx)) {
-> @@ -982,9 +987,6 @@ static int m2mtest_probe(struct platform_device *pdev)
->  		goto err_m2m;
->  	}
-> 
-> -	q_data[V4L2_M2M_SRC].fmt = &formats[0];
-> -	q_data[V4L2_M2M_DST].fmt = &formats[0];
-> -
->  	return 0;
-> 
->  	v4l2_m2m_release(dev->m2m_dev);
-> --
-> 1.7.10
-
-Best regards
+diff --git a/drivers/media/video/s5p-jpeg/jpeg-core.c b/drivers/media/video/s5p-jpeg/jpeg-core.c
+index 5a49c30..a83a7e3 100644
+--- a/drivers/media/video/s5p-jpeg/jpeg-core.c
++++ b/drivers/media/video/s5p-jpeg/jpeg-core.c
+@@ -1290,7 +1290,7 @@ static int s5p_jpeg_probe(struct platform_device *pdev)
+ 	int ret;
+ 
+ 	/* JPEG IP abstraction struct */
+-	jpeg = kzalloc(sizeof(struct s5p_jpeg), GFP_KERNEL);
++	jpeg = devm_kzalloc(&pdev->dev, sizeof(struct s5p_jpeg), GFP_KERNEL);
+ 	if (!jpeg)
+ 		return -ENOMEM;
+ 
+@@ -1300,43 +1300,25 @@ static int s5p_jpeg_probe(struct platform_device *pdev)
+ 
+ 	/* memory-mapped registers */
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+-	if (!res) {
+-		dev_err(&pdev->dev, "cannot find IO resource\n");
+-		ret = -ENOENT;
+-		goto jpeg_alloc_rollback;
+-	}
+-
+-	jpeg->ioarea = request_mem_region(res->start, resource_size(res),
+-					  pdev->name);
+-	if (!jpeg->ioarea) {
+-		dev_err(&pdev->dev, "cannot request IO\n");
+-		ret = -ENXIO;
+-		goto jpeg_alloc_rollback;
+-	}
+ 
+-	jpeg->regs = ioremap(res->start, resource_size(res));
+-	if (!jpeg->regs) {
+-		dev_err(&pdev->dev, "cannot map IO\n");
+-		ret = -ENXIO;
+-		goto mem_region_rollback;
++	jpeg->regs = devm_request_and_ioremap(&pdev->dev, res);
++	if (jpeg->regs == NULL) {
++		dev_err(&pdev->dev, "Failed to obtain io memory\n");
++		return -ENOENT;
+ 	}
+ 
+-	dev_dbg(&pdev->dev, "registers %p (%p, %p)\n",
+-		jpeg->regs, jpeg->ioarea, res);
+-
+ 	/* interrupt service routine registration */
+ 	jpeg->irq = ret = platform_get_irq(pdev, 0);
+ 	if (ret < 0) {
+ 		dev_err(&pdev->dev, "cannot find IRQ\n");
+-		goto ioremap_rollback;
++		return ret;
+ 	}
+ 
+-	ret = request_irq(jpeg->irq, s5p_jpeg_irq, 0,
+-			  dev_name(&pdev->dev), jpeg);
+-
++	ret = devm_request_irq(&pdev->dev, jpeg->irq, s5p_jpeg_irq, 0,
++			dev_name(&pdev->dev), jpeg);
+ 	if (ret) {
+ 		dev_err(&pdev->dev, "cannot claim IRQ %d\n", jpeg->irq);
+-		goto ioremap_rollback;
++		return ret;
+ 	}
+ 
+ 	/* clocks */
+@@ -1344,7 +1326,7 @@ static int s5p_jpeg_probe(struct platform_device *pdev)
+ 	if (IS_ERR(jpeg->clk)) {
+ 		dev_err(&pdev->dev, "cannot get clock\n");
+ 		ret = PTR_ERR(jpeg->clk);
+-		goto request_irq_rollback;
++		return ret;
+ 	}
+ 	dev_dbg(&pdev->dev, "clock source %p\n", jpeg->clk);
+ 	clk_enable(jpeg->clk);
+@@ -1456,18 +1438,6 @@ clk_get_rollback:
+ 	clk_disable(jpeg->clk);
+ 	clk_put(jpeg->clk);
+ 
+-request_irq_rollback:
+-	free_irq(jpeg->irq, jpeg);
+-
+-ioremap_rollback:
+-	iounmap(jpeg->regs);
+-
+-mem_region_rollback:
+-	release_resource(jpeg->ioarea);
+-	release_mem_region(jpeg->ioarea->start, resource_size(jpeg->ioarea));
+-
+-jpeg_alloc_rollback:
+-	kfree(jpeg);
+ 	return ret;
+ }
+ 
+@@ -1488,14 +1458,6 @@ static int s5p_jpeg_remove(struct platform_device *pdev)
+ 	clk_disable(jpeg->clk);
+ 	clk_put(jpeg->clk);
+ 
+-	free_irq(jpeg->irq, jpeg);
+-
+-	iounmap(jpeg->regs);
+-
+-	release_resource(jpeg->ioarea);
+-	release_mem_region(jpeg->ioarea->start, resource_size(jpeg->ioarea));
+-	kfree(jpeg);
+-
+ 	return 0;
+ }
+ 
+diff --git a/drivers/media/video/s5p-jpeg/jpeg-core.h b/drivers/media/video/s5p-jpeg/jpeg-core.h
+index 38d7367..9d0cd2b 100644
+--- a/drivers/media/video/s5p-jpeg/jpeg-core.h
++++ b/drivers/media/video/s5p-jpeg/jpeg-core.h
+@@ -54,7 +54,6 @@
+  * @vfd_encoder:	video device node for encoder mem2mem mode
+  * @vfd_decoder:	video device node for decoder mem2mem mode
+  * @m2m_dev:		v4l2 mem2mem device data
+- * @ioarea:		JPEG IP memory region
+  * @regs:		JPEG IP registers mapping
+  * @irq:		JPEG IP irq
+  * @clk:		JPEG IP clock
+@@ -70,7 +69,6 @@ struct s5p_jpeg {
+ 	struct video_device	*vfd_decoder;
+ 	struct v4l2_m2m_dev	*m2m_dev;
+ 
+-	struct resource		*ioarea;
+ 	void __iomem		*regs;
+ 	unsigned int		irq;
+ 	struct clk		*clk;
 -- 
-Marek Szyprowski
-Samsung Poland R&D Center
-
-
+1.7.4.1
 
