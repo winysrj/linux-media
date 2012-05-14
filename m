@@ -1,59 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ns.mm-sol.com ([213.240.235.226]:47373 "EHLO extserv.mm-sol.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760030Ab2EJPYo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 May 2012 11:24:44 -0400
-Message-ID: <1336662597.15542.15.camel@iivanov-desktop>
-Subject: Re: Advice on extending libv4l for media controller support
-From: "Ivan T. Ivanov" <iivanov@mm-sol.com>
-To: Sergio Aguirre <sergio.a.aguirre@gmail.com>
-Cc: Hans de Goede <hdegoede@redhat.com>, linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Atsuo Kuwahara <kuwahara@ti.com>
-Date: Thu, 10 May 2012 18:09:57 +0300
-In-Reply-To: <CAC-OdnCmXiz1wKST-YAambJFToeqNJhEaMVKYwz_FHV0N+sbyw@mail.gmail.com>
-References: <CAC-OdnBNiT35tc_50QAXvVp8+b5tWLMWqc5i1q3qWYTp5c360g@mail.gmail.com>
-	 <CAC-OdnCmXiz1wKST-YAambJFToeqNJhEaMVKYwz_FHV0N+sbyw@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Mime-Version: 1.0
+Received: from mail-qa0-f46.google.com ([209.85.216.46]:55766 "EHLO
+	mail-qa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932498Ab2ENWLY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 May 2012 18:11:24 -0400
+Received: by qadb17 with SMTP id b17so3179695qad.19
+        for <linux-media@vger.kernel.org>; Mon, 14 May 2012 15:11:24 -0700 (PDT)
+From: Michael Krufky <mkrufky@kernellabs.com>
+To: linux-media@vger.kernel.org
+Cc: mchehab@infradead.org, Michael Krufky <mkrufky@linuxtv.org>
+Subject: [PATCH 03/11] increment DVB API to version 5.6 for ATSC-MH frontend control
+Date: Mon, 14 May 2012 18:10:45 -0400
+Message-Id: <1337033453-22119-3-git-send-email-mkrufky@linuxtv.org>
+In-Reply-To: <1337033453-22119-1-git-send-email-mkrufky@linuxtv.org>
+References: <1337033453-22119-1-git-send-email-mkrufky@linuxtv.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+increment the DVB API version to 5.6 to signify support for
+controlling an ATSC-MH frontend.
 
-Hi Sergio, 
+Signed-off-by: Michael Krufky <mkrufky@linuxtv.org>
+---
+ include/linux/dvb/version.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-On Thu, 2012-05-10 at 08:54 -0500, Sergio Aguirre wrote:
-> +Atsuo
-> 
-> On Wed, May 9, 2012 at 7:08 PM, Sergio Aguirre
-> <sergio.a.aguirre@gmail.com> wrote:
-> > Hi Hans,
-> >
-> > I'm interested in using libv4l along with my omap4 camera project to
-> > adapt it more easily
-> > to Android CameraHAL, and other applications, to reduce complexity of
-> > them mostly...
-> >
-> > So, but the difference is that, this is a media controller device I'm
-> > trying to add support for,
-> > in which I want to create some sort of plugin with specific media
-> > controller configurations,
-> > to avoid userspace to worry about component names and specific
-> > usecases (use sensor resizer, or SoC ISP resizer, etc.).
-> >
-> > So, I just wanted to know your advice on some things before I start
-> > hacking your library:
-> >
-
-Probably following links can help you. They have been tested
-with the OMAP3 ISP.
-
-Regards,
-iivanov
-
-[1] http://www.spinics.net/lists/linux-media/msg31901.html
-[2]
-http://comments.gmane.org/gmane.linux.drivers.video-input-infrastructure/32704
-
+diff --git a/include/linux/dvb/version.h b/include/linux/dvb/version.h
+index 0559e2b..43d9e8d 100644
+--- a/include/linux/dvb/version.h
++++ b/include/linux/dvb/version.h
+@@ -24,6 +24,6 @@
+ #define _DVBVERSION_H_
+ 
+ #define DVB_API_VERSION 5
+-#define DVB_API_VERSION_MINOR 5
++#define DVB_API_VERSION_MINOR 6
+ 
+ #endif /*_DVBVERSION_H_*/
+-- 
+1.7.9.5
 
