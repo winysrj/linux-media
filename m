@@ -1,87 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:42702 "EHLO mx1.redhat.com"
+Received: from mail.telros.ru ([83.136.244.21]:65130 "EHLO mail.telros.ru"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753714Ab2ERMax (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 May 2012 08:30:53 -0400
-Message-ID: <4FB640F9.9030703@redhat.com>
-Date: Fri, 18 May 2012 14:30:49 +0200
-From: Hans de Goede <hdegoede@redhat.com>
+	id S1752402Ab2ENIJ3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 May 2012 04:09:29 -0400
+Date: Mon, 14 May 2012 12:09:18 +0400
+From: volokh@telros.ru
+To: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Volokh Konstantin <volokh84@gmail.com>, my84@bk.ru,
+	devel@driverdev.osuosl.org, hverkuil@xs4all.nl,
+	gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org,
+	mchehab@infradead.org, dhowells@redhat.com,
+	justinmattock@gmail.com, linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/2] staging: media: go7007: Adlink MPG24 board
+Message-ID: <20120514080918.GC1497@VPir.telros.lan>
+References: <1336935162-5068-1-git-send-email-volokh84@gmail.com>
+ <20120513192148.GE16984@mwanda>
 MIME-Version: 1.0
-To: Antonio Ospite <ospite@studenti.unina.it>
-CC: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-	Jean-Francois Moine <moinejf@free.fr>
-Subject: Re: [PATCH 0/3] gspca: kinect cleanup, ov534 port to control framework
-References: <1337204566-2212-1-git-send-email-ospite@studenti.unina.it>
-In-Reply-To: <1337204566-2212-1-git-send-email-ospite@studenti.unina.it>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20120513192148.GE16984@mwanda>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Sun, May 13, 2012 at 10:21:48PM +0300, Dan Carpenter wrote:
+> On Sun, May 13, 2012 at 10:52:41PM +0400, Volokh Konstantin wrote:
+> > This patch applies only for Adlink MPG24 board with go7007, all these changes were tested for continuous loading & restarting modes
+> > 
+> > This is minimal changes needed for start up go7007 to work correctly
+> >   in 3.4 branch
+> > 
+> > Changes:
+> >   - When go7007 reset device, i2c was not working (need rewrite GPIO5)
+> >   - As wis2804 has i2c_addr=0x00/*really*/, so Need set I2C_CLIENT_TEN flag for validity
+> >   - some main nonzero initialization, rewrites with kzalloc instead kmalloc
+> >   - STATUS_SHUTDOWN was placed in incorrect place, so if firmware wasn`t loaded, we
+> >     failed v4l2_device_unregister with kernel panic (OOPS)
+> >   - some new v4l2 style features as call_all(...s_stream...) for using subdev calls
+> > 
+> 
+> In some ways, yes, I can see that this seems like one thing "Make
+> go7007 work correctly", but really it would be better if each of
+> the bullet points was its own patch.
+> 
+> The changelogs should explain why you do something not what you do.
+> We can all see that kmalloc() was changed to kzalloc() but why? Is
 
-Thanks for the patches. I've added them all to my tree, so
-they will be included in my next pull-req. In the mean time
-you can find them (unmodified) here:
+struct go7007 contains "struct v4l2_device v4l2_dev;" field, so if transfer it uninitialized (may be nonzero)
+in function: "int v4l2_device_register_subdev(struct v4l2_device *v4l2_dev, struct v4l2_subdev *sd)"
+(drivers/media/video/v4l2-device.c), so next code may be called:
+#if defined(CONFIG_MEDIA_CONTROLLER)
+	/* Register the entity. */
+	if (v4l2_dev->mdev) {
+		err = media_device_register_entity(v4l2_dev->mdev, entity);
+		if (err < 0) {
+			if (sd->internal_ops && sd->internal_ops->unregistered)
+				sd->internal_ops->unregistered(sd);
+			module_put(sd->owner);
+			return err;
+		}
+	}
+#endif
+I`ve got error here. because go7007 don`t control mdev field.
 
-http://git.linuxtv.org/hgoede/gspca.git/shortlog/refs/heads/media-for_v3.5-wip
+The next kzalloc: "gofh = kzalloc(sizeof(struct go7007_file), GFP_KERNEL);" was written only for zero initialization on creation purpose, driver work properly without it changing
+> their and information leak for example?  That might have security
+> implications and be good thing to know about.
+> 
+> regards,
+> dan carpenter
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
+It`s very horrible to describe every changing...
 
-
-On 05/16/2012 11:42 PM, Antonio Ospite wrote:
-> Hi,
->
-> the first patch just removes traces of the gspca control handling
-> mechanism from the kinect driver; this driver does not have any
-> controls. The change is trivial and can be applied right away, or
-> postponed to when the gspca_main code is removed, you decide.
->
-> The second patch removes the dependency between auto gain and auto white
-> balance, I'd like to hear Jean-Francois on this, the webcam (the ov772x
-> sensor) is able to set the two parameters independently and the user can
-> see the difference of either, is there a reason why we were preventing
-> the user from doing so before?
->
-> The third patch is the conversion of the ov534 subdriver to the v4l2
-> control framework, I tested the code with a PS3 Eye (ov772x sensor) and
-> it works fine (now disabling automatic exposure works too, yay), maybe
-> someone else can give it a run on a webcam with OV767x.
->
-> NOTE: in patch 3, in sd_init_controls(), I left multiple checks
->
-> 	if (sd->sensor == SENSOR_OV772x)
->
-> just to preserve the order the controls were declared in "struct sd", if
-> you feel the order is not that important I can aggregate the checks,
-> just let me know, it just looked neater to me this way.
->
->
->  From a purely aesthetic point of view maybe the gspca mechanism of
-> defining controls was prettier, more declarative, but the control
-> framework really looks "more correct" even from userspace, qv4l2 can now
-> display labels of control classes in tabs automatically while before we
-> had empty labels, disabled controls in clusters work beautifully, and
-> disabled controls with associated automatic settings can show the value
-> calculated by the hardware on every update, very instructive if not
-> super-useful.
-
-I'm glad to hear you like the control framework.
-
-Regards,
-
-Hans
-
-
->
-> Thanks,
->     Antonio
->
-> Antonio Ospite (3):
->    gspca - kinect: remove traces of gspca control handling
->    gspca - ov534: make AGC and AWB controls independent
->    gspca - ov534: convert to v4l2 control framework
->
->   drivers/media/video/gspca/kinect.c |    9 -
->   drivers/media/video/gspca/ov534.c  |  590 ++++++++++++++++--------------------
->   2 files changed, 261 insertions(+), 338 deletions(-)
->
+Volokh Konstantin
