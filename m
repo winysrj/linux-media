@@ -1,78 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:37943 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756232Ab2EGLrq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 May 2012 07:47:46 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Sander Eikelenboom <linux@eikelenboom.it>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org, hans.verkuil@cisco.com
-Subject: Re: [ 3960.758784] 1 lock held by motion/7776: [ 3960.758788]  #0:  (&queue->mutex){......}, at: [<ffffffff815c62d2>] uvc_queue_enable+0x32/0xc0
-Date: Mon, 07 May 2012 13:47:45 +0200
-Message-ID: <190915616.lpsK6E9b1z@avalon>
-In-Reply-To: <201205071344.59861.hverkuil@xs4all.nl>
-References: <4410483770.20120428220246@eikelenboom.it> <1363463.HQ7LJLv1Qi@avalon> <201205071344.59861.hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mail-qc0-f174.google.com ([209.85.216.174]:62645 "EHLO
+	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932461Ab2ENWLZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 May 2012 18:11:25 -0400
+Received: by mail-qc0-f174.google.com with SMTP id o28so3753022qcr.19
+        for <linux-media@vger.kernel.org>; Mon, 14 May 2012 15:11:25 -0700 (PDT)
+From: Michael Krufky <mkrufky@kernellabs.com>
+To: linux-media@vger.kernel.org
+Cc: mchehab@infradead.org, Michael Krufky <mkrufky@linuxtv.org>
+Subject: [PATCH 04/11] mxl111sf-tuner: tune SYS_ATSCMH just like SYS_ATSC
+Date: Mon, 14 May 2012 18:10:46 -0400
+Message-Id: <1337033453-22119-4-git-send-email-mkrufky@linuxtv.org>
+In-Reply-To: <1337033453-22119-1-git-send-email-mkrufky@linuxtv.org>
+References: <1337033453-22119-1-git-send-email-mkrufky@linuxtv.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+The MxL111SF tuner is programmed the same way for ATSC-MH
+as it is programmed for ATSC.
 
-On Monday 07 May 2012 13:44:59 Hans Verkuil wrote:
-> On Monday 07 May 2012 13:06:01 Laurent Pinchart wrote:
-> > On Sunday 06 May 2012 16:54:40 Sander Eikelenboom wrote:
-> > > Hello Laurent / Mauro,
-> > > 
-> > > I have updated to latest 3.4-rc5-tip, running multiple video grabbers.
-> > > I don't see anything specific to uvcvideo anymore, but i do get the
-> > > possible circular locking dependency below.
-> > 
-> > Thanks for the report.
-> > 
-> > We indeed have a serious issue there (CC'ing Hans Verkuil).
-> > 
-> > Hans, serializing both ioctl handling an mmap with a single device lock as
-> > we currently do in V4L2 is prone to AB-BA deadlocks (uvcvideo shouldn't
-> > be affected as it has no device-wide lock).
-> > 
-> > If we want to keep a device-wide lock we need to take it after the mm-
-> > 
-> > >mmap_sem lock in all code paths, as there's no way we can change the lock
-> > 
-> > ordering for mmap(). The copy_from_user/copy_to_user issue could be solved
-> > by moving locking from v4l2_ioctl to __video_do_ioctl (device-wide locks
-> > would then require using video_ioctl2), but I'm not sure whether that
-> > will play nicely with the QBUF implementation in videobuf2 (which already
-> > includes a workaround for this particular AB-BA deadlock issue).
-> 
-> I've seen the same thing. It was on my TODO list of things to look into. I
-> think mmap shouldn't take the device wide lock at all. But it will mean
-> reviewing affected drivers before I can remove it.
-> 
-> To be honest, I wasn't sure whether or not to take the device lock for mmap
-> when I first wrote that code.
->
-> If you look at irc I had a discussion today with HdG about adding flags to
-> selectively disable locks for fops. It may be an idea to implement this soon
-> so we can start updating drivers one-by-one.
-> 
-> Frankly, I do not believe this 'possible circular locking' thing to be a
-> real bug as I am not aware of drivers that use the device lock *and* lock
-> mmap_sem. If I understand Sander correctly 'motion' no longer locks up
-> after moving to 3.4-rc5-tip, right?
+Signed-off-by: Michael Krufky <mkrufky@linuxtv.org>
+---
+ drivers/media/dvb/dvb-usb/mxl111sf-tuner.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-copy_from_user()/copy_to_user() perform a down_read(&mm->mmap_sem) when a page 
-fault occurs. All drivers thus potentially take mm->mmap_sem when an ioctl is 
-performed.
+diff --git a/drivers/media/dvb/dvb-usb/mxl111sf-tuner.c b/drivers/media/dvb/dvb-usb/mxl111sf-tuner.c
+index 72db6ee..74da5bb1 100644
+--- a/drivers/media/dvb/dvb-usb/mxl111sf-tuner.c
++++ b/drivers/media/dvb/dvb-usb/mxl111sf-tuner.c
+@@ -284,6 +284,7 @@ static int mxl111sf_tuner_set_params(struct dvb_frontend *fe)
  
-> I have to look into a bit more to see what the best approach it so we can
-> prevent this message from appearing.
-
+ 	switch (delsys) {
+ 	case SYS_ATSC:
++	case SYS_ATSCMH:
+ 		bw = 0; /* ATSC */
+ 		break;
+ 	case SYS_DVBC_ANNEX_B:
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.9.5
 
