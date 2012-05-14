@@ -1,269 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vx0-f174.google.com ([209.85.220.174]:38849 "EHLO
-	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750916Ab2EAEMn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 1 May 2012 00:12:43 -0400
-Received: by vcqp1 with SMTP id p1so2537594vcq.19
-        for <linux-media@vger.kernel.org>; Mon, 30 Apr 2012 21:12:43 -0700 (PDT)
-From: Michael Krufky <mkrufky@kernellabs.com>
-To: linux-media <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Michael Krufky <mkrufky@linuxtv.org>
-Subject: [PATCH 01/10] linux-dvb v5 API support for ATSC-MH
-Date: Tue,  1 May 2012 00:12:16 -0400
-Message-Id: <1335845545-20879-1-git-send-email-mkrufky@linuxtv.org>
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:4733 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756376Ab2ENNZ7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 May 2012 09:25:59 -0400
+Received: from alastor.dyndns.org (189.80-203-102.nextgentel.com [80.203.102.189] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr14.xs4all.nl (8.13.8/8.13.8) with ESMTP id q4EDPuWs057404
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Mon, 14 May 2012 15:25:57 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from durdane.localnet (64-103-25-233.cisco.com [64.103.25.233])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id C4003199C008A
+	for <linux-media@vger.kernel.org>; Mon, 14 May 2012 15:25:55 +0200 (CEST)
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [GIT PULL FOR v3.5] Fix compiler warnings
+Date: Mon, 14 May 2012 15:25:55 +0200
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201205141525.55198.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Michael Krufky <mkrufky@linuxtv.org>
----
- drivers/media/dvb/dvb-core/dvb_frontend.c |   92 ++++++++++++++++++++++++++++-
- drivers/media/dvb/dvb-core/dvb_frontend.h |   22 +++++++
- include/linux/dvb/frontend.h              |   54 +++++++++++++++++-
- 3 files changed, 166 insertions(+), 2 deletions(-)
+Hi Mauro,
 
-diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-core/dvb_frontend.c
-index 4555baa..067f10a 100644
---- a/drivers/media/dvb/dvb-core/dvb_frontend.c
-+++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
-@@ -180,13 +180,13 @@ static enum dvbv3_emulation_type dvbv3_type(u32 delivery_system)
- 	case SYS_DMBTH:
- 		return DVBV3_OFDM;
- 	case SYS_ATSC:
-+	case SYS_ATSCMH:
- 	case SYS_DVBC_ANNEX_B:
- 		return DVBV3_ATSC;
- 	case SYS_UNDEFINED:
- 	case SYS_ISDBC:
- 	case SYS_DVBH:
- 	case SYS_DAB:
--	case SYS_ATSCMH:
- 	default:
- 		/*
- 		 * Doesn't know how to emulate those types and/or
-@@ -1027,6 +1027,28 @@ static struct dtv_cmds_h dtv_cmds[DTV_MAX_COMMAND + 1] = {
- 	_DTV_CMD(DTV_HIERARCHY, 0, 0),
- 
- 	_DTV_CMD(DTV_ENUM_DELSYS, 0, 0),
-+
-+	_DTV_CMD(DTV_ATSCMH_PARADE_ID, 1, 0),
-+	_DTV_CMD(DTV_ATSCMH_RS_FRAME_ENSEMBLE, 1, 0),
-+
-+	_DTV_CMD(DTV_ATSCMH_FIC_VER, 0, 0),
-+	_DTV_CMD(DTV_ATSCMH_PARADE_ID, 0, 0),
-+	_DTV_CMD(DTV_ATSCMH_NOG, 0, 0),
-+	_DTV_CMD(DTV_ATSCMH_TNOG, 0, 0),
-+	_DTV_CMD(DTV_ATSCMH_SGN, 0, 0),
-+	_DTV_CMD(DTV_ATSCMH_PRC, 0, 0),
-+	_DTV_CMD(DTV_ATSCMH_RS_FRAME_MODE, 0, 0),
-+	_DTV_CMD(DTV_ATSCMH_RS_FRAME_ENSEMBLE, 0, 0),
-+	_DTV_CMD(DTV_ATSCMH_RS_CODE_MODE_PRI, 0, 0),
-+	_DTV_CMD(DTV_ATSCMH_RS_CODE_MODE_SEC, 0, 0),
-+	_DTV_CMD(DTV_ATSCMH_SCCC_BLOCK_MODE, 0, 0),
-+	_DTV_CMD(DTV_ATSCMH_SCCC_CODE_MODE_A, 0, 0),
-+	_DTV_CMD(DTV_ATSCMH_SCCC_CODE_MODE_B, 0, 0),
-+	_DTV_CMD(DTV_ATSCMH_SCCC_CODE_MODE_C, 0, 0),
-+	_DTV_CMD(DTV_ATSCMH_SCCC_CODE_MODE_D, 0, 0),
-+	_DTV_CMD(DTV_ATSCMH_FIC_ERR, 0, 0),
-+	_DTV_CMD(DTV_ATSCMH_CRC_ERR, 0, 0),
-+	_DTV_CMD(DTV_ATSCMH_RS_ERR, 0, 0),
- };
- 
- static void dtv_property_dump(struct dtv_property *tvp)
-@@ -1118,6 +1140,8 @@ static int dtv_property_cache_sync(struct dvb_frontend *fe,
- 	case DVBV3_ATSC:
- 		dprintk("%s() Preparing ATSC req\n", __func__);
- 		c->modulation = p->u.vsb.modulation;
-+		if (c->delivery_system == SYS_ATSCMH)
-+			break;
- 		if ((c->modulation == VSB_8) || (c->modulation == VSB_16))
- 			c->delivery_system = SYS_ATSC;
- 		else
-@@ -1364,6 +1388,63 @@ static int dtv_property_process_get(struct dvb_frontend *fe,
- 	case DTV_DVBT2_PLP_ID:
- 		tvp->u.data = c->dvbt2_plp_id;
- 		break;
-+
-+	/* ATSC-MH */
-+	case DTV_ATSCMH_FIC_VER:
-+		tvp->u.data = fe->dtv_property_cache.atscmh_fic_ver;
-+		break;
-+	case DTV_ATSCMH_PARADE_ID:
-+		tvp->u.data = fe->dtv_property_cache.atscmh_parade_id;
-+		break;
-+	case DTV_ATSCMH_NOG:
-+		tvp->u.data = fe->dtv_property_cache.atscmh_nog;
-+		break;
-+	case DTV_ATSCMH_TNOG:
-+		tvp->u.data = fe->dtv_property_cache.atscmh_tnog;
-+		break;
-+	case DTV_ATSCMH_SGN:
-+		tvp->u.data = fe->dtv_property_cache.atscmh_sgn;
-+		break;
-+	case DTV_ATSCMH_PRC:
-+		tvp->u.data = fe->dtv_property_cache.atscmh_prc;
-+		break;
-+	case DTV_ATSCMH_RS_FRAME_MODE:
-+		tvp->u.data = fe->dtv_property_cache.atscmh_rs_frame_mode;
-+		break;
-+	case DTV_ATSCMH_RS_FRAME_ENSEMBLE:
-+		tvp->u.data = fe->dtv_property_cache.atscmh_rs_frame_ensemble;
-+		break;
-+	case DTV_ATSCMH_RS_CODE_MODE_PRI:
-+		tvp->u.data = fe->dtv_property_cache.atscmh_rs_code_mode_pri;
-+		break;
-+	case DTV_ATSCMH_RS_CODE_MODE_SEC:
-+		tvp->u.data = fe->dtv_property_cache.atscmh_rs_code_mode_sec;
-+		break;
-+	case DTV_ATSCMH_SCCC_BLOCK_MODE:
-+		tvp->u.data = fe->dtv_property_cache.atscmh_sccc_block_mode;
-+		break;
-+	case DTV_ATSCMH_SCCC_CODE_MODE_A:
-+		tvp->u.data = fe->dtv_property_cache.atscmh_sccc_code_mode_a;
-+		break;
-+	case DTV_ATSCMH_SCCC_CODE_MODE_B:
-+		tvp->u.data = fe->dtv_property_cache.atscmh_sccc_code_mode_b;
-+		break;
-+	case DTV_ATSCMH_SCCC_CODE_MODE_C:
-+		tvp->u.data = fe->dtv_property_cache.atscmh_sccc_code_mode_c;
-+		break;
-+	case DTV_ATSCMH_SCCC_CODE_MODE_D:
-+		tvp->u.data = fe->dtv_property_cache.atscmh_sccc_code_mode_d;
-+		break;
-+	case DTV_ATSCMH_FIC_ERR:
-+		tvp->u.data = fe->dtv_property_cache.atscmh_fic_err;
-+		break;
-+	case DTV_ATSCMH_CRC_ERR:
-+		tvp->u.data = fe->dtv_property_cache.atscmh_crc_err;
-+		break;
-+	case DTV_ATSCMH_RS_ERR:
-+		tvp->u.data = fe->dtv_property_cache.atscmh_rs_err;
-+		break;
-+
- 	default:
- 		return -EINVAL;
- 	}
-@@ -1682,6 +1763,15 @@ static int dtv_property_process_set(struct dvb_frontend *fe,
- 	case DTV_DVBT2_PLP_ID:
- 		c->dvbt2_plp_id = tvp->u.data;
- 		break;
-+
-+	/* ATSC-MH */
-+	case DTV_ATSCMH_PARADE_ID:
-+		fe->dtv_property_cache.atscmh_parade_id = tvp->u.data;
-+		break;
-+	case DTV_ATSCMH_RS_FRAME_ENSEMBLE:
-+		fe->dtv_property_cache.atscmh_rs_frame_ensemble = tvp->u.data;
-+		break;
-+
- 	default:
- 		return -EINVAL;
- 	}
-diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.h b/drivers/media/dvb/dvb-core/dvb_frontend.h
-index d63a821..80f5c27 100644
---- a/drivers/media/dvb/dvb-core/dvb_frontend.h
-+++ b/drivers/media/dvb/dvb-core/dvb_frontend.h
-@@ -372,6 +372,28 @@ struct dtv_frontend_properties {
- 
- 	/* DVB-T2 specifics */
- 	u32                     dvbt2_plp_id;
-+
-+	/* ATSC-MH specifics */
-+	u8			atscmh_fic_ver;
-+	u8			atscmh_parade_id;
-+	u8			atscmh_nog;
-+	u8			atscmh_tnog;
-+	u8			atscmh_sgn;
-+	u8			atscmh_prc;
-+
-+	u8			atscmh_rs_frame_mode;
-+	u8			atscmh_rs_frame_ensemble;
-+	u8			atscmh_rs_code_mode_pri;
-+	u8			atscmh_rs_code_mode_sec;
-+	u8			atscmh_sccc_block_mode;
-+	u8			atscmh_sccc_code_mode_a;
-+	u8			atscmh_sccc_code_mode_b;
-+	u8			atscmh_sccc_code_mode_c;
-+	u8			atscmh_sccc_code_mode_d;
-+
-+	u16			atscmh_fic_err;
-+	u16			atscmh_crc_err;
-+	u16			atscmh_rs_err;
- };
- 
- struct dvb_frontend {
-diff --git a/include/linux/dvb/frontend.h b/include/linux/dvb/frontend.h
-index cb4428a..5aedd5a 100644
---- a/include/linux/dvb/frontend.h
-+++ b/include/linux/dvb/frontend.h
-@@ -320,7 +320,27 @@ struct dvb_frontend_event {
- 
- #define DTV_ENUM_DELSYS		44
- 
--#define DTV_MAX_COMMAND				DTV_ENUM_DELSYS
-+/* ATSC-MH */
-+#define DTV_ATSCMH_FIC_VER		45
-+#define DTV_ATSCMH_PARADE_ID		46
-+#define DTV_ATSCMH_NOG			47
-+#define DTV_ATSCMH_TNOG			48
-+#define DTV_ATSCMH_SGN			49
-+#define DTV_ATSCMH_PRC			50
-+#define DTV_ATSCMH_RS_FRAME_MODE	51
-+#define DTV_ATSCMH_RS_FRAME_ENSEMBLE	52
-+#define DTV_ATSCMH_RS_CODE_MODE_PRI	53
-+#define DTV_ATSCMH_RS_CODE_MODE_SEC	54
-+#define DTV_ATSCMH_SCCC_BLOCK_MODE	55
-+#define DTV_ATSCMH_SCCC_CODE_MODE_A	56
-+#define DTV_ATSCMH_SCCC_CODE_MODE_B	57
-+#define DTV_ATSCMH_SCCC_CODE_MODE_C	58
-+#define DTV_ATSCMH_SCCC_CODE_MODE_D	59
-+#define DTV_ATSCMH_FIC_ERR		60
-+#define DTV_ATSCMH_CRC_ERR		61
-+#define DTV_ATSCMH_RS_ERR		62
-+
-+#define DTV_MAX_COMMAND				DTV_ATSCMH_RS_ERR
- 
- typedef enum fe_pilot {
- 	PILOT_ON,
-@@ -360,6 +380,38 @@ typedef enum fe_delivery_system {
- 
- #define SYS_DVBC_ANNEX_AC	SYS_DVBC_ANNEX_A
- 
-+/* ATSC-MH */
-+
-+enum atscmh_sccc_block_mode {
-+	ATSCMH_SCCC_BLK_SEP      = 0,
-+	ATSCMH_SCCC_BLK_COMB     = 1,
-+	ATSCMH_SCCC_BLK_RES      = 2,
-+};
-+
-+enum atscmh_sccc_code_mode {
-+	ATSCMH_SCCC_CODE_HLF     = 0,
-+	ATSCMH_SCCC_CODE_QTR     = 1,
-+	ATSCMH_SCCC_CODE_RES     = 2,
-+};
-+
-+enum atscmh_rs_frame_ensemble {
-+	ATSCMH_RSFRAME_ENS_PRI   = 0,
-+	ATSCMH_RSFRAME_ENS_SEC   = 1,
-+};
-+
-+enum atscmh_rs_frame_mode {
-+	ATSCMH_RSFRAME_PRI_ONLY  = 0,
-+	ATSCMH_RSFRAME_PRI_SEC   = 1,
-+	ATSCMH_RSFRAME_RES       = 2,
-+};
-+
-+enum atscmh_rs_code_mode {
-+	ATSCMH_RSCODE_211_187    = 0,
-+	ATSCMH_RSCODE_223_187    = 1,
-+	ATSCMH_RSCODE_235_187    = 2,
-+	ATSCMH_RSCODE_RES        = 3,
-+};
-+
- 
- struct dtv_cmds_h {
- 	char	*name;		/* A display name for debugging purposes */
--- 
-1.7.5.4
+Here is the rebased version incorporating your remarks.
+Instead of commenting out variables I now put them under #if 0 together with
+the relevant piece of 'TODO' code.
 
+Regards,
+
+	Hans
+
+The following changes since commit e89fca923f32de26b69bf4cd604f7b960b161551:
+
+  [media] gspca - ov534: Add Hue control (2012-05-14 09:48:00 -0300)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git warnings
+
+for you to fetch changes up to d15edd383368cdd20ad142b1179282385303b56b:
+
+  v4l/dvb: fix compiler warnings. (2012-05-14 15:22:58 +0200)
+
+----------------------------------------------------------------
+Hans Verkuil (8):
+      dw2102: fix compile warnings
+      cx231xx: fix compiler warnings
+      ivtv/cx18: fix compiler warnings
+      cx25821: fix compiler warnings.
+      v4l: fix compiler warnings.
+      v4l: fix compiler warnings.
+      v4l/dvb: fix compiler warnings
+      v4l/dvb: fix compiler warnings.
+
+ drivers/media/dvb/bt8xx/dst_ca.c                         |    2 --
+ drivers/media/dvb/dvb-usb/dw2102.c                       |   76 ++++++++++++++++++++++------------------------
+ drivers/media/dvb/dvb-usb/lmedm04.c                      |    3 +-
+ drivers/media/dvb/frontends/af9013.c                     |   13 ++++----
+ drivers/media/dvb/frontends/cx24110.c                    |    7 ++---
+ drivers/media/dvb/frontends/dib9000.c                    |    3 +-
+ drivers/media/dvb/frontends/drxk_hard.c                  |   14 ++++++---
+ drivers/media/dvb/frontends/it913x-fe.c                  |   26 ++++++++--------
+ drivers/media/dvb/frontends/lgs8gxx.c                    |    3 +-
+ drivers/media/dvb/frontends/m88rs2000.c                  |    3 +-
+ drivers/media/dvb/frontends/stb0899_drv.c                |    8 +----
+ drivers/media/dvb/frontends/stb6100.c                    |    3 +-
+ drivers/media/dvb/frontends/stv0297.c                    |    2 --
+ drivers/media/dvb/frontends/stv0900_sw.c                 |    2 --
+ drivers/media/dvb/frontends/stv090x.c                    |    2 --
+ drivers/media/dvb/frontends/zl10353.c                    |    3 +-
+ drivers/media/dvb/mantis/hopper_cards.c                  |    3 +-
+ drivers/media/dvb/mantis/mantis_cards.c                  |    3 +-
+ drivers/media/dvb/mantis/mantis_dma.c                    |    4 ---
+ drivers/media/dvb/mantis/mantis_evm.c                    |    3 +-
+ drivers/media/dvb/siano/smssdio.c                        |    4 +--
+ drivers/media/rc/ir-sanyo-decoder.c                      |    4 +--
+ drivers/media/rc/mceusb.c                                |    3 +-
+ drivers/media/video/adv7343.c                            |    4 +--
+ drivers/media/video/au0828/au0828-video.c                |    4 +--
+ drivers/media/video/c-qcam.c                             |    3 +-
+ drivers/media/video/cx18/cx18-alsa-main.c                |    1 +
+ drivers/media/video/cx18/cx18-alsa-pcm.c                 |   10 ++-----
+ drivers/media/video/cx18/cx18-mailbox.c                  |    6 +---
+ drivers/media/video/cx18/cx18-streams.c                  |    3 --
+ drivers/media/video/cx231xx/cx231xx-417.c                |   18 ++++++-----
+ drivers/media/video/cx231xx/cx231xx-audio.c              |   18 ++++++-----
+ drivers/media/video/cx231xx/cx231xx-avcore.c             |  144 ++++++++++++++++++++++++++++++++++++++++------------------------------------------------
+ drivers/media/video/cx231xx/cx231xx-core.c               |   76 ++++++++++++++++++++++------------------------
+ drivers/media/video/cx231xx/cx231xx-vbi.c                |    6 +---
+ drivers/media/video/cx231xx/cx231xx-video.c              |   16 ----------
+ drivers/media/video/cx23885/cx23888-ir.c                 |    4 +--
+ drivers/media/video/cx25821/cx25821-alsa.c               |    2 --
+ drivers/media/video/cx25821/cx25821-audio-upstream.c     |    3 +-
+ drivers/media/video/cx25821/cx25821-core.c               |   14 ++-------
+ drivers/media/video/cx25821/cx25821-i2c.c                |    3 +-
+ drivers/media/video/cx25821/cx25821-medusa-video.c       |   13 ++++----
+ drivers/media/video/cx25821/cx25821-video-upstream-ch2.c |    3 +-
+ drivers/media/video/cx25821/cx25821-video-upstream.c     |    3 +-
+ drivers/media/video/cx25821/cx25821-video.c              |   25 ++--------------
+ drivers/media/video/cx25821/cx25821-video.h              |    2 --
+ drivers/media/video/cx25840/cx25840-ir.c                 |    6 +---
+ drivers/media/video/em28xx/em28xx-audio.c                |   11 ++++---
+ drivers/media/video/hdpvr/hdpvr-control.c                |    2 ++
+ drivers/media/video/hdpvr/hdpvr-video.c                  |    2 +-
+ drivers/media/video/ivtv/ivtv-ioctl.c                    |    3 --
+ drivers/media/video/ivtv/ivtvfb.c                        |    2 ++
+ drivers/media/video/pms.c                                |    4 +--
+ drivers/media/video/s2255drv.c                           |    4 ---
+ drivers/media/video/saa7134/saa7134-video.c              |    2 +-
+ drivers/media/video/sn9c102/sn9c102_core.c               |    4 +--
+ drivers/media/video/tm6000/tm6000-input.c                |    3 +-
+ drivers/media/video/tm6000/tm6000-stds.c                 |    2 --
+ drivers/media/video/tm6000/tm6000-video.c                |    9 +-----
+ drivers/media/video/tvp5150.c                            |    7 -----
+ drivers/media/video/tvp7002.c                            |    3 --
+ drivers/media/video/usbvision/usbvision-core.c           |   12 ++++----
+ drivers/media/video/videobuf-dvb.c                       |    3 +-
+ drivers/media/video/zoran/zoran_device.c                 |    2 --
+ drivers/media/video/zr364xx.c                            |    2 --
+ drivers/staging/media/go7007/go7007-v4l2.c               |    2 --
+ 66 files changed, 252 insertions(+), 408 deletions(-)
