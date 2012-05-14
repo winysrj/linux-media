@@ -1,139 +1,153 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout-de.gmx.net ([213.165.64.23]:39914 "HELO
-	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S932337Ab2EGV2l (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 May 2012 17:28:41 -0400
-From: "Hans-Frieder Vogt" <hfvogt@gmx.net>
-To: Antti Palosaari <crope@iki.fi>,
-	Thomas Mair <thomas.mair86@googlemail.com>
-Subject: Re: [PATCH v3 1/3] Modified RTL28xxU driver to work with RTL2832
-Date: Mon, 7 May 2012 23:28:34 +0200
-Cc: linux-media@vger.kernel.org
-References: <CAKZ=SG9U48d=eE3avccR-Auao5UMo0OANw8KKb=MP1XPtkHwmg@mail.gmail.com> <4FA8168E.3040807@googlemail.com> <4FA82244.9020804@iki.fi>
-In-Reply-To: <4FA82244.9020804@iki.fi>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201205072328.34261.hfvogt@gmx.net>
+Received: from mail-pz0-f46.google.com ([209.85.210.46]:33313 "EHLO
+	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755179Ab2ENJl0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 May 2012 05:41:26 -0400
+Received: by dady13 with SMTP id y13so5694411dad.19
+        for <linux-media@vger.kernel.org>; Mon, 14 May 2012 02:41:26 -0700 (PDT)
+From: Sachin Kamat <sachin.kamat@linaro.org>
+To: linux-media@vger.kernel.org
+Cc: mchehab@infradead.org, k.debski@samsung.com,
+	sachin.kamat@linaro.org, patches@linaro.org
+Subject: [PATCH] s5p-g2d: Use devm_* functions in g2d.c file
+Date: Mon, 14 May 2012 15:01:24 +0530
+Message-Id: <1336987884-23665-1-git-send-email-sachin.kamat@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Montag, 7. Mai 2012 schrieb Antti Palosaari:
-> On 07.05.2012 21:38, Thomas Mair wrote:
-> > On 07.05.2012 09:59, Antti Palosaari wrote:
-> >>> @@ -330,12 +335,12 @@ static int rtl2831u_frontend_attach(struct
-> >>> dvb_usb_adapter *adap)
-> >>> 
-> >>>        /* check QT1010 ID(?) register; reg=0f val=2c */
-> >>>        ret = rtl28xxu_ctrl_msg(adap->dev,&req_qt1010);
-> >>>        if (ret == 0&&   buf[0] == 0x2c) {
-> >>> 
-> >>> -        priv->tuner = TUNER_RTL2830_QT1010;
-> >>> +        priv->tuner = TUNER_RTL28XX_QT1010;
-> >> 
-> >> The idea why I named it as a TUNER_RTL2830_QT1010 was to map RTL2830 and
-> >> given tuner. It could be nice to identify used demod/tuner combination
-> >> in some cases if there will even be such combination same tuner used
-> >> for multiple RTL28XXU chips.
-> > 
-> > Ok. Should we use the TUNER_RTL2830/TUNER_RTL2832 approach or the
-> > RUNER_RTL28XX?
-> 
-> I vote for style example; RTL2830_QT1010 versus RTL2832_QT1010, just in
-> case same tuner could be used for multiple configurations.
-> 
-> But it is not big issue for RTL2830 as it supports only 3 tuners
-> currently - and there will not be likely any new. But there is some
-> other RTL28XXU chips, like DVB-C model and etc.
-> 
+devm_* functions are device managed functions and make error handling
+and cleanup simpler.
 
-Antti, Thomas,
+Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+---
+ drivers/media/video/s5p-g2d/g2d.c |   47 ++++++++----------------------------
+ drivers/media/video/s5p-g2d/g2d.h |    1 -
+ 2 files changed, 11 insertions(+), 37 deletions(-)
 
-I don't understand why it should be benefitial to distinguish between e.g. the 
-qt1010 connected to the RTL2830 or connected to the RTL2832. After all, the 
-demodulator knows which type it is, so there is no need to keep the 
-combination demodulator_tuner. And I find it rather confusing to have the same 
-tuner defined for either demod.
+diff --git a/drivers/media/video/s5p-g2d/g2d.c b/drivers/media/video/s5p-g2d/g2d.c
+index 789de74..5a11d37 100644
+--- a/drivers/media/video/s5p-g2d/g2d.c
++++ b/drivers/media/video/s5p-g2d/g2d.c
+@@ -674,42 +674,27 @@ static int g2d_probe(struct platform_device *pdev)
+ 	struct resource *res;
+ 	int ret = 0;
+ 
+-	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
++	dev = devm_kzalloc(&pdev->dev, sizeof(*dev), GFP_KERNEL);
+ 	if (!dev)
+ 		return -ENOMEM;
++
+ 	spin_lock_init(&dev->ctrl_lock);
+ 	mutex_init(&dev->mutex);
+ 	atomic_set(&dev->num_inst, 0);
+ 	init_waitqueue_head(&dev->irq_queue);
+ 
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+-	if (!res) {
+-		dev_err(&pdev->dev, "failed to find registers\n");
+-		ret = -ENOENT;
+-		goto free_dev;
+-	}
+ 
+-	dev->res_regs = request_mem_region(res->start, resource_size(res),
+-						dev_name(&pdev->dev));
+-
+-	if (!dev->res_regs) {
+-		dev_err(&pdev->dev, "failed to obtain register region\n");
+-		ret = -ENOENT;
+-		goto free_dev;
+-	}
+-
+-	dev->regs = ioremap(res->start, resource_size(res));
+-	if (!dev->regs) {
+-		dev_err(&pdev->dev, "failed to map registers\n");
+-		ret = -ENOENT;
+-		goto rel_res_regs;
++	dev->regs = devm_request_and_ioremap(&pdev->dev, res);
++	if (dev->regs == NULL) {
++			dev_err(&pdev->dev, "Failed to obtain io memory\n");
++			return -ENOENT;
+ 	}
+ 
+ 	dev->clk = clk_get(&pdev->dev, "sclk_fimg2d");
+ 	if (IS_ERR_OR_NULL(dev->clk)) {
+ 		dev_err(&pdev->dev, "failed to get g2d clock\n");
+-		ret = -ENXIO;
+-		goto unmap_regs;
++		return -ENXIO;
+ 	}
+ 
+ 	ret = clk_prepare(dev->clk);
+@@ -740,7 +725,8 @@ static int g2d_probe(struct platform_device *pdev)
+ 
+ 	dev->irq = res->start;
+ 
+-	ret = request_irq(dev->irq, g2d_isr, 0, pdev->name, dev);
++	ret = devm_request_irq(&pdev->dev, dev->irq, g2d_isr,
++						0, pdev->name, dev);
+ 	if (ret) {
+ 		dev_err(&pdev->dev, "failed to install IRQ\n");
+ 		goto put_clk_gate;
+@@ -749,7 +735,7 @@ static int g2d_probe(struct platform_device *pdev)
+ 	dev->alloc_ctx = vb2_dma_contig_init_ctx(&pdev->dev);
+ 	if (IS_ERR(dev->alloc_ctx)) {
+ 		ret = PTR_ERR(dev->alloc_ctx);
+-		goto rel_irq;
++		goto unprep_clk_gate;
+ 	}
+ 
+ 	ret = v4l2_device_register(&pdev->dev, &dev->v4l2_dev);
+@@ -793,8 +779,6 @@ unreg_v4l2_dev:
+ 	v4l2_device_unregister(&dev->v4l2_dev);
+ alloc_ctx_cleanup:
+ 	vb2_dma_contig_cleanup_ctx(dev->alloc_ctx);
+-rel_irq:
+-	free_irq(dev->irq, dev);
+ unprep_clk_gate:
+ 	clk_unprepare(dev->gate);
+ put_clk_gate:
+@@ -803,12 +787,7 @@ unprep_clk:
+ 	clk_unprepare(dev->clk);
+ put_clk:
+ 	clk_put(dev->clk);
+-unmap_regs:
+-	iounmap(dev->regs);
+-rel_res_regs:
+-	release_resource(dev->res_regs);
+-free_dev:
+-	kfree(dev);
++
+ 	return ret;
+ }
+ 
+@@ -821,14 +800,10 @@ static int g2d_remove(struct platform_device *pdev)
+ 	video_unregister_device(dev->vfd);
+ 	v4l2_device_unregister(&dev->v4l2_dev);
+ 	vb2_dma_contig_cleanup_ctx(dev->alloc_ctx);
+-	free_irq(dev->irq, dev);
+ 	clk_unprepare(dev->gate);
+ 	clk_put(dev->gate);
+ 	clk_unprepare(dev->clk);
+ 	clk_put(dev->clk);
+-	iounmap(dev->regs);
+-	release_resource(dev->res_regs);
+-	kfree(dev);
+ 	return 0;
+ }
+ 
+diff --git a/drivers/media/video/s5p-g2d/g2d.h b/drivers/media/video/s5p-g2d/g2d.h
+index 1b82065..6b765b0 100644
+--- a/drivers/media/video/s5p-g2d/g2d.h
++++ b/drivers/media/video/s5p-g2d/g2d.h
+@@ -23,7 +23,6 @@ struct g2d_dev {
+ 	spinlock_t		ctrl_lock;
+ 	atomic_t		num_inst;
+ 	struct vb2_alloc_ctx	*alloc_ctx;
+-	struct resource		*res_regs;
+ 	void __iomem		*regs;
+ 	struct clk		*clk;
+ 	struct clk		*gate;
+-- 
+1.7.4.1
 
-> >> It is ~same function that existing one but without LED GPIO. Hmmm, dunno
-> >> what to do. Maybe it is OK still as switching "random" GPIOs during
-> >> streaming control is not good idea.
-> > 
-> > I know. I had the same thougths and could not come up with a more elegant
-> > idea. Maybe here the TUNER_RTL2832 definition could be used. But that is
-> > too not the ideal solution I guess.
-> 
-> I dont even care if whole LED GPIO is removed. It is not needed at all
-> and I even suspect it is not on same GPIO for all RTL2831U devices... Do
-> what you want - leave it as you already did.
-> 
-> >> This looks weird as you write demod register. Is that really needed?
-> >> 
-> >> If you has some problems I suspect those are coming from the fact page
-> >> cached by the driver isdifferent than page used by chip. Likely demod
-> >> is reseted and page is 0 after that.
-> >> 
-> >> If you really have seen some problems then set page 0 in demod sleep. Or
-> >> set page directly to that driver priv.
-> > 
-> > I'll check that.
-> > 
-> >>> +#define RTL28XXU_TUNERS_H
-> >>> +
-> >>> +enum rtl28xxu_tuner {
-> >>> +       TUNER_NONE,
-> >>> +       TUNER_RTL28XX_QT1010,
-> >>> +       TUNER_RTL28XX_MT2060,
-> >>> +       TUNER_RTL28XX_MT2266,
-> >>> +       TUNER_RTL28XX_MT2063,
-> >>> +       TUNER_RTL28XX_MAX3543,
-> >>> +       TUNER_RTL28XX_TUA9001,
-> >>> +       TUNER_RTL28XX_MXL5005S,
-> >>> +       TUNER_RTL28XX_MXL5007T,
-> >>> +       TUNER_RTL28XX_FC2580,
-> >>> +       TUNER_RTL28XX_FC0012,
-> >>> +       TUNER_RTL28XX_FC0013,
-> >>> +       TUNER_RTL28XX_E4000,
-> >>> +       TUNER_RTL28XX_TDA18272,
-> >>> +};
-> >>> +
-> >>> +#endif
-> >> 
-> >> I don't see it good idea to export tuners from the DVB-USB-driver to the
-> >> demodulator. Demod drivers should be independent. For the other
-> >> direction it is OK, I mean you can add tuners for demod config
-> >> (rtl2832.h).
-> > 
-> > Ok. So the definitions of the tuners would go into the rtl2830.h and
-> > rtl2832.h.
-> 
-> Put those to the demod as a af9013 and af9033 for example has. rtl2830.h
-> does not need to know tuner at all, not need to add.
-> 
-
-what about renaming the header file to rtl283x_tuners.h, then it would be 
-clearer that the tuners are not defined in the USB driver, but rather as part 
-of all demod drivers available (ignore for a moment the rtl2840, which doesn't 
-fit into the proposed naming scheme)?
-
-> >> After all, you have done rather much changes. Even such changes that are
-> >> not relevant for the RTL2832 support. One patch per one change is the
-> >> rule. Also that patch serie is wrong order, it will break compilation
-> >> for example very bad when git bisect is taken. It should be done in
-> >> order first tuner or demod driver then DVB-USB-driver.
-> > 
-> > Sorry for the inconsistent patches. I will go over my changes again and
-> > split them into smaller chunks, trying to keep the changes to a minimum.
-> > That includes to change the order of the patches to tuner, demod and
-> > finally dvb-usb driver. Thanks for all the comments. They really help me
-> > getting the driver nice and neat. I will probably not be able to do the
-> > changes before next weekend.
-> 
-> regards
-> Antti
-
-Regards,
-Hans-Frieder
-
-Hans-Frieder Vogt                       e-mail: hfvogt <at> gmx .dot. net
