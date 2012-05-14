@@ -1,88 +1,168 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:23219 "EHLO mx1.redhat.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:48482 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756028Ab2ENLQi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 May 2012 07:16:38 -0400
-Message-ID: <4FB0E992.2070402@redhat.com>
-Date: Mon, 14 May 2012 08:16:34 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+	id S1757545Ab2ENTYc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 May 2012 15:24:32 -0400
+From: <manjunatha_halli@ti.com>
+To: <linux-media@vger.kernel.org>
+CC: <linux-kernel@vger.kernel.org>, Manjunatha Halli <x0130808@ti.com>
+Subject: [PATCH V5 2/5] New control class and features for FM RX
+Date: Mon, 14 May 2012 14:24:26 -0500
+Message-ID: <1337023469-24990-3-git-send-email-manjunatha_halli@ti.com>
+In-Reply-To: <1337023469-24990-1-git-send-email-manjunatha_halli@ti.com>
+References: <1337023469-24990-1-git-send-email-manjunatha_halli@ti.com>
 MIME-Version: 1.0
-To: Linus Torvalds <torvalds@linux-foundation.org>
-CC: Andrew Morton <akpm@linux-foundation.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Subject: [GIT PULL for v3.4-final] media fixes
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Linus,
+From: Manjunatha Halli <x0130808@ti.com>
 
-Please pull from:
-  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media v4l_for_linus
+This patch creates new ctrl class for FM RX and adds new CID's for
+below FM features,
+      1) De-Emphasis filter mode
+      2) RDS Alternate Frequency switch
 
-For a some fix patches for v3.4, including a regression fix at DVB core.
+Also this patch adds a field for band selection in struct v4l2_hw_freq_seek
+and adds new capability flags for all below FM bands
+	1) V4L2_TUNER_CAP_BAND_TYPE_DEFAULT -> Default Band
+	2) V4L2_TUNER_CAP_BAND_TYPE_EUROPE_US -> Europe/US Band
+	3) V4L2_TUNER_CAP_BAND_TYPE_JAPAN   -> Japan Band
+	4) V4L2_TUNER_CAP_BAND_TYPE_RUSSIAN -> Russian Band
+	5) V4L2_TUNER_CAP_BAND_TYPE_WEATHER -> Weather Band
 
-Thanks!
-Mauro
+Signed-off-by: Manjunatha Halli <x0130808@ti.com>
+---
+ drivers/media/video/v4l2-ctrls.c |   17 ++++++++++++++---
+ include/linux/videodev2.h        |   25 ++++++++++++++++++++++++-
+ 2 files changed, 38 insertions(+), 4 deletions(-)
 
--
-
-Latest commit at the branch: 
-788ab1bb03d304232711b6ca9718534f588ee9fc [media] gspca - sonixj: Fix a zero divide in isoc interrupt
-The following changes since commit 36be50515fe2aef61533b516fa2576a2c7fe7664:
-
-  Linux 3.4-rc7 (2012-05-12 18:37:47 -0700)
-
-are available in the git repository at:
-  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media v4l_for_linus
-
-Dan Carpenter (1):
-      [media] fintek-cir: change || to &&
-
-Guennadi Liakhovetski (1):
-      [media] V4L: soc-camera: protect hosts during probing from overzealous user-space
-
-H Hartley Sweeten (2):
-      [media] media: videobuf2-dma-contig: quiet sparse noise about plain integer as NULL pointer
-      [media] media: videobuf2-dma-contig: include header for exported symbols
-
-Jean-François Moine (1):
-      [media] gspca - sonixj: Fix a zero divide in isoc interrupt
-
-Jonathan Corbet (1):
-      [media] marvell-cam: fix an ARM build error
-
-Laurent Pinchart (1):
-      [media] media: vb2-memops: Export vb2_get_vma symbol
-
-Luis Henriques (1):
-      [media] rc: Postpone ISR registration
-
-Mauro Carvalho Chehab (1):
-      [media] dvb_frontend: fix a regression with DVB-S zig-zag
-
-Sylwester Nawrocki (3):
-      [media] V4L: Schedule V4L2_CID_HCENTER, V4L2_CID_VCENTER controls for removal
-      [media] s5p-fimc: Fix locking in subdev set_crop op
-      [media] s5p-fimc: Correct memory allocation for VIDIOC_CREATE_BUFS
-
- Documentation/feature-removal-schedule.txt    |   10 +++
- drivers/media/dvb/dvb-core/dvb_frontend.c     |    4 +
- drivers/media/rc/ene_ir.c                     |   32 +++++-----
- drivers/media/rc/fintek-cir.c                 |   22 ++++----
- drivers/media/rc/ite-cir.c                    |   20 +++---
- drivers/media/rc/nuvoton-cir.c                |   36 ++++++------
- drivers/media/rc/winbond-cir.c                |   78 ++++++++++++------------
- drivers/media/video/gspca/sonixj.c            |    8 +-
- drivers/media/video/marvell-ccic/mmp-driver.c |    1 -
- drivers/media/video/s5p-fimc/fimc-capture.c   |   33 +++++++----
- drivers/media/video/s5p-fimc/fimc-core.c      |    4 +-
- drivers/media/video/s5p-fimc/fimc-core.h      |    2 +-
- drivers/media/video/soc_camera.c              |    8 ++-
- drivers/media/video/videobuf2-dma-contig.c    |    3 +-
- drivers/media/video/videobuf2-memops.c        |    1 +
- include/media/soc_camera.h                    |    3 +-
- 16 files changed, 147 insertions(+), 118 deletions(-)
+diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
+index 18015c0..9d7608e 100644
+--- a/drivers/media/video/v4l2-ctrls.c
++++ b/drivers/media/video/v4l2-ctrls.c
+@@ -243,8 +243,8 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
+ 		"Vivid",
+ 		NULL
+ 	};
+-	static const char * const tune_preemphasis[] = {
+-		"No Preemphasis",
++	static const char * const tune_emphasis[] = {
++		"None",
+ 		"50 Microseconds",
+ 		"75 Microseconds",
+ 		NULL,
+@@ -413,7 +413,9 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
+ 	case V4L2_CID_COLORFX:
+ 		return colorfx;
+ 	case V4L2_CID_TUNE_PREEMPHASIS:
+-		return tune_preemphasis;
++		return tune_emphasis;
++	case V4L2_CID_TUNE_DEEMPHASIS:
++		return tune_emphasis;
+ 	case V4L2_CID_FLASH_LED_MODE:
+ 		return flash_led_mode;
+ 	case V4L2_CID_FLASH_STROBE_SOURCE:
+@@ -644,6 +646,12 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_JPEG_COMPRESSION_QUALITY:	return "Compression Quality";
+ 	case V4L2_CID_JPEG_ACTIVE_MARKER:	return "Active Markers";
+ 
++	/* FM Radio Receiver control */
++	/* Keep the order of the 'case's the same as in videodev2.h! */
++	case V4L2_CID_FM_RX_CLASS:		return "FM Radio Receiver Controls";
++	case V4L2_CID_RDS_AF_SWITCH:		return "RDS Alternate Frequency Switch";
++	case V4L2_CID_TUNE_DEEMPHASIS:		return "De-Emphasis";
++
+ 	default:
+ 		return NULL;
+ 	}
+@@ -688,6 +696,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_MPEG_VIDEO_H264_8X8_TRANSFORM:
+ 	case V4L2_CID_MPEG_VIDEO_H264_VUI_SAR_ENABLE:
+ 	case V4L2_CID_MPEG_VIDEO_MPEG4_QPEL:
++	case V4L2_CID_RDS_AF_SWITCH:
+ 		*type = V4L2_CTRL_TYPE_BOOLEAN;
+ 		*min = 0;
+ 		*max = *step = 1;
+@@ -733,6 +742,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_MPEG_VIDEO_MPEG4_LEVEL:
+ 	case V4L2_CID_MPEG_VIDEO_MPEG4_PROFILE:
+ 	case V4L2_CID_JPEG_CHROMA_SUBSAMPLING:
++	case V4L2_CID_TUNE_DEEMPHASIS:
+ 		*type = V4L2_CTRL_TYPE_MENU;
+ 		break;
+ 	case V4L2_CID_RDS_TX_PS_NAME:
+@@ -745,6 +755,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_FM_TX_CLASS:
+ 	case V4L2_CID_FLASH_CLASS:
+ 	case V4L2_CID_JPEG_CLASS:
++	case V4L2_CID_FM_RX_CLASS:
+ 		*type = V4L2_CTRL_TYPE_CTRL_CLASS;
+ 		/* You can neither read not write these */
+ 		*flags |= V4L2_CTRL_FLAG_READ_ONLY | V4L2_CTRL_FLAG_WRITE_ONLY;
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index c9c9a46..16c0e90 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -1137,6 +1137,7 @@ struct v4l2_ext_controls {
+ #define V4L2_CTRL_CLASS_FM_TX 0x009b0000	/* FM Modulator control class */
+ #define V4L2_CTRL_CLASS_FLASH 0x009c0000	/* Camera flash controls */
+ #define V4L2_CTRL_CLASS_JPEG 0x009d0000		/* JPEG-compression controls */
++#define V4L2_CTRL_CLASS_FM_RX 0x009e0000	/* FM Receiver control class */
+ 
+ #define V4L2_CTRL_ID_MASK      	  (0x0fffffff)
+ #define V4L2_CTRL_ID2CLASS(id)    ((id) & 0x0fff0000UL)
+@@ -1782,6 +1783,13 @@ enum v4l2_jpeg_chroma_subsampling {
+ #define	V4L2_JPEG_ACTIVE_MARKER_DQT		(1 << 17)
+ #define	V4L2_JPEG_ACTIVE_MARKER_DHT		(1 << 18)
+ 
++/* FM Receiver class control IDs */
++#define V4L2_CID_FM_RX_CLASS_BASE		(V4L2_CTRL_CLASS_FM_RX | 0x900)
++#define V4L2_CID_FM_RX_CLASS			(V4L2_CTRL_CLASS_FM_RX | 1)
++
++#define V4L2_CID_RDS_AF_SWITCH			(V4L2_CID_FM_RX_CLASS_BASE + 1)
++#define V4L2_CID_TUNE_DEEMPHASIS		(V4L2_CID_FM_RX_CLASS_BASE + 2)
++
+ /*
+  *	T U N I N G
+  */
+@@ -1819,6 +1827,12 @@ struct v4l2_modulator {
+ #define V4L2_TUNER_CAP_RDS		0x0080
+ #define V4L2_TUNER_CAP_RDS_BLOCK_IO	0x0100
+ #define V4L2_TUNER_CAP_RDS_CONTROLS	0x0200
++#define V4L2_TUNER_CAP_BAND_TYPE_DEFAULT	0x00000000	/* Default band */
++#define V4L2_TUNER_CAP_BAND_TYPE_EUROPE_US	0x00010000	/* Europe/US band */
++#define V4L2_TUNER_CAP_BAND_TYPE_JAPAN		0x00020000	/* Japan band */
++#define V4L2_TUNER_CAP_BAND_TYPE_RUSSIAN	0x00030000	/* Russian band */
++#define V4L2_TUNER_CAP_BAND_TYPE_WEATHER	0x00040000	/* Weather band */
++
+ 
+ /*  Flags for the 'rxsubchans' field */
+ #define V4L2_TUNER_SUB_MONO		0x0001
+@@ -1843,13 +1857,22 @@ struct v4l2_frequency {
+ 	__u32		      reserved[8];
+ };
+ 
++
++#define FM_BAND_TYPE_DEFAULT	0	/* All Bands 65.8 MHz till 108 Mhz
++					   or 162.55 MHz if weather band */
++#define FM_BAND_TYPE_EUROPE_US	1	/* 87.5 Mhz - 108 MHz*/
++#define FM_BAND_TYPE_JAPAN	2	/* 76 MHz - 90 MHz*/
++#define FM_BAND_TYPE_RUSSIAN	3	/* 65.8 MHz - 74 MHz*/
++#define FM_BAND_TYPE_WEATHER	4	/* 162.4 MHz - 162.55 MHz*/
++
+ struct v4l2_hw_freq_seek {
+ 	__u32		      tuner;
+ 	enum v4l2_tuner_type  type;
+ 	__u32		      seek_upward;
+ 	__u32		      wrap_around;
+ 	__u32		      spacing;
+-	__u32		      reserved[7];
++	__u32		      band;
++	__u32		      reserved[6];
+ };
+ 
+ /*
+-- 
+1.7.4.1
 
