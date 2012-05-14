@@ -1,107 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f178.google.com ([209.85.212.178]:39082 "EHLO
-	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1030492Ab2EQWrd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 May 2012 18:47:33 -0400
-Received: by wibhn6 with SMTP id hn6so2302976wib.1
-        for <linux-media@vger.kernel.org>; Thu, 17 May 2012 15:47:32 -0700 (PDT)
-From: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
-Subject: [PATCH 3/3] libscan renamings
-Date: Fri, 18 May 2012 00:46:47 +0200
-Message-Id: <1337294807-539-1-git-send-email-neolynx@gmail.com>
-In-Reply-To: <1337277582-14128-2-git-send-email-neolynx@gmail.com>
-References: <1337277582-14128-2-git-send-email-neolynx@gmail.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:56527 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932455Ab2ENWB5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 May 2012 18:01:57 -0400
+From: <manjunatha_halli@ti.com>
+To: <linux-media@vger.kernel.org>
+CC: <linux-kernel@vger.kernel.org>, Manjunatha Halli <x0130808@ti.com>
+Subject: [PATCH V6 3/5] Add new CID for FM TX RDS Alternate Frequency
+Date: Mon, 14 May 2012 17:01:51 -0500
+Message-ID: <1337032913-18646-4-git-send-email-manjunatha_halli@ti.com>
+In-Reply-To: <1337032913-18646-1-git-send-email-manjunatha_halli@ti.com>
+References: <1337032913-18646-1-git-send-email-manjunatha_halli@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
----
- lib/include/libscan.h  |   12 ++++++++++--
- lib/libdvbv5/libscan.c |    6 +++---
- utils/dvb/dvbv5-scan.c |    4 ++--
- 3 files changed, 15 insertions(+), 7 deletions(-)
+From: Manjunatha Halli <x0130808@ti.com>
 
-diff --git a/lib/include/libscan.h b/lib/include/libscan.h
-index bc11ce1..a2b061c 100644
---- a/lib/include/libscan.h
-+++ b/lib/include/libscan.h
-@@ -136,11 +136,19 @@ struct dvb_descriptors {
- 	unsigned cur_ts;
- };
+Signed-off-by: Manjunatha Halli <x0130808@ti.com>
+---
+ drivers/media/video/v4l2-ctrls.c |    1 +
+ include/linux/videodev2.h        |    1 +
+ 2 files changed, 2 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
+index 9d7608e..610076c 100644
+--- a/drivers/media/video/v4l2-ctrls.c
++++ b/drivers/media/video/v4l2-ctrls.c
+@@ -608,6 +608,7 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_RDS_TX_PTY:		return "RDS Program Type";
+ 	case V4L2_CID_RDS_TX_PS_NAME:		return "RDS PS Name";
+ 	case V4L2_CID_RDS_TX_RADIO_TEXT:	return "RDS Radio Text";
++	case V4L2_CID_RDS_TX_AF_FREQ:		return "RDS Alternate Frequency";
+ 	case V4L2_CID_AUDIO_LIMITER_ENABLED:	return "Audio Limiter Feature Enabled";
+ 	case V4L2_CID_AUDIO_LIMITER_RELEASE_TIME: return "Audio Limiter Release Time";
+ 	case V4L2_CID_AUDIO_LIMITER_DEVIATION:	return "Audio Limiter Deviation";
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index 7b3dd95..b16d603 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -1699,6 +1699,7 @@ enum  v4l2_exposure_auto_type {
+ #define V4L2_CID_RDS_TX_PTY			(V4L2_CID_FM_TX_CLASS_BASE + 3)
+ #define V4L2_CID_RDS_TX_PS_NAME			(V4L2_CID_FM_TX_CLASS_BASE + 5)
+ #define V4L2_CID_RDS_TX_RADIO_TEXT		(V4L2_CID_FM_TX_CLASS_BASE + 6)
++#define V4L2_CID_RDS_TX_AF_FREQ			(V4L2_CID_FM_TX_CLASS_BASE + 7)
  
--struct dvb_descriptors *get_dvb_ts_tables(int dmx_fd,
-+#ifdef __cplusplus
-+extern "C" {
-+#endif
-+
-+struct dvb_descriptors *dvb_get_ts_tables(int dmx_fd,
- 					  uint32_t delivery_system,
- 					  unsigned other_nit,
- 					  unsigned timeout_multiply,
- 					  int verbose);
--void free_dvb_ts_tables(struct dvb_descriptors *dvb_desc);
-+void dvb_free_ts_tables(struct dvb_descriptors *dvb_desc);
-+
-+#ifdef __cplusplus
-+}
-+#endif
- 
- #endif
-diff --git a/lib/libdvbv5/libscan.c b/lib/libdvbv5/libscan.c
-index dd010e1..7916d36 100644
---- a/lib/libdvbv5/libscan.c
-+++ b/lib/libdvbv5/libscan.c
-@@ -400,7 +400,7 @@ static int read_section(int dmx_fd, struct dvb_descriptors *dvb_desc,
- 	return 0;
- }
- 
--struct dvb_descriptors *get_dvb_ts_tables(int dmx_fd,
-+struct dvb_descriptors *dvb_get_ts_tables(int dmx_fd,
- 					  uint32_t delivery_system,
- 					  unsigned other_nit,
- 					  unsigned timeout_multiply,
-@@ -460,7 +460,7 @@ struct dvb_descriptors *get_dvb_ts_tables(int dmx_fd,
- 			  pat_pmt_time * timeout_multiply);
- 	if (rc < 0) {
- 		fprintf(stderr, "error while waiting for PAT table\n");
--		free_dvb_ts_tables(dvb_desc);
-+		dvb_free_ts_tables(dvb_desc);
- 		return NULL;
- 	}
- 
-@@ -504,7 +504,7 @@ struct dvb_descriptors *get_dvb_ts_tables(int dmx_fd,
- }
- 
- 
--void free_dvb_ts_tables(struct dvb_descriptors *dvb_desc)
-+void dvb_free_ts_tables(struct dvb_descriptors *dvb_desc)
- {
- 	struct pat_table *pat_table = &dvb_desc->pat_table;
- 	struct pid_table *pid_table = dvb_desc->pat_table.pid_table;
-diff --git a/utils/dvb/dvbv5-scan.c b/utils/dvb/dvbv5-scan.c
-index c7b18eb..64945cc 100644
---- a/utils/dvb/dvbv5-scan.c
-+++ b/utils/dvb/dvbv5-scan.c
-@@ -406,7 +406,7 @@ static int run_scan(struct arguments *args,
- 		if (rc < 0)
- 			continue;
- 
--		dvb_desc = get_dvb_ts_tables(dmx_fd,
-+		dvb_desc = dvb_get_ts_tables(dmx_fd,
- 					     parms->current_sys,
- 					     args->other_nit,
- 					     args->timeout_multiply,
-@@ -433,7 +433,7 @@ static int run_scan(struct arguments *args,
- 		if (!args->dont_add_new_freqs)
- 			add_other_freq_entries(dvb_file, parms, dvb_desc);
- 
--		free_dvb_ts_tables(dvb_desc);
-+		dvb_free_ts_tables(dvb_desc);
- 	}
- 
- 	if (dvb_file_new)
+ #define V4L2_CID_AUDIO_LIMITER_ENABLED		(V4L2_CID_FM_TX_CLASS_BASE + 64)
+ #define V4L2_CID_AUDIO_LIMITER_RELEASE_TIME	(V4L2_CID_FM_TX_CLASS_BASE + 65)
 -- 
-1.7.2.5
+1.7.4.1
 
