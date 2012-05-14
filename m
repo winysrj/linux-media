@@ -1,56 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:44841 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755176Ab2EXOq4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 May 2012 10:46:56 -0400
-Message-ID: <4FBE49DC.8090109@iki.fi>
-Date: Thu, 24 May 2012 17:46:52 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:58510 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751446Ab2ENACj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 13 May 2012 20:02:39 -0400
+Date: Mon, 14 May 2012 03:02:34 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: linux-media@vger.kernel.org, m.szyprowski@samsung.com,
+	riverful.kim@samsung.com, sw0312.kim@samsung.com,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: Re: [PATCH 03/23] V4L: Add an extended camera white balance control
+Message-ID: <20120514000234.GG3373@valkosipuli.retiisi.org.uk>
+References: <1336645858-30366-1-git-send-email-s.nawrocki@samsung.com>
+ <1336645858-30366-4-git-send-email-s.nawrocki@samsung.com>
 MIME-Version: 1.0
-To: =?ISO-8859-1?Q?R=E9mi_Denis-Courmont?= <remi@remlab.net>
-CC: Hans de Goede <hdegoede@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Ondrej Zary <linux@rainbow-software.org>
-Subject: Re: RFC: V4L2 API and radio devices with multiple tuners
-References: <4FB7E489.10803@redhat.com> <4FB7E827.7070701@iki.fi> <201205221926.38970.remi@remlab.net>
-In-Reply-To: <201205221926.38970.remi@remlab.net>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1336645858-30366-4-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 22.05.2012 19:26, Rémi Denis-Courmont wrote:
-> Le samedi 19 mai 2012 21:36:23 Antti Palosaari, vous avez écrit :
->> On 19.05.2012 21:20, Hans de Goede wrote:
->>> Currently the V4L2 API does not allow for radio devices with more then 1
->>> tuner,
->>> which is a bit of a historical oversight, since many radio devices have 2
->>> tuners/demodulators 1 for FM and one for AM. Trying to model this as 1
->>> tuner
->>> really does not work well, as they have 2 completely separate frequency
->>> bands
->>> they handle, as well as different properties (the FM part usually is
->>> stereo capable, the AM part is not).
->>>
->>> It is important to realize here that usually the AM/FM tuners are part
->>> of 1 chip, and often have only 1 frequency register which is used in
->>> both AM/FM modes. IOW it more or less is one tuner, but with 2 modes,
->>> and from a V4L2 API pov these modes are best modeled as 2 tuners.
->>> This is at least true for the radio-cadet card and the tea575x,
->>> which are the only 2 AM capable radio devices we currently know about.
->>
->> For DVB API we changed just opposite direction - from multi-frontend to
->> single-frontend. I think one device per one standard is good choice.
->
-> If I understand Hans correctly, he suggests to use two tuners on a *single*
-> radio device node, much like a single video device nodes can have multiple
-> video inputs. So I think you agree with Hans, and so do I.
+Hi Sylwaster,
 
-OK, then I was misunderstanding it. Unfortunately I have no enough V4L2 
-API experience to comment that :i
+Thanks for the patch. I noticed your pull req; I hope you could take into
+account a few more comments. :)
 
-regards
-Antti
+On Thu, May 10, 2012 at 12:30:38PM +0200, Sylwester Nawrocki wrote:
+> This patch adds V4L2_CID_AUTO_N_PRESET_WHITE_BALANCE control which is
+> an extended version of the V4L2_CID_AUTO_WHITE_BALANCE control,
+> including white balance presets. The following presets are defined:
+> 
+>  - V4L2_WHITE_BALANCE_INCANDESCENT,
+>  - V4L2_WHITE_BALANCE_FLUORESCENT,
+>  - V4L2_WHITE_BALANCE_FLUORESCENT_H,
+>  - V4L2_WHITE_BALANCE_HORIZON,
+>  - V4L2_WHITE_BALANCE_DAYLIGHT,
+>  - V4L2_WHITE_BALANCE_FLASH,
+>  - V4L2_WHITE_BALANCE_CLOUDY,
+>  - V4L2_WHITE_BALANCE_SHADE.
+> 
+> Signed-off-by: HeungJun Kim <riverful.kim@samsung.com>
+> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> Acked-by: Hans de Goede <hdegoede@redhat.com>
+> ---
+>  Documentation/DocBook/media/v4l/controls.xml |   70 ++++++++++++++++++++++++++
+>  drivers/media/video/v4l2-ctrls.c             |   17 +++++++
+>  include/linux/videodev2.h                    |   14 ++++++
+>  3 files changed, 101 insertions(+)
+> 
+> diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+> index 40e6485..85d1ca0 100644
+> --- a/Documentation/DocBook/media/v4l/controls.xml
+> +++ b/Documentation/DocBook/media/v4l/controls.xml
+> @@ -3022,6 +3022,76 @@ camera sensor on or off, or specify its strength. Such band-stop filters can
+>  be used, for example, to filter out the fluorescent light component.</entry>
+>  	  </row>
+>  	  <row><entry></entry></row>
+> +
+> +	  <row id="v4l2-auto-n-preset-white-balance">
+> +	    <entry spanname="id"><constant>V4L2_CID_AUTO_N_PRESET_WHITE_BALANCE</constant>&nbsp;</entry>
+> +	    <entry>enum&nbsp;v4l2_auto_n_preset_white_balance</entry>
+> +	  </row><row><entry spanname="descr">Sets white balance to automatic,
+> +manual or a preset. The presets determine color temperature of the light as
+> +a hint to the camera for white balance adjustments resulting in most accurate
+> +color representation. The following white balance presets are listed in order
+> +of increasing color temperature.</entry>
+> +	  </row>
+> +	  <row>
+> +	    <entrytbl spanname="descr" cols="2">
+> +	      <tbody valign="top">
+> +		<row>
+> +		  <entry><constant>V4L2_WHITE_BALANCE_MANUAL</constant>&nbsp;</entry>
+> +		  <entry>Manual white balance.</entry>
+> +		</row>
+> +		<row>
+> +		  <entry><constant>V4L2_WHITE_BALANCE_AUTO</constant>&nbsp;</entry>
+> +		  <entry>Automatic white balance adjustments.</entry>
+> +		</row>
+> +		<row>
+> +		  <entry><constant>V4L2_WHITE_BALANCE_INCANDESCENT</constant>&nbsp;</entry>
+> +		  <entry>White balance setting for incandescent (tungsten) lighting.
+> +It generally cools down the colors and corresponds approximately to 2500...3500 K
+> +color temperature range.</entry>
+> +		</row>
+> +		<row>
+> +		  <entry><constant>V4L2_WHITE_BALANCE_FLUORESCENT</constant>&nbsp;</entry>
+> +		  <entry>White balance preset for fluorescent lighting.
+> +It corresponds approximately to 4000...5000 K color temperature.</entry>
+> +		</row>
+> +		<row>
+> +		  <entry><constant>V4L2_WHITE_BALANCE_FLUORESCENT_H</constant>&nbsp;</entry>
+> +		  <entry>With this setting the camera will compensate for
+> +fluorescent H lighting.</entry>
+> +		</row>
+
+I don't remember for quite sure if I replied to this already... what's the
+diff between the above two?
+
+The colour temperature of the fluorescent light depends on the lamp; 2500 K
+is not uncommon here in Finland. It's the spectrum that's different from
+incandescents, not necessarily the colour temperature.
+
+> +		<row>
+> +		  <entry><constant>V4L2_WHITE_BALANCE_HORIZON</constant>&nbsp;</entry>
+> +		  <entry>White balance setting for horizon daylight.
+> +It corresponds approximately to 5000 K color temperature.</entry>
+> +		</row>
+> +		<row>
+> +		  <entry><constant>V4L2_WHITE_BALANCE_DAYLIGHT</constant>&nbsp;</entry>
+> +		  <entry>White balance preset for daylight (with clear sky).
+> +It corresponds approximately to 5000...6500 K color temperature.</entry>
+> +		</row>
+> +		<row>
+> +		  <entry><constant>V4L2_WHITE_BALANCE_FLASH</constant>&nbsp;</entry>
+> +		  <entry>With this setting the camera will compensate for the flash
+> +light. It slightly warms up the colors and corresponds roughly to 5000...5500 K
+> +color temperature.</entry>
+
+This also depends heavily on the type of the flash.
+
+I'd just remove the colour temperature from most of these since it looks
+more like assumptions made in a particular system rather than something
+generic.
+
+Kind regards,
+
 -- 
-http://palosaari.fi/
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
