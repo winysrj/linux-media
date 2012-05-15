@@ -1,208 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:34982 "EHLO
-	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750807Ab2EDRV5 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 4 May 2012 13:21:57 -0400
-Received: by qcsu28 with SMTP id u28so2578060qcs.22
-        for <linux-media@vger.kernel.org>; Fri, 04 May 2012 10:21:51 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <Pine.LNX.4.64.1205041541100.21890@axis700.grange>
-References: <CAKnK67SK+CKBL-Dx0V0nyYtEWN3wp3D90M9irFCQOmqiX2fKPw@mail.gmail.com>
- <Pine.LNX.4.64.1205041541100.21890@axis700.grange>
-From: "Aguirre, Sergio" <saaguirre@ti.com>
-Date: Fri, 4 May 2012 12:21:30 -0500
-Message-ID: <CAKnK67SLmeU869TsW3Ls+gs4iX_DvYo32_2rKmtKE-mCMtzpzg@mail.gmail.com>
-Subject: Re: [PATCH] v4l: soc-camera: Add support for enum_frameintervals ioctl
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>, Qing Xu <qingx@marvell.com>,
-	Jonathan Corbet <corbet@lwn.net>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:41585 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752437Ab2EOJs7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 May 2012 05:48:59 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: text/plain; charset=UTF-8
+Received: from euspt2 ([210.118.77.13]) by mailout3.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0M4200A905WC0W40@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 15 May 2012 10:48:12 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0M4200J0U5XEY3@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 15 May 2012 10:48:55 +0100 (BST)
+Date: Tue, 15 May 2012 11:48:48 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [GIT PULL FOR 3.5] Samsung media driver updates
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Message-id: <4FB22680.6050109@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+Hi Mauro,
 
-No problem.
+The following changes since commit e89fca923f32de26b69bf4cd604f7b960b161551:
 
-On Fri, May 4, 2012 at 10:05 AM, Guennadi Liakhovetski
-<g.liakhovetski@gmx.de> wrote:
-> Hi Sergio
->
-> Sorry about the delay.
->
-> On Wed, 18 Apr 2012, Aguirre, Sergio wrote:
->
->> From: Sergio Aguirre <saaguirre@ti.com>
->>
->> Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
->> ---
->>  drivers/media/video/soc_camera.c |   37 +++++++++++++++++++++++++++++++++++++
->>  include/media/soc_camera.h       |    1 +
->>  2 files changed, 38 insertions(+), 0 deletions(-)
->>
->> diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
->> index eb25756..62c8956 100644
->> --- a/drivers/media/video/soc_camera.c
->> +++ b/drivers/media/video/soc_camera.c
->> @@ -266,6 +266,15 @@ static int soc_camera_enum_fsizes(struct file
->> *file, void *fh,
->>       return ici->ops->enum_fsizes(icd, fsize);
->>  }
->>
->> +static int soc_camera_enum_fivals(struct file *file, void *fh,
->
-> "fivals" is a bit short for my taste. Yes, I know about the
-> *_enum_fsizes() precedent in soc_camera.c, we should have used a more
-> descriptive name for that too. So, maybe I'll push a patch to change that
-> to enum_frmsizes() or enum_framesizes().
+  [media] gspca - ov534: Add Hue control (2012-05-14 09:48:00 -0300)
 
-Agreed.
+are available in the git repository at:
 
->
-> But that brings in a larger question, which is also the reason, why I
-> added a couple more people to the CC: the following 3 operations in struct
-> v4l2_subdev_video_ops don't make me particularly happy:
->
->        int (*enum_framesizes)(struct v4l2_subdev *sd, struct v4l2_frmsizeenum *fsize);
->        int (*enum_frameintervals)(struct v4l2_subdev *sd, struct v4l2_frmivalenum *fival);
->        int (*enum_mbus_fsizes)(struct v4l2_subdev *sd,
->                             struct v4l2_frmsizeenum *fsize);
->
-> The problems are:
->
-> 1. enum_framesizes and enum_mbus_fsizes seem to be identical (yes, I see
-> my Sob under the latter:-()
+  git://git.infradead.org/users/kmpark/linux-samsung v4l_samsung_for_v3.5
 
-Yeah, IMHO, the mbus one should go, since there's no mbus specific structure
-being handed as a parameter.
+for you to fetch changes up to 5aeade300821356695046a814c86bd1ebfeb5bde:
 
-> 2. both struct v4l2_frmsizeenum and struct v4l2_frmivalenum are the
-> structs, used in the respective V4L2 ioctl()s, and they both contain a
-> field for a fourcc value, which doesn't make sense to subdevice drivers.
-> So far the only driver combination in the mainline, that I see, that uses
-> these operations is marvell-ccic & ov7670. These drivers just ignore the
-> pixel format. Relatively recently enum_mbus_fsizes() has been added to
-> soc-camera, and this patch is adding enum_frameintervals(). Both these
-> implementations abuse the .pixel_format field to pass a media-bus code
-> value in it to subdevice drivers. This sends meaningful information to
-> subdevice drivers, but is really a hack, rather than a proper
-> implementation.
+  s5p-mfc: Use devm_* functions in s5p_mfc.c file (2012-05-14 18:33:44 +0200)
 
-True.
+This are updates for s5p-tv driver and other various fixes and improvements
+for drivers/media/video/s5p-*.
 
->
-> Any idea how to improve this? Shall we create mediabus clones of those
-> structs with an mbus code instead of fourcc, and drop one of the above
-> enum_framesizes() operations?
+----------------------------------------------------------------
+Marek Szyprowski (1):
+      v4l: s5p-tv: fix plane size calculation
 
-Well, to add more confusion to this.. :)
+Sachin Kamat (10):
+      v4l: s5p-tv: Fix section mismatch warning in mixer_video.c
+      s5p-mfc: Fix NULL pointer warnings
+      s5p-mfc: Add missing static storage class to silence warnings
+      s5p-g2d: Fix NULL pointer warnings in g2d.c file
+      s5p-g2d: Add missing static storage class in g2d.c file
+      s5p-jpeg: Make s5p_jpeg_g_selection function static
+      s5p-mfc: Add missing static storage class in s5p_mfc_enc.c file
+      s5p-g2d: Use devm_* functions in g2d.c file
+      s5p-jpeg: Use devm_* functions in jpeg-core.c file
+      s5p-mfc: Use devm_* functions in s5p_mfc.c file
 
-We have this v4l2-subdev IOCTLs exported to userspace:
+Tomasz Stanislawski (5):
+      v4l: s5p-tv: mixer: fix compilation warning
+      v4l: s5p-tv: hdmiphy: add support for per-platform variants
+      v4l: s5p-tv: hdmi: parametrize DV timings
+      v4l: s5p-tv: hdmi: fix mode synchronization
+      v4l: s5p-tv: mixer: fix handling of interlaced modes
 
-#define VIDIOC_SUBDEV_ENUM_FRAME_SIZE \
-			_IOWR('V', 74, struct v4l2_subdev_frame_size_enum)
-#define VIDIOC_SUBDEV_ENUM_FRAME_INTERVAL \
-			_IOWR('V', 75, struct v4l2_subdev_frame_interval_enum)
+ drivers/media/video/s5p-g2d/g2d.c            |   65 +++++---------
+ drivers/media/video/s5p-g2d/g2d.h            |    1 -
+ drivers/media/video/s5p-jpeg/jpeg-core.c     |   60 +++----------
+ drivers/media/video/s5p-jpeg/jpeg-core.h     |    2 -
+ drivers/media/video/s5p-mfc/s5p_mfc.c        |   75 +++++-----------
+ drivers/media/video/s5p-mfc/s5p_mfc_common.h |    2 -
+ drivers/media/video/s5p-mfc/s5p_mfc_ctrl.c   |   16 ++--
+ drivers/media/video/s5p-mfc/s5p_mfc_enc.c    |    6 +-
+ drivers/media/video/s5p-mfc/s5p_mfc_opr.c    |   28 +++---
+ drivers/media/video/s5p-tv/hdmi_drv.c        |  480
+++++++++++++++++++++++++++++++++++++++++++++++-----------------------------------------------------
+ drivers/media/video/s5p-tv/hdmiphy_drv.c     |  225
+++++++++++++++++++++++++++++++++++++++--------
+ drivers/media/video/s5p-tv/mixer.h           |    3 +-
+ drivers/media/video/s5p-tv/mixer_reg.c       |   15 ++--
+ drivers/media/video/s5p-tv/mixer_video.c     |    6 +-
+ drivers/media/video/s5p-tv/regs-hdmi.h       |    1 +
+ 15 files changed, 503 insertions(+), 482 deletions(-)
+---
 
-Which in "drivers/media/video/v4l2-subdev.c", are translated to pad ops:
-- v4l2_subdev_call(... enum_frame_size ...);
-- v4l2_subdev_call(... enum_frame_interval ...);
-
-respectively.
-
-So, this is also another thing that's causing some confusion.
-
-Does soc_camera use pad ops?
-
-Regards,
-Sergio
-
->
-> Thanks
-> Guennadi
->
->> +                                struct v4l2_frmivalenum *fival)
->> +{
->> +     struct soc_camera_device *icd = file->private_data;
->> +     struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
->> +
->> +     return ici->ops->enum_fivals(icd, fival);
->> +}
->> +
->>  static int soc_camera_reqbufs(struct file *file, void *priv,
->>                             struct v4l2_requestbuffers *p)
->>  {
->> @@ -1266,6 +1275,31 @@ static int default_enum_fsizes(struct
->> soc_camera_device *icd,
->>       return 0;
->>  }
->>
->> +static int default_enum_fivals(struct soc_camera_device *icd,
->> +                       struct v4l2_frmivalenum *fival)
->> +{
->> +     int ret;
->> +     struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
->> +     const struct soc_camera_format_xlate *xlate;
->> +     __u32 pixfmt = fival->pixel_format;
->> +     struct v4l2_frmivalenum fival_sd = *fival;
->> +
->> +     xlate = soc_camera_xlate_by_fourcc(icd, pixfmt);
->> +     if (!xlate)
->> +             return -EINVAL;
->> +     /* map xlate-code to pixel_format, sensor only handle xlate-code*/
->> +     fival_sd.pixel_format = xlate->code;
->> +
->> +     ret = v4l2_subdev_call(sd, video, enum_frameintervals, &fival_sd);
->> +     if (ret < 0)
->> +             return ret;
->> +
->> +     *fival = fival_sd;
->> +     fival->pixel_format = pixfmt;
->> +
->> +     return 0;
->> +}
->> +
->>  int soc_camera_host_register(struct soc_camera_host *ici)
->>  {
->>       struct soc_camera_host *ix;
->> @@ -1297,6 +1331,8 @@ int soc_camera_host_register(struct soc_camera_host *ici)
->>               ici->ops->get_parm = default_g_parm;
->>       if (!ici->ops->enum_fsizes)
->>               ici->ops->enum_fsizes = default_enum_fsizes;
->> +     if (!ici->ops->enum_fivals)
->> +             ici->ops->enum_fivals = default_enum_fivals;
->>
->>       mutex_lock(&list_lock);
->>       list_for_each_entry(ix, &hosts, list) {
->> @@ -1387,6 +1423,7 @@ static const struct v4l2_ioctl_ops
->> soc_camera_ioctl_ops = {
->>       .vidioc_s_std            = soc_camera_s_std,
->>       .vidioc_g_std            = soc_camera_g_std,
->>       .vidioc_enum_framesizes  = soc_camera_enum_fsizes,
->> +     .vidioc_enum_frameintervals  = soc_camera_enum_fivals,
->>       .vidioc_reqbufs          = soc_camera_reqbufs,
->>       .vidioc_querybuf         = soc_camera_querybuf,
->>       .vidioc_qbuf             = soc_camera_qbuf,
->> diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
->> index b5c2b6c..0a3ac07 100644
->> --- a/include/media/soc_camera.h
->> +++ b/include/media/soc_camera.h
->> @@ -98,6 +98,7 @@ struct soc_camera_host_ops {
->>       int (*get_parm)(struct soc_camera_device *, struct v4l2_streamparm *);
->>       int (*set_parm)(struct soc_camera_device *, struct v4l2_streamparm *);
->>       int (*enum_fsizes)(struct soc_camera_device *, struct v4l2_frmsizeenum *);
->> +     int (*enum_fivals)(struct soc_camera_device *, struct v4l2_frmivalenum *);
->>       unsigned int (*poll)(struct file *, poll_table *);
->>  };
->>
->> --
->> 1.7.5.4
->>
->
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> http://www.open-technology.de/
+Thank you,
+-- 
+Sylwester Nawrocki
+Samsung Poland R&D Center
