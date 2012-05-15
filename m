@@ -1,51 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1-g21.free.fr ([212.27.42.1]:59925 "EHLO smtp1-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757177Ab2EERTR convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 5 May 2012 13:19:17 -0400
-Date: Sat, 5 May 2012 19:20:24 +0200
-From: Jean-Francois Moine <moinejf@free.fr>
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFCv1 PATCH 1/7] gspca: allow subdrivers to use the control
- framework.
-Message-ID: <20120505192024.2bdc1023@tele>
-In-Reply-To: <4FA54052.1090009@redhat.com>
-References: <1335625796-9429-1-git-send-email-hverkuil@xs4all.nl>
-	<201205051034.30484.hverkuil@xs4all.nl>
-	<4FA53D48.6020004@redhat.com>
-	<201205051650.03626.hverkuil@xs4all.nl>
-	<4FA54052.1090009@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:38520 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932282Ab2EONRN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 May 2012 09:17:13 -0400
+Received: by wibhj8 with SMTP id hj8so2791199wib.1
+        for <linux-media@vger.kernel.org>; Tue, 15 May 2012 06:17:12 -0700 (PDT)
+From: Gianluca Gennari <gennarone@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@redhat.com,
+	hans.verkuil@cisco.com
+Cc: Gianluca Gennari <gennarone@gmail.com>
+Subject: [PATCH] media_build: add fixp-arith.h in linux/include/linux
+Date: Tue, 15 May 2012 15:16:41 +0200
+Message-Id: <1337087801-31527-1-git-send-email-gennarone@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 05 May 2012 16:59:30 +0200
-Hans de Goede <hdegoede@redhat.com> wrote:
+This patch:
+http://patchwork.linuxtv.org/patch/10824/
+moved the file fixp-arith.h from drivers/input/ to include/linux/ .
 
-> > Unless there is another good reason for doing the probing in sd_init I prefer
-> > to move it to sd_config.  
-> 
-> Sensor probing does more then just sensor probing, it also configures
-> things like the i2c clockrate, and if the bus between bridge and sensor
-> is spi / i2c or 3-wire, or whatever ...
-> 
-> After a suspend resume all bets are of wrt bridge state, so we prefer to
-> always do a full re-init as we do on initial probe, so that we (hopefully)
-> will put the bridge back in a sane state.
-> 
-> I think moving the probing from init to config is a bad idea, the chance
-> that we will get regressions (after a suspend/resume) from this are too
-> big IMHO.
+To make this file available to old kernels, we must include it in the
+media_build package.
 
-Moving the sensor probing to sd_config is normally safe because the
-init sequences which are sent actually after probing do all the
-re-initialization job. An easy way to know it in zc3xx is to force the
-sensor via the module parameter.
+The version included here comes from kernel 3.4-rc7.
 
+This patch corrects the following build error:
+
+media_build/v4l/ov534.c:38:30: error: linux/fixp-arith.h: No such file or directory
+media_build/v4l/ov534.c: In function 'sethue':
+media_build/v4l/ov534.c:1000: error: implicit declaration of function 'fixp_sin'
+media_build/v4l/ov534.c:1001: error: implicit declaration of function 'fixp_cos'
+
+Tested on kernel 2.6.32-41-generic-pae (Ubuntu 10.04).
+
+Signed-off-by: Gianluca Gennari <gennarone@gmail.com
+---
+ linux/include/linux/fixp-arith.h |   87 ++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 87 insertions(+), 0 deletions(-)
+ create mode 100644 linux/include/linux/fixp-arith.h
+
+diff --git a/linux/include/linux/fixp-arith.h b/linux/include/linux/fixp-arith.h
+new file mode 100644
+index 0000000..3089d73
+--- /dev/null
++++ b/linux/include/linux/fixp-arith.h
+@@ -0,0 +1,87 @@
++#ifndef _FIXP_ARITH_H
++#define _FIXP_ARITH_H
++
++/*
++ * Simplistic fixed-point arithmetics.
++ * Hmm, I'm probably duplicating some code :(
++ *
++ * Copyright (c) 2002 Johann Deneux
++ */
++
++/*
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
++ *
++ * Should you need to contact me, the author, you can do so by
++ * e-mail - mail your message to <johann.deneux@gmail.com>
++ */
++
++#include <linux/types.h>
++
++/* The type representing fixed-point values */
++typedef s16 fixp_t;
++
++#define FRAC_N 8
++#define FRAC_MASK ((1<<FRAC_N)-1)
++
++/* Not to be used directly. Use fixp_{cos,sin} */
++static const fixp_t cos_table[46] = {
++	0x0100,	0x00FF,	0x00FF,	0x00FE,	0x00FD,	0x00FC,	0x00FA,	0x00F8,
++	0x00F6,	0x00F3,	0x00F0,	0x00ED,	0x00E9,	0x00E6,	0x00E2,	0x00DD,
++	0x00D9,	0x00D4,	0x00CF,	0x00C9,	0x00C4,	0x00BE,	0x00B8,	0x00B1,
++	0x00AB,	0x00A4,	0x009D,	0x0096,	0x008F,	0x0087,	0x0080,	0x0078,
++	0x0070,	0x0068,	0x005F,	0x0057,	0x004F,	0x0046,	0x003D,	0x0035,
++	0x002C,	0x0023,	0x001A,	0x0011,	0x0008, 0x0000
++};
++
++
++/* a: 123 -> 123.0 */
++static inline fixp_t fixp_new(s16 a)
++{
++	return a<<FRAC_N;
++}
++
++/* a: 0xFFFF -> -1.0
++      0x8000 -> 1.0
++      0x0000 -> 0.0
++*/
++static inline fixp_t fixp_new16(s16 a)
++{
++	return ((s32)a)>>(16-FRAC_N);
++}
++
++static inline fixp_t fixp_cos(unsigned int degrees)
++{
++	int quadrant = (degrees / 90) & 3;
++	unsigned int i = degrees % 90;
++
++	if (quadrant == 1 || quadrant == 3)
++		i = 90 - i;
++
++	i >>= 1;
++
++	return (quadrant == 1 || quadrant == 2)? -cos_table[i] : cos_table[i];
++}
++
++static inline fixp_t fixp_sin(unsigned int degrees)
++{
++	return -fixp_cos(degrees + 90);
++}
++
++static inline fixp_t fixp_mult(fixp_t a, fixp_t b)
++{
++	return ((s32)(a*b))>>FRAC_N;
++}
++
++#endif
 -- 
-Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+1.7.0.4
+
