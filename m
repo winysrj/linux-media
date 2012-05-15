@@ -1,203 +1,207 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:51295 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751296Ab2EMK7p (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 May 2012 06:59:45 -0400
-Message-ID: <4FAF941D.7020808@iki.fi>
-Date: Sun, 13 May 2012 13:59:41 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: poma <pomidorabelisima@gmail.com>
-CC: Hans-Frieder Vogt <hfvogt@gmx.net>, linux-media@vger.kernel.org
-Subject: Re: [PATCH] fc0012 ver. 0.6: introduction of get_rf_strength function
-References: <201205121111.36181.hfvogt@gmx.net> <4FAF6DD1.6080709@gmail.com>
-In-Reply-To: <4FAF6DD1.6080709@gmail.com>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 8bit
+Received: from shadbolt.e.decadent.org.uk ([88.96.1.126]:39077 "EHLO
+	shadbolt.e.decadent.org.uk" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S964781Ab2EOBgw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 May 2012 21:36:52 -0400
+Message-ID: <1337045809.9080.76.camel@deadeye>
+Subject: Re: [PATCH] [media] rc: Fix invalid free_region and/or free_irq on
+ probe failure
+From: Ben Hutchings <ben@decadent.org.uk>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: linux-media@vger.kernel.org
+Date: Tue, 15 May 2012 02:36:49 +0100
+In-Reply-To: <1337045760.9080.75.camel@deadeye>
+References: <1337045760.9080.75.camel@deadeye>
+Content-Type: multipart/signed; micalg="pgp-sha512";
+	protocol="application/pgp-signature"; boundary="=-gYV3ApEPg7Hv9r8C6d6B"
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 13.05.2012 11:16, poma wrote:
-> On 05/12/2012 11:11 AM, Hans-Frieder Vogt wrote:
->> Changes compared to version 0.5 of driver (sent 6 May):
->> - Initial implementation of get_rf_strength function.
->>
->> Signed-off-by: Hans-Frieder Vogt<hfvogt@gmx.net>
->>
->>   fc0012.c |   72 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-
->>   1 file changed, 71 insertions(+), 1 deletion(-)
->>
->> diff -up --new-file --recursive a/drivers/media/common/tuners/fc0012.c b/drivers/media/common/tuners/fc0012.c
->> --- a/drivers/media/common/tuners/fc0012.c	2012-05-12 10:53:55.330058209 +0200
->> +++ b/drivers/media/common/tuners/fc0012.c	2012-05-09 23:27:37.781193720 +0200
->> @@ -343,6 +343,74 @@ static int fc0012_get_bandwidth(struct d
->>   	return 0;
->>   }
->>
->> +#define INPUT_ADC_LEVEL	-8
->> +
->> +static int fc0012_get_rf_strength(struct dvb_frontend *fe, u16 *strength)
->> +{
->> +	struct fc0012_priv *priv = fe->tuner_priv;
->> +	int ret;
->> +	unsigned char tmp;
->> +	int int_temp, lna_gain, int_lna, tot_agc_gain, power;
->> +	const int fc0012_lna_gain_table[] = {
->> +		/* low gain */
->> +		-63, -58, -99, -73,
->> +		-63, -65, -54, -60,
->> +		/* middle gain */
->> +		 71,  70,  68,  67,
->> +		 65,  63,  61,  58,
->> +		/* high gain */
->> +		197, 191, 188, 186,
->> +		184, 182, 181, 179,
->> +	};
->> +
->> +	if (fe->ops.i2c_gate_ctrl)
->> +		fe->ops.i2c_gate_ctrl(fe, 1); /* open I2C-gate */
->> +
->> +	ret = fc0012_writereg(priv, 0x12, 0x00);
->> +	if (ret)
->> +		goto err;
->> +
->> +	ret = fc0012_readreg(priv, 0x12,&tmp);
->> +	if (ret)
->> +		goto err;
->> +	int_temp = tmp;
->> +
->> +	ret = fc0012_readreg(priv, 0x13,&tmp);
->> +	if (ret)
->> +		goto err;
->> +	lna_gain = tmp&  0x1f;
->> +
->> +	if (fe->ops.i2c_gate_ctrl)
->> +		fe->ops.i2c_gate_ctrl(fe, 0); /* close I2C-gate */
->> +
->> +	if (lna_gain<  ARRAY_SIZE(fc0012_lna_gain_table)) {
->> +		int_lna = fc0012_lna_gain_table[lna_gain];
->> +		tot_agc_gain = (abs((int_temp>>  5) - 7) - 2 +
->> +				(int_temp&  0x1f)) * 2;
->> +		power = INPUT_ADC_LEVEL - tot_agc_gain - int_lna / 10;
->> +
->> +		if (power>= 45)
->> +			*strength = 255;	/* 100% */
->> +		else if (power<  -95)
->> +			*strength = 0;
->> +		else
->> +			*strength = (power + 95) * 255 / 140;
->> +
->> +		*strength |= *strength<<  8;
->> +	} else {
->> +		ret = -1;
->> +	}
->> +
->> +	goto exit;
->> +
->> +err:
->> +	if (fe->ops.i2c_gate_ctrl)
->> +		fe->ops.i2c_gate_ctrl(fe, 0); /* close I2C-gate */
->> +exit:
->> +	if (ret)
->> +		warn("%s: failed: %d", __func__, ret);
->> +	return ret;
->> +}
->>
->>   static const struct dvb_tuner_ops fc0012_tuner_ops = {
->>   	.info = {
->> @@ -363,6 +431,8 @@ static const struct dvb_tuner_ops fc0012
->>   	.get_frequency	= fc0012_get_frequency,
->>   	.get_if_frequency = fc0012_get_if_frequency,
->>   	.get_bandwidth	= fc0012_get_bandwidth,
->> +
->> +	.get_rf_strength = fc0012_get_rf_strength,
->>   };
->>
->>   struct dvb_frontend *fc0012_attach(struct dvb_frontend *fe,
->> @@ -394,4 +464,4 @@ EXPORT_SYMBOL(fc0012_attach);
->>   MODULE_DESCRIPTION("Fitipower FC0012 silicon tuner driver");
->>   MODULE_AUTHOR("Hans-Frieder Vogt<hfvogt@gmx.net>");
->>   MODULE_LICENSE("GPL");
->> -MODULE_VERSION("0.5");
->> +MODULE_VERSION("0.6");
->>
->
-> rtl2832/fc0012:
->
-> femon -H -a 2 -c 10:
-> FE: Realtek RTL2832 (DVB-T) (DVBT)
-> status SCVYL | signal  23% | snr  79% | ber 0 | unc 100 | FE_HAS_LOCK
-> status SCVYL | signal  23% | snr  79% | ber 0 | unc 100 | FE_HAS_LOCK
-> status SCVYL | signal  23% | snr  79% | ber 0 | unc 100 | FE_HAS_LOCK
-> status SCVYL | signal  23% | snr  79% | ber 0 | unc 100 | FE_HAS_LOCK
-> status SCVYL | signal  23% | snr  82% | ber 0 | unc 100 | FE_HAS_LOCK
-> // without tzap/lock:
-> Problem retrieving frontend information: Remote I/O error
-> status       | signal  23% | snr  82% | ber 0 | unc 100 |
-> Problem retrieving frontend information: Remote I/O error
-> status       | signal  23% | snr  82% | ber 0 | unc 100 |
-> Problem retrieving frontend information: Remote I/O error
-> status       | signal  23% | snr  82% | ber 0 | unc 100 |
-> Problem retrieving frontend information: Remote I/O error
-> status       | signal  23% | snr  82% | ber 0 | unc 100 |
-> Problem retrieving frontend information: Remote I/O error
-> status       | signal  23% | snr  82% | ber 0 | unc 100 |
->
-> dmesg:
-> […]
-> // without tzap/lock:
-> rtl2832: i2c rd failed=-32 reg=4e len=2
-> rtl2832: rtl2832_read_ber: failed=-121
-> rtl2832: i2c rd failed=-32 reg=01 len=1
-> fc0012: I2C write reg failed, reg: 12, val: 00
-> fc0012: fc0012_get_rf_strength: failed: -121
-> rtl2832: i2c rd failed=-32 reg=51 len=1
-> rtl2832: rtl2832_read_snr: failed=-121
-> rtl2832: i2c rd failed=-32 reg=51 len=1
-> rtl2832: rtl2832_read_ucblocks: failed=-121
->
->
-> Comparable readings - af9013/mxl5007t:
->
-> femon -H -a 1 -c 10
-> FE: Afatech AF9013 (DVBT)
-> status SCVYL | signal  55% | snr   0% | ber 0 | unc 0 | FE_HAS_LOCK
-> status SCVYL | signal  55% | snr   0% | ber 0 | unc 0 | FE_HAS_LOCK
-> status SCVYL | signal  55% | snr   0% | ber 0 | unc 0 | FE_HAS_LOCK
-> status SCVYL | signal  55% | snr   0% | ber 0 | unc 0 | FE_HAS_LOCK
-> status SCVYL | signal  55% | snr   0% | ber 0 | unc 0 | FE_HAS_LOCK
-> // without tzap/lock:
-> status SCV   | signal  55% | snr   0% | ber 0 | unc 0 |
-> status SCV   | signal  55% | snr   0% | ber 0 | unc 0 |
-> status SCV   | signal  55% | snr   0% | ber 0 | unc 0 |
-> status SCV   | signal  55% | snr   0% | ber 0 | unc 0 |
-> status SCV   | signal  55% | snr   0% | ber 0 | unc 0 |
->
-> dmesg:
-> […]
-> // without tzap/lock:
-> 'NONE'
->
->
-> Is it necessary to populate a log buffer while frontend not locking?
 
-It is not nice and should not happen.
-But let me explain issues behind it. It fails since device is put sleep 
-in that case those chips even does not respond to control messages. 
-RTL2830 has similar problem - I resolved it just adding some clue to 
-demod driver not access to the hw when when it is sleeping.
+--=-gYV3ApEPg7Hv9r8C6d6B
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-IMHO whole issues is DVB CORE issue as it should not pass any calls to 
-the individual chip drivers when device is clearly in the state those 
-calls are invalid.
+On Tue, 2012-05-15 at 02:36 +0100, Ben Hutchings wrote:
+> fintek-cir, ite-cir and nuvoton-cir may try to free an I/O region
+> and/or IRQ handler that was never allocated after a failure in their
+> respective probe functions.  Add and use separate labels on the
+> failure path so they will do the right cleanup after each possible
+> point of failure.
+>=20
+> Compile-tested only.
+>=20
+> Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 
-For example when we are sleeping only legal call is .init() in order to 
-wake it up. Also BER and UCB are invalid until LOCK is gained.
+And this should probably go to stable as well, if you agree it's a valid
+fix.
 
-I have already listed those issues as a my GSoC DVB CORE enhancements - 
-so I think it is not worth to make any chip driver hacks in that case.
+Ben.
 
-regards
-Antti
--- 
-http://palosaari.fi/
+> ---
+>  drivers/media/rc/fintek-cir.c  |   13 ++++++-------
+>  drivers/media/rc/ite-cir.c     |   14 ++++++--------
+>  drivers/media/rc/nuvoton-cir.c |   26 ++++++++++++--------------
+>  3 files changed, 24 insertions(+), 29 deletions(-)
+>=20
+> diff --git a/drivers/media/rc/fintek-cir.c b/drivers/media/rc/fintek-cir.=
+c
+> index 4a3a238..6aabf7a 100644
+> --- a/drivers/media/rc/fintek-cir.c
+> +++ b/drivers/media/rc/fintek-cir.c
+> @@ -556,11 +556,11 @@ static int fintek_probe(struct pnp_dev *pdev, const=
+ struct pnp_device_id *dev_id
+> =20
+>  	if (request_irq(fintek->cir_irq, fintek_cir_isr, IRQF_SHARED,
+>  			FINTEK_DRIVER_NAME, (void *)fintek))
+> -		goto failure;
+> +		goto failure2;
+> =20
+>  	ret =3D rc_register_device(rdev);
+>  	if (ret)
+> -		goto failure;
+> +		goto failure3;
+> =20
+>  	device_init_wakeup(&pdev->dev, true);
+>  	fintek->rdev =3D rdev;
+> @@ -570,12 +570,11 @@ static int fintek_probe(struct pnp_dev *pdev, const=
+ struct pnp_device_id *dev_id
+> =20
+>  	return 0;
+> =20
+> +failure3:
+> +	free_irq(fintek->cir_irq, fintek);
+> +failure2:
+> +	release_region(fintek->cir_addr, fintek->cir_port_len);
+>  failure:
+> -	if (fintek->cir_irq)
+> -		free_irq(fintek->cir_irq, fintek);
+> -	if (fintek->cir_addr)
+> -		release_region(fintek->cir_addr, fintek->cir_port_len);
+> -
+>  	rc_free_device(rdev);
+>  	kfree(fintek);
+> =20
+> diff --git a/drivers/media/rc/ite-cir.c b/drivers/media/rc/ite-cir.c
+> index 0e49c99..36fe5a3 100644
+> --- a/drivers/media/rc/ite-cir.c
+> +++ b/drivers/media/rc/ite-cir.c
+> @@ -1598,24 +1598,22 @@ static int ite_probe(struct pnp_dev *pdev, const =
+struct pnp_device_id
+> =20
+>  	if (request_irq(itdev->cir_irq, ite_cir_isr, IRQF_SHARED,
+>  			ITE_DRIVER_NAME, (void *)itdev))
+> -		goto failure;
+> +		goto failure2;
+> =20
+>  	ret =3D rc_register_device(rdev);
+>  	if (ret)
+> -		goto failure;
+> +		goto failure3;
+> =20
+>  	itdev->rdev =3D rdev;
+>  	ite_pr(KERN_NOTICE, "driver has been successfully loaded\n");
+> =20
+>  	return 0;
+> =20
+> +failure3:
+> +	free_irq(itdev->cir_irq, itdev);
+> +failure2:
+> +	release_region(itdev->cir_addr, itdev->params.io_region_size);
+>  failure:
+> -	if (itdev->cir_irq)
+> -		free_irq(itdev->cir_irq, itdev);
+> -
+> -	if (itdev->cir_addr)
+> -		release_region(itdev->cir_addr, itdev->params.io_region_size);
+> -
+>  	rc_free_device(rdev);
+>  	kfree(itdev);
+> =20
+> diff --git a/drivers/media/rc/nuvoton-cir.c b/drivers/media/rc/nuvoton-ci=
+r.c
+> index 8b2c071..dc8a7dd 100644
+> --- a/drivers/media/rc/nuvoton-cir.c
+> +++ b/drivers/media/rc/nuvoton-cir.c
+> @@ -1075,19 +1075,19 @@ static int nvt_probe(struct pnp_dev *pdev, const =
+struct pnp_device_id *dev_id)
+> =20
+>  	if (request_irq(nvt->cir_irq, nvt_cir_isr, IRQF_SHARED,
+>  			NVT_DRIVER_NAME, (void *)nvt))
+> -		goto failure;
+> +		goto failure2;
+> =20
+>  	if (!request_region(nvt->cir_wake_addr,
+>  			    CIR_IOREG_LENGTH, NVT_DRIVER_NAME))
+> -		goto failure;
+> +		goto failure3;
+> =20
+>  	if (request_irq(nvt->cir_wake_irq, nvt_cir_wake_isr, IRQF_SHARED,
+>  			NVT_DRIVER_NAME, (void *)nvt))
+> -		goto failure;
+> +		goto failure4;
+> =20
+>  	ret =3D rc_register_device(rdev);
+>  	if (ret)
+> -		goto failure;
+> +		goto failure5;
+> =20
+>  	device_init_wakeup(&pdev->dev, true);
+>  	nvt->rdev =3D rdev;
+> @@ -1099,17 +1099,15 @@ static int nvt_probe(struct pnp_dev *pdev, const =
+struct pnp_device_id *dev_id)
+> =20
+>  	return 0;
+> =20
+> +failure5:
+> +	free_irq(nvt->cir_wake_irq, nvt);
+> +failure4:
+> +	release_region(nvt->cir_wake_addr, CIR_IOREG_LENGTH);
+> +failure3:
+> +	free_irq(nvt->cir_irq, nvt);
+> +failure2:
+> +	release_region(nvt->cir_addr, CIR_IOREG_LENGTH);
+>  failure:
+> -	if (nvt->cir_irq)
+> -		free_irq(nvt->cir_irq, nvt);
+> -	if (nvt->cir_addr)
+> -		release_region(nvt->cir_addr, CIR_IOREG_LENGTH);
+> -
+> -	if (nvt->cir_wake_irq)
+> -		free_irq(nvt->cir_wake_irq, nvt);
+> -	if (nvt->cir_wake_addr)
+> -		release_region(nvt->cir_wake_addr, CIR_IOREG_LENGTH);
+> -
+>  	rc_free_device(rdev);
+>  	kfree(nvt);
+> =20
+
+--=20
+Ben Hutchings
+The two most common things in the universe are hydrogen and stupidity.
+
+--=-gYV3ApEPg7Hv9r8C6d6B
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIVAwUAT7GzMee/yOyVhhEJAQqvqQ/+IlFAG7Bg9I+vwobSnKRr6pelgM8mTZMG
+tdRzQW6OBW2ZS+Q0nJTIFGv3wL7K/b39YHQtA4CnbjSEOXpKka/yoE+NyUfzlWGU
+UWpyqlNLrTMKWBJzLyJhoWCc8HUSNsfmnGTKy/44SWX16dvZk2YA7YhPUdwYchCs
+Sk7R9K9xNUJxGCH7GBaT0k6KoLpdnf/fa2PogY36Rs4R/TGwpadIL38VCNi/+C0N
+DTFC+UOwmIltDoA4tahB1g2LIMKs+54esoCbtbQ1irugDbmFpjmMZP4wDE78P9KT
+Paldy1/0mcgqnOC/xGxqC+W7i7xjIsT6N1Kvdnqjw309AT5DHHBZa35RH4H5/N4U
+UCJ8YPU8LE44RfGTfnmwV9OvNsOalU0/nfDVGroNDi7buIic5X9To1kNoRtTVKGW
+z79Peq7qnCtKEdH+noMpt/3AtiVQGYZRABb+CPcHPRdu3/fMHJ0k7NGTn+R68PtT
+FwCsgMqsL7ciW0MD42AHTmndBg2rQrrMfgj97S1Op05F4rJm+oHbjsnyl1rwNsmw
+NA1rX9xpjrkqvCYhnls44mS29/A6+zBbpMPOnkw43yw6XRnBGdYoRxhzqOolIXUh
+GwM+ie5pe2gw7O09I2E+sZvv4npPlA0ixH655ZVlHql9Rw+eiMoylxdtZiRfp4VK
+5bNVtiG1shs=
+=PGJc
+-----END PGP SIGNATURE-----
+
+--=-gYV3ApEPg7Hv9r8C6d6B--
