@@ -1,59 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:32618 "EHLO mx1.redhat.com"
+Received: from mail.kapsi.fi ([217.30.184.167]:37186 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759809Ab2EKN5K (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 May 2012 09:57:10 -0400
-Message-ID: <4FAD1AB8.5010103@redhat.com>
-Date: Fri, 11 May 2012 15:57:12 +0200
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH] uvcvideo: Fix V4L2 button controls that share the same
- UVC control
-References: <1336744559-9247-1-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1336744559-9247-1-git-send-email-laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	id S932922Ab2EOXs7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 May 2012 19:48:59 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Christopher Pascoe <c.pascoe@itee.uq.edu.au>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [PATCH] zl10353: change .read_snr() to report SNR as a 0.1 dB
+Date: Wed, 16 May 2012 02:48:40 +0300
+Message-Id: <1337125720-26332-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-looks good, ack.
+Report SNR in 0.1 dB scale instead of raw hardware register values.
 
-Acked-by: Hans de Goede <hdegoede@redhat.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/dvb/frontends/zl10353.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-On 05/11/2012 03:55 PM, Laurent Pinchart wrote:
-> The Logitech pan/tilt reset UVC control contains two V4L2 button
-> controls to reset pan and tilt. As the UVC control is not marked as
-> auto-update, the button bits are set but never reset. A pan reset that
-> follows a tilt reset would thus reset both pan and tilt.
->
-> Fix this by not caching the control value of write-only controls. All
-> standard UVC controls are either readable or auto-update, so this will
-> not cause any regression and will not result in extra USB requests.
->
-> Reported-by: Hans de Goede<hdegoede@redhat.com>
-> Signed-off-by: Laurent Pinchart<laurent.pinchart@ideasonboard.com>
-> ---
->   drivers/media/video/uvc/uvc_ctrl.c |    7 +++++--
->   1 files changed, 5 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/media/video/uvc/uvc_ctrl.c b/drivers/media/video/uvc/uvc_ctrl.c
-> index 28363b7..3bc119b 100644
-> --- a/drivers/media/video/uvc/uvc_ctrl.c
-> +++ b/drivers/media/video/uvc/uvc_ctrl.c
-> @@ -1348,9 +1348,12 @@ static int uvc_ctrl_commit_entity(struct uvc_device *dev,
->
->   		/* Reset the loaded flag for auto-update controls that were
->   		 * marked as loaded in uvc_ctrl_get/uvc_ctrl_set to prevent
-> -		 * uvc_ctrl_get from using the cached value.
-> +		 * uvc_ctrl_get from using the cached value, and for write-only
-> +		 * controls to prevent uvc_ctrl_set from setting bits not
-> +		 * explicitly set by the user.
->   		 */
-> -		if (ctrl->info.flags&  UVC_CTRL_FLAG_AUTO_UPDATE)
-> +		if (ctrl->info.flags&  UVC_CTRL_FLAG_AUTO_UPDATE ||
-> +		    !(ctrl->info.flags&  UVC_CTRL_FLAG_GET_CUR))
->   			ctrl->loaded = 0;
->
->   		if (!ctrl->dirty)
+diff --git a/drivers/media/dvb/frontends/zl10353.c b/drivers/media/dvb/frontends/zl10353.c
+index ac72378..23fc853 100644
+--- a/drivers/media/dvb/frontends/zl10353.c
++++ b/drivers/media/dvb/frontends/zl10353.c
+@@ -525,7 +525,7 @@ static int zl10353_read_snr(struct dvb_frontend *fe, u16 *snr)
+ 		zl10353_dump_regs(fe);
+ 
+ 	_snr = zl10353_read_register(state, SNR);
+-	*snr = (_snr << 8) | _snr;
++	*snr = 10 * _snr / 8;
+ 
+ 	return 0;
+ }
+-- 
+1.7.7.6
+
