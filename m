@@ -1,36 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gh0-f180.google.com ([209.85.160.180]:53706 "EHLO
-	mail-gh0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750903Ab2E3UXP (ORCPT
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:56963 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932696Ab2EOVxV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 May 2012 16:23:15 -0400
-Received: by ghbz12 with SMTP id z12so240294ghb.11
-        for <linux-media@vger.kernel.org>; Wed, 30 May 2012 13:23:15 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <CALF0-+Wx61AGEqrexkGtJS5q5dW1jNxCjDCpkLtUS7kZpUyhnA@mail.gmail.com>
-References: <1338154013-5124-3-git-send-email-martin.blumenstingl@googlemail.com>
- <1338407260-14367-1-git-send-email-martin.blumenstingl@googlemail.com>
- <CAFBinCDfGnpFC17aMmE=pa1t9_H0p0v0GqNFnQNJLrPjTG0xuw@mail.gmail.com> <CALF0-+Wx61AGEqrexkGtJS5q5dW1jNxCjDCpkLtUS7kZpUyhnA@mail.gmail.com>
-From: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
-Date: Wed, 30 May 2012 22:22:54 +0200
-Message-ID: <CAFBinCCWccps_JEeGVeX0EgtnEMHWP7ZyLh7Lt8ms3WgYBeyeQ@mail.gmail.com>
-Subject: Re: [PATCH] [media] em28xx: Show a warning if the board does not
- support remote controls
-To: Ezequiel Garcia <elezegarcia@gmail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+	Tue, 15 May 2012 17:53:21 -0400
+Received: by wibhj8 with SMTP id hj8so3298964wib.1
+        for <linux-media@vger.kernel.org>; Tue, 15 May 2012 14:53:20 -0700 (PDT)
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Subject: [PATCH] V4L: DocBook: Improve V4L2_AUTO_N_WHITE_BALANCE control description
+Date: Tue, 15 May 2012 23:53:10 +0200
+Message-Id: <1337118790-21572-1-git-send-email-sylvester.nawrocki@gmail.com>
+In-Reply-To: <20120514000234.GG3373@valkosipuli.retiisi.org.uk>
+References: <20120514000234.GG3373@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+This patch removes the estimate color temperature range specification
+for white balance presets for which exact values heavily depend on
+a particular camera specification.
 
-> When sending new versions of a patch you should mark them as [PATCH
-> v2], [PATCH v3], etc in the subject.
-> This way maintainers can follow the patch evolution.
+Signed-off-by: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+---
+ Documentation/DocBook/media/v4l/controls.xml |   12 ++++--------
+ 1 files changed, 4 insertions(+), 8 deletions(-)
 
-Thanks for the hint.
-I just noticed that I spammed the patchwork system with my patch-mess too.
-I should probably also always reply to the last mail which includes a patch.
+diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+index 8994132..1cef967 100644
+--- a/Documentation/DocBook/media/v4l/controls.xml
++++ b/Documentation/DocBook/media/v4l/controls.xml
+@@ -3174,8 +3174,7 @@ color temperature range.</entry>
+ 		</row>
+ 		<row>
+ 		  <entry><constant>V4L2_WHITE_BALANCE_FLUORESCENT</constant>&nbsp;</entry>
+-		  <entry>White balance preset for fluorescent lighting.
+-It corresponds approximately to 4000...5000 K color temperature.</entry>
++		  <entry>White balance preset for fluorescent lighting.</entry>
+ 		</row>
+ 		<row>
+ 		  <entry><constant>V4L2_WHITE_BALANCE_FLUORESCENT_H</constant>&nbsp;</entry>
+@@ -3184,8 +3183,7 @@ fluorescent H lighting.</entry>
+ 		</row>
+ 		<row>
+ 		  <entry><constant>V4L2_WHITE_BALANCE_HORIZON</constant>&nbsp;</entry>
+-		  <entry>White balance setting for horizon daylight.
+-It corresponds approximately to 5000 K color temperature.</entry>
++		  <entry>White balance setting for horizon daylight.</entry>
+ 		</row>
+ 		<row>
+ 		  <entry><constant>V4L2_WHITE_BALANCE_DAYLIGHT</constant>&nbsp;</entry>
+@@ -3195,8 +3193,7 @@ It corresponds approximately to 5000...6500 K color temperature.</entry>
+ 		<row>
+ 		  <entry><constant>V4L2_WHITE_BALANCE_FLASH</constant>&nbsp;</entry>
+ 		  <entry>With this setting the camera will compensate for the flash
+-light. It slightly warms up the colors and corresponds roughly to 5000...5500 K
+-color temperature.</entry>
++light.</entry>
+ 		</row>
+ 		<row>
+ 		  <entry><constant>V4L2_WHITE_BALANCE_CLOUDY</constant>&nbsp;</entry>
+@@ -3207,9 +3204,7 @@ range.</entry>
+ 		<row>
+ 		  <entry><constant>V4L2_WHITE_BALANCE_SHADE</constant>&nbsp;</entry>
+ 		  <entry>White balance preset for shade or heavily overcast
+-sky. It corresponds approximately to 9000...10000 K color temperature.
+-</entry>
++sky.</entry>
+ 		</row>
+ 	      </tbody>
+ 	    </entrytbl>
+--
+1.7.4.1
 
-I'll keep it in mind the next time, thanks!
-Martin
