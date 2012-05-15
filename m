@@ -1,40 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f172.google.com ([209.85.212.172]:59380 "EHLO
-	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752666Ab2E0V1G (ORCPT
+Received: from ns.omikk.bme.hu ([152.66.114.1]:51703 "EHLO
+	webmail.omikk.bme.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965264Ab2EOQOO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 27 May 2012 17:27:06 -0400
-Received: by wibhj8 with SMTP id hj8so1131565wib.1
-        for <linux-media@vger.kernel.org>; Sun, 27 May 2012 14:27:05 -0700 (PDT)
-From: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
-To: linux-media@vger.kernel.org
-Cc: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
-Subject: [PATCH 1/2] [media] em28xx: Add remote control support for Terratec's Cinergy HTC Stick HD.
-Date: Sun, 27 May 2012 23:26:52 +0200
-Message-Id: <1338154013-5124-2-git-send-email-martin.blumenstingl@googlemail.com>
-In-Reply-To: <1338154013-5124-1-git-send-email-martin.blumenstingl@googlemail.com>
-References: <1338154013-5124-1-git-send-email-martin.blumenstingl@googlemail.com>
+	Tue, 15 May 2012 12:14:14 -0400
+Message-ID: <4FB27ED0.40906@users.sourceforge.net>
+Date: Tue, 15 May 2012 18:05:36 +0200
+From: Jozsef Marton <jmarton@users.sourceforge.net>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Rob Landley <rob@landley.net>,
+	Jean-Francois Moine <moinejf@free.fr>
+CC: linux-media@vger.kernel.org, linux-doc@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	=?ISO-8859-2?Q?N=E9meth_M=E1rton?= <nm127@freemail.hu>,
+	torvalds@linux-foundation.org
+Subject: [PATCH] media: add support to gspca/pac7302.c for 093a:2627 (Genius
+ FaceCam 300)
+Content-Type: text/plain; charset=ISO-8859-2
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The Cinergy HTC Stick HD uses the same remote control as the TerraTec
-Cinergy XS products.
+From: Jozsef Marton <jmarton@users.sourceforge.net>
+
+gspca_pac7302 module supports the webcam with usb id: 093a:2627.
+It is a Genius FaceCam 300.
+The module does not need any changes but listing the usb id along with a vertical flip flag.
+The included patch adds this to the module source.
+
+Signed-off-by: Jozsef Marton <jmarton@users.sourceforge.net>
 ---
- drivers/media/video/em28xx/em28xx-cards.c |    1 +
- 1 file changed, 1 insertion(+)
-
-diff --git a/drivers/media/video/em28xx/em28xx-cards.c b/drivers/media/video/em28xx/em28xx-cards.c
-index 20a7e24..8e32339 100644
---- a/drivers/media/video/em28xx/em28xx-cards.c
-+++ b/drivers/media/video/em28xx/em28xx-cards.c
-@@ -974,6 +974,7 @@ struct em28xx_board em28xx_boards[] = {
- 	[EM2884_BOARD_CINERGY_HTC_STICK] = {
- 		.name         = "Terratec Cinergy HTC Stick",
- 		.has_dvb      = 1,
-+		.ir_codes       = RC_MAP_NEC_TERRATEC_CINERGY_XS,
- #if 0
- 		.tuner_type   = TUNER_PHILIPS_TDA8290,
- 		.tuner_addr   = 0x41,
--- 
-1.7.10.2
-
+diff -uprN -X dontdiff linux-3.4-rc7-vanilla/Documentation/video4linux/gspca.txt linux-3.4-rc7/Documentation/video4linux/gspca.txt
+--- linux-3.4-rc7-vanilla/Documentation/video4linux/gspca.txt	2012-05-13 03:37:47.000000000 +0200
++++ linux-3.4-rc7/Documentation/video4linux/gspca.txt	2012-05-15 16:56:55.603514846 +0200
+@@ -276,6 +276,7 @@ pac7302		093a:2622	Genius Eye 312
+ pac7302		093a:2624	PAC7302
+ pac7302		093a:2625	Genius iSlim 310
+ pac7302		093a:2626	Labtec 2200
++pac7302		093a:2627	Genius FaceCam 300
+ pac7302		093a:2628	Genius iLook 300
+ pac7302		093a:2629	Genious iSlim 300
+ pac7302		093a:262a	Webcam 300k
+diff -uprN -X dontdiff linux-3.4-rc7-vanilla/drivers/media/video/gspca/pac7302.c linux-3.4-rc7/drivers/media/video/gspca/pac7302.c
+--- linux-3.4-rc7-vanilla/drivers/media/video/gspca/pac7302.c	2012-05-13 03:37:47.000000000 +0200
++++ linux-3.4-rc7/drivers/media/video/gspca/pac7302.c	2012-05-15 15:15:03.355624405 +0200
+@@ -940,6 +940,7 @@ static const struct usb_device_id device
+ 	{USB_DEVICE(0x093a, 0x2624), .driver_info = FL_VFLIP},
+ 	{USB_DEVICE(0x093a, 0x2625)},
+ 	{USB_DEVICE(0x093a, 0x2626)},
++	{USB_DEVICE(0x093a, 0x2627), .driver_info = FL_VFLIP},
+ 	{USB_DEVICE(0x093a, 0x2628)},
+ 	{USB_DEVICE(0x093a, 0x2629), .driver_info = FL_VFLIP},
+ 	{USB_DEVICE(0x093a, 0x262a)},
