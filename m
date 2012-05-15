@@ -1,74 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2347 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756803Ab2ENTom (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 May 2012 15:44:42 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: manjunatha_halli@ti.com
-Subject: Re: [PATCH V5 2/5] New control class and features for FM RX
-Date: Mon, 14 May 2012 21:44:36 +0200
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Manjunatha Halli <x0130808@ti.com>
-References: <1337023469-24990-1-git-send-email-manjunatha_halli@ti.com> <1337023469-24990-3-git-send-email-manjunatha_halli@ti.com>
-In-Reply-To: <1337023469-24990-3-git-send-email-manjunatha_halli@ti.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:35459 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S965252Ab2EOPlg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 May 2012 11:41:36 -0400
+Message-ID: <4FB2792D.4040100@iki.fi>
+Date: Tue, 15 May 2012 18:41:33 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
+To: Thomas Mair <thomas.mair86@googlemail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/5] rtl2832 ver 0.3: suport for RTL2832 demodulator revised
+ version
+References: <1336846109-30070-1-git-send-email-thomas.mair86@googlemail.com> <1336846109-30070-2-git-send-email-thomas.mair86@googlemail.com> <4FB061C2.90006@iki.fi>
+In-Reply-To: <4FB061C2.90006@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <201205142144.36771.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Manjunatha,
+On 14.05.2012 04:37, Antti Palosaari wrote:
+> On 12.05.2012 21:08, Thomas Mair wrote:
+>> Changes compared to version 0.2:
 
-I wish I could ack this series, but there is one thing that really needs
-to change:
+>> +++ b/drivers/media/dvb/frontends/Makefile
+>> @@ -98,6 +98,7 @@ obj-$(CONFIG_DVB_IT913X_FE) += it913x-fe.o
+>> obj-$(CONFIG_DVB_A8293) += a8293.o
+>> obj-$(CONFIG_DVB_TDA10071) += tda10071.o
+>> obj-$(CONFIG_DVB_RTL2830) += rtl2830.o
+>> +obj-$(CONFIG_DVB_RTL2832) = rtl2832.o
+>> obj-$(CONFIG_DVB_M88RS2000) += m88rs2000.o
+>> obj-$(CONFIG_DVB_AF9033) += af9033.o
 
-On Mon May 14 2012 21:24:26 manjunatha_halli@ti.com wrote:
-> @@ -1843,13 +1857,22 @@ struct v4l2_frequency {
->  	__u32		      reserved[8];
->  };
->  
-> +
-> +#define FM_BAND_TYPE_DEFAULT	0	/* All Bands 65.8 MHz till 108 Mhz
-> +					   or 162.55 MHz if weather band */
-> +#define FM_BAND_TYPE_EUROPE_US	1	/* 87.5 Mhz - 108 MHz*/
-> +#define FM_BAND_TYPE_JAPAN	2	/* 76 MHz - 90 MHz*/
-> +#define FM_BAND_TYPE_RUSSIAN	3	/* 65.8 MHz - 74 MHz*/
-> +#define FM_BAND_TYPE_WEATHER	4	/* 162.4 MHz - 162.55 MHz*/
+I just realized that very bad bug! That prevents compilation of all the 
+other demods than rtl2832.
 
-This needs a V4L2_ prefix. And in my opinion the _TYPE part can be dropped.
-
-So it becomes:
-
-#define V4L2_FM_BAND_DEFAULT	0
-#define V4L2_FM_BAND_EUROPE_US	1	/* 87.5 Mhz - 108 MHz */
-#define V4L2_FM_BAND_JAPAN	2	/* 76 MHz - 90 MHz */
-#define V4L2_FM_BAND_RUSSIAN	3	/* 65.8 MHz - 74 MHz */
-#define V4L2_FM_BAND_WEATHER	4	/* 162.4 MHz - 162.55 MHz */
-
-BTW, also put a space before '*/'.
-
-If you can make this change quickly (i.e. today) and post the fixed version
-(don't forget to update the documentation as well!) then I'll ack it and
-there is a change you can get it merged for 3.5.
-
-Regards,
-
-	Hans
-
-> +
->  struct v4l2_hw_freq_seek {
->  	__u32		      tuner;
->  	enum v4l2_tuner_type  type;
->  	__u32		      seek_upward;
->  	__u32		      wrap_around;
->  	__u32		      spacing;
-> -	__u32		      reserved[7];
-> +	__u32		      band;
-> +	__u32		      reserved[6];
->  };
->  
->  /*
-> 
+regards
+Antti
+-- 
+http://palosaari.fi/
