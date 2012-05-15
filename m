@@ -1,28 +1,26 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:53695 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761338Ab2EQIE7 (ORCPT
+Received: from mail-vb0-f46.google.com ([209.85.212.46]:55412 "EHLO
+	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S966555Ab2EOT7N (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 May 2012 04:04:59 -0400
-Received: by bkcji2 with SMTP id ji2so1292370bkc.19
-        for <linux-media@vger.kernel.org>; Thu, 17 May 2012 01:04:58 -0700 (PDT)
-Message-ID: <4FB4B127.2020305@googlemail.com>
-Date: Thu, 17 May 2012 10:04:55 +0200
-From: Thomas Mair <thomas.mair86@googlemail.com>
+	Tue, 15 May 2012 15:59:13 -0400
+Received: by vbbff1 with SMTP id ff1so6423536vbb.19
+        for <linux-media@vger.kernel.org>; Tue, 15 May 2012 12:59:13 -0700 (PDT)
 MIME-Version: 1.0
-To: poma <pomidorabelisima@gmail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH v4 1/5] rtl2832 ver. 0.4: removed signal statistics
-References: <1> <1337206420-23810-1-git-send-email-thomas.mair86@googlemail.com> <1337206420-23810-2-git-send-email-thomas.mair86@googlemail.com> <4FB4722A.9070009@gmail.com> <4FB47318.5020807@gmail.com>
-In-Reply-To: <4FB47318.5020807@gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+From: Cesar Bermudez <cesar.bermudez@gmail.com>
+Date: Tue, 15 May 2012 16:58:52 -0300
+Message-ID: <CADrcvV_j6_X8Tk7nBacBw1pTT8gsN2uRuO+pAzHjy3qVQ7+6wg@mail.gmail.com>
+Subject: Osprey 210
+To: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 17.05.2012 05:40, poma wrote:
-> […]
-> v4-1-5-rtl2832-ver.-0.4-v2.diff
-> 
+Hi list.
+I want to know if any of the user have a osprey 210 working with audio.
+I have video and its working very good, but i cannot get it the audio.
+i have a old ubuntu ( 9.04 ) that have audio working, but i cannot get
+it working in more recent linux distros.
+any advice on this subject?
 
-Oh thanks. That Makefile is haunting me badly ;)
+Best regards.
