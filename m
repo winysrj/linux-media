@@ -1,58 +1,28 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1-g21.free.fr ([212.27.42.1]:35101 "EHLO smtp1-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750797Ab2E1REN convert rfc822-to-8bit (ORCPT
+Received: from 124-248-200-90.sunnyvision.com ([124.248.200.90]:36035 "EHLO
+	teamb03.edmhongkong.com" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
+	with ESMTP id S965425Ab2EOTfg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 May 2012 13:04:13 -0400
-Date: Mon, 28 May 2012 19:04:07 +0200
-From: Jean-Francois Moine <moinejf@free.fr>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH] gspca - ov534/ov534_9: Fix sccd_read/write errors
-Message-ID: <20120528190407.463f7d6e@tele>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	Tue, 15 May 2012 15:35:36 -0400
+Message-ID: <J7b2p3@tpts8.seed.net.tw>
+From: boris@dedicatedserver.com.hk
+Subject: Streaming Service
+Content-Type: text/plain;
+Content-Transfer-Encoding: Quoted-Printable
+Date: Wed, 16 May 2012 03:35:20 +0800 (HKT)
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The ov534 bridge is too slow to handle the sensor accesses
-requested by fast hosts giving 'sccb_reg_write failed'.
-A small delay fixes the problem.
+Our Streaming Server is powerful and optimized server for live and on-demand audio/ video streaming content delivery. 
+Our Streaming Server features with high performance streaming throughput, network & storage I/O and optimized configurations for its high scalability and reliability.
+Our server supports latest Windows Media Technologies such as Fast Streaming, Fast Cache, Fast Start, Wireless Streaming as well as feature-rich add-on modules such as sophisticated content management, monitoring, logging reports, billing, authentications, load-balancing & clustering for all needs. 
 
-Signed-off-by: Jean-François Moine <moinejf@free.fr>
----
- drivers/media/video/gspca/ov534.c   |    1 +
- drivers/media/video/gspca/ov534_9.c |    1 +
- 2 files changed, 2 insertions(+)
+Pls send us email for further information.Thanks,
 
-diff --git a/drivers/media/video/gspca/ov534.c b/drivers/media/video/gspca/ov534.c
-index b5acb1e..d5a7873 100644
---- a/drivers/media/video/gspca/ov534.c
-+++ b/drivers/media/video/gspca/ov534.c
-@@ -851,6 +851,7 @@ static int sccb_check_status(struct gspca_dev *gspca_dev)
- 	int i;
- 
- 	for (i = 0; i < 5; i++) {
-+		msleep(10);
- 		data = ov534_reg_read(gspca_dev, OV534_REG_STATUS);
- 
- 		switch (data) {
-diff --git a/drivers/media/video/gspca/ov534_9.c b/drivers/media/video/gspca/ov534_9.c
-index e6601b8..0120f94 100644
---- a/drivers/media/video/gspca/ov534_9.c
-+++ b/drivers/media/video/gspca/ov534_9.c
-@@ -1008,6 +1008,7 @@ static int sccb_check_status(struct gspca_dev *gspca_dev)
- 	int i;
- 
- 	for (i = 0; i < 5; i++) {
-+		msleep(10);
- 		data = reg_r(gspca_dev, OV534_REG_STATUS);
- 
- 		switch (data) {
--- 
-1.7.10
+Boris 
+boris@dedicatedserver.com.hk
 
--- 
-Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+If you do not wish to further receive this event message, email "borislamsv2@gmail.com" to unsubscribe this message or remove your email from the list.
+
+
