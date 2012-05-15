@@ -1,104 +1,136 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:7494 "EHLO mx1.redhat.com"
+Received: from smtp.nokia.com ([147.243.1.47]:20485 "EHLO mgw-sa01.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756377Ab2EVOjQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 May 2012 10:39:16 -0400
-Message-ID: <4FBBA515.7010006@redhat.com>
-Date: Tue, 22 May 2012 16:39:17 +0200
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: Paulo Assis <pj.assis@gmail.com>
-CC: =?ISO-8859-1?Q?Llu=EDs_Batlle_i_Rossell?= <viric@viric.name>,
-	linux-media@vger.kernel.org
-Subject: Re: Problems with the gspca_ov519 driver
-References: <20120522110018.GX1927@vicerveza.homeunix.net> <CAPueXH6uN4UQO_WL_pc9wBoZV=v_7AVtQKcruKY=BCMeJOw-2Q@mail.gmail.com>
-In-Reply-To: <CAPueXH6uN4UQO_WL_pc9wBoZV=v_7AVtQKcruKY=BCMeJOw-2Q@mail.gmail.com>
-Content-Type: multipart/mixed;
- boundary="------------050007090606060705070500"
+	id S932124Ab2EOPC4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 May 2012 11:02:56 -0400
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+To: linux-media@vger.kernel.org
+Cc: mchehab@redhat.com
+Subject: [PATCH 1/1] smiapp: Remove smiapp-debug.h in favour of dynamic debug
+Date: Tue, 15 May 2012 18:02:48 +0300
+Message-Id: <1337094168-19633-1-git-send-email-sakari.ailus@maxwell.research.nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------050007090606060705070500
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+Remove smiapp-debug.h and let people use CONFIG_DYNAMIC_DEBUG instead. The
+option only affected to when debug information was being printed.
 
-Hi,
-
-On 05/22/2012 04:08 PM, Paulo Assis wrote:
-> Hi,
-> This bug also causes the camera to crash when changing fps in
-> guvcview, uvc devices (at least all the ones I tested) require the
-> stream to be restarted for fps to change, so in the case of this
-> driver after STREAMOFF the camera just becomes unresponsive.
->
-> Regards,
-> Paulo
->
-> 2012/5/22 Lluís Batlle i Rossell<viric@viric.name>:
->> Hello,
->>
->> I'm trying to get video using v4l2 ioctls from a gspca_ov519 camera, and after
->> STREAMOFF all buffers are still flagged as QUEUED, and QBUF fails.  DQBUF also
->> fails (blocking for a 3 sec timeout), after streamoff. So I'm stuck, after
->> STREAMOFF, unable to get pictures coming in again. (Linux 3.3.5).
->>
->> As an additional note, pinchartl on irc #v4l says to favour a moving of gspca to
->> vb2. I don't know what it means.
->>
->> Can someone take care of the bug, or should I consider the camera 'non working'
->> in linux?
-
-We talked about this on irc, attached it a patch which should fix this, feedback
-appreciated.
-
-Regards,
-
-Hans
-
---------------050007090606060705070500
-Content-Type: text/x-patch;
- name="0001-gspca-core-Fix-buffers-staying-in-queued-state-after.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename*0="0001-gspca-core-Fix-buffers-staying-in-queued-state-after.pa";
- filename*1="tch"
-
->From b0eefa00c72e9dfe9eaa5f425c0d346b19ea01cd Mon Sep 17 00:00:00 2001
-From: Hans de Goede <hdegoede@redhat.com>
-Date: Tue, 22 May 2012 16:24:05 +0200
-Subject: [PATCH] gspca-core: Fix buffers staying in queued state after a
- stream_off
-
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 ---
- drivers/media/video/gspca/gspca.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/media/video/smiapp-pll.c          |    2 -
+ drivers/media/video/smiapp/Kconfig        |    7 ------
+ drivers/media/video/smiapp/smiapp-core.c  |    2 -
+ drivers/media/video/smiapp/smiapp-debug.h |   32 -----------------------------
+ drivers/media/video/smiapp/smiapp-quirk.c |    2 -
+ drivers/media/video/smiapp/smiapp-regs.c  |    2 -
+ 6 files changed, 0 insertions(+), 47 deletions(-)
+ delete mode 100644 drivers/media/video/smiapp/smiapp-debug.h
 
-diff --git a/drivers/media/video/gspca/gspca.c b/drivers/media/video/gspca/gspca.c
-index 137166d..31721ea 100644
---- a/drivers/media/video/gspca/gspca.c
-+++ b/drivers/media/video/gspca/gspca.c
-@@ -1653,7 +1653,7 @@ static int vidioc_streamoff(struct file *file, void *priv,
- 				enum v4l2_buf_type buf_type)
- {
- 	struct gspca_dev *gspca_dev = video_drvdata(file);
--	int ret;
-+	int i, ret;
+diff --git a/drivers/media/video/smiapp-pll.c b/drivers/media/video/smiapp-pll.c
+index 501da41..a416e27 100644
+--- a/drivers/media/video/smiapp-pll.c
++++ b/drivers/media/video/smiapp-pll.c
+@@ -22,8 +22,6 @@
+  *
+  */
  
- 	if (buf_type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
- 		return -EINVAL;
-@@ -1678,6 +1678,8 @@ static int vidioc_streamoff(struct file *file, void *priv,
- 	wake_up_interruptible(&gspca_dev->wq);
+-#include "smiapp/smiapp-debug.h"
+-
+ #include <linux/gcd.h>
+ #include <linux/lcm.h>
+ #include <linux/module.h>
+diff --git a/drivers/media/video/smiapp/Kconfig b/drivers/media/video/smiapp/Kconfig
+index 9504c43..f7b35ff 100644
+--- a/drivers/media/video/smiapp/Kconfig
++++ b/drivers/media/video/smiapp/Kconfig
+@@ -4,10 +4,3 @@ config VIDEO_SMIAPP
+ 	select VIDEO_SMIAPP_PLL
+ 	---help---
+ 	  This is a generic driver for SMIA++/SMIA camera modules.
+-
+-config VIDEO_SMIAPP_DEBUG
+-	bool "Enable debugging for the generic SMIA++/SMIA driver"
+-	depends on VIDEO_SMIAPP
+-	---help---
+-	  Enable debugging output in the generic SMIA++/SMIA driver. If you
+-	  are developing the driver you might want to enable this.
+diff --git a/drivers/media/video/smiapp/smiapp-core.c b/drivers/media/video/smiapp/smiapp-core.c
+index 3991c45..a8a1db9 100644
+--- a/drivers/media/video/smiapp/smiapp-core.c
++++ b/drivers/media/video/smiapp/smiapp-core.c
+@@ -26,8 +26,6 @@
+  *
+  */
  
- 	/* empty the transfer queues */
-+	for (i = 0; i < gspca_dev->nframes; i++)
-+		gspca_dev->frame[i].v4l2_buf.flags &= ~BUF_ALL_FLAGS;
- 	atomic_set(&gspca_dev->fr_q, 0);
- 	atomic_set(&gspca_dev->fr_i, 0);
- 	gspca_dev->fr_o = 0;
+-#include "smiapp-debug.h"
+-
+ #include <linux/delay.h>
+ #include <linux/device.h>
+ #include <linux/gpio.h>
+diff --git a/drivers/media/video/smiapp/smiapp-debug.h b/drivers/media/video/smiapp/smiapp-debug.h
+deleted file mode 100644
+index 627809e..0000000
+--- a/drivers/media/video/smiapp/smiapp-debug.h
++++ /dev/null
+@@ -1,32 +0,0 @@
+-/*
+- * drivers/media/video/smiapp/smiapp-debug.h
+- *
+- * Generic driver for SMIA/SMIA++ compliant camera modules
+- *
+- * Copyright (C) 2011--2012 Nokia Corporation
+- * Contact: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+- *
+- * This program is free software; you can redistribute it and/or
+- * modify it under the terms of the GNU General Public License
+- * version 2 as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope that it will be useful, but
+- * WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+- * General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+- * 02110-1301 USA
+- *
+- */
+-
+-#ifndef SMIAPP_DEBUG_H
+-#define SMIAPP_DEBUG_H
+-
+-#ifdef CONFIG_VIDEO_SMIAPP_DEBUG
+-#define DEBUG
+-#endif
+-
+-#endif
+diff --git a/drivers/media/video/smiapp/smiapp-quirk.c b/drivers/media/video/smiapp/smiapp-quirk.c
+index dae85a1..fb018de 100644
+--- a/drivers/media/video/smiapp/smiapp-quirk.c
++++ b/drivers/media/video/smiapp/smiapp-quirk.c
+@@ -22,8 +22,6 @@
+  *
+  */
+ 
+-#include "smiapp-debug.h"
+-
+ #include <linux/delay.h>
+ 
+ #include "smiapp.h"
+diff --git a/drivers/media/video/smiapp/smiapp-regs.c b/drivers/media/video/smiapp/smiapp-regs.c
+index 4851ff7..a5055f1 100644
+--- a/drivers/media/video/smiapp/smiapp-regs.c
++++ b/drivers/media/video/smiapp/smiapp-regs.c
+@@ -22,8 +22,6 @@
+  *
+  */
+ 
+-#include "smiapp-debug.h"
+-
+ #include <linux/delay.h>
+ #include <linux/i2c.h>
+ 
 -- 
-1.7.10
+1.7.2.5
 
-
---------------050007090606060705070500--
