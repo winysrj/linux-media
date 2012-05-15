@@ -1,76 +1,194 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:54965 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757749Ab2EJPOi (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.9]:59215 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965990Ab2EOWze (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 May 2012 11:14:38 -0400
-Date: Fri, 11 May 2012 00:14:27 +0900
-From: Minchan Kim <minchan@kernel.org>
-To: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org,
-	Michal Nazarewicz <mina86@mina86.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
-	Jesse Barker <jesse.barker@linaro.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Chunsang Jeong <chunsang.jeong@linaro.org>,
-	Dave Hansen <dave@linux.vnet.ibm.com>,
-	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-	Rob Clark <rob.clark@linaro.org>,
-	Ohad Ben-Cohen <ohad@wizery.com>,
-	Sandeep Patil <psandeep.s@gmail.com>
-Subject: Re: [PATCH] drivers: cma: don't fail if migration returns -EAGAIN
-Message-ID: <20120510151427.GB2394@barrios>
-References: <1333462221-3987-1-git-send-email-m.szyprowski@samsung.com>
- <1336655975-15729-1-git-send-email-m.szyprowski@samsung.com>
+	Tue, 15 May 2012 18:55:34 -0400
+Date: Wed, 16 May 2012 00:55:30 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+cc: Javier Martin <javier.martin@vista-silicon.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [git:v4l-dvb/for_v3.5] [media] media: mx2_camera: Fix mbus format
+ handling
+In-Reply-To: <E1SUH8r-0005cc-3k@www.linuxtv.org>
+Message-ID: <Pine.LNX.4.64.1205160050270.25352@axis700.grange>
+References: <E1SUH8r-0005cc-3k@www.linuxtv.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1336655975-15729-1-git-send-email-m.szyprowski@samsung.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, May 10, 2012 at 03:19:35PM +0200, Marek Szyprowski wrote:
-> alloc_contig_range() function might return -EAGAIN if migrate_pages() call
+Hi Mauro, Javier
 
-migrate_page never return -EAGAIN and I can't find any -EAGAIN return in alloc_contig_range.
-Am I seeing different tree? 
+On Tue, 15 May 2012, Mauro Carvalho Chehab wrote:
 
-> fails for some temporarily locked pages. Such case should not be fatal
-> to dma_alloc_from_contiguous(), which should retry allocation like in case
-> of -EBUSY error.
+> This is an automatic generated email to let you know that the following patch were queued at the 
+> http://git.linuxtv.org/media_tree.git tree:
 > 
-> Reported-by: Haojian Zhuang <haojian.zhuang@gmail.com>
-> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+> Subject: [media] media: mx2_camera: Fix mbus format handling
+> Author:  Javier Martin <javier.martin@vista-silicon.com>
+> Date:    Mon Mar 26 09:17:48 2012 -0300
+
+Looks like I have missed this patch, unfortunately, it hasn't been cc'ed 
+to me. It would have been better to merge it via my soc-camera tree, also 
+because with this merge window there are a couple more changes, that 
+affect the generic soc-camera API and the mx2-camera driver in particular. 
+So far I don't see anything, what could break here, but if something does 
+- we know who will have to fix it;-)
+
+Thanks
+Guennadi
+
+> 
+> Remove MX2_CAMERA_SWAP16 and MX2_CAMERA_PACK_DIR_MSB flags
+> so that the driver can negotiate with the attached sensor
+> whether the mbus format needs convertion from UYUV to YUYV
+> or not.
+> 
+> Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> 
+>  arch/arm/plat-mxc/include/mach/mx2_cam.h |    2 -
+>  drivers/media/video/mx2_camera.c         |   52 +++++++++++++++++++++++++++---
+>  2 files changed, 47 insertions(+), 7 deletions(-)
+> 
 > ---
->  drivers/base/dma-contiguous.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
 > 
-> diff --git a/drivers/base/dma-contiguous.c b/drivers/base/dma-contiguous.c
-> index 78efb03..e46e2fb 100644
-> --- a/drivers/base/dma-contiguous.c
-> +++ b/drivers/base/dma-contiguous.c
-> @@ -346,7 +346,7 @@ struct page *dma_alloc_from_contiguous(struct device *dev, int count,
->  		if (ret == 0) {
->  			bitmap_set(cma->bitmap, pageno, count);
->  			break;
-> -		} else if (ret != -EBUSY) {
-> +		} else if (ret != -EBUSY && ret != -EAGAIN) {
->  			goto error;
+> http://git.linuxtv.org/media_tree.git?a=commitdiff;h=d509835e32bd761a2b7b446034a273da568e5573
+> 
+> diff --git a/arch/arm/plat-mxc/include/mach/mx2_cam.h b/arch/arm/plat-mxc/include/mach/mx2_cam.h
+> index 3c080a3..7ded6f1 100644
+> --- a/arch/arm/plat-mxc/include/mach/mx2_cam.h
+> +++ b/arch/arm/plat-mxc/include/mach/mx2_cam.h
+> @@ -23,7 +23,6 @@
+>  #ifndef __MACH_MX2_CAM_H_
+>  #define __MACH_MX2_CAM_H_
+>  
+> -#define MX2_CAMERA_SWAP16		(1 << 0)
+>  #define MX2_CAMERA_EXT_VSYNC		(1 << 1)
+>  #define MX2_CAMERA_CCIR			(1 << 2)
+>  #define MX2_CAMERA_CCIR_INTERLACE	(1 << 3)
+> @@ -31,7 +30,6 @@
+>  #define MX2_CAMERA_GATED_CLOCK		(1 << 5)
+>  #define MX2_CAMERA_INV_DATA		(1 << 6)
+>  #define MX2_CAMERA_PCLK_SAMPLE_RISING	(1 << 7)
+> -#define MX2_CAMERA_PACK_DIR_MSB		(1 << 8)
+>  
+>  /**
+>   * struct mx2_camera_platform_data - optional platform data for mx2_camera
+> diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
+> index 18afaee..7c3c0e8 100644
+> --- a/drivers/media/video/mx2_camera.c
+> +++ b/drivers/media/video/mx2_camera.c
+> @@ -344,6 +344,19 @@ static struct mx2_fmt_cfg mx27_emma_prp_table[] = {
+>  					PRP_INTR_CH2OVF,
 >  		}
->  		pr_debug("%s(): memory range at %p is busy, retrying\n",
-> -- 
-> 1.7.1.569.g6f426
+>  	},
+> +	{
+> +		.in_fmt		= V4L2_MBUS_FMT_UYVY8_2X8,
+> +		.out_fmt	= V4L2_PIX_FMT_YUV420,
+> +		.cfg		= {
+> +			.channel	= 2,
+> +			.in_fmt		= PRP_CNTL_DATA_IN_YUV422,
+> +			.out_fmt	= PRP_CNTL_CH2_OUT_YUV420,
+> +			.src_pixel	= 0x22000888, /* YUV422 (YUYV) */
+> +			.irq_flags	= PRP_INTR_RDERR | PRP_INTR_CH2WERR |
+> +					PRP_INTR_CH2FC | PRP_INTR_LBOVF |
+> +					PRP_INTR_CH2OVF,
+> +		}
+> +	},
+>  };
+>  
+>  static struct mx2_fmt_cfg *mx27_emma_prp_get_format(
+> @@ -980,6 +993,7 @@ static int mx2_camera_set_bus_param(struct soc_camera_device *icd)
+>  	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
+>  	struct mx2_camera_dev *pcdev = ici->priv;
+>  	struct v4l2_mbus_config cfg = {.type = V4L2_MBUS_PARALLEL,};
+> +	const struct soc_camera_format_xlate *xlate;
+>  	unsigned long common_flags;
+>  	int ret;
+>  	int bytesperline;
+> @@ -1024,14 +1038,31 @@ static int mx2_camera_set_bus_param(struct soc_camera_device *icd)
+>  		return ret;
+>  	}
+>  
+> +	xlate = soc_camera_xlate_by_fourcc(icd, pixfmt);
+> +	if (!xlate) {
+> +		dev_warn(icd->parent, "Format %x not found\n", pixfmt);
+> +		return -EINVAL;
+> +	}
+> +
+> +	if (xlate->code == V4L2_MBUS_FMT_YUYV8_2X8) {
+> +		csicr1 |= CSICR1_PACK_DIR;
+> +		csicr1 &= ~CSICR1_SWAP16_EN;
+> +		dev_dbg(icd->parent, "already yuyv format, don't convert\n");
+> +	} else if (xlate->code == V4L2_MBUS_FMT_UYVY8_2X8) {
+> +		csicr1 &= ~CSICR1_PACK_DIR;
+> +		csicr1 |= CSICR1_SWAP16_EN;
+> +		dev_dbg(icd->parent, "convert uyvy mbus format into yuyv\n");
+> +	} else {
+> +		dev_warn(icd->parent, "mbus format not supported\n");
+> +		return -EINVAL;
+> +	}
+> +
+>  	if (common_flags & V4L2_MBUS_PCLK_SAMPLE_RISING)
+>  		csicr1 |= CSICR1_REDGE;
+>  	if (common_flags & V4L2_MBUS_VSYNC_ACTIVE_HIGH)
+>  		csicr1 |= CSICR1_SOF_POL;
+>  	if (common_flags & V4L2_MBUS_HSYNC_ACTIVE_HIGH)
+>  		csicr1 |= CSICR1_HSYNC_POL;
+> -	if (pcdev->platform_flags & MX2_CAMERA_SWAP16)
+> -		csicr1 |= CSICR1_SWAP16_EN;
+>  	if (pcdev->platform_flags & MX2_CAMERA_EXT_VSYNC)
+>  		csicr1 |= CSICR1_EXT_VSYNC;
+>  	if (pcdev->platform_flags & MX2_CAMERA_CCIR)
+> @@ -1042,8 +1073,6 @@ static int mx2_camera_set_bus_param(struct soc_camera_device *icd)
+>  		csicr1 |= CSICR1_GCLK_MODE;
+>  	if (pcdev->platform_flags & MX2_CAMERA_INV_DATA)
+>  		csicr1 |= CSICR1_INV_DATA;
+> -	if (pcdev->platform_flags & MX2_CAMERA_PACK_DIR_MSB)
+> -		csicr1 |= CSICR1_PACK_DIR;
+>  
+>  	pcdev->csicr1 = csicr1;
+>  
+> @@ -1118,7 +1147,8 @@ static int mx2_camera_get_formats(struct soc_camera_device *icd,
+>  		return 0;
+>  	}
+>  
+> -	if (code == V4L2_MBUS_FMT_YUYV8_2X8) {
+> +	if (code == V4L2_MBUS_FMT_YUYV8_2X8 ||
+> +	    code == V4L2_MBUS_FMT_UYVY8_2X8) {
+>  		formats++;
+>  		if (xlate) {
+>  			/*
+> @@ -1134,6 +1164,18 @@ static int mx2_camera_get_formats(struct soc_camera_device *icd,
+>  		}
+>  	}
+>  
+> +	if (code == V4L2_MBUS_FMT_UYVY8_2X8) {
+> +		formats++;
+> +		if (xlate) {
+> +			xlate->host_fmt =
+> +				soc_mbus_get_fmtdesc(V4L2_MBUS_FMT_YUYV8_2X8);
+> +			xlate->code	= code;
+> +			dev_dbg(dev, "Providing host format %s for sensor code %d\n",
+> +				xlate->host_fmt->name, code);
+> +			xlate++;
+> +		}
+> +	}
+> +
+>  	/* Generic pass-trough */
+>  	formats++;
+>  	if (xlate) {
 > 
-> --
-> To unsubscribe, send a message with 'unsubscribe linux-mm' in
-> the body to majordomo@kvack.org.  For more info on Linux MM,
-> see: http://www.linux-mm.org/ .
-> Fight unfair telecom internet charges in Canada: sign http://stopthemeter.ca/
-> Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+> _______________________________________________
+> linuxtv-commits mailing list
+> linuxtv-commits@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linuxtv-commits
+> 
+
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
