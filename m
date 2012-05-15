@@ -1,76 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from dimen.winder.org.uk ([87.127.116.10]:42168 "EHLO
-	dimen.winder.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751296Ab2EMK6s (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 May 2012 06:58:48 -0400
-Message-ID: <1336906328.19220.277.camel@launcelot.winder.org.uk>
-Subject: Re: Fwd: Bug#669715: dvb-apps: Channel/frequency/etc. data needs
- updating for London transmitters
-From: Russel Winder <russel@winder.org.uk>
-To: Andy Furniss <andyqos@ukfsn.org>
-Cc: Mark Purcell <mark@purcell.id.au>, linux-media@vger.kernel.org,
-	Darren Salt <linux@youmustbejoking.demon.co.uk>,
-	669715-forwarded@bugs.debian.org
-Date: Sun, 13 May 2012 11:52:08 +0100
-In-Reply-To: <4FAF89DB.9020004@ukfsn.org>
-References: <201205132005.47858.mark@purcell.id.au>
-	 <4FAF89DB.9020004@ukfsn.org>
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-	boundary="=-s0cXo8u3PvrintUbYjkn"
-Mime-Version: 1.0
+Received: from mx1.redhat.com ([209.132.183.28]:27507 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932135Ab2EOOrT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 May 2012 10:47:19 -0400
+Message-ID: <4FB26C6E.6000505@redhat.com>
+Date: Tue, 15 May 2012 11:47:10 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Antonio Ospite <ospite@studenti.unina.it>
+CC: gennarone@gmail.com, linux-media@vger.kernel.org,
+	hans.verkuil@cisco.com
+Subject: Re: [PATCH] media_build: add fixp-arith.h in linux/include/linux
+References: <1337087801-31527-1-git-send-email-gennarone@gmail.com> <4FB2593B.3030402@redhat.com> <4FB25B93.6080508@gmail.com> <20120515162532.81fe775d3e332df9c950bea6@studenti.unina.it>
+In-Reply-To: <20120515162532.81fe775d3e332df9c950bea6@studenti.unina.it>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Em 15-05-2012 11:25, Antonio Ospite escreveu:
+> On Tue, 15 May 2012 15:35:15 +0200
+> Gianluca Gennari <gennarone@gmail.com> wrote:
+> 
+>> Il 15/05/2012 15:25, Mauro Carvalho Chehab ha scritto:
+>>> Em 15-05-2012 10:16, Gianluca Gennari escreveu:
+>>>> This patch:
+>>>> http://patchwork.linuxtv.org/patch/10824/
+>>>> moved the file fixp-arith.h from drivers/input/ to include/linux/ .
+>>>>
+>>>> To make this file available to old kernels, we must include it in the
+>>>> media_build package.
+>>>>
+>>>> The version included here comes from kernel 3.4-rc7.
+>>>>
+>>>> This patch corrects the following build error:
+>>>>
+>>>> media_build/v4l/ov534.c:38:30: error: linux/fixp-arith.h: No such file or directory
+>>>> media_build/v4l/ov534.c: In function 'sethue':
+>>>> media_build/v4l/ov534.c:1000: error: implicit declaration of function 'fixp_sin'
+>>>> media_build/v4l/ov534.c:1001: error: implicit declaration of function 'fixp_cos'
+>>>>
+>>>> Tested on kernel 2.6.32-41-generic-pae (Ubuntu 10.04).
+>>>>
+>>>> Signed-off-by: Gianluca Gennari <gennarone@gmail.com
+>>>> ---
+>>>>  linux/include/linux/fixp-arith.h |   87 ++++++++++++++++++++++++++++++++++++++
+>>>
+>>> It is not that simple, as make clean will remove it.
+>>>
+>>> I can think on a few possible solutions for it:
+>>> 	1) just don't compile ov534 on older kernels;
+>>> 	2) add a backport patch that will dynamically create it;
+>>> 	3) add linux/include/linux/fixp-arith.h inside the tarball with:
+>>> 		TARFILES += include/linux/fixp-arith.h
+>>>
+>>> Eventually, you can also tweak with the building system, but it doesn't sound a good
+>>> idea to keep this header there as-is for kernels > 3.4, as some changes on this header
+>>> can be added there.
+>>>
+>>> >From all above, (3) is the simpler one. I'll apply it.
 
---=-s0cXo8u3PvrintUbYjkn
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Applied, and tarball updated at linuxtv.org. The only thing left is the CONFIG_VIDEO_SMIAPP
+stuff.
 
-On Sun, 2012-05-13 at 11:15 +0100, Andy Furniss wrote:
-[...]
-> Transmission mode changed from 2k to 8k in the uk after analogue switch o=
-ff.
+Sakari should be writing a fix for it today or tomorrow.
 
-Of course. I just failed to make that change in my files. With that
-changed I got some response from gnome-dvb-setup but it only analysed
-one multiplex.
+>>>
+> [...]
+>>
+>>
+>> It looks like this file has not been changed in the last years, so
+>> chances are it will not change in the future. So adding it in the
+>> tarball file looks as a good solution.
+>>
+> 
+> Hi,
+> 
+> I just wanted to mention that it has been proposed to move part of
+> include/linux/fixp-arith.h to a .c file (maybe under lib/) in order to
+> share some code between the users, which are now 2
+> (drivers/input/ff-memless.c and drivers/media/video/gspca/ov534.c).
 
-> Chris Rankin already posted UK, Crystal Palace on here.
-[...]
-> T 490000000 8MHz 2/3 NONE QAM64 8k 1/32 NONE # London .
-> T 514000000 8MHz 2/3 NONE QAM64 8k 1/32 NONE # London .
-> T 545833330 8MHz 2/3 NONE QAM256 AUTO AUTO AUTO # London .
-> T 482000000 8MHz 3/4 NONE QAM64 8k 1/32 NONE # London .
-> T 506000000 8MHz 3/4 NONE QAM64 8k 1/32 NONE # London .
-> T 529833330 8MHz 3/4 NONE QAM64 8k 1/32 NONE # London .
+That makes sense.
 
-Should that be 545833000 instead of 545833330, and 529833000 instead of 529=
-833330?
+> I don't know yet if I'll do it or when it will be done but the file
+> _might_ change not too far in the future.
 
---=20
-Russel.
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D
-Dr Russel Winder      t: +44 20 7585 2200   voip: sip:russel.winder@ekiga.n=
-et
-41 Buckmaster Road    m: +44 7770 465 077   xmpp: russel@winder.org.uk
-London SW11 1EN, UK   w: www.russel.org.uk  skype: russel_winder
-
---=-s0cXo8u3PvrintUbYjkn
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iEYEABECAAYFAk+vklgACgkQ+ooS3F10Be813wCePgw7j+XMCU/T7Pib/FosNal+
-7ZEAoKCqgYlZKJmkYf5AddJegxt1ODhM
-=dFs5
------END PGP SIGNATURE-----
-
---=-s0cXo8u3PvrintUbYjkn--
+No problem. If it changes to a *.c file, all we need to do is to add it at
+TARFILES.
+> 
+> Regards,
+>    Antonio
+> 
 
