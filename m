@@ -1,57 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:47900 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761606Ab2ERN0T (ORCPT
+Received: from rcsinet15.oracle.com ([148.87.113.117]:31389 "EHLO
+	rcsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758414Ab2EOIs5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 May 2012 09:26:19 -0400
-Received: by bkcji2 with SMTP id ji2so2349258bkc.19
-        for <linux-media@vger.kernel.org>; Fri, 18 May 2012 06:26:18 -0700 (PDT)
-Message-ID: <4FB64DF6.6080903@gmail.com>
-Date: Fri, 18 May 2012 15:26:14 +0200
-From: poma <pomidorabelisima@gmail.com>
+	Tue, 15 May 2012 04:48:57 -0400
+Received: from ucsinet21.oracle.com (ucsinet21.oracle.com [156.151.31.93])
+	by rcsinet15.oracle.com (Sentrion-MTA-4.2.2/Sentrion-MTA-4.2.2) with ESMTP id q4F8muQ9026533
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Tue, 15 May 2012 08:48:56 GMT
+Received: from acsmt358.oracle.com (acsmt358.oracle.com [141.146.40.158])
+	by ucsinet21.oracle.com (8.14.4+Sun/8.14.4) with ESMTP id q4F8mtdh007679
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Tue, 15 May 2012 08:48:55 GMT
+Received: from abhmt102.oracle.com (abhmt102.oracle.com [141.146.116.54])
+	by acsmt358.oracle.com (8.12.11.20060308/8.12.11) with ESMTP id q4F8mt61018702
+	for <linux-media@vger.kernel.org>; Tue, 15 May 2012 03:48:55 -0500
+Date: Tue, 15 May 2012 11:48:47 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: linux-media@vger.kernel.org
+Subject: re: [media] cx23885-dvb: Remove a dirty hack that would require DVBv3
+Message-ID: <20120515084847.GD30265@elgon.mountain>
 MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>,
-	Thomas Mair <thomas.mair86@googlemail.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH v4 1/5] rtl2832 ver. 0.4: removed signal statistics
-References: <1337206420-23810-1-git-send-email-thomas.mair86@googlemail.com> <1337206420-23810-2-git-send-email-thomas.mair86@googlemail.com> <4FB50909.7030101@iki.fi> <4FB59E03.7080800@gmail.com> <CAKZ=SG_mvvFae9ZE2H3ci_3HosLmQ1kihyGx6QCdyQGgQro52Q@mail.gmail.com> <4FB61328.3090707@gmail.com> <4FB62695.3030909@gmail.com> <4FB642D3.2010903@iki.fi>
-In-Reply-To: <4FB642D3.2010903@iki.fi>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/18/2012 02:38 PM, Antti Palosaari wrote:
-> On 18.05.2012 13:38, poma wrote:
->> […]
->>
->> printk(KERN_ERR LOG_PREFIX": " f "\n" , ## arg)
->> pr_err(LOG_PREFIX": " f "\n" , ## arg)
->>
->> printk(KERN_INFO LOG_PREFIX": " f "\n" , ## arg)
->> pr_info(LOG_PREFIX": " f "\n" , ## arg)
->>
->> printk(KERN_WARNING LOG_PREFIX": " f "\n" , ## arg)
->> pr_warn(LOG_PREFIX": " f "\n" , ## arg)
->>
->> Besides what 'checkpatch' suggest/output - Antti, is it a correct
->> conversions?
-> 
-> 
-> I haven't looked those pr_err/pr_info/pr_warn, but what I did for
-> af9035/af9033 was I used pr_debug as a debug writings since it seems to
-> be choice of today.
-> 
-> I still suspect those pr_* functions should be used instead own macros.
-> Currently documentation mentions only pr_debug and pr_info.
-> 
-> regards
-> Antit
+Hi, I'm working some new Smatch stuff and sending bug reports for old
+code.  -Dan
 
-OK, thanks Antti!
-Thomas, dropping 'rtl2832_priv.h.diff' & 'rtl2832_priv.h-v2.diff'
-Please leave 'rtl2832_priv.h' as it is.
-And there you go…
+---
+This is a semi-automatic email about new static checker warnings.
 
-cheers,
-poma
+The patch a7d44baaed0a: "[media] cx23885-dvb: Remove a dirty hack 
+that would require DVBv3" from Dec 26, 2011, leads to the following 
+Smatch complaint:
+
+drivers/media/video/cx23885/cx23885-dvb.c:137 cx23885_dvb_gate_ctrl()
+	 error: we previously assumed 'fe->dvb.frontend' could be null (see line 130)
+
+drivers/media/video/cx23885/cx23885-dvb.c
+   129	
+   130		if (fe && fe->dvb.frontend && fe->dvb.frontend->ops.i2c_gate_ctrl)
+                    ^^^^^^^^^^^^^^^^^^^^^^
+Old check.
+
+   131			fe->dvb.frontend->ops.i2c_gate_ctrl(fe->dvb.frontend, open);
+   132	
+   133		/*
+   134		 * FIXME: Improve this path to avoid calling the
+   135		 * cx23885_dvb_set_frontend() every time it passes here.
+   136		 */
+   137		cx23885_dvb_set_frontend(fe->dvb.frontend);
+                                         ^^^^^^^^^^^^^^^^
+New call to cx23885_dvb_set_frontend().  If "fe->dvb.frontend" is NULL
+then we will oops in cx23885_dvb_set_frontend().  Also if "fe" is NULL
+we'll oops right here.
+
+   138	}
+   139	
+
+regards,
+dan carpenter
+
