@@ -1,151 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:63561 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751327Ab2EHRzB convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 May 2012 13:55:01 -0400
-Received: by pbbrp8 with SMTP id rp8so8324050pbb.19
-        for <linux-media@vger.kernel.org>; Tue, 08 May 2012 10:55:01 -0700 (PDT)
+Received: from mail-wg0-f44.google.com ([74.125.82.44]:37223 "EHLO
+	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S967065Ab2EOXlg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 May 2012 19:41:36 -0400
+Received: by wgbdr13 with SMTP id dr13so109566wgb.1
+        for <linux-media@vger.kernel.org>; Tue, 15 May 2012 16:41:35 -0700 (PDT)
+Message-ID: <4FB2E9AD.9050301@gmail.com>
+Date: Wed, 16 May 2012 01:41:33 +0200
+From: Sylwester Nawrocki <snjw23@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <4FA91BBF.5060405@iki.fi>
-References: <4FA91BBF.5060405@iki.fi>
-Date: Tue, 8 May 2012 19:55:01 +0200
-Message-ID: <CA+O4pCJPgdcQxKRGEMbQZ2e0yL1evoOhcMMmX8YH7OFnKLJXqw@mail.gmail.com>
-Subject: Re: [RFCv1] DVB-USB improvements
-From: Markus Rechberger <mrechberger@gmail.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	Patrick Boettcher <pboettcher@kernellabs.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH] V4L: JPEG class documentation corrections
+References: <1333187035-28340-1-git-send-email-sylvester.nawrocki@gmail.com>
+In-Reply-To: <1333187035-28340-1-git-send-email-sylvester.nawrocki@gmail.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, May 8, 2012 at 3:12 PM, Antti Palosaari <crope@iki.fi> wrote:
-> Factors behind the changes are mostly coming from the fact current struct
-> dvb_usb_device_properties contains so many static configuration options. You
-> cannot change single dvb_usb_device_properties easily (safely) at runtime
-> since it is usually driver global struct and thus shared between all the DVB
-> USB driver instances. That fits just fine for the traditional devices where
-> all configuration is same for the devices having single USB ID. Nowadays we
-> have more and more devices that are based of chipset vendor reference
-> designs - even using just single USB ID chipset vendor have given for that
-> chipset. These reference designs still varies much about used chips and
-> configurations. Configuring different base chips, USB-bridge, demod, tuner,
-> and also peripheral properties like dual tuners, remotes and CI is needed to
-> do runtime because of single USB ID is used for that all.
->
-> My personal innovator behind all these is problems I met when developing
-> AF9015 and AF9035 drivers. Also RTL2831U and RTL2832U are kinda similar and
-> have given some more motivation.
->
-> Here is small list what I am planning to do. It is surely so much work that
-> everything is not possible, but lets try to select most important and
-> easiest as a higher priority.
->
->
-> resume / suspend support
-> -------------------
-> * very important feature
-> * crashes currently when DVB USB tries to download firmware when resuming
-> from suspend
->
-> read_config1
-> -------------------
-> * new callback to do initial tweaks
-> * very first callback
-> * is that really needed?
->
-> read_mac_address => read_config2
-> -------------------
-> * rename it read_config2 or read_config if read_config1 is not implemented
-> at all
-> * rename old callback and extend it usage as a more general
-> * only 8 devices use currently
-> * when returned mac != 0 => print mac address as earlier, otherwise work as
-> a general callback
->
-> new callback init()
-> -------------------
-> * called after tuner attach to initialize rest of device
-> * good place to do some general settings
->  - configure endpoints
->  - configure remote controller
->  - configure + attach CI
->
-> change DVB-USB to dynamic debug
-> -------------------
-> * use Kernel new dynamic debugs instead of own proprietary system
->
-> download_firmware
-> -------------------
-> * struct usb_device => struct dvb_usb_device
-> * we need access for the DVB USB driver state in every callback
->
-> identify_state
-> -------------------
-> * struct usb_device => struct dvb_usb_device
-> * we need access for the DVB USB driver state in every callback
->
-> attach all given adapter frontends as once
-> -------------------
-> * for the MFE devices attach all frontends as once
-> * deregister all frontends if error returned
-> * small effect only for MFE
->
-> attach all given adapter tuners as once
-> -------------------
-> * deregister all frontends if error returned
-> * small effect only for MFE
->
-> make remote dynamically configurable
-> -------------------
-> * default keytable mapped same level with USB-ID & device name etc.
-> * there is generally 3 things that could be mapped to USB ID
->  - USB IDs (cold + warm)
->  - device name
->  - remote controller keytable
->  - all the others could be resolved & configured dynamically
-> * it is not only keytable but whole remote should be changed dynamically
-> configurable
->
-> make stream dynamically configurable
-> -------------------
-> * we need change stream parameters in certain situations
->  - there is multiple endpoints but shared MFE
->  - need to set params according to stream bandwidth (USB1.1, DVB-T, DVB-C2
-> in same device)
->  - leave old static configrations as those are but add callbacks to get new
-> values at runtime
->
-> dynamically growing device list in dvb_usb_device_properties
-> -------------------
-> * currently number of devices are limited statically
-> * there is devices having ~50 or more IDs which means multiple
-> dvb_usb_device_properties are needed
->
-> dynamic USB ID support
-> -------------------
-> * currently not supported by DVB USB
->
-> analog support for the DVB USB
-> -------------------
-> * currently not supported by DVB USB
-> * I have no experience
-> * em28xx can be converted?
->
+Hi Mauro,
 
-You might also work on a dvb library, just like libv4l has right now,
-that might satisfy the streaming requests which have been made on this
-mailinglist :-)
+I noticed that this patch and V2 that was only intended for merging,
+are both in media tree now:
 
-BR,
-Markus
+http://git.linuxtv.org/media_tree.git/history/579e92ffac65c717c9c8a50feb755a035a51bb3f:/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
 
->
->
+As a result Table A.58 has a redundant V4L2_CTRL_CLASS_JPEG entry:
+
+...
+V4L2_CTRL_CLASS_FLASH	0x9c0000	The class containing flash device controls. These controls are described in the section called “Flash Control Reference”.
+V4L2_CTRL_CLASS_JPEG	0x9d0000	The class containing JPEG compression controls. These controls are described in the section called “JPEG Control Reference”.
+V4L2_CTRL_CLASS_IMAGE_SOURCE	0x9e0000	The class containing image source controls. These controls are described in the section called “Image Source Control Reference”.
+V4L2_CTRL_CLASS_IMAGE_PROC	0x9f0000	The class containing image processing controls. These controls are described in the section called “Image Process Control Reference”.
+V4L2_CTRL_CLASS_JPEG	0x9d0000	The class containing JPEG compression controls. These controls are described in the section called “JPEG Control Reference”.
+
+Thus I would suggest to revert the older patch - feed0258e11e04b7e0d2df8ae3793ab5d302a035
+and remove redundant entry from the end of table.
+
+Regards,
+Sylwester
+
+On 03/31/2012 11:43 AM, Sylwester Nawrocki wrote:
+> This patch fixes following compilation warning:
+> Error: no ID for constraint linkend: v4l2-jpeg-chroma-subsampling.
+> 
+> and adds missing JPEG control class at the Table A.58.
+> 
+> Signed-off-by: Sylwester Nawrocki<sylvester.nawrocki@gmail.com>
+> ---
+>   Documentation/DocBook/media/v4l/controls.xml       |    2 +-
+>   .../DocBook/media/v4l/vidioc-g-ext-ctrls.xml       |    7 +++++++
+>   2 files changed, 8 insertions(+), 1 deletions(-)
+> 
+> diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+> index 582324f..8761e76 100644
+> --- a/Documentation/DocBook/media/v4l/controls.xml
+> +++ b/Documentation/DocBook/media/v4l/controls.xml
+> @@ -3546,7 +3546,7 @@ interface and may change in the future.</para>
+>   	from RGB to Y'CbCr color space.
+>   	</entry>
+>   	</row>
+> -	<row>
+> +	<row id = "v4l2-jpeg-chroma-subsampling">
+>   	<entrytbl spanname="descr" cols="2">
+>   	<tbody valign="top">
+>   		<row>
+> diff --git a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
+> index b17a7aa..27e20bc 100644
+> --- a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
+> +++ b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
+> @@ -265,7 +265,13 @@ These controls are described in<xref
+>   These controls are described in<xref
+>   		linkend="flash-controls" />.</entry>
+>   	</row>
+> +	<row>
+> +	<entry><constant>V4L2_CTRL_CLASS_JPEG</constant></entry>
+> +	<entry>0x9d0000</entry>
+> +	<entry>The class containing JPEG compression controls.
+> +These controls are described in<xref
+> +		linkend="jpeg-controls" />.</entry>
+> +	</row>
+>   	</tbody>
+>         </tgroup>
+>       </table>
 > --
-> http://palosaari.fi/
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 1.7.4.1
+> 
+
