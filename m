@@ -1,77 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:45442 "EHLO
-	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752731Ab2EDJd1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 4 May 2012 05:33:27 -0400
-From: Emil Goode <emilgoode@gmail.com>
-To: mchehab@infradead.org, rusty@rustcorp.com.au,
-	hans.verkuil@cisco.com, istvan_v@mailbox.hu, jrnieder@gmail.com,
-	dheitmueller@kernellabs.com, thunder.mmm@gmail.com
-Cc: linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org,
-	Emil Goode <emilgoode@gmail.com>
-Subject: [PATCH] [media] cx88: Remove duplicate const
-Date: Fri,  4 May 2012 11:33:37 +0200
-Message-Id: <1336124017-19538-1-git-send-email-emilgoode@gmail.com>
+Received: from plane.gmane.org ([80.91.229.3]:46960 "EHLO plane.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758490Ab2EPWUG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 16 May 2012 18:20:06 -0400
+Received: from list by plane.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1SUmZg-0001Mq-M5
+	for linux-media@vger.kernel.org; Thu, 17 May 2012 00:20:04 +0200
+Received: from 92-32-255-209.tn.glocalnet.net ([92.32.255.209])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Thu, 17 May 2012 00:20:04 +0200
+Received: from simong by 92-32-255-209.tn.glocalnet.net with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Thu, 17 May 2012 00:20:04 +0200
+To: linux-media@vger.kernel.org
+From: Simon Gustafsson <simong@simong.se>
+Subject: How fix driver for this USB camera (MT9T031 sensor and Cypress FX2LP USB bridge) 
+Date: Wed, 16 May 2012 22:14:48 +0000 (UTC)
+Message-ID: <loom.20120517T001241-393@post.gmane.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch fixes the following sparse warnings
-by removing use of duplicate const.
+Bought a rare webcam, which doesn't work in Linux, and would appreciate some
+pointers of how to fix that.
 
-drivers/media/video/cx88/cx88.h:152:40:
-	warning: duplicate const
-drivers/media/video/cx88/cx88-core.c:256:33:
-	warning: duplicate const
-drivers/media/video/cx88/cx88-alsa.c:769:41:
-	warning: duplicate const
+1) Is someone already working on this (camera information at the bottom)
 
-Signed-off-by: Emil Goode <emilgoode@gmail.com>
----
- drivers/media/video/cx88/cx88-alsa.c |    2 +-
- drivers/media/video/cx88/cx88-core.c |    2 +-
- drivers/media/video/cx88/cx88.h      |    2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+2) Where should I begin? My gut feeling is to go for media/video/gspca/ov519.c,
+since it has the code for talking to the USB bridge chip (BRIDGE_OVFX2), and
+since that code is so neat. If the patches needed to get it working turns out to
+be non-estetic, one would have to consider alternatives. I also noticed that
+there is some code at media/video/mt9t031.c for talking with my sensor (but it
+suggests it can't be used outside of the soc-camera framework (I've never heard
+of it before), and I don't know if those parts of the source would be relevant
+anyway.
 
-diff --git a/drivers/media/video/cx88/cx88-alsa.c b/drivers/media/video/cx88/cx88-alsa.c
-index 04bf662..408e3c9 100644
---- a/drivers/media/video/cx88/cx88-alsa.c
-+++ b/drivers/media/video/cx88/cx88-alsa.c
-@@ -766,7 +766,7 @@ static struct snd_kcontrol_new snd_cx88_alc_switch = {
-  * Only boards with eeprom and byte 1 at eeprom=1 have it
-  */
- 
--static const struct pci_device_id const cx88_audio_pci_tbl[] __devinitdata = {
-+static const struct pci_device_id cx88_audio_pci_tbl[] __devinitdata = {
- 	{0x14f1,0x8801,PCI_ANY_ID,PCI_ANY_ID,0,0,0},
- 	{0x14f1,0x8811,PCI_ANY_ID,PCI_ANY_ID,0,0,0},
- 	{0, }
-diff --git a/drivers/media/video/cx88/cx88-core.c b/drivers/media/video/cx88/cx88-core.c
-index fbfdd80..dbd2fa2 100644
---- a/drivers/media/video/cx88/cx88-core.c
-+++ b/drivers/media/video/cx88/cx88-core.c
-@@ -253,7 +253,7 @@ cx88_free_buffer(struct videobuf_queue *q, struct cx88_buffer *buf)
-  *    0x0c00 -           FIFOs
-  */
- 
--const struct sram_channel const cx88_sram_channels[] = {
-+const struct sram_channel cx88_sram_channels[] = {
- 	[SRAM_CH21] = {
- 		.name       = "video y / packed",
- 		.cmds_start = 0x180040,
-diff --git a/drivers/media/video/cx88/cx88.h b/drivers/media/video/cx88/cx88.h
-index c9659de..aabec7e 100644
---- a/drivers/media/video/cx88/cx88.h
-+++ b/drivers/media/video/cx88/cx88.h
-@@ -149,7 +149,7 @@ struct sram_channel {
- 	u32  cnt1_reg;
- 	u32  cnt2_reg;
- };
--extern const struct sram_channel const cx88_sram_channels[];
-+extern const struct sram_channel cx88_sram_channels[];
- 
- /* ----------------------------------------------------------- */
- /* card configuration                                          */
--- 
-1.7.9.5
+3) Is there a recommended distribution (or kernel revision) when working against
+the latest driver sources, or can I just pull the latest sources from git and
+expect it to play nicely with something like ubuntu in my case.
+
+
+----[Hardware information]----
+* 3.0MP USB2.0 Digital USB c-mount Camera for Microscopes
+* VID:PID 1578:0076
+* USB bridge CY7C68013A (aka Cypress FX2LP)
+* Sensor: most probably an MT9T031. It responds to the same I2C address, and
+when I injected I2C reads to the sensors register 0x00 and 0xFF, I get the
+0x1621 response which matches “chip version” according to the datasheet.
+
+BR
+/Simon 
 
