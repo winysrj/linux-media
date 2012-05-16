@@ -1,33 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.48]:43399 "EHLO mgw-sa02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752892Ab2EVWa4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 May 2012 18:30:56 -0400
-Message-ID: <4FBC1396.9090109@iki.fi>
-Date: Wed, 23 May 2012 01:30:46 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-CC: laurent.pinchart@ideasonboard.com
-Subject: [media-ctl PATCH v3 0/4] New selection format and compose support
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mail-we0-f174.google.com ([74.125.82.174]:45994 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S966987Ab2EPKoi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 16 May 2012 06:44:38 -0400
+Received: by mail-we0-f174.google.com with SMTP id u7so341289wey.19
+        for <linux-media@vger.kernel.org>; Wed, 16 May 2012 03:44:37 -0700 (PDT)
+From: Gianluca Gennari <gennarone@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@redhat.com
+Cc: hans.verkuil@cisco.com, Gianluca Gennari <gennarone@gmail.com>
+Subject: [PATCH 1/2] media_build: add SET_SYSTEM_SLEEP_PM_OPS definition to compat.h
+Date: Wed, 16 May 2012 12:44:09 +0200
+Message-Id: <1337165050-31638-2-git-send-email-gennarone@gmail.com>
+In-Reply-To: <1337165050-31638-1-git-send-email-gennarone@gmail.com>
+References: <1337165050-31638-1-git-send-email-gennarone@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Old kernels are missing the definition of SET_SYSTEM_SLEEP_PM_OPS in linux/pm.h:
 
-Update: since v2:
+media_build/v4l/msp3400-driver.c:871:2: error: implicit declaration of function 'SET_SYSTEM_SLEEP_PM_OPS' [-Werror=implicit-function-declaration]
+media_build/v4l/msp3400-driver.c:872:1: error: initializer element is not constant
+media_build/v4l/msp3400-driver.c:872:1: error: (near initialization for 'msp3400_pm_ops.prepare')
 
-- Use parenthesis in crop display
+Add it to compat.h to fix the compilation breakage.
 
+Signed-off-by: Gianluca Gennari <gennarone@gmail.com
+---
+ v4l/compat.h                      |   14 ++++++++++++++
+ v4l/scripts/make_config_compat.pl |    1 +
+ 2 files changed, 15 insertions(+), 0 deletions(-)
 
-I've updated the two first patches from the previous set as discussed.
-There are two new that change the selection target names to correspond
-the latest developments.
-
-Cheers,
-
+diff --git a/v4l/compat.h b/v4l/compat.h
+index 1556986..179ec26 100644
+--- a/v4l/compat.h
++++ b/v4l/compat.h
+@@ -963,4 +963,18 @@ static inline struct dma_async_tx_descriptor *dmaengine_prep_slave_sg(
+ }
+ #endif
+ 
++#ifdef NEED_SET_SYSTEM_SLEEP_PM_OPS
++#ifdef CONFIG_PM_SLEEP
++#define SET_SYSTEM_SLEEP_PM_OPS(suspend_fn, resume_fn) \
++        .suspend = suspend_fn, \
++        .resume = resume_fn, \
++        .freeze = suspend_fn, \
++        .thaw = resume_fn, \
++        .poweroff = suspend_fn, \
++        .restore = resume_fn,
++#else
++#define SET_SYSTEM_SLEEP_PM_OPS(suspend_fn, resume_fn)
++#endif
++#endif
++
+ #endif /*  _COMPAT_H */
+diff --git a/v4l/scripts/make_config_compat.pl b/v4l/scripts/make_config_compat.pl
+index 7810cfb..15220e6 100755
+--- a/v4l/scripts/make_config_compat.pl
++++ b/v4l/scripts/make_config_compat.pl
+@@ -520,6 +520,7 @@ sub check_other_dependencies()
+ 	check_file_for_func("include/linux/platform_device.h", "module_platform_driver", "NEED_MODULE_PLATFORM_DRIVER");
+ 	check_file_for_func("include/linux/slab.h", "kmalloc_array", "NEED_KMALLOC_ARRAY");
+ 	check_file_for_func("include/linux/dmaengine.h", "dmaengine_prep_slave_sg", "NEED_DMAENGINE_PREP_SLAVE_SG");
++	check_file_for_func("include/linux/pm.h", "SET_SYSTEM_SLEEP_PM_OPS", "NEED_SET_SYSTEM_SLEEP_PM_OPS");
+ }
+ 
+ # Do the basic rules
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+1.7.0.4
+
