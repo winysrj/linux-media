@@ -1,93 +1,156 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-1.cisco.com ([144.254.224.140]:11832 "EHLO
-	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751093Ab2EHIuB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 May 2012 04:50:01 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Gianluca Gennari <gennarone@gmail.com>
-Subject: Re: [PATCH] media_build: fix backport patches removing et61x251 hunks
-Date: Tue, 8 May 2012 10:49:35 +0200
-Cc: linux-media@vger.kernel.org, mchehab@redhat.com,
-	hans.verkuil@cisco.com
-References: <1336466569-32529-1-git-send-email-gennarone@gmail.com>
-In-Reply-To: <1336466569-32529-1-git-send-email-gennarone@gmail.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:59573 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1759224Ab2EPG5U (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 16 May 2012 02:57:20 -0400
+Date: Wed, 16 May 2012 09:57:15 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Sylwester Nawrocki <snjw23@gmail.com>
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	linux-media@vger.kernel.org, m.szyprowski@samsung.com,
+	riverful.kim@samsung.com, sw0312.kim@samsung.com,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: Re: [PATCH 03/23] V4L: Add an extended camera white balance control
+Message-ID: <20120516065715.GK3373@valkosipuli.retiisi.org.uk>
+References: <1336645858-30366-1-git-send-email-s.nawrocki@samsung.com>
+ <1336645858-30366-4-git-send-email-s.nawrocki@samsung.com>
+ <20120514000234.GG3373@valkosipuli.retiisi.org.uk>
+ <4FB2CA63.2000605@gmail.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201205081049.36010.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4FB2CA63.2000605@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday 08 May 2012 10:42:49 Gianluca Gennari wrote:
-> The old et61x251 driver has been removed:
-> 
-> http://git.linuxtv.org/media_tree.git/commit/04ef052419ac61f28c6b7eafbe5d8e82c02bbee2
-> 
-> so let's delete the related hunks from the media_build backport patches.
+Hi Sylwester,
 
-Thanks!
-
-Committed.
-
-Regards,
-
-	Hans
-
+On Tue, May 15, 2012 at 11:28:03PM +0200, Sylwester Nawrocki wrote:
+> Hi Sakari,
 > 
-> Signed-off-by: Gianluca Gennari <gennarone@gmail.com>
-> ---
->  backports/api_version.patch |    6 ------
->  backports/pr_fmt.patch      |   24 ------------------------
->  2 files changed, 0 insertions(+), 30 deletions(-)
+> On 05/14/2012 02:02 AM, Sakari Ailus wrote:
+> > Hi Sylwester,
+> > 
+> > Thanks for the patch. I noticed your pull req; I hope you could take into
+> > account a few more comments. :)
 > 
-> diff --git a/backports/api_version.patch b/backports/api_version.patch
-> index 147221c..9bd9348 100644
-> --- a/backports/api_version.patch
-> +++ b/backports/api_version.patch
-> @@ -1,9 +1,3 @@
-> -diff --git a/drivers/media/video/et61x251/et61x251_core.c b/drivers/media/video/et61x251/et61x251_core.c
-> ---- a/drivers/media/video/et61x251/et61x251_core.c
-> -+++ b/drivers/media/video/et61x251/et61x251_core.c
-> -@@ -1582,1 +1582,1 @@ et61x251_vidioc_querycap(struct et61x251
-> --		.version = LINUX_VERSION_CODE,
-> -+		.version = V4L2_VERSION,
->  diff --git a/drivers/media/video/pvrusb2/pvrusb2-v4l2.c b/drivers/media/video/pvrusb2/pvrusb2-v4l2.c
->  --- a/drivers/media/video/pvrusb2/pvrusb2-v4l2.c
->  +++ b/drivers/media/video/pvrusb2/pvrusb2-v4l2.c
-> diff --git a/backports/pr_fmt.patch b/backports/pr_fmt.patch
-> index e6db18e..5561d6f 100644
-> --- a/backports/pr_fmt.patch
-> +++ b/backports/pr_fmt.patch
-> @@ -322,30 +322,6 @@ index ffd8bc7..c38d97d 100644
->   #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
->   
->   #include "cx25821-video.h"
-> -diff --git a/drivers/media/video/et61x251/et61x251_core.c b/drivers/media/video/et61x251/et61x251_core.c
-> -index 5539f09..8cdf5b6 100644
-> ---- a/drivers/media/video/et61x251/et61x251_core.c
-> -+++ b/drivers/media/video/et61x251/et61x251_core.c
-> -@@ -18,6 +18,7 @@
-> -  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.               *
-> -  ***************************************************************************/
-> - 
-> -+#undef pr_fmt
-> - #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-> - 
-> - #include <linux/version.h>
-> -diff --git a/drivers/media/video/et61x251/et61x251_tas5130d1b.c b/drivers/media/video/et61x251/et61x251_tas5130d1b.c
-> -index ced2e16..3977c93 100644
-> ---- a/drivers/media/video/et61x251/et61x251_tas5130d1b.c
-> -+++ b/drivers/media/video/et61x251/et61x251_tas5130d1b.c
-> -@@ -19,6 +19,7 @@
-> -  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.               *
-> -  ***************************************************************************/
-> - 
-> -+#undef pr_fmt
-> - #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-> - 
-> - #include "et61x251_sensor.h"
->  diff --git a/drivers/media/video/gspca/benq.c b/drivers/media/video/gspca/benq.c
->  index 9769f17..e9b1052 100644
->  --- a/drivers/media/video/gspca/benq.c
+> Thank you for your comments, I'll try to come up with a fix up patch.
+>  
+> > On Thu, May 10, 2012 at 12:30:38PM +0200, Sylwester Nawrocki wrote:
+> >> This patch adds V4L2_CID_AUTO_N_PRESET_WHITE_BALANCE control which is
+> >> an extended version of the V4L2_CID_AUTO_WHITE_BALANCE control,
+> >> including white balance presets. The following presets are defined:
+> >>
+> >>   - V4L2_WHITE_BALANCE_INCANDESCENT,
+> >>   - V4L2_WHITE_BALANCE_FLUORESCENT,
+> >>   - V4L2_WHITE_BALANCE_FLUORESCENT_H,
+> >>   - V4L2_WHITE_BALANCE_HORIZON,
+> >>   - V4L2_WHITE_BALANCE_DAYLIGHT,
+> >>   - V4L2_WHITE_BALANCE_FLASH,
+> >>   - V4L2_WHITE_BALANCE_CLOUDY,
+> >>   - V4L2_WHITE_BALANCE_SHADE.
+> >>
+> >> Signed-off-by: HeungJun Kim<riverful.kim@samsung.com>
+> >> Signed-off-by: Sylwester Nawrocki<s.nawrocki@samsung.com>
+> >> Signed-off-by: Kyungmin Park<kyungmin.park@samsung.com>
+> >> Acked-by: Hans de Goede<hdegoede@redhat.com>
+> >> ---
+> >>   Documentation/DocBook/media/v4l/controls.xml |   70 ++++++++++++++++++++++++++
+> >>   drivers/media/video/v4l2-ctrls.c             |   17 +++++++
+> >>   include/linux/videodev2.h                    |   14 ++++++
+> >>   3 files changed, 101 insertions(+)
+> >>
+> >> diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+> >> index 40e6485..85d1ca0 100644
+> >> --- a/Documentation/DocBook/media/v4l/controls.xml
+> >> +++ b/Documentation/DocBook/media/v4l/controls.xml
+> >> @@ -3022,6 +3022,76 @@ camera sensor on or off, or specify its strength. Such band-stop filters can
+> >>   be used, for example, to filter out the fluorescent light component.</entry>
+> >>   	</row>
+> >>   	<row><entry></entry></row>
+> >> +
+> >> +	<row id="v4l2-auto-n-preset-white-balance">
+> >> +	<entry spanname="id"><constant>V4L2_CID_AUTO_N_PRESET_WHITE_BALANCE</constant>&nbsp;</entry>
+> >> +	<entry>enum&nbsp;v4l2_auto_n_preset_white_balance</entry>
+> >> +	</row><row><entry spanname="descr">Sets white balance to automatic,
+> >> +manual or a preset. The presets determine color temperature of the light as
+> >> +a hint to the camera for white balance adjustments resulting in most accurate
+> >> +color representation. The following white balance presets are listed in order
+> >> +of increasing color temperature.</entry>
+> >> +	</row>
+> >> +	<row>
+> >> +	<entrytbl spanname="descr" cols="2">
+> >> +	<tbody valign="top">
+> >> +		<row>
+> >> +		<entry><constant>V4L2_WHITE_BALANCE_MANUAL</constant>&nbsp;</entry>
+> >> +		<entry>Manual white balance.</entry>
+> >> +		</row>
+> >> +		<row>
+> >> +		<entry><constant>V4L2_WHITE_BALANCE_AUTO</constant>&nbsp;</entry>
+> >> +		<entry>Automatic white balance adjustments.</entry>
+> >> +		</row>
+> >> +		<row>
+> >> +		<entry><constant>V4L2_WHITE_BALANCE_INCANDESCENT</constant>&nbsp;</entry>
+> >> +		<entry>White balance setting for incandescent (tungsten) lighting.
+> >> +It generally cools down the colors and corresponds approximately to 2500...3500 K
+> >> +color temperature range.</entry>
+> >> +		</row>
+> >> +		<row>
+> >> +		<entry><constant>V4L2_WHITE_BALANCE_FLUORESCENT</constant>&nbsp;</entry>
+> >> +		<entry>White balance preset for fluorescent lighting.
+> >> +It corresponds approximately to 4000...5000 K color temperature.</entry>
+> >> +		</row>
+> >> +		<row>
+> >> +		<entry><constant>V4L2_WHITE_BALANCE_FLUORESCENT_H</constant>&nbsp;</entry>
+> >> +		<entry>With this setting the camera will compensate for
+> >> +fluorescent H lighting.</entry>
+> >> +		</row>
+> > 
+> > I don't remember for quite sure if I replied to this already... what's the
+> > diff between the above two?
 > 
+> No, you didn't, otherwise I would certainly remember that ;)
+> 
+> V4L2_WHITE_BALANCE_FLUORESCENT_H is for newer, daylight calibrated fluorescent
+> lamps. So this preset will generally cool down the colours less than
+> V4L2_WHITE_BALANCE_FLUORESCENT. I was even thinking about a separate control 
+> for V4L2_WHITE_BALANCE_FLUORESCENT, since some ISPs have several presets for
+> fluorescent lighting. I dropped that idea finally though.
+
+I don't know about the daylight calibrated ones, but the older ones often
+tend to give colder light. Nevertheless, I think it'd be good to mention
+this in the documentation. I couldn't thave guessed it. :)
+
+> > The colour temperature of the fluorescent light depends on the lamp; 2500 K
+> > is not uncommon here in Finland. It's the spectrum that's different from
+> > incandescents, not necessarily the colour temperature.
+> >
+> >> +		<row>
+> >> +		<entry><constant>V4L2_WHITE_BALANCE_HORIZON</constant>&nbsp;</entry>
+> >> +		<entry>White balance setting for horizon daylight.
+> >> +It corresponds approximately to 5000 K color temperature.</entry>
+> >> +		</row>
+> >> +		<row>
+> >> +		<entry><constant>V4L2_WHITE_BALANCE_DAYLIGHT</constant>&nbsp;</entry>
+> >> +		<entry>White balance preset for daylight (with clear sky).
+> >> +It corresponds approximately to 5000...6500 K color temperature.</entry>
+> >> +		</row>
+> >> +		<row>
+> >> +		<entry><constant>V4L2_WHITE_BALANCE_FLASH</constant>&nbsp;</entry>
+> >> +		<entry>With this setting the camera will compensate for the flash
+> >> +light. It slightly warms up the colors and corresponds roughly to 5000...5500 K
+> >> +color temperature.</entry>
+> > 
+> > This also depends heavily on the type of the flash.
+> 
+> OK, I'm going to remove this one, and for V4L2_WHITE_BALANCE_FLUORESCENT as well.
+> I would prefer to keep the remaining ones though.
+
+Sounds good to me.
+
+Cheers,
+
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
