@@ -1,31 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:6344 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755962Ab2EUC0L (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 20 May 2012 22:26:11 -0400
-Message-ID: <4FB9A7B3.1030605@redhat.com>
-Date: Sun, 20 May 2012 23:25:55 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: Hans-Frieder Vogt <hfvogt@gmx.net>, linux-media@vger.kernel.org,
-	Thomas Mair <thomas.mair86@googlemail.com>
-Subject: Re: [PATCH 2/3] fc001x: tuner driver for FC0012, version 0.5
-References: <201205062256.55468.hfvogt@gmx.net> <4FB92224.2010008@iki.fi>
-In-Reply-To: <4FB92224.2010008@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from cantva.canterbury.ac.nz ([132.181.2.27]:3947 "EHLO
+	cantva.canterbury.ac.nz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755999Ab2EPBsc convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 May 2012 21:48:32 -0400
+Received: from CONVERSION-DAEMON.it.canterbury.ac.nz by it.canterbury.ac.nz
+ (PMDF V6.5-x6 #31943) id <01OFJTVWUHJ4AOM9GD@it.canterbury.ac.nz> for
+ linux-media@vger.kernel.org; Wed,
+ 16 May 2012 12:26:57 +1200 (NEW ZEALAND STANDARD TIME)
+Date: Wed, 16 May 2012 12:26:43 +1200
+From: Simon Knopp <simon.knopp@pg.canterbury.ac.nz>
+Subject: Status of gstreamer video capture/encoding
+To: "General mailing list for gumstix users."
+	<gumstix-users@lists.sourceforge.net>, linux-media@vger.kernel.org
+Message-id: <497D0E3C-3068-4E0C-AE16-625323D66402@pg.canterbury.ac.nz>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 20-05-2012 13:56, Antti Palosaari escreveu:
-> Hmm,
-> Mauro just merged those FC0012 and FC0013 drivers via my RTL2831U tree... It was not my meaning to do that like this.
+Hi all,
 
-This was due to a pull request that you sent me on May, 18, requesting
-to pull from:
+I am trying to understand the current state of video capture and encoding using gstreamer for kernels >= 2.6.39 on an OMAP3530. 
 
-  git://linuxtv.org/anttip/media_tree.git rtl2831u 
+Currently on 2.6.34 (omap3-2.6.34-caspapx) I use essentially:
+	v4l2src ! TIVidenc1 codecName=h264enc ! rtph264pay ! udpsink
 
-Regards,
-Mauro
+1)  As far as I understand, 'yavta' is currently the only way to capture from media-ctl-based cameras -- gstreamer's v4l2src doesn't work for these cameras. Is this correct? 
+
+2)  I have read that 'subdevsrc' or 'mcsrc' is capable of doing this [1], though I'm not sure whether they're somehow meego-specific. Has anyone tried these source elements on a Gumstix Overo? 
+
+3)  As far as using the DSP for encoding video, Last I heard no one had done it yet [2]. Has anyone had success with either 'gst-ti', 'gst-dsp', or 'gst-openmax' [3,4,5] on 3.x kernels? 
+
+Thanks in advance,
+Simon.
+
+
+[1]: http://www.spinics.net/lists/linux-media/msg41227.html
+[2]: http://gumstix.8.n6.nabble.com/Caspa-Camera-on-2-6-39-Kernel-tp571619p4557013.html
+[3]: http://processors.wiki.ti.com/index.php/GstTIPlugin_Elements#TIVidenc1
+[4]: http://code.google.com/p/gst-dsp/
+[5]: http://freedesktop.org/wiki/GstOpenMAX
+
