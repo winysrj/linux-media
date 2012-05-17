@@ -1,76 +1,405 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:17970 "EHLO mx1.redhat.com"
+Received: from mail.kapsi.fi ([217.30.184.167]:48575 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751387Ab2E0RNl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 27 May 2012 13:13:41 -0400
-Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q4RHDfaR000568
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sun, 27 May 2012 13:13:41 -0400
-Message-ID: <4FC260C2.3060802@redhat.com>
-Date: Sun, 27 May 2012 14:13:38 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+	id S933033Ab2EQOnI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 May 2012 10:43:08 -0400
+Message-ID: <4FB50E7A.6020209@iki.fi>
+Date: Thu, 17 May 2012 17:43:06 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [RFC] file tree rearrangement - was: Re: [RFC PATCH 0/3] Improve
- Kconfig selection for media devices
-References: <4FC24E34.3000406@redhat.com> <1338137803-12231-1-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1338137803-12231-1-git-send-email-mchehab@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Thomas Mair <thomas.mair86@googlemail.com>
+CC: pomidorabelisima@gmail.com,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH v4 3/5] rtl28xxu: renamed rtl2831_rd/rtl2831_wr to rtl28xx_rd/rtl28xx_wr
+References: <1> <1337206420-23810-1-git-send-email-thomas.mair86@googlemail.com> <1337206420-23810-4-git-send-email-thomas.mair86@googlemail.com>
+In-Reply-To: <1337206420-23810-4-git-send-email-thomas.mair86@googlemail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 27-05-2012 13:56, Mauro Carvalho Chehab escreveu:
-> The Kconfig building system is improperly selecting some drivers,
-> like analog TV tuners even when this is not required.
-> 
-> Rearrange the Kconfig in a way to prevent that.
-> 
-> Mauro Carvalho Chehab (3):
->   media: reorganize the main Kconfig items
->   media: Remove VIDEO_MEDIA Kconfig option
->   media: only show V4L devices based on device type selection
-> 
->  drivers/media/Kconfig               |  114 +++++++++++++++++++++++------------
->  drivers/media/common/tuners/Kconfig |   64 ++++++++++----------
->  drivers/media/dvb/frontends/Kconfig |    1 +
->  drivers/media/radio/Kconfig         |    1 +
->  drivers/media/rc/Kconfig            |   29 ++++-----
->  drivers/media/video/Kconfig         |   76 +++++++++++++++++------
->  drivers/media/video/m5mols/Kconfig  |    1 +
->  drivers/media/video/pvrusb2/Kconfig |    1 -
->  drivers/media/video/smiapp/Kconfig  |    1 +
->  9 files changed, 181 insertions(+), 107 deletions(-)
-> 
+On 17.05.2012 01:13, Thomas Mair wrote:
+> Signed-off-by: Thomas Mair<thomas.mair86@googlemail.com>
 
-The organization between DVB only, V4L only and hybrid devices are somewhat
-confusing on our tree. From time to time, someone proposes changing one driver
-from one place to another or complains that "his device is DVB only but it is
-inside the V4L tree" (and other similar requests). This sometimes happen because
-the same driver can support analog only, digital only or hybrid devices.
+Acked-by: Antti Palosaari <crope@iki.fi>
 
-Also, one driver may start as a DVB only or as a V4L only and then 
-it can be latter be converted into an hybrid driver.
 
-So, the better is to rearrange the drivers tree, in order to fix this issue,
-removing them from /video and /dvb, and storing them on a better place.
+> ---
+>   drivers/media/dvb/dvb-usb/rtl28xxu.c |  102 +++++++++++++++++-----------------
+>   1 files changed, 51 insertions(+), 51 deletions(-)
+>
+> diff --git a/drivers/media/dvb/dvb-usb/rtl28xxu.c b/drivers/media/dvb/dvb-usb/rtl28xxu.c
+> index bb66771..6817ef7 100644
+> --- a/drivers/media/dvb/dvb-usb/rtl28xxu.c
+> +++ b/drivers/media/dvb/dvb-usb/rtl28xxu.c
+> @@ -83,7 +83,7 @@ err:
+>   	return ret;
+>   }
+>
+> -static int rtl2831_wr_regs(struct dvb_usb_device *d, u16 reg, u8 *val, int len)
+> +static int rtl28xx_wr_regs(struct dvb_usb_device *d, u16 reg, u8 *val, int len)
+>   {
+>   	struct rtl28xxu_req req;
+>
+> @@ -119,12 +119,12 @@ static int rtl2831_rd_regs(struct dvb_usb_device *d, u16 reg, u8 *val, int len)
+>   	return rtl28xxu_ctrl_msg(d,&req);
+>   }
+>
+> -static int rtl2831_wr_reg(struct dvb_usb_device *d, u16 reg, u8 val)
+> +static int rtl28xx_wr_reg(struct dvb_usb_device *d, u16 reg, u8 val)
+>   {
+> -	return rtl2831_wr_regs(d, reg,&val, 1);
+> +	return rtl28xx_wr_regs(d, reg,&val, 1);
+>   }
+>
+> -static int rtl2831_rd_reg(struct dvb_usb_device *d, u16 reg, u8 *val)
+> +static int rtl28xx_rd_reg(struct dvb_usb_device *d, u16 reg, u8 *val)
+>   {
+>   	return rtl2831_rd_regs(d, reg, val, 1);
+>   }
+> @@ -311,12 +311,12 @@ static int rtl2831u_frontend_attach(struct dvb_usb_adapter *adap)
+>   	 */
+>
+>   	/* GPIO direction */
+> -	ret = rtl2831_wr_reg(adap->dev, SYS_GPIO_DIR, 0x0a);
+> +	ret = rtl28xx_wr_reg(adap->dev, SYS_GPIO_DIR, 0x0a);
+>   	if (ret)
+>   		goto err;
+>
+>   	/* enable as output GPIO0, GPIO2, GPIO4 */
+> -	ret = rtl2831_wr_reg(adap->dev, SYS_GPIO_OUT_EN, 0x15);
+> +	ret = rtl28xx_wr_reg(adap->dev, SYS_GPIO_OUT_EN, 0x15);
+>   	if (ret)
+>   		goto err;
+>
+> @@ -399,7 +399,7 @@ static int rtl2832u_fc0012_tuner_callback(struct dvb_usb_device *d,
+>   	switch (cmd) {
+>   	case FC_FE_CALLBACK_VHF_ENABLE:
+>   		/* set output values */
+> -		ret = rtl2831_rd_reg(d, SYS_GPIO_OUT_VAL,&val);
+> +		ret = rtl28xx_rd_reg(d, SYS_GPIO_OUT_VAL,&val);
+>   		if (ret)
+>   			goto err;
+>
+> @@ -409,7 +409,7 @@ static int rtl2832u_fc0012_tuner_callback(struct dvb_usb_device *d,
+>   			val |= 0x40; /* set GPIO6 high */
+>
+>
+> -		ret = rtl2831_wr_reg(d, SYS_GPIO_OUT_VAL, val);
+> +		ret = rtl28xx_wr_reg(d, SYS_GPIO_OUT_VAL, val);
+>   		if (ret)
+>   			goto err;
+>   		break;
+> @@ -504,25 +504,25 @@ static int rtl2832u_frontend_attach(struct dvb_usb_adapter *adap)
+>   	deb_info("%s:\n", __func__);
+>
+>
+> -	ret = rtl2831_rd_reg(adap->dev, SYS_GPIO_DIR,&val);
+> +	ret = rtl28xx_rd_reg(adap->dev, SYS_GPIO_DIR,&val);
+>   	if (ret)
+>   		goto err;
+>
+>   	val&= 0xbf;
+>
+> -	ret = rtl2831_wr_reg(adap->dev, SYS_GPIO_DIR, val);
+> +	ret = rtl28xx_wr_reg(adap->dev, SYS_GPIO_DIR, val);
+>   	if (ret)
+>   		goto err;
+>
+>
+>   	/* enable as output GPIO3 and GPIO6*/
+> -	ret = rtl2831_rd_reg(adap->dev, SYS_GPIO_OUT_EN,&val);
+> +	ret = rtl28xx_rd_reg(adap->dev, SYS_GPIO_OUT_EN,&val);
+>   	if (ret)
+>   		goto err;
+>
+>   	val |= 0x48;
+>
+> -	ret = rtl2831_wr_reg(adap->dev, SYS_GPIO_OUT_EN, val);
+> +	ret = rtl28xx_wr_reg(adap->dev, SYS_GPIO_OUT_EN, val);
+>   	if (ret)
+>   		goto err;
+>
+> @@ -773,7 +773,7 @@ static int rtl2831u_streaming_ctrl(struct dvb_usb_adapter *adap , int onoff)
+>
+>   	deb_info("%s: onoff=%d\n", __func__, onoff);
+>
+> -	ret = rtl2831_rd_reg(adap->dev, SYS_GPIO_OUT_VAL,&gpio);
+> +	ret = rtl28xx_rd_reg(adap->dev, SYS_GPIO_OUT_VAL,&gpio);
+>   	if (ret)
+>   		goto err;
+>
+> @@ -787,11 +787,11 @@ static int rtl2831u_streaming_ctrl(struct dvb_usb_adapter *adap , int onoff)
+>   		gpio&= (~0x04); /* LED off */
+>   	}
+>
+> -	ret = rtl2831_wr_reg(adap->dev, SYS_GPIO_OUT_VAL, gpio);
+> +	ret = rtl28xx_wr_reg(adap->dev, SYS_GPIO_OUT_VAL, gpio);
+>   	if (ret)
+>   		goto err;
+>
+> -	ret = rtl2831_wr_regs(adap->dev, USB_EPA_CTL, buf, 2);
+> +	ret = rtl28xx_wr_regs(adap->dev, USB_EPA_CTL, buf, 2);
+>   	if (ret)
+>   		goto err;
+>
+> @@ -817,7 +817,7 @@ static int rtl2832u_streaming_ctrl(struct dvb_usb_adapter *adap , int onoff)
+>   		buf[1] = 0x02; /* reset EPA */
+>   	}
+>
+> -	ret = rtl2831_wr_regs(adap->dev, USB_EPA_CTL, buf, 2);
+> +	ret = rtl28xx_wr_regs(adap->dev, USB_EPA_CTL, buf, 2);
+>   	if (ret)
+>   		goto err;
+>
+> @@ -835,12 +835,12 @@ static int rtl2831u_power_ctrl(struct dvb_usb_device *d, int onoff)
+>   	deb_info("%s: onoff=%d\n", __func__, onoff);
+>
+>   	/* demod adc */
+> -	ret = rtl2831_rd_reg(d, SYS_SYS0,&sys0);
+> +	ret = rtl28xx_rd_reg(d, SYS_SYS0,&sys0);
+>   	if (ret)
+>   		goto err;
+>
+>   	/* tuner power, read GPIOs */
+> -	ret = rtl2831_rd_reg(d, SYS_GPIO_OUT_VAL,&gpio);
+> +	ret = rtl28xx_rd_reg(d, SYS_GPIO_OUT_VAL,&gpio);
+>   	if (ret)
+>   		goto err;
+>
+> @@ -860,12 +860,12 @@ static int rtl2831u_power_ctrl(struct dvb_usb_device *d, int onoff)
+>   	deb_info("%s: WR SYS0=%02x GPIO_OUT_VAL=%02x\n", __func__, sys0, gpio);
+>
+>   	/* demod adc */
+> -	ret = rtl2831_wr_reg(d, SYS_SYS0, sys0);
+> +	ret = rtl28xx_wr_reg(d, SYS_SYS0, sys0);
+>   	if (ret)
+>   		goto err;
+>
+>   	/* tuner power, write GPIOs */
+> -	ret = rtl2831_wr_reg(d, SYS_GPIO_OUT_VAL, gpio);
+> +	ret = rtl28xx_wr_reg(d, SYS_GPIO_OUT_VAL, gpio);
+>   	if (ret)
+>   		goto err;
+>
+> @@ -884,107 +884,107 @@ static int rtl2832u_power_ctrl(struct dvb_usb_device *d, int onoff)
+>
+>   	if (onoff) {
+>   		/* set output values */
+> -		ret = rtl2831_rd_reg(d, SYS_GPIO_OUT_VAL,&val);
+> +		ret = rtl28xx_rd_reg(d, SYS_GPIO_OUT_VAL,&val);
+>   		if (ret)
+>   			goto err;
+>
+>   		val |= 0x08;
+>   		val&= 0xef;
+>
+> -		ret = rtl2831_wr_reg(d, SYS_GPIO_OUT_VAL, val);
+> +		ret = rtl28xx_wr_reg(d, SYS_GPIO_OUT_VAL, val);
+>   		if (ret)
+>   			goto err;
+>
+>   		/* demod_ctl_1 */
+> -		ret = rtl2831_rd_reg(d, SYS_DEMOD_CTL1,&val);
+> +		ret = rtl28xx_rd_reg(d, SYS_DEMOD_CTL1,&val);
+>   		if (ret)
+>   			goto err;
+>
+>   		val&= 0xef;
+>
+> -		ret = rtl2831_wr_reg(d, SYS_DEMOD_CTL1, val);
+> +		ret = rtl28xx_wr_reg(d, SYS_DEMOD_CTL1, val);
+>   		if (ret)
+>   			goto err;
+>
+>   		/* demod control */
+>   		/* PLL enable */
+> -		ret = rtl2831_rd_reg(d, SYS_DEMOD_CTL,&val);
+> +		ret = rtl28xx_rd_reg(d, SYS_DEMOD_CTL,&val);
+>   		if (ret)
+>   			goto err;
+>
+>   		/* bit 7 to 1 */
+>   		val |= 0x80;
+>
+> -		ret = rtl2831_wr_reg(d, SYS_DEMOD_CTL, val);
+> +		ret = rtl28xx_wr_reg(d, SYS_DEMOD_CTL, val);
+>   		if (ret)
+>   			goto err;
+>
+>   		/* demod HW reset */
+> -		ret = rtl2831_rd_reg(d, SYS_DEMOD_CTL,&val);
+> +		ret = rtl28xx_rd_reg(d, SYS_DEMOD_CTL,&val);
+>   		if (ret)
+>   			goto err;
+>   		/* bit 5 to 0 */
+>   		val&= 0xdf;
+>
+> -		ret = rtl2831_wr_reg(d, SYS_DEMOD_CTL, val);
+> +		ret = rtl28xx_wr_reg(d, SYS_DEMOD_CTL, val);
+>   		if (ret)
+>   			goto err;
+>
+> -		ret = rtl2831_rd_reg(d, SYS_DEMOD_CTL,&val);
+> +		ret = rtl28xx_rd_reg(d, SYS_DEMOD_CTL,&val);
+>   		if (ret)
+>   			goto err;
+>
+>   		val |= 0x20;
+>
+> -		ret = rtl2831_wr_reg(d, SYS_DEMOD_CTL, val);
+> +		ret = rtl28xx_wr_reg(d, SYS_DEMOD_CTL, val);
+>   		if (ret)
+>   			goto err;
+>
+>   		mdelay(5);
+>
+>   		/*enable ADC_Q and ADC_I */
+> -		ret = rtl2831_rd_reg(d, SYS_DEMOD_CTL,&val);
+> +		ret = rtl28xx_rd_reg(d, SYS_DEMOD_CTL,&val);
+>   		if (ret)
+>   			goto err;
+>
+>   		val |= 0x48;
+>
+> -		ret = rtl2831_wr_reg(d, SYS_DEMOD_CTL, val);
+> +		ret = rtl28xx_wr_reg(d, SYS_DEMOD_CTL, val);
+>   		if (ret)
+>   			goto err;
+>
+>
+>   	} else {
+>   		/* demod_ctl_1 */
+> -		ret = rtl2831_rd_reg(d, SYS_DEMOD_CTL1,&val);
+> +		ret = rtl28xx_rd_reg(d, SYS_DEMOD_CTL1,&val);
+>   		if (ret)
+>   			goto err;
+>
+>   		val |= 0x0c;
+>
+> -		ret = rtl2831_wr_reg(d, SYS_DEMOD_CTL1, val);
+> +		ret = rtl28xx_wr_reg(d, SYS_DEMOD_CTL1, val);
+>   		if (ret)
+>   			goto err;
+>
+>   		/* set output values */
+> -		ret = rtl2831_rd_reg(d, SYS_GPIO_OUT_VAL,&val);
+> +		ret = rtl28xx_rd_reg(d, SYS_GPIO_OUT_VAL,&val);
+>   		if (ret)
+>   				goto err;
+>
+>   		val |= 0x10;
+>
+> -		ret = rtl2831_wr_reg(d, SYS_GPIO_OUT_VAL, val);
+> +		ret = rtl28xx_wr_reg(d, SYS_GPIO_OUT_VAL, val);
+>   		if (ret)
+>   			goto err;
+>
+>   		/* demod control */
+> -		ret = rtl2831_rd_reg(d, SYS_DEMOD_CTL,&val);
+> +		ret = rtl28xx_rd_reg(d, SYS_DEMOD_CTL,&val);
+>   		if (ret)
+>   			goto err;
+>
+>   		val&= 0x37;
+>
+> -		ret = rtl2831_wr_reg(d, SYS_DEMOD_CTL, val);
+> +		ret = rtl28xx_wr_reg(d, SYS_DEMOD_CTL, val);
+>   		if (ret)
+>   			goto err;
+>
+> @@ -1023,7 +1023,7 @@ static int rtl2831u_rc_query(struct dvb_usb_device *d)
+>   	/* init remote controller */
+>   	if (!priv->rc_active) {
+>   		for (i = 0; i<  ARRAY_SIZE(rc_nec_tab); i++) {
+> -			ret = rtl2831_wr_reg(d, rc_nec_tab[i].reg,
+> +			ret = rtl28xx_wr_reg(d, rc_nec_tab[i].reg,
+>   					rc_nec_tab[i].val);
+>   			if (ret)
+>   				goto err;
+> @@ -1053,12 +1053,12 @@ static int rtl2831u_rc_query(struct dvb_usb_device *d)
+>
+>   		rc_keydown(d->rc_dev, rc_code, 0);
+>
+> -		ret = rtl2831_wr_reg(d, SYS_IRRC_SR, 1);
+> +		ret = rtl28xx_wr_reg(d, SYS_IRRC_SR, 1);
+>   		if (ret)
+>   			goto err;
+>
+>   		/* repeated intentionally to avoid extra keypress */
+> -		ret = rtl2831_wr_reg(d, SYS_IRRC_SR, 1);
+> +		ret = rtl28xx_wr_reg(d, SYS_IRRC_SR, 1);
+>   		if (ret)
+>   			goto err;
+>   	}
+> @@ -1095,7 +1095,7 @@ static int rtl2832u_rc_query(struct dvb_usb_device *d)
+>   	/* init remote controller */
+>   	if (!priv->rc_active) {
+>   		for (i = 0; i<  ARRAY_SIZE(rc_nec_tab); i++) {
+> -			ret = rtl2831_wr_reg(d, rc_nec_tab[i].reg,
+> +			ret = rtl28xx_wr_reg(d, rc_nec_tab[i].reg,
+>   					rc_nec_tab[i].val);
+>   			if (ret)
+>   				goto err;
+> @@ -1103,14 +1103,14 @@ static int rtl2832u_rc_query(struct dvb_usb_device *d)
+>   		priv->rc_active = true;
+>   	}
+>
+> -	ret = rtl2831_rd_reg(d, IR_RX_IF,&buf[0]);
+> +	ret = rtl28xx_rd_reg(d, IR_RX_IF,&buf[0]);
+>   	if (ret)
+>   		goto err;
+>
+>   	if (buf[0] != 0x83)
+>   		goto exit;
+>
+> -	ret = rtl2831_rd_reg(d, IR_RX_BC,&buf[0]);
+> +	ret = rtl28xx_rd_reg(d, IR_RX_BC,&buf[0]);
+>   	if (ret)
+>   		goto err;
+>
+> @@ -1119,9 +1119,9 @@ static int rtl2832u_rc_query(struct dvb_usb_device *d)
+>
+>   	/* TODO: pass raw IR to Kernel IR decoder */
+>
+> -	ret = rtl2831_wr_reg(d, IR_RX_IF, 0x03);
+> -	ret = rtl2831_wr_reg(d, IR_RX_BUF_CTRL, 0x80);
+> -	ret = rtl2831_wr_reg(d, IR_RX_CTRL, 0x80);
+> +	ret = rtl28xx_wr_reg(d, IR_RX_IF, 0x03);
+> +	ret = rtl28xx_wr_reg(d, IR_RX_BUF_CTRL, 0x80);
+> +	ret = rtl28xx_wr_reg(d, IR_RX_CTRL, 0x80);
+>
+>   exit:
+>   	return ret;
+> @@ -1301,23 +1301,23 @@ static int rtl28xxu_probe(struct usb_interface *intf,
+>
+>
+>   	/* init USB endpoints */
+> -	ret = rtl2831_rd_reg(d, USB_SYSCTL_0,&val);
+> +	ret = rtl28xx_rd_reg(d, USB_SYSCTL_0,&val);
+>   	if (ret)
+>   			goto err;
+>
+>   	/* enable DMA and Full Packet Mode*/
+>   	val |= 0x09;
+> -	ret = rtl2831_wr_reg(d, USB_SYSCTL_0, val);
+> +	ret = rtl28xx_wr_reg(d, USB_SYSCTL_0, val);
+>   	if (ret)
+>   		goto err;
+>
+>   	/* set EPA maximum packet size to 0x0200 */
+> -	ret = rtl2831_wr_regs(d, USB_EPA_MAXPKT, "\x00\x02\x00\x00", 4);
+> +	ret = rtl28xx_wr_regs(d, USB_EPA_MAXPKT, "\x00\x02\x00\x00", 4);
+>   	if (ret)
+>   		goto err;
+>
+>   	/* change EPA FIFO length */
+> -	ret = rtl2831_wr_regs(d, USB_EPA_FIFO_CFG, "\x14\x00\x00\x00", 4);
+> +	ret = rtl28xx_wr_regs(d, USB_EPA_FIFO_CFG, "\x14\x00\x00\x00", 4);
+>   	if (ret)
+>   		goto err;
+>
 
-So, my proposal is to move all radio, analog TV, digital TV, webcams and grabber
-bridge drivers to this arrangement:
 
-drivers/media/isa - ISA drivers
-drivers/media/usb - USB drivers
-drivers/media/pci - PCI/PCIe drivers
-drivers/media/platform - platform drivers
-
-Comments?
-
-Regards,
-Mauro
-
--
-
-PS.: for now, I don't intend to touch at I2C/ancillary drivers. We may latter move
-the i2c drivers that aren't frontend/tuners to media/i2c or to media/common.
+-- 
+http://palosaari.fi/
