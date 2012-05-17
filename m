@@ -1,70 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qc0-f174.google.com ([209.85.216.174]:42719 "EHLO
-	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752431Ab2EBNMW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 2 May 2012 09:12:22 -0400
-Received: by qcro28 with SMTP id o28so302626qcr.19
-        for <linux-media@vger.kernel.org>; Wed, 02 May 2012 06:12:22 -0700 (PDT)
+Received: from mail-wg0-f44.google.com ([74.125.82.44]:58612 "EHLO
+	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759031Ab2EQXHX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 May 2012 19:07:23 -0400
+Received: by wgbdr13 with SMTP id dr13so2198153wgb.1
+        for <linux-media@vger.kernel.org>; Thu, 17 May 2012 16:07:22 -0700 (PDT)
+Message-ID: <4FB584A8.2000508@gmail.com>
+Date: Fri, 18 May 2012 01:07:20 +0200
+From: Sylwester Nawrocki <snjw23@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <20120502114430.GA4608@kipc2.localdomain>
-References: <20120424122156.GA16769@kipc2.localdomain> <20120502084318.GA21181@kipc2.localdomain>
- <CAPueXH4-VSxHYjryO8kN5R-hG6seFrwCu3Kjrq4TXV=XFKLETg@mail.gmail.com> <20120502114430.GA4608@kipc2.localdomain>
-From: Paulo Assis <pj.assis@gmail.com>
-Date: Wed, 2 May 2012 14:12:01 +0100
-Message-ID: <CAPueXH7TjHo-Dx2wUCQEcDvn=5L_xobYVKrf+b6wnmLGwOSeRg@mail.gmail.com>
-Subject: Re: logitech quickcam 9000 uvcdynctrl broken since kernel 3.2 - PING
-To: Karl Kiniger <karl.kiniger@med.ge.com>
-Cc: linux-media@vger.kernel.org, linux-uvc-devel@lists.sourceforge.net
+To: Sakari Ailus <sakari.ailus@iki.fi>
+CC: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	s.nawrocki@samsung.com, Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [PATCH 1/1] v4l: Remove "_ACTUAL" from subdev selection API target
+ definition names
+References: <1337015823-13603-1-git-send-email-s.nawrocki@samsung.com> <1337289325-19336-1-git-send-email-sakari.ailus@iki.fi> <4FB56FAB.7030308@gmail.com> <20120517223523.GO3373@valkosipuli.retiisi.org.uk>
+In-Reply-To: <20120517223523.GO3373@valkosipuli.retiisi.org.uk>
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-karl,
-I've run some tests under ubuntu 12.04 with kernel 3.2.0 and
-everything seems to be working fine.
-I know some changes were made to the uvcvideo module regarding XU
-controls, but I was under the impression that they wouldn't break
-userspace.
+Hi Sakari,
 
-Logitech shutdown the quickcamteam site, so you won't be able to
-download libwebcam from there.
-I'm currently the debian mantainer of that package, so I'll try to
-test it on a newer kernel and patch it as necessary.
-I'll also fix guvcview if needed.
-
-Regards,
-Paulo
-
-2012/5/2 Karl Kiniger <karl.kiniger@med.ge.com>:
-> Hi Paulo,
->
-> I am running plain Fedora 16 on x86_64.
->
-> The last kernel where UVC dyncontrols worked was 3.1.10-2.
-> (If I remember correctly...) The first kernel with failing
-> dyncontrols was 3.2.1-1 and all later kernels up to 3.3.2-6
-> fail as well.
->
-> libwebcam version is libwebcam-0.2.0-4.20100322svn and guvcview
-> is guvcview-1.5.1-1.
->
-> http://www.quickcamteam.net/software/libwebcam seems to be offline/
-> discontinued since a few months.
->
-> what software versions are you running? Is there a later libwebcam
-> available from somewhere else?
->
-> pls look also at:
-> http://permalink.gmane.org/gmane.linux.kernel/1257500
->
-> Greetings,
-> Karl
->
-> On Wed 120502, Paulo Assis wrote:
->> Karl Hi,
->> I'm using a 3.2 kernel and I haven't notice this problem, can you
->> check the exact version that causes it.
+On 05/18/2012 12:35 AM, Sakari Ailus wrote:
+...
+>> On 05/17/2012 11:15 PM, Sakari Ailus wrote:
+>>> The string "_ACTUAL" does not say anything more about the target names. Drop
+>>> it. V4L2 selection API was changed by "V4L: Rename V4L2_SEL_TGT_[CROP/COMPOSE]_ACTIVE to
+>>> V4L2_SEL_TGT_[CROP/COMPOSE]" by Sylwester Nawrocki. This patch does the same
+>>> for the V4L2 subdev API.
+>>>
+>>> Signed-off-by: Sakari Ailus<sakari.ailus@iki.fi>
 >>
->> Regards,
->> Paulo
+>> Are these all changes, or do you think we could try to drop the _SUBDEV
+>> part as well from the below selection target names, so they are same
+>> across V4L2 and subdev API ? :-)
 >>
+>> I realize it might me quite a bit of documentation work and it's pretty
+>> late for getting these patches in for v3.5.
+>>
+>> I still have a dependency on my previous pull request which is pending
+>> for the patch you mentioned. Do you think we should leave "_SUBDEV"
+>> in subdev selection target names for now (/ever) ?
+> 
+> I started working on removing the SUBDEV_ in between but I agree with you,
+> there seems to be more than just a tiny bit of documentation work. It may be
+> we'll go past 3.5 in doing that.
+> 
+> I think the most important change was to get rid or ACTUAL/ACTIVE anyway.
+> What we could do is that we postpone this change after 3.5 (to 3.6) and
+> perhaps keep the old subdev targets around awhile.
+> 
+> In my opinion the user space may (or perhaps even should) begin using the
+> V4L2 targets already, but in kernel we'll use the existing subdev targets
+> before the removal patch is eventually ready.
+
+That sounds good to me. 
+
+> This is primarily a documentation change after all.
+> 
+> Could you rebase your exposure metering target definition patch on top of
+> the _ACTUAL/_ACTIVE removal patches?
+
+It's not the focus targets patches that would cause conflicts, I have 
+postponed them to 3.6. It's just the last patch from this series:
+
+http://git.infradead.org/users/kmpark/linux-samsung/shortlog/refs/heads/v4l-fimc-exynos4x12
+
+What I could do is just to apply the selection rename patch before it
+and to resend whole pull request again. I'll try to do it tomorrow.
+
+--
+
+Best regards,
+Sylwester
