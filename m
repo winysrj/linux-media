@@ -1,156 +1,147 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:20958 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753772Ab2EIJ67 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 May 2012 05:58:59 -0400
-Date: Wed, 09 May 2012 11:58:53 +0200
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: Re: [PATCHv5 08/13] v4l: vb2-dma-contig: add support for scatterlist
- in userptr mode
-In-reply-to: <4FAA12C7.8020307@gmail.com>
-To: Subash Patel <subashrp@gmail.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	airlied@redhat.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, sumit.semwal@ti.com, daeinki@gmail.com,
-	daniel.vetter@ffwll.ch, robdclark@gmail.com, pawel@osciak.com,
-	linaro-mm-sig@lists.linaro.org, hverkuil@xs4all.nl,
-	remi@remlab.net, mchehab@redhat.com, linux-doc@vger.kernel.org,
-	g.liakhovetski@gmx.de,
-	Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>
-Message-id: <4FAA3FDD.1040400@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 7BIT
-References: <1334933134-4688-1-git-send-email-t.stanislaws@samsung.com>
- <1334933134-4688-9-git-send-email-t.stanislaws@samsung.com>
- <4FA7DE61.7000705@gmail.com> <4675433.ieio0xx0Y0@avalon>
- <4FA9005F.6020901@gmail.com> <4FAA12C7.8020307@gmail.com>
+Received: from smtp.nokia.com ([147.243.128.26]:25424 "EHLO mgw-da02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1762194Ab2EQQah (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 May 2012 12:30:37 -0400
+Received: from maxwell.research.nokia.com (maxwell.research.nokia.com [172.21.199.25])
+	by mgw-da02.nokia.com (Sentrion-MTA-4.2.2/Sentrion-MTA-4.2.2) with ESMTP id q4HGUZpW007010
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Thu, 17 May 2012 19:30:36 +0300
+Received: from lanttu (lanttu-o.localdomain [192.168.239.74])
+	by maxwell.research.nokia.com (Postfix) with ESMTPS id 867F21F4C5A
+	for <linux-media@vger.kernel.org>; Thu, 17 May 2012 19:30:34 +0300 (EEST)
+Received: from sakke by lanttu with local (Exim 4.72)
+	(envelope-from <sakari.ailus@maxwell.research.nokia.com>)
+	id 1SV3av-000877-Ff
+	for linux-media@vger.kernel.org; Thu, 17 May 2012 19:30:29 +0300
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 08/10] smiapp: Allow generic quirk registers
+Date: Thu, 17 May 2012 19:30:07 +0300
+Message-Id: <1337272209-31061-8-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+In-Reply-To: <4FB52770.9000400@maxwell.research.nokia.com>
+References: <4FB52770.9000400@maxwell.research.nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Subash,
-Could you post the code of vb2_dc_pages_to_sgt with all printk in it.
-It will help us avoid guessing where and what is debugged in the log.
+Implement more generic quirk registers than just limit and capability
+registers. This comes with the expense of a little bit more access time so
+these should be only used when really needed.
 
-Moreover, I found a line 'size=4294836224' in the log.
-It means that size is equal to -131072 (!?!) or there are some invalid
-conversions in printk.
+Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+---
+ drivers/media/video/smiapp/smiapp-quirk.c |   46 +++++++++++++++++++++++++++++
+ drivers/media/video/smiapp/smiapp-quirk.h |   10 ++++++
+ drivers/media/video/smiapp/smiapp-regs.c  |    4 ++
+ 3 files changed, 60 insertions(+), 0 deletions(-)
 
-Are you suze that you do not pass size = 0 as the function argument?
-
-Notice that earlier versions of dmabuf-for-vb2 patches has offset2
-argument instead of size. It was the offset at the end of the buffer.
-In (I guess) 95% of cases this offset was 0.
-
-Could you provide only function arguments that causes the failure?
-I mean pages array + size (I assume that offset is zero for your test).
-
-Having the arguments we could reproduce that bug.
-
-Regards,
-Tomasz Stanislawski
-
-
-
-
-
-On 05/09/2012 08:46 AM, Subash Patel wrote:
-> Hello Tomasz, Laurent,
-> 
-> I have printed some logs during the dmabuf export and attach for the SGT issue below. Please find it in the attachment. I hope
-> it will be useful.
-> 
-> Regards,
-> Subash
-> 
-> On 05/08/2012 04:45 PM, Subash Patel wrote:
->> Hi Laurent,
->>
->> On 05/08/2012 02:44 PM, Laurent Pinchart wrote:
->>> Hi Subash,
->>>
->>> On Monday 07 May 2012 20:08:25 Subash Patel wrote:
->>>> Hello Thomasz, Laurent,
->>>>
->>>> I found an issue in the function vb2_dc_pages_to_sgt() below. I saw that
->>>> during the attach, the size of the SGT and size requested mis-matched
->>>> (by atleast 8k bytes). Hence I made a small correction to the code as
->>>> below. I could then attach the importer properly.
->>>
->>> Thank you for the report.
->>>
->>> Could you print the content of the sglist (number of chunks and size
->>> of each
->>> chunk) before and after your modifications, as well as the values of
->>> n_pages,
->>> offset and size ?
->> I will put back all the printk's and generate this. As of now, my setup
->> has changed and will do this when I get sometime.
->>>
->>>> On 04/20/2012 08:15 PM, Tomasz Stanislawski wrote:
->>>
->>> [snip]
->>>
->>>>> +static struct sg_table *vb2_dc_pages_to_sgt(struct page **pages,
->>>>> + unsigned int n_pages, unsigned long offset, unsigned long size)
->>>>> +{
->>>>> + struct sg_table *sgt;
->>>>> + unsigned int chunks;
->>>>> + unsigned int i;
->>>>> + unsigned int cur_page;
->>>>> + int ret;
->>>>> + struct scatterlist *s;
->>>>> +
->>>>> + sgt = kzalloc(sizeof *sgt, GFP_KERNEL);
->>>>> + if (!sgt)
->>>>> + return ERR_PTR(-ENOMEM);
->>>>> +
->>>>> + /* compute number of chunks */
->>>>> + chunks = 1;
->>>>> + for (i = 1; i< n_pages; ++i)
->>>>> + if (pages[i] != pages[i - 1] + 1)
->>>>> + ++chunks;
->>>>> +
->>>>> + ret = sg_alloc_table(sgt, chunks, GFP_KERNEL);
->>>>> + if (ret) {
->>>>> + kfree(sgt);
->>>>> + return ERR_PTR(-ENOMEM);
->>>>> + }
->>>>> +
->>>>> + /* merging chunks and putting them into the scatterlist */
->>>>> + cur_page = 0;
->>>>> + for_each_sg(sgt->sgl, s, sgt->orig_nents, i) {
->>>>> + unsigned long chunk_size;
->>>>> + unsigned int j;
->>>>
->>>> size = PAGE_SIZE;
->>>>
->>>>> +
->>>>> + for (j = cur_page + 1; j< n_pages; ++j)
->>>>
->>>> for (j = cur_page + 1; j< n_pages; ++j) {
->>>>
->>>>> + if (pages[j] != pages[j - 1] + 1)
->>>>> + break;
->>>>
->>>> size += PAGE
->>>> }
->>>>
->>>>> +
->>>>> + chunk_size = ((j - cur_page)<< PAGE_SHIFT) - offset;
->>>>> + sg_set_page(s, pages[cur_page], min(size, chunk_size), offset);
->>>>
->>>> [DELETE] size -= chunk_size;
->>>>
->>>>> + offset = 0;
->>>>> + cur_page = j;
->>>>> + }
->>>>> +
->>>>> + return sgt;
->>>>> +}
->>>
->> Regards,
->> Subash
+diff --git a/drivers/media/video/smiapp/smiapp-quirk.c b/drivers/media/video/smiapp/smiapp-quirk.c
+index 81c2be3..55e8795 100644
+--- a/drivers/media/video/smiapp/smiapp-quirk.c
++++ b/drivers/media/video/smiapp/smiapp-quirk.c
+@@ -81,6 +81,52 @@ int smiapp_replace_limit_at(struct smiapp_sensor *sensor,
+ 	return -EINVAL;
+ }
+ 
++bool smiapp_quirk_reg(struct smiapp_sensor *sensor,
++		      u32 reg, u32 *val)
++{
++	struct i2c_client *client = v4l2_get_subdevdata(&sensor->src->sd);
++	const struct smia_reg *sreg;
++
++	if (!sensor->minfo.quirk)
++		return false;
++
++	sreg = sensor->minfo.quirk->regs;
++
++	if (!sreg)
++		return false;
++
++	while (sreg->type) {
++		u16 type = reg >> 16;
++		u16 reg16 = reg;
++
++		if (sreg->type != type || sreg->reg != reg16) {
++			sreg++;
++			continue;
++		}
++
++		switch ((u8)type) {
++		case SMIA_REG_8BIT:
++			dev_dbg(&client->dev, "quirk: 0x%8.8x: 0x%2.2x\n",
++				reg, sreg->val);
++			break;
++		case SMIA_REG_16BIT:
++			dev_dbg(&client->dev, "quirk: 0x%8.8x: 0x%4.4x\n",
++				reg, sreg->val);
++			break;
++		case SMIA_REG_32BIT:
++			dev_dbg(&client->dev, "quirk: 0x%8.8x: 0x%8.8x\n",
++				reg, sreg->val);
++			break;
++		}
++
++		*val = sreg->val;
++
++		return true;
++	}
++
++	return false;
++}
++
+ static int jt8ew9_limits(struct smiapp_sensor *sensor)
+ {
+ 	if (sensor->minfo.revision_number_major < 0x03)
+diff --git a/drivers/media/video/smiapp/smiapp-quirk.h b/drivers/media/video/smiapp/smiapp-quirk.h
+index de82cdf..f4dcaab 100644
+--- a/drivers/media/video/smiapp/smiapp-quirk.h
++++ b/drivers/media/video/smiapp/smiapp-quirk.h
+@@ -41,6 +41,7 @@ struct smiapp_quirk {
+ 	int (*post_poweron)(struct smiapp_sensor *sensor);
+ 	int (*pre_streamon)(struct smiapp_sensor *sensor);
+ 	int (*post_streamoff)(struct smiapp_sensor *sensor);
++	const struct smia_reg *regs;
+ 	unsigned long flags;
+ };
+ 
+@@ -55,6 +56,15 @@ struct smiapp_reg_8 {
+ 
+ void smiapp_replace_limit(struct smiapp_sensor *sensor,
+ 			  u32 limit, u32 val);
++bool smiapp_quirk_reg(struct smiapp_sensor *sensor,
++		      u32 reg, u32 *val);
++
++#define SMIAPP_MK_QUIRK_REG(_reg, _val) \
++	{				\
++		.type = (_reg >> 16),	\
++		.reg = (u16)_reg,	\
++		.val = _val,		\
++	}
+ 
+ #define smiapp_call_quirk(_sensor, _quirk, ...)				\
+ 	(_sensor->minfo.quirk &&					\
+diff --git a/drivers/media/video/smiapp/smiapp-regs.c b/drivers/media/video/smiapp/smiapp-regs.c
+index 9c43064..b1812b1 100644
+--- a/drivers/media/video/smiapp/smiapp-regs.c
++++ b/drivers/media/video/smiapp/smiapp-regs.c
+@@ -172,6 +172,9 @@ static int __smiapp_read(struct smiapp_sensor *sensor, u32 reg, u32 *val,
+ 	    && len != SMIA_REG_32BIT)
+ 		return -EINVAL;
+ 
++	if (smiapp_quirk_reg(sensor, reg, val))
++		goto found_quirk;
++
+ 	if (len == SMIA_REG_8BIT && !only8)
+ 		rval = ____smiapp_read(sensor, (u16)reg, len, val);
+ 	else
+@@ -179,6 +182,7 @@ static int __smiapp_read(struct smiapp_sensor *sensor, u32 reg, u32 *val,
+ 	if (rval < 0)
+ 		return rval;
+ 
++found_quirk:
+ 	if (reg & SMIA_REG_FLAG_FLOAT)
+ 		*val = float_to_u32_mul_1000000(client, *val);
+ 
+-- 
+1.7.2.5
 
