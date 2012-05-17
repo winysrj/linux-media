@@ -1,239 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:60776 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754479Ab2EURML (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 May 2012 13:12:11 -0400
-From: <manjunatha_halli@ti.com>
-To: <linux-media@vger.kernel.org>
-CC: <linux-kernel@vger.kernel.org>, Manjunatha Halli <x0130808@ti.com>
-Subject: [PATCH V7 5/5] WL12xx: Add support for FM new features
-Date: Mon, 21 May 2012 12:12:06 -0500
-Message-ID: <1337620326-18593-6-git-send-email-manjunatha_halli@ti.com>
-In-Reply-To: <1337620326-18593-1-git-send-email-manjunatha_halli@ti.com>
-References: <1337620326-18593-1-git-send-email-manjunatha_halli@ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from smtp.nokia.com ([147.243.1.47]:30305 "EHLO mgw-sa01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1762194Ab2EQQae (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 May 2012 12:30:34 -0400
+Received: from maxwell.research.nokia.com (maxwell.research.nokia.com [172.21.199.25])
+	by mgw-sa01.nokia.com (Sentrion-MTA-4.2.2/Sentrion-MTA-4.2.2) with ESMTP id q4HGUW8s029805
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Thu, 17 May 2012 19:30:33 +0300
+Received: from lanttu (lanttu-o.localdomain [192.168.239.74])
+	by maxwell.research.nokia.com (Postfix) with ESMTPS id 600021F4C5A
+	for <linux-media@vger.kernel.org>; Thu, 17 May 2012 19:30:32 +0300 (EEST)
+Received: from sakke by lanttu with local (Exim 4.72)
+	(envelope-from <sakari.ailus@maxwell.research.nokia.com>)
+	id 1SV3at-000871-7H
+	for linux-media@vger.kernel.org; Thu, 17 May 2012 19:30:27 +0300
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 07/10] smiapp: Use non-binning limits if the binning limit is zero
+Date: Thu, 17 May 2012 19:30:06 +0300
+Message-Id: <1337272209-31061-7-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+In-Reply-To: <4FB52770.9000400@maxwell.research.nokia.com>
+References: <4FB52770.9000400@maxwell.research.nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Manjunatha Halli <x0130808@ti.com>
+Some sensors do use binning but do not have valid limits in binning
+registers. Use non-binning limits in that case.
 
-This patch adds below features to TI's V4l2 FM driver for Wilink
-chipsets,
-
-	1) FM RX RDS AF turn ON/OFF
-	2) FM RX De-Emphasis mode set/get
-	3) FM TX Alternate Frequency set/get
-
-Also this patch fixes below issues
-
-	1) FM audio volume gain setting
-	2) Default rssi level is set to	8 instead of 20
-	3) Enable FM RX AF support in driver
-	4) In wrap_around seek mode try for once
-
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Manjunatha Halli <x0130808@ti.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 ---
- drivers/media/radio/wl128x/fmdrv.h        |    2 +-
- drivers/media/radio/wl128x/fmdrv_common.c |   13 +++++++------
- drivers/media/radio/wl128x/fmdrv_common.h |   10 +++++++---
- drivers/media/radio/wl128x/fmdrv_rx.c     |   11 +++++++++--
- drivers/media/radio/wl128x/fmdrv_v4l2.c   |   27 +++++++++++++++++++++++++++
- 5 files changed, 51 insertions(+), 12 deletions(-)
+ drivers/media/video/smiapp/smiapp-core.c |   31 +++++++++++++++++++++++++++--
+ 1 files changed, 28 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/radio/wl128x/fmdrv.h b/drivers/media/radio/wl128x/fmdrv.h
-index d84ad9d..e1a3c78 100644
---- a/drivers/media/radio/wl128x/fmdrv.h
-+++ b/drivers/media/radio/wl128x/fmdrv.h
-@@ -203,7 +203,7 @@ struct fmtx_data {
- struct fmdev {
- 	struct video_device *radio_dev;	/* V4L2 video device pointer */
- 	struct snd_card *card;	/* Card which holds FM mixer controls */
--	u16 asci_id;
-+	u16 asic_id;
- 	spinlock_t rds_buff_lock; /* To protect access to RDS buffer */
- 	spinlock_t resp_skb_lock; /* To protect access to received SKB */
+diff --git a/drivers/media/video/smiapp/smiapp-core.c b/drivers/media/video/smiapp/smiapp-core.c
+index 6524091..47d6901 100644
+--- a/drivers/media/video/smiapp/smiapp-core.c
++++ b/drivers/media/video/smiapp/smiapp-core.c
+@@ -653,6 +653,7 @@ static int smiapp_get_all_limits(struct smiapp_sensor *sensor)
  
-diff --git a/drivers/media/radio/wl128x/fmdrv_common.c b/drivers/media/radio/wl128x/fmdrv_common.c
-index fcce61a..9ab7a63 100644
---- a/drivers/media/radio/wl128x/fmdrv_common.c
-+++ b/drivers/media/radio/wl128x/fmdrv_common.c
-@@ -596,7 +596,6 @@ static void fm_irq_handle_flag_getcmd_resp(struct fmdev *fmdev)
- 	memcpy(&fmdev->irq_info.flag, skb->data, fm_evt_hdr->dlen);
+ static int smiapp_get_limits_binning(struct smiapp_sensor *sensor)
+ {
++	struct i2c_client *client = v4l2_get_subdevdata(&sensor->src->sd);
+ 	static u32 const limits[] = {
+ 		SMIAPP_LIMIT_MIN_FRAME_LENGTH_LINES_BIN,
+ 		SMIAPP_LIMIT_MAX_FRAME_LENGTH_LINES_BIN,
+@@ -671,11 +672,11 @@ static int smiapp_get_limits_binning(struct smiapp_sensor *sensor)
+ 		SMIAPP_LIMIT_FINE_INTEGRATION_TIME_MIN,
+ 		SMIAPP_LIMIT_FINE_INTEGRATION_TIME_MAX_MARGIN,
+ 	};
++	unsigned int i;
++	int rval;
  
- 	fmdev->irq_info.flag = be16_to_cpu(fmdev->irq_info.flag);
--	fmdbg("irq: flag register(0x%x)\n", fmdev->irq_info.flag);
- 
- 	/* Continue next function in interrupt handler table */
- 	fm_irq_call_stage(fmdev, FM_HW_MAL_FUNC_IDX);
-@@ -702,7 +701,7 @@ static void fm_rdsparse_swapbytes(struct fmdev *fmdev,
- 	 * in Dolphin they are in big endian, the parsing of the RDS data
- 	 * is chip dependent
- 	 */
--	if (fmdev->asci_id != 0x6350) {
-+	if (fmdev->asic_id != 0x6350) {
- 		rds_buff = &rds_format->data.groupdatabuff.buff[0];
- 		while (index + 1 < FM_RX_RDS_INFO_FIELD_MAX) {
- 			byte1 = rds_buff[index];
-@@ -1353,11 +1352,13 @@ static int fm_power_up(struct fmdev *fmdev, u8 mode)
- 			sizeof(asic_ver), &asic_ver, &resp_len))
- 		goto rel;
- 
-+	fmdev->asic_id = be16_to_cpu(asic_id);
-+
- 	fmdbg("ASIC ID: 0x%x , ASIC Version: %d\n",
--		be16_to_cpu(asic_id), be16_to_cpu(asic_ver));
-+		fmdev->asic_id, be16_to_cpu(asic_ver));
- 
- 	sprintf(fw_name, "%s_%x.%d.bts", FM_FMC_FW_FILE_START,
--		be16_to_cpu(asic_id), be16_to_cpu(asic_ver));
-+		fmdev->asic_id, be16_to_cpu(asic_ver));
- 
- 	ret = fm_download_firmware(fmdev, fw_name);
- 	if (ret < 0) {
-@@ -1366,7 +1367,7 @@ static int fm_power_up(struct fmdev *fmdev, u8 mode)
- 	}
- 	sprintf(fw_name, "%s_%x.%d.bts", (mode == FM_MODE_RX) ?
- 			FM_RX_FW_FILE_START : FM_TX_FW_FILE_START,
--			be16_to_cpu(asic_id), be16_to_cpu(asic_ver));
-+			fmdev->asic_id, be16_to_cpu(asic_ver));
- 
- 	ret = fm_download_firmware(fmdev, fw_name);
- 	if (ret < 0) {
-@@ -1576,7 +1577,7 @@ int fmc_prepare(struct fmdev *fmdev)
- 	fmdev->rx.rds.flag = FM_RDS_DISABLE;
- 	fmdev->rx.freq = FM_UNDEFINED_FREQ;
- 	fmdev->rx.rds_mode = FM_RDS_SYSTEM_RDS;
--	fmdev->rx.af_mode = FM_RX_RDS_AF_SWITCH_MODE_OFF;
-+	fmdev->rx.af_mode = FM_RX_RDS_AF_SWITCH_MODE_ON;
- 	fmdev->irq_info.retry = 0;
- 
- 	fmdev->tx_data.tx_frq = FM_UNDEFINED_FREQ;
-diff --git a/drivers/media/radio/wl128x/fmdrv_common.h b/drivers/media/radio/wl128x/fmdrv_common.h
-index 196ff7d..a57c662 100644
---- a/drivers/media/radio/wl128x/fmdrv_common.h
-+++ b/drivers/media/radio/wl128x/fmdrv_common.h
-@@ -201,8 +201,8 @@ struct fm_event_msg_hdr {
- #define FM_UNDEFINED_FREQ		   0xFFFFFFFF
- 
- /* Band types */
--#define FM_BAND_EUROPE_US	0
--#define FM_BAND_JAPAN		1
-+#define FM_BAND_EUROPE_US      0
-+#define FM_BAND_JAPAN          1
- 
- /* Seek directions */
- #define FM_SEARCH_DIRECTION_DOWN	0
-@@ -213,6 +213,10 @@ struct fm_event_msg_hdr {
- #define FM_TUNER_PRESET_MODE		1
- #define FM_TUNER_AUTONOMOUS_SEARCH_MODE	2
- #define FM_TUNER_AF_JUMP_MODE		3
-+#define FM_TUNER_PI_MATCH_MODE		4
-+#define FM_TUNER_BULK_SEARCH_MODE	5
-+#define FM_TUNER_WRAP_SEARCH_MODE	6
-+#define FM_TUNER_WEATHER_MODE		7
- 
- /* Min and Max volume */
- #define FM_RX_VOLUME_MIN	0
-@@ -353,7 +357,7 @@ struct fm_event_msg_hdr {
-  * with this default values after loading RX firmware.
-  */
- #define FM_DEFAULT_RX_VOLUME		10
--#define FM_DEFAULT_RSSI_THRESHOLD	20
-+#define FM_DEFAULT_RSSI_THRESHOLD	8
- 
- /* Range for TX power level in units for dB/uV */
- #define FM_PWR_LVL_LOW			91
-diff --git a/drivers/media/radio/wl128x/fmdrv_rx.c b/drivers/media/radio/wl128x/fmdrv_rx.c
-index a806bda..aae4e6d 100644
---- a/drivers/media/radio/wl128x/fmdrv_rx.c
-+++ b/drivers/media/radio/wl128x/fmdrv_rx.c
-@@ -276,6 +276,10 @@ again:
- 			/* Calculate frequency index to write */
- 			next_frq = (fmdev->rx.freq -
- 					fmdev->rx.region.bot_freq) / FM_FREQ_MUL;
-+
-+			/* If no valid chanel then report default frequency */
-+			wrap_around = 0;
-+
- 			goto again;
- 		}
- 	} else {
-@@ -636,8 +640,11 @@ int fm_rx_set_deemphasis_mode(struct fmdev *fmdev, u16 mode)
- 	if (fmdev->curr_fmmode != FM_MODE_RX)
- 		return -EPERM;
- 
--	if (mode != FM_RX_EMPHASIS_FILTER_50_USEC &&
--			mode != FM_RX_EMPHASIS_FILTER_75_USEC) {
-+	if (mode == V4L2_PREEMPHASIS_DISABLED)
-+		return 0;
-+
-+	if (mode != V4L2_PREEMPHASIS_50_uS &&
-+			mode != V4L2_PREEMPHASIS_75_uS) {
- 		fmerr("Invalid rx de-emphasis mode (%d)\n", mode);
- 		return -EINVAL;
- 	}
-diff --git a/drivers/media/radio/wl128x/fmdrv_v4l2.c b/drivers/media/radio/wl128x/fmdrv_v4l2.c
-index 494faaf..22ffb39 100644
---- a/drivers/media/radio/wl128x/fmdrv_v4l2.c
-+++ b/drivers/media/radio/wl128x/fmdrv_v4l2.c
-@@ -258,6 +258,22 @@ static int fm_v4l2_s_ctrl(struct v4l2_ctrl *ctrl)
- 		}
+ 	if (sensor->limits[SMIAPP_LIMIT_BINNING_CAPABILITY] ==
+ 	    SMIAPP_BINNING_CAPABILITY_NO) {
+-		unsigned int i;
+-
+ 		for (i = 0; i < ARRAY_SIZE(limits); i++)
+ 			sensor->limits[limits[i]] =
+ 				sensor->limits[limits_replace[i]];
+@@ -683,7 +684,31 @@ static int smiapp_get_limits_binning(struct smiapp_sensor *sensor)
  		return 0;
+ 	}
  
-+	case V4L2_CID_RDS_TX_AF_FREQ:
-+		ret = fm_tx_set_af(fmdev, ctrl->val);
-+		if (ret < 0) {
-+			fmerr("Failed to set FM TX AF Frequency\n");
-+			return ret;
-+		}
+-	return smiapp_get_limits(sensor, limits, ARRAY_SIZE(limits));
++	rval = smiapp_get_limits(sensor, limits, ARRAY_SIZE(limits));
++	if (rval < 0)
++		return rval;
++
++	/*
++	 * Sanity check whether the binning limits are valid. If not,
++	 * use the non-binning ones.
++	 */
++	if (sensor->limits[SMIAPP_LIMIT_MIN_FRAME_LENGTH_LINES_BIN]
++	    && sensor->limits[SMIAPP_LIMIT_MIN_LINE_LENGTH_PCK_BIN]
++	    && sensor->limits[SMIAPP_LIMIT_MIN_LINE_BLANKING_PCK_BIN])
 +		return 0;
 +
-+	case V4L2_CID_RDS_AF_SWITCH:	/* enable/disable FM RX RDS AF*/
-+		fmdbg("V4L2_CID_RDS_AF_SWITCH:\n");
-+		return fm_rx_set_af_switch(fmdev, (u8)ctrl->val);
++	for (i = 0; i < ARRAY_SIZE(limits); i++) {
++		dev_dbg(&client->dev,
++			"replace limit 0x%8.8x \"%s\" = %d, 0x%x\n",
++			smiapp_reg_limits[limits[i]].addr,
++			smiapp_reg_limits[limits[i]].what,
++			sensor->limits[limits_replace[i]],
++			sensor->limits[limits_replace[i]]);
++		sensor->limits[limits[i]] =
++			sensor->limits[limits_replace[i]];
++	}
 +
-+	case V4L2_CID_TUNE_DEEMPHASIS:
-+		fmdbg("V4L2_CID_TUNE_DEEMPHASIS\n");
-+		return fm_rx_set_deemphasis_mode(fmdev, (u8) ctrl->val);
-+
- 	default:
- 		return -EINVAL;
- 	}
-@@ -320,6 +336,7 @@ static int fm_v4l2_vidioc_g_tuner(struct file *file, void *priv,
- 	((fmdev->rx.rds.flag == FM_RDS_ENABLE) ? V4L2_TUNER_SUB_RDS : 0);
- 	tuner->capability = V4L2_TUNER_CAP_STEREO | V4L2_TUNER_CAP_RDS |
- 			    V4L2_TUNER_CAP_LOW;
-+
- 	tuner->audmode = (stereo_mono_mode ?
- 			  V4L2_TUNER_MODE_MONO : V4L2_TUNER_MODE_STEREO);
- 
-@@ -596,6 +613,9 @@ int fm_v4l2_init_video_device(struct fmdev *fmdev, int radio_nr)
- 	v4l2_ctrl_new_std(&fmdev->ctrl_handler, &fm_ctrl_ops,
- 			V4L2_CID_RDS_TX_RADIO_TEXT, 0, 0xff, 1, 0);
- 
-+	v4l2_ctrl_new_std(&fmdev->ctrl_handler, &fm_ctrl_ops,
-+			V4L2_CID_RDS_TX_AF_FREQ, 76000, 180000, 1, 87500);
-+
- 	v4l2_ctrl_new_std_menu(&fmdev->ctrl_handler, &fm_ctrl_ops,
- 			V4L2_CID_TUNE_PREEMPHASIS, V4L2_PREEMPHASIS_75_uS,
- 			0, V4L2_PREEMPHASIS_75_uS);
-@@ -611,6 +631,13 @@ int fm_v4l2_init_video_device(struct fmdev *fmdev, int radio_nr)
- 	if (ctrl)
- 		ctrl->flags |= V4L2_CTRL_FLAG_VOLATILE;
- 
-+	v4l2_ctrl_new_std(&fmdev->ctrl_handler, &fm_ctrl_ops,
-+			V4L2_CID_RDS_AF_SWITCH, 0, 1, 1, 0);
-+
-+	v4l2_ctrl_new_std_menu(&fmdev->ctrl_handler, &fm_ctrl_ops,
-+			V4L2_CID_TUNE_PREEMPHASIS, V4L2_PREEMPHASIS_75_uS,
-+			0, V4L2_PREEMPHASIS_75_uS);
-+
- 	return 0;
++	return 0;
  }
  
+ static int smiapp_get_mbus_formats(struct smiapp_sensor *sensor)
 -- 
-1.7.4.1
+1.7.2.5
 
