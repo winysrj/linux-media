@@ -1,75 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:47476 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760392Ab2ERKiS (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:60228 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S967208Ab2EQWf2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 May 2012 06:38:18 -0400
-Received: by bkcji2 with SMTP id ji2so2231115bkc.19
-        for <linux-media@vger.kernel.org>; Fri, 18 May 2012 03:38:16 -0700 (PDT)
-Message-ID: <4FB62695.3030909@gmail.com>
-Date: Fri, 18 May 2012 12:38:13 +0200
-From: poma <pomidorabelisima@gmail.com>
+	Thu, 17 May 2012 18:35:28 -0400
+Date: Fri, 18 May 2012 01:35:23 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Sylwester Nawrocki <snjw23@gmail.com>
+Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	s.nawrocki@samsung.com, Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [PATCH 1/1] v4l: Remove "_ACTUAL" from subdev selection API
+ target definition names
+Message-ID: <20120517223523.GO3373@valkosipuli.retiisi.org.uk>
+References: <1337015823-13603-1-git-send-email-s.nawrocki@samsung.com>
+ <1337289325-19336-1-git-send-email-sakari.ailus@iki.fi>
+ <4FB56FAB.7030308@gmail.com>
 MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: Thomas Mair <thomas.mair86@googlemail.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH v4 1/5] rtl2832 ver. 0.4: removed signal statistics
-References: <1337206420-23810-1-git-send-email-thomas.mair86@googlemail.com> <1337206420-23810-2-git-send-email-thomas.mair86@googlemail.com> <4FB50909.7030101@iki.fi> <4FB59E03.7080800@gmail.com> <CAKZ=SG_mvvFae9ZE2H3ci_3HosLmQ1kihyGx6QCdyQGgQro52Q@mail.gmail.com> <4FB61328.3090707@gmail.com>
-In-Reply-To: <4FB61328.3090707@gmail.com>
-Content-Type: multipart/mixed;
- boundary="------------090000020008020906040801"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4FB56FAB.7030308@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------090000020008020906040801
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Hi Sylwester,
 
-[…]
+On Thu, May 17, 2012 at 11:37:47PM +0200, Sylwester Nawrocki wrote:
+> Hi Sakari,
+> 
+> thanks for the patch.
+> 
+> On 05/17/2012 11:15 PM, Sakari Ailus wrote:
+> > The string "_ACTUAL" does not say anything more about the target names. Drop
+> > it. V4L2 selection API was changed by "V4L: Rename V4L2_SEL_TGT_[CROP/COMPOSE]_ACTIVE to
+> > V4L2_SEL_TGT_[CROP/COMPOSE]" by Sylwester Nawrocki. This patch does the same
+> > for the V4L2 subdev API.
+> > 
+> > Signed-off-by: Sakari Ailus<sakari.ailus@iki.fi>
+> 
+> Are these all changes, or do you think we could try to drop the _SUBDEV
+> part as well from the below selection target names, so they are same
+> across V4L2 and subdev API ? :-)
+> 
+> I realize it might me quite a bit of documentation work and it's pretty 
+> late for getting these patches in for v3.5.
+> 
+> I still have a dependency on my previous pull request which is pending
+> for the patch you mentioned. Do you think we should leave "_SUBDEV"
+> in subdev selection target names for now (/ever) ? 
 
-printk(KERN_ERR LOG_PREFIX": " f "\n" , ## arg)
-pr_err(LOG_PREFIX": " f "\n" , ## arg)
+I started working on removing the SUBDEV_ in between but I agree with you,
+there seems to be more than just a tiny bit of documentation work. It may be
+we'll go past 3.5 in doing that.
 
-printk(KERN_INFO LOG_PREFIX": " f "\n" , ## arg)
-pr_info(LOG_PREFIX": " f "\n" , ## arg)
+I think the most important change was to get rid or ACTUAL/ACTIVE anyway.
+What we could do is that we postpone this change after 3.5 (to 3.6) and
+perhaps keep the old subdev targets around awhile.
 
-printk(KERN_WARNING LOG_PREFIX": " f "\n" , ## arg)
-pr_warn(LOG_PREFIX": " f "\n" , ## arg)
+In my opinion the user space may (or perhaps even should) begin using the
+V4L2 targets already, but in kernel we'll use the existing subdev targets
+before the removal patch is eventually ready.
 
-Besides what 'checkpatch' suggest/output - Antti, is it a correct
-conversions?
+This is primarily a documentation change after all.
 
-cheers,
-poma
+Could you rebase your exposure metering target definition patch on top of
+the _ACTUAL/_ACTIVE removal patches?
 
+Kind regars,
 
---------------090000020008020906040801
-Content-Type: text/x-patch;
- name="rtl2832_priv.h-v2.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="rtl2832_priv.h-v2.diff"
-
---- rtl2832_priv.h.orig	2012-05-18 02:02:48.561114101 +0200
-+++ rtl2832_priv.h	2012-05-18 12:20:45.000000000 +0200
-@@ -29,13 +29,13 @@
- #undef dbg
- #define dbg(f, arg...) \
- 	if (rtl2832_debug) \
--		printk(KERN_INFO LOG_PREFIX": " f "\n" , ## arg)
-+		pr_info(LOG_PREFIX": " f "\n" , ## arg)
- #undef err
--#define err(f, arg...)  printk(KERN_ERR	LOG_PREFIX": " f "\n" , ## arg)
-+#define err(f, arg...) pr_err(LOG_PREFIX": " f "\n" , ## arg)
- #undef info
--#define info(f, arg...) printk(KERN_INFO LOG_PREFIX": " f "\n" , ## arg)
-+#define info(f, arg...) pr_info(LOG_PREFIX": " f "\n" , ## arg)
- #undef warn
--#define warn(f, arg...) printk(KERN_WARNING LOG_PREFIX": " f "\n" , ## arg)
-+#define warn(f, arg...) pr_warn(LOG_PREFIX": " f "\n" , ## arg)
- 
- struct rtl2832_priv {
- 	struct i2c_adapter *i2c;
-
---------------090000020008020906040801--
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
