@@ -1,87 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:38809 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751267Ab2E2JO3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 May 2012 05:14:29 -0400
-Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q4T9ESAU012259
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Tue, 29 May 2012 05:14:28 -0400
-Received: from shalem.localdomain (vpn1-6-204.ams2.redhat.com [10.36.6.204])
-	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id q4T9ERZw023129
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Tue, 29 May 2012 05:14:28 -0400
-Message-ID: <4FC4937C.1060301@redhat.com>
-Date: Tue, 29 May 2012 11:14:36 +0200
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [GIT PULL FIXES FOR 3.5]: gspca & radio fixes (updated 3x)
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+Received: from mail-wi0-f178.google.com ([209.85.212.178]:39082 "EHLO
+	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030492Ab2EQWrd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 May 2012 18:47:33 -0400
+Received: by wibhn6 with SMTP id hn6so2302976wib.1
+        for <linux-media@vger.kernel.org>; Thu, 17 May 2012 15:47:32 -0700 (PDT)
+From: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
+Subject: [PATCH 3/3] libscan renamings
+Date: Fri, 18 May 2012 00:46:47 +0200
+Message-Id: <1337294807-539-1-git-send-email-neolynx@gmail.com>
+In-Reply-To: <1337277582-14128-2-git-send-email-neolynx@gmail.com>
+References: <1337277582-14128-2-git-send-email-neolynx@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro et al,
+---
+ lib/include/libscan.h  |   12 ++++++++++--
+ lib/libdvbv5/libscan.c |    6 +++---
+ utils/dvb/dvbv5-scan.c |    4 ++--
+ 3 files changed, 15 insertions(+), 7 deletions(-)
 
-<updated again to include 2 gspca fixes from Jean-François Moine>
+diff --git a/lib/include/libscan.h b/lib/include/libscan.h
+index bc11ce1..a2b061c 100644
+--- a/lib/include/libscan.h
++++ b/lib/include/libscan.h
+@@ -136,11 +136,19 @@ struct dvb_descriptors {
+ 	unsigned cur_ts;
+ };
+ 
+-struct dvb_descriptors *get_dvb_ts_tables(int dmx_fd,
++#ifdef __cplusplus
++extern "C" {
++#endif
++
++struct dvb_descriptors *dvb_get_ts_tables(int dmx_fd,
+ 					  uint32_t delivery_system,
+ 					  unsigned other_nit,
+ 					  unsigned timeout_multiply,
+ 					  int verbose);
+-void free_dvb_ts_tables(struct dvb_descriptors *dvb_desc);
++void dvb_free_ts_tables(struct dvb_descriptors *dvb_desc);
++
++#ifdef __cplusplus
++}
++#endif
+ 
+ #endif
+diff --git a/lib/libdvbv5/libscan.c b/lib/libdvbv5/libscan.c
+index dd010e1..7916d36 100644
+--- a/lib/libdvbv5/libscan.c
++++ b/lib/libdvbv5/libscan.c
+@@ -400,7 +400,7 @@ static int read_section(int dmx_fd, struct dvb_descriptors *dvb_desc,
+ 	return 0;
+ }
+ 
+-struct dvb_descriptors *get_dvb_ts_tables(int dmx_fd,
++struct dvb_descriptors *dvb_get_ts_tables(int dmx_fd,
+ 					  uint32_t delivery_system,
+ 					  unsigned other_nit,
+ 					  unsigned timeout_multiply,
+@@ -460,7 +460,7 @@ struct dvb_descriptors *get_dvb_ts_tables(int dmx_fd,
+ 			  pat_pmt_time * timeout_multiply);
+ 	if (rc < 0) {
+ 		fprintf(stderr, "error while waiting for PAT table\n");
+-		free_dvb_ts_tables(dvb_desc);
++		dvb_free_ts_tables(dvb_desc);
+ 		return NULL;
+ 	}
+ 
+@@ -504,7 +504,7 @@ struct dvb_descriptors *get_dvb_ts_tables(int dmx_fd,
+ }
+ 
+ 
+-void free_dvb_ts_tables(struct dvb_descriptors *dvb_desc)
++void dvb_free_ts_tables(struct dvb_descriptors *dvb_desc)
+ {
+ 	struct pat_table *pat_table = &dvb_desc->pat_table;
+ 	struct pid_table *pid_table = dvb_desc->pat_table.pid_table;
+diff --git a/utils/dvb/dvbv5-scan.c b/utils/dvb/dvbv5-scan.c
+index c7b18eb..64945cc 100644
+--- a/utils/dvb/dvbv5-scan.c
++++ b/utils/dvb/dvbv5-scan.c
+@@ -406,7 +406,7 @@ static int run_scan(struct arguments *args,
+ 		if (rc < 0)
+ 			continue;
+ 
+-		dvb_desc = get_dvb_ts_tables(dmx_fd,
++		dvb_desc = dvb_get_ts_tables(dmx_fd,
+ 					     parms->current_sys,
+ 					     args->other_nit,
+ 					     args->timeout_multiply,
+@@ -433,7 +433,7 @@ static int run_scan(struct arguments *args,
+ 		if (!args->dont_add_new_freqs)
+ 			add_other_freq_entries(dvb_file, parms, dvb_desc);
+ 
+-		free_dvb_ts_tables(dvb_desc);
++		dvb_free_ts_tables(dvb_desc);
+ 	}
+ 
+ 	if (dvb_file_new)
+-- 
+1.7.2.5
 
-Here is a bunch of fixes for gspca and a couple of fixes for
-good old radio support :)
-
-The following changes since commit abed623ca59a7d1abed6c4e7459be03e25a90a1e:
-
-   [media] radio-sf16fmi: add support for SF16-FMD (2012-05-20 16:10:05 -0300)
-
-are available in the git repository at:
-
-   git://linuxtv.org/hgoede/gspca.git media-for_v3.5
-
-for you to fetch changes up to 2856acfae0a84b3cb4af049d17c09593d6b1b2d3:
-
-   gspca - sonixj: Fix bad values of webcam 0458:7025 (2012-05-29 11:11:10 +0200)
-
-----------------------------------------------------------------
-Antonio Ospite (1):
-       gspca_ov534: make AGC and AWB controls independent
-
-Hans de Goede (10):
-       radio/si470x: Add support for the Axentia ALERT FM USB Receiver
-       snd_tea575x: Report correct frequency range for EU/US versus JA models
-       snd_tea575x: Make the module using snd_tea575x the fops owner
-       snd_tea575x: set_freq: update cached freq to the actual achieved frequency
-       bttv: Use btv->has_radio rather then the card info when registering the tuner
-       bttv: Remove unused needs_tvaudio card variable
-       bttv: The Hauppauge 61334 needs the msp3410 to do radio demodulation
-       gspca_pac7311: Correct number of controls
-       gscpa_sn9c20x: Move clustering of controls to after error checking
-       gspca-core: Fix buffers staying in queued state after a stream_off
-
-Jean-Francois Moine (2):
-       gspca - ov534/ov534_9: Fix sccd_read/write errors
-       gspca - sonixj: Fix bad values of webcam 0458:7025
-
-  drivers/hid/hid-core.c                        |    1 +
-  drivers/hid/hid-ids.h                         |    3 +
-  drivers/media/radio/radio-maxiradio.c         |    2 +-
-  drivers/media/radio/radio-sf16fmr2.c          |    2 +-
-  drivers/media/radio/si470x/radio-si470x-usb.c |    2 +
-  drivers/media/video/bt8xx/bttv-cards.c        |   84 ++-----------------------
-  drivers/media/video/bt8xx/bttv-driver.c       |    5 ++
-  drivers/media/video/bt8xx/bttv.h              |    1 -
-  drivers/media/video/bt8xx/bttvp.h             |    1 +
-  drivers/media/video/gspca/gspca.c             |    4 +-
-  drivers/media/video/gspca/ov534.c             |   32 +---------
-  drivers/media/video/gspca/ov534_9.c           |    1 +
-  drivers/media/video/gspca/pac7311.c           |    2 +-
-  drivers/media/video/gspca/sn9c20x.c           |   24 ++++---
-  drivers/media/video/gspca/sonixj.c            |    2 +-
-  include/sound/tea575x-tuner.h                 |    3 +-
-  sound/i2c/other/tea575x-tuner.c               |   21 ++++---
-  sound/pci/es1968.c                            |    2 +-
-  sound/pci/fm801.c                             |    4 +-
-  19 files changed, 62 insertions(+), 134 deletions(-)
-
-Regards,
-
-Hans
