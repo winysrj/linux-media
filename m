@@ -1,58 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vc0-f174.google.com ([209.85.220.174]:47450 "EHLO
-	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759071Ab2EYXPW (ORCPT
+Received: from smtp1-g21.free.fr ([212.27.42.1]:54095 "EHLO smtp1-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754300Ab2EQGGH convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 May 2012 19:15:22 -0400
-Received: by mail-vc0-f174.google.com with SMTP id f11so727674vcb.19
-        for <linux-media@vger.kernel.org>; Fri, 25 May 2012 16:15:21 -0700 (PDT)
-From: Fabio Estevam <festevam@gmail.com>
-To: kernel@pengutronix.de
-Cc: shawn.guo@freescale.com,
-	Fabio Estevam <fabio.estevam@freescale.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	<linux-media@vger.kernel.org>
-Subject: [PATCH 06/15] video: mx1_camera: Use clk_prepare_enable/clk_disable_unprepare
-Date: Fri, 25 May 2012 20:14:47 -0300
-Message-Id: <1337987696-31728-6-git-send-email-festevam@gmail.com>
-In-Reply-To: <1337987696-31728-1-git-send-email-festevam@gmail.com>
-References: <1337987696-31728-1-git-send-email-festevam@gmail.com>
+	Thu, 17 May 2012 02:06:07 -0400
+Received: from tele (unknown [IPv6:2a01:e35:2f5c:9de0:212:bfff:fe1e:9ce4])
+	by smtp1-g21.free.fr (Postfix) with ESMTP id A4265940049
+	for <linux-media@vger.kernel.org>; Thu, 17 May 2012 08:05:59 +0200 (CEST)
+Date: Thu, 17 May 2012 08:07:34 +0200
+From: Jean-Francois Moine <moinejf@free.fr>
+To: linux-media@vger.kernel.org
+Subject: Re: How fix driver for this USB camera (MT9T031 sensor and Cypress
+ FX2LP USB bridge)
+Message-ID: <20120517080734.16446c78@tele>
+In-Reply-To: <loom.20120517T001241-393@post.gmane.org>
+References: <loom.20120517T001241-393@post.gmane.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Fabio Estevam <fabio.estevam@freescale.com>
+On Wed, 16 May 2012 22:14:48 +0000 (UTC)
+Simon Gustafsson <simong@simong.se> wrote:
 
-Prepare the clock before enabling it.
+> 2) Where should I begin? My gut feeling is to go for media/video/gspca/ov519.c,
+> since it has the code for talking to the USB bridge chip (BRIDGE_OVFX2), and
 
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: <linux-media@vger.kernel.org>
-Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
----
- drivers/media/video/mx1_camera.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+Hi Simon,
 
-diff --git a/drivers/media/video/mx1_camera.c b/drivers/media/video/mx1_camera.c
-index 4296a83..dc58084 100644
---- a/drivers/media/video/mx1_camera.c
-+++ b/drivers/media/video/mx1_camera.c
-@@ -402,7 +402,7 @@ static void mx1_camera_activate(struct mx1_camera_dev *pcdev)
- 
- 	dev_dbg(pcdev->icd->parent, "Activate device\n");
- 
--	clk_enable(pcdev->clk);
-+	clk_prepare_enable(pcdev->clk);
- 
- 	/* enable CSI before doing anything else */
- 	__raw_writel(csicr1, pcdev->base + CSICR1);
-@@ -421,7 +421,7 @@ static void mx1_camera_deactivate(struct mx1_camera_dev *pcdev)
- 	/* Disable all CSI interface */
- 	__raw_writel(0x00, pcdev->base + CSICR1);
- 
--	clk_disable(pcdev->clk);
-+	clk_disable_unprepare(pcdev->clk);
- }
- 
- /*
+The FX2 is a processor, and, in ov519, used as a bridge, it has been
+programmed by OmniVision for their sensors. It is quite sure that its
+firmware is different in your webcam.
+
+To know more, you should examine USB traces done with some other driver
+(ms-windows - the scripts I use to translate these traces for gspca are
+in my web site)...
+
 -- 
-1.7.1
-
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
