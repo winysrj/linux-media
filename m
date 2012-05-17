@@ -1,66 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:62227 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753479Ab2EGTUg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 7 May 2012 15:20:36 -0400
-From: Hans de Goede <hdegoede@redhat.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: hverkuil@xs4all.nl, Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH 18/23] gspca: Set gspca_dev->usb_err to 0 at the begin of gspca_stream_off
-Date: Mon,  7 May 2012 21:01:29 +0200
-Message-Id: <1336417294-4566-19-git-send-email-hdegoede@redhat.com>
-In-Reply-To: <1336417294-4566-1-git-send-email-hdegoede@redhat.com>
-References: <1336417294-4566-1-git-send-email-hdegoede@redhat.com>
+Received: from smtp1.infomaniak.ch ([84.16.68.89]:46141 "EHLO
+	smtp1.infomaniak.ch" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755614Ab2EQUp5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 May 2012 16:45:57 -0400
+Message-ID: <4FB55DFD.5040704@deckpoint.ch>
+Date: Thu, 17 May 2012 22:22:21 +0200
+From: Thomas Kernen <tkernen@deckpoint.ch>
+MIME-Version: 1.0
+To: Andrew Benham <adsb@adsb.co.uk>
+CC: Russel Winder <russel@winder.org.uk>,
+	Andy Furniss <andyqos@ukfsn.org>,
+	Mark Purcell <mark@purcell.id.au>, linux-media@vger.kernel.org,
+	Darren Salt <linux@youmustbejoking.demon.co.uk>,
+	669715-forwarded@bugs.debian.org
+Subject: Re: Fwd: Bug#669715: dvb-apps: Channel/frequency/etc. data needs
+ updating for London transmitters
+References: <201205132005.47858.mark@purcell.id.au>   <4FAF89DB.9020004@ukfsn.org>  <1336906328.19220.277.camel@launcelot.winder.org.uk>  <4FAFC3CA.7070008@ukfsn.org> <1336921909.9715.3.camel@anglides.winder.org.uk> <4FB0F273.6000303@adsb.co.uk>
+In-Reply-To: <4FB0F273.6000303@adsb.co.uk>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Just a small cleanup.
+On 5/14/12 1:54 PM, Andrew Benham wrote:
 
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
- drivers/media/video/gspca/gspca.c |    7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+> I don't know if it's just Crystal Palace, but one of the multiplexes
+> thinks it's using QPSK even though it's using QAM64 - this messes up
+> 'scan' unless one reorders the frequency list.
+> Having done the scan, one then needs to replace 'QPSK' by 'QAM_64' in
+> the output.
 
-diff --git a/drivers/media/video/gspca/gspca.c b/drivers/media/video/gspca/gspca.c
-index 8c344c1..142fd5f 100644
---- a/drivers/media/video/gspca/gspca.c
-+++ b/drivers/media/video/gspca/gspca.c
-@@ -595,6 +595,7 @@ static int gspca_set_alt0(struct gspca_dev *gspca_dev)
- static void gspca_stream_off(struct gspca_dev *gspca_dev)
- {
- 	gspca_dev->streaming = 0;
-+	gspca_dev->usb_err = 0;
- 	if (gspca_dev->sd_desc->stopN)
- 		gspca_dev->sd_desc->stopN(gspca_dev);
- 	destroy_urbs(gspca_dev);
-@@ -1331,10 +1332,8 @@ static int dev_close(struct file *file)
- 
- 	/* if the file did the capture, free the streaming resources */
- 	if (gspca_dev->capt_file == file) {
--		if (gspca_dev->streaming) {
--			gspca_dev->usb_err = 0;
-+		if (gspca_dev->streaming)
- 			gspca_stream_off(gspca_dev);
--		}
- 		frame_free(gspca_dev);
- 	}
- 	module_put(gspca_dev->module);
-@@ -1569,7 +1568,6 @@ static int vidioc_reqbufs(struct file *file, void *priv,
- 	/* stop streaming */
- 	streaming = gspca_dev->streaming;
- 	if (streaming) {
--		gspca_dev->usb_err = 0;
- 		gspca_stream_off(gspca_dev);
- 
- 		/* Don't restart the stream when switching from read
-@@ -1675,7 +1673,6 @@ static int vidioc_streamoff(struct file *file, void *priv,
- 	}
- 
- 	/* stop streaming */
--	gspca_dev->usb_err = 0;
- 	gspca_stream_off(gspca_dev);
- 	/* In case another thread is waiting in dqbuf */
- 	wake_up_interruptible(&gspca_dev->wq);
--- 
-1.7.10
+I reported the issue through my channels and the issue was fixed earlier 
+this evening. The DVB-SI tables have been updated so that now the 
+constellation type has been changed from 0 (QPSK) to 2 (64-QAM).
 
+Thomas
