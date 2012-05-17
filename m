@@ -1,82 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bues.ch ([80.190.117.144]:54549 "EHLO bues.ch"
+Received: from smtp.nokia.com ([147.243.128.26]:25440 "EHLO mgw-da02.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757352Ab2EGVCx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 7 May 2012 17:02:53 -0400
-Date: Mon, 7 May 2012 23:02:48 +0200
-From: Michael =?UTF-8?B?QsO8c2No?= <m@bues.ch>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] fc0011: Reduce number of retries
-Message-ID: <20120507230248.5c211f8d@milhouse>
-In-Reply-To: <4FA81A23.4000102@iki.fi>
-References: <20120403110503.392c8432@milhouse>
-	<4F7B1624.8020401@iki.fi>
-	<20120403173320.2d3df3f8@milhouse>
-	<4FA81A23.4000102@iki.fi>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=PGP-SHA1;
- boundary="Sig_/c/3g1U5uLo5qO=E9BWw8gag"; protocol="application/pgp-signature"
+	id S1762205Ab2EQQak (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 May 2012 12:30:40 -0400
+Received: from maxwell.research.nokia.com (maxwell.research.nokia.com [172.21.199.25])
+	by mgw-da02.nokia.com (Sentrion-MTA-4.2.2/Sentrion-MTA-4.2.2) with ESMTP id q4HGUcYr007059
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Thu, 17 May 2012 19:30:39 +0300
+Received: from lanttu (lanttu-o.localdomain [192.168.239.74])
+	by maxwell.research.nokia.com (Postfix) with ESMTPS id 16D951F4C5A
+	for <linux-media@vger.kernel.org>; Thu, 17 May 2012 19:30:38 +0300 (EEST)
+Received: from sakke by lanttu with local (Exim 4.72)
+	(envelope-from <sakari.ailus@maxwell.research.nokia.com>)
+	id 1SV3az-00087J-Ps
+	for linux-media@vger.kernel.org; Thu, 17 May 2012 19:30:33 +0300
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 10/10] smiapp: Use v4l2_ctrl_new_int_menu() instead of v4l2_ctrl_new_custom()
+Date: Thu, 17 May 2012 19:30:09 +0300
+Message-Id: <1337272209-31061-10-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+In-Reply-To: <4FB52770.9000400@maxwell.research.nokia.com>
+References: <4FB52770.9000400@maxwell.research.nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---Sig_/c/3g1U5uLo5qO=E9BWw8gag
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+---
+ drivers/media/video/smiapp/smiapp-core.c |   17 ++++++-----------
+ 1 files changed, 6 insertions(+), 11 deletions(-)
 
-On Mon, 07 May 2012 21:53:23 +0300
-Antti Palosaari <crope@iki.fi> wrote:
+diff --git a/drivers/media/video/smiapp/smiapp-core.c b/drivers/media/video/smiapp/smiapp-core.c
+index ffc6eb7..f518026 100644
+--- a/drivers/media/video/smiapp/smiapp-core.c
++++ b/drivers/media/video/smiapp/smiapp-core.c
+@@ -508,7 +508,7 @@ static const struct v4l2_ctrl_ops smiapp_ctrl_ops = {
+ static int smiapp_init_controls(struct smiapp_sensor *sensor)
+ {
+ 	struct i2c_client *client = v4l2_get_subdevdata(&sensor->src->sd);
+-	struct v4l2_ctrl_config cfg;
++	unsigned int max;
+ 	int rval;
+ 
+ 	rval = v4l2_ctrl_handler_init(&sensor->pixel_array->ctrl_handler, 7);
+@@ -572,17 +572,12 @@ static int smiapp_init_controls(struct smiapp_sensor *sensor)
+ 		goto error;
+ 	sensor->src->ctrl_handler.lock = &sensor->mutex;
+ 
+-	memset(&cfg, 0, sizeof(cfg));
++	for (max = 0; sensor->platform_data->op_sys_clock[max + 1]; max++);
+ 
+-	cfg.ops = &smiapp_ctrl_ops;
+-	cfg.id = V4L2_CID_LINK_FREQ;
+-	cfg.type = V4L2_CTRL_TYPE_INTEGER_MENU;
+-	while (sensor->platform_data->op_sys_clock[cfg.max + 1])
+-		cfg.max++;
+-	cfg.qmenu_int = sensor->platform_data->op_sys_clock;
+-
+-	sensor->link_freq = v4l2_ctrl_new_custom(
+-		&sensor->src->ctrl_handler, &cfg, NULL);
++	sensor->link_freq = v4l2_ctrl_new_int_menu(
++		&sensor->src->ctrl_handler, &smiapp_ctrl_ops,
++		V4L2_CID_LINK_FREQ, max, 0,
++		sensor->platform_data->op_sys_clock);
+ 
+ 	sensor->pixel_rate_csi = v4l2_ctrl_new_std(
+ 		&sensor->src->ctrl_handler, &smiapp_ctrl_ops,
+-- 
+1.7.2.5
 
-> On 03.04.2012 18:33, Michael B=C3=BCsch wrote:
-> > On another thing:
-> > The af9035 driver doesn't look multi-device safe. There are lots of sta=
-tic
-> > variables around that keep device state. So it looks like this will
-> > blow up if multiple devices are present in the system. Unlikely, but st=
-ill... .
-> > Are there any plans to fix this up?
-> > If not, I'll probably take a look at this. But don't hold your breath.
->=20
-> I fixed what was possible by moving af9033 and af9035 configurations for=
-=20
-> the state. That at least resolves most significant issues - like your=20
-> fc0011 tuner callback.
-
-Cool, thanks a lot!
-
-> But there is still some stuff in "static struct=20
-> dvb_usb_device_properties" which cannot be fixed. Like dynamic remote=20
-> configuration, dual mode, etc. I am going to make RFC for those maybe=20
-> even this week after some analysis is done.
-
-Thanks. I'm currently lacking the time to do this kind of intrusive changes,
-so I'm happy to see you looking into this.
-
---=20
-Greetings, Michael.
-
-PGP encryption is encouraged / 908D8B0E
-
---Sig_/c/3g1U5uLo5qO=E9BWw8gag
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Disposition: attachment; filename=signature.asc
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJPqDh4AAoJEPUyvh2QjYsOGZMP/jFgJHpG4EPzm00Cy8G4sSz2
-8lfBO0WaVasnzVAuxfxzpY9ioq9+17ioQoEFjL71FNBjFBL32AFYQ62aEhC0cRTV
-X0bDbHopAjcVh2Ux/MdLpPpNLH48OGDqe8By5sE9bF9fK9o0u4yWR+h9+LYiVmBL
-t5QMlkaOJ/mxpTKAH5I6WiJ7AUuv3erBZw8NKE+R5/76pqA6V4h8W1/1CxbnJkor
-/fd2zL4FzbdfN5PYz1/DtOXSxuJG1NNxZuYur05eUNKpeoWReNjW91zum3iFV0GE
-rYfNKVFJYQol4tZGlmaRA+Nqefzf+Lmsr91cHb6ZTl5xQnVZoPlPRlG23AFGNaeb
-xE2W8wKShjKhihNJJkleYnOu1/xmC8e53qPGcMtxRd5tOVQ1i2qpjaysYHX2u2xB
-hZ7CaEl/3aXtRphKdF6Yf+8qad/dhgr31465EyEAOYy5ah2r9UuXGJzU7RdZXQGt
-TttYovPStxP4CUvrm00qqMMK21LDwzFBHP8kuIZt+83k0d4SYS1m8f0iMletThPw
-jwhD2MNzuCv/QdF/wahWfXOjqQsEoK3us20JhzeJYtxO64tV2Uu8viB6oYesX8dH
-0uCFvUiFhvpqYLzNkKn4iwHvLFnRWuK/w9Zc7anZWFkrIVTQYO0Jy+ITw/cVYwOm
-2xxYBKY8ufrBGYq69WiH
-=q5JP
------END PGP SIGNATURE-----
-
---Sig_/c/3g1U5uLo5qO=E9BWw8gag--
