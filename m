@@ -1,98 +1,28 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:2767 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754926Ab2ECHKO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 May 2012 03:10:14 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: manjunatha_halli@ti.com
-Subject: Re: [PATCH V3 2/5] [Media] New control class and features for FM RX
-Date: Thu, 3 May 2012 09:10:07 +0200
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Manjunatha Halli <x0130808@ti.com>
-References: <1335994951-15842-1-git-send-email-manjunatha_halli@ti.com> <1335994951-15842-3-git-send-email-manjunatha_halli@ti.com> <201205030908.57369.hverkuil@xs4all.nl>
-In-Reply-To: <201205030908.57369.hverkuil@xs4all.nl>
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:53695 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761338Ab2EQIE7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 May 2012 04:04:59 -0400
+Received: by bkcji2 with SMTP id ji2so1292370bkc.19
+        for <linux-media@vger.kernel.org>; Thu, 17 May 2012 01:04:58 -0700 (PDT)
+Message-ID: <4FB4B127.2020305@googlemail.com>
+Date: Thu, 17 May 2012 10:04:55 +0200
+From: Thomas Mair <thomas.mair86@googlemail.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201205030910.07866.hverkuil@xs4all.nl>
+To: poma <pomidorabelisima@gmail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH v4 1/5] rtl2832 ver. 0.4: removed signal statistics
+References: <1> <1337206420-23810-1-git-send-email-thomas.mair86@googlemail.com> <1337206420-23810-2-git-send-email-thomas.mair86@googlemail.com> <4FB4722A.9070009@gmail.com> <4FB47318.5020807@gmail.com>
+In-Reply-To: <4FB47318.5020807@gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu May 3 2012 09:08:57 Hans Verkuil wrote:
-> Just a few more minor notes:
+On 17.05.2012 05:40, poma wrote:
+> […]
+> v4-1-5-rtl2832-ver.-0.4-v2.diff
 > 
-> On Wed May 2 2012 23:42:28 manjunatha_halli@ti.com wrote:
-> > From: Manjunatha Halli <x0130808@ti.com>
-> > 
-> > This patch creates new ctrl class for FM RX and adds new CID's for
-> > below FM features,
-> >         1) De-Emphasis filter mode
-> > 	2) RDS AF switch
-> > 
-> > Also this patch adds a field for band selection in struct v4l2_hw_freq_seek
-> > 
-> > Signed-off-by: Manjunatha Halli <x0130808@ti.com>
-> > ---
-> >  drivers/media/video/v4l2-ctrls.c |   17 +++++++++++++++++
-> >  include/linux/videodev2.h        |   11 ++++++++++-
-> >  2 files changed, 27 insertions(+), 1 deletions(-)
-> > 
-> > diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
-> > index 18015c0..e1bba7d 100644
-> > --- a/drivers/media/video/v4l2-ctrls.c
-> > +++ b/drivers/media/video/v4l2-ctrls.c
-> > @@ -372,6 +372,12 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
-> >  		NULL,
-> >  	};
-> >  
-> > +	static const char * const tune_deemphasis[] = {
-> > +		"No deemphasis",
-> > +		"50 useconds",
-> > +		"75 useconds",
-> > +		NULL,
-> > +	};
-> 
-> I suggest that we re-use tune_preemphasis[] here. Just replace the first
-> entry from "No Preemphasis" to "None" to make it generic.
-> 
-> Rename tune_preemphasis[] to tune_emphasis[] as well.
-> 
-> >  	switch (id) {
-> >  	case V4L2_CID_MPEG_AUDIO_SAMPLING_FREQ:
-> >  		return mpeg_audio_sampling_freq;
-> > @@ -414,6 +420,8 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
-> >  		return colorfx;
-> >  	case V4L2_CID_TUNE_PREEMPHASIS:
-> >  		return tune_preemphasis;
-> > +	case V4L2_CID_TUNE_DEEMPHASIS:
-> > +		return tune_deemphasis;
-> >  	case V4L2_CID_FLASH_LED_MODE:
-> >  		return flash_led_mode;
-> >  	case V4L2_CID_FLASH_STROBE_SOURCE:
-> > @@ -644,6 +652,12 @@ const char *v4l2_ctrl_get_name(u32 id)
-> >  	case V4L2_CID_JPEG_COMPRESSION_QUALITY:	return "Compression Quality";
-> >  	case V4L2_CID_JPEG_ACTIVE_MARKER:	return "Active Markers";
-> >  
-> > +	/* FM Radio Receiver control */
-> > +	/* Keep the order of the 'case's the same as in videodev2.h! */
-> > +	case V4L2_CID_FM_RX_CLASS:		return "FM Radio Receiver Controls";
-> > +	case V4L2_CID_RDS_AF_SWITCH:		return "FM RX RDS AF switch";
-> 
-> I would call this "RDS AF Switch" or perhaps even better: "RDS Auto-Frequency Switch"
 
-Sorry, that should have been: "RDS Alternate Frequency Switch".
-
-Regards,
-
-	Hans
-
-> 
-> > +	case V4L2_CID_TUNE_DEEMPHASIS:		return "FM RX De-emphasis settings";
-> 
-> Rename to "De-Emphasis" to be consistent with the existing "Pre-Emphasis" string.
-> 
-> Regards,
-> 
-> 	Hans
-> 
+Oh thanks. That Makefile is haunting me badly ;)
