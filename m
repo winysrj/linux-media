@@ -1,120 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:60606 "EHLO mx1.redhat.com"
+Received: from mail.kapsi.fi ([217.30.184.167]:34757 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750886Ab2ETNk3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 20 May 2012 09:40:29 -0400
-Message-ID: <4FB8F448.4030702@redhat.com>
-Date: Sun, 20 May 2012 10:40:24 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: Ismael Luceno <ismael.luceno@gmail.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 2/2] au0828: Move under dvb
-References: <1336716892-5446-1-git-send-email-ismael.luceno@gmail.com> <1336716892-5446-2-git-send-email-ismael.luceno@gmail.com> <CAGoCfiydH48uY86w3oHbRDoJddX5qS1Va7vo4-vXwAn9JeSaaQ@mail.gmail.com> <20120512000858.3d9e41a8@pirotess> <CAGoCfizjD0wMpd+p4zxATfe+NKJqTqRTE4UEAZTTNdq9yCkxXg@mail.gmail.com> <4FB8F266.7050308@redhat.com>
-In-Reply-To: <4FB8F266.7050308@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	id S1030224Ab2EQWea (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 May 2012 18:34:30 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Oliver Endriss <o.endriss@gmx.de>,
+	Ralph Metzler <rjkm@metzlerbros.de>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 1/2] drxk: fix GPIOs
+Date: Fri, 18 May 2012 01:34:10 +0300
+Message-Id: <1337294051-20363-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 20-05-2012 10:32, Mauro Carvalho Chehab escreveu:
-> Em 12-05-2012 07:21, Devin Heitmueller escreveu:
->> On Fri, May 11, 2012 at 11:08 PM, Ismael Luceno <ismael.luceno@gmail.com> wrote:
->>> On Fri, 11 May 2012 08:04:59 -0400
->>> Devin Heitmueller <dheitmueller@kernellabs.com> wrote:
->>> ...
->>>> What is the motivation for moving these files?
->>>
->>> Well, the device was on the wrong Kconfig section, and while thinking
->>> about changing that, I just thought to move it under DVB.
->>>
->>>> The au0828 is a hybrid bridge, and every other hybrid bridge is
->>>> under video?
->>>
->>> Sorry, the devices I got don't support analog, so I didn't thought
->>> about it that much...
->>>
->>> I guess it's arbitrary... isn't it? wouldn't it be better to have an
->>> hybrid section? (just thinking out loud)
->>
->> Yeah, in this case it's largely historical (a product from before the
->> V4L and DVB subsystems were merged).  At this point I don't see any
->> real advantage to arbitrarily moving the stuff around.  And in fact in
->> some areas it's even more ambiguous because some drivers are hybrid
->> drivers but support both hybrid chips as well as analog-only (the
->> em28xx driver is one such example).
->>
->> Anyway, Mauro is welcome to offer his opinion if it differs, but as
->> far as I'm concerned this patch shouldn't get applied.
-> 
-> I won't apply this patch.
-> 
-> If the Kconfig menus are confusing, then we should fix it, instead of moving
-> things from one place to another ;)
+UIO-2 and UIO-3 were broken.
 
-Hmm...
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/dvb/frontends/drxk_hard.c |    4 ++--
+ drivers/media/dvb/frontends/drxk_map.h  |    2 ++
+ 2 files changed, 4 insertions(+), 2 deletions(-)
 
-menuconfig VIDEO_CAPTURE_DRIVERS
-        bool "Video capture adapters"
-        depends on VIDEO_V4L2
-        default y
-        ---help---
-          Say Y here to enable selecting the video adapters for
-          webcams, analog TV, and hybrid analog/digital TV.
-          Some of those devices also supports FM radio.
-
-The help explanation is OK. Maybe we could change the description:
-
-comment at the bool description. What about the change below?
-
-Regards,
-Mauro
-
--
-[media] video: Improve Kconfig menu description
-
-The menu description can mislead to indicate that only capture devices
-are there.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-
-diff --git a/drivers/media/dvb/Kconfig b/drivers/media/dvb/Kconfig
-index f6e40b3..8efa494 100644
---- a/drivers/media/dvb/Kconfig
-+++ b/drivers/media/dvb/Kconfig
-@@ -29,11 +29,12 @@ config DVB_DYNAMIC_MINORS
- 	  If you are unsure about this, say N here.
+diff --git a/drivers/media/dvb/frontends/drxk_hard.c b/drivers/media/dvb/frontends/drxk_hard.c
+index 8d99ac1..60b868f 100644
+--- a/drivers/media/dvb/frontends/drxk_hard.c
++++ b/drivers/media/dvb/frontends/drxk_hard.c
+@@ -5835,7 +5835,7 @@ static int WriteGPIO(struct drxk_state *state)
+ 		}
+ 		if (state->UIO_mask & 0x0002) { /* UIO-2 */
+ 			/* write to io pad configuration register - output mode */
+-			status = write16(state, SIO_PDR_SMA_TX_CFG__A, state->m_GPIOCfg);
++			status = write16(state, SIO_PDR_SMA_RX_CFG__A, state->m_GPIOCfg);
+ 			if (status < 0)
+ 				goto error;
  
- menuconfig DVB_CAPTURE_DRIVERS
--	bool "DVB/ATSC adapters"
-+	bool "Digital TV adapters"
- 	depends on DVB_CORE
- 	default y
- 	---help---
--	  Say Y to select Digital TV adapters
-+	  Say Y to select Digital TV adapters. Hybrid devices
-+	  with both analog TV and digital TVs are not there.
+@@ -5854,7 +5854,7 @@ static int WriteGPIO(struct drxk_state *state)
+ 		}
+ 		if (state->UIO_mask & 0x0004) { /* UIO-3 */
+ 			/* write to io pad configuration register - output mode */
+-			status = write16(state, SIO_PDR_SMA_TX_CFG__A, state->m_GPIOCfg);
++			status = write16(state, SIO_PDR_GPIO_CFG__A, state->m_GPIOCfg);
+ 			if (status < 0)
+ 				goto error;
  
- if DVB_CAPTURE_DRIVERS && DVB_CORE
- 
-diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-index 268b36d..a5a0ef2 100644
---- a/drivers/media/video/Kconfig
-+++ b/drivers/media/video/Kconfig
-@@ -71,12 +71,13 @@ config VIDEOBUF2_DMA_SG
- #
- 
- menuconfig VIDEO_CAPTURE_DRIVERS
--	bool "Video capture adapters"
-+	bool "Video adapters (capture, webcams, analog TV, hybrid TV)"
- 	depends on VIDEO_V4L2
- 	default y
- 	---help---
- 	  Say Y here to enable selecting the video adapters for
--	  webcams, analog TV, and hybrid analog/digital TV.
-+	  webcams, video capture, analog TV, and hybrid
-+	  analog/digital TV.
- 	  Some of those devices also supports FM radio.
- 
- if VIDEO_CAPTURE_DRIVERS && VIDEO_V4L2
+diff --git a/drivers/media/dvb/frontends/drxk_map.h b/drivers/media/dvb/frontends/drxk_map.h
+index 9b11a83..23e16c1 100644
+--- a/drivers/media/dvb/frontends/drxk_map.h
++++ b/drivers/media/dvb/frontends/drxk_map.h
+@@ -432,6 +432,7 @@
+ #define  SIO_PDR_UIO_OUT_LO__A                                             0x7F0016
+ #define  SIO_PDR_OHW_CFG__A                                                0x7F001F
+ #define    SIO_PDR_OHW_CFG_FREF_SEL__M                                     0x3
++#define  SIO_PDR_GPIO_CFG__A                                               0x7F0021
+ #define  SIO_PDR_MSTRT_CFG__A                                              0x7F0025
+ #define  SIO_PDR_MERR_CFG__A                                               0x7F0026
+ #define  SIO_PDR_MCLK_CFG__A                                               0x7F0028
+@@ -446,4 +447,5 @@
+ #define  SIO_PDR_MD5_CFG__A                                                0x7F0030
+ #define  SIO_PDR_MD6_CFG__A                                                0x7F0031
+ #define  SIO_PDR_MD7_CFG__A                                                0x7F0032
++#define  SIO_PDR_SMA_RX_CFG__A                                             0x7F0037
+ #define  SIO_PDR_SMA_TX_CFG__A                                             0x7F0038
+-- 
+1.7.7.6
+
