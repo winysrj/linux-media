@@ -1,151 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:2882 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753527Ab2E1Kq4 (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:60234 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1030488Ab2EQWmV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 May 2012 06:46:56 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans de Goede <hdegoede@redhat.com>,
-	halli manjunatha <hallimanju@gmail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv2 PATCH 3/6] S_HW_FREQ_SEEK: set capability flags and return ENODATA instead of EAGAIN.
-Date: Mon, 28 May 2012 12:46:42 +0200
-Message-Id: <fc07fc47beba481d948156a5937d1db80b501cc0.1338201853.git.hans.verkuil@cisco.com>
-In-Reply-To: <1338202005-10208-1-git-send-email-hverkuil@xs4all.nl>
-References: <1338202005-10208-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <e874de9bb774639e0ea58054862853b9703dc2aa.1338201853.git.hans.verkuil@cisco.com>
-References: <e874de9bb774639e0ea58054862853b9703dc2aa.1338201853.git.hans.verkuil@cisco.com>
+	Thu, 17 May 2012 18:42:21 -0400
+Date: Fri, 18 May 2012 01:42:17 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH v2] V4L: DocBook: Improve V4L2_CID_AUTO_N_WHITE_BALANCE
+ control description
+Message-ID: <20120517224217.GP3373@valkosipuli.retiisi.org.uk>
+References: <20120514000234.GG3373@valkosipuli.retiisi.org.uk>
+ <1337119524-6921-1-git-send-email-sylvester.nawrocki@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1337119524-6921-1-git-send-email-sylvester.nawrocki@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Wed, May 16, 2012 at 12:05:24AM +0200, Sylwester Nawrocki wrote:
+> This patch removes the estimate color temperature range specification
+> for the white balance presets for which exact values heavily depend
+> on a particular camera specification.
+> 
+> Signed-off-by: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 
-Set the new capability flags in G_TUNER and return ENODATA if no channels
-were found.
+Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Hans de Goede <hdegoede@redhat.com>
----
- drivers/media/radio/radio-mr800.c                |    5 +++--
- drivers/media/radio/radio-wl1273.c               |    3 ++-
- drivers/media/radio/si470x/radio-si470x-common.c |    6 ++++--
- drivers/media/radio/wl128x/fmdrv_rx.c            |    2 +-
- drivers/media/radio/wl128x/fmdrv_v4l2.c          |    4 +++-
- sound/i2c/other/tea575x-tuner.c                  |    4 +++-
- 6 files changed, 16 insertions(+), 8 deletions(-)
-
-diff --git a/drivers/media/radio/radio-mr800.c b/drivers/media/radio/radio-mr800.c
-index 94cb6bc..3182b26 100644
---- a/drivers/media/radio/radio-mr800.c
-+++ b/drivers/media/radio/radio-mr800.c
-@@ -295,7 +295,8 @@ static int vidioc_g_tuner(struct file *file, void *priv,
- 	v->type = V4L2_TUNER_RADIO;
- 	v->rangelow = FREQ_MIN * FREQ_MUL;
- 	v->rangehigh = FREQ_MAX * FREQ_MUL;
--	v->capability = V4L2_TUNER_CAP_LOW | V4L2_TUNER_CAP_STEREO;
-+	v->capability = V4L2_TUNER_CAP_LOW | V4L2_TUNER_CAP_STEREO |
-+		V4L2_TUNER_CAP_HWSEEK_WRAP;
- 	v->rxsubchans = is_stereo ? V4L2_TUNER_SUB_STEREO : V4L2_TUNER_SUB_MONO;
- 	v->audmode = radio->stereo ?
- 		V4L2_TUNER_MODE_STEREO : V4L2_TUNER_MODE_MONO;
-@@ -372,7 +373,7 @@ static int vidioc_s_hw_freq_seek(struct file *file, void *priv,
- 	timeout = jiffies + msecs_to_jiffies(30000);
- 	for (;;) {
- 		if (time_after(jiffies, timeout)) {
--			retval = -EAGAIN;
-+			retval = -ENODATA;
- 			break;
- 		}
- 		if (schedule_timeout_interruptible(msecs_to_jiffies(10))) {
-diff --git a/drivers/media/radio/radio-wl1273.c b/drivers/media/radio/radio-wl1273.c
-index f1b6070..e8428f5 100644
---- a/drivers/media/radio/radio-wl1273.c
-+++ b/drivers/media/radio/radio-wl1273.c
-@@ -1514,7 +1514,8 @@ static int wl1273_fm_vidioc_g_tuner(struct file *file, void *priv,
- 	tuner->rangehigh = WL1273_FREQ(WL1273_BAND_OTHER_HIGH);
- 
- 	tuner->capability = V4L2_TUNER_CAP_LOW | V4L2_TUNER_CAP_RDS |
--		V4L2_TUNER_CAP_STEREO | V4L2_TUNER_CAP_RDS_BLOCK_IO;
-+		V4L2_TUNER_CAP_STEREO | V4L2_TUNER_CAP_RDS_BLOCK_IO |
-+		V4L2_TUNER_CAP_HWSEEK_BOUNDED | V4L2_TUNER_CAP_HWSEEK_WRAP;
- 
- 	if (radio->stereo)
- 		tuner->audmode = V4L2_TUNER_MODE_STEREO;
-diff --git a/drivers/media/radio/si470x/radio-si470x-common.c b/drivers/media/radio/si470x/radio-si470x-common.c
-index 969cf49..d485b79 100644
---- a/drivers/media/radio/si470x/radio-si470x-common.c
-+++ b/drivers/media/radio/si470x/radio-si470x-common.c
-@@ -363,7 +363,7 @@ stop:
- 
- 	/* try again, if timed out */
- 	if (retval == 0 && timed_out)
--		return -EAGAIN;
-+		return -ENODATA;
- 	return retval;
- }
- 
-@@ -596,7 +596,9 @@ static int si470x_vidioc_g_tuner(struct file *file, void *priv,
- 	strcpy(tuner->name, "FM");
- 	tuner->type = V4L2_TUNER_RADIO;
- 	tuner->capability = V4L2_TUNER_CAP_LOW | V4L2_TUNER_CAP_STEREO |
--			    V4L2_TUNER_CAP_RDS | V4L2_TUNER_CAP_RDS_BLOCK_IO;
-+			    V4L2_TUNER_CAP_RDS | V4L2_TUNER_CAP_RDS_BLOCK_IO |
-+			    V4L2_TUNER_CAP_HWSEEK_BOUNDED |
-+			    V4L2_TUNER_CAP_HWSEEK_WRAP;
- 
- 	/* range limits */
- 	switch ((radio->registers[SYSCONFIG2] & SYSCONFIG2_BAND) >> 6) {
-diff --git a/drivers/media/radio/wl128x/fmdrv_rx.c b/drivers/media/radio/wl128x/fmdrv_rx.c
-index 43fb722..3dd9fc0 100644
---- a/drivers/media/radio/wl128x/fmdrv_rx.c
-+++ b/drivers/media/radio/wl128x/fmdrv_rx.c
-@@ -251,7 +251,7 @@ again:
- 	if (!timeleft) {
- 		fmerr("Timeout(%d sec),didn't get tune ended int\n",
- 			   jiffies_to_msecs(FM_DRV_RX_SEEK_TIMEOUT) / 1000);
--		return -ETIMEDOUT;
-+		return -ENODATA;
- 	}
- 
- 	int_reason = fmdev->irq_info.flag & (FM_TUNE_COMPLETE | FM_BAND_LIMIT);
-diff --git a/drivers/media/radio/wl128x/fmdrv_v4l2.c b/drivers/media/radio/wl128x/fmdrv_v4l2.c
-index 080b96a..49a11ec 100644
---- a/drivers/media/radio/wl128x/fmdrv_v4l2.c
-+++ b/drivers/media/radio/wl128x/fmdrv_v4l2.c
-@@ -285,7 +285,9 @@ static int fm_v4l2_vidioc_g_tuner(struct file *file, void *priv,
- 	tuner->rxsubchans = V4L2_TUNER_SUB_MONO | V4L2_TUNER_SUB_STEREO |
- 	((fmdev->rx.rds.flag == FM_RDS_ENABLE) ? V4L2_TUNER_SUB_RDS : 0);
- 	tuner->capability = V4L2_TUNER_CAP_STEREO | V4L2_TUNER_CAP_RDS |
--			    V4L2_TUNER_CAP_LOW;
-+			    V4L2_TUNER_CAP_LOW |
-+			    V4L2_TUNER_CAP_HWSEEK_BOUNDED |
-+			    V4L2_TUNER_CAP_HWSEEK_WRAP;
- 	tuner->audmode = (stereo_mono_mode ?
- 			  V4L2_TUNER_MODE_MONO : V4L2_TUNER_MODE_STEREO);
- 
-diff --git a/sound/i2c/other/tea575x-tuner.c b/sound/i2c/other/tea575x-tuner.c
-index 582aace..ba2bc51 100644
---- a/sound/i2c/other/tea575x-tuner.c
-+++ b/sound/i2c/other/tea575x-tuner.c
-@@ -191,6 +191,8 @@ static int vidioc_g_tuner(struct file *file, void *priv,
- 	strcpy(v->name, "FM");
- 	v->type = V4L2_TUNER_RADIO;
- 	v->capability = V4L2_TUNER_CAP_LOW | V4L2_TUNER_CAP_STEREO;
-+	if (!tea->cannot_read_data)
-+		v->capability |= V4L2_TUNER_CAP_HWSEEK_BOUNDED;
- 	v->rangelow = FREQ_LO;
- 	v->rangehigh = FREQ_HI;
- 	v->rxsubchans = tea->stereo ? V4L2_TUNER_SUB_STEREO : V4L2_TUNER_SUB_MONO;
-@@ -299,7 +301,7 @@ static int vidioc_s_hw_freq_seek(struct file *file, void *fh,
- 	}
- 	tea->val &= ~TEA575X_BIT_SEARCH;
- 	snd_tea575x_set_freq(tea);
--	return -EAGAIN;
-+	return -ENODATA;
- }
- 
- static int tea575x_s_ctrl(struct v4l2_ctrl *ctrl)
 -- 
-1.7.10
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
