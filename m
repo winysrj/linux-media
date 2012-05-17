@@ -1,40 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vb0-f46.google.com ([209.85.212.46]:65010 "EHLO
-	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752575Ab2E3TvI (ORCPT
+Received: from rcsinet15.oracle.com ([148.87.113.117]:19367 "EHLO
+	rcsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760036Ab2EQHKz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 May 2012 15:51:08 -0400
-Received: by vbbff1 with SMTP id ff1so137984vbb.19
-        for <linux-media@vger.kernel.org>; Wed, 30 May 2012 12:51:06 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1338407260-14367-1-git-send-email-martin.blumenstingl@googlemail.com>
-References: <1338154013-5124-3-git-send-email-martin.blumenstingl@googlemail.com>
- <1338407260-14367-1-git-send-email-martin.blumenstingl@googlemail.com>
-From: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
-Date: Wed, 30 May 2012 21:50:46 +0200
-Message-ID: <CAFBinCDfGnpFC17aMmE=pa1t9_H0p0v0GqNFnQNJLrPjTG0xuw@mail.gmail.com>
-Subject: Re: [PATCH] [media] em28xx: Show a warning if the board does not
- support remote controls
+	Thu, 17 May 2012 03:10:55 -0400
+Date: Thu, 17 May 2012 10:10:51 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
 To: linux-media@vger.kernel.org
-Cc: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Cc: abraham.manu@gmail.com
+Subject: bug report: null dereference in error handling in mantis_dvb_init()
+Message-ID: <20120517071051.GF14660@elgon.mountain>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Hi,
 
-thanks to Fabio and Ezequiel for the suggestions.
-This is the latest version of my patch.
+I'm working on some new Smatch stuff and so I'm finding old bugs and
+emailing bug reports.
 
-It basically shows this when connecting my stick
-(of course only if I remove my other patch):
-[ 1597.796028] em28xx #0: chip ID is em2884
-[ 1597.849321] em28xx #0: Identified as Terratec Cinergy HTC Stick (card=82)
-... (snip) ...
-[ 1597.851680] em28xx #0: Remote control support is not available for this card.
+----
+This is a semi-automatic email about new static checker warnings.
 
-Looks good, since we don't need to duplicate the card/model ID.
-But we still get all required information.
+The patch 68fe255cd15c: "V4L/DVB (13799): [Mantis] Unregister 
+frontend" from Dec 4, 2009, leads to the following Smatch complaint:
 
-Regards,
-Martin
+drivers/media/dvb/mantis/mantis_dvb.c:251 mantis_dvb_init()
+	 error: we previously assumed 'mantis->fe' could be null (see line 228)
+
+drivers/media/dvb/mantis/mantis_dvb.c
+   227			} else {
+   228				if (mantis->fe == NULL) {
+   229					dprintk(MANTIS_ERROR, 1, "FE <NULL>");
+   230					goto err5;
+
+"mantis->fe" is NULL on this path.
+
+   231				}
+   232	
+   233				if (dvb_register_frontend(&mantis->dvb_adapter, mantis->fe)) {
+   234					dprintk(MANTIS_ERROR, 1, "ERROR: Frontend registration failed");
+   235	
+   236					if (mantis->fe->ops.release)
+   237						mantis->fe->ops.release(mantis->fe);
+   238	
+   239					mantis->fe = NULL;
+
+And here.
+
+   240					goto err5;
+   241				}
+   242			}
+   243		}
+   244	
+   245		return 0;
+   246	
+   247		/* Error conditions ..	*/
+   248	err5:
+   249		tasklet_kill(&mantis->tasklet);
+   250		dvb_net_release(&mantis->dvbnet);
+   251		dvb_unregister_frontend(mantis->fe);
+                ^^^^^^^^^^^^^^^^^^^^^^^
+This new call to dvb_unregister_frontend() was added but it can't handle
+NULL pointers.
+
+   252		dvb_frontend_detach(mantis->fe);
+   253	err4:
+
+regards,
+dan carpenter
+
