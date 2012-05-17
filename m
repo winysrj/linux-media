@@ -1,66 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:46019 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751397Ab2E1V3p (ORCPT
+Received: from mail-wi0-f178.google.com ([209.85.212.178]:48886 "EHLO
+	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755253Ab2EQVTh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 May 2012 17:29:45 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	airlied@redhat.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, sumit.semwal@ti.com, daeinki@gmail.com,
-	daniel.vetter@ffwll.ch, robdclark@gmail.com, pawel@osciak.com,
-	linaro-mm-sig@lists.linaro.org, hverkuil@xs4all.nl,
-	remi@remlab.net, subashrp@gmail.com, mchehab@redhat.com,
-	g.liakhovetski@gmx.de, linux-doc@vger.kernel.org
-Subject: Re: [PATCHv6 02/13] Documentation: media: description of DMABUF importing in V4L2
-Date: Mon, 28 May 2012 23:30:05 +0200
-Message-ID: <3552222.dzY4fiG81O@avalon>
-In-Reply-To: <1337775027-9489-3-git-send-email-t.stanislaws@samsung.com>
-References: <1337775027-9489-1-git-send-email-t.stanislaws@samsung.com> <1337775027-9489-3-git-send-email-t.stanislaws@samsung.com>
+	Thu, 17 May 2012 17:19:37 -0400
+Received: by wibhn6 with SMTP id hn6so2255112wib.1
+        for <linux-media@vger.kernel.org>; Thu, 17 May 2012 14:19:34 -0700 (PDT)
+Message-ID: <4FB56B63.7080703@googlemail.com>
+Date: Thu, 17 May 2012 23:19:31 +0200
+From: Thomas Mair <thomas.mair86@googlemail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: poma <pomidorabelisima@gmail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH v4 1/5] rtl2832 ver. 0.4: removed signal statistics
+References: <1> <1337206420-23810-1-git-send-email-thomas.mair86@googlemail.com> <1337206420-23810-2-git-send-email-thomas.mair86@googlemail.com> <4FB50909.7030101@iki.fi> <4FB55F2D.8060000@gmail.com> <4FB56262.5020803@iki.fi> <4FB56371.1070605@googlemail.com> <4FB568C9.70407@gmail.com>
+In-Reply-To: <4FB568C9.70407@gmail.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tomasz,
-
-Thanks for the patch.
-
-
-On Wednesday 23 May 2012 14:10:16 Tomasz Stanislawski wrote:
-> This patch adds description and usage examples for importing
-> DMABUF file descriptor in V4L2.
+On 17.05.2012 23:08, poma wrote:
+> On 05/17/2012 10:45 PM, Thomas Mair wrote:
+>> On 17.05.2012 22:41, Antti Palosaari wrote:
+>>> On 17.05.2012 23:27, poma wrote:
+>>>> On 05/17/2012 04:19 PM, Antti Palosaari wrote:
+>>>>> Moikka Thomas,
+>>>>>
+>>>>> Here is the review. See comments below.
+>>>>>
+>>>>> And conclusion is that it is ready for the Kernel merge. I did not see
+>>>>> any big functiuonality problems - only some small issues that are likely
+>>>>> considered as a coding style etc. Feel free to fix those and sent new
+>>>>> patc serie or just new patch top of that.
+>>>>>
+>>>>> Reviewed-by: Antti Palosaari<crope@iki.fi>
+>>>
+>>> [...]
+>>>
+>>>> rtl2832.c.diff:
+>>>> - static int ->  static const
+>>>> - struct ->  static const struct
+>>>> - newline between function call and error check ->  […]
+>>>> - 5 indications apropos 'spaces' regarding 'CodingStyle'- line 206
+>>>> (/usr/share/doc/kernel-doc-3.3.5/Documentation/CodingStyle)
+>>>> […]
+>>>> Use one space around (on each side of) most binary and ternary operators,
+>>>> such as any of these:
+>>>>
+>>>>          =  +  -<   >   *  /  %  |&   ^<=>=  ==  !=  ?  :
+>>>>
+>>>> […]
+>>>>
+>>>> grep '>>\|<<' v4-1-5-rtl2832-ver.-0.4-removed-signal-statistics.patch.orig
+>>>> +    len = (msb>>  3) + 1;
+>>>> +        reading_tmp |= reading[i]<<  ((len-1-i)*8);
+>>>> +    *val = (reading_tmp>>  lsb)&  mask;
+>>>> +    len = (msb>>  3) + 1;
+>>>> +        reading_tmp |= reading[i]<<  ((len-1-i)*8);
+>>>> +    writing_tmp = reading_tmp&  ~(mask<<  lsb);
+>>>> +    writing_tmp |= ((val&  mask)<<  lsb);
+>>>> +        writing[i] = (writing_tmp>>  ((len-1-i)*8))&  0xff;
+>>>> +    num = bw_mode<<  20;
+>>>>
+>>>> Bitshift operators seems to be OK.
+>>>> Something else?
+>>>
+>>> (len-1-i)*8
+>> I almost have a new corrected version of the patch series ready, fixing this issues and the 
+>> other ones you mentioned. 
+>>>
+>>>> - 1 indication apropos 'media/dvb/frontends/rtl2832_priv.h:30'
+>>>> Compared to 'rtl2830_priv.h' seems to be OK.
+>>>>
+>>>> ./checkpatch.pl --no-tree
+>>>> v4-1-5-rtl2832-ver.-0.4-removed-signal-statistics.patch.orig
+>>>> ERROR: Missing Signed-off-by: line(s)
+>>>>
+>>>> total: 1 errors, 0 warnings, 1177 lines checked
+>>>>
+>>>> v4-1-5-rtl2832-ver.-0.4-removed-signal-statistics.patch.orig has style
+>>>> problems, please review.  If any of these errors
+>>>> are false positives report them to the maintainer, see
+>>>> CHECKPATCH in MAINTAINERS.
+>>>>
+>>>> How do you produce this error:
+>>>> "ERROR: Macros with complex values should be enclosed in parenthesis…"?
+>>>
+>>> Just running checkpatch.pl --file foo
+>>>
+>>
+>> For me checkpath.pl also does not report the error you reported. It does seem
+>> strange to me, as the makros are the same as in rtl2830_priv.h
+>>
+>> Regards 
+>> Thomas
 > 
-> Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> CC: linux-doc@vger.kernel.org
+> Yeah, 'rtl2830_priv.h' is the same.
+> Fu… me, now I don't know too!
+> :)
+> 
+> cheers,
+> poma
 
-[snip]
+Ok. I will then check the patches with the new checkpatch version tomorrow as I need some 
+rest now ;) It should not be too difficult to remove the errors.
 
-> @@ -103,6 +105,7 @@ as the &v4l2-format; <structfield>type</structfield>
-> field. See <xref <entry><structfield>memory</structfield></entry>
->  	    <entry>Applications set this field to
->  <constant>V4L2_MEMORY_MMAP</constant> or
-> +<constant>V4L2_MEMORY_DMABUF</constant> or
->  <constant>V4L2_MEMORY_USERPTR</constant>. See <xref linkend="v4l2-memory"
->  />.</entry>
->  	  </row>
-
-If you resubmit to fix the compat-ioctl issue in 01/13, could you please 
-replace this with
-
-<entry>Applications set this field to
-<constant>V4L2_MEMORY_MMAP</constant>,
-<constant>V4L2_MEMORY_DMABUF</constant> or
-<constant>V4L2_MEMORY_USERPTR</constant>. See <xref linkend="v4l2-memory"/>.
-</entry>
-
-like in v5 ?
-
--- 
-Regards,
-
-Laurent Pinchart
-
+Regards 
+Thomas
