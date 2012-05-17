@@ -1,109 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:59915 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752796Ab2ETBVa (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 19 May 2012 21:21:30 -0400
-From: Hans de Goede <hdegoede@redhat.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Ondrej Zary <linux@rainbow-software.org>,
-	Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH 2/6] snd_tea575x: Add a cannot_mute flag
-Date: Sun, 20 May 2012 03:25:27 +0200
-Message-Id: <1337477131-21578-3-git-send-email-hdegoede@redhat.com>
-In-Reply-To: <1337477131-21578-1-git-send-email-hdegoede@redhat.com>
-References: <1337477131-21578-1-git-send-email-hdegoede@redhat.com>
+Received: from mail-wg0-f44.google.com ([74.125.82.44]:60914 "EHLO
+	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760169Ab2EQVaq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 May 2012 17:30:46 -0400
+Received: by mail-wg0-f44.google.com with SMTP id dr13so2147749wgb.1
+        for <linux-media@vger.kernel.org>; Thu, 17 May 2012 14:30:46 -0700 (PDT)
+Message-ID: <4FB56E02.1090009@gmail.com>
+Date: Thu, 17 May 2012 23:30:42 +0200
+From: poma <pomidorabelisima@gmail.com>
+MIME-Version: 1.0
+To: Thomas Mair <thomas.mair86@googlemail.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH v4 1/5] rtl2832 ver. 0.4: removed signal statistics
+References: <1> <1337206420-23810-1-git-send-email-thomas.mair86@googlemail.com> <1337206420-23810-2-git-send-email-thomas.mair86@googlemail.com> <4FB50909.7030101@iki.fi> <4FB55F2D.8060000@gmail.com> <4FB56262.5020803@iki.fi> <4FB56371.1070605@googlemail.com> <4FB568C9.70407@gmail.com> <4FB56B63.7080703@googlemail.com>
+In-Reply-To: <4FB56B63.7080703@googlemail.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Some devices which use the tea575x tuner chip don't allow direct control
-over the IO pins, and thus cannot mute the audio output.
+On 05/17/2012 11:19 PM, Thomas Mair wrote:
+> On 17.05.2012 23:08, poma wrote:
+>> On 05/17/2012 10:45 PM, Thomas Mair wrote:
+>>> On 17.05.2012 22:41, Antti Palosaari wrote:
+>>>> On 17.05.2012 23:27, poma wrote:
+>>>>> On 05/17/2012 04:19 PM, Antti Palosaari wrote:
+>>>>>> Moikka Thomas,
+>>>>>>
+>>>>>> Here is the review. See comments below.
+>>>>>>
+>>>>>> And conclusion is that it is ready for the Kernel merge. I did not see
+>>>>>> any big functiuonality problems - only some small issues that are likely
+>>>>>> considered as a coding style etc. Feel free to fix those and sent new
+>>>>>> patc serie or just new patch top of that.
+>>>>>>
+>>>>>> Reviewed-by: Antti Palosaari<crope@iki.fi>
+>>>>
+>>>> [...]
+>>>>
+>>>>> rtl2832.c.diff:
+>>>>> - static int ->  static const
+>>>>> - struct ->  static const struct
+>>>>> - newline between function call and error check ->  […]
+>>>>> - 5 indications apropos 'spaces' regarding 'CodingStyle'- line 206
+>>>>> (/usr/share/doc/kernel-doc-3.3.5/Documentation/CodingStyle)
+>>>>> […]
+>>>>> Use one space around (on each side of) most binary and ternary operators,
+>>>>> such as any of these:
+>>>>>
+>>>>>          =  +  -<   >   *  /  %  |&   ^<=>=  ==  !=  ?  :
+>>>>>
+>>>>> […]
+>>>>>
+>>>>> grep '>>\|<<' v4-1-5-rtl2832-ver.-0.4-removed-signal-statistics.patch.orig
+>>>>> +    len = (msb>>  3) + 1;
+>>>>> +        reading_tmp |= reading[i]<<  ((len-1-i)*8);
+>>>>> +    *val = (reading_tmp>>  lsb)&  mask;
+>>>>> +    len = (msb>>  3) + 1;
+>>>>> +        reading_tmp |= reading[i]<<  ((len-1-i)*8);
+>>>>> +    writing_tmp = reading_tmp&  ~(mask<<  lsb);
+>>>>> +    writing_tmp |= ((val&  mask)<<  lsb);
+>>>>> +        writing[i] = (writing_tmp>>  ((len-1-i)*8))&  0xff;
+>>>>> +    num = bw_mode<<  20;
+>>>>>
+>>>>> Bitshift operators seems to be OK.
+>>>>> Something else?
+>>>>
+>>>> (len-1-i)*8
+>>> I almost have a new corrected version of the patch series ready, fixing this issues and the 
+>>> other ones you mentioned. 
+>>>>
+>>>>> - 1 indication apropos 'media/dvb/frontends/rtl2832_priv.h:30'
+>>>>> Compared to 'rtl2830_priv.h' seems to be OK.
+>>>>>
+>>>>> ./checkpatch.pl --no-tree
+>>>>> v4-1-5-rtl2832-ver.-0.4-removed-signal-statistics.patch.orig
+>>>>> ERROR: Missing Signed-off-by: line(s)
+>>>>>
+>>>>> total: 1 errors, 0 warnings, 1177 lines checked
+>>>>>
+>>>>> v4-1-5-rtl2832-ver.-0.4-removed-signal-statistics.patch.orig has style
+>>>>> problems, please review.  If any of these errors
+>>>>> are false positives report them to the maintainer, see
+>>>>> CHECKPATCH in MAINTAINERS.
+>>>>>
+>>>>> How do you produce this error:
+>>>>> "ERROR: Macros with complex values should be enclosed in parenthesis…"?
+>>>>
+>>>> Just running checkpatch.pl --file foo
+>>>>
+>>>
+>>> For me checkpath.pl also does not report the error you reported. It does seem
+>>> strange to me, as the makros are the same as in rtl2830_priv.h
+>>>
+>>> Regards 
+>>> Thomas
+>>
+>> Yeah, 'rtl2830_priv.h' is the same.
+>> Fu… me, now I don't know too!
+>> :)
+>>
+>> cheers,
+>> poma
+> 
+> Ok. I will then check the patches with the new checkpatch version tomorrow as I need some 
+> rest now ;) It should not be too difficult to remove the errors.
+> 
+> Regards 
+> Thomas
 
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-CC: Ondrej Zary <linux@rainbow-software.org>
----
- include/sound/tea575x-tuner.h   |    1 +
- sound/i2c/other/tea575x-tuner.c |   35 +++++++++++++++++++----------------
- 2 files changed, 20 insertions(+), 16 deletions(-)
+Have a pleasant beauty sleep ;)
 
-diff --git a/include/sound/tea575x-tuner.h b/include/sound/tea575x-tuner.h
-index 1ae933f..af58ad2 100644
---- a/include/sound/tea575x-tuner.h
-+++ b/include/sound/tea575x-tuner.h
-@@ -52,6 +52,7 @@ struct snd_tea575x {
- 	int radio_nr;			/* radio_nr */
- 	bool tea5759;			/* 5759 chip is present */
- 	bool cannot_read_data;		/* Device cannot read the data pin */
-+	bool cannot_mute;		/* Device cannot mute */
- 	bool mute;			/* Device is muted? */
- 	bool stereo;			/* receiving stereo */
- 	bool tuned;			/* tuned to a station */
-diff --git a/sound/i2c/other/tea575x-tuner.c b/sound/i2c/other/tea575x-tuner.c
-index b74fc63..da49dd4 100644
---- a/sound/i2c/other/tea575x-tuner.c
-+++ b/sound/i2c/other/tea575x-tuner.c
-@@ -379,35 +379,38 @@ int snd_tea575x_init(struct snd_tea575x *tea)
- 	strlcpy(tea->vd.name, tea->v4l2_dev->name, sizeof(tea->vd.name));
- 	tea->vd.lock = &tea->mutex;
- 	tea->vd.v4l2_dev = tea->v4l2_dev;
--	tea->vd.ctrl_handler = &tea->ctrl_handler;
- 	set_bit(V4L2_FL_USE_FH_PRIO, &tea->vd.flags);
- 	/* disable hw_freq_seek if we can't use it */
- 	if (tea->cannot_read_data)
- 		v4l2_disable_ioctl(&tea->vd, VIDIOC_S_HW_FREQ_SEEK);
- 
--	v4l2_ctrl_handler_init(&tea->ctrl_handler, 1);
--	v4l2_ctrl_new_std(&tea->ctrl_handler, &tea575x_ctrl_ops, V4L2_CID_AUDIO_MUTE, 0, 1, 1, 1);
--	retval = tea->ctrl_handler.error;
--	if (retval) {
--		v4l2_err(tea->v4l2_dev, "can't initialize controls\n");
--		v4l2_ctrl_handler_free(&tea->ctrl_handler);
--		return retval;
--	}
--
--	if (tea->ext_init) {
--		retval = tea->ext_init(tea);
-+	if (!tea->cannot_mute) {
-+		tea->vd.ctrl_handler = &tea->ctrl_handler;
-+		v4l2_ctrl_handler_init(&tea->ctrl_handler, 1);
-+		v4l2_ctrl_new_std(&tea->ctrl_handler, &tea575x_ctrl_ops,
-+				  V4L2_CID_AUDIO_MUTE, 0, 1, 1, 1);
-+		retval = tea->ctrl_handler.error;
- 		if (retval) {
-+			v4l2_err(tea->v4l2_dev, "can't initialize controls\n");
- 			v4l2_ctrl_handler_free(&tea->ctrl_handler);
- 			return retval;
- 		}
--	}
- 
--	v4l2_ctrl_handler_setup(&tea->ctrl_handler);
-+		if (tea->ext_init) {
-+			retval = tea->ext_init(tea);
-+			if (retval) {
-+				v4l2_ctrl_handler_free(&tea->ctrl_handler);
-+				return retval;
-+			}
-+		}
-+
-+		v4l2_ctrl_handler_setup(&tea->ctrl_handler);
-+	}
- 
- 	retval = video_register_device(&tea->vd, VFL_TYPE_RADIO, tea->radio_nr);
- 	if (retval) {
- 		v4l2_err(tea->v4l2_dev, "can't register video device!\n");
--		v4l2_ctrl_handler_free(&tea->ctrl_handler);
-+		v4l2_ctrl_handler_free(tea->vd.ctrl_handler);
- 		return retval;
- 	}
- 
-@@ -417,7 +420,7 @@ int snd_tea575x_init(struct snd_tea575x *tea)
- void snd_tea575x_exit(struct snd_tea575x *tea)
- {
- 	video_unregister_device(&tea->vd);
--	v4l2_ctrl_handler_free(&tea->ctrl_handler);
-+	v4l2_ctrl_handler_free(tea->vd.ctrl_handler);
- }
- 
- static int __init alsa_tea575x_module_init(void)
--- 
-1.7.10
+cheers,
+poma
 
+ps.
+/usr/src/kernels/`uname -r`/scripts
