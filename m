@@ -1,54 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.telros.ru ([83.136.244.21]:63389 "EHLO mail.telros.ru"
+Received: from mail.kapsi.fi ([217.30.184.167]:53317 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754992Ab2EKQtP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 May 2012 12:49:15 -0400
-Date: Fri, 11 May 2012 20:49:07 +0400
-From: volokh@telros.ru
-To: "Justin P. Mattock" <justinmattock@gmail.com>
-Cc: volokh84@gmail.com, mchehab@infradead.org,
-	gregkh@linuxfoundation.org, dhowells@redhat.com,
-	rdunlap@xenotime.net, pete@sensoray.com, pradheep.sh@gmail.com,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Volokh Konstantin <my84@bk.ru>
-Subject: Re: [PATCH] staging: media: go7007: Adlink MPG24 board issues
-Message-ID: <20120511164907.GA16306@VPir.telros.lan>
-References: <1336714980-13460-1-git-send-email-volokh84@gmail.com>
- <4FAD1FAD.4020508@gmail.com>
+	id S1757905Ab2ERUVj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 18 May 2012 16:21:39 -0400
+Message-ID: <4FB6AF51.1050503@iki.fi>
+Date: Fri, 18 May 2012 23:21:37 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4FAD1FAD.4020508@gmail.com>
+To: Thomas Mair <thomas.mair86@googlemail.com>
+CC: linux-media@vger.kernel.org, pomidorabelisima@gmail.com
+Subject: Re: [PATCH v5 1/5] rtl2832 ver. 0.5: support for RTL2832 demod
+References: <1> <1337366864-1256-1-git-send-email-thomas.mair86@googlemail.com> <1337366864-1256-2-git-send-email-thomas.mair86@googlemail.com>
+In-Reply-To: <1337366864-1256-2-git-send-email-thomas.mair86@googlemail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->>some simple stuff I found along the way..
+On 18.05.2012 21:47, Thomas Mair wrote:
+> Changelog for ver. 0.5:
+> - fixed code style and naming errors
+>
+> Changelog for ver. 0.4:
+> - removed statistics as their calculation was wrong
+> - fixed bug in Makefile
+> - indentation and code style improvements
+>
+> Signed-off-by: Thomas Mair<thomas.mair86@googlemail.com>
 
-On 05/10/2012 10:43 PM, volokh84@gmail.com wrote:
-> From: Volokh Konstantin<my84@bk.ru>                                                                          
->                                                                                                              
-> This issuses applyed only for Adlink MPG24 board with go7007                                                 
+Reviewed-by: Antti Palosaari <crope@iki.fi>
 
->>this issue applies only for...
+Seems to be correct!
 
->   &  wis2804, all whese changes was tested for continuos                                                     
->   load&restart mode                                                                                          
->                                                                                                              
-
->>these changes were tested for continuous
-
-> This is minimal changes needed for start up go7007&wis2804 to work correctly                                 
->    in 3.4 branch                                                                                             
->                                                                                                              
-> Changes:                                                                                                     
->    - When go7007 reset device, i2c was not worked (need rewrite GPIO5)                                       
-
->>working
-
->    - As wis2804 has i2c_addr=0x00/*really*/, so Need set I2C_CLIENT_TEN flag for validity                    
->    - some main nonzero initialization, rewrites with kzalloc instead kmalloc                                 
->    - STATUS_SHUTDOWN was pl
-
-
-Thanks for english language notation.
-I`ve never used it in real word.
+regards
+Antti
+-- 
+http://palosaari.fi/
