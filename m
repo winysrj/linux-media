@@ -1,128 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:35963 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758424Ab2EJKbM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 May 2012 06:31:12 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Received: from euspt1 ([210.118.77.14]) by mailout4.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0M3S008ZYYK5CW40@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 10 May 2012 11:31:17 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0M3S00DOCYJS9S@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 10 May 2012 11:31:05 +0100 (BST)
-Date: Thu, 10 May 2012 12:30:50 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH 15/23] m5mols: Use proper sensor mode for the controls
-In-reply-to: <1336645858-30366-1-git-send-email-s.nawrocki@samsung.com>
+Received: from plane.gmane.org ([80.91.229.3]:54529 "EHLO plane.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1761708Ab2ERNWz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 18 May 2012 09:22:55 -0400
+Received: from list by plane.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1SVN8u-0005nL-De
+	for linux-media@vger.kernel.org; Fri, 18 May 2012 15:22:52 +0200
+Received: from 92-32-255-209.tn.glocalnet.net ([92.32.255.209])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Fri, 18 May 2012 15:22:52 +0200
+Received: from simong by 92-32-255-209.tn.glocalnet.net with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Fri, 18 May 2012 15:22:52 +0200
 To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, riverful.kim@samsung.com,
-	sw0312.kim@samsung.com, s.nawrocki@samsung.com,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Message-id: <1336645858-30366-16-git-send-email-s.nawrocki@samsung.com>
-References: <1336645858-30366-1-git-send-email-s.nawrocki@samsung.com>
+From: Simon Gustafsson <simong@simong.se>
+Subject: Re: How fix driver for this USB camera (MT9T031 sensor and Cypress FX2LP USB bridge)
+Date: Fri, 18 May 2012 13:22:42 +0000 (UTC)
+Message-ID: <loom.20120518T130226-233@post.gmane.org>
+References: <loom.20120517T001241-393@post.gmane.org> <20120517080734.16446c78@tele>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The parameters corresponding to the V4L controls can be reconfigured
-only in associated M-5MOLS operation mode. Use struct v4l2_ctrl
-priv field to assign the working mode to the controls which can be
-modified only in certain conditions.
+Jean-Francois Moine <moinejf <at> free.fr> writes:
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/video/m5mols/m5mols.h          |   11 ++++++++++
- drivers/media/video/m5mols/m5mols_controls.c |   28 ++++++++++++++++++--------
- 2 files changed, 31 insertions(+), 8 deletions(-)
+> The FX2 is a processor, and, in ov519, used as a bridge, it has been
+> programmed by OmniVision for their sensors. It is quite sure that its
+> firmware is different in your webcam.
+> 
+> To know more, you should examine USB traces done with some other driver
 
-diff --git a/drivers/media/video/m5mols/m5mols.h b/drivers/media/video/m5mols/m5mols.h
-index ed75bbe..87684c4 100644
---- a/drivers/media/video/m5mols/m5mols.h
-+++ b/drivers/media/video/m5mols/m5mols.h
-@@ -305,4 +305,15 @@ static inline struct v4l2_subdev *to_sd(struct v4l2_ctrl *ctrl)
- 	return &info->sd;
- }
- 
-+static inline void m5mols_set_ctrl_mode(struct v4l2_ctrl *ctrl,
-+					unsigned int mode)
-+{
-+	ctrl->priv = (void *)mode;
-+}
-+
-+static inline unsigned int m5mols_get_ctrl_mode(struct v4l2_ctrl *ctrl)
-+{
-+	return (unsigned int)ctrl->priv;
-+}
-+
- #endif	/* M5MOLS_H */
-diff --git a/drivers/media/video/m5mols/m5mols_controls.c b/drivers/media/video/m5mols/m5mols_controls.c
-index 464ec0c..4776601 100644
---- a/drivers/media/video/m5mols/m5mols_controls.c
-+++ b/drivers/media/video/m5mols/m5mols_controls.c
-@@ -321,10 +321,11 @@ static int m5mols_set_color_effect(struct m5mols_info *info, int val)
- 
- static int m5mols_s_ctrl(struct v4l2_ctrl *ctrl)
- {
-+	unsigned int ctrl_mode = m5mols_get_ctrl_mode(ctrl);
- 	struct v4l2_subdev *sd = to_sd(ctrl);
- 	struct m5mols_info *info = to_m5mols(sd);
--	int ispstate = info->mode;
--	int ret;
-+	int last_mode = info->mode;
-+	int ret = 0;
- 
- 	/*
- 	 * If needed, defer restoring the controls until
-@@ -335,9 +336,14 @@ static int m5mols_s_ctrl(struct v4l2_ctrl *ctrl)
- 		return 0;
- 	}
- 
--	ret = m5mols_mode(info, REG_PARAMETER);
--	if (ret < 0)
--		return ret;
-+	v4l2_dbg(1, m5mols_debug, sd, "%s: %s, val: %d, priv: %#x\n",
-+		 __func__, ctrl->name, ctrl->val, (int)ctrl->priv);
-+
-+	if (ctrl_mode && ctrl_mode != info->mode) {
-+		ret = m5mols_set_mode(info, ctrl_mode);
-+		if (ret < 0)
-+			return ret;
-+	}
- 
- 	switch (ctrl->id) {
- 	case V4L2_CID_ZOOM_ABSOLUTE:
-@@ -360,10 +366,11 @@ static int m5mols_s_ctrl(struct v4l2_ctrl *ctrl)
- 		ret = m5mols_set_color_effect(info, ctrl->val);
- 		break;
- 	}
--	if (ret < 0)
--		return ret;
- 
--	return m5mols_mode(info, ispstate);
-+	if (ret == 0 && info->mode != last_mode)
-+		ret = m5mols_set_mode(info, last_mode);
-+
-+	return ret;
- }
- 
- static const struct v4l2_ctrl_ops m5mols_ctrl_ops = {
-@@ -414,6 +421,11 @@ int m5mols_init_controls(struct v4l2_subdev *sd)
- 	}
- 
- 	v4l2_ctrl_auto_cluster(2, &info->auto_exposure, 1, false);
-+
-+	m5mols_set_ctrl_mode(info->auto_exposure, REG_PARAMETER);
-+	m5mols_set_ctrl_mode(info->auto_wb, REG_PARAMETER);
-+	m5mols_set_ctrl_mode(info->colorfx, REG_MONITOR);
-+
- 	sd->ctrl_handler = &info->handle;
- 
- 	return 0;
--- 
-1.7.10
+You're right, protocol was completely different, for instance, we can't
+read/write to I2C registers of our own choice. Got it working in user space now, 
+including all settings available in their windows software (except software-only
+settings like gamma etc).
+
+Not sure if it's appropriate with a kernel driver, but since the amount of code
+needed would be so small, we might just as well add it. It would probably add
+support for these Chinese industrial cameras: DLC130/130L, DLC131/131L, DLC200, 
+DLC300, Whitehawk, Goldenhawk, and GoldenEagle. The Windows software lets you
+choose between those cameras at start up, and my camera produces images for all
+those choices. For some choices, the images are cropped, and/or in gray scale 
+with visible bayer pattern (suggesting those cameras would be monochrome).
+
+Have a list of bad things below, would appreciate feedback on these. May amount 
+to question whether there should be a kernel driver, in which case I'll just fix 
+up the user space code, and host it somewhere.
+
+1a) This FX2 bridge can't be used for auto-detection, since I didn't snoop
+anything indicating we could read/write to any sensor registers of our own
+choice. Additionally, the Windows software don't choose camera based on VID:PID
+(you have the same choice of cameras even without a camera plugged in), so I
+assume we need a module parameter for selecting which camera to use. 
+
+1b) I only have one of these cameras, so I can only verify against this one, and 
+since mine support the highest resolution, I can't try auto detection methods of 
+requesting higher resolutions then the camera supports (hoping it fails), so 
+module parameters would be needed here to begin with.
+
+2) I guess the video format won't be supported by many apps (raw byer, 
+specifically V4L2_PIX_FMT_SRGGB8). Would it be OK with a module parameter 
+switching on kernel space conversion to something universally useful? (would 
+happen in a workqueueue of course).
+
+3) The windows software (or FX2 bridge) don't handle selecting lower resolutions 
+correctly (it always crops the image, and we get the upper-left portion of the
+image). This may be appropriate in many industrial applications. But I still
+feel that users won't know why the driver sucks, so I would spontaneously think
+we should always emit a couple of KERN_ERR messages describing the possible
+problems, and possibly even require the user to configure the camera type module
+parameter before opening the device.
+  Alternatively, we could provide all resolutions, and all combinations of
+color/monochrome all the time, but then only one out of 14 choices would give 
+the expected image for a normal user, but industrial users would think seven of 
+those 14 modes would be OK.
+  This is a big usability point, I would go for an additional module parameter,
+"allow_crop", which industrial users could set to get access to cropped images,
+so regular users won't have to set more then a "max_resolution" or "camera_type" 
+parameter.
+
+
+But on the bright side, one can have a lot of fun with cheap Chinese industrial 
+cameras, like reverse engineering, and writing kernel drivers :)
+
+BR
+/Simon
 
