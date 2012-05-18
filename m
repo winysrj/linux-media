@@ -1,109 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gw-out1.cc.tut.fi ([130.230.160.32]:49905 "EHLO
-	mail-gw-out1.cc.tut.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750864Ab2EYPEW (ORCPT
+Received: from mail-vb0-f46.google.com ([209.85.212.46]:46436 "EHLO
+	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751685Ab2ERO0l convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 May 2012 11:04:22 -0400
-Message-ID: <4FBF9BE8.3020300@iki.fi>
-Date: Fri, 25 May 2012 17:49:12 +0300
-From: Anssi Hannula <anssi.hannula@iki.fi>
+	Fri, 18 May 2012 10:26:41 -0400
+Received: by vbbff1 with SMTP id ff1so2542101vbb.19
+        for <linux-media@vger.kernel.org>; Fri, 18 May 2012 07:26:41 -0700 (PDT)
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Linus Torvalds <torvalds@linux-foundation.org>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Subject: Re: [GIT PULL for v3.5-rc1] media updates for v3.5
-References: <4FBE5518.5090705@redhat.com> <CA+55aFyt2OFOsr5uCpQ6nrur4zhHhmWUJrvMgLH_Wy1niTbC6w@mail.gmail.com> <4FBEB72D.4040905@redhat.com> <CA+55aFyYQkrtgvG99ZOOhAzoKi8w5rJfRgZQy3Dqs39p1n=FPA@mail.gmail.com> <4FBF773B.10408@redhat.com>
-In-Reply-To: <4FBF773B.10408@redhat.com>
+In-Reply-To: <4FB65975.3000806@netscape.net>
+References: <4FADE682.3090005@netscape.net>
+	<4FAE1CA1.1010203@redhat.com>
+	<4FAEB948.7080800@netscape.net>
+	<4FAF4BBA.9090904@redhat.com>
+	<CAGoCfiyumZmX8PkPU_UQee4kpd82OBKF=1awLAmuL1WOcE=buQ@mail.gmail.com>
+	<4FB65975.3000806@netscape.net>
+Date: Fri, 18 May 2012 10:26:40 -0400
+Message-ID: <CAGoCfiy3NY0_=VhbY59Q9EiZHg48S1C7s=z1FkWg+PLAG9Tw0Q@mail.gmail.com>
+Subject: Re: How I must report that a driver has been broken?
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: =?ISO-8859-1?Q?Alfredo_Jes=FAs_Delaiti?=
+	<alfredodelaiti@netscape.net>
+Cc: linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-25.05.2012 15:12, Mauro Carvalho Chehab kirjoitti:
-> Em 24-05-2012 19:40, Linus Torvalds escreveu:
->> On Thu, May 24, 2012 at 3:33 PM, Mauro Carvalho Chehab
->> <mchehab@redhat.com> wrote:
->>>
->>> The Kconfig default for DVB_FE_CUSTOMISE is 'n'. So, if no DVB bridge is selected,
->>> nothing will be compiled.
->>
->> Sadly, it looks like the default for distro kernels is 'y'.
-> 
-> I'll change the default on Fedora (f16/f17/rawhide).
-> 
->> Which means that if you start with a distro kernel config, and then
->> try to cut it down to match your system, you end up screwed in the
->> future - all the new hardware will default to on.
->>
->> At least that's how I noticed it. Very annoying.
-> 
-> A simple way to solve it seems to make those options dependent on CONFIG_EXPERT.
-> 
-> Not sure if all usual distributions disable it, but I guess most won't have
-> EXPERT enabled.
-> 
-> The enclosed patch does that. If nobody complains, I'll submit it together
-> with the next git pull request.
-> 
-> Regards,
-> Mauro
-> 
-> -
-> 
-> [RFC PATCH] Make tuner/frontend options dependent on EXPERT
-> 
-> The media CUSTOMISE options are there to allow embedded systems and advanced
-> users to disable tuner/frontends that are supported by a bridge driver to
-> be disabled, in order to save some disk space and memory, when compiled builtin.
-> 
-> However, distros are mistakenly enabling it, causing problems when a
-> make oldconfig is used.
-> 
-> Make those options dependent on EXPERT, in order to avoid such annoyance behavior.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> 
-> diff --git a/drivers/media/common/tuners/Kconfig b/drivers/media/common/tuners/Kconfig
-> index bbf4945..702a3bf 100644
-> --- a/drivers/media/common/tuners/Kconfig
-> +++ b/drivers/media/common/tuners/Kconfig
-> @@ -35,6 +35,7 @@ config MEDIA_TUNER
->  config MEDIA_TUNER_CUSTOMISE
->  	bool "Customize analog and hybrid tuner modules to build"
->  	depends on MEDIA_TUNER
-> +	depends on EXPERT
->  	default y if EXPERT
-        ^^^^^^^^^^^^^^^^^^^
+On Fri, May 18, 2012 at 10:15 AM, Alfredo Jesús Delaiti
+<alfredodelaiti@netscape.net> wrote:
+> Hi
+>
+> Thank you all for your responses.
+>
+> Devin, I appreciate the time and labor you do to revise the code.
+>
+> My previous letters maybe I can help you see where the problem and the date
+> you began.
+> I thought of a patch of this type:
+>
+> if (card != mycard) {
+>
+> "bad code for my card"}
+>
+> but unfortunately not so easy for me.
 
-Hmm, why should CONFIG_EXPERT automatically mean that the tuner modules
-should be customized? I'd think this shouldn't default to y even with
-EXPERT.
+Some initial analysis of the driver code I did last night suggests
+it's much more complicated than that (in addition to the HVR-1850
+support there was a bunch of refactoring done to the both the cx23885
+and cx25840 drivers).
 
-Not a biggie, just thought I'd point it out :)
+You can keep an eye on http://www.kernellabs.com/blog for updates.
 
-(as a sidenote, on Mageia kernels CONFIG_EXPERT is on... didn't check
-why, could be just historical reasons)
-
->  	help
->  	  This allows the user to deselect tuner drivers unnecessary
-> diff --git a/drivers/media/dvb/frontends/Kconfig b/drivers/media/dvb/frontends/Kconfig
-> index b98ebb2..6d3c2f7 100644
-> --- a/drivers/media/dvb/frontends/Kconfig
-> +++ b/drivers/media/dvb/frontends/Kconfig
-> @@ -1,6 +1,7 @@
->  config DVB_FE_CUSTOMISE
->  	bool "Customise the frontend modules to build"
->  	depends on DVB_CORE
-> +	depends on EXPERT
->  	default y if EXPERT
-
-Ditto.
-
->  	help
->  	  This allows the user to select/deselect frontend drivers for their
-
+Devin
 
 -- 
-Anssi Hannula
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
