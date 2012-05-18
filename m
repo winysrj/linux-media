@@ -1,43 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:38127 "EHLO mail.kapsi.fi"
+Received: from smtp205.alice.it ([82.57.200.101]:51426 "EHLO smtp205.alice.it"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754494Ab2ECWbA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 3 May 2012 18:31:00 -0400
-Message-ID: <a252589f928b0654e1a9cb0ef1abb239.squirrel@webmail.kapsi.fi>
-In-Reply-To: <4FA29D6F.3090507@interlinx.bc.ca>
-References: <4FA293AA.5000601@iki.fi>
-    <CAGoCfiw9h8ZqAnrdpg3J8rtnna=JiXj6JYL-gU58xS2HmMuT_w@mail.gmail.com>
-    <4FA29D6F.3090507@interlinx.bc.ca>
-Date: Fri, 4 May 2012 01:30:57 +0300
-From: "Antti Palosaari" <crope@iki.fi>
-To: "Brian J. Murrell" <brian@interlinx.bc.ca>
-Cc: linux-media@vger.kernel.org,
-	"Antti Palosaari" <antti.palosaari@iki.fi>
-MIME-Version: 1.0
+	id S1752529Ab2ERLiI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 18 May 2012 07:38:08 -0400
+Date: Fri, 18 May 2012 13:38:04 +0200
+From: Antonio Ospite <ospite@studenti.unina.it>
+To: Jean-Francois Moine <moinejf@free.fr>
+Cc: linux-media@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>
+Subject: Re: [PATCH 0/3] gspca: kinect cleanup, ov534 port to control
+ framework
+Message-Id: <20120518133804.2fefb23f0522a80fce3662d4@studenti.unina.it>
+In-Reply-To: <20120518090829.292bd671@tele>
+References: <1337204566-2212-1-git-send-email-ospite@studenti.unina.it>
+	<20120518090829.292bd671@tele>
+Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Subject: Re: common DVB USB issues we has currently
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-to 3.5.2012 17:59 Brian J. Murrell kirjoitti:
-> On 12-05-03 10:48 AM, Devin Heitmueller wrote:
->>
->> I doubt this is a dvb-usb problem, but rather something specific to
->> the realtek parts (suspend/resume does work with other devices that
->> rely on dvb-usb).
->
-> Dunno if it's at all relevant but I used to be able (circa 2.6.32
-> perhaps?  it's a bit foggy now) to suspend/resume with my HVR-950q
-> installed and modules loaded.  Now suspending with them loaded hangs the
-> suspend and they can't even reliably be rmmod/modprobed pre and post
-> suspend/resume.
->
-> I just wonder if that change in behavior is pointing at something.
+On Fri, 18 May 2012 09:08:29 +0200
+Jean-Francois Moine <moinejf@free.fr> wrote:
 
-That means HVR-950q is not "DVB-USB" device OR it does not have
-DVB-USB-firmware to load by the DVB-USB-driver.
+> On Wed, 16 May 2012 23:42:43 +0200
+> Antonio Ospite <ospite@studenti.unina.it> wrote:
+> 
+> > The second patch removes the dependency between auto gain and auto white
+> > balance, I'd like to hear Jean-Francois on this, the webcam (the ov772x
+> > sensor) is able to set the two parameters independently and the user can
+> > see the difference of either, is there a reason why we were preventing
+> > the user from doing so before?
+> 
+> Hi Antonio,
+> 
+> I added this dependency by the git commit 2d19a2c1186d86e3
+> on Thu, 12 Nov 2009 (the original patch was done under mercurial).
+> 
+> Looking in my archives, I retrieved this mail I have sent to you,
+> Max Thrun, kaswy, baptiste_lemarie, Martin Drake and Jim Paris:
 
-regards
-Antti
+[...]
+> > > > > *  * AWB doesn't have any effect?*
+> > > > >  
+> > > > I notice its effect if i start uvcview, enable auto gain, then
+> > > > enable awb.
+> > > >  
+> > > 
+> > > If there is a strict dependency between these two settings,
+> > > shouldn't the driver enforce it?  
 
+Here I made a wrong assumption at the time, the bug must have been
+somewhere else, forgive the "younger me" in that email :)
+
+> Otherwise, you are right, the ov7670 and ov7729 datasheets do not talk
+> about a possible AGC and AWB dependency...
+
+OK, thanks.
+
+Regards,
+   Antonio
+
+-- 
+Antonio Ospite
+http://ao2.it
+
+A: Because it messes up the order in which people normally read text.
+   See http://en.wikipedia.org/wiki/Posting_style
+Q: Why is top-posting such a bad thing?
