@@ -1,42 +1,31 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:44268 "EHLO
-	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758761Ab2EWJyt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 May 2012 05:54:49 -0400
-Subject: [PATCH 07/43] rc-core: initialize rc-core earlier if built-in
-To: linux-media@vger.kernel.org
-From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
-Cc: mchehab@redhat.com, jarod@redhat.com
-Date: Wed, 23 May 2012 11:42:37 +0200
-Message-ID: <20120523094237.14474.44105.stgit@felix.hardeman.nu>
-In-Reply-To: <20120523094157.14474.24367.stgit@felix.hardeman.nu>
-References: <20120523094157.14474.24367.stgit@felix.hardeman.nu>
+Received: from mail.kapsi.fi ([217.30.184.167]:49652 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758749Ab2ERUcK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 18 May 2012 16:32:10 -0400
+Message-ID: <4FB6B1C8.8050607@iki.fi>
+Date: Fri, 18 May 2012 23:32:08 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+To: Thomas Mair <thomas.mair86@googlemail.com>
+CC: linux-media@vger.kernel.org, pomidorabelisima@gmail.com,
+	Hans-Frieder Vogt <hfvogt@gmx.net>
+Subject: Re: [PATCH v5 5/5] rtl28xxu: support Terratec Noxon DAB/DAB+ stick
+References: <1> <1337366864-1256-1-git-send-email-thomas.mair86@googlemail.com> <1337366864-1256-6-git-send-email-thomas.mair86@googlemail.com>
+In-Reply-To: <1337366864-1256-6-git-send-email-thomas.mair86@googlemail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-rc-core is a subsystem so it should be registered earlier if built into the
-kernel.
+On 18.05.2012 21:47, Thomas Mair wrote:
+> Signed-off-by: Hans-Frieder Vogt<hfvogt@gmx.net>
+> Signed-off-by: Thomas Mair<thomas.mair86@googlemail.com>
 
-Signed-off-by: David Härdeman <david@hardeman.nu>
----
- drivers/media/rc/rc-main.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Acked-by: Antti Palosaari <crope@iki.fi>
+Reviewed-by: Antti Palosaari <crope@iki.fi>
 
-diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-index 0e50a84..6e02314 100644
---- a/drivers/media/rc/rc-main.c
-+++ b/drivers/media/rc/rc-main.c
-@@ -1302,7 +1302,7 @@ static void __exit rc_core_exit(void)
- 	rc_map_unregister(&empty_map);
- }
- 
--module_init(rc_core_init);
-+subsys_initcall(rc_core_init);
- module_exit(rc_core_exit);
- 
- int rc_core_debug;    /* ir_debug level (0,1,2) */
 
+Antti
+-- 
+http://palosaari.fi/
