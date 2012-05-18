@@ -1,43 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.telros.ru ([83.136.244.21]:62573 "EHLO mail.telros.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753950Ab2EKRG3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 May 2012 13:06:29 -0400
-Date: Fri, 11 May 2012 21:06:25 +0400
-From: volokh@telros.ru
-To: Ezequiel Garcia <elezegarcia@gmail.com>
-Cc: linux-media <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] staging: media: go7007: Adlink MPG24 board issues
-Message-ID: <20120511170625.GB16306@VPir.telros.lan>
-References: <1336714980-13460-1-git-send-email-volokh84@gmail.com>
- <4FAD1FAD.4020508@gmail.com>
- <20120511164907.GA16306@VPir.telros.lan>
- <CALF0-+Xc6cA9Myt05yWCFFnYMuynTQO8NNs5JEcD7Gc8bMw2WA@mail.gmail.com>
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:47476 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760392Ab2ERKiS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 18 May 2012 06:38:18 -0400
+Received: by bkcji2 with SMTP id ji2so2231115bkc.19
+        for <linux-media@vger.kernel.org>; Fri, 18 May 2012 03:38:16 -0700 (PDT)
+Message-ID: <4FB62695.3030909@gmail.com>
+Date: Fri, 18 May 2012 12:38:13 +0200
+From: poma <pomidorabelisima@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CALF0-+Xc6cA9Myt05yWCFFnYMuynTQO8NNs5JEcD7Gc8bMw2WA@mail.gmail.com>
+To: Antti Palosaari <crope@iki.fi>
+CC: Thomas Mair <thomas.mair86@googlemail.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH v4 1/5] rtl2832 ver. 0.4: removed signal statistics
+References: <1337206420-23810-1-git-send-email-thomas.mair86@googlemail.com> <1337206420-23810-2-git-send-email-thomas.mair86@googlemail.com> <4FB50909.7030101@iki.fi> <4FB59E03.7080800@gmail.com> <CAKZ=SG_mvvFae9ZE2H3ci_3HosLmQ1kihyGx6QCdyQGgQro52Q@mail.gmail.com> <4FB61328.3090707@gmail.com>
+In-Reply-To: <4FB61328.3090707@gmail.com>
+Content-Type: multipart/mixed;
+ boundary="------------090000020008020906040801"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, May 11, 2012 at 01:51:40PM -0300, Ezequiel Garcia wrote:
-> Hi,
-> 
-> Another one here, hope you don't mind ;)
-> 
-> >
-> >> This is minimal changes needed for start up go7007&wis2804 to work correctly
-> >>    in 3.4 branch
-> 
-> ^^^^^^^^^^^^^^^
-> These are minimal changes.....
-> 
-> ---
-> 
-> One question... shouldn't this changeset be splitted into shorter patches?
-> 
-> Good luck!
-> Ezequiel.
-Yes, should it.
-In next iteration i`ll learn how to do that.
+This is a multi-part message in MIME format.
+--------------090000020008020906040801
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+[â€¦]
+
+printk(KERN_ERR LOG_PREFIX": " f "\n" , ## arg)
+pr_err(LOG_PREFIX": " f "\n" , ## arg)
+
+printk(KERN_INFO LOG_PREFIX": " f "\n" , ## arg)
+pr_info(LOG_PREFIX": " f "\n" , ## arg)
+
+printk(KERN_WARNING LOG_PREFIX": " f "\n" , ## arg)
+pr_warn(LOG_PREFIX": " f "\n" , ## arg)
+
+Besides what 'checkpatch' suggest/output - Antti, is it a correct
+conversions?
+
+cheers,
+poma
+
+
+--------------090000020008020906040801
+Content-Type: text/x-patch;
+ name="rtl2832_priv.h-v2.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="rtl2832_priv.h-v2.diff"
+
+--- rtl2832_priv.h.orig	2012-05-18 02:02:48.561114101 +0200
++++ rtl2832_priv.h	2012-05-18 12:20:45.000000000 +0200
+@@ -29,13 +29,13 @@
+ #undef dbg
+ #define dbg(f, arg...) \
+ 	if (rtl2832_debug) \
+-		printk(KERN_INFO LOG_PREFIX": " f "\n" , ## arg)
++		pr_info(LOG_PREFIX": " f "\n" , ## arg)
+ #undef err
+-#define err(f, arg...)  printk(KERN_ERR	LOG_PREFIX": " f "\n" , ## arg)
++#define err(f, arg...) pr_err(LOG_PREFIX": " f "\n" , ## arg)
+ #undef info
+-#define info(f, arg...) printk(KERN_INFO LOG_PREFIX": " f "\n" , ## arg)
++#define info(f, arg...) pr_info(LOG_PREFIX": " f "\n" , ## arg)
+ #undef warn
+-#define warn(f, arg...) printk(KERN_WARNING LOG_PREFIX": " f "\n" , ## arg)
++#define warn(f, arg...) pr_warn(LOG_PREFIX": " f "\n" , ## arg)
+ 
+ struct rtl2832_priv {
+ 	struct i2c_adapter *i2c;
+
+--------------090000020008020906040801--
