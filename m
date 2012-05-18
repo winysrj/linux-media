@@ -1,168 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:42193 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757777Ab2ENU12 (ORCPT
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:46217 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S964842Ab2ERSsu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 May 2012 16:27:28 -0400
-From: <manjunatha_halli@ti.com>
-To: <linux-media@vger.kernel.org>
-CC: <linux-kernel@vger.kernel.org>, Manjunatha Halli <x0130808@ti.com>
-Subject: [PATCH V6 2/5] New control class and features for FM RX
-Date: Mon, 14 May 2012 15:27:21 -0500
-Message-ID: <1337027244-2595-3-git-send-email-manjunatha_halli@ti.com>
-In-Reply-To: <1337027244-2595-1-git-send-email-manjunatha_halli@ti.com>
-References: <1337027244-2595-1-git-send-email-manjunatha_halli@ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+	Fri, 18 May 2012 14:48:50 -0400
+Received: by mail-bk0-f46.google.com with SMTP id ji2so2596772bkc.19
+        for <linux-media@vger.kernel.org>; Fri, 18 May 2012 11:48:49 -0700 (PDT)
+From: Thomas Mair <thomas.mair86@googlemail.com>
+To: linux-media@vger.kernel.org
+Cc: crope@iki.fi, pomidorabelisima@gmail.com,
+	Thomas Mair <thomas.mair86@googlemail.com>,
+	Hans-Frieder Vogt <hfvogt@gmx.net>
+Subject: [PATCH v5 5/5] rtl28xxu: support Terratec Noxon DAB/DAB+ stick
+Date: Fri, 18 May 2012 20:47:44 +0200
+Message-Id: <1337366864-1256-6-git-send-email-thomas.mair86@googlemail.com>
+In-Reply-To: <1337366864-1256-1-git-send-email-thomas.mair86@googlemail.com>
+References: <1>
+ <1337366864-1256-1-git-send-email-thomas.mair86@googlemail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Manjunatha Halli <x0130808@ti.com>
-
-This patch creates new ctrl class for FM RX and adds new CID's for
-below FM features,
-      1) De-Emphasis filter mode
-      2) RDS Alternate Frequency switch
-
-Also this patch adds a field for band selection in struct v4l2_hw_freq_seek
-and adds new capability flags for all below FM bands
-	1) V4L2_TUNER_CAP_BAND_TYPE_DEFAULT -> Default Band
-	2) V4L2_TUNER_CAP_BAND_TYPE_EUROPE_US -> Europe/US Band
-	3) V4L2_TUNER_CAP_BAND_TYPE_JAPAN   -> Japan Band
-	4) V4L2_TUNER_CAP_BAND_TYPE_RUSSIAN -> Russian Band
-	5) V4L2_TUNER_CAP_BAND_TYPE_WEATHER -> Weather Band
-
-Signed-off-by: Manjunatha Halli <x0130808@ti.com>
+Signed-off-by: Hans-Frieder Vogt <hfvogt@gmx.net>
+Signed-off-by: Thomas Mair <thomas.mair86@googlemail.com>
 ---
- drivers/media/video/v4l2-ctrls.c |   17 ++++++++++++++---
- include/linux/videodev2.h        |   24 +++++++++++++++++++++++-
- 2 files changed, 37 insertions(+), 4 deletions(-)
+ drivers/media/dvb/dvb-usb/dvb-usb-ids.h |    1 +
+ drivers/media/dvb/dvb-usb/rtl28xxu.c    |   11 ++++++++++-
+ 2 files changed, 11 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
-index 18015c0..9d7608e 100644
---- a/drivers/media/video/v4l2-ctrls.c
-+++ b/drivers/media/video/v4l2-ctrls.c
-@@ -243,8 +243,8 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
- 		"Vivid",
- 		NULL
- 	};
--	static const char * const tune_preemphasis[] = {
--		"No Preemphasis",
-+	static const char * const tune_emphasis[] = {
-+		"None",
- 		"50 Microseconds",
- 		"75 Microseconds",
- 		NULL,
-@@ -413,7 +413,9 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
- 	case V4L2_CID_COLORFX:
- 		return colorfx;
- 	case V4L2_CID_TUNE_PREEMPHASIS:
--		return tune_preemphasis;
-+		return tune_emphasis;
-+	case V4L2_CID_TUNE_DEEMPHASIS:
-+		return tune_emphasis;
- 	case V4L2_CID_FLASH_LED_MODE:
- 		return flash_led_mode;
- 	case V4L2_CID_FLASH_STROBE_SOURCE:
-@@ -644,6 +646,12 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_JPEG_COMPRESSION_QUALITY:	return "Compression Quality";
- 	case V4L2_CID_JPEG_ACTIVE_MARKER:	return "Active Markers";
- 
-+	/* FM Radio Receiver control */
-+	/* Keep the order of the 'case's the same as in videodev2.h! */
-+	case V4L2_CID_FM_RX_CLASS:		return "FM Radio Receiver Controls";
-+	case V4L2_CID_RDS_AF_SWITCH:		return "RDS Alternate Frequency Switch";
-+	case V4L2_CID_TUNE_DEEMPHASIS:		return "De-Emphasis";
-+
- 	default:
- 		return NULL;
- 	}
-@@ -688,6 +696,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_MPEG_VIDEO_H264_8X8_TRANSFORM:
- 	case V4L2_CID_MPEG_VIDEO_H264_VUI_SAR_ENABLE:
- 	case V4L2_CID_MPEG_VIDEO_MPEG4_QPEL:
-+	case V4L2_CID_RDS_AF_SWITCH:
- 		*type = V4L2_CTRL_TYPE_BOOLEAN;
- 		*min = 0;
- 		*max = *step = 1;
-@@ -733,6 +742,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_MPEG_VIDEO_MPEG4_LEVEL:
- 	case V4L2_CID_MPEG_VIDEO_MPEG4_PROFILE:
- 	case V4L2_CID_JPEG_CHROMA_SUBSAMPLING:
-+	case V4L2_CID_TUNE_DEEMPHASIS:
- 		*type = V4L2_CTRL_TYPE_MENU;
- 		break;
- 	case V4L2_CID_RDS_TX_PS_NAME:
-@@ -745,6 +755,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_FM_TX_CLASS:
- 	case V4L2_CID_FLASH_CLASS:
- 	case V4L2_CID_JPEG_CLASS:
-+	case V4L2_CID_FM_RX_CLASS:
- 		*type = V4L2_CTRL_TYPE_CTRL_CLASS;
- 		/* You can neither read not write these */
- 		*flags |= V4L2_CTRL_FLAG_READ_ONLY | V4L2_CTRL_FLAG_WRITE_ONLY;
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index c9c9a46..91bc47b 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -1137,6 +1137,7 @@ struct v4l2_ext_controls {
- #define V4L2_CTRL_CLASS_FM_TX 0x009b0000	/* FM Modulator control class */
- #define V4L2_CTRL_CLASS_FLASH 0x009c0000	/* Camera flash controls */
- #define V4L2_CTRL_CLASS_JPEG 0x009d0000		/* JPEG-compression controls */
-+#define V4L2_CTRL_CLASS_FM_RX 0x009e0000	/* FM Receiver control class */
- 
- #define V4L2_CTRL_ID_MASK      	  (0x0fffffff)
- #define V4L2_CTRL_ID2CLASS(id)    ((id) & 0x0fff0000UL)
-@@ -1782,6 +1783,13 @@ enum v4l2_jpeg_chroma_subsampling {
- #define	V4L2_JPEG_ACTIVE_MARKER_DQT		(1 << 17)
- #define	V4L2_JPEG_ACTIVE_MARKER_DHT		(1 << 18)
- 
-+/* FM Receiver class control IDs */
-+#define V4L2_CID_FM_RX_CLASS_BASE		(V4L2_CTRL_CLASS_FM_RX | 0x900)
-+#define V4L2_CID_FM_RX_CLASS			(V4L2_CTRL_CLASS_FM_RX | 1)
-+
-+#define V4L2_CID_RDS_AF_SWITCH			(V4L2_CID_FM_RX_CLASS_BASE + 1)
-+#define V4L2_CID_TUNE_DEEMPHASIS		(V4L2_CID_FM_RX_CLASS_BASE + 2)
-+
- /*
-  *	T U N I N G
-  */
-@@ -1819,6 +1827,12 @@ struct v4l2_modulator {
- #define V4L2_TUNER_CAP_RDS		0x0080
- #define V4L2_TUNER_CAP_RDS_BLOCK_IO	0x0100
- #define V4L2_TUNER_CAP_RDS_CONTROLS	0x0200
-+#define V4L2_TUNER_CAP_BAND_TYPE_DEFAULT	0x00000000	/* Default band */
-+#define V4L2_TUNER_CAP_BAND_TYPE_EUROPE_US	0x00010000	/* Europe/US band */
-+#define V4L2_TUNER_CAP_BAND_TYPE_JAPAN		0x00020000	/* Japan band */
-+#define V4L2_TUNER_CAP_BAND_TYPE_RUSSIAN	0x00030000	/* Russian band */
-+#define V4L2_TUNER_CAP_BAND_TYPE_WEATHER	0x00040000	/* Weather band */
-+
- 
- /*  Flags for the 'rxsubchans' field */
- #define V4L2_TUNER_SUB_MONO		0x0001
-@@ -1843,13 +1857,21 @@ struct v4l2_frequency {
- 	__u32		      reserved[8];
+diff --git a/drivers/media/dvb/dvb-usb/dvb-usb-ids.h b/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
+index 360f6b7..26c4481 100644
+--- a/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
++++ b/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
+@@ -247,6 +247,7 @@
+ #define USB_PID_TERRATEC_H7_2				0x10a3
+ #define USB_PID_TERRATEC_T3				0x10a0
+ #define USB_PID_TERRATEC_T5				0x10a1
++#define USB_PID_NOXON_DAB_STICK				0x00b3
+ #define USB_PID_PINNACLE_EXPRESSCARD_320CX		0x022e
+ #define USB_PID_PINNACLE_PCTV2000E			0x022c
+ #define USB_PID_PINNACLE_PCTV_DVB_T_FLASH		0x0228
+diff --git a/drivers/media/dvb/dvb-usb/rtl28xxu.c b/drivers/media/dvb/dvb-usb/rtl28xxu.c
+index b2c8f67..0cac6fb 100644
+--- a/drivers/media/dvb/dvb-usb/rtl28xxu.c
++++ b/drivers/media/dvb/dvb-usb/rtl28xxu.c
+@@ -1153,6 +1153,7 @@ enum rtl28xxu_usb_table_entry {
+ 	RTL2831U_14AA_0161,
+ 	RTL2832U_0CCD_00A9,
+ 	RTL2832U_1F4D_B803,
++	RTL2832U_0CCD_00B3,
  };
  
-+
-+#define V4L2_FM_BAND__DEFAULT	0
-+#define V4L2_FM_BAND_EUROPE_US	1	/* 87.5 Mhz - 108 MHz */
-+#define V4L2_FM_BAND_JAPAN	2	/* 76 MHz - 90 MHz */
-+#define V4L2_FM_BAND_RUSSIAN	3	/* 65.8 MHz - 74 MHz */
-+#define V4L2_FM_BAND_WEATHER	4	/* 162.4 MHz - 162.55 MHz */
-+
- struct v4l2_hw_freq_seek {
- 	__u32		      tuner;
- 	enum v4l2_tuner_type  type;
- 	__u32		      seek_upward;
- 	__u32		      wrap_around;
- 	__u32		      spacing;
--	__u32		      reserved[7];
-+	__u32		      band;
-+	__u32		      reserved[6];
+ static struct usb_device_id rtl28xxu_table[] = {
+@@ -1169,6 +1170,8 @@ static struct usb_device_id rtl28xxu_table[] = {
+ 		USB_DEVICE(USB_VID_TERRATEC, USB_PID_TERRATEC_CINERGY_T_STICK_BLACK_REV1)},
+ 	[RTL2832U_1F4D_B803] = {
+ 		USB_DEVICE(USB_VID_GTEK, USB_PID_DELOCK_USB2_DVBT)},
++	[RTL2832U_0CCD_00B3] = {
++		USB_DEVICE(USB_VID_TERRATEC, USB_PID_NOXON_DAB_STICK)},
+ 	{} /* terminating entry */
  };
  
- /*
+@@ -1282,7 +1285,7 @@ static struct dvb_usb_device_properties rtl28xxu_properties[] = {
+ 
+ 		.i2c_algo = &rtl28xxu_i2c_algo,
+ 
+-		.num_device_descs = 2,
++		.num_device_descs = 3,
+ 		.devices = {
+ 			{
+ 				.name = "Terratec Cinergy T Stick Black",
+@@ -1296,6 +1299,12 @@ static struct dvb_usb_device_properties rtl28xxu_properties[] = {
+ 					&rtl28xxu_table[RTL2832U_1F4D_B803],
+ 				},
+ 			},
++			{
++				.name = "NOXON DAB/DAB+ USB dongle",
++				.warm_ids = {
++					&rtl28xxu_table[RTL2832U_0CCD_00B3],
++				},
++			},
+ 		}
+ 	},
+ 
 -- 
-1.7.4.1
+1.7.7.6
 
