@@ -1,57 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.186]:65482 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757556Ab2EHRDT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 May 2012 13:03:19 -0400
-Date: Tue, 8 May 2012 19:03:11 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-cc: Javier Martin <javier.martin@vista-silicon.com>,
-	Baruch Siach <baruch@tkos.co.il>
-Subject: [PATCH] V4L: mx2-camera: avoid overflowing 32-bits
-Message-ID: <Pine.LNX.4.64.1205081900540.7085@axis700.grange>
+Received: from mail.kapsi.fi ([217.30.184.167]:57417 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S966793Ab2ERTQi (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 18 May 2012 15:16:38 -0400
+Message-ID: <4FB6A014.8000706@iki.fi>
+Date: Fri, 18 May 2012 22:16:36 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Thomas Mair <thomas.mair86@googlemail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/5] rtl2832 ver 0.3: suport for RTL2832 demodulator revised
+ version
+References: <1336846109-30070-1-git-send-email-thomas.mair86@googlemail.com> <1336846109-30070-2-git-send-email-thomas.mair86@googlemail.com> <4FB061C2.90006@iki.fi>
+In-Reply-To: <4FB061C2.90006@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In mx2_camera_try_fmt(), when applying i.MX25 restrictions to frame sizes,
-the height is checked to be <= 0xffff. But later an integer multiplication
-height * 4 * 0x3ffff is performed, which will overflow even for bounded
-height values. This patch switches to using 64-bit multiplication and
-division to avoid overflowing.
+On 14.05.2012 04:37, Antti Palosaari wrote:
+>
+>> +    else {
+>> +        /* if_agc is read as a 10bit binary */
+>> +        ret = rtl2832_rd_demod_reg(priv, DVBT_IF_AGC_VAL,&if_agc_raw);
+>> +        if (ret)
+>> +            goto err;
+>> +
+>> +            if (if_agc_raw<  (1<<  9))
+>> +                if_agc = if_agc_raw;
+>> +            else
+>> +                if_agc = -(~(if_agc_raw-1)&  0x1ff);
+>> +
+>> +            *strength = 55 - if_agc / 182;
+>> +            *strength |= *strength<<  8;
+>
+> That calculation shows doubtful. Why not to scale directly to the
+> counter. Now you divide it by 182 and after that multiply 256 (<< 8
+> means same as multiply by 256). It is stupid calculation.
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
+I was playing with RTL2830 statistics and thus it is quite similar I 
+ended up looking that again. It is not so wrong as I commented. The idea 
+of whole calculation is to underflow unsigned 8 bit value to the 
+*strength. But it goes wrong here because you don't cast it as unsigned 
+char (this should be *strength = (u8) (55 - if_agc / 182);.
 
-Any objections anyone?
+I implemented that rather similarly for the RTL2830. But it is very poor 
+resolution for some reason... :-(
 
- drivers/media/video/mx2_camera.c |    5 +++--
- 1 files changed, 3 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
-index 18afaee..ae1420b 100644
---- a/drivers/media/video/mx2_camera.c
-+++ b/drivers/media/video/mx2_camera.c
-@@ -22,6 +22,7 @@
- #include <linux/gcd.h>
- #include <linux/interrupt.h>
- #include <linux/kernel.h>
-+#include <linux/math64.h>
- #include <linux/mm.h>
- #include <linux/moduleparam.h>
- #include <linux/time.h>
-@@ -1367,8 +1368,8 @@ static int mx2_camera_try_fmt(struct soc_camera_device *icd,
- 		/* Check against the CSIRXCNT limit */
- 		if (pix->sizeimage > 4 * 0x3ffff) {
- 			/* Adjust geometry, preserve aspect ratio */
--			unsigned int new_height = int_sqrt(4 * 0x3ffff *
--					pix->height / pix->bytesperline);
-+			unsigned int new_height = int_sqrt(div_u64(0x3ffffULL *
-+					4 * pix->height, pix->bytesperline));
- 			pix->width = new_height * pix->width / pix->height;
- 			pix->height = new_height;
- 			pix->bytesperline = soc_mbus_bytes_per_line(pix->width,
+regards
+Antti
 -- 
-1.7.2.5
-
+http://palosaari.fi/
