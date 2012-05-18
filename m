@@ -1,32 +1,28 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:57665 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1756628Ab2EJUZE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 May 2012 16:25:04 -0400
-Date: Thu, 10 May 2012 23:25:00 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	mchehab@redhat.com, remi@remlab.net,
-	laurent.pinchart@ideasonboard.com
-Subject: Re: [PATCH v3 1/1] v4l2: use __u32 rather than enums in ioctl()
- structs
-Message-ID: <20120510202500.GD3373@valkosipuli.retiisi.org.uk>
-References: <1336629727-11111-1-git-send-email-sakari.ailus@iki.fi>
- <201205101317.16101.hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:55723 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753489Ab2ERUbZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 18 May 2012 16:31:25 -0400
+Message-ID: <4FB6B19C.3080007@iki.fi>
+Date: Fri, 18 May 2012 23:31:24 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <201205101317.16101.hverkuil@xs4all.nl>
+To: Thomas Mair <thomas.mair86@googlemail.com>
+CC: linux-media@vger.kernel.org, pomidorabelisima@gmail.com
+Subject: Re: [PATCH v5 4/5] rtl28xxu: support Delock USB 2.0 DVB-T
+References: <1> <1337366864-1256-1-git-send-email-thomas.mair86@googlemail.com> <1337366864-1256-5-git-send-email-thomas.mair86@googlemail.com>
+In-Reply-To: <1337366864-1256-5-git-send-email-thomas.mair86@googlemail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, May 10, 2012 at 01:17:16PM +0200, Hans Verkuil wrote:
-> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+On 18.05.2012 21:47, Thomas Mair wrote:
+> Signed-off-by: Thomas Mair<thomas.mair86@googlemail.com>
 
-Thanks!!!
+Acked-by: Antti Palosaari <crope@iki.fi>
+Reviewed-by: Antti Palosaari <crope@iki.fi>
 
+Antti
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+http://palosaari.fi/
