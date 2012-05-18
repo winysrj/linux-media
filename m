@@ -1,46 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:54318 "EHLO
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:51417 "EHLO
 	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754769Ab2E2VIX (ORCPT
+	with ESMTP id S967003Ab2ERTdB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 May 2012 17:08:23 -0400
-Received: by bkcji2 with SMTP id ji2so3492212bkc.19
-        for <linux-media@vger.kernel.org>; Tue, 29 May 2012 14:08:22 -0700 (PDT)
-From: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
-To: linux-media@vger.kernel.org
-Cc: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
-Subject: [PATCH] [media] em28xx: Show a warning if the board does not support remote controls
-Date: Tue, 29 May 2012 23:08:12 +0200
-Message-Id: <1338325692-19684-1-git-send-email-martin.blumenstingl@googlemail.com>
-In-Reply-To: <1338154013-5124-3-git-send-email-martin.blumenstingl@googlemail.com>
-References: <1338154013-5124-3-git-send-email-martin.blumenstingl@googlemail.com>
+	Fri, 18 May 2012 15:33:01 -0400
+Received: by bkcji2 with SMTP id ji2so2627598bkc.19
+        for <linux-media@vger.kernel.org>; Fri, 18 May 2012 12:33:00 -0700 (PDT)
+Message-ID: <4FB6A3E9.3000804@gmail.com>
+Date: Fri, 18 May 2012 21:32:57 +0200
+From: Sylwester Nawrocki <snjw23@gmail.com>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>
+Subject: Re: [GIT PULL FOR v3.5] Fix gspca compile error if CONFIG_PM is not
+ set
+References: <201205181343.46414.hverkuil@xs4all.nl>
+In-Reply-To: <201205181343.46414.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This simply shows a little warning if the board does not have remote
-control support. This should make it easier for users to see if they
-have misconfigured their system or if the driver simply does not have
-rc-support for their card (yet).
+Hi Hans,
 
-Signed-off-by: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
----
- drivers/media/video/em28xx/em28xx-input.c |    3 +++
- 1 file changed, 3 insertions(+)
+On 05/18/2012 01:43 PM, Hans Verkuil wrote:
+> The field 'frozen' is only there if CONFIG_PM is set, so don't use it
+> directly, always check for CONFIG_PM first.
 
-diff --git a/drivers/media/video/em28xx/em28xx-input.c b/drivers/media/video/em28xx/em28xx-input.c
-index fce5f76..d94b434 100644
---- a/drivers/media/video/em28xx/em28xx-input.c
-+++ b/drivers/media/video/em28xx/em28xx-input.c
-@@ -527,6 +527,9 @@ static int em28xx_ir_init(struct em28xx *dev)
+If it is safe to assume that for !CONFIG_PM the field 'frozen' is always
+zero, wouldn't it be better to create a macro in a header file, something 
+like:
+
+#ifdef CONFIG_PM
+#define gspca_pm_frozen(__dev) ((__dev)->frozen)
+#else
+#define gspca_pm_frozen(__dev) (0)
+#endif
+
+and use it instead ?
+
+
+diff --git a/drivers/media/video/gspca/sq905.c b/drivers/media/video/gspca/sq905.c
+index a144ce7..04f5465 100644 (file)
+--- a/drivers/media/video/gspca/sq905.c
++++ b/drivers/media/video/gspca/sq905.c
+@@ -232,7 +232,11 @@ static void sq905_dostream(struct work_struct *work)
+        frame_sz = gspca_dev->cam.cam_mode[gspca_dev->curr_mode].sizeimage
+                        + FRAME_HEADER_LEN;
  
- 	if (dev->board.ir_codes == NULL) {
- 		/* No remote control support */
-+		printk("No remote control support for em28xx "
-+			"card %s (model %d) available.\n",
-+			dev->name, dev->model);
- 		return 0;
- 	}
+-       while (!gspca_dev->frozen && gspca_dev->dev && gspca_dev->streaming) {
++       while (!gspca_pm_frozen(gspca_dev) && gspca_dev->dev && gspca_dev->streaming) {
+
+
+I really hate #ifdefs ... :-)
+
+
+--
+Regards,
+Sylwester
  
--- 
-1.7.10.2
+> Regards,
+> 
+> 	Hans
+> 
+> The following changes since commit 61282daf505f3c8def09332ca337ac257b792029:
+> 
+>    [media] V4L2: mt9t112: fixup JPEG initialization workaround (2012-05-15 16:15:35 -0300)
+> 
+> are available in the git repository at:
+> 
+>    git://linuxtv.org/hverkuil/media_tree.git frozenfix
+> 
+> for you to fetch changes up to 4ba342204948e9df49dc1f639ffdbfe49579e626:
+> 
+>    gspca: the field 'frozen' is under CONFIG_PM (2012-05-18 13:40:42 +0200)
+> 
+> ----------------------------------------------------------------
+> Hans Verkuil (1):
+>        gspca: the field 'frozen' is under CONFIG_PM
+> 
+>   drivers/media/video/gspca/finepix.c   |   20 +++++++++++++++-----
+>   drivers/media/video/gspca/jl2005bcd.c |    6 +++++-
+>   drivers/media/video/gspca/sq905.c     |    6 +++++-
+>   drivers/media/video/gspca/sq905c.c    |    6 +++++-
+>   drivers/media/video/gspca/vicam.c     |    6 +++++-
+>   drivers/media/video/gspca/zc3xx.c     |    7 +++++--
+>   6 files changed, 40 insertions(+), 11 deletions(-)
 
