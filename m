@@ -1,196 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:3210 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753896Ab2EDNan (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 May 2012 09:30:43 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail-we0-f174.google.com ([74.125.82.174]:64529 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S967427Ab2ERVIM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 18 May 2012 17:08:12 -0400
+Received: by weyu7 with SMTP id u7so2057432wey.19
+        for <linux-media@vger.kernel.org>; Fri, 18 May 2012 14:08:11 -0700 (PDT)
+From: Gregor Jasny <gjasny@googlemail.com>
 To: linux-media@vger.kernel.org
-Cc: Joonyoung Shim <jy0922.shim@samsung.com>,
-	Tobias Lorenz <tobias.lorenz@gmx.net>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 3/4] radio-si470x-common.c: remove unnecessary kernel log spam.
-Date: Fri,  4 May 2012 15:30:31 +0200
-Message-Id: <6bc768e0c1d1664d96f8a051324c9fc1ef71ff8c.1336137768.git.hans.verkuil@cisco.com>
-In-Reply-To: <1336138232-17528-1-git-send-email-hverkuil@xs4all.nl>
-References: <1336138232-17528-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <e9c50530e84fcff80f9928f679eb1d02ba8c349d.1336137768.git.hans.verkuil@cisco.com>
-References: <e9c50530e84fcff80f9928f679eb1d02ba8c349d.1336137768.git.hans.verkuil@cisco.com>
+Cc: Gregor Jasny <gjasny@googlemail.com>
+Subject: [Fixed PATCH] libdvbv5: constify and hide dvb_sat_lnb
+Date: Fri, 18 May 2012 23:07:52 +0200
+Message-Id: <1337375272-15696-1-git-send-email-gjasny@googlemail.com>
+In-Reply-To: <1337374847-12771-1-git-send-email-gjasny@googlemail.com>
+References: <1337374847-12771-1-git-send-email-gjasny@googlemail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
-
-There is no need to report an error in the log, you are already returning
-that error to userspace after all.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Gregor Jasny <gjasny@googlemail.com>
 ---
- drivers/media/radio/si470x/radio-si470x-common.c |   78 +++++-----------------
- 1 file changed, 17 insertions(+), 61 deletions(-)
+ lib/include/dvb-fe.h  |    2 +-
+ lib/include/libsat.h  |    2 +-
+ lib/libdvbv5/libsat.c |    4 ++--
+ 3 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/radio/si470x/radio-si470x-common.c b/drivers/media/radio/si470x/radio-si470x-common.c
-index e70badf..b9a44d4 100644
---- a/drivers/media/radio/si470x/radio-si470x-common.c
-+++ b/drivers/media/radio/si470x/radio-si470x-common.c
-@@ -327,7 +327,7 @@ static int si470x_set_seek(struct si470x_device *radio,
- 		radio->registers[POWERCFG] &= ~POWERCFG_SEEKUP;
- 	retval = si470x_set_register(radio, POWERCFG);
- 	if (retval < 0)
--		goto done;
-+		return retval;
+diff --git a/lib/include/dvb-fe.h b/lib/include/dvb-fe.h
+index 872a558..062edd8 100644
+--- a/lib/include/dvb-fe.h
++++ b/lib/include/dvb-fe.h
+@@ -76,7 +76,7 @@ struct dvb_v5_fe_parms {
+ 	struct dvb_v5_stats		stats;
  
- 	/* currently I2C driver only uses interrupt way to seek */
- 	if (radio->stci_enabled) {
-@@ -355,20 +355,15 @@ static int si470x_set_seek(struct si470x_device *radio,
- 	if (radio->registers[STATUSRSSI] & STATUSRSSI_SF)
- 		dev_warn(&radio->videodev.dev,
- 			"seek failed / band limit reached\n");
--	if (timed_out)
--		dev_warn(&radio->videodev.dev,
--			"seek timed out after %u ms\n", seek_timeout);
+ 	/* Satellite specific stuff, specified by the library client */
+-	struct dvb_sat_lnb       	*lnb;
++	const struct dvb_sat_lnb       	*lnb;
+ 	int				sat_number;
+ 	unsigned			freq_bpf;
  
- stop:
- 	/* stop seeking */
- 	radio->registers[POWERCFG] &= ~POWERCFG_SEEK;
- 	retval = si470x_set_register(radio, POWERCFG);
+diff --git a/lib/include/libsat.h b/lib/include/libsat.h
+index 2e74a11..57e5511 100644
+--- a/lib/include/libsat.h
++++ b/lib/include/libsat.h
+@@ -47,7 +47,7 @@ extern "C" {
+ int dvb_sat_search_lnb(const char *name);
+ int print_lnb(int i);
+ void print_all_lnb(void);
+-struct dvb_sat_lnb *dvb_sat_get_lnb(int i);
++const struct dvb_sat_lnb *dvb_sat_get_lnb(int i);
+ int dvb_sat_set_parms(struct dvb_v5_fe_parms *parms);
+ int dvb_sat_get_parms(struct dvb_v5_fe_parms *parms);
  
--done:
- 	/* try again, if timed out */
--	if ((retval == 0) && timed_out)
--		retval = -EAGAIN;
--
-+	if (retval == 0 && timed_out)
-+		return -EAGAIN;
- 	return retval;
- }
+diff --git a/lib/libdvbv5/libsat.c b/lib/libdvbv5/libsat.c
+index 126dc4e..34268c2 100644
+--- a/lib/libdvbv5/libsat.c
++++ b/lib/libdvbv5/libsat.c
+@@ -25,7 +25,7 @@
+ #include "dvb-fe.h"
+ #include "dvb-v5-std.h"
  
-@@ -589,16 +584,14 @@ static int si470x_vidioc_g_tuner(struct file *file, void *priv,
- 		struct v4l2_tuner *tuner)
+-struct dvb_sat_lnb lnb[] = {
++static const struct dvb_sat_lnb lnb[] = {
+ 	{
+ 		.name = "Europe",
+ 		.alias = "UNIVERSAL",
+@@ -347,7 +347,7 @@ static int dvbsat_diseqc_set_input(struct dvb_v5_fe_parms *parms, uint16_t t)
+ 
+ int dvb_sat_set_parms(struct dvb_v5_fe_parms *parms)
  {
- 	struct si470x_device *radio = video_drvdata(file);
--	int retval = 0;
-+	int retval;
- 
--	if (tuner->index != 0) {
--		retval = -EINVAL;
--		goto done;
--	}
-+	if (tuner->index != 0)
-+		return -EINVAL;
- 
- 	retval = si470x_get_register(radio, STATUSRSSI);
- 	if (retval < 0)
--		goto done;
-+		return retval;
- 
- 	/* driver constants */
- 	strcpy(tuner->name, "FM");
-@@ -653,10 +646,6 @@ static int si470x_vidioc_g_tuner(struct file *file, void *priv,
- 	/* AFCRL does only indicate that freq. differs, not if too low/high */
- 	tuner->afc = (radio->registers[STATUSRSSI] & STATUSRSSI_AFCRL) ? 1 : 0;
- 
--done:
--	if (retval < 0)
--		dev_warn(&radio->videodev.dev,
--			"get tuner failed with %d\n", retval);
- 	return retval;
- }
- 
-@@ -668,7 +657,6 @@ static int si470x_vidioc_s_tuner(struct file *file, void *priv,
- 		struct v4l2_tuner *tuner)
- {
- 	struct si470x_device *radio = video_drvdata(file);
--	int retval = 0;
- 
- 	if (tuner->index != 0)
- 		return -EINVAL;
-@@ -684,12 +672,7 @@ static int si470x_vidioc_s_tuner(struct file *file, void *priv,
- 		break;
- 	}
- 
--	retval = si470x_set_register(radio, POWERCFG);
--
--	if (retval < 0)
--		dev_warn(&radio->videodev.dev,
--			"set tuner failed with %d\n", retval);
--	return retval;
-+	return si470x_set_register(radio, POWERCFG);
- }
- 
- 
-@@ -700,21 +683,12 @@ static int si470x_vidioc_g_frequency(struct file *file, void *priv,
- 		struct v4l2_frequency *freq)
- {
- 	struct si470x_device *radio = video_drvdata(file);
--	int retval = 0;
- 
--	if (freq->tuner != 0) {
--		retval = -EINVAL;
--		goto done;
--	}
-+	if (freq->tuner != 0)
-+		return -EINVAL;
- 
- 	freq->type = V4L2_TUNER_RADIO;
--	retval = si470x_get_freq(radio, &freq->frequency);
--
--done:
--	if (retval < 0)
--		dev_warn(&radio->videodev.dev,
--			"get frequency failed with %d\n", retval);
--	return retval;
-+	return si470x_get_freq(radio, &freq->frequency);
- }
- 
- 
-@@ -725,20 +699,11 @@ static int si470x_vidioc_s_frequency(struct file *file, void *priv,
- 		struct v4l2_frequency *freq)
- {
- 	struct si470x_device *radio = video_drvdata(file);
--	int retval = 0;
--
--	if (freq->tuner != 0) {
--		retval = -EINVAL;
--		goto done;
--	}
- 
--	retval = si470x_set_freq(radio, freq->frequency);
-+	if (freq->tuner != 0)
-+		return -EINVAL;
- 
--done:
--	if (retval < 0)
--		dev_warn(&radio->videodev.dev,
--			"set frequency failed with %d\n", retval);
--	return retval;
-+	return si470x_set_freq(radio, freq->frequency);
- }
- 
- 
-@@ -749,20 +714,11 @@ static int si470x_vidioc_s_hw_freq_seek(struct file *file, void *priv,
- 		struct v4l2_hw_freq_seek *seek)
- {
- 	struct si470x_device *radio = video_drvdata(file);
--	int retval = 0;
--
--	if (seek->tuner != 0) {
--		retval = -EINVAL;
--		goto done;
--	}
- 
--	retval = si470x_set_seek(radio, seek->wrap_around, seek->seek_upward);
-+	if (seek->tuner != 0)
-+		return -EINVAL;
- 
--done:
--	if (retval < 0)
--		dev_warn(&radio->videodev.dev,
--			"set hardware frequency seek failed with %d\n", retval);
--	return retval;
-+	return si470x_set_seek(radio, seek->wrap_around, seek->seek_upward);
- }
- 
- const struct v4l2_ctrl_ops si470x_ctrl_ops = {
+-	struct dvb_sat_lnb *lnb = parms->lnb;
++	const struct dvb_sat_lnb *lnb = parms->lnb;
+         enum dvb_sat_polarization pol;
+         dvb_fe_retrieve_parm(parms, DTV_POLARIZATION,& pol);
+ 	uint32_t freq;
 -- 
 1.7.10
 
