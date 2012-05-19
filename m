@@ -1,291 +1,399 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:39950 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757676Ab2EGTUi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 7 May 2012 15:20:38 -0400
-From: Hans de Goede <hdegoede@redhat.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: hverkuil@xs4all.nl, Hans de Goede <hdegoede@redhat.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 11/23] gspca_zc3xx: Always automatically adjust BRC as needed
-Date: Mon,  7 May 2012 21:01:22 +0200
-Message-Id: <1336417294-4566-12-git-send-email-hdegoede@redhat.com>
-In-Reply-To: <1336417294-4566-1-git-send-email-hdegoede@redhat.com>
-References: <1336417294-4566-1-git-send-email-hdegoede@redhat.com>
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:55647 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756165Ab2ESKTv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 19 May 2012 06:19:51 -0400
+Received: by wibhj8 with SMTP id hj8so885809wib.1
+        for <linux-media@vger.kernel.org>; Sat, 19 May 2012 03:19:50 -0700 (PDT)
+From: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
+Subject: [PATCH 4/5] log functions for dvb-fe and libsat
+Date: Sat, 19 May 2012 12:18:51 +0200
+Message-Id: <1337422732-2001-4-git-send-email-neolynx@gmail.com>
+In-Reply-To: <1337422732-2001-1-git-send-email-neolynx@gmail.com>
+References: <1337422732-2001-1-git-send-email-neolynx@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Always automatically adjust the Bit Rate Control setting as needed, independent
-of the sensor type. BRC is needed to not run out of bandwidth with higher
-quality settings independent of the sensor.
-
-Also only automatically adjust BRC, and don't adjust the JPEG quality control
-automatically, as that is not needed and leads to ugly flashes when it is
-changed. Note that before this patch-set the quality was never changed
-either due to the bugs in the quality handling fixed in previous patches in
-this set.
-
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/video/gspca/zc3xx.c |  159 +++++++++++++------------------------
- 1 file changed, 53 insertions(+), 106 deletions(-)
+ lib/include/dvb-fe.h  |   19 +++++++++
+ lib/libdvbv5/dvb-fe.c |   99 +++++++++++++++++++++++++++++++------------------
+ lib/libdvbv5/libsat.c |    4 +-
+ 3 files changed, 84 insertions(+), 38 deletions(-)
 
-diff --git a/drivers/media/video/gspca/zc3xx.c b/drivers/media/video/gspca/zc3xx.c
-index f770676..18ef68d 100644
---- a/drivers/media/video/gspca/zc3xx.c
-+++ b/drivers/media/video/gspca/zc3xx.c
-@@ -5921,22 +5921,8 @@ static void setexposure(struct gspca_dev *gspca_dev)
- static void setquality(struct gspca_dev *gspca_dev)
- {
- 	struct sd *sd = (struct sd *) gspca_dev;
--	s8 reg07;
--
- 	jpeg_set_qual(sd->jpeg_hdr, jpeg_qual[sd->reg08 >> 1]);
--
--	reg07 = 0;
--	switch (sd->sensor) {
--	case SENSOR_OV7620:
--		reg07 = 0x30;
--		break;
--	case SENSOR_HV7131R:
--	case SENSOR_PAS202B:
--		return;			/* done by work queue */
--	}
- 	reg_w(gspca_dev, sd->reg08, ZC3XX_R008_CLOCKSETTING);
--	if (reg07 != 0)
--		reg_w(gspca_dev, reg07, 0x0007);
- }
+diff --git a/lib/include/dvb-fe.h b/lib/include/dvb-fe.h
+index b4c5279..3fdae4f 100644
+--- a/lib/include/dvb-fe.h
++++ b/lib/include/dvb-fe.h
+@@ -32,6 +32,16 @@
+ #include "dvb-frontend.h"
+ #include "libsat.h"
  
- /* Matches the sensor's internal frame rate to the lighting frequency.
-@@ -6070,109 +6056,62 @@ static void setautogain(struct gspca_dev *gspca_dev)
- 	reg_w(gspca_dev, autoval, 0x0180);
- }
- 
--/* update the transfer parameters */
--/* This function is executed from a work queue. */
--/* The exact use of the bridge registers 07 and 08 is not known.
-- * The following algorithm has been adapted from ms-win traces */
-+/*
-+ * Update the transfer parameters.
-+ * This function is executed from a work queue.
-+ */
- static void transfer_update(struct work_struct *work)
- {
- 	struct sd *sd = container_of(work, struct sd, work);
- 	struct gspca_dev *gspca_dev = &sd->gspca_dev;
- 	int change, good;
--	u8 reg07, qual, reg11;
-+	u8 reg07, reg11;
- 
--	/* synchronize with the main driver and initialize the registers */
--	mutex_lock(&gspca_dev->usb_lock);
--	reg07 = 0;					/* max */
--	qual = sd->reg08 >> 1;
--	reg_w(gspca_dev, reg07, 0x0007);
--	reg_w(gspca_dev, sd->reg08, ZC3XX_R008_CLOCKSETTING);
--	mutex_unlock(&gspca_dev->usb_lock);
-+	/* reg07 gets set to 0 by sd_start before starting us */
-+	reg07 = 0;
- 
- 	good = 0;
- 	for (;;) {
- 		msleep(100);
- 
--		/* get the transfer status */
--		/* the bit 0 of the bridge register 11 indicates overflow */
- 		mutex_lock(&gspca_dev->usb_lock);
- 		if (!gspca_dev->present || !gspca_dev->streaming)
- 			goto err;
++#define dvb_log(fmt, arg...) do {\
++  parms->logfunc(fmt, ##arg); \
++   } while (0)
++#define dvb_logerr(fmt, arg...) do {\
++  parms->logerrfunc(fmt, ##arg); \
++  } while (0)
++#define dvb_perror(msg) do {\
++  parms->logerrfunc("%s: %s", msg, strerror(errno)); \
++  } while (0)
 +
-+		/* Bit 0 of register 11 indicates FIFO overflow */
-+		gspca_dev->usb_err = 0;
- 		reg11 = reg_r(gspca_dev, 0x0011);
--		if (gspca_dev->usb_err < 0
--		 || !gspca_dev->present || !gspca_dev->streaming)
-+		if (gspca_dev->usb_err)
- 			goto err;
+ #define ARRAY_SIZE(x)	(sizeof(x)/sizeof((x)[0]))
  
- 		change = reg11 & 0x01;
- 		if (change) {				/* overflow */
--			switch (reg07) {
--			case 0:				/* max */
--				reg07 = sd->sensor == SENSOR_HV7131R
--						? 0x30 : 0x32;
--				if (qual != 0) {
--					change = 3;
--					qual--;
--				}
--				break;
--			case 0x32:
--				reg07 -= 4;
--				break;
--			default:
--				reg07 -= 2;
--				break;
--			case 2:
--				change = 0;		/* already min */
--				break;
--			}
- 			good = 0;
+ #define MAX_DELIVERY_SYSTEMS	20
+@@ -61,6 +71,8 @@ struct dvb_v5_stats {
+ 	struct dtv_property		prop[DTV_MAX_STATS];
+ };
+ 
++typedef void (*dvb_logfunc)(const char *fmt, ...);
 +
-+			if (reg07 == 0) /* Bit Rate Control not enabled? */
-+				reg07 = 0x32; /* Allow 98 bytes / unit */
-+			else if (reg07 > 2)
-+				reg07 -= 2; /* Decrease allowed bytes / unit */
-+			else
-+				change = 0;
- 		} else {				/* no overflow */
--			if (reg07 != 0) {		/* if not max */
--				good++;
--				if (good >= 10) {
--					good = 0;
-+			good++;
-+			if (good >= 10) {
-+				good = 0;
-+				if (reg07) { /* BRC enabled? */
- 					change = 1;
--					reg07 += 2;
--					switch (reg07) {
--					case 0x30:
--						if (sd->sensor == SENSOR_PAS202B)
--							reg07 += 2;
--						break;
--					case 0x32:
--					case 0x34:
-+					if (reg07 < 0x32)
-+						reg07 += 2;
-+					else
- 						reg07 = 0;
--						break;
--					}
--				}
--			} else {			/* reg07 max */
--				if (qual < sizeof jpeg_qual - 1) {
--					good++;
--					if (good > 10) {
--						qual++;
--						change = 2;
--					}
- 				}
- 			}
- 		}
- 		if (change) {
--			if (change & 1) {
--				reg_w(gspca_dev, reg07, 0x0007);
--				if (gspca_dev->usb_err < 0
--				 || !gspca_dev->present
--				 || !gspca_dev->streaming)
--					goto err;
--			}
--			if (change & 2) {
--				sd->reg08 = (qual << 1) | 1;
--				reg_w(gspca_dev, sd->reg08,
--						ZC3XX_R008_CLOCKSETTING);
--				if (gspca_dev->usb_err < 0
--				 || !gspca_dev->present
--				 || !gspca_dev->streaming)
--					goto err;
--				sd->ctrls[QUALITY].val = jpeg_qual[qual];
--				jpeg_set_qual(sd->jpeg_hdr,
--						jpeg_qual[qual]);
--			}
-+			gspca_dev->usb_err = 0;
-+			reg_w(gspca_dev, reg07, 0x0007);
-+			if (gspca_dev->usb_err)
-+				goto err;
- 		}
- 		mutex_unlock(&gspca_dev->usb_lock);
- 	}
-@@ -6720,14 +6659,10 @@ static int sd_init(struct gspca_dev *gspca_dev)
+ struct dvb_v5_fe_parms {
+ 	int				fd;
+ 	char				*fname;
+@@ -85,6 +97,9 @@ struct dvb_v5_fe_parms {
+ 	int				high_band;
+ 	unsigned			diseqc_wait;
+ 	unsigned			freq_offset;
++
++        dvb_logfunc                     logfunc;
++        dvb_logfunc                     logerrfunc;
+ };
  
- 	switch (sd->sensor) {
- 	case SENSOR_HV7131R:
--		gspca_dev->ctrl_dis = (1 << QUALITY);
- 		break;
- 	case SENSOR_OV7630C:
- 		gspca_dev->ctrl_dis = (1 << LIGHTFREQ) | (1 << EXPOSURE);
- 		break;
--	case SENSOR_PAS202B:
--		gspca_dev->ctrl_dis = (1 << QUALITY) | (1 << EXPOSURE);
--		break;
- 	default:
- 		gspca_dev->ctrl_dis = (1 << EXPOSURE);
- 		break;
-@@ -6742,6 +6677,13 @@ static int sd_init(struct gspca_dev *gspca_dev)
- 	return gspca_dev->usb_err;
- }
  
-+static int sd_pre_start(struct gspca_dev *gspca_dev)
+@@ -96,6 +111,10 @@ extern "C" {
+ 
+ struct dvb_v5_fe_parms *dvb_fe_open(int adapter, int frontend,
+ 				    unsigned verbose, unsigned use_legacy_call);
++struct dvb_v5_fe_parms *dvb_fe_open2(int adapter, int frontend,
++				    unsigned verbose, unsigned use_legacy_call,
++                                    dvb_logfunc logfunc,
++                                    dvb_logfunc logerrfunc);
+ void dvb_fe_close(struct dvb_v5_fe_parms *parms);
+ 
+ /* Get/set delivery system parameters */
+diff --git a/lib/libdvbv5/dvb-fe.c b/lib/libdvbv5/dvb-fe.c
+index 8f27e1a..655814a 100644
+--- a/lib/libdvbv5/dvb-fe.c
++++ b/lib/libdvbv5/dvb-fe.c
+@@ -24,7 +24,27 @@
+ #include <stddef.h>
+ #include <stdio.h>
+ #include <unistd.h>
++#include <stdarg.h>
+ 
++void dvb_default_log(const char *fmt, ...)
 +{
-+	struct sd *sd = (struct sd *) gspca_dev;
-+	gspca_dev->cam.needs_full_bandwidth = (sd->reg08 >= 4) ? 1 : 0;
-+	return 0;
++  va_list ap;
++  va_start( ap, fmt );
++  printf( "libdvbv5: " );
++  vprintf( fmt, ap );
++  printf( "\n" );
++  va_end( ap );
 +}
 +
- static int sd_start(struct gspca_dev *gspca_dev)
++void dvb_default_logerr(const char *fmt, ...)
++{
++  va_list ap;
++  va_start( ap, fmt );
++  fprintf (stderr, "libdvbv5: ");
++  vfprintf( stderr, fmt, ap );
++  fprintf (stderr, "\n");
++  va_end( ap );
++}
+ 
+ static void dvb_v5_free(struct dvb_v5_fe_parms *parms)
  {
- 	struct sd *sd = (struct sd *) gspca_dev;
-@@ -6867,6 +6809,8 @@ static int sd_start(struct gspca_dev *gspca_dev)
- 		break;
+@@ -37,6 +57,14 @@ static void dvb_v5_free(struct dvb_v5_fe_parms *parms)
+ struct dvb_v5_fe_parms *dvb_fe_open(int adapter, int frontend, unsigned verbose,
+ 				    unsigned use_legacy_call)
+ {
++  return dvb_fe_open2(adapter, frontend, verbose, use_legacy_call,
++                      dvb_default_log, dvb_default_logerr);
++}
++
++struct dvb_v5_fe_parms *dvb_fe_open2(int adapter, int frontend, unsigned verbose,
++				    unsigned use_legacy_call, dvb_logfunc logfunc,
++                                    dvb_logfunc logerrfunc)
++{
+ 	int fd, i;
+ 	char *fname;
+ 	struct dtv_properties dtv_prop;
+@@ -44,18 +72,18 @@ struct dvb_v5_fe_parms *dvb_fe_open(int adapter, int frontend, unsigned verbose,
+ 
+ 	asprintf(&fname, "/dev/dvb/adapter%i/frontend%i", adapter, frontend);
+ 	if (!fname) {
+-		perror("fname malloc");
++		logerrfunc("fname calloc: %s", strerror(errno));
+ 		return NULL;
  	}
- 	setquality(gspca_dev);
-+	/* Start with BRC disabled, transfer_update will enable it if needed */
-+	reg_w(gspca_dev, 0x00, 0x0007);
- 	setlightfreq(gspca_dev);
  
- 	switch (sd->sensor) {
-@@ -6904,19 +6848,14 @@ static int sd_start(struct gspca_dev *gspca_dev)
+ 	fd = open(fname, O_RDWR, 0);
+ 	if (fd == -1) {
+-		fprintf(stderr, "%s while opening %s\n", strerror(errno), fname);
++		logerrfunc("%s while opening %s", strerror(errno), fname);
+ 		return NULL;
+ 	}
+ 	parms = calloc(sizeof(*parms), 1);
+ 	if (!parms) {
+-		perror("parms calloc");
++		logerrfunc("parms calloc: %s", strerror(errno));
+ 		close(fd);
+ 		return NULL;
+ 	}
+@@ -63,9 +91,11 @@ struct dvb_v5_fe_parms *dvb_fe_open(int adapter, int frontend, unsigned verbose,
+ 	parms->verbose = verbose;
+ 	parms->fd = fd;
+ 	parms->sat_number = -1;
++        parms->logfunc = logfunc;
++        parms->logerrfunc = logerrfunc;
  
- 	setautogain(gspca_dev);
+ 	if (ioctl(fd, FE_GET_INFO, &parms->info) == -1) {
+-		perror("FE_GET_INFO");
++		dvb_perror("FE_GET_INFO");
+ 		dvb_v5_free(parms);
+ 		close(fd);
+ 		return NULL;
+@@ -74,13 +104,12 @@ struct dvb_v5_fe_parms *dvb_fe_open(int adapter, int frontend, unsigned verbose,
+ 	if (verbose) {
+ 		fe_caps_t caps = parms->info.caps;
  
--	/* start the transfer update thread if needed */
--	if (gspca_dev->usb_err >= 0) {
--		switch (sd->sensor) {
--		case SENSOR_HV7131R:
--		case SENSOR_PAS202B:
--			sd->work_thread =
--				create_singlethread_workqueue(KBUILD_MODNAME);
--			queue_work(sd->work_thread, &sd->work);
--			break;
--		}
--	}
-+	if (gspca_dev->usb_err < 0)
-+		return gspca_dev->usb_err;
+-		printf("Device %s (%s) capabilities:\n\t",
++		dvb_log("Device %s (%s) capabilities:",
+ 			parms->info.name, fname);
+ 		for (i = 0; i < ARRAY_SIZE(fe_caps_name); i++) {
+ 			if (caps & fe_caps_name[i].idx)
+-				printf ("%s ", fe_caps_name[i].name);
++				dvb_log ("     %s", fe_caps_name[i].name);
+ 		}
+-		printf("\n");
+ 	}
  
--	return gspca_dev->usb_err;
-+	/* Start the transfer parameters update thread */
-+	sd->work_thread = create_singlethread_workqueue(KBUILD_MODNAME);
-+	queue_work(sd->work_thread, &sd->work);
-+
-+	return 0;
+ 	parms->dvb_prop[0].cmd = DTV_API_VERSION;
+@@ -97,7 +126,7 @@ struct dvb_v5_fe_parms *dvb_fe_open(int adapter, int frontend, unsigned verbose,
+ 	parms->version = parms->dvb_prop[0].u.data;
+ 	parms->current_sys = parms->dvb_prop[1].u.data;
+ 	if (verbose)
+-		printf ("DVB API Version %d.%d, Current v5 delivery system: %s\n",
++		dvb_log ("DVB API Version %d.%d, Current v5 delivery system: %s",
+ 			parms->version / 256,
+ 			parms->version % 256,
+ 			delivery_system_name[parms->current_sys]);
+@@ -139,7 +168,7 @@ struct dvb_v5_fe_parms *dvb_fe_open(int adapter, int frontend, unsigned verbose,
+ 			break;
+ 		}
+ 		if (!parms->num_systems) {
+-			fprintf(stderr, "delivery system not detected\n");
++			dvb_logerr("delivery system not detected");
+ 			dvb_v5_free(parms);
+ 			close(fd);
+ 			return NULL;
+@@ -150,7 +179,7 @@ struct dvb_v5_fe_parms *dvb_fe_open(int adapter, int frontend, unsigned verbose,
+ 		dtv_prop.num = 1;
+ 		dtv_prop.props = parms->dvb_prop;
+ 		if (ioctl(fd, FE_GET_PROPERTY, &dtv_prop) == -1) {
+-			perror("FE_GET_PROPERTY");
++			dvb_perror("FE_GET_PROPERTY");
+ 			dvb_v5_free(parms);
+ 			close(fd);
+ 			return NULL;
+@@ -160,7 +189,7 @@ struct dvb_v5_fe_parms *dvb_fe_open(int adapter, int frontend, unsigned verbose,
+ 			parms->systems[i] = parms->dvb_prop[0].u.buffer.data[i];
+ 
+ 		if (parms->num_systems == 0) {
+-			fprintf(stderr, "driver died while trying to set the delivery system\n");
++			dvb_logerr("driver died while trying to set the delivery system");
+ 			dvb_v5_free(parms);
+ 			close(fd);
+ 			return NULL;
+@@ -168,19 +197,18 @@ struct dvb_v5_fe_parms *dvb_fe_open(int adapter, int frontend, unsigned verbose,
+ 	}
+ 
+ 	if (verbose) {
+-		printf("Supported delivery system%s: ",
++		dvb_log("Supported delivery system%s: ",
+ 		       (parms->num_systems > 1) ? "s" : "");
+ 		for (i = 0; i < parms->num_systems; i++) {
+ 			if (parms->systems[i] == parms->current_sys)
+-				printf ("[%s] ",
++				dvb_log ("    [%s]",
+ 					delivery_system_name[parms->systems[i]]);
+ 			else
+-				printf ("%s ",
++				dvb_log ("     %s",
+ 					delivery_system_name[parms->systems[i]]);
+ 		}
+-		printf("\n");
+ 		if (use_legacy_call)
+-			printf("Warning: ISDB-T, ISDB-S, DMB-TH and DSS will be miss-detected by a DVBv3 call\n");
++			dvb_log("Warning: ISDB-T, ISDB-S, DMB-TH and DSS will be miss-detected by a DVBv3 call");
+ 	}
+ 
+ 	/*
+@@ -259,7 +287,7 @@ int dvb_set_sys(struct dvb_v5_fe_parms *parms,
+ 		prop.props = dvb_prop;
+ 
+ 		if (ioctl(parms->fd, FE_SET_PROPERTY, &prop) == -1) {
+-			perror("Set delivery system");
++			dvb_perror("Set delivery system");
+ 			return errno;
+ 		}
+ 		parms->current_sys = sys;
+@@ -437,7 +465,7 @@ int dvb_fe_retrieve_parm(struct dvb_v5_fe_parms *parms,
+ 		*value = parms->dvb_prop[i].u.data;
+ 		return 0;
+ 	}
+-	fprintf(stderr, "command %s (%d) not found during retrieve\n",
++	dvb_logerr("command %s (%d) not found during retrieve",
+ 		dvb_cmd_name(cmd), cmd);
+ 
+ 	return EINVAL;
+@@ -453,7 +481,7 @@ int dvb_fe_store_parm(struct dvb_v5_fe_parms *parms,
+ 		parms->dvb_prop[i].u.data = value;
+ 		return 0;
+ 	}
+-	fprintf(stderr, "command %s (%d) not found during store\n",
++	dvb_logerr("command %s (%d) not found during store",
+ 		dvb_cmd_name(cmd), cmd);
+ 
+ 	return EINVAL;
+@@ -498,7 +526,7 @@ int dvb_fe_get_parms(struct dvb_v5_fe_parms *parms)
+ 	prop.num = n;
+ 	if (!parms->legacy_fe) {
+ 		if (ioctl(parms->fd, FE_GET_PROPERTY, &prop) == -1) {
+-			perror("FE_GET_PROPERTY");
++			dvb_perror("FE_GET_PROPERTY");
+ 			return errno;
+ 		}
+ 		if (parms->verbose) {
+@@ -510,7 +538,7 @@ int dvb_fe_get_parms(struct dvb_v5_fe_parms *parms)
+ 	}
+ 	/* DVBv3 call */
+ 	if (ioctl(parms->fd, FE_GET_FRONTEND, &v3_parms) == -1) {
+-		perror("FE_GET_FRONTEND");
++		dvb_perror("FE_GET_FRONTEND");
+ 		return errno;
+ 	}
+ 
+@@ -575,7 +603,7 @@ int dvb_fe_set_parms(struct dvb_v5_fe_parms *parms)
+ 
+ 	if (!parms->legacy_fe) {
+ 		if (ioctl(parms->fd, FE_SET_PROPERTY, &prop) == -1) {
+-			perror("FE_SET_PROPERTY");
++			dvb_perror("FE_SET_PROPERTY");
+ 			if (parms->verbose)
+ 				dvb_fe_prt_parms(stderr, parms);
+ 			return errno;
+@@ -617,7 +645,7 @@ int dvb_fe_set_parms(struct dvb_v5_fe_parms *parms)
+ 		return -EINVAL;
+ 	}
+ 	if (ioctl(parms->fd, FE_SET_FRONTEND, &v3_parms) == -1) {
+-		perror("FE_SET_FRONTEND");
++		dvb_perror("FE_SET_FRONTEND");
+ 		if (parms->verbose)
+ 			dvb_fe_prt_parms(stderr, parms);
+ 		return errno;
+@@ -640,8 +668,8 @@ int dvb_fe_retrieve_stats(struct dvb_v5_fe_parms *parms,
+ 		*value = parms->stats.prop[i].u.data;
+ 		return 0;
+ 	}
+-	fprintf(stderr, "%s not found on retrieve\n",
+-		dvb_v5_name[cmd]);
++	dvb_logerr("%s not found on retrieve",
++		dvb_cmd_name(cmd));
+ 
+ 	return EINVAL;
  }
+@@ -656,8 +684,8 @@ int dvb_fe_store_stats(struct dvb_v5_fe_parms *parms,
+ 		parms->stats.prop[i].u.data = value;
+ 		return 0;
+ 	}
+-	fprintf(stderr, "%s not found on store\n",
+-		dvb_v5_name[cmd]);
++	dvb_logerr("%s not found on store",
++		dvb_cmd_name(cmd));
  
- /* called on streamoff with alt 0 and on disconnect */
-@@ -7019,8 +6958,15 @@ static int sd_setquality(struct gspca_dev *gspca_dev, __s32 val)
- 	 && i == qual
- 	 && val < jpeg_qual[i])
- 		i--;
-+
-+	/* With high quality settings we need max bandwidth */
-+	if (i >= 2 && gspca_dev->streaming &&
-+	    !gspca_dev->cam.needs_full_bandwidth)
-+		return -EBUSY;
-+
- 	sd->reg08 = (i << 1) | 1;
- 	sd->ctrls[QUALITY].val = jpeg_qual[i];
-+
- 	if (gspca_dev->streaming)
- 		setquality(gspca_dev);
- 	return gspca_dev->usb_err;
-@@ -7070,6 +7016,7 @@ static const struct sd_desc sd_desc = {
- 	.nctrls = ARRAY_SIZE(sd_ctrls),
- 	.config = sd_config,
- 	.init = sd_init,
-+	.isoc_init = sd_pre_start,
- 	.start = sd_start,
- 	.stop0 = sd_stop0,
- 	.pkt_scan = sd_pkt_scan,
+ 	return EINVAL;
+ }
+@@ -675,7 +703,7 @@ int dvb_fe_get_stats(struct dvb_v5_fe_parms *parms)
+ 	int i;
+ 
+ 	if (ioctl(parms->fd, FE_READ_STATUS, &status) == -1) {
+-		perror("FE_READ_STATUS");
++		dvb_perror("FE_READ_STATUS");
+ 		status = -1;
+ 	}
+ 	dvb_fe_store_stats(parms, DTV_STATUS, status);
+@@ -698,12 +726,12 @@ int dvb_fe_get_stats(struct dvb_v5_fe_parms *parms)
+ 
+ 
+ 	if (parms->verbose > 1) {
+-		printf("Status: ");
++		dvb_log("Status: ");
+ 		for (i = 0; i < ARRAY_SIZE(fe_status_name); i++) {
+ 			if (status & fe_status_name[i].idx)
+-				printf ("%s ", fe_status_name[i].name);
++				dvb_log ("    %s", fe_status_name[i].name);
+ 		}
+-		printf("BER: %d, Strength: %d, SNR: %d, UCB: %d\n",
++		dvb_log("BER: %d, Strength: %d, SNR: %d, UCB: %d",
+ 		       ber, strength, snr, ucb);
+ 	}
+ 	return status;
+@@ -722,17 +750,16 @@ int dvb_fe_get_event(struct dvb_v5_fe_parms *parms)
+ 	}
+ 
+ 	if (ioctl(parms->fd, FE_GET_EVENT, &event) == -1) {
+-		perror("FE_GET_EVENT");
++		dvb_perror("FE_GET_EVENT");
+ 		return -1;
+ 	}
+ 	status = event.status;
+ 	if (parms->verbose > 1) {
+-		printf("Status: ");
++		dvb_log("Status: ");
+ 		for (i = 0; i < ARRAY_SIZE(fe_status_name); i++) {
+ 			if (status & fe_status_name[i].idx)
+-				printf ("%s ", fe_status_name[i].name);
++				dvb_log ("    %s", fe_status_name[i].name);
+ 		}
+-		printf("\n");
+ 	}
+ 	dvb_fe_store_stats(parms, DTV_STATUS, status);
+ 
+@@ -861,7 +888,7 @@ int dvb_fe_diseqc_reply(struct dvb_v5_fe_parms *parms, unsigned *len, char *buf,
+ 
+ 	rc = ioctl(parms->fd, FE_DISEQC_RECV_SLAVE_REPLY, reply);
+ 	if (rc == -1) {
+-		perror("FE_DISEQC_RECV_SLAVE_REPLY");
++		dvb_perror("FE_DISEQC_RECV_SLAVE_REPLY");
+ 		return errno;
+ 	}
+ 
+diff --git a/lib/libdvbv5/libsat.c b/lib/libdvbv5/libsat.c
+index 25057a6..164059f 100644
+--- a/lib/libdvbv5/libsat.c
++++ b/lib/libdvbv5/libsat.c
+@@ -298,7 +298,7 @@ static int dvbsat_diseqc_set_input(struct dvb_v5_fe_parms *parms, uint16_t t)
+ 		high_band = 1;
+ 	} else {
+ 		if (sat_number < 0) {
+-			fprintf(stderr, "Need a satellite number for DISEqC\n");
++			dvb_logerr("Need a satellite number for DISEqC");
+ 			return -EINVAL;
+ 		}
+ 
+@@ -358,7 +358,7 @@ int dvb_sat_set_parms(struct dvb_v5_fe_parms *parms)
+ 	dvb_fe_retrieve_parm(parms, DTV_FREQUENCY, &freq);
+ 
+ 	if (!lnb) {
+-		fprintf(stderr, "Need a LNBf to work\n");
++		dvb_logerr("Need a LNBf to work");
+ 		return -EINVAL;
+ 	}
+ 
 -- 
-1.7.10
+1.7.2.5
 
