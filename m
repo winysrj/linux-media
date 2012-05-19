@@ -1,72 +1,289 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:52737 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756116Ab2EJGpg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 May 2012 02:45:36 -0400
-Received: by dady13 with SMTP id y13so1308689dad.19
-        for <linux-media@vger.kernel.org>; Wed, 09 May 2012 23:45:36 -0700 (PDT)
-From: Sachin Kamat <sachin.kamat@linaro.org>
+Received: from smtp.nokia.com ([147.243.128.26]:25050 "EHLO mgw-da02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757525Ab2ESTH1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 19 May 2012 15:07:27 -0400
+From: Sakari Ailus <sakari.ailus@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: mchehab@infradead.org, k.debski@samsung.com,
-	kyungmin.park@samsung.com, sachin.kamat@linaro.org,
-	patches@linaro.org
-Subject: [PATCH 1/2] [media] s5p-g2d: Fix NULL pointer warnings in g2d.c file
-Date: Thu, 10 May 2012 12:05:47 +0530
-Message-Id: <1336631748-25160-1-git-send-email-sachin.kamat@linaro.org>
+Cc: laurent.pinchart@ideasonboard.com
+Subject: [media-ctl PATCH v2 1/4] New, more flexible syntax for format
+Date: Sat, 19 May 2012 22:11:28 +0300
+Message-Id: <1337454691-28698-1-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <20120519190627.GR3373@valkosipuli.retiisi.org.uk>
+References: <20120519190627.GR3373@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fixes the following warnings detected by sparse:
-warning: Using plain integer as NULL pointer
+More flexible and extensible syntax for format which allows better usage
+of the selection API.
 
-Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+Continue supporting the old syntax but remove the documentation for it. It
+was not supported in an official release and its use is thus deprecated.
+
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
 ---
- drivers/media/video/s5p-g2d/g2d.c |   12 ++++++------
- 1 files changed, 6 insertions(+), 6 deletions(-)
+ src/main.c       |   17 +++++++--
+ src/options.c    |   27 +++++++++-----
+ src/v4l2subdev.c |   97 ++++++++++++++++++++++++++++++++++++------------------
+ 3 files changed, 95 insertions(+), 46 deletions(-)
 
-diff --git a/drivers/media/video/s5p-g2d/g2d.c b/drivers/media/video/s5p-g2d/g2d.c
-index 789de74..70bee1c 100644
---- a/drivers/media/video/s5p-g2d/g2d.c
-+++ b/drivers/media/video/s5p-g2d/g2d.c
-@@ -546,11 +546,11 @@ static void job_abort(void *prv)
- 	struct g2d_dev *dev = ctx->dev;
- 	int ret;
- 
--	if (dev->curr == 0) /* No job currently running */
-+	if (dev->curr == NULL) /* No job currently running */
+diff --git a/src/main.c b/src/main.c
+index 53964e4..2f57352 100644
+--- a/src/main.c
++++ b/src/main.c
+@@ -59,15 +59,24 @@ static void v4l2_subdev_print_format(struct media_entity *entity,
+ 	if (ret != 0)
  		return;
  
- 	ret = wait_event_timeout(dev->irq_queue,
--		dev->curr == 0,
-+		dev->curr == NULL,
- 		msecs_to_jiffies(G2D_TIMEOUT));
+-	printf("[%s %ux%u", v4l2_subdev_pixelcode_to_string(format.code),
+-	       format.width, format.height);
++	printf("\t\t[fmt:%s/%ux%u",
++	       v4l2_subdev_pixelcode_to_string(format.code),
++ 	       format.width, format.height);
++
++	ret = v4l2_subdev_get_selection(entity, &rect, pad,
++					V4L2_SUBDEV_SEL_TGT_CROP_BOUNDS,
++					which);
++	if (ret == 0)
++		printf("\n\t\t crop.bounds:%u,%u/%ux%u", rect.left, rect.top,
++		       rect.width, rect.height);
+ 
+ 	ret = v4l2_subdev_get_selection(entity, &rect, pad,
+ 					V4L2_SUBDEV_SEL_TGT_CROP_ACTUAL,
+ 					which);
+ 	if (ret == 0)
+-		printf(" (%u,%u)/%ux%u", rect.left, rect.top,
++		printf("\n\t\t crop:%u,%u/%ux%u", rect.left, rect.top,
+ 		       rect.width, rect.height);
++
+ 	printf("]");
  }
  
-@@ -599,19 +599,19 @@ static irqreturn_t g2d_isr(int irq, void *prv)
- 	g2d_clear_int(dev);
- 	clk_disable(dev->gate);
+@@ -252,7 +261,7 @@ static void media_print_topology_text(struct media_device *media)
+ 		for (j = 0; j < entity->info.pads; j++) {
+ 			struct media_pad *pad = &entity->pads[j];
  
--	BUG_ON(ctx == 0);
-+	BUG_ON(ctx == NULL);
+-			printf("\tpad%u: %s ", j, media_pad_type_to_string(pad->flags));
++			printf("\tpad%u: %s\n", j, media_pad_type_to_string(pad->flags));
  
- 	src = v4l2_m2m_src_buf_remove(ctx->m2m_ctx);
- 	dst = v4l2_m2m_dst_buf_remove(ctx->m2m_ctx);
+ 			if (media_entity_type(entity) == MEDIA_ENT_T_V4L2_SUBDEV)
+ 				v4l2_subdev_print_format(entity, j, V4L2_SUBDEV_FORMAT_ACTIVE);
+diff --git a/src/options.c b/src/options.c
+index 60cf6d5..46f6bef 100644
+--- a/src/options.c
++++ b/src/options.c
+@@ -37,8 +37,8 @@ static void usage(const char *argv0, int verbose)
+ 	printf("%s [options] device\n", argv0);
+ 	printf("-d, --device dev	Media device name (default: %s)\n", MEDIA_DEVNAME_DEFAULT);
+ 	printf("-e, --entity name	Print the device name associated with the given entity\n");
+-	printf("-f, --set-format	Comma-separated list of formats to setup\n");
+-	printf("    --get-format pad	Print the active format on a given pad\n");
++	printf("-V, --set-v4l2 v4l2	Comma-separated list of formats to setup\n");
++	printf("    --get-v4l2 pad	Print the active format on a given pad\n");
+ 	printf("-h, --help		Show verbose help and exit\n");
+ 	printf("-i, --interactive	Modify links interactively\n");
+ 	printf("-l, --links		Comma-separated list of links descriptors to setup\n");
+@@ -52,13 +52,17 @@ static void usage(const char *argv0, int verbose)
  
--	BUG_ON(src == 0);
--	BUG_ON(dst == 0);
-+	BUG_ON(src == NULL);
-+	BUG_ON(dst == NULL);
+ 	printf("\n");
+ 	printf("Links and formats are defined as\n");
+-	printf("\tlink            = pad, '->', pad, '[', flags, ']' ;\n");
+-	printf("\tformat          = pad, '[', fcc, ' ', size, [ ' ', crop ], [ ' ', '@', frame interval ], ']' ;\n");
+-	printf("\tpad             = entity, ':', pad number ;\n");
+-	printf("\tentity          = entity number | ( '\"', entity name, '\"' ) ;\n");
+-	printf("\tsize            = width, 'x', height ;\n");
+-	printf("\tcrop            = '(', left, ',', top, ')', '/', size ;\n");
+-	printf("\tframe interval  = numerator, '/', denominator ;\n");
++	printf("\tlink                = pad, '->', pad, '[', flags, ']' ;\n");
++	printf("\tv4l2                = pad, '[', v4l2-cfgs ']' ;\n");
++	printf("\tv4l2-cfgs           = v4l2-cfg [ ',' v4l2-cfg ] ;\n");
++	printf("\tv4l2-cfg            = v4l2-mbusfmt | v4l2-crop\n");
++	printf("\t                      | v4l2 frame interval ;\n");
++	printf("\tv4l2-mbusfmt        = 'fmt:', fcc, '/', size ;\n");
++	printf("\tpad                 = entity, ':', pad number ;\n");
++	printf("\tentity              = entity number | ( '\"', entity name, '\"' ) ;\n");
++	printf("\tsize                = width, 'x', height ;\n");
++	printf("\tv4l2-crop           = 'crop:(', left, ',', top, ')/', size ;\n");
++	printf("\tv4l2 frame interval = '@', numerator, '/', denominator ;\n");
+ 	printf("where the fields are\n");
+ 	printf("\tentity number   Entity numeric identifier\n");
+ 	printf("\tentity name     Entity name (string) \n");
+@@ -77,7 +81,9 @@ static void usage(const char *argv0, int verbose)
+ static struct option opts[] = {
+ 	{"device", 1, 0, 'd'},
+ 	{"entity", 1, 0, 'e'},
++	{"set-v4l2", 1, 0, 'V'},
+ 	{"set-format", 1, 0, 'f'},
++	{"get-v4l2", 1, 0, OPT_GET_FORMAT},
+ 	{"get-format", 1, 0, OPT_GET_FORMAT},
+ 	{"help", 0, 0, 'h'},
+ 	{"interactive", 0, 0, 'i'},
+@@ -98,7 +104,7 @@ int parse_cmdline(int argc, char **argv)
+ 	}
  
- 	v4l2_m2m_buf_done(src, VB2_BUF_STATE_DONE);
- 	v4l2_m2m_buf_done(dst, VB2_BUF_STATE_DONE);
- 	v4l2_m2m_job_finish(dev->m2m_dev, ctx->m2m_ctx);
+ 	/* parse options */
+-	while ((opt = getopt_long(argc, argv, "d:e:f:hil:prv", opts, NULL)) != -1) {
++	while ((opt = getopt_long(argc, argv, "d:e:V:f:hil:prv", opts, NULL)) != -1) {
+ 		switch (opt) {
+ 		case 'd':
+ 			media_opts.devname = optarg;
+@@ -108,6 +114,7 @@ int parse_cmdline(int argc, char **argv)
+ 			media_opts.entity = optarg;
+ 			break;
  
--	dev->curr = 0;
-+	dev->curr = NULL;
- 	wake_up(&dev->irq_queue);
- 	return IRQ_HANDLED;
++		case 'V':
+ 		case 'f':
+ 			media_opts.formats = optarg;
+ 			break;
+diff --git a/src/v4l2subdev.c b/src/v4l2subdev.c
+index a2ab0c4..2b4a923 100644
+--- a/src/v4l2subdev.c
++++ b/src/v4l2subdev.c
+@@ -232,14 +232,19 @@ static int v4l2_subdev_parse_format(struct v4l2_mbus_framefmt *format,
+ 	unsigned int width, height;
+ 	char *end;
+ 
++	/*
++	 * Compatibility with the old syntax: consider space as valid
++	 * separator between the media bus pixel code and the size.
++	 */
+ 	for (; isspace(*p); ++p);
+-	for (end = (char *)p; !isspace(*end) && *end != '\0'; ++end);
++	for (end = (char *)p;
++	     *end != '/' && *end != ' ' && *end != '\0'; ++end);
+ 
+ 	code = v4l2_subdev_string_to_pixelcode(p, end - p);
+ 	if (code == (enum v4l2_mbus_pixelcode)-1)
+ 		return -EINVAL;
+ 
+-	for (p = end; isspace(*p); ++p);
++	p = end + 1;
+ 	width = strtoul(p, &end, 10);
+ 	if (*end != 'x')
+ 		return -EINVAL;
+@@ -256,32 +261,32 @@ static int v4l2_subdev_parse_format(struct v4l2_mbus_framefmt *format,
+ 	return 0;
  }
+ 
+-static int v4l2_subdev_parse_crop(
+-	struct v4l2_rect *crop, const char *p, char **endp)
++static int v4l2_subdev_parse_rectangle(
++	struct v4l2_rect *r, const char *p, char **endp)
+ {
+ 	char *end;
+ 
+ 	if (*p++ != '(')
+ 		return -EINVAL;
+ 
+-	crop->left = strtoul(p, &end, 10);
++	r->left = strtoul(p, &end, 10);
+ 	if (*end != ',')
+ 		return -EINVAL;
+ 
+ 	p = end + 1;
+-	crop->top = strtoul(p, &end, 10);
++	r->top = strtoul(p, &end, 10);
+ 	if (*end++ != ')')
+ 		return -EINVAL;
+ 	if (*end != '/')
+ 		return -EINVAL;
+ 
+ 	p = end + 1;
+-	crop->width = strtoul(p, &end, 10);
++	r->width = strtoul(p, &end, 10);
+ 	if (*end != 'x')
+ 		return -EINVAL;
+ 
+ 	p = end + 1;
+-	crop->height = strtoul(p, &end, 10);
++	r->height = strtoul(p, &end, 10);
+ 	*endp = end;
+ 
+ 	return 0;
+@@ -307,6 +312,17 @@ static int v4l2_subdev_parse_frame_interval(struct v4l2_fract *interval,
+ 	return 0;
+ }
+ 
++static int icanhasstr(const char *str, const char **p)
++{
++	int len = strlen(str);
++
++	if (strncmp(str, *p, len))
++		return -ENOENT;
++
++	*p += len;
++	return 0;
++}
++
+ static struct media_pad *v4l2_subdev_parse_pad_format(
+ 	struct media_device *media, struct v4l2_mbus_framefmt *format,
+ 	struct v4l2_rect *crop, struct v4l2_fract *interval, const char *p,
+@@ -326,30 +342,47 @@ static struct media_pad *v4l2_subdev_parse_pad_format(
+ 	if (*p++ != '[')
+ 		return NULL;
+ 
+-	for (; isspace(*p); ++p);
++	for (;;) {
++		for (; isspace(*p); p++);
+ 
+-	if (isalnum(*p)) {
+-		ret = v4l2_subdev_parse_format(format, p, &end);
+-		if (ret < 0)
+-			return NULL;
++		/*
++		 * Let users specify crop either explictly or
++		 * implicitly using the old syntax.
++		 */
++		if (!icanhasstr("crop:", &p) || *p == '(') {
++			ret = v4l2_subdev_parse_rectangle(crop, p, &end);
++			if (ret < 0)
++				return NULL;
+ 
+-		for (p = end; isspace(*p); p++);
+-	}
++			p = end;
++			continue;
++		}
+ 
+-	if (*p == '(') {
+-		ret = v4l2_subdev_parse_crop(crop, p, &end);
+-		if (ret < 0)
+-			return NULL;
++		/*
++		 * Continue providing compatibility interface for
++		 * users who use the old syntax: consider anything
++		 * beginning with capital letter media bus pixel code.
++		 */
++		if (!icanhasstr("fmt:", &p)
++		    || (*p >= 'A' && *p <= 'Z')) {
++			ret = v4l2_subdev_parse_format(format, p, &end);
++			if (ret < 0)
++				return NULL;
++
++			p = end;
++			continue;
++		}
+ 
+-		for (p = end; isspace(*p); p++);
+-	}
++		if (*p == '@') {
++			ret = v4l2_subdev_parse_frame_interval(interval, ++p, &end);
++			if (ret < 0)
++				return NULL;
+ 
+-	if (*p == '@') {
+-		ret = v4l2_subdev_parse_frame_interval(interval, ++p, &end);
+-		if (ret < 0)
+-			return NULL;
++			p = end;
++			continue;
++		}
+ 
+-		for (p = end; isspace(*p); p++);
++		break;
+ 	}
+ 
+ 	if (*p != ']')
 -- 
-1.7.4.1
+1.7.2.5
 
