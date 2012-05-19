@@ -1,67 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from exprod5og114.obsmtp.com ([64.18.0.28]:36878 "EHLO
-	exprod5og114.obsmtp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754329Ab2EBInZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 2 May 2012 04:43:25 -0400
-Received: from kipc2.localdomain (unknown [3.249.69.203])
-	by mail-rly-prd-01.am.health.ge.com (Postfix) with ESMTP id 710B747BB7
-	for <linux-media@vger.kernel.org>; Wed,  2 May 2012 08:43:19 +0000 (GMT)
-Date: Wed, 2 May 2012 10:43:18 +0200
-From: Karl Kiniger <karl.kiniger@med.ge.com>
-To: linux-media@vger.kernel.org
-Subject: Re: logitech quickcam 9000 uvcdynctrl broken since kernel 3.2 - PING
-Message-ID: <20120502084318.GA21181@kipc2.localdomain>
-References: <20120424122156.GA16769@kipc2.localdomain>
+Received: from mx1.redhat.com ([209.132.183.28]:50026 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757969Ab2ESTAr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 19 May 2012 15:00:47 -0400
+Message-ID: <4FB7EECF.1000402@redhat.com>
+Date: Sat, 19 May 2012 21:04:47 +0200
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20120424122156.GA16769@kipc2.localdomain>
+To: Ondrej Zary <linux@rainbow-software.org>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: RFC: V4L2 API and radio devices with multiple tuners
+References: <4FB7E489.10803@redhat.com> <201205192030.53616.linux@rainbow-software.org>
+In-Reply-To: <201205192030.53616.linux@rainbow-software.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Please can someone shed a little light on this?
+Hi,
 
-Greatly appreciated,
-Karl
+On 05/19/2012 08:30 PM, Ondrej Zary wrote:
+> On Saturday 19 May 2012 20:20:57 Hans de Goede wrote:
+>> Hi Hans et all,
+>>
+>> Currently the V4L2 API does not allow for radio devices with more then 1
+>> tuner, which is a bit of a historical oversight, since many radio devices
+>> have 2 tuners/demodulators 1 for FM and one for AM. Trying to model this as
+>> 1 tuner really does not work well, as they have 2 completely separate
+>> frequency bands they handle, as well as different properties (the FM part
+>> usually is stereo capable, the AM part is not).
+>>
+>> It is important to realize here that usually the AM/FM tuners are part
+>> of 1 chip, and often have only 1 frequency register which is used in
+>> both AM/FM modes. IOW it more or less is one tuner, but with 2 modes,
+>> and from a V4L2 API pov these modes are best modeled as 2 tuners.
+>> This is at least true for the radio-cadet card and the tea575x,
+>> which are the only 2 AM capable radio devices we currently know about.
+>
+> When working on tea575x driver, I thought that it would be nice to implement
+> AM. But found that none of my cards with TEA575x has implemented the AM part.
 
-On Tue 120424, Karl Kiniger wrote:
-> Dear all,
-> 
-> guvcview does not display the extra controls (focus, led etc)
-> any more since kernel 3.2 an higher (Fedora 16, x86_64).
-> 
-> after the various video modes it says:
-> 
-> vid:046d
-> pid:0990
-> driver:uvcvideo
-> Adding control for Pan (relative)
-> UVCIOC_CTRL_ADD - Error: Inappropriate ioctl for device
-> checking format: 1196444237
-> VIDIOC_G_COMP:: Inappropriate ioctl for device
-> fps is set to 1/25
-> drawing controls
-> 
-> Checking video mode 640x480@32bpp : OK
-> 
-> ----------
-> 
-> /usr/bin/uvcdynctrl -i /usr/share/uvcdynctrl/data/046d/logitech.xml
-> [libwebcam] Unsupported V4L2_CID_EXPOSURE_AUTO control with a non-contiguous range of choice IDs found
-> [libwebcam] Invalid or unsupported V4L2 control encountered: ctrl_id = 0x009A0901, name = 'Exposure, Auto'
-> Importing dynamic controls from file /usr/share/uvcdynctrl/data/046d/logitech.xml.
-> ERROR: Unable to import dynamic controls: Invalid device or device cannot be opened. (Code: 5)
-> /usr/share/uvcdynctrl/data/046d/logitech.xml: error: device 'video0' \
->     skipped because the driver 'uvcvideo' behind it does not seem to support \
->         dynamic controls.
-> 
-> ----------
-> 
-> Is there work in progess to get the missing functionality back?
-> 
-> Can I help somehow?
-> 
-> Greetings,
-> Karl
-> 
-> 
+I have a tea5757 device which does implement the AM part, the Griffin radioSHARK,
+and I'm working on a driver for it now, including some mods to the existing
+tea575x driver, this is one of the reasons I CC-ed you on this RFC.
+
+If you would like to get a radioSHARK yourself, you can get one here:
+http://www.ebay.com/itm/Griffin-RadioShark-PC-MAC-AM-FM-Desktop-Radio-/140547171120?pt=LH_DefaultDomain_0&hash=item20b943a330
+
+Do you have any comments on my proposal how to deal with these
+devices API wise?
+
+> The components required to receive AM radio (according to the chip datasheet)
+> are missing.
+
+Right I already expected that my WIP patch to add AM support to the tea575x driver
+adds a has_am boolean and only makes AM available if that is set.
+
+I hope to post a set of tea575x patches this evening, most are non controversial
+so unless someone (ie you) yells stop I'm going to include them in my next pull
+request to Mauro for 3.5 (which will hopefully happen tomorrow).
+
+Unless some quick consensus can be reached on how to deal with the radio
+device with dual mode tuner API issue I'll leave out the AM patch from
+my pullreq.
+
+Thanks & Regards,
+
+Hans
+
