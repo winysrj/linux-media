@@ -1,106 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33765 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754552Ab2EWLT4 (ORCPT
+Received: from mail-1-out2.atlantis.sk ([80.94.52.71]:36642 "EHLO
+	mail.atlantis.sk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751298Ab2ESRSr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 May 2012 07:19:56 -0400
-Date: Wed, 23 May 2012 14:19:51 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+	Sat, 19 May 2012 13:18:47 -0400
+From: Ondrej Zary <linux@rainbow-software.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH] radio-sf16fmi: add support for SF16-FMD
+Date: Sat, 19 May 2012 19:18:26 +0200
 Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/1] as3645a: Remove set_power() from platform data
-Message-ID: <20120523111951.GU3373@valkosipuli.retiisi.org.uk>
-References: <1337137969-30575-1-git-send-email-sakari.ailus@iki.fi>
- <5818890.hvZb7JEbAH@avalon>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <5818890.hvZb7JEbAH@avalon>
+Message-Id: <201205191918.29217.linux@rainbow-software.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Add support for SF16-FMD card to radio-sf16fmi driver.
+Only new PnP ID is added and texts changed.
 
-On Wed, May 23, 2012 at 01:00:08PM +0200, Laurent Pinchart wrote:
-> Hi Sakari,
-> 
-> Thanks for the patch.
-> 
-> On Wednesday 16 May 2012 06:12:49 Sakari Ailus wrote:
-> > The chip is typically powered constantly and no board uses the set_power()
-> > callback. Remove it.
-> > 
-> > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> > ---
-> >  drivers/media/video/as3645a.c |   39 +++++++++----------------------------
-> >  include/media/as3645a.h       |    1 -
-> >  2 files changed, 9 insertions(+), 31 deletions(-)
-> > 
-> > diff --git a/drivers/media/video/as3645a.c b/drivers/media/video/as3645a.c
-> > index c4b0357..7454660 100644
-> > --- a/drivers/media/video/as3645a.c
-> > +++ b/drivers/media/video/as3645a.c
-> > @@ -512,31 +512,6 @@ static int as3645a_setup(struct as3645a *flash)
-> >  	return ret & ~AS_FAULT_INFO_LED_AMOUNT ? -EIO : 0;
-> >  }
-> > 
-> > -static int __as3645a_set_power(struct as3645a *flash, int on)
-> > -{
-> > -	int ret;
-> > -
-> > -	if (!on)
-> > -		as3645a_set_control(flash, AS_MODE_EXT_TORCH, false);
-> > -
-> > -	if (flash->pdata->set_power) {
-> > -		ret = flash->pdata->set_power(&flash->subdev, on);
-> > -		if (ret < 0)
-> > -			return ret;
-> > -	}
-> > -
-> > -	if (!on)
-> > -		return 0;
-> > -
-> > -	ret = as3645a_setup(flash);
-> > -	if (ret < 0) {
-> > -		if (flash->pdata->set_power)
-> > -			flash->pdata->set_power(&flash->subdev, 0);
-> > -	}
-> > -
-> > -	return ret;
-> > -}
-> > -
-> >  static int as3645a_set_power(struct v4l2_subdev *sd, int on)
-> >  {
-> >  	struct as3645a *flash = to_as3645a(sd);
-> > @@ -545,9 +520,13 @@ static int as3645a_set_power(struct v4l2_subdev *sd,
-> > int on) mutex_lock(&flash->power_lock);
-> > 
-> >  	if (flash->power_count == !on) {
-> > -		ret = __as3645a_set_power(flash, !!on);
-> > -		if (ret < 0)
-> > -			goto done;
-> > +		if (!on) {
-> > +			as3645a_set_control(flash, AS_MODE_EXT_TORCH, false);
-> > +		} else {
-> > +			ret = as3645a_setup(flash);
-> > +			if (ret < 0)
-> > +				goto done;
-> > +		}
-> >  	}
-> > 
-> 
-> If the chip is powered on constantly, why do we need a .s_power() subdev 
-> operation at all ?
+Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
 
-I don't know why was it there in the first place. Probably to make it easier
-to use the driver on boards that required e.g. a regulator for the chip.
-
-But typically they're connected to battery directly. The idle power
-consumption is just some tens of µA.
-
-Cheers,
+--- a/drivers/media/radio/Kconfig
++++ b/drivers/media/radio/Kconfig
+@@ -320,7 +320,7 @@ config RADIO_MIROPCM20
+ 	  module will be called radio-miropcm20.
+ 
+ config RADIO_SF16FMI
+-	tristate "SF16-FMI/SF16-FMP Radio"
++	tristate "SF16-FMI/SF16-FMP/SF16-FMD Radio"
+ 	depends on ISA && VIDEO_V4L2
+ 	---help---
+ 	  Choose Y here if you have one of these FM radio cards.
+--- a/drivers/media/radio/radio-sf16fmi.c
++++ b/drivers/media/radio/radio-sf16fmi.c
+@@ -1,4 +1,4 @@
+-/* SF16-FMI and SF16-FMP radio driver for Linux radio support
++/* SF16-FMI, SF16-FMP and SF16-FMD radio driver for Linux radio support
+  * heavily based on rtrack driver...
+  * (c) 1997 M. Kirkwood
+  * (c) 1998 Petr Vandrovec, vandrove@vc.cvut.cz
+@@ -11,7 +11,7 @@
+  *
+  *  Frequency control is done digitally -- ie out(port,encodefreq(95.8));
+  *  No volume control - only mute/unmute - you have to use line volume
+- *  control on SB-part of SF16-FMI/SF16-FMP
++ *  control on SB-part of SF16-FMI/SF16-FMP/SF16-FMD
+  *
+  * Converted to V4L2 API by Mauro Carvalho Chehab <mchehab@infradead.org>
+  */
+@@ -29,7 +29,7 @@
+ #include <media/v4l2-ioctl.h>
+ 
+ MODULE_AUTHOR("Petr Vandrovec, vandrove@vc.cvut.cz and M. Kirkwood");
+-MODULE_DESCRIPTION("A driver for the SF16-FMI and SF16-FMP radio.");
++MODULE_DESCRIPTION("A driver for the SF16-FMI, SF16-FMP and SF16-FMD radio.");
+ MODULE_LICENSE("GPL");
+ MODULE_VERSION("0.0.3");
+ 
+@@ -37,7 +37,7 @@ static int io = -1;
+ static int radio_nr = -1;
+ 
+ module_param(io, int, 0);
+-MODULE_PARM_DESC(io, "I/O address of the SF16-FMI or SF16-FMP card (0x284 or 0x384)");
++MODULE_PARM_DESC(io, "I/O address of the SF16-FMI/SF16-FMP/SF16-FMD card (0x284 or 0x384)");
+ module_param(radio_nr, int, 0);
+ 
+ struct fmi
+@@ -130,7 +130,7 @@ static int vidioc_querycap(struct file *file, void  *priv,
+ 					struct v4l2_capability *v)
+ {
+ 	strlcpy(v->driver, "radio-sf16fmi", sizeof(v->driver));
+-	strlcpy(v->card, "SF16-FMx radio", sizeof(v->card));
++	strlcpy(v->card, "SF16-FMI/FMP/FMD radio", sizeof(v->card));
+ 	strlcpy(v->bus_info, "ISA", sizeof(v->bus_info));
+ 	v->capabilities = V4L2_CAP_TUNER | V4L2_CAP_RADIO;
+ 	return 0;
+@@ -277,8 +277,12 @@ static const struct v4l2_ioctl_ops fmi_ioctl_ops = {
+ 
+ /* ladis: this is my card. does any other types exist? */
+ static struct isapnp_device_id id_table[] __devinitdata = {
++		/* SF16-FMI */
+ 	{	ISAPNP_ANY_ID, ISAPNP_ANY_ID,
+ 		ISAPNP_VENDOR('M','F','R'), ISAPNP_FUNCTION(0xad10), 0},
++		/* SF16-FMD */
++	{	ISAPNP_ANY_ID, ISAPNP_ANY_ID,
++		ISAPNP_VENDOR('M','F','R'), ISAPNP_FUNCTION(0xad12), 0},
+ 	{	ISAPNP_CARD_END, },
+ };
+ 
 
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+Ondrej Zary
