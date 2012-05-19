@@ -1,116 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:45664 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756161Ab2EWNHv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 May 2012 09:07:51 -0400
-Received: from euspt2 (mailout1.w1.samsung.com [210.118.77.11])
- by mailout1.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0M4H00EPN8D0GP@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 23 May 2012 14:05:26 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0M4H003UB8GVN0@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 23 May 2012 14:07:43 +0100 (BST)
-Date: Wed, 23 May 2012 15:07:33 +0200
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: [PATCH 10/12] v4l: vb2: remove vb2_mmap_pfn_range function
-In-reply-to: <1337778455-27912-1-git-send-email-t.stanislaws@samsung.com>
-To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
-Cc: airlied@redhat.com, m.szyprowski@samsung.com,
-	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
-	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
-	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
-	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
-	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
-	mchehab@redhat.com, g.liakhovetski@gmx.de
-Message-id: <1337778455-27912-11-git-send-email-t.stanislaws@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1337778455-27912-1-git-send-email-t.stanislaws@samsung.com>
+Received: from mx1.redhat.com ([209.132.183.28]:46184 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752247Ab2ESSRM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 19 May 2012 14:17:12 -0400
+Message-ID: <4FB7E489.10803@redhat.com>
+Date: Sat, 19 May 2012 20:20:57 +0200
+From: Hans de Goede <hdegoede@redhat.com>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+CC: Ondrej Zary <linux@rainbow-software.org>
+Subject: RFC: V4L2 API and radio devices with multiple tuners
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch removes vb2_mmap_pfn_range from videobuf2 helpers.
-The function is no longer used in vb2 code.
+Hi Hans et all,
 
-Suggested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/video/videobuf2-memops.c |   40 --------------------------------
- include/media/videobuf2-memops.h       |    5 ----
- 2 files changed, 45 deletions(-)
+Currently the V4L2 API does not allow for radio devices with more then 1 tuner,
+which is a bit of a historical oversight, since many radio devices have 2
+tuners/demodulators 1 for FM and one for AM. Trying to model this as 1 tuner
+really does not work well, as they have 2 completely separate frequency bands
+they handle, as well as different properties (the FM part usually is stereo
+capable, the AM part is not).
 
-diff --git a/drivers/media/video/videobuf2-memops.c b/drivers/media/video/videobuf2-memops.c
-index 504cd4c..81c1ad8 100644
---- a/drivers/media/video/videobuf2-memops.c
-+++ b/drivers/media/video/videobuf2-memops.c
-@@ -137,46 +137,6 @@ int vb2_get_contig_userptr(unsigned long vaddr, unsigned long size,
- EXPORT_SYMBOL_GPL(vb2_get_contig_userptr);
- 
- /**
-- * vb2_mmap_pfn_range() - map physical pages to userspace
-- * @vma:	virtual memory region for the mapping
-- * @paddr:	starting physical address of the memory to be mapped
-- * @size:	size of the memory to be mapped
-- * @vm_ops:	vm operations to be assigned to the created area
-- * @priv:	private data to be associated with the area
-- *
-- * Returns 0 on success.
-- */
--int vb2_mmap_pfn_range(struct vm_area_struct *vma, unsigned long paddr,
--				unsigned long size,
--				const struct vm_operations_struct *vm_ops,
--				void *priv)
--{
--	int ret;
--
--	size = min_t(unsigned long, vma->vm_end - vma->vm_start, size);
--
--	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
--	ret = remap_pfn_range(vma, vma->vm_start, paddr >> PAGE_SHIFT,
--				size, vma->vm_page_prot);
--	if (ret) {
--		printk(KERN_ERR "Remapping memory failed, error: %d\n", ret);
--		return ret;
--	}
--
--	vma->vm_flags		|= VM_DONTEXPAND | VM_RESERVED;
--	vma->vm_private_data	= priv;
--	vma->vm_ops		= vm_ops;
--
--	vma->vm_ops->open(vma);
--
--	pr_debug("%s: mapped paddr 0x%08lx at 0x%08lx, size %ld\n",
--			__func__, paddr, vma->vm_start, size);
--
--	return 0;
--}
--EXPORT_SYMBOL_GPL(vb2_mmap_pfn_range);
--
--/**
-  * vb2_common_vm_open() - increase refcount of the vma
-  * @vma:	virtual memory region for the mapping
-  *
-diff --git a/include/media/videobuf2-memops.h b/include/media/videobuf2-memops.h
-index 84e1f6c..f05444c 100644
---- a/include/media/videobuf2-memops.h
-+++ b/include/media/videobuf2-memops.h
-@@ -33,11 +33,6 @@ extern const struct vm_operations_struct vb2_common_vm_ops;
- int vb2_get_contig_userptr(unsigned long vaddr, unsigned long size,
- 			   struct vm_area_struct **res_vma, dma_addr_t *res_pa);
- 
--int vb2_mmap_pfn_range(struct vm_area_struct *vma, unsigned long paddr,
--				unsigned long size,
--				const struct vm_operations_struct *vm_ops,
--				void *priv);
--
- struct vm_area_struct *vb2_get_vma(struct vm_area_struct *vma);
- void vb2_put_vma(struct vm_area_struct *vma);
- 
--- 
-1.7.9.5
+It is important to realize here that usually the AM/FM tuners are part
+of 1 chip, and often have only 1 frequency register which is used in
+both AM/FM modes. IOW it more or less is one tuner, but with 2 modes,
+and from a V4L2 API pov these modes are best modeled as 2 tuners.
+This is at least true for the radio-cadet card and the tea575x,
+which are the only 2 AM capable radio devices we currently know about.
 
+Currently the V4L2 spec says the following on this subject:
+http://linuxtv.org/downloads/v4l-dvb-apis/tuner.html
+"Radio devices have exactly one tuner with index zero, no video inputs."
+
+This text can easily be changed into allowing multiple tuners, without
+any API change from the app pov, existing apps will be limited to
+accessing just the first tuner though (probably best to always
+make this the FM one).
+
+http://linuxtv.org/downloads/v4l-dvb-apis/vidioc-g-tuner.html
+"... call the VIDIOC_S_TUNER ioctl. This will not change the current tuner,
+which is determined by the current video input."
+
+This is a problem, video devices when they have multiple tuners often
+do so with the purpose of being able to watch/record multiple channels
+at the same time, and thus multiple tuners are usually connected to
+different inputs / frame-grabbers, and the input <-> tuner mapping done
+for video devices makes sense there.
+
+As the spec states, radio devices have no video inputs, so
+VIDIOC_S_INPUT cannot be used on them. Which means we need another
+way to get/set the active tuner (the tuner mode) for a radio device.
+
+Lets look at the getting of the active tuner first. We cannot use
+VIDIOC_G_TUNER for this, since this is used to enumerate tuners,
+so it should return info on the tuner with the specified index,
+rather then the active tuner.
+
+VIDEOC_G_FREQUENCY otoh looks like a good candidate to use for this,
+for radio devices we can simply ignore the passed in tuner field,
+and instead return the active tuner and the current frequency.
+This means there will be no way to get the frequency for the non
+active tuner (mode), this is fine, since the non active tuner
+does not have a (valid) frequency anyways.
+
+If we choose for VIDIOC_G_FREQUENCY to always return info on the
+active tuner it makes sense to use VIDIOC_S_FREQUENCY to select
+the active tuner. So for radio devices it will not only change
+the currently tuned frequency for the indicated tuner, but if
+the indicated tuner was not the active tuner it will make it the
+active tuner.
+
+Which leaves the question of what to do with VIDIOC_S_HW_FREQ_SEEK,
+since VIDIOC_S_HW_FREQ_SEEK needs a valid begin frequency as a pre
+condition, and the frequency ranges differ between different
+tuners it makes sense to only allow VIDIOC_S_HW_FREQ_SEEK on
+the active tuner. So this leaves one last problem, what to
+return from VIDIOC_S_HW_FREQ_SEEK if it tries to seek for
+a non active tuner. I'm tending towards saying -EBUSY, since some
+parts of the tuners are shared, so the non active tuner cannot
+seek because those shared parts are otherwise used.
+
+Regards,
+
+Hans
