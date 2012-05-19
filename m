@@ -1,64 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:36548 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751963Ab2DCAo0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Apr 2012 20:44:26 -0400
-Received: by wejx9 with SMTP id x9so2033665wej.19
-        for <linux-media@vger.kernel.org>; Mon, 02 Apr 2012 17:44:24 -0700 (PDT)
-Message-ID: <4F7A47E5.8040604@gmail.com>
-Date: Tue, 03 Apr 2012 02:44:21 +0200
-From: Gianluca Gennari <gennarone@gmail.com>
-Reply-To: gennarone@gmail.com
-MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: linux-media@vger.kernel.org, m@bues.ch, hfvogt@gmx.net,
-	mchehab@redhat.com
-Subject: Re: [PATCH 3/5] tda18218: fix IF frequency for 7MHz bandwidth channels
-References: <1333401917-27203-1-git-send-email-gennarone@gmail.com> <1333401917-27203-4-git-send-email-gennarone@gmail.com> <4F7A2AC9.8040407@iki.fi>
-In-Reply-To: <4F7A2AC9.8040407@iki.fi>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Received: from smtp.nokia.com ([147.243.1.47]:42430 "EHLO mgw-sa01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754951Ab2ESTH1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 19 May 2012 15:07:27 -0400
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com
+Subject: [media-ctl PATCH v2 3/4] Drop _ACTUAL from selection target names
+Date: Sat, 19 May 2012 22:11:30 +0300
+Message-Id: <1337454691-28698-3-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <20120519190627.GR3373@valkosipuli.retiisi.org.uk>
+References: <20120519190627.GR3373@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Il 03/04/2012 00:40, Antti Palosaari ha scritto:
-> On 03.04.2012 00:25, Gianluca Gennari wrote:
->> This is necessary to tune VHF channels with the AVerMedia A835 stick.
->>
->> Signed-off-by: Gianluca Gennari<gennarone@gmail.com>
->> ---
->>   drivers/media/common/tuners/tda18218.c |    2 +-
->>   1 files changed, 1 insertions(+), 1 deletions(-)
->>
->> diff --git a/drivers/media/common/tuners/tda18218.c
->> b/drivers/media/common/tuners/tda18218.c
->> index dfb3a83..b079696 100644
->> --- a/drivers/media/common/tuners/tda18218.c
->> +++ b/drivers/media/common/tuners/tda18218.c
->> @@ -144,7 +144,7 @@ static int tda18218_set_params(struct dvb_frontend
->> *fe)
->>           priv->if_frequency = 3000000;
->>       } else if (bw<= 7000000) {
->>           LP_Fc = 1;
->> -        priv->if_frequency = 3500000;
->> +        priv->if_frequency = 4000000;
->>       } else {
->>           LP_Fc = 2;
->>           priv->if_frequency = 4000000;
-> 
-> Kwaak, I will not apply that until I have done background checking. That
-> driver is used only by AF9015 currently. And I did that driver as
-> reverse-engineering and thus there is some things guessed. I have only 8
-> MHz wide signal, thus I never tested 7 and 6 MHz. Have no DVB-T
-> modulator either... Maybe some AF9015 user can confirm? Is there any
-> AF9015 & TDA18218 bug reports seen in discussion forums...
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+ src/main.c       |    4 ++--
+ src/v4l2subdev.c |    8 ++++----
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
-A friend has a AF9015+TDA18218 stick and told me that it works fine with
-the patch (including VHF), but to be safe I will ask him to double check
-with the current media_build tree, with and without the patch. In the
-worst case, we can add a new parameter (or an array of parameters) for
-the IF frequency to struct tda18218_config.
-
-Regards,
-Gianluca
+diff --git a/src/main.c b/src/main.c
+index a989669..703f034 100644
+--- a/src/main.c
++++ b/src/main.c
+@@ -71,7 +71,7 @@ static void v4l2_subdev_print_format(struct media_entity *entity,
+ 		       rect.width, rect.height);
+ 
+ 	ret = v4l2_subdev_get_selection(entity, &rect, pad,
+-					V4L2_SUBDEV_SEL_TGT_CROP_ACTUAL,
++					V4L2_SUBDEV_SEL_TGT_CROP,
+ 					which);
+ 	if (ret == 0)
+ 		printf("\n\t\t crop:%u,%u/%ux%u", rect.left, rect.top,
+@@ -85,7 +85,7 @@ static void v4l2_subdev_print_format(struct media_entity *entity,
+ 		       rect.left, rect.top, rect.width, rect.height);
+ 
+ 	ret = v4l2_subdev_get_selection(entity, &rect, pad,
+-					V4L2_SUBDEV_SEL_TGT_COMPOSE_ACTUAL,
++					V4L2_SUBDEV_SEL_TGT_COMPOSE,
+ 					which);
+ 	if (ret == 0)
+ 		printf("\n\t\t compose:%u,%u/%ux%u",
+diff --git a/src/v4l2subdev.c b/src/v4l2subdev.c
+index d7e6d8d..48b7acb 100644
+--- a/src/v4l2subdev.c
++++ b/src/v4l2subdev.c
+@@ -128,7 +128,7 @@ int v4l2_subdev_get_selection(struct media_entity *entity,
+ 		*rect = u.sel.r;
+ 		return 0;
+ 	}
+-	if (errno != ENOTTY || target != V4L2_SUBDEV_SEL_TGT_CROP_ACTUAL)
++	if (errno != ENOTTY || target != V4L2_SUBDEV_SEL_TGT_CROP)
+ 		return -errno;
+ 
+ 	memset(&u.crop, 0, sizeof(u.crop));
+@@ -168,7 +168,7 @@ int v4l2_subdev_set_selection(struct media_entity *entity,
+ 		*rect = u.sel.r;
+ 		return 0;
+ 	}
+-	if (errno != ENOTTY || target != V4L2_SUBDEV_SEL_TGT_CROP_ACTUAL)
++	if (errno != ENOTTY || target != V4L2_SUBDEV_SEL_TGT_CROP)
+ 		return -errno;
+ 
+ 	memset(&u.crop, 0, sizeof(u.crop));
+@@ -514,11 +514,11 @@ static int v4l2_subdev_parse_setup_format(struct media_device *media,
+ 			return ret;
+ 	}
+ 
+-	ret = set_selection(pad, V4L2_SUBDEV_SEL_TGT_CROP_ACTUAL, &crop);
++	ret = set_selection(pad, V4L2_SUBDEV_SEL_TGT_CROP, &crop);
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	ret = set_selection(pad, V4L2_SUBDEV_SEL_TGT_COMPOSE_ACTUAL, &compose);
++	ret = set_selection(pad, V4L2_SUBDEV_SEL_TGT_COMPOSE, &compose);
+ 	if (ret < 0)
+ 		return ret;
+ 
+-- 
+1.7.2.5
 
