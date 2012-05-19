@@ -1,55 +1,161 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 124-248-200-90.sunnyvision.com ([124.248.200.90]:39036 "EHLO
-	teamb03.edmhongkong.com" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
-	with ESMTP id S1751859Ab2E1Lbd (ORCPT
+Received: from mail-we0-f174.google.com ([74.125.82.174]:51468 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756227Ab2ESKTv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 May 2012 07:31:33 -0400
-Message-ID: <MniwIzz@ksmail.seed.net.tw>
-From: svserver@yahoo.com.hk
-Subject: Server Rental Service in HK
-Content-Type: text/plain;
-Content-Transfer-Encoding: Quoted-Printable
-Date: Mon, 28 May 2012 19:31:13 +0800 (HKT)
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+	Sat, 19 May 2012 06:19:51 -0400
+Received: by mail-we0-f174.google.com with SMTP id u7so2271751wey.19
+        for <linux-media@vger.kernel.org>; Sat, 19 May 2012 03:19:50 -0700 (PDT)
+From: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
+Subject: [PATCH 5/5] renamings for dvb-sat, dvb-scan
+Date: Sat, 19 May 2012 12:18:52 +0200
+Message-Id: <1337422732-2001-5-git-send-email-neolynx@gmail.com>
+In-Reply-To: <1337422732-2001-1-git-send-email-neolynx@gmail.com>
+References: <1337422732-2001-1-git-send-email-neolynx@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dear All,
+---
+ lib/include/dvb-fe.h                   |    2 +-
+ lib/include/{libsat.h => dvb-sat.h}    |    0
+ lib/include/{libscan.h => dvb-scan.h}  |    0
+ lib/libdvbv5/Makefile.am               |    4 ++--
+ lib/libdvbv5/descriptors.c             |    2 +-
+ lib/libdvbv5/dvb-file.c                |    2 +-
+ lib/libdvbv5/{libsat.c => dvb-sat.c}   |    0
+ lib/libdvbv5/{libscan.c => dvb-scan.c} |    2 +-
+ utils/dvb/dvb-format-convert.c         |    2 +-
+ utils/dvb/dvbv5-scan.c                 |    2 +-
+ utils/dvb/dvbv5-zap.c                  |    2 +-
+ 11 files changed, 9 insertions(+), 9 deletions(-)
+ rename lib/include/{libsat.h => dvb-sat.h} (100%)
+ rename lib/include/{libscan.h => dvb-scan.h} (100%)
+ rename lib/libdvbv5/{libsat.c => dvb-sat.c} (100%)
+ rename lib/libdvbv5/{libscan.c => dvb-scan.c} (99%)
 
-We have our own datacenter in Hong Kong & provide email/application/web rental service to clients.We are APNIC member & provide clean IP to clients.
-
-Dell=3F PowerEdge=3F EnterpriseRack Mount Server
--Intel(R) Xeon(R) E3-1240 Processor (3.3GHz, 8M Cache, Turbo, 4C/8T, 80W)
--8GB RAM, 2x4GB, 1333MHz, DDR-3, Dual Ranked UDIMMs
--500GB, 3.5", 6Gbps SAS x 2
--Raid 1 Mirroring Protection
--Remote KVM (iDRAC6 Enterprise)
-
-Dell(TM) PowerEdge(TM) R410 Rack Mount Server
--Intel(R) Quad Core E5606 Xeon(R) CPU, 2.13GHz, 4M Cache, 4.86 GT/s QPI
--4GB Memory (2x2GB), 1333MHz Dual Ranked RDIMMs Fully-Buffered
--500GB 7.2K RPM SATAII 3.5" Hard Drive x 2
--iDRAC6 Enterprise or Express (Remote KVM Management)
-
-Every Dedicated Server Hosting Solution Also Includes: 
+diff --git a/lib/include/dvb-fe.h b/lib/include/dvb-fe.h
+index 3fdae4f..0133ff3 100644
+--- a/lib/include/dvb-fe.h
++++ b/lib/include/dvb-fe.h
+@@ -30,7 +30,7 @@
+ #include <sys/ioctl.h>
+ #include <string.h>
+ #include "dvb-frontend.h"
+-#include "libsat.h"
++#include "dvb-sat.h"
  
-Software Specification 
-- CentOS / Fedora / Debian / FreeBSD / Ubuntu / Redhat Linux 
-- Full root-level access 
-- Data Center Facilities 
-- Shared Local & International Bandwidth 
-- 2 IP Addresses Allocation 
-- Un-interruptible Power Supply (UPS) backed up by private diesel generator 
-- FM200=A1=A7based fire suppression system 
-- 24x7 CRAC Air Conditioning and Humidity Control 
-- 24x7 Security Control 
-- 24x7 Remote Hand Service 
-
-Pls send us email for further information.Thanks,
-
-Boris 
-boris@dedicatedserver.com.hk
-
-If you do not wish to further receive this event message, email "borislamsv2@gmail.com" to unsubscribe this message or remove your email from the list.
-
+ #define dvb_log(fmt, arg...) do {\
+   parms->logfunc(fmt, ##arg); \
+diff --git a/lib/include/libsat.h b/lib/include/dvb-sat.h
+similarity index 100%
+rename from lib/include/libsat.h
+rename to lib/include/dvb-sat.h
+diff --git a/lib/include/libscan.h b/lib/include/dvb-scan.h
+similarity index 100%
+rename from lib/include/libscan.h
+rename to lib/include/dvb-scan.h
+diff --git a/lib/libdvbv5/Makefile.am b/lib/libdvbv5/Makefile.am
+index 67db06a..68bc6da 100644
+--- a/lib/libdvbv5/Makefile.am
++++ b/lib/libdvbv5/Makefile.am
+@@ -18,8 +18,8 @@ libdvbv5_la_SOURCES = \
+   dvb-legacy-channel-format.c \
+   dvb-zap-format.c \
+   descriptors.c descriptors.h \
+-  libsat.c ../include/libsat.h \
+-  libscan.c ../include/libscan.h \
++  dvb-sat.c ../include/dvb-sat.h \
++  dvb-scan.c ../include/dvb-scan.h \
+   parse_string.c parse_string.h
+ libdvbv5_la_CPPFLAGS = $(ENFORCE_LIBDVBV5_STATIC)
+ libdvbv5_la_LDFLAGS = -version-info 0 $(ENFORCE_LIBDVBV5_STATIC)
+diff --git a/lib/libdvbv5/descriptors.c b/lib/libdvbv5/descriptors.c
+index 249ae6d..63c4b56 100644
+--- a/lib/libdvbv5/descriptors.c
++++ b/lib/libdvbv5/descriptors.c
+@@ -23,7 +23,7 @@
+ #include <stdio.h>
+ 
+ #include "dvb-fe.h"
+-#include "libscan.h"
++#include "dvb-scan.h"
+ #include "descriptors.h"
+ #include "parse_string.h"
+ #include "dvb-frontend.h"
+diff --git a/lib/libdvbv5/dvb-file.c b/lib/libdvbv5/dvb-file.c
+index d7cf13e..0b9ccda 100644
+--- a/lib/libdvbv5/dvb-file.c
++++ b/lib/libdvbv5/dvb-file.c
+@@ -25,7 +25,7 @@
+ 
+ #include "dvb-file.h"
+ #include "dvb-v5-std.h"
+-#include "libscan.h"
++#include "dvb-scan.h"
+ 
+ static const char *parm_name(const struct parse_table *table)
+ {
+diff --git a/lib/libdvbv5/libsat.c b/lib/libdvbv5/dvb-sat.c
+similarity index 100%
+rename from lib/libdvbv5/libsat.c
+rename to lib/libdvbv5/dvb-sat.c
+diff --git a/lib/libdvbv5/libscan.c b/lib/libdvbv5/dvb-scan.c
+similarity index 99%
+rename from lib/libdvbv5/libscan.c
+rename to lib/libdvbv5/dvb-scan.c
+index 7916d36..e0a546c 100644
+--- a/lib/libdvbv5/libscan.c
++++ b/lib/libdvbv5/dvb-scan.c
+@@ -25,7 +25,7 @@
+  *	ETSI EN 300 468 V1.11.1 (2010-04)
+  *****************************************************************************/
+ 
+-#include "libscan.h"
++#include "dvb-scan.h"
+ #include "dvb-frontend.h"
+ #include "descriptors.h"
+ #include "parse_string.h"
+diff --git a/utils/dvb/dvb-format-convert.c b/utils/dvb/dvb-format-convert.c
+index 6db5219..cad0f59 100644
+--- a/utils/dvb/dvb-format-convert.c
++++ b/utils/dvb/dvb-format-convert.c
+@@ -33,7 +33,7 @@
+ 
+ #include "dvb-file.h"
+ #include "dvb-demux.h"
+-#include "libscan.h"
++#include "dvb-scan.h"
+ 
+ #define PROGRAM_NAME	"dvb-format-convert"
+ 
+diff --git a/utils/dvb/dvbv5-scan.c b/utils/dvb/dvbv5-scan.c
+index 64945cc..6cabe8e 100644
+--- a/utils/dvb/dvbv5-scan.c
++++ b/utils/dvb/dvbv5-scan.c
+@@ -36,7 +36,7 @@
+ #include "dvb-file.h"
+ #include "dvb-demux.h"
+ #include "dvb-v5-std.h"
+-#include "libscan.h"
++#include "dvb-scan.h"
+ 
+ #define PROGRAM_NAME	"dvbv5-scan"
+ #define DEFAULT_OUTPUT  "dvb_channel.conf"
+diff --git a/utils/dvb/dvbv5-zap.c b/utils/dvb/dvbv5-zap.c
+index 819ca39..b71d77f 100644
+--- a/utils/dvb/dvbv5-zap.c
++++ b/utils/dvb/dvbv5-zap.c
+@@ -38,7 +38,7 @@
+ #include <linux/dvb/dmx.h>
+ #include "dvb-file.h"
+ #include "dvb-demux.h"
+-#include "libscan.h"
++#include "dvb-scan.h"
+ 
+ #define CHANNEL_FILE	"channels.conf"
+ #define PROGRAM_NAME	"dvbv5-zap"
+-- 
+1.7.2.5
 
