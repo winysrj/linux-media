@@ -1,111 +1,146 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:12067 "EHLO mx1.redhat.com"
+Received: from smtp.nokia.com ([147.243.1.48]:40823 "EHLO mgw-sa02.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753285Ab2EEHjL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 5 May 2012 03:39:11 -0400
-Message-ID: <4FA4DA05.5030001@redhat.com>
-Date: Sat, 05 May 2012 09:43:01 +0200
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org, Jean-Francois Moine <moinejf@free.fr>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFCv1 PATCH 1/7] gspca: allow subdrivers to use the control
- framework.
-References: <1335625796-9429-1-git-send-email-hverkuil@xs4all.nl> <ea7e986dc0fa18da12c22048e9187e9933191d3d.1335625085.git.hans.verkuil@cisco.com>
-In-Reply-To: <ea7e986dc0fa18da12c22048e9187e9933191d3d.1335625085.git.hans.verkuil@cisco.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	id S1757573Ab2ESTH3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 19 May 2012 15:07:29 -0400
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com
+Subject: [media-ctl PATCH v2 2/4] Compose rectangle support for libv4l2subdev
+Date: Sat, 19 May 2012 22:11:29 +0300
+Message-Id: <1337454691-28698-2-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <20120519190627.GR3373@valkosipuli.retiisi.org.uk>
+References: <20120519190627.GR3373@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+ src/main.c       |   14 ++++++++++++++
+ src/options.c    |    6 ++++--
+ src/v4l2subdev.c |   32 +++++++++++++++++++++++---------
+ 3 files changed, 41 insertions(+), 11 deletions(-)
 
-I'm slowly working my way though this series today (both review, as well
-as some tweaks and testing).
+diff --git a/src/main.c b/src/main.c
+index 2f57352..a989669 100644
+--- a/src/main.c
++++ b/src/main.c
+@@ -77,6 +77,20 @@ static void v4l2_subdev_print_format(struct media_entity *entity,
+ 		printf("\n\t\t crop:%u,%u/%ux%u", rect.left, rect.top,
+ 		       rect.width, rect.height);
+ 
++	ret = v4l2_subdev_get_selection(entity, &rect, pad,
++					V4L2_SUBDEV_SEL_TGT_COMPOSE_BOUNDS,
++					which);
++	if (ret == 0)
++		printf("\n\t\t compose.bounds:%u,%u/%ux%u",
++		       rect.left, rect.top, rect.width, rect.height);
++
++	ret = v4l2_subdev_get_selection(entity, &rect, pad,
++					V4L2_SUBDEV_SEL_TGT_COMPOSE_ACTUAL,
++					which);
++	if (ret == 0)
++		printf("\n\t\t compose:%u,%u/%ux%u",
++		       rect.left, rect.top, rect.width, rect.height);
++
+ 	printf("]");
+ }
+ 
+diff --git a/src/options.c b/src/options.c
+index 46f6bef..8e80bd0 100644
+--- a/src/options.c
++++ b/src/options.c
+@@ -56,12 +56,14 @@ static void usage(const char *argv0, int verbose)
+ 	printf("\tv4l2                = pad, '[', v4l2-cfgs ']' ;\n");
+ 	printf("\tv4l2-cfgs           = v4l2-cfg [ ',' v4l2-cfg ] ;\n");
+ 	printf("\tv4l2-cfg            = v4l2-mbusfmt | v4l2-crop\n");
+-	printf("\t                      | v4l2 frame interval ;\n");
++	printf("\t                      | v4l2-compose | v4l2 frame interval ;\n");
+ 	printf("\tv4l2-mbusfmt        = 'fmt:', fcc, '/', size ;\n");
+ 	printf("\tpad                 = entity, ':', pad number ;\n");
+ 	printf("\tentity              = entity number | ( '\"', entity name, '\"' ) ;\n");
+ 	printf("\tsize                = width, 'x', height ;\n");
+-	printf("\tv4l2-crop           = 'crop:(', left, ',', top, ')/', size ;\n");
++	printf("\tv4l2-crop           = 'crop:', v4l2-rectangle ;\n");
++	printf("\tv4l2-compose        = 'compose:', v4l2-rectangle ;\n");
++	printf("\tv4l2-rectangle      = '(', left, ',', top, ')/', size ;\n");
+ 	printf("\tv4l2 frame interval = '@', numerator, '/', denominator ;\n");
+ 	printf("where the fields are\n");
+ 	printf("\tentity number   Entity numeric identifier\n");
+diff --git a/src/v4l2subdev.c b/src/v4l2subdev.c
+index 2b4a923..d7e6d8d 100644
+--- a/src/v4l2subdev.c
++++ b/src/v4l2subdev.c
+@@ -325,8 +325,8 @@ static int icanhasstr(const char *str, const char **p)
+ 
+ static struct media_pad *v4l2_subdev_parse_pad_format(
+ 	struct media_device *media, struct v4l2_mbus_framefmt *format,
+-	struct v4l2_rect *crop, struct v4l2_fract *interval, const char *p,
+-	char **endp)
++	struct v4l2_rect *crop, struct v4l2_rect *compose,
++	struct v4l2_fract *interval, const char *p, char **endp)
+ {
+ 	struct media_pad *pad;
+ 	char *end;
+@@ -358,6 +358,15 @@ static struct media_pad *v4l2_subdev_parse_pad_format(
+ 			continue;
+ 		}
+ 
++		if (!icanhasstr("compose:", &p)) {
++			ret = v4l2_subdev_parse_rectangle(compose, p, &end);
++			if (ret < 0)
++				return NULL;
++
++			for (p = end; isspace(*p); p++);
++			continue;
++		}
++
+ 		/*
+ 		 * Continue providing compatibility interface for
+ 		 * users who use the old syntax: consider anything
+@@ -486,30 +495,35 @@ static int v4l2_subdev_parse_setup_format(struct media_device *media,
+ 	struct v4l2_mbus_framefmt format = { 0, 0, 0 };
+ 	struct media_pad *pad;
+ 	struct v4l2_rect crop = { -1, -1, -1, -1 };
++	struct v4l2_rect compose = crop;
+ 	struct v4l2_fract interval = { 0, 0 };
+ 	unsigned int i;
+ 	char *end;
+ 	int ret;
+ 
+-	pad = v4l2_subdev_parse_pad_format(media, &format, &crop, &interval,
+-					   p, &end);
++	pad = v4l2_subdev_parse_pad_format(media, &format, &crop, &compose,
++					   &interval, p, &end);
+ 	if (pad == NULL) {
+ 		media_dbg(media, "Unable to parse format\n");
+ 		return -EINVAL;
+ 	}
+ 
+-	if (pad->flags & MEDIA_PAD_FL_SOURCE) {
+-		ret = set_selection(pad, V4L2_SUBDEV_SEL_TGT_CROP_ACTUAL, &crop);
++	if (pad->flags & MEDIA_PAD_FL_SINK) {
++		ret = set_format(pad, &format);
+ 		if (ret < 0)
+ 			return ret;
+ 	}
+ 
+-	ret = set_format(pad, &format);
++	ret = set_selection(pad, V4L2_SUBDEV_SEL_TGT_CROP_ACTUAL, &crop);
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	if (pad->flags & MEDIA_PAD_FL_SINK) {
+-		ret = set_selection(pad, V4L2_SUBDEV_SEL_TGT_CROP_ACTUAL, &crop);
++	ret = set_selection(pad, V4L2_SUBDEV_SEL_TGT_COMPOSE_ACTUAL, &compose);
++	if (ret < 0)
++		return ret;
++
++	if (pad->flags & MEDIA_PAD_FL_SOURCE) {
++		ret = set_format(pad, &format);
+ 		if (ret < 0)
+ 			return ret;
+ 	}
+-- 
+1.7.2.5
 
-More comments inline...
-
-On 04/28/2012 05:09 PM, Hans Verkuil wrote:
-> From: Hans Verkuil<hans.verkuil@cisco.com>
->
-> Make the necessary changes to allow subdrivers to use the control framework.
-> This does not add control event support, that needs more work.
->
-> Signed-off-by: Hans Verkuil<hans.verkuil@cisco.com>
-> ---
->   drivers/media/video/gspca/gspca.c |   13 +++++++++----
->   1 file changed, 9 insertions(+), 4 deletions(-)
->
-> diff --git a/drivers/media/video/gspca/gspca.c b/drivers/media/video/gspca/gspca.c
-> index ca5a2b1..56dff10 100644
-> --- a/drivers/media/video/gspca/gspca.c
-> +++ b/drivers/media/video/gspca/gspca.c
-> @@ -38,6 +38,7 @@
->   #include<linux/uaccess.h>
->   #include<linux/ktime.h>
->   #include<media/v4l2-ioctl.h>
-> +#include<media/v4l2-ctrls.h>
->
->   #include "gspca.h"
->
-> @@ -1006,6 +1007,8 @@ static void gspca_set_default_mode(struct gspca_dev *gspca_dev)
->
->   	/* set the current control values to their default values
->   	 * which may have changed in sd_init() */
-> +	/* does nothing if ctrl_handler == NULL */
-> +	v4l2_ctrl_handler_setup(gspca_dev->vdev.ctrl_handler);
->   	ctrl = gspca_dev->cam.ctrls;
->   	if (ctrl != NULL) {
->   		for (i = 0;
-> @@ -1323,6 +1326,7 @@ static void gspca_release(struct video_device *vfd)
->   	PDEBUG(D_PROBE, "%s released",
->   		video_device_node_name(&gspca_dev->vdev));
->
-> +	v4l2_ctrl_handler_free(gspca_dev->vdev.ctrl_handler);
->   	kfree(gspca_dev->usb_buf);
->   	kfree(gspca_dev);
->   }
-> @@ -2347,6 +2351,10 @@ int gspca_dev_probe2(struct usb_interface *intf,
->   	gspca_dev->sd_desc = sd_desc;
->   	gspca_dev->nbufread = 2;
->   	gspca_dev->empty_packet = -1;	/* don't check the empty packets */
-> +	gspca_dev->vdev = gspca_template;
-> +	gspca_dev->vdev.parent =&intf->dev;
-> +	gspca_dev->module = module;
-> +	gspca_dev->present = 1;
->
->   	/* configure the subdriver and initialize the USB device */
->   	ret = sd_desc->config(gspca_dev, id);
-
-You also need to move the initialization of the mutexes here, as the
-v4l2_ctrl_handler_setup will call s_ctrl on all the controls, and s_ctrl
-should take the usb_lock (see my review of the next patch in this series),
-I'll make this change myself and merge it into your patch.
-
-> @@ -2368,10 +2376,6 @@ int gspca_dev_probe2(struct usb_interface *intf,
->   	init_waitqueue_head(&gspca_dev->wq);
->
->   	/* init video stuff */
-> -	memcpy(&gspca_dev->vdev,&gspca_template, sizeof gspca_template);
-> -	gspca_dev->vdev.parent =&intf->dev;
-> -	gspca_dev->module = module;
-> -	gspca_dev->present = 1;
->   	ret = video_register_device(&gspca_dev->vdev,
->   				  VFL_TYPE_GRABBER,
->   				  -1);
-> @@ -2391,6 +2395,7 @@ out:
->   	if (gspca_dev->input_dev)
->   		input_unregister_device(gspca_dev->input_dev);
->   #endif
-> +	v4l2_ctrl_handler_free(gspca_dev->vdev.ctrl_handler);
->   	kfree(gspca_dev->usb_buf);
->   	kfree(gspca_dev);
->   	return ret;
-
-Otherwise looks good, I've added it to my local tree (with the
-described change), and will include it in my next pullreq.
-
-Regards,
-
-Hans
