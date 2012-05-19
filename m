@@ -1,76 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gh0-f174.google.com ([209.85.160.174]:55033 "EHLO
-	mail-gh0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751344Ab2E2MFJ (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:60809 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754932Ab2ESSKF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 May 2012 08:05:09 -0400
-Received: by ghrr11 with SMTP id r11so1664928ghr.19
-        for <linux-media@vger.kernel.org>; Tue, 29 May 2012 05:05:09 -0700 (PDT)
+	Sat, 19 May 2012 14:10:05 -0400
+Date: Sat, 19 May 2012 21:10:00 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: snjw23@gmail.com, mchehab@redhat.com,
+	laurent.pinchart@ideasonboard.com
+Subject: [GIT PULL FOR 3.5] V4L2 and V4L2 subdev selection target rename
+Message-ID: <20120519181000.GQ3373@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-In-Reply-To: <201205281222.57917.hverkuil@xs4all.nl>
-References: <1338050460-5902-1-git-send-email-elezegarcia@gmail.com>
-	<201205261905.25626.hverkuil@xs4all.nl>
-	<CALF0-+XFR4jnDCatk3vu2tB=iA-p=Ai_bwwgOZGTzNNrsicxfA@mail.gmail.com>
-	<201205281222.57917.hverkuil@xs4all.nl>
-Date: Tue, 29 May 2012 09:05:08 -0300
-Message-ID: <CALF0-+VHtPuHCzpAydFjaUnp+JkpJOXxJTJoQEURwvBkmA3vgA@mail.gmail.com>
-Subject: Re: [RFC/PATCH] media: Add stk1160 new driver
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: mchehab@redhat.com, linux-media@vger.kernel.org,
-	hdegoede@redhat.com, snjw23@gmail.com
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, May 28, 2012 at 7:22 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->
-> In practice it seems that the easiest approach is not to clean up anything in the
-> disconnect, just take the lock, do the bare minimum necessary for the disconnect,
-> unregister the video nodes, unlock and end with v4l2_device_put(v4l2_dev).
->
-> It's a suggestion only, but experience has shown that it works well. And as I said,
-> when you get multiple device nodes, then this is the only workable approach.
+Hi Mauro,
 
-I'm convinced: it's both cleaner and more logical to use
-v4l2_release instead of video_device release to the final cleanup.
+This pull request contains just two patches; one for the V4L2 and one for
+the V4L2 subdev interfaces. The patches rename the effective selection
+targets by removing the _ACTUAL (V4L2 subdev) or _ACTIVE (V4L2) part of the
+target name, thus making the target names the same on both interfaces except
+for the _SUBDEV string in the names. We later will to remove that as well
+but to do that properly requires non-trivial changes to the documentation.
+The users are already encouraged to use the V4L2 selection targets on
+subdevs; the documentation will be changed for 3.6.
 
->
-> OK, the general rule is as follows (many drivers do not follow this correctly, BTW,
-> but this is what should happen):
->
-> - the filehandle that calls REQBUFS owns the buffers and is the only one that can
-> start/stop streaming and queue/dequeue buffers.
-
-and read, poll, etc right?
-
-> This is until REQBUFS with count == 0
-> is called, or until the filehandle is closed.
-
-Okey. But currently videobuf2 doesn't notify the driver
-when reqbufs with zero count has been called.
-
-So, I have to "assume" it (aka trouble ahead) or "capture" the zero
-count case before/after calling vb2_reqbufs (aka ugly).
-
-I humbly think that, if we wan't to enforce this behavior
-(as part of v4l2 driver semantics)
-then we should have videobuf2 tell the driver when reqbufs has been
-called with zero count.
-
-You can take a look at pwc which only drops owner on filehandle close,
-or uvc which captures this from vb2_reqbufs.
-
-After looking at uvc, now I wonder is it really ugly? or perhaps
-it's just ok.
+These patches should be applied already now since that decreases the number
+of required changes for selection API users in the future, and 3.5 is also
+the first kernel version where the subdev selection API is present.
 
 
-> v4l2_device is a top-level struct, video_device represents a single device node.
-> For cleanup purposes there isn't much difference between the two if you have
-> only one device node. When you have more, then those differences are much more
-> important.
+The following changes since commit 61282daf505f3c8def09332ca337ac257b792029:
 
-Yes, it's cleaner now.
+  [media] V4L2: mt9t112: fixup JPEG initialization workaround (2012-05-15 16:15:35 -0300)
 
-Thanks!
-Ezequiel.
+are available in the git repository at:
+  ssh://linuxtv.org/git/sailus/media_tree.git media-for-3.5-selections
+
+Sakari Ailus (1):
+      v4l: Remove "_ACTUAL" from subdev selection API target definition names
+
+Sylwester Nawrocki (1):
+      V4L: Rename V4L2_SEL_TGT_[CROP/COMPOSE]_ACTIVE to V4L2_SEL_TGT_[CROP/COMPOSE]
+
+ Documentation/DocBook/media/v4l/dev-subdev.xml     |   25 +++++++++----------
+ Documentation/DocBook/media/v4l/selection-api.xml  |   24 +++++++++---------
+ .../DocBook/media/v4l/vidioc-g-selection.xml       |   15 ++++++-----
+ .../media/v4l/vidioc-subdev-g-selection.xml        |   12 ++++----
+ drivers/media/video/omap3isp/ispccdc.c             |    4 +-
+ drivers/media/video/omap3isp/isppreview.c          |    4 +-
+ drivers/media/video/omap3isp/ispresizer.c          |    4 +-
+ drivers/media/video/s5p-fimc/fimc-capture.c        |    8 +++---
+ drivers/media/video/s5p-jpeg/jpeg-core.c           |    4 +-
+ drivers/media/video/s5p-tv/mixer_video.c           |    8 +++---
+ drivers/media/video/smiapp/smiapp-core.c           |   22 ++++++++--------
+ drivers/media/video/v4l2-ioctl.c                   |    8 +++---
+ drivers/media/video/v4l2-subdev.c                  |    4 +-
+ include/linux/v4l2-subdev.h                        |    4 +-
+ include/linux/videodev2.h                          |    4 +-
+ 15 files changed, 75 insertions(+), 75 deletions(-)
+
+Kind regards,
+
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
