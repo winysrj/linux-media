@@ -1,63 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from exprod5og110.obsmtp.com ([64.18.0.20]:49728 "EHLO
-	exprod5og110.obsmtp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755309Ab2ECLCE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 May 2012 07:02:04 -0400
-Date: Thu, 3 May 2012 13:01:56 +0200
-From: Karl Kiniger <karl.kiniger@med.ge.com>
-To: Paulo Assis <pj.assis@gmail.com>
-Cc: linux-media@vger.kernel.org, linux-uvc-devel@lists.sourceforge.net
-Subject: Re: logitech quickcam 9000 uvcdynctrl broken since kernel 3.2 - PING
-Message-ID: <20120503110156.GA11872@kipc2.localdomain>
-References: <20120424122156.GA16769@kipc2.localdomain>
- <20120502084318.GA21181@kipc2.localdomain>
- <CAPueXH4-VSxHYjryO8kN5R-hG6seFrwCu3Kjrq4TXV=XFKLETg@mail.gmail.com>
- <20120502114430.GA4608@kipc2.localdomain>
- <CAPueXH7TjHo-Dx2wUCQEcDvn=5L_xobYVKrf+b6wnmLGwOSeRg@mail.gmail.com>
- <20120502133108.GA19522@kipc2.localdomain>
- <CAPueXH4nx=mtwF1WR+7NYG0Ze9Arne17j2Sfw439PrS9nPWFaQ@mail.gmail.com>
- <CAPueXH6Gw_YHEF47vCvkU9XJDt2BO2EjfStTBQEaswhm0RdZ-Q@mail.gmail.com>
+Received: from moutng.kundenserver.de ([212.227.126.186]:63439 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755197Ab2ESXQ6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 19 May 2012 19:16:58 -0400
+Date: Sun, 20 May 2012 01:16:52 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
+cc: Linux-V4L2 <linux-media@vger.kernel.org>,
+	Magnus <magnus.damm@gmail.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Kuninori Morimoto <kuninori.morimoto.gx@gmail.com>
+Subject: [PATCH] V4L: sh-mobile-ceu-camera: restore the bus-width test
+In-Reply-To: <87d36yezag.wl%kuninori.morimoto.gx@renesas.com>
+Message-ID: <Pine.LNX.4.64.1205200044490.12577@axis700.grange>
+References: <87ehrf9fjo.wl%kuninori.morimoto.gx@renesas.com>
+ <Pine.LNX.4.64.1204231325300.19312@axis700.grange>
+ <87d36yezag.wl%kuninori.morimoto.gx@renesas.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAPueXH6Gw_YHEF47vCvkU9XJDt2BO2EjfStTBQEaswhm0RdZ-Q@mail.gmail.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Paulo,
+An earlier commit "[media] V4L: sh_mobile_ceu_camera: convert to the new 
+mbus-config subdev operations" has inadvertantly removed the check in the 
+sh-mobile-ceu-camera driver, whether a specific bus-width is supported. 
+This patch restores the check for formats, requiring wider than 8-bit 
+video bus. The other check from the above commit - whether 8-bits per 
+sample are supported - is, however, not restored. All currently known set 
+ups support 8 bits per sample, hence, this check so far seems redundant. 
+The respective SH_CEU_FLAG_USE_8BIT_BUS flag will be kept for now, but may 
+be removed in the future.
 
-On Wed 120502, Paulo Assis wrote:
-> OK, so UVCIOC_CTRL_ADD is no longer available, now we have:
-> 
-> UVCIOC_CTRL_MAP and UVCIOC_CTRL_QUERY, so I guess some changes are
-> needed, I'll try to fix this ASAP.
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
 
-compiled libwebcam-0.2.1 from Ubuntu (had to fight against
-CMake - I am almost CMake agnostic so far...) and I got the
-manual focus control in guvcview so things are definitely
-looking better now.
-
-So far I have got a focus slider and a LED1 frequency slider,
-but not a LED mode... forgot what exactly was available in
-the past.
-
--------
-LD_LIBRARY_PATH=/usr/local/lib /usr/local/bin/uvcdynctrl -i /usr/share/uvcdynctrl/data/046d/logitech.xml
-[libwebcam] Unsupported V4L2_CID_EXPOSURE_AUTO control with a non-contiguous range of choice IDs found
-[libwebcam] Invalid or unsupported V4L2 control encountered: ctrl_id = 0x009A0901, name = 'Exposure, Auto'
-Importing dynamic controls from file
-/usr/share/uvcdynctrl/data/046d/logitech.xml.  /usr/share/uvcdynctrl/data/046d/logitech.xml: error: video0: unable to
-    map 'Pan (relative)' control. ioctl(UVCIOC_CTRL_MAP) failed with return value -1 (error 2: No such file or directory)
-/usr/share/uvcdynctrl/data/046d/logitech.xml: error: video0: unable to map 'Tilt (relative)'
-    control. ioctl(UVCIOC_CTRL_MAP) failed with return value -1 (error 2: No such file or directory)
-/usr/share/uvcdynctrl/data/046d/logitech.xml:354: error: Invalid V4L2 control type specified: 'V4L2_CTRL_TYPE_BUTTON'
-/usr/share/uvcdynctrl/data/046d/logitech.xml:368: error: Invalid V4L2 control type specified: 'V4L2_CTRL_TYPE_BUTTON'
-/usr/share/uvcdynctrl/data/046d/logitech.xml:396: error: Invalid V4L2 control type specified: 'V4L2_CTRL_TYPE_MENU'
-
-Thanks again,
-Karl
+On Mon, 23 Apr 2012, Kuninori Morimoto wrote:
 
 > 
-> Regards,
-> Paulo
+> Hi Guennadi
+> 
+> Thanks for reply.
+> 
+> > AFAICS, all these platforms only use 8 bits, so, none of them is broken. 
+> > OTOH, I'm not sure any more, what was the motivation behind that removal. 
+> > Maybe exactly because we didn't have any platforms with 16-bit camera 
+> > connections and maybe I saw a problem with it, so, I decided to remove 
+> > them until we get a chance to properly implement and test 16-bits? Do you 
+> > have such a board?
+> 
+> about 16bit camera, one guy has it, but he is using v3.0 kernel,
+> so, it is not in trouble at this point.
+> (it is working)
+> 
+> The motivation was just "misunderstand-able", not super important at this point.
+> So please keep considering about it.
 
+Would be nice if the below patch could be tested with a 16-bit set up. But 
+it should be tested "negatively." This means: I think, also now 16-bit set 
+ups work. The only problem is, that even if your board only connects 8 
+data lines, an attempt to set a 16-bit format wouldn't fail and would, 
+probably, deliver corrupt data. So, the test would be:
+- take a 16-bit set up and choose a 16-bit format - it should work
+- remove the 16-bit flag from the platform data - it would, presumably, 
+  still work, which is a bug
+- apply the patch
+- now verify that 16-bits formats can only be used, if the board specifies 
+  the respective flag in platform data
+
+Thanks
+Guennadi
+
+diff --git a/drivers/media/video/sh_mobile_ceu_camera.c b/drivers/media/video/sh_mobile_ceu_camera.c
+index 424dfac..3e7b794 100644
+--- a/drivers/media/video/sh_mobile_ceu_camera.c
++++ b/drivers/media/video/sh_mobile_ceu_camera.c
+@@ -951,7 +951,8 @@ static int sh_mobile_ceu_try_bus_param(struct soc_camera_device *icd,
+ 	else if (ret != -ENOIOCTLCMD)
+ 		return ret;
+ 
+-	if (!common_flags || buswidth > 16)
++	if (!common_flags || buswidth > 16 ||
++	    (buswidth > 8 && !(pcdev->pdata->flags & SH_CEU_FLAG_USE_16BIT_BUS)))
+ 		return -EINVAL;
+ 
+ 	return 0;
