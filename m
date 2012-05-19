@@ -1,119 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:63204 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751162Ab2ECOfS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 May 2012 10:35:18 -0400
-Received: by eekc41 with SMTP id c41so545019eek.19
-        for <linux-media@vger.kernel.org>; Thu, 03 May 2012 07:35:16 -0700 (PDT)
-Date: Thu, 3 May 2012 16:34:54 +0200
-From: Anisse Astier <anisse@astier.eu>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Oleksij Rempel <bug-track@fisher-privat.net>
-Cc: linux-uvc-devel@lists.sourceforge.net, linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org
-Subject: Re: UVCvideo:  Failed to resubmit video URB (-27) with Linux 3.3.3
-Message-ID: <20120503163454.1a835d87@destiny.ordissimo>
-In-Reply-To: <1682934.ZponbpoO2x@avalon>
-References: <20120426200721.0c3ca642@destiny.ordissimo>
-	<1682934.ZponbpoO2x@avalon>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:38336 "EHLO
+	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1760339Ab2ESOpi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 19 May 2012 10:45:38 -0400
+Received: by lahd3 with SMTP id d3so2673690lah.19
+        for <linux-media@vger.kernel.org>; Sat, 19 May 2012 07:45:36 -0700 (PDT)
+Message-ID: <4FB7B209.5070300@gmail.com>
+Date: Sat, 19 May 2012 16:45:29 +0200
+From: =?ISO-8859-1?Q?Roger_M=E5rtensson?= <roger.martensson@gmail.com>
+MIME-Version: 1.0
+To: Antti Palosaari <crope@iki.fi>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Terratec H7(az6007), CI support and Kaffeine
+References: <4F65F5E2.2030302@gmail.com> <4F661336.3060003@iki.fi>
+In-Reply-To: <4F661336.3060003@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 02 May 2012 14:24:11 +0200, Laurent Pinchart <laurent.pinchart@ideasonboard.com> wrote :
+Antti Palosaari skrev 2012-03-18 17:54:
+ > On 18.03.2012 16:49, Roger Mårtensson wrote:
+ >>
+ >> My problem is as follows:
+ >> When viewing encrypted channels I can watch without problem.
+ >> When I change to another encrypted channel inside kaffeine nothing
+ >> happens. The EPG tells me which program it is but no video is displayed.
+ >>
+ > I suspect it is driver problem. I did some time ago Anysee CI support
+ > and tested it using VLC, Kaffeine and IIRC gnutv too. It is even
+ > possible to remove whole CAM and plug it back - still should continue
+ > working. For example view FTA channel, unplug CAM, plug CAM back; and
+ > only small glitches are seen during CAM replug when device routes TS via
+ > CAM / bypass CAM.
 
-> Hi Anisse,
-> 
-> On Thursday 26 April 2012 20:07:21 Anisse Astier wrote:
-> > Hi,
-> > 
-> > I'm experiencing a problem with uvcvideo with kernel 3.3.3 and today's
-> > Linus' tree.
-> > 
-> > Problem not reproduced in 3.2.15, so this could be labelled as a regression.
-> > 
-> > See webcam lsusb and (verbose!) dmesg log in attachment, which exhibits
-> > the problem.
-> > 
-> > We see lots of error (-18 = -EXDEV), that indicate that URB was too late
-> > and then dropped, and they add up until we reach the "Failed to resubmit
-> > video URB" scheduling issue.
-> 
-> Those are USB controller issues. The uvcvideo driver submits URBs with the 
-> URB_ISO_ASAP transfer flag, so the controller should not fail to schedule 
-> them.
-Yes, it's weird.
+I've noticed that there have been some patches for az6007(terratec H7, 
+etc) but still the same problem. When tuning to an encrypted channel no 
+video is showing. Some EPG-data data is shown that tells me what program 
+should be playing.
 
-So I followed Oleksij's adviced and reverted the following commit groups:
- - 66847ef [media] uvcvideo: Add UVC timestamps support, 3afedb9 [media]
-   uvcvideo: Don't skip erroneous payloads and ed0ee0c [media] uvcvideo:
-   Fix race-related crash in uvc_video_clock_update()
- - ab86e9e [media] uvcvideo: Allow userptr IO mode and 6998b6f [media]
-   uvcvideo: Use videobuf2-vmalloc
- - 3d95e93 [media] uvcvideo: Move fields from uvc_buffer::buf to
-   uvc_buffer
- - c4d99f8 [media] uvcvideo: Ignore GET_RES error for XU controls
- - 806e23e [media] uvcvideo: Fix integer overflow in uvc_ioctl_ctrl_map()
- - d0d9748 [media] uvcvideo: Use kcalloc instead of kzalloc to allocate
-   array
-None of this fixed the issue.
+Got a guess on #linuxtv that it could be that the routing to the CAM 
+isn't set up after a tune. (my interpretation of the comment on IRC)
 
-So I just decided to revert the whole uvc driver: git checkout v3.2 --
-drivers/media/video/uvc.
-But, the problem was still here.
+According to the developer of the CI-integration on az6007 it works for 
+him. The difference is that he used DVB-T and I use DVB-C. Is there a 
+difference here?
 
-I reverted the usb host code in drivers/usb/host/. Again the problem was
-reproduced (both with and without 3.2's uvcvideo driver)
+Linux-media, you're my only hope. :)
 
-Then I tested the whole kernel v3.2, and indeed it still works very well.
-
-So this problem could have it's root in USB core changes, or even a
-combilation of USB and UVC changes.
-
-
-> 
-> > Installed libv4l version is 0.8.6.
-> > I'm reproducing this with: gst-launch-0.10 --verbose v4l2src  ! xvimagesink
-> > (Skype exhibits the problem too, while it isn't using gstreamer, so it
-> > really seems to come from kernel. Also, doesn't happen with 3.2)
-> > 
-> > This is the first part of the problem. The second part is that if I
-> > restart the webcam with gst-launch after the first failure, I have a
-> > total freeze, just after these messages in the log (fetched with
-> > netconsole, I wasn't able to get a panic trace):
-> > 
-> > [  191.796217] uvcvideo: Marking buffer as bad (error bit set).
-> > [  191.796233] uvcvideo: Marking buffer as bad (error bit set).
-> > [  191.796244] uvcvideo: Marking buffer as bad (error bit set).
-> > [  191.796252] uvcvideo: Marking buffer as bad (error bit set).
-> > [  191.796259] uvcvideo: Frame complete (EOF found).
-> > [  191.796265] uvcvideo: EOF in empty payload.
-> > [  192.972803] uvcvideo: Marking buffer as bad (error bit set).
-> > [  192.972818] uvcvideo: Dropping payload (out of sync).
-> > [  194.289463] uvcvideo: Marking buffer as bad (error bit set).
-> > [  194.289478] uvcvideo: Frame complete (FID bit toggled).
-> > [  194.289486] uvcvideo: Marking buffer as bad (error bit set).
-> > [  194.289493] uvcvideo: Frame complete (FID bit toggled).
-> > [  194.289499] uvcvideo: Marking buffer as bad (error bit set).
-> > [  194.289505] uvcvideo: Frame complete (FID bit toggled).
-> > [  194.289511] uvcvideo: Marking buffer as bad (error bit set).
-> > [  194.289518] uvcvideo: Frame complete (FID bit toggled).
-> > [  194.289524] uvcvideo: Marking buffer as bad (error bit set).
-> > [  194.289531] uvcvideo: Frame complete (FID bit toggled).
-> >
-> > Last but not least, uvcvideo is un-bisectable because there were a few
-> > crash-fixes during the 3.3 development cycle. I started bisecting and got
-> > kernel panics.
-> 
-> Are the kernel panics related to uvcvideo ? There's one known bug introduced 
-> between v3.2 and v3.3 and fixed (before v3.3) in commit 
-> 8e57dec0454d8a3ba987d18b3ab19922c766d4bc.
-I don't think that's it. As I've said, problem exists with both 3.3.3 and
-Linus' 3.4-rc5.
-
-
---
-Anisse
