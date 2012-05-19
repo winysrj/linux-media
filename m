@@ -1,49 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.47]:30262 "EHLO mgw-sa01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932327Ab2EQQab (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 May 2012 12:30:31 -0400
-Received: from maxwell.research.nokia.com (maxwell.research.nokia.com [172.21.199.25])
-	by mgw-sa01.nokia.com (Sentrion-MTA-4.2.2/Sentrion-MTA-4.2.2) with ESMTP id q4HGUUTr029766
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Thu, 17 May 2012 19:30:30 +0300
-Received: from lanttu (lanttu-o.localdomain [192.168.239.74])
-	by maxwell.research.nokia.com (Postfix) with ESMTPS id BEFF01F4C5A
-	for <linux-media@vger.kernel.org>; Thu, 17 May 2012 19:30:29 +0300 (EEST)
-Received: from sakke by lanttu with local (Exim 4.72)
-	(envelope-from <sakari.ailus@maxwell.research.nokia.com>)
-	id 1SV3aq-00086r-Q9
-	for linux-media@vger.kernel.org; Thu, 17 May 2012 19:30:24 +0300
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Received: from mail-we0-f174.google.com ([74.125.82.174]:51468 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755425Ab2ESKTs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 19 May 2012 06:19:48 -0400
+Received: by weyu7 with SMTP id u7so2271751wey.19
+        for <linux-media@vger.kernel.org>; Sat, 19 May 2012 03:19:47 -0700 (PDT)
+From: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
 To: linux-media@vger.kernel.org
-Subject: [PATCH 06/10] smiapp: Initialise rval in smiapp_read_nvm()
-Date: Thu, 17 May 2012 19:30:05 +0300
-Message-Id: <1337272209-31061-6-git-send-email-sakari.ailus@maxwell.research.nokia.com>
-In-Reply-To: <4FB52770.9000400@maxwell.research.nokia.com>
-References: <4FB52770.9000400@maxwell.research.nokia.com>
+Cc: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
+Subject: [PATCH 1/5] dvb_cmd_name function
+Date: Sat, 19 May 2012 12:18:48 +0200
+Message-Id: <1337422732-2001-1-git-send-email-neolynx@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-rval was not properly initialised in smiapp_read_nvm(). Do that.
-
-Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 ---
- drivers/media/video/smiapp/smiapp-core.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ lib/include/dvb-fe.h  |    1 +
+ lib/libdvbv5/dvb-fe.c |   21 +++++++++++++++------
+ 2 files changed, 16 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/media/video/smiapp/smiapp-core.c b/drivers/media/video/smiapp/smiapp-core.c
-index 3bf086f..6524091 100644
---- a/drivers/media/video/smiapp/smiapp-core.c
-+++ b/drivers/media/video/smiapp/smiapp-core.c
-@@ -873,7 +873,7 @@ static int smiapp_read_nvm(struct smiapp_sensor *sensor,
- 			   unsigned char *nvm)
- {
- 	u32 i, s, p, np, v;
--	int rval, rval2;
-+	int rval = 0, rval2;
+diff --git a/lib/include/dvb-fe.h b/lib/include/dvb-fe.h
+index 872a558..b4c5279 100644
+--- a/lib/include/dvb-fe.h
++++ b/lib/include/dvb-fe.h
+@@ -108,6 +108,7 @@ int dvb_set_sys(struct dvb_v5_fe_parms *parms,
+ 		   fe_delivery_system_t sys);
+ int dvb_set_compat_delivery_system(struct dvb_v5_fe_parms *parms,
+ 				   uint32_t desired_system);
++const char *dvb_cmd_name(int cmd);
+ void dvb_fe_prt_parms(FILE *fp, const struct dvb_v5_fe_parms *parms);
+ int dvb_fe_set_parms(struct dvb_v5_fe_parms *parms);
+ int dvb_fe_get_parms(struct dvb_v5_fe_parms *parms);
+diff --git a/lib/libdvbv5/dvb-fe.c b/lib/libdvbv5/dvb-fe.c
+index 87f48db..9ec9893 100644
+--- a/lib/libdvbv5/dvb-fe.c
++++ b/lib/libdvbv5/dvb-fe.c
+@@ -382,6 +382,15 @@ int dvb_set_compat_delivery_system(struct dvb_v5_fe_parms *parms,
+ 	return 0;
+ }
  
- 	np = sensor->nvm_size / SMIAPP_NVM_PAGE_SIZE;
- 	for (p = 0; p < np; p++) {
++const char *dvb_cmd_name(int cmd)
++{
++  if (cmd < DTV_USER_COMMAND_START)
++    return dvb_v5_name[cmd];
++  else if (cmd <= DTV_MAX_USER_COMMAND)
++    return dvb_user_name[cmd - DTV_USER_COMMAND_START];
++  return NULL;
++}
++
+ void dvb_fe_prt_parms(FILE *fp, const struct dvb_v5_fe_parms *parms)
+ {
+ 	int i;
+@@ -400,11 +409,11 @@ void dvb_fe_prt_parms(FILE *fp, const struct dvb_v5_fe_parms *parms)
+ 
+ 		if (!attr_name || !*attr_name)
+ 			fprintf(fp, "%s = %u\n",
+-				dvb_v5_name[parms->dvb_prop[i].cmd],
++				dvb_cmd_name(parms->dvb_prop[i].cmd),
+ 				parms->dvb_prop[i].u.data);
+ 		else
+ 			fprintf(fp, "%s = %s\n",
+-				dvb_v5_name[parms->dvb_prop[i].cmd],
++				dvb_cmd_name(parms->dvb_prop[i].cmd),
+ 				*attr_name);
+ 	}
+ };
+@@ -419,8 +428,8 @@ int dvb_fe_retrieve_parm(struct dvb_v5_fe_parms *parms,
+ 		*value = parms->dvb_prop[i].u.data;
+ 		return 0;
+ 	}
+-	fprintf(stderr, "%s (%d) command not found during retrieve\n",
+-		dvb_v5_name[cmd], cmd);
++	fprintf(stderr, "command %s (%d) not found during retrieve\n",
++		dvb_cmd_name(cmd), cmd);
+ 
+ 	return EINVAL;
+ }
+@@ -435,8 +444,8 @@ int dvb_fe_store_parm(struct dvb_v5_fe_parms *parms,
+ 		parms->dvb_prop[i].u.data = value;
+ 		return 0;
+ 	}
+-	fprintf(stderr, "%s (%d) command not found during store\n",
+-		dvb_v5_name[cmd], cmd);
++	fprintf(stderr, "command %s (%d) not found during store\n",
++		dvb_cmd_name(cmd), cmd);
+ 
+ 	return EINVAL;
+ }
 -- 
 1.7.2.5
 
