@@ -1,168 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:3301 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755922Ab2EKHzk (ORCPT
+Received: from mail-wi0-f170.google.com ([209.85.212.170]:59800 "EHLO
+	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755623Ab2ESKTt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 May 2012 03:55:40 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Sat, 19 May 2012 06:19:49 -0400
+Received: by wibhm6 with SMTP id hm6so1477044wib.1
+        for <linux-media@vger.kernel.org>; Sat, 19 May 2012 03:19:48 -0700 (PDT)
+From: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
 To: linux-media@vger.kernel.org
-Cc: Michael Hunold <hunold@linuxtv.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv1 PATCH 09/16] saa7146: move vbi fields from saa7146_fh to saa7146_vv
-Date: Fri, 11 May 2012 09:55:03 +0200
-Message-Id: <37824d0816ccac8103d5aa0423a68753237e586d.1336722502.git.hans.verkuil@cisco.com>
-In-Reply-To: <1336722910-31733-1-git-send-email-hverkuil@xs4all.nl>
-References: <1336722910-31733-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <09c2b1c7ef8bbb53930311b9fdeeb89f877fdaa9.1336722502.git.hans.verkuil@cisco.com>
-References: <09c2b1c7ef8bbb53930311b9fdeeb89f877fdaa9.1336722502.git.hans.verkuil@cisco.com>
+Cc: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
+Subject: [PATCH 2/5] ignore user commands on fe
+Date: Sat, 19 May 2012 12:18:49 +0200
+Message-Id: <1337422732-2001-2-git-send-email-neolynx@gmail.com>
+In-Reply-To: <1337422732-2001-1-git-send-email-neolynx@gmail.com>
+References: <1337422732-2001-1-git-send-email-neolynx@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
-
-This fields are global and don't belong in a fh struct.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/common/saa7146_fops.c  |   15 +++++++++++++++
- drivers/media/common/saa7146_vbi.c   |   23 +++++------------------
- drivers/media/common/saa7146_video.c |    5 ++++-
- include/media/saa7146_vv.h           |    4 ++--
- 4 files changed, 26 insertions(+), 21 deletions(-)
+ lib/libdvbv5/dvb-fe.c     |   32 ++++++++++++++++++++++++++++----
+ lib/libdvbv5/dvb-v5-std.c |    2 ++
+ 2 files changed, 30 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/common/saa7146_fops.c b/drivers/media/common/saa7146_fops.c
-index bb25573..db724a9 100644
---- a/drivers/media/common/saa7146_fops.c
-+++ b/drivers/media/common/saa7146_fops.c
-@@ -437,6 +437,7 @@ int saa7146_vv_init(struct saa7146_dev* dev, struct saa7146_ext_vv *ext_vv)
- {
- 	struct v4l2_ctrl_handler *hdl = &dev->ctrl_handler;
- 	struct v4l2_pix_format *fmt;
-+	struct v4l2_vbi_format *vbi;
- 	struct saa7146_vv *vv;
- 	int err;
- 
-@@ -514,6 +515,20 @@ int saa7146_vv_init(struct saa7146_dev* dev, struct saa7146_ext_vv *ext_vv)
- 	fmt->bytesperline = 3 * fmt->width;
- 	fmt->sizeimage = fmt->bytesperline * fmt->height;
- 
-+	vbi = &vv->vbi_fmt;
-+	vbi->sampling_rate	= 27000000;
-+	vbi->offset		= 248; /* todo */
-+	vbi->samples_per_line	= 720 * 2;
-+	vbi->sample_format	= V4L2_PIX_FMT_GREY;
-+
-+	/* fixme: this only works for PAL */
-+	vbi->start[0] = 5;
-+	vbi->count[0] = 16;
-+	vbi->start[1] = 312;
-+	vbi->count[1] = 16;
-+
-+	init_timer(&vv->vbi_read_timeout);
-+
- 	vv->ov_fb.capability = V4L2_FBUF_CAP_LIST_CLIPPING;
- 	vv->ov_fb.flags = V4L2_FBUF_FLAG_PRIMARY;
- 	dev->vv_data = vv;
-diff --git a/drivers/media/common/saa7146_vbi.c b/drivers/media/common/saa7146_vbi.c
-index b2e7183..c930aa0 100644
---- a/drivers/media/common/saa7146_vbi.c
-+++ b/drivers/media/common/saa7146_vbi.c
-@@ -344,7 +344,7 @@ static void vbi_stop(struct saa7146_fh *fh, struct file *file)
- 	vv->vbi_streaming = NULL;
- 
- 	del_timer(&vv->vbi_q.timeout);
--	del_timer(&fh->vbi_read_timeout);
-+	del_timer(&vv->vbi_read_timeout);
- 
- 	spin_unlock_irqrestore(&dev->slock, flags);
- }
-@@ -377,6 +377,7 @@ static void vbi_init(struct saa7146_dev *dev, struct saa7146_vv *vv)
- static int vbi_open(struct saa7146_dev *dev, struct file *file)
- {
- 	struct saa7146_fh *fh = file->private_data;
-+	struct saa7146_vv *vv = fh->dev->vv_data;
- 
- 	u32 arbtr_ctrl	= saa7146_read(dev, PCI_BT_V1);
- 	int ret = 0;
-@@ -395,19 +396,6 @@ static int vbi_open(struct saa7146_dev *dev, struct file *file)
- 	saa7146_write(dev, PCI_BT_V1, arbtr_ctrl);
- 	saa7146_write(dev, MC2, (MASK_04|MASK_20));
- 
--	memset(&fh->vbi_fmt,0,sizeof(fh->vbi_fmt));
--
--	fh->vbi_fmt.sampling_rate	= 27000000;
--	fh->vbi_fmt.offset		= 248; /* todo */
--	fh->vbi_fmt.samples_per_line	= vbi_pixel_to_capture;
--	fh->vbi_fmt.sample_format	= V4L2_PIX_FMT_GREY;
--
--	/* fixme: this only works for PAL */
--	fh->vbi_fmt.start[0] = 5;
--	fh->vbi_fmt.count[0] = 16;
--	fh->vbi_fmt.start[1] = 312;
--	fh->vbi_fmt.count[1] = 16;
--
- 	videobuf_queue_sg_init(&fh->vbi_q, &vbi_qops,
- 			    &dev->pci->dev, &dev->slock,
- 			    V4L2_BUF_TYPE_VBI_CAPTURE,
-@@ -415,9 +403,8 @@ static int vbi_open(struct saa7146_dev *dev, struct file *file)
- 			    sizeof(struct saa7146_buf),
- 			    file, &dev->v4l2_lock);
- 
--	init_timer(&fh->vbi_read_timeout);
--	fh->vbi_read_timeout.function = vbi_read_timeout;
--	fh->vbi_read_timeout.data = (unsigned long)file;
-+	vv->vbi_read_timeout.function = vbi_read_timeout;
-+	vv->vbi_read_timeout.data = (unsigned long)file;
- 
- 	/* initialize the brs */
- 	if ( 0 != (SAA7146_USE_PORT_B_FOR_VBI & dev->ext_vv_data->flags)) {
-@@ -488,7 +475,7 @@ static ssize_t vbi_read(struct file *file, char __user *data, size_t count, loff
- 		return -EBUSY;
- 	}
- 
--	mod_timer(&fh->vbi_read_timeout, jiffies+BUFFER_TIMEOUT);
-+	mod_timer(&vv->vbi_read_timeout, jiffies+BUFFER_TIMEOUT);
- 	ret = videobuf_read_stream(&fh->vbi_q, data, count, ppos, 1,
- 				   file->f_flags & O_NONBLOCK);
- /*
-diff --git a/drivers/media/common/saa7146_video.c b/drivers/media/common/saa7146_video.c
-index f57dccf..9a99835 100644
---- a/drivers/media/common/saa7146_video.c
-+++ b/drivers/media/common/saa7146_video.c
-@@ -613,7 +613,10 @@ static int vidioc_g_fmt_vid_overlay(struct file *file, void *fh, struct v4l2_for
- 
- static int vidioc_g_fmt_vbi_cap(struct file *file, void *fh, struct v4l2_format *f)
- {
--	f->fmt.vbi = ((struct saa7146_fh *)fh)->vbi_fmt;
-+	struct saa7146_dev *dev = ((struct saa7146_fh *)fh)->dev;
-+	struct saa7146_vv *vv = dev->vv_data;
-+
-+	f->fmt.vbi = vv->vbi_fmt;
- 	return 0;
+diff --git a/lib/libdvbv5/dvb-fe.c b/lib/libdvbv5/dvb-fe.c
+index 9ec9893..8f27e1a 100644
+--- a/lib/libdvbv5/dvb-fe.c
++++ b/lib/libdvbv5/dvb-fe.c
+@@ -391,12 +391,21 @@ const char *dvb_cmd_name(int cmd)
+   return NULL;
  }
  
-diff --git a/include/media/saa7146_vv.h b/include/media/saa7146_vv.h
-index 7f61645..658ae83 100644
---- a/include/media/saa7146_vv.h
-+++ b/include/media/saa7146_vv.h
-@@ -93,8 +93,6 @@ struct saa7146_fh {
++const char * const *dvb_attr_names(int cmd)
++{
++  if (cmd < DTV_USER_COMMAND_START)
++    return dvb_v5_attr_names[cmd];
++  else if (cmd <= DTV_MAX_USER_COMMAND)
++    return dvb_user_attr_names[cmd - DTV_USER_COMMAND_START];
++  return NULL;
++}
++
+ void dvb_fe_prt_parms(FILE *fp, const struct dvb_v5_fe_parms *parms)
+ {
+ 	int i;
  
- 	/* vbi capture */
- 	struct videobuf_queue	vbi_q;
--	struct v4l2_vbi_format	vbi_fmt;
--	struct timer_list	vbi_read_timeout;
+ 	for (i = 0; i < parms->n_props; i++) {
+-		const char * const *attr_name = dvb_v5_attr_names[parms->dvb_prop[i].cmd];
++		const char * const *attr_name = dvb_attr_names(parms->dvb_prop[i].cmd);
+ 		if (attr_name) {
+ 			int j;
  
- 	unsigned int resources;	/* resource management for device open */
+@@ -450,6 +459,15 @@ int dvb_fe_store_parm(struct dvb_v5_fe_parms *parms,
+ 	return EINVAL;
+ }
+ 
++int dvb_copy_fe_props(struct dtv_property *from, int n, struct dtv_property *to)
++{
++  int i, j;
++  for (i = 0, j = 0; i < n; i++)
++    if (from[i].cmd < DTV_USER_COMMAND_START)
++      to[j++] = from[i];
++  return j;
++}
++
+ int dvb_fe_get_parms(struct dvb_v5_fe_parms *parms)
+ {
+ 	int n = 0;
+@@ -473,7 +491,10 @@ int dvb_fe_get_parms(struct dvb_v5_fe_parms *parms)
+ 	parms->dvb_prop[n].cmd = DTV_TUNE;
+ 	parms->n_props = n;
+ 
+-	prop.props = parms->dvb_prop;
++	struct dtv_property fe_prop[DTV_MAX_COMMAND];
++        n = dvb_copy_fe_props(parms->dvb_prop, n, fe_prop);
++
++	prop.props = fe_prop;
+ 	prop.num = n;
+ 	if (!parms->legacy_fe) {
+ 		if (ioctl(parms->fd, FE_GET_PROPERTY, &prop) == -1) {
+@@ -540,8 +561,11 @@ int dvb_fe_set_parms(struct dvb_v5_fe_parms *parms)
+ 	uint32_t freq;
+ 	uint32_t bw;
+ 
+-	prop.props = parms->dvb_prop;
+-	prop.num = parms->n_props + 1;
++	struct dtv_property fe_prop[DTV_MAX_COMMAND];
++        int n = dvb_copy_fe_props(parms->dvb_prop, parms->n_props, fe_prop);
++
++	prop.props = fe_prop;
++	prop.num = n + 1;
+ 	parms->dvb_prop[parms->n_props].cmd = DTV_TUNE;
+ 
+ 	if (is_satellite(parms->current_sys)) {
+diff --git a/lib/libdvbv5/dvb-v5-std.c b/lib/libdvbv5/dvb-v5-std.c
+index 210f661..e20eb91 100644
+--- a/lib/libdvbv5/dvb-v5-std.c
++++ b/lib/libdvbv5/dvb-v5-std.c
+@@ -106,6 +106,7 @@ const unsigned int sys_dvbs_props[] = {
+ 	DTV_INNER_FEC,
+ 	DTV_VOLTAGE,
+ 	DTV_TONE,
++        DTV_POLARIZATION,
+ 	0
  };
-@@ -106,6 +104,8 @@ struct saa7146_vv
- {
- 	/* vbi capture */
- 	struct saa7146_dmaqueue		vbi_q;
-+	struct v4l2_vbi_format		vbi_fmt;
-+	struct timer_list		vbi_read_timeout;
- 	/* vbi workaround interrupt queue */
- 	wait_queue_head_t		vbi_wq;
- 	int				vbi_fieldcount;
+ 
+@@ -119,6 +120,7 @@ const unsigned int sys_dvbs2_props[] = {
+ 	DTV_MODULATION,
+ 	DTV_PILOT,
+ 	DTV_ROLLOFF,
++        DTV_POLARIZATION,
+ 	0
+ };
+ 
 -- 
-1.7.10
+1.7.2.5
 
