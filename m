@@ -1,259 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:34011 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755041Ab2EJGlu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 May 2012 02:41:50 -0400
-Received: by dady13 with SMTP id y13so1304993dad.19
-        for <linux-media@vger.kernel.org>; Wed, 09 May 2012 23:41:50 -0700 (PDT)
-From: Sachin Kamat <sachin.kamat@linaro.org>
+Received: from smtp.nokia.com ([147.243.1.48]:40827 "EHLO mgw-sa02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757564Ab2ESTH3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 19 May 2012 15:07:29 -0400
+From: Sakari Ailus <sakari.ailus@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: mchehab@infradead.org, k.debski@samsung.com,
-	kyungmin.park@samsung.com, sachin.kamat@linaro.org,
-	patches@linaro.org
-Subject: [PATCH 1/2] [media] s5p-mfc: Fix NULL pointer warnings
-Date: Thu, 10 May 2012 12:02:00 +0530
-Message-Id: <1336631521-24820-1-git-send-email-sachin.kamat@linaro.org>
+Cc: laurent.pinchart@ideasonboard.com
+Subject: [media-ctl PATCH v2 4/4] Replace V4L2 subdev selection targets with the V4L2 ones
+Date: Sat, 19 May 2012 22:11:31 +0300
+Message-Id: <1337454691-28698-4-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <20120519190627.GR3373@valkosipuli.retiisi.org.uk>
+References: <20120519190627.GR3373@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fixes the following type of warnings detected by sparse:
-warning: Using plain integer as NULL pointer.
+V4L2 selection targets will replace V4L2 subdev selection targets in the
+near future. As the targets are guaranteed to be the same and the chance is
+anticipated very soon, replace the subdev targets with more future-proof
+V4L2 targets.
 
-Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
 ---
- drivers/media/video/s5p-mfc/s5p_mfc.c      |   10 +++++-----
- drivers/media/video/s5p-mfc/s5p_mfc_ctrl.c |   16 ++++++++--------
- drivers/media/video/s5p-mfc/s5p_mfc_opr.c  |   26 +++++++++++++-------------
- 3 files changed, 26 insertions(+), 26 deletions(-)
+ src/main.c       |    8 ++++----
+ src/v4l2subdev.c |    8 ++++----
+ 2 files changed, 8 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/media/video/s5p-mfc/s5p_mfc.c b/drivers/media/video/s5p-mfc/s5p_mfc.c
-index 83fe461..ac2dac9 100644
---- a/drivers/media/video/s5p-mfc/s5p_mfc.c
-+++ b/drivers/media/video/s5p-mfc/s5p_mfc.c
-@@ -373,7 +373,7 @@ static void s5p_mfc_handle_error(struct s5p_mfc_ctx *ctx,
+diff --git a/src/main.c b/src/main.c
+index 703f034..69c5a7f 100644
+--- a/src/main.c
++++ b/src/main.c
+@@ -64,28 +64,28 @@ static void v4l2_subdev_print_format(struct media_entity *entity,
+  	       format.width, format.height);
  
- 	/* If no context is available then all necessary
- 	 * processing has been done. */
--	if (ctx == 0)
-+	if (ctx == NULL)
- 		return;
+ 	ret = v4l2_subdev_get_selection(entity, &rect, pad,
+-					V4L2_SUBDEV_SEL_TGT_CROP_BOUNDS,
++					V4L2_SEL_TGT_CROP_BOUNDS,
+ 					which);
+ 	if (ret == 0)
+ 		printf("\n\t\t crop.bounds:%u,%u/%ux%u", rect.left, rect.top,
+ 		       rect.width, rect.height);
  
- 	dev = ctx->dev;
-@@ -429,7 +429,7 @@ static void s5p_mfc_handle_seq_done(struct s5p_mfc_ctx *ctx,
- 	struct s5p_mfc_dev *dev;
- 	unsigned int guard_width, guard_height;
+ 	ret = v4l2_subdev_get_selection(entity, &rect, pad,
+-					V4L2_SUBDEV_SEL_TGT_CROP,
++					V4L2_SEL_TGT_CROP,
+ 					which);
+ 	if (ret == 0)
+ 		printf("\n\t\t crop:%u,%u/%ux%u", rect.left, rect.top,
+ 		       rect.width, rect.height);
  
--	if (ctx == 0)
-+	if (ctx == NULL)
- 		return;
- 	dev = ctx->dev;
- 	if (ctx->c_ops->post_seq_start) {
-@@ -496,7 +496,7 @@ static void s5p_mfc_handle_init_buffers(struct s5p_mfc_ctx *ctx,
- 	struct s5p_mfc_dev *dev;
- 	unsigned long flags;
+ 	ret = v4l2_subdev_get_selection(entity, &rect, pad,
+-					V4L2_SUBDEV_SEL_TGT_COMPOSE_BOUNDS,
++					V4L2_SEL_TGT_COMPOSE_BOUNDS,
+ 					which);
+ 	if (ret == 0)
+ 		printf("\n\t\t compose.bounds:%u,%u/%ux%u",
+ 		       rect.left, rect.top, rect.width, rect.height);
  
--	if (ctx == 0)
-+	if (ctx == NULL)
- 		return;
- 	dev = ctx->dev;
- 	s5p_mfc_clear_int_flags(dev);
-@@ -772,7 +772,7 @@ err_queue_init:
- err_init_hw:
- 	s5p_mfc_release_firmware(dev);
- err_alloc_fw:
--	dev->ctx[ctx->num] = 0;
-+	dev->ctx[ctx->num] = NULL;
- 	del_timer_sync(&dev->watchdog_timer);
- 	s5p_mfc_clock_off();
- err_pwr_enable:
-@@ -849,7 +849,7 @@ static int s5p_mfc_release(struct file *file)
+ 	ret = v4l2_subdev_get_selection(entity, &rect, pad,
+-					V4L2_SUBDEV_SEL_TGT_COMPOSE,
++					V4L2_SEL_TGT_COMPOSE,
+ 					which);
+ 	if (ret == 0)
+ 		printf("\n\t\t compose:%u,%u/%ux%u",
+diff --git a/src/v4l2subdev.c b/src/v4l2subdev.c
+index 48b7acb..46869d9 100644
+--- a/src/v4l2subdev.c
++++ b/src/v4l2subdev.c
+@@ -128,7 +128,7 @@ int v4l2_subdev_get_selection(struct media_entity *entity,
+ 		*rect = u.sel.r;
+ 		return 0;
  	}
- 	mfc_debug(2, "Shutting down clock\n");
- 	s5p_mfc_clock_off();
--	dev->ctx[ctx->num] = 0;
-+	dev->ctx[ctx->num] = NULL;
- 	s5p_mfc_dec_ctrls_delete(ctx);
- 	v4l2_fh_del(&ctx->fh);
- 	v4l2_fh_exit(&ctx->fh);
-diff --git a/drivers/media/video/s5p-mfc/s5p_mfc_ctrl.c b/drivers/media/video/s5p-mfc/s5p_mfc_ctrl.c
-index f2481a8..08a5cfe 100644
---- a/drivers/media/video/s5p-mfc/s5p_mfc_ctrl.c
-+++ b/drivers/media/video/s5p-mfc/s5p_mfc_ctrl.c
-@@ -52,7 +52,7 @@ int s5p_mfc_alloc_and_load_firmware(struct s5p_mfc_dev *dev)
- 	s5p_mfc_bitproc_buf = vb2_dma_contig_memops.alloc(
- 		dev->alloc_ctx[MFC_BANK1_ALLOC_CTX], dev->fw_size);
- 	if (IS_ERR(s5p_mfc_bitproc_buf)) {
--		s5p_mfc_bitproc_buf = 0;
-+		s5p_mfc_bitproc_buf = NULL;
- 		mfc_err("Allocating bitprocessor buffer failed\n");
- 		release_firmware(fw_blob);
- 		return -ENOMEM;
-@@ -63,7 +63,7 @@ int s5p_mfc_alloc_and_load_firmware(struct s5p_mfc_dev *dev)
- 		mfc_err("The base memory for bank 1 is not aligned to 128KB\n");
- 		vb2_dma_contig_memops.put(s5p_mfc_bitproc_buf);
- 		s5p_mfc_bitproc_phys = 0;
--		s5p_mfc_bitproc_buf = 0;
-+		s5p_mfc_bitproc_buf = NULL;
- 		release_firmware(fw_blob);
- 		return -EIO;
- 	}
-@@ -72,7 +72,7 @@ int s5p_mfc_alloc_and_load_firmware(struct s5p_mfc_dev *dev)
- 		mfc_err("Bitprocessor memory remap failed\n");
- 		vb2_dma_contig_memops.put(s5p_mfc_bitproc_buf);
- 		s5p_mfc_bitproc_phys = 0;
--		s5p_mfc_bitproc_buf = 0;
-+		s5p_mfc_bitproc_buf = NULL;
- 		release_firmware(fw_blob);
- 		return -EIO;
- 	}
-@@ -82,7 +82,7 @@ int s5p_mfc_alloc_and_load_firmware(struct s5p_mfc_dev *dev)
- 	if (IS_ERR(b_base)) {
- 		vb2_dma_contig_memops.put(s5p_mfc_bitproc_buf);
- 		s5p_mfc_bitproc_phys = 0;
--		s5p_mfc_bitproc_buf = 0;
-+		s5p_mfc_bitproc_buf = NULL;
- 		mfc_err("Allocating bank2 base failed\n");
- 	release_firmware(fw_blob);
- 		return -ENOMEM;
-@@ -94,7 +94,7 @@ int s5p_mfc_alloc_and_load_firmware(struct s5p_mfc_dev *dev)
- 		mfc_err("The base memory for bank 2 is not aligned to 128KB\n");
- 		vb2_dma_contig_memops.put(s5p_mfc_bitproc_buf);
- 		s5p_mfc_bitproc_phys = 0;
--		s5p_mfc_bitproc_buf = 0;
-+		s5p_mfc_bitproc_buf = NULL;
- 		release_firmware(fw_blob);
- 		return -EIO;
- 	}
-@@ -126,7 +126,7 @@ int s5p_mfc_reload_firmware(struct s5p_mfc_dev *dev)
- 		release_firmware(fw_blob);
- 		return -ENOMEM;
- 	}
--	if (s5p_mfc_bitproc_buf == 0 || s5p_mfc_bitproc_phys == 0) {
-+	if (s5p_mfc_bitproc_buf == NULL || s5p_mfc_bitproc_phys == 0) {
- 		mfc_err("MFC firmware is not allocated or was not mapped correctly\n");
- 		release_firmware(fw_blob);
- 		return -EINVAL;
-@@ -146,9 +146,9 @@ int s5p_mfc_release_firmware(struct s5p_mfc_dev *dev)
- 	if (!s5p_mfc_bitproc_buf)
- 		return -EINVAL;
- 	vb2_dma_contig_memops.put(s5p_mfc_bitproc_buf);
--	s5p_mfc_bitproc_virt =  0;
-+	s5p_mfc_bitproc_virt = NULL;
- 	s5p_mfc_bitproc_phys = 0;
--	s5p_mfc_bitproc_buf = 0;
-+	s5p_mfc_bitproc_buf = NULL;
- 	return 0;
- }
+-	if (errno != ENOTTY || target != V4L2_SUBDEV_SEL_TGT_CROP)
++	if (errno != ENOTTY || target != V4L2_SEL_TGT_CROP)
+ 		return -errno;
  
-diff --git a/drivers/media/video/s5p-mfc/s5p_mfc_opr.c b/drivers/media/video/s5p-mfc/s5p_mfc_opr.c
-index e08b21c..a802829 100644
---- a/drivers/media/video/s5p-mfc/s5p_mfc_opr.c
-+++ b/drivers/media/video/s5p-mfc/s5p_mfc_opr.c
-@@ -43,7 +43,7 @@ int s5p_mfc_alloc_dec_temp_buffers(struct s5p_mfc_ctx *ctx)
- 	ctx->desc_buf = vb2_dma_contig_memops.alloc(
- 			dev->alloc_ctx[MFC_BANK1_ALLOC_CTX], DESC_BUF_SIZE);
- 	if (IS_ERR_VALUE((int)ctx->desc_buf)) {
--		ctx->desc_buf = 0;
-+		ctx->desc_buf = NULL;
- 		mfc_err("Allocating DESC buffer failed\n");
- 		return -ENOMEM;
+ 	memset(&u.crop, 0, sizeof(u.crop));
+@@ -168,7 +168,7 @@ int v4l2_subdev_set_selection(struct media_entity *entity,
+ 		*rect = u.sel.r;
+ 		return 0;
  	}
-@@ -54,7 +54,7 @@ int s5p_mfc_alloc_dec_temp_buffers(struct s5p_mfc_ctx *ctx)
- 	if (desc_virt == NULL) {
- 		vb2_dma_contig_memops.put(ctx->desc_buf);
- 		ctx->desc_phys = 0;
--		ctx->desc_buf = 0;
-+		ctx->desc_buf = NULL;
- 		mfc_err("Remapping DESC buffer failed\n");
- 		return -ENOMEM;
- 	}
-@@ -69,7 +69,7 @@ void s5p_mfc_release_dec_desc_buffer(struct s5p_mfc_ctx *ctx)
- 	if (ctx->desc_phys) {
- 		vb2_dma_contig_memops.put(ctx->desc_buf);
- 		ctx->desc_phys = 0;
--		ctx->desc_buf = 0;
-+		ctx->desc_buf = NULL;
- 	}
- }
+-	if (errno != ENOTTY || target != V4L2_SUBDEV_SEL_TGT_CROP)
++	if (errno != ENOTTY || target != V4L2_SEL_TGT_CROP)
+ 		return -errno;
  
-@@ -186,7 +186,7 @@ int s5p_mfc_alloc_codec_buffers(struct s5p_mfc_ctx *ctx)
- 		ctx->bank1_buf = vb2_dma_contig_memops.alloc(
- 		dev->alloc_ctx[MFC_BANK1_ALLOC_CTX], ctx->bank1_size);
- 		if (IS_ERR(ctx->bank1_buf)) {
--			ctx->bank1_buf = 0;
-+			ctx->bank1_buf = NULL;
- 			printk(KERN_ERR
- 			       "Buf alloc for decoding failed (port A)\n");
- 			return -ENOMEM;
-@@ -200,7 +200,7 @@ int s5p_mfc_alloc_codec_buffers(struct s5p_mfc_ctx *ctx)
- 		ctx->bank2_buf = vb2_dma_contig_memops.alloc(
- 		dev->alloc_ctx[MFC_BANK2_ALLOC_CTX], ctx->bank2_size);
- 		if (IS_ERR(ctx->bank2_buf)) {
--			ctx->bank2_buf = 0;
-+			ctx->bank2_buf = NULL;
- 			mfc_err("Buf alloc for decoding failed (port B)\n");
- 			return -ENOMEM;
- 		}
-@@ -216,13 +216,13 @@ void s5p_mfc_release_codec_buffers(struct s5p_mfc_ctx *ctx)
- {
- 	if (ctx->bank1_buf) {
- 		vb2_dma_contig_memops.put(ctx->bank1_buf);
--		ctx->bank1_buf = 0;
-+		ctx->bank1_buf = NULL;
- 		ctx->bank1_phys = 0;
- 		ctx->bank1_size = 0;
+ 	memset(&u.crop, 0, sizeof(u.crop));
+@@ -514,11 +514,11 @@ static int v4l2_subdev_parse_setup_format(struct media_device *media,
+ 			return ret;
  	}
- 	if (ctx->bank2_buf) {
- 		vb2_dma_contig_memops.put(ctx->bank2_buf);
--		ctx->bank2_buf = 0;
-+		ctx->bank2_buf = NULL;
- 		ctx->bank2_phys = 0;
- 		ctx->bank2_size = 0;
- 	}
-@@ -244,7 +244,7 @@ int s5p_mfc_alloc_instance_buffer(struct s5p_mfc_ctx *ctx)
- 	if (IS_ERR(ctx->ctx_buf)) {
- 		mfc_err("Allocating context buffer failed\n");
- 		ctx->ctx_phys = 0;
--		ctx->ctx_buf = 0;
-+		ctx->ctx_buf = NULL;
- 		return -ENOMEM;
- 	}
- 	ctx->ctx_phys = s5p_mfc_mem_cookie(
-@@ -256,7 +256,7 @@ int s5p_mfc_alloc_instance_buffer(struct s5p_mfc_ctx *ctx)
- 		mfc_err("Remapping instance buffer failed\n");
- 		vb2_dma_contig_memops.put(ctx->ctx_buf);
- 		ctx->ctx_phys = 0;
--		ctx->ctx_buf = 0;
-+		ctx->ctx_buf = NULL;
- 		return -ENOMEM;
- 	}
- 	/* Zero content of the allocated memory */
-@@ -265,7 +265,7 @@ int s5p_mfc_alloc_instance_buffer(struct s5p_mfc_ctx *ctx)
- 	if (s5p_mfc_init_shm(ctx) < 0) {
- 		vb2_dma_contig_memops.put(ctx->ctx_buf);
- 		ctx->ctx_phys = 0;
--		ctx->ctx_buf = 0;
-+		ctx->ctx_buf = NULL;
- 		return -ENOMEM;
- 	}
- 	return 0;
-@@ -277,12 +277,12 @@ void s5p_mfc_release_instance_buffer(struct s5p_mfc_ctx *ctx)
- 	if (ctx->ctx_buf) {
- 		vb2_dma_contig_memops.put(ctx->ctx_buf);
- 		ctx->ctx_phys = 0;
--		ctx->ctx_buf = 0;
-+		ctx->ctx_buf = NULL;
- 	}
- 	if (ctx->shm_alloc) {
- 		vb2_dma_contig_memops.put(ctx->shm_alloc);
--		ctx->shm_alloc = 0;
--		ctx->shm = 0;
-+		ctx->shm_alloc = NULL;
-+		ctx->shm = NULL;
- 	}
- }
+ 
+-	ret = set_selection(pad, V4L2_SUBDEV_SEL_TGT_CROP, &crop);
++	ret = set_selection(pad, V4L2_SEL_TGT_CROP, &crop);
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	ret = set_selection(pad, V4L2_SUBDEV_SEL_TGT_COMPOSE, &compose);
++	ret = set_selection(pad, V4L2_SEL_TGT_COMPOSE, &compose);
+ 	if (ret < 0)
+ 		return ret;
  
 -- 
-1.7.4.1
+1.7.2.5
 
