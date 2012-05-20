@@ -1,100 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-3.cisco.com ([144.254.224.146]:46875 "EHLO
-	ams-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751022Ab2E2MWu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 May 2012 08:22:50 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Ezequiel Garcia <elezegarcia@gmail.com>
-Subject: Re: [RFC/PATCH] media: Add stk1160 new driver
-Date: Tue, 29 May 2012 14:21:49 +0200
-Cc: mchehab@redhat.com, linux-media@vger.kernel.org,
-	hdegoede@redhat.com, snjw23@gmail.com
-References: <1338050460-5902-1-git-send-email-elezegarcia@gmail.com> <201205281222.57917.hverkuil@xs4all.nl> <CALF0-+VHtPuHCzpAydFjaUnp+JkpJOXxJTJoQEURwvBkmA3vgA@mail.gmail.com>
-In-Reply-To: <CALF0-+VHtPuHCzpAydFjaUnp+JkpJOXxJTJoQEURwvBkmA3vgA@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201205291421.49703.hverkuil@xs4all.nl>
+Received: from mx1.redhat.com ([209.132.183.28]:59915 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752796Ab2ETBVa (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 19 May 2012 21:21:30 -0400
+From: Hans de Goede <hdegoede@redhat.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Ondrej Zary <linux@rainbow-software.org>,
+	Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH 2/6] snd_tea575x: Add a cannot_mute flag
+Date: Sun, 20 May 2012 03:25:27 +0200
+Message-Id: <1337477131-21578-3-git-send-email-hdegoede@redhat.com>
+In-Reply-To: <1337477131-21578-1-git-send-email-hdegoede@redhat.com>
+References: <1337477131-21578-1-git-send-email-hdegoede@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue 29 May 2012 14:05:08 Ezequiel Garcia wrote:
-> On Mon, May 28, 2012 at 7:22 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> >
-> > In practice it seems that the easiest approach is not to clean up anything in the
-> > disconnect, just take the lock, do the bare minimum necessary for the disconnect,
-> > unregister the video nodes, unlock and end with v4l2_device_put(v4l2_dev).
-> >
-> > It's a suggestion only, but experience has shown that it works well. And as I said,
-> > when you get multiple device nodes, then this is the only workable approach.
-> 
-> I'm convinced: it's both cleaner and more logical to use
-> v4l2_release instead of video_device release to the final cleanup.
-> 
-> >
-> > OK, the general rule is as follows (many drivers do not follow this correctly, BTW,
-> > but this is what should happen):
-> >
-> > - the filehandle that calls REQBUFS owns the buffers and is the only one that can
-> > start/stop streaming and queue/dequeue buffers.
-> 
-> and read, poll, etc right?
+Some devices which use the tea575x tuner chip don't allow direct control
+over the IO pins, and thus cannot mute the audio output.
 
-Read yes, but anyone can poll.
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+CC: Ondrej Zary <linux@rainbow-software.org>
+---
+ include/sound/tea575x-tuner.h   |    1 +
+ sound/i2c/other/tea575x-tuner.c |   35 +++++++++++++++++++----------------
+ 2 files changed, 20 insertions(+), 16 deletions(-)
 
-> 
-> > This is until REQBUFS with count == 0
-> > is called, or until the filehandle is closed.
-> 
-> Okey. But currently videobuf2 doesn't notify the driver
-> when reqbufs with zero count has been called.
-> 
-> So, I have to "assume" it (aka trouble ahead) or "capture" the zero
-> count case before/after calling vb2_reqbufs (aka ugly).
+diff --git a/include/sound/tea575x-tuner.h b/include/sound/tea575x-tuner.h
+index 1ae933f..af58ad2 100644
+--- a/include/sound/tea575x-tuner.h
++++ b/include/sound/tea575x-tuner.h
+@@ -52,6 +52,7 @@ struct snd_tea575x {
+ 	int radio_nr;			/* radio_nr */
+ 	bool tea5759;			/* 5759 chip is present */
+ 	bool cannot_read_data;		/* Device cannot read the data pin */
++	bool cannot_mute;		/* Device cannot mute */
+ 	bool mute;			/* Device is muted? */
+ 	bool stereo;			/* receiving stereo */
+ 	bool tuned;			/* tuned to a station */
+diff --git a/sound/i2c/other/tea575x-tuner.c b/sound/i2c/other/tea575x-tuner.c
+index b74fc63..da49dd4 100644
+--- a/sound/i2c/other/tea575x-tuner.c
++++ b/sound/i2c/other/tea575x-tuner.c
+@@ -379,35 +379,38 @@ int snd_tea575x_init(struct snd_tea575x *tea)
+ 	strlcpy(tea->vd.name, tea->v4l2_dev->name, sizeof(tea->vd.name));
+ 	tea->vd.lock = &tea->mutex;
+ 	tea->vd.v4l2_dev = tea->v4l2_dev;
+-	tea->vd.ctrl_handler = &tea->ctrl_handler;
+ 	set_bit(V4L2_FL_USE_FH_PRIO, &tea->vd.flags);
+ 	/* disable hw_freq_seek if we can't use it */
+ 	if (tea->cannot_read_data)
+ 		v4l2_disable_ioctl(&tea->vd, VIDIOC_S_HW_FREQ_SEEK);
+ 
+-	v4l2_ctrl_handler_init(&tea->ctrl_handler, 1);
+-	v4l2_ctrl_new_std(&tea->ctrl_handler, &tea575x_ctrl_ops, V4L2_CID_AUDIO_MUTE, 0, 1, 1, 1);
+-	retval = tea->ctrl_handler.error;
+-	if (retval) {
+-		v4l2_err(tea->v4l2_dev, "can't initialize controls\n");
+-		v4l2_ctrl_handler_free(&tea->ctrl_handler);
+-		return retval;
+-	}
+-
+-	if (tea->ext_init) {
+-		retval = tea->ext_init(tea);
++	if (!tea->cannot_mute) {
++		tea->vd.ctrl_handler = &tea->ctrl_handler;
++		v4l2_ctrl_handler_init(&tea->ctrl_handler, 1);
++		v4l2_ctrl_new_std(&tea->ctrl_handler, &tea575x_ctrl_ops,
++				  V4L2_CID_AUDIO_MUTE, 0, 1, 1, 1);
++		retval = tea->ctrl_handler.error;
+ 		if (retval) {
++			v4l2_err(tea->v4l2_dev, "can't initialize controls\n");
+ 			v4l2_ctrl_handler_free(&tea->ctrl_handler);
+ 			return retval;
+ 		}
+-	}
+ 
+-	v4l2_ctrl_handler_setup(&tea->ctrl_handler);
++		if (tea->ext_init) {
++			retval = tea->ext_init(tea);
++			if (retval) {
++				v4l2_ctrl_handler_free(&tea->ctrl_handler);
++				return retval;
++			}
++		}
++
++		v4l2_ctrl_handler_setup(&tea->ctrl_handler);
++	}
+ 
+ 	retval = video_register_device(&tea->vd, VFL_TYPE_RADIO, tea->radio_nr);
+ 	if (retval) {
+ 		v4l2_err(tea->v4l2_dev, "can't register video device!\n");
+-		v4l2_ctrl_handler_free(&tea->ctrl_handler);
++		v4l2_ctrl_handler_free(tea->vd.ctrl_handler);
+ 		return retval;
+ 	}
+ 
+@@ -417,7 +420,7 @@ int snd_tea575x_init(struct snd_tea575x *tea)
+ void snd_tea575x_exit(struct snd_tea575x *tea)
+ {
+ 	video_unregister_device(&tea->vd);
+-	v4l2_ctrl_handler_free(&tea->ctrl_handler);
++	v4l2_ctrl_handler_free(tea->vd.ctrl_handler);
+ }
+ 
+ static int __init alsa_tea575x_module_init(void)
+-- 
+1.7.10
 
-You just check the count after calling vb2_reqbufs. Nothing ugly about it.
-
-> I humbly think that, if we wan't to enforce this behavior
-> (as part of v4l2 driver semantics)
-> then we should have videobuf2 tell the driver when reqbufs has been
-> called with zero count.
-> 
-> You can take a look at pwc which only drops owner on filehandle close,
-
-That's a bug. REQBUFS(0) must drop the owner: you've just released all
-resources related to streaming, so there is no reason to prevent others
-from using them. But I suspect 90% of all drivers do this wrong. Not to
-mention that the old videobuf doesn't handle a count of 0 at all, which is
-a complete violation of the spec. So an application never knows whether
-a count of 0 will work. Lovely... The qv4l2 test tool has some really ugly
-workaround for this :-)
-
-At some point I'm going to add a test for this to v4l2-compliance...
-
-> or uvc which captures this from vb2_reqbufs.
-> 
-> After looking at uvc, now I wonder is it really ugly? or perhaps
-> it's just ok.
-
-It would be nice if this was somehow integrated into videobuf2, but not everyone
-liked the idea of vb2 using filehandle information from what I remember. But I
-didn't push for it very hard.
-
-> 
-> 
-> > v4l2_device is a top-level struct, video_device represents a single device node.
-> > For cleanup purposes there isn't much difference between the two if you have
-> > only one device node. When you have more, then those differences are much more
-> > important.
-> 
-> Yes, it's cleaner now.
-> 
-> Thanks!
-> Ezequiel.
-> 
-
-Your welcome!
-
-	Hans
