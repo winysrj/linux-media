@@ -1,44 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33808 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751074Ab2EWMGq (ORCPT
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:50075 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755099Ab2ETWaO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 May 2012 08:06:46 -0400
-Date: Wed, 23 May 2012 15:06:41 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/1] as3645a: Remove set_power() from platform data
-Message-ID: <20120523120641.GV3373@valkosipuli.retiisi.org.uk>
-References: <1337137969-30575-1-git-send-email-sakari.ailus@iki.fi>
- <5818890.hvZb7JEbAH@avalon>
- <20120523111951.GU3373@valkosipuli.retiisi.org.uk>
- <9767260.z6C75JdBQb@avalon>
+	Sun, 20 May 2012 18:30:14 -0400
+Received: by obbtb18 with SMTP id tb18so7218304obb.19
+        for <linux-media@vger.kernel.org>; Sun, 20 May 2012 15:30:13 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <9767260.z6C75JdBQb@avalon>
+In-Reply-To: <4FB95A3B.9070800@iki.fi>
+References: <4FB95A3B.9070800@iki.fi>
+Date: Sun, 20 May 2012 15:30:13 -0700
+Message-ID: <CAA7C2qiDQJ33OTfq9WxtAgqm0+iaLANoNVKSrvbZ3JpCD=ZGrA@mail.gmail.com>
+Subject: Re: [RFCv1] DVB-USB improvements [alternative 2]
+From: VDR User <user.vdr@gmail.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Patrick Boettcher <pboettcher@kernellabs.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, May 23, 2012 at 01:31:26PM +0200, Laurent Pinchart wrote:
-> Hi Sakari,
-...
-> > > If the chip is powered on constantly, why do we need a .s_power() subdev
-> > > operation at all ?
-> > 
-> > I don't know why was it there in the first place. Probably to make it easier
-> > to use the driver on boards that required e.g. a regulator for the chip.
-> > 
-> > But typically they're connected to battery directly. The idle power
-> > consumption is just some tens of µA.
-> 
-> What about on the N9 ?
+On Sun, May 20, 2012 at 1:55 PM, Antti Palosaari <crope@iki.fi> wrote:
+> I did some more planning and made alternative RFC.
+> As the earlier alternative was more like changing old functionality that new
+> one goes much more deeper.
 
-That function pointer is NULL for N9. I used to configure the GPIOs but that
-was wrong in the first place.
+> Functionality enhancement mentioned earlier RFC are valid too:
+> http://www.mail-archive.com/linux-media@vger.kernel.org/msg46352.html
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+One thing I didn't see mentioned in your post or the one your linked
+is the rc dependency for _all_ usb devices, whether they even have rc
+capability or not. It makes sense that is dvb usb is going to get
+overhauled, that rc functionality be at the very least optional rather
+than forced it on all usb devices.
