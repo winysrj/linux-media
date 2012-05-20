@@ -1,282 +1,642 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:40897 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756786Ab2EIRjW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 May 2012 13:39:22 -0400
-Received: by mail-bk0-f46.google.com with SMTP id ji2so519913bkc.19
-        for <linux-media@vger.kernel.org>; Wed, 09 May 2012 10:39:21 -0700 (PDT)
-Message-ID: <4FAAABC6.6020709@gmail.com>
-Date: Wed, 09 May 2012 19:39:18 +0200
-From: Sylwester Nawrocki <snjw23@gmail.com>
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:4070 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755722Ab2ETP0M (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 20 May 2012 11:26:12 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Federico Vaga <federico.vaga@gmail.com>
+Subject: Re: [PATCH 1/3] adv7180: add support to user controls
+Date: Sun, 20 May 2012 17:25:17 +0200
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Alan Cox <alan@linux.intel.com>,
+	Giancarlo Asnaghi <giancarlo.asnaghi@st.com>
+References: <1334248778-16625-1-git-send-email-federico.vaga@gmail.com>
+In-Reply-To: <1334248778-16625-1-git-send-email-federico.vaga@gmail.com>
 MIME-Version: 1.0
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-CC: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org,
-	laurent.pinchart@ideasonboard.com, g.liakhovetski@gmx.de,
-	hdegoede@redhat.com, moinejf@free.fr, hverkuil@xs4all.nl,
-	m.szyprowski@samsung.com, riverful.kim@samsung.com,
-	sw0312.kim@samsung.com, Kyungmin Park <kyungmin.park@samsung.com>
-Subject: Re: [PATCH/RFC v4 12/12] V4L: Add camera auto focus controls
-References: <1336156337-10935-1-git-send-email-s.nawrocki@samsung.com> <1336156337-10935-13-git-send-email-s.nawrocki@samsung.com> <4FA6C6ED.7020406@iki.fi> <4FAA42C4.9050301@samsung.com>
-In-Reply-To: <4FAA42C4.9050301@samsung.com>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201205201725.17131.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/09/2012 12:11 PM, Sylwester Nawrocki wrote:
-> On 05/06/2012 08:46 PM, Sakari Ailus wrote:
->> Sylwester Nawrocki wrote:
->>> Add following auto focus controls:
->>>
->>>   - V4L2_CID_AUTO_FOCUS_START - single-shot auto focus start
->>>   - V4L2_CID_AUTO_FOCUS_STOP -  single-shot auto focus stop
->>>   - V4L2_CID_AUTO_FOCUS_STATUS - automatic focus status
->>>   - V4L2_CID_AUTO_FOCUS_AREA - automatic focus area selection
->>>   - V4L2_CID_AUTO_FOCUS_DISTANCE - automatic focus scan range selection
->>>
->>> Signed-off-by: Sylwester Nawrocki<s.nawrocki@samsung.com>
->>> Signed-off-by: Kyungmin Park<kyungmin.park@samsung.com>
->>> ---
->>>   Documentation/DocBook/media/v4l/controls.xml |  147 +++++++++++++++++++++++++-
->>>   drivers/media/video/v4l2-ctrls.c             |   31 +++++-
->>>   include/linux/videodev2.h                    |   25 +++++
->>>   3 files changed, 200 insertions(+), 3 deletions(-)
->>>
->>> diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
->>> index 4a463d3..d8ef71e 100644
->>> --- a/Documentation/DocBook/media/v4l/controls.xml
->>> +++ b/Documentation/DocBook/media/v4l/controls.xml
->>> @@ -2902,13 +2902,156 @@ negative values towards infinity. This is a write-only control.</entry>
->>>   	<row>
->>>   	<entry spanname="id"><constant>V4L2_CID_FOCUS_AUTO</constant>&nbsp;</entry>
->>>   	<entry>boolean</entry>
->>> -	</row><row><entry spanname="descr">Enables automatic focus
->>> -adjustments. The effect of manual focus adjustments while this feature
->>> +	</row><row><entry spanname="descr">Enables continuous automatic
->>> +focus adjustments. The effect of manual focus adjustments while this feature
->>>   is enabled is undefined, drivers should ignore such requests.</entry>
->>>   	</row>
->>>   	<row><entry></entry></row>
->>>
->>>   	<row>
->>> +	<entry spanname="id"><constant>V4L2_CID_AUTO_FOCUS_START</constant>&nbsp;</entry>
->>> +	<entry>button</entry>
->>> +	</row><row><entry spanname="descr">Starts single auto focus process.
->>> +The effect of setting this control when<constant>V4L2_CID_FOCUS_AUTO</constant>
->>> +is set to<constant>TRUE</constant>  (1) is undefined, drivers should ignore
->>> +such requests.</entry>
->>> +	</row>
->>> +	<row><entry></entry></row>
->>> +
->>> +	<row>
->>> +	<entry spanname="id"><constant>V4L2_CID_AUTO_FOCUS_STOP</constant>&nbsp;</entry>
->>> +	<entry>button</entry>
->>> +	</row><row><entry spanname="descr">Aborts automatic focusing
->>> +started with<constant>V4L2_CID_AUTO_FOCUS_START</constant>  control. It is
->>> +effective only when the continuous autofocus is disabled, that is when
->>> +<constant>V4L2_CID_FOCUS_AUTO</constant>  control is set to<constant>FALSE
->>> +</constant>  (0).</entry>
->>> +	</row>
->>> +	<row><entry></entry></row>
->>> +
->>> +	<row id="v4l2-auto-focus-status">
->>> +	<entry spanname="id">
->>> +	<constant>V4L2_CID_AUTO_FOCUS_STATUS</constant>&nbsp;</entry>
->>> +	<entry>bitmask</entry>
->>> +	</row>
->>> +	<row><entry spanname="descr">The automatic focus status. This is a read-only
->>> +	  control.</entry>
->>> +	</row>
->>> +	<row>
->>> +	<entrytbl spanname="descr" cols="2">
->>> +	<tbody valign="top">
->>> +		<row>
->>> +		<entry><constant>V4L2_AUTO_FOCUS_STATUS_IDLE</constant>&nbsp;</entry>
->>> +		<entry>Automatic focus is not active.</entry>
->>> +		</row>
->>> +		<row>
->>> +		<entry><constant>V4L2_AUTO_FOCUS_STATUS_BUSY</constant>&nbsp;</entry>
->>> +		<entry>Automatic focusing is in progress.</entry>
->>> +		</row>
->>> +		<row>
->>> +		<entry><constant>V4L2_AUTO_FOCUS_STATUS_REACHED</constant>&nbsp;</entry>
->>> +		<entry>Focus has been reached.</entry>
->>> +		</row>
->>> +		<row>
->>> +		<entry><constant>V4L2_AUTO_FOCUS_STATUS_LOST</constant>&nbsp;</entry>
->>> +		<entry>Focus has been lost.</entry>
->>
->> When does this happen?
-> 
-> Hmm, good question. I intended this one for continuous auto focus, for the moments
-> when the focus  is lost. I felt the control is incomplete without such status bit.
-> 
-> Thinking about it a bit more, it is just a negation of V4L2_AUTO_FOCUS_STATUS_FOCUSED.
-                                                                               ^^^^^^^^^                        
-Sorry, that should be V4L2_AUTO_FOCUS_STATUS_REACHED. 
+Hi Frederico!
 
-> The focus lost notifications could be well provided to user space be clearing this bit.
-> 
-> So I would just get rid of V4L2_AUTO_FOCUS_STATUS_LOST, I don't really use it in any
-> driver, it was supposed to be just for completeness.
-> 
-> What do you think ?
-> 
->>> +		</row>
->>> +		<row>
->>> +		<entry><constant>V4L2_AUTO_FOCUS_STATUS_FAILED</constant>&nbsp;</entry>
->>> +		<entry>Automatic focus has failed, the driver will not
->>> +		  transition from this state until another action is
->>> +		  performed by an  application.</entry>
->>
->> Which of these are valid for regular autofocus and which ones for
->> continuous autofocus? I'm a little bit confused with the above descriptions.
-> 
-> All, except V4L2_AUTO_FOCUS_STATUS_LOST are valid for both auto focus modes.
-> But I'm going to remove V4L2_AUTO_FOCUS_STATUS_LOST bit, as indicated above.
-> 
->> I might as well say that temporary conditions such as failed and reached
->> would return to idle after being read from user space. This is how the
->> flash faults behave, too.
-> 
-> I'm not sure if it would be possible to fulfil such assumption in drivers
-> in all cases. The status often comes from hardware and the driver might
-> not be able to change it at will. I'm not sure if it is safe to change
-> state just by reading it from user-space. This probably wouldn't work well
-> with multiple processes accessing the camera.
-> 
-> For instance, from state V4L2_AUTO_FOCUS_STATUS_FAILED a driver would have
-> transitioned to something else after user-space sets V4L2_CID_AUTO_FOCUS_START
-> control. Also I would prefer having V4L2_AUTO_FOCUS_STATUS_REACHED bit set
-> as long as the camera stays in this state, regardless of how many status
-> readers there are.
-> 
->>
->> How does this interact with the 3A lock control?
-> 
-> Setting V4L2_LOCK_FOCUS lock would just stop updates to the status control
-> value. The 3A lock control is just another one that influences the auto
-> focus status, among V4L2_CID_AUTO_FOCUS_START and V4L2_CID_AUTO_FOCUS_STOP.
-> 
-> Nevertheless, I see your point, that it's not clear from the Spec.
-> How about adding something like this to the AF status control description:
-> 
-> "Setting V4L2_LOCK_FOCUS lock may stop updates of the V4L2_CID_AUTO_FOCUS_STOP
-                                                                           ^^^^^
-And this - V4L2_CID_AUTO_FOCUS_STATUS. I guess I need more sleeping, and not on
-the computer keyboard... :-)
+On Thu April 12 2012 18:39:36 Federico Vaga wrote:
+> Video user controls such as brightness, contrast, saturation, and
+> hue are now handled.
 
-The updated patch series is also available here:
-http://git.infradead.org/users/kmpark/linux-samsung/shortlog/refs/heads/v4l-camera-controls
+I just saw this patch series being merged, and I wonder if you could make a
+follow-up patch for 3.6 where you implement the control framework for adv7180
+and sta2x11. See Documentation/video4linux/v4l2-controls.txt and the many
+drivers that use it now.
 
-> control value."
-> 
-> ?
-> 
-> I'm not sure how much detailed the documentation should be, I wouldn't like
-> to add something that would be hard to implement in drivers, for sake of
-> the applications' simplicity... :)
-> 
->>> +		</row>
->>> +	</tbody>
->>> +	</entrytbl>
->>> +	</row>
->>> +	<row><entry></entry></row>
->>> +
->>> +	<row id="v4l2-auto-focus-range">
->>> +	<entry spanname="id">
->>> +	<constant>V4L2_CID_AUTO_FOCUS_RANGE</constant>&nbsp;</entry>
->>> +	<entry>enum&nbsp;v4l2_auto_focus_range</entry>
->>> +	</row>
->>> +	<row><entry spanname="descr">Determines auto focus distance range
->>> +for which lens may be adjusted.</entry>
->>> +	</row>
->>> +	<row>
->>> +	<entrytbl spanname="descr" cols="2">
->>> +	<tbody valign="top">
->>> +		<row>
->>> +		<entry><constant>V4L2_AUTO_FOCUS_RANGE_AUTO</constant>&nbsp;</entry>
->>> +		<entry>The camera automatically selects the focus range.</entry>
->>> +		</row>
->>> +		<row>
->>> +		<entry><constant>V4L2_AUTO_FOCUS_RANGE_NORMAL</constant>&nbsp;</entry>
->>> +		<entry>The auto focus normal distance range. It is limited
->>> +for best auto focus algorithm performance.</entry>
->>> +		</row>
->>> +		<row>
->>> +		<entry><constant>V4L2_AUTO_FOCUS_RANGE_MACRO</constant>&nbsp;</entry>
->>> +		<entry>Macro (close-up) auto focus. The camera will
->>> +use minimum possible distance that it is capable of for auto focus.</entry>
->>> +		</row>
->>> +		<row>
->>> +		<entry><constant>V4L2_AUTO_FOCUS_RANGE_INFINITY</constant>&nbsp;</entry>
->>> +		<entry>The focus at an object at infinite distance.</entry>
->>> +		</row>
->>> +	</tbody>
->>> +	</entrytbl>
->>> +	</row>
->>> +	<row><entry></entry></row>
->>> +
->>> +	<row id="v4l2-auto-focus-area">
->>> +	<entry spanname="id">
->>> +	<constant>V4L2_CID_AUTO_FOCUS_AREA</constant>&nbsp;</entry>
->>> +	<entry>enum&nbsp;v4l2_auto_focus_area</entry>
->>> +	</row>
->>> +	<row><entry spanname="descr">Determines the area of the frame that
->>> +the camera uses for automatic focus. The corresponding coordinates of the
->>> +focusing spot or rectangle can be specified and queried using the selection API.
->>> +To change the auto focus region of interest applications first select required
->>> +mode of this control and then set the rectangle or spot coordinates by means
->>> +of the&VIDIOC-SUBDEV-S-SELECTION; or&VIDIOC-S-SELECTION; ioctl. In order to
->>> +trigger again an auto focus process with same coordinates applications should
->>> +use the<constant>V4L2_CID_AUTO_FOCUS_START</constant>  control. Or alternatively
->>> +invoke a&VIDIOC-SUBDEV-S-SELECTION; or a&VIDIOC-S-SELECTION; ioctl again.
->>> +In the latter case the new pixel coordinates are applied to hardware only when
->>> +the focus area control is set to a value other than
->>> +<constant>V4L2_AUTO_FOCUS_AREA_ALL</constant>.</entry>
->>> +	</row>
->>> +	<row>
->>> +	<entrytbl spanname="descr" cols="2">
->>> +	<tbody valign="top">
->>> +		<row>
->>> +		<entry><constant>V4L2_AUTO_FOCUS_AREA_ALL</constant>&nbsp;</entry>
->>> +		<entry>Normal auto focus, the focusing area extends over the
->>> +entire frame.</entry>
->>> +		</row>
->>> +		<row>
->>> +		<entry><constant>V4L2_AUTO_FOCUS_AREA_SPOT</constant>&nbsp;</entry>
->>> +		<entry>Automatic focus on a spot within the frame at position
->>> +specified by the<constant>V4L2_SEL_TGT_AUTO_FOCUS_ACTUAL</constant>  or
->>> +<constant>V4L2_SUBDEV_SEL_TGT_AUTO_FOCUS_ACTUAL</constant>  selection. When these
->>> +selections are not supported by driver the default spot's position is center of
->>> +the frame.</entry>
->>> +		</row>
->>> +		<row>
->>> +		<entry><constant>V4L2_AUTO_FOCUS_AREA_RECTANGLE</constant>&nbsp;</entry>
->>> +		<entry>The auto focus area is determined by the<constant>
->>> +V4L2_SEL_TGT_AUTO_FOCUS_ACTUAL</constant>  or<constant>
->>> +V4L2_SUBDEV_SEL_TGT_AUTO_FOCUS_ACTUAL</constant>  selection rectangle.</entry>
->>> +		</row>
->>> +		<row>
->>> +		<entry><constant>V4L2_AUTO_FOCUS_AREA_FACE_DETECTION</constant>&nbsp;</entry>
->>> +		<entry>The camera automatically focuses on a detected face
->>> +area.</entry>
->>
->> I assume there could be one or more faces to focus to, right?
-> 
-> Indeed, I presume we're going to need another set of controls for Face Detection
-> features.
-> 
-> That's true, there can be more faces. I wasn't good enough at expressing this
-> here :(
-> 
-> Maybe something like:
-> 
-> "The camera automatically focuses on the face detection regions."
-> 
-> would be better ?
+I missed this patch series or I would have requested it at the time. Unfortunately
+I had to deal with other things in March and April so I was for the most part
+absent from the list during those months.
 
---
+My goal is to convert all subdevice drivers like adv7180 and as many bridge and
+platform drivers as is possible to the control framework. I try to prevent new
+drivers from getting in that do not use that framework to prevent double work,
+but I didn't catch this one.
+
+If you could do that work, then that would be much appreciated. You have the
+hardware, after all, so that makes it easier for you.
 
 Regards,
-Sylwester
+
+	Hans
+
+> 
+> Signed-off-by: Federico Vaga <federico.vaga@gmail.com>
+> Acked-by: Giancarlo Asnaghi <giancarlo.asnaghi@st.com>
+> Cc: Alan Cox <alan@linux.intel.com>
+> ---
+>  drivers/media/video/adv7180.c |  417 ++++++++++++++++++++++++++++++++++-------
+>  1 files changed, 350 insertions(+), 67 deletions(-)
+> 
+> diff --git a/drivers/media/video/adv7180.c b/drivers/media/video/adv7180.c
+> index b8b6c4b..174bffa 100644
+> --- a/drivers/media/video/adv7180.c
+> +++ b/drivers/media/video/adv7180.c
+> @@ -48,6 +48,7 @@
+>  #define ADV7180_INPUT_CONTROL_PAL_COMB_N_PED		0xd0
+>  #define ADV7180_INPUT_CONTROL_PAL_SECAM			0xe0
+>  #define ADV7180_INPUT_CONTROL_PAL_SECAM_PED		0xf0
+> +#define ADV7180_INPUT_CONTROL_INSEL_MASK		0x0f
+>  
+>  #define ADV7180_EXTENDED_OUTPUT_CONTROL_REG		0x04
+>  #define ADV7180_EXTENDED_OUTPUT_CONTROL_NTSCDIS		0xC5
+> @@ -55,9 +56,29 @@
+>  #define ADV7180_AUTODETECT_ENABLE_REG			0x07
+>  #define ADV7180_AUTODETECT_DEFAULT			0x7f
+>  
+> +#define ADV7180_CON_REG		0x08	/*Unsigned */
+> +#define CON_REG_MIN		0
+> +#define CON_REG_DEF		128
+> +#define CON_REG_MAX		255
+> +
+> +#define ADV7180_BRI_REG		0x0a	/*Signed */
+> +#define BRI_REG_MIN		-128
+> +#define BRI_REG_DEF		0
+> +#define BRI_REG_MAX		127
+> +
+> +#define ADV7180_HUE_REG		0x0b	/*Signed, inverted */
+> +#define HUE_REG_MIN		-127
+> +#define HUE_REG_DEF		0
+> +#define HUE_REG_MAX		128
+> +
+>  #define ADV7180_ADI_CTRL_REG				0x0e
+>  #define ADV7180_ADI_CTRL_IRQ_SPACE			0x20
+>  
+> +#define ADV7180_PWR_MAN_REG		0x0f
+> +#define ADV7180_PWR_MAN_ON		0x04
+> +#define ADV7180_PWR_MAN_OFF		0x24
+> +#define ADV7180_PWR_MAN_RES		0x80
+> +
+>  #define ADV7180_STATUS1_REG				0x10
+>  #define ADV7180_STATUS1_IN_LOCK		0x01
+>  #define ADV7180_STATUS1_AUTOD_MASK	0x70
+> @@ -78,6 +99,12 @@
+>  #define ADV7180_ICONF1_PSYNC_ONLY	0x10
+>  #define ADV7180_ICONF1_ACTIVE_TO_CLR	0xC0
+>  
+> +#define ADV7180_SD_SAT_CB_REG	0xe3	/*Unsigned */
+> +#define ADV7180_SD_SAT_CR_REG	0xe4	/*Unsigned */
+> +#define SAT_REG_MIN		0
+> +#define SAT_REG_DEF		128
+> +#define SAT_REG_MAX		255
+> +
+>  #define ADV7180_IRQ1_LOCK	0x01
+>  #define ADV7180_IRQ1_UNLOCK	0x02
+>  #define ADV7180_ISR1_ADI	0x42
+> @@ -90,6 +117,9 @@
+>  #define ADV7180_IMR3_ADI	0x4C
+>  #define ADV7180_IMR4_ADI	0x50
+>  
+> +#define ADV7180_NTSC_V_BIT_END_REG	0xE6
+> +#define ADV7180_NTSC_V_BIT_END_MANUAL_NVEND	0x4F
+> +
+>  struct adv7180_state {
+>  	struct v4l2_subdev	sd;
+>  	struct work_struct	work;
+> @@ -97,6 +127,11 @@ struct adv7180_state {
+>  	int			irq;
+>  	v4l2_std_id		curr_norm;
+>  	bool			autodetect;
+> +	s8			brightness;
+> +	s16			hue;
+> +	u8			contrast;
+> +	u8			saturation;
+> +	u8			input;
+>  };
+>  
+>  static v4l2_std_id adv7180_std_to_v4l2(u8 status1)
+> @@ -155,7 +190,7 @@ static u32 adv7180_status_to_v4l2(u8 status1)
+>  }
+>  
+>  static int __adv7180_status(struct i2c_client *client, u32 *status,
+> -	v4l2_std_id *std)
+> +			    v4l2_std_id *std)
+>  {
+>  	int status1 = i2c_smbus_read_byte_data(client, ADV7180_STATUS1_REG);
+>  
+> @@ -192,6 +227,36 @@ static int adv7180_querystd(struct v4l2_subdev *sd, v4l2_std_id *std)
+>  	return err;
+>  }
+>  
+> +static int adv7180_s_routing(struct v4l2_subdev *sd, u32 input,
+> +			     u32 output, u32 config)
+> +{
+> +	struct adv7180_state *state = to_state(sd);
+> +	int ret = mutex_lock_interruptible(&state->mutex);
+> +	struct i2c_client *client = v4l2_get_subdevdata(sd);
+> +
+> +	if (ret)
+> +		return ret;
+> +
+> +	/*We cannot discriminate between LQFP and 40-pin LFCSP, so accept
+> +	 * all inputs and let the card driver take care of validation
+> +	 */
+> +	if ((input & ADV7180_INPUT_CONTROL_INSEL_MASK) != input)
+> +		goto out;
+> +
+> +	ret = i2c_smbus_read_byte_data(client, ADV7180_INPUT_CONTROL_REG);
+> +
+> +	if (ret < 0)
+> +		goto out;
+> +
+> +	ret &= ~ADV7180_INPUT_CONTROL_INSEL_MASK;
+> +	ret = i2c_smbus_write_byte_data(client,
+> +					ADV7180_INPUT_CONTROL_REG, ret | input);
+> +	state->input = input;
+> +out:
+> +	mutex_unlock(&state->mutex);
+> +	return ret;
+> +}
+> +
+>  static int adv7180_g_input_status(struct v4l2_subdev *sd, u32 *status)
+>  {
+>  	struct adv7180_state *state = to_state(sd);
+> @@ -205,7 +270,7 @@ static int adv7180_g_input_status(struct v4l2_subdev *sd, u32 *status)
+>  }
+>  
+>  static int adv7180_g_chip_ident(struct v4l2_subdev *sd,
+> -	struct v4l2_dbg_chip_ident *chip)
+> +				struct v4l2_dbg_chip_ident *chip)
+>  {
+>  	struct i2c_client *client = v4l2_get_subdevdata(sd);
+>  
+> @@ -222,9 +287,10 @@ static int adv7180_s_std(struct v4l2_subdev *sd, v4l2_std_id std)
+>  
+>  	/* all standards -> autodetect */
+>  	if (std == V4L2_STD_ALL) {
+> -		ret = i2c_smbus_write_byte_data(client,
+> -			ADV7180_INPUT_CONTROL_REG,
+> -			ADV7180_INPUT_CONTROL_AD_PAL_BG_NTSC_J_SECAM);
+> +		ret =
+> +		    i2c_smbus_write_byte_data(client, ADV7180_INPUT_CONTROL_REG,
+> +				ADV7180_INPUT_CONTROL_AD_PAL_BG_NTSC_J_SECAM
+> +					      | state->input);
+>  		if (ret < 0)
+>  			goto out;
+>  
+> @@ -236,7 +302,8 @@ static int adv7180_s_std(struct v4l2_subdev *sd, v4l2_std_id std)
+>  			goto out;
+>  
+>  		ret = i2c_smbus_write_byte_data(client,
+> -			ADV7180_INPUT_CONTROL_REG, ret);
+> +						ADV7180_INPUT_CONTROL_REG,
+> +						ret | state->input);
+>  		if (ret < 0)
+>  			goto out;
+>  
+> @@ -249,14 +316,138 @@ out:
+>  	return ret;
+>  }
+>  
+> +static int adv7180_queryctrl(struct v4l2_subdev *sd, struct v4l2_queryctrl *qc)
+> +{
+> +	switch (qc->id) {
+> +	case V4L2_CID_BRIGHTNESS:
+> +		return v4l2_ctrl_query_fill(qc, BRI_REG_MIN, BRI_REG_MAX,
+> +					    1, BRI_REG_DEF);
+> +	case V4L2_CID_HUE:
+> +		return v4l2_ctrl_query_fill(qc, HUE_REG_MIN, HUE_REG_MAX,
+> +					    1, HUE_REG_DEF);
+> +	case V4L2_CID_CONTRAST:
+> +		return v4l2_ctrl_query_fill(qc, CON_REG_MIN, CON_REG_MAX,
+> +					    1, CON_REG_DEF);
+> +	case V4L2_CID_SATURATION:
+> +		return v4l2_ctrl_query_fill(qc, SAT_REG_MIN, SAT_REG_MAX,
+> +					    1, SAT_REG_DEF);
+> +	default:
+> +		break;
+> +	}
+> +
+> +	return -EINVAL;
+> +}
+> +
+> +static int adv7180_g_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
+> +{
+> +	struct adv7180_state *state = to_state(sd);
+> +	int ret = mutex_lock_interruptible(&state->mutex);
+> +	if (ret)
+> +		return ret;
+> +
+> +	switch (ctrl->id) {
+> +	case V4L2_CID_BRIGHTNESS:
+> +		ctrl->value = state->brightness;
+> +		break;
+> +	case V4L2_CID_HUE:
+> +		ctrl->value = state->hue;
+> +		break;
+> +	case V4L2_CID_CONTRAST:
+> +		ctrl->value = state->contrast;
+> +		break;
+> +	case V4L2_CID_SATURATION:
+> +		ctrl->value = state->saturation;
+> +		break;
+> +	default:
+> +		ret = -EINVAL;
+> +	}
+> +
+> +	mutex_unlock(&state->mutex);
+> +	return ret;
+> +}
+> +
+> +static int adv7180_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
+> +{
+> +	struct adv7180_state *state = to_state(sd);
+> +	struct i2c_client *client = v4l2_get_subdevdata(sd);
+> +	int ret = mutex_lock_interruptible(&state->mutex);
+> +	if (ret)
+> +		return ret;
+> +
+> +	switch (ctrl->id) {
+> +	case V4L2_CID_BRIGHTNESS:
+> +		if ((ctrl->value > BRI_REG_MAX)
+> +		    || (ctrl->value < BRI_REG_MIN)) {
+> +			ret = -ERANGE;
+> +			break;
+> +		}
+> +		state->brightness = ctrl->value;
+> +		ret = i2c_smbus_write_byte_data(client,
+> +						ADV7180_BRI_REG,
+> +						state->brightness);
+> +		break;
+> +	case V4L2_CID_HUE:
+> +		if ((ctrl->value > HUE_REG_MAX)
+> +		    || (ctrl->value < HUE_REG_MIN)) {
+> +			ret = -ERANGE;
+> +			break;
+> +		}
+> +		state->hue = ctrl->value;
+> +		/*Hue is inverted according to HSL chart */
+> +		ret = i2c_smbus_write_byte_data(client,
+> +						ADV7180_HUE_REG, -state->hue);
+> +		break;
+> +	case V4L2_CID_CONTRAST:
+> +		if ((ctrl->value > CON_REG_MAX)
+> +		    || (ctrl->value < CON_REG_MIN)) {
+> +			ret = -ERANGE;
+> +			break;
+> +		}
+> +		state->contrast = ctrl->value;
+> +		ret = i2c_smbus_write_byte_data(client,
+> +						ADV7180_CON_REG,
+> +						state->contrast);
+> +		break;
+> +	case V4L2_CID_SATURATION:
+> +		if ((ctrl->value > SAT_REG_MAX)
+> +		    || (ctrl->value < SAT_REG_MIN)) {
+> +			ret = -ERANGE;
+> +			break;
+> +		}
+> +		/*
+> +		 *This could be V4L2_CID_BLUE_BALANCE/V4L2_CID_RED_BALANCE
+> +		 *Let's not confuse the user, everybody understands saturation
+> +		 */
+> +		state->saturation = ctrl->value;
+> +		ret = i2c_smbus_write_byte_data(client,
+> +						ADV7180_SD_SAT_CB_REG,
+> +						state->saturation);
+> +		if (ret < 0)
+> +			break;
+> +		ret = i2c_smbus_write_byte_data(client,
+> +						ADV7180_SD_SAT_CR_REG,
+> +						state->saturation);
+> +		break;
+> +	default:
+> +		ret = -EINVAL;
+> +	}
+> +
+> +	mutex_unlock(&state->mutex);
+> +	return ret;
+> +}
+> +
+>  static const struct v4l2_subdev_video_ops adv7180_video_ops = {
+>  	.querystd = adv7180_querystd,
+>  	.g_input_status = adv7180_g_input_status,
+> +	.s_routing = adv7180_s_routing,
+>  };
+>  
+>  static const struct v4l2_subdev_core_ops adv7180_core_ops = {
+>  	.g_chip_ident = adv7180_g_chip_ident,
+>  	.s_std = adv7180_s_std,
+> +	.queryctrl = adv7180_queryctrl,
+> +	.g_ctrl = adv7180_g_ctrl,
+> +	.s_ctrl = adv7180_s_ctrl,
+>  };
+>  
+>  static const struct v4l2_subdev_ops adv7180_ops = {
+> @@ -267,13 +458,13 @@ static const struct v4l2_subdev_ops adv7180_ops = {
+>  static void adv7180_work(struct work_struct *work)
+>  {
+>  	struct adv7180_state *state = container_of(work, struct adv7180_state,
+> -		work);
+> +						   work);
+>  	struct i2c_client *client = v4l2_get_subdevdata(&state->sd);
+>  	u8 isr3;
+>  
+>  	mutex_lock(&state->mutex);
+>  	i2c_smbus_write_byte_data(client, ADV7180_ADI_CTRL_REG,
+> -		ADV7180_ADI_CTRL_IRQ_SPACE);
+> +				  ADV7180_ADI_CTRL_IRQ_SPACE);
+>  	isr3 = i2c_smbus_read_byte_data(client, ADV7180_ISR3_ADI);
+>  	/* clear */
+>  	i2c_smbus_write_byte_data(client, ADV7180_ICR3_ADI, isr3);
+> @@ -297,56 +488,51 @@ static irqreturn_t adv7180_irq(int irq, void *devid)
+>  	return IRQ_HANDLED;
+>  }
+>  
+> -/*
+> - * Generic i2c probe
+> - * concerning the addresses: i2c wants 7 bit (without the r/w bit), so '>>1'
+> - */
+> -
+> -static __devinit int adv7180_probe(struct i2c_client *client,
+> -			const struct i2c_device_id *id)
+> +static int init_device(struct i2c_client *client, struct adv7180_state *state)
+>  {
+> -	struct adv7180_state *state;
+> -	struct v4l2_subdev *sd;
+>  	int ret;
+>  
+> -	/* Check if the adapter supports the needed features */
+> -	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_BYTE_DATA))
+> -		return -EIO;
+> -
+> -	v4l_info(client, "chip found @ 0x%02x (%s)\n",
+> -			client->addr << 1, client->adapter->name);
+> -
+> -	state = kzalloc(sizeof(struct adv7180_state), GFP_KERNEL);
+> -	if (state == NULL) {
+> -		ret = -ENOMEM;
+> -		goto err;
+> -	}
+> -
+> -	state->irq = client->irq;
+> -	INIT_WORK(&state->work, adv7180_work);
+> -	mutex_init(&state->mutex);
+> -	state->autodetect = true;
+> -	sd = &state->sd;
+> -	v4l2_i2c_subdev_init(sd, client, &adv7180_ops);
+> -
+>  	/* Initialize adv7180 */
+>  	/* Enable autodetection */
+> -	ret = i2c_smbus_write_byte_data(client, ADV7180_INPUT_CONTROL_REG,
+> -		ADV7180_INPUT_CONTROL_AD_PAL_BG_NTSC_J_SECAM);
+> -	if (ret < 0)
+> -		goto err_unreg_subdev;
+> +	if (state->autodetect) {
+> +		ret =
+> +		    i2c_smbus_write_byte_data(client, ADV7180_INPUT_CONTROL_REG,
+> +				ADV7180_INPUT_CONTROL_AD_PAL_BG_NTSC_J_SECAM
+> +					      | state->input);
+> +		if (ret < 0)
+> +			return ret;
+>  
+> -	ret = i2c_smbus_write_byte_data(client, ADV7180_AUTODETECT_ENABLE_REG,
+> -		ADV7180_AUTODETECT_DEFAULT);
+> -	if (ret < 0)
+> -		goto err_unreg_subdev;
+> +		ret =
+> +		    i2c_smbus_write_byte_data(client,
+> +					      ADV7180_AUTODETECT_ENABLE_REG,
+> +					      ADV7180_AUTODETECT_DEFAULT);
+> +		if (ret < 0)
+> +			return ret;
+> +	} else {
+> +		ret = v4l2_std_to_adv7180(state->curr_norm);
+> +		if (ret < 0)
+> +			return ret;
+>  
+> +		ret =
+> +		    i2c_smbus_write_byte_data(client, ADV7180_INPUT_CONTROL_REG,
+> +					      ret | state->input);
+> +		if (ret < 0)
+> +			return ret;
+> +
+> +	}
+>  	/* ITU-R BT.656-4 compatible */
+>  	ret = i2c_smbus_write_byte_data(client,
+> -		ADV7180_EXTENDED_OUTPUT_CONTROL_REG,
+> -		ADV7180_EXTENDED_OUTPUT_CONTROL_NTSCDIS);
+> +			ADV7180_EXTENDED_OUTPUT_CONTROL_REG,
+> +			ADV7180_EXTENDED_OUTPUT_CONTROL_NTSCDIS);
+>  	if (ret < 0)
+> -		goto err_unreg_subdev;
+> +		return ret;
+> +
+> +	/* Manually set V bit end position in NTSC mode */
+> +	ret = i2c_smbus_write_byte_data(client,
+> +					ADV7180_NTSC_V_BIT_END_REG,
+> +					ADV7180_NTSC_V_BIT_END_MANUAL_NVEND);
+> +	if (ret < 0)
+> +		return ret;
+>  
+>  	/* read current norm */
+>  	__adv7180_status(client, NULL, &state->curr_norm);
+> @@ -354,45 +540,109 @@ static __devinit int adv7180_probe(struct i2c_client *client,
+>  	/* register for interrupts */
+>  	if (state->irq > 0) {
+>  		ret = request_irq(state->irq, adv7180_irq, 0, DRIVER_NAME,
+> -			state);
+> +				  state);
+>  		if (ret)
+> -			goto err_unreg_subdev;
+> +			return ret;
+>  
+>  		ret = i2c_smbus_write_byte_data(client, ADV7180_ADI_CTRL_REG,
+> -			ADV7180_ADI_CTRL_IRQ_SPACE);
+> +						ADV7180_ADI_CTRL_IRQ_SPACE);
+>  		if (ret < 0)
+> -			goto err_unreg_subdev;
+> +			return ret;
+>  
+>  		/* config the Interrupt pin to be active low */
+>  		ret = i2c_smbus_write_byte_data(client, ADV7180_ICONF1_ADI,
+> -			ADV7180_ICONF1_ACTIVE_LOW | ADV7180_ICONF1_PSYNC_ONLY);
+> +						ADV7180_ICONF1_ACTIVE_LOW |
+> +						ADV7180_ICONF1_PSYNC_ONLY);
+>  		if (ret < 0)
+> -			goto err_unreg_subdev;
+> +			return ret;
+>  
+>  		ret = i2c_smbus_write_byte_data(client, ADV7180_IMR1_ADI, 0);
+>  		if (ret < 0)
+> -			goto err_unreg_subdev;
+> +			return ret;
+>  
+>  		ret = i2c_smbus_write_byte_data(client, ADV7180_IMR2_ADI, 0);
+>  		if (ret < 0)
+> -			goto err_unreg_subdev;
+> +			return ret;
+>  
+>  		/* enable AD change interrupts interrupts */
+>  		ret = i2c_smbus_write_byte_data(client, ADV7180_IMR3_ADI,
+> -			ADV7180_IRQ3_AD_CHANGE);
+> +						ADV7180_IRQ3_AD_CHANGE);
+>  		if (ret < 0)
+> -			goto err_unreg_subdev;
+> +			return ret;
+>  
+>  		ret = i2c_smbus_write_byte_data(client, ADV7180_IMR4_ADI, 0);
+>  		if (ret < 0)
+> -			goto err_unreg_subdev;
+> +			return ret;
+>  
+>  		ret = i2c_smbus_write_byte_data(client, ADV7180_ADI_CTRL_REG,
+> -			0);
+> +						0);
+>  		if (ret < 0)
+> -			goto err_unreg_subdev;
+> +			return ret;
+>  	}
+>  
+> +	/*Set default value for controls */
+> +	ret = i2c_smbus_write_byte_data(client, ADV7180_BRI_REG,
+> +					state->brightness);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	ret = i2c_smbus_write_byte_data(client, ADV7180_HUE_REG, state->hue);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	ret = i2c_smbus_write_byte_data(client, ADV7180_CON_REG,
+> +					state->contrast);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	ret = i2c_smbus_write_byte_data(client, ADV7180_SD_SAT_CB_REG,
+> +					state->saturation);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	ret = i2c_smbus_write_byte_data(client, ADV7180_SD_SAT_CR_REG,
+> +					state->saturation);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	return 0;
+> +}
+> +
+> +static __devinit int adv7180_probe(struct i2c_client *client,
+> +				   const struct i2c_device_id *id)
+> +{
+> +	struct adv7180_state *state;
+> +	struct v4l2_subdev *sd;
+> +	int ret;
+> +
+> +	/* Check if the adapter supports the needed features */
+> +	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_BYTE_DATA))
+> +		return -EIO;
+> +
+> +	v4l_info(client, "chip found @ 0x%02x (%s)\n",
+> +		 client->addr, client->adapter->name);
+> +
+> +	state = kzalloc(sizeof(struct adv7180_state), GFP_KERNEL);
+> +	if (state == NULL) {
+> +		ret = -ENOMEM;
+> +		goto err;
+> +	}
+> +
+> +	state->irq = client->irq;
+> +	INIT_WORK(&state->work, adv7180_work);
+> +	mutex_init(&state->mutex);
+> +	state->autodetect = true;
+> +	state->brightness = BRI_REG_DEF;
+> +	state->hue = HUE_REG_DEF;
+> +	state->contrast = CON_REG_DEF;
+> +	state->saturation = SAT_REG_DEF;
+> +	state->input = 0;
+> +	sd = &state->sd;
+> +	v4l2_i2c_subdev_init(sd, client, &adv7180_ops);
+> +
+> +	ret = init_device(client, state);
+> +	if (0 != ret)
+> +		goto err_unreg_subdev;
+>  	return 0;
+>  
+>  err_unreg_subdev:
+> @@ -432,16 +682,49 @@ static const struct i2c_device_id adv7180_id[] = {
+>  	{},
+>  };
+>  
+> +#ifdef CONFIG_PM
+> +static int adv7180_suspend(struct i2c_client *client, pm_message_t state)
+> +{
+> +	int ret;
+> +
+> +	ret = i2c_smbus_write_byte_data(client, ADV7180_PWR_MAN_REG,
+> +					ADV7180_PWR_MAN_OFF);
+> +	if (ret < 0)
+> +		return ret;
+> +	return 0;
+> +}
+> +
+> +static int adv7180_resume(struct i2c_client *client)
+> +{
+> +	struct v4l2_subdev *sd = i2c_get_clientdata(client);
+> +	struct adv7180_state *state = to_state(sd);
+> +	int ret;
+> +
+> +	ret = i2c_smbus_write_byte_data(client, ADV7180_PWR_MAN_REG,
+> +					ADV7180_PWR_MAN_ON);
+> +	if (ret < 0)
+> +		return ret;
+> +	ret = init_device(client, state);
+> +	if (ret < 0)
+> +		return ret;
+> +	return 0;
+> +}
+> +#endif
+> +
+>  MODULE_DEVICE_TABLE(i2c, adv7180_id);
+>  
+>  static struct i2c_driver adv7180_driver = {
+>  	.driver = {
+> -		.owner	= THIS_MODULE,
+> -		.name	= DRIVER_NAME,
+> -	},
+> -	.probe		= adv7180_probe,
+> -	.remove		= __devexit_p(adv7180_remove),
+> -	.id_table	= adv7180_id,
+> +		   .owner = THIS_MODULE,
+> +		   .name = DRIVER_NAME,
+> +		   },
+> +	.probe = adv7180_probe,
+> +	.remove = __devexit_p(adv7180_remove),
+> +#ifdef CONFIG_PM
+> +	.suspend = adv7180_suspend,
+> +	.resume = adv7180_resume,
+> +#endif
+> +	.id_table = adv7180_id,
+>  };
+>  
+>  module_i2c_driver(adv7180_driver);
+> 
