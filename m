@@ -1,110 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:4942 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753438Ab2EFM2o (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 6 May 2012 08:28:44 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans de Goede <hdegoede@redhat.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv2 PATCH 07/17] gspca: fix querycap and incorrect return codes.
-Date: Sun,  6 May 2012 14:28:21 +0200
-Message-Id: <8388fd69b67f016a4b1ad29f739e18686453cd4f.1336305565.git.hans.verkuil@cisco.com>
-In-Reply-To: <1336307311-10227-1-git-send-email-hverkuil@xs4all.nl>
-References: <1336307311-10227-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <a5a075c580858f4484be5c4cfadd195492858505.1336305565.git.hans.verkuil@cisco.com>
-References: <a5a075c580858f4484be5c4cfadd195492858505.1336305565.git.hans.verkuil@cisco.com>
+Received: from mx1.redhat.com ([209.132.183.28]:33603 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752908Ab2ETPaQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 20 May 2012 11:30:16 -0400
+Message-ID: <4FB90DF9.7030404@redhat.com>
+Date: Sun, 20 May 2012 12:30:01 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Sylwester Nawrocki <snjw23@gmail.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [GIT PULL FOR 3.5] s5p-fimc driver updates
+References: <4FA3F635.60409@samsung.com> <4FAB80D5.50500@samsung.com> <4FB17B79.2000207@gmail.com> <4FB8E608.108@redhat.com> <4FB8FA24.3050008@gmail.com>
+In-Reply-To: <4FB8FA24.3050008@gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Em 20-05-2012 11:05, Sylwester Nawrocki escreveu:
+> On 05/20/2012 02:39 PM, Mauro Carvalho Chehab wrote:
+>> Em 14-05-2012 18:39, Sylwester Nawrocki escreveu:
+>>> On 05/10/2012 10:48 AM, Sylwester Nawrocki wrote:
+>>>> On 05/04/2012 05:31 PM, Sylwester Nawrocki wrote:
+> ...
+>>>> The following changes since commit ae45d3e9aea0ab951dbbca2238fbfbf3993f1e7f:
+>>>>
+>>>>     s5p-fimc: Correct memory allocation for VIDIOC_CREATE_BUFS (2012-05-09 16:07:49 +0200)
+>>>>
+>>>> are available in the git repository at:
+>>>>
+>>>>     git://git.infradead.org/users/kmpark/linux-samsung v4l-fimc-exynos4x12
+>>>>
+>>>> for you to fetch changes up to 5feefe6656583de6fd4ef1d53b19031dd5efeec1:
+>>>>
+>>>>     s5p-fimc: Use selection API in place of crop operations (2012-05-09 16:11:29 +0200)
+>>>>
+>>>> ----------------------------------------------------------------
+>>>> Sylwester Nawrocki (14):
+>>>>         V4L: Extend V4L2_CID_COLORFX with more image effects
+>>>>         s5p-fimc: Avoid crash with null platform_data
+>>>>         s5p-fimc: Move m2m node driver into separate file
+>>>
+>>> It seems there is a conflict now with this patch:
+>>> http://git.linuxtv.org/media_tree.git/commit/5126f2590bee412e3053de851cb07f531e4be36a
+>>>
+>>> Attached are updated versions of the two conflicting patches, the others
+>>> don't need touching.
+>>>
+>>> I could provide rebased version of the whole change set tomorrow - if needed.
+>>
+>> Please do that, as this patch doesn't apply as-is.
+> 
+> I guess there is no intervention from my side needed, since you already applied
+> those updated patches to the media tree (since I pushed the rebased patch to
+> git.infradead.org a few days ago already) ?
+> 
+> However, there is going to be conflicts now with my patch from Sakari's pull
+> request: http://patchwork.linuxtv.org/patch/11336.
 
-Add V4L2_CAP_DEVICE_CAPS support to querycap and replace -EINVAL by
--ENOTTY whenever an ioctl is not supported.
+Yes. I didn't apply that patch. It needs rework.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/video/gspca/gspca.c |   19 ++++++++++---------
- 1 file changed, 10 insertions(+), 9 deletions(-)
+> 
+> As we talked in #v4l IRC, even if the API is experimental, any changes to it
+> must not cause build breaks. I didn't discuss that yet with Sakari.  I have 
+> now reworked the renaming patch, so it now includes backward compatibility 
+> definitions like this:
+> 
+> #define V4L2_SEL_TGT_CROP_ACTIVE	V4L2_SEL_TGT_CROP
+> #define V4L2_SEL_TGT_COMPOSE_ACTIVE	V4L2_SEL_TGT_COMPOSE 
+> 
+> I would then make a patch for Documentation/feature-removal-schedule.txt
+> to indicate those aliases will be removed after two kernel releases.
+> 
+> Does it sound like a right thing to do ?
 
-diff --git a/drivers/media/video/gspca/gspca.c b/drivers/media/video/gspca/gspca.c
-index b2ddfc6..730d8eb 100644
---- a/drivers/media/video/gspca/gspca.c
-+++ b/drivers/media/video/gspca/gspca.c
-@@ -1066,10 +1066,10 @@ static int vidioc_g_register(struct file *file, void *priv,
- 	struct gspca_dev *gspca_dev = video_drvdata(file);
- 
- 	if (!gspca_dev->sd_desc->get_chip_ident)
--		return -EINVAL;
-+		return -ENOTTY;
- 
- 	if (!gspca_dev->sd_desc->get_register)
--		return -EINVAL;
-+		return -ENOTTY;
- 
- 	if (mutex_lock_interruptible(&gspca_dev->usb_lock))
- 		return -ERESTARTSYS;
-@@ -1090,10 +1090,10 @@ static int vidioc_s_register(struct file *file, void *priv,
- 	struct gspca_dev *gspca_dev = video_drvdata(file);
- 
- 	if (!gspca_dev->sd_desc->get_chip_ident)
--		return -EINVAL;
-+		return -ENOTTY;
- 
- 	if (!gspca_dev->sd_desc->set_register)
--		return -EINVAL;
-+		return -ENOTTY;
- 
- 	if (mutex_lock_interruptible(&gspca_dev->usb_lock))
- 		return -ERESTARTSYS;
-@@ -1115,7 +1115,7 @@ static int vidioc_g_chip_ident(struct file *file, void *priv,
- 	struct gspca_dev *gspca_dev = video_drvdata(file);
- 
- 	if (!gspca_dev->sd_desc->get_chip_ident)
--		return -EINVAL;
-+		return -ENOTTY;
- 
- 	if (mutex_lock_interruptible(&gspca_dev->usb_lock))
- 		return -ERESTARTSYS;
-@@ -1410,9 +1410,10 @@ static int vidioc_querycap(struct file *file, void  *priv,
- 	}
- 	usb_make_path(gspca_dev->dev, (char *) cap->bus_info,
- 			sizeof(cap->bus_info));
--	cap->capabilities = V4L2_CAP_VIDEO_CAPTURE
-+	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE
- 			  | V4L2_CAP_STREAMING
- 			  | V4L2_CAP_READWRITE;
-+	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
- 	ret = 0;
- out:
- 	mutex_unlock(&gspca_dev->usb_lock);
-@@ -1565,7 +1566,7 @@ static int vidioc_querymenu(struct file *file, void *priv,
- 	struct gspca_dev *gspca_dev = video_drvdata(file);
- 
- 	if (!gspca_dev->sd_desc->querymenu)
--		return -EINVAL;
-+		return -ENOTTY;
- 	return gspca_dev->sd_desc->querymenu(gspca_dev, qmenu);
- }
- 
-@@ -1774,7 +1775,7 @@ static int vidioc_g_jpegcomp(struct file *file, void *priv,
- 	int ret;
- 
- 	if (!gspca_dev->sd_desc->get_jcomp)
--		return -EINVAL;
-+		return -ENOTTY;
- 	if (mutex_lock_interruptible(&gspca_dev->usb_lock))
- 		return -ERESTARTSYS;
- 	gspca_dev->usb_err = 0;
-@@ -1793,7 +1794,7 @@ static int vidioc_s_jpegcomp(struct file *file, void *priv,
- 	int ret;
- 
- 	if (!gspca_dev->sd_desc->set_jcomp)
--		return -EINVAL;
-+		return -ENOTTY;
- 	if (mutex_lock_interruptible(&gspca_dev->usb_lock))
- 		return -ERESTARTSYS;
- 	gspca_dev->usb_err = 0;
--- 
-1.7.10
+_If_ 3.5 is the first kernel with the selection API, we can fix it without 
+a backward compat, but I think that the selection API went into 3.4 kernel
+series.
 
+Regards,
+Mauro
