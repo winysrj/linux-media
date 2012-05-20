@@ -1,112 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:53395 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754556Ab2EVQYJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 May 2012 12:24:09 -0400
-Message-ID: <4FBBBEA2.5050200@redhat.com>
-Date: Tue, 22 May 2012 18:28:18 +0200
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: =?ISO-8859-1?Q?Llu=EDs_Batlle_i_Rossell?= <viric@viric.name>
-CC: Paulo Assis <pj.assis@gmail.com>, linux-media@vger.kernel.org
-Subject: Re: Problems with the gspca_ov519 driver
-References: <20120522110018.GX1927@vicerveza.homeunix.net> <CAPueXH6uN4UQO_WL_pc9wBoZV=v_7AVtQKcruKY=BCMeJOw-2Q@mail.gmail.com> <4FBBA515.7010006@redhat.com> <20120522152703.GA1927@vicerveza.homeunix.net>
-In-Reply-To: <20120522152703.GA1927@vicerveza.homeunix.net>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+Received: from mail-pz0-f46.google.com ([209.85.210.46]:56920 "EHLO
+	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753710Ab2ETNX7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 20 May 2012 09:23:59 -0400
+From: Akinobu Mita <akinobu.mita@gmail.com>
+To: linux-kernel@vger.kernel.org, akpm@linux-foundation.org
+Cc: Akinobu Mita <akinobu.mita@gmail.com>,
+	Anders Larsen <al@alarsen.net>,
+	Alasdair Kergon <agk@redhat.com>, dm-devel@redhat.com,
+	linux-fsdevel@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org, Mark Fasheh <mfasheh@suse.com>,
+	Joel Becker <jlbec@evilplan.org>, ocfs2-devel@oss.oracle.com,
+	Jan Kara <jack@suse.cz>, linux-ext4@vger.kernel.org,
+	Andreas Dilger <adilger.kernel@dilger.ca>,
+	"Theodore Ts'o" <tytso@mit.edu>
+Subject: [PATCH 01/10] string: introduce memweight
+Date: Sun, 20 May 2012 22:23:14 +0900
+Message-Id: <1337520203-29147-1-git-send-email-akinobu.mita@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+memweight() is the function that counts the total number of bits set
+in memory area.  The memory area doesn't need to be aligned to
+long-word boundary unlike bitmap_weight().
 
-On 05/22/2012 05:27 PM, Lluís Batlle i Rossell wrote:
-> Is this over linux 3.4 mainline? Because I can't get the patch applied over it.
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: Anders Larsen <al@alarsen.net>
+Cc: Alasdair Kergon <agk@redhat.com>
+Cc: dm-devel@redhat.com
+Cc: linux-fsdevel@vger.kernel.org
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: ocfs2-devel@oss.oracle.com
+Cc: Jan Kara <jack@suse.cz>
+Cc: linux-ext4@vger.kernel.org
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Andreas Dilger <adilger.kernel@dilger.ca>
+Cc: "Theodore Ts'o" <tytso@mit.edu>
+---
+ include/linux/string.h |    3 +++
+ lib/string.c           |   37 +++++++++++++++++++++++++++++++++++++
+ 2 files changed, 40 insertions(+), 0 deletions(-)
 
-No it is against:
-http://git.linuxtv.org/media_tree.git/shortlog/refs/heads/staging/for_v3.5
+diff --git a/include/linux/string.h b/include/linux/string.h
+index e033564..ffe0442 100644
+--- a/include/linux/string.h
++++ b/include/linux/string.h
+@@ -145,4 +145,7 @@ static inline bool strstarts(const char *str, const char *prefix)
+ 	return strncmp(str, prefix, strlen(prefix)) == 0;
+ }
+ #endif
++
++extern size_t memweight(const void *ptr, size_t bytes);
++
+ #endif /* _LINUX_STRING_H_ */
+diff --git a/lib/string.c b/lib/string.c
+index e5878de..c8b92a0 100644
+--- a/lib/string.c
++++ b/lib/string.c
+@@ -26,6 +26,7 @@
+ #include <linux/export.h>
+ #include <linux/bug.h>
+ #include <linux/errno.h>
++#include <linux/bitmap.h>
+ 
+ #ifndef __HAVE_ARCH_STRNICMP
+ /**
+@@ -824,3 +825,39 @@ void *memchr_inv(const void *start, int c, size_t bytes)
+ 	return check_bytes8(start, value, bytes % 8);
+ }
+ EXPORT_SYMBOL(memchr_inv);
++
++/**
++ * memweight - count the total number of bits set in memory area
++ * @ptr: pointer to the start of the area
++ * @bytes: the size of the area
++ */
++size_t memweight(const void *ptr, size_t bytes)
++{
++	size_t w = 0;
++	size_t longs;
++	union {
++		const void *ptr;
++		const unsigned char *b;
++		unsigned long address;
++	} bitmap;
++
++	for (bitmap.ptr = ptr; bytes > 0 && bitmap.address % sizeof(long);
++			bytes--, bitmap.address++)
++		w += hweight8(*bitmap.b);
++
++	for (longs = bytes / sizeof(long); longs > 0; ) {
++		size_t bits = min_t(size_t, INT_MAX & ~(BITS_PER_LONG - 1),
++					longs * BITS_PER_LONG);
++
++		w += bitmap_weight(bitmap.ptr, bits);
++		bytes -= bits / BITS_PER_BYTE;
++		bitmap.address += bits / BITS_PER_BYTE;
++		longs -= bits / BITS_PER_LONG;
++	}
++
++	for (; bytes > 0; bytes--, bitmap.address++)
++		w += hweight8(*bitmap.b);
++
++	return w;
++}
++EXPORT_SYMBOL(memweight);
+-- 
+1.7.7.6
 
-But it should be trivial to backport, the patch is only 3 lines.
-
-Regards,
-
-Hans
-
->
-> Regards,
-> Lluís.
->
-> On Tue, May 22, 2012 at 04:39:17PM +0200, Hans de Goede wrote:
->> Hi,
->>
->> On 05/22/2012 04:08 PM, Paulo Assis wrote:
->>> Hi,
->>> This bug also causes the camera to crash when changing fps in
->>> guvcview, uvc devices (at least all the ones I tested) require the
->>> stream to be restarted for fps to change, so in the case of this
->>> driver after STREAMOFF the camera just becomes unresponsive.
->>>
->>> Regards,
->>> Paulo
->>>
->>> 2012/5/22 Lluís Batlle i Rossell<viric@viric.name>:
->>>> Hello,
->>>>
->>>> I'm trying to get video using v4l2 ioctls from a gspca_ov519 camera, and after
->>>> STREAMOFF all buffers are still flagged as QUEUED, and QBUF fails.  DQBUF also
->>>> fails (blocking for a 3 sec timeout), after streamoff. So I'm stuck, after
->>>> STREAMOFF, unable to get pictures coming in again. (Linux 3.3.5).
->>>>
->>>> As an additional note, pinchartl on irc #v4l says to favour a moving of gspca to
->>>> vb2. I don't know what it means.
->>>>
->>>> Can someone take care of the bug, or should I consider the camera 'non working'
->>>> in linux?
->>
->> We talked about this on irc, attached it a patch which should fix this, feedback
->> appreciated.
->>
->> Regards,
->>
->> Hans
->
->>  From b0eefa00c72e9dfe9eaa5f425c0d346b19ea01cd Mon Sep 17 00:00:00 2001
->> From: Hans de Goede<hdegoede@redhat.com>
->> Date: Tue, 22 May 2012 16:24:05 +0200
->> Subject: [PATCH] gspca-core: Fix buffers staying in queued state after a
->>   stream_off
->>
->> Signed-off-by: Hans de Goede<hdegoede@redhat.com>
->> ---
->>   drivers/media/video/gspca/gspca.c |    4 +++-
->>   1 file changed, 3 insertions(+), 1 deletion(-)
->>
->> diff --git a/drivers/media/video/gspca/gspca.c b/drivers/media/video/gspca/gspca.c
->> index 137166d..31721ea 100644
->> --- a/drivers/media/video/gspca/gspca.c
->> +++ b/drivers/media/video/gspca/gspca.c
->> @@ -1653,7 +1653,7 @@ static int vidioc_streamoff(struct file *file, void *priv,
->>   				enum v4l2_buf_type buf_type)
->>   {
->>   	struct gspca_dev *gspca_dev = video_drvdata(file);
->> -	int ret;
->> +	int i, ret;
->>
->>   	if (buf_type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
->>   		return -EINVAL;
->> @@ -1678,6 +1678,8 @@ static int vidioc_streamoff(struct file *file, void *priv,
->>   	wake_up_interruptible(&gspca_dev->wq);
->>
->>   	/* empty the transfer queues */
->> +	for (i = 0; i<  gspca_dev->nframes; i++)
->> +		gspca_dev->frame[i].v4l2_buf.flags&= ~BUF_ALL_FLAGS;
->>   	atomic_set(&gspca_dev->fr_q, 0);
->>   	atomic_set(&gspca_dev->fr_i, 0);
->>   	gspca_dev->fr_o = 0;
->> --
->> 1.7.10
->>
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
