@@ -1,83 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr18.xs4all.nl ([194.109.24.38]:1219 "EHLO
-	smtp-vbr18.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753686Ab2ENP5n (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 May 2012 11:57:43 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [GIT PULL FOR v3.5] Three small improvements
-Date: Mon, 14 May 2012 17:57:37 +0200
-Cc: linux-media@vger.kernel.org
-References: <201205141637.23510.hverkuil@xs4all.nl> <2197880.FrgH45SkDS@avalon>
-In-Reply-To: <2197880.FrgH45SkDS@avalon>
+Received: from mail.kapsi.fi ([217.30.184.167]:50243 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750745Ab2ETKOF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 20 May 2012 06:14:05 -0400
+Message-ID: <4FB8C3E9.6020206@iki.fi>
+Date: Sun, 20 May 2012 13:14:01 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: Thomas Mair <thomas.mair86@googlemail.com>
+CC: linux-media@vger.kernel.org, pomidorabelisima@gmail.com
+Subject: Re: [PATCH v5 0/5] support for rtl2832
+References: <1> <1337366864-1256-1-git-send-email-thomas.mair86@googlemail.com> <4FB6B55D.4060500@iki.fi> <4FB8BFC9.2080704@googlemail.com>
+In-Reply-To: <4FB8BFC9.2080704@googlemail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <201205141757.37958.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon May 14 2012 16:47:19 Laurent Pinchart wrote:
-> Hi Hans,
-> 
-> On Monday 14 May 2012 16:37:23 Hans Verkuil wrote:
-> > Hi Mauro, Laurent,
-> > 
-> > I hope that these three patches address the comments Laurent made.
-> 
-> Thank you. There's a typo in the first patch:
-> 
-> "Otherwise you give it a pointer to a struct mutex_lock and the unlocked_ioctl
-> file operation is called this lock will be taken by the core and released
-> afterwards. See the next section for more details."
-> 
-> I suppose it should read "... and *before* the unlocked_ioctl ...".
+On 20.05.2012 12:56, Thomas Mair wrote:
+> On 18.05.2012 22:47, Antti Palosaari wrote:
+>> Good evening!
+>>
+>> On 18.05.2012 21:47, Thomas Mair wrote:
+>>> Good Evening!
+>>>
+>>> This is the corrected version of the patch series to support the
+>>> RTL2832 demodulator. There where no major changes. The majority of
+>>> the changes consist in fixing style issues and adhering to proper
+>>> naming conventions.
+>>
+>> Review done and seems to be OK for my eyes.
+>
+> Thanks Antti! You have been a big help for developing the driver.
+> What are the next steps? I think the fc0012 and fc0013 driver
+> need to be reviewed before the patch may be included in
+> staging. Is that the way it works?
 
-Indeed. Fixed in my git repository.
+Yes those should be reviewed. At least Mauro will review those when 
+merging drivers to master but it is always better if there is some other 
+reviewers before that as he has million patches to review.
 
-> The rest looks OK to me (you haven't renamed valid_ioctls to invalid_ioctls, 
-> but I suppose that was on purpose).
+>>> The next question for me is how to proceed when including new
+>>> devices. Poma already sent an extensive list a little while
+>>> ago (http://patchwork.linuxtv.org/patch/10982/). Should they
+>>> all be included at once, or should I wait until somone confirms
+>>> they are working correctly and include them one by one?
+>>
+>> It has been rule that device is added after known to work.
+>>
+>
+> That sounds good to me. In the meantime I will try to set up a
+> page for the driver on the linuxtv.org wiki to keep information
+> about the driver and the devices in one place.
+>
+>> Unfortunately DVB USB do not support dynamic USB ID. In order to workaround that I have done some small hackish solution for the dvb_usb_rtl28xxu driver. Currently it works for RTL2831U based devices, but I see it could be easily extended for RTL2832U too by adding module parameter.
+>>
+>
+> If I understand it right, the problem is that the tuner/demod
+> combination is also hard coded in the dvb_usb_rtl28xxu driver?
 
-Yes, that was on purpose. I am not planning to change that.
+Device USB IDs are hard coded to (static struct 
+dvb_usb_device_properties) and that structure is passed to the DVB USB 
+framework by calling dvb_usb_device_init(). DVB USB framework just 
+refuses to register device if USB ID is not found. So I added that 
+hackish solution to replace one USB ID by USB ID got as a dynamic USB 
+ID. Dynamic ID is USB core features. It will load and call some USB 
+driver even given USB ID is not advertised by the driver.
 
-Regards,
-
-	Hans
-
-> 
-> > The only remaining item is to take the ioctl lock after copy_from user is
-> > called. But that's for 3.6.
-> > 
-> > Regards,
-> > 
-> > 	Hans
-> > 
-> > The following changes since commit e89fca923f32de26b69bf4cd604f7b960b161551:
-> > 
-> >   [media] gspca - ov534: Add Hue control (2012-05-14 09:48:00 -0300)
-> > 
-> > are available in the git repository at:
-> > 
-> >   git://linuxtv.org/hverkuil/media_tree.git update
-> > 
-> > for you to fetch changes up to 308cb1f20bcaba72c8234794479cf8962c13032f:
-> > 
-> >   v4l2-dev: rename two functions. (2012-05-14 16:32:48 +0200)
-> > 
-> > ----------------------------------------------------------------
-> > Hans Verkuil (3):
-> >       v4l2-framework.txt: update the core lock documentation.
-> >       v4l2-dev.h: add comment not to use V4L2_FL_LOCK_ALL_FOPS in new
-> > drivers. v4l2-dev: rename two functions.
-> > 
-> >  Documentation/video4linux/v4l2-framework.txt |   18 +++++++++---------
-> >  drivers/media/video/gspca/gspca.c            |    6 +++---
-> >  drivers/media/video/pwc/pwc-if.c             |    6 +++---
-> >  drivers/media/video/v4l2-dev.c               |    2 +-
-> >  include/media/v4l2-dev.h                     |   12 ++++++------
-> >  sound/i2c/other/tea575x-tuner.c              |    2 +-
-> >  6 files changed, 23 insertions(+), 23 deletions(-)
-> 
-> 
+regards
+Antti
+-- 
+http://palosaari.fi/
