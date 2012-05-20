@@ -1,107 +1,180 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f178.google.com ([209.85.212.178]:48536 "EHLO
-	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756151Ab2ESKTu (ORCPT
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:3693 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750745Ab2ETKXf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 19 May 2012 06:19:50 -0400
-Received: by wibhn6 with SMTP id hn6so899661wib.1
-        for <linux-media@vger.kernel.org>; Sat, 19 May 2012 03:19:49 -0700 (PDT)
-From: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
-Subject: [PATCH 3/5] libscan renamings
-Date: Sat, 19 May 2012 12:18:50 +0200
-Message-Id: <1337422732-2001-3-git-send-email-neolynx@gmail.com>
-In-Reply-To: <1337422732-2001-1-git-send-email-neolynx@gmail.com>
-References: <1337422732-2001-1-git-send-email-neolynx@gmail.com>
+	Sun, 20 May 2012 06:23:35 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: RFC: V4L2 API and radio devices with multiple tuners
+Date: Sun, 20 May 2012 12:23:19 +0200
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Ondrej Zary <linux@rainbow-software.org>,
+	manjunatha_halli@ti.com
+References: <4FB7E489.10803@redhat.com>
+In-Reply-To: <4FB7E489.10803@redhat.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201205201223.19055.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
----
- lib/include/libscan.h  |   12 ++++++++++--
- lib/libdvbv5/libscan.c |    6 +++---
- utils/dvb/dvbv5-scan.c |    4 ++--
- 3 files changed, 15 insertions(+), 7 deletions(-)
+Hi Hans,
 
-diff --git a/lib/include/libscan.h b/lib/include/libscan.h
-index bc11ce1..a2b061c 100644
---- a/lib/include/libscan.h
-+++ b/lib/include/libscan.h
-@@ -136,11 +136,19 @@ struct dvb_descriptors {
- 	unsigned cur_ts;
- };
- 
--struct dvb_descriptors *get_dvb_ts_tables(int dmx_fd,
-+#ifdef __cplusplus
-+extern "C" {
-+#endif
-+
-+struct dvb_descriptors *dvb_get_ts_tables(int dmx_fd,
- 					  uint32_t delivery_system,
- 					  unsigned other_nit,
- 					  unsigned timeout_multiply,
- 					  int verbose);
--void free_dvb_ts_tables(struct dvb_descriptors *dvb_desc);
-+void dvb_free_ts_tables(struct dvb_descriptors *dvb_desc);
-+
-+#ifdef __cplusplus
-+}
-+#endif
- 
- #endif
-diff --git a/lib/libdvbv5/libscan.c b/lib/libdvbv5/libscan.c
-index dd010e1..7916d36 100644
---- a/lib/libdvbv5/libscan.c
-+++ b/lib/libdvbv5/libscan.c
-@@ -400,7 +400,7 @@ static int read_section(int dmx_fd, struct dvb_descriptors *dvb_desc,
- 	return 0;
- }
- 
--struct dvb_descriptors *get_dvb_ts_tables(int dmx_fd,
-+struct dvb_descriptors *dvb_get_ts_tables(int dmx_fd,
- 					  uint32_t delivery_system,
- 					  unsigned other_nit,
- 					  unsigned timeout_multiply,
-@@ -460,7 +460,7 @@ struct dvb_descriptors *get_dvb_ts_tables(int dmx_fd,
- 			  pat_pmt_time * timeout_multiply);
- 	if (rc < 0) {
- 		fprintf(stderr, "error while waiting for PAT table\n");
--		free_dvb_ts_tables(dvb_desc);
-+		dvb_free_ts_tables(dvb_desc);
- 		return NULL;
- 	}
- 
-@@ -504,7 +504,7 @@ struct dvb_descriptors *get_dvb_ts_tables(int dmx_fd,
- }
- 
- 
--void free_dvb_ts_tables(struct dvb_descriptors *dvb_desc)
-+void dvb_free_ts_tables(struct dvb_descriptors *dvb_desc)
- {
- 	struct pat_table *pat_table = &dvb_desc->pat_table;
- 	struct pid_table *pid_table = dvb_desc->pat_table.pid_table;
-diff --git a/utils/dvb/dvbv5-scan.c b/utils/dvb/dvbv5-scan.c
-index c7b18eb..64945cc 100644
---- a/utils/dvb/dvbv5-scan.c
-+++ b/utils/dvb/dvbv5-scan.c
-@@ -406,7 +406,7 @@ static int run_scan(struct arguments *args,
- 		if (rc < 0)
- 			continue;
- 
--		dvb_desc = get_dvb_ts_tables(dmx_fd,
-+		dvb_desc = dvb_get_ts_tables(dmx_fd,
- 					     parms->current_sys,
- 					     args->other_nit,
- 					     args->timeout_multiply,
-@@ -433,7 +433,7 @@ static int run_scan(struct arguments *args,
- 		if (!args->dont_add_new_freqs)
- 			add_other_freq_entries(dvb_file, parms, dvb_desc);
- 
--		free_dvb_ts_tables(dvb_desc);
-+		dvb_free_ts_tables(dvb_desc);
- 	}
- 
- 	if (dvb_file_new)
--- 
-1.7.2.5
+I'm CC-ing Manjunatha Halli as well as due to his work on adding support
+for the weather band:
 
+http://www.spinics.net/lists/kernel/msg1340986.html
+
+The question is whether the weather band and the AM band should be treated
+the same. The wl128x will implement the weather band as part of the single
+tuner, the cadet currently implements the AM band as a separate tuner.
+
+Given the fact that the wl128x and the radioSHARK both have only one
+physical tuner (and that's almost certainly the case for the cadet radio
+as well) I am not so sure whether we should handle this as two tuners. The
+approach taken for the wl128x seems at first glance a better solution.
+
+However, when I have my cadet card I'd like to experiment with it first and
+see what the best approach is to solve this problem.
+
+On Sat May 19 2012 20:20:57 Hans de Goede wrote:
+> Hi Hans et all,
+> 
+> Currently the V4L2 API does not allow for radio devices with more then 1 tuner,
+> which is a bit of a historical oversight, since many radio devices have 2
+> tuners/demodulators 1 for FM and one for AM. Trying to model this as 1 tuner
+> really does not work well, as they have 2 completely separate frequency bands
+> they handle, as well as different properties (the FM part usually is stereo
+> capable, the AM part is not).
+> 
+> It is important to realize here that usually the AM/FM tuners are part
+> of 1 chip, and often have only 1 frequency register which is used in
+> both AM/FM modes. IOW it more or less is one tuner, but with 2 modes,
+> and from a V4L2 API pov these modes are best modeled as 2 tuners.
+> This is at least true for the radio-cadet card and the tea575x,
+> which are the only 2 AM capable radio devices we currently know about.
+> 
+> Currently the V4L2 spec says the following on this subject:
+> http://linuxtv.org/downloads/v4l-dvb-apis/tuner.html
+> "Radio devices have exactly one tuner with index zero, no video inputs."
+> 
+> This text can easily be changed into allowing multiple tuners, without
+> any API change from the app pov, existing apps will be limited to
+> accessing just the first tuner though (probably best to always
+> make this the FM one).
+
+I agree. This text should change.
+
+> 
+> http://linuxtv.org/downloads/v4l-dvb-apis/vidioc-g-tuner.html
+> "... call the VIDIOC_S_TUNER ioctl. This will not change the current tuner,
+> which is determined by the current video input."
+> 
+> This is a problem, video devices when they have multiple tuners often
+> do so with the purpose of being able to watch/record multiple channels
+> at the same time, and thus multiple tuners are usually connected to
+> different inputs / frame-grabbers, and the input <-> tuner mapping done
+> for video devices makes sense there.
+> 
+> As the spec states, radio devices have no video inputs, so
+> VIDIOC_S_INPUT cannot be used on them. Which means we need another
+> way to get/set the active tuner (the tuner mode) for a radio device.
+
+Correct. The spec contradicts itself here for radio devices and that needs
+to be solved.
+
+> Lets look at the getting of the active tuner first. We cannot use
+> VIDIOC_G_TUNER for this, since this is used to enumerate tuners,
+> so it should return info on the tuner with the specified index,
+> rather then the active tuner.
+
+I agree.
+
+> VIDEOC_G_FREQUENCY otoh looks like a good candidate to use for this,
+> for radio devices we can simply ignore the passed in tuner field,
+> and instead return the active tuner and the current frequency.
+> This means there will be no way to get the frequency for the non
+> active tuner (mode), this is fine, since the non active tuner
+> does not have a (valid) frequency anyways.
+
+This would mean that the spec changes for this ioctl. I'm not certain I like
+that.
+
+> If we choose for VIDIOC_G_FREQUENCY to always return info on the
+> active tuner it makes sense to use VIDIOC_S_FREQUENCY to select
+> the active tuner. So for radio devices it will not only change
+> the currently tuned frequency for the indicated tuner, but if
+> the indicated tuner was not the active tuner it will make it the
+> active tuner.
+
+Ack.
+
+> Which leaves the question of what to do with VIDIOC_S_HW_FREQ_SEEK,
+> since VIDIOC_S_HW_FREQ_SEEK needs a valid begin frequency as a pre
+> condition, and the frequency ranges differ between different
+> tuners it makes sense to only allow VIDIOC_S_HW_FREQ_SEEK on
+> the active tuner.
+
+I see S_HW_FREQ_SEEK as an extended variation on S_FREQUENCY, so I
+believe calling S_HW_FREQ_SEEK should also change the current tuner.
+
+> So this leaves one last problem, what to
+> return from VIDIOC_S_HW_FREQ_SEEK if it tries to seek for
+> a non active tuner. I'm tending towards saying -EBUSY, since some
+> parts of the tuners are shared, so the non active tuner cannot
+> seek because those shared parts are otherwise used.
+
+*If* we decide that S_HW_FREQ_SEEK cannot change the current tuner, then
+-EBUSY would be a good error code.
+
+The problem is really that you are trying to use G_FREQUENCY to figure out
+what the active tuner is. That requires an API change (the tuner field now
+only contains the current active tuner instead of the tuner whose frequency
+is requested), and because of that API change you have to change S_HW_FREQ_SEEK
+as well.
+
+In my view struct v4l2_tuner should be enhanced allowing it to return a
+flag or something similar that tells the application whether the given tuner
+index is the active index.
+
+Adding a flags field might do it, or perhaps (a bit hackish though) adding a
+V4L2_TUNER_SUB_ACTIVE flag.
+
+All this is independent of the question whether we should model the AM and
+weather bands as one or multiple tuners. Strictly speaking I think this would
+depend on whether there is only one tuner or if there are two (or more)
+independent tuners. In the second case I think modelling this using two tuners
+is the right approach. In the first case keeping to one tuner seems better, but
+it leads to the question how to query the frequency range of each band.
+
+I like much of the work done on frequency bands in Manjunatha's patches (I did
+help with that, so I'm biased :-) ), but getting the frequency ranges for each
+band wasn't addressed there.
+
+I would propose that we add a new capability:
+
+V4L2_TUNER_CAP_BANDS 0x1000
+
+If set, then frequency bands are supported and the correct band capabilities
+from Manjunatha's patch series are set. In addition a new band field is added
+to v4l2_tuner. It is unused if V4L2_TUNER_CAP_BANDS isn't set, otherwise the
+application can set it to the band whose frequency range and capabilities it
+wants to know.
+
+If band == 0, or if an invalid band is passed, then the driver fills in the
+current band and frequency range and capabilities.
+
+If non-zero, then the frequency range and capabilities of the given band are
+returned. Fields like rxsubchans and audmode always return values for the
+current selected frequency. Hmm, this doesn't feel right. Perhaps this should
+only return correct values if the current frequency falls within the given
+band, and otherwise these fields are set to 0.
+
+Since S_TUNER is an IOW ioctl, none of this applies to S_TUNER.
+
+Regards,
+
+	Hans
