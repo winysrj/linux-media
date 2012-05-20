@@ -1,259 +1,162 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:58214 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753570Ab2EDSc2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 May 2012 14:32:28 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Received: from euspt2 ([210.118.77.13]) by mailout3.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0M3I00AUFGSWRTA0@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 04 May 2012 19:31:45 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0M3I00HX0GTUGD@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 04 May 2012 19:32:19 +0100 (BST)
-Date: Fri, 04 May 2012 20:32:12 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH/RFC v4 08/12] V4L: Add camera scene mode control
-In-reply-to: <1336156337-10935-1-git-send-email-s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
-	g.liakhovetski@gmx.de, hdegoede@redhat.com, moinejf@free.fr,
-	hverkuil@xs4all.nl, m.szyprowski@samsung.com,
-	riverful.kim@samsung.com, sw0312.kim@samsung.com,
-	s.nawrocki@samsung.com, Kyungmin Park <kyungmin.park@samsung.com>
-Message-id: <1336156337-10935-9-git-send-email-s.nawrocki@samsung.com>
-References: <1336156337-10935-1-git-send-email-s.nawrocki@samsung.com>
+Received: from mx1.redhat.com ([209.132.183.28]:12861 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753741Ab2ETBVc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 19 May 2012 21:21:32 -0400
+From: Hans de Goede <hdegoede@redhat.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Ondrej Zary <linux@rainbow-software.org>,
+	Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH 4/6] snd_tea575x: Make the module using snd_tea575x the fops owner
+Date: Sun, 20 May 2012 03:25:29 +0200
+Message-Id: <1337477131-21578-5-git-send-email-hdegoede@redhat.com>
+In-Reply-To: <1337477131-21578-1-git-send-email-hdegoede@redhat.com>
+References: <1337477131-21578-1-git-send-email-hdegoede@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add control for the scene mode feature available in image sensor
-with more advanced ISP firmware. The V4L2_CID_SCENE_MODE menu
-control allows to select a set of parameters or a specific image
-processing and capture control algorithm optimized for common
-image capture conditions.
+Before this patch the owner field of the /dev/radio# device fops was set to
+the snd-tea575x-tuner module itself. Meaning that the module which was using
+it could be rmmod-ed while the device is open, and then BAD things happen.
 
-Signed-off-by: HeungJun Kim <riverful.kim@samsung.com>
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+I know, as I found out the hard way :)
+
+Note that there is no need to also somehow increase the refcount of the
+snd-tea575x-tuner module itself, since any drivers using it will have
+symbolic references to it.
+
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+CC: Ondrej Zary <linux@rainbow-software.org>
 ---
- Documentation/DocBook/media/v4l/controls.xml |  117 ++++++++++++++++++++++++++
- drivers/media/video/v4l2-ctrls.c             |   21 +++++
- include/linux/videodev2.h                    |   18 ++++
- 3 files changed, 156 insertions(+)
+ drivers/media/radio/radio-maxiradio.c |    2 +-
+ drivers/media/radio/radio-sf16fmr2.c  |    2 +-
+ include/sound/tea575x-tuner.h         |    3 ++-
+ sound/i2c/other/tea575x-tuner.c       |    7 ++++---
+ sound/pci/es1968.c                    |    2 +-
+ sound/pci/fm801.c                     |    4 ++--
+ 6 files changed, 11 insertions(+), 9 deletions(-)
 
-diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
-index 3cd6972..88608f6 100644
---- a/Documentation/DocBook/media/v4l/controls.xml
-+++ b/Documentation/DocBook/media/v4l/controls.xml
-@@ -3110,6 +3110,123 @@ sensitivity adjustments.</entry>
- 	  </row>
- 	  <row><entry></entry></row>
+diff --git a/drivers/media/radio/radio-maxiradio.c b/drivers/media/radio/radio-maxiradio.c
+index 740a3d5..b415211 100644
+--- a/drivers/media/radio/radio-maxiradio.c
++++ b/drivers/media/radio/radio-maxiradio.c
+@@ -157,7 +157,7 @@ static int __devinit maxiradio_probe(struct pci_dev *pdev, const struct pci_devi
+ 		goto err_out_free_region;
  
-+	  <row id="v4l2-scene-mode">
-+	    <entry spanname="id"><constant>V4L2_CID_SCENE_MODE</constant>&nbsp;</entry>
-+	    <entry>enum&nbsp;v4l2_scene_mode</entry>
-+	  </row><row><entry spanname="descr">This control allows to select
-+scene programs as the camera automatic modes optimized for common shooting
-+scenes. Within these modes the camera determines best exposure, aperture,
-+focusing, light metering, white balance and equivalent sensitivity. The
-+controls of those parameters are influenced by the scene mode control.
-+An exact behavior in each mode is subject to the camera specification.
-+
-+<para>When the scene mode feature is not used, this control should be set to
-+<constant>V4L2_SCENE_MODE_NONE</constant> to make sure the other possibly
-+related controls are accessible. The following scene programs are defined:
-+</para>
-+</entry>
-+	  </row>
-+	  <row>
-+	    <entrytbl spanname="descr" cols="2">
-+	      <tbody valign="top">
-+		<row>
-+		  <entry><constant>V4L2_SCENE_MODE_NONE</constant>&nbsp;</entry>
-+		  <entry>The scene mode feature is disabled.</entry>
-+		</row>
-+		<row>
-+		  <entry><constant>V4L2_SCENE_MODE_BACKLIGHT</constant>&nbsp;</entry>
-+		  <entry>Backlight. Compensates for dark shadows when light is
-+		  coming from behind a subject, also by automatically turning
-+		  on the flash.</entry>
-+		</row>
-+		<row>
-+		  <entry><constant>V4L2_SCENE_MODE_BEACH_SNOW</constant>&nbsp;</entry>
-+		  <entry>Beach and snow. This mode compensates for all-white or
-+bright scenes, which tend to look gray and low contrast, when camera's automatic
-+exposure is based on an average scene brightness. To compensate, this mode
-+automatically slightly overexposes the frames. The white balance may also be
-+adjusted to compensate for the fact that reflected snow looks bluish rather
-+than white.</entry>
-+		</row>
-+		<row>
-+		  <entry><constant>V4L2_SCENE_MODE_CANDLELIGHT</constant>&nbsp;</entry>
-+		  <entry>Candle light. The camera generally raises the ISO
-+sensitivity and lowers the shutter speed. This mode compensates for relatively
-+close subject in the scene. The flash is disabled in order to preserve the
-+ambiance of the light.</entry>
-+		</row>
-+		<row>
-+		  <entry><constant>V4L2_SCENE_MODE_DAWN_DUSK</constant>&nbsp;</entry>
-+		  <entry>Dawn and dusk. Preserves the colors seen in low
-+natural light before dusk and after down. The camera may turn off the flash,
-+and automatically focus at infinity. It will usually boost saturation and
-+lower the shutter speed.</entry>
-+		</row>
-+		<row>
-+		  <entry><constant>V4L2_SCENE_MODE_FALL_COLORS</constant>&nbsp;</entry>
-+		  <entry>Fall colors. Increases saturation and adjusts white
-+balance for color enhancement. Pictures of autumn leaves get saturated reds
-+and yellows.</entry>
-+		</row>
-+		<row>
-+		  <entry><constant>V4L2_SCENE_MODE_FIREWORKS</constant>&nbsp;</entry>
-+		  <entry>Fireworks. Long exposure times are used to capture
-+the expanding burst of light from a firework. The camera may invoke image
-+stabilization.</entry>
-+		</row>
-+		<row>
-+		  <entry><constant>V4L2_SCENE_MODE_LANDSCAPE</constant>&nbsp;</entry>
-+		  <entry>Landscape. The camera may choose a small aperture to
-+provide deep depth of field and long exposure duration to help capture detail
-+in dim light conditions. The focus is fixed at infinity. Suitable for distant
-+and wide scenery.</entry>
-+		</row>
-+		<row>
-+		  <entry><constant>V4L2_SCENE_MODE_NIGHT</constant>&nbsp;</entry>
-+		  <entry>Night, also known as Night Landscape. Designed for low
-+light conditions, it preserves detail in the dark areas without blowing out bright
-+objects. The camera generally sets itself to a medium-to-high ISO sensitivity,
-+with a relatively long exposure time, and turns flash off. As such, there will be
-+increased image noise and the possibility of blurred image.</entry>
-+		</row>
-+		<row>
-+		  <entry><constant>V4L2_SCENE_MODE_PARTY_INDOOR</constant>&nbsp;</entry>
-+		  <entry>Party and indoor. Designed to capture indoor scenes
-+that are lit by indoor background lighting as well as the flash. The camera
-+usually increases ISO sensitivity, and adjusts exposure for the low light
-+conditions.</entry>
-+		</row>
-+		<row>
-+		  <entry><constant>V4L2_SCENE_MODE_PORTRAIT</constant>&nbsp;</entry>
-+		  <entry>Portrait. The camera adjusts the aperture so that the
-+depth of field is reduced, which helps to isolate the subject against a smooth
-+background. Most cameras recognize the presence of faces in the scene and focus
-+on them. The color hue is adjusted to enhance skin tones. The intensity of the
-+flash is often reduced.</entry>
-+		</row>
-+		<row>
-+		  <entry><constant>V4L2_SCENE_MODE_SPORTS</constant>&nbsp;</entry>
-+		  <entry>Sports. Significantly increases ISO and uses a fast
-+shutter speed to freeze motion of rapidly-moving subjects. Increased image
-+noise may be seen in this mode.</entry>
-+		</row>
-+		<row>
-+		  <entry><constant>V4L2_SCENE_MODE_SUNSET</constant>&nbsp;</entry>
-+		  <entry>Sunset. Preserves deep hues seen in sunsets and
-+sunrises. It bumps up the saturation.</entry>
-+		</row>
-+		<row>
-+		  <entry><constant>V4L2_SCENE_MODE_TEXT</constant>&nbsp;</entry>
-+		  <entry>Text. It applies extra contrast and sharpness, it is
-+typically a black-and-white mode optimized for readability. Automatic focus
-+may be switched to close-up mode and this setting may also involve some
-+lens-distortion correction.</entry>
-+		</row>
-+	      </tbody>
-+	    </entrytbl>
-+	  </row>
-+	  <row><entry></entry></row>
-+
- 	</tbody>
-       </tgroup>
-     </table>
-diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
-index 350c745..386f20c 100644
---- a/drivers/media/video/v4l2-ctrls.c
-+++ b/drivers/media/video/v4l2-ctrls.c
-@@ -267,6 +267,23 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
- 		"Auto",
- 		NULL
- 	};
-+	static const char * const scene_mode[] = {
-+		"None",
-+		"Backlight",
-+		"Beach/Snow",
-+		"Candle Light",
-+		"Dusk/Dawn",
-+		"Fall Colors",
-+		"Fireworks",
-+		"Landscape",
-+		"Night",
-+		"Party/Indoor",
-+		"Portrait",
-+		"Sports",
-+		"Sunset",
-+		"Text",
-+		NULL
-+	};
- 	static const char * const tune_preemphasis[] = {
- 		"No Preemphasis",
- 		"50 Microseconds",
-@@ -442,6 +459,8 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
- 		return auto_n_preset_white_balance;
- 	case V4L2_CID_ISO_SENSITIVITY_AUTO:
- 		return camera_iso_sensitivity_auto;
-+	case V4L2_CID_SCENE_MODE:
-+		return scene_mode;
- 	case V4L2_CID_TUNE_PREEMPHASIS:
- 		return tune_preemphasis;
- 	case V4L2_CID_FLASH_LED_MODE:
-@@ -634,6 +653,7 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_ISO_SENSITIVITY:		return "ISO Sensitivity";
- 	case V4L2_CID_ISO_SENSITIVITY_AUTO:	return "ISO Sensitivity, Auto";
- 	case V4L2_CID_EXPOSURE_METERING:	return "Exposure, Metering Mode";
-+	case V4L2_CID_SCENE_MODE:		return "Scene Mode";
+ 	dev->io = pci_resource_start(pdev, 0);
+-	if (snd_tea575x_init(&dev->tea)) {
++	if (snd_tea575x_init(&dev->tea, THIS_MODULE)) {
+ 		printk(KERN_ERR "radio-maxiradio: Unable to detect TEA575x tuner\n");
+ 		goto err_out_free_region;
+ 	}
+diff --git a/drivers/media/radio/radio-sf16fmr2.c b/drivers/media/radio/radio-sf16fmr2.c
+index 7c69214..59e1191 100644
+--- a/drivers/media/radio/radio-sf16fmr2.c
++++ b/drivers/media/radio/radio-sf16fmr2.c
+@@ -222,7 +222,7 @@ static int __devinit fmr2_probe(struct device *pdev, unsigned int dev)
+ 	snprintf(fmr2->tea.bus_info, sizeof(fmr2->tea.bus_info), "ISA:%s",
+ 			fmr2->v4l2_dev.name);
  
- 	/* FM Radio Modulator control */
- 	/* Keep the order of the 'case's the same as in videodev2.h! */
-@@ -775,6 +795,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_JPEG_CHROMA_SUBSAMPLING:
- 	case V4L2_CID_ISO_SENSITIVITY_AUTO:
- 	case V4L2_CID_EXPOSURE_METERING:
-+	case V4L2_CID_SCENE_MODE:
- 		*type = V4L2_CTRL_TYPE_MENU;
- 		break;
- 	case V4L2_CID_RDS_TX_PS_NAME:
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index 4fb1d0f..c672c13 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -1726,6 +1726,24 @@ enum v4l2_exposure_metering {
- 	V4L2_EXPOSURE_METERING_SPOT		= 2,
+-	if (snd_tea575x_init(&fmr2->tea)) {
++	if (snd_tea575x_init(&fmr2->tea, THIS_MODULE)) {
+ 		printk(KERN_ERR "radio-sf16fmr2: Unable to detect TEA575x tuner\n");
+ 		release_region(fmr2->io, 2);
+ 		kfree(fmr2);
+diff --git a/include/sound/tea575x-tuner.h b/include/sound/tea575x-tuner.h
+index af58ad2..fe8590c 100644
+--- a/include/sound/tea575x-tuner.h
++++ b/include/sound/tea575x-tuner.h
+@@ -48,6 +48,7 @@ struct snd_tea575x_ops {
+ 
+ struct snd_tea575x {
+ 	struct v4l2_device *v4l2_dev;
++	struct v4l2_file_operations fops;
+ 	struct video_device vd;		/* video device */
+ 	int radio_nr;			/* radio_nr */
+ 	bool tea5759;			/* 5759 chip is present */
+@@ -67,7 +68,7 @@ struct snd_tea575x {
+ 	int (*ext_init)(struct snd_tea575x *tea);
  };
  
-+#define V4L2_CID_SCENE_MODE			(V4L2_CID_CAMERA_CLASS_BASE+26)
-+enum v4l2_scene_mode {
-+	V4L2_SCENE_MODE_NONE			= 0,
-+	V4L2_SCENE_MODE_BACKLIGHT		= 1,
-+	V4L2_SCENE_MODE_BEACH_SNOW		= 2,
-+	V4L2_SCENE_MODE_CANDLE_LIGHT		= 3,
-+	V4L2_SCENE_MODE_DAWN_DUSK		= 4,
-+	V4L2_SCENE_MODE_FALL_COLORS		= 5,
-+	V4L2_SCENE_MODE_FIREWORKS		= 6,
-+	V4L2_SCENE_MODE_LANDSCAPE		= 7,
-+	V4L2_SCENE_MODE_NIGHT			= 8,
-+	V4L2_SCENE_MODE_PARTY_INDOOR		= 9,
-+	V4L2_SCENE_MODE_PORTRAIT		= 10,
-+	V4L2_SCENE_MODE_SPORTS			= 11,
-+	V4L2_SCENE_MODE_SUNSET			= 12,
-+	V4L2_SCENE_MODE_TEXT			= 13,
-+};
-+
- /* FM Modulator class control IDs */
- #define V4L2_CID_FM_TX_CLASS_BASE		(V4L2_CTRL_CLASS_FM_TX | 0x900)
- #define V4L2_CID_FM_TX_CLASS			(V4L2_CTRL_CLASS_FM_TX | 1)
+-int snd_tea575x_init(struct snd_tea575x *tea);
++int snd_tea575x_init(struct snd_tea575x *tea, struct module *owner);
+ void snd_tea575x_exit(struct snd_tea575x *tea);
+ 
+ #endif /* __SOUND_TEA575X_TUNER_H */
+diff --git a/sound/i2c/other/tea575x-tuner.c b/sound/i2c/other/tea575x-tuner.c
+index ddc08a8..8c142e5 100644
+--- a/sound/i2c/other/tea575x-tuner.c
++++ b/sound/i2c/other/tea575x-tuner.c
+@@ -323,7 +323,6 @@ static int tea575x_s_ctrl(struct v4l2_ctrl *ctrl)
+ }
+ 
+ static const struct v4l2_file_operations tea575x_fops = {
+-	.owner		= THIS_MODULE,
+ 	.unlocked_ioctl	= video_ioctl2,
+ 	.open           = v4l2_fh_open,
+ 	.release        = v4l2_fh_release,
+@@ -343,7 +342,6 @@ static const struct v4l2_ioctl_ops tea575x_ioctl_ops = {
+ };
+ 
+ static const struct video_device tea575x_radio = {
+-	.fops           = &tea575x_fops,
+ 	.ioctl_ops 	= &tea575x_ioctl_ops,
+ 	.release        = video_device_release_empty,
+ };
+@@ -355,7 +353,7 @@ static const struct v4l2_ctrl_ops tea575x_ctrl_ops = {
+ /*
+  * initialize all the tea575x chips
+  */
+-int snd_tea575x_init(struct snd_tea575x *tea)
++int snd_tea575x_init(struct snd_tea575x *tea, struct module *owner)
+ {
+ 	int retval;
+ 
+@@ -379,6 +377,9 @@ int snd_tea575x_init(struct snd_tea575x *tea)
+ 	strlcpy(tea->vd.name, tea->v4l2_dev->name, sizeof(tea->vd.name));
+ 	tea->vd.lock = &tea->mutex;
+ 	tea->vd.v4l2_dev = tea->v4l2_dev;
++	tea->fops = tea575x_fops;
++	tea->fops.owner = owner;
++	tea->vd.fops = &tea->fops;
+ 	set_bit(V4L2_FL_USE_FH_PRIO, &tea->vd.flags);
+ 	/* disable hw_freq_seek if we can't use it */
+ 	if (tea->cannot_read_data)
+diff --git a/sound/pci/es1968.c b/sound/pci/es1968.c
+index a8faae1..0f2811e 100644
+--- a/sound/pci/es1968.c
++++ b/sound/pci/es1968.c
+@@ -2769,7 +2769,7 @@ static int __devinit snd_es1968_create(struct snd_card *card,
+ 	chip->tea.ops = &snd_es1968_tea_ops;
+ 	strlcpy(chip->tea.card, "SF64-PCE2", sizeof(chip->tea.card));
+ 	sprintf(chip->tea.bus_info, "PCI:%s", pci_name(pci));
+-	if (!snd_tea575x_init(&chip->tea))
++	if (!snd_tea575x_init(&chip->tea, THIS_MODULE))
+ 		printk(KERN_INFO "es1968: detected TEA575x radio\n");
+ #endif
+ 
+diff --git a/sound/pci/fm801.c b/sound/pci/fm801.c
+index a416ea8..5265c57 100644
+--- a/sound/pci/fm801.c
++++ b/sound/pci/fm801.c
+@@ -1254,7 +1254,7 @@ static int __devinit snd_fm801_create(struct snd_card *card,
+ 	sprintf(chip->tea.bus_info, "PCI:%s", pci_name(pci));
+ 	if ((tea575x_tuner & TUNER_TYPE_MASK) > 0 &&
+ 	    (tea575x_tuner & TUNER_TYPE_MASK) < 4) {
+-		if (snd_tea575x_init(&chip->tea)) {
++		if (snd_tea575x_init(&chip->tea, THIS_MODULE)) {
+ 			snd_printk(KERN_ERR "TEA575x radio not found\n");
+ 			snd_fm801_free(chip);
+ 			return -ENODEV;
+@@ -1263,7 +1263,7 @@ static int __devinit snd_fm801_create(struct snd_card *card,
+ 		/* autodetect tuner connection */
+ 		for (tea575x_tuner = 1; tea575x_tuner <= 3; tea575x_tuner++) {
+ 			chip->tea575x_tuner = tea575x_tuner;
+-			if (!snd_tea575x_init(&chip->tea)) {
++			if (!snd_tea575x_init(&chip->tea, THIS_MODULE)) {
+ 				snd_printk(KERN_INFO "detected TEA575x radio type %s\n",
+ 					   get_tea575x_gpio(chip)->name);
+ 				break;
 -- 
 1.7.10
 
