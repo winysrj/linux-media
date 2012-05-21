@@ -1,44 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hermes.a1a-server.de ([62.146.15.7]:56380 "EHLO
-	hermes.a1a-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754737Ab2EALFQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 1 May 2012 07:05:16 -0400
-Subject: RDS help needed
-From: Matthias Bock <mail@matthiasbock.net>
-To: linux-media@vger.kernel.org, v4l2-library@linuxtv.org
-Content-Type: text/plain; charset="ISO-8859-15"
-Date: Tue, 01 May 2012 12:56:49 +0200
-Message-ID: <1335869809.4592.14.camel@localhost>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail-qa0-f49.google.com ([209.85.216.49]:35544 "EHLO
+	mail-qa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754138Ab2EUPe1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 May 2012 11:34:27 -0400
+Received: by qabj40 with SMTP id j40so2621534qab.1
+        for <linux-media@vger.kernel.org>; Mon, 21 May 2012 08:34:26 -0700 (PDT)
+From: Michael Krufky <mkrufky@kernellabs.com>
+To: linux-media@vger.kernel.org
+Cc: Dan Carpenter <dan.carpenter@oracle.com>,
+	Michael Krufky <mkrufky@linuxtv.org>
+Subject: [PATCH] lg2160: fix off-by-one error in lg216x_write_regs
+Date: Mon, 21 May 2012 11:34:02 -0400
+Message-Id: <1337614442-31599-1-git-send-email-mkrufky@linuxtv.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi there!
+Fix an off-by-one error in lg216x_write_regs, causing the last element
+of the lg216x init block to be ignored.  Spotted by Dan Carpenteter.
 
-I hacked a RDS TMC-message receiver to work on the serial port.
+Thanks-to: Dan Carpenter <dan.carpenter@oracle.com>
+Signed-off-by: Michael Krufky <mkrufky@linuxtv.org>
+---
+ drivers/media/dvb/frontends/lg2160.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-http://www.matthiasbock.net/wiki/?title=Kategorie:GNS_TrafficBox_FM9_RDS_TMC-Receiver
-
-According to
- http://linuxtv.org/wiki/index.php/Radio_Data_System_(RDS)
-already several different receivers are available for usage
-with Linux but development of the RDS message daemon,
-that would be required to collect, decode and distribute
-the RDS messages to client applications
- http://rdsd.berlios.de/
-kindof stucked, didn't progress since 2009 (!)
-
-The available SVN sources only support
-SAA6588-based RDS receivers.
-
-Is RDS support still an important task to
-someone on this list ?
-
-Is there someone, who would consider assisting me a little
-in writing some documentation on the RDS daemon project,
-some code maybe, lateron some linux kernel modules ?
-
-Cheers! Matthias
-
+diff --git a/drivers/media/dvb/frontends/lg2160.c b/drivers/media/dvb/frontends/lg2160.c
+index a3ab1a5..cc11260 100644
+--- a/drivers/media/dvb/frontends/lg2160.c
++++ b/drivers/media/dvb/frontends/lg2160.c
+@@ -126,7 +126,7 @@ static int lg216x_write_regs(struct lg216x_state *state,
+ 
+ 	lg_reg("writing %d registers...\n", len);
+ 
+-	for (i = 0; i < len - 1; i++) {
++	for (i = 0; i < len; i++) {
+ 		ret = lg216x_write_reg(state, regs[i].reg, regs[i].val);
+ 		if (lg_fail(ret))
+ 			return ret;
+-- 
+1.7.9.5
 
