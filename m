@@ -1,181 +1,191 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:51674 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754171Ab2EZSJt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 26 May 2012 14:09:49 -0400
-Message-ID: <4FC11C71.7090104@redhat.com>
-Date: Sat, 26 May 2012 20:09:53 +0200
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: halli manjunatha <hallimanju@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Discussion: How to deal with radio tuners which can tune to multiple
- bands
-References: <1337032913-18646-1-git-send-email-manjunatha_halli@ti.com> <4FBE8819.80704@redhat.com> <4FC0FE9A.70603@redhat.com> <201205261840.27204.hverkuil@xs4all.nl>
-In-Reply-To: <201205261840.27204.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:59110 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756169Ab2EUOBy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 May 2012 10:01:54 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: text/plain; charset=UTF-8
+Message-id: <4FBA4ACE.4080602@samsung.com>
+Date: Mon, 21 May 2012 16:01:50 +0200
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: no To-header on input
+	<"unlisted-recipients:;;"@mail.linuxfoundation.org>,
+	paul.gortmaker@windriver.com,
+	=?UTF-8?B?J+uwleqyveuvvCc=?= <kyungmin.park@samsung.com>,
+	amwang@redhat.com, dri-devel@lists.freedesktop.org,
+	"'???/Mobile S/W Platform Lab.(???)/E3(??)/????'"
+	<inki.dae@samsung.com>, prashanth.g@samsung.com,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Rob Clark <rob@ti.com>, Dave Airlie <airlied@redhat.com>,
+	linux-kernel@vger.kernel.org, linux-mm@kvack.org,
+	Andy Whitcroft <apw@shadowen.org>,
+	Johannes Weiner <hannes@cmpxchg.org>
+Subject: Re: [PATCH v3] scatterlist: add sg_alloc_table_from_pages function
+References: <4FA8EC69.8010805@samsung.com>
+ <20120517165614.d5e6e4b6.akpm@linux-foundation.org>
+In-reply-to: <20120517165614.d5e6e4b6.akpm@linux-foundation.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Andrew,
+Thank you for your review,
+Please refer to the comments below.
 
-On 05/26/2012 06:40 PM, Hans Verkuil wrote:
-> On Sat May 26 2012 18:02:34 Hans de Goede wrote:
->> Hi,
+On 05/18/2012 01:56 AM, Andrew Morton wrote:
+> On Tue, 08 May 2012 11:50:33 +0200
+> Tomasz Stanislawski <t.stanislaws@samsung.com> wrote:
+> 
+>> This patch adds a new constructor for an sg table. The table is constructed
+>> from an array of struct pages. All contiguous chunks of the pages are merged
+>> into a single sg nodes. A user may provide an offset and a size of a buffer if
+>> the buffer is not page-aligned.
 >>
->> On 05/24/2012 09:12 PM, Hans de Goede wrote:
->>> Hi,
->>>
->>> On 05/24/2012 05:00 PM, Hans Verkuil wrote:
->>>>> I think / hope that covers everything we need. Suggestions ? Comments ?
->>>>
->>>> Modulators. v4l2_modulator needs a band field as well. The capabilities are
->>>> already shared with v4l2_tuner, so that doesn't need to change.
->>>
->>> Ah, yes modulators, good one, ack.
->>>
->>> Manjunatha, since the final proposal is close to yours, and you already have
->>> a patch for that including all the necessary documentation updates, can I ask
->>> you to update your patch to implement this proposal?
->>>
+>> The function is dedicated for DMABUF exporters which often perform conversion
+>> from an page array to a scatterlist. Moreover the scatterlist should be
+>> squashed in order to save memory and to speed-up the process of DMA mapping
+>> using dma_map_sg.
 >>
->> So I've been working a bit on adding AM support to the tea575x driver using
->> the agreed upon API, some observations from this:
+>> The code is based on the patch 'v4l: vb2-dma-contig: add support for
+>> scatterlist in userptr mode' and hints from Laurent Pinchart.
 >>
->> 1) There is no way to get which band is currently active
->
-> Huh? Didn't G_TUNER return the current band? That's how I interpreted the
-> proposal. G_TUNER returns the available bands in capabilities and the current
-> band and its frequency range. You want to find the frequency range of another
-> band you call have to call S_TUNER first to select that other band, and then
-> G_TUNER to discover its range.
+>> ...
+>>
+>>  /**
+>> + * sg_alloc_table_from_pages - Allocate and initialize an sg table from
+>> + *			       an array of pages
+>> + * @sgt:	The sg table header to use
+>> + * @pages:	Pointer to an array of page pointers
+>> + * @n_pages:	Number of pages in the pages array
+>> + * @offset:     Offset from start of the first page to the start of a buffer
+>> + * @size:       Number of valid bytes in the buffer (after offset)
+>> + * @gfp_mask:	GFP allocation mask
+>> + *
+>> + *  Description:
+>> + *    Allocate and initialize an sg table from a list of pages. Continuous
+> 
+> s/Continuous/Contiguous/
+> 
 
-Ah, we misunderstood each other there, I thought G_TUNER would honor the band
-passed in and return info on that band.
+Ok. Thanks for noticing it.
 
-> That also solves case 2. No need for an extra band in v4l2_frequency.
+>> + *    ranges of the pages are squashed into a single scatterlist node. A user
+>> + *    may provide an offset at a start and a size of valid data in a buffer
+>> + *    specified by the page array. The returned sg table is released by
+>> + *    sg_free_table.
+>> + *
+>> + * Returns:
+>> + *   0 on success, negative error on failure
+>> + **/
+> 
+> nit: Use */, not **/ here.
+> 
+ok
+>> +int sg_alloc_table_from_pages(struct sg_table *sgt,
+>> +	struct page **pages, unsigned int n_pages,
+>> +	unsigned long offset, unsigned long size,
+>> +	gfp_t gfp_mask)
+> 
+> I guess a 32-bit n_pages is OK.  A 16TB IO seems enough ;)
+> 
 
-Right, the downside to this is that there is no way to just enumerate things
-without actually changing anything. It would be nice if for example v4l2-ctl
-could lists all bands including ranges as a 100% read-only operation.
+Do you think that 'unsigned long' for offset is too big?
 
-Note I'm ok with the way you propose to handle things, just pointing out
-one (obvious) shortcoming of doing things this way. I think it is a short coming
-we can live with, but we should be aware of it.
+Ad n_pages. Assuming that Moore's law holds it will take
+circa 25 years before the limit of 16 TB is reached :) for
+high-end scatterlist operations.
+Or I can change the type of n_pages to 'unsigned long' now at
+no cost :).
 
->> This is IMHO a big problem, a GUI radio app will quite likely when it starts get
->> all the current settings and display them without modifying any settings, so
->> it needs a way to find out which band is active.
->>
->> 2) What if first a band aware radio app sets a non default band, and then a
->> non band aware radio app comes along, it does a g_tuner on the default-band,
->> using the lo / high freq-s to build its UI, then the users picks a frequency,
->> and the app does a s_freq, and the result is a frequency outside of what the
->> app thinks are the lo / high freq limits because a different band is active ->
->> not good.
->>
->> So I think we need to slightly modify the proposal, esp. to deal with 1), 2)
->> is a corner case and not really all that important on its own IMHO.
->>
->> I suggest fixing 1) by not only adding a band field to v4l2_tuner, so that
->> the different ranges for different bands can be queried, but also adding
->> a band field to v4l2_frequency, so that the current active band can be
->> reported by g_frequency. Once we make g_frequency report the active band,
->> it makes sense to make s_frequency set the active band.
->
-> I don't really like this. You run into the same weird situation with G_TUNER
-> that I did (as that was one of my ideas as well) where you set band to e.g.
-> the weather band and get back the corresponding frequency range, but the other
-> fields like signal and rxsubchans still refer to the *current* band. That's
-> confusing and not logical.
+>> +{
+>> +	unsigned int chunks;
+>> +	unsigned int i;
+> 
+> erk, please choose a different name for this.  When a C programmer sees
+> "i", he very much assumes it has type "int".  Making it unsigned causes
+> surprise.
+> 
+> And don't rename it to "u"!  Let's give it a nice meaningful name.  pageno?
+> 
 
-Right, notice how my proposal says that signal and rxsubchans will always
-report 0 except when doing a g_tuner for the active band. This is not ideal,
-but IMHO better then not being able to do read-only enumeration of the bands.
+The problem is that 'i' is  a natural name for a loop counter.
+This exactly how 'i' is used in this function.
+The type 'int' was used in the initial version of the code.
+It was changed to avoid 'unsigned vs signed' comparisons in
+the loop condition.
 
->> We would then need no changes to s_tuner at all, it will still only have
->> audmode as writeable setting and thus *not* set the active band. Effectively
->> s_tuner would just completely ignore the passed in band. Keeping audmode as
->> a global (not band specific) setting, and likewise g_tuner would always
->> return CAP_STEREO stereo if some bands are stereo capable.
->>
->> This also nicely fixes 2). Since the reserved fields should be 0, so a
->> s_frequency by a non band aware app will set the band to the default band. >>
->> ###
->>
->> So here is a new / amended version of my band proposal:
->>
->> 1) Introduce the concept of bands, for radio tuners only
->>
->> 2) Define the following bands:
->>
->> #define V4L2_BAND_DEFAULT       0
->> #define V4L2_BAND_FM_EUROPE_US  1       /* 87.5 Mhz - 108 MHz */
->> #define V4L2_BAND_FM_JAPAN      2       /* 76 MHz - 90 MHz */
->> #define V4L2_BAND_FM_RUSSIAN    3       /* 65.8 MHz - 74 MHz */
->> #define V4L2_BAND_FM_WEATHER    4       /* 162.4 MHz - 162.55 MHz */
->> #define V4L2_BAND_AM_MW         5
->>
->> 3) radio tuners indicate if they understand any of the non default bands
->> with the following tuner caps:
->>
->> #define V4L2_TUNER_CAP_BAND_FM_EUROPE_US        0x00010000
->> #define V4L2_TUNER_CAP_BAND_FM_JAPAN    	0x00020000
->> #define V4L2_TUNER_CAP_BAND_FM_RUSSIAN  	0x00040000
->> #define V4L2_TUNER_CAP_BAND_FM_WEATHER  	0x00080000
->> #define V4L2_TUNER_CAP_BAND_AM_MW       	0x00100000
->>
->> A (radio) tuner should always support RADIO_BAND_DEFAULT, so there is no
->> capability flag for this
->>
->> 4) Add a band field to v4l2_tuner, apps can query the exact rangelow and
->> rangehigh values for a specific band by doing a g_tuner with band set to
->> that band. All v4l2_tuner fields returned by g_tuner will be independent
->> of the selected band (iow constant) except for: rangelow, rangehigh,
->> rxsubchans and signal.
->> 4a) rangelow, rangehigh will be the actual values for that band
->> 4b) rxsubchans and signal will be 0 if a g_tuner is done for a band different
->> then the active band, for the active band they will reflect the actual values.
->
-> So I would do this as:
->
-> 4) Add a band field to v4l2_tuner. Calling g_tuner will set this to the
-> current band. You change it by calling s_tuner. CAP_STEREO and audmode are
-> global properties, not per-band. CAP_STEREO really refers to whether the
-> hardware can do stereo at all.
+AFAIK, in the kernel code developers try to avoid Hungarian notation.
+A name of a variable should reflect its purpose, not its type.
+I can change the name of 'i' to 'pageno' and 'j' to 'pageno2' (?)
+but I think it will make the code less reliable.
 
-Right, I can see the logic in this, and I think it is an elegant solution in
-a way. But as said that looses read only enumeration of the band ranges, which
-I think is something which we should allow...
+>> +	unsigned int cur_page;
+>> +	int ret;
+>> +	struct scatterlist *s;
+>> +
+>> +	/* compute number of contiguous chunks */
+>> +	chunks = 1;
+>> +	for (i = 1; i < n_pages; ++i)
+>> +		if (page_to_pfn(pages[i]) != page_to_pfn(pages[i - 1]) + 1)
+> 
+> This assumes that if two pages have contiguous pfn's then they are
+> physically contiguous.  Is that true for all architectures and memory
+> models, including sparsemem?  See sparse_encode_mem_map().
+> 
 
-I'm happy that we agree that CAP_STEREO and audmode shoul be global and not per
-band :)
+This is a very good questions. I did some research and I had looked
+for all pfn_to_phys implementations in the kernel code. I found
+that all conversions are performed by bit shifting. Therefore
+I expect that assumption that contiguous PFNs imply contiguous physical
+addresses is true for all architectures supported by Linux kernel.
 
->> 5) s_tuner will be completely unchanged, the band field will not influence
->> it, audmode will be a per tuner global, not a per band value
->
-> Drop this.
->
->> 6) Add a band field to v4l2_frequency, on a g_frequency this will reflect the
->> current band, on a s_frequency this will set the current band
->
-> Drop this.
->
->> 7) Doing a VIDIOC_S_HW_FREQ_SEEK will seek in the currently active band,
->> iow the band last set by a s_frequency call, this matches existing behavior where
->> the seek starts at the currently active frequency (so the frequency set by the
->> last s_frequency call, or the frequency from the last seek).
->
-> 5) Doing a VIDIOC_S_HW_FREQ_SEEK will seek in the currently active band,
-> iow the band last set by a s_tuner call.
->
-> Two fewer items on this list :-)
 
-He he, I'm ok with either way, but I still have a slight preference to adding
-a band field to v4l2_frequency because of the enumeration issue.
+>> +			++chunks;
+>> +
+>> +	ret = sg_alloc_table(sgt, chunks, gfp_mask);
+>> +	if (unlikely(ret))
+>> +		return ret;
+>> +
+>> +	/* merging chunks and putting them into the scatterlist */
+>> +	cur_page = 0;
+>> +	for_each_sg(sgt->sgl, s, sgt->orig_nents, i) {
+>> +		unsigned long chunk_size;
+>> +		unsigned int j;
+> 
+> "j" is an "int", too.
+
+Please refer to 'i'-arguments above.
+
+> 
+>> +
+>> +		/* looking for the end of the current chunk */
+> 
+> s/looking/look/
+> 
+
+ok
+
+>> +		for (j = cur_page + 1; j < n_pages; ++j)
+>> +			if (page_to_pfn(pages[j]) !=
+>> +			    page_to_pfn(pages[j - 1]) + 1)
+>> +				break;
+>> +
+>> +		chunk_size = ((j - cur_page) << PAGE_SHIFT) - offset;
+>> +		sg_set_page(s, pages[cur_page], min(size, chunk_size), offset);
+>> +		size -= chunk_size;
+>> +		offset = 0;
+>> +		cur_page = j;
+>> +	}
+>> +
+>> +	return 0;
+>> +}
+>> +EXPORT_SYMBOL(sg_alloc_table_from_pages);
+> 
+> 
 
 Regards,
-
-Hans
+Tomasz Stanislawski
