@@ -1,53 +1,31 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:33929 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:6344 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754778Ab2EXKV2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 May 2012 06:21:28 -0400
-Message-ID: <4FBE0BA3.3040400@redhat.com>
-Date: Thu, 24 May 2012 07:21:23 -0300
+	id S1755962Ab2EUC0L (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 20 May 2012 22:26:11 -0400
+Message-ID: <4FB9A7B3.1030605@redhat.com>
+Date: Sun, 20 May 2012 23:25:55 -0300
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: Jean-Francois Moine <moinejf@free.fr>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans de Goede <hdegoede@redhat.com>
-Subject: Re: gspca maintenance handover
-References: <20120524103429.58195601@tele>
-In-Reply-To: <20120524103429.58195601@tele>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+To: Antti Palosaari <crope@iki.fi>
+CC: Hans-Frieder Vogt <hfvogt@gmx.net>, linux-media@vger.kernel.org,
+	Thomas Mair <thomas.mair86@googlemail.com>
+Subject: Re: [PATCH 2/3] fc001x: tuner driver for FC0012, version 0.5
+References: <201205062256.55468.hfvogt@gmx.net> <4FB92224.2010008@iki.fi>
+In-Reply-To: <4FB92224.2010008@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jean-François,
+Em 20-05-2012 13:56, Antti Palosaari escreveu:
+> Hmm,
+> Mauro just merged those FC0012 and FC0013 drivers via my RTL2831U tree... It was not my meaning to do that like this.
 
-Em 24-05-2012 05:34, Jean-Francois Moine escreveu:
-> Hi Mauro,
-> 
-> I was glad and proud to work for 4 years in the Linux media team, but,
-> now, I am a bit weary of webcams!
->
-> I proposed to Hans de Goede to take the maintenance of gspca. He
-> perfectly knows the code and does a good work. The driver will be in
-> safe hands.
+This was due to a pull request that you sent me on May, 18, requesting
+to pull from:
 
-Thank you for all your good work among those 4 years! You did a great job
-with gspca, integrating it upstream and maintaining it along this time.
+  git://linuxtv.org/anttip/media_tree.git rtl2831u 
 
-While it is a bad news that you're not so focused on webcam anymore, it
-is great to know that Hans accepted the job of maintaining the drivers.
-
-I hope you all the best!
-
-Could you please write a patch changing the corresponding entries at
-MAINTAINERS file? 
-
-> Anyway, I will not fully give up. I will stay in the list and help if
-> any problem.
-
-Your further contributions will be very welcome!
-> 
-> Best regards.
-> 
-
-Best regards,
+Regards,
 Mauro
