@@ -1,59 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vb0-f46.google.com ([209.85.212.46]:56362 "EHLO
-	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751576Ab2EUPUL convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 May 2012 11:20:11 -0400
-Received: by vbbff1 with SMTP id ff1so3553560vbb.19
-        for <linux-media@vger.kernel.org>; Mon, 21 May 2012 08:20:10 -0700 (PDT)
+Received: from mx1.redhat.com ([209.132.183.28]:25684 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757886Ab2EUO3l (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 May 2012 10:29:41 -0400
+Message-ID: <4FBA5140.1060102@redhat.com>
+Date: Mon, 21 May 2012 11:29:20 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <20120521135801.GA21460@elgon.mountain>
-References: <20120521135801.GA21460@elgon.mountain>
-Date: Mon, 21 May 2012 11:20:10 -0400
-Message-ID: <CAOcJUbx6mxeL1y_tEwefnyo4FG-SfbJ3Csw4Uxba9anS6bHehg@mail.gmail.com>
-Subject: Re: [media] DVB: add support for the LG2160 ATSC-MH demodulator
-From: Michael Krufky <mkrufky@linuxtv.org>
-To: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: linux-media@vger.kernel.org
+To: Antti Palosaari <crope@iki.fi>
+CC: Hans-Frieder Vogt <hfvogt@gmx.net>, linux-media@vger.kernel.org,
+	Thomas Mair <thomas.mair86@googlemail.com>
+Subject: Re: [PATCH 2/3] fc001x: tuner driver for FC0012, version 0.5
+References: <201205062256.55468.hfvogt@gmx.net> <4FB92224.2010008@iki.fi>    <4FB9A7B3.1030605@redhat.com> <48b2cb9f19b1063eb7b8d8bd8dbfc957.squirrel@webmail.kapsi.fi>
+In-Reply-To: <48b2cb9f19b1063eb7b8d8bd8dbfc957.squirrel@webmail.kapsi.fi>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, May 21, 2012 at 9:58 AM, Dan Carpenter <dan.carpenter@oracle.com> wrote:
-> Hi Michael,
->
-> I have a question about e26f2ae4527b: "[media] DVB: add support for the
-> LG2160 ATSC-MH demodulator" from Jan 29, 2012.
->
->   122  static int lg216x_write_regs(struct lg216x_state *state,
->   123                               struct lg216x_reg *regs, int len)
->   124  {
->   125          int i, ret;
->   126
->   127          lg_reg("writing %d registers...\n", len);
->   128
->   129          for (i = 0; i < len - 1; i++) {
->                            ^^^^^^^^^^^
-> Shouldn't this just be i < len?  Why do we skip the last element in the
-> array?
->
->   130                  ret = lg216x_write_reg(state, regs[i].reg, regs[i].val);
->   131                  if (lg_fail(ret))
->   132                          return ret;
->   133          }
->   134          return 0;
->   135  }
->
-> This function is called like:
->        ret = lg216x_write_regs(state, lg2160_init, ARRAY_SIZE(lg2160_init));
->
-> The last element of the lg2160_init[] array looks useful.
+Em 21-05-2012 00:16, Antti Palosaari escreveu:
+> ma 21.5.2012 5:25 Mauro Carvalho Chehab kirjoitti:
+>> Em 20-05-2012 13:56, Antti Palosaari escreveu:
+>>> Hmm,
+>>> Mauro just merged those FC0012 and FC0013 drivers via my RTL2831U
+>>> tree... It was not my meaning to do that like this.
+>>
+>> This was due to a pull request that you sent me on May, 18, requesting
+>> to pull from:
+>>
+>>   git://linuxtv.org/anttip/media_tree.git rtl2831u
+> 
+> http://www.spinics.net/lists/linux-media/msg47992.html
+> 
+> I asked to pull last 6 patches. There was few other patches bottom of that
+> due to fact it is always some extra work to jump from tree to other, sync
+> and resolve compilation issues. Those tuner patches were there because I
+> tested and reviewed rtl2832 driver multiple times and tuners were needed
+> for the rtl2832.
 
-You're right, Dan - that's a bug -- thanks!
+Please, don't apply patches you don't intend to go upstream on a branch that
+you request me to pull. As I said several times, my import scripts won't check
+if the patches match the diffstat of the pull request.
 
-I'll queue up a fix for this.
+I may eventually add such check on day, but, in that case, what I would do is
+to simply reject pull requests with wrong diffstats, as other any logic would be
+too complex to implement, as a pull request doesn't contain changeset hashes,
+and sometimes the same patch name might be used on two separate changesets (this
+is a bad practice, but I've seen it some times).
 
-Best Regards,
+With regard to the merged patches, if they are really broken, please submit
+me a patch removing them.
 
-Mike Krufky
+Regards,
+Mauro
