@@ -1,37 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:50585 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755872Ab2EGPLf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 May 2012 11:11:35 -0400
-Date: Mon, 07 May 2012 17:11:31 +0200
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: Re: [PATCHv5 08/13] v4l: vb2-dma-contig: add support for scatterlist
- in userptr mode
-In-reply-to: <4FA7DE61.7000705@gmail.com>
-To: Subash Patel <subashrp@gmail.com>
-Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	airlied@redhat.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, laurent.pinchart@ideasonboard.com,
-	sumit.semwal@ti.com, daeinki@gmail.com, daniel.vetter@ffwll.ch,
-	robdclark@gmail.com, pawel@osciak.com,
-	linaro-mm-sig@lists.linaro.org, hverkuil@xs4all.nl,
-	remi@remlab.net, mchehab@redhat.com, linux-doc@vger.kernel.org,
-	g.liakhovetski@gmx.de,
-	Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>
-Message-id: <4FA7E623.2060500@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7BIT
-References: <1334933134-4688-1-git-send-email-t.stanislaws@samsung.com>
- <1334933134-4688-9-git-send-email-t.stanislaws@samsung.com>
- <4FA7DE61.7000705@gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:59499 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753387Ab2EUDo6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 20 May 2012 23:44:58 -0400
+Message-ID: <4FB9BA2D.7080107@redhat.com>
+Date: Mon, 21 May 2012 00:44:45 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Antti Palosaari <crope@iki.fi>
+CC: VDR User <user.vdr@gmail.com>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	linux-media <linux-media@vger.kernel.org>,
+	Patrick Boettcher <pboettcher@kernellabs.com>
+Subject: Re: [RFCv1] DVB-USB improvements [alternative 2]
+References: <4FB95A3B.9070800@iki.fi>    <CAA7C2qiDQJ33OTfq9WxtAgqm0+iaLANoNVKSrvbZ3JpCD=ZGrA@mail.gmail.com>    <CAGoCfiz_LpOet3qDpW1H6M=1oEdzKGuXVd6zD_ZprNKkZQgs+g@mail.gmail.com>    <CAA7C2qiTesB+bZ0pzPvWTmO7p=_3oaoR+egw_WpEmiowidAD4g@mail.gmail.com>    <4FB9A6D9.8020603@iki.fi>    <CAA7C2qhoxSrT7od6OrXyANGYtnw0cuez+tSGHMq-mzrWPHBjLA@mail.gmail.com> <db7c5a642248378318b5c89e99819eb5.squirrel@webmail.kapsi.fi>
+In-Reply-To: <db7c5a642248378318b5c89e99819eb5.squirrel@webmail.kapsi.fi>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Subash,
-Could you provide a detailed description of a test case
-that causes a failure of vb2_dc_pages_to_sgt?
+Em 21-05-2012 00:20, Antti Palosaari escreveu:
+> ma 21.5.2012 5:42 VDR User kirjoitti:
+>> On Sun, May 20, 2012 at 7:22 PM, Antti Palosaari <crope@iki.fi> wrote:
+>>>> So you think that it makes more sense to ignore existing issues rather
+>>>> than fix them. Isn't fixing issues&  flaws the whole point of an
+>>>> overhaul/redesign? Yes, it is. I do get the point you're trying to
+>>>> make -- there are bigger fish to fry. But this is not an urgent
+>>>> project and I disagree with the attitude to just disregard whatever
+>>>> you deem unimportant. If you're going to do it, do it right.
+>>>
+>>> I am not sure what you trying to say. Do you mean I should try to get
+>>> remote
+>>> controller totally optional module which can be left out?
+>>
+>> I am saying it's a dependency that is currently forced onto every usb
+>> device whether the device even supports rc or not. This is clearly
+>> poor design. For that matter, the whole usb handling must be poor
+>> design if it needs to be overhauled.
+>>
+>>> How much memory will be saved if remote can be left out as unloaded?
+>>
+>> I don't know. I'm merely pointing out just one of the issues that
+>> should be resolved if the idea is to fix things that are wrong with
+>> usb handling. If nobody cares, doesn't think it matters, or simply
+>> doesn't want to bother, so be it. I guess I'm crazy but when I'm
+>> facing an overhaul, especially when there's no rush, I compile a list
+>> of _everything_ that's wrong and make sure the overhaul fixes it all.
+>> I guess there's quite a difference between my idea of what an overhaul
+>> should be, and other peoples.
+>>
+>> If you really want, there's probably people who deal with embedded
+>> systems where every wasted byte counts, that would agree cleaning up
+>> the waste is a good idea.
+>>
+>> Since nobody thinks it should be fixed, just pretend I didn't even
+>> bring it up. Problem solved.
+> 
+> There is quite few devices that are shipped without remote. I agree that
+> it could be better and more modular. And it is asked multiple times during
+> these years. But my main motivation is to fix problems first and then do
+> enhancements. I will look if I can found some time for that too.
+
+I see two separate issues here:
+
+1) the dvb_usb properties struct needs to point if the device has RC or not.
+It could be possible to optimize it if the remote code is not enabled, but
+provided that the structure is properly designed, the only per-device information
+is the RC keytable. Optimizing it when IR is not compiled will save just
+a few bytes per card. Not worth, IMHO.
+
+2) Remove the RC dependency from dvb-usb, and making the dvb-usb-remote code
+as a module. This can bring some savings, as the RC core and IR decoders won't
+be loaded.
+
+I think (2) is valuable to do, but this can be done latter with a likely simple
+patch, and won't require any changes at the DVB structures.
 
 Regards,
-Tomasz Stanislawski
+Mauro
