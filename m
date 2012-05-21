@@ -1,33 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:46841 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751599Ab2EMOSz (ORCPT
+Received: from rcsinet15.oracle.com ([148.87.113.117]:42226 "EHLO
+	rcsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757420Ab2EUOJN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 May 2012 10:18:55 -0400
-Received: by bkcji2 with SMTP id ji2so3189967bkc.19
-        for <linux-media@vger.kernel.org>; Sun, 13 May 2012 07:18:53 -0700 (PDT)
-Message-ID: <4FAFC2CA.7010306@googlemail.com>
-Date: Sun, 13 May 2012 16:18:50 +0200
-From: Gregor Jasny <gjasny@googlemail.com>
+	Mon, 21 May 2012 10:09:13 -0400
+Date: Mon, 21 May 2012 17:09:04 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: hans.verkuil@cisco.com
+Cc: linux-media@vger.kernel.org
+Subject: re: [media] v4l/dvb: fix compiler warnings
+Message-ID: <20120521140904.GA22885@elgon.mountain>
 MIME-Version: 1.0
-To: =?ISO-8859-1?Q?Andr=E9_Roth?= <neolynx@gmail.com>
-CC: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [PATCH 1/6] libdvbv5 shared lib
-References: <1336912143-25890-1-git-send-email-neolynx@gmail.com>
-In-Reply-To: <1336912143-25890-1-git-send-email-neolynx@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Hello Hans Verkuil,
 
-I noticed the dvb library is partially licensed as GPL2 and partially
-LGPL2.1+. Do you consider a re-licensing to LGPL2.1?
+The patch fdf07b027b2d: "[media] v4l/dvb: fix compiler warnings" from 
+Apr 20, 2012, leads to the following GCC warning:
+	warning: value computed is not used [-Wunused-value]
 
-For better maintainability in distributions I'd also suggest to hide
-non-public symbols like it's done for libv4l*.
+The point of the patch was to get rid of a "set but not used" warning
+which is turned off by default because there are too many of them and
+they are mostly useless.  And instead we got this warning which is
+turned on by default and usually indicates a nasty bug...
 
-Thanks,
-Gregor
+Grrr...  :P
+
+regards,
+dan carpenter
+
