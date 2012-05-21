@@ -1,98 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:27083 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759523Ab2EKQvI (ORCPT
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:62681 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752800Ab2EUOgR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 May 2012 12:51:08 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: text/plain; charset=ISO-8859-1
-Received: from euspt2 ([210.118.77.13]) by mailout3.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0M3V0001XARZR690@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 11 May 2012 17:50:23 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0M3V00IDGAT3IU@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 11 May 2012 17:51:03 +0100 (BST)
-Date: Fri, 11 May 2012 18:51:04 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [GIT PULL FOR 3.5] New camera controls
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	"HeungJun Kim/Mobile S/W Platform Lab(DMC)/E3"
-	<riverful.kim@samsung.com>
-Message-id: <4FAD4378.6070305@samsung.com>
+	Mon, 21 May 2012 10:36:17 -0400
+Received: by yhmm54 with SMTP id m54so4419789yhm.19
+        for <linux-media@vger.kernel.org>; Mon, 21 May 2012 07:36:17 -0700 (PDT)
+MIME-Version: 1.0
+Date: Mon, 21 May 2012 16:36:16 +0200
+Message-ID: <CAGGh5h0Mg6srzBrmKoDERu3H+7kBGeAke-iuOLSzxHdqo0zcrQ@mail.gmail.com>
+Subject: [RFC Patch] omap3isp : support CFA pattern when not GRBG
+From: jean-philippe francois <jp.francois@cynove.com>
+To: linux-media <linux-media@vger.kernel.org>
+Content-Type: multipart/mixed; boundary=14dae93406011d1ab804c08cd3cd
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+--14dae93406011d1ab804c08cd3cd
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-this pull request includes an addition of new controls for camera,
-to allow the users to configure parameters like exposure bias, white
-balance presets, ISO sensitivity, exposure metering mode, scene mode,
-wide dynamic range, image stabilization, auto focus and 3A locking.
-All these controls are needed for the M-5MOLS sensor driver and also
-for a similar Samsung S5C73M3 sensor that I'm working on a driver for,
-which is planned for v3.6.
+Hi,
 
-This change set depends on my previous pull request:
-http://patchwork.linuxtv.org/patch/11140/
+omap3 ISP previewer block can convert a raw bayer image
+into a UYVY image. Debayering coefficient are stored in
+an undocumented table. In the current form, only
+GRBG format are converted correctly.
 
-The following changes since commit 4f863c9082847c9836b8a1a07bc55c2625c902fe:
+However, the other CFA arrangement can be transformed
+in GRBG arrangement by shifting the image window one pixel
+to the left or to the bottom.
 
-  V4L: Extend V4L2_CID_COLORFX with more image effects (2012-05-11 13:24:34 +0200)
+Here is a patch against vanilla 3.2.17.
+If such a patch can find it's way into mainline, I will
+try to port it against a suitable git tree.
 
-are available in the git repository at:
+This was only tested with a BGGR arrangement.
 
-  git://git.infradead.org/users/kmpark/linux-samsung v4l-camera-controls
+Thank you,
 
-for you to fetch changes up to ceca92a28073f46b0db4ad1cd93e0ae10800763f:
+Jean-Philippe Fran=E7ois
 
-  m5mols: Add 3A lock control (2012-05-11 13:25:55 +0200)
+--14dae93406011d1ab804c08cd3cd
+Content-Type: application/octet-stream; name="isppreview_bayer.patch"
+Content-Disposition: attachment; filename="isppreview_bayer.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_h2hmxuyn0
 
-----------------------------------------------------------------
-Sylwester Nawrocki (21):
-      V4L: Add helper function for standard integer menu controls
-      V4L: Add camera exposure bias control
-      V4L: Add an extended camera white balance control
-      V4L: Add camera wide dynamic range control
-      V4L: Add camera image stabilization control
-      V4L: Add camera ISO sensitivity controls
-      V4L: Add camera exposure metering control
-      V4L: Add camera scene mode control
-      V4L: Add camera 3A lock control
-      V4L: Add camera auto focus controls
-      m5mols: Convert macros to inline functions
-      m5mols: Refactored controls handling
-      m5mols: Use proper sensor mode for the controls
-      m5mols: Add ISO sensitivity controls
-      m5mols: Add auto and preset white balance control
-      m5mols: Add exposure bias control
-      m5mols: Add wide dynamic range control
-      m5mols: Add image stabilization control
-      m5mols: Add exposure metering control
-      m5mols: Add JPEG compression quality control
-      m5mols: Add 3A lock control
-
- Documentation/DocBook/media/v4l/biblio.xml   |   11 +++
- Documentation/DocBook/media/v4l/compat.xml   |   19 ++++
- Documentation/DocBook/media/v4l/controls.xml |  432
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-
- Documentation/DocBook/media/v4l/v4l2.xml     |    9 +-
- Documentation/video4linux/v4l2-controls.txt  |   21 +++++
- drivers/media/video/m5mols/m5mols.h          |   81 ++++++++++++-----
- drivers/media/video/m5mols/m5mols_capture.c  |   11 +--
- drivers/media/video/m5mols/m5mols_controls.c |  479
-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++----------------
- drivers/media/video/m5mols/m5mols_core.c     |   93 ++------------------
- drivers/media/video/m5mols/m5mols_reg.h      |    1 +
- drivers/media/video/v4l2-ctrls.c             |  110 ++++++++++++++++++++++-
- include/linux/videodev2.h                    |   72 +++++++++++++++
- include/media/v4l2-ctrls.h                   |   17 ++++
- 13 files changed, 1162 insertions(+), 194 deletions(-)
-
---
-
-Regards,
-Sylwester
+SW5kZXg6IGIvZHJpdmVycy9tZWRpYS92aWRlby9vbWFwM2lzcC9pc3BwcmV2aWV3LmMKPT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PQotLS0gYS9kcml2ZXJzL21lZGlhL3ZpZGVvL29tYXAzaXNwL2lzcHByZXZpZXcuYworKysg
+Yi9kcml2ZXJzL21lZGlhL3ZpZGVvL29tYXAzaXNwL2lzcHByZXZpZXcuYwpAQCAtOTYsMjEgKzk2
+LDI2IEBACiAgKgkJCQkJICAyIGxpbmVzIGluIG90aGVyIG1vZGVzCiAgKiBDb2xvciBzdXBwcmVz
+c2lvbgkJMiBwaXhlbHMKICAqIG9yIGx1bWEgZW5oYW5jZW1lbnQKKyAqCisgKiBCYXllciBwYXR0
+ZXJuIHNoaWZ0aW5nIDIgcGl4ZWxzLCAxIGxpbmUKICAqIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KLSAqIE1heGltdW0gdG90YWwJ
+CTE0IHBpeGVscywgOCBsaW5lcworICogTWF4aW11bSB0b3RhbAkJMTggcGl4ZWxzLCA5IGxpbmVz
+CiAgKgogICogVGhlIGNvbG9yIHN1cHByZXNzaW9uIGFuZCBsdW1hIGVuaGFuY2VtZW50IGZpbHRl
+cnMgYXJlIGFwcGxpZWQgYWZ0ZXIgYmF5ZXIgdG8KICAqIFlVViBjb252ZXJzaW9uLiBUaGV5IHRo
+dXMgY2FuIGNyb3Agb25lIHBpeGVsIG9uIHRoZSBsZWZ0IGFuZCBvbmUgcGl4ZWwgb24gdGhlCiAg
+KiByaWdodCBzaWRlIG9mIHRoZSBpbWFnZSB3aXRob3V0IGNoYW5naW5nIHRoZSBjb2xvciBwYXR0
+ZXJuLiBXaGVuIGJvdGggdGhvc2UKICAqIGZpbHRlcnMgYXJlIGRpc2FibGVkLCB0aGUgZHJpdmVy
+IG11c3QgY3JvcCB0aGUgdHdvIHBpeGVscyBvbiB0aGUgc2FtZSBzaWRlIG9mCi0gKiB0aGUgaW1h
+Z2UgdG8gYXZvaWQgY2hhbmdpbmcgdGhlIGJheWVyIHBhdHRlcm4uIFRoZSBsZWZ0IG1hcmdpbiBp
+cyB0aHVzIHNldCB0bwotICogOCBwaXhlbHMgYW5kIHRoZSByaWdodCBtYXJnaW4gdG8gNiBwaXhl
+bHMuCisgKiB0aGUgaW1hZ2UgdG8gYXZvaWQgY2hhbmdpbmcgdGhlIGJheWVyIHBhdHRlcm4uCisg
+KgorICogQmF5ZXIgcGF0dGVybiBzaGlmdGluZyBpcyBuZWVkZWQgZm9yIHNvbWUgYmF5ZXIgcGF0
+dGVybi4gU2hpZnRpbmcKKyAqIHdpbGwgYmUgaW4gdGhlIHJpZ2h0IGFuZCBib3R0b20gZGlyZWN0
+aW9uLgorICogVGhlIGxlZnQgbWFyZ2luIGlzIHRodXMgc2V0IHRvIDggcGl4ZWxzIGFuZCB0aGUg
+cmlnaHQgbWFyZ2luIHRvIDEwIHBpeGVscy4KICAqLwogCiAjZGVmaW5lIFBSRVZfTUFSR0lOX0xF
+RlQJOAotI2RlZmluZSBQUkVWX01BUkdJTl9SSUdIVAk2CisjZGVmaW5lIFBSRVZfTUFSR0lOX1JJ
+R0hUCTEwCiAjZGVmaW5lIFBSRVZfTUFSR0lOX1RPUAkJNAotI2RlZmluZSBQUkVWX01BUkdJTl9C
+T1RUT00JNAorI2RlZmluZSBQUkVWX01BUkdJTl9CT1RUT00JNQogCiAjZGVmaW5lIFBSRVZfTUlO
+X0lOX1dJRFRICTY0CiAjZGVmaW5lIFBSRVZfTUlOX0lOX0hFSUdIVAk4CkBAIC0xMDM4LDYgKzEw
+NDMsMzQgQEAKIAkJZXBoICs9IDI7CiAJCXNsdiAtPSAyOwogCQllbHYgKz0gMjsKKwkJLyogQ0ZB
+IHRhYmxlIGNvZWYgb25seSBoYW5kbGUgR1JCRyBmb3JtYXQuIE90aGVyIGZvcm1hdAorCQkgKiBj
+YW4gYmUgdHJhbnNmb3JtZWQgaW4gR1JCRyBieSBzaGlmdGluZyB0aGUgcGF0dGVybiA6CisJCSAq
+IEJHR1IgLT4gR1JCRyBpcyBvYnRhaW5lZCBieSBhIDEgcm93IHNoaWZ0CisJCSAqIFJHR0IgLT4g
+R1JCRyBpcyBvYnRhaW5lZCBieSBhIDEgY29sdW1uIHNoaWZ0CisJCSAqIEdCUkcgLT4gR1JCRyBp
+cyBvYnRhaW5lZCBieSBhIHJvdyBhbmQgY29sdW1uIHNoaWZ0CisJCSAqLworCQlzd2l0Y2gocHJl
+di0+Zm9ybWF0c1tQUkVWX1BBRF9TSU5LXS5jb2RlKSB7CisJCWNhc2UgVjRMMl9NQlVTX0ZNVF9T
+UkdHQjEwXzFYMTA6CisJCQlzcGggKz0gMTsKKwkJCWVwaCArPSAxOworCQkJYnJlYWs7CisKKwkJ
+Y2FzZSBWNEwyX01CVVNfRk1UX1NCR0dSMTBfMVgxMDoKKwkJCXNsdiArPSAxOworCQkJZWx2ICs9
+IDE7CisJCQlicmVhazsKKworCQljYXNlIFY0TDJfTUJVU19GTVRfU0dCUkcxMF8xWDEwOgorCQkJ
+c3BoICs9IDE7CisJCQllcGggKz0gMTsKKwkJCXNsdiArPSAxOworCQkJZWx2ICs9IDE7CisJCQli
+cmVhazsKKworCQlkZWZhdWx0OgorCQkJYnJlYWs7CisJCX0KKwogCX0KIAlpZiAocGFyYW1zLT5m
+ZWF0dXJlcyAmIChQUkVWX0RFRkVDVF9DT1IgfCBQUkVWX05PSVNFX0ZJTFRFUikpIHsKIAkJc3Bo
+IC09IDI7Cg==
+--14dae93406011d1ab804c08cd3cd--
