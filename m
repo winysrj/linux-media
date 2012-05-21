@@ -1,375 +1,395 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:46078 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752791Ab2EWMKu (ORCPT
+Received: from devils.ext.ti.com ([198.47.26.153]:60771 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756731Ab2EURMJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 May 2012 08:10:50 -0400
-Received: from euspt1 (mailout2.w1.samsung.com [210.118.77.12])
- by mailout2.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0M4H00EGA5TLFE@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 23 May 2012 13:10:37 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0M4H00KTG5TVMD@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 23 May 2012 13:10:44 +0100 (BST)
-Date: Wed, 23 May 2012 14:10:22 +0200
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: [PATCHv6 08/13] v4l: vb2-dma-contig: add support for scatterlist in
- userptr mode
-In-reply-to: <1337775027-9489-1-git-send-email-t.stanislaws@samsung.com>
-To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
-Cc: airlied@redhat.com, m.szyprowski@samsung.com,
-	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
-	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
-	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
-	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
-	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
-	mchehab@redhat.com, g.liakhovetski@gmx.de
-Message-id: <1337775027-9489-9-git-send-email-t.stanislaws@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1337775027-9489-1-git-send-email-t.stanislaws@samsung.com>
+	Mon, 21 May 2012 13:12:09 -0400
+From: <manjunatha_halli@ti.com>
+To: <linux-media@vger.kernel.org>
+CC: <linux-kernel@vger.kernel.org>, Manjunatha Halli <x0130808@ti.com>
+Subject: [PATCH V7 1/5] WL128x: Add support for FM TX RDS
+Date: Mon, 21 May 2012 12:12:02 -0500
+Message-ID: <1337620326-18593-2-git-send-email-manjunatha_halli@ti.com>
+In-Reply-To: <1337620326-18593-1-git-send-email-manjunatha_halli@ti.com>
+References: <1337620326-18593-1-git-send-email-manjunatha_halli@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch introduces usage of dma_map_sg to map memory behind
-a userspace pointer to a device as dma-contiguous mapping.
+From: Manjunatha Halli <x0130808@ti.com>
 
-This patch contains some of the code kindly provided by Marek Szyprowski
-<m.szyprowski@samsung.com> and Kamil Debski <k.debski@samsung.com> and Andrzej
-Pietrasiewicz <andrzej.p@samsung.com>. Kind thanks for bug reports from Laurent
-Pinchart <laurent.pinchart@ideasonboard.com> and Seung-Woo Kim
-<sw0312.kim@samsung.com>.
+This patch adds support for following FM TX RDS features,
+     1. Radio Text
+     2. PS Name
+     3. PI Code
+     4. PTY Code.
 
-Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Along with above this patch fixes few other minor issues(like
+fm tx get frequency, unnecessary error messages etc).
+
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Manjunatha Halli <x0130808@ti.com>
 ---
- drivers/media/video/videobuf2-dma-contig.c |  268 ++++++++++++++++++++++++++--
- 1 file changed, 252 insertions(+), 16 deletions(-)
+ drivers/media/radio/wl128x/fmdrv_common.c |   17 +++++++---
+ drivers/media/radio/wl128x/fmdrv_common.h |   17 +++++++----
+ drivers/media/radio/wl128x/fmdrv_rx.c     |    2 +-
+ drivers/media/radio/wl128x/fmdrv_tx.c     |   41 ++++++++++---------------
+ drivers/media/radio/wl128x/fmdrv_tx.h     |    3 +-
+ drivers/media/radio/wl128x/fmdrv_v4l2.c   |   47 +++++++++++++++++++++++++++++
+ 6 files changed, 90 insertions(+), 37 deletions(-)
 
-diff --git a/drivers/media/video/videobuf2-dma-contig.c b/drivers/media/video/videobuf2-dma-contig.c
-index 42c6431..068ec11 100644
---- a/drivers/media/video/videobuf2-dma-contig.c
-+++ b/drivers/media/video/videobuf2-dma-contig.c
-@@ -11,6 +11,8 @@
+diff --git a/drivers/media/radio/wl128x/fmdrv_common.c b/drivers/media/radio/wl128x/fmdrv_common.c
+index bf867a6..fcce61a 100644
+--- a/drivers/media/radio/wl128x/fmdrv_common.c
++++ b/drivers/media/radio/wl128x/fmdrv_common.c
+@@ -354,7 +354,7 @@ static void send_tasklet(unsigned long arg)
+ 
+ 	/* Check, is there any timeout happened to last transmitted packet */
+ 	if ((jiffies - fmdev->last_tx_jiffies) > FM_DRV_TX_TIMEOUT) {
+-		fmerr("TX timeout occurred\n");
++		fmdbg("TX timeout occurred\n");
+ 		atomic_set(&fmdev->tx_cnt, 1);
+ 	}
+ 
+@@ -615,7 +615,11 @@ static void fm_irq_handle_rds_start(struct fmdev *fmdev)
+ {
+ 	if (fmdev->irq_info.flag & FM_RDS_EVENT & fmdev->irq_info.mask) {
+ 		fmdbg("irq: rds threshold reached\n");
+-		fmdev->irq_info.stage = FM_RDS_SEND_RDS_GETCMD_IDX;
++		/* If RSSI reached below threshold then dont get RDS data */
++		if (fmdev->irq_info.flag & FM_LEV_EVENT)
++			fmdev->irq_info.stage = FM_HW_TUNE_OP_ENDED_IDX;
++		else
++			fmdev->irq_info.stage = FM_RDS_SEND_RDS_GETCMD_IDX;
+ 	} else {
+ 		/* Continue next function in interrupt handler table */
+ 		fmdev->irq_info.stage = FM_HW_TUNE_OP_ENDED_IDX;
+@@ -1129,8 +1133,9 @@ int fmc_set_freq(struct fmdev *fmdev, u32 freq_to_set)
+ 
+ int fmc_get_freq(struct fmdev *fmdev, u32 *cur_tuned_frq)
+ {
+-	if (fmdev->rx.freq == FM_UNDEFINED_FREQ) {
+-		fmerr("RX frequency is not set\n");
++	if (fmdev->rx.freq == FM_UNDEFINED_FREQ &&
++			fmdev->tx_data.tx_frq == FM_UNDEFINED_FREQ) {
++		fmerr("RX/TX frequency is not set\n");
+ 		return -EPERM;
+ 	}
+ 	if (cur_tuned_frq == NULL) {
+@@ -1144,7 +1149,7 @@ int fmc_get_freq(struct fmdev *fmdev, u32 *cur_tuned_frq)
+ 		return 0;
+ 
+ 	case FM_MODE_TX:
+-		*cur_tuned_frq = 0;	/* TODO : Change this later */
++		*cur_tuned_frq = fmdev->tx_data.tx_frq;
+ 		return 0;
+ 
+ 	default:
+@@ -1574,6 +1579,8 @@ int fmc_prepare(struct fmdev *fmdev)
+ 	fmdev->rx.af_mode = FM_RX_RDS_AF_SWITCH_MODE_OFF;
+ 	fmdev->irq_info.retry = 0;
+ 
++	fmdev->tx_data.tx_frq = FM_UNDEFINED_FREQ;
++
+ 	fm_rx_reset_rds_cache(fmdev);
+ 	init_waitqueue_head(&fmdev->rx.rds.read_queue);
+ 
+diff --git a/drivers/media/radio/wl128x/fmdrv_common.h b/drivers/media/radio/wl128x/fmdrv_common.h
+index d9b9c6c..196ff7d 100644
+--- a/drivers/media/radio/wl128x/fmdrv_common.h
++++ b/drivers/media/radio/wl128x/fmdrv_common.h
+@@ -48,8 +48,8 @@ struct fm_reg_table {
+ #define SEARCH_LVL_SET           15
+ #define BAND_SET                 16
+ #define MUTE_STATUS_SET          17
+-#define RDS_PAUSE_LVL_SET        18
+-#define RDS_PAUSE_DUR_SET        19
++#define AUD_PAUSE_LVL_SET        18
++#define AUD_PAUSE_DUR_SET        19
+ #define RDS_MEM_SET              20
+ #define RDS_BLK_B_SET            21
+ #define RDS_MSK_B_SET            22
+@@ -84,11 +84,12 @@ struct fm_reg_table {
+ 
+ #define FM_POWER_MODE            254
+ #define FM_INTERRUPT             255
++#define STATION_VALID		 123
+ 
+ /* Transmitter API */
+ 
+ #define CHANL_SET                55
+-#define CHANL_BW_SET		56
++#define SCAN_SPACING_SET         56
+ #define REF_SET                  57
+ #define POWER_ENB_SET            90
+ #define POWER_ATT_SET            58
+@@ -103,7 +104,8 @@ struct fm_reg_table {
+ #define MONO_SET                 66
+ #define MUTE                     92
+ #define MPX_LMT_ENABLE           67
+-#define PI_SET                   93
++#define REF_ERR_SET		 93
++#define PI_SET                   68
+ #define ECC_SET                  69
+ #define PTY                      70
+ #define AF                       71
+@@ -120,6 +122,10 @@ struct fm_reg_table {
+ #define TX_AUDIO_LEVEL_TEST      96
+ #define TX_AUDIO_LEVEL_TEST_THRESHOLD    73
+ #define TX_AUDIO_INPUT_LEVEL_RANGE_SET   54
++#define TX_AUDIO_LEVEL_GET		 7
++#define READ_FMANT_TUNE_VALUE            104
++
++/* New FM APIs (Rx and Tx) */
+ #define RX_ANTENNA_SELECT        87
+ #define I2C_DEV_ADDR_SET         86
+ #define REF_ERR_CALIB_PARAM_SET          88
+@@ -131,7 +137,6 @@ struct fm_reg_table {
+ #define RSSI_BLOCK_SCAN_FREQ_SET 95
+ #define RSSI_BLOCK_SCAN_START    97
+ #define RSSI_BLOCK_SCAN_DATA_GET  5
+-#define READ_FMANT_TUNE_VALUE            104
+ 
+ /* SKB helpers */
+ struct fm_skb_cb {
+@@ -348,7 +353,7 @@ struct fm_event_msg_hdr {
+  * with this default values after loading RX firmware.
   */
+ #define FM_DEFAULT_RX_VOLUME		10
+-#define FM_DEFAULT_RSSI_THRESHOLD	3
++#define FM_DEFAULT_RSSI_THRESHOLD	20
  
- #include <linux/module.h>
-+#include <linux/scatterlist.h>
-+#include <linux/sched.h>
- #include <linux/slab.h>
- #include <linux/dma-mapping.h>
+ /* Range for TX power level in units for dB/uV */
+ #define FM_PWR_LVL_LOW			91
+diff --git a/drivers/media/radio/wl128x/fmdrv_rx.c b/drivers/media/radio/wl128x/fmdrv_rx.c
+index 43fb722..a806bda 100644
+--- a/drivers/media/radio/wl128x/fmdrv_rx.c
++++ b/drivers/media/radio/wl128x/fmdrv_rx.c
+@@ -156,7 +156,7 @@ static int fm_rx_set_channel_spacing(struct fmdev *fmdev, u32 spacing)
  
-@@ -23,6 +25,8 @@ struct vb2_dc_buf {
- 	void				*vaddr;
- 	unsigned long			size;
- 	dma_addr_t			dma_addr;
-+	enum dma_data_direction		dma_dir;
-+	struct sg_table			*dma_sgt;
+ 	/* set channel spacing */
+ 	payload = spacing;
+-	ret = fmc_send_cmd(fmdev, CHANL_BW_SET, REG_WR, &payload,
++	ret = fmc_send_cmd(fmdev, SCAN_SPACING_SET, REG_WR, &payload,
+ 			sizeof(payload), NULL, NULL);
+ 	if (ret < 0)
+ 		return ret;
+diff --git a/drivers/media/radio/wl128x/fmdrv_tx.c b/drivers/media/radio/wl128x/fmdrv_tx.c
+index 6ea33e0..6d879fb 100644
+--- a/drivers/media/radio/wl128x/fmdrv_tx.c
++++ b/drivers/media/radio/wl128x/fmdrv_tx.c
+@@ -51,6 +51,7 @@ static int set_rds_text(struct fmdev *fmdev, u8 *rds_text)
+ 	u16 payload;
+ 	int ret;
  
- 	/* MMAP related */
- 	struct vb2_vmarea_handler	handler;
-@@ -33,6 +37,95 @@ struct vb2_dc_buf {
- };
++	*(u16 *)rds_text = cpu_to_be16(*(u16 *)rds_text);
+ 	ret = fmc_send_cmd(fmdev, RDS_DATA_SET, REG_WR, rds_text,
+ 			strlen(rds_text), NULL, NULL);
+ 	if (ret < 0)
+@@ -66,26 +67,31 @@ static int set_rds_text(struct fmdev *fmdev, u8 *rds_text)
+ 	return 0;
+ }
  
- /*********************************************/
-+/*        scatterlist table functions        */
-+/*********************************************/
-+
-+static struct sg_table *vb2_dc_pages_to_sgt(struct page **pages,
-+	unsigned int n_pages, unsigned long offset, unsigned long size)
-+{
-+	struct sg_table *sgt;
-+	unsigned int chunks;
-+	unsigned int i;
-+	unsigned int cur_page;
-+	int ret;
-+	struct scatterlist *s;
-+
-+	sgt = kzalloc(sizeof *sgt, GFP_KERNEL);
-+	if (!sgt)
-+		return ERR_PTR(-ENOMEM);
-+
-+	/* compute number of chunks */
-+	chunks = 1;
-+	for (i = 1; i < n_pages; ++i)
-+		if (pages[i] != pages[i - 1] + 1)
-+			++chunks;
-+
-+	ret = sg_alloc_table(sgt, chunks, GFP_KERNEL);
-+	if (ret) {
-+		kfree(sgt);
-+		return ERR_PTR(-ENOMEM);
-+	}
-+
-+	/* merging chunks and putting them into the scatterlist */
-+	cur_page = 0;
-+	for_each_sg(sgt->sgl, s, sgt->orig_nents, i) {
-+		unsigned long chunk_size;
-+		unsigned int j;
-+
-+		for (j = cur_page + 1; j < n_pages; ++j)
-+			if (pages[j] != pages[j - 1] + 1)
-+				break;
-+
-+		chunk_size = ((j - cur_page) << PAGE_SHIFT) - offset;
-+		sg_set_page(s, pages[cur_page], min(size, chunk_size), offset);
-+		size -= chunk_size;
-+		offset = 0;
-+		cur_page = j;
-+	}
-+
-+	return sgt;
-+}
-+
-+static void vb2_dc_release_sgtable(struct sg_table *sgt)
-+{
-+	sg_free_table(sgt);
-+	kfree(sgt);
-+}
-+
-+static void vb2_dc_sgt_foreach_page(struct sg_table *sgt,
-+	void (*cb)(struct page *pg))
-+{
-+	struct scatterlist *s;
-+	unsigned int i;
-+
-+	for_each_sg(sgt->sgl, s, sgt->nents, i) {
-+		struct page *page = sg_page(s);
-+		unsigned int n_pages = PAGE_ALIGN(s->offset + s->length)
-+			>> PAGE_SHIFT;
-+		unsigned int j;
-+
-+		for (j = 0; j < n_pages; ++j, ++page)
-+			cb(page);
-+	}
-+}
-+
-+static unsigned long vb2_dc_get_contiguous_size(struct sg_table *sgt)
-+{
-+	struct scatterlist *s;
-+	dma_addr_t expected = sg_dma_address(sgt->sgl);
-+	unsigned int i;
-+	unsigned long size = 0;
-+
-+	for_each_sg(sgt->sgl, s, sgt->nents, i) {
-+		if (sg_dma_address(s) != expected)
-+			break;
-+		expected = sg_dma_address(s) + sg_dma_len(s);
-+		size += sg_dma_len(s);
-+	}
-+	return size;
-+}
-+
-+/*********************************************/
- /*         callbacks for all buffers         */
- /*********************************************/
+-static int set_rds_data_mode(struct fmdev *fmdev, u8 mode)
++int set_rds_picode(struct fmdev *fmdev, u16 pi_val)
+ {
+ 	u16 payload;
+ 	int ret;
  
-@@ -117,42 +210,185 @@ static int vb2_dc_mmap(void *buf_priv, struct vm_area_struct *vma)
- /*       callbacks for USERPTR buffers       */
- /*********************************************/
+-	/* Setting unique PI TODO: how unique? */
+-	payload = (u16)0xcafe;
++	payload = pi_val;
+ 	ret = fmc_send_cmd(fmdev, PI_SET, REG_WR, &payload,
+ 			sizeof(payload), NULL, NULL);
+ 	if (ret < 0)
+ 		return ret;
  
-+static inline int vma_is_io(struct vm_area_struct *vma)
-+{
-+	return !!(vma->vm_flags & (VM_IO | VM_PFNMAP));
-+}
-+
-+static int vb2_dc_get_user_pages(unsigned long start, struct page **pages,
-+	int n_pages, struct vm_area_struct *vma, int write)
-+{
-+	if (vma_is_io(vma)) {
-+		unsigned int i;
-+
-+		for (i = 0; i < n_pages; ++i, start += PAGE_SIZE) {
-+			unsigned long pfn;
-+			int ret = follow_pfn(vma, start, &pfn);
-+
-+			if (ret) {
-+				printk(KERN_ERR "no page for address %lu\n",
-+					start);
-+				return ret;
-+			}
-+			pages[i] = pfn_to_page(pfn);
-+		}
-+	} else {
-+		int n;
-+
-+		n = get_user_pages(current, current->mm, start & PAGE_MASK,
-+			n_pages, write, 1, pages, NULL);
-+		/* negative error means that no page was pinned */
-+		n = max(n, 0);
-+		if (n != n_pages) {
-+			printk(KERN_ERR "got only %d of %d user pages\n",
-+				n, n_pages);
-+			while (n)
-+				put_page(pages[--n]);
-+			return -EFAULT;
-+		}
-+	}
-+
+-	/* Set decoder id */
+-	payload = (u16)0xa;
+-	ret = fmc_send_cmd(fmdev, DI_SET, REG_WR, &payload,
 +	return 0;
 +}
 +
-+static void vb2_dc_put_dirty_page(struct page *page)
++int set_rds_pty(struct fmdev *fmdev, u16 pty)
 +{
-+	set_page_dirty_lock(page);
-+	put_page(page);
-+}
++	u16 payload;
++	u32 ret;
 +
-+static void vb2_dc_put_userptr(void *buf_priv)
-+{
-+	struct vb2_dc_buf *buf = buf_priv;
-+	struct sg_table *sgt = buf->dma_sgt;
-+
-+	dma_unmap_sg(buf->dev, sgt->sgl, sgt->orig_nents, buf->dma_dir);
-+	if (!vma_is_io(buf->vma))
-+		vb2_dc_sgt_foreach_page(sgt, vb2_dc_put_dirty_page);
-+
-+	vb2_dc_release_sgtable(sgt);
-+	vb2_put_vma(buf->vma);
-+	kfree(buf);
-+}
-+
- static void *vb2_dc_get_userptr(void *alloc_ctx, unsigned long vaddr,
--					unsigned long size, int write)
-+	unsigned long size, int write)
- {
- 	struct vb2_dc_buf *buf;
-+	unsigned long start;
-+	unsigned long end;
-+	unsigned long offset;
-+	struct page **pages;
-+	int n_pages;
-+	int ret = 0;
- 	struct vm_area_struct *vma;
--	dma_addr_t dma_addr = 0;
--	int ret;
-+	struct sg_table *sgt;
-+	unsigned long contig_size;
++	payload = pty;
++	ret = fmc_send_cmd(fmdev, PTY, REG_WR, &payload,
+ 			sizeof(payload), NULL, NULL);
+ 	if (ret < 0)
+ 		return ret;
  
- 	buf = kzalloc(sizeof *buf, GFP_KERNEL);
- 	if (!buf)
- 		return ERR_PTR(-ENOMEM);
- 
--	ret = vb2_get_contig_userptr(vaddr, size, &vma, &dma_addr);
-+	buf->dev = alloc_ctx;
-+	buf->dma_dir = write ? DMA_FROM_DEVICE : DMA_TO_DEVICE;
-+
-+	start = vaddr & PAGE_MASK;
-+	offset = vaddr & ~PAGE_MASK;
-+	end = PAGE_ALIGN(vaddr + size);
-+	n_pages = (end - start) >> PAGE_SHIFT;
-+
-+	pages = kmalloc(n_pages * sizeof pages[0], GFP_KERNEL);
-+	if (!pages) {
-+		ret = -ENOMEM;
-+		printk(KERN_ERR "failed to allocate pages table\n");
-+		goto fail_buf;
-+	}
-+
-+	/* current->mm->mmap_sem is taken by videobuf2 core */
-+	vma = find_vma(current->mm, vaddr);
-+	if (!vma) {
-+		printk(KERN_ERR "no vma for address %lu\n", vaddr);
-+		ret = -EFAULT;
-+		goto fail_pages;
-+	}
-+
-+	if (vma->vm_end < vaddr + size) {
-+		printk(KERN_ERR "vma at %lu is too small for %lu bytes\n",
-+			vaddr, size);
-+		ret = -EFAULT;
-+		goto fail_pages;
-+	}
-+
-+	buf->vma = vb2_get_vma(vma);
-+	if (!buf->vma) {
-+		printk(KERN_ERR "failed to copy vma\n");
-+		ret = -ENOMEM;
-+		goto fail_pages;
-+	}
-+
-+	/* extract page list from userspace mapping */
-+	ret = vb2_dc_get_user_pages(start, pages, n_pages, vma, write);
- 	if (ret) {
--		printk(KERN_ERR "Failed acquiring VMA for vaddr 0x%08lx\n",
--				vaddr);
--		kfree(buf);
--		return ERR_PTR(ret);
-+		printk(KERN_ERR "failed to get user pages\n");
-+		goto fail_vma;
-+	}
-+
-+	sgt = vb2_dc_pages_to_sgt(pages, n_pages, offset, size);
-+	if (IS_ERR(sgt)) {
-+		printk(KERN_ERR "failed to create scatterlist table\n");
-+		ret = -ENOMEM;
-+		goto fail_get_user_pages;
- 	}
- 
-+	/* pages are no longer needed */
-+	kfree(pages);
-+	pages = NULL;
-+
-+	sgt->nents = dma_map_sg(buf->dev, sgt->sgl, sgt->orig_nents,
-+		buf->dma_dir);
-+	if (sgt->nents <= 0) {
-+		printk(KERN_ERR "failed to map scatterlist\n");
-+		ret = -EIO;
-+		goto fail_sgt;
-+	}
-+
-+	contig_size = vb2_dc_get_contiguous_size(sgt);
-+	if (contig_size < size) {
-+		printk(KERN_ERR "contiguous mapping is too small %lu/%lu\n",
-+			contig_size, size);
-+		ret = -EFAULT;
-+		goto fail_map_sg;
-+	}
-+
-+	buf->dma_addr = sg_dma_address(sgt->sgl);
- 	buf->size = size;
--	buf->dma_addr = dma_addr;
--	buf->vma = vma;
-+	buf->dma_sgt = sgt;
- 
- 	return buf;
--}
- 
--static void vb2_dc_put_userptr(void *mem_priv)
--{
--	struct vb2_dc_buf *buf = mem_priv;
-+fail_map_sg:
-+	dma_unmap_sg(buf->dev, sgt->sgl, sgt->nents, buf->dma_dir);
- 
--	if (!buf)
--		return;
-+fail_sgt:
-+	if (!vma_is_io(buf->vma))
-+		vb2_dc_sgt_foreach_page(sgt, put_page);
-+	vb2_dc_release_sgtable(sgt);
- 
-+fail_get_user_pages:
-+	if (pages && !vma_is_io(buf->vma))
-+		while (n_pages)
-+			put_page(pages[--n_pages]);
-+
-+fail_vma:
- 	vb2_put_vma(buf->vma);
-+
-+fail_pages:
-+	kfree(pages); /* kfree is NULL-proof */
-+
-+fail_buf:
- 	kfree(buf);
-+
-+	return ERR_PTR(ret);
+-	/* TODO: RDS_MODE_GET? */
+ 	return 0;
  }
  
- /*********************************************/
+@@ -101,7 +107,6 @@ static int set_rds_len(struct fmdev *fmdev, u8 type, u16 len)
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	/* TODO: LENGTH_GET? */
+ 	return 0;
+ }
+ 
+@@ -109,20 +114,17 @@ int fm_tx_set_rds_mode(struct fmdev *fmdev, u8 rds_en_dis)
+ {
+ 	u16 payload;
+ 	int ret;
+-	u8 rds_text[] = "Zoom2\n";
++	u8 rds_text[] = "WL12XX Radio\n";
+ 
+ 	fmdbg("rds_en_dis:%d(E:%d, D:%d)\n", rds_en_dis,
+ 		   FM_RDS_ENABLE, FM_RDS_DISABLE);
+ 
+ 	if (rds_en_dis == FM_RDS_ENABLE) {
+ 		/* Set RDS length */
+-		set_rds_len(fmdev, 0, strlen(rds_text));
++		set_rds_len(fmdev, 2, strlen(rds_text));
+ 
+ 		/* Set RDS text */
+ 		set_rds_text(fmdev, rds_text);
+-
+-		/* Set RDS mode */
+-		set_rds_data_mode(fmdev, 0x0);
+ 	}
+ 
+ 	/* Send command to enable RDS */
+@@ -136,13 +138,6 @@ int fm_tx_set_rds_mode(struct fmdev *fmdev, u8 rds_en_dis)
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	if (rds_en_dis == FM_RDS_ENABLE) {
+-		/* Set RDS length */
+-		set_rds_len(fmdev, 0, strlen(rds_text));
+-
+-		/* Set RDS text */
+-		set_rds_text(fmdev, rds_text);
+-	}
+ 	fmdev->tx_data.rds.flag = rds_en_dis;
+ 
+ 	return 0;
+@@ -156,7 +151,6 @@ int fm_tx_set_radio_text(struct fmdev *fmdev, u8 *rds_text, u8 rds_type)
+ 	if (fmdev->curr_fmmode != FM_MODE_TX)
+ 		return -EPERM;
+ 
+-	fm_tx_set_rds_mode(fmdev, 0);
+ 
+ 	/* Set RDS length */
+ 	set_rds_len(fmdev, rds_type, strlen(rds_text));
+@@ -164,9 +158,6 @@ int fm_tx_set_radio_text(struct fmdev *fmdev, u8 *rds_text, u8 rds_type)
+ 	/* Set RDS text */
+ 	set_rds_text(fmdev, rds_text);
+ 
+-	/* Set RDS mode */
+-	set_rds_data_mode(fmdev, 0x0);
+-
+ 	payload = 1;
+ 	ret = fmc_send_cmd(fmdev, RDS_DATA_ENB, REG_WR, &payload,
+ 			sizeof(payload), NULL, NULL);
+@@ -421,6 +412,8 @@ int fm_tx_set_freq(struct fmdev *fmdev, u32 freq_to_set)
+ 	tx->aud_mode = FM_STEREO_MODE;
+ 	tx->rds.flag = FM_RDS_DISABLE;
+ 
++	tx->tx_frq = freq_to_set * 1000; /* in KHz */
++
+ 	return 0;
+ }
+ 
+diff --git a/drivers/media/radio/wl128x/fmdrv_tx.h b/drivers/media/radio/wl128x/fmdrv_tx.h
+index 11ae2e4..8ed71bd 100644
+--- a/drivers/media/radio/wl128x/fmdrv_tx.h
++++ b/drivers/media/radio/wl128x/fmdrv_tx.h
+@@ -32,6 +32,7 @@ int fm_tx_set_radio_text(struct fmdev *, u8 *, u8);
+ int fm_tx_set_af(struct fmdev *, u32);
+ int fm_tx_set_preemph_filter(struct fmdev *, u32);
+ int fm_tx_get_tune_cap_val(struct fmdev *);
+-
++int set_rds_picode(struct fmdev *, u16);
++int set_rds_pty(struct fmdev *, u16);
+ #endif
+ 
+diff --git a/drivers/media/radio/wl128x/fmdrv_v4l2.c b/drivers/media/radio/wl128x/fmdrv_v4l2.c
+index 077d369..494faaf 100644
+--- a/drivers/media/radio/wl128x/fmdrv_v4l2.c
++++ b/drivers/media/radio/wl128x/fmdrv_v4l2.c
+@@ -210,6 +210,8 @@ static int fm_v4l2_s_ctrl(struct v4l2_ctrl *ctrl)
+ 	struct fmdev *fmdev = container_of(ctrl->handler,
+ 			struct fmdev, ctrl_handler);
+ 
++	int ret;
++
+ 	switch (ctrl->id) {
+ 	case V4L2_CID_AUDIO_VOLUME:	/* set volume */
+ 		return fm_rx_set_volume(fmdev, (u16)ctrl->val);
+@@ -224,6 +226,38 @@ static int fm_v4l2_s_ctrl(struct v4l2_ctrl *ctrl)
+ 	case V4L2_CID_TUNE_PREEMPHASIS:
+ 		return fm_tx_set_preemph_filter(fmdev, (u8) ctrl->val);
+ 
++	case V4L2_CID_RDS_TX_PI:
++		ret = set_rds_picode(fmdev, ctrl->val);
++		if (ret < 0) {
++			fmerr("Failed to set RDS Radio PS Name\n");
++			return ret;
++		}
++		return 0;
++
++	case V4L2_CID_RDS_TX_PTY:
++		ret = set_rds_pty(fmdev, ctrl->val);
++		if (ret < 0) {
++			fmerr("Failed to set RDS Radio PS Name\n");
++			return ret;
++		}
++		return 0;
++
++	case V4L2_CID_RDS_TX_PS_NAME:
++		ret = fm_tx_set_radio_text(fmdev, ctrl->string, 1);
++		if (ret < 0) {
++			fmerr("Failed to set RDS Radio PS Name\n");
++			return ret;
++		}
++		return 0;
++
++	case V4L2_CID_RDS_TX_RADIO_TEXT:
++		ret = fm_tx_set_radio_text(fmdev, ctrl->string, 2);
++		if (ret < 0) {
++			fmerr("Failed to set RDS Radio Text\n");
++			return ret;
++		}
++		return 0;
++
+ 	default:
+ 		return -EINVAL;
+ 	}
+@@ -455,6 +489,7 @@ static int fm_v4l2_vidioc_s_modulator(struct file *file, void *priv,
+ 		fmerr("Failed to set mono/stereo mode for TX\n");
+ 		return ret;
+ 	}
++
+ 	ret = fm_tx_set_rds_mode(fmdev, rds_mode);
+ 	if (ret < 0)
+ 		fmerr("Failed to set rds mode for TX\n");
+@@ -549,6 +584,18 @@ int fm_v4l2_init_video_device(struct fmdev *fmdev, int radio_nr)
+ 	v4l2_ctrl_new_std(&fmdev->ctrl_handler, &fm_ctrl_ops,
+ 			V4L2_CID_AUDIO_MUTE, 0, 1, 1, 1);
+ 
++	v4l2_ctrl_new_std(&fmdev->ctrl_handler, &fm_ctrl_ops,
++			V4L2_CID_RDS_TX_PI, 0x0, 0xf, 1, 0x0);
++
++	v4l2_ctrl_new_std(&fmdev->ctrl_handler, &fm_ctrl_ops,
++			V4L2_CID_RDS_TX_PTY, 0, 32, 1, 0);
++
++	v4l2_ctrl_new_std(&fmdev->ctrl_handler, &fm_ctrl_ops,
++			V4L2_CID_RDS_TX_PS_NAME, 0, 0xf, 1, 0);
++
++	v4l2_ctrl_new_std(&fmdev->ctrl_handler, &fm_ctrl_ops,
++			V4L2_CID_RDS_TX_RADIO_TEXT, 0, 0xff, 1, 0);
++
+ 	v4l2_ctrl_new_std_menu(&fmdev->ctrl_handler, &fm_ctrl_ops,
+ 			V4L2_CID_TUNE_PREEMPHASIS, V4L2_PREEMPHASIS_75_uS,
+ 			0, V4L2_PREEMPHASIS_75_uS);
 -- 
-1.7.9.5
+1.7.4.1
 
