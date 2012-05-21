@@ -1,56 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f172.google.com ([209.85.212.172]:34394 "EHLO
-	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751505Ab2EVNm2 (ORCPT
+Received: from mail-vb0-f46.google.com ([209.85.212.46]:45176 "EHLO
+	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753529Ab2EUP6H convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 May 2012 09:42:28 -0400
-Received: by wibhj8 with SMTP id hj8so3484543wib.1
-        for <linux-media@vger.kernel.org>; Tue, 22 May 2012 06:42:27 -0700 (PDT)
-Message-ID: <4FBB97BE.4090904@gmail.com>
-Date: Tue, 22 May 2012 15:42:22 +0200
-From: Gianluca Gennari <gennarone@gmail.com>
-Reply-To: gennarone@gmail.com
+	Mon, 21 May 2012 11:58:07 -0400
+Received: by vbbff1 with SMTP id ff1so3572729vbb.19
+        for <linux-media@vger.kernel.org>; Mon, 21 May 2012 08:58:06 -0700 (PDT)
 MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Devin Heitmueller <devin.heitmueller@gmail.com>
-Subject: Re: SNR status for demods
-References: <412bdbff0903171945m680218d9xa39982efb1a17728@mail.gmail.com> <4FBB57C4.4040601@iki.fi>
-In-Reply-To: <4FBB57C4.4040601@iki.fi>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <1337614442-31599-1-git-send-email-mkrufky@linuxtv.org>
+References: <1337614442-31599-1-git-send-email-mkrufky@linuxtv.org>
+Date: Mon, 21 May 2012 11:58:06 -0400
+Message-ID: <CAOcJUbwCYfR875md-mnqO_tdU0pmJc97CQqAP3chHV-qz0VfSg@mail.gmail.com>
+Subject: Re: [PATCH] lg2160: fix off-by-one error in lg216x_write_regs
+From: Michael Krufky <mkrufky@linuxtv.org>
+To: linux-media@vger.kernel.org
+Cc: Dan Carpenter <dan.carpenter@oracle.com>,
+	Michael Krufky <mkrufky@linuxtv.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Il 22/05/2012 11:09, Antti Palosaari ha scritto:
-> 
-> Basically, but not every case, there seems to be 3 different way:
-> 1) return raw register value without any calculation
-> 2) 0.1 dB
-> 3) scaled to 0-0xffff using some formula
-> 
-> Very many drivers seems to do some dB handling even finally scaling it
-> to some value.
-> 
-> regards
-> Antti
+eeek!  spelling error in dan's name!  my apologies.  I will correct
+this in my tree before I ask Mauro to merge it.
 
-Another one (from staging):
+-Mike
 
-as102-fe.c:        Pierrick Hascoet, Devin Heitmueller            linear MER
-
-I can provide a trivial patch to convert it to the more common 0.1 dB
-format, if you think it's useful.
-
-This note comes from the driver:
-
-/*
- * Note:
- * - in AS102 SNR=MER
- *   - the SNR will be returned in linear terms, i.e. not in dB
- *   - the accuracy equals Â±2dB for a SNR range from 4dB to 30dB
- *   - the accuracy is >2dB for SNR values outside this range
- */
-
-Regards,
-Gianluca
+On Mon, May 21, 2012 at 11:34 AM, Michael Krufky <mkrufky@kernellabs.com> wrote:
+> Fix an off-by-one error in lg216x_write_regs, causing the last element
+> of the lg216x init block to be ignored.  Spotted by Dan Carpenteter.
+>
+> Thanks-to: Dan Carpenter <dan.carpenter@oracle.com>
+> Signed-off-by: Michael Krufky <mkrufky@linuxtv.org>
+> ---
+>  drivers/media/dvb/frontends/lg2160.c |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/drivers/media/dvb/frontends/lg2160.c b/drivers/media/dvb/frontends/lg2160.c
+> index a3ab1a5..cc11260 100644
+> --- a/drivers/media/dvb/frontends/lg2160.c
+> +++ b/drivers/media/dvb/frontends/lg2160.c
+> @@ -126,7 +126,7 @@ static int lg216x_write_regs(struct lg216x_state *state,
+>
+>        lg_reg("writing %d registers...\n", len);
+>
+> -       for (i = 0; i < len - 1; i++) {
+> +       for (i = 0; i < len; i++) {
+>                ret = lg216x_write_reg(state, regs[i].reg, regs[i].val);
+>                if (lg_fail(ret))
+>                        return ret;
+> --
+> 1.7.9.5
+>
