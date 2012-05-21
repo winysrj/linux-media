@@ -1,43 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:54874 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753236Ab2EMPvj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 May 2012 11:51:39 -0400
-Message-ID: <4FAFD888.8080801@iki.fi>
-Date: Sun, 13 May 2012 18:51:36 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-vb0-f46.google.com ([209.85.212.46]:56362 "EHLO
+	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751576Ab2EUPUL convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 May 2012 11:20:11 -0400
+Received: by vbbff1 with SMTP id ff1so3553560vbb.19
+        for <linux-media@vger.kernel.org>; Mon, 21 May 2012 08:20:10 -0700 (PDT)
 MIME-Version: 1.0
-To: Oliver Schinagl <oliver+list@schinagl.nl>
-CC: linux-media <linux-media@vger.kernel.org>
-Subject: Re: AF9035 experimental header changes
-References: <4FAFD21D.9000801@schinagl.nl>
-In-Reply-To: <4FAFD21D.9000801@schinagl.nl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20120521135801.GA21460@elgon.mountain>
+References: <20120521135801.GA21460@elgon.mountain>
+Date: Mon, 21 May 2012 11:20:10 -0400
+Message-ID: <CAOcJUbx6mxeL1y_tEwefnyo4FG-SfbJ3Csw4Uxba9anS6bHehg@mail.gmail.com>
+Subject: Re: [media] DVB: add support for the LG2160 ATSC-MH demodulator
+From: Michael Krufky <mkrufky@linuxtv.org>
+To: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 13.05.2012 18:24, Oliver Schinagl wrote:
-> Hi antti,
+On Mon, May 21, 2012 at 9:58 AM, Dan Carpenter <dan.carpenter@oracle.com> wrote:
+> Hi Michael,
 >
-> I've just updated my local branch of your experimental branch and got
-> some conflicts because you moved the header inclusions from the C file
-> to the header file. Why is that? I thought it was really bad practice to
-> have includes in header files.
+> I have a question about e26f2ae4527b: "[media] DVB: add support for the
+> LG2160 ATSC-MH demodulator" from Jan 29, 2012.
 >
-> http://git.linuxtv.org/anttip/media_tree.git/commitdiff/7d28d8226cffd1ad6e555b36f6f9855d8bba8645
+>   122  static int lg216x_write_regs(struct lg216x_state *state,
+>   123                               struct lg216x_reg *regs, int len)
+>   124  {
+>   125          int i, ret;
+>   126
+>   127          lg_reg("writing %d registers...\n", len);
+>   128
+>   129          for (i = 0; i < len - 1; i++) {
+>                            ^^^^^^^^^^^
+> Shouldn't this just be i < len?  Why do we skip the last element in the
+> array?
+>
+>   130                  ret = lg216x_write_reg(state, regs[i].reg, regs[i].val);
+>   131                  if (lg_fail(ret))
+>   132                          return ret;
+>   133          }
+>   134          return 0;
+>   135  }
+>
+> This function is called like:
+>        ret = lg216x_write_regs(state, lg2160_init, ARRAY_SIZE(lg2160_init));
+>
+> The last element of the lg2160_init[] array looks useful.
 
-Because "struct state" was inside af9013.h and I added "struct 
-af9033_config" to state. Due to that af9033_config visibility I was 
-forced to move af9013.h include to the af9015.h and moved all the others 
-too.
+You're right, Dan - that's a bug -- thanks!
 
-What is problem you has met?
+I'll queue up a fix for this.
 
-DVB USB driver header file is something like private place for data 
-other than code as it is not included by any other driver.
+Best Regards,
 
-regards
-Antti
--- 
-http://palosaari.fi/
+Mike Krufky
