@@ -1,79 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from einhorn.in-berlin.de ([192.109.42.8]:45370 "EHLO
-	einhorn.in-berlin.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751444Ab2E1MR7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 May 2012 08:17:59 -0400
-Date: Mon, 28 May 2012 14:17:52 +0200
-From: Stefan Richter <stefanr@s5r6.in-berlin.de>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sylwester Nawrocki <snjw23@gmail.com>
-Subject: Re: [RFC PATCH 0/3] Improve Kconfig selection for media devices
-Message-ID: <20120528141752.7e4c530e@stein>
-In-Reply-To: <4FC363A5.1010802@redhat.com>
-References: <4FC24E34.3000406@redhat.com>
-	<1338137803-12231-1-git-send-email-mchehab@redhat.com>
-	<20120528114803.0d1a4881@stein>
-	<4FC363A5.1010802@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from smtp.nokia.com ([147.243.1.47]:33614 "EHLO mgw-sa01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752174Ab2EUDDU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 20 May 2012 23:03:20 -0400
+Message-ID: <4FB9B070.9060200@iki.fi>
+Date: Mon, 21 May 2012 06:03:12 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+CC: snjw23@gmail.com, mchehab@redhat.com,
+	laurent.pinchart@ideasonboard.com
+Subject: [GIT PULL FOR 3.5 v2] V4L2 and V4L2 subdev selection target rename
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On May 28 Mauro Carvalho Chehab wrote:
-> Em 28-05-2012 06:48, Stefan Richter escreveu:
-> > c) The RC_CORE_SUPP help text gives the impression that RC core is
-> > always needed if there is hardware with an IR feature.  But the firedtv
-> > driver is a case where the driver directly works on top of the input
-> > subsystem rather than on RC core.  Maybe there are more such cases.
-> 
-> All other drivers use RC_CORE, as we've replaced the existing implementations
-> to use it, removing bad/inconsistent IR code implementations everywhere.
-> The only driver left is firedtv.
-[...]
-> The right thing to do is to convert drivers/media/dvb/firewire/firedtv-rc.c
-> to use rc-core. There are several issues with the current implementation:
-> 
-> 	- IR keycode tables are hardcoded;
-> 	- There is a "magic" to convert a 16 bits scancode (NEC protocol?)
-> 	  into a key;
-> 	- There's no way to replace the existing table to an user-provided
-> 	  one;
+Hi Mauro,
 
-There are two tables:  An old mapping and a new mapping.  The new mapping
-is copied into a newly allocated writable array.  It should be possible to
-overwrite this array by means of EVIOCSKEYCODE ioctls.
+Compared to the last pull req, I've rebased the request on top of more
+recent media_tree.git and replaced Sylwester's patch with a newer
+version of it.
 
-If I remember correctly, the firedtv driver sources came only with the old
-mapping table when they were submitted for upstream merge.  When I helped
-to clean up the driver, I noticed that the two FireDTV C/CI and T/CI (which
-I newly purchased at the time as test devices) emitted entirely different
-scan codes than what the sources suggested.  I suppose the original driver
-sources were written against older firmware or maybe older hardware
-revisions, possibly even prototype hardware.  We would have to get hold of
-the original authors if we wanted to find out.
+---
 
-Anyway, I implemented the new scancode->keycode mapping in a way that
-followed Dimitry's (?) review advice at that time, but left the old
-immutable mapping in there as fallback if an old scancode was received.
+This pull request contains just two patches; one for the V4L2 and one
+for the V4L2 subdev interfaces. The patches rename the effective
+selection targets by removing the _ACTUAL (V4L2 subdev) or _ACTIVE
+(V4L2) part of the target name, thus making the target names the same on
+both interfaces except for the _SUBDEV string in the names. We later
+will to remove that as well but to do that properly requires non-trivial
+changes to the documentation. The users are already encouraged to use
+the V4L2 selection targets on subdevs; the documentation will be changed
+for 3.6.
 
-If it is a burden, we could rip out the old table and see if anybody
-complains.
+These patches should be applied already now since that decreases the
+number of required changes for selection API users in the future, and
+3.5 is also the first kernel version where the subdev selection API is
+present.
 
-> 	- The IR userspace tools won't work, as it doesn't export the
-> 	  needed sysfs nodes to report an IR.
 
-But at least keypad/ keyboard related userspace should work.
 
-> If you want, I can write a patch doing that, but I can't test it here, as
-> I don't have a firedtv device.
 
-I can test such a patch as spare time permits if you point me to particular
-tools that I should test.
+The following changes since commit abed623ca59a7d1abed6c4e7459be03e25a90a1e:
+
+  [media] radio-sf16fmi: add support for SF16-FMD (2012-05-20 16:10:05
+-0300)
+
+are available in the git repository at:
+  ssh://linuxtv.org/git/sailus/media_tree.git media-for-3.5-selections
+
+Sakari Ailus (1):
+      v4l: Remove "_ACTUAL" from subdev selection API target definition
+names
+
+Sylwester Nawrocki (1):
+      V4L: Remove "_ACTIVE" from the selection target name definitions
+
+ Documentation/DocBook/media/v4l/dev-subdev.xml     |   25
++++++++++----------
+ Documentation/DocBook/media/v4l/selection-api.xml  |   24
++++++++++---------
+ .../DocBook/media/v4l/vidioc-g-selection.xml       |   15 ++++++-----
+ .../media/v4l/vidioc-subdev-g-selection.xml        |   12 ++++----
+ drivers/media/video/omap3isp/ispccdc.c             |    4 +-
+ drivers/media/video/omap3isp/isppreview.c          |    4 +-
+ drivers/media/video/omap3isp/ispresizer.c          |    4 +-
+ drivers/media/video/s5p-fimc/fimc-capture.c        |   14 +++++-----
+ drivers/media/video/s5p-fimc/fimc-lite.c           |    4 +-
+ drivers/media/video/s5p-jpeg/jpeg-core.c           |    4 +-
+ drivers/media/video/s5p-tv/mixer_video.c           |    8 +++---
+ drivers/media/video/smiapp/smiapp-core.c           |   22 ++++++++--------
+ drivers/media/video/v4l2-ioctl.c                   |    8 +++---
+ drivers/media/video/v4l2-subdev.c                  |    4 +-
+ include/linux/v4l2-subdev.h                        |    4 +-
+ include/linux/videodev2.h                          |    8 ++++-
+ 16 files changed, 84 insertions(+), 80 deletions(-)
+
+Kind regards,
+
 -- 
-Stefan Richter
--=====-===-- -=-= ===--
-http://arcgraph.de/sr/
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
