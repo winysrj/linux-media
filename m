@@ -1,107 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:39470 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756853Ab2EHUVu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 May 2012 16:21:50 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [media-ctl PATCH v2 1/2] New, more flexible syntax for format
-Date: Tue, 08 May 2012 22:21:46 +0200
-Message-ID: <1763414.OFvOj7o1m5@avalon>
-In-Reply-To: <4FA97776.3030408@iki.fi>
-References: <1336398396-31526-1-git-send-email-sakari.ailus@iki.fi> <1529968.u1eeiRTNpn@avalon> <4FA97776.3030408@iki.fi>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from smtp209.alice.it ([82.57.200.105]:47744 "EHLO smtp209.alice.it"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751875Ab2EVVC0 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 22 May 2012 17:02:26 -0400
+Date: Tue, 22 May 2012 23:02:14 +0200
+From: Antonio Ospite <ospite@studenti.unina.it>
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: Paulo Assis <pj.assis@gmail.com>,
+	=?ISO-8859-1?Q?Llu=EDs?= Batlle i Rossell <viric@viric.name>,
+	linux-media@vger.kernel.org
+Subject: Re: Problems with the gspca_ov519 driver
+Message-Id: <20120522230214.700ec32864670a7813260577@studenti.unina.it>
+In-Reply-To: <4FBBA515.7010006@redhat.com>
+References: <20120522110018.GX1927@vicerveza.homeunix.net>
+	<CAPueXH6uN4UQO_WL_pc9wBoZV=v_7AVtQKcruKY=BCMeJOw-2Q@mail.gmail.com>
+	<4FBBA515.7010006@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+On Tue, 22 May 2012 16:39:17 +0200
+Hans de Goede <hdegoede@redhat.com> wrote:
 
-On Tuesday 08 May 2012 22:43:50 Sakari Ailus wrote:
-> Laurent Pinchart wrote:
-> > On Monday 07 May 2012 16:46:35 Sakari Ailus wrote:
-> >> More flexible and extensible syntax for format which allows better usage
-> >> of the selection API.
+> On 05/22/2012 04:08 PM, Paulo Assis wrote:
+> > Hi,
+> > This bug also causes the camera to crash when changing fps in
+> > guvcview, uvc devices (at least all the ones I tested) require the
+> > stream to be restarted for fps to change, so in the case of this
+> > driver after STREAMOFF the camera just becomes unresponsive.
+> >
 
-[snip]
+[...]
+> > 2012/5/22 Lluís Batlle i Rossell<viric@viric.name>:
+> >> Hello,
+> >>
+> >> I'm trying to get video using v4l2 ioctls from a gspca_ov519 camera, and after
+> >> STREAMOFF all buffers are still flagged as QUEUED, and QBUF fails.  DQBUF also
+> >> fails (blocking for a 3 sec timeout), after streamoff. So I'm stuck, after
+> >> STREAMOFF, unable to get pictures coming in again. (Linux 3.3.5).
+> >>
 
-> >> diff --git a/src/v4l2subdev.c b/src/v4l2subdev.c
-> >> index a2ab0c4..6881553 100644
-> >> --- a/src/v4l2subdev.c
-> >> +++ b/src/v4l2subdev.c
-> >> @@ -233,13 +233,13 @@ static int v4l2_subdev_parse_format(struct
-> >> v4l2_mbus_framefmt *format, char *end;
-> >> 
-> >>  	for (; isspace(*p); ++p);
-> >> 
-> >> -	for (end = (char *)p; !isspace(*end) && *end != '\0'; ++end);
-> >> +	for (end = (char *)p; *end != '/' && *end != '\0'; ++end);
-> > 
-> > I wouldn't change this to keep compatibility with the existing syntax.
+[...]
+> We talked about this on irc, attached it a patch which should fix this, feedback
+> appreciated.
 > 
-> Ok. How about allowing both '/' and ' '?
 
-Do you hate the space that much ? :-) The format code and the resolution are 
-not that closely related, / somehow doesn't look intuitive to me.
+Thanks HdG.
 
-> >>  	code = v4l2_subdev_string_to_pixelcode(p, end - p);
-> >>  	if (code == (enum v4l2_mbus_pixelcode)-1)
-> >>  	
-> >>  		return -EINVAL;
-> >> 
-> >> -	for (p = end; isspace(*p); ++p);
-> >> +	p = end + 1;
-> >> 
-> >>  	width = strtoul(p, &end, 10);
-> >>  	if (*end != 'x')
-> >>  	
-> >>  		return -EINVAL;
-> >> 
+Paulo, this seems to fix the problem I too was having when changing the
+framerate on ov534 with guvcview.
 
-[snip]
+IIRC, from a previous investigation, I've been experiencing this since
+commit f7059ea, which in fact removes the lines HdG added back, but I
+didn't put too much effort in investigating the exact cause, sorry.
 
-> >> @@ -326,30 +337,37 @@ static struct media_pad
-> >> *v4l2_subdev_parse_pad_format( if (*p++ != '[')
-> >> 
-> >>  		return NULL;
-> >> 
-> >> -	for (; isspace(*p); ++p);
-> >> +	for (;;) {
-> >> +		for (; isspace(*p); p++);
-> >> 
-> >> -	if (isalnum(*p)) {
-> >> -		ret = v4l2_subdev_parse_format(format, p, &end);
-> >> -		if (ret < 0)
-> >> -			return NULL;
-> >> +		if (!strhazit("fmt:", &p)) {
-> >> +			ret = v4l2_subdev_parse_format(format, p, &end);
-> >> +			if (ret < 0)
-> >> +				return NULL;
-> >> 
-> >> -		for (p = end; isspace(*p); p++);
-> >> -	}
-> >> +			p = end;
-> >> +			continue;
-> >> +		}
-> > 
-> > I'd like to keep compatibility with the existing syntax here. Checking
-> > whether this is the first argument and whether it starts with an
-> > uppercase letter should be enough, would you be OK with that ?
-> 
-> Right. I may have missed something related to keeping the compatibility.
-> 
-> Capital letter might not be enough in the future; for now it's ok
-> though. How about this: if the string doesn't match with anything else,
-> interpret it as format?
+For the record the guvcview error messages were:
 
-I've thought about this, but I'm not sure it's a good idea to introduce 
-extensions to the existing syntax (we currently have no format starting with 
-something else than an uppercase letter) as we're deprecating it.
+VIDIOC_QBUF - Unable to queue buffer: Invalid argument
+ Could not grab image (select timeout): Resource temporarily unavailable
+
+I feel I can add a:
+
+Tested-by: Antonio Ospite <ospite@studenti.unina.it>
+
+I can backport the change to older kernels and even CC linux-stable if
+you think it is appropriate, that's the least I can do to expiate for
+knowing about a bug/regression and not hunting its cause hard enough.
+
+HdG maybe you could mention f7059ea in the commit message of this fix
+if you can confirm the problem was introduced there.
+
+Regards,
+   Antonio
 
 -- 
-Regards,
+Antonio Ospite
+http://ao2.it
 
-Laurent Pinchart
-
+A: Because it messes up the order in which people normally read text.
+   See http://en.wikipedia.org/wiki/Posting_style
+Q: Why is top-posting such a bad thing?
