@@ -1,143 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:35963 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755501Ab2EJKbI (ORCPT
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:28777 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750782Ab2EVQan convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 May 2012 06:31:08 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Received: from euspt1 ([210.118.77.14]) by mailout4.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0M3S008ZYYK5CW40@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 10 May 2012 11:31:17 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0M3S00DERYJS3I@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 10 May 2012 11:31:04 +0100 (BST)
-Date: Thu, 10 May 2012 12:30:45 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH 10/23] V4L: Add auto focus targets to the selections API
-In-reply-to: <1336645858-30366-1-git-send-email-s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, riverful.kim@samsung.com,
-	sw0312.kim@samsung.com, s.nawrocki@samsung.com,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Message-id: <1336645858-30366-11-git-send-email-s.nawrocki@samsung.com>
-References: <1336645858-30366-1-git-send-email-s.nawrocki@samsung.com>
+	Tue, 22 May 2012 12:30:43 -0400
+Date: Tue, 22 May 2012 18:30:32 +0200
+From: =?iso-8859-1?Q?Llu=EDs?= Batlle i Rossell <viric@viric.name>
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: Paulo Assis <pj.assis@gmail.com>, linux-media@vger.kernel.org
+Subject: Re: Problems with the gspca_ov519 driver
+Message-ID: <20120522163032.GC1927@vicerveza.homeunix.net>
+References: <20120522110018.GX1927@vicerveza.homeunix.net>
+ <CAPueXH6uN4UQO_WL_pc9wBoZV=v_7AVtQKcruKY=BCMeJOw-2Q@mail.gmail.com>
+ <4FBBA515.7010006@redhat.com>
+ <20120522152703.GA1927@vicerveza.homeunix.net>
+ <4FBBBEA2.5050200@redhat.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+In-Reply-To: <4FBBBEA2.5050200@redhat.com>
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The camera automatic focus algorithms may require setting up
-a spot or rectangle coordinates or multiple such parameters.
+On Tue, May 22, 2012 at 06:28:18PM +0200, Hans de Goede wrote:
+> Hi,
+> 
+> On 05/22/2012 05:27 PM, Lluís Batlle i Rossell wrote:
+> >Is this over linux 3.4 mainline? Because I can't get the patch applied over it.
+> 
+> No it is against:
+> http://git.linuxtv.org/media_tree.git/shortlog/refs/heads/staging/for_v3.5
+> 
+> But it should be trivial to backport, the patch is only 3 lines.
 
-The automatic focus selection targets are introduced in order
-to allow applications to query and set such coordinates. Those
-selections are intended to be used together with the automatic
-focus controls available in the camera control class.
+I tried to, but I couldn't find any match for
+"video_drvdata". I'll check again.
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- Documentation/DocBook/media/v4l/selection-api.xml  |   33 +++++++++++++++++++-
- .../DocBook/media/v4l/vidioc-g-selection.xml       |   11 +++++++
- include/linux/videodev2.h                          |    5 +++
- 3 files changed, 48 insertions(+), 1 deletion(-)
+Thank you.
 
-diff --git a/Documentation/DocBook/media/v4l/selection-api.xml b/Documentation/DocBook/media/v4l/selection-api.xml
-index b299e47..490d29a 100644
---- a/Documentation/DocBook/media/v4l/selection-api.xml
-+++ b/Documentation/DocBook/media/v4l/selection-api.xml
-@@ -1,6 +1,6 @@
- <section id="selection-api">
- 
--  <title>Experimental API for cropping, composing and scaling</title>
-+  <title>Experimental selections API</title>
- 
-       <note>
- 	<title>Experimental</title>
-@@ -9,6 +9,10 @@
- interface and may change in the future.</para>
-       </note>
- 
-+ <section>
-+
-+ <title>Image cropping, composing and scaling</title>
-+
-   <section>
-     <title>Introduction</title>
- 
-@@ -321,5 +325,32 @@ V4L2_BUF_TYPE_VIDEO_OUTPUT </constant> for other devices</para>
-       </example>
- 
-    </section>
-+ </section>
-+
-+   <section>
-+     <title>Automatic focus regions of interest</title>
-+
-+<para> The camera automatic focus algorithms may require configuration of
-+regions of interest in form of rectangle or spot coordinates. The automatic
-+focus selection targets allow applications to query and set such coordinates.
-+Those selections are intended to be used together with the
-+<constant>V4L2_CID_AUTO_FOCUS_AREA</constant> <link linkend="camera-controls">
-+camera class</link> control. The <constant>V4L2_SEL_TGT_AUTO_FOCUS_ACTUAL
-+</constant> target is used for querying or setting actual spot or rectangle
-+coordinates, while <constant>V4L2_SEL_TGT_AUTO_FOCUS_BOUNDS</constant> target
-+determines bounds for a single spot or rectangle.
-+These selections are only effective when the <constant>V4L2_CID_AUTO_FOCUS_AREA
-+</constant>control is set to <constant>V4L2_AUTO_FOCUS_AREA_SPOT</constant> or
-+<constant>V4L2_AUTO_FOCUS_AREA_RECTANGLE</constant>. The new coordinates shall
-+be accepted and applied to hardware when the focus area control value is
-+changed and also during a &VIDIOC-S-SELECTION; ioctl call, only when the focus
-+area control is already set to required value.</para>
-+
-+<para> For the <constant>V4L2_AUTO_FOCUS_AREA_SPOT</constant> case, the selection
-+rectangle <structfield> width</structfield> and <structfield>height</structfield>
-+are not used, i.e. shall be set to 0 by applications and ignored by drivers for
-+the &VIDIOC-S-SELECTION; ioctl and shall be ignored by applications for the
-+&VIDIOC-G-SELECTION; ioctl.</para>
-+   </section>
- 
- </section>
-diff --git a/Documentation/DocBook/media/v4l/vidioc-g-selection.xml b/Documentation/DocBook/media/v4l/vidioc-g-selection.xml
-index bb04eff..87df4da 100644
---- a/Documentation/DocBook/media/v4l/vidioc-g-selection.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-g-selection.xml
-@@ -195,6 +195,17 @@ exist no rectangle </emphasis> that satisfies the constraints.</para>
-             <entry>0x0103</entry>
-             <entry>The active area and all padding pixels that are inserted or modified by hardware.</entry>
- 	  </row>
-+	  <row>
-+            <entry><constant>V4L2_SEL_TGT_AUTO_FOCUS_ACTUAL</constant></entry>
-+            <entry>0x1000</entry>
-+	    <entry>Actual automatic focus rectangle or spot coordinates.</entry>
-+	  </row>
-+	  <row>
-+            <entry><constant>V4L2_SEL_TGT_AUTO_FOCUS_BOUNDS</constant></entry>
-+            <entry>0x1002</entry>
-+            <entry>Bounds of the automatic focus region of interest.
-+	    </entry>
-+	  </row>
- 	</tbody>
-       </tgroup>
-     </table>
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index dae57ed..4077d62 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -777,6 +777,11 @@ struct v4l2_crop {
- /* Current composing area plus all padding pixels */
- #define V4L2_SEL_TGT_COMPOSE_PADDED	0x0103
- 
-+/* Auto focus region of interest */
-+#define V4L2_SEL_TGT_AUTO_FOCUS_ACTUAL	0x1000
-+/* Auto focus region (spot coordinates) bounds */
-+#define V4L2_SEL_TGT_AUTO_FOCUS_BOUNDS	0x1001
-+
- /**
-  * struct v4l2_selection - selection info
-  * @type:	buffer type (do not use *_MPLANE types)
--- 
-1.7.10
-
+> >
+> >Regards,
+> >Lluís.
+> >
+> >On Tue, May 22, 2012 at 04:39:17PM +0200, Hans de Goede wrote:
+> >>Hi,
+> >>
+> >>On 05/22/2012 04:08 PM, Paulo Assis wrote:
+> >>>Hi,
+> >>>This bug also causes the camera to crash when changing fps in
+> >>>guvcview, uvc devices (at least all the ones I tested) require the
+> >>>stream to be restarted for fps to change, so in the case of this
+> >>>driver after STREAMOFF the camera just becomes unresponsive.
+> >>>
+> >>>Regards,
+> >>>Paulo
+> >>>
+> >>>2012/5/22 Lluís Batlle i Rossell<viric@viric.name>:
+> >>>>Hello,
+> >>>>
+> >>>>I'm trying to get video using v4l2 ioctls from a gspca_ov519 camera, and after
+> >>>>STREAMOFF all buffers are still flagged as QUEUED, and QBUF fails.  DQBUF also
+> >>>>fails (blocking for a 3 sec timeout), after streamoff. So I'm stuck, after
+> >>>>STREAMOFF, unable to get pictures coming in again. (Linux 3.3.5).
+> >>>>
+> >>>>As an additional note, pinchartl on irc #v4l says to favour a moving of gspca to
+> >>>>vb2. I don't know what it means.
+> >>>>
+> >>>>Can someone take care of the bug, or should I consider the camera 'non working'
+> >>>>in linux?
+> >>
+> >>We talked about this on irc, attached it a patch which should fix this, feedback
+> >>appreciated.
+> >>
+> >>Regards,
+> >>
+> >>Hans
+> >
+> >> From b0eefa00c72e9dfe9eaa5f425c0d346b19ea01cd Mon Sep 17 00:00:00 2001
+> >>From: Hans de Goede<hdegoede@redhat.com>
+> >>Date: Tue, 22 May 2012 16:24:05 +0200
+> >>Subject: [PATCH] gspca-core: Fix buffers staying in queued state after a
+> >>  stream_off
+> >>
+> >>Signed-off-by: Hans de Goede<hdegoede@redhat.com>
+> >>---
+> >>  drivers/media/video/gspca/gspca.c |    4 +++-
+> >>  1 file changed, 3 insertions(+), 1 deletion(-)
+> >>
+> >>diff --git a/drivers/media/video/gspca/gspca.c b/drivers/media/video/gspca/gspca.c
+> >>index 137166d..31721ea 100644
+> >>--- a/drivers/media/video/gspca/gspca.c
+> >>+++ b/drivers/media/video/gspca/gspca.c
+> >>@@ -1653,7 +1653,7 @@ static int vidioc_streamoff(struct file *file, void *priv,
+> >>  				enum v4l2_buf_type buf_type)
+> >>  {
+> >>  	struct gspca_dev *gspca_dev = video_drvdata(file);
+> >>-	int ret;
+> >>+	int i, ret;
+> >>
+> >>  	if (buf_type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+> >>  		return -EINVAL;
+> >>@@ -1678,6 +1678,8 @@ static int vidioc_streamoff(struct file *file, void *priv,
+> >>  	wake_up_interruptible(&gspca_dev->wq);
+> >>
+> >>  	/* empty the transfer queues */
+> >>+	for (i = 0; i<  gspca_dev->nframes; i++)
+> >>+		gspca_dev->frame[i].v4l2_buf.flags&= ~BUF_ALL_FLAGS;
+> >>  	atomic_set(&gspca_dev->fr_q, 0);
+> >>  	atomic_set(&gspca_dev->fr_i, 0);
+> >>  	gspca_dev->fr_o = 0;
+> >>--
+> >>1.7.10
+> >>
+> >
+> >--
+> >To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> >the body of a message to majordomo@vger.kernel.org
+> >More majordomo info at  http://vger.kernel.org/majordomo-info.html
