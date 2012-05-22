@@ -1,186 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr18.xs4all.nl ([194.109.24.38]:1844 "EHLO
-	smtp-vbr18.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755878Ab2EKHzf (ORCPT
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:42388 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757431Ab2EVPNQ convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 May 2012 03:55:35 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Michael Hunold <hunold@linuxtv.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv1 PATCH 11/16] saa7146: rename vbi/video_q to vbi/video_dmaq.
-Date: Fri, 11 May 2012 09:55:05 +0200
-Message-Id: <7910be33fad123bd63c870ebe76b0e5b8a8a2c28.1336722502.git.hans.verkuil@cisco.com>
-In-Reply-To: <1336722910-31733-1-git-send-email-hverkuil@xs4all.nl>
-References: <1336722910-31733-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <09c2b1c7ef8bbb53930311b9fdeeb89f877fdaa9.1336722502.git.hans.verkuil@cisco.com>
-References: <09c2b1c7ef8bbb53930311b9fdeeb89f877fdaa9.1336722502.git.hans.verkuil@cisco.com>
+	Tue, 22 May 2012 11:13:16 -0400
+Received: by yenm10 with SMTP id m10so5466598yen.19
+        for <linux-media@vger.kernel.org>; Tue, 22 May 2012 08:13:15 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <CAKMK7uGwAo48cGpevwfjcnvMkNiimsq0nwkZJT6cSsGWP8FRWw@mail.gmail.com>
+References: <1331913881-13105-1-git-send-email-rob.clark@linaro.org>
+	<4FBB98E0.8040600@samsung.com>
+	<20120522143234.GC4629@phenom.ffwll.local>
+	<4FBBAA0F.6090503@samsung.com>
+	<CAKMK7uGwAo48cGpevwfjcnvMkNiimsq0nwkZJT6cSsGWP8FRWw@mail.gmail.com>
+Date: Tue, 22 May 2012 16:13:15 +0100
+Message-ID: <CAPM=9tyd4sx_RiKSXThzAocC5xC7NAhQB+HVmvoxXCLvWodU-w@mail.gmail.com>
+Subject: Re: [PATCH] dma-buf: add get_dma_buf()
+From: Dave Airlie <airlied@gmail.com>
+To: Daniel Vetter <daniel@ffwll.ch>
+Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>, patches@linaro.org,
+	dri-devel@lists.freedesktop.org, Rob Clark <rob.clark@linaro.org>,
+	linaro-mm-sig@lists.linaro.org,
+	=?UTF-8?B?67CV6rK966+8?= <kyungmin.park@samsung.com>,
+	Rob Clark <rob@ti.com>, airlied@redhat.com,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	sumit.semwal@linaro.org, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Tue, May 22, 2012 at 4:05 PM, Daniel Vetter <daniel@ffwll.ch> wrote:
+> On Tue, May 22, 2012 at 5:00 PM, Tomasz Stanislawski
+> <t.stanislaws@samsung.com> wrote:
+>> On 05/22/2012 04:32 PM, Daniel Vetter wrote:
+>>> On Tue, May 22, 2012 at 03:47:12PM +0200, Tomasz Stanislawski wrote:
+>>>> Hi,
+>>>> I think I discovered an interesting issue with dma_buf.
+>>>> I found out that dma_buf_fd does not increase reference
+>>>> count for dma_buf::file. This leads to potential kernel
+>>>> crash triggered by user space. Please, take a look on
+>>>> the scenario below:
+>>>>
+>>>> The applications spawns two thread. One of them is exporting DMABUF.
+>>>>
+>>>>       Thread I         |   Thread II       | Comments
+>>>> -----------------------+-------------------+-----------------------------------
+>>>> dbuf = dma_buf_export  |                   | dma_buf is creates, refcount is 1
+>>>> fd = dma_buf_fd(dbuf)  |                   | assume fd is set to 42, refcount is still 1
+>>>>                        |      close(42)    | The file descriptor is closed asynchronously, dbuf's refcount drops to 0
+>>>>                        |  dma_buf_release  | dbuf structure is freed, dbuf becomes a dangling pointer
+>>>> int size = dbuf->size; |                   | the dbuf is dereferenced, causing a kernel crash
+>>>> -----------------------+-------------------+-----------------------------------
+>>>>
+>>>> I think that the problem could be fixed in two ways.
+>>>> a) forcing driver developer to call get_dma_buf just before calling dma_buf_fd.
+>>>> b) increasing dma_buf->file's reference count at dma_buf_fd
+>>>>
+>>>> I prefer solution (b) because it prevents symmetry between dma_buf_fd and close.
+>>>> I mean that dma_buf_fd increases reference count, close decreases it.
+>>>>
+>>>> What is your opinion about the issue?
+>>>
+>>> I guess most exporters would like to hang onto the exported dma_buf a bit
+>>> and hence need a reference (e.g. to cache the dma_buf as long as the
+>>> underlying buffer object exists). So I guess we can change the semantics
+>>> of dma_buf_fd from transferring the reference you currently have (and
+>>> hence forbidding any further access by the caller) to grabbing a reference
+>>> of it's on for the fd that is created.
+>>> -Daniel
+>>
+>> Hi Daniel,
+>> Would it be simpler, safer and more intuitive if dma_buf_fd increased
+>> dmabuf->file's reference counter?
+>
+> That's actually what I wanted to say. Message seems to have been lost
+> in transit ;-)
 
-There was also a vbi_q and video_q in saa7146_fh, so that was confusing.
+Now I've thought about it and Tomasz has pointed it out I agree,
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/common/saa7146_vbi.c   |   31 +++++++++++++++----------------
- drivers/media/common/saa7146_video.c |   16 ++++++++--------
- include/media/saa7146_vv.h           |    4 ++--
- 3 files changed, 25 insertions(+), 26 deletions(-)
+Now we just have to work out when to drop that reference, which I
+don't see anyone addressing :-)
 
-diff --git a/drivers/media/common/saa7146_vbi.c b/drivers/media/common/saa7146_vbi.c
-index c930aa0..1e71e37 100644
---- a/drivers/media/common/saa7146_vbi.c
-+++ b/drivers/media/common/saa7146_vbi.c
-@@ -211,7 +211,7 @@ static int buffer_activate(struct saa7146_dev *dev,
- 	DEB_VBI("dev:%p, buf:%p, next:%p\n", dev, buf, next);
- 	saa7146_set_vbi_capture(dev,buf,next);
- 
--	mod_timer(&vv->vbi_q.timeout, jiffies+BUFFER_TIMEOUT);
-+	mod_timer(&vv->vbi_dmaq.timeout, jiffies+BUFFER_TIMEOUT);
- 	return 0;
- }
- 
-@@ -294,7 +294,7 @@ static void buffer_queue(struct videobuf_queue *q, struct videobuf_buffer *vb)
- 	struct saa7146_buf *buf = (struct saa7146_buf *)vb;
- 
- 	DEB_VBI("vb:%p\n", vb);
--	saa7146_buffer_queue(dev,&vv->vbi_q,buf);
-+	saa7146_buffer_queue(dev, &vv->vbi_dmaq, buf);
- }
- 
- static void buffer_release(struct videobuf_queue *q, struct videobuf_buffer *vb)
-@@ -335,15 +335,14 @@ static void vbi_stop(struct saa7146_fh *fh, struct file *file)
- 	/* shut down dma 3 transfers */
- 	saa7146_write(dev, MC1, MASK_20);
- 
--	if (vv->vbi_q.curr) {
--		saa7146_buffer_finish(dev,&vv->vbi_q,VIDEOBUF_DONE);
--	}
-+	if (vv->vbi_dmaq.curr)
-+		saa7146_buffer_finish(dev, &vv->vbi_dmaq, VIDEOBUF_DONE);
- 
- 	videobuf_queue_cancel(&fh->vbi_q);
- 
- 	vv->vbi_streaming = NULL;
- 
--	del_timer(&vv->vbi_q.timeout);
-+	del_timer(&vv->vbi_dmaq.timeout);
- 	del_timer(&vv->vbi_read_timeout);
- 
- 	spin_unlock_irqrestore(&dev->slock, flags);
-@@ -364,12 +363,12 @@ static void vbi_init(struct saa7146_dev *dev, struct saa7146_vv *vv)
- {
- 	DEB_VBI("dev:%p\n", dev);
- 
--	INIT_LIST_HEAD(&vv->vbi_q.queue);
-+	INIT_LIST_HEAD(&vv->vbi_dmaq.queue);
- 
--	init_timer(&vv->vbi_q.timeout);
--	vv->vbi_q.timeout.function = saa7146_buffer_timeout;
--	vv->vbi_q.timeout.data     = (unsigned long)(&vv->vbi_q);
--	vv->vbi_q.dev              = dev;
-+	init_timer(&vv->vbi_dmaq.timeout);
-+	vv->vbi_dmaq.timeout.function = saa7146_buffer_timeout;
-+	vv->vbi_dmaq.timeout.data     = (unsigned long)(&vv->vbi_dmaq);
-+	vv->vbi_dmaq.dev              = dev;
- 
- 	init_waitqueue_head(&vv->vbi_wq);
- }
-@@ -440,16 +439,16 @@ static void vbi_irq_done(struct saa7146_dev *dev, unsigned long status)
- 	struct saa7146_vv *vv = dev->vv_data;
- 	spin_lock(&dev->slock);
- 
--	if (vv->vbi_q.curr) {
--		DEB_VBI("dev:%p, curr:%p\n", dev, vv->vbi_q.curr);
-+	if (vv->vbi_dmaq.curr) {
-+		DEB_VBI("dev:%p, curr:%p\n", dev, vv->vbi_dmaq.curr);
- 		/* this must be += 2, one count for each field */
- 		vv->vbi_fieldcount+=2;
--		vv->vbi_q.curr->vb.field_count = vv->vbi_fieldcount;
--		saa7146_buffer_finish(dev,&vv->vbi_q,VIDEOBUF_DONE);
-+		vv->vbi_dmaq.curr->vb.field_count = vv->vbi_fieldcount;
-+		saa7146_buffer_finish(dev, &vv->vbi_dmaq, VIDEOBUF_DONE);
- 	} else {
- 		DEB_VBI("dev:%p\n", dev);
- 	}
--	saa7146_buffer_next(dev,&vv->vbi_q,1);
-+	saa7146_buffer_next(dev, &vv->vbi_dmaq, 1);
- 
- 	spin_unlock(&dev->slock);
- }
-diff --git a/drivers/media/common/saa7146_video.c b/drivers/media/common/saa7146_video.c
-index 9a99835..8507990 100644
---- a/drivers/media/common/saa7146_video.c
-+++ b/drivers/media/common/saa7146_video.c
-@@ -1035,7 +1035,7 @@ static int buffer_activate (struct saa7146_dev *dev,
- 	buf->vb.state = VIDEOBUF_ACTIVE;
- 	saa7146_set_capture(dev,buf,next);
- 
--	mod_timer(&vv->video_q.timeout, jiffies+BUFFER_TIMEOUT);
-+	mod_timer(&vv->video_dmaq.timeout, jiffies+BUFFER_TIMEOUT);
- 	return 0;
- }
- 
-@@ -1158,7 +1158,7 @@ static void buffer_queue(struct videobuf_queue *q, struct videobuf_buffer *vb)
- 	struct saa7146_buf *buf = (struct saa7146_buf *)vb;
- 
- 	DEB_CAP("vbuf:%p\n", vb);
--	saa7146_buffer_queue(fh->dev,&vv->video_q,buf);
-+	saa7146_buffer_queue(fh->dev, &vv->video_dmaq, buf);
- }
- 
- static void buffer_release(struct videobuf_queue *q, struct videobuf_buffer *vb)
-@@ -1187,12 +1187,12 @@ static struct videobuf_queue_ops video_qops = {
- 
- static void video_init(struct saa7146_dev *dev, struct saa7146_vv *vv)
- {
--	INIT_LIST_HEAD(&vv->video_q.queue);
-+	INIT_LIST_HEAD(&vv->video_dmaq.queue);
- 
--	init_timer(&vv->video_q.timeout);
--	vv->video_q.timeout.function = saa7146_buffer_timeout;
--	vv->video_q.timeout.data     = (unsigned long)(&vv->video_q);
--	vv->video_q.dev              = dev;
-+	init_timer(&vv->video_dmaq.timeout);
-+	vv->video_dmaq.timeout.function = saa7146_buffer_timeout;
-+	vv->video_dmaq.timeout.data     = (unsigned long)(&vv->video_dmaq);
-+	vv->video_dmaq.dev              = dev;
- 
- 	/* set some default values */
- 	vv->standard = &dev->ext_vv_data->stds[0];
-@@ -1237,7 +1237,7 @@ static void video_close(struct saa7146_dev *dev, struct file *file)
- static void video_irq_done(struct saa7146_dev *dev, unsigned long st)
- {
- 	struct saa7146_vv *vv = dev->vv_data;
--	struct saa7146_dmaqueue *q = &vv->video_q;
-+	struct saa7146_dmaqueue *q = &vv->video_dmaq;
- 
- 	spin_lock(&dev->slock);
- 	DEB_CAP("called\n");
-diff --git a/include/media/saa7146_vv.h b/include/media/saa7146_vv.h
-index e9f434c..2cc32c5 100644
---- a/include/media/saa7146_vv.h
-+++ b/include/media/saa7146_vv.h
-@@ -101,7 +101,7 @@ struct saa7146_fh {
- struct saa7146_vv
- {
- 	/* vbi capture */
--	struct saa7146_dmaqueue		vbi_q;
-+	struct saa7146_dmaqueue		vbi_dmaq;
- 	struct v4l2_vbi_format		vbi_fmt;
- 	struct timer_list		vbi_read_timeout;
- 	/* vbi workaround interrupt queue */
-@@ -119,7 +119,7 @@ struct saa7146_vv
- 	struct saa7146_fh		*ov_suspend;
- 
- 	/* video capture */
--	struct saa7146_dmaqueue		video_q;
-+	struct saa7146_dmaqueue		video_dmaq;
- 	struct v4l2_pix_format		video_fmt;
- 	enum v4l2_field			last_field;
- 
--- 
-1.7.10
+I love lifetime rules.
 
+Dave.
