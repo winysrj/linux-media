@@ -1,88 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:51689 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755223Ab2EHQ2l (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 May 2012 12:28:41 -0400
-Received: by bkcji2 with SMTP id ji2so4793758bkc.19
-        for <linux-media@vger.kernel.org>; Tue, 08 May 2012 09:28:40 -0700 (PDT)
-From: "Igor M. Liplianin" <liplianin@me.by>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Terratec Cinergy S2 USB HD Rev.2
-Date: Tue, 08 May 2012 19:28:47 +0300
-Message-ID: <4473281.HKDuWdYvZs@useri>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:33289 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751875Ab2EVSZK convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 22 May 2012 14:25:10 -0400
+Date: Tue, 22 May 2012 20:25:04 +0200
+From: =?iso-8859-1?Q?Llu=EDs?= Batlle i Rossell <viric@viric.name>
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: Paulo Assis <pj.assis@gmail.com>, linux-media@vger.kernel.org
+Subject: Re: Problems with the gspca_ov519 driver
+Message-ID: <20120522182504.GD1927@vicerveza.homeunix.net>
+References: <20120522110018.GX1927@vicerveza.homeunix.net>
+ <CAPueXH6uN4UQO_WL_pc9wBoZV=v_7AVtQKcruKY=BCMeJOw-2Q@mail.gmail.com>
+ <4FBBA515.7010006@redhat.com>
+ <20120522152703.GA1927@vicerveza.homeunix.net>
+ <4FBBBEA2.5050200@redhat.com>
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="nextPart58111857.oOTXLxZvOp"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+In-Reply-To: <4FBBBEA2.5050200@redhat.com>
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Tue, May 22, 2012 at 06:28:18PM +0200, Hans de Goede wrote:
+> On 05/22/2012 05:27 PM, Lluís Batlle i Rossell wrote:
+> >Is this over linux 3.4 mainline? Because I can't get the patch applied over it.
+> 
+> No it is against:
+> http://git.linuxtv.org/media_tree.git/shortlog/refs/heads/staging/for_v3.5
+> 
+> But it should be trivial to backport, the patch is only 3 lines.
 
---nextPart58111857.oOTXLxZvOp
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Hello,
 
-Terratec Cinergy S2 USB HD Rev.2 support.
 
-Signed-off-by: Igor M. Liplianin <liplianin@me.by>
---nextPart58111857.oOTXLxZvOp
-Content-Disposition: inline; filename="TERR_S2_R2.patch"
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/x-patch; charset="utf-8"; name="TERR_S2_R2.patch"
+I ported your patch to 3.4, and it works for me. I can stream off and on as I
+can with other cameras.
 
-diff --git a/drivers/media/dvb/dvb-usb/dw2102.c b/drivers/media/dvb/dvb-usb/dw2102.c
-index 7ced62d..9a7a333 100644
---- a/drivers/media/dvb/dvb-usb/dw2102.c
-+++ b/drivers/media/dvb/dvb-usb/dw2102.c
-@@ -1243,6 +1243,13 @@ static int su3000_frontend_attach(struct dvb_usb_adapter *d)
- {
- 	u8 obuf[3] = { 0xe, 0x80, 0 };
- 	u8 ibuf[] = { 0 };
-+	
-+	if (dvb_usb_generic_rw(d->dev, obuf, 3, ibuf, 1, 0) < 0)
-+		err("command 0x0e transfer failed.");
-+
-+	obuf[0] = 0xe;
-+	obuf[1] = 0x02;
-+	obuf[2] = 1;
- 
- 	if (dvb_usb_generic_rw(d->dev, obuf, 3, ibuf, 1, 0) < 0)
- 		err("command 0x0e transfer failed.");
-@@ -1536,6 +1543,7 @@ enum dw2102_table_entry {
- 	X3M_SPC1400HD,
- 	TEVII_S421,
- 	TEVII_S632,
-+	TERRATEC_CINERGY_S2_R2,
- };
- 
- static struct usb_device_id dw2102_table[] = {
-@@ -1556,6 +1564,7 @@ static struct usb_device_id dw2102_table[] = {
- 	[X3M_SPC1400HD] = {USB_DEVICE(0x1f4d, 0x3100)},
- 	[TEVII_S421] = {USB_DEVICE(0x9022, USB_PID_TEVII_S421)},
- 	[TEVII_S632] = {USB_DEVICE(0x9022, USB_PID_TEVII_S632)},
-+	[TERRATEC_CINERGY_S2_R2] = {USB_DEVICE(USB_VID_TERRATEC, 0x00b0)},
- 	{ }
- };
- 
-@@ -1957,7 +1966,7 @@ static struct dvb_usb_device_properties su3000_properties = {
- 		}},
- 		}
- 	},
--	.num_device_descs = 3,
-+	.num_device_descs = 4,
- 	.devices = {
- 		{ "SU3000HD DVB-S USB2.0",
- 			{ &dw2102_table[GENIATECH_SU3000], NULL },
-@@ -1971,6 +1980,10 @@ static struct dvb_usb_device_properties su3000_properties = {
- 			{ &dw2102_table[X3M_SPC1400HD], NULL },
- 			{ NULL },
- 		},
-+		{ "Terratec Cinergy S2 USB HD Rev.2",
-+			{ &dw2102_table[TERRATEC_CINERGY_S2_R2], NULL },
-+			{ NULL },
-+		},
- 	}
- };
- 
---nextPart58111857.oOTXLxZvOp--
+Thank you,
+Lluís.
 
+> >On Tue, May 22, 2012 at 04:39:17PM +0200, Hans de Goede wrote:
+> >>Hi,
+> >>
+> >>On 05/22/2012 04:08 PM, Paulo Assis wrote:
+> >>>Hi,
+> >>>This bug also causes the camera to crash when changing fps in
+> >>>guvcview, uvc devices (at least all the ones I tested) require the
+> >>>stream to be restarted for fps to change, so in the case of this
+> >>>driver after STREAMOFF the camera just becomes unresponsive.
+> >>>
+> >>>Regards,
+> >>>Paulo
+> >>>
+> >>>2012/5/22 Lluís Batlle i Rossell<viric@viric.name>:
+> >>>>Hello,
+> >>>>
+> >>>>I'm trying to get video using v4l2 ioctls from a gspca_ov519 camera, and after
+> >>>>STREAMOFF all buffers are still flagged as QUEUED, and QBUF fails.  DQBUF also
+> >>>>fails (blocking for a 3 sec timeout), after streamoff. So I'm stuck, after
+> >>>>STREAMOFF, unable to get pictures coming in again. (Linux 3.3.5).
+> >>>>
+> >>>>As an additional note, pinchartl on irc #v4l says to favour a moving of gspca to
+> >>>>vb2. I don't know what it means.
+> >>>>
+> >>>>Can someone take care of the bug, or should I consider the camera 'non working'
+> >>>>in linux?
+> >>
+> >>We talked about this on irc, attached it a patch which should fix this, feedback
+> >>appreciated.
+> >>
+> >>Regards,
+> >>
+> >>Hans
+> >
+> >> From b0eefa00c72e9dfe9eaa5f425c0d346b19ea01cd Mon Sep 17 00:00:00 2001
+> >>From: Hans de Goede<hdegoede@redhat.com>
+> >>Date: Tue, 22 May 2012 16:24:05 +0200
+> >>Subject: [PATCH] gspca-core: Fix buffers staying in queued state after a
+> >>  stream_off
+> >>
+> >>Signed-off-by: Hans de Goede<hdegoede@redhat.com>
+> >>---
+> >>  drivers/media/video/gspca/gspca.c |    4 +++-
+> >>  1 file changed, 3 insertions(+), 1 deletion(-)
+> >>
+> >>diff --git a/drivers/media/video/gspca/gspca.c b/drivers/media/video/gspca/gspca.c
+> >>index 137166d..31721ea 100644
+> >>--- a/drivers/media/video/gspca/gspca.c
+> >>+++ b/drivers/media/video/gspca/gspca.c
+> >>@@ -1653,7 +1653,7 @@ static int vidioc_streamoff(struct file *file, void *priv,
+> >>  				enum v4l2_buf_type buf_type)
+> >>  {
+> >>  	struct gspca_dev *gspca_dev = video_drvdata(file);
+> >>-	int ret;
+> >>+	int i, ret;
+> >>
+> >>  	if (buf_type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+> >>  		return -EINVAL;
+> >>@@ -1678,6 +1678,8 @@ static int vidioc_streamoff(struct file *file, void *priv,
+> >>  	wake_up_interruptible(&gspca_dev->wq);
+> >>
+> >>  	/* empty the transfer queues */
+> >>+	for (i = 0; i<  gspca_dev->nframes; i++)
+> >>+		gspca_dev->frame[i].v4l2_buf.flags&= ~BUF_ALL_FLAGS;
+> >>  	atomic_set(&gspca_dev->fr_q, 0);
+> >>  	atomic_set(&gspca_dev->fr_i, 0);
+> >>  	gspca_dev->fr_o = 0;
+> >>--
+> >>1.7.10
+> >>
+> >
+> >--
+> >To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> >the body of a message to majordomo@vger.kernel.org
+> >More majordomo info at  http://vger.kernel.org/majordomo-info.html
