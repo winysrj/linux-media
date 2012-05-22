@@ -1,43 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:46876 "EHLO
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:16946 "EHLO
 	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753413Ab2EYK2m (ORCPT
+	with ESMTP id S1751505Ab2EVNrS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 May 2012 06:28:42 -0400
+	Tue, 22 May 2012 09:47:18 -0400
+Received: from eusync4.samsung.com (mailout1.w1.samsung.com [210.118.77.11])
+ by mailout1.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0M4F00JQYFIXEP@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 22 May 2012 14:44:57 +0100 (BST)
+Received: from [106.116.48.223] by eusync4.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTPA id <0M4F00DAKFMQ9T00@eusync4.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 22 May 2012 14:47:16 +0100 (BST)
+Date: Tue, 22 May 2012 15:47:12 +0200
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: Re: [PATCH] dma-buf: add get_dma_buf()
+In-reply-to: <1331913881-13105-1-git-send-email-rob.clark@linaro.org>
+To: Rob Clark <rob.clark@linaro.org>
+Cc: linaro-mm-sig@lists.linaro.org, dri-devel@lists.freedesktop.org,
+	linux-media@vger.kernel.org, patches@linaro.org,
+	sumit.semwal@linaro.org, daniel@ffwll.ch, airlied@redhat.com,
+	Rob Clark <rob@ti.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	=?UTF-8?B?J+uwleqyveuvvCc=?= <kyungmin.park@samsung.com>,
+	InKi Dae <daeinki@gmail.com>
+Message-id: <4FBB98E0.8040600@samsung.com>
 MIME-version: 1.0
 Content-type: text/plain; charset=UTF-8
-Received: from euspt2 (mailout1.w1.samsung.com [210.118.77.11])
- by mailout1.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0M4K006UYQGM3F80@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 25 May 2012 11:29:10 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0M4K00I08QFQDC@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 25 May 2012 11:28:38 +0100 (BST)
-Date: Fri, 25 May 2012 12:28:40 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [PATCH 2/3] [media] s5p-fimc: Fix compiler warning in
- fimc-capture.c file
-In-reply-to: <1337927380-4435-2-git-send-email-sachin.kamat@linaro.org>
-To: Sachin Kamat <sachin.kamat@linaro.org>
-Cc: linux-media@vger.kernel.org, mchehab@infradead.org,
-	patches@linaro.org
-Message-id: <4FBF5ED8.9070506@samsung.com>
-Content-transfer-encoding: 8BIT
-References: <1337927380-4435-1-git-send-email-sachin.kamat@linaro.org>
- <1337927380-4435-2-git-send-email-sachin.kamat@linaro.org>
+Content-transfer-encoding: 7BIT
+References: <1331913881-13105-1-git-send-email-rob.clark@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/25/2012 08:29 AM, Sachin Kamat wrote:
-> drivers/media/video/s5p-fimc/fimc-capture.c: In function ‘fimc_cap_streamon’:
-> drivers/media/video/s5p-fimc/fimc-capture.c:1053:29: warning: ignoring return
-> value of ‘media_entity_pipeline_start’, declared with attribute warn_unused_result [-Wunused-result]
-> 
-> Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+Hi,
+I think I discovered an interesting issue with dma_buf.
+I found out that dma_buf_fd does not increase reference
+count for dma_buf::file. This leads to potential kernel
+crash triggered by user space. Please, take a look on
+the scenario below:
 
-Thanks, I've applied that one, with slightly extended commit message.
+The applications spawns two thread. One of them is exporting DMABUF.
+
+      Thread I         |   Thread II       | Comments
+-----------------------+-------------------+-----------------------------------
+dbuf = dma_buf_export  |                   | dma_buf is creates, refcount is 1
+fd = dma_buf_fd(dbuf)  |                   | assume fd is set to 42, refcount is still 1
+                       |      close(42)    | The file descriptor is closed asynchronously, dbuf's refcount drops to 0
+                       |  dma_buf_release  | dbuf structure is freed, dbuf becomes a dangling pointer
+int size = dbuf->size; |                   | the dbuf is dereferenced, causing a kernel crash
+-----------------------+-------------------+-----------------------------------
+
+I think that the problem could be fixed in two ways.
+a) forcing driver developer to call get_dma_buf just before calling dma_buf_fd.
+b) increasing dma_buf->file's reference count at dma_buf_fd
+
+I prefer solution (b) because it prevents symmetry between dma_buf_fd and close.
+I mean that dma_buf_fd increases reference count, close decreases it.
+
+What is your opinion about the issue?
 
 Regards,
-Sylwester
+Tomasz Stanislawski
+
+
+
+On 03/16/2012 05:04 PM, Rob Clark wrote:
+> From: Rob Clark <rob@ti.com>
+> 
+> Works in a similar way to get_file(), and is needed in cases such as
+> when the exporter needs to also keep a reference to the dmabuf (that
+> is later released with a dma_buf_put()), and possibly other similar
+> cases.
+> 
+> Signed-off-by: Rob Clark <rob@ti.com>
+> ---
