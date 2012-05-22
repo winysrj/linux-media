@@ -1,88 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:31983 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757194Ab2EYMMs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 May 2012 08:12:48 -0400
-Message-ID: <4FBF773B.10408@redhat.com>
-Date: Fri, 25 May 2012 09:12:43 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:36492 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751964Ab2EVP1L convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 22 May 2012 11:27:11 -0400
+Date: Tue, 22 May 2012 17:27:03 +0200
+From: =?iso-8859-1?Q?Llu=EDs?= Batlle i Rossell <viric@viric.name>
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: Paulo Assis <pj.assis@gmail.com>, linux-media@vger.kernel.org
+Subject: Re: Problems with the gspca_ov519 driver
+Message-ID: <20120522152703.GA1927@vicerveza.homeunix.net>
+References: <20120522110018.GX1927@vicerveza.homeunix.net>
+ <CAPueXH6uN4UQO_WL_pc9wBoZV=v_7AVtQKcruKY=BCMeJOw-2Q@mail.gmail.com>
+ <4FBBA515.7010006@redhat.com>
 MIME-Version: 1.0
-To: Linus Torvalds <torvalds@linux-foundation.org>
-CC: Andrew Morton <akpm@linux-foundation.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Subject: Re: [GIT PULL for v3.5-rc1] media updates for v3.5
-References: <4FBE5518.5090705@redhat.com> <CA+55aFyt2OFOsr5uCpQ6nrur4zhHhmWUJrvMgLH_Wy1niTbC6w@mail.gmail.com> <4FBEB72D.4040905@redhat.com> <CA+55aFyYQkrtgvG99ZOOhAzoKi8w5rJfRgZQy3Dqs39p1n=FPA@mail.gmail.com>
-In-Reply-To: <CA+55aFyYQkrtgvG99ZOOhAzoKi8w5rJfRgZQy3Dqs39p1n=FPA@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+In-Reply-To: <4FBBA515.7010006@redhat.com>
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 24-05-2012 19:40, Linus Torvalds escreveu:
-> On Thu, May 24, 2012 at 3:33 PM, Mauro Carvalho Chehab
-> <mchehab@redhat.com> wrote:
->>
->> The Kconfig default for DVB_FE_CUSTOMISE is 'n'. So, if no DVB bridge is selected,
->> nothing will be compiled.
-> 
-> Sadly, it looks like the default for distro kernels is 'y'.
-
-I'll change the default on Fedora (f16/f17/rawhide).
-
-> Which means that if you start with a distro kernel config, and then
-> try to cut it down to match your system, you end up screwed in the
-> future - all the new hardware will default to on.
-> 
-> At least that's how I noticed it. Very annoying.
-
-A simple way to solve it seems to make those options dependent on CONFIG_EXPERT.
-
-Not sure if all usual distributions disable it, but I guess most won't have
-EXPERT enabled.
-
-The enclosed patch does that. If nobody complains, I'll submit it together
-with the next git pull request.
+Is this over linux 3.4 mainline? Because I can't get the patch applied over it.
 
 Regards,
-Mauro
+Lluís.
 
--
+On Tue, May 22, 2012 at 04:39:17PM +0200, Hans de Goede wrote:
+> Hi,
+> 
+> On 05/22/2012 04:08 PM, Paulo Assis wrote:
+> >Hi,
+> >This bug also causes the camera to crash when changing fps in
+> >guvcview, uvc devices (at least all the ones I tested) require the
+> >stream to be restarted for fps to change, so in the case of this
+> >driver after STREAMOFF the camera just becomes unresponsive.
+> >
+> >Regards,
+> >Paulo
+> >
+> >2012/5/22 Lluís Batlle i Rossell<viric@viric.name>:
+> >>Hello,
+> >>
+> >>I'm trying to get video using v4l2 ioctls from a gspca_ov519 camera, and after
+> >>STREAMOFF all buffers are still flagged as QUEUED, and QBUF fails.  DQBUF also
+> >>fails (blocking for a 3 sec timeout), after streamoff. So I'm stuck, after
+> >>STREAMOFF, unable to get pictures coming in again. (Linux 3.3.5).
+> >>
+> >>As an additional note, pinchartl on irc #v4l says to favour a moving of gspca to
+> >>vb2. I don't know what it means.
+> >>
+> >>Can someone take care of the bug, or should I consider the camera 'non working'
+> >>in linux?
+> 
+> We talked about this on irc, attached it a patch which should fix this, feedback
+> appreciated.
+> 
+> Regards,
+> 
+> Hans
 
-[RFC PATCH] Make tuner/frontend options dependent on EXPERT
+> From b0eefa00c72e9dfe9eaa5f425c0d346b19ea01cd Mon Sep 17 00:00:00 2001
+> From: Hans de Goede <hdegoede@redhat.com>
+> Date: Tue, 22 May 2012 16:24:05 +0200
+> Subject: [PATCH] gspca-core: Fix buffers staying in queued state after a
+>  stream_off
+> 
+> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+> ---
+>  drivers/media/video/gspca/gspca.c |    4 +++-
+>  1 file changed, 3 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/video/gspca/gspca.c b/drivers/media/video/gspca/gspca.c
+> index 137166d..31721ea 100644
+> --- a/drivers/media/video/gspca/gspca.c
+> +++ b/drivers/media/video/gspca/gspca.c
+> @@ -1653,7 +1653,7 @@ static int vidioc_streamoff(struct file *file, void *priv,
+>  				enum v4l2_buf_type buf_type)
+>  {
+>  	struct gspca_dev *gspca_dev = video_drvdata(file);
+> -	int ret;
+> +	int i, ret;
+>  
+>  	if (buf_type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+>  		return -EINVAL;
+> @@ -1678,6 +1678,8 @@ static int vidioc_streamoff(struct file *file, void *priv,
+>  	wake_up_interruptible(&gspca_dev->wq);
+>  
+>  	/* empty the transfer queues */
+> +	for (i = 0; i < gspca_dev->nframes; i++)
+> +		gspca_dev->frame[i].v4l2_buf.flags &= ~BUF_ALL_FLAGS;
+>  	atomic_set(&gspca_dev->fr_q, 0);
+>  	atomic_set(&gspca_dev->fr_i, 0);
+>  	gspca_dev->fr_o = 0;
+> -- 
+> 1.7.10
+> 
 
-The media CUSTOMISE options are there to allow embedded systems and advanced
-users to disable tuner/frontends that are supported by a bridge driver to
-be disabled, in order to save some disk space and memory, when compiled builtin.
-
-However, distros are mistakenly enabling it, causing problems when a
-make oldconfig is used.
-
-Make those options dependent on EXPERT, in order to avoid such annoyance behavior.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-
-diff --git a/drivers/media/common/tuners/Kconfig b/drivers/media/common/tuners/Kconfig
-index bbf4945..702a3bf 100644
---- a/drivers/media/common/tuners/Kconfig
-+++ b/drivers/media/common/tuners/Kconfig
-@@ -35,6 +35,7 @@ config MEDIA_TUNER
- config MEDIA_TUNER_CUSTOMISE
- 	bool "Customize analog and hybrid tuner modules to build"
- 	depends on MEDIA_TUNER
-+	depends on EXPERT
- 	default y if EXPERT
- 	help
- 	  This allows the user to deselect tuner drivers unnecessary
-diff --git a/drivers/media/dvb/frontends/Kconfig b/drivers/media/dvb/frontends/Kconfig
-index b98ebb2..6d3c2f7 100644
---- a/drivers/media/dvb/frontends/Kconfig
-+++ b/drivers/media/dvb/frontends/Kconfig
-@@ -1,6 +1,7 @@
- config DVB_FE_CUSTOMISE
- 	bool "Customise the frontend modules to build"
- 	depends on DVB_CORE
-+	depends on EXPERT
- 	default y if EXPERT
- 	help
- 	  This allows the user to select/deselect frontend drivers for their
