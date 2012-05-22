@@ -1,95 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from plane.gmane.org ([80.91.229.3]:36182 "EHLO plane.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754081Ab2ECQHH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 3 May 2012 12:07:07 -0400
-Received: from list by plane.gmane.org with local (Exim 4.69)
-	(envelope-from <gldv-linux-media@m.gmane.org>)
-	id 1SPyYW-0007dY-Aa
-	for linux-media@vger.kernel.org; Thu, 03 May 2012 18:07:00 +0200
-Received: from d67-193-214-242.home3.cgocable.net ([67.193.214.242])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Thu, 03 May 2012 18:07:00 +0200
-Received: from brian by d67-193-214-242.home3.cgocable.net with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Thu, 03 May 2012 18:07:00 +0200
-To: linux-media@vger.kernel.org
-From: "Brian J. Murrell" <brian@interlinx.bc.ca>
-Subject: Re: HVR-1600 QAM recordings with slight glitches in them
-Date: Thu, 03 May 2012 12:06:46 -0400
-Message-ID: <4FA2AD16.6080807@interlinx.bc.ca>
-References: <jn2ibp$pot$1@dough.gmane.org> <1335307344.8218.11.camel@palomino.walls.org> <jn7pph$qed$1@dough.gmane.org> <1335624964.2665.37.camel@palomino.walls.org> <4F9C38BE.3010301@interlinx.bc.ca> <4F9C559E.6010208@interlinx.bc.ca> <4F9C6D68.3090202@interlinx.bc.ca> <CAAMvbhH2o6SZVBU4D2dvUUVuOhtzLdO-R=TCuug7Y9hgZq2gmg@mail.gmail.com> <CAGoCfiwB2jZfeZ2aSQ7FSG-k5XDGJY_ykLPSD3Y3rbrUXmuOdg@mail.gmail.com> <4FA1FBB5.8050106@interlinx.bc.ca> <CAGoCfixTLjnW=q+SHiiRzXaFtqp56Ng5nRMn-u1YfZ1f-zmtwA@mail.gmail.com> <e2d13409-d6fc-47aa-9597-727dd6f7c3ec@email.android.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="------------enigE304EA8C3DC31B5EBEA4FD1B"
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	stoth@kernellabs.com
-In-Reply-To: <e2d13409-d6fc-47aa-9597-727dd6f7c3ec@email.android.com>
+Received: from mail-vb0-f46.google.com ([209.85.212.46]:44199 "EHLO
+	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753324Ab2EVRhs convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 22 May 2012 13:37:48 -0400
+Received: by vbbff1 with SMTP id ff1so4060195vbb.19
+        for <linux-media@vger.kernel.org>; Tue, 22 May 2012 10:37:48 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <CAPM=9tyd4sx_RiKSXThzAocC5xC7NAhQB+HVmvoxXCLvWodU-w@mail.gmail.com>
+References: <1331913881-13105-1-git-send-email-rob.clark@linaro.org>
+	<4FBB98E0.8040600@samsung.com>
+	<20120522143234.GC4629@phenom.ffwll.local>
+	<4FBBAA0F.6090503@samsung.com>
+	<CAKMK7uGwAo48cGpevwfjcnvMkNiimsq0nwkZJT6cSsGWP8FRWw@mail.gmail.com>
+	<CAPM=9tyd4sx_RiKSXThzAocC5xC7NAhQB+HVmvoxXCLvWodU-w@mail.gmail.com>
+Date: Tue, 22 May 2012 11:37:48 -0600
+Message-ID: <CAN_cFWNu-VbqbeEOseq7pa-3+R8MdwK+nVADc7XAq5CL0nEtpw@mail.gmail.com>
+Subject: Re: [PATCH] dma-buf: add get_dma_buf()
+From: Rob Clark <rob.clark@linaro.org>
+To: Dave Airlie <airlied@gmail.com>
+Cc: Daniel Vetter <daniel@ffwll.ch>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	patches@linaro.org, dri-devel@lists.freedesktop.org,
+	linaro-mm-sig@lists.linaro.org,
+	=?UTF-8?B?67CV6rK966+8?= <kyungmin.park@samsung.com>,
+	Rob Clark <rob@ti.com>, airlied@redhat.com,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	sumit.semwal@linaro.org, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enigE304EA8C3DC31B5EBEA4FD1B
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
-
-On 12-05-03 11:37 AM, Andy Walls wrote:
-> Devin Heitmueller <dheitmueller@kernellabs.com> wrote:
+On Tue, May 22, 2012 at 9:13 AM, Dave Airlie <airlied@gmail.com> wrote:
+> On Tue, May 22, 2012 at 4:05 PM, Daniel Vetter <daniel@ffwll.ch> wrote:
+>> On Tue, May 22, 2012 at 5:00 PM, Tomasz Stanislawski
+>> <t.stanislaws@samsung.com> wrote:
+>>> On 05/22/2012 04:32 PM, Daniel Vetter wrote:
+>>>> On Tue, May 22, 2012 at 03:47:12PM +0200, Tomasz Stanislawski wrote:
+>>>>> Hi,
+>>>>> I think I discovered an interesting issue with dma_buf.
+>>>>> I found out that dma_buf_fd does not increase reference
+>>>>> count for dma_buf::file. This leads to potential kernel
+>>>>> crash triggered by user space. Please, take a look on
+>>>>> the scenario below:
+>>>>>
+>>>>> The applications spawns two thread. One of them is exporting DMABUF.
+>>>>>
+>>>>>       Thread I         |   Thread II       | Comments
+>>>>> -----------------------+-------------------+-----------------------------------
+>>>>> dbuf = dma_buf_export  |                   | dma_buf is creates, refcount is 1
+>>>>> fd = dma_buf_fd(dbuf)  |                   | assume fd is set to 42, refcount is still 1
+>>>>>                        |      close(42)    | The file descriptor is closed asynchronously, dbuf's refcount drops to 0
+>>>>>                        |  dma_buf_release  | dbuf structure is freed, dbuf becomes a dangling pointer
+>>>>> int size = dbuf->size; |                   | the dbuf is dereferenced, causing a kernel crash
+>>>>> -----------------------+-------------------+-----------------------------------
+>>>>>
+>>>>> I think that the problem could be fixed in two ways.
+>>>>> a) forcing driver developer to call get_dma_buf just before calling dma_buf_fd.
+>>>>> b) increasing dma_buf->file's reference count at dma_buf_fd
+>>>>>
+>>>>> I prefer solution (b) because it prevents symmetry between dma_buf_fd and close.
+>>>>> I mean that dma_buf_fd increases reference count, close decreases it.
+>>>>>
+>>>>> What is your opinion about the issue?
+>>>>
+>>>> I guess most exporters would like to hang onto the exported dma_buf a bit
+>>>> and hence need a reference (e.g. to cache the dma_buf as long as the
+>>>> underlying buffer object exists). So I guess we can change the semantics
+>>>> of dma_buf_fd from transferring the reference you currently have (and
+>>>> hence forbidding any further access by the caller) to grabbing a reference
+>>>> of it's on for the fd that is created.
+>>>> -Daniel
+>>>
+>>> Hi Daniel,
+>>> Would it be simpler, safer and more intuitive if dma_buf_fd increased
+>>> dmabuf->file's reference counter?
 >>
->> Also, which version of the HVR-1600 is this?  The one with the
->> mxl5005s or the tda18271?  You can check the dmesg output to tell (and=
+>> That's actually what I wanted to say. Message seems to have been lost
+>> in transit ;-)
+>
+> Now I've thought about it and Tomasz has pointed it out I agree,
+>
+> Now we just have to work out when to drop that reference, which I
+> don't see anyone addressing :-)
+>
+> I love lifetime rules.
 
->> if you cannot tell, please pastebin the dmesg output so I can look).
+I think in the GEM case, where we keep a ref in obj->export_dma_buf,
+we can drop the extra ref to the dmabuf (if we decide dma_buf_fd()
+increases the refcnt), as long as we be sure to NULL out
+obj->export_dma_buf from dmabuf_ops->release (which is unfortunately
+in each driver at the moment)..  This way obj->export_dma_buf behaves
+as a sort of weak-reference, not causing a memory leak.
 
-http://brian.interlinx.bc.ca/hvr-1600-dmesg
+BR,
+-R
 
-> IIRC, Brian had a MXL5005s/S5H1409 variant.
-
-The latter part sounds familiar from femon and gnutv.
-
-
-> I think Brian might have a bad cable or connector or splitter in the ru=
-n feeding the hvr1600.
-
-
-The same 4-way splitter fed the HVR-950Q and the HVR-1600 and cables
-were swapped just about every way they could be to try to get the
-HVR-1600's SNR up.
-
-But as I mentioned before, it's now completely non-functional due to the
-coax connector on the card having become loose enough to turn (with some
-effort, so screwing an female F-connector on/off was still quite
-doable).  Perhaps it was marginal before due to that same problem.  I
-guess I will never know... unless I try cracking this thing open and
-reconnecting whatever has gotten disconnected -- if Hauppage won't RMA
-it for me.  They seem to be pretty silent about that now though after an
-initial e-mail exchange.
-
-If not, I've got my eye on a KWorld UB435-Q if I can determine that it's
-a hardware rev. 1 unit somehow since the store doesn't want to take it
-out of the box to check for me.  It's less than half the price of an
-HVR-950Q at $40, as much as I would love to stay loyal with Hauppage --
-this coax connector on my HVR-1600 coming loose, aside.
-
-Cheers,
-b.
-
-
---------------enigE304EA8C3DC31B5EBEA4FD1B
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
-
-iEYEARECAAYFAk+irRgACgkQl3EQlGLyuXCKnACeJP4RPdqDn7KczyLHXX2+k3BR
-xloAoJhtO+1AewbN/hHmO+8uPH7KBu0j
-=Bgiu
------END PGP SIGNATURE-----
-
---------------enigE304EA8C3DC31B5EBEA4FD1B--
-
+> Dave.
