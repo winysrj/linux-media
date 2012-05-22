@@ -1,66 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:56232 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-FAIL-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753360Ab2E1P6u (ORCPT
+Received: from mail-wg0-f44.google.com ([74.125.82.44]:35486 "EHLO
+	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753040Ab2EVObR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 May 2012 11:58:50 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [media-ctl PATCH 1/1] media-ctl: Compose print fixes
-Date: Mon, 28 May 2012 17:58:35 +0200
-Message-ID: <1370836.N3WTkptTkm@avalon>
-In-Reply-To: <1338050597-19251-1-git-send-email-sakari.ailus@iki.fi>
-References: <1338050597-19251-1-git-send-email-sakari.ailus@iki.fi>
+	Tue, 22 May 2012 10:31:17 -0400
+Received: by wgbdr13 with SMTP id dr13so6141993wgb.1
+        for <linux-media@vger.kernel.org>; Tue, 22 May 2012 07:31:16 -0700 (PDT)
+Date: Tue, 22 May 2012 16:32:34 +0200
+From: Daniel Vetter <daniel@ffwll.ch>
+To: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Cc: Rob Clark <rob.clark@linaro.org>, linaro-mm-sig@lists.linaro.org,
+	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+	patches@linaro.org, sumit.semwal@linaro.org, daniel@ffwll.ch,
+	airlied@redhat.com, Rob Clark <rob@ti.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	=?utf-8?B?J+uwleqyveuvvCc=?= <kyungmin.park@samsung.com>,
+	InKi Dae <daeinki@gmail.com>
+Subject: Re: [PATCH] dma-buf: add get_dma_buf()
+Message-ID: <20120522143234.GC4629@phenom.ffwll.local>
+References: <1331913881-13105-1-git-send-email-rob.clark@linaro.org>
+ <4FBB98E0.8040600@samsung.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4FBB98E0.8040600@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+On Tue, May 22, 2012 at 03:47:12PM +0200, Tomasz Stanislawski wrote:
+> Hi,
+> I think I discovered an interesting issue with dma_buf.
+> I found out that dma_buf_fd does not increase reference
+> count for dma_buf::file. This leads to potential kernel
+> crash triggered by user space. Please, take a look on
+> the scenario below:
+> 
+> The applications spawns two thread. One of them is exporting DMABUF.
+> 
+>       Thread I         |   Thread II       | Comments
+> -----------------------+-------------------+-----------------------------------
+> dbuf = dma_buf_export  |                   | dma_buf is creates, refcount is 1
+> fd = dma_buf_fd(dbuf)  |                   | assume fd is set to 42, refcount is still 1
+>                        |      close(42)    | The file descriptor is closed asynchronously, dbuf's refcount drops to 0
+>                        |  dma_buf_release  | dbuf structure is freed, dbuf becomes a dangling pointer
+> int size = dbuf->size; |                   | the dbuf is dereferenced, causing a kernel crash
+> -----------------------+-------------------+-----------------------------------
+> 
+> I think that the problem could be fixed in two ways.
+> a) forcing driver developer to call get_dma_buf just before calling dma_buf_fd.
+> b) increasing dma_buf->file's reference count at dma_buf_fd
+> 
+> I prefer solution (b) because it prevents symmetry between dma_buf_fd and close.
+> I mean that dma_buf_fd increases reference count, close decreases it.
+> 
+> What is your opinion about the issue?
 
-On Saturday 26 May 2012 19:43:16 Sakari Ailus wrote:
-> The compose rectangles were printed incorrectly in my recent patch "Compose
-> rectangle support for libv4l2subdev" without parenthesis. Fix this.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> ---
-> Hi Laurent,
-> 
-> Could you apply this simple fix to your tree? Currently the compose
-> rectangles are printed differently than the crop rectangles which certainly
-> isn't the intention.
-
-Done, thank you.
-
->  src/main.c |    4 ++--
->  1 files changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/src/main.c b/src/main.c
-> index af16818..d10094b 100644
-> --- a/src/main.c
-> +++ b/src/main.c
-> @@ -81,14 +81,14 @@ static void v4l2_subdev_print_format(struct media_entity
-> *entity, V4L2_SUBDEV_SEL_TGT_COMPOSE_BOUNDS,
->  					which);
->  	if (ret == 0)
-> -		printf("\n\t\t compose.bounds:%u,%u/%ux%u",
-> +		printf("\n\t\t compose.bounds:(%u,%u)/%ux%u",
->  		       rect.left, rect.top, rect.width, rect.height);
-> 
->  	ret = v4l2_subdev_get_selection(entity, &rect, pad,
->  					V4L2_SUBDEV_SEL_TGT_COMPOSE_ACTUAL,
->  					which);
->  	if (ret == 0)
-> -		printf("\n\t\t compose:%u,%u/%ux%u",
-> +		printf("\n\t\t compose:(%u,%u)/%ux%u",
->  		       rect.left, rect.top, rect.width, rect.height);
-> 
->  	printf("]\n");
-
+I guess most exporters would like to hang onto the exported dma_buf a bit
+and hence need a reference (e.g. to cache the dma_buf as long as the
+underlying buffer object exists). So I guess we can change the semantics
+of dma_buf_fd from transferring the reference you currently have (and
+hence forbidding any further access by the caller) to grabbing a reference
+of it's on for the fd that is created.
+-Daniel
 -- 
-Regards,
-
-Laurent Pinchart
-
+Daniel Vetter
+Mail: daniel@ffwll.ch
+Mobile: +41 (0)79 365 57 48
