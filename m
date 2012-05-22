@@ -1,160 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f178.google.com ([209.85.212.178]:58939 "EHLO
-	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755241Ab2EIVCy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 May 2012 17:02:54 -0400
-Received: by wibhn19 with SMTP id hn19so768561wib.1
-        for <linux-media@vger.kernel.org>; Wed, 09 May 2012 14:02:53 -0700 (PDT)
-Message-ID: <1336597364.16044.15.camel@router7789>
-Subject: Re: [PATCH] [TEST] Regarding m88rc2000 i2c gate operation, SNR, BER
- and others
-From: Malcolm Priestley <tvboxspy@gmail.com>
-To: "Igor M. Liplianin" <liplianin@me.by>
-Cc: linux-media@vger.kernel.org
-Date: Wed, 09 May 2012 22:02:44 +0100
-In-Reply-To: <1682436.JdK20qceHM@useri>
-References: <1682436.JdK20qceHM@useri>
-Content-Type: text/plain; charset="UTF-8"
+Received: from mail-gg0-f174.google.com ([209.85.161.174]:51944 "EHLO
+	mail-gg0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751875Ab2EVUeH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 22 May 2012 16:34:07 -0400
+Received: by gglu4 with SMTP id u4so5833555ggl.19
+        for <linux-media@vger.kernel.org>; Tue, 22 May 2012 13:34:07 -0700 (PDT)
+Message-ID: <4FBBF83C.8040201@gmail.com>
+Date: Tue, 22 May 2012 16:34:04 -0400
+From: Bob Lightfoot <boblfoot@gmail.com>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org, atrpms-users@atrpms.net
+Subject: HVR1600 and Centos 6.2 x86_64 -- Strange Behavior
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 2012-05-09 at 04:54 -0700, Igor M. Liplianin wrote:
-> Malcolm,
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+Dear LinuxTv and AtRpms Communities:
+     In the most recent three kernels {2.6.32-220.7.1 ;
+2.6.32-220.13.1 ; 2.6.32-220.17.1} released for CentOS 6.2 I have
+experienced what can only be described as a strange behavior of the
+V4L kernel modules with the Hauppage HVR 1600 Card.  If I reboot the
+PC in question {HP Pavillion Elite M9040n} I will lose sound on the
+Analog TV Tuner.  If I Power off the PC, leave it off for 30-60
+seconds and start it back up then I have sound with the Analog TV
+Tuner every time.  Not sure what is causing this, but thought the
+condition was worth sharing.
+
+The uname -a response is :
+> Linux mythbox.ladodomain 2.6.32-220.17.1.el6.x86_64 #1 SMP Wed May
+> 16 00:01:37 BST 2012 x86_64 x86_64 x86_64 GNU/Linux
+
+I am presently using the following modules:
+> Name        : lirc-kmdl-2.6.32-220.17.1.el6  Relocations: (not
+> relocatable) Version     : 0.9.0
+> Vendor: ATrpms.net Release     : 89.el6
+> Build Date: Thu 17 May 2012 06:08:44 PM EDT Install Date: Mon 21
+> May 2012 04:26:24 PM EDT      Build Host: flocki.atrpms.net Group
+> : System Environment/Kernel     Source RPM:
+> lirc-0.9.0-89.el6.src.rpm Size        : 261184
+> License: GPL Signature   : DSA/SHA1, Thu 17 May 2012 06:08:45 PM
+> EDT, Key ID 508ce5e666534c2b Packager    : ATrpms
+> <http://ATrpms.net/> Summary     : The Linux Infrared Remote
+> Control (LIRC) kernel drivers Description : LIRC is the Linux
+> Infrared Remote Control package.
 > 
-> I made SNR, BER, UCB and signal level code for m88rc2000, but my cards show 
-> them correctly only if I made changes in m88rs2000_tuner_read function.
-> Analyzing USB logs I found that register 0x81 never set to 0x85 value.
-> It is always set to 0x84 regardless of read or write operation to tuner.
-> I was wondering is this my hardware specific? Can you test you cards with 
-> attached patch?
 > 
-> Igor
-Hi Igor
+> This package contains the lirc kernel modules for the Linux kernel
+> package: kernel-2.6.32-220.17.1.el6.x86_64.x86_64.rpm. Name
+> : nvidia-graphics295.20-kmdl-2.6.32-220.17.1.el6  Relocations: (not
+> relocatable) Version     : 295.20
+> Vendor: ATrpms.net Release     : 142.el6
+> Build Date: Thu 17 May 2012 08:33:01 PM EDT Install Date: Mon 21
+> May 2012 04:26:12 PM EDT      Build Host: flocki.atrpms.net Group
+> : System Environment/Kernel     Source RPM:
+> nvidia-graphics295.20-295.20-142.el6.src.rpm Size        : 17003384
+> License: NVIDIA, distributable Signature   : DSA/SHA1, Thu 17 May
+> 2012 08:33:05 PM EDT, Key ID 508ce5e666534c2b Packager    : ATrpms
+> <http://ATrpms.net/> URL         :
+> http://www.nvidia.com/object/linux_display_ia32_295.20 Summary
+> : Kernel module for NVIDIA graphics architecture support 
+> Description : NVIDIA Architecture support for systems with updated
+> or custom kernels.
+> 
+> 
+> This package contains the nvidia-graphics295.20 kernel modules for
+> the Linux kernel package: 
+> kernel-2.6.32-220.17.1.el6.x86_64.x86_64.rpm. Name        :
+> video4linux-kmdl-2.6.32-220.17.1.el6  Relocations: (not
+> relocatable) Version     : 20111124_223432
+> Vendor: ATrpms.net Release     : 99.el6
+> Build Date: Fri 18 May 2012 05:29:53 AM EDT Install Date: Mon 21
+> May 2012 04:29:55 PM EDT      Build Host: flocki.atrpms.net Group
+> : System Environment/Kernel     Source RPM:
+> video4linux-20111124_223432-99.el6.src.rpm Size        : 13962448
+> License: GPLv2 Signature   : DSA/SHA1, Fri 18 May 2012 05:29:57 AM
+> EDT, Key ID 508ce5e666534c2b Packager    : ATrpms
+> <http://ATrpms.net/> URL         : http://linuxtv.org/v4lwiki/ 
+> Summary     : kernel modules for V4L2 drivers Description :
+> 
+> This package contains the video4linux kernel modules for the Linux
+> kernel package: kernel-2.6.32-220.17.1.el6.x86_64.x86_64.rpm.
 
-I have been testing the patch this evening and have found no problems.
+Sincerely,
+Bob Lightfoot
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.14 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
 
-I just need to create in lmedm04 callbacks for m88rs2000_read_snr and
-m88rs2000_read_ber as these cannot be called while the device is
-streaming. It looks like they are present in the interrupt callback.
-
-Register 0x81 works with either 0x84 or 0x85 on read. What I did notice
-if 0x85 is used on writes the device becomes completely unresponsive and
-needs to be replugged. So it is safer to use 0x84.
-
-I will try and get the patch for lmedm04 ready in the next few days.
-
-Regards
-
-
-Malcolm
-  
-> differences between files attachment (snrber.patch)
-> diff --git a/drivers/media/dvb/frontends/m88rs2000.c b/drivers/media/dvb/frontends/m88rs2000.c
-> index f6d6e39..f5ece59 100644
-> --- a/drivers/media/dvb/frontends/m88rs2000.c
-> +++ b/drivers/media/dvb/frontends/m88rs2000.c
-> @@ -143,7 +143,7 @@ static u8 m88rs2000_demod_read(struct m88rs2000_state *state, u8 reg)
->  
->  static u8 m88rs2000_tuner_read(struct m88rs2000_state *state, u8 reg)
->  {
-> -	m88rs2000_demod_write(state, 0x81, 0x85);
-> +	m88rs2000_demod_write(state, 0x81, 0x84);
->  	udelay(10);
->  	return m88rs2000_readreg(state, 0, reg);
->  }
-> @@ -492,33 +492,81 @@ static int m88rs2000_read_status(struct dvb_frontend *fe, fe_status_t *status)
->  	return 0;
->  }
->  
-> -/* Extact code for these unknown but lmedm04 driver uses interupt callbacks */
-> -
->  static int m88rs2000_read_ber(struct dvb_frontend *fe, u32 *ber)
->  {
-> -	deb_info("m88rs2000_read_ber %d\n", *ber);
-> -	*ber = 0;
-> +	struct m88rs2000_state *state = fe->demodulator_priv;
-> +	u8 tmp0, tmp1;
-> +
-> +	m88rs2000_demod_write(state, 0x9a, 0x30);
-> +	tmp0 = m88rs2000_demod_read(state, 0xd8);
-> +	if ((tmp0 & 0x10) != 0) {
-> +		m88rs2000_demod_write(state, 0x9a, 0xb0);
-> +		*ber = 0xffffffff;
-> +		return 0;
-> +	}
-> +
-> +	*ber = (m88rs2000_demod_read(state, 0xd7) << 8) |
-> +		m88rs2000_demod_read(state, 0xd6);
-> +
-> +	tmp1 = m88rs2000_demod_read(state, 0xd9);
-> +	m88rs2000_demod_write(state, 0xd9, (tmp1 & ~7) | 4);
-> +	/* needs twice */
-> +	m88rs2000_demod_write(state, 0xd8, (tmp0 & ~8) | 0x30);
-> +	m88rs2000_demod_write(state, 0xd8, (tmp0 & ~8) | 0x30);
-> +	m88rs2000_demod_write(state, 0x9a, 0xb0);
-> +
->  	return 0;
->  }
->  
->  static int m88rs2000_read_signal_strength(struct dvb_frontend *fe,
-> -	u16 *strength)
-> +						u16 *signal_strength)
->  {
-> -	*strength = 0;
-> +	struct m88rs2000_state *state = fe->demodulator_priv;
-> +	u8 rfg, bbg, gain, strength;
-> +
-> +	rfg = m88rs2000_tuner_read(state, 0x3d) & 0x1f;
-> +	bbg = m88rs2000_tuner_read(state, 0x21) & 0x1f;
-> +	gain = rfg * 2 + bbg * 3;
-> +
-> +	if (gain > 80)
-> +		strength = 0;
-> +	else if (gain > 65)
-> +		strength = 4 * (80 - gain);
-> +	else if (gain > 50)
-> +		strength = 65 + 4 * (65 - gain) / 3;
-> +	else
-> +		strength = 85 + 2 * (50 - gain) / 3;
-> +
-> +	*signal_strength = strength * 655;
-> +
-> +	deb_info("%s: rfg, bbg / gain = %d, %d, %d\n",
-> +		__func__, rfg, bbg, gain);
-> +
->  	return 0;
->  }
->  
->  static int m88rs2000_read_snr(struct dvb_frontend *fe, u16 *snr)
->  {
-> -	deb_info("m88rs2000_read_snr %d\n", *snr);
-> -	*snr = 0;
-> +	struct m88rs2000_state *state = fe->demodulator_priv;
-> +
-> +	*snr = 512 * m88rs2000_demod_read(state, 0x65);
-> +
->  	return 0;
->  }
->  
->  static int m88rs2000_read_ucblocks(struct dvb_frontend *fe, u32 *ucblocks)
->  {
-> -	deb_info("m88rs2000_read_ber %d\n", *ucblocks);
-> -	*ucblocks = 0;
-> +	struct m88rs2000_state *state = fe->demodulator_priv;
-> +	u8 tmp;
-> +
-> +	*ucblocks = (m88rs2000_demod_read(state, 0xd5) << 8) |
-> +			m88rs2000_demod_read(state, 0xd4);
-> +	tmp = m88rs2000_demod_read(state, 0xd8);
-> +	m88rs2000_demod_write(state, 0xd8, tmp & ~0x20);
-> +	/* needs two times */
-> +	m88rs2000_demod_write(state, 0xd8, tmp | 0x20);
-> +	m88rs2000_demod_write(state, 0xd8, tmp | 0x20);
-> +
->  	return 0;
->  }
->  
-
-
+iQEcBAEBAgAGBQJPu/g8AAoJEKqgpLIhfz3X/l0IAIUNiPa1CvD1msWC/eYVoizn
+lra3mT2mHFJBUWWnBWzCZ1F/cDvzkcVaB95adHMUqDLPNLBYVOIV36XYMKhWuUWv
+ydaikkcNeUFQviZBZgqz5u/R54hlQP3vgVA5oChrYIItWUFtTFDeqPCsjkmKVBlk
+sIeQzF7rOMCuvutk/nD4on2kZPZcmd4mTkSpGiVv7I+6Kk+qPXYY9C48NSX599TM
+GQOd1pkbVMsV/A7nnRsMTCNROYBOS+K4KP0bA6ewKKl+wmwtoJfyCCkeh5g7unIr
+7rSIWy0JRTCsA6joGMXPHsf4pFlJ78sXFU/KOTpUzJ1bF4VCXy0gxwjdkCVm4pE=
+=p0ZF
+-----END PGP SIGNATURE-----
