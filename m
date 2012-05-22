@@ -1,104 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from plane.gmane.org ([80.91.229.3]:60484 "EHLO plane.gmane.org"
+Received: from mx1.redhat.com ([209.132.183.28]:7494 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755524Ab2EKTyR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 May 2012 15:54:17 -0400
-Received: from list by plane.gmane.org with local (Exim 4.69)
-	(envelope-from <gldv-linux-media@m.gmane.org>)
-	id 1SSvuq-0007GF-8p
-	for linux-media@vger.kernel.org; Fri, 11 May 2012 21:54:16 +0200
-Received: from 89-69-21-174.dynamic.chello.pl ([89.69.21.174])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Fri, 11 May 2012 21:54:16 +0200
-Received: from arekm by 89-69-21-174.dynamic.chello.pl with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Fri, 11 May 2012 21:54:16 +0200
-To: linux-media@vger.kernel.org
-From: Arkadiusz =?ISO-8859-2?Q?Mi=B6kiewicz?= <arekm@maven.pl>
-Subject: Re: IT9135 on kernel 3.3.4 and frequent firmware loading problems
-Date: Fri, 11 May 2012 21:54:06 +0200
-Message-ID: <jojqou$sj2$1@dough.gmane.org>
-References: <jojps1$mei$1@dough.gmane.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-2"
-Content-Transfer-Encoding: 8Bit
+	id S1756377Ab2EVOjQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 22 May 2012 10:39:16 -0400
+Message-ID: <4FBBA515.7010006@redhat.com>
+Date: Tue, 22 May 2012 16:39:17 +0200
+From: Hans de Goede <hdegoede@redhat.com>
+MIME-Version: 1.0
+To: Paulo Assis <pj.assis@gmail.com>
+CC: =?ISO-8859-1?Q?Llu=EDs_Batlle_i_Rossell?= <viric@viric.name>,
+	linux-media@vger.kernel.org
+Subject: Re: Problems with the gspca_ov519 driver
+References: <20120522110018.GX1927@vicerveza.homeunix.net> <CAPueXH6uN4UQO_WL_pc9wBoZV=v_7AVtQKcruKY=BCMeJOw-2Q@mail.gmail.com>
+In-Reply-To: <CAPueXH6uN4UQO_WL_pc9wBoZV=v_7AVtQKcruKY=BCMeJOw-2Q@mail.gmail.com>
+Content-Type: multipart/mixed;
+ boundary="------------050007090606060705070500"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Arkadiusz Mi¶kiewicz wrote:
+This is a multi-part message in MIME format.
+--------------050007090606060705070500
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 
-> 
-> Hello.
-> 
-> I'm trying to use it9135 v1 device on 3.3.4 kernel.
-> 
-> Unfortunately most of the time there are problems with loading firmware
-> (udev 182).
-> 
-> Firmware file is there:
-> -rw-r--r-- 1 root root 8128 05-03 21:31 /lib/firmware/dvb-usb-it9135-01.fw
-> 
-> In most cases dmesg log below shows what happens. Sometimes udev also
-> logs:
-> 
-> May 11 21:33:23 serarm udevd[13078]: error: can not open
-> '/sys/devices/pci0000:00/0000:00:13.2/usb2/2-1/firmware/2-1/loading'
-> 
-> Rarely it succeeds. Both logs below. Any ideas/patches to test?
+Hi,
 
-Just figured out that after reloading dvb_usb_it913x and it913x_fe things 
-started to work! Not sure if reloading both drivers was required - I 
-reloaded both and noticed.
+On 05/22/2012 04:08 PM, Paulo Assis wrote:
+> Hi,
+> This bug also causes the camera to crash when changing fps in
+> guvcview, uvc devices (at least all the ones I tested) require the
+> stream to be restarted for fps to change, so in the case of this
+> driver after STREAMOFF the camera just becomes unresponsive.
+>
+> Regards,
+> Paulo
+>
+> 2012/5/22 Lluís Batlle i Rossell<viric@viric.name>:
+>> Hello,
+>>
+>> I'm trying to get video using v4l2 ioctls from a gspca_ov519 camera, and after
+>> STREAMOFF all buffers are still flagged as QUEUED, and QBUF fails.  DQBUF also
+>> fails (blocking for a 3 sec timeout), after streamoff. So I'm stuck, after
+>> STREAMOFF, unable to get pictures coming in again. (Linux 3.3.5).
+>>
+>> As an additional note, pinchartl on irc #v4l says to favour a moving of gspca to
+>> vb2. I don't know what it means.
+>>
+>> Can someone take care of the bug, or should I consider the camera 'non working'
+>> in linux?
 
-[691819.504534] usb 2-1: USB disconnect, device number 9
-[691819.730964] usb 2-1: new high-speed USB device number 10 using ehci_hcd
-[691819.862773] usb 2-1: New USB device found, idVendor=048d, idProduct=9005
-[691819.862788] usb 2-1: New USB device strings: Mfr=1, Product=0, 
-SerialNumber=3
-[691819.862797] usb 2-1: Manufacturer: ITE Technologies, Inc.
-[691819.862804] usb 2-1: SerialNumber: AF0102020700001
-[691819.866632] it913x: Chip Version=01 Chip Type=9135
-[691819.874190] it913x: Dual mode=0 Remote=5 Tuner Type=0
-[691819.875804] dvb-usb: found a 'ITE 9135(9005) Generic' in cold state, 
-will try to load a firmware
-[691880.304615] dvb-usb: did not find the firmware file. (dvb-usb-
-it9135-01.fw) Please see linux/Documentation/dvb/ for more details on 
-firmware-problems. (-2)
-[691880.304623] it913x: DEV it913x Error
-[692002.417084] usbcore: deregistering interface driver it913x
-[692014.227789] it913x: Chip Version=00 Chip Type=0000
-[692014.229766] it913x: Dual mode=0 Remote=5 Tuner Type=0
-[692014.230972] dvb-usb: found a 'ITE 9135(9005) Generic' in cold state, 
-will try to load a firmware
-[692014.250426] dvb-usb: downloading firmware from file 'dvb-usb-
-it9135-01.fw'
-[692014.252269] it913x: FRM Starting Firmware Download
-[692014.784323] it913x: FRM Firmware Download Completed - Resetting Device
-[692014.784985] it913x: Chip Version=01 Chip Type=9135
-[692014.785484] it913x: Firmware Version 204869120
-[692014.819723] dvb-usb: found a 'ITE 9135(9005) Generic' in warm state.
-[692014.819854] dvb-usb: will use the device's hardware PID filter (table 
-count: 31).
-[692014.820254] DVB: registering new adapter (ITE 9135(9005) Generic)
-[692014.825878] it913x-fe: ADF table value      :00
-[692014.830000] it913x-fe: Crystal Frequency :12000000 Adc Frequency 
-:20250000 ADC X2: 01
-[692014.879249] it913x-fe: Tuner LNA type :38
-[692014.938472] DVB: registering adapter 0 frontend 0 (ITE 9135(9005) 
-Generic_1)...
-[692014.938968] Registered IR keymap rc-msi-digivox-iii
-[692014.939210] input: IR-receiver inside an USB DVB receiver as 
-/devices/pci0000:00/0000:00:13.2/usb2/2-1/rc/rc2/input14
-[692014.941686] rc2: IR-receiver inside an USB DVB receiver as 
-/devices/pci0000:00/0000:00:13.2/usb2/2-1/rc/rc2
-[692014.941702] dvb-usb: schedule remote query interval to 250 msecs.
-[692014.941714] dvb-usb: ITE 9135(9005) Generic successfully initialized and 
-connected.
-[692014.941721] it913x: DEV registering device driver
-[692014.941814] usbcore: registered new interface driver it913x
+We talked about this on irc, attached it a patch which should fix this, feedback
+appreciated.
 
+Regards,
+
+Hans
+
+--------------050007090606060705070500
+Content-Type: text/x-patch;
+ name="0001-gspca-core-Fix-buffers-staying-in-queued-state-after.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename*0="0001-gspca-core-Fix-buffers-staying-in-queued-state-after.pa";
+ filename*1="tch"
+
+>From b0eefa00c72e9dfe9eaa5f425c0d346b19ea01cd Mon Sep 17 00:00:00 2001
+From: Hans de Goede <hdegoede@redhat.com>
+Date: Tue, 22 May 2012 16:24:05 +0200
+Subject: [PATCH] gspca-core: Fix buffers staying in queued state after a
+ stream_off
+
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+ drivers/media/video/gspca/gspca.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/media/video/gspca/gspca.c b/drivers/media/video/gspca/gspca.c
+index 137166d..31721ea 100644
+--- a/drivers/media/video/gspca/gspca.c
++++ b/drivers/media/video/gspca/gspca.c
+@@ -1653,7 +1653,7 @@ static int vidioc_streamoff(struct file *file, void *priv,
+ 				enum v4l2_buf_type buf_type)
+ {
+ 	struct gspca_dev *gspca_dev = video_drvdata(file);
+-	int ret;
++	int i, ret;
+ 
+ 	if (buf_type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+ 		return -EINVAL;
+@@ -1678,6 +1678,8 @@ static int vidioc_streamoff(struct file *file, void *priv,
+ 	wake_up_interruptible(&gspca_dev->wq);
+ 
+ 	/* empty the transfer queues */
++	for (i = 0; i < gspca_dev->nframes; i++)
++		gspca_dev->frame[i].v4l2_buf.flags &= ~BUF_ALL_FLAGS;
+ 	atomic_set(&gspca_dev->fr_q, 0);
+ 	atomic_set(&gspca_dev->fr_i, 0);
+ 	gspca_dev->fr_o = 0;
 -- 
-Arkadiusz Mi¶kiewicz        PLD/Linux Team
-arekm / maven.pl            http://ftp.pld-linux.org/
+1.7.10
 
+
+--------------050007090606060705070500--
