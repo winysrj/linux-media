@@ -1,68 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:41663 "EHLO mail.kapsi.fi"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:57345 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751100Ab2EMRjg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 May 2012 13:39:36 -0400
-Message-ID: <4FAFF1D7.6070700@iki.fi>
-Date: Sun, 13 May 2012 20:39:35 +0300
-From: Antti Palosaari <crope@iki.fi>
+	id S1758221Ab2EVLFE convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 22 May 2012 07:05:04 -0400
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	linux-media <linux-media@vger.kernel.org>,
+	"Taneja, Archit" <archit@ti.com>
+Subject: RE: Warning in omap_vout.c
+Date: Tue, 22 May 2012 11:04:59 +0000
+Message-ID: <79CD15C6BA57404B839C016229A409A83EA2F4FA@DBDE01.ent.ti.com>
+References: <201205221124.45834.hverkuil@xs4all.nl>
+In-Reply-To: <201205221124.45834.hverkuil@xs4all.nl>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-To: Oliver Schinagl <oliver+list@schinagl.nl>
-CC: linux-media <linux-media@vger.kernel.org>
-Subject: Re: AF9035 experimental header changes
-References: <4FAFD21D.9000801@schinagl.nl> <4FAFD888.8080801@iki.fi> <4FAFEED8.7080903@schinagl.nl>
-In-Reply-To: <4FAFEED8.7080903@schinagl.nl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 13.05.2012 20:26, Oliver Schinagl wrote:
-> On 13-05-12 17:51, Antti Palosaari wrote:
->> On 13.05.2012 18:24, Oliver Schinagl wrote:
->>> Hi antti,
->>>
->>> I've just updated my local branch of your experimental branch and got
->>> some conflicts because you moved the header inclusions from the C file
->>> to the header file. Why is that? I thought it was really bad practice to
->>> have includes in header files.
->>>
->>> http://git.linuxtv.org/anttip/media_tree.git/commitdiff/7d28d8226cffd1ad6e555b36f6f9855d8bba8645
->>>
->>
->> Because "struct state" was inside af9013.h and I added "struct
->> af9033_config" to state. Due to that af9033_config visibility I was
->> forced to move af9013.h include to the af9015.h and moved all the
->> others too.
->>
-> I see, I just learnedthat having includes in headers is just something
-> really bad, possibly causing include loops etc etc. Its just something
-> that's generally not needed and should be avoided. ideally anyway :)
+On Tue, May 22, 2012 at 14:54:45, Hans Verkuil wrote:
+> (Repost, this time without using HTML. My mailer switches to HTML once in a while
+> for no reason. Very annoying.)
+> 
+> The daily build has this warning:
+> 
+> v4l-dvb-git/drivers/media/video/omap/omap_vout.c: In function 'omapvid_init':
+> v4l-dvb-git/drivers/media/video/omap/omap_vout.c:381:17: warning: 'mode' may be used uninitialized in this function [-Wuninitialized]
+> v4l-dvb-git/drivers/media/video/omap/omap_vout.c:331:23: note: 'mode' was declared here
+> 
+> Can someone check this?
+> 
+> The problem is that video_mode_to_dss_mode() has a 'case 0:' that never sets
+> the mode. I suspect that the case 0 can be removed so that it goes to the
+> default case.
+> 
+> Can someone verify this?
+> 
 
-But it is not actual header in the mind of the normal header. It is 
-something like driver private include. Maybe better name could be 
-af9035_priv.h as the demodulators files are named. But as all the other 
-DVB USB drivers are named without priv I do not like to name that 
-differently.
 
-Include guards [1] are for avoiding include loops.
+Thanks Hans for bringing my attention to this. I had submitted patch 
+sometime back, then after couldn't able to follow up on it.
 
->> What is problem you has met?
-> Well it's just movement of those headers caused merges to conflict and
-> fail :)
+http://markmail.org/thread/uuv4szdy47bjgzvh
 
-Hmmm, may I ask what you are doing? Adding some new supported tuners or 
-hacking dual mode?
+I will check on this.
 
-That my repository is the only "official" one. As that is the official 
-repo you should resolve merge conflicts with your own :)
+Thanks,
+Vaibhav
 
->> DVB USB driver header file is something like private place for data
->> other than code as it is not included by any other driver.
-
-[1] http://en.wikipedia.org/wiki/Include_guard
-
-regards
-Antti
--- 
-http://palosaari.fi/
