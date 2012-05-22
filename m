@@ -1,47 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rcsinet15.oracle.com ([148.87.113.117]:51795 "EHLO
-	rcsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751985Ab2EBGPe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 2 May 2012 02:15:34 -0400
-Date: Wed, 2 May 2012 09:15:25 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Jean-Francois Moine <moinejf@free.fr>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
-Subject: [patch] [media] gspca: passing wrong length parameter to reg_w()
-Message-ID: <20120502061525.GC28894@elgon.mountain>
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:33897 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756863Ab2EVMGo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 22 May 2012 08:06:44 -0400
+References: <201205221127.16629.hverkuil@xs4all.nl> <74b696e9-3ff5-46f0-9d7d-e70ec02596b0@email.android.com> <201205221308.15140.hverkuil@xs4all.nl>
+In-Reply-To: <201205221308.15140.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Type: text/plain;
+ charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Subject: Re: Warning in cx24110: how to fix?
+From: Andy Walls <awalls@md.metrocast.net>
+Date: Tue, 22 May 2012 08:06:51 -0400
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media <linux-media@vger.kernel.org>
+Message-ID: <1bd26c7e-46ab-4fa1-a4f2-207787deccb2@email.android.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This looks like a cut an paste error.  This is a two byte array but we
-use 8 as a length parameter.
+Hans Verkuil <hverkuil@xs4all.nl> wrote:
 
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
----
-This is a static checker fix.  I don't own the hardware.
+>On Tue 22 May 2012 13:06:25 Andy Walls wrote:
+>> Hans Verkuil <hverkuil@xs4all.nl> wrote
+>> 
+>> >I'm getting this warning in the daily build:
+>> >
+>> >v4l-dvb-git/drivers/media/dvb/frontends/cx24110.c: In function
+>> >‘cx24110_read_ucblocks’:
+>> >v4l-dvb-git/drivers/media/dvb/frontends/cx24110.c:520:40: warning:
+>> >value computed is not used [-Wunused-value]
+>> >
+>> >It comes from this code:
+>> >
+>> >static int cx24110_read_ucblocks(struct dvb_frontend* fe, u32*
+>> >ucblocks)
+>> >{
+>> >        struct cx24110_state *state = fe->demodulator_priv;
+>> >
+>> >        if(cx24110_readreg(state,0x10)&0x40) {
+>> >            /* the RS error counter has finished one counting window
+>*/
+>> >           cx24110_writereg(state,0x10,0x60); /* select the byer reg
+>*/
+>> >                cx24110_readreg(state, 0x12) |
+>> >                        (cx24110_readreg(state, 0x13) << 8) |
+>> >                        (cx24110_readreg(state, 0x14) << 16);
+>> >           cx24110_writereg(state,0x10,0x70); /* select the bler reg
+>*/
+>> >                state->lastbler=cx24110_readreg(state,0x12)|
+>> >                        (cx24110_readreg(state,0x13)<<8)|
+>> >                        (cx24110_readreg(state,0x14)<<16);
+>> >        cx24110_writereg(state,0x10,0x20); /* start new count window
+>*/
+>> >        }
+>> >        *ucblocks = state->lastbler;
+>> >
+>> >        return 0;
+>> >}
+>> >
+>> >This is the offending code:
+>> >
+>> >                cx24110_readreg(state, 0x12) |
+>> >                        (cx24110_readreg(state, 0x13) << 8) |
+>> >                        (cx24110_readreg(state, 0x14) << 16);
+>> >
+>> >Is there a reason these registers are read without storing their
+>value?
+>> >Or is it a bug?
+>> >
+>> >Regards,
+>> >
+>> >	Hans
+>> >--
+>> >To unsubscribe from this list: send the line "unsubscribe
+>linux-media"
+>> >in
+>> >the body of a message to majordomo@vger.kernel.org
+>> >More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> 
+>> I would guess the safest thing to do is still perform the registers
+>reads.
+>> 
+>> Will adding a "(void)" cast to the beginning of the statement work?
+>
+>Sure, that will work. But I just wonder if anyone actually knows *why*
+>this
+>is done in this way. It would be nice to have a comment here describing
+>the
+>reason (if there is one, of course).
+>
+>Regards,
+>
+>	Hans
 
-diff --git a/drivers/media/video/gspca/conex.c b/drivers/media/video/gspca/conex.c
-index ea17b5d..f39fee0 100644
---- a/drivers/media/video/gspca/conex.c
-+++ b/drivers/media/video/gspca/conex.c
-@@ -306,7 +306,7 @@ static void cx_sensor(struct gspca_dev*gspca_dev)
- 
- 	reg_w(gspca_dev, 0x0020, reg20, 8);
- 	reg_w(gspca_dev, 0x0028, reg28, 8);
--	reg_w(gspca_dev, 0x0010, reg10, 8);
-+	reg_w(gspca_dev, 0x0010, reg10, 2);
- 	reg_w_val(gspca_dev, 0x0092, 0x03);
- 
- 	switch (gspca_dev->cam.cam_mode[(int) gspca_dev->curr_mode].priv) {
-@@ -326,7 +326,7 @@ static void cx_sensor(struct gspca_dev*gspca_dev)
- 	}
- 	reg_w(gspca_dev, 0x007b, reg7b, 6);
- 	reg_w_val(gspca_dev, 0x00f8, 0x00);
--	reg_w(gspca_dev, 0x0010, reg10, 8);
-+	reg_w(gspca_dev, 0x0010, reg10, 2);
- 	reg_w_val(gspca_dev, 0x0098, 0x41);
- 	for (i = 0; i < 11; i++) {
- 		if (i == 3 || i == 5 || i == 8)
+
+I wouldn't agonize over it.
+
+Assume the reads have the side effect of reseting the "byer" (byte error rate?) counter before it rolls over. 
+
+The likely case is that nothing bad will happpen if you don't read that register.  A worse case is that by not reading that register, the other measurment/count registers won't read properly.
+
+Regards,
+Andy
