@@ -1,134 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:1809 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753500Ab2EFM2q (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 6 May 2012 08:28:46 -0400
+Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:4298 "EHLO
+	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753885Ab2EVUwf convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 22 May 2012 16:52:35 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans de Goede <hdegoede@redhat.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv2 PATCH 03/17] gspca: allow subdrivers to use the control framework.
-Date: Sun,  6 May 2012 14:28:17 +0200
-Message-Id: <52db668fa7c8a6edbb269e19e2c87992b7a81c75.1336305565.git.hans.verkuil@cisco.com>
-In-Reply-To: <1336307311-10227-1-git-send-email-hverkuil@xs4all.nl>
-References: <1336307311-10227-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <a5a075c580858f4484be5c4cfadd195492858505.1336305565.git.hans.verkuil@cisco.com>
-References: <a5a075c580858f4484be5c4cfadd195492858505.1336305565.git.hans.verkuil@cisco.com>
+To: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: RFC: V4L2 API and radio devices with multiple tuners
+Date: Tue, 22 May 2012 22:51:52 +0200
+Cc: "=?iso-8859-1?q?R=E9mi?= Denis-Courmont" <remi@remlab.net>,
+	Antti Palosaari <crope@iki.fi>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Ondrej Zary <linux@rainbow-software.org>
+References: <4FB7E489.10803@redhat.com> <201205221926.38970.remi@remlab.net> <4FBBFAF8.8080203@redhat.com>
+In-Reply-To: <4FBBFAF8.8080203@redhat.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201205222251.52450.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Tue May 22 2012 22:45:44 Hans de Goede wrote:
+> Hi,
+> 
+> On 05/22/2012 06:26 PM, Rémi Denis-Courmont wrote:
+> > Le samedi 19 mai 2012 21:36:23 Antti Palosaari, vous avez écrit :
+> >> On 19.05.2012 21:20, Hans de Goede wrote:
+> >>> Currently the V4L2 API does not allow for radio devices with more then 1
+> >>> tuner,
+> >>> which is a bit of a historical oversight, since many radio devices have 2
+> >>> tuners/demodulators 1 for FM and one for AM. Trying to model this as 1
+> >>> tuner
+> >>> really does not work well, as they have 2 completely separate frequency
+> >>> bands
+> >>> they handle, as well as different properties (the FM part usually is
+> >>> stereo capable, the AM part is not).
+> >>>
+> >>> It is important to realize here that usually the AM/FM tuners are part
+> >>> of 1 chip, and often have only 1 frequency register which is used in
+> >>> both AM/FM modes. IOW it more or less is one tuner, but with 2 modes,
+> >>> and from a V4L2 API pov these modes are best modeled as 2 tuners.
+> >>> This is at least true for the radio-cadet card and the tea575x,
+> >>> which are the only 2 AM capable radio devices we currently know about.
+> >>
+> >> For DVB API we changed just opposite direction - from multi-frontend to
+> >> single-frontend. I think one device per one standard is good choice.
+> >
+> > If I understand Hans correctly, he suggests to use two tuners on a *single*
+> > radio device node, much like a single video device nodes can have multiple
+> > video inputs. So I think you agree with Hans, and so do I.
+> 
+> Correct, although the plan has changed in the mean time to model the 1 tuner
+> as 1 tuner, and extend the v4l2 tuner API to deal with a tuner which can
+> tune multiple bands. Which seems the best way forward :)
 
-Make the necessary changes to allow subdrivers to use the control framework.
-This does not add control event support, that comes later.
+FYI: the ADS Cadet board is also tea5757 based (no surprise there).
 
-It add a init_control cam_op that is called after init in probe that allows
-the subdriver to set up the controls.
+I've put up a picture of the board here:
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/video/gspca/gspca.c |   26 ++++++++++++++++++--------
- drivers/media/video/gspca/gspca.h |    1 +
- 2 files changed, 19 insertions(+), 8 deletions(-)
+http://hverkuil.home.xs4all.nl/ADS%20Cadet%20RDX-1187.jpg
 
-diff --git a/drivers/media/video/gspca/gspca.c b/drivers/media/video/gspca/gspca.c
-index ca5a2b1..7668e24 100644
---- a/drivers/media/video/gspca/gspca.c
-+++ b/drivers/media/video/gspca/gspca.c
-@@ -38,6 +38,7 @@
- #include <linux/uaccess.h>
- #include <linux/ktime.h>
- #include <media/v4l2-ioctl.h>
-+#include <media/v4l2-ctrls.h>
- 
- #include "gspca.h"
- 
-@@ -1006,6 +1007,8 @@ static void gspca_set_default_mode(struct gspca_dev *gspca_dev)
- 
- 	/* set the current control values to their default values
- 	 * which may have changed in sd_init() */
-+	/* does nothing if ctrl_handler == NULL */
-+	v4l2_ctrl_handler_setup(gspca_dev->vdev.ctrl_handler);
- 	ctrl = gspca_dev->cam.ctrls;
- 	if (ctrl != NULL) {
- 		for (i = 0;
-@@ -1323,6 +1326,7 @@ static void gspca_release(struct video_device *vfd)
- 	PDEBUG(D_PROBE, "%s released",
- 		video_device_node_name(&gspca_dev->vdev));
- 
-+	v4l2_ctrl_handler_free(gspca_dev->vdev.ctrl_handler);
- 	kfree(gspca_dev->usb_buf);
- 	kfree(gspca_dev);
- }
-@@ -2347,6 +2351,14 @@ int gspca_dev_probe2(struct usb_interface *intf,
- 	gspca_dev->sd_desc = sd_desc;
- 	gspca_dev->nbufread = 2;
- 	gspca_dev->empty_packet = -1;	/* don't check the empty packets */
-+	gspca_dev->vdev = gspca_template;
-+	gspca_dev->vdev.parent = &intf->dev;
-+	gspca_dev->module = module;
-+	gspca_dev->present = 1;
-+
-+	mutex_init(&gspca_dev->usb_lock);
-+	mutex_init(&gspca_dev->queue_lock);
-+	init_waitqueue_head(&gspca_dev->wq);
- 
- 	/* configure the subdriver and initialize the USB device */
- 	ret = sd_desc->config(gspca_dev, id);
-@@ -2357,21 +2369,17 @@ int gspca_dev_probe2(struct usb_interface *intf,
- 	ret = sd_desc->init(gspca_dev);
- 	if (ret < 0)
- 		goto out;
-+	if (sd_desc->init_controls)
-+		ret = sd_desc->init_controls(gspca_dev);
-+	if (ret < 0)
-+		goto out;
- 	gspca_set_default_mode(gspca_dev);
- 
- 	ret = gspca_input_connect(gspca_dev);
- 	if (ret)
- 		goto out;
- 
--	mutex_init(&gspca_dev->usb_lock);
--	mutex_init(&gspca_dev->queue_lock);
--	init_waitqueue_head(&gspca_dev->wq);
--
- 	/* init video stuff */
--	memcpy(&gspca_dev->vdev, &gspca_template, sizeof gspca_template);
--	gspca_dev->vdev.parent = &intf->dev;
--	gspca_dev->module = module;
--	gspca_dev->present = 1;
- 	ret = video_register_device(&gspca_dev->vdev,
- 				  VFL_TYPE_GRABBER,
- 				  -1);
-@@ -2391,6 +2399,7 @@ out:
- 	if (gspca_dev->input_dev)
- 		input_unregister_device(gspca_dev->input_dev);
- #endif
-+	v4l2_ctrl_handler_free(gspca_dev->vdev.ctrl_handler);
- 	kfree(gspca_dev->usb_buf);
- 	kfree(gspca_dev);
- 	return ret;
-@@ -2492,6 +2501,7 @@ int gspca_resume(struct usb_interface *intf)
- 
- 	gspca_dev->frozen = 0;
- 	gspca_dev->sd_desc->init(gspca_dev);
-+	gspca_set_default_mode(gspca_dev);
- 	gspca_input_create_urb(gspca_dev);
- 	if (gspca_dev->streaming)
- 		return gspca_init_transfer(gspca_dev);
-diff --git a/drivers/media/video/gspca/gspca.h b/drivers/media/video/gspca/gspca.h
-index 589009f..8140416 100644
---- a/drivers/media/video/gspca/gspca.h
-+++ b/drivers/media/video/gspca/gspca.h
-@@ -115,6 +115,7 @@ struct sd_desc {
- /* mandatory operations */
- 	cam_cf_op config;	/* called on probe */
- 	cam_op init;		/* called on probe and resume */
-+	cam_op init_controls;	/* called on probe */
- 	cam_op start;		/* called on stream on after URBs creation */
- 	cam_pkt_op pkt_scan;
- /* optional operations */
--- 
-1.7.10
+Regards,
 
+	Hans
