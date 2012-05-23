@@ -1,132 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:58510 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751446Ab2ENACj (ORCPT
+Received: from devils.ext.ti.com ([198.47.26.153]:38986 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750930Ab2EWKJE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 May 2012 20:02:39 -0400
-Date: Mon, 14 May 2012 03:02:34 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: linux-media@vger.kernel.org, m.szyprowski@samsung.com,
-	riverful.kim@samsung.com, sw0312.kim@samsung.com,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: Re: [PATCH 03/23] V4L: Add an extended camera white balance control
-Message-ID: <20120514000234.GG3373@valkosipuli.retiisi.org.uk>
-References: <1336645858-30366-1-git-send-email-s.nawrocki@samsung.com>
- <1336645858-30366-4-git-send-email-s.nawrocki@samsung.com>
+	Wed, 23 May 2012 06:09:04 -0400
+From: Sumit Semwal <sumit.semwal@ti.com>
+To: <linux-media@vger.kernel.org>, <dri-devel@lists.freedesktop.org>,
+	<linaro-mm-sig@lists.linaro.org>
+CC: Sumit Semwal <sumit.semwal@ti.com>
+Subject: [PATCH] dma-buf: minor documentation fixes.
+Date: Wed, 23 May 2012 15:38:48 +0530
+Message-ID: <1337767728-32236-1-git-send-email-sumit.semwal@ti.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1336645858-30366-4-git-send-email-s.nawrocki@samsung.com>
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwaster,
+Some minor inline documentation fixes for gaps resulting from new patches.
 
-Thanks for the patch. I noticed your pull req; I hope you could take into
-account a few more comments. :)
+Signed-off-by: Sumit Semwal <sumit.semwal@ti.com>
+---
+ drivers/base/dma-buf.c  |    9 +++++----
+ include/linux/dma-buf.h |    3 +++
+ 2 files changed, 8 insertions(+), 4 deletions(-)
 
-On Thu, May 10, 2012 at 12:30:38PM +0200, Sylwester Nawrocki wrote:
-> This patch adds V4L2_CID_AUTO_N_PRESET_WHITE_BALANCE control which is
-> an extended version of the V4L2_CID_AUTO_WHITE_BALANCE control,
-> including white balance presets. The following presets are defined:
-> 
->  - V4L2_WHITE_BALANCE_INCANDESCENT,
->  - V4L2_WHITE_BALANCE_FLUORESCENT,
->  - V4L2_WHITE_BALANCE_FLUORESCENT_H,
->  - V4L2_WHITE_BALANCE_HORIZON,
->  - V4L2_WHITE_BALANCE_DAYLIGHT,
->  - V4L2_WHITE_BALANCE_FLASH,
->  - V4L2_WHITE_BALANCE_CLOUDY,
->  - V4L2_WHITE_BALANCE_SHADE.
-> 
-> Signed-off-by: HeungJun Kim <riverful.kim@samsung.com>
-> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> Acked-by: Hans de Goede <hdegoede@redhat.com>
-> ---
->  Documentation/DocBook/media/v4l/controls.xml |   70 ++++++++++++++++++++++++++
->  drivers/media/video/v4l2-ctrls.c             |   17 +++++++
->  include/linux/videodev2.h                    |   14 ++++++
->  3 files changed, 101 insertions(+)
-> 
-> diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
-> index 40e6485..85d1ca0 100644
-> --- a/Documentation/DocBook/media/v4l/controls.xml
-> +++ b/Documentation/DocBook/media/v4l/controls.xml
-> @@ -3022,6 +3022,76 @@ camera sensor on or off, or specify its strength. Such band-stop filters can
->  be used, for example, to filter out the fluorescent light component.</entry>
->  	  </row>
->  	  <row><entry></entry></row>
-> +
-> +	  <row id="v4l2-auto-n-preset-white-balance">
-> +	    <entry spanname="id"><constant>V4L2_CID_AUTO_N_PRESET_WHITE_BALANCE</constant>&nbsp;</entry>
-> +	    <entry>enum&nbsp;v4l2_auto_n_preset_white_balance</entry>
-> +	  </row><row><entry spanname="descr">Sets white balance to automatic,
-> +manual or a preset. The presets determine color temperature of the light as
-> +a hint to the camera for white balance adjustments resulting in most accurate
-> +color representation. The following white balance presets are listed in order
-> +of increasing color temperature.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entrytbl spanname="descr" cols="2">
-> +	      <tbody valign="top">
-> +		<row>
-> +		  <entry><constant>V4L2_WHITE_BALANCE_MANUAL</constant>&nbsp;</entry>
-> +		  <entry>Manual white balance.</entry>
-> +		</row>
-> +		<row>
-> +		  <entry><constant>V4L2_WHITE_BALANCE_AUTO</constant>&nbsp;</entry>
-> +		  <entry>Automatic white balance adjustments.</entry>
-> +		</row>
-> +		<row>
-> +		  <entry><constant>V4L2_WHITE_BALANCE_INCANDESCENT</constant>&nbsp;</entry>
-> +		  <entry>White balance setting for incandescent (tungsten) lighting.
-> +It generally cools down the colors and corresponds approximately to 2500...3500 K
-> +color temperature range.</entry>
-> +		</row>
-> +		<row>
-> +		  <entry><constant>V4L2_WHITE_BALANCE_FLUORESCENT</constant>&nbsp;</entry>
-> +		  <entry>White balance preset for fluorescent lighting.
-> +It corresponds approximately to 4000...5000 K color temperature.</entry>
-> +		</row>
-> +		<row>
-> +		  <entry><constant>V4L2_WHITE_BALANCE_FLUORESCENT_H</constant>&nbsp;</entry>
-> +		  <entry>With this setting the camera will compensate for
-> +fluorescent H lighting.</entry>
-> +		</row>
-
-I don't remember for quite sure if I replied to this already... what's the
-diff between the above two?
-
-The colour temperature of the fluorescent light depends on the lamp; 2500 K
-is not uncommon here in Finland. It's the spectrum that's different from
-incandescents, not necessarily the colour temperature.
-
-> +		<row>
-> +		  <entry><constant>V4L2_WHITE_BALANCE_HORIZON</constant>&nbsp;</entry>
-> +		  <entry>White balance setting for horizon daylight.
-> +It corresponds approximately to 5000 K color temperature.</entry>
-> +		</row>
-> +		<row>
-> +		  <entry><constant>V4L2_WHITE_BALANCE_DAYLIGHT</constant>&nbsp;</entry>
-> +		  <entry>White balance preset for daylight (with clear sky).
-> +It corresponds approximately to 5000...6500 K color temperature.</entry>
-> +		</row>
-> +		<row>
-> +		  <entry><constant>V4L2_WHITE_BALANCE_FLASH</constant>&nbsp;</entry>
-> +		  <entry>With this setting the camera will compensate for the flash
-> +light. It slightly warms up the colors and corresponds roughly to 5000...5500 K
-> +color temperature.</entry>
-
-This also depends heavily on the type of the flash.
-
-I'd just remove the colour temperature from most of these since it looks
-more like assumptions made in a particular system rather than something
-generic.
-
-Kind regards,
-
+diff --git a/drivers/base/dma-buf.c b/drivers/base/dma-buf.c
+index c3c88b0..24e88fe 100644
+--- a/drivers/base/dma-buf.c
++++ b/drivers/base/dma-buf.c
+@@ -429,7 +429,7 @@ EXPORT_SYMBOL_GPL(dma_buf_kunmap);
+ 
+ /**
+  * dma_buf_mmap - Setup up a userspace mmap with the given vma
+- * @dma_buf:	[in]	buffer that should back the vma
++ * @dmabuf:	[in]	buffer that should back the vma
+  * @vma:	[in]	vma for the mmap
+  * @pgoff:	[in]	offset in pages where this mmap should start within the
+  * 			dma-buf buffer.
+@@ -470,8 +470,9 @@ int dma_buf_mmap(struct dma_buf *dmabuf, struct vm_area_struct *vma,
+ EXPORT_SYMBOL_GPL(dma_buf_mmap);
+ 
+ /**
+- * dma_buf_vmap - Create virtual mapping for the buffer object into kernel address space. Same restrictions as for vmap and friends apply.
+- * @dma_buf:	[in]	buffer to vmap
++ * dma_buf_vmap - Create virtual mapping for the buffer object into kernel
++ * address space. Same restrictions as for vmap and friends apply.
++ * @dmabuf:	[in]	buffer to vmap
+  *
+  * This call may fail due to lack of virtual mapping address space.
+  * These calls are optional in drivers. The intended use for them
+@@ -491,7 +492,7 @@ EXPORT_SYMBOL_GPL(dma_buf_vmap);
+ 
+ /**
+  * dma_buf_vunmap - Unmap a vmap obtained by dma_buf_vmap.
+- * @dma_buf:	[in]	buffer to vmap
++ * @dmabuf:	[in]	buffer to vunmap
+  */
+ void dma_buf_vunmap(struct dma_buf *dmabuf, void *vaddr)
+ {
+diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
+index a02b1ff..eb48f38 100644
+--- a/include/linux/dma-buf.h
++++ b/include/linux/dma-buf.h
+@@ -65,6 +65,9 @@ struct dma_buf_attachment;
+  * 	  mapping needs to be coherent - if the exporter doesn't directly
+  * 	  support this, it needs to fake coherency by shooting down any ptes
+  * 	  when transitioning away from the cpu domain.
++ * @vmap: [optional] creates a virtual mapping for the buffer into kernel
++ *	  address space. Same restrictions as for vmap and friends apply.
++ * @vunmap: [optional] unmaps a vmap from the buffer
+  */
+ struct dma_buf_ops {
+ 	int (*attach)(struct dma_buf *, struct device *,
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+1.7.9.5
+
