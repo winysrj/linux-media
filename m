@@ -1,66 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:55438 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S967367Ab2ERVBM (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:51781 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933704Ab2EWP10 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 May 2012 17:01:12 -0400
-Received: by wgbdr13 with SMTP id dr13so3126345wgb.1
-        for <linux-media@vger.kernel.org>; Fri, 18 May 2012 14:01:11 -0700 (PDT)
-From: Gregor Jasny <gjasny@googlemail.com>
-To: linux-media@vger.kernel.org
-Cc: Gregor Jasny <gjasny@googlemail.com>
-Subject: [PATCH] libdvbv5: constify and hide dvb_sat_lnb
-Date: Fri, 18 May 2012 23:00:47 +0200
-Message-Id: <1337374847-12771-1-git-send-email-gjasny@googlemail.com>
+	Wed, 23 May 2012 11:27:26 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: linux-media@vger.kernel.org
+Subject: [PATCH 4/8] ov772x: Don't access the device in the g_mbus_fmt operation
+Date: Wed, 23 May 2012 17:27:31 +0200
+Message-Id: <1337786855-28759-5-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1337786855-28759-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1337786855-28759-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Gregor Jasny <gjasny@googlemail.com>
----
- lib/include/dvb-fe.h  |    2 +-
- lib/include/libsat.h  |    2 +-
- lib/libdvbv5/libsat.c |    2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+The g_mbus_fmt operation only needs to return the current mbus frame
+format and doesn't need to configure the hardware to do so. Fix it to
+avoid requiring the chip to be powered on when calling the operation.
 
-diff --git a/lib/include/dvb-fe.h b/lib/include/dvb-fe.h
-index 872a558..062edd8 100644
---- a/lib/include/dvb-fe.h
-+++ b/lib/include/dvb-fe.h
-@@ -76,7 +76,7 @@ struct dvb_v5_fe_parms {
- 	struct dvb_v5_stats		stats;
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/video/ov772x.c |    8 ++------
+ 1 files changed, 2 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/media/video/ov772x.c b/drivers/media/video/ov772x.c
+index 74e77d3..6d79b89 100644
+--- a/drivers/media/video/ov772x.c
++++ b/drivers/media/video/ov772x.c
+@@ -880,15 +880,11 @@ static int ov772x_cropcap(struct v4l2_subdev *sd, struct v4l2_cropcap *a)
+ static int ov772x_g_fmt(struct v4l2_subdev *sd,
+ 			struct v4l2_mbus_framefmt *mf)
+ {
+-	struct i2c_client *client = v4l2_get_subdevdata(sd);
+ 	struct ov772x_priv *priv = container_of(sd, struct ov772x_priv, subdev);
  
- 	/* Satellite specific stuff, specified by the library client */
--	struct dvb_sat_lnb       	*lnb;
-+	const struct dvb_sat_lnb       	*lnb;
- 	int				sat_number;
- 	unsigned			freq_bpf;
+ 	if (!priv->win || !priv->cfmt) {
+-		u32 width = VGA_WIDTH, height = VGA_HEIGHT;
+-		int ret = ov772x_set_params(client, &width, &height,
+-					    V4L2_MBUS_FMT_YUYV8_2X8);
+-		if (ret < 0)
+-			return ret;
++		priv->cfmt = &ov772x_cfmts[0];
++		priv->win = ov772x_select_win(VGA_WIDTH, VGA_HEIGHT);
+ 	}
  
-diff --git a/lib/include/libsat.h b/lib/include/libsat.h
-index 2e74a11..57e5511 100644
---- a/lib/include/libsat.h
-+++ b/lib/include/libsat.h
-@@ -47,7 +47,7 @@ extern "C" {
- int dvb_sat_search_lnb(const char *name);
- int print_lnb(int i);
- void print_all_lnb(void);
--struct dvb_sat_lnb *dvb_sat_get_lnb(int i);
-+const struct dvb_sat_lnb *dvb_sat_get_lnb(int i);
- int dvb_sat_set_parms(struct dvb_v5_fe_parms *parms);
- int dvb_sat_get_parms(struct dvb_v5_fe_parms *parms);
- 
-diff --git a/lib/libdvbv5/libsat.c b/lib/libdvbv5/libsat.c
-index 126dc4e..5f8cbdd 100644
---- a/lib/libdvbv5/libsat.c
-+++ b/lib/libdvbv5/libsat.c
-@@ -25,7 +25,7 @@
- #include "dvb-fe.h"
- #include "dvb-v5-std.h"
- 
--struct dvb_sat_lnb lnb[] = {
-+static const struct dvb_sat_lnb lnb[] = {
- 	{
- 		.name = "Europe",
- 		.alias = "UNIVERSAL",
+ 	mf->width	= priv->win->width;
 -- 
-1.7.10
+1.7.3.4
 
