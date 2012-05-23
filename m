@@ -1,116 +1,157 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f170.google.com ([209.85.212.170]:59800 "EHLO
-	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755623Ab2ESKTt (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:45664 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755248Ab2EWNHr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 19 May 2012 06:19:49 -0400
-Received: by wibhm6 with SMTP id hm6so1477044wib.1
-        for <linux-media@vger.kernel.org>; Sat, 19 May 2012 03:19:48 -0700 (PDT)
-From: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
-Subject: [PATCH 2/5] ignore user commands on fe
-Date: Sat, 19 May 2012 12:18:49 +0200
-Message-Id: <1337422732-2001-2-git-send-email-neolynx@gmail.com>
-In-Reply-To: <1337422732-2001-1-git-send-email-neolynx@gmail.com>
-References: <1337422732-2001-1-git-send-email-neolynx@gmail.com>
+	Wed, 23 May 2012 09:07:47 -0400
+Received: from euspt2 (mailout1.w1.samsung.com [210.118.77.11])
+ by mailout1.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0M4H00EPN8D0GP@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 23 May 2012 14:05:24 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0M4H00FAZ8GUCC@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 23 May 2012 14:07:43 +0100 (BST)
+Date: Wed, 23 May 2012 15:07:25 +0200
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: [PATCH 02/12] v4l: add buffer exporting via dmabuf
+In-reply-to: <1337778455-27912-1-git-send-email-t.stanislaws@samsung.com>
+To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
+Cc: airlied@redhat.com, m.szyprowski@samsung.com,
+	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
+	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
+	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
+	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
+	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
+	mchehab@redhat.com, g.liakhovetski@gmx.de
+Message-id: <1337778455-27912-3-git-send-email-t.stanislaws@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1337778455-27912-1-git-send-email-t.stanislaws@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
----
- lib/libdvbv5/dvb-fe.c     |   32 ++++++++++++++++++++++++++++----
- lib/libdvbv5/dvb-v5-std.c |    2 ++
- 2 files changed, 30 insertions(+), 4 deletions(-)
+This patch adds extension to V4L2 api. It allow to export a mmap buffer as file
+descriptor. New ioctl VIDIOC_EXPBUF is added. It takes a buffer offset used by
+mmap and return a file descriptor on success.
 
-diff --git a/lib/libdvbv5/dvb-fe.c b/lib/libdvbv5/dvb-fe.c
-index 9ec9893..8f27e1a 100644
---- a/lib/libdvbv5/dvb-fe.c
-+++ b/lib/libdvbv5/dvb-fe.c
-@@ -391,12 +391,21 @@ const char *dvb_cmd_name(int cmd)
-   return NULL;
- }
+Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/video/v4l2-compat-ioctl32.c |    1 +
+ drivers/media/video/v4l2-dev.c            |    1 +
+ drivers/media/video/v4l2-ioctl.c          |    6 ++++++
+ include/linux/videodev2.h                 |   26 ++++++++++++++++++++++++++
+ include/media/v4l2-ioctl.h                |    2 ++
+ 5 files changed, 36 insertions(+)
+
+diff --git a/drivers/media/video/v4l2-compat-ioctl32.c b/drivers/media/video/v4l2-compat-ioctl32.c
+index 5327ad3..45159d9 100644
+--- a/drivers/media/video/v4l2-compat-ioctl32.c
++++ b/drivers/media/video/v4l2-compat-ioctl32.c
+@@ -954,6 +954,7 @@ long v4l2_compat_ioctl32(struct file *file, unsigned int cmd, unsigned long arg)
+ 	case VIDIOC_S_FBUF32:
+ 	case VIDIOC_OVERLAY32:
+ 	case VIDIOC_QBUF32:
++	case VIDIOC_EXPBUF:
+ 	case VIDIOC_DQBUF32:
+ 	case VIDIOC_STREAMON32:
+ 	case VIDIOC_STREAMOFF32:
+diff --git a/drivers/media/video/v4l2-dev.c b/drivers/media/video/v4l2-dev.c
+index 5ccbd46..6bf6307 100644
+--- a/drivers/media/video/v4l2-dev.c
++++ b/drivers/media/video/v4l2-dev.c
+@@ -597,6 +597,7 @@ static void determine_valid_ioctls(struct video_device *vdev)
+ 	SET_VALID_IOCTL(ops, VIDIOC_REQBUFS, vidioc_reqbufs);
+ 	SET_VALID_IOCTL(ops, VIDIOC_QUERYBUF, vidioc_querybuf);
+ 	SET_VALID_IOCTL(ops, VIDIOC_QBUF, vidioc_qbuf);
++	SET_VALID_IOCTL(ops, VIDIOC_EXPBUF, vidioc_expbuf);
+ 	SET_VALID_IOCTL(ops, VIDIOC_DQBUF, vidioc_dqbuf);
+ 	SET_VALID_IOCTL(ops, VIDIOC_OVERLAY, vidioc_overlay);
+ 	SET_VALID_IOCTL(ops, VIDIOC_G_FBUF, vidioc_g_fbuf);
+diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
+index 31fc2ad..a73b14e 100644
+--- a/drivers/media/video/v4l2-ioctl.c
++++ b/drivers/media/video/v4l2-ioctl.c
+@@ -212,6 +212,7 @@ static struct v4l2_ioctl_info v4l2_ioctls[] = {
+ 	IOCTL_INFO(VIDIOC_S_FBUF, INFO_FL_PRIO),
+ 	IOCTL_INFO(VIDIOC_OVERLAY, INFO_FL_PRIO),
+ 	IOCTL_INFO(VIDIOC_QBUF, 0),
++	IOCTL_INFO(VIDIOC_EXPBUF, 0),
+ 	IOCTL_INFO(VIDIOC_DQBUF, 0),
+ 	IOCTL_INFO(VIDIOC_STREAMON, INFO_FL_PRIO),
+ 	IOCTL_INFO(VIDIOC_STREAMOFF, INFO_FL_PRIO),
+@@ -957,6 +958,11 @@ static long __video_do_ioctl(struct file *file,
+ 			dbgbuf(cmd, vfd, p);
+ 		break;
+ 	}
++	case VIDIOC_EXPBUF:
++	{
++		ret = ops->vidioc_expbuf(file, fh, arg);
++		break;
++	}
+ 	case VIDIOC_DQBUF:
+ 	{
+ 		struct v4l2_buffer *p = arg;
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index 51b20f4..e8893a5 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -684,6 +684,31 @@ struct v4l2_buffer {
+ #define V4L2_BUF_FLAG_NO_CACHE_INVALIDATE	0x0800
+ #define V4L2_BUF_FLAG_NO_CACHE_CLEAN		0x1000
  
-+const char * const *dvb_attr_names(int cmd)
-+{
-+  if (cmd < DTV_USER_COMMAND_START)
-+    return dvb_v5_attr_names[cmd];
-+  else if (cmd <= DTV_MAX_USER_COMMAND)
-+    return dvb_user_attr_names[cmd - DTV_USER_COMMAND_START];
-+  return NULL;
-+}
++/**
++ * struct v4l2_exportbuffer - export of video buffer as DMABUF file descriptor
++ *
++ * @fd:		file descriptor associated with DMABUF (set by driver)
++ * @mem_offset:	buffer memory offset as returned by VIDIOC_QUERYBUF in struct
++ *		v4l2_buffer::m.offset (for single-plane formats) or
++ *		v4l2_plane::m.offset (for multi-planar formats)
++ * @flags:	flags for newly created file, currently only O_CLOEXEC is
++ *		supported, refer to manual of open syscall for more details
++ *
++ * Contains data used for exporting a video buffer as DMABUF file descriptor.
++ * The buffer is identified by a 'cookie' returned by VIDIOC_QUERYBUF
++ * (identical to the cookie used to mmap() the buffer to userspace). All
++ * reserved fields must be set to zero. The field reserved0 is expected to
++ * become a structure 'type' allowing an alternative layout of the structure
++ * content. Therefore this field should not be used for any other extensions.
++ */
++struct v4l2_exportbuffer {
++	__u32		fd;
++	__u32		reserved0;
++	__u32		mem_offset;
++	__u32		flags;
++	__u32		reserved[12];
++};
 +
- void dvb_fe_prt_parms(FILE *fp, const struct dvb_v5_fe_parms *parms)
- {
- 	int i;
+ /*
+  *	O V E R L A Y   P R E V I E W
+  */
+@@ -2553,6 +2578,7 @@ struct v4l2_create_buffers {
+ #define VIDIOC_S_FBUF		 _IOW('V', 11, struct v4l2_framebuffer)
+ #define VIDIOC_OVERLAY		 _IOW('V', 14, int)
+ #define VIDIOC_QBUF		_IOWR('V', 15, struct v4l2_buffer)
++#define VIDIOC_EXPBUF		_IOWR('V', 16, struct v4l2_exportbuffer)
+ #define VIDIOC_DQBUF		_IOWR('V', 17, struct v4l2_buffer)
+ #define VIDIOC_STREAMON		 _IOW('V', 18, int)
+ #define VIDIOC_STREAMOFF	 _IOW('V', 19, int)
+diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
+index d8b76f7..ccd1faa 100644
+--- a/include/media/v4l2-ioctl.h
++++ b/include/media/v4l2-ioctl.h
+@@ -119,6 +119,8 @@ struct v4l2_ioctl_ops {
+ 	int (*vidioc_reqbufs) (struct file *file, void *fh, struct v4l2_requestbuffers *b);
+ 	int (*vidioc_querybuf)(struct file *file, void *fh, struct v4l2_buffer *b);
+ 	int (*vidioc_qbuf)    (struct file *file, void *fh, struct v4l2_buffer *b);
++	int (*vidioc_expbuf)  (struct file *file, void *fh,
++				struct v4l2_exportbuffer *e);
+ 	int (*vidioc_dqbuf)   (struct file *file, void *fh, struct v4l2_buffer *b);
  
- 	for (i = 0; i < parms->n_props; i++) {
--		const char * const *attr_name = dvb_v5_attr_names[parms->dvb_prop[i].cmd];
-+		const char * const *attr_name = dvb_attr_names(parms->dvb_prop[i].cmd);
- 		if (attr_name) {
- 			int j;
- 
-@@ -450,6 +459,15 @@ int dvb_fe_store_parm(struct dvb_v5_fe_parms *parms,
- 	return EINVAL;
- }
- 
-+int dvb_copy_fe_props(struct dtv_property *from, int n, struct dtv_property *to)
-+{
-+  int i, j;
-+  for (i = 0, j = 0; i < n; i++)
-+    if (from[i].cmd < DTV_USER_COMMAND_START)
-+      to[j++] = from[i];
-+  return j;
-+}
-+
- int dvb_fe_get_parms(struct dvb_v5_fe_parms *parms)
- {
- 	int n = 0;
-@@ -473,7 +491,10 @@ int dvb_fe_get_parms(struct dvb_v5_fe_parms *parms)
- 	parms->dvb_prop[n].cmd = DTV_TUNE;
- 	parms->n_props = n;
- 
--	prop.props = parms->dvb_prop;
-+	struct dtv_property fe_prop[DTV_MAX_COMMAND];
-+        n = dvb_copy_fe_props(parms->dvb_prop, n, fe_prop);
-+
-+	prop.props = fe_prop;
- 	prop.num = n;
- 	if (!parms->legacy_fe) {
- 		if (ioctl(parms->fd, FE_GET_PROPERTY, &prop) == -1) {
-@@ -540,8 +561,11 @@ int dvb_fe_set_parms(struct dvb_v5_fe_parms *parms)
- 	uint32_t freq;
- 	uint32_t bw;
- 
--	prop.props = parms->dvb_prop;
--	prop.num = parms->n_props + 1;
-+	struct dtv_property fe_prop[DTV_MAX_COMMAND];
-+        int n = dvb_copy_fe_props(parms->dvb_prop, parms->n_props, fe_prop);
-+
-+	prop.props = fe_prop;
-+	prop.num = n + 1;
- 	parms->dvb_prop[parms->n_props].cmd = DTV_TUNE;
- 
- 	if (is_satellite(parms->current_sys)) {
-diff --git a/lib/libdvbv5/dvb-v5-std.c b/lib/libdvbv5/dvb-v5-std.c
-index 210f661..e20eb91 100644
---- a/lib/libdvbv5/dvb-v5-std.c
-+++ b/lib/libdvbv5/dvb-v5-std.c
-@@ -106,6 +106,7 @@ const unsigned int sys_dvbs_props[] = {
- 	DTV_INNER_FEC,
- 	DTV_VOLTAGE,
- 	DTV_TONE,
-+        DTV_POLARIZATION,
- 	0
- };
- 
-@@ -119,6 +120,7 @@ const unsigned int sys_dvbs2_props[] = {
- 	DTV_MODULATION,
- 	DTV_PILOT,
- 	DTV_ROLLOFF,
-+        DTV_POLARIZATION,
- 	0
- };
- 
+ 	int (*vidioc_create_bufs)(struct file *file, void *fh, struct v4l2_create_buffers *b);
 -- 
-1.7.2.5
+1.7.9.5
 
