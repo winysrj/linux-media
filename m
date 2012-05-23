@@ -1,121 +1,162 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:3249 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754957Ab2ENNmp (ORCPT
+Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:44271 "EHLO
+	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932625Ab2EWJyv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 May 2012 09:42:45 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [RFCv1 PATCH 5/5] v4l2-dev: add flag to have the core lock all file operations.
-Date: Mon, 14 May 2012 15:42:37 +0200
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-References: <1336633514-4972-1-git-send-email-hverkuil@xs4all.nl> <67416de571ea793e612f65501fa7499deb31283d.1336632433.git.hans.verkuil@cisco.com> <9761581.bJ0QrOc7Gv@avalon>
-In-Reply-To: <9761581.bJ0QrOc7Gv@avalon>
+	Wed, 23 May 2012 05:54:51 -0400
+Subject: [PATCH 14/43] rc-core: allow chardev to be written
+To: linux-media@vger.kernel.org
+From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
+Cc: mchehab@redhat.com, jarod@redhat.com
+Date: Wed, 23 May 2012 11:43:14 +0200
+Message-ID: <20120523094314.14474.95103.stgit@felix.hardeman.nu>
+In-Reply-To: <20120523094157.14474.24367.stgit@felix.hardeman.nu>
+References: <20120523094157.14474.24367.stgit@felix.hardeman.nu>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201205141542.37504.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Add write functionality to the rc chardev (for use in transmitting remote
+control commands on capable hardware).
 
-Thanks for the review!
+The data format of the TX data is probably going to have to be dependent
+on the rc_driver_type.
 
-On Mon May 14 2012 14:31:32 Laurent Pinchart wrote:
-> Hi Hans,
-> 
-> Thanks for the patch.
-> 
-> On Thursday 10 May 2012 09:05:14 Hans Verkuil wrote:
-> > From: Hans Verkuil <hans.verkuil@cisco.com>
-> > 
-> > This used to be the default if the lock pointer was set, but now that lock
-> > is by default only used for ioctl serialization.
-> 
-> Shouldn't that be documented ? Documentation/video4linux/v4l2-framework.txt 
-> still states that the lock is taken for each file operation.
+Signed-off-by: David Härdeman <david@hardeman.nu>
+---
+ drivers/media/rc/rc-main.c |   68 ++++++++++++++++++++++++++++++++++++++++++++
+ include/media/rc-core.h    |    2 +
+ 2 files changed, 70 insertions(+)
 
-I'd have sworn I'd done that, but obviously my memory is playing tricks on me.
+diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+index 80d6dac..3389822 100644
+--- a/drivers/media/rc/rc-main.c
++++ b/drivers/media/rc/rc-main.c
+@@ -1211,6 +1211,7 @@ struct rc_dev *rc_allocate_device(void)
+ 	INIT_KFIFO(dev->txfifo);
+ 	spin_lock_init(&dev->txlock);
+ 	init_waitqueue_head(&dev->rxwait);
++	init_waitqueue_head(&dev->txwait);
+ 	spin_lock_init(&dev->rc_map.lock);
+ 	spin_lock_init(&dev->keylock);
+ 	mutex_init(&dev->lock);
+@@ -1409,6 +1410,7 @@ void rc_unregister_device(struct rc_dev *dev)
+ 		kill_fasync(&client->fasync, SIGIO, POLL_HUP);
+ 	spin_unlock(&dev->client_lock);
+ 	wake_up_interruptible_all(&dev->rxwait);
++	wake_up_interruptible_all(&dev->txwait);
+ 
+ 	del_timer_sync(&dev->timer_keyup);
+ 
+@@ -1560,6 +1562,69 @@ static ssize_t rc_read(struct file *file, char __user *buffer,
+ }
+ 
+ /**
++ * rc_write() - allows userspace to write data to transmit
++ * @file:	the &struct file corresponding to the previous open()
++ * @buffer:	the userspace buffer to read data from
++ * @count:	the number of bytes to read
++ * @ppos:	the file offset
++ * @return:	the number of bytes written, or a negative error code
++ *
++ * This function (which implements write in &struct file_operations)
++ * allows userspace to transmit data using a suitable rc device
++ */
++static ssize_t rc_write(struct file *file, const char __user *buffer,
++			size_t count, loff_t *ppos)
++{
++	struct rc_client *client = file->private_data;
++	struct rc_dev *dev = client->dev;
++	ssize_t ret;
++	DEFINE_IR_RAW_EVENT(event);
++	bool pulse = true;
++	u32 value;
++
++	if (!dev->tx_ir)
++		return -ENOSYS;
++
++	if ((count < sizeof(u32)) || (count % sizeof(u32)))
++		return -EINVAL;
++
++again:
++	if (kfifo_is_full(&dev->txfifo) && dev->exist &&
++	    (file->f_flags & O_NONBLOCK))
++		return -EAGAIN;
++
++	ret = wait_event_interruptible(dev->txwait,
++				       !kfifo_is_full(&dev->txfifo) ||
++				       !dev->exist);
++	if (ret)
++		return ret;
++
++	if (!dev->exist)
++		return -ENODEV;
++
++	for (ret = 0; ret + sizeof(value) <= count; ret += sizeof(value)) {
++		if (copy_from_user(&value, buffer + ret, sizeof(value)))
++			return -EFAULT;
++
++		event.duration = US_TO_NS(value);
++		event.pulse = pulse;
++		pulse = !pulse;
++
++		if (kfifo_in_spinlocked(&dev->txfifo, &event, 1, &dev->txlock)
++		    != 1)
++			break;
++	}
++
++	if (ret == 0)
++		goto again;
++
++	dev->tx_ir(dev);
++	wake_up_interruptible(&dev->txwait);
++
++	return ret;
++}
++
++/**
+  * rc_poll() - allows userspace to poll rc device files
+  * @file:	the &struct file corresponding to the previous open()
+  * @wait:	used to keep track of processes waiting for poll events
+@@ -1573,8 +1638,10 @@ static unsigned int rc_poll(struct file *file, poll_table *wait)
+ 	struct rc_client *client = file->private_data;
+ 	struct rc_dev *dev = client->dev;
+ 
++	poll_wait(file, &dev->txwait, wait);
+ 	poll_wait(file, &dev->rxwait, wait);
+ 	return ((kfifo_is_empty(&client->rxfifo) ? 0 : (POLLIN | POLLRDNORM)) |
++		(kfifo_is_full(&dev->txfifo) ? 0 : (POLLOUT | POLLWRNORM)) |
+ 		(dev->exist ? 0 : (POLLHUP | POLLERR)));
+ }
+ 
+@@ -1601,6 +1668,7 @@ static const struct file_operations rc_fops = {
+ 	.open		= rc_open,
+ 	.release	= rc_release,
+ 	.read		= rc_read,
++	.write		= rc_write,
+ 	.poll		= rc_poll,
+ 	.fasync		= rc_fasync,
+ };
+diff --git a/include/media/rc-core.h b/include/media/rc-core.h
+index 4a5dbcb..1810984 100644
+--- a/include/media/rc-core.h
++++ b/include/media/rc-core.h
+@@ -87,6 +87,7 @@ struct ir_raw_event {
+  * @client_lock: protects client_list
+  * @txfifo: fifo with tx data to transmit
+  * @txlock: protects txfifo
++ * @txwait: waitqueue for processes waiting to write data to the txfifo
+  * @rxwait: waitqueue for processes waiting for data to read
+  * @raw: additional data for raw pulse/space devices
+  * @input_dev: the input child device used to communicate events to userspace
+@@ -141,6 +142,7 @@ struct rc_dev {
+ 	spinlock_t			client_lock;
+ 	DECLARE_KFIFO_PTR(txfifo, struct ir_raw_event);
+ 	spinlock_t			txlock;
++	wait_queue_head_t		txwait;
+ 	wait_queue_head_t		rxwait;
+ 	struct ir_raw_event_ctrl	*raw;
+ 	struct input_dev		*input_dev;
 
-Will fix.
-
-> > Those drivers that already used core locking have this flag set explicitly,
-> > except for some drivers where it was obvious that there was no need to
-> > serialize any file operations other than ioctl.
-> > 
-> > The drivers that didn't need this flag were:
-> > 
-> > drivers/media/radio/dsbr100.c
-> > drivers/media/radio/radio-isa.c
-> > drivers/media/radio/radio-keene.c
-> > drivers/media/radio/radio-miropcm20.c
-> > drivers/media/radio/radio-mr800.c
-> > drivers/media/radio/radio-tea5764.c
-> > drivers/media/radio/radio-timb.c
-> > drivers/media/video/vivi.c
-> > sound/i2c/other/tea575x-tuner.c
-> 
-> Be careful that drivers for hot-pluggable devices can use the core lock to 
-> serialize open/disconnect. The dsbr100 driver takes the core lock in its 
-> disconnect handler for instance. Have you double-checked that no race 
-> condition exists in those cases ?
-
-Yes. This drivers use core helper functions for open/release/poll where we
-know that there is no race condition.
-
-> 
-> > The other drivers that use core locking and where it was not immediately
-> > obvious that this flag wasn't needed were changed so that the flag is set
-> > together with a comment that that driver needs work to avoid having to
-> > set that flag. This will often involve taking the core lock in the fops
-> > themselves.
-> 
-> Or not using the core lock :-)
-> 
-> > Eventually this flag should go and it should not be used in new drivers.
-> 
-> Could you please add a comment above the flag to state that new drivers must 
-> not use it ?
-
-Good one. Will do.
-
-> > There are a few reasons why we want to avoid core locking of non-ioctl
-> > fops: in the case of mmap this can lead to a deadlock in rare situations
-> > since when mmap is called the mmap_sem is held and it is possible for
-> > other parts of the code to take that lock as well
-> > (copy_from_user()/copy_to_user() perform a down_read(&mm->mmap_sem) when a
-> > page fault occurs).
-> 
-> This patch won't solve the problem. We have (at least) two AB-BA deadlock 
-> issues with the mm->mmap_sem. Both of them share the fact that the mmap() 
-> handler is called with mm->mmap_sem held and will then take a device-related 
-> lock (could be a global driver lock, a device-wide lock or a queue-specific 
-> lock). I don't think we can do anything about that.
-> 
-> The first problem was solved some time ago. VIDIOC_QBUF is called with the 
-> same device-related lock held and then needs to take mm->mmap_sem. We solved 
-> that be calling the queue wait_prepare() and wait_finish() around down(&mm-
-> >mmap_sem) and up(&mm->mmap_sem). Maybe not ideal, but that seems to work.
-> 
-> The second problem comes from the copy_from_user()/copy_to_user() code in 
-> video_usercopy(). That function is called by video_ioctl2() which is itself 
-> called with the device lock held. Copying from/to user can fault if the 
-> userspace memory has been paged out, in which case the fault handler needs to 
-> take mm->mmap_sem to solve the fault. This can deadlock with mmap().
-> 
-> To solve the second issue we must delay taking the device lock until after 
-> copying from user, as we can't forbid the mmap() handler from taking the 
-> device lock (that would introduce race conditions). I think that can be done 
-> by pushing the device lock into __video_do_ioctl.
-
-Good idea, but for 3.6. This will be a nice one to combine with my v4l2-ioctl.c
-reorganization.
-
-Regards,
-
-	Hans
