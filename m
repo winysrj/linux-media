@@ -1,47 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:55159 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759224Ab2EIM4A (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 May 2012 08:56:00 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:44288 "EHLO
+	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933320Ab2EWJy4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 23 May 2012 05:54:56 -0400
+Subject: [PATCH 17/43] rc-loopback: add RCIOCGIRRX ioctl support
 To: linux-media@vger.kernel.org
-Cc: sakari.ailus@iki.fi
-Subject: [PATCH 0/3] V4L2_CID_PIXEL_RATE support in sensor drivers
-Date: Wed,  9 May 2012 14:55:56 +0200
-Message-Id: <1336568159-23378-1-git-send-email-laurent.pinchart@ideasonboard.com>
+From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
+Cc: mchehab@redhat.com, jarod@redhat.com
+Date: Wed, 23 May 2012 11:43:30 +0200
+Message-ID: <20120523094329.14474.41418.stgit@felix.hardeman.nu>
+In-Reply-To: <20120523094157.14474.24367.stgit@felix.hardeman.nu>
+References: <20120523094157.14474.24367.stgit@felix.hardeman.nu>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi everybody,
+As an example, this patch adds support for the new RCIOCGIRRX ioctl
+to rc-loopback.
 
-This patch implements support for the V4L2_CID_PIXEL_RATE control in the
-mt9t001, mt9p031 and mt9m032 sensor drivers.
+Signed-off-by: David Härdeman <david@hardeman.nu>
+---
+ drivers/media/rc/rc-loopback.c |   22 ++++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
 
-Recent changes to the OMAP3 ISP driver (see the media-for-3.5 branch in the
-http://git.linuxtv.org/sailus/media_tree.git repository) made support for that
-control mandatory for sensor drivers that are to be used with the OMAP3 ISP.
-
-Sakari, would you like to take these patches in your tree and push them for
-v3.5 ? V4L2_CID_PIXEL_RATE support for the mt9v032 driver is also still
-missing, the patch you've sent to the list two months ago needs to be rebased.
-Will you do that or should I do it ? I'm also wondering whether that patch
-shouldn't mark the V4L2_CID_PIXEL_RATE control as volatile, calling
-v4l2_s_ext_ctrls() from inside the driver looks quite hackish to me. The
-alternative would be to create a 64-bit version of v4l2_ctrl_s_ctrl().
-
-Laurent Pinchart (3):
-  mt9t001: Implement V4L2_CID_PIXEL_RATE control
-  mt9p031: Implement V4L2_CID_PIXEL_RATE control
-  mt9m032: Implement V4L2_CID_PIXEL_RATE control
-
- drivers/media/video/mt9m032.c |   13 +++++++++++--
- drivers/media/video/mt9p031.c |    5 ++++-
- drivers/media/video/mt9t001.c |   13 +++++++++++--
- include/media/mt9t001.h       |    1 +
- 4 files changed, 27 insertions(+), 5 deletions(-)
-
--- 
-Regards,
-
-Laurent Pinchart
+diff --git a/drivers/media/rc/rc-loopback.c b/drivers/media/rc/rc-loopback.c
+index b6a2e58..7977b75 100644
+--- a/drivers/media/rc/rc-loopback.c
++++ b/drivers/media/rc/rc-loopback.c
+@@ -173,6 +173,27 @@ static int loop_set_carrier_report(struct rc_dev *dev, int enable)
+ 	return 0;
+ }
+ 
++/**
++ * loop_get_ir_rx() - returns the current RX settings
++ * @dev: the &struct rc_dev to get the settings for
++ * @rx: the &struct rc_ir_rx to fill in with the current settings
++ *
++ * This function is used to return the current RX settings.
++ */
++static void loop_get_ir_rx(struct rc_dev *dev, struct rc_ir_rx *rx)
++{
++	struct loopback_dev *lodev = dev->priv;
++
++	rx->rx_supported = RXMASK_REGULAR | RXMASK_LEARNING;
++	rx->rx_connected = RXMASK_REGULAR | RXMASK_LEARNING;
++	rx->rx_enabled = lodev->learning ? RXMASK_LEARNING : RXMASK_REGULAR;
++	rx->rx_learning = RXMASK_LEARNING;
++	rx->freq_min = lodev->rxcarriermin;
++	rx->freq_max = lodev->rxcarriermax;
++	rx->duty_min = 1;
++	rx->duty_max = 99;
++}
++
+ static int __init loop_init(void)
+ {
+ 	struct rc_dev *rc;
+@@ -206,6 +227,7 @@ static int __init loop_init(void)
+ 	rc->s_idle		= loop_set_idle;
+ 	rc->s_learning_mode	= loop_set_learning_mode;
+ 	rc->s_carrier_report	= loop_set_carrier_report;
++	rc->get_ir_rx		= loop_get_ir_rx;
+ 
+ 	loopdev.txmask		= RXMASK_REGULAR;
+ 	loopdev.txcarrier	= 36000;
 
