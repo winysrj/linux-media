@@ -1,126 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:3381 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753694Ab2EAJGB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 1 May 2012 05:06:01 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 7/7] V4L2: Mark the DV Preset API as deprecated.
-Date: Tue,  1 May 2012 11:05:52 +0200
-Message-Id: <bdf36b3c1ef4796e021ac8d46685c1bc741150bc.1335862609.git.hans.verkuil@cisco.com>
-In-Reply-To: <1335863152-15791-1-git-send-email-hverkuil@xs4all.nl>
-References: <1335863152-15791-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <de77f3452a3710c48282ebe24937731b252a1ef7.1335862609.git.hans.verkuil@cisco.com>
-References: <de77f3452a3710c48282ebe24937731b252a1ef7.1335862609.git.hans.verkuil@cisco.com>
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:9045 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755906Ab2EWMKq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 23 May 2012 08:10:46 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Received: from euspt1 ([210.118.77.13]) by mailout3.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0M4H007XT5SGBG50@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 23 May 2012 13:09:52 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0M4H00KSZ5TUMD@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 23 May 2012 13:10:42 +0100 (BST)
+Date: Wed, 23 May 2012 14:10:15 +0200
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: [PATCHv6 01/13] v4l: Add DMABUF as a memory type
+In-reply-to: <1337775027-9489-1-git-send-email-t.stanislaws@samsung.com>
+To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
+Cc: airlied@redhat.com, m.szyprowski@samsung.com,
+	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
+	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
+	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
+	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
+	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
+	mchehab@redhat.com, g.liakhovetski@gmx.de,
+	Sumit Semwal <sumit.semwal@linaro.org>
+Message-id: <1337775027-9489-2-git-send-email-t.stanislaws@samsung.com>
+References: <1337775027-9489-1-git-send-email-t.stanislaws@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+From: Sumit Semwal <sumit.semwal@ti.com>
 
-The DV Preset API will be phased out in favor of the more flexible DV Timings
-API. Mark the preset API accordingly in the header and documentation.
+Adds DMABUF memory type to v4l framework. Also adds the related file
+descriptor in v4l2_plane and v4l2_buffer.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+   [original work in the PoC for buffer sharing]
+Signed-off-by: Sumit Semwal <sumit.semwal@ti.com>
+Signed-off-by: Sumit Semwal <sumit.semwal@linaro.org>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- Documentation/DocBook/media/v4l/common.xml                 |    6 ++++--
- Documentation/DocBook/media/v4l/compat.xml                 |    4 ++++
- Documentation/DocBook/media/v4l/vidioc-g-dv-preset.xml     |    6 ++++++
- Documentation/DocBook/media/v4l/vidioc-query-dv-preset.xml |    4 ++++
- include/linux/videodev2.h                                  |    6 ++++++
- 5 files changed, 24 insertions(+), 2 deletions(-)
+ drivers/media/video/v4l2-ioctl.c |    1 +
+ include/linux/videodev2.h        |    7 +++++++
+ 2 files changed, 8 insertions(+)
 
-diff --git a/Documentation/DocBook/media/v4l/common.xml b/Documentation/DocBook/media/v4l/common.xml
-index 81b7cf3..4101aeb 100644
---- a/Documentation/DocBook/media/v4l/common.xml
-+++ b/Documentation/DocBook/media/v4l/common.xml
-@@ -744,11 +744,13 @@ header can be used to get the timings of the formats in the <xref linkend="cea86
- 	</para>
- 	</listitem>
- 	<listitem>
--	<para>DV Presets: Digital Video (DV) presets. These are IDs representing a
-+	<para>DV Presets: Digital Video (DV) presets (<emphasis role="bold">deprecated</emphasis>).
-+	These are IDs representing a
- video timing at the input/output. Presets are pre-defined timings implemented
- by the hardware according to video standards. A __u32 data type is used to represent
- a preset unlike the bit mask that is used in &v4l2-std-id; allowing future extensions
--to support as many different presets as needed.</para>
-+to support as many different presets as needed. This API is deprecated in favor of the DV Timings
-+API.</para>
- 	</listitem>
- 	</itemizedlist>
- 	<para>To enumerate and query the attributes of the DV timings supported by a device,
-diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
-index 21424a6..001ecdf 100644
---- a/Documentation/DocBook/media/v4l/compat.xml
-+++ b/Documentation/DocBook/media/v4l/compat.xml
-@@ -2571,6 +2571,10 @@ interfaces and should not be implemented in new drivers.</para>
- <xref linkend="extended-controls" />.</para>
-         </listitem>
-         <listitem>
-+	  <para>&VIDIOC-G-DV-PRESET;, &VIDIOC-S-DV-PRESET;, &VIDIOC-ENUM-DV-PRESETS; and
-+	  &VIDIOC-QUERY-DV-PRESET; ioctls. Use the DV Timings API (<xref linkend="dv-timings" />).</para>
-+        </listitem>
-+        <listitem>
- 	  <para><constant>VIDIOC_SUBDEV_G_CROP</constant> and
- 	  <constant>VIDIOC_SUBDEV_S_CROP</constant> ioctls. Use
- 	  <constant>VIDIOC_SUBDEV_G_SELECTION</constant> and
-diff --git a/Documentation/DocBook/media/v4l/vidioc-g-dv-preset.xml b/Documentation/DocBook/media/v4l/vidioc-g-dv-preset.xml
-index 7940c11..61be9fa 100644
---- a/Documentation/DocBook/media/v4l/vidioc-g-dv-preset.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-g-dv-preset.xml
-@@ -48,6 +48,12 @@
- 
-   <refsect1>
-     <title>Description</title>
-+
-+    <para>These ioctls are <emphasis role="bold">deprecated</emphasis>.
-+    New drivers and applications should use &VIDIOC-G-DV-TIMINGS; and &VIDIOC-S-DV-TIMINGS;
-+    instead.
-+    </para>
-+
-     <para>To query and select the current DV preset, applications
- use the <constant>VIDIOC_G_DV_PRESET</constant> and <constant>VIDIOC_S_DV_PRESET</constant>
- ioctls which take a pointer to a &v4l2-dv-preset; type as argument.
-diff --git a/Documentation/DocBook/media/v4l/vidioc-query-dv-preset.xml b/Documentation/DocBook/media/v4l/vidioc-query-dv-preset.xml
-index 23b17f6..1bc8aeb 100644
---- a/Documentation/DocBook/media/v4l/vidioc-query-dv-preset.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-query-dv-preset.xml
-@@ -49,6 +49,10 @@ input</refpurpose>
-   <refsect1>
-     <title>Description</title>
- 
-+    <para>This ioctl is <emphasis role="bold">deprecated</emphasis>.
-+    New drivers and applications should use &VIDIOC-QUERY-DV-TIMINGS; instead.
-+    </para>
-+
-     <para>The hardware may be able to detect the current DV preset
- automatically, similar to sensing the video standard. To do so, applications
- call <constant> VIDIOC_QUERY_DV_PRESET</constant> with a pointer to a
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index 6062c57..8e2e827 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -939,6 +939,9 @@ struct v4l2_standard {
- 	__u32		     reserved[4];
+diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
+index 91be4e8..31fc2ad 100644
+--- a/drivers/media/video/v4l2-ioctl.c
++++ b/drivers/media/video/v4l2-ioctl.c
+@@ -175,6 +175,7 @@ static const char *v4l2_memory_names[] = {
+ 	[V4L2_MEMORY_MMAP]    = "mmap",
+ 	[V4L2_MEMORY_USERPTR] = "userptr",
+ 	[V4L2_MEMORY_OVERLAY] = "overlay",
++	[V4L2_MEMORY_DMABUF] = "dmabuf",
  };
  
-+/* The DV Preset API is deprecated in favor of the DV Timings API.
-+   New drivers shouldn't use this anymore! */
-+
- /*
-  *	V I D E O	T I M I N G S	D V	P R E S E T
-  */
-@@ -2507,6 +2510,9 @@ struct v4l2_create_buffers {
- #endif
+ #define prt_names(a, arr) ((((a) >= 0) && ((a) < ARRAY_SIZE(arr))) ? \
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index 370d111..51b20f4 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -185,6 +185,7 @@ enum v4l2_memory {
+ 	V4L2_MEMORY_MMAP             = 1,
+ 	V4L2_MEMORY_USERPTR          = 2,
+ 	V4L2_MEMORY_OVERLAY          = 3,
++	V4L2_MEMORY_DMABUF           = 4,
+ };
  
- #define VIDIOC_S_HW_FREQ_SEEK	 _IOW('V', 82, struct v4l2_hw_freq_seek)
-+
-+/* These four DV Preset ioctls are deprecated in favor of the DV Timings
-+   ioctls. */
- #define	VIDIOC_ENUM_DV_PRESETS	_IOWR('V', 83, struct v4l2_dv_enum_preset)
- #define	VIDIOC_S_DV_PRESET	_IOWR('V', 84, struct v4l2_dv_preset)
- #define	VIDIOC_G_DV_PRESET	_IOWR('V', 85, struct v4l2_dv_preset)
+ /* see also http://vektor.theorem.ca/graphics/ycbcr/ */
+@@ -591,6 +592,8 @@ struct v4l2_requestbuffers {
+  *			should be passed to mmap() called on the video node)
+  * @userptr:		when memory is V4L2_MEMORY_USERPTR, a userspace pointer
+  *			pointing to this plane
++ * @fd:			when memory is V4L2_MEMORY_DMABUF, a userspace file
++ *			descriptor associated with this plane
+  * @data_offset:	offset in the plane to the start of data; usually 0,
+  *			unless there is a header in front of the data
+  *
+@@ -605,6 +608,7 @@ struct v4l2_plane {
+ 	union {
+ 		__u32		mem_offset;
+ 		unsigned long	userptr;
++		int		fd;
+ 	} m;
+ 	__u32			data_offset;
+ 	__u32			reserved[11];
+@@ -629,6 +633,8 @@ struct v4l2_plane {
+  *		(or a "cookie" that should be passed to mmap() as offset)
+  * @userptr:	for non-multiplanar buffers with memory == V4L2_MEMORY_USERPTR;
+  *		a userspace pointer pointing to this buffer
++ * @fd:		for non-multiplanar buffers with memory == V4L2_MEMORY_DMABUF;
++ *		a userspace file descriptor associated with this buffer
+  * @planes:	for multiplanar buffers; userspace pointer to the array of plane
+  *		info structs for this buffer
+  * @length:	size in bytes of the buffer (NOT its payload) for single-plane
+@@ -655,6 +661,7 @@ struct v4l2_buffer {
+ 		__u32           offset;
+ 		unsigned long   userptr;
+ 		struct v4l2_plane *planes;
++		int		fd;
+ 	} m;
+ 	__u32			length;
+ 	__u32			input;
 -- 
-1.7.10
+1.7.9.5
 
