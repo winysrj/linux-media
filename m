@@ -1,21 +1,21 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:45664 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752633Ab2EWNHs (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:52045 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752655Ab2EWNHr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 May 2012 09:07:48 -0400
-Received: from euspt2 (mailout1.w1.samsung.com [210.118.77.11])
- by mailout1.w1.samsung.com
+	Wed, 23 May 2012 09:07:47 -0400
+Received: from euspt1 (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
  (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0M4H00EPN8D0GP@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 23 May 2012 14:05:24 +0100 (BST)
+ with ESMTP id <0M4H000NL8GN1U@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 23 May 2012 14:07:35 +0100 (BST)
 Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0M4H0099C8GUIP@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 23 May 2012 14:07:43 +0100 (BST)
-Date: Wed, 23 May 2012 15:07:27 +0200
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0M4H00KKP8GW5D@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 23 May 2012 14:07:45 +0100 (BST)
+Date: Wed, 23 May 2012 15:07:28 +0200
 From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: [PATCH 04/12] v4l: vb2-dma-contig: add setup of sglist for MMAP buffers
+Subject: [PATCH 05/12] v4l: vb2-dma-contig: add support for DMABUF exporting
 In-reply-to: <1337778455-27912-1-git-send-email-t.stanislaws@samsung.com>
 To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
 Cc: airlied@redhat.com, m.szyprowski@samsung.com,
@@ -25,7 +25,7 @@ Cc: airlied@redhat.com, m.szyprowski@samsung.com,
 	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
 	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
 	mchehab@redhat.com, g.liakhovetski@gmx.de
-Message-id: <1337778455-27912-5-git-send-email-t.stanislaws@samsung.com>
+Message-id: <1337778455-27912-6-git-send-email-t.stanislaws@samsung.com>
 MIME-version: 1.0
 Content-type: TEXT/PLAIN
 Content-transfer-encoding: 7BIT
@@ -33,127 +33,152 @@ References: <1337778455-27912-1-git-send-email-t.stanislaws@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds the setup of sglist list for MMAP buffers.
-It is needed for buffer exporting via DMABUF mechanism.
+This patch adds support for exporting a dma-contig buffer using
+DMABUF interface.
 
 Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
 Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- drivers/media/video/videobuf2-dma-contig.c |   70 +++++++++++++++++++++++++++-
- 1 file changed, 68 insertions(+), 2 deletions(-)
+ drivers/media/video/videobuf2-dma-contig.c |  119 ++++++++++++++++++++++++++++
+ 1 file changed, 119 insertions(+)
 
 diff --git a/drivers/media/video/videobuf2-dma-contig.c b/drivers/media/video/videobuf2-dma-contig.c
-index 52b4f59..ae656be 100644
+index ae656be..b5826e0 100644
 --- a/drivers/media/video/videobuf2-dma-contig.c
 +++ b/drivers/media/video/videobuf2-dma-contig.c
-@@ -32,6 +32,7 @@ struct vb2_dc_buf {
- 	/* MMAP related */
- 	struct vb2_vmarea_handler	handler;
- 	atomic_t			refcount;
-+	struct sg_table			*sgt_base;
- 
- 	/* USERPTR related */
- 	struct vm_area_struct		*vma;
-@@ -189,14 +190,37 @@ static void vb2_dc_put(void *buf_priv)
- 	if (!atomic_dec_and_test(&buf->refcount))
- 		return;
- 
-+	vb2_dc_release_sgtable(buf->sgt_base);
- 	dma_free_coherent(buf->dev, buf->size, buf->vaddr, buf->dma_addr);
- 	kfree(buf);
+@@ -325,6 +325,124 @@ static int vb2_dc_mmap(void *buf_priv, struct vm_area_struct *vma)
  }
  
-+static int vb2_dc_kaddr_to_pages(unsigned long kaddr,
-+	struct page **pages, unsigned int n_pages)
+ /*********************************************/
++/*         DMABUF ops for exporters          */
++/*********************************************/
++
++struct vb2_dc_attachment {
++	struct sg_table sgt;
++	enum dma_data_direction dir;
++};
++
++static int vb2_dc_dmabuf_ops_attach(struct dma_buf *dbuf, struct device *dev,
++	struct dma_buf_attachment *dbuf_attach)
 +{
-+	unsigned int i;
-+	unsigned long pfn;
-+	struct vm_area_struct vma = {
-+		.vm_flags = VM_IO | VM_PFNMAP,
-+		.vm_mm = current->mm,
-+	};
-+
-+	for (i = 0; i < n_pages; ++i, kaddr += PAGE_SIZE) {
-+		if (follow_pfn(&vma, kaddr, &pfn))
-+			break;
-+		pages[i] = pfn_to_page(pfn);
-+	}
-+
-+	return i;
++	/* nothing to be done */
++	return 0;
 +}
 +
- static void *vb2_dc_alloc(void *alloc_ctx, unsigned long size)
- {
- 	struct device *dev = alloc_ctx;
- 	struct vb2_dc_buf *buf;
-+	int ret = -ENOMEM;
-+	int n_pages;
-+	struct page **pages = NULL;
- 
- 	buf = kzalloc(sizeof *buf, GFP_KERNEL);
- 	if (!buf)
-@@ -205,10 +229,41 @@ static void *vb2_dc_alloc(void *alloc_ctx, unsigned long size)
- 	buf->vaddr = dma_alloc_coherent(dev, size, &buf->dma_addr, GFP_KERNEL);
- 	if (!buf->vaddr) {
- 		dev_err(dev, "dma_alloc_coherent of size %ld failed\n", size);
--		kfree(buf);
--		return ERR_PTR(-ENOMEM);
-+		goto fail_buf;
++static void vb2_dc_dmabuf_ops_detach(struct dma_buf *dbuf,
++	struct dma_buf_attachment *db_attach)
++{
++	struct vb2_dc_attachment *attach = db_attach->priv;
++	struct sg_table *sgt;
++
++	if (!attach)
++		return;
++
++	sgt = &attach->sgt;
++
++	dma_unmap_sg(db_attach->dev, sgt->sgl, sgt->nents, attach->dir);
++	sg_free_table(sgt);
++	kfree(attach);
++	db_attach->priv = NULL;
++}
++
++static struct sg_table *vb2_dc_dmabuf_ops_map(
++	struct dma_buf_attachment *db_attach, enum dma_data_direction dir)
++{
++	struct dma_buf *dbuf = db_attach->dmabuf;
++	struct vb2_dc_buf *buf = dbuf->priv;
++	struct vb2_dc_attachment *attach = db_attach->priv;
++	struct sg_table *sgt;
++	struct scatterlist *rd, *wr;
++	int i, ret;
++
++	/* return previously mapped sg table */
++	if (attach)
++		return &attach->sgt;
++
++	attach = kzalloc(sizeof *attach, GFP_KERNEL);
++	if (!attach)
++		return ERR_PTR(-ENOMEM);
++
++	sgt = &attach->sgt;
++	attach->dir = dir;
++
++	/* copying the buf->base_sgt to attachment */
++	ret = sg_alloc_table(sgt, buf->sgt_base->orig_nents, GFP_KERNEL);
++	if (ret) {
++		kfree(attach);
++		return ERR_PTR(-ENOMEM);
 +	}
 +
-+	WARN_ON((unsigned long)buf->vaddr & ~PAGE_MASK);
-+	WARN_ON(buf->dma_addr & ~PAGE_MASK);
-+
-+	n_pages = PAGE_ALIGN(size) >> PAGE_SHIFT;
-+
-+	pages = kmalloc(n_pages * sizeof pages[0], GFP_KERNEL);
-+	if (!pages) {
-+		dev_err(dev, "failed to alloc page table\n");
-+		goto fail_dma;
++	rd = buf->sgt_base->sgl;
++	wr = sgt->sgl;
++	for (i = 0; i < sgt->orig_nents; ++i) {
++		sg_set_page(wr, sg_page(rd), rd->length, rd->offset);
++		rd = sg_next(rd);
++		wr = sg_next(wr);
 +	}
 +
-+	ret = vb2_dc_kaddr_to_pages((unsigned long)buf->vaddr, pages, n_pages);
-+	if (ret < 0) {
-+		dev_err(dev, "failed to get buffer pages from DMA API\n");
-+		goto fail_pages;
-+	}
-+	if (ret != n_pages) {
-+		ret = -EFAULT;
-+		dev_err(dev, "failed to get all pages from DMA API\n");
-+		goto fail_pages;
++	/* mapping new sglist to the client */
++	ret = dma_map_sg(db_attach->dev, sgt->sgl, sgt->orig_nents, dir);
++	if (ret <= 0) {
++		printk(KERN_ERR "failed to map scatterlist\n");
++		sg_free_table(sgt);
++		kfree(attach);
++		return ERR_PTR(-EIO);
 +	}
 +
-+	buf->sgt_base = vb2_dc_pages_to_sgt(pages, n_pages, 0, size);
-+	if (IS_ERR(buf->sgt_base)) {
-+		ret = PTR_ERR(buf->sgt_base);
-+		dev_err(dev, "failed to prepare sg table\n");
-+		goto fail_pages;
- 	}
++	db_attach->priv = attach;
++
++	return sgt;
++}
++
++static void vb2_dc_dmabuf_ops_unmap(struct dma_buf_attachment *db_attach,
++	struct sg_table *sgt, enum dma_data_direction dir)
++{
++	/* nothing to be done here */
++}
++
++static void vb2_dc_dmabuf_ops_release(struct dma_buf *dbuf)
++{
++	/* drop reference obtained in vb2_dc_get_dmabuf */
++	vb2_dc_put(dbuf->priv);
++}
++
++static struct dma_buf_ops vb2_dc_dmabuf_ops = {
++	.attach = vb2_dc_dmabuf_ops_attach,
++	.detach = vb2_dc_dmabuf_ops_detach,
++	.map_dma_buf = vb2_dc_dmabuf_ops_map,
++	.unmap_dma_buf = vb2_dc_dmabuf_ops_unmap,
++	.release = vb2_dc_dmabuf_ops_release,
++};
++
++static struct dma_buf *vb2_dc_get_dmabuf(void *buf_priv)
++{
++	struct vb2_dc_buf *buf = buf_priv;
++	struct dma_buf *dbuf;
++
++	dbuf = dma_buf_export(buf, &vb2_dc_dmabuf_ops, buf->size, 0);
++	if (IS_ERR(dbuf))
++		return NULL;
++
++	/* dmabuf keeps reference to vb2 buffer */
++	atomic_inc(&buf->refcount);
++
++	return dbuf;
++}
++
++/*********************************************/
+ /*       callbacks for USERPTR buffers       */
+ /*********************************************/
  
-+	/* pages are no longer needed */
-+	kfree(pages);
-+
- 	buf->dev = dev;
- 	buf->size = size;
- 
-@@ -219,6 +274,17 @@ static void *vb2_dc_alloc(void *alloc_ctx, unsigned long size)
- 	atomic_inc(&buf->refcount);
- 
- 	return buf;
-+
-+fail_pages:
-+	kfree(pages);
-+
-+fail_dma:
-+	dma_free_coherent(dev, size, buf->vaddr, buf->dma_addr);
-+
-+fail_buf:
-+	kfree(buf);
-+
-+	return ERR_PTR(ret);
- }
- 
- static int vb2_dc_mmap(void *buf_priv, struct vm_area_struct *vma)
+@@ -621,6 +739,7 @@ static void *vb2_dc_attach_dmabuf(void *alloc_ctx, struct dma_buf *dbuf,
+ const struct vb2_mem_ops vb2_dma_contig_memops = {
+ 	.alloc		= vb2_dc_alloc,
+ 	.put		= vb2_dc_put,
++	.get_dmabuf	= vb2_dc_get_dmabuf,
+ 	.cookie		= vb2_dc_cookie,
+ 	.vaddr		= vb2_dc_vaddr,
+ 	.mmap		= vb2_dc_mmap,
 -- 
 1.7.9.5
 
