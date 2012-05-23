@@ -1,72 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:60228 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S967208Ab2EQWf2 (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:15163 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751734Ab2EWNHr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 May 2012 18:35:28 -0400
-Date: Fri, 18 May 2012 01:35:23 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Sylwester Nawrocki <snjw23@gmail.com>
-Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	s.nawrocki@samsung.com, Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [PATCH 1/1] v4l: Remove "_ACTUAL" from subdev selection API
- target definition names
-Message-ID: <20120517223523.GO3373@valkosipuli.retiisi.org.uk>
-References: <1337015823-13603-1-git-send-email-s.nawrocki@samsung.com>
- <1337289325-19336-1-git-send-email-sakari.ailus@iki.fi>
- <4FB56FAB.7030308@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4FB56FAB.7030308@gmail.com>
+	Wed, 23 May 2012 09:07:47 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Received: from euspt1 ([210.118.77.13]) by mailout3.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0M4H00MXJ8FJYI60@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 23 May 2012 14:06:55 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0M4H0015L8GWJF@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 23 May 2012 14:07:45 +0100 (BST)
+Date: Wed, 23 May 2012 15:07:30 +0200
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: [PATCH 07/12] v4l: s5p-fimc: support for dmabuf exporting
+In-reply-to: <1337778455-27912-1-git-send-email-t.stanislaws@samsung.com>
+To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
+Cc: airlied@redhat.com, m.szyprowski@samsung.com,
+	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
+	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
+	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
+	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
+	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
+	mchehab@redhat.com, g.liakhovetski@gmx.de
+Message-id: <1337778455-27912-8-git-send-email-t.stanislaws@samsung.com>
+References: <1337778455-27912-1-git-send-email-t.stanislaws@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+This patch enhances s5p-fimc with support for DMABUF exporting via
+VIDIOC_EXPBUF ioctl.
 
-On Thu, May 17, 2012 at 11:37:47PM +0200, Sylwester Nawrocki wrote:
-> Hi Sakari,
-> 
-> thanks for the patch.
-> 
-> On 05/17/2012 11:15 PM, Sakari Ailus wrote:
-> > The string "_ACTUAL" does not say anything more about the target names. Drop
-> > it. V4L2 selection API was changed by "V4L: Rename V4L2_SEL_TGT_[CROP/COMPOSE]_ACTIVE to
-> > V4L2_SEL_TGT_[CROP/COMPOSE]" by Sylwester Nawrocki. This patch does the same
-> > for the V4L2 subdev API.
-> > 
-> > Signed-off-by: Sakari Ailus<sakari.ailus@iki.fi>
-> 
-> Are these all changes, or do you think we could try to drop the _SUBDEV
-> part as well from the below selection target names, so they are same
-> across V4L2 and subdev API ? :-)
-> 
-> I realize it might me quite a bit of documentation work and it's pretty 
-> late for getting these patches in for v3.5.
-> 
-> I still have a dependency on my previous pull request which is pending
-> for the patch you mentioned. Do you think we should leave "_SUBDEV"
-> in subdev selection target names for now (/ever) ? 
+Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/video/s5p-fimc/fimc-capture.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-I started working on removing the SUBDEV_ in between but I agree with you,
-there seems to be more than just a tiny bit of documentation work. It may be
-we'll go past 3.5 in doing that.
-
-I think the most important change was to get rid or ACTUAL/ACTIVE anyway.
-What we could do is that we postpone this change after 3.5 (to 3.6) and
-perhaps keep the old subdev targets around awhile.
-
-In my opinion the user space may (or perhaps even should) begin using the
-V4L2 targets already, but in kernel we'll use the existing subdev targets
-before the removal patch is eventually ready.
-
-This is primarily a documentation change after all.
-
-Could you rebase your exposure metering target definition patch on top of
-the _ACTUAL/_ACTIVE removal patches?
-
-Kind regars,
-
+diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c b/drivers/media/video/s5p-fimc/fimc-capture.c
+index cd27e33..52c9b36 100644
+--- a/drivers/media/video/s5p-fimc/fimc-capture.c
++++ b/drivers/media/video/s5p-fimc/fimc-capture.c
+@@ -1101,6 +1101,14 @@ static int fimc_cap_qbuf(struct file *file, void *priv,
+ 	return vb2_qbuf(&fimc->vid_cap.vbq, buf);
+ }
+ 
++static int fimc_cap_expbuf(struct file *file, void *priv,
++			  struct v4l2_exportbuffer *eb)
++{
++	struct fimc_dev *fimc = video_drvdata(file);
++
++	return vb2_expbuf(&fimc->vid_cap.vbq, eb);
++}
++
+ static int fimc_cap_dqbuf(struct file *file, void *priv,
+ 			   struct v4l2_buffer *buf)
+ {
+@@ -1225,6 +1233,7 @@ static const struct v4l2_ioctl_ops fimc_capture_ioctl_ops = {
+ 
+ 	.vidioc_qbuf			= fimc_cap_qbuf,
+ 	.vidioc_dqbuf			= fimc_cap_dqbuf,
++	.vidioc_expbuf			= fimc_cap_expbuf,
+ 
+ 	.vidioc_prepare_buf		= fimc_cap_prepare_buf,
+ 	.vidioc_create_bufs		= fimc_cap_create_bufs,
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+1.7.9.5
+
