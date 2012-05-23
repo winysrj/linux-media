@@ -1,123 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:55385 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932226Ab2EGUvD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 7 May 2012 16:51:03 -0400
-Message-ID: <4FA835B3.40802@iki.fi>
-Date: Mon, 07 May 2012 23:50:59 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:48904 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753777Ab2EWVBa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 23 May 2012 17:01:30 -0400
+Received: by obbtb18 with SMTP id tb18so11548398obb.19
+        for <linux-media@vger.kernel.org>; Wed, 23 May 2012 14:01:30 -0700 (PDT)
+Message-ID: <4FBD5026.4070306@gmail.com>
+Date: Wed, 23 May 2012 17:01:26 -0400
+From: Bob Lightfoot <boblfoot@gmail.com>
 MIME-Version: 1.0
-To: Hin-Tak Leung <hintak_leung@yahoo.co.uk>
-CC: linux-media <linux-media@vger.kernel.org>,
-	will.cooke@canonical.com, Greg KH <greg@kroah.com>
-Subject: Re: GSoC 2012 Linux-Media!
-References: <4FA291F5.3000103@iki.fi> <4FA49DB4.9080206@yahoo.co.uk>
-In-Reply-To: <4FA49DB4.9080206@yahoo.co.uk>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: Andy Walls <awalls@md.metrocast.net>
+CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	linux-media@vger.kernel.org, atrpms-users@atrpms.net
+Subject: Re: HVR1600 and Centos 6.2 x86_64 -- Strange Behavior
+References: <4FBBF83C.8040201@gmail.com> <CAGoCfiwgpnAFZ0axsZqzWBzjGffLZPeZ8bnA_vaL1jcia0rk5A@mail.gmail.com> <e95d008d-1d5a-4fde-b858-0041a9253a47@email.android.com>
+In-Reply-To: <e95d008d-1d5a-4fde-b858-0041a9253a47@email.android.com>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello!
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-On 05.05.2012 06:25, Hin-Tak Leung wrote:
-> Hi Antti,
->
-> I promised to put you in touch with some more knowledgeable people, so
-> here they are. Will made a few comments during our discussions (inserted
-> verbatim below - may or may not be relevant)... Please feel free to
-> respond to Mr Cooke and/or write to him and Greg.
->
-> Hin-Tak
->
-> Will Cooke wrote:
->  > The hacks with USB stick are entirely reliant on the chips inside the
-> stick. In
->  > this case, the demod (Realtek RTL2832U)has the ability to pass
-> through to the
->  > USB bus raw 8-bit sampled RF called I/Q
->  > (http://zone.ni.com/devzone/cda/tut/p/id/4805).
->  >
->  > Once you have this raw I/Q data you can demodulate the signals and
-> process them
->  > in software. So it's possible to build an FM radio, an AM radio, a
-> DAB radio,
->  > Ham radio, Packet radio, slow scan TV, basically anything which
-> modulates a sine
->  > wave within the frequency range of the tuner inside the DVB stick.
-> Not all DVB
->  > tuners are created equal. Some will be limited to n hundred MHz, some
-> have a
->  > range as low as 50 or 60 MHz up to a few GHz.
->  >
->  > Chips that have this functionality AND are built in to DVB USB sticks
-> AND cost
->  > less than 20 Dollars are few and far between. So it's pretty rare to
-> find a
->  > compatible USB stick, and not every USB stick can pull off this neat
-> trick.
->  >
->  > There is probably scope to run a project around a single targeted DVB
-> USB stick,
->  > but hardware support would be limited. GNU Radio is a good tool to
-> build the
->  > remodulators. As an example real world application, how about
-> building one of
->  > these sticks in to a laptop and integrating it with the audio stack.
-> Now my
->  > laptop comes with a TV tuner, an FM tuner, a DAB tuner, and so on.
->  >
->  > I hope that helps set the scene a little bit more. Let me know if you
-> need any
->  > more help.
->  >
->  > Cheers, Will
->
-> Will Cooke wrote:
->  > Hi Till!
->  >
->  > I am familiar with what a USB-DVB stick is, how it works, the inside
-> of a DVB
->  > transport stream, and so on, but... I'm in no way an expert, and I'm
-> in no way a
->  > developer!
->  >
->  > Depending on what sort of mentoring you had in mind, I would be happy
-> to get
->  > involved.
->  >
->  > Can you let me know a little more about the project and what kind of
-> input you
->  > need from me.
->  >
->  > Cheers, Will
+On 05/22/2012 06:06 PM, Andy Walls wrote:
+> Devin Heitmueller <dheitmueller@kernellabs.com> wrote:
+> 
+>> On Tue, May 22, 2012 at 4:34 PM, Bob Lightfoot
+>> <boblfoot@gmail.com> wrote:
+>>> -----BEGIN PGP SIGNED MESSAGE----- Hash: SHA1
+>>> 
+>>> Dear LinuxTv and AtRpms Communities: In the most recent three
+>>> kernels {2.6.32-220.7.1 ; 2.6.32-220.13.1 ; 2.6.32-220.17.1}
+>>> released for CentOS 6.2 I have experienced what can only be
+>>> described as a strange behavior of the V4L kernel modules with
+>>> the Hauppage HVR 1600 Card.  If I reboot the PC in question {HP
+>>> Pavillion Elite M9040n} I will lose sound on the Analog TV
+>>> Tuner.  If I Power off the PC, leave it off for 30-60 seconds
+>>> and start it back up then I have sound with the Analog TV Tuner
+>>> every time.  Not sure what is causing this, but thought the 
+>>> condition was worth sharing.
+>> 
+>> Could you please clarify which HVR-1600 board you have (e.g. the
+>> PCI ID)?  I suspect we're probably not resetting the audio
+>> processor properly, but I would need to know exactly which board
+>> you have in order to check that.
+>> 
+>> Devin
+>> 
+>> -- Devin J. Heitmueller - Kernel Labs http://www.kernellabs.com 
+>> -- To unsubscribe from this list: send the line "unsubscribe
+>> linux-media" in the body of a message to
+>> majordomo@vger.kernel.org More majordomo info at
+>> http://vger.kernel.org/majordomo-info.html
+> 
+> Also, if you not done so already, verify that it is not a sound
+> card playback issue.   Make a recording when you suspect the
+> HVR1600 is not capturing sound. Then play the recording when you
+> know your sound is working.
+> 
+> Also, does audio line in with Svideo or CVBS exhibit the same
+> symptoms?
+> 
+> I had to go through a good bit of trial and error to get the
+> CX23418's APU to capture audio reliably after boot up, so I am
+> reluctant to mess with that unless needed.
+> 
+> We will want to try to narrow the problem down to one of the analog
+> tuner, integrated CX25843, or APU.
+> 
+> Regards, Andy
+> 
+First Question the PCI ID -- the output of lspci -v is :
+01:00.0 Multimedia video controller: Conexant Systems, Inc. CX23418
+Single-Chip MPEG-2 Encoder with Integrated Analog Video/Broadcast
+Audio Decoder
+        Subsystem: Hauppauge computer works Inc. WinTV HVR-1600
+        Flags: bus master, medium devsel, latency 64, IRQ 17
+        Memory at f4000000 (32-bit, non-prefetchable) [size=64M]
+        Capabilities: [44] Vital Product Data
+        Capabilities: [4c] Power Management version 2
+        Kernel driver in use: cx18
+        Kernel modules: cx18
 
-Yes I know that RTL2832U SDR since I did a little bit initial stuff for it:
-http://comments.gmane.org/gmane.linux.drivers.video-input-infrastructure/44461
+And although right now I cannot find the earlier instructions I
+followed there was a post on the gossamer threads about the audio not
+being detected and the card muting the output.  There was a command
+{memory fails me right now} to query the card for the status of the
+tuner which is showing the audio is undetermined and muted when this
+issue happens.  It happens in both mythtv and cat > file.avi
+recordings played back later.  It should be noted that audio playback
+is fine despite the analog video sound being muted.
 
-Actually, RTL2832U GNU Radio driver, is accepted as my Bachelor's 
-Thesis. But I don't see idea to do that no longer since it was already 
-done by the others...
+Bob Lightfoot
 
-I have still some interest of hacking with that area. One thing what I 
-have been thinking in my brains is Kernel DVB interface support for 
-SDRs. It is not very much work for adding Kernel support. Define new 
-dilivery system for frontend and some changes for the DVB core to pass 
-raw payload data. Some very simple conversion is also needed as RTL2832U 
-supports only 8 bit samples what we know. And then suitable driver for 
-the GNU Radio which can speak our Kernel DVB "API" language ;)
+P.S. -- David & Andy - If you need more specific information just send
+me the commands to run and I'll provide the feedback,
 
-But there is currently only that one DVB device we known how to use as a 
-general SDR. There is surely some others available and more is coming as 
-all new radios are less or more SDRs. For example Dibcom Octopus. I 
-still suspect vendors are not very willingly releasing needed 
-information which could slow down things...
+P.P.S. -- Appreciate all you guys do -- my linux video box runs
+circles around my Vista Media Center.
 
-I do not have clear vision how that kind of SDR radios should be 
-integrated to the existing desktop. But likely Linux DVB -interface + 
-userspace stuff for the signal handling?
+Last P.S. - Linux Media Rocks.
 
-regards
-Antti
--- 
-http://palosaari.fi/
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.14 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
+
+iQEcBAEBAgAGBQJPvVAmAAoJEKqgpLIhfz3XcFAH/3bViyDt/YxLBbxtHi+fvofY
+cHWPBD1ls8QxPSfmumVU8fZR6qcg1RIg9FpbOcngXpnGdOjK0NXJ7oQngX34WCrR
+1NJgl4fc1YEBM6QzoOVHXC9Yg6iQnAShru4PIyP4VmuwDNIT/y7HZnB06bGUd6Fv
+1qxxKKzfwC4IxlzjX2jl3A+p/ujFJCGe/oIt+Q1JJho1Xq1rMYGEguQGyuPkLgjA
+MtfmObGA7OhrFDbdJ9cagW1o3Uu3CXa53qq5QPTGDzw4H6agmjQgL2PVUdgbc2X9
+ijB1kFTK9WwP4zbeVKUSejk8Jp1gC6n8ntBtdOe+I+uH6D0ONzznNCur2p+EbcU=
+=NL8P
+-----END PGP SIGNATURE-----
