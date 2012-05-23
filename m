@@ -1,133 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:52300 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755245Ab2EKPpc (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:9045 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755390Ab2EWMKs (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 May 2012 11:45:32 -0400
-Received: by bkcji2 with SMTP id ji2so2357178bkc.19
-        for <linux-media@vger.kernel.org>; Fri, 11 May 2012 08:45:30 -0700 (PDT)
-From: "Igor M. Liplianin" <liplianin@me.by>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH] cx23885: TeVii s471 card support
-Date: Fri, 11 May 2012 18:45:42 +0300
-Message-ID: <7076158.oZb9Cn2ZhT@useri>
-MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="nextPart5415348.2nEYmCqYpm"
-Content-Transfer-Encoding: 7Bit
+	Wed, 23 May 2012 08:10:48 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Received: from euspt2 ([210.118.77.13]) by mailout3.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0M4H00A0C5SH9A60@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 23 May 2012 13:09:54 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0M4H00FO15TTCC@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 23 May 2012 13:10:42 +0100 (BST)
+Date: Wed, 23 May 2012 14:10:27 +0200
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: [PATCHv6 13/13] v4l: s5p-fimc: support for dmabuf importing
+In-reply-to: <1337775027-9489-1-git-send-email-t.stanislaws@samsung.com>
+To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
+Cc: airlied@redhat.com, m.szyprowski@samsung.com,
+	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
+	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
+	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
+	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
+	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
+	mchehab@redhat.com, g.liakhovetski@gmx.de
+Message-id: <1337775027-9489-14-git-send-email-t.stanislaws@samsung.com>
+References: <1337775027-9489-1-git-send-email-t.stanislaws@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This patch enhances s5p-fimc with support for DMABUF importing via
+V4L2_MEMORY_DMABUF memory type.
 
---nextPart5415348.2nEYmCqYpm
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Acked-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+---
+ drivers/media/video/s5p-fimc/Kconfig        |    1 +
+ drivers/media/video/s5p-fimc/fimc-capture.c |    2 +-
+ 2 files changed, 2 insertions(+), 1 deletion(-)
 
-The card is similar to TeVii s470, but has different LNB power control.
-
-Signed-off-by: Igor M. Liplianin <liplianin@me.by>
---nextPart5415348.2nEYmCqYpm
-Content-Disposition: inline; filename="s471.patch"
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/x-patch; charset="utf-8"; name="s471.patch"
-
-diff --git a/drivers/media/dvb/frontends/ds3000.c b/drivers/media/dvb/frontends/ds3000.c
-index 6769fc4..668a1ef 100644
---- a/drivers/media/dvb/frontends/ds3000.c
-+++ b/drivers/media/dvb/frontends/ds3000.c
-@@ -935,7 +935,10 @@ static int ds3000_set_frontend(struct dvb_frontend *fe)
- 			ds3000_writereg(state,
- 				ds3000_dvbs2_init_tab[i],
- 				ds3000_dvbs2_init_tab[i + 1]);
--		ds3000_writereg(state, 0xfe, 0x98);
-+		if (c->symbol_rate >= 30000000)
-+			ds3000_writereg(state, 0xfe, 0x54);
-+		else
-+			ds3000_writereg(state, 0xfe, 0x98);
- 		break;
- 	default:
- 		return 1;
-diff --git a/drivers/media/video/cx23885/cx23885-cards.c b/drivers/media/video/cx23885/cx23885-cards.c
-index 19b5499..13739e0 100644
---- a/drivers/media/video/cx23885/cx23885-cards.c
-+++ b/drivers/media/video/cx23885/cx23885-cards.c
-@@ -497,6 +497,10 @@ struct cx23885_board cx23885_boards[] = {
- 		.name		= "TerraTec Cinergy T PCIe Dual",
- 		.portb		= CX23885_MPEG_DVB,
- 		.portc		= CX23885_MPEG_DVB,
-+	},
-+	[CX23885_BOARD_TEVII_S471] = {
-+		.name		= "TeVii S471",
-+		.portb		= CX23885_MPEG_DVB,
- 	}
- };
- const unsigned int cx23885_bcount = ARRAY_SIZE(cx23885_boards);
-@@ -705,6 +709,10 @@ struct cx23885_subid cx23885_subids[] = {
- 		.subvendor = 0x153b,
- 		.subdevice = 0x117e,
- 		.card      = CX23885_BOARD_TERRATEC_CINERGY_T_PCIE_DUAL,
-+	}, {
-+		.subvendor = 0xd471,
-+		.subdevice = 0x9022,
-+		.card      = CX23885_BOARD_TEVII_S471,
- 	},
- };
- const unsigned int cx23885_idcount = ARRAY_SIZE(cx23885_subids);
-@@ -1460,6 +1468,7 @@ void cx23885_card_setup(struct cx23885_dev *dev)
- 		ts1->src_sel_val   = CX23885_SRC_SEL_PARALLEL_MPEG_VIDEO;
- 		break;
- 	case CX23885_BOARD_TEVII_S470:
-+	case CX23885_BOARD_TEVII_S471:
- 	case CX23885_BOARD_DVBWORLD_2005:
- 		ts1->gen_ctrl_val  = 0x5; /* Parallel */
- 		ts1->ts_clk_en_val = 0x1; /* Enable TS_CLK */
-diff --git a/drivers/media/video/cx23885/cx23885-core.c b/drivers/media/video/cx23885/cx23885-core.c
-index 6ad2270..697728f 100644
---- a/drivers/media/video/cx23885/cx23885-core.c
-+++ b/drivers/media/video/cx23885/cx23885-core.c
-@@ -1046,6 +1046,13 @@ static int cx23885_dev_setup(struct cx23885_dev *dev)
- 	if (cx23885_boards[dev->board].ci_type > 0)
- 		cx_clear(RDR_RDRCTL1, 1 << 8);
- 
-+	switch (dev->board) {
-+	case CX23885_BOARD_TEVII_S470:
-+	case CX23885_BOARD_TEVII_S471:
-+		cx_clear(RDR_RDRCTL1, 1 << 8);
-+		break;
-+	}
-+
- 	return 0;
- }
- 
-diff --git a/drivers/media/video/cx23885/cx23885-dvb.c b/drivers/media/video/cx23885/cx23885-dvb.c
-index 54a2781..67140be 100644
---- a/drivers/media/video/cx23885/cx23885-dvb.c
-+++ b/drivers/media/video/cx23885/cx23885-dvb.c
-@@ -1185,6 +1185,13 @@ static int dvb_register(struct cx23885_tsport *port)
- 			break;
- 		}
- 		break;
-+	case CX23885_BOARD_TEVII_S471:
-+		i2c_bus = &dev->i2c_bus[1];
-+
-+		fe0->dvb.frontend = dvb_attach(ds3000_attach,
-+					&tevii_ds3000_config,
-+					&i2c_bus->i2c_adap);
-+		break;
- 	default:
- 		printk(KERN_INFO "%s: The frontend of your DVB/ATSC card "
- 			" isn't supported yet\n",
-diff --git a/drivers/media/video/cx23885/cx23885.h b/drivers/media/video/cx23885/cx23885.h
-index f020f05..d884784 100644
---- a/drivers/media/video/cx23885/cx23885.h
-+++ b/drivers/media/video/cx23885/cx23885.h
-@@ -89,6 +89,7 @@
- #define CX23885_BOARD_MPX885                   32
- #define CX23885_BOARD_MYGICA_X8507             33
- #define CX23885_BOARD_TERRATEC_CINERGY_T_PCIE_DUAL 34
-+#define CX23885_BOARD_TEVII_S471               35
- 
- #define GPIO_0 0x00000001
- #define GPIO_1 0x00000002
---nextPart5415348.2nEYmCqYpm--
+diff --git a/drivers/media/video/s5p-fimc/Kconfig b/drivers/media/video/s5p-fimc/Kconfig
+index a564f7e..3106026 100644
+--- a/drivers/media/video/s5p-fimc/Kconfig
++++ b/drivers/media/video/s5p-fimc/Kconfig
+@@ -14,6 +14,7 @@ config VIDEO_S5P_FIMC
+ 	depends on I2C
+ 	select VIDEOBUF2_DMA_CONTIG
+ 	select V4L2_MEM2MEM_DEV
++	select DMA_SHARED_BUFFER
+ 	help
+ 	  This is a V4L2 driver for Samsung S5P and EXYNOS4 SoC camera host
+ 	  interface and video postprocessor (FIMC and FIMC-LITE) devices.
+diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c b/drivers/media/video/s5p-fimc/fimc-capture.c
+index 3545745..cd27e33 100644
+--- a/drivers/media/video/s5p-fimc/fimc-capture.c
++++ b/drivers/media/video/s5p-fimc/fimc-capture.c
+@@ -1609,7 +1609,7 @@ static int fimc_register_capture_device(struct fimc_dev *fimc,
+ 	q = &fimc->vid_cap.vbq;
+ 	memset(q, 0, sizeof(*q));
+ 	q->type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
+-	q->io_modes = VB2_MMAP | VB2_USERPTR;
++	q->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF;
+ 	q->drv_priv = fimc->vid_cap.ctx;
+ 	q->ops = &fimc_capture_qops;
+ 	q->mem_ops = &vb2_dma_contig_memops;
+-- 
+1.7.9.5
 
