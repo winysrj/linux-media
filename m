@@ -1,369 +1,438 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:44247 "EHLO
-	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755092Ab2EWJtt (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:46078 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756568Ab2EWMKq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 May 2012 05:49:49 -0400
-Subject: [PATCH 09/43] rc-core: add chardev
-To: linux-media@vger.kernel.org
-From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
-Cc: mchehab@redhat.com, jarod@redhat.com
-Date: Wed, 23 May 2012 11:42:48 +0200
-Message-ID: <20120523094247.14474.20517.stgit@felix.hardeman.nu>
-In-Reply-To: <20120523094157.14474.24367.stgit@felix.hardeman.nu>
-References: <20120523094157.14474.24367.stgit@felix.hardeman.nu>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+	Wed, 23 May 2012 08:10:46 -0400
+Received: from euspt1 (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0M4H00EGA5TLFE@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 23 May 2012 13:10:35 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0M4H001V25TUJF@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 23 May 2012 13:10:43 +0100 (BST)
+Date: Wed, 23 May 2012 14:10:17 +0200
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: [PATCHv6 03/13] v4l: vb2: add support for shared buffer (dma_buf)
+In-reply-to: <1337775027-9489-1-git-send-email-t.stanislaws@samsung.com>
+To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
+Cc: airlied@redhat.com, m.szyprowski@samsung.com,
+	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
+	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
+	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
+	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
+	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
+	mchehab@redhat.com, g.liakhovetski@gmx.de,
+	Sumit Semwal <sumit.semwal@linaro.org>
+Message-id: <1337775027-9489-4-git-send-email-t.stanislaws@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1337775027-9489-1-git-send-email-t.stanislaws@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch lays the groundwork for adding a rc-core chardev.
+From: Sumit Semwal <sumit.semwal@ti.com>
 
-Signed-off-by: David Härdeman <david@hardeman.nu>
+This patch adds support for DMABUF memory type in videobuf2. It calls relevant
+APIs of dma_buf for v4l reqbuf / qbuf / dqbuf operations.
+
+For this version, the support is for videobuf2 as a user of the shared buffer;
+so the allocation of the buffer is done outside of V4L2. [A sample allocator of
+dma-buf shared buffer is given at [1]]
+
+[1]: Rob Clark's DRM:
+   https://github.com/robclark/kernel-omap4/commits/drmplane-dmabuf
+
+Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+   [original work in the PoC for buffer sharing]
+Signed-off-by: Sumit Semwal <sumit.semwal@ti.com>
+Signed-off-by: Sumit Semwal <sumit.semwal@linaro.org>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/rc/rc-main.c |  211 ++++++++++++++++++++++++++++++++++++++++----
- include/media/rc-core.h    |    6 +
- 2 files changed, 196 insertions(+), 21 deletions(-)
+ drivers/media/video/videobuf2-core.c |  196 +++++++++++++++++++++++++++++++++-
+ include/media/videobuf2-core.h       |   27 +++++
+ 2 files changed, 219 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-index 8da7701..d7a50b6 100644
---- a/drivers/media/rc/rc-main.c
-+++ b/drivers/media/rc/rc-main.c
-@@ -17,6 +17,7 @@
- #include <linux/delay.h>
- #include <linux/input.h>
- #include <linux/slab.h>
-+#include <linux/sched.h>
- #include <linux/device.h>
- #include <linux/module.h>
- #include "rc-core-priv.h"
-@@ -25,6 +26,7 @@
- #define IR_TAB_MIN_SIZE	256
- #define IR_TAB_MAX_SIZE	8192
- #define RC_DEV_MAX	32
-+#define RC_RX_BUFFER_SIZE 1024
+diff --git a/drivers/media/video/videobuf2-core.c b/drivers/media/video/videobuf2-core.c
+index 9d4e9ed..f43cfa4 100644
+--- a/drivers/media/video/videobuf2-core.c
++++ b/drivers/media/video/videobuf2-core.c
+@@ -109,6 +109,36 @@ static void __vb2_buf_userptr_put(struct vb2_buffer *vb)
+ }
  
- /* FIXME: IR_KEYPRESS_TIMEOUT should be protocol specific */
- #define IR_KEYPRESS_TIMEOUT 250
-@@ -34,9 +36,27 @@ static LIST_HEAD(rc_map_list);
- static DEFINE_SPINLOCK(rc_map_lock);
- 
- /* Various bits and pieces to keep track of rc devices */
-+static unsigned int rc_major;
- static struct rc_dev *rc_dev_table[RC_DEV_MAX];
- static DEFINE_MUTEX(rc_dev_table_mutex);
- 
-+/**
-+ * struct rc_client - keeps track of processes which have opened a rc chardev
-+ * @dev: the &struct rc_dev which is being controlled
-+ * @rxlock: protects the rxfifo
-+ * @rxfifo: stores rx events which can be read by the process
-+ * @fasync: keeps track of the fasync queue
-+ * @node: list of current clients for the rc device (protected by client_lock
-+ *	in &struct rc_dev)
+ /**
++ * __vb2_plane_dmabuf_put() - release memory associated with
++ * a DMABUF shared plane
 + */
-+struct rc_client {
-+	struct rc_dev *dev;
-+	spinlock_t rxlock;
-+	DECLARE_KFIFO(rxfifo, int, RC_RX_BUFFER_SIZE);
-+	struct fasync_struct *fasync;
-+	struct list_head node;
-+};
-+
- static struct rc_map_list *seek_rc_map(const char *name)
- {
- 	struct rc_map_list *map = NULL;
-@@ -1041,8 +1061,22 @@ out:
- 	return ret;
- }
- 
-+/**
-+ * rc_dev_release() - release a &struct rc_dev
-+ * @device: the &struct device which corresponds to the &struct rc_dev
-+ *
-+ * This function is called by the driver core when the refcount
-+ * for the &device reaches zero.
-+ */
- static void rc_dev_release(struct device *device)
- {
-+	struct rc_dev *dev = to_rc_dev(device);
-+
-+	if (dev->input_dev)
-+		input_free_device(dev->input_dev);
-+
-+	kfree(dev);
-+	module_put(THIS_MODULE);
- }
- 
- #define ADD_HOTPLUG_VAR(fmt, val...)					\
-@@ -1111,6 +1145,9 @@ struct rc_dev *rc_allocate_device(void)
- 	dev->input_dev->setkeycode = ir_setkeycode;
- 	input_set_drvdata(dev->input_dev, dev);
- 
-+	INIT_LIST_HEAD(&dev->client_list);
-+	spin_lock_init(&dev->client_lock);
-+
- 	spin_lock_init(&dev->rc_map.lock);
- 	spin_lock_init(&dev->keylock);
- 	mutex_init(&dev->lock);
-@@ -1125,18 +1162,18 @@ struct rc_dev *rc_allocate_device(void)
- }
- EXPORT_SYMBOL_GPL(rc_allocate_device);
- 
-+/**
-+ * rc_free_device() - free an allocated struct rc_dev
-+ * @dev:	the &struct rc_dev to free
-+ *
-+ * This function is used by drivers to free a &struct rc_dev which has
-+ * been allocated with rc_allocate_device(). It must not be used
-+ * after rc_register_device() has been successfully called.
-+ */
- void rc_free_device(struct rc_dev *dev)
- {
--	if (!dev)
--		return;
--
--	if (dev->input_dev)
--		input_free_device(dev->input_dev);
--
--	put_device(&dev->dev);
--
--	kfree(dev);
--	module_put(THIS_MODULE);
-+	if (dev)
-+		put_device(&dev->dev);
- }
- EXPORT_SYMBOL_GPL(rc_free_device);
- 
-@@ -1183,6 +1220,7 @@ int rc_register_device(struct rc_dev *dev)
- 		return -ENFILE;
- 
- 	dev->minor = i;
-+	dev->dev.devt = MKDEV(rc_major, dev->minor);
- 	dev_set_name(&dev->dev, "rc%u", dev->minor);
- 	dev_set_drvdata(&dev->dev, dev);
- 
-@@ -1251,6 +1289,7 @@ int rc_register_device(struct rc_dev *dev)
- 			goto out_raw;
- 	}
- 
-+	dev->exist = true;
- 	mutex_unlock(&dev->lock);
- 
- 	IR_dprintk(1, "Registered rc%u (driver: %s, remote: %s, mode %s)\n",
-@@ -1282,13 +1321,24 @@ EXPORT_SYMBOL_GPL(rc_register_device);
- 
- void rc_unregister_device(struct rc_dev *dev)
- {
-+	struct rc_client *client;
-+
- 	if (!dev)
- 		return;
- 
-+	mutex_lock(&dev->lock);
-+	dev->exist = false;
-+	mutex_unlock(&dev->lock);
-+
- 	mutex_lock(&rc_dev_table_mutex);
- 	rc_dev_table[dev->minor] = NULL;
- 	mutex_unlock(&rc_dev_table_mutex);
- 
-+	spin_lock(&dev->client_lock);
-+	list_for_each_entry(client, &dev->client_list, node)
-+		kill_fasync(&client->fasync, SIGIO, POLL_HUP);
-+	spin_unlock(&dev->client_lock);
-+
- 	del_timer_sync(&dev->timer_keyup);
- 
- 	if (dev->driver_type == RC_DRIVER_IR_RAW)
-@@ -1301,34 +1351,153 @@ void rc_unregister_device(struct rc_dev *dev)
- 	input_unregister_device(dev->input_dev);
- 	dev->input_dev = NULL;
- 
--	device_del(&dev->dev);
--
--	rc_free_device(dev);
-+	device_unregister(&dev->dev);
- }
- 
- EXPORT_SYMBOL_GPL(rc_unregister_device);
- 
--/*
-- * Init/exit code for the module. Basically, creates/removes /sys/class/rc
-+/**
-+ * rc_open() - allows userspace to open() a rc device file
-+ * @inode:	the &struct inode corresponding to the device file
-+ * @file:	the &struct file corresponding to the open() attempt
-+ * @return:	zero on success, or a negative error code
-+ *
-+ * This function (which implements open in &struct file_operations)
-+ * allows userspace to open() a rc device file.
-+ */
-+static int rc_open(struct inode *inode, struct file *file)
++static void __vb2_plane_dmabuf_put(struct vb2_queue *q, struct vb2_plane *p)
 +{
-+	int err;
-+	struct rc_dev *dev;
-+	struct rc_client *client;
++	if (!p->mem_priv)
++		return;
 +
-+	IR_dprintk(2, "Open attempt on %u\n", iminor(inode));
++	if (p->dbuf_mapped)
++		call_memop(q, unmap_dmabuf, p->mem_priv);
 +
-+	if (iminor(inode) >= RC_DEV_MAX)
-+		return -ENODEV;
-+
-+	err = mutex_lock_interruptible(&rc_dev_table_mutex);
-+	if (err)
-+		return err;
-+	dev = rc_dev_table[iminor(inode)];
-+	if (dev && dev->exist)
-+		get_device(&dev->dev);
-+	else
-+		dev = NULL;
-+	mutex_unlock(&rc_dev_table_mutex);
-+
-+	if (!dev)
-+		return -ENODEV;
-+
-+	client = kzalloc(sizeof(*client), GFP_KERNEL);
-+	if (!client) {
-+		err = -ENOMEM;
-+		goto out;
-+	}
-+
-+	spin_lock_init(&client->rxlock);
-+	INIT_KFIFO(client->rxfifo);
-+	client->dev = dev;
-+
-+	spin_lock(&dev->client_lock);
-+	list_add_tail_rcu(&client->node, &dev->client_list);
-+	spin_unlock(&dev->client_lock);
-+	synchronize_rcu();
-+
-+	file->private_data = client;
-+	nonseekable_open(inode, file);
-+
-+	IR_dprintk(2, "Device %u opened\n", iminor(inode));
-+	return 0;
-+
-+out:
-+	put_device(&dev->dev);
-+	return err;
++	call_memop(q, detach_dmabuf, p->mem_priv);
++	dma_buf_put(p->dbuf);
++	memset(p, 0, sizeof *p);
 +}
 +
 +/**
-+ * rc_release() - allows userspace to close() a rc device file
-+ * @inode:	the &struct inode corresponding to the device file
-+ * @file:	the &struct file corresponding to the previous open()
-+ * @return:	zero on success, or a negative error code
-+ *
-+ * This function (which implements release in &struct file_operations)
-+ * allows userspace to close() a rc device file.
++ * __vb2_buf_dmabuf_put() - release memory associated with
++ * a DMABUF shared buffer
++ */
++static void __vb2_buf_dmabuf_put(struct vb2_buffer *vb)
++{
++	struct vb2_queue *q = vb->vb2_queue;
++	unsigned int plane;
++
++	for (plane = 0; plane < vb->num_planes; ++plane)
++		__vb2_plane_dmabuf_put(q, &vb->planes[plane]);
++}
++
++/**
+  * __setup_offsets() - setup unique offsets ("cookies") for every plane in
+  * every buffer on the queue
   */
-+static int rc_release(struct inode *inode, struct file *file)
+@@ -230,6 +260,8 @@ static void __vb2_free_mem(struct vb2_queue *q, unsigned int buffers)
+ 		/* Free MMAP buffers or release USERPTR buffers */
+ 		if (q->memory == V4L2_MEMORY_MMAP)
+ 			__vb2_buf_mem_free(vb);
++		else if (q->memory == V4L2_MEMORY_DMABUF)
++			__vb2_buf_dmabuf_put(vb);
+ 		else
+ 			__vb2_buf_userptr_put(vb);
+ 	}
+@@ -352,6 +384,12 @@ static int __fill_v4l2_buffer(struct vb2_buffer *vb, struct v4l2_buffer *b)
+ 		 */
+ 		memcpy(b->m.planes, vb->v4l2_planes,
+ 			b->length * sizeof(struct v4l2_plane));
++
++		if (q->memory == V4L2_MEMORY_DMABUF) {
++			unsigned int plane;
++			for (plane = 0; plane < vb->num_planes; ++plane)
++				b->m.planes[plane].m.fd = 0;
++		}
+ 	} else {
+ 		/*
+ 		 * We use length and offset in v4l2_planes array even for
+@@ -363,6 +401,8 @@ static int __fill_v4l2_buffer(struct vb2_buffer *vb, struct v4l2_buffer *b)
+ 			b->m.offset = vb->v4l2_planes[0].m.mem_offset;
+ 		else if (q->memory == V4L2_MEMORY_USERPTR)
+ 			b->m.userptr = vb->v4l2_planes[0].m.userptr;
++		else if (q->memory == V4L2_MEMORY_DMABUF)
++			b->m.fd = 0;
+ 	}
+ 
+ 	/*
+@@ -454,6 +494,20 @@ static int __verify_mmap_ops(struct vb2_queue *q)
+ }
+ 
+ /**
++ * __verify_dmabuf_ops() - verify that all memory operations required for
++ * DMABUF queue type have been provided
++ */
++static int __verify_dmabuf_ops(struct vb2_queue *q)
 +{
-+	struct rc_client *client = file->private_data;
-+	struct rc_dev *dev = client->dev;
++	if (!(q->io_modes & VB2_DMABUF) || !q->mem_ops->attach_dmabuf ||
++	    !q->mem_ops->detach_dmabuf  || !q->mem_ops->map_dmabuf ||
++	    !q->mem_ops->unmap_dmabuf)
++		return -EINVAL;
 +
-+	spin_lock(&dev->client_lock);
-+	list_del_rcu(&client->node);
-+	spin_unlock(&dev->client_lock);
-+	synchronize_rcu();
-+	kfree(client);
-+	put_device(&dev->dev);
-+
-+	IR_dprintk(2, "Device %u closed\n", iminor(inode));
 +	return 0;
 +}
 +
 +/**
-+ * rc_fasync() - allows userspace to recieve asynchronous notifications
-+ * @fd:		the file descriptor corresponding to the opened rc device
-+ * @file:	the &struct file corresponding to the previous open()
-+ * @on:		whether notifications should be enabled or disabled
-+ * @return:	zero on success, or a negative error code
-+ *
-+ * This function (which implements fasync in &struct file_operations)
-+ * allows userspace to receive asynchronous signal notifications
-+ * when the state of a rc device file changes.
-+ */
-+static int rc_fasync(int fd, struct file *file, int on)
-+{
-+	struct rc_client *client = file->private_data;
-+
-+	return fasync_helper(fd, file, on, &client->fasync);
-+}
-+
-+static const struct file_operations rc_fops = {
-+	.owner		= THIS_MODULE,
-+	.open		= rc_open,
-+	.release	= rc_release,
-+	.fasync		= rc_fasync,
-+};
- 
- static int __init rc_core_init(void)
- {
--	int rc = class_register(&rc_class);
--	if (rc) {
--		printk(KERN_ERR "rc_core: unable to register rc class\n");
--		return rc;
-+	int ret;
-+
-+	ret = register_chrdev(0, "rc", &rc_fops);
-+	if (ret < 0) {
-+		printk(KERN_ERR "rc_core: failed to allocate char dev\n");
-+		goto out;
+  * vb2_reqbufs() - Initiate streaming
+  * @q:		videobuf2 queue
+  * @req:	struct passed from userspace to vidioc_reqbufs handler in driver
+@@ -486,8 +540,9 @@ int vb2_reqbufs(struct vb2_queue *q, struct v4l2_requestbuffers *req)
+ 		return -EBUSY;
  	}
  
--	rc_map_register(&empty_map);
-+	rc_major = ret;
-+	IR_dprintk(1, "Allocated char dev: %u\n", rc_major);
+-	if (req->memory != V4L2_MEMORY_MMAP
+-			&& req->memory != V4L2_MEMORY_USERPTR) {
++	if (req->memory != V4L2_MEMORY_MMAP &&
++	    req->memory != V4L2_MEMORY_DMABUF &&
++	    req->memory != V4L2_MEMORY_USERPTR) {
+ 		dprintk(1, "reqbufs: unsupported memory type\n");
+ 		return -EINVAL;
+ 	}
+@@ -516,6 +571,11 @@ int vb2_reqbufs(struct vb2_queue *q, struct v4l2_requestbuffers *req)
+ 		return -EINVAL;
+ 	}
  
-+	ret = class_register(&rc_class);
-+	if (ret < 0) {
-+		printk(KERN_ERR "rc_core: unable to create rc class\n");
-+		goto chrdev;
++	if (req->memory == V4L2_MEMORY_DMABUF && __verify_dmabuf_ops(q)) {
++		dprintk(1, "reqbufs: DMABUF for current setup unsupported\n");
++		return -EINVAL;
 +	}
 +
-+	rc_map_register(&empty_map);
- 	return 0;
+ 	if (req->count == 0 || q->num_buffers != 0 || q->memory != req->memory) {
+ 		/*
+ 		 * We already have buffers allocated, so first check if they
+@@ -622,8 +682,9 @@ int vb2_create_bufs(struct vb2_queue *q, struct v4l2_create_buffers *create)
+ 		return -EBUSY;
+ 	}
+ 
+-	if (create->memory != V4L2_MEMORY_MMAP
+-			&& create->memory != V4L2_MEMORY_USERPTR) {
++	if (create->memory != V4L2_MEMORY_MMAP &&
++	    create->memory != V4L2_MEMORY_USERPTR &&
++	    create->memory != V4L2_MEMORY_DMABUF) {
+ 		dprintk(1, "%s(): unsupported memory type\n", __func__);
+ 		return -EINVAL;
+ 	}
+@@ -647,6 +708,11 @@ int vb2_create_bufs(struct vb2_queue *q, struct v4l2_create_buffers *create)
+ 		return -EINVAL;
+ 	}
+ 
++	if (create->memory == V4L2_MEMORY_DMABUF && __verify_dmabuf_ops(q)) {
++		dprintk(1, "%s(): DMABUF for current setup unsupported\n", __func__);
++		return -EINVAL;
++	}
 +
-+chrdev:
-+	unregister_chrdev(rc_major, "rc");
-+out:
+ 	if (q->num_buffers == VIDEO_MAX_FRAME) {
+ 		dprintk(1, "%s(): maximum number of buffers already allocated\n",
+ 			__func__);
+@@ -842,6 +908,14 @@ static int __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b,
+ 					b->m.planes[plane].length;
+ 			}
+ 		}
++		if (b->memory == V4L2_MEMORY_DMABUF) {
++			for (plane = 0; plane < vb->num_planes; ++plane) {
++				v4l2_planes[plane].bytesused =
++					b->m.planes[plane].bytesused;
++				v4l2_planes[plane].m.fd =
++					b->m.planes[plane].m.fd;
++			}
++		}
+ 	} else {
+ 		/*
+ 		 * Single-planar buffers do not use planes array,
+@@ -856,6 +930,10 @@ static int __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b,
+ 			v4l2_planes[0].m.userptr = b->m.userptr;
+ 			v4l2_planes[0].length = b->length;
+ 		}
++
++		if (b->memory == V4L2_MEMORY_DMABUF)
++			v4l2_planes[0].m.fd = b->m.fd;
++
+ 	}
+ 
+ 	vb->v4l2_buf.field = b->field;
+@@ -960,6 +1038,100 @@ static int __qbuf_mmap(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+ }
+ 
+ /**
++ * __qbuf_dmabuf() - handle qbuf of a DMABUF buffer
++ */
++static int __qbuf_dmabuf(struct vb2_buffer *vb, const struct v4l2_buffer *b)
++{
++	struct v4l2_plane planes[VIDEO_MAX_PLANES];
++	struct vb2_queue *q = vb->vb2_queue;
++	void *mem_priv;
++	unsigned int plane;
++	int ret;
++	int write = !V4L2_TYPE_IS_OUTPUT(q->type);
++
++	/* Verify and copy relevant information provided by the userspace */
++	ret = __fill_vb2_buffer(vb, b, planes);
++	if (ret)
++		return ret;
++
++	for (plane = 0; plane < vb->num_planes; ++plane) {
++		struct dma_buf *dbuf = dma_buf_get(planes[plane].m.fd);
++
++		if (IS_ERR_OR_NULL(dbuf)) {
++			dprintk(1, "qbuf: invalid dmabuf fd for "
++				"plane %d\n", plane);
++			ret = -EINVAL;
++			goto err;
++		}
++
++		/* Skip the plane if already verified */
++		if (dbuf == vb->planes[plane].dbuf) {
++			planes[plane].length = dbuf->size;
++			dma_buf_put(dbuf);
++			continue;
++		}
++
++		dprintk(3, "qbuf: buffer description for plane %d changed, "
++			"reattaching dma buf\n", plane);
++
++		/* Release previously acquired memory if present */
++		__vb2_plane_dmabuf_put(q, &vb->planes[plane]);
++
++		/* Acquire each plane's memory */
++		mem_priv = call_memop(q, attach_dmabuf, q->alloc_ctx[plane],
++			dbuf, q->plane_sizes[plane], write);
++		if (IS_ERR(mem_priv)) {
++			dprintk(1, "qbuf: failed acquiring dmabuf "
++				"memory for plane %d\n", plane);
++			ret = PTR_ERR(mem_priv);
++			goto err;
++		}
++
++		planes[plane].length = dbuf->size;
++		vb->planes[plane].dbuf = dbuf;
++		vb->planes[plane].mem_priv = mem_priv;
++	}
++
++	/* TODO: This pins the buffer(s) with  dma_buf_map_attachment()).. but
++	 * really we want to do this just before the DMA, not while queueing
++	 * the buffer(s)..
++	 */
++	for (plane = 0; plane < vb->num_planes; ++plane) {
++		ret = call_memop(q, map_dmabuf, vb->planes[plane].mem_priv);
++		if (ret) {
++			dprintk(1, "qbuf: failed mapping dmabuf "
++				"memory for plane %d\n", plane);
++			goto err;
++		}
++		vb->planes[plane].dbuf_mapped = 1;
++	}
++
++	/*
++	 * Call driver-specific initialization on the newly acquired buffer,
++	 * if provided.
++	 */
++	ret = call_qop(q, buf_init, vb);
++	if (ret) {
++		dprintk(1, "qbuf: buffer initialization failed\n");
++		goto err;
++	}
++
++	/*
++	 * Now that everything is in order, copy relevant information
++	 * provided by userspace.
++	 */
++	for (plane = 0; plane < vb->num_planes; ++plane)
++		vb->v4l2_planes[plane] = planes[plane];
++
++	return 0;
++err:
++	/* In case of errors, release planes that were already acquired */
++	__vb2_buf_dmabuf_put(vb);
++
 +	return ret;
- }
++}
++
++/**
+  * __enqueue_in_driver() - enqueue a vb2_buffer in driver for processing
+  */
+ static void __enqueue_in_driver(struct vb2_buffer *vb)
+@@ -983,6 +1155,9 @@ static int __buf_prepare(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+ 	case V4L2_MEMORY_USERPTR:
+ 		ret = __qbuf_userptr(vb, b);
+ 		break;
++	case V4L2_MEMORY_DMABUF:
++		ret = __qbuf_dmabuf(vb, b);
++		break;
+ 	default:
+ 		WARN(1, "Invalid queue type\n");
+ 		ret = -EINVAL;
+@@ -1338,6 +1513,19 @@ int vb2_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b, bool nonblocking)
+ 		return ret;
+ 	}
  
- static void __exit rc_core_exit(void)
- {
- 	class_unregister(&rc_class);
--	rc_map_unregister(&empty_map);
-+	unregister_chrdev(rc_major, "rc");
-+rc_map_unregister(&empty_map);
- }
++	/* TODO: this unpins the buffer(dma_buf_unmap_attachment()).. but
++	 * really we want to do this just after DMA, not when the
++	 * buffer is dequeued..
++	 */
++	if (q->memory == V4L2_MEMORY_DMABUF) {
++		unsigned int i;
++
++		for (i = 0; i < vb->num_planes; ++i) {
++			call_memop(q, unmap_dmabuf, vb->planes[i].mem_priv);
++			vb->planes[i].dbuf_mapped = 0;
++		}
++	}
++
+ 	switch (vb->state) {
+ 	case VB2_BUF_STATE_DONE:
+ 		dprintk(3, "dqbuf: Returning done buffer\n");
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index a15d1f1..859bbaf 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -16,6 +16,7 @@
+ #include <linux/mutex.h>
+ #include <linux/poll.h>
+ #include <linux/videodev2.h>
++#include <linux/dma-buf.h>
  
- subsys_initcall(rc_core_init);
-diff --git a/include/media/rc-core.h b/include/media/rc-core.h
-index 1d4f5a0..0cd414d 100644
---- a/include/media/rc-core.h
-+++ b/include/media/rc-core.h
-@@ -64,6 +64,9 @@ struct rc_keymap_entry {
-  * @lock: used to ensure we've filled in all protocol details before
-  *	anyone can call show_protocols or store_protocols
-  * @minor: unique minor remote control device number
-+ * @exist: used to determine if the device is still valid
-+ * @client_list: list of clients (processes which have opened the rc chardev)
-+ * @client_lock: protects client_list
-  * @raw: additional data for raw pulse/space devices
-  * @input_dev: the input child device used to communicate events to userspace
-  * @driver_type: specifies if protocol decoding is done in hardware or software
-@@ -112,6 +115,9 @@ struct rc_dev {
- 	struct rc_map			rc_map;
- 	struct mutex			lock;
- 	unsigned int			minor;
-+	bool				exist;
-+	struct list_head		client_list;
-+	spinlock_t			client_lock;
- 	struct ir_raw_event_ctrl	*raw;
- 	struct input_dev		*input_dev;
- 	enum rc_driver_type		driver_type;
+ struct vb2_alloc_ctx;
+ struct vb2_fileio_data;
+@@ -41,6 +42,20 @@ struct vb2_fileio_data;
+  *		 argument to other ops in this structure
+  * @put_userptr: inform the allocator that a USERPTR buffer will no longer
+  *		 be used
++ * @attach_dmabuf: attach a shared struct dma_buf for a hardware operation;
++ *		   used for DMABUF memory types; alloc_ctx is the alloc context
++ *		   dbuf is the shared dma_buf; returns NULL on failure;
++ *		   allocator private per-buffer structure on success;
++ *		   this needs to be used for further accesses to the buffer
++ * @detach_dmabuf: inform the exporter of the buffer that the current DMABUF
++ *		   buffer is no longer used; the buf_priv argument is the
++ *		   allocator private per-buffer structure previously returned
++ *		   from the attach_dmabuf callback
++ * @map_dmabuf: request for access to the dmabuf from allocator; the allocator
++ *		of dmabuf is informed that this driver is going to use the
++ *		dmabuf
++ * @unmap_dmabuf: releases access control to the dmabuf - allocator is notified
++ *		  that this driver is done using the dmabuf for now
+  * @vaddr:	return a kernel virtual address to a given memory buffer
+  *		associated with the passed private structure or NULL if no
+  *		such mapping exists
+@@ -56,6 +71,8 @@ struct vb2_fileio_data;
+  * Required ops for USERPTR types: get_userptr, put_userptr.
+  * Required ops for MMAP types: alloc, put, num_users, mmap.
+  * Required ops for read/write access types: alloc, put, num_users, vaddr
++ * Required ops for DMABUF types: attach_dmabuf, detach_dmabuf, map_dmabuf,
++ *				  unmap_dmabuf.
+  */
+ struct vb2_mem_ops {
+ 	void		*(*alloc)(void *alloc_ctx, unsigned long size);
+@@ -65,6 +82,12 @@ struct vb2_mem_ops {
+ 					unsigned long size, int write);
+ 	void		(*put_userptr)(void *buf_priv);
+ 
++	void		*(*attach_dmabuf)(void *alloc_ctx, struct dma_buf *dbuf,
++				unsigned long size, int write);
++	void		(*detach_dmabuf)(void *buf_priv);
++	int		(*map_dmabuf)(void *buf_priv);
++	void		(*unmap_dmabuf)(void *buf_priv);
++
+ 	void		*(*vaddr)(void *buf_priv);
+ 	void		*(*cookie)(void *buf_priv);
+ 
+@@ -75,6 +98,8 @@ struct vb2_mem_ops {
+ 
+ struct vb2_plane {
+ 	void			*mem_priv;
++	struct dma_buf		*dbuf;
++	unsigned int		dbuf_mapped;
+ };
+ 
+ /**
+@@ -83,12 +108,14 @@ struct vb2_plane {
+  * @VB2_USERPTR:	driver supports USERPTR with streaming API
+  * @VB2_READ:		driver supports read() style access
+  * @VB2_WRITE:		driver supports write() style access
++ * @VB2_DMABUF:		driver supports DMABUF with streaming API
+  */
+ enum vb2_io_modes {
+ 	VB2_MMAP	= (1 << 0),
+ 	VB2_USERPTR	= (1 << 1),
+ 	VB2_READ	= (1 << 2),
+ 	VB2_WRITE	= (1 << 3),
++	VB2_DMABUF	= (1 << 4),
+ };
+ 
+ /**
+-- 
+1.7.9.5
 
