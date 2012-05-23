@@ -1,112 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:63205 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753152Ab2E1MKt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 May 2012 08:10:49 -0400
-Message-ID: <4FC36B43.90703@redhat.com>
-Date: Mon, 28 May 2012 09:10:43 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:44279 "EHLO
+	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933259Ab2EWJyx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 23 May 2012 05:54:53 -0400
+Subject: [PATCH 20/43] rc-core: add an ioctl for getting IR TX settings
+To: linux-media@vger.kernel.org
+From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
+Cc: mchehab@redhat.com, jarod@redhat.com
+Date: Wed, 23 May 2012 11:43:45 +0200
+Message-ID: <20120523094345.14474.65215.stgit@felix.hardeman.nu>
+In-Reply-To: <20120523094157.14474.24367.stgit@felix.hardeman.nu>
+References: <20120523094157.14474.24367.stgit@felix.hardeman.nu>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Andy Walls <awalls@md.metrocast.net>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [RFC] file tree rearrangement - was: Re: [RFC PATCH 0/3] Improve
- Kconfig selection for media devices
-References: <4FC24E34.3000406@redhat.com> <201205281142.20565.hverkuil@xs4all.nl> <4FC35B8E.5060102@redhat.com> <201205281345.09188.hverkuil@xs4all.nl>
-In-Reply-To: <201205281345.09188.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 28-05-2012 08:45, Hans Verkuil escreveu:
-> On Mon May 28 2012 13:03:42 Mauro Carvalho Chehab wrote:
->> Em 28-05-2012 06:42, Hans Verkuil escreveu:
->>> On Sun May 27 2012 22:15:08 Mauro Carvalho Chehab wrote:
+This ioctl follows the same rationale and structure as the ioctl for
+getting IR RX settings (RCIOCGIRRX) but it works on TX settings instead.
 
-<skip/>
+As with the RX ioctl, it would be nice if people could check struct
+rc_ir_tx carefully to make sure that their favourite parameter
+hasn't been left out.
+
+Signed-off-by: David Härdeman <david@hardeman.nu>
+---
+ drivers/media/rc/rc-main.c |   12 ++++++++++++
+ include/media/rc-core.h    |   38 ++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 50 insertions(+)
+
+diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+index 390673c..e2b2e8c 100644
+--- a/drivers/media/rc/rc-main.c
++++ b/drivers/media/rc/rc-main.c
+@@ -1703,6 +1703,7 @@ static long rc_do_ioctl(struct rc_dev *dev, unsigned int cmd, unsigned long arg)
+ 	void __user *p = (void __user *)arg;
+ 	unsigned int __user *ip = (unsigned int __user *)p;
+ 	struct rc_ir_rx rx;
++	struct rc_ir_tx tx;
+ 	int error;
  
->>> /media-core for the media*.c sources.
->>
->>
->> "media-core" is a very bad name, as "media" is the name of the subsystem. maybe
->> "media-ctrl-core" or something similar.
-> 
-> mc-core?
-
-Ok.
-
-<skip/>
-
->>> Another thing: I would move 'video grabber' away from webcams and to 'Analog TV/Video support'.
->>> And rename 'Digital TV' to 'Digital TV/Video' as well. A video grabber driver has much more to
->>> do with TV then it does with webcams.
->>
->> From the Kconfig perspective, the difference between the 3 video categories is that:
->>
->> - analog TV: tuner-core is required, and 10 other tuner drivers that are listed inside
->>   tuner core;
->>
->> - digital TV: tuners are needed, but those are either customised or auto-selected;
->>
->> - camera/grabber: no tuner is needed.
->>
->> Also, there are several professional camera devices at bttv, cx88, saa7134 and cx25821
->> that don't require tuners, and support for them can be compiled without tuner support.
->>
->> In other words, a camera driver and a grabber driver are very similar. Of course, a webcam 
->> will also require a sensor (on several drivers, the sensor is internal to the driver, so
->> no extra modules are needed). Of course, a platform camera driver will also require
->> "media controller", "subdev API", but those features are already enabled via other config options.
->>
->> So, from tuners' perspective, and from Kconfig's perspective, a video grabber is just 
->> like a professional camera driver, a cellphone camera or a webcam driver.
-> 
-> I would never have understood that from the menu names. In particular that 'Analog TV' implies
-> a tuner. For me it could just as well imply a composite input video grabber.
-
-(the discussion below is a little OT for file rearrangement - It belongs to the
-Kconfig selection patches - I'm about to post a version 2 of it)
-
-Can you use analog TV without a tuner? ;)
-
-Analog TV is a clear concept for the end user: it is something that allows
-tuning a channel and watch it. So, enabling this feature should enable
-both functionality.
-
-For us, this term causes some confusion as we generally use both "analog TV" and "V4L2"
-to refer to the same thing.
-
-> How about this:
-> 
-> 	[ ] Video (aka V4L2) support
-
-DVB is also video. Also Radio is also V4L2 support. So, this seems confusing.
-
-> 	[ ] Digital TV Tuner (aka DVB) support
-
-On both above, I don't like the idea of using an acronym, as it limits the
-scope. 
-
-DVB, btw, is a bad name for the user interface, as users with other
-digital standards like ATSC may not select it, as they don't have 
-"DVB" standard.
-
-Also, calling it as "tuner" also limits the scope and, worse than that, enforces
-the idea to the user to call the entire device as "tuner" (ok, some manufacturers
-do that, but, for us, when someone reports a problem at the tuner, we genrally think
-about the PLL, and not about the entire device).
-
-> 	[ ] Analog TV Tuner support
-> 	[ ] Radio Tuner/Modulator support
-> 	[ ] Remote Controller support
-> 
-> I didn't like the term 'Webcams and video grabbers' as that description is never 100%.
-> The help text can clarify this in more detail, of course.
-
-At version 2, I renamed it to: "Cameras/video grabbers support". Maybe we can use
-"video capture devices" instead of "video grabbers" to be even more clearer.
-
-Regards,
-Mauro
+ 	switch (cmd) {
+@@ -1740,6 +1741,17 @@ static long rc_do_ioctl(struct rc_dev *dev, unsigned int cmd, unsigned long arg)
+ 			return -EFAULT;
+ 
+ 		return 0;
++
++	case RCIOCGIRTX:
++		memset(&tx, 0, sizeof(tx));
++
++		if (dev->get_ir_tx)
++			dev->get_ir_tx(dev, &tx);
++
++		if (copy_to_user(p, &tx, sizeof(tx)))
++			return -EFAULT;
++
++		return 0;
+ 	}
+ 
+ 	return -EINVAL;
+diff --git a/include/media/rc-core.h b/include/media/rc-core.h
+index 213b642..9f3645b 100644
+--- a/include/media/rc-core.h
++++ b/include/media/rc-core.h
+@@ -112,6 +112,42 @@ struct rc_ir_rx {
+ 	__u32 reserved[9];
+ } __packed;
+ 
++/* get ir tx parameters */
++#define RCIOCGIRTX	_IOC(_IOC_READ, RC_IOC_MAGIC, 0x05, sizeof(struct rc_ir_tx))
++
++/**
++ * struct rc_ir_tx - used to get all IR TX parameters in one go
++ * @flags: device specific flags
++ * @tx_supported: bitmask of supported transmitters
++ * @tx_enabled: bitmask of enabled transmitters
++ * @tx_connected: bitmask of connected transmitters
++ * @freq: current carrier frequency
++ * @freq_min: min carrier frequency
++ * @freq_max: max carrier frequency
++ * @duty: current duty cycle
++ * @duty_min: min duty cycle
++ * @duty_max: max duty cycle
++ * @resolution: current resolution
++ * @resolution_min: min resolution
++ * @resolution_max: max resolution
++ * @reserved: for future use, set to zero
++ */
++struct rc_ir_tx {
++	__u32 flags;
++	__u32 tx_supported;
++	__u32 tx_enabled;
++	__u32 tx_connected;
++	__u32 freq;
++	__u32 freq_min;
++	__u32 freq_max;
++	__u32 duty;
++	__u32 duty_min;
++	__u32 duty_max;
++	__u32 resolution;
++	__u32 resolution_min;
++	__u32 resolution_max;
++	__u32 reserved[9];
++} __packed;
+ 
+ 
+ enum rc_driver_type {
+@@ -213,6 +249,7 @@ struct ir_raw_event {
+  * @s_carrier_report: enable carrier reports (deprecated)
+  * @get_ir_rx: allow driver to provide rx settings
+  * @set_ir_rx: allow driver to change rx settings
++ * @get_ir_tx: allow driver to provide tx settings
+  */
+ struct rc_dev {
+ 	struct device			dev;
+@@ -265,6 +302,7 @@ struct rc_dev {
+ 	int				(*s_carrier_report) (struct rc_dev *dev, int enable);
+ 	void				(*get_ir_rx)(struct rc_dev *dev, struct rc_ir_rx *rx);
+ 	int				(*set_ir_rx)(struct rc_dev *dev, struct rc_ir_rx *rx);
++	void				(*get_ir_tx)(struct rc_dev *dev, struct rc_ir_tx *tx);
+ };
+ 
+ #define to_rc_dev(d) container_of(d, struct rc_dev, dev)
 
