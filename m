@@ -1,65 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay01.cambriumhosting.nl ([217.19.16.173]:45388 "EHLO
-	relay01.cambriumhosting.nl" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751328Ab2EBOkD (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:45664 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752791Ab2EWNHw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 2 May 2012 10:40:03 -0400
-Received: from relay01.cambriumhosting.nl (localhost [127.0.0.1])
-	by relay01.cambriumhosting.nl (Postfix) with ESMTP id 5725460000A1
-	for <linux-media@vger.kernel.org>; Wed,  2 May 2012 16:32:20 +0200 (CEST)
-Received: from [172.16.0.238] (82-197-206-135.dsl.cambrium.nl [82.197.206.135])
-	(Authenticated sender: tk@tkteun.tweak.nl)
-	by relay01.cambriumhosting.nl (Postfix) with ESMTPA id 444F0600009C
-	for <linux-media@vger.kernel.org>; Wed,  2 May 2012 16:32:20 +0200 (CEST)
-Message-ID: <4FA14574.5040603@tkteun.tweak.nl>
-Date: Wed, 02 May 2012 16:32:20 +0200
-From: Teun <tk@tkteun.tweak.nl>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Error compiling tw68-v2 module (module_param / linux3.2)
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 8bit
+	Wed, 23 May 2012 09:07:52 -0400
+Received: from euspt2 (mailout1.w1.samsung.com [210.118.77.11])
+ by mailout1.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0M4H00EPN8D0GP@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 23 May 2012 14:05:26 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0M4H00DE68GVYM@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 23 May 2012 14:07:44 +0100 (BST)
+Date: Wed, 23 May 2012 15:07:35 +0200
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: [PATCH 12/12] v4l: vb2-dma-contig: Move allocation of dbuf attachment
+ to attach cb
+In-reply-to: <1337778455-27912-1-git-send-email-t.stanislaws@samsung.com>
+To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
+Cc: airlied@redhat.com, m.szyprowski@samsung.com,
+	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
+	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
+	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
+	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
+	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
+	mchehab@redhat.com, g.liakhovetski@gmx.de
+Message-id: <1337778455-27912-13-git-send-email-t.stanislaws@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1337778455-27912-1-git-send-email-t.stanislaws@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I'm having problems compiling the tw68-v2. I looked up the code from the 
-error messages, but I don't know anything about making linux driver modules.
-I can't find a lot about the module_param function, at least, not why 
-this would be wrong.
+The allocation of dma_buf_attachment is moved to attach callback.
+The initialization is left in map callback.
 
-Can anyone give any comment on this?
+Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/video/videobuf2-dma-contig.c |   39 ++++++++++++++++++----------
+ 1 file changed, 26 insertions(+), 13 deletions(-)
 
-Thanks in advance!
-
-Linux tkpc 3.2.0-2-amd64 #1 SMP Sun Mar 4 22:48:17 UTC 2012 x86_64 GNU/Linux
-
-make -C /lib/modules/3.2.0-2-amd64/build M=/mnt/nfs/black/hw/tw68-v2 modules
-make[1]: Entering directory `/usr/src/linux-headers-3.2.0-2-amd64'
-CC [M] /mnt/nfs/black/hw/tw68-v2/tw68-video.o
-/mnt/nfs/black/hw/tw68-v2/tw68-video.c:42:27: error: expected ‘)’ before 
-‘int’
-/mnt/nfs/black/hw/tw68-v2/tw68-video.c:43:31: error: expected ‘)’ before 
-string constant
-/mnt/nfs/black/hw/tw68-v2/tw68-video.c:44:24: error: expected ‘)’ before 
-‘int’
-/mnt/nfs/black/hw/tw68-v2/tw68-video.c:45:28: error: expected ‘)’ before 
-string constant
-/mnt/nfs/black/hw/tw68-v2/tw68-video.c:46:29: error: expected ‘)’ before 
-‘int’
-/mnt/nfs/black/hw/tw68-v2/tw68-video.c:47:33: error: expected ‘)’ before 
-string constant
-/mnt/nfs/black/hw/tw68-v2/tw68-video.c:48:35: error: expected ‘)’ before 
-‘sizeof’
-/mnt/nfs/black/hw/tw68-v2/tw68-video.c:49:25: error: expected ‘)’ before 
-string constant
-
-
-module_param(video_debug, int, 0644);
-MODULE_PARM_DESC(video_debug, "enable debug messages [video]");
-module_param(gbuffers, int, 0444);
-MODULE_PARM_DESC(gbuffers, "number of capture buffers, range 2-32");
-module_param(noninterlaced, int, 0644);
-MODULE_PARM_DESC(noninterlaced, "capture non interlaced video");
-module_param_string(secam, secam, sizeof(secam), 0644);
-MODULE_PARM_DESC(secam, "force SECAM variant, either DK,L or Lc");
+diff --git a/drivers/media/video/videobuf2-dma-contig.c b/drivers/media/video/videobuf2-dma-contig.c
+index b5caf1d..3bf7c45 100644
+--- a/drivers/media/video/videobuf2-dma-contig.c
++++ b/drivers/media/video/videobuf2-dma-contig.c
+@@ -285,7 +285,15 @@ struct vb2_dc_attachment {
+ static int vb2_dc_dmabuf_ops_attach(struct dma_buf *dbuf, struct device *dev,
+ 	struct dma_buf_attachment *dbuf_attach)
+ {
+-	/* nothing to be done */
++	struct vb2_dc_attachment *attach;
++
++	attach = kzalloc(sizeof *attach, GFP_KERNEL);
++	if (!attach)
++		return -ENOMEM;
++
++	attach->dir = DMA_NONE;
++	dbuf_attach->priv = attach;
++
+ 	return 0;
+ }
+ 
+@@ -300,7 +308,9 @@ static void vb2_dc_dmabuf_ops_detach(struct dma_buf *dbuf,
+ 
+ 	sgt = &attach->sgt;
+ 
+-	dma_unmap_sg(db_attach->dev, sgt->sgl, sgt->nents, attach->dir);
++	/* checking if scaterlist was ever mapped */
++	if (attach->dir != DMA_NONE)
++		dma_unmap_sg(db_attach->dev, sgt->sgl, sgt->nents, attach->dir);
+ 	sg_free_table(sgt);
+ 	kfree(attach);
+ 	db_attach->priv = NULL;
+@@ -314,25 +324,28 @@ static struct sg_table *vb2_dc_dmabuf_ops_map(
+ 	struct vb2_dc_attachment *attach = db_attach->priv;
+ 	struct sg_table *sgt;
+ 	struct scatterlist *rd, *wr;
+-	int i, ret;
++	int ret;
++	unsigned int i;
++
++	if (WARN_ON(dir == DMA_NONE))
++		return ERR_PTR(-EINVAL);
+ 
+ 	/* return previously mapped sg table */
+-	if (attach)
++	if (attach->dir == dir)
+ 		return &attach->sgt;
+ 
+-	attach = kzalloc(sizeof *attach, GFP_KERNEL);
+-	if (!attach)
+-		return ERR_PTR(-ENOMEM);
++	/* reattaching is not allowed */
++	if (WARN_ON(attach->dir != DMA_NONE))
++		return ERR_PTR(-EBUSY);
+ 
+ 	sgt = &attach->sgt;
+-	attach->dir = dir;
+ 
+-	/* copying the buf->base_sgt to attachment */
++	/* Copy the buf->base_sgt scatter list to the attachment, as we can't
++	 * map the same scatter list to multiple attachments at the same time.
++	 */
+ 	ret = sg_alloc_table(sgt, buf->sgt_base.orig_nents, GFP_KERNEL);
+-	if (ret) {
+-		kfree(attach);
++	if (ret)
+ 		return ERR_PTR(-ENOMEM);
+-	}
+ 
+ 	rd = buf->sgt_base.sgl;
+ 	wr = sgt->sgl;
+@@ -347,10 +360,10 @@ static struct sg_table *vb2_dc_dmabuf_ops_map(
+ 	if (ret <= 0) {
+ 		printk(KERN_ERR "failed to map scatterlist\n");
+ 		sg_free_table(sgt);
+-		kfree(attach);
+ 		return ERR_PTR(-EIO);
+ 	}
+ 
++	attach->dir = dir;
+ 	db_attach->priv = attach;
+ 
+ 	return sgt;
+-- 
+1.7.9.5
 
