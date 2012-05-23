@@ -1,654 +1,1069 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-2.cisco.com ([144.254.224.141]:11139 "EHLO
-	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753121Ab2EJLRr convert rfc822-to-8bit (ORCPT
+Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:44277 "EHLO
+	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933106Ab2EWJyw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 May 2012 07:17:47 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH v3 1/1] v4l2: use __u32 rather than enums in ioctl() structs
-Date: Thu, 10 May 2012 13:17:16 +0200
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	mchehab@redhat.com, remi@remlab.net,
-	laurent.pinchart@ideasonboard.com
-References: <1336629727-11111-1-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1336629727-11111-1-git-send-email-sakari.ailus@iki.fi>
+	Wed, 23 May 2012 05:54:52 -0400
+Subject: [PATCH 30/43] rc-core: make keytable RCU-friendly
+To: linux-media@vger.kernel.org
+From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
+Cc: mchehab@redhat.com, jarod@redhat.com
+Date: Wed, 23 May 2012 11:44:38 +0200
+Message-ID: <20120523094437.14474.67178.stgit@felix.hardeman.nu>
+In-Reply-To: <20120523094157.14474.24367.stgit@felix.hardeman.nu>
+References: <20120523094157.14474.24367.stgit@felix.hardeman.nu>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201205101317.16101.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu 10 May 2012 08:02:07 Sakari Ailus wrote:
-> V4L2 uses the enum type in IOCTL arguments in IOCTLs that were defined until
-> the use of enum was considered less than ideal. Recently Rémi Denis-Courmont
-> brought up the issue by proposing a patch to convert the enums to unsigned:
-> 
-> <URL:http://www.spinics.net/lists/linux-media/msg46167.html>
-> 
-> This sparked a long discussion where another solution to the issue was
-> proposed: two sets of IOCTL structures, one with __u32 and the other with
-> enums, and conversion code between the two:
-> 
-> <URL:http://www.spinics.net/lists/linux-media/msg47168.html>
-> 
-> Both approaches implement a complete solution that resolves the problem. The
-> first one is simple but requires assuming enums and __u32 are the same in
-> size (so we won't break the ABI) while the second one is more complex and
-> less clean but does not require making that assumption.
-> 
-> The issue boils down to whether enums are fundamentally different from __u32
-> or not, and can the former be substituted by the latter. During the
-> discussion it was concluded that the __u32 has the same size as enums on all
-> archs Linux is supported: it has not been shown that replacing those enums
-> in IOCTL arguments would break neither source or binary compatibility. If no
-> such reason is found, just replacing the enums with __u32s is the way to go.
-> 
-> This is what this patch does. This patch is slightly different from Remi's
-> first RFC (link above): it uses __u32 instead of unsigned and also changes
-> the arguments of VIDIOC_G_PRIORITY and VIDIOC_S_PRIORITY.
-> 
-> Signed-off-by: Rémi Denis-Courmont <remi@remlab.net>
-> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Change struct rc_keytable to be RCU-friendly by kmalloc():ing an
+entire new scancode,protocol <-> keycode table every time the table
+is changed (i.e. via EVIOCSKEYCODE(_V2)).
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+The advantage is that the performance-critical keycode lookup path
+can be made entirely lock-free and that GFP_ATOMIC allocations
+can be avoided entirely at the cost of a couple of extra kmalloc()
+calls when changing a keytable (which is normally done once during
+boot).
 
-Regards,
+Signed-off-by: David HÃ¤rdeman <david@hardeman.nu>
+---
+ drivers/media/rc/rc-keytable.c |  671 +++++++++++++++++++---------------------
+ include/media/rc-core.h        |   32 +-
+ 2 files changed, 334 insertions(+), 369 deletions(-)
 
-	Hans
+diff --git a/drivers/media/rc/rc-keytable.c b/drivers/media/rc/rc-keytable.c
+index eb48358..d6e68d0 100644
+--- a/drivers/media/rc/rc-keytable.c
++++ b/drivers/media/rc/rc-keytable.c
+@@ -24,12 +24,10 @@
+ #include <linux/poll.h>
+ #include "rc-core-priv.h"
+ 
+-/* Sizes are in bytes, 256 bytes allows for 32 entries on x64 */
+-#define RC_TAB_MIN_SIZE	256
+-#define RC_TAB_MAX_SIZE	8192
++#define RC_TAB_MAX_SIZE		1024 /* entries */
+ 
+-/* FIXME: IR_KEYPRESS_TIMEOUT should be protocol specific */
+-#define IR_KEYPRESS_TIMEOUT 250
++/* FIXME: RC_KEYPRESS_TIMEOUT should be protocol specific */
++#define RC_KEYPRESS_TIMEOUT 250
+ 
+ /* Used to keep track of known keymaps */
+ static LIST_HEAD(rc_map_list);
+@@ -98,248 +96,238 @@ void rc_map_unregister(struct rc_map_list *map)
+ EXPORT_SYMBOL_GPL(rc_map_unregister);
+ 
+ /**
+- * ir_create_table() - initializes a scancode table
+- * @rc_map:	the rc_map to initialize
+- * @name:	name to assign to the table
+- * @size:	initial size of the table
+- * @return:	zero on success or a negative error code
+- *
+- * This routine will initialize the rc_map and will allocate
+- * memory to hold at least the specified number of elements.
++ * rc_scan_size() - determine the necessary size for a rc_scan struct
++ * @len:	the number of keytable entries the struct should hold
++ * @return:	the size of the struct in bytes
+  */
+-static int ir_create_table(struct rc_map *rc_map,
+-			   const char *name, size_t size)
++static inline size_t rc_scan_size(unsigned len)
+ {
+-	rc_map->name = name;
+-	rc_map->alloc = roundup_pow_of_two(size * sizeof(struct rc_map_table));
+-	rc_map->size = rc_map->alloc / sizeof(struct rc_map_table);
+-	rc_map->scan = kmalloc(rc_map->alloc, GFP_KERNEL);
+-	if (!rc_map->scan)
+-		return -ENOMEM;
+-
+-	IR_dprintk(1, "Allocated space for %u keycode entries (%u bytes)\n",
+-		   rc_map->size, rc_map->alloc);
+-	return 0;
++	return sizeof(struct rc_scan) + len * sizeof(struct rc_map_table);
+ }
+ 
+ /**
+- * ir_free_table() - frees memory allocated by a scancode table
+- * @rc_map:	the table whose mappings need to be freed
++ * rc_keytable_update_entry() - update an existing entry in the keytable
++ * @kt:		the keytable to update
++ * @i:		the index of the entry to update
++ * @entry:	the new values for the entry
++ * @return:	the old rc_scan struct, NULL if memory could not be allocated
+  *
+- * This routine will free memory alloctaed for key mappings used by given
+- * scancode table.
++ * Updates a keytable by replacing an existing entry at the given index.
++ * The old rc_scan struct is returned so that it can be freed at a
++ * later stage.
+  */
+-static void ir_free_table(struct rc_map *rc_map)
++static struct rc_scan *rc_keytable_update_entry(struct rc_keytable *kt,
++						unsigned i,
++						struct rc_map_table *entry)
+ {
+-	rc_map->size = 0;
+-	kfree(rc_map->scan);
+-	rc_map->scan = NULL;
+-}
++	struct rc_scan *old_scan = kt->scan;
++	struct rc_scan *new_scan = kt->scan;
++	u32 old_keycode;
+ 
+-/**
+- * ir_resize_table() - resizes a scancode table if necessary
+- * @rc_map:	the rc_map to resize
+- * @gfp_flags:	gfp flags to use when allocating memory
+- * @return:	zero on success or a negative error code
+- *
+- * This routine will shrink the rc_map if it has lots of
+- * unused entries and grow it if it is full.
+- */
+-static int ir_resize_table(struct rc_map *rc_map, gfp_t gfp_flags)
+-{
+-	unsigned int oldalloc = rc_map->alloc;
+-	unsigned int newalloc = oldalloc;
+-	struct rc_map_table *oldscan = rc_map->scan;
+-	struct rc_map_table *newscan;
+-
+-	if (rc_map->size == rc_map->len) {
+-		/* All entries in use -> grow keytable */
+-		if (rc_map->alloc >= RC_TAB_MAX_SIZE)
+-			return -ENOMEM;
+-
+-		newalloc *= 2;
+-		IR_dprintk(1, "Growing table to %u bytes\n", newalloc);
+-	}
++	if (i >= old_scan->len)
++		return NULL;
+ 
+-	if ((rc_map->len * 3 < rc_map->size) && (oldalloc > RC_TAB_MIN_SIZE)) {
+-		/* Less than 1/3 of entries in use -> shrink keytable */
+-		newalloc /= 2;
+-		IR_dprintk(1, "Shrinking table to %u bytes\n", newalloc);
+-	}
++	new_scan = kmalloc(rc_scan_size(old_scan->len), GFP_KERNEL);
++	if (!new_scan)
++		return NULL;
++	memcpy(new_scan, old_scan, rc_scan_size(old_scan->len));
+ 
+-	if (newalloc == oldalloc)
+-		return 0;
++	IR_dprintk(1, "#%d: New keycode 0x%04x\n", i, entry->keycode);
++	new_scan->table[i].keycode = entry->keycode;
+ 
+-	newscan = kmalloc(newalloc, gfp_flags);
+-	if (!newscan) {
+-		IR_dprintk(1, "Failed to kmalloc %u bytes\n", newalloc);
+-		return -ENOMEM;
+-	}
++	/* Another scancode might use the old keycode... */
++	__set_bit(entry->keycode, kt->idev->keybit);
++	old_keycode = old_scan->table[i].keycode;
++	for (i = 0; i < new_scan->len; i++)
++		if (new_scan->table[i].keycode == old_keycode)
++			break;
+ 
+-	memcpy(newscan, rc_map->scan, rc_map->len * sizeof(struct rc_map_table));
+-	rc_map->scan = newscan;
+-	rc_map->alloc = newalloc;
+-	rc_map->size = rc_map->alloc / sizeof(struct rc_map_table);
+-	kfree(oldscan);
+-	return 0;
++	if (i >= new_scan->len)
++		/* ...nope */
++		__clear_bit(old_keycode, kt->idev->keybit);
++
++	rcu_assign_pointer(kt->scan, new_scan);
++	return old_scan;
+ }
+ 
+ /**
+- * ir_update_mapping() - set a keycode in the scancode->keycode table
+- * @kt:		the struct rc_keytable descriptor
+- * @rc_map:	scancode table to be adjusted
+- * @index:	index of the mapping that needs to be updated
+- * @keycode:	the desired keycode
+- * @return:	previous keycode assigned to the mapping
++ * rc_keytable_remove_entry() - remove an existing entry in the keytable
++ * @kt:		the keytable to update
++ * @i:		the index of the entry to remove
++ * @return:	the old rc_scan struct, NULL if memory could not be allocated
+  *
+- * This routine is used to update scancode->keycode mapping at given
+- * position.
++ * Updates a keytable by removing an existing entry at the given index.
++ * The old rc_scan struct is returned so that it can be freed at a
++ * later stage.
+  */
+-static unsigned int ir_update_mapping(struct rc_keytable *kt,
+-				      struct rc_map *rc_map,
+-				      unsigned int index,
+-				      unsigned int new_keycode)
++static struct rc_scan *rc_keytable_remove_entry(struct rc_keytable *kt,
++						unsigned i)
+ {
+-	int old_keycode = rc_map->scan[index].keycode;
+-	int i;
+-
+-	/* Did the user wish to remove the mapping? */
+-	if (new_keycode == KEY_RESERVED || new_keycode == KEY_UNKNOWN) {
+-		IR_dprintk(1, "#%d: Deleting proto 0x%04x, scan 0x%08llx\n",
+-			   index, rc_map->scan[index].protocol,
+-			   (unsigned long long)rc_map->scan[index].scancode);
+-		rc_map->len--;
+-		memmove(&rc_map->scan[index], &rc_map->scan[index + 1],
+-			(rc_map->len - index) * sizeof(struct rc_map_table));
+-	} else {
+-		IR_dprintk(1, "#%d: %s proto 0x%04x, scan 0x%08llx "
+-			   "with key 0x%04x\n",
+-			   index,
+-			   old_keycode == KEY_RESERVED ? "New" : "Replacing",
+-			   rc_map->scan[index].protocol,
+-			   (unsigned long long)rc_map->scan[index].scancode,
+-			   new_keycode);
+-		rc_map->scan[index].keycode = new_keycode;
+-		__set_bit(new_keycode, kt->idev->keybit);
+-	}
++	struct rc_scan *old_scan = kt->scan;
++	struct rc_scan *new_scan = kt->scan;
++	u32 old_keycode;
+ 
+-	if (old_keycode != KEY_RESERVED) {
+-		/* A previous mapping was updated... */
+-		__clear_bit(old_keycode, kt->idev->keybit);
+-		/* ... but another scancode might use the same keycode */
+-		for (i = 0; i < rc_map->len; i++) {
+-			if (rc_map->scan[i].keycode == old_keycode) {
+-				__set_bit(old_keycode, kt->idev->keybit);
+-				break;
+-			}
+-		}
++	if (i >= old_scan->len)
++		return NULL;
+ 
+-		/* Possibly shrink the keytable, failure is not a problem */
+-		ir_resize_table(rc_map, GFP_ATOMIC);
+-	}
++	new_scan = kmalloc(rc_scan_size(old_scan->len - 1), GFP_ATOMIC);
++	if (!new_scan)
++		return NULL;
++	new_scan->len = old_scan->len - 1;
++	memcpy(&new_scan->table[0], &old_scan->table[0],
++	       i * sizeof(struct rc_map_table));
++	memcpy(&new_scan->table[i], &old_scan->table[i + 1],
++	       (new_scan->len - i) * sizeof(struct rc_map_table));
++	IR_dprintk(1, "#%d: Deleted\n", i);
++
++	/* Another scancode might use the removed keycode... */
++	old_keycode = old_scan->table[i].keycode;
++	for (i = 0; i < new_scan->len; i++)
++		if (new_scan->table[i].keycode == old_keycode)
++			break;
++
++	if (i >= new_scan->len)
++		/* ...nope */
++		__clear_bit(old_keycode, kt->idev->keybit);
+ 
+-	return old_keycode;
++	rcu_assign_pointer(kt->scan, new_scan);
++	return old_scan;
+ }
+ 
+ /**
+- * ir_establish_scancode() - set a keycode in the scancode->keycode table
+- * @kt:		the struct rc_keytable descriptor
+- * @rc_map:	scancode table to be searched
+- * @entry:	the entry to be added to the table
+- * @resize:	controls whether we are allowed to resize the table to
+- *		accomodate not yet present scancodes
+- * @return:	index of the mapping containing scancode in question
+- *		or -1U in case of failure.
++ * rc_keytable_add_entry() - add an existing entry in the keytable
++ * @kt:		the keytable to update
++ * @entry:	the new entry to insert
++ * @init:	whether the keytable is being initialized for the first time
++ * @return:	the old rc_scan struct, NULL if memory could not be allocated
+  *
+- * This routine is used to locate given scancode in rc_map.
+- * If scancode is not yet present the routine will allocate a new slot
+- * for it.
++ * Updates a keytable by inserting an entry at the proper index. Unless @init is
++ * %true, the old rc_scan struct is returned so that it can be freed at a
++ * later stage.
+  */
+-static unsigned int ir_establish_scancode(struct rc_keytable *kt,
+-					  struct rc_map *rc_map,
+-					  struct rc_map_table *entry,
+-					  bool resize)
++static struct rc_scan *rc_keytable_add_entry(struct rc_keytable *kt,
++					     struct rc_map_table *entry,
++					     bool init)
+ {
+-	unsigned int i;
++	struct rc_scan *old_scan = kt->scan;
++	struct rc_scan *new_scan = kt->scan;
++	unsigned i;
+ 
+-	/*
+-	 * Unfortunately, some hardware-based IR decoders don't provide
+-	 * all bits for the complete IR code. In general, they provide only
+-	 * the command part of the IR code. Yet, as it is possible to replace
+-	 * the provided IR with another one, it is needed to allow loading
+-	 * IR tables from other remotes. So, we support specifying a mask to
+-	 * indicate the valid bits of the scancodes.
+-	 */
+-	if (kt->dev->scanmask)
+-		entry->scancode &= kt->dev->scanmask;
++	if (old_scan->len >= RC_TAB_MAX_SIZE)
++		return NULL;
+ 
+-	/*
+-	 * First check if we already have a mapping for this command.
+-	 * Note that the keytable is sorted first on protocol and second
+-	 * on scancode (lowest to highest).
+-	 */
+-	for (i = 0; i < rc_map->len; i++) {
+-		if (rc_map->scan[i].protocol < entry->protocol)
++	/* Find the right index to insert the new entry at */
++	for (i = 0; i < old_scan->len; i++) {
++		if (old_scan->table[i].protocol < entry->protocol)
+ 			continue;
+ 
+-		if (rc_map->scan[i].protocol > entry->protocol)
++		if (old_scan->table[i].protocol > entry->protocol)
+ 			break;
+ 
+-		if (rc_map->scan[i].scancode < entry->scancode)
++		if (old_scan->table[i].scancode < entry->scancode)
+ 			continue;
+ 
+-		if (rc_map->scan[i].scancode > entry->scancode)
++		if (old_scan->table[i].scancode > entry->scancode)
+ 			break;
+ 
+-		return i;
++		/* BUG: We already have a matching entry */
++		return NULL;
+ 	}
+ 
+-	/* No previous mapping found, we might need to grow the table */
+-	if (rc_map->size == rc_map->len) {
+-		if (!resize || ir_resize_table(rc_map, GFP_ATOMIC))
+-			return -1U;
++	if (init) {
++		/* The init code already allocates a suitably sized table */
++		memmove(&new_scan->table[i + 1], &new_scan->table[i],
++			(new_scan->len - i) * sizeof(struct rc_map_table));
++		new_scan->len++;
++	} else {
++		new_scan = kmalloc(rc_scan_size(old_scan->len + 1), GFP_ATOMIC);
++		if (!new_scan)
++			return NULL;
++		new_scan->len = old_scan->len + 1;
++		memcpy(&new_scan->table[0], &old_scan->table[0],
++		       i * sizeof(struct rc_map_table));
++		memcpy(&new_scan->table[i + 1], &old_scan->table[i],
++		       (old_scan->len - i) * sizeof(struct rc_map_table));
+ 	}
+ 
+-	/* i is the proper index to insert our new keycode */
+-	if (i < rc_map->len)
+-		memmove(&rc_map->scan[i + 1], &rc_map->scan[i],
+-			(rc_map->len - i) * sizeof(struct rc_map_table));
+-	rc_map->scan[i].scancode = entry->scancode;
+-	rc_map->scan[i].protocol = entry->protocol;
+-	rc_map->scan[i].keycode = KEY_RESERVED;
+-	rc_map->len++;
++	new_scan->table[i].scancode = entry->scancode;
++	new_scan->table[i].protocol = entry->protocol;
++	new_scan->table[i].keycode = entry->keycode;
++	IR_dprintk(1, "#%d: New proto 0x%04x, scan 0x%08llx with key 0x%04x\n",
++		   i, entry->protocol, (unsigned long long)entry->scancode,
++		   entry->keycode);
++	__set_bit(entry->keycode, kt->idev->keybit);
+ 
+-	return i;
++	rcu_assign_pointer(kt->scan, new_scan);
++	return old_scan;
+ }
+ 
+ /**
+- * ir_setkeycode() - set a keycode in the scancode->keycode table
++ * rc_scancode_to_index() - locate keytable index by scancode
++ * @rc_scan:	the struct rc_scan to search
++ * @protocol:	protocol to look for in the table
++ * @scancode:	scancode to look for in the table
++ * @return:	index in the table, -1U if not found
++ *
++ * This routine performs a binary search in a keytable for a
++ * given scancode.
++ */
++static unsigned rc_scancode_to_index(struct rc_scan *scan,
++				     u16 protocol, u64 scancode)
++{
++	int start = 0;
++	int end = scan->len - 1;
++	int mid;
++	struct rc_map_table *m;
++
++	while (start <= end) {
++		mid = (start + end) / 2;
++		m = &scan->table[mid];
++
++		if (m->protocol < protocol)
++			start = mid + 1;
++		else if (m->protocol > protocol)
++			end = mid - 1;
++		else if (m->scancode < scancode)
++			start = mid + 1;
++		else if (m->scancode > scancode)
++			end = mid - 1;
++		else
++			return mid;
++	}
++
++	return -1U;
++}
++
++/**
++ * rc_keytable_set() - add/update/remove an entry in the keytable
+  * @idev:	the struct input_dev device descriptor
+- * @scancode:	the desired scancode
+- * @keycode:	result
+- * @return:	-EINVAL if the keycode could not be inserted, otherwise zero.
++ * @ke:		the keymap entry to add/update/remove
++ * @old_keycode:used to return the previous keycode for this entry
++ * @return:	zero on success or a negative error code
+  *
+- * This routine is used to handle evdev EVIOCSKEY ioctl.
++ * This function handles the evdev EVIOCSKEYCODE(_V2) ioctls.
+  */
+-static int ir_setkeycode(struct input_dev *idev,
+-			 const struct input_keymap_entry *ke,
+-			 unsigned int *old_keycode)
++static int rc_keytable_set(struct input_dev *idev,
++			   const struct input_keymap_entry *ke,
++			   unsigned int *old_keycode)
+ {
+ 	struct rc_keytable *kt = input_get_drvdata(idev);
+ 	struct rc_dev *rdev = kt->dev;
+-	struct rc_map *rc_map = &kt->rc_map;
++	struct rc_scan *old_scan = NULL;
+ 	unsigned int index;
+ 	struct rc_map_table entry;
+ 	int retval = 0;
+-	unsigned long flags;
+ 
+ 	entry.keycode = ke->keycode;
+ 
+-	spin_lock_irqsave(&kt->lock, flags);
++	retval = mutex_lock_interruptible(&kt->scan_mutex);
++	if (retval)
++		return retval;
+ 
+ 	if (ke->flags & INPUT_KEYMAP_BY_INDEX) {
+ 		index = ke->index;
+-		if (index >= rc_map->len) {
++		if (index >= kt->scan->len) {
+ 			retval = -EINVAL;
+ 			goto out;
+ 		}
+@@ -356,16 +344,17 @@ static int ir_setkeycode(struct input_dev *idev,
+ 			entry.protocol = rdev->enabled_protocols;
+ 		else if (hweight64(rdev->allowed_protos) == 1)
+ 			entry.protocol = rdev->allowed_protos;
+-		else if (rc_map->len > 0)
+-			entry.protocol = rc_map->scan[0].protocol;
++		else if (kt->scan->len > 0)
++			entry.protocol = kt->scan->table[0].protocol;
+ 		else
+ 			entry.protocol = RC_TYPE_OTHER;
+ 
+-		index = ir_establish_scancode(kt, rc_map, &entry, true);
+-		if (index >= rc_map->len) {
+-			retval = -ENOMEM;
+-			goto out;
+-		}
++		if (kt->dev->scanmask)
++			entry.scancode &= kt->dev->scanmask;
++
++		index = rc_scancode_to_index(kt->scan, entry.protocol,
++					     entry.scancode);
++
+ 	} else if (ke->len == sizeof(struct rc_scancode)) {
+ 		/* New EVIOCSKEYCODE_V2 ioctl */
+ 		const struct rc_keymap_entry *rke = (struct rc_keymap_entry *)ke;
+@@ -377,125 +366,63 @@ static int ir_setkeycode(struct input_dev *idev,
+ 			goto out;
+ 		}
+ 
+-		index = ir_establish_scancode(kt, rc_map, &entry, true);
+-		if (index >= rc_map->len) {
+-			retval = -ENOMEM;
+-			goto out;
+-		}
++		if (kt->dev->scanmask)
++			entry.scancode &= kt->dev->scanmask;
++
++		index = rc_scancode_to_index(kt->scan, entry.protocol,
++					     entry.scancode);
++
+ 	} else {
+ 		retval = -EINVAL;
+ 		goto out;
+ 	}
+ 
+-	if (retval == 0)
+-		*old_keycode = ir_update_mapping(kt, rc_map, index, ke->keycode);
+-
+-out:
+-	spin_unlock_irqrestore(&kt->lock, flags);
+-	return retval;
+-}
+-
+-/**
+- * rc_setkeytable() - sets several entries in the scancode->keycode table
+- * @dev:	the struct rc_dev device descriptor
+- * @to:		the struct rc_map to copy entries to
+- * @from:	the struct rc_map to copy entries from
+- * @return:	-ENOMEM if all keycodes could not be inserted, otherwise zero.
+- *
+- * This routine is used to handle table initialization.
+- */
+-static int rc_setkeytable(struct rc_keytable *kt,
+-			  const struct rc_map *from)
+-{
+-	struct rc_map *rc_map = &kt->rc_map;
+-	struct rc_map_table entry;
+-	unsigned int i, index;
+-	int rc;
+-
+-	rc = ir_create_table(rc_map, from->name, from->size);
+-	if (rc)
+-		return rc;
+-
+-	IR_dprintk(1, "Allocated space for %u keycode entries (%u bytes)\n",
+-		   rc_map->size, rc_map->alloc);
+-
+-	for (i = 0; i < from->size; i++) {
+-		entry.protocol = from->scan[i].protocol;
+-		entry.scancode = from->scan[i].scancode;
+-		index = ir_establish_scancode(kt, rc_map, &entry, false);
+-		if (index >= rc_map->len) {
+-			rc = -ENOMEM;
+-			break;
+-		}
+-
+-		ir_update_mapping(kt, rc_map, index, from->scan[i].keycode);
+-	}
+-
+-	if (rc)
+-		ir_free_table(rc_map);
+-
+-	return rc;
+-}
+-
+-/**
+- * ir_lookup_by_scancode() - locate mapping by scancode
+- * @rc_map:	the struct rc_map to search
+- * @protocol:	protocol to look for in the table
+- * @scancode:	scancode to look for in the table
+- * @return:	index in the table, -1U if not found
+- *
+- * This routine performs binary search in RC keykeymap table for
+- * given scancode.
+- */
+-static unsigned int ir_lookup_by_scancode(const struct rc_map *rc_map,
+-					  u16 protocol, u64 scancode)
+-{
+-	int start = 0;
+-	int end = rc_map->len - 1;
+-	int mid;
+-	struct rc_map_table *m;
+-
+-	while (start <= end) {
+-		mid = (start + end) / 2;
+-		m = &rc_map->scan[mid];
+-
+-		if (m->protocol < protocol)
+-			start = mid + 1;
+-		else if (m->protocol > protocol)
+-			end = mid - 1;
+-		else if (m->scancode < scancode)
+-			start = mid + 1;
+-		else if (m->scancode > scancode)
+-			end = mid - 1;
++	if (index >= kt->scan->len) {
++		/* Old entry not found */
++		*old_keycode = KEY_RESERVED;
++		if (ke->keycode == KEY_RESERVED)
++			/* removing a non-existing entry eh? */
++			goto out;
++		old_scan = rc_keytable_add_entry(kt, &entry, false);
++	} else {
++		/* Previous entry found */
++		*old_keycode = kt->scan->table[index].keycode;
++		if (ke->keycode == KEY_RESERVED)
++			old_scan = rc_keytable_remove_entry(kt, index);
+ 		else
+-			return mid;
++			old_scan = rc_keytable_update_entry(kt, index, &entry);
+ 	}
+ 
+-	return -1U;
++out:
++	mutex_unlock(&kt->scan_mutex);
++	if (old_scan) {
++		synchronize_rcu();
++		kfree(old_scan);
++	}
++	return retval;
+ }
+ 
+ /**
+- * ir_getkeycode() - get a keycode from the scancode->keycode table
++ * rc_keytable_get() - get an entry from the keytable
+  * @idev:	the struct input_dev device descriptor
+- * @scancode:	the desired scancode
+- * @keycode:	used to return the keycode, if found, or KEY_RESERVED
+- * @return:	always returns zero.
++ * @ke:		the requested entry which is filled in by this function
++ * @return:	zero on success, or a negative error code
+  *
+- * This routine is used to handle evdev EVIOCGKEY ioctl.
++ * This function handles the evdev EVIOCGKEYCODE(_V2) ioctls.
+  */
+-static int ir_getkeycode(struct input_dev *idev,
+-			 struct input_keymap_entry *ke)
++static int rc_keytable_get(struct input_dev *idev,
++			   struct input_keymap_entry *ke)
+ {
+ 	struct rc_keymap_entry *rke = (struct rc_keymap_entry *)ke;
+ 	struct rc_keytable *kt = input_get_drvdata(idev);
+ 	struct rc_dev *rdev = kt->dev;
+-	struct rc_map *rc_map = &kt->rc_map;
++	struct rc_scan *scan;
+ 	struct rc_map_table *entry;
+-	unsigned long flags;
+ 	unsigned int index;
+ 	int retval;
+ 
+-	spin_lock_irqsave(&kt->lock, flags);
++	rcu_read_lock();
++	scan = rcu_dereference(kt->scan);
+ 
+ 	if (ke->flags & INPUT_KEYMAP_BY_INDEX) {
+ 		index = ke->index;
+@@ -513,12 +440,12 @@ static int ir_getkeycode(struct input_dev *idev,
+ 			protocol = rdev->enabled_protocols;
+ 		else if (hweight64(rdev->allowed_protos) == 1)
+ 			protocol = rdev->allowed_protos;
+-		else if (rc_map->len > 0)
+-			protocol = rc_map->scan[0].protocol;
++		else if (scan->len > 0)
++			protocol = scan->table[0].protocol;
+ 		else
+ 			protocol = RC_TYPE_OTHER;
+ 
+-		index = ir_lookup_by_scancode(rc_map, protocol, scancode);
++		index = rc_scancode_to_index(scan, protocol, scancode);
+ 
+ 	} else if (ke->len == sizeof(struct rc_scancode)) {
+ 		/* New EVIOCGKEYCODE_V2 ioctl */
+@@ -527,16 +454,17 @@ static int ir_getkeycode(struct input_dev *idev,
+ 			goto out;
+ 		}
+ 
+-		index = ir_lookup_by_scancode(rc_map,
+-					      rke->rc.protocol, rke->rc.scancode);
++		index = rc_scancode_to_index(scan,
++					     rke->rc.protocol,
++					     rke->rc.scancode);
+ 
+ 	} else {
+ 		retval = -EINVAL;
+ 		goto out;
+ 	}
+ 
+-	if (index < rc_map->len) {
+-		entry = &rc_map->scan[index];
++	if (index < scan->len) {
++		entry = &scan->table[index];
+ 		ke->index = index;
+ 		ke->keycode = entry->keycode;
+ 		if (ke->len == sizeof(int)) {
+@@ -564,29 +492,10 @@ static int ir_getkeycode(struct input_dev *idev,
+ 	retval = 0;
+ 
+ out:
+-	spin_unlock_irqrestore(&kt->lock, flags);
++	rcu_read_unlock();
+ 	return retval;
+ }
+ 
+-static u32 rc_get_keycode(struct rc_keytable *kt,
+-			  enum rc_type protocol, u64 scancode)
+-{
+-	struct rc_map *rc_map;
+-	unsigned int keycode = KEY_RESERVED;
+-	unsigned int index;
+-
+-	rc_map = &kt->rc_map;
+-	if (!rc_map)
+-		return KEY_RESERVED;
+-
+-	index = ir_lookup_by_scancode(rc_map, protocol, scancode);
+-	if (index < rc_map->len)
+-		keycode = rc_map->scan[index].keycode;
+-
+-	return keycode;
+-}
+-
+-
+ /**
+  * rc_g_keycode_from_table() - gets the keycode that corresponds to a scancode
+  * @dev:	the struct rc_dev descriptor of the device
+@@ -602,18 +511,20 @@ u32 rc_g_keycode_from_table(struct rc_dev *dev,
+ 			    enum rc_type protocol, u64 scancode)
+ {
+ 	struct rc_keytable *kt;
+-	unsigned int keycode = KEY_RESERVED;
+-	unsigned long flags;
++	struct rc_scan *scan;
++	unsigned keycode = KEY_RESERVED;
++	unsigned index;
+ 
+ 	/* FIXME: This entire function is a hack. Remove it */
+ 	rcu_read_lock();
+ 	kt = rcu_dereference(dev->keytables[0]);
+ 	if (!kt)
+ 		goto out;
++	scan = rcu_dereference(kt->scan);
+ 
+-	spin_lock_irqsave(&kt->lock, flags);
+-	keycode = rc_get_keycode(kt, protocol, scancode);
+-	spin_unlock_irqrestore(&kt->lock, flags);
++	index = rc_scancode_to_index(scan, protocol, scancode);
++	if (index < scan->len)
++		keycode = scan->table[index].keycode;
+ 
+ out:
+ 	rcu_read_unlock();
+@@ -622,28 +533,28 @@ out:
+ EXPORT_SYMBOL_GPL(rc_g_keycode_from_table);
+ 
+ /**
+- * ir_do_keyup() - internal function to signal the release of a keypress
+- * @dev:	the struct rc_dev descriptor of the device
++ * rc_do_keyup() - internal function to release a keypress
++ * @kt:		the struct rc_keytable descriptor of the keytable
+  * @sync:	whether or not to call input_sync
+  *
+  * This function is used internally to release a keypress, it must be
+- * called with kt->lock held.
++ * called with kt->key_lock held.
+  */
+ static void rc_do_keyup(struct rc_keytable *kt, bool sync)
+ {
+-	if (!kt->keypressed)
++	if (!kt->key_pressed)
+ 		return;
+ 
+ 	IR_dprintk(1, "keyup key 0x%04x\n", kt->last_keycode);
+ 	input_report_key(kt->idev, kt->last_keycode, 0);
+ 	if (sync)
+ 		input_sync(kt->idev);
+-	kt->keypressed = false;
++	kt->key_pressed = false;
+ }
+ 
+ /**
+  * rc_keyup() - signals the release of a keypress
+- * @dev:	the struct rc_dev descriptor of the device
++ * @kt:		the struct rc_keytable descriptor of the keytable
+  *
+  * This routine is used to signal that a key has been released on the
+  * remote control.
+@@ -652,14 +563,14 @@ void rc_keytable_keyup(struct rc_keytable *kt)
+ {
+ 	unsigned long flags;
+ 
+-	spin_lock_irqsave(&kt->lock, flags);
++	spin_lock_irqsave(&kt->key_lock, flags);
+ 	rc_do_keyup(kt, true);
+-	spin_unlock_irqrestore(&kt->lock, flags);
++	spin_unlock_irqrestore(&kt->key_lock, flags);
+ }
+ 
+ /**
+- * rc_keytable_timer_keyup() - generates a keyup event after a timeout
+- * @cookie:	a pointer to the struct rc_dev for the device
++ * rc_timer_keyup() - generates a keyup event after a timeout
++ * @cookie:	a pointer to the struct rc_keytable descriptor of the keytable
+  *
+  * This routine will generate a keyup event some time after a keydown event
+  * is generated when no further activity has been detected.
+@@ -679,37 +590,36 @@ static void rc_timer_keyup(unsigned long cookie)
+ 	 * to allow the input subsystem to do its auto-repeat magic or
+ 	 * a keyup event might follow immediately after the keydown.
+ 	 */
+-	spin_lock_irqsave(&kt->lock, flags);
++	spin_lock_irqsave(&kt->key_lock, flags);
+ 	if (time_is_before_eq_jiffies(kt->keyup_jiffies))
+ 		rc_do_keyup(kt, true);
+-	spin_unlock_irqrestore(&kt->lock, flags);
++	spin_unlock_irqrestore(&kt->key_lock, flags);
+ }
+ 
+ /**
+  * rc_repeat() - signals that a key is still pressed
+- * @dev:	the struct rc_dev descriptor of the device
++ * @kt:		the struct rc_keytable descriptor of the keytable
+  *
+- * This routine is used by IR decoders when a repeat message which does
+- * not include the necessary bits to reproduce the scancode has been
+- * received.
++ * This routine is used when a repeat message which does not include the
++ * necessary bits to reproduce the scancode has been received.
+  */
+ void rc_keytable_repeat(struct rc_keytable *kt)
+ {
+ 	unsigned long flags;
+ 
+-	spin_lock_irqsave(&kt->lock, flags);
++	spin_lock_irqsave(&kt->key_lock, flags);
+ 
+ 	input_event(kt->idev, EV_MSC, MSC_SCAN, kt->last_scancode);
+ 	input_sync(kt->idev);
+ 
+-	if (!kt->keypressed)
++	if (!kt->key_pressed)
+ 		goto out;
+ 
+-	kt->keyup_jiffies = jiffies + msecs_to_jiffies(IR_KEYPRESS_TIMEOUT);
++	kt->keyup_jiffies = jiffies + msecs_to_jiffies(RC_KEYPRESS_TIMEOUT);
+ 	mod_timer(&kt->timer_keyup, kt->keyup_jiffies);
+ 
+ out:
+-	spin_unlock_irqrestore(&kt->lock, flags);
++	spin_unlock_irqrestore(&kt->key_lock, flags);
+ }
+ 
+ /**
+@@ -726,24 +636,32 @@ out:
+ void rc_keytable_keydown(struct rc_keytable *kt, enum rc_type protocol,
+ 			 u64 scancode, u8 toggle, bool autoup)
+ {
++	struct rc_scan *scan;
++	unsigned index;
++	u32 keycode = KEY_RESERVED;
+ 	unsigned long flags;
+-	u32 keycode;
+ 	bool new_event;
+ 
+-	spin_lock_irqsave(&kt->lock, flags);
++	rcu_read_lock();
++	scan = rcu_dereference(kt->scan);
++	index = rc_scancode_to_index(scan, protocol, scancode);
++	if (index < scan->len)
++		keycode = scan->table[index].keycode;
++	rcu_read_unlock();
+ 
+-	keycode = rc_get_keycode(kt, protocol, scancode);
+-	new_event = !kt->keypressed || kt->last_protocol != protocol ||
+-		     kt->last_scancode != scancode || kt->last_toggle != toggle;
++	spin_lock_irqsave(&kt->key_lock, flags);
++	new_event = !kt->key_pressed || kt->last_protocol != protocol ||
++		     kt->last_scancode != scancode ||
++		     kt->last_toggle != toggle || kt->last_keycode != keycode;
+ 
+-	if (new_event && kt->keypressed)
++	if (new_event)
+ 		rc_do_keyup(kt, false);
+ 
+ 	input_event(kt->idev, EV_MSC, MSC_SCAN, scancode);
+ 
+ 	if (new_event && keycode != KEY_RESERVED) {
+ 		/* Register a keypress */
+-		kt->keypressed = true;
++		kt->key_pressed = true;
+ 		kt->last_protocol = protocol;
+ 		kt->last_scancode = scancode;
+ 		kt->last_toggle = toggle;
+@@ -757,11 +675,11 @@ void rc_keytable_keydown(struct rc_keytable *kt, enum rc_type protocol,
+ 	}
+ 	input_sync(kt->idev);
+ 
+-	if (autoup && kt->keypressed) {
+-		kt->keyup_jiffies = jiffies + msecs_to_jiffies(IR_KEYPRESS_TIMEOUT);
++	if (autoup && kt->key_pressed) {
++		kt->keyup_jiffies = jiffies + msecs_to_jiffies(RC_KEYPRESS_TIMEOUT);
+ 		mod_timer(&kt->timer_keyup, kt->keyup_jiffies);
+ 	}
+-	spin_unlock_irqrestore(&kt->lock, flags);
++	spin_unlock_irqrestore(&kt->key_lock, flags);
+ }
+ 
+ /**
+@@ -810,6 +728,39 @@ static void rc_input_close(struct input_dev *idev)
+ }
+ 
+ /**
++ * rc_keytable_init() - performs initial setup of a keytable
++ * @dev:	the struct rc_dev device descriptor
++ * @from:	the struct rc_map to copy entries from
++ * @return:	zero on success, or a negative error code
++ *
++ * This function is used to handle table initialization.
++ */
++static int rc_keytable_init(struct rc_keytable *kt,
++			    const struct rc_map *from)
++{
++	unsigned size;
++	unsigned i;
++	struct rc_map_table entry;
++
++	size = from ? from->size : 0;
++	kt->scan = kmalloc(rc_scan_size(size), GFP_KERNEL);
++	if (!kt->scan)
++		return -ENOMEM;
++
++	kt->scan->len = 0;
++	for (i = 0; i < size; i++) {
++		entry.protocol = from->scan[i].protocol;
++		entry.scancode = from->scan[i].scancode;
++		if (kt->dev->scanmask)
++			entry.scancode &= kt->dev->scanmask;
++		entry.keycode = from->scan[i].keycode;
++		rc_keytable_add_entry(kt, &entry, true);
++	}
++
++	return 0;
++}
++
++/**
+  * rc_keytable_create() - creates a new keytable
+  * @dev:	the struct rc_dev device this keytable should belong to
+  * @name:	the userfriendly name of this keymap
+@@ -840,8 +791,8 @@ struct rc_keytable *rc_keytable_create(struct rc_dev *dev,
+ 	kt->idev = idev;
+ 	kt->dev = dev;
+ 	snprintf(kt->name, sizeof(*kt->name), name ? name : "undefined");
+-	idev->getkeycode = ir_getkeycode;
+-	idev->setkeycode = ir_setkeycode;
++	idev->getkeycode = rc_keytable_get;
++	idev->setkeycode = rc_keytable_set;
+ 	idev->open = rc_input_open;
+ 	idev->close = rc_input_close;
+ 	set_bit(EV_KEY, idev->evbit);
+@@ -858,7 +809,7 @@ struct rc_keytable *rc_keytable_create(struct rc_dev *dev,
+ 	if (!rc_map || !rc_map->scan || rc_map->size == 0)
+ 		goto out;
+ 
+-	error = rc_setkeytable(kt, rc_map);
++	error = rc_keytable_init(kt, rc_map);
+ 	if (error)
+ 		goto out;
+ 
+@@ -868,7 +819,7 @@ struct rc_keytable *rc_keytable_create(struct rc_dev *dev,
+ 	idev->name = dev->input_name;
+ 	error = input_register_device(idev);
+ 	if (error)
+-		goto out;
++		goto out_table;
+ 
+ 	/*
+ 	 * Default delay of 250ms is too short for some protocols, especially
+@@ -885,9 +836,12 @@ struct rc_keytable *rc_keytable_create(struct rc_dev *dev,
+ 	 */
+ 	idev->rep[REP_PERIOD] = 125;
+ 
+-	spin_lock_init(&kt->lock);
++	spin_lock_init(&kt->key_lock);
++	mutex_init(&kt->scan_mutex);
+ 	return kt;
+ 
++out_table:
++	kfree(kt->scan);
+ out:
+ 	input_free_device(idev);
+ 	kfree(kt);
+@@ -903,8 +857,7 @@ out:
+ void rc_keytable_destroy(struct rc_keytable *kt)
+ {
+ 	del_timer_sync(&kt->timer_keyup);
+-	/* Freeing the table should also call the stop callback */
+-	ir_free_table(&kt->rc_map);
+ 	input_unregister_device(kt->idev);
++	kfree(kt->scan);
+ 	kfree(kt);
+ }
+diff --git a/include/media/rc-core.h b/include/media/rc-core.h
+index cd93623..1a38ecc 100644
+--- a/include/media/rc-core.h
++++ b/include/media/rc-core.h
+@@ -327,35 +327,47 @@ struct rc_dev {
+ };
+ 
+ /**
++ * struct rc_scan - rcu-friendly scancode<->keycode table
++ * @len:	number of elements in the table array
++ * @table:	array of struct rc_map_table elements
++ */
++struct rc_scan {
++	unsigned len;
++	struct rc_map_table table[];
++};
++
++/**
+  * struct rc_keytable - represents one keytable for a rc_dev device
+  * @node:		used to iterate over all keytables for a rc_dev device
+  * @dev:		the rc_dev device this keytable belongs to
+  * @idev:		the input_dev device which belongs to this keytable
+  * @name:		the user-friendly name of this keytable
+- * @rc_map:		holds the scancode <-> keycode mappings
+- * @keypressed:		whether a key is currently pressed or not
+- * @keyup_jiffies:	when the key should be auto-released
+- * @timer_keyup:	responsible for the auto-release of keys
+- * @lock:		protects the key state
++ * @scan_mutex:		protects @scan against concurrent writers
++ * @scan:		the current scancode<->keycode table
++ * @key_lock:		protects the key state
++ * @key_pressed:	whether a key is currently pressed or not
+  * @last_keycode:	keycode of the last keypress
+  * @last_protocol:	protocol of the last keypress
+  * @last_scancode:	scancode of the last keypress
+  * @last_toggle:	toggle of the last keypress
++ * @timer_keyup:	responsible for the auto-release of keys
++ * @keyup_jiffies:	when the key should be auto-released
+  */
+ struct rc_keytable {
+ 	struct list_head		node;
+ 	struct rc_dev			*dev;
+ 	struct input_dev		*idev;
+ 	char				name[RC_KEYTABLE_NAME_SIZE];
+-	struct rc_map			rc_map;
+-	bool				keypressed;
+-	unsigned long			keyup_jiffies;
+-	struct timer_list		timer_keyup;
+-	spinlock_t			lock;
++	struct mutex			scan_mutex;
++	struct rc_scan __rcu		*scan;
++	spinlock_t			key_lock;
++	bool				key_pressed;
+ 	u32				last_keycode;
+ 	enum rc_type			last_protocol;
+ 	u64				last_scancode;
+ 	u8				last_toggle;
++	struct timer_list		timer_keyup;
++	unsigned long			keyup_jiffies;
+ };
+ 
+ #define to_rc_dev(d) container_of(d, struct rc_dev, dev)
 
-> ---
-> The DocBook documentation with this patch applied is available here:
-> 
-> <URL:http://www.retiisi.org.uk/v4l2/tmp/media_api4/>
-> 
-> Changes since v2:
-> 
-> - Added comments to struct fields (and IOCTLs) that the now-u32 fields
->   refer to an enum.
-> 
-> Changes since v1:
-> 
-> - Fixes according to comments by Hans Verkuil:
->   - Update documentation
->   - Also remove enums in compat32 code
-> 
->  Documentation/DocBook/media/v4l/io.xml             |   12 ++--
->  .../DocBook/media/v4l/vidioc-create-bufs.xml       |   10 ++-
->  Documentation/DocBook/media/v4l/vidioc-cropcap.xml |    4 +-
->  .../DocBook/media/v4l/vidioc-enum-fmt.xml          |    4 +-
->  Documentation/DocBook/media/v4l/vidioc-g-crop.xml  |    4 +-
->  Documentation/DocBook/media/v4l/vidioc-g-fmt.xml   |    2 +-
->  .../DocBook/media/v4l/vidioc-g-frequency.xml       |    6 +-
->  Documentation/DocBook/media/v4l/vidioc-g-parm.xml  |    5 +-
->  .../DocBook/media/v4l/vidioc-g-sliced-vbi-cap.xml  |    2 +-
->  Documentation/DocBook/media/v4l/vidioc-g-tuner.xml |    2 +-
->  .../DocBook/media/v4l/vidioc-queryctrl.xml         |    2 +-
->  Documentation/DocBook/media/v4l/vidioc-reqbufs.xml |    7 +-
->  .../DocBook/media/v4l/vidioc-s-hw-freq-seek.xml    |    5 +-
->  drivers/media/video/v4l2-compat-ioctl32.c          |   12 ++--
->  include/linux/videodev2.h                          |   64 ++++++++++----------
->  15 files changed, 75 insertions(+), 66 deletions(-)
-> 
-> diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
-> index b815929..fd6aca2 100644
-> --- a/Documentation/DocBook/media/v4l/io.xml
-> +++ b/Documentation/DocBook/media/v4l/io.xml
-> @@ -543,12 +543,13 @@ and can range from zero to the number of buffers allocated
->  with the &VIDIOC-REQBUFS; ioctl (&v4l2-requestbuffers; <structfield>count</structfield>) minus one.</entry>
->  	  </row>
->  	  <row>
-> -	    <entry>&v4l2-buf-type;</entry>
-> +	    <entry>__u32</entry>
->  	    <entry><structfield>type</structfield></entry>
->  	    <entry></entry>
->  	    <entry>Type of the buffer, same as &v4l2-format;
->  <structfield>type</structfield> or &v4l2-requestbuffers;
-> -<structfield>type</structfield>, set by the application.</entry>
-> +<structfield>type</structfield>, set by the application. See <xref
-> +linkend="v4l2-buf-type" /></entry>
->  	  </row>
->  	  <row>
->  	    <entry>__u32</entry>
-> @@ -568,7 +569,7 @@ refers to an input stream, applications when an output stream.</entry>
->  linkend="buffer-flags" />.</entry>
->  	  </row>
->  	  <row>
-> -	    <entry>&v4l2-field;</entry>
-> +	    <entry>__u32</entry>
->  	    <entry><structfield>field</structfield></entry>
->  	    <entry></entry>
->  	    <entry>Indicates the field order of the image in the
-> @@ -630,11 +631,12 @@ bandwidth. These devices identify by not enumerating any video
->  standards, see <xref linkend="standard" />.</para></entry>
->  	  </row>
->  	  <row>
-> -	    <entry>&v4l2-memory;</entry>
-> +	    <entry>__u32</entry>
->  	    <entry><structfield>memory</structfield></entry>
->  	    <entry></entry>
->  	    <entry>This field must be set by applications and/or drivers
-> -in accordance with the selected I/O method.</entry>
-> +in accordance with the selected I/O method. See <xref linkend="v4l2-memory"
-> +	    /></entry>
->  	  </row>
->  	  <row>
->  	    <entry>union</entry>
-> diff --git a/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml b/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
-> index 73ae8a6..184cdfc 100644
-> --- a/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
-> +++ b/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
-> @@ -94,16 +94,18 @@ information.</para>
->  	    <entry>The number of buffers requested or granted.</entry>
->  	  </row>
->  	  <row>
-> -	    <entry>&v4l2-memory;</entry>
-> +	    <entry>__u32</entry>
->  	    <entry><structfield>memory</structfield></entry>
->  	    <entry>Applications set this field to
->  <constant>V4L2_MEMORY_MMAP</constant> or
-> -<constant>V4L2_MEMORY_USERPTR</constant>.</entry>
-> +<constant>V4L2_MEMORY_USERPTR</constant>. See <xref linkend="v4l2-memory"
-> +/></entry>
->  	  </row>
->  	  <row>
-> -	    <entry>&v4l2-format;</entry>
-> +	    <entry>__u32</entry>
->  	    <entry><structfield>format</structfield></entry>
-> -	    <entry>Filled in by the application, preserved by the driver.</entry>
-> +	    <entry>Filled in by the application, preserved by the driver.
-> +	    See <xref linkend="v4l2-format" />.</entry>
->  	  </row>
->  	  <row>
->  	    <entry>__u32</entry>
-> diff --git a/Documentation/DocBook/media/v4l/vidioc-cropcap.xml b/Documentation/DocBook/media/v4l/vidioc-cropcap.xml
-> index b4f2f25..f1bac2c 100644
-> --- a/Documentation/DocBook/media/v4l/vidioc-cropcap.xml
-> +++ b/Documentation/DocBook/media/v4l/vidioc-cropcap.xml
-> @@ -65,7 +65,7 @@ output.</para>
->  	&cs-str;
->  	<tbody valign="top">
->  	  <row>
-> -	    <entry>&v4l2-buf-type;</entry>
-> +	    <entry>__u32</entry>
->  	    <entry><structfield>type</structfield></entry>
->  	    <entry>Type of the data stream, set by the application.
->  Only these types are valid here:
-> @@ -73,7 +73,7 @@ Only these types are valid here:
->  <constant>V4L2_BUF_TYPE_VIDEO_OUTPUT</constant>,
->  <constant>V4L2_BUF_TYPE_VIDEO_OVERLAY</constant>, and custom (driver
->  defined) types with code <constant>V4L2_BUF_TYPE_PRIVATE</constant>
-> -and higher.</entry>
-> +and higher. See <xref linkend="v4l2-buf-type" />.</entry>
->  	  </row>
->  	  <row>
->  	    <entry>struct <link linkend="v4l2-rect-crop">v4l2_rect</link></entry>
-> diff --git a/Documentation/DocBook/media/v4l/vidioc-enum-fmt.xml b/Documentation/DocBook/media/v4l/vidioc-enum-fmt.xml
-> index 347d142..81ebe48 100644
-> --- a/Documentation/DocBook/media/v4l/vidioc-enum-fmt.xml
-> +++ b/Documentation/DocBook/media/v4l/vidioc-enum-fmt.xml
-> @@ -71,7 +71,7 @@ the application. This is in no way related to the <structfield>
->  pixelformat</structfield> field.</entry>
->  	  </row>
->  	  <row>
-> -	    <entry>&v4l2-buf-type;</entry>
-> +	    <entry>__u32</entry>
->  	    <entry><structfield>type</structfield></entry>
->  	    <entry>Type of the data stream, set by the application.
->  Only these types are valid here:
-> @@ -81,7 +81,7 @@ Only these types are valid here:
->  <constant>V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE</constant>,
->  <constant>V4L2_BUF_TYPE_VIDEO_OVERLAY</constant>, and custom (driver
->  defined) types with code <constant>V4L2_BUF_TYPE_PRIVATE</constant>
-> -and higher.</entry>
-> +and higher. See <xref linkend="v4l2-buf-type" />.</entry>
->  	  </row>
->  	  <row>
->  	    <entry>__u32</entry>
-> diff --git a/Documentation/DocBook/media/v4l/vidioc-g-crop.xml b/Documentation/DocBook/media/v4l/vidioc-g-crop.xml
-> index 01a5064..c4ff3b1 100644
-> --- a/Documentation/DocBook/media/v4l/vidioc-g-crop.xml
-> +++ b/Documentation/DocBook/media/v4l/vidioc-g-crop.xml
-> @@ -100,14 +100,14 @@ changed and <constant>VIDIOC_S_CROP</constant> returns the
->  	&cs-str;
->  	<tbody valign="top">
->  	  <row>
-> -	    <entry>&v4l2-buf-type;</entry>
-> +	    <entry>__u32</entry>
->  	    <entry><structfield>type</structfield></entry>
->  	    <entry>Type of the data stream, set by the application.
->  Only these types are valid here: <constant>V4L2_BUF_TYPE_VIDEO_CAPTURE</constant>,
->  <constant>V4L2_BUF_TYPE_VIDEO_OUTPUT</constant>,
->  <constant>V4L2_BUF_TYPE_VIDEO_OVERLAY</constant>, and custom (driver
->  defined) types with code <constant>V4L2_BUF_TYPE_PRIVATE</constant>
-> -and higher.</entry>
-> +and higher. See <xref linkend="v4l2-buf-type" />.</entry>
->  	  </row>
->  	  <row>
->  	    <entry>&v4l2-rect;</entry>
-> diff --git a/Documentation/DocBook/media/v4l/vidioc-g-fmt.xml b/Documentation/DocBook/media/v4l/vidioc-g-fmt.xml
-> index 17fbda1..52acff1 100644
-> --- a/Documentation/DocBook/media/v4l/vidioc-g-fmt.xml
-> +++ b/Documentation/DocBook/media/v4l/vidioc-g-fmt.xml
-> @@ -116,7 +116,7 @@ this ioctl.</para>
->  	<colspec colname="c4" />
->  	<tbody valign="top">
->  	  <row>
-> -	    <entry>&v4l2-buf-type;</entry>
-> +	    <entry>__u32</entry>
->  	    <entry><structfield>type</structfield></entry>
->  	    <entry></entry>
->  	    <entry>Type of the data stream, see <xref
-> diff --git a/Documentation/DocBook/media/v4l/vidioc-g-frequency.xml b/Documentation/DocBook/media/v4l/vidioc-g-frequency.xml
-> index 66e9a52..69c178a 100644
-> --- a/Documentation/DocBook/media/v4l/vidioc-g-frequency.xml
-> +++ b/Documentation/DocBook/media/v4l/vidioc-g-frequency.xml
-> @@ -95,14 +95,14 @@ the &v4l2-output; <structfield>modulator</structfield> field and the
->  &v4l2-modulator; <structfield>index</structfield> field.</entry>
->  	  </row>
->  	  <row>
-> -	    <entry>&v4l2-tuner-type;</entry>
-> +	    <entry>__u32</entry>
->  	    <entry><structfield>type</structfield></entry>
->  	    <entry>The tuner type. This is the same value as in the
-> -&v4l2-tuner; <structfield>type</structfield> field. The type must be set
-> +&v4l2-tuner; <structfield>type</structfield> field. See The type must be set
->  to <constant>V4L2_TUNER_RADIO</constant> for <filename>/dev/radioX</filename>
->  device nodes, and to <constant>V4L2_TUNER_ANALOG_TV</constant>
->  for all others. The field is not applicable to modulators, &ie; ignored
-> -by drivers.</entry>
-> +by drivers. See <xref linkend="v4l2-tuner-type" /></entry>
->  	  </row>
->  	  <row>
->  	    <entry>__u32</entry>
-> diff --git a/Documentation/DocBook/media/v4l/vidioc-g-parm.xml b/Documentation/DocBook/media/v4l/vidioc-g-parm.xml
-> index 19b1d85..f83d2cd 100644
-> --- a/Documentation/DocBook/media/v4l/vidioc-g-parm.xml
-> +++ b/Documentation/DocBook/media/v4l/vidioc-g-parm.xml
-> @@ -75,11 +75,12 @@ devices.</para>
->  	&cs-ustr;
->  	<tbody valign="top">
->  	  <row>
-> -	    <entry>&v4l2-buf-type;</entry>
-> +	    <entry>__u32</entry>
->  	    <entry><structfield>type</structfield></entry>
->  	    <entry></entry>
->  	    <entry>The buffer (stream) type, same as &v4l2-format;
-> -<structfield>type</structfield>, set by the application.</entry>
-> +<structfield>type</structfield>, set by the application. See <xref
-> +	    linkend="v4l2-buf-type" /></entry>
->  	  </row>
->  	  <row>
->  	    <entry>union</entry>
-> diff --git a/Documentation/DocBook/media/v4l/vidioc-g-sliced-vbi-cap.xml b/Documentation/DocBook/media/v4l/vidioc-g-sliced-vbi-cap.xml
-> index 71741da..bd015d1 100644
-> --- a/Documentation/DocBook/media/v4l/vidioc-g-sliced-vbi-cap.xml
-> +++ b/Documentation/DocBook/media/v4l/vidioc-g-sliced-vbi-cap.xml
-> @@ -148,7 +148,7 @@ using the &VIDIOC-S-FMT; ioctl as described in <xref
->  <structfield>service_lines</structfield>[1][0] to zero.</entry>
->  	  </row>
->  	  <row>
-> -	    <entry>&v4l2-buf-type;</entry>
-> +	    <entry>__u32</entry>
->  	    <entry><structfield>type</structfield></entry>
->  	    <entry>Type of the data stream, see <xref
->  		  linkend="v4l2-buf-type" />. Should be
-> diff --git a/Documentation/DocBook/media/v4l/vidioc-g-tuner.xml b/Documentation/DocBook/media/v4l/vidioc-g-tuner.xml
-> index 91ec2fb..62a1aa2 100644
-> --- a/Documentation/DocBook/media/v4l/vidioc-g-tuner.xml
-> +++ b/Documentation/DocBook/media/v4l/vidioc-g-tuner.xml
-> @@ -107,7 +107,7 @@ user.<!-- FIXME Video inputs already have a name, the purpose of this
->  field is not quite clear.--></para></entry>
->  	  </row>
->  	  <row>
-> -	    <entry>&v4l2-tuner-type;</entry>
-> +	    <entry>__u32</entry>
->  	    <entry><structfield>type</structfield></entry>
->  	    <entry spanname="hspan">Type of the tuner, see <xref
->  		linkend="v4l2-tuner-type" />.</entry>
-> diff --git a/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml b/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml
-> index 505f020..e6645b9 100644
-> --- a/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml
-> +++ b/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml
-> @@ -127,7 +127,7 @@ the first control with a higher ID. Drivers which do not support this
->  flag yet always return an &EINVAL;.</entry>
->  	  </row>
->  	  <row>
-> -	    <entry>&v4l2-ctrl-type;</entry>
-> +	    <entry>__u32</entry>
->  	    <entry><structfield>type</structfield></entry>
->  	    <entry>Type of control, see <xref
->  		linkend="v4l2-ctrl-type" />.</entry>
-> diff --git a/Documentation/DocBook/media/v4l/vidioc-reqbufs.xml b/Documentation/DocBook/media/v4l/vidioc-reqbufs.xml
-> index 7be4b1d..d7c9505 100644
-> --- a/Documentation/DocBook/media/v4l/vidioc-reqbufs.xml
-> +++ b/Documentation/DocBook/media/v4l/vidioc-reqbufs.xml
-> @@ -92,18 +92,19 @@ streamoff.--></para>
->  	    <entry>The number of buffers requested or granted.</entry>
->  	  </row>
->  	  <row>
-> -	    <entry>&v4l2-buf-type;</entry>
-> +	    <entry>__u32</entry>
->  	    <entry><structfield>type</structfield></entry>
->  	    <entry>Type of the stream or buffers, this is the same
->  as the &v4l2-format; <structfield>type</structfield> field. See <xref
->  		linkend="v4l2-buf-type" /> for valid values.</entry>
->  	  </row>
->  	  <row>
-> -	    <entry>&v4l2-memory;</entry>
-> +	    <entry>__u32</entry>
->  	    <entry><structfield>memory</structfield></entry>
->  	    <entry>Applications set this field to
->  <constant>V4L2_MEMORY_MMAP</constant> or
-> -<constant>V4L2_MEMORY_USERPTR</constant>.</entry>
-> +<constant>V4L2_MEMORY_USERPTR</constant>. See <xref linkend="v4l2-memory"
-> +/>.</entry>
->  	  </row>
->  	  <row>
->  	    <entry>__u32</entry>
-> diff --git a/Documentation/DocBook/media/v4l/vidioc-s-hw-freq-seek.xml b/Documentation/DocBook/media/v4l/vidioc-s-hw-freq-seek.xml
-> index 18b1a82..407dfce 100644
-> --- a/Documentation/DocBook/media/v4l/vidioc-s-hw-freq-seek.xml
-> +++ b/Documentation/DocBook/media/v4l/vidioc-s-hw-freq-seek.xml
-> @@ -73,10 +73,11 @@ same value as in the &v4l2-input; <structfield>tuner</structfield>
->  field and the &v4l2-tuner; <structfield>index</structfield> field.</entry>
->  	  </row>
->  	  <row>
-> -	    <entry>&v4l2-tuner-type;</entry>
-> +	    <entry>__u32</entry>
->  	    <entry><structfield>type</structfield></entry>
->  	    <entry>The tuner type. This is the same value as in the
-> -&v4l2-tuner; <structfield>type</structfield> field.</entry>
-> +&v4l2-tuner; <structfield>type</structfield> field. See <xref
-> +	    linkend="v4l2-tuner-type" /></entry>
->  	  </row>
->  	  <row>
->  	    <entry>__u32</entry>
-> diff --git a/drivers/media/video/v4l2-compat-ioctl32.c b/drivers/media/video/v4l2-compat-ioctl32.c
-> index 2829d25..89ae433 100644
-> --- a/drivers/media/video/v4l2-compat-ioctl32.c
-> +++ b/drivers/media/video/v4l2-compat-ioctl32.c
-> @@ -37,7 +37,7 @@ struct v4l2_clip32 {
->  
->  struct v4l2_window32 {
->  	struct v4l2_rect        w;
-> -	enum v4l2_field  	field;
-> +	__u32		  	field;	/* enum v4l2_field */
->  	__u32			chromakey;
->  	compat_caddr_t		clips; /* actually struct v4l2_clip32 * */
->  	__u32			clipcount;
-> @@ -147,7 +147,7 @@ static inline int put_v4l2_sliced_vbi_format(struct v4l2_sliced_vbi_format *kp,
->  }
->  
->  struct v4l2_format32 {
-> -	enum v4l2_buf_type type;
-> +	__u32	type;	/* enum v4l2_buf_type */
->  	union {
->  		struct v4l2_pix_format	pix;
->  		struct v4l2_pix_format_mplane	pix_mp;
-> @@ -170,7 +170,7 @@ struct v4l2_format32 {
->  struct v4l2_create_buffers32 {
->  	__u32			index;
->  	__u32			count;
-> -	enum v4l2_memory        memory;
-> +	__u32			memory;	/* enum v4l2_memory */
->  	struct v4l2_format32	format;
->  	__u32			reserved[8];
->  };
-> @@ -311,16 +311,16 @@ struct v4l2_plane32 {
->  
->  struct v4l2_buffer32 {
->  	__u32			index;
-> -	enum v4l2_buf_type      type;
-> +	__u32			type;	/* enum v4l2_buf_type */
->  	__u32			bytesused;
->  	__u32			flags;
-> -	enum v4l2_field		field;
-> +	__u32			field;	/* enum v4l2_field */
->  	struct compat_timeval	timestamp;
->  	struct v4l2_timecode	timecode;
->  	__u32			sequence;
->  
->  	/* memory location */
-> -	enum v4l2_memory        memory;
-> +	__u32			memory;	/* enum v4l2_memory */
->  	union {
->  		__u32           offset;
->  		compat_long_t   userptr;
-> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-> index 5a09ac3..ace8ac0 100644
-> --- a/include/linux/videodev2.h
-> +++ b/include/linux/videodev2.h
-> @@ -292,10 +292,10 @@ struct v4l2_pix_format {
->  	__u32         		width;
->  	__u32			height;
->  	__u32			pixelformat;
-> -	enum v4l2_field  	field;
-> +	__u32			field;		/* enum v4l2_field */
->  	__u32            	bytesperline;	/* for padding, zero if unused */
->  	__u32          		sizeimage;
-> -	enum v4l2_colorspace	colorspace;
-> +	__u32			colorspace;	/* enum v4l2_colorspace */
->  	__u32			priv;		/* private data, depends on pixelformat */
->  };
->  
-> @@ -432,7 +432,7 @@ struct v4l2_pix_format {
->   */
->  struct v4l2_fmtdesc {
->  	__u32		    index;             /* Format number      */
-> -	enum v4l2_buf_type  type;              /* buffer type        */
-> +	__u32		    type;              /* enum v4l2_buf_type */
->  	__u32               flags;
->  	__u8		    description[32];   /* Description string */
->  	__u32		    pixelformat;       /* Format fourcc      */
-> @@ -573,8 +573,8 @@ struct v4l2_jpegcompression {
->   */
->  struct v4l2_requestbuffers {
->  	__u32			count;
-> -	enum v4l2_buf_type      type;
-> -	enum v4l2_memory        memory;
-> +	__u32			type;		/* enum v4l2_buf_type */
-> +	__u32			memory;		/* enum v4l2_memory */
->  	__u32			reserved[2];
->  };
->  
-> @@ -610,15 +610,17 @@ struct v4l2_plane {
->  /**
->   * struct v4l2_buffer - video buffer info
->   * @index:	id number of the buffer
-> - * @type:	buffer type (type == *_MPLANE for multiplanar buffers)
-> + * @type:	enum v4l2_buf_type; buffer type (type == *_MPLANE for
-> + *		multiplanar buffers);
->   * @bytesused:	number of bytes occupied by data in the buffer (payload);
->   *		unused (set to 0) for multiplanar buffers
->   * @flags:	buffer informational flags
-> - * @field:	field order of the image in the buffer
-> + * @field:	enum v4l2_field; field order of the image in the buffer
->   * @timestamp:	frame timestamp
->   * @timecode:	frame timecode
->   * @sequence:	sequence count of this frame
-> - * @memory:	the method, in which the actual video data is passed
-> + * @memory:	enum v4l2_memory; the method, in which the actual video data is
-> + *		passed
->   * @offset:	for non-multiplanar buffers with memory == V4L2_MEMORY_MMAP;
->   *		offset from the start of the device memory for this plane,
->   *		(or a "cookie" that should be passed to mmap() as offset)
-> @@ -636,16 +638,16 @@ struct v4l2_plane {
->   */
->  struct v4l2_buffer {
->  	__u32			index;
-> -	enum v4l2_buf_type      type;
-> +	__u32			type;
->  	__u32			bytesused;
->  	__u32			flags;
-> -	enum v4l2_field		field;
-> +	__u32			field;
->  	struct timeval		timestamp;
->  	struct v4l2_timecode	timecode;
->  	__u32			sequence;
->  
->  	/* memory location */
-> -	enum v4l2_memory        memory;
-> +	__u32			memory;
->  	union {
->  		__u32           offset;
->  		unsigned long   userptr;
-> @@ -708,7 +710,7 @@ struct v4l2_clip {
->  
->  struct v4l2_window {
->  	struct v4l2_rect        w;
-> -	enum v4l2_field  	field;
-> +	__u32			field;	 /* enum v4l2_field */
->  	__u32			chromakey;
->  	struct v4l2_clip	__user *clips;
->  	__u32			clipcount;
-> @@ -745,14 +747,14 @@ struct v4l2_outputparm {
->   *	I N P U T   I M A G E   C R O P P I N G
->   */
->  struct v4l2_cropcap {
-> -	enum v4l2_buf_type      type;
-> +	__u32			type;	/* enum v4l2_buf_type */
->  	struct v4l2_rect        bounds;
->  	struct v4l2_rect        defrect;
->  	struct v4l2_fract       pixelaspect;
->  };
->  
->  struct v4l2_crop {
-> -	enum v4l2_buf_type      type;
-> +	__u32			type;	/* enum v4l2_buf_type */
->  	struct v4l2_rect        c;
->  };
->  
-> @@ -1040,7 +1042,7 @@ struct v4l2_input {
->  	__u8	     name[32];		/*  Label */
->  	__u32	     type;		/*  Type of input */
->  	__u32	     audioset;		/*  Associated audios (bitfield) */
-> -	__u32        tuner;             /*  Associated tuner */
-> +	__u32        tuner;             /*  enum v4l2_tuner_type */
->  	v4l2_std_id  std;
->  	__u32	     status;
->  	__u32	     capabilities;
-> @@ -1157,7 +1159,7 @@ enum v4l2_ctrl_type {
->  /*  Used in the VIDIOC_QUERYCTRL ioctl for querying controls */
->  struct v4l2_queryctrl {
->  	__u32		     id;
-> -	enum v4l2_ctrl_type  type;
-> +	__u32		     type;	/* enum v4l2_ctrl_type */
->  	__u8		     name[32];	/* Whatever */
->  	__s32		     minimum;	/* Note signedness */
->  	__s32		     maximum;
-> @@ -1792,7 +1794,7 @@ enum v4l2_jpeg_chroma_subsampling {
->  struct v4l2_tuner {
->  	__u32                   index;
->  	__u8			name[32];
-> -	enum v4l2_tuner_type    type;
-> +	__u32			type;	/* enum v4l2_tuner_type */
->  	__u32			capability;
->  	__u32			rangelow;
->  	__u32			rangehigh;
-> @@ -1842,14 +1844,14 @@ struct v4l2_modulator {
->  
->  struct v4l2_frequency {
->  	__u32		      tuner;
-> -	enum v4l2_tuner_type  type;
-> +	__u32		      type;	/* enum v4l2_tuner_type */
->  	__u32		      frequency;
->  	__u32		      reserved[8];
->  };
->  
->  struct v4l2_hw_freq_seek {
->  	__u32		      tuner;
-> -	enum v4l2_tuner_type  type;
-> +	__u32		      type;	/* enum v4l2_tuner_type */
->  	__u32		      seek_upward;
->  	__u32		      wrap_around;
->  	__u32		      spacing;
-> @@ -2060,7 +2062,7 @@ struct v4l2_sliced_vbi_cap {
->  				 (equals frame lines 313-336 for 625 line video
->  				  standards, 263-286 for 525 line standards) */
->  	__u16   service_lines[2][24];
-> -	enum v4l2_buf_type type;
-> +	__u32	type;		/* enum v4l2_buf_type */
->  	__u32   reserved[3];    /* must be 0 */
->  };
->  
-> @@ -2141,8 +2143,8 @@ struct v4l2_plane_pix_format {
->   * @width:		image width in pixels
->   * @height:		image height in pixels
->   * @pixelformat:	little endian four character code (fourcc)
-> - * @field:		field order (for interlaced video)
-> - * @colorspace:		supplemental to pixelformat
-> + * @field:		enum v4l2_field; field order (for interlaced video)
-> + * @colorspace:		enum v4l2_colorspace; supplemental to pixelformat
->   * @plane_fmt:		per-plane information
->   * @num_planes:		number of planes for this format
->   */
-> @@ -2150,8 +2152,8 @@ struct v4l2_pix_format_mplane {
->  	__u32				width;
->  	__u32				height;
->  	__u32				pixelformat;
-> -	enum v4l2_field			field;
-> -	enum v4l2_colorspace		colorspace;
-> +	__u32				field;
-> +	__u32				colorspace;
->  
->  	struct v4l2_plane_pix_format	plane_fmt[VIDEO_MAX_PLANES];
->  	__u8				num_planes;
-> @@ -2160,7 +2162,7 @@ struct v4l2_pix_format_mplane {
->  
->  /**
->   * struct v4l2_format - stream data format
-> - * @type:	type of the data stream
-> + * @type:	enum v4l2_buf_type; type of the data stream
->   * @pix:	definition of an image format
->   * @pix_mp:	definition of a multiplanar image format
->   * @win:	definition of an overlaid image
-> @@ -2169,7 +2171,7 @@ struct v4l2_pix_format_mplane {
->   * @raw_data:	placeholder for future extensions and custom formats
->   */
->  struct v4l2_format {
-> -	enum v4l2_buf_type type;
-> +	__u32	 type;
->  	union {
->  		struct v4l2_pix_format		pix;     /* V4L2_BUF_TYPE_VIDEO_CAPTURE */
->  		struct v4l2_pix_format_mplane	pix_mp;  /* V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE */
-> @@ -2183,7 +2185,7 @@ struct v4l2_format {
->  /*	Stream type-dependent parameters
->   */
->  struct v4l2_streamparm {
-> -	enum v4l2_buf_type type;
-> +	__u32	 type;			/* enum v4l2_buf_type */
->  	union {
->  		struct v4l2_captureparm	capture;
->  		struct v4l2_outputparm	output;
-> @@ -2296,14 +2298,14 @@ struct v4l2_dbg_chip_ident {
->   * @index:	on return, index of the first created buffer
->   * @count:	entry: number of requested buffers,
->   *		return: number of created buffers
-> - * @memory:	buffer memory type
-> + * @memory:	enum v4l2_memory; buffer memory type
->   * @format:	frame format, for which buffers are requested
->   * @reserved:	future extensions
->   */
->  struct v4l2_create_buffers {
->  	__u32			index;
->  	__u32			count;
-> -	enum v4l2_memory        memory;
-> +	__u32			memory;
->  	struct v4l2_format	format;
->  	__u32			reserved[8];
->  };
-> @@ -2360,8 +2362,8 @@ struct v4l2_create_buffers {
->  #define VIDIOC_TRY_FMT      	_IOWR('V', 64, struct v4l2_format)
->  #define VIDIOC_ENUMAUDIO	_IOWR('V', 65, struct v4l2_audio)
->  #define VIDIOC_ENUMAUDOUT	_IOWR('V', 66, struct v4l2_audioout)
-> -#define VIDIOC_G_PRIORITY        _IOR('V', 67, enum v4l2_priority)
-> -#define VIDIOC_S_PRIORITY        _IOW('V', 68, enum v4l2_priority)
-> +#define VIDIOC_G_PRIORITY	 _IOR('V', 67, __u32) /* enum v4l2_priority */
-> +#define VIDIOC_S_PRIORITY	 _IOW('V', 68, __u32) /* enum v4l2_priority */
->  #define VIDIOC_G_SLICED_VBI_CAP _IOWR('V', 69, struct v4l2_sliced_vbi_cap)
->  #define VIDIOC_LOG_STATUS         _IO('V', 70)
->  #define VIDIOC_G_EXT_CTRLS	_IOWR('V', 71, struct v4l2_ext_controls)
-> 
