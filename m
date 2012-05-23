@@ -1,146 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.48]:40823 "EHLO mgw-sa02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757573Ab2ESTH3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 19 May 2012 15:07:29 -0400
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com
-Subject: [media-ctl PATCH v2 2/4] Compose rectangle support for libv4l2subdev
-Date: Sat, 19 May 2012 22:11:29 +0300
-Message-Id: <1337454691-28698-2-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <20120519190627.GR3373@valkosipuli.retiisi.org.uk>
-References: <20120519190627.GR3373@valkosipuli.retiisi.org.uk>
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:35347 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755180Ab2EWHd0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 23 May 2012 03:33:26 -0400
+Received: by yhmm54 with SMTP id m54so6241583yhm.19
+        for <linux-media@vger.kernel.org>; Wed, 23 May 2012 00:33:25 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <Pine.LNX.4.64.1205221918150.11851@axis700.grange>
+References: <E1SUH8r-0005cc-3k@www.linuxtv.org>
+	<Pine.LNX.4.64.1205160050270.25352@axis700.grange>
+	<Pine.LNX.4.64.1205221918150.11851@axis700.grange>
+Date: Wed, 23 May 2012 09:33:25 +0200
+Message-ID: <CACKLOr0e7_UXSnq9GwRQx35eaGbZ1mwQMQ7-L8Riprz3rerzcw@mail.gmail.com>
+Subject: Re: [git:v4l-dvb/for_v3.5] [media] media: mx2_camera: Fix mbus format handling
+From: javier Martin <javier.martin@vista-silicon.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
----
- src/main.c       |   14 ++++++++++++++
- src/options.c    |    6 ++++--
- src/v4l2subdev.c |   32 +++++++++++++++++++++++---------
- 3 files changed, 41 insertions(+), 11 deletions(-)
+Hi Guennadi, Mauro,
 
-diff --git a/src/main.c b/src/main.c
-index 2f57352..a989669 100644
---- a/src/main.c
-+++ b/src/main.c
-@@ -77,6 +77,20 @@ static void v4l2_subdev_print_format(struct media_entity *entity,
- 		printf("\n\t\t crop:%u,%u/%ux%u", rect.left, rect.top,
- 		       rect.width, rect.height);
- 
-+	ret = v4l2_subdev_get_selection(entity, &rect, pad,
-+					V4L2_SUBDEV_SEL_TGT_COMPOSE_BOUNDS,
-+					which);
-+	if (ret == 0)
-+		printf("\n\t\t compose.bounds:%u,%u/%ux%u",
-+		       rect.left, rect.top, rect.width, rect.height);
-+
-+	ret = v4l2_subdev_get_selection(entity, &rect, pad,
-+					V4L2_SUBDEV_SEL_TGT_COMPOSE_ACTUAL,
-+					which);
-+	if (ret == 0)
-+		printf("\n\t\t compose:%u,%u/%ux%u",
-+		       rect.left, rect.top, rect.width, rect.height);
-+
- 	printf("]");
- }
- 
-diff --git a/src/options.c b/src/options.c
-index 46f6bef..8e80bd0 100644
---- a/src/options.c
-+++ b/src/options.c
-@@ -56,12 +56,14 @@ static void usage(const char *argv0, int verbose)
- 	printf("\tv4l2                = pad, '[', v4l2-cfgs ']' ;\n");
- 	printf("\tv4l2-cfgs           = v4l2-cfg [ ',' v4l2-cfg ] ;\n");
- 	printf("\tv4l2-cfg            = v4l2-mbusfmt | v4l2-crop\n");
--	printf("\t                      | v4l2 frame interval ;\n");
-+	printf("\t                      | v4l2-compose | v4l2 frame interval ;\n");
- 	printf("\tv4l2-mbusfmt        = 'fmt:', fcc, '/', size ;\n");
- 	printf("\tpad                 = entity, ':', pad number ;\n");
- 	printf("\tentity              = entity number | ( '\"', entity name, '\"' ) ;\n");
- 	printf("\tsize                = width, 'x', height ;\n");
--	printf("\tv4l2-crop           = 'crop:(', left, ',', top, ')/', size ;\n");
-+	printf("\tv4l2-crop           = 'crop:', v4l2-rectangle ;\n");
-+	printf("\tv4l2-compose        = 'compose:', v4l2-rectangle ;\n");
-+	printf("\tv4l2-rectangle      = '(', left, ',', top, ')/', size ;\n");
- 	printf("\tv4l2 frame interval = '@', numerator, '/', denominator ;\n");
- 	printf("where the fields are\n");
- 	printf("\tentity number   Entity numeric identifier\n");
-diff --git a/src/v4l2subdev.c b/src/v4l2subdev.c
-index 2b4a923..d7e6d8d 100644
---- a/src/v4l2subdev.c
-+++ b/src/v4l2subdev.c
-@@ -325,8 +325,8 @@ static int icanhasstr(const char *str, const char **p)
- 
- static struct media_pad *v4l2_subdev_parse_pad_format(
- 	struct media_device *media, struct v4l2_mbus_framefmt *format,
--	struct v4l2_rect *crop, struct v4l2_fract *interval, const char *p,
--	char **endp)
-+	struct v4l2_rect *crop, struct v4l2_rect *compose,
-+	struct v4l2_fract *interval, const char *p, char **endp)
- {
- 	struct media_pad *pad;
- 	char *end;
-@@ -358,6 +358,15 @@ static struct media_pad *v4l2_subdev_parse_pad_format(
- 			continue;
- 		}
- 
-+		if (!icanhasstr("compose:", &p)) {
-+			ret = v4l2_subdev_parse_rectangle(compose, p, &end);
-+			if (ret < 0)
-+				return NULL;
-+
-+			for (p = end; isspace(*p); p++);
-+			continue;
-+		}
-+
- 		/*
- 		 * Continue providing compatibility interface for
- 		 * users who use the old syntax: consider anything
-@@ -486,30 +495,35 @@ static int v4l2_subdev_parse_setup_format(struct media_device *media,
- 	struct v4l2_mbus_framefmt format = { 0, 0, 0 };
- 	struct media_pad *pad;
- 	struct v4l2_rect crop = { -1, -1, -1, -1 };
-+	struct v4l2_rect compose = crop;
- 	struct v4l2_fract interval = { 0, 0 };
- 	unsigned int i;
- 	char *end;
- 	int ret;
- 
--	pad = v4l2_subdev_parse_pad_format(media, &format, &crop, &interval,
--					   p, &end);
-+	pad = v4l2_subdev_parse_pad_format(media, &format, &crop, &compose,
-+					   &interval, p, &end);
- 	if (pad == NULL) {
- 		media_dbg(media, "Unable to parse format\n");
- 		return -EINVAL;
- 	}
- 
--	if (pad->flags & MEDIA_PAD_FL_SOURCE) {
--		ret = set_selection(pad, V4L2_SUBDEV_SEL_TGT_CROP_ACTUAL, &crop);
-+	if (pad->flags & MEDIA_PAD_FL_SINK) {
-+		ret = set_format(pad, &format);
- 		if (ret < 0)
- 			return ret;
- 	}
- 
--	ret = set_format(pad, &format);
-+	ret = set_selection(pad, V4L2_SUBDEV_SEL_TGT_CROP_ACTUAL, &crop);
- 	if (ret < 0)
- 		return ret;
- 
--	if (pad->flags & MEDIA_PAD_FL_SINK) {
--		ret = set_selection(pad, V4L2_SUBDEV_SEL_TGT_CROP_ACTUAL, &crop);
-+	ret = set_selection(pad, V4L2_SUBDEV_SEL_TGT_COMPOSE_ACTUAL, &compose);
-+	if (ret < 0)
-+		return ret;
-+
-+	if (pad->flags & MEDIA_PAD_FL_SOURCE) {
-+		ret = set_format(pad, &format);
- 		if (ret < 0)
- 			return ret;
- 	}
+>> Looks like I have missed this patch, unfortunately, it hasn't been cc'ed
+>> to me. It would have been better to merge it via my soc-camera tree, also
+>> because with this merge window there are a couple more changes, that
+>> affect the generic soc-camera API and the mx2-camera driver in particular.
+>> So far I don't see anything, what could break here, but if something does
+>> - we know who will have to fix it;-)
+
+Sorry about that. I usually send patches for mx2-camera to you as well
+but this time I missed it. The fact that your name does not appear
+when executing 'get_mantainer' doesn't help me to remember either.
+
+>
+> I'm afraid, I get an impression, that your patch breaks support for the
+> pass-through mode in the mx2-camera driver. Where previously not natively
+> supported formats would be just read in by the camera interface without
+> any conversion (see the first entry in the mx27_emma_prp_table[] array),
+> you now return an error in mx2_camera_set_bus_param().
+
+I think you are right. It seems I should provide a default for other
+mbus formats instead of returning an error. It's good you noticed
+because I haven't got any device to test this pass-through mode, so I
+try my best to add new functionallity without breaking it.
+
+>If I'm write, I'll ask Mauro to revert your patch. Please correct me if I'm mistaken.
+
+Is this the way to proceed or should I send a fix on top of it? This
+patch is merged in 'for_v3.5', if Mauro reverts it and I send a new
+version,  would it be also merged 'for_v3.5' or should it wait for
+version 3.6?
+
+Regards.
 -- 
-1.7.2.5
-
+Javier Martin
+Vista Silicon S.L.
+CDTUC - FASE C - Oficina S-345
+Avda de los Castros s/n
+39005- Santander. Cantabria. Spain
++34 942 25 32 60
+www.vista-silicon.com
