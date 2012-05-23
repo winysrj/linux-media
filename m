@@ -1,80 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:4662 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932425Ab2ENVqR (ORCPT
+Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:44280 "EHLO
+	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933239Ab2EWJyx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 May 2012 17:46:17 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: manjunatha_halli@ti.com
-Subject: Re: [PATCH V6 0/5] [Media] Radio: Fixes and New features for FM
-Date: Mon, 14 May 2012 23:46:12 +0200
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Manjunatha Halli <x0130808@ti.com>
-References: <1337027244-2595-1-git-send-email-manjunatha_halli@ti.com>
-In-Reply-To: <1337027244-2595-1-git-send-email-manjunatha_halli@ti.com>
+	Wed, 23 May 2012 05:54:53 -0400
+Subject: [PATCH 11/43] mceusb: remove pointless kmalloc
+To: linux-media@vger.kernel.org
+From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
+Cc: mchehab@redhat.com, jarod@redhat.com
+Date: Wed, 23 May 2012 11:42:58 +0200
+Message-ID: <20120523094258.14474.1303.stgit@felix.hardeman.nu>
+In-Reply-To: <20120523094157.14474.24367.stgit@felix.hardeman.nu>
+References: <20120523094157.14474.24367.stgit@felix.hardeman.nu>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201205142346.12781.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon May 14 2012 22:27:19 manjunatha_halli@ti.com wrote:
-> From: Manjunatha Halli <x0130808@ti.com>
-> 
-> Mauro and the list,
->     
-> This version 6 of patchset resolves the comments received from
-> Han's on patchset v5.
->      
-> This patchset creates new control class 'V4L2_CTRL_CLASS_FM_RX' for FM RX,
-> introduces 2 new CID's for FM RX and and 1 new CID for FM TX. Also adds 1
-> field in struct v4l2_hw_freq_seek.
->       
-> This patch adds few new features to TI's FM driver features
-> are listed below,
->        
-> 1) FM TX RDS Support (RT, PS, AF, PI, PTY)          
-> 2) FM RX Russian band support
-> 3) FM RX AF set/get
-> 4) FM RX De-emphasis mode set/get
->         
-> Along with new features this patch also fixes few issues in the driver
-> like default rssi level for seek, unnecessory logs etc.
+The previous code allocated a char buffer of size MCE_CMDBUF_SIZE (384) by
+kzalloc():ing sizeof(unsigned) * MCE_CMDBUF_SIZE bytes.
 
-For the whole patch series (just report a fixed version of patch 2/5):
+The buffer was therefore 4 * the necessary size.
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Additionally, zeroing out the buffer is pointless.
 
-Regards,
+Replace the allocated buffer with a stack buffer.
 
-	Hans
+Signed-off-by: David Härdeman <david@hardeman.nu>
+---
+ drivers/media/rc/mceusb.c |    7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
 
-> 
-> Manjunatha Halli (5):
->   WL128x: Add support for FM TX RDS
->   New control class and features for FM RX
->   Add new CID for FM TX RDS Alternate Frequency
->   Media: Update docs for V4L2 FM new features
->   WL12xx: Add support for FM new features.
-> 
->  Documentation/DocBook/media/v4l/compat.xml         |    3 +
->  Documentation/DocBook/media/v4l/controls.xml       |   77 ++++++++++
->  Documentation/DocBook/media/v4l/dev-rds.xml        |    5 +-
->  .../DocBook/media/v4l/vidioc-g-ext-ctrls.xml       |    7 +
->  Documentation/DocBook/media/v4l/vidioc-g-tuner.xml |   25 ++++
->  .../DocBook/media/v4l/vidioc-s-hw-freq-seek.xml    |   38 +++++-
->  drivers/media/radio/wl128x/fmdrv.h                 |    3 +-
->  drivers/media/radio/wl128x/fmdrv_common.c          |   55 ++++++--
->  drivers/media/radio/wl128x/fmdrv_common.h          |   43 +++++-
->  drivers/media/radio/wl128x/fmdrv_rx.c              |   92 ++++++++++---
->  drivers/media/radio/wl128x/fmdrv_rx.h              |    2 +-
->  drivers/media/radio/wl128x/fmdrv_tx.c              |   41 +++---
->  drivers/media/radio/wl128x/fmdrv_tx.h              |    3 +-
->  drivers/media/radio/wl128x/fmdrv_v4l2.c            |  148 +++++++++++++++++++-
->  drivers/media/video/v4l2-ctrls.c                   |   18 ++-
->  include/linux/videodev2.h                          |   25 +++-
->  16 files changed, 503 insertions(+), 82 deletions(-)
-> 
-> 
+diff --git a/drivers/media/rc/mceusb.c b/drivers/media/rc/mceusb.c
+index f0f053d..9f546be 100644
+--- a/drivers/media/rc/mceusb.c
++++ b/drivers/media/rc/mceusb.c
+@@ -785,11 +785,7 @@ static int mceusb_tx_ir(struct rc_dev *dev, unsigned *txbuf, unsigned count)
+ 	struct mceusb_dev *ir = dev->priv;
+ 	int i, ret = 0;
+ 	int cmdcount = 0;
+-	unsigned char *cmdbuf; /* MCE command buffer */
+-
+-	cmdbuf = kzalloc(sizeof(unsigned) * MCE_CMDBUF_SIZE, GFP_KERNEL);
+-	if (!cmdbuf)
+-		return -ENOMEM;
++	unsigned char cmdbuf[MCE_CMDBUF_SIZE]; /* MCE command buffer */
+ 
+ 	/* MCE tx init header */
+ 	cmdbuf[cmdcount++] = MCE_CMD_PORT_IR;
+@@ -841,7 +837,6 @@ static int mceusb_tx_ir(struct rc_dev *dev, unsigned *txbuf, unsigned count)
+ 	mce_async_out(ir, cmdbuf, cmdcount);
+ 
+ out:
+-	kfree(cmdbuf);
+ 	return ret ? ret : count;
+ }
+ 
+
