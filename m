@@ -1,45 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:51816 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755595Ab2ENLyn (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:51778 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933696Ab2EWP1X (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 May 2012 07:54:43 -0400
-Message-ID: <4FB0F273.6000303@adsb.co.uk>
-Date: Mon, 14 May 2012 12:54:27 +0100
-From: Andrew Benham <adsb@adsb.co.uk>
-MIME-Version: 1.0
-To: Russel Winder <russel@winder.org.uk>
-CC: Andy Furniss <andyqos@ukfsn.org>,
-	Mark Purcell <mark@purcell.id.au>, linux-media@vger.kernel.org,
-	Darren Salt <linux@youmustbejoking.demon.co.uk>,
-	669715-forwarded@bugs.debian.org
-Subject: Re: Fwd: Bug#669715: dvb-apps: Channel/frequency/etc. data needs
- updating for London transmitters
-References: <201205132005.47858.mark@purcell.id.au>   <4FAF89DB.9020004@ukfsn.org>  <1336906328.19220.277.camel@launcelot.winder.org.uk>  <4FAFC3CA.7070008@ukfsn.org> <1336921909.9715.3.camel@anglides.winder.org.uk>
-In-Reply-To: <1336921909.9715.3.camel@anglides.winder.org.uk>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+	Wed, 23 May 2012 11:27:23 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: linux-media@vger.kernel.org
+Subject: [PATCH 1/8] soc-camera: Don't fail at module init time if no device is present
+Date: Wed, 23 May 2012 17:27:28 +0200
+Message-Id: <1337786855-28759-2-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1337786855-28759-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1337786855-28759-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Of course it's not just the data for the London transmitters which needs
-to be updated - most of GB has now switched to digital only with
-different channel allocations.
+The soc-camera module exports functions that are needed by soc-camera
+client drivers even when not running in soc-camera mode. Replace the
+platform_driver_probe() with a platform_driver_register() call to avoid
+module load failures if no soc-camera device is present.
 
-I've been using the information from
-http://stakeholders.ofcom.org.uk/broadcasting/guidance/tech-guidance/dsodetails/
-to derive new data.
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/video/soc_camera.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
 
-I don't know if it's just Crystal Palace, but one of the multiplexes
-thinks it's using QPSK even though it's using QAM64 - this messes up
-'scan' unless one reorders the frequency list.
-Having done the scan, one then needs to replace 'QPSK' by 'QAM_64' in
-the output.
-
-See also:
-http://www.adsb.co.uk/linuxtv/
-
+diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
+index 0421bf9..e7c6809 100644
+--- a/drivers/media/video/soc_camera.c
++++ b/drivers/media/video/soc_camera.c
+@@ -1518,6 +1518,7 @@ static int __devexit soc_camera_pdrv_remove(struct platform_device *pdev)
+ }
+ 
+ static struct platform_driver __refdata soc_camera_pdrv = {
++	.probe = soc_camera_pdrv_probe,
+ 	.remove  = __devexit_p(soc_camera_pdrv_remove),
+ 	.driver  = {
+ 		.name	= "soc-camera-pdrv",
+@@ -1527,7 +1528,7 @@ static struct platform_driver __refdata soc_camera_pdrv = {
+ 
+ static int __init soc_camera_init(void)
+ {
+-	return platform_driver_probe(&soc_camera_pdrv, soc_camera_pdrv_probe);
++	return platform_driver_register(&soc_camera_pdrv);
+ }
+ 
+ static void __exit soc_camera_exit(void)
 -- 
-Andrew Benham, Southgate, London N14, United Kingdom
+1.7.3.4
 
-The gates in my computer are AND OR and NOT, not "Bill"
