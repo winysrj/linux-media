@@ -1,144 +1,186 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:41719 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759336Ab2EDScY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 May 2012 14:32:24 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Received: from euspt1 ([210.118.77.14]) by mailout4.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0M3I00AN9GU72KA0@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 04 May 2012 19:32:31 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0M3I00GYZGTWOK@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 04 May 2012 19:32:21 +0100 (BST)
-Date: Fri, 04 May 2012 20:32:14 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH/RFC v4 10/12] V4L: Add auto focus targets to the selections API
-In-reply-to: <1336156337-10935-1-git-send-email-s.nawrocki@samsung.com>
+Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:44289 "EHLO
+	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756151Ab2EWJy4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 23 May 2012 05:54:56 -0400
+Subject: [PATCH 16/43] rc-core: add an ioctl for getting IR RX settings
 To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
-	g.liakhovetski@gmx.de, hdegoede@redhat.com, moinejf@free.fr,
-	hverkuil@xs4all.nl, m.szyprowski@samsung.com,
-	riverful.kim@samsung.com, sw0312.kim@samsung.com,
-	s.nawrocki@samsung.com, Kyungmin Park <kyungmin.park@samsung.com>
-Message-id: <1336156337-10935-11-git-send-email-s.nawrocki@samsung.com>
-References: <1336156337-10935-1-git-send-email-s.nawrocki@samsung.com>
+From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
+Cc: mchehab@redhat.com, jarod@redhat.com
+Date: Wed, 23 May 2012 11:43:24 +0200
+Message-ID: <20120523094324.14474.87233.stgit@felix.hardeman.nu>
+In-Reply-To: <20120523094157.14474.24367.stgit@felix.hardeman.nu>
+References: <20120523094157.14474.24367.stgit@felix.hardeman.nu>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The camera automatic focus algorithms may require setting up
-a spot or rectangle coordinates or multiple such parameters.
+LIRC currently supports quite a number of ioctl's for getting/setting
+various TX and RX parameters. One problem with the one-ioctl-per-parameter
+approach is that it might be quite elaborate to reprogram the hardware
+(an operation which will have to be done once for every parameter change).
 
-The automatic focus selection targets are introduced in order
-to allow applications to query and set such coordinates. Those
-selections are intended to be used together with the automatic
-focus controls available in the camera control class.
+LIRC has approached this problem by providing something similar to
+database transactions (ioctl commands LIRC_SETUP_START and LIRC_SETUP_END)
+which is one (complicated) way of doing it.
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+The proposed approach for rc-core instead uses a struct with all known
+parameters defined in one go. Drivers are expected to fill in the struct
+with all the parameters that apply to them while leaving the rest intact.
+
+I've looked at parameters defined in: LIRC, current rc-core, and in Microsoft
+CIRClass drivers. The current struct rc_ir_rx should be a superset of all
+three and also has room for further additions. Hopefully this should be fairly
+complete and future-proof, please check carefully that you favourite
+parameter is supported to satisfy your OCD.
+
+Also, it would be interesting to know if carrier reporting is actually an
+expensive operation (which should be explicitly enabled by setting the
+appropriate flag as now) or not (in which case it should always be on).
+
+Signed-off-by: David Härdeman <david@hardeman.nu>
 ---
- Documentation/DocBook/media/v4l/selection-api.xml  |   33 +++++++++++++++++++-
- .../DocBook/media/v4l/vidioc-g-selection.xml       |   11 +++++++
- include/linux/videodev2.h                          |    5 +++
- 3 files changed, 48 insertions(+), 1 deletion(-)
+ drivers/media/rc/rc-main.c |   28 +++++++++++++++++++
+ include/media/rc-core.h    |   65 ++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 93 insertions(+)
 
-diff --git a/Documentation/DocBook/media/v4l/selection-api.xml b/Documentation/DocBook/media/v4l/selection-api.xml
-index b299e47..490d29a 100644
---- a/Documentation/DocBook/media/v4l/selection-api.xml
-+++ b/Documentation/DocBook/media/v4l/selection-api.xml
-@@ -1,6 +1,6 @@
- <section id="selection-api">
+diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+index d9ed1a8..2d3f421 100644
+--- a/drivers/media/rc/rc-main.c
++++ b/drivers/media/rc/rc-main.c
+@@ -1677,6 +1677,7 @@ static long rc_do_ioctl(struct rc_dev *dev, unsigned int cmd, unsigned long arg)
+ {
+ 	void __user *p = (void __user *)arg;
+ 	unsigned int __user *ip = (unsigned int __user *)p;
++	struct rc_ir_rx rx;
  
--  <title>Experimental API for cropping, composing and scaling</title>
-+  <title>Experimental selections API</title>
+ 	switch (cmd) {
  
-       <note>
- 	<title>Experimental</title>
-@@ -9,6 +9,10 @@
- interface and may change in the future.</para>
-       </note>
+@@ -1685,6 +1686,33 @@ static long rc_do_ioctl(struct rc_dev *dev, unsigned int cmd, unsigned long arg)
  
-+ <section>
+ 	case RCIOCGTYPE:
+ 		return put_user(dev->driver_type, ip);
 +
-+ <title>Image cropping, composing and scaling</title>
++	case RCIOCGIRPSIZE:
++		return put_user(ARRAY_SIZE(rx.protocols_supported), ip);
 +
-   <section>
-     <title>Introduction</title>
++	case RCIOCGIRRX:
++		memset(&rx, 0, sizeof(rx));
++		rx.rx_supported = 0x1;
++		rx.rx_enabled = 0x1;
++		rx.rx_connected = 0x1;
++		rx.protocols_enabled[0] = dev->enabled_protocols;
++		if (dev->driver_type == RC_DRIVER_SCANCODE)
++			rx.protocols_supported[0] = dev->allowed_protos;
++		else
++			rx.protocols_supported[0] = ir_raw_get_allowed_protocols();
++		rx.timeout = dev->timeout;
++		rx.timeout_min = dev->min_timeout;
++		rx.timeout_max = dev->max_timeout;
++		rx.resolution = dev->rx_resolution;
++
++		/* See if the driver wishes to override anything */
++		if (dev->get_ir_rx)
++			dev->get_ir_rx(dev, &rx);
++
++		if (copy_to_user(p, &rx, sizeof(rx)))
++			return -EFAULT;
++
++		return 0;
+ 	}
  
-@@ -321,5 +325,32 @@ V4L2_BUF_TYPE_VIDEO_OUTPUT </constant> for other devices</para>
-       </example>
+ 	return -EINVAL;
+diff --git a/include/media/rc-core.h b/include/media/rc-core.h
+index e3d445b..5669b64 100644
+--- a/include/media/rc-core.h
++++ b/include/media/rc-core.h
+@@ -47,6 +47,69 @@ do {								\
+ /* get driver/hardware type */
+ #define RCIOCGTYPE	_IOR(RC_IOC_MAGIC, 0x02, unsigned int)
  
-    </section>
-+ </section>
++/* get size of protocols array (i.e. multiples of u64) for struct rc_ir_rx */
++#define RCIOCGIRPSIZE	_IOR(RC_IOC_MAGIC, 0x03, unsigned int)
 +
-+   <section>
-+     <title>Automatic focus regions of interest</title>
++/* get ir rx parameters */
++#define RCIOCGIRRX	_IOC(_IOC_READ, RC_IOC_MAGIC, 0x04, sizeof(struct rc_ir_rx))
 +
-+<para> The camera automatic focus algorithms may require configuration of
-+regions of interest in form of rectangle or spot coordinates. The automatic
-+focus selection targets allow applications to query and set such coordinates.
-+Those selections are intended to be used together with the
-+<constant>V4L2_CID_AUTO_FOCUS_AREA</constant> <link linkend="camera-controls">
-+camera class</link> control. The <constant>V4L2_SEL_TGT_AUTO_FOCUS_ACTUAL
-+</constant> target is used for querying or setting actual spot or rectangle
-+coordinates, while <constant>V4L2_SEL_TGT_AUTO_FOCUS_BOUNDS</constant> target
-+determines bounds for a single spot or rectangle.
-+These selections are only effective when the <constant>V4L2_CID_AUTO_FOCUS_AREA
-+</constant>control is set to <constant>V4L2_AUTO_FOCUS_AREA_SPOT</constant> or
-+<constant>V4L2_AUTO_FOCUS_AREA_RECTANGLE</constant>. The new coordinates shall
-+be accepted and applied to hardware when the focus area control value is
-+changed and also during a &VIDIOC-S-SELECTION; ioctl call, only when the focus
-+area control is already set to required value.</para>
++/**
++ * struct rc_ir_rx - used to get all IR RX parameters in one go
++ * @flags: device specific flags (only %RC_IR_RX_MEASURE_CARRIER is
++ *	currently defined)
++ * @rx_supported: bitmask of supported (i.e. possible) receivers
++ * @rx_enabled: bitmask of enabled receivers
++ * @rx_connected: bitmask of connected receivers
++ * @rx_learning: bitmask of learning receivers
++ * @protocols_supported: bitmask of supported protocols
++ * @protocols_enabled: bitmask of enabled protocols
++ * @freq_min: min carrier frequency
++ * @freq_max: max carrier frequency
++ * @duty_min: min duty cycle
++ * @duty_max: max duty cycle
++ * @timeout: current timeout (i.e. silence-before-idle)
++ * @timeout_min: min timeout
++ * @timeout_max: max timeout
++ * @filter_space: shorter spaces may be filtered
++ * @filter_space_min: min space filter value
++ * @filter_space_max: max space filter value
++ * @filter_pulse: shorter pulses may be filtered
++ * @filter_pulse_min: min pulse filter value
++ * @filter_pulse_max: max pulse filter value
++ * @resolution: current pulse/space resolution
++ * @resolution_min: min resolution
++ * @resolution_max: max resolution
++ * @reserved: for future use, set to zero
++ */
++struct rc_ir_rx {
++	__u32 flags;
++#define RC_IR_RX_MEASURE_CARRIER	0x01
++	__u32 rx_supported;
++	__u32 rx_enabled;
++	__u32 rx_connected;
++	__u32 rx_learning;
++	__u64 protocols_supported[1];
++	__u64 protocols_enabled[1];
++	__u32 freq_min;
++	__u32 freq_max;
++	__u32 duty_min;
++	__u32 duty_max;
++	__u32 timeout;
++	__u32 timeout_min;
++	__u32 timeout_max;
++	__u32 filter_space;
++	__u32 filter_space_min;
++	__u32 filter_space_max;
++	__u32 filter_pulse;
++	__u32 filter_pulse_min;
++	__u32 filter_pulse_max;
++	__u32 resolution;
++	__u32 resolution_min;
++	__u32 resolution_max;
++	__u32 reserved[9];
++} __packed;
 +
-+<para> For the <constant>V4L2_AUTO_FOCUS_AREA_SPOT</constant> case, the selection
-+rectangle <structfield> width</structfield> and <structfield>height</structfield>
-+are not used, i.e. shall be set to 0 by applications and ignored by drivers for
-+the &VIDIOC-S-SELECTION; ioctl and shall be ignored by applications for the
-+&VIDIOC-G-SELECTION; ioctl.</para>
-+   </section>
++
  
- </section>
-diff --git a/Documentation/DocBook/media/v4l/vidioc-g-selection.xml b/Documentation/DocBook/media/v4l/vidioc-g-selection.xml
-index bb04eff..87df4da 100644
---- a/Documentation/DocBook/media/v4l/vidioc-g-selection.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-g-selection.xml
-@@ -195,6 +195,17 @@ exist no rectangle </emphasis> that satisfies the constraints.</para>
-             <entry>0x0103</entry>
-             <entry>The active area and all padding pixels that are inserted or modified by hardware.</entry>
- 	  </row>
-+	  <row>
-+            <entry><constant>V4L2_SEL_TGT_AUTO_FOCUS_ACTUAL</constant></entry>
-+            <entry>0x1000</entry>
-+	    <entry>Actual automatic focus rectangle or spot coordinates.</entry>
-+	  </row>
-+	  <row>
-+            <entry><constant>V4L2_SEL_TGT_AUTO_FOCUS_BOUNDS</constant></entry>
-+            <entry>0x1002</entry>
-+            <entry>Bounds of the automatic focus region of interest.
-+	    </entry>
-+	  </row>
- 	</tbody>
-       </tgroup>
-     </table>
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index c1fae94..6bfd6c5 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -777,6 +777,11 @@ struct v4l2_crop {
- /* Current composing area plus all padding pixels */
- #define V4L2_SEL_TGT_COMPOSE_PADDED	0x0103
+ enum rc_driver_type {
+ 	RC_DRIVER_SCANCODE = 0,	/* Driver or hardware generates a scancode */
+@@ -145,6 +208,7 @@ struct ir_raw_event {
+  *	device doesn't interrupt host until it sees IR pulses
+  * @s_learning_mode: enable wide band receiver used for learning
+  * @s_carrier_report: enable carrier reports
++ * @get_ir_rx: allow driver to provide rx settings
+  */
+ struct rc_dev {
+ 	struct device			dev;
+@@ -195,6 +259,7 @@ struct rc_dev {
+ 	void				(*s_idle)(struct rc_dev *dev, bool enable);
+ 	int				(*s_learning_mode)(struct rc_dev *dev, int enable);
+ 	int				(*s_carrier_report) (struct rc_dev *dev, int enable);
++	void				(*get_ir_rx)(struct rc_dev *dev, struct rc_ir_rx *rx);
+ };
  
-+/* Auto focus region of interest */
-+#define V4L2_SEL_TGT_AUTO_FOCUS_ACTUAL	0x1000
-+/* Auto focus region (spot coordinates) bounds */
-+#define V4L2_SEL_TGT_AUTO_FOCUS_BOUNDS	0x1001
-+
- /**
-  * struct v4l2_selection - selection info
-  * @type:	buffer type (do not use *_MPLANE types)
--- 
-1.7.10
+ #define to_rc_dev(d) container_of(d, struct rc_dev, dev)
 
