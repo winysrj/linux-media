@@ -1,104 +1,139 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:1066 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754307Ab2EJHFX (ORCPT
+Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:44280 "EHLO
+	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933148Ab2EWJy4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 May 2012 03:05:23 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Wed, 23 May 2012 05:54:56 -0400
+Subject: [PATCH 36/43] rc-core: fix various sparse warnings
 To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans de Goede <hdegoede@redhat.com>
-Subject: [RFCv1 PATCH 0/5] Improvements to the core ioctl/fops handling
-Date: Thu, 10 May 2012 09:05:09 +0200
-Message-Id: <1336633514-4972-1-git-send-email-hverkuil@xs4all.nl>
+From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
+Cc: mchehab@redhat.com, jarod@redhat.com
+Date: Wed, 23 May 2012 11:45:09 +0200
+Message-ID: <20120523094509.14474.57920.stgit@felix.hardeman.nu>
+In-Reply-To: <20120523094157.14474.24367.stgit@felix.hardeman.nu>
+References: <20120523094157.14474.24367.stgit@felix.hardeman.nu>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+Fix various sparse warnings under drivers/media/rc/*.c, mostly
+by making functions static.
 
-This patch series makes improvements to the way the v4l2 core handles
-locking and how it handles the ioctls.
+Signed-off-by: David Härdeman <david@hardeman.nu>
+---
+ drivers/media/rc/ene_ir.c      |    2 +-
+ drivers/media/rc/fintek-cir.c  |    4 ++--
+ drivers/media/rc/imon.c        |    8 ++++----
+ drivers/media/rc/ite-cir.c     |    4 ++--
+ drivers/media/rc/nuvoton-cir.c |    4 ++--
+ 5 files changed, 11 insertions(+), 11 deletions(-)
 
-This is driven by some requirements from the work on the gspca driver,
-but it is also a good starting point to clean up the v4l2-ioctl.c source.
-
-The gspca requirement was to have better control over locking. This affects
-primarily USB drivers as they want to avoid having to take a core lock when
-(de)queuing buffers and polling for new frames since some of the operations
-over the USB bus can take a fair amount of time and having to wait for the
-lock can increase latency. Besides, for those operations it is usually not
-needed to lock.
-
-The same is true for file operations like poll, read and write.
-
-So patch 1 makes it possible to skip locking for selected ioctls, while patch 5
-inverts the default behavior of the core: it will only take the core lock for the
-ioctl fop, not for the others unless a flag is set explicitly in the driver.
-
-I've set that flag in all drivers that use the core lock, unless it was immediately
-obvious that they didn't need it. Those drivers need to be audited so that we
-can eventually remove the flag.
-
-While I could have gone for the one-flag-per-fop approach, I thought this made more
-sense. There are only a few fops as opposed to the zillion ioctls.
-
-Since I used a table-driven approach in the first patch I decided to extend it to
-other parts of v4l2-ioctl as well. So the determination which ioctls are
-actually implemented in a driver is now done upfront, and whether an ioctl needs
-to do priority handling is now done by table lookup as well.
-
-Eventually I want to replace all the switches by table lookup, which is O(1) and
-will hopefully be a lot more readable. Some work doing that is available here:
-
-http://git.linuxtv.org/hverkuil/media_tree.git/shortlog/refs/heads/ioctl2
-
-This patch series is also available here:
-
-  git://linuxtv.org/hverkuil/media_tree.git ioctl
-
-Comments?
-
-Regards,
-
-	Hans
-
-----------------------------------------------------------------
-Hans Verkuil (5):
-      v4l2-dev: make it possible to skip locking for selected ioctls.
-      v4l2-dev/ioctl: determine the valid ioctls upfront.
-      tea575x-tuner: mark VIDIOC_S_HW_FREQ_SEEK as an invalid ioctl.
-      v4l2-ioctl: handle priority handling based on a table lookup.
-      v4l2-dev: add flag to have the core lock all file operations.
-
- Documentation/video4linux/v4l2-framework.txt    |   27 ++++-
- drivers/media/common/saa7146_fops.c             |    4 +
- drivers/media/radio/wl128x/fmdrv_v4l2.c         |    4 +
- drivers/media/video/blackfin/bfin_capture.c     |    4 +
- drivers/media/video/cpia2/cpia2_v4l.c           |    4 +
- drivers/media/video/cx231xx/cx231xx-video.c     |    4 +
- drivers/media/video/davinci/vpbe_display.c      |    4 +
- drivers/media/video/davinci/vpif_capture.c      |    4 +
- drivers/media/video/davinci/vpif_display.c      |    4 +
- drivers/media/video/em28xx/em28xx-video.c       |    4 +
- drivers/media/video/fsl-viu.c                   |    4 +
- drivers/media/video/ivtv/ivtv-streams.c         |    4 +
- drivers/media/video/mem2mem_testdev.c           |    4 +
- drivers/media/video/mx2_emmaprp.c               |    4 +
- drivers/media/video/s2255drv.c                  |    4 +
- drivers/media/video/s5p-fimc/fimc-capture.c     |    4 +
- drivers/media/video/s5p-fimc/fimc-core.c        |    4 +
- drivers/media/video/s5p-g2d/g2d.c               |    4 +
- drivers/media/video/s5p-jpeg/jpeg-core.c        |    8 ++
- drivers/media/video/s5p-mfc/s5p_mfc.c           |    6 +
- drivers/media/video/s5p-tv/mixer_video.c        |    4 +
- drivers/media/video/sh_vou.c                    |    4 +
- drivers/media/video/soc_camera.c                |    4 +
- drivers/media/video/tm6000/tm6000-video.c       |    4 +
- drivers/media/video/usbvision/usbvision-video.c |    4 +
- drivers/media/video/v4l2-dev.c                  |  217 ++++++++++++++++++++++++++++++---
- drivers/media/video/v4l2-ioctl.c                |  539 ++++++++++++++++++++++------------------------------------------------------------
- drivers/staging/media/dt3155v4l/dt3155v4l.c     |    4 +
- include/media/v4l2-dev.h                        |   25 ++++
- sound/i2c/other/tea575x-tuner.c                 |    3 +
- 30 files changed, 506 insertions(+), 411 deletions(-)
+diff --git a/drivers/media/rc/ene_ir.c b/drivers/media/rc/ene_ir.c
+index eb107e8..2c2cfd5 100644
+--- a/drivers/media/rc/ene_ir.c
++++ b/drivers/media/rc/ene_ir.c
+@@ -329,7 +329,7 @@ static int ene_rx_get_sample_reg(struct ene_device *dev)
+ }
+ 
+ /* Sense current received carrier */
+-void ene_rx_sense_carrier(struct ene_device *dev)
++static void ene_rx_sense_carrier(struct ene_device *dev)
+ {
+ 	DEFINE_IR_RAW_EVENT(ev);
+ 
+diff --git a/drivers/media/rc/fintek-cir.c b/drivers/media/rc/fintek-cir.c
+index 01e6ef8..ac949ae 100644
+--- a/drivers/media/rc/fintek-cir.c
++++ b/drivers/media/rc/fintek-cir.c
+@@ -675,12 +675,12 @@ static struct pnp_driver fintek_driver = {
+ 	.shutdown	= fintek_shutdown,
+ };
+ 
+-int fintek_init(void)
++static int __init fintek_init(void)
+ {
+ 	return pnp_register_driver(&fintek_driver);
+ }
+ 
+-void fintek_exit(void)
++static void __exit fintek_exit(void)
+ {
+ 	pnp_unregister_driver(&fintek_driver);
+ }
+diff --git a/drivers/media/rc/imon.c b/drivers/media/rc/imon.c
+index d98778b..8573977 100644
+--- a/drivers/media/rc/imon.c
++++ b/drivers/media/rc/imon.c
+@@ -78,11 +78,11 @@ static int display_open(struct inode *inode, struct file *file);
+ static int display_close(struct inode *inode, struct file *file);
+ 
+ /* VFD write operation */
+-static ssize_t vfd_write(struct file *file, const char *buf,
++static ssize_t vfd_write(struct file *file, const char __user *buf,
+ 			 size_t n_bytes, loff_t *pos);
+ 
+ /* LCD file_operations override function prototypes */
+-static ssize_t lcd_write(struct file *file, const char *buf,
++static ssize_t lcd_write(struct file *file, const char __user *buf,
+ 			 size_t n_bytes, loff_t *pos);
+ 
+ /*** G L O B A L S ***/
+@@ -818,7 +818,7 @@ static struct attribute_group imon_rf_attr_group = {
+  * than 32 bytes are provided spaces will be appended to
+  * generate a full screen.
+  */
+-static ssize_t vfd_write(struct file *file, const char *buf,
++static ssize_t vfd_write(struct file *file, const char __user *buf,
+ 			 size_t n_bytes, loff_t *pos)
+ {
+ 	int i;
+@@ -905,7 +905,7 @@ exit:
+  * display whatever diacritics you need, and so on), but it's also
+  * a lot more complicated than most LCDs...
+  */
+-static ssize_t lcd_write(struct file *file, const char *buf,
++static ssize_t lcd_write(struct file *file, const char __user *buf,
+ 			 size_t n_bytes, loff_t *pos)
+ {
+ 	int retval = 0;
+diff --git a/drivers/media/rc/ite-cir.c b/drivers/media/rc/ite-cir.c
+index 6721767..44759db 100644
+--- a/drivers/media/rc/ite-cir.c
++++ b/drivers/media/rc/ite-cir.c
+@@ -1705,12 +1705,12 @@ static struct pnp_driver ite_driver = {
+ 	.shutdown	= ite_shutdown,
+ };
+ 
+-int ite_init(void)
++static int __init ite_init(void)
+ {
+ 	return pnp_register_driver(&ite_driver);
+ }
+ 
+-void ite_exit(void)
++static void __exit ite_exit(void)
+ {
+ 	pnp_unregister_driver(&ite_driver);
+ }
+diff --git a/drivers/media/rc/nuvoton-cir.c b/drivers/media/rc/nuvoton-cir.c
+index 0548db4..915074e 100644
+--- a/drivers/media/rc/nuvoton-cir.c
++++ b/drivers/media/rc/nuvoton-cir.c
+@@ -1223,12 +1223,12 @@ static struct pnp_driver nvt_driver = {
+ 	.shutdown	= nvt_shutdown,
+ };
+ 
+-int nvt_init(void)
++static int __init nvt_init(void)
+ {
+ 	return pnp_register_driver(&nvt_driver);
+ }
+ 
+-void nvt_exit(void)
++static void __exit nvt_exit(void)
+ {
+ 	pnp_unregister_driver(&nvt_driver);
+ }
 
