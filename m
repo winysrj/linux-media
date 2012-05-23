@@ -1,64 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:37705 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754391Ab2ENHa2 (ORCPT
+Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:44284 "EHLO
+	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933302Ab2EWJyy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 May 2012 03:30:28 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 0/3] V4L2_CID_PIXEL_RATE support in sensor drivers
-Date: Mon, 14 May 2012 09:30:32 +0200
-Message-ID: <3000181.vkxHx4XP90@avalon>
-In-Reply-To: <20120513215335.GF3373@valkosipuli.retiisi.org.uk>
-References: <1336568159-23378-1-git-send-email-laurent.pinchart@ideasonboard.com> <20120513215335.GF3373@valkosipuli.retiisi.org.uk>
+	Wed, 23 May 2012 05:54:54 -0400
+Subject: [PATCH 23/43] rc-loopback: add RCIOCSIRTX ioctl support
+To: linux-media@vger.kernel.org
+From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
+Cc: mchehab@redhat.com, jarod@redhat.com
+Date: Wed, 23 May 2012 11:44:01 +0200
+Message-ID: <20120523094401.14474.23948.stgit@felix.hardeman.nu>
+In-Reply-To: <20120523094157.14474.24367.stgit@felix.hardeman.nu>
+References: <20120523094157.14474.24367.stgit@felix.hardeman.nu>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+As an example, this patch adds support for the new RCIOCSIRTX ioctl
+to rc-loopback and removes deprecated functions without a loss in
+functionality (as LIRC will automatically use the new functions).
 
-On Monday 14 May 2012 00:53:36 Sakari Ailus wrote:
-> On Wed, May 09, 2012 at 02:55:56PM +0200, Laurent Pinchart wrote:
-> > Hi everybody,
-> > 
-> > This patch implements support for the V4L2_CID_PIXEL_RATE control in the
-> > mt9t001, mt9p031 and mt9m032 sensor drivers.
-> > 
-> > Recent changes to the OMAP3 ISP driver (see the media-for-3.5 branch in
-> > the http://git.linuxtv.org/sailus/media_tree.git repository) made support
-> > for that control mandatory for sensor drivers that are to be used with the
-> > OMAP3 ISP.
-> > 
-> > Sakari, would you like to take these patches in your tree and push them
-> > for v3.5 ? V4L2_CID_PIXEL_RATE support for the mt9v032 driver is also
-> > still missing, the patch you've sent to the list two months ago needs to
-> > be rebased. Will you do that or should I do it ? I'm also wondering
-> > whether that patch shouldn't mark the V4L2_CID_PIXEL_RATE control as
-> > volatile, calling v4l2_s_ext_ctrls() from inside the driver looks quite
-> > hackish to> me. The alternative would be to create a 64-bit version of
-> > v4l2_ctrl_s_ctrl().
-> >
-> > Laurent Pinchart (3):
-> >   mt9t001: Implement V4L2_CID_PIXEL_RATE control
-> >   mt9p031: Implement V4L2_CID_PIXEL_RATE control
-> >   mt9m032: Implement V4L2_CID_PIXEL_RATE control
-> >  
-> >  drivers/media/video/mt9m032.c |   13 +++++++++++--
-> >  drivers/media/video/mt9p031.c |    5 ++++-
-> >  drivers/media/video/mt9t001.c |   13 +++++++++++--
-> >  include/media/mt9t001.h       |    1 +
-> >  4 files changed, 27 insertions(+), 5 deletions(-)
-> 
-> Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
+Signed-off-by: David Härdeman <david@hardeman.nu>
+---
+ drivers/media/rc/rc-loopback.c |   59 +++++++++++++---------------------------
+ 1 file changed, 19 insertions(+), 40 deletions(-)
 
-Thank you. Ad the patches depend on the V4L2_CID_PIXEL_RATE control, could you 
-please take them in your tree and push them for v3.5 ?
-
--- 
-Regards,
-
-Laurent Pinchart
+diff --git a/drivers/media/rc/rc-loopback.c b/drivers/media/rc/rc-loopback.c
+index a04b39b..de9a75e 100644
+--- a/drivers/media/rc/rc-loopback.c
++++ b/drivers/media/rc/rc-loopback.c
+@@ -49,43 +49,6 @@ struct loopback_dev {
+ 
+ static struct loopback_dev loopdev;
+ 
+-static int loop_set_tx_mask(struct rc_dev *dev, u32 mask)
+-{
+-	struct loopback_dev *lodev = dev->priv;
+-
+-	if ((mask & (RXMASK_REGULAR | RXMASK_LEARNING)) != mask) {
+-		dprintk("invalid tx mask: %u\n", mask);
+-		return -EINVAL;
+-	}
+-
+-	dprintk("setting tx mask: %u\n", mask);
+-	lodev->txmask = mask;
+-	return 0;
+-}
+-
+-static int loop_set_tx_carrier(struct rc_dev *dev, u32 carrier)
+-{
+-	struct loopback_dev *lodev = dev->priv;
+-
+-	dprintk("setting tx carrier: %u\n", carrier);
+-	lodev->txcarrier = carrier;
+-	return 0;
+-}
+-
+-static int loop_set_tx_duty_cycle(struct rc_dev *dev, u32 duty_cycle)
+-{
+-	struct loopback_dev *lodev = dev->priv;
+-
+-	if (duty_cycle < 1 || duty_cycle > 99) {
+-		dprintk("invalid duty cycle: %u\n", duty_cycle);
+-		return -EINVAL;
+-	}
+-
+-	dprintk("setting duty cycle: %u\n", duty_cycle);
+-	lodev->txduty = duty_cycle;
+-	return 0;
+-}
+-
+ static int loop_tx_ir(struct rc_dev *dev)
+ {
+ 	struct loopback_dev *lodev = dev->priv;
+@@ -221,6 +184,24 @@ static void loop_get_ir_tx(struct rc_dev *dev, struct rc_ir_tx *tx)
+ 	tx->resolution_max = 1;
+ }
+ 
++/**
++ * loop_set_ir_tx() - changes and returns the current TX settings
++ * @dev: the &struct rc_dev to change the settings for
++ * @tx: the &struct rc_ir_tx with the new settings
++ *
++ * This function is used to change and return the current TX settings.
++ */
++static int loop_set_ir_tx(struct rc_dev *dev, struct rc_ir_tx *tx)
++{
++	struct loopback_dev *lodev = dev->priv;
++
++	lodev->txmask = tx->tx_enabled & (RXMASK_REGULAR | RXMASK_LEARNING);
++	lodev->txcarrier = tx->freq;
++	lodev->txduty = tx->duty;
++
++	return 0;
++}
++
+ static int __init loop_init(void)
+ {
+ 	struct rc_dev *rc;
+@@ -246,14 +227,12 @@ static int __init loop_init(void)
+ 	rc->max_timeout		= UINT_MAX;
+ 	rc->rx_resolution	= 1000;
+ 	rc->tx_resolution	= 1000;
+-	rc->s_tx_mask		= loop_set_tx_mask;
+-	rc->s_tx_carrier	= loop_set_tx_carrier;
+-	rc->s_tx_duty_cycle	= loop_set_tx_duty_cycle;
+ 	rc->tx_ir		= loop_tx_ir;
+ 	rc->s_idle		= loop_set_idle;
+ 	rc->get_ir_rx		= loop_get_ir_rx;
+ 	rc->set_ir_rx		= loop_set_ir_rx;
+ 	rc->get_ir_tx		= loop_get_ir_tx;
++	rc->set_ir_tx		= loop_set_ir_tx;
+ 
+ 	loopdev.txmask		= RXMASK_REGULAR;
+ 	loopdev.txcarrier	= 36000;
 
