@@ -1,134 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:58974 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754155Ab2EGLGC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 May 2012 07:06:02 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sander Eikelenboom <linux@eikelenboom.it>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org, hans.verkuil@cisco.com
-Subject: Re: [ 3960.758784] 1 lock held by motion/7776: [ 3960.758788]  #0:  (&queue->mutex){......}, at: [<ffffffff815c62d2>] uvc_queue_enable+0x32/0xc0
-Date: Mon, 07 May 2012 13:06:01 +0200
-Message-ID: <1363463.HQ7LJLv1Qi@avalon>
-In-Reply-To: <21221178.20120506165440@eikelenboom.it>
-References: <4410483770.20120428220246@eikelenboom.it> <2518039.lgsMPaBqUJ@avalon> <21221178.20120506165440@eikelenboom.it>
+Received: from ams-iport-2.cisco.com ([144.254.224.141]:61942 "EHLO
+	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759644Ab2EWM2z (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 23 May 2012 08:28:55 -0400
+From: Hans Verkuil <hansverk@cisco.com>
+To: Andrzej Hajda <a.hajda@samsung.com>
+Subject: Re: [PATCH 0/2] s5p-mfc: added encoder support for end of stream handling
+Date: Wed, 23 May 2012 14:28:05 +0200
+Cc: linux-media@vger.kernel.org, hans.verkuil@cisco.com,
+	m.szyprowski@samsung.com, k.debski@samsung.com
+References: <1337700835-13634-1-git-send-email-a.hajda@samsung.com> <201205230943.19410.hansverk@cisco.com> <1337772003.1594.79.camel@AMDC1061>
+In-Reply-To: <1337772003.1594.79.camel@AMDC1061>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201205231428.05117.hansverk@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sanser,
-
-On Sunday 06 May 2012 16:54:40 Sander Eikelenboom wrote:
-> Hello Laurent / Mauro,
+On Wed 23 May 2012 13:20:03 Andrzej Hajda wrote:
+> On Wed, 2012-05-23 at 09:43 +0200, Hans Verkuil wrote:
+> > Hi Andrzej!
+> > 
+> > Thanks for the patch, but I do have two questions:
+> > 
+> > On Tue 22 May 2012 17:33:53 Andrzej Hajda wrote:
+> > > Those patches add end of stream handling for s5p-mfc encoder.
+> > > 
+> > > The first patch was sent already to the list as RFC, but the discussion ended
+> > > without any decision.
+> > > This patch adds new v4l2_buffer flag V4L2_BUF_FLAG_EOS. Below short
+> > > description of this change.
+> > > 
+> > > s5p_mfc is a mem-to-mem MPEG/H263/H264 encoder and it requires that the last
+> > > incoming frame must be processed differently, it means the information about
+> > > the end of the stream driver should receive NOT LATER than the last
+> > > V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE buffer. Common practice
+> > > of sending empty buffer to indicate end-of-stream do not work in such case.
+> > > Setting V4L2_BUF_FLAG_EOS flag for the last V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE
+> > > buffer seems to be the most straightforward solution here.
+> > > 
+> > > V4L2_BUF_FLAG_EOS flag should be used by application if driver requires it
+> > 
+> > How will the application know that?
 > 
-> I have updated to latest 3.4-rc5-tip, running multiple video grabbers.
-> I don't see anything specific to uvcvideo anymore, but i do get the possible
-> circular locking dependency below.
+> Application can always set this flag, it will be ignored by drivers not
+> requiring it.
 
-Thanks for the report.
+That's going to make it very hard to write generic applications: people will
+always forget to set that flag, unless they happen to using your hardware.
 
-We indeed have a serious issue there (CC'ing Hans Verkuil).
+> I see some drawback of this solution - application should know if the
+> frame enqueued to the driver is the last one. If the application
+> receives frames to encode form an external source (for example via pipe)
+> it often does not know if the frame it received is the last one. So to
+> be able to properly queue frame to the driver it should wait with frame
+> queuing until it knows there is next frame or end-of-stream is reached,
+> in such situation it will properly set flag before queuing.
+> 
+> Alternative to "V4L2_BUF_FLAG_EOS" solution is to implement "wait for
+> next frame" logic directly into the driver. In such case application can
+> use empty buffer to signal the end of the stream. Driver waits with
+> frame processing if there are at least two buffers in output queue. Then
+> it checks if the second buffer is empty if not it process the first
+> buffer as a normal frame and repeats procedure, if yes it process the
+> first buffer as the last frame and releases second buffer.
 
-Hans, serializing both ioctl handling an mmap with a single device lock as we 
-currently do in V4L2 is prone to AB-BA deadlocks (uvcvideo shouldn't be 
-affected as it has no device-wide lock).
+In the current V4L2 API the last output frame is reached when:
 
-If we want to keep a device-wide lock we need to take it after the mm-
->mmap_sem lock in all code paths, as there's no way we can change the lock 
-ordering for mmap(). The copy_from_user/copy_to_user issue could be solved by 
-moving locking from v4l2_ioctl to __video_do_ioctl (device-wide locks would 
-then require using video_ioctl2), but I'm not sure whether that will play 
-nicely with the QBUF implementation in videobuf2 (which already includes a 
-workaround for this particular AB-BA deadlock issue).
+1) the filehandle is closed
+2) VIDIOC_STREAMOFF is called
+3) VIDIOC_ENCODER_CMD is called with V4L2_ENC_CMD_STOP.
 
-> [   96.257129] ======================================================
-> [   96.257129] [ INFO: possible circular locking dependency detected ]
-> [   96.257129] 3.4.0-rc5-20120506+ #4 Not tainted
-> [   96.257129] -------------------------------------------------------
-> [   96.257129] motion/2289 is trying to acquire lock:
-> [   96.257129]  (&dev->lock){+.+.+.}, at: [<ffffffff8156c04c>]
-> v4l2_mmap+0xbc/0xd0
-> [   96.257129]
-> [   96.257129] but task is already holding lock:
-> [   96.257129]  (&mm->mmap_sem){++++++}, at: [<ffffffff81113cca>]
-> sys_mmap_pgoff+0x1ca/0x220
-> [   96.257129]
-> [   96.257129] which lock already depends on the new lock.
-> [   96.257129]
-> [   96.257129]
-> [   96.257129] the existing dependency chain (in reverse order) is:
-> [   96.257129]
-> [   96.257129] -> #1 (&mm->mmap_sem){++++++}:
-> [   96.257129]        [<ffffffff810aa972>] __lock_acquire+0x3a2/0xc50
-> [   96.257129]        [<ffffffff810ab2e8>] lock_acquire+0xc8/0x110
-> [   96.257129]        [<ffffffff81108cb8>] might_fault+0x68/0x90
-> [   96.257129]        [<ffffffff8156d2a1>] video_usercopy+0x1d1/0x4e0
-> [   96.257129]        [<ffffffff8156d5c0>] video_ioctl2+0x10/0x20
-> [   96.257129]        [<ffffffff8156c110>] v4l2_ioctl+0xb0/0x180
-> [   96.257129]        [<ffffffff8114dc3c>] do_vfs_ioctl+0x9c/0x580
-> [   96.257129]        [<ffffffff8114e16a>] sys_ioctl+0x4a/0x80
-> [   96.257129]        [<ffffffff81813039>] system_call_fastpath+0x16/0x1b
-> [   96.257129]
-> [   96.257129] -> #0 (&dev->lock){+.+.+.}:
-> [   96.257129]        [<ffffffff810aa529>] validate_chain+0x1259/0x1300
-> [   96.257129]        [<ffffffff810aa972>] __lock_acquire+0x3a2/0xc50
-> [   96.257129]        [<ffffffff810ab2e8>] lock_acquire+0xc8/0x110
-> [   96.257129]        [<ffffffff8180e58c>]
-> mutex_lock_interruptible_nested+0x5c/0x550
-> [   96.257129]        [<ffffffff8156c04c>] v4l2_mmap+0xbc/0xd0
-> [   96.257129]        [<ffffffff8111359a>] mmap_region+0x3da/0x5a0
-> [   96.257129]        [<ffffffff81113ab4>] do_mmap_pgoff+0x354/0x3a0
-> [   96.257129]        [<ffffffff81113ce9>] sys_mmap_pgoff+0x1e9/0x220
-> [   96.257129]        [<ffffffff81011ee9>] sys_mmap+0x29/0x30
-> [   96.257129]        [<ffffffff81813039>] system_call_fastpath+0x16/0x1b
-> [   96.257129]
-> [   96.257129] other info that might help us debug this:
-> [   96.257129]
-> [   96.257129]  Possible unsafe locking scenario:
-> [   96.257129]
-> [   96.257129]        CPU0                    CPU1
-> [   96.257129]        ----                    ----
-> [   96.257129]   lock(&mm->mmap_sem);
-> [   96.257129]                                lock(&dev->lock);
-> [   96.257129]                                lock(&mm->mmap_sem);
-> [   96.257129]   lock(&dev->lock);
-> [   96.257129]
-> [   96.257129]  *** DEADLOCK ***
-> [   96.257129]
-> [   96.257129] 1 lock held by motion/2289:
-> [   96.257129]  #0:  (&mm->mmap_sem){++++++}, at: [<ffffffff81113cca>]
-> sys_mmap_pgoff+0x1ca/0x220
-> [   96.257129]
-> [   96.257129] stack backtrace:
-> [   96.257129] Pid: 2289, comm: motion Not tainted 3.4.0-rc5-20120506+ #4
-> [   96.257129] Call Trace:
-> [   96.257129]  [<ffffffff810a8fb6>] print_circular_bug+0x206/0x300
-> [   96.257129]  [<ffffffff810aa529>] validate_chain+0x1259/0x1300
-> [   96.257129]  [<ffffffff810a9417>] ? validate_chain+0x147/0x1300
-> [   96.257129]  [<ffffffff810ab773>] ? lock_release+0x113/0x260
-> [   96.257129]  [<ffffffff810aa972>] __lock_acquire+0x3a2/0xc50
-> [   96.257129]  [<ffffffff810aa993>] ? __lock_acquire+0x3c3/0xc50
-> [   96.257129]  [<ffffffff8156024c>] ? tda18271_tune+0x71c/0x9c0
-> [   96.257129]  [<ffffffff810ab2e8>] lock_acquire+0xc8/0x110
-> [   96.257129]  [<ffffffff8156c04c>] ? v4l2_mmap+0xbc/0xd0
-> [   96.257129]  [<ffffffff8180e58c>]
-> mutex_lock_interruptible_nested+0x5c/0x550
-> [   96.257129]  [<ffffffff8156c04c>] ? v4l2_mmap+0xbc/0xd0
-> [   96.257129]  [<ffffffff810a77ce>] ? mark_held_locks+0x9e/0x130
-> [   96.257129]  [<ffffffff8156c04c>] ? v4l2_mmap+0xbc/0xd0
-> [   96.257129]  [<ffffffff811134de>] ? mmap_region+0x31e/0x5a0
-> [   96.257129]  [<ffffffff810a7900>] ? lockdep_trace_alloc+0xa0/0x130
-> [   96.257129]  [<ffffffff8156c04c>] v4l2_mmap+0xbc/0xd0
-> [   96.257129]  [<ffffffff8111359a>] mmap_region+0x3da/0x5a0
-> [   96.257129]  [<ffffffff81113ab4>] do_mmap_pgoff+0x354/0x3a0
-> [   96.257129]  [<ffffffff81113ce9>] sys_mmap_pgoff+0x1e9/0x220
-> [   96.257129]  [<ffffffff8132554e>] ? trace_hardirqs_on_thunk+0x3a/0x3f
-> [   96.257129]  [<ffffffff81011ee9>] sys_mmap+0x29/0x30
+The latter is currently only used by MPEG encoders, but it might be an idea
+to consider it for your hardware as well. Perhaps a flag like 'stop_after_next_frame'
+is needed.
 
--- 
+How are cases 1 and 2 handled today?
+
+And what happens if the app sets the EOS flag, and then later queues another
+buffer without that flag. Is that frame accepted/rejected/ignored?
+
+I'm trying to understand how the current implementation behaves in corner cases
+like those.
+
+> The drawback of this solution is that it wastes resources/space
+> (additional buffer) and time (delayed encoding).
+> 
+> I am still hesitating which solution is better, any advices?
+> 
+> 
+> > > and it should be set only on V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE buffers.
+> > 
+> > Why only for this type?
+> 
+> I wanted to say only for output buffers not just output multi-plane. And
+> why not capture? Explanation below.
+> Capture buffers are filled by driver, so only drivers could set this
+> flag. Some devices provides information about the end of the stream
+> together with the last frame, but some devices provides this info later
+> (for example s5p-mfc :) ). In the latter case to properly flag the
+> capture buffer driver should wait for next available frame. Simpler
+> solution is to use current solution with sending empty buffer to signal
+> the end of the stream.
+
+I don't believe this is documented anywhere. Wouldn't it be better to send
+a V4L2_EVENT_EOS event? That's documented and is the way I would expect this
+to work.
+
 Regards,
 
-Laurent Pinchart
-
+	Hans
