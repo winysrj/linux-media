@@ -1,106 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:49568 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755871Ab2EJI5X (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:52045 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750930Ab2EWNHs (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 May 2012 04:57:23 -0400
-Received: from epcpsbgm1.samsung.com (mailout3.samsung.com [203.254.224.33])
- by mailout3.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0M3S00HHEU751GQ0@mailout3.samsung.com> for
- linux-media@vger.kernel.org; Thu, 10 May 2012 17:57:22 +0900 (KST)
-Received: from AMDN157 ([106.116.48.215])
- by mmp2.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTPA id <0M3S00HDWU7II050@mmp2.samsung.com> for
- linux-media@vger.kernel.org; Thu, 10 May 2012 17:57:22 +0900 (KST)
-From: Kamil Debski <k.debski@samsung.com>
-To: 'Sachin Kamat' <sachin.kamat@linaro.org>,
-	linux-media@vger.kernel.org
-Cc: mchehab@infradead.org, kyungmin.park@samsung.com,
-	patches@linaro.org
-References: <1336631748-25160-1-git-send-email-sachin.kamat@linaro.org>
- <1336631748-25160-2-git-send-email-sachin.kamat@linaro.org>
-In-reply-to: <1336631748-25160-2-git-send-email-sachin.kamat@linaro.org>
-Subject: RE: [PATCH 2/2] [media] s5p-g2d: Add missing static storage class in
- g2d.c file
-Date: Thu, 10 May 2012 10:57:17 +0200
-Message-id: <017401cd2e8a$e97f21c0$bc7d6540$%debski@samsung.com>
+	Wed, 23 May 2012 09:07:48 -0400
+Received: from euspt1 (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0M4H0004P8GN11@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 23 May 2012 14:07:35 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0M4H00KYY8GXMD@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 23 May 2012 14:07:45 +0100 (BST)
+Date: Wed, 23 May 2012 15:07:32 +0200
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: [PATCH 09/12] v4l: s5p-mfc: support for dmabuf exporting
+In-reply-to: <1337778455-27912-1-git-send-email-t.stanislaws@samsung.com>
+To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
+Cc: airlied@redhat.com, m.szyprowski@samsung.com,
+	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
+	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
+	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
+	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
+	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
+	mchehab@redhat.com, g.liakhovetski@gmx.de,
+	Kamil Debski <k.debski@samsung.com>
+Message-id: <1337778455-27912-10-git-send-email-t.stanislaws@samsung.com>
 MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: en-gb
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1337778455-27912-1-git-send-email-t.stanislaws@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sachin,
+This patch enhances s5p-mfc with support for DMABUF exporting via
+VIDIOC_EXPBUF ioctl.
 
-Thanks for the patch.
+Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+CC: Kamil Debski <k.debski@samsung.com>
+---
+ drivers/media/video/s5p-mfc/s5p_mfc_dec.c |   13 +++++++++++++
+ drivers/media/video/s5p-mfc/s5p_mfc_enc.c |   13 +++++++++++++
+ 2 files changed, 26 insertions(+)
 
-Best regards,
---
-Kamil Debski
-Linux Platform Group
-Samsung Poland R&D Center
-
-
-> -----Original Message-----
-> From: Sachin Kamat [mailto:sachin.kamat@linaro.org]
-> Sent: 10 May 2012 08:36
-> To: linux-media@vger.kernel.org
-> Cc: mchehab@infradead.org; k.debski@samsung.com;
-> kyungmin.park@samsung.com; sachin.kamat@linaro.org; patches@linaro.org
-> Subject: [PATCH 2/2] [media] s5p-g2d: Add missing static storage class in
-> g2d.c file
-> 
-> Fixes the following sparse warnings:
-> drivers/media/video/s5p-g2d/g2d.c:68:18: warning: symbol 'def_frame' was
-> not declared. Should it be static?
-> drivers/media/video/s5p-g2d/g2d.c:80:16: warning: symbol 'find_fmt' was
-> not declared. Should it be static?
-> drivers/media/video/s5p-g2d/g2d.c:205:5: warning: symbol
-> 'g2d_setup_ctrls' was not declared. Should it be static?
-> 
-> Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
-
-Acked-by: Kamil Debski <k.debski@samsung.com>
-
-> ---
->  drivers/media/video/s5p-g2d/g2d.c |    6 +++---
->  1 files changed, 3 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/media/video/s5p-g2d/g2d.c b/drivers/media/video/s5p-
-> g2d/g2d.c
-> index 70bee1c..115b936 100644
-> --- a/drivers/media/video/s5p-g2d/g2d.c
-> +++ b/drivers/media/video/s5p-g2d/g2d.c
-> @@ -65,7 +65,7 @@ static struct g2d_fmt formats[] = {
->  };
->  #define NUM_FORMATS ARRAY_SIZE(formats)
-> 
-> -struct g2d_frame def_frame = {
-> +static struct g2d_frame def_frame = {
->  	.width		= DEFAULT_WIDTH,
->  	.height		= DEFAULT_HEIGHT,
->  	.c_width	= DEFAULT_WIDTH,
-> @@ -77,7 +77,7 @@ struct g2d_frame def_frame = {
->  	.bottom		= DEFAULT_HEIGHT,
->  };
-> 
-> -struct g2d_fmt *find_fmt(struct v4l2_format *f)
-> +static struct g2d_fmt *find_fmt(struct v4l2_format *f)
->  {
->  	unsigned int i;
->  	for (i = 0; i < NUM_FORMATS; i++) {
-> @@ -202,7 +202,7 @@ static const struct v4l2_ctrl_ops g2d_ctrl_ops = {
->  	.s_ctrl		= g2d_s_ctrl,
->  };
-> 
-> -int g2d_setup_ctrls(struct g2d_ctx *ctx)
-> +static int g2d_setup_ctrls(struct g2d_ctx *ctx)
->  {
->  	struct g2d_dev *dev = ctx->dev;
-> 
-> --
-> 1.7.4.1
+diff --git a/drivers/media/video/s5p-mfc/s5p_mfc_dec.c b/drivers/media/video/s5p-mfc/s5p_mfc_dec.c
+index c25ec02..e1ebc76 100644
+--- a/drivers/media/video/s5p-mfc/s5p_mfc_dec.c
++++ b/drivers/media/video/s5p-mfc/s5p_mfc_dec.c
+@@ -564,6 +564,18 @@ static int vidioc_dqbuf(struct file *file, void *priv, struct v4l2_buffer *buf)
+ 	return -EINVAL;
+ }
+ 
++/* Export DMA buffer */
++static int vidioc_expbuf(struct file *file, void *priv,
++	struct v4l2_exportbuffer *eb)
++{
++	struct s5p_mfc_ctx *ctx = fh_to_ctx(priv);
++
++	if (eb->mem_offset < DST_QUEUE_OFF_BASE)
++		return vb2_expbuf(&ctx->vq_src, eb);
++	else
++		return vb2_expbuf(&ctx->vq_dst, eb);
++}
++
+ /* Stream on */
+ static int vidioc_streamon(struct file *file, void *priv,
+ 			   enum v4l2_buf_type type)
+@@ -739,6 +751,7 @@ static const struct v4l2_ioctl_ops s5p_mfc_dec_ioctl_ops = {
+ 	.vidioc_querybuf = vidioc_querybuf,
+ 	.vidioc_qbuf = vidioc_qbuf,
+ 	.vidioc_dqbuf = vidioc_dqbuf,
++	.vidioc_expbuf = vidioc_expbuf,
+ 	.vidioc_streamon = vidioc_streamon,
+ 	.vidioc_streamoff = vidioc_streamoff,
+ 	.vidioc_g_crop = vidioc_g_crop,
+diff --git a/drivers/media/video/s5p-mfc/s5p_mfc_enc.c b/drivers/media/video/s5p-mfc/s5p_mfc_enc.c
+index acedb20..887f1aa 100644
+--- a/drivers/media/video/s5p-mfc/s5p_mfc_enc.c
++++ b/drivers/media/video/s5p-mfc/s5p_mfc_enc.c
+@@ -1141,6 +1141,18 @@ static int vidioc_dqbuf(struct file *file, void *priv, struct v4l2_buffer *buf)
+ 	return -EINVAL;
+ }
+ 
++/* Export DMA buffer */
++static int vidioc_expbuf(struct file *file, void *priv,
++	struct v4l2_exportbuffer *eb)
++{
++	struct s5p_mfc_ctx *ctx = fh_to_ctx(priv);
++
++	if (eb->mem_offset < DST_QUEUE_OFF_BASE)
++		return vb2_expbuf(&ctx->vq_src, eb);
++	else
++		return vb2_expbuf(&ctx->vq_dst, eb);
++}
++
+ /* Stream on */
+ static int vidioc_streamon(struct file *file, void *priv,
+ 			   enum v4l2_buf_type type)
+@@ -1486,6 +1498,7 @@ static const struct v4l2_ioctl_ops s5p_mfc_enc_ioctl_ops = {
+ 	.vidioc_querybuf = vidioc_querybuf,
+ 	.vidioc_qbuf = vidioc_qbuf,
+ 	.vidioc_dqbuf = vidioc_dqbuf,
++	.vidioc_expbuf = vidioc_expbuf,
+ 	.vidioc_streamon = vidioc_streamon,
+ 	.vidioc_streamoff = vidioc_streamoff,
+ 	.vidioc_s_parm = vidioc_s_parm,
+-- 
+1.7.9.5
 
