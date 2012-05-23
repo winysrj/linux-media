@@ -1,15 +1,15 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:44249 "EHLO
+Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:44283 "EHLO
 	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753176Ab2EWJtt (ORCPT
+	with ESMTP id S933295Ab2EWJyy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 May 2012 05:49:49 -0400
-Subject: [PATCH 01/43] rc-core: move timeout and checks to lirc
+	Wed, 23 May 2012 05:54:54 -0400
+Subject: [PATCH 22/43] rc-core: add an ioctl for setting IR TX settings
 To: linux-media@vger.kernel.org
 From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
 Cc: mchehab@redhat.com, jarod@redhat.com
-Date: Wed, 23 May 2012 11:42:05 +0200
-Message-ID: <20120523094205.14474.37526.stgit@felix.hardeman.nu>
+Date: Wed, 23 May 2012 11:43:56 +0200
+Message-ID: <20120523094356.14474.8152.stgit@felix.hardeman.nu>
 In-Reply-To: <20120523094157.14474.24367.stgit@felix.hardeman.nu>
 References: <20120523094157.14474.24367.stgit@felix.hardeman.nu>
 MIME-Version: 1.0
@@ -18,154 +18,160 @@ Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The lirc TX functionality expects the process which writes (TX) data to
-the lirc dev to sleep until the actual data has been transmitted by the
-hardware.
+This adds a complementary ioctl to allow IR TX settings to be
+changed.
 
-Since the same timeout calculation is duplicated in more than one driver
-(and would have to be duplicated in even more drivers as they gain TX
-support), it makes sense to move this timeout calculation to the lirc
-layer instead.
+Much like the RCIOCSIRRX functionality, userspace is expected to call
+RCIOCGIRTX, change values and then call RCIOCSIRTX and finally inspect
+the struct rc_ir_tx to see the results.
 
-Also, the upcoming rc-core layer will not provide the same behaviour, it
-will return as soon as all data is buffered in a TX kfifo which lets
-userspace get on with its business.
-
-At the same time, centralize some of the sanity checks.
+Also, LIRC is changed to use the new functionality as an alternative to the
+old one and another bunch of operations in struct rc_dev are now deprecated.
 
 Signed-off-by: David Härdeman <david@hardeman.nu>
 ---
- drivers/media/rc/ir-lirc-codec.c |   33 +++++++++++++++++++++++++++++----
- drivers/media/rc/mceusb.c        |   18 ------------------
- drivers/media/rc/rc-loopback.c   |   12 ------------
- 3 files changed, 29 insertions(+), 34 deletions(-)
+ drivers/media/rc/ir-lirc-codec.c |   42 +++++++++++++++++++++++++++++---------
+ drivers/media/rc/rc-main.c       |   13 ++++++++++++
+ include/media/rc-core.h          |   13 ++++++++----
+ 3 files changed, 54 insertions(+), 14 deletions(-)
 
 diff --git a/drivers/media/rc/ir-lirc-codec.c b/drivers/media/rc/ir-lirc-codec.c
-index 5faba2a..0287716 100644
+index 767fd06..6811db9 100644
 --- a/drivers/media/rc/ir-lirc-codec.c
 +++ b/drivers/media/rc/ir-lirc-codec.c
-@@ -107,6 +107,12 @@ static ssize_t ir_lirc_transmit_ir(struct file *file, const char __user *buf,
- 	unsigned int *txbuf; /* buffer with values to transmit */
- 	ssize_t ret = 0;
- 	size_t count;
-+	ktime_t start;
-+	s64 towait;
-+	unsigned int duration = 0; /* signal duration in us */
-+	int i;
-+
-+	start = ktime_get();
+@@ -161,6 +161,7 @@ static long ir_lirc_ioctl(struct file *filep, unsigned int cmd,
+ 	int ret = 0;
+ 	__u32 val = 0, tmp;
+ 	struct rc_ir_rx rx;
++	struct rc_ir_tx tx;
  
- 	lirc = lirc_get_pdata(file);
+ 	lirc = lirc_get_pdata(filep);
  	if (!lirc)
-@@ -129,11 +135,30 @@ static ssize_t ir_lirc_transmit_ir(struct file *file, const char __user *buf,
- 		goto out;
- 	}
+@@ -190,25 +191,46 @@ static long ir_lirc_ioctl(struct file *filep, unsigned int cmd,
  
--	if (dev->tx_ir)
--		ret = dev->tx_ir(dev, txbuf, count);
-+	if (!dev->tx_ir) {
-+		ret = -ENOSYS;
-+		goto out;
-+	}
+ 	/* TX settings */
+ 	case LIRC_SET_TRANSMITTER_MASK:
+-		if (!dev->s_tx_mask)
+-			return -EINVAL;
++		if (dev->s_tx_mask)
++			return dev->s_tx_mask(dev, val);
+ 
+-		return dev->s_tx_mask(dev, val);
++		if (dev->get_ir_tx && dev->set_ir_tx) {
++			memset(&tx, 0, sizeof(tx));
++			dev->get_ir_tx(dev, &tx);
++			tx.tx_enabled = val;
++			return dev->set_ir_tx(dev, &tx);
++		}
 +
-+	ret = dev->tx_ir(dev, txbuf, (u32)count);
-+	if (ret < 0)
-+		goto out;
++		return -EINVAL;
+ 
+ 	case LIRC_SET_SEND_CARRIER:
+-		if (!dev->s_tx_carrier)
+-			return -EINVAL;
++		if (dev->s_tx_carrier)
++			return dev->s_tx_carrier(dev, val);
+ 
+-		return dev->s_tx_carrier(dev, val);
++		if (dev->get_ir_tx && dev->set_ir_tx) {
++			memset(&tx, 0, sizeof(tx));
++			dev->get_ir_tx(dev, &tx);
++			tx.freq = val;
++			return dev->set_ir_tx(dev, &tx);
++		}
+ 
+-	case LIRC_SET_SEND_DUTY_CYCLE:
+-		if (!dev->s_tx_duty_cycle)
+-			return -ENOSYS;
++		return -EINVAL;
+ 
++	case LIRC_SET_SEND_DUTY_CYCLE:
+ 		if (val <= 0 || val >= 100)
+ 			return -EINVAL;
+ 
+-		return dev->s_tx_duty_cycle(dev, val);
++		if (dev->s_tx_duty_cycle)
++			return dev->s_tx_duty_cycle(dev, val);
 +
-+	for (i = 0; i < ret; i++)
-+		duration += txbuf[i];
- 
--	if (ret > 0)
--		ret *= sizeof(unsigned);
-+	ret *= sizeof(unsigned int);
++		if (dev->get_ir_tx && dev->set_ir_tx) {
++			memset(&tx, 0, sizeof(tx));
++			dev->get_ir_tx(dev, &tx);
++			tx.duty = val;
++			return dev->set_ir_tx(dev, &tx);
++		}
 +
-+	/*
-+	 * The lircd gap calculation expects the write function to
-+	 * wait for the actual IR signal to be transmitted before
-+	 * returning.
-+	 */
-+	towait = ktime_us_delta(ktime_add_us(start, duration), ktime_get());
-+	if (towait > 0) {
-+		set_current_state(TASK_INTERRUPTIBLE);
-+		schedule_timeout(usecs_to_jiffies(towait));
-+	}
++		return -ENOSYS;
  
- out:
- 	kfree(txbuf);
-diff --git a/drivers/media/rc/mceusb.c b/drivers/media/rc/mceusb.c
-index 84e06d3..6e430dd 100644
---- a/drivers/media/rc/mceusb.c
-+++ b/drivers/media/rc/mceusb.c
-@@ -786,10 +786,6 @@ static int mceusb_tx_ir(struct rc_dev *dev, unsigned *txbuf, unsigned count)
- 	int i, ret = 0;
- 	int cmdcount = 0;
- 	unsigned char *cmdbuf; /* MCE command buffer */
--	long signal_duration = 0; /* Singnal length in us */
--	struct timeval start_time, end_time;
--
--	do_gettimeofday(&start_time);
+ 	/* RX settings */
+ 	case LIRC_SET_REC_CARRIER:
+diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+index e2b2e8c..f8a63e2 100644
+--- a/drivers/media/rc/rc-main.c
++++ b/drivers/media/rc/rc-main.c
+@@ -1742,6 +1742,19 @@ static long rc_do_ioctl(struct rc_dev *dev, unsigned int cmd, unsigned long arg)
  
- 	cmdbuf = kzalloc(sizeof(unsigned) * MCE_CMDBUF_SIZE, GFP_KERNEL);
- 	if (!cmdbuf)
-@@ -802,7 +798,6 @@ static int mceusb_tx_ir(struct rc_dev *dev, unsigned *txbuf, unsigned count)
+ 		return 0;
  
- 	/* Generate mce packet data */
- 	for (i = 0; (i < count) && (cmdcount < MCE_CMDBUF_SIZE); i++) {
--		signal_duration += txbuf[i];
- 		txbuf[i] = txbuf[i] / MCE_TIME_UNIT;
++	case RCIOCSIRTX:
++		if (!dev->set_ir_tx)
++			return -ENOSYS;
++
++		if (copy_from_user(&tx, p, sizeof(tx)))
++			return -EFAULT;
++
++		error = dev->set_ir_tx(dev, &tx);
++		if (error)
++			return error;
++
++		/* Fall through */
++
+ 	case RCIOCGIRTX:
+ 		memset(&tx, 0, sizeof(tx));
  
- 		do { /* loop to support long pulses/spaces > 127*50us=6.35ms */
-@@ -845,19 +840,6 @@ static int mceusb_tx_ir(struct rc_dev *dev, unsigned *txbuf, unsigned count)
- 	/* Transmit the command to the mce device */
- 	mce_async_out(ir, cmdbuf, cmdcount);
+diff --git a/include/media/rc-core.h b/include/media/rc-core.h
+index 9f3645b..843f363 100644
+--- a/include/media/rc-core.h
++++ b/include/media/rc-core.h
+@@ -115,8 +115,11 @@ struct rc_ir_rx {
+ /* get ir tx parameters */
+ #define RCIOCGIRTX	_IOC(_IOC_READ, RC_IOC_MAGIC, 0x05, sizeof(struct rc_ir_tx))
  
--	/*
--	 * The lircd gap calculation expects the write function to
--	 * wait the time it takes for the ircommand to be sent before
--	 * it returns.
--	 */
--	do_gettimeofday(&end_time);
--	signal_duration -= (end_time.tv_usec - start_time.tv_usec) +
--			   (end_time.tv_sec - start_time.tv_sec) * 1000000;
--
--	/* delay with the closest number of ticks */
--	set_current_state(TASK_INTERRUPTIBLE);
--	schedule_timeout(usecs_to_jiffies(signal_duration));
--
- out:
- 	kfree(cmdbuf);
- 	return ret ? ret : count;
-diff --git a/drivers/media/rc/rc-loopback.c b/drivers/media/rc/rc-loopback.c
-index fae1615..f9be681 100644
---- a/drivers/media/rc/rc-loopback.c
-+++ b/drivers/media/rc/rc-loopback.c
-@@ -105,18 +105,9 @@ static int loop_tx_ir(struct rc_dev *dev, unsigned *txbuf, unsigned count)
- {
- 	struct loopback_dev *lodev = dev->priv;
- 	u32 rxmask;
--	unsigned total_duration = 0;
- 	unsigned i;
- 	DEFINE_IR_RAW_EVENT(rawir);
++/* set ir tx parameters */
++#define RCIOCSIRTX	_IOC(_IOC_WRITE, RC_IOC_MAGIC, 0x05, sizeof(struct rc_ir_tx))
++
+ /**
+- * struct rc_ir_tx - used to get all IR TX parameters in one go
++ * struct rc_ir_tx - used to get/set all IR TX parameters in one go
+  * @flags: device specific flags
+  * @tx_supported: bitmask of supported transmitters
+  * @tx_enabled: bitmask of enabled transmitters
+@@ -238,9 +241,9 @@ struct ir_raw_event {
+  *	is opened.
+  * @close: callback to allow drivers to disable polling/irq when IR input device
+  *	is opened.
+- * @s_tx_mask: set transmitter mask (for devices with multiple tx outputs)
+- * @s_tx_carrier: set transmit carrier frequency
+- * @s_tx_duty_cycle: set transmit duty cycle (0% - 100%)
++ * @s_tx_mask: set transmitter mask (for devices with multiple tx outputs, deprecated)
++ * @s_tx_carrier: set transmit carrier frequency (deprecated)
++ * @s_tx_duty_cycle: set transmit duty cycle (0% - 100%, deprecated)
+  * @s_rx_carrier: inform driver about expected carrier (deprecated)
+  * @tx_ir: transmit IR
+  * @s_idle: enable/disable hardware idle mode, upon which,
+@@ -250,6 +253,7 @@ struct ir_raw_event {
+  * @get_ir_rx: allow driver to provide rx settings
+  * @set_ir_rx: allow driver to change rx settings
+  * @get_ir_tx: allow driver to provide tx settings
++ * @set_ir_tx: allow driver to change tx settings
+  */
+ struct rc_dev {
+ 	struct device			dev;
+@@ -303,6 +307,7 @@ struct rc_dev {
+ 	void				(*get_ir_rx)(struct rc_dev *dev, struct rc_ir_rx *rx);
+ 	int				(*set_ir_rx)(struct rc_dev *dev, struct rc_ir_rx *rx);
+ 	void				(*get_ir_tx)(struct rc_dev *dev, struct rc_ir_tx *tx);
++	int				(*set_ir_tx)(struct rc_dev *dev, struct rc_ir_tx *tx);
+ };
  
--	for (i = 0; i < count; i++)
--		total_duration += abs(txbuf[i]);
--
--	if (total_duration == 0) {
--		dprintk("invalid tx data, total duration zero\n");
--		return -EINVAL;
--	}
--
- 	if (lodev->txcarrier < lodev->rxcarriermin ||
- 	    lodev->txcarrier > lodev->rxcarriermax) {
- 		dprintk("ignoring tx, carrier out of range\n");
-@@ -148,9 +139,6 @@ static int loop_tx_ir(struct rc_dev *dev, unsigned *txbuf, unsigned count)
- 	ir_raw_event_handle(dev);
- 
- out:
--	/* Lirc expects this function to take as long as the total duration */
--	set_current_state(TASK_INTERRUPTIBLE);
--	schedule_timeout(usecs_to_jiffies(total_duration));
- 	return count;
- }
- 
+ #define to_rc_dev(d) container_of(d, struct rc_dev, dev)
 
