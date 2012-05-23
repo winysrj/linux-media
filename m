@@ -1,49 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:1600 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751387Ab2E1LuW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 May 2012 07:50:22 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Federico Vaga <federico.vaga@gmail.com>
-Subject: Re: [GIT PULL FOR v3.5] Move sta2x11_vip to staging
-Date: Mon, 28 May 2012 13:50:10 +0200
-Cc: "linux-media" <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	"linux-kernel" <linux-kernel@vger.kernel.org>,
-	Giancarlo Asnaghi <giancarlo.asnaghi@st.com>
-References: <201205260939.58100.hverkuil@xs4all.nl> <1444585.tu7qHxh2Mp@harkonnen>
-In-Reply-To: <1444585.tu7qHxh2Mp@harkonnen>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201205281350.10606.hverkuil@xs4all.nl>
+Received: from mx1.redhat.com ([209.132.183.28]:21649 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751892Ab2EWIM3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 23 May 2012 04:12:29 -0400
+From: Hans de Goede <hdegoede@redhat.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Jean-Francois Moine <moinejf@free.fr>,
+	Hans de Goede <hdegoede@redhat.com>, stable@kernel.org
+Subject: [PATCH] gspca-core: Fix buffers staying in queued state after a stream_off
+Date: Wed, 23 May 2012 10:12:30 +0200
+Message-Id: <1337760750-2561-1-git-send-email-hdegoede@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon May 28 2012 13:47:43 Federico Vaga wrote:
-> > I didn't get any reply from Federico when I posted my concerns last
-> > week, so that makes me unhappy as well.
-> > 
-> > I hope the author will fix these issues, but in the meantime this will
-> > move it to staging waiting for further developments.
-> 
-> The last time I worked on this device was 2 month and half ago (RFC 
-> time) and before answer "Ok, I'll fix it" I'm trying to understand if me 
-> or someone else will do that work. I'll provide a better answer than 
-> this when I have more information.
-> 
-> Sorry for not sending an ack immediately, but be reassured that I'm 
-> still on the hardware and following the developments.
+This fixes a regression introduced by commit f7059ea and should be
+backported to all supported stable kernels which have this commit.
 
-Thank you for the feedback! Suddenly I feel a lot happier :-)
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+Tested-by: Antonio Ospite <ospite@studenti.unina.it>
+CC: stable@kernel.org
+---
+ drivers/media/video/gspca/gspca.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-You were just unlucky that you posted the driver just in a period where I
-was almost completely absent from the list due to personal circumstances.
+diff --git a/drivers/media/video/gspca/gspca.c b/drivers/media/video/gspca/gspca.c
+index 137166d..31721ea 100644
+--- a/drivers/media/video/gspca/gspca.c
++++ b/drivers/media/video/gspca/gspca.c
+@@ -1653,7 +1653,7 @@ static int vidioc_streamoff(struct file *file, void *priv,
+ 				enum v4l2_buf_type buf_type)
+ {
+ 	struct gspca_dev *gspca_dev = video_drvdata(file);
+-	int ret;
++	int i, ret;
+ 
+ 	if (buf_type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+ 		return -EINVAL;
+@@ -1678,6 +1678,8 @@ static int vidioc_streamoff(struct file *file, void *priv,
+ 	wake_up_interruptible(&gspca_dev->wq);
+ 
+ 	/* empty the transfer queues */
++	for (i = 0; i < gspca_dev->nframes; i++)
++		gspca_dev->frame[i].v4l2_buf.flags &= ~BUF_ALL_FLAGS;
+ 	atomic_set(&gspca_dev->fr_q, 0);
+ 	atomic_set(&gspca_dev->fr_i, 0);
+ 	gspca_dev->fr_o = 0;
+-- 
+1.7.10
 
-Otherwise you would have gotten the feedback at that time.
-
-Regards,
-
-	Hans
