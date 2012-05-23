@@ -1,42 +1,141 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1-g21.free.fr ([212.27.42.1]:54095 "EHLO smtp1-g21.free.fr"
+Received: from cantor2.suse.de ([195.135.220.15]:50998 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754300Ab2EQGGH convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 May 2012 02:06:07 -0400
-Received: from tele (unknown [IPv6:2a01:e35:2f5c:9de0:212:bfff:fe1e:9ce4])
-	by smtp1-g21.free.fr (Postfix) with ESMTP id A4265940049
-	for <linux-media@vger.kernel.org>; Thu, 17 May 2012 08:05:59 +0200 (CEST)
-Date: Thu, 17 May 2012 08:07:34 +0200
-From: Jean-Francois Moine <moinejf@free.fr>
-To: linux-media@vger.kernel.org
-Subject: Re: How fix driver for this USB camera (MT9T031 sensor and Cypress
- FX2LP USB bridge)
-Message-ID: <20120517080734.16446c78@tele>
-In-Reply-To: <loom.20120517T001241-393@post.gmane.org>
-References: <loom.20120517T001241-393@post.gmane.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	id S1750981Ab2EWJVe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 23 May 2012 05:21:34 -0400
+Date: Wed, 23 May 2012 11:21:13 +0200
+From: Jan Kara <jack@suse.cz>
+To: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: linux-kernel@vger.kernel.org, akpm@linux-foundation.org,
+	Anders Larsen <al@alarsen.net>,
+	Alasdair Kergon <agk@redhat.com>, dm-devel@redhat.com,
+	linux-fsdevel@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org, Mark Fasheh <mfasheh@suse.com>,
+	Joel Becker <jlbec@evilplan.org>, ocfs2-devel@oss.oracle.com,
+	Jan Kara <jack@suse.cz>, linux-ext4@vger.kernel.org,
+	Andreas Dilger <adilger.kernel@dilger.ca>,
+	Theodore Ts'o <tytso@mit.edu>
+Subject: Re: [PATCH 01/10] string: introduce memweight
+Message-ID: <20120523092113.GG10452@quack.suse.cz>
+References: <1337520203-29147-1-git-send-email-akinobu.mita@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1337520203-29147-1-git-send-email-akinobu.mita@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 16 May 2012 22:14:48 +0000 (UTC)
-Simon Gustafsson <simong@simong.se> wrote:
+On Sun 20-05-12 22:23:14, Akinobu Mita wrote:
+> memweight() is the function that counts the total number of bits set
+> in memory area.  The memory area doesn't need to be aligned to
+> long-word boundary unlike bitmap_weight().
+  Thanks for the patch. I have some comments below.
 
-> 2) Where should I begin? My gut feeling is to go for media/video/gspca/ov519.c,
-> since it has the code for talking to the USB bridge chip (BRIDGE_OVFX2), and
+> Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+> Cc: Anders Larsen <al@alarsen.net>
+> Cc: Alasdair Kergon <agk@redhat.com>
+> Cc: dm-devel@redhat.com
+> Cc: linux-fsdevel@vger.kernel.org
+> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Cc: linux-media@vger.kernel.org
+> Cc: Mark Fasheh <mfasheh@suse.com>
+> Cc: Joel Becker <jlbec@evilplan.org>
+> Cc: ocfs2-devel@oss.oracle.com
+> Cc: Jan Kara <jack@suse.cz>
+> Cc: linux-ext4@vger.kernel.org
+> Cc: Andrew Morton <akpm@linux-foundation.org>
+> Cc: Andreas Dilger <adilger.kernel@dilger.ca>
+> Cc: "Theodore Ts'o" <tytso@mit.edu>
+> ---
+>  include/linux/string.h |    3 +++
+>  lib/string.c           |   37 +++++++++++++++++++++++++++++++++++++
+>  2 files changed, 40 insertions(+), 0 deletions(-)
+> 
+> diff --git a/include/linux/string.h b/include/linux/string.h
+> index e033564..ffe0442 100644
+> --- a/include/linux/string.h
+> +++ b/include/linux/string.h
+> @@ -145,4 +145,7 @@ static inline bool strstarts(const char *str, const char *prefix)
+>  	return strncmp(str, prefix, strlen(prefix)) == 0;
+>  }
+>  #endif
+> +
+> +extern size_t memweight(const void *ptr, size_t bytes);
+> +
+>  #endif /* _LINUX_STRING_H_ */
+> diff --git a/lib/string.c b/lib/string.c
+> index e5878de..c8b92a0 100644
+> --- a/lib/string.c
+> +++ b/lib/string.c
+> @@ -26,6 +26,7 @@
+>  #include <linux/export.h>
+>  #include <linux/bug.h>
+>  #include <linux/errno.h>
+> +#include <linux/bitmap.h>
+>  
+>  #ifndef __HAVE_ARCH_STRNICMP
+>  /**
+> @@ -824,3 +825,39 @@ void *memchr_inv(const void *start, int c, size_t bytes)
+>  	return check_bytes8(start, value, bytes % 8);
+>  }
+>  EXPORT_SYMBOL(memchr_inv);
+> +
+> +/**
+> + * memweight - count the total number of bits set in memory area
+> + * @ptr: pointer to the start of the area
+> + * @bytes: the size of the area
+> + */
+> +size_t memweight(const void *ptr, size_t bytes)
+> +{
+> +	size_t w = 0;
+> +	size_t longs;
+> +	union {
+> +		const void *ptr;
+> +		const unsigned char *b;
+> +		unsigned long address;
+> +	} bitmap;
+  Ugh, this is ugly and mostly unnecessary. Just use "const unsigned char
+*bitmap".
 
-Hi Simon,
+> +
+> +	for (bitmap.ptr = ptr; bytes > 0 && bitmap.address % sizeof(long);
+> +			bytes--, bitmap.address++)
+> +		w += hweight8(*bitmap.b);
+  This can be:
+	count = ((unsigned long)bitmap) % sizeof(long);
+	while (count--) {
+		w += hweight(*bitmap);
+		bitmap++;
+		bytes--;
+	}
+> +
+> +	for (longs = bytes / sizeof(long); longs > 0; ) {
+> +		size_t bits = min_t(size_t, INT_MAX & ~(BITS_PER_LONG - 1),
+> +					longs * BITS_PER_LONG);
+  I find it highly unlikely that someone would have such a large bitmap
+(256 MB or more on 32-bit). Also the condition as you wrote it can just
+overflow so it won't have the desired effect. Just do
+	BUG_ON(longs >= ULONG_MAX / BITS_PER_LONG);
+and remove the loop completely. If someone comes with such a huge bitmap,
+the code can be modified easily (after really closely inspecting whether
+such a huge bitmap is really well justified).
 
-The FX2 is a processor, and, in ov519, used as a bridge, it has been
-programmed by OmniVision for their sensors. It is quite sure that its
-firmware is different in your webcam.
+> +
+> +		w += bitmap_weight(bitmap.ptr, bits);
+> +		bytes -= bits / BITS_PER_BYTE;
+> +		bitmap.address += bits / BITS_PER_BYTE;
+> +		longs -= bits / BITS_PER_LONG;
+> +	}
+> +
+> +	for (; bytes > 0; bytes--, bitmap.address++)
+> +		w += hweight8(*bitmap.b);
+> +
+> +	return w;
+> +}
+> +EXPORT_SYMBOL(memweight);
 
-To know more, you should examine USB traces done with some other driver
-(ms-windows - the scripts I use to translate these traces for gspca are
-in my web site)...
-
+									Honza
 -- 
-Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+Jan Kara <jack@suse.cz>
+SUSE Labs, CR
