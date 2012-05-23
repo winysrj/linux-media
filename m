@@ -1,117 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:43459 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751454Ab2EWMMT convert rfc822-to-8bit (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:39343 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753104Ab2EWMKp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 May 2012 08:12:19 -0400
-MIME-Version: 1.0
-In-Reply-To: <20120523092113.GG10452@quack.suse.cz>
-References: <1337520203-29147-1-git-send-email-akinobu.mita@gmail.com>
-	<20120523092113.GG10452@quack.suse.cz>
-Date: Wed, 23 May 2012 21:12:18 +0900
-Message-ID: <CAC5umyi=ridqRZGGh0+_xw0-GCN+69B33Qz82-9x4dVODGGx6w@mail.gmail.com>
-Subject: Re: [PATCH 01/10] string: introduce memweight
-From: Akinobu Mita <akinobu.mita@gmail.com>
-To: Jan Kara <jack@suse.cz>
-Cc: linux-kernel@vger.kernel.org, akpm@linux-foundation.org,
-	Anders Larsen <al@alarsen.net>,
-	Alasdair Kergon <agk@redhat.com>, dm-devel@redhat.com,
-	linux-fsdevel@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org, Mark Fasheh <mfasheh@suse.com>,
-	Joel Becker <jlbec@evilplan.org>, ocfs2-devel@oss.oracle.com,
-	linux-ext4@vger.kernel.org,
-	Andreas Dilger <adilger.kernel@dilger.ca>,
-	"Theodore Ts'o" <tytso@mit.edu>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Wed, 23 May 2012 08:10:45 -0400
+Received: from euspt2 (mailout1.w1.samsung.com [210.118.77.11])
+ by mailout1.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0M4H00BEL5PY8G@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 23 May 2012 13:08:22 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0M4H0033Q5TSN0@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 23 May 2012 13:10:40 +0100 (BST)
+Date: Wed, 23 May 2012 14:10:18 +0200
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: [PATCHv6 04/13] v4l: vb: remove warnings about MEMORY_DMABUF
+In-reply-to: <1337775027-9489-1-git-send-email-t.stanislaws@samsung.com>
+To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
+Cc: airlied@redhat.com, m.szyprowski@samsung.com,
+	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
+	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
+	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
+	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
+	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
+	mchehab@redhat.com, g.liakhovetski@gmx.de
+Message-id: <1337775027-9489-5-git-send-email-t.stanislaws@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1337775027-9489-1-git-send-email-t.stanislaws@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2012/5/23 Jan Kara <jack@suse.cz>:
-> On Sun 20-05-12 22:23:14, Akinobu Mita wrote:
->> memweight() is the function that counts the total number of bits set
->> in memory area.  The memory area doesn't need to be aligned to
->> long-word boundary unlike bitmap_weight().
->  Thanks for the patch. I have some comments below.
+From: Sumit Semwal <sumit.semwal@ti.com>
 
-Thanks for the review.
+Adding DMABUF memory type causes videobuf to complain about not using it
+in some switch cases. This patch removes these warnings.
 
->> @@ -824,3 +825,39 @@ void *memchr_inv(const void *start, int c, size_t bytes)
->>       return check_bytes8(start, value, bytes % 8);
->>  }
->>  EXPORT_SYMBOL(memchr_inv);
->> +
->> +/**
->> + * memweight - count the total number of bits set in memory area
->> + * @ptr: pointer to the start of the area
->> + * @bytes: the size of the area
->> + */
->> +size_t memweight(const void *ptr, size_t bytes)
->> +{
->> +     size_t w = 0;
->> +     size_t longs;
->> +     union {
->> +             const void *ptr;
->> +             const unsigned char *b;
->> +             unsigned long address;
->> +     } bitmap;
->  Ugh, this is ugly and mostly unnecessary. Just use "const unsigned char
-> *bitmap".
->
->> +
->> +     for (bitmap.ptr = ptr; bytes > 0 && bitmap.address % sizeof(long);
->> +                     bytes--, bitmap.address++)
->> +             w += hweight8(*bitmap.b);
->  This can be:
->        count = ((unsigned long)bitmap) % sizeof(long);
+Signed-off-by: Sumit Semwal <sumit.semwal@ti.com>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/video/videobuf-core.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-The count should be the size of unaligned area and it can be greater than
-bytes. So
+diff --git a/drivers/media/video/videobuf-core.c b/drivers/media/video/videobuf-core.c
+index ffdf59c..3e3e55f 100644
+--- a/drivers/media/video/videobuf-core.c
++++ b/drivers/media/video/videobuf-core.c
+@@ -335,6 +335,9 @@ static void videobuf_status(struct videobuf_queue *q, struct v4l2_buffer *b,
+ 	case V4L2_MEMORY_OVERLAY:
+ 		b->m.offset  = vb->boff;
+ 		break;
++	case V4L2_MEMORY_DMABUF:
++		/* DMABUF is not handled in videobuf framework */
++		break;
+ 	}
+ 
+ 	b->flags    = 0;
+@@ -411,6 +414,7 @@ int __videobuf_mmap_setup(struct videobuf_queue *q,
+ 			break;
+ 		case V4L2_MEMORY_USERPTR:
+ 		case V4L2_MEMORY_OVERLAY:
++		case V4L2_MEMORY_DMABUF:
+ 			/* nothing */
+ 			break;
+ 		}
+-- 
+1.7.9.5
 
-        count = min(bytes,
-                    sizeof(long) - ((unsigned long)bitmap) % sizeof(long));
-
->        while (count--) {
->                w += hweight(*bitmap);
->                bitmap++;
->                bytes--;
->        }
->> +
->> +     for (longs = bytes / sizeof(long); longs > 0; ) {
->> +             size_t bits = min_t(size_t, INT_MAX & ~(BITS_PER_LONG - 1),
->> +                                     longs * BITS_PER_LONG);
->  I find it highly unlikely that someone would have such a large bitmap
-> (256 MB or more on 32-bit). Also the condition as you wrote it can just
-> overflow so it won't have the desired effect. Just do
->        BUG_ON(longs >= ULONG_MAX / BITS_PER_LONG);
-
-The bits argument of bitmap_weight() is int type. So this should be
-
-        BUG_ON(longs >= INT_MAX / BITS_PER_LONG);
-
-> and remove the loop completely. If someone comes with such a huge bitmap,
-> the code can be modified easily (after really closely inspecting whether
-> such a huge bitmap is really well justified).
-
-size_t memweight(const void *ptr, size_t bytes)
-{
-	size_t w = 0;
-	size_t longs;
-	const unsigned char *bitmap = ptr;
-
-	for (; bytes > 0 && ((unsigned long)bitmap) % sizeof(long);
-			bytes--, bitmap++)
-		w += hweight8(*bitmap);
-
-	longs = bytes / sizeof(long);
-	BUG_ON(longs >= INT_MAX / BITS_PER_LONG);
-	w += bitmap_weight((unsigned long *)bitmap, longs * BITS_PER_LONG);
-	bytes -= longs * sizeof(long);
-	bitmap += longs * sizeof(long);
-
-	for (; bytes > 0; bytes--, bitmap++)
-		w += hweight8(*bitmap);
-
-	return w;
-}
