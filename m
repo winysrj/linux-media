@@ -1,212 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:48999 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751023Ab2EJKbH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 May 2012 06:31:07 -0400
-Received: from euspt2 (mailout1.w1.samsung.com [210.118.77.11])
- by mailout1.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0M3S00J85YGJBV@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 10 May 2012 11:29:07 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0M3S00DAIYJP3L@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 10 May 2012 11:31:01 +0100 (BST)
-Date: Thu, 10 May 2012 12:30:38 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH 03/23] V4L: Add an extended camera white balance control
-In-reply-to: <1336645858-30366-1-git-send-email-s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, riverful.kim@samsung.com,
-	sw0312.kim@samsung.com, s.nawrocki@samsung.com,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Message-id: <1336645858-30366-4-git-send-email-s.nawrocki@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1336645858-30366-1-git-send-email-s.nawrocki@samsung.com>
+Received: from mx1.redhat.com ([209.132.183.28]:46204 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756004Ab2EWIQj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 23 May 2012 04:16:39 -0400
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q4N8GdZf018152
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Wed, 23 May 2012 04:16:39 -0400
+Received: from shalem.localdomain (vpn1-4-108.ams2.redhat.com [10.36.4.108])
+	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id q4N8Gb6C004973
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Wed, 23 May 2012 04:16:38 -0400
+Message-ID: <4FBC9CEB.5050604@redhat.com>
+Date: Wed, 23 May 2012 10:16:43 +0200
+From: Hans de Goede <hdegoede@redhat.com>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [GIT PULL FIXES FOR 3.5]: gspca & radio fixes (updated)
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds V4L2_CID_AUTO_N_PRESET_WHITE_BALANCE control which is
-an extended version of the V4L2_CID_AUTO_WHITE_BALANCE control,
-including white balance presets. The following presets are defined:
+Hi Mauro et al,
 
- - V4L2_WHITE_BALANCE_INCANDESCENT,
- - V4L2_WHITE_BALANCE_FLUORESCENT,
- - V4L2_WHITE_BALANCE_FLUORESCENT_H,
- - V4L2_WHITE_BALANCE_HORIZON,
- - V4L2_WHITE_BALANCE_DAYLIGHT,
- - V4L2_WHITE_BALANCE_FLASH,
- - V4L2_WHITE_BALANCE_CLOUDY,
- - V4L2_WHITE_BALANCE_SHADE.
+<This is an updated version of this pull request, including a
+regression fix in the gspca core>
 
-Signed-off-by: HeungJun Kim <riverful.kim@samsung.com>
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-Acked-by: Hans de Goede <hdegoede@redhat.com>
----
- Documentation/DocBook/media/v4l/controls.xml |   70 ++++++++++++++++++++++++++
- drivers/media/video/v4l2-ctrls.c             |   17 +++++++
- include/linux/videodev2.h                    |   14 ++++++
- 3 files changed, 101 insertions(+)
+Here is a bunch of fixes for gspca and a couple of fixes for
+good old radio support :)
 
-diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
-index 40e6485..85d1ca0 100644
---- a/Documentation/DocBook/media/v4l/controls.xml
-+++ b/Documentation/DocBook/media/v4l/controls.xml
-@@ -3022,6 +3022,76 @@ camera sensor on or off, or specify its strength. Such band-stop filters can
- be used, for example, to filter out the fluorescent light component.</entry>
- 	  </row>
- 	  <row><entry></entry></row>
-+
-+	  <row id="v4l2-auto-n-preset-white-balance">
-+	    <entry spanname="id"><constant>V4L2_CID_AUTO_N_PRESET_WHITE_BALANCE</constant>&nbsp;</entry>
-+	    <entry>enum&nbsp;v4l2_auto_n_preset_white_balance</entry>
-+	  </row><row><entry spanname="descr">Sets white balance to automatic,
-+manual or a preset. The presets determine color temperature of the light as
-+a hint to the camera for white balance adjustments resulting in most accurate
-+color representation. The following white balance presets are listed in order
-+of increasing color temperature.</entry>
-+	  </row>
-+	  <row>
-+	    <entrytbl spanname="descr" cols="2">
-+	      <tbody valign="top">
-+		<row>
-+		  <entry><constant>V4L2_WHITE_BALANCE_MANUAL</constant>&nbsp;</entry>
-+		  <entry>Manual white balance.</entry>
-+		</row>
-+		<row>
-+		  <entry><constant>V4L2_WHITE_BALANCE_AUTO</constant>&nbsp;</entry>
-+		  <entry>Automatic white balance adjustments.</entry>
-+		</row>
-+		<row>
-+		  <entry><constant>V4L2_WHITE_BALANCE_INCANDESCENT</constant>&nbsp;</entry>
-+		  <entry>White balance setting for incandescent (tungsten) lighting.
-+It generally cools down the colors and corresponds approximately to 2500...3500 K
-+color temperature range.</entry>
-+		</row>
-+		<row>
-+		  <entry><constant>V4L2_WHITE_BALANCE_FLUORESCENT</constant>&nbsp;</entry>
-+		  <entry>White balance preset for fluorescent lighting.
-+It corresponds approximately to 4000...5000 K color temperature.</entry>
-+		</row>
-+		<row>
-+		  <entry><constant>V4L2_WHITE_BALANCE_FLUORESCENT_H</constant>&nbsp;</entry>
-+		  <entry>With this setting the camera will compensate for
-+fluorescent H lighting.</entry>
-+		</row>
-+		<row>
-+		  <entry><constant>V4L2_WHITE_BALANCE_HORIZON</constant>&nbsp;</entry>
-+		  <entry>White balance setting for horizon daylight.
-+It corresponds approximately to 5000 K color temperature.</entry>
-+		</row>
-+		<row>
-+		  <entry><constant>V4L2_WHITE_BALANCE_DAYLIGHT</constant>&nbsp;</entry>
-+		  <entry>White balance preset for daylight (with clear sky).
-+It corresponds approximately to 5000...6500 K color temperature.</entry>
-+		</row>
-+		<row>
-+		  <entry><constant>V4L2_WHITE_BALANCE_FLASH</constant>&nbsp;</entry>
-+		  <entry>With this setting the camera will compensate for the flash
-+light. It slightly warms up the colors and corresponds roughly to 5000...5500 K
-+color temperature.</entry>
-+		</row>
-+		<row>
-+		  <entry><constant>V4L2_WHITE_BALANCE_CLOUDY</constant>&nbsp;</entry>
-+		  <entry>White balance preset for moderately overcast sky.
-+This option corresponds approximately to 6500...8000 K color temperature
-+range.</entry>
-+		</row>
-+		<row>
-+		  <entry><constant>V4L2_WHITE_BALANCE_SHADE</constant>&nbsp;</entry>
-+		  <entry>White balance preset for shade or heavily overcast
-+sky. It corresponds approximately to 9000...10000 K color temperature.
-+</entry>
-+		</row>
-+	      </tbody>
-+	    </entrytbl>
-+	  </row>
-+	  <row><entry></entry></row>
-+
- 	</tbody>
-       </tgroup>
-     </table>
-diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
-index 4157d4c..abcbada 100644
---- a/drivers/media/video/v4l2-ctrls.c
-+++ b/drivers/media/video/v4l2-ctrls.c
-@@ -249,6 +249,19 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
- 		"Set Cb/Cr",
- 		NULL
- 	};
-+	static const char * const auto_n_preset_white_balance[] = {
-+		"Manual",
-+		"Auto",
-+		"Incandescent",
-+		"Fluorescent",
-+		"Fluorescent H",
-+		"Horizon",
-+		"Daylight",
-+		"Flash",
-+		"Cloudy",
-+		"Shade",
-+		NULL,
-+	};
- 	static const char * const tune_preemphasis[] = {
- 		"No Preemphasis",
- 		"50 Microseconds",
-@@ -418,6 +431,8 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
- 		return camera_exposure_auto;
- 	case V4L2_CID_COLORFX:
- 		return colorfx;
-+	case V4L2_CID_AUTO_N_PRESET_WHITE_BALANCE:
-+		return auto_n_preset_white_balance;
- 	case V4L2_CID_TUNE_PREEMPHASIS:
- 		return tune_preemphasis;
- 	case V4L2_CID_FLASH_LED_MODE:
-@@ -605,6 +620,7 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_IRIS_ABSOLUTE:		return "Iris, Absolute";
- 	case V4L2_CID_IRIS_RELATIVE:		return "Iris, Relative";
- 	case V4L2_CID_AUTO_EXPOSURE_BIAS:	return "Auto Exposure, Bias";
-+	case V4L2_CID_AUTO_N_PRESET_WHITE_BALANCE: return "White Balance, Auto & Preset";
- 
- 	/* FM Radio Modulator control */
- 	/* Keep the order of the 'case's the same as in videodev2.h! */
-@@ -728,6 +744,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_MPEG_STREAM_VBI_FMT:
- 	case V4L2_CID_EXPOSURE_AUTO:
- 	case V4L2_CID_COLORFX:
-+	case V4L2_CID_AUTO_N_PRESET_WHITE_BALANCE:
- 	case V4L2_CID_TUNE_PREEMPHASIS:
- 	case V4L2_CID_FLASH_LED_MODE:
- 	case V4L2_CID_FLASH_STROBE_SOURCE:
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index 8b174dc..243b2f4 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -1702,6 +1702,20 @@ enum  v4l2_exposure_auto_type {
- 
- #define V4L2_CID_AUTO_EXPOSURE_BIAS		(V4L2_CID_CAMERA_CLASS_BASE+19)
- 
-+#define V4L2_CID_AUTO_N_PRESET_WHITE_BALANCE	(V4L2_CID_CAMERA_CLASS_BASE+20)
-+enum v4l2_auto_n_preset_white_balance {
-+	V4L2_WHITE_BALANCE_MANUAL		= 0,
-+	V4L2_WHITE_BALANCE_AUTO			= 1,
-+	V4L2_WHITE_BALANCE_INCANDESCENT		= 2,
-+	V4L2_WHITE_BALANCE_FLUORESCENT		= 3,
-+	V4L2_WHITE_BALANCE_FLUORESCENT_H	= 4,
-+	V4L2_WHITE_BALANCE_HORIZON		= 5,
-+	V4L2_WHITE_BALANCE_DAYLIGHT		= 6,
-+	V4L2_WHITE_BALANCE_FLASH		= 7,
-+	V4L2_WHITE_BALANCE_CLOUDY		= 8,
-+	V4L2_WHITE_BALANCE_SHADE		= 9,
-+};
-+
- /* FM Modulator class control IDs */
- #define V4L2_CID_FM_TX_CLASS_BASE		(V4L2_CTRL_CLASS_FM_TX | 0x900)
- #define V4L2_CID_FM_TX_CLASS			(V4L2_CTRL_CLASS_FM_TX | 1)
--- 
-1.7.10
+The following changes since commit abed623ca59a7d1abed6c4e7459be03e25a90a1e:
 
+   [media] radio-sf16fmi: add support for SF16-FMD (2012-05-20 16:10:05 -0300)
+
+are available in the git repository at:
+
+   git://linuxtv.org/hgoede/gspca.git media-for_v3.5
+
+for you to fetch changes up to 49f3b5b2fb39a045e5742ed4a0b4b706c98c244b:
+
+   gspca-core: Fix buffers staying in queued state after a stream_off (2012-05-23 10:09:24 +0200)
+
+----------------------------------------------------------------
+Antonio Ospite (1):
+       gspca_ov534: make AGC and AWB controls independent
+
+Hans de Goede (10):
+       radio/si470x: Add support for the Axentia ALERT FM USB Receiver
+       snd_tea575x: Report correct frequency range for EU/US versus JA models
+       snd_tea575x: Make the module using snd_tea575x the fops owner
+       snd_tea575x: set_freq: update cached freq to the actual achieved frequency
+       bttv: Use btv->has_radio rather then the card info when registering the tuner
+       bttv: Remove unused needs_tvaudio card variable
+       bttv: The Hauppauge 61334 needs the msp3410 to do radio demodulation
+       gspca_pac7311: Correct number of controls
+       gscpa_sn9c20x: Move clustering of controls to after error checking
+       gspca-core: Fix buffers staying in queued state after a stream_off
+
+  drivers/hid/hid-core.c                        |    1 +
+  drivers/hid/hid-ids.h                         |    3 +
+  drivers/media/radio/radio-maxiradio.c         |    2 +-
+  drivers/media/radio/radio-sf16fmr2.c          |    2 +-
+  drivers/media/radio/si470x/radio-si470x-usb.c |    2 +
+  drivers/media/video/bt8xx/bttv-cards.c        |   84 ++-----------------------
+  drivers/media/video/bt8xx/bttv-driver.c       |    5 ++
+  drivers/media/video/bt8xx/bttv.h              |    1 -
+  drivers/media/video/bt8xx/bttvp.h             |    1 +
+  drivers/media/video/gspca/gspca.c             |    4 +-
+  drivers/media/video/gspca/ov534.c             |   31 +--------
+  drivers/media/video/gspca/pac7311.c           |    2 +-
+  drivers/media/video/gspca/sn9c20x.c           |   24 ++++---
+  include/sound/tea575x-tuner.h                 |    3 +-
+  sound/i2c/other/tea575x-tuner.c               |   21 ++++---
+  sound/pci/es1968.c                            |    2 +-
+  sound/pci/fm801.c                             |    4 +-
+  17 files changed, 59 insertions(+), 133 deletions(-)
+
+Regards,
+
+Hans
