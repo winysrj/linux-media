@@ -1,115 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:46844 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756560Ab2EYTxO (ORCPT
+Received: from smtp1-g21.free.fr ([212.27.42.1]:54250 "EHLO smtp1-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754926Ab2EXL2A convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 May 2012 15:53:14 -0400
-Date: Fri, 25 May 2012 21:52:53 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH 14/14] s5p-fimc: Add FIMC and MIPI-CSIS devices to CAM power
- domain
-In-reply-to: <1337975573-27117-1-git-send-email-s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: kyungmin.park@samsung.com, m.szyprowski@samsung.com,
-	riverful.kim@samsung.com, sw0312.kim@samsung.com,
-	s.nawrocki@samsung.com, devicetree-discuss@lists.ozlabs.org,
-	linux-samsung-soc@vger.kernel.org, b.zolnierkie@samsung.com
-Message-id: <1337975573-27117-14-git-send-email-s.nawrocki@samsung.com>
-Content-transfer-encoding: 7BIT
-References: <4FBFE1EC.9060209@samsung.com>
- <1337975573-27117-1-git-send-email-s.nawrocki@samsung.com>
+	Thu, 24 May 2012 07:28:00 -0400
+Received: from tele (unknown [IPv6:2a01:e35:2f5c:9de0:212:bfff:fe1e:9ce4])
+	by smtp1-g21.free.fr (Postfix) with ESMTP id 7521894016F
+	for <linux-media@vger.kernel.org>; Thu, 24 May 2012 13:27:53 +0200 (CEST)
+Date: Thu, 24 May 2012 13:29:41 +0200
+From: Jean-Francois Moine <moinejf@free.fr>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH] gspca: Maintainer change
+Message-ID: <20120524132941.674603a2@tele>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Hans de Goede accepted to be the new gspca maintainer.
 
-Signed-off-by: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Jean-François Moine <moinejf@free.fr>
 ---
- drivers/media/video/s5p-fimc/fimc-core.c |   15 +++++++++++++++
- drivers/media/video/s5p-fimc/mipi-csis.c |   15 +++++++++++++++
- 2 files changed, 30 insertions(+)
+ MAINTAINERS |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/drivers/media/video/s5p-fimc/fimc-core.c b/drivers/media/video/s5p-fimc/fimc-core.c
-index 30c6365..15c7cc6 100644
---- a/drivers/media/video/s5p-fimc/fimc-core.c
-+++ b/drivers/media/video/s5p-fimc/fimc-core.c
-@@ -19,6 +19,7 @@
- #include <linux/device.h>
- #include <linux/platform_device.h>
- #include <linux/pm_runtime.h>
-+#include <linux/pm_domain.h>
- #include <linux/list.h>
- #include <linux/io.h>
- #include <linux/of.h>
-@@ -1057,6 +1058,17 @@ static int fimc_m2m_resume(struct fimc_dev *fimc)
- 	return 0;
- }
+diff --git a/MAINTAINERS b/MAINTAINERS
+index f175f44..aaa63da 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -3061,8 +3061,7 @@ S:	Maintained
+ F:	drivers/media/video/gspca/t613.c
  
-+static void bus_add_dev_to_pd(struct device *dev)
-+{
-+	struct device_node *np;
-+
-+	np = of_parse_phandle(dev->of_node, "pd", 0);
-+	if (np)
-+		pm_genpd_of_add_device(np, dev);
-+
-+	of_node_put(np);
-+}
-+
- static int fimc_probe(struct platform_device *pdev)
- {
- 	struct fimc_drvdata *drv_data = NULL;
-@@ -1072,6 +1084,9 @@ static int fimc_probe(struct platform_device *pdev)
- 
- 	if (pdev->dev.of_node) {
- 		u32 id = 0;
-+
-+		bus_add_dev_to_pd(&pdev->dev);
-+
- 		of_id = of_match_node(fimc_of_match, pdev->dev.of_node);
- 		if (of_id)
- 			drv_data = of_id->data;
-diff --git a/drivers/media/video/s5p-fimc/mipi-csis.c b/drivers/media/video/s5p-fimc/mipi-csis.c
-index ffb820e..6858c92 100644
---- a/drivers/media/video/s5p-fimc/mipi-csis.c
-+++ b/drivers/media/video/s5p-fimc/mipi-csis.c
-@@ -22,6 +22,7 @@
- #include <linux/of.h>
- #include <linux/platform_device.h>
- #include <linux/pm_runtime.h>
-+#include <linux/pm_domain.h>
- #include <linux/regulator/consumer.h>
- #include <linux/slab.h>
- #include <linux/spinlock.h>
-@@ -529,6 +530,17 @@ static int s5pcsis_get_platform_data(struct platform_device *pdev,
- 	return 0;
- }
- 
-+static void bus_add_dev_to_pd(struct device *dev)
-+{
-+	struct device_node *np;
-+
-+	np = of_parse_phandle(dev->of_node, "pd", 0);
-+	if (np)
-+		pm_genpd_of_add_device(np, dev);
-+
-+	of_node_put(np);
-+}
-+
- static int __devinit s5pcsis_probe(struct platform_device *pdev)
- {
- 	struct resource *mem_res;
-@@ -543,6 +555,9 @@ static int __devinit s5pcsis_probe(struct platform_device *pdev)
- 	mutex_init(&state->lock);
- 	state->pdev = pdev;
- 
-+	if (pdev->dev.of_node)
-+		bus_add_dev_to_pd(&pdev->dev);
-+
- 	ret = s5pcsis_get_platform_data(pdev, state);
- 	if (ret < 0)
- 		return ret;
+ GSPCA USB WEBCAM DRIVER
+-M:	Jean-Francois Moine <moinejf@free.fr>
+-W:	http://moinejf.free.fr
++M:	Hans de Goede <hdegoede@redhat.com>
+ L:	linux-media@vger.kernel.org
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media.git
+ S:	Maintained
 -- 
 1.7.10
-
