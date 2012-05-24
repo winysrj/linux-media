@@ -1,115 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:56920 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753710Ab2ETNX7 (ORCPT
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:42148 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753826Ab2EXPQC (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 20 May 2012 09:23:59 -0400
-From: Akinobu Mita <akinobu.mita@gmail.com>
-To: linux-kernel@vger.kernel.org, akpm@linux-foundation.org
-Cc: Akinobu Mita <akinobu.mita@gmail.com>,
-	Anders Larsen <al@alarsen.net>,
-	Alasdair Kergon <agk@redhat.com>, dm-devel@redhat.com,
-	linux-fsdevel@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org, Mark Fasheh <mfasheh@suse.com>,
-	Joel Becker <jlbec@evilplan.org>, ocfs2-devel@oss.oracle.com,
-	Jan Kara <jack@suse.cz>, linux-ext4@vger.kernel.org,
-	Andreas Dilger <adilger.kernel@dilger.ca>,
-	"Theodore Ts'o" <tytso@mit.edu>
-Subject: [PATCH 01/10] string: introduce memweight
-Date: Sun, 20 May 2012 22:23:14 +0900
-Message-Id: <1337520203-29147-1-git-send-email-akinobu.mita@gmail.com>
+	Thu, 24 May 2012 11:16:02 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Received: from euspt1 ([210.118.77.14]) by mailout4.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0M4J00F68931GT80@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 24 May 2012 16:16:13 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0M4J00ASV92NOE@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 24 May 2012 16:15:59 +0100 (BST)
+Date: Thu, 24 May 2012 17:15:51 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH 2/7] s5p-fimc: Don't create multiple active links to same sink
+ entity
+In-reply-to: <1337872556-26406-1-git-send-email-s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: kyungmin.park@samsung.com, m.szyprowski@samsung.com,
+	riverful.kim@samsung.com, sw0312.kim@samsung.com,
+	s.nawrocki@samsung.com
+Message-id: <1337872556-26406-3-git-send-email-s.nawrocki@samsung.com>
+References: <1337872556-26406-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-memweight() is the function that counts the total number of bits set
-in memory area.  The memory area doesn't need to be aligned to
-long-word boundary unlike bitmap_weight().
+The driver is supposed to create active media link from sensor N
+(or its corresponding s5p-mipi-csis entity) to FIMC.N by default.
+Instead s5p-mipi-csis.N entity gets  always connected by a default
+active link to FIMC.N, regardless of there are parallel bus sensor
+entities already connected to FIMC.N. Correct this.
 
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Anders Larsen <al@alarsen.net>
-Cc: Alasdair Kergon <agk@redhat.com>
-Cc: dm-devel@redhat.com
-Cc: linux-fsdevel@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org
-Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: ocfs2-devel@oss.oracle.com
-Cc: Jan Kara <jack@suse.cz>
-Cc: linux-ext4@vger.kernel.org
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Andreas Dilger <adilger.kernel@dilger.ca>
-Cc: "Theodore Ts'o" <tytso@mit.edu>
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <s.nawrocki@samsung.com>
 ---
- include/linux/string.h |    3 +++
- lib/string.c           |   37 +++++++++++++++++++++++++++++++++++++
- 2 files changed, 40 insertions(+), 0 deletions(-)
+ drivers/media/video/s5p-fimc/fimc-mdevice.c |   23 +++++++++++++----------
+ 1 file changed, 13 insertions(+), 10 deletions(-)
 
-diff --git a/include/linux/string.h b/include/linux/string.h
-index e033564..ffe0442 100644
---- a/include/linux/string.h
-+++ b/include/linux/string.h
-@@ -145,4 +145,7 @@ static inline bool strstarts(const char *str, const char *prefix)
- 	return strncmp(str, prefix, strlen(prefix)) == 0;
- }
- #endif
-+
-+extern size_t memweight(const void *ptr, size_t bytes);
-+
- #endif /* _LINUX_STRING_H_ */
-diff --git a/lib/string.c b/lib/string.c
-index e5878de..c8b92a0 100644
---- a/lib/string.c
-+++ b/lib/string.c
-@@ -26,6 +26,7 @@
- #include <linux/export.h>
- #include <linux/bug.h>
- #include <linux/errno.h>
-+#include <linux/bitmap.h>
+diff --git a/drivers/media/video/s5p-fimc/fimc-mdevice.c b/drivers/media/video/s5p-fimc/fimc-mdevice.c
+index 7450dcd..dffe4da 100644
+--- a/drivers/media/video/s5p-fimc/fimc-mdevice.c
++++ b/drivers/media/video/s5p-fimc/fimc-mdevice.c
+@@ -502,12 +502,12 @@ static void fimc_md_unregister_entities(struct fimc_md *fmd)
+  * @source: the source entity to create links to all fimc entities from
+  * @sensor: sensor subdev linked to FIMC[fimc_id] entity, may be null
+  * @pad: the source entity pad index
+- * @fimc_id: index of the fimc device for which link should be enabled
++ * @link_mask: bitmask of the fimc devices for which link should be enabled
+  */
+ static int __fimc_md_create_fimc_sink_links(struct fimc_md *fmd,
+ 					    struct media_entity *source,
+ 					    struct v4l2_subdev *sensor,
+-					    int pad, int fimc_id)
++					    int pad, int link_mask)
+ {
+ 	struct fimc_sensor_info *s_info;
+ 	struct media_entity *sink;
+@@ -524,7 +524,7 @@ static int __fimc_md_create_fimc_sink_links(struct fimc_md *fmd,
+ 		if (!fmd->fimc[i]->variant->has_cam_if)
+ 			continue;
  
- #ifndef __HAVE_ARCH_STRNICMP
- /**
-@@ -824,3 +825,39 @@ void *memchr_inv(const void *start, int c, size_t bytes)
- 	return check_bytes8(start, value, bytes % 8);
- }
- EXPORT_SYMBOL(memchr_inv);
-+
-+/**
-+ * memweight - count the total number of bits set in memory area
-+ * @ptr: pointer to the start of the area
-+ * @bytes: the size of the area
-+ */
-+size_t memweight(const void *ptr, size_t bytes)
-+{
-+	size_t w = 0;
-+	size_t longs;
-+	union {
-+		const void *ptr;
-+		const unsigned char *b;
-+		unsigned long address;
-+	} bitmap;
-+
-+	for (bitmap.ptr = ptr; bytes > 0 && bitmap.address % sizeof(long);
-+			bytes--, bitmap.address++)
-+		w += hweight8(*bitmap.b);
-+
-+	for (longs = bytes / sizeof(long); longs > 0; ) {
-+		size_t bits = min_t(size_t, INT_MAX & ~(BITS_PER_LONG - 1),
-+					longs * BITS_PER_LONG);
-+
-+		w += bitmap_weight(bitmap.ptr, bits);
-+		bytes -= bits / BITS_PER_BYTE;
-+		bitmap.address += bits / BITS_PER_BYTE;
-+		longs -= bits / BITS_PER_LONG;
-+	}
-+
-+	for (; bytes > 0; bytes--, bitmap.address++)
-+		w += hweight8(*bitmap.b);
-+
-+	return w;
-+}
-+EXPORT_SYMBOL(memweight);
+-		flags = (i == fimc_id) ? MEDIA_LNK_FL_ENABLED : 0;
++		flags = ((1 << i) & link_mask) ? MEDIA_LNK_FL_ENABLED : 0;
+ 
+ 		sink = &fmd->fimc[i]->vid_cap.subdev.entity;
+ 		ret = media_entity_create_link(source, pad, sink,
+@@ -556,7 +556,10 @@ static int __fimc_md_create_fimc_sink_links(struct fimc_md *fmd,
+ 		if (!fmd->fimc_lite[i])
+ 			continue;
+ 
+-		flags = (i == fimc_id) ? MEDIA_LNK_FL_ENABLED : 0;
++		if (link_mask & (1 << (i + FIMC_MAX_DEVS)))
++			flags = MEDIA_LNK_FL_ENABLED;
++		else
++			flags = 0;
+ 
+ 		sink = &fmd->fimc_lite[i]->subdev.entity;
+ 		ret = media_entity_create_link(source, pad, sink,
+@@ -618,9 +621,8 @@ static int fimc_md_create_links(struct fimc_md *fmd)
+ 	struct s5p_fimc_isp_info *pdata;
+ 	struct fimc_sensor_info *s_info;
+ 	struct media_entity *source, *sink;
+-	int i, pad, fimc_id = 0;
+-	int ret = 0;
+-	u32 flags;
++	int i, pad, fimc_id = 0, ret = 0;
++	u32 flags, link_mask = 0;
+ 
+ 	for (i = 0; i < fmd->num_sensors; i++) {
+ 		if (fmd->sensor[i].subdev == NULL)
+@@ -672,19 +674,20 @@ static int fimc_md_create_links(struct fimc_md *fmd)
+ 		if (source == NULL)
+ 			continue;
+ 
++		link_mask = 1 << fimc_id++;
+ 		ret = __fimc_md_create_fimc_sink_links(fmd, source, sensor,
+-						       pad, fimc_id++);
++						       pad, link_mask);
+ 	}
+ 
+-	fimc_id = 0;
+ 	for (i = 0; i < ARRAY_SIZE(fmd->csis); i++) {
+ 		if (fmd->csis[i].sd == NULL)
+ 			continue;
+ 		source = &fmd->csis[i].sd->entity;
+ 		pad = CSIS_PAD_SOURCE;
+ 
++		link_mask = 1 << fimc_id++;
+ 		ret = __fimc_md_create_fimc_sink_links(fmd, source, NULL,
+-						       pad, fimc_id++);
++						       pad, link_mask);
+ 	}
+ 
+ 	/* Create immutable links between each FIMC's subdev and video node */
 -- 
-1.7.7.6
+1.7.10
 
