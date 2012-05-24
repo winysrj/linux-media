@@ -1,40 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:62399 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756498Ab2EHQ4T (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 May 2012 12:56:19 -0400
-Date: Tue, 8 May 2012 18:56:15 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-cc: Jonathan Corbet <corbet@lwn.net>
-Subject: [PATCH] V4L: marvell-ccic: (cosmetic) remove redundant variable
- assignment
-Message-ID: <Pine.LNX.4.64.1205081853430.7085@axis700.grange>
+Received: from relay3-d.mail.gandi.net ([217.70.183.195]:35805 "EHLO
+	relay3-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753459Ab2EXJ6n (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 24 May 2012 05:58:43 -0400
+Message-ID: <4FBE0650.20407@adsb.co.uk>
+Date: Thu, 24 May 2012 10:58:40 +0100
+From: Andrew Benham <adsb@adsb.co.uk>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Hans de Goede <hdegoede@redhat.com>
+CC: hverkuil@xs4all.nl,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] bttv: Use btv->has_radio rather then the card info when
+ registering the tuner
+References: <1337513292-3321-1-git-send-email-hdegoede@redhat.com> <1337513292-3321-2-git-send-email-hdegoede@redhat.com>
+In-Reply-To: <1337513292-3321-2-git-send-email-hdegoede@redhat.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The "ret = 0" assignment in mcam_vidioc_s_fmt_vid_cap() is redundant,
-because at that location "ret" is anyway guaranteed to be == 0.
+On 20/05/12 12:28, Hans de Goede wrote:
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
- drivers/media/video/marvell-ccic/mcam-core.c |    1 -
- 1 files changed, 0 insertions(+), 1 deletions(-)
+> After bttv_init_card2(), bttv_init_tuner(), and it should clearly use
+> the updated, dynamic has_radio value from btv->has_radio, rather then
+> the const value in the tvcards array.
+> 
+> This fixes the radio not working on my Hauppauge WinTV.
+> 
+> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+> ---
 
-diff --git a/drivers/media/video/marvell-ccic/mcam-core.c b/drivers/media/video/marvell-ccic/mcam-core.c
-index 996ac34..ce2b7b4 100644
---- a/drivers/media/video/marvell-ccic/mcam-core.c
-+++ b/drivers/media/video/marvell-ccic/mcam-core.c
-@@ -1356,7 +1356,6 @@ static int mcam_vidioc_s_fmt_vid_cap(struct file *filp, void *priv,
- 			goto out;
- 	}
- 	mcam_set_config_needed(cam, 1);
--	ret = 0;
- out:
- 	mutex_unlock(&cam->s_mutex);
- 	return ret;
+Thanks for this.  The radio on my Hauppauge WinTV last worked with the
+2.6.38 kernel.
+Since April 2012 there's been no analogue TV in the London area, and as
+the radio part of the card didn't work I was about to throw it away :-(
+But a quick rebuild of the module and I have radio again.  Many thanks.
+
+> diff --git a/drivers/media/video/bt8xx/bttv-cards.c b/drivers/media/video/bt8xx/bttv-cards.c
+> index ff2933a..1c030fe 100644
+> --- a/drivers/media/video/bt8xx/bttv-cards.c
+> +++ b/drivers/media/video/bt8xx/bttv-cards.c
+> @@ -3649,7 +3649,7 @@ void __devinit bttv_init_tuner(struct bttv *btv)
+>  		struct tuner_setup tun_setup;
+>  
+>  		/* Load tuner module before issuing tuner config call! */
+> -		if (bttv_tvcards[btv->c.type].has_radio)
+> +		if (btv->has_radio)
+>  			v4l2_i2c_new_subdev(&btv->c.v4l2_dev,
+>  				&btv->c.i2c_adap, "tuner",
+>  				0, v4l2_i2c_tuner_addrs(ADDRS_RADIO));
+> @@ -3664,7 +3664,7 @@ void __devinit bttv_init_tuner(struct bttv *btv)
+>  		tun_setup.type = btv->tuner_type;
+>  		tun_setup.addr = addr;
+>  
+> -		if (bttv_tvcards[btv->c.type].has_radio)
+> +		if (btv->has_radio)
+>  			tun_setup.mode_mask |= T_RADIO;
+>  
+>  		bttv_call_all(btv, tuner, s_type_addr, &tun_setup);
+
 -- 
-1.7.2.5
+Andrew Benham     Southgate, London N14, United Kingdom
 
+The gates in my computer are AND OR and NOT, not "Bill"
