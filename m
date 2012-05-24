@@ -1,36 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:36484 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752823Ab2EUQZZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 May 2012 12:25:25 -0400
-Message-ID: <4FBA6C60.7010608@redhat.com>
-Date: Mon, 21 May 2012 13:25:04 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:47254 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751293Ab2EXEpW convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 24 May 2012 00:45:22 -0400
 MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: Hans-Frieder Vogt <hfvogt@gmx.net>, linux-media@vger.kernel.org,
-	Thomas Mair <thomas.mair86@googlemail.com>
-Subject: Re: [PATCH 2/3] fc001x: tuner driver for FC0012, version 0.5
-References: <201205062256.55468.hfvogt@gmx.net> <4FB92224.2010008@iki.fi>    <4FB9A7B3.1030605@redhat.com>    <48b2cb9f19b1063eb7b8d8bd8dbfc957.squirrel@webmail.kapsi.fi>    <4FBA5140.1060102@redhat.com> <6dc3e929311568a87d15350a3756af7c.squirrel@webmail.kapsi.fi>
-In-Reply-To: <6dc3e929311568a87d15350a3756af7c.squirrel@webmail.kapsi.fi>
+In-Reply-To: <20120508234641.GV5088@atomide.com>
+References: <1335971749-21258-1-git-send-email-saaguirre@ti.com>
+	<1335971749-21258-9-git-send-email-saaguirre@ti.com>
+	<20120508234641.GV5088@atomide.com>
+Date: Wed, 23 May 2012 23:45:22 -0500
+Message-ID: <CAC-OdnBLvZ2TR52bRHXDDtsvo-PUJ-N2Qj3gWaGhq3Ri+dv-bw@mail.gmail.com>
+Subject: Re: [PATCH v3 08/10] arm: omap4panda: Add support for omap4iss camera
+From: Sergio Aguirre <sergio.a.aguirre@gmail.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Sergio Aguirre <saaguirre@ti.com>, linux-media@vger.kernel.org,
+	linux-omap@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 21-05-2012 13:14, Antti Palosaari escreveu:
+Hi Tony,
 
->> With regard to the merged patches, if they are really broken, please
->> submit
->> me a patch removing them.
-> 
-> They are not broken mean of broken. Let those be as it is now and apply
-> fixes top of that.
+On Tue, May 8, 2012 at 6:46 PM, Tony Lindgren <tony@atomide.com> wrote:
+> * Sergio Aguirre <saaguirre@ti.com> [120502 08:21]:
+>> This adds support for camera interface with the support for
+>> following sensors:
+>>
+>> - OV5640
+>> - OV5650
+>
+> It seems that at this point we should initialize new things like this
+> with DT only. We don't quite yet have the muxing in place, but I'd
+> rather not add yet another big platform_data file for something that
+> does not even need to be there for DT booted devices.
 
-OK.
+Ok.
 
-> 
-> regards
-> Antti
-> 
+I'll look at that.
 
+By the way, I've been very out of the loop on al DT related development..
+
+Are these instructions valid for current master k.org branch?
+
+http://omappedia.org/wiki/Device_Tree#Booting_with_DT_blob
+
+Regards,
+Sergio
+
+>
+> Regards,
+>
+> Tony
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
