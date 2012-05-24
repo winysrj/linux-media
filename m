@@ -1,124 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:3058 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753103Ab2E0RPz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 27 May 2012 13:15:55 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [RFC PATCH 1/3] media: reorganize the main Kconfig items
-Date: Sun, 27 May 2012 19:15:44 +0200
-References: <4FC24E34.3000406@redhat.com> <1338137803-12231-1-git-send-email-mchehab@redhat.com> <1338137803-12231-2-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1338137803-12231-2-git-send-email-mchehab@redhat.com>
+Received: from mx1.redhat.com ([209.132.183.28]:33929 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754778Ab2EXKV2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 24 May 2012 06:21:28 -0400
+Message-ID: <4FBE0BA3.3040400@redhat.com>
+Date: Thu, 24 May 2012 07:21:23 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201205271915.44288.hverkuil@xs4all.nl>
+To: Jean-Francois Moine <moinejf@free.fr>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans de Goede <hdegoede@redhat.com>
+Subject: Re: gspca maintenance handover
+References: <20120524103429.58195601@tele>
+In-Reply-To: <20120524103429.58195601@tele>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Just a few typos...
+Hi Jean-François,
 
-On Sun May 27 2012 18:56:41 Mauro Carvalho Chehab wrote:
-> Change the main items to:
+Em 24-05-2012 05:34, Jean-Francois Moine escreveu:
+> Hi Mauro,
 > 
-> <m> Multimedia support  --->
->    [ ]   Webcams and video grabbers support
->    [ ]   Analog TV API and drivers support
->    [ ]   Digital TV support
->    [ ]   AM/FM radio receivers/transmitters support
->    [ ]   Remote Controller support
+> I was glad and proud to work for 4 years in the Linux media team, but,
+> now, I am a bit weary of webcams!
+>
+> I proposed to Hans de Goede to take the maintenance of gspca. He
+> perfectly knows the code and does a good work. The driver will be in
+> safe hands.
+
+Thank you for all your good work among those 4 years! You did a great job
+with gspca, integrating it upstream and maintaining it along this time.
+
+While it is a bad news that you're not so focused on webcam anymore, it
+is great to know that Hans accepted the job of maintaining the drivers.
+
+I hope you all the best!
+
+Could you please write a patch changing the corresponding entries at
+MAINTAINERS file? 
+
+> Anyway, I will not fully give up. I will stay in the list and help if
+> any problem.
+
+Your further contributions will be very welcome!
 > 
-> This provides an interface that is clearer to end users that
-> are compiling the Kernel, and will allow the building system
-> to automatically unselect drivers for unused functions.
+> Best regards.
 > 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> ---
->  drivers/media/Kconfig               |  110 ++++++++++++++++++++++++-----------
->  drivers/media/common/tuners/Kconfig |    1 +
->  drivers/media/dvb/frontends/Kconfig |    1 +
->  drivers/media/rc/Kconfig            |   29 ++++-----
->  4 files changed, 90 insertions(+), 51 deletions(-)
-> 
-> diff --git a/drivers/media/Kconfig b/drivers/media/Kconfig
-> index 9575db4..8deddcd 100644
-> --- a/drivers/media/Kconfig
-> +++ b/drivers/media/Kconfig
-> @@ -6,20 +6,83 @@ menuconfig MEDIA_SUPPORT
->  	tristate "Multimedia support"
->  	depends on HAS_IOMEM
->  	help
-> -	  If you want to use Video for Linux, DVB for Linux, or DAB adapters,
-> +	  If you want to use Webcams, Video grabber devices and/or TV devices
->  	  enable this option and other options below.
->  
-> +	  Additional info and docs are available on the web at
-> +	  <http://linuxtv.org>
-> +
->  if MEDIA_SUPPORT
->  
->  comment "Multimedia core support"
->  
->  #
-> +# Multimedia support - automatically enable V4L2 and DVB core
-> +#
-> +config MEDIA_WEBCAM_SUPP
-> +	bool "Webcams and video grabbers support"
-> +	---help---
-> +	  Enable support for webcams and video grabbers.
-> +
-> +	  Say Y when you have a webcam or a video capture grabber board.
-> +
-> +config MEDIA_ANALOG_TV_SUPP
-> +	bool "Analog TV API and drivers support"
 
-I would rename this to "Analog TV support" to be consistent with the digital
-option.
-
-> +	---help---
-> +	  Enable analog TV support.
-> +
-> +	  Say Y when you have a TV board with analog support of with an
-
-Typo: of with an -> or with a
-
-> +	  hybrid analog/digital TV chipset.
-> +
-> +	  Note: There are several DVB cards that are based on chips that
-> +		supports both analog and digital TV. Disabling this option
-
-supports -> support
-
-> +		will disable support for them.
-> +
-> +config MEDIA_DIGITAL_TV_SUPP
-> +	bool "Digital TV support"
-> +	---help---
-> +	  Enable digital TV support.
-> +
-> +	  Say Y when you have a board with digital support or a board with
-> +	  hybrid digital TV and analog TV.
-> +
-> +config MEDIA_RADIO_SUPP
-> +	bool "AM/FM radio receivers/transmitters support"
-> +	---help---
-> +	  Enable AM/FM radio support.
-> +
-> +	  Additional info and docs are available on the web at
-> +	  <http://linuxtv.org>
-> +
-> +	  Say Y when you have a board with radio support.
-> +
-> +	  Note: There are several TV cards that are based on chips that
-> +		supports radio reception Disabling this option will
-
-supports -> support
-
-Also add a period after reception.
-
-Regards,
-
-	Hans
+Best regards,
+Mauro
