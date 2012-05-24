@@ -1,44 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:40367 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751859Ab2E1Lwp (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:64861 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751364Ab2EXPTh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 May 2012 07:52:45 -0400
-Received: by obbtb18 with SMTP id tb18so5271230obb.19
-        for <linux-media@vger.kernel.org>; Mon, 28 May 2012 04:52:44 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <201205281227.46866.hverkuil@xs4all.nl>
-References: <2396617.gGNm1rAEoQ@avalon>
-	<1335962403-20706-1-git-send-email-sakari.ailus@iki.fi>
-	<201205281227.46866.hverkuil@xs4all.nl>
-Date: Mon, 28 May 2012 08:52:44 -0300
-Message-ID: <CALF0-+WuL=b8OXARVkzqdd5dhe9_tvqb=Rh0kqTk78_co9JpYg@mail.gmail.com>
-Subject: Re: [PATCH v3 1/1] v4l: drop v4l2_buffer.input and V4L2_BUF_FLAG_INPUT
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org,
-	laurent.pinchart@ideasonboard.com
-Content-Type: text/plain; charset=ISO-8859-1
+	Thu, 24 May 2012 11:19:37 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: text/plain; charset=ISO-8859-1
+Received: from euspt2 ([210.118.77.13]) by mailout3.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0M4J00A1H9796L80@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 24 May 2012 16:18:45 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0M4J00L8O98L1H@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 24 May 2012 16:19:33 +0100 (BST)
+Received: from [106.116.37.156] (unknown [106.116.37.156])
+	by linux.samsung.com (Postfix) with ESMTP id 9948C27004B	for
+ <linux-media@vger.kernel.org>; Thu, 24 May 2012 17:31:21 +0200 (CEST)
+Date: Thu, 24 May 2012 17:19:35 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: [PATCH 0/7] s5p-fimc driver fixes
+In-reply-to: <1337872556-26406-1-git-send-email-s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Message-id: <4FBE5187.4070002@samsung.com>
+References: <1337872556-26406-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
-
-On Mon, May 28, 2012 at 7:27 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> Hi Ezequiel,
->
-> I'm just bringing this proposal to your attention as I am wondering how your driver (and
-> the old easycap driver that your driver will replace) handle the easycap device with
-> multiple inputs? Is it cycling through all inputs? In that case we might need the input
-> field.
->
-
-I've been delaying the multiple input device handling because:
-1) I wanted to understand the simpler case first, and
-2) I didn't actually own the device (I've bought it a few days ago).
-
-So, I'm gonna take a look at it and let you all now, as soon
-as possible.
-
-Thanks,
-Ezequiel.
+On 05/24/2012 05:15 PM, Sylwester Nawrocki wrote:
+> The following is a couple of s5p-fimc driver bug fixes for v3.4-rcX. 
+                                                            ^^^^^^^
+Oops, of course v3.5-rc, not v3.4-rc.
