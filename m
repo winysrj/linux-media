@@ -1,148 +1,146 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:62535 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756073Ab2EEPJE convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 5 May 2012 11:09:04 -0400
-Date: Sat, 5 May 2012 17:09:01 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: "Aguirre, Sergio" <saaguirre@ti.com>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>, Qing Xu <qingx@marvell.com>,
-	Jonathan Corbet <corbet@lwn.net>
-Subject: Re: [PATCH] v4l: soc-camera: Add support for enum_frameintervals
- ioctl
-In-Reply-To: <CAKnK67SLmeU869TsW3Ls+gs4iX_DvYo32_2rKmtKE-mCMtzpzg@mail.gmail.com>
-Message-ID: <Pine.LNX.4.64.1205051642210.28277@axis700.grange>
-References: <CAKnK67SK+CKBL-Dx0V0nyYtEWN3wp3D90M9irFCQOmqiX2fKPw@mail.gmail.com>
- <Pine.LNX.4.64.1205041541100.21890@axis700.grange>
- <CAKnK67SLmeU869TsW3Ls+gs4iX_DvYo32_2rKmtKE-mCMtzpzg@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from smtp.nokia.com ([147.243.128.24]:51039 "EHLO mgw-da01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751227Ab2EYKIB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 25 May 2012 06:08:01 -0400
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com
+Subject: [media-ctl PATCH v3.1 2/4] Compose rectangle support for libv4l2subdev
+Date: Fri, 25 May 2012 13:12:05 +0300
+Message-Id: <1337940725-17045-1-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1337725860-11048-2-git-send-email-sakari.ailus@iki.fi>
+References: <1337725860-11048-2-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 4 May 2012, Aguirre, Sergio wrote:
-
-> Hi Guennadi,
-> 
-> No problem.
-> 
-> On Fri, May 4, 2012 at 10:05 AM, Guennadi Liakhovetski
-> <g.liakhovetski@gmx.de> wrote:
-> > Hi Sergio
-> >
-> > Sorry about the delay.
-> >
-> > On Wed, 18 Apr 2012, Aguirre, Sergio wrote:
-> >
-> >> From: Sergio Aguirre <saaguirre@ti.com>
-> >>
-> >> Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
-> >> ---
-> >>  drivers/media/video/soc_camera.c |   37 +++++++++++++++++++++++++++++++++++++
-> >>  include/media/soc_camera.h       |    1 +
-> >>  2 files changed, 38 insertions(+), 0 deletions(-)
-> >>
-> >> diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
-> >> index eb25756..62c8956 100644
-> >> --- a/drivers/media/video/soc_camera.c
-> >> +++ b/drivers/media/video/soc_camera.c
-> >> @@ -266,6 +266,15 @@ static int soc_camera_enum_fsizes(struct file
-> >> *file, void *fh,
-> >>       return ici->ops->enum_fsizes(icd, fsize);
-> >>  }
-> >>
-> >> +static int soc_camera_enum_fivals(struct file *file, void *fh,
-> >
-> > "fivals" is a bit short for my taste. Yes, I know about the
-> > *_enum_fsizes() precedent in soc_camera.c, we should have used a more
-> > descriptive name for that too. So, maybe I'll push a patch to change that
-> > to enum_frmsizes() or enum_framesizes().
-> 
-> Agreed.
-> 
-> >
-> > But that brings in a larger question, which is also the reason, why I
-> > added a couple more people to the CC: the following 3 operations in struct
-> > v4l2_subdev_video_ops don't make me particularly happy:
-> >
-> >        int (*enum_framesizes)(struct v4l2_subdev *sd, struct v4l2_frmsizeenum *fsize);
-> >        int (*enum_frameintervals)(struct v4l2_subdev *sd, struct v4l2_frmivalenum *fival);
-> >        int (*enum_mbus_fsizes)(struct v4l2_subdev *sd,
-> >                             struct v4l2_frmsizeenum *fsize);
-> >
-> > The problems are:
-> >
-> > 1. enum_framesizes and enum_mbus_fsizes seem to be identical (yes, I see
-> > my Sob under the latter:-()
-> 
-> Yeah, IMHO, the mbus one should go, since there's no mbus specific structure
-> being handed as a parameter.
-
-Right, we can do that.
-
-> > 2. both struct v4l2_frmsizeenum and struct v4l2_frmivalenum are the
-> > structs, used in the respective V4L2 ioctl()s, and they both contain a
-> > field for a fourcc value, which doesn't make sense to subdevice drivers.
-> > So far the only driver combination in the mainline, that I see, that uses
-> > these operations is marvell-ccic & ov7670. These drivers just ignore the
-> > pixel format. Relatively recently enum_mbus_fsizes() has been added to
-> > soc-camera, and this patch is adding enum_frameintervals(). Both these
-> > implementations abuse the .pixel_format field to pass a media-bus code
-> > value in it to subdevice drivers. This sends meaningful information to
-> > subdevice drivers, but is really a hack, rather than a proper
-> > implementation.
-> 
-> True.
-> 
-> >
-> > Any idea how to improve this? Shall we create mediabus clones of those
-> > structs with an mbus code instead of fourcc, and drop one of the above
-> > enum_framesizes() operations?
-> 
-> Well, to add more confusion to this.. :)
-> 
-> We have this v4l2-subdev IOCTLs exported to userspace:
-> 
-> #define VIDIOC_SUBDEV_ENUM_FRAME_SIZE \
-> 			_IOWR('V', 74, struct v4l2_subdev_frame_size_enum)
-> #define VIDIOC_SUBDEV_ENUM_FRAME_INTERVAL \
-> 			_IOWR('V', 75, struct v4l2_subdev_frame_interval_enum)
-> 
-> Which in "drivers/media/video/v4l2-subdev.c", are translated to pad ops:
-> - v4l2_subdev_call(... enum_frame_size ...);
-> - v4l2_subdev_call(... enum_frame_interval ...);
-> 
-> respectively.
-> 
-> So, this is also another thing that's causing some confusion.
-
-Wow, didn't know about those. I was about to propose to use those in video 
-subdev ops, but then I noticed: pad operations don't support stepwise 
-enumerations. struct v4l2_subdev_frame_size_enum seems to implement 
-continuous enumeration implicitly, with discrete being a particular 
-degenerate case of it. struct v4l2_subdev_frame_interval_enum only 
-implements discrete enumeration only. I personally don't have a problem 
-with that, I'm not a big fan of these enumeration operations anyway, and 
-AFAICS, the only subdevice driver, implementing those video operations is 
-ov7670, and it implements only DISCRETE.
-
-So, would it be good enough for everyone to drop enum_mbus_fsizes() and to 
-convert enum_frameintervals() and enum_framesizes() video operations to 
-use structs from pad operations and just ignore the pad field? Any 
-objections?
-
-> Does soc_camera use pad ops?
-
-No, not yet.
-
-> Regards,
-> Sergio
-
-Thanks
-Guennadi
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ src/main.c       |   14 ++++++++++++++
+ src/options.c    |    6 ++++--
+ src/v4l2subdev.c |   32 +++++++++++++++++++++++---------
+ 3 files changed, 41 insertions(+), 11 deletions(-)
+
+diff --git a/src/main.c b/src/main.c
+index 5d88b46..0b94f2a 100644
+--- a/src/main.c
++++ b/src/main.c
+@@ -77,6 +77,20 @@ static void v4l2_subdev_print_format(struct media_entity *entity,
+ 		printf("\n\t\t crop:(%u,%u)/%ux%u", rect.left, rect.top,
+ 		       rect.width, rect.height);
+ 
++	ret = v4l2_subdev_get_selection(entity, &rect, pad,
++					V4L2_SUBDEV_SEL_TGT_COMPOSE_BOUNDS,
++					which);
++	if (ret == 0)
++		printf("\n\t\t compose.bounds:%u,%u/%ux%u",
++		       rect.left, rect.top, rect.width, rect.height);
++
++	ret = v4l2_subdev_get_selection(entity, &rect, pad,
++					V4L2_SUBDEV_SEL_TGT_COMPOSE_ACTUAL,
++					which);
++	if (ret == 0)
++		printf("\n\t\t compose:%u,%u/%ux%u",
++		       rect.left, rect.top, rect.width, rect.height);
++
+ 	printf("]");
+ }
+ 
+diff --git a/src/options.c b/src/options.c
+index 46f6bef..8e80bd0 100644
+--- a/src/options.c
++++ b/src/options.c
+@@ -56,12 +56,14 @@ static void usage(const char *argv0, int verbose)
+ 	printf("\tv4l2                = pad, '[', v4l2-cfgs ']' ;\n");
+ 	printf("\tv4l2-cfgs           = v4l2-cfg [ ',' v4l2-cfg ] ;\n");
+ 	printf("\tv4l2-cfg            = v4l2-mbusfmt | v4l2-crop\n");
+-	printf("\t                      | v4l2 frame interval ;\n");
++	printf("\t                      | v4l2-compose | v4l2 frame interval ;\n");
+ 	printf("\tv4l2-mbusfmt        = 'fmt:', fcc, '/', size ;\n");
+ 	printf("\tpad                 = entity, ':', pad number ;\n");
+ 	printf("\tentity              = entity number | ( '\"', entity name, '\"' ) ;\n");
+ 	printf("\tsize                = width, 'x', height ;\n");
+-	printf("\tv4l2-crop           = 'crop:(', left, ',', top, ')/', size ;\n");
++	printf("\tv4l2-crop           = 'crop:', v4l2-rectangle ;\n");
++	printf("\tv4l2-compose        = 'compose:', v4l2-rectangle ;\n");
++	printf("\tv4l2-rectangle      = '(', left, ',', top, ')/', size ;\n");
+ 	printf("\tv4l2 frame interval = '@', numerator, '/', denominator ;\n");
+ 	printf("where the fields are\n");
+ 	printf("\tentity number   Entity numeric identifier\n");
+diff --git a/src/v4l2subdev.c b/src/v4l2subdev.c
+index 2b4a923..a29614f 100644
+--- a/src/v4l2subdev.c
++++ b/src/v4l2subdev.c
+@@ -325,8 +325,8 @@ static int icanhasstr(const char *str, const char **p)
+ 
+ static struct media_pad *v4l2_subdev_parse_pad_format(
+ 	struct media_device *media, struct v4l2_mbus_framefmt *format,
+-	struct v4l2_rect *crop, struct v4l2_fract *interval, const char *p,
+-	char **endp)
++	struct v4l2_rect *crop, struct v4l2_rect *compose,
++	struct v4l2_fract *interval, const char *p, char **endp)
+ {
+ 	struct media_pad *pad;
+ 	char *end;
+@@ -373,6 +373,15 @@ static struct media_pad *v4l2_subdev_parse_pad_format(
+ 			continue;
+ 		}
+ 
++		if (!icanhasstr("compose:", &p)) {
++			ret = v4l2_subdev_parse_rectangle(compose, p, &end);
++			if (ret < 0)
++				return NULL;
++
++			for (p = end; isspace(*p); p++);
++			continue;
++		}
++
+ 		if (*p == '@') {
+ 			ret = v4l2_subdev_parse_frame_interval(interval, ++p, &end);
+ 			if (ret < 0)
+@@ -486,30 +495,35 @@ static int v4l2_subdev_parse_setup_format(struct media_device *media,
+ 	struct v4l2_mbus_framefmt format = { 0, 0, 0 };
+ 	struct media_pad *pad;
+ 	struct v4l2_rect crop = { -1, -1, -1, -1 };
++	struct v4l2_rect compose = crop;
+ 	struct v4l2_fract interval = { 0, 0 };
+ 	unsigned int i;
+ 	char *end;
+ 	int ret;
+ 
+-	pad = v4l2_subdev_parse_pad_format(media, &format, &crop, &interval,
+-					   p, &end);
++	pad = v4l2_subdev_parse_pad_format(media, &format, &crop, &compose,
++					   &interval, p, &end);
+ 	if (pad == NULL) {
+ 		media_dbg(media, "Unable to parse format\n");
+ 		return -EINVAL;
+ 	}
+ 
+-	if (pad->flags & MEDIA_PAD_FL_SOURCE) {
+-		ret = set_selection(pad, V4L2_SUBDEV_SEL_TGT_CROP_ACTUAL, &crop);
++	if (pad->flags & MEDIA_PAD_FL_SINK) {
++		ret = set_format(pad, &format);
+ 		if (ret < 0)
+ 			return ret;
+ 	}
+ 
+-	ret = set_format(pad, &format);
++	ret = set_selection(pad, V4L2_SUBDEV_SEL_TGT_CROP_ACTUAL, &crop);
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	if (pad->flags & MEDIA_PAD_FL_SINK) {
+-		ret = set_selection(pad, V4L2_SUBDEV_SEL_TGT_CROP_ACTUAL, &crop);
++	ret = set_selection(pad, V4L2_SUBDEV_SEL_TGT_COMPOSE_ACTUAL, &compose);
++	if (ret < 0)
++		return ret;
++
++	if (pad->flags & MEDIA_PAD_FL_SOURCE) {
++		ret = set_format(pad, &format);
+ 		if (ret < 0)
+ 			return ret;
+ 	}
+-- 
+1.7.2.5
+
