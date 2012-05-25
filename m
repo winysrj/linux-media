@@ -1,86 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:35374 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751600Ab2EHRag (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 May 2012 13:30:36 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Kartik Mohta <kartikmohta@gmail.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH] mt9v032: Correct the logic for the auto-exposure setting
-Date: Tue, 08 May 2012 19:30:36 +0200
-Message-ID: <5479985.bGgdD70iaC@avalon>
-In-Reply-To: <CABPY-JfB7sHDsCSPMWEfaHW5GpgrDtn6On48YQLEQ4+WG=0Fmw@mail.gmail.com>
-References: <1335997148-4915-1-git-send-email-kartikmohta@gmail.com> <8912304.YZOJNbqn9K@avalon> <CABPY-JfB7sHDsCSPMWEfaHW5GpgrDtn6On48YQLEQ4+WG=0Fmw@mail.gmail.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mail-pz0-f46.google.com ([209.85.210.46]:48997 "EHLO
+	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757302Ab2EYRjS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 25 May 2012 13:39:18 -0400
+Received: by mail-pz0-f46.google.com with SMTP id y13so1530415dad.19
+        for <linux-media@vger.kernel.org>; Fri, 25 May 2012 10:39:18 -0700 (PDT)
+From: Sachin Kamat <sachin.kamat@linaro.org>
+To: linux-media@vger.kernel.org
+Cc: s.nawrocki@samsung.com, mchehab@infradead.org,
+	sachin.kamat@linaro.org, patches@linaro.org
+Subject: [PATCH 3/4] [media] s5p-fimc: Add missing static storage class in fimc-core.c file
+Date: Fri, 25 May 2012 23:08:52 +0530
+Message-Id: <1337967533-22240-3-git-send-email-sachin.kamat@linaro.org>
+In-Reply-To: <1337967533-22240-1-git-send-email-sachin.kamat@linaro.org>
+References: <1337967533-22240-1-git-send-email-sachin.kamat@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kartik,
+Fixes the following sparse warning:
+drivers/media/video/s5p-fimc/fimc-core.c:466:5: warning: symbol 'fimc_set_color_effect' was not declared. Should it be static?
 
-On Tuesday 08 May 2012 11:51:29 Kartik Mohta wrote:
-> On Tue, May 8, 2012 at 7:12 AM, Laurent Pinchart wrote:
-> > On Wednesday 02 May 2012 18:19:08 Kartik Mohta wrote:
-> >> The driver uses the ctrl value passed in as a bool to determine whether
-> >> to enable auto-exposure, but the auto-exposure setting is defined as an
-> >> enum where AUTO has a value of 0 and MANUAL has a value of 1. This leads
-> >> to a reversed logic where if you send in AUTO, it actually sets manual
-> >> exposure and vice-versa.
-> >> 
-> >> Signed-off-by: Kartik Mohta <kartikmohta@gmail.com>
-> >> ---
-> >>  drivers/media/video/mt9v032.c |    8 +++++++-
-> >>  1 file changed, 7 insertions(+), 1 deletion(-)
-> >> 
-> >> diff --git a/drivers/media/video/mt9v032.c
-> >> b/drivers/media/video/mt9v032.c
-> >> index 75e253a..8ea8737 100644
-> >> --- a/drivers/media/video/mt9v032.c
-> >> +++ b/drivers/media/video/mt9v032.c
-> >> @@ -470,6 +470,7 @@ static int mt9v032_s_ctrl(struct v4l2_ctrl *ctrl)
-> >>                       container_of(ctrl->handler, struct mt9v032, ctrls);
-> >>       struct i2c_client *client = v4l2_get_subdevdata(&mt9v032->subdev);
-> >>       u16 data;
-> >> +     int aec_value;
-> >> 
-> >>       switch (ctrl->id) {
-> >>       case V4L2_CID_AUTOGAIN:
-> >> @@ -480,8 +481,13 @@ static int mt9v032_s_ctrl(struct v4l2_ctrl *ctrl)
-> >>               return mt9v032_write(client, MT9V032_ANALOG_GAIN,
-> >> ctrl->val);
-> >> 
-> >>       case V4L2_CID_EXPOSURE_AUTO:
-> >> +             if(ctrl->val == V4L2_EXPOSURE_MANUAL)
-> >> +                     aec_value = 0;
-> >> +             else
-> >> +                     aec_value = 1;
-> >> +
-> >>               return mt9v032_update_aec_agc(mt9v032, MT9V032_AEC_ENABLE,
-> >> -                                           ctrl->val);
-> >> +                                           aec_value);
-> > 
-> > What about just
-> > 
-> >                return mt9v032_update_aec_agc(mt9v032, MT9V032_AEC_ENABLE,
-> >                                              !ctrl->val);
-> > 
-> > If you're fine with that change I'll modify the patch accordingly, there's
-> > no need to resubmit (I'll of course keep the patch attribution).
-> 
-> That should work since the only supported exposure modes are auto and manual
-> with enum values 0 and 1 respectively, but then aren't you depending on the
-> values of the enum to not change in the future?
+Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+---
+ drivers/media/video/s5p-fimc/fimc-core.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-The values are part of the V4L2 public API so they can't change.
-
-> Also the change gives an impression that the value is a bool which it is
-> not. If that is fine, you can change it.
-
-OK thank you.
-
+diff --git a/drivers/media/video/s5p-fimc/fimc-core.c b/drivers/media/video/s5p-fimc/fimc-core.c
+index c2d621c..02c82c7 100644
+--- a/drivers/media/video/s5p-fimc/fimc-core.c
++++ b/drivers/media/video/s5p-fimc/fimc-core.c
+@@ -463,7 +463,7 @@ void fimc_prepare_dma_offset(struct fimc_ctx *ctx, struct fimc_frame *f)
+ 	    f->fmt->color, f->dma_offset.y_h, f->dma_offset.y_v);
+ }
+ 
+-int fimc_set_color_effect(struct fimc_ctx *ctx, enum v4l2_colorfx colorfx)
++static int fimc_set_color_effect(struct fimc_ctx *ctx, enum v4l2_colorfx colorfx)
+ {
+ 	struct fimc_effect *effect = &ctx->effect;
+ 
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.5.4
 
