@@ -1,47 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:43613 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758247Ab2ENXU7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 May 2012 19:20:59 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: linux-media@vger.kernel.org, sakari.ailus@iki.fi,
-	t.stanislaws@samsung.com, Kyungmin Park <kyungmin.park@samsung.com>
-Subject: Re: [PATCH] V4L: Rename V4L2_SEL_TGT_[CROP/COMPOSE]_ACTIVE to V4L2_SEL_TGT_[CROP/COMPOSE]
-Date: Tue, 15 May 2012 01:21:07 +0200
-Message-ID: <12276297.m66sSU3uS4@avalon>
-In-Reply-To: <1337015823-13603-1-git-send-email-s.nawrocki@samsung.com>
-References: <1337015823-13603-1-git-send-email-s.nawrocki@samsung.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:33649 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752348Ab2EYRoc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 25 May 2012 13:44:32 -0400
+Message-ID: <4FBFC4FD.50108@iki.fi>
+Date: Fri, 25 May 2012 20:44:29 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: linux-media <linux-media@vger.kernel.org>,
+	Patrick Boettcher <pboettcher@kernellabs.com>
+Subject: Re: [RFCv1] DVB-USB improvements [alternative 2]
+References: <4FB95A3B.9070800@iki.fi> <4FB9BB75.9040703@redhat.com>
+In-Reply-To: <4FB9BB75.9040703@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+On 21.05.2012 06:50, Mauro Carvalho Chehab wrote:
+> Em 20-05-2012 17:55, Antti Palosaari escreveu:
+>> I did some more planning and made alternative RFC.
+>> As the earlier alternative was more like changing old functionality that new one goes much more deeper.
+>>
+>> As a basic rule I designed it to reduce stuff from the current struct dvb_usb_device_properties. Currently there is many nested structs introducing same callbacks. For that one I dropped all frontend and adapter level callbacks to device level. Currently struct contains 2 adapters and 3 frontends - which means we have 2 * 3 = 6 "similar" callbacks and only 1 is used. It wastes some space since devices having more than one adapter or frontend are rather rare. Making callback selection inside individual driver is very trivial even without a designated callback. Here is common example from the use of .frontend_attach() callback in case of only one callback used:
+>> static int frontend_attach(struct dvb_usb_adapter *adap)
+>> {
+>>    if (adap->id == 0)
+>>      return frontend_attach_1();
+>>    else
+>>      return frontend_attach_2();
+>> }
+>>
+>> Functionality enhancement mentioned earlier RFC are valid too:
+>> http://www.mail-archive.com/linux-media@vger.kernel.org/msg46352.html
+>>
+>> As I was a little bit lazy I wrote only quick skeleton code to represent new simplified "struct dvb_usb_device_properties":
+>>
+>> struct dvb_usb_device_properties = {
+>>    /* download_firmware() success return values to signal what happens next */
+>>    #define RECONNECTS_USB                  (1<<  0)
+>>    #define RECONNECTS_USB_USING_NEW_ID     (1<<  1)
+>>
+>>   .size_of_priv = sizeof(struct 'state'),
+>>
+>>    /* firmware download */
+>>    .identify_state(struct dvb_usb_device *d, int *cold),
+>>    .get_firmware_name(struct dvb_usb_device *d, char *firmware_name),
+>>    .download_firmware(struct dvb_usb_device *d, const struct firmware *fw),
+>>    .allow_dynamic_id = true,
+>>
+>>    .power_ctrl(struct dvb_usb_device *d, int onoff),
+>>    .read_config(struct dvb_usb_device *d, u8 mac[6]),
+>>    .get_adapter_count(struct dvb_usb_device *d, int *count),
+>>
+>>    .frontend_attach(struct dvb_usb_adapter *adap),
+>>    .tuner_attach(struct dvb_usb_adapter *adap),
+>>
+>>    .init(struct dvb_usb_device *d),
+>>
+>>    .get_rc(struct dvb_rc *),
+>>    .i2c_algo = (struct i2c_algorithm),
+>>
+>>    .frontend_ctrl(struct dvb_frontend *fe, int onoff),
+>>    .get_stream_props(struct usb_data_stream_properties *),
+>>    .streaming_ctrl(struct dvb_usb_adapter *adap, int onoff),
+>>
+>>    .generic_bulk_ctrl_endpoint = (int),
+>>    .generic_bulk_ctrl_endpoint_response = (int),
+>>
+>>    .devices = (struct dvb_usb_device)[],
+>> };
+>>
+>> struct dvb_usb_device dvb_usb_devices {
+>>    char *name = "name",
+>>    .rc_map = RC_MAP_EMPTY,
+>>    .device_id = (struct usb_device_id),
+>> }
+>
+> It looks OK to me. It may make sense to add an optional
+> per-device field, to allow drivers to add more board-specific
+> information, if they need, in order to avoid duplicating
+> things there.
+>
+> Another option would be for the drivers to do:
+>
+> struct dvb_usb_drive_foo dvb_usb_driver_foo {
+> 	struct dvb_usb_device dvb_usb_devices dvb_usb_dev;
+> 	int foo;
+> 	long bar;
+> 	...
+> }
+>
+> And, inside the core, use the container_of() macro to go from
+> the device-specific table to struct dvb_usb_device.
+>
+> This way, simple drivers can do just:
+>
+> struct dvb_usb_drive_foo dvb_usb_driver_foo {
+> 	struct dvb_usb_device dvb_usb_devices dvb_usb_dev;
+> }
+>
+> And complex drivers can add more stuff there.
 
-Thanks for the patch.
+I have now implemented some basic stuff. Most interesting is new way of 
+map device id and properties for it. I found that I can use .driver_info 
+field from the (struct usb_device_id) to carry pointer. I used it to 
+carry all the other data to the DVB USB core. Thus that one big issue is 
+now resolved. It reduces something like 8-9 kB of binary size which is 
+huge improvement. Same will happen for every driver using multiple 
+(struct dvb_usb_device_properties) - for more you are used more you save.
 
-On Monday 14 May 2012 19:17:03 Sylwester Nawrocki wrote:
-> This patch drops the _ACTIVE part from the selection target names as
-> a prerequisite to unify the selection target names on subdevs and regular
-> video nodes.
-> 
-> Although not exactly the same, the meaning of V4L2_SEL_TGT_*_ACTIVE and
-> V4L2_SUBDEV_SEL_TGT_*_ACTUAL selection targets is logically the same.
-> Different names add to confusion where both APIs are used in a single
-> driver or an application.
-> The selections API is experimental, so no compatibility layer is added.
-> The ABI remains unchanged.
-> 
-> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Here is 3 example drivers I have converted to that new style:
+http://palosaari.fi/linux/v4l-dvb/dvb-usb-2012-05-25/
 
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
+regards
+Antti
 -- 
-Regards,
-
-Laurent Pinchart
-
+http://palosaari.fi/
