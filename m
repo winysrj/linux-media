@@ -1,136 +1,162 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qa0-f49.google.com ([209.85.216.49]:44405 "EHLO
-	mail-qa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932526Ab2ENWL1 (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.8]:61314 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934114Ab2EYWGk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 May 2012 18:11:27 -0400
-Received: by mail-qa0-f49.google.com with SMTP id j40so5345287qab.1
-        for <linux-media@vger.kernel.org>; Mon, 14 May 2012 15:11:26 -0700 (PDT)
-From: Michael Krufky <mkrufky@kernellabs.com>
-To: linux-media@vger.kernel.org
-Cc: mchehab@infradead.org, Michael Krufky <mkrufky@linuxtv.org>
-Subject: [PATCH 06/11] lg2160: update internal api interfaces and enable build
-Date: Mon, 14 May 2012 18:10:48 -0400
-Message-Id: <1337033453-22119-6-git-send-email-mkrufky@linuxtv.org>
-In-Reply-To: <1337033453-22119-1-git-send-email-mkrufky@linuxtv.org>
-References: <1337033453-22119-1-git-send-email-mkrufky@linuxtv.org>
+	Fri, 25 May 2012 18:06:40 -0400
+Date: Sat, 26 May 2012 00:06:33 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Javier Martin <javier.martin@vista-silicon.com>
+Subject: [PATCH] Revert "[media] media: mx2_camera: Fix mbus format handling"
+Message-ID: <Pine.LNX.4.64.1205260005230.13353@axis700.grange>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The lg2160 driver was written against the older dvb frontend internal api.
-Because of this, the previous patch that adds the lg2160 driver leaves it
-disabled in the build.  This patch updates the driver to the new internal
-api and enables it in the build.
+This reverts commit d509835e32bd761a2b7b446034a273da568e5573. That commit
+breaks support for the generic pass-through mode in the driver for formats,
+not natively supported by it. Besides due to a merge conflict it also breaks
+driver compilation:
 
-Signed-off-by: Michael Krufky <mkrufky@linuxtv.org>
+drivers/media/video/mx2_camera.c: In function 'mx2_camera_set_bus_param':
+drivers/media/video/mx2_camera.c:937: error: 'pixfmt' undeclared (first use in this function)
+drivers/media/video/mx2_camera.c:937: error: (Each undeclared identifier is reported only once
+drivers/media/video/mx2_camera.c:937: error: for each function it appears in.)
+
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Javier Martin <javier.martin@vista-silicon.com>
 ---
- drivers/media/dvb/frontends/Kconfig  |    8 ++++++++
- drivers/media/dvb/frontends/lg2160.c |   25 +++++++++----------------
- 2 files changed, 17 insertions(+), 16 deletions(-)
+ arch/arm/plat-mxc/include/mach/mx2_cam.h |    2 +
+ drivers/media/video/mx2_camera.c         |   52 +++---------------------------
+ 2 files changed, 7 insertions(+), 47 deletions(-)
 
-diff --git a/drivers/media/dvb/frontends/Kconfig b/drivers/media/dvb/frontends/Kconfig
-index 2124670..09e21c9 100644
---- a/drivers/media/dvb/frontends/Kconfig
-+++ b/drivers/media/dvb/frontends/Kconfig
-@@ -531,6 +531,14 @@ config DVB_LGDT3305
- 	  An ATSC 8VSB and QAM64/256 tuner module. Say Y when you want
- 	  to support this frontend.
+diff --git a/arch/arm/plat-mxc/include/mach/mx2_cam.h b/arch/arm/plat-mxc/include/mach/mx2_cam.h
+index 7ded6f1..3c080a3 100644
+--- a/arch/arm/plat-mxc/include/mach/mx2_cam.h
++++ b/arch/arm/plat-mxc/include/mach/mx2_cam.h
+@@ -23,6 +23,7 @@
+ #ifndef __MACH_MX2_CAM_H_
+ #define __MACH_MX2_CAM_H_
  
-+config DVB_LG2160
-+	tristate "LG Electronics LG216x based"
-+	depends on DVB_CORE && I2C
-+	default m if DVB_FE_CUSTOMISE
-+	help
-+	  An ATSC/MH demodulator module. Say Y when you want
-+	  to support this frontend.
-+
- config DVB_S5H1409
- 	tristate "Samsung S5H1409 based"
- 	depends on DVB_CORE && I2C
-diff --git a/drivers/media/dvb/frontends/lg2160.c b/drivers/media/dvb/frontends/lg2160.c
-index 269ab7b..daa8596 100644
---- a/drivers/media/dvb/frontends/lg2160.c
-+++ b/drivers/media/dvb/frontends/lg2160.c
-@@ -939,17 +939,15 @@ static int lg216x_read_rs_err_count(struct lg216x_state *state, u16 *err)
++#define MX2_CAMERA_SWAP16		(1 << 0)
+ #define MX2_CAMERA_EXT_VSYNC		(1 << 1)
+ #define MX2_CAMERA_CCIR			(1 << 2)
+ #define MX2_CAMERA_CCIR_INTERLACE	(1 << 3)
+@@ -30,6 +31,7 @@
+ #define MX2_CAMERA_GATED_CLOCK		(1 << 5)
+ #define MX2_CAMERA_INV_DATA		(1 << 6)
+ #define MX2_CAMERA_PCLK_SAMPLE_RISING	(1 << 7)
++#define MX2_CAMERA_PACK_DIR_MSB		(1 << 8)
  
- /* ------------------------------------------------------------------------ */
+ /**
+  * struct mx2_camera_platform_data - optional platform data for mx2_camera
+diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
+index ded26b7..41f9a25 100644
+--- a/drivers/media/video/mx2_camera.c
++++ b/drivers/media/video/mx2_camera.c
+@@ -345,19 +345,6 @@ static struct mx2_fmt_cfg mx27_emma_prp_table[] = {
+ 					PRP_INTR_CH2OVF,
+ 		}
+ 	},
+-	{
+-		.in_fmt		= V4L2_MBUS_FMT_UYVY8_2X8,
+-		.out_fmt	= V4L2_PIX_FMT_YUV420,
+-		.cfg		= {
+-			.channel	= 2,
+-			.in_fmt		= PRP_CNTL_DATA_IN_YUV422,
+-			.out_fmt	= PRP_CNTL_CH2_OUT_YUV420,
+-			.src_pixel	= 0x22000888, /* YUV422 (YUYV) */
+-			.irq_flags	= PRP_INTR_RDERR | PRP_INTR_CH2WERR |
+-					PRP_INTR_CH2FC | PRP_INTR_LBOVF |
+-					PRP_INTR_CH2OVF,
+-		}
+-	},
+ };
  
--static int lg216x_get_frontend(struct dvb_frontend *fe,
--			       struct dvb_frontend_parameters *param)
-+static int lg216x_get_frontend(struct dvb_frontend *fe)
- {
- 	struct lg216x_state *state = fe->demodulator_priv;
+ static struct mx2_fmt_cfg *mx27_emma_prp_get_format(
+@@ -984,7 +971,6 @@ static int mx2_camera_set_bus_param(struct soc_camera_device *icd)
+ 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
+ 	struct mx2_camera_dev *pcdev = ici->priv;
+ 	struct v4l2_mbus_config cfg = {.type = V4L2_MBUS_PARALLEL,};
+-	const struct soc_camera_format_xlate *xlate;
+ 	unsigned long common_flags;
  	int ret;
- 
- 	lg_dbg("\n");
- 
--	param->u.vsb.modulation = VSB_8; /* FIXME (MH) */
--	param->frequency = state->current_frequency;
--
-+	fe->dtv_property_cache.modulation = VSB_8;
-+	fe->dtv_property_cache.frequency = state->current_frequency;
- 	fe->dtv_property_cache.delivery_system = SYS_ATSCMH;
- 
- 	ret = lg216x_get_fic_version(state,
-@@ -1051,28 +1049,25 @@ fail:
- static int lg216x_get_property(struct dvb_frontend *fe,
- 			       struct dtv_property *tvp)
- {
--	struct dvb_frontend_parameters param;
--
- 	return (DTV_ATSCMH_FIC_VER == tvp->cmd) ?
--		lg216x_get_frontend(fe, &param) : 0;
-+		lg216x_get_frontend(fe) : 0;
- }
- 
- 
--static int lg2160_set_frontend(struct dvb_frontend *fe,
--			       struct dvb_frontend_parameters *param)
-+static int lg2160_set_frontend(struct dvb_frontend *fe)
- {
- 	struct lg216x_state *state = fe->demodulator_priv;
- 	int ret;
- 
--	lg_dbg("(%d, %d)\n", param->frequency, param->u.vsb.modulation);
-+	lg_dbg("(%d)\n", fe->dtv_property_cache.frequency);
- 
- 	if (fe->ops.tuner_ops.set_params) {
--		ret = fe->ops.tuner_ops.set_params(fe, param);
-+		ret = fe->ops.tuner_ops.set_params(fe);
- 		if (fe->ops.i2c_gate_ctrl)
- 			fe->ops.i2c_gate_ctrl(fe, 0);
- 		if (lg_fail(ret))
- 			goto fail;
--		state->current_frequency = param->frequency;
-+		state->current_frequency = fe->dtv_property_cache.frequency;
+ 	int bytesperline;
+@@ -1029,31 +1015,14 @@ static int mx2_camera_set_bus_param(struct soc_camera_device *icd)
+ 		return ret;
  	}
  
- 	ret = lg2160_agc_fix(state, 0, 0);
-@@ -1129,7 +1124,7 @@ static int lg2160_set_frontend(struct dvb_frontend *fe,
- 	ret = lg216x_enable_fic(state, 1);
- 	lg_fail(ret);
+-	xlate = soc_camera_xlate_by_fourcc(icd, pixfmt);
+-	if (!xlate) {
+-		dev_warn(icd->parent, "Format %x not found\n", pixfmt);
+-		return -EINVAL;
+-	}
+-
+-	if (xlate->code == V4L2_MBUS_FMT_YUYV8_2X8) {
+-		csicr1 |= CSICR1_PACK_DIR;
+-		csicr1 &= ~CSICR1_SWAP16_EN;
+-		dev_dbg(icd->parent, "already yuyv format, don't convert\n");
+-	} else if (xlate->code == V4L2_MBUS_FMT_UYVY8_2X8) {
+-		csicr1 &= ~CSICR1_PACK_DIR;
+-		csicr1 |= CSICR1_SWAP16_EN;
+-		dev_dbg(icd->parent, "convert uyvy mbus format into yuyv\n");
+-	} else {
+-		dev_warn(icd->parent, "mbus format not supported\n");
+-		return -EINVAL;
+-	}
+-
+ 	if (common_flags & V4L2_MBUS_PCLK_SAMPLE_RISING)
+ 		csicr1 |= CSICR1_REDGE;
+ 	if (common_flags & V4L2_MBUS_VSYNC_ACTIVE_HIGH)
+ 		csicr1 |= CSICR1_SOF_POL;
+ 	if (common_flags & V4L2_MBUS_HSYNC_ACTIVE_HIGH)
+ 		csicr1 |= CSICR1_HSYNC_POL;
++	if (pcdev->platform_flags & MX2_CAMERA_SWAP16)
++		csicr1 |= CSICR1_SWAP16_EN;
+ 	if (pcdev->platform_flags & MX2_CAMERA_EXT_VSYNC)
+ 		csicr1 |= CSICR1_EXT_VSYNC;
+ 	if (pcdev->platform_flags & MX2_CAMERA_CCIR)
+@@ -1064,6 +1033,8 @@ static int mx2_camera_set_bus_param(struct soc_camera_device *icd)
+ 		csicr1 |= CSICR1_GCLK_MODE;
+ 	if (pcdev->platform_flags & MX2_CAMERA_INV_DATA)
+ 		csicr1 |= CSICR1_INV_DATA;
++	if (pcdev->platform_flags & MX2_CAMERA_PACK_DIR_MSB)
++		csicr1 |= CSICR1_PACK_DIR;
  
--	lg216x_get_frontend(fe, param);
-+	lg216x_get_frontend(fe);
- fail:
- 	return ret;
- }
-@@ -1359,7 +1354,6 @@ static struct dvb_frontend_ops lg2160_ops = {
- 		.frequency_min      = 54000000,
- 		.frequency_max      = 858000000,
- 		.frequency_stepsize = 62500,
--		.caps = FE_CAN_8VSB | FE_HAS_EXTENDED_CAPS /* FIXME (MH) */
- 	},
- 	.i2c_gate_ctrl        = lg216x_i2c_gate_ctrl,
- #if 0
-@@ -1389,7 +1383,6 @@ static struct dvb_frontend_ops lg2161_ops = {
- 		.frequency_min      = 54000000,
- 		.frequency_max      = 858000000,
- 		.frequency_stepsize = 62500,
--		.caps = FE_CAN_8VSB | FE_HAS_EXTENDED_CAPS /* FIXME (MH) */
- 	},
- 	.i2c_gate_ctrl        = lg216x_i2c_gate_ctrl,
- #if 0
+ 	pcdev->csicr1 = csicr1;
+ 
+@@ -1138,8 +1109,7 @@ static int mx2_camera_get_formats(struct soc_camera_device *icd,
+ 		return 0;
+ 	}
+ 
+-	if (code == V4L2_MBUS_FMT_YUYV8_2X8 ||
+-	    code == V4L2_MBUS_FMT_UYVY8_2X8) {
++	if (code == V4L2_MBUS_FMT_YUYV8_2X8) {
+ 		formats++;
+ 		if (xlate) {
+ 			/*
+@@ -1155,18 +1125,6 @@ static int mx2_camera_get_formats(struct soc_camera_device *icd,
+ 		}
+ 	}
+ 
+-	if (code == V4L2_MBUS_FMT_UYVY8_2X8) {
+-		formats++;
+-		if (xlate) {
+-			xlate->host_fmt =
+-				soc_mbus_get_fmtdesc(V4L2_MBUS_FMT_YUYV8_2X8);
+-			xlate->code	= code;
+-			dev_dbg(dev, "Providing host format %s for sensor code %d\n",
+-				xlate->host_fmt->name, code);
+-			xlate++;
+-		}
+-	}
+-
+ 	/* Generic pass-trough */
+ 	formats++;
+ 	if (xlate) {
 -- 
-1.7.9.5
+1.7.2.5
 
