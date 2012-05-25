@@ -1,56 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:63570 "EHLO mx1.redhat.com"
+Received: from mail.kapsi.fi ([217.30.184.167]:48259 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756964Ab2EWIVk (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 May 2012 04:21:40 -0400
-Message-ID: <4FBC9E13.1090607@redhat.com>
-Date: Wed, 23 May 2012 10:21:39 +0200
-From: Hans de Goede <hdegoede@redhat.com>
+	id S1752501Ab2EYRsw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 25 May 2012 13:48:52 -0400
+Message-ID: <4FBFC602.2060806@iki.fi>
+Date: Fri, 25 May 2012 20:48:50 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Jean-Francois Moine <moinejf@free.fr>
-Subject: Re: [PATCH] gspca-core: Fix buffers staying in queued state after
- a stream_off
-References: <1337761235-2678-1-git-send-email-hdegoede@redhat.com>
-In-Reply-To: <1337761235-2678-1-git-send-email-hdegoede@redhat.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: linux-media <linux-media@vger.kernel.org>,
+	Patrick Boettcher <pboettcher@kernellabs.com>
+Subject: Re: [RFCv1] DVB-USB improvements [alternative 2]
+References: <4FB95A3B.9070800@iki.fi> <4FB9BB75.9040703@redhat.com> <4FBFC4FD.50108@iki.fi>
+In-Reply-To: <4FBFC4FD.50108@iki.fi>
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-sorry for the spam, I had to resend it because I got the stable
-email address wrong.
+On 25.05.2012 20:44, Antti Palosaari wrote:
+> I have now implemented some basic stuff. Most interesting is new way of
+> map device id and properties for it. I found that I can use .driver_info
+> field from the (struct usb_device_id) to carry pointer. I used it to
+> carry all the other data to the DVB USB core. Thus that one big issue is
+> now resolved. It reduces something like 8-9 kB of binary size which is
+> huge improvement. Same will happen for every driver using multiple
+> (struct dvb_usb_device_properties) - for more you are used more you save.
 
-On 05/23/2012 10:20 AM, Hans de Goede wrote:
-> This fixes a regression introduced by commit f7059ea and should be
-> backported to all supported stable kernels which have this commit.
->
-> Signed-off-by: Hans de Goede<hdegoede@redhat.com>
-> Tested-by: Antonio Ospite<ospite@studenti.unina.it>
-> CC: stable@vger.kernel.org
-> ---
->   drivers/media/video/gspca/gspca.c |    4 +++-
->   1 file changed, 3 insertions(+), 1 deletion(-)
->
-> diff --git a/drivers/media/video/gspca/gspca.c b/drivers/media/video/gspca/gspca.c
-> index 137166d..31721ea 100644
-> --- a/drivers/media/video/gspca/gspca.c
-> +++ b/drivers/media/video/gspca/gspca.c
-> @@ -1653,7 +1653,7 @@ static int vidioc_streamoff(struct file *file, void *priv,
->   				enum v4l2_buf_type buf_type)
->   {
->   	struct gspca_dev *gspca_dev = video_drvdata(file);
-> -	int ret;
-> +	int i, ret;
->
->   	if (buf_type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
->   		return -EINVAL;
-> @@ -1678,6 +1678,8 @@ static int vidioc_streamoff(struct file *file, void *priv,
->   	wake_up_interruptible(&gspca_dev->wq);
->
->   	/* empty the transfer queues */
-> +	for (i = 0; i<  gspca_dev->nframes; i++)
-> +		gspca_dev->frame[i].v4l2_buf.flags&= ~BUF_ALL_FLAGS;
->   	atomic_set(&gspca_dev->fr_q, 0);
->   	atomic_set(&gspca_dev->fr_i, 0);
->   	gspca_dev->fr_o = 0;
+Argh, reduces 8-9kB from the *af9015* as it was defining three (struct 
+dvb_usb_device_properties). Also line count reduces 350 lines and will 
+reduce some more after all those planned callbacks are done.
+
+> Here is 3 example drivers I have converted to that new style:
+> http://palosaari.fi/linux/v4l-dvb/dvb-usb-2012-05-25/
+
+Antti
+-- 
+http://palosaari.fi/
