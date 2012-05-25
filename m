@@ -1,209 +1,185 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:53780 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754733Ab2EKFat convert rfc822-to-8bit (ORCPT
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:25307 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758481Ab2EYTxI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 May 2012 01:30:49 -0400
-From: "Hadli, Manjunath" <manjunath.hadli@ti.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"davinci-linux-open-source@linux.davincidsp.com"
-	<davinci-linux-open-source@linux.davincidsp.com>
-CC: LMML <linux-media@vger.kernel.org>
-Subject: RE: [PATCH v2 05/13] davinci: vpif display: declare contiguous
- region of memory handled by dma_alloc_coherent
-Date: Fri, 11 May 2012 05:30:43 +0000
-Message-ID: <E99FAA59F8D8D34D8A118DD37F7C8F753E927D6A@DBDE01.ent.ti.com>
-References: <1334652791-15833-1-git-send-email-manjunath.hadli@ti.com>
- <1334652791-15833-6-git-send-email-manjunath.hadli@ti.com>
- <1658646.Sj5u4WkIAm@avalon>
-In-Reply-To: <1658646.Sj5u4WkIAm@avalon>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+	Fri, 25 May 2012 15:53:08 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Date: Fri, 25 May 2012 21:52:45 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [RFC/PATCH 06/13] media: s5p-fimc: Add device tree support for
+ FIMC-LITE
+In-reply-to: <1337975573-27117-1-git-send-email-s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: kyungmin.park@samsung.com, m.szyprowski@samsung.com,
+	riverful.kim@samsung.com, sw0312.kim@samsung.com,
+	s.nawrocki@samsung.com, devicetree-discuss@lists.ozlabs.org,
+	linux-samsung-soc@vger.kernel.org, b.zolnierkie@samsung.com
+Message-id: <1337975573-27117-6-git-send-email-s.nawrocki@samsung.com>
+References: <4FBFE1EC.9060209@samsung.com>
+ <1337975573-27117-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ .../bindings/camera/soc/samsung-fimc.txt           |   15 ++++
+ drivers/media/video/s5p-fimc/fimc-lite.c           |   73 ++++++++++++++------
+ 2 files changed, 67 insertions(+), 21 deletions(-)
 
-On Tue, Apr 17, 2012 at 15:32:55, Laurent Pinchart wrote:
-> Hi Manjunath,
-> 
-> Thanks for the patch.
-> 
-> On Tuesday 17 April 2012 14:23:03 Manjunath Hadli wrote:
-> > add support to declare contiguous region of memory to be handled when 
-> > requested by dma_alloc_coherent call. The user can specify the size of 
-> > the buffers with an offset from the kernel image using cont_bufsize 
-> > and cont_bufoffset module parameters respectively.
-> > 
-> > Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-> > ---
-> >  drivers/media/video/davinci/vpif_display.c |   65 ++++++++++++++++++++++++-
-> >  drivers/media/video/davinci/vpif_display.h |    1 +
-> >  2 files changed, 64 insertions(+), 2 deletions(-)
-> > 
-> > diff --git a/drivers/media/video/davinci/vpif_display.c
-> > b/drivers/media/video/davinci/vpif_display.c index 355ad5c..27bc03d 
-> > 100644
-> > --- a/drivers/media/video/davinci/vpif_display.c
-> > +++ b/drivers/media/video/davinci/vpif_display.c
-> > @@ -57,18 +57,24 @@ static u32 ch2_numbuffers = 3;  static u32 
-> > ch3_numbuffers = 3;  static u32 ch2_bufsize = 1920 * 1080 * 2;  static 
-> > u32 ch3_bufsize = 720 * 576 * 2;
-> > +static u32 cont_bufoffset;
-> > +static u32 cont_bufsize;
-> > 
-> >  module_param(debug, int, 0644);
-> >  module_param(ch2_numbuffers, uint, S_IRUGO);  
-> > module_param(ch3_numbuffers, uint, S_IRUGO);  
-> > module_param(ch2_bufsize, uint, S_IRUGO);  module_param(ch3_bufsize, 
-> > uint, S_IRUGO);
-> > +module_param(cont_bufoffset, uint, S_IRUGO); 
-> > +module_param(cont_bufsize, uint, S_IRUGO);
-> > 
-> >  MODULE_PARM_DESC(debug, "Debug level 0-1");  
-> > MODULE_PARM_DESC(ch2_numbuffers, "Channel2 buffer count (default:3)");  
-> > MODULE_PARM_DESC(ch3_numbuffers, "Channel3 buffer count (default:3)");  
-> > MODULE_PARM_DESC(ch2_bufsize, "Channel2 buffer size (default:1920 x 
-> > 1080 x 2)"); MODULE_PARM_DESC(ch3_bufsize, "Channel3 buffer size 
-> > (default:720 x
-> > 576 x 2)"); +MODULE_PARM_DESC(cont_bufoffset, "Display offset(default 
-> > 0)");
-> > +MODULE_PARM_DESC(cont_bufsize, "Display buffer size(default 0)");
-> > 
-> >  static struct vpif_config_params config_params = {
-> >  	.min_numbuffers		= 3,
-> > @@ -187,6 +193,24 @@ static int vpif_buffer_setup(struct 
-> > videobuf_queue *q, unsigned int *count, return 0;
-> > 
-> >  	*size = config_params.channel_bufsize[ch->channel_id];
-> > +
-> > +	/*
-> > +	 * Checking if the buffer size exceeds the available buffer
-> > +	 * ycmux_mode = 0 means 1 channel mode HD and
-> > +	 * ycmux_mode = 1 means 2 channels mode SD
-> > +	 */
-> > +	if (ch->vpifparams.std_info.ycmux_mode == 0) {
-> > +		if (config_params.video_limit[ch->channel_id])
-> > +			while (*size * *count > (config_params.video_limit[0]
-> > +					+ config_params.video_limit[1]))
-> > +				(*count)--;
-> > +	} else {
-> > +		if (config_params.video_limit[ch->channel_id])
-> > +			while (*size * *count >
-> > +				config_params.video_limit[ch->channel_id])
-> > +				(*count)--;
-> > +	}
-> > +
-> >  	if (*count < config_params.min_numbuffers)
-> >  		*count = config_params.min_numbuffers;
-> > 
-> > @@ -830,7 +854,7 @@ static int vpif_reqbufs(struct file *file, void 
-> > *priv,
-> > 
-> >  	common = &ch->common[index];
-> > 
-> > -	if (common->fmt.type != reqbuf->type)
-> > +	if (common->fmt.type != reqbuf->type || !vpif_dev)
-> >  		return -EINVAL;
-> > 
-> >  	if (0 != common->io_usrs)
-> > @@ -847,7 +871,7 @@ static int vpif_reqbufs(struct file *file, void 
-> > *priv,
-> > 
-> >  	/* Initialize videobuf queue as per the buffer type */
-> >  	videobuf_queue_dma_contig_init(&common->buffer_queue,
-> > -					    &video_qops, NULL,
-> > +					    &video_qops, vpif_dev,
-> >  					    &common->irqlock,
-> >  					    reqbuf->type, field,
-> >  					    sizeof(struct videobuf_buffer), fh, @@ -1686,12 +1710,14 @@ 
-> > static __init int vpif_probe(struct platform_device
-> > *pdev) struct vpif_subdev_info *subdevdata;
-> >  	struct vpif_display_config *config;
-> >  	int i, j = 0, k, q, m, err = 0;
-> > +	unsigned long phys_end_kernel;
-> >  	struct i2c_adapter *i2c_adap;
-> >  	struct common_obj *common;
-> >  	struct channel_obj *ch;
-> >  	struct video_device *vfd;
-> >  	struct resource *res;
-> >  	int subdev_count;
-> > +	size_t size;
-> > 
-> >  	vpif_dev = &pdev->dev;
-> > 
-> > @@ -1749,6 +1775,41 @@ static __init int vpif_probe(struct 
-> > platform_device
-> > *pdev) ch->video_dev = vfd;
-> >  	}
-> > 
-> > +	/* Initialising the memory from the input arguments file for
-> > +	 * contiguous memory buffers and avoid defragmentation
-> > +	 */
-> > +	if (cont_bufsize) {
-> > +		/* attempt to determine the end of Linux kernel memory */
-> > +		phys_end_kernel = virt_to_phys((void *)PAGE_OFFSET) +
-> > +			(num_physpages << PAGE_SHIFT);
-> > +		phys_end_kernel += cont_bufoffset;
-> > +		size = cont_bufsize;
-> > +
-> > +		err = dma_declare_coherent_memory(&pdev->dev, phys_end_kernel,
-> > +				phys_end_kernel, size,
-> > +				DMA_MEMORY_MAP | DMA_MEMORY_EXCLUSIVE);
-> 
-> This is a pretty dangerous hack. You should compute the memory address and size in board code, and pass it to the driver through a device resource (don't forget to call request_mem_region on the resource). I think the
-> dma_declare_coherent_memory() call should be moved to board code as well.
-> 
-I don't think it is a hack. Since the device does not support scatter gather MMU, we need to make sure that the requirement of memory scucceeds for the 
-Driver buffers. Here the size is taken as part of module parameters, which 
-If I am right, cannot be moved to board file.
-
-Thx,
---Manju
-
-> > +		if (!err) {
-> > +			dev_err(&pdev->dev, "Unable to declare MMAP memory.\n");
-> > +			err = -ENOMEM;
-> > +			goto probe_out;
-> > +		}
-> > +
-> > +		/* The resources are divided into two equal memory and when
-> > +		 * we have HD output we can add them together
-> > +		 */
-> > +		for (j = 0; j < VPIF_DISPLAY_MAX_DEVICES; j++) {
-> > +			ch = vpif_obj.dev[j];
-> > +			ch->channel_id = j;
-> > +
-> > +			/* only enabled if second resource exists */
-> > +			config_params.video_limit[ch->channel_id] = 0;
-> > +			if (cont_bufsize)
-> > +				config_params.video_limit[ch->channel_id] =
-> > +									size/2;
-> > +		}
-> > +	}
-> > +
-> >  	for (j = 0; j < VPIF_DISPLAY_MAX_DEVICES; j++) {
-> >  		ch = vpif_obj.dev[j];
-> >  		/* Initialize field of the channel objects */ diff --git 
-> > a/drivers/media/video/davinci/vpif_display.h
-> > b/drivers/media/video/davinci/vpif_display.h index dd4887c..8a311f1 
-> > 100644
-> > --- a/drivers/media/video/davinci/vpif_display.h
-> > +++ b/drivers/media/video/davinci/vpif_display.h
-> > @@ -158,6 +158,7 @@ struct vpif_config_params {
-> >  	u32 min_bufsize[VPIF_DISPLAY_NUM_CHANNELS];
-> >  	u32 channel_bufsize[VPIF_DISPLAY_NUM_CHANNELS];
-> >  	u8 numbuffers[VPIF_DISPLAY_NUM_CHANNELS];
-> > +	u32 video_limit[VPIF_DISPLAY_NUM_CHANNELS];
-> >  	u8 min_numbuffers;
-> >  };
-> 
-> --
-> Regards,
-> 
-> Laurent Pinchart
-> 
-> 
+diff --git a/Documentation/devicetree/bindings/camera/soc/samsung-fimc.txt b/Documentation/devicetree/bindings/camera/soc/samsung-fimc.txt
+index 1ec48e9..b459da2 100644
+--- a/Documentation/devicetree/bindings/camera/soc/samsung-fimc.txt
++++ b/Documentation/devicetree/bindings/camera/soc/samsung-fimc.txt
+@@ -39,6 +39,21 @@ Required properties:
+ 	       depends on the SoC revision. For S5PV210 valid values are:
+ 	       0...2, for Exynos4x1x: 0...3.
+ 
++
++'fimc-lite' device node
++-----------------------
++
++Required properties:
++
++- compatible : should be one of:
++		"samsung,exynos4212-fimc";
++		"samsung,exynos4412-fimc";
++- reg	     : physical base address and size of the device's memory mapped
++	       registers;
++- interrupts : should contain FIMC-LITE interrupt;
++- cell-index : FIMC-LITE IP instance index;
++
++
+ Example:
+ 
+ 	fimc0: fimc@11800000 {
+diff --git a/drivers/media/video/s5p-fimc/fimc-lite.c b/drivers/media/video/s5p-fimc/fimc-lite.c
+index 400d701a..a7ae149 100644
+--- a/drivers/media/video/s5p-fimc/fimc-lite.c
++++ b/drivers/media/video/s5p-fimc/fimc-lite.c
+@@ -17,6 +17,7 @@
+ #include <linux/kernel.h>
+ #include <linux/list.h>
+ #include <linux/module.h>
++#include <linux/of.h>
+ #include <linux/types.h>
+ #include <linux/platform_device.h>
+ #include <linux/pm_runtime.h>
+@@ -36,6 +37,37 @@
+ static int debug;
+ module_param(debug, int, 0644);
+ 
++
++static struct flite_variant fimc_lite0_variant_exynos4 = {
++	.max_width		= 8192,
++	.max_height		= 8192,
++	.out_width_align	= 8,
++	.win_hor_offs_align	= 2,
++	.out_hor_offs_align	= 8,
++};
++
++/* EXYNOS4212, EXYNOS4412 */
++static struct flite_drvdata fimc_lite_drvdata_exynos4 = {
++	.variant = {
++		[0] = &fimc_lite0_variant_exynos4,
++		[1] = &fimc_lite0_variant_exynos4,
++	},
++};
++
++#ifdef CONFIG_OF
++static const struct of_device_id flite_of_match[] __devinitconst = {
++	{
++		.compatible = "samsung,exynos4412-fimc-lite",
++		.data = &fimc_lite_drvdata_exynos4,
++	}, {
++		.compatible = "samsung,exynos4212-fimc-lite",
++		.data = &fimc_lite_drvdata_exynos4,
++	},
++	{ /* sentinel */ },
++};
++MODULE_DEVICE_TABLE(of, fimc_of_match);
++#endif
++
+ static const struct fimc_fmt fimc_lite_formats[] = {
+ 	{
+ 		.name		= "YUV 4:2:2 packed, YCbYCr",
+@@ -1378,6 +1410,7 @@ static int fimc_lite_clk_get(struct fimc_lite *fimc)
+ static int __devinit fimc_lite_probe(struct platform_device *pdev)
+ {
+ 	struct flite_drvdata *drv_data = fimc_lite_get_drvdata(pdev);
++	const struct of_device_id *of_id;
+ 	struct fimc_lite *fimc;
+ 	struct resource *res;
+ 	int ret;
+@@ -1386,7 +1419,20 @@ static int __devinit fimc_lite_probe(struct platform_device *pdev)
+ 	if (!fimc)
+ 		return -ENOMEM;
+ 
+-	fimc->index = pdev->id;
++	if (pdev->dev.of_node) {
++		of_id = of_match_node(of_match_ptr(flite_of_match),
++				      pdev->dev.of_node);
++		if (of_id)
++			drv_data = of_id->data;
++		of_property_read_u32(pdev->dev.of_node, "cell-index",
++				     &fimc->index);
++	} else {
++		fimc->index = pdev->id;
++	}
++
++	if (drv_data == NULL || fimc->index >= FIMC_LITE_MAX_DEVS)
++		return -EINVAL;
++
+ 	fimc->variant = drv_data->variant[fimc->index];
+ 	fimc->pdev = pdev;
+ 
+@@ -1530,20 +1576,10 @@ static int __devexit fimc_lite_remove(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
+-static struct flite_variant fimc_lite0_variant_exynos4 = {
+-	.max_width		= 8192,
+-	.max_height		= 8192,
+-	.out_width_align	= 8,
+-	.win_hor_offs_align	= 2,
+-	.out_hor_offs_align	= 8,
+-};
+-
+-/* EXYNOS4212, EXYNOS4412 */
+-static struct flite_drvdata fimc_lite_drvdata_exynos4 = {
+-	.variant = {
+-		[0] = &fimc_lite0_variant_exynos4,
+-		[1] = &fimc_lite0_variant_exynos4,
+-	},
++static const struct dev_pm_ops fimc_lite_pm_ops = {
++	SET_SYSTEM_SLEEP_PM_OPS(fimc_lite_suspend, fimc_lite_resume)
++	SET_RUNTIME_PM_OPS(fimc_lite_runtime_suspend, fimc_lite_runtime_resume,
++			   NULL)
+ };
+ 
+ static struct platform_device_id fimc_lite_driver_ids[] = {
+@@ -1555,17 +1591,12 @@ static struct platform_device_id fimc_lite_driver_ids[] = {
+ };
+ MODULE_DEVICE_TABLE(platform, fimc_lite_driver_ids);
+ 
+-static const struct dev_pm_ops fimc_lite_pm_ops = {
+-	SET_SYSTEM_SLEEP_PM_OPS(fimc_lite_suspend, fimc_lite_resume)
+-	SET_RUNTIME_PM_OPS(fimc_lite_runtime_suspend, fimc_lite_runtime_resume,
+-			   NULL)
+-};
+-
+ static struct platform_driver fimc_lite_driver = {
+ 	.probe		= fimc_lite_probe,
+ 	.remove		= __devexit_p(fimc_lite_remove),
+ 	.id_table	= fimc_lite_driver_ids,
+ 	.driver = {
++		.of_match_table = of_match_ptr(flite_of_match),
+ 		.name		= FIMC_LITE_DRV_NAME,
+ 		.owner		= THIS_MODULE,
+ 		.pm		= &fimc_lite_pm_ops,
+-- 
+1.7.10
 
