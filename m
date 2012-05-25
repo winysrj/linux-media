@@ -1,107 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:1632 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751671Ab2EAJF6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 1 May 2012 05:05:58 -0400
-Received: from alastor.dyndns.org (215.80-203-102.nextgentel.com [80.203.102.215] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr2.xs4all.nl (8.13.8/8.13.8) with ESMTP id q4195tL0092654
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Tue, 1 May 2012 11:05:56 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from tschai.lan (tschai.lan [192.168.1.10])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id B7CD5FA80007
-	for <linux-media@vger.kernel.org>; Tue,  1 May 2012 11:05:54 +0200 (CEST)
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 0/7] Improved/New DV Timings API
-Date: Tue,  1 May 2012 11:05:45 +0200
-Message-Id: <1335863152-15791-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mail-qa0-f49.google.com ([209.85.216.49]:43111 "EHLO
+	mail-qa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751808Ab2EYJRb convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 25 May 2012 05:17:31 -0400
+Received: by qabj40 with SMTP id j40so1285742qab.1
+        for <linux-media@vger.kernel.org>; Fri, 25 May 2012 02:17:30 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <CAO_48GFE3=yQjKS4w7=pGjNe3yENbRrd4bcMTfADJSn7LKekPQ@mail.gmail.com>
+References: <CAO_48GFE3=yQjKS4w7=pGjNe3yENbRrd4bcMTfADJSn7LKekPQ@mail.gmail.com>
+From: Sumit Semwal <sumit.semwal@linaro.org>
+Date: Fri, 25 May 2012 14:47:10 +0530
+Message-ID: <CAO_48GGRRvCKVyY_s=oFgTb1vfjf8pSkHRf3jA8iFcdEHhwxVg@mail.gmail.com>
+Subject: Re: [GIT PULL]: dma-buf updates for 3.5
+To: torvalds@linux-foundation.org, linux-kernel@vger.kernel.org,
+	DRI mailing list <dri-devel@lists.freedesktop.org>,
+	linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org
+Cc: Jesse Barker <jesse.barker@linaro.org>, akpm@linux-foundation.org,
+	Daniel Vetter <daniel@ffwll.ch>, Arnd Bergmann <arnd@arndb.de>,
+	Dave Airlie <airlied@linux.ie>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro!
+Hi Linus,
 
-This is the final version of the DV Timings API.
+On 25 May 2012 13:25, Sumit Semwal <sumit.semwal@linaro.org> wrote:
+> Hi Linus,
+>
+> Here's the first signed-tag pull request for dma-buf framework.
+>
+> Could you please pull the dma-buf updates for 3.5? This includes the
+> following key items:
+> - mmap support
+> - vmap support
+> - related documentation updates
+>
+> These are needed by various drivers to allow mmap/vmap of dma-buf
+> shared buffers. Dave Airlie has some prime patches dependent on the
+> vmap pull as well.
+>
+> Thanks and best regards,
+> ~Sumit.
+>
+>
+> The following changes since commit 76e10d158efb6d4516018846f60c2ab5501900bc:
+>
+>  Linux 3.4 (2012-05-20 15:29:13 -0700)
+>
+> are available in the git repository at:
+>
+>  ssh://sumitsemwal@git.linaro.org/~/public_git/linux-dma-buf.git
+> tags/tag-for-linus-3.5
+I am really sorry - I goofed up in the git URL (sent the ssh URL
+instead). Could you please use
 
-The RFCv3 version of this API can be found here:
+git://git.linaro.org/people/sumitsemwal/linux-dma-buf.git tags/tag-for-linus-3.5
 
-http://comments.gmane.org/gmane.linux.drivers.video-input-infrastructure/47288
+instead, or should I send a new pull request with the corrected URL?
 
-Changes since RFCv3 are:
+Thanks, and best regards,
+~Sumit.
+>
+> for you to fetch changes up to b25b086d23eb852bf3cfdeb60409b4967ebb3c0c:
+>
+>  dma-buf: add initial vmap documentation (2012-05-25 12:51:11 +0530)
+>
+> ----------------------------------------------------------------
+> dma-buf updates for 3.5
+>
+> ----------------------------------------------------------------
+> Daniel Vetter (1):
+>      dma-buf: mmap support
+>
+> Dave Airlie (2):
+>      dma-buf: add vmap interface
+>      dma-buf: add initial vmap documentation
+>
+> Sumit Semwal (1):
+>      dma-buf: minor documentation fixes.
+>
+>  Documentation/dma-buf-sharing.txt |  109 ++++++++++++++++++++++++++++++++++---
+>  drivers/base/dma-buf.c            |   99 ++++++++++++++++++++++++++++++++-
+>  include/linux/dma-buf.h           |   33 +++++++++++
+>  3 files changed, 233 insertions(+), 8 deletions(-)
 
-- Extended the v4l2-dv-timings.h header with a few new DMT timings 
-  corresponding with the latest DMT standard (Version 1.0, Revision 12).
-
-- Mark the new ioctls as experimental (also added this note to the CREATE_BUFS
-  and PREPARE_BUF ioctls as it was missing there).
-
-- Add the revision notes.
-
-- Add the CEA-861 and VESA DMT standards to the bibliography.
-
-- Refer to the new v4l2-dv-timings.h header in the documentation (that was
-  missing completely).
-
-- Added a new patch that marks the DV Preset API as deprecated.
-
-The git pull information is added below.
-
-Regards,
-
-	Hans
 
 
-The following changes since commit bcb2cf6e0bf033d79821c89e5ccb328bfbd44907:
+-- 
+Thanks and regards,
 
-  [media] ngene: remove an unneeded condition (2012-04-26 15:29:23 -0300)
+Sumit Semwal
 
-are available in the git repository at:
+Linaro Kernel Engineer - Graphics working group
 
-  git://linuxtv.org/hverkuil/media_tree.git timingsv4
+Linaro.org │ Open source software for ARM SoCs
 
-for you to fetch changes up to bdf36b3c1ef4796e021ac8d46685c1bc741150bc:
-
-  V4L2: Mark the DV Preset API as deprecated. (2012-05-01 10:54:48 +0200)
-
-----------------------------------------------------------------
-Hans Verkuil (7):
-      videodev2.h: add enum/query/cap dv_timings ioctls.
-      v4l2 framework: add support for the new dv_timings ioctls.
-      v4l2-dv-timings.h: definitions for CEA-861 and VESA DMT timings.
-      V4L2 spec: document the new V4L2 DV timings ioctls.
-      tvp7002: add support for the new dv timings API.
-      Feature removal: remove invalid DV presets.                                                                    
-      V4L2: Mark the DV Preset API as deprecated.                                                                    
-
- Documentation/DocBook/media/v4l/biblio.xml                  |   18 ++                                               
- Documentation/DocBook/media/v4l/common.xml                  |   38 ++-                                              
- Documentation/DocBook/media/v4l/compat.xml                  |   17 ++                                               
- Documentation/DocBook/media/v4l/v4l2.xml                    |   15 +-                                               
- Documentation/DocBook/media/v4l/vidioc-create-bufs.xml      |    6 +                                                
- Documentation/DocBook/media/v4l/vidioc-dv-timings-cap.xml   |  211 +++++++++++++                                    
- Documentation/DocBook/media/v4l/vidioc-enum-dv-presets.xml  |    4 +                                                
- Documentation/DocBook/media/v4l/vidioc-enum-dv-timings.xml  |  119 ++++++++                                         
- Documentation/DocBook/media/v4l/vidioc-enuminput.xml        |    2 +-                                               
- Documentation/DocBook/media/v4l/vidioc-enumoutput.xml       |    2 +-                                               
- Documentation/DocBook/media/v4l/vidioc-g-dv-preset.xml      |    6 +                                                
- Documentation/DocBook/media/v4l/vidioc-g-dv-timings.xml     |  130 +++++++-                                         
- Documentation/DocBook/media/v4l/vidioc-prepare-buf.xml      |    6 +                                                
- Documentation/DocBook/media/v4l/vidioc-query-dv-preset.xml  |    4 +                                                
- Documentation/DocBook/media/v4l/vidioc-query-dv-timings.xml |  104 +++++++                                          
- Documentation/feature-removal-schedule.txt                  |    9 +                                                
- drivers/media/video/tvp7002.c                               |  102 ++++++-                                          
- drivers/media/video/v4l2-compat-ioctl32.c                   |    3 +                                                
- drivers/media/video/v4l2-ioctl.c                            |  126 +++++---                                         
- include/linux/Kbuild                                        |    1 +                                                
- include/linux/v4l2-dv-timings.h                             |  766 ++++++++++++++++++++++++++++++++++++++++++++++++ 
- include/linux/videodev2.h                                   |  179 +++++++++--                                      
- include/media/v4l2-ioctl.h                                  |    6 +                                                
- include/media/v4l2-subdev.h                                 |    6 +                                                
- 24 files changed, 1775 insertions(+), 105 deletions(-)                                                              
- create mode 100644 Documentation/DocBook/media/v4l/vidioc-dv-timings-cap.xml                                        
- create mode 100644 Documentation/DocBook/media/v4l/vidioc-enum-dv-timings.xml
- create mode 100644 Documentation/DocBook/media/v4l/vidioc-query-dv-timings.xml
- create mode 100644 include/linux/v4l2-dv-timings.h
-
+Follow Linaro: Facebook | Twitter | Blog
