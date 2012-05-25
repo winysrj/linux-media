@@ -1,44 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:42769 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753686Ab2ENQCs (ORCPT
+Received: from mail-vb0-f46.google.com ([209.85.212.46]:51360 "EHLO
+	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751202Ab2EYMfe (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 May 2012 12:02:48 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: text/plain; charset=windows-1252
-Received: from euspt1 ([210.118.77.13]) by mailout3.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0M4000BT4SJEUX80@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 14 May 2012 17:02:02 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0M40003PJSKMTZ@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 14 May 2012 17:02:46 +0100 (BST)
-Date: Mon, 14 May 2012 18:02:45 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [PATCH v5 18/35] v4l: Allow changing control handler lock
-In-reply-to: <4FB1289F.5010606@iki.fi>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	dacohen@gmail.com, snjw23@gmail.com,
-	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
-	tuukkat76@gmail.com, k.debski@samsung.com, riverful@gmail.com,
-	hverkuil@xs4all.nl, teturtia@gmail.com, pradeep.sawlani@gmail.com
-Message-id: <4FB12CA5.7080101@samsung.com>
-References: <20120306163239.GN1075@valkosipuli.localdomain>
- <1331051596-8261-18-git-send-email-sakari.ailus@iki.fi>
- <4FB12458.80809@samsung.com> <4FB1289F.5010606@iki.fi>
+	Fri, 25 May 2012 08:35:34 -0400
+Received: by vbbff1 with SMTP id ff1so604067vbb.19
+        for <linux-media@vger.kernel.org>; Fri, 25 May 2012 05:35:33 -0700 (PDT)
+MIME-Version: 1.0
+Date: Fri, 25 May 2012 08:35:33 -0400
+Message-ID: <CAOcJUbwYbphYgBNaiMKNk7MvG0BFtepR3AXBmojxU51Ta4rZzQ@mail.gmail.com>
+Subject: [PULL] smsusb: add autodetection support for USB ID 2040:f5a0
+ (2012-05-25 08:32:17 -0400)
+From: Michael Krufky <mkrufky@linuxtv.org>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/14/2012 05:45 PM, Sakari Ailus wrote:
-> Ooops. The patch included the changes for adp1653 and vivi which I found to be
-> the only drivers using the lock directly. I somehow missed s5p-fimc --- sorry
-> about that.
+The following changes since commit abed623ca59a7d1abed6c4e7459be03e25a90a1e:
 
-It's all right, no big deal. I'll make a patch to correct this.
+  [media] radio-sf16fmi: add support for SF16-FMD (2012-05-20 16:10:05 -0300)
 
--- 
-Regards
-Sylwester
+are available in the git repository at:
+
+  git://git.linuxtv.org/mkrufky/hauppauge windham-ids
+
+for you to fetch changes up to cfd9b78596cbe0c96b1ff3b83e1e25f128fe3003:
+
+  smsusb: add autodetection support for USB ID 2040:f5a0 (2012-05-25
+08:32:17 -0400)
+
+----------------------------------------------------------------
+Michael Krufky (1):
+      smsusb: add autodetection support for USB ID 2040:f5a0
+
+ drivers/media/dvb/siano/smsusb.c |    2 ++
+ 1 file changed, 2 insertions(+)
