@@ -1,39 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:47634 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751551Ab2EZIjx (ORCPT
+Received: from mail-pz0-f46.google.com ([209.85.210.46]:48997 "EHLO
+	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757581Ab2EYRjX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 26 May 2012 04:39:53 -0400
-Received: by bkcji2 with SMTP id ji2so1261497bkc.19
-        for <linux-media@vger.kernel.org>; Sat, 26 May 2012 01:39:52 -0700 (PDT)
-Message-ID: <4FC096D6.3040504@gmail.com>
-Date: Sat, 26 May 2012 10:39:50 +0200
-From: Sylwester Nawrocki <snjw23@gmail.com>
-MIME-Version: 1.0
-To: Sachin Kamat <sachin.kamat@linaro.org>
-CC: linux-media@vger.kernel.org, s.nawrocki@samsung.com,
-	mchehab@infradead.org, patches@linaro.org
-Subject: Re: [PATCH 1/4] [media] s5p-fimc: Add missing static storage class
- in fimc-lite-reg.c file
-References: <1337967533-22240-1-git-send-email-sachin.kamat@linaro.org>
+	Fri, 25 May 2012 13:39:23 -0400
+Received: by mail-pz0-f46.google.com with SMTP id y13so1530415dad.19
+        for <linux-media@vger.kernel.org>; Fri, 25 May 2012 10:39:22 -0700 (PDT)
+From: Sachin Kamat <sachin.kamat@linaro.org>
+To: linux-media@vger.kernel.org
+Cc: s.nawrocki@samsung.com, mchehab@infradead.org,
+	sachin.kamat@linaro.org, patches@linaro.org
+Subject: [PATCH 4/4] [media] s5p-fimc: Add missing static storage class in fimc-capture.c file
+Date: Fri, 25 May 2012 23:08:53 +0530
+Message-Id: <1337967533-22240-4-git-send-email-sachin.kamat@linaro.org>
 In-Reply-To: <1337967533-22240-1-git-send-email-sachin.kamat@linaro.org>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+References: <1337967533-22240-1-git-send-email-sachin.kamat@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sachin,
+Fixes the following sparse warning:
+drivers/media/video/s5p-fimc/fimc-capture.c:1163:5: warning: symbol 'enclosed_rectangle' was not declared. Should it be static?
 
-On 05/25/2012 07:38 PM, Sachin Kamat wrote:
-> Fixes the following sparse warning:
-> drivers/media/video/s5p-fimc/fimc-lite-reg.c:218:6: warning: symbol
-> 'flite_hw_set_out_order' was not declared. Should it be static?
+Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+---
+ drivers/media/video/s5p-fimc/fimc-capture.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Thanks for the patches. However I'm inclined to squash this whole
-series into one patch, since it addresses same issue in one driver,
-just in different. I don't see a good reason to split those changes
-like this. Could you make it just one patch instead ?
+diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c b/drivers/media/video/s5p-fimc/fimc-capture.c
+index 516cd5b..b7caaf5 100644
+--- a/drivers/media/video/s5p-fimc/fimc-capture.c
++++ b/drivers/media/video/s5p-fimc/fimc-capture.c
+@@ -1160,7 +1160,7 @@ static int fimc_cap_g_selection(struct file *file, void *fh,
+ }
+ 
+ /* Return 1 if rectangle a is enclosed in rectangle b, or 0 otherwise. */
+-int enclosed_rectangle(struct v4l2_rect *a, struct v4l2_rect *b)
++static int enclosed_rectangle(struct v4l2_rect *a, struct v4l2_rect *b)
+ {
+ 	if (a->left < b->left || a->top < b->top)
+ 		return 0;
+-- 
+1.7.5.4
 
-
-Regards,
-Sylwester
