@@ -1,51 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rcsinet15.oracle.com ([148.87.113.117]:20953 "EHLO
-	rcsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752580Ab2EMTSa (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 May 2012 15:18:30 -0400
-Date: Sun, 13 May 2012 22:21:48 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Volokh Konstantin <volokh84@gmail.com>
-Cc: my84@bk.ru, devel@driverdev.osuosl.org, hverkuil@xs4all.nl,
-	gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org,
-	mchehab@infradead.org, dhowells@redhat.com,
-	justinmattock@gmail.com, linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/2] staging: media: go7007: Adlink MPG24 board
-Message-ID: <20120513192148.GE16984@mwanda>
-References: <1336935162-5068-1-git-send-email-volokh84@gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:31983 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757194Ab2EYMMs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 25 May 2012 08:12:48 -0400
+Message-ID: <4FBF773B.10408@redhat.com>
+Date: Fri, 25 May 2012 09:12:43 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1336935162-5068-1-git-send-email-volokh84@gmail.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+CC: Andrew Morton <akpm@linux-foundation.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: Re: [GIT PULL for v3.5-rc1] media updates for v3.5
+References: <4FBE5518.5090705@redhat.com> <CA+55aFyt2OFOsr5uCpQ6nrur4zhHhmWUJrvMgLH_Wy1niTbC6w@mail.gmail.com> <4FBEB72D.4040905@redhat.com> <CA+55aFyYQkrtgvG99ZOOhAzoKi8w5rJfRgZQy3Dqs39p1n=FPA@mail.gmail.com>
+In-Reply-To: <CA+55aFyYQkrtgvG99ZOOhAzoKi8w5rJfRgZQy3Dqs39p1n=FPA@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, May 13, 2012 at 10:52:41PM +0400, Volokh Konstantin wrote:
-> This patch applies only for Adlink MPG24 board with go7007, all these changes were tested for continuous loading & restarting modes
+Em 24-05-2012 19:40, Linus Torvalds escreveu:
+> On Thu, May 24, 2012 at 3:33 PM, Mauro Carvalho Chehab
+> <mchehab@redhat.com> wrote:
+>>
+>> The Kconfig default for DVB_FE_CUSTOMISE is 'n'. So, if no DVB bridge is selected,
+>> nothing will be compiled.
 > 
-> This is minimal changes needed for start up go7007 to work correctly
->   in 3.4 branch
+> Sadly, it looks like the default for distro kernels is 'y'.
+
+I'll change the default on Fedora (f16/f17/rawhide).
+
+> Which means that if you start with a distro kernel config, and then
+> try to cut it down to match your system, you end up screwed in the
+> future - all the new hardware will default to on.
 > 
-> Changes:
->   - When go7007 reset device, i2c was not working (need rewrite GPIO5)
->   - As wis2804 has i2c_addr=0x00/*really*/, so Need set I2C_CLIENT_TEN flag for validity
->   - some main nonzero initialization, rewrites with kzalloc instead kmalloc
->   - STATUS_SHUTDOWN was placed in incorrect place, so if firmware wasn`t loaded, we
->     failed v4l2_device_unregister with kernel panic (OOPS)
->   - some new v4l2 style features as call_all(...s_stream...) for using subdev calls
-> 
+> At least that's how I noticed it. Very annoying.
 
-In some ways, yes, I can see that this seems like one thing "Make
-go7007 work correctly", but really it would be better if each of
-the bullet points was its own patch.
+A simple way to solve it seems to make those options dependent on CONFIG_EXPERT.
 
-The changelogs should explain why you do something not what you do.
-We can all see that kmalloc() was changed to kzalloc() but why? Is
-their and information leak for example?  That might have security
-implications and be good thing to know about.
+Not sure if all usual distributions disable it, but I guess most won't have
+EXPERT enabled.
 
-regards,
-dan carpenter
+The enclosed patch does that. If nobody complains, I'll submit it together
+with the next git pull request.
 
+Regards,
+Mauro
 
+-
+
+[RFC PATCH] Make tuner/frontend options dependent on EXPERT
+
+The media CUSTOMISE options are there to allow embedded systems and advanced
+users to disable tuner/frontends that are supported by a bridge driver to
+be disabled, in order to save some disk space and memory, when compiled builtin.
+
+However, distros are mistakenly enabling it, causing problems when a
+make oldconfig is used.
+
+Make those options dependent on EXPERT, in order to avoid such annoyance behavior.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+diff --git a/drivers/media/common/tuners/Kconfig b/drivers/media/common/tuners/Kconfig
+index bbf4945..702a3bf 100644
+--- a/drivers/media/common/tuners/Kconfig
++++ b/drivers/media/common/tuners/Kconfig
+@@ -35,6 +35,7 @@ config MEDIA_TUNER
+ config MEDIA_TUNER_CUSTOMISE
+ 	bool "Customize analog and hybrid tuner modules to build"
+ 	depends on MEDIA_TUNER
++	depends on EXPERT
+ 	default y if EXPERT
+ 	help
+ 	  This allows the user to deselect tuner drivers unnecessary
+diff --git a/drivers/media/dvb/frontends/Kconfig b/drivers/media/dvb/frontends/Kconfig
+index b98ebb2..6d3c2f7 100644
+--- a/drivers/media/dvb/frontends/Kconfig
++++ b/drivers/media/dvb/frontends/Kconfig
+@@ -1,6 +1,7 @@
+ config DVB_FE_CUSTOMISE
+ 	bool "Customise the frontend modules to build"
+ 	depends on DVB_CORE
++	depends on EXPERT
+ 	default y if EXPERT
+ 	help
+ 	  This allows the user to select/deselect frontend drivers for their
