@@ -1,206 +1,152 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:41441 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751938Ab2EJLpJ convert rfc822-to-8bit (ORCPT
+Received: from mail-gw-out1.cc.tut.fi ([130.230.160.32]:54385 "EHLO
+	mail-gw-out1.cc.tut.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753675Ab2EYQBR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 May 2012 07:45:09 -0400
-Received: by bkcji2 with SMTP id ji2so1181723bkc.19
-        for <linux-media@vger.kernel.org>; Thu, 10 May 2012 04:45:08 -0700 (PDT)
-From: Florian Fainelli <f.fainelli@gmail.com>
-To: muralidhar dixit <muralidhar.dixit@gmail.com>
-Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl
-Subject: Re: [RFC] HDMI-CEC proposal
-Date: Thu, 10 May 2012 13:43:16 +0200
-Message-ID: <1622612.qhoKdLnT7W@flexo>
-In-Reply-To: <CAH-Z1=WtUrS0HYMsOb9CarAcXhR72cO8QWAnUJdP+zDuj92Rxg@mail.gmail.com>
-References: <CAH-Z1=WtUrS0HYMsOb9CarAcXhR72cO8QWAnUJdP+zDuj92Rxg@mail.gmail.com>
+	Fri, 25 May 2012 12:01:17 -0400
+Message-ID: <4FBFACCA.1060308@iki.fi>
+Date: Fri, 25 May 2012 19:01:14 +0300
+From: Anssi Hannula <anssi.hannula@iki.fi>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-Content-Type: text/plain; charset="iso-8859-1"
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Linus Torvalds <torvalds@linux-foundation.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Thomas Backlund <tmb@mageia.org>
+Subject: Re: [GIT PULL for v3.5-rc1] media updates for v3.5
+References: <4FBE5518.5090705@redhat.com> <CA+55aFyt2OFOsr5uCpQ6nrur4zhHhmWUJrvMgLH_Wy1niTbC6w@mail.gmail.com> <4FBEB72D.4040905@redhat.com> <CA+55aFyYQkrtgvG99ZOOhAzoKi8w5rJfRgZQy3Dqs39p1n=FPA@mail.gmail.com> <4FBF773B.10408@redhat.com> <4FBF9BE8.3020300@iki.fi> <4FBFA37E.2060308@redhat.com>
+In-Reply-To: <4FBFA37E.2060308@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Murali,
+25.05.2012 18:21, Mauro Carvalho Chehab kirjoitti:
+> Em 25-05-2012 11:49, Anssi Hannula escreveu:
+>> 25.05.2012 15:12, Mauro Carvalho Chehab kirjoitti:
+>>> Em 24-05-2012 19:40, Linus Torvalds escreveu:
+>>>> On Thu, May 24, 2012 at 3:33 PM, Mauro Carvalho Chehab
+>>>> <mchehab@redhat.com> wrote:
+>>>>>
+>>>>> The Kconfig default for DVB_FE_CUSTOMISE is 'n'. So, if no DVB bridge is selected,
+>>>>> nothing will be compiled.
+>>>>
+>>>> Sadly, it looks like the default for distro kernels is 'y'.
+>>>
+>>> I'll change the default on Fedora (f16/f17/rawhide).
+>>>
+>>>> Which means that if you start with a distro kernel config, and then
+>>>> try to cut it down to match your system, you end up screwed in the
+>>>> future - all the new hardware will default to on.
+>>>>
+>>>> At least that's how I noticed it. Very annoying.
+>>>
+>>> A simple way to solve it seems to make those options dependent on CONFIG_EXPERT.
+>>>
+>>> Not sure if all usual distributions disable it, but I guess most won't have
+>>> EXPERT enabled.
+>>>
+>>> The enclosed patch does that. If nobody complains, I'll submit it together
+>>> with the next git pull request.
+>>>
+>>> Regards,
+>>> Mauro
+>>>
+>>> -
+>>>
+>>> [RFC PATCH] Make tuner/frontend options dependent on EXPERT
+>>>
+>>> The media CUSTOMISE options are there to allow embedded systems and advanced
+>>> users to disable tuner/frontends that are supported by a bridge driver to
+>>> be disabled, in order to save some disk space and memory, when compiled builtin.
+>>>
+>>> However, distros are mistakenly enabling it, causing problems when a
+>>> make oldconfig is used.
+>>>
+>>> Make those options dependent on EXPERT, in order to avoid such annoyance behavior.
+>>>
+>>> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+>>>
+>>> diff --git a/drivers/media/common/tuners/Kconfig b/drivers/media/common/tuners/Kconfig
+>>> index bbf4945..702a3bf 100644
+>>> --- a/drivers/media/common/tuners/Kconfig
+>>> +++ b/drivers/media/common/tuners/Kconfig
+>>> @@ -35,6 +35,7 @@ config MEDIA_TUNER
+>>>  config MEDIA_TUNER_CUSTOMISE
+>>>  	bool "Customize analog and hybrid tuner modules to build"
+>>>  	depends on MEDIA_TUNER
+>>> +	depends on EXPERT
+>>>  	default y if EXPERT
+>>         ^^^^^^^^^^^^^^^^^^^
+>>
+>> Hmm, why should CONFIG_EXPERT automatically mean that the tuner modules
+>> should be customized? I'd think this shouldn't default to y even with
+>> EXPERT.
+>>
+>> Not a biggie, just thought I'd point it out :)
+>>
+>> (as a sidenote, on Mageia kernels CONFIG_EXPERT is on... didn't check
+>> why, could be just historical reasons)
+>>
+>>>  	help
+>>>  	  This allows the user to deselect tuner drivers unnecessary
+>>> diff --git a/drivers/media/dvb/frontends/Kconfig b/drivers/media/dvb/frontends/Kconfig
+>>> index b98ebb2..6d3c2f7 100644
+>>> --- a/drivers/media/dvb/frontends/Kconfig
+>>> +++ b/drivers/media/dvb/frontends/Kconfig
+>>> @@ -1,6 +1,7 @@
+>>>  config DVB_FE_CUSTOMISE
+>>>  	bool "Customise the frontend modules to build"
+>>>  	depends on DVB_CORE
+>>> +	depends on EXPERT
+>>>  	default y if EXPERT
+>>
+>> Ditto.
+>>
+>>>  	help
+>>>  	  This allows the user to select/deselect frontend drivers for their
+>>
+> 
+> This was added on the changeset b3fc1782c8 (see below). A latter changeset (6a108a14fa3)
+> renamed EMBEDDED to EXPERT.
+> 
+> For embedded systems, it makes more sense to customize the tuners/demods, in order to
+> remove drivers that would never be used there. That's the rationale behind this patch.
+> 
+> From my side, I don't mind removing the "default y if EXPERT", but, as I don't usually
+> work with embedded devices, I don't care much about that. It would be great to hear
+> some comments from embedded people about that as well.
 
-On Thursday 10 May 2012 12:40:05 muralidhar dixit wrote:
-> Hello Florian,
-> 
-> I do have similar implementation for my CEC driver.
-> And I prefer most of the CEC messaged to be handled in the user space and
-> have the kernel driver bare minimum with interfaces to
-> 1) REGISTER CEC device( I have support for multiple logical devices)
-> 2) SEND CEC MESSAGE
-> 3) RECV CEC MESSAGE
-> 
-> But one issue with this was the response time to the TV remote actions.
+OK.
 
-Well, I think this is specific to your platform, because I don't have any such 
-issue here with my implementation. The specification says that the desired 
-response time is of 200 ms and the maximum 1s, even with multiple context 
-switches you should be able to achieve that. Not knowing exactly how your 
-hardware works, maybe there is a bottleneck somewhere.
+> That's said, it is weird that Mageia is using CONFIG_EXPERT. Are they using those
+> two Kconfig options enabled as well?
 
-> Initially I was sending the UI control messages also to user space but
-> response time was too bad. Hence I wrote a CEC Keyboard driver which will
-> process the CEC UI control messages. From the CEC driver if I recv any CEC
-> UI control messages I will route it to CEC Keyboard driver in the kernel
-> and all other messages have to be handled by user space application.
+No, *_CUSTOMISE are unset. CC'd our kernel maintainer in case he
+remembers off-hand why CONFIG_EXPERT is enabled.
 
-This is the kind of thing that I want to avoid, on my platform, all the input 
-is processed in user-land and exposed as a HID device (thus self-describing), 
-forwarding CEC UI key codes to the kernel does not seem like a good solution 
-to me because it means we have to know about the CEC protocol itself.
 
-I fear that if we start doing this with the CEC UI codes, we end-up doing the 
-same for the system-related messages (Power, standby etc ...) and this is also 
-to be avoided.
+> Regards,
+> Mauro
+> 
+> -
+> 
+> commit b3fc1782c8b84574e44cf5869c9afa75523e2db8
+> Author: Guennadi Liakhovetski <lyakh@extensa5220.grange>
+> Date:   Thu Aug 5 18:09:28 2010 -0300
+> 
+>     V4L/DVB: V4L: do not autoselect components on embedded systems
+>     
+>     Tuner, DVB frontend and video helper chip drivers are by default
+>     autoselected by their respective host cards, this, however, doesn't make
+>     much sense on SoC-based systems. Disable autoselection on EMBEDDED
+>     systems.
+>     
+>     Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+>     Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+[...]
 
-> 
-> Best Regards,
-> Murali
-> From: Florian Fainelli <f.fainelli <at> gmail.com>
-> Subject: Re: [RFC] HDMI-CEC
-> proposal<http://news.gmane.org/find-
-root.php?message_id=%3c4F87F195.5080504%40gmail.com%3e>
-> Newsgroups: gmane.linux.drivers.video-input-
-infrastructure<http://news.gmane.org/gmane.linux.drivers.video-input-
-infrastructure>
-> Date: 2012-04-13 09:27:49 GMT (3 weeks, 5 days, 21 hours and 33 minutes ago)
-> 
-> Hi Hans,
-> 
-> Le 04/13/12 07:03, Hans Verkuil a écrit :
-> > You both hit the main problem of the *CEC* support: how to implement the 
-API.
-> 
-> Well, the API that I propose here [1] is quite simple:
-> 
-> - a kernel-side API for defining *CEC* adapters drivers
-> - a character device with an ioctl() control path and read/write/poll
-> data-path
-> 
-> [1]: https://github.com/ffainelli/linux-*hdmi*-*cec*
-> <https://github.com/ffainelli/linux-hdmi-cec>
-> 
-> >
-> > Cisco's work on *CEC* has been stalled as we first want to get *HDMI* 
-support in
-> > V4L. Hopefully that will happen in the next few months. After that we will
-> > resume working on the *CEC* API.
-> 
-> Well, I don't think that tighting *HDMI* into V4L is such a good idea
-> either. *HDMI* is also a separate bus and deserves its own subsystem and
-> even subsystems (audio, video, HDCP, *CEC*). For instance, the STB I am
-> working with does not use the V4L API at all, however, I would like to
-> be able to integrate within the Linux *HDMI* stack once there, think about
-> nvidia's driver too.
-> 
-> I can understand that you want to hold on your efforts on *CEC* while you
-> want to get *HDMI* in, but don't make it entirely driven by Cisco and
-> accept the community feedback.
-> 
-> >
-> > Regards,
-> >
-> > 	Hans
-> >
-> > On Thursday, April 12, 2012 22:36:55 Oliver Schinagl wrote:
-> >> Since a lot of video cards dont' support *CEC* at all (not even
-> >> connected), don't have *hdmi*, but work perfectly fine with dvi->*hdmi*
-> >> adapters, *CEC* can be implemented in many other ways (think media 
-centers)
-> >>
-> >> One such exammple is using USB/Arduino
-> >>
-> >> http://code.google.com/p/*cec*-arduino/wiki/ElectricalInterface 
-<http://code.google.com/p/cec-arduino/wiki/ElectricalInterface>
-> >>
-> >> Having an AVR with v-usb code and *cec* code doesn't look all that hard
-> >> nor impossible, so one could simply have a USB plug on one end, and an
-> >> *HDMI* plug on the other end, utilizing only the *CEC* pins.
-> >>
-> >> This would make it more something like LIRC if anything.
-> >>
-> >> On 04/12/12 17:24, Florian Fainelli wrote:
-> >>> Hi Hans, Martin,
-> >>>
-> >>> Sorry to jump in so late in the *HDMI*-*CEC* discussion, here are some
-> >>> comments from my perspective on your *proposal*:
-> >>>
-> >>> - the *HDMI*-*CEC* implementation deserves its own bus and class of 
-devices
-> >>> because by definition it is a physical bus, which is even electrically
-> >>> independant from the rest of the *HDMI* bus (A/V path)
-> >>>
-> >>> - I don't think it is a good idea to tight it so closely to v4l, because
-> >>> one can perfectly have *CEC*-capable hardware without video, or at least
-> >>> not use v4l and have *HDMI*-*CEC* hardware
-> >>>
-> >>> - it was suggested to use sockets at some point, I think it is
-> >>> over-engineered and should only lead
-> >>>
-> >>> - processing messages in user-space is definitively the way to go, even
-> >>> input can be either re-injected using an uinput driver, or be handled in
-> >>> user-space entirely, eventually we might want to install "filters" based
-> >>> on opcodes to divert some opcodes to a kernel consumer, and the others
-> >>> to an user-space one
-> >>>
-> >>> Right now, I have a very simple implementation that I developed for the
-> >>> company I work for which can be found here:
-> >>> https://github.com/ffainelli/linux-*hdmi*-*cec* 
-<https://github.com/ffainelli/linux-hdmi-cec>
-> >>>
-> >>> It is designed like this:
-> >>>
-> >>> 1) A core module, which registers a *cec* bus, and provides an 
-abstraction
-> >>> for a *CEC* adapter (both device&  driver):
-> >>> - basic *CEC* adapter operations: logical address setting, queueing
-> >>> management
-> >>> - counters, rx filtering
-> >>> - host attaching/detaching in case the hardware is capable of
-> >>> self-processing *CEC* messages (for wakeup in particular)
-> >>>
-> >>> 2) A character device module, which exposes a character device per *CEC*
-> >>> adapter and only allows one consumer at a time and exposes the following
-> >>> ioctl's:
-> >>>
-> >>> - SET_LOGICAL_ADDRESS
-> >>> - RESET_DEVICE
-> >>> - GET_COUNTERS
-> >>> - SET_RX_MODE (my adapter can be set in a promiscuous mode)
-> >>>
-> >>> the character device supports read/write/poll, which are the prefered
-> >>> ways for transfering/receiving data
-> >>>
-> >>> 3) A *CEC* adapter implementation which registers and calls into the 
-core
-> >>> module when receiving a *CEC* message, and which the core module calls 
-in
-> >>> response to the IOCTLs described below.
-> >>>
-> >>> At first I thought about defining a generic netlink family in order to
-> >>> allow multiple user-space listeners receive *CEC* messages, but in the 
-end
-> >>> having only one consumer per adapter device is fine by me and a more
-> >>> traditionnal approach for programmers.
-> >>>
-> >>> I am relying on external components for knowing my *HDMI* physical 
-address.
-> >>>
-> >>> Hope this is not too late to (re)start the discussion on *HDMI*-*CEC*.
-> >>>
-> >>> Thank you very much.
-> >>> --
-> >>> Florian
-> >>> --
-> >>> To unsubscribe from this list: send the line "unsubscribe linux-media" 
-in
-> >>> the body of a message to majordomo <at> vger.kernel.org
-> >>> More majordomo info at http://vger.kernel.org/majordomo-info.html
-> >>
-> >> --
-> >> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> >> the body of a message to majordomo <at> vger.kernel.org
-> >> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> >>
+-- 
+Anssi Hannula
