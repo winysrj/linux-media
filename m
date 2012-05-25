@@ -1,62 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:35510 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751339Ab2ELDJV (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:19391 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758474Ab2EYTxI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 May 2012 23:09:21 -0400
-Received: by pbbrp8 with SMTP id rp8so3997099pbb.19
-        for <linux-media@vger.kernel.org>; Fri, 11 May 2012 20:09:20 -0700 (PDT)
-Date: Sat, 12 May 2012 00:08:58 -0300
-From: Ismael Luceno <ismael.luceno@gmail.com>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 2/2] au0828: Move under dvb
-Message-ID: <20120512000858.3d9e41a8@pirotess>
-In-Reply-To: <CAGoCfiydH48uY86w3oHbRDoJddX5qS1Va7vo4-vXwAn9JeSaaQ@mail.gmail.com>
-References: <1336716892-5446-1-git-send-email-ismael.luceno@gmail.com>
-	<1336716892-5446-2-git-send-email-ismael.luceno@gmail.com>
-	<CAGoCfiydH48uY86w3oHbRDoJddX5qS1Va7vo4-vXwAn9JeSaaQ@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=PGP-SHA1;
- boundary="Sig_/byIbRX50odxejSG2SKJj=tD"; protocol="application/pgp-signature"
+	Fri, 25 May 2012 15:53:08 -0400
+Date: Fri, 25 May 2012 21:52:43 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [RFC/PATCH 04/13] devicetree: Add common video devices bindings
+ documentation
+In-reply-to: <1337975573-27117-1-git-send-email-s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: kyungmin.park@samsung.com, m.szyprowski@samsung.com,
+	riverful.kim@samsung.com, sw0312.kim@samsung.com,
+	s.nawrocki@samsung.com, devicetree-discuss@lists.ozlabs.org,
+	linux-samsung-soc@vger.kernel.org, b.zolnierkie@samsung.com
+Message-id: <1337975573-27117-4-git-send-email-s.nawrocki@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <4FBFE1EC.9060209@samsung.com>
+ <1337975573-27117-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---Sig_/byIbRX50odxejSG2SKJj=tD
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ Documentation/devicetree/bindings/video/video.txt |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/video/video.txt
 
-On Fri, 11 May 2012 08:04:59 -0400
-Devin Heitmueller <dheitmueller@kernellabs.com> wrote:
-...=20
-> What is the motivation for moving these files?
+diff --git a/Documentation/devicetree/bindings/video/video.txt b/Documentation/devicetree/bindings/video/video.txt
+new file mode 100644
+index 0000000..9f6a637
+--- /dev/null
++++ b/Documentation/devicetree/bindings/video/video.txt
+@@ -0,0 +1,10 @@
++Common properties of video data source devices (image sensor, video encoders, etc.)
++
++Video bus types
++---------------
++
++- video-bus-type : must be one of:
++
++    - itu-601   : parallel bus with HSYNC and VSYNC - ITU-R BT.601;
++    - itu-656   : parallel bus with embedded synchronization - ITU-R BT.656;
++    - mipi-csi2 : MIPI-CSI2 serial bus;
+-- 
+1.7.10
 
-Well, the device was on the wrong Kconfig section, and while thinking
-about changing that, I just thought to move it under DVB.
-
-> The au0828 is a hybrid bridge, and every other hybrid bridge is
-> under video?
-
-Sorry, the devices I got don't support analog, so I didn't thought
-about it that much...
-
-I guess it's arbitrary... isn't it? wouldn't it be better to have an
-hybrid section? (just thinking out loud)
-
---Sig_/byIbRX50odxejSG2SKJj=tD
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Disposition: attachment; filename=signature.asc
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQEcBAEBAgAGBQJPrdRKAAoJEBH/VE8bKTLbRb0IAOESSk07CFiqb5KORSuwe68B
-MBW/8FE261K5KvPExN5/9r1gE35NPk8JVEPtFp3r3trwj+sOZcttBUgrTXfUp59x
-vgiwwhL+u32V4U/H/dnGJPOwO8VFtcOZYvFOVzfqOeiyMdeFkiiLXgAdZ+tIxcPG
-bgebzPXbUXTJM5cvjbReTz4Bc0SVaTxM/uyZIhSNd8CIpsTidpBDkaT69EUkjJKo
-2X98TErJrk9cRdhZXbj55KC/rLfzsfAGGGz0bKAwIOf0UKCY1wlXJa1AElbu4eBY
-kh+gfRDwZODodSU79p2cWi86kUjSPI6qY5aBN6KLxJaQIR3uuousDkuSJFVyPEE=
-=YBav
------END PGP SIGNATURE-----
-
---Sig_/byIbRX50odxejSG2SKJj=tD--
