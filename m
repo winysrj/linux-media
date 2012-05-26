@@ -1,119 +1,155 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:18557 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754638Ab2EFSRK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 6 May 2012 14:17:10 -0400
-Message-ID: <4FA6C024.9090408@redhat.com>
-Date: Sun, 06 May 2012 20:17:08 +0200
-From: Hans de Goede <hdegoede@redhat.com>
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:2109 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752983Ab2EZQke (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 26 May 2012 12:40:34 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: Discussion: How to deal with radio tuners which can tune to multiple bands
+Date: Sat, 26 May 2012 18:40:27 +0200
+Cc: halli manjunatha <hallimanju@gmail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <1337032913-18646-1-git-send-email-manjunatha_halli@ti.com> <4FBE8819.80704@redhat.com> <4FC0FE9A.70603@redhat.com>
+In-Reply-To: <4FC0FE9A.70603@redhat.com>
 MIME-Version: 1.0
-To: Jean-Francois Moine <moinejf@free.fr>
-CC: linux-media@vger.kernel.org
-Subject: Re: gspca zc3xx - JPEG quality / frame overflow
-References: <20120505205409.312e271f@tele>
-In-Reply-To: <20120505205409.312e271f@tele>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201205261840.27204.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Sat May 26 2012 18:02:34 Hans de Goede wrote:
+> Hi,
+> 
+> On 05/24/2012 09:12 PM, Hans de Goede wrote:
+> > Hi,
+> >
+> > On 05/24/2012 05:00 PM, Hans Verkuil wrote:
+> >>> I think / hope that covers everything we need. Suggestions ? Comments ?
+> >>
+> >> Modulators. v4l2_modulator needs a band field as well. The capabilities are
+> >> already shared with v4l2_tuner, so that doesn't need to change.
+> >
+> > Ah, yes modulators, good one, ack.
+> >
+> > Manjunatha, since the final proposal is close to yours, and you already have
+> > a patch for that including all the necessary documentation updates, can I ask
+> > you to update your patch to implement this proposal?
+> >
+> 
+> So I've been working a bit on adding AM support to the tea575x driver using
+> the agreed upon API, some observations from this:
+> 
+> 1) There is no way to get which band is currently active
 
-On 05/05/2012 08:54 PM, Jean-Francois Moine wrote:
-> Hi Hans,
->
-> I quickly looked at your patches about the changes for the JPEG
-> quality, and I have some remarks.
->
-> Indeed, as I don't have any zc3xx webcam nor a lot of documentation
-> about the zc3xx bridge, my information come only from USB trace
-> analysis, and I am not sure there are fully valid.
+Huh? Didn't G_TUNER return the current band? That's how I interpreted the
+proposal. G_TUNER returns the available bands in capabilities and the current
+band and its frequency range. You want to find the frequency range of another
+band you call have to call S_TUNER first to select that other band, and then
+G_TUNER to discover its range.
 
-I think you've done a very good job given that you've only used traces!
+That also solves case 2. No need for an extra band in v4l2_frequency.
 
-I do have a datasheet now a days (for the VC0302) which is where I got
-the information mentioned in the commit messages. Unfortunately I'm not
-at liberty to share the datasheet. But if you've questions about any
-other registers feel free to ask and I'll try to answer them.
+> This is IMHO a big problem, a GUI radio app will quite likely when it starts get
+> all the current settings and display them without modifying any settings, so
+> it needs a way to find out which band is active.
+> 
+> 2) What if first a band aware radio app sets a non default band, and then a
+> non band aware radio app comes along, it does a g_tuner on the default-band,
+> using the lo / high freq-s to build its UI, then the users picks a frequency,
+> and the app does a s_freq, and the result is a frequency outside of what the
+> app thinks are the lo / high freq limits because a different band is active ->
+> not good.
+> 
+> So I think we need to slightly modify the proposal, esp. to deal with 1), 2)
+> is a corner case and not really all that important on its own IMHO.
+> 
+> I suggest fixing 1) by not only adding a band field to v4l2_tuner, so that
+> the different ranges for different bands can be queried, but also adding
+> a band field to v4l2_frequency, so that the current active band can be
+> reported by g_frequency. Once we make g_frequency report the active band,
+> it makes sense to make s_frequency set the active band.
 
-> - the register 08 always have values 0..3 (bits 0 and 1). I never saw
->    the bits 2 or 3 set when the frame transfer regulation is active.
+I don't really like this. You run into the same weird situation with G_TUNER
+that I did (as that was one of my ideas as well) where you set band to e.g.
+the weather band and get back the corresponding frequency range, but the other
+fields like signal and rxsubchans still refer to the *current* band. That's
+confusing and not logical.
 
-Note that my patch is not setting bit 3 either. I'm not surprised
-that you've never seen bit 2 get set, that means a JPEG quality of either
-87% or 94% which leads to way too much bandwidth usage. But setting bit
-2 is a valid setting (note that later on in my patchset I disable
-the 94 setting completely as it is simply unusable).
+> We would then need no changes to s_tuner at all, it will still only have
+> audmode as writeable setting and thus *not* set the active band. Effectively
+> s_tuner would just completely ignore the passed in band. Keeping audmode as
+> a global (not band specific) setting, and likewise g_tuner would always
+> return CAP_STEREO stereo if some bands are stereo capable.
+> 
+> This also nicely fixes 2). Since the reserved fields should be 0, so a
+> s_frequency by a non band aware app will set the band to the default band.
+> 
+> ###
+> 
+> So here is a new / amended version of my band proposal:
+> 
+> 1) Introduce the concept of bands, for radio tuners only
+> 
+> 2) Define the following bands:
+> 
+> #define V4L2_BAND_DEFAULT       0
+> #define V4L2_BAND_FM_EUROPE_US  1       /* 87.5 Mhz - 108 MHz */
+> #define V4L2_BAND_FM_JAPAN      2       /* 76 MHz - 90 MHz */
+> #define V4L2_BAND_FM_RUSSIAN    3       /* 65.8 MHz - 74 MHz */
+> #define V4L2_BAND_FM_WEATHER    4       /* 162.4 MHz - 162.55 MHz */
+> #define V4L2_BAND_AM_MW         5
+> 
+> 3) radio tuners indicate if they understand any of the non default bands
+> with the following tuner caps:
+> 
+> #define V4L2_TUNER_CAP_BAND_FM_EUROPE_US        0x00010000
+> #define V4L2_TUNER_CAP_BAND_FM_JAPAN    	0x00020000
+> #define V4L2_TUNER_CAP_BAND_FM_RUSSIAN  	0x00040000
+> #define V4L2_TUNER_CAP_BAND_FM_WEATHER  	0x00080000
+> #define V4L2_TUNER_CAP_BAND_AM_MW       	0x00100000
+> 
+> A (radio) tuner should always support RADIO_BAND_DEFAULT, so there is no
+> capability flag for this
+> 
+> 4) Add a band field to v4l2_tuner, apps can query the exact rangelow and
+> rangehigh values for a specific band by doing a g_tuner with band set to
+> that band. All v4l2_tuner fields returned by g_tuner will be independent
+> of the selected band (iow constant) except for: rangelow, rangehigh,
+> rxsubchans and signal.
+> 4a) rangelow, rangehigh will be the actual values for that band
+> 4b) rxsubchans and signal will be 0 if a g_tuner is done for a band different
+> then the active band, for the active band they will reflect the actual values.
 
-> - when frame overflows occur or disappear, the register 07 is always
->    updated before the register 08. There are bug fixes about the setting
->    of the registers 07 and 08 in my gspca test tarball 2.15.17.
+So I would do this as:
 
-As said in the patches I see no need to change register 8 when we detect
-overflows, at the default quality of 75% BRC (bit rate control, the zc3xx
-feature controlled by register 7) is almost never necessary, and even at a
-setting of 87%, the BRC does a good job of keeping things working without
-any visible image quality degrading (unlike at 94% where BRC also keeps
-things working but the image is very much degraded).
+4) Add a band field to v4l2_tuner. Calling g_tuner will set this to the
+current band. You change it by calling s_tuner. CAP_STEREO and audmode are
+global properties, not per-band. CAP_STEREO really refers to whether the
+hardware can do stereo at all.
 
-Also changing register 8 while streaming leaves to clearly visible
-flashing of the video stream, which is not good, esp. not when caused
-by automatic adjustments.
+> 5) s_tuner will be completely unchanged, the band field will not influence
+> it, audmode will be a per tuner global, not a per band value
 
-I've not looked at your bugfixes, but I do know that the code before
-my patches is buggy. I first noticed this when I tried the jpeg quality
-controls on a camera with a sensor other then the hv7131r or pas202b,
-and 2 out of 4 settings were good, and the other 2 were wrong, and it
-seemed as if 2 out of 4 settings (the ones only changing bit 0) did
-not make any quality difference.
+Drop this.
 
-Then I remembered I have a datasheet and looked up the register,
-and indeed bit 0 of reg 8 does not affect the quantization tables
-used. Where as bit 1 and 2 do.
+> 6) Add a band field to v4l2_frequency, on a g_frequency this will reflect the
+> current band, on a s_frequency this will set the current band
 
-The datasheet is also where the change of quality at reg8 == 3 from
-70 to 75 comes from, its hard to see the difference, but the datasheet
-says 75% is correct.
+Drop this.
 
-As for setting reg07, if you look at my patches you'll see that the
-resulting code for controlling reg07 is much simpler.
+> 7) Doing a VIDIOC_S_HW_FREQ_SEEK will seek in the currently active band,
+> iow the band last set by a s_frequency call, this matches existing behavior where
+> the seek starts at the currently active frequency (so the frequency set by the
+> last s_frequency call, or the frequency from the last seek).
 
-So all in all I think my new code is a big improvement, please let me
-know if you see anything specific there which you think should be
-improved.
+5) Doing a VIDIOC_S_HW_FREQ_SEEK will seek in the currently active band,
+iow the band last set by a s_tuner call.
 
-> - as it is (read the register 11 every 100 ms), the work queue is
->    usefull when there is no polling of the snapshot button, because the
->    frame overflow is reported as the bit 0 in the forth byte (data[3])
->    of the interrupt messages.
-
-Interesting, so if the interrupt is enabled, then as soon as an overflow
-happens, we get notified through the interrupt data?
-
-That may be an alternative to the worker thread, although the current
-solution does work rather well, so I wonder if we should meddle with it.
-
->    In fact, in the traces I have, only the webcams which don't do button
->    polling by interrupt messages have to read the register 11. Why only
->    when the sensor is hv7131r or pas202b?
-
-I've seen the camera being unable to produce an image due to bandwidth
-issues with other sensors too (at 87% quality), and enabling brc for those
-sensors fixed it too. Since brc and quality are pure bridge settings and
-not really sensor specific at all I've enabled it for all sensors,
-simplifying the code and I believe this is better.
-
-I've tested my changes with the following cams:
-
-Creative WebCam NX Pro          041e:401e       zc3xx   HV7131B
-Creative WebCam Notebook        041e:401f       zc3xx   TAS5130C
-Creative Live! Cam Video IM     041e:4053       zc3xx   TAS5130-VF250
-Logitech QuickCam IM/Connect    046d:08d9       zc3xx   HV7131R
-Logitech QuickCam E2500         046d:089d       zc3xx   MC501CB
-Labtec notebook cam             046d:08aa       zc3xx   PAS202B
-Philips SPC 200NC               0471:0325       zc3xx   PAS106
-No brand                        0ac8:307b       zc3xx   ADCM2700
+Two fewer items on this list :-)
 
 Regards,
 
-Hans
+	Hans
