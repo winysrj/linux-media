@@ -1,55 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mrsl.grasp.upenn.edu ([158.130.53.11]:38351 "EHLO morwong"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1754429Ab2EBW2r (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 2 May 2012 18:28:47 -0400
-From: Kartik Mohta <kartikmohta@gmail.com>
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:34999 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752722Ab2EZPMK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 26 May 2012 11:12:10 -0400
+Received: by pbbrp8 with SMTP id rp8so2921071pbb.19
+        for <linux-media@vger.kernel.org>; Sat, 26 May 2012 08:12:10 -0700 (PDT)
+From: Sachin Kamat <sachin.kamat@linaro.org>
 To: linux-media@vger.kernel.org
-Cc: Kartik Mohta <kartikmohta@gmail.com>
-Subject: [PATCH] mt9v032: Correct the logic for the auto-exposure setting
-Date: Wed,  2 May 2012 18:19:08 -0400
-Message-Id: <1335997148-4915-1-git-send-email-kartikmohta@gmail.com>
+Cc: s.nawrocki@samsung.com, mchehab@infradead.org,
+	sachin.kamat@linaro.org, patches@linaro.org
+Subject: [PATCH 1/1] [media] s5p-fimc: Add missing static storage class
+Date: Sat, 26 May 2012 20:41:54 +0530
+Message-Id: <1338045114-2477-1-git-send-email-sachin.kamat@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The driver uses the ctrl value passed in as a bool to determine whether
-to enable auto-exposure, but the auto-exposure setting is defined as an
-enum where AUTO has a value of 0 and MANUAL has a value of 1. This leads
-to a reversed logic where if you send in AUTO, it actually sets manual
-exposure and vice-versa.
+Fixes the following sparse warnings:
 
-Signed-off-by: Kartik Mohta <kartikmohta@gmail.com>
+drivers/media/video/s5p-fimc/fimc-lite-reg.c:218:6: warning: symbol
+'flite_hw_set_out_order' was not declared. Should it be static?
+
+drivers/media/video/s5p-fimc/fimc-mdevice.c:183:5: warning: symbol '__fimc_pipeline_shutdown' was not declared. Should it be static?
+drivers/media/video/s5p-fimc/fimc-mdevice.c:1013:12: warning: symbol 'fimc_md_init' was not declared. Should it be static?
+drivers/media/video/s5p-fimc/fimc-mdevice.c:1024:13: warning: symbol 'fimc_md_exit' was not declared. Should it be static?
+
+drivers/media/video/s5p-fimc/fimc-core.c:466:5: warning: symbol 'fimc_set_color_effect' was not declared. Should it be static?
+
+drivers/media/video/s5p-fimc/fimc-capture.c:1163:5: warning: symbol 'enclosed_rectangle' was not declared. Should it be static?
+
+Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
 ---
- drivers/media/video/mt9v032.c |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ drivers/media/video/s5p-fimc/fimc-capture.c  |    2 +-
+ drivers/media/video/s5p-fimc/fimc-core.c     |    2 +-
+ drivers/media/video/s5p-fimc/fimc-lite-reg.c |    2 +-
+ drivers/media/video/s5p-fimc/fimc-mdevice.c  |    7 ++++---
+ 4 files changed, 7 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/media/video/mt9v032.c b/drivers/media/video/mt9v032.c
-index 75e253a..8ea8737 100644
---- a/drivers/media/video/mt9v032.c
-+++ b/drivers/media/video/mt9v032.c
-@@ -470,6 +470,7 @@ static int mt9v032_s_ctrl(struct v4l2_ctrl *ctrl)
- 			container_of(ctrl->handler, struct mt9v032, ctrls);
- 	struct i2c_client *client = v4l2_get_subdevdata(&mt9v032->subdev);
- 	u16 data;
-+	int aec_value;
+diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c b/drivers/media/video/s5p-fimc/fimc-capture.c
+index 516cd5b..b7caaf5 100644
+--- a/drivers/media/video/s5p-fimc/fimc-capture.c
++++ b/drivers/media/video/s5p-fimc/fimc-capture.c
+@@ -1160,7 +1160,7 @@ static int fimc_cap_g_selection(struct file *file, void *fh,
+ }
  
- 	switch (ctrl->id) {
- 	case V4L2_CID_AUTOGAIN:
-@@ -480,8 +481,13 @@ static int mt9v032_s_ctrl(struct v4l2_ctrl *ctrl)
- 		return mt9v032_write(client, MT9V032_ANALOG_GAIN, ctrl->val);
+ /* Return 1 if rectangle a is enclosed in rectangle b, or 0 otherwise. */
+-int enclosed_rectangle(struct v4l2_rect *a, struct v4l2_rect *b)
++static int enclosed_rectangle(struct v4l2_rect *a, struct v4l2_rect *b)
+ {
+ 	if (a->left < b->left || a->top < b->top)
+ 		return 0;
+diff --git a/drivers/media/video/s5p-fimc/fimc-core.c b/drivers/media/video/s5p-fimc/fimc-core.c
+index c2d621c..02c82c7 100644
+--- a/drivers/media/video/s5p-fimc/fimc-core.c
++++ b/drivers/media/video/s5p-fimc/fimc-core.c
+@@ -463,7 +463,7 @@ void fimc_prepare_dma_offset(struct fimc_ctx *ctx, struct fimc_frame *f)
+ 	    f->fmt->color, f->dma_offset.y_h, f->dma_offset.y_v);
+ }
  
- 	case V4L2_CID_EXPOSURE_AUTO:
-+		if(ctrl->val == V4L2_EXPOSURE_MANUAL)
-+			aec_value = 0;
-+		else
-+			aec_value = 1;
+-int fimc_set_color_effect(struct fimc_ctx *ctx, enum v4l2_colorfx colorfx)
++static int fimc_set_color_effect(struct fimc_ctx *ctx, enum v4l2_colorfx colorfx)
+ {
+ 	struct fimc_effect *effect = &ctx->effect;
+ 
+diff --git a/drivers/media/video/s5p-fimc/fimc-lite-reg.c b/drivers/media/video/s5p-fimc/fimc-lite-reg.c
+index 419adfb..f996e94 100644
+--- a/drivers/media/video/s5p-fimc/fimc-lite-reg.c
++++ b/drivers/media/video/s5p-fimc/fimc-lite-reg.c
+@@ -215,7 +215,7 @@ void flite_hw_set_camera_bus(struct fimc_lite *dev,
+ 	flite_hw_set_camera_port(dev, s_info->mux_id);
+ }
+ 
+-void flite_hw_set_out_order(struct fimc_lite *dev, struct flite_frame *f)
++static void flite_hw_set_out_order(struct fimc_lite *dev, struct flite_frame *f)
+ {
+ 	static const u32 pixcode[4][2] = {
+ 		{ V4L2_MBUS_FMT_YUYV8_2X8, FLITE_REG_CIODMAFMT_YCBYCR },
+diff --git a/drivers/media/video/s5p-fimc/fimc-mdevice.c b/drivers/media/video/s5p-fimc/fimc-mdevice.c
+index 52cef48..e65bb28 100644
+--- a/drivers/media/video/s5p-fimc/fimc-mdevice.c
++++ b/drivers/media/video/s5p-fimc/fimc-mdevice.c
+@@ -180,7 +180,7 @@ EXPORT_SYMBOL_GPL(fimc_pipeline_initialize);
+  * sensor clock.
+  * Called with the graph mutex held.
+  */
+-int __fimc_pipeline_shutdown(struct fimc_pipeline *p)
++static int __fimc_pipeline_shutdown(struct fimc_pipeline *p)
+ {
+ 	int ret = 0;
+ 
+@@ -1010,7 +1010,7 @@ static struct platform_driver fimc_md_driver = {
+ 	}
+ };
+ 
+-int __init fimc_md_init(void)
++static int __init fimc_md_init(void)
+ {
+ 	int ret;
+ 
+@@ -1021,7 +1021,8 @@ int __init fimc_md_init(void)
+ 
+ 	return platform_driver_register(&fimc_md_driver);
+ }
+-void __exit fimc_md_exit(void)
 +
- 		return mt9v032_update_aec_agc(mt9v032, MT9V032_AEC_ENABLE,
--					      ctrl->val);
-+					      aec_value);
- 
- 	case V4L2_CID_EXPOSURE:
- 		return mt9v032_write(client, MT9V032_TOTAL_SHUTTER_WIDTH,
++static void __exit fimc_md_exit(void)
+ {
+ 	platform_driver_unregister(&fimc_md_driver);
+ 	fimc_unregister_driver();
 -- 
-1.7.10.1
+1.7.5.4
 
