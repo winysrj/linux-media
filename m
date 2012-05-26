@@ -1,101 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:55863 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755769Ab2ENLa4 (ORCPT
+Received: from mail-qa0-f49.google.com ([209.85.216.49]:55033 "EHLO
+	mail-qa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752578Ab2EZOSP convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 May 2012 07:30:56 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Bob Liu <lliubbo@gmail.com>
-Cc: linux-media@vger.kernel.org, mchehab@infradead.org,
-	linux-uvc-devel@lists.berlios.de,
-	uclinux-dist-devel@blackfin.uclinux.org
-Subject: Re: [PATCH] drivers:media:video:uvc: fix uvc_v4l2_get_unmapped_area for NOMMU
-Date: Mon, 14 May 2012 13:31:03 +0200
-Message-ID: <1463663.qyvIXF66SU@avalon>
-In-Reply-To: <1336991039-15970-1-git-send-email-lliubbo@gmail.com>
-References: <1336991039-15970-1-git-send-email-lliubbo@gmail.com>
+	Sat, 26 May 2012 10:18:15 -0400
+Received: by qabj40 with SMTP id j40so297359qab.1
+        for <linux-media@vger.kernel.org>; Sat, 26 May 2012 07:18:15 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <CA+55aFy9QysTkgPuy=GPxknRMoPTSTmp3FkHFJ+bs0G6CSh41g@mail.gmail.com>
+References: <CAO_48GFE3=yQjKS4w7=pGjNe3yENbRrd4bcMTfADJSn7LKekPQ@mail.gmail.com>
+ <CAO_48GGRRvCKVyY_s=oFgTb1vfjf8pSkHRf3jA8iFcdEHhwxVg@mail.gmail.com> <CA+55aFy9QysTkgPuy=GPxknRMoPTSTmp3FkHFJ+bs0G6CSh41g@mail.gmail.com>
+From: Sumit Semwal <sumit.semwal@linaro.org>
+Date: Sat, 26 May 2012 19:47:54 +0530
+Message-ID: <CAO_48GEzhmme8Evt9xiowgAwm_4496F9RTsO5ej3Fwtyr5VUVA@mail.gmail.com>
+Subject: Re: [GIT PULL]: dma-buf updates for 3.5
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-kernel@vger.kernel.org,
+	DRI mailing list <dri-devel@lists.freedesktop.org>,
+	linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
+	Jesse Barker <jesse.barker@linaro.org>,
+	akpm@linux-foundation.org, Daniel Vetter <daniel@ffwll.ch>,
+	Arnd Bergmann <arnd@arndb.de>, Dave Airlie <airlied@linux.ie>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Bob,
+Hi Linus,
 
-On Monday 14 May 2012 18:23:59 Bob Liu wrote:
-> Fix uvc_v4l2_get_unmapped_area() for NOMMU arch like blackfin after
-> framework updated to use videobuf2.
+On 25 May 2012 22:14, Linus Torvalds <torvalds@linux-foundation.org> wrote:
+> On Fri, May 25, 2012 at 2:17 AM, Sumit Semwal <sumit.semwal@linaro.org> wrote:
+>>
+>> I am really sorry - I goofed up in the git URL (sent the ssh URL
+>> instead).
+>
+> I was going to send you an acerbic email asking for your private ssh
+> key, but then noticed that you had sent another email with the public
+> version of the git tree..
+Well, it was stupid indeed - learning for me; won't happen again.
+>
+>> Could you please use
+>>
+>> git://git.linaro.org/people/sumitsemwal/linux-dma-buf.git tags/tag-for-linus-3.5
+>>
+>> instead, or should I send a new pull request with the corrected URL?
+>
+> Done. However, while your tag seems to be signed, your key is not
+> available publicly:
+>
+>   [torvalds@i5 ~]$ gpg --recv-key 7126925D
+>   gpg: requesting key 7126925D from hkp server pgp.mit.edu
+>   gpgkeys: key 7126925D not found on keyserver
+>
+> so I can't check if it is signed by anybody.
+>
+> Please do something like
+>
+>   gpg --keyserver pgp.mit.edu --send-keys 7126925D
+>
+> to actually make your public key public.
+Thanks; it is done.
+>
+> Of course, if it isn't public, I assume it hasn't actually been signed
+> by anybody, which makes it largely useless. But any future signing
+> action will validate the pre-signing uses of the key, so that's
+> fixable.
 
-Thank you for the patch, but I'm afraid you're too late. The fix is already 
-queued for v3.5 :-)
-
-> Signed-off-by: Bob Liu <lliubbo@gmail.com>
-> ---
->  drivers/media/video/uvc/uvc_queue.c |   30 ------------------------------
->  drivers/media/video/uvc/uvc_v4l2.c  |    2 +-
->  2 files changed, 1 insertions(+), 31 deletions(-)
-> 
-> diff --git a/drivers/media/video/uvc/uvc_queue.c
-> b/drivers/media/video/uvc/uvc_queue.c index 518f77d..30be060 100644
-> --- a/drivers/media/video/uvc/uvc_queue.c
-> +++ b/drivers/media/video/uvc/uvc_queue.c
-> @@ -237,36 +237,6 @@ int uvc_queue_allocated(struct uvc_video_queue *queue)
->  	return allocated;
->  }
-> 
-> -#ifndef CONFIG_MMU
-> -/*
-> - * Get unmapped area.
-> - *
-> - * NO-MMU arch need this function to make mmap() work correctly.
-> - */
-> -unsigned long uvc_queue_get_unmapped_area(struct uvc_video_queue *queue,
-> -		unsigned long pgoff)
-> -{
-> -	struct uvc_buffer *buffer;
-> -	unsigned int i;
-> -	unsigned long ret;
-> -
-> -	mutex_lock(&queue->mutex);
-> -	for (i = 0; i < queue->count; ++i) {
-> -		buffer = &queue->buffer[i];
-> -		if ((buffer->buf.m.offset >> PAGE_SHIFT) == pgoff)
-> -			break;
-> -	}
-> -	if (i == queue->count) {
-> -		ret = -EINVAL;
-> -		goto done;
-> -	}
-> -	ret = (unsigned long)buf->mem;
-> -done:
-> -	mutex_unlock(&queue->mutex);
-> -	return ret;
-> -}
-> -#endif
-> -
->  /*
->   * Enable or disable the video buffers queue.
->   *
-> diff --git a/drivers/media/video/uvc/uvc_v4l2.c
-> b/drivers/media/video/uvc/uvc_v4l2.c index 2ae4f88..506d3d6 100644
-> --- a/drivers/media/video/uvc/uvc_v4l2.c
-> +++ b/drivers/media/video/uvc/uvc_v4l2.c
-> @@ -1067,7 +1067,7 @@ static unsigned long uvc_v4l2_get_unmapped_area(struct
-> file *file,
-> 
->  	uvc_trace(UVC_TRACE_CALLS, "uvc_v4l2_get_unmapped_area\n");
-> 
-> -	return uvc_queue_get_unmapped_area(&stream->queue, pgoff);
-> +	return vb2_get_unmapped_area(&stream->queue, addr, len, pgoff, flags);
-
-Just for the record you would have needed to take the queue->mutex around the 
-vb2_get_unmapped_area() call here.
-
->  }
->  #endif
-
+Like Arnd has mentioned, we would do a key signing party here at the
+Linaro meeting, and make sure that relevant ones are signed.
+>
+>                     Linus
 -- 
-Regards,
-
-Laurent Pinchart
-
+Thanks and best regards,
+~Sumit
