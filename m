@@ -1,28 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 124-248-200-90.sunnyvision.com ([124.248.200.90]:36035 "EHLO
-	teamb03.edmhongkong.com" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
-	with ESMTP id S965425Ab2EOTfg (ORCPT
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:3355 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750886Ab2EZHkL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 May 2012 15:35:36 -0400
-Message-ID: <J7b2p3@tpts8.seed.net.tw>
-From: boris@dedicatedserver.com.hk
-Subject: Streaming Service
-Content-Type: text/plain;
-Content-Transfer-Encoding: Quoted-Printable
-Date: Wed, 16 May 2012 03:35:20 +0800 (HKT)
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+	Sat, 26 May 2012 03:40:11 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "linux-media" <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: [GIT PULL FOR v3.5] Move sta2x11_vip to staging
+Date: Sat, 26 May 2012 09:39:58 +0200
+Cc: Federico Vaga <federico.vaga@gmail.com>,
+	"linux-kernel" <linux-kernel@vger.kernel.org>,
+	Giancarlo Asnaghi <giancarlo.asnaghi@st.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201205260939.58100.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Our Streaming Server is powerful and optimized server for live and on-demand audio/ video streaming content delivery. 
-Our Streaming Server features with high performance streaming throughput, network & storage I/O and optimized configurations for its high scalability and reliability.
-Our server supports latest Windows Media Technologies such as Fast Streaming, Fast Cache, Fast Start, Wireless Streaming as well as feature-rich add-on modules such as sophisticated content management, monitoring, logging reports, billing, authentications, load-balancing & clustering for all needs. 
+Mauro,
 
-Pls send us email for further information.Thanks,
+This patch moves the sta2x11_vip driver to the staging directory. In my opinion
+this driver is not ready for prime-time.
 
-Boris 
-boris@dedicatedserver.com.hk
+As I mentioned a week ago, I never saw this driver when it was posted as that
+was during a period were I was unavoidably absent from the list. The problem
+with this driver is that it doesn't use any of the new frameworks (the control
+framework and videobuf2 in particular), and this should be corrected first.
 
-If you do not wish to further receive this event message, email "borislamsv2@gmail.com" to unsubscribe this message or remove your email from the list.
+In addition it has a clear V4L2 API violation in that only one filehandle at
+a time can open the video node. Developers really *must* run v4l2-compliance
+before posting a new driver! Almost all of this would be caught by that tool
+(except for using videobuf instead of vb2). Personally I think showing the
+output of v4l2-compliance should be a requirement for getting a driver merged
+under drivers/media/video.
 
+I didn't get any reply from Federico when I posted my concerns last week, so
+that makes me unhappy as well.
 
+I hope the author will fix these issues, but in the meantime this will move
+it to staging waiting for further developments.
+
+Regards,
+
+	Hans
+
+The following changes since commit 5472d3f17845c4398c6a510b46855820920c2181:
+
+  [media] mt9m032: Implement V4L2_CID_PIXEL_RATE control (2012-05-24 09:27:24 -0300)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git sta2x11
+
+for you to fetch changes up to 66e2c2572a2b59df5d9f6043c5706a73ce624f89:
+
+  sta2x11_vip: move to staging. (2012-05-26 09:27:15 +0200)
+
+----------------------------------------------------------------
+Hans Verkuil (1):
+      sta2x11_vip: move to staging.
+
+ drivers/media/video/Kconfig                                  |   13 -------------
+ drivers/media/video/Makefile                                 |    1 -
+ drivers/staging/media/Kconfig                                |    2 ++
+ drivers/staging/media/Makefile                               |    1 +
+ drivers/staging/media/sta2x11/Kconfig                        |   12 ++++++++++++
+ drivers/staging/media/sta2x11/Makefile                       |    1 +
+ drivers/{media/video => staging/media/sta2x11}/sta2x11_vip.c |    0
+ drivers/{media/video => staging/media/sta2x11}/sta2x11_vip.h |    0
+ 8 files changed, 16 insertions(+), 14 deletions(-)
+ create mode 100644 drivers/staging/media/sta2x11/Kconfig
+ create mode 100644 drivers/staging/media/sta2x11/Makefile
+ rename drivers/{media/video => staging/media/sta2x11}/sta2x11_vip.c (100%)
+ rename drivers/{media/video => staging/media/sta2x11}/sta2x11_vip.h (100%)
