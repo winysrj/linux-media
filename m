@@ -1,60 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:47036 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759335Ab2EPWOr (ORCPT
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:2752 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751195Ab2EZTTn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 May 2012 18:14:47 -0400
-From: Thomas Mair <thomas.mair86@googlemail.com>
-To: linus-media@vger.kernel.org
-Cc: crope@iki.fi, pomidorabelisima@gmail.com,
-	Thomas Mair <thomas.mair86@googlemail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH v4 0/5] support for rtl2832
-Date: Thu, 17 May 2012 00:13:35 +0200
-Message-Id: <1337206420-23810-1-git-send-email-thomas.mair86@googlemail.com>
-In-Reply-To: <1>
-References: <1>
+	Sat, 26 May 2012 15:19:43 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Ezequiel Garcia <elezegarcia@gmail.com>
+Subject: Re: [RFC/PATCH] media: Add stk1160 new driver
+Date: Sat, 26 May 2012 21:19:37 +0200
+Cc: mchehab@redhat.com, linux-media@vger.kernel.org,
+	hdegoede@redhat.com
+References: <201205261950.06022.hverkuil@xs4all.nl> <CALF0-+UbhYq7fPYsJLQZ+phuTtv4WEdQ9BwbCGA_5XUKHONCXw@mail.gmail.com>
+In-Reply-To: <CALF0-+UbhYq7fPYsJLQZ+phuTtv4WEdQ9BwbCGA_5XUKHONCXw@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201205262119.37644.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is the new version of the patch series to add support for the
-rtl2832 demodulator driver. Before applying the patches you need to
-add the fc0012/fc0013 driver from Hans-Frider Vogt.
+On Sat May 26 2012 20:38:00 Ezequiel Garcia wrote:
+> Hi Hans,
+> 
+> Thanks for your review (I'm a bit amazed at how fast you went through
+> the code :).
+> I'll address your excellent comments soon.
+> 
+> I'm still unsure about a numbre of things. Two of them:
+> 
+> 1. It seems to mee tracing is not too nice and
+> I wasn't really sure how to handle it: dev_xxx, pr_xxx, v4l2_xxx.
+> What's the current trend?
 
-The changes from the privious version of the patches are manly in the
-rtl2832 demod driver to fix code style issues, a nasty bug in the
-frontends Makefile and the removal of the signal statistics functionality
-which was badly broken in version 0.3 of the driver.
+dev_xxx with v4l2_xxx as a second option. If you don't need a driver/device
+prefix, then pr_xxx is best.
 
-The one thing that I am not really confident with is the Kconfig file for
-the dvb frontend driver. Are the changes I made right? And if not what
-kind of changes need to be made?
+It's messy and it's on my TODO list to simplify this. Unfortunately it's quite
+low on that list.
 
-Thanks Antti and poma for your comments!
+> 2. The original driver allowed to set frame size, but it seemed to me that
+> could be done at userspace.
 
-Regards
-Thomas
+You mean that the original driver allowed hardware resizing? It would be nice
+to keep support for that. For a first version you don't have to, though.
 
-Thomas Mair (5):
-  rtl2832 ver. 0.4: removed signal statistics
-  rtl28xxu: support for the rtl2832 demod driver
-  rtl28xxu: renamed rtl2831_rd/rtl2831_wr to rtl28xx_rd/rtl28xx_wr
-  rtl28xxu: support G-Tek Electronics Group Lifeview LV5TDLX DVB-T
-  rtl28xxu: support Terratec Noxon DAB/DAB+ stick
+> Hence, my implementation says:
+> 
+> V4L2_STD_625_50 is 720x756 and V4L2_STD_525_60 is 720x480.
+> 
+> (This is related to the way the video decoder saa711x also assuming that sizes.)
+> So userspace is supposed to get frame size, right after changing video standard
+> and handle buffer of appropriate size.
+> 
+> What do you think?
 
- drivers/media/dvb/dvb-usb/Kconfig          |    3 +
- drivers/media/dvb/dvb-usb/dvb-usb-ids.h    |    3 +
- drivers/media/dvb/dvb-usb/rtl28xxu.c       |  513 ++++++++++++++++--
- drivers/media/dvb/frontends/Kconfig        |    7 +
- drivers/media/dvb/frontends/Makefile       |    1 +
- drivers/media/dvb/frontends/rtl2832.c      |  825 ++++++++++++++++++++++++++++
- drivers/media/dvb/frontends/rtl2832.h      |   74 +++
- drivers/media/dvb/frontends/rtl2832_priv.h |  258 +++++++++
- 8 files changed, 1636 insertions(+), 48 deletions(-)
- create mode 100644 drivers/media/dvb/frontends/rtl2832.c
- create mode 100644 drivers/media/dvb/frontends/rtl2832.h
- create mode 100644 drivers/media/dvb/frontends/rtl2832_priv.h
+After the video standard is changed that framesize should always be set to the
+default size for that standard. An application can then change it to another
+size if there is a hardware scaler.
 
--- 
-1.7.7.6
+Regards,
 
+	Hans
+
+> 
+> 
+> On Sat, May 26, 2012 at 2:50 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> > (Ezequiel, your original CC list was mangled, so I'm reposting this)
+> >
+> Sorry about this :(
+> I'll check my git-send-mail config.
+> 
+> Thanks again,
+> Ezequiel.
+> 
