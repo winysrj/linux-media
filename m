@@ -1,120 +1,181 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:28777 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750782Ab2EVQan convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 May 2012 12:30:43 -0400
-Date: Tue, 22 May 2012 18:30:32 +0200
-From: =?iso-8859-1?Q?Llu=EDs?= Batlle i Rossell <viric@viric.name>
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Paulo Assis <pj.assis@gmail.com>, linux-media@vger.kernel.org
-Subject: Re: Problems with the gspca_ov519 driver
-Message-ID: <20120522163032.GC1927@vicerveza.homeunix.net>
-References: <20120522110018.GX1927@vicerveza.homeunix.net>
- <CAPueXH6uN4UQO_WL_pc9wBoZV=v_7AVtQKcruKY=BCMeJOw-2Q@mail.gmail.com>
- <4FBBA515.7010006@redhat.com>
- <20120522152703.GA1927@vicerveza.homeunix.net>
- <4FBBBEA2.5050200@redhat.com>
+Received: from mx1.redhat.com ([209.132.183.28]:51674 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754171Ab2EZSJt (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 26 May 2012 14:09:49 -0400
+Message-ID: <4FC11C71.7090104@redhat.com>
+Date: Sat, 26 May 2012 20:09:53 +0200
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-In-Reply-To: <4FBBBEA2.5050200@redhat.com>
-Content-Transfer-Encoding: 8BIT
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: halli manjunatha <hallimanju@gmail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Discussion: How to deal with radio tuners which can tune to multiple
+ bands
+References: <1337032913-18646-1-git-send-email-manjunatha_halli@ti.com> <4FBE8819.80704@redhat.com> <4FC0FE9A.70603@redhat.com> <201205261840.27204.hverkuil@xs4all.nl>
+In-Reply-To: <201205261840.27204.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, May 22, 2012 at 06:28:18PM +0200, Hans de Goede wrote:
-> Hi,
-> 
-> On 05/22/2012 05:27 PM, Lluís Batlle i Rossell wrote:
-> >Is this over linux 3.4 mainline? Because I can't get the patch applied over it.
-> 
-> No it is against:
-> http://git.linuxtv.org/media_tree.git/shortlog/refs/heads/staging/for_v3.5
-> 
-> But it should be trivial to backport, the patch is only 3 lines.
+Hi,
 
-I tried to, but I couldn't find any match for
-"video_drvdata". I'll check again.
+On 05/26/2012 06:40 PM, Hans Verkuil wrote:
+> On Sat May 26 2012 18:02:34 Hans de Goede wrote:
+>> Hi,
+>>
+>> On 05/24/2012 09:12 PM, Hans de Goede wrote:
+>>> Hi,
+>>>
+>>> On 05/24/2012 05:00 PM, Hans Verkuil wrote:
+>>>>> I think / hope that covers everything we need. Suggestions ? Comments ?
+>>>>
+>>>> Modulators. v4l2_modulator needs a band field as well. The capabilities are
+>>>> already shared with v4l2_tuner, so that doesn't need to change.
+>>>
+>>> Ah, yes modulators, good one, ack.
+>>>
+>>> Manjunatha, since the final proposal is close to yours, and you already have
+>>> a patch for that including all the necessary documentation updates, can I ask
+>>> you to update your patch to implement this proposal?
+>>>
+>>
+>> So I've been working a bit on adding AM support to the tea575x driver using
+>> the agreed upon API, some observations from this:
+>>
+>> 1) There is no way to get which band is currently active
+>
+> Huh? Didn't G_TUNER return the current band? That's how I interpreted the
+> proposal. G_TUNER returns the available bands in capabilities and the current
+> band and its frequency range. You want to find the frequency range of another
+> band you call have to call S_TUNER first to select that other band, and then
+> G_TUNER to discover its range.
 
-Thank you.
+Ah, we misunderstood each other there, I thought G_TUNER would honor the band
+passed in and return info on that band.
 
-> >
-> >Regards,
-> >Lluís.
-> >
-> >On Tue, May 22, 2012 at 04:39:17PM +0200, Hans de Goede wrote:
-> >>Hi,
-> >>
-> >>On 05/22/2012 04:08 PM, Paulo Assis wrote:
-> >>>Hi,
-> >>>This bug also causes the camera to crash when changing fps in
-> >>>guvcview, uvc devices (at least all the ones I tested) require the
-> >>>stream to be restarted for fps to change, so in the case of this
-> >>>driver after STREAMOFF the camera just becomes unresponsive.
-> >>>
-> >>>Regards,
-> >>>Paulo
-> >>>
-> >>>2012/5/22 Lluís Batlle i Rossell<viric@viric.name>:
-> >>>>Hello,
-> >>>>
-> >>>>I'm trying to get video using v4l2 ioctls from a gspca_ov519 camera, and after
-> >>>>STREAMOFF all buffers are still flagged as QUEUED, and QBUF fails.  DQBUF also
-> >>>>fails (blocking for a 3 sec timeout), after streamoff. So I'm stuck, after
-> >>>>STREAMOFF, unable to get pictures coming in again. (Linux 3.3.5).
-> >>>>
-> >>>>As an additional note, pinchartl on irc #v4l says to favour a moving of gspca to
-> >>>>vb2. I don't know what it means.
-> >>>>
-> >>>>Can someone take care of the bug, or should I consider the camera 'non working'
-> >>>>in linux?
-> >>
-> >>We talked about this on irc, attached it a patch which should fix this, feedback
-> >>appreciated.
-> >>
-> >>Regards,
-> >>
-> >>Hans
-> >
-> >> From b0eefa00c72e9dfe9eaa5f425c0d346b19ea01cd Mon Sep 17 00:00:00 2001
-> >>From: Hans de Goede<hdegoede@redhat.com>
-> >>Date: Tue, 22 May 2012 16:24:05 +0200
-> >>Subject: [PATCH] gspca-core: Fix buffers staying in queued state after a
-> >>  stream_off
-> >>
-> >>Signed-off-by: Hans de Goede<hdegoede@redhat.com>
-> >>---
-> >>  drivers/media/video/gspca/gspca.c |    4 +++-
-> >>  1 file changed, 3 insertions(+), 1 deletion(-)
-> >>
-> >>diff --git a/drivers/media/video/gspca/gspca.c b/drivers/media/video/gspca/gspca.c
-> >>index 137166d..31721ea 100644
-> >>--- a/drivers/media/video/gspca/gspca.c
-> >>+++ b/drivers/media/video/gspca/gspca.c
-> >>@@ -1653,7 +1653,7 @@ static int vidioc_streamoff(struct file *file, void *priv,
-> >>  				enum v4l2_buf_type buf_type)
-> >>  {
-> >>  	struct gspca_dev *gspca_dev = video_drvdata(file);
-> >>-	int ret;
-> >>+	int i, ret;
-> >>
-> >>  	if (buf_type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
-> >>  		return -EINVAL;
-> >>@@ -1678,6 +1678,8 @@ static int vidioc_streamoff(struct file *file, void *priv,
-> >>  	wake_up_interruptible(&gspca_dev->wq);
-> >>
-> >>  	/* empty the transfer queues */
-> >>+	for (i = 0; i<  gspca_dev->nframes; i++)
-> >>+		gspca_dev->frame[i].v4l2_buf.flags&= ~BUF_ALL_FLAGS;
-> >>  	atomic_set(&gspca_dev->fr_q, 0);
-> >>  	atomic_set(&gspca_dev->fr_i, 0);
-> >>  	gspca_dev->fr_o = 0;
-> >>--
-> >>1.7.10
-> >>
-> >
-> >--
-> >To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> >the body of a message to majordomo@vger.kernel.org
-> >More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> That also solves case 2. No need for an extra band in v4l2_frequency.
+
+Right, the downside to this is that there is no way to just enumerate things
+without actually changing anything. It would be nice if for example v4l2-ctl
+could lists all bands including ranges as a 100% read-only operation.
+
+Note I'm ok with the way you propose to handle things, just pointing out
+one (obvious) shortcoming of doing things this way. I think it is a short coming
+we can live with, but we should be aware of it.
+
+>> This is IMHO a big problem, a GUI radio app will quite likely when it starts get
+>> all the current settings and display them without modifying any settings, so
+>> it needs a way to find out which band is active.
+>>
+>> 2) What if first a band aware radio app sets a non default band, and then a
+>> non band aware radio app comes along, it does a g_tuner on the default-band,
+>> using the lo / high freq-s to build its UI, then the users picks a frequency,
+>> and the app does a s_freq, and the result is a frequency outside of what the
+>> app thinks are the lo / high freq limits because a different band is active ->
+>> not good.
+>>
+>> So I think we need to slightly modify the proposal, esp. to deal with 1), 2)
+>> is a corner case and not really all that important on its own IMHO.
+>>
+>> I suggest fixing 1) by not only adding a band field to v4l2_tuner, so that
+>> the different ranges for different bands can be queried, but also adding
+>> a band field to v4l2_frequency, so that the current active band can be
+>> reported by g_frequency. Once we make g_frequency report the active band,
+>> it makes sense to make s_frequency set the active band.
+>
+> I don't really like this. You run into the same weird situation with G_TUNER
+> that I did (as that was one of my ideas as well) where you set band to e.g.
+> the weather band and get back the corresponding frequency range, but the other
+> fields like signal and rxsubchans still refer to the *current* band. That's
+> confusing and not logical.
+
+Right, notice how my proposal says that signal and rxsubchans will always
+report 0 except when doing a g_tuner for the active band. This is not ideal,
+but IMHO better then not being able to do read-only enumeration of the bands.
+
+>> We would then need no changes to s_tuner at all, it will still only have
+>> audmode as writeable setting and thus *not* set the active band. Effectively
+>> s_tuner would just completely ignore the passed in band. Keeping audmode as
+>> a global (not band specific) setting, and likewise g_tuner would always
+>> return CAP_STEREO stereo if some bands are stereo capable.
+>>
+>> This also nicely fixes 2). Since the reserved fields should be 0, so a
+>> s_frequency by a non band aware app will set the band to the default band. >>
+>> ###
+>>
+>> So here is a new / amended version of my band proposal:
+>>
+>> 1) Introduce the concept of bands, for radio tuners only
+>>
+>> 2) Define the following bands:
+>>
+>> #define V4L2_BAND_DEFAULT       0
+>> #define V4L2_BAND_FM_EUROPE_US  1       /* 87.5 Mhz - 108 MHz */
+>> #define V4L2_BAND_FM_JAPAN      2       /* 76 MHz - 90 MHz */
+>> #define V4L2_BAND_FM_RUSSIAN    3       /* 65.8 MHz - 74 MHz */
+>> #define V4L2_BAND_FM_WEATHER    4       /* 162.4 MHz - 162.55 MHz */
+>> #define V4L2_BAND_AM_MW         5
+>>
+>> 3) radio tuners indicate if they understand any of the non default bands
+>> with the following tuner caps:
+>>
+>> #define V4L2_TUNER_CAP_BAND_FM_EUROPE_US        0x00010000
+>> #define V4L2_TUNER_CAP_BAND_FM_JAPAN    	0x00020000
+>> #define V4L2_TUNER_CAP_BAND_FM_RUSSIAN  	0x00040000
+>> #define V4L2_TUNER_CAP_BAND_FM_WEATHER  	0x00080000
+>> #define V4L2_TUNER_CAP_BAND_AM_MW       	0x00100000
+>>
+>> A (radio) tuner should always support RADIO_BAND_DEFAULT, so there is no
+>> capability flag for this
+>>
+>> 4) Add a band field to v4l2_tuner, apps can query the exact rangelow and
+>> rangehigh values for a specific band by doing a g_tuner with band set to
+>> that band. All v4l2_tuner fields returned by g_tuner will be independent
+>> of the selected band (iow constant) except for: rangelow, rangehigh,
+>> rxsubchans and signal.
+>> 4a) rangelow, rangehigh will be the actual values for that band
+>> 4b) rxsubchans and signal will be 0 if a g_tuner is done for a band different
+>> then the active band, for the active band they will reflect the actual values.
+>
+> So I would do this as:
+>
+> 4) Add a band field to v4l2_tuner. Calling g_tuner will set this to the
+> current band. You change it by calling s_tuner. CAP_STEREO and audmode are
+> global properties, not per-band. CAP_STEREO really refers to whether the
+> hardware can do stereo at all.
+
+Right, I can see the logic in this, and I think it is an elegant solution in
+a way. But as said that looses read only enumeration of the band ranges, which
+I think is something which we should allow...
+
+I'm happy that we agree that CAP_STEREO and audmode shoul be global and not per
+band :)
+
+>> 5) s_tuner will be completely unchanged, the band field will not influence
+>> it, audmode will be a per tuner global, not a per band value
+>
+> Drop this.
+>
+>> 6) Add a band field to v4l2_frequency, on a g_frequency this will reflect the
+>> current band, on a s_frequency this will set the current band
+>
+> Drop this.
+>
+>> 7) Doing a VIDIOC_S_HW_FREQ_SEEK will seek in the currently active band,
+>> iow the band last set by a s_frequency call, this matches existing behavior where
+>> the seek starts at the currently active frequency (so the frequency set by the
+>> last s_frequency call, or the frequency from the last seek).
+>
+> 5) Doing a VIDIOC_S_HW_FREQ_SEEK will seek in the currently active band,
+> iow the band last set by a s_tuner call.
+>
+> Two fewer items on this list :-)
+
+He he, I'm ok with either way, but I still have a slight preference to adding
+a band field to v4l2_frequency because of the enumeration issue.
+
+Regards,
+
+Hans
