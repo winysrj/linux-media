@@ -1,165 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:56170 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:51288 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756717Ab2EWS3R (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 May 2012 14:29:17 -0400
-Message-ID: <4FBD2C80.3060406@redhat.com>
-Date: Wed, 23 May 2012 20:29:20 +0200
-From: Hans de Goede <hdegoede@redhat.com>
+	id S1752280Ab2E0Pyp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 27 May 2012 11:54:45 -0400
+Message-ID: <4FC24E34.3000406@redhat.com>
+Date: Sun, 27 May 2012 12:54:28 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: halli manjunatha <hallimanju@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Discussion: How to deal with radio tuners which can tune to multiple
- bands
-References: <1337032913-18646-1-git-send-email-manjunatha_halli@ti.com> <1337032913-18646-3-git-send-email-manjunatha_halli@ti.com> <201205201152.12948.hverkuil@xs4all.nl> <CAMT6Pyd6e8zgkLEk_dpGTxiPZDippDe_YgedNRpUkJzA9X5hvw@mail.gmail.com>
-In-Reply-To: <CAMT6Pyd6e8zgkLEk_dpGTxiPZDippDe_YgedNRpUkJzA9X5hvw@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: Stefan Richter <stefanr@s5r6.in-berlin.de>
+CC: Linus Torvalds <torvalds@linux-foundation.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: Re: [GIT PULL for v3.5-rc1] media updates for v3.5
+References: <4FBE5518.5090705@redhat.com> <CA+55aFyt2OFOsr5uCpQ6nrur4zhHhmWUJrvMgLH_Wy1niTbC6w@mail.gmail.com> <4FBEB72D.4040905@redhat.com> <CA+55aFyYQkrtgvG99ZOOhAzoKi8w5rJfRgZQy3Dqs39p1n=FPA@mail.gmail.com> <4FBF773B.10408@redhat.com> <20120526003856.7e4efd77@stein> <4FC23E73.3080901@redhat.com>
+In-Reply-To: <4FC23E73.3080901@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Em 27-05-2012 11:47, Mauro Carvalho Chehab escreveu:
+> Em 25-05-2012 19:38, Stefan Richter escreveu:
+>> On May 25 Mauro Carvalho Chehab wrote:
+>>> A simple way to solve it seems to make those options dependent on CONFIG_EXPERT.
+>>>
+>>> Not sure if all usual distributions disable it, but I guess most won't have
+>>> EXPERT enabled.
+>>>
+>>> The enclosed patch does that. If nobody complains, I'll submit it together
+>>> with the next git pull request.
+>>
+>> I only want dvb-core and firedtv.  But when I switch off
+>> CONFIG_MEDIA_TUNER_CUSTOMISE, suddenly also
+>>
+>>   CC [M]  drivers/media/common/tuners/tuner-xc2028.o
+>>   CC [M]  drivers/media/common/tuners/tuner-simple.o
+>>   CC [M]  drivers/media/common/tuners/tuner-types.o
+>>   CC [M]  drivers/media/common/tuners/mt20xx.o
+>>   CC [M]  drivers/media/common/tuners/tda8290.o
+>>   CC [M]  drivers/media/common/tuners/tea5767.o
+>>   CC [M]  drivers/media/common/tuners/tea5761.o
+>>   CC [M]  drivers/media/common/tuners/tda9887.o
+>>   CC [M]  drivers/media/common/tuners/tda827x.o
+>>   CC [M]  drivers/media/common/tuners/tda18271-maps.o
+>>   CC [M]  drivers/media/common/tuners/tda18271-common.o
+>>   CC [M]  drivers/media/common/tuners/tda18271-fe.o
+>>   CC [M]  drivers/media/common/tuners/xc5000.o
+>>   CC [M]  drivers/media/common/tuners/xc4000.o
+>>   CC [M]  drivers/media/common/tuners/mc44s803.o
+>>   LD [M]  drivers/media/common/tuners/tda18271.o
+>>
+>> are built.  Why is that?
+> 
+> Those are the tuners supported by the tuner_core logic. The tuner_core module
+> is required by all TV drivers that have analog support.
+> 
+> After the tuner rework to allow a driver under drivers/media/dvb to use the
+> same tuner module as the ../v4l modules, there are now pure dvb drivers that
+> don't use tune_core.
+> 
+> So, it makes sense to add a new config for tuner_core that will be
+> selected only for devices with analog TV support.
 
-As discussed before 2 different use-cases have come up where we want some
-knowledge of there being different radio bands added to the v4l2 API.
+The correct fix for it seems to change the Kconfig menu to be like:
 
-In Manjunatha Halli's case, if I understand things correctly, he wants
-to limit hw_freq_seek to a certain band, rather then the receiver happily
-trying to seek to frequencies which are not relevant for the use case in
-question. To that purpose his patch proposes adding a band field to the
-v4l2_hw_freq_seek struct, which can have one of the following values:
+<m> Multimedia support  --->
+   [ ]   Webcams and video grabbers support
+   [ ]   Analog TV API and drivers support
+   [ ]   Digital TV support
+   [ ]   AM/FM radio receivers/transmitters support
+   [ ]   Remote Controller support
 
-FM_BAND_TYPE_ALL	All Bands from 65.8 MHz till 108 Mhz or 162.55 MHz if weather band
-FM_BAND_TYPE_EUROPE_US	Europe or US band(87.5 Mhz - 108 MHz)
-FM_BAND_TYPE_JAPAN	Japan band(76 MHz - 90 MHz)
-FM_BAND_TYPE_RUSSIAN	OIRT or Russian band(65.8 MHz - 74 MHz)
-FM_BAND_TYPE_WEATHER	Weather band(162.4 MHz - 162.55 MHz)
+and only select the tuner-core drivers if analog TV is selected.
 
-In my case the problem is that the TEA5757 tuner can tune both AM
-and FM (but note at the same time, it is a single tuner):
-AM  530   - 1710 kHz
-FM   87.5 -  108 MHz
-
-In my case part of the problem is that the userspace UI for the tuner
-cannot simply depict the frequency range as one large slider.
-
-For FM devices having a slider going from 65.8 - 162.55 MHz is
-far from ideal, esp. as there is a large whole of nothing in the
-108-162 Mhz making the non functional area of the sliders range
-larger then the functional area.
-
-For AM and FM capable devices representing the entire range
-(530 Khz - 162.55 Mhz) is not just not ideal it is simply unworkable!
-
-So we don't just want to limit the range a VIDIOC_S_HW_FREQ_SEEK can
-seek over, we also want to let user space know for manual tuning
-that we've several ranges, and allow it to query information
-such as min / max freq, stereo capable, etc. per range.
-
-As discussed with Hans V. this can best be done by extending
-struct v4l2_tuner with a band field.
-
-Our (Hans V. and me) first idea here was to let this field
-work like an index, where userspace can enumerate available
-bands by calling VIDIOC_G_TUNER, incrementing band each time until
--EINVAL gets returned.
-
-So that completes the intro, also known as setting the stage :)
-
-###
-
-Taking the intersection between the 2 proposals and the 2 problems
-makes things interesting :)
-
-Dividing the VIDIOC_G_TUNER results into bands also makes sense for
-the FM case, at least in a 65.8 - 108 Mhz and a  162 Mhz band, to
-avoid having a not tunable gap in the range reported to userspace.
-
-But, allowing a EU citizen to tune below 87.5 is also not really
-useful, nor allowing a Japanese citizen to tune above the 90 Mhz, etc.
-
-So from presenting the user with a sensible UI pov, it makes sense
-to not use 2 bands with FM, but to expose all supported bands
-to userspace as they really are. This also makes sense from a demod
-pov, since FM demodulation for Japanese FM is different then for
-EU/US FM, so maybe the hardware needs to be poked to switch modes.
-
-Note that some radio chip drivers already do this effectively by having
-a module parameter to select which band to use.
-
-So lets expose all the FM bands from Manjunatha Halli's proposal
-in VIDIOC_G_TUNER results. If we then go for the classic enumeration
-strategy where userspace can enumerate available bands by calling
-VIDIOC_G_TUNER, incrementing band each time until -EINVAL gets
-returned, we get another problem...
-
-How does user space know which band is which (other then checking
-min/max frequency which is ugly!) ? We could make the tuner name field
-different for each band, and let the app display a menu with tuner names
-for the user to select a band, but that is ugly too.
-
-Not only would doing something like that be ugly, it also makes it
-as good as impossible for userspace to automatically select the
-right band based on location.
-
-So doing the classic v4l2 enum trick where we increment band each
-time until we get -EINVAL is not a good idea IMHO.
-
-Luckily Manjunatha Halli's proposal already gives us a solution,
-we can define a fixed set of bands (adding SW/MW/LW bands for AM),
-and userspace can enumerate by trying a G_TUNER for all
-bands it is interested in.
-
-###
-
-So given all of the above I would like to propose the following:
-
-1) Add a "band" field to struct v4l2_tuner, and a capability
-    indicating if the driver understands / uses this field
-2) This field is only valid for radio tuners, for tv tuners it
-should always be 0 (as it was sofar as it is reserved atm)
-3) This field can have a number of fixed values, for now we have:
-
-0 RADIO_BAND_DEFAULT	Entire FM band supported by the tuner, or "default"
-                         band if different bands require switching the tuner to
-                         a different mode, or entire AM band supported by the
-			tuner for AM only tuners.
-1 RADIO_BAND_FM_EUROPE_US Europe or US band(87.5 Mhz - 108 MHz) *
-2 RADIO_BAND_FM_JAPAN	Japan band(76 MHz - 90 MHz) *
-3 RADIO_BAND_FM_RUSSIAN	OIRT or Russian band(65.8 MHz - 74 MHz) *
-4 RADIO_BAND_FM_WEATHER	Weather band(162.4 MHz - 162.55 MHz) *
-
-256 RADIO_BAND_AM_MW	Mid Wave AM band, covered frequencies are tuner dependent
-257 RADIO_BAND_AM_LW	Long Wave AM band, covered frequencies are tuner dependent
-258 RADIO_BAND_AM_SW	Short Wave AM band, covered frequencies are tuner dependent
-
-*) Reported (and available) frequency range might be different based on hardware
-capabilities
-
-Notice how 0, which the current reserved field should be set to for old apps,
-should always cover as much of FM as possible, or AM for AM only tuners, to
-preserve functionality for old non band aware v4l2 radio apps.
-
-A (radio) tuner should always support RADIO_BAND_DEFAULT
-
-4) Apps can find out which bands are supported by doing a VIDIOC_G_TUNER
-with band set to the desired value. If the passed band is not available
--EINVAL will be returned.
-
-5) Apps can select the active band by doing a VIDIOC_S_TUNER with the band
-field set to the desired band.
-
-6) Doing a VIDIOC_S_FREQUENCY with a frequency which falls outside of the
-current band will *not* result in an automatic band switch, instead the
-passed frequency will be clamped to fit into the current band.
-
-7) Doing a VIDIOC_S_HW_FREQ_SEEK will seek in the currently active band,
-this matches existing behavior where the seek starts at the currently
-active frequency.
-
-I think / hope that covers everything we need. Suggestions ? Comments ?
+I'll write some RFC patches for it for 3.6, posting them at linux-media.
 
 Regards,
-
-Hans
+Mauro
