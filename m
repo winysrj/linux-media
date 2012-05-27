@@ -1,61 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2897 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756038Ab2EKHzp (ORCPT
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:3058 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753103Ab2E0RPz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 May 2012 03:55:45 -0400
+	Sun, 27 May 2012 13:15:55 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Michael Hunold <hunold@linuxtv.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv1 PATCH 15/16] hexium-orion: fix incorrect input table.
-Date: Fri, 11 May 2012 09:55:09 +0200
-Message-Id: <92ee7aee2072faa19782b564c2f94660710c15a6.1336722502.git.hans.verkuil@cisco.com>
-In-Reply-To: <1336722910-31733-1-git-send-email-hverkuil@xs4all.nl>
-References: <1336722910-31733-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <09c2b1c7ef8bbb53930311b9fdeeb89f877fdaa9.1336722502.git.hans.verkuil@cisco.com>
-References: <09c2b1c7ef8bbb53930311b9fdeeb89f877fdaa9.1336722502.git.hans.verkuil@cisco.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [RFC PATCH 1/3] media: reorganize the main Kconfig items
+Date: Sun, 27 May 2012 19:15:44 +0200
+References: <4FC24E34.3000406@redhat.com> <1338137803-12231-1-git-send-email-mchehab@redhat.com> <1338137803-12231-2-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1338137803-12231-2-git-send-email-mchehab@redhat.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201205271915.44288.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Just a few typos...
 
-Fix the standard and audioset values.
+On Sun May 27 2012 18:56:41 Mauro Carvalho Chehab wrote:
+> Change the main items to:
+> 
+> <m> Multimedia support  --->
+>    [ ]   Webcams and video grabbers support
+>    [ ]   Analog TV API and drivers support
+>    [ ]   Digital TV support
+>    [ ]   AM/FM radio receivers/transmitters support
+>    [ ]   Remote Controller support
+> 
+> This provides an interface that is clearer to end users that
+> are compiling the Kernel, and will allow the building system
+> to automatically unselect drivers for unused functions.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> ---
+>  drivers/media/Kconfig               |  110 ++++++++++++++++++++++++-----------
+>  drivers/media/common/tuners/Kconfig |    1 +
+>  drivers/media/dvb/frontends/Kconfig |    1 +
+>  drivers/media/rc/Kconfig            |   29 ++++-----
+>  4 files changed, 90 insertions(+), 51 deletions(-)
+> 
+> diff --git a/drivers/media/Kconfig b/drivers/media/Kconfig
+> index 9575db4..8deddcd 100644
+> --- a/drivers/media/Kconfig
+> +++ b/drivers/media/Kconfig
+> @@ -6,20 +6,83 @@ menuconfig MEDIA_SUPPORT
+>  	tristate "Multimedia support"
+>  	depends on HAS_IOMEM
+>  	help
+> -	  If you want to use Video for Linux, DVB for Linux, or DAB adapters,
+> +	  If you want to use Webcams, Video grabber devices and/or TV devices
+>  	  enable this option and other options below.
+>  
+> +	  Additional info and docs are available on the web at
+> +	  <http://linuxtv.org>
+> +
+>  if MEDIA_SUPPORT
+>  
+>  comment "Multimedia core support"
+>  
+>  #
+> +# Multimedia support - automatically enable V4L2 and DVB core
+> +#
+> +config MEDIA_WEBCAM_SUPP
+> +	bool "Webcams and video grabbers support"
+> +	---help---
+> +	  Enable support for webcams and video grabbers.
+> +
+> +	  Say Y when you have a webcam or a video capture grabber board.
+> +
+> +config MEDIA_ANALOG_TV_SUPP
+> +	bool "Analog TV API and drivers support"
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/video/hexium_orion.c |   18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+I would rename this to "Analog TV support" to be consistent with the digital
+option.
 
-diff --git a/drivers/media/video/hexium_orion.c b/drivers/media/video/hexium_orion.c
-index e549339..a1eb26d 100644
---- a/drivers/media/video/hexium_orion.c
-+++ b/drivers/media/video/hexium_orion.c
-@@ -41,15 +41,15 @@ static int hexium_num;
- 
- #define HEXIUM_INPUTS	9
- static struct v4l2_input hexium_inputs[HEXIUM_INPUTS] = {
--	{ 0, "CVBS 1",	V4L2_INPUT_TYPE_CAMERA,	2, 0, V4L2_STD_PAL_BG|V4L2_STD_NTSC_M, 0, V4L2_IN_CAP_STD },
--	{ 1, "CVBS 2",	V4L2_INPUT_TYPE_CAMERA,	2, 0, V4L2_STD_PAL_BG|V4L2_STD_NTSC_M, 0, V4L2_IN_CAP_STD },
--	{ 2, "CVBS 3",	V4L2_INPUT_TYPE_CAMERA,	2, 0, V4L2_STD_PAL_BG|V4L2_STD_NTSC_M, 0, V4L2_IN_CAP_STD },
--	{ 3, "CVBS 4",	V4L2_INPUT_TYPE_CAMERA,	2, 0, V4L2_STD_PAL_BG|V4L2_STD_NTSC_M, 0, V4L2_IN_CAP_STD },
--	{ 4, "CVBS 5",	V4L2_INPUT_TYPE_CAMERA,	2, 0, V4L2_STD_PAL_BG|V4L2_STD_NTSC_M, 0, V4L2_IN_CAP_STD },
--	{ 5, "CVBS 6",	V4L2_INPUT_TYPE_CAMERA,	2, 0, V4L2_STD_PAL_BG|V4L2_STD_NTSC_M, 0, V4L2_IN_CAP_STD },
--	{ 6, "Y/C 1",	V4L2_INPUT_TYPE_CAMERA,	2, 0, V4L2_STD_PAL_BG|V4L2_STD_NTSC_M, 0, V4L2_IN_CAP_STD },
--	{ 7, "Y/C 2",	V4L2_INPUT_TYPE_CAMERA,	2, 0, V4L2_STD_PAL_BG|V4L2_STD_NTSC_M, 0, V4L2_IN_CAP_STD },
--	{ 8, "Y/C 3",	V4L2_INPUT_TYPE_CAMERA,	2, 0, V4L2_STD_PAL_BG|V4L2_STD_NTSC_M, 0, V4L2_IN_CAP_STD },
-+	{ 0, "CVBS 1",	V4L2_INPUT_TYPE_CAMERA,	0, 0, V4L2_STD_ALL, 0, V4L2_IN_CAP_STD },
-+	{ 1, "CVBS 2",	V4L2_INPUT_TYPE_CAMERA,	0, 0, V4L2_STD_ALL, 0, V4L2_IN_CAP_STD },
-+	{ 2, "CVBS 3",	V4L2_INPUT_TYPE_CAMERA,	0, 0, V4L2_STD_ALL, 0, V4L2_IN_CAP_STD },
-+	{ 3, "CVBS 4",	V4L2_INPUT_TYPE_CAMERA,	0, 0, V4L2_STD_ALL, 0, V4L2_IN_CAP_STD },
-+	{ 4, "CVBS 5",	V4L2_INPUT_TYPE_CAMERA,	0, 0, V4L2_STD_ALL, 0, V4L2_IN_CAP_STD },
-+	{ 5, "CVBS 6",	V4L2_INPUT_TYPE_CAMERA,	0, 0, V4L2_STD_ALL, 0, V4L2_IN_CAP_STD },
-+	{ 6, "Y/C 1",	V4L2_INPUT_TYPE_CAMERA,	0, 0, V4L2_STD_ALL, 0, V4L2_IN_CAP_STD },
-+	{ 7, "Y/C 2",	V4L2_INPUT_TYPE_CAMERA,	0, 0, V4L2_STD_ALL, 0, V4L2_IN_CAP_STD },
-+	{ 8, "Y/C 3",	V4L2_INPUT_TYPE_CAMERA,	0, 0, V4L2_STD_ALL, 0, V4L2_IN_CAP_STD },
- };
- 
- #define HEXIUM_AUDIOS	0
--- 
-1.7.10
+> +	---help---
+> +	  Enable analog TV support.
+> +
+> +	  Say Y when you have a TV board with analog support of with an
 
+Typo: of with an -> or with a
+
+> +	  hybrid analog/digital TV chipset.
+> +
+> +	  Note: There are several DVB cards that are based on chips that
+> +		supports both analog and digital TV. Disabling this option
+
+supports -> support
+
+> +		will disable support for them.
+> +
+> +config MEDIA_DIGITAL_TV_SUPP
+> +	bool "Digital TV support"
+> +	---help---
+> +	  Enable digital TV support.
+> +
+> +	  Say Y when you have a board with digital support or a board with
+> +	  hybrid digital TV and analog TV.
+> +
+> +config MEDIA_RADIO_SUPP
+> +	bool "AM/FM radio receivers/transmitters support"
+> +	---help---
+> +	  Enable AM/FM radio support.
+> +
+> +	  Additional info and docs are available on the web at
+> +	  <http://linuxtv.org>
+> +
+> +	  Say Y when you have a board with radio support.
+> +
+> +	  Note: There are several TV cards that are based on chips that
+> +		supports radio reception Disabling this option will
+
+supports -> support
+
+Also add a period after reception.
+
+Regards,
+
+	Hans
