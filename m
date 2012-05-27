@@ -1,41 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1-g21.free.fr ([212.27.42.1]:43753 "EHLO smtp1-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754197Ab2EAK13 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 1 May 2012 06:27:29 -0400
-Date: Tue, 1 May 2012 12:28:30 +0200
-From: Jean-Francois Moine <moinejf@free.fr>
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Subject: Re: [RFCv1 PATCH 0/7] gspca: allow use of control framework and
- other fixes
-Message-ID: <20120501122830.2c4d4cbe@tele>
-In-Reply-To: <4F9E73F7.6040207@redhat.com>
-References: <1335625796-9429-1-git-send-email-hverkuil@xs4all.nl>
-	<4F9E73F7.6040207@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from mail-we0-f174.google.com ([74.125.82.174]:36836 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752366Ab2E0V1F (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 27 May 2012 17:27:05 -0400
+Received: by weyu7 with SMTP id u7so1592115wey.19
+        for <linux-media@vger.kernel.org>; Sun, 27 May 2012 14:27:04 -0700 (PDT)
+From: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
+To: linux-media@vger.kernel.org
+Subject: em28xx: Remote control support for another board
+Date: Sun, 27 May 2012 23:26:51 +0200
+Message-Id: <1338154013-5124-1-git-send-email-martin.blumenstingl@googlemail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 30 Apr 2012 13:13:59 +0200
-Hans de Goede <hdegoede@redhat.com> wrote:
+Hello,
 
-> I'll review this and add these to my tree. Jean-Francois, is it ok for these changes
-> to go upstream through my tree? The reason I'm asking is that I plan to convert
-> more subdrivers to the control framework for 3.5 and its easiest to have this all
-> in one tree then.
+some days ago I purchased a "TerraTec Cinergy HTC Stick HD".
+Unfortunately the remote control (which came bundled) did not
+work.
 
-Hi Hans,
+I found out that there's no remote control support for that
+stick/board in the em28xx driver.
 
-As you know, I don't like them, but no matter, I am a bit tired
-about the webcams (4 years now) and I'd be glad to change for new
-applications (wayland, haiku, ARM?). Is anybody interested in
-maintaining the gspca stuff?
+Thus I wrote two patches:
+The first one adds remote control support for my USB
+DVB-[T,C] stick.
+The second patch (is optional and) adds a small printk
+which lets the user know that he doesn't have to search
+in userspace if his remote control does not work.
 
-Regards.
+PS: I could re-use the existing keymap for the TerraTec
+Cinergy XS because it uses the same remote control as
+my Cinergy HTC Stick HD.
 
--- 
-Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+Regards,
+Martin
+
