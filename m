@@ -1,98 +1,329 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:39723 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756088Ab2ENM76 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 May 2012 08:59:58 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFCv1 PATCH 2/5] v4l2-dev/ioctl: determine the valid ioctls upfront.
-Date: Mon, 14 May 2012 15:00:05 +0200
-Message-ID: <1893556.PJBoFjhgqA@avalon>
-In-Reply-To: <e75979b946d3934cbfb12e8b5518bcbbb891ceee.1336632433.git.hans.verkuil@cisco.com>
-References: <1336633514-4972-1-git-send-email-hverkuil@xs4all.nl> <e75979b946d3934cbfb12e8b5518bcbbb891ceee.1336632433.git.hans.verkuil@cisco.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mx1.redhat.com ([209.132.183.28]:64083 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753103Ab2E0Q4s (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 27 May 2012 12:56:48 -0400
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q4RGumpE029250
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sun, 27 May 2012 12:56:48 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [RFC PATCH 2/3] media: Remove VIDEO_MEDIA Kconfig option
+Date: Sun, 27 May 2012 13:56:42 -0300
+Message-Id: <1338137803-12231-3-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1338137803-12231-1-git-send-email-mchehab@redhat.com>
+References: <4FC24E34.3000406@redhat.com>
+ <1338137803-12231-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+In the past, it was possible to have either DVB or V4L2 core
+as module and the other as builtin. Such config never make much
+sense, and created several issues in order to make the Kconfig
+dependency to work, as all drivers that depend on both (most
+TV drivers) would need to be compiled as 'm'. Due to that,
+the VIDEO_MEDIA config option were added.
 
-Thanks for the patch.
+Instead of such weird approach, let's just use the MEDIA_SUPPORT
+=y or =m to select if the media subsystem core will be either
+builtin or module, simplifying the building system logic.
 
-On Thursday 10 May 2012 09:05:11 Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> Rather than testing whether an ioctl is implemented in the driver or not
-> every time the ioctl is called, do it upfront when the device is registered.
-> 
-> This also allows a driver to disable certain ioctls based on the
-> capabilities of the detected board, something you can't do today without
-> creating separate v4l2_ioctl_ops structs for each new variation.
-> 
-> For the most part it is pretty straightforward, but for control ioctls a
-> flag is needed since it is possible that you have per-filehandle controls,
-> and that can't be determined upfront of course.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  drivers/media/video/v4l2-dev.c   |  171 +++++++++++++++++
->  drivers/media/video/v4l2-ioctl.c |  391 ++++++++++-------------------------
->  include/media/v4l2-dev.h         |   11 ++
->  3 files changed, 297 insertions(+), 276 deletions(-)
-> 
-> diff --git a/drivers/media/video/v4l2-dev.c b/drivers/media/video/v4l2-dev.c
-> index a51a061..4d98ee1 100644
-> --- a/drivers/media/video/v4l2-dev.c
-> +++ b/drivers/media/video/v4l2-dev.c
-> @@ -516,6 +516,175 @@ static int get_index(struct video_device *vdev)
->  	return find_first_zero_bit(used, VIDEO_NUM_DEVICES);
->  }
-> 
-> +#define SET_VALID_IOCTL(ops, cmd, op)			\
-> +	if (ops->op)					\
-> +		set_bit(_IOC_NR(cmd), valid_ioctls)
-> +
-> +/* This determines which ioctls are actually implemented in the driver.
-> +   It's a one-time thing which simplifies video_ioctl2 as it can just do
-> +   a bit test.
-> +
-> +   Note that drivers can override this by setting bits to 1 in
-> +   vdev->valid_ioctls. If an ioctl is marked as 1 when this function is
-> +   called, then that ioctl will actually be marked as unimplemented.
-> +
-> +   It does that by first setting up the local valid_ioctls bitmap, and
-> +   at the end do a:
-> +
-> +   vdev->valid_ioctls = valid_ioctls & ~(vdev->valid_ioctls)
+Also, fix the tuners configuration, by enabling them only if
+a tuner is required. So, if just webcam/grabbers support is
+selected, no tuner option will be selected. Also, if only digital
+TV is selected, no analog tuner support is selected.
 
-Wouldn't it be more logical to initialize valid_ioctls to all 1s and clear 
-bits in v4l2_dont_use_cmd() ? Otherwise the meaning of the field changes 
-depending on whether the device is registered or not.
+That removes the need of using EXPERT customise options, when
+analog TV is not selected.
 
-Another bikeshedding comment, what about renaming v4l2_dont_use_cmd() with 
-something that includes ioctl in the name ?
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/Kconfig               |    4 --
+ drivers/media/common/tuners/Kconfig |   63 ++++++++++++++++++-----------------
+ drivers/media/video/pvrusb2/Kconfig |    1 -
+ 3 files changed, 32 insertions(+), 36 deletions(-)
 
-- v4l2_dont_use_ioctl
-- v4l2_dont_use_ioctl_cmd
-- v4l2_ioctl_cmd_not_used
-- v4l2_ioctl_dont_use
-- v4l2_ioctl_dont_use_cmd
-- v4l2_disable_ioctl
-- v4l2_disable_ioctl_cmd
-...
-
-(I like "disable" slightly better than "don't use").
-
-> + */
-
+diff --git a/drivers/media/Kconfig b/drivers/media/Kconfig
+index 8deddcd..fe59b49 100644
+--- a/drivers/media/Kconfig
++++ b/drivers/media/Kconfig
+@@ -139,10 +139,6 @@ config DVB_NET
+ 	  You may want to disable the network support on embedded devices. If
+ 	  unsure say Y.
+ 
+-config VIDEO_MEDIA
+-	tristate
+-	default (DVB_CORE && (VIDEO_DEV = n)) || (VIDEO_DEV && (DVB_CORE = n)) || (DVB_CORE && VIDEO_DEV)
+-
+ source "drivers/media/common/Kconfig"
+ source "drivers/media/rc/Kconfig"
+ 
+diff --git a/drivers/media/common/tuners/Kconfig b/drivers/media/common/tuners/Kconfig
+index 16ee1a4..35780df 100644
+--- a/drivers/media/common/tuners/Kconfig
++++ b/drivers/media/common/tuners/Kconfig
+@@ -1,6 +1,6 @@
+ config MEDIA_ATTACH
+ 	bool "Load and attach frontend and tuner driver modules as needed"
+-	depends on VIDEO_MEDIA
++	depends on MEDIA_ANALOG_TV_SUPP || MEDIA_DIGITAL_TV_SUPP || MEDIA_RADIO_SUPP
+ 	depends on MODULES
+ 	default y if !EXPERT
+ 	help
+@@ -20,15 +20,15 @@ config MEDIA_ATTACH
+ 
+ config MEDIA_TUNER
+ 	tristate
+-	default VIDEO_MEDIA && I2C
+-	depends on VIDEO_MEDIA && I2C
++	depends on (MEDIA_ANALOG_TV_SUPP || MEDIA_RADIO_SUPP) && I2C
++	default y
+ 	select MEDIA_TUNER_XC2028 if !MEDIA_TUNER_CUSTOMISE
+ 	select MEDIA_TUNER_XC5000 if !MEDIA_TUNER_CUSTOMISE
+ 	select MEDIA_TUNER_XC4000 if !MEDIA_TUNER_CUSTOMISE
+ 	select MEDIA_TUNER_MT20XX if !MEDIA_TUNER_CUSTOMISE
+ 	select MEDIA_TUNER_TDA8290 if !MEDIA_TUNER_CUSTOMISE
+-	select MEDIA_TUNER_TEA5761 if !MEDIA_TUNER_CUSTOMISE && EXPERIMENTAL
+-	select MEDIA_TUNER_TEA5767 if !MEDIA_TUNER_CUSTOMISE
++	select MEDIA_TUNER_TEA5761 if !MEDIA_TUNER_CUSTOMISE && MEDIA_RADIO_SUPP && EXPERIMENTAL
++	select MEDIA_TUNER_TEA5767 if !MEDIA_TUNER_CUSTOMISE && MEDIA_RADIO_SUPP
+ 	select MEDIA_TUNER_SIMPLE if !MEDIA_TUNER_CUSTOMISE
+ 	select MEDIA_TUNER_TDA9887 if !MEDIA_TUNER_CUSTOMISE
+ 	select MEDIA_TUNER_MC44S803 if !MEDIA_TUNER_CUSTOMISE
+@@ -48,10 +48,11 @@ config MEDIA_TUNER_CUSTOMISE
+ 
+ menu "Customize TV tuners"
+ 	visible if MEDIA_TUNER_CUSTOMISE
++	depends on MEDIA_ANALOG_TV_SUPP || MEDIA_DIGITAL_TV_SUPP || MEDIA_RADIO_SUPP
+ 
+ config MEDIA_TUNER_SIMPLE
+ 	tristate "Simple tuner support"
+-	depends on VIDEO_MEDIA && I2C
++	depends on MEDIA_SUPPORT && I2C
+ 	select MEDIA_TUNER_TDA9887
+ 	default m if MEDIA_TUNER_CUSTOMISE
+ 	help
+@@ -59,7 +60,7 @@ config MEDIA_TUNER_SIMPLE
+ 
+ config MEDIA_TUNER_TDA8290
+ 	tristate "TDA 8290/8295 + 8275(a)/18271 tuner combo"
+-	depends on VIDEO_MEDIA && I2C
++	depends on MEDIA_SUPPORT && I2C
+ 	select MEDIA_TUNER_TDA827X
+ 	select MEDIA_TUNER_TDA18271
+ 	default m if MEDIA_TUNER_CUSTOMISE
+@@ -68,21 +69,21 @@ config MEDIA_TUNER_TDA8290
+ 
+ config MEDIA_TUNER_TDA827X
+ 	tristate "Philips TDA827X silicon tuner"
+-	depends on VIDEO_MEDIA && I2C
++	depends on MEDIA_SUPPORT && I2C
+ 	default m if MEDIA_TUNER_CUSTOMISE
+ 	help
+ 	  A DVB-T silicon tuner module. Say Y when you want to support this tuner.
+ 
+ config MEDIA_TUNER_TDA18271
+ 	tristate "NXP TDA18271 silicon tuner"
+-	depends on VIDEO_MEDIA && I2C
++	depends on MEDIA_SUPPORT && I2C
+ 	default m if MEDIA_TUNER_CUSTOMISE
+ 	help
+ 	  A silicon tuner module. Say Y when you want to support this tuner.
+ 
+ config MEDIA_TUNER_TDA9887
+ 	tristate "TDA 9885/6/7 analog IF demodulator"
+-	depends on VIDEO_MEDIA && I2C
++	depends on MEDIA_SUPPORT && I2C
+ 	default m if MEDIA_TUNER_CUSTOMISE
+ 	help
+ 	  Say Y here to include support for Philips TDA9885/6/7
+@@ -90,7 +91,7 @@ config MEDIA_TUNER_TDA9887
+ 
+ config MEDIA_TUNER_TEA5761
+ 	tristate "TEA 5761 radio tuner (EXPERIMENTAL)"
+-	depends on VIDEO_MEDIA && I2C
++	depends on MEDIA_SUPPORT && I2C
+ 	depends on EXPERIMENTAL
+ 	default m if MEDIA_TUNER_CUSTOMISE
+ 	help
+@@ -98,63 +99,63 @@ config MEDIA_TUNER_TEA5761
+ 
+ config MEDIA_TUNER_TEA5767
+ 	tristate "TEA 5767 radio tuner"
+-	depends on VIDEO_MEDIA && I2C
++	depends on MEDIA_SUPPORT && I2C
+ 	default m if MEDIA_TUNER_CUSTOMISE
+ 	help
+ 	  Say Y here to include support for the Philips TEA5767 radio tuner.
+ 
+ config MEDIA_TUNER_MT20XX
+ 	tristate "Microtune 2032 / 2050 tuners"
+-	depends on VIDEO_MEDIA && I2C
++	depends on MEDIA_SUPPORT && I2C
+ 	default m if MEDIA_TUNER_CUSTOMISE
+ 	help
+ 	  Say Y here to include support for the MT2032 / MT2050 tuner.
+ 
+ config MEDIA_TUNER_MT2060
+ 	tristate "Microtune MT2060 silicon IF tuner"
+-	depends on VIDEO_MEDIA && I2C
++	depends on MEDIA_SUPPORT && I2C
+ 	default m if MEDIA_TUNER_CUSTOMISE
+ 	help
+ 	  A driver for the silicon IF tuner MT2060 from Microtune.
+ 
+ config MEDIA_TUNER_MT2063
+ 	tristate "Microtune MT2063 silicon IF tuner"
+-	depends on VIDEO_MEDIA && I2C
++	depends on MEDIA_SUPPORT && I2C
+ 	default m if MEDIA_TUNER_CUSTOMISE
+ 	help
+ 	  A driver for the silicon IF tuner MT2063 from Microtune.
+ 
+ config MEDIA_TUNER_MT2266
+ 	tristate "Microtune MT2266 silicon tuner"
+-	depends on VIDEO_MEDIA && I2C
++	depends on MEDIA_SUPPORT && I2C
+ 	default m if MEDIA_TUNER_CUSTOMISE
+ 	help
+ 	  A driver for the silicon baseband tuner MT2266 from Microtune.
+ 
+ config MEDIA_TUNER_MT2131
+ 	tristate "Microtune MT2131 silicon tuner"
+-	depends on VIDEO_MEDIA && I2C
++	depends on MEDIA_SUPPORT && I2C
+ 	default m if MEDIA_TUNER_CUSTOMISE
+ 	help
+ 	  A driver for the silicon baseband tuner MT2131 from Microtune.
+ 
+ config MEDIA_TUNER_QT1010
+ 	tristate "Quantek QT1010 silicon tuner"
+-	depends on VIDEO_MEDIA && I2C
++	depends on MEDIA_SUPPORT && I2C
+ 	default m if MEDIA_TUNER_CUSTOMISE
+ 	help
+ 	  A driver for the silicon tuner QT1010 from Quantek.
+ 
+ config MEDIA_TUNER_XC2028
+ 	tristate "XCeive xc2028/xc3028 tuners"
+-	depends on VIDEO_MEDIA && I2C
++	depends on MEDIA_SUPPORT && I2C
+ 	default m if MEDIA_TUNER_CUSTOMISE
+ 	help
+ 	  Say Y here to include support for the xc2028/xc3028 tuners.
+ 
+ config MEDIA_TUNER_XC5000
+ 	tristate "Xceive XC5000 silicon tuner"
+-	depends on VIDEO_MEDIA && I2C
++	depends on MEDIA_SUPPORT && I2C
+ 	default m if MEDIA_TUNER_CUSTOMISE
+ 	help
+ 	  A driver for the silicon tuner XC5000 from Xceive.
+@@ -163,7 +164,7 @@ config MEDIA_TUNER_XC5000
+ 
+ config MEDIA_TUNER_XC4000
+ 	tristate "Xceive XC4000 silicon tuner"
+-	depends on VIDEO_MEDIA && I2C
++	depends on MEDIA_SUPPORT && I2C
+ 	default m if MEDIA_TUNER_CUSTOMISE
+ 	help
+ 	  A driver for the silicon tuner XC4000 from Xceive.
+@@ -172,70 +173,70 @@ config MEDIA_TUNER_XC4000
+ 
+ config MEDIA_TUNER_MXL5005S
+ 	tristate "MaxLinear MSL5005S silicon tuner"
+-	depends on VIDEO_MEDIA && I2C
++	depends on MEDIA_SUPPORT && I2C
+ 	default m if MEDIA_TUNER_CUSTOMISE
+ 	help
+ 	  A driver for the silicon tuner MXL5005S from MaxLinear.
+ 
+ config MEDIA_TUNER_MXL5007T
+ 	tristate "MaxLinear MxL5007T silicon tuner"
+-	depends on VIDEO_MEDIA && I2C
++	depends on MEDIA_SUPPORT && I2C
+ 	default m if MEDIA_TUNER_CUSTOMISE
+ 	help
+ 	  A driver for the silicon tuner MxL5007T from MaxLinear.
+ 
+ config MEDIA_TUNER_MC44S803
+ 	tristate "Freescale MC44S803 Low Power CMOS Broadband tuners"
+-	depends on VIDEO_MEDIA && I2C
++	depends on MEDIA_SUPPORT && I2C
+ 	default m if MEDIA_TUNER_CUSTOMISE
+ 	help
+ 	  Say Y here to support the Freescale MC44S803 based tuners
+ 
+ config MEDIA_TUNER_MAX2165
+ 	tristate "Maxim MAX2165 silicon tuner"
+-	depends on VIDEO_MEDIA && I2C
++	depends on MEDIA_SUPPORT && I2C
+ 	default m if MEDIA_TUNER_CUSTOMISE
+ 	help
+ 	  A driver for the silicon tuner MAX2165 from Maxim.
+ 
+ config MEDIA_TUNER_TDA18218
+ 	tristate "NXP TDA18218 silicon tuner"
+-	depends on VIDEO_MEDIA && I2C
++	depends on MEDIA_SUPPORT && I2C
+ 	default m if MEDIA_TUNER_CUSTOMISE
+ 	help
+ 	  NXP TDA18218 silicon tuner driver.
+ 
+ config MEDIA_TUNER_FC0011
+ 	tristate "Fitipower FC0011 silicon tuner"
+-	depends on VIDEO_MEDIA && I2C
++	depends on MEDIA_SUPPORT && I2C
+ 	default m if MEDIA_TUNER_CUSTOMISE
+ 	help
+ 	  Fitipower FC0011 silicon tuner driver.
+ 
+ config MEDIA_TUNER_FC0012
+ 	tristate "Fitipower FC0012 silicon tuner"
+-	depends on VIDEO_MEDIA && I2C
++	depends on MEDIA_SUPPORT && I2C
+ 	default m if MEDIA_TUNER_CUSTOMISE
+ 	help
+ 	  Fitipower FC0012 silicon tuner driver.
+ 
+ config MEDIA_TUNER_FC0013
+ 	tristate "Fitipower FC0013 silicon tuner"
+-	depends on VIDEO_MEDIA && I2C
++	depends on MEDIA_SUPPORT && I2C
+ 	default m if MEDIA_TUNER_CUSTOMISE
+ 	help
+ 	  Fitipower FC0013 silicon tuner driver.
+ 
+ config MEDIA_TUNER_TDA18212
+ 	tristate "NXP TDA18212 silicon tuner"
+-	depends on VIDEO_MEDIA && I2C
++	depends on MEDIA_SUPPORT && I2C
+ 	default m if MEDIA_TUNER_CUSTOMISE
+ 	help
+ 	  NXP TDA18212 silicon tuner driver.
+ 
+ config MEDIA_TUNER_TUA9001
+ 	tristate "Infineon TUA 9001 silicon tuner"
+-	depends on VIDEO_MEDIA && I2C
++	depends on MEDIA_SUPPORT && I2C
+ 	default m if MEDIA_TUNER_CUSTOMISE
+ 	help
+ 	  Infineon TUA 9001 silicon tuner driver.
+diff --git a/drivers/media/video/pvrusb2/Kconfig b/drivers/media/video/pvrusb2/Kconfig
+index f9b6001..25e412e 100644
+--- a/drivers/media/video/pvrusb2/Kconfig
++++ b/drivers/media/video/pvrusb2/Kconfig
+@@ -1,7 +1,6 @@
+ config VIDEO_PVRUSB2
+ 	tristate "Hauppauge WinTV-PVR USB2 support"
+ 	depends on VIDEO_V4L2 && I2C
+-	depends on VIDEO_MEDIA	# Avoids pvrusb = Y / DVB = M
+ 	select VIDEO_TUNER
+ 	select VIDEO_TVEEPROM
+ 	select VIDEO_CX2341X
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.8
 
