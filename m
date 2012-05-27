@@ -1,59 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:47254 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751293Ab2EXEpW convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 May 2012 00:45:22 -0400
+Received: from mx1.redhat.com ([209.132.183.28]:16609 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751246Ab2E0R4g (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 27 May 2012 13:56:36 -0400
+Message-ID: <4FC26AD8.6060303@redhat.com>
+Date: Sun, 27 May 2012 19:56:40 +0200
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <20120508234641.GV5088@atomide.com>
-References: <1335971749-21258-1-git-send-email-saaguirre@ti.com>
-	<1335971749-21258-9-git-send-email-saaguirre@ti.com>
-	<20120508234641.GV5088@atomide.com>
-Date: Wed, 23 May 2012 23:45:22 -0500
-Message-ID: <CAC-OdnBLvZ2TR52bRHXDDtsvo-PUJ-N2Qj3gWaGhq3Ri+dv-bw@mail.gmail.com>
-Subject: Re: [PATCH v3 08/10] arm: omap4panda: Add support for omap4iss camera
-From: Sergio Aguirre <sergio.a.aguirre@gmail.com>
-To: Tony Lindgren <tony@atomide.com>
-Cc: Sergio Aguirre <saaguirre@ti.com>, linux-media@vger.kernel.org,
-	linux-omap@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media@vger.kernel.org,
+	halli manjunatha <hallimanju@gmail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFCv1 PATCH 1/5] videodev2.h: add new hwseek capability bits.
+References: <1338119425-17274-1-git-send-email-hverkuil@xs4all.nl> <04a877e6f6310b83c3980cd6963f52d3b9ae658f.1338118975.git.hans.verkuil@cisco.com>
+In-Reply-To: <04a877e6f6310b83c3980cd6963f52d3b9ae658f.1338118975.git.hans.verkuil@cisco.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tony,
+Looks good:
 
-On Tue, May 8, 2012 at 6:46 PM, Tony Lindgren <tony@atomide.com> wrote:
-> * Sergio Aguirre <saaguirre@ti.com> [120502 08:21]:
->> This adds support for camera interface with the support for
->> following sensors:
->>
->> - OV5640
->> - OV5650
+Acked-by: Hans de Goede <hdegoede@redhat.com>
+
+On 05/27/2012 01:50 PM, Hans Verkuil wrote:
+> From: Hans Verkuil<hans.verkuil@cisco.com>
 >
-> It seems that at this point we should initialize new things like this
-> with DT only. We don't quite yet have the muxing in place, but I'd
-> rather not add yet another big platform_data file for something that
-> does not even need to be there for DT booted devices.
-
-Ok.
-
-I'll look at that.
-
-By the way, I've been very out of the loop on al DT related development..
-
-Are these instructions valid for current master k.org branch?
-
-http://omappedia.org/wiki/Device_Tree#Booting_with_DT_blob
-
-Regards,
-Sergio
-
+> Tell the application whether the hardware seek is bounded and/or wraps around.
 >
-> Regards,
+> Signed-off-by: Hans Verkuil<hans.verkuil@cisco.com>
+> ---
+>   include/linux/videodev2.h |    2 ++
+>   1 file changed, 2 insertions(+)
 >
-> Tony
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+> index 370d111..2339678 100644
+> --- a/include/linux/videodev2.h
+> +++ b/include/linux/videodev2.h
+> @@ -2039,6 +2039,8 @@ struct v4l2_modulator {
+>   /*  Flags for the 'capability' field */
+>   #define V4L2_TUNER_CAP_LOW		0x0001
+>   #define V4L2_TUNER_CAP_NORM		0x0002
+> +#define V4L2_TUNER_CAP_HWSEEK_BOUNDED	0x0004
+> +#define V4L2_TUNER_CAP_HWSEEK_WRAP	0x0008
+>   #define V4L2_TUNER_CAP_STEREO		0x0010
+>   #define V4L2_TUNER_CAP_LANG2		0x0020
+>   #define V4L2_TUNER_CAP_SAP		0x0020
