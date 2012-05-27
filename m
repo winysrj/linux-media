@@ -1,83 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:40506 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751415Ab2ELSKD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 12 May 2012 14:10:03 -0400
-Received: by mail-bk0-f46.google.com with SMTP id ji2so2938614bkc.19
-        for <linux-media@vger.kernel.org>; Sat, 12 May 2012 11:10:02 -0700 (PDT)
-From: Thomas Mair <thomas.mair86@googlemail.com>
-To: linux-media@vger.kernel.org
-Cc: Thomas Mair <thomas.mair86@googlemail.com>
-Subject: [PATCH 4/5] rtl28xxu: support G-Tek Electronics Group Lifeview LV5TDLX DVB-T
-Date: Sat, 12 May 2012 20:08:28 +0200
-Message-Id: <1336846109-30070-5-git-send-email-thomas.mair86@googlemail.com>
-In-Reply-To: <1336846109-30070-1-git-send-email-thomas.mair86@googlemail.com>
-References: <1336846109-30070-1-git-send-email-thomas.mair86@googlemail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:29607 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750971Ab2E0Or2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 27 May 2012 10:47:28 -0400
+Message-ID: <4FC23E73.3080901@redhat.com>
+Date: Sun, 27 May 2012 11:47:15 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Stefan Richter <stefanr@s5r6.in-berlin.de>
+CC: Linus Torvalds <torvalds@linux-foundation.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: Re: [GIT PULL for v3.5-rc1] media updates for v3.5
+References: <4FBE5518.5090705@redhat.com> <CA+55aFyt2OFOsr5uCpQ6nrur4zhHhmWUJrvMgLH_Wy1niTbC6w@mail.gmail.com> <4FBEB72D.4040905@redhat.com> <CA+55aFyYQkrtgvG99ZOOhAzoKi8w5rJfRgZQy3Dqs39p1n=FPA@mail.gmail.com> <4FBF773B.10408@redhat.com> <20120526003856.7e4efd77@stein>
+In-Reply-To: <20120526003856.7e4efd77@stein>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Thomas Mair <thomas.mair86@googlemail.com>
----
- drivers/media/dvb/dvb-usb/dvb-usb-ids.h |    1 +
- drivers/media/dvb/dvb-usb/rtl28xxu.c    |   11 ++++++++++-
- 2 files changed, 11 insertions(+), 1 deletions(-)
+Em 25-05-2012 19:38, Stefan Richter escreveu:
+> On May 25 Mauro Carvalho Chehab wrote:
+>> A simple way to solve it seems to make those options dependent on CONFIG_EXPERT.
+>>
+>> Not sure if all usual distributions disable it, but I guess most won't have
+>> EXPERT enabled.
+>>
+>> The enclosed patch does that. If nobody complains, I'll submit it together
+>> with the next git pull request.
+> 
+> I only want dvb-core and firedtv.  But when I switch off
+> CONFIG_MEDIA_TUNER_CUSTOMISE, suddenly also
+> 
+>   CC [M]  drivers/media/common/tuners/tuner-xc2028.o
+>   CC [M]  drivers/media/common/tuners/tuner-simple.o
+>   CC [M]  drivers/media/common/tuners/tuner-types.o
+>   CC [M]  drivers/media/common/tuners/mt20xx.o
+>   CC [M]  drivers/media/common/tuners/tda8290.o
+>   CC [M]  drivers/media/common/tuners/tea5767.o
+>   CC [M]  drivers/media/common/tuners/tea5761.o
+>   CC [M]  drivers/media/common/tuners/tda9887.o
+>   CC [M]  drivers/media/common/tuners/tda827x.o
+>   CC [M]  drivers/media/common/tuners/tda18271-maps.o
+>   CC [M]  drivers/media/common/tuners/tda18271-common.o
+>   CC [M]  drivers/media/common/tuners/tda18271-fe.o
+>   CC [M]  drivers/media/common/tuners/xc5000.o
+>   CC [M]  drivers/media/common/tuners/xc4000.o
+>   CC [M]  drivers/media/common/tuners/mc44s803.o
+>   LD [M]  drivers/media/common/tuners/tda18271.o
+> 
+> are built.  Why is that?
 
-diff --git a/drivers/media/dvb/dvb-usb/dvb-usb-ids.h b/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
-index fd37be0..b0a86e9 100644
---- a/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
-+++ b/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
-@@ -135,6 +135,7 @@
- #define USB_PID_GENIUS_TVGO_DVB_T03			0x4012
- #define USB_PID_GRANDTEC_DVBT_USB_COLD			0x0fa0
- #define USB_PID_GRANDTEC_DVBT_USB_WARM			0x0fa1
-+#define USB_PID_GTEK					0xb803
- #define USB_PID_INTEL_CE9500				0x9500
- #define USB_PID_ITETECH_IT9135				0x9135
- #define USB_PID_ITETECH_IT9135_9005			0x9005
-diff --git a/drivers/media/dvb/dvb-usb/rtl28xxu.c b/drivers/media/dvb/dvb-usb/rtl28xxu.c
-index 86304c6..699da68 100644
---- a/drivers/media/dvb/dvb-usb/rtl28xxu.c
-+++ b/drivers/media/dvb/dvb-usb/rtl28xxu.c
-@@ -1135,6 +1135,7 @@ enum rtl28xxu_usb_table_entry {
- 	RTL2831U_14AA_0160,
- 	RTL2831U_14AA_0161,
- 	RTL2832U_0CCD_00A9,
-+	RTL2832U_1F4D_B803,
- };
- 
- static struct usb_device_id rtl28xxu_table[] = {
-@@ -1149,6 +1150,8 @@ static struct usb_device_id rtl28xxu_table[] = {
- 	/* RTL2832U */
- 	[RTL2832U_0CCD_00A9] = {
- 		USB_DEVICE(USB_VID_TERRATEC, USB_PID_TERRATEC_CINERGY_T_STICK_BLACK_REV1)},
-+	[RTL2832U_1F4D_B803] = {
-+		USB_DEVICE(USB_VID_GTEK, USB_PID_GTEK)},
- 	{} /* terminating entry */
- };
- 
-@@ -1262,7 +1265,7 @@ static struct dvb_usb_device_properties rtl28xxu_properties[] = {
- 
- 		.i2c_algo = &rtl28xxu_i2c_algo,
- 
--		.num_device_descs = 1,
-+		.num_device_descs = 2,
- 		.devices = {
- 			{
- 				.name = "Terratec Cinergy T Stick Black",
-@@ -1270,6 +1273,12 @@ static struct dvb_usb_device_properties rtl28xxu_properties[] = {
- 					&rtl28xxu_table[RTL2832U_0CCD_00A9],
- 				},
- 			},
-+			{
-+				.name = "G-Tek Electronics Group Lifeview LV5TDLX DVB-T [RTL2832U]",
-+				.warm_ids = {
-+					&rtl28xxu_table[RTL2832U_1F4D_B803],
-+				},
-+			},
- 		}
- 	},
- 
--- 
-1.7.7.6
+Those are the tuners supported by the tuner_core logic. The tuner_core module
+is required by all TV drivers that have analog support.
 
+After the tuner rework to allow a driver under drivers/media/dvb to use the
+same tuner module as the ../v4l modules, there are now pure dvb drivers that
+don't use tune_core.
+
+So, it makes sense to add a new config for tuner_core that will be
+selected only for devices with analog TV support.
+
+Regards,
+Mauro
