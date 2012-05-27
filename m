@@ -1,272 +1,305 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:58614 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752067Ab2EDHFW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 May 2012 03:05:22 -0400
-Received: by yenm10 with SMTP id m10so2008538yen.19
-        for <linux-media@vger.kernel.org>; Fri, 04 May 2012 00:05:21 -0700 (PDT)
-Message-ID: <4FA37FAC.5080002@gmail.com>
-Date: Fri, 04 May 2012 03:05:16 -0400
-From: Bob Lightfoot <boblfoot@gmail.com>
-MIME-Version: 1.0
-To: Andy Walls <awalls@md.metrocast.net>
-CC: linux-media@vger.kernel.org, Mark Lord <kernel@teksavvy.com>
-Subject: Re: Hauppage HVR1600 - CX18 Issue with Centos 6.2 - Analog Sound
- comes and goes
-References: <4FA0BDB0.50106@gmail.com> <1336088335.2496.33.camel@palomino.walls.org>
-In-Reply-To: <1336088335.2496.33.camel@palomino.walls.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Received: from mx1.redhat.com ([209.132.183.28]:44496 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753106Ab2E0Q4s (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 27 May 2012 12:56:48 -0400
+Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q4RGumsC029552
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sun, 27 May 2012 12:56:48 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [RFC PATCH 3/3] media: only show V4L devices based on device type selection
+Date: Sun, 27 May 2012 13:56:43 -0300
+Message-Id: <1338137803-12231-4-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1338137803-12231-1-git-send-email-mchehab@redhat.com>
+References: <4FC24E34.3000406@redhat.com>
+ <1338137803-12231-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+After this patch, the MEDIA*_SUPP will be used as a filter,
+exposing only devices that are pertinent to one of the 3
+V4L types: webcam/grabber, radio, analog TV.
 
-On 05/03/2012 07:38 PM, Andy Walls wrote:
-> On Wed, 2012-05-02 at 00:53 -0400, Bob Lightfoot wrote:
->> Dear Mailing List linux-media:
->> 
->> I am attempting to use a Hauppage HVR-1600 purchased new in 2010
->> as an analog tv tuner in my HP Pavillion Elite M9040n PC running
->> Centos 6.2 x86_64.  The problem I am experiencing is that with
->> every kernel update and/or mythtv and/or vlc or other media
->> update it seems I loose sound on my captured avi/mpeg files.
->> After as bit of tweaking it seems to come back and I've never
->> been able to pin down exactly what is hosing the sound.  I should
->> mention the unit has an HVR 1850 at slot 2 which works for DVB
->> tuning jsut fine.  The HVR 1600 is in pci slot 1 and from what I 
->> can see in dmesg it also loaded fine.  Maybe someone who is more 
->> intimate with linux-media can review the data I've included and
->> suggest a troubleshooting approach.
-> 
-> 1. If you ever lose sound in the ATSC or QAM DTV streams captured
-> with the HVR-1600, then you do not have and HVR-1600 problem, you
-> have a systems sound playback problem.  In this case you must
-> address that problem.
-> 
-> If not, then go on to #2.
-> 
-> 2. If you never lose sound in ATSC/QAM DTV captures, but do
-> sometimes lose sound with MPEG captures from the analog baseband
-> CVBS or S-Video w/ L and R audio inputs, then this is a driver
-> problem with the CX23418's audio processing unit (APU).
-> 
-> In this case there is are a few things to try:
-> 
-> a. prevent the cx18-alsa.ko module from loading by removing it from
-> your filesystem (make a back-up of the module if you wish), and
-> reboot your computer.  This will stop things like HAL and/or
-> PulseAudio from messing with the HVR-1600 via the ALSA sound
-> interface.
-> 
-> b. Update to the laters cx18 driver, which will require updating
-> many supporting media (video, dvb and common/tuner modules as well.
-> (No guarantee this will work right on older enterprise kernels
-> where the I2C binding model is very different from modern
-> kernels.)
-> 
-> c. Write a patch to the cx18 driver that has it act a little
-> smarter about the CX23418 Capture Processing Unit (CPU) and Audio
-> Processing Unit (APU) initialzation.  Right now the processors are
-> brought out of reset and allowed to run executing uninitialized
-> memory as instructions before their firmware is actually loaded and
-> the processors restarted.
-> 
-> d. Ask me to write the patch mentioned in c.  Be prepared to wait a
-> very long time and still have to update to the latest cx18 module.
-> 
-> 
-> If you never lose audip in MPEG captures from baseband inputs, then
-> go to step 3.
-> 
-> 3. If you never lose sound in ATSC/QAM DTV captures, and never
-> lose sound with MPEG captures from the analog baseband CVBS or
-> S-Video w/ L and R audio inputs, but you do sometimes lose audio
-> with MPEG captures from the analog RF tuner, then the broadcast
-> audio microcontroller in the integrated CX25843 inside the CX23418
-> is likely unable to identify the broadcast audio standard properly
-> and is staying muted.
-> 
-> If so, then
-> 
-> a. Use 'v4l2-ctl -d /dev/videoN --log-status' to verify the audio 
-> standard is not detected and the microcontroller is muted when an
-> analog RF capture is ongoing.
-> 
-> b. Try installing an in-line attenuator in the RF line before it
-> reaches the analog RF tuner input of the HVR-1600.  The audio
-> microcontroller uses spectral analysis hardware to detect the
-> broadcast audio standard. Intermodulation products, caused by
-> overdriving the tuner with too strong of a signal, can throw off
-> the spectral analysis and confuse the audio standard detection
-> microcontroller.
-> 
-> c. Ask Mark Lord for a copy of his script/tool mentioned in this
-> long thread: http://patchwork.linuxtv.org/patch/3162/ That
-> periodically does some userspace actions to try and get audio
-> back.
-> 
-> d. Write a patch to the cx18 driver and the cx18-av-*c files 
-> specifically, that allows manual specification of audio standard to
-> BTSC without any attaempts at auto-detection.
-> 
-> e. Ask me to write the patch in d.  Be prepared to wait a long
-> time, etc. etc.
-> 
-> f. See 2.c.
-> 
-> g. See 2.d.
-> 
-> 
-> 
->> I am beginning to suspect I need to specify a conf file for
->> module cx18 but not sure where to begin that.  I am trying to
->> maintain the package management on this system so I have not 
->> isntalled sources or compiled anything, everything has been
->> managed by yum and pulled from the centos-base, centos-updates or
->> atrpms repos for 99% of things.  There may be an elrepo or
->> rpmfusion rpm or two, but they would be an exception.  Below I am
->> providing what I think is the relevant starter information.
->> 
->> 
->> uname -a ==> Linux mythbox.ladodomain 2.6.32-220.13.1.el6.x86_64
->> #1 SMP Tue Apr 17 23:56:34 BST 2012 x86_64 x86_64 x86_64
->> GNU/Linux
->> 
->> lspci output follows:
->> 
->> 00:00.0 Host bridge: Intel Corporation 82G33/G31/P35/P31 Express
->> DRAM Controller (rev 02) 00:01.0 PCI bridge: Intel Corporation
->> 82G33/G31/P35/P31 Express PCI Express Root Port (rev 02) 00:19.0
->> Ethernet controller: Intel Corporation 82566DC-2 Gigabit Network 
->> Connection (rev 02) 00:1a.0 USB controller: Intel Corporation
->> 82801I (ICH9 Family) USB UHCI Controller #4 (rev 02) 00:1a.1 USB
->> controller: Intel Corporation 82801I (ICH9 Family) USB UHCI 
->> Controller #5 (rev 02) 00:1a.7 USB controller: Intel Corporation
->> 82801I (ICH9 Family) USB2 EHCI Controller #2 (rev 02) 00:1b.0
->> Audio device: Intel Corporation 82801I (ICH9 Family) HD Audio 
->> Controller (rev 02) 00:1c.0 PCI bridge: Intel Corporation 82801I
->> (ICH9 Family) PCI Express Port 1 (rev 02) 00:1c.1 PCI bridge:
->> Intel Corporation 82801I (ICH9 Family) PCI Express Port 2 (rev
->> 02) 00:1d.0 USB controller: Intel Corporation 82801I (ICH9
->> Family) USB UHCI Controller #1 (rev 02) 00:1d.1 USB controller:
->> Intel Corporation 82801I (ICH9 Family) USB UHCI Controller #2
->> (rev 02) 00:1d.2 USB controller: Intel Corporation 82801I (ICH9
->> Family) USB UHCI Controller #3 (rev 02) 00:1d.3 USB controller:
->> Intel Corporation 82801I (ICH9 Family) USB UHCI Controller #6
->> (rev 02) 00:1d.7 USB controller: Intel Corporation 82801I (ICH9
->> Family) USB2 EHCI Controller #1 (rev 02) 00:1e.0 PCI bridge:
->> Intel Corporation 82801 PCI Bridge (rev 92) 00:1f.0 ISA bridge:
->> Intel Corporation 82801IR (ICH9R) LPC Interface Controller (rev
->> 02) 00:1f.2 IDE interface: Intel Corporation 82801IR/IO/IH
->> (ICH9R/DO/DH) 4 port SATA Controller [IDE mode] (rev 02) 00:1f.3
->> SMBus: Intel Corporation 82801I (ICH9 Family) SMBus Controller 
->> (rev 02) 00:1f.5 IDE interface: Intel Corporation 82801I (ICH9
->> Family) 2 port SATA Controller [IDE mode] (rev 02) 01:00.0
->> Multimedia video controller: Conexant Systems, Inc. CX23418 
->> Single-Chip MPEG-2 Encoder with Integrated Analog Video/Broadcast
->> Audio Decoder 01:05.0 FireWire (IEEE 1394): Agere Systems
->> FW322/323 (rev 70) 02:00.0 Multimedia video controller: Conexant
->> Systems, Inc. CX23887/8 PCIe Broadcast Audio and Video Decoder
->> with 3D Comb (rev 0f) 04:00.0 VGA compatible controller: nVidia
->> Corporation G98 [GeForce 8400 GS] (rev a1)
->> 
->> Output from dmesg | grep -A 3 -B 3 cx18 --> follows below: 
->> SELinux: initialized (dev mqueue, type mqueue), uses transition
->> SIDs lo: Disabled Privacy Extensions SELinux: initialized (dev
->> proc, type proc), uses genfs_contexts cx18:  Start
->> initialization, version 1.5.1 cx18-0: Initializing card 0 cx18-0:
->> Autodetected Hauppauge card cx18 0000:01:00.0: PCI INT A -> GSI
->> 17 (level, low) -> IRQ 17 cx18-0: cx23418 revision 01010000 (B) 
->> tveeprom 4-0050: Hauppauge model 74041, rev C6B2, serial#
->> 5267091 tveeprom 4-0050: MAC address is 00:0d:fe:50:5e:93 
->> tveeprom 4-0050: tuner model is TCL M2523_5N_E (idx 112, type
->> 50) -- tveeprom 4-0050: audio processor is CX23418 (idx 38) 
->> tveeprom 4-0050: decoder processor is CX23418 (idx 31) tveeprom
->> 4-0050: has no radio, has IR receiver, has IR transmitter cx18-0:
->> Autodetected Hauppauge HVR-1600 cx18-0: Simultaneous Digital and
->> Analog TV capture supported IRQ 17/cx18-0: IRQF_DISABLED is not
->> guaranteed on shared IRQs tuner 5-0061: Tuner -1 found with
->> type(s) Radio TV. cs5345 4-004c: chip found @ 0x98 (cx18 i2c
->> driver #0-0) tuner-simple 5-0061: creating new instance 
->> tuner-simple 5-0061: type set to 50 (TCL 2002N) cx18-0:
->> Registered device video2 for encoder MPEG (64 x 32.00 kB) DVB:
->> registering new adapter (cx18) cx18 0000:01:00.0: firmware:
->> requesting v4l-cx23418-cpu.fw MXL5005S: Attached at address 0x63 
->> DVB: registering adapter 1 frontend 0 (Samsung S5H1409 QAM/8VSB
->> Frontend)... cx18-0: DVB Frontend registered cx18-0: Registered
->> DVB adapter1 for TS (32 x 32.00 kB) cx18-0: Registered device
->> video34 for encoder YUV (20 x 101.25 kB) cx18-0: Registered
->> device vbi2 for encoder VBI (20 x 51984 bytes) cx18-0: Registered
->> device video26 for encoder PCM audio (256 x 4.00 kB) cx18-0:
->> Initialized card: Hauppauge HVR-1600 cx18:  End initialization 
->> cx18-alsa: module loading... cx18-0: loaded v4l-cx23418-cpu.fw
->> firmware (158332 bytes) cx18 0000:01:00.0: firmware: requesting
->> v4l-cx23418-apu.fw cx18-0: loaded v4l-cx23418-apu.fw firmware
->> V00120000 (141200 bytes) cx18-0: FW version: 0.0.74.0 (Release
->> 2007/03/12) cx18 0000:01:00.0: firmware: requesting
->> v4l-cx23418-cpu.fw cx18 0000:01:00.0: firmware: requesting
->> v4l-cx23418-apu.fw cx18 0000:01:00.0: firmware: requesting
->> v4l-cx23418-dig.fw cx18-0 843: loaded v4l-cx23418-dig.fw firmware
->> (16382 bytes) cx18-0 843: verified load of v4l-cx23418-dig.fw
->> firmware (16382 bytes) readahead-collector: starting delayed
->> service auditd readahead-collector: sorting readahead-collector:
->> finished --
-> 
-> 
->> hda-intel: Invalid position buffer, using LPIB read method
->> instead. hda-intel: IRQ timing workaround is activated for card
->> #0. Suggest a bigger bdl_pos_adj.
-> 
-> That's your audio chipset driver blurting out that something isn't 
-> right.  You should investigate that too.
-> 
-> 
-> 
-> 
->> 
->> I'll end here and hope for someone to have an idea as I've about 
->> exhausted my brain on this.
-> 
-> Hopefully I gave you enough to work with for a while.
-> 
-> Regards, Andy
-> 
->> Sincerely, Bob Lightfoot
-> 
-> 
-Andy - WOW - talk about spot on help thanks a ton.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/radio/Kconfig        |    1 +
+ drivers/media/video/Kconfig        |   76 ++++++++++++++++++++++++++---------
+ drivers/media/video/m5mols/Kconfig |    1 +
+ drivers/media/video/smiapp/Kconfig |    1 +
+ 4 files changed, 59 insertions(+), 20 deletions(-)
 
-1.  I think item 1 can be ruled out as I've never had an issue with
-sound on DTV.  Except as you say when I lost it on both my hvr1600 and
-hvr1850 and pulseaudio was mucking stuff up.
+diff --git a/drivers/media/radio/Kconfig b/drivers/media/radio/Kconfig
+index c257da1..ac4f627 100644
+--- a/drivers/media/radio/Kconfig
++++ b/drivers/media/radio/Kconfig
+@@ -5,6 +5,7 @@
+ menuconfig RADIO_ADAPTERS
+ 	bool "Radio Adapters"
+ 	depends on VIDEO_V4L2
++	depends on MEDIA_RADIO_SUPP
+ 	default y
+ 	---help---
+ 	  Say Y here to enable selecting AM/FM radio adapters.
+diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+index 99937c9..bc7f55e 100644
+--- a/drivers/media/video/Kconfig
++++ b/drivers/media/video/Kconfig
+@@ -5,7 +5,7 @@
+ config VIDEO_V4L2
+ 	tristate
+ 	depends on VIDEO_DEV && VIDEO_V4L2_COMMON
+-	default VIDEO_DEV && VIDEO_V4L2_COMMON
++	default y
+ 
+ config VIDEOBUF_GEN
+ 	tristate
+@@ -73,6 +73,7 @@ config VIDEOBUF2_DMA_SG
+ menuconfig VIDEO_CAPTURE_DRIVERS
+ 	bool "Video capture adapters"
+ 	depends on VIDEO_V4L2
++	depends on MEDIA_WEBCAM_SUPP || MEDIA_ANALOG_TV_SUPP
+ 	default y
+ 	---help---
+ 	  Say Y here to enable selecting the video adapters for
+@@ -478,6 +479,7 @@ config VIDEO_SMIAPP_PLL
+ config VIDEO_OV7670
+ 	tristate "OmniVision OV7670 sensor support"
+ 	depends on I2C && VIDEO_V4L2
++	depends on MEDIA_WEBCAM_SUPP
+ 	---help---
+ 	  This is a Video4Linux2 sensor-level driver for the OmniVision
+ 	  OV7670 VGA camera.  It currently only works with the M88ALP01
+@@ -486,6 +488,7 @@ config VIDEO_OV7670
+ config VIDEO_VS6624
+ 	tristate "ST VS6624 sensor support"
+ 	depends on VIDEO_V4L2 && I2C
++	depends on MEDIA_WEBCAM_SUPP
+ 	---help---
+ 	  This is a Video4Linux2 sensor-level driver for the ST VS6624
+ 	  camera.
+@@ -496,6 +499,7 @@ config VIDEO_VS6624
+ config VIDEO_MT9M032
+ 	tristate "MT9M032 camera sensor support"
+ 	depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
++	depends on MEDIA_WEBCAM_SUPP
+ 	select VIDEO_APTINA_PLL
+ 	---help---
+ 	  This driver supports MT9M032 camera sensors from Aptina, monochrome
+@@ -504,6 +508,7 @@ config VIDEO_MT9M032
+ config VIDEO_MT9P031
+ 	tristate "Aptina MT9P031 support"
+ 	depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
++	depends on MEDIA_WEBCAM_SUPP
+ 	select VIDEO_APTINA_PLL
+ 	---help---
+ 	  This is a Video4Linux2 sensor-level driver for the Aptina
+@@ -512,6 +517,7 @@ config VIDEO_MT9P031
+ config VIDEO_MT9T001
+ 	tristate "Aptina MT9T001 support"
+ 	depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
++	depends on MEDIA_WEBCAM_SUPP
+ 	---help---
+ 	  This is a Video4Linux2 sensor-level driver for the Aptina
+ 	  (Micron) mt0t001 3 Mpixel camera.
+@@ -519,6 +525,7 @@ config VIDEO_MT9T001
+ config VIDEO_MT9V011
+ 	tristate "Micron mt9v011 sensor support"
+ 	depends on I2C && VIDEO_V4L2
++	depends on MEDIA_WEBCAM_SUPP
+ 	---help---
+ 	  This is a Video4Linux2 sensor-level driver for the Micron
+ 	  mt0v011 1.3 Mpixel camera.  It currently only works with the
+@@ -527,6 +534,7 @@ config VIDEO_MT9V011
+ config VIDEO_MT9V032
+ 	tristate "Micron MT9V032 sensor support"
+ 	depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
++	depends on MEDIA_WEBCAM_SUPP
+ 	---help---
+ 	  This is a Video4Linux2 sensor-level driver for the Micron
+ 	  MT9V032 752x480 CMOS sensor.
+@@ -534,6 +542,7 @@ config VIDEO_MT9V032
+ config VIDEO_TCM825X
+ 	tristate "TCM825x camera sensor support"
+ 	depends on I2C && VIDEO_V4L2
++	depends on MEDIA_WEBCAM_SUPP
+ 	---help---
+ 	  This is a driver for the Toshiba TCM825x VGA camera sensor.
+ 	  It is used for example in Nokia N800.
+@@ -541,12 +550,14 @@ config VIDEO_TCM825X
+ config VIDEO_SR030PC30
+ 	tristate "Siliconfile SR030PC30 sensor support"
+ 	depends on I2C && VIDEO_V4L2
++	depends on MEDIA_WEBCAM_SUPP
+ 	---help---
+ 	  This driver supports SR030PC30 VGA camera from Siliconfile
+ 
+ config VIDEO_NOON010PC30
+ 	tristate "Siliconfile NOON010PC30 sensor support"
+ 	depends on I2C && VIDEO_V4L2 && EXPERIMENTAL && VIDEO_V4L2_SUBDEV_API
++	depends on MEDIA_WEBCAM_SUPP
+ 	---help---
+ 	  This driver supports NOON010PC30 CIF camera from Siliconfile
+ 
+@@ -554,6 +565,7 @@ source "drivers/media/video/m5mols/Kconfig"
+ 
+ config VIDEO_S5K6AA
+ 	tristate "Samsung S5K6AAFX sensor support"
++	depends on MEDIA_WEBCAM_SUPP
+ 	depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
+ 	---help---
+ 	  This is a V4L2 sensor-level driver for Samsung S5K6AA(FX) 1.3M
+@@ -566,6 +578,7 @@ comment "Flash devices"
+ config VIDEO_ADP1653
+ 	tristate "ADP1653 flash support"
+ 	depends on I2C && VIDEO_V4L2 && MEDIA_CONTROLLER
++	depends on MEDIA_WEBCAM_SUPP
+ 	---help---
+ 	  This is a driver for the ADP1653 flash controller. It is used for
+ 	  example in Nokia N900.
+@@ -573,6 +586,7 @@ config VIDEO_ADP1653
+ config VIDEO_AS3645A
+ 	tristate "AS3645A flash driver support"
+ 	depends on I2C && VIDEO_V4L2 && MEDIA_CONTROLLER
++	depends on MEDIA_WEBCAM_SUPP
+ 	---help---
+ 	  This is a driver for the AS3645A and LM3555 flash controllers. It has
+ 	  build in control for flash, torch and indicator LEDs.
+@@ -647,30 +661,14 @@ menuconfig V4L_USB_DRIVERS
+ 	depends on USB
+ 	default y
+ 
+-if V4L_USB_DRIVERS
++if V4L_USB_DRIVERS && MEDIA_WEBCAM_SUPP
+ 
+-source "drivers/media/video/au0828/Kconfig"
++	comment "Webcam devices"
+ 
+ source "drivers/media/video/uvc/Kconfig"
+ 
+ source "drivers/media/video/gspca/Kconfig"
+ 
+-source "drivers/media/video/pvrusb2/Kconfig"
+-
+-source "drivers/media/video/hdpvr/Kconfig"
+-
+-source "drivers/media/video/em28xx/Kconfig"
+-
+-source "drivers/media/video/tlg2300/Kconfig"
+-
+-source "drivers/media/video/cx231xx/Kconfig"
+-
+-source "drivers/media/video/tm6000/Kconfig"
+-
+-source "drivers/media/video/usbvision/Kconfig"
+-
+-source "drivers/media/video/sn9c102/Kconfig"
+-
+ source "drivers/media/video/pwc/Kconfig"
+ 
+ source "drivers/media/video/cpia2/Kconfig"
+@@ -711,15 +709,46 @@ config USB_S2255
+ 	  Say Y here if you want support for the Sensoray 2255 USB device.
+ 	  This driver can be compiled as a module, called s2255drv.
+ 
++source "drivers/media/video/sn9c102/Kconfig"
++
++endif # V4L_USB_DRIVERS && MEDIA_WEBCAM_SUPP
++
++if V4L_USB_DRIVERS
++
++	comment "Webcam and/or TV USB devices"
++
++source "drivers/media/video/em28xx/Kconfig"
++
++endif
++
++if V4L_USB_DRIVERS && MEDIA_ANALOG_TV_SUPP
++
++	comment "TV USB devices"
++
++source "drivers/media/video/au0828/Kconfig"
++
++source "drivers/media/video/pvrusb2/Kconfig"
++
++source "drivers/media/video/hdpvr/Kconfig"
++
++source "drivers/media/video/tlg2300/Kconfig"
++
++source "drivers/media/video/cx231xx/Kconfig"
++
++source "drivers/media/video/tm6000/Kconfig"
++
++source "drivers/media/video/usbvision/Kconfig"
++
+ endif # V4L_USB_DRIVERS
+ 
+ #
+-# PCI drivers configuration
++# PCI drivers configuration - No devices here are for webcams
+ #
+ 
+ menuconfig V4L_PCI_DRIVERS
+ 	bool "V4L PCI(e) devices"
+ 	depends on PCI
++	depends on MEDIA_ANALOG_TV_SUPP
+ 	default y
+ 	---help---
+ 	  Say Y here to enable support for these PCI(e) drivers.
+@@ -814,11 +843,13 @@ endif # V4L_PCI_DRIVERS
+ 
+ #
+ # ISA & parallel port drivers configuration
++#	All devices here are webcam or grabber devices
+ #
+ 
+ menuconfig V4L_ISA_PARPORT_DRIVERS
+ 	bool "V4L ISA and parallel port devices"
+ 	depends on ISA || PARPORT
++	depends on MEDIA_WEBCAM_SUPP
+ 	default n
+ 	---help---
+ 	  Say Y here to enable support for these ISA and parallel port drivers.
+@@ -871,8 +902,13 @@ config VIDEO_W9966
+ 
+ endif # V4L_ISA_PARPORT_DRIVERS
+ 
++#
++# Platform drivers
++#	All drivers here are currently for webcam support
++
+ menuconfig V4L_PLATFORM_DRIVERS
+ 	bool "V4L platform devices"
++	depends on MEDIA_WEBCAM_SUPP
+ 	default n
+ 	---help---
+ 	  Say Y here to enable support for platform-specific V4L drivers.
+diff --git a/drivers/media/video/m5mols/Kconfig b/drivers/media/video/m5mols/Kconfig
+index 302dc3d..5d8ce31 100644
+--- a/drivers/media/video/m5mols/Kconfig
++++ b/drivers/media/video/m5mols/Kconfig
+@@ -1,5 +1,6 @@
+ config VIDEO_M5MOLS
+ 	tristate "Fujitsu M-5MOLS 8MP sensor support"
+ 	depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
++	depends on MEDIA_WEBCAM_SUPP
+ 	---help---
+ 	  This driver supports Fujitsu M-5MOLS camera sensor with ISP
+diff --git a/drivers/media/video/smiapp/Kconfig b/drivers/media/video/smiapp/Kconfig
+index f7b35ff..209e824 100644
+--- a/drivers/media/video/smiapp/Kconfig
++++ b/drivers/media/video/smiapp/Kconfig
+@@ -1,6 +1,7 @@
+ config VIDEO_SMIAPP
+ 	tristate "SMIA++/SMIA sensor support"
+ 	depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
++	depends on MEDIA_WEBCAM_SUPP
+ 	select VIDEO_SMIAPP_PLL
+ 	---help---
+ 	  This is a generic driver for SMIA++/SMIA camera modules.
+-- 
+1.7.8
 
-2.  Item 2 will take a day or two to verify the s Video with L/R Audio
-as those are not presently connected to a source. but based on my web
-search and what you mention about item 3 I suspect that is my issue.
-
-3.  I am able to use the v4l2-ctl command and confirm that audio
-standard is not detected and audio is muted.  NOTE: I made a follow up
-post about this a day or two ago IIRC.  The attenuator makes some
-sense.  I also noticed that the video is showing ground loop lines on
-occaision so I'll recheck the coax between the hvr1600 and the
-Satellite Reciever generating the analog signal.
-
-
-More to come, but you've done a bunch for which I am thankful at this
-point.  Don't know how I'll return the favor one day, but will try.
-
-Bob
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.14 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
-
-iQEcBAEBAgAGBQJPo3+sAAoJEKqgpLIhfz3XY3YH/RAoNk3XLF8iq7ceI1alUk7p
-vAeYwU75/5VycZkmMDQFGTNzriqsL10sj4gNKSCyrjFiWfaazPAEMT4od8MX2QR3
-/suvYmTpyNd1G5L386EAKghkh/d6Z9anmpfEZFXSX2bi9KegW/lvr86oOkjoCjSk
-DPbHeUYsAUTnA0+XJd+bHyK77yfD4cXHyh1XPi36DJcXXUtQu0kOlsLCrD1EaqMJ
-z/+hjyn40+ULU1euyFZ4oRt2yBQ2JxWTKjUbhbihCxhEsYuPuTnYFJhA99ijVJF3
-wBgQHQBVKw9sNH/Ash/MxAij56ETlaxwarCLhTMUMnN+WHKq7+6PijGdZcXuDGo=
-=GQpn
------END PGP SIGNATURE-----
