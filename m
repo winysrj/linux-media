@@ -1,62 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vb0-f46.google.com ([209.85.212.46]:56560 "EHLO
-	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750910Ab2ECQvD convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 May 2012 12:51:03 -0400
-Received: by vbbff1 with SMTP id ff1so1421279vbb.19
-        for <linux-media@vger.kernel.org>; Thu, 03 May 2012 09:51:01 -0700 (PDT)
+Received: from mx1.redhat.com ([209.132.183.28]:17970 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751387Ab2E0RNl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 27 May 2012 13:13:41 -0400
+Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q4RHDfaR000568
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sun, 27 May 2012 13:13:41 -0400
+Message-ID: <4FC260C2.3060802@redhat.com>
+Date: Sun, 27 May 2012 14:13:38 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <4FA2AD16.6080807@interlinx.bc.ca>
-References: <jn2ibp$pot$1@dough.gmane.org>
-	<1335307344.8218.11.camel@palomino.walls.org>
-	<jn7pph$qed$1@dough.gmane.org>
-	<1335624964.2665.37.camel@palomino.walls.org>
-	<4F9C38BE.3010301@interlinx.bc.ca>
-	<4F9C559E.6010208@interlinx.bc.ca>
-	<4F9C6D68.3090202@interlinx.bc.ca>
-	<CAAMvbhH2o6SZVBU4D2dvUUVuOhtzLdO-R=TCuug7Y9hgZq2gmg@mail.gmail.com>
-	<CAGoCfiwB2jZfeZ2aSQ7FSG-k5XDGJY_ykLPSD3Y3rbrUXmuOdg@mail.gmail.com>
-	<4FA1FBB5.8050106@interlinx.bc.ca>
-	<CAGoCfixTLjnW=q+SHiiRzXaFtqp56Ng5nRMn-u1YfZ1f-zmtwA@mail.gmail.com>
-	<e2d13409-d6fc-47aa-9597-727dd6f7c3ec@email.android.com>
-	<4FA2AD16.6080807@interlinx.bc.ca>
-Date: Thu, 3 May 2012 12:51:01 -0400
-Message-ID: <CAGoCfizmgx+T2sSsZxr5dNG-ABYG=3cECc5w4=VP8t4vpDwNew@mail.gmail.com>
-Subject: Re: HVR-1600 QAM recordings with slight glitches in them
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: "Brian J. Murrell" <brian@interlinx.bc.ca>
-Cc: Andy Walls <awalls@md.metrocast.net>, stoth@kernellabs.com,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [RFC] file tree rearrangement - was: Re: [RFC PATCH 0/3] Improve
+ Kconfig selection for media devices
+References: <4FC24E34.3000406@redhat.com> <1338137803-12231-1-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1338137803-12231-1-git-send-email-mchehab@redhat.com>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, May 3, 2012 at 12:06 PM, Brian J. Murrell <brian@interlinx.bc.ca> wrote:
-> But as I mentioned before, it's now completely non-functional due to the
-> coax connector on the card having become loose enough to turn (with some
-> effort, so screwing an female F-connector on/off was still quite
-> doable).  Perhaps it was marginal before due to that same problem.  I
-> guess I will never know... unless I try cracking this thing open and
-> reconnecting whatever has gotten disconnected -- if Hauppage won't RMA
-> it for me.  They seem to be pretty silent about that now though after an
-> initial e-mail exchange.
+Em 27-05-2012 13:56, Mauro Carvalho Chehab escreveu:
+> The Kconfig building system is improperly selecting some drivers,
+> like analog TV tuners even when this is not required.
+> 
+> Rearrange the Kconfig in a way to prevent that.
+> 
+> Mauro Carvalho Chehab (3):
+>   media: reorganize the main Kconfig items
+>   media: Remove VIDEO_MEDIA Kconfig option
+>   media: only show V4L devices based on device type selection
+> 
+>  drivers/media/Kconfig               |  114 +++++++++++++++++++++++------------
+>  drivers/media/common/tuners/Kconfig |   64 ++++++++++----------
+>  drivers/media/dvb/frontends/Kconfig |    1 +
+>  drivers/media/radio/Kconfig         |    1 +
+>  drivers/media/rc/Kconfig            |   29 ++++-----
+>  drivers/media/video/Kconfig         |   76 +++++++++++++++++------
+>  drivers/media/video/m5mols/Kconfig  |    1 +
+>  drivers/media/video/pvrusb2/Kconfig |    1 -
+>  drivers/media/video/smiapp/Kconfig  |    1 +
+>  9 files changed, 181 insertions(+), 107 deletions(-)
+> 
 
-If the F-connector is loose, that can *definitely* explain the
-problem.  Let me know if you have problems getting an RMA.
+The organization between DVB only, V4L only and hybrid devices are somewhat
+confusing on our tree. From time to time, someone proposes changing one driver
+from one place to another or complains that "his device is DVB only but it is
+inside the V4L tree" (and other similar requests). This sometimes happen because
+the same driver can support analog only, digital only or hybrid devices.
 
-> If not, I've got my eye on a KWorld UB435-Q if I can determine that it's
-> a hardware rev. 1 unit somehow since the store doesn't want to take it
-> out of the box to check for me.  It's less than half the price of an
-> HVR-950Q at $40, as much as I would love to stay loyal with Hauppage --
-> this coax connector on my HVR-1600 coming loose, aside.
+Also, one driver may start as a DVB only or as a V4L only and then 
+it can be latter be converted into an hybrid driver.
 
-Even if they take it out of the box, you would be unlikely to be able
-to determine the revision without plugging it in to something and
-checking the USB ID.
+So, the better is to rearrange the drivers tree, in order to fix this issue,
+removing them from /video and /dvb, and storing them on a better place.
 
-Devin
+So, my proposal is to move all radio, analog TV, digital TV, webcams and grabber
+bridge drivers to this arrangement:
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+drivers/media/isa - ISA drivers
+drivers/media/usb - USB drivers
+drivers/media/pci - PCI/PCIe drivers
+drivers/media/platform - platform drivers
+
+Comments?
+
+Regards,
+Mauro
+
+-
+
+PS.: for now, I don't intend to touch at I2C/ancillary drivers. We may latter move
+the i2c drivers that aren't frontend/tuners to media/i2c or to media/common.
