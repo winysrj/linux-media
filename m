@@ -1,228 +1,151 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:44276 "EHLO
-	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933052Ab2EWJyw (ORCPT
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:2882 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753527Ab2E1Kq4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 May 2012 05:54:52 -0400
-Subject: [PATCH 29/43] rc-core: remove redundant spinlock
+	Mon, 28 May 2012 06:46:56 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
-Cc: mchehab@redhat.com, jarod@redhat.com
-Date: Wed, 23 May 2012 11:44:32 +0200
-Message-ID: <20120523094432.14474.21656.stgit@felix.hardeman.nu>
-In-Reply-To: <20120523094157.14474.24367.stgit@felix.hardeman.nu>
-References: <20120523094157.14474.24367.stgit@felix.hardeman.nu>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Cc: Hans de Goede <hdegoede@redhat.com>,
+	halli manjunatha <hallimanju@gmail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv2 PATCH 3/6] S_HW_FREQ_SEEK: set capability flags and return ENODATA instead of EAGAIN.
+Date: Mon, 28 May 2012 12:46:42 +0200
+Message-Id: <fc07fc47beba481d948156a5937d1db80b501cc0.1338201853.git.hans.verkuil@cisco.com>
+In-Reply-To: <1338202005-10208-1-git-send-email-hverkuil@xs4all.nl>
+References: <1338202005-10208-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <e874de9bb774639e0ea58054862853b9703dc2aa.1338201853.git.hans.verkuil@cisco.com>
+References: <e874de9bb774639e0ea58054862853b9703dc2aa.1338201853.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Remove a redundant spinlock from struct rc_map.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: David Härdeman <david@hardeman.nu>
+Set the new capability flags in G_TUNER and return ENODATA if no channels
+were found.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Hans de Goede <hdegoede@redhat.com>
 ---
- drivers/media/rc/rc-keytable.c |   43 +++++++++++++++++-----------------------
- include/media/rc-core.h        |    4 ++--
- include/media/rc-map.h         |    1 -
- 3 files changed, 20 insertions(+), 28 deletions(-)
+ drivers/media/radio/radio-mr800.c                |    5 +++--
+ drivers/media/radio/radio-wl1273.c               |    3 ++-
+ drivers/media/radio/si470x/radio-si470x-common.c |    6 ++++--
+ drivers/media/radio/wl128x/fmdrv_rx.c            |    2 +-
+ drivers/media/radio/wl128x/fmdrv_v4l2.c          |    4 +++-
+ sound/i2c/other/tea575x-tuner.c                  |    4 +++-
+ 6 files changed, 16 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/media/rc/rc-keytable.c b/drivers/media/rc/rc-keytable.c
-index bdb60f4..eb48358 100644
---- a/drivers/media/rc/rc-keytable.c
-+++ b/drivers/media/rc/rc-keytable.c
-@@ -335,7 +335,7 @@ static int ir_setkeycode(struct input_dev *idev,
+diff --git a/drivers/media/radio/radio-mr800.c b/drivers/media/radio/radio-mr800.c
+index 94cb6bc..3182b26 100644
+--- a/drivers/media/radio/radio-mr800.c
++++ b/drivers/media/radio/radio-mr800.c
+@@ -295,7 +295,8 @@ static int vidioc_g_tuner(struct file *file, void *priv,
+ 	v->type = V4L2_TUNER_RADIO;
+ 	v->rangelow = FREQ_MIN * FREQ_MUL;
+ 	v->rangehigh = FREQ_MAX * FREQ_MUL;
+-	v->capability = V4L2_TUNER_CAP_LOW | V4L2_TUNER_CAP_STEREO;
++	v->capability = V4L2_TUNER_CAP_LOW | V4L2_TUNER_CAP_STEREO |
++		V4L2_TUNER_CAP_HWSEEK_WRAP;
+ 	v->rxsubchans = is_stereo ? V4L2_TUNER_SUB_STEREO : V4L2_TUNER_SUB_MONO;
+ 	v->audmode = radio->stereo ?
+ 		V4L2_TUNER_MODE_STEREO : V4L2_TUNER_MODE_MONO;
+@@ -372,7 +373,7 @@ static int vidioc_s_hw_freq_seek(struct file *file, void *priv,
+ 	timeout = jiffies + msecs_to_jiffies(30000);
+ 	for (;;) {
+ 		if (time_after(jiffies, timeout)) {
+-			retval = -EAGAIN;
++			retval = -ENODATA;
+ 			break;
+ 		}
+ 		if (schedule_timeout_interruptible(msecs_to_jiffies(10))) {
+diff --git a/drivers/media/radio/radio-wl1273.c b/drivers/media/radio/radio-wl1273.c
+index f1b6070..e8428f5 100644
+--- a/drivers/media/radio/radio-wl1273.c
++++ b/drivers/media/radio/radio-wl1273.c
+@@ -1514,7 +1514,8 @@ static int wl1273_fm_vidioc_g_tuner(struct file *file, void *priv,
+ 	tuner->rangehigh = WL1273_FREQ(WL1273_BAND_OTHER_HIGH);
  
- 	entry.keycode = ke->keycode;
+ 	tuner->capability = V4L2_TUNER_CAP_LOW | V4L2_TUNER_CAP_RDS |
+-		V4L2_TUNER_CAP_STEREO | V4L2_TUNER_CAP_RDS_BLOCK_IO;
++		V4L2_TUNER_CAP_STEREO | V4L2_TUNER_CAP_RDS_BLOCK_IO |
++		V4L2_TUNER_CAP_HWSEEK_BOUNDED | V4L2_TUNER_CAP_HWSEEK_WRAP;
  
--	spin_lock_irqsave(&rc_map->lock, flags);
-+	spin_lock_irqsave(&kt->lock, flags);
+ 	if (radio->stereo)
+ 		tuner->audmode = V4L2_TUNER_MODE_STEREO;
+diff --git a/drivers/media/radio/si470x/radio-si470x-common.c b/drivers/media/radio/si470x/radio-si470x-common.c
+index 969cf49..d485b79 100644
+--- a/drivers/media/radio/si470x/radio-si470x-common.c
++++ b/drivers/media/radio/si470x/radio-si470x-common.c
+@@ -363,7 +363,7 @@ stop:
  
- 	if (ke->flags & INPUT_KEYMAP_BY_INDEX) {
- 		index = ke->index;
-@@ -391,7 +391,7 @@ static int ir_setkeycode(struct input_dev *idev,
- 		*old_keycode = ir_update_mapping(kt, rc_map, index, ke->keycode);
- 
- out:
--	spin_unlock_irqrestore(&rc_map->lock, flags);
-+	spin_unlock_irqrestore(&kt->lock, flags);
+ 	/* try again, if timed out */
+ 	if (retval == 0 && timed_out)
+-		return -EAGAIN;
++		return -ENODATA;
  	return retval;
  }
  
-@@ -495,7 +495,7 @@ static int ir_getkeycode(struct input_dev *idev,
- 	unsigned int index;
- 	int retval;
+@@ -596,7 +596,9 @@ static int si470x_vidioc_g_tuner(struct file *file, void *priv,
+ 	strcpy(tuner->name, "FM");
+ 	tuner->type = V4L2_TUNER_RADIO;
+ 	tuner->capability = V4L2_TUNER_CAP_LOW | V4L2_TUNER_CAP_STEREO |
+-			    V4L2_TUNER_CAP_RDS | V4L2_TUNER_CAP_RDS_BLOCK_IO;
++			    V4L2_TUNER_CAP_RDS | V4L2_TUNER_CAP_RDS_BLOCK_IO |
++			    V4L2_TUNER_CAP_HWSEEK_BOUNDED |
++			    V4L2_TUNER_CAP_HWSEEK_WRAP;
  
--	spin_lock_irqsave(&rc_map->lock, flags);
-+	spin_lock_irqsave(&kt->lock, flags);
- 
- 	if (ke->flags & INPUT_KEYMAP_BY_INDEX) {
- 		index = ke->index;
-@@ -564,7 +564,7 @@ static int ir_getkeycode(struct input_dev *idev,
- 	retval = 0;
- 
- out:
--	spin_unlock_irqrestore(&rc_map->lock, flags);
-+	spin_unlock_irqrestore(&kt->lock, flags);
- 	return retval;
- }
- 
-@@ -574,25 +574,15 @@ static u32 rc_get_keycode(struct rc_keytable *kt,
- 	struct rc_map *rc_map;
- 	unsigned int keycode = KEY_RESERVED;
- 	unsigned int index;
--	unsigned long flags;
- 
- 	rc_map = &kt->rc_map;
- 	if (!rc_map)
- 		return KEY_RESERVED;
- 
--	spin_lock_irqsave(&rc_map->lock, flags);
--
- 	index = ir_lookup_by_scancode(rc_map, protocol, scancode);
- 	if (index < rc_map->len)
- 		keycode = rc_map->scan[index].keycode;
- 
--	spin_unlock_irqrestore(&rc_map->lock, flags);
--
--	if (keycode != KEY_RESERVED)
--		IR_dprintk(1, "%s: protocol 0x%04x scancode 0x%08llx keycode 0x%02x\n",
--			   kt->dev->input_name, protocol,
--			   (unsigned long long)scancode, keycode);
--
- 	return keycode;
- }
- 
-@@ -613,13 +603,17 @@ u32 rc_g_keycode_from_table(struct rc_dev *dev,
- {
- 	struct rc_keytable *kt;
- 	unsigned int keycode = KEY_RESERVED;
-+	unsigned long flags;
- 
- 	/* FIXME: This entire function is a hack. Remove it */
- 	rcu_read_lock();
- 	kt = rcu_dereference(dev->keytables[0]);
- 	if (!kt)
- 		goto out;
-+
-+	spin_lock_irqsave(&kt->lock, flags);
- 	keycode = rc_get_keycode(kt, protocol, scancode);
-+	spin_unlock_irqrestore(&kt->lock, flags);
- 
- out:
- 	rcu_read_unlock();
-@@ -633,7 +627,7 @@ EXPORT_SYMBOL_GPL(rc_g_keycode_from_table);
-  * @sync:	whether or not to call input_sync
-  *
-  * This function is used internally to release a keypress, it must be
-- * called with keylock held.
-+ * called with kt->lock held.
-  */
- static void rc_do_keyup(struct rc_keytable *kt, bool sync)
- {
-@@ -658,9 +652,9 @@ void rc_keytable_keyup(struct rc_keytable *kt)
- {
- 	unsigned long flags;
- 
--	spin_lock_irqsave(&kt->keylock, flags);
-+	spin_lock_irqsave(&kt->lock, flags);
- 	rc_do_keyup(kt, true);
--	spin_unlock_irqrestore(&kt->keylock, flags);
-+	spin_unlock_irqrestore(&kt->lock, flags);
- }
- 
- /**
-@@ -685,10 +679,10 @@ static void rc_timer_keyup(unsigned long cookie)
- 	 * to allow the input subsystem to do its auto-repeat magic or
- 	 * a keyup event might follow immediately after the keydown.
- 	 */
--	spin_lock_irqsave(&kt->keylock, flags);
-+	spin_lock_irqsave(&kt->lock, flags);
- 	if (time_is_before_eq_jiffies(kt->keyup_jiffies))
- 		rc_do_keyup(kt, true);
--	spin_unlock_irqrestore(&kt->keylock, flags);
-+	spin_unlock_irqrestore(&kt->lock, flags);
- }
- 
- /**
-@@ -703,7 +697,7 @@ void rc_keytable_repeat(struct rc_keytable *kt)
- {
- 	unsigned long flags;
- 
--	spin_lock_irqsave(&kt->keylock, flags);
-+	spin_lock_irqsave(&kt->lock, flags);
- 
- 	input_event(kt->idev, EV_MSC, MSC_SCAN, kt->last_scancode);
- 	input_sync(kt->idev);
-@@ -715,7 +709,7 @@ void rc_keytable_repeat(struct rc_keytable *kt)
- 	mod_timer(&kt->timer_keyup, kt->keyup_jiffies);
- 
- out:
--	spin_unlock_irqrestore(&kt->keylock, flags);
-+	spin_unlock_irqrestore(&kt->lock, flags);
- }
- 
- /**
-@@ -736,7 +730,7 @@ void rc_keytable_keydown(struct rc_keytable *kt, enum rc_type protocol,
- 	u32 keycode;
- 	bool new_event;
- 
--	spin_lock_irqsave(&kt->keylock, flags);
-+	spin_lock_irqsave(&kt->lock, flags);
- 
- 	keycode = rc_get_keycode(kt, protocol, scancode);
- 	new_event = !kt->keypressed || kt->last_protocol != protocol ||
-@@ -767,7 +761,7 @@ void rc_keytable_keydown(struct rc_keytable *kt, enum rc_type protocol,
- 		kt->keyup_jiffies = jiffies + msecs_to_jiffies(IR_KEYPRESS_TIMEOUT);
- 		mod_timer(&kt->timer_keyup, kt->keyup_jiffies);
+ 	/* range limits */
+ 	switch ((radio->registers[SYSCONFIG2] & SYSCONFIG2_BAND) >> 6) {
+diff --git a/drivers/media/radio/wl128x/fmdrv_rx.c b/drivers/media/radio/wl128x/fmdrv_rx.c
+index 43fb722..3dd9fc0 100644
+--- a/drivers/media/radio/wl128x/fmdrv_rx.c
++++ b/drivers/media/radio/wl128x/fmdrv_rx.c
+@@ -251,7 +251,7 @@ again:
+ 	if (!timeleft) {
+ 		fmerr("Timeout(%d sec),didn't get tune ended int\n",
+ 			   jiffies_to_msecs(FM_DRV_RX_SEEK_TIMEOUT) / 1000);
+-		return -ETIMEDOUT;
++		return -ENODATA;
  	}
--	spin_unlock_irqrestore(&kt->keylock, flags);
-+	spin_unlock_irqrestore(&kt->lock, flags);
+ 
+ 	int_reason = fmdev->irq_info.flag & (FM_TUNE_COMPLETE | FM_BAND_LIMIT);
+diff --git a/drivers/media/radio/wl128x/fmdrv_v4l2.c b/drivers/media/radio/wl128x/fmdrv_v4l2.c
+index 080b96a..49a11ec 100644
+--- a/drivers/media/radio/wl128x/fmdrv_v4l2.c
++++ b/drivers/media/radio/wl128x/fmdrv_v4l2.c
+@@ -285,7 +285,9 @@ static int fm_v4l2_vidioc_g_tuner(struct file *file, void *priv,
+ 	tuner->rxsubchans = V4L2_TUNER_SUB_MONO | V4L2_TUNER_SUB_STEREO |
+ 	((fmdev->rx.rds.flag == FM_RDS_ENABLE) ? V4L2_TUNER_SUB_RDS : 0);
+ 	tuner->capability = V4L2_TUNER_CAP_STEREO | V4L2_TUNER_CAP_RDS |
+-			    V4L2_TUNER_CAP_LOW;
++			    V4L2_TUNER_CAP_LOW |
++			    V4L2_TUNER_CAP_HWSEEK_BOUNDED |
++			    V4L2_TUNER_CAP_HWSEEK_WRAP;
+ 	tuner->audmode = (stereo_mono_mode ?
+ 			  V4L2_TUNER_MODE_MONO : V4L2_TUNER_MODE_STEREO);
+ 
+diff --git a/sound/i2c/other/tea575x-tuner.c b/sound/i2c/other/tea575x-tuner.c
+index 582aace..ba2bc51 100644
+--- a/sound/i2c/other/tea575x-tuner.c
++++ b/sound/i2c/other/tea575x-tuner.c
+@@ -191,6 +191,8 @@ static int vidioc_g_tuner(struct file *file, void *priv,
+ 	strcpy(v->name, "FM");
+ 	v->type = V4L2_TUNER_RADIO;
+ 	v->capability = V4L2_TUNER_CAP_LOW | V4L2_TUNER_CAP_STEREO;
++	if (!tea->cannot_read_data)
++		v->capability |= V4L2_TUNER_CAP_HWSEEK_BOUNDED;
+ 	v->rangelow = FREQ_LO;
+ 	v->rangehigh = FREQ_HI;
+ 	v->rxsubchans = tea->stereo ? V4L2_TUNER_SUB_STEREO : V4L2_TUNER_SUB_MONO;
+@@ -299,7 +301,7 @@ static int vidioc_s_hw_freq_seek(struct file *file, void *fh,
+ 	}
+ 	tea->val &= ~TEA575X_BIT_SEARCH;
+ 	snd_tea575x_set_freq(tea);
+-	return -EAGAIN;
++	return -ENODATA;
  }
  
- /**
-@@ -891,8 +885,7 @@ struct rc_keytable *rc_keytable_create(struct rc_dev *dev,
- 	 */
- 	idev->rep[REP_PERIOD] = 125;
- 
--	spin_lock_init(&kt->rc_map.lock);
--	spin_lock_init(&kt->keylock);
-+	spin_lock_init(&kt->lock);
- 	return kt;
- 
- out:
-diff --git a/include/media/rc-core.h b/include/media/rc-core.h
-index 1852b47..cd93623 100644
---- a/include/media/rc-core.h
-+++ b/include/media/rc-core.h
-@@ -336,7 +336,7 @@ struct rc_dev {
-  * @keypressed:		whether a key is currently pressed or not
-  * @keyup_jiffies:	when the key should be auto-released
-  * @timer_keyup:	responsible for the auto-release of keys
-- * @keylock:		protects the key state
-+ * @lock:		protects the key state
-  * @last_keycode:	keycode of the last keypress
-  * @last_protocol:	protocol of the last keypress
-  * @last_scancode:	scancode of the last keypress
-@@ -351,7 +351,7 @@ struct rc_keytable {
- 	bool				keypressed;
- 	unsigned long			keyup_jiffies;
- 	struct timer_list		timer_keyup;
--	spinlock_t			keylock;
-+	spinlock_t			lock;
- 	u32				last_keycode;
- 	enum rc_type			last_protocol;
- 	u64				last_scancode;
-diff --git a/include/media/rc-map.h b/include/media/rc-map.h
-index 7de8215..5737c65 100644
---- a/include/media/rc-map.h
-+++ b/include/media/rc-map.h
-@@ -90,7 +90,6 @@ struct rc_map {
- 	unsigned int		alloc;	/* Size of *scan in bytes */
- 	enum rc_type		rc_type; /* For in-kernel keymaps */
- 	const char		*name;
--	spinlock_t		lock;
- };
- 
- struct rc_map_list {
+ static int tea575x_s_ctrl(struct v4l2_ctrl *ctrl)
+-- 
+1.7.10
 
