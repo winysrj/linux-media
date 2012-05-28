@@ -1,69 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp205.alice.it ([82.57.200.101]:51426 "EHLO smtp205.alice.it"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752529Ab2ERLiI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 May 2012 07:38:08 -0400
-Date: Fri, 18 May 2012 13:38:04 +0200
-From: Antonio Ospite <ospite@studenti.unina.it>
-To: Jean-Francois Moine <moinejf@free.fr>
-Cc: linux-media@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [PATCH 0/3] gspca: kinect cleanup, ov534 port to control
- framework
-Message-Id: <20120518133804.2fefb23f0522a80fce3662d4@studenti.unina.it>
-In-Reply-To: <20120518090829.292bd671@tele>
-References: <1337204566-2212-1-git-send-email-ospite@studenti.unina.it>
-	<20120518090829.292bd671@tele>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:1413 "EHLO
+	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753209Ab2E1Kqy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 28 May 2012 06:46:54 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans de Goede <hdegoede@redhat.com>,
+	halli manjunatha <hallimanju@gmail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv2 PATCH 1/6] videodev2.h: add new hwseek capability bits.
+Date: Mon, 28 May 2012 12:46:40 +0200
+Message-Id: <e874de9bb774639e0ea58054862853b9703dc2aa.1338201853.git.hans.verkuil@cisco.com>
+In-Reply-To: <1338202005-10208-1-git-send-email-hverkuil@xs4all.nl>
+References: <1338202005-10208-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 18 May 2012 09:08:29 +0200
-Jean-Francois Moine <moinejf@free.fr> wrote:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-> On Wed, 16 May 2012 23:42:43 +0200
-> Antonio Ospite <ospite@studenti.unina.it> wrote:
-> 
-> > The second patch removes the dependency between auto gain and auto white
-> > balance, I'd like to hear Jean-Francois on this, the webcam (the ov772x
-> > sensor) is able to set the two parameters independently and the user can
-> > see the difference of either, is there a reason why we were preventing
-> > the user from doing so before?
-> 
-> Hi Antonio,
-> 
-> I added this dependency by the git commit 2d19a2c1186d86e3
-> on Thu, 12 Nov 2009 (the original patch was done under mercurial).
-> 
-> Looking in my archives, I retrieved this mail I have sent to you,
-> Max Thrun, kaswy, baptiste_lemarie, Martin Drake and Jim Paris:
+Tell the application whether the hardware seek is bounded and/or wraps around.
 
-[...]
-> > > > > *  * AWB doesn't have any effect?*
-> > > > >  
-> > > > I notice its effect if i start uvcview, enable auto gain, then
-> > > > enable awb.
-> > > >  
-> > > 
-> > > If there is a strict dependency between these two settings,
-> > > shouldn't the driver enforce it?  
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Hans de Goede <hdegoede@redhat.com>
+---
+ include/linux/videodev2.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-Here I made a wrong assumption at the time, the bug must have been
-somewhere else, forgive the "younger me" in that email :)
-
-> Otherwise, you are right, the ov7670 and ov7729 datasheets do not talk
-> about a possible AGC and AWB dependency...
-
-OK, thanks.
-
-Regards,
-   Antonio
-
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index 370d111..2339678 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -2039,6 +2039,8 @@ struct v4l2_modulator {
+ /*  Flags for the 'capability' field */
+ #define V4L2_TUNER_CAP_LOW		0x0001
+ #define V4L2_TUNER_CAP_NORM		0x0002
++#define V4L2_TUNER_CAP_HWSEEK_BOUNDED	0x0004
++#define V4L2_TUNER_CAP_HWSEEK_WRAP	0x0008
+ #define V4L2_TUNER_CAP_STEREO		0x0010
+ #define V4L2_TUNER_CAP_LANG2		0x0020
+ #define V4L2_TUNER_CAP_SAP		0x0020
 -- 
-Antonio Ospite
-http://ao2.it
+1.7.10
 
-A: Because it messes up the order in which people normally read text.
-   See http://en.wikipedia.org/wiki/Posting_style
-Q: Why is top-posting such a bad thing?
