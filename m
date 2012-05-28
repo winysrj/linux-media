@@ -1,89 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:38536 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752468Ab2EDN56 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 May 2012 09:57:58 -0400
-Received: by wgbdr13 with SMTP id dr13so2780086wgb.1
-        for <linux-media@vger.kernel.org>; Fri, 04 May 2012 06:57:57 -0700 (PDT)
-Message-ID: <4FA3E062.2090606@gmail.com>
-Date: Fri, 04 May 2012 15:57:54 +0200
-From: Gianluca Gennari <gennarone@gmail.com>
-Reply-To: gennarone@gmail.com
+Received: from mx1.redhat.com ([209.132.183.28]:34221 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752328Ab2E1LUl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 28 May 2012 07:20:41 -0400
+Message-ID: <4FC35F8F.7090703@redhat.com>
+Date: Mon, 28 May 2012 13:20:47 +0200
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-To: poma <pomidorabelisima@gmail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH v2] add support for DeLOCK-USB-2.0-DVB-T-Receiver-61744
-References: <4F9E5D91.30503@gmail.com> <1335800374-22012-2-git-send-email-thomas.mair86@googlemail.com> <4F9F8752.40609@gmail.com> <4FA232CE.8010404@gmail.com> <4FA249DE.7000702@gmail.com> <4FA33084.7050204@gmail.com>
-In-Reply-To: <4FA33084.7050204@gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media@vger.kernel.org,
+	halli manjunatha <hallimanju@gmail.com>
+Subject: Re: [RFCv2 PATCH 0/5] Add hwseek caps and frequency bands
+References: <1338202005-10208-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1338202005-10208-1-git-send-email-hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Il 04/05/2012 03:27, poma ha scritto:
-> On 05/03/2012 11:03 AM, Gianluca Gennari wrote:
->> Hi poma,
->> I have a 0BDA:2838 (Easycap EZTV646) and a 0BDA:2832 (no name 20x20mm
->> mini DVB-T stick) and both are based on the E4000 tuner, which is not
->> supported in the kernel at the moment.
->> I have no idea if there are sticks with the same USB PID and the fc0012
->> tuner.
-> 
-> OK, second one - no name device is "Realtek RTL2832U reference design"**.
+Hi,
 
-Just for reference, the "no name device" I bought on ebay is exactly
-this one:
+Looks good, the entire series is:
 
-http://i01.i.aliimg.com/photo/v0/513925059/Mini_notebook_USB_DVB_T_Stick_receiver.jpg
+Acked-by: Hans de Goede <hdegoede@redhat.com>
 
-Tuner: E4000
-USB PID: 0BDA:2832
+I was thinking that it would be a good idea to add a:
+#define V4L2_TUNER_CAP_BANDS_MASK 0x001f0000
 
-It is listed as "Unikoo UK001T (P160)" on the RTL SDR compatibility list:
-http://www.reddit.com/r/RTLSDR/comments/s6ddo/rtlsdr_compatibility_list_v2_work_in_progress/
+to videodev2.h, which apps can then easily use to test
+if the driver supports any bands other then the default,
+and decide to show band selection elements of the UI or
+not based on a test on the tuner-caps using that mask.
 
-Best regards,
-Gianluca
+This can be done in a separate patch, or merged into
+"PATCH 4/6 videodev2.h: add frequency band information"
 
-> 
-> First one:
-> Once upon a time there was a "EasyCAP"�
-> "After while crocodile!"
-> �and "EzCAP" was born.
-> http://szforwardvideo.en.alibaba.com/aboutus.html
-> Obviously Easycap EZTV646 != EzCAP EzTV646
-> http://www.reddit.com/r/RTLSDR/comments/s6ddo/rtlsdr_compatibility_list_v2_work_in_progress/
-> ezcap EzTV646	0BDA:2838	RTL2832U/FC0012		Some revisions may have the E4000*
-> http://i.imgur.com/mFD1X.jpg
-> (Generic)	0BDa:2838	RTL2832U/E4000*
-> �
-> And, in addition:
-> http://sdr.osmocom.org/trac/wiki/rtl-sdr
-> 0x0bda	0x2832	all of them	Generic RTL2832U (e.g. hama nano)**
-> 0x0bda	0x2838	E4000	ezcap USB 2.0 DVB-T/DAB/FM dongle
-> �
-> Maybe?
-> https://sites.google.com/site/myrtlsdr/
-> "EzCap EZTV646 has got RTL2832U/FC0012. However rtl-sdr must be tweaked
-> to force FC0012 tuner because it has the same PID as EZTV668 (PID:
-> 0x2838) so running it whithout a tweak will select Elonics E4000 tuner.
-> Works, not so good at filtering."
-> �
-> Conclusion:
-> At least two devices share same vid/pid with different tuners - fc0012
-> vs e4000.
-> How to resolve this from a drivers perspective in a proper way?
-> 
-> Beside,
-> there is GPL'ed 'e4k' tuner source code aka 'e4000 improved'*** (Elonics
-> E4000)
-> by Harald Welte
-> http://cgit.osmocom.org/cgit/osmo-sdr/tree/firmware/src/tuner_e4k.c
-> http://sdr.osmocom.org/trac/
-> http://sdr.osmocom.org/trac/wiki/rtl-sdr
-> http://wiki.spench.net/wiki/RTL2832U***
-> 
-> regards,
-> poma
-> 
+Regards,
 
+Hans
+
+
+
+ >
+ >
+
+
+On 05/28/2012 12:46 PM, Hans Verkuil wrote:
+> Changes since v1:
+>
+> - Fixed typo in second patch
+> - Patch 5 now only contains the part about frequency bands
+> - Patch 6 contains only (I hope) a non-controversial clarification
+> regarding modulators (and a small change making a line more understandable).
+>
+> Regards,
+>
+> 	Hans
+>
+> This patch series adds improved hwseek support as discussed here:
+>
+> http://www.mail-archive.com/linux-media@vger.kernel.org/msg45957.html
+>
+> and on irc:
+>
+> http://linuxtv.org/irc/v4l/index.php?date=2012-05-26
+>
+>  From the RFC I have implemented/documented items 1-4 and 6a. I decided
+> not to go with option 6b. This may be added in the future if there is a
+> clear need.
+>
+> The addition of the frequency band came out of this discussion:
+>
+> http://www.spinics.net/lists/linux-media/msg48272.html
+>
+> Regards,
+>
+>          Hans
+>
