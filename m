@@ -1,76 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from va3ehsobe004.messaging.microsoft.com ([216.32.180.14]:41472
-	"EHLO va3outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755315Ab2ECJf1 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 3 May 2012 05:35:27 -0400
-Received: from mail181-va3 (localhost [127.0.0.1])	by
- mail181-va3-R.bigfish.com (Postfix) with ESMTP id 1764C4E03E9	for
- <linux-media@vger.kernel.org>; Thu,  3 May 2012 09:35:17 +0000 (UTC)
-Received: from VA3EHSMHS001.bigfish.com (unknown [10.7.14.251])	by
- mail181-va3.bigfish.com (Postfix) with ESMTP id B20A338006D	for
- <linux-media@vger.kernel.org>; Thu,  3 May 2012 09:35:15 +0000 (UTC)
-From: Tiziano Olivieri <tiziano.olivieri@ita.sas.com>
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: R: Problem with Creative Technology, Ltd Live! Cam Optia AF
-Date: Thu, 3 May 2012 09:35:20 +0000
-Message-ID: <417F202528196749A3DF1F1CF40693793CFB58@ITAMBX01.emea.SAS.com>
-References: <417F202528196749A3DF1F1CF40693793CFB40@ITAMBX01.emea.SAS.com>
-In-Reply-To: <417F202528196749A3DF1F1CF40693793CFB40@ITAMBX01.emea.SAS.com>
-Content-Language: it-IT
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:1489 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753482Ab2E1Kqz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 28 May 2012 06:46:55 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans de Goede <hdegoede@redhat.com>,
+	halli manjunatha <hallimanju@gmail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv2 PATCH 2/6] v4l2 spec: document the new v4l2_tuner capabilities
+Date: Mon, 28 May 2012 12:46:41 +0200
+Message-Id: <16cdf74dee5665922dcf688444cdd6e6462b741c.1338201853.git.hans.verkuil@cisco.com>
+In-Reply-To: <1338202005-10208-1-git-send-email-hverkuil@xs4all.nl>
+References: <1338202005-10208-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <e874de9bb774639e0ea58054862853b9703dc2aa.1338201853.git.hans.verkuil@cisco.com>
+References: <e874de9bb774639e0ea58054862853b9703dc2aa.1338201853.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi 
-I've installed kubuntu 12.04 on my desktop (from kubuntu 10.04) and now the webcam doesn't work, below the are some command
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-lsusb
-Bus 001 Device 002: ID 041e:4058 Creative Technology, Ltd Live! Cam Optia AF
-Bus 002 Device 003: ID 07ca:850a AVerMedia Technologies, Inc. AverTV Volar Black HD (A850)
-Bus 005 Device 002: ID 045e:0734 Microsoft Corp. Wireless Optical Desktop 700
+Update the spec with the new capabilities and specify new error codes for
+S_HW_FREQ_SEEK.
 
-~$ dmesg | grep usb
-[    0.575334] usbcore: registered new interface driver usbfs
-[    0.575334] usbcore: registered new interface driver hub
-[    0.575334] usbcore: registered new device driver usb
-[    2.164030] usb 1-4: new high speed USB device number 2 using ehci_hcd
-[    2.728040] usb 2-3: new high speed USB device number 3 using ehci_hcd
-[    3.128067] usb 5-1: new low speed USB device number 2 using ohci_hcd
-[    3.318195] input: Liteon Microsoft® Wireless Receiver 700 v2.0 as /devices/pci0000:00/0000:00:13.0/usb5/5-1/5-1:1.0/input/input2
-[    3.318255] generic-usb 0003:045E:0734.0001: input,hidraw0: USB HID v1.11 Keyboard [Liteon Microsoft® Wireless Receiver 700 v2.0] on usb-0000:00:13.0-1/input0
-[    3.332228] input: Liteon Microsoft® Wireless Receiver 700 v2.0 as /devices/pci0000:00/0000:00:13.0/usb5/5-1/5-1:1.1/input/input3
-[    3.332297] generic-usb 0003:045E:0734.0002: input,hidraw1: USB HID v1.11 Mouse [Liteon Microsoft® Wireless Receiver 700 v2.0] on usb-0000:00:13.0-1/input1
-[    3.332309] usbcore: registered new interface driver usbhid
-[    3.332310] usbhid: USB HID core driver
-[  15.113133] usbcore: registered new interface driver snd-usb-audio
-[  15.120717] input: UVC Camera (041e:4058) as /devices/pci0000:00/0000:00:12.2/usb1/1-4/1-4:1.0/input/input6
-[  15.120816] usbcore: registered new interface driver uvcvideo
-[  15.488022] dvb-usb: found a 'AverMedia AVerTV Volar Black HD (A850)' in cold state, will try to load a firmware
-[  15.530772] dvb-usb: downloading firmware from file 'dvb-usb-af9015.fw'
-[  15.598250] dvb-usb: found a 'AverMedia AVerTV Volar Black HD (A850)' in warm state.
-[  15.598289] dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
-[  15.606392] dvb-usb: AverMedia AVerTV Volar Black HD (A850) successfully initialized and connected.
-[  15.612650] usbcore: registered new interface driver dvb_usb_af9015
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Hans de Goede <hdegoede@redhat.com>
+---
+ .../DocBook/media/v4l/vidioc-g-frequency.xml         |    6 ++++++
+ Documentation/DocBook/media/v4l/vidioc-g-tuner.xml   |   12 ++++++++++++
+ .../DocBook/media/v4l/vidioc-s-hw-freq-seek.xml      |   18 +++++++++++++++---
+ 3 files changed, 33 insertions(+), 3 deletions(-)
 
-$ dmesg | grep UVC
-[  15.117016] uvcvideo: Found UVC 1.00 device (041e:4058)
-[  15.120717] input: UVC Camera (041e:4058) as /devices/pci0000:00/0000:00:12.2/usb1/1-4/1-4:1.0/input/input6
+diff --git a/Documentation/DocBook/media/v4l/vidioc-g-frequency.xml b/Documentation/DocBook/media/v4l/vidioc-g-frequency.xml
+index 69c178a..40e58a4 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-g-frequency.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-g-frequency.xml
+@@ -135,6 +135,12 @@ bounds or the value in the <structfield>type</structfield> field is
+ wrong.</para>
+ 	</listitem>
+       </varlistentry>
++      <varlistentry>
++	<term><errorcode>EBUSY</errorcode></term>
++	<listitem>
++	  <para>A hardware seek is in progress.</para>
++	</listitem>
++      </varlistentry>
+     </variablelist>
+   </refsect1>
+ </refentry>
+diff --git a/Documentation/DocBook/media/v4l/vidioc-g-tuner.xml b/Documentation/DocBook/media/v4l/vidioc-g-tuner.xml
+index 62a1aa2..95d5371 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-g-tuner.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-g-tuner.xml
+@@ -276,6 +276,18 @@ can or must be switched. (B/G PAL tuners for example are typically not
+       <constant>V4L2_TUNER_ANALOG_TV</constant> tuners can have this capability.</entry>
+ 	  </row>
+ 	  <row>
++	    <entry><constant>V4L2_TUNER_CAP_HWSEEK_BOUNDED</constant></entry>
++	    <entry>0x0004</entry>
++	    <entry>If set, then this tuner supports the hardware seek functionality
++	    where the seek stops when it reaches the end of the frequency range.</entry>
++	  </row>
++	  <row>
++	    <entry><constant>V4L2_TUNER_CAP_HWSEEK_WRAP</constant></entry>
++	    <entry>0x0008</entry>
++	    <entry>If set, then this tuner supports the hardware seek functionality
++	    where the seek wraps around when it reaches the end of the frequency range.</entry>
++	  </row>
++	  <row>
+ 	<entry><constant>V4L2_TUNER_CAP_STEREO</constant></entry>
+ 	<entry>0x0010</entry>
+ 	<entry>Stereo audio reception is supported.</entry>
+diff --git a/Documentation/DocBook/media/v4l/vidioc-s-hw-freq-seek.xml b/Documentation/DocBook/media/v4l/vidioc-s-hw-freq-seek.xml
+index 407dfce..f4db44d 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-s-hw-freq-seek.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-s-hw-freq-seek.xml
+@@ -58,6 +58,9 @@ To do this applications initialize the <structfield>tuner</structfield>,
+ call the <constant>VIDIOC_S_HW_FREQ_SEEK</constant> ioctl with a pointer
+ to this structure.</para>
+ 
++    <para>If an error is returned, then the original frequency will
++    be restored.</para>
++
+     <para>This ioctl is supported if the <constant>V4L2_CAP_HW_FREQ_SEEK</constant> capability is set.</para>
+ 
+     <table pgwide="1" frame="none" id="v4l2-hw-freq-seek">
+@@ -87,7 +90,10 @@ field and the &v4l2-tuner; <structfield>index</structfield> field.</entry>
+ 	  <row>
+ 	    <entry>__u32</entry>
+ 	    <entry><structfield>wrap_around</structfield></entry>
+-	    <entry>If non-zero, wrap around when at the end of the frequency range, else stop seeking.</entry>
++	    <entry>If non-zero, wrap around when at the end of the frequency range, else stop seeking.
++	    The &v4l2-tuner; <structfield>capability</structfield> field will tell you what the
++	    hardware supports.
++	    </entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry>__u32</entry>
+@@ -118,9 +124,15 @@ wrong.</para>
+ 	</listitem>
+       </varlistentry>
+       <varlistentry>
+-	<term><errorcode>EAGAIN</errorcode></term>
++	<term><errorcode>ENODATA</errorcode></term>
++	<listitem>
++	  <para>The hardware seek found no channels.</para>
++	</listitem>
++      </varlistentry>
++      <varlistentry>
++	<term><errorcode>EBUSY</errorcode></term>
+ 	<listitem>
+-	  <para>The ioctl timed-out. Try again.</para>
++	  <para>Another hardware seek is already in progress.</para>
+ 	</listitem>
+       </varlistentry>
+     </variablelist>
+-- 
+1.7.10
 
-
-$ lsmod | grep uvcvideo
-uvcvideo              72711  0 
-videodev              93004  1 uvcvideo
-
-$ ls -l /dev/video*
-crw-rw----+ 1 root video 81, 0 2011-11-02 19:28 /dev/video0
-
-the webcam doesn't work with any software, in the google search I found the same problem on fedora on link https://bugzilla.redhat.com/show_bug.cgi?id=739448
-
-If I downgrade the kernel to 2.6.38.12 the webcam work fine !! 
-I think that the problem is on the UVC driver on the kernel after 2.6.38.12 to latest kernel 
-Thanks
-
-Tiziano
