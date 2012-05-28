@@ -1,50 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:58805 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1756614Ab2ENP40 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 May 2012 11:56:26 -0400
-Date: Mon, 14 May 2012 18:56:22 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: mchehab@redhat.com, laurent.pinchart@ideasonboard.com
-Subject: [GIT PULL FOR v3.5] Implement V4L2_CID_PIXEL_RATE in various
- drivers
-Message-ID: <20120514155622.GJ3373@valkosipuli.retiisi.org.uk>
+Received: from mx1.redhat.com ([209.132.183.28]:58061 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753125Ab2E1McR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 28 May 2012 08:32:17 -0400
+Message-ID: <4FC37042.4090903@redhat.com>
+Date: Mon, 28 May 2012 09:32:02 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+To: Stefan Richter <stefanr@s5r6.in-berlin.de>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sylwester Nawrocki <snjw23@gmail.com>
+Subject: Re: [RFC PATCH 0/3] Improve Kconfig selection for media devices
+References: <4FC24E34.3000406@redhat.com> <1338137803-12231-1-git-send-email-mchehab@redhat.com> <20120528114803.0d1a4881@stein> <4FC363A5.1010802@redhat.com> <20120528141752.7e4c530e@stein>
+In-Reply-To: <20120528141752.7e4c530e@stein>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+Em 28-05-2012 09:17, Stefan Richter escreveu:
+> On May 28 Mauro Carvalho Chehab wrote:
+>> Em 28-05-2012 06:48, Stefan Richter escreveu:
+>>> c) The RC_CORE_SUPP help text gives the impression that RC core is
+>>> always needed if there is hardware with an IR feature.  But the firedtv
+>>> driver is a case where the driver directly works on top of the input
+>>> subsystem rather than on RC core.  Maybe there are more such cases.
+>>
+>> All other drivers use RC_CORE, as we've replaced the existing implementations
+>> to use it, removing bad/inconsistent IR code implementations everywhere.
+>> The only driver left is firedtv.
+> [...]
+>> The right thing to do is to convert drivers/media/dvb/firewire/firedtv-rc.c
+>> to use rc-core. There are several issues with the current implementation:
+>>
+>> 	- IR keycode tables are hardcoded;
+>> 	- There is a "magic" to convert a 16 bits scancode (NEC protocol?)
+>> 	  into a key;
+>> 	- There's no way to replace the existing table to an user-provided
+>> 	  one;
+> 
+> There are two tables:  An old mapping and a new mapping.  The new mapping
+> is copied into a newly allocated writable array.  It should be possible to
+> overwrite this array by means of EVIOCSKEYCODE ioctls.
 
-Here are a few patches that implement V4L2_CID_PIXEL_RATE in a couple of
-drivers. The control is soon required by some CSI-2 receivers to configure
-the hardware, such as the OMAP 3 ISP one.
+You can replace, but only if the keycode is inside the 0x0300-0x031f or 0x45xx
+range:
 
----
+void fdtv_handle_rc(struct firedtv *fdtv, unsigned int code)
+{
+...
+	if (code >= 0x0300 && code <= 0x031f)
+		code = keycode[code - 0x0300];
+	else if (code >= 0x0340 && code <= 0x0354)
+		code = keycode[code - 0x0320];
+	else if (code >= 0x4501 && code <= 0x451f)
+		code = oldtable[code - 0x4501];
+	else if (code >= 0x4540 && code <= 0x4542)
+		code = oldtable[code - 0x4521];
+	else {
+		printk(KERN_DEBUG "firedtv: invalid key code 0x%04x "
+		       "from remote control\n", code);
+		return;
+	}
 
-The following changes since commit e89fca923f32de26b69bf4cd604f7b960b161551:
+So, you can't, for example, get some other NEC remote controller and
+use it there.
 
-  [media] gspca - ov534: Add Hue control (2012-05-14 09:48:00 -0300)
+Also, the userspace IR tool won't recognize it as an IR, so the existing
+tables at userspace can't be loaded.
 
-are available in the git repository at:
-  ssh://linuxtv.org/git/sailus/media_tree.git media-for-3.5
+> If I remember correctly, the firedtv driver sources came only with the old
+> mapping table when they were submitted for upstream merge.  When I helped
+> to clean up the driver, I noticed that the two FireDTV C/CI and T/CI (which
+> I newly purchased at the time as test devices) emitted entirely different
+> scan codes than what the sources suggested.  I suppose the original driver
+> sources were written against older firmware or maybe older hardware
+> revisions, possibly even prototype hardware.  We would have to get hold of
+> the original authors if we wanted to find out.
 
-Laurent Pinchart (3):
-      mt9t001: Implement V4L2_CID_PIXEL_RATE control
-      mt9p031: Implement V4L2_CID_PIXEL_RATE control
-      mt9m032: Implement V4L2_CID_PIXEL_RATE control
+It is very common to the vendors to replace the remote controllers that
+are shipped together with the device.
 
- drivers/media/video/mt9m032.c |   13 +++++++++++--
- drivers/media/video/mt9p031.c |    5 ++++-
- drivers/media/video/mt9t001.c |   13 +++++++++++--
- include/media/mt9t001.h       |    1 +
- 4 files changed, 27 insertions(+), 5 deletions(-)
+Also, several advanced users prefer to not use the IR provided by the
+vendor, but to use other IR's, assigning other keys to the driver to allow
+them to control more things on their systems.
 
+> Anyway, I implemented the new scancode->keycode mapping in a way that
+> followed Dimitry's (?) review advice at that time, but left the old
+> immutable mapping in there as fallback if an old scancode was received.
 
+The newer way you used only works fine if the scancode table is not
+sparsed. That's why you needed to remove the higher bits on your RC
+handling code, generating a table with 34 elements.
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+The RC core dynamically allocates the scancode table in runtime, allowing
+users to use very big or very short scan tables. It also doesn't waste
+space with sparsed keycodes.
+
+Users can even merge several different keytables together, in order to
+allow the device to be used by different remote controllers, at the
+same time.
+
+> If it is a burden, we could rip out the old table and see if anybody
+> complains.
+> 
+>> 	- The IR userspace tools won't work, as it doesn't export the
+>> 	  needed sysfs nodes to report an IR.
+> 
+> But at least keypad/ keyboard related userspace should work.
+> 
+>> If you want, I can write a patch doing that, but I can't test it here, as
+>> I don't have a firedtv device.
+> 
+> I can test such a patch as spare time permits if you point me to particular
+> tools that I should test.
+
+Ok, I'll write a patch for you to test.
+
+Regards,
+Mauro
