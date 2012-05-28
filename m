@@ -1,168 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.24]:24154 "EHLO mgw-da01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760587Ab2EQQaZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 May 2012 12:30:25 -0400
-Received: from maxwell.research.nokia.com (maxwell.research.nokia.com [172.21.199.25])
-	by mgw-da01.nokia.com (Sentrion-MTA-4.2.2/Sentrion-MTA-4.2.2) with ESMTP id q4HGULVP011059
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Thu, 17 May 2012 19:30:23 +0300
-Received: from lanttu (lanttu-o.localdomain [192.168.239.74])
-	by maxwell.research.nokia.com (Postfix) with ESMTPS id F404C1F4C5A
-	for <linux-media@vger.kernel.org>; Thu, 17 May 2012 19:30:20 +0300 (EEST)
-Received: from sakke by lanttu with local (Exim 4.72)
-	(envelope-from <sakari.ailus@maxwell.research.nokia.com>)
-	id 1SV3ah-00086W-4e
-	for linux-media@vger.kernel.org; Thu, 17 May 2012 19:30:15 +0300
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:2686 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753466Ab2E1Kqz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 28 May 2012 06:46:55 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: [PATCH 03/10] smiapp: Quirk for sensors that only do 8-bit reads
-Date: Thu, 17 May 2012 19:30:02 +0300
-Message-Id: <1337272209-31061-3-git-send-email-sakari.ailus@maxwell.research.nokia.com>
-In-Reply-To: <4FB52770.9000400@maxwell.research.nokia.com>
-References: <4FB52770.9000400@maxwell.research.nokia.com>
+Cc: Hans de Goede <hdegoede@redhat.com>,
+	halli manjunatha <hallimanju@gmail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv2 PATCH 6/6] V4L2 spec: clarify a few modulator issues.
+Date: Mon, 28 May 2012 12:46:45 +0200
+Message-Id: <6a1402e7817616461f18f4c6cd053afaaf3cca58.1338201853.git.hans.verkuil@cisco.com>
+In-Reply-To: <1338202005-10208-1-git-send-email-hverkuil@xs4all.nl>
+References: <1338202005-10208-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <e874de9bb774639e0ea58054862853b9703dc2aa.1338201853.git.hans.verkuil@cisco.com>
+References: <e874de9bb774639e0ea58054862853b9703dc2aa.1338201853.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Some sensors implement only 8-bit read functionality and fail on wider
-reads. Add a quirk flag for such sensors.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/video/smiapp/smiapp-quirk.h |    1 +
- drivers/media/video/smiapp/smiapp-regs.c  |   73 +++++++++++++++++++++++++----
- drivers/media/video/smiapp/smiapp-regs.h  |    1 +
- 3 files changed, 66 insertions(+), 9 deletions(-)
+ Documentation/DocBook/media/v4l/common.xml |   17 +++++++++++++----
+ 1 file changed, 13 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/video/smiapp/smiapp-quirk.h b/drivers/media/video/smiapp/smiapp-quirk.h
-index 7a1b3a0..de82cdf 100644
---- a/drivers/media/video/smiapp/smiapp-quirk.h
-+++ b/drivers/media/video/smiapp/smiapp-quirk.h
-@@ -46,6 +46,7 @@ struct smiapp_quirk {
+diff --git a/Documentation/DocBook/media/v4l/common.xml b/Documentation/DocBook/media/v4l/common.xml
+index 4101aeb..b91d253 100644
+--- a/Documentation/DocBook/media/v4l/common.xml
++++ b/Documentation/DocBook/media/v4l/common.xml
+@@ -464,14 +464,14 @@ The <structfield>type</structfield> field of the respective
+ <structfield>tuner</structfield> field contains the index number of
+ the tuner.</para>
  
- /* op pix clock is for all lanes in total normally */
- #define SMIAPP_QUIRK_FLAG_OP_PIX_CLOCK_PER_LANE			(1 << 0)
-+#define SMIAPP_QUIRK_FLAG_8BIT_READ_ONLY			(1 << 1)
+-      <para>Radio devices have exactly one tuner with index zero, no
++      <para>Radio input devices have exactly one tuner with index zero, no
+ video inputs.</para>
  
- struct smiapp_reg_8 {
- 	u16 reg;
-diff --git a/drivers/media/video/smiapp/smiapp-regs.c b/drivers/media/video/smiapp/smiapp-regs.c
-index e5e5f43..9c43064 100644
---- a/drivers/media/video/smiapp/smiapp-regs.c
-+++ b/drivers/media/video/smiapp/smiapp-regs.c
-@@ -78,19 +78,15 @@ static uint32_t float_to_u32_mul_1000000(struct i2c_client *client,
-  * Read a 8/16/32-bit i2c register.  The value is returned in 'val'.
-  * Returns zero if successful, or non-zero otherwise.
-  */
--int smiapp_read(struct smiapp_sensor *sensor, u32 reg, u32 *val)
-+static int ____smiapp_read(struct smiapp_sensor *sensor, u16 reg,
-+			   u16 len, u32 *val)
- {
- 	struct i2c_client *client = v4l2_get_subdevdata(&sensor->src->sd);
- 	struct i2c_msg msg;
- 	unsigned char data[4];
--	unsigned int len = (u8)(reg >> 16);
- 	u16 offset = reg;
- 	int r;
+       <para>To query and change tuner properties applications use the
+ &VIDIOC-G-TUNER; and &VIDIOC-S-TUNER; ioctl, respectively. The
+ &v4l2-tuner; returned by <constant>VIDIOC_G_TUNER</constant> also
+ contains signal status information applicable when the tuner of the
+-current video input, or a radio tuner is queried. Note that
++current video or radio input is queried. Note that
+ <constant>VIDIOC_S_TUNER</constant> does not switch the current tuner,
+ when there is more than one at all. The tuner is solely determined by
+ the current video input. Drivers must support both ioctls and set the
+@@ -491,8 +491,17 @@ the modulator. The <structfield>type</structfield> field of the
+ respective &v4l2-output; returned by the &VIDIOC-ENUMOUTPUT; ioctl is
+ set to <constant>V4L2_OUTPUT_TYPE_MODULATOR</constant> and its
+ <structfield>modulator</structfield> field contains the index number
+-of the modulator. This specification does not define radio output
+-devices.</para>
++of the modulator.</para>
++
++      <para>Radio output devices have exactly one modulator with index
++zero, no video outputs.</para>
++
++      <para>A video or radio device cannot support both a tuner and a
++modulator. Two separate device nodes will have to be used for such
++hardware, one that supports the tuner functionality and one that supports
++the modulator functionality. The reason is a limitation with the
++&VIDIOC-S-FREQUENCY; ioctl where you cannot specify whether the frequency
++is for a tuner or a modulator.</para>
  
--	if (len != SMIA_REG_8BIT && len != SMIA_REG_16BIT
--	    && len != SMIA_REG_32BIT)
--		return -EINVAL;
--
- 	msg.addr = client->addr;
- 	msg.flags = 0;
- 	msg.len = 2;
-@@ -132,9 +128,6 @@ int smiapp_read(struct smiapp_sensor *sensor, u32 reg, u32 *val)
- 		BUG();
- 	}
- 
--	if (reg & SMIA_REG_FLAG_FLOAT)
--		*val = float_to_u32_mul_1000000(client, *val);
--
- 	return 0;
- 
- err:
-@@ -143,6 +136,68 @@ err:
- 	return r;
- }
- 
-+/* Read a register using 8-bit access only. */
-+static int ____smiapp_read_8only(struct smiapp_sensor *sensor, u16 reg,
-+				 u16 len, u32 *val)
-+{
-+	unsigned int i;
-+	int rval;
-+
-+	*val = 0;
-+
-+	for (i = 0; i < len; i++) {
-+		u32 val8;
-+
-+		rval = ____smiapp_read(sensor, reg + i, 1, &val8);
-+		if (rval < 0)
-+			return rval;
-+		*val |= val8 << ((len - i - 1) << 3);
-+	}
-+
-+	return 0;
-+}
-+
-+/*
-+ * Read a 8/16/32-bit i2c register.  The value is returned in 'val'.
-+ * Returns zero if successful, or non-zero otherwise.
-+ */
-+static int __smiapp_read(struct smiapp_sensor *sensor, u32 reg, u32 *val,
-+			 bool only8)
-+{
-+	struct i2c_client *client = v4l2_get_subdevdata(&sensor->src->sd);
-+	unsigned int len = (u8)(reg >> 16);
-+	int rval;
-+
-+	if (len != SMIA_REG_8BIT && len != SMIA_REG_16BIT
-+	    && len != SMIA_REG_32BIT)
-+		return -EINVAL;
-+
-+	if (len == SMIA_REG_8BIT && !only8)
-+		rval = ____smiapp_read(sensor, (u16)reg, len, val);
-+	else
-+		rval = ____smiapp_read_8only(sensor, (u16)reg, len, val);
-+	if (rval < 0)
-+		return rval;
-+
-+	if (reg & SMIA_REG_FLAG_FLOAT)
-+		*val = float_to_u32_mul_1000000(client, *val);
-+
-+	return 0;
-+}
-+
-+int smiapp_read(struct smiapp_sensor *sensor, u32 reg, u32 *val)
-+{
-+	return __smiapp_read(
-+		sensor, reg, val,
-+		smiapp_needs_quirk(sensor,
-+				   SMIAPP_QUIRK_FLAG_8BIT_READ_ONLY));
-+}
-+
-+int smiapp_read_8only(struct smiapp_sensor *sensor, u32 reg, u32 *val)
-+{
-+	return __smiapp_read(sensor, reg, val, true);
-+}
-+
- /*
-  * Write to a 8/16-bit register.
-  * Returns zero if successful, or non-zero otherwise.
-diff --git a/drivers/media/video/smiapp/smiapp-regs.h b/drivers/media/video/smiapp/smiapp-regs.h
-index 1edfd20..7f9013b 100644
---- a/drivers/media/video/smiapp/smiapp-regs.h
-+++ b/drivers/media/video/smiapp/smiapp-regs.h
-@@ -43,6 +43,7 @@ struct smia_reg {
- struct smiapp_sensor;
- 
- int smiapp_read(struct smiapp_sensor *sensor, u32 reg, u32 *val);
-+int smiapp_read_8only(struct smiapp_sensor *sensor, u32 reg, u32 *val);
- int smiapp_write(struct smiapp_sensor *sensor, u32 reg, u32 val);
- 
- #endif
+       <para>To query and change modulator properties applications use
+ the &VIDIOC-G-MODULATOR; and &VIDIOC-S-MODULATOR; ioctl. Note that
 -- 
-1.7.2.5
+1.7.10
 
