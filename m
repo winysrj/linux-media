@@ -1,37 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:55076 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751328Ab2EUMDM (ORCPT
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:40294 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751327Ab2E1JBe convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 May 2012 08:03:12 -0400
+	Mon, 28 May 2012 05:01:34 -0400
+Received: by obbtb18 with SMTP id tb18so5100631obb.19
+        for <linux-media@vger.kernel.org>; Mon, 28 May 2012 02:01:34 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <7559275.nOXNfWAdxV@avalon>
-References: <1337520203-29147-1-git-send-email-akinobu.mita@gmail.com>
-	<1337520203-29147-6-git-send-email-akinobu.mita@gmail.com>
-	<7559275.nOXNfWAdxV@avalon>
-Date: Mon, 21 May 2012 21:03:10 +0900
-Message-ID: <CAC5umyiOa=e2DRE3fK=5p6D49uO=QKiQds=sFvQgQ=1osZFgZw@mail.gmail.com>
-Subject: Re: [PATCH 06/10] video/uvc: use memweight()
-From: Akinobu Mita <akinobu.mita@gmail.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-kernel@vger.kernel.org, akpm@linux-foundation.org,
-	linux-media@vger.kernel.org
+In-Reply-To: <1337608600.10262.8.camel@deadeye>
+References: <1337608600.10262.8.camel@deadeye>
+Date: Mon, 28 May 2012 17:01:34 +0800
+Message-ID: <CAHG8p1ApwjfXGmXcUrzyk2tFUcxak2kah_jy+Mv+jqeFOWwTFA@mail.gmail.com>
+Subject: Re: Firmware blob in vs6624 driver
+From: Scott Jiang <scott.jiang.linux@gmail.com>
+To: Ben Hutchings <ben@decadent.org.uk>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media <linux-media@vger.kernel.org>
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2012/5/21 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
-> Hi Akinobu,
->
-> Thank you for the patch.
->
-> On Sunday 20 May 2012 22:23:19 Akinobu Mita wrote:
->> Use memweight() to count the total number of bits set in memory area.
->>
->> Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
->> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->> Cc: linux-media@vger.kernel.org
->
-> Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Hi Ben,
 
-You meant Acked-by, didn't you?
+> This doesn't touch any of the documented registers, so presumably it's a
+> patch to the firmware loaded from non-volatile memory.  Unless you can
+> provide source code for the patch, this should go in the linux-firmware
+> repository and be loaded with request_firmware() instead of embedded in
+> the GPL driver source.
+Sounds reasonable.
+>
+> Also, shouldn't you check the loaded firmware version first to verify
+> that it's safe to apply the patch?
+The problem is you can't get version before power up device but you
+should apply patch at that time.
+
+Scott
