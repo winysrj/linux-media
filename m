@@ -1,136 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr18.xs4all.nl ([194.109.24.38]:1290 "EHLO
-	smtp-vbr18.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751670Ab2EKHz2 (ORCPT
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:3650 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751209Ab2E1JMc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 May 2012 03:55:28 -0400
+	Mon, 28 May 2012 05:12:32 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Michael Hunold <hunold@linuxtv.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv1 PATCH 01/16] tda9840: fix setting of the audio mode.
-Date: Fri, 11 May 2012 09:54:55 +0200
-Message-Id: <09c2b1c7ef8bbb53930311b9fdeeb89f877fdaa9.1336722502.git.hans.verkuil@cisco.com>
-In-Reply-To: <1336722910-31733-1-git-send-email-hverkuil@xs4all.nl>
-References: <1336722910-31733-1-git-send-email-hverkuil@xs4all.nl>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [RFC] file tree rearrangement - was: Re: [RFC PATCH 0/3] Improve Kconfig selection for media devices
+Date: Mon, 28 May 2012 11:12:25 +0200
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <4FC24E34.3000406@redhat.com> <201205271925.51967.hverkuil@xs4all.nl> <4FC28692.9030803@redhat.com>
+In-Reply-To: <4FC28692.9030803@redhat.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201205281112.25626.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Sun May 27 2012 21:54:58 Mauro Carvalho Chehab wrote:
+> Em 27-05-2012 14:25, Hans Verkuil escreveu:
+> > On Sun May 27 2012 19:13:38 Mauro Carvalho Chehab wrote:
+> >> Em 27-05-2012 13:56, Mauro Carvalho Chehab escreveu:
+> >>> The Kconfig building system is improperly selecting some drivers,
+> >>> like analog TV tuners even when this is not required.
+> >>>
+> >>> Rearrange the Kconfig in a way to prevent that.
+> >>>
+> >>> Mauro Carvalho Chehab (3):
+> >>>   media: reorganize the main Kconfig items
+> >>>   media: Remove VIDEO_MEDIA Kconfig option
+> >>>   media: only show V4L devices based on device type selection
+> >>>
+> >>>  drivers/media/Kconfig               |  114 +++++++++++++++++++++++------------
+> >>>  drivers/media/common/tuners/Kconfig |   64 ++++++++++----------
+> >>>  drivers/media/dvb/frontends/Kconfig |    1 +
+> >>>  drivers/media/radio/Kconfig         |    1 +
+> >>>  drivers/media/rc/Kconfig            |   29 ++++-----
+> >>>  drivers/media/video/Kconfig         |   76 +++++++++++++++++------
+> >>>  drivers/media/video/m5mols/Kconfig  |    1 +
+> >>>  drivers/media/video/pvrusb2/Kconfig |    1 -
+> >>>  drivers/media/video/smiapp/Kconfig  |    1 +
+> >>>  9 files changed, 181 insertions(+), 107 deletions(-)
+> >>>
+> >>
+> >> The organization between DVB only, V4L only and hybrid devices are somewhat
+> >> confusing on our tree. From time to time, someone proposes changing one driver
+> >> from one place to another or complains that "his device is DVB only but it is
+> >> inside the V4L tree" (and other similar requests). This sometimes happen because
+> >> the same driver can support analog only, digital only or hybrid devices.
+> >>
+> >> Also, one driver may start as a DVB only or as a V4L only and then 
+> >> it can be latter be converted into an hybrid driver.
+> >>
+> >> So, the better is to rearrange the drivers tree, in order to fix this issue,
+> >> removing them from /video and /dvb, and storing them on a better place.
+> >>
+> >> So, my proposal is to move all radio, analog TV, digital TV, webcams and grabber
+> >> bridge drivers to this arrangement:
+> >>
+> >> drivers/media/isa - ISA drivers
+> >> drivers/media/usb - USB drivers
+> >> drivers/media/pci - PCI/PCIe drivers
+> >> drivers/media/platform - platform drivers
+> > 
+> > drivers/media/parport
+> 
+> Ok.
+> 
+> > drivers/media/i2c
+> 
+> See below.
+> 
+> > Also, if we do this then I would really like to separate the sub-device drivers
+> > from the main drivers. I find it very messy that those are mixed.
+> > 
+> > So: drivers/media/subdevs
+> > 
+> > We might subdivide /subdevs even further (sensors, encoders, decoders, etc.) but
+> > I am not sure if that is worthwhile.
+> 
+> I think all subdevs (being i2c or not) should be under the same directory.
+> drivers/media/subdevs seems reasonable.
 
-You have to first detect the current rxsubchans (mono, stereo or bilingual),
-and depending on that you can set the audio mode. It does not automatically
-switch when the audio channels change.
+What I meant with media/i2c was not for subdevices but for a few drivers that are
+pure i2c V4L drivers (radio-tea5764.c, radio-si470x-i2c.c).
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/video/tda9840.c |   75 ++++++++++++++++++++++++-----------------
- 1 file changed, 44 insertions(+), 31 deletions(-)
+I am not sure whether we should bother though. What might be more useful is to
+have a 'others' subdirectory containing 'odds 'n ends' like parport and i2c drivers,
+and also drivers like the radio-si470x which comes in a i2c (as I mentioned above)
+and a usb variant and so is hard to classify (and splitting it up doesn't seem useful).
 
-diff --git a/drivers/media/video/tda9840.c b/drivers/media/video/tda9840.c
-index 465d708..3d7ddd9 100644
---- a/drivers/media/video/tda9840.c
-+++ b/drivers/media/video/tda9840.c
-@@ -66,29 +66,53 @@ static void tda9840_write(struct v4l2_subdev *sd, u8 reg, u8 val)
- 				val, reg);
- }
- 
-+static int tda9840_status(struct v4l2_subdev *sd)
-+{
-+	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+	u8 byte;
-+
-+	if (1 != i2c_master_recv(client, &byte, 1)) {
-+		v4l2_dbg(1, debug, sd,
-+			"i2c_master_recv() failed\n");
-+		return -EIO;
-+	}
-+
-+	if (byte & 0x80) {
-+		v4l2_dbg(1, debug, sd,
-+			"TDA9840_DETECT: register contents invalid\n");
-+		return -EINVAL;
-+	}
-+
-+	v4l2_dbg(1, debug, sd, "TDA9840_DETECT: byte: 0x%02x\n", byte);
-+	return byte & 0x60;
-+}
-+
- static int tda9840_s_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *t)
- {
-+	int stat = tda9840_status(sd);
- 	int byte;
- 
- 	if (t->index)
- 		return -EINVAL;
- 
--	switch (t->audmode) {
--	case V4L2_TUNER_MODE_STEREO:
--		byte = TDA9840_SET_STEREO;
--		break;
--	case V4L2_TUNER_MODE_LANG1_LANG2:
--		byte = TDA9840_SET_BOTH;
--		break;
--	case V4L2_TUNER_MODE_LANG1:
--		byte = TDA9840_SET_LANG1;
--		break;
--	case V4L2_TUNER_MODE_LANG2:
--		byte = TDA9840_SET_LANG2;
--		break;
--	default:
-+	stat = stat < 0 ? 0 : stat;
-+	if (stat == 0 || stat == 0x60) /* mono input */
- 		byte = TDA9840_SET_MONO;
--		break;
-+	else if (stat == 0x40) /* stereo input */
-+		byte = (t->audmode == V4L2_TUNER_MODE_MONO) ?
-+			TDA9840_SET_MONO : TDA9840_SET_STEREO;
-+	else { /* bilingual */
-+		switch (t->audmode) {
-+		case V4L2_TUNER_MODE_LANG1_LANG2:
-+			byte = TDA9840_SET_BOTH;
-+			break;
-+		case V4L2_TUNER_MODE_LANG2:
-+			byte = TDA9840_SET_LANG2;
-+			break;
-+		default:
-+			byte = TDA9840_SET_LANG1;
-+			break;
-+		}
- 	}
- 	v4l2_dbg(1, debug, sd, "TDA9840_SWITCH: 0x%02x\n", byte);
- 	tda9840_write(sd, SWITCH, byte);
-@@ -97,25 +121,14 @@ static int tda9840_s_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *t)
- 
- static int tda9840_g_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *t)
- {
--	struct i2c_client *client = v4l2_get_subdevdata(sd);
--	u8 byte;
--
--	t->rxsubchans = V4L2_TUNER_SUB_MONO;
--	if (1 != i2c_master_recv(client, &byte, 1)) {
--		v4l2_dbg(1, debug, sd,
--			"i2c_master_recv() failed\n");
--		return -EIO;
--	}
-+	int stat = tda9840_status(sd);
- 
--	if (byte & 0x80) {
--		v4l2_dbg(1, debug, sd,
--			"TDA9840_DETECT: register contents invalid\n");
--		return -EINVAL;
--	}
-+	if (stat < 0)
-+		return stat;
- 
--	v4l2_dbg(1, debug, sd, "TDA9840_DETECT: byte: 0x%02x\n", byte);
-+	t->rxsubchans = V4L2_TUNER_SUB_MONO;
- 
--	switch (byte & 0x60) {
-+	switch (stat & 0x60) {
- 	case 0x00:
- 		t->rxsubchans = V4L2_TUNER_SUB_MONO;
- 		break;
--- 
-1.7.10
+> Sub-dividing them doesn't seem a good idea, as some subdevs may have more than
+> one function.
 
+I agree (for now :-) ).
+
+> > Frankly, the current directory structure (other than the lack of a subdevs
+> > directory) doesn't bother me. But your proposal is a bit cleaner.
+> 
+> It doesn't bother me either[1], with regards to the existing drivers, but it
+> is confusing for someone that wants to write a new driver.
+> 
+> [1] with exception to the saa7146 driver under media/common - that looks really
+> weird.
+
+Things like saa7146, cx2341x, tveeprom, radio-isa are all helper modules for
+particular types of hardware. So they should go to a 'common' or 'helpers'
+directory.
+
+> Also, for example, Antti proposed to add V4L2 support for dvb-usb. I think he
+> ended by discarding it for his GoC scope of work, but, anyway, with the current
+> arrangement, that would mean that dvb-usb won't fit well at media/dvb (as all
+> other hybrid cards aren't there).
+> 
+> So, as we're removing the explicit Kconfig logic for compiling V4L2 core/DVB
+> core, it makes sense to rearrange the rest of the structure and improve the
+> building system to better handle the media cards, removing the artificial
+> and imperfect divisions that it is used there.
+
+Go for it!
+
+:-)
+
+Regards,
+
+	Hans
