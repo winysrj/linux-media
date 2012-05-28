@@ -1,125 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:4613 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752785Ab2E0R6N (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 27 May 2012 13:58:13 -0400
-Message-ID: <4FC26B39.6090106@redhat.com>
-Date: Sun, 27 May 2012 19:58:17 +0200
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org,
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:1031 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753378Ab2E1Kqx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 28 May 2012 06:46:53 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans de Goede <hdegoede@redhat.com>,
 	halli manjunatha <hallimanju@gmail.com>,
 	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFCv1 PATCH 2/5] v4l2 spec: document the new v4l2_tuner capabilities
-References: <1338119425-17274-1-git-send-email-hverkuil@xs4all.nl> <b85301e88453a46256e0d2b9dcd1dbf10557d8c7.1338118975.git.hans.verkuil@cisco.com>
-In-Reply-To: <b85301e88453a46256e0d2b9dcd1dbf10557d8c7.1338118975.git.hans.verkuil@cisco.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Subject: [RFCv2 PATCH 4/6] videodev2.h: add frequency band information.
+Date: Mon, 28 May 2012 12:46:43 +0200
+Message-Id: <005651489cd5c9f832df2d5d90e19e2eee07c9b9.1338201853.git.hans.verkuil@cisco.com>
+In-Reply-To: <1338202005-10208-1-git-send-email-hverkuil@xs4all.nl>
+References: <1338202005-10208-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <e874de9bb774639e0ea58054862853b9703dc2aa.1338201853.git.hans.verkuil@cisco.com>
+References: <e874de9bb774639e0ea58054862853b9703dc2aa.1338201853.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Small typo, see comment inline, with that fixed:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 Acked-by: Hans de Goede <hdegoede@redhat.com>
+---
+ include/linux/videodev2.h |   19 +++++++++++++++++--
+ 1 file changed, 17 insertions(+), 2 deletions(-)
 
-On 05/27/2012 01:50 PM, Hans Verkuil wrote:
-> From: Hans Verkuil<hans.verkuil@cisco.com>
->
-> Update the spec with the new capabilities and specify new error codes for
-> S_HW_FREQ_SEEK.
->
-> Signed-off-by: Hans Verkuil<hans.verkuil@cisco.com>
-> ---
->   .../DocBook/media/v4l/vidioc-g-frequency.xml         |    6 ++++++
->   Documentation/DocBook/media/v4l/vidioc-g-tuner.xml   |   12 ++++++++++++
->   .../DocBook/media/v4l/vidioc-s-hw-freq-seek.xml      |   18 +++++++++++++++---
->   3 files changed, 33 insertions(+), 3 deletions(-)
->
-> diff --git a/Documentation/DocBook/media/v4l/vidioc-g-frequency.xml b/Documentation/DocBook/media/v4l/vidioc-g-frequency.xml
-> index 69c178a..40e58a4 100644
-> --- a/Documentation/DocBook/media/v4l/vidioc-g-frequency.xml
-> +++ b/Documentation/DocBook/media/v4l/vidioc-g-frequency.xml
-> @@ -135,6 +135,12 @@ bounds or the value in the<structfield>type</structfield>  field is
->   wrong.</para>
->   	</listitem>
->         </varlistentry>
-> +<varlistentry>
-> +	<term><errorcode>EBUSY</errorcode></term>
-> +	<listitem>
-> +	<para>A hardware seek is in progress.</para>
-> +	</listitem>
-> +</varlistentry>
->       </variablelist>
->     </refsect1>
->   </refentry>
-> diff --git a/Documentation/DocBook/media/v4l/vidioc-g-tuner.xml b/Documentation/DocBook/media/v4l/vidioc-g-tuner.xml
-> index 62a1aa2..95d5371 100644
-> --- a/Documentation/DocBook/media/v4l/vidioc-g-tuner.xml
-> +++ b/Documentation/DocBook/media/v4l/vidioc-g-tuner.xml
-> @@ -276,6 +276,18 @@ can or must be switched. (B/G PAL tuners for example are typically not
->         <constant>V4L2_TUNER_ANALOG_TV</constant>  tuners can have this capability.</entry>
->   	</row>
->   	<row>
-> +	<entry><constant>V4L2_TUNER_CAP_HWSEEK_BOUNDED</constant></entry>
-> +	<entry>0x0004</entry>
-> +	<entry>If set, then this tuner supports the hardware seek functionality
-> +	    where the seek stops when it reaches the end of the frequency range.</entry>
-> +	</row>
-> +	<row>
-> +	<entry><constant>V4L2_TUNER_CAP_HWSEEK_WRAP</constant></entry>
-> +	<entry>0x0008</entry>
-> +	<entry>If set, then this tuner supports the hardware seek functionality
-> +	    where the seek wraps around when it reaches the end of the frequency range.</entry>
-> +	</row>
-> +	<row>
->   	<entry><constant>V4L2_TUNER_CAP_STEREO</constant></entry>
->   	<entry>0x0010</entry>
->   	<entry>Stereo audio reception is supported.</entry>
-> diff --git a/Documentation/DocBook/media/v4l/vidioc-s-hw-freq-seek.xml b/Documentation/DocBook/media/v4l/vidioc-s-hw-freq-seek.xml
-> index 407dfce..d58b648 100644
-> --- a/Documentation/DocBook/media/v4l/vidioc-s-hw-freq-seek.xml
-> +++ b/Documentation/DocBook/media/v4l/vidioc-s-hw-freq-seek.xml
-> @@ -58,6 +58,9 @@ To do this applications initialize the<structfield>tuner</structfield>,
->   call the<constant>VIDIOC_S_HW_FREQ_SEEK</constant>  ioctl with a pointer
->   to this structure.</para>
->
-> +<para>If an error is returned, then the frequency original frequency will
-> +    be restored.</para>
-> +
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index 2339678..013ee46 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -2023,7 +2023,8 @@ struct v4l2_tuner {
+ 	__u32			audmode;
+ 	__s32			signal;
+ 	__s32			afc;
+-	__u32			reserved[4];
++	__u32			band;
++	__u32			reserved[3];
+ };
+ 
+ struct v4l2_modulator {
+@@ -2033,7 +2034,8 @@ struct v4l2_modulator {
+ 	__u32			rangelow;
+ 	__u32			rangehigh;
+ 	__u32			txsubchans;
+-	__u32			reserved[4];
++	__u32			band;
++	__u32			reserved[3];
+ };
+ 
+ /*  Flags for the 'capability' field */
+@@ -2048,6 +2050,11 @@ struct v4l2_modulator {
+ #define V4L2_TUNER_CAP_RDS		0x0080
+ #define V4L2_TUNER_CAP_RDS_BLOCK_IO	0x0100
+ #define V4L2_TUNER_CAP_RDS_CONTROLS	0x0200
++#define V4L2_TUNER_CAP_BAND_FM_EUROPE_US     0x00010000
++#define V4L2_TUNER_CAP_BAND_FM_JAPAN         0x00020000
++#define V4L2_TUNER_CAP_BAND_FM_RUSSIAN       0x00040000
++#define V4L2_TUNER_CAP_BAND_FM_WEATHER       0x00080000
++#define V4L2_TUNER_CAP_BAND_AM_MW            0x00100000
+ 
+ /*  Flags for the 'rxsubchans' field */
+ #define V4L2_TUNER_SUB_MONO		0x0001
+@@ -2065,6 +2072,14 @@ struct v4l2_modulator {
+ #define V4L2_TUNER_MODE_LANG1		0x0003
+ #define V4L2_TUNER_MODE_LANG1_LANG2	0x0004
+ 
++/*  Values for the 'band' field */
++#define V4L2_TUNER_BAND_DEFAULT       0
++#define V4L2_TUNER_BAND_FM_EUROPE_US  1       /* 87.5 Mhz - 108 MHz */
++#define V4L2_TUNER_BAND_FM_JAPAN      2       /* 76 MHz - 90 MHz */
++#define V4L2_TUNER_BAND_FM_RUSSIAN    3       /* 65.8 MHz - 74 MHz */
++#define V4L2_TUNER_BAND_FM_WEATHER    4       /* 162.4 MHz - 162.55 MHz */
++#define V4L2_TUNER_BAND_AM_MW         5
++
+ struct v4l2_frequency {
+ 	__u32		      tuner;
+ 	__u32		      type;	/* enum v4l2_tuner_type */
+-- 
+1.7.10
 
-One frequency too many in that sentence :)
-
->       <para>This ioctl is supported if the<constant>V4L2_CAP_HW_FREQ_SEEK</constant>  capability is set.</para>
->
->       <table pgwide="1" frame="none" id="v4l2-hw-freq-seek">
-> @@ -87,7 +90,10 @@ field and the&v4l2-tuner;<structfield>index</structfield>  field.</entry>
->   	<row>
->   	<entry>__u32</entry>
->   	<entry><structfield>wrap_around</structfield></entry>
-> -	<entry>If non-zero, wrap around when at the end of the frequency range, else stop seeking.</entry>
-> +	<entry>If non-zero, wrap around when at the end of the frequency range, else stop seeking.
-> +	    The&v4l2-tuner;<structfield>capability</structfield>  field will tell you what the
-> +	    hardware supports.
-> +	</entry>
->   	</row>
->   	<row>
->   	<entry>__u32</entry>
-> @@ -118,9 +124,15 @@ wrong.</para>
->   	</listitem>
->         </varlistentry>
->         <varlistentry>
-> -	<term><errorcode>EAGAIN</errorcode></term>
-> +	<term><errorcode>ENODATA</errorcode></term>
-> +	<listitem>
-> +	<para>The hardware seek found no channels.</para>
-> +	</listitem>
-> +</varlistentry>
-> +<varlistentry>
-> +	<term><errorcode>EBUSY</errorcode></term>
->   	<listitem>
-> -	<para>The ioctl timed-out. Try again.</para>
-> +	<para>Another hardware seek is already in progress.</para>
->   	</listitem>
->         </varlistentry>
->       </variablelist>
