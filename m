@@ -1,58 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f178.google.com ([209.85.212.178]:62515 "EHLO
-	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752053Ab2E0VyF (ORCPT
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:1600 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751387Ab2E1LuW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 27 May 2012 17:54:05 -0400
-Received: by wibhn6 with SMTP id hn6so1154484wib.1
-        for <linux-media@vger.kernel.org>; Sun, 27 May 2012 14:54:03 -0700 (PDT)
-Message-ID: <4FC2A279.2040404@gmail.com>
-Date: Sun, 27 May 2012 23:54:01 +0200
-From: Sylwester Nawrocki <snjw23@gmail.com>
+	Mon, 28 May 2012 07:50:22 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Federico Vaga <federico.vaga@gmail.com>
+Subject: Re: [GIT PULL FOR v3.5] Move sta2x11_vip to staging
+Date: Mon, 28 May 2012 13:50:10 +0200
+Cc: "linux-media" <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	"linux-kernel" <linux-kernel@vger.kernel.org>,
+	Giancarlo Asnaghi <giancarlo.asnaghi@st.com>
+References: <201205260939.58100.hverkuil@xs4all.nl> <1444585.tu7qHxh2Mp@harkonnen>
+In-Reply-To: <1444585.tu7qHxh2Mp@harkonnen>
 MIME-Version: 1.0
-To: Ezequiel Garcia <elezegarcia@gmail.com>
-CC: Hans Verkuil <hverkuil@xs4all.nl>, mchehab@redhat.com,
-	linux-media@vger.kernel.org, hdegoede@redhat.com
-Subject: Re: [RFC/PATCH] media: Add stk1160 new driver
-References: <201205261950.06022.hverkuil@xs4all.nl> <4FC12F82.6040705@gmail.com> <CALF0-+VPkbZ8sUbPmxNT46J5S8X_jwRH3Wc4yX7DUHXyjKmbEg@mail.gmail.com>
-In-Reply-To: <CALF0-+VPkbZ8sUbPmxNT46J5S8X_jwRH3Wc4yX7DUHXyjKmbEg@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201205281350.10606.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ezequiel,
-
-On 05/27/2012 11:32 PM, Ezequiel Garcia wrote:
->>>> +static int buffer_prepare(struct vb2_buffer *vb)
->>>> +{
->>>> +    struct stk1160 *dev = vb2_get_drv_priv(vb->vb2_queue);
->>>> +    struct stk1160_buffer *buf =
->>>> +                    container_of(vb, struct stk1160_buffer, vb);
->>>> +
->>>> +    /* If the device is disconnected, reject the buffer */
->>>> +    if (!dev->udev)
->>>> +            return -ENODEV;
->>>> +
->>>> +    buf->mem = vb2_plane_vaddr(vb, 0);
->>>> +    buf->length = vb2_plane_size(vb, 0);
->>
->> Where do you check if the buffer you get from vb2 has correct parameters
->> for your hardware (with current settings) to start writing data to it ?
->>
->> It seems that this driver supports just one pixel format and resolution,
->> but still would be good to do such checks in buf_prepare().
+On Mon May 28 2012 13:47:43 Federico Vaga wrote:
+> > I didn't get any reply from Federico when I posted my concerns last
+> > week, so that makes me unhappy as well.
+> > 
+> > I hope the author will fix these issues, but in the meantime this will
+> > move it to staging waiting for further developments.
 > 
-> You mean I should check buf->length?
+> The last time I worked on this device was 2 month and half ago (RFC 
+> time) and before answer "Ok, I'll fix it" I'm trying to understand if me 
+> or someone else will do that work. I'll provide a better answer than 
+> this when I have more information.
+> 
+> Sorry for not sending an ack immediately, but be reassured that I'm 
+> still on the hardware and following the developments.
 
-Yeah, you should validate the passed in vb2_buffer. Here is some example:
-http://lxr.linux.no/#linux+v3.4/drivers/media/video/mx2_emmaprp.c#L715
+Thank you for the feedback! Suddenly I feel a lot happier :-)
 
-IOW, you should compare value returned from vb2_plane_vaddr(vb, 0) during
-streaming with value computed from pixel format and resolution -
-configured with S_FMT. Rather than accepting any buffer passed to the driver
-from user space.
+You were just unlucky that you posted the driver just in a period where I
+was almost completely absent from the list due to personal circumstances.
 
+Otherwise you would have gotten the feedback at that time.
 
 Regards,
-Sylwester
+
+	Hans
