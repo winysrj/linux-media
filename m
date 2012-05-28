@@ -1,306 +1,571 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:57699 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932696Ab2EOVwc (ORCPT
+Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:1805 "EHLO
+	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752621Ab2E1KXL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 May 2012 17:52:32 -0400
-Received: by weyu7 with SMTP id u7so38877wey.19
-        for <linux-media@vger.kernel.org>; Tue, 15 May 2012 14:52:31 -0700 (PDT)
-From: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
-Subject: [PATCH] renamings and librarization
-Date: Tue, 15 May 2012 23:52:09 +0200
-Message-Id: <1337118729-8350-1-git-send-email-neolynx@gmail.com>
+	Mon, 28 May 2012 06:23:11 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Ezequiel Garcia <elezegarcia@gmail.com>
+Subject: Re: [RFC/PATCH] media: Add stk1160 new driver
+Date: Mon, 28 May 2012 12:22:57 +0200
+Cc: mchehab@redhat.com, linux-media@vger.kernel.org,
+	hdegoede@redhat.com, snjw23@gmail.com
+References: <1338050460-5902-1-git-send-email-elezegarcia@gmail.com> <201205261905.25626.hverkuil@xs4all.nl> <CALF0-+XFR4jnDCatk3vu2tB=iA-p=Ai_bwwgOZGTzNNrsicxfA@mail.gmail.com>
+In-Reply-To: <CALF0-+XFR4jnDCatk3vu2tB=iA-p=Ai_bwwgOZGTzNNrsicxfA@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201205281222.57917.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
----
- lib/include/dvb-fe.h           |    4 ++--
- lib/include/dvb-file.h         |   12 ++++++++++--
- lib/include/dvb-frontend.h     |    2 +-
- lib/include/libsat.h           |   27 +++++++++++++++++++++------
- lib/libdvbv5/dvb-file.c        |    2 +-
- lib/libdvbv5/libsat.c          |   20 +++++++++++++++-----
- utils/dvb/dvb-format-convert.c |    2 +-
- utils/dvb/dvbv5-scan.c         |    8 ++++----
- utils/dvb/dvbv5-zap.c          |    2 +-
- 9 files changed, 56 insertions(+), 23 deletions(-)
+On Sun May 27 2012 23:20:21 Ezequiel Garcia wrote:
+> Hi Hans,
+> 
+> On Sat, May 26, 2012 at 2:05 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> >
+> > Always test your driver using the v4l2-compliance test tool that it part of
+> > v4l-utils! If it passes that, then your code will be in really good shape!
+> 
+> You're right. I'll add v4l2-compliance output in the next patch.
+> 
+> >
+> > On Sat May 26 2012 18:41:00 Ezequiel Garcia wrote:
+> >> This driver adds support for stk1160 usb bridge as used in some
+> >> video/audio usb capture devices.
+> >> It is a complete rewrite of staging/media/easycap driver and
+> >> it's expected as a future replacement.
+> >>
+> >> Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
+> >> ---
+> >> As of today testing has been performed using both vlc and mplayer
+> >> on a gentoo machine, including hot unplug and on-the-fly standard
+> >> change using a device with 1-cvs and 1-audio output.
+> >> However more testing is underway with another device and/or another
+> >> distribution.
+> >>
+> >> Alsa sound support is a missing feature (work in progress).
+> >>
+> >> As this is my first complete driver, the patch is (obviously) intended as RFC only.
+> >> Any comments/reviews of *any* kind will be greatly appreciated.
+> >> ---
+> >>  drivers/media/video/Kconfig                 |    2 +
+> >>  drivers/media/video/Makefile                |    1 +
+> >>  drivers/media/video/stk1160/Kconfig         |   11 +
+> >>  drivers/media/video/stk1160/Makefile        |    6 +
+> >>  drivers/media/video/stk1160/stk1160-core.c  |  399 +++++++++++++
+> >>  drivers/media/video/stk1160/stk1160-i2c.c   |  304 ++++++++++
+> >>  drivers/media/video/stk1160/stk1160-reg.h   |   78 +++
+> >>  drivers/media/video/stk1160/stk1160-v4l.c   |  846 +++++++++++++++++++++++++++
+> >>  drivers/media/video/stk1160/stk1160-video.c |  506 ++++++++++++++++
+> >>  drivers/media/video/stk1160/stk1160.h       |  183 ++++++
+> >>  10 files changed, 2336 insertions(+), 0 deletions(-)
+> >>  create mode 100644 drivers/media/video/stk1160/Kconfig
+> >>  create mode 100644 drivers/media/video/stk1160/Makefile
+> >>  create mode 100644 drivers/media/video/stk1160/stk1160-core.c
+> >>  create mode 100644 drivers/media/video/stk1160/stk1160-i2c.c
+> >>  create mode 100644 drivers/media/video/stk1160/stk1160-reg.h
+> >>  create mode 100644 drivers/media/video/stk1160/stk1160-v4l.c
+> >>  create mode 100644 drivers/media/video/stk1160/stk1160-video.c
+> >>  create mode 100644 drivers/media/video/stk1160/stk1160.h
+> >>
+> >> +
+> >> +     /*
+> >> +      * We take the lock just before device registration,
+> >> +      * to prevent someone (probably udev) from opening us
+> >> +      * before we finish initialization
+> >> +      */
+> >> +     mutex_init(&dev->mutex);
+> >> +     mutex_lock(&dev->mutex);
+> >> +
+> >> +     rc = stk1160_video_register(dev);
+> >
+> > It's usually better to register the video node as the very last thing
+> > in probe(). That way when the node appears it's ready for udev to use.
+> > No need to lock the mutex in that case.
+> 
+> Done.
+> 
+> >> +     /*
+> >> +      * Wait until all current v4l2 operation are finished
+> >> +      * then deallocate resources
+> >> +      */
+> >> +     mutex_lock(&dev->mutex);
+> >> +
+> >> +     /* Since saa7115 is no longer present, it's better to unregister it */
+> >> +     v4l2_device_unregister_subdev(dev->sd_saa7115);
+> >> +
+> >> +     stk1160_stop_streaming(dev);
+> >> +
+> >> +     v4l2_device_disconnect(&dev->v4l2_dev);
+> >> +
+> >> +     /* This way current users can detect device is gone */
+> >> +     dev->udev = NULL;
+> >> +
+> >> +     mutex_unlock(&dev->mutex);
+> >> +
+> >> +     stk1160_i2c_unregister(dev);
+> >> +     stk1160_video_unregister(dev);
+> >
+> > I recommend that you use the same approach as I did in media/radio/dsbr100.c:
+> > use the v4l2_dev->release callback to handle the final cleanup. That is a safe
+> > method that does all the refcounting for you.
+> 
+> I'm sorry but I don't really see the difference.
+> Right now I'm having video_device release function to handle the final cleanup.
+> I don't do the refcounting myself either. See my other comment below.
 
-diff --git a/lib/include/dvb-fe.h b/lib/include/dvb-fe.h
-index 5150ebf..dbcd720 100644
---- a/lib/include/dvb-fe.h
-+++ b/lib/include/dvb-fe.h
-@@ -74,12 +74,12 @@ struct dvb_v5_fe_parms {
- 	struct dvb_v5_stats		stats;
- 
- 	/* Satellite specific stuff, specified by the library client */
--	struct dvb_satellite_lnb	*lnb;
-+	struct dvbsat_lnb       	*lnb;
- 	int				sat_number;
- 	unsigned			freq_bpf;
- 
- 	/* Satellite specific stuff, used internally */
--	enum polarization		pol;
-+	enum dvbsat_polarization        pol;
- 	int				high_band;
- 	unsigned			diseqc_wait;
- 	unsigned			freq_offset;
-diff --git a/lib/include/dvb-file.h b/lib/include/dvb-file.h
-index 7e0803e..ed74eef 100644
---- a/lib/include/dvb-file.h
-+++ b/lib/include/dvb-file.h
-@@ -34,7 +34,7 @@ struct dvb_entry {
- 
- 	char *location;
- 
--	enum polarization pol;
-+	enum dvbsat_polarization pol;
- 	int sat_number;
- 	unsigned freq_bpf;
- 	unsigned diseqc_wait;
-@@ -91,6 +91,10 @@ enum file_formats {
- 
- struct dvb_descriptors;
- 
-+#ifdef __cplusplus
-+extern "C" {
-+#endif
-+
- static inline void dvb_file_free(struct dvb_file *dvb_file)
- {
- 	struct dvb_entry *entry = dvb_file->first_entry, *next;
-@@ -145,10 +149,14 @@ int store_dvb_channel(struct dvb_file **dvb_file,
- 		      int get_detected, int get_nit);
- int parse_delsys(const char *name);
- enum file_formats parse_format(const char *name);
--struct dvb_file *read_file_format(const char *fname,
-+struct dvb_file *dvb_read_file_format(const char *fname,
- 					   uint32_t delsys,
- 					   enum file_formats format);
- int write_file_format(const char *fname,
- 		      struct dvb_file *dvb_file,
- 		      uint32_t delsys,
- 		      enum file_formats format);
-+
-+#ifdef __cplusplus
-+}
-+#endif
-diff --git a/lib/include/dvb-frontend.h b/lib/include/dvb-frontend.h
-index 7e7cb64..3ccaf24 100644
---- a/lib/include/dvb-frontend.h
-+++ b/lib/include/dvb-frontend.h
-@@ -328,7 +328,7 @@ typedef enum fe_pilot {
- 	PILOT_AUTO,
- } fe_pilot_t;
- 
--typedef enum fe_rolloff {
-+typedef enum fe_rolloff { // FIXME: move to libsat.h ?
- 	ROLLOFF_35, /* Implied value in DVB-S, default for DVB-S2 */
- 	ROLLOFF_20,
- 	ROLLOFF_25,
-diff --git a/lib/include/libsat.h b/lib/include/libsat.h
-index cb78cbb..690fe61 100644
---- a/lib/include/libsat.h
-+++ b/lib/include/libsat.h
-@@ -17,7 +17,10 @@
-  * Or, point your browser to http://www.gnu.org/licenses/old-licenses/gpl-2.0.html
-  */
- 
--enum polarization {
-+#ifndef _libsat_
-+#define _libsat_
-+
-+enum dvbsat_polarization {
- 	POLARIZATION_OFF	= 0,
- 	POLARIZATION_H		= 1,
- 	POLARIZATION_V		= 2,
-@@ -25,26 +28,38 @@ enum polarization {
- 	POLARIZATION_R		= 4,
- };
- 
--struct dvb_satellite_freqrange {
-+struct dvbsat_freqrange {
- 	unsigned low, high;
- };
- 
--struct dvb_satellite_lnb {
-+struct dvbsat_lnb {
- 	char *name;
- 	char *alias;
- 	unsigned lowfreq, highfreq;
- 
- 	unsigned rangeswitch;
- 
--	struct dvb_satellite_freqrange freqrange[2];
-+	struct dvbsat_freqrange freqrange[2];
- };
- 
--struct dvb_v5_fe_parms *parms;
-+struct dvb_v5_fe_parms;
-+
-+extern const char *dvbsat_polarization_name[5];
-+
-+#ifdef __cplusplus
-+extern "C" {
-+#endif
- 
- /* From libsat.c */
- int search_lnb(char *name);
- int print_lnb(int i);
- void print_all_lnb(void);
--struct dvb_satellite_lnb *get_lnb(int i);
-+struct dvbsat_lnb *get_lnb(int i);
- int dvb_satellite_set_parms(struct dvb_v5_fe_parms *parms);
- int dvb_satellite_get_parms(struct dvb_v5_fe_parms *parms);
-+
-+#ifdef __cplusplus
-+}
-+#endif
-+
-+#endif
-diff --git a/lib/libdvbv5/dvb-file.c b/lib/libdvbv5/dvb-file.c
-index e1f2195..b54c049 100644
---- a/lib/libdvbv5/dvb-file.c
-+++ b/lib/libdvbv5/dvb-file.c
-@@ -1077,7 +1077,7 @@ int parse_delsys(const char *name)
- 	return -1;
- }
- 
--struct dvb_file *read_file_format(const char *fname,
-+struct dvb_file *dvb_read_file_format(const char *fname,
- 				  uint32_t delsys,
- 				  enum file_formats format)
- {
-diff --git a/lib/libdvbv5/libsat.c b/lib/libdvbv5/libsat.c
-index d155686..253e92e 100644
---- a/lib/libdvbv5/libsat.c
-+++ b/lib/libdvbv5/libsat.c
-@@ -24,7 +24,7 @@
- 
- #include "dvb-fe.h"
- 
--struct dvb_satellite_lnb lnb[] = {
-+struct dvbsat_lnb lnb[] = {
- 	{
- 		.name = "Europe",
- 		.alias = "UNIVERSAL",
-@@ -130,7 +130,7 @@ void print_all_lnb(void)
- 	}
- }
- 
--struct dvb_satellite_lnb *get_lnb(int i)
-+struct dvbsat_lnb *get_lnb(int i)
- {
- 	if (i >= ARRAY_SIZE(lnb))
- 		return NULL;
-@@ -212,6 +212,8 @@ static void dvbsat_diseqc_prep_frame_addr(struct diseqc_cmd *cmd,
- 	cmd->address = diseqc_addr[type];
- }
- 
-+struct dvb_v5_fe_parms *parms; // legacy code, used for parms->fd, FIXME anyway
-+
- /* Inputs are numbered from 1 to 16, according with the spec */
- static int dvbsat_diseqc_write_to_port_group(struct diseqc_cmd *cmd,
- 					     int high_band,
-@@ -269,7 +271,7 @@ static int dvbsat_scr_odu_channel_change(struct diseqc_cmd *cmd,
- static int dvbsat_diseqc_set_input(struct dvb_v5_fe_parms *parms, uint16_t t)
- {
- 	int rc;
--        enum polarization pol = parms->pol;
-+        enum dvbsat_polarization pol = parms->pol;
- 	int pol_v = (pol == POLARIZATION_V) || (pol == POLARIZATION_R);
- 	int high_band = parms->high_band;
- 	int sat_number = parms->sat_number;
-@@ -343,8 +345,8 @@ static int dvbsat_diseqc_set_input(struct dvb_v5_fe_parms *parms, uint16_t t)
- 
- int dvb_satellite_set_parms(struct dvb_v5_fe_parms *parms)
- {
--	struct dvb_satellite_lnb *lnb = parms->lnb;
--        enum polarization pol = parms->pol;
-+	struct dvbsat_lnb *lnb = parms->lnb;
-+        enum dvbsat_polarization pol = parms->pol;
- 	uint32_t freq;
- 	uint16_t t = 0;
- 	uint32_t voltage = SEC_VOLTAGE_13;
-@@ -407,3 +409,11 @@ int dvb_satellite_get_parms(struct dvb_v5_fe_parms *parms)
- 
- 	return 0;
- }
-+
-+const char *dvbsat_polarization_name[5] = {
-+	"OFF",
-+	"H",
-+	"V",
-+	"L",
-+	"R",
-+};
-diff --git a/utils/dvb/dvb-format-convert.c b/utils/dvb/dvb-format-convert.c
-index 799fe8f..6db5219 100644
---- a/utils/dvb/dvb-format-convert.c
-+++ b/utils/dvb/dvb-format-convert.c
-@@ -79,7 +79,7 @@ static int convert_file(struct arguments *args)
- 
- 	printf("Reading file %s\n", args->input_file);
- 
--	dvb_file = read_file_format(args->input_file, args->delsys,
-+	dvb_file = dvb_read_file_format(args->input_file, args->delsys,
- 				    args->input_format);
- 	if (!dvb_file) {
- 		fprintf(stderr, "Error reading file %s\n", args->input_file);
-diff --git a/utils/dvb/dvbv5-scan.c b/utils/dvb/dvbv5-scan.c
-index 48e083b..125e285 100644
---- a/utils/dvb/dvbv5-scan.c
-+++ b/utils/dvb/dvbv5-scan.c
-@@ -130,7 +130,7 @@ static int check_frontend(struct dvb_v5_fe_parms *parms, int timeout)
- static int new_freq_is_needed(struct dvb_entry *entry,
- 			      struct dvb_entry *last_entry,
- 			      uint32_t freq,
--			      enum polarization pol,
-+			      enum dvbsat_polarization pol,
- 			      int shift)
- {
- 	int i;
-@@ -260,7 +260,7 @@ static void add_other_freq_entries(struct dvb_file *dvb_file,
- {
- 	int i;
- 	uint32_t freq, shift = 0;
--	enum polarization pol = POLARIZATION_OFF;
-+	enum dvbsat_polarization pol = POLARIZATION_OFF;
- 
- 	if (!dvb_desc->nit_table.frequency)
- 		return;
-@@ -307,7 +307,7 @@ static int run_scan(struct arguments *args,
- 		sys = SYS_UNDEFINED;
- 		break;
- 	}
--	dvb_file = read_file_format(args->confname, sys,
-+	dvb_file = dvb_read_file_format(args->confname, sys,
- 				    args->input_format);
- 	if (!dvb_file)
- 		return -2;
-@@ -557,7 +557,7 @@ int main(int argc, char **argv)
- 	if (verbose)
- 		fprintf(stderr, "using demux '%s'\n", args.demux_dev);
- 
--	parms = dvb_fe_open(args.adapter, args.frontend, verbose, 0);
-+	struct dvb_v5_fe_parms *parms = dvb_fe_open(args.adapter, args.frontend, verbose, 0);
- 	if (!parms)
- 		return -1;
- 	if (lnb >= 0)
-diff --git a/utils/dvb/dvbv5-zap.c b/utils/dvb/dvbv5-zap.c
-index c32a6ba..01bf5d9 100644
---- a/utils/dvb/dvbv5-zap.c
-+++ b/utils/dvb/dvbv5-zap.c
-@@ -128,7 +128,7 @@ static int parse(struct arguments *args,
- 		sys = SYS_UNDEFINED;
- 		break;
- 	}
--	dvb_file = read_file_format(args->confname, sys,
-+	dvb_file = dvb_read_file_format(args->confname, sys,
- 				    args->input_format);
- 	if (!dvb_file)
- 		return -2;
--- 
-1.7.2.5
+First of all, you can make it work reliably with just the video_device release().
+But the advantage of using the release of v4l2_device is that it will also work with
+USB devices with multiple video/vbi/radio nodes and it allows you to put all the code
+in disconnect() under the lock. The disconnect call can happen at any time, so it
+can be hard to get it right. In the code above an application can open the video
+node right after the unlock and before i2c_unregister (which I would move to the
+release callback anyway). The clean up from i2c_unregister might cause problems
+for that new open.
 
+In practice it seems that the easiest approach is not to clean up anything in the
+disconnect, just take the lock, do the bare minimum necessary for the disconnect,
+unregister the video nodes, unlock and end with v4l2_device_put(v4l2_dev).
+
+It's a suggestion only, but experience has shown that it works well. And as I said,
+when you get multiple device nodes, then this is the only workable approach.
+
+Weren't there easycap devices with multiple video inputs? Or is that handled by
+cycling through the inputs?
+
+> 
+> >
+> > ...
+> >
+> >> diff --git a/drivers/media/video/stk1160/stk1160-v4l.c b/drivers/media/video/stk1160/stk1160-v4l.c
+> >> new file mode 100644
+> >> index 0000000..a7a012b
+> >> --- /dev/null
+> >> +++ b/drivers/media/video/stk1160/stk1160-v4l.c
+> >
+> > ...
+> >
+> >> +static int stk1160_open(struct file *filp)
+> >> +{
+> >> +     struct stk1160 *dev = video_drvdata(filp);
+> >> +
+> >> +     dev->users++;
+> >
+> > Why the users field? You shouldn't need it.
+> 
+> Done.
+> 
+> >
+> >> +
+> >> +     stk1160_info("opened: users=%d\n", dev->users);
+> >> +
+> >> +     return v4l2_fh_open(filp);
+> >> +}
+> >> +
+> >> +static int stk1160_close(struct file *file)
+> >> +{
+> >> +     struct stk1160 *dev = video_drvdata(file);
+> >> +
+> >> +     dev->users--;
+> >> +
+> >> +     stk1160_info("closed: users=%d\n", dev->users);
+> >> +
+> >> +     /*
+> >> +      * If this is the last fh remaining open, then we
+> >> +      * stop streaming and free/dequeue all buffers.
+> >> +      * This prevents device from streaming without
+> >> +      * any opened filehandles.
+> >> +      */
+> >> +     if (v4l2_fh_is_singular_file(file))
+> >> +             vb2_queue_release(&dev->vb_vidq);
+> >
+> > No. You should keep track of which filehandle started streaming (actually
+> > the filehandle that called REQBUFS is the owner of the queue) and release
+> > the queue when that particular filehandle is closed (or it calls REQBUFS
+> > with a count of 0).
+> 
+> Ah. I gave much thought to this issue. I liked the way uvc managed
+> "privileged" handles,
+> but I wasn't sure if this was better or not
+> (I'm thinking on "policy vs mechanism" stuff, sounds a bit silly, right?).
+> 
+> So, I'll implement an owner filehandle, which is able to start/stop streaming.
+> Also set format? Or just start/stop streaming? How about the
+> non-owners filehandles?
+> Are they only capable of changing controls and such?
+> Is this documented in media api?
+
+OK, the general rule is as follows (many drivers do not follow this correctly, BTW,
+but this is what should happen):
+
+- the filehandle that calls REQBUFS owns the buffers and is the only one that can
+start/stop streaming and queue/dequeue buffers. This is until REQBUFS with count == 0
+is called, or until the filehandle is closed.
+
+- setting formats, controls, etc. can be done by any filehandle unless the hardware
+cannot support such a change while streaming is in progress (or prepared for, e.g.
+changing the format will change the buffer size, which should be prohibited once a
+filehandle called REQBUFS).
+
+- by supporting VIDIOC_G/S_PRIORITY applications can raise the prio of a filehandle,
+preventing other filehandles from making changes. If you use struct v4l2_fh, then all
+you need to do is to set the V4L2_FL_USE_FH_PRIO flag (see dsbr100.c) and you get
+priority handling for free.
+
+> 
+> 
+> >> +
+> >> +static int vidioc_queryctrl(struct file *file, void *priv,
+> >> +                             struct v4l2_queryctrl *qc)
+> >> +{
+> >> +     struct stk1160 *dev = video_drvdata(file);
+> >> +     int id = qc->id;
+> >> +
+> >> +     memset(qc, 0, sizeof(*qc));
+> >> +     qc->id = id;
+> >> +
+> >> +     /* enumerate V4L2 device controls */
+> >> +     v4l2_device_call_all(&dev->v4l2_dev, 0, core, queryctrl, qc);
+> >> +     if (qc->type)
+> >> +             return 0;
+> >> +     else
+> >> +             return -EINVAL;
+> >> +}
+> >
+> > Use the control framework. I won't accept any new drivers that do not use it.
+> >
+> > In your case it is very simple: create a v4l2_ctrl_handler, initialize it and
+> > let v4l2_dev->ctrl_handler point to it. When the subdev is added it will add its
+> > controls to your handler.
+> 
+> Done.
+> 
+> >
+> >> +
+> >> +static int vidioc_g_ctrl(struct file *file, void *priv,
+> >> +                             struct v4l2_control *ctrl)
+> >> +{
+> >> +     struct stk1160 *dev = video_drvdata(file);
+> >> +     v4l2_device_call_all(&dev->v4l2_dev, 0, core, g_ctrl, ctrl);
+> >> +     return 0;
+> >> +}
+> >> +
+> >> +static int vidioc_s_ctrl(struct file *file, void *priv,
+> >> +                             struct v4l2_control *ctrl)
+> >> +{
+> >> +     struct stk1160 *dev = video_drvdata(file);
+> >> +     v4l2_device_call_all(&dev->v4l2_dev, 0, core, s_ctrl, ctrl);
+> >> +     return 0;
+> >> +}
+> >> +
+> >> +static int vidioc_enum_framesizes(struct file *file, void *fh,
+> >> +                              struct v4l2_frmsizeenum *fsize)
+> >> +{
+> >> +     /* TODO: Is this needed? */
+> >> +     return -EINVAL;
+> >> +}
+> >> +
+> >> +static int vidioc_enum_frameintervals(struct file *file, void *fh,
+> >> +                               struct v4l2_frmivalenum *fival)
+> >> +{
+> >> +     /* TODO: Is this needed? */
+> >> +     return -EINVAL;
+> >> +}
+> >> +
+> >> +static const struct v4l2_ioctl_ops stk1160_ioctl_ops = {
+> >> +     .vidioc_querycap      = vidioc_querycap,
+> >> +     .vidioc_enum_fmt_vid_cap  = vidioc_enum_fmt_vid_cap,
+> >> +     .vidioc_g_fmt_vid_cap     = vidioc_g_fmt_vid_cap,
+> >> +     .vidioc_try_fmt_vid_cap   = vidioc_try_fmt_vid_cap,
+> >> +     .vidioc_s_fmt_vid_cap     = vidioc_s_fmt_vid_cap,
+> >> +     .vidioc_reqbufs       = vidioc_reqbufs,
+> >> +     .vidioc_querybuf      = vidioc_querybuf,
+> >> +     .vidioc_qbuf          = vidioc_qbuf,
+> >> +     .vidioc_dqbuf         = vidioc_dqbuf,
+> >> +     .vidioc_querystd      = vidioc_querystd,
+> >> +     .vidioc_g_std         = NULL, /* don't worry v4l handles this */
+> >> +     .vidioc_s_std         = vidioc_s_std,
+> >> +     .vidioc_enum_input    = vidioc_enum_input,
+> >> +     .vidioc_g_input       = vidioc_g_input,
+> >> +     .vidioc_s_input       = vidioc_s_input,
+> >> +     .vidioc_queryctrl     = vidioc_queryctrl,
+> >> +     .vidioc_g_ctrl        = vidioc_g_ctrl,
+> >> +     .vidioc_s_ctrl        = vidioc_s_ctrl,
+> >> +     .vidioc_enum_framesizes = vidioc_enum_framesizes,
+> >> +     .vidioc_enum_frameintervals = vidioc_enum_frameintervals,
+> >> +     .vidioc_streamon      = vidioc_streamon,
+> >> +     .vidioc_streamoff     = vidioc_streamoff,
+> >> +};
+> >> +
+> >> +/********************************************************************/
+> >> +
+> >> +/*
+> >> + * Videobuf2 operations
+> >> + */
+> >> +static int queue_setup(struct vb2_queue *vq, const struct v4l2_format *v4l_fmt,
+> >> +                             unsigned int *nbuffers, unsigned int *nplanes,
+> >> +                             unsigned int sizes[], void *alloc_ctxs[])
+> >> +{
+> >> +     struct stk1160 *dev = vb2_get_drv_priv(vq);
+> >> +     unsigned long size;
+> >> +
+> >> +     size = dev->width * dev->height * 2;
+> >> +
+> >> +     /*
+> >> +      * Here we can change the number of buffers being requested.
+> >> +      * For instance, we could set a minimum and a maximum,
+> >> +      * like this:
+> >> +      */
+> >> +     if (*nbuffers < STK1160_MIN_VIDEO_BUFFERS)
+> >> +             *nbuffers = STK1160_MIN_VIDEO_BUFFERS;
+> >> +     else if (*nbuffers > STK1160_MAX_VIDEO_BUFFERS)
+> >> +             *nbuffers = STK1160_MAX_VIDEO_BUFFERS;
+> >> +
+> >> +     /* This means a packed colorformat */
+> >> +     *nplanes = 1;
+> >> +
+> >> +     sizes[0] = size;
+> >> +
+> >> +     /*
+> >> +      * videobuf2-vmalloc allocator is context-less so no need to set
+> >> +      * alloc_ctxs array.
+> >> +      */
+> >> +
+> >> +     if (v4l_fmt) {
+> >> +             stk1160_info("selected format %d (%d)\n",
+> >> +                     v4l_fmt->fmt.pix.pixelformat,
+> >> +                     dev->fmt->fourcc);
+> >> +     }
+> >> +
+> >> +     stk1160_info("%s: buffer count %d, each %ld bytes\n",
+> >> +                     __func__, *nbuffers, size);
+> >> +
+> >> +     return 0;
+> >> +}
+> >> +
+> >> +static int buffer_init(struct vb2_buffer *vb)
+> >> +{
+> >> +     return 0;
+> >> +}
+> >> +
+> >> +static int buffer_prepare(struct vb2_buffer *vb)
+> >> +{
+> >> +     struct stk1160 *dev = vb2_get_drv_priv(vb->vb2_queue);
+> >> +     struct stk1160_buffer *buf =
+> >> +                     container_of(vb, struct stk1160_buffer, vb);
+> >> +
+> >> +     /* If the device is disconnected, reject the buffer */
+> >> +     if (!dev->udev)
+> >> +             return -ENODEV;
+> >> +
+> >> +     buf->mem = vb2_plane_vaddr(vb, 0);
+> >> +     buf->length = vb2_plane_size(vb, 0);
+> >> +     buf->bytesused = 0;
+> >> +     buf->pos = 0;
+> >> +
+> >> +     return 0;
+> >> +}
+> >> +
+> >> +static int buffer_finish(struct vb2_buffer *vb)
+> >> +{
+> >> +     return 0;
+> >> +}
+> >> +
+> >> +static void buffer_cleanup(struct vb2_buffer *vb)
+> >> +{
+> >> +}
+> >> +
+> >> +static void buffer_queue(struct vb2_buffer *vb)
+> >> +{
+> >> +     unsigned long flags = 0;
+> >> +     struct stk1160 *dev = vb2_get_drv_priv(vb->vb2_queue);
+> >> +     struct stk1160_buffer *buf =
+> >> +             container_of(vb, struct stk1160_buffer, vb);
+> >> +
+> >> +     spin_lock_irqsave(&dev->buf_lock, flags);
+> >> +     if (!dev->udev) {
+> >> +             /*
+> >> +              * If the device is disconnected return the buffer to userspace
+> >> +              * directly. The next QBUF call will fail with -ENODEV.
+> >> +              */
+> >> +             vb2_buffer_done(&buf->vb, VB2_BUF_STATE_ERROR);
+> >> +     } else {
+> >> +             list_add_tail(&buf->list, &dev->avail_bufs);
+> >> +     }
+> >> +     spin_unlock_irqrestore(&dev->buf_lock, flags);
+> >> +}
+> >> +
+> >> +static int start_streaming(struct vb2_queue *vq, unsigned int count)
+> >> +{
+> >> +     struct stk1160 *dev = vb2_get_drv_priv(vq);
+> >> +     return stk1160_start_streaming(dev);
+> >> +}
+> >> +
+> >> +/* abort streaming and wait for last buffer */
+> >> +static int stop_streaming(struct vb2_queue *vq)
+> >> +{
+> >> +     struct stk1160 *dev = vb2_get_drv_priv(vq);
+> >> +     return stk1160_stop_streaming(dev);
+> >> +}
+> >> +
+> >> +static void stk1160_lock(struct vb2_queue *vq)
+> >> +{
+> >> +     struct stk1160 *dev = vb2_get_drv_priv(vq);
+> >> +     mutex_lock(&dev->mutex);
+> >> +}
+> >> +
+> >> +static void stk1160_unlock(struct vb2_queue *vq)
+> >> +{
+> >> +     struct stk1160 *dev = vb2_get_drv_priv(vq);
+> >> +     mutex_unlock(&dev->mutex);
+> >> +}
+> >> +
+> >> +static void stk1160_release(struct video_device *vd)
+> >> +{
+> >> +     struct stk1160 *dev = video_get_drvdata(vd);
+> >> +
+> >> +     stk1160_info("releasing all resources\n");
+> >> +
+> >> +     video_set_drvdata(vd, NULL);
+> >> +     video_device_release(vd);
+> >> +     v4l2_device_unregister(&dev->v4l2_dev);
+> >> +
+> >> +     kfree(dev->alt_max_pkt_size);
+> >> +     kfree(dev);
+> >> +}
+> >> +
+> >> +static struct vb2_ops stk1160_video_qops = {
+> >> +     .queue_setup            = queue_setup,
+> >> +     .buf_init               = buffer_init,
+> >> +     .buf_prepare            = buffer_prepare,
+> >> +     .buf_finish             = buffer_finish,
+> >> +     .buf_cleanup            = buffer_cleanup,
+> >> +     .buf_queue              = buffer_queue,
+> >> +     .start_streaming        = start_streaming,
+> >> +     .stop_streaming         = stop_streaming,
+> >> +     .wait_prepare           = stk1160_unlock,
+> >> +     .wait_finish            = stk1160_lock,
+> >> +};
+> >> +
+> >> +static struct video_device v4l_template = {
+> >> +     .name = "stk1160",
+> >> +     .tvnorms = V4L2_STD_525_60 | V4L2_STD_625_50,
+> >> +     .current_norm = V4L2_STD_NTSC,
+> >> +     .fops = &stk1160_fops,
+> >> +     .ioctl_ops = &stk1160_ioctl_ops,
+> >> +     .release = stk1160_release,
+> >> +};
+> >> +
+> >> +/********************************************************************/
+> >> +
+> >> +int stk1160_vb2_setup(struct stk1160 *dev)
+> >> +{
+> >> +     int rc;
+> >> +     struct vb2_queue *q;
+> >> +
+> >> +     q = &dev->vb_vidq;
+> >> +     memset(q, 0, sizeof(dev->vb_vidq));
+> >> +     q->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+> >> +     q->io_modes = VB2_READ | VB2_MMAP | VB2_USERPTR;
+> >> +     q->drv_priv = dev;
+> >> +     q->buf_struct_size = sizeof(struct stk1160_buffer);
+> >> +     q->ops = &stk1160_video_qops;
+> >> +     q->mem_ops = &vb2_vmalloc_memops;
+> >> +
+> >> +     rc = vb2_queue_init(q);
+> >> +     if (rc < 0)
+> >> +             return rc;
+> >> +
+> >> +     /* initialize video dma queue */
+> >> +     INIT_LIST_HEAD(&dev->avail_bufs);
+> >> +
+> >> +     return 0;
+> >> +}
+> >> +
+> >> +int stk1160_video_register(struct stk1160 *dev)
+> >> +{
+> >> +     int rc = -ENOMEM;
+> >> +
+> >> +     /* There is no need to set the name if we give a device struct */
+> >> +     rc = v4l2_device_register(dev->dev, &dev->v4l2_dev);
+> >> +     if (rc) {
+> >> +             stk1160_err("v4l2_device_register failed (%d)\n", rc);
+> >> +             return -ENOMEM;
+> >> +     }
+> >> +
+> >> +     dev->vdev = video_device_alloc();
+> >
+> > I recommend that vdev is not a pointer but the struct video_device itself
+> > embedded in the struct stk1160. The release callback can be video_device_release_empty
+> > in that case. stk1160_release should be set as the release callback of v4l2_dev.
+> 
+> Mmm, I agree with you about the embedded struct part.
+> But, as I already said, I don't really see why I can't keep
+> video_device release as the final cleanup release.
+> It's not to argue you, I'm just trying to understand your point.
+> 
+> Maybe it's cleaner through v4l2_device release. I'll give a try.
+> I'm still trying to get a clear picture on the differences of
+> v4l2_device and video_device.
+
+v4l2_device is a top-level struct, video_device represents a single device node.
+For cleanup purposes there isn't much difference between the two if you have
+only one device node. When you have more, then those differences are much more
+important.
+
+> 
+> >
+> >> +     if (!dev->vdev) {
+> >> +             stk1160_err("video_device_alloc failed (%d)\n", rc);
+> >> +             goto unreg;
+> >> +     }
+> >> +
+> >> +     /* Initialize video_device with a template structure */
+> >> +     *dev->vdev = v4l_template;
+> >> +     dev->vdev->debug = vidioc_debug;
+> >> +
+> >> +     /*
+> >> +      * Provide a mutex to v4l2 core.
+> >> +      * It will be used to protect all fops and v4l2 ioctls.
+> >> +      */
+> >> +     dev->vdev->lock = &dev->mutex;
+> >
+> > Please note: we made a change for 3.5 where this lock is only used for
+> > ioctls, not for other file operations. You will have to review your code
+> > whether or not to take the lock explicitly for those other file operations.
+> 
+> Ok, I missed that change.
+
+Yeah, it just went in.
+
+> 
+> >
+> >> +
+> >> +     /* This will be used to set video_device parent */
+> >> +     dev->vdev->v4l2_dev = &dev->v4l2_dev;
+> >> +
+> >> +     /* It is safer to set this before registering with v4l2 */
+> >> +     video_set_drvdata(dev->vdev, dev);
+> >> +
+> >> +     rc = video_register_device(dev->vdev, VFL_TYPE_GRABBER, -1);
+> >
+> > Do this as the last thing in this function.
+> 
+> Done.
+> 
+> >
+> >> +     if (rc < 0) {
+> >> +             stk1160_err("video_register_device failed (%d)\n", rc);
+> >> +             goto release;
+> >> +     }
+> >> +
+> 
+> Thanks!
+> Ezequiel.
+> 
+
+Regards,
+
+	Hans
