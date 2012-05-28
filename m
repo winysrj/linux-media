@@ -1,120 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:59619 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757937Ab2EOBBQ convert rfc822-to-8bit (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:46019 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751397Ab2E1V3p (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 May 2012 21:01:16 -0400
-Received: by weyu7 with SMTP id u7so2154228wey.19
-        for <linux-media@vger.kernel.org>; Mon, 14 May 2012 18:01:15 -0700 (PDT)
+	Mon, 28 May 2012 17:29:45 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	airlied@redhat.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, sumit.semwal@ti.com, daeinki@gmail.com,
+	daniel.vetter@ffwll.ch, robdclark@gmail.com, pawel@osciak.com,
+	linaro-mm-sig@lists.linaro.org, hverkuil@xs4all.nl,
+	remi@remlab.net, subashrp@gmail.com, mchehab@redhat.com,
+	g.liakhovetski@gmx.de, linux-doc@vger.kernel.org
+Subject: Re: [PATCHv6 02/13] Documentation: media: description of DMABUF importing in V4L2
+Date: Mon, 28 May 2012 23:30:05 +0200
+Message-ID: <3552222.dzY4fiG81O@avalon>
+In-Reply-To: <1337775027-9489-3-git-send-email-t.stanislaws@samsung.com>
+References: <1337775027-9489-1-git-send-email-t.stanislaws@samsung.com> <1337775027-9489-3-git-send-email-t.stanislaws@samsung.com>
 MIME-Version: 1.0
-In-Reply-To: <1463663.qyvIXF66SU@avalon>
-References: <1336991039-15970-1-git-send-email-lliubbo@gmail.com>
-	<1463663.qyvIXF66SU@avalon>
-Date: Tue, 15 May 2012 09:01:15 +0800
-Message-ID: <CAA_GA1cEr=SZ65SfptRyfP6hT_7sjr2RgMbkY3N6FHTHZ7BWvA@mail.gmail.com>
-Subject: Re: [PATCH] drivers:media:video:uvc: fix uvc_v4l2_get_unmapped_area
- for NOMMU
-From: Bob Liu <lliubbo@gmail.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, mchehab@infradead.org,
-	linux-uvc-devel@lists.berlios.de,
-	uclinux-dist-devel@blackfin.uclinux.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hi Tomasz,
 
-On Mon, May 14, 2012 at 7:31 PM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> Hi Bob,
->
-> On Monday 14 May 2012 18:23:59 Bob Liu wrote:
->> Fix uvc_v4l2_get_unmapped_area() for NOMMU arch like blackfin after
->> framework updated to use videobuf2.
->
-> Thank you for the patch, but I'm afraid you're too late. The fix is already
-> queued for v3.5 :-)
+Thanks for the patch.
 
-It doesn't matter.
 
->
->> Signed-off-by: Bob Liu <lliubbo@gmail.com>
->> ---
->>  drivers/media/video/uvc/uvc_queue.c |   30 ------------------------------
->>  drivers/media/video/uvc/uvc_v4l2.c  |    2 +-
->>  2 files changed, 1 insertions(+), 31 deletions(-)
->>
->> diff --git a/drivers/media/video/uvc/uvc_queue.c
->> b/drivers/media/video/uvc/uvc_queue.c index 518f77d..30be060 100644
->> --- a/drivers/media/video/uvc/uvc_queue.c
->> +++ b/drivers/media/video/uvc/uvc_queue.c
->> @@ -237,36 +237,6 @@ int uvc_queue_allocated(struct uvc_video_queue *queue)
->>       return allocated;
->>  }
->>
->> -#ifndef CONFIG_MMU
->> -/*
->> - * Get unmapped area.
->> - *
->> - * NO-MMU arch need this function to make mmap() work correctly.
->> - */
->> -unsigned long uvc_queue_get_unmapped_area(struct uvc_video_queue *queue,
->> -             unsigned long pgoff)
->> -{
->> -     struct uvc_buffer *buffer;
->> -     unsigned int i;
->> -     unsigned long ret;
->> -
->> -     mutex_lock(&queue->mutex);
->> -     for (i = 0; i < queue->count; ++i) {
->> -             buffer = &queue->buffer[i];
->> -             if ((buffer->buf.m.offset >> PAGE_SHIFT) == pgoff)
->> -                     break;
->> -     }
->> -     if (i == queue->count) {
->> -             ret = -EINVAL;
->> -             goto done;
->> -     }
->> -     ret = (unsigned long)buf->mem;
->> -done:
->> -     mutex_unlock(&queue->mutex);
->> -     return ret;
->> -}
->> -#endif
->> -
->>  /*
->>   * Enable or disable the video buffers queue.
->>   *
->> diff --git a/drivers/media/video/uvc/uvc_v4l2.c
->> b/drivers/media/video/uvc/uvc_v4l2.c index 2ae4f88..506d3d6 100644
->> --- a/drivers/media/video/uvc/uvc_v4l2.c
->> +++ b/drivers/media/video/uvc/uvc_v4l2.c
->> @@ -1067,7 +1067,7 @@ static unsigned long uvc_v4l2_get_unmapped_area(struct
->> file *file,
->>
->>       uvc_trace(UVC_TRACE_CALLS, "uvc_v4l2_get_unmapped_area\n");
->>
->> -     return uvc_queue_get_unmapped_area(&stream->queue, pgoff);
->> +     return vb2_get_unmapped_area(&stream->queue, addr, len, pgoff, flags);
->
-> Just for the record you would have needed to take the queue->mutex around the
-> vb2_get_unmapped_area() call here.
->
+On Wednesday 23 May 2012 14:10:16 Tomasz Stanislawski wrote:
+> This patch adds description and usage examples for importing
+> DMABUF file descriptor in V4L2.
+> 
+> Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> CC: linux-doc@vger.kernel.org
 
-okay, i'll send out v2 soon, please queue it for next window.
-Thank you.
+[snip]
 
->>  }
->>  #endif
->
-> --
-> Regards,
->
-> Laurent Pinchart
->
+> @@ -103,6 +105,7 @@ as the &v4l2-format; <structfield>type</structfield>
+> field. See <xref <entry><structfield>memory</structfield></entry>
+>  	    <entry>Applications set this field to
+>  <constant>V4L2_MEMORY_MMAP</constant> or
+> +<constant>V4L2_MEMORY_DMABUF</constant> or
+>  <constant>V4L2_MEMORY_USERPTR</constant>. See <xref linkend="v4l2-memory"
+>  />.</entry>
+>  	  </row>
+
+If you resubmit to fix the compat-ioctl issue in 01/13, could you please 
+replace this with
+
+<entry>Applications set this field to
+<constant>V4L2_MEMORY_MMAP</constant>,
+<constant>V4L2_MEMORY_DMABUF</constant> or
+<constant>V4L2_MEMORY_USERPTR</constant>. See <xref linkend="v4l2-memory"/>.
+</entry>
+
+like in v5 ?
 
 -- 
 Regards,
---Bob
+
+Laurent Pinchart
+
