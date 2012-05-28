@@ -1,73 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:37812 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754957Ab2EUQO0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 May 2012 12:14:26 -0400
-Message-ID: <6dc3e929311568a87d15350a3756af7c.squirrel@webmail.kapsi.fi>
-In-Reply-To: <4FBA5140.1060102@redhat.com>
-References: <201205062256.55468.hfvogt@gmx.net> <4FB92224.2010008@iki.fi>
-    <4FB9A7B3.1030605@redhat.com>
-    <48b2cb9f19b1063eb7b8d8bd8dbfc957.squirrel@webmail.kapsi.fi>
-    <4FBA5140.1060102@redhat.com>
-Date: Mon, 21 May 2012 19:14:19 +0300
-From: "Antti Palosaari" <crope@iki.fi>
-To: "Mauro Carvalho Chehab" <mchehab@redhat.com>
-Cc: "Antti Palosaari" <crope@iki.fi>,
-	"Hans-Frieder Vogt" <hfvogt@gmx.net>, linux-media@vger.kernel.org,
-	"Thomas Mair" <thomas.mair86@googlemail.com>
-MIME-Version: 1.0
+Received: from einhorn.in-berlin.de ([192.109.42.8]:43626 "EHLO
+	einhorn.in-berlin.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751212Ab2E1JsK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 28 May 2012 05:48:10 -0400
+Date: Mon, 28 May 2012 11:48:03 +0200
+From: Stefan Richter <stefanr@s5r6.in-berlin.de>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sylwester Nawrocki <snjw23@gmail.com>
+Subject: Re: [RFC PATCH 0/3] Improve Kconfig selection for media devices
+Message-ID: <20120528114803.0d1a4881@stein>
+In-Reply-To: <1338137803-12231-1-git-send-email-mchehab@redhat.com>
+References: <4FC24E34.3000406@redhat.com>
+	<1338137803-12231-1-git-send-email-mchehab@redhat.com>
+Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Subject: Re: [PATCH 2/3] fc001x: tuner driver for FC0012, version 0.5
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-ma 21.5.2012 17:29 Mauro Carvalho Chehab kirjoitti:
-> Em 21-05-2012 00:16, Antti Palosaari escreveu:
->> ma 21.5.2012 5:25 Mauro Carvalho Chehab kirjoitti:
->>> Em 20-05-2012 13:56, Antti Palosaari escreveu:
->>>> Hmm,
->>>> Mauro just merged those FC0012 and FC0013 drivers via my RTL2831U
->>>> tree... It was not my meaning to do that like this.
->>>
->>> This was due to a pull request that you sent me on May, 18, requesting
->>> to pull from:
->>>
->>>   git://linuxtv.org/anttip/media_tree.git rtl2831u
->>
->> http://www.spinics.net/lists/linux-media/msg47992.html
->>
->> I asked to pull last 6 patches. There was few other patches bottom of
->> that
->> due to fact it is always some extra work to jump from tree to other,
->> sync
->> and resolve compilation issues. Those tuner patches were there because I
->> tested and reviewed rtl2832 driver multiple times and tuners were needed
->> for the rtl2832.
->
-> Please, don't apply patches you don't intend to go upstream on a branch
-> that
-> you request me to pull. As I said several times, my import scripts won't
-> check
-> if the patches match the diffstat of the pull request.
->
-> I may eventually add such check on day, but, in that case, what I would do
-> is
-> to simply reject pull requests with wrong diffstats, as other any logic
-> would be
-> too complex to implement, as a pull request doesn't contain changeset
-> hashes,
-> and sometimes the same patch name might be used on two separate changesets
-> (this
-> is a bad practice, but I've seen it some times).
->
-> With regard to the merged patches, if they are really broken, please
-> submit
-> me a patch removing them.
+On May 27 Mauro Carvalho Chehab wrote:
+> The Kconfig building system is improperly selecting some drivers,
+> like analog TV tuners even when this is not required.
+> 
+> Rearrange the Kconfig in a way to prevent that.
+> 
+> Mauro Carvalho Chehab (3):
+>   media: reorganize the main Kconfig items
+>   media: Remove VIDEO_MEDIA Kconfig option
+>   media: only show V4L devices based on device type selection
 
-They are not broken mean of broken. Let those be as it is now and apply
-fixes top of that.
+On 1/3 "media: reorganize the main Kconfig items":
 
-regards
-Antti
+a) I agree with Sylvester that the MEDIA_WEBCAM_SUPP variable, prompt
+text, and help text should be worded a bit more general.  Wouldn't this
+variable also cover industrial cameras and who knows what other kinds of
+video inputs?  I also agree with Sylvester about the SUPP vs. SUPPORT
+thing.
 
+b) Small typo in the MEDIA_ANALOG_TV_SUPP help text:  of -> or.
+
+c) The RC_CORE_SUPP help text gives the impression that RC core is
+always needed if there is hardware with an IR feature.  But the firedtv
+driver is a case where the driver directly works on top of the input
+subsystem rather than on RC core.  Maybe there are more such cases.
+(Currently we don't ask whether FireDTV owners want IR support; we
+silently build the IR part of firedtv in if CONFIG_INPUT is set, and
+silently omit the IR part of firedtv if CONFIG_INPUT was disabled, which
+requires CONFIG_EXPERT.)
+
+How about turning the "Remote Controller support" option into merely a
+filter for standalone IR and RF receivers and transmitters, whereas
+Kconfig options in the analog and digital TV categories silently do
+"select RC_CORE if INPUT" for combined tuner + IR/RF rx/tx hardware?
+-- 
+Stefan Richter
+-=====-===-- -=-= ===--
+http://arcgraph.de/sr/
