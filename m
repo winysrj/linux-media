@@ -1,161 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:51468 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756227Ab2ESKTv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 19 May 2012 06:19:51 -0400
-Received: by mail-we0-f174.google.com with SMTP id u7so2271751wey.19
-        for <linux-media@vger.kernel.org>; Sat, 19 May 2012 03:19:50 -0700 (PDT)
-From: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: =?UTF-8?q?Andr=C3=A9=20Roth?= <neolynx@gmail.com>
-Subject: [PATCH 5/5] renamings for dvb-sat, dvb-scan
-Date: Sat, 19 May 2012 12:18:52 +0200
-Message-Id: <1337422732-2001-5-git-send-email-neolynx@gmail.com>
-In-Reply-To: <1337422732-2001-1-git-send-email-neolynx@gmail.com>
-References: <1337422732-2001-1-git-send-email-neolynx@gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:36132 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753183Ab2E1OmI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 28 May 2012 10:42:08 -0400
+Message-ID: <4FC38EB3.8010000@redhat.com>
+Date: Mon, 28 May 2012 11:41:55 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Stefan Richter <stefanr@s5r6.in-berlin.de>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 2/2] [media] firedtv: Port it to use rc_core
+References: <1338210875-4620-1-git-send-email-mchehab@redhat.com> <1338210875-4620-2-git-send-email-mchehab@redhat.com> <20120528160132.2041d761@stein> <20120528161432.50a6ca45@stein>
+In-Reply-To: <20120528161432.50a6ca45@stein>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
----
- lib/include/dvb-fe.h                   |    2 +-
- lib/include/{libsat.h => dvb-sat.h}    |    0
- lib/include/{libscan.h => dvb-scan.h}  |    0
- lib/libdvbv5/Makefile.am               |    4 ++--
- lib/libdvbv5/descriptors.c             |    2 +-
- lib/libdvbv5/dvb-file.c                |    2 +-
- lib/libdvbv5/{libsat.c => dvb-sat.c}   |    0
- lib/libdvbv5/{libscan.c => dvb-scan.c} |    2 +-
- utils/dvb/dvb-format-convert.c         |    2 +-
- utils/dvb/dvbv5-scan.c                 |    2 +-
- utils/dvb/dvbv5-zap.c                  |    2 +-
- 11 files changed, 9 insertions(+), 9 deletions(-)
- rename lib/include/{libsat.h => dvb-sat.h} (100%)
- rename lib/include/{libscan.h => dvb-scan.h} (100%)
- rename lib/libdvbv5/{libsat.c => dvb-sat.c} (100%)
- rename lib/libdvbv5/{libscan.c => dvb-scan.c} (99%)
+Em 28-05-2012 11:14, Stefan Richter escreveu:
+> On May 28 Stefan Richter wrote:
+>>> +	idev->phys = "/ir0";		/* FIXME */  
+>>
+>> Something similar to drivers/media/dvb/dvb-usb/dvb-usb-remote.c::
+>>
+>> 	usb_make_path(d->udev, d->rc_phys, sizeof(d->rc_phys));
+>> 	strlcat(d->rc_phys, "/ir0", sizeof(d->rc_phys));
+>>
+>> should be implemented for this, right?
+> 
+> PS:
+> The current input device looks like this:
+> 
+> /sys/devices/pci0000:00/0000:00:02.0/0000:02:00.0/0000:03:01.0/0000:04:00.0/fw7/fw7.0/input/input8/device -> ../../../fw7.0
+> 
+> "fw7.0" is dev_name(dev) in fdtv_register_rc() or dev_name(fdtv->device)
+> in general in firedtv.
+> 
+> The last numeric name before fw7, i.e. 0000:04:00.0, is the name of the PCI
+> device of the FireWire controller.  fw7 is the name of the FireDTV node;
+> fw7.0 is the name of the (only) unit within the FireDTV node which
+> implements the DVB receiver and IR receiver.  What would be needed from
+> this?
+> 
+> FWIW, usb_make_path() results in "usb-%s-%s" % (usb_device.bus.bus_name,
+> usb_device.devpath).
 
-diff --git a/lib/include/dvb-fe.h b/lib/include/dvb-fe.h
-index 3fdae4f..0133ff3 100644
---- a/lib/include/dvb-fe.h
-+++ b/lib/include/dvb-fe.h
-@@ -30,7 +30,7 @@
- #include <sys/ioctl.h>
- #include <string.h>
- #include "dvb-frontend.h"
--#include "libsat.h"
-+#include "dvb-sat.h"
- 
- #define dvb_log(fmt, arg...) do {\
-   parms->logfunc(fmt, ##arg); \
-diff --git a/lib/include/libsat.h b/lib/include/dvb-sat.h
-similarity index 100%
-rename from lib/include/libsat.h
-rename to lib/include/dvb-sat.h
-diff --git a/lib/include/libscan.h b/lib/include/dvb-scan.h
-similarity index 100%
-rename from lib/include/libscan.h
-rename to lib/include/dvb-scan.h
-diff --git a/lib/libdvbv5/Makefile.am b/lib/libdvbv5/Makefile.am
-index 67db06a..68bc6da 100644
---- a/lib/libdvbv5/Makefile.am
-+++ b/lib/libdvbv5/Makefile.am
-@@ -18,8 +18,8 @@ libdvbv5_la_SOURCES = \
-   dvb-legacy-channel-format.c \
-   dvb-zap-format.c \
-   descriptors.c descriptors.h \
--  libsat.c ../include/libsat.h \
--  libscan.c ../include/libscan.h \
-+  dvb-sat.c ../include/dvb-sat.h \
-+  dvb-scan.c ../include/dvb-scan.h \
-   parse_string.c parse_string.h
- libdvbv5_la_CPPFLAGS = $(ENFORCE_LIBDVBV5_STATIC)
- libdvbv5_la_LDFLAGS = -version-info 0 $(ENFORCE_LIBDVBV5_STATIC)
-diff --git a/lib/libdvbv5/descriptors.c b/lib/libdvbv5/descriptors.c
-index 249ae6d..63c4b56 100644
---- a/lib/libdvbv5/descriptors.c
-+++ b/lib/libdvbv5/descriptors.c
-@@ -23,7 +23,7 @@
- #include <stdio.h>
- 
- #include "dvb-fe.h"
--#include "libscan.h"
-+#include "dvb-scan.h"
- #include "descriptors.h"
- #include "parse_string.h"
- #include "dvb-frontend.h"
-diff --git a/lib/libdvbv5/dvb-file.c b/lib/libdvbv5/dvb-file.c
-index d7cf13e..0b9ccda 100644
---- a/lib/libdvbv5/dvb-file.c
-+++ b/lib/libdvbv5/dvb-file.c
-@@ -25,7 +25,7 @@
- 
- #include "dvb-file.h"
- #include "dvb-v5-std.h"
--#include "libscan.h"
-+#include "dvb-scan.h"
- 
- static const char *parm_name(const struct parse_table *table)
- {
-diff --git a/lib/libdvbv5/libsat.c b/lib/libdvbv5/dvb-sat.c
-similarity index 100%
-rename from lib/libdvbv5/libsat.c
-rename to lib/libdvbv5/dvb-sat.c
-diff --git a/lib/libdvbv5/libscan.c b/lib/libdvbv5/dvb-scan.c
-similarity index 99%
-rename from lib/libdvbv5/libscan.c
-rename to lib/libdvbv5/dvb-scan.c
-index 7916d36..e0a546c 100644
---- a/lib/libdvbv5/libscan.c
-+++ b/lib/libdvbv5/dvb-scan.c
-@@ -25,7 +25,7 @@
-  *	ETSI EN 300 468 V1.11.1 (2010-04)
-  *****************************************************************************/
- 
--#include "libscan.h"
-+#include "dvb-scan.h"
- #include "dvb-frontend.h"
- #include "descriptors.h"
- #include "parse_string.h"
-diff --git a/utils/dvb/dvb-format-convert.c b/utils/dvb/dvb-format-convert.c
-index 6db5219..cad0f59 100644
---- a/utils/dvb/dvb-format-convert.c
-+++ b/utils/dvb/dvb-format-convert.c
-@@ -33,7 +33,7 @@
- 
- #include "dvb-file.h"
- #include "dvb-demux.h"
--#include "libscan.h"
-+#include "dvb-scan.h"
- 
- #define PROGRAM_NAME	"dvb-format-convert"
- 
-diff --git a/utils/dvb/dvbv5-scan.c b/utils/dvb/dvbv5-scan.c
-index 64945cc..6cabe8e 100644
---- a/utils/dvb/dvbv5-scan.c
-+++ b/utils/dvb/dvbv5-scan.c
-@@ -36,7 +36,7 @@
- #include "dvb-file.h"
- #include "dvb-demux.h"
- #include "dvb-v5-std.h"
--#include "libscan.h"
-+#include "dvb-scan.h"
- 
- #define PROGRAM_NAME	"dvbv5-scan"
- #define DEFAULT_OUTPUT  "dvb_channel.conf"
-diff --git a/utils/dvb/dvbv5-zap.c b/utils/dvb/dvbv5-zap.c
-index 819ca39..b71d77f 100644
---- a/utils/dvb/dvbv5-zap.c
-+++ b/utils/dvb/dvbv5-zap.c
-@@ -38,7 +38,7 @@
- #include <linux/dvb/dmx.h>
- #include "dvb-file.h"
- #include "dvb-demux.h"
--#include "libscan.h"
-+#include "dvb-scan.h"
- 
- #define CHANNEL_FILE	"channels.conf"
- #define PROGRAM_NAME	"dvbv5-zap"
--- 
-1.7.2.5
+IMO, the physical patch is "fw7.0". We add a /ir0 for the first IR device (as a
+driver might have more than one IR).
 
+So, the phys should be "fw7.0/ir0".
+
+Regards,
+Mauro
