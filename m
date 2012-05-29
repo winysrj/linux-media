@@ -1,119 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:8737 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751927Ab2ECMH7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 3 May 2012 08:07:59 -0400
-Message-ID: <4FA27507.3050508@redhat.com>
-Date: Thu, 03 May 2012 09:07:35 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from ams-iport-3.cisco.com ([144.254.224.146]:46875 "EHLO
+	ams-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751022Ab2E2MWu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 29 May 2012 08:22:50 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Ezequiel Garcia <elezegarcia@gmail.com>
+Subject: Re: [RFC/PATCH] media: Add stk1160 new driver
+Date: Tue, 29 May 2012 14:21:49 +0200
+Cc: mchehab@redhat.com, linux-media@vger.kernel.org,
+	hdegoede@redhat.com, snjw23@gmail.com
+References: <1338050460-5902-1-git-send-email-elezegarcia@gmail.com> <201205281222.57917.hverkuil@xs4all.nl> <CALF0-+VHtPuHCzpAydFjaUnp+JkpJOXxJTJoQEURwvBkmA3vgA@mail.gmail.com>
+In-Reply-To: <CALF0-+VHtPuHCzpAydFjaUnp+JkpJOXxJTJoQEURwvBkmA3vgA@mail.gmail.com>
 MIME-Version: 1.0
-To: Sakari Ailus <sakari.ailus@iki.fi>
-CC: Andy Walls <awalls@md.metrocast.net>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	laurent.pinchart@ideasonboard.com, remi@remlab.net,
-	nbowler@elliptictech.com, james.dutton@gmail.com
-Subject: Re: [RFC v3 1/2] v4l: Do not use enums in IOCTL structs
-References: <20120502191324.GE852@valkosipuli.localdomain>  <1335986028-23618-1-git-send-email-sakari.ailus@iki.fi>  <201205022245.22585.hverkuil@xs4all.nl> <4FA1B27A.2030405@redhat.com> <1336005780.24477.7.camel@palomino.walls.org> <4FA25C65.2020700@redhat.com> <4FA25F66.5090100@iki.fi>
-In-Reply-To: <4FA25F66.5090100@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201205291421.49703.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 03-05-2012 07:35, Sakari Ailus escreveu:
-> Hi Mauro,
+On Tue 29 May 2012 14:05:08 Ezequiel Garcia wrote:
+> On Mon, May 28, 2012 at 7:22 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> >
+> > In practice it seems that the easiest approach is not to clean up anything in the
+> > disconnect, just take the lock, do the bare minimum necessary for the disconnect,
+> > unregister the video nodes, unlock and end with v4l2_device_put(v4l2_dev).
+> >
+> > It's a suggestion only, but experience has shown that it works well. And as I said,
+> > when you get multiple device nodes, then this is the only workable approach.
 > 
-> Mauro Carvalho Chehab wrote:
->> Em 02-05-2012 21:42, Andy Walls escreveu:
->>> On Wed, 2012-05-02 at 19:17 -0300, Mauro Carvalho Chehab wrote:
->>>
->>>> We can speed-up the conversions, with something like:
->>>>
->>>> enum foo {
->>>>     BAR
->>>> };
->>>>
->>>> if (sizeof(foo) != sizeof(u32))
->>>>     call_compat_logic().
->>>>
->>>> I suspect that sizeof() won't work inside a macro.
->>>
->>> sizeof() is evaluated at compile time, after preprocessing.
->>> It should work inside of a macro.
->>
->> I tried to compile this small piece of code:
->>
->> enum foo { BAR };
->> #if sizeof(foo) != sizeof(int)
->> void main(void) { printf("different sizes\n"); }
->> #else
->> void main(void) { printf("same size\n"); }
->> #endif
->>
->> It gives an error:
->>
->> /tmp/foo.c:2:11: error: missing binary operator before token "("
->>
->> So, either this doesn't work, because sizeof() is evaluated too late,
->> or some trick is needed.
->>
->> Weird enough, cpp generates the error, but the expression is well-evaluated:
->>
->> $ cpp /tmp/foo.c
->> # 1 "/tmp/foo.c"
->> # 1 "<built-in>"
->> # 1 "<command-line>"
->> # 1 "/tmp/foo.c"
->> /tmp/foo.c:2:11: error: missing binary operator before token "("
->> enum foo { BAR };
+> I'm convinced: it's both cleaner and more logical to use
+> v4l2_release instead of video_device release to the final cleanup.
 > 
-> sizeof() is processed by C compiler while #if is preprocessor directive, and its arguments have to be evaluable by the preprocessor, which is the problem here.
+> >
+> > OK, the general rule is as follows (many drivers do not follow this correctly, BTW,
+> > but this is what should happen):
+> >
+> > - the filehandle that calls REQBUFS owns the buffers and is the only one that can
+> > start/stop streaming and queue/dequeue buffers.
 > 
-> The C compiler can also optimise away things like that but it's more difficult to see whether that takes place or not; one would need to look at the resulting assembly code.
+> and read, poll, etc right?
 
-This code:
+Read yes, but anyone can poll.
 
-void main(void) {
-	if (sizeof(int) == sizeof(char))
-	   	printf("same size\n");
-	else
-		printf("different sizes\n"); 
-}
+> 
+> > This is until REQBUFS with count == 0
+> > is called, or until the filehandle is closed.
+> 
+> Okey. But currently videobuf2 doesn't notify the driver
+> when reqbufs with zero count has been called.
+> 
+> So, I have to "assume" it (aka trouble ahead) or "capture" the zero
+> count case before/after calling vb2_reqbufs (aka ugly).
 
-should be evaluated by the compiler as if (0) and should not generate any code.
+You just check the count after calling vb2_reqbufs. Nothing ugly about it.
 
-The assembler for it is:
+> I humbly think that, if we wan't to enforce this behavior
+> (as part of v4l2 driver semantics)
+> then we should have videobuf2 tell the driver when reqbufs has been
+> called with zero count.
+> 
+> You can take a look at pwc which only drops owner on filehandle close,
 
-	.file	"foo.c"
-	.section	.rodata
-.LC0:
-	.string	"different sizes"
-	.text
-	.globl	main
-	.type	main, @function
-main:
-.LFB0:
-	.cfi_startproc
-	pushq	%rbp
-	.cfi_def_cfa_offset 16
-	.cfi_offset 6, -16
-	movq	%rsp, %rbp
-	.cfi_def_cfa_register 6
-	movl	$.LC0, %edi
-	call	puts
-	popq	%rbp
-	.cfi_def_cfa 7, 8
-	ret
-	.cfi_endproc
-.LFE0:
-	.size	main, .-main
-	.ident	"GCC: (GNU) 4.6.3 20120306 (Red Hat 4.6.3-2)"
-	.section	.note.GNU-stack,"",@progbits
+That's a bug. REQBUFS(0) must drop the owner: you've just released all
+resources related to streaming, so there is no reason to prevent others
+from using them. But I suspect 90% of all drivers do this wrong. Not to
+mention that the old videobuf doesn't handle a count of 0 at all, which is
+a complete violation of the spec. So an application never knows whether
+a count of 0 will work. Lovely... The qv4l2 test tool has some really ugly
+workaround for this :-)
 
-So, gcc will remove the dead code, as expected.
+At some point I'm going to add a test for this to v4l2-compliance...
 
-So, the trick is to do something similar to that on the compat code, in order
-to avoid any penalties when sizeof(enum) is 32 bits.
+> or uvc which captures this from vb2_reqbufs.
+> 
+> After looking at uvc, now I wonder is it really ugly? or perhaps
+> it's just ok.
 
-Regards,
-Mauro
+It would be nice if this was somehow integrated into videobuf2, but not everyone
+liked the idea of vb2 using filehandle information from what I remember. But I
+didn't push for it very hard.
+
+> 
+> 
+> > v4l2_device is a top-level struct, video_device represents a single device node.
+> > For cleanup purposes there isn't much difference between the two if you have
+> > only one device node. When you have more, then those differences are much more
+> > important.
+> 
+> Yes, it's cleaner now.
+> 
+> Thanks!
+> Ezequiel.
+> 
+
+Your welcome!
+
+	Hans
