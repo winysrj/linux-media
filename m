@@ -1,262 +1,595 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:64539 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753826Ab2EXPQE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 May 2012 11:16:04 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Received: from euspt2 ([210.118.77.13]) by mailout3.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0M4J0065T9199O80@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 24 May 2012 16:15:09 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0M4J00E6M92L4D@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 24 May 2012 16:15:58 +0100 (BST)
-Date: Thu, 24 May 2012 17:15:54 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH 5/7] s5p-fimc: Prevent lock-up in multiple sensor systems
-In-reply-to: <1337872556-26406-1-git-send-email-s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: kyungmin.park@samsung.com, m.szyprowski@samsung.com,
-	riverful.kim@samsung.com, sw0312.kim@samsung.com,
-	s.nawrocki@samsung.com
-Message-id: <1337872556-26406-6-git-send-email-s.nawrocki@samsung.com>
-References: <1337872556-26406-1-git-send-email-s.nawrocki@samsung.com>
+Received: from nm9-vm0.bullet.mail.ird.yahoo.com ([77.238.189.197]:45341 "HELO
+	nm9-vm0.bullet.mail.ird.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1750951Ab2E2Ihb convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 29 May 2012 04:37:31 -0400
+Message-ID: <1338280649.4393.YahooMailNeo@web29805.mail.ird.yahoo.com>
+Date: Tue, 29 May 2012 09:37:29 +0100 (BST)
+From: dz <danzax69@yahoo.gr>
+Reply-To: dz <danzax69@yahoo.gr>
+Subject: TurboX Hybrid TV Tuner HTT-1000 SUPPORT?
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-7
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The camera clocks managed by the driver were improperly reference counted
-and remained disabled when multiple video nodes were opened simultaneously.
-It manifested itself with following warning:
+Hello,
+I have bought recently TurboX Hybrid TV Tuner HTT-1000, which don't work on linux at all.
+from lsusb, appears as:
+Bus 001 Device 003: ID 1b80:d418 Afatech 
 
- [12.920000] WARNING: at drivers/media/video/s5p-fimc/fimc-mdevice.c:787 __fimc_md_set_camclk+0x1c0/0x1dc()
- [13.005000] Modules linked in:
- [13.005000] Backtrace:
- [13.040000] [<c0013084>] (dump_backtrace+0x0/0x10c) from [<c0454b70>] (dump_stack+0x18/0x1c)
- [13.070000]  r7:00000009 r6:00000313 r5:c02d576c r4:00000000
- [13.155000] [<c0454b58>] (dump_stack+0x0/0x1c) from [<c0022ec4>] (warn_slowpath_common+0x54/0x6c)
- [13.285000] [<c0022e70>] (warn_slowpath_common+0x0/0x6c) from [<c0022f00>] (warn_slowpath_null+0x24/0x2c)
- [13.360000]  r9:e1981010 r8:00000000 r7:c061d3fc r6:e1981010 r5:e1981030
- [13.430000] r4:00000000
- [13.430000] [<c0022edc>] (warn_slowpath_null+0x0/0x2c) from [<c02d576c>] (__fimc_md_set_camclk+0x1c0/0x1dc)
- [13.550000] [<c02d55ac>] (__fimc_md_set_camclk+0x0/0x1dc) from [<c02d57b0>] (fimc_md_set_camclk+0x28/0x2c)
- [13.630000] [<c02d5788>] (fimc_md_set_camclk+0x0/0x2c) from [<c02d57e8>] (__fimc_pipeline_shutdown+0x34/0x50)
- [13.705000] [<c02d57b4>] (__fimc_pipeline_shutdown+0x0/0x50) from [<c02d5844>] (fimc_pipeline_shutdown+0x40/0x58)
- [13.765000]  r5:e2391200 r4:e2357704
- [13.805000] [<c02d5804>] (fimc_pipeline_shutdown+0x0/0x58) from [<c02d4754>] (fimc_capture_close+0xcc/0xe4)
- [13.915000]  r5:e1b396c0 r4:e2357410
- [13.915000] [<c02d4688>] (fimc_capture_close+0x0/0xe4) from [<c02b2d5c>] (v4l2_release+0x5c/0x80)
- [13.970000]  r7:00000010 r6:e1d2d990 r5:e1b396c0 r4:e2394800
- [14.000000] [<c02b2d00>] (v4l2_release+0x0/0x80) from [<c00b66cc>] (fput+0xc0/0x22c)
- [14.015000]  r5:c157ef30 r4:e1b396c0
- [14.015000] [<c00b660c>] (fput+0x0/0x22c) from [<c00b2ca0>] (filp_close+0x60/0x80)
- [14.080000] [<c00b2c40>] (filp_close+0x0/0x80) from [<c00b2d78>] (sys_close+0xb8/0xf4)
- [14.125000]  r7:00000001 r6:e1b396c0 r5:c1400340 r4:c1400300
- [14.125000] [<c00b2cc0>] (sys_close+0x0/0xf4) from [<c000f300>] (ret_fast_syscall+0x0/0x30)
- [14.205000]  r7:00000006 r6:beee5b94 r5:00000003 r4:b6f64fac
+and no other infos are available.
+dmesg doesn't give any info about it.
 
-Fix this, as well as potential memory leaks due to not calling
-v4l2_fh_release() on some error paths.
+lsusb -v gives these:
 
-Also remove some error logs printed for events that aren't critical and
-are normal conditions for some system configurations.
+-----------------------------------------------------------------------------------
+Bus 001 Device 010: ID 1b80:d418 Afatech 
+Device Descriptor:
+  bLength                18
+  bDescriptorType         1
+  bcdUSB               2.00
+ 
+ bDeviceClass          239 Miscellaneous Device
+  bDeviceSubClass         2 ?
+  bDeviceProtocol         1 Interface Association
+  bMaxPacketSize0        64
+  idVendor           0x1b80 Afatech
+  idProduct          0xd418 
+  bcdDevice           40.01
+  iManufacturer           1 Conexant Corporation
+  iProduct                2 Polaris AV Capture
+  iSerial                 3
+ 0000000000
+  bNumConfigurations      1
+  Configuration Descriptor:
+    bLength                 9
+    bDescriptorType         2
+    wTotalLength          344
+    bNumInterfaces          7
+    bConfigurationValue     1
+    iConfiguration          4 Polaris AV Capture
+    bmAttributes         0xa0
+      (Bus Powered)
+      Remote Wakeup
+   
+ MaxPower              500mA
+    Interface Descriptor:
+      bLength                 9
+      bDescriptorType         4
+      bInterfaceNumber        0
+      bAlternateSetting       0
+      bNumEndpoints           2
+      bInterfaceClass       255 Vendor Specific Class
+      bInterfaceSubClass    255 Vendor Specific Subclass
+      bInterfaceProtocol    255 Vendor
+ Specific Protocol
+      iInterface             32 Polaris AV Capture
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x8e  EP 14 IN
+        bmAttributes            3
+          Transfer Type            Interrupt
+          Synch
+ Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0020  1x 32 bytes
+        bInterval               4
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x0e  EP 14
+ OUT
+        bmAttributes            3
+          Transfer Type            Interrupt
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0020  1x 32 bytes
+        bInterval               4
+    Interface Association:
+     
+ bLength                 8
+      bDescriptorType        11
+      bFirstInterface         1
+      bInterfaceCount         6
+      bFunctionClass        255 Vendor Specific Class
+      bFunctionSubClass     255 Vendor Specific Subclass
+      bFunctionProtocol     255 Vendor Specific Protocol
+      iFunction               0 
+    Interface Descriptor:
+     
+ bLength                 9
+      bDescriptorType         4
+      bInterfaceNumber        1
+      bAlternateSetting       0
+      bNumEndpoints           1
+      bInterfaceClass       255 Vendor Specific Class
+      bInterfaceSubClass    255 Vendor Specific Subclass
+      bInterfaceProtocol    255 Vendor Specific Protocol
+      iInterface              7 Polaris AV
+ Capture
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x8f  EP 15 IN
+        bmAttributes            3
+          Transfer Type            Interrupt
+          Synch Type               None
+          Usage
+ Type               Data
+        wMaxPacketSize     0x0008  1x 8 bytes
+        bInterval               7
+    Interface Descriptor:
+      bLength                 9
+      bDescriptorType         4
+      bInterfaceNumber        2
+      bAlternateSetting       0
+      bNumEndpoints           1
+     
+ bInterfaceClass       255 Vendor Specific Class
+      bInterfaceSubClass    255 Vendor Specific Subclass
+      bInterfaceProtocol    255 Vendor Specific Protocol
+      iInterface              8 Polaris AV Capture
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x81  EP 1 IN
+       
+ bmAttributes            2
+          Transfer Type            Bulk
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0200  1x 512 bytes
+        bInterval               0
+    Interface Descriptor:
+     
+ bLength                 9
+      bDescriptorType         4
+      bInterfaceNumber        2
+      bAlternateSetting       1
+      bNumEndpoints           1
+      bInterfaceClass       255 Vendor Specific Class
+      bInterfaceSubClass    255 Vendor Specific Subclass
+      bInterfaceProtocol    255 Vendor Specific Protocol
+      iInterface              9 Polaris AV
+ Capture
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x81  EP 1 IN
+        bmAttributes            5
+          Transfer Type            Isochronous
+          Synch Type               Asynchronous
+          Usage
+ Type               Data
+        wMaxPacketSize     0x0040  1x 64 bytes
+        bInterval               1
+    Interface Descriptor:
+      bLength                 9
+      bDescriptorType         4
+      bInterfaceNumber        2
+      bAlternateSetting       2
+      bNumEndpoints           1
+     
+ bInterfaceClass       255 Vendor Specific Class
+      bInterfaceSubClass    255 Vendor Specific Subclass
+      bInterfaceProtocol    255 Vendor Specific Protocol
+      iInterface             10 Polaris AV Capture
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x81  EP 1 IN
+        bmAttributes           
+ 5
+          Transfer Type            Isochronous
+          Synch Type               Asynchronous
+          Usage Type               Data
+        wMaxPacketSize     0x0080  1x 128 bytes
+        bInterval               1
+    Interface Descriptor:
+      bLength                 9
+     
+ bDescriptorType         4
+      bInterfaceNumber        2
+      bAlternateSetting       3
+      bNumEndpoints           1
+      bInterfaceClass       255 Vendor Specific Class
+      bInterfaceSubClass    255 Vendor Specific Subclass
+      bInterfaceProtocol    255 Vendor Specific Protocol
+      iInterface             11 Polaris AV Capture
+      Endpoint Descriptor:
+       
+ bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x81  EP 1 IN
+        bmAttributes            5
+          Transfer Type            Isochronous
+          Synch Type               Asynchronous
+          Usage Type              
+ Data
+        wMaxPacketSize     0x013c  1x 316 bytes
+        bInterval               1
+    Interface Descriptor:
+      bLength                 9
+      bDescriptorType         4
+      bInterfaceNumber        2
+      bAlternateSetting       4
+      bNumEndpoints           1
+      bInterfaceClass       255 Vendor Specific
+ Class
+      bInterfaceSubClass    255 Vendor Specific Subclass
+      bInterfaceProtocol    255 Vendor Specific Protocol
+      iInterface             12 Polaris AV Capture
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x81  EP 1 IN
+        bmAttributes            5
+          Transfer
+ Type            Isochronous
+          Synch Type               Asynchronous
+          Usage Type               Data
+        wMaxPacketSize     0x02c8  1x 712 bytes
+        bInterval               1
+    Interface Descriptor:
+      bLength                 9
+      bDescriptorType        
+ 4
+      bInterfaceNumber        2
+      bAlternateSetting       5
+      bNumEndpoints           1
+      bInterfaceClass       255 Vendor Specific Class
+      bInterfaceSubClass    255 Vendor Specific Subclass
+      bInterfaceProtocol    255 Vendor Specific Protocol
+      iInterface             13 Polaris AV Capture
+      Endpoint Descriptor:
+        bLength                
+ 7
+        bDescriptorType         5
+        bEndpointAddress     0x81  EP 1 IN
+        bmAttributes            5
+          Transfer Type            Isochronous
+          Synch Type               Asynchronous
+          Usage Type               Data
+        wMaxPacketSize     0x0ac8  2x 712
+ bytes
+        bInterval               1
+    Interface Descriptor:
+      bLength                 9
+      bDescriptorType         4
+      bInterfaceNumber        3
+      bAlternateSetting       0
+      bNumEndpoints           1
+      bInterfaceClass       255 Vendor Specific Class
+      bInterfaceSubClass    255 Vendor Specific
+ Subclass
+      bInterfaceProtocol    255 Vendor Specific Protocol
+      iInterface             20 Polaris AV Capture
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x83  EP 3 IN
+        bmAttributes            2
+          Transfer Type           
+ Bulk
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0200  1x 512 bytes
+        bInterval               0
+    Interface Descriptor:
+      bLength                 9
+      bDescriptorType         4
+      bInterfaceNumber       
+ 3
+      bAlternateSetting       1
+      bNumEndpoints           1
+      bInterfaceClass       255 Vendor Specific Class
+      bInterfaceSubClass    255 Vendor Specific Subclass
+      bInterfaceProtocol    255 Vendor Specific Protocol
+      iInterface             21 Polaris AV Capture
+      Endpoint Descriptor:
+        bLength                 7
+       
+ bDescriptorType         5
+        bEndpointAddress     0x83  EP 3 IN
+        bmAttributes            5
+          Transfer Type            Isochronous
+          Synch Type               Asynchronous
+          Usage Type               Data
+        wMaxPacketSize     0x001c  1x 28 bytes
+       
+ bInterval               1
+    Interface Descriptor:
+      bLength                 9
+      bDescriptorType         4
+      bInterfaceNumber        3
+      bAlternateSetting       2
+      bNumEndpoints           1
+      bInterfaceClass       255 Vendor Specific Class
+      bInterfaceSubClass    255 Vendor Specific Subclass
+      bInterfaceProtocol    255
+ Vendor Specific Protocol
+      iInterface             22 Polaris AV Capture
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x83  EP 3 IN
+        bmAttributes            5
+          Transfer Type            Isochronous
+          Synch
+ Type               Asynchronous
+          Usage Type               Data
+        wMaxPacketSize     0x0034  1x 52 bytes
+        bInterval               1
+    Interface Descriptor:
+      bLength                 9
+      bDescriptorType         4
+      bInterfaceNumber        4
+     
+ bAlternateSetting       0
+      bNumEndpoints           1
+      bInterfaceClass       255 Vendor Specific Class
+      bInterfaceSubClass    255 Vendor Specific Subclass
+      bInterfaceProtocol    255 Vendor Specific Protocol
+      iInterface             23 Polaris AV Capture
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType        
+ 5
+        bEndpointAddress     0x84  EP 4 IN
+        bmAttributes            2
+          Transfer Type            Bulk
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0200  1x 512 bytes
+        bInterval              
+ 0
+    Interface Descriptor:
+      bLength                 9
+      bDescriptorType         4
+      bInterfaceNumber        4
+      bAlternateSetting       1
+      bNumEndpoints           1
+      bInterfaceClass       255 Vendor Specific Class
+      bInterfaceSubClass    255 Vendor Specific Subclass
+      bInterfaceProtocol    255 Vendor Specific Protocol
+     
+ iInterface             24 Polaris AV Capture
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x84  EP 4 IN
+        bmAttributes            5
+          Transfer Type            Isochronous
+          Synch Type              
+ Asynchronous
+          Usage Type               Data
+        wMaxPacketSize     0x00b8  1x 184 bytes
+        bInterval               1
+    Interface Descriptor:
+      bLength                 9
+      bDescriptorType         4
+      bInterfaceNumber        4
+      bAlternateSetting       2
+     
+ bNumEndpoints           1
+      bInterfaceClass       255 Vendor Specific Class
+      bInterfaceSubClass    255 Vendor Specific Subclass
+      bInterfaceProtocol    255 Vendor Specific Protocol
+      iInterface             25 Polaris AV Capture
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x84  EP 4
+ IN
+        bmAttributes            5
+          Transfer Type            Isochronous
+          Synch Type               Asynchronous
+          Usage Type               Data
+        wMaxPacketSize     0x02d8  1x 728 bytes
+        bInterval               1
+    Interface Descriptor:
+     
+ bLength                 9
+      bDescriptorType         4
+      bInterfaceNumber        4
+      bAlternateSetting       3
+      bNumEndpoints           1
+      bInterfaceClass       255 Vendor Specific Class
+      bInterfaceSubClass    255 Vendor Specific Subclass
+      bInterfaceProtocol    255 Vendor Specific Protocol
+      iInterface             26 Polaris AV
+ Capture
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x84  EP 4 IN
+        bmAttributes            5
+          Transfer Type            Isochronous
+          Synch Type               Asynchronous
+          Usage
+ Type               Data
+        wMaxPacketSize     0x13c4  3x 964 bytes
+        bInterval               1
+    Interface Descriptor:
+      bLength                 9
+      bDescriptorType         4
+      bInterfaceNumber        4
+      bAlternateSetting       4
+      bNumEndpoints           1
+     
+ bInterfaceClass       255 Vendor Specific Class
+      bInterfaceSubClass    255 Vendor Specific Subclass
+      bInterfaceProtocol    255 Vendor Specific Protocol
+      iInterface             27 Polaris AV Capture
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x84  EP 4 IN
+        bmAttributes           
+ 5
+          Transfer Type            Isochronous
+          Synch Type               Asynchronous
+          Usage Type               Data
+        wMaxPacketSize     0x0b84  2x 900 bytes
+        bInterval               1
+    Interface Descriptor:
+      bLength                 9
+     
+ bDescriptorType         4
+      bInterfaceNumber        5
+      bAlternateSetting       0
+      bNumEndpoints           1
+      bInterfaceClass       255 Vendor Specific Class
+      bInterfaceSubClass    255 Vendor Specific Subclass
+      bInterfaceProtocol    255 Vendor Specific Protocol
+      iInterface             28 Polaris AV Capture
+      Endpoint Descriptor:
+       
+ bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x85  EP 5 IN
+        bmAttributes            2
+          Transfer Type            Bulk
+          Synch Type               None
+          Usage Type               Data
+       
+ wMaxPacketSize     0x0200  1x 512 bytes
+        bInterval               0
+    Interface Descriptor:
+      bLength                 9
+      bDescriptorType         4
+      bInterfaceNumber        5
+      bAlternateSetting       1
+      bNumEndpoints           1
+      bInterfaceClass       255 Vendor Specific Class
+     
+ bInterfaceSubClass    255 Vendor Specific Subclass
+      bInterfaceProtocol    255 Vendor Specific Protocol
+      iInterface             31 Polaris AV Capture
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x05  EP 5 OUT
+        bmAttributes            2
+          Transfer
+ Type            Bulk
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0200  1x 512 bytes
+        bInterval               1
+    Interface Descriptor:
+      bLength                 9
+      bDescriptorType         4
+     
+ bInterfaceNumber        6
+      bAlternateSetting       0
+      bNumEndpoints           1
+      bInterfaceClass       255 Vendor Specific Class
+      bInterfaceSubClass    255 Vendor Specific Subclass
+      bInterfaceProtocol    255 Vendor Specific Protocol
+      iInterface             29 Polaris AV Capture
+      Endpoint Descriptor:
+        bLength                 7
+       
+ bDescriptorType         5
+        bEndpointAddress     0x86  EP 6 IN
+        bmAttributes            2
+          Transfer Type            Bulk
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0200  1x 512 bytes
+       
+ bInterval               0
+    Interface Descriptor:
+      bLength                 9
+      bDescriptorType         4
+      bInterfaceNumber        6
+      bAlternateSetting       1
+      bNumEndpoints           1
+      bInterfaceClass       255 Vendor Specific Class
+      bInterfaceSubClass    255 Vendor Specific Subclass
+      bInterfaceProtocol    255
+ Vendor Specific Protocol
+      iInterface             30 Polaris AV Capture
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x86  EP 6 IN
+        bmAttributes            5
+          Transfer Type            Isochronous
+          Synch
+ Type               Asynchronous
+          Usage Type               Data
+        wMaxPacketSize     0x0240  1x 576 bytes
+        bInterval               1
+Device Qualifier (for other device speed):
+  bLength                10
+  bDescriptorType         6
+  bcdUSB               2.00
+  bDeviceClass          239 Miscellaneous Device
+ 
+ bDeviceSubClass         2 ?
+  bDeviceProtocol         1 Interface Association
+  bMaxPacketSize0        64
+  bNumConfigurations      1
+Device Status:     0x0000
+  (Bus Powered)
+------------------------------------------------------------------------------
+I've extracted the firmware from windows driver and found that is the v4l-cx25840.fw.
+Also from what I can see from device' s chips labels, seems that has
+the cx231xx (appears as CX23102-11Z)
+and RTL 2832.
 
-Also check if the device have been properly run-time enabled during
-video node open.
+Here all the infos on the card:
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/video/s5p-fimc/fimc-capture.c |   46 ++++++++++++++-------------
- drivers/media/video/s5p-fimc/fimc-lite.c    |   14 ++++----
- drivers/media/video/s5p-fimc/fimc-mdevice.c |   19 ++++-------
- drivers/media/video/s5p-fimc/fimc-mdevice.h |    2 --
- 4 files changed, 38 insertions(+), 43 deletions(-)
+-----------------------------------------------------------------------------------------------------------------
+-------Hybrid TV Tuner HTT-1000--------------------
 
-diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c b/drivers/media/video/s5p-fimc/fimc-capture.c
-index 0fd12df..71e4838 100644
---- a/drivers/media/video/s5p-fimc/fimc-capture.c
-+++ b/drivers/media/video/s5p-fimc/fimc-capture.c
-@@ -480,37 +480,39 @@ static int fimc_capture_set_default_format(struct fimc_dev *fimc);
- static int fimc_capture_open(struct file *file)
- {
- 	struct fimc_dev *fimc = video_drvdata(file);
--	int ret = v4l2_fh_open(file);
--
--	if (ret)
--		return ret;
-+	int ret;
- 
- 	dbg("pid: %d, state: 0x%lx", task_pid_nr(current), fimc->state);
- 
--	/* Return if the corresponding video mem2mem node is already opened. */
- 	if (fimc_m2m_active(fimc))
- 		return -EBUSY;
- 
- 	set_bit(ST_CAPT_BUSY, &fimc->state);
--	pm_runtime_get_sync(&fimc->pdev->dev);
--
--	if (++fimc->vid_cap.refcnt == 1) {
--		ret = fimc_pipeline_initialize(&fimc->pipeline,
--			       &fimc->vid_cap.vfd->entity, true);
--		if (ret < 0) {
--			dev_err(&fimc->pdev->dev,
--				"Video pipeline initialization failed\n");
--			clear_bit(ST_CAPT_BUSY, &fimc->state);
--			pm_runtime_put_sync(&fimc->pdev->dev);
--			fimc->vid_cap.refcnt--;
--			v4l2_fh_release(file);
--			return ret;
--		}
--		ret = fimc_capture_ctrls_create(fimc);
-+	ret = pm_runtime_get_sync(&fimc->pdev->dev);
-+	if (ret < 0)
-+		return ret;
-+
-+	ret = v4l2_fh_open(file);
-+	if (ret)
-+		return ret;
-+
-+	if (++fimc->vid_cap.refcnt != 1)
-+		return 0;
- 
--		if (!ret && !fimc->vid_cap.user_subdev_api)
--			ret = fimc_capture_set_default_format(fimc);
-+	ret = fimc_pipeline_initialize(&fimc->pipeline,
-+				       &fimc->vid_cap.vfd->entity, true);
-+	if (ret < 0) {
-+		clear_bit(ST_CAPT_BUSY, &fimc->state);
-+		pm_runtime_put_sync(&fimc->pdev->dev);
-+		fimc->vid_cap.refcnt--;
-+		v4l2_fh_release(file);
-+		return ret;
- 	}
-+	ret = fimc_capture_ctrls_create(fimc);
-+
-+	if (!ret && !fimc->vid_cap.user_subdev_api)
-+		ret = fimc_capture_set_default_format(fimc);
-+
- 	return ret;
- }
- 
-diff --git a/drivers/media/video/s5p-fimc/fimc-lite.c b/drivers/media/video/s5p-fimc/fimc-lite.c
-index 400d701a..bbe93e4 100644
---- a/drivers/media/video/s5p-fimc/fimc-lite.c
-+++ b/drivers/media/video/s5p-fimc/fimc-lite.c
-@@ -451,21 +451,23 @@ static void fimc_lite_clear_event_counters(struct fimc_lite *fimc)
- static int fimc_lite_open(struct file *file)
- {
- 	struct fimc_lite *fimc = video_drvdata(file);
--	int ret = v4l2_fh_open(file);
--
--	if (ret)
--		return ret;
-+	int ret;
- 
- 	set_bit(ST_FLITE_IN_USE, &fimc->state);
--	pm_runtime_get_sync(&fimc->pdev->dev);
-+	ret = pm_runtime_get_sync(&fimc->pdev->dev);
-+	if (ret < 0)
-+		return ret;
- 
- 	if (++fimc->ref_count != 1 || fimc->out_path != FIMC_IO_DMA)
-+		return 0;
-+
-+	ret = v4l2_fh_open(file);
-+	if (ret < 0)
- 		return ret;
- 
- 	ret = fimc_pipeline_initialize(&fimc->pipeline, &fimc->vfd->entity,
- 				       true);
- 	if (ret < 0) {
--		v4l2_err(fimc->vfd, "Video pipeline initialization failed\n");
- 		pm_runtime_put_sync(&fimc->pdev->dev);
- 		fimc->ref_count--;
- 		v4l2_fh_release(file);
-diff --git a/drivers/media/video/s5p-fimc/fimc-mdevice.c b/drivers/media/video/s5p-fimc/fimc-mdevice.c
-index dffe4da..52cef48 100644
---- a/drivers/media/video/s5p-fimc/fimc-mdevice.c
-+++ b/drivers/media/video/s5p-fimc/fimc-mdevice.c
-@@ -741,8 +741,8 @@ static void fimc_md_put_clocks(struct fimc_md *fmd)
- }
- 
- static int __fimc_md_set_camclk(struct fimc_md *fmd,
--					 struct fimc_sensor_info *s_info,
--					 bool on)
-+				struct fimc_sensor_info *s_info,
-+				bool on)
- {
- 	struct s5p_fimc_isp_info *pdata = s_info->pdata;
- 	struct fimc_camclk_info *camclk;
-@@ -751,12 +751,10 @@ static int __fimc_md_set_camclk(struct fimc_md *fmd,
- 	if (WARN_ON(pdata->clk_id >= FIMC_MAX_CAMCLKS) || fmd == NULL)
- 		return -EINVAL;
- 
--	if (s_info->clk_on == on)
--		return 0;
- 	camclk = &fmd->camclk[pdata->clk_id];
- 
--	dbg("camclk %d, f: %lu, clk: %p, on: %d",
--	    pdata->clk_id, pdata->clk_frequency, camclk, on);
-+	dbg("camclk %d, f: %lu, use_count: %d, on: %d",
-+	    pdata->clk_id, pdata->clk_frequency, camclk->use_count, on);
- 
- 	if (on) {
- 		if (camclk->use_count > 0 &&
-@@ -767,11 +765,9 @@ static int __fimc_md_set_camclk(struct fimc_md *fmd,
- 			clk_set_rate(camclk->clock, pdata->clk_frequency);
- 			camclk->frequency = pdata->clk_frequency;
- 			ret = clk_enable(camclk->clock);
-+			dbg("Enabled camclk %d: f: %lu", pdata->clk_id,
-+			    clk_get_rate(camclk->clock));
- 		}
--		s_info->clk_on = 1;
--		dbg("Enabled camclk %d: f: %lu", pdata->clk_id,
--		    clk_get_rate(camclk->clock));
--
- 		return ret;
- 	}
- 
-@@ -780,7 +776,6 @@ static int __fimc_md_set_camclk(struct fimc_md *fmd,
- 
- 	if (--camclk->use_count == 0) {
- 		clk_disable(camclk->clock);
--		s_info->clk_on = 0;
- 		dbg("Disabled camclk %d", pdata->clk_id);
- 	}
- 	return ret;
-@@ -796,8 +791,6 @@ static int __fimc_md_set_camclk(struct fimc_md *fmd,
-  * devices to which sensors can be attached, either directly or through
-  * the MIPI CSI receiver. The clock is allowed here to be used by
-  * multiple sensors concurrently if they use same frequency.
-- * The per sensor subdev clk_on attribute helps to synchronize accesses
-- * to the sclk_cam clocks from the video and media device nodes.
-  * This function should only be called when the graph mutex is held.
-  */
- int fimc_md_set_camclk(struct v4l2_subdev *sd, bool on)
-diff --git a/drivers/media/video/s5p-fimc/fimc-mdevice.h b/drivers/media/video/s5p-fimc/fimc-mdevice.h
-index 3b8a349..1f5dbaf 100644
---- a/drivers/media/video/s5p-fimc/fimc-mdevice.h
-+++ b/drivers/media/video/s5p-fimc/fimc-mdevice.h
-@@ -47,7 +47,6 @@ struct fimc_camclk_info {
-  * @pdata: sensor's atrributes passed as media device's platform data
-  * @subdev: image sensor v4l2 subdev
-  * @host: fimc device the sensor is currently linked to
-- * @clk_on: sclk_cam clock's state associated with this subdev
-  *
-  * This data structure applies to image sensor and the writeback subdevs.
-  */
-@@ -55,7 +54,6 @@ struct fimc_sensor_info {
- 	struct s5p_fimc_isp_info *pdata;
- 	struct v4l2_subdev *subdev;
- 	struct fimc_dev *host;
--	bool clk_on;
- };
- 
- /**
--- 
-1.7.10
+CX23102-11Z
+N2F644.05
+1031 SG
 
+RTL
+ 2832
+BAD 70A1
+    GB46D
+
+HU 4122 ver: c.
+FKX E315599
+1150 94v-0
+
+
+HT24L C02
+B117P1315G3
+
+N28.800
+8D20PB
+
+BGM2
+48M
+
+
+      18272/M
+N
+X   cs7113
+P        05
+TXD11441
+
+NTK
+16.000 F
+
+
+CO2-1C0002  HU4122-D
+13020-10200-05020-G
+           021
+--------------------------------------------------------------------------------------------------------------------------------
+
+So, I think that can be work but I don' t know how to input the informations, so the v4-dvb can load it.
+I've read the related stuf on wiki, but I can really understand what needed to be done for my situation. 
+
+Any help, or guides?
