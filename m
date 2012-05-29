@@ -1,43 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:57603 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757400Ab2ENVBe (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:42375 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752624Ab2E2JVr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 May 2012 17:01:34 -0400
-Received: by weyu7 with SMTP id u7so2069074wey.19
-        for <linux-media@vger.kernel.org>; Mon, 14 May 2012 14:01:33 -0700 (PDT)
-Message-ID: <1337029277.6384.2.camel@router7789>
-Subject: [PATCH] rc-it913x=v2 Incorrect assigned KEY_1
-From: Malcolm Priestley <tvboxspy@gmail.com>
-To: linux-media@vger.kernel.org
-Date: Mon, 14 May 2012 22:01:17 +0100
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Mime-Version: 1.0
+	Tue, 29 May 2012 05:21:47 -0400
+Date: Tue, 29 May 2012 11:21:42 +0200
+From: Sascha Hauer <s.hauer@pengutronix.de>
+To: Fabio Estevam <festevam@gmail.com>
+Cc: kernel@pengutronix.de, shawn.guo@freescale.com,
+	Fabio Estevam <fabio.estevam@freescale.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 08/15] video: mx2_emmaprp: Use
+ clk_prepare_enable/clk_disable_unprepare
+Message-ID: <20120529092142.GK30400@pengutronix.de>
+References: <1337987696-31728-1-git-send-email-festevam@gmail.com>
+ <1337987696-31728-8-git-send-email-festevam@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1337987696-31728-8-git-send-email-festevam@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Correct incorrect scancode for KEY_1
+On Fri, May 25, 2012 at 08:14:49PM -0300, Fabio Estevam wrote:
+> From: Fabio Estevam <fabio.estevam@freescale.com>
+> 
+> Prepare the clock before enabling it.
+> 
+> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> Cc: <linux-media@vger.kernel.org>
+> Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
 
-Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
----
- drivers/media/rc/keymaps/rc-it913x-v2.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Acked-by: Sascha Hauer <s.hauer@pengutronix.de>
 
-diff --git a/drivers/media/rc/keymaps/rc-it913x-v2.c b/drivers/media/rc/keymaps/rc-it913x-v2.c
-index 28e376e..bd42a30 100644
---- a/drivers/media/rc/keymaps/rc-it913x-v2.c
-+++ b/drivers/media/rc/keymaps/rc-it913x-v2.c
-@@ -40,7 +40,7 @@ static struct rc_map_table it913x_v2_rc[] = {
- 	/* Type 2 */
- 	/* keys stereo, snapshot unassigned */
- 	{ 0x866b00, KEY_0 },
--	{ 0x866b1b, KEY_1 },
-+	{ 0x866b01, KEY_1 },
- 	{ 0x866b02, KEY_2 },
- 	{ 0x866b03, KEY_3 },
- 	{ 0x866b04, KEY_4 },
+> ---
+>  drivers/media/video/mx2_emmaprp.c |    4 ++--
+>  1 files changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/video/mx2_emmaprp.c b/drivers/media/video/mx2_emmaprp.c
+> index 0bd5815..b364557 100644
+> --- a/drivers/media/video/mx2_emmaprp.c
+> +++ b/drivers/media/video/mx2_emmaprp.c
+> @@ -800,7 +800,7 @@ static int emmaprp_open(struct file *file)
+>  		return ret;
+>  	}
+>  
+> -	clk_enable(pcdev->clk_emma);
+> +	clk_prepare_enable(pcdev->clk_emma);
+>  	ctx->q_data[V4L2_M2M_SRC].fmt = &formats[1];
+>  	ctx->q_data[V4L2_M2M_DST].fmt = &formats[0];
+>  
+> @@ -816,7 +816,7 @@ static int emmaprp_release(struct file *file)
+>  
+>  	dprintk(pcdev, "Releasing instance %p\n", ctx);
+>  
+> -	clk_disable(pcdev->clk_emma);
+> +	clk_disable_unprepare(pcdev->clk_emma);
+>  	v4l2_m2m_ctx_release(ctx->m2m_ctx);
+>  	kfree(ctx);
+>  
+> -- 
+> 1.7.1
+> 
+> 
+
 -- 
-1.7.9.5
-
-
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
