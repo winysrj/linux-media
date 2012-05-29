@@ -1,149 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:3779 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753438Ab2EFM2l (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 6 May 2012 08:28:41 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans de Goede <hdegoede@redhat.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv2 PATCH 08/17] gspca: fix locking issues related to suspend/resume.
-Date: Sun,  6 May 2012 14:28:22 +0200
-Message-Id: <a4f3c638d6b9cc93f143ffecc3a8025562319faa.1336305565.git.hans.verkuil@cisco.com>
-In-Reply-To: <1336307311-10227-1-git-send-email-hverkuil@xs4all.nl>
-References: <1336307311-10227-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <a5a075c580858f4484be5c4cfadd195492858505.1336305565.git.hans.verkuil@cisco.com>
-References: <a5a075c580858f4484be5c4cfadd195492858505.1336305565.git.hans.verkuil@cisco.com>
+Received: from mx1.redhat.com ([209.132.183.28]:38809 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751267Ab2E2JO3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 29 May 2012 05:14:29 -0400
+Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q4T9ESAU012259
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Tue, 29 May 2012 05:14:28 -0400
+Received: from shalem.localdomain (vpn1-6-204.ams2.redhat.com [10.36.6.204])
+	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id q4T9ERZw023129
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Tue, 29 May 2012 05:14:28 -0400
+Message-ID: <4FC4937C.1060301@redhat.com>
+Date: Tue, 29 May 2012 11:14:36 +0200
+From: Hans de Goede <hdegoede@redhat.com>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [GIT PULL FIXES FOR 3.5]: gspca & radio fixes (updated 3x)
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Mauro et al,
 
-There are two bugs here: first the calls to stop0 (in gspca_suspend) and
-gspca_init_transfer (in gspca_resume) need to be called with the usb_lock held.
-That's true for the other places they are called and it is what subdrivers
-expect. Quite a few will unlock the usb_lock in stop0 while waiting for a
-worker thread to finish, and if usb_lock isn't held then that can cause a
-kernel oops.
+<updated again to include 2 gspca fixes from Jean-François Moine>
 
-The other problem is that a worker thread needs to detect that it has to
-halt due to a suspend. Otherwise it will just go on looping. So add tests
-against gspca_dev->frozen in the worker threads that need it.
+Here is a bunch of fixes for gspca and a couple of fixes for
+good old radio support :)
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/video/gspca/finepix.c   |    2 +-
- drivers/media/video/gspca/gspca.c     |   15 +++++++++++----
- drivers/media/video/gspca/jl2005bcd.c |    2 +-
- drivers/media/video/gspca/sq905.c     |    2 +-
- drivers/media/video/gspca/sq905c.c    |    2 +-
- drivers/media/video/gspca/vicam.c     |    2 +-
- 6 files changed, 16 insertions(+), 9 deletions(-)
+The following changes since commit abed623ca59a7d1abed6c4e7459be03e25a90a1e:
 
-diff --git a/drivers/media/video/gspca/finepix.c b/drivers/media/video/gspca/finepix.c
-index 0107513..1d11976 100644
---- a/drivers/media/video/gspca/finepix.c
-+++ b/drivers/media/video/gspca/finepix.c
-@@ -102,7 +102,7 @@ again:
- 		mutex_unlock(&gspca_dev->usb_lock);
- 		if (ret < 0)
- 			break;
--		if (!gspca_dev->present || !gspca_dev->streaming)
-+		if (gspca_dev->frozen || !gspca_dev->present || !gspca_dev->streaming)
- 			break;
- 
- 		/* the frame comes in parts */
-diff --git a/drivers/media/video/gspca/gspca.c b/drivers/media/video/gspca/gspca.c
-index 730d8eb..f840bed 100644
---- a/drivers/media/video/gspca/gspca.c
-+++ b/drivers/media/video/gspca/gspca.c
-@@ -2499,8 +2499,11 @@ int gspca_suspend(struct usb_interface *intf, pm_message_t message)
- 	destroy_urbs(gspca_dev);
- 	gspca_input_destroy_urb(gspca_dev);
- 	gspca_set_alt0(gspca_dev);
--	if (gspca_dev->sd_desc->stop0)
-+	if (gspca_dev->sd_desc->stop0) {
-+		mutex_lock(&gspca_dev->usb_lock);
- 		gspca_dev->sd_desc->stop0(gspca_dev);
-+		mutex_unlock(&gspca_dev->usb_lock);
-+	}
- 	return 0;
- }
- EXPORT_SYMBOL(gspca_suspend);
-@@ -2508,14 +2511,18 @@ EXPORT_SYMBOL(gspca_suspend);
- int gspca_resume(struct usb_interface *intf)
- {
- 	struct gspca_dev *gspca_dev = usb_get_intfdata(intf);
-+	int ret = 0;
- 
- 	gspca_dev->frozen = 0;
- 	gspca_dev->sd_desc->init(gspca_dev);
- 	gspca_set_default_mode(gspca_dev);
- 	gspca_input_create_urb(gspca_dev);
--	if (gspca_dev->streaming)
--		return gspca_init_transfer(gspca_dev);
--	return 0;
-+	if (gspca_dev->streaming) {
-+		mutex_lock(&gspca_dev->queue_lock);
-+		ret = gspca_init_transfer(gspca_dev);
-+		mutex_unlock(&gspca_dev->queue_lock);
-+	}
-+	return ret;
- }
- EXPORT_SYMBOL(gspca_resume);
- #endif
-diff --git a/drivers/media/video/gspca/jl2005bcd.c b/drivers/media/video/gspca/jl2005bcd.c
-index 53f58ef..f5b88e9 100644
---- a/drivers/media/video/gspca/jl2005bcd.c
-+++ b/drivers/media/video/gspca/jl2005bcd.c
-@@ -335,7 +335,7 @@ static void jl2005c_dostream(struct work_struct *work)
- 		goto quit_stream;
- 	}
- 
--	while (gspca_dev->present && gspca_dev->streaming) {
-+	while (!gspca_dev->frozen && gspca_dev->present && gspca_dev->streaming) {
- 		/* Check if this is a new frame. If so, start the frame first */
- 		if (!header_read) {
- 			mutex_lock(&gspca_dev->usb_lock);
-diff --git a/drivers/media/video/gspca/sq905.c b/drivers/media/video/gspca/sq905.c
-index 2fe3c29..7b72a20 100644
---- a/drivers/media/video/gspca/sq905.c
-+++ b/drivers/media/video/gspca/sq905.c
-@@ -232,7 +232,7 @@ static void sq905_dostream(struct work_struct *work)
- 	frame_sz = gspca_dev->cam.cam_mode[gspca_dev->curr_mode].sizeimage
- 			+ FRAME_HEADER_LEN;
- 
--	while (gspca_dev->present && gspca_dev->streaming) {
-+	while (!gspca_dev->frozen && gspca_dev->present && gspca_dev->streaming) {
- 		/* request some data and then read it until we have
- 		 * a complete frame. */
- 		bytes_left = frame_sz;
-diff --git a/drivers/media/video/gspca/sq905c.c b/drivers/media/video/gspca/sq905c.c
-index ae78363..52e42ca 100644
---- a/drivers/media/video/gspca/sq905c.c
-+++ b/drivers/media/video/gspca/sq905c.c
-@@ -150,7 +150,7 @@ static void sq905c_dostream(struct work_struct *work)
- 		goto quit_stream;
- 	}
- 
--	while (gspca_dev->present && gspca_dev->streaming) {
-+	while (!gspca_dev->frozen && gspca_dev->present && gspca_dev->streaming) {
- 		/* Request the header, which tells the size to download */
- 		ret = usb_bulk_msg(gspca_dev->dev,
- 				usb_rcvbulkpipe(gspca_dev->dev, 0x81),
-diff --git a/drivers/media/video/gspca/vicam.c b/drivers/media/video/gspca/vicam.c
-index e48ec4d..0d532ec 100644
---- a/drivers/media/video/gspca/vicam.c
-+++ b/drivers/media/video/gspca/vicam.c
-@@ -225,7 +225,7 @@ static void vicam_dostream(struct work_struct *work)
- 		goto exit;
- 	}
- 
--	while (gspca_dev->present && gspca_dev->streaming) {
-+	while (!gspca_dev->frozen && gspca_dev->present && gspca_dev->streaming) {
- 		ret = vicam_read_frame(gspca_dev, buffer, frame_sz);
- 		if (ret < 0)
- 			break;
--- 
-1.7.10
+   [media] radio-sf16fmi: add support for SF16-FMD (2012-05-20 16:10:05 -0300)
 
+are available in the git repository at:
+
+   git://linuxtv.org/hgoede/gspca.git media-for_v3.5
+
+for you to fetch changes up to 2856acfae0a84b3cb4af049d17c09593d6b1b2d3:
+
+   gspca - sonixj: Fix bad values of webcam 0458:7025 (2012-05-29 11:11:10 +0200)
+
+----------------------------------------------------------------
+Antonio Ospite (1):
+       gspca_ov534: make AGC and AWB controls independent
+
+Hans de Goede (10):
+       radio/si470x: Add support for the Axentia ALERT FM USB Receiver
+       snd_tea575x: Report correct frequency range for EU/US versus JA models
+       snd_tea575x: Make the module using snd_tea575x the fops owner
+       snd_tea575x: set_freq: update cached freq to the actual achieved frequency
+       bttv: Use btv->has_radio rather then the card info when registering the tuner
+       bttv: Remove unused needs_tvaudio card variable
+       bttv: The Hauppauge 61334 needs the msp3410 to do radio demodulation
+       gspca_pac7311: Correct number of controls
+       gscpa_sn9c20x: Move clustering of controls to after error checking
+       gspca-core: Fix buffers staying in queued state after a stream_off
+
+Jean-Francois Moine (2):
+       gspca - ov534/ov534_9: Fix sccd_read/write errors
+       gspca - sonixj: Fix bad values of webcam 0458:7025
+
+  drivers/hid/hid-core.c                        |    1 +
+  drivers/hid/hid-ids.h                         |    3 +
+  drivers/media/radio/radio-maxiradio.c         |    2 +-
+  drivers/media/radio/radio-sf16fmr2.c          |    2 +-
+  drivers/media/radio/si470x/radio-si470x-usb.c |    2 +
+  drivers/media/video/bt8xx/bttv-cards.c        |   84 ++-----------------------
+  drivers/media/video/bt8xx/bttv-driver.c       |    5 ++
+  drivers/media/video/bt8xx/bttv.h              |    1 -
+  drivers/media/video/bt8xx/bttvp.h             |    1 +
+  drivers/media/video/gspca/gspca.c             |    4 +-
+  drivers/media/video/gspca/ov534.c             |   32 +---------
+  drivers/media/video/gspca/ov534_9.c           |    1 +
+  drivers/media/video/gspca/pac7311.c           |    2 +-
+  drivers/media/video/gspca/sn9c20x.c           |   24 ++++---
+  drivers/media/video/gspca/sonixj.c            |    2 +-
+  include/sound/tea575x-tuner.h                 |    3 +-
+  sound/i2c/other/tea575x-tuner.c               |   21 ++++---
+  sound/pci/es1968.c                            |    2 +-
+  sound/pci/fm801.c                             |    4 +-
+  19 files changed, 62 insertions(+), 134 deletions(-)
+
+Regards,
+
+Hans
