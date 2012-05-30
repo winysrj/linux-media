@@ -1,103 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f42.google.com ([74.125.82.42]:65375 "EHLO
-	mail-wg0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752513Ab2EQVI3 (ORCPT
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:33595 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752573Ab2E3Tnm convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 May 2012 17:08:29 -0400
-Received: by wgbds11 with SMTP id ds11so320497wgb.1
-        for <linux-media@vger.kernel.org>; Thu, 17 May 2012 14:08:28 -0700 (PDT)
-Message-ID: <4FB568C9.70407@gmail.com>
-Date: Thu, 17 May 2012 23:08:25 +0200
-From: poma <pomidorabelisima@gmail.com>
+	Wed, 30 May 2012 15:43:42 -0400
+Received: by yhmm54 with SMTP id m54so191479yhm.19
+        for <linux-media@vger.kernel.org>; Wed, 30 May 2012 12:43:42 -0700 (PDT)
 MIME-Version: 1.0
-To: Thomas Mair <thomas.mair86@googlemail.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH v4 1/5] rtl2832 ver. 0.4: removed signal statistics
-References: <1> <1337206420-23810-1-git-send-email-thomas.mair86@googlemail.com> <1337206420-23810-2-git-send-email-thomas.mair86@googlemail.com> <4FB50909.7030101@iki.fi> <4FB55F2D.8060000@gmail.com> <4FB56262.5020803@iki.fi> <4FB56371.1070605@googlemail.com>
-In-Reply-To: <4FB56371.1070605@googlemail.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <1338059923-4989-1-git-send-email-volokh84@gmail.com>
+References: <1338059923-4989-1-git-send-email-volokh84@gmail.com>
+Date: Wed, 30 May 2012 16:43:41 -0300
+Message-ID: <CALF0-+WUJO830rm277Eyo5SD6cD=c+=+4jGBN8aECDNFB0Z1Bw@mail.gmail.com>
+Subject: Re: [PATCH 3/3] I don`t know for what, but there`s dublicate item.
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: Volokh Konstantin <volokh84@gmail.com>
+Cc: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/17/2012 10:45 PM, Thomas Mair wrote:
-> On 17.05.2012 22:41, Antti Palosaari wrote:
->> On 17.05.2012 23:27, poma wrote:
->>> On 05/17/2012 04:19 PM, Antti Palosaari wrote:
->>>> Moikka Thomas,
->>>>
->>>> Here is the review. See comments below.
->>>>
->>>> And conclusion is that it is ready for the Kernel merge. I did not see
->>>> any big functiuonality problems - only some small issues that are likely
->>>> considered as a coding style etc. Feel free to fix those and sent new
->>>> patc serie or just new patch top of that.
->>>>
->>>> Reviewed-by: Antti Palosaari<crope@iki.fi>
->>
->> [...]
->>
->>> rtl2832.c.diff:
->>> - static int ->  static const
->>> - struct ->  static const struct
->>> - newline between function call and error check ->  […]
->>> - 5 indications apropos 'spaces' regarding 'CodingStyle'- line 206
->>> (/usr/share/doc/kernel-doc-3.3.5/Documentation/CodingStyle)
->>> […]
->>> Use one space around (on each side of) most binary and ternary operators,
->>> such as any of these:
->>>
->>>          =  +  -<   >   *  /  %  |&   ^<=>=  ==  !=  ?  :
->>>
->>> […]
->>>
->>> grep '>>\|<<' v4-1-5-rtl2832-ver.-0.4-removed-signal-statistics.patch.orig
->>> +    len = (msb>>  3) + 1;
->>> +        reading_tmp |= reading[i]<<  ((len-1-i)*8);
->>> +    *val = (reading_tmp>>  lsb)&  mask;
->>> +    len = (msb>>  3) + 1;
->>> +        reading_tmp |= reading[i]<<  ((len-1-i)*8);
->>> +    writing_tmp = reading_tmp&  ~(mask<<  lsb);
->>> +    writing_tmp |= ((val&  mask)<<  lsb);
->>> +        writing[i] = (writing_tmp>>  ((len-1-i)*8))&  0xff;
->>> +    num = bw_mode<<  20;
->>>
->>> Bitshift operators seems to be OK.
->>> Something else?
->>
->> (len-1-i)*8
-> I almost have a new corrected version of the patch series ready, fixing this issues and the 
-> other ones you mentioned. 
->>
->>> - 1 indication apropos 'media/dvb/frontends/rtl2832_priv.h:30'
->>> Compared to 'rtl2830_priv.h' seems to be OK.
->>>
->>> ./checkpatch.pl --no-tree
->>> v4-1-5-rtl2832-ver.-0.4-removed-signal-statistics.patch.orig
->>> ERROR: Missing Signed-off-by: line(s)
->>>
->>> total: 1 errors, 0 warnings, 1177 lines checked
->>>
->>> v4-1-5-rtl2832-ver.-0.4-removed-signal-statistics.patch.orig has style
->>> problems, please review.  If any of these errors
->>> are false positives report them to the maintainer, see
->>> CHECKPATCH in MAINTAINERS.
->>>
->>> How do you produce this error:
->>> "ERROR: Macros with complex values should be enclosed in parenthesis…"?
->>
->> Just running checkpatch.pl --file foo
->>
-> 
-> For me checkpath.pl also does not report the error you reported. It does seem
-> strange to me, as the makros are the same as in rtl2830_priv.h
-> 
-> Regards 
-> Thomas
+Hi,
 
-Yeah, 'rtl2830_priv.h' is the same.
-Fu… me, now I don't know too!
-:)
+On Sat, May 26, 2012 at 4:18 PM, Volokh Konstantin <volokh84@gmail.com> wrote:
+> Signed-off-by: Volokh Konstantin <volokh84@gmail.com>
+> ---
+>  drivers/media/video/bt8xx/bttv-driver.c |    6 ------
+>  1 files changed, 0 insertions(+), 6 deletions(-)
+>
+> diff --git a/drivers/media/video/bt8xx/bttv-driver.c b/drivers/media/video/bt8xx/bttv-driver.c
+> index e581b37..b4ee7de 100644
+> --- a/drivers/media/video/bt8xx/bttv-driver.c
+> +++ b/drivers/media/video/bt8xx/bttv-driver.c
+> @@ -558,12 +558,6 @@ static const struct bttv_format formats[] = {
+>                .depth    = 16,
+>                .flags    = FORMAT_FLAGS_PACKED,
+>        },{
+> -               .name     = "4:2:2, packed, YUYV",
+> -               .fourcc   = V4L2_PIX_FMT_YUYV,
+> -               .btformat = BT848_COLOR_FMT_YUY2,
+> -               .depth    = 16,
+> -               .flags    = FORMAT_FLAGS_PACKED,
+> -       },{
+>                .name     = "4:2:2, packed, UYVY",
+>                .fourcc   = V4L2_PIX_FMT_UYVY,
+>                .btformat = BT848_COLOR_FMT_YUY2,
+> --
+> 1.7.7.6
+>
 
-cheers,
-poma
+The patch looks correct to me.
+
+But the subject is *very* wrong. You should set it to something like:
+"[bt8xx] Remove duplicated pixel format entry".
+
+Also, the subject says [PATCH 3/3], where are the other patches?
+
+As a newbie I used to do this kind of mistakes often. Now I try to let patches
+sleep for a couple of days, and then review them once again before send them.
+
+Also send them once to yourself before sending to the list,
+so you get another chance to catch mistakes.
+
+Hope it helps,
+Ezequiel.
