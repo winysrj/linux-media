@@ -1,57 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:21277 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757598Ab2EGTUh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 7 May 2012 15:20:37 -0400
-From: Hans de Goede <hdegoede@redhat.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: hverkuil@xs4all.nl, Hans Verkuil <hans.verkuil@cisco.com>,
-	Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH 07/23] gspca: add support for control events.
-Date: Mon,  7 May 2012 21:01:18 +0200
-Message-Id: <1336417294-4566-8-git-send-email-hdegoede@redhat.com>
-In-Reply-To: <1336417294-4566-1-git-send-email-hdegoede@redhat.com>
-References: <1336417294-4566-1-git-send-email-hdegoede@redhat.com>
+Received: from mail-gh0-f180.google.com ([209.85.160.180]:53706 "EHLO
+	mail-gh0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750903Ab2E3UXP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 30 May 2012 16:23:15 -0400
+Received: by ghbz12 with SMTP id z12so240294ghb.11
+        for <linux-media@vger.kernel.org>; Wed, 30 May 2012 13:23:15 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <CALF0-+Wx61AGEqrexkGtJS5q5dW1jNxCjDCpkLtUS7kZpUyhnA@mail.gmail.com>
+References: <1338154013-5124-3-git-send-email-martin.blumenstingl@googlemail.com>
+ <1338407260-14367-1-git-send-email-martin.blumenstingl@googlemail.com>
+ <CAFBinCDfGnpFC17aMmE=pa1t9_H0p0v0GqNFnQNJLrPjTG0xuw@mail.gmail.com> <CALF0-+Wx61AGEqrexkGtJS5q5dW1jNxCjDCpkLtUS7kZpUyhnA@mail.gmail.com>
+From: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
+Date: Wed, 30 May 2012 22:22:54 +0200
+Message-ID: <CAFBinCCWccps_JEeGVeX0EgtnEMHWP7ZyLh7Lt8ms3WgYBeyeQ@mail.gmail.com>
+Subject: Re: [PATCH] [media] em28xx: Show a warning if the board does not
+ support remote controls
+To: Ezequiel Garcia <elezegarcia@gmail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi,
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
- drivers/media/video/gspca/gspca.c |    4 ++++
- 1 file changed, 4 insertions(+)
+> When sending new versions of a patch you should mark them as [PATCH
+> v2], [PATCH v3], etc in the subject.
+> This way maintainers can follow the patch evolution.
 
-diff --git a/drivers/media/video/gspca/gspca.c b/drivers/media/video/gspca/gspca.c
-index 979398b..48e4d34 100644
---- a/drivers/media/video/gspca/gspca.c
-+++ b/drivers/media/video/gspca/gspca.c
-@@ -40,6 +40,7 @@
- #include <media/v4l2-ioctl.h>
- #include <media/v4l2-ctrls.h>
- #include <media/v4l2-fh.h>
-+#include <media/v4l2-event.h>
- 
- #include "gspca.h"
- 
-@@ -2158,6 +2159,7 @@ static unsigned int dev_poll(struct file *file, poll_table *wait)
- 		ret = POLLIN | POLLRDNORM;	/* yes */
- 	else
- 		ret = 0;
-+	ret |= v4l2_ctrl_poll(file, wait);
- 	mutex_unlock(&gspca_dev->queue_lock);
- 	if (!gspca_dev->present)
- 		return POLLHUP;
-@@ -2269,6 +2271,8 @@ static const struct v4l2_ioctl_ops dev_ioctl_ops = {
- 	.vidioc_s_register	= vidioc_s_register,
- #endif
- 	.vidioc_g_chip_ident	= vidioc_g_chip_ident,
-+	.vidioc_subscribe_event = v4l2_ctrl_subscribe_event,
-+	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
- };
- 
- static const struct video_device gspca_template = {
--- 
-1.7.10
+Thanks for the hint.
+I just noticed that I spammed the patchwork system with my patch-mess too.
+I should probably also always reply to the last mail which includes a patch.
 
+I'll keep it in mind the next time, thanks!
+Martin
