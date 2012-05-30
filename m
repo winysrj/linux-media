@@ -1,54 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from oyp.chewa.net ([91.121.6.101]:49554 "EHLO oyp.chewa.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755885Ab2ECK7Q (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 3 May 2012 06:59:16 -0400
-To: =?UTF-8?Q?R=C3=A9mi_Denis-Courmont?= <remi@remlab.net>
-Subject: Re: [RFC v3 1/2] v4l: Do not use enums in IOCTL structs
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Date: Thu, 03 May 2012 12:58:57 +0200
-From: =?UTF-8?Q?R=C3=A9mi_Denis-Courmont?= <remi@remlab.net>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	<linux-media@vger.kernel.org>, <laurent.pinchart@ideasonboard.com>,
-	<mchehab@redhat.com>, <nbowler@elliptictech.com>,
-	<james.dutton@gmail.com>
-In-Reply-To: <2ce6f5bbb2d0c3b1c7e9e77a2e4a89cf@chewa.net>
-References: <20120502191324.GE852@valkosipuli.localdomain> <1335986028-23618-1-git-send-email-sakari.ailus@iki.fi> <201205022245.22585.hverkuil@xs4all.nl> <20120502213915.GG852@valkosipuli.localdomain> <2ce6f5bbb2d0c3b1c7e9e77a2e4a89cf@chewa.net>
-Message-ID: <3b9e7aa585169179c0140508e72cf97b@chewa.net>
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:59450 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754457Ab2E3NpQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 30 May 2012 09:45:16 -0400
+Received: by yenm10 with SMTP id m10so2992155yen.19
+        for <linux-media@vger.kernel.org>; Wed, 30 May 2012 06:42:55 -0700 (PDT)
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Cc: <linux-media@vger.kernel.org>,
+	Ezequiel Garcia <elezegarcia@gmail.com>
+Subject: [v4l-utils] Add configure option to allow qv4l2 disable
+Date: Wed, 30 May 2012 10:42:44 -0300
+Message-Id: <1338385364-2308-1-git-send-email-elezegarcia@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Answering myself.
+This patch could ease the job of a few people, 
+by providing an option they actually need. 
+OpenWRT [1] and Openembedded [2] are already disabling 
+qv4l2 by applying ugly patches.
 
+[1] https://dev.openwrt.org/browser/packages/libs/libv4l/patches/004-disable-qv4l2.patch
+[2] http://patches.openembedded.org/patch/21469/
 
+Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
+---
+ configure.ac |   11 ++++++++++-
+ 1 files changed, 10 insertions(+), 1 deletions(-)
 
-On Thu, 03 May 2012 12:57:00 +0200, Rémi Denis-Courmont <remi@remlab.net>
-
-wrote:
-
-> On Thu, 3 May 2012 00:39:15 +0300, Sakari Ailus <sakari.ailus@iki.fi>
-
-> wrote:
-
->> - ppc64: int is 64 bits there, and thus also enums,
-
-> 
-
-> Really?
-
-
-
-No, really not:
-
-http://refspecs.linuxfoundation.org/ELF/ppc64/PPC-elf64abi-1.9.html#FUND-TYPE
-
-
-
+diff --git a/configure.ac b/configure.ac
+index 98fad38..92ee050 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -83,8 +83,17 @@ AS_IF([test "x$with_jpeg" != xno],
+ 
+ AM_CONDITIONAL([HAVE_JPEG], [$have_jpeg])
+ 
++AC_ARG_ENABLE(qv4l2,
++  [  --disable-qv4l2         disable qv4l2 compilation],
++  [case "${enableval}" in
++     yes | no ) with_qv4l2="${enableval}" ;;
++     *) AC_MSG_ERROR(bad value ${enableval} for --disable-qv4l2) ;;
++   esac],
++  [with_qv4l2="yes"]
++)
++
+ PKG_CHECK_MODULES(QT, [QtCore >= 4.4 QtGui >= 4.4], [qt_pkgconfig=true], [qt_pkgconfig=false])
+-if test "x$qt_pkgconfig" = "xtrue"; then
++if test "x$qt_pkgconfig" = "xtrue" && test "x$with_qv4l2" = "xyes"; then
+    AC_SUBST(QT_CFLAGS)
+    AC_SUBST(QT_LIBS)
+    MOC=`$PKG_CONFIG --variable=moc_location QtCore`
 -- 
+1.7.3.4
 
-Rémi Denis-Courmont
-
-Sent from my collocated server
