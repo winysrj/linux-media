@@ -1,59 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-1-out2.atlantis.sk ([80.94.52.71]:50573 "EHLO
-	mail.atlantis.sk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1759825Ab2EIPjS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 May 2012 11:39:18 -0400
-From: Ondrej Zary <linux@rainbow-software.org>
-To: Bruno Martins <lists@skorzen.net>
-Subject: Re: Dazzle DVC80 under FC16
-Date: Wed, 9 May 2012 17:32:14 +0200
-Cc: linux-media@vger.kernel.org
-References: <4FAA57A3.2030701@skorzen.net> <4FAA75A7.5030807@skorzen.net>
-In-Reply-To: <4FAA75A7.5030807@skorzen.net>
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:34088 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753759Ab2E3Mt5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 30 May 2012 08:49:57 -0400
+Received: by yhmm54 with SMTP id m54so3165082yhm.19
+        for <linux-media@vger.kernel.org>; Wed, 30 May 2012 05:49:56 -0700 (PDT)
 MIME-Version: 1.0
-Content-Disposition: inline
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201205091732.18373.linux@rainbow-software.org>
+In-Reply-To: <CAFBinCCuf5Uywqv=3aqO9e10u1T3o2wFVqn4HpRX2QKmO8kxfA@mail.gmail.com>
+References: <1338154013-5124-3-git-send-email-martin.blumenstingl@googlemail.com>
+	<1338325692-19684-1-git-send-email-martin.blumenstingl@googlemail.com>
+	<CAOMZO5Bmc3cesaJ_y_NgSaAPYQpcwOUtn_6TX=khg7k=4da-Bg@mail.gmail.com>
+	<CAFBinCCy4f84F-G8pup5sesc+GNr13pWakKkfzYxxChnrpQx2Q@mail.gmail.com>
+	<CAFBinCBeO7Y+HPoWSnv643idxkUW-TU28sosPn_dcgVQHYXxjg@mail.gmail.com>
+	<CAOMZO5AFVfXgWX=DwqALDLdLz-ZYRMipAegXeyxhDfCX2HN+RA@mail.gmail.com>
+	<CAFBinCCuf5Uywqv=3aqO9e10u1T3o2wFVqn4HpRX2QKmO8kxfA@mail.gmail.com>
+Date: Wed, 30 May 2012 09:49:56 -0300
+Message-ID: <CALF0-+Wp7VS8jPWZV0NiX2d352R8QQaRT8M0L3pAwHY79ruV2g@mail.gmail.com>
+Subject: Re: [PATCH] [media] em28xx: Show a warning if the board does not
+ support remote controls
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
+Cc: Fabio Estevam <festevam@gmail.com>,
+	linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wednesday 09 May 2012, Bruno Martins wrote:
-> Hello guys,
->
-> Has anyone ever got this to working under any Linux distro, including
-> Fedora?
->
-> I have just plugged it in and I get this on dmesg:
->
-> [ 1365.932522] usb 2-1.1: new full-speed USB device number 26 using ehci_hcd
-> [ 1366.073145] usb 2-1.1: New USB device found, idVendor=07d0, idProduct=0004
-> [ 1366.073153] usb 2-1.1: New USB device strings: Mfr=0, Product=0, SerialNumber=0
-> [ 1366.091741] usbvision_probe: Dazzle Fusion Model DVC-80 Rev 1 (PAL) found
-> [ 1366.092072] USBVision[0]: registered USBVision Video device video1 [v4l2]
-> [ 1366.092091] usbvision_probe: Dazzle Fusion Model DVC-80 Rev 1 (PAL) found
-> [ 1366.092149] USBVision[1]: registered USBVision Video device video2 [v4l2]
-> [ 1366.092182] usbcore: registered new interface driver usbvision
-> [ 1366.092184] USBVision USB Video Device Driver for Linux : 0.9.11
-> [ 1366.189268] saa7115 15-0025: saa7113 found (1f7113d0e100000) @ 0x4a (usbvision-2-1.1)
-> [ 1366.319647] usb 2-1.1: selecting invalid altsetting 1
-> [ 1366.319658] usb 2-1.1: cannot change alternate number to 1 (error=-22)
->
-> Device is recognized since it appears in lsusb:
->
-> [skorzen@g62 ~]$ lsusb | grep DVC
-> Bus 002 Device 026: ID 07d0:0004 Dazzle DVC-800 (PAL) Grabber
->
-> However, I cannot make it work (my goal is to capture video from a
-> camcorder).
-> I've tried using cheese for this, but it just crashes and ABRT
-> launches for me to fill a bug.
->
-> Any ideas?
+Hi Martin,
 
-Please include the output of "lsusb -v" for this device (run the command as root).
+On Tue, May 29, 2012 at 7:24 PM, Martin Blumenstingl
+<martin.blumenstingl@googlemail.com> wrote:
+> What would you use as the first (dev) argument for dev_*?
+> I simply tried using the USB-device (&dev->udev->dev) there, and I
+> think it's less
+> descriptive if one removes the driver name and the board number:
+> usb 1-1.2: Remote control support is not available for this device.
+>
+> What do you think about using dev_warn but still including the driver name
+> and the board number?
 
+You should use em28xx_warn, or any other em28xx_XXX for em28xx tracing.
+This way you'll get all the driver name in your message.
 
--- 
-Ondrej Zary
+#define em28xx_warn(fmt, arg...) do {\
+        printk(KERN_WARNING "%s: "fmt,\
+                        dev->name , ##arg); } while (0)
+
+Hope it helps,
+Ezequiel.
