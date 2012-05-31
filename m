@@ -1,58 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:48617 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755875Ab2E2VXx convert rfc822-to-8bit (ORCPT
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:63730 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752743Ab2EaQ3B (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 May 2012 17:23:53 -0400
-Received: by yhmm54 with SMTP id m54so2733546yhm.19
-        for <linux-media@vger.kernel.org>; Tue, 29 May 2012 14:23:52 -0700 (PDT)
+	Thu, 31 May 2012 12:29:01 -0400
+Received: by obbtb18 with SMTP id tb18so1545040obb.19
+        for <linux-media@vger.kernel.org>; Thu, 31 May 2012 09:29:00 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <1338326368-20108-1-git-send-email-martin.blumenstingl@googlemail.com>
-References: <1338154013-5124-2-git-send-email-martin.blumenstingl@googlemail.com>
- <1338326368-20108-1-git-send-email-martin.blumenstingl@googlemail.com>
-From: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
-Date: Tue, 29 May 2012 23:23:32 +0200
-Message-ID: <CAFBinCC32XkEerQnMSpJMG=o8nRZ36Qx+xKUJ+11-1ugF7qtYw@mail.gmail.com>
-Subject: Re: [PATCH 1/2] [media] em28xx: Add remote control support for
- Terratec's Cinergy HTC Stick HD
-To: linux-media@vger.kernel.org
-Cc: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
+In-Reply-To: <4FC718CD.8020503@googlemail.com>
+References: <1338385364-2308-1-git-send-email-elezegarcia@gmail.com>
+	<4FC718CD.8020503@googlemail.com>
+Date: Thu, 31 May 2012 13:29:00 -0300
+Message-ID: <CALF0-+WpXzJi7Nh4yyjn-AToxFH04femQRf910J9PHNvqqex4Q@mail.gmail.com>
+Subject: Re: [v4l-utils] Add configure option to allow qv4l2 disable
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: Gregor Jasny <gjasny@googlemail.com>
+Cc: linux-media <linux-media@vger.kernel.org>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello everyone,
+Hi Gregor,
 
-sorry for the first reply - I messed up the git send-email command.
-This is the correct version of the patch (including my signed-off-by
-and a whitespace fix).
+On Thu, May 31, 2012 at 4:07 AM, Gregor Jasny <gjasny@googlemail.com> wrote:
+> Hello,
+>
+>
+> On 5/30/12 3:42 PM, Ezequiel Garcia wrote:
+>>
+>> This patch could ease the job of a few people,
+>> by providing an option they actually need.
+>> OpenWRT [1] and Openembedded [2] are already disabling
+>> qv4l2 by applying ugly patches.
+>>
+>> [1]
+>> https://dev.openwrt.org/browser/packages/libs/libv4l/patches/004-disable-qv4l2.patch
+>> [2] http://patches.openembedded.org/patch/21469/
+>
+>
+> What's the purpose of this patch? As far as I can see it saves compile time
+> if Qt4 development stuff is installed. Otherwise building qv4l should be
+> skipped.
 
-Regards,
-Martin
+I just found that people were applying patches to disable qv4l2 compilation.
+In [2] you'll find this message: "The makefiles in the project attempt
+to use the hosts' compilers if
+qmake is installed." Perhaps, this was due to an old bug that's already solved.
 
-On Tue, May 29, 2012 at 11:19 PM, Martin Blumenstingl
-<martin.blumenstingl@googlemail.com> wrote:
-> The Cinergy HTC Stick HD uses the same remote control as the TerraTec
-> Cinergy XS products. Thus the same keymap could be re-used.
->
-> Signed-off-by: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
-> ---
->  drivers/media/video/em28xx/em28xx-cards.c |    1 +
->  1 file changed, 1 insertion(+)
->
-> diff --git a/drivers/media/video/em28xx/em28xx-cards.c b/drivers/media/video/em28xx/em28xx-cards.c
-> index 20a7e24..92da7c2 100644
-> --- a/drivers/media/video/em28xx/em28xx-cards.c
-> +++ b/drivers/media/video/em28xx/em28xx-cards.c
-> @@ -974,6 +974,7 @@ struct em28xx_board em28xx_boards[] = {
->        [EM2884_BOARD_CINERGY_HTC_STICK] = {
->                .name         = "Terratec Cinergy HTC Stick",
->                .has_dvb      = 1,
-> +               .ir_codes     = RC_MAP_NEC_TERRATEC_CINERGY_XS,
->  #if 0
->                .tuner_type   = TUNER_PHILIPS_TDA8290,
->                .tuner_addr   = 0x41,
-> --
-> 1.7.10.2
->
+So: I'm not sure if patch is useful, but I thought I could send it
+anyway and let you decide ;)
+
+Hope it helps,
+Ezequiel.
