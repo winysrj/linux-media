@@ -1,50 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:59692 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752547Ab2E0R1n (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 27 May 2012 13:27:43 -0400
-Received: by bkcji2 with SMTP id ji2so1716446bkc.19
-        for <linux-media@vger.kernel.org>; Sun, 27 May 2012 10:27:42 -0700 (PDT)
-Message-ID: <4FC2640C.1070708@gmail.com>
-Date: Sun, 27 May 2012 19:27:40 +0200
-From: Sylwester Nawrocki <snjw23@gmail.com>
+Received: from mail.telros.ru ([83.136.244.21]:62777 "EHLO mail.telros.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750955Ab2EaGzN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 31 May 2012 02:55:13 -0400
+Date: Thu, 31 May 2012 10:55:10 +0400
+From: volokh@telros.ru
+To: Ezequiel Garcia <elezegarcia@gmail.com>
+Cc: Volokh Konstantin <volokh84@gmail.com>,
+	linux-media <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 3/3] I don`t know for what, but there`s dublicate item.
+Message-ID: <20120531065510.GB22460@VPir.telros.lan>
+References: <1338059923-4989-1-git-send-email-volokh84@gmail.com>
+ <CALF0-+WUJO830rm277Eyo5SD6cD=c+=+4jGBN8aECDNFB0Z1Bw@mail.gmail.com>
+ <CALF0-+WfC8cZmgtWh=CWSnEj4RQ6FRB00wXmD4N26ptTtkyNvA@mail.gmail.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [RFC PATCH 1/3] media: reorganize the main Kconfig items
-References: <4FC24E34.3000406@redhat.com> <1338137803-12231-1-git-send-email-mchehab@redhat.com> <1338137803-12231-2-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1338137803-12231-2-git-send-email-mchehab@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CALF0-+WfC8cZmgtWh=CWSnEj4RQ6FRB00wXmD4N26ptTtkyNvA@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
-
-On 05/27/2012 06:56 PM, Mauro Carvalho Chehab wrote:
-> Change the main items to:
->
-> <m>  Multimedia support  --->
->     [ ]   Webcams and video grabbers support
->     [ ]   Analog TV API and drivers support
->     [ ]   Digital TV support
->     [ ]   AM/FM radio receivers/transmitters support
->     [ ]   Remote Controller support
->
-> This provides an interface that is clearer to end users that
-> are compiling the Kernel, and will allow the building system
-> to automatically unselect drivers for unused functions.
-
-The change looks reasonable to me, however I have few doubts with
-regards to the naming. Is V4L2 really only for webcams? :)
-
-How about renaming:
-
-MEDIA_WEBCAM -> MEDIA_CAMERA,
-*_SUPP -> _SUPPORT (grep gives many more results for the full word),
-Webcams -> Cameras ?
-
-
-Regards,
-Sylwester
+On Wed, May 30, 2012 at 05:05:47PM -0300, Ezequiel Garcia wrote:
+> On Wed, May 30, 2012 at 4:43 PM, Ezequiel Garcia <elezegarcia@gmail.com> wrote:
+> > But the subject is *very* wrong. You should set it to something like:
+> > "[bt8xx] Remove duplicated pixel format entry".
+> ^^^^^^^^
+> 
+> Sorry this should be, "[PATCH] bt8xx: Remove duplicated pixel format entry".
+> --
+Thanks for correction
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
