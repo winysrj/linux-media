@@ -1,180 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout-de.gmx.net ([213.165.64.22]:52868 "HELO
-	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1754626Ab2FJBo5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Jun 2012 21:44:57 -0400
-From: =?UTF-8?q?Daniel=20Gl=C3=B6ckner?= <daniel-gl@gmx.net>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Daniel=20Gl=C3=B6ckner?= <daniel-gl@gmx.net>
-Subject: [PATCH 6/9] tvaudio: use V4L2_TUNER_SUB_* for bitfields
-Date: Sun, 10 Jun 2012 03:43:55 +0200
-Message-Id: <1339292638-12205-7-git-send-email-daniel-gl@gmx.net>
-In-Reply-To: <20120609214100.GA1598@minime.bse>
-References: <20120609214100.GA1598@minime.bse>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from mail-pz0-f46.google.com ([209.85.210.46]:49994 "EHLO
+	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759650Ab2FBNkr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Jun 2012 09:40:47 -0400
+From: Akinobu Mita <akinobu.mita@gmail.com>
+To: linux-kernel@vger.kernel.org, akpm@linux-foundation.org
+Cc: Akinobu Mita <akinobu.mita@gmail.com>,
+	Anders Larsen <al@alarsen.net>,
+	Alasdair Kergon <agk@redhat.com>, dm-devel@redhat.com,
+	linux-fsdevel@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org, Mark Fasheh <mfasheh@suse.com>,
+	Joel Becker <jlbec@evilplan.org>, ocfs2-devel@oss.oracle.com,
+	Jan Kara <jack@suse.cz>, linux-ext4@vger.kernel.org,
+	Andreas Dilger <adilger.kernel@dilger.ca>,
+	"Theodore Ts'o" <tytso@mit.edu>, Matthew Wilcox <matthew@wil.cx>
+Subject: [PATCH v2 01/10] string: introduce memweight
+Date: Sat,  2 Jun 2012 22:40:07 +0900
+Message-Id: <1338644416-11417-1-git-send-email-akinobu.mita@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The V4L2_TUNER_MODE_* constants are not suited for use in bitfields.
+memweight() is the function that counts the total number of bits set
+in memory area.  Unlike bitmap_weight(), memweight() takes pointer
+and size in bytes to specify a memory area which does not need to be
+aligned to long-word boundary.
 
-Signed-off-by: Daniel Glöckner <daniel-gl@gmx.net>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: Anders Larsen <al@alarsen.net>
+Cc: Alasdair Kergon <agk@redhat.com>
+Cc: dm-devel@redhat.com
+Cc: linux-fsdevel@vger.kernel.org
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: ocfs2-devel@oss.oracle.com
+Cc: Jan Kara <jack@suse.cz>
+Cc: linux-ext4@vger.kernel.org
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Andreas Dilger <adilger.kernel@dilger.ca>
+Cc: "Theodore Ts'o" <tytso@mit.edu>
+Cc: Matthew Wilcox <matthew@wil.cx>
 ---
- drivers/media/video/tvaudio.c |   63 +++++++++++++++++-----------------------
- 1 files changed, 27 insertions(+), 36 deletions(-)
 
-diff --git a/drivers/media/video/tvaudio.c b/drivers/media/video/tvaudio.c
-index 0e77d49..58a0e9c 100644
---- a/drivers/media/video/tvaudio.c
-+++ b/drivers/media/video/tvaudio.c
-@@ -315,13 +315,13 @@ static int chip_thread(void *data)
- 
- 		chip->prevmode = mode;
- 
--		if (mode & V4L2_TUNER_MODE_STEREO)
-+		if (mode & V4L2_TUNER_SUB_STEREO)
- 			desc->setmode(chip, V4L2_TUNER_MODE_STEREO);
--		if (mode & V4L2_TUNER_MODE_LANG1_LANG2)
-+		if (mode & V4L2_TUNER_SUB_LANG1_LANG2)
- 			desc->setmode(chip, V4L2_TUNER_MODE_STEREO);
--		else if (mode & V4L2_TUNER_MODE_LANG1)
-+		else if (mode & V4L2_SUB_MODE_LANG1)
- 			desc->setmode(chip, V4L2_TUNER_MODE_LANG1);
--		else if (mode & V4L2_TUNER_MODE_LANG2)
-+		else if (mode & V4L2_SUB_MODE_LANG2)
- 			desc->setmode(chip, V4L2_TUNER_MODE_LANG2);
- 		else
- 			desc->setmode(chip, V4L2_TUNER_MODE_MONO);
-@@ -363,11 +363,11 @@ static int tda9840_getmode(struct CHIPSTATE *chip)
- 	int val, mode;
- 
- 	val = chip_read(chip);
--	mode = V4L2_TUNER_MODE_MONO;
-+	mode = V4L2_TUNER_SUB_MONO;
- 	if (val & TDA9840_DS_DUAL)
--		mode |= V4L2_TUNER_MODE_LANG1 | V4L2_TUNER_MODE_LANG2;
-+		mode |= V4L2_TUNER_SUB_LANG1 | V4L2_TUNER_SUB_LANG2;
- 	if (val & TDA9840_ST_STEREO)
--		mode |= V4L2_TUNER_MODE_STEREO;
-+		mode |= V4L2_TUNER_SUB_STEREO;
- 
- 	v4l2_dbg(1, debug, sd, "tda9840_getmode(): raw chip read: %d, return: %d\n",
- 		val, mode);
-@@ -514,13 +514,17 @@ static int tda9855_treble(int val) { return (val/0x1c71+0x3)<<1; }
- 
- static int  tda985x_getmode(struct CHIPSTATE *chip)
- {
--	int mode;
-+	int mode, val;
- 
--	mode = ((TDA985x_STP | TDA985x_SAPP) &
--		chip_read(chip)) >> 4;
- 	/* Add mono mode regardless of SAP and stereo */
- 	/* Allows forced mono */
--	return mode | V4L2_TUNER_MODE_MONO;
-+	mode = V4L2_TUNER_SUB_MONO;
-+	val = chip_read(chip);
-+	if (val & TDA985x_STP)
-+		mode |= V4L2_TUNER_SUB_STEREO;
-+	if (val & TDA985x_SAPP)
-+		mode |= V4L2_TUNER_SUB_SAP;
-+	return mode;
+v2: simplify memweight(), adviced by Jan Kara
+
+ include/linux/string.h |    3 +++
+ lib/string.c           |   32 ++++++++++++++++++++++++++++++++
+ 2 files changed, 35 insertions(+), 0 deletions(-)
+
+diff --git a/include/linux/string.h b/include/linux/string.h
+index e033564..ffe0442 100644
+--- a/include/linux/string.h
++++ b/include/linux/string.h
+@@ -145,4 +145,7 @@ static inline bool strstarts(const char *str, const char *prefix)
+ 	return strncmp(str, prefix, strlen(prefix)) == 0;
  }
+ #endif
++
++extern size_t memweight(const void *ptr, size_t bytes);
++
+ #endif /* _LINUX_STRING_H_ */
+diff --git a/lib/string.c b/lib/string.c
+index e5878de..bf4d5a8 100644
+--- a/lib/string.c
++++ b/lib/string.c
+@@ -26,6 +26,7 @@
+ #include <linux/export.h>
+ #include <linux/bug.h>
+ #include <linux/errno.h>
++#include <linux/bitmap.h>
  
- static void tda985x_setmode(struct CHIPSTATE *chip, int mode)
-@@ -670,11 +674,11 @@ static int tda9873_getmode(struct CHIPSTATE *chip)
- 	int val,mode;
- 
- 	val = chip_read(chip);
--	mode = V4L2_TUNER_MODE_MONO;
-+	mode = V4L2_TUNER_SUB_MONO;
- 	if (val & TDA9873_STEREO)
--		mode |= V4L2_TUNER_MODE_STEREO;
-+		mode |= V4L2_TUNER_SUB_STEREO;
- 	if (val & TDA9873_DUAL)
--		mode |= V4L2_TUNER_MODE_LANG1 | V4L2_TUNER_MODE_LANG2;
-+		mode |= V4L2_TUNER_SUB_LANG1 | V4L2_TUNER_SUB_LANG2;
- 	v4l2_dbg(1, debug, sd, "tda9873_getmode(): raw chip read: %d, return: %d\n",
- 		val, mode);
- 	return mode;
-@@ -865,7 +869,7 @@ static int tda9874a_getmode(struct CHIPSTATE *chip)
- 	int dsr,nsr,mode;
- 	int necr; /* just for debugging */
- 
--	mode = V4L2_TUNER_MODE_MONO;
-+	mode = V4L2_TUNER_SUB_MONO;
- 
- 	if(-1 == (dsr = chip_read2(chip,TDA9874A_DSR)))
- 		return mode;
-@@ -888,14 +892,14 @@ static int tda9874a_getmode(struct CHIPSTATE *chip)
- 		 * external 4052 multiplexer in audio_hook().
- 		 */
- 		if(nsr & 0x02) /* NSR.S/MB=1 */
--			mode |= V4L2_TUNER_MODE_STEREO;
-+			mode |= V4L2_TUNER_SUB_STEREO;
- 		if(nsr & 0x01) /* NSR.D/SB=1 */
--			mode |= V4L2_TUNER_MODE_LANG1 | V4L2_TUNER_MODE_LANG2;
-+			mode |= V4L2_TUNER_SUB_LANG1 | V4L2_TUNER_SUB_LANG2;
- 	} else {
- 		if(dsr & 0x02) /* DSR.IDSTE=1 */
--			mode |= V4L2_TUNER_MODE_STEREO;
-+			mode |= V4L2_TUNER_SUB_STEREO;
- 		if(dsr & 0x04) /* DSR.IDDUA=1 */
--			mode |= V4L2_TUNER_MODE_LANG1 | V4L2_TUNER_MODE_LANG2;
-+			mode |= V4L2_TUNER_SUB_LANG1 | V4L2_TUNER_SUB_LANG2;
- 	}
- 
- 	v4l2_dbg(1, debug, sd, "tda9874a_getmode(): DSR=0x%X, NSR=0x%X, NECR=0x%X, return: %d.\n",
-@@ -1306,11 +1310,11 @@ static int ta8874z_getmode(struct CHIPSTATE *chip)
- 	int val, mode;
- 
- 	val = chip_read(chip);
--	mode = V4L2_TUNER_MODE_MONO;
-+	mode = V4L2_TUNER_SUB_MONO;
- 	if (val & TA8874Z_B1){
--		mode |= V4L2_TUNER_MODE_LANG1 | V4L2_TUNER_MODE_LANG2;
-+		mode |= V4L2_TUNER_SUB_LANG1 | V4L2_TUNER_SUB_LANG2;
- 	}else if (!(val & TA8874Z_B0)){
--		mode |= V4L2_TUNER_MODE_STEREO;
-+		mode |= V4L2_TUNER_SUB_STEREO;
- 	}
- 	/* v4l_dbg(1, debug, chip->c, "ta8874z_getmode(): raw chip read: 0x%02x, return: 0x%02x\n", val, mode); */
- 	return mode;
-@@ -1829,7 +1833,6 @@ static int tvaudio_g_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *vt)
- {
- 	struct CHIPSTATE *chip = to_state(sd);
- 	struct CHIPDESC *desc = chip->desc;
--	int mode = V4L2_TUNER_MODE_MONO;
- 
- 	if (!desc->getmode)
- 		return 0;
-@@ -1837,22 +1840,10 @@ static int tvaudio_g_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *vt)
- 		return 0;
- 
- 	vt->audmode = chip->audmode;
--	vt->rxsubchans = 0;
-+	vt->rxsubchans = desc->getmode(chip);
- 	vt->capability = V4L2_TUNER_CAP_STEREO |
- 		V4L2_TUNER_CAP_LANG1 | V4L2_TUNER_CAP_LANG2;
- 
--	mode = desc->getmode(chip);
--
--	if (mode & V4L2_TUNER_MODE_MONO)
--		vt->rxsubchans |= V4L2_TUNER_SUB_MONO;
--	if (mode & V4L2_TUNER_MODE_STEREO)
--		vt->rxsubchans |= V4L2_TUNER_SUB_STEREO;
--	/* Note: for SAP it should be mono/lang2 or stereo/lang2.
--	   When this module is converted fully to v4l2, then this
--	   should change for those chips that can detect SAP. */
--	if (mode & V4L2_TUNER_MODE_LANG1)
--		vt->rxsubchans = V4L2_TUNER_SUB_LANG1 |
--			V4L2_TUNER_SUB_LANG2;
- 	return 0;
+ #ifndef __HAVE_ARCH_STRNICMP
+ /**
+@@ -824,3 +825,34 @@ void *memchr_inv(const void *start, int c, size_t bytes)
+ 	return check_bytes8(start, value, bytes % 8);
  }
- 
+ EXPORT_SYMBOL(memchr_inv);
++
++/**
++ * memweight - count the total number of bits set in memory area
++ * @ptr: pointer to the start of the area
++ * @bytes: the size of the area
++ */
++size_t memweight(const void *ptr, size_t bytes)
++{
++	size_t w = 0;
++	size_t longs;
++	const unsigned char *bitmap = ptr;
++
++	for (; bytes > 0 && ((unsigned long)bitmap) % sizeof(long);
++			bytes--, bitmap++)
++		w += hweight8(*bitmap);
++
++	longs = bytes / sizeof(long);
++	if (longs) {
++		BUG_ON(longs >= INT_MAX / BITS_PER_LONG);
++		w += bitmap_weight((unsigned long *)bitmap,
++				longs * BITS_PER_LONG);
++		bytes -= longs * sizeof(long);
++		bitmap += longs * sizeof(long);
++	}
++
++	for (; bytes > 0; bytes--, bitmap++)
++		w += hweight8(*bitmap);
++
++	return w;
++}
++EXPORT_SYMBOL(memweight);
 -- 
-1.7.0.5
+1.7.7.6
 
