@@ -1,197 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.186]:49260 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750991Ab2FKKUT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Jun 2012 06:20:19 -0400
-Date: Mon, 11 Jun 2012 12:20:17 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Albert Wang <twang13@marvell.com>
-cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"pawel@osciak.com" <pawel@osciak.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: RE: [PATCH] media: videobuf2: fix kernel panic due to missing assign
- NULL to alloc_ctx
-In-Reply-To: <477F20668A386D41ADCC57781B1F7043083A7F0E34@SC-VEXCH1.marvell.com>
-Message-ID: <Pine.LNX.4.64.1206111218400.29799@axis700.grange>
-References: <1339156511-16509-1-git-send-email-twang13@marvell.com>
- <15576892.cR1LHefC7i@avalon> <477F20668A386D41ADCC57781B1F7043083A7F0E11@SC-VEXCH1.marvell.com>
- <Pine.LNX.4.64.1206111118210.28244@axis700.grange>
- <477F20668A386D41ADCC57781B1F7043083A7F0E34@SC-VEXCH1.marvell.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from smtp-vbr19.xs4all.nl ([194.109.24.39]:1249 "EHLO
+	smtp-vbr19.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758929Ab2FBL6b (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Jun 2012 07:58:31 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans de Goede <hdegoede@redhat.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv1 PATCH 1/6] zr364xx: embed video_device and register it at the end of probe.
+Date: Sat,  2 Jun 2012 13:58:15 +0200
+Message-Id: <dd538e942bd8b7a7fb4e02ea9b4b6df72b32f9f1.1338638167.git.hans.verkuil@cisco.com>
+In-Reply-To: <1338638300-9769-1-git-send-email-hverkuil@xs4all.nl>
+References: <1338638300-9769-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 11 Jun 2012, Albert Wang wrote:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-> Hi, Guennadi
-> 
-> Sorry, I made a mistake, and I found marvell-ccic used 
-> vb2_dma_contig_init_ctx() when open, but it didn't use the soc_camera.
-> So for the driver which had used soc_camera, you are right. Our driver should update the usage.
-> 
-> So the kernel panic due to our driver misunderstand the usage, we can change the patch title.
-> But I think it's not a "local" variable for vb2_dma_contig_cleanup_ctx(), It's the input parameter.
+Embed the video_device struct instead of allocating it and register it as
+the last thing in probe().
 
-Sorry, I'm not in a position to clarify this. Please, consult your C 
-textbook.
-
-Thanks
-Guennadi
-
-> 
-> Since this function has the name "cleanup", it should do it cleanly. And the rule should be free point and set point to NULL.
-> For users who use this function in there driver, they think things had finished after called this function.
-> It's safer if user called it twice.
-> 
-> Anyway, this patch doesn't damage the driver; on the other hand, it can make it more stable if user used it with wrong method.
-> Doesn't it? Of course, now we should change the patch title.
-> 
-> Please correct me if I have something wrong.
-> 
-> 
-> Thanks
-> Albert Wang
-> 86-21-61092656
-> -----Original Message-----
-> From: Guennadi Liakhovetski [mailto:g.liakhovetski@gmx.de] 
-> Sent: Monday, 11 June, 2012 17:21
-> To: Albert Wang
-> Cc: Laurent Pinchart; pawel@osciak.com; linux-media@vger.kernel.org
-> Subject: RE: [PATCH] media: videobuf2: fix kernel panic due to missing assign NULL to alloc_ctx
-> 
-> Hi Albert
-> 
-> On Mon, 11 Jun 2012, Albert Wang wrote:
-> 
-> > Hi, Laurent
-> > 
-> > Thanks for your reply!
-> > 
-> > We allocated the context when init_videobuf2() which will be called in 
-> > soc_camera_open(), so if we get exit with exception in
-> > soc_camera_set_fmt()
-> > Actually we will double call vb2_dma_contig_cleanup_ctx().
-> > 
-> > 	ret = soc_camera_set_fmt(icd, &f);
-> > 	if (ret < 0)
-> > 		goto esfmt;
-> > 
-> > 	if (ici->ops->init_videobuf) {
-> > 		ici->ops->init_videobuf(&icd->vb_vidq, icd);
-> > 	} else {
-> > 		ret = ici->ops->init_videobuf2(&icd->vb2_vidq, icd);
-> > 		if (ret < 0)
-> > 			goto einitvb;
-> > 	}
-> > 
-> > Actually, in current code, we can found some drivers allocated the 
-> > context in probe(), and some drivers also do that in soc_camera_open().
-> 
-> Sorry, AFAICS all soc-camera host drivers allocate vb2 context in their
-> .probe() methods. Can you point me out to the one(s) you mean, that do that at open() time?
-> 
-> > Of course, we can update our driver and move it to probe(), it will 
-> > stand aside the issue, that's also OK for us.
-> > 
-> > But we still think it's not safe that leave the point be a non-NULL 
-> > after we have kfree it. Do you think so?
-> 
-> Your patch doesn't fix anything. It only changes the local variable in the
-> vb2_dma_contig_cleanup_ctx() function, which doesn't affect the caller in any way.
-> 
-> Thanks
-> Guennadi
-> 
-> > Thanks
-> > Albert Wang
-> > 86-21-61092656
-> > 
-> > -----Original Message-----
-> > From: Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com]
-> > Sent: Monday, 11 June, 2012 16:00
-> > To: Albert Wang
-> > Cc: pawel@osciak.com; g.liakhovetski@gmx.de; 
-> > linux-media@vger.kernel.org
-> > Subject: Re: [PATCH] media: videobuf2: fix kernel panic due to missing 
-> > assign NULL to alloc_ctx
-> > 
-> > Hi Albert,
-> > 
-> > On Friday 08 June 2012 19:55:11 Albert Wang wrote:
-> > >   In function vb2_dma_contig_cleanup_ctx(), we only kfree the alloc_ctx
-> > >   If we didn't assign NULL to this point after kfree it,
-> > >   we may encounter the following kernel panic:
-> > > 
-> > >  kernel BUG at kernel/cred.c:98!
-> > >  Unable to handle kernel NULL pointer dereference at virtual address
-> > > 00000000 pgd = c0004000
-> > >  [00000000] *pgd=00000000
-> > >  Internal error: Oops: 817 [#1] PREEMPT SMP  Modules linked in: 
-> > > runcase_sysfs galcore mv_wtm_drv mv_wtm_prim
-> > >  CPU: 0    Not tainted  (3.0.8+ #213)
-> > >  PC is at __bug+0x18/0x24
-> > >  LR is at __bug+0x14/0x24
-> > >  pc : [<c0054670>]    lr : [<c005466c>]    psr: 60000113
-> > >  sp : c0681ec0  ip : f683e000  fp : 00000000
-> > >  r10: e8ab4b58  r9 : 00000fff  r8 : 00000002
-> > >  r7 : e8665698  r6 : c10079ec  r5 : e8b13d80  r4 : e8b13d98
-> > >  r3 : 00000000  r2 : c0681eb4  r1 : c05c9ccc  r0 : 00000035
-> > >  Flags: nZCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment kernel
-> > >  Control: 10c53c7d  Table: 29c3406a  DAC: 00000015
-> > > 
-> > >   the root cause is we may encounter some i2c or HW issue with sensor
-> > >   which result in driver exit with exception during soc_camera_set_fmt()
-> > >   from soc_camera_open():
-> > > 
-> > > 	ret = soc_camera_set_fmt(icd, &f);
-> > > 	if (ret < 0)
-> > > 		goto esfmt;
-> > > 
-> > >   it will call ici->ops->remove() in following code:
-> > > 
-> > >   esfmt:
-> > > 	pm_runtime_disable(&icd->vdev->dev);
-> > >   eresume:
-> > > 	ici->ops->remove(icd);
-> > > 
-> > >   ici->ops->remove() will call vb2_dma_contig_cleanup_ctx() for cleanup
-> > >   but we didn't do ici->ops->init_videobuf2() yet at that time
-> > >   it will result in kfree a non-NULL point twice
-> > 
-> > I'm not sure to follow you. How is init_videobuf2() related ? The context is allocated once only at probe time from what I can see. Your problem is more likely caused by a double call to vb2_dma_contig_cleanup_ctx(), which looks like a driver bug to me, not a videobuf2 bug.
-> > 
-> > > Change-Id: I1c66dd08438ae90abe555c52edcdbca0d39d829d
-> > > Signed-off-by: Albert Wang <twang13@marvell.com>
-> > > ---
-> > >  drivers/media/video/videobuf2-dma-contig.c |    1 +
-> > >  1 files changed, 1 insertions(+), 0 deletions(-)
-> > > 
-> > > diff --git a/drivers/media/video/videobuf2-dma-contig.c
-> > > b/drivers/media/video/videobuf2-dma-contig.c index 4b71326..9881171
-> > > 100755
-> > > --- a/drivers/media/video/videobuf2-dma-contig.c
-> > > +++ b/drivers/media/video/videobuf2-dma-contig.c
-> > > @@ -178,6 +178,7 @@ EXPORT_SYMBOL_GPL(vb2_dma_contig_init_ctx);
-> > >  void vb2_dma_contig_cleanup_ctx(void *alloc_ctx)  {
-> > >  	kfree(alloc_ctx);
-> > > +	alloc_ctx = NULL;
-> > >  }
-> > >  EXPORT_SYMBOL_GPL(vb2_dma_contig_cleanup_ctx);
-> > 
-> > --
-> > Regards,
-> > 
-> > Laurent Pinchart
-> > 
-> 
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer http://www.open-technology.de/
-> 
-
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ drivers/media/video/zr364xx.c |   46 ++++++++++++++---------------------------
+ 1 file changed, 16 insertions(+), 30 deletions(-)
+
+diff --git a/drivers/media/video/zr364xx.c b/drivers/media/video/zr364xx.c
+index e44cb33..daf2099 100644
+--- a/drivers/media/video/zr364xx.c
++++ b/drivers/media/video/zr364xx.c
+@@ -173,7 +173,7 @@ static const struct zr364xx_fmt formats[] = {
+ struct zr364xx_camera {
+ 	struct usb_device *udev;	/* save off the usb device pointer */
+ 	struct usb_interface *interface;/* the interface for this device */
+-	struct video_device *vdev;	/* v4l video device */
++	struct video_device vdev;	/* v4l video device */
+ 	int nb;
+ 	struct zr364xx_bufferi		buffer;
+ 	int skip;
+@@ -1322,9 +1322,7 @@ static void zr364xx_destroy(struct zr364xx_camera *cam)
+ 		return;
+ 	}
+ 	mutex_lock(&cam->open_lock);
+-	if (cam->vdev)
+-		video_unregister_device(cam->vdev);
+-	cam->vdev = NULL;
++	video_unregister_device(&cam->vdev);
+ 
+ 	/* stops the read pipe if it is running */
+ 	if (cam->b_acquire)
+@@ -1346,7 +1344,6 @@ static void zr364xx_destroy(struct zr364xx_camera *cam)
+ 	cam->pipe->transfer_buffer = NULL;
+ 	mutex_unlock(&cam->open_lock);
+ 	kfree(cam);
+-	cam = NULL;
+ }
+ 
+ /* release the camera */
+@@ -1466,7 +1463,7 @@ static struct video_device zr364xx_template = {
+ 	.name = DRIVER_DESC,
+ 	.fops = &zr364xx_fops,
+ 	.ioctl_ops = &zr364xx_ioctl_ops,
+-	.release = video_device_release,
++	.release = video_device_release_empty,
+ };
+ 
+ 
+@@ -1557,19 +1554,11 @@ static int zr364xx_probe(struct usb_interface *intf,
+ 	}
+ 	/* save the init method used by this camera */
+ 	cam->method = id->driver_info;
+-
+-	cam->vdev = video_device_alloc();
+-	if (cam->vdev == NULL) {
+-		dev_err(&udev->dev, "cam->vdev: out of memory !\n");
+-		kfree(cam);
+-		cam = NULL;
+-		return -ENOMEM;
+-	}
+-	memcpy(cam->vdev, &zr364xx_template, sizeof(zr364xx_template));
+-	cam->vdev->parent = &intf->dev;
+-	video_set_drvdata(cam->vdev, cam);
++	cam->vdev = zr364xx_template;
++	cam->vdev.parent = &intf->dev;
++	video_set_drvdata(&cam->vdev, cam);
+ 	if (debug)
+-		cam->vdev->debug = V4L2_DEBUG_IOCTL | V4L2_DEBUG_IOCTL_ARG;
++		cam->vdev.debug = V4L2_DEBUG_IOCTL | V4L2_DEBUG_IOCTL_ARG;
+ 
+ 	cam->udev = udev;
+ 
+@@ -1636,37 +1625,34 @@ static int zr364xx_probe(struct usb_interface *intf,
+ 
+ 	if (!cam->read_endpoint) {
+ 		dev_err(&intf->dev, "Could not find bulk-in endpoint\n");
+-		video_device_release(cam->vdev);
+ 		kfree(cam);
+-		cam = NULL;
+ 		return -ENOMEM;
+ 	}
+ 
+ 	/* v4l */
+ 	INIT_LIST_HEAD(&cam->vidq.active);
+ 	cam->vidq.cam = cam;
+-	err = video_register_device(cam->vdev, VFL_TYPE_GRABBER, -1);
+-	if (err) {
+-		dev_err(&udev->dev, "video_register_device failed\n");
+-		video_device_release(cam->vdev);
+-		kfree(cam);
+-		cam = NULL;
+-		return err;
+-	}
+ 
+ 	usb_set_intfdata(intf, cam);
+ 
+ 	/* load zr364xx board specific */
+ 	err = zr364xx_board_init(cam);
+ 	if (err) {
+-		spin_lock_init(&cam->slock);
++		kfree(cam);
+ 		return err;
+ 	}
+ 
+ 	spin_lock_init(&cam->slock);
+ 
++	err = video_register_device(&cam->vdev, VFL_TYPE_GRABBER, -1);
++	if (err) {
++		dev_err(&udev->dev, "video_register_device failed\n");
++		kfree(cam);
++		return err;
++	}
++
+ 	dev_info(&udev->dev, DRIVER_DESC " controlling device %s\n",
+-		 video_device_node_name(cam->vdev));
++		 video_device_node_name(&cam->vdev));
+ 	return 0;
+ }
+ 
+-- 
+1.7.10
+
