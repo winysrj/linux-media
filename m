@@ -1,43 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cassiel.sirena.org.uk ([80.68.93.111]:58972 "EHLO
-	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753454Ab2FTKAV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Jun 2012 06:00:21 -0400
-Date: Wed, 20 Jun 2012 11:00:15 +0100
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-To: Sascha Hauer <s.hauer@pengutronix.de>
-Cc: javier Martin <javier.martin@vista-silicon.com>,
-	fabio.estevam@freescale.com, dirk.behme@googlemail.com,
-	r.schwebel@pengutronix.de, kernel@pengutronix.de,
-	shawn.guo@linaro.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org
-Subject: Re: [RFC] Support for 'Coda' video codec IP.
-Message-ID: <20120620100015.GA30243@sirena.org.uk>
-References: <1340115094-859-1-git-send-email-javier.martin@vista-silicon.com>
- <20120619181717.GE28394@pengutronix.de>
- <CACKLOr1zCp2NfLjBrHjtXpmsFMHqhoHFPpghN=Tyf3YAcyRrYg@mail.gmail.com>
- <20120620090126.GO28394@pengutronix.de>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:39554 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752716Ab2FDOCU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jun 2012 10:02:20 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Oleksij Rempel <bug-track@fisher-privat.net>
+Cc: linux-uvc-devel@lists.sourceforge.net, linux-media@vger.kernel.org,
+	sakari.ailus@iki.fi,
+	Youness Alaoui <youness.alaoui@collabora.co.uk>
+Subject: [RFC] Media controller entity information ioctl [was "Re: [patch] suggestion for media framework"]
+Date: Mon, 04 Jun 2012 16:02:12 +0200
+Message-ID: <9993866.a3VUSWRbyi@avalon>
+In-Reply-To: <4FCB9C12.1@fisher-privat.net>
+References: <4FCB9C12.1@fisher-privat.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20120620090126.GO28394@pengutronix.de>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jun 20, 2012 at 11:01:26AM +0200, Sascha Hauer wrote:
-> On Wed, Jun 20, 2012 at 09:51:32AM +0200, javier Martin wrote:
+Hi Oleksiy,
 
-> > Our platfrom, 'visstrim_m10' doesn't currently support devicetree yet,
-> > so it would be highly difficult for us to test it at the moment.
-> > Couldn't you add devicetree support in a later patch?
+Thank you for the patch.
 
-> I try to motivate people moving to devicetree. At some point I'd like to
-> get rid of the platform based boards in the tree. Adding new platform
-> seems like delaying this instead of working towards a platform board
-> free Kernel.
-> Any other opinions on this?
+[CC'ing linux-media]
 
-The approach a lot of platforms have been taking is that it's OK to keep
-on maintaining existing boards using board files (especially for trivial
-things like adding new devices).
+On Sunday 03 June 2012 19:17:06 Oleksij Rempel wrote:
+> Hi Laurent,
+> 
+> in attachment is a suggestion patch for media framework and a test
+> program which use this patch.
+> 
+> Suddenly we still didn't solved the problem with finding of XU. You
+> know, the proper way to find them is guid (i do not need to explain this
+> :)). Since uvc devices starting to have more and complicated XUs, media
+> api is probably proper way to go - how you suggested.
+> 
+> On the wiki of TexasInstruments i found some code examples, how they use
+> this api. And it looks like there is some desing differences between
+> OMPA drivers and UVC. It is easy to find proper entity name for omap
+> devices just by: "(!strcmp(entity[index].name, "OMAP3 ISP CCDC"))".
+> We can't do the same for UVC, current names are just "Extension %u". We
+> can put guid instead, but it will looks ugly and not really informative.
+> This is why i added new struct uvc_ext.
+> 
+> If you do not agree with this patch, it will be good if you proved other
+> solution. This problem need to be solved.
+
+The patch goes in the right direction, in that I think the media controller 
+API is the proper way to solve this problem. However, extending the 
+media_entity_desc structure with information about all possible kinds of 
+entities will not scale, especially given that an entity may need to expose 
+information related to multiple types (for instance an XU need to expose its 
+GUID, but also subdev-related information if it has a device node).
+
+I've been thinking about adding a new ioctl to the media controller API for 
+some time now, to report advanced static information about entities.
+
+The idea is that each entity would be allowed to report an arbitrary number of 
+static items. Items would have a type (for which we would likely need some 
+kind of central registry, possible with driver-specific types), a length and 
+data. The items would be static (registered an initialization time) and 
+aggregated in a single buffer that would be read in one go through a new 
+ioctl.
+
+One important benefit of such an API would be to be able to report more than 
+one entity type per subdev using entity type items. Many entities serve 
+several purpose, for instance a sensor can integrate a flash controller. This 
+can't be reported with the current API, as subdevs have a single type. By 
+having several entity type items we could fix this issue.
+
+Details remain to be drafted, but I'd like a feedback on the general approach.
+
+-- 
+Regards,
+
+Laurent Pinchart
+
