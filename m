@@ -1,87 +1,169 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:50933 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752238Ab2FJMSM convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Jun 2012 08:18:12 -0400
+Received: from mail-gh0-f174.google.com ([209.85.160.174]:65518 "EHLO
+	mail-gh0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751406Ab2FDTeY convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jun 2012 15:34:24 -0400
+Received: by ghrr11 with SMTP id r11so3671748ghr.19
+        for <linux-media@vger.kernel.org>; Mon, 04 Jun 2012 12:34:23 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <1338060326-31158-1-git-send-email-levinsasha928@gmail.com>
-References: <1338060326-31158-1-git-send-email-levinsasha928@gmail.com>
-From: Sasha Levin <levinsasha928@gmail.com>
-Date: Sun, 10 Jun 2012 14:17:52 +0200
-Message-ID: <CA+1xoqe+zhxWn0bVhZ0ZQj9R=1Eup5TBff7q=i4h2TDC8G9AWg@mail.gmail.com>
-Subject: Re: [PATCH] USB: Staging: media: lirc: initialize spinlocks before usage
-To: jarod@wilsonet.com, mchehab@infradead.org,
-	gregkh@linuxfoundation.org
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-	linux-kernel@vger.kernel.org, Sasha Levin <levinsasha928@gmail.com>
+In-Reply-To: <CAB2ybb-0D4vs=k6GjBuw8OitDpPSjDdyOcEqogFtGdZUk0pasQ@mail.gmail.com>
+References: <1337775027-9489-1-git-send-email-t.stanislaws@samsung.com>
+	<5090892.Z3RkLXNQ1U@avalon>
+	<CAB2ybb-0D4vs=k6GjBuw8OitDpPSjDdyOcEqogFtGdZUk0pasQ@mail.gmail.com>
+Date: Mon, 4 Jun 2012 12:34:23 -0700
+Message-ID: <CALJcvx6zPB2fvUX9hNF9kVbfgRX_NeaMAf0LiS8xbwsTQtGgHw@mail.gmail.com>
+Subject: Re: [Linaro-mm-sig] [PATCHv6 00/13] Integration of videobuf2 with dmabuf
+From: Rebecca Schultz Zavin <rebecca@android.com>
+To: "Semwal, Sumit" <sumit.semwal@ti.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	remi@remlab.net, pawel@osciak.com, mchehab@redhat.com,
+	robdclark@gmail.com, dri-devel@lists.freedesktop.org,
+	linaro-mm-sig@lists.linaro.org, kyungmin.park@samsung.com,
+	airlied@redhat.com, linux-media@vger.kernel.org,
+	g.liakhovetski@gmx.de
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Ping? This thing still causes spinlock errors in 3.5-rc2.
+I have a system where the data is planar, but the kernel drivers
+expect to get one allocation with offsets for the planes.  I can't
+figure out how to do that with the current dma_buf implementation.  I
+thought I could pass the same dma_buf several times and use the
+data_offset field of the v4l2_plane struct but it looks like that's
+only for output.  Am I missing something?  Is this supported?
 
-On Sat, May 26, 2012 at 9:25 PM, Sasha Levin <levinsasha928@gmail.com> wrote:
-> Initialize the spinlock for each hardware time.
+Thanks,
+Rebecca
+
+On Wed, May 30, 2012 at 8:26 AM, Semwal, Sumit <sumit.semwal@ti.com> wrote:
+> On Tue, May 29, 2012 at 6:25 AM, Laurent Pinchart
+> <laurent.pinchart@ideasonboard.com> wrote:
+>> Hi Tomasz,
+> Hi Tomasz, Laurent, Mauro,
+>>
+>> On Wednesday 23 May 2012 14:10:14 Tomasz Stanislawski wrote:
+>>> Hello everyone,
+>>> This patchset adds support for DMABUF [2] importing to V4L2 stack.
+>>> The support for DMABUF exporting was moved to separate patchset
+>>> due to dependency on patches for DMA mapping redesign by
+>>> Marek Szyprowski [4].
+>>
+>> Except for the small issue with patches 01/13 and 02/13, the set is ready for
+>> upstream as far as I'm concerned.
+> +1; Mauro: how do you think about this series? Getting it landed into
+> 3.5 would make life lot easier :)
+>>
+>>> v6:
+>>> - fixed missing entry in v4l2_memory_names
+>>> - fixed a bug occuring after get_user_pages failure
+>>
+>> I've missed that one, what was it ?
+>>
+>>> - fixed a bug caused by using invalid vma for get_user_pages
+>>> - prepare/finish no longer call dma_sync for dmabuf buffers
+>>>
+>>> v5:
+>>> - removed change of importer/exporter behaviour
+>>> - fixes vb2_dc_pages_to_sgt basing on Laurent's hints
+>>> - changed pin/unpin words to lock/unlock in Doc
+>>>
+>>> v4:
+>>> - rebased on mainline 3.4-rc2
+>>> - included missing importing support for s5p-fimc and s5p-tv
+>>> - added patch for changing map/unmap for importers
+>>> - fixes to Documentation part
+>>> - coding style fixes
+>>> - pairing {map/unmap}_dmabuf in vb2-core
+>>> - fixing variable types and semantic of arguments in videobufb2-dma-contig.c
+>>>
+>>> v3:
+>>> - rebased on mainline 3.4-rc1
+>>> - split 'code refactor' patch to multiple smaller patches
+>>> - squashed fixes to Sumit's patches
+>>> - patchset is no longer dependant on 'DMA mapping redesign'
+>>> - separated path for handling IO and non-IO mappings
+>>> - add documentation for DMABUF importing to V4L
+>>> - removed all DMABUF exporter related code
+>>> - removed usage of dma_get_pages extension
+>>>
+>>> v2:
+>>> - extended VIDIOC_EXPBUF argument from integer memoffset to struct
+>>>   v4l2_exportbuffer
+>>> - added patch that breaks DMABUF spec on (un)map_atachment callcacks but
+>>> allows to work with existing implementation of DMABUF prime in DRM
+>>> - all dma-contig code refactoring patches were squashed
+>>> - bugfixes
+>>>
+>>> v1: List of changes since [1].
+>>> - support for DMA api extension dma_get_pages, the function is used to
+>>> retrieve pages used to create DMA mapping.
+>>> - small fixes/code cleanup to videobuf2
+>>> - added prepare and finish callbacks to vb2 allocators, it is used keep
+>>>   consistency between dma-cpu acess to the memory (by Marek Szyprowski)
+>>> - support for exporting of DMABUF buffer in V4L2 and Videobuf2, originated
+>>> from [3].
+>>> - support for dma-buf exporting in vb2-dma-contig allocator
+>>> - support for DMABUF for s5p-tv and s5p-fimc (capture interface) drivers,
+>>>   originated from [3]
+>>> - changed handling for userptr buffers (by Marek Szyprowski, Andrzej
+>>>   Pietrasiewicz)
+>>> - let mmap method to use dma_mmap_writecombine call (by Marek Szyprowski)
+>>>
+>>> [1]
+>>> http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/4296
+>>> 6/focus=42968 [2] https://lkml.org/lkml/2011/12/26/29
+>>> [3]
+>>> http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/3635
+>>> 4/focus=36355 [4]
+>>> http://thread.gmane.org/gmane.linux.kernel.cross-arch/12819
+>>>
+>>> Laurent Pinchart (2):
+>>>   v4l: vb2-dma-contig: Shorten vb2_dma_contig prefix to vb2_dc
+>>>   v4l: vb2-dma-contig: Reorder functions
+>>>
+>>> Marek Szyprowski (2):
+>>>   v4l: vb2: add prepare/finish callbacks to allocators
+>>>   v4l: vb2-dma-contig: add prepare/finish to dma-contig allocator
+>>>
+>>> Sumit Semwal (4):
+>>>   v4l: Add DMABUF as a memory type
+>>>   v4l: vb2: add support for shared buffer (dma_buf)
+>>>   v4l: vb: remove warnings about MEMORY_DMABUF
+>>>   v4l: vb2-dma-contig: add support for dma_buf importing
+>>>
+>>> Tomasz Stanislawski (5):
+>>>   Documentation: media: description of DMABUF importing in V4L2
+>>>   v4l: vb2-dma-contig: Remove unneeded allocation context structure
+>>>   v4l: vb2-dma-contig: add support for scatterlist in userptr mode
+>>>   v4l: s5p-tv: mixer: support for dmabuf importing
+>>>   v4l: s5p-fimc: support for dmabuf importing
+>>>
+>>>  Documentation/DocBook/media/v4l/compat.xml         |    4 +
+>>>  Documentation/DocBook/media/v4l/io.xml             |  179 +++++++
+>>>  .../DocBook/media/v4l/vidioc-create-bufs.xml       |    1 +
+>>>  Documentation/DocBook/media/v4l/vidioc-qbuf.xml    |   15 +
+>>>  Documentation/DocBook/media/v4l/vidioc-reqbufs.xml |   45 +-
+>>>  drivers/media/video/s5p-fimc/Kconfig               |    1 +
+>>>  drivers/media/video/s5p-fimc/fimc-capture.c        |    2 +-
+>>>  drivers/media/video/s5p-tv/Kconfig                 |    1 +
+>>>  drivers/media/video/s5p-tv/mixer_video.c           |    2 +-
+>>>  drivers/media/video/v4l2-ioctl.c                   |    1 +
+>>>  drivers/media/video/videobuf-core.c                |    4 +
+>>>  drivers/media/video/videobuf2-core.c               |  207 +++++++-
+>>>  drivers/media/video/videobuf2-dma-contig.c         |  520 ++++++++++++++---
+>>>  include/linux/videodev2.h                          |    7 +
+>>>  include/media/videobuf2-core.h                     |   34 ++
+>>>  15 files changed, 924 insertions(+), 99 deletions(-)
+>> --
+>> Regards,
+>>
+>> Laurent Pinchart
+>>
+> Best regards,
+> ~Sumit.
 >
-> Signed-off-by: Sasha Levin <levinsasha928@gmail.com>
-> ---
->  drivers/staging/media/lirc/lirc_serial.c |    6 ++++++
->  1 files changed, 6 insertions(+), 0 deletions(-)
->
-> diff --git a/drivers/staging/media/lirc/lirc_serial.c b/drivers/staging/media/lirc/lirc_serial.c
-> index 3295ea6..97ef670 100644
-> --- a/drivers/staging/media/lirc/lirc_serial.c
-> +++ b/drivers/staging/media/lirc/lirc_serial.c
-> @@ -129,6 +129,7 @@ static void send_space_homebrew(long length);
->
->  static struct lirc_serial hardware[] = {
->        [LIRC_HOMEBREW] = {
-> +               .lock = __SPIN_LOCK_UNLOCKED(hardware[LIRC_HOMEBREW].lock),
->                .signal_pin        = UART_MSR_DCD,
->                .signal_pin_change = UART_MSR_DDCD,
->                .on  = (UART_MCR_RTS | UART_MCR_OUT2 | UART_MCR_DTR),
-> @@ -145,6 +146,7 @@ static struct lirc_serial hardware[] = {
->        },
->
->        [LIRC_IRDEO] = {
-> +               .lock = __SPIN_LOCK_UNLOCKED(hardware[LIRC_IRDEO].lock),
->                .signal_pin        = UART_MSR_DSR,
->                .signal_pin_change = UART_MSR_DDSR,
->                .on  = UART_MCR_OUT2,
-> @@ -156,6 +158,7 @@ static struct lirc_serial hardware[] = {
->        },
->
->        [LIRC_IRDEO_REMOTE] = {
-> +               .lock = __SPIN_LOCK_UNLOCKED(hardware[LIRC_IRDEO_REMOTE].lock),
->                .signal_pin        = UART_MSR_DSR,
->                .signal_pin_change = UART_MSR_DDSR,
->                .on  = (UART_MCR_RTS | UART_MCR_DTR | UART_MCR_OUT2),
-> @@ -167,6 +170,7 @@ static struct lirc_serial hardware[] = {
->        },
->
->        [LIRC_ANIMAX] = {
-> +               .lock = __SPIN_LOCK_UNLOCKED(hardware[LIRC_ANIMAX].lock),
->                .signal_pin        = UART_MSR_DCD,
->                .signal_pin_change = UART_MSR_DDCD,
->                .on  = 0,
-> @@ -177,6 +181,7 @@ static struct lirc_serial hardware[] = {
->        },
->
->        [LIRC_IGOR] = {
-> +               .lock = __SPIN_LOCK_UNLOCKED(hardware[LIRC_IGOR].lock),
->                .signal_pin        = UART_MSR_DSR,
->                .signal_pin_change = UART_MSR_DDSR,
->                .on  = (UART_MCR_RTS | UART_MCR_OUT2 | UART_MCR_DTR),
-> @@ -201,6 +206,7 @@ static struct lirc_serial hardware[] = {
->         * See also http://www.nslu2-linux.org for this device
->         */
->        [LIRC_NSLU2] = {
-> +               .lock = __SPIN_LOCK_UNLOCKED(hardware[LIRC_NSLU2].lock),
->                .signal_pin        = UART_MSR_CTS,
->                .signal_pin_change = UART_MSR_DCTS,
->                .on  = (UART_MCR_RTS | UART_MCR_OUT2 | UART_MCR_DTR),
-> --
-> 1.7.8.6
->
+> _______________________________________________
+> Linaro-mm-sig mailing list
+> Linaro-mm-sig@lists.linaro.org
+> http://lists.linaro.org/mailman/listinfo/linaro-mm-sig
