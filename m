@@ -1,154 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:65523 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752340Ab2FRG7F convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jun 2012 02:59:05 -0400
-Received: by obbtb18 with SMTP id tb18so8078089obb.19
-        for <linux-media@vger.kernel.org>; Sun, 17 Jun 2012 23:59:04 -0700 (PDT)
+Received: from mailout-de.gmx.net ([213.165.64.23]:60039 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1754587Ab2FDPfk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jun 2012 11:35:40 -0400
+Message-ID: <4FCCD5C9.706@fisher-privat.net>
+Date: Mon, 04 Jun 2012 17:35:37 +0200
+From: Oleksij Rempel <bug-track@fisher-privat.net>
 MIME-Version: 1.0
-In-Reply-To: <Pine.LNX.4.64.1205020044000.12201@axis700.grange>
-References: <4875438356E7CA4A8F2145FCD3E61C0B2CC9525492@MEP-EXCH.meprolight.com>
- <Pine.LNX.4.64.1205020044000.12201@axis700.grange>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Mon, 18 Jun 2012 12:28:44 +0530
-Message-ID: <CA+V-a8uNKVprBHj9Qeiw_qm6_BghK6RkZjUrjB14dxSdiNzFjw@mail.gmail.com>
-Subject: Re: SoC i.mx35 userptr method failure while running capture-example utility
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	"laurent.pinchart@ideasonboard.com"
-	<laurent.pinchart@ideasonboard.com>
-Cc: Alex Gershgorin <alexg@meprolight.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-uvc-devel@lists.sourceforge.net, linux-media@vger.kernel.org,
+	sakari.ailus@iki.fi,
+	Youness Alaoui <youness.alaoui@collabora.co.uk>
+Subject: Re: [RFC] Media controller entity information ioctl [was "Re: [patch]
+ suggestion for media framework"]
+References: <4FCB9C12.1@fisher-privat.net> <9993866.a3VUSWRbyi@avalon>
+In-Reply-To: <9993866.a3VUSWRbyi@avalon>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi/Laurent,
+On 04.06.2012 16:02, Laurent Pinchart wrote:
+> Hi Oleksiy,
+> 
+> Thank you for the patch.
+> 
+> [CC'ing linux-media]
+> 
+> On Sunday 03 June 2012 19:17:06 Oleksij Rempel wrote:
+>> Hi Laurent,
+>>
+>> in attachment is a suggestion patch for media framework and a test
+>> program which use this patch.
+>>
+>> Suddenly we still didn't solved the problem with finding of XU. You
+>> know, the proper way to find them is guid (i do not need to explain this
+>> :)). Since uvc devices starting to have more and complicated XUs, media
+>> api is probably proper way to go - how you suggested.
+>>
+>> On the wiki of TexasInstruments i found some code examples, how they use
+>> this api. And it looks like there is some desing differences between
+>> OMPA drivers and UVC. It is easy to find proper entity name for omap
+>> devices just by: "(!strcmp(entity[index].name, "OMAP3 ISP CCDC"))".
+>> We can't do the same for UVC, current names are just "Extension %u". We
+>> can put guid instead, but it will looks ugly and not really informative.
+>> This is why i added new struct uvc_ext.
+>>
+>> If you do not agree with this patch, it will be good if you proved other
+>> solution. This problem need to be solved.
+> 
+> The patch goes in the right direction, in that I think the media controller 
+> API is the proper way to solve this problem. However, extending the 
+> media_entity_desc structure with information about all possible kinds of 
+> entities will not scale, especially given that an entity may need to expose 
+> information related to multiple types (for instance an XU need to expose its 
+> GUID, but also subdev-related information if it has a device node).
+> 
+> I've been thinking about adding a new ioctl to the media controller API for 
+> some time now, to report advanced static information about entities.
+> 
+> The idea is that each entity would be allowed to report an arbitrary number of 
+> static items. Items would have a type (for which we would likely need some 
+> kind of central registry, possible with driver-specific types), a length and 
+> data. The items would be static (registered an initialization time) and 
+> aggregated in a single buffer that would be read in one go through a new 
+> ioctl.
+> 
+> One important benefit of such an API would be to be able to report more than 
+> one entity type per subdev using entity type items. Many entities serve 
+> several purpose, for instance a sensor can integrate a flash controller. This 
+> can't be reported with the current API, as subdevs have a single type. By 
+> having several entity type items we could fix this issue.
+> 
+> Details remain to be drafted, but I'd like a feedback on the general approach.
 
-On Wed, May 2, 2012 at 4:20 AM, Guennadi Liakhovetski
-<g.liakhovetski@gmx.de> wrote:
-> Hi Alex
->
-> On Tue, 1 May 2012, Alex Gershgorin wrote:
->
->> Hi everyone,
->>
->> I use user-space utility from  http://git.linuxtv.org/v4l-utils.git/blob/HEAD:/contrib/test/capture-example.c
->> I made two small changes in this application and this is running on i.MX35 SoC
->>
->> fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_RGB565;
->> fmt.fmt.pix.field       = V4L2_FIELD_ANY;
->>
->> When MMAP method is used everything works fine, problem occurs when using USERPTR method
->> this can see bellow :
->>
->> ./capture-example -u -f -d /dev/video0
->> mx3-camera mx3-camera.0: MX3 Camera driver attached to camera 0
->> Failed acquiring VMA for vaddr 0x76cd9008
->> VIDIOC_QBUF error 22, Invalid arg
->
-> It doesn't surprise me, that this doesn't work. capture-example allocates
-> absolutely normal user-space buffers, when called with USERPTR, and those
-> buffers are very likely discontiguous. Whereas mx3-camera needs physically
-> contiguous buffers, so, this can only fail. This means, you either have to
-> use MMAP or you need to allocate USERPTR buffers in a special way to
-> guarantee their contiguity.
->
-  Even I am facing a similar issue when ported to VB2 for USERPTR.
- How do we ensure the buffers not discontiguous. Would cmem assure it?
+Currently i can talk only about uvc :)
+Normally entity sub/type can be created by driver and device where
+documentation is available. For uvc it is not the case. If we get some
+comlicated uvc device with decumentation about XU, we will need
+userspace library to map all needed entities. But if you wont to make it
+static, created on driver init, then we will need some kind of plugin
+interface for uvcvideo.... (this sounds scary ;)) or remapable entities.
 
-Thx,
---Prabhakar Lad
+Then one more question:
+for the case with uvcvideo + usb-audio, one of driver may reset complete
+device if it get some timeout or error. Make it sense to use media api
+to avoid it? For example uvcvideo set enitity state to busy, and if
+audio need to reset it and handler is not usb-audio for busy device,
+then it should notify handler...
 
->> Unable to handle kernel NULL pointer dereference at virtual address 00000000
->
-> This, however, is bad and is a bug in the driver. The capture-example
-> should just fail nicely with no trouble. I'll add it to my TODO and will
-> try to find some time to debug and fix this, however, I'd be more than
-> happy if someone else would beat me on this ;-)
->
-> Thanks
-> Guennadi
->
->> pgd = 80004000
->> [00000000] *pgd=00000000
->> Internal error: Oops: 817 [#1] ARM
->> CPU: 0    Not tainted  (3.4.0-rc5+ #2283
->> PC is at mx3_videobuf_release+0x9c/0x10c
->> LR is at mx3_videobuf_release+0x20/0x10c
->> pc : [<802cd92c>]    lr : [<802cd8b0>]    psr: 00000093
->> sp : 86db3e00  ip : 86db3e00  fp : 86db3e2c
->> r10: 86ff6b20  r9 : 86817200  r8 : 00000000
->> r7 : 86ff568c  r6 : 00000000  r5 : 8801a000  r4 : 86da3000
->> r3 : 60000013  r2 : 86da3264  r1 : 00000000  r0 : 00000000
->> Flags: nzcv  IRQs off  FIQs on  Mode SVC_32  ISA ARM  Segment user
->> Control: 00c5387d  Table: 86dcc008  DAC: 00000015
->> Process capture-example (pid: 52, stack limit = 0x86db2268)
->> Stack: (0x86db3e00 to 0x86db4000)
->> 3e00: 00000000 60000013 00000000 86ff568c 00000000 00000002 86ff56ac 00000000
->> 3e20: 86db3e64 86db3e30 802c8978 802cd89c 00000000 80099414 86db3e84 86ff568c
->> 3e40: 86dc9a80 8801a03c 80491828 00000000 86817200 86ff6b20 86db3e7c 86db3e68
->> 3e60: 802c9a1c 802c8930 802ce048 86ff5600 86db3e9c 86db3e80 802cca14 802c9a00
->> 3e80: 86ff5800 86dc9a80 00000008 86dc9a88 86db3eb4 86db3ea0 802b936c 802cc9d0
->> 3ea0: 86dc9a80 86ff6b20 86db3ef4 86db3eb8 80082f00 802b932c 00000000 00000000
->> 3ec0: 00000000 86d35010 86d7f000 86dc9a80 00000000 86d59000 86d90120 0000000c
->> 3ee0: 86db2000 00000000 86db3f14 86db3ef8 8007ff58 80082df0 00000000 86d59000
->> 3f00: 00000000 00000001 86db3f3c 86db3f18 8001c72c 8007fee4 86d59000 86d82000
->> 3f20: 00000100 76ef1770 000000f8 8000e564 86db3f4c 86db3f40 8001c7a8 8001c6b4
->> 3f40: 86db3f7c 86db3f50 8001dab4 8001c78c 7eb002b8 00000001 00000004 00000000
->> 3f60: 86db3fa4 86db3f70 800824fc 000000f8 86db3f94 86db3f80 8001dfc0 8001d8c4
->> 3f80: 0000ffff 000a3d78 86db3fa4 86db3f98 8001e004 8001df4c 00000000 86db3fa8
->> 3fa0: 8000e3e0 8001dff8 000a3d78 76ef1770 00000001 000a3d64 00000008 00000001
->> 3fc0: 000a3d78 76ef1770 76ef1770 000000f8 76e1d248 00000000 00009ecc 7eb02954
->> 3fe0: 76f2e000 7eb02908 76de14dc 76e4f3d4 60000010 00000001 00000000 00000000
->> Backtrace:
->> [<802cd890>] (mx3_videobuf_release+0x0/0x10c) from [<802c8978>] (__vb2_queue_free+0x54/0x15c)
->>  r8:00000000 r7:86ff56ac r6:00000002 r5:00000000 r4:86ff568c
->> [<802c8924>] (__vb2_queue_free+0x0/0x15c) from [<802c9a1c>] (vb2_queue_release+0x28/0x2c)
->> [<802c99f4>] (vb2_queue_release+0x0/0x2c) from [<802cca14>] (soc_camera_close+0x50/0xac)
->>  r4:86ff5600 r3:802ce048
->> [<802cc9c4>] (soc_camera_close+0x0/0xac) from [<802b936c>] (v4l2_release+0x4c/0x6c)
->>  r7:86dc9a88 r6:00000008 r5:86dc9a80 r4:86ff5800
->> [<802b9320>] (v4l2_release+0x0/0x6c) from [<80082f00>] (fput+0x11c/0x204)
->>  r5:86ff6b20 r4:86dc9a80
->> [<80082de4>] (fput+0x0/0x204) from [<8007ff58>] (filp_close+0x80/0x8c)
->> [<8007fed8>] (filp_close+0x0/0x8c) from [<8001c72c>] (put_files_struct+0x84/0xd8)
->>  r6:00000001 r5:00000000 r4:86d59000 r3:00000000
->> [<8001c6a8>] (put_files_struct+0x0/0xd8) from [<8001c7a8>] (exit_files+0x28/0x2c)
->>  r8:8000e564 r7:000000f8 r6:76ef1770 r5:00000100 r4:86d82000
->> r3:86d59000
->> [<8001c780>] (exit_files+0x0/0x2c) from [<8001dab4>] (do_exit+0x1fc/0x688)
->> [<8001d8b8>] (do_exit+0x0/0x688) from [<8001dfc0>] (do_group_exit+0x80/0xac)
->>  r7:000000f8
->> [<8001df40>] (do_group_exit+0x0/0xac) from [<8001e004>] (sys_exit_group+0x18/0x24)
->>  r4:000a3d78 r3:0000ffff
->> [<8001dfec>] (sys_exit_group+0x0/0x24) from [<8000e3e0>] (ret_fast_syscall+0x0/0x30)
->> Code: 05852024 e5941268 e5940264 e2842f99 (e5810000)
->> ument
->> ---[ end trace 23ac1073b67b7fc0 ]---
->> Fixing recursive fault but reboot is needed!
->>
->> Unfortunately I do not have enough knowledge in this kind of problems, any help will be welcomed.
->>
->> Regards,
->> Alex
->>
->>
->>
->>
->>
->>
->>
->>
->>
->>
->
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> http://www.open-technology.de/
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+-- 
+Regards,
+Oleksij
