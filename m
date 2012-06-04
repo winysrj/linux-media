@@ -1,100 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.24]:33881 "EHLO mgw-da01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754788Ab2FMVte (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Jun 2012 17:49:34 -0400
-Message-ID: <4FD90AE4.9010306@iki.fi>
-Date: Thu, 14 Jun 2012 00:49:24 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:42038 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760601Ab2FDNf6 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jun 2012 09:35:58 -0400
+Received: by yenm10 with SMTP id m10so2982822yen.19
+        for <linux-media@vger.kernel.org>; Mon, 04 Jun 2012 06:35:57 -0700 (PDT)
 MIME-Version: 1.0
-To: Sylwester Nawrocki <snjw23@gmail.com>
-CC: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
-	laurent.pinchart@ideasonboard.com
-Subject: Re: [PATCH 3/4] v4l: Unify selection targets across V4L2 and V4L2
- subdev interfaces
-References: <4FD4F6B6.1070605@iki.fi> <1339356878-2179-3-git-send-email-sakari.ailus@iki.fi> <4FD720AC.8000906@gmail.com> <4FD90217.2060403@iki.fi> <4FD908AD.3010202@gmail.com>
-In-Reply-To: <4FD908AD.3010202@gmail.com>
+In-Reply-To: <4FCCB8F4.7090407@interlinx.bc.ca>
+References: <bug-827538-199927-UDXT6TGYkq@bugzilla.redhat.com>
+	<4FC91D64.6090305@iki.fi>
+	<4FCA41D7.2060206@iki.fi>
+	<4FCACF9C.8060509@iki.fi>
+	<4FCB76D3.7090800@interlinx.bc.ca>
+	<4FCB77FB.50804@iki.fi>
+	<4FCBD095.30901@iki.fi>
+	<4FCCB8F4.7090407@interlinx.bc.ca>
+Date: Mon, 4 Jun 2012 09:35:54 -0400
+Message-ID: <CAGoCfixoe5jyYrgwNnadbFsvRqF1P3rk5jMZbmtmvhyvAieZ0g@mail.gmail.com>
+Subject: Re: Fwd: [Bug 827538] DVB USB device firmware requested in module_init()
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: "Brian J. Murrell" <brian@interlinx.bc.ca>
+Cc: linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
-
-Sylwester Nawrocki wrote:
-> Hi Sakari :)
-> 
-> On 06/13/2012 11:11 PM, Sakari Ailus wrote:
->> Hi Sylwester,
+On Mon, Jun 4, 2012 at 9:32 AM, Brian J. Murrell <brian@interlinx.bc.ca> wrote:
+> On 12-06-03 05:01 PM, Antti Palosaari wrote:
 >>
->> Thanks for the comments!!
+>> That firmware downloading patch is done top of my new dvb-usb
+>> development tree. I have converted very limited set of drivers for that
+>> tree, af9015, au6610, ec168 and anysee (and those are only on my local
+>> hard disk). I tried to backport patch for the current dvb-usb but I ran
+>> many problems and gave up. Looks like it is almost impossible to convert
+>> old dvb-usb without big changes...
 >>
->> Sylwester Nawrocki wrote:
->>> Hi Sakari,
->>>
->>> On 06/10/2012 09:34 PM, Sakari Ailus wrote:
->>>> Signed-off-by: Sakari Ailus<sakari.ailus@iki.fi>
->>>> ---
->>>>    drivers/media/video/omap3isp/ispccdc.c    |    6 ++--
->>>>    drivers/media/video/omap3isp/isppreview.c |    6 ++--
->>>>    drivers/media/video/omap3isp/ispresizer.c |    6 ++--
->>>>    drivers/media/video/smiapp/smiapp-core.c  |   30 +++++++++---------
->>>>    drivers/media/video/v4l2-subdev.c         |    4 +-
->>>>    include/linux/v4l2-common.h               |   49
->>>> +++++++++++++++++++++++++++++
->>>>    include/linux/v4l2-subdev.h               |   13 +------
->>>>    include/linux/videodev2.h                 |   20 +----------
->>>>    8 files changed, 79 insertions(+), 55 deletions(-)
->>>>    create mode 100644 include/linux/v4l2-common.h
->>> <snip>
->>>> diff --git a/include/linux/v4l2-common.h b/include/linux/v4l2-common.h
->>>> new file mode 100644
->>>> index 0000000..e0db6e3
->>>> --- /dev/null
->>>> +++ b/include/linux/v4l2-common.h
->>>> @@ -0,0 +1,49 @@
->>>> +/*
->>>> + * include/linux/v4l2-common.h
->>>> + *
->>>> + * Common V4L2 and V4L2 subdev definitions.
->>>> + *
->>>> + * Users are adviced to #include this file either videodev2.h (V4L2)
-> 
-> Shouldn't be "advised" ?
+>> So what driver you are using?
+>
+> I'm using the hvr-950q per
+> https://bugzilla.kernel.org/show_bug.cgi?id=43145 and
+> https://bugzilla.kernel.org/show_bug.cgi?id=43146.
+>
+>> It is possible I can convert your driver
+>> too and then it is possible to test.
+>
+> Great.  Ideally it would be great to get this backported and applied to
+> the linux 3.2.0 release stream.
 
-Yes. Fixed.
+The 950q doesn't use the dvb-usb framework (nor does it load the
+firmware at init).  Whatever is going on there is completely unrelated
+to what Antti is debugging.
 
->>>
->>> s/either videodev2.h/either from videodev2.h ?
->>>
->>>> + * or v4l2-subdev.h (V4L2 subdev) rather than to refer to this file
->>>
->>> s/or v4l2-subdev.h/or from v4l2-subdev.h ?
->>
->> How about "through" for both?
-> 
-> Yeah, probably more appropriate.
-> 
-> [...]
->>>
->>> There are now some missing renames, due to some patches that were merged
->>> recently. Please feel free to squash the attached patch with this one.
->>
->> I merged it to the patch and put your SoB line there. :-)
-> 
-> OK, good :)
-> 
-> In case you wanted to compile test those changes, I've attached
-> kernel config file for exynos4.
-
-Compile testing? What is that? :-)
-
-I'll check that before sending the pull req.
-
-Cheers,
+Devin
 
 -- 
-Sakari Ailus
-sakari.ailus@iki.fi
-
-
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
