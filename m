@@ -1,154 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.47]:22163 "EHLO mgw-sa01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753229Ab2FMWmG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Jun 2012 18:42:06 -0400
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
-	snjw23@gmail.com, t.stanislaws@samsung.com
-Subject: [PATCH v3 5/6] v4l: Unify selection flags
-Date: Thu, 14 Jun 2012 01:39:40 +0300
-Message-Id: <1339627181-8563-5-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <4FD91697.9050100@iki.fi>
-References: <4FD91697.9050100@iki.fi>
+Received: from moutng.kundenserver.de ([212.227.17.9]:51813 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754056Ab2FDPtN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jun 2012 11:49:13 -0400
+Date: Mon, 4 Jun 2012 17:49:10 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Albert Wang <twang13@marvell.com>
+cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: RE: [PATCH] [media] soc-camera: Correct icl platform data
+ assignment
+In-Reply-To: <477F20668A386D41ADCC57781B1F7043083A727354@SC-VEXCH1.marvell.com>
+Message-ID: <alpine.DEB.2.00.1206041738190.23951@axis700.grange>
+References: <1338803000-26019-1-git-send-email-twang13@marvell.com> <Pine.LNX.4.64.1206041425010.22611@axis700.grange> <477F20668A386D41ADCC57781B1F7043083A727354@SC-VEXCH1.marvell.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Unify flags on the selection interfaces on V4L2 and V4L2 subdev. Flags are
-very similar to targets in this case: there are more similarities than
-differences between the two interfaces.
+On Mon, 4 Jun 2012, Albert Wang wrote:
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> Hi, Guennadi
+> 
+> Yes, maybe you are right.
+> I checked some i2c client drivers, they all changed it to:
+> 
+> struct soc_camera_link *icl = soc_camera_i2c_to_link(client);
+> 
+> We also can update our client driver, but could you please explain why 
+> do you change it?
+
+Since you have already found the change, you could also use git blame to 
+find this commit:
+
+commit b569a3766136e710883a16a91cd12942560e772b
+Author: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Date:   Wed Sep 21 20:16:30 2011 +0200
+
+    V4L: soc-camera: start removing struct soc_camera_device from client drivers
+    
+    Remove most trivial uses of struct soc_camera_device from most client
+    drivers, abstracting some of them inside inline functions. Next steps
+    will eliminate remaining uses and modify inline functions to not use
+    struct soc_camera_device.
+
+I.e., client drivers should become independent of soc-camera, that's why 
+they shoudn't access struct soc_camera_device.
+
+Thanks
+Guennadi
 ---
- drivers/media/video/omap3isp/ispccdc.c    |    2 +-
- drivers/media/video/omap3isp/isppreview.c |    2 +-
- drivers/media/video/smiapp/smiapp-core.c  |   10 +++++-----
- include/linux/v4l2-common.h               |    5 +++++
- include/linux/v4l2-subdev.h               |    6 +-----
- include/linux/videodev2.h                 |    6 +-----
- 6 files changed, 14 insertions(+), 17 deletions(-)
-
-diff --git a/drivers/media/video/omap3isp/ispccdc.c b/drivers/media/video/omap3isp/ispccdc.c
-index 82df7a0..f1220d3 100644
---- a/drivers/media/video/omap3isp/ispccdc.c
-+++ b/drivers/media/video/omap3isp/ispccdc.c
-@@ -2064,7 +2064,7 @@ static int ccdc_set_selection(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
- 	 * pad. If the KEEP_CONFIG flag is set, just return the current crop
- 	 * rectangle.
- 	 */
--	if (sel->flags & V4L2_SUBDEV_SEL_FLAG_KEEP_CONFIG) {
-+	if (sel->flags & V4L2_SEL_FLAG_KEEP_CONFIG) {
- 		sel->r = *__ccdc_get_crop(ccdc, fh, sel->which);
- 		return 0;
- 	}
-diff --git a/drivers/media/video/omap3isp/isppreview.c b/drivers/media/video/omap3isp/isppreview.c
-index 6fa70f4..99d5cc4 100644
---- a/drivers/media/video/omap3isp/isppreview.c
-+++ b/drivers/media/video/omap3isp/isppreview.c
-@@ -2000,7 +2000,7 @@ static int preview_set_selection(struct v4l2_subdev *sd,
- 	 * pad. If the KEEP_CONFIG flag is set, just return the current crop
- 	 * rectangle.
- 	 */
--	if (sel->flags & V4L2_SUBDEV_SEL_FLAG_KEEP_CONFIG) {
-+	if (sel->flags & V4L2_SEL_FLAG_KEEP_CONFIG) {
- 		sel->r = *__preview_get_crop(prev, fh, sel->which);
- 		return 0;
- 	}
-diff --git a/drivers/media/video/smiapp/smiapp-core.c b/drivers/media/video/smiapp/smiapp-core.c
-index 09f0e30..e43be87 100644
---- a/drivers/media/video/smiapp/smiapp-core.c
-+++ b/drivers/media/video/smiapp/smiapp-core.c
-@@ -37,9 +37,9 @@
- 
- #include "smiapp.h"
- 
--#define SMIAPP_ALIGN_DIM(dim, flags)		\
--	((flags) & V4L2_SUBDEV_SEL_FLAG_SIZE_GE	\
--	 ? ALIGN((dim), 2)			\
-+#define SMIAPP_ALIGN_DIM(dim, flags)	\
-+	((flags) & V4L2_SEL_FLAG_GE	\
-+	 ? ALIGN((dim), 2)		\
- 	 : (dim) & ~1)
- 
- /*
-@@ -1746,14 +1746,14 @@ static int scaling_goodness(struct v4l2_subdev *subdev, int w, int ask_w,
- 	h &= ~1;
- 	ask_h &= ~1;
- 
--	if (flags & V4L2_SUBDEV_SEL_FLAG_SIZE_GE) {
-+	if (flags & V4L2_SEL_FLAG_GE) {
- 		if (w < ask_w)
- 			val -= SCALING_GOODNESS;
- 		if (h < ask_h)
- 			val -= SCALING_GOODNESS;
- 	}
- 
--	if (flags & V4L2_SUBDEV_SEL_FLAG_SIZE_LE) {
-+	if (flags & V4L2_SEL_FLAG_LE) {
- 		if (w > ask_w)
- 			val -= SCALING_GOODNESS;
- 		if (h > ask_h)
-diff --git a/include/linux/v4l2-common.h b/include/linux/v4l2-common.h
-index 856c7aa..9df2010 100644
---- a/include/linux/v4l2-common.h
-+++ b/include/linux/v4l2-common.h
-@@ -50,4 +50,9 @@
- #define V4L2_SEL_TGT_CROP_ACTIVE	V4L2_SEL_TGT_CROP
- #define V4L2_SEL_TGT_COMPOSE_ACTIVE	V4L2_SEL_TGT_COMPOSE
- 
-+/* Selection flags */
-+#define V4L2_SEL_FLAG_GE		(1 << 0)
-+#define V4L2_SEL_FLAG_LE		(1 << 1)
-+#define V4L2_SEL_FLAG_KEEP_CONFIG	(1 << 2)
-+
- #endif /* __V4L2_COMMON__  */
-diff --git a/include/linux/v4l2-subdev.h b/include/linux/v4l2-subdev.h
-index 1d7d457..8c57ee9 100644
---- a/include/linux/v4l2-subdev.h
-+++ b/include/linux/v4l2-subdev.h
-@@ -124,10 +124,6 @@ struct v4l2_subdev_frame_interval_enum {
- 	__u32 reserved[9];
- };
- 
--#define V4L2_SUBDEV_SEL_FLAG_SIZE_GE			(1 << 0)
--#define V4L2_SUBDEV_SEL_FLAG_SIZE_LE			(1 << 1)
--#define V4L2_SUBDEV_SEL_FLAG_KEEP_CONFIG		(1 << 2)
--
- /**
-  * struct v4l2_subdev_selection - selection info
-  *
-@@ -135,7 +131,7 @@ struct v4l2_subdev_frame_interval_enum {
-  * @pad: pad number, as reported by the media API
-  * @target: Selection target, used to choose one of possible rectangles,
-  *	    defined in v4l2-common.h; V4L2_SEL_TGT_* .
-- * @flags: constraint flags
-+ * @flags: constraint flags, defined in v4l2-common.h; V4L2_SEL_FLAG_*.
-  * @r: coordinates of the selection window
-  * @reserved: for future use, set to zero for now
-  *
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index 252f4b2..27da0c6 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -762,16 +762,12 @@ struct v4l2_crop {
- 	struct v4l2_rect        c;
- };
- 
--/* Hints for adjustments of selection rectangle */
--#define V4L2_SEL_FLAG_GE	0x00000001
--#define V4L2_SEL_FLAG_LE	0x00000002
--
- /**
-  * struct v4l2_selection - selection info
-  * @type:	buffer type (do not use *_MPLANE types)
-  * @target:	Selection target, used to choose one of possible rectangles;
-  *		defined in v4l2-common.h; V4L2_SEL_TGT_* .
-- * @flags:	constraints flags
-+ * @flags:	constraints flags, defined in v4l2-common.h; V4L2_SEL_FLAG_*.
-  * @r:		coordinates of selection window
-  * @reserved:	for future use, rounds structure size to 64 bytes, set to zero
-  *
--- 
-1.7.2.5
-
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
