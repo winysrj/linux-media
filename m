@@ -1,67 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:1791 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751761Ab2FJT11 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Jun 2012 15:27:27 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [RFCv1 PATCH 00/32] Core and vb2 enhancements
-Date: Sun, 10 Jun 2012 21:27:11 +0200
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Andy Walls <awalls@md.metrocast.net>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Pawel Osciak <pawel@osciak.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>
-References: <1339323954-1404-1-git-send-email-hverkuil@xs4all.nl> <4FD4CF7C.3020000@redhat.com> <201206101932.36886.hverkuil@xs4all.nl>
-In-Reply-To: <201206101932.36886.hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201206102127.12029.hverkuil@xs4all.nl>
+Received: from plane.gmane.org ([80.91.229.3]:58952 "EHLO plane.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1760585Ab2FDNcx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 4 Jun 2012 09:32:53 -0400
+Received: from list by plane.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1SbXOr-0008Eg-1g
+	for linux-media@vger.kernel.org; Mon, 04 Jun 2012 15:32:49 +0200
+Received: from mail.interlinx.bc.ca ([216.58.37.5])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Mon, 04 Jun 2012 15:32:48 +0200
+Received: from brian by mail.interlinx.bc.ca with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Mon, 04 Jun 2012 15:32:48 +0200
+To: linux-media@vger.kernel.org
+From: "Brian J. Murrell" <brian@interlinx.bc.ca>
+Subject: Re: Fwd: [Bug 827538] DVB USB device firmware requested in module_init()
+Date: Mon, 04 Jun 2012 09:32:36 -0400
+Message-ID: <4FCCB8F4.7090407@interlinx.bc.ca>
+References: <bug-827538-199927-UDXT6TGYkq@bugzilla.redhat.com> <4FC91D64.6090305@iki.fi> <4FCA41D7.2060206@iki.fi> <4FCACF9C.8060509@iki.fi> <4FCB76D3.7090800@interlinx.bc.ca> <4FCB77FB.50804@iki.fi> <4FCBD095.30901@iki.fi>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="------------enig171C4864D7CDE80358876402"
+In-Reply-To: <4FCBD095.30901@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun June 10 2012 19:32:36 Hans Verkuil wrote:
-> On Sun June 10 2012 18:46:52 Mauro Carvalho Chehab wrote:
-> > 3) it would be interesting if you could benchmark the previous code and the new
-> > one, to see what gains this change introduced, in terms of v4l2-core footprint and
-> > performance.
-> 
-> I'll try that, should be interesting. Actually, my prediction is that I won't notice any
-> difference. Todays CPUs are so fast that the overhead of the switch is probably hard to
-> measure.
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--------------enig171C4864D7CDE80358876402
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 
-I did some tests, calling various ioctls 100,000,000 times. The actual call into the
-driver was disabled so that I only measure the time spent in v4l2-ioctl.c.
+On 12-06-03 05:01 PM, Antti Palosaari wrote:
+>=20
+> That firmware downloading patch is done top of my new dvb-usb
+> development tree. I have converted very limited set of drivers for that=
 
-I ran the test program with 'time ./t' and measured the sys time.
+> tree, af9015, au6610, ec168 and anysee (and those are only on my local
+> hard disk). I tried to backport patch for the current dvb-usb but I ran=
 
-For each ioctl I tested 5 times and averaged the results. Times are in seconds.
+> many problems and gave up. Looks like it is almost impossible to conver=
+t
+> old dvb-usb without big changes...
+>=20
+> So what driver you are using?
 
-					Old		New
-QUERYCAP			24.86	24.37
-UNSUBSCRIBE_EVENT	23.40	23.10
-LOG_STATUS			18.84	18.76
-ENUMINPUT			28.82	28.90
+I'm using the hvr-950q per
+https://bugzilla.kernel.org/show_bug.cgi?id=3D43145 and
+https://bugzilla.kernel.org/show_bug.cgi?id=3D43146.
 
-Particularly for QUERYCAP and UNSUBSCRIBE_EVENT I found a small but reproducible
-improvement in speed. The results for LOG_STATUS and ENUMINPUT are too close to
-call.
+> It is possible I can convert your driver
+> too and then it is possible to test.
 
-After looking at the assembly code that the old code produces I suspect (but it
-is hard to be sure) that LOG_STATUS and ENUMINPUT are tested quite early on, whereas
-QUERYCAP and UNSUBSCRIBE_EVENT are tested quite late. The order in which the compiler
-tests definitely has no relationship with the order of the case statements in the
-switch.
+Great.  Ideally it would be great to get this backported and applied to
+the linux 3.2.0 release stream.
 
-This would certainly explain what I am seeing. I'm actually a bit surprised that
-this is measurable at all.
+Cheers,
+b.
 
-Regards,
 
-	Hans
+
+--------------enig171C4864D7CDE80358876402
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
+
+iEYEARECAAYFAk/MuPQACgkQl3EQlGLyuXBrNgCfQ5uL/Lhm2w2wqoBz7D1QlkhU
+qEkAn02o1n6aUcZn9KrN8g924syQgmft
+=0/2W
+-----END PGP SIGNATURE-----
+
+--------------enig171C4864D7CDE80358876402--
+
