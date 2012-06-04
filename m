@@ -1,36 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:50293 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755776Ab2FYOLg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Jun 2012 10:11:36 -0400
-Received: by obbuo13 with SMTP id uo13so6505585obb.19
-        for <linux-media@vger.kernel.org>; Mon, 25 Jun 2012 07:11:35 -0700 (PDT)
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:56565 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759630Ab2FDLqP convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jun 2012 07:46:15 -0400
 MIME-Version: 1.0
-In-Reply-To: <CACK0K0gTUWgpgErfMfXtQLN2gCW81RPp5yfGghtpigA0ALrm7w@mail.gmail.com>
-References: <CACK0K0gXr08aNe3gKkWXmKkZ+JA0RBcWtq35aFfNaSqCCWMM1Q@mail.gmail.com>
-	<CALF0-+ViQTmGnAS19kOCZPZAj0ZYZX4Ef-+J7A=k1J2OFhFuVg@mail.gmail.com>
-	<CALF0-+XoKmw0fe_vpOs-BEZXDZThA5WuNw8CRjohLJojZ2O4Dw@mail.gmail.com>
-	<CACK0K0j4mSG=EtU1R-VvvoF_5ZCxrTk4p3niyHBt4tAGVdqLVA@mail.gmail.com>
-	<CALF0-+XR_ZE8_52zQKZ9n9x8sGrmJWNpeXnKD_j6Lg1YHta=vQ@mail.gmail.com>
-	<CACK0K0i53VJVCVsJy2YGX_pWab0QVSkew5tJL5MQ7CcLyGvjMg@mail.gmail.com>
-	<CALF0-+Ws+EWs5CjJedJMFL4mLkKx--kg5VZpa=f_+x2iiUiK5Q@mail.gmail.com>
-	<CACK0K0gTUWgpgErfMfXtQLN2gCW81RPp5yfGghtpigA0ALrm7w@mail.gmail.com>
-Date: Mon, 25 Jun 2012 11:11:35 -0300
-Message-ID: <CALF0-+WE=WakSL5Thx4QKFDKg7GyK4mDk+r_cOm2=Bn=Fan4rg@mail.gmail.com>
-Subject: Re: stk1160 linux driver
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: Gianluca Bergamo <gianluca.bergamo@gmail.com>
-Cc: linux-media <linux-media@vger.kernel.org>
+In-Reply-To: <20120604101237.GD7670@quack.suse.cz>
+References: <1338644416-11417-1-git-send-email-akinobu.mita@gmail.com>
+	<20120604101237.GD7670@quack.suse.cz>
+Date: Mon, 4 Jun 2012 20:46:14 +0900
+Message-ID: <CAC5umyjP0Pov1a3b7N3VzNVHc1uhan2tLmy2_bOzWeY0u7h2FA@mail.gmail.com>
+Subject: Re: [PATCH v2 01/10] string: introduce memweight
+From: Akinobu Mita <akinobu.mita@gmail.com>
+To: Jan Kara <jack@suse.cz>
+Cc: linux-kernel@vger.kernel.org, akpm@linux-foundation.org,
+	Anders Larsen <al@alarsen.net>,
+	Alasdair Kergon <agk@redhat.com>, dm-devel@redhat.com,
+	linux-fsdevel@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org, Mark Fasheh <mfasheh@suse.com>,
+	Joel Becker <jlbec@evilplan.org>, ocfs2-devel@oss.oracle.com,
+	linux-ext4@vger.kernel.org,
+	Andreas Dilger <adilger.kernel@dilger.ca>,
+	"Theodore Ts'o" <tytso@mit.edu>, Matthew Wilcox <matthew@wil.cx>
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jun 25, 2012 at 11:09 AM, Gianluca Bergamo
-<gianluca.bergamo@gmail.com> wrote:
-> Hi Ezequiel,
->
-> Have you tested with the latest version of your driver? Where can I download
-> it?
+2012/6/4 Jan Kara <jack@suse.cz>:
+> On Sat 02-06-12 22:40:07, Akinobu Mita wrote:
+>> memweight() is the function that counts the total number of bits set
+>> in memory area.  Unlike bitmap_weight(), memweight() takes pointer
+>> and size in bytes to specify a memory area which does not need to be
+>> aligned to long-word boundary.
+>>
+>> Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+>> Cc: Anders Larsen <al@alarsen.net>
+>> Cc: Alasdair Kergon <agk@redhat.com>
+>> Cc: dm-devel@redhat.com
+>> Cc: linux-fsdevel@vger.kernel.org
+>> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>> Cc: linux-media@vger.kernel.org
+>> Cc: Mark Fasheh <mfasheh@suse.com>
+>> Cc: Joel Becker <jlbec@evilplan.org>
+>> Cc: ocfs2-devel@oss.oracle.com
+>> Cc: Jan Kara <jack@suse.cz>
+>> Cc: linux-ext4@vger.kernel.org
+>> Cc: Andrew Morton <akpm@linux-foundation.org>
+>> Cc: Andreas Dilger <adilger.kernel@dilger.ca>
+>> Cc: "Theodore Ts'o" <tytso@mit.edu>
+>> Cc: Matthew Wilcox <matthew@wil.cx>
+>> ---
+>>
+>> v2: simplify memweight(), adviced by Jan Kara
+>>
+>>  include/linux/string.h |    3 +++
+>>  lib/string.c           |   32 ++++++++++++++++++++++++++++++++
+>>  2 files changed, 35 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/include/linux/string.h b/include/linux/string.h
+>> index e033564..ffe0442 100644
+>> --- a/include/linux/string.h
+>> +++ b/include/linux/string.h
+>> @@ -145,4 +145,7 @@ static inline bool strstarts(const char *str, const char *prefix)
+>>       return strncmp(str, prefix, strlen(prefix)) == 0;
+>>  }
+>>  #endif
+>> +
+>> +extern size_t memweight(const void *ptr, size_t bytes);
+>> +
+>>  #endif /* _LINUX_STRING_H_ */
+>> diff --git a/lib/string.c b/lib/string.c
+>> index e5878de..bf4d5a8 100644
+>> --- a/lib/string.c
+>> +++ b/lib/string.c
+>> @@ -26,6 +26,7 @@
+>>  #include <linux/export.h>
+>>  #include <linux/bug.h>
+>>  #include <linux/errno.h>
+>> +#include <linux/bitmap.h>
+>>
+>>  #ifndef __HAVE_ARCH_STRNICMP
+>>  /**
+>> @@ -824,3 +825,34 @@ void *memchr_inv(const void *start, int c, size_t bytes)
+>>       return check_bytes8(start, value, bytes % 8);
+>>  }
+>>  EXPORT_SYMBOL(memchr_inv);
+>> +
+>> +/**
+>> + * memweight - count the total number of bits set in memory area
+>> + * @ptr: pointer to the start of the area
+>> + * @bytes: the size of the area
+>> + */
+>> +size_t memweight(const void *ptr, size_t bytes)
+>> +{
+>> +     size_t w = 0;
+>> +     size_t longs;
+>> +     const unsigned char *bitmap = ptr;
+>> +
+>> +     for (; bytes > 0 && ((unsigned long)bitmap) % sizeof(long);
+>> +                     bytes--, bitmap++)
+>> +             w += hweight8(*bitmap);
+>> +
+>> +     longs = bytes / sizeof(long);
+>> +     if (longs) {
+>> +             BUG_ON(longs >= INT_MAX / BITS_PER_LONG);
+>> +             w += bitmap_weight((unsigned long *)bitmap,
+>> +                             longs * BITS_PER_LONG);
+>> +             bytes -= longs * sizeof(long);
+>> +             bitmap += longs * sizeof(long);
+>> +     }
+>> +
+>> +     for (; bytes > 0; bytes--, bitmap++)
+>> +             w += hweight8(*bitmap);
+>  Looking at bitmap_weight() it seems this last loop is not needed. Just
+> pass to bitmap_weight() bytes*BITS_PER_BYTE. Also generally this function
+> doesn't seem necessary at all at least for ext2 & ext3 (sorry for not
+> noticing this earlier...).
 
-http://patchwork.linuxtv.org/patch/13043/
+This last loop is necessary for big-endian architecture.
+if bytes % sizeof(long) != 0, bitmap_weight() counts one-bits in wrong
+byte-field
+of the last long word.
