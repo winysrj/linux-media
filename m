@@ -1,67 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:49939 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754681Ab2FTVbc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Jun 2012 17:31:32 -0400
-Received: by pbbrp8 with SMTP id rp8so1143616pbb.19
-        for <linux-media@vger.kernel.org>; Wed, 20 Jun 2012 14:31:32 -0700 (PDT)
-Message-ID: <4FE24132.4090705@gmail.com>
-Date: Wed, 20 Jun 2012 14:31:30 -0700
-From: Mack Stanley <mcs1937@gmail.com>
+Received: from cantor2.suse.de ([195.135.220.15]:59339 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751505Ab2FDKMl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 4 Jun 2012 06:12:41 -0400
+Date: Mon, 4 Jun 2012 12:12:37 +0200
+From: Jan Kara <jack@suse.cz>
+To: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: linux-kernel@vger.kernel.org, akpm@linux-foundation.org,
+	Anders Larsen <al@alarsen.net>,
+	Alasdair Kergon <agk@redhat.com>, dm-devel@redhat.com,
+	linux-fsdevel@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org, Mark Fasheh <mfasheh@suse.com>,
+	Joel Becker <jlbec@evilplan.org>, ocfs2-devel@oss.oracle.com,
+	Jan Kara <jack@suse.cz>, linux-ext4@vger.kernel.org,
+	Andreas Dilger <adilger.kernel@dilger.ca>,
+	Theodore Ts'o <tytso@mit.edu>, Matthew Wilcox <matthew@wil.cx>
+Subject: Re: [PATCH v2 01/10] string: introduce memweight
+Message-ID: <20120604101237.GD7670@quack.suse.cz>
+References: <1338644416-11417-1-git-send-email-akinobu.mita@gmail.com>
 MIME-Version: 1.0
-To: c.pascoe@itee.uq.edu.au
-CC: linux-media@vger.kernel.org
-Subject: Chipset change for CX88_BOARD_PINNACLE_PCTV_HD_800i
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1338644416-11417-1-git-send-email-akinobu.mita@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dear Mr. Pascoe,
+On Sat 02-06-12 22:40:07, Akinobu Mita wrote:
+> memweight() is the function that counts the total number of bits set
+> in memory area.  Unlike bitmap_weight(), memweight() takes pointer
+> and size in bytes to specify a memory area which does not need to be
+> aligned to long-word boundary.
+> 
+> Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+> Cc: Anders Larsen <al@alarsen.net>
+> Cc: Alasdair Kergon <agk@redhat.com>
+> Cc: dm-devel@redhat.com
+> Cc: linux-fsdevel@vger.kernel.org
+> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Cc: linux-media@vger.kernel.org
+> Cc: Mark Fasheh <mfasheh@suse.com>
+> Cc: Joel Becker <jlbec@evilplan.org>
+> Cc: ocfs2-devel@oss.oracle.com
+> Cc: Jan Kara <jack@suse.cz>
+> Cc: linux-ext4@vger.kernel.org
+> Cc: Andrew Morton <akpm@linux-foundation.org>
+> Cc: Andreas Dilger <adilger.kernel@dilger.ca>
+> Cc: "Theodore Ts'o" <tytso@mit.edu>
+> Cc: Matthew Wilcox <matthew@wil.cx>
+> ---
+> 
+> v2: simplify memweight(), adviced by Jan Kara
+> 
+>  include/linux/string.h |    3 +++
+>  lib/string.c           |   32 ++++++++++++++++++++++++++++++++
+>  2 files changed, 35 insertions(+), 0 deletions(-)
+> 
+> diff --git a/include/linux/string.h b/include/linux/string.h
+> index e033564..ffe0442 100644
+> --- a/include/linux/string.h
+> +++ b/include/linux/string.h
+> @@ -145,4 +145,7 @@ static inline bool strstarts(const char *str, const char *prefix)
+>  	return strncmp(str, prefix, strlen(prefix)) == 0;
+>  }
+>  #endif
+> +
+> +extern size_t memweight(const void *ptr, size_t bytes);
+> +
+>  #endif /* _LINUX_STRING_H_ */
+> diff --git a/lib/string.c b/lib/string.c
+> index e5878de..bf4d5a8 100644
+> --- a/lib/string.c
+> +++ b/lib/string.c
+> @@ -26,6 +26,7 @@
+>  #include <linux/export.h>
+>  #include <linux/bug.h>
+>  #include <linux/errno.h>
+> +#include <linux/bitmap.h>
+>  
+>  #ifndef __HAVE_ARCH_STRNICMP
+>  /**
+> @@ -824,3 +825,34 @@ void *memchr_inv(const void *start, int c, size_t bytes)
+>  	return check_bytes8(start, value, bytes % 8);
+>  }
+>  EXPORT_SYMBOL(memchr_inv);
+> +
+> +/**
+> + * memweight - count the total number of bits set in memory area
+> + * @ptr: pointer to the start of the area
+> + * @bytes: the size of the area
+> + */
+> +size_t memweight(const void *ptr, size_t bytes)
+> +{
+> +	size_t w = 0;
+> +	size_t longs;
+> +	const unsigned char *bitmap = ptr;
+> +
+> +	for (; bytes > 0 && ((unsigned long)bitmap) % sizeof(long);
+> +			bytes--, bitmap++)
+> +		w += hweight8(*bitmap);
+> +
+> +	longs = bytes / sizeof(long);
+> +	if (longs) {
+> +		BUG_ON(longs >= INT_MAX / BITS_PER_LONG);
+> +		w += bitmap_weight((unsigned long *)bitmap,
+> +				longs * BITS_PER_LONG);
+> +		bytes -= longs * sizeof(long);
+> +		bitmap += longs * sizeof(long);
+> +	}
+> +
+> +	for (; bytes > 0; bytes--, bitmap++)
+> +		w += hweight8(*bitmap);
+  Looking at bitmap_weight() it seems this last loop is not needed. Just
+pass to bitmap_weight() bytes*BITS_PER_BYTE. Also generally this function
+doesn't seem necessary at all at least for ext2 & ext3 (sorry for not
+noticing this earlier...).
 
-I'm writing to you as the maintainer of the cx88-dvb kernel module.
-
-I recently bought a pci tv card that the kernel identifies as supported:
-
-05:00.0 Multimedia video controller [0400]: Conexant Systems, Inc.
-CX23880/1/2/3 PCI Video and Audio Decoder [14f1:8800] (rev 05)
-Subsystem: Pinnacle Systems Inc. Device [11bd:0051]
-
-My card appears to be the same card as this Pinnacle card
-(http://www.linuxtv.org/wiki/index.php/Pinnacle_PCTV_HD_Card_%28800i%29)
-except that it has a Samsung S5H1411 chip in place of the S5H1409 on the
-original Pinnacle card identified by the kernel. 
-
-My card is branded "PCTV HD PCI Card 800i"
-(http://www.pctvsystems.com/Products/ProductsNorthAmerica/HybridproductsUSA/PCTVHDCard/tabid/171/language/en-US/Default.aspx),
-though I bought it as a Hauppauge card
-(http://www.newegg.com/Product/Product.aspx?Item=15-116-043&SortField=0&SummaryType=0&Pagesize=10&PurchaseMark=&SelectedRating=-1&VideoOnlyMark=False&VendorMark=&IsFeedbackTab=true&Keywords=linux&Page=1#scrollFullInfo).
-
-Because of the changed chip, "dvb_attach" returns NULL, so the cx88-dvb
-module fails to insert, and no /dev/dvb nodes are created. 
-
-I was able to get around this by copying s5h1411_config
-dvico_fusionhdtv7_config to a new
-"s5h1411_config pinnacle_pctv_hd_800i_config", then replacing
-s5h1409_attach with s5h1411_attach in
-case CX88_BOARD_PINNACLE_PCTV_HD_800i in the definition of dvb_register.
-
-I built against headers for Fedora 16 kernel 3.3.8-1.fc16.x86_64.  The
-result loads normally and creates /dev/dvb/adaper0 containing demux0, 
-dvr0,  frontend0,  and net0. 
-
-"w_scan -fa -A2 -c US -x " produces a long list of frequencies, all but
-two of which are in us-Cable-IRC-center-frequencies-QAM256. However,
-w_scan finds no "services" and I haven't been able to coax either
-scandvb or scte65scan into finding any channels. I don't know whether
-this is because my shot-in-the-dark modification to cx88-dvb doesn't
-work, or because Comcast has some screwy way of sending signals to its
-DTA's.
-
-I'm of course more than happy to help in any way.
-
-Thanks for your time,
-Mack
-
-
+								Honza
+-- 
+Jan Kara <jack@suse.cz>
+SUSE Labs, CR
