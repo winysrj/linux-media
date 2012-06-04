@@ -1,96 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:4021 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751016Ab2FRMtA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jun 2012 08:49:00 -0400
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:4130 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756091Ab2FDVnK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jun 2012 17:43:10 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [RFCv1 PATCH 29/32] v4l2-dev.c: also add debug support for the fops.
-Date: Mon, 18 Jun 2012 14:48:53 +0200
+To: Ezequiel Garcia <elezegarcia@gmail.com>
+Subject: Re: [RFC/PATCH v2] media: Add stk1160 new driver
+Date: Mon, 4 Jun 2012 23:42:58 +0200
 Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Andy Walls <awalls@md.metrocast.net>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Pawel Osciak <pawel@osciak.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-References: <1339323954-1404-1-git-send-email-hverkuil@xs4all.nl> <201206181340.24860.hverkuil@xs4all.nl> <2461283.FaTdpDH5hz@avalon>
-In-Reply-To: <2461283.FaTdpDH5hz@avalon>
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Sylwester Nawrocki <snjw23@gmail.com>
+References: <1338651169-10446-1-git-send-email-elezegarcia@gmail.com> <201206041047.40804.hverkuil@xs4all.nl> <CALF0-+XZ_LTgk8n32gD7H4+dJTyxADPzs-1tw2AVjNzXU9waXg@mail.gmail.com>
+In-Reply-To: <CALF0-+XZ_LTgk8n32gD7H4+dJTyxADPzs-1tw2AVjNzXU9waXg@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201206181448.53989.hverkuil@xs4all.nl>
+Message-Id: <201206042342.58718.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon June 18 2012 14:19:51 Laurent Pinchart wrote:
-> Hi Hans,
+On Mon June 4 2012 21:50:46 Ezequiel Garcia wrote:
+> On Mon, Jun 4, 2012 at 5:47 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> >
+> >> Would you care to explain me this change in your patch?
+> >> +       set_bit(V4L2_FL_USE_FH_PRIO, &dev->vdev.flags);
+> >
+> > See Documentation/video4linux/v4l2-framework.txt:
+> >
+> > "flags: optional. Set to V4L2_FL_USE_FH_PRIO if you want to let the framework
+> >  handle the VIDIOC_G/S_PRIORITY ioctls. This requires that you use struct
+> >  v4l2_fh. Eventually this flag will disappear once all drivers use the core
+> >  priority handling. But for now it has to be set explicitly."
+> >
 > 
-> On Monday 18 June 2012 13:40:24 Hans Verkuil wrote:
-> > On Mon June 18 2012 12:01:47 Laurent Pinchart wrote:
-> > > On Sunday 10 June 2012 12:25:51 Hans Verkuil wrote:
-> > > > From: Hans Verkuil <hans.verkuil@cisco.com>
-> > > > 
-> > > > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> > > > ---
-> > > > 
-> > > >  drivers/media/video/v4l2-dev.c |   41 ++++++++++++++++++++++-----------
-> > > >  1 file changed, 29 insertions(+), 12 deletions(-)
-> > > > 
-> > > > diff --git a/drivers/media/video/v4l2-dev.c
-> > > > b/drivers/media/video/v4l2-dev.c index 5c0bb18..54f387d 100644
-> > > > --- a/drivers/media/video/v4l2-dev.c
-> > > > +++ b/drivers/media/video/v4l2-dev.c
-> > > > @@ -305,6 +305,9 @@ static ssize_t v4l2_read(struct file *filp, char
-> > > > __user
-> > > > *buf, ret = vdev->fops->read(filp, buf, sz, off);
-> > > > 
-> > > >  	if (test_bit(V4L2_FL_LOCK_ALL_FOPS, &vdev->flags))
-> > > >  	
-> > > >  		mutex_unlock(vdev->lock);
-> > > > 
-> > > > +	if (vdev->debug)
-> > > 
-> > > As vdev->debug is a bitmask, shouldn't we add an fops debug bit ?
-> > 
-> > I actually want to move away from the bitmask idea. I've never really liked
-> > it here.
-> 
-> Would using dev_dbg with dynamic printk instead of creating our own logging 
-> system be an option ?
+> So, by using v4l2_fh and setting V4L2_FL_USE_FH_PRIO, I can have
+> {g,s}_priority ioctls for free, right?
 
-I don't think so. There are lots of printk message you'd all have to enable.
-You just want to have a standard method of debugging which ioctls are called
-that anyone can use and that's consistent for all v4l drivers.
+Yes.
 
-This does just that.
+> As far as I can see __video_do_ioctl checks if the ioctl is possible, like this:
+> 
+>  520     if (test_bit(V4L2_FL_USES_V4L2_FH, &vfd->flags)) {
+>  521         vfh = file->private_data;
+>  522         use_fh_prio = test_bit(V4L2_FL_USE_FH_PRIO, &vfd->flags);
+>  523     }
+>  524
+>  525     if (use_fh_prio)
+>  526         ret_prio = v4l2_prio_check(vfd->prio, vfh->prio);
 
-> 
-> > > > +		pr_info("%s: read: %zd (%d)\n",
-> > > > +			video_device_node_name(vdev), sz, ret);
-> > > 
-> > > Shouldn't we use KERN_DEBUG instead of KERN_INFO ? BTW, what about
-> > > replacing the pr_* calls with dev_* calls ?
-> > 
-> > KERN_DEBUG vs KERN_INFO is actually a good question. My reasoning is that
-> > you explicitly enable logging, and so you really want to see it in the log,
-> > so we use KERN_INFO. With KERN_DEBUG you might have the situation where the
-> > debug level of the logging is disabled, so the messages are ignored.
-> > 
-> > However, if people disagree with this, then I'm happy to move it back to
-> > KERN_DEBUG.
-> 
-> On embedded systems KERN_INFO will be printed to the serial console. 
-> Interleaving kernel messages with application output during capture result in 
-> a mess.
-> 
-> If someone enables debugging I expect him/her to know enough to get the kernel 
-> log debug messages.
-
-OK, I'll change this back to KERN_DEBUG. Good argument.
+And V4L2_FL_USES_V4L2_FH is set by v4l2_fh_init() (called by v4l2_fh_open()).
 
 Regards,
 
