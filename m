@@ -1,198 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gg0-f174.google.com ([209.85.161.174]:55407 "EHLO
-	mail-gg0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751482Ab2FZUxf convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Jun 2012 16:53:35 -0400
-Received: by gglu4 with SMTP id u4so369171ggl.19
-        for <linux-media@vger.kernel.org>; Tue, 26 Jun 2012 13:53:34 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <201206261140.37666.hverkuil@xs4all.nl>
-References: <1339681069-8483-1-git-send-email-t.stanislaws@samsung.com>
-	<4FE9758C.7030008@samsung.com>
-	<3296650.k6kvMQSQ7k@avalon>
-	<201206261140.37666.hverkuil@xs4all.nl>
-Date: Tue, 26 Jun 2012 13:53:34 -0700
-Message-ID: <CAPz4a6Cn9-f+nP6HeC94oiyJGqxesz40pWGp1ZxnA-gJZ4e=dQ@mail.gmail.com>
-Subject: Re: [PATCHv7 03/15] v4l: vb2: add support for shared buffer (dma_buf)
-From: Dima Zavin <dmitriyz@google.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	airlied@redhat.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, sumit.semwal@ti.com, daeinki@gmail.com,
-	daniel.vetter@ffwll.ch, robdclark@gmail.com, pawel@osciak.com,
-	linaro-mm-sig@lists.linaro.org, remi@remlab.net,
-	subashrp@gmail.com, mchehab@redhat.com, g.liakhovetski@gmx.de,
-	Sumit Semwal <sumit.semwal@linaro.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:40261 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756918Ab2FDMiB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jun 2012 08:38:01 -0400
+Received: from eusync2.samsung.com (mailout3.w1.samsung.com [210.118.77.13])
+ by mailout3.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0M53007CMF4D3E00@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 04 Jun 2012 13:38:37 +0100 (BST)
+Received: from [106.116.48.198] by eusync2.samsung.com
+ (Oracle Communications Messaging Server 7u4-23.01(7.0.4.23.0) 64bit (built Aug
+ 10 2011)) with ESMTPA id <0M53004J2F3A7A00@eusync2.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 04 Jun 2012 13:37:59 +0100 (BST)
+Subject: Re: [PATCH 0/2] s5p-mfc: added encoder support for end of stream
+ handling
+From: Andrzej Hajda <a.hajda@samsung.com>
+To: Hans Verkuil <hansverk@cisco.com>
+Cc: linux-media@vger.kernel.org, hans.verkuil@cisco.com,
+	m.szyprowski@samsung.com, k.debski@samsung.com
+In-reply-to: <201205231428.05117.hansverk@cisco.com>
+References: <1337700835-13634-1-git-send-email-a.hajda@samsung.com>
+ <201205230943.19410.hansverk@cisco.com> <1337772003.1594.79.camel@AMDC1061>
+ <201205231428.05117.hansverk@cisco.com>
+Content-type: text/plain; charset=UTF-8
+Date: Mon, 04 Jun 2012 14:37:57 +0200
+Message-id: <1338813477.21426.65.camel@AMDC1061>
+MIME-version: 1.0
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hans and Laurent,
+On Wed, 2012-05-23 at 14:28 +0200, Hans Verkuil wrote:
+> On Wed 23 May 2012 13:20:03 Andrzej Hajda wrote:
+> > On Wed, 2012-05-23 at 09:43 +0200, Hans Verkuil wrote:
+> > > Hi Andrzej!
+> > > 
+> > > Thanks for the patch, but I do have two questions:
+> > > 
+> > > On Tue 22 May 2012 17:33:53 Andrzej Hajda wrote:
+> > > > Those patches add end of stream handling for s5p-mfc encoder.
+> > > > 
+> > > > The first patch was sent already to the list as RFC, but the discussion ended
+> > > > without any decision.
+> > > > This patch adds new v4l2_buffer flag V4L2_BUF_FLAG_EOS. Below short
+> > > > description of this change.
+> > > > 
+> > > > s5p_mfc is a mem-to-mem MPEG/H263/H264 encoder and it requires that the last
+> > > > incoming frame must be processed differently, it means the information about
+> > > > the end of the stream driver should receive NOT LATER than the last
+> > > > V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE buffer. Common practice
+> > > > of sending empty buffer to indicate end-of-stream do not work in such case.
+> > > > Setting V4L2_BUF_FLAG_EOS flag for the last V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE
+> > > > buffer seems to be the most straightforward solution here.
+> > > > 
+> > > > V4L2_BUF_FLAG_EOS flag should be used by application if driver requires it
+> > > 
+> > > How will the application know that?
+> > 
+> > Application can always set this flag, it will be ignored by drivers not
+> > requiring it.
+> 
+> That's going to make it very hard to write generic applications: people will
+> always forget to set that flag, unless they happen to using your hardware.
+> 
+> > I see some drawback of this solution - application should know if the
+> > frame enqueued to the driver is the last one. If the application
+> > receives frames to encode form an external source (for example via pipe)
+> > it often does not know if the frame it received is the last one. So to
+> > be able to properly queue frame to the driver it should wait with frame
+> > queuing until it knows there is next frame or end-of-stream is reached,
+> > in such situation it will properly set flag before queuing.
+> > 
+> > Alternative to "V4L2_BUF_FLAG_EOS" solution is to implement "wait for
+> > next frame" logic directly into the driver. In such case application can
+> > use empty buffer to signal the end of the stream. Driver waits with
+> > frame processing if there are at least two buffers in output queue. Then
+> > it checks if the second buffer is empty if not it process the first
+> > buffer as a normal frame and repeats procedure, if yes it process the
+> > first buffer as the last frame and releases second buffer.
+> 
+> In the current V4L2 API the last output frame is reached when:
+> 
+> 1) the filehandle is closed
+> 2) VIDIOC_STREAMOFF is called
+> 3) VIDIOC_ENCODER_CMD is called with V4L2_ENC_CMD_STOP.
+> 
+> The latter is currently only used by MPEG encoders, but it might be an idea
+> to consider it for your hardware as well. Perhaps a flag like 'stop_after_next_frame'
+> is needed.
 
-Thanks for the feedback.
+It seemed to me less straightforward - EOS is sent before the last frame
+- but I can implement it this way of course.
 
-On Tue, Jun 26, 2012 at 2:40 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> On Tue 26 June 2012 11:11:06 Laurent Pinchart wrote:
->> Hi Dima and Tomasz,
->>
->> Sorry for the late reply.
->>
->> On Tuesday 26 June 2012 10:40:44 Tomasz Stanislawski wrote:
->> > Hi Dima Zavin,
->> > Thank you for the patch and for a ping remainder :).
->> >
->> > You are right. The unmap is missing in __vb2_queue_cancel.
->> > I will apply your fix into next version of V4L2 support for dmabuf.
->> >
->> > Please refer to some comments below.
->> >
->> > On 06/20/2012 08:12 AM, Dima Zavin wrote:
->> > > Tomasz,
->> > >
->> > > I've encountered an issue with this patch when userspace does several
->> > > stream_on/stream_off cycles. When the user tries to qbuf a buffer
->> > > after doing stream_off, we trigger the "dmabuf already pinned" warning
->> > > since we didn't unmap the buffer as dqbuf was never called.
->> > >
->> > > The below patch adds calls to unmap in queue_cancel, but my feeling is
->> > > that we probably should be calling detach too (i.e. put_dmabuf).
->>
->> According to the V4L2 specification, the "VIDIOC_STREAMOFF ioctl, apart of
->> aborting or finishing any DMA in progress, unlocks any user pointer buffers
->> locked in physical memory, and it removes all buffers from the incoming and
->> outgoing queues".
->
-> Correct. And what that means in practice is that after a streamoff all buffers
-> are returned to the state they had just before STREAMON was called.
+> 
+> How are cases 1 and 2 handled today?
+> 
 
-That can't be right. The buffers had to have been returned to the
-state just *after REQBUFS*, not just *before STREAMON*. You need to
-re-enqueue buffers before calling STREAMON. I assume that's what you
-meant?
+As I lurked into the driver's code it seems it behaves in standard way -
+driver waits for device to finish current operation if there is any,
+next it releases all buffers.
 
-> So after STREAMOFF you can immediately queue all buffers again with QBUF and
-> call STREAMON to restart streaming. No mmap or other operations should be
-> required. This behavior must be kept.
->
-> VIDIOC_REQBUFS() or a close() are the only two operations that will actually
-> free the buffers completely.
->
-> In practice, a STREAMOFF is either followed by a STREAMON at a later time, or
-> almost immediately followed by REQBUFS or close() to tear down the buffers.
-> So I don't think the buffers should be detached at streamoff.
+> And what happens if the app sets the EOS flag, and then later queues another
+> buffer without that flag. Is that frame accepted/rejected/ignored?
 
-I agree. I was leaning this way which is why I left it out of my patch
-and wanted to hear your guys' opinion as you are much more familiar
-with the intended behavior than I am.
+I have not take care of this situation.
 
-Thanks!
+The simplest solution is to reject frames, application in that case
+should reopen device to encode next stream if necessary.
 
---Dima
+Other solution I see is to allow queue output frames but do not process
+them by device until device finish producing encoded frames, it would
+require device reinitialization.
 
->
-> Regards,
->
->        Hans
->
->> Detaching the buffer is thus not strictly required. At first thought I agreed
->> with you, as not deatching the buffer might keep resources allocated for much
->> longer than needed. For instance, an application that stops the stream and
->> expects to resume it later will usually not free the buffers (with
->> VIDIOC_REQBUFS(0)) between VIDIOC_STREAMOFF and VIDIOC_STREAMON. Buffer will
->> thus be referenced for longer than needed.
->>
->> However, to reuse the same buffer after restarting the stream, the application
->> will need to keep the dmabuf fds around in order to queue them. Detaching the
->> buffer will thus bring little benefit in terms of resource usage, as the open
->> file handles will keep the buffer around anyway. If an application cares about
->> that and closes all dmabuf fds after stopping the stream, I expect it to free
->> the buffers as well.
->>
->> I don't have a very strong opinion about this, if you would rather detach the
->> buffer at stream-off time I'm fine with that.
->>
->> > > Thoughts?
->> > >
->> > > --Dima
->> > >
->> > > Subject: [PATCH] v4l: vb2: unmap dmabufs on STREAM_OFF event
->> > >
->> > > Currently, if the user issues a STREAM_OFF request and then
->> > > tries to re-enqueue buffers, it will trigger a warning in
->> > > the vb2 allocators as the buffer would still be mapped
->> > > from before STREAM_OFF was called. The current expectation
->> > > is that buffers will be unmapped in dqbuf, but that will never
->> > > be called on the mapped buffers after a STREAM_OFF event.
->> > >
->> > > Cc: Sumit Semwal <sumit.semwal@ti.com>
->> > > Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>
->> > > Signed-off-by: Dima Zavin <dima@android.com>
->> > > ---
->> > >
->> > >  drivers/media/video/videobuf2-core.c |   22 ++++++++++++++++++++--
->> > >  1 files changed, 20 insertions(+), 2 deletions(-)
->> > >
->> > > diff --git a/drivers/media/video/videobuf2-core.c
->> > > b/drivers/media/video/videobuf2-core.c index b431dc6..e2a8f12 100644
->> > > --- a/drivers/media/video/videobuf2-core.c
->> > > +++ b/drivers/media/video/videobuf2-core.c
->> > > @@ -1592,8 +1592,26 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
->> > >
->> > >   /*
->> > >    * Reinitialize all buffers for next use.
->> > >    */
->> > >
->> > > - for (i = 0; i < q->num_buffers; ++i)
->> > > -         q->bufs[i]->state = VB2_BUF_STATE_DEQUEUED;
->> > > + for (i = 0; i < q->num_buffers; ++i) {
->> > > +         struct vb2_buffer *vb = q->bufs[i];
->> > > +         int plane;
->> > > +
->> > > +         vb->state = VB2_BUF_STATE_DEQUEUED;
->> > > +
->> > > +         if (q->memory != V4L2_MEMORY_DMABUF)
->> > > +                 continue;
->>
->> Don't we need to do something similat for USERPTR buffers as well ? They don't
->> seem to get unpinned (put_userptr) at stream-off time.
->>
->> If we decide to detach the buffer as well as unmapping it, we could just call
->> __vb2_buf_put and __vb2_buf_userptr put here. If we don't, the code might
->> still be simplified by adding an argument to __vb2_buf_dmabuf_put to select
->> whether to unmap and detach the buffer, or just unmap it.
->>
->> > > +         for (plane = 0; plane < vb->num_planes; ++plane) {
->> > > +                 struct vb2_plane *p = &vb->planes[plane];
->> > > +
->> > > +                 if (!p->mem_priv)
->> > > +                         continue;
->> >
->> > is the check above really needed? No check like this is done in
->> > vb2_dqbuf.
->>
->> I think the check comes from __vb2_plane_dmabuf_put. If the buffer is not
->> queued mem_priv will be NULL. However, that might be redundant with the next
->> check
->>
->> > > +                 if (p->dbuf_mapped) {
->> >
->> > If a buffer is queued then it is also mapped, so dbuf_mapped
->> > should be always be true here (at least in theory).
->>
->> The buffer might never have been queued.
->>
->> > > +                         call_memop(q, unmap_dmabuf, p->mem_priv);
->> > > +                         p->dbuf_mapped = 0;
->> > > +                 }
->> > > +         }
->> > > + }
->> > >
->> > >  }
->> > >
->> > >  /**
->>
->>
+> 
+> I'm trying to understand how the current implementation behaves in corner cases
+> like those.
+> 
+> > The drawback of this solution is that it wastes resources/space
+> > (additional buffer) and time (delayed encoding).
+> > 
+> > I am still hesitating which solution is better, any advices?
+> > 
+> > 
+> > > > and it should be set only on V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE buffers.
+> > > 
+> > > Why only for this type?
+> > 
+> > I wanted to say only for output buffers not just output multi-plane. And
+> > why not capture? Explanation below.
+> > Capture buffers are filled by driver, so only drivers could set this
+> > flag. Some devices provides information about the end of the stream
+> > together with the last frame, but some devices provides this info later
+> > (for example s5p-mfc :) ). In the latter case to properly flag the
+> > capture buffer driver should wait for next available frame. Simpler
+> > solution is to use current solution with sending empty buffer to signal
+> > the end of the stream.
+> 
+
+> I don't believe this is documented anywhere. Wouldn't it be better to send
+> a V4L2_EVENT_EOS event? That's documented and is the way I would expect this
+> to work.
+
+OK, I will change the code accordingly.
+
+Regards
+Andrzej
+
+
