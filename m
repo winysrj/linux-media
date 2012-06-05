@@ -1,170 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:53892 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752472Ab2FLWTj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Jun 2012 18:19:39 -0400
-Received: by mail-we0-f174.google.com with SMTP id u7so40001wey.19
-        for <linux-media@vger.kernel.org>; Tue, 12 Jun 2012 15:19:38 -0700 (PDT)
-From: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
-To: linux-media@vger.kernel.org
-Cc: sven.pilz@gmail.com, soeren.moch@ims.uni-hannover.de,
-	Martin Blumenstingl <martin.blumenstingl@googlemail.com>
-Subject: [PATCH 3/3] [media] em28xx: Improve support for the Terratec Cinergy HTC Stick HD.
-Date: Wed, 13 Jun 2012 00:19:28 +0200
-Message-Id: <1339539568-7725-4-git-send-email-martin.blumenstingl@googlemail.com>
-In-Reply-To: <1339539568-7725-1-git-send-email-martin.blumenstingl@googlemail.com>
-References: <1339539568-7725-1-git-send-email-martin.blumenstingl@googlemail.com>
+Received: from smtp.nokia.com ([147.243.128.24]:33968 "EHLO mgw-da01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751882Ab2FEUo1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 5 Jun 2012 16:44:27 -0400
+Message-ID: <4FCE6F94.7030004@iki.fi>
+Date: Tue, 05 Jun 2012 23:44:04 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Oleksij Rempel <bug-track@fisher-privat.net>,
+	linux-uvc-devel@lists.sourceforge.net, linux-media@vger.kernel.org,
+	Youness Alaoui <youness.alaoui@collabora.co.uk>
+Subject: Re: [RFC] Media controller entity information ioctl [was "Re: [patch]
+ suggestion for media framework"]
+References: <4FCB9C12.1@fisher-privat.net> <9993866.a3VUSWRbyi@avalon>
+In-Reply-To: <9993866.a3VUSWRbyi@avalon>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The windows driver used different values for the GPIOs and analog
-decoder configuration. The values from the windows driver are now
-used.
-It also seems that the windows driver has LNA always disabled.
-Thus we are doing the same (using the same flags as on windows).
+Hi Laurent,
 
-I (only) tested with DVB-T and it worked quite well.
+Laurent Pinchart wrote:
+> Hi Oleksiy,
+> 
+> Thank you for the patch.
+> 
+> [CC'ing linux-media]
+> 
+> On Sunday 03 June 2012 19:17:06 Oleksij Rempel wrote:
+>> Hi Laurent,
+>>
+>> in attachment is a suggestion patch for media framework and a test
+>> program which use this patch.
+>>
+>> Suddenly we still didn't solved the problem with finding of XU. You
+>> know, the proper way to find them is guid (i do not need to explain this
+>> :)). Since uvc devices starting to have more and complicated XUs, media
+>> api is probably proper way to go - how you suggested.
+>>
+>> On the wiki of TexasInstruments i found some code examples, how they use
+>> this api. And it looks like there is some desing differences between
+>> OMPA drivers and UVC. It is easy to find proper entity name for omap
+>> devices just by: "(!strcmp(entity[index].name, "OMAP3 ISP CCDC"))".
+>> We can't do the same for UVC, current names are just "Extension %u". We
+>> can put guid instead, but it will looks ugly and not really informative.
+>> This is why i added new struct uvc_ext.
+>>
+>> If you do not agree with this patch, it will be good if you proved other
+>> solution. This problem need to be solved.
+> 
+> The patch goes in the right direction, in that I think the media controller 
+> API is the proper way to solve this problem. However, extending the 
+> media_entity_desc structure with information about all possible kinds of 
+> entities will not scale, especially given that an entity may need to expose 
+> information related to multiple types (for instance an XU need to expose its 
+> GUID, but also subdev-related information if it has a device node).
+> 
+> I've been thinking about adding a new ioctl to the media controller API for 
+> some time now, to report advanced static information about entities.
+> 
+> The idea is that each entity would be allowed to report an arbitrary number of 
+> static items. Items would have a type (for which we would likely need some 
+> kind of central registry, possible with driver-specific types), a length and 
+> data. The items would be static (registered an initialization time) and 
+> aggregated in a single buffer that would be read in one go through a new 
+> ioctl.
+> 
+> One important benefit of such an API would be to be able to report more than 
+> one entity type per subdev using entity type items. Many entities serve 
+> several purpose, for instance a sensor can integrate a flash controller. This 
+> can't be reported with the current API, as subdevs have a single type. By 
+> having several entity type items we could fix this issue.
 
-Signed-off-by: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
----
- drivers/media/video/em28xx/em28xx-cards.c |    7 +--
- drivers/media/video/em28xx/em28xx-dvb.c   |   83 ++++++++++++++++++++++++++++-
- 2 files changed, 83 insertions(+), 7 deletions(-)
+I welcome this idea!
 
-diff --git a/drivers/media/video/em28xx/em28xx-cards.c b/drivers/media/video/em28xx/em28xx-cards.c
-index 92da7c2..12bc54a 100644
---- a/drivers/media/video/em28xx/em28xx-cards.c
-+++ b/drivers/media/video/em28xx/em28xx-cards.c
-@@ -975,12 +975,7 @@ struct em28xx_board em28xx_boards[] = {
- 		.name         = "Terratec Cinergy HTC Stick",
- 		.has_dvb      = 1,
- 		.ir_codes     = RC_MAP_NEC_TERRATEC_CINERGY_XS,
--#if 0
--		.tuner_type   = TUNER_PHILIPS_TDA8290,
--		.tuner_addr   = 0x41,
--		.dvb_gpio     = terratec_h5_digital, /* FIXME: probably wrong */
--		.tuner_gpio   = terratec_h5_gpio,
--#endif
-+		.tuner_type   = TUNER_ABSENT,
- 		.i2c_speed    = EM2874_I2C_SECONDARY_BUS_SELECT |
- 				EM28XX_I2C_CLK_WAIT_ENABLE |
- 				EM28XX_I2C_FREQ_400_KHZ,
-diff --git a/drivers/media/video/em28xx/em28xx-dvb.c b/drivers/media/video/em28xx/em28xx-dvb.c
-index 16410ac..2b81427 100644
---- a/drivers/media/video/em28xx/em28xx-dvb.c
-+++ b/drivers/media/video/em28xx/em28xx-dvb.c
-@@ -317,6 +317,18 @@ struct drxk_config terratec_h5_drxk = {
- 	.microcode_name = "dvb-usb-terratec-h5-drxk.fw",
- };
- 
-+struct drxk_config terratec_htc_stick_drxk = {
-+	.adr = 0x29,
-+	.single_master = 1,
-+	.no_i2c_bridge = 1,
-+	.microcode_name = "dvb-usb-terratec-htc-stick-drxk.fw",
-+	.chunk_size = 54,
-+	/* Required for the antenna_gpio to disable LNA. */
-+	.antenna_dvbt = true,
-+	/* The windows driver uses the same. This will disable LNA. */
-+	.antenna_gpio = 0x6,
-+};
-+
- struct drxk_config hauppauge_930c_drxk = {
- 	.adr = 0x29,
- 	.single_master = 1,
-@@ -473,6 +485,57 @@ static void terratec_h5_init(struct em28xx *dev)
- 	em28xx_gpio_set(dev, terratec_h5_end);
- };
- 
-+static void terratec_htc_stick_init(struct em28xx *dev)
-+{
-+	int i;
-+
-+	/*
-+	 * GPIO configuration:
-+	 * 0xff: unknown (does not affect DVB-T).
-+	 * 0xf6: DRX-K (demodulator).
-+	 * 0xe6: unknown (does not affect DVB-T).
-+	 * 0xb6: unknown (does not affect DVB-T).
-+	 */
-+	struct em28xx_reg_seq terratec_htc_stick_init[] = {
-+		{EM28XX_R08_GPIO,	0xff,	0xff,	10},
-+		{EM2874_R80_GPIO,	0xf6,	0xff,	100},
-+		{EM2874_R80_GPIO,	0xe6,	0xff,	50},
-+		{EM2874_R80_GPIO,	0xf6,	0xff,	100},
-+		{ -1,                   -1,     -1,     -1},
-+	};
-+	struct em28xx_reg_seq terratec_htc_stick_end[] = {
-+		{EM2874_R80_GPIO,	0xb6,	0xff,	100},
-+		{EM2874_R80_GPIO,	0xf6,	0xff,	50},
-+		{ -1,                   -1,     -1,     -1},
-+	};
-+
-+	/* Init the analog decoder? */
-+	struct {
-+		unsigned char r[4];
-+		int len;
-+	} regs[] = {
-+		{{ 0x06, 0x02, 0x00, 0x31 }, 4},
-+		{{ 0x01, 0x02 }, 2},
-+		{{ 0x01, 0x02, 0x00, 0xc6 }, 4},
-+		{{ 0x01, 0x00 }, 2},
-+		{{ 0x01, 0x00, 0xff, 0xaf }, 4},
-+	};
-+
-+	em28xx_gpio_set(dev, terratec_htc_stick_init);
-+
-+	em28xx_write_reg(dev, EM28XX_R06_I2C_CLK, 0x40);
-+	msleep(10);
-+	em28xx_write_reg(dev, EM28XX_R06_I2C_CLK, 0x44);
-+	msleep(10);
-+
-+	dev->i2c_client.addr = 0x82 >> 1;
-+
-+	for (i = 0; i < ARRAY_SIZE(regs); i++)
-+		i2c_master_send(&dev->i2c_client, regs[i].r, regs[i].len);
-+
-+	em28xx_gpio_set(dev, terratec_htc_stick_end);
-+};
-+
- static void pctv_520e_init(struct em28xx *dev)
- {
- 	/*
-@@ -944,7 +1007,6 @@ static int em28xx_dvb_init(struct em28xx *dev)
- 		break;
- 	}
- 	case EM2884_BOARD_TERRATEC_H5:
--	case EM2884_BOARD_CINERGY_HTC_STICK:
- 		terratec_h5_init(dev);
- 
- 		dvb->fe[0] = dvb_attach(drxk_attach, &terratec_h5_drxk, &dev->i2c_adap);
-@@ -1021,6 +1083,25 @@ static int em28xx_dvb_init(struct em28xx *dev)
- 			}
- 		}
- 		break;
-+	case EM2884_BOARD_CINERGY_HTC_STICK:
-+		terratec_htc_stick_init(dev);
-+
-+		/* attach demodulator */
-+		dvb->fe[0] = dvb_attach(drxk_attach, &terratec_htc_stick_drxk,
-+					&dev->i2c_adap);
-+		if (!dvb->fe[0]) {
-+			result = -EINVAL;
-+			goto out_free;
-+		}
-+
-+		/* Attach the demodulator. */
-+		if (!dvb_attach(tda18271_attach, dvb->fe[0], 0x60,
-+				&dev->i2c_adap,
-+				&em28xx_cxd2820r_tda18271_config)) {
-+			result = -EINVAL;
-+			goto out_free;
-+		}
-+		break;
- 	default:
- 		em28xx_errdev("/2: The frontend of your DVB/ATSC card"
- 				" isn't supported yet\n");
+Another example of information that's missing currently is the lack of
+bus information for the entities: it's next to impossible for the user
+space to learn which i2c device a subdev is related to. At the same time
+we could deprecate the media_entity_desc.type field.
+
+Providing entity bus information as part of entity enumeration would
+resolve this issue.
+
+Btw. do you think a new IOCTL is really required? Why not to just add a
+pointer for additional data the user may provide to the driver to fill
+up? There's plenty of room in the struct for a pointer and perhaps a
+size field.
+
+Cheers,
+
 -- 
-1.7.10.4
-
+Sakari Ailus
+sakari.ailus@iki.fi
