@@ -1,76 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:54861 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932089Ab2F0Kts (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Jun 2012 06:49:48 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Pawel Osciak <pawel@osciak.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFCv2 PATCH 23/34] vb2-core: refactor reqbufs/create_bufs.
-Date: Wed, 27 Jun 2012 12:49:45 +0200
-Message-ID: <7844932.d669S5i05h@avalon>
-In-Reply-To: <201206271237.21149.hverkuil@xs4all.nl>
-References: <1340367688-8722-1-git-send-email-hverkuil@xs4all.nl> <2768547.EFJTNiot7U@avalon> <201206271237.21149.hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mail-we0-f174.google.com ([74.125.82.174]:63390 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753031Ab2FEOGY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Jun 2012 10:06:24 -0400
+Received: by weyu7 with SMTP id u7so3598291wey.19
+        for <linux-media@vger.kernel.org>; Tue, 05 Jun 2012 07:06:23 -0700 (PDT)
+From: Javier Martin <javier.martin@vista-silicon.com>
+To: linux-media@vger.kernel.org
+Cc: g.liakhovetski@gmx.de, fabio.estevam@freescale.com,
+	mchehab@infradead.org,
+	Javier Martin <javier.martin@vista-silicon.com>
+Subject: [PATCH] media: mx2_camera: Add YUYV output format.
+Date: Tue,  5 Jun 2012 16:06:13 +0200
+Message-Id: <1338905173-5968-1-git-send-email-javier.martin@vista-silicon.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wednesday 27 June 2012 12:37:21 Hans Verkuil wrote:
-> On Wed 27 June 2012 11:52:10 Laurent Pinchart wrote:
-> > On Friday 22 June 2012 14:21:17 Hans Verkuil wrote:
-> > > From: Hans Verkuil <hans.verkuil@cisco.com>
-> > > 
-> > > Split off the memory and type validation. This is done both from reqbufs
-> > > and create_bufs, and will also be done by vb2 helpers in a later patch.
-> > > 
-> > > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+While YUYV format can be handled using generic pass-through mode,
+in order to allow resizing the eMMa-PrP has to know exactly
+what format it is dealing with to process data accordingly.
 
-[snip]
+Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
+---
+ drivers/media/video/mx2_camera.c |   26 ++++++++++++++++++++++++++
+ 1 files changed, 26 insertions(+), 0 deletions(-)
 
-> > > +
-> > > +/**
-> > > + * vb2_reqbufs() - Wrapper for __reqbufs() that also verifies the
-> > > memory and
-> > > + * type values.
-> > > + * @q:		videobuf2 queue
-> > > + * @create:	creation parameters, passed from userspace to
-> > > vidioc_create_bufs
-> > > + *		handler in driver
-> > > + */
-> > > +int vb2_create_bufs(struct vb2_queue *q, struct v4l2_create_buffers
-> > > *create)
-> > > +{
-> > > +	int ret = __verify_memory_type(q, create->memory,
-> > > create->format.type);
-> > > +
-> > > +	create->index = q->num_buffers;
-> > 
-> > I think this changes the behaviour of create_bufs, it should thus belong
-> > to the next patch.
-> 
-> No, I don't think this changes the behavior as far as I can tell.
-
-Without your patch create->index isn't modified if the checks fail. On the 
-other hand, I've just remembered that video_usercopy won't copy the structure 
-back to userspace if ret < 0, so you should be right.
-
-> > > +	return ret ? ret : __create_bufs(q, create);
-> > > +}
-> > > 
-> > >  EXPORT_SYMBOL_GPL(vb2_create_bufs);
-> > >  
-> > >  /**
+diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
+index b30ebe5..c8fa457 100644
+--- a/drivers/media/video/mx2_camera.c
++++ b/drivers/media/video/mx2_camera.c
+@@ -332,6 +332,32 @@ static struct mx2_fmt_cfg mx27_emma_prp_table[] = {
+ 		}
+ 	},
+ 	{
++		.in_fmt		= V4L2_MBUS_FMT_UYVY8_2X8,
++		.out_fmt	= V4L2_PIX_FMT_YUYV,
++		.cfg		= {
++			.channel	= 1,
++			.in_fmt		= PRP_CNTL_DATA_IN_YUV422,
++			.out_fmt	= PRP_CNTL_CH1_OUT_YUV422,
++			.src_pixel	= 0x22000888, /* YUV422 (YUYV) */
++			.ch1_pixel	= 0x62000888, /* YUV422 (YUYV) */
++			.irq_flags	= PRP_INTR_RDERR | PRP_INTR_CH1WERR |
++						PRP_INTR_CH1FC | PRP_INTR_LBOVF,
++		}
++	},
++	{
++		.in_fmt		= V4L2_MBUS_FMT_YUYV8_2X8,
++		.out_fmt	= V4L2_PIX_FMT_YUYV,
++		.cfg		= {
++			.channel	= 1,
++			.in_fmt		= PRP_CNTL_DATA_IN_YUV422,
++			.out_fmt	= PRP_CNTL_CH1_OUT_YUV422,
++			.src_pixel	= 0x22000888, /* YUV422 (YUYV) */
++			.ch1_pixel	= 0x62000888, /* YUV422 (YUYV) */
++			.irq_flags	= PRP_INTR_RDERR | PRP_INTR_CH1WERR |
++						PRP_INTR_CH1FC | PRP_INTR_LBOVF,
++		}
++	},
++	{
+ 		.in_fmt		= V4L2_MBUS_FMT_YUYV8_2X8,
+ 		.out_fmt	= V4L2_PIX_FMT_YUV420,
+ 		.cfg		= {
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.0.4
 
