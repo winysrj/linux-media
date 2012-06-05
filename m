@@ -1,98 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f170.google.com ([209.85.212.170]:41414 "EHLO
-	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755768Ab2FQLYA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 Jun 2012 07:24:00 -0400
-Message-ID: <1339932233.20497.14.camel@henna.lan>
-Subject: Re: video: USB webcam fails since kernel 3.2
-From: =?ISO-8859-1?Q?Martin-=C9ric?= Racine <martin-eric.racine@iki.fi>
-To: =?ISO-8859-1?Q?Jean-Fran=E7ois?= Moine <moinejf@free.fr>
-Cc: 677533@bugs.debian.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Date: Sun, 17 Jun 2012 14:23:53 +0300
-In-Reply-To: <20120616044137.GB4076@burratino>
-References: <20120614162609.4613.22122.reportbug@henna.lan>
-	 <20120614215359.GF3537@burratino>
-	 <CAPZXPQd9gNCxn7xGyqj_xymPaF5OxvRtxRFkt+SsLs942te4og@mail.gmail.com>
-	 <20120616044137.GB4076@burratino>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-Mime-Version: 1.0
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:3259 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753655Ab2FEGhq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Jun 2012 02:37:46 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linaro-mm-sig@lists.linaro.org
+Subject: Re: [Linaro-mm-sig] [PATCHv6 00/13] Integration of videobuf2 with dmabuf
+Date: Tue, 5 Jun 2012 08:37:33 +0200
+Cc: "Semwal, Sumit" <sumit.semwal@ti.com>, remi@remlab.net,
+	pawel@osciak.com, mchehab@redhat.com, robdclark@gmail.com,
+	dri-devel@lists.freedesktop.org, kyungmin.park@samsung.com,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	airlied@redhat.com, g.liakhovetski@gmx.de,
+	linux-media@vger.kernel.org
+References: <1337775027-9489-1-git-send-email-t.stanislaws@samsung.com> <CALJcvx6zPB2fvUX9hNF9kVbfgRX_NeaMAf0LiS8xbwsTQtGgHw@mail.gmail.com> <201206042358.07234.hverkuil@xs4all.nl>
+In-Reply-To: <201206042358.07234.hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201206050837.33628.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-pe, 2012-06-15 kello 23:41 -0500, Jonathan Nieder kirjoitti:
-> Martin-Éric Racine wrote:
-> > usb 1-7: new high-speed USB device number 3 using ehci_hcd
-> [...]
-> > usb 1-7: New USB device found, idVendor=0ac8, idProduct=0321
-> > usb 1-7: New USB device strings: Mfr=1, Product=2, SerialNumber=0
-> > usb 1-7: Product: USB2.0 Web Camera
-> > usb 1-7: Manufacturer: Vimicro Corp.
-> [...]
-> > Linux media interface: v0.10
-> > Linux video capture interface: v2.00
-> > gspca_main: v2.14.0 registered
-> > gspca_main: vc032x-2.14.0 probing 0ac8:0321
-> > usbcore: registered new interface driver vc032x
+On Mon June 4 2012 23:58:07 Hans Verkuil wrote:
+> Hi Rebecca,
 > 
-> The device of interest is discovered.
+> On Mon June 4 2012 21:34:23 Rebecca Schultz Zavin wrote:
+> > I have a system where the data is planar, but the kernel drivers
+> > expect to get one allocation with offsets for the planes.  I can't
+> > figure out how to do that with the current dma_buf implementation.  I
+> > thought I could pass the same dma_buf several times and use the
+> > data_offset field of the v4l2_plane struct but it looks like that's
+> > only for output.  Am I missing something?  Is this supported?
 > 
-> > gspca_main: ISOC data error: [36] len=0, status=-71
-> > gspca_main: ISOC data error: [65] len=0, status=-71
-> [...]
-> > gspca_main: ISOC data error: [48] len=0, status=-71
-> > video_source:sr[3246]: segfault at 0 ip   (null) sp ab36de1c error 14 in cheese[8048000+21000]
-> > gspca_main: ISOC data error: [17] len=0, status=-71
+> v4l2_plane is typically used if the planes are allocated separately.
+> If you allocate it in one go, aren't the planes then at well-defined
+> offsets from the start? If so, then it is either one of the already
+> pre-defined planar formats found here:
 > 
-> (The above data error spew starts around t=121 seconds and continues
-> at a rate of about 15 messages per second.  The segfault is around
-> t=154.)
- 
-> The vc032x code hasn't changed since 3.4.1, so please report your
-> symptoms to Jean-François Moine <moinejf@free.fr>, cc-ing
-> linux-media@vger.kernel.org, linux-kernel@vger.kernel.org, and either
-> me or this bug log so we can track it.  Be sure to mention:
+> http://hverkuil.home.xs4all.nl/spec/media.html#yuv-formats
 > 
->  - steps to reproduce, expected result, actual result, and how the
->    difference indicates a bug (should be simple enough in this case)
+> or you define a pixelformat specific to your own hardware that identifies
+> that particular format.
+> 
+> If it is one allocation, but there is no clear calculation based on width
+> and height that gives you the start of each plane, then we do not support
+> that at the moment. I believe I had a discussion about something similar
+> with people from Qualcomm, but that never came to anything.
 
-1. Ensure that user 'myself' is a member of the 'video' group.
-2. Launch the webcam application Cheese from the GNOME desktop.
+It took some digging, but this was the enhancement proposed for a Qualcomm
+problem:
 
-Expected result: Cheese displays whatever this laptop's camera sees.
+http://www.spinics.net/lists/linux-media/msg40376.html
 
-Actual result: Cheese crashes while attempting to access the camera.
-
->  - how reproducible the bug is (100%?)
-
-100%
-
->  - which kernel versions you have tested and result with each (what is
->    the newest kernel version that worked?)
-
-It probably was 3.1.0 or some earlier 3.2 release (the upcoming Debian
-will release with 3.2.x; 3.4 was only used here for testing purposes),
-but I wouldn't know for sure since I don't use my webcam too often.
-
->  - a log from booting and reproducing the bug, or a link to one
-
-See http://bugs.debian.org/677533 
-
->  - any other weird symptoms or observations
-
-When testing the camera using the closed-source Skype 4.x compiled for
-Debian, the video preferences dialog shows that a USB 2.0 camera is
-found at /dev/video0. However, no image is shown. This would confirm the
-assumption that the issue lies with the kernel video driver, rather than
-with the Gstreamer framework that Cheese uses to access the camera.
-
-> Hopefully someone upstream will have ideas for commands to run or
-> patches to apply to further track down the cause.
-
-Let's indeed hope so. Thanks for providing these instructions!
+This may or may not be what you are looking for.
 
 Regards,
-Martin-Éric
 
+	Hans
+
+> 
+> That would be something to discuss on the linux-media mailinglist.
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> _______________________________________________
+> Linaro-mm-sig mailing list
+> Linaro-mm-sig@lists.linaro.org
+> http://lists.linaro.org/mailman/listinfo/linaro-mm-sig
+> 
