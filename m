@@ -1,149 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:42016 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751288Ab2FNWMQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Jun 2012 18:12:16 -0400
-Message-ID: <4FDA61BD.9040809@iki.fi>
-Date: Fri, 15 Jun 2012 01:12:13 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from moutng.kundenserver.de ([212.227.126.186]:54416 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751981Ab2FFOW3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jun 2012 10:22:29 -0400
+Date: Wed, 6 Jun 2012 16:22:26 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Janusz Uzycki <janusz.uzycki@elproma.com.pl>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: SH7724, VOU, PAL mode
+In-Reply-To: <151B1A2540C945E48D7AAE0A8FC2DDEE@laptop2>
+Message-ID: <Pine.LNX.4.64.1206061614250.12739@axis700.grange>
+References: <1E539FC23CF84B8A91428720570395E0@laptop2>
+ <Pine.LNX.4.64.1101241720001.17567@axis700.grange> <AD14536027B946D6B4504D4F43E352A5@laptop2>
+ <Pine.LNX.4.64.1101262045550.3989@axis700.grange> <F95361ABAE1D4A70A10790A798004482@laptop2>
+ <Pine.LNX.4.64.1101271809030.8916@axis700.grange> <8026191608244DB98F002E983C866149@laptop2>
+ <Pine.LNX.4.64.1102011420540.6673@axis700.grange> <18BE1662A1F04B6C8B39AA46440A3FBB@laptop2>
+ <Pine.LNX.4.64.1102011532360.6673@axis700.grange> <2F2263A44E0F466F898DD3E2F1D19F12@laptop2>
+ <Pine.LNX.4.64.1102081427500.1393@axis700.grange> <CEA83F28AF7C47E7B83AE1DBFFBC8514@laptop2>
+ <Pine.LNX.4.64.1206051651220.2145@axis700.grange> <151B1A2540C945E48D7AAE0A8FC2DDEE@laptop2>
 MIME-Version: 1.0
-To: Malcolm Priestley <tvboxspy@gmail.com>
-CC: linux-media <linux-media@vger.kernel.org>,
-	htl10@users.sourceforge.net
-Subject: Re: [PATCH 1/2] [BUG] dvb_usb_v2:  return the download ret in dvb_usb_download_firmware
-References: <1339626272.2421.74.camel@Route3278> <4FD9224F.7050809@iki.fi>  <1339634648.3833.37.camel@Route3278> <4FD93B3B.9000003@iki.fi>  <4FDA4A18.5050900@iki.fi> <1339709613.16046.11.camel@Route3278>
-In-Reply-To: <1339709613.16046.11.camel@Route3278>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/15/2012 12:33 AM, Malcolm Priestley wrote:
-> On Thu, 2012-06-14 at 23:31 +0300, Antti Palosaari wrote:
->> On 06/14/2012 04:15 AM, Antti Palosaari wrote:
->>> On 06/14/2012 03:44 AM, Malcolm Priestley wrote:
->>>> On Thu, 2012-06-14 at 02:29 +0300, Antti Palosaari wrote:
->>>>> Hi Malcolm,
->>>>> I was really surprised someone has had interest to test that stuff at
->>>>> that phase as I did not even advertised it yet :) It is likely happen
->>>>> next Monday or so as there is some issues I would like to check / solve.
->>>>>
->>>>>
->>>>> On 06/14/2012 01:24 AM, Malcolm Priestley wrote:
->>>>>> Hi antti
->>>>>>
->>>>>> There some issues with dvb_usb_v2 with the lmedm04 driver.
->>>>>>
->>>>>> The first being this patch, no return value from
->>>>>> dvb_usb_download_firmware
->>>>>> causes system wide dead lock with COLD disconnect as system attempts
->>>>>> to continue
->>>>>> to warm state.
->>>>>
->>>>> Hmm, I did not understand what you mean. What I looked lmedm04 driver I
->>>>> think it uses single USB ID (no cold + warm IDs). So it downloads
->>>>> firmware and then reconnects itself from the USB bus?
->>>>> For that scenario you should "return RECONNECTS_USB;" from the driver
->>>>> .download_firmware().
->>>>>
->>>> If the device disconnects from the USB bus after the firmware download.
->>>>
->>>> In most cases the device is already gone.
->>>>
->>>> There is currently no way to insert RECONNECTS_USB into the return.
->>>
->>> Argh, I was blind! You are absolutely correct. It never returns value 1
->>> (RECONNECTS_USB) from the .download_firmware().
->>>
->>> That patch is fine, I will apply it, thanks!
->>>
->>> I think that must be also changed to return immediately without
->>> releasing the interface. Let the USB core release it when it detects
->>> disconnect - otherwise it could crash as it tries to access potentially
->>> resources that are already freed. Just for the timing issue if it
->>> happens or not.
->>>
->>> } else if (ret == RECONNECTS_USB) {
->>> ret = 0;
->>> goto exit_usb_driver_release_interface;
->>>
->>> add return 0 here without releasing interface and test.
->>>
->>>
->>>>> I tested it using one non-public Cypress FX2 device - it was changing
->>>>> USB ID after the FX download, but from the driver perspective it does
->>>>> not matter. It is always new device if it reconnects USB.
->>>>>
->>>>
->>>> Have double checked that the thread is not continuing to write on the
->>>> old ID?
->>>
->>> Nope, but likely delayed probe() is finished until it reconnects so I
->>> cannot see problem. You device disconnects faster and thus USB core
->>> traps .disconnect() earlier...
->>>
->>> Could you test returning 0 and if it works sent new patch.
->>>
->>>> The zero condition will lead to dvb_usb_init.
->>>>
->>>>> PS. as I looked that driver I saw many different firmwares. That is now
->>>>> supported and you should use .get_firmware_name() (maybe you already did
->>>>> it).
->>>>>
->>>> Yes, I have supported this in the driver.
->>
->> Malcolm,
->>
->> could you just test if returning from the routines after fw download is
->> enough to fix all your problems?
->>
->> I mean those two fixes:
->> dvb_usb_download_firmware()
->> * return RECONNECTS_USB correctly
->>
->> dvb_usbv2_init_work()
->> * return without releasing USB interface if RECONNECTS_USB
-> Hi Antti,
->
-> Yes, I have tested it and there is no difference.
->
-> My understanding is, if the interface is no longer bound it returns
-> anyway.
->
-> It is best not to use it, other drivers in the dvb-usb tree may not like
-> to be forcibly unbound prior to their reset.
+On Wed, 6 Jun 2012, Janusz Uzycki wrote:
 
-I don't understand why this logic cannot work. Do you have some crash 
-dump I can see likely functions in path?
+> Hi.
+> 
+> > Sorry, this is not going to be a very detailed reply. It's been a long
+> > time since I've worked with VOU and AK8813(4).
+> 
+> I see.
+> 
+> > > If I set PAL mode (v4l2-ctl -s) VOUCR::MD is still configured for NTSC.
+> > 
+> > This shouldn't be the case: look at sh_vou_s_std(). Can you try to add
+> > debugging to the driver to see, whether that function gets called, when
+> > you run v4l2-ctl? If not - either you're calling it wrongly, or there's a
+> > bug in it. If it is - see, whether it's not configuring VOUCR properly or
+> > somehow it gets reset again later.
+> 
+> Before I turned on CONFIG_VIDEO_ADV_DEBUG only for I2C debug (v4l2-dbg). Now I
+> turned on dynamic printk (dev_dbg) for sh_vou.c and observed that
+> sh_vou_open() calls sh_vou_hw_init() what causes VOU reset:
+> v4l2-ctl  -s 5
+> sh-vou sh-vou: sh_vou_open()
+> sh-vou sh-vou: Reset took 1us
+> sh-vou sh-vou: sh_vou_querycap()
+> sh-vou sh-vou: sh_vou_s_std(): 0xff
+> CS495X-set: VOUER was 0x00000000, now SEN and ST bits are set
+> CS495X set format: 000000ff
+> CS495X-set: VOUER 0x00000000 restored
+> sh-vou sh-vou: sh_vou_release()
+> Standard set to 000000ff
+> 
+> This is why "v4l2-ctl -s 5" used before my simple test program (modified
+> capture example with mmap method) finally has no effect for VOU.
+> When the test program opens video device it causes reset PAL mode in VOU and
+> does not in TV encoder.
 
-I draw it here as a skeleton code.
+Right, this is actually a bug in the VOU driver. It didn't affect me, 
+because I was opening the device only once before all the configuration 
+and streaming. Could you create and submit a patch to save the standard in 
+driver private data and restore it on open() after the reset? I guess, 
+other configuration parameters are lost too, feel free to fix them as 
+well.
 
-dvb_usbv2_init_work()
-   ret = download_firmware()
-   if (ret == DEVICE_IS_WARM)
-     init_device()
-     return
-   else if (ret == DEVICE_RECONECTS_USB)
-     return
-   else (ret == some error code)
-     usb_driver_release_interface()
-     return
+> Thanks Guennadi for the hints.
+> (VOUER messages explanation: I have to set SEN and ST bits in CS49X driver
+> because the chip needs 27MHz clock to I2C block operate)
+> 
+> > > I noticed that VOU is limited to NTSC resolution: "Maximum destination
+> > > image
+> > > size: 720 x 240 per field".
+> > 
+> > You mean in the datasheet?
+> 
+> Yes, exactly.
+> 
+> > I don't have it currently at hand, but I seem
+> > to remember, that there was a bug and the VOU does actually support a full
+> > PAL resolution too. I'm not 100% certain, though.
+> 
+> OK, I will test it. Do you remember how you discovered that?
 
-dvb_usbv2_probe()
-   state = alloc()
-   usb_set_intfdata(state)
-   schedule_work(dvb_usbv2_init_work)
-   return 0
+Asked the manufacturer company :)
 
-dvb_usbv2_disconnect()
-   state = usb_get_intfdata()
-   cancel_work_sync(dvb_usbv2_init_work)
-   free(state)
+> > > Unfortunately I can't still manage to work video data from VOU to the
+> > > encoder
+> > > - green picture only. Do you have any test program for video v4l2 output?
+> > 
+> > You can use gstreamer, e.g.:
+> > 
+> > gst-launch -v filesrc location=x.avi ! decodebin ! ffmpegcolorspace ! \
+> > video/x-raw-rgb,bpp=24 ! v4l2sink device=/dev/video0 tv-norm=PAL-B
+> 
+> thanks
+> 
+> > I also used a (possibly modified) program by Laurent (cc'ed) which either
+> > I - with his agreement - can re-send to you, or maybe he'd send you the
+> > original.
+> 
+> ok, is it media-ctl (git://git.ideasonboard.org/media-ctl.git)?
 
-Anyhow, I have devices I know how to force reconnect USB (AF9015, EC168) 
-when needed. So I will make some tests here.
+No, I'll send it to you off the list - Laurent agreed. But he also said, 
+it was a preliminary version of his yavta proram, so, you might be able to 
+use that one.
 
-regards
-Antti
--- 
-http://palosaari.fi/
+> > > Does
+> > > the idea fb->v4l2 output
+> > > http://www.spinics.net/lists/linux-fbdev/msg01102.html is alive?
+> > 
+> > More dead, than alive, I think.
+> 
+> Ok. Did you find another solution (software/library like DirectFB) for common
+> and easier video output support in userspace?
+
+No, sorry, I did not.
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
