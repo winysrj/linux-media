@@ -1,112 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:23610 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755951Ab2FNNiN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Jun 2012 09:38:13 -0400
-Received: from euspt1 (mailout3.w1.samsung.com [210.118.77.13])
- by mailout3.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0M5M002XD0KNVM60@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 14 Jun 2012 14:38:47 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0M5M00HPS0JMM6@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 14 Jun 2012 14:38:10 +0100 (BST)
-Date: Thu, 14 Jun 2012 15:37:43 +0200
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: [PATCHv7 09/15] v4l: vb2: add prepare/finish callbacks to allocators
-In-reply-to: <1339681069-8483-1-git-send-email-t.stanislaws@samsung.com>
-To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
-Cc: airlied@redhat.com, m.szyprowski@samsung.com,
-	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
-	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
-	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
-	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
-	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
-	mchehab@redhat.com, g.liakhovetski@gmx.de
-Message-id: <1339681069-8483-10-git-send-email-t.stanislaws@samsung.com>
-Content-transfer-encoding: 7BIT
-References: <1339681069-8483-1-git-send-email-t.stanislaws@samsung.com>
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:4127 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752634Ab2FFWJl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jun 2012 18:09:41 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "linux-media" <linux-media@vger.kernel.org>
+Subject: What should CREATE_BUFS do if count == 0?
+Date: Thu, 7 Jun 2012 00:09:27 +0200
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Pawel Osciak <pawel@osciak.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201206070009.27409.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Marek Szyprowski <m.szyprowski@samsung.com>
+Hi all,
 
-This patch adds support for prepare/finish callbacks in VB2 allocators. These
-callback are used for buffer flushing.
+I'm extending v4l2-compliance with support for VIDIOC_REQBUFS and VIDIOC_CREATE_BUFS,
+and I ran into an undefined issue: what happens if VIDIOC_CREATE_BUFS is called with
+count set to 0?
 
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/video/videobuf2-core.c |   11 +++++++++++
- include/media/videobuf2-core.h       |    7 +++++++
- 2 files changed, 18 insertions(+)
+I think there should be a separate test for that. Right now queue_setup will receive
+a request for 0 buffers, and I don't know if drivers expect a zero value there.
+
+I suggest that CREATE_BUFS with a count of 0 will only check whether memory and
+format.type are valid, and if they are it will just return 0 and do nothing.
+
+Also note that this code in vb2_create_bufs is wrong:
+
+        ret = __vb2_queue_alloc(q, create->memory, num_buffers,
+                                num_planes);
+        if (ret < 0) {
+                dprintk(1, "Memory allocation failed with error: %d\n", ret);
+                return ret;
+        }
+
+It should be:
+
+		if (ret == 0) {
+
+__vb2_queue_alloc() returns the number of buffers it managed to allocate,
+which is never < 0.
+
+I propose to add the patch included below.
+
+Comments are welcome!
+
+Regards,
+
+	Hans
 
 diff --git a/drivers/media/video/videobuf2-core.c b/drivers/media/video/videobuf2-core.c
-index f43cfa4..d60ed25 100644
+index a0702fd..01a8312 100644
 --- a/drivers/media/video/videobuf2-core.c
 +++ b/drivers/media/video/videobuf2-core.c
-@@ -845,6 +845,7 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
- {
- 	struct vb2_queue *q = vb->vb2_queue;
- 	unsigned long flags;
-+	unsigned int plane;
+@@ -647,6 +647,9 @@ int vb2_create_bufs(struct vb2_queue *q, struct v4l2_create_buffers *create)
+ 		return -EINVAL;
+ 	}
  
- 	if (vb->state != VB2_BUF_STATE_ACTIVE)
- 		return;
-@@ -855,6 +856,10 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
- 	dprintk(4, "Done processing on buffer %d, state: %d\n",
- 			vb->v4l2_buf.index, vb->state);
- 
-+	/* sync buffers */
-+	for (plane = 0; plane < vb->num_planes; ++plane)
-+		call_memop(q, finish, vb->planes[plane].mem_priv);
++	if (create->count == 0)
++		return 0;
 +
- 	/* Add the buffer to the done buffers list */
- 	spin_lock_irqsave(&q->done_lock, flags);
- 	vb->state = state;
-@@ -1137,9 +1142,15 @@ err:
- static void __enqueue_in_driver(struct vb2_buffer *vb)
- {
- 	struct vb2_queue *q = vb->vb2_queue;
-+	unsigned int plane;
- 
- 	vb->state = VB2_BUF_STATE_ACTIVE;
- 	atomic_inc(&q->queued_count);
-+
-+	/* sync buffers */
-+	for (plane = 0; plane < vb->num_planes; ++plane)
-+		call_memop(q, prepare, vb->planes[plane].mem_priv);
-+
- 	q->ops->buf_queue(vb);
- }
- 
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index 859bbaf..d079f92 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -56,6 +56,10 @@ struct vb2_fileio_data;
-  *		dmabuf
-  * @unmap_dmabuf: releases access control to the dmabuf - allocator is notified
-  *		  that this driver is done using the dmabuf for now
-+ * @prepare:	called everytime the buffer is passed from userspace to the
-+ *		driver, usefull for cache synchronisation, optional
-+ * @finish:	called everytime the buffer is passed back from the driver
-+ *		to the userspace, also optional
-  * @vaddr:	return a kernel virtual address to a given memory buffer
-  *		associated with the passed private structure or NULL if no
-  *		such mapping exists
-@@ -82,6 +86,9 @@ struct vb2_mem_ops {
- 					unsigned long size, int write);
- 	void		(*put_userptr)(void *buf_priv);
- 
-+	void		(*prepare)(void *buf_priv);
-+	void		(*finish)(void *buf_priv);
-+
- 	void		*(*attach_dmabuf)(void *alloc_ctx, struct dma_buf *dbuf,
- 				unsigned long size, int write);
- 	void		(*detach_dmabuf)(void *buf_priv);
--- 
-1.7.9.5
-
+ 	if (q->num_buffers == VIDEO_MAX_FRAME) {
+ 		dprintk(1, "%s(): maximum number of buffers already allocated\n",
+ 			__func__);
+@@ -675,7 +678,7 @@ int vb2_create_bufs(struct vb2_queue *q, struct v4l2_create_buffers *create)
+ 	/* Finally, allocate buffers and video memory */
+ 	ret = __vb2_queue_alloc(q, create->memory, num_buffers,
+ 				num_planes);
+-	if (ret < 0) {
++	if (ret == 0) {
+ 		dprintk(1, "Memory allocation failed with error: %d\n", ret);
+ 		return ret;
+ 	}
