@@ -1,77 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:45097 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751036Ab2F1NZu convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Jun 2012 09:25:50 -0400
-Received: by werb14 with SMTP id b14so402074wer.19
-        for <linux-media@vger.kernel.org>; Thu, 28 Jun 2012 06:25:49 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <CA+MoWDrBaVAStQwQKrWb+CuNTZHuXJBuewgLJbu9ZrBg7rrJVg@mail.gmail.com>
-References: <1340835544-12053-1-git-send-email-peter.senna@gmail.com>
-	<CALF0-+XZybEFqndCEo4nGGH-achE5CuYOsC+EXiH-k06GSB5vA@mail.gmail.com>
-	<CA+MoWDrBaVAStQwQKrWb+CuNTZHuXJBuewgLJbu9ZrBg7rrJVg@mail.gmail.com>
-Date: Thu, 28 Jun 2012 10:25:49 -0300
-Message-ID: <CA+MoWDq32652XAP9fMsUYiFncFCSGxqPnhXYRQMj33YNvFb88g@mail.gmail.com>
-Subject: Re: [PATCH] [V2] stv090x: variable 'no_signal' set but not used
-From: Peter Senna Tschudin <peter.senna@gmail.com>
-To: Ezequiel Garcia <elezegarcia@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Guy Martin <gmsoft@tuxicoman.be>,
-	Manu Abraham <abraham.manu@gmail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:59401 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753366Ab2FFMOh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jun 2012 08:14:37 -0400
+Message-id: <4FCF49A7.8040203@samsung.com>
+Date: Wed, 06 Jun 2012 14:14:31 +0200
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+MIME-version: 1.0
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: paul.gortmaker@windriver.com,
+	=?UTF-8?B?J+uwleqyveuvvCc=?= <kyungmin.park@samsung.com>,
+	amwang@redhat.com, dri-devel@lists.freedesktop.org,
+	"'???/Mobile S/W Platform Lab.(???)/E3(??)/????'"
+	<inki.dae@samsung.com>, prashanth.g@samsung.com,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Rob Clark <rob@ti.com>, Dave Airlie <airlied@redhat.com>,
+	linux-kernel@vger.kernel.org, linux-mm@kvack.org,
+	Andy Whitcroft <apw@shadowen.org>,
+	Johannes Weiner <hannes@cmpxchg.org>
+Subject: Re: [PATCH v3] scatterlist: add sg_alloc_table_from_pages function
+References: <4FA8EC69.8010805@samsung.com>
+ <20120517165614.d5e6e4b6.akpm@linux-foundation.org>
+ <4FBA4ACE.4080602@samsung.com>
+ <20120522131059.415a881c.akpm@linux-foundation.org>
+In-reply-to: <20120522131059.415a881c.akpm@linux-foundation.org>
+Content-type: text/plain; charset=UTF-8
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jun 28, 2012 at 10:17 AM, Peter Senna Tschudin
-<peter.senna@gmail.com> wrote:
-> Hey Ezequiel,
->
-> On Thu, Jun 28, 2012 at 1:02 AM, Ezequiel Garcia <elezegarcia@gmail.com> wrote:
->> Hey Peter,
+On 05/22/2012 10:10 PM, Andrew Morton wrote:
+> On Mon, 21 May 2012 16:01:50 +0200
+> Tomasz Stanislawski <t.stanislaws@samsung.com> wrote:
+> 
+>>>> +int sg_alloc_table_from_pages(struct sg_table *sgt,
+>>>> +	struct page **pages, unsigned int n_pages,
+>>>> +	unsigned long offset, unsigned long size,
+>>>> +	gfp_t gfp_mask)
+>>>
+>>> I guess a 32-bit n_pages is OK.  A 16TB IO seems enough ;)
+>>>
 >>
->> On Wed, Jun 27, 2012 at 7:18 PM, Peter Senna Tschudin
->> <peter.senna@gmail.com> wrote:
->>> -                       no_signal = stv090x_chk_signal(state);
->>> +                       (void) stv090x_chk_signal(state);
+>> Do you think that 'unsigned long' for offset is too big?
 >>
->> Why are you casting return to void? I can't see there is a reason to it.
-> The idea is to tell the compiler that I know that stv090x_chk_signal()
-> return a value and I want to ignore it. It is to prevent the compiler
-> to issue warn_unused_result. I found two ways of doing it. First is
-> casting the return to void, second is to change the function
-> definition adding the macro __must_check defined at <linux/compiler.c>
- defined at <linux/compiler.h>
-> like on:
->
-> http://lxr.linux.no/linux+v3.4.4/include/linux/kernel.h#L215
->
-> The (void) solution looked simpler to me, but I'll be happy to change
-> to the __must_check solution if better. What do you think? Keep as is?
-> Add a comment? Change to __must_check?
->
->
->
->
+>> Ad n_pages. Assuming that Moore's law holds it will take
+>> circa 25 years before the limit of 16 TB is reached :) for
+>> high-end scatterlist operations.
+>> Or I can change the type of n_pages to 'unsigned long' now at
+>> no cost :).
+> 
+> By then it will be Someone Else's Problem ;)
+> 
+
+Ok. So let's keep to 'unsigned int n_pages'.
+
+>>>> +{
+>>>> +	unsigned int chunks;
+>>>> +	unsigned int i;
+>>>
+>>> erk, please choose a different name for this.  When a C programmer sees
+>>> "i", he very much assumes it has type "int".  Making it unsigned causes
+>>> surprise.
+>>>
+>>> And don't rename it to "u"!  Let's give it a nice meaningful name.  pageno?
+>>>
 >>
->> Regards,
->> Ezequiel.
->
-> Regards,
->
-> Peter
->
+>> The problem is that 'i' is  a natural name for a loop counter.
+> 
+> It's also the natural name for an integer.  If a C programmer sees "i",
+> he thinks "int".  It's a Fortran thing ;)
+> 
+>> AFAIK, in the kernel code developers try to avoid Hungarian notation.
+>> A name of a variable should reflect its purpose, not its type.
+>> I can change the name of 'i' to 'pageno' and 'j' to 'pageno2' (?)
+>> but I think it will make the code less reliable.
+> 
+> Well, one could do something radical such as using "p".
+> 
+> 
+
+I can not change the type to 'int' due to 'signed vs unsigned' comparisons
+in the loop condition.
+What do you think about changing the names 'i' -> 'p' and 'j' -> 'q'?
+
+Regards,
+Tomasz Stanislawski
+
 > --
-> Peter Senna Tschudin
-> peter.senna@gmail.com
-> gpg id: 48274C36
+> To unsubscribe, send a message with 'unsubscribe linux-mm' in
+> the body to majordomo@kvack.org.  For more info on Linux MM,
+> see: http://www.linux-mm.org/ .
+> Fight unfair telecom internet charges in Canada: sign http://stopthemeter.ca/
+> Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+> 
 
-
-
--- 
-Peter Senna Tschudin
-peter.senna@gmail.com
-gpg id: 48274C36
