@@ -1,66 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f51.google.com ([209.85.213.51]:46294 "EHLO
-	mail-yw0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1762186Ab2FVOTy convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Jun 2012 10:19:54 -0400
-Received: by yhnn12 with SMTP id n12so1852081yhn.10
-        for <linux-media@vger.kernel.org>; Fri, 22 Jun 2012 07:19:53 -0700 (PDT)
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:1380 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756913Ab2FFVQU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jun 2012 17:16:20 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Fengguang Wu <fengguang.wu@intel.com>
+Subject: Re: radio-maxiradio.c: undefined reference to `snd_tea575x_init'
+Date: Wed, 6 Jun 2012 23:15:04 +0200
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Randy Dunlap <rdunlap@xenotime.net>,
+	Stephen Rothwell <sfr@canb.auug.org.au>,
+	linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+	"linux-media" <linux-media@vger.kernel.org>
+References: <20120329144217.6cacd2f040fa9abb9190ae1e@canb.auug.org.au> <4F74900E.5010501@xenotime.net> <20120606204014.GA8264@localhost>
+In-Reply-To: <20120606204014.GA8264@localhost>
 MIME-Version: 1.0
-In-Reply-To: <1495058.aP2aaavdWk@avalon>
-References: <1340029853-2648-1-git-send-email-laurent.pinchart@ideasonboard.com>
-	<CAGGh5h2NoojuguvRfQRsYx2xX1eRzXWw-sJYdnDgquWqoGbD-w@mail.gmail.com>
-	<1495058.aP2aaavdWk@avalon>
-Date: Fri, 22 Jun 2012 16:19:53 +0200
-Message-ID: <CAGGh5h3yShG20XyUd_wkt0YKTxPV3ywGekhM2GoTMs9RFJ-7Dw@mail.gmail.com>
-Subject: Re: [PATCH] omap3isp: preview: Add support for non-GRBG Bayer patterns
-From: jean-philippe francois <jp.francois@cynove.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, Sakari Ailus <sakari.ailus@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201206062315.04124.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2012/6/22 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
-> Hi Jean-Philippe,
->
-> On Thursday 21 June 2012 15:35:52 jean-philippe francois wrote:
->> 2012/6/18 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
->> > Rearrange the CFA interpolation coefficients table based on the Bayer
->> > pattern. Modifying the table during streaming isn't supported anymore,
->> > but didn't make sense in the first place anyway.
->> >
->> > Support for non-Bayer CFA patterns is dropped as they were not correctly
->> > supported, and have never been tested.
->> >
->> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->> > ---
->> >  drivers/media/video/omap3isp/isppreview.c |  118 ++++++++++++++----------
->> >  1 files changed, 67 insertions(+), 51 deletions(-)
->> >
->> > Jean-Philippe,
->> >
->> > Could you please test this patch on your hardware ?
->>
->> Hi,
->>
->> I have applied it on top of your omap3isp-next branch, but my board is
->> oopsing right after the boot. I will try to get rid of this oops, but if you
->> eventually now another tree that includes the changes necessary for this
->> patch to apply, it could perhaps save me some time.
->
-> The patch should apply on top of the omap3isp-omap3isp-next branch that I've
-> just pushed to my linuxtv tree.
->
+On Wed June 6 2012 22:40:14 Fengguang Wu wrote:
+> On Thu, Mar 29, 2012 at 09:38:38AM -0700, Randy Dunlap wrote:
+> > On 03/28/2012 08:42 PM, Stephen Rothwell wrote:
+> > 
+> > > Hi all,
+> > > 
+> > > Reminder: please do not add stuff destined for v3.5 to linux-next
+> > > included trees/branches until after v3.4-rc1 has been released.
+> > > 
+> > > Changes since 20120328:
+> > 
+> > 
+> > on x86_64:
+> > 
+> > radio-maxiradio.c:(.devinit.text+0x356ac): undefined reference to `snd_tea575x_init'
+> > radio-maxiradio.c:(.devexit.text+0x503e): undefined reference to `snd_tea575x_exit'
+> 
+> I run into this issue, too, in the 3.5-rc1 based tip/master.
+> 
+>         drivers/built-in.o: In function `maxiradio_probe':
+>          radio-maxiradio.c:(.devinit.text+0x35a27): undefined reference to `snd_tea575x_init'
+>         drivers/built-in.o: In function `maxiradio_remove':
+>          radio-maxiradio.c:(.devexit.text+0x6754): undefined reference to `snd_tea575x_exit'
+> 
+> Any fixes available now? The related commit is:
+> 
+>         commit cfb19b0ab13847a0e0e49521eb94113b0b315e3b
+>         Author: Hans Verkuil <hans.verkuil@cisco.com>
+>         Date:   Sun Feb 5 09:53:17 2012 -0300
+> 
+>             [media] radio-maxiradio: use the tea575x framework
+>             
+>             This card is based on the tea575x receiver. Use the tea575x-tuner framework
+>             instead of reinventing the wheel.
+>             
+>             Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>             Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> 
+> Thanks,
+> Fengguang
 
-Turns out some work was necessary  to do to have a bootable board with
-vanilla 3.4.
+Works for me with 3.5-rc1. There was a fix done in sound/pci/Kconfig that
+should have solved this.
 
-I successfully tested your patch on top of omap3isp-omap3isp-next
-with SRGGB and SBGGR sources.
+Is CONFIG_SND_TEA575X defined? Do you have a snd_tea575x_tuner module?
 
-I tested it on top of your tree as it was 4 days ago, ie with
-the last commit being 5472d3f17845c4....
+Regards,
 
-Jean-Philippe François
+	Hans
