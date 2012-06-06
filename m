@@ -1,75 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:41043 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751355Ab2FQHyh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 Jun 2012 03:54:37 -0400
-Date: Sun, 17 Jun 2012 10:54:32 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [GIT PULL FOR 3.6] V4L2 API cleanups
-Message-ID: <20120617075432.GL12505@valkosipuli.retiisi.org.uk>
-References: <4FD50223.4030501@iki.fi>
- <6836133.PoLuVdfeXV@avalon>
- <20120611093944.GF12505@valkosipuli.retiisi.org.uk>
- <5239489.ghNmaKI2zP@avalon>
+Received: from mga01.intel.com ([192.55.52.88]:32056 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758537Ab2FFV1e (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 6 Jun 2012 17:27:34 -0400
+Date: Thu, 7 Jun 2012 06:27:32 +0900
+From: Fengguang Wu <fengguang.wu@intel.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Randy Dunlap <rdunlap@xenotime.net>,
+	Stephen Rothwell <sfr@canb.auug.org.au>,
+	linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+	linux-media <linux-media@vger.kernel.org>
+Subject: Re: radio-maxiradio.c: undefined reference to `snd_tea575x_init'
+Message-ID: <20120606212732.GA8093@localhost>
+References: <20120329144217.6cacd2f040fa9abb9190ae1e@canb.auug.org.au>
+ <4F74900E.5010501@xenotime.net>
+ <20120606204014.GA8264@localhost>
+ <201206062315.04124.hverkuil@xs4all.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <5239489.ghNmaKI2zP@avalon>
+In-Reply-To: <201206062315.04124.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Jun 17, 2012 at 12:03:06AM +0200, Laurent Pinchart wrote:
-> Hi Sakari,
-
-Hi Laurent,
-
-> On Monday 11 June 2012 12:39:44 Sakari Ailus wrote:
-> > On Mon, Jun 11, 2012 at 09:50:54AM +0200, Laurent Pinchart wrote:
-> > > On Sunday 10 June 2012 23:22:59 Sakari Ailus wrote:
-> > > > Hi Mauro,
-> > > > 
-> > > > Here are two V4L2 API cleanup patches; the first removes __user from
-> > > > videodev2.h from a few places, making it possible to use the header file
-> > > > as such in user space, while the second one changes the
-> > > > v4l2_buffer.input field back to reserved.
-> > > > 
-> > > > The following changes since commit 
-> 5472d3f17845c4398c6a510b46855820920c2181:
-> > > >   [media] mt9m032: Implement V4L2_CID_PIXEL_RATE control (2012-05-24
-> > > > 
-> > > > 09:27:24 -0300)
-> > > > 
-> > > > are available in the git repository at:
-> > > >   ssh://linuxtv.org/git/sailus/media_tree.git media-for-3.6
-> > > > 
-> > > > Sakari Ailus (2):
-> > > >       v4l: Remove __user from interface structure definitions
+On Wed, Jun 06, 2012 at 11:15:04PM +0200, Hans Verkuil wrote:
+> On Wed June 6 2012 22:40:14 Fengguang Wu wrote:
+> > On Thu, Mar 29, 2012 at 09:38:38AM -0700, Randy Dunlap wrote:
+> > > On 03/28/2012 08:42 PM, Stephen Rothwell wrote:
 > > > 
-> > > NAK, sorry.
+> > > > Hi all,
+> > > > 
+> > > > Reminder: please do not add stuff destined for v3.5 to linux-next
+> > > > included trees/branches until after v3.4-rc1 has been released.
+> > > > 
+> > > > Changes since 20120328:
 > > > 
-> > > __user has a purpose, we need to add it where it's missing, not remove it
-> > > where it's rightfully present.
+> > > 
+> > > on x86_64:
+> > > 
+> > > radio-maxiradio.c:(.devinit.text+0x356ac): undefined reference to `snd_tea575x_init'
+> > > radio-maxiradio.c:(.devexit.text+0x503e): undefined reference to `snd_tea575x_exit'
 > > 
-> > It's not quite as simple as adding __user everywhere it might belong to ---
-> > these structs are being used in kernel space, too. The structs that are part
-> > of the user space interface may at some point contain pointers to memory
-> > which is in user space. That is being dealt by video_usercopy(), so the
-> > individual drivers or the rest of the V4L2 framework always gets pointers
-> > pointing to kernel memory.
+> > I run into this issue, too, in the 3.5-rc1 based tip/master.
+> > 
+> >         drivers/built-in.o: In function `maxiradio_probe':
+> >          radio-maxiradio.c:(.devinit.text+0x35a27): undefined reference to `snd_tea575x_init'
+> >         drivers/built-in.o: In function `maxiradio_remove':
+> >          radio-maxiradio.c:(.devexit.text+0x6754): undefined reference to `snd_tea575x_exit'
+> > 
+> > Any fixes available now? The related commit is:
+> > 
+> >         commit cfb19b0ab13847a0e0e49521eb94113b0b315e3b
+> >         Author: Hans Verkuil <hans.verkuil@cisco.com>
+> >         Date:   Sun Feb 5 09:53:17 2012 -0300
+> > 
+> >             [media] radio-maxiradio: use the tea575x framework
+> >             
+> >             This card is based on the tea575x receiver. Use the tea575x-tuner framework
+> >             instead of reinventing the wheel.
+> >             
+> >             Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> >             Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> > 
+> > Thanks,
+> > Fengguang
 > 
-> Very good point, I haven't thought about that. I'm not sure how to deal with 
-> this, splitting structures in a __user and a non __user version isn't really a 
-> good option. Maybe the sparse tool should be somehow extended ?
+> Works for me with 3.5-rc1. There was a fix done in sound/pci/Kconfig that
+> should have solved this.
 
-Wouldn't type casting in video_usercopy() just do the job? Albeit I'm far
-from certain it'd make the code better, just make the sparse warnings go
-away...
+Nice.
 
-regards,
+> Is CONFIG_SND_TEA575X defined? Do you have a snd_tea575x_tuner module?
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+Sorry I lost the .config. I'll report back if the error shows up again.
+
+Thanks,
+Fengguang
