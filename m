@@ -1,148 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr19.xs4all.nl ([194.109.24.39]:4916 "EHLO
-	smtp-vbr19.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756006Ab2FXL3V (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 Jun 2012 07:29:21 -0400
+Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:1876 "EHLO
+	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751815Ab2FGGoS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Jun 2012 02:44:18 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Andy Walls <awalls@md.metrocast.net>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Scott Jiang <scott.jiang.linux@gmail.com>,
-	Manjunatha Halli <manjunatha_halli@ti.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>,
-	Anatolij Gustschin <agust@denx.de>,
-	Javier Martin <javier.martin@vista-silicon.com>,
-	Sensoray Linux Development <linux-dev@sensoray.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
-	Sachin Kamat <sachin.kamat@linaro.org>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	mitov@issp.bas.bg, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 25/26] s5p-mfc: remove V4L2_FL_LOCK_ALL_FOPS
-Date: Sun, 24 Jun 2012 13:26:17 +0200
-Message-Id: <451838d4b2e404fdc4babf044ac6326dfc5790d7.1340536092.git.hans.verkuil@cisco.com>
-In-Reply-To: <1340537178-18768-1-git-send-email-hverkuil@xs4all.nl>
-References: <1340537178-18768-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <f854d2a0a932187cd895bf9cd81d2da8343b52c9.1340536092.git.hans.verkuil@cisco.com>
-References: <f854d2a0a932187cd895bf9cd81d2da8343b52c9.1340536092.git.hans.verkuil@cisco.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [Linaro-mm-sig] [PATCHv6 00/13] Integration of videobuf2 with dmabuf
+Date: Thu, 7 Jun 2012 08:43:56 +0200
+Cc: Rebecca Schultz Zavin <rebecca@android.com>,
+	"Semwal, Sumit" <sumit.semwal@ti.com>, remi@remlab.net,
+	pawel@osciak.com, mchehab@redhat.com, robdclark@gmail.com,
+	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
+	kyungmin.park@samsung.com, airlied@redhat.com,
+	linux-media@vger.kernel.org, g.liakhovetski@gmx.de
+References: <1337775027-9489-1-git-send-email-t.stanislaws@samsung.com> <201206061017.03945.hverkuil@xs4all.nl> <4173899.dEXarKynNP@avalon>
+In-Reply-To: <4173899.dEXarKynNP@avalon>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201206070843.56440.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Thu June 7 2012 02:52:06 Laurent Pinchart wrote:
+> Hi Hans,
+> 
+> On Wednesday 06 June 2012 10:17:03 Hans Verkuil wrote:
+> > On Wed 6 June 2012 05:46:34 Laurent Pinchart wrote:
+> > > On Monday 04 June 2012 12:34:23 Rebecca Schultz Zavin wrote:
+> > > > I have a system where the data is planar, but the kernel drivers
+> > > > expect to get one allocation with offsets for the planes.  I can't
+> > > > figure out how to do that with the current dma_buf implementation.  I
+> > > > thought I could pass the same dma_buf several times and use the
+> > > > data_offset field of the v4l2_plane struct but it looks like that's
+> > > > only for output.  Am I missing something?  Is this supported?
+> > > 
+> > > data_offset is indeed for video output only at the moment, and doesn't
+> > > seem to be used by any driver in mainline for now.
+> > 
+> > Actually, data_offset may be set by capture drivers. For output buffers it
+> > is set by userspace, for capture buffers it is set by the driver. This
+> > data_offset typically contains meta data.
+> 
+> Is that documented somewhere ? I wasn't aware of this use case.
 
-Add proper locking to the file operations, allowing for the removal
-of the V4L2_FL_LOCK_ALL_FOPS flag.
+It is documented in the proposal that Pawel sent, but very poorly if at all in
+the spec. That needs to be improved.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/video/s5p-mfc/s5p_mfc.c |   19 +++++++++++++------
- 1 file changed, 13 insertions(+), 6 deletions(-)
+> > > I can't really see a reason why data_offset couldn't be used for video
+> > > capture devices as well.
+> > > 
+> > > Sanity checks are currently missing. For output devices we should check
+> > > that data_offset + bytesused < length in the vb2 core. For input devices
+> > > the check will have to be performed by drivers. Taking data_offset into
+> > > account automatically would also be useful. I think most of that should
+> > > be possible to implement in the allocators.
+> > 
+> > See this proposal of how to solve this:
+> > 
+> > http://www.spinics.net/lists/linux-media/msg40376.html
+> 
+> This requires more discussions regarding how the app_offset and data_offset 
+> fields should be used for the different memory types we support.
+> 
+> For instance app_offset would not make that much sense for the USERPTR memory 
+> type, as we can include the offset in the user pointer already (using 
+> app_offset there would only make the code more complex without any added 
+> benefit).
+> 
+> For the MMAP memory type adding an app_offset would require allocating buffers 
+> large enough to accomodate the offset, and would thus only be useful with 
+> CREATE_BUFS. I'm also wondering whether the main use case (passing the buffer 
+> to another device that requires that app_offset) wouldn't be better addressed 
+> by the DMABUF memory type anyway.
 
-diff --git a/drivers/media/video/s5p-mfc/s5p_mfc.c b/drivers/media/video/s5p-mfc/s5p_mfc.c
-index 9bb68e7..e3e616d 100644
---- a/drivers/media/video/s5p-mfc/s5p_mfc.c
-+++ b/drivers/media/video/s5p-mfc/s5p_mfc.c
-@@ -645,6 +645,8 @@ static int s5p_mfc_open(struct file *file)
- 	int ret = 0;
- 
- 	mfc_debug_enter();
-+	if (mutex_lock_interruptible(&dev->mfc_mutex))
-+		return -ERESTARTSYS;
- 	dev->num_inst++;	/* It is guarded by mfc_mutex in vfd */
- 	/* Allocate memory for context */
- 	ctx = kzalloc(sizeof *ctx, GFP_KERNEL);
-@@ -765,6 +767,7 @@ static int s5p_mfc_open(struct file *file)
- 		goto err_queue_init;
- 	}
- 	init_waitqueue_head(&ctx->queue);
-+	mutex_unlock(&dev->mfc_mutex);
- 	mfc_debug_leave();
- 	return ret;
- 	/* Deinit when failure occured */
-@@ -790,6 +793,7 @@ err_no_ctx:
- 	kfree(ctx);
- err_alloc:
- 	dev->num_inst--;
-+	mutex_unlock(&dev->mfc_mutex);
- 	mfc_debug_leave();
- 	return ret;
- }
-@@ -802,6 +806,7 @@ static int s5p_mfc_release(struct file *file)
- 	unsigned long flags;
- 
- 	mfc_debug_enter();
-+	mutex_lock(&dev->mfc_mutex);
- 	s5p_mfc_clock_on();
- 	vb2_queue_release(&ctx->vq_src);
- 	vb2_queue_release(&ctx->vq_dst);
-@@ -855,6 +860,7 @@ static int s5p_mfc_release(struct file *file)
- 	v4l2_fh_exit(&ctx->fh);
- 	kfree(ctx);
- 	mfc_debug_leave();
-+	mutex_unlock(&dev->mfc_mutex);
- 	return 0;
- }
- 
-@@ -869,6 +875,7 @@ static unsigned int s5p_mfc_poll(struct file *file,
- 	unsigned int rc = 0;
- 	unsigned long flags;
- 
-+	mutex_lock(&dev->mfc_mutex);
- 	src_q = &ctx->vq_src;
- 	dst_q = &ctx->vq_dst;
- 	/*
-@@ -902,6 +909,7 @@ static unsigned int s5p_mfc_poll(struct file *file,
- 		rc |= POLLIN | POLLRDNORM;
- 	spin_unlock_irqrestore(&dst_q->done_lock, flags);
- end:
-+	mutex_unlock(&dev->mfc_mutex);
- 	return rc;
- }
- 
-@@ -909,8 +917,12 @@ end:
- static int s5p_mfc_mmap(struct file *file, struct vm_area_struct *vma)
- {
- 	struct s5p_mfc_ctx *ctx = fh_to_ctx(file->private_data);
-+	struct s5p_mfc_dev *dev = ctx->dev;
- 	unsigned long offset = vma->vm_pgoff << PAGE_SHIFT;
- 	int ret;
-+
-+	if (mutex_lock_interruptible(&dev->mfc_mutex))
-+		return -ERESTARTSYS;
- 	if (offset < DST_QUEUE_OFF_BASE) {
- 		mfc_debug(2, "mmaping source\n");
- 		ret = vb2_mmap(&ctx->vq_src, vma);
-@@ -919,6 +931,7 @@ static int s5p_mfc_mmap(struct file *file, struct vm_area_struct *vma)
- 		vma->vm_pgoff -= (DST_QUEUE_OFF_BASE >> PAGE_SHIFT);
- 		ret = vb2_mmap(&ctx->vq_dst, vma);
- 	}
-+	mutex_unlock(&dev->mfc_mutex);
- 	return ret;
- }
- 
-@@ -1034,10 +1047,6 @@ static int s5p_mfc_probe(struct platform_device *pdev)
- 	vfd->ioctl_ops	= get_dec_v4l2_ioctl_ops();
- 	vfd->release	= video_device_release,
- 	vfd->lock	= &dev->mfc_mutex;
--	/* Locking in file operations other than ioctl should be done
--	   by the driver, not the V4L2 core.
--	   This driver needs auditing so that this flag can be removed. */
--	set_bit(V4L2_FL_LOCK_ALL_FOPS, &vfd->flags);
- 	vfd->v4l2_dev	= &dev->v4l2_dev;
- 	snprintf(vfd->name, sizeof(vfd->name), "%s", S5P_MFC_DEC_NAME);
- 	dev->vfd_dec	= vfd;
-@@ -1062,8 +1071,6 @@ static int s5p_mfc_probe(struct platform_device *pdev)
- 	vfd->ioctl_ops	= get_enc_v4l2_ioctl_ops();
- 	vfd->release	= video_device_release,
- 	vfd->lock	= &dev->mfc_mutex;
--	/* This should not be necessary */
--	set_bit(V4L2_FL_LOCK_ALL_FOPS, &vfd->flags);
- 	vfd->v4l2_dev	= &dev->v4l2_dev;
- 	snprintf(vfd->name, sizeof(vfd->name), "%s", S5P_MFC_ENC_NAME);
- 	dev->vfd_enc	= vfd;
--- 
-1.7.10
+I'm not going to pursue this unless Google indicates that they need this. And
+actually I would suggest that they ask Pawel to work on this, after all he made
+the proposal AND he works for Google :-)
 
+Regards,
+
+	Hans
