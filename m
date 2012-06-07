@@ -1,90 +1,141 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ns.mm-sol.com ([213.240.235.226]:44276 "EHLO extserv.mm-sol.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:52183 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756563Ab2F0Ouo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Jun 2012 10:50:44 -0400
-Message-ID: <1340808227.3675.28.camel@iivanov-desktop>
-Subject: Re: [PATCH] omap3isp: preview: Add support for non-GRBG Bayer
- patterns
-From: "Ivan T. Ivanov" <iivanov@mm-sol.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org,
-	Jean-Philippe Francois <jp.francois@cynove.com>
-Date: Wed, 27 Jun 2012 17:43:47 +0300
-In-Reply-To: <1604040.ASsSQhkLZV@avalon>
-References: <1340029853-2648-1-git-send-email-laurent.pinchart@ideasonboard.com>
-	 <2983598.xxGvaJclHQ@avalon> <1340807432.3675.20.camel@iivanov-desktop>
-	 <1604040.ASsSQhkLZV@avalon>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Mime-Version: 1.0
+	id S1755851Ab2FGLP3 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Jun 2012 07:15:29 -0400
+From: "Hadli, Manjunath" <manjunath.hadli@ti.com>
+To: "'Laurent Pinchart'" <laurent.pinchart@ideasonboard.com>
+CC: "davinci-linux-open-source@linux.davincidsp.com"
+	<davinci-linux-open-source@linux.davincidsp.com>,
+	LMML <linux-media@vger.kernel.org>
+Subject: RE: [PATCH v2 05/13] davinci: vpif display: declare contiguous
+ region of memory handled by dma_alloc_coherent
+Date: Thu, 7 Jun 2012 11:15:19 +0000
+Message-ID: <E99FAA59F8D8D34D8A118DD37F7C8F753E9300B3@DBDE01.ent.ti.com>
+References: <1334652791-15833-1-git-send-email-manjunath.hadli@ti.com>
+ <1658646.Sj5u4WkIAm@avalon>
+ <E99FAA59F8D8D34D8A118DD37F7C8F753E927D6A@DBDE01.ent.ti.com>
+ <8358601.0Ocm27lmng@avalon>
+In-Reply-To: <8358601.0Ocm27lmng@avalon>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
 Hi Laurent,
 
-On Wed, 2012-06-27 at 16:42 +0200, Laurent Pinchart wrote:
-> Hi Ivan,
+On Mon, May 14, 2012 at 13:16:27, Laurent Pinchart wrote:
+> Hi Manjunath,
 > 
-> On Wednesday 27 June 2012 17:30:32 Ivan T. Ivanov wrote:
-> > On Wed, 2012-06-27 at 15:54 +0200, Laurent Pinchart wrote:
-> > > On Wednesday 27 June 2012 16:42:01 Ivan T. Ivanov wrote:
-> > > > On Tue, 2012-06-26 at 03:30 +0200, Laurent Pinchart wrote:
-> > > > > On Saturday 23 June 2012 11:22:37 Sakari Ailus wrote:
-> > > > > > On Mon, Jun 18, 2012 at 04:30:53PM +0200, Laurent Pinchart wrote:
-> > > > > > > Rearrange the CFA interpolation coefficients table based on the
-> > > > > > > Bayer pattern. Modifying the table during streaming isn't
-> > > > > > > supported anymore, but didn't make sense in the first place
-> > > > > > > anyway.
-> > > > > > 
-> > > > > > Why not? I could imagine someone might want to change the table
-> > > > > > while streaming to change the white balance, for example. Gamma
-> > > > > > tables or the SRGB matrix can be used to do mostly the same but we
-> > > > > > should leave the decision which one to use to the user space.
-> > > > > 
-> > > > > Because making the CFA table runtime-configurable brings an additional
-> > > > > complexity without a use case I'm aware of. The preview engine has
-> > > > > separate gamma tables, white balance matrices, and RGB-to-RGB and RGB-
-> > > > > to-YUV matrices that can be modified during streaming. If a user
-> > > > > really needs to modify the CFA tables during streaming I'll be happy
-> > > > > to implement that (and even happier to receive a patch :-)), but I'm a
-> > > > > bit reluctant to add complexity to an already complex code without a
-> > > > > real use case.
+> On Friday 11 May 2012 05:30:43 Hadli, Manjunath wrote:
+> > On Tue, Apr 17, 2012 at 15:32:55, Laurent Pinchart wrote:
+> > > On Tuesday 17 April 2012 14:23:03 Manjunath Hadli wrote:
+> > > > add support to declare contiguous region of memory to be handled when
+> > > > requested by dma_alloc_coherent call. The user can specify the size of
+> > > > the buffers with an offset from the kernel image using cont_bufsize
+> > > > and cont_bufoffset module parameters respectively.
+> 
+> [snip]
+> 
+> > > > @@ -1686,12 +1710,14 @@ static __init int vpif_probe(struct
+> > > > platform_device *pdev) struct vpif_subdev_info *subdevdata;
 > > > > 
-> > > > Sorry for not following this thread very closely. One use case for
-> > > > changing CFA table is to adjust sharpness of the frames coming out
-> > > > of the ISP. And we are doing exactly this in N9.
+> > > >  	struct vpif_display_config *config;
+> > > >  	int i, j = 0, k, q, m, err = 0;
+> > > > 
+> > > > +	unsigned long phys_end_kernel;
+> > > > 
+> > > >  	struct i2c_adapter *i2c_adap;
+> > > >  	struct common_obj *common;
+> > > >  	struct channel_obj *ch;
+> > > >  	struct video_device *vfd;
+> > > >  	struct resource *res;
+> > > >  	int subdev_count;
+> > > > 
+> > > > +	size_t size;
+> > > > 
+> > > >  	vpif_dev = &pdev->dev;
+> > > > 
+> > > > @@ -1749,6 +1775,41 @@ static __init int vpif_probe(struct
+> > > > platform_device
+> > > > *pdev) ch->video_dev = vfd;
+> > > > 
+> > > >  	}
+> > > > 
+> > > > +	/* Initialising the memory from the input arguments file for
+> > > > +	 * contiguous memory buffers and avoid defragmentation
+> > > > +	 */
+> > > > +	if (cont_bufsize) {
+> > > > +		/* attempt to determine the end of Linux kernel memory */
+> > > > +		phys_end_kernel = virt_to_phys((void *)PAGE_OFFSET) +
+> > > > +			(num_physpages << PAGE_SHIFT);
+> > > > +		phys_end_kernel += cont_bufoffset;
+> > > > +		size = cont_bufsize;
+> > > > +
+> > > > +		err = dma_declare_coherent_memory(&pdev->dev, phys_end_kernel,
+> > > > +				phys_end_kernel, size,
+> > > > +				DMA_MEMORY_MAP | DMA_MEMORY_EXCLUSIVE);
 > > > 
-> > > Thank you for the valuable feedback. Now we have a use case :-) I'll make
-> > > sure the CFA table can be updated during streaming then. Are you fine
-> > > with always specifying the table in SGRBG order, and letting the driver
-> > > rearrange the 4 blocks based on the input bayer pattern ?
-> > 
-> > I am afraid that I am not :-). Primary and secondary cameras of the above
-> > device have different order of the color channels. We are selecting desired
-> > CFA table pattern based on sensor used. Probably we can add yet another
-> > IOCTL to previewer sub-device, which will explicitly overwrite "order" of
-> > the user supplied table?
+> > > This is a pretty dangerous hack. You should compute the memory address and
+> > > size in board code, and pass it to the driver through a device resource
+> > > (don't forget to call request_mem_region on the resource). I think the
+> > > dma_declare_coherent_memory() call should be moved to board code as well.
+> >
+> > I don't think it is a hack. Since the device does not support scatter gather
+> > MMU, we need to make sure that the requirement of memory scucceeds for the
+> > Driver buffers.
 > 
-> The idea is that applications should supply a CFA table in the SGRBG order, 
-> regardless of the real sensor pattern. The ISP driver will then rearrange the 
-> table based on the pattern of the select sensor.
-
-I like this idea.
-
+> If two drivers attempt to do the same you're screwed. That's why this should 
+> be moved to board code, where memory reservation for all devices that need it 
+> can be coordinated. You should call dma_declare_coherent_memory() there, not 
+> in the VPIF driver.
 > 
-> This will break compatibility with libomap3camd, but the N9 isn't supported by 
-> Nokia anymore anyway :-/ 
+  Ok I'll move dma_declare_coherent_memory() to board file.
 
-Same feelings :-/. In this case, I suppose you are free to change it
-as you like it.
+> > Here the size is taken as part of module parameters, which If I am right,
+> > cannot be moved to board file.
+> 
+> Depending on how early you need the information in board code you can use 
+> early_param(), __setup() or normal module parameter macros in the board code.
+> 
+Ok I'll fix this.
 
-> BTW, are the CFA tables hardcoded in the libomap3camd 
-> binary, or are they loaded from an external file ?
+Thx,
+--Manju
 
-No comments :-)
-
-Regards,
-Ivan
+> > > > +		if (!err) {
+> > > > +			dev_err(&pdev->dev, "Unable to declare MMAP memory.\n");
+> > > > +			err = -ENOMEM;
+> > > > +			goto probe_out;
+> > > > +		}
+> > > > +
+> > > > +		/* The resources are divided into two equal memory and when
+> > > > +		 * we have HD output we can add them together
+> > > > +		 */
+> > > > +		for (j = 0; j < VPIF_DISPLAY_MAX_DEVICES; j++) {
+> > > > +			ch = vpif_obj.dev[j];
+> > > > +			ch->channel_id = j;
+> > > > +
+> > > > +			/* only enabled if second resource exists */
+> > > > +			config_params.video_limit[ch->channel_id] = 0;
+> > > > +			if (cont_bufsize)
+> > > > +				config_params.video_limit[ch->channel_id] =
+> > > > +									size/2;
+> > > > +		}
+> > > > +	}
+> > > > +
+> > > > 
+> > > >  	for (j = 0; j < VPIF_DISPLAY_MAX_DEVICES; j++) {
+> > > >  	
+> > > >  		ch = vpif_obj.dev[j];
+> > > >  		/* Initialize field of the channel objects */ diff --git
+> 
+> -- 
+> Regards,
+> 
+> Laurent Pinchart
+> 
+> 
 
