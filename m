@@ -1,81 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:28654 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752170Ab2FLLfe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Jun 2012 07:35:34 -0400
-Message-ID: <4FD7296E.9080400@redhat.com>
-Date: Tue, 12 Jun 2012 08:35:10 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
+Received: from perceval.ideasonboard.com ([95.142.166.194]:37234 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752749Ab2FGAwG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jun 2012 20:52:06 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Andy Walls <awalls@md.metrocast.net>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Pawel Osciak <pawel@osciak.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: Re: [RFCv1 PATCH 00/32] Core and vb2 enhancements
-References: <1339323954-1404-1-git-send-email-hverkuil@xs4all.nl> <4FD4CF7C.3020000@redhat.com> <201206101932.36886.hverkuil@xs4all.nl> <201206102127.12029.hverkuil@xs4all.nl>
-In-Reply-To: <201206102127.12029.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Cc: Rebecca Schultz Zavin <rebecca@android.com>,
+	"Semwal, Sumit" <sumit.semwal@ti.com>, remi@remlab.net,
+	pawel@osciak.com, mchehab@redhat.com, robdclark@gmail.com,
+	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
+	kyungmin.park@samsung.com, airlied@redhat.com,
+	linux-media@vger.kernel.org, g.liakhovetski@gmx.de
+Subject: Re: [Linaro-mm-sig] [PATCHv6 00/13] Integration of videobuf2 with dmabuf
+Date: Thu, 07 Jun 2012 02:52:06 +0200
+Message-ID: <4173899.dEXarKynNP@avalon>
+In-Reply-To: <201206061017.03945.hverkuil@xs4all.nl>
+References: <1337775027-9489-1-git-send-email-t.stanislaws@samsung.com> <4653855.fA1y5y3jSF@avalon> <201206061017.03945.hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 10-06-2012 16:27, Hans Verkuil escreveu:
-> On Sun June 10 2012 19:32:36 Hans Verkuil wrote:
->> On Sun June 10 2012 18:46:52 Mauro Carvalho Chehab wrote:
->>> 3) it would be interesting if you could benchmark the previous code and the new
->>> one, to see what gains this change introduced, in terms of v4l2-core footprint and
->>> performance.
->>
->> I'll try that, should be interesting. Actually, my prediction is that I won't notice any
->> difference. Todays CPUs are so fast that the overhead of the switch is probably hard to
->> measure.
+Hi Hans,
+
+On Wednesday 06 June 2012 10:17:03 Hans Verkuil wrote:
+> On Wed 6 June 2012 05:46:34 Laurent Pinchart wrote:
+> > On Monday 04 June 2012 12:34:23 Rebecca Schultz Zavin wrote:
+> > > I have a system where the data is planar, but the kernel drivers
+> > > expect to get one allocation with offsets for the planes.  I can't
+> > > figure out how to do that with the current dma_buf implementation.  I
+> > > thought I could pass the same dma_buf several times and use the
+> > > data_offset field of the v4l2_plane struct but it looks like that's
+> > > only for output.  Am I missing something?  Is this supported?
+> > 
+> > data_offset is indeed for video output only at the moment, and doesn't
+> > seem to be used by any driver in mainline for now.
 > 
-> I did some tests, calling various ioctls 100,000,000 times. The actual call into the
-> driver was disabled so that I only measure the time spent in v4l2-ioctl.c.
+> Actually, data_offset may be set by capture drivers. For output buffers it
+> is set by userspace, for capture buffers it is set by the driver. This
+> data_offset typically contains meta data.
+
+Is that documented somewhere ? I wasn't aware of this use case.
+
+> > I can't really see a reason why data_offset couldn't be used for video
+> > capture devices as well.
+> > 
+> > Sanity checks are currently missing. For output devices we should check
+> > that data_offset + bytesused < length in the vb2 core. For input devices
+> > the check will have to be performed by drivers. Taking data_offset into
+> > account automatically would also be useful. I think most of that should
+> > be possible to implement in the allocators.
 > 
-> I ran the test program with 'time ./t' and measured the sys time.
+> See this proposal of how to solve this:
 > 
-> For each ioctl I tested 5 times and averaged the results. Times are in seconds.
-> 
-> 					Old		New
-> QUERYCAP			24.86	24.37
-> UNSUBSCRIBE_EVENT	23.40	23.10
-> LOG_STATUS			18.84	18.76
-> ENUMINPUT			28.82	28.90
-> 
-> Particularly for QUERYCAP and UNSUBSCRIBE_EVENT I found a small but reproducible
-> improvement in speed. The results for LOG_STATUS and ENUMINPUT are too close to
-> call.
-> 
-> After looking at the assembly code that the old code produces I suspect (but it
-> is hard to be sure) that LOG_STATUS and ENUMINPUT are tested quite early on, whereas
-> QUERYCAP and UNSUBSCRIBE_EVENT are tested quite late. The order in which the compiler
-> tests definitely has no relationship with the order of the case statements in the
-> switch.
+> http://www.spinics.net/lists/linux-media/msg40376.html
 
-The ioctl's are reordered, as gcc optimizes them in order to do a tree search and to avoid
-cache flush. The worse case is likely converted into 7 CMP asm calls (log2(128)).
+This requires more discussions regarding how the app_offset and data_offset 
+fields should be used for the different memory types we support.
 
-On your code, gcc may not be able to predict the JMP's, so it may actually have cache flushes,
-depending on the cache size, and if the caller functions are before of after the video_ioctl2
-handler.
+For instance app_offset would not make that much sense for the USERPTR memory 
+type, as we can include the offset in the user pointer already (using 
+app_offset there would only make the code more complex without any added 
+benefit).
 
-I suspect that, if you compare the code with debug enabled, the new code can actually be worse
-than the previous one.
+For the MMAP memory type adding an app_offset would require allocating buffers 
+large enough to accomodate the offset, and would thus only be useful with 
+CREATE_BUFS. I'm also wondering whether the main use case (passing the buffer 
+to another device that requires that app_offset) wouldn't be better addressed 
+by the DMABUF memory type anyway.
 
-It would be good if you could test what happens with QBUF/DQBUF.
+Comments are welcome.
 
-> This would certainly explain what I am seeing. I'm actually a bit surprised that
-> this is measurable at all.
-
-The timing difference is not significant, especially because those ioctl's aren't the ones
-used inside the streaming loop. The only ioctl's that are more time-sensitive are the streaming
-ones, especially QBUF/DQBUF.
-
+-- 
 Regards,
-Mauro
+
+Laurent Pinchart
+
