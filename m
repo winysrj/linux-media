@@ -1,49 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:56360 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753923Ab2FGRwl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Jun 2012 13:52:41 -0400
-Received: by eeit10 with SMTP id t10so338340eei.19
-        for <linux-media@vger.kernel.org>; Thu, 07 Jun 2012 10:52:40 -0700 (PDT)
-Message-ID: <4FD0EA64.5020602@gmail.com>
-Date: Thu, 07 Jun 2012 19:52:36 +0200
-From: Maarten Lankhorst <m.b.lankhorst@gmail.com>
+Received: from ams-iport-4.cisco.com ([144.254.224.147]:29569 "EHLO
+	ams-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751617Ab2FGQcK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Jun 2012 12:32:10 -0400
+Received: from cobaltpc1.localnet (dhcp-10-54-92-70.cisco.com [10.54.92.70])
+	by ams-core-3.cisco.com (8.14.5/8.14.5) with ESMTP id q57GW82u015321
+	for <linux-media@vger.kernel.org>; Thu, 7 Jun 2012 16:32:08 GMT
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH for v3.5] And another regression :-(
+Date: Thu, 7 Jun 2012 18:32:07 +0200
 MIME-Version: 1.0
-To: Erik Gilling <konkers@android.com>
-CC: dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
-	linux-media@vger.kernel.org
-Subject: Re: Synchronization framework
-References: <4FD06C91.6020507@gmail.com> <CACSP8SjyhBsCf7hnyO3AGnNge967jWHpkyfDyrEmkgdnp60_iA@mail.gmail.com>
-In-Reply-To: <CACSP8SjyhBsCf7hnyO3AGnNge967jWHpkyfDyrEmkgdnp60_iA@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201206071832.07246.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hey Erik,
+Now query/enum_dv_timings finally work again.
 
-Op 07-06-12 19:35, Erik Gilling schreef:
-> On Thu, Jun 7, 2012 at 1:55 AM, Maarten Lankhorst
-> <m.b.lankhorst@gmail.com> wrote:
->> I haven't looked at intel and amd, but from a quick glance
->> it seems like they already implement fencing too, so just
->> some way to synch up the fences on shared buffers seems
->> like it could benefit all graphics drivers and the whole
->> userspace synching could be done away with entirely.
-> It's important to have some level of userspace API so that GPU
-> generated graphics can participate in the graphics pipeline.  Think of
-> the case where you have a software video codec streaming textures into
-> the GPU.  It needs to know when the GPU is done with those textures so
-> it can reuse the buffer.
->
-In the graphics case this problem already has to be handled without
-dma-buf, so adding any extra synchronization api for userspace
-that is only used when the bo is shared is a waste.
+The timings API patches and the core ioctl changes clearly sailed right past
+each other without realizing that both needed to adapt to the other.
 
-I do agree you need some way to synch userspace though, but I
-think adding a new api for userspace is not the way to go.
+Regards,
 
-Cheers,
-Maarten
+	Hans
 
-PS: re-added cc's that seem to have fallen off from your mail.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+
+diff --git a/drivers/media/video/v4l2-dev.c b/drivers/media/video/v4l2-dev.c
+index 5ccbd46..1500208 100644
+--- a/drivers/media/video/v4l2-dev.c
++++ b/drivers/media/video/v4l2-dev.c
+@@ -679,6 +679,8 @@ static void determine_valid_ioctls(struct video_device *vdev)
+ 	SET_VALID_IOCTL(ops, VIDIOC_QUERY_DV_PRESET, vidioc_query_dv_preset);
+ 	SET_VALID_IOCTL(ops, VIDIOC_S_DV_TIMINGS, vidioc_s_dv_timings);
+ 	SET_VALID_IOCTL(ops, VIDIOC_G_DV_TIMINGS, vidioc_g_dv_timings);
++	SET_VALID_IOCTL(ops, VIDIOC_ENUM_DV_TIMINGS, vidioc_enum_dv_timings);
++	SET_VALID_IOCTL(ops, VIDIOC_QUERY_DV_TIMINGS, vidioc_query_dv_timings);
+ 	/* yes, really vidioc_subscribe_event */
+ 	SET_VALID_IOCTL(ops, VIDIOC_DQEVENT, vidioc_subscribe_event);
+ 	SET_VALID_IOCTL(ops, VIDIOC_SUBSCRIBE_EVENT, vidioc_subscribe_event);
