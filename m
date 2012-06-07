@@ -1,67 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:63390 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753031Ab2FEOGY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Jun 2012 10:06:24 -0400
-Received: by weyu7 with SMTP id u7so3598291wey.19
-        for <linux-media@vger.kernel.org>; Tue, 05 Jun 2012 07:06:23 -0700 (PDT)
-From: Javier Martin <javier.martin@vista-silicon.com>
-To: linux-media@vger.kernel.org
-Cc: g.liakhovetski@gmx.de, fabio.estevam@freescale.com,
-	mchehab@infradead.org,
-	Javier Martin <javier.martin@vista-silicon.com>
-Subject: [PATCH] media: mx2_camera: Add YUYV output format.
-Date: Tue,  5 Jun 2012 16:06:13 +0200
-Message-Id: <1338905173-5968-1-git-send-email-javier.martin@vista-silicon.com>
+Received: from mail-gh0-f174.google.com ([209.85.160.174]:52031 "EHLO
+	mail-gh0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755392Ab2FGXJE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Jun 2012 19:09:04 -0400
+Received: by ghrr11 with SMTP id r11so845582ghr.19
+        for <linux-media@vger.kernel.org>; Thu, 07 Jun 2012 16:09:03 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <CAH5vBdLJD1nvxK4eE5uP6cB-PwMQ+9CCUV0GQb0YBa1ZLxKxZg@mail.gmail.com>
+References: <CAH5vBdLJD1nvxK4eE5uP6cB-PwMQ+9CCUV0GQb0YBa1ZLxKxZg@mail.gmail.com>
+Date: Thu, 7 Jun 2012 16:09:02 -0700
+Message-ID: <CAA7C2qi8_O4gNsBL5Oh_t9bAGit0u8ujz73KKSvHqUGACm+qOQ@mail.gmail.com>
+Subject: Re: what are the media tuners / can we make them not default selected?
+From: VDR User <user.vdr@gmail.com>
+To: cheng renquan <crquan@gmail.com>
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-While YUYV format can be handled using generic pass-through mode,
-in order to allow resizing the eMMa-PrP has to know exactly
-what format it is dealing with to process data accordingly.
+On Thu, Jun 7, 2012 at 2:53 PM, cheng renquan <crquan@gmail.com> wrote:
+> till recently I found that also chosen those media tuner modules,
+>
+> $ grep MEDIA_TUNER /boot/config
+> CONFIG_MEDIA_TUNER=m
+> # CONFIG_MEDIA_TUNER_CUSTOMISE is not set
+> CONFIG_MEDIA_TUNER_SIMPLE=m
+> CONFIG_MEDIA_TUNER_TDA8290=m
+> CONFIG_MEDIA_TUNER_TDA827X=m
+> CONFIG_MEDIA_TUNER_TDA18271=m
+> CONFIG_MEDIA_TUNER_TDA9887=m
+> CONFIG_MEDIA_TUNER_TEA5761=m
+> CONFIG_MEDIA_TUNER_TEA5767=m
+> CONFIG_MEDIA_TUNER_MT20XX=m
+> CONFIG_MEDIA_TUNER_XC2028=m
+> CONFIG_MEDIA_TUNER_XC5000=m
+> CONFIG_MEDIA_TUNER_XC4000=m
+> CONFIG_MEDIA_TUNER_MC44S803=m
+>
+> as I understand, MEDIA_TUNER is for some tv adapters but I don't have
+> such hardware,
+> to disable them I need to enable MEDIA_TUNER_CUSTOMISE, then
+> a menu "Customize TV tuners" becomes visible then I need to enter that
+> menu and disable all the tuners one-by-one;
+> this looks not convenient,
 
-Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
----
- drivers/media/video/mx2_camera.c |   26 ++++++++++++++++++++++++++
- 1 files changed, 26 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
-index b30ebe5..c8fa457 100644
---- a/drivers/media/video/mx2_camera.c
-+++ b/drivers/media/video/mx2_camera.c
-@@ -332,6 +332,32 @@ static struct mx2_fmt_cfg mx27_emma_prp_table[] = {
- 		}
- 	},
- 	{
-+		.in_fmt		= V4L2_MBUS_FMT_UYVY8_2X8,
-+		.out_fmt	= V4L2_PIX_FMT_YUYV,
-+		.cfg		= {
-+			.channel	= 1,
-+			.in_fmt		= PRP_CNTL_DATA_IN_YUV422,
-+			.out_fmt	= PRP_CNTL_CH1_OUT_YUV422,
-+			.src_pixel	= 0x22000888, /* YUV422 (YUYV) */
-+			.ch1_pixel	= 0x62000888, /* YUV422 (YUYV) */
-+			.irq_flags	= PRP_INTR_RDERR | PRP_INTR_CH1WERR |
-+						PRP_INTR_CH1FC | PRP_INTR_LBOVF,
-+		}
-+	},
-+	{
-+		.in_fmt		= V4L2_MBUS_FMT_YUYV8_2X8,
-+		.out_fmt	= V4L2_PIX_FMT_YUYV,
-+		.cfg		= {
-+			.channel	= 1,
-+			.in_fmt		= PRP_CNTL_DATA_IN_YUV422,
-+			.out_fmt	= PRP_CNTL_CH1_OUT_YUV422,
-+			.src_pixel	= 0x22000888, /* YUV422 (YUYV) */
-+			.ch1_pixel	= 0x62000888, /* YUV422 (YUYV) */
-+			.irq_flags	= PRP_INTR_RDERR | PRP_INTR_CH1WERR |
-+						PRP_INTR_CH1FC | PRP_INTR_LBOVF,
-+		}
-+	},
-+	{
- 		.in_fmt		= V4L2_MBUS_FMT_YUYV8_2X8,
- 		.out_fmt	= V4L2_PIX_FMT_YUV420,
- 		.cfg		= {
--- 
-1.7.0.4
-
+I hate that too so you're not alone. I've just gotten into the habit
+of having to manually disabling everything I don't need as opposed to
+only needing to enable what I do need. :\
