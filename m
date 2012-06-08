@@ -1,135 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:4985 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755899Ab2FXL3S (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 Jun 2012 07:29:18 -0400
+Received: from smtp-vbr19.xs4all.nl ([194.109.24.39]:1386 "EHLO
+	smtp-vbr19.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751161Ab2FHLGt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Jun 2012 07:06:49 -0400
+Received: from alastor.dyndns.org (189.80-203-102.nextgentel.com [80.203.102.189] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr19.xs4all.nl (8.13.8/8.13.8) with ESMTP id q58B6ka1036858
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Fri, 8 Jun 2012 13:06:47 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from tschai.localnet (64-103-25-233.cisco.com [64.103.25.233])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id B5568CDE0005
+	for <linux-media@vger.kernel.org>; Fri,  8 Jun 2012 13:06:45 +0200 (CEST)
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Andy Walls <awalls@md.metrocast.net>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Scott Jiang <scott.jiang.linux@gmail.com>,
-	Manjunatha Halli <manjunatha_halli@ti.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>,
-	Anatolij Gustschin <agust@denx.de>,
-	Javier Martin <javier.martin@vista-silicon.com>,
-	Sensoray Linux Development <linux-dev@sensoray.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
-	Sachin Kamat <sachin.kamat@linaro.org>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	mitov@issp.bas.bg, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 24/26] fimc-m2m.c: remove V4L2_FL_LOCK_ALL_FOPS
-Date: Sun, 24 Jun 2012 13:26:16 +0200
-Message-Id: <73ea71dfb4e307a78a9f993dd3d778d639ad7228.1340536092.git.hans.verkuil@cisco.com>
-In-Reply-To: <1340537178-18768-1-git-send-email-hverkuil@xs4all.nl>
-References: <1340537178-18768-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <f854d2a0a932187cd895bf9cd81d2da8343b52c9.1340536092.git.hans.verkuil@cisco.com>
-References: <f854d2a0a932187cd895bf9cd81d2da8343b52c9.1340536092.git.hans.verkuil@cisco.com>
+To: "linux-media" <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR v3.6] Clean up and improve zr364xx
+Date: Fri, 8 Jun 2012 13:06:44 +0200
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201206081306.44487.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Update zr364xx to the latest frameworks (except for vb2) and add
+suspend/resume support.
 
-Add proper locking to the file operations, allowing for the removal
-of the V4L2_FL_LOCK_ALL_FOPS flag.
+Tested with actual hardware on both little and big endian hosts.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/video/s5p-fimc/fimc-m2m.c |   28 ++++++++++++++++++++++------
- 1 file changed, 22 insertions(+), 6 deletions(-)
+Regards,
 
-diff --git a/drivers/media/video/s5p-fimc/fimc-m2m.c b/drivers/media/video/s5p-fimc/fimc-m2m.c
-index 4c58e05..1074397 100644
---- a/drivers/media/video/s5p-fimc/fimc-m2m.c
-+++ b/drivers/media/video/s5p-fimc/fimc-m2m.c
-@@ -660,6 +660,11 @@ static int fimc_m2m_open(struct file *file)
- 	v4l2_fh_init(&ctx->fh, fimc->m2m.vfd);
- 	ctx->fimc_dev = fimc;
- 
-+	if (mutex_lock_interruptible(&fimc->lock)) {
-+		kfree(ctx);
-+		return -ERESTARTSYS;
-+	}
-+
- 	/* Default color format */
- 	ctx->s_frame.fmt = fimc_get_format(0);
- 	ctx->d_frame.fmt = fimc_get_format(0);
-@@ -687,6 +692,7 @@ static int fimc_m2m_open(struct file *file)
- 
- 	if (fimc->m2m.refcnt++ == 0)
- 		set_bit(ST_M2M_RUN, &fimc->state);
-+	mutex_unlock(&fimc->lock);
- 	return 0;
- 
- error_c:
-@@ -695,6 +701,7 @@ error_fh:
- 	v4l2_fh_del(&ctx->fh);
- 	v4l2_fh_exit(&ctx->fh);
- 	kfree(ctx);
-+	mutex_unlock(&fimc->lock);
- 	return ret;
- }
- 
-@@ -706,6 +713,7 @@ static int fimc_m2m_release(struct file *file)
- 	dbg("pid: %d, state: 0x%lx, refcnt= %d",
- 		task_pid_nr(current), fimc->state, fimc->m2m.refcnt);
- 
-+	mutex_lock(&fimc->lock);
- 	v4l2_m2m_ctx_release(ctx->m2m_ctx);
- 	fimc_ctrls_delete(ctx);
- 	v4l2_fh_del(&ctx->fh);
-@@ -713,6 +721,7 @@ static int fimc_m2m_release(struct file *file)
- 
- 	if (--fimc->m2m.refcnt <= 0)
- 		clear_bit(ST_M2M_RUN, &fimc->state);
-+	mutex_unlock(&fimc->lock);
- 	kfree(ctx);
- 	return 0;
- }
-@@ -721,16 +730,27 @@ static unsigned int fimc_m2m_poll(struct file *file,
- 				  struct poll_table_struct *wait)
- {
- 	struct fimc_ctx *ctx = fh_to_ctx(file->private_data);
-+	struct fimc_dev *fimc = ctx->fimc_dev;
-+	unsigned int res;
- 
--	return v4l2_m2m_poll(file, ctx->m2m_ctx, wait);
-+	mutex_lock(&fimc->lock);
-+	res = v4l2_m2m_poll(file, ctx->m2m_ctx, wait);
-+	mutex_unlock(&fimc->lock);
-+	return res;
- }
- 
- 
- static int fimc_m2m_mmap(struct file *file, struct vm_area_struct *vma)
- {
- 	struct fimc_ctx *ctx = fh_to_ctx(file->private_data);
-+	struct fimc_dev *fimc = ctx->fimc_dev;
-+	int ret;
- 
--	return v4l2_m2m_mmap(file, ctx->m2m_ctx, vma);
-+	if (mutex_lock_interruptible(&fimc->lock))
-+		return -ERESTARTSYS;
-+	ret = v4l2_m2m_mmap(file, ctx->m2m_ctx, vma);
-+	mutex_unlock(&fimc->lock);
-+	return ret;
- }
- 
- static const struct v4l2_file_operations fimc_m2m_fops = {
-@@ -772,10 +792,6 @@ int fimc_register_m2m_device(struct fimc_dev *fimc,
- 	vfd->minor = -1;
- 	vfd->release = video_device_release;
- 	vfd->lock = &fimc->lock;
--	/* Locking in file operations other than ioctl should be done
--	   by the driver, not the V4L2 core.
--	   This driver needs auditing so that this flag can be removed. */
--	set_bit(V4L2_FL_LOCK_ALL_FOPS, &vfd->flags);
- 
- 	snprintf(vfd->name, sizeof(vfd->name), "fimc.%d.m2m", fimc->id);
- 	video_set_drvdata(vfd, fimc);
--- 
-1.7.10
+	Hans
 
+The following changes since commit 5472d3f17845c4398c6a510b46855820920c2181:
+
+  [media] mt9m032: Implement V4L2_CID_PIXEL_RATE control (2012-05-24 09:27:24 -0300)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git zr364xx
+
+for you to fetch changes up to d08f93c5d6b195f0c85683703c737a2b1714d9a5:
+
+  zr364xx: add suspend/resume support. (2012-06-08 13:04:55 +0200)
+
+----------------------------------------------------------------
+Hans Verkuil (7):
+      zr364xx: embed video_device and register it at the end of probe.
+      zr364xx: introduce v4l2_device.
+      zr364xx: convert to the control framework.
+      zr364xx: fix querycap and fill in colorspace.
+      zr364xx: add support for control events.
+      zr364xx: allow multiple opens.
+      zr364xx: add suspend/resume support.
+
+ drivers/media/video/zr364xx.c |  484 +++++++++++++++++++++++++++++++++++++++++++++--------------------------------------------------------
+ 1 file changed, 213 insertions(+), 271 deletions(-)
