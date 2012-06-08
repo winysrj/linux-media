@@ -1,57 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:3515 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750733Ab2FLHG6 (ORCPT
+Received: from na3sys009aob106.obsmtp.com ([74.125.149.76]:37225 "HELO
+	na3sys009aog106.obsmtp.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with SMTP id S1754331Ab2FHL5g (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Jun 2012 03:06:58 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Scott Jiang <scott.jiang.linux@gmail.com>
-Subject: Re: extend v4l2_mbus_framefmt
-Date: Tue, 12 Jun 2012 09:05:55 +0200
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	LMML <linux-media@vger.kernel.org>,
-	uclinux-dist-devel@blackfin.uclinux.org
-References: <CAHG8p1AW6577=oGPo3o8S0LgF2p8_cfmLLnvYbikk7kEaYdxzw@mail.gmail.com> <201206111033.47369.hverkuil@xs4all.nl> <CAHG8p1CeMi16-YQMObuiwcmyf4cqVZwqppHyjuJX5ghipScVoA@mail.gmail.com>
-In-Reply-To: <CAHG8p1CeMi16-YQMObuiwcmyf4cqVZwqppHyjuJX5ghipScVoA@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201206120905.55735.hverkuil@xs4all.nl>
+	Fri, 8 Jun 2012 07:57:36 -0400
+From: Albert Wang <twang13@marvell.com>
+To: pawel@osciak.com, g.liakhovetski@gmx.de
+Cc: linux-media@vger.kernel.org, Albert Wang <twang13@marvell.com>
+Subject: [PATCH] media: videobuf2: fix kernel panic due to missing assign NULL to alloc_ctx
+Date: Fri,  8 Jun 2012 19:55:11 +0800
+Message-Id: <1339156511-16509-1-git-send-email-twang13@marvell.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue June 12 2012 07:42:47 Scott Jiang wrote:
-> Hi Hans,
-> 
-> > I would expect that the combination of v4l2_mbus_framefmt + v4l2_dv_timings
-> > gives you the information you need.
-> 
-> About v4l2_mbus_framefmt, you use V4L2_MBUS_FMT_FIXED. I guess you
-> can't find any yuv 24 or rgb 16/24bit format in current
-> v4l2_mbus_framefmt.
+  In function vb2_dma_contig_cleanup_ctx(), we only kfree the alloc_ctx
+  If we didn't assign NULL to this point after kfree it,
+  we may encounter the following kernel panic:
 
-It's more that Cisco didn't need this since we never change the pixelport
-configuration after initialization. So this code should be improved.
+ kernel BUG at kernel/cred.c:98!
+ Unable to handle kernel NULL pointer dereference at virtual address 00000000
+ pgd = c0004000
+ [00000000] *pgd=00000000
+ Internal error: Oops: 817 [#1] PREEMPT SMP
+ Modules linked in: runcase_sysfs galcore mv_wtm_drv mv_wtm_prim
+ CPU: 0    Not tainted  (3.0.8+ #213)
+ PC is at __bug+0x18/0x24
+ LR is at __bug+0x14/0x24
+ pc : [<c0054670>]    lr : [<c005466c>]    psr: 60000113
+ sp : c0681ec0  ip : f683e000  fp : 00000000
+ r10: e8ab4b58  r9 : 00000fff  r8 : 00000002
+ r7 : e8665698  r6 : c10079ec  r5 : e8b13d80  r4 : e8b13d98
+ r3 : 00000000  r2 : c0681eb4  r1 : c05c9ccc  r0 : 00000035
+ Flags: nZCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment kernel
+ Control: 10c53c7d  Table: 29c3406a  DAC: 00000015
 
-BTW, I plan to update my http://git.linuxtv.org/hverkuil/cisco.git repository
-today or tomorrow with our latest code that is much closer to being ready for
-upstreaming.
+  the root cause is we may encounter some i2c or HW issue with sensor
+  which result in driver exit with exception during soc_camera_set_fmt()
+  from soc_camera_open():
 
-> But a bridge driver working with variable sensors
-> and decoders can't accept this.
+	ret = soc_camera_set_fmt(icd, &f);
+	if (ret < 0)
+		goto esfmt;
 
-Of course. Patches are welcome :-)
+  it will call ici->ops->remove() in following code:
 
-> About  v4l2_dv_timings, do I need to set a default timing similar to
-> pick PAL as default standard?
+  esfmt:
+	pm_runtime_disable(&icd->vdev->dev);
+  eresume:
+	ici->ops->remove(icd);
 
-Yes. Ensuring that you always have some default timing makes life a lot
-easier all around, both in kernelspace and in userspace.
+  ici->ops->remove() will call vb2_dma_contig_cleanup_ctx() for cleanup
+  but we didn't do ici->ops->init_videobuf2() yet at that time
+  it will result in kfree a non-NULL point twice
 
-Otherwise you would have to check whether you actually have a timings setup
-all the time.
+Change-Id: I1c66dd08438ae90abe555c52edcdbca0d39d829d
+Signed-off-by: Albert Wang <twang13@marvell.com>
+---
+ drivers/media/video/videobuf2-dma-contig.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-Regards,
+diff --git a/drivers/media/video/videobuf2-dma-contig.c b/drivers/media/video/videobuf2-dma-contig.c
+index 4b71326..9881171 100755
+--- a/drivers/media/video/videobuf2-dma-contig.c
++++ b/drivers/media/video/videobuf2-dma-contig.c
+@@ -178,6 +178,7 @@ EXPORT_SYMBOL_GPL(vb2_dma_contig_init_ctx);
+ void vb2_dma_contig_cleanup_ctx(void *alloc_ctx)
+ {
+ 	kfree(alloc_ctx);
++	alloc_ctx = NULL;
+ }
+ EXPORT_SYMBOL_GPL(vb2_dma_contig_cleanup_ctx);
+ 
+-- 
+1.7.0.4
 
-	Hans
