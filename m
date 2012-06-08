@@ -1,127 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:2703 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755916Ab2FXL3S (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 Jun 2012 07:29:18 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Andy Walls <awalls@md.metrocast.net>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Scott Jiang <scott.jiang.linux@gmail.com>,
-	Manjunatha Halli <manjunatha_halli@ti.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>,
-	Anatolij Gustschin <agust@denx.de>,
-	Javier Martin <javier.martin@vista-silicon.com>,
-	Sensoray Linux Development <linux-dev@sensoray.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
-	Sachin Kamat <sachin.kamat@linaro.org>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	mitov@issp.bas.bg, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 07/26] mem2mem_testdev: remove V4L2_FL_LOCK_ALL_FOPS
-Date: Sun, 24 Jun 2012 13:25:59 +0200
-Message-Id: <68b02bb05ec7fbedda7f563b2bf135b725a85774.1340536092.git.hans.verkuil@cisco.com>
-In-Reply-To: <1340537178-18768-1-git-send-email-hverkuil@xs4all.nl>
-References: <1340537178-18768-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <f854d2a0a932187cd895bf9cd81d2da8343b52c9.1340536092.git.hans.verkuil@cisco.com>
-References: <f854d2a0a932187cd895bf9cd81d2da8343b52c9.1340536092.git.hans.verkuil@cisco.com>
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:52735 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753873Ab2FHHjR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Jun 2012 03:39:17 -0400
+Received: by bkcji2 with SMTP id ji2so1452359bkc.19
+        for <linux-media@vger.kernel.org>; Fri, 08 Jun 2012 00:39:16 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20120608072601.GD30137@pengutronix.de>
+References: <CACKLOr2jQMnBPTaTFOcfLN_9J1n39tLx-ffDcVGuZ4ZB-odYfg@mail.gmail.com>
+	<20120608072601.GD30137@pengutronix.de>
+Date: Fri, 8 Jun 2012 09:39:15 +0200
+Message-ID: <CACKLOr1OShoEnLxs8BP6q2TyZrOH0oCnpbKZJqyAo-yXKck9Zw@mail.gmail.com>
+Subject: Re: [RFC] Support for H.264/MPEG4 encoder (VPU) in i.MX27.
+From: javier Martin <javier.martin@vista-silicon.com>
+To: Robert Schwebel <r.schwebel@pengutronix.de>
+Cc: kernel@pengutronix.de, Fabio Estevam <festevam@gmail.com>,
+	linux-media@vger.kernel.org, Shawn Guo <shawn.guo@linaro.org>,
+	Dirk Behme <dirk.behme@googlemail.com>,
+	linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Robert,
 
-Add proper locking to the file operations, allowing for the removal
-of the V4L2_FL_LOCK_ALL_FOPS flag.
+On 8 June 2012 09:26, Robert Schwebel <r.schwebel@pengutronix.de> wrote:
+> Hi Javier,
+>
+> On Fri, Jun 08, 2012 at 09:21:13AM +0200, javier Martin wrote:
+>> If you refer to driver in [1] I have some concerns: i.MX27 VPU should
+>> be implemented as a V4L2 mem2mem device since it gets raw pictures
+>> from memory and outputs encoded frames to memory (some discussion
+>> about the subject can be fond here [2]), as Exynos driver from Samsung
+>> does. However, this driver you've mentioned doesn't do that: it just
+>> creates several mapping regions so that the actual functionality is
+>> implemented in user space by a library provided by Freescale, which
+>> regarding i.MX27 it is also GPL.
+>>
+>> What we are trying to do is implementing all the functionality in
+>> kernel space using mem2mem V4L2 framework so that it can be accepted
+>> in mainline.
+>
+> We will work on the VPU driver and it's migration towards a proper
+> mem2mem device very soon, mainly on MX53, but of course MX27 should be
+> taken care of by the same driver.
+>
+> So I'd suggest that we coordinate that work somehow.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/video/mem2mem_testdev.c |   29 ++++++++++++++++++++---------
- 1 file changed, 20 insertions(+), 9 deletions(-)
+Do you plan to provide both encoding and decoding support or just one of them?
 
-diff --git a/drivers/media/video/mem2mem_testdev.c b/drivers/media/video/mem2mem_testdev.c
-index d2dec58..595e268 100644
---- a/drivers/media/video/mem2mem_testdev.c
-+++ b/drivers/media/video/mem2mem_testdev.c
-@@ -849,10 +849,15 @@ static int m2mtest_open(struct file *file)
- {
- 	struct m2mtest_dev *dev = video_drvdata(file);
- 	struct m2mtest_ctx *ctx = NULL;
-+	int rc = 0;
- 
-+	if (mutex_lock_interruptible(&dev->dev_mutex))
-+		return -ERESTARTSYS;
- 	ctx = kzalloc(sizeof *ctx, GFP_KERNEL);
--	if (!ctx)
--		return -ENOMEM;
-+	if (!ctx) {
-+		rc = -ENOMEM;
-+		goto open_unlock;
-+	}
- 
- 	file->private_data = ctx;
- 	ctx->dev = dev;
-@@ -863,16 +868,18 @@ static int m2mtest_open(struct file *file)
- 	ctx->m2m_ctx = v4l2_m2m_ctx_init(dev->m2m_dev, ctx, &queue_init);
- 
- 	if (IS_ERR(ctx->m2m_ctx)) {
--		int ret = PTR_ERR(ctx->m2m_ctx);
-+		rc = PTR_ERR(ctx->m2m_ctx);
- 
- 		kfree(ctx);
--		return ret;
-+		goto open_unlock;
- 	}
- 
- 	atomic_inc(&dev->num_inst);
- 
- 	dprintk(dev, "Created instance %p, m2m_ctx: %p\n", ctx, ctx->m2m_ctx);
- 
-+open_unlock:
-+	mutex_unlock(&dev->dev_mutex);
- 	return 0;
- }
- 
-@@ -883,7 +890,9 @@ static int m2mtest_release(struct file *file)
- 
- 	dprintk(dev, "Releasing instance %p\n", ctx);
- 
-+	mutex_lock(&dev->dev_mutex);
- 	v4l2_m2m_ctx_release(ctx->m2m_ctx);
-+	mutex_unlock(&dev->dev_mutex);
- 	kfree(ctx);
- 
- 	atomic_dec(&dev->num_inst);
-@@ -901,9 +910,15 @@ static unsigned int m2mtest_poll(struct file *file,
- 
- static int m2mtest_mmap(struct file *file, struct vm_area_struct *vma)
- {
-+	struct m2mtest_dev *dev = video_drvdata(file);
- 	struct m2mtest_ctx *ctx = file->private_data;
-+	int res;
- 
--	return v4l2_m2m_mmap(file, ctx->m2m_ctx, vma);
-+	if (mutex_lock_interruptible(&dev->dev_mutex))
-+		return -ERESTARTSYS;
-+	res = v4l2_m2m_mmap(file, ctx->m2m_ctx, vma);
-+	mutex_unlock(&dev->dev_mutex);
-+	return res;
- }
- 
- static const struct v4l2_file_operations m2mtest_fops = {
-@@ -958,10 +973,6 @@ static int m2mtest_probe(struct platform_device *pdev)
- 	}
- 
- 	*vfd = m2mtest_videodev;
--	/* Locking in file operations other than ioctl should be done
--	   by the driver, not the V4L2 core.
--	   This driver needs auditing so that this flag can be removed. */
--	set_bit(V4L2_FL_LOCK_ALL_FOPS, &vfd->flags);
- 	vfd->lock = &dev->dev_mutex;
- 
- 	ret = video_register_device(vfd, VFL_TYPE_GRABBER, 0);
 -- 
-1.7.10
-
+Javier Martin
+Vista Silicon S.L.
+CDTUC - FASE C - Oficina S-345
+Avda de los Castros s/n
+39005- Santander. Cantabria. Spain
++34 942 25 32 60
+www.vista-silicon.com
