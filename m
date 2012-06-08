@@ -1,142 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from plane.gmane.org ([80.91.229.3]:36680 "EHLO plane.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753859Ab2FVFIO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Jun 2012 01:08:14 -0400
-Received: from list by plane.gmane.org with local (Exim 4.69)
-	(envelope-from <gldv-linux-media@m.gmane.org>)
-	id 1Shw6O-0002bq-0W
-	for linux-media@vger.kernel.org; Fri, 22 Jun 2012 07:08:12 +0200
-Received: from aant209.neoplus.adsl.tpnet.pl ([83.5.101.209])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Fri, 22 Jun 2012 07:08:11 +0200
-Received: from acc.for.news by aant209.neoplus.adsl.tpnet.pl with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Fri, 22 Jun 2012 07:08:11 +0200
-To: linux-media@vger.kernel.org
-From: Marx <acc.for.news@gmail.com>
-Subject: Re: How to make bug report
-Date: Fri, 22 Jun 2012 07:03:01 +0200
-Message-ID: <5tadb9-l68.ln1@wuwek.kopernik.gliwice.pl>
-References: <p4v2b9-nd7.ln1@wuwek.kopernik.gliwice.pl> <4FE1FD7B.4050108@iki.fi>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-In-Reply-To: <4FE1FD7B.4050108@iki.fi>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:52178 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757036Ab2FHP0L (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Jun 2012 11:26:11 -0400
+Date: Fri, 8 Jun 2012 17:25:54 +0200
+From: Sascha Hauer <s.hauer@pengutronix.de>
+To: javier Martin <javier.martin@vista-silicon.com>
+Cc: Robert Schwebel <r.schwebel@pengutronix.de>, kernel@pengutronix.de,
+	Fabio Estevam <festevam@gmail.com>,
+	linux-media@vger.kernel.org, Shawn Guo <shawn.guo@linaro.org>,
+	Dirk Behme <dirk.behme@googlemail.com>,
+	linux-arm-kernel@lists.infradead.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [RFC] Support for H.264/MPEG4 encoder (VPU) in i.MX27.
+Message-ID: <20120608152554.GY30400@pengutronix.de>
+References: <CACKLOr2jQMnBPTaTFOcfLN_9J1n39tLx-ffDcVGuZ4ZB-odYfg@mail.gmail.com>
+ <20120608072601.GD30137@pengutronix.de>
+ <CACKLOr1OShoEnLxs8BP6q2TyZrOH0oCnpbKZJqyAo-yXKck9Zw@mail.gmail.com>
+ <20120608084802.GS30400@pengutronix.de>
+ <CACKLOr2wdF4tnovpnCO+ys7OMhbaKoruorSsj5hPfB26jGzQTA@mail.gmail.com>
+ <CACKLOr1G+GBMhRoWSMJ17LoKuiUe0b+BXcuzEKh4OUKNaU_M8A@mail.gmail.com>
+ <20120608092343.GU30400@pengutronix.de>
+ <CACKLOr1Q1yxbaMmrFVsw-h-SmS3H4q_R+KY=DgnjM5WjaDW9Cg@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CACKLOr1Q1yxbaMmrFVsw-h-SmS3H4q_R+KY=DgnjM5WjaDW9Cg@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-W dniu 2012-06-20 18:42, Antti Palosaari pisze:
-> As author of the AF9015 I would like to see some of those errors. And
-> your driver version. Use latest v4l-dvb if possible as I have changed it
-> very much recently.
->
-I was viewing/recording EURO match an everything was ok. I've scanned 
-channels with w_scan, I was able to switch to every channel without any 
-problem for a few hour. Today stick has switched off (LED doesn't light) 
-and in log there are such errors:
+On Fri, Jun 08, 2012 at 01:32:27PM +0200, javier Martin wrote:
+> On 8 June 2012 11:23, Sascha Hauer <s.hauer@pengutronix.de> wrote:
+> > On Fri, Jun 08, 2012 at 11:02:31AM +0200, javier Martin wrote:
+> 
+> Hi Sascha,
+> 
+> From our point of view the current situation is the following:
+> We have a very reliable driver for the VPU which is not mainline but
+> it's been used for two years in our products. This driver only
+> supports encoding in the i.MX27 chip.
+> In parallel, you have a a multichip driver in progress which is not
+> mainline either, not fully V4L2 compatible and not tested for i.MX27.
+> [1]
+> At the same time, we have a driver in progress for i.MX27 encoding
+> only which follows V4L2 mem2mem framework. [2].
+> 
+> The first thing to decide would be which of both drivers we take as a
+> base for final mainline developing.
+> In our view, cleaning up driver from Pengutronix [1] would imply a lot
+> of effort of maintaining code that we cannot really test (i.MX5,
+> i.MX6) whereas if we continue using [2] we would have something valid
+> for i.MX27 much faster. Support for decoding and other chips could be
+> added later.
+> 
+> The second thing would be whether we keep on developing or whether we
+> should wait for you to have something in mainline. We have already
+> allocated resources to the development of the driver and long-term
+> testing to achieve product level reliability. Pengutronix does not
+> seem to be committed to developing the features relevant to our
+> product (lack of YUV420 support for i.MX27 camera driver[6]) nor
+> committed to any deadline (lack of answers or development on dmaengine
+> for i.MX27[4][5]). Moreover, development effort is only 50% of the
+> cost and we would still have to spend a lot of time checking the video
+> stream manually in different real-rife conditions (only extensive
+> testing allowed us to catch the "P frame marked as IDR" bug [7]).
+> 
+> As a conclusion we propose that we keep on developing our driver for
+> encoding in the i.MX27 VPU under the following conditions:
+> - We will provide a more generic name for the driver than "codadx6",
+> maybe something as "imx_vpu".
 
-Jun 22 01:22:09 wuwek kernel: [18522.492454] af9015: recv bulk message 
-failed:-110
-Jun 22 01:22:09 wuwek kernel: [18522.492490] af9015: af9015_rc_query: 
-failed:-1
-Jun 22 01:22:09 wuwek kernel: [18522.492509] dvb-usb: error -1 while 
-querying for an remote control event.
-Jun 22 03:43:51 wuwek kernel: [27010.597986] af9015: recv bulk message 
-failed:-110
-Jun 22 03:43:51 wuwek kernel: [27010.598021] af9015: af9015_rc_query: 
-failed:-1
-Jun 22 03:43:51 wuwek kernel: [27010.598040] dvb-usb: error -1 while 
-querying for an remote control event.
-Jun 22 04:14:05 wuwek kernel: [28821.371758] af9015: recv bulk message 
-failed:-110
-Jun 22 04:14:05 wuwek kernel: [28821.371794] af9015: af9015_rc_query: 
-failed:-1
-Jun 22 04:14:05 wuwek kernel: [28821.371813] dvb-usb: error -1 while 
-querying for an remote control event.
+Since we already know that this is a codadx6 we should name it codadx
+instead of anything vpu specific. I also suggest codadx instead of
+anything more specific like codadx6 since we should rather motivate
+people to merge other coda cores into this driver.
 
-Now if I try to play and channel - it doesn't work and there is nothing 
-in kern.log
+> - We will do an extra effort and will study your code in [1] in order
+> to provide a modular approach that makes adding new functionality (new
+> chips or decoding) as easy as possible while making obvious that
+> further patches do not break support for encoding in the i.MX27.
 
- From the user.log: VDR was querying card all the time but suddenly at 
-00:38 it lost lock.
+This sounds like a plan. I am happy that you are willing to keep an eye
+on our driver. It would be a pity to have unnecessary barriers for
+merging codadx9 stuff later.
 
-Jun 22 00:00:25 wuwek vdr: [7018] streamdev-server: closing VTP 
-connection to 127.0.0.1:57560
-Jun 22 00:04:54 wuwek vdr: [7009] cleaning up schedules data
-Jun 22 00:05:25 wuwek vdr: [7018] Streamdev: Accepted new client (VTP) 
-127.0.0.1:57561
-Jun 22 00:05:26 wuwek vdr: [7018] streamdev-server: closing VTP 
-connection to 127.0.0.1:57561
-Jun 22 00:05:31 wuwek vdr: [7018] Streamdev: Accepted new client (VTP) 
-127.0.0.1:57562
-Jun 22 00:05:31 wuwek vdr: [7018] streamdev-server: closing VTP 
-connection to 127.0.0.1:57562
-Jun 22 00:10:26 wuwek vdr: [7018] Streamdev: Accepted new client (VTP) 
-127.0.0.1:57567
-Jun 22 00:10:26 wuwek vdr: [7018] streamdev-server: closing VTP 
-connection to 127.0.0.1:57567
-Jun 22 00:15:26 wuwek vdr: [7018] Streamdev: Accepted new client (VTP) 
-127.0.0.1:57569
-Jun 22 00:15:26 wuwek vdr: [7018] streamdev-server: closing VTP 
-connection to 127.0.0.1:57569
-Jun 22 00:15:31 wuwek vdr: [7018] Streamdev: Accepted new client (VTP) 
-127.0.0.1:57570
-Jun 22 00:15:31 wuwek vdr: [7018] streamdev-server: closing VTP 
-connection to 127.0.0.1:57570
-Jun 22 00:16:00 wuwek vdr: [7019] EPGSearch: search timer update started
-Jun 22 00:16:00 wuwek vdr: [7019] EPGSearch: search timer update finished
-Jun 22 00:16:00 wuwek vdr: [7020] EPGSearch: timer conflict check started
-Jun 22 00:16:00 wuwek vdr: [7020] EPGSearch: timer conflict check finished
-Jun 22 00:20:26 wuwek vdr: [7018] Streamdev: Accepted new client (VTP) 
-127.0.0.1:57572
-Jun 22 00:20:27 wuwek vdr: [7018] streamdev-server: closing VTP 
-connection to 127.0.0.1:57572
-Jun 22 00:25:27 wuwek vdr: [7018] Streamdev: Accepted new client (VTP) 
-127.0.0.1:57573
-Jun 22 00:25:27 wuwek vdr: [7018] streamdev-server: closing VTP 
-connection to 127.0.0.1:57573
-Jun 22 00:25:32 wuwek vdr: [7018] Streamdev: Accepted new client (VTP) 
-127.0.0.1:57574
-Jun 22 00:25:32 wuwek vdr: [7018] streamdev-server: closing VTP 
-connection to 127.0.0.1:57574
-Jun 22 00:30:27 wuwek vdr: [7018] Streamdev: Accepted new client (VTP) 
-127.0.0.1:57575
-Jun 22 00:30:27 wuwek vdr: [7018] streamdev-server: closing VTP 
-connection to 127.0.0.1:57575
-Jun 22 00:35:27 wuwek vdr: [7018] Streamdev: Accepted new client (VTP) 
-127.0.0.1:57577
-Jun 22 00:35:28 wuwek vdr: [7018] streamdev-server: closing VTP 
-connection to 127.0.0.1:57577
-Jun 22 00:38:37 wuwek vdr: [7014] frontend 1/0 lost lock on channel 1, 
-tp 177
-Jun 22 00:38:39 wuwek vdr: [7014] frontend 1/0 timed out while tuning to 
-channel 1, tp 177
-Jun 22 00:39:07 wuwek vdr: [7014] frontend 1/0 timed out while tuning to 
-channel 9, tp 184
-Jun 22 00:39:33 wuwek vdr: [7014] frontend 1/0 timed out while tuning to 
-channel 1, tp 177
-Jun 22 00:39:59 wuwek vdr: [7014] frontend 1/0 timed out while tuning to 
-channel 9, tp 184
-Jun 22 00:40:25 wuwek vdr: [7014] frontend 1/0 timed out while tuning to 
-channel 1, tp 177
-Jun 22 00:40:28 wuwek vdr: [7018] Streamdev: Accepted new client (VTP) 
-127.0.0.1:57578
-Jun 22 00:40:28 wuwek vdr: [7018] streamdev-server: closing VTP 
-connection to 127.0.0.1:57578
-Jun 22 00:40:51 wuwek vdr: [7014] frontend 1/0 timed out while tuning to 
-channel 9, tp 184
-Jun 22 00:41:17 wuwek vdr: [7014] frontend 1/0 timed out while tuning to 
-channel 1, tp 177
-Jun 22 00:41:43 wuwek vdr: [7014] frontend 1/0 timed out while tuning to 
-channel 9, tp 184
-Jun 22 00:42:09 wuwek vdr: [7014] frontend 1/0 timed out while tuning to 
-channel 1, tp 177
+Sascha
 
-Above messages reapets till now.
 
-Reinsterting tuner and restarting VDR will help but after some time it 
-will stop working again.
-Marx
-
+-- 
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
