@@ -1,74 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from acsinet15.oracle.com ([141.146.126.227]:43773 "EHLO
-	acsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750912Ab2F1TeN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Jun 2012 15:34:13 -0400
-Date: Thu, 28 Jun 2012 22:33:54 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jose Alberto Reguero <jareguero@telefonica.net>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	kernel-janitors@vger.kernel.org
-Subject: Re: [patch -resend] [media] az6007: precedence bug in
- az6007_i2c_xfer()
-Message-ID: <20120628193354.GL3007@mwanda>
-References: <20120627090644.GP31212@elgon.mountain>
- <4FEB0664.3030408@redhat.com>
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:39520 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751299Ab2FHGvL convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Jun 2012 02:51:11 -0400
+Received: by yhmm54 with SMTP id m54so1032343yhm.19
+        for <linux-media@vger.kernel.org>; Thu, 07 Jun 2012 23:51:10 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4FEB0664.3030408@redhat.com>
+In-Reply-To: <CAOMZO5CaW+pUmVrgDFT857eyaR8kjzcE89K4ZBwi8TF0f5dxaA@mail.gmail.com>
+References: <1338905173-5968-1-git-send-email-javier.martin@vista-silicon.com>
+	<CAOMZO5AnR9e9O+A+8zH+W+3pa0=cey=9wL0Oa2z+YrhYadvQ1w@mail.gmail.com>
+	<CACKLOr28+2pQqOKyVP728kiD2BAnCzkMFgNL=059jmTpeFvQHg@mail.gmail.com>
+	<CAOMZO5BA9pT0vwXT1zr+-fjHr5eT6eTYEzsKbrCs8rzxiQCwWg@mail.gmail.com>
+	<CACKLOr1_pOSkMfo7xWMPd4qJvo8MgNa-dswWVKGBx=enaEB2CQ@mail.gmail.com>
+	<CAOMZO5CaW+pUmVrgDFT857eyaR8kjzcE89K4ZBwi8TF0f5dxaA@mail.gmail.com>
+Date: Fri, 8 Jun 2012 08:51:10 +0200
+Message-ID: <CACKLOr083hwix+C+0L+Gh93-j_XkekQZSMANxsXZJeJ4Pxm+Fw@mail.gmail.com>
+Subject: Re: [PATCH] media: mx2_camera: Add YUYV output format.
+From: javier Martin <javier.martin@vista-silicon.com>
+To: Fabio Estevam <festevam@gmail.com>
+Cc: linux-media@vger.kernel.org, Sascha Hauer <kernel@pengutronix.de>,
+	Shawn Guo <shawn.guo@linaro.org>,
+	Dirk Behme <dirk.behme@googlemail.com>,
+	linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jun 27, 2012 at 10:11:00AM -0300, Mauro Carvalho Chehab wrote:
-> Em 27-06-2012 06:06, Dan Carpenter escreveu:
-> > The intent here was to test that the flag was clear but the '!' has
-> > higher precedence than the '&'.  I2C_M_RD is 0x1 so the current code is
-> > equivalent to "&& (!sgs[i].flags) ..."
-> > 
-> > Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-> > ---
-> > I sent this originally on Wed, 25 Jan 2012 and Emil Goode sent the same
-> > fix on Thu, May 3, 2012.
-> > 
-> > diff --git a/drivers/media/dvb/dvb-usb/az6007.c b/drivers/media/dvb/dvb-usb/az6007.c
-> > index 4008b9c..f6f0cf9 100644
-> > --- a/drivers/media/dvb/dvb-usb/az6007.c
-> > +++ b/drivers/media/dvb/dvb-usb/az6007.c
-> > @@ -711,7 +711,7 @@ static int az6007_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msgs[],
-> >   		addr = msgs[i].addr << 1;
-> >   		if (((i + 1) < num)
-> >   		    && (msgs[i].len == 1)
-> > -		    && (!msgs[i].flags & I2C_M_RD)
-> > +		    && (!(msgs[i].flags & I2C_M_RD))
-> >   		    && (msgs[i + 1].flags & I2C_M_RD)
-> >   		    && (msgs[i].addr == msgs[i + 1].addr)) {
-> >   			/*
-> > 
-> 
-> Dan,
-> 
-> Your logic is correct, however, I didn't apply this patch because it broke
-> the driver.
-> 
-> I'll need to re-visit the driver when I have some time, in order to be
-> able to apply this one, without breaking the driver. I'll likely need to
-> change some other things on this routine.
-> 
-> (this has a low priority, as the driver is working properly the way it is).
-> 
-> So, I'm keeping your patch at patchwork, while I don't find some time for it.
+Hi Fabio,
 
-We could just put a comment next to the code and forget about it.
+On 7 June 2012 19:35, Fabio Estevam <festevam@gmail.com> wrote:
+> Hi Javier,
+>
+> On Thu, Jun 7, 2012 at 5:30 AM, javier Martin
+> <javier.martin@vista-silicon.com> wrote:
+>
+>> As i stated, the driver is still in an early development stage, it
+>> doesn't do anything useful yet. But this is the public git repository
+>> if you want to take a look:
+>>
+>> git repo: https://github.com/jmartinc/video_visstrim.git
+>> branch:  mx27-codadx6
+>
+> Thanks, I will take a look at your tree when I am back to the office next week.
+>
+> I also see that Linaro's tree has support for VPU for mx5/mx6:
+> http://git.linaro.org/gitweb?p=landing-teams/working/freescale/kernel.git;a=summary
+>
+> ,so we should probably think in unifying it with mx27 support there too.
+>
+>>
+>> FYI we are only interested on adding support for the encoding path of
+>> the VPU, but we are trying our best to make it modular (as it is done
+>> in Samsung's [1]), so that anyone can add decoding support later.
+>
+> Ok, sounds good.
+>
+>> By the way, you work for Freescale, don't you?
+>
+> Yes, correct.
+>
+>> We have a couple of issues with the i.MX27 VPU:
+>>
+>> 1- Firmware for the VPU is provided as a table of binary values inside
+>> a source file which is licensed as GPL, however software is packaged
+>> in a .tar.gz file that is marked as NDA. Do we have the right to
+>> distribute this firmware with our products?
 
-               && (!(msgs[i].flags & I2C_M_RD)) /* the fix needs testing. */
+To address this issue it would be great if you, as a Freescale
+employee, could send VPU firmware binary file to linux-firmware with a
+LICENSE.xxxx file as well:
 
-Sparse complains about this so it people are going to keep sending
-patches for it.  It's not like you should be stuck doing all the
-work.
+http://git.kernel.org/?p=linux/kernel/git/dwmw2/linux-firmware.git;a=tree
 
-regards,
-dan carpenter
+>> 2- There is a BUG in the firmware that marks P frames as IDR when it
+>> should only be done to I frames. Would it be possible to have access
+>> to the source code of the firmware in order to fix that problem?
+>
+> I will need to check this next week when I am back to the office.
+
+
+Regards.
+
+-- 
+Javier Martin
+Vista Silicon S.L.
+CDTUC - FASE C - Oficina S-345
+Avda de los Castros s/n
+39005- Santander. Cantabria. Spain
++34 942 25 32 60
+www.vista-silicon.com
