@@ -1,169 +1,151 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gh0-f174.google.com ([209.85.160.174]:65518 "EHLO
-	mail-gh0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751406Ab2FDTeY convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jun 2012 15:34:24 -0400
-Received: by ghrr11 with SMTP id r11so3671748ghr.19
-        for <linux-media@vger.kernel.org>; Mon, 04 Jun 2012 12:34:23 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <CAB2ybb-0D4vs=k6GjBuw8OitDpPSjDdyOcEqogFtGdZUk0pasQ@mail.gmail.com>
-References: <1337775027-9489-1-git-send-email-t.stanislaws@samsung.com>
-	<5090892.Z3RkLXNQ1U@avalon>
-	<CAB2ybb-0D4vs=k6GjBuw8OitDpPSjDdyOcEqogFtGdZUk0pasQ@mail.gmail.com>
-Date: Mon, 4 Jun 2012 12:34:23 -0700
-Message-ID: <CALJcvx6zPB2fvUX9hNF9kVbfgRX_NeaMAf0LiS8xbwsTQtGgHw@mail.gmail.com>
-Subject: Re: [Linaro-mm-sig] [PATCHv6 00/13] Integration of videobuf2 with dmabuf
-From: Rebecca Schultz Zavin <rebecca@android.com>
-To: "Semwal, Sumit" <sumit.semwal@ti.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	remi@remlab.net, pawel@osciak.com, mchehab@redhat.com,
-	robdclark@gmail.com, dri-devel@lists.freedesktop.org,
-	linaro-mm-sig@lists.linaro.org, kyungmin.park@samsung.com,
-	airlied@redhat.com, linux-media@vger.kernel.org,
-	g.liakhovetski@gmx.de
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:57793 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751472Ab2FHObi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Jun 2012 10:31:38 -0400
+Received: from eusync1.samsung.com (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0M5A006ERZ1J8XA0@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 08 Jun 2012 15:32:07 +0100 (BST)
+Received: from [106.116.48.223] by eusync1.samsung.com
+ (Oracle Communications Messaging Server 7u4-23.01(7.0.4.23.0) 64bit (built Aug
+ 10 2011)) with ESMTPA id <0M5A00HBLZ0M2N00@eusync1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 08 Jun 2012 15:31:35 +0100 (BST)
+Message-id: <4FD20CC3.9040901@samsung.com>
+Date: Fri, 08 Jun 2012 16:31:31 +0200
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+MIME-version: 1.0
+To: Subash Patel <subashrp@gmail.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	airlied@redhat.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, sumit.semwal@ti.com, daeinki@gmail.com,
+	daniel.vetter@ffwll.ch, robdclark@gmail.com, pawel@osciak.com,
+	linaro-mm-sig@lists.linaro.org, hverkuil@xs4all.nl,
+	remi@remlab.net, mchehab@redhat.com, g.liakhovetski@gmx.de
+Subject: Re: [PATCH 04/12] v4l: vb2-dma-contig: add setup of sglist for MMAP
+ buffers
+References: <1337778455-27912-1-git-send-email-t.stanislaws@samsung.com>
+ <2101386.6sj5B2hAyl@avalon> <4FCF457A.9000201@samsung.com>
+ <3066605.JkMnQZX3Q6@avalon> <4FD0BA9D.6010704@gmail.com>
+In-reply-to: <4FD0BA9D.6010704@gmail.com>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I have a system where the data is planar, but the kernel drivers
-expect to get one allocation with offsets for the planes.  I can't
-figure out how to do that with the current dma_buf implementation.  I
-thought I could pass the same dma_buf several times and use the
-data_offset field of the v4l2_plane struct but it looks like that's
-only for output.  Am I missing something?  Is this supported?
+Hi Laurent and Subash,
 
-Thanks,
-Rebecca
+I confirm the issue found by Subash. The function
+vb2_dc_kaddr_to_pages does fail for some occasions.
+The failures are rather strange like 'got 95 of
+150 pages'. It took me some time to find the reason
+of the problem.
 
-On Wed, May 30, 2012 at 8:26 AM, Semwal, Sumit <sumit.semwal@ti.com> wrote:
-> On Tue, May 29, 2012 at 6:25 AM, Laurent Pinchart
-> <laurent.pinchart@ideasonboard.com> wrote:
+I found that dma_alloc_coherent for iommu an ARM does
+use ioremap_page_range to map a buffer to the kernel
+space. The mapping is done by updating the page-table.
+
+The problem is that any process has a different first-level
+page-table. The ioremap_page_range updates only the table
+for init process. The PT present in current->mm shares
+a majority of entries of 1st-level PT at kernel range
+(above 0xc0000000) but *not all*. That is why
+vb2_dc_kaddr_to_pages worked for small buffers and
+occasionally failed for larger buffers.
+
+I found two ways to fix this problem.
+a) use &init_mm instead of current->mm while
+   creating an artificial vma
+b) access the dma memory by calling
+   *((volatile int *)kaddr) = 0;
+   before calling follow_pfn
+   This way a fault is generated and the PT is
+   updated by copying entries from init_mm.
+
+What do you think about presented solutions?
+
+Regards,
+Tomasz Stanislawski
+
+
+
+On 06/07/2012 04:28 PM, Subash Patel wrote:
+> Hello Tomasz,
+> 
+> On 06/07/2012 06:06 AM, Laurent Pinchart wrote:
 >> Hi Tomasz,
-> Hi Tomasz, Laurent, Mauro,
 >>
->> On Wednesday 23 May 2012 14:10:14 Tomasz Stanislawski wrote:
->>> Hello everyone,
->>> This patchset adds support for DMABUF [2] importing to V4L2 stack.
->>> The support for DMABUF exporting was moved to separate patchset
->>> due to dependency on patches for DMA mapping redesign by
->>> Marek Szyprowski [4].
+>> On Wednesday 06 June 2012 13:56:42 Tomasz Stanislawski wrote:
+>>> On 06/06/2012 10:06 AM, Laurent Pinchart wrote:
+>>>> On Wednesday 23 May 2012 15:07:27 Tomasz Stanislawski wrote:
+>>>>> This patch adds the setup of sglist list for MMAP buffers.
+>>>>> It is needed for buffer exporting via DMABUF mechanism.
+>>>>>
+>>>>> Signed-off-by: Tomasz Stanislawski<t.stanislaws@samsung.com>
+>>>>> Signed-off-by: Kyungmin Park<kyungmin.park@samsung.com>
+>>>>> ---
+>>>>>
+>>>>>   drivers/media/video/videobuf2-dma-contig.c |   70 +++++++++++++++++++++-
+>>>>>   1 file changed, 68 insertions(+), 2 deletions(-)
+>>>>>
+>>>>> diff --git a/drivers/media/video/videobuf2-dma-contig.c
+>>>>> b/drivers/media/video/videobuf2-dma-contig.c index 52b4f59..ae656be
+>>>>> 100644
+>>>>> --- a/drivers/media/video/videobuf2-dma-contig.c
+>>>>> +++ b/drivers/media/video/videobuf2-dma-contig.c
 >>
->> Except for the small issue with patches 01/13 and 02/13, the set is ready for
->> upstream as far as I'm concerned.
-> +1; Mauro: how do you think about this series? Getting it landed into
-> 3.5 would make life lot easier :)
+>> [snip]
 >>
->>> v6:
->>> - fixed missing entry in v4l2_memory_names
->>> - fixed a bug occuring after get_user_pages failure
+>>>>> +static int vb2_dc_kaddr_to_pages(unsigned long kaddr,
+>>>>> +    struct page **pages, unsigned int n_pages)
+>>>>> +{
+>>>>> +    unsigned int i;
+>>>>> +    unsigned long pfn;
+>>>>> +    struct vm_area_struct vma = {
+>>>>> +        .vm_flags = VM_IO | VM_PFNMAP,
+>>>>> +        .vm_mm = current->mm,
+>>>>> +    };
+>>>>> +
+>>>>> +    for (i = 0; i<  n_pages; ++i, kaddr += PAGE_SIZE) {
+>>>>
+>>>> The follow_pfn() kerneldoc mentions that it looks up a PFN for a user
+>>>> address. The only users I've found in the kernel sources pass a user
+>>>> address. Is it legal to use it for kernel addresses ?
+>>>
+>>> It is not completely legal :). As I understand the mm code, the follow_pfn
+>>> works only for IO/PFN mappings. This is the typical case (every case?) of
+>>> mappings created by dma_alloc_coherent.
+>>>
+>>> In order to make this function work for a kernel pointer, one has to create
+>>> an artificial VMA that has IO/PFN bits on.
+>>>
+>>> This solution is a hack-around for dma_get_pages (aka dma_get_sgtable). This
+>>> way the dependency on dma_get_pages was broken giving a small hope of
+>>> merging vb2 exporting.
+>>>
+>>> Marek prepared a patchset 'ARM: DMA-mapping: new extensions for buffer
+>>> sharing' that adds dma buffers with no kernel mappings and dma_get_sgtable
+>>> function.
+>>>
+>>> However this patchset is still in a RFC state.
 >>
->> I've missed that one, what was it ?
+>> That's totally understood :-) I'm fine with keeping the hack for now until the
+>> dma_get_sgtable() gets in a usable/mergeable state, please just mention it in
+>> the code with something like
 >>
->>> - fixed a bug caused by using invalid vma for get_user_pages
->>> - prepare/finish no longer call dma_sync for dmabuf buffers
->>>
->>> v5:
->>> - removed change of importer/exporter behaviour
->>> - fixes vb2_dc_pages_to_sgt basing on Laurent's hints
->>> - changed pin/unpin words to lock/unlock in Doc
->>>
->>> v4:
->>> - rebased on mainline 3.4-rc2
->>> - included missing importing support for s5p-fimc and s5p-tv
->>> - added patch for changing map/unmap for importers
->>> - fixes to Documentation part
->>> - coding style fixes
->>> - pairing {map/unmap}_dmabuf in vb2-core
->>> - fixing variable types and semantic of arguments in videobufb2-dma-contig.c
->>>
->>> v3:
->>> - rebased on mainline 3.4-rc1
->>> - split 'code refactor' patch to multiple smaller patches
->>> - squashed fixes to Sumit's patches
->>> - patchset is no longer dependant on 'DMA mapping redesign'
->>> - separated path for handling IO and non-IO mappings
->>> - add documentation for DMABUF importing to V4L
->>> - removed all DMABUF exporter related code
->>> - removed usage of dma_get_pages extension
->>>
->>> v2:
->>> - extended VIDIOC_EXPBUF argument from integer memoffset to struct
->>>   v4l2_exportbuffer
->>> - added patch that breaks DMABUF spec on (un)map_atachment callcacks but
->>> allows to work with existing implementation of DMABUF prime in DRM
->>> - all dma-contig code refactoring patches were squashed
->>> - bugfixes
->>>
->>> v1: List of changes since [1].
->>> - support for DMA api extension dma_get_pages, the function is used to
->>> retrieve pages used to create DMA mapping.
->>> - small fixes/code cleanup to videobuf2
->>> - added prepare and finish callbacks to vb2 allocators, it is used keep
->>>   consistency between dma-cpu acess to the memory (by Marek Szyprowski)
->>> - support for exporting of DMABUF buffer in V4L2 and Videobuf2, originated
->>> from [3].
->>> - support for dma-buf exporting in vb2-dma-contig allocator
->>> - support for DMABUF for s5p-tv and s5p-fimc (capture interface) drivers,
->>>   originated from [3]
->>> - changed handling for userptr buffers (by Marek Szyprowski, Andrzej
->>>   Pietrasiewicz)
->>> - let mmap method to use dma_mmap_writecombine call (by Marek Szyprowski)
->>>
->>> [1]
->>> http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/4296
->>> 6/focus=42968 [2] https://lkml.org/lkml/2011/12/26/29
->>> [3]
->>> http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/3635
->>> 4/focus=36355 [4]
->>> http://thread.gmane.org/gmane.linux.kernel.cross-arch/12819
->>>
->>> Laurent Pinchart (2):
->>>   v4l: vb2-dma-contig: Shorten vb2_dma_contig prefix to vb2_dc
->>>   v4l: vb2-dma-contig: Reorder functions
->>>
->>> Marek Szyprowski (2):
->>>   v4l: vb2: add prepare/finish callbacks to allocators
->>>   v4l: vb2-dma-contig: add prepare/finish to dma-contig allocator
->>>
->>> Sumit Semwal (4):
->>>   v4l: Add DMABUF as a memory type
->>>   v4l: vb2: add support for shared buffer (dma_buf)
->>>   v4l: vb: remove warnings about MEMORY_DMABUF
->>>   v4l: vb2-dma-contig: add support for dma_buf importing
->>>
->>> Tomasz Stanislawski (5):
->>>   Documentation: media: description of DMABUF importing in V4L2
->>>   v4l: vb2-dma-contig: Remove unneeded allocation context structure
->>>   v4l: vb2-dma-contig: add support for scatterlist in userptr mode
->>>   v4l: s5p-tv: mixer: support for dmabuf importing
->>>   v4l: s5p-fimc: support for dmabuf importing
->>>
->>>  Documentation/DocBook/media/v4l/compat.xml         |    4 +
->>>  Documentation/DocBook/media/v4l/io.xml             |  179 +++++++
->>>  .../DocBook/media/v4l/vidioc-create-bufs.xml       |    1 +
->>>  Documentation/DocBook/media/v4l/vidioc-qbuf.xml    |   15 +
->>>  Documentation/DocBook/media/v4l/vidioc-reqbufs.xml |   45 +-
->>>  drivers/media/video/s5p-fimc/Kconfig               |    1 +
->>>  drivers/media/video/s5p-fimc/fimc-capture.c        |    2 +-
->>>  drivers/media/video/s5p-tv/Kconfig                 |    1 +
->>>  drivers/media/video/s5p-tv/mixer_video.c           |    2 +-
->>>  drivers/media/video/v4l2-ioctl.c                   |    1 +
->>>  drivers/media/video/videobuf-core.c                |    4 +
->>>  drivers/media/video/videobuf2-core.c               |  207 +++++++-
->>>  drivers/media/video/videobuf2-dma-contig.c         |  520 ++++++++++++++---
->>>  include/linux/videodev2.h                          |    7 +
->>>  include/media/videobuf2-core.h                     |   34 ++
->>>  15 files changed, 924 insertions(+), 99 deletions(-)
->> --
->> Regards,
+>> /* HACK: This is a temporary workaround until the dma_get_sgtable() function
+>> becomes available. */
 >>
->> Laurent Pinchart
+>>> I have prepared a patch that removes vb2_dc_kaddr_to_pages and substitutes
+>>> it with dma_get_pages. It will become a part of vb2-exporter patches just
+>>> after dma_get_sgtable is merged (or at least acked by major maintainers).
 >>
-> Best regards,
-> ~Sumit.
->
-> _______________________________________________
-> Linaro-mm-sig mailing list
-> Linaro-mm-sig@lists.linaro.org
-> http://lists.linaro.org/mailman/listinfo/linaro-mm-sig
+> The above function call (because of follow_pfn) doesn't succeed for all the allocated pages. Hence I created a patch(attached)
+> which is based on [1] series. One can apply it for using your present patch-set in the meantime.
+> 
+> Regards,
+> Subash
+> [1] http://www.spinics.net/lists/kernel/msg1343092.html
+
