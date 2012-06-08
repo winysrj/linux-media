@@ -1,299 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:26016 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756014Ab2F0OLl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Jun 2012 10:11:41 -0400
-Received: from epcpsbgm2.samsung.com (mailout1.samsung.com [203.254.224.24])
- by mailout1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0M6A003TH4R88SG0@mailout1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 27 Jun 2012 23:11:40 +0900 (KST)
-Received: from amdc248.digital.local ([106.116.147.32])
- by mmp2.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTPA id <0M6A008NR4OC4950@mmp2.samsung.com> for
- linux-media@vger.kernel.org; Wed, 27 Jun 2012 23:11:40 +0900 (KST)
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: kyungmin.park@samsung.com, riverful.kim@samsung.com,
-	sw0312.kim@samsung.com, Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH] s5p-fimc: Remove V4L2_FL_LOCK_ALL_FOPS flag
-Date: Wed, 27 Jun 2012 16:09:46 +0200
-Message-id: <1340806186-6484-3-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1340806186-6484-1-git-send-email-s.nawrocki@samsung.com>
-References: <1340806186-6484-1-git-send-email-s.nawrocki@samsung.com>
+Received: from gmmr7.centrum.cz ([46.255.225.249]:52561 "EHLO gmmr7.centrum.cz"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753568Ab2FHOk4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 8 Jun 2012 10:40:56 -0400
+Subject: BUSINESS CO-OPERATION!
+Date: Fri, 08 Jun 2012 16:34:12 +0200
+From: "Mr Kirsten Nematandani" <businessinvestment4@gmail.com>
+References: <20120524122731.B39AA28E@centrum.cz>, <20120525144011.BD4C6E4F@centrum.cz>, <20120528155954.20A7CC30@centrum.cz>, <20120528160017.CF35C952@centrum.cz>, <20120528160043.DCC18377@centrum.cz>, <20120528160127.FD8B0523@centrum.cz>, <20120529171642.CEC84AB8@centrum.cz>, <20120529171704.9D280886@centrum.cz>, <20120529171728.3EA4ED17@centrum.cz>, <20120529171753.908362AA@centrum.cz>, <20120530180222.43339214@centrum.cz>, <20120530180241.699EBDE4@centrum.cz>, <20120530180302.8F703EAB@centrum.cz>, <20120530180322.B4EB095C@centrum.cz>, <20120531180854.BA84BDE4@centrum.cz>, <20120531180914.05888429@centrum.cz>, <20120531180935.D3A94CD3@centrum.cz>, <20120531180957.4FBAC552@centrum.cz>, <20120602125326.2AD09D33@centrum.cz>, <20120602125349.FBA0064A@centrum.cz>, <20120602125412.2E3CA619@centrum.cz>, <20120602125436.F43C5B37@centrum.cz>, <20120604113707.0BE1756B@centrum.cz>, <20120604113727.EE6C8FCC@centrum.cz>, <20120604113752.FFE374D7@centrum.cz>, <20120604113812.7E38D524@cen
+ trum.cz>, <20120605120153.AB8A4605@centrum.cz>, <20120605120214.38C736D3@centrum.cz>, <20120605120238.CA276D2C@centrum.cz>, <20120605120302.156ECD36@centrum.cz>, <20120606152413.BE702661@centrum.cz>, <20120606152434.5A514263@centrum.cz>, <20120606152453.B3AFE9E4@centrum.cz>, <20120606152515.28121B9A@centrum.cz>, <20120607163036.FE0775B0@centrum.cz>, <20120607163053.BA772B43@centrum.cz>, <20120607163119.993CC891@centrum.cz> <20120607163138.CF42D3F2@centrum.cz>
+In-Reply-To: <20120607163138.CF42D3F2@centrum.cz>
+MIME-Version: 1.0
+Message-Id: <20120608163412.7E288E9C@centrum.cz>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds locking for open(), close(), poll() and mmap()
-file operations in the driver as a follow up to the changes
-done in commit 5126f2590bee412e3053de851cb07f531
-"v4l2-dev: add flag to have the core lock all file operations".
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/video/s5p-fimc/fimc-capture.c |   78 ++++++++++++++++++---------
- drivers/media/video/s5p-fimc/fimc-m2m.c     |   45 ++++++++++++----
- 2 files changed, 87 insertions(+), 36 deletions(-)
+ 
+Hello!
 
-diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c b/drivers/media/video/s5p-fimc/fimc-capture.c
-index 500b588..69708dc 100644
---- a/drivers/media/video/s5p-fimc/fimc-capture.c
-+++ b/drivers/media/video/s5p-fimc/fimc-capture.c
-@@ -480,48 +480,59 @@ static int fimc_capture_set_default_format(struct fimc_dev *fimc);
- static int fimc_capture_open(struct file *file)
- {
- 	struct fimc_dev *fimc = video_drvdata(file);
--	int ret;
-+	int ret = -EBUSY;
- 
- 	dbg("pid: %d, state: 0x%lx", task_pid_nr(current), fimc->state);
- 
-+	if (mutex_lock_interruptible(&fimc->lock))
-+		return -ERESTARTSYS;
-+
- 	if (fimc_m2m_active(fimc))
--		return -EBUSY;
-+		goto unlock;
- 
- 	set_bit(ST_CAPT_BUSY, &fimc->state);
- 	ret = pm_runtime_get_sync(&fimc->pdev->dev);
- 	if (ret < 0)
--		return ret;
-+		goto unlock;
- 
- 	ret = v4l2_fh_open(file);
--	if (ret)
--		return ret;
--
--	if (++fimc->vid_cap.refcnt != 1)
--		return 0;
-+	if (ret) {
-+		pm_runtime_put(&fimc->pdev->dev);
-+		goto unlock;
-+	}
- 
--	ret = fimc_pipeline_initialize(&fimc->pipeline,
-+	if (++fimc->vid_cap.refcnt == 1) {
-+		ret = fimc_pipeline_initialize(&fimc->pipeline,
- 				       &fimc->vid_cap.vfd->entity, true);
--	if (ret < 0) {
--		clear_bit(ST_CAPT_BUSY, &fimc->state);
--		pm_runtime_put_sync(&fimc->pdev->dev);
--		fimc->vid_cap.refcnt--;
--		v4l2_fh_release(file);
--		return ret;
--	}
--	ret = fimc_capture_ctrls_create(fimc);
- 
--	if (!ret && !fimc->vid_cap.user_subdev_api)
--		ret = fimc_capture_set_default_format(fimc);
-+		if (!ret && !fimc->vid_cap.user_subdev_api)
-+			ret = fimc_capture_set_default_format(fimc);
-+
-+		if (!ret)
-+			ret = fimc_capture_ctrls_create(fimc);
- 
-+		if (ret < 0) {
-+			clear_bit(ST_CAPT_BUSY, &fimc->state);
-+			pm_runtime_put_sync(&fimc->pdev->dev);
-+			fimc->vid_cap.refcnt--;
-+			v4l2_fh_release(file);
-+		}
-+	}
-+unlock:
-+	mutex_unlock(&fimc->lock);
- 	return ret;
- }
- 
- static int fimc_capture_close(struct file *file)
- {
- 	struct fimc_dev *fimc = video_drvdata(file);
-+	int ret;
- 
- 	dbg("pid: %d, state: 0x%lx", task_pid_nr(current), fimc->state);
- 
-+	if (mutex_lock_interruptible(&fimc->lock))
-+		return -ERESTARTSYS;
-+
- 	if (--fimc->vid_cap.refcnt == 0) {
- 		clear_bit(ST_CAPT_BUSY, &fimc->state);
- 		fimc_stop_capture(fimc, false);
-@@ -535,22 +546,40 @@ static int fimc_capture_close(struct file *file)
- 		vb2_queue_release(&fimc->vid_cap.vbq);
- 		fimc_ctrls_delete(fimc->vid_cap.ctx);
- 	}
--	return v4l2_fh_release(file);
-+
-+	ret = v4l2_fh_release(file);
-+
-+	mutex_unlock(&fimc->lock);
-+	return ret;
- }
- 
- static unsigned int fimc_capture_poll(struct file *file,
- 				      struct poll_table_struct *wait)
- {
- 	struct fimc_dev *fimc = video_drvdata(file);
-+	int ret;
- 
--	return vb2_poll(&fimc->vid_cap.vbq, file, wait);
-+	if (mutex_lock_interruptible(&fimc->lock))
-+		return POLL_ERR;
-+
-+	ret = vb2_poll(&fimc->vid_cap.vbq, file, wait);
-+	mutex_unlock(&fimc->lock);
-+
-+	return ret;
- }
- 
- static int fimc_capture_mmap(struct file *file, struct vm_area_struct *vma)
- {
- 	struct fimc_dev *fimc = video_drvdata(file);
-+	int ret;
-+
-+	if (mutex_lock_interruptible(&fimc->lock))
-+		return -ERESTARTSYS;
- 
--	return vb2_mmap(&fimc->vid_cap.vbq, vma);
-+	ret = vb2_mmap(&fimc->vid_cap.vbq, vma);
-+	mutex_unlock(&fimc->lock);
-+
-+	return ret;
- }
- 
- static const struct v4l2_file_operations fimc_capture_fops = {
-@@ -1598,10 +1627,7 @@ static int fimc_register_capture_device(struct fimc_dev *fimc,
- 	vfd->minor	= -1;
- 	vfd->release	= video_device_release;
- 	vfd->lock	= &fimc->lock;
--	/* Locking in file operations other than ioctl should be done
--	   by the driver, not the V4L2 core.
--	   This driver needs auditing so that this flag can be removed. */
--	set_bit(V4L2_FL_LOCK_ALL_FOPS, &vfd->flags);
-+
- 	video_set_drvdata(vfd, fimc);
- 
- 	vid_cap = &fimc->vid_cap;
-diff --git a/drivers/media/video/s5p-fimc/fimc-m2m.c b/drivers/media/video/s5p-fimc/fimc-m2m.c
-index 4c58e05..41eda2e 100644
---- a/drivers/media/video/s5p-fimc/fimc-m2m.c
-+++ b/drivers/media/video/s5p-fimc/fimc-m2m.c
-@@ -642,21 +642,25 @@ static int fimc_m2m_open(struct file *file)
- {
- 	struct fimc_dev *fimc = video_drvdata(file);
- 	struct fimc_ctx *ctx;
--	int ret;
-+	int ret = -EBUSY;
- 
- 	dbg("pid: %d, state: 0x%lx, refcnt: %d",
- 	    task_pid_nr(current), fimc->state, fimc->vid_cap.refcnt);
- 
-+	if (mutex_lock_interruptible(&fimc->lock))
-+		return -ERESTARTSYS;
- 	/*
- 	 * Return if the corresponding video capture node
- 	 * is already opened.
- 	 */
- 	if (fimc->vid_cap.refcnt > 0)
--		return -EBUSY;
-+		goto unlock;
- 
- 	ctx = kzalloc(sizeof *ctx, GFP_KERNEL);
--	if (!ctx)
--		return -ENOMEM;
-+	if (!ctx) {
-+		ret = -ENOMEM;
-+		goto unlock;
-+	}
- 	v4l2_fh_init(&ctx->fh, fimc->m2m.vfd);
- 	ctx->fimc_dev = fimc;
- 
-@@ -687,6 +691,8 @@ static int fimc_m2m_open(struct file *file)
- 
- 	if (fimc->m2m.refcnt++ == 0)
- 		set_bit(ST_M2M_RUN, &fimc->state);
-+
-+	mutex_unlock(&fimc->lock);
- 	return 0;
- 
- error_c:
-@@ -695,6 +701,8 @@ error_fh:
- 	v4l2_fh_del(&ctx->fh);
- 	v4l2_fh_exit(&ctx->fh);
- 	kfree(ctx);
-+unlock:
-+	mutex_unlock(&fimc->lock);
- 	return ret;
- }
- 
-@@ -706,6 +714,9 @@ static int fimc_m2m_release(struct file *file)
- 	dbg("pid: %d, state: 0x%lx, refcnt= %d",
- 		task_pid_nr(current), fimc->state, fimc->m2m.refcnt);
- 
-+	if (mutex_lock_interruptible(&fimc->lock))
-+		return -ERESTARTSYS;
-+
- 	v4l2_m2m_ctx_release(ctx->m2m_ctx);
- 	fimc_ctrls_delete(ctx);
- 	v4l2_fh_del(&ctx->fh);
-@@ -714,6 +725,8 @@ static int fimc_m2m_release(struct file *file)
- 	if (--fimc->m2m.refcnt <= 0)
- 		clear_bit(ST_M2M_RUN, &fimc->state);
- 	kfree(ctx);
-+
-+	mutex_unlock(&fimc->lock);
- 	return 0;
- }
- 
-@@ -721,16 +734,32 @@ static unsigned int fimc_m2m_poll(struct file *file,
- 				  struct poll_table_struct *wait)
- {
- 	struct fimc_ctx *ctx = fh_to_ctx(file->private_data);
-+	struct fimc_dev *fimc = ctx->fimc_dev;
-+	int ret;
- 
--	return v4l2_m2m_poll(file, ctx->m2m_ctx, wait);
-+	if (mutex_lock_interruptible(&fimc->lock))
-+		return -ERESTARTSYS;
-+
-+	ret = v4l2_m2m_poll(file, ctx->m2m_ctx, wait);
-+	mutex_unlock(&fimc->lock);
-+
-+	return ret;
- }
- 
- 
- static int fimc_m2m_mmap(struct file *file, struct vm_area_struct *vma)
- {
- 	struct fimc_ctx *ctx = fh_to_ctx(file->private_data);
-+	struct fimc_dev *fimc = ctx->fimc_dev;
-+	int ret;
-+
-+	if (mutex_lock_interruptible(&fimc->lock))
-+		return -ERESTARTSYS;
- 
--	return v4l2_m2m_mmap(file, ctx->m2m_ctx, vma);
-+	ret = v4l2_m2m_mmap(file, ctx->m2m_ctx, vma);
-+	mutex_unlock(&fimc->lock);
-+
-+	return ret;
- }
- 
- static const struct v4l2_file_operations fimc_m2m_fops = {
-@@ -772,10 +801,6 @@ int fimc_register_m2m_device(struct fimc_dev *fimc,
- 	vfd->minor = -1;
- 	vfd->release = video_device_release;
- 	vfd->lock = &fimc->lock;
--	/* Locking in file operations other than ioctl should be done
--	   by the driver, not the V4L2 core.
--	   This driver needs auditing so that this flag can be removed. */
--	set_bit(V4L2_FL_LOCK_ALL_FOPS, &vfd->flags);
- 
- 	snprintf(vfd->name, sizeof(vfd->name), "fimc.%d.m2m", fimc->id);
- 	video_set_drvdata(vfd, fimc);
--- 
-1.7.10
-
+My name is Mr Kirsten Nematandani, I'm the President of South African Football Association and we hosted 2010 world cup here in South Africa as you may be aware.
+ 
+I’m consulting you for my personal investment plan which I would like to discuss with you and know the possibility of how we can co-operate and  work together to carry it out without jeopardizing my position, which I  believe will be beneficial to both parties if handled with honesty.
+ 
+There is some fund I realized as a result of my position from the award  of contracts to prospective contractors building stadiums and other  projects which I would like to transfer abroad for investment purposes in your country. The total sum is USD $11 Million Dollars and it is securely deposited  abroad.
+ 
+If you can assist me to receive the fund and further invest it for me in  any kind of profitable business in your country, kindly contact me (businessinvestment@contractor.net), in other for us to discuss on how to achieve this effectively.
+ 
+As soon as  your reply, I will then call you and discuss with  you on further steps to be taken to achieve this. I'm willing to offer  you 20% of the total fund for your kind assistance.
+ 
+Kindly include your full names, mobile/Office telephone numbers while replying to enable me give you a call as soon as I've received your e-mail.
+ 
+Thanks as I await for your urgent and swift response.
+ 
+Regards,
+Mr Kirsten Nematandani.
