@@ -1,67 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:39823 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751797Ab2FRKIC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jun 2012 06:08:02 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Andy Walls <awalls@md.metrocast.net>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Pawel Osciak <pawel@osciak.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFCv1 PATCH 28/32] vivi: use vb2 helper functions.
-Date: Mon, 18 Jun 2012 12:08:10 +0200
-Message-ID: <27919488.Es5OfZrXDC@avalon>
-In-Reply-To: <47a839710682872826a3da4ef631fccded2ed299.1339321562.git.hans.verkuil@cisco.com>
-References: <1339323954-1404-1-git-send-email-hverkuil@xs4all.nl> <47a839710682872826a3da4ef631fccded2ed299.1339321562.git.hans.verkuil@cisco.com>
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:61434 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751107Ab2FHHVP convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Jun 2012 03:21:15 -0400
+Received: by bkcji2 with SMTP id ji2so1435225bkc.19
+        for <linux-media@vger.kernel.org>; Fri, 08 Jun 2012 00:21:13 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Date: Fri, 8 Jun 2012 09:21:13 +0200
+Message-ID: <CACKLOr2jQMnBPTaTFOcfLN_9J1n39tLx-ffDcVGuZ4ZB-odYfg@mail.gmail.com>
+Subject: [RFC] Support for H.264/MPEG4 encoder (VPU) in i.MX27.
+From: javier Martin <javier.martin@vista-silicon.com>
+To: Fabio Estevam <festevam@gmail.com>
+Cc: linux-media@vger.kernel.org, Sascha Hauer <kernel@pengutronix.de>,
+	Shawn Guo <shawn.guo@linaro.org>,
+	Dirk Behme <dirk.behme@googlemail.com>,
+	linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Fabio,
 
-Thanks for the patch.
+On 8 June 2012 08:51, javier Martin <javier.martin@vista-silicon.com> wrote:
+> Hi Fabio,
+>
+> On 7 June 2012 19:35, Fabio Estevam <festevam@gmail.com> wrote:
+>> Hi Javier,
+>>
+>> On Thu, Jun 7, 2012 at 5:30 AM, javier Martin
+>> <javier.martin@vista-silicon.com> wrote:
+>>
+>>> As i stated, the driver is still in an early development stage, it
+>>> doesn't do anything useful yet. But this is the public git repository
+>>> if you want to take a look:
+>>>
+>>> git repo: https://github.com/jmartinc/video_visstrim.git
+>>> branch:  mx27-codadx6
+>>
+>> Thanks, I will take a look at your tree when I am back to the office next week.
+>>
+>> I also see that Linaro's tree has support for VPU for mx5/mx6:
+>> http://git.linaro.org/gitweb?p=landing-teams/working/freescale/kernel.git;a=summary
+>>
+>> ,so we should probably think in unifying it with mx27 support there too.
 
-On Sunday 10 June 2012 12:25:50 Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  drivers/media/video/vivi.c |  160 ++++++-----------------------------------
->  1 file changed, 21 insertions(+), 139 deletions(-)
-> 
-> diff --git a/drivers/media/video/vivi.c b/drivers/media/video/vivi.c
-> index 1e4da5e..1e8c4f3 100644
-> --- a/drivers/media/video/vivi.c
-> +++ b/drivers/media/video/vivi.c
-> @@ -767,7 +767,13 @@ static int queue_setup(struct vb2_queue *vq, const
-> struct v4l2_format *fmt, struct vivi_dev *dev = vb2_get_drv_priv(vq);
->  	unsigned long size;
-> 
-> -	size = dev->width * dev->height * dev->pixelsize;
-> +	if (fmt)
-> +		size = fmt->fmt.pix.sizeimage;
-> +	else
-> +		size = dev->width * dev->height * dev->pixelsize;
-> +
-> +	if (size == 0)
-> +		return -EINVAL;
+If you refer to driver in [1] I have some concerns: i.MX27 VPU should
+be implemented as a V4L2 mem2mem device since it gets raw pictures
+from memory and outputs encoded frames to memory (some discussion
+about the subject can be fond here [2]), as Exynos driver from Samsung
+does. However, this driver you've mentioned doesn't do that: it just
+creates several mapping regions so that the actual functionality is
+implemented in user space by a library provided by Freescale, which
+regarding i.MX27 it is also GPL.
 
-If I'm not mistaken, this is a bug fix to properly support CREATE_BUF, right ? 
-If so it should be split to its own patch.
+What we are trying to do is implementing all the functionality in
+kernel space using mem2mem V4L2 framework so that it can be accepted
+in mainline.
 
->  	if (0 == *nbuffers)
->  		*nbuffers = 32;
+Please, correct me if the driver you are talking about is not the one in [1].
+
+Regards.
+
+[1] http://git.linaro.org/gitweb?p=landing-teams/working/freescale/kernel.git;a=blob;f=drivers/mxc/vpu/mxc_vpu.c;h=27b09e56d5a3f6cb7eeba16fe5493cbec46c65cd;hb=d0f289f67f0ff403d92880c410b009f1fd4e69f3
+[2] http://www.mail-archive.com/linux-media@vger.kernel.org/msg36555.html
 
 -- 
-Regards,
-
-Laurent Pinchart
-
+Javier Martin
+Vista Silicon S.L.
+CDTUC - FASE C - Oficina S-345
+Avda de los Castros s/n
+39005- Santander. Cantabria. Spain
++34 942 25 32 60
+www.vista-silicon.com
