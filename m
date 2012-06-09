@@ -1,66 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:3765 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750792Ab2FRLuB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jun 2012 07:50:01 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [RFCv1 PATCH 18/32] v4l2-ioctl.c: finalize table conversion.
-Date: Mon, 18 Jun 2012 13:49:56 +0200
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Andy Walls <awalls@md.metrocast.net>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Pawel Osciak <pawel@osciak.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-References: <1339323954-1404-1-git-send-email-hverkuil@xs4all.nl> <10390224.oHYD7VJvJs@avalon> <4FDF07FB.1080802@redhat.com>
-In-Reply-To: <4FDF07FB.1080802@redhat.com>
+Received: from mailout-de.gmx.net ([213.165.64.22]:40947 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751366Ab2FIVlU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Jun 2012 17:41:20 -0400
+Date: Sat, 9 Jun 2012 23:41:00 +0200
+From: Daniel =?iso-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Julia Lawall <julia.lawall@lip6.fr>, mchehab@infradead.org,
+	linux-media@vger.kernel.org, joe@perches.com
+Subject: Re: question about bt8xx/bttv-audio-hook.c, tvaudio.c
+Message-ID: <20120609214100.GA1598@minime.bse>
+References: <alpine.DEB.2.02.1206060852460.1777@hadrien>
+ <201206091005.16782.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201206181349.56977.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <201206091005.16782.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon June 18 2012 12:50:35 Mauro Carvalho Chehab wrote:
-> Em 18-06-2012 06:46, Laurent Pinchart escreveu:
-> > Hi Hans,
+On Sat, Jun 09, 2012 at 10:05:16AM +0200, Hans Verkuil wrote:
+> On Wed June 6 2012 09:06:23 Julia Lawall wrote:
+> > The files drivers/media/video/bt8xx/bttv-audio-hook.c and 
+> > drivers/media/video/tvaudio.c contain a number of occurrences of eg:
 > > 
-> > Thanks for the patch.
+> > mode |= V4L2_TUNER_MODE_LANG1 | V4L2_TUNER_MODE_LANG2;
 > > 
-> > On Sunday 10 June 2012 12:25:40 Hans Verkuil wrote:
-> >> From: Hans Verkuil <hans.verkuil@cisco.com>
-> >>
-> >> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> >> ---
-> >>   drivers/media/video/v4l2-ioctl.c |   35 +++++++++++++----------------------
-> >> 1 file changed, 13 insertions(+), 22 deletions(-)
-> >>
-> >> diff --git a/drivers/media/video/v4l2-ioctl.c
-> >> b/drivers/media/video/v4l2-ioctl.c index 0de31c4..6c91674 100644
-> >> --- a/drivers/media/video/v4l2-ioctl.c
-> >> +++ b/drivers/media/video/v4l2-ioctl.c
-> >> @@ -870,6 +870,11 @@ static void v4l_print_newline(const void *arg)
-> >>   	pr_cont("\n");
-> >>   }
-> >>
-> >> +static void v4l_print_default(const void *arg)
-> >> +{
-> >> +	pr_cont("non-standard ioctl\n");
+> > and
 > > 
-> > I'd say "driver-specific ioctl" instead. "non-standard" may sound like an
-> > error to users.
+> > if (mode & V4L2_TUNER_MODE_MONO)
+> > 
+> > (both from tvaudio.c)
 > 
-> This message is useless as-is, as it provides no glue about what ioctl was
-> called. You should either remove it or print the ioctl number, in hexa.
+> I would have to analyse this more carefully, but the core issue here is that
+> these drivers mixup the tuner audio reception bitmask flags (V4L2_TUNER_SUB_*)
+> and the tuner audio modes (V4L2_TUNER_MODE_*, not a bitmask). This happened
+> regularly in older drivers, and apparently these two are still not fixed.
+> 
+> More info is here:
+> 
+> http://hverkuil.home.xs4all.nl/spec/media.html#vidioc-g-tuner
+> 
+> I can't just replace one define with another, I would need to look carefully
+> at the code to see what was intended.
 
-That ioctl number is already printed in front of this message.
+I have an old patch on one of my other machines that should fix this
+in tvaudio.c. I'll try to clean it up.
 
-Regards,
-
-	Hans
+  Daniel
