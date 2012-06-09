@@ -1,145 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-1.cisco.com ([144.254.224.140]:40657 "EHLO
-	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753538Ab2F0KjH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Jun 2012 06:39:07 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [RFCv2 PATCH 19/34] v4l2-dev.c: add debug sysfs entry.
-Date: Wed, 27 Jun 2012 12:38:54 +0200
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Pawel Osciak <pawel@osciak.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-References: <1340367688-8722-1-git-send-email-hverkuil@xs4all.nl> <a497cef0c59c8872218faa5d83095fe03c01a430.1340366355.git.hans.verkuil@cisco.com> <2029394.km7RaaeAMe@avalon>
-In-Reply-To: <2029394.km7RaaeAMe@avalon>
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:36854 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751505Ab2FIIYn convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Jun 2012 04:24:43 -0400
+Received: by obbtb18 with SMTP id tb18so3602642obb.19
+        for <linux-media@vger.kernel.org>; Sat, 09 Jun 2012 01:24:43 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201206271238.54332.hverkuil@xs4all.nl>
+In-Reply-To: <1337352032-3165-1-git-send-email-elezegarcia@gmail.com>
+References: <1337352032-3165-1-git-send-email-elezegarcia@gmail.com>
+Date: Sat, 9 Jun 2012 05:24:42 -0300
+Message-ID: <CALF0-+V0vA0CyS1Oj_6vGHTx0=xFptL8uAr2yH9pj+E1Kb+GEw@mail.gmail.com>
+Subject: [PATCH] em28xx: Make em28xx_ir_change_protocol a static function
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: linux-media <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed 27 June 2012 11:54:40 Laurent Pinchart wrote:
-> Hi Hans,
-> 
-> Thanks for the patch.
-> 
-> On Friday 22 June 2012 14:21:13 Hans Verkuil wrote:
-> > From: Hans Verkuil <hans.verkuil@cisco.com>
-> > 
-> > Since this could theoretically change the debug value while in the middle
-> > of v4l2-ioctl.c, we make a copy of vfd->debug to ensure consistent debug
-> > behavior.
-> 
-> In my review of RFCv1, I wrote that this could introduce a race condition:
-> 
-> "You test the debug value several times in the __video_do_ioctl() function. I 
-> haven't checked in details whether changing the value between the two tests 
-> could for instance lead to a KERN_CONT print without a previous non-KERN_CONT 
-> message. That won't crash the machine  but it should still be avoided."
-> 
-> Have you verified whether that problem can occur ?
+Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
+---
+ drivers/media/video/em28xx/em28xx-input.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Yes, this problem can occur. Which is why I've changed the code accordingly.
+diff --git a/drivers/media/video/em28xx/em28xx-input.c
+b/drivers/media/video/em28xx/em28xx-input.c
+index 2630b26..53cc36b 100644
+--- a/drivers/media/video/em28xx/em28xx-input.c
++++ b/drivers/media/video/em28xx/em28xx-input.c
+@@ -344,7 +344,7 @@ static void em28xx_ir_stop(struct rc_dev *rc)
+       cancel_delayed_work_sync(&ir->work);
+ }
 
-Regards,
-
-	Hans
-
-> 
-> > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> > ---
-> >  drivers/media/video/v4l2-dev.c   |   24 ++++++++++++++++++++++++
-> >  drivers/media/video/v4l2-ioctl.c |    9 +++++----
-> >  2 files changed, 29 insertions(+), 4 deletions(-)
-> > 
-> > diff --git a/drivers/media/video/v4l2-dev.c b/drivers/media/video/v4l2-dev.c
-> > index 1500208..5c0bb18 100644
-> > --- a/drivers/media/video/v4l2-dev.c
-> > +++ b/drivers/media/video/v4l2-dev.c
-> > @@ -46,6 +46,29 @@ static ssize_t show_index(struct device *cd,
-> >  	return sprintf(buf, "%i\n", vdev->index);
-> >  }
-> > 
-> > +static ssize_t show_debug(struct device *cd,
-> > +			 struct device_attribute *attr, char *buf)
-> > +{
-> > +	struct video_device *vdev = to_video_device(cd);
-> > +
-> > +	return sprintf(buf, "%i\n", vdev->debug);
-> > +}
-> > +
-> > +static ssize_t set_debug(struct device *cd, struct device_attribute *attr,
-> > +		   const char *buf, size_t len)
-> > +{
-> > +	struct video_device *vdev = to_video_device(cd);
-> > +	int res = 0;
-> > +	u16 value;
-> > +
-> > +	res = kstrtou16(buf, 0, &value);
-> > +	if (res)
-> > +		return res;
-> > +
-> > +	vdev->debug = value;
-> > +	return len;
-> > +}
-> > +
-> >  static ssize_t show_name(struct device *cd,
-> >  			 struct device_attribute *attr, char *buf)
-> >  {
-> > @@ -56,6 +79,7 @@ static ssize_t show_name(struct device *cd,
-> > 
-> >  static struct device_attribute video_device_attrs[] = {
-> >  	__ATTR(name, S_IRUGO, show_name, NULL),
-> > +	__ATTR(debug, 0644, show_debug, set_debug),
-> >  	__ATTR(index, S_IRUGO, show_index, NULL),
-> >  	__ATTR_NULL
-> >  };
-> > diff --git a/drivers/media/video/v4l2-ioctl.c
-> > b/drivers/media/video/v4l2-ioctl.c index 0531d9a..2e1421b 100644
-> > --- a/drivers/media/video/v4l2-ioctl.c
-> > +++ b/drivers/media/video/v4l2-ioctl.c
-> > @@ -1998,6 +1998,7 @@ static long __video_do_ioctl(struct file *file,
-> >  	void *fh = file->private_data;
-> >  	struct v4l2_fh *vfh = NULL;
-> >  	int use_fh_prio = 0;
-> > +	int debug = vfd->debug;
-> >  	long ret = -ENOTTY;
-> > 
-> >  	if (ops == NULL) {
-> > @@ -2031,7 +2032,7 @@ static long __video_do_ioctl(struct file *file,
-> >  	}
-> > 
-> >  	write_only = _IOC_DIR(cmd) == _IOC_WRITE;
-> > -	if (write_only && vfd->debug > V4L2_DEBUG_IOCTL) {
-> > +	if (write_only && debug > V4L2_DEBUG_IOCTL) {
-> >  		v4l_print_ioctl(vfd->name, cmd);
-> >  		pr_cont(": ");
-> >  		info->debug(arg, write_only);
-> > @@ -2053,8 +2054,8 @@ static long __video_do_ioctl(struct file *file,
-> >  	}
-> > 
-> >  done:
-> > -	if (vfd->debug) {
-> > -		if (write_only && vfd->debug > V4L2_DEBUG_IOCTL) {
-> > +	if (debug) {
-> > +		if (write_only && debug > V4L2_DEBUG_IOCTL) {
-> >  			if (ret < 0)
-> >  				printk(KERN_DEBUG "%s: error %ld\n",
-> >  					video_device_node_name(vfd), ret);
-> > @@ -2063,7 +2064,7 @@ done:
-> >  		v4l_print_ioctl(vfd->name, cmd);
-> >  		if (ret < 0)
-> >  			pr_cont(": error %ld\n", ret);
-> > -		else if (vfd->debug == V4L2_DEBUG_IOCTL)
-> > +		else if (debug == V4L2_DEBUG_IOCTL)
-> >  			pr_cont("\n");
-> >  		else if (_IOC_DIR(cmd) == _IOC_NONE)
-> >  			info->debug(arg, write_only);
-> 
+-int em28xx_ir_change_protocol(struct rc_dev *rc_dev, u64 rc_type)
++static int em28xx_ir_change_protocol(struct rc_dev *rc_dev, u64 rc_type)
+ {
+       int rc = 0;
+       struct em28xx_IR *ir = rc_dev->priv;
+--
+1.7.3.4
