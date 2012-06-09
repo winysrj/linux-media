@@ -1,53 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from microschulz.de ([79.140.41.212]:44252 "EHLO microschulz.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755601Ab2FWTBy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 23 Jun 2012 15:01:54 -0400
-Date: Sat, 23 Jun 2012 20:32:35 +0200
-From: Nikolaus Schulz <mail@microschulz.de>
-To: santosh nayak <santoshprasadnayak@gmail.com>
-Cc: mchehab@infradead.org, linux-media@vger.kernel.org,
-	viro@zeniv.linux.org.uk, kernel-janitors@vger.kernel.org,
-	stable@vger.kernel.org
-Subject: Re: [PATCH] dvb-core: Release semaphore on error path
- dvb_register_device().
-Message-ID: <20120623183235.GA16700@zorro.zusammrottung.local>
-References: <1340452794-8117-1-git-send-email-santoshprasadnayak@gmail.com>
+Received: from na3sys009aog131.obsmtp.com ([74.125.149.247]:35413 "EHLO
+	na3sys009aog131.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751602Ab2FINf7 convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 9 Jun 2012 09:35:59 -0400
+Received: by lahi5 with SMTP id i5so1843309lah.28
+        for <linux-media@vger.kernel.org>; Sat, 09 Jun 2012 06:35:56 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1340452794-8117-1-git-send-email-santoshprasadnayak@gmail.com>
+In-Reply-To: <CACSP8SgrB2YxsvUx6y-EomgJhupb3uVmF_hH0Sd-PG6G6G9Cfg@mail.gmail.com>
+References: <4fbf6893.a709d80a.4f7b.0e0eSMTPIN_ADDED@mx.google.com>
+	<CACSP8SgSi+v70+-r1wR1hM0rDzmJK0g20i0fxRePLPuTXqrxuA@mail.gmail.com>
+	<CAO8GWq=UYWTuJ=V6Luh4z49=og2X2wrHzVNYvbK7Tnw2zgzNeA@mail.gmail.com>
+	<CACSP8Sgog0cDtxG+JsWQ=aYyiXtEr-N7+xPPRsAjwt3LAYC+uw@mail.gmail.com>
+	<CAO8GWqnVN3tVp2chzsYKjhfzoupxsWwUT_LojzJ7kYWPRdZYJw@mail.gmail.com>
+	<CACSP8SiVYiEg8BY9gvmbqiKNXEwEjHa+vxOvXpEgr+W-Wd5+rg@mail.gmail.com>
+	<4fd09200.830ed80a.24f9.1a54SMTPIN_ADDED@mx.google.com>
+	<CACSP8SgrB2YxsvUx6y-EomgJhupb3uVmF_hH0Sd-PG6G6G9Cfg@mail.gmail.com>
+Date: Sat, 9 Jun 2012 08:35:56 -0500
+Message-ID: <CAO8GWqkxfbm28DLVA9psBME6JZckwmGb-Awmafupxm=B2UbmeA@mail.gmail.com>
+Subject: Re: [Linaro-mm-sig] [RFC] Synchronizing access to buffers shared with
+ dma-buf between drivers/devices
+From: "Clark, Rob" <rob@ti.com>
+To: Erik Gilling <konkers@android.com>
+Cc: Tom Cooksey <tom.cooksey@arm.com>, linaro-mm-sig@lists.linaro.org,
+	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-CC'ing stable@kernel.org, this bugfix applies to all kernels >> 2.6.28.
+On Fri, Jun 8, 2012 at 3:56 PM, Erik Gilling <konkers@android.com> wrote:
+>> I guess my other thought is that implicit vs explicit is not
+>> mutually exclusive, though I'd guess there'd be interesting
+>> deadlocks to have to debug if both were in use _at the same
+>> time_. :-)
+>
+> I think this is an approach worth investigating.  I'd like a way to
+> either opt out of implicit sync or have a way to check if a dma-buf
+> has an attached fence and detach it.  Actually, that could work really
+> well. Consider:
+>
+> * Each dma_buf has a single fence "slot"
+> * on submission
+>   * the driver will extract the fence from the dma_buf and queue a wait on it.
+>   * the driver will replace that fence with it's own complettion
+> fence before the job submission ioctl returns.
+> * dma_buf will have two userspace ioctls:
+>   * DETACH: will return the fence as an FD to userspace and clear the
+> fence slot in the dma_buf
+>   * ATTACH: takes a fence FD from userspace and attaches it to the
+> dma_buf fence slot.  Returns an error if the fence slot is non-empty.
+>
+> In the android case, we can do a detach after every submission and an
+> attach right before.
 
-The patch should also be tagged accordingly.
+btw, I like this idea for implicit and explicit sync to coexist
 
-On Sat, Jun 23, 2012 at 05:29:54PM +0530, santosh nayak wrote:
-> From: Santosh Nayak <santoshprasadnayak@gmail.com>
-> 
-> There is a missing "up_write()" here. Semaphore should be released
-> before returning error value.
-> 
-> Signed-off-by: Santosh Nayak <santoshprasadnayak@gmail.com>
-> ---
-> Destination tree "linux-next"
-> 
->  drivers/media/dvb/dvb-core/dvbdev.c |    1 +
->  1 files changed, 1 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/media/dvb/dvb-core/dvbdev.c b/drivers/media/dvb/dvb-core/dvbdev.c
-> index 00a6732..39eab73 100644
-> --- a/drivers/media/dvb/dvb-core/dvbdev.c
-> +++ b/drivers/media/dvb/dvb-core/dvbdev.c
-> @@ -243,6 +243,7 @@ int dvb_register_device(struct dvb_adapter *adap, struct dvb_device **pdvbdev,
->  	if (minor == MAX_DVB_MINORS) {
->  		kfree(dvbdevfops);
->  		kfree(dvbdev);
-> +		up_write(&minor_rwsem);
->  		mutex_unlock(&dvbdev_register_lock);
->  		return -EINVAL;
->  	}
-> -- 
-> 1.7.4.4
+BR,
+-R
