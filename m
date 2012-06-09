@@ -1,71 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:13593 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756111Ab2FNNiQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Jun 2012 09:38:16 -0400
-Received: from euspt2 (mailout1.w1.samsung.com [210.118.77.11])
- by mailout1.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0M5M00JVY0KI6I60@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 14 Jun 2012 14:38:42 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0M5M00FVE0JK8T@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 14 Jun 2012 14:38:08 +0100 (BST)
-Date: Thu, 14 Jun 2012 15:37:47 +0200
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: [PATCHv7 13/15] v4l: vivi: support for dmabuf importing
-In-reply-to: <1339681069-8483-1-git-send-email-t.stanislaws@samsung.com>
-To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
-Cc: airlied@redhat.com, m.szyprowski@samsung.com,
-	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
-	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
-	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
-	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
-	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
-	mchehab@redhat.com, g.liakhovetski@gmx.de
-Message-id: <1339681069-8483-14-git-send-email-t.stanislaws@samsung.com>
-Content-transfer-encoding: 7BIT
-References: <1339681069-8483-1-git-send-email-t.stanislaws@samsung.com>
+Received: from mail-wi0-f178.google.com ([209.85.212.178]:35749 "EHLO
+	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753967Ab2FIRGt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Jun 2012 13:06:49 -0400
+Received: by wibhn6 with SMTP id hn6so1526838wib.1
+        for <linux-media@vger.kernel.org>; Sat, 09 Jun 2012 10:06:48 -0700 (PDT)
+MIME-Version: 1.0
+Date: Sat, 9 Jun 2012 17:06:48 +0000
+Message-ID: <CAFxvmmfFqCQg3QxirmPazdqNuBq6SxbezUR9T1bo+SRRL9-hBA@mail.gmail.com>
+Subject: PWC ioctl inappropriate for device (Regression)
+From: Bernard GODARD <bernard.godard@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch enhances VIVI driver with a support for importing a buffer
-from DMABUF file descriptors.
+Dear all,
 
-Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/video/Kconfig |    1 +
- drivers/media/video/vivi.c  |    2 +-
- 2 files changed, 2 insertions(+), 1 deletion(-)
+I am using a Philips Toucam Pro 2 webcam with the program qastrocam-g2
+(astronomy program that use some specific functions of the PWC
+driver).
+I have been using this program with this camera for a long time on
+different Linux distributions without a problem.
 
-diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-index 99937c9..9aa7306 100644
---- a/drivers/media/video/Kconfig
-+++ b/drivers/media/video/Kconfig
-@@ -630,6 +630,7 @@ config VIDEO_VIVI
- 	depends on FRAMEBUFFER_CONSOLE || STI_CONSOLE
- 	select FONT_8x16
- 	select VIDEOBUF2_VMALLOC
-+	select DMA_SHARED_BUFFER
- 	default n
- 	---help---
- 	  Enables a virtual video driver. This device shows a color bar
-diff --git a/drivers/media/video/vivi.c b/drivers/media/video/vivi.c
-index 0960d7f..05709cd 100644
---- a/drivers/media/video/vivi.c
-+++ b/drivers/media/video/vivi.c
-@@ -1422,7 +1422,7 @@ static int __init vivi_create_instance(int inst)
- 	q = &dev->vb_vidq;
- 	memset(q, 0, sizeof(dev->vb_vidq));
- 	q->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
--	q->io_modes = VB2_MMAP | VB2_USERPTR | VB2_READ;
-+	q->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF | VB2_READ;
- 	q->drv_priv = dev;
- 	q->buf_struct_size = sizeof(struct vivi_buffer);
- 	q->ops = &vivi_video_qops;
--- 
-1.7.9.5
+With Ubuntu 12.04, I now get a kernel oops. See bug report:
+https://bugs.launchpad.net/ubuntu/+source/linux/+bug/1010028
 
+I have installed mainline kernel 3.4rc6 on my Ubuntu box to check if
+the oops was fixed upstream. Now I am not getting the oops anymore but
+the IOCTL used to get/set the camera parameters are failing:
+
+
+astro@saturn:~$ qastrocam-g2
+<init> : Avifile RELEASE-0.7.48-120122-05:53-../src/configure
+<init> : Available CPU flags: fpu vme de pse tsc msr pae mce cx8 apic
+sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall
+nx mmxext fxsr_opt rdtscp lm 3dnowext 3dnow rep_good nopl extd_apicid
+pni cx16 la
+<init> : 2200.00 MHz AMD Athlon(tm) 64 X2 Dual Core Processor 4200+ detected
+Getting Standard: Inappropriate ioctl for device
+setWhiteBalance: Inappropriate ioctl for device
+getWhiteBalance: Inappropriate ioctl for device
+getWhiteBalance: Inappropriate ioctl for device
+VIDIOCPWCGAGC: Inappropriate ioctl for device
+ioctl (VIDIOCGWIN): Inappropriate ioctl for device
+mmap: Invalid argument
+VIDIOCPWCGDYNNOISE: Inappropriate ioctl for device
+VIDIOCPWCGCONTOUR: Inappropriate ioctl for device
+VIDIOCPWCSCONTOUR: Inappropriate ioctl for device
+VIDIOCPWCGDYNNOISE: Inappropriate ioctl for device
+VIDIOCPWCGCONTOUR: Inappropriate ioctl for device
+VIDIOCPWCGDYNNOISE: Inappropriate ioctl for device
+VIDIOCPWCGAGC: Inappropriate ioctl for device
+VIDIOCPWCSAGC: Inappropriate ioctl for device
+getWhiteBalance: Inappropriate ioctl for device
+VIDIOCPWCSAGC: Inappropriate ioctl for device
+VIDIOCPWCSSHUTTER: Inappropriate ioctl for device
+VIDIOCPWCGAGC: Inappropriate ioctl for device
+getWhiteBalance: Inappropriate ioctl for device
+VIDIOCPWCGAGC: Inappropriate ioctl for device
+VIDIOCPWCGAGC: Inappropriate ioctl for device
+VIDIOCPWCGAGC: Inappropriate ioctl for device
+VIDIOCPWCGAGC: Inappropriate ioctl for device
+VIDIOCPWCGAGC: Inappropriate ioctl for device
+VIDIOCPWCGAGC: Inappropriate ioctl for device
+VIDIOCPWCGAGC: Inappropriate ioctl for device
+VIDIOCPWCGAGC: Inappropriate ioctl for device
+VIDIOCPWCGAGC: Inappropriate ioctl for device
+VIDIOCPWCGAGC: Inappropriate ioctl for device
+VIDIOCPWCGAGC: Inappropriate ioctl for device
+VIDIOCPWCGAGC: Inappropriate ioctl for device
+VIDIOCPWCGAGC: Inappropriate ioctl for device
+VIDIOCPWCGAGC: Inappropriate ioctl for device
+VIDIOCPWCGAGC: Inappropriate ioctl for device
+VIDIOCPWCGAGC: Inappropriate ioctl for device
+VIDIOCPWCGAGC: Inappropriate ioctl for device
+VIDIOCPWCGAGC: Inappropriate ioctl for device
+VIDIOCPWCGAGC: Inappropriate ioctl for device
+
+...
+
+Thank you,
+
+Kind regards,
+
+       Bernard
