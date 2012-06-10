@@ -1,242 +1,486 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:4915 "EHLO
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3993 "EHLO
 	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753672Ab2F1G4N (ORCPT
+	with ESMTP id S1754334Ab2FJKeP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Jun 2012 02:56:13 -0400
+	Sun, 10 Jun 2012 06:34:15 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
 	Hans de Goede <hdegoede@redhat.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Andy Walls <awalls@md.metrocast.net>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Pawel Osciak <pawel@osciak.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
 	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv3 PATCH 22/33] vb2-core: refactor reqbufs/create_bufs.
-Date: Thu, 28 Jun 2012 08:48:16 +0200
-Message-Id: <0fa55bc759d63298dc20392e9297f27d47a0ed02.1340865818.git.hans.verkuil@cisco.com>
-In-Reply-To: <1340866107-4188-1-git-send-email-hverkuil@xs4all.nl>
-References: <1340866107-4188-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <d97434d2319fb8dbea360404f9343c680b5b196e.1340865818.git.hans.verkuil@cisco.com>
-References: <d97434d2319fb8dbea360404f9343c680b5b196e.1340865818.git.hans.verkuil@cisco.com>
+Subject: [RFCv1 PATCH 31/32] pwc: use the new vb2 helpers.
+Date: Sun, 10 Jun 2012 12:25:53 +0200
+Message-Id: <d1d80a2f35de76d011d8ccbe71376171ab1059f1.1339321562.git.hans.verkuil@cisco.com>
+In-Reply-To: <1339323954-1404-1-git-send-email-hverkuil@xs4all.nl>
+References: <1339323954-1404-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <ef490f7ebca5b6df91db6b1acfb9928ada3bcd70.1339321562.git.hans.verkuil@cisco.com>
+References: <ef490f7ebca5b6df91db6b1acfb9928ada3bcd70.1339321562.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Split off the memory and type validation. This is done both from reqbufs and
-create_bufs, and will also be done by vb2 helpers in a later patch.
-
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/video/videobuf2-core.c |  145 ++++++++++++++++++----------------
- 1 file changed, 77 insertions(+), 68 deletions(-)
+ drivers/media/video/pwc/pwc-if.c  |  155 ++++---------------------------------
+ drivers/media/video/pwc/pwc-v4l.c |  140 +++------------------------------
+ drivers/media/video/pwc/pwc.h     |    3 -
+ 3 files changed, 24 insertions(+), 274 deletions(-)
 
-diff --git a/drivers/media/video/videobuf2-core.c b/drivers/media/video/videobuf2-core.c
-index 9d4e9ed..7d7f86f 100644
---- a/drivers/media/video/videobuf2-core.c
-+++ b/drivers/media/video/videobuf2-core.c
-@@ -454,7 +454,50 @@ static int __verify_mmap_ops(struct vb2_queue *q)
+diff --git a/drivers/media/video/pwc/pwc-if.c b/drivers/media/video/pwc/pwc-if.c
+index ec4e2ef..0ae87ec 100644
+--- a/drivers/media/video/pwc/pwc-if.c
++++ b/drivers/media/video/pwc/pwc-if.c
+@@ -136,19 +136,13 @@ static int leds[2] = { 100, 0 };
+ 
+ /***/
+ 
+-static int pwc_video_close(struct file *file);
+-static ssize_t pwc_video_read(struct file *file, char __user *buf,
+-			  size_t count, loff_t *ppos);
+-static unsigned int pwc_video_poll(struct file *file, poll_table *wait);
+-static int  pwc_video_mmap(struct file *file, struct vm_area_struct *vma);
+-
+ static const struct v4l2_file_operations pwc_fops = {
+ 	.owner =	THIS_MODULE,
+ 	.open =		v4l2_fh_open,
+-	.release =     	pwc_video_close,
+-	.read =		pwc_video_read,
+-	.poll =		pwc_video_poll,
+-	.mmap =		pwc_video_mmap,
++	.release =	vb2_fop_release,
++	.read =		vb2_fop_read,
++	.poll =		vb2_fop_poll,
++	.mmap =		vb2_fop_mmap,
+ 	.unlocked_ioctl = video_ioctl2,
+ };
+ static struct video_device pwc_template = {
+@@ -562,17 +556,6 @@ static const char *pwc_sensor_type_to_string(unsigned int sensor_type)
+ /***************************************************************************/
+ /* Video4Linux functions */
+ 
+-int pwc_test_n_set_capt_file(struct pwc_device *pdev, struct file *file)
+-{
+-	if (pdev->capt_file != NULL &&
+-	    pdev->capt_file != file)
+-		return -EBUSY;
+-
+-	pdev->capt_file = file;
+-
+-	return 0;
+-}
+-
+ static void pwc_video_release(struct v4l2_device *v)
+ {
+ 	struct pwc_device *pdev = container_of(v, struct pwc_device, v4l2_dev);
+@@ -583,113 +566,6 @@ static void pwc_video_release(struct v4l2_device *v)
+ 	kfree(pdev);
  }
  
- /**
-- * vb2_reqbufs() - Initiate streaming
-+ * __verify_memory_type() - Check whether the memory type and buffer type
-+ * passed to a buffer operation are compatible with the queue.
-+ */
-+static int __verify_memory_type(struct vb2_queue *q,
-+		enum v4l2_memory memory, enum v4l2_buf_type type)
-+{
-+	if (memory != V4L2_MEMORY_MMAP && memory != V4L2_MEMORY_USERPTR) {
-+		dprintk(1, "reqbufs: unsupported memory type\n");
-+		return -EINVAL;
-+	}
-+
-+	if (type != q->type) {
-+		dprintk(1, "reqbufs: requested type is incorrect\n");
-+		return -EINVAL;
-+	}
-+
-+	/*
-+	 * Make sure all the required memory ops for given memory type
-+	 * are available.
-+	 */
-+	if (memory == V4L2_MEMORY_MMAP && __verify_mmap_ops(q)) {
-+		dprintk(1, "reqbufs: MMAP for current setup unsupported\n");
-+		return -EINVAL;
-+	}
-+
-+	if (memory == V4L2_MEMORY_USERPTR && __verify_userptr_ops(q)) {
-+		dprintk(1, "reqbufs: USERPTR for current setup unsupported\n");
-+		return -EINVAL;
-+	}
-+
-+	/*
-+	 * Place the busy tests at the end: -EBUSY can be ignored when
-+	 * create_bufs is called with count == 0, but count == 0 should still
-+	 * do the memory and type validation.
-+	 */
-+	if (q->fileio) {
-+		dprintk(1, "reqbufs: file io in progress\n");
+-static int pwc_video_close(struct file *file)
+-{
+-	struct pwc_device *pdev = video_drvdata(file);
+-
+-	/*
+-	 * If we're still streaming vb2_queue_release will call stream_stop
+-	 * so we must take both the v4l2_lock and the vb_queue_lock.
+-	 */
+-	if (mutex_lock_interruptible(&pdev->v4l2_lock))
+-		return -ERESTARTSYS;
+-	if (mutex_lock_interruptible(&pdev->vb_queue_lock)) {
+-		mutex_unlock(&pdev->v4l2_lock);
+-		return -ERESTARTSYS;
+-	}
+-
+-	if (pdev->capt_file == file) {
+-		vb2_queue_release(&pdev->vb_queue);
+-		pdev->capt_file = NULL;
+-	}
+-
+-	mutex_unlock(&pdev->vb_queue_lock);
+-	mutex_unlock(&pdev->v4l2_lock);
+-
+-	return v4l2_fh_release(file);
+-}
+-
+-static ssize_t pwc_video_read(struct file *file, char __user *buf,
+-			      size_t count, loff_t *ppos)
+-{
+-	struct pwc_device *pdev = video_drvdata(file);
+-	int lock_v4l2 = 0;
+-	ssize_t ret;
+-
+-	if (mutex_lock_interruptible(&pdev->vb_queue_lock))
+-		return -ERESTARTSYS;
+-
+-	ret = pwc_test_n_set_capt_file(pdev, file);
+-	if (ret)
+-		goto out;
+-
+-	/* stream_start will get called so we must take the v4l2_lock */
+-	if (pdev->vb_queue.fileio == NULL)
+-		lock_v4l2 = 1;
+-
+-	/* Use try_lock, since we're taking the locks in the *wrong* order! */
+-	if (lock_v4l2 && !mutex_trylock(&pdev->v4l2_lock)) {
+-		ret = -ERESTARTSYS;
+-		goto out;
+-	}
+-	ret = vb2_read(&pdev->vb_queue, buf, count, ppos,
+-		       file->f_flags & O_NONBLOCK);
+-	if (lock_v4l2)
+-		mutex_unlock(&pdev->v4l2_lock);
+-out:
+-	mutex_unlock(&pdev->vb_queue_lock);
+-	return ret;
+-}
+-
+-static unsigned int pwc_video_poll(struct file *file, poll_table *wait)
+-{
+-	struct pwc_device *pdev = video_drvdata(file);
+-	struct vb2_queue *q = &pdev->vb_queue;
+-	unsigned long req_events = poll_requested_events(wait);
+-	unsigned int ret = POLL_ERR;
+-	int lock_v4l2 = 0;
+-
+-	if (mutex_lock_interruptible(&pdev->vb_queue_lock))
+-		return POLL_ERR;
+-
+-	/* Will this start fileio and thus call start_stream? */
+-	if ((req_events & (POLLIN | POLLRDNORM)) &&
+-	    q->num_buffers == 0 && !q->streaming && q->fileio == NULL) {
+-		if (pwc_test_n_set_capt_file(pdev, file))
+-			goto out;
+-		lock_v4l2 = 1;
+-	}
+-
+-	/* Use try_lock, since we're taking the locks in the *wrong* order! */
+-	if (lock_v4l2 && !mutex_trylock(&pdev->v4l2_lock))
+-		goto out;
+-	ret = vb2_poll(&pdev->vb_queue, file, wait);
+-	if (lock_v4l2)
+-		mutex_unlock(&pdev->v4l2_lock);
+-
+-out:
+-	if (!pdev->udev)
+-		ret |= POLLHUP;
+-	mutex_unlock(&pdev->vb_queue_lock);
+-	return ret;
+-}
+-
+-static int pwc_video_mmap(struct file *file, struct vm_area_struct *vma)
+-{
+-	struct pwc_device *pdev = video_drvdata(file);
+-	int ret;
+-
+-	if (mutex_lock_interruptible(&pdev->vb_queue_lock))
+-		return -ERESTARTSYS;
+-
+-	ret = pwc_test_n_set_capt_file(pdev, file);
+-	if (ret == 0)
+-		ret = vb2_mmap(&pdev->vb_queue, vma);
+-
+-	mutex_unlock(&pdev->vb_queue_lock);
+-	return ret;
+-}
+-
+ /***************************************************************************/
+ /* Videobuf2 operations */
+ 
+@@ -782,6 +658,8 @@ static int start_streaming(struct vb2_queue *vq, unsigned int count)
+ 	if (!pdev->udev)
+ 		return -ENODEV;
+ 
++	if (mutex_lock_interruptible(&pdev->v4l2_lock))
++		return -ERESTARTSYS;
+ 	/* Turn on camera and set LEDS on */
+ 	pwc_camera_power(pdev, 1);
+ 	pwc_set_leds(pdev, leds[0], leds[1]);
+@@ -794,6 +672,7 @@ static int start_streaming(struct vb2_queue *vq, unsigned int count)
+ 		/* And cleanup any queued bufs!! */
+ 		pwc_cleanup_queued_bufs(pdev);
+ 	}
++	mutex_unlock(&pdev->v4l2_lock);
+ 
+ 	return r;
+ }
+@@ -802,6 +681,8 @@ static int stop_streaming(struct vb2_queue *vq)
+ {
+ 	struct pwc_device *pdev = vb2_get_drv_priv(vq);
+ 
++	if (mutex_lock_interruptible(&pdev->v4l2_lock))
++		return -ERESTARTSYS;
+ 	if (pdev->udev) {
+ 		pwc_set_leds(pdev, 0, 0);
+ 		pwc_camera_power(pdev, 0);
+@@ -809,6 +690,7 @@ static int stop_streaming(struct vb2_queue *vq)
+ 	}
+ 
+ 	pwc_cleanup_queued_bufs(pdev);
++	mutex_unlock(&pdev->v4l2_lock);
+ 
+ 	return 0;
+ }
+@@ -1136,6 +1018,8 @@ static int usb_pwc_probe(struct usb_interface *intf, const struct usb_device_id
+ 	/* Init video_device structure */
+ 	memcpy(&pdev->vdev, &pwc_template, sizeof(pwc_template));
+ 	strcpy(pdev->vdev.name, name);
++	pdev->vdev.queue = &pdev->vb_queue;
++	pdev->vdev.queue_lock = &pdev->vb_queue_lock;
+ 	set_bit(V4L2_FL_USE_FH_PRIO, &pdev->vdev.flags);
+ 	video_set_drvdata(&pdev->vdev, pdev);
+ 
+@@ -1190,15 +1074,6 @@ static int usb_pwc_probe(struct usb_interface *intf, const struct usb_device_id
+ 	pdev->vdev.v4l2_dev = &pdev->v4l2_dev;
+ 	pdev->vdev.lock = &pdev->v4l2_lock;
+ 
+-	/*
+-	 * Don't take v4l2_lock for these ioctls. This improves latency if
+-	 * v4l2_lock is taken for a long time, e.g. when changing a control
+-	 * value, and a new frame is ready to be dequeued.
+-	 */
+-	v4l2_disable_ioctl_locking(&pdev->vdev, VIDIOC_DQBUF);
+-	v4l2_disable_ioctl_locking(&pdev->vdev, VIDIOC_QBUF);
+-	v4l2_disable_ioctl_locking(&pdev->vdev, VIDIOC_QUERYBUF);
+-
+ 	rc = video_register_device(&pdev->vdev, VFL_TYPE_GRABBER, -1);
+ 	if (rc < 0) {
+ 		PWC_ERROR("Failed to register as video device (%d).\n", rc);
+@@ -1253,20 +1128,18 @@ static void usb_pwc_disconnect(struct usb_interface *intf)
+ 	struct v4l2_device *v = usb_get_intfdata(intf);
+ 	struct pwc_device *pdev = container_of(v, struct pwc_device, v4l2_dev);
+ 
+-	mutex_lock(&pdev->v4l2_lock);
+-
+ 	mutex_lock(&pdev->vb_queue_lock);
++	mutex_lock(&pdev->v4l2_lock);
+ 	/* No need to keep the urbs around after disconnection */
+ 	if (pdev->vb_queue.streaming)
+ 		pwc_isoc_cleanup(pdev);
+ 	pdev->udev = NULL;
+ 	pwc_cleanup_queued_bufs(pdev);
+-	mutex_unlock(&pdev->vb_queue_lock);
+ 
+ 	v4l2_device_disconnect(&pdev->v4l2_dev);
+ 	video_unregister_device(&pdev->vdev);
+-
+ 	mutex_unlock(&pdev->v4l2_lock);
++	mutex_unlock(&pdev->vb_queue_lock);
+ 
+ #ifdef CONFIG_USB_PWC_INPUT_EVDEV
+ 	if (pdev->button_dev)
+diff --git a/drivers/media/video/pwc/pwc-v4l.c b/drivers/media/video/pwc/pwc-v4l.c
+index c691e29..114ae41 100644
+--- a/drivers/media/video/pwc/pwc-v4l.c
++++ b/drivers/media/video/pwc/pwc-v4l.c
+@@ -468,17 +468,8 @@ static int pwc_s_fmt_vid_cap(struct file *file, void *fh, struct v4l2_format *f)
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	if (mutex_lock_interruptible(&pdev->vb_queue_lock))
+-		return -ERESTARTSYS;
+-
+-	ret = pwc_test_n_set_capt_file(pdev, file);
+-	if (ret)
+-		goto leave;
+-
+-	if (pdev->vb_queue.streaming) {
+-		ret = -EBUSY;
+-		goto leave;
+-	}
++	if (vb2_is_busy(&pdev->vb_queue))
 +		return -EBUSY;
-+	}
-+	return 0;
-+}
-+
-+/**
-+ * __reqbufs() - Initiate streaming
-  * @q:		videobuf2 queue
-  * @req:	struct passed from userspace to vidioc_reqbufs handler in driver
-  *
-@@ -476,46 +519,16 @@ static int __verify_mmap_ops(struct vb2_queue *q)
-  * The return values from this function are intended to be directly returned
-  * from vidioc_reqbufs handler in driver.
-  */
--int vb2_reqbufs(struct vb2_queue *q, struct v4l2_requestbuffers *req)
-+static int __reqbufs(struct vb2_queue *q, struct v4l2_requestbuffers *req)
- {
- 	unsigned int num_buffers, allocated_buffers, num_planes = 0;
--	int ret = 0;
--
--	if (q->fileio) {
--		dprintk(1, "reqbufs: file io in progress\n");
--		return -EBUSY;
--	}
--
--	if (req->memory != V4L2_MEMORY_MMAP
--			&& req->memory != V4L2_MEMORY_USERPTR) {
--		dprintk(1, "reqbufs: unsupported memory type\n");
--		return -EINVAL;
--	}
--
--	if (req->type != q->type) {
--		dprintk(1, "reqbufs: requested type is incorrect\n");
--		return -EINVAL;
--	}
-+	int ret;
  
- 	if (q->streaming) {
- 		dprintk(1, "reqbufs: streaming active\n");
- 		return -EBUSY;
- 	}
+ 	pixelformat = f->fmt.pix.pixelformat;
  
--	/*
--	 * Make sure all the required memory ops for given memory type
--	 * are available.
--	 */
--	if (req->memory == V4L2_MEMORY_MMAP && __verify_mmap_ops(q)) {
--		dprintk(1, "reqbufs: MMAP for current setup unsupported\n");
--		return -EINVAL;
--	}
--
--	if (req->memory == V4L2_MEMORY_USERPTR && __verify_userptr_ops(q)) {
--		dprintk(1, "reqbufs: USERPTR for current setup unsupported\n");
--		return -EINVAL;
--	}
--
- 	if (req->count == 0 || q->num_buffers != 0 || q->memory != req->memory) {
- 		/*
- 		 * We already have buffers allocated, so first check if they
-@@ -595,10 +608,23 @@ int vb2_reqbufs(struct vb2_queue *q, struct v4l2_requestbuffers *req)
+@@ -496,8 +487,6 @@ static int pwc_s_fmt_vid_cap(struct file *file, void *fh, struct v4l2_format *f)
+ 	PWC_DEBUG_IOCTL("pwc_set_video_mode(), return=%d\n", ret);
  
- 	return 0;
+ 	pwc_vidioc_fill_fmt(f, pdev->width, pdev->height, pdev->pixfmt);
+-leave:
+-	mutex_unlock(&pdev->vb_queue_lock);
+ 	return ret;
  }
-+
-+/**
-+ * vb2_reqbufs() - Wrapper for __reqbufs() that also verifies the memory and
-+ * type values.
-+ * @q:		videobuf2 queue
-+ * @req:	struct passed from userspace to vidioc_reqbufs handler in driver
-+ */
-+int vb2_reqbufs(struct vb2_queue *q, struct v4l2_requestbuffers *req)
-+{
-+	int ret = __verify_memory_type(q, req->memory, req->type);
-+
-+	return ret ? ret : __reqbufs(q, req);
-+}
- EXPORT_SYMBOL_GPL(vb2_reqbufs);
  
- /**
-- * vb2_create_bufs() - Allocate buffers and any required auxiliary structs
-+ * __create_bufs() - Allocate buffers and any required auxiliary structs
-  * @q:		videobuf2 queue
-  * @create:	creation parameters, passed from userspace to vidioc_create_bufs
-  *		handler in driver
-@@ -612,40 +638,10 @@ EXPORT_SYMBOL_GPL(vb2_reqbufs);
-  * The return values from this function are intended to be directly returned
-  * from vidioc_create_bufs handler in driver.
-  */
--int vb2_create_bufs(struct vb2_queue *q, struct v4l2_create_buffers *create)
-+static int __create_bufs(struct vb2_queue *q, struct v4l2_create_buffers *create)
- {
- 	unsigned int num_planes = 0, num_buffers, allocated_buffers;
--	int ret = 0;
--
--	if (q->fileio) {
--		dprintk(1, "%s(): file io in progress\n", __func__);
--		return -EBUSY;
--	}
--
--	if (create->memory != V4L2_MEMORY_MMAP
--			&& create->memory != V4L2_MEMORY_USERPTR) {
--		dprintk(1, "%s(): unsupported memory type\n", __func__);
--		return -EINVAL;
--	}
--
--	if (create->format.type != q->type) {
--		dprintk(1, "%s(): requested type is incorrect\n", __func__);
--		return -EINVAL;
--	}
--
--	/*
--	 * Make sure all the required memory ops for given memory type
--	 * are available.
--	 */
--	if (create->memory == V4L2_MEMORY_MMAP && __verify_mmap_ops(q)) {
--		dprintk(1, "%s(): MMAP for current setup unsupported\n", __func__);
--		return -EINVAL;
--	}
--
--	if (create->memory == V4L2_MEMORY_USERPTR && __verify_userptr_ops(q)) {
--		dprintk(1, "%s(): USERPTR for current setup unsupported\n", __func__);
--		return -EINVAL;
--	}
-+	int ret;
- 
- 	if (q->num_buffers == VIDEO_MAX_FRAME) {
- 		dprintk(1, "%s(): maximum number of buffers already allocated\n",
-@@ -653,8 +649,6 @@ int vb2_create_bufs(struct vb2_queue *q, struct v4l2_create_buffers *create)
- 		return -ENOBUFS;
- 	}
- 
--	create->index = q->num_buffers;
--
- 	if (!q->num_buffers) {
- 		memset(q->plane_sizes, 0, sizeof(q->plane_sizes));
- 		memset(q->alloc_ctx, 0, sizeof(q->alloc_ctx));
-@@ -719,6 +713,21 @@ int vb2_create_bufs(struct vb2_queue *q, struct v4l2_create_buffers *create)
- 
- 	return 0;
+@@ -933,104 +922,6 @@ static int pwc_try_fmt_vid_cap(struct file *file, void *fh, struct v4l2_format *
+ 	return pwc_vidioc_try_fmt(pdev, f);
  }
-+
-+/**
-+ * vb2_reqbufs() - Wrapper for __reqbufs() that also verifies the memory and
-+ * type values.
-+ * @q:		videobuf2 queue
-+ * @create:	creation parameters, passed from userspace to vidioc_create_bufs
-+ *		handler in driver
-+ */
-+int vb2_create_bufs(struct vb2_queue *q, struct v4l2_create_buffers *create)
-+{
-+	int ret = __verify_memory_type(q, create->memory, create->format.type);
-+
-+	create->index = q->num_buffers;
-+	return ret ? ret : __create_bufs(q, create);
-+}
- EXPORT_SYMBOL_GPL(vb2_create_bufs);
  
- /**
+-static int pwc_reqbufs(struct file *file, void *fh,
+-		       struct v4l2_requestbuffers *rb)
+-{
+-	struct pwc_device *pdev = video_drvdata(file);
+-	int ret;
+-
+-	if (mutex_lock_interruptible(&pdev->vb_queue_lock))
+-		return -ERESTARTSYS;
+-
+-	ret = pwc_test_n_set_capt_file(pdev, file);
+-	if (ret == 0)
+-		ret = vb2_reqbufs(&pdev->vb_queue, rb);
+-
+-	mutex_unlock(&pdev->vb_queue_lock);
+-	return ret;
+-}
+-
+-static int pwc_querybuf(struct file *file, void *fh, struct v4l2_buffer *buf)
+-{
+-	struct pwc_device *pdev = video_drvdata(file);
+-	int ret;
+-
+-	if (mutex_lock_interruptible(&pdev->vb_queue_lock))
+-		return -ERESTARTSYS;
+-
+-	ret = pwc_test_n_set_capt_file(pdev, file);
+-	if (ret == 0)
+-		ret = vb2_querybuf(&pdev->vb_queue, buf);
+-
+-	mutex_unlock(&pdev->vb_queue_lock);
+-	return ret;
+-}
+-
+-static int pwc_qbuf(struct file *file, void *fh, struct v4l2_buffer *buf)
+-{
+-	struct pwc_device *pdev = video_drvdata(file);
+-	int ret;
+-
+-	if (mutex_lock_interruptible(&pdev->vb_queue_lock))
+-		return -ERESTARTSYS;
+-
+-	ret = pwc_test_n_set_capt_file(pdev, file);
+-	if (ret == 0)
+-		ret = vb2_qbuf(&pdev->vb_queue, buf);
+-
+-	mutex_unlock(&pdev->vb_queue_lock);
+-	return ret;
+-}
+-
+-static int pwc_dqbuf(struct file *file, void *fh, struct v4l2_buffer *buf)
+-{
+-	struct pwc_device *pdev = video_drvdata(file);
+-	int ret;
+-
+-	if (mutex_lock_interruptible(&pdev->vb_queue_lock))
+-		return -ERESTARTSYS;
+-
+-	ret = pwc_test_n_set_capt_file(pdev, file);
+-	if (ret == 0)
+-		ret = vb2_dqbuf(&pdev->vb_queue, buf,
+-				file->f_flags & O_NONBLOCK);
+-
+-	mutex_unlock(&pdev->vb_queue_lock);
+-	return ret;
+-}
+-
+-static int pwc_streamon(struct file *file, void *fh, enum v4l2_buf_type i)
+-{
+-	struct pwc_device *pdev = video_drvdata(file);
+-	int ret;
+-
+-	if (mutex_lock_interruptible(&pdev->vb_queue_lock))
+-		return -ERESTARTSYS;
+-
+-	ret = pwc_test_n_set_capt_file(pdev, file);
+-	if (ret == 0)
+-		ret = vb2_streamon(&pdev->vb_queue, i);
+-
+-	mutex_unlock(&pdev->vb_queue_lock);
+-	return ret;
+-}
+-
+-static int pwc_streamoff(struct file *file, void *fh, enum v4l2_buf_type i)
+-{
+-	struct pwc_device *pdev = video_drvdata(file);
+-	int ret;
+-
+-	if (mutex_lock_interruptible(&pdev->vb_queue_lock))
+-		return -ERESTARTSYS;
+-
+-	ret = pwc_test_n_set_capt_file(pdev, file);
+-	if (ret == 0)
+-		ret = vb2_streamoff(&pdev->vb_queue, i);
+-
+-	mutex_unlock(&pdev->vb_queue_lock);
+-	return ret;
+-}
+-
+ static int pwc_enum_framesizes(struct file *file, void *fh,
+ 					 struct v4l2_frmsizeenum *fsize)
+ {
+@@ -1119,25 +1010,14 @@ static int pwc_s_parm(struct file *file, void *fh,
+ 	fps = parm->parm.capture.timeperframe.denominator /
+ 	      parm->parm.capture.timeperframe.numerator;
+ 
+-	if (mutex_lock_interruptible(&pdev->vb_queue_lock))
+-		return -ERESTARTSYS;
+-
+-	ret = pwc_test_n_set_capt_file(pdev, file);
+-	if (ret)
+-		goto leave;
+-
+-	if (pdev->vb_queue.streaming) {
+-		ret = -EBUSY;
+-		goto leave;
+-	}
++	if (vb2_is_busy(&pdev->vb_queue))
++		return -EBUSY;
+ 
+ 	ret = pwc_set_video_mode(pdev, pdev->width, pdev->height, pdev->pixfmt,
+ 				 fps, &compression, 0);
+ 
+ 	pwc_g_parm(file, fh, parm);
+ 
+-leave:
+-	mutex_unlock(&pdev->vb_queue_lock);
+ 	return ret;
+ }
+ 
+@@ -1150,12 +1030,12 @@ const struct v4l2_ioctl_ops pwc_ioctl_ops = {
+ 	.vidioc_g_fmt_vid_cap		    = pwc_g_fmt_vid_cap,
+ 	.vidioc_s_fmt_vid_cap		    = pwc_s_fmt_vid_cap,
+ 	.vidioc_try_fmt_vid_cap		    = pwc_try_fmt_vid_cap,
+-	.vidioc_reqbufs			    = pwc_reqbufs,
+-	.vidioc_querybuf		    = pwc_querybuf,
+-	.vidioc_qbuf			    = pwc_qbuf,
+-	.vidioc_dqbuf			    = pwc_dqbuf,
+-	.vidioc_streamon		    = pwc_streamon,
+-	.vidioc_streamoff		    = pwc_streamoff,
++	.vidioc_reqbufs			    = vb2_ioctl_reqbufs,
++	.vidioc_querybuf		    = vb2_ioctl_querybuf,
++	.vidioc_qbuf			    = vb2_ioctl_qbuf,
++	.vidioc_dqbuf			    = vb2_ioctl_dqbuf,
++	.vidioc_streamon		    = vb2_ioctl_streamon,
++	.vidioc_streamoff		    = vb2_ioctl_streamoff,
+ 	.vidioc_log_status		    = v4l2_ctrl_log_status,
+ 	.vidioc_enum_framesizes		    = pwc_enum_framesizes,
+ 	.vidioc_enum_frameintervals	    = pwc_enum_frameintervals,
+diff --git a/drivers/media/video/pwc/pwc.h b/drivers/media/video/pwc/pwc.h
+index d6b5b21..7a6a0d3 100644
+--- a/drivers/media/video/pwc/pwc.h
++++ b/drivers/media/video/pwc/pwc.h
+@@ -239,7 +239,6 @@ struct pwc_device
+ 	int features;		/* feature bits */
+ 
+ 	/*** Video data ***/
+-	struct file *capt_file;	/* file doing video capture */
+ 	int vendpoint;		/* video isoc endpoint */
+ 	int vcinterface;	/* video control interface */
+ 	int valternate;		/* alternate interface needed */
+@@ -355,8 +354,6 @@ struct pwc_device
+ extern int pwc_trace;
+ #endif
+ 
+-int pwc_test_n_set_capt_file(struct pwc_device *pdev, struct file *file);
+-
+ /** Functions in pwc-misc.c */
+ /* sizes in pixels */
+ extern const int pwc_image_sizes[PSZ_MAX][2];
 -- 
 1.7.10
 
