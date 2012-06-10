@@ -1,155 +1,191 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:22500 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756030Ab2FNOcj (ORCPT
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:2227 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755446Ab2FJK0S (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Jun 2012 10:32:39 -0400
-Received: from euspt1 (mailout4.w1.samsung.com [210.118.77.14])
- by mailout4.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0M5M005WD33IMH70@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 14 Jun 2012 15:33:18 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0M5M00L2W32CFX@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 14 Jun 2012 15:32:37 +0100 (BST)
-Date: Thu, 14 Jun 2012 16:32:23 +0200
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: [PATCHv2 3/9] v4l: add buffer exporting via dmabuf
-In-reply-to: <1339684349-28882-1-git-send-email-t.stanislaws@samsung.com>
-To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
-Cc: airlied@redhat.com, m.szyprowski@samsung.com,
-	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
-	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
-	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
-	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
-	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
-	mchehab@redhat.com, g.liakhovetski@gmx.de
-Message-id: <1339684349-28882-4-git-send-email-t.stanislaws@samsung.com>
-Content-transfer-encoding: 7BIT
-References: <1339684349-28882-1-git-send-email-t.stanislaws@samsung.com>
+	Sun, 10 Jun 2012 06:26:18 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Andy Walls <awalls@md.metrocast.net>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Pawel Osciak <pawel@osciak.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv1 PATCH 14/32] v4l2-ioctl.c: use the new table for compression ioctls.
+Date: Sun, 10 Jun 2012 12:25:36 +0200
+Message-Id: <9c0313c3095e22e59159dbd4134dd8f4f508e902.1339321562.git.hans.verkuil@cisco.com>
+In-Reply-To: <1339323954-1404-1-git-send-email-hverkuil@xs4all.nl>
+References: <1339323954-1404-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <ef490f7ebca5b6df91db6b1acfb9928ada3bcd70.1339321562.git.hans.verkuil@cisco.com>
+References: <ef490f7ebca5b6df91db6b1acfb9928ada3bcd70.1339321562.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds extension to V4L2 api. It allow to export a mmap buffer as file
-descriptor. New ioctl VIDIOC_EXPBUF is added. It takes a buffer offset used by
-mmap and return a file descriptor on success.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/video/v4l2-compat-ioctl32.c |    1 +
- drivers/media/video/v4l2-dev.c            |    1 +
- drivers/media/video/v4l2-ioctl.c          |    6 ++++++
- include/linux/videodev2.h                 |   26 ++++++++++++++++++++++++++
- include/media/v4l2-ioctl.h                |    2 ++
- 5 files changed, 36 insertions(+)
+ drivers/media/video/v4l2-ioctl.c |  123 ++++++++++++++------------------------
+ 1 file changed, 46 insertions(+), 77 deletions(-)
 
-diff --git a/drivers/media/video/v4l2-compat-ioctl32.c b/drivers/media/video/v4l2-compat-ioctl32.c
-index d33ab18..141e745 100644
---- a/drivers/media/video/v4l2-compat-ioctl32.c
-+++ b/drivers/media/video/v4l2-compat-ioctl32.c
-@@ -970,6 +970,7 @@ long v4l2_compat_ioctl32(struct file *file, unsigned int cmd, unsigned long arg)
- 	case VIDIOC_S_FBUF32:
- 	case VIDIOC_OVERLAY32:
- 	case VIDIOC_QBUF32:
-+	case VIDIOC_EXPBUF:
- 	case VIDIOC_DQBUF32:
- 	case VIDIOC_STREAMON32:
- 	case VIDIOC_STREAMOFF32:
-diff --git a/drivers/media/video/v4l2-dev.c b/drivers/media/video/v4l2-dev.c
-index 5ccbd46..6bf6307 100644
---- a/drivers/media/video/v4l2-dev.c
-+++ b/drivers/media/video/v4l2-dev.c
-@@ -597,6 +597,7 @@ static void determine_valid_ioctls(struct video_device *vdev)
- 	SET_VALID_IOCTL(ops, VIDIOC_REQBUFS, vidioc_reqbufs);
- 	SET_VALID_IOCTL(ops, VIDIOC_QUERYBUF, vidioc_querybuf);
- 	SET_VALID_IOCTL(ops, VIDIOC_QBUF, vidioc_qbuf);
-+	SET_VALID_IOCTL(ops, VIDIOC_EXPBUF, vidioc_expbuf);
- 	SET_VALID_IOCTL(ops, VIDIOC_DQBUF, vidioc_dqbuf);
- 	SET_VALID_IOCTL(ops, VIDIOC_OVERLAY, vidioc_overlay);
- 	SET_VALID_IOCTL(ops, VIDIOC_G_FBUF, vidioc_g_fbuf);
 diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
-index 31fc2ad..a73b14e 100644
+index 9e39b74..a7e583e 100644
 --- a/drivers/media/video/v4l2-ioctl.c
 +++ b/drivers/media/video/v4l2-ioctl.c
-@@ -212,6 +212,7 @@ static struct v4l2_ioctl_info v4l2_ioctls[] = {
- 	IOCTL_INFO(VIDIOC_S_FBUF, INFO_FL_PRIO),
- 	IOCTL_INFO(VIDIOC_OVERLAY, INFO_FL_PRIO),
- 	IOCTL_INFO(VIDIOC_QBUF, 0),
-+	IOCTL_INFO(VIDIOC_EXPBUF, 0),
- 	IOCTL_INFO(VIDIOC_DQBUF, 0),
- 	IOCTL_INFO(VIDIOC_STREAMON, INFO_FL_PRIO),
- 	IOCTL_INFO(VIDIOC_STREAMOFF, INFO_FL_PRIO),
-@@ -957,6 +958,11 @@ static long __video_do_ioctl(struct file *file,
- 			dbgbuf(cmd, vfd, p);
- 		break;
- 	}
-+	case VIDIOC_EXPBUF:
-+	{
-+		ret = ops->vidioc_expbuf(file, fh, arg);
-+		break;
-+	}
- 	case VIDIOC_DQBUF:
- 	{
- 		struct v4l2_buffer *p = arg;
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index 51b20f4..e8893a5 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -684,6 +684,31 @@ struct v4l2_buffer {
- #define V4L2_BUF_FLAG_NO_CACHE_INVALIDATE	0x0800
- #define V4L2_BUF_FLAG_NO_CACHE_CLEAN		0x1000
+@@ -605,6 +605,45 @@ static void v4l_print_selection(const void *arg)
+ 		p->r.width, p->r.height, p->r.left, p->r.top);
+ }
  
-+/**
-+ * struct v4l2_exportbuffer - export of video buffer as DMABUF file descriptor
-+ *
-+ * @fd:		file descriptor associated with DMABUF (set by driver)
-+ * @mem_offset:	buffer memory offset as returned by VIDIOC_QUERYBUF in struct
-+ *		v4l2_buffer::m.offset (for single-plane formats) or
-+ *		v4l2_plane::m.offset (for multi-planar formats)
-+ * @flags:	flags for newly created file, currently only O_CLOEXEC is
-+ *		supported, refer to manual of open syscall for more details
-+ *
-+ * Contains data used for exporting a video buffer as DMABUF file descriptor.
-+ * The buffer is identified by a 'cookie' returned by VIDIOC_QUERYBUF
-+ * (identical to the cookie used to mmap() the buffer to userspace). All
-+ * reserved fields must be set to zero. The field reserved0 is expected to
-+ * become a structure 'type' allowing an alternative layout of the structure
-+ * content. Therefore this field should not be used for any other extensions.
-+ */
-+struct v4l2_exportbuffer {
-+	__u32		fd;
-+	__u32		reserved0;
-+	__u32		mem_offset;
-+	__u32		flags;
-+	__u32		reserved[12];
-+};
++static void v4l_print_jpegcompression(const void *arg)
++{
++	const struct v4l2_jpegcompression *p = arg;
 +
- /*
-  *	O V E R L A Y   P R E V I E W
-  */
-@@ -2553,6 +2578,7 @@ struct v4l2_create_buffers {
- #define VIDIOC_S_FBUF		 _IOW('V', 11, struct v4l2_framebuffer)
- #define VIDIOC_OVERLAY		 _IOW('V', 14, int)
- #define VIDIOC_QBUF		_IOWR('V', 15, struct v4l2_buffer)
-+#define VIDIOC_EXPBUF		_IOWR('V', 16, struct v4l2_exportbuffer)
- #define VIDIOC_DQBUF		_IOWR('V', 17, struct v4l2_buffer)
- #define VIDIOC_STREAMON		 _IOW('V', 18, int)
- #define VIDIOC_STREAMOFF	 _IOW('V', 19, int)
-diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
-index d8b76f7..ccd1faa 100644
---- a/include/media/v4l2-ioctl.h
-+++ b/include/media/v4l2-ioctl.h
-@@ -119,6 +119,8 @@ struct v4l2_ioctl_ops {
- 	int (*vidioc_reqbufs) (struct file *file, void *fh, struct v4l2_requestbuffers *b);
- 	int (*vidioc_querybuf)(struct file *file, void *fh, struct v4l2_buffer *b);
- 	int (*vidioc_qbuf)    (struct file *file, void *fh, struct v4l2_buffer *b);
-+	int (*vidioc_expbuf)  (struct file *file, void *fh,
-+				struct v4l2_exportbuffer *e);
- 	int (*vidioc_dqbuf)   (struct file *file, void *fh, struct v4l2_buffer *b);
++	pr_cont("quality=%d, APPn=%d, APP_len=%d, "
++		"COM_len=%d, jpeg_markers=0x%x\n",
++		p->quality, p->APPn, p->APP_len,
++		p->COM_len, p->jpeg_markers);
++}
++
++static void v4l_print_enc_idx(const void *arg)
++{
++	const struct v4l2_enc_idx *p = arg;
++
++	pr_cont("entries=%d, entries_cap=%d\n",
++			p->entries, p->entries_cap);
++}
++
++static void v4l_print_encoder_cmd(const void *arg)
++{
++	const struct v4l2_encoder_cmd *p = arg;
++
++	pr_cont("cmd=%d, flags=0x%x\n",
++			p->cmd, p->flags);
++}
++
++static void v4l_print_decoder_cmd(const void *arg)
++{
++	const struct v4l2_decoder_cmd *p = arg;
++
++	pr_cont("cmd=%d, flags=0x%x\n", p->cmd, p->flags);
++
++	if (p->cmd == V4L2_DEC_CMD_START)
++		pr_info("speed=%d, format=%u\n",
++				p->start.speed, p->start.format);
++	else if (p->cmd == V4L2_DEC_CMD_STOP)
++		pr_info("pts=%llu\n", p->stop.pts);
++}
++
+ static void v4l_print_u32(const void *arg)
+ {
+ 	pr_cont("value=%u\n", *(const u32 *)arg);
+@@ -1606,8 +1645,8 @@ static struct v4l2_ioctl_info v4l2_ioctls[] = {
+ 	IOCTL_INFO_FNC(VIDIOC_S_CROP, v4l_s_crop, v4l_print_crop, INFO_FL_PRIO),
+ 	IOCTL_INFO_STD(VIDIOC_G_SELECTION, vidioc_g_selection, v4l_print_selection, 0),
+ 	IOCTL_INFO_STD(VIDIOC_S_SELECTION, vidioc_s_selection, v4l_print_selection, INFO_FL_PRIO),
+-	IOCTL_INFO(VIDIOC_G_JPEGCOMP, 0),
+-	IOCTL_INFO(VIDIOC_S_JPEGCOMP, INFO_FL_PRIO),
++	IOCTL_INFO_STD(VIDIOC_G_JPEGCOMP, vidioc_g_jpegcomp, v4l_print_jpegcompression, 0),
++	IOCTL_INFO_STD(VIDIOC_S_JPEGCOMP, vidioc_s_jpegcomp, v4l_print_jpegcompression, INFO_FL_PRIO),
+ 	IOCTL_INFO_FNC(VIDIOC_QUERYSTD, v4l_querystd, v4l_print_std, 0),
+ 	IOCTL_INFO_FNC(VIDIOC_TRY_FMT, v4l_try_fmt, v4l_print_format, 0),
+ 	IOCTL_INFO_STD(VIDIOC_ENUMAUDIO, vidioc_enumaudio, v4l_print_audio, INFO_FL_CLEAR(v4l2_audio, index)),
+@@ -1621,11 +1660,11 @@ static struct v4l2_ioctl_info v4l2_ioctls[] = {
+ 	IOCTL_INFO_FNC(VIDIOC_TRY_EXT_CTRLS, v4l_try_ext_ctrls, v4l_print_ext_controls, 0),
+ 	IOCTL_INFO(VIDIOC_ENUM_FRAMESIZES, INFO_FL_CLEAR(v4l2_frmsizeenum, pixel_format)),
+ 	IOCTL_INFO(VIDIOC_ENUM_FRAMEINTERVALS, INFO_FL_CLEAR(v4l2_frmivalenum, height)),
+-	IOCTL_INFO(VIDIOC_G_ENC_INDEX, 0),
+-	IOCTL_INFO(VIDIOC_ENCODER_CMD, INFO_FL_PRIO | INFO_FL_CLEAR(v4l2_encoder_cmd, flags)),
+-	IOCTL_INFO(VIDIOC_TRY_ENCODER_CMD, INFO_FL_CLEAR(v4l2_encoder_cmd, flags)),
+-	IOCTL_INFO(VIDIOC_DECODER_CMD, INFO_FL_PRIO),
+-	IOCTL_INFO(VIDIOC_TRY_DECODER_CMD, 0),
++	IOCTL_INFO_STD(VIDIOC_G_ENC_INDEX, vidioc_g_enc_index, v4l_print_enc_idx, 0),
++	IOCTL_INFO_STD(VIDIOC_ENCODER_CMD, vidioc_encoder_cmd, v4l_print_encoder_cmd, INFO_FL_PRIO | INFO_FL_CLEAR(v4l2_encoder_cmd, flags)),
++	IOCTL_INFO_STD(VIDIOC_TRY_ENCODER_CMD, vidioc_try_encoder_cmd, v4l_print_encoder_cmd, INFO_FL_CLEAR(v4l2_encoder_cmd, flags)),
++	IOCTL_INFO_STD(VIDIOC_DECODER_CMD, vidioc_decoder_cmd, v4l_print_decoder_cmd, INFO_FL_PRIO),
++	IOCTL_INFO_STD(VIDIOC_TRY_DECODER_CMD, vidioc_try_decoder_cmd, v4l_print_decoder_cmd, 0),
+ 	IOCTL_INFO(VIDIOC_DBG_S_REGISTER, 0),
+ 	IOCTL_INFO(VIDIOC_DBG_G_REGISTER, 0),
+ 	IOCTL_INFO(VIDIOC_DBG_G_CHIP_IDENT, 0),
+@@ -1750,76 +1789,6 @@ static long __video_do_ioctl(struct file *file,
+ 	}
  
- 	int (*vidioc_create_bufs)(struct file *file, void *fh, struct v4l2_create_buffers *b);
+ 	switch (cmd) {
+-	case VIDIOC_G_JPEGCOMP:
+-	{
+-		struct v4l2_jpegcompression *p = arg;
+-
+-		ret = ops->vidioc_g_jpegcomp(file, fh, p);
+-		if (!ret)
+-			dbgarg(cmd, "quality=%d, APPn=%d, "
+-					"APP_len=%d, COM_len=%d, "
+-					"jpeg_markers=%d\n",
+-					p->quality, p->APPn, p->APP_len,
+-					p->COM_len, p->jpeg_markers);
+-		break;
+-	}
+-	case VIDIOC_S_JPEGCOMP:
+-	{
+-		struct v4l2_jpegcompression *p = arg;
+-
+-		dbgarg(cmd, "quality=%d, APPn=%d, APP_len=%d, "
+-					"COM_len=%d, jpeg_markers=%d\n",
+-					p->quality, p->APPn, p->APP_len,
+-					p->COM_len, p->jpeg_markers);
+-		ret = ops->vidioc_s_jpegcomp(file, fh, p);
+-		break;
+-	}
+-	case VIDIOC_G_ENC_INDEX:
+-	{
+-		struct v4l2_enc_idx *p = arg;
+-
+-		ret = ops->vidioc_g_enc_index(file, fh, p);
+-		if (!ret)
+-			dbgarg(cmd, "entries=%d, entries_cap=%d\n",
+-					p->entries, p->entries_cap);
+-		break;
+-	}
+-	case VIDIOC_ENCODER_CMD:
+-	{
+-		struct v4l2_encoder_cmd *p = arg;
+-
+-		ret = ops->vidioc_encoder_cmd(file, fh, p);
+-		if (!ret)
+-			dbgarg(cmd, "cmd=%d, flags=%x\n", p->cmd, p->flags);
+-		break;
+-	}
+-	case VIDIOC_TRY_ENCODER_CMD:
+-	{
+-		struct v4l2_encoder_cmd *p = arg;
+-
+-		ret = ops->vidioc_try_encoder_cmd(file, fh, p);
+-		if (!ret)
+-			dbgarg(cmd, "cmd=%d, flags=%x\n", p->cmd, p->flags);
+-		break;
+-	}
+-	case VIDIOC_DECODER_CMD:
+-	{
+-		struct v4l2_decoder_cmd *p = arg;
+-
+-		ret = ops->vidioc_decoder_cmd(file, fh, p);
+-		if (!ret)
+-			dbgarg(cmd, "cmd=%d, flags=%x\n", p->cmd, p->flags);
+-		break;
+-	}
+-	case VIDIOC_TRY_DECODER_CMD:
+-	{
+-		struct v4l2_decoder_cmd *p = arg;
+-
+-		ret = ops->vidioc_try_decoder_cmd(file, fh, p);
+-		if (!ret)
+-			dbgarg(cmd, "cmd=%d, flags=%x\n", p->cmd, p->flags);
+-		break;
+-	}
+ 	case VIDIOC_G_SLICED_VBI_CAP:
+ 	{
+ 		struct v4l2_sliced_vbi_cap *p = arg;
 -- 
-1.7.9.5
+1.7.10
 
