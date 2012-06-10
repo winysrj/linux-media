@@ -1,481 +1,256 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:2198 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755386Ab2FJK0U (ORCPT
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:1235 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755538Ab2FJKzR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Jun 2012 06:26:20 -0400
+	Sun, 10 Jun 2012 06:55:17 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Andy Walls <awalls@md.metrocast.net>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Pawel Osciak <pawel@osciak.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+Cc: Steven Toth <stoth@kernellabs.com>,
+	Michael Krufky <mkrufky@linuxtv.org>,
 	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv1 PATCH 12/32] v4l2-ioctl.c: use the new table for control ioctls.
-Date: Sun, 10 Jun 2012 12:25:34 +0200
-Message-Id: <f3b93b3758c43848c1e93fbfde5e330121e66bd5.1339321562.git.hans.verkuil@cisco.com>
-In-Reply-To: <1339323954-1404-1-git-send-email-hverkuil@xs4all.nl>
-References: <1339323954-1404-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <ef490f7ebca5b6df91db6b1acfb9928ada3bcd70.1339321562.git.hans.verkuil@cisco.com>
-References: <ef490f7ebca5b6df91db6b1acfb9928ada3bcd70.1339321562.git.hans.verkuil@cisco.com>
+Subject: [RFCv1 PATCH 05/11] cx88: remove radio and type from cx8800_fh.
+Date: Sun, 10 Jun 2012 12:54:51 +0200
+Message-Id: <536c2b72e5faf34a5296de726f2d51526a6cfdda.1339325224.git.hans.verkuil@cisco.com>
+In-Reply-To: <1339325697-23280-1-git-send-email-hverkuil@xs4all.nl>
+References: <1339325697-23280-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <541a39bdcc8a94d3de87a6a6d0b1b7c476983984.1339325224.git.hans.verkuil@cisco.com>
+References: <541a39bdcc8a94d3de87a6a6d0b1b7c476983984.1339325224.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 From: Hans Verkuil <hans.verkuil@cisco.com>
 
+This information is available elsewhere already.
+
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/video/v4l2-ioctl.c |  395 +++++++++++++++++++-------------------
- 1 file changed, 198 insertions(+), 197 deletions(-)
+ drivers/media/video/cx88/cx88-video.c |   89 ++++++++++++++-------------------
+ drivers/media/video/cx88/cx88.h       |    2 -
+ 2 files changed, 37 insertions(+), 54 deletions(-)
 
-diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
-index 1f7982a..4fb113b 100644
---- a/drivers/media/video/v4l2-ioctl.c
-+++ b/drivers/media/video/v4l2-ioctl.c
-@@ -527,6 +527,49 @@ static void v4l_print_streamparm(const void *arg)
- 	}
- }
+diff --git a/drivers/media/video/cx88/cx88-video.c b/drivers/media/video/cx88/cx88-video.c
+index 104a85c..e5e5510 100644
+--- a/drivers/media/video/cx88/cx88-video.c
++++ b/drivers/media/video/cx88/cx88-video.c
+@@ -683,12 +683,15 @@ static const struct videobuf_queue_ops cx8800_video_qops = {
  
-+static void v4l_print_queryctrl(const void *arg)
-+{
-+	const struct v4l2_queryctrl *p = arg;
-+
-+	pr_cont("id=0x%x, type=%d, name=%s, min/max=%d/%d, "
-+		"step=%d, default=%d, flags=0x%08x\n",
-+			p->id, p->type, p->name,
-+			p->minimum, p->maximum,
-+			p->step, p->default_value, p->flags);
-+}
-+
-+static void v4l_print_querymenu(const void *arg)
-+{
-+	const struct v4l2_querymenu *p = arg;
-+
-+	pr_cont("id=0x%x, index=%d\n", p->id, p->index);
-+}
-+
-+static void v4l_print_control(const void *arg)
-+{
-+	const struct v4l2_control *p = arg;
-+
-+	pr_cont("id=0x%x, value=%d\n", p->id, p->value);
-+}
-+
-+static void v4l_print_ext_controls(const void *arg)
-+{
-+	const struct v4l2_ext_controls *p = arg;
-+	int i;
-+
-+	pr_cont("class=0x%x, count=%d, error_idx=%d",
-+			p->ctrl_class, p->count, p->error_idx);
-+	for (i = 0; i < p->count; i++) {
-+		if (p->controls[i].size)
-+			pr_cont(", id/val=0x%x/0x%x",
-+				p->controls[i].id, p->controls[i].value);
-+		else
-+			pr_cont(", id/size=0x%x/%u",
-+				p->controls[i].id, p->controls[i].size);
-+	}
-+	pr_cont("\n");
-+}
-+
- static void v4l_print_u32(const void *arg)
+ /* ------------------------------------------------------------------ */
+ 
+-static struct videobuf_queue* get_queue(struct cx8800_fh *fh)
++static struct videobuf_queue *get_queue(struct file *file)
  {
- 	pr_cont("value=%u\n", *(const u32 *)arg);
-@@ -567,27 +610,7 @@ static void dbgtimings(struct video_device *vfd,
+-	switch (fh->type) {
+-	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
++	struct video_device *vdev = video_devdata(file);
++	struct cx8800_fh *fh = file->private_data;
++
++	switch (vdev->vfl_type) {
++	case VFL_TYPE_GRABBER:
+ 		return &fh->vidq;
+-	case V4L2_BUF_TYPE_VBI_CAPTURE:
++	case VFL_TYPE_VBI:
+ 		return &fh->vbiq;
+ 	default:
+ 		BUG();
+@@ -696,12 +699,14 @@ static struct videobuf_queue* get_queue(struct cx8800_fh *fh)
  	}
  }
  
--static inline void v4l_print_ext_ctrls(unsigned int cmd,
--	struct video_device *vfd, struct v4l2_ext_controls *c, int show_vals)
--{
--	__u32 i;
--
--	if (!(vfd->debug & V4L2_DEBUG_IOCTL_ARG))
--		return;
--	dbgarg(cmd, "");
--	printk(KERN_CONT "class=0x%x", c->ctrl_class);
--	for (i = 0; i < c->count; i++) {
--		if (show_vals && !c->controls[i].size)
--			printk(KERN_CONT " id/val=0x%x/0x%x",
--				c->controls[i].id, c->controls[i].value);
--		else
--			printk(KERN_CONT " id=0x%x,size=%u",
--				c->controls[i].id, c->controls[i].size);
--	}
--	printk(KERN_CONT "\n");
--};
--
--static inline int check_ext_ctrls(struct v4l2_ext_controls *c, int allow_priv)
-+static int check_ext_ctrls(struct v4l2_ext_controls *c, int allow_priv)
+-static int get_ressource(struct cx8800_fh *fh)
++static int get_resource(struct file *file)
  {
- 	__u32 i;
+-	switch (fh->type) {
+-	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
++	struct video_device *vdev = video_devdata(file);
++
++	switch (vdev->vfl_type) {
++	case VFL_TYPE_GRABBER:
+ 		return RESOURCE_VIDEO;
+-	case V4L2_BUF_TYPE_VBI_CAPTURE:
++	case VFL_TYPE_VBI:
+ 		return RESOURCE_VBI;
+ 	default:
+ 		BUG();
+@@ -740,8 +745,6 @@ static int video_open(struct file *file)
  
-@@ -1227,6 +1250,153 @@ static int v4l_s_parm(const struct v4l2_ioctl_ops *ops,
- 	return ret ? ret : ops->vidioc_s_parm(file, fh, p);
+ 	file->private_data = fh;
+ 	fh->dev      = dev;
+-	fh->radio    = radio;
+-	fh->type     = type;
+ 	fh->width    = 320;
+ 	fh->height   = 240;
+ 	fh->fmt      = format_by_fourcc(V4L2_PIX_FMT_BGR24);
+@@ -761,7 +764,7 @@ static int video_open(struct file *file)
+ 			    sizeof(struct cx88_buffer),
+ 			    fh, NULL);
+ 
+-	if (fh->radio) {
++	if (vdev->vfl_type == VFL_TYPE_RADIO) {
+ 		dprintk(1,"video_open: setting radio device\n");
+ 		cx_write(MO_GP3_IO, core->board.radio.gpio3);
+ 		cx_write(MO_GP0_IO, core->board.radio.gpio0);
+@@ -794,15 +797,16 @@ static int video_open(struct file *file)
+ static ssize_t
+ video_read(struct file *file, char __user *data, size_t count, loff_t *ppos)
+ {
++	struct video_device *vdev = video_devdata(file);
+ 	struct cx8800_fh *fh = file->private_data;
+ 
+-	switch (fh->type) {
+-	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
++	switch (vdev->vfl_type) {
++	case VFL_TYPE_GRABBER:
+ 		if (res_locked(fh->dev,RESOURCE_VIDEO))
+ 			return -EBUSY;
+ 		return videobuf_read_one(&fh->vidq, data, count, ppos,
+ 					 file->f_flags & O_NONBLOCK);
+-	case V4L2_BUF_TYPE_VBI_CAPTURE:
++	case VFL_TYPE_VBI:
+ 		if (!res_get(fh->dev,fh,RESOURCE_VBI))
+ 			return -EBUSY;
+ 		return videobuf_read_stream(&fh->vbiq, data, count, ppos, 1,
+@@ -816,11 +820,12 @@ video_read(struct file *file, char __user *data, size_t count, loff_t *ppos)
+ static unsigned int
+ video_poll(struct file *file, struct poll_table_struct *wait)
+ {
++	struct video_device *vdev = video_devdata(file);
+ 	struct cx8800_fh *fh = file->private_data;
+ 	struct cx88_buffer *buf;
+ 	unsigned int rc = POLLERR;
+ 
+-	if (V4L2_BUF_TYPE_VBI_CAPTURE == fh->type) {
++	if (vdev->vfl_type == VFL_TYPE_VBI) {
+ 		if (!res_get(fh->dev,fh,RESOURCE_VBI))
+ 			return POLLERR;
+ 		return videobuf_poll_stream(file, &fh->vbiq, wait);
+@@ -894,9 +899,7 @@ static int video_release(struct file *file)
+ static int
+ video_mmap(struct file *file, struct vm_area_struct * vma)
+ {
+-	struct cx8800_fh *fh = file->private_data;
+-
+-	return videobuf_mmap_mapper(get_queue(fh), vma);
++	return videobuf_mmap_mapper(get_queue(file), vma);
  }
  
-+static int v4l_queryctrl(const struct v4l2_ioctl_ops *ops,
-+				struct file *file, void *fh, void *arg)
-+{
-+	struct video_device *vfd = video_devdata(file);
-+	struct v4l2_queryctrl *p = arg;
-+	struct v4l2_fh *vfh = fh;
-+
-+	if (vfh && vfh->ctrl_handler)
-+		return v4l2_queryctrl(vfh->ctrl_handler, p);
-+	if (vfd->ctrl_handler)
-+		return v4l2_queryctrl(vfd->ctrl_handler, p);
-+	if (ops->vidioc_queryctrl)
-+		return ops->vidioc_queryctrl(file, fh, p);
-+	return -ENOTTY;
-+}
-+
-+static int v4l_querymenu(const struct v4l2_ioctl_ops *ops,
-+				struct file *file, void *fh, void *arg)
-+{
-+	struct video_device *vfd = video_devdata(file);
-+	struct v4l2_querymenu *p = arg;
-+	struct v4l2_fh *vfh = fh;
-+
-+	if (vfh && vfh->ctrl_handler)
-+		return v4l2_querymenu(vfh->ctrl_handler, p);
-+	if (vfd->ctrl_handler)
-+		return v4l2_querymenu(vfd->ctrl_handler, p);
-+	if (ops->vidioc_querymenu)
-+		return ops->vidioc_querymenu(file, fh, p);
-+	return -ENOTTY;
-+}
-+
-+static int v4l_g_ctrl(const struct v4l2_ioctl_ops *ops,
-+				struct file *file, void *fh, void *arg)
-+{
-+	struct video_device *vfd = video_devdata(file);
-+	struct v4l2_control *p = arg;
-+	struct v4l2_fh *vfh = fh;
-+	struct v4l2_ext_controls ctrls;
-+	struct v4l2_ext_control ctrl;
-+
-+	if (vfh && vfh->ctrl_handler)
-+		return v4l2_g_ctrl(vfh->ctrl_handler, p);
-+	if (vfd->ctrl_handler)
-+		return v4l2_g_ctrl(vfd->ctrl_handler, p);
-+	if (ops->vidioc_g_ctrl)
-+		return ops->vidioc_g_ctrl(file, fh, p);
-+	if (ops->vidioc_g_ext_ctrls == NULL)
-+		return -ENOTTY;
-+
-+	ctrls.ctrl_class = V4L2_CTRL_ID2CLASS(p->id);
-+	ctrls.count = 1;
-+	ctrls.controls = &ctrl;
-+	ctrl.id = p->id;
-+	ctrl.value = p->value;
-+	if (check_ext_ctrls(&ctrls, 1)) {
-+		int ret = ops->vidioc_g_ext_ctrls(file, fh, &ctrls);
-+
-+		if (ret == 0)
-+			p->value = ctrl.value;
-+		return ret;
-+	}
-+	return -EINVAL;
-+}
-+
-+static int v4l_s_ctrl(const struct v4l2_ioctl_ops *ops,
-+				struct file *file, void *fh, void *arg)
-+{
-+	struct video_device *vfd = video_devdata(file);
-+	struct v4l2_control *p = arg;
-+	struct v4l2_fh *vfh = fh;
-+	struct v4l2_ext_controls ctrls;
-+	struct v4l2_ext_control ctrl;
-+
-+	if (vfh && vfh->ctrl_handler)
-+		return v4l2_s_ctrl(vfh, vfh->ctrl_handler, p);
-+	if (vfd->ctrl_handler)
-+		return v4l2_s_ctrl(NULL, vfd->ctrl_handler, p);
-+	if (ops->vidioc_s_ctrl)
-+		return ops->vidioc_s_ctrl(file, fh, p);
-+	if (ops->vidioc_s_ext_ctrls == NULL)
-+		return -ENOTTY;
-+
-+	ctrls.ctrl_class = V4L2_CTRL_ID2CLASS(p->id);
-+	ctrls.count = 1;
-+	ctrls.controls = &ctrl;
-+	ctrl.id = p->id;
-+	ctrl.value = p->value;
-+	if (check_ext_ctrls(&ctrls, 1))
-+		return ops->vidioc_s_ext_ctrls(file, fh, &ctrls);
-+	return -EINVAL;
-+}
-+
-+static int v4l_g_ext_ctrls(const struct v4l2_ioctl_ops *ops,
-+				struct file *file, void *fh, void *arg)
-+{
-+	struct video_device *vfd = video_devdata(file);
-+	struct v4l2_ext_controls *p = arg;
-+	struct v4l2_fh *vfh = fh;
-+
-+	p->error_idx = p->count;
-+	if (vfh && vfh->ctrl_handler)
-+		return v4l2_g_ext_ctrls(vfh->ctrl_handler, p);
-+	if (vfd->ctrl_handler)
-+		return v4l2_g_ext_ctrls(vfd->ctrl_handler, p);
-+	if (ops->vidioc_g_ext_ctrls == NULL)
-+		return -ENOTTY;
-+	return check_ext_ctrls(p, 0) ? ops->vidioc_g_ext_ctrls(file, fh, p) :
-+					-EINVAL;
-+}
-+
-+static int v4l_s_ext_ctrls(const struct v4l2_ioctl_ops *ops,
-+				struct file *file, void *fh, void *arg)
-+{
-+	struct video_device *vfd = video_devdata(file);
-+	struct v4l2_ext_controls *p = arg;
-+	struct v4l2_fh *vfh = fh;
-+
-+	p->error_idx = p->count;
-+	if (vfh && vfh->ctrl_handler)
-+		return v4l2_s_ext_ctrls(vfh, vfh->ctrl_handler, p);
-+	if (vfd->ctrl_handler)
-+		return v4l2_s_ext_ctrls(NULL, vfd->ctrl_handler, p);
-+	if (ops->vidioc_s_ext_ctrls == NULL)
-+		return -ENOTTY;
-+	return check_ext_ctrls(p, 0) ? ops->vidioc_s_ext_ctrls(file, fh, p) :
-+					-EINVAL;
-+}
-+
-+static int v4l_try_ext_ctrls(const struct v4l2_ioctl_ops *ops,
-+				struct file *file, void *fh, void *arg)
-+{
-+	struct video_device *vfd = video_devdata(file);
-+	struct v4l2_ext_controls *p = arg;
-+	struct v4l2_fh *vfh = fh;
-+
-+	p->error_idx = p->count;
-+	if (vfh && vfh->ctrl_handler)
-+		return v4l2_try_ext_ctrls(vfh->ctrl_handler, p);
-+	if (vfd->ctrl_handler)
-+		return v4l2_try_ext_ctrls(vfd->ctrl_handler, p);
-+	if (ops->vidioc_try_ext_ctrls == NULL)
-+		return -ENOTTY;
-+	return check_ext_ctrls(p, 0) ? ops->vidioc_try_ext_ctrls(file, fh, p) :
-+					-EINVAL;
-+}
-+
- struct v4l2_ioctl_info {
- 	unsigned int ioctl;
- 	u32 flags;
-@@ -1297,14 +1467,14 @@ static struct v4l2_ioctl_info v4l2_ioctls[] = {
- 	IOCTL_INFO_FNC(VIDIOC_S_STD, v4l_s_std, v4l_print_std, INFO_FL_PRIO),
- 	IOCTL_INFO_FNC(VIDIOC_ENUMSTD, v4l_enumstd, v4l_print_standard, INFO_FL_CLEAR(v4l2_standard, index)),
- 	IOCTL_INFO_FNC(VIDIOC_ENUMINPUT, v4l_enuminput, v4l_print_enuminput, INFO_FL_CLEAR(v4l2_input, index)),
--	IOCTL_INFO(VIDIOC_G_CTRL, INFO_FL_CTRL),
--	IOCTL_INFO(VIDIOC_S_CTRL, INFO_FL_PRIO | INFO_FL_CTRL),
-+	IOCTL_INFO_FNC(VIDIOC_G_CTRL, v4l_g_ctrl, v4l_print_control, INFO_FL_CTRL | INFO_FL_CLEAR(v4l2_control, id)),
-+	IOCTL_INFO_FNC(VIDIOC_S_CTRL, v4l_s_ctrl, v4l_print_control, INFO_FL_PRIO | INFO_FL_CTRL),
- 	IOCTL_INFO_FNC(VIDIOC_G_TUNER, v4l_g_tuner, v4l_print_g_tuner, INFO_FL_CLEAR(v4l2_tuner, index)),
- 	IOCTL_INFO_FNC(VIDIOC_S_TUNER, v4l_s_tuner, v4l_print_s_tuner, INFO_FL_PRIO),
- 	IOCTL_INFO_STD(VIDIOC_G_AUDIO, vidioc_g_audio, v4l_print_audio, 0),
- 	IOCTL_INFO_STD(VIDIOC_S_AUDIO, vidioc_s_audio, v4l_print_s_audio, INFO_FL_PRIO),
--	IOCTL_INFO(VIDIOC_QUERYCTRL, INFO_FL_CTRL | INFO_FL_CLEAR(v4l2_queryctrl, id)),
--	IOCTL_INFO(VIDIOC_QUERYMENU, INFO_FL_CTRL | INFO_FL_CLEAR(v4l2_querymenu, index)),
-+	IOCTL_INFO_FNC(VIDIOC_QUERYCTRL, v4l_queryctrl, v4l_print_queryctrl, INFO_FL_CTRL | INFO_FL_CLEAR(v4l2_queryctrl, id)),
-+	IOCTL_INFO_FNC(VIDIOC_QUERYMENU, v4l_querymenu, v4l_print_querymenu, INFO_FL_CTRL | INFO_FL_CLEAR(v4l2_querymenu, index)),
- 	IOCTL_INFO_STD(VIDIOC_G_INPUT, vidioc_g_input, v4l_print_u32, 0),
- 	IOCTL_INFO_FNC(VIDIOC_S_INPUT, v4l_s_input, v4l_print_u32, INFO_FL_PRIO),
- 	IOCTL_INFO_STD(VIDIOC_G_OUTPUT, vidioc_g_output, v4l_print_u32, 0),
-@@ -1331,9 +1501,9 @@ static struct v4l2_ioctl_info v4l2_ioctls[] = {
- 	IOCTL_INFO_FNC(VIDIOC_S_PRIORITY, v4l_s_priority, v4l_print_u32, INFO_FL_PRIO),
- 	IOCTL_INFO(VIDIOC_G_SLICED_VBI_CAP, INFO_FL_CLEAR(v4l2_sliced_vbi_cap, type)),
- 	IOCTL_INFO(VIDIOC_LOG_STATUS, 0),
--	IOCTL_INFO(VIDIOC_G_EXT_CTRLS, INFO_FL_CTRL),
--	IOCTL_INFO(VIDIOC_S_EXT_CTRLS, INFO_FL_PRIO | INFO_FL_CTRL),
--	IOCTL_INFO(VIDIOC_TRY_EXT_CTRLS, 0),
-+	IOCTL_INFO_FNC(VIDIOC_G_EXT_CTRLS, v4l_g_ext_ctrls, v4l_print_ext_controls, INFO_FL_CTRL),
-+	IOCTL_INFO_FNC(VIDIOC_S_EXT_CTRLS, v4l_s_ext_ctrls, v4l_print_ext_controls, INFO_FL_PRIO | INFO_FL_CTRL),
-+	IOCTL_INFO_FNC(VIDIOC_TRY_EXT_CTRLS, v4l_try_ext_ctrls, v4l_print_ext_controls, 0),
- 	IOCTL_INFO(VIDIOC_ENUM_FRAMESIZES, INFO_FL_CLEAR(v4l2_frmsizeenum, pixel_format)),
- 	IOCTL_INFO(VIDIOC_ENUM_FRAMEINTERVALS, INFO_FL_CLEAR(v4l2_frmivalenum, height)),
- 	IOCTL_INFO(VIDIOC_G_ENC_INDEX, 0),
-@@ -1465,175 +1635,6 @@ static long __video_do_ioctl(struct file *file,
- 	}
+ /* ------------------------------------------------------------------ */
+@@ -1126,63 +1129,53 @@ static int vidioc_enum_fmt_vid_cap (struct file *file, void  *priv,
  
- 	switch (cmd) {
--	/* --- controls ---------------------------------------------- */
--	case VIDIOC_QUERYCTRL:
--	{
--		struct v4l2_queryctrl *p = arg;
+ static int vidioc_reqbufs (struct file *file, void *priv, struct v4l2_requestbuffers *p)
+ {
+-	struct cx8800_fh  *fh   = priv;
+-	return (videobuf_reqbufs(get_queue(fh), p));
++	return videobuf_reqbufs(get_queue(file), p);
+ }
+ 
+ static int vidioc_querybuf (struct file *file, void *priv, struct v4l2_buffer *p)
+ {
+-	struct cx8800_fh  *fh   = priv;
+-	return (videobuf_querybuf(get_queue(fh), p));
++	return videobuf_querybuf(get_queue(file), p);
+ }
+ 
+ static int vidioc_qbuf (struct file *file, void *priv, struct v4l2_buffer *p)
+ {
+-	struct cx8800_fh  *fh   = priv;
+-	return (videobuf_qbuf(get_queue(fh), p));
++	return videobuf_qbuf(get_queue(file), p);
+ }
+ 
+ static int vidioc_dqbuf (struct file *file, void *priv, struct v4l2_buffer *p)
+ {
+-	struct cx8800_fh  *fh   = priv;
+-	return (videobuf_dqbuf(get_queue(fh), p,
+-				file->f_flags & O_NONBLOCK));
++	return videobuf_dqbuf(get_queue(file), p,
++				file->f_flags & O_NONBLOCK);
+ }
+ 
+ static int vidioc_streamon(struct file *file, void *priv, enum v4l2_buf_type i)
+ {
++	struct video_device *vdev = video_devdata(file);
+ 	struct cx8800_fh  *fh   = priv;
+ 	struct cx8800_dev *dev  = fh->dev;
+ 
+-	/* We should remember that this driver also supports teletext,  */
+-	/* so we have to test if the v4l2_buf_type is VBI capture data. */
+-	if (unlikely((fh->type != V4L2_BUF_TYPE_VIDEO_CAPTURE) &&
+-		     (fh->type != V4L2_BUF_TYPE_VBI_CAPTURE)))
++	if ((vdev->vfl_type == VFL_TYPE_GRABBER && i != V4L2_BUF_TYPE_VIDEO_CAPTURE) ||
++	    (vdev->vfl_type == VFL_TYPE_VBI && i != V4L2_BUF_TYPE_VBI_CAPTURE))
+ 		return -EINVAL;
+ 
+-	if (unlikely(i != fh->type))
+-		return -EINVAL;
 -
--		if (vfh && vfh->ctrl_handler)
--			ret = v4l2_queryctrl(vfh->ctrl_handler, p);
--		else if (vfd->ctrl_handler)
--			ret = v4l2_queryctrl(vfd->ctrl_handler, p);
--		else if (ops->vidioc_queryctrl)
--			ret = ops->vidioc_queryctrl(file, fh, p);
--		else
--			break;
--		if (!ret)
--			dbgarg(cmd, "id=0x%x, type=%d, name=%s, min/max=%d/%d, "
--					"step=%d, default=%d, flags=0x%08x\n",
--					p->id, p->type, p->name,
--					p->minimum, p->maximum,
--					p->step, p->default_value, p->flags);
--		else
--			dbgarg(cmd, "id=0x%x\n", p->id);
--		break;
--	}
--	case VIDIOC_G_CTRL:
--	{
--		struct v4l2_control *p = arg;
+-	if (unlikely(!res_get(dev,fh,get_ressource(fh))))
++	if (unlikely(!res_get(dev, fh, get_resource(file))))
+ 		return -EBUSY;
+-	return videobuf_streamon(get_queue(fh));
++	return videobuf_streamon(get_queue(file));
+ }
+ 
+ static int vidioc_streamoff(struct file *file, void *priv, enum v4l2_buf_type i)
+ {
++	struct video_device *vdev = video_devdata(file);
+ 	struct cx8800_fh  *fh   = priv;
+ 	struct cx8800_dev *dev  = fh->dev;
+ 	int               err, res;
+ 
+-	if ((fh->type != V4L2_BUF_TYPE_VIDEO_CAPTURE) &&
+-	    (fh->type != V4L2_BUF_TYPE_VBI_CAPTURE))
+-		return -EINVAL;
 -
--		if (vfh && vfh->ctrl_handler)
--			ret = v4l2_g_ctrl(vfh->ctrl_handler, p);
--		else if (vfd->ctrl_handler)
--			ret = v4l2_g_ctrl(vfd->ctrl_handler, p);
--		else if (ops->vidioc_g_ctrl)
--			ret = ops->vidioc_g_ctrl(file, fh, p);
--		else if (ops->vidioc_g_ext_ctrls) {
--			struct v4l2_ext_controls ctrls;
--			struct v4l2_ext_control ctrl;
+-	if (i != fh->type)
++	if ((vdev->vfl_type == VFL_TYPE_GRABBER && i != V4L2_BUF_TYPE_VIDEO_CAPTURE) ||
++	    (vdev->vfl_type == VFL_TYPE_VBI && i != V4L2_BUF_TYPE_VBI_CAPTURE))
+ 		return -EINVAL;
+ 
+-	res = get_ressource(fh);
+-	err = videobuf_streamoff(get_queue(fh));
++	res = get_resource(file);
++	err = videobuf_streamoff(get_queue(file));
+ 	if (err < 0)
+ 		return err;
+ 	res_free(dev,fh,res);
+@@ -1305,8 +1298,6 @@ static int vidioc_g_frequency (struct file *file, void *priv,
+ 	if (unlikely(UNSET == core->board.tuner_type))
+ 		return -EINVAL;
+ 
+-	/* f->type = fh->radio ? V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV; */
+-	f->type = fh->radio ? V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
+ 	f->frequency = core->freq;
+ 
+ 	call_all(core, tuner, g_frequency, f);
+@@ -1343,13 +1334,7 @@ static int vidioc_s_frequency (struct file *file, void *priv,
+ 	struct cx8800_fh  *fh   = priv;
+ 	struct cx88_core  *core = fh->dev->core;
+ 
+-	if (unlikely(0 == fh->radio && f->type != V4L2_TUNER_ANALOG_TV))
+-		return -EINVAL;
+-	if (unlikely(1 == fh->radio && f->type != V4L2_TUNER_RADIO))
+-		return -EINVAL;
 -
--			ctrls.ctrl_class = V4L2_CTRL_ID2CLASS(p->id);
--			ctrls.count = 1;
--			ctrls.controls = &ctrl;
--			ctrl.id = p->id;
--			ctrl.value = p->value;
--			if (check_ext_ctrls(&ctrls, 1)) {
--				ret = ops->vidioc_g_ext_ctrls(file, fh, &ctrls);
--				if (ret == 0)
--					p->value = ctrl.value;
--			}
--		} else
--			break;
--		if (!ret)
--			dbgarg(cmd, "id=0x%x, value=%d\n", p->id, p->value);
--		else
--			dbgarg(cmd, "id=0x%x\n", p->id);
--		break;
--	}
--	case VIDIOC_S_CTRL:
--	{
--		struct v4l2_control *p = arg;
--		struct v4l2_ext_controls ctrls;
--		struct v4l2_ext_control ctrl;
--
--		if (!(vfh && vfh->ctrl_handler) && !vfd->ctrl_handler &&
--			!ops->vidioc_s_ctrl && !ops->vidioc_s_ext_ctrls)
--			break;
--
--		dbgarg(cmd, "id=0x%x, value=%d\n", p->id, p->value);
--
--		if (vfh && vfh->ctrl_handler) {
--			ret = v4l2_s_ctrl(vfh, vfh->ctrl_handler, p);
--			break;
--		}
--		if (vfd->ctrl_handler) {
--			ret = v4l2_s_ctrl(NULL, vfd->ctrl_handler, p);
--			break;
--		}
--		if (ops->vidioc_s_ctrl) {
--			ret = ops->vidioc_s_ctrl(file, fh, p);
--			break;
--		}
--		if (!ops->vidioc_s_ext_ctrls)
--			break;
--
--		ctrls.ctrl_class = V4L2_CTRL_ID2CLASS(p->id);
--		ctrls.count = 1;
--		ctrls.controls = &ctrl;
--		ctrl.id = p->id;
--		ctrl.value = p->value;
--		if (check_ext_ctrls(&ctrls, 1))
--			ret = ops->vidioc_s_ext_ctrls(file, fh, &ctrls);
--		else
--			ret = -EINVAL;
--		break;
--	}
--	case VIDIOC_G_EXT_CTRLS:
--	{
--		struct v4l2_ext_controls *p = arg;
--
--		p->error_idx = p->count;
--		if (vfh && vfh->ctrl_handler)
--			ret = v4l2_g_ext_ctrls(vfh->ctrl_handler, p);
--		else if (vfd->ctrl_handler)
--			ret = v4l2_g_ext_ctrls(vfd->ctrl_handler, p);
--		else if (ops->vidioc_g_ext_ctrls)
--			ret = check_ext_ctrls(p, 0) ?
--				ops->vidioc_g_ext_ctrls(file, fh, p) :
--				-EINVAL;
--		else
--			break;
--		v4l_print_ext_ctrls(cmd, vfd, p, !ret);
--		break;
--	}
--	case VIDIOC_S_EXT_CTRLS:
--	{
--		struct v4l2_ext_controls *p = arg;
--
--		p->error_idx = p->count;
--		if (!(vfh && vfh->ctrl_handler) && !vfd->ctrl_handler &&
--				!ops->vidioc_s_ext_ctrls)
--			break;
--		v4l_print_ext_ctrls(cmd, vfd, p, 1);
--		if (vfh && vfh->ctrl_handler)
--			ret = v4l2_s_ext_ctrls(vfh, vfh->ctrl_handler, p);
--		else if (vfd->ctrl_handler)
--			ret = v4l2_s_ext_ctrls(NULL, vfd->ctrl_handler, p);
--		else if (check_ext_ctrls(p, 0))
--			ret = ops->vidioc_s_ext_ctrls(file, fh, p);
--		else
--			ret = -EINVAL;
--		break;
--	}
--	case VIDIOC_TRY_EXT_CTRLS:
--	{
--		struct v4l2_ext_controls *p = arg;
--
--		p->error_idx = p->count;
--		if (!(vfh && vfh->ctrl_handler) && !vfd->ctrl_handler &&
--				!ops->vidioc_try_ext_ctrls)
--			break;
--		v4l_print_ext_ctrls(cmd, vfd, p, 1);
--		if (vfh && vfh->ctrl_handler)
--			ret = v4l2_try_ext_ctrls(vfh->ctrl_handler, p);
--		else if (vfd->ctrl_handler)
--			ret = v4l2_try_ext_ctrls(vfd->ctrl_handler, p);
--		else if (check_ext_ctrls(p, 0))
--			ret = ops->vidioc_try_ext_ctrls(file, fh, p);
--		else
--			ret = -EINVAL;
--		break;
--	}
--	case VIDIOC_QUERYMENU:
--	{
--		struct v4l2_querymenu *p = arg;
--
--		if (vfh && vfh->ctrl_handler)
--			ret = v4l2_querymenu(vfh->ctrl_handler, p);
--		else if (vfd->ctrl_handler)
--			ret = v4l2_querymenu(vfd->ctrl_handler, p);
--		else if (ops->vidioc_querymenu)
--			ret = ops->vidioc_querymenu(file, fh, p);
--		else
--			break;
--		if (!ret)
--			dbgarg(cmd, "id=0x%x, index=%d, name=%s\n",
--				p->id, p->index, p->name);
--		else
--			dbgarg(cmd, "id=0x%x, index=%d\n",
--				p->id, p->index);
--		break;
--	}
- 	case VIDIOC_G_CROP:
- 	{
- 		struct v4l2_crop *p = arg;
+-	return
+-		cx88_set_freq (core,f);
++	return cx88_set_freq(core, f);
+ }
+ 
+ #ifdef CONFIG_VIDEO_ADV_DEBUG
+diff --git a/drivers/media/video/cx88/cx88.h b/drivers/media/video/cx88/cx88.h
+index e79cb87..1426993 100644
+--- a/drivers/media/video/cx88/cx88.h
++++ b/drivers/media/video/cx88/cx88.h
+@@ -455,8 +455,6 @@ struct cx8802_dev;
+ 
+ struct cx8800_fh {
+ 	struct cx8800_dev          *dev;
+-	enum v4l2_buf_type         type;
+-	int                        radio;
+ 	unsigned int               resources;
+ 
+ 	/* video overlay */
 -- 
 1.7.10
 
