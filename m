@@ -1,96 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gg0-f174.google.com ([209.85.161.174]:61206 "EHLO
-	mail-gg0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756294Ab2FNSA3 (ORCPT
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:4451 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750895Ab2FJG2h convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Jun 2012 14:00:29 -0400
-Received: by gglu4 with SMTP id u4so1628432ggl.19
-        for <linux-media@vger.kernel.org>; Thu, 14 Jun 2012 11:00:29 -0700 (PDT)
-From: Peter Senna Tschudin <peter.senna@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jarod Wilson <jarod@redhat.com>,
-	=?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>,
-	Ben Hutchings <ben@decadent.org.uk>,
-	Luis Henriques <luis.henriques@canonical.com>,
+	Sun, 10 Jun 2012 02:28:37 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Daniel =?utf-8?q?Gl=C3=B6ckner?= <daniel-gl@gmx.net>
+Subject: Re: Some tvaudio fixes
+Date: Sun, 10 Jun 2012 08:28:00 +0200
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
 	linux-media@vger.kernel.org
-Cc: Peter Senna Tschudin <peter.senna@gmail.com>
-Subject: [PATCH 5/8] nuvoton-cir: Code cleanup: remove unused variable and function
-Date: Thu, 14 Jun 2012 14:58:13 -0300
-Message-Id: <1339696716-14373-5-git-send-email-peter.senna@gmail.com>
-In-Reply-To: <1339696716-14373-1-git-send-email-peter.senna@gmail.com>
-References: <1339696716-14373-1-git-send-email-peter.senna@gmail.com>
+References: <20120609214100.GA1598@minime.bse> <1339292638-12205-1-git-send-email-daniel-gl@gmx.net>
+In-Reply-To: <1339292638-12205-1-git-send-email-daniel-gl@gmx.net>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201206100828.00951.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Tested by compilation only.
+On Sun June 10 2012 03:43:49 Daniel Glöckner wrote:
+> This patchset is made up of changes I did to the tvaudio driver
+> back in 2009. IIRC I started these to get automatic mono/stereo
+> swiching working again in mplayer. These changes have been tested
+> with a TDA9873H only and most of the time there was stereo. The
+> last patch is just a few hours old and has received no testing at
+> all.
+> 
+>   Daniel
+>       
+>  [PATCH 1/9] tvaudio: fix TDA9873 constants
+>  [PATCH 2/9] tvaudio: fix tda8425_setmode
+>  [PATCH 3/9] tvaudio: use V4L2_TUNER_MODE_SAP for TDA985x SAP
+>  [PATCH 4/9] tvaudio: remove watch_stereo
+>  [PATCH 5/9] tvaudio: don't use thread for TA8874Z
+>  [PATCH 6/9] tvaudio: use V4L2_TUNER_SUB_* for bitfields
+>  [PATCH 7/9] tvaudio: obey V4L2 tuner audio matrix
+>  [PATCH 8/9] tvaudio: support V4L2_TUNER_MODE_LANG1_LANG2
+>  [PATCH 9/9] tvaudio: don't report mono when stereo is received
+> 
+>  drivers/media/video/tvaudio.c |  189 +++++++++++++++++++++++------------------
+>  1 files changed, 107 insertions(+), 82 deletions(-)
+> 
 
-Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
----
- drivers/media/rc/nuvoton-cir.c |   37 -------------------------------------
- 1 file changed, 37 deletions(-)
+Looks good, but I'd like to see one final change: rename setmode to setaudmode
+and getmode to getrxsubchans. That would make the code so much more understandable :-)
 
-diff --git a/drivers/media/rc/nuvoton-cir.c b/drivers/media/rc/nuvoton-cir.c
-index dc8a7dd..0e8052f 100644
---- a/drivers/media/rc/nuvoton-cir.c
-+++ b/drivers/media/rc/nuvoton-cir.c
-@@ -473,39 +473,6 @@ static void nvt_enable_wake(struct nvt_dev *nvt)
- 	nvt_cir_wake_reg_write(nvt, 0, CIR_WAKE_IREN);
- }
- 
--/* rx carrier detect only works in learning mode, must be called w/nvt_lock */
--static u32 nvt_rx_carrier_detect(struct nvt_dev *nvt)
--{
--	u32 count, carrier, duration = 0;
--	int i;
--
--	count = nvt_cir_reg_read(nvt, CIR_FCCL) |
--		nvt_cir_reg_read(nvt, CIR_FCCH) << 8;
--
--	for (i = 0; i < nvt->pkts; i++) {
--		if (nvt->buf[i] & BUF_PULSE_BIT)
--			duration += nvt->buf[i] & BUF_LEN_MASK;
--	}
--
--	duration *= SAMPLE_PERIOD;
--
--	if (!count || !duration) {
--		nvt_pr(KERN_NOTICE, "Unable to determine carrier! (c:%u, d:%u)",
--		       count, duration);
--		return 0;
--	}
--
--	carrier = MS_TO_NS(count) / duration;
--
--	if ((carrier > MAX_CARRIER) || (carrier < MIN_CARRIER))
--		nvt_dbg("WTF? Carrier frequency out of range!");
--
--	nvt_dbg("Carrier frequency: %u (count %u, duration %u)",
--		carrier, count, duration);
--
--	return carrier;
--}
--
- /*
-  * set carrier frequency
-  *
-@@ -618,7 +585,6 @@ static void nvt_dump_rx_buf(struct nvt_dev *nvt)
- static void nvt_process_rx_ir_data(struct nvt_dev *nvt)
- {
- 	DEFINE_IR_RAW_EVENT(rawir);
--	u32 carrier;
- 	u8 sample;
- 	int i;
- 
-@@ -627,9 +593,6 @@ static void nvt_process_rx_ir_data(struct nvt_dev *nvt)
- 	if (debug)
- 		nvt_dump_rx_buf(nvt);
- 
--	if (nvt->carrier_detect_enabled)
--		carrier = nvt_rx_carrier_detect(nvt);
--
- 	nvt_dbg_verbose("Processing buffer of len %d", nvt->pkts);
- 
- 	init_ir_raw_event(&rawir);
--- 
-1.7.10.2
+It's OK to do that as a final 10th patch.
 
+Good work!
+
+Regards,
+
+	Hans
