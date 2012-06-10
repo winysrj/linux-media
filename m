@@ -1,39 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:42706 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751357Ab2FMHAg (ORCPT
+Received: from smtp-vbr19.xs4all.nl ([194.109.24.39]:4430 "EHLO
+	smtp-vbr19.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755252Ab2FJK0Q (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Jun 2012 03:00:36 -0400
-Received: by yhmm54 with SMTP id m54so259133yhm.19
-        for <linux-media@vger.kernel.org>; Wed, 13 Jun 2012 00:00:36 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <4FD818EC.6060300@ims.uni-hannover.de>
-References: <1339539568-7725-1-git-send-email-martin.blumenstingl@googlemail.com>
- <4FD818EC.6060300@ims.uni-hannover.de>
-From: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
-Date: Wed, 13 Jun 2012 09:00:15 +0200
-Message-ID: <CAFBinCC9fZe84j9kVePVjA6y+HzGm3tf4sTgufhWTiTPLQ=KJg@mail.gmail.com>
-Subject: Re: [PATCH 0/3] em28xx: Improve compatiblity with the Terratec
- Cinergy HTC Stick HD
-To: linux-media@vger.kernel.org,
-	=?ISO-8859-1?Q?S=F6ren_Moch?= <soeren.moch@ims.uni-hannover.de>
-Cc: sven.pilz@gmail.com
-Content-Type: text/plain; charset=ISO-8859-1
+	Sun, 10 Jun 2012 06:26:16 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Andy Walls <awalls@md.metrocast.net>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Pawel Osciak <pawel@osciak.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv1 PATCH 25/32] create_bufs: handle count == 0.
+Date: Sun, 10 Jun 2012 12:25:47 +0200
+Message-Id: <0b5df251d2a54d54ee2810d86b6da0cf7efbe38d.1339321562.git.hans.verkuil@cisco.com>
+In-Reply-To: <1339323954-1404-1-git-send-email-hverkuil@xs4all.nl>
+References: <1339323954-1404-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <ef490f7ebca5b6df91db6b1acfb9928ada3bcd70.1339321562.git.hans.verkuil@cisco.com>
+References: <ef490f7ebca5b6df91db6b1acfb9928ada3bcd70.1339321562.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sven,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-> I tested the patchset on linux-3.4.2, unfortunately DVB-C is not working
-> here (DVB-T not tested).
-> If you have further patches or other suggestions what to test, I would be
-> happy to try it.
-That's sad.
-I guess it was also not working with the old version, right?
-Do you get any errors in dmesg?
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ Documentation/DocBook/media/v4l/vidioc-create-bufs.xml |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-I can test DVB-C support next week - I'll let you know once I find out
-something.
+diff --git a/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml b/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
+index 765549f..afdba4d 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
+@@ -97,7 +97,13 @@ information.</para>
+ 	  <row>
+ 	    <entry>__u32</entry>
+ 	    <entry><structfield>count</structfield></entry>
+-	    <entry>The number of buffers requested or granted.</entry>
++	    <entry>The number of buffers requested or granted. If count == 0, then
++	    <constant>VIDIOC_CREATE_BUFS</constant> will set <structfield>index</structfield>
++	    to the starting buffer index, and it will check the validity of
++	    <structfield>memory</structfield> and <structfield>format.type</structfield>.
++	    If those are invalid -1 is returned and errno is set to &EINVAL;,
++	    otherwise <constant>VIDIOC_CREATE_BUFS</constant> returns 0. It will
++	    never set errno to &EBUSY; in this particular case.</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry>__u32</entry>
+-- 
+1.7.10
 
-Regards,
-Martin
