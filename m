@@ -1,69 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:38163 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752815Ab2FRTYS (ORCPT
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:4296 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755900Ab2FJK0W (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jun 2012 15:24:18 -0400
-Received: by mail-yw0-f46.google.com with SMTP id m54so4149641yhm.19
-        for <linux-media@vger.kernel.org>; Mon, 18 Jun 2012 12:24:18 -0700 (PDT)
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: <linux-media@vger.kernel.org>,
-	Ezequiel Garcia <elezegarcia@gmail.com>
-Subject: [PATCH 08/12] cx231xx: Remove useless struct i2c_algo_bit_data usage
-Date: Mon, 18 Jun 2012 16:23:41 -0300
-Message-Id: <1340047425-32000-8-git-send-email-elezegarcia@gmail.com>
-In-Reply-To: <1340047425-32000-1-git-send-email-elezegarcia@gmail.com>
-References: <1340047425-32000-1-git-send-email-elezegarcia@gmail.com>
+	Sun, 10 Jun 2012 06:26:22 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Andy Walls <awalls@md.metrocast.net>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Pawel Osciak <pawel@osciak.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv1 PATCH 22/32] cx18: don't mess with vfd->debug.
+Date: Sun, 10 Jun 2012 12:25:44 +0200
+Message-Id: <3408e3f38d609a3d176ea0b96de8224fffcaf05a.1339321562.git.hans.verkuil@cisco.com>
+In-Reply-To: <1339323954-1404-1-git-send-email-hverkuil@xs4all.nl>
+References: <1339323954-1404-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <ef490f7ebca5b6df91db6b1acfb9928ada3bcd70.1339321562.git.hans.verkuil@cisco.com>
+References: <ef490f7ebca5b6df91db6b1acfb9928ada3bcd70.1339321562.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
----
- drivers/media/video/cx231xx/cx231xx-i2c.c |    2 --
- drivers/media/video/cx231xx/cx231xx.h     |    2 --
- 2 files changed, 0 insertions(+), 4 deletions(-)
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-diff --git a/drivers/media/video/cx231xx/cx231xx-i2c.c b/drivers/media/video/cx231xx/cx231xx-i2c.c
-index 8064119..f5f4844 100644
---- a/drivers/media/video/cx231xx/cx231xx-i2c.c
-+++ b/drivers/media/video/cx231xx/cx231xx-i2c.c
-@@ -500,7 +500,6 @@ int cx231xx_i2c_register(struct cx231xx_i2c *bus)
- 	BUG_ON(!dev->cx231xx_send_usb_command);
+That is now handled by sysfs.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/video/cx18/cx18-ioctl.c   |   18 ------------------
+ drivers/media/video/cx18/cx18-ioctl.h   |    2 --
+ drivers/media/video/cx18/cx18-streams.c |    4 ++--
+ 3 files changed, 2 insertions(+), 22 deletions(-)
+
+diff --git a/drivers/media/video/cx18/cx18-ioctl.c b/drivers/media/video/cx18/cx18-ioctl.c
+index 35fde4e..e9912db 100644
+--- a/drivers/media/video/cx18/cx18-ioctl.c
++++ b/drivers/media/video/cx18/cx18-ioctl.c
+@@ -1142,24 +1142,6 @@ static long cx18_default(struct file *file, void *fh, bool valid_prio,
+ 	return 0;
+ }
  
- 	memcpy(&bus->i2c_adap, &cx231xx_adap_template, sizeof(bus->i2c_adap));
--	memcpy(&bus->i2c_algo, &cx231xx_algo, sizeof(bus->i2c_algo));
- 	memcpy(&bus->i2c_client, &cx231xx_client_template,
- 	       sizeof(bus->i2c_client));
- 
-@@ -508,7 +507,6 @@ int cx231xx_i2c_register(struct cx231xx_i2c *bus)
- 
- 	strlcpy(bus->i2c_adap.name, bus->dev->name, sizeof(bus->i2c_adap.name));
- 
--	bus->i2c_algo.data = bus;
- 	bus->i2c_adap.algo_data = bus;
- 	i2c_set_adapdata(&bus->i2c_adap, &dev->v4l2_dev);
- 	bus->i2c_rc = i2c_add_adapter(&bus->i2c_adap);
-diff --git a/drivers/media/video/cx231xx/cx231xx.h b/drivers/media/video/cx231xx/cx231xx.h
-index e174475..a89d020 100644
---- a/drivers/media/video/cx231xx/cx231xx.h
-+++ b/drivers/media/video/cx231xx/cx231xx.h
-@@ -26,7 +26,6 @@
- #include <linux/types.h>
- #include <linux/ioctl.h>
- #include <linux/i2c.h>
--#include <linux/i2c-algo-bit.h>
- #include <linux/workqueue.h>
- #include <linux/mutex.h>
- 
-@@ -481,7 +480,6 @@ struct cx231xx_i2c {
- 
- 	/* i2c i/o */
- 	struct i2c_adapter i2c_adap;
--	struct i2c_algo_bit_data i2c_algo;
- 	struct i2c_client i2c_client;
- 	u32 i2c_rc;
- 
+-long cx18_v4l2_ioctl(struct file *filp, unsigned int cmd,
+-		    unsigned long arg)
+-{
+-	struct video_device *vfd = video_devdata(filp);
+-	struct cx18_open_id *id = file2id(filp);
+-	struct cx18 *cx = id->cx;
+-	long res;
+-
+-	mutex_lock(&cx->serialize_lock);
+-
+-	if (cx18_debug & CX18_DBGFLG_IOCTL)
+-		vfd->debug = V4L2_DEBUG_IOCTL | V4L2_DEBUG_IOCTL_ARG;
+-	res = video_ioctl2(filp, cmd, arg);
+-	vfd->debug = 0;
+-	mutex_unlock(&cx->serialize_lock);
+-	return res;
+-}
+-
+ static const struct v4l2_ioctl_ops cx18_ioctl_ops = {
+ 	.vidioc_querycap                = cx18_querycap,
+ 	.vidioc_s_audio                 = cx18_s_audio,
+diff --git a/drivers/media/video/cx18/cx18-ioctl.h b/drivers/media/video/cx18/cx18-ioctl.h
+index dcb2559..2f9dd59 100644
+--- a/drivers/media/video/cx18/cx18-ioctl.h
++++ b/drivers/media/video/cx18/cx18-ioctl.h
+@@ -29,5 +29,3 @@ void cx18_set_funcs(struct video_device *vdev);
+ int cx18_s_std(struct file *file, void *fh, v4l2_std_id *std);
+ int cx18_s_frequency(struct file *file, void *fh, struct v4l2_frequency *vf);
+ int cx18_s_input(struct file *file, void *fh, unsigned int inp);
+-long cx18_v4l2_ioctl(struct file *filp, unsigned int cmd,
+-		    unsigned long arg);
+diff --git a/drivers/media/video/cx18/cx18-streams.c b/drivers/media/video/cx18/cx18-streams.c
+index 4185bcb..9d598ab 100644
+--- a/drivers/media/video/cx18/cx18-streams.c
++++ b/drivers/media/video/cx18/cx18-streams.c
+@@ -40,8 +40,7 @@ static struct v4l2_file_operations cx18_v4l2_enc_fops = {
+ 	.owner = THIS_MODULE,
+ 	.read = cx18_v4l2_read,
+ 	.open = cx18_v4l2_open,
+-	/* FIXME change to video_ioctl2 if serialization lock can be removed */
+-	.unlocked_ioctl = cx18_v4l2_ioctl,
++	.unlocked_ioctl = video_ioctl2,
+ 	.release = cx18_v4l2_close,
+ 	.poll = cx18_v4l2_enc_poll,
+ 	.mmap = cx18_v4l2_mmap,
+@@ -376,6 +375,7 @@ static int cx18_prep_dev(struct cx18 *cx, int type)
+ 	s->video_dev->fops = &cx18_v4l2_enc_fops;
+ 	s->video_dev->release = video_device_release;
+ 	s->video_dev->tvnorms = V4L2_STD_ALL;
++	s->video_dev->lock = &cx->serialize_lock;
+ 	set_bit(V4L2_FL_USE_FH_PRIO, &s->video_dev->flags);
+ 	cx18_set_funcs(s->video_dev);
+ 	return 0;
 -- 
-1.7.4.4
+1.7.10
 
