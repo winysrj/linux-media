@@ -1,164 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:55312 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754047Ab2F1Jyv convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Jun 2012 05:54:51 -0400
-From: "Hadli, Manjunath" <manjunath.hadli@ti.com>
-To: "'Laurent Pinchart'" <laurent.pinchart@ideasonboard.com>,
-	"davinci-linux-open-source@linux.davincidsp.com"
-	<davinci-linux-open-source@linux.davincidsp.com>
-CC: LMML <linux-media@vger.kernel.org>
-Subject: RE: [PATCH v3 10/13] davinci: vpif capture:Add power management
- support
-Date: Thu, 28 Jun 2012 09:54:42 +0000
-Message-ID: <E99FAA59F8D8D34D8A118DD37F7C8F753E936B23@DBDE01.ent.ti.com>
-References: <1340622455-10419-1-git-send-email-manjunath.hadli@ti.com>
- <1340622455-10419-11-git-send-email-manjunath.hadli@ti.com>
- <2777370.dWcj1X6j2h@avalon>
-In-Reply-To: <2777370.dWcj1X6j2h@avalon>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from mailout-de.gmx.net ([213.165.64.23]:46644 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1754542Ab2FJBoz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Jun 2012 21:44:55 -0400
+From: =?UTF-8?q?Daniel=20Gl=C3=B6ckner?= <daniel-gl@gmx.net>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: linux-media@vger.kernel.org,
+	=?UTF-8?q?Daniel=20Gl=C3=B6ckner?= <daniel-gl@gmx.net>
+Subject: [PATCH 2/9] tvaudio: fix tda8425_setmode
+Date: Sun, 10 Jun 2012 03:43:51 +0200
+Message-Id: <1339292638-12205-3-git-send-email-daniel-gl@gmx.net>
+In-Reply-To: <20120609214100.GA1598@minime.bse>
+References: <20120609214100.GA1598@minime.bse>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+The passed audio mode is not a bitfield.
 
-On Mon, Jun 25, 2012 at 18:27:23, Laurent Pinchart wrote:
-> Hi Manjunath,
-> 
-> Thank you for the patch.
-> 
-> On Monday 25 June 2012 16:37:32 Manjunath Hadli wrote:
-> > Implement power management operations - suspend and resume as part of 
-> > dev_pm_ops for VPIF capture driver.
-> > 
-> > Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-> > Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
-> > ---
-> >  drivers/media/video/davinci/vpif_capture.c |   77 +++++++++++++++++++++----
-> >  1 files changed, 65 insertions(+), 12 deletions(-)
-> > 
-> > diff --git a/drivers/media/video/davinci/vpif_capture.c
-> > b/drivers/media/video/davinci/vpif_capture.c index 097e136..f1ee137 
-> > 100644
-> > --- a/drivers/media/video/davinci/vpif_capture.c
-> > +++ b/drivers/media/video/davinci/vpif_capture.c
-> > @@ -2300,26 +2300,74 @@ static int vpif_remove(struct platform_device
-> > *device) return 0;
-> >  }
-> > 
-> > +#ifdef CONFIG_PM
-> >  /**
-> >   * vpif_suspend: vpif device suspend
-> > - *
-> > - * TODO: Add suspend code here
-> >   */
-> > -static int
-> > -vpif_suspend(struct device *dev)
-> > +static int vpif_suspend(struct device *dev)
-> >  {
-> > -	return -1;
-> > +
-> > +	struct common_obj *common;
-> > +	struct channel_obj *ch;
-> > +	int i;
-> > +
-> > +	for (i = 0; i < VPIF_CAPTURE_MAX_DEVICES; i++) {
-> > +		/* Get the pointer to the channel object */
-> > +		ch = vpif_obj.dev[i];
-> > +		common = &ch->common[VPIF_VIDEO_INDEX];
-> > +		if (mutex_lock_interruptible(&common->lock))
-> > +			return -ERESTARTSYS;
-> 
-> As for the display driver, this should probably be replaced by mutex_lock().
-> 
-  Ok, I'll replace it with mutex_lock().
+Signed-off-by: Daniel Glöckner <daniel-gl@gmx.net>
+---
+ drivers/media/video/tvaudio.c |   24 ++++++++++++++----------
+ 1 files changed, 14 insertions(+), 10 deletions(-)
 
-Thx,
---Manju
-
-> > +		if (ch->usrs && common->io_usrs) {
-> > +			/* Disable channel */
-> > +			if (ch->channel_id == VPIF_CHANNEL0_VIDEO) {
-> > +				enable_channel0(0);
-> > +				channel0_intr_enable(0);
-> > +			}
-> > +			if (ch->channel_id == VPIF_CHANNEL1_VIDEO ||
-> > +			    common->started == 2) {
-> > +				enable_channel1(0);
-> > +				channel1_intr_enable(0);
-> > +			}
-> > +		}
-> > +		mutex_unlock(&common->lock);
-> > +	}
-> > +
-> > +	return 0;
-> >  }
-> > 
-> > -/**
-> > +/*
-> >   * vpif_resume: vpif device suspend
-> > - *
-> > - * TODO: Add resume code here
-> >   */
-> > -static int
-> > -vpif_resume(struct device *dev)
-> > +static int vpif_resume(struct device *dev)
-> >  {
-> > -	return -1;
-> > +	struct common_obj *common;
-> > +	struct channel_obj *ch;
-> > +	int i;
-> > +
-> > +	for (i = 0; i < VPIF_CAPTURE_MAX_DEVICES; i++) {
-> > +		/* Get the pointer to the channel object */
-> > +		ch = vpif_obj.dev[i];
-> > +		common = &ch->common[VPIF_VIDEO_INDEX];
-> > +		if (mutex_lock_interruptible(&common->lock))
-> > +			return -ERESTARTSYS;
-> > +
-> > +		if (ch->usrs && common->io_usrs) {
-> > +			/* Disable channel */
-> > +			if (ch->channel_id == VPIF_CHANNEL0_VIDEO) {
-> > +				enable_channel0(1);
-> > +				channel0_intr_enable(1);
-> > +			}
-> > +			if (ch->channel_id == VPIF_CHANNEL1_VIDEO ||
-> > +			    common->started == 2) {
-> > +				enable_channel1(1);
-> > +				channel1_intr_enable(1);
-> > +			}
-> > +		}
-> > +		mutex_unlock(&common->lock);
-> > +	}
-> > +
-> > +	return 0;
-> >  }
-> > 
-> >  static const struct dev_pm_ops vpif_dev_pm_ops = { @@ -2327,11 
-> > +2375,16 @@ static const struct dev_pm_ops vpif_dev_pm_ops = {
-> >  	.resume = vpif_resume,
-> >  };
-> > 
-> > +#define vpif_pm_ops (&vpif_dev_pm_ops) #else #define vpif_pm_ops NULL 
-> > +#endif
-> > +
-> >  static __refdata struct platform_driver vpif_driver = {
-> >  	.driver	= {
-> >  		.name	= "vpif_capture",
-> >  		.owner	= THIS_MODULE,
-> > -		.pm = &vpif_dev_pm_ops,
-> > +		.pm	= vpif_pm_ops,
-> >  	},
-> >  	.probe = vpif_probe,
-> >  	.remove = vpif_remove,
-> --
-> Regards,
-> 
-> Laurent Pinchart
-> 
-> 
+diff --git a/drivers/media/video/tvaudio.c b/drivers/media/video/tvaudio.c
+index 9b85e2a..76a8cbe 100644
+--- a/drivers/media/video/tvaudio.c
++++ b/drivers/media/video/tvaudio.c
+@@ -1230,21 +1230,25 @@ static void tda8425_setmode(struct CHIPSTATE *chip, int mode)
+ {
+ 	int s1 = chip->shadow.bytes[TDA8425_S1+1] & 0xe1;
+ 
+-	if (mode & V4L2_TUNER_MODE_LANG1) {
++	switch (mode) {
++	case V4L2_TUNER_MODE_LANG1:
+ 		s1 |= TDA8425_S1_ML_SOUND_A;
+ 		s1 |= TDA8425_S1_STEREO_PSEUDO;
+-
+-	} else if (mode & V4L2_TUNER_MODE_LANG2) {
++		break;
++	case V4L2_TUNER_MODE_LANG2:
+ 		s1 |= TDA8425_S1_ML_SOUND_B;
+ 		s1 |= TDA8425_S1_STEREO_PSEUDO;
+-
+-	} else {
++		break;
++	case V4L2_TUNER_MODE_MONO:
+ 		s1 |= TDA8425_S1_ML_STEREO;
+-
+-		if (mode & V4L2_TUNER_MODE_MONO)
+-			s1 |= TDA8425_S1_STEREO_MONO;
+-		if (mode & V4L2_TUNER_MODE_STEREO)
+-			s1 |= TDA8425_S1_STEREO_SPATIAL;
++		s1 |= TDA8425_S1_STEREO_MONO;
++		break;
++	case V4L2_TUNER_MODE_STEREO:
++		s1 |= TDA8425_S1_ML_STEREO;
++		s1 |= TDA8425_S1_STEREO_SPATIAL;
++		break;
++	default:
++		return;
+ 	}
+ 	chip_write(chip,TDA8425_S1,s1);
+ }
+-- 
+1.7.0.5
 
