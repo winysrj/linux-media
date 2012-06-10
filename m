@@ -1,46 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:39927 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754218Ab2FON7v (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Jun 2012 09:59:51 -0400
-Received: by yenl2 with SMTP id l2so1873440yen.19
-        for <linux-media@vger.kernel.org>; Fri, 15 Jun 2012 06:59:50 -0700 (PDT)
+Received: from mailout-de.gmx.net ([213.165.64.23]:46193 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1753353Ab2FJBop (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Jun 2012 21:44:45 -0400
+From: =?UTF-8?q?Daniel=20Gl=C3=B6ckner?= <daniel-gl@gmx.net>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: linux-media@vger.kernel.org
+Subject: Some tvaudio fixes
+Date: Sun, 10 Jun 2012 03:43:49 +0200
+Message-Id: <1339292638-12205-1-git-send-email-daniel-gl@gmx.net>
+In-Reply-To: <20120609214100.GA1598@minime.bse>
+References: <20120609214100.GA1598@minime.bse>
 MIME-Version: 1.0
-Date: Fri, 15 Jun 2012 10:59:50 -0300
-Message-ID: <CALF0-+U_9Fa6n_2dFPjNoWaGBn1T-JMefQwn223zftvE65=rfw@mail.gmail.com>
-Subject: STK1160 has audio now (was Re: [Q] Why is it needed to add an alsa
- module to v4l audio capture devices?)
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	laurent.pinchart@ideasonboard.com
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi again,
+This patchset is made up of changes I did to the tvaudio driver
+back in 2009. IIRC I started these to get automatic mono/stereo
+swiching working again in mplayer. These changes have been tested
+with a TDA9873H only and most of the time there was stereo. The
+last patch is just a few hours old and has received no testing at
+all.
 
-On Mon, Jun 11, 2012 at 1:39 PM, Ezequiel Garcia >>
->> some setup is required to configure the audio input associated with a video input,
->> and to enable clock for the audio sampler. Such setup is made when a video input is
->> selected. You likely need something similar for stk1160.
->>
+  Daniel
+      
+ [PATCH 1/9] tvaudio: fix TDA9873 constants
+ [PATCH 2/9] tvaudio: fix tda8425_setmode
+ [PATCH 3/9] tvaudio: use V4L2_TUNER_MODE_SAP for TDA985x SAP
+ [PATCH 4/9] tvaudio: remove watch_stereo
+ [PATCH 5/9] tvaudio: don't use thread for TA8874Z
+ [PATCH 6/9] tvaudio: use V4L2_TUNER_SUB_* for bitfields
+ [PATCH 7/9] tvaudio: obey V4L2 tuner audio matrix
+ [PATCH 8/9] tvaudio: support V4L2_TUNER_MODE_LANG1_LANG2
+ [PATCH 9/9] tvaudio: don't report mono when stereo is received
 
-I've added audio initialization as done by easycap (staging) driver
-and now I'm capturing audio using snd-usb-audio :-)
+ drivers/media/video/tvaudio.c |  189 +++++++++++++++++++++++------------------
+ 1 files changed, 107 insertions(+), 82 deletions(-)
 
-It seems to me that almost everything in easycap_sound.c
-is not actually needed,
-since it's already implemented by snd-usb-audio.
-
-In other words, there is nothing vendor specific there (except from
-some register poking).
-
-In yet another words, next time I'll submit stk1160 it won't have any
-of easycap_sound.c code.
-Instead, snd-usb-audio driver is expected to be used.
-
-Thanks,
-Ezequiel.
