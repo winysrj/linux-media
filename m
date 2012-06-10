@@ -1,216 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:24713 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759651Ab2FUNgz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Jun 2012 09:36:55 -0400
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Antti Palosaari <crope@iki.fi>, Kay Sievers <kay@redhat.com>
-Subject: [PATCH] [media] drxk: change it to use request_firmware_nowait()
-Date: Thu, 21 Jun 2012 10:36:38 -0300
-Message-Id: <1340285798-8322-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:1212 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755452Ab2FJKzN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 10 Jun 2012 06:55:13 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Steven Toth <stoth@kernellabs.com>,
+	Michael Krufky <mkrufky@linuxtv.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv1 PATCH 10/11] cx88: don't use current_norm.
+Date: Sun, 10 Jun 2012 12:54:56 +0200
+Message-Id: <4ce9fb31636c8bc1c7d2eeb7b8eaacdc09dcaf1b.1339325224.git.hans.verkuil@cisco.com>
+In-Reply-To: <1339325697-23280-1-git-send-email-hverkuil@xs4all.nl>
+References: <1339325697-23280-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <541a39bdcc8a94d3de87a6a6d0b1b7c476983984.1339325224.git.hans.verkuil@cisco.com>
+References: <541a39bdcc8a94d3de87a6a6d0b1b7c476983984.1339325224.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The firmware blob may not be available when the driver probes.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Instead of blocking the whole kernel use request_firmware_nowait() and
-continue without firmware.
+current_norm can only be used if there is a single device node since it is
+local to the device node. In this case multiple device nodes share a single
+tuner.
 
-This shouldn't be that bad on drx-k devices, as they all seem to have an
-internal firmware. So, only the firmware update will take a little longer
-to happen.
-
-Cc: Antti Palosaari <crope@iki.fi>
-Cc: Kay Sievers <kay@redhat.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/dvb/frontends/drxk_hard.c |  109 +++++++++++++++++++------------
- drivers/media/dvb/frontends/drxk_hard.h |    3 +
- 2 files changed, 72 insertions(+), 40 deletions(-)
+ drivers/media/video/cx88/cx88-blackbird.c |   12 +++++++++---
+ drivers/media/video/cx88/cx88-video.c     |   14 +++++++++++---
+ 2 files changed, 20 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/media/dvb/frontends/drxk_hard.c b/drivers/media/dvb/frontends/drxk_hard.c
-index 60b868f..4cb8d1e 100644
---- a/drivers/media/dvb/frontends/drxk_hard.c
-+++ b/drivers/media/dvb/frontends/drxk_hard.c
-@@ -5968,29 +5968,9 @@ error:
- 	return status;
+diff --git a/drivers/media/video/cx88/cx88-blackbird.c b/drivers/media/video/cx88/cx88-blackbird.c
+index 397ac42..9cc6c95 100644
+--- a/drivers/media/video/cx88/cx88-blackbird.c
++++ b/drivers/media/video/cx88/cx88-blackbird.c
+@@ -930,6 +930,14 @@ static int vidioc_s_tuner (struct file *file, void *priv,
+ 	return 0;
  }
  
--static int load_microcode(struct drxk_state *state, const char *mc_name)
--{
--	const struct firmware *fw = NULL;
--	int err = 0;
--
--	dprintk(1, "\n");
--
--	err = request_firmware(&fw, mc_name, state->i2c->dev.parent);
--	if (err < 0) {
--		printk(KERN_ERR
--		       "drxk: Could not load firmware file %s.\n", mc_name);
--		printk(KERN_INFO
--		       "drxk: Copy %s to your hotplug directory!\n", mc_name);
--		return err;
--	}
--	err = DownloadMicrocode(state, fw->data, fw->size);
--	release_firmware(fw);
--	return err;
--}
--
- static int init_drxk(struct drxk_state *state)
- {
--	int status = 0;
-+	int status = 0, n = 0;
- 	enum DRXPowerMode powerMode = DRXK_POWER_DOWN_OFDM;
- 	u16 driverVersion;
- 
-@@ -6073,8 +6053,12 @@ static int init_drxk(struct drxk_state *state)
- 		if (status < 0)
- 			goto error;
- 
--		if (state->microcode_name)
--			load_microcode(state, state->microcode_name);
-+		if (state->fw) {
-+			status = DownloadMicrocode(state, state->fw->data,
-+						   state->fw->size);
-+			if (status < 0)
-+				goto error;
-+		}
- 
- 		/* disable token-ring bus through OFDM block for possible ucode upload */
- 		status = write16(state, SIO_OFDM_SH_OFDM_RING_ENABLE__A, SIO_OFDM_SH_OFDM_RING_ENABLE_OFF);
-@@ -6167,6 +6151,20 @@ static int init_drxk(struct drxk_state *state)
- 			state->m_DrxkState = DRXK_POWERED_DOWN;
- 		} else
- 			state->m_DrxkState = DRXK_STOPPED;
-+
-+		/* Initialize the supported delivery systems */
-+		n = 0;
-+		if (state->m_hasDVBC) {
-+			state->frontend.ops.delsys[n++] = SYS_DVBC_ANNEX_A;
-+			state->frontend.ops.delsys[n++] = SYS_DVBC_ANNEX_C;
-+			strlcat(state->frontend.ops.info.name, " DVB-C",
-+				sizeof(state->frontend.ops.info.name));
-+		}
-+		if (state->m_hasDVBT) {
-+			state->frontend.ops.delsys[n++] = SYS_DVBT;
-+			strlcat(state->frontend.ops.info.name, " DVB-T",
-+				sizeof(state->frontend.ops.info.name));
-+		}
- 	}
- error:
- 	if (status < 0)
-@@ -6175,11 +6173,44 @@ error:
- 	return status;
- }
- 
-+static void load_firmware_cb(const struct firmware *fw,
-+			     void *context)
++static int vidioc_g_std(struct file *file, void *priv, v4l2_std_id *tvnorm)
 +{
-+	struct drxk_state *state = context;
++	struct cx88_core *core = ((struct cx8802_fh *)priv)->dev->core;
 +
-+	if (!fw) {
-+		printk(KERN_ERR
-+		       "drxk: Could not load firmware file %s.\n",
-+			state->microcode_name);
-+		printk(KERN_INFO
-+		       "drxk: Copy %s to your hotplug directory!\n",
-+			state->microcode_name);
-+		state->microcode_name = NULL;
-+
-+		/*
-+		 * As firmware is now load asynchronous, it is not possible
-+		 * anymore to fail at frontend attach. We might silently
-+		 * return here, and hope that the driver won't crash.
-+		 * We might also change all DVB callbacks to return -ENODEV
-+		 * if the device is not initialized.
-+		 * As the DRX-K devices have their own internal firmware,
-+		 * let's just hope that it will match a firmware revision
-+		 * compatible with this driver and proceed.
-+		 */
-+	}
-+	state->fw = fw;
-+
-+	init_drxk(state);
++	*tvnorm = core->tvnorm;
++	return 0;
 +}
 +
- static void drxk_release(struct dvb_frontend *fe)
+ static int vidioc_s_std (struct file *file, void *priv, v4l2_std_id *id)
  {
- 	struct drxk_state *state = fe->demodulator_priv;
- 
- 	dprintk(1, "\n");
-+	if (state->fw)
-+		release_firmware(state->fw);
-+
- 	kfree(state);
- }
- 
-@@ -6371,10 +6402,9 @@ static struct dvb_frontend_ops drxk_ops = {
- struct dvb_frontend *drxk_attach(const struct drxk_config *config,
- 				 struct i2c_adapter *i2c)
- {
--	int n;
--
- 	struct drxk_state *state = NULL;
- 	u8 adr = config->adr;
-+	int status;
- 
- 	dprintk(1, "\n");
- 	state = kzalloc(sizeof(struct drxk_state), GFP_KERNEL);
-@@ -6425,22 +6455,21 @@ struct dvb_frontend *drxk_attach(const struct drxk_config *config,
- 	state->frontend.demodulator_priv = state;
- 
- 	init_state(state);
--	if (init_drxk(state) < 0)
--		goto error;
- 
--	/* Initialize the supported delivery systems */
--	n = 0;
--	if (state->m_hasDVBC) {
--		state->frontend.ops.delsys[n++] = SYS_DVBC_ANNEX_A;
--		state->frontend.ops.delsys[n++] = SYS_DVBC_ANNEX_C;
--		strlcat(state->frontend.ops.info.name, " DVB-C",
--			sizeof(state->frontend.ops.info.name));
--	}
--	if (state->m_hasDVBT) {
--		state->frontend.ops.delsys[n++] = SYS_DVBT;
--		strlcat(state->frontend.ops.info.name, " DVB-T",
--			sizeof(state->frontend.ops.info.name));
--	}
-+	/* Load firmware and initialize DRX-K */
-+	if (state->microcode_name) {
-+		status = request_firmware_nowait(THIS_MODULE, 1,
-+					      state->microcode_name,
-+					      state->i2c->dev.parent,
-+					      GFP_KERNEL,
-+					      state, load_firmware_cb);
-+		if (status < 0) {
-+			printk(KERN_ERR
-+			"drxk: failed to request a firmware\n");
-+			return NULL;
-+		}
-+	} else if (init_drxk(state) < 0)
-+		goto error;
- 
- 	printk(KERN_INFO "drxk: frontend initialized.\n");
- 	return &state->frontend;
-diff --git a/drivers/media/dvb/frontends/drxk_hard.h b/drivers/media/dvb/frontends/drxk_hard.h
-index 4bbf841..36677cd 100644
---- a/drivers/media/dvb/frontends/drxk_hard.h
-+++ b/drivers/media/dvb/frontends/drxk_hard.h
-@@ -338,7 +338,10 @@ struct drxk_state {
- 	bool	antenna_dvbt;
- 	u16	antenna_gpio;
- 
-+	/* Firmware */
- 	const char *microcode_name;
-+	struct completion fw_wait_load;
-+	const struct firmware *fw;
+ 	struct cx88_core  *core = ((struct cx8802_fh *)priv)->dev->core;
+@@ -1104,6 +1112,7 @@ static const struct v4l2_ioctl_ops mpeg_ioctl_ops = {
+ 	.vidioc_s_input       = vidioc_s_input,
+ 	.vidioc_g_tuner       = vidioc_g_tuner,
+ 	.vidioc_s_tuner       = vidioc_s_tuner,
++	.vidioc_g_std         = vidioc_g_std,
+ 	.vidioc_s_std         = vidioc_s_std,
+ 	.vidioc_subscribe_event      = v4l2_ctrl_subscribe_event,
+ 	.vidioc_unsubscribe_event    = v4l2_event_unsubscribe,
+@@ -1114,7 +1123,6 @@ static struct video_device cx8802_mpeg_template = {
+ 	.fops                 = &mpeg_fops,
+ 	.ioctl_ops 	      = &mpeg_ioctl_ops,
+ 	.tvnorms              = CX88_NORMS,
+-	.current_norm         = V4L2_STD_NTSC_M,
  };
  
- #define NEVER_LOCK 0
+ /* ------------------------------------------------------------------ */
+@@ -1214,8 +1222,6 @@ static int cx8802_blackbird_probe(struct cx8802_driver *drv)
+ 	if (!(core->board.mpeg & CX88_MPEG_BLACKBIRD))
+ 		goto fail_core;
+ 
+-	cx8802_mpeg_template.current_norm = core->tvnorm;
+-
+ 	dev->width = 720;
+ 	if (core->tvnorm & V4L2_STD_525_60) {
+ 		dev->height = 480;
+diff --git a/drivers/media/video/cx88/cx88-video.c b/drivers/media/video/cx88/cx88-video.c
+index 3dee421..f6fcc7e 100644
+--- a/drivers/media/video/cx88/cx88-video.c
++++ b/drivers/media/video/cx88/cx88-video.c
+@@ -1185,6 +1185,14 @@ static int vidioc_streamoff(struct file *file, void *priv, enum v4l2_buf_type i)
+ 	return 0;
+ }
+ 
++static int vidioc_g_std(struct file *file, void *priv, v4l2_std_id *tvnorm)
++{
++	struct cx88_core *core = ((struct cx8800_fh *)priv)->dev->core;
++
++	*tvnorm = core->tvnorm;
++	return 0;
++}
++
+ static int vidioc_s_std (struct file *file, void *priv, v4l2_std_id *tvnorms)
+ {
+ 	struct cx88_core  *core = ((struct cx8800_fh *)priv)->dev->core;
+@@ -1562,6 +1570,7 @@ static const struct v4l2_ioctl_ops video_ioctl_ops = {
+ 	.vidioc_querybuf      = vidioc_querybuf,
+ 	.vidioc_qbuf          = vidioc_qbuf,
+ 	.vidioc_dqbuf         = vidioc_dqbuf,
++	.vidioc_g_std         = vidioc_g_std,
+ 	.vidioc_s_std         = vidioc_s_std,
+ 	.vidioc_enum_input    = vidioc_enum_input,
+ 	.vidioc_g_input       = vidioc_g_input,
+@@ -1586,7 +1595,6 @@ static const struct video_device cx8800_video_template = {
+ 	.fops                 = &video_fops,
+ 	.ioctl_ops 	      = &video_ioctl_ops,
+ 	.tvnorms              = CX88_NORMS,
+-	.current_norm         = V4L2_STD_NTSC_M,
+ };
+ 
+ static const struct v4l2_ioctl_ops vbi_ioctl_ops = {
+@@ -1598,6 +1606,7 @@ static const struct v4l2_ioctl_ops vbi_ioctl_ops = {
+ 	.vidioc_querybuf      = vidioc_querybuf,
+ 	.vidioc_qbuf          = vidioc_qbuf,
+ 	.vidioc_dqbuf         = vidioc_dqbuf,
++	.vidioc_g_std         = vidioc_g_std,
+ 	.vidioc_s_std         = vidioc_s_std,
+ 	.vidioc_enum_input    = vidioc_enum_input,
+ 	.vidioc_g_input       = vidioc_g_input,
+@@ -1620,7 +1629,6 @@ static const struct video_device cx8800_vbi_template = {
+ 	.fops                 = &video_fops,
+ 	.ioctl_ops	      = &vbi_ioctl_ops,
+ 	.tvnorms              = CX88_NORMS,
+-	.current_norm         = V4L2_STD_NTSC_M,
+ };
+ 
+ static const struct v4l2_file_operations radio_fops =
+@@ -1730,7 +1738,7 @@ static int __devinit cx8800_initdev(struct pci_dev *pci_dev,
+ 
+ 	/* initialize driver struct */
+ 	spin_lock_init(&dev->slock);
+-	core->tvnorm = cx8800_video_template.current_norm;
++	core->tvnorm = V4L2_STD_NTSC_M;
+ 
+ 	/* init video dma queues */
+ 	INIT_LIST_HEAD(&dev->vidq.active);
 -- 
-1.7.10.2
+1.7.10
 
