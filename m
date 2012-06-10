@@ -1,119 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:33719 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753731Ab2FCVoF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Jun 2012 17:44:05 -0400
-Received: by obbtb18 with SMTP id tb18so6228664obb.19
-        for <linux-media@vger.kernel.org>; Sun, 03 Jun 2012 14:44:03 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <201206031233.24758.hverkuil@xs4all.nl>
-References: <1338651169-10446-1-git-send-email-elezegarcia@gmail.com>
-	<CALF0-+W5DCf1HMs=MYMc2KVgz=SJKS2YLY7LSrxU6-gnc=+LAA@mail.gmail.com>
-	<201206031233.24758.hverkuil@xs4all.nl>
-Date: Sun, 3 Jun 2012 18:44:03 -0300
-Message-ID: <CALF0-+XYy+fUsksYF+ok7PTZs0tX+L2G9z48NpYU4wdyPZcHzQ@mail.gmail.com>
-Subject: Re: [RFC/PATCH v2] media: Add stk1160 new driver
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Sylwester Nawrocki <snjw23@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:3022 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755386Ab2FJK0R (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 10 Jun 2012 06:26:17 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Andy Walls <awalls@md.metrocast.net>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Pawel Osciak <pawel@osciak.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv1 PATCH 27/32] vivi: embed struct video_device instead of allocating it.
+Date: Sun, 10 Jun 2012 12:25:49 +0200
+Message-Id: <9b33e257c9f308801652f90514a330388d214c34.1339321562.git.hans.verkuil@cisco.com>
+In-Reply-To: <1339323954-1404-1-git-send-email-hverkuil@xs4all.nl>
+References: <1339323954-1404-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <ef490f7ebca5b6df91db6b1acfb9928ada3bcd70.1339321562.git.hans.verkuil@cisco.com>
+References: <ef490f7ebca5b6df91db6b1acfb9928ada3bcd70.1339321562.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hans,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-On Sun, Jun 3, 2012 at 7:33 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->
-> Thanks. I've fixed several things reported by v4l2-compliance (see my patch
-> below), but you are using an older v4l2-compliance version. You should clone
-> and compile the v4l-utils.git repository yourself, rather than using a distro
-> provided version (which I think is what you are doing now).
->
-> Can you apply my patch on yours and run the latest v4l2-compliance again?
-
-I applied your patch, updated v4l2-compliance and here is the output:
-
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
-$ v4l2-compliance -d /dev/video1
-Driver Info:
-	Driver name   : stk1160
-	Card type     : stk1160
-	Bus info      : usb-0000:00:13.2-1
-	Driver version: 3.4.0
-	Capabilities  : 0x85000001
-		Video Capture
-		Read/Write
-		Streaming
-		Device Capabilities
-	Device Caps   : 0x05000001
-		Video Capture
-		Read/Write
-		Streaming
+ drivers/media/video/vivi.c |   25 +++++++------------------
+ 1 file changed, 7 insertions(+), 18 deletions(-)
 
-Compliance test for device /dev/video1 (not using libv4l2):
+diff --git a/drivers/media/video/vivi.c b/drivers/media/video/vivi.c
+index 8dd5ae6..1e4da5e 100644
+--- a/drivers/media/video/vivi.c
++++ b/drivers/media/video/vivi.c
+@@ -188,6 +188,7 @@ struct vivi_dev {
+ 	struct list_head           vivi_devlist;
+ 	struct v4l2_device 	   v4l2_dev;
+ 	struct v4l2_ctrl_handler   ctrl_handler;
++	struct video_device	   vdev;
+ 
+ 	/* controls */
+ 	struct v4l2_ctrl	   *brightness;
+@@ -213,9 +214,6 @@ struct vivi_dev {
+ 	spinlock_t                 slock;
+ 	struct mutex		   mutex;
+ 
+-	/* various device info */
+-	struct video_device        *vfd;
+-
+ 	struct vivi_dmaqueue       vidq;
+ 
+ 	/* Several counters */
+@@ -1080,7 +1078,6 @@ static int vidioc_enum_input(struct file *file, void *priv,
+ 		return -EINVAL;
+ 
+ 	inp->type = V4L2_INPUT_TYPE_CAMERA;
+-	inp->std = V4L2_STD_525_60;
+ 	sprintf(inp->name, "Camera %u", inp->index);
+ 	return 0;
+ }
+@@ -1327,7 +1324,7 @@ static struct video_device vivi_template = {
+ 	.name		= "vivi",
+ 	.fops           = &vivi_fops,
+ 	.ioctl_ops 	= &vivi_ioctl_ops,
+-	.release	= video_device_release,
++	.release	= video_device_release_empty,
+ };
+ 
+ /* -----------------------------------------------------------------
+@@ -1345,8 +1342,8 @@ static int vivi_release(void)
+ 		dev = list_entry(list, struct vivi_dev, vivi_devlist);
+ 
+ 		v4l2_info(&dev->v4l2_dev, "unregistering %s\n",
+-			video_device_node_name(dev->vfd));
+-		video_unregister_device(dev->vfd);
++			video_device_node_name(&dev->vdev));
++		video_unregister_device(&dev->vdev);
+ 		v4l2_device_unregister(&dev->v4l2_dev);
+ 		v4l2_ctrl_handler_free(&dev->ctrl_handler);
+ 		kfree(dev);
+@@ -1431,11 +1428,7 @@ static int __init vivi_create_instance(int inst)
+ 	INIT_LIST_HEAD(&dev->vidq.active);
+ 	init_waitqueue_head(&dev->vidq.wq);
+ 
+-	ret = -ENOMEM;
+-	vfd = video_device_alloc();
+-	if (!vfd)
+-		goto unreg_dev;
+-
++	vfd = &dev->vdev;
+ 	*vfd = vivi_template;
+ 	vfd->debug = debug;
+ 	vfd->v4l2_dev = &dev->v4l2_dev;
+@@ -1446,12 +1439,11 @@ static int __init vivi_create_instance(int inst)
+ 	 * all fops and v4l2 ioctls.
+ 	 */
+ 	vfd->lock = &dev->mutex;
++	video_set_drvdata(vfd, dev);
+ 
+ 	ret = video_register_device(vfd, VFL_TYPE_GRABBER, video_nr);
+ 	if (ret < 0)
+-		goto rel_vdev;
+-
+-	video_set_drvdata(vfd, dev);
++		goto unreg_dev;
+ 
+ 	/* Now that everything is fine, let's add it to device list */
+ 	list_add_tail(&dev->vivi_devlist, &vivi_devlist);
+@@ -1459,13 +1451,10 @@ static int __init vivi_create_instance(int inst)
+ 	if (video_nr != -1)
+ 		video_nr++;
+ 
+-	dev->vfd = vfd;
+ 	v4l2_info(&dev->v4l2_dev, "V4L2 device registered as %s\n",
+ 		  video_device_node_name(vfd));
+ 	return 0;
+ 
+-rel_vdev:
+-	video_device_release(vfd);
+ unreg_dev:
+ 	v4l2_ctrl_handler_free(hdl);
+ 	v4l2_device_unregister(&dev->v4l2_dev);
+-- 
+1.7.10
 
-Required ioctls:
-	test VIDIOC_QUERYCAP: OK
-
-Allow for multiple opens:
-	test second video open: OK
-	test VIDIOC_QUERYCAP: OK
-	test VIDIOC_G/S_PRIORITY: OK
-
-Debug ioctls:
-	test VIDIOC_DBG_G_CHIP_IDENT: Not Supported
-	test VIDIOC_DBG_G/S_REGISTER: Not Supported
-	test VIDIOC_LOG_STATUS: OK
-
-Input ioctls:
-	test VIDIOC_G/S_TUNER: Not Supported
-	test VIDIOC_G/S_FREQUENCY: Not Supported
-	test VIDIOC_S_HW_FREQ_SEEK: Not Supported
-	test VIDIOC_ENUMAUDIO: Not Supported
-	test VIDIOC_G/S/ENUMINPUT: OK
-	test VIDIOC_G/S_AUDIO: Not Supported
-	Inputs: 1 Audio Inputs: 0 Tuners: 0
-
-Output ioctls:
-	test VIDIOC_G/S_MODULATOR: Not Supported
-	test VIDIOC_G/S_FREQUENCY: Not Supported
-	test VIDIOC_ENUMAUDOUT: Not Supported
-	test VIDIOC_G/S/ENUMOUTPUT: Not Supported
-	test VIDIOC_G/S_AUDOUT: Not Supported
-	Outputs: 0 Audio Outputs: 0 Modulators: 0
-
-Control ioctls:
-	test VIDIOC_QUERYCTRL/MENU: OK
-	test VIDIOC_G/S_CTRL: OK
-	test VIDIOC_G/S/TRY_EXT_CTRLS: OK
-	test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
-	test VIDIOC_G/S_JPEGCOMP: Not Supported
-	Standard Controls: 7 Private Controls: 0
-
-Input/Output configuration ioctls:
-	test VIDIOC_ENUM/G/S/QUERY_STD: OK
-	test VIDIOC_ENUM/G/S/QUERY_DV_PRESETS: Not Supported
-	test VIDIOC_G/S_DV_TIMINGS: Not Supported
-
-Format ioctls:
-	test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
-	test VIDIOC_G/S_PARM: Not Supported
-	test VIDIOC_G_FBUF: Not Supported
-	test VIDIOC_G_FMT: OK
-	test VIDIOC_G_SLICED_VBI_CAP: Not Supported
-Total: 31 Succeeded: 31 Failed: 0 Warnings: 0
----
-
-None failed! :-)
-
-Would you care to explain me this change in your patch?
-+       set_bit(V4L2_FL_USE_FH_PRIO, &dev->vdev.flags);
-
-I guess I can consider the video part as working (at least with a
-basic set of features).
-I'll be working on alsa and support for several inputs now.
-
-Thanks for reviewing!
-Ezequiel.
