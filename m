@@ -1,39 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f66.google.com ([74.125.83.66]:53881 "EHLO
-	mail-ee0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751505Ab2F3UVZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 30 Jun 2012 16:21:25 -0400
-Received: by eeke50 with SMTP id e50so371515eek.1
-        for <linux-media@vger.kernel.org>; Sat, 30 Jun 2012 13:21:23 -0700 (PDT)
-Message-ID: <4FEF5FC0.3050303@gmail.com>
-Date: Sat, 30 Jun 2012 22:21:20 +0200
-From: Sylwester Nawrocki <sylwester.nawrocki@gmail.com>
+Received: from mailout-de.gmx.net ([213.165.64.22]:44664 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1753353Ab2FJBow (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Jun 2012 21:44:52 -0400
+From: =?UTF-8?q?Daniel=20Gl=C3=B6ckner?= <daniel-gl@gmx.net>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: linux-media@vger.kernel.org,
+	=?UTF-8?q?Daniel=20Gl=C3=B6ckner?= <daniel-gl@gmx.net>
+Subject: [PATCH 1/9] tvaudio: fix TDA9873 constants
+Date: Sun, 10 Jun 2012 03:43:50 +0200
+Message-Id: <1339292638-12205-2-git-send-email-daniel-gl@gmx.net>
+In-Reply-To: <20120609214100.GA1598@minime.bse>
+References: <20120609214100.GA1598@minime.bse>
 MIME-Version: 1.0
-To: Sakari Ailus <sakari.ailus@iki.fi>
-CC: linux-media@vger.kernel.org, t.stanislaws@samsung.com,
-	laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl
-Subject: Re: [PATCH 2/8] v4l: Remove "_ACTUAL" from subdev selection API target
- definition names
-References: <20120630170506.GE19384@valkosipuli.retiisi.org.uk> <1341075839-18586-2-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1341075839-18586-2-git-send-email-sakari.ailus@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+These constants were unused so far but need | instead of &.
 
-On 06/30/2012 07:03 PM, Sakari Ailus wrote:
-> The string "_ACTUAL" does not say anything more about the target names. Drop
-> it. V4L2 selection API was changed by "V4L: Remove "_ACTIVE" from the
-> selection target name definitions" by Sylwester Nawrocki. This patch does
-> the same for the V4L2 subdev API.
->
-> Signed-off-by: Sakari Ailus<sakari.ailus@iki.fi>
+Signed-off-by: Daniel Glöckner <daniel-gl@gmx.net>
+---
+ drivers/media/video/tvaudio.c |   10 +++++-----
+ 1 files changed, 5 insertions(+), 5 deletions(-)
 
-Acked-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+diff --git a/drivers/media/video/tvaudio.c b/drivers/media/video/tvaudio.c
+index c5b1a73..9b85e2a 100644
+--- a/drivers/media/video/tvaudio.c
++++ b/drivers/media/video/tvaudio.c
+@@ -583,7 +583,7 @@ static void tda985x_setmode(struct CHIPSTATE *chip, int mode)
+ #define TDA9873_TR_MASK     (7 << 2)
+ #define TDA9873_TR_MONO     4
+ #define TDA9873_TR_STEREO   1 << 4
+-#define TDA9873_TR_REVERSE  (1 << 3) & (1 << 2)
++#define TDA9873_TR_REVERSE  ((1 << 3) | (1 << 2))
+ #define TDA9873_TR_DUALA    1 << 2
+ #define TDA9873_TR_DUALB    1 << 3
+ 
+@@ -653,11 +653,11 @@ static void tda985x_setmode(struct CHIPSTATE *chip, int mode)
+ #define TDA9873_MOUT_DUALA  0
+ #define TDA9873_MOUT_DUALB  1 << 3
+ #define TDA9873_MOUT_ST     1 << 4
+-#define TDA9873_MOUT_EXTM   (1 << 4 ) & (1 << 3)
++#define TDA9873_MOUT_EXTM   ((1 << 4) | (1 << 3))
+ #define TDA9873_MOUT_EXTL   1 << 5
+-#define TDA9873_MOUT_EXTR   (1 << 5 ) & (1 << 3)
+-#define TDA9873_MOUT_EXTLR  (1 << 5 ) & (1 << 4)
+-#define TDA9873_MOUT_MUTE   (1 << 5 ) & (1 << 4) & (1 << 3)
++#define TDA9873_MOUT_EXTR   ((1 << 5) | (1 << 3))
++#define TDA9873_MOUT_EXTLR  ((1 << 5) | (1 << 4))
++#define TDA9873_MOUT_MUTE   ((1 << 5) | (1 << 4) | (1 << 3))
+ 
+ /* Status bits: (chip read) */
+ #define TDA9873_PONR        0 /* Power-on reset detected if = 1 */
+-- 
+1.7.0.5
 
---
-Regards,
-Sylwester
