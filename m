@@ -1,165 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:37290 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932095Ab2FZNpm (ORCPT
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:4545 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754555Ab2FJK0P (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Jun 2012 09:45:42 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+	Sun, 10 Jun 2012 06:26:15 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: sakari.ailus@iki.fi, Enrico <ebutera@users.berlios.de>,
-	Jean-Philippe Francois <jp.francois@cynove.com>,
-	Abhishek Reddy Kondaveeti <areddykondaveeti@aptina.com>,
-	Gary Thomas <gary@mlbassoc.com>,
-	Javier Martinez Canillas <martinez.javier@gmail.com>
-Subject: [PATCH 4/6] omap3isp: ccdc: Remove support for interlaced data and master HS/VS mode
-Date: Tue, 26 Jun 2012 15:45:37 +0200
-Message-Id: <1340718339-29915-5-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1340718339-29915-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1340718339-29915-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Andy Walls <awalls@md.metrocast.net>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Pawel Osciak <pawel@osciak.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv1 PATCH 21/32] ivtv: don't mess with vfd->debug.
+Date: Sun, 10 Jun 2012 12:25:43 +0200
+Message-Id: <b18fa58f225c9b17f7956d4642ca91630ef149fa.1339321562.git.hans.verkuil@cisco.com>
+In-Reply-To: <1339323954-1404-1-git-send-email-hverkuil@xs4all.nl>
+References: <1339323954-1404-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <ef490f7ebca5b6df91db6b1acfb9928ada3bcd70.1339321562.git.hans.verkuil@cisco.com>
+References: <ef490f7ebca5b6df91db6b1acfb9928ada3bcd70.1339321562.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Those features are half-implemented and not used. Remove them.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+This is now controlled by sysfs.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/video/omap3isp/ispccdc.c |   51 +------------------------------
- drivers/media/video/omap3isp/ispccdc.h |   18 -----------
- 2 files changed, 2 insertions(+), 67 deletions(-)
+ drivers/media/video/ivtv/ivtv-ioctl.c   |   12 ------------
+ drivers/media/video/ivtv/ivtv-ioctl.h   |    1 -
+ drivers/media/video/ivtv/ivtv-streams.c |    4 ++--
+ 3 files changed, 2 insertions(+), 15 deletions(-)
 
-diff --git a/drivers/media/video/omap3isp/ispccdc.c b/drivers/media/video/omap3isp/ispccdc.c
-index e4231ef..bdd7d72 100644
---- a/drivers/media/video/omap3isp/ispccdc.c
-+++ b/drivers/media/video/omap3isp/ispccdc.c
-@@ -967,17 +967,8 @@ static void ccdc_config_sync_if(struct isp_ccdc_device *ccdc,
- 				struct ispccdc_syncif *syncif)
- {
- 	struct isp_device *isp = to_isp_device(ccdc);
--	u32 syn_mode = isp_reg_readl(isp, OMAP3_ISP_IOMEM_CCDC,
--				     ISPCCDC_SYN_MODE);
-+	u32 syn_mode = ISPCCDC_SYN_MODE_VDHDEN;
+diff --git a/drivers/media/video/ivtv/ivtv-ioctl.c b/drivers/media/video/ivtv/ivtv-ioctl.c
+index f7d57b3..32a5910 100644
+--- a/drivers/media/video/ivtv/ivtv-ioctl.c
++++ b/drivers/media/video/ivtv/ivtv-ioctl.c
+@@ -1830,18 +1830,6 @@ static long ivtv_default(struct file *file, void *fh, bool valid_prio,
+ 	return 0;
+ }
  
--	syn_mode |= ISPCCDC_SYN_MODE_VDHDEN;
+-long ivtv_v4l2_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+-{
+-	struct video_device *vfd = video_devdata(filp);
+-	long ret;
 -
--	if (syncif->fldstat)
--		syn_mode |= ISPCCDC_SYN_MODE_FLDSTAT;
--	else
--		syn_mode &= ~ISPCCDC_SYN_MODE_FLDSTAT;
+-	if (ivtv_debug & IVTV_DBGFLG_IOCTL)
+-		vfd->debug = V4L2_DEBUG_IOCTL | V4L2_DEBUG_IOCTL_ARG;
+-	ret = video_ioctl2(filp, cmd, arg);
+-	vfd->debug = 0;
+-	return ret;
+-}
 -
--	syn_mode &= ~ISPCCDC_SYN_MODE_DATSIZ_MASK;
- 	switch (syncif->datsz) {
- 	case 8:
- 		syn_mode |= ISPCCDC_SYN_MODE_DATSIZ_8;
-@@ -993,47 +984,14 @@ static void ccdc_config_sync_if(struct isp_ccdc_device *ccdc,
- 		break;
- 	}
+ static const struct v4l2_ioctl_ops ivtv_ioctl_ops = {
+ 	.vidioc_querycap    		    = ivtv_querycap,
+ 	.vidioc_s_audio     		    = ivtv_s_audio,
+diff --git a/drivers/media/video/ivtv/ivtv-ioctl.h b/drivers/media/video/ivtv/ivtv-ioctl.h
+index 89185ca..7c553d1 100644
+--- a/drivers/media/video/ivtv/ivtv-ioctl.h
++++ b/drivers/media/video/ivtv/ivtv-ioctl.h
+@@ -31,6 +31,5 @@ void ivtv_s_std_enc(struct ivtv *itv, v4l2_std_id *std);
+ void ivtv_s_std_dec(struct ivtv *itv, v4l2_std_id *std);
+ int ivtv_s_frequency(struct file *file, void *fh, struct v4l2_frequency *vf);
+ int ivtv_s_input(struct file *file, void *fh, unsigned int inp);
+-long ivtv_v4l2_ioctl(struct file *filp, unsigned int cmd, unsigned long arg);
  
--	if (syncif->fldmode)
--		syn_mode |= ISPCCDC_SYN_MODE_FLDMODE;
--	else
--		syn_mode &= ~ISPCCDC_SYN_MODE_FLDMODE;
--
- 	if (syncif->datapol)
- 		syn_mode |= ISPCCDC_SYN_MODE_DATAPOL;
--	else
--		syn_mode &= ~ISPCCDC_SYN_MODE_DATAPOL;
--
--	if (syncif->fldpol)
--		syn_mode |= ISPCCDC_SYN_MODE_FLDPOL;
--	else
--		syn_mode &= ~ISPCCDC_SYN_MODE_FLDPOL;
- 
- 	if (syncif->hdpol)
- 		syn_mode |= ISPCCDC_SYN_MODE_HDPOL;
--	else
--		syn_mode &= ~ISPCCDC_SYN_MODE_HDPOL;
- 
- 	if (syncif->vdpol)
- 		syn_mode |= ISPCCDC_SYN_MODE_VDPOL;
--	else
--		syn_mode &= ~ISPCCDC_SYN_MODE_VDPOL;
--
--	if (syncif->ccdc_mastermode) {
--		syn_mode |= ISPCCDC_SYN_MODE_FLDOUT | ISPCCDC_SYN_MODE_VDHDOUT;
--		isp_reg_writel(isp,
--			       syncif->hs_width << ISPCCDC_HD_VD_WID_HDW_SHIFT
--			     | syncif->vs_width << ISPCCDC_HD_VD_WID_VDW_SHIFT,
--			       OMAP3_ISP_IOMEM_CCDC,
--			       ISPCCDC_HD_VD_WID);
--
--		isp_reg_writel(isp,
--			       syncif->ppln << ISPCCDC_PIX_LINES_PPLN_SHIFT
--			     | syncif->hlprf << ISPCCDC_PIX_LINES_HLPRF_SHIFT,
--			       OMAP3_ISP_IOMEM_CCDC,
--			       ISPCCDC_PIX_LINES);
--	} else
--		syn_mode &= ~(ISPCCDC_SYN_MODE_FLDOUT |
--			      ISPCCDC_SYN_MODE_VDHDOUT);
- 
- 	isp_reg_writel(isp, syn_mode, OMAP3_ISP_IOMEM_CCDC, ISPCCDC_SYN_MODE);
- 
-@@ -1154,6 +1112,7 @@ static void ccdc_configure(struct isp_ccdc_device *ccdc)
- 	omap3isp_configure_bridge(isp, ccdc->input, pdata, shift);
- 
- 	ccdc->syncif.datsz = depth_out;
-+	ccdc->syncif.datapol = 0;
- 	ccdc->syncif.hdpol = pdata ? pdata->hs_pol : 0;
- 	ccdc->syncif.vdpol = pdata ? pdata->vs_pol : 0;
- 	ccdc_config_sync_if(ccdc, &ccdc->syncif);
-@@ -2487,13 +2446,7 @@ int omap3isp_ccdc_init(struct isp_device *isp)
- 	INIT_LIST_HEAD(&ccdc->lsc.free_queue);
- 	spin_lock_init(&ccdc->lsc.req_lock);
- 
--	ccdc->syncif.ccdc_mastermode = 0;
--	ccdc->syncif.datapol = 0;
- 	ccdc->syncif.datsz = 0;
--	ccdc->syncif.fldmode = 0;
--	ccdc->syncif.fldout = 0;
--	ccdc->syncif.fldpol = 0;
--	ccdc->syncif.fldstat = 0;
- 
- 	ccdc->clamp.oblen = 0;
- 	ccdc->clamp.dcsubval = 0;
-diff --git a/drivers/media/video/omap3isp/ispccdc.h b/drivers/media/video/omap3isp/ispccdc.h
-index 890f6b3..57007d7 100644
---- a/drivers/media/video/omap3isp/ispccdc.h
-+++ b/drivers/media/video/omap3isp/ispccdc.h
-@@ -48,35 +48,17 @@ enum ccdc_input_entity {
- 
- /*
-  * struct ispccdc_syncif - Structure for Sync Interface between sensor and CCDC
-- * @ccdc_mastermode: Master mode. 1 - Master, 0 - Slave.
-- * @fldstat: Field state. 0 - Odd Field, 1 - Even Field.
-  * @datsz: Data size.
-- * @fldmode: 0 - Progressive, 1 - Interlaced.
-  * @datapol: 0 - Positive, 1 - Negative.
-- * @fldpol: 0 - Positive, 1 - Negative.
-  * @hdpol: 0 - Positive, 1 - Negative.
-  * @vdpol: 0 - Positive, 1 - Negative.
-- * @fldout: 0 - Input, 1 - Output.
-- * @hs_width: Width of the Horizontal Sync pulse, used for HS/VS Output.
-- * @vs_width: Width of the Vertical Sync pulse, used for HS/VS Output.
-- * @ppln: Number of pixels per line, used for HS/VS Output.
-- * @hlprf: Number of half lines per frame, used for HS/VS Output.
-  * @bt_r656_en: 1 - Enable ITU-R BT656 mode, 0 - Sync mode.
-  */
- struct ispccdc_syncif {
--	u8 ccdc_mastermode;
--	u8 fldstat;
- 	u8 datsz;
--	u8 fldmode;
- 	u8 datapol;
--	u8 fldpol;
- 	u8 hdpol;
- 	u8 vdpol;
--	u8 fldout;
--	u8 hs_width;
--	u8 vs_width;
--	u8 ppln;
--	u8 hlprf;
- 	u8 bt_r656_en;
+ #endif
+diff --git a/drivers/media/video/ivtv/ivtv-streams.c b/drivers/media/video/ivtv/ivtv-streams.c
+index 6738592..87990c5 100644
+--- a/drivers/media/video/ivtv/ivtv-streams.c
++++ b/drivers/media/video/ivtv/ivtv-streams.c
+@@ -50,7 +50,7 @@ static const struct v4l2_file_operations ivtv_v4l2_enc_fops = {
+ 	.read = ivtv_v4l2_read,
+ 	.write = ivtv_v4l2_write,
+ 	.open = ivtv_v4l2_open,
+-	.unlocked_ioctl = ivtv_v4l2_ioctl,
++	.unlocked_ioctl = video_ioctl2,
+ 	.release = ivtv_v4l2_close,
+ 	.poll = ivtv_v4l2_enc_poll,
  };
- 
+@@ -60,7 +60,7 @@ static const struct v4l2_file_operations ivtv_v4l2_dec_fops = {
+ 	.read = ivtv_v4l2_read,
+ 	.write = ivtv_v4l2_write,
+ 	.open = ivtv_v4l2_open,
+-	.unlocked_ioctl = ivtv_v4l2_ioctl,
++	.unlocked_ioctl = video_ioctl2,
+ 	.release = ivtv_v4l2_close,
+ 	.poll = ivtv_v4l2_dec_poll,
+ };
 -- 
-1.7.3.4
+1.7.10
 
