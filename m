@@ -1,45 +1,374 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:58647 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751330Ab2FKKZ0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Jun 2012 06:25:26 -0400
-Received: by mail-pb0-f46.google.com with SMTP id rp8so5391906pbb.19
-        for <linux-media@vger.kernel.org>; Mon, 11 Jun 2012 03:25:26 -0700 (PDT)
-From: Sachin Kamat <sachin.kamat@linaro.org>
+Received: from smtp.nokia.com ([147.243.1.47]:30871 "EHLO mgw-sa01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755977Ab2FJTfH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 10 Jun 2012 15:35:07 -0400
+From: Sakari Ailus <sakari.ailus@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: t.stanislaws@samsung.com, k.debski@samsung.com,
-	s.nawrocki@samsung.com, snjw23@gmail.com,
-	kyungmin.park@samsung.com, mchehab@infradead.org,
-	sachin.kamat@linaro.org, patches@linaro.org
-Subject: [PATCH 3/3] [media] s5p-fimc: Replace printk with pr_* functions
-Date: Mon, 11 Jun 2012 15:43:54 +0530
-Message-Id: <1339409634-13657-3-git-send-email-sachin.kamat@linaro.org>
-In-Reply-To: <1339409634-13657-1-git-send-email-sachin.kamat@linaro.org>
-References: <1339409634-13657-1-git-send-email-sachin.kamat@linaro.org>
+Cc: snjw23@gmail.com, hverkuil@xs4all.nl,
+	laurent.pinchart@ideasonboard.com
+Subject: [PATCH 3/4] v4l: Unify selection targets across V4L2 and V4L2 subdev interfaces
+Date: Sun, 10 Jun 2012 22:34:37 +0300
+Message-Id: <1339356878-2179-3-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <4FD4F6B6.1070605@iki.fi>
+References: <4FD4F6B6.1070605@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Replace printk with pr_* functions to silence checkpatch warnings.
-
-Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
 ---
- drivers/media/video/s5p-fimc/fimc-core.h |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/media/video/omap3isp/ispccdc.c    |    6 ++--
+ drivers/media/video/omap3isp/isppreview.c |    6 ++--
+ drivers/media/video/omap3isp/ispresizer.c |    6 ++--
+ drivers/media/video/smiapp/smiapp-core.c  |   30 +++++++++---------
+ drivers/media/video/v4l2-subdev.c         |    4 +-
+ include/linux/v4l2-common.h               |   49 +++++++++++++++++++++++++++++
+ include/linux/v4l2-subdev.h               |   13 +------
+ include/linux/videodev2.h                 |   20 +----------
+ 8 files changed, 79 insertions(+), 55 deletions(-)
+ create mode 100644 include/linux/v4l2-common.h
 
-diff --git a/drivers/media/video/s5p-fimc/fimc-core.h b/drivers/media/video/s5p-fimc/fimc-core.h
-index 95b27ae..c22fb0a 100644
---- a/drivers/media/video/s5p-fimc/fimc-core.h
-+++ b/drivers/media/video/s5p-fimc/fimc-core.h
-@@ -28,7 +28,7 @@
- #include <media/s5p_fimc.h>
+diff --git a/drivers/media/video/omap3isp/ispccdc.c b/drivers/media/video/omap3isp/ispccdc.c
+index f19774f..82df7a0 100644
+--- a/drivers/media/video/omap3isp/ispccdc.c
++++ b/drivers/media/video/omap3isp/ispccdc.c
+@@ -2014,7 +2014,7 @@ static int ccdc_get_selection(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
+ 		return -EINVAL;
  
- #define err(fmt, args...) \
--	printk(KERN_ERR "%s:%d: " fmt "\n", __func__, __LINE__, ##args)
-+	pr_err("%s:%d: " fmt "\n", __func__, __LINE__, ##args)
+ 	switch (sel->target) {
+-	case V4L2_SUBDEV_SEL_TGT_CROP_BOUNDS:
++	case V4L2_SEL_TGT_CROP_BOUNDS:
+ 		sel->r.left = 0;
+ 		sel->r.top = 0;
+ 		sel->r.width = INT_MAX;
+@@ -2024,7 +2024,7 @@ static int ccdc_get_selection(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
+ 		ccdc_try_crop(ccdc, format, &sel->r);
+ 		break;
  
- #define dbg(fmt, args...) \
- 	pr_debug("%s:%d: " fmt "\n", __func__, __LINE__, ##args)
+-	case V4L2_SUBDEV_SEL_TGT_CROP:
++	case V4L2_SEL_TGT_CROP:
+ 		sel->r = *__ccdc_get_crop(ccdc, fh, sel->which);
+ 		break;
+ 
+@@ -2052,7 +2052,7 @@ static int ccdc_set_selection(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
+ 	struct isp_ccdc_device *ccdc = v4l2_get_subdevdata(sd);
+ 	struct v4l2_mbus_framefmt *format;
+ 
+-	if (sel->target != V4L2_SUBDEV_SEL_TGT_CROP ||
++	if (sel->target != V4L2_SEL_TGT_CROP ||
+ 	    sel->pad != CCDC_PAD_SOURCE_OF)
+ 		return -EINVAL;
+ 
+diff --git a/drivers/media/video/omap3isp/isppreview.c b/drivers/media/video/omap3isp/isppreview.c
+index 1086f6a..6fa70f4 100644
+--- a/drivers/media/video/omap3isp/isppreview.c
++++ b/drivers/media/video/omap3isp/isppreview.c
+@@ -1949,7 +1949,7 @@ static int preview_get_selection(struct v4l2_subdev *sd,
+ 		return -EINVAL;
+ 
+ 	switch (sel->target) {
+-	case V4L2_SUBDEV_SEL_TGT_CROP_BOUNDS:
++	case V4L2_SEL_TGT_CROP_BOUNDS:
+ 		sel->r.left = 0;
+ 		sel->r.top = 0;
+ 		sel->r.width = INT_MAX;
+@@ -1960,7 +1960,7 @@ static int preview_get_selection(struct v4l2_subdev *sd,
+ 		preview_try_crop(prev, format, &sel->r);
+ 		break;
+ 
+-	case V4L2_SUBDEV_SEL_TGT_CROP:
++	case V4L2_SEL_TGT_CROP:
+ 		sel->r = *__preview_get_crop(prev, fh, sel->which);
+ 		break;
+ 
+@@ -1988,7 +1988,7 @@ static int preview_set_selection(struct v4l2_subdev *sd,
+ 	struct isp_prev_device *prev = v4l2_get_subdevdata(sd);
+ 	struct v4l2_mbus_framefmt *format;
+ 
+-	if (sel->target != V4L2_SUBDEV_SEL_TGT_CROP ||
++	if (sel->target != V4L2_SEL_TGT_CROP ||
+ 	    sel->pad != PREV_PAD_SINK)
+ 		return -EINVAL;
+ 
+diff --git a/drivers/media/video/omap3isp/ispresizer.c b/drivers/media/video/omap3isp/ispresizer.c
+index 9456652..ae17d91 100644
+--- a/drivers/media/video/omap3isp/ispresizer.c
++++ b/drivers/media/video/omap3isp/ispresizer.c
+@@ -1249,7 +1249,7 @@ static int resizer_get_selection(struct v4l2_subdev *sd,
+ 					     sel->which);
+ 
+ 	switch (sel->target) {
+-	case V4L2_SUBDEV_SEL_TGT_CROP_BOUNDS:
++	case V4L2_SEL_TGT_CROP_BOUNDS:
+ 		sel->r.left = 0;
+ 		sel->r.top = 0;
+ 		sel->r.width = INT_MAX;
+@@ -1259,7 +1259,7 @@ static int resizer_get_selection(struct v4l2_subdev *sd,
+ 		resizer_calc_ratios(res, &sel->r, format_source, &ratio);
+ 		break;
+ 
+-	case V4L2_SUBDEV_SEL_TGT_CROP:
++	case V4L2_SEL_TGT_CROP:
+ 		sel->r = *__resizer_get_crop(res, fh, sel->which);
+ 		resizer_calc_ratios(res, &sel->r, format_source, &ratio);
+ 		break;
+@@ -1293,7 +1293,7 @@ static int resizer_set_selection(struct v4l2_subdev *sd,
+ 	struct v4l2_mbus_framefmt *format_sink, *format_source;
+ 	struct resizer_ratio ratio;
+ 
+-	if (sel->target != V4L2_SUBDEV_SEL_TGT_CROP ||
++	if (sel->target != V4L2_SEL_TGT_CROP ||
+ 	    sel->pad != RESZ_PAD_SINK)
+ 		return -EINVAL;
+ 
+diff --git a/drivers/media/video/smiapp/smiapp-core.c b/drivers/media/video/smiapp/smiapp-core.c
+index 6789a26..09f0e30 100644
+--- a/drivers/media/video/smiapp/smiapp-core.c
++++ b/drivers/media/video/smiapp/smiapp-core.c
+@@ -1629,7 +1629,7 @@ static void smiapp_propagate(struct v4l2_subdev *subdev,
+ 	smiapp_get_crop_compose(subdev, fh, crops, &comp, which);
+ 
+ 	switch (target) {
+-	case V4L2_SUBDEV_SEL_TGT_CROP:
++	case V4L2_SEL_TGT_CROP:
+ 		comp->width = crops[SMIAPP_PAD_SINK]->width;
+ 		comp->height = crops[SMIAPP_PAD_SINK]->height;
+ 		if (which == V4L2_SUBDEV_FORMAT_ACTIVE) {
+@@ -1645,7 +1645,7 @@ static void smiapp_propagate(struct v4l2_subdev *subdev,
+ 			}
+ 		}
+ 		/* Fall through */
+-	case V4L2_SUBDEV_SEL_TGT_COMPOSE:
++	case V4L2_SEL_TGT_COMPOSE:
+ 		*crops[SMIAPP_PAD_SRC] = *comp;
+ 		break;
+ 	default:
+@@ -1721,7 +1721,7 @@ static int smiapp_set_format(struct v4l2_subdev *subdev,
+ 	if (fmt->which == V4L2_SUBDEV_FORMAT_ACTIVE)
+ 		ssd->sink_fmt = *crops[ssd->sink_pad];
+ 	smiapp_propagate(subdev, fh, fmt->which,
+-			 V4L2_SUBDEV_SEL_TGT_CROP);
++			 V4L2_SEL_TGT_CROP);
+ 
+ 	mutex_unlock(&sensor->mutex);
+ 
+@@ -1956,7 +1956,7 @@ static int smiapp_set_compose(struct v4l2_subdev *subdev,
+ 
+ 	*comp = sel->r;
+ 	smiapp_propagate(subdev, fh, sel->which,
+-			 V4L2_SUBDEV_SEL_TGT_COMPOSE);
++			 V4L2_SEL_TGT_COMPOSE);
+ 
+ 	if (sel->which == V4L2_SUBDEV_FORMAT_ACTIVE)
+ 		return smiapp_update_mode(sensor);
+@@ -1972,8 +1972,8 @@ static int __smiapp_sel_supported(struct v4l2_subdev *subdev,
+ 
+ 	/* We only implement crop in three places. */
+ 	switch (sel->target) {
+-	case V4L2_SUBDEV_SEL_TGT_CROP:
+-	case V4L2_SUBDEV_SEL_TGT_CROP_BOUNDS:
++	case V4L2_SEL_TGT_CROP:
++	case V4L2_SEL_TGT_CROP_BOUNDS:
+ 		if (ssd == sensor->pixel_array
+ 		    && sel->pad == SMIAPP_PA_PAD_SRC)
+ 			return 0;
+@@ -1986,8 +1986,8 @@ static int __smiapp_sel_supported(struct v4l2_subdev *subdev,
+ 		    == SMIAPP_DIGITAL_CROP_CAPABILITY_INPUT_CROP)
+ 			return 0;
+ 		return -EINVAL;
+-	case V4L2_SUBDEV_SEL_TGT_COMPOSE:
+-	case V4L2_SUBDEV_SEL_TGT_COMPOSE_BOUNDS:
++	case V4L2_SEL_TGT_COMPOSE:
++	case V4L2_SEL_TGT_COMPOSE_BOUNDS:
+ 		if (sel->pad == ssd->source_pad)
+ 			return -EINVAL;
+ 		if (ssd == sensor->binner)
+@@ -2049,7 +2049,7 @@ static int smiapp_set_crop(struct v4l2_subdev *subdev,
+ 
+ 	if (ssd != sensor->pixel_array && sel->pad == SMIAPP_PAD_SINK)
+ 		smiapp_propagate(subdev, fh, sel->which,
+-				 V4L2_SUBDEV_SEL_TGT_CROP);
++				 V4L2_SEL_TGT_CROP);
+ 
+ 	return 0;
+ }
+@@ -2083,7 +2083,7 @@ static int __smiapp_get_selection(struct v4l2_subdev *subdev,
+ 	}
+ 
+ 	switch (sel->target) {
+-	case V4L2_SUBDEV_SEL_TGT_CROP_BOUNDS:
++	case V4L2_SEL_TGT_CROP_BOUNDS:
+ 		if (ssd == sensor->pixel_array) {
+ 			sel->r.width =
+ 				sensor->limits[SMIAPP_LIMIT_X_ADDR_MAX] + 1;
+@@ -2095,11 +2095,11 @@ static int __smiapp_get_selection(struct v4l2_subdev *subdev,
+ 			sel->r = *comp;
+ 		}
+ 		break;
+-	case V4L2_SUBDEV_SEL_TGT_CROP:
+-	case V4L2_SUBDEV_SEL_TGT_COMPOSE_BOUNDS:
++	case V4L2_SEL_TGT_CROP:
++	case V4L2_SEL_TGT_COMPOSE_BOUNDS:
+ 		sel->r = *crops[sel->pad];
+ 		break;
+-	case V4L2_SUBDEV_SEL_TGT_COMPOSE:
++	case V4L2_SEL_TGT_COMPOSE:
+ 		sel->r = *comp;
+ 		break;
+ 	}
+@@ -2146,10 +2146,10 @@ static int smiapp_set_selection(struct v4l2_subdev *subdev,
+ 			      sel->r.height);
+ 
+ 	switch (sel->target) {
+-	case V4L2_SUBDEV_SEL_TGT_CROP:
++	case V4L2_SEL_TGT_CROP:
+ 		ret = smiapp_set_crop(subdev, fh, sel);
+ 		break;
+-	case V4L2_SUBDEV_SEL_TGT_COMPOSE:
++	case V4L2_SEL_TGT_COMPOSE:
+ 		ret = smiapp_set_compose(subdev, fh, sel);
+ 		break;
+ 	default:
+diff --git a/drivers/media/video/v4l2-subdev.c b/drivers/media/video/v4l2-subdev.c
+index cd86f0c..9182f81 100644
+--- a/drivers/media/video/v4l2-subdev.c
++++ b/drivers/media/video/v4l2-subdev.c
+@@ -245,7 +245,7 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+ 		memset(&sel, 0, sizeof(sel));
+ 		sel.which = crop->which;
+ 		sel.pad = crop->pad;
+-		sel.target = V4L2_SUBDEV_SEL_TGT_CROP;
++		sel.target = V4L2_SEL_TGT_CROP;
+ 
+ 		rval = v4l2_subdev_call(
+ 			sd, pad, get_selection, subdev_fh, &sel);
+@@ -274,7 +274,7 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+ 		memset(&sel, 0, sizeof(sel));
+ 		sel.which = crop->which;
+ 		sel.pad = crop->pad;
+-		sel.target = V4L2_SUBDEV_SEL_TGT_CROP;
++		sel.target = V4L2_SEL_TGT_CROP;
+ 		sel.r = crop->rect;
+ 
+ 		rval = v4l2_subdev_call(
+diff --git a/include/linux/v4l2-common.h b/include/linux/v4l2-common.h
+new file mode 100644
+index 0000000..e0db6e3
+--- /dev/null
++++ b/include/linux/v4l2-common.h
+@@ -0,0 +1,49 @@
++/*
++ * include/linux/v4l2-common.h
++ *
++ * Common V4L2 and V4L2 subdev definitions.
++ *
++ * Users are adviced to #include this file either videodev2.h (V4L2)
++ * or v4l2-subdev.h (V4L2 subdev) rather than to refer to this file
++ * directly.
++ *
++ * Copyright (C) 2012 Nokia Corporation
++ * Contact: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
++ * 02110-1301 USA
++ *
++ */
++
++#ifndef __V4L2_COMMON__
++#define __V4L2_COMMON__
++
++/* Selection target definitions */
++
++/* Current cropping area */
++#define V4L2_SEL_TGT_CROP		0x0000
++/* Default cropping area */
++#define V4L2_SEL_TGT_CROP_DEFAULT	0x0001
++/* Cropping bounds */
++#define V4L2_SEL_TGT_CROP_BOUNDS	0x0002
++/* Current composing area */
++#define V4L2_SEL_TGT_COMPOSE		0x0100
++/* Default composing area */
++#define V4L2_SEL_TGT_COMPOSE_DEFAULT	0x0101
++/* Composing bounds */
++#define V4L2_SEL_TGT_COMPOSE_BOUNDS	0x0102
++/* Current composing area plus all padding pixels */
++#define V4L2_SEL_TGT_COMPOSE_PADDED	0x0103
++
++#endif /* __V4L2_COMMON__  */
+diff --git a/include/linux/v4l2-subdev.h b/include/linux/v4l2-subdev.h
+index 01eee06..b75f535 100644
+--- a/include/linux/v4l2-subdev.h
++++ b/include/linux/v4l2-subdev.h
+@@ -127,22 +127,13 @@ struct v4l2_subdev_frame_interval_enum {
+ #define V4L2_SUBDEV_SEL_FLAG_SIZE_LE			(1 << 1)
+ #define V4L2_SUBDEV_SEL_FLAG_KEEP_CONFIG		(1 << 2)
+ 
+-/* active cropping area */
+-#define V4L2_SUBDEV_SEL_TGT_CROP			0x0000
+-/* cropping bounds */
+-#define V4L2_SUBDEV_SEL_TGT_CROP_BOUNDS			0x0002
+-/* current composing area */
+-#define V4L2_SUBDEV_SEL_TGT_COMPOSE			0x0100
+-/* composing bounds */
+-#define V4L2_SUBDEV_SEL_TGT_COMPOSE_BOUNDS		0x0102
+-
+-
+ /**
+  * struct v4l2_subdev_selection - selection info
+  *
+  * @which: either V4L2_SUBDEV_FORMAT_ACTIVE or V4L2_SUBDEV_FORMAT_TRY
+  * @pad: pad number, as reported by the media API
+- * @target: selection target, used to choose one of possible rectangles
++ * @target: Selection target, used to choose one of possible rectangles,
++ *	    defined in v4l2-common.h; V4L2_SEL_TGT_* .
+  * @flags: constraint flags
+  * @r: coordinates of the selection window
+  * @reserved: for future use, set to zero for now
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index 2cff49c..10edd1d 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -765,27 +765,11 @@ struct v4l2_crop {
+ #define V4L2_SEL_FLAG_GE	0x00000001
+ #define V4L2_SEL_FLAG_LE	0x00000002
+ 
+-/* Selection targets */
+-
+-/* Current cropping area */
+-#define V4L2_SEL_TGT_CROP		0x0000
+-/* Default cropping area */
+-#define V4L2_SEL_TGT_CROP_DEFAULT	0x0001
+-/* Cropping bounds */
+-#define V4L2_SEL_TGT_CROP_BOUNDS	0x0002
+-/* Current composing area */
+-#define V4L2_SEL_TGT_COMPOSE		0x0100
+-/* Default composing area */
+-#define V4L2_SEL_TGT_COMPOSE_DEFAULT	0x0101
+-/* Composing bounds */
+-#define V4L2_SEL_TGT_COMPOSE_BOUNDS	0x0102
+-/* Current composing area plus all padding pixels */
+-#define V4L2_SEL_TGT_COMPOSE_PADDED	0x0103
+-
+ /**
+  * struct v4l2_selection - selection info
+  * @type:	buffer type (do not use *_MPLANE types)
+- * @target:	selection target, used to choose one of possible rectangles
++ * @target:	Selection target, used to choose one of possible rectangles;
++ *		defined in v4l2-common.h.
+  * @flags:	constraints flags
+  * @r:		coordinates of selection window
+  * @reserved:	for future use, rounds structure size to 64 bytes, set to zero
 -- 
-1.7.4.1
+1.7.2.5
 
