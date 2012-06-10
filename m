@@ -1,76 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:10031 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751632Ab2FNHFI (ORCPT
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:3546 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754752Ab2FJKzS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Jun 2012 03:05:08 -0400
-Received: from euspt2 (mailout4.w1.samsung.com [210.118.77.14])
- by mailout4.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0M5L00B1XIDM1C90@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 14 Jun 2012 08:05:46 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0M5L00GFFICF22@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 14 Jun 2012 08:05:03 +0100 (BST)
-Date: Thu, 14 Jun 2012 09:04:06 +0200
-From: Andrzej Hajda <a.hajda@samsung.com>
-Subject: [PATCH] v4l/s5p-mfc: corrected encoder v4l control definitions
+	Sun, 10 Jun 2012 06:55:18 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Andrzej Hajda <a.hajda@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Message-id: <1339657446-21916-1-git-send-email-a.hajda@samsung.com>
-Content-transfer-encoding: 7BIT
+Cc: Steven Toth <stoth@kernellabs.com>,
+	Michael Krufky <mkrufky@linuxtv.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv1 PATCH 08/11] cx88: support control events.
+Date: Sun, 10 Jun 2012 12:54:54 +0200
+Message-Id: <0a365dd98608df01db5f2f93861bcae73d293d0b.1339325224.git.hans.verkuil@cisco.com>
+In-Reply-To: <1339325697-23280-1-git-send-email-hverkuil@xs4all.nl>
+References: <1339325697-23280-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <541a39bdcc8a94d3de87a6a6d0b1b7c476983984.1339325224.git.hans.verkuil@cisco.com>
+References: <541a39bdcc8a94d3de87a6a6d0b1b7c476983984.1339325224.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Patch corrects definition of H264 level control and
-changes bare numbers to enums in two other cases.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/video/s5p-mfc/s5p_mfc_enc.c |   10 ++--------
- 1 files changed, 2 insertions(+), 8 deletions(-)
+ drivers/media/video/cx88/cx88-blackbird.c |    5 ++++-
+ drivers/media/video/cx88/cx88-video.c     |   16 ++++++++++------
+ 2 files changed, 14 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/media/video/s5p-mfc/s5p_mfc_enc.c b/drivers/media/video/s5p-mfc/s5p_mfc_enc.c
-index acedb20..9c19aa8 100644
---- a/drivers/media/video/s5p-mfc/s5p_mfc_enc.c
-+++ b/drivers/media/video/s5p-mfc/s5p_mfc_enc.c
-@@ -243,12 +243,6 @@ static struct mfc_control controls[] = {
- 		.minimum = V4L2_MPEG_VIDEO_H264_LEVEL_1_0,
- 		.maximum = V4L2_MPEG_VIDEO_H264_LEVEL_4_0,
- 		.default_value = V4L2_MPEG_VIDEO_H264_LEVEL_1_0,
--		.menu_skip_mask = ~(
--				(1 << V4L2_MPEG_VIDEO_H264_LEVEL_4_1) |
--				(1 << V4L2_MPEG_VIDEO_H264_LEVEL_4_2) |
--				(1 << V4L2_MPEG_VIDEO_H264_LEVEL_5_0) |
--				(1 << V4L2_MPEG_VIDEO_H264_LEVEL_5_1)
--				),
- 	},
- 	{
- 		.id = V4L2_CID_MPEG_VIDEO_MPEG4_LEVEL,
-@@ -494,7 +488,7 @@ static struct mfc_control controls[] = {
- 		.type = V4L2_CTRL_TYPE_MENU,
- 		.minimum = V4L2_MPEG_VIDEO_H264_VUI_SAR_IDC_UNSPECIFIED,
- 		.maximum = V4L2_MPEG_VIDEO_H264_VUI_SAR_IDC_EXTENDED,
--		.default_value = 0,
-+		.default_value = V4L2_MPEG_VIDEO_H264_VUI_SAR_IDC_UNSPECIFIED,
- 		.menu_skip_mask = 0,
- 	},
- 	{
-@@ -534,7 +528,7 @@ static struct mfc_control controls[] = {
- 		.type = V4L2_CTRL_TYPE_MENU,
- 		.minimum = V4L2_MPEG_VIDEO_MPEG4_PROFILE_SIMPLE,
- 		.maximum = V4L2_MPEG_VIDEO_MPEG4_PROFILE_ADVANCED_SIMPLE,
--		.default_value = 0,
-+		.default_value = V4L2_MPEG_VIDEO_MPEG4_PROFILE_SIMPLE,
- 		.menu_skip_mask = 0,
- 	},
- 	{
+diff --git a/drivers/media/video/cx88/cx88-blackbird.c b/drivers/media/video/cx88/cx88-blackbird.c
+index ac8473e..1a5facb 100644
+--- a/drivers/media/video/cx88/cx88-blackbird.c
++++ b/drivers/media/video/cx88/cx88-blackbird.c
+@@ -35,6 +35,7 @@
+ #include <linux/firmware.h>
+ #include <media/v4l2-common.h>
+ #include <media/v4l2-ioctl.h>
++#include <media/v4l2-event.h>
+ #include <media/cx2341x.h>
+ 
+ #include "cx88.h"
+@@ -1053,7 +1054,7 @@ mpeg_poll(struct file *file, struct poll_table_struct *wait)
+ 	if (!dev->mpeg_active && (req_events & (POLLIN | POLLRDNORM)))
+ 		blackbird_start_codec(file, fh);
+ 
+-	return videobuf_poll_stream(file, &fh->mpegq, wait);
++	return v4l2_ctrl_poll(file, wait) | videobuf_poll_stream(file, &fh->mpegq, wait);
+ }
+ 
+ static int
+@@ -1096,6 +1097,8 @@ static const struct v4l2_ioctl_ops mpeg_ioctl_ops = {
+ 	.vidioc_g_tuner       = vidioc_g_tuner,
+ 	.vidioc_s_tuner       = vidioc_s_tuner,
+ 	.vidioc_s_std         = vidioc_s_std,
++	.vidioc_subscribe_event      = v4l2_ctrl_subscribe_event,
++	.vidioc_unsubscribe_event    = v4l2_event_unsubscribe,
+ };
+ 
+ static struct video_device cx8802_mpeg_template = {
+diff --git a/drivers/media/video/cx88/cx88-video.c b/drivers/media/video/cx88/cx88-video.c
+index 673f88b..930d43b 100644
+--- a/drivers/media/video/cx88/cx88-video.c
++++ b/drivers/media/video/cx88/cx88-video.c
+@@ -40,6 +40,7 @@
+ #include "cx88.h"
+ #include <media/v4l2-common.h>
+ #include <media/v4l2-ioctl.h>
++#include <media/v4l2-event.h>
+ #include <media/wm8775.h>
+ 
+ MODULE_DESCRIPTION("v4l2 driver module for cx2388x based TV cards");
+@@ -823,12 +824,12 @@ video_poll(struct file *file, struct poll_table_struct *wait)
+ 	struct video_device *vdev = video_devdata(file);
+ 	struct cx8800_fh *fh = file->private_data;
+ 	struct cx88_buffer *buf;
+-	unsigned int rc = POLLERR;
++	unsigned int rc = v4l2_ctrl_poll(file, wait);
+ 
+ 	if (vdev->vfl_type == VFL_TYPE_VBI) {
+ 		if (!res_get(fh->dev,fh,RESOURCE_VBI))
+-			return POLLERR;
+-		return videobuf_poll_stream(file, &fh->vbiq, wait);
++			return rc | POLLERR;
++		return rc | videobuf_poll_stream(file, &fh->vbiq, wait);
+ 	}
+ 
+ 	mutex_lock(&fh->vidq.vb_lock);
+@@ -846,9 +847,7 @@ video_poll(struct file *file, struct poll_table_struct *wait)
+ 	poll_wait(file, &buf->vb.done, wait);
+ 	if (buf->vb.state == VIDEOBUF_DONE ||
+ 	    buf->vb.state == VIDEOBUF_ERROR)
+-		rc = POLLIN|POLLRDNORM;
+-	else
+-		rc = 0;
++		rc |= POLLIN|POLLRDNORM;
+ done:
+ 	mutex_unlock(&fh->vidq.vb_lock);
+ 	return rc;
+@@ -1561,6 +1560,8 @@ static const struct v4l2_ioctl_ops video_ioctl_ops = {
+ 	.vidioc_s_tuner       = vidioc_s_tuner,
+ 	.vidioc_g_frequency   = vidioc_g_frequency,
+ 	.vidioc_s_frequency   = vidioc_s_frequency,
++	.vidioc_subscribe_event      = v4l2_ctrl_subscribe_event,
++	.vidioc_unsubscribe_event    = v4l2_event_unsubscribe,
+ #ifdef CONFIG_VIDEO_ADV_DEBUG
+ 	.vidioc_g_register    = vidioc_g_register,
+ 	.vidioc_s_register    = vidioc_s_register,
+@@ -1581,6 +1582,7 @@ static const struct v4l2_file_operations radio_fops =
+ {
+ 	.owner         = THIS_MODULE,
+ 	.open          = video_open,
++	.poll          = v4l2_ctrl_poll,
+ 	.release       = video_release,
+ 	.unlocked_ioctl = video_ioctl2,
+ };
+@@ -1591,6 +1593,8 @@ static const struct v4l2_ioctl_ops radio_ioctl_ops = {
+ 	.vidioc_s_tuner       = radio_s_tuner,
+ 	.vidioc_g_frequency   = vidioc_g_frequency,
+ 	.vidioc_s_frequency   = vidioc_s_frequency,
++	.vidioc_subscribe_event      = v4l2_ctrl_subscribe_event,
++	.vidioc_unsubscribe_event    = v4l2_event_unsubscribe,
+ #ifdef CONFIG_VIDEO_ADV_DEBUG
+ 	.vidioc_g_register    = vidioc_g_register,
+ 	.vidioc_s_register    = vidioc_s_register,
 -- 
-1.7.0.4
+1.7.10
 
