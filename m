@@ -1,146 +1,187 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:2015 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755434Ab2FXL3K (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 Jun 2012 07:29:10 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Andy Walls <awalls@md.metrocast.net>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Scott Jiang <scott.jiang.linux@gmail.com>,
-	Manjunatha Halli <manjunatha_halli@ti.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>,
-	Anatolij Gustschin <agust@denx.de>,
-	Javier Martin <javier.martin@vista-silicon.com>,
-	Sensoray Linux Development <linux-dev@sensoray.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
-	Sachin Kamat <sachin.kamat@linaro.org>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	mitov@issp.bas.bg, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 14/26] vpif_display: remove V4L2_FL_LOCK_ALL_FOPS
-Date: Sun, 24 Jun 2012 13:26:06 +0200
-Message-Id: <e0912d8977422112d37fa7e6151a07ca9ec890cc.1340536092.git.hans.verkuil@cisco.com>
-In-Reply-To: <1340537178-18768-1-git-send-email-hverkuil@xs4all.nl>
-References: <1340537178-18768-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <f854d2a0a932187cd895bf9cd81d2da8343b52c9.1340536092.git.hans.verkuil@cisco.com>
-References: <f854d2a0a932187cd895bf9cd81d2da8343b52c9.1340536092.git.hans.verkuil@cisco.com>
+Received: from mailout-de.gmx.net ([213.165.64.23]:46680 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1754682Ab2FJBo6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Jun 2012 21:44:58 -0400
+From: =?UTF-8?q?Daniel=20Gl=C3=B6ckner?= <daniel-gl@gmx.net>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: linux-media@vger.kernel.org,
+	=?UTF-8?q?Daniel=20Gl=C3=B6ckner?= <daniel-gl@gmx.net>
+Subject: [PATCH 7/9] tvaudio: obey V4L2 tuner audio matrix
+Date: Sun, 10 Jun 2012 03:43:56 +0200
+Message-Id: <1339292638-12205-8-git-send-email-daniel-gl@gmx.net>
+In-Reply-To: <20120609214100.GA1598@minime.bse>
+References: <20120609214100.GA1598@minime.bse>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+V4L2 specifies the audio mode to use for combinations of possible
+(rxsubchans) and requested (audmode) audio modes. Up to now tvaudio
+has made these decisions automatically based on the possible audio
+modes from setting of the frequency until VIDIOC_S_TUNER was called.
+It then forced the hardware to use the mode requested by the user.
+With this patch it continues to adjust the audio mode while taking
+the requested mode into account.
 
-Add proper locking to the file operations, allowing for the removal
-of the V4L2_FL_LOCK_ALL_FOPS flag.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Daniel Glöckner <daniel-gl@gmx.net>
 ---
- drivers/media/video/davinci/vpif_display.c |   34 +++++++++++++++++++---------
- 1 file changed, 23 insertions(+), 11 deletions(-)
+ drivers/media/video/tvaudio.c |   61 +++++++++++++++++++++-------------------
+ 1 files changed, 32 insertions(+), 29 deletions(-)
 
-diff --git a/drivers/media/video/davinci/vpif_display.c b/drivers/media/video/davinci/vpif_display.c
-index e6488ee..43e818a 100644
---- a/drivers/media/video/davinci/vpif_display.c
-+++ b/drivers/media/video/davinci/vpif_display.c
-@@ -580,10 +580,15 @@ static int vpif_mmap(struct file *filep, struct vm_area_struct *vma)
- 	struct vpif_fh *fh = filep->private_data;
- 	struct channel_obj *ch = fh->channel;
- 	struct common_obj *common = &(ch->common[VPIF_VIDEO_INDEX]);
-+	int ret;
+diff --git a/drivers/media/video/tvaudio.c b/drivers/media/video/tvaudio.c
+index 58a0e9c..04ebdfe 100644
+--- a/drivers/media/video/tvaudio.c
++++ b/drivers/media/video/tvaudio.c
+@@ -118,7 +118,7 @@ struct CHIPSTATE {
+ 	audiocmd   shadow;
  
- 	vpif_dbg(2, debug, "vpif_mmap\n");
+ 	/* current settings */
+-	__u16 left,right,treble,bass,muted,mode;
++	__u16 left, right, treble, bass, muted;
+ 	int prevmode;
+ 	int radio;
+ 	int input;
+@@ -287,7 +287,7 @@ static int chip_thread(void *data)
+ 	struct CHIPSTATE *chip = data;
+ 	struct CHIPDESC  *desc = chip->desc;
+ 	struct v4l2_subdev *sd = &chip->sd;
+-	int mode;
++	int mode, selected;
  
--	return videobuf_mmap_mapper(&common->buffer_queue, vma);
-+	if (mutex_lock_interruptible(&common->lock))
-+		return -ERESTARTSYS;
-+	ret = videobuf_mmap_mapper(&common->buffer_queue, vma);
-+	mutex_unlock(&common->lock);
-+	return ret;
- }
+ 	v4l2_dbg(1, debug, sd, "thread started\n");
+ 	set_freezable();
+@@ -301,8 +301,8 @@ static int chip_thread(void *data)
+ 			break;
+ 		v4l2_dbg(1, debug, sd, "thread wakeup\n");
  
- /*
-@@ -594,11 +599,15 @@ static unsigned int vpif_poll(struct file *filep, poll_table *wait)
- 	struct vpif_fh *fh = filep->private_data;
- 	struct channel_obj *ch = fh->channel;
- 	struct common_obj *common = &ch->common[VPIF_VIDEO_INDEX];
-+	unsigned int res = 0;
+-		/* don't do anything for radio or if mode != auto */
+-		if (chip->radio || chip->mode != 0)
++		/* don't do anything for radio */
++		if (chip->radio)
+ 			continue;
  
--	if (common->started)
--		return videobuf_poll_stream(filep, &common->buffer_queue, wait);
-+	if (common->started) {
-+		mutex_lock(&common->lock);
-+		res = videobuf_poll_stream(filep, &common->buffer_queue, wait);
-+		mutex_unlock(&common->lock);
-+	}
+ 		/* have a look what's going on */
+@@ -315,16 +315,27 @@ static int chip_thread(void *data)
  
--	return 0;
-+	return res;
- }
+ 		chip->prevmode = mode;
  
- /*
-@@ -608,10 +617,10 @@ static unsigned int vpif_poll(struct file *filep, poll_table *wait)
- static int vpif_open(struct file *filep)
- {
- 	struct video_device *vdev = video_devdata(filep);
--	struct channel_obj *ch = NULL;
--	struct vpif_fh *fh = NULL;
-+	struct channel_obj *ch = video_get_drvdata(vdev);
-+	struct common_obj *common = &ch->common[VPIF_VIDEO_INDEX];
-+	struct vpif_fh *fh;
+-		if (mode & V4L2_TUNER_SUB_STEREO)
+-			desc->setmode(chip, V4L2_TUNER_MODE_STEREO);
+-		if (mode & V4L2_TUNER_SUB_LANG1_LANG2)
+-			desc->setmode(chip, V4L2_TUNER_MODE_STEREO);
+-		else if (mode & V4L2_SUB_MODE_LANG1)
+-			desc->setmode(chip, V4L2_TUNER_MODE_LANG1);
+-		else if (mode & V4L2_SUB_MODE_LANG2)
+-			desc->setmode(chip, V4L2_TUNER_MODE_LANG2);
+-		else
+-			desc->setmode(chip, V4L2_TUNER_MODE_MONO);
++		selected = V4L2_TUNER_MODE_MONO;
++		switch (chip->audmode) {
++		case V4L2_TUNER_MODE_MONO:
++			if (mode & V4L2_TUNER_SUB_LANG1)
++				selected = V4L2_TUNER_MODE_LANG1;
++			break;
++		case V4L2_TUNER_MODE_STEREO:
++		case V4L2_TUNER_MODE_LANG1:
++			if (mode & V4L2_TUNER_SUB_LANG1)
++				selected = V4L2_TUNER_MODE_LANG1;
++			else if (mode & V4L2_TUNER_SUB_STEREO)
++				selected = V4L2_TUNER_MODE_STEREO;
++			break;
++		case V4L2_TUNER_MODE_LANG2:
++			if (mode & V4L2_TUNER_SUB_LANG2)
++				selected = V4L2_TUNER_MODE_LANG2;
++			else if (mode & V4L2_TUNER_SUB_STEREO)
++				selected = V4L2_TUNER_MODE_STEREO;
++			break;
++		}
++		desc->setmode(chip, selected);
  
--	ch = video_get_drvdata(vdev);
- 	/* Allocate memory for the file handle object */
- 	fh = kzalloc(sizeof(struct vpif_fh), GFP_KERNEL);
- 	if (fh == NULL) {
-@@ -619,6 +628,10 @@ static int vpif_open(struct file *filep)
- 		return -ENOMEM;
+ 		/* schedule next check */
+ 		mod_timer(&chip->wt, jiffies+msecs_to_jiffies(2000));
+@@ -712,7 +723,6 @@ static void tda9873_setmode(struct CHIPSTATE *chip, int mode)
+ 		sw_data |= TDA9873_TR_DUALB;
+ 		break;
+ 	default:
+-		chip->mode = 0;
+ 		return;
  	}
  
-+	if (mutex_lock_interruptible(&common->lock)) {
-+		kfree(fh);
-+		return -ERESTARTSYS;
-+	}
- 	/* store pointer to fh in private_data member of filep */
- 	filep->private_data = fh;
- 	fh->channel = ch;
-@@ -636,6 +649,7 @@ static int vpif_open(struct file *filep)
- 	/* Initialize priority of this instance to default priority */
- 	fh->prio = V4L2_PRIORITY_UNSET;
- 	v4l2_prio_open(&ch->prio, &fh->prio);
-+	mutex_unlock(&common->lock);
+@@ -944,7 +954,6 @@ static void tda9874a_setmode(struct CHIPSTATE *chip, int mode)
+ 			mdacosr = (tda9874a_mode) ? 0x83:0x81;
+ 			break;
+ 		default:
+-			chip->mode = 0;
+ 			return;
+ 		}
+ 		chip_write(chip, TDA9874A_AOSR, aosr);
+@@ -979,7 +988,6 @@ static void tda9874a_setmode(struct CHIPSTATE *chip, int mode)
+ 			aosr = 0x20; /* dual B/B */
+ 			break;
+ 		default:
+-			chip->mode = 0;
+ 			return;
+ 		}
+ 		chip_write(chip, TDA9874A_FMMR, fmmr);
+@@ -1799,7 +1807,6 @@ static int tvaudio_s_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *vt)
+ {
+ 	struct CHIPSTATE *chip = to_state(sd);
+ 	struct CHIPDESC *desc = chip->desc;
+-	int mode = 0;
  
+ 	if (!desc->setmode)
+ 		return 0;
+@@ -1811,21 +1818,20 @@ static int tvaudio_s_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *vt)
+ 	case V4L2_TUNER_MODE_STEREO:
+ 	case V4L2_TUNER_MODE_LANG1:
+ 	case V4L2_TUNER_MODE_LANG2:
+-		mode = vt->audmode;
+ 		break;
+ 	case V4L2_TUNER_MODE_LANG1_LANG2:
+-		mode = V4L2_TUNER_MODE_STEREO;
++		vt->audmode = V4L2_TUNER_MODE_STEREO;
+ 		break;
+ 	default:
+ 		return -EINVAL;
+ 	}
+ 	chip->audmode = vt->audmode;
+ 
+-	if (mode) {
+-		/* del_timer(&chip->wt); */
+-		chip->mode = mode;
+-		desc->setmode(chip, mode);
+-	}
++	if (chip->thread)
++		wake_up_process(chip->thread);
++	else
++		desc->setmode(chip, vt->audmode);
++
  	return 0;
  }
-@@ -650,6 +664,7 @@ static int vpif_release(struct file *filep)
- 	struct channel_obj *ch = fh->channel;
- 	struct common_obj *common = &ch->common[VPIF_VIDEO_INDEX];
  
-+	mutex_lock(&common->lock);
- 	/* if this instance is doing IO */
- 	if (fh->io_allowed[VPIF_VIDEO_INDEX]) {
- 		/* Reset io_usrs member of channel object */
-@@ -682,6 +697,7 @@ static int vpif_release(struct file *filep)
- 	v4l2_prio_close(&ch->prio, fh->prio);
- 	filep->private_data = NULL;
- 	fh->initialized = 0;
-+	mutex_unlock(&common->lock);
- 	kfree(fh);
+@@ -1860,8 +1866,6 @@ static int tvaudio_s_frequency(struct v4l2_subdev *sd, struct v4l2_frequency *fr
+ 	struct CHIPSTATE *chip = to_state(sd);
+ 	struct CHIPDESC *desc = chip->desc;
  
+-	chip->mode = 0; /* automatic */
+-
+ 	/* For chips that provide getmode and setmode, and doesn't
+ 	   automatically follows the stereo carrier, a kthread is
+ 	   created to set the audio standard. In this case, when then
+@@ -1872,8 +1876,7 @@ static int tvaudio_s_frequency(struct v4l2_subdev *sd, struct v4l2_frequency *fr
+ 	 */
+ 	if (chip->thread) {
+ 		desc->setmode(chip, V4L2_TUNER_MODE_MONO);
+-		if (chip->prevmode != V4L2_TUNER_MODE_MONO)
+-			chip->prevmode = -1; /* reset previous mode */
++		chip->prevmode = -1; /* reset previous mode */
+ 		mod_timer(&chip->wt, jiffies+msecs_to_jiffies(2000));
+ 	}
  	return 0;
-@@ -1778,10 +1794,6 @@ static __init int vpif_probe(struct platform_device *pdev)
- 		v4l2_prio_init(&ch->prio);
- 		ch->common[VPIF_VIDEO_INDEX].fmt.type =
- 						V4L2_BUF_TYPE_VIDEO_OUTPUT;
--		/* Locking in file operations other than ioctl should be done
--		   by the driver, not the V4L2 core.
--		   This driver needs auditing so that this flag can be removed. */
--		set_bit(V4L2_FL_LOCK_ALL_FOPS, &ch->video_dev->flags);
- 		ch->video_dev->lock = &common->lock;
- 
- 		/* register video device */
 -- 
-1.7.10
+1.7.0.5
 
