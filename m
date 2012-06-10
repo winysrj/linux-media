@@ -1,419 +1,219 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.26]:48128 "EHLO mgw-da02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752316Ab2FMVbB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Jun 2012 17:31:01 -0400
-From: Sakari Ailus <sakari.ailus@iki.fi>
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2289 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754433Ab2FJK0M (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 10 Jun 2012 06:26:12 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
-	snjw23@gmail.com, t.stanislaws@samsung.com
-Subject: [PATCH v2 6/6] v4l: Unify selection flags documentation
-Date: Thu, 14 Jun 2012 00:30:25 +0300
-Message-Id: <1339623025-6227-6-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <4FD9065B.2030703@iki.fi>
-References: <4FD9065B.2030703@iki.fi>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Andy Walls <awalls@md.metrocast.net>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Pawel Osciak <pawel@osciak.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv1 PATCH 15/32] v4l2-ioctl.c: use the new table for debug ioctls.
+Date: Sun, 10 Jun 2012 12:25:37 +0200
+Message-Id: <9f639172dd95060e57f405d514e1e887ff838cc0.1339321562.git.hans.verkuil@cisco.com>
+In-Reply-To: <1339323954-1404-1-git-send-email-hverkuil@xs4all.nl>
+References: <1339323954-1404-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <ef490f7ebca5b6df91db6b1acfb9928ada3bcd70.1339321562.git.hans.verkuil@cisco.com>
+References: <ef490f7ebca5b6df91db6b1acfb9928ada3bcd70.1339321562.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As for the selection targets, the selection flags are now the same on V4L2
-and V4L2 subdev interfaces. Also document them so.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- Documentation/DocBook/media/v4l/dev-subdev.xml     |    6 +-
- Documentation/DocBook/media/v4l/selection-api.xml  |    4 +-
- .../DocBook/media/v4l/selections-common.xml        |  221 +++++++++++++-------
- .../DocBook/media/v4l/vidioc-g-selection.xml       |   27 +---
- .../media/v4l/vidioc-subdev-g-selection.xml        |   39 +----
- 5 files changed, 155 insertions(+), 142 deletions(-)
+ drivers/media/video/v4l2-ioctl.c |  139 ++++++++++++++++++++++++--------------
+ 1 file changed, 89 insertions(+), 50 deletions(-)
 
-diff --git a/Documentation/DocBook/media/v4l/dev-subdev.xml b/Documentation/DocBook/media/v4l/dev-subdev.xml
-index 76c4307..8c44b3f 100644
---- a/Documentation/DocBook/media/v4l/dev-subdev.xml
-+++ b/Documentation/DocBook/media/v4l/dev-subdev.xml
-@@ -323,10 +323,10 @@
-       <para>The drivers should always use the closest possible
-       rectangle the user requests on all selection targets, unless
-       specifically told otherwise.
--      <constant>V4L2_SUBDEV_SEL_FLAG_SIZE_GE</constant> and
--      <constant>V4L2_SUBDEV_SEL_FLAG_SIZE_LE</constant> flags may be
-+      <constant>V4L2_SEL_FLAG_GE</constant> and
-+      <constant>V4L2_SEL_FLAG_LE</constant> flags may be
-       used to round the image size either up or down. <xref
--      linkend="v4l2-subdev-selection-flags"></xref></para>
-+      linkend="v4l2-selection-flags"></xref></para>
-     </section>
+diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
+index a7e583e..c22a310 100644
+--- a/drivers/media/video/v4l2-ioctl.c
++++ b/drivers/media/video/v4l2-ioctl.c
+@@ -644,11 +644,42 @@ static void v4l_print_decoder_cmd(const void *arg)
+ 		pr_info("pts=%llu\n", p->stop.pts);
+ }
  
-     <section>
-diff --git a/Documentation/DocBook/media/v4l/selection-api.xml b/Documentation/DocBook/media/v4l/selection-api.xml
-index d652a12..2de8b01 100644
---- a/Documentation/DocBook/media/v4l/selection-api.xml
-+++ b/Documentation/DocBook/media/v4l/selection-api.xml
-@@ -71,7 +71,7 @@ cropping/composing rectangles may have to be aligned, and both the source and
- the sink may have arbitrary upper and lower size limits. Therefore, as usual,
- drivers are expected to adjust the requested parameters and return the actual
- values selected. An application can control the rounding behaviour using <link
--linkend="v4l2-sel-flags"> constraint flags </link>.</para>
-+linkend="v4l2-selection-flags"> constraint flags </link>.</para>
- 
-    <section>
- 
-@@ -114,7 +114,7 @@ the bounds rectangle. The composing rectangle must lie completely inside bounds
- rectangle. The driver must adjust the composing rectangle to fit to the
- bounding limits. Moreover, the driver can perform other adjustments according
- to hardware limitations. The application can control rounding behaviour using
--<link linkend="v4l2-sel-flags"> constraint flags </link>.</para>
-+<link linkend="v4l2-selection-flags"> constraint flags </link>.</para>
- 
- <para>For capture devices the default composing rectangle is queried using
- <constant> V4L2_SEL_TGT_COMPOSE_DEFAULT </constant>. It is usually equal to the
-diff --git a/Documentation/DocBook/media/v4l/selections-common.xml b/Documentation/DocBook/media/v4l/selections-common.xml
-index e8f0b02..ad78866 100644
---- a/Documentation/DocBook/media/v4l/selections-common.xml
-+++ b/Documentation/DocBook/media/v4l/selections-common.xml
-@@ -1,6 +1,6 @@
- <section id="v4l2-selections-common">
- 
--  <title>Selection targets</title>
-+  <title>Common selection definitions</title>
- 
-   <para>While the V4L2 <xref linkend="selection-api"/> and V4L2
-   subdev <xref linkend="v4l2-subdev-selections"/> selection APIs are very
-@@ -10,83 +10,154 @@
-   interface the selection rectangles refer to the in-memory pixel
-   format and a video device's buffer queue.</para>
- 
--  <para>The meaning of the selection targets may thus be affected on
--  which of the two interfaces they are used.</para>
-+  <para>This section defines the common parts of the two APIs.</para>
- 
--  <table pgwide="1" frame="none" id="v4l2-selection-targets-table">
--  <title>Selection target definitions</title>
--    <tgroup cols="4">
--      <colspec colname="c1" />
--      <colspec colname="c2" />
--      <colspec colname="c3" />
--      <colspec colname="c4" />
--      <colspec colname="c5" />
--      &cs-def;
--      <thead>
-+  <section id="v4l2-selection-targets">
++static void v4l_print_dbg_chip_ident(const void *arg)
++{
++	const struct v4l2_dbg_chip_ident *p = arg;
 +
-+    <title>Selection targets</title>
++	pr_cont("type=%u, ", p->match.type);
++	if (p->match.type == V4L2_CHIP_MATCH_I2C_DRIVER)
++		pr_cont("name=%s, ", p->match.name);
++	else
++		pr_cont("addr=%u, ", p->match.addr);
++	pr_cont("chip_ident=%u, revision=0x%x\n",
++			p->ident, p->revision);
++}
 +
-+    <para>The meaning of the selection targets may thus be affected on
-+    which of the two interfaces they are used.</para>
++static void v4l_print_dbg_register(const void *arg)
++{
++	const struct v4l2_dbg_register *p = arg;
 +
-+    <table pgwide="1" frame="none" id="v4l2-selection-targets-table">
-+    <title>Selection target definitions</title>
-+      <tgroup cols="4">
-+	<colspec colname="c1" />
-+	<colspec colname="c2" />
-+	<colspec colname="c3" />
-+	<colspec colname="c4" />
-+	<colspec colname="c5" />
-+	&cs-def;
-+	<thead>
- 	<row rowsep="1">
--	  <entry align="left">Target name</entry>
--	  <entry align="left">id</entry>
--	  <entry align="left">Definition</entry>
--	  <entry align="left">Valid for V4L2</entry>
--	  <entry align="left">Valid for V4L2 subdev</entry>
--	</row>
--      </thead>
--      <tbody valign="top">
--	<row>
--	  <entry><constant>V4L2_SEL_TGT_CROP</constant></entry>
--	  <entry>0x0000</entry>
--	  <entry>Crop rectangle. Defines the cropped area.</entry>
--	  <entry>X</entry>
--	  <entry>X</entry>
--	</row>
--	<row>
--          <entry><constant>V4L2_SEL_TGT_CROP_DEFAULT</constant></entry>
--          <entry>0x0001</entry>
--          <entry>Suggested cropping rectangle that covers the "whole picture".</entry>
--	  <entry>X</entry>
--	  <entry>O</entry>
--	</row>
--	<row>
--	  <entry><constant>V4L2_SEL_TGT_CROP_BOUNDS</constant></entry>
--	  <entry>0x0002</entry>
--	  <entry>Bounds of the crop rectangle. All valid crop
--	  rectangles fit inside the crop bounds rectangle.
--	  </entry>
--	  <entry>X</entry>
--	  <entry>X</entry>
--	</row>
--	<row>
--	  <entry><constant>V4L2_SEL_TGT_COMPOSE</constant></entry>
--	  <entry>0x0100</entry>
--	  <entry>Compose rectangle. Used to configure scaling
--	  and composition.</entry>
--	  <entry>X</entry>
--	  <entry>X</entry>
--	</row>
--	<row>
--          <entry><constant>V4L2_SEL_TGT_COMPOSE_DEFAULT</constant></entry>
--          <entry>0x0101</entry>
--          <entry>Suggested composition rectangle that covers the "whole picture".</entry>
--	  <entry>X</entry>
--	  <entry>O</entry>
-+	    <entry align="left">Target name</entry>
-+	    <entry align="left">id</entry>
-+	    <entry align="left">Definition</entry>
-+	    <entry align="left">Valid for V4L2</entry>
-+	    <entry align="left">Valid for V4L2 subdev</entry>
- 	</row>
--	<row>
--	  <entry><constant>V4L2_SEL_TGT_COMPOSE_BOUNDS</constant></entry>
--	  <entry>0x0102</entry>
--	  <entry>Bounds of the compose rectangle. All valid compose
--	  rectangles fid inside the compose bounds rectangle.</entry>
--	  <entry>X</entry>
--	  <entry>X</entry>
--	</row>
--	<row>
--          <entry><constant>V4L2_SEL_TGT_COMPOSE_PADDED</constant></entry>
--          <entry>0x0103</entry>
--          <entry>The active area and all padding pixels that are inserted or
-+	</thead>
-+	<tbody valign="top">
-+	  <row>
-+	    <entry><constant>V4L2_SEL_TGT_CROP</constant></entry>
-+	    <entry>0x0000</entry>
-+	    <entry>Crop rectangle. Defines the cropped area.</entry>
-+	    <entry>X</entry>
-+	    <entry>X</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>V4L2_SEL_TGT_CROP_DEFAULT</constant></entry>
-+	    <entry>0x0001</entry>
-+	    <entry>Suggested cropping rectangle that covers the "whole picture".</entry>
-+	    <entry>X</entry>
-+	    <entry>O</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>V4L2_SEL_TGT_CROP_BOUNDS</constant></entry>
-+	    <entry>0x0002</entry>
-+	    <entry>Bounds of the crop rectangle. All valid crop
-+	    rectangles fit inside the crop bounds rectangle.
-+	    </entry>
-+	    <entry>X</entry>
-+	    <entry>X</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>V4L2_SEL_TGT_COMPOSE</constant></entry>
-+	    <entry>0x0100</entry>
-+	    <entry>Compose rectangle. Used to configure scaling
-+	    and composition.</entry>
-+	    <entry>X</entry>
-+	    <entry>X</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>V4L2_SEL_TGT_COMPOSE_DEFAULT</constant></entry>
-+	    <entry>0x0101</entry>
-+	    <entry>Suggested composition rectangle that covers the "whole picture".</entry>
-+	    <entry>X</entry>
-+	    <entry>O</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>V4L2_SEL_TGT_COMPOSE_BOUNDS</constant></entry>
-+	    <entry>0x0102</entry>
-+	    <entry>Bounds of the compose rectangle. All valid compose
-+	    rectangles fid inside the compose bounds rectangle.</entry>
-+	    <entry>X</entry>
-+	    <entry>X</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>V4L2_SEL_TGT_COMPOSE_PADDED</constant></entry>
-+	    <entry>0x0103</entry>
-+	    <entry>The active area and all padding pixels that are inserted or
- 	    modified by hardware.</entry>
--	  <entry>X</entry>
--	  <entry>O</entry>
-+	    <entry>X</entry>
-+	    <entry>O</entry>
-+	  </row>
-+	</tbody>
-+      </tgroup>
-+    </table>
++	pr_cont("type=%u, ", p->match.type);
++	if (p->match.type == V4L2_CHIP_MATCH_I2C_DRIVER)
++		pr_cont("name=%s, ", p->match.name);
++	else
++		pr_cont("addr=%u, ", p->match.addr);
++	pr_cont("reg=0x%llx, val=0x%llx\n",
++			p->reg, p->val);
++}
 +
-+  </section>
-+
-+  <section id="v4l2-selection-flags">
-+
-+    <title>Selection flags</title>
-+
-+    <table pgwide="1" frame="none" id="v4l2-selection-flags-table">
-+    <title>Selection flag definitions</title>
-+      <tgroup cols="4">
-+	<colspec colname="c1" />
-+	<colspec colname="c2" />
-+	<colspec colname="c3" />
-+	<colspec colname="c4" />
-+	<colspec colname="c5" />
-+	&cs-def;
-+	<thead>
-+	<row rowsep="1">
-+	    <entry align="left">Flag name</entry>
-+	    <entry align="left">id</entry>
-+	    <entry align="left">Definition</entry>
-+	    <entry align="left">Valid for V4L2</entry>
-+	    <entry align="left">Valid for V4L2 subdev</entry>
- 	</row>
--      </tbody>
--    </tgroup>
--  </table>
-+	</thead>
-+	<tbody valign="top">
-+	  <row>
-+	    <entry><constant>V4L2_SEL_FLAG_GE</constant></entry>
-+	    <entry>(1 &lt;&lt; 0)</entry>
-+	    <entry>Suggest the driver it should choose greater or
-+	    equal rectangle (in size) than was requested. Albeit the
-+	    driver may choose a lesser size, it will only do so due to
-+	    hardware limitations. Without this flag (and
-+	    <constant>V4L2_SEL_FLAG_LE</constant>) the
-+	    behaviour is to choose the closest possible
-+	    rectangle.</entry>
-+	    <entry>X</entry>
-+            <entry>X</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>V4L2_SEL_FLAG_LE</constant></entry>
-+	    <entry>(1 &lt;&lt; 1)</entry>
-+	    <entry>Suggest the driver it
-+	    should choose lesser or equal rectangle (in size) than was
-+	    requested. Albeit the driver may choose a greater size, it
-+	    will only do so due to hardware limitations.</entry>
-+	    <entry>X</entry>
-+            <entry>X</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>V4L2_SEL_FLAG_KEEP_CONFIG</constant></entry>
-+	    <entry>(1 &lt;&lt; 2)</entry>
-+	    <entry>The configuration should not be propagated to any
-+	    further processing steps. If this flag is not given, the
-+	    configuration is propagated inside the subdevice to all
-+	    further processing steps.</entry>
-+	    <entry>O</entry>
-+            <entry>X</entry>
-+	  </row>
-+	</tbody>
-+      </tgroup>
-+    </table>
-+
-+  </section>
-+
- </section>
-diff --git a/Documentation/DocBook/media/v4l/vidioc-g-selection.xml b/Documentation/DocBook/media/v4l/vidioc-g-selection.xml
-index c6f8325..f76d8a6 100644
---- a/Documentation/DocBook/media/v4l/vidioc-g-selection.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-g-selection.xml
-@@ -154,32 +154,9 @@ exist no rectangle </emphasis> that satisfies the constraints.</para>
+ static void v4l_print_u32(const void *arg)
+ {
+ 	pr_cont("value=%u\n", *(const u32 *)arg);
+ }
  
-   </refsect1>
++static void v4l_print_newline(const void *arg)
++{
++	pr_cont("\n");
++}
++
+ static void dbgtimings(struct video_device *vfd,
+ 			const struct v4l2_dv_timings *p)
+ {
+@@ -1551,6 +1582,60 @@ static int v4l_cropcap(const struct v4l2_ioctl_ops *ops,
+ 	return 0;
+ }
  
--  <para>Selection targets are documented in <xref
-+  <para>Selection targets and flags are documented in <xref
-   linkend="v4l2-selections-common"/>.</para>
- 
--  <refsect1>
--    <table frame="none" pgwide="1" id="v4l2-sel-flags">
--      <title>Selection constraint flags</title>
--      <tgroup cols="3">
--	&cs-def;
--	<tbody valign="top">
--	  <row>
--            <entry><constant>V4L2_SEL_FLAG_GE</constant></entry>
--            <entry>0x00000001</entry>
--            <entry>Indicates that the adjusted rectangle must contain the original
--	    &v4l2-selection; <structfield>r</structfield> rectangle.</entry>
--	  </row>
--	  <row>
--            <entry><constant>V4L2_SEL_FLAG_LE</constant></entry>
--            <entry>0x00000002</entry>
--            <entry>Indicates that the adjusted rectangle must be inside the original
--	    &v4l2-rect; <structfield>r</structfield> rectangle.</entry>
--	  </row>
--	</tbody>
--      </tgroup>
--    </table>
--  </refsect1>
++static int v4l_log_status(const struct v4l2_ioctl_ops *ops,
++				struct file *file, void *fh, void *arg)
++{
++	struct video_device *vfd = video_devdata(file);
++	int ret;
++
++	if (vfd->v4l2_dev)
++		pr_info("%s: =================  START STATUS  =================\n",
++			vfd->v4l2_dev->name);
++	ret = ops->vidioc_log_status(file, fh);
++	if (vfd->v4l2_dev)
++		pr_info("%s: ==================  END STATUS  ==================\n",
++			vfd->v4l2_dev->name);
++	return ret;
++}
++
++static int v4l_dbg_g_register(const struct v4l2_ioctl_ops *ops,
++				struct file *file, void *fh, void *arg)
++{
++#ifdef CONFIG_VIDEO_ADV_DEBUG
++	struct v4l2_dbg_register *p = arg;
++
++	if (!capable(CAP_SYS_ADMIN))
++		return -EPERM;
++	return ops->vidioc_g_register(file, fh, p);
++#else
++	return -ENOTTY;
++#endif
++}
++
++static int v4l_dbg_s_register(const struct v4l2_ioctl_ops *ops,
++				struct file *file, void *fh, void *arg)
++{
++#ifdef CONFIG_VIDEO_ADV_DEBUG
++	struct v4l2_dbg_register *p = arg;
++
++	if (!capable(CAP_SYS_ADMIN))
++		return -EPERM;
++	return ops->vidioc_s_register(file, fh, p);
++#else
++	return -ENOTTY;
++#endif
++}
++
++static int v4l_dbg_g_chip_ident(const struct v4l2_ioctl_ops *ops,
++				struct file *file, void *fh, void *arg)
++{
++	struct v4l2_dbg_chip_ident *p = arg;
++
++	p->ident = V4L2_IDENT_NONE;
++	p->revision = 0;
++	return ops->vidioc_g_chip_ident(file, fh, p);
++}
++
+ struct v4l2_ioctl_info {
+ 	unsigned int ioctl;
+ 	u32 flags;
+@@ -1654,7 +1739,7 @@ static struct v4l2_ioctl_info v4l2_ioctls[] = {
+ 	IOCTL_INFO_FNC(VIDIOC_G_PRIORITY, v4l_g_priority, v4l_print_u32, 0),
+ 	IOCTL_INFO_FNC(VIDIOC_S_PRIORITY, v4l_s_priority, v4l_print_u32, INFO_FL_PRIO),
+ 	IOCTL_INFO(VIDIOC_G_SLICED_VBI_CAP, INFO_FL_CLEAR(v4l2_sliced_vbi_cap, type)),
+-	IOCTL_INFO(VIDIOC_LOG_STATUS, 0),
++	IOCTL_INFO_FNC(VIDIOC_LOG_STATUS, v4l_log_status, v4l_print_newline, 0),
+ 	IOCTL_INFO_FNC(VIDIOC_G_EXT_CTRLS, v4l_g_ext_ctrls, v4l_print_ext_controls, INFO_FL_CTRL),
+ 	IOCTL_INFO_FNC(VIDIOC_S_EXT_CTRLS, v4l_s_ext_ctrls, v4l_print_ext_controls, INFO_FL_PRIO | INFO_FL_CTRL),
+ 	IOCTL_INFO_FNC(VIDIOC_TRY_EXT_CTRLS, v4l_try_ext_ctrls, v4l_print_ext_controls, 0),
+@@ -1665,9 +1750,9 @@ static struct v4l2_ioctl_info v4l2_ioctls[] = {
+ 	IOCTL_INFO_STD(VIDIOC_TRY_ENCODER_CMD, vidioc_try_encoder_cmd, v4l_print_encoder_cmd, INFO_FL_CLEAR(v4l2_encoder_cmd, flags)),
+ 	IOCTL_INFO_STD(VIDIOC_DECODER_CMD, vidioc_decoder_cmd, v4l_print_decoder_cmd, INFO_FL_PRIO),
+ 	IOCTL_INFO_STD(VIDIOC_TRY_DECODER_CMD, vidioc_try_decoder_cmd, v4l_print_decoder_cmd, 0),
+-	IOCTL_INFO(VIDIOC_DBG_S_REGISTER, 0),
+-	IOCTL_INFO(VIDIOC_DBG_G_REGISTER, 0),
+-	IOCTL_INFO(VIDIOC_DBG_G_CHIP_IDENT, 0),
++	IOCTL_INFO_FNC(VIDIOC_DBG_S_REGISTER, v4l_dbg_s_register, v4l_print_dbg_register, 0),
++	IOCTL_INFO_FNC(VIDIOC_DBG_G_REGISTER, v4l_dbg_g_register, v4l_print_dbg_register, 0),
++	IOCTL_INFO_FNC(VIDIOC_DBG_G_CHIP_IDENT, v4l_dbg_g_chip_ident, v4l_print_dbg_chip_ident, 0),
+ 	IOCTL_INFO_FNC(VIDIOC_S_HW_FREQ_SEEK, v4l_s_hw_freq_seek, v4l_print_hw_freq_seek, INFO_FL_PRIO),
+ 	IOCTL_INFO(VIDIOC_ENUM_DV_PRESETS, 0),
+ 	IOCTL_INFO(VIDIOC_S_DV_PRESET, INFO_FL_PRIO),
+@@ -1802,52 +1887,6 @@ static long __video_do_ioctl(struct file *file,
+ 			dbgarg2("service_set=%d\n", p->service_set);
+ 		break;
+ 	}
+-	case VIDIOC_LOG_STATUS:
+-	{
+-		if (vfd->v4l2_dev)
+-			pr_info("%s: =================  START STATUS  =================\n",
+-				vfd->v4l2_dev->name);
+-		ret = ops->vidioc_log_status(file, fh);
+-		if (vfd->v4l2_dev)
+-			pr_info("%s: ==================  END STATUS  ==================\n",
+-				vfd->v4l2_dev->name);
+-		break;
+-	}
+-	case VIDIOC_DBG_G_REGISTER:
+-	{
+-#ifdef CONFIG_VIDEO_ADV_DEBUG
+-		struct v4l2_dbg_register *p = arg;
 -
-     <section>
-       <figure id="sel-const-adjust">
- 	<title>Size adjustments with constraint flags.</title>
-@@ -216,7 +193,7 @@ exist no rectangle </emphasis> that satisfies the constraints.</para>
- 	    <entry>__u32</entry>
- 	    <entry><structfield>flags</structfield></entry>
-             <entry>Flags controlling the selection rectangle adjustments, refer to
--	    <link linkend="v4l2-sel-flags">selection flags</link>.</entry>
-+	    <link linkend="v4l2-selection-flags">selection flags</link>.</entry>
- 	  </row>
- 	  <row>
- 	    <entry>&v4l2-rect;</entry>
-diff --git a/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml b/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml
-index fa4063a..9bc691e 100644
---- a/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml
-@@ -87,44 +87,9 @@
-       <constant>EINVAL</constant>.</para>
-     </section>
- 
--    <para>Selection targets are documented in <xref
-+    <para>Selection targets and flags are documented in <xref
-     linkend="v4l2-selections-common"/>.</para>
- 
--    <table pgwide="1" frame="none" id="v4l2-subdev-selection-flags">
--      <title>V4L2 subdev selection flags</title>
--      <tgroup cols="3">
--        &cs-def;
--	<tbody valign="top">
--	  <row>
--	    <entry><constant>V4L2_SUBDEV_SEL_FLAG_SIZE_GE</constant></entry>
--	    <entry>(1 &lt;&lt; 0)</entry> <entry>Suggest the driver it
--	    should choose greater or equal rectangle (in size) than
--	    was requested. Albeit the driver may choose a lesser size,
--	    it will only do so due to hardware limitations. Without
--	    this flag (and
--	    <constant>V4L2_SUBDEV_SEL_FLAG_SIZE_LE</constant>) the
--	    behaviour is to choose the closest possible
--	    rectangle.</entry>
--	  </row>
--	  <row>
--	    <entry><constant>V4L2_SUBDEV_SEL_FLAG_SIZE_LE</constant></entry>
--	    <entry>(1 &lt;&lt; 1)</entry> <entry>Suggest the driver it
--	    should choose lesser or equal rectangle (in size) than was
--	    requested. Albeit the driver may choose a greater size, it
--	    will only do so due to hardware limitations.</entry>
--	  </row>
--	  <row>
--	    <entry><constant>V4L2_SUBDEV_SEL_FLAG_KEEP_CONFIG</constant></entry>
--	    <entry>(1 &lt;&lt; 2)</entry>
--	    <entry>The configuration should not be propagated to any
--	    further processing steps. If this flag is not given, the
--	    configuration is propagated inside the subdevice to all
--	    further processing steps.</entry>
--	  </row>
--	</tbody>
--      </tgroup>
--    </table>
+-		if (!capable(CAP_SYS_ADMIN))
+-			ret = -EPERM;
+-		else
+-			ret = ops->vidioc_g_register(file, fh, p);
+-#endif
+-		break;
+-	}
+-	case VIDIOC_DBG_S_REGISTER:
+-	{
+-#ifdef CONFIG_VIDEO_ADV_DEBUG
+-		struct v4l2_dbg_register *p = arg;
 -
-     <table pgwide="1" frame="none" id="v4l2-subdev-selection">
-       <title>struct <structname>v4l2_subdev_selection</structname></title>
-       <tgroup cols="3">
-@@ -151,7 +116,7 @@
- 	    <entry>__u32</entry>
- 	    <entry><structfield>flags</structfield></entry>
- 	    <entry>Flags. See
--	    <xref linkend="v4l2-subdev-selection-flags">.</xref></entry>
-+	    <xref linkend="v4l2-selection-flags">.</xref></entry>
- 	  </row>
- 	  <row>
- 	    <entry>&v4l2-rect;</entry>
+-		if (!capable(CAP_SYS_ADMIN))
+-			ret = -EPERM;
+-		else
+-			ret = ops->vidioc_s_register(file, fh, p);
+-#endif
+-		break;
+-	}
+-	case VIDIOC_DBG_G_CHIP_IDENT:
+-	{
+-		struct v4l2_dbg_chip_ident *p = arg;
+-
+-		p->ident = V4L2_IDENT_NONE;
+-		p->revision = 0;
+-		ret = ops->vidioc_g_chip_ident(file, fh, p);
+-		if (!ret)
+-			dbgarg(cmd, "chip_ident=%u, revision=0x%x\n", p->ident, p->revision);
+-		break;
+-	}
+ 	case VIDIOC_ENUM_FRAMESIZES:
+ 	{
+ 		struct v4l2_frmsizeenum *p = arg;
 -- 
-1.7.2.5
+1.7.10
 
