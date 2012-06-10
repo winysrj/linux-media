@@ -1,72 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cpsmtpb-ews08.kpnxchange.com ([213.75.39.13]:4236 "EHLO
-	cpsmtpb-ews08.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750760Ab2FZTnl convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Jun 2012 15:43:41 -0400
-Date: Tue, 26 Jun 2012 21:43:37 +0200
-Message-ID: <4FC4F2690000C052@mta-nl-9.mail.tiscali.sys>
-In-Reply-To: <4FE8D35E.7080802@iki.fi>
-From: cedric.dewijs@telfort.nl
-Subject: Betr: Re: DiB0700 rc submit urb failed after reboot, ok after replug
-To: "Antti Palosaari" <crope@iki.fi>
-Cc: mchehab@infradead.org, linux-media@vger.kernel.org
+Received: from smtp.nokia.com ([147.243.128.26]:50170 "EHLO mgw-da02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750898Ab2FJTVx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 10 Jun 2012 15:21:53 -0400
+Received: from [192.168.239.74] (maxwell.research.nokia.com [172.21.199.25])
+	by mgw-da02.nokia.com (Sentrion-MTA-4.2.2/Sentrion-MTA-4.2.2) with ESMTP id q5AJLktl025866
+	for <linux-media@vger.kernel.org>; Sun, 10 Jun 2012 22:21:48 +0300
+Message-ID: <4FD4F3C9.5080506@iki.fi>
+Date: Sun, 10 Jun 2012 22:21:45 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR 3.5] Correct CREATE_BUFS documentation regression
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Mauro,
 
->> [    6.517631] rc0: IR-receiver inside an USB DVB receiver as /devices/pci0000:00/0000:00:1d.7/usb2/2-4/rc/rc0
->> [    6.517821] dvb-usb: schedule remote query interval to 50 msecs.
->> [    6.517825] dvb-usb: Pinnacle PCTV 73e SE successfully initialized
-and
->> connected.
->> [    6.517951] dib0700: rc submit urb failed
->
->I am almost sure it is that issue I fixed:
->
->http://git.linuxtv.org/anttip/media_tree.git/commit/36bd9e4ba1de78bfb9f3bcf8b07c63a157da6499
->
->
->Antti
->
->-- 
-Hi Antti,
+This pull req contains just a single patch: fix for CREATE_BUFS
+documentation which was broken by "[media] v4l2: use __u32 rather than
+enums in ioctl() structs".
 
-I have tried to test your fix, but I fail to build your kernel. Here's what
-I've done:
-$ git clone git://linuxtv.org/anttip/media_tree.git
-$ cd media_tree/
-$ cp /proc/config.gz .
-$ gunzip config.gz
-$ mv config .config
-$ make Xconfig
-  CHECK   qt
-sed < scripts/kconfig/lkc_proto.h > scripts/kconfig/lkc_defs.h 's/P(\([^,]*\),.*/#define
-\1 (\*\1_p)/'
-  HOSTCC  scripts/kconfig/kconfig_load.o
-/usr/bin/moc -i scripts/kconfig/qconf.h -o scripts/kconfig/qconf.moc
-  HOSTCXX scripts/kconfig/qconf.o
-  HOSTLD  scripts/kconfig/qconf
-scripts/kconfig/qconf Kconfig
-drivers/media/Kconfig:102: can't open file "drivers/media/IR/Kconfig"
-make[1]: *** [xconfig] Error 1
-make: *** [xconfig] Error 2
+This really must make it to 3.5.
 
-I have googled for the error, but i could only find this site wich is not
-in a language I understand.
-http://www.linuxtv.fi/viewtopic.php?f=15&t=4560
+The following changes since commit 5472d3f17845c4398c6a510b46855820920c2181:
 
-What have I missed?
-Best regards,
-Cedric
+  [media] mt9m032: Implement V4L2_CID_PIXEL_RATE control (2012-05-24
+09:27:24 -0300)
 
+are available in the git repository at:
+  ssh://linuxtv.org/git/sailus/media_tree.git media-for-3.5-createbufs-fix
 
+Sakari Ailus (1):
+      v4l: Correct create_bufs documentation
 
+ .../DocBook/media/v4l/vidioc-create-bufs.xml       |    5 ++---
+ 1 files changed, 2 insertions(+), 3 deletions(-)
 
-       
+Regards,
 
-
+-- 
+Sakari Ailus
+sakari.ailus@iki.fi
 
