@@ -1,127 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:44298 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751012Ab2F1WB7 convert rfc822-to-8bit (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.9]:50781 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750985Ab2FKU7s convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Jun 2012 18:01:59 -0400
-Received: by yenl2 with SMTP id l2so2270869yen.19
-        for <linux-media@vger.kernel.org>; Thu, 28 Jun 2012 15:01:58 -0700 (PDT)
+	Mon, 11 Jun 2012 16:59:48 -0400
+Date: Mon, 11 Jun 2012 22:59:46 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Su Jiaquan <jiaquan.lnx@gmail.com>
+cc: linux-media <linux-media@vger.kernel.org>,
+	twang13 <twang13@marvell.com>
+Subject: Re: [media] soc_camera: suggest to postpone applying default format
+In-Reply-To: <CALxrGmVo1TZTdvA_QwzjBvyA4WXYV0Cpavr5mC5d3BXCwm5CMQ@mail.gmail.com>
+Message-ID: <Pine.LNX.4.64.1206112243590.3390@axis700.grange>
+References: <CALxrGmVo1TZTdvA_QwzjBvyA4WXYV0Cpavr5mC5d3BXCwm5CMQ@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <4FECCCB4.9000402@gmail.com>
-References: <4FECCCB4.9000402@gmail.com>
-Date: Thu, 28 Jun 2012 18:01:58 -0400
-Message-ID: <CAGoCfizFta5ZJOYKXP7_2Z+ygKku2gr1x1p9UnXqLLRC8wCEPA@mail.gmail.com>
-Subject: Re: [PATCH 1/1] Add support for newer PCTV 800i cards with s5h1411 demodulators
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Mack Stanley <mcs1937@gmail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: TEXT/PLAIN; charset=windows-1252
 Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jun 28, 2012 at 5:29 PM, Mack Stanley <mcs1937@gmail.com> wrote:
-> Testing is needed on older (aka Pinnacle) PCTV 800i cards with S5H1409
-> demodulators
-> to check that current support for them isn't broken by this patch.
->
-> Signed-off-by: Mack Stanley <mcs1937@gmail.com>
-> ---
->  drivers/media/video/cx88/cx88-dvb.c |   40
-> ++++++++++++++++++++++++----------
->  1 files changed, 28 insertions(+), 12 deletions(-)
->
-> diff --git a/drivers/media/video/cx88/cx88-dvb.c
-> b/drivers/media/video/cx88/cx88-dvb.c
-> index 003937c..6d49672 100644
-> --- a/drivers/media/video/cx88/cx88-dvb.c
-> +++ b/drivers/media/video/cx88/cx88-dvb.c
-> @@ -501,7 +501,7 @@ static const struct cx24123_config
-> kworld_dvbs_100_config = {
->        .lnb_polarity  = 1,
->  };
->
-> -static const struct s5h1409_config pinnacle_pctv_hd_800i_config = {
-> +static const struct s5h1409_config pinnacle_pctv_hd_800i_s5h1409_config = {
->        .demod_address = 0x32 >> 1,
->        .output_mode   = S5H1409_PARALLEL_OUTPUT,
->        .gpio          = S5H1409_GPIO_ON,
-> @@ -509,7 +509,7 @@ static const struct s5h1409_config
-> pinnacle_pctv_hd_800i_config = {
->        .inversion     = S5H1409_INVERSION_OFF,
->        .status_mode   = S5H1409_DEMODLOCKING,
->        .mpeg_timing   = S5H1409_MPEGTIMING_NONCONTINOUS_NONINVERTING_CLOCK,
-> -};
-> +};
->
->  static const struct s5h1409_config dvico_hdtv5_pci_nano_config = {
->        .demod_address = 0x32 >> 1,
-> @@ -556,6 +556,16 @@ static const struct s5h1411_config
-> dvico_fusionhdtv7_config = {
->        .status_mode   = S5H1411_DEMODLOCKING
->  };
->
-> +static const struct s5h1411_config pinnacle_pctv_hd_800i_s5h1411_config = {
-> +       .output_mode   = S5H1411_PARALLEL_OUTPUT,
-> +       .gpio          = S5H1411_GPIO_ON,
-> +       .mpeg_timing   = S5H1411_MPEGTIMING_NONCONTINOUS_NONINVERTING_CLOCK,
-> +       .qam_if        = S5H1411_IF_44000,
-> +       .vsb_if        = S5H1411_IF_44000,
-> +       .inversion     = S5H1411_INVERSION_OFF,
-> +       .status_mode   = S5H1411_DEMODLOCKING
-> +};
-> +
->  static const struct xc5000_config dvico_fusionhdtv7_tuner_config = {
->        .i2c_address    = 0xc2 >> 1,
->        .if_khz         = 5380,
-> @@ -1297,16 +1307,22 @@ static int dvb_register(struct cx8802_dev *dev)
->                }
->                break;
->        case CX88_BOARD_PINNACLE_PCTV_HD_800i:
-> -               fe0->dvb.frontend = dvb_attach(s5h1409_attach,
-> -
-> &pinnacle_pctv_hd_800i_config,
-> -                                              &core->i2c_adap);
-> -               if (fe0->dvb.frontend != NULL) {
-> -                       if (!dvb_attach(xc5000_attach, fe0->dvb.frontend,
-> -                                       &core->i2c_adap,
-> -
-> &pinnacle_pctv_hd_800i_tuner_config))
-> -                               goto frontend_detach;
-> -               }
-> -               break;
-> +               /* Try s5h1409 chip first */
-> +               fe0->dvb.frontend = dvb_attach(s5h1409_attach,
-> +
-> &pinnacle_pctv_hd_800i_s5h1409_config,
-> +                                       &core->i2c_adap);
-> +               /* Otherwise, try s5h1411 */
-> +               if (fe0->dvb.frontend == NULL)
-> +                       fe0->dvb.frontend = dvb_attach(s5h1411_attach,
-> +
-> &pinnacle_pctv_hd_800i_s5h1411_config,
-> +                                       &core->i2c_adap);
-> +               if (fe0->dvb.frontend != NULL) {
-> +                       if (!dvb_attach(xc5000_attach, fe0->dvb.frontend,
-> +                                       &core->i2c_adap,
-> +
-> &pinnacle_pctv_hd_800i_tuner_config))
-> +                               goto frontend_detach;
-> +               }
-> +               break;
->        case CX88_BOARD_DVICO_FUSIONHDTV_5_PCI_NANO:
->                fe0->dvb.frontend = dvb_attach(s5h1409_attach,
->
-> &dvico_hdtv5_pci_nano_config,
-> --
-> 1.7.7.6
->
->
+Hi Jiaquan
 
-Looks good.  Thanks for taking the time to put this together.
+On Mon, 11 Jun 2012, Su Jiaquan wrote:
 
-Reviewed-by: Devin Heitmueller <dheitmueller@kernellabs.com>
+> Hi Guennadi,
+> 
+>          I found in soc_camera when video device is opened, default
+> format is applied sensor. I think this is the right thing to do, be it
+> also means a lot of i2c transactions.
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+It doesn't have to actually. It is up to the sensor (or any other client) 
+driver to decide whether to apply requested formats immediately or only 
+check and store them internally. Then the driver can decide to actually 
+apply them only at STREAMON time. Doing this would also make the client 
+driver better suitable to work outside of the soc-camera framework, where 
+it will be expected to preserve its configuration across open() / close() 
+cycles, possibly, without its .s_mbus_fmt() being called.
+
+So, I would rather suggest to fix individual client drivers one by one 
+instead of changing the soc-camera core, which would immediately affect 
+all related drivers.
+
+Thanks
+Guennadi
+
+> I think in case of app wants to query drivers capability, it do a
+> quick “open-query-close”, expecting only to get some information
+> rather than really configuring camera. So maybe this is a point that
+> can be optimize.
+> 
+> Have you consider postpone it to some point later, how about, say,
+> before stream_on? At that point we can check if VIDIOC_S_FMT is
+> called, if yes, we do nothing, if no, we can configure the default
+> format.
+> 
+>          I simply move some code from soc_camera_open() to
+> soc_camera_set_fmt(), just a few changes, do you think it OK to make
+> this adjustment?
+> 
+>          Thanks!
+> Jiaquan
+> 
+
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
