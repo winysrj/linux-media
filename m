@@ -1,37 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.24]:21386 "EHLO mgw-da01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754433Ab2F0L4G (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Jun 2012 07:56:06 -0400
-Message-ID: <4FEAF4C4.8020600@iki.fi>
-Date: Wed, 27 Jun 2012 14:55:48 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:41888 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750842Ab2FKIFP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 11 Jun 2012 04:05:15 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Ezequiel Garcia <elezegarcia@gmail.com>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [Q] Why is it needed to add an alsa module to v4l audio capture devices?
+Date: Mon, 11 Jun 2012 10:05:20 +0200
+Message-ID: <2041118.ct8h3d9SmG@avalon>
+In-Reply-To: <CALF0-+VmR6izw6zXj+kOsrQDPN94v8jqhoRmeYp1vvexuoFJ1Q@mail.gmail.com>
+References: <CALF0-+VmR6izw6zXj+kOsrQDPN94v8jqhoRmeYp1vvexuoFJ1Q@mail.gmail.com>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-media@vger.kernel.org, Enrico <ebutera@users.berlios.de>,
-	Jean-Philippe Francois <jp.francois@cynove.com>,
-	Abhishek Reddy Kondaveeti <areddykondaveeti@aptina.com>,
-	Gary Thomas <gary@mlbassoc.com>,
-	Javier Martinez Canillas <martinez.javier@gmail.com>
-Subject: Re: [PATCH 6/6] omap3isp: ccdc: Add YUV input formats support
-References: <1340718339-29915-1-git-send-email-laurent.pinchart@ideasonboard.com> <1340718339-29915-7-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1340718339-29915-7-git-send-email-laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Laurent Pinchart wrote:
-> Enable the bridge automatically when the input format is YUYV8 or UYVY8.
+Hi Ezequiel,
+
+On Thursday 07 June 2012 15:26:04 Ezequiel Garcia wrote:
+> Hi all,
 > 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> (I hope this is a genuine question, and I'm not avoiding my own homework
+> here.)
+> 
+> I'm trying to support the audio part of the stk1160 usb bridge (similar to
+> em28xx). Currently, the snd-usb-audio module is being loaded when I
+> physically plug my device, but I can't seem to capture any sound with vlc.
+> 
+> I still have to research and work a lot to understand the connection between
+> my device and alsa, and altough I could write a working module similar to
+> em28xx-alsa.ko, I still can't figure out why do I need to write one in the
+> first place.
+> 
+> Why is this module suffficient for gspca microphone devices (gspca, to name
+> one) and why is a new alsa driver needed for em28xx (or stk1160)?
 
-Thanks for the patch, Laurent!
+Some devices expose audio functionality by implementing the UAC (USB Audio 
+Class) specification. The snd-usb-audio module is all you should need for 
+those devices.
 
-Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
+Other vendors support audio by using their own proprietary protocol. In those 
+cases you will need a device-specific kernel module.
 
 -- 
-Sakari Ailus
-sakari.ailus@iki.fi
+Regards,
 
+Laurent Pinchart
 
