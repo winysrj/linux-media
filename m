@@ -1,123 +1,147 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:32833 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751562Ab2FNVdn (ORCPT
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:63231 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750891Ab2FKTSJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Jun 2012 17:33:43 -0400
-Received: by wgbdr13 with SMTP id dr13so2374009wgb.1
-        for <linux-media@vger.kernel.org>; Thu, 14 Jun 2012 14:33:41 -0700 (PDT)
-Message-ID: <1339709613.16046.11.camel@Route3278>
-Subject: Re: [PATCH 1/2] [BUG] dvb_usb_v2:  return the download ret in
- dvb_usb_download_firmware
-From: Malcolm Priestley <tvboxspy@gmail.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media <linux-media@vger.kernel.org>
-Date: Thu, 14 Jun 2012 22:33:33 +0100
-In-Reply-To: <4FDA4A18.5050900@iki.fi>
-References: <1339626272.2421.74.camel@Route3278> <4FD9224F.7050809@iki.fi>
-	 <1339634648.3833.37.camel@Route3278> <4FD93B3B.9000003@iki.fi>
-	 <4FDA4A18.5050900@iki.fi>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Mon, 11 Jun 2012 15:18:09 -0400
+Received: by yhmm54 with SMTP id m54so2841759yhm.19
+        for <linux-media@vger.kernel.org>; Mon, 11 Jun 2012 12:18:08 -0700 (PDT)
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>,
+	Gianluca Gennari <gennarone@gmail.com>,
+	Ezequiel Garcia <elezegarcia@gmail.com>
+Subject: [PATCH 2/3] em28xx: Rename AC97 registers to use sound/ac97_codec.h definitions
+Date: Mon, 11 Jun 2012 16:17:23 -0300
+Message-Id: <1339442244-11546-2-git-send-email-elezegarcia@gmail.com>
+In-Reply-To: <1339442244-11546-1-git-send-email-elezegarcia@gmail.com>
+References: <1339442244-11546-1-git-send-email-elezegarcia@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 2012-06-14 at 23:31 +0300, Antti Palosaari wrote:
-> On 06/14/2012 04:15 AM, Antti Palosaari wrote:
-> > On 06/14/2012 03:44 AM, Malcolm Priestley wrote:
-> >> On Thu, 2012-06-14 at 02:29 +0300, Antti Palosaari wrote:
-> >>> Hi Malcolm,
-> >>> I was really surprised someone has had interest to test that stuff at
-> >>> that phase as I did not even advertised it yet :) It is likely happen
-> >>> next Monday or so as there is some issues I would like to check / solve.
-> >>>
-> >>>
-> >>> On 06/14/2012 01:24 AM, Malcolm Priestley wrote:
-> >>>> Hi antti
-> >>>>
-> >>>> There some issues with dvb_usb_v2 with the lmedm04 driver.
-> >>>>
-> >>>> The first being this patch, no return value from
-> >>>> dvb_usb_download_firmware
-> >>>> causes system wide dead lock with COLD disconnect as system attempts
-> >>>> to continue
-> >>>> to warm state.
-> >>>
-> >>> Hmm, I did not understand what you mean. What I looked lmedm04 driver I
-> >>> think it uses single USB ID (no cold + warm IDs). So it downloads
-> >>> firmware and then reconnects itself from the USB bus?
-> >>> For that scenario you should "return RECONNECTS_USB;" from the driver
-> >>> .download_firmware().
-> >>>
-> >> If the device disconnects from the USB bus after the firmware download.
-> >>
-> >> In most cases the device is already gone.
-> >>
-> >> There is currently no way to insert RECONNECTS_USB into the return.
-> >
-> > Argh, I was blind! You are absolutely correct. It never returns value 1
-> > (RECONNECTS_USB) from the .download_firmware().
-> >
-> > That patch is fine, I will apply it, thanks!
-> >
-> > I think that must be also changed to return immediately without
-> > releasing the interface. Let the USB core release it when it detects
-> > disconnect - otherwise it could crash as it tries to access potentially
-> > resources that are already freed. Just for the timing issue if it
-> > happens or not.
-> >
-> > } else if (ret == RECONNECTS_USB) {
-> > ret = 0;
-> > goto exit_usb_driver_release_interface;
-> >
-> > add return 0 here without releasing interface and test.
-> >
-> >
-> >>> I tested it using one non-public Cypress FX2 device - it was changing
-> >>> USB ID after the FX download, but from the driver perspective it does
-> >>> not matter. It is always new device if it reconnects USB.
-> >>>
-> >>
-> >> Have double checked that the thread is not continuing to write on the
-> >> old ID?
-> >
-> > Nope, but likely delayed probe() is finished until it reconnects so I
-> > cannot see problem. You device disconnects faster and thus USB core
-> > traps .disconnect() earlier...
-> >
-> > Could you test returning 0 and if it works sent new patch.
-> >
-> >> The zero condition will lead to dvb_usb_init.
-> >>
-> >>> PS. as I looked that driver I saw many different firmwares. That is now
-> >>> supported and you should use .get_firmware_name() (maybe you already did
-> >>> it).
-> >>>
-> >> Yes, I have supported this in the driver.
-> 
-> Malcolm,
-> 
-> could you just test if returning from the routines after fw download is 
-> enough to fix all your problems?
-> 
-> I mean those two fixes:
-> dvb_usb_download_firmware()
-> * return RECONNECTS_USB correctly
-> 
-> dvb_usbv2_init_work()
-> * return without releasing USB interface if RECONNECTS_USB
-Hi Antti,
+Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
+---
+ drivers/media/video/em28xx/em28xx-audio.c |   27 ++++++++++++-----------
+ drivers/media/video/em28xx/em28xx-core.c  |   33 +++++++++++++++--------------
+ 2 files changed, 31 insertions(+), 29 deletions(-)
 
-Yes, I have tested it and there is no difference.
-
-My understanding is, if the interface is no longer bound it returns
-anyway.
-
-It is best not to use it, other drivers in the dvb-usb tree may not like
-to be forcibly unbound prior to their reset.
-
-Regards
-
-Malcolm
+diff --git a/drivers/media/video/em28xx/em28xx-audio.c b/drivers/media/video/em28xx/em28xx-audio.c
+index e2a7a00..07dc594 100644
+--- a/drivers/media/video/em28xx/em28xx-audio.c
++++ b/drivers/media/video/em28xx/em28xx-audio.c
+@@ -42,6 +42,7 @@
+ #include <sound/initval.h>
+ #include <sound/control.h>
+ #include <sound/tlv.h>
++#include <sound/ac97_codec.h>
+ #include <media/v4l2-common.h>
+ #include "em28xx.h"
+ 
+@@ -679,19 +680,19 @@ static int em28xx_audio_init(struct em28xx *dev)
+ 	INIT_WORK(&dev->wq_trigger, audio_trigger);
+ 
+ 	if (dev->audio_mode.ac97 != EM28XX_NO_AC97) {
+-		em28xx_cvol_new(card, dev, "Video", AC97_VIDEO_VOL);
+-		em28xx_cvol_new(card, dev, "Line In", AC97_LINEIN_VOL);
+-		em28xx_cvol_new(card, dev, "Phone", AC97_PHONE_VOL);
+-		em28xx_cvol_new(card, dev, "Microphone", AC97_MIC_VOL);
+-		em28xx_cvol_new(card, dev, "CD", AC97_CD_VOL);
+-		em28xx_cvol_new(card, dev, "AUX", AC97_AUX_VOL);
+-		em28xx_cvol_new(card, dev, "PCM", AC97_PCM_OUT_VOL);
+-
+-		em28xx_cvol_new(card, dev, "Master", AC97_MASTER_VOL);
+-		em28xx_cvol_new(card, dev, "Line", AC97_LINE_LEVEL_VOL);
+-		em28xx_cvol_new(card, dev, "Mono", AC97_MASTER_MONO_VOL);
+-		em28xx_cvol_new(card, dev, "LFE", AC97_LFE_MASTER_VOL);
+-		em28xx_cvol_new(card, dev, "Surround", AC97_SURR_MASTER_VOL);
++		em28xx_cvol_new(card, dev, "Video", AC97_VIDEO);
++		em28xx_cvol_new(card, dev, "Line In", AC97_LINE);
++		em28xx_cvol_new(card, dev, "Phone", AC97_PHONE);
++		em28xx_cvol_new(card, dev, "Microphone", AC97_MIC);
++		em28xx_cvol_new(card, dev, "CD", AC97_CD);
++		em28xx_cvol_new(card, dev, "AUX", AC97_AUX);
++		em28xx_cvol_new(card, dev, "PCM", AC97_PCM);
++
++		em28xx_cvol_new(card, dev, "Master", AC97_MASTER);
++		em28xx_cvol_new(card, dev, "Line", AC97_HEADPHONE);
++		em28xx_cvol_new(card, dev, "Mono", AC97_MASTER_MONO);
++		em28xx_cvol_new(card, dev, "LFE", AC97_CENTER_LFE_MASTER);
++		em28xx_cvol_new(card, dev, "Surround", AC97_SURROUND_MASTER);
+ 	}
+ 
+ 	err = snd_card_register(card);
+diff --git a/drivers/media/video/em28xx/em28xx-core.c b/drivers/media/video/em28xx/em28xx-core.c
+index 5717bde..181443c 100644
+--- a/drivers/media/video/em28xx/em28xx-core.c
++++ b/drivers/media/video/em28xx/em28xx-core.c
+@@ -27,6 +27,7 @@
+ #include <linux/slab.h>
+ #include <linux/usb.h>
+ #include <linux/vmalloc.h>
++#include <sound/ac97_codec.h>
+ #include <media/v4l2-common.h>
+ 
+ #include "em28xx.h"
+@@ -326,13 +327,13 @@ struct em28xx_vol_itable {
+ };
+ 
+ static struct em28xx_vol_itable inputs[] = {
+-	{ EM28XX_AMUX_VIDEO, 	AC97_VIDEO_VOL   },
+-	{ EM28XX_AMUX_LINE_IN,	AC97_LINEIN_VOL  },
+-	{ EM28XX_AMUX_PHONE,	AC97_PHONE_VOL   },
+-	{ EM28XX_AMUX_MIC,	AC97_MIC_VOL     },
+-	{ EM28XX_AMUX_CD,	AC97_CD_VOL      },
+-	{ EM28XX_AMUX_AUX,	AC97_AUX_VOL     },
+-	{ EM28XX_AMUX_PCM_OUT,	AC97_PCM_OUT_VOL },
++	{ EM28XX_AMUX_VIDEO,	AC97_VIDEO	},
++	{ EM28XX_AMUX_LINE_IN,	AC97_LINE	},
++	{ EM28XX_AMUX_PHONE,	AC97_PHONE	},
++	{ EM28XX_AMUX_MIC,	AC97_MIC	},
++	{ EM28XX_AMUX_CD,	AC97_CD		},
++	{ EM28XX_AMUX_AUX,	AC97_AUX	},
++	{ EM28XX_AMUX_PCM_OUT,	AC97_PCM	},
+ };
+ 
+ static int set_ac97_input(struct em28xx *dev)
+@@ -415,11 +416,11 @@ struct em28xx_vol_otable {
+ };
+ 
+ static const struct em28xx_vol_otable outputs[] = {
+-	{ EM28XX_AOUT_MASTER, AC97_MASTER_VOL      },
+-	{ EM28XX_AOUT_LINE,   AC97_LINE_LEVEL_VOL  },
+-	{ EM28XX_AOUT_MONO,   AC97_MASTER_MONO_VOL },
+-	{ EM28XX_AOUT_LFE,    AC97_LFE_MASTER_VOL  },
+-	{ EM28XX_AOUT_SURR,   AC97_SURR_MASTER_VOL },
++	{ EM28XX_AOUT_MASTER, AC97_MASTER		},
++	{ EM28XX_AOUT_LINE,   AC97_HEADPHONE		},
++	{ EM28XX_AOUT_MONO,   AC97_MASTER_MONO		},
++	{ EM28XX_AOUT_LFE,    AC97_CENTER_LFE_MASTER	},
++	{ EM28XX_AOUT_SURR,   AC97_SURROUND_MASTER	},
+ };
+ 
+ int em28xx_audio_analog_set(struct em28xx *dev)
+@@ -459,9 +460,9 @@ int em28xx_audio_analog_set(struct em28xx *dev)
+ 	if (dev->audio_mode.ac97 != EM28XX_NO_AC97) {
+ 		int vol;
+ 
+-		em28xx_write_ac97(dev, AC97_POWER_DOWN_CTRL, 0x4200);
+-		em28xx_write_ac97(dev, AC97_EXT_AUD_CTRL, 0x0031);
+-		em28xx_write_ac97(dev, AC97_PCM_IN_SRATE, 0xbb80);
++		em28xx_write_ac97(dev, AC97_POWERDOWN, 0x4200);
++		em28xx_write_ac97(dev, AC97_EXTENDED_STATUS, 0x0031);
++		em28xx_write_ac97(dev, AC97_PCM_LR_ADC_RATE, 0xbb80);
+ 
+ 		/* LSB: left channel - both channels with the same level */
+ 		vol = (0x1f - dev->volume) | ((0x1f - dev->volume) << 8);
+@@ -487,7 +488,7 @@ int em28xx_audio_analog_set(struct em28xx *dev)
+ 			   channels */
+ 			sel |= (sel << 8);
+ 
+-			em28xx_write_ac97(dev, AC97_RECORD_SELECT, sel);
++			em28xx_write_ac97(dev, AC97_REC_SEL, sel);
+ 		}
+ 	}
+ 
+-- 
+1.7.4.4
 
