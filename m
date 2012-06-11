@@ -1,186 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:37013 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751950Ab2FTOJV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Jun 2012 10:09:21 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-fbdev@vger.kernel.org
-Cc: linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org
-Subject: [RFC/PATCH] fb: Add dma-buf support
-Date: Wed, 20 Jun 2012 16:09:28 +0200
-Message-Id: <1340201368-20751-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from na6sys009bog032.obsmtp.com ([74.125.150.106]:59903 "EHLO
+	na6sys009bog032.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751124Ab2FKIq1 convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 11 Jun 2012 04:46:27 -0400
+From: Albert Wang <twang13@marvell.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: "pawel@osciak.com" <pawel@osciak.com>,
+	"g.liakhovetski@gmx.de" <g.liakhovetski@gmx.de>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Mon, 11 Jun 2012 01:34:21 -0700
+Subject: RE: [PATCH] media: videobuf2: fix kernel panic due to missing
+ assign NULL to alloc_ctx
+Message-ID: <477F20668A386D41ADCC57781B1F7043083A7F0E11@SC-VEXCH1.marvell.com>
+References: <1339156511-16509-1-git-send-email-twang13@marvell.com>
+ <15576892.cR1LHefC7i@avalon>
+In-Reply-To: <15576892.cR1LHefC7i@avalon>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add support for the dma-buf exporter role to the frame buffer API. The
-importer role isn't meaningful for frame buffer devices, as the frame
-buffer device model doesn't allow using externally allocated memory.
+Hi, Laurent
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- Documentation/fb/api.txt |   36 ++++++++++++++++++++++++++++++++++++
- drivers/video/fbmem.c    |   36 ++++++++++++++++++++++++++++++++++++
- include/linux/fb.h       |   12 ++++++++++++
- 3 files changed, 84 insertions(+), 0 deletions(-)
+Thanks for your reply!
 
-diff --git a/Documentation/fb/api.txt b/Documentation/fb/api.txt
-index d4ff7de..f0b2173 100644
---- a/Documentation/fb/api.txt
-+++ b/Documentation/fb/api.txt
-@@ -304,3 +304,39 @@ extensions.
- Upon successful format configuration, drivers update the fb_fix_screeninfo
- type, visual and line_length fields depending on the selected format. The type
- and visual fields are set to FB_TYPE_FOURCC and FB_VISUAL_FOURCC respectively.
-+
-+
-+5. DMA buffer sharing
-+---------------------
-+
-+The dma-buf kernel framework allows DMA buffers to be shared across devices
-+and applications. Sharing buffers across display devices and video capture or
-+video decoding devices allow zero-copy operation when displaying video content
-+produced by a hardware device such as a camera or a hardware codec. This is
-+crucial to achieve optimal system performances during video display.
-+
-+While dma-buf supports both exporting internally allocated memory as a dma-buf
-+object (known as the exporter role) and importing a dma-buf object to be used
-+as device memory (known as the importer role), the frame buffer API only
-+supports the exporter role, as the frame buffer device model doesn't support
-+using externally-allocated memory.
-+
-+The export a frame buffer as a dma-buf file descriptors, applications call the
-+FBIOGET_DMABUF ioctl. The ioctl takes a pointer to a fb_dmabuf_export
-+structure.
-+
-+struct fb_dmabuf_export {
-+	__u32 fd;
-+	__u32 flags;
-+};
-+
-+The flag field specifies the flags to be used when creating the dma-buf file
-+descriptor. The only supported flag is O_CLOEXEC. If the call is successful,
-+the driver will set the fd field to a file descriptor corresponding to the
-+dma-buf object.
-+
-+Applications can then pass the file descriptors to another application or
-+another device driver. The dma-buf object is automatically reference-counted,
-+applications can and should close the file descriptor as soon as they don't
-+need it anymore. The underlying dma-buf object will not be freed before the
-+last device that uses the dma-buf object releases it.
-diff --git a/drivers/video/fbmem.c b/drivers/video/fbmem.c
-index 0dff12a..400e449 100644
---- a/drivers/video/fbmem.c
-+++ b/drivers/video/fbmem.c
-@@ -15,6 +15,7 @@
- 
- #include <linux/compat.h>
- #include <linux/types.h>
-+#include <linux/dma-buf.h>
- #include <linux/errno.h>
- #include <linux/kernel.h>
- #include <linux/major.h>
-@@ -1074,6 +1075,23 @@ fb_blank(struct fb_info *info, int blank)
-  	return ret;
- }
- 
-+#ifdef CONFIG_DMA_SHARED_BUFFER
-+int
-+fb_get_dmabuf(struct fb_info *info, int flags)
-+{
-+	struct dma_buf *dmabuf;
-+
-+	if (info->fbops->fb_dmabuf_export == NULL)
-+		return -ENOTTY;
-+
-+	dmabuf = info->fbops->fb_dmabuf_export(info);
-+	if (IS_ERR(dmabuf))
-+		return PTR_ERR(dmabuf);
-+
-+	return dma_buf_fd(dmabuf, flags);
-+}
-+#endif
-+
- static long do_fb_ioctl(struct fb_info *info, unsigned int cmd,
- 			unsigned long arg)
- {
-@@ -1084,6 +1102,7 @@ static long do_fb_ioctl(struct fb_info *info, unsigned int cmd,
- 	struct fb_cmap cmap_from;
- 	struct fb_cmap_user cmap;
- 	struct fb_event event;
-+	struct fb_dmabuf_export dmaexp;
- 	void __user *argp = (void __user *)arg;
- 	long ret = 0;
- 
-@@ -1191,6 +1210,23 @@ static long do_fb_ioctl(struct fb_info *info, unsigned int cmd,
- 		console_unlock();
- 		unlock_fb_info(info);
- 		break;
-+#ifdef CONFIG_DMA_SHARED_BUFFER
-+	case FBIOGET_DMABUF:
-+		if (copy_from_user(&dmaexp, argp, sizeof(dmaexp)))
-+			return -EFAULT;
-+
-+		if (!lock_fb_info(info))
-+			return -ENODEV;
-+		dmaexp.fd = fb_get_dmabuf(info, dmaexp.flags);
-+		unlock_fb_info(info);
-+
-+		if (dmaexp.fd < 0)
-+			return dmaexp.fd;
-+
-+		ret = copy_to_user(argp, &dmaexp, sizeof(dmaexp))
-+		    ? -EFAULT : 0;
-+		break;
-+#endif
- 	default:
- 		if (!lock_fb_info(info))
- 			return -ENODEV;
-diff --git a/include/linux/fb.h b/include/linux/fb.h
-index ac3f1c6..c9fee75 100644
---- a/include/linux/fb.h
-+++ b/include/linux/fb.h
-@@ -39,6 +39,7 @@
- #define FBIOPUT_MODEINFO        0x4617
- #define FBIOGET_DISPINFO        0x4618
- #define FBIO_WAITFORVSYNC	_IOW('F', 0x20, __u32)
-+#define FBIOGET_DMABUF		_IOR('F', 0x21, struct fb_dmabuf_export)
- 
- #define FB_TYPE_PACKED_PIXELS		0	/* Packed Pixels	*/
- #define FB_TYPE_PLANES			1	/* Non interleaved planes */
-@@ -403,6 +404,11 @@ struct fb_cursor {
- #define FB_BACKLIGHT_MAX	0xFF
- #endif
- 
-+struct fb_dmabuf_export {
-+	__u32 fd;
-+	__u32 flags;
-+};
-+
- #ifdef __KERNEL__
- 
- #include <linux/fs.h>
-@@ -418,6 +424,7 @@ struct vm_area_struct;
- struct fb_info;
- struct device;
- struct file;
-+struct dma_buf;
- 
- /* Definitions below are used in the parsed monitor specs */
- #define FB_DPMS_ACTIVE_OFF	1
-@@ -701,6 +708,11 @@ struct fb_ops {
- 	/* called at KDB enter and leave time to prepare the console */
- 	int (*fb_debug_enter)(struct fb_info *info);
- 	int (*fb_debug_leave)(struct fb_info *info);
-+
-+#ifdef CONFIG_DMA_SHARED_BUFFER
-+	/* Export the frame buffer as a dmabuf object */
-+	struct dma_buf *(*fb_dmabuf_export)(struct fb_info *info);
-+#endif
- };
- 
- #ifdef CONFIG_FB_TILEBLITTING
--- 
+We allocated the context when init_videobuf2() which will be called in soc_camera_open(), so if we get exit with exception in soc_camera_set_fmt()
+Actually we will double call vb2_dma_contig_cleanup_ctx().
+
+	ret = soc_camera_set_fmt(icd, &f);
+	if (ret < 0)
+		goto esfmt;
+
+	if (ici->ops->init_videobuf) {
+		ici->ops->init_videobuf(&icd->vb_vidq, icd);
+	} else {
+		ret = ici->ops->init_videobuf2(&icd->vb2_vidq, icd);
+		if (ret < 0)
+			goto einitvb;
+	}
+
+Actually, in current code, we can found some drivers allocated the context in probe(), and some drivers also do that in soc_camera_open().
+Of course, we can update our driver and move it to probe(), it will stand aside the issue, that's also OK for us.
+
+But we still think it's not safe that leave the point be a non-NULL after we have kfree it. Do you think so?
+
+
+Thanks
+Albert Wang
+86-21-61092656
+
+-----Original Message-----
+From: Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com] 
+Sent: Monday, 11 June, 2012 16:00
+To: Albert Wang
+Cc: pawel@osciak.com; g.liakhovetski@gmx.de; linux-media@vger.kernel.org
+Subject: Re: [PATCH] media: videobuf2: fix kernel panic due to missing assign NULL to alloc_ctx
+
+Hi Albert,
+
+On Friday 08 June 2012 19:55:11 Albert Wang wrote:
+>   In function vb2_dma_contig_cleanup_ctx(), we only kfree the alloc_ctx
+>   If we didn't assign NULL to this point after kfree it,
+>   we may encounter the following kernel panic:
+> 
+>  kernel BUG at kernel/cred.c:98!
+>  Unable to handle kernel NULL pointer dereference at virtual address
+> 00000000 pgd = c0004000
+>  [00000000] *pgd=00000000
+>  Internal error: Oops: 817 [#1] PREEMPT SMP  Modules linked in: 
+> runcase_sysfs galcore mv_wtm_drv mv_wtm_prim
+>  CPU: 0    Not tainted  (3.0.8+ #213)
+>  PC is at __bug+0x18/0x24
+>  LR is at __bug+0x14/0x24
+>  pc : [<c0054670>]    lr : [<c005466c>]    psr: 60000113
+>  sp : c0681ec0  ip : f683e000  fp : 00000000
+>  r10: e8ab4b58  r9 : 00000fff  r8 : 00000002
+>  r7 : e8665698  r6 : c10079ec  r5 : e8b13d80  r4 : e8b13d98
+>  r3 : 00000000  r2 : c0681eb4  r1 : c05c9ccc  r0 : 00000035
+>  Flags: nZCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment kernel
+>  Control: 10c53c7d  Table: 29c3406a  DAC: 00000015
+> 
+>   the root cause is we may encounter some i2c or HW issue with sensor
+>   which result in driver exit with exception during soc_camera_set_fmt()
+>   from soc_camera_open():
+> 
+> 	ret = soc_camera_set_fmt(icd, &f);
+> 	if (ret < 0)
+> 		goto esfmt;
+> 
+>   it will call ici->ops->remove() in following code:
+> 
+>   esfmt:
+> 	pm_runtime_disable(&icd->vdev->dev);
+>   eresume:
+> 	ici->ops->remove(icd);
+> 
+>   ici->ops->remove() will call vb2_dma_contig_cleanup_ctx() for cleanup
+>   but we didn't do ici->ops->init_videobuf2() yet at that time
+>   it will result in kfree a non-NULL point twice
+
+I'm not sure to follow you. How is init_videobuf2() related ? The context is allocated once only at probe time from what I can see. Your problem is more likely caused by a double call to vb2_dma_contig_cleanup_ctx(), which looks like a driver bug to me, not a videobuf2 bug.
+
+> Change-Id: I1c66dd08438ae90abe555c52edcdbca0d39d829d
+> Signed-off-by: Albert Wang <twang13@marvell.com>
+> ---
+>  drivers/media/video/videobuf2-dma-contig.c |    1 +
+>  1 files changed, 1 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/media/video/videobuf2-dma-contig.c
+> b/drivers/media/video/videobuf2-dma-contig.c index 4b71326..9881171 
+> 100755
+> --- a/drivers/media/video/videobuf2-dma-contig.c
+> +++ b/drivers/media/video/videobuf2-dma-contig.c
+> @@ -178,6 +178,7 @@ EXPORT_SYMBOL_GPL(vb2_dma_contig_init_ctx);
+>  void vb2_dma_contig_cleanup_ctx(void *alloc_ctx)  {
+>  	kfree(alloc_ctx);
+> +	alloc_ctx = NULL;
+>  }
+>  EXPORT_SYMBOL_GPL(vb2_dma_contig_cleanup_ctx);
+
+--
 Regards,
 
 Laurent Pinchart
