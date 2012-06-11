@@ -1,47 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:52713 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751468Ab2FRJ5P (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:38381 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1750978Ab2FKIMQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jun 2012 05:57:15 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Andy Walls <awalls@md.metrocast.net>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Pawel Osciak <pawel@osciak.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFCv1 PATCH 30/32] v4l2-ioctl.c: shorten the lines of the table.
-Date: Mon, 18 Jun 2012 11:57:24 +0200
-Message-ID: <2301007.COnlniXjQu@avalon>
-In-Reply-To: <84ca6e9f309bcb5f2d603711a755609335b0ea89.1339321562.git.hans.verkuil@cisco.com>
-References: <1339323954-1404-1-git-send-email-hverkuil@xs4all.nl> <84ca6e9f309bcb5f2d603711a755609335b0ea89.1339321562.git.hans.verkuil@cisco.com>
+	Mon, 11 Jun 2012 04:12:16 -0400
+Date: Mon, 11 Jun 2012 11:12:11 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/1] v4l: Remove __user from interface structure
+ definitions
+Message-ID: <20120611081211.GE12505@valkosipuli.retiisi.org.uk>
+References: <1338062869-23922-1-git-send-email-sakari.ailus@iki.fi>
+ <2510696.MjJJuAAVnT@avalon>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <2510696.MjJJuAAVnT@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+On Mon, Jun 11, 2012 at 09:49:25AM +0200, Laurent Pinchart wrote:
+> Hi Sakari,
 
-Thanks for the patch.
+Hi Laurent,
 
-On Sunday 10 June 2012 12:25:52 Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
+> On Saturday 26 May 2012 23:07:49 Sakari Ailus wrote:
+> > The __user macro is not strictly needed in videodev2.h, and it also prevents
+> > using the header file as such in the user space. __user is already not used
+> > in many of the interface structs containing pointers.
+> > 
+> > Stop using __user in videodev2.h.
 > 
-> Use some macro magic to reduce the length of the lines in the table. This
-> makes it more readable.
+> Please don't. __user is useful. You should not use kernel headers as-is in 
+> userspace, they need to be installed use make headers_install first.
 
-It indeed shortens the lines, but to be honest I find the result less 
-readable.
+Then we should consistently use it, and not just in these two occasions.
+Currently most structures having pointers and which are part of the user
+space interface don't have that. One example is v4l2_ext_controls.
 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-
--- 
 Regards,
 
-Laurent Pinchart
-
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
