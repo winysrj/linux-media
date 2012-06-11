@@ -1,60 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from na3sys009aog131.obsmtp.com ([74.125.149.247]:35413 "EHLO
-	na3sys009aog131.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751602Ab2FINf7 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 9 Jun 2012 09:35:59 -0400
-Received: by lahi5 with SMTP id i5so1843309lah.28
-        for <linux-media@vger.kernel.org>; Sat, 09 Jun 2012 06:35:56 -0700 (PDT)
+Received: from mx194.callplus.net.nz ([202.180.66.194]:34049 "EHLO
+	mxi2.callplus.net.nz" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751391Ab2FKVSy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 11 Jun 2012 17:18:54 -0400
+Received: from [192.168.1.252] (www [192.168.1.252])
+	by cs.componic (Postfix) with ESMTP id 03D0BE6198
+	for <linux-media@vger.kernel.org>; Tue, 12 Jun 2012 09:09:12 +1200 (NZST)
+Message-ID: <4FD65E78.9060305@componic.co.nz>
+Date: Tue, 12 Jun 2012 09:09:12 +1200
+From: Glenn Ramsey <gr@componic.co.nz>
 MIME-Version: 1.0
-In-Reply-To: <CACSP8SgrB2YxsvUx6y-EomgJhupb3uVmF_hH0Sd-PG6G6G9Cfg@mail.gmail.com>
-References: <4fbf6893.a709d80a.4f7b.0e0eSMTPIN_ADDED@mx.google.com>
-	<CACSP8SgSi+v70+-r1wR1hM0rDzmJK0g20i0fxRePLPuTXqrxuA@mail.gmail.com>
-	<CAO8GWq=UYWTuJ=V6Luh4z49=og2X2wrHzVNYvbK7Tnw2zgzNeA@mail.gmail.com>
-	<CACSP8Sgog0cDtxG+JsWQ=aYyiXtEr-N7+xPPRsAjwt3LAYC+uw@mail.gmail.com>
-	<CAO8GWqnVN3tVp2chzsYKjhfzoupxsWwUT_LojzJ7kYWPRdZYJw@mail.gmail.com>
-	<CACSP8SiVYiEg8BY9gvmbqiKNXEwEjHa+vxOvXpEgr+W-Wd5+rg@mail.gmail.com>
-	<4fd09200.830ed80a.24f9.1a54SMTPIN_ADDED@mx.google.com>
-	<CACSP8SgrB2YxsvUx6y-EomgJhupb3uVmF_hH0Sd-PG6G6G9Cfg@mail.gmail.com>
-Date: Sat, 9 Jun 2012 08:35:56 -0500
-Message-ID: <CAO8GWqkxfbm28DLVA9psBME6JZckwmGb-Awmafupxm=B2UbmeA@mail.gmail.com>
-Subject: Re: [Linaro-mm-sig] [RFC] Synchronizing access to buffers shared with
- dma-buf between drivers/devices
-From: "Clark, Rob" <rob@ti.com>
-To: Erik Gilling <konkers@android.com>
-Cc: Tom Cooksey <tom.cooksey@arm.com>, linaro-mm-sig@lists.linaro.org,
-	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: linux-media@vger.kernel.org
+Subject: Troubleshooting inputlirc and TeVii s480
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jun 8, 2012 at 3:56 PM, Erik Gilling <konkers@android.com> wrote:
->> I guess my other thought is that implicit vs explicit is not
->> mutually exclusive, though I'd guess there'd be interesting
->> deadlocks to have to debug if both were in use _at the same
->> time_. :-)
->
-> I think this is an approach worth investigating.  I'd like a way to
-> either opt out of implicit sync or have a way to check if a dma-buf
-> has an attached fence and detach it.  Actually, that could work really
-> well. Consider:
->
-> * Each dma_buf has a single fence "slot"
-> * on submission
->   * the driver will extract the fence from the dma_buf and queue a wait on it.
->   * the driver will replace that fence with it's own complettion
-> fence before the job submission ioctl returns.
-> * dma_buf will have two userspace ioctls:
->   * DETACH: will return the fence as an FD to userspace and clear the
-> fence slot in the dma_buf
->   * ATTACH: takes a fence FD from userspace and attaches it to the
-> dma_buf fence slot.  Returns an error if the fence slot is non-empty.
->
-> In the android case, we can do a detach after every submission and an
-> attach right before.
+I need some advice regarding setting up a remote on a DVB card. I apologise if
+this is not the correct list, but I couldn't find an lirc specific one.
 
-btw, I like this idea for implicit and explicit sync to coexist
+I have a TeVii s480 installed in a Mythbuntu 12.04 machine, which apart from the
+remote seems to be working fine. I have set up inputlirc using:
 
-BR,
--R
+#/etc/defaults/inputlirc
+EVENTS="/dev/input/ira"
+OPTIONS="-g -c -m0"
+
+/dev/input/ira and /dev/input/irb are set as symlinks to their corresponding
+/dev/input/event* nodes by a udev rule. To get inputlirc to work at all I need
+to restart it in /etc/rc.local because the relevant /dev/input/event* nodes are
+not present when the default inutputlirc startup script runs.
+
+The problem is that some of the keys are received twice. These keys are 0-9, and
+the 4 arrow keys. It appears that the remote is being seen as a keyboard because
+the 0-9 keys appear in a terminal and the arrow keys on the remote act like the
+keyboard arrow keys. But if I press the back key on the remote while the
+terminal has the focus then the extra keypresses stop and it appears to work
+properly.
+
+How do I disable the extra keypresses that are coming from remote?
+
+Glenn
+
+
