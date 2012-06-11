@@ -1,333 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr19.xs4all.nl ([194.109.24.39]:4577 "EHLO
-	smtp-vbr19.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932847Ab2FVMV7 (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:45105 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752721Ab2FKHtV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Jun 2012 08:21:59 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Pawel Osciak <pawel@osciak.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv2 PATCH 13/34] v4l2-ioctl.c: use the new table for selection ioctls.
-Date: Fri, 22 Jun 2012 14:21:07 +0200
-Message-Id: <d9532cb659249f4ffc09c0b1f2db4b019d48f1fd.1340366355.git.hans.verkuil@cisco.com>
-In-Reply-To: <1340367688-8722-1-git-send-email-hverkuil@xs4all.nl>
-References: <1340367688-8722-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1cee710ae251aa69bed8e563a94b419ed99bc41a.1340366355.git.hans.verkuil@cisco.com>
-References: <1cee710ae251aa69bed8e563a94b419ed99bc41a.1340366355.git.hans.verkuil@cisco.com>
+	Mon, 11 Jun 2012 03:49:21 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/1] v4l: Remove __user from interface structure definitions
+Date: Mon, 11 Jun 2012 09:49:25 +0200
+Message-ID: <2510696.MjJJuAAVnT@avalon>
+In-Reply-To: <1338062869-23922-1-git-send-email-sakari.ailus@iki.fi>
+References: <1338062869-23922-1-git-send-email-sakari.ailus@iki.fi>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Sakari,
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/video/v4l2-ioctl.c |  262 ++++++++++++++++++--------------------
- 1 file changed, 127 insertions(+), 135 deletions(-)
+On Saturday 26 May 2012 23:07:49 Sakari Ailus wrote:
+> The __user macro is not strictly needed in videodev2.h, and it also prevents
+> using the header file as such in the user space. __user is already not used
+> in many of the interface structs containing pointers.
+> 
+> Stop using __user in videodev2.h.
 
-diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
-index c5e772a..ba13361 100644
---- a/drivers/media/video/v4l2-ioctl.c
-+++ b/drivers/media/video/v4l2-ioctl.c
-@@ -555,17 +555,45 @@ static void v4l_print_ext_controls(const void *arg, bool write_only)
- 	pr_cont("\n");
- }
- 
--static void v4l_print_u32(const void *arg, bool write_only)
-+static void v4l_print_cropcap(const void *arg, bool write_only)
- {
--	pr_cont("value=%u\n", *(const u32 *)arg);
-+	const struct v4l2_cropcap *p = arg;
-+
-+	pr_cont("type=%s, bounds wxh=%dx%d, x,y=%d,%d, "
-+		"defrect wxh=%dx%d, x,y=%d,%d\n, "
-+		"pixelaspect %d/%d\n",
-+		prt_names(p->type, v4l2_type_names),
-+		p->bounds.width, p->bounds.height,
-+		p->bounds.left, p->bounds.top,
-+		p->defrect.width, p->defrect.height,
-+		p->defrect.left, p->defrect.top,
-+		p->pixelaspect.numerator, p->pixelaspect.denominator);
- }
- 
--static inline void dbgrect(struct video_device *vfd, char *s,
--							struct v4l2_rect *r)
-+static void v4l_print_crop(const void *arg, bool write_only)
- {
--	dbgarg2("%sRect start at %dx%d, size=%dx%d\n", s, r->left, r->top,
--						r->width, r->height);
--};
-+	const struct v4l2_crop *p = arg;
-+
-+	pr_cont("type=%s, wxh=%dx%d, x,y=%d,%d\n",
-+		prt_names(p->type, v4l2_type_names),
-+		p->c.width, p->c.height,
-+		p->c.left, p->c.top);
-+}
-+
-+static void v4l_print_selection(const void *arg, bool write_only)
-+{
-+	const struct v4l2_selection *p = arg;
-+
-+	pr_cont("type=%s, target=%d, flags=0x%x, wxh=%dx%d, x,y=%d,%d\n",
-+		prt_names(p->type, v4l2_type_names),
-+		p->target, p->flags,
-+		p->r.width, p->r.height, p->r.left, p->r.top);
-+}
-+
-+static void v4l_print_u32(const void *arg, bool write_only)
-+{
-+	pr_cont("value=%u\n", *(const u32 *)arg);
-+}
- 
- static void dbgtimings(struct video_device *vfd,
- 			const struct v4l2_dv_timings *p)
-@@ -1382,6 +1410,93 @@ static int v4l_try_ext_ctrls(const struct v4l2_ioctl_ops *ops,
- 					-EINVAL;
- }
- 
-+static int v4l_g_crop(const struct v4l2_ioctl_ops *ops,
-+				struct file *file, void *fh, void *arg)
-+{
-+	struct v4l2_crop *p = arg;
-+	struct v4l2_selection s = {
-+		.type = p->type,
-+	};
-+	int ret;
-+
-+	if (ops->vidioc_g_crop)
-+		return ops->vidioc_g_crop(file, fh, p);
-+	/* simulate capture crop using selection api */
-+
-+	/* crop means compose for output devices */
-+	if (V4L2_TYPE_IS_OUTPUT(p->type))
-+		s.target = V4L2_SEL_TGT_COMPOSE_ACTIVE;
-+	else
-+		s.target = V4L2_SEL_TGT_CROP_ACTIVE;
-+
-+	ret = ops->vidioc_g_selection(file, fh, &s);
-+
-+	/* copying results to old structure on success */
-+	if (!ret)
-+		p->c = s.r;
-+	return ret;
-+}
-+
-+static int v4l_s_crop(const struct v4l2_ioctl_ops *ops,
-+				struct file *file, void *fh, void *arg)
-+{
-+	struct v4l2_crop *p = arg;
-+	struct v4l2_selection s = {
-+		.type = p->type,
-+		.r = p->c,
-+	};
-+
-+	if (ops->vidioc_s_crop)
-+		return ops->vidioc_s_crop(file, fh, p);
-+	/* simulate capture crop using selection api */
-+
-+	/* crop means compose for output devices */
-+	if (V4L2_TYPE_IS_OUTPUT(p->type))
-+		s.target = V4L2_SEL_TGT_COMPOSE_ACTIVE;
-+	else
-+		s.target = V4L2_SEL_TGT_CROP_ACTIVE;
-+
-+	return ops->vidioc_s_selection(file, fh, &s);
-+}
-+
-+static int v4l_cropcap(const struct v4l2_ioctl_ops *ops,
-+				struct file *file, void *fh, void *arg)
-+{
-+	struct v4l2_cropcap *p = arg;
-+	struct v4l2_selection s = { .type = p->type };
-+	int ret;
-+
-+	if (ops->vidioc_cropcap)
-+		return ops->vidioc_cropcap(file, fh, p);
-+
-+	/* obtaining bounds */
-+	if (V4L2_TYPE_IS_OUTPUT(p->type))
-+		s.target = V4L2_SEL_TGT_COMPOSE_BOUNDS;
-+	else
-+		s.target = V4L2_SEL_TGT_CROP_BOUNDS;
-+
-+	ret = ops->vidioc_g_selection(file, fh, &s);
-+	if (ret)
-+		return ret;
-+	p->bounds = s.r;
-+
-+	/* obtaining defrect */
-+	if (V4L2_TYPE_IS_OUTPUT(p->type))
-+		s.target = V4L2_SEL_TGT_COMPOSE_DEFAULT;
-+	else
-+		s.target = V4L2_SEL_TGT_CROP_DEFAULT;
-+
-+	ret = ops->vidioc_g_selection(file, fh, &s);
-+	if (ret)
-+		return ret;
-+	p->defrect = s.r;
-+
-+	/* setting trivial pixelaspect */
-+	p->pixelaspect.numerator = 1;
-+	p->pixelaspect.denominator = 1;
-+	return 0;
-+}
-+
- struct v4l2_ioctl_info {
- 	unsigned int ioctl;
- 	u32 flags;
-@@ -1471,11 +1586,11 @@ static struct v4l2_ioctl_info v4l2_ioctls[] = {
- 	IOCTL_INFO_STD(VIDIOC_S_MODULATOR, vidioc_s_modulator, v4l_print_modulator, INFO_FL_PRIO),
- 	IOCTL_INFO_FNC(VIDIOC_G_FREQUENCY, v4l_g_frequency, v4l_print_frequency, INFO_FL_CLEAR(v4l2_frequency, tuner)),
- 	IOCTL_INFO_FNC(VIDIOC_S_FREQUENCY, v4l_s_frequency, v4l_print_frequency, INFO_FL_PRIO),
--	IOCTL_INFO(VIDIOC_CROPCAP, INFO_FL_CLEAR(v4l2_cropcap, type)),
--	IOCTL_INFO(VIDIOC_G_CROP, INFO_FL_CLEAR(v4l2_crop, type)),
--	IOCTL_INFO(VIDIOC_S_CROP, INFO_FL_PRIO),
--	IOCTL_INFO(VIDIOC_G_SELECTION, 0),
--	IOCTL_INFO(VIDIOC_S_SELECTION, INFO_FL_PRIO),
-+	IOCTL_INFO_FNC(VIDIOC_CROPCAP, v4l_cropcap, v4l_print_cropcap, INFO_FL_CLEAR(v4l2_cropcap, type)),
-+	IOCTL_INFO_FNC(VIDIOC_G_CROP, v4l_g_crop, v4l_print_crop, INFO_FL_CLEAR(v4l2_crop, type)),
-+	IOCTL_INFO_FNC(VIDIOC_S_CROP, v4l_s_crop, v4l_print_crop, INFO_FL_PRIO),
-+	IOCTL_INFO_STD(VIDIOC_G_SELECTION, vidioc_g_selection, v4l_print_selection, 0),
-+	IOCTL_INFO_STD(VIDIOC_S_SELECTION, vidioc_s_selection, v4l_print_selection, INFO_FL_PRIO),
- 	IOCTL_INFO(VIDIOC_G_JPEGCOMP, 0),
- 	IOCTL_INFO(VIDIOC_S_JPEGCOMP, INFO_FL_PRIO),
- 	IOCTL_INFO_FNC(VIDIOC_QUERYSTD, v4l_querystd, v4l_print_std, 0),
-@@ -1620,129 +1735,6 @@ static long __video_do_ioctl(struct file *file,
- 	}
- 
- 	switch (cmd) {
--	case VIDIOC_G_CROP:
--	{
--		struct v4l2_crop *p = arg;
--
--		dbgarg(cmd, "type=%s\n", prt_names(p->type, v4l2_type_names));
--
--		if (ops->vidioc_g_crop) {
--			ret = ops->vidioc_g_crop(file, fh, p);
--		} else {
--			/* simulate capture crop using selection api */
--			struct v4l2_selection s = {
--				.type = p->type,
--			};
--
--			/* crop means compose for output devices */
--			if (V4L2_TYPE_IS_OUTPUT(p->type))
--				s.target = V4L2_SEL_TGT_COMPOSE_ACTIVE;
--			else
--				s.target = V4L2_SEL_TGT_CROP_ACTIVE;
--
--			ret = ops->vidioc_g_selection(file, fh, &s);
--
--			/* copying results to old structure on success */
--			if (!ret)
--				p->c = s.r;
--		}
--
--		if (!ret)
--			dbgrect(vfd, "", &p->c);
--		break;
--	}
--	case VIDIOC_S_CROP:
--	{
--		struct v4l2_crop *p = arg;
--
--		dbgarg(cmd, "type=%s\n", prt_names(p->type, v4l2_type_names));
--		dbgrect(vfd, "", &p->c);
--
--		if (ops->vidioc_s_crop) {
--			ret = ops->vidioc_s_crop(file, fh, p);
--		} else {
--			/* simulate capture crop using selection api */
--			struct v4l2_selection s = {
--				.type = p->type,
--				.r = p->c,
--			};
--
--			/* crop means compose for output devices */
--			if (V4L2_TYPE_IS_OUTPUT(p->type))
--				s.target = V4L2_SEL_TGT_COMPOSE_ACTIVE;
--			else
--				s.target = V4L2_SEL_TGT_CROP_ACTIVE;
--
--			ret = ops->vidioc_s_selection(file, fh, &s);
--		}
--		break;
--	}
--	case VIDIOC_G_SELECTION:
--	{
--		struct v4l2_selection *p = arg;
--
--		dbgarg(cmd, "type=%s\n", prt_names(p->type, v4l2_type_names));
--
--		ret = ops->vidioc_g_selection(file, fh, p);
--		if (!ret)
--			dbgrect(vfd, "", &p->r);
--		break;
--	}
--	case VIDIOC_S_SELECTION:
--	{
--		struct v4l2_selection *p = arg;
--
--
--		dbgarg(cmd, "type=%s\n", prt_names(p->type, v4l2_type_names));
--		dbgrect(vfd, "", &p->r);
--
--		ret = ops->vidioc_s_selection(file, fh, p);
--		break;
--	}
--	case VIDIOC_CROPCAP:
--	{
--		struct v4l2_cropcap *p = arg;
--
--		/*FIXME: Should also show v4l2_fract pixelaspect */
--		dbgarg(cmd, "type=%s\n", prt_names(p->type, v4l2_type_names));
--		if (ops->vidioc_cropcap) {
--			ret = ops->vidioc_cropcap(file, fh, p);
--		} else {
--			struct v4l2_selection s = { .type = p->type };
--
--			/* obtaining bounds */
--			if (V4L2_TYPE_IS_OUTPUT(p->type))
--				s.target = V4L2_SEL_TGT_COMPOSE_BOUNDS;
--			else
--				s.target = V4L2_SEL_TGT_CROP_BOUNDS;
--
--			ret = ops->vidioc_g_selection(file, fh, &s);
--			if (ret)
--				break;
--			p->bounds = s.r;
--
--			/* obtaining defrect */
--			if (V4L2_TYPE_IS_OUTPUT(p->type))
--				s.target = V4L2_SEL_TGT_COMPOSE_DEFAULT;
--			else
--				s.target = V4L2_SEL_TGT_CROP_DEFAULT;
--
--			ret = ops->vidioc_g_selection(file, fh, &s);
--			if (ret)
--				break;
--			p->defrect = s.r;
--
--			/* setting trivial pixelaspect */
--			p->pixelaspect.numerator = 1;
--			p->pixelaspect.denominator = 1;
--		}
--
--		if (!ret) {
--			dbgrect(vfd, "bounds ", &p->bounds);
--			dbgrect(vfd, "defrect ", &p->defrect);
--		}
--		break;
--	}
- 	case VIDIOC_G_JPEGCOMP:
- 	{
- 		struct v4l2_jpegcompression *p = arg;
+Please don't. __user is useful. You should not use kernel headers as-is in 
+userspace, they need to be installed use make headers_install first.
+
+> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> ---
+>  include/linux/videodev2.h |    6 +++---
+>  1 files changed, 3 insertions(+), 3 deletions(-)
+> 
+> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+> index 370d111..c8e1bb0 100644
+> --- a/include/linux/videodev2.h
+> +++ b/include/linux/videodev2.h
+> @@ -708,16 +708,16 @@ struct v4l2_framebuffer {
+> 
+>  struct v4l2_clip {
+>  	struct v4l2_rect        c;
+> -	struct v4l2_clip	__user *next;
+> +	struct v4l2_clip	*next;
+>  };
+> 
+>  struct v4l2_window {
+>  	struct v4l2_rect        w;
+>  	__u32			field;	 /* enum v4l2_field */
+>  	__u32			chromakey;
+> -	struct v4l2_clip	__user *clips;
+> +	struct v4l2_clip	*clips;
+>  	__u32			clipcount;
+> -	void			__user *bitmap;
+> +	void			*bitmap;
+>  	__u8                    global_alpha;
+>  };
+
 -- 
-1.7.10
+Regards,
+
+Laurent Pinchart
 
