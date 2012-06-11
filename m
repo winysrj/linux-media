@@ -1,50 +1,32 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-4.cisco.com ([144.254.224.147]:61804 "EHLO
-	ams-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751724Ab2FGPUe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 7 Jun 2012 11:20:34 -0400
-Received: from cobaltpc1.localnet (dhcp-10-54-92-70.cisco.com [10.54.92.70])
-	by ams-core-4.cisco.com (8.14.5/8.14.5) with ESMTP id q57FKWqn021026
-	for <linux-media@vger.kernel.org>; Thu, 7 Jun 2012 15:20:32 GMT
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH for v3.5] Fix regression in ioctl numbering
-Date: Thu, 7 Jun 2012 17:20:31 +0200
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:60280 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750695Ab2FKISG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 11 Jun 2012 04:18:06 -0400
+Received: by obbtb18 with SMTP id tb18so6418335obb.19
+        for <linux-media@vger.kernel.org>; Mon, 11 Jun 2012 01:18:06 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201206071720.31436.hverkuil@xs4all.nl>
+Date: Mon, 11 Jun 2012 16:18:06 +0800
+Message-ID: <CAHG8p1AW6577=oGPo3o8S0LgF2p8_cfmLLnvYbikk7kEaYdxzw@mail.gmail.com>
+Subject: extend v4l2_mbus_framefmt
+From: Scott Jiang <scott.jiang.linux@gmail.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Cc: LMML <linux-media@vger.kernel.org>,
+	uclinux-dist-devel@blackfin.uclinux.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Yuck. The VIDIOC_(TRY_)DECODER_CMD ioctls already had ioctl numbers 96 and 97,
-and after merging the timings API I forgot to continue numbering from 98. So
-now we have two ioctls with number 96 and two with 97.
+Hi Guennadi and Hans,
 
-With the new table-driver ioctl handling in v4l2-ioctl.c it is essential that
-each ioctl has its own unique number, so let's fix this quickly for 3.5.
+We use v4l2_mbus_framefmt to get frame format on the media bus in
+bridge driver. It only contains width and height. It's not a big
+problem in SD. But we need more info like front porch, sync width and
+back porch (similar to disp_format_s in v4l2_formats.h) in HD. I want
+to add these fields in v4l2_mbus_framefmt or do you have any better
+solution?
 
-Regards,
-
-	Hans
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index 370d111..2039c5d 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -2640,9 +2640,9 @@ struct v4l2_create_buffers {
- 
- /* Experimental, these three ioctls may change over the next couple of kernel
-    versions. */
--#define VIDIOC_ENUM_DV_TIMINGS  _IOWR('V', 96, struct v4l2_enum_dv_timings)
--#define VIDIOC_QUERY_DV_TIMINGS  _IOR('V', 97, struct v4l2_dv_timings)
--#define VIDIOC_DV_TIMINGS_CAP   _IOWR('V', 98, struct v4l2_dv_timings_cap)
-+#define VIDIOC_ENUM_DV_TIMINGS  _IOWR('V', 98, struct v4l2_enum_dv_timings)
-+#define VIDIOC_QUERY_DV_TIMINGS  _IOR('V', 99, struct v4l2_dv_timings)
-+#define VIDIOC_DV_TIMINGS_CAP   _IOWR('V', 100, struct v4l2_dv_timings_cap)
- 
- /* Reminder: when adding new ioctls please add support for them to
-    drivers/media/video/v4l2-compat-ioctl32.c as well! */
+Thanks,
+Scott
