@@ -1,54 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:51813 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754056Ab2FDPtN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jun 2012 11:49:13 -0400
-Date: Mon, 4 Jun 2012 17:49:10 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Albert Wang <twang13@marvell.com>
-cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: RE: [PATCH] [media] soc-camera: Correct icl platform data
- assignment
-In-Reply-To: <477F20668A386D41ADCC57781B1F7043083A727354@SC-VEXCH1.marvell.com>
-Message-ID: <alpine.DEB.2.00.1206041738190.23951@axis700.grange>
-References: <1338803000-26019-1-git-send-email-twang13@marvell.com> <Pine.LNX.4.64.1206041425010.22611@axis700.grange> <477F20668A386D41ADCC57781B1F7043083A727354@SC-VEXCH1.marvell.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from 124-248-200-91.sunnyvision.com ([124.248.200.91]:50314 "EHLO
+	teamb04.edmhongkong.com" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
+	with ESMTP id S1753468Ab2FKMJQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 11 Jun 2012 08:09:16 -0400
+Message-ID: <u8JRv0sSsH@party.seed.net.tw>
+From: borislamsv2@gmail.com
+Subject: Server Rental & datacenter rack rental service in Hong Kong
+Content-Type: text/plain;
+Content-Transfer-Encoding: Quoted-Printable
+Date: Mon, 11 Jun 2012 19:51:03 +0800 (HKT)
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 4 Jun 2012, Albert Wang wrote:
+Dear All,
 
-> Hi, Guennadi
-> 
-> Yes, maybe you are right.
-> I checked some i2c client drivers, they all changed it to:
-> 
-> struct soc_camera_link *icl = soc_camera_i2c_to_link(client);
-> 
-> We also can update our client driver, but could you please explain why 
-> do you change it?
+We have our own datacenter in Hong Kong & provide email/application/web rental service to clients.We are APNIC member & provide clean IP to clients.
 
-Since you have already found the change, you could also use git blame to 
-find this commit:
+Dell=3F PowerEdge=3F EnterpriseRack Mount Server
+-Intel(R) Xeon(R) E3-1240 Processor (3.3GHz, 8M Cache, Turbo, 4C/8T, 80W)
+-8GB RAM, 2x4GB, 1333MHz, DDR-3, Dual Ranked UDIMMs
+-500GB, 3.5", 6Gbps SAS x 2
+-Raid 1 Mirroring Protection
+-Remote KVM (iDRAC6 Enterprise)
 
-commit b569a3766136e710883a16a91cd12942560e772b
-Author: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Date:   Wed Sep 21 20:16:30 2011 +0200
+Every Dedicated Server Hosting Solution Also Includes: 
+ 
+Software Specification 
+- CentOS / Fedora / Debian / FreeBSD / Ubuntu / Redhat Linux 
+- Full root-level access 
+- Data Center Facilities 
+- Shared Local & International Bandwidth 
+- 2 IP Addresses Allocation 
+- Un-interruptible Power Supply (UPS) backed up by private diesel generator 
+- FM200=A1=A7based fire suppression system 
+- 24x7 CRAC Air Conditioning and Humidity Control 
+- 24x7 Security Control 
+- 24x7 Remote Hand Service 
 
-    V4L: soc-camera: start removing struct soc_camera_device from client drivers
-    
-    Remove most trivial uses of struct soc_camera_device from most client
-    drivers, abstracting some of them inside inline functions. Next steps
-    will eliminate remaining uses and modify inline functions to not use
-    struct soc_camera_device.
+Pls send us email for further information.Thanks,
 
-I.e., client drivers should become independent of soc-camera, that's why 
-they shoudn't access struct soc_camera_device.
+Boris 
+boris@dedicatedserver.com.hk
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+(852)94088762
+
+If you do not wish to further receive this event message, email "borislamsv2@gmail.com" to unsubscribe this message or remove your email from the list.
+
+
