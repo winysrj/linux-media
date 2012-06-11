@@ -1,46 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:41840 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751473Ab2F1LZP (ORCPT
+Received: from mail-wi0-f178.google.com ([209.85.212.178]:35966 "EHLO
+	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751330Ab2FKIPT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Jun 2012 07:25:15 -0400
-Received: from avalon.localnet (unknown [91.178.148.221])
-	by perceval.ideasonboard.com (Postfix) with ESMTPSA id F197A35A40
-	for <linux-media@vger.kernel.org>; Thu, 28 Jun 2012 13:25:13 +0200 (CEST)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Subject: [GIT PULL FOR v3.6] uvcvideo fixes
-Date: Thu, 28 Jun 2012 13:25:18 +0200
-Message-ID: <1484282.DCLrSed1NR@avalon>
+	Mon, 11 Jun 2012 04:15:19 -0400
+Received: by wibhn6 with SMTP id hn6so2613763wib.1
+        for <linux-media@vger.kernel.org>; Mon, 11 Jun 2012 01:15:18 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Date: Mon, 11 Jun 2012 16:15:18 +0800
+Message-ID: <CALxrGmXGmEB5_N1Zp=XxNs8zmk1fHiPi_CqZBKq0rKepMp=UJg@mail.gmail.com>
+Subject: 
+From: Su Jiaquan <jiaquan.lnx@gmail.com>
+To: g.liakhovetski@gmx.de
+Cc: linux-media@vger.kernel.org, twang13@marvell.com
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi Guennadi,
 
-The following changes since commit a99817ca60d206be3645d156f755cf065e949c58:
+         I found in soc_camera when video device is opened, default
+format is applied sensor. I think this is the right thing to do, be it
+also means a lot of i2c transactions.
 
-  Merge branch 'v4l_for_linus' into staging/for_v3.6 (2012-06-27 08:57:09 -0300)
+I think in case of app wants to query drivers capability, it do a
+quick "open-query-close", expecting only to get some information
+rather than really configuring camera. So maybe this is a point that
+can be optimize.
 
-are available in the git repository at:
+Have you consider postpone it to some point later, how about, say,
+before stream_on? At that point we can check if VIDIOC_S_FMT is
+called, if yes, we do nothing, if no, we can configure the default
+format.
 
-  git://linuxtv.org/pinchartl/uvcvideo.git uvcvideo-next
+         I simply move some code from soc_camera_open() to
+soc_camera_set_fmt(), just a few changes, do you think it OK to make
+this adjustment?
 
-Jayakrishnan (1):
-      uvcvideo: Fix frame drop in bulk video stream
-
-Laurent Pinchart (2):
-      uvcvideo: Document the struct uvc_xu_control_query query field
-      uvcvideo: Fix alternate setting selection
-
- drivers/media/video/uvc/uvc_video.c |    7 +++++--
- include/linux/uvcvideo.h            |    3 ++-
- 2 files changed, 7 insertions(+), 3 deletions(-)
-
--- 
-Regards,
-
-Laurent Pinchart
-
+         Thanks!
+Jiaquan
