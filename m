@@ -1,160 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:9112 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755682Ab2FNNJ2 (ORCPT
+Received: from mail-we0-f174.google.com ([74.125.82.174]:44396 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754006Ab2FKOeZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Jun 2012 09:09:28 -0400
-Message-id: <4FD9E27C.9030109@samsung.com>
-Date: Thu, 14 Jun 2012 15:09:16 +0200
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-MIME-version: 1.0
-Cc: paul.gortmaker@windriver.com,
-	=?UTF-8?B?J+uwleqyveuvvCc=?= <kyungmin.park@samsung.com>,
-	amwang@redhat.com, dri-devel@lists.freedesktop.org,
-	"'???/Mobile S/W Platform Lab.(???)/E3(??)/????'"
-	<inki.dae@samsung.com>, prashanth.g@samsung.com,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Rob Clark <rob@ti.com>, Dave Airlie <airlied@redhat.com>,
-	"'???/Mobile S/W Platform Lab.(???)/E3(??)/????'"
-	<inki.dae@samsung.com>, linux-kernel@vger.kernel.org,
-	Andrew Morton <akpm@linux-foundation.org>
-Subject: [PATCH v4] scatterlist: add sg_alloc_table_from_pages function
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+	Mon, 11 Jun 2012 10:34:25 -0400
+Received: by weyu7 with SMTP id u7so2115733wey.19
+        for <linux-media@vger.kernel.org>; Mon, 11 Jun 2012 07:34:24 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <4FD3BB42.2010803@redhat.com>
+References: <CAFxvmmfFqCQg3QxirmPazdqNuBq6SxbezUR9T1bo+SRRL9-hBA@mail.gmail.com>
+	<4FD3BB42.2010803@redhat.com>
+Date: Mon, 11 Jun 2012 14:34:23 +0000
+Message-ID: <CAFxvmmdUp8-JuPuL=wdZyPkUZ9NEPucwS6ZQf_M0CuWs_bZm+g@mail.gmail.com>
+Subject: Re: PWC ioctl inappropriate for device (Regression)
+From: Bernard GODARD <bernard.godard@gmail.com>
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds a new constructor for an sg table. The table is constructed
-from an array of struct pages. All contiguous chunks of the pages are merged
-into a single sg nodes. A user may provide an offset and a size of a buffer if
-the buffer is not page-aligned.
+Hi Hans,
 
-The function is dedicated for DMABUF exporters which often perform conversion
-from an page array to a scatterlist. Moreover the scatterlist should be
-squashed in order to save memory and to speed-up the process of DMA mapping
-using dma_map_sg.
+Thank you for your reply.
 
-The code is based on the patch 'v4l: vb2-dma-contig: add support for
-scatterlist in userptr mode' and hints from Laurent Pinchart.
+I will try to do the fix in qastrocam-g2 myself as this program does
+not currently have a maintainer.
 
-Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-Acked-by: Daniel Vetter <daniel.vetter@ffwll.ch>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-CC: Andrew Morton <akpm@linux-foundation.org>
----
-v4:
-- fix typos
-- add Changelog
+Regards,
 
-v3:
-- use PFNs instead of page pointers to check contiguity
-
-v2:
-- rename sg_table_alloc_by_pages to sg_table_alloc_from_pages
-- add some comments about error value
-
-v1:
-- initial version
-
----
- include/linux/scatterlist.h |    4 +++
- lib/scatterlist.c           |   64 +++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 68 insertions(+)
-
-diff --git a/include/linux/scatterlist.h b/include/linux/scatterlist.h
-index ac9586d..7b600da 100644
---- a/include/linux/scatterlist.h
-+++ b/include/linux/scatterlist.h
-@@ -214,6 +214,10 @@ void sg_free_table(struct sg_table *);
- int __sg_alloc_table(struct sg_table *, unsigned int, unsigned int, gfp_t,
- 		     sg_alloc_fn *);
- int sg_alloc_table(struct sg_table *, unsigned int, gfp_t);
-+int sg_alloc_table_from_pages(struct sg_table *sgt,
-+	struct page **pages, unsigned int n_pages,
-+	unsigned long offset, unsigned long size,
-+	gfp_t gfp_mask);
-
- size_t sg_copy_from_buffer(struct scatterlist *sgl, unsigned int nents,
- 			   void *buf, size_t buflen);
-diff --git a/lib/scatterlist.c b/lib/scatterlist.c
-index 6096e89..e719adf 100644
---- a/lib/scatterlist.c
-+++ b/lib/scatterlist.c
-@@ -319,6 +319,70 @@ int sg_alloc_table(struct sg_table *table, unsigned int nents, gfp_t gfp_mask)
- EXPORT_SYMBOL(sg_alloc_table);
-
- /**
-+ * sg_alloc_table_from_pages - Allocate and initialize an sg table from
-+ *			       an array of pages
-+ * @sgt:	The sg table header to use
-+ * @pages:	Pointer to an array of page pointers
-+ * @n_pages:	Number of pages in the pages array
-+ * @offset:     Offset from start of the first page to the start of a buffer
-+ * @size:       Number of valid bytes in the buffer (after offset)
-+ * @gfp_mask:	GFP allocation mask
-+ *
-+ *  Description:
-+ *    Allocate and initialize an sg table from a list of pages. Contiguous
-+ *    ranges of the pages are squashed into a single scatterlist node. A user
-+ *    may provide an offset at a start and a size of valid data in a buffer
-+ *    specified by the page array. The returned sg table is released by
-+ *    sg_free_table.
-+ *
-+ * Returns:
-+ *   0 on success, negative error on failure
-+ */
-+int sg_alloc_table_from_pages(struct sg_table *sgt,
-+	struct page **pages, unsigned int n_pages,
-+	unsigned long offset, unsigned long size,
-+	gfp_t gfp_mask)
-+{
-+	unsigned int chunks;
-+	unsigned int i;
-+	unsigned int cur_page;
-+	int ret;
-+	struct scatterlist *s;
-+
-+	/* compute number of contiguous chunks */
-+	chunks = 1;
-+	for (i = 1; i < n_pages; ++i)
-+		if (page_to_pfn(pages[i]) != page_to_pfn(pages[i - 1]) + 1)
-+			++chunks;
-+
-+	ret = sg_alloc_table(sgt, chunks, gfp_mask);
-+	if (unlikely(ret))
-+		return ret;
-+
-+	/* merging chunks and putting them into the scatterlist */
-+	cur_page = 0;
-+	for_each_sg(sgt->sgl, s, sgt->orig_nents, i) {
-+		unsigned long chunk_size;
-+		unsigned int j;
-+
-+		/* look for the end of the current chunk */
-+		for (j = cur_page + 1; j < n_pages; ++j)
-+			if (page_to_pfn(pages[j]) !=
-+			    page_to_pfn(pages[j - 1]) + 1)
-+				break;
-+
-+		chunk_size = ((j - cur_page) << PAGE_SHIFT) - offset;
-+		sg_set_page(s, pages[cur_page], min(size, chunk_size), offset);
-+		size -= chunk_size;
-+		offset = 0;
-+		cur_page = j;
-+	}
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL(sg_alloc_table_from_pages);
-+
-+/**
-  * sg_miter_start - start mapping iteration over a sg list
-  * @miter: sg mapping iter to be started
-  * @sgl: sg list to iterate over
--- 
-1.7.9.5
+On Sat, Jun 9, 2012 at 9:08 PM, Hans de Goede <hdegoede@redhat.com> wrote:
+> Hi,
+>
+>
+> On 06/09/2012 07:06 PM, Bernard GODARD wrote:
+>>
+>> Dear all,
+>>
+>> I am using a Philips Toucam Pro 2 webcam with the program qastrocam-g2
+>> (astronomy program that use some specific functions of the PWC
+>> driver).
+>> I have been using this program with this camera for a long time on
+>> different Linux distributions without a problem.
+>>
+>> With Ubuntu 12.04, I now get a kernel oops. See bug report:
+>> https://bugs.launchpad.net/ubuntu/+source/linux/+bug/1010028
+>>
+>> I have installed mainline kernel 3.4rc6 on my Ubuntu box to check if
+>> the oops was fixed upstream. Now I am not getting the oops anymore
+>
+>
+> Good!
+>
+>
+>> but the IOCTL used to get/set the camera parameters are failing:
+>>
+>>
+>>
+>> astro@saturn:~$ qastrocam-g2
+>> <init> : Avifile RELEASE-0.7.48-120122-05:53-../src/configure
+>> <init> : Available CPU flags: fpu vme de pse tsc msr pae mce cx8 apic
+>> sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall
+>> nx mmxext fxsr_opt rdtscp lm 3dnowext 3dnow rep_good nopl extd_apicid
+>> pni cx16 la
+>> <init> : 2200.00 MHz AMD Athlon(tm) 64 X2 Dual Core Processor 4200+
+>> detected
+>> Getting Standard: Inappropriate ioctl for device
+>> setWhiteBalance: Inappropriate ioctl for device
+>> getWhiteBalance: Inappropriate ioctl for device
+>> getWhiteBalance: Inappropriate ioctl for device
+>> VIDIOCPWCGAGC: Inappropriate ioctl for device
+>> ioctl (VIDIOCGWIN): Inappropriate ioctl for device
+>> mmap: Invalid argument
+>> VIDIOCPWCGDYNNOISE: Inappropriate ioctl for device
+>> VIDIOCPWCGCONTOUR: Inappropriate ioctl for device
+>> VIDIOCPWCSCONTOUR: Inappropriate ioctl for device
+>> VIDIOCPWCGDYNNOISE: Inappropriate ioctl for device
+>> VIDIOCPWCGCONTOUR: Inappropriate ioctl for device
+>> VIDIOCPWCGDYNNOISE: Inappropriate ioctl for device
+>> VIDIOCPWCGAGC: Inappropriate ioctl for device
+>> VIDIOCPWCSAGC: Inappropriate ioctl for device
+>> getWhiteBalance: Inappropriate ioctl for device
+>> VIDIOCPWCSAGC: Inappropriate ioctl for device
+>> VIDIOCPWCSSHUTTER: Inappropriate ioctl for device
+>> VIDIOCPWCGAGC: Inappropriate ioctl for device
+>> getWhiteBalance: Inappropriate ioctl for device
+>> VIDIOCPWCGAGC: Inappropriate ioctl for device
+>> VIDIOCPWCGAGC: Inappropriate ioctl for device
+>> VIDIOCPWCGAGC: Inappropriate ioctl for device
+>> VIDIOCPWCGAGC: Inappropriate ioctl for device
+>> VIDIOCPWCGAGC: Inappropriate ioctl for device
+>> VIDIOCPWCGAGC: Inappropriate ioctl for device
+>> VIDIOCPWCGAGC: Inappropriate ioctl for device
+>> VIDIOCPWCGAGC: Inappropriate ioctl for device
+>> VIDIOCPWCGAGC: Inappropriate ioctl for device
+>> VIDIOCPWCGAGC: Inappropriate ioctl for device
+>> VIDIOCPWCGAGC: Inappropriate ioctl for device
+>> VIDIOCPWCGAGC: Inappropriate ioctl for device
+>> VIDIOCPWCGAGC: Inappropriate ioctl for device
+>> VIDIOCPWCGAGC: Inappropriate ioctl for device
+>> VIDIOCPWCGAGC: Inappropriate ioctl for device
+>> VIDIOCPWCGAGC: Inappropriate ioctl for device
+>> VIDIOCPWCGAGC: Inappropriate ioctl for device
+>> VIDIOCPWCGAGC: Inappropriate ioctl for device
+>> VIDIOCPWCGAGC: Inappropriate ioctl for device
+>
+>
+> As the names of the ioctls imply these are (were) custom pwc
+> ioctls, these were added in the v4l1 days as the v4l1 api did not
+> have a way to expose the desired functionality in a standard manner.
+>
+> Support for the v4l1 API has been removed a number of kernel releases
+> ago and at the same time the pwc specific ioctls have been marked
+> as deprecated. And with kernel 3.2 they have finally been removed.
+>
+> The same results can be achieved with the standard v4l2
+> VIDIOC_S_CTRL and VIDIOC_G_CTRL ioctls. I'm sorry to hear that the
+> removal of the custom pwc ioctls is causing problems for you, but
+> we really don't want to have any unneeded driver specific ioctls
+> with v4l2 devices.
+>
+> So the qastrocam-g2 program needs to be modified to use the standard
+> controls interface to modify these settings on newer kernels.
+>
+> Can you please send a bug report to qastrocam-g2 about this and add
+> me in the CC ?
+>
+> Thanks,
+>
+> Hans
