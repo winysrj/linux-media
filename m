@@ -1,67 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:51161 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753684Ab2FYTnB convert rfc822-to-8bit (ORCPT
+Received: from ams-iport-1.cisco.com ([144.254.224.140]:64778 "EHLO
+	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752117Ab2FLNVt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Jun 2012 15:43:01 -0400
-Received: by bkcji2 with SMTP id ji2so3558764bkc.19
-        for <linux-media@vger.kernel.org>; Mon, 25 Jun 2012 12:42:59 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <4FE8BC2D.9030902@redhat.com>
-References: <1340047425-32000-1-git-send-email-elezegarcia@gmail.com>
-	<4FE8BC2D.9030902@redhat.com>
-Date: Mon, 25 Jun 2012 16:42:59 -0300
-Message-ID: <CALF0-+UyWjbbPYCKV-AgS=6FZ349D27GrijrYa_RWPUqcfo8rw@mail.gmail.com>
-Subject: Re: [PATCH 01/12] saa7164: Use i2c_rc properly to store i2c register status
-From: Ezequiel Garcia <elezegarcia@gmail.com>
+	Tue, 12 Jun 2012 09:21:49 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Subject: Re: [RFCv1 PATCH 00/32] Core and vb2 enhancements
+Date: Tue, 12 Jun 2012 15:21:38 +0200
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Andy Walls <awalls@md.metrocast.net>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Pawel Osciak <pawel@osciak.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>
+References: <1339323954-1404-1-git-send-email-hverkuil@xs4all.nl> <201206102127.12029.hverkuil@xs4all.nl> <4FD7296E.9080400@redhat.com>
+In-Reply-To: <4FD7296E.9080400@redhat.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201206121521.38453.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+On Tue 12 June 2012 13:35:10 Mauro Carvalho Chehab wrote:
+> Em 10-06-2012 16:27, Hans Verkuil escreveu:
+> > On Sun June 10 2012 19:32:36 Hans Verkuil wrote:
+> >> On Sun June 10 2012 18:46:52 Mauro Carvalho Chehab wrote:
+> >>> 3) it would be interesting if you could benchmark the previous code and the new
+> >>> one, to see what gains this change introduced, in terms of v4l2-core footprint and
+> >>> performance.
+> >>
+> >> I'll try that, should be interesting. Actually, my prediction is that I won't notice any
+> >> difference. Todays CPUs are so fast that the overhead of the switch is probably hard to
+> >> measure.
+> > 
+> > I did some tests, calling various ioctls 100,000,000 times. The actual call into the
+> > driver was disabled so that I only measure the time spent in v4l2-ioctl.c.
+> > 
+> > I ran the test program with 'time ./t' and measured the sys time.
+> > 
+> > For each ioctl I tested 5 times and averaged the results. Times are in seconds.
+> > 
+> > 					Old		New
+> > QUERYCAP			24.86	24.37
+> > UNSUBSCRIBE_EVENT	23.40	23.10
+> > LOG_STATUS			18.84	18.76
+> > ENUMINPUT			28.82	28.90
+> > 
+> > Particularly for QUERYCAP and UNSUBSCRIBE_EVENT I found a small but reproducible
+> > improvement in speed. The results for LOG_STATUS and ENUMINPUT are too close to
+> > call.
+> > 
+> > After looking at the assembly code that the old code produces I suspect (but it
+> > is hard to be sure) that LOG_STATUS and ENUMINPUT are tested quite early on, whereas
+> > QUERYCAP and UNSUBSCRIBE_EVENT are tested quite late. The order in which the compiler
+> > tests definitely has no relationship with the order of the case statements in the
+> > switch.
+> 
+> The ioctl's are reordered, as gcc optimizes them in order to do a tree search and to avoid
+> cache flush. The worse case is likely converted into 7 CMP asm calls (log2(128)).
+> 
+> On your code, gcc may not be able to predict the JMP's, so it may actually have cache flushes,
+> depending on the cache size, and if the caller functions are before of after the video_ioctl2
+> handler.
+> 
+> I suspect that, if you compare the code with debug enabled, the new code can actually be worse
+> than the previous one.
+> 
+> It would be good if you could test what happens with QBUF/DQBUF.
 
-On Mon, Jun 25, 2012 at 4:29 PM, Mauro Carvalho Chehab
-<mchehab@redhat.com> wrote:
->> diff --git a/drivers/media/video/saa7164/saa7164-i2c.c b/drivers/media/video/saa7164/saa7164-i2c.c
->> index 26148f7..536f7dc 100644
->> --- a/drivers/media/video/saa7164/saa7164-i2c.c
->> +++ b/drivers/media/video/saa7164/saa7164-i2c.c
->> @@ -123,7 +123,7 @@ int saa7164_i2c_register(struct saa7164_i2c *bus)
->>       bus->i2c_algo.data = bus;
->>       bus->i2c_adap.algo_data = bus;
->>       i2c_set_adapdata(&bus->i2c_adap, bus);
->> -     i2c_add_adapter(&bus->i2c_adap);
->> +     bus->i2c_rc = i2c_add_adapter(&bus->i2c_adap);
->>
->>       bus->i2c_client.adapter = &bus->i2c_adap;
->>
->>
->
-> -ENODESCRIPTION.
+Again, I'm averaging 5 runs of 100,000,000 calls with the actual (d)qbuf driver operation disabled.
 
-Okey. Sorry for that.
+QBUF old: 28.95s
+QBUF new: 28.31s
 
->
-> What are you intending with this change? AFAICT, i2c_add_bus_adapter()
-> returns 0 on success and a negative value otherwise. Why should it be
-> stored at bus->i2c_rc?
+DQBUF old: 28.89s
+DQBUF new: 28.40s
 
-My intention was to give i2c_rc its proper use.
-I looked at bttv-i2c.c and cx88-i2c.c and (perhaps wrongly) guessed
-the intended use to i2c_rc was to save i2c registration result.
+The new code is faster by 1-3%.
 
-Without this patch, where is this bus->i2c_rc variable used?
-Unless I've missed something, to me there are two options:
-- use i2c_rc
-- remove it
+The timings were very consistent with little variation.
 
-Again sorry for lack of description, I thought it was self-explaining patch.
+BTW, just to put this in perspective: if you are streaming 60 frames per second, then that is
+120 ioctl calls. With the old code those would take 34.704 usecs, with the new code 34.026 usecs.
 
-If you provide some feedback about proper solution, I can resend the
-patch series.
+So you win 0.678 usecs per second, which is about 2.5 milliseconds per hour.
 
-Thanks,
-Ezequiel.
+I did this table conversion because it improves the code and because it makes it easy to have ioctl
+annotations in the form of flags in the table that allowed me to do some fancy ioctl-specific
+stuff. The speed increase is completely negligible. It is falls away compared to the much, much
+more CPU intensive work of displaying or processing the image data. Only by artificial tests
+as I did can you even measure it.
+
+There are no performance issues in V4L2. There are code complexity, readability and maintainability
+issues that are much more important and real. Our focus should be on those issues, not on
+performance at this low level.
+
+Regards,
+
+	Hans
+
+> > This would certainly explain what I am seeing. I'm actually a bit surprised that
+> > this is measurable at all.
+> 
+> The timing difference is not significant, especially because those ioctl's aren't the ones
+> used inside the streaming loop. The only ioctl's that are more time-sensitive are the streaming
+> ones, especially QBUF/DQBUF.
+> 
+> Regards,
+> Mauro
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
