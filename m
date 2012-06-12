@@ -1,94 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:58270 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751498Ab2FLOl3 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Jun 2012 10:41:29 -0400
-Received: by dady13 with SMTP id y13so6954762dad.19
-        for <linux-media@vger.kernel.org>; Tue, 12 Jun 2012 07:41:29 -0700 (PDT)
-From: "Jiaquan Su" <jiaquan.lnx@gmail.com>
-To: "'Guennadi Liakhovetski'" <g.liakhovetski@gmx.de>
-Cc: "'linux-media'" <linux-media@vger.kernel.org>,
-	"Albert Wang" <twang13@marvell.com>
-References: <CALxrGmVo1TZTdvA_QwzjBvyA4WXYV0Cpavr5mC5d3BXCwm5CMQ@mail.gmail.com> <Pine.LNX.4.64.1206112243590.3390@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1206112243590.3390@axis700.grange>
-Subject: RE: [media] soc_camera: suggest to postpone applying default format
-Date: Tue, 12 Jun 2012 22:41:00 +0800
-Message-ID: <4fd75518.4683440a.7e06.ffffa699@mx.google.com>
+Received: from mx1.redhat.com ([209.132.183.28]:28654 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752170Ab2FLLfe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 12 Jun 2012 07:35:34 -0400
+Message-ID: <4FD7296E.9080400@redhat.com>
+Date: Tue, 12 Jun 2012 08:35:10 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-	charset="gb2312"
-Content-Transfer-Encoding: 8BIT
-Content-Language: zh-cn
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Andy Walls <awalls@md.metrocast.net>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Pawel Osciak <pawel@osciak.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: Re: [RFCv1 PATCH 00/32] Core and vb2 enhancements
+References: <1339323954-1404-1-git-send-email-hverkuil@xs4all.nl> <4FD4CF7C.3020000@redhat.com> <201206101932.36886.hverkuil@xs4all.nl> <201206102127.12029.hverkuil@xs4all.nl>
+In-Reply-To: <201206102127.12029.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
-
------Original Message-----
-From: Guennadi Liakhovetski [mailto:g.liakhovetski@gmx.de] 
-Sent: 2012年6月12日 上午 05:00
-To: Su Jiaquan
-Cc: linux-media; Albert Wang
-Subject: Re: [media] soc_camera: suggest to postpone applying default format
-
-Hi Jiaquan
-
-On Mon, 11 Jun 2012, Su Jiaquan wrote:
-
-> Hi Guennadi,
+Em 10-06-2012 16:27, Hans Verkuil escreveu:
+> On Sun June 10 2012 19:32:36 Hans Verkuil wrote:
+>> On Sun June 10 2012 18:46:52 Mauro Carvalho Chehab wrote:
+>>> 3) it would be interesting if you could benchmark the previous code and the new
+>>> one, to see what gains this change introduced, in terms of v4l2-core footprint and
+>>> performance.
+>>
+>> I'll try that, should be interesting. Actually, my prediction is that I won't notice any
+>> difference. Todays CPUs are so fast that the overhead of the switch is probably hard to
+>> measure.
 > 
->          I found in soc_camera when video device is opened, default
-> format is applied sensor. I think this is the right thing to do, be it
-> also means a lot of i2c transactions.
-
-It doesn't have to actually. It is up to the sensor (or any other client) 
-driver to decide whether to apply requested formats immediately or only 
-check and store them internally. Then the driver can decide to actually 
-apply them only at STREAMON time. Doing this would also make the client 
-driver better suitable to work outside of the soc-camera framework, where 
-it will be expected to preserve its configuration across open() / close() 
-cycles, possibly, without its .s_mbus_fmt() being called.
-
-So, I would rather suggest to fix individual client drivers one by one 
-instead of changing the soc-camera core, which would immediately affect 
-all related drivers.
-
-Thanks
-Guennadi
-
-> I think in case of app wants to query drivers capability, it do a
-> quick “open-query-close”, expecting only to get some information
-> rather than really configuring camera. So maybe this is a point that
-> can be optimize.
+> I did some tests, calling various ioctls 100,000,000 times. The actual call into the
+> driver was disabled so that I only measure the time spent in v4l2-ioctl.c.
 > 
-> Have you consider postpone it to some point later, how about, say,
-> before stream_on? At that point we can check if VIDIOC_S_FMT is
-> called, if yes, we do nothing, if no, we can configure the default
-> format.
+> I ran the test program with 'time ./t' and measured the sys time.
 > 
->          I simply move some code from soc_camera_open() to
-> soc_camera_set_fmt(), just a few changes, do you think it OK to make
-> this adjustment?
+> For each ioctl I tested 5 times and averaged the results. Times are in seconds.
 > 
->          Thanks!
-> Jiaquan
+> 					Old		New
+> QUERYCAP			24.86	24.37
+> UNSUBSCRIBE_EVENT	23.40	23.10
+> LOG_STATUS			18.84	18.76
+> ENUMINPUT			28.82	28.90
 > 
+> Particularly for QUERYCAP and UNSUBSCRIBE_EVENT I found a small but reproducible
+> improvement in speed. The results for LOG_STATUS and ENUMINPUT are too close to
+> call.
+> 
+> After looking at the assembly code that the old code produces I suspect (but it
+> is hard to be sure) that LOG_STATUS and ENUMINPUT are tested quite early on, whereas
+> QUERYCAP and UNSUBSCRIBE_EVENT are tested quite late. The order in which the compiler
+> tests definitely has no relationship with the order of the case statements in the
+> switch.
 
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+The ioctl's are reordered, as gcc optimizes them in order to do a tree search and to avoid
+cache flush. The worse case is likely converted into 7 CMP asm calls (log2(128)).
 
-Thanks for the reply!
+On your code, gcc may not be able to predict the JMP's, so it may actually have cache flushes,
+depending on the cache size, and if the caller functions are before of after the video_ioctl2
+handler.
 
-I think you are right, changing soc_camera core is too risky.
+I suspect that, if you compare the code with debug enabled, the new code can actually be worse
+than the previous one.
 
-I took a look at the open source client drivers, it seems applying configure
-as soon as set_fmt called is a common practice. So I think I'll hack
-soc_camera locally on our platform.
+It would be good if you could test what happens with QBUF/DQBUF.
 
-Thanks for the help!
+> This would certainly explain what I am seeing. I'm actually a bit surprised that
+> this is measurable at all.
 
-Jiaquan
+The timing difference is not significant, especially because those ioctl's aren't the ones
+used inside the streaming loop. The only ioctl's that are more time-sensitive are the streaming
+ones, especially QBUF/DQBUF.
 
+Regards,
+Mauro
