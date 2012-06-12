@@ -1,66 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:60960 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753382Ab2FDM3A (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jun 2012 08:29:00 -0400
-Date: Mon, 4 Jun 2012 14:28:55 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Albert Wang <twang13@marvell.com>
-cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH] [media] soc-camera: Correct icl platform data assignment
-In-Reply-To: <1338803000-26019-1-git-send-email-twang13@marvell.com>
-Message-ID: <Pine.LNX.4.64.1206041425010.22611@axis700.grange>
-References: <1338803000-26019-1-git-send-email-twang13@marvell.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:46135 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751499Ab2FLGXq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 12 Jun 2012 02:23:46 -0400
+Received: by pbbrp8 with SMTP id rp8so354857pbb.19
+        for <linux-media@vger.kernel.org>; Mon, 11 Jun 2012 23:23:45 -0700 (PDT)
+From: Sachin Kamat <sachin.kamat@linaro.org>
+To: linux-media@vger.kernel.org
+Cc: s.nawrocki@samsung.com, snjw23@gmail.com, mchehab@infradead.org,
+	sachin.kamat@linaro.org, patches@linaro.org
+Subject: [PATCH 1/1] [media] s5p-fimc: Replace custom err() macro with v4l2_err() macro
+Date: Tue, 12 Jun 2012 11:42:26 +0530
+Message-Id: <1339481546-24491-1-git-send-email-sachin.kamat@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Albert
+Replace custom err() macro with v4l2_err() macro.
 
-On Mon, 4 Jun 2012, Albert Wang wrote:
-
-> This patch corrects icl platform data assignment
-> 
->     from:
->         icl->board_info->platform_data = icl;
->     to:
->         icl->board_info->platform_data = icd;
-> 
-> during init i2c device board info
-
-No, I don't think this is right. If it were right, all soc-camera systems 
-would be broken for a couple of kernel versions. I think, you have to 
-update your drivers...
-
-Thanks
-Guennadi
-
-> 
-> Change-Id: Ia40a5ce96adbc5a1c3f3a90028e87a6fdbabc881
-> Signed-off-by: Albert Wang <twang13@marvell.com>
-> ---
->  drivers/media/video/soc_camera.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
-> index 0421bf9..cb8b8c7 100755
-> --- a/drivers/media/video/soc_camera.c
-> +++ b/drivers/media/video/soc_camera.c
-> @@ -991,7 +991,7 @@ static int soc_camera_init_i2c(struct soc_camera_device *icd,
->  		goto ei2cga;
->  	}
->  
-> -	icl->board_info->platform_data = icl;
-> +	icl->board_info->platform_data = icd;
->  
->  	subdev = v4l2_i2c_new_subdev_board(&ici->v4l2_dev, adap,
->  				icl->board_info, NULL);
-> -- 
-> 1.7.0.4
-> 
-
+Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ drivers/media/video/s5p-fimc/fimc-core.h |    3 ---
+ drivers/media/video/s5p-fimc/fimc-reg.c  |    4 ++--
+ 2 files changed, 2 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/media/video/s5p-fimc/fimc-core.h b/drivers/media/video/s5p-fimc/fimc-core.h
+index 95b27ae..808ccc6 100644
+--- a/drivers/media/video/s5p-fimc/fimc-core.h
++++ b/drivers/media/video/s5p-fimc/fimc-core.h
+@@ -27,9 +27,6 @@
+ #include <media/v4l2-mediabus.h>
+ #include <media/s5p_fimc.h>
+ 
+-#define err(fmt, args...) \
+-	printk(KERN_ERR "%s:%d: " fmt "\n", __func__, __LINE__, ##args)
+-
+ #define dbg(fmt, args...) \
+ 	pr_debug("%s:%d: " fmt "\n", __func__, __LINE__, ##args)
+ 
+diff --git a/drivers/media/video/s5p-fimc/fimc-reg.c b/drivers/media/video/s5p-fimc/fimc-reg.c
+index 1fc4ce8..3a82eac 100644
+--- a/drivers/media/video/s5p-fimc/fimc-reg.c
++++ b/drivers/media/video/s5p-fimc/fimc-reg.c
+@@ -683,7 +683,7 @@ int fimc_hw_set_camera_type(struct fimc_dev *fimc,
+ 			cfg |= FIMC_REG_CIGCTRL_CAM_JPEG;
+ 			break;
+ 		default:
+-			v4l2_err(fimc->vid_cap.vfd,
++			v4l2_err(vid_cap->vfd,
+ 				 "Not supported camera pixel format: %d",
+ 				 vid_cap->mf.code);
+ 			return -EINVAL;
+@@ -699,7 +699,7 @@ int fimc_hw_set_camera_type(struct fimc_dev *fimc,
+ 	} else if (cam->bus_type == FIMC_LCD_WB) {
+ 		cfg |= FIMC_REG_CIGCTRL_CAMIF_SELWB;
+ 	} else {
+-		err("invalid camera bus type selected\n");
++		v4l2_err(vid_cap->vfd, "Invalid camera bus type selected\n");
+ 		return -EINVAL;
+ 	}
+ 	writel(cfg, fimc->regs + FIMC_REG_CIGCTRL);
+-- 
+1.7.4.1
+
