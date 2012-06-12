@@ -1,78 +1,179 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:43364 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752053Ab2FSR3P (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Jun 2012 13:29:15 -0400
-Message-ID: <4FE0B802.3080703@redhat.com>
-Date: Tue, 19 Jun 2012 19:33:54 +0200
-From: Hans de Goede <hdegoede@redhat.com>
+Received: from mail-1-out2.atlantis.sk ([80.94.52.71]:53619 "EHLO
+	mail.atlantis.sk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754186Ab2FLUmm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 12 Jun 2012 16:42:42 -0400
+From: Ondrej Zary <linux@rainbow-software.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH 1/3] radio: Add Sanyo LM7000 tuner driver
+Date: Tue, 12 Jun 2012 22:42:11 +0200
+Cc: linux-media@vger.kernel.org
+References: <201206122037.57039.linux@rainbow-software.org> <201206122217.43545.hverkuil@xs4all.nl>
+In-Reply-To: <201206122217.43545.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	halli manjunatha <hallimanju@gmail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFCv2 PATCH 4/6] videodev2.h: add frequency band information.
-References: <1338202005-10208-1-git-send-email-hverkuil@xs4all.nl> <005651489cd5c9f832df2d5d90e19e2eee07c9b9.1338201853.git.hans.verkuil@cisco.com> <4FDFCC0F.9000208@redhat.com> <4FE037FE.7030804@redhat.com> <4FE05DF4.7030905@redhat.com> <4FE07255.6050606@redhat.com> <4FE08942.8020603@redhat.com> <4FE0AD29.4070300@redhat.com>
-In-Reply-To: <4FE0AD29.4070300@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <201206122242.13823.linux@rainbow-software.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Tuesday 12 June 2012 22:17:43 Hans Verkuil wrote:
+> Hi Ondrej!
+>
+> On Tue June 12 2012 20:37:54 Ondrej Zary wrote:
+> > Add very simple driver for Sanyo LM7000 AM/FM tuner chip. Only FM is
+> > supported as there is no known HW with AM implemented.
+>
+> It feels to me that it is overkill to turn this into a full blown module.
+> Can't this be done as a single lm7000.h header that contains a single
+> static inline function like this:
+>
+> static inline void lm7000_set_freq(u32 freq, void *handle,
+> 						void (*set_pins)(void *handle, u8 pins))
+> {
+> 	...
+> }
+>
+> It does the job just as well.
 
-On 06/19/2012 06:47 PM, Hans de Goede wrote:
-> Hi,
->
-> <snip long discussion about having a fixed set of bands versus
-> a way to enumerate bands, including their rangelow, rangehigh
-> and capabilities>
->
-> Ok, you've convinced me. I agree that having a way to actually
-> enumerate ranges, rather then having a fixed set of ranges, is
-> better.
->
-> Which brings us back many weeks to the proposal for making
-> it possible to enumerate bands on radio devices. Rather
-> then digging up the old mails lets start anew, I propose
-> the following API for this:
->
-> 1. A radio device can have multiple tuners, but only 1 can
-> be active (streaming audio to the associated audio input)
-> at the same time.
->
-> 2. Radio device tuners are enumerated by calling G_TUNER
-> with an increasing index until EINVAL gets returned
->
-> 3. G_FREQUENCY will always return the frequency and index
-> of the currently active tuner
->
-> 4. When calling S_TUNER on a radio device, the active
-> tuner will be set to the v4l2_tuner index field
->
-> 5. When calling S_FREQUENCY on a radio device, the active
-> tuner will be set to the v4l2_frequency tuner field
->
-> 6. On a G_TUNER call on a radio device the rxsubchans,
-> audmode, signal and afc v4l2_tuner fields are only
-> filled on for the active tuner (as returned by
-> G_FREQUENCY) for inactive tuners these fields are reported
-> as 0.
+Thanks for idea, it will simplify this a lot. Will resend updated patches.
 
-p.s.
+> Otherwise it looks fine.
+>
+> Regards,
+>
+> 	Hans
+>
+> > This will be used by radio-aimslab and radio-sf16fmi.
+> >
+> > Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
+> >
+> > diff --git a/drivers/media/radio/Kconfig b/drivers/media/radio/Kconfig
+> > index c257da1..5bcce12 100644
+> > --- a/drivers/media/radio/Kconfig
+> > +++ b/drivers/media/radio/Kconfig
+> > @@ -191,6 +191,9 @@ config RADIO_CADET
+> >  	  To compile this driver as a module, choose M here: the
+> >  	  module will be called radio-cadet.
+> >
+> > +config RADIO_LM7000
+> > +	tristate
+> > +
+> >  config RADIO_RTRACK
+> >  	tristate "AIMSlab RadioTrack (aka RadioReveal) support"
+> >  	depends on ISA && VIDEO_V4L2
+> > diff --git a/drivers/media/radio/Makefile b/drivers/media/radio/Makefile
+> > index ca8c7d1..7f6aa63 100644
+> > --- a/drivers/media/radio/Makefile
+> > +++ b/drivers/media/radio/Makefile
+> > @@ -28,5 +28,6 @@ obj-$(CONFIG_RADIO_TEF6862) += tef6862.o
+> >  obj-$(CONFIG_RADIO_TIMBERDALE) += radio-timb.o
+> >  obj-$(CONFIG_RADIO_WL1273) += radio-wl1273.o
+> >  obj-$(CONFIG_RADIO_WL128X) += wl128x/
+> > +obj-$(CONFIG_RADIO_LM7000) += lm7000.o
+> >
+> >  ccflags-y += -Isound
+> > diff --git a/drivers/media/radio/lm7000.c b/drivers/media/radio/lm7000.c
+> > new file mode 100644
+> > index 0000000..681f3af
+> > --- /dev/null
+> > +++ b/drivers/media/radio/lm7000.c
+> > @@ -0,0 +1,52 @@
+> > +/* Sanyo LM7000 tuner chip driver
+> > + *
+> > + * Copyright 2012 Ondrej Zary <linux@rainbow-software.org>
+> > + * based on radio-aimslab.c by M. Kirkwood
+> > + * and radio-sf16fmi.c by M. Kirkwood and Petr Vandrovec
+> > + */
+> > +
+> > +#include <linux/delay.h>
+> > +#include <linux/module.h>
+> > +#include "lm7000.h"
+> > +
+> > +MODULE_AUTHOR("Ondrej Zary <linux@rainbow-software.org>");
+> > +MODULE_DESCRIPTION("Routines for Sanyo LM7000 AM/FM radio tuner chip");
+> > +MODULE_LICENSE("GPL");
+> > +
+> > +/* write the 24-bit register, starting with LSB */
+> > +static void lm7000_write(struct lm7000 *lm, u32 val)
+> > +{
+> > +	int i;
+> > +	u8 data;
+> > +
+> > +	for (i = 0; i < 24; i++) {
+> > +		data = val & (1 << i) ? LM7000_DATA : 0;
+> > +		lm->set_pins(lm, data | LM7000_CE);
+> > +		udelay(2);
+> > +		lm->set_pins(lm, data | LM7000_CE | LM7000_CLK);
+> > +		udelay(2);
+> > +		lm->set_pins(lm, data | LM7000_CE);
+> > +		udelay(2);
+> > +	}
+> > +	lm->set_pins(lm, 0);
+> > +}
+> > +
+> > +void lm7000_set_freq(struct lm7000 *lm, u32 freq)
+> > +{
+> > +	freq += 171200;		/* Add 10.7 MHz IF */
+> > +	freq /= 400;		/* Convert to 25 kHz units */
+> > +	lm7000_write(lm, freq | LM7000_FM_25 | LM7000_BIT_FM);
+> > +}
+> > +EXPORT_SYMBOL(lm7000_set_freq);
+> > +
+> > +static int __init lm7000_module_init(void)
+> > +{
+> > +	return 0;
+> > +}
+> > +
+> > +static void __exit lm7000_module_exit(void)
+> > +{
+> > +}
+> > +
+> > +module_init(lm7000_module_init)
+> > +module_exit(lm7000_module_exit)
+> > diff --git a/drivers/media/radio/lm7000.h b/drivers/media/radio/lm7000.h
+> > new file mode 100644
+> > index 0000000..a5bc7d6
+> > --- /dev/null
+> > +++ b/drivers/media/radio/lm7000.h
+> > @@ -0,0 +1,32 @@
+> > +#ifndef __LM7000_H
+> > +#define __LM7000_H
+> > +
+> > +#define LM7000_DATA	(1 << 0)
+> > +#define LM7000_CLK	(1 << 1)
+> > +#define LM7000_CE	(1 << 2)
+> > +
+> > +#define LM7000_FREQ_MASK 0x3fff
+> > +#define LM7000_BIT_T0	(1 << 14)
+> > +#define LM7000_BIT_T1	(1 << 15)
+> > +#define LM7000_BIT_B0	(1 << 16)
+> > +#define LM7000_BIT_B1	(1 << 17)
+> > +#define LM7000_BIT_B2	(1 << 18)
+> > +#define LM7000_BIT_TB	(1 << 19)
+> > +#define LM7000_FM_100	(0 << 20)
+> > +#define LM7000_FM_50	(1 << 20)
+> > +#define LM7000_FM_25	(2 << 20)
+> > +#define LM7000_AM_5	(3 << 20)
+> > +#define LM7000_AM_10	(4 << 20)
+> > +#define LM7000_AM_9	(5 << 20)
+> > +#define LM7000_AM_1	(6 << 20)
+> > +#define LM7000_AM_5_	(7 << 20)
+> > +#define LM7000_BIT_FM	(1 << 23)
+> > +
+> > +
+> > +struct lm7000 {
+> > +	void (*set_pins)(struct lm7000 *lm, u8 pins);
+> > +};
+> > +
+> > +void lm7000_set_freq(struct lm7000 *lm, u32 freq);
+> > +
+> > +#endif /* __LM7000_H */
 
-I forgot:
 
-7. When calling VIDIOC_S_HW_FREQ_SEEK on a radio device, the active
-tuner will be set to the v4l2_hw_freq_seek tuner field
 
-8. When changing the active tuner with S_TUNER or S_HW_FREQ_SEEK,
-the current frequency may be changed to fit in the range of the
-new active tuner
-
-9. For backwards compatibility reasons tuner 0 should be the tuner
-with the broadest possible FM range
-
-Regards,
-
-Hans
+-- 
+Ondrej Zary
