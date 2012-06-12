@@ -1,63 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:55227 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753810Ab2FKG2v (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Jun 2012 02:28:51 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Cc: Subash Patel <subashrp@gmail.com>, linux-media@vger.kernel.org,
-	dri-devel@lists.freedesktop.org, airlied@redhat.com,
-	m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	sumit.semwal@ti.com, daeinki@gmail.com, daniel.vetter@ffwll.ch,
-	robdclark@gmail.com, pawel@osciak.com,
-	linaro-mm-sig@lists.linaro.org, hverkuil@xs4all.nl,
-	remi@remlab.net, mchehab@redhat.com, g.liakhovetski@gmx.de
-Subject: Re: [PATCH 04/12] v4l: vb2-dma-contig: add setup of sglist for MMAP buffers
-Date: Mon, 11 Jun 2012 08:28:55 +0200
-Message-ID: <2352272.JbolkA93P4@avalon>
-In-Reply-To: <4FD20CC3.9040901@samsung.com>
-References: <1337778455-27912-1-git-send-email-t.stanislaws@samsung.com> <4FD0BA9D.6010704@gmail.com> <4FD20CC3.9040901@samsung.com>
+Received: from mx1.redhat.com ([209.132.183.28]:17713 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753255Ab2FLNYV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 12 Jun 2012 09:24:21 -0400
+Message-ID: <4FD74302.2030908@redhat.com>
+Date: Tue, 12 Jun 2012 15:24:18 +0200
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Andy Walls <awalls@md.metrocast.net>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Pawel Osciak <pawel@osciak.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: Re: [RFCv1 PATCH 00/32] Core and vb2 enhancements
+References: <1339323954-1404-1-git-send-email-hverkuil@xs4all.nl> <4FD4CF7C.3020000@redhat.com> <201206101932.36886.hverkuil@xs4all.nl> <201206102127.12029.hverkuil@xs4all.nl> <4FD7296E.9080400@redhat.com>
+In-Reply-To: <4FD7296E.9080400@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tomasz,
+Hi,
 
-On Friday 08 June 2012 16:31:31 Tomasz Stanislawski wrote:
-> Hi Laurent and Subash,
-> 
-> I confirm the issue found by Subash. The function vb2_dc_kaddr_to_pages does
-> fail for some occasions. The failures are rather strange like 'got 95 of
-> 150 pages'. It took me some time to find the reason of the problem.
-> 
-> I found that dma_alloc_coherent for iommu an ARM does use ioremap_page_range
-> to map a buffer to the kernel space. The mapping is done by updating the
-> page-table.
-> 
-> The problem is that any process has a different first-level page-table. The
-> ioremap_page_range updates only the table for init process. The PT present
-> in current->mm shares a majority of entries of 1st-level PT at kernel range
-> (above 0xc0000000) but *not all*. That is why vb2_dc_kaddr_to_pages worked
-> for small buffers and occasionally failed for larger buffers.
-> 
-> I found two ways to fix this problem.
-> a) use &init_mm instead of current->mm while creating an artificial vma
-> b) access the dma memory by calling
->    *((volatile int *)kaddr) = 0;
->    before calling follow_pfn
->    This way a fault is generated and the PT is
->    updated by copying entries from init_mm.
-> 
-> What do you think about presented solutions?
+On 06/12/2012 01:35 PM, Mauro Carvalho Chehab wrote:
+> Em 10-06-2012 16:27, Hans Verkuil escreveu:
+>> On Sun June 10 2012 19:32:36 Hans Verkuil wrote:
+>>> On Sun June 10 2012 18:46:52 Mauro Carvalho Chehab wrote:
+>>>> 3) it would be interesting if you could benchmark the previous code and the new
+>>>> one, to see what gains this change introduced, in terms of v4l2-core footprint and
+>>>> performance.
+>>>
+>>> I'll try that, should be interesting. Actually, my prediction is that I won't notice any
+>>> difference. Todays CPUs are so fast that the overhead of the switch is probably hard to
+>>> measure.
+>>
+>> I did some tests, calling various ioctls 100,000,000 times. The actual call into the
+>> driver was disabled so that I only measure the time spent in v4l2-ioctl.c.
+>>
+>> I ran the test program with 'time ./t' and measured the sys time.
+>>
+>> For each ioctl I tested 5 times and averaged the results. Times are in seconds.
+>>
+>> 					Old		New
+>> QUERYCAP			24.86	24.37
+>> UNSUBSCRIBE_EVENT	23.40	23.10
+>> LOG_STATUS			18.84	18.76
+>> ENUMINPUT			28.82	28.90
+>>
+>> Particularly for QUERYCAP and UNSUBSCRIBE_EVENT I found a small but reproducible
+>> improvement in speed. The results for LOG_STATUS and ENUMINPUT are too close to
+>> call.
+>>
+>> After looking at the assembly code that the old code produces I suspect (but it
+>> is hard to be sure) that LOG_STATUS and ENUMINPUT are tested quite early on, whereas
+>> QUERYCAP and UNSUBSCRIBE_EVENT are tested quite late. The order in which the compiler
+>> tests definitely has no relationship with the order of the case statements in the
+>> switch.
+>
+> The ioctl's are reordered, as gcc optimizes them in order to do a tree search and to avoid
+> cache flush. The worse case is likely converted into 7 CMP asm calls (log2(128)).
+>
+> On your code, gcc may not be able to predict the JMP's, so it may actually have cache flushes,
+> depending on the cache size, and if the caller functions are before of after the video_ioctl2
+> handler.
+>
+> I suspect that, if you compare the code with debug enabled, the new code can actually be worse
+> than the previous one.
+>
+> It would be good if you could test what happens with QBUF/DQBUF.
+>
+>> This would certainly explain what I am seeing. I'm actually a bit surprised that
+>> this is measurable at all.
+>
+> The timing difference is not significant, especially because those ioctl's aren't the ones
+> used inside the streaming loop. The only ioctl's that are more time-sensitive are the streaming
+> ones, especially QBUF/DQBUF.
 
-Just to be sure, this is a hack until dma_get_sgtable is available, and it 
-won't make it to mainline, right ?  In that case using init_mm seem easier.
+Even QBUF / DQBUF are called max circa 100 times / second. I think Hans V's patchset should not
+be seen from a performance pov (other then that it should not cause performance regressions), but
+more as a nice code cleanup / simplification.
 
--- 
+It certainly makes things a lot more readable by avoiding a lot of code duplication. Not sure if
+in the end it actually saves any lines of code, but readability, and being able to understand the
+intent of the code is key here IMHO.
+
 Regards,
 
-Laurent Pinchart
+Hans (who likes Hans V's patchset :)
 
