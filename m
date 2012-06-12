@@ -1,64 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from plane.gmane.org ([80.91.229.3]:59304 "EHLO plane.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754508Ab2FDNzI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 4 Jun 2012 09:55:08 -0400
-Received: from list by plane.gmane.org with local (Exim 4.69)
-	(envelope-from <gldv-linux-media@m.gmane.org>)
-	id 1SbXkQ-0007S1-Va
-	for linux-media@vger.kernel.org; Mon, 04 Jun 2012 15:55:06 +0200
-Received: from mail.interlinx.bc.ca ([216.58.37.5])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Mon, 04 Jun 2012 15:55:06 +0200
-Received: from brian by mail.interlinx.bc.ca with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Mon, 04 Jun 2012 15:55:06 +0200
-To: linux-media@vger.kernel.org
-From: "Brian J. Murrell" <brian@interlinx.bc.ca>
-Subject: Re: Fwd: [Bug 827538] DVB USB device firmware requested in module_init()
-Date: Mon, 04 Jun 2012 09:54:53 -0400
-Message-ID: <4FCCBE2D.7090505@interlinx.bc.ca>
-References: <bug-827538-199927-UDXT6TGYkq@bugzilla.redhat.com> <4FC91D64.6090305@iki.fi> <4FCA41D7.2060206@iki.fi> <4FCACF9C.8060509@iki.fi> <4FCB76D3.7090800@interlinx.bc.ca> <4FCB77FB.50804@iki.fi> <4FCBD095.30901@iki.fi> <4FCCB8F4.7090407@interlinx.bc.ca> <CAGoCfixoe5jyYrgwNnadbFsvRqF1P3rk5jMZbmtmvhyvAieZ0g@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="------------enig8D909205A3A22D602FB0C842"
-In-Reply-To: <CAGoCfixoe5jyYrgwNnadbFsvRqF1P3rk5jMZbmtmvhyvAieZ0g@mail.gmail.com>
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:50437 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750875Ab2FLKzV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 12 Jun 2012 06:55:21 -0400
+Received: by bkcji2 with SMTP id ji2so4362362bkc.19
+        for <linux-media@vger.kernel.org>; Tue, 12 Jun 2012 03:55:20 -0700 (PDT)
+Message-ID: <4FD72016.5040001@gmail.com>
+Date: Tue, 12 Jun 2012 12:55:18 +0200
+From: Sylwester Nawrocki <snjw23@gmail.com>
+MIME-Version: 1.0
+To: Sakari Ailus <sakari.ailus@iki.fi>
+CC: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
+	laurent.pinchart@ideasonboard.com
+Subject: Re: [PATCH 2/4] v4l: Remove "_ACTUAL" from subdev selection API target
+ definition names
+References: <4FD4F6B6.1070605@iki.fi> <1339356878-2179-2-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1339356878-2179-2-git-send-email-sakari.ailus@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enig8D909205A3A22D602FB0C842
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Hi Sakari,
 
-On 12-06-04 09:35 AM, Devin Heitmueller wrote:
->=20
-> The 950q doesn't use the dvb-usb framework (nor does it load the
-> firmware at init).  Whatever is going on there is completely unrelated
-> to what Antti is debugging.
+thanks for the patch.
 
-Ahhh.  Pity.  I was almost giddy there for a second.  :-/
+On 06/10/2012 09:34 PM, Sakari Ailus wrote:
+> The string "_ACTUAL" does not say anything more about the target names. Drop
+> it. V4L2 selection API was changed by "V4L: Rename V4L2_SEL_TGT_[CROP/COMPOSE]_ACTIVE to
+> V4L2_SEL_TGT_[CROP/COMPOSE]" by Sylwester Nawrocki. This patch does the same
+> for the V4L2 subdev API.
+> 
+> Signed-off-by: Sakari Ailus<sakari.ailus@iki.fi>
+> ---
+>   Documentation/DocBook/media/v4l/dev-subdev.xml     |   25 +++++++++----------
+>   .../media/v4l/vidioc-subdev-g-selection.xml        |   12 ++++----
+>   drivers/media/video/omap3isp/ispccdc.c             |    4 +-
+>   drivers/media/video/omap3isp/isppreview.c          |    4 +-
+>   drivers/media/video/omap3isp/ispresizer.c          |    4 +-
+>   drivers/media/video/smiapp/smiapp-core.c           |   22 ++++++++--------
+>   drivers/media/video/v4l2-subdev.c                  |    4 +-
+>   include/linux/v4l2-subdev.h                        |    4 +-
+>   8 files changed, 39 insertions(+), 40 deletions(-)
+> 
+<snip>
+> diff --git a/drivers/media/video/v4l2-subdev.c b/drivers/media/video/v4l2-subdev.c
+> index db6e859..cd86f0c 100644
+> --- a/drivers/media/video/v4l2-subdev.c
+> +++ b/drivers/media/video/v4l2-subdev.c
+> @@ -245,7 +245,7 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+>   		memset(&sel, 0, sizeof(sel));
+>   		sel.which = crop->which;
+>   		sel.pad = crop->pad;
+> -		sel.target = V4L2_SUBDEV_SEL_TGT_CROP_ACTUAL;
+> +		sel.target = V4L2_SUBDEV_SEL_TGT_CROP;
+> 
+>   		rval = v4l2_subdev_call(
+>   			sd, pad, get_selection, subdev_fh,&sel);
+> @@ -274,7 +274,7 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+>   		memset(&sel, 0, sizeof(sel));
+>   		sel.which = crop->which;
+>   		sel.pad = crop->pad;
+> -		sel.target = V4L2_SUBDEV_SEL_TGT_CROP_ACTUAL;
+> +		sel.target = V4L2_SUBDEV_SEL_TGT_CROP;
+>   		sel.r = crop->rect;
+> 
+>   		rval = v4l2_subdev_call(
+> diff --git a/include/linux/v4l2-subdev.h b/include/linux/v4l2-subdev.h
+> index 812019e..01eee06 100644
+> --- a/include/linux/v4l2-subdev.h
+> +++ b/include/linux/v4l2-subdev.h
+> @@ -128,11 +128,11 @@ struct v4l2_subdev_frame_interval_enum {
+>   #define V4L2_SUBDEV_SEL_FLAG_KEEP_CONFIG		(1<<  2)
+> 
+>   /* active cropping area */
+> -#define V4L2_SUBDEV_SEL_TGT_CROP_ACTUAL			0x0000
+> +#define V4L2_SUBDEV_SEL_TGT_CROP			0x0000
+>   /* cropping bounds */
+>   #define V4L2_SUBDEV_SEL_TGT_CROP_BOUNDS			0x0002
+>   /* current composing area */
+> -#define V4L2_SUBDEV_SEL_TGT_COMPOSE_ACTUAL		0x0100
+> +#define V4L2_SUBDEV_SEL_TGT_COMPOSE			0x0100
+>   /* composing bounds */
+>   #define V4L2_SUBDEV_SEL_TGT_COMPOSE_BOUNDS		0x0102
 
-Cheers,
-b.
+Unfortunately now there is little chance for these patches to make it 
+to v3.5. Thus we most likely need alias definitions like:
 
+#define V4L2_SUBDEV_SEL_TGT_CROP_ACTUAL		V4L2_SUBDEV_SEL_TGT_CROP
+#define V4L2_SUBDEV_SEL_TGT_COMPOSE_ACTUAL	V4L2_SUBDEV_SEL_TGT_COMPOSE
 
+And then it might have been moved over to v4l2-common.h
 
---------------enig8D909205A3A22D602FB0C842
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+What do you think ?
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
-
-iEYEARECAAYFAk/Mvi0ACgkQl3EQlGLyuXBMFgCeM0FSr0yewEM23Gjfu3ei8ggA
-LlUAoIawim0TYapJqgBMGqbj9fkhFVm+
-=7r91
------END PGP SIGNATURE-----
-
---------------enig8D909205A3A22D602FB0C842--
-
+--
+Regards,
+Sylwester
