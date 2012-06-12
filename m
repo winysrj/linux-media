@@ -1,58 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aotearoadigitalarts.org.nz ([72.14.179.101]:36919 "EHLO
-	linode.halo.gen.nz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751059Ab2FYBoh (ORCPT
+Received: from mail-we0-f174.google.com ([74.125.82.174]:53931 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753336Ab2FLWTi (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 Jun 2012 21:44:37 -0400
-Received: from 203-97-236-46.cable.telstraclear.net ([203.97.236.46] helo=[192.168.1.42])
-	by linode.halo.gen.nz with esmtpsa (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
-	(Exim 4.72)
-	(envelope-from <douglas@paradise.net.nz>)
-	id 1Siy1I-0004KJ-OE
-	for linux-media@vger.kernel.org; Mon, 25 Jun 2012 13:23:12 +1200
-Message-ID: <4FE7C27B.8060207@paradise.net.nz>
-Date: Mon, 25 Jun 2012 13:44:27 +1200
-From: Douglas Bagnall <douglas@paradise.net.nz>
-MIME-Version: 1.0
+	Tue, 12 Jun 2012 18:19:38 -0400
+Received: by weyu7 with SMTP id u7so40014wey.19
+        for <linux-media@vger.kernel.org>; Tue, 12 Jun 2012 15:19:37 -0700 (PDT)
+From: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
 To: linux-media@vger.kernel.org
-Subject: Re: [PATCH] Avoid sysfs oops when an rc_dev's raw device is absent
-References: <4FE7AA34.8090304@paradise.net.nz>
-In-Reply-To: <4FE7AA34.8090304@paradise.net.nz>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Cc: sven.pilz@gmail.com, soeren.moch@ims.uni-hannover.de,
+	Martin Blumenstingl <martin.blumenstingl@googlemail.com>
+Subject: [PATCH 2/3] [media] em28xx: Add the DRX-K at I2C address 0x29 to the list of known I2C devices.
+Date: Wed, 13 Jun 2012 00:19:27 +0200
+Message-Id: <1339539568-7725-3-git-send-email-martin.blumenstingl@googlemail.com>
+In-Reply-To: <1339539568-7725-1-git-send-email-martin.blumenstingl@googlemail.com>
+References: <1339539568-7725-1-git-send-email-martin.blumenstingl@googlemail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-hi,
+Signed-off-by: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
+---
+ drivers/media/video/em28xx/em28xx-i2c.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-I probably should have sent that in reply to 
-http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/49740
-which is the problem it fixes.
+diff --git a/drivers/media/video/em28xx/em28xx-i2c.c b/drivers/media/video/em28xx/em28xx-i2c.c
+index 185db65..1683bd9 100644
+--- a/drivers/media/video/em28xx/em28xx-i2c.c
++++ b/drivers/media/video/em28xx/em28xx-i2c.c
+@@ -475,6 +475,7 @@ static struct i2c_client em28xx_client_template = {
+  */
+ static char *i2c_devs[128] = {
+ 	[0x4a >> 1] = "saa7113h",
++	[0x52 >> 1] = "drxk",
+ 	[0x60 >> 1] = "remote IR sensor",
+ 	[0x8e >> 1] = "remote IR sensor",
+ 	[0x86 >> 1] = "tda9887",
+-- 
+1.7.10.4
 
-Some things which might be of interest:
-
-1. I innocently followed the instructions on
-   http://www.linuxtv.org/wiki/index.php/Maintaining_Git_trees (i.e.,
-   use v4l-dvb tree on top of linus tree) and spent a while looking at
-   IR/ir-sysfs.c instead of rc/rc-main.c. How stable it seemed! no
-   patches in years! So I added a warning at the top of the wiki page,
-   though a fix from someone who knows would be preferable.
-
-2. From the above, I ended up reading a lot of ancient history and saw
-   that this was inadvertently sort of fixed for a few weeks in 2010
-   between a08c7c68f702e2a2797a4035b and d8b4b5822f51e2142b731b42.
-
-3. I wrote:
-
-> This patch avoids the NULL dereference, and ignores the issue of how
-> this state of affairs came about in the first place.
-
-Would, in rc_unregister_device(), putting device_del(&dev->dev) before
-ir_raw_event_unregister(dev) help? I've only been a kernel hacker for
-two hours so I am honestly clueless, but it seems like that might
-avert the race by hiding the structure from sysfs before it is pulled
-apart.
-
-regards,
-
-Douglas
