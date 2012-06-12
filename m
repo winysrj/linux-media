@@ -1,41 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gh0-f174.google.com ([209.85.160.174]:38201 "EHLO
-	mail-gh0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752686Ab2FRTYR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jun 2012 15:24:17 -0400
-Received: by mail-gh0-f174.google.com with SMTP id r11so3997516ghr.19
-        for <linux-media@vger.kernel.org>; Mon, 18 Jun 2012 12:24:16 -0700 (PDT)
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: <linux-media@vger.kernel.org>,
-	Ezequiel Garcia <elezegarcia@gmail.com>
-Subject: [PATCH 07/12] cx231xx: Use i2c_rc properly to store i2c register status
-Date: Mon, 18 Jun 2012 16:23:40 -0300
-Message-Id: <1340047425-32000-7-git-send-email-elezegarcia@gmail.com>
-In-Reply-To: <1340047425-32000-1-git-send-email-elezegarcia@gmail.com>
-References: <1340047425-32000-1-git-send-email-elezegarcia@gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:21840 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751107Ab2FLHVv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 12 Jun 2012 03:21:51 -0400
+Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q5C7LoE3008116
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Tue, 12 Jun 2012 03:21:50 -0400
+Received: from shalem.localdomain (vpn1-5-62.ams2.redhat.com [10.36.5.62])
+	by int-mx09.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP id q5C7LmoS022857
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-CAMELLIA256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Tue, 12 Jun 2012 03:21:50 -0400
+Message-ID: <4FD6EE20.7080504@redhat.com>
+Date: Tue, 12 Jun 2012 09:22:08 +0200
+From: Hans de Goede <hdegoede@redhat.com>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: Re: [git:v4l-utils/master] libv4l: Move dev ops to libv4lconvert
+References: <E1SeAp3-0005Xk-Ue@www.linuxtv.org>
+In-Reply-To: <E1SeAp3-0005Xk-Ue@www.linuxtv.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
----
- drivers/media/video/cx231xx/cx231xx-i2c.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+Hi,
 
-diff --git a/drivers/media/video/cx231xx/cx231xx-i2c.c b/drivers/media/video/cx231xx/cx231xx-i2c.c
-index 925f3a0..8064119 100644
---- a/drivers/media/video/cx231xx/cx231xx-i2c.c
-+++ b/drivers/media/video/cx231xx/cx231xx-i2c.c
-@@ -511,7 +511,7 @@ int cx231xx_i2c_register(struct cx231xx_i2c *bus)
- 	bus->i2c_algo.data = bus;
- 	bus->i2c_adap.algo_data = bus;
- 	i2c_set_adapdata(&bus->i2c_adap, &dev->v4l2_dev);
--	i2c_add_adapter(&bus->i2c_adap);
-+	bus->i2c_rc = i2c_add_adapter(&bus->i2c_adap);
- 
- 	bus->i2c_client.adapter = &bus->i2c_adap;
- 
--- 
-1.7.4.4
+On 06/11/2012 09:59 PM, Gregor Jasny wrote:
+> This is an automatic generated email to let you know that the following patch were queued at the
+> http://git.linuxtv.org/v4l-utils.git tree:
+>
+> Subject: libv4l: Move dev ops to libv4lconvert
+> Author:  Gregor Jasny <gjasny@googlemail.com>
+> Date:    Mon Jun 11 21:59:25 2012 +0200
+>
+> As discussed with Hans de Goede, this patch moves the plugin dev-ops
+> structure to libv4lconvert. It was also renamed to libv4l_dev_ops.
+>
+> As a positive side effect we restored SONAME compatibility with
+> the 0.8.x releases.
 
+Nice, good work!
+
+So I guess it is about time for a 0.10 release?
+
+Before doing a 0.10 release I would like to revisit the plugin API and mmap
+issue though. I've made a 180 wrt my opinion on this, and I think it would
+be good to have mmap in the plugin API to allow plugins to intercept it if
+they want (so that we can do ie a an IEEE1394 converter plugin like
+http://dv4l.berlios.de/)
+
+The mmap callbacks would be optional, so a not interested plugin does not need
+to worry about them.
+
+Here is what I wrote on this before:
+
+The problem with mmap is that we've 3 kinds of mmap buffers:
+
+1) Real mmap-ed device buffers,
+    used directly by the app in the no conversion path.
+2) Faked mmap-ed device buffers,
+    seen by the app when doing conversion, this is basically
+    convert_mmap_buf, IMHO if we add mmap plugin ops, the
+    mmap / munmap of convert_mmap_buf should not go through
+    it, is is basically just a malloc/free, but done through
+    mmap to make sure we get the right alignment, etc.
+3) memory not managed by v4l at all, this happens only
+    in the munmap call, when used in combination with LD_PRELOAD
+    note that currently in v4l2_munmap, the code paths for 1 & 3
+    are the same. If we allow plugins to intercept the munmap call
+    (and make no further changes) then the plugin will get the
+    munmap call and if the memory is not owned by the plugin it
+    should do a SYS_MUNMAP instead!!
+
+So if we keep using the real mmap / munmap for the fake buffers (2),
+then the only problem is that when used with LD_PRELOAD (ie skype),
+the plugin can get munmap calls for memory it never returned from
+mmap. I suggest we document this, as well as that in this case
+the plugin should forward the call to SYS_MUNMAP.
+
+Regards,
+
+Hans
