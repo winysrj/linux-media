@@ -1,431 +1,167 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.26]:49809 "EHLO mgw-da02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756928Ab2FONoy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Jun 2012 09:44:54 -0400
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
-	snjw23@gmail.com, t.stanislaws@samsung.com
-Subject: [PATCH v4 6/7] v4l: Unify selection flags documentation
-Date: Fri, 15 Jun 2012 16:44:39 +0300
-Message-Id: <1339767880-8412-6-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <4FDB3C2E.9060502@iki.fi>
-References: <4FDB3C2E.9060502@iki.fi>
+Received: from mail-1-out2.atlantis.sk ([80.94.52.71]:34560 "EHLO
+	mail.atlantis.sk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751612Ab2FLSiu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 12 Jun 2012 14:38:50 -0400
+From: Ondrej Zary <linux@rainbow-software.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH 3/3] radio-sf16fmi: Use LM7000 driver
+Date: Tue, 12 Jun 2012 20:38:07 +0200
+Cc: linux-media@vger.kernel.org
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <201206122038.09904.linux@rainbow-software.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As for the selection targets, the selection flags are now the same on V4L2
-and V4L2 subdev interfaces. Also document them so.
+Convert radio-sf16fmi to use generic LM7000 driver.
+Tested with SF16-FMI, SF16-FMP and SF16-FMD.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
----
- Documentation/DocBook/media/v4l/dev-subdev.xml     |    6 +-
- Documentation/DocBook/media/v4l/selection-api.xml  |    6 +-
- .../DocBook/media/v4l/selections-common.xml        |  226 +++++++++++++-------
- .../DocBook/media/v4l/vidioc-g-selection.xml       |   27 +---
- .../media/v4l/vidioc-subdev-g-selection.xml        |   39 +----
- 5 files changed, 159 insertions(+), 145 deletions(-)
+Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
 
-diff --git a/Documentation/DocBook/media/v4l/dev-subdev.xml b/Documentation/DocBook/media/v4l/dev-subdev.xml
-index 76c4307..8c44b3f 100644
---- a/Documentation/DocBook/media/v4l/dev-subdev.xml
-+++ b/Documentation/DocBook/media/v4l/dev-subdev.xml
-@@ -323,10 +323,10 @@
-       <para>The drivers should always use the closest possible
-       rectangle the user requests on all selection targets, unless
-       specifically told otherwise.
--      <constant>V4L2_SUBDEV_SEL_FLAG_SIZE_GE</constant> and
--      <constant>V4L2_SUBDEV_SEL_FLAG_SIZE_LE</constant> flags may be
-+      <constant>V4L2_SEL_FLAG_GE</constant> and
-+      <constant>V4L2_SEL_FLAG_LE</constant> flags may be
-       used to round the image size either up or down. <xref
--      linkend="v4l2-subdev-selection-flags"></xref></para>
-+      linkend="v4l2-selection-flags"></xref></para>
-     </section>
+diff --git a/drivers/media/radio/Kconfig b/drivers/media/radio/Kconfig
+index abdf43c..f4c3924 100644
+--- a/drivers/media/radio/Kconfig
++++ b/drivers/media/radio/Kconfig
+@@ -193,8 +193,8 @@ config RADIO_CADET
  
-     <section>
-diff --git a/Documentation/DocBook/media/v4l/selection-api.xml b/Documentation/DocBook/media/v4l/selection-api.xml
-index 24dec10..e7ed507 100644
---- a/Documentation/DocBook/media/v4l/selection-api.xml
-+++ b/Documentation/DocBook/media/v4l/selection-api.xml
-@@ -55,7 +55,7 @@ cropping and composing rectangles have the same size.</para>
+ config RADIO_LM7000
+ 	tristate
+-	depends on RADIO_RTRACK
+-	default RADIO_RTRACK
++	depends on RADIO_RTRACK || RADIO_SF16FMI
++	default RADIO_RTRACK || RADIO_SF16FMI
  
-     </section>
+ config RADIO_RTRACK
+ 	tristate "AIMSlab RadioTrack (aka RadioReveal) support"
+@@ -328,6 +328,7 @@ config RADIO_MIROPCM20
+ config RADIO_SF16FMI
+ 	tristate "SF16-FMI/SF16-FMP/SF16-FMD Radio"
+ 	depends on ISA && VIDEO_V4L2
++	select RADIO_LM7000
+ 	---help---
+ 	  Choose Y here if you have one of these FM radio cards.
  
--    See <xref linkend="v4l2-selection-targets-table" /> for more
-+    See <xref linkend="v4l2-selection-targets" /> for more
-     information.
+diff --git a/drivers/media/radio/radio-sf16fmi.c 
+b/drivers/media/radio/radio-sf16fmi.c
+index a81d723..3cbee77 100644
+--- a/drivers/media/radio/radio-sf16fmi.c
++++ b/drivers/media/radio/radio-sf16fmi.c
+@@ -27,6 +27,8 @@
+ #include <linux/io.h>		/* outb, outb_p			*/
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-ioctl.h>
++#include <media/v4l2-ctrls.h>
++#include "lm7000.h"
  
-   <section>
-@@ -74,7 +74,7 @@ cropping/composing rectangles may have to be aligned, and both the source and
- the sink may have arbitrary upper and lower size limits. Therefore, as usual,
- drivers are expected to adjust the requested parameters and return the actual
- values selected. An application can control the rounding behaviour using <link
--linkend="v4l2-sel-flags"> constraint flags </link>.</para>
-+linkend="v4l2-selection-flags"> constraint flags </link>.</para>
+ MODULE_AUTHOR("Petr Vandrovec, vandrove@vc.cvut.cz and M. Kirkwood");
+ MODULE_DESCRIPTION("A driver for the SF16-FMI, SF16-FMP and SF16-FMD 
+radio.");
+@@ -48,37 +50,40 @@ struct fmi
+ 	bool mute;
+ 	unsigned long curfreq; /* freq in kHz */
+ 	struct mutex lock;
++	struct lm7000 lm;
+ };
  
-    <section>
+ static struct fmi fmi_card;
+ static struct pnp_dev *dev;
+ bool pnp_attached;
  
-@@ -117,7 +117,7 @@ the bounds rectangle. The composing rectangle must lie completely inside bounds
- rectangle. The driver must adjust the composing rectangle to fit to the
- bounding limits. Moreover, the driver can perform other adjustments according
- to hardware limitations. The application can control rounding behaviour using
--<link linkend="v4l2-sel-flags"> constraint flags </link>.</para>
-+<link linkend="v4l2-selection-flags"> constraint flags </link>.</para>
+-/* freq is in 1/16 kHz to internal number, hw precision is 50 kHz */
+-/* It is only useful to give freq in interval of 800 (=0.05Mhz),
+- * other bits will be truncated, e.g 92.7400016 -> 92.7, but
+- * 92.7400017 -> 92.75
+- */
+-#define RSF16_ENCODE(x)	((x) / 800 + 214)
+ #define RSF16_MINFREQ (87 * 16000)
+ #define RSF16_MAXFREQ (108 * 16000)
  
- <para>For capture devices the default composing rectangle is queried using
- <constant> V4L2_SEL_TGT_COMPOSE_DEFAULT </constant>. It is usually equal to the
-diff --git a/Documentation/DocBook/media/v4l/selections-common.xml b/Documentation/DocBook/media/v4l/selections-common.xml
-index d0411ab..7cec5c1 100644
---- a/Documentation/DocBook/media/v4l/selections-common.xml
-+++ b/Documentation/DocBook/media/v4l/selections-common.xml
-@@ -1,6 +1,6 @@
- <section id="v4l2-selections-common">
- 
--  <title>Selection targets</title>
-+  <title>Common selection definitions</title>
- 
-   <para>While the <link linkend="selection-api">V4L2 selection
-   API</link> and <link linkend="v4l2-subdev-selections">V4L2 subdev
-@@ -10,83 +10,155 @@
-   sub-device's pad. On the V4L2 interface the selection rectangles
-   refer to the in-memory pixel format.</para>
- 
--  <para>The precise meaning of the selection targets may thus be
--  affected on which of the two interfaces they are used.</para>
-+  <para>This section defines the common definitions of the
-+  selection interfaces on the two APIs.</para>
- 
--  <table pgwide="1" frame="none" id="v4l2-selection-targets-table">
--  <title>Selection target definitions</title>
--    <tgroup cols="4">
--      <colspec colname="c1" />
--      <colspec colname="c2" />
--      <colspec colname="c3" />
--      <colspec colname="c4" />
--      <colspec colname="c5" />
--      &cs-def;
--      <thead>
--	<row rowsep="1">
--	  <entry align="left">Target name</entry>
--	  <entry align="left">id</entry>
--	  <entry align="left">Definition</entry>
--	  <entry align="left">Valid for V4L2</entry>
--	  <entry align="left">Valid for V4L2 subdev</entry>
--	</row>
--      </thead>
--      <tbody valign="top">
--	<row>
--	  <entry><constant>V4L2_SEL_TGT_CROP</constant></entry>
--	  <entry>0x0000</entry>
--	  <entry>Crop rectangle. Defines the cropped area.</entry>
--	  <entry>Yes</entry>
--	  <entry>Yes</entry>
--	</row>
--	<row>
--          <entry><constant>V4L2_SEL_TGT_CROP_DEFAULT</constant></entry>
--          <entry>0x0001</entry>
--          <entry>Suggested cropping rectangle that covers the "whole picture".</entry>
--	  <entry>Yes</entry>
--	  <entry>No</entry>
--	</row>
--	<row>
--	  <entry><constant>V4L2_SEL_TGT_CROP_BOUNDS</constant></entry>
--	  <entry>0x0002</entry>
--	  <entry>Bounds of the crop rectangle. All valid crop
--	  rectangles fit inside the crop bounds rectangle.
--	  </entry>
--	  <entry>Yes</entry>
--	  <entry>Yes</entry>
--	</row>
--	<row>
--	  <entry><constant>V4L2_SEL_TGT_COMPOSE</constant></entry>
--	  <entry>0x0100</entry>
--	  <entry>Compose rectangle. Used to configure scaling
--	  and composition.</entry>
--	  <entry>Yes</entry>
--	  <entry>Yes</entry>
--	</row>
--	<row>
--          <entry><constant>V4L2_SEL_TGT_COMPOSE_DEFAULT</constant></entry>
--          <entry>0x0101</entry>
--          <entry>Suggested composition rectangle that covers the "whole picture".</entry>
--	  <entry>Yes</entry>
--	  <entry>No</entry>
--	</row>
--	<row>
--	  <entry><constant>V4L2_SEL_TGT_COMPOSE_BOUNDS</constant></entry>
--	  <entry>0x0102</entry>
--	  <entry>Bounds of the compose rectangle. All valid compose
--	  rectangles fit inside the compose bounds rectangle.</entry>
--	  <entry>Yes</entry>
--	  <entry>Yes</entry>
--	</row>
--	<row>
--          <entry><constant>V4L2_SEL_TGT_COMPOSE_PADDED</constant></entry>
--          <entry>0x0103</entry>
--          <entry>The active area and all padding pixels that are inserted or
-+  <section id="v4l2-selection-targets">
+-static void outbits(int bits, unsigned int data, int io)
++#define FMI_BIT_TUN_CE		(1 << 0)
++#define FMI_BIT_TUN_CLK		(1 << 1)
++#define FMI_BIT_TUN_DATA	(1 << 2)
++#define FMI_BIT_VOL_SW		(1 << 3)
++#define FMI_BIT_TUN_STRQ	(1 << 4)
 +
-+    <title>Selection targets</title>
++void fmi_set_pins(struct lm7000 *lm, u8 pins)
+ {
+-	while (bits--) {
+-		if (data & 1) {
+-			outb(5, io);
+-			udelay(6);
+-			outb(7, io);
+-			udelay(6);
+-		} else {
+-			outb(1, io);
+-			udelay(6);
+-			outb(3, io);
+-			udelay(6);
+-		}
+-		data >>= 1;
+-	}
++	struct fmi *fmi = container_of(lm, struct fmi, lm);
++	u8 bits = FMI_BIT_TUN_STRQ;
 +
-+    <para>The precise meaning of the selection targets may be
-+    dependent on which of the two interfaces they are used.</para>
++	if (!fmi->mute)
++		bits |= FMI_BIT_VOL_SW;
 +
-+    <table pgwide="1" frame="none" id="v4l2-selection-targets-table">
-+    <title>Selection target definitions</title>
-+      <tgroup cols="4">
-+	<colspec colname="c1" />
-+	<colspec colname="c2" />
-+	<colspec colname="c3" />
-+	<colspec colname="c4" />
-+	<colspec colname="c5" />
-+	&cs-def;
-+	<thead>
-+	  <row rowsep="1">
-+	    <entry align="left">Target name</entry>
-+	    <entry align="left">id</entry>
-+	    <entry align="left">Definition</entry>
-+	    <entry align="left">Valid for V4L2</entry>
-+	    <entry align="left">Valid for V4L2 subdev</entry>
-+	  </row>
-+	</thead>
-+	<tbody valign="top">
-+	  <row>
-+	    <entry><constant>V4L2_SEL_TGT_CROP</constant></entry>
-+	    <entry>0x0000</entry>
-+	    <entry>Crop rectangle. Defines the cropped area.</entry>
-+	    <entry>Yes</entry>
-+	    <entry>Yes</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>V4L2_SEL_TGT_CROP_DEFAULT</constant></entry>
-+	    <entry>0x0001</entry>
-+	    <entry>Suggested cropping rectangle that covers the "whole picture".</entry>
-+	    <entry>Yes</entry>
-+	    <entry>No</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>V4L2_SEL_TGT_CROP_BOUNDS</constant></entry>
-+	    <entry>0x0002</entry>
-+	    <entry>Bounds of the crop rectangle. All valid crop
-+	    rectangles fit inside the crop bounds rectangle.
-+	    </entry>
-+	    <entry>Yes</entry>
-+	    <entry>Yes</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>V4L2_SEL_TGT_COMPOSE</constant></entry>
-+	    <entry>0x0100</entry>
-+	    <entry>Compose rectangle. Used to configure scaling
-+	    and composition.</entry>
-+	    <entry>Yes</entry>
-+	    <entry>Yes</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>V4L2_SEL_TGT_COMPOSE_DEFAULT</constant></entry>
-+	    <entry>0x0101</entry>
-+	    <entry>Suggested composition rectangle that covers the "whole picture".</entry>
-+	    <entry>Yes</entry>
-+	    <entry>No</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>V4L2_SEL_TGT_COMPOSE_BOUNDS</constant></entry>
-+	    <entry>0x0102</entry>
-+	    <entry>Bounds of the compose rectangle. All valid compose
-+	    rectangles fit inside the compose bounds rectangle.</entry>
-+	    <entry>Yes</entry>
-+	    <entry>Yes</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>V4L2_SEL_TGT_COMPOSE_PADDED</constant></entry>
-+	    <entry>0x0103</entry>
-+	    <entry>The active area and all padding pixels that are inserted or
- 	    modified by hardware.</entry>
--	  <entry>Yes</entry>
--	  <entry>No</entry>
-+	    <entry>Yes</entry>
-+	    <entry>No</entry>
-+	  </row>
-+	</tbody>
-+      </tgroup>
-+    </table>
++	if (pins & LM7000_DATA)
++		bits |= FMI_BIT_TUN_DATA;
++	if (pins & LM7000_CLK)
++		bits |= FMI_BIT_TUN_CLK;
++	if (pins & LM7000_CE)
++		bits |= FMI_BIT_TUN_CE;
 +
-+  </section>
-+
-+  <section id="v4l2-selection-flags">
-+
-+    <title>Selection flags</title>
-+
-+    <table pgwide="1" frame="none" id="v4l2-selection-flags-table">
-+    <title>Selection flag definitions</title>
-+      <tgroup cols="4">
-+	<colspec colname="c1" />
-+	<colspec colname="c2" />
-+	<colspec colname="c3" />
-+	<colspec colname="c4" />
-+	<colspec colname="c5" />
-+	&cs-def;
-+	<thead>
-+	<row rowsep="1">
-+	    <entry align="left">Flag name</entry>
-+	    <entry align="left">id</entry>
-+	    <entry align="left">Definition</entry>
-+	    <entry align="left">Valid for V4L2</entry>
-+	    <entry align="left">Valid for V4L2 subdev</entry>
- 	</row>
--      </tbody>
--    </tgroup>
--  </table>
-+	</thead>
-+	<tbody valign="top">
-+	  <row>
-+	    <entry><constant>V4L2_SEL_FLAG_GE</constant></entry>
-+	    <entry>(1 &lt;&lt; 0)</entry>
-+	    <entry>Suggest the driver it should choose greater or
-+	    equal rectangle (in size) than was requested. Albeit the
-+	    driver may choose a lesser size, it will only do so due to
-+	    hardware limitations. Without this flag (and
-+	    <constant>V4L2_SEL_FLAG_LE</constant>) the
-+	    behaviour is to choose the closest possible
-+	    rectangle.</entry>
-+	    <entry>Yes</entry>
-+	    <entry>Yes</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>V4L2_SEL_FLAG_LE</constant></entry>
-+	    <entry>(1 &lt;&lt; 1)</entry>
-+	    <entry>Suggest the driver it
-+	    should choose lesser or equal rectangle (in size) than was
-+	    requested. Albeit the driver may choose a greater size, it
-+	    will only do so due to hardware limitations.</entry>
-+	    <entry>Yes</entry>
-+	    <entry>Yes</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>V4L2_SEL_FLAG_KEEP_CONFIG</constant></entry>
-+	    <entry>(1 &lt;&lt; 2)</entry>
-+	    <entry>The configuration should not be propagated to any
-+	    further processing steps. If this flag is not given, the
-+	    configuration is propagated inside the subdevice to all
-+	    further processing steps.</entry>
-+	    <entry>No</entry>
-+	    <entry>Yes</entry>
-+	  </row>
-+	</tbody>
-+      </tgroup>
-+    </table>
-+
-+  </section>
-+
- </section>
-diff --git a/Documentation/DocBook/media/v4l/vidioc-g-selection.xml b/Documentation/DocBook/media/v4l/vidioc-g-selection.xml
-index c6f8325..f76d8a6 100644
---- a/Documentation/DocBook/media/v4l/vidioc-g-selection.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-g-selection.xml
-@@ -154,32 +154,9 @@ exist no rectangle </emphasis> that satisfies the constraints.</para>
++	mutex_lock(&fmi->lock);
++	outb_p(bits, fmi->io);
++	mutex_unlock(&fmi->lock);
+ }
  
-   </refsect1>
+ static inline void fmi_mute(struct fmi *fmi)
+@@ -95,20 +100,6 @@ static inline void fmi_unmute(struct fmi *fmi)
+ 	mutex_unlock(&fmi->lock);
+ }
  
--  <para>Selection targets are documented in <xref
-+  <para>Selection targets and flags are documented in <xref
-   linkend="v4l2-selections-common"/>.</para>
- 
--  <refsect1>
--    <table frame="none" pgwide="1" id="v4l2-sel-flags">
--      <title>Selection constraint flags</title>
--      <tgroup cols="3">
--	&cs-def;
--	<tbody valign="top">
--	  <row>
--            <entry><constant>V4L2_SEL_FLAG_GE</constant></entry>
--            <entry>0x00000001</entry>
--            <entry>Indicates that the adjusted rectangle must contain the original
--	    &v4l2-selection; <structfield>r</structfield> rectangle.</entry>
--	  </row>
--	  <row>
--            <entry><constant>V4L2_SEL_FLAG_LE</constant></entry>
--            <entry>0x00000002</entry>
--            <entry>Indicates that the adjusted rectangle must be inside the original
--	    &v4l2-rect; <structfield>r</structfield> rectangle.</entry>
--	  </row>
--	</tbody>
--      </tgroup>
--    </table>
--  </refsect1>
+-static inline int fmi_setfreq(struct fmi *fmi, unsigned long freq)
+-{
+-	mutex_lock(&fmi->lock);
+-	fmi->curfreq = freq;
 -
-     <section>
-       <figure id="sel-const-adjust">
- 	<title>Size adjustments with constraint flags.</title>
-@@ -216,7 +193,7 @@ exist no rectangle </emphasis> that satisfies the constraints.</para>
- 	    <entry>__u32</entry>
- 	    <entry><structfield>flags</structfield></entry>
-             <entry>Flags controlling the selection rectangle adjustments, refer to
--	    <link linkend="v4l2-sel-flags">selection flags</link>.</entry>
-+	    <link linkend="v4l2-selection-flags">selection flags</link>.</entry>
- 	  </row>
- 	  <row>
- 	    <entry>&v4l2-rect;</entry>
-diff --git a/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml b/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml
-index fa4063a..9bc691e 100644
---- a/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml
-@@ -87,44 +87,9 @@
-       <constant>EINVAL</constant>.</para>
-     </section>
- 
--    <para>Selection targets are documented in <xref
-+    <para>Selection targets and flags are documented in <xref
-     linkend="v4l2-selections-common"/>.</para>
- 
--    <table pgwide="1" frame="none" id="v4l2-subdev-selection-flags">
--      <title>V4L2 subdev selection flags</title>
--      <tgroup cols="3">
--        &cs-def;
--	<tbody valign="top">
--	  <row>
--	    <entry><constant>V4L2_SUBDEV_SEL_FLAG_SIZE_GE</constant></entry>
--	    <entry>(1 &lt;&lt; 0)</entry> <entry>Suggest the driver it
--	    should choose greater or equal rectangle (in size) than
--	    was requested. Albeit the driver may choose a lesser size,
--	    it will only do so due to hardware limitations. Without
--	    this flag (and
--	    <constant>V4L2_SUBDEV_SEL_FLAG_SIZE_LE</constant>) the
--	    behaviour is to choose the closest possible
--	    rectangle.</entry>
--	  </row>
--	  <row>
--	    <entry><constant>V4L2_SUBDEV_SEL_FLAG_SIZE_LE</constant></entry>
--	    <entry>(1 &lt;&lt; 1)</entry> <entry>Suggest the driver it
--	    should choose lesser or equal rectangle (in size) than was
--	    requested. Albeit the driver may choose a greater size, it
--	    will only do so due to hardware limitations.</entry>
--	  </row>
--	  <row>
--	    <entry><constant>V4L2_SUBDEV_SEL_FLAG_KEEP_CONFIG</constant></entry>
--	    <entry>(1 &lt;&lt; 2)</entry>
--	    <entry>The configuration should not be propagated to any
--	    further processing steps. If this flag is not given, the
--	    configuration is propagated inside the subdevice to all
--	    further processing steps.</entry>
--	  </row>
--	</tbody>
--      </tgroup>
--    </table>
+-	outbits(16, RSF16_ENCODE(freq), fmi->io);
+-	outbits(8, 0xC0, fmi->io);
+-	msleep(143);		/* was schedule_timeout(HZ/7) */
+-	mutex_unlock(&fmi->lock);
+-	if (!fmi->mute)
+-		fmi_unmute(fmi);
+-	return 0;
+-}
 -
-     <table pgwide="1" frame="none" id="v4l2-subdev-selection">
-       <title>struct <structname>v4l2_subdev_selection</structname></title>
-       <tgroup cols="3">
-@@ -151,7 +116,7 @@
- 	    <entry>__u32</entry>
- 	    <entry><structfield>flags</structfield></entry>
- 	    <entry>Flags. See
--	    <xref linkend="v4l2-subdev-selection-flags">.</xref></entry>
-+	    <xref linkend="v4l2-selection-flags">.</xref></entry>
- 	  </row>
- 	  <row>
- 	    <entry>&v4l2-rect;</entry>
+ static inline int fmi_getsigstr(struct fmi *fmi)
+ {
+ 	int val;
+@@ -173,7 +164,7 @@ static int vidioc_s_frequency(struct file *file, void 
+*priv,
+ 		return -EINVAL;
+ 	/* rounding in steps of 800 to match the freq
+ 	   that will be used */
+-	fmi_setfreq(fmi, (f->frequency / 800) * 800);
++	lm7000_set_freq(&fmi->lm, (f->frequency / 800) * 800);
+ 	return 0;
+ }
+ 
+@@ -364,6 +355,7 @@ static int __init fmi_init(void)
+ 
+ 	strlcpy(v4l2_dev->name, "sf16fmi", sizeof(v4l2_dev->name));
+ 	fmi->io = io;
++	fmi->lm.set_pins = fmi_set_pins;
+ 
+ 	res = v4l2_device_register(NULL, v4l2_dev);
+ 	if (res < 0) {
+
 -- 
-1.7.2.5
-
+Ondrej Zary
