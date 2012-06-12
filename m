@@ -1,73 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:1380 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756913Ab2FFVQU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jun 2012 17:16:20 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Fengguang Wu <fengguang.wu@intel.com>
-Subject: Re: radio-maxiradio.c: undefined reference to `snd_tea575x_init'
-Date: Wed, 6 Jun 2012 23:15:04 +0200
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Randy Dunlap <rdunlap@xenotime.net>,
-	Stephen Rothwell <sfr@canb.auug.org.au>,
-	linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
-	"linux-media" <linux-media@vger.kernel.org>
-References: <20120329144217.6cacd2f040fa9abb9190ae1e@canb.auug.org.au> <4F74900E.5010501@xenotime.net> <20120606204014.GA8264@localhost>
-In-Reply-To: <20120606204014.GA8264@localhost>
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:38288 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751954Ab2FLFms (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 12 Jun 2012 01:42:48 -0400
+Received: by obbtb18 with SMTP id tb18so7820297obb.19
+        for <linux-media@vger.kernel.org>; Mon, 11 Jun 2012 22:42:48 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201206062315.04124.hverkuil@xs4all.nl>
+In-Reply-To: <201206111033.47369.hverkuil@xs4all.nl>
+References: <CAHG8p1AW6577=oGPo3o8S0LgF2p8_cfmLLnvYbikk7kEaYdxzw@mail.gmail.com>
+	<201206111033.47369.hverkuil@xs4all.nl>
+Date: Tue, 12 Jun 2012 13:42:47 +0800
+Message-ID: <CAHG8p1CeMi16-YQMObuiwcmyf4cqVZwqppHyjuJX5ghipScVoA@mail.gmail.com>
+Subject: Re: extend v4l2_mbus_framefmt
+From: Scott Jiang <scott.jiang.linux@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	LMML <linux-media@vger.kernel.org>,
+	uclinux-dist-devel@blackfin.uclinux.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed June 6 2012 22:40:14 Fengguang Wu wrote:
-> On Thu, Mar 29, 2012 at 09:38:38AM -0700, Randy Dunlap wrote:
-> > On 03/28/2012 08:42 PM, Stephen Rothwell wrote:
-> > 
-> > > Hi all,
-> > > 
-> > > Reminder: please do not add stuff destined for v3.5 to linux-next
-> > > included trees/branches until after v3.4-rc1 has been released.
-> > > 
-> > > Changes since 20120328:
-> > 
-> > 
-> > on x86_64:
-> > 
-> > radio-maxiradio.c:(.devinit.text+0x356ac): undefined reference to `snd_tea575x_init'
-> > radio-maxiradio.c:(.devexit.text+0x503e): undefined reference to `snd_tea575x_exit'
-> 
-> I run into this issue, too, in the 3.5-rc1 based tip/master.
-> 
->         drivers/built-in.o: In function `maxiradio_probe':
->          radio-maxiradio.c:(.devinit.text+0x35a27): undefined reference to `snd_tea575x_init'
->         drivers/built-in.o: In function `maxiradio_remove':
->          radio-maxiradio.c:(.devexit.text+0x6754): undefined reference to `snd_tea575x_exit'
-> 
-> Any fixes available now? The related commit is:
-> 
->         commit cfb19b0ab13847a0e0e49521eb94113b0b315e3b
->         Author: Hans Verkuil <hans.verkuil@cisco.com>
->         Date:   Sun Feb 5 09:53:17 2012 -0300
-> 
->             [media] radio-maxiradio: use the tea575x framework
->             
->             This card is based on the tea575x receiver. Use the tea575x-tuner framework
->             instead of reinventing the wheel.
->             
->             Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->             Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> 
-> Thanks,
-> Fengguang
+Hi Hans,
 
-Works for me with 3.5-rc1. There was a fix done in sound/pci/Kconfig that
-should have solved this.
+> I would expect that the combination of v4l2_mbus_framefmt + v4l2_dv_timings
+> gives you the information you need.
 
-Is CONFIG_SND_TEA575X defined? Do you have a snd_tea575x_tuner module?
+About v4l2_mbus_framefmt, you use V4L2_MBUS_FMT_FIXED. I guess you
+can't find any yuv 24 or rgb 16/24bit format in current
+v4l2_mbus_framefmt. But a bridge driver working with variable sensors
+and decoders can't accept this.
 
-Regards,
+About  v4l2_dv_timings, do I need to set a default timing similar to
+pick PAL as default standard?
 
-	Hans
+Thanks,
+Scott
