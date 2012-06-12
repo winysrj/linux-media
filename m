@@ -1,75 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:36269 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933882Ab2FHIsH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Jun 2012 04:48:07 -0400
-Date: Fri, 8 Jun 2012 10:48:02 +0200
-From: Sascha Hauer <s.hauer@pengutronix.de>
-To: javier Martin <javier.martin@vista-silicon.com>
-Cc: Robert Schwebel <r.schwebel@pengutronix.de>, kernel@pengutronix.de,
-	Fabio Estevam <festevam@gmail.com>,
-	linux-media@vger.kernel.org, Shawn Guo <shawn.guo@linaro.org>,
-	Dirk Behme <dirk.behme@googlemail.com>,
-	linux-arm-kernel@lists.infradead.org
-Subject: Re: [RFC] Support for H.264/MPEG4 encoder (VPU) in i.MX27.
-Message-ID: <20120608084802.GS30400@pengutronix.de>
-References: <CACKLOr2jQMnBPTaTFOcfLN_9J1n39tLx-ffDcVGuZ4ZB-odYfg@mail.gmail.com>
- <20120608072601.GD30137@pengutronix.de>
- <CACKLOr1OShoEnLxs8BP6q2TyZrOH0oCnpbKZJqyAo-yXKck9Zw@mail.gmail.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39277 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753695Ab2FLWza (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 12 Jun 2012 18:55:30 -0400
+Date: Wed, 13 Jun 2012 01:55:25 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media <linux-media@vger.kernel.org>
+Subject: Re: [PATCH for v3.5] Fix VIDIOC_DQEVENT docbook entry
+Message-ID: <20120612225525.GI12505@valkosipuli.retiisi.org.uk>
+References: <201206091259.45508.hverkuil@xs4all.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <CACKLOr1OShoEnLxs8BP6q2TyZrOH0oCnpbKZJqyAo-yXKck9Zw@mail.gmail.com>
+In-Reply-To: <201206091259.45508.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jun 08, 2012 at 09:39:15AM +0200, javier Martin wrote:
-> Hi Robert,
+On Sat, Jun 09, 2012 at 12:59:45PM +0200, Hans Verkuil wrote:
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 > 
-> On 8 June 2012 09:26, Robert Schwebel <r.schwebel@pengutronix.de> wrote:
-> > Hi Javier,
-> >
-> > On Fri, Jun 08, 2012 at 09:21:13AM +0200, javier Martin wrote:
-> >> If you refer to driver in [1] I have some concerns: i.MX27 VPU should
-> >> be implemented as a V4L2 mem2mem device since it gets raw pictures
-> >> from memory and outputs encoded frames to memory (some discussion
-> >> about the subject can be fond here [2]), as Exynos driver from Samsung
-> >> does. However, this driver you've mentioned doesn't do that: it just
-> >> creates several mapping regions so that the actual functionality is
-> >> implemented in user space by a library provided by Freescale, which
-> >> regarding i.MX27 it is also GPL.
-> >>
-> >> What we are trying to do is implementing all the functionality in
-> >> kernel space using mem2mem V4L2 framework so that it can be accepted
-> >> in mainline.
-> >
-> > We will work on the VPU driver and it's migration towards a proper
-> > mem2mem device very soon, mainly on MX53, but of course MX27 should be
-> > taken care of by the same driver.
-> >
-> > So I'd suggest that we coordinate that work somehow.
-> 
-> Do you plan to provide both encoding and decoding support or just one of them?
+> diff --git a/Documentation/DocBook/media/v4l/vidioc-dqevent.xml b/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
+> index e8714aa..98a856f 100644
+> --- a/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
+> +++ b/Documentation/DocBook/media/v4l/vidioc-dqevent.xml
+> @@ -89,7 +89,7 @@
+>  	  <row>
+>  	    <entry></entry>
+>  	    <entry>&v4l2-event-frame-sync;</entry>
+> -            <entry><structfield>frame</structfield></entry>
+> +            <entry><structfield>frame_sync</structfield></entry>
+>  	    <entry>Event data for event V4L2_EVENT_FRAME_SYNC.</entry>
+>  	  </row>
+>  	  <row>
 
-We have both encoding and decoding. It works on i.MX51/53, but was
-originally written for i.MX27 aswell. I haven't tested i.MX27 for longer
-now, so it might or might not work. Find the source here:
+Thanks, Hans!! I really wonder how that can have slipped through back
+then... :P
 
-git://git.pengutronix.de/git/imx/gst-plugins-fsl-vpu.git
+Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
 
-The main difference from the FSL code is that the whole VPU
-functionality is in a kernel module which talks (mostly) v4l2. Our next
-taks is to convert this into a real mem2mem device, right now it only
-works with the included gstreamer plugin. You'll need a small kernel
-patch to register the device and to add the clocks.
-
-The gstreamer plugin is in a horrible state, but with the conversion to
-mem2mem we hope to get rid of this entirely.
-
-Sascha
+Cheers,
 
 -- 
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
