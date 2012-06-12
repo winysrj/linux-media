@@ -1,70 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:58838 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760648Ab2FUXqe (ORCPT
+Received: from mail-gh0-f174.google.com ([209.85.160.174]:57726 "EHLO
+	mail-gh0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751840Ab2FLNyS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Jun 2012 19:46:34 -0400
-Received: from epcpsbge4.samsung.com (mailout2.samsung.com [203.254.224.25])
- by mailout2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0M5Z00G0GRDC7220@mailout2.samsung.com> for
- linux-media@vger.kernel.org; Fri, 22 Jun 2012 08:46:30 +0900 (KST)
-Date: Thu, 21 Jun 2012 23:46:30 +0000 (GMT)
-From: NAVEEN KRISHNA CHATRADHI <ch.naveen@samsung.com>
-Subject: Re: [PATCH] s5p-mfc: Fix setting controls
-To: Kamil Debski <k.debski@samsung.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Jeongtae Park <jtp.park@samsung.com>
-Reply-to: ch.naveen@samsung.com
-MIME-version: 1.0
-Content-transfer-encoding: base64
-Content-type: text/plain; charset=windows-1252
-MIME-version: 1.0
-Message-id: <23828524.675831340322390207.JavaMail.weblogic@epml09>
+	Tue, 12 Jun 2012 09:54:18 -0400
+Received: by ghrr11 with SMTP id r11so3379897ghr.19
+        for <linux-media@vger.kernel.org>; Tue, 12 Jun 2012 06:54:17 -0700 (PDT)
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: <linux-media@vger.kernel.org>,
+	Ezequiel Garcia <elezegarcia@gmail.com>
+Subject: [PATCH] em28xx: Remove useless runtime->private_data usage
+Date: Tue, 12 Jun 2012 10:53:42 -0300
+Message-Id: <1339509222-2714-2-git-send-email-elezegarcia@gmail.com>
+In-Reply-To: <1339509222-2714-1-git-send-email-elezegarcia@gmail.com>
+References: <1339509222-2714-1-git-send-email-elezegarcia@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SGVsbG8gS2FtaWwsDQoNClNvcnJ5IGZvciB0aGUgZGVsYXllZCByZXBseS4gSSdtIGFmcmFpZCB0
-aGlzIGRvZXNudCBmaXggdGhlIHdob2xlIGlzc3VlLg0KU3RpbGwgdGhlcmUgaXMgc29tZSBwcm9i
-bGVtIHdpdGggU19DVFJMIHdoZW4gdXNlZCB3aXRoIGN1c3RvbSBjb250cm9scy4NCiANCndoZW4g
-bXkgYXBwbGljYXRpb24gY2FsbCBzX2N0cmwgd2l0aCBWNEwyX0NJRF9NUEVHX01GQzUxX1ZJREVP
-X0RFQ09ERVJfSDI2NF9ESVNQTEFZX0RFTEFZDQp0aGUgY2FsbCBmaW5hbGx5IGxhbmRzIG9uIFY0
-TDJfQ0lEX01QRUdfVklERU9fREVDT0RFUl9NUEVHNF9ERUJMT0NLX0ZJTFRFUiBpbiBkcml2ZXIg
-KFRoZSBzZXQgdmFsdWUgaXMgYWxzbyBsb3N0KS4NCg0KSSB0aGluayB0aGlzIGlzIGJlY2F1c2Ug
-b2YgY29ycnVwdGlvbiBvZiB0aGUgbWFzdGVyIG9yIGNsdXN0ZXIgaW4gdjRsMi1pb2N0bC5jL2N0
-cmwuYyBhbmQgcG9pbnRpbmcgdG8gdGhlIHN0YW5kYXJkIGNvbnRyb2xzIG1hc3Rlci4NCmluc3Rl
-YWQgb2YgdGhlIGN1c3RvbSBjb250cm9sIG1hc3Rlci4NCg0KS2luZGx5LCBsZXQgbWUga25vdyB5
-b3VyIG9waW5pb24gb3IgYW55IGNsdWVzIG9uIHRoaXMuDQoNClRoYW5rcyAmIFJlZ2FyZHMNCk5h
-dmVlbiBLcmlzaG5hDQoNCg0KDQotLS0tLS0tIE9yaWdpbmFsIE1lc3NhZ2UgLS0tLS0tLQ0KU2Vu
-ZGVyIDogS2FtaWwgRGVic2tpPGsuZGVic2tpQHNhbXN1bmcuY29tPiAgU29mdHdhcmUgRW5naW5l
-ZXIvUG9sYW5kIFImRCBDZW50ZXItTGludXggUGxhdGZvcm0gKFNTRCkvU2Ftc3VuZyBFbGVjdHJv
-bmljcw0KRGF0ZSAgIDogSnVuIDE1LCAyMDEyIDEzOjUxIChHTVQrMDU6MDApDQpUaXRsZSAgOiBb
-UEFUQ0hdIHM1cC1tZmM6IEZpeCBzZXR0aW5nIGNvbnRyb2xzDQoNCkZpeGVkIHNfY3RybCBmdW5j
-dGlvbiB3aGVuIHNldHRpbmcgdGhlIGZvbGxvd2luZyBjb250cm9sczoNCi0gVjRMMl9DSURfTVBF
-R19WSURFT19ERUNPREVSX01QRUc0X0RFQkxPQ0tfRklMVEVSDQotIFY0TDJfQ0lEX01QRUdfTUZD
-NTFfVklERU9fREVDT0RFUl9IMjY0X0RJU1BMQVlfREVMQVkNCg0KU2lnbmVkLW9mZi1ieTogS2Ft
-aWwgRGVic2tpIDxrLmRlYnNraUBzYW1zdW5nLmNvbT4NClNpZ25lZC1vZmYtYnk6IEt5dW5nbWlu
-IFBhcmsgPGt5dW5nbWluLnBhcmtAc2Ftc3VuZy5jb20+DQotLS0NCiBkcml2ZXJzL21lZGlhL3Zp
-ZGVvL3M1cC1tZmMvczVwX21mY19kZWMuYyB8ICAgIDQgKystLQ0KIDEgZmlsZXMgY2hhbmdlZCwg
-MiBpbnNlcnRpb25zKCspLCAyIGRlbGV0aW9ucygtKQ0KDQpkaWZmIC0tZ2l0IGEvZHJpdmVycy9t
-ZWRpYS92aWRlby9zNXAtbWZjL3M1cF9tZmNfZGVjLmMgYi9kcml2ZXJzL21lZGlhL3ZpZGVvL3M1
-cC1tZmMvczVwX21mY19kZWMuYw0KaW5kZXggZTFlYmM3Ni4uZWFhYjEzZSAxMDA2NDQNCi0tLSBh
-L2RyaXZlcnMvbWVkaWEvdmlkZW8vczVwLW1mYy9zNXBfbWZjX2RlYy5jDQorKysgYi9kcml2ZXJz
-L21lZGlhL3ZpZGVvL3M1cC1tZmMvczVwX21mY19kZWMuYw0KQEAgLTYzOSwxMyArNjM5LDEzIEBA
-IHN0YXRpYyBpbnQgczVwX21mY19kZWNfc19jdHJsKHN0cnVjdCB2NGwyX2N0cmwgKmN0cmwpDQog
-DQogCXN3aXRjaCAoY3RybC0+aWQpIHsNCiAJY2FzZSBWNEwyX0NJRF9NUEVHX01GQzUxX1ZJREVP
-X0RFQ09ERVJfSDI2NF9ESVNQTEFZX0RFTEFZOg0KLQkJY3R4LT5sb29wX2ZpbHRlcl9tcGVnNCA9
-IGN0cmwtPnZhbDsNCisJCWN0eC0+ZGlzcGxheV9kZWxheSA9IGN0cmwtPnZhbDsNCiAJCWJyZWFr
-Ow0KIAljYXNlIFY0TDJfQ0lEX01QRUdfTUZDNTFfVklERU9fREVDT0RFUl9IMjY0X0RJU1BMQVlf
-REVMQVlfRU5BQkxFOg0KIAkJY3R4LT5kaXNwbGF5X2RlbGF5X2VuYWJsZSA9IGN0cmwtPnZhbDsN
-CiAJCWJyZWFrOw0KIAljYXNlIFY0TDJfQ0lEX01QRUdfVklERU9fREVDT0RFUl9NUEVHNF9ERUJM
-T0NLX0ZJTFRFUjoNCi0JCWN0eC0+ZGlzcGxheV9kZWxheSA9IGN0cmwtPnZhbDsNCisJCWN0eC0+
-bG9vcF9maWx0ZXJfbXBlZzQgPSBjdHJsLT52YWw7DQogCQlicmVhazsNCiAJY2FzZSBWNEwyX0NJ
-RF9NUEVHX1ZJREVPX0RFQ09ERVJfU0xJQ0VfSU5URVJGQUNFOg0KIAkJY3R4LT5zbGljZV9pbnRl
-cmZhY2UgPSBjdHJsLT52YWw7DQotLSANCjEuNy4wLjQNCg0KPHA+Jm5ic3A7PC9wPjxwPiZuYnNw
-OzwvcD5UaGFua3MgJiBCZXN0IFJlZ2FyZHMsDQpOYXZlZW4gS3Jpc2huYSBDaA0KU0UgQCBTYW1z
-dW5nLUIuTEFC
+Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
+---
+ drivers/media/video/em28xx/em28xx-audio.c |    1 -
+ 1 files changed, 0 insertions(+), 1 deletions(-)
 
+diff --git a/drivers/media/video/em28xx/em28xx-audio.c b/drivers/media/video/em28xx/em28xx-audio.c
+index d7e2a3d..2fcddae 100644
+--- a/drivers/media/video/em28xx/em28xx-audio.c
++++ b/drivers/media/video/em28xx/em28xx-audio.c
+@@ -305,7 +305,6 @@ static int snd_em28xx_capture_open(struct snd_pcm_substream *substream)
+ 
+ 	snd_pcm_hw_constraint_integer(runtime, SNDRV_PCM_HW_PARAM_PERIODS);
+ 	dev->adev.capture_pcm_substream = substream;
+-	runtime->private_data = dev;
+ 
+ 	return 0;
+ err:
+-- 
+1.7.3.4
 
