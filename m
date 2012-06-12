@@ -1,45 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:22872 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932989Ab2FAOSY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 1 Jun 2012 10:18:24 -0400
-Message-ID: <4FC8CF38.8010507@redhat.com>
-Date: Fri, 01 Jun 2012 16:18:32 +0200
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: Jason Miller <jason@milr.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: Support for old Intel webcam
-References: <loom.20120529T203303-181@post.gmane.org>
-In-Reply-To: <loom.20120529T203303-181@post.gmane.org>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mail-wi0-f178.google.com ([209.85.212.178]:44511 "EHLO
+	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752551Ab2FLWTf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 12 Jun 2012 18:19:35 -0400
+Received: by wibhn6 with SMTP id hn6so4632019wib.1
+        for <linux-media@vger.kernel.org>; Tue, 12 Jun 2012 15:19:34 -0700 (PDT)
+From: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
+To: linux-media@vger.kernel.org
+Cc: sven.pilz@gmail.com, soeren.moch@ims.uni-hannover.de
+Subject: [PATCH 0/3] em28xx: Improve compatiblity with the Terratec Cinergy HTC Stick HD
+Date: Wed, 13 Jun 2012 00:19:25 +0200
+Message-Id: <1339539568-7725-1-git-send-email-martin.blumenstingl@googlemail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 Hi,
 
-On 05/29/2012 08:46 PM, Jason Miller wrote:
-> I have an old Intel webcam that shows up as:
->
-> Bus 002 Device 005: ID 8086:0431 Intel Corp. Intel Pro Video PC Camera
->
-> My hazy memory says that this used to work on linux with the spca_50x driver,
-> though I think I had to add the vendor/device ID manually to the driver.  Is
-> there any way to determine which chip is used in the camera so I can try doing
-> so again?
+this patch-set tries to improve compatibility with the Terratec Cinergy HTC Stick HD.
+It includes a completely new GPIO and analog decoder setup, which is now
+similar to what the driver on windows does.
 
-Looking at the inf file from the windows drivers it is indeed quite likely
-an spca50x based chip, what you can try doing (as root) is:
+I also disabled LNA by default as it's what the windows-driver seems to do.
+This should also fix DVB-C.
 
-modprobe gspca_spca501
-cd /sys/bus/usb/drivers/spca501
-echo '0x8086 0x0431' > new_id
+Thanks to Antti Palosaari and Devin Heitmueller for their help!
 
-And see if it works, if not you can also try the spca500 and
-spca508 drivers. Please unplug, rmmod the last tried driver, and then replug
-the device between different attempts.
+@Soren, Sven: could you please try out this patch-set and give feedback?
+
+The patches were written against the staging/for_v3.5 branch of media_tree.git.
+They depend upon my previous patch-set (see [0] and [1]):
+"em28xx: Remote control support for another board".
+
+Patch 2 and 3 should also apply against linux 3.4.
+On 3.4 an additional patch from Antti Palosaari is also required, see [2].
+The drxk-firmware (required for DVB-T) can be downloaded from [3] (if patch
+1 does not work on 3.4).
 
 Regards,
+Martin
 
-Hans
+[0] http://patchwork.linuxtv.org/patch/11544/
+[1] http://patchwork.linuxtv.org/patch/11548/
+[2] http://patchwork.linuxtv.org/patch/11310/
+[3] http://filebin.ca/55M5bF38USL/dvb-usb-terratec-htc-stick-drxk.fw
+
+
