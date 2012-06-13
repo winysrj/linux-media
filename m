@@ -1,70 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gg0-f174.google.com ([209.85.161.174]:53710 "EHLO
-	mail-gg0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751895Ab2F2ON7 (ORCPT
+Received: from mail-we0-f174.google.com ([74.125.82.174]:54719 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752226Ab2FMVnN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Jun 2012 10:13:59 -0400
-Received: by gglu4 with SMTP id u4so2731897ggl.19
-        for <linux-media@vger.kernel.org>; Fri, 29 Jun 2012 07:13:58 -0700 (PDT)
+	Wed, 13 Jun 2012 17:43:13 -0400
+Received: by weyu7 with SMTP id u7so792643wey.19
+        for <linux-media@vger.kernel.org>; Wed, 13 Jun 2012 14:43:12 -0700 (PDT)
+Message-ID: <4FD9096E.2070900@gmail.com>
+Date: Wed, 13 Jun 2012 23:43:10 +0200
+From: Sylwester Nawrocki <snjw23@gmail.com>
 MIME-Version: 1.0
-Date: Fri, 29 Jun 2012 09:13:58 -0500
-Message-ID: <CAC-OdnAEsT=wDGZZVcNaywAFg2aquRNk3NkYFZZjbYH+VBPpBQ@mail.gmail.com>
-Subject: [Query] Clearing V4L2_BUF_FLAG_MAPPED flag on a videobuf2 buffer
- after munmap
-From: Sergio Aguirre <sergio.a.aguirre@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+To: Sakari Ailus <sakari.ailus@iki.fi>
+CC: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	hverkuil@xs4all.nl, t.stanislaws@samsung.com
+Subject: Re: [PATCH v2 2/6] v4l: Remove "_ACTUAL" from subdev selection API
+ target definition names
+References: <4FD9065B.2030703@iki.fi> <1339623025-6227-2-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1339623025-6227-2-git-send-email-sakari.ailus@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+On 06/13/2012 11:30 PM, Sakari Ailus wrote:
+> The string "_ACTUAL" does not say anything more about the target names. Drop
+> it. V4L2 selection API was changed by "V4L: Rename V4L2_SEL_TGT_[CROP/COMPOSE]_ACTIVE to
+> V4L2_SEL_TGT_[CROP/COMPOSE]" by Sylwester Nawrocki. This patch does the same
 
-So, I've been trying to test the REQBUFS(0) from libv4l2 with my
-omap4iss device, and I've hit the following problem:
+The new patch summary line is now:
+"V4L: Remove "_ACTIVE" from the selection target name definitions"
+Hence might be worth to update it also in here.
 
-So, I basically do the basic IOCTL sequence:
-
-open(/dev/video0)
-VIDIOC_QUERYCAP
-VIDIOC_ENUM_FMT
-VIDIOC_ENUM_FRAMESIZES
-VIDIOC_ENUM_FRAMEINTERVALS
-VIDIOC_S_FMT (w = 640, h = 480, pixfmt = V4L2_PIX_FMT_YUYV, type =
-V4L2_BUF_TYPE_VIDEO_CAPTURE)
-VIDIOC_S_PARM (capability = V4L2_CAP_TIMEPERFRAME, timeperframe = 1/30)
-VIDIOC_REQBUFS (count = 6, MMAP)
-  Loop for 6 times:
-    VIDIOC_QUERYBUF (to get buff length)
-    mmap(length)
-  Loop for 6 times:
-    VIDIOC_QBUF(index = 0-5)
-VIDIOC_STREAMON
-  (Loop to poll, DQBUF and QBUF the same buffer)
-VIDIOC_STREAMOFF
-  Loop for 6 times:
-    munmap()
-VIDIOC_REQBUFS (count = 0, MMAP)
-
-... And in this call, it fails on libv4l2 level, since it checks all
-buffers to see
-if they're mapped, by doign QUERYBUF on each index, and checking for
-"V4L2_BUF_FLAG_MAPPED" flag.
-
-Now, digging deep into how this flag is populated, I noticed the following:
-
-I notice that in "drivers/media/video/videobuf2-core.c", inside:
-vb2_querybuf()
-  -> __fill_v4l2_buffer()
-
-There's this condition:
-	if (vb->num_planes_mapped == vb->num_planes)
-		b->flags |= V4L2_BUF_FLAG_MAPPED;
-
-The problem is that, even if i did a munmap, the count of vb->num_planes_mapped
-is not decreased... :/
-
-How's this supposed to work? Do I need to do something in my driver to avoid
-this flag to be set?
+> for the V4L2 subdev API.
+>
+> Signed-off-by: Sakari Ailus<sakari.ailus@iki.fi>
 
 Regards,
-Sergio
+Sylwester
