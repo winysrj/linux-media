@@ -1,100 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:20226 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751910Ab2FZTeh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Jun 2012 15:34:37 -0400
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Antti Palosaari <crope@iki.fi>, Kay Sievers <kay@redhat.com>,
-	Greg KH <gregkh@linuxfoundation.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH RFC 3/4] em28xx: Workaround for new udev versions
-Date: Tue, 26 Jun 2012 16:34:21 -0300
-Message-Id: <1340739262-13747-4-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1340739262-13747-1-git-send-email-mchehab@redhat.com>
-References: <4FE9169D.5020300@redhat.com>
- <1340739262-13747-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from mail-wi0-f170.google.com ([209.85.212.170]:59774 "EHLO
+	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751373Ab2FMWa0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 13 Jun 2012 18:30:26 -0400
+Received: by wibhm6 with SMTP id hm6so5857670wib.1
+        for <linux-media@vger.kernel.org>; Wed, 13 Jun 2012 15:30:25 -0700 (PDT)
+Message-ID: <4FD9147E.6010202@gmail.com>
+Date: Thu, 14 Jun 2012 00:30:22 +0200
+From: Sylwester Nawrocki <snjw23@gmail.com>
+MIME-Version: 1.0
+To: Sakari Ailus <sakari.ailus@iki.fi>
+CC: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
+	laurent.pinchart@ideasonboard.com
+Subject: Re: [PATCH 3/4] v4l: Unify selection targets across V4L2 and V4L2
+ subdev interfaces
+References: <4FD4F6B6.1070605@iki.fi> <1339356878-2179-3-git-send-email-sakari.ailus@iki.fi> <4FD720AC.8000906@gmail.com> <4FD90217.2060403@iki.fi> <4FD908AD.3010202@gmail.com> <4FD90AE4.9010306@iki.fi>
+In-Reply-To: <4FD90AE4.9010306@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-New udev-182 seems to be buggy: even when usermode is enabled, it
-insists on needing that probe would defer any firmware requests.
-So, drivers with firmware need to defer probe for the first
-driver's core request, otherwise an useless penalty of 30 seconds
-happens, as udev will refuse to load any firmware.
+On 06/13/2012 11:49 PM, Sakari Ailus wrote:
+>>
+>> In case you wanted to compile test those changes, I've attached
+>> kernel config file for exynos4.
+>
+> Compile testing? What is that? :-)
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
+I don't practise it myself, but it's still better than making
+random changes in the kernel and not checking if possibly affected
+parts are still building :D
 
-Note: this patch adds an ugly printk there, in order to allow testing it better.
-This will be removed at the final version.
+> I'll check that before sending the pull req.
 
- drivers/media/video/em28xx/em28xx-cards.c |   39 +++++++++++++++++++++++++----
- 1 file changed, 34 insertions(+), 5 deletions(-)
+OK, it just might be useful in future when you decide to make
+any further API changes.
 
-diff --git a/drivers/media/video/em28xx/em28xx-cards.c b/drivers/media/video/em28xx/em28xx-cards.c
-index 9229cd2..9a1c16c 100644
---- a/drivers/media/video/em28xx/em28xx-cards.c
-+++ b/drivers/media/video/em28xx/em28xx-cards.c
-@@ -60,6 +60,8 @@ static unsigned int card[]     = {[0 ... (EM28XX_MAXBOARDS - 1)] = UNSET };
- module_param_array(card,  int, NULL, 0444);
- MODULE_PARM_DESC(card,     "card type");
- 
-+static bool is_em28xx_initialized;
-+
- /* Bitmask marking allocated devices from 0 to EM28XX_MAXBOARDS - 1 */
- static unsigned long em28xx_devused;
- 
-@@ -3167,11 +3169,14 @@ static int em28xx_usb_probe(struct usb_interface *interface,
- 	 * postponed, as udev may not be ready yet to honour firmware
- 	 * load requests.
- 	 */
-+printk("em28xx: init = %d, userspace_is_disabled = %d, needs firmware = %d\n",
-+	is_em28xx_initialized,
-+	is_usermodehelp_disabled(), em28xx_boards[id->driver_info].needs_firmware);
- 	if (em28xx_boards[id->driver_info].needs_firmware &&
--	    is_usermodehelp_disabled()) {
--		printk_once(KERN_DEBUG DRIVER_NAME
--		            ": probe deferred for board %d.\n",
--		            (unsigned)id->driver_info);
-+	    (!is_em28xx_initialized || is_usermodehelp_disabled())) {
-+		printk(KERN_DEBUG DRIVER_NAME
-+		       ": probe deferred for board %d.\n",
-+		       (unsigned)id->driver_info);
- 		return -EPROBE_DEFER;
- 	}
- 
-@@ -3456,4 +3461,28 @@ static struct usb_driver em28xx_usb_driver = {
- 	.id_table = em28xx_id_table,
- };
- 
--module_usb_driver(em28xx_usb_driver);
-+static int __init em28xx_module_init(void)
-+{
-+	int result;
-+
-+	/* register this driver with the USB subsystem */
-+	result = usb_register(&em28xx_usb_driver);
-+	if (result)
-+		em28xx_err(DRIVER_NAME
-+			   " usb_register failed. Error number %d.\n", result);
-+
-+	printk(KERN_INFO DRIVER_NAME " driver loaded\n");
-+
-+	is_em28xx_initialized = true;
-+
-+	return result;
-+}
-+
-+static void __exit em28xx_module_exit(void)
-+{
-+	/* deregister this driver with the USB subsystem */
-+	usb_deregister(&em28xx_usb_driver);
-+}
-+
-+module_init(em28xx_module_init);
-+module_exit(em28xx_module_exit);
--- 
-1.7.10.2
-
+--
+Regards,
+Sylwester
