@@ -1,128 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:40822 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750712Ab2F2ESp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Jun 2012 00:18:45 -0400
-Message-ID: <4FED2CA0.6020909@redhat.com>
-Date: Fri, 29 Jun 2012 01:18:40 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Mack Stanley <mcs1937@gmail.com>
-CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/1] Add support for newer PCTV 800i cards with s5h1411
- demodulators
-References: <4FECCCB4.9000402@gmail.com>
-In-Reply-To: <4FECCCB4.9000402@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from bordeaux.papayaltd.net ([82.129.38.124]:54287 "EHLO
+	bordeaux.papayaltd.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754149Ab2FMOip convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 13 Jun 2012 10:38:45 -0400
+Content-Type: text/plain; charset=us-ascii
+Mime-Version: 1.0 (Apple Message framework v1084)
+Subject: Re: Hauppauge WinTV Nova S Plus Composite IN
+From: Andre <linux-media@dinkum.org.uk>
+In-Reply-To: <CAPz3gmnaPdm1V6GyPB8wPv5WCcg_pJ4HctsQiqROLanbLA=amA@mail.gmail.com>
+Date: Wed, 13 Jun 2012 15:30:58 +0100
+Content-Transfer-Encoding: 8BIT
+Message-Id: <BE0BB692-35BF-42C3-B2F1-5AC9AB053321@dinkum.org.uk>
+References: <CAPz3gmnaPdm1V6GyPB8wPv5WCcg_pJ4HctsQiqROLanbLA=amA@mail.gmail.com>
+To: shacky <shacky83@gmail.com>, linux-media@vger.kernel.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 28-06-2012 18:29, Mack Stanley escreveu:
-> Testing is needed on older (aka Pinnacle) PCTV 800i cards with S5H1409
-> demodulators
-> to check that current support for them isn't broken by this patch.
-> 
-> Signed-off-by: Mack Stanley <mcs1937@gmail.com>
-> ---
->   drivers/media/video/cx88/cx88-dvb.c |   40
-> ++++++++++++++++++++++++----------
->   1 files changed, 28 insertions(+), 12 deletions(-)
-> 
-> diff --git a/drivers/media/video/cx88/cx88-dvb.c
-> b/drivers/media/video/cx88/cx88-dvb.c
-> index 003937c..6d49672 100644
-> --- a/drivers/media/video/cx88/cx88-dvb.c
-> +++ b/drivers/media/video/cx88/cx88-dvb.c
-> @@ -501,7 +501,7 @@ static const struct cx24123_config
-> kworld_dvbs_100_config = {
->          .lnb_polarity  = 1,
->   };
-> 
-> -static const struct s5h1409_config pinnacle_pctv_hd_800i_config = {
-> +static const struct s5h1409_config pinnacle_pctv_hd_800i_s5h1409_config = {
->          .demod_address = 0x32 >> 1,
->          .output_mode   = S5H1409_PARALLEL_OUTPUT,
->          .gpio          = S5H1409_GPIO_ON,
-> @@ -509,7 +509,7 @@ static const struct s5h1409_config
-> pinnacle_pctv_hd_800i_config = {
->          .inversion     = S5H1409_INVERSION_OFF,
->          .status_mode   = S5H1409_DEMODLOCKING,
->          .mpeg_timing   = S5H1409_MPEGTIMING_NONCONTINOUS_NONINVERTING_CLOCK,
-> -};
-> +};
-> 
->   static const struct s5h1409_config dvico_hdtv5_pci_nano_config = {
->          .demod_address = 0x32 >> 1,
-> @@ -556,6 +556,16 @@ static const struct s5h1411_config
-> dvico_fusionhdtv7_config = {
 
-Patch got line-wrapped by your email. Please fix, otherwise, it can't be applied.
+On 13 Jun 2012, at 14:55, shacky wrote:
 
->          .status_mode   = S5H1411_DEMODLOCKING
->   };
+> Hi.
 > 
-> +static const struct s5h1411_config pinnacle_pctv_hd_800i_s5h1411_config = {
-> +       .output_mode   = S5H1411_PARALLEL_OUTPUT,
-> +       .gpio          = S5H1411_GPIO_ON,
-> +       .mpeg_timing   = S5H1411_MPEGTIMING_NONCONTINOUS_NONINVERTING_CLOCK,
-> +       .qam_if        = S5H1411_IF_44000,
-> +       .vsb_if        = S5H1411_IF_44000,
-> +       .inversion     = S5H1411_INVERSION_OFF,
-> +       .status_mode   = S5H1411_DEMODLOCKING
-> +};
-> +
->   static const struct xc5000_config dvico_fusionhdtv7_tuner_config = {
->          .i2c_address    = 0xc2 >> 1,
->          .if_khz         = 5380,
-> @@ -1297,16 +1307,22 @@ static int dvb_register(struct cx8802_dev *dev)
->                  }
->                  break;
->          case CX88_BOARD_PINNACLE_PCTV_HD_800i:
-> -               fe0->dvb.frontend = dvb_attach(s5h1409_attach,
-> -
-> &pinnacle_pctv_hd_800i_config,
-> -                                              &core->i2c_adap);
-> -               if (fe0->dvb.frontend != NULL) {
-> -                       if (!dvb_attach(xc5000_attach, fe0->dvb.frontend,
-> -                                       &core->i2c_adap,
-> -
-> &pinnacle_pctv_hd_800i_tuner_config))
-> -                               goto frontend_detach;
-> -               }
-> -               break;
-> +               /* Try s5h1409 chip first */
-> +               fe0->dvb.frontend = dvb_attach(s5h1409_attach,
-> +
-> &pinnacle_pctv_hd_800i_s5h1409_config,
-> +                                       &core->i2c_adap);
-> +               /* Otherwise, try s5h1411 */
-> +               if (fe0->dvb.frontend == NULL)
-> +                       fe0->dvb.frontend = dvb_attach(s5h1411_attach,
-> +
-> &pinnacle_pctv_hd_800i_s5h1411_config,
-> +                                       &core->i2c_adap);
-> +               if (fe0->dvb.frontend != NULL) {
-> +                       if (!dvb_attach(xc5000_attach, fe0->dvb.frontend,
-> +                                       &core->i2c_adap,
-> +
-> &pinnacle_pctv_hd_800i_tuner_config))
-> +                               goto frontend_detach;
-> +               }
-> +               break;
->          case CX88_BOARD_DVICO_FUSIONHDTV_5_PCI_NANO:
->                  fe0->dvb.frontend = dvb_attach(s5h1409_attach,
->                                                 
-> &dvico_hdtv5_pci_nano_config,
-> --
-> 1.7.7.6
+> I'm trying to record some video using the composite input of the
+> Hauppauge WinTV Nova S Plus, which is indicated as supported on
+> http://linuxtv.org/wiki/index.php/DVB-S_PCI_Cards.
 > 
+> I tried playing video from the input with VLC and mplayer, but I'm
+> getting a black screen.
 > 
+> I checked all cables and they work good, I checked viewing the output
+> with a regular TV and I can see the image.
+> 
+> I have the devide /dev/video0, as following in dmesg:
+> [    6.650431] cx88[0]/0: registered device video0 [v4l2]
+
+I tried to do this recently too and found it very non obvious how to select the correct video and audio inputs. For a few days I thought the driver was not working but I ended up using mencoder successfully with the following line:
+
+mencoder -oac lavc -ovc lavc -of mpeg -mpegopts format=dvd:tsaf   -vf scale=720:576,harddup -srate 48000 -af lavcresample=48000   -lavcopts vcodec=mpeg2video:vrc_buf_size=1835:vrc_maxrate=9800:vbitrate=8000:keyint=15:vstrict=0:acodec=ac3:abitrate=192:aspect=4/3 -ofps 25   -o johntest1.mpg tv:// -tv input=1:norm=PAL-BG:amode=1:alsa=1:adevice=hw.2,0:forceaudio:immediatemode=0:volume=100
+
+I was using Ubuntu 12.04 64bit, 3.2.0 kernel.
+
+Hopefully this will give you the clues to get mplayer to work, I was never able to get VLC to switch to the correct audio input although video worked ok.
+
+Andre
+
+
+
+
+
+> 
+> This is the complete output:
+> [    6.550138] rc0: cx88 IR (Hauppauge Nova-S-Plus  as
+> /devices/pci0000:00/0000:00:04.0/0000:01:06.0/rc/rc0
+> [    6.550194] rc rc0: lirc_dev: driver ir-lirc-codec (cx88xx)
+> registered at minor = 0
+> [    6.550198] cx88[0]/0: found at 0000:01:06.0, rev: 5, irq: 19,
+> latency: 64, mmio: 0xdf000000
+> [    6.644067] wm8775 2-001b: chip found @ 0x36 (cx88[0])
+> [    6.650431] cx88[0]/0: registered device video0 [v4l2]
+> [    6.650448] cx88[0]/0: registered device vbi0
+> [    6.660015] cx88[0]/2: cx2388x 8802 Driver Manager
+> [    6.660025] cx88-mpeg driver manager 0000:01:06.2: PCI INT A ->
+> Link[LNKA] -> GSI 19 (level, low) -> IRQ 19
+> [    6.660031] cx88[0]/2: found at 0000:01:06.2, rev: 5, irq: 19,
+> latency: 64, mmio: 0xdd000000
+> [    6.660111] cx88_audio 0000:01:06.1: PCI INT A -> Link[LNKA] -> GSI
+> 19 (level, low) -> IRQ 19
+> [    6.660129] cx88[0]/1: CX88x/0: ALSA support for cx2388x boards
+> [    6.811716] forcedeth 0000:00:07.0: irq 43 for MSI/MSI-X
+> [    6.911220] cx88/2: cx2388x dvb driver version 0.0.8 loaded
+> [    6.911222] cx88/2: registering cx8802 driver, type: dvb access: shared
+> [    6.911225] cx88[0]/2: subsystem: 0070:9202, board: Hauppauge
+> Nova-S-Plus DVB-S [card=37]
+> [    6.911227] cx88[0]/2: cx2388x based DVB/ATSC card
+> [    6.911228] cx8802_alloc_frontends() allocating 1 frontend(s)
+> [    7.062363] CX24123: detected CX24123
+> [    7.130058] [drm] nouveau 0000:00:0d.0: 1 available performance level(s)
+> [    7.130061] [drm] nouveau 0000:00:0d.0: 0: memory 0MHz core 425MHz
+> fanspeed 100%
+> [    7.130069] [drm] nouveau 0000:00:0d.0: c: memory 0MHz
+> [    7.130144] [TTM] Zone  kernel: Available graphics memory: 3967714 kiB.
+> [    7.130146] [TTM] Zone   dma32: Available graphics memory: 2097152 kiB.
+> [    7.130147] [TTM] Initializing pool allocator.
+> [    7.130155] [drm] nouveau 0000:00:0d.0: Detected 256MiB VRAM
+> [    7.133145] [drm] nouveau 0000:00:0d.0: 64 MiB GART (aperture)
+> [    7.133333] [drm] nouveau 0000:00:0d.0: unknown connector type: 0xff!!
+> [    7.134520] DVB: registering new adapter (cx88[0])
+> [    7.134524] DVB: registering adapter 0 frontend 0 (Conexant
+> CX24123/CX24109)...
+> 
+> Could you help me, please?
+> 
+> Thank you very much,
+> bye.
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-media" in
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > 
-
 
