@@ -1,190 +1,161 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr19.xs4all.nl ([194.109.24.39]:1116 "EHLO
-	smtp-vbr19.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932403Ab2F1Gsw (ORCPT
+Received: from smtprelay-b11.telenor.se ([62.127.194.20]:60959 "EHLO
+	smtprelay-b11.telenor.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751132Ab2FMIqY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Jun 2012 02:48:52 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv3 PATCH 13/33] v4l2-ioctl.c: use the new table for compression ioctls.
-Date: Thu, 28 Jun 2012 08:48:07 +0200
-Message-Id: <01969f2491958250ba569800bb91dde9964c68c9.1340865818.git.hans.verkuil@cisco.com>
-In-Reply-To: <1340866107-4188-1-git-send-email-hverkuil@xs4all.nl>
-References: <1340866107-4188-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <d97434d2319fb8dbea360404f9343c680b5b196e.1340865818.git.hans.verkuil@cisco.com>
-References: <d97434d2319fb8dbea360404f9343c680b5b196e.1340865818.git.hans.verkuil@cisco.com>
+	Wed, 13 Jun 2012 04:46:24 -0400
+Received: from ipb4.telenor.se (ipb4.telenor.se [195.54.127.167])
+	by smtprelay-b11.telenor.se (Postfix) with ESMTP id B9900D2E9
+	for <linux-media@vger.kernel.org>; Wed, 13 Jun 2012 10:46:20 +0200 (CEST)
+From: "Fontana" <shade@bredband.net>
+To: <linux-media@vger.kernel.org>
+Subject: SV: stv0297 signal issues on QAM256
+Date: Wed, 13 Jun 2012 10:46:00 +0200
+Message-ID: <NIEIIOCBEBNKDBNEFBEBCEDHCBAA.shade@bredband.net>
+MIME-Version: 1.0
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <NIEIIOCBEBNKDBNEFBEBOEDACBAA.shade@bredband.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hello,
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/video/v4l2-ioctl.c |  123 ++++++++++++++------------------------
- 1 file changed, 46 insertions(+), 77 deletions(-)
+After some further digging i found a post with attached patch.
 
-diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
-index 179b22c..935fcbc 100644
---- a/drivers/media/video/v4l2-ioctl.c
-+++ b/drivers/media/video/v4l2-ioctl.c
-@@ -590,6 +590,45 @@ static void v4l_print_selection(const void *arg, bool write_only)
- 		p->r.width, p->r.height, p->r.left, p->r.top);
- }
- 
-+static void v4l_print_jpegcompression(const void *arg, bool write_only)
-+{
-+	const struct v4l2_jpegcompression *p = arg;
-+
-+	pr_cont("quality=%d, APPn=%d, APP_len=%d, "
-+		"COM_len=%d, jpeg_markers=0x%x\n",
-+		p->quality, p->APPn, p->APP_len,
-+		p->COM_len, p->jpeg_markers);
-+}
-+
-+static void v4l_print_enc_idx(const void *arg, bool write_only)
-+{
-+	const struct v4l2_enc_idx *p = arg;
-+
-+	pr_cont("entries=%d, entries_cap=%d\n",
-+			p->entries, p->entries_cap);
-+}
-+
-+static void v4l_print_encoder_cmd(const void *arg, bool write_only)
-+{
-+	const struct v4l2_encoder_cmd *p = arg;
-+
-+	pr_cont("cmd=%d, flags=0x%x\n",
-+			p->cmd, p->flags);
-+}
-+
-+static void v4l_print_decoder_cmd(const void *arg, bool write_only)
-+{
-+	const struct v4l2_decoder_cmd *p = arg;
-+
-+	pr_cont("cmd=%d, flags=0x%x\n", p->cmd, p->flags);
-+
-+	if (p->cmd == V4L2_DEC_CMD_START)
-+		pr_info("speed=%d, format=%u\n",
-+				p->start.speed, p->start.format);
-+	else if (p->cmd == V4L2_DEC_CMD_STOP)
-+		pr_info("pts=%llu\n", p->stop.pts);
-+}
-+
- static void v4l_print_u32(const void *arg, bool write_only)
- {
- 	pr_cont("value=%u\n", *(const u32 *)arg);
-@@ -1592,8 +1631,8 @@ static struct v4l2_ioctl_info v4l2_ioctls[] = {
- 	IOCTL_INFO_FNC(VIDIOC_S_CROP, v4l_s_crop, v4l_print_crop, INFO_FL_PRIO),
- 	IOCTL_INFO_STD(VIDIOC_G_SELECTION, vidioc_g_selection, v4l_print_selection, 0),
- 	IOCTL_INFO_STD(VIDIOC_S_SELECTION, vidioc_s_selection, v4l_print_selection, INFO_FL_PRIO),
--	IOCTL_INFO(VIDIOC_G_JPEGCOMP, 0),
--	IOCTL_INFO(VIDIOC_S_JPEGCOMP, INFO_FL_PRIO),
-+	IOCTL_INFO_STD(VIDIOC_G_JPEGCOMP, vidioc_g_jpegcomp, v4l_print_jpegcompression, 0),
-+	IOCTL_INFO_STD(VIDIOC_S_JPEGCOMP, vidioc_s_jpegcomp, v4l_print_jpegcompression, INFO_FL_PRIO),
- 	IOCTL_INFO_FNC(VIDIOC_QUERYSTD, v4l_querystd, v4l_print_std, 0),
- 	IOCTL_INFO_FNC(VIDIOC_TRY_FMT, v4l_try_fmt, v4l_print_format, 0),
- 	IOCTL_INFO_STD(VIDIOC_ENUMAUDIO, vidioc_enumaudio, v4l_print_audio, INFO_FL_CLEAR(v4l2_audio, index)),
-@@ -1607,11 +1646,11 @@ static struct v4l2_ioctl_info v4l2_ioctls[] = {
- 	IOCTL_INFO_FNC(VIDIOC_TRY_EXT_CTRLS, v4l_try_ext_ctrls, v4l_print_ext_controls, 0),
- 	IOCTL_INFO(VIDIOC_ENUM_FRAMESIZES, INFO_FL_CLEAR(v4l2_frmsizeenum, pixel_format)),
- 	IOCTL_INFO(VIDIOC_ENUM_FRAMEINTERVALS, INFO_FL_CLEAR(v4l2_frmivalenum, height)),
--	IOCTL_INFO(VIDIOC_G_ENC_INDEX, 0),
--	IOCTL_INFO(VIDIOC_ENCODER_CMD, INFO_FL_PRIO | INFO_FL_CLEAR(v4l2_encoder_cmd, flags)),
--	IOCTL_INFO(VIDIOC_TRY_ENCODER_CMD, INFO_FL_CLEAR(v4l2_encoder_cmd, flags)),
--	IOCTL_INFO(VIDIOC_DECODER_CMD, INFO_FL_PRIO),
--	IOCTL_INFO(VIDIOC_TRY_DECODER_CMD, 0),
-+	IOCTL_INFO_STD(VIDIOC_G_ENC_INDEX, vidioc_g_enc_index, v4l_print_enc_idx, 0),
-+	IOCTL_INFO_STD(VIDIOC_ENCODER_CMD, vidioc_encoder_cmd, v4l_print_encoder_cmd, INFO_FL_PRIO | INFO_FL_CLEAR(v4l2_encoder_cmd, flags)),
-+	IOCTL_INFO_STD(VIDIOC_TRY_ENCODER_CMD, vidioc_try_encoder_cmd, v4l_print_encoder_cmd, INFO_FL_CLEAR(v4l2_encoder_cmd, flags)),
-+	IOCTL_INFO_STD(VIDIOC_DECODER_CMD, vidioc_decoder_cmd, v4l_print_decoder_cmd, INFO_FL_PRIO),
-+	IOCTL_INFO_STD(VIDIOC_TRY_DECODER_CMD, vidioc_try_decoder_cmd, v4l_print_decoder_cmd, 0),
- 	IOCTL_INFO(VIDIOC_DBG_S_REGISTER, 0),
- 	IOCTL_INFO(VIDIOC_DBG_G_REGISTER, 0),
- 	IOCTL_INFO(VIDIOC_DBG_G_CHIP_IDENT, 0),
-@@ -1736,76 +1775,6 @@ static long __video_do_ioctl(struct file *file,
- 	}
- 
- 	switch (cmd) {
--	case VIDIOC_G_JPEGCOMP:
--	{
--		struct v4l2_jpegcompression *p = arg;
--
--		ret = ops->vidioc_g_jpegcomp(file, fh, p);
--		if (!ret)
--			dbgarg(cmd, "quality=%d, APPn=%d, "
--					"APP_len=%d, COM_len=%d, "
--					"jpeg_markers=%d\n",
--					p->quality, p->APPn, p->APP_len,
--					p->COM_len, p->jpeg_markers);
--		break;
--	}
--	case VIDIOC_S_JPEGCOMP:
--	{
--		struct v4l2_jpegcompression *p = arg;
--
--		dbgarg(cmd, "quality=%d, APPn=%d, APP_len=%d, "
--					"COM_len=%d, jpeg_markers=%d\n",
--					p->quality, p->APPn, p->APP_len,
--					p->COM_len, p->jpeg_markers);
--		ret = ops->vidioc_s_jpegcomp(file, fh, p);
--		break;
--	}
--	case VIDIOC_G_ENC_INDEX:
--	{
--		struct v4l2_enc_idx *p = arg;
--
--		ret = ops->vidioc_g_enc_index(file, fh, p);
--		if (!ret)
--			dbgarg(cmd, "entries=%d, entries_cap=%d\n",
--					p->entries, p->entries_cap);
--		break;
--	}
--	case VIDIOC_ENCODER_CMD:
--	{
--		struct v4l2_encoder_cmd *p = arg;
--
--		ret = ops->vidioc_encoder_cmd(file, fh, p);
--		if (!ret)
--			dbgarg(cmd, "cmd=%d, flags=%x\n", p->cmd, p->flags);
--		break;
--	}
--	case VIDIOC_TRY_ENCODER_CMD:
--	{
--		struct v4l2_encoder_cmd *p = arg;
--
--		ret = ops->vidioc_try_encoder_cmd(file, fh, p);
--		if (!ret)
--			dbgarg(cmd, "cmd=%d, flags=%x\n", p->cmd, p->flags);
--		break;
--	}
--	case VIDIOC_DECODER_CMD:
--	{
--		struct v4l2_decoder_cmd *p = arg;
--
--		ret = ops->vidioc_decoder_cmd(file, fh, p);
--		if (!ret)
--			dbgarg(cmd, "cmd=%d, flags=%x\n", p->cmd, p->flags);
--		break;
--	}
--	case VIDIOC_TRY_DECODER_CMD:
--	{
--		struct v4l2_decoder_cmd *p = arg;
--
--		ret = ops->vidioc_try_decoder_cmd(file, fh, p);
--		if (!ret)
--			dbgarg(cmd, "cmd=%d, flags=%x\n", p->cmd, p->flags);
--		break;
--	}
- 	case VIDIOC_G_SLICED_VBI_CAP:
- 	{
- 		struct v4l2_sliced_vbi_cap *p = arg;
--- 
-1.7.10
+http://www.linuxtv.org/pipermail/linux-dvb/attachments/20080731/de8768ed/att
+achment.diff
+
+Dunno why there were no followup on this one?
+
+http://linuxtv.org/pipermail/linux-dvb/2008-July/027517.html
+
+Applied cleanly to kernel 3.4.0 with the following change.
+
+- (p->u.qam.modulation == QAM_256) ? 6718 : 7250);
++ (p->modulation == QAM_256) ? 6718 : 7250);
+
+//Br Fredrik
+
+
+
+-----Ursprungligt meddelande-----
+Från: linux-media-owner@vger.kernel.org
+[mailto:linux-media-owner@vger.kernel.org]För Fontana
+Skickat: den 11 juni 2012 10:13
+Till: Fredrik; linux-media@vger.kernel.org
+Ämne: stv0297 signal issues on QAM256
+
+
+typo in subject
+
+-----Ursprungligt meddelande-----
+Från: linux-media-owner@vger.kernel.org
+[mailto:linux-media-owner@vger.kernel.org]För Fredrik
+Skickat: den 10 juni 2012 14:25
+Till: linux-media@vger.kernel.org
+Ämne: stv0298 signal issues on QAM256
+
+
+Hi.
+
+Unfortunatly my cable provider "Comhem" moved almost all channels to
+QAM256.
+The results are terrible on my two cards. Blocky picture and skipping
+audio.
+I've tried all suggestions i've found on mailing lists to change
+different values in stv0297.c  but without luck.
+What i cannot see is, if those who reported problems since 2005, are
+happy now or not. Perhaps this hardware is too obsolete.
+On other devices QAM256 is ok.
+Anyway im hoping for some help or some information to make me decide
+about placing these card in the junkbox.
+
+
+04:00.0 Multimedia controller: Philips Semiconductors SAA7146 (rev 01)
+         Subsystem: Technotrend Systemtechnik GmbH Octal/Technotrend
+DVB-C for iTV
+         Kernel driver in use: av7110
+         Kernel modules: dvb-ttpci
+
+dmsg snip..
+[    1.572820] DVB: registering new adapter (Technotrend/Hauppauge WinTV
+Nexus-CA rev1.X)
+[    1.584677] DVB: registering adapter 0 frontend 0 (Philips TDA10023
+DVB-C)...
+[    1.590877] adapter has MAC addr = 00:d0:5c:24:5c:71
+[    1.592807] IR keymap rc-anysee not found
+[    1.592809] Registered IR keymap rc-empty
+[    1.592852] input: IR-receiver inside an USB DVB receiver as
+/devices/pci0000:00/0000:00:1d.7/usb1/1-6/rc/rc0/input0
+[    1.592869] rc0: IR-receiver inside an USB DVB receiver as
+/devices/pci0000:00/0000:00:1d.7/usb1/1-6/rc/rc0
+[    1.592871] dvb-usb: schedule remote query interval to 250 msecs.
+[    1.592873] dvb-usb: Anysee DVB USB2.0 successfully initialized and
+connected.
+[    1.594442] usbcore: registered new interface driver dvb_usb_anysee
+[    1.731015] usb 2-2: new full-speed USB device number 2 using uhci_hcd
+[    1.900088] usb 2-2: New USB device found, idVendor=046d, idProduct=0b04
+[    1.900092] usb 2-2: New USB device strings: Mfr=1, Product=2,
+SerialNumber=0
+[    1.900095] usb 2-2: Product: Logitech BT Mini-Receiver
+[    1.900098] usb 2-2: Manufacturer: Logitech
+[    1.903118] hub 2-2:1.0: USB hub found
+[    1.905092] hub 2-2:1.0: 3 ports detected
+[    1.924098] dvb-ttpci: info @ card 1: firm f0240009, rtsl b0250018,
+vid 71010068, app 80f12623
+[    1.924102] dvb-ttpci: firmware @ card 1 supports CI link layer
+interface
+[    1.998276] dvb_ttpci: DVB-C analog module @ card 1 detected,
+initializing MSP3415
+[    2.101563] dvb_ttpci: saa7113 not accessible
+[    2.116015] usb 3-1: new full-speed USB device number 2 using uhci_hcd
+[    2.131523] saa7146_vv: saa7146 (0): registered device video0 [v4l2]
+[    2.131535] saa7146_vv: saa7146 (0): registered device vbi0 [v4l2]
+[    2.133473] DVB: registering adapter 1 frontend 0 (ST STV0297 DVB-C)...
+[    2.136094] input: DVB on-card IR receiver as
+/devices/pci0000:00/0000:00:1e.0/0000:04:00.0/input/input1
+[    2.136119] dvb-ttpci: found av7110-0.
+[    2.136157] saa7146: found saa7146 @ mem fa0b0000 (revision 1, irq
+19) (0x13c2,0x000a)
+[    2.137704] DVB: registering new adapter (Technotrend/Hauppauge WinTV
+Nexus-CA rev1.X)
+[    2.155901] adapter has MAC addr = 00:d0:5c:24:47:2a
+[    2.283286] usb 3-1: New USB device found, idVendor=08e6, idProduct=3437
+[    2.283290] usb 3-1: New USB device strings: Mfr=1, Product=2,
+SerialNumber=0
+[    2.283293] usb 3-1: Product: USB SmartCard Reader
+[    2.283296] usb 3-1: Manufacturer: Gemplus
+[    2.485099] dvb-ttpci: info @ card 2: firm f0240009, rtsl b0250018,
+vid 71010068, app 80f12623
+[    2.485102] dvb-ttpci: firmware @ card 2 supports CI link layer
+interface
+[    2.492128] usb 5-2: new full-speed USB device number 2 using uhci_hcd
+[    2.562280] dvb_ttpci: DVB-C analog module @ card 2 detected,
+initializing MSP3415
+[    2.650542] usb 5-2: New USB device found, idVendor=0471, idProduct=0815
+[    2.650545] usb 5-2: New USB device strings: Mfr=1, Product=2,
+SerialNumber=3
+[    2.650548] usb 5-2: Product: eHome Infrared Transceiver
+[    2.650551] usb 5-2: Manufacturer: Philips
+[    2.650553] usb 5-2: SerialNumber: PH00GEFN
+[    2.665560] dvb_ttpci: saa7113 not accessible
+[    2.695510] saa7146_vv: saa7146 (1): registered device video1 [v4l2]
+[    2.695522] saa7146_vv: saa7146 (1): registered device vbi1 [v4l2]
+[    2.695832] DVB: registering adapter 2 frontend 0 (ST STV0297 DVB-C)...
+[    2.695906] input: DVB on-card IR receiver as
+/devices/pci0000:00/0000:00:1e.0/0000:04:01.0/input/input2
+[    2.695923] dvb-ttpci: found av7110-1.
+
+Br Fredrik
+--
+To unsubscribe from this list: send the line "unsubscribe linux-media" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-media" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
