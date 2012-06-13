@@ -1,79 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:39908 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756961Ab2FOOOP (ORCPT
+Received: from mail-we0-f174.google.com ([74.125.82.174]:48628 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754936Ab2FMW0o (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Jun 2012 10:14:15 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl, snjw23@gmail.com,
-	t.stanislaws@samsung.com
-Subject: Re: [PATCH v4 7/7] v4l: Correct conflicting V4L2 subdev selection API documentation
-Date: Fri, 15 Jun 2012 16:14:21 +0200
-Message-ID: <1580520.TYuvdPHuRK@avalon>
-In-Reply-To: <1339767880-8412-7-git-send-email-sakari.ailus@iki.fi>
-References: <4FDB3C2E.9060502@iki.fi> <1339767880-8412-7-git-send-email-sakari.ailus@iki.fi>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Wed, 13 Jun 2012 18:26:44 -0400
+Received: by weyu7 with SMTP id u7so816356wey.19
+        for <linux-media@vger.kernel.org>; Wed, 13 Jun 2012 15:26:43 -0700 (PDT)
+Message-ID: <1339626396.2421.75.camel@Route3278>
+Subject: [PATCH 2/2] dvb_usb_v2 Allow d->props.bInterfaceNumber to set the
+ correct  interface.
+From: Malcolm Priestley <tvboxspy@gmail.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: linux-media <linux-media@vger.kernel.org>
+Date: Wed, 13 Jun 2012 23:26:36 +0100
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Although the interface could be set in identify state, ideally it should be done in
+the probe.
 
-Thanks for the patch.
+Allow d->props.bInterfaceNumber try to set the correct interface rather than return error.
 
-On Friday 15 June 2012 16:44:40 Sakari Ailus wrote:
-> The API reference documents that the KEEP_CONFIG flag tells the
-> configuration should not be propatgated by the driver whereas the interface
 
-s/propatgated/propagated/
+Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
+---
+ drivers/media/dvb/dvb-usb/dvb_usb_init.c |   11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
 
-> documentation (dev-subdev.xml) categorically prohibited any changes to the
-> rest of the pipeline. The latter makes no sense, since it would severely
-> limit the usefulness of the KEEP_CONFIG flag.
-> 
-> Correct the documentation in dev-subddev.xml.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> ---
->  Documentation/DocBook/media/v4l/dev-subdev.xml |   10 +++++-----
->  1 files changed, 5 insertions(+), 5 deletions(-)
-> 
-> diff --git a/Documentation/DocBook/media/v4l/dev-subdev.xml
-> b/Documentation/DocBook/media/v4l/dev-subdev.xml index 8c44b3f..95ebf87
-> 100644
-> --- a/Documentation/DocBook/media/v4l/dev-subdev.xml
-> +++ b/Documentation/DocBook/media/v4l/dev-subdev.xml
-> @@ -361,11 +361,11 @@
->        performed by the user: the changes made will be propagated to
->        any subsequent stages. If this behaviour is not desired, the
->        user must set
-> -      <constant>V4L2_SUBDEV_SEL_FLAG_KEEP_CONFIG</constant> flag. This
-> -      flag causes no propagation of the changes are allowed in any
-> -      circumstances. This may also cause the accessed rectangle to be
-> -      adjusted by the driver, depending on the properties of the
-> -      underlying hardware.</para>
-> +      <constant>V4L2_SUBDEV_SEL_FLAG_KEEP_CONFIG</constant> flag,
-
-This should be V4L2_SEL_FLAG_KEEP_CONFIG.
-
-> +      which tells the driver to make minimum changes to the rest of
-> +      the subdev's configuration.
-
-I'm not sure to like this. "minimum changes" is not clearly defined. Isn't the 
-point of the KEEP_CONFIG flag is to avoid propagating *any* change down the 
-pipeline inside the subdev ?
-
-> This may also cause the accessed
-> +      rectangle to be adjusted by the driver, depending on the
-> +      properties of the underlying hardware.</para>
-> 
->        <para>The coordinates to a step always refer to the actual size
->        of the previous step. The exception to this rule is the source
-
+diff --git a/drivers/media/dvb/dvb-usb/dvb_usb_init.c b/drivers/media/dvb/dvb-usb/dvb_usb_init.c
+index c16a28a..b2eb8ac 100644
+--- a/drivers/media/dvb/dvb-usb/dvb_usb_init.c
++++ b/drivers/media/dvb/dvb-usb/dvb_usb_init.c
+@@ -391,8 +391,15 @@ int dvb_usbv2_probe(struct usb_interface *intf,
+ 
+ 	if (d->intf->cur_altsetting->desc.bInterfaceNumber !=
+ 			d->props.bInterfaceNumber) {
+-		ret = -ENODEV;
+-		goto err_kfree;
++		usb_reset_configuration(d->udev);
++
++		ret = usb_set_interface(d->udev,
++			d->intf->cur_altsetting->desc.bInterfaceNumber,
++				d->props.bInterfaceNumber);
++		if (ret < 0) {
++			ret = -ENODEV;
++			goto err_kfree;
++		}
+ 	}
+ 
+ 	mutex_init(&d->usb_mutex);
 -- 
-Regards,
+1.7.10
 
-Laurent Pinchart
+
+
+
+
+
+
 
