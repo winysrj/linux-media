@@ -1,50 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:53144 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753731Ab2FCVEu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 3 Jun 2012 17:04:50 -0400
-Received: by obbtb18 with SMTP id tb18so6188649obb.19
-        for <linux-media@vger.kernel.org>; Sun, 03 Jun 2012 14:04:49 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <201206031233.24758.hverkuil@xs4all.nl>
-References: <1338651169-10446-1-git-send-email-elezegarcia@gmail.com>
-	<CALF0-+W5DCf1HMs=MYMc2KVgz=SJKS2YLY7LSrxU6-gnc=+LAA@mail.gmail.com>
-	<201206031233.24758.hverkuil@xs4all.nl>
-Date: Sun, 3 Jun 2012 18:04:49 -0300
-Message-ID: <CALF0-+UBtvUBy8iHTHqd2J9Txy9VeCfU1CqdJ=5aVktimjAC_A@mail.gmail.com>
-Subject: Re: [RFC/PATCH v2] media: Add stk1160 new driver
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Sylwester Nawrocki <snjw23@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:33006 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754912Ab2FMWY7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 13 Jun 2012 18:24:59 -0400
+Received: by wibhj8 with SMTP id hj8so5791712wib.1
+        for <linux-media@vger.kernel.org>; Wed, 13 Jun 2012 15:24:58 -0700 (PDT)
+Message-ID: <1339626272.2421.74.camel@Route3278>
+Subject: [PATCH 1/2] [BUG] dvb_usb_v2:  return the download ret in
+ dvb_usb_download_firmware
+From: Malcolm Priestley <tvboxspy@gmail.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: linux-media <linux-media@vger.kernel.org>
+Date: Wed, 13 Jun 2012 23:24:32 +0100
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Hi antti
 
-On Sun, Jun 3, 2012 at 7:33 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-[snip]
-> Thanks. I've fixed several things reported by v4l2-compliance (see my patch
-> below), but you are using an older v4l2-compliance version. You should clone
-> and compile the v4l-utils.git repository yourself, rather than using a distro
-> provided version (which I think is what you are doing now).
->
-> Can you apply my patch on yours and run the latest v4l2-compliance again?
+There some issues with dvb_usb_v2 with the lmedm04 driver.
 
-Okey I'll do that, and send you the results.
+The first being this patch, no return value from dvb_usb_download_firmware
+causes system wide dead lock with COLD disconnect as system attempts to continue
+to warm state.
 
->
-> Below is my (untested) patch that should fix a number of things.
->
-> BTW, I hate the use of current_norm, and in fact I plan to get rid of current_norm
-> in the near future. So that's why I replaced it with g_std.
+The second is to do with d->props.bInterfaceNumber in patch 2.
 
-Okey. I wasn't aware of that. I just saw it somewhere and I assumed it
-was *the right thing*.
+In get_usb_stream_config there no handing of the struct dvb_frontend.
+...
+int (*get_usb_stream_config) (struct dvb_frontend *,
+			struct usb_data_stream_properties *);
 
-Thanks for your help :)
+...
+I wonder if it would be better to use adapter instead?
 
-See ya,
-Ezequiel.
+I also have a draft patch to use delayed work.
+
+Regards
+
+
+Malcolm
+
+
+Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
+---
+ drivers/media/dvb/dvb-usb/dvb_usb_init.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/media/dvb/dvb-usb/dvb_usb_init.c b/drivers/media/dvb/dvb-usb/dvb_usb_init.c
+index 60aa944..c16a28a 100644
+--- a/drivers/media/dvb/dvb-usb/dvb_usb_init.c
++++ b/drivers/media/dvb/dvb-usb/dvb_usb_init.c
+@@ -61,7 +61,7 @@ static int dvb_usb_download_firmware(struct dvb_usb_device *d)
+ 	if (ret < 0)
+ 		goto err;
+ 
+-	return 0;
++	return ret;
+ err:
+ 	pr_debug("%s: failed=%d\n", __func__, ret);
+ 	return ret;
+-- 
+1.7.10
+
+
+
+
+
+
+
+
+
+
+
