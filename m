@@ -1,111 +1,202 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailmxout15.mailmx.agnat.pl ([193.239.45.95]:59155 "EHLO
-	mailmxout15.mailmx.agnat.pl" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751888Ab2FEWhR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 5 Jun 2012 18:37:17 -0400
-Message-ID: <151B1A2540C945E48D7AAE0A8FC2DDEE@laptop2>
-From: "Janusz Uzycki" <janusz.uzycki@elproma.com.pl>
-To: "Guennadi Liakhovetski" <g.liakhovetski@gmx.de>
-Cc: "Linux Media Mailing List" <linux-media@vger.kernel.org>,
-	"Laurent Pinchart" <laurent.pinchart@ideasonboard.com>
-References: <1E539FC23CF84B8A91428720570395E0@laptop2> <Pine.LNX.4.64.1101241720001.17567@axis700.grange> <AD14536027B946D6B4504D4F43E352A5@laptop2> <Pine.LNX.4.64.1101262045550.3989@axis700.grange> <F95361ABAE1D4A70A10790A798004482@laptop2> <Pine.LNX.4.64.1101271809030.8916@axis700.grange> <8026191608244DB98F002E983C866149@laptop2> <Pine.LNX.4.64.1102011420540.6673@axis700.grange> <18BE1662A1F04B6C8B39AA46440A3FBB@laptop2> <Pine.LNX.4.64.1102011532360.6673@axis700.grange> <2F2263A44E0F466F898DD3E2F1D19F12@laptop2> <Pine.LNX.4.64.1102081427500.1393@axis700.grange> <CEA83F28AF7C47E7B83AE1DBFFBC8514@laptop2> <Pine.LNX.4.64.1206051651220.2145@axis700.grange>
-Subject: Re: SH7724, VOU, PAL mode
-Date: Wed, 6 Jun 2012 00:37:09 +0200
+Received: from smtp.nokia.com ([147.243.128.24]:32095 "EHLO mgw-da01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750732Ab2FMVMH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 13 Jun 2012 17:12:07 -0400
+Message-ID: <4FD90217.2060403@iki.fi>
+Date: Thu, 14 Jun 2012 00:11:51 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain;
-	format=flowed;
-	charset="ISO-8859-1";
-	reply-type=original
+To: Sylwester Nawrocki <snjw23@gmail.com>
+CC: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
+	laurent.pinchart@ideasonboard.com
+Subject: Re: [PATCH 3/4] v4l: Unify selection targets across V4L2 and V4L2
+ subdev interfaces
+References: <4FD4F6B6.1070605@iki.fi> <1339356878-2179-3-git-send-email-sakari.ailus@iki.fi> <4FD720AC.8000906@gmail.com>
+In-Reply-To: <4FD720AC.8000906@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi.
+Hi Sylwester,
 
-> Sorry, this is not going to be a very detailed reply. It's been a long
-> time since I've worked with VOU and AK8813(4).
+Thanks for the comments!!
 
-I see.
-
->> If I set PAL mode (v4l2-ctl -s) VOUCR::MD is still configured for NTSC.
->
-> This shouldn't be the case: look at sh_vou_s_std(). Can you try to add
-> debugging to the driver to see, whether that function gets called, when
-> you run v4l2-ctl? If not - either you're calling it wrongly, or there's a
-> bug in it. If it is - see, whether it's not configuring VOUCR properly or
-> somehow it gets reset again later.
-
-Before I turned on CONFIG_VIDEO_ADV_DEBUG only for I2C debug (v4l2-dbg). Now 
-I turned on dynamic printk (dev_dbg) for sh_vou.c and observed that 
-sh_vou_open() calls sh_vou_hw_init() what causes VOU reset:
-v4l2-ctl  -s 5
-sh-vou sh-vou: sh_vou_open()
-sh-vou sh-vou: Reset took 1us
-sh-vou sh-vou: sh_vou_querycap()
-sh-vou sh-vou: sh_vou_s_std(): 0xff
-CS495X-set: VOUER was 0x00000000, now SEN and ST bits are set
-CS495X set format: 000000ff
-CS495X-set: VOUER 0x00000000 restored
-sh-vou sh-vou: sh_vou_release()
-Standard set to 000000ff
-
-This is why "v4l2-ctl -s 5" used before my simple test program (modified 
-capture example with mmap method) finally has no effect for VOU.
-When the test program opens video device it causes reset PAL mode in VOU and 
-does not in TV encoder. Thanks Guennadi for the hints.
-(VOUER messages explanation: I have to set SEN and ST bits in CS49X driver 
-because the chip needs 27MHz clock to I2C block operate)
-
->> I noticed that VOU is limited to NTSC resolution: "Maximum destination 
->> image
->> size: 720 x 240 per field".
->
-> You mean in the datasheet?
-
-Yes, exactly.
-
->I don't have it currently at hand, but I seem
-> to remember, that there was a bug and the VOU does actually support a full
-> PAL resolution too. I'm not 100% certain, though.
-
-OK, I will test it. Do you remember how you discovered that?
-
->> Unfortunately I can't still manage to work video data from VOU to the 
->> encoder
->> - green picture only. Do you have any test program for video v4l2 output?
->
-> You can use gstreamer, e.g.:
->
-> gst-launch -v filesrc location=x.avi ! decodebin ! ffmpegcolorspace ! \
-> video/x-raw-rgb,bpp=24 ! v4l2sink device=/dev/video0 tv-norm=PAL-B
-
-thanks
-
-> I also used a (possibly modified) program by Laurent (cc'ed) which either
-> I - with his agreement - can re-send to you, or maybe he'd send you the
-> original.
-
-ok, is it media-ctl (git://git.ideasonboard.org/media-ctl.git)?
-
->> Does
->> the idea fb->v4l2 output
->> http://www.spinics.net/lists/linux-fbdev/msg01102.html is alive?
->
-> More dead, than alive, I think.
-
-Ok. Did you find another solution (software/library like DirectFB) for 
-common and easier video output support in userspace?
-
-best regards
-Janusz
-
->
-> Thanks
-> Guennadi
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> http://www.open-technology.de/
+Sylwester Nawrocki wrote:
+> Hi Sakari,
 > 
+> On 06/10/2012 09:34 PM, Sakari Ailus wrote:
+>> Signed-off-by: Sakari Ailus<sakari.ailus@iki.fi>
+>> ---
+>>   drivers/media/video/omap3isp/ispccdc.c    |    6 ++--
+>>   drivers/media/video/omap3isp/isppreview.c |    6 ++--
+>>   drivers/media/video/omap3isp/ispresizer.c |    6 ++--
+>>   drivers/media/video/smiapp/smiapp-core.c  |   30 +++++++++---------
+>>   drivers/media/video/v4l2-subdev.c         |    4 +-
+>>   include/linux/v4l2-common.h               |   49
+>> +++++++++++++++++++++++++++++
+>>   include/linux/v4l2-subdev.h               |   13 +------
+>>   include/linux/videodev2.h                 |   20 +----------
+>>   8 files changed, 79 insertions(+), 55 deletions(-)
+>>   create mode 100644 include/linux/v4l2-common.h
+> <snip>
+>> diff --git a/include/linux/v4l2-common.h b/include/linux/v4l2-common.h
+>> new file mode 100644
+>> index 0000000..e0db6e3
+>> --- /dev/null
+>> +++ b/include/linux/v4l2-common.h
+>> @@ -0,0 +1,49 @@
+>> +/*
+>> + * include/linux/v4l2-common.h
+>> + *
+>> + * Common V4L2 and V4L2 subdev definitions.
+>> + *
+>> + * Users are adviced to #include this file either videodev2.h (V4L2)
+> 
+> s/either videodev2.h/either from videodev2.h ?
+> 
+>> + * or v4l2-subdev.h (V4L2 subdev) rather than to refer to this file
+> 
+> s/or v4l2-subdev.h/or from v4l2-subdev.h ?
+
+How about "through" for both?
+
+>> + * directly.
+>> + *
+>> + * Copyright (C) 2012 Nokia Corporation
+>> + * Contact: Sakari Ailus<sakari.ailus@maxwell.research.nokia.com>
+>> + *
+>> + * This program is free software; you can redistribute it and/or
+>> + * modify it under the terms of the GNU General Public License
+>> + * version 2 as published by the Free Software Foundation.
+>> + *
+>> + * This program is distributed in the hope that it will be useful, but
+>> + * WITHOUT ANY WARRANTY; without even the implied warranty of
+>> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+>> + * General Public License for more details.
+>> + *
+>> + * You should have received a copy of the GNU General Public License
+>> + * along with this program; if not, write to the Free Software
+>> + * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+>> + * 02110-1301 USA
+>> + *
+>> + */
+>> +
+>> +#ifndef __V4L2_COMMON__
+>> +#define __V4L2_COMMON__
+>> +
+>> +/* Selection target definitions */
+>> +
+>> +/* Current cropping area */
+>> +#define V4L2_SEL_TGT_CROP        0x0000
+>> +/* Default cropping area */
+>> +#define V4L2_SEL_TGT_CROP_DEFAULT    0x0001
+>> +/* Cropping bounds */
+>> +#define V4L2_SEL_TGT_CROP_BOUNDS    0x0002
+>> +/* Current composing area */
+>> +#define V4L2_SEL_TGT_COMPOSE        0x0100
+>> +/* Default composing area */
+>> +#define V4L2_SEL_TGT_COMPOSE_DEFAULT    0x0101
+>> +/* Composing bounds */
+>> +#define V4L2_SEL_TGT_COMPOSE_BOUNDS    0x0102
+>> +/* Current composing area plus all padding pixels */
+>> +#define V4L2_SEL_TGT_COMPOSE_PADDED    0x0103
+>> +
+>> +#endif /* __V4L2_COMMON__  */
+>> diff --git a/include/linux/v4l2-subdev.h b/include/linux/v4l2-subdev.h
+>> index 01eee06..b75f535 100644
+>> --- a/include/linux/v4l2-subdev.h
+>> +++ b/include/linux/v4l2-subdev.h
+>> @@ -127,22 +127,13 @@ struct v4l2_subdev_frame_interval_enum {
+>>   #define V4L2_SUBDEV_SEL_FLAG_SIZE_LE            (1<<  1)
+>>   #define V4L2_SUBDEV_SEL_FLAG_KEEP_CONFIG        (1<<  2)
+>>
+>> -/* active cropping area */
+>> -#define V4L2_SUBDEV_SEL_TGT_CROP            0x0000
+>> -/* cropping bounds */
+>> -#define V4L2_SUBDEV_SEL_TGT_CROP_BOUNDS            0x0002
+>> -/* current composing area */
+>> -#define V4L2_SUBDEV_SEL_TGT_COMPOSE            0x0100
+>> -/* composing bounds */
+>> -#define V4L2_SUBDEV_SEL_TGT_COMPOSE_BOUNDS        0x0102
+>> -
+>> -
+> 
+> Should this patch at the same time be adding:
+> 
+> #include <linux/v4l2-common.h>
+> 
+> to avoid build errors ?
+
+Fixed.
+
+>>   /**
+>>    * struct v4l2_subdev_selection - selection info
+>>    *
+>>    * @which: either V4L2_SUBDEV_FORMAT_ACTIVE or V4L2_SUBDEV_FORMAT_TRY
+>>    * @pad: pad number, as reported by the media API
+>> - * @target: selection target, used to choose one of possible rectangles
+>> + * @target: Selection target, used to choose one of possible rectangles,
+>> + *        defined in v4l2-common.h; V4L2_SEL_TGT_* .
+>>    * @flags: constraint flags
+>>    * @r: coordinates of the selection window
+>>    * @reserved: for future use, set to zero for now
+>> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+>> index 2cff49c..10edd1d 100644
+>> --- a/include/linux/videodev2.h
+>> +++ b/include/linux/videodev2.h
+>> @@ -765,27 +765,11 @@ struct v4l2_crop {
+>>   #define V4L2_SEL_FLAG_GE    0x00000001
+>>   #define V4L2_SEL_FLAG_LE    0x00000002
+> 
+> And also in videdev2.h:
+> 
+> #include <linux/v4l2-common.h>
+> 
+> ?
+
+Ditto.
+
+>> -/* Selection targets */
+>> -
+>> -/* Current cropping area */
+>> -#define V4L2_SEL_TGT_CROP        0x0000
+>> -/* Default cropping area */
+>> -#define V4L2_SEL_TGT_CROP_DEFAULT    0x0001
+>> -/* Cropping bounds */
+>> -#define V4L2_SEL_TGT_CROP_BOUNDS    0x0002
+>> -/* Current composing area */
+>> -#define V4L2_SEL_TGT_COMPOSE        0x0100
+>> -/* Default composing area */
+>> -#define V4L2_SEL_TGT_COMPOSE_DEFAULT    0x0101
+>> -/* Composing bounds */
+>> -#define V4L2_SEL_TGT_COMPOSE_BOUNDS    0x0102
+>> -/* Current composing area plus all padding pixels */
+>> -#define V4L2_SEL_TGT_COMPOSE_PADDED    0x0103
+>> -
+>>   /**
+>>    * struct v4l2_selection - selection info
+>>    * @type:    buffer type (do not use *_MPLANE types)
+>> - * @target:    selection target, used to choose one of possible
+>> rectangles
+>> + * @target:    Selection target, used to choose one of possible
+>> rectangles;
+>> + *        defined in v4l2-common.h.
+>>    * @flags:    constraints flags
+>>    * @r:        coordinates of selection window
+>>    * @reserved:    for future use, rounds structure size to 64 bytes,
+>> set to zero
+> 
+> There are now some missing renames, due to some patches that were merged
+> recently. Please feel free to squash the attached patch with this one.
+
+I merged it to the patch and put your SoB line there. :-)
+
+Cheers,
+
+-- 
+Sakari Ailus
+sakari.ailus@iki.fi
+
 
