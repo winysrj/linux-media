@@ -1,122 +1,434 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from zoneX.GCU-Squad.org ([194.213.125.0]:25255 "EHLO
-	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754834Ab2F2Kr2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Jun 2012 06:47:28 -0400
-Date: Fri, 29 Jun 2012 12:47:19 +0200
-From: Jean Delvare <khali@linux-fr.org>
-To: Linux I2C <linux-i2c@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: LMML <linux-media@vger.kernel.org>
-Subject: [PATCH] i2c: Export an unlocked flavor of i2c_transfer
-Message-ID: <20120629124719.2cf23f6b@endymion.delvare>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from smtp.nokia.com ([147.243.128.26]:41644 "EHLO mgw-da02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750965Ab2FNFqZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 14 Jun 2012 01:46:25 -0400
+Received: from lanttu (uldhcp0804029.europe.nokia.com [172.25.40.29])
+	by mgw-da02.nokia.com (Sentrion-MTA-4.2.2/Sentrion-MTA-4.2.2) with ESMTP id q5E5kLus026682
+	(version=TLSv1/SSLv3 cipher=AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Thu, 14 Jun 2012 08:46:22 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
+	snjw23@gmail.com, t.stanislaws@samsung.com
+Subject: [PATCH v3 6/6] v4l: Unify selection flags documentation
+Date: Thu, 14 Jun 2012 01:39:41 +0300
+Message-Id: <1339627181-8563-6-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <4FD91697.9050100@iki.fi>
+References: <4FD91697.9050100@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Some drivers (in particular for TV cards) need exclusive access to
-their I2C buses for specific operations. Export an unlocked flavor
-of i2c_transfer to give them full control.
+As for the selection targets, the selection flags are now the same on V4L2
+and V4L2 subdev interfaces. Also document them so.
 
-The unlocked flavor has the following limitations:
-* Obviously, caller must hold the i2c adapter lock.
-* No debug messages are logged. We don't want to log messages while
-  holding a rt_mutex.
-* No check is done on the existence of adap->algo->master_xfer. It
-  is thus the caller's responsibility to ensure that the function is
-  OK to call.
-
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
 ---
-Mauro, would this be OK with you?
+ Documentation/DocBook/media/v4l/dev-subdev.xml     |    6 +-
+ Documentation/DocBook/media/v4l/selection-api.xml  |    6 +-
+ .../DocBook/media/v4l/selections-common.xml        |  225 +++++++++++++-------
+ .../DocBook/media/v4l/vidioc-g-selection.xml       |   27 +---
+ .../media/v4l/vidioc-subdev-g-selection.xml        |   39 +----
+ 5 files changed, 158 insertions(+), 145 deletions(-)
 
- drivers/i2c/i2c-core.c |   44 +++++++++++++++++++++++++++++++++-----------
- include/linux/i2c.h    |    3 +++
- 2 files changed, 36 insertions(+), 11 deletions(-)
-
---- linux-3.5-rc4.orig/drivers/i2c/i2c-core.c	2012-06-05 16:22:59.000000000 +0200
-+++ linux-3.5-rc4/drivers/i2c/i2c-core.c	2012-06-29 12:41:04.707793937 +0200
-@@ -1312,6 +1312,37 @@ module_exit(i2c_exit);
-  */
+diff --git a/Documentation/DocBook/media/v4l/dev-subdev.xml b/Documentation/DocBook/media/v4l/dev-subdev.xml
+index 76c4307..8c44b3f 100644
+--- a/Documentation/DocBook/media/v4l/dev-subdev.xml
++++ b/Documentation/DocBook/media/v4l/dev-subdev.xml
+@@ -323,10 +323,10 @@
+       <para>The drivers should always use the closest possible
+       rectangle the user requests on all selection targets, unless
+       specifically told otherwise.
+-      <constant>V4L2_SUBDEV_SEL_FLAG_SIZE_GE</constant> and
+-      <constant>V4L2_SUBDEV_SEL_FLAG_SIZE_LE</constant> flags may be
++      <constant>V4L2_SEL_FLAG_GE</constant> and
++      <constant>V4L2_SEL_FLAG_LE</constant> flags may be
+       used to round the image size either up or down. <xref
+-      linkend="v4l2-subdev-selection-flags"></xref></para>
++      linkend="v4l2-selection-flags"></xref></para>
+     </section>
  
- /**
-+ * __i2c_transfer - unlocked flavor of i2c_transfer
-+ * @adap: Handle to I2C bus
-+ * @msgs: One or more messages to execute before STOP is issued to
-+ *	terminate the operation; each message begins with a START.
-+ * @num: Number of messages to be executed.
-+ *
-+ * Returns negative errno, else the number of messages executed.
-+ *
-+ * Adapter lock must be held when calling this function. No debug logging
-+ * takes place. adap->algo->master_xfer existence isn't checked.
-+ */
-+int __i2c_transfer(struct i2c_adapter *adap, struct i2c_msg *msgs, int num)
-+{
-+	unsigned long orig_jiffies;
-+	int ret, try;
+     <section>
+diff --git a/Documentation/DocBook/media/v4l/selection-api.xml b/Documentation/DocBook/media/v4l/selection-api.xml
+index 24dec10..e7ed507 100644
+--- a/Documentation/DocBook/media/v4l/selection-api.xml
++++ b/Documentation/DocBook/media/v4l/selection-api.xml
+@@ -55,7 +55,7 @@ cropping and composing rectangles have the same size.</para>
+ 
+     </section>
+ 
+-    See <xref linkend="v4l2-selection-targets-table" /> for more
++    See <xref linkend="v4l2-selection-targets" /> for more
+     information.
+ 
+   <section>
+@@ -74,7 +74,7 @@ cropping/composing rectangles may have to be aligned, and both the source and
+ the sink may have arbitrary upper and lower size limits. Therefore, as usual,
+ drivers are expected to adjust the requested parameters and return the actual
+ values selected. An application can control the rounding behaviour using <link
+-linkend="v4l2-sel-flags"> constraint flags </link>.</para>
++linkend="v4l2-selection-flags"> constraint flags </link>.</para>
+ 
+    <section>
+ 
+@@ -117,7 +117,7 @@ the bounds rectangle. The composing rectangle must lie completely inside bounds
+ rectangle. The driver must adjust the composing rectangle to fit to the
+ bounding limits. Moreover, the driver can perform other adjustments according
+ to hardware limitations. The application can control rounding behaviour using
+-<link linkend="v4l2-sel-flags"> constraint flags </link>.</para>
++<link linkend="v4l2-selection-flags"> constraint flags </link>.</para>
+ 
+ <para>For capture devices the default composing rectangle is queried using
+ <constant> V4L2_SEL_TGT_COMPOSE_DEFAULT </constant>. It is usually equal to the
+diff --git a/Documentation/DocBook/media/v4l/selections-common.xml b/Documentation/DocBook/media/v4l/selections-common.xml
+index eef2b43..48575b3 100644
+--- a/Documentation/DocBook/media/v4l/selections-common.xml
++++ b/Documentation/DocBook/media/v4l/selections-common.xml
+@@ -1,6 +1,6 @@
+ <section id="v4l2-selections-common">
+ 
+-  <title>Selection targets</title>
++  <title>Common selection definitions</title>
+ 
+   <para>While the <link linkend="selection-api">V4L2 selection
+   API</link> and <link linkend="v4l2-subdev-selections">V4L2 subdev
+@@ -11,83 +11,154 @@
+   refer to the in-memory pixel format and a video device's buffer
+   queue.</para>
+ 
+-  <para>The meaning of the selection targets may thus be affected on
+-  which of the two interfaces they are used.</para>
++  <para>This section defines the common parts of the two APIs.</para>
+ 
+-  <table pgwide="1" frame="none" id="v4l2-selection-targets-table">
+-  <title>Selection target definitions</title>
+-    <tgroup cols="4">
+-      <colspec colname="c1" />
+-      <colspec colname="c2" />
+-      <colspec colname="c3" />
+-      <colspec colname="c4" />
+-      <colspec colname="c5" />
+-      &cs-def;
+-      <thead>
+-	<row rowsep="1">
+-	  <entry align="left">Target name</entry>
+-	  <entry align="left">id</entry>
+-	  <entry align="left">Definition</entry>
+-	  <entry align="left">Valid for V4L2</entry>
+-	  <entry align="left">Valid for V4L2 subdev</entry>
+-	</row>
+-      </thead>
+-      <tbody valign="top">
+-	<row>
+-	  <entry><constant>V4L2_SEL_TGT_CROP</constant></entry>
+-	  <entry>0x0000</entry>
+-	  <entry>Crop rectangle. Defines the cropped area.</entry>
+-	  <entry>X</entry>
+-	  <entry>X</entry>
+-	</row>
+-	<row>
+-          <entry><constant>V4L2_SEL_TGT_CROP_DEFAULT</constant></entry>
+-          <entry>0x0001</entry>
+-          <entry>Suggested cropping rectangle that covers the "whole picture".</entry>
+-	  <entry>X</entry>
+-	  <entry>O</entry>
+-	</row>
+-	<row>
+-	  <entry><constant>V4L2_SEL_TGT_CROP_BOUNDS</constant></entry>
+-	  <entry>0x0002</entry>
+-	  <entry>Bounds of the crop rectangle. All valid crop
+-	  rectangles fit inside the crop bounds rectangle.
+-	  </entry>
+-	  <entry>X</entry>
+-	  <entry>X</entry>
+-	</row>
+-	<row>
+-	  <entry><constant>V4L2_SEL_TGT_COMPOSE</constant></entry>
+-	  <entry>0x0100</entry>
+-	  <entry>Compose rectangle. Used to configure scaling
+-	  and composition.</entry>
+-	  <entry>X</entry>
+-	  <entry>X</entry>
+-	</row>
+-	<row>
+-          <entry><constant>V4L2_SEL_TGT_COMPOSE_DEFAULT</constant></entry>
+-          <entry>0x0101</entry>
+-          <entry>Suggested composition rectangle that covers the "whole picture".</entry>
+-	  <entry>X</entry>
+-	  <entry>O</entry>
+-	</row>
+-	<row>
+-	  <entry><constant>V4L2_SEL_TGT_COMPOSE_BOUNDS</constant></entry>
+-	  <entry>0x0102</entry>
+-	  <entry>Bounds of the compose rectangle. All valid compose
+-	  rectangles fit inside the compose bounds rectangle.</entry>
+-	  <entry>X</entry>
+-	  <entry>X</entry>
+-	</row>
+-	<row>
+-          <entry><constant>V4L2_SEL_TGT_COMPOSE_PADDED</constant></entry>
+-          <entry>0x0103</entry>
+-          <entry>The active area and all padding pixels that are inserted or
++  <section id="v4l2-selection-targets">
 +
-+	/* Retry automatically on arbitration loss */
-+	orig_jiffies = jiffies;
-+	for (ret = 0, try = 0; try <= adap->retries; try++) {
-+		ret = adap->algo->master_xfer(adap, msgs, num);
-+		if (ret != -EAGAIN)
-+			break;
-+		if (time_after(jiffies, orig_jiffies + adap->timeout))
-+			break;
-+	}
++    <title>Selection targets</title>
 +
-+	return ret;
-+}
-+EXPORT_SYMBOL(__i2c_transfer);
++    <para>The meaning of the selection targets may thus be affected on
++    which of the two interfaces they are used.</para>
 +
-+/**
-  * i2c_transfer - execute a single or combined I2C message
-  * @adap: Handle to I2C bus
-  * @msgs: One or more messages to execute before STOP is issued to
-@@ -1325,8 +1356,7 @@ module_exit(i2c_exit);
-  */
- int i2c_transfer(struct i2c_adapter *adap, struct i2c_msg *msgs, int num)
- {
--	unsigned long orig_jiffies;
--	int ret, try;
-+	int ret;
++    <table pgwide="1" frame="none" id="v4l2-selection-targets-table">
++    <title>Selection target definitions</title>
++      <tgroup cols="4">
++	<colspec colname="c1" />
++	<colspec colname="c2" />
++	<colspec colname="c3" />
++	<colspec colname="c4" />
++	<colspec colname="c5" />
++	&cs-def;
++	<thead>
++	  <row rowsep="1">
++	    <entry align="left">Target name</entry>
++	    <entry align="left">id</entry>
++	    <entry align="left">Definition</entry>
++	    <entry align="left">Valid for V4L2</entry>
++	    <entry align="left">Valid for V4L2 subdev</entry>
++	  </row>
++	</thead>
++	<tbody valign="top">
++	  <row>
++	    <entry><constant>V4L2_SEL_TGT_CROP</constant></entry>
++	    <entry>0x0000</entry>
++	    <entry>Crop rectangle. Defines the cropped area.</entry>
++	    <entry>X</entry>
++	    <entry>X</entry>
++	  </row>
++	  <row>
++	    <entry><constant>V4L2_SEL_TGT_CROP_DEFAULT</constant></entry>
++	    <entry>0x0001</entry>
++	    <entry>Suggested cropping rectangle that covers the "whole picture".</entry>
++	    <entry>X</entry>
++	    <entry>O</entry>
++	  </row>
++	  <row>
++	    <entry><constant>V4L2_SEL_TGT_CROP_BOUNDS</constant></entry>
++	    <entry>0x0002</entry>
++	    <entry>Bounds of the crop rectangle. All valid crop
++	    rectangles fit inside the crop bounds rectangle.
++	    </entry>
++	    <entry>X</entry>
++	    <entry>X</entry>
++	  </row>
++	  <row>
++	    <entry><constant>V4L2_SEL_TGT_COMPOSE</constant></entry>
++	    <entry>0x0100</entry>
++	    <entry>Compose rectangle. Used to configure scaling
++	    and composition.</entry>
++	    <entry>X</entry>
++	    <entry>X</entry>
++	  </row>
++	  <row>
++	    <entry><constant>V4L2_SEL_TGT_COMPOSE_DEFAULT</constant></entry>
++	    <entry>0x0101</entry>
++	    <entry>Suggested composition rectangle that covers the "whole picture".</entry>
++	    <entry>X</entry>
++	    <entry>O</entry>
++	  </row>
++	  <row>
++	    <entry><constant>V4L2_SEL_TGT_COMPOSE_BOUNDS</constant></entry>
++	    <entry>0x0102</entry>
++	    <entry>Bounds of the compose rectangle. All valid compose
++	    rectangles fit inside the compose bounds rectangle.</entry>
++	    <entry>X</entry>
++	    <entry>X</entry>
++	  </row>
++	  <row>
++	    <entry><constant>V4L2_SEL_TGT_COMPOSE_PADDED</constant></entry>
++	    <entry>0x0103</entry>
++	    <entry>The active area and all padding pixels that are inserted or
+ 	    modified by hardware.</entry>
+-	  <entry>X</entry>
+-	  <entry>O</entry>
++	    <entry>X</entry>
++	    <entry>O</entry>
++	  </row>
++	</tbody>
++      </tgroup>
++    </table>
++
++  </section>
++
++  <section id="v4l2-selection-flags">
++
++    <title>Selection flags</title>
++
++    <table pgwide="1" frame="none" id="v4l2-selection-flags-table">
++    <title>Selection flag definitions</title>
++      <tgroup cols="4">
++	<colspec colname="c1" />
++	<colspec colname="c2" />
++	<colspec colname="c3" />
++	<colspec colname="c4" />
++	<colspec colname="c5" />
++	&cs-def;
++	<thead>
++	<row rowsep="1">
++	    <entry align="left">Flag name</entry>
++	    <entry align="left">id</entry>
++	    <entry align="left">Definition</entry>
++	    <entry align="left">Valid for V4L2</entry>
++	    <entry align="left">Valid for V4L2 subdev</entry>
+ 	</row>
+-      </tbody>
+-    </tgroup>
+-  </table>
++	</thead>
++	<tbody valign="top">
++	  <row>
++	    <entry><constant>V4L2_SEL_FLAG_GE</constant></entry>
++	    <entry>(1 &lt;&lt; 0)</entry>
++	    <entry>Suggest the driver it should choose greater or
++	    equal rectangle (in size) than was requested. Albeit the
++	    driver may choose a lesser size, it will only do so due to
++	    hardware limitations. Without this flag (and
++	    <constant>V4L2_SEL_FLAG_LE</constant>) the
++	    behaviour is to choose the closest possible
++	    rectangle.</entry>
++	    <entry>X</entry>
++            <entry>X</entry>
++	  </row>
++	  <row>
++	    <entry><constant>V4L2_SEL_FLAG_LE</constant></entry>
++	    <entry>(1 &lt;&lt; 1)</entry>
++	    <entry>Suggest the driver it
++	    should choose lesser or equal rectangle (in size) than was
++	    requested. Albeit the driver may choose a greater size, it
++	    will only do so due to hardware limitations.</entry>
++	    <entry>X</entry>
++            <entry>X</entry>
++	  </row>
++	  <row>
++	    <entry><constant>V4L2_SEL_FLAG_KEEP_CONFIG</constant></entry>
++	    <entry>(1 &lt;&lt; 2)</entry>
++	    <entry>The configuration should not be propagated to any
++	    further processing steps. If this flag is not given, the
++	    configuration is propagated inside the subdevice to all
++	    further processing steps.</entry>
++	    <entry>O</entry>
++            <entry>X</entry>
++	  </row>
++	</tbody>
++      </tgroup>
++    </table>
++
++  </section>
++
+ </section>
+diff --git a/Documentation/DocBook/media/v4l/vidioc-g-selection.xml b/Documentation/DocBook/media/v4l/vidioc-g-selection.xml
+index c6f8325..f76d8a6 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-g-selection.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-g-selection.xml
+@@ -154,32 +154,9 @@ exist no rectangle </emphasis> that satisfies the constraints.</para>
  
- 	/* REVISIT the fault reporting model here is weak:
- 	 *
-@@ -1364,15 +1394,7 @@ int i2c_transfer(struct i2c_adapter *ada
- 			i2c_lock_adapter(adap);
- 		}
+   </refsect1>
  
--		/* Retry automatically on arbitration loss */
--		orig_jiffies = jiffies;
--		for (ret = 0, try = 0; try <= adap->retries; try++) {
--			ret = adap->algo->master_xfer(adap, msgs, num);
--			if (ret != -EAGAIN)
--				break;
--			if (time_after(jiffies, orig_jiffies + adap->timeout))
--				break;
--		}
-+		ret = __i2c_transfer(adap, msgs, num);
- 		i2c_unlock_adapter(adap);
+-  <para>Selection targets are documented in <xref
++  <para>Selection targets and flags are documented in <xref
+   linkend="v4l2-selections-common"/>.</para>
  
- 		return ret;
---- linux-3.5-rc4.orig/include/linux/i2c.h	2012-06-05 16:23:05.000000000 +0200
-+++ linux-3.5-rc4/include/linux/i2c.h	2012-06-29 10:29:47.865621249 +0200
-@@ -68,6 +68,9 @@ extern int i2c_master_recv(const struct
-  */
- extern int i2c_transfer(struct i2c_adapter *adap, struct i2c_msg *msgs,
- 			int num);
-+/* Unlocked flavor */
-+extern int __i2c_transfer(struct i2c_adapter *adap, struct i2c_msg *msgs,
-+			  int num);
+-  <refsect1>
+-    <table frame="none" pgwide="1" id="v4l2-sel-flags">
+-      <title>Selection constraint flags</title>
+-      <tgroup cols="3">
+-	&cs-def;
+-	<tbody valign="top">
+-	  <row>
+-            <entry><constant>V4L2_SEL_FLAG_GE</constant></entry>
+-            <entry>0x00000001</entry>
+-            <entry>Indicates that the adjusted rectangle must contain the original
+-	    &v4l2-selection; <structfield>r</structfield> rectangle.</entry>
+-	  </row>
+-	  <row>
+-            <entry><constant>V4L2_SEL_FLAG_LE</constant></entry>
+-            <entry>0x00000002</entry>
+-            <entry>Indicates that the adjusted rectangle must be inside the original
+-	    &v4l2-rect; <structfield>r</structfield> rectangle.</entry>
+-	  </row>
+-	</tbody>
+-      </tgroup>
+-    </table>
+-  </refsect1>
+-
+     <section>
+       <figure id="sel-const-adjust">
+ 	<title>Size adjustments with constraint flags.</title>
+@@ -216,7 +193,7 @@ exist no rectangle </emphasis> that satisfies the constraints.</para>
+ 	    <entry>__u32</entry>
+ 	    <entry><structfield>flags</structfield></entry>
+             <entry>Flags controlling the selection rectangle adjustments, refer to
+-	    <link linkend="v4l2-sel-flags">selection flags</link>.</entry>
++	    <link linkend="v4l2-selection-flags">selection flags</link>.</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry>&v4l2-rect;</entry>
+diff --git a/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml b/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml
+index fa4063a..9bc691e 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml
+@@ -87,44 +87,9 @@
+       <constant>EINVAL</constant>.</para>
+     </section>
  
- /* This is the very generalized SMBus access routine. You probably do not
-    want to use this, though; one of the functions below may be much easier,
-
+-    <para>Selection targets are documented in <xref
++    <para>Selection targets and flags are documented in <xref
+     linkend="v4l2-selections-common"/>.</para>
+ 
+-    <table pgwide="1" frame="none" id="v4l2-subdev-selection-flags">
+-      <title>V4L2 subdev selection flags</title>
+-      <tgroup cols="3">
+-        &cs-def;
+-	<tbody valign="top">
+-	  <row>
+-	    <entry><constant>V4L2_SUBDEV_SEL_FLAG_SIZE_GE</constant></entry>
+-	    <entry>(1 &lt;&lt; 0)</entry> <entry>Suggest the driver it
+-	    should choose greater or equal rectangle (in size) than
+-	    was requested. Albeit the driver may choose a lesser size,
+-	    it will only do so due to hardware limitations. Without
+-	    this flag (and
+-	    <constant>V4L2_SUBDEV_SEL_FLAG_SIZE_LE</constant>) the
+-	    behaviour is to choose the closest possible
+-	    rectangle.</entry>
+-	  </row>
+-	  <row>
+-	    <entry><constant>V4L2_SUBDEV_SEL_FLAG_SIZE_LE</constant></entry>
+-	    <entry>(1 &lt;&lt; 1)</entry> <entry>Suggest the driver it
+-	    should choose lesser or equal rectangle (in size) than was
+-	    requested. Albeit the driver may choose a greater size, it
+-	    will only do so due to hardware limitations.</entry>
+-	  </row>
+-	  <row>
+-	    <entry><constant>V4L2_SUBDEV_SEL_FLAG_KEEP_CONFIG</constant></entry>
+-	    <entry>(1 &lt;&lt; 2)</entry>
+-	    <entry>The configuration should not be propagated to any
+-	    further processing steps. If this flag is not given, the
+-	    configuration is propagated inside the subdevice to all
+-	    further processing steps.</entry>
+-	  </row>
+-	</tbody>
+-      </tgroup>
+-    </table>
+-
+     <table pgwide="1" frame="none" id="v4l2-subdev-selection">
+       <title>struct <structname>v4l2_subdev_selection</structname></title>
+       <tgroup cols="3">
+@@ -151,7 +116,7 @@
+ 	    <entry>__u32</entry>
+ 	    <entry><structfield>flags</structfield></entry>
+ 	    <entry>Flags. See
+-	    <xref linkend="v4l2-subdev-selection-flags">.</xref></entry>
++	    <xref linkend="v4l2-selection-flags">.</xref></entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry>&v4l2-rect;</entry>
 -- 
-Jean Delvare
+1.7.2.5
+
