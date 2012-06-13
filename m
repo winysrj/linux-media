@@ -1,55 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gh0-f174.google.com ([209.85.160.174]:43080 "EHLO
-	mail-gh0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753476Ab2F0WYk (ORCPT
+Received: from ams-iport-1.cisco.com ([144.254.224.140]:32633 "EHLO
+	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753743Ab2FMNxm (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Jun 2012 18:24:40 -0400
-Received: by ghrr11 with SMTP id r11so1391597ghr.19
-        for <linux-media@vger.kernel.org>; Wed, 27 Jun 2012 15:24:40 -0700 (PDT)
-From: Peter Senna Tschudin <peter.senna@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Guy Martin <gmsoft@tuxicoman.be>,
-	Manu Abraham <abraham.manu@gmail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	linux-media@vger.kernel.org
-Cc: Peter Senna Tschudin <peter.senna@gmail.com>
-Subject: [PATCH] [V2] stv090x: variable 'no_signal' set but not used
-Date: Wed, 27 Jun 2012 19:18:56 -0300
-Message-Id: <1340835544-12053-1-git-send-email-peter.senna@gmail.com>
+	Wed, 13 Jun 2012 09:53:42 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Scott Jiang <scott.jiang.linux@gmail.com>
+Subject: Re: extend v4l2_mbus_framefmt
+Date: Wed, 13 Jun 2012 15:53:21 +0200
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	LMML <linux-media@vger.kernel.org>,
+	uclinux-dist-devel@blackfin.uclinux.org
+References: <CAHG8p1AW6577=oGPo3o8S0LgF2p8_cfmLLnvYbikk7kEaYdxzw@mail.gmail.com> <201206111033.47369.hverkuil@xs4all.nl> <CAHG8p1Dc_FtTh4DOZO92VbJikk43CgVhQidXPjNwN3VcHrtKvA@mail.gmail.com>
+In-Reply-To: <CAHG8p1Dc_FtTh4DOZO92VbJikk43CgVhQidXPjNwN3VcHrtKvA@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201206131553.23161.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Remove variable and ignore return value of stv090x_chk_signal().
+On Wed 13 June 2012 07:31:37 Scott Jiang wrote:
+> Hi Hans,
+> 
+> > I would expect that the combination of v4l2_mbus_framefmt + v4l2_dv_timings
+> > gives you the information you need.
+> >
+> I can solve this problem in HD, but how about SD? Add a fake
+> dv_timings ops in SD decoder driver?
+> 
 
-Tested by compilation only.
+No, you add g/s_std instead. SD timings are set through that API. It is not so
+much that you give explicit timings, but that you give the SD standard. And from
+that you can derive the timings (i.e., one for 60 Hz formats, and one for 50 Hz
+formats).
 
-Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
----
- drivers/media/dvb/frontends/stv090x.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+SD is handled through the ENUM/G/S/QUERYSTD API (userspace) and s/g/querystd (in
+the subdevice API).
 
-diff --git a/drivers/media/dvb/frontends/stv090x.c b/drivers/media/dvb/frontends/stv090x.c
-index d79e69f..a4d5954 100644
---- a/drivers/media/dvb/frontends/stv090x.c
-+++ b/drivers/media/dvb/frontends/stv090x.c
-@@ -3172,7 +3172,7 @@ static enum stv090x_signal_state stv090x_algo(struct stv090x_state *state)
- 	enum stv090x_signal_state signal_state = STV090x_NOCARRIER;
- 	u32 reg;
- 	s32 agc1_power, power_iq = 0, i;
--	int lock = 0, low_sr = 0, no_signal = 0;
-+	int lock = 0, low_sr = 0;
- 
- 	reg = STV090x_READ_DEMOD(state, TSCFGH);
- 	STV090x_SETFIELD_Px(reg, RST_HWARE_FIELD, 1); /* Stop path 1 stream merger */
-@@ -3413,7 +3413,7 @@ static enum stv090x_signal_state stv090x_algo(struct stv090x_state *state)
- 				goto err;
- 		} else {
- 			signal_state = STV090x_NODATA;
--			no_signal = stv090x_chk_signal(state);
-+			(void) stv090x_chk_signal(state);
- 		}
- 	}
- 	return signal_state;
--- 
-1.7.10.2
+HD is handled through the ENUM/G/S/QUERY_DV_TIMINGS API and enum/g/s/query_dv_timings
+subdevice API.
 
+I've updated my cisco.git tree today and SD support is added to adv7842.c. Most
+of the other changes that I wanted to do are in there as well. It is not yet
+prime time, but it is getting close.
+
+Regards,
+
+	Hans
