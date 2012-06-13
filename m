@@ -1,54 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:49456 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755159Ab2FWQCA (ORCPT
+Received: from bordeaux.papayaltd.net ([82.129.38.124]:38168 "EHLO
+	bordeaux.papayaltd.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753370Ab2FMQT5 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 23 Jun 2012 12:02:00 -0400
-Received: by obbuo13 with SMTP id uo13so3653088obb.19
-        for <linux-media@vger.kernel.org>; Sat, 23 Jun 2012 09:02:00 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <CACK0K0j4mSG=EtU1R-VvvoF_5ZCxrTk4p3niyHBt4tAGVdqLVA@mail.gmail.com>
-References: <CACK0K0gXr08aNe3gKkWXmKkZ+JA0RBcWtq35aFfNaSqCCWMM1Q@mail.gmail.com>
-	<CALF0-+ViQTmGnAS19kOCZPZAj0ZYZX4Ef-+J7A=k1J2OFhFuVg@mail.gmail.com>
-	<CALF0-+XoKmw0fe_vpOs-BEZXDZThA5WuNw8CRjohLJojZ2O4Dw@mail.gmail.com>
-	<CACK0K0j4mSG=EtU1R-VvvoF_5ZCxrTk4p3niyHBt4tAGVdqLVA@mail.gmail.com>
-Date: Sat, 23 Jun 2012 13:01:59 -0300
-Message-ID: <CALF0-+XR_ZE8_52zQKZ9n9x8sGrmJWNpeXnKD_j6Lg1YHta=vQ@mail.gmail.com>
-Subject: Re: stk1160 linux driver
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: Gianluca Bergamo <gianluca.bergamo@gmail.com>
-Cc: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+	Wed, 13 Jun 2012 12:19:57 -0400
+Subject: Re: Hauppauge WinTV Nova S Plus Composite IN
+Mime-Version: 1.0 (Apple Message framework v1084)
+Content-Type: text/plain; charset=us-ascii
+From: Andre <linux-media@dinkum.org.uk>
+In-Reply-To: <CAPz3gmke-ASEXzhcqn+9R-5f10hrux3cqS1NAQ6VYmH3JSjb-Q@mail.gmail.com>
+Date: Wed, 13 Jun 2012 17:19:56 +0100
+Cc: linux-media@vger.kernel.org
+Content-Transfer-Encoding: 8BIT
+Message-Id: <76B80933-CE9A-4886-B4EB-22C26CAEC8E8@dinkum.org.uk>
+References: <CAPz3gmnaPdm1V6GyPB8wPv5WCcg_pJ4HctsQiqROLanbLA=amA@mail.gmail.com> <BE0BB692-35BF-42C3-B2F1-5AC9AB053321@dinkum.org.uk> <CAPz3gmke-ASEXzhcqn+9R-5f10hrux3cqS1NAQ6VYmH3JSjb-Q@mail.gmail.com>
+To: shacky <shacky83@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Gianluca,
 
-On Sat, Jun 23, 2012 at 10:51 AM, Gianluca Bergamo
-<gianluca.bergamo@gmail.com> wrote:
-> You are using :
->
-> module_usb_driver(stk1160_usb_driver);
->
-> That has been introduced in kernel 3.3 and so in my kernel 3.0.8 it does not
-> give compiler error (I don't know why) but the probe method is never called.
-> I've added the init and exit methods by myself and the probe now works.
->
+On 13 Jun 2012, at 15:56, shacky wrote:
 
-I think you might want to take a look to media_build:
+>> mencoder -oac lavc -ovc lavc -of mpeg -mpegopts format=dvd:tsaf   -vf scale=720:576,harddup -srate 48000 -af lavcresample=48000   -lavcopts vcodec=mpeg2video:vrc_buf_size=1835:vrc_maxrate=9800:vbitrate=8000:keyint=15:vstrict=0:acodec=ac3:abitrate=192:aspect=4/3 -ofps 25   -o johntest1.mpg tv:// -tv input=1:norm=PAL-BG:amode=1:alsa=1:adevice=hw.2,0:forceaudio:immediatemode=0:volume=100
+> 
+> Thank you very much Andre! It works!
+> 
+> I only have a problem with the audio quality: it is distorted
+> especially on the high frequencies.
+> Do you have any idea?
 
-http://git.linuxtv.org/media_build.git
-http://www.linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-DVB_Device_Drivers
+Only to play with the volume= parameter, I'm sure you tried that, maybe there are some audio controls but I haven't found them. The VCR tapes I have to transfer have very quiet and muffled audio, old home videos so I thought the audio sounded ok.
 
-This allows latest drivers to be built against old kernels.
+I will be doing some recordings with this in a week or so after a business trip so maybe I'll find out something more then.
 
-A "backward-compatible" solution for stk1160 wouldn't be accepted mainline,
-but feel free to use (in a personal fashion)
-your patched driver and/or ask me to review your patch.
+There must be someone on this list who knows a great deal more about the mixers and filters available.
 
-Unfortunately, you'll have to patch yourself each time I release a new
-driver version,
-so you may wan to try media_build as I previously suggested.
+Andre
 
-Hope this helps,
-Ezequiel.
+
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
