@@ -1,61 +1,154 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aotearoadigitalarts.org.nz ([72.14.179.101]:58694 "EHLO
-	linode.halo.gen.nz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751733Ab2FYABB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 Jun 2012 20:01:01 -0400
-Received: from 203-97-236-46.cable.telstraclear.net ([203.97.236.46] helo=[192.168.1.42])
-	by linode.halo.gen.nz with esmtpsa (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
-	(Exim 4.72)
-	(envelope-from <douglas@paradise.net.nz>)
-	id 1SiwP2-0004HJ-Uf
-	for linux-media@vger.kernel.org; Mon, 25 Jun 2012 11:39:37 +1200
-Message-ID: <4FE7AA34.8090304@paradise.net.nz>
-Date: Mon, 25 Jun 2012 12:00:52 +1200
-From: Douglas Bagnall <douglas@paradise.net.nz>
-MIME-Version: 1.0
+Received: from smtp.nokia.com ([147.243.1.47]:22163 "EHLO mgw-sa01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753229Ab2FMWmG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 13 Jun 2012 18:42:06 -0400
+From: Sakari Ailus <sakari.ailus@iki.fi>
 To: linux-media@vger.kernel.org
-Subject: [PATCH] Avoid sysfs oops when an rc_dev's raw device is absent
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
+	snjw23@gmail.com, t.stanislaws@samsung.com
+Subject: [PATCH v3 5/6] v4l: Unify selection flags
+Date: Thu, 14 Jun 2012 01:39:40 +0300
+Message-Id: <1339627181-8563-5-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <4FD91697.9050100@iki.fi>
+References: <4FD91697.9050100@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-For some reason, when the lirc daemon learns that a usb remote control
-has been unplugged, it wants to read the sysfs attributes of the
-disappearing device. This is useful for uncovering transient
-inconsistencies, but less so for keeping the system running when such
-inconsistencies exist.
+Unify flags on the selection interfaces on V4L2 and V4L2 subdev. Flags are
+very similar to targets in this case: there are more similarities than
+differences between the two interfaces.
 
-Under some circumstances (like every time I unplug my dvb stick from
-my laptop), lirc catches an rc_dev whose raw event handler has been
-removed (presumably by ir_raw_event_unregister), and proceeds to
-interrogate the raw protocols supported by the NULL pointer.
-
-This patch avoids the NULL dereference, and ignores the issue of how
-this state of affairs came about in the first place.
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
 ---
- drivers/media/rc/rc-main.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ drivers/media/video/omap3isp/ispccdc.c    |    2 +-
+ drivers/media/video/omap3isp/isppreview.c |    2 +-
+ drivers/media/video/smiapp/smiapp-core.c  |   10 +++++-----
+ include/linux/v4l2-common.h               |    5 +++++
+ include/linux/v4l2-subdev.h               |    6 +-----
+ include/linux/videodev2.h                 |    6 +-----
+ 6 files changed, 14 insertions(+), 17 deletions(-)
 
-diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-index 6e16b09..58789c9 100644
---- a/drivers/media/rc/rc-main.c
-+++ b/drivers/media/rc/rc-main.c
-@@ -775,10 +775,12 @@ static ssize_t show_protocols(struct device *device,
- 	if (dev->driver_type == RC_DRIVER_SCANCODE) {
- 		enabled = dev->rc_map.rc_type;
- 		allowed = dev->allowed_protos;
--	} else {
-+	} else if (dev->raw) {
- 		enabled = dev->raw->enabled_protocols;
- 		allowed = ir_raw_get_allowed_protocols();
+diff --git a/drivers/media/video/omap3isp/ispccdc.c b/drivers/media/video/omap3isp/ispccdc.c
+index 82df7a0..f1220d3 100644
+--- a/drivers/media/video/omap3isp/ispccdc.c
++++ b/drivers/media/video/omap3isp/ispccdc.c
+@@ -2064,7 +2064,7 @@ static int ccdc_set_selection(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
+ 	 * pad. If the KEEP_CONFIG flag is set, just return the current crop
+ 	 * rectangle.
+ 	 */
+-	if (sel->flags & V4L2_SUBDEV_SEL_FLAG_KEEP_CONFIG) {
++	if (sel->flags & V4L2_SEL_FLAG_KEEP_CONFIG) {
+ 		sel->r = *__ccdc_get_crop(ccdc, fh, sel->which);
+ 		return 0;
  	}
-+	else
-+		return -EINVAL;
+diff --git a/drivers/media/video/omap3isp/isppreview.c b/drivers/media/video/omap3isp/isppreview.c
+index 6fa70f4..99d5cc4 100644
+--- a/drivers/media/video/omap3isp/isppreview.c
++++ b/drivers/media/video/omap3isp/isppreview.c
+@@ -2000,7 +2000,7 @@ static int preview_set_selection(struct v4l2_subdev *sd,
+ 	 * pad. If the KEEP_CONFIG flag is set, just return the current crop
+ 	 * rectangle.
+ 	 */
+-	if (sel->flags & V4L2_SUBDEV_SEL_FLAG_KEEP_CONFIG) {
++	if (sel->flags & V4L2_SEL_FLAG_KEEP_CONFIG) {
+ 		sel->r = *__preview_get_crop(prev, fh, sel->which);
+ 		return 0;
+ 	}
+diff --git a/drivers/media/video/smiapp/smiapp-core.c b/drivers/media/video/smiapp/smiapp-core.c
+index 09f0e30..e43be87 100644
+--- a/drivers/media/video/smiapp/smiapp-core.c
++++ b/drivers/media/video/smiapp/smiapp-core.c
+@@ -37,9 +37,9 @@
  
- 	IR_dprintk(1, "allowed - 0x%llx, enabled - 0x%llx\n",
- 		   (long long)allowed,
+ #include "smiapp.h"
+ 
+-#define SMIAPP_ALIGN_DIM(dim, flags)		\
+-	((flags) & V4L2_SUBDEV_SEL_FLAG_SIZE_GE	\
+-	 ? ALIGN((dim), 2)			\
++#define SMIAPP_ALIGN_DIM(dim, flags)	\
++	((flags) & V4L2_SEL_FLAG_GE	\
++	 ? ALIGN((dim), 2)		\
+ 	 : (dim) & ~1)
+ 
+ /*
+@@ -1746,14 +1746,14 @@ static int scaling_goodness(struct v4l2_subdev *subdev, int w, int ask_w,
+ 	h &= ~1;
+ 	ask_h &= ~1;
+ 
+-	if (flags & V4L2_SUBDEV_SEL_FLAG_SIZE_GE) {
++	if (flags & V4L2_SEL_FLAG_GE) {
+ 		if (w < ask_w)
+ 			val -= SCALING_GOODNESS;
+ 		if (h < ask_h)
+ 			val -= SCALING_GOODNESS;
+ 	}
+ 
+-	if (flags & V4L2_SUBDEV_SEL_FLAG_SIZE_LE) {
++	if (flags & V4L2_SEL_FLAG_LE) {
+ 		if (w > ask_w)
+ 			val -= SCALING_GOODNESS;
+ 		if (h > ask_h)
+diff --git a/include/linux/v4l2-common.h b/include/linux/v4l2-common.h
+index 856c7aa..9df2010 100644
+--- a/include/linux/v4l2-common.h
++++ b/include/linux/v4l2-common.h
+@@ -50,4 +50,9 @@
+ #define V4L2_SEL_TGT_CROP_ACTIVE	V4L2_SEL_TGT_CROP
+ #define V4L2_SEL_TGT_COMPOSE_ACTIVE	V4L2_SEL_TGT_COMPOSE
+ 
++/* Selection flags */
++#define V4L2_SEL_FLAG_GE		(1 << 0)
++#define V4L2_SEL_FLAG_LE		(1 << 1)
++#define V4L2_SEL_FLAG_KEEP_CONFIG	(1 << 2)
++
+ #endif /* __V4L2_COMMON__  */
+diff --git a/include/linux/v4l2-subdev.h b/include/linux/v4l2-subdev.h
+index 1d7d457..8c57ee9 100644
+--- a/include/linux/v4l2-subdev.h
++++ b/include/linux/v4l2-subdev.h
+@@ -124,10 +124,6 @@ struct v4l2_subdev_frame_interval_enum {
+ 	__u32 reserved[9];
+ };
+ 
+-#define V4L2_SUBDEV_SEL_FLAG_SIZE_GE			(1 << 0)
+-#define V4L2_SUBDEV_SEL_FLAG_SIZE_LE			(1 << 1)
+-#define V4L2_SUBDEV_SEL_FLAG_KEEP_CONFIG		(1 << 2)
+-
+ /**
+  * struct v4l2_subdev_selection - selection info
+  *
+@@ -135,7 +131,7 @@ struct v4l2_subdev_frame_interval_enum {
+  * @pad: pad number, as reported by the media API
+  * @target: Selection target, used to choose one of possible rectangles,
+  *	    defined in v4l2-common.h; V4L2_SEL_TGT_* .
+- * @flags: constraint flags
++ * @flags: constraint flags, defined in v4l2-common.h; V4L2_SEL_FLAG_*.
+  * @r: coordinates of the selection window
+  * @reserved: for future use, set to zero for now
+  *
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index 252f4b2..27da0c6 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -762,16 +762,12 @@ struct v4l2_crop {
+ 	struct v4l2_rect        c;
+ };
+ 
+-/* Hints for adjustments of selection rectangle */
+-#define V4L2_SEL_FLAG_GE	0x00000001
+-#define V4L2_SEL_FLAG_LE	0x00000002
+-
+ /**
+  * struct v4l2_selection - selection info
+  * @type:	buffer type (do not use *_MPLANE types)
+  * @target:	Selection target, used to choose one of possible rectangles;
+  *		defined in v4l2-common.h; V4L2_SEL_TGT_* .
+- * @flags:	constraints flags
++ * @flags:	constraints flags, defined in v4l2-common.h; V4L2_SEL_FLAG_*.
+  * @r:		coordinates of selection window
+  * @reserved:	for future use, rounds structure size to 64 bytes, set to zero
+  *
 -- 
-1.7.9.5
+1.7.2.5
 
