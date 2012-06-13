@@ -1,107 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:59331 "EHLO mail.kapsi.fi"
+Received: from smtp.nokia.com ([147.243.128.26]:47689 "EHLO mgw-da02.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756393Ab2FNUbY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Jun 2012 16:31:24 -0400
-Message-ID: <4FDA4A18.5050900@iki.fi>
-Date: Thu, 14 Jun 2012 23:31:20 +0300
-From: Antti Palosaari <crope@iki.fi>
+	id S1754457Ab2FMVaR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 13 Jun 2012 17:30:17 -0400
+Message-ID: <4FD9065B.2030703@iki.fi>
+Date: Thu, 14 Jun 2012 00:30:03 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
 MIME-Version: 1.0
-To: Malcolm Priestley <tvboxspy@gmail.com>
-CC: linux-media <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 1/2] [BUG] dvb_usb_v2:  return the download ret in dvb_usb_download_firmware
-References: <1339626272.2421.74.camel@Route3278> <4FD9224F.7050809@iki.fi> <1339634648.3833.37.camel@Route3278> <4FD93B3B.9000003@iki.fi>
-In-Reply-To: <4FD93B3B.9000003@iki.fi>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+CC: Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sylwester Nawrocki <snjw23@gmail.com>
+Subject: [PATCH v2 0/6] V4L2 and V4L2 subdev selection target and flag changes
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/14/2012 04:15 AM, Antti Palosaari wrote:
-> On 06/14/2012 03:44 AM, Malcolm Priestley wrote:
->> On Thu, 2012-06-14 at 02:29 +0300, Antti Palosaari wrote:
->>> Hi Malcolm,
->>> I was really surprised someone has had interest to test that stuff at
->>> that phase as I did not even advertised it yet :) It is likely happen
->>> next Monday or so as there is some issues I would like to check / solve.
->>>
->>>
->>> On 06/14/2012 01:24 AM, Malcolm Priestley wrote:
->>>> Hi antti
->>>>
->>>> There some issues with dvb_usb_v2 with the lmedm04 driver.
->>>>
->>>> The first being this patch, no return value from
->>>> dvb_usb_download_firmware
->>>> causes system wide dead lock with COLD disconnect as system attempts
->>>> to continue
->>>> to warm state.
->>>
->>> Hmm, I did not understand what you mean. What I looked lmedm04 driver I
->>> think it uses single USB ID (no cold + warm IDs). So it downloads
->>> firmware and then reconnects itself from the USB bus?
->>> For that scenario you should "return RECONNECTS_USB;" from the driver
->>> .download_firmware().
->>>
->> If the device disconnects from the USB bus after the firmware download.
->>
->> In most cases the device is already gone.
->>
->> There is currently no way to insert RECONNECTS_USB into the return.
->
-> Argh, I was blind! You are absolutely correct. It never returns value 1
-> (RECONNECTS_USB) from the .download_firmware().
->
-> That patch is fine, I will apply it, thanks!
->
-> I think that must be also changed to return immediately without
-> releasing the interface. Let the USB core release it when it detects
-> disconnect - otherwise it could crash as it tries to access potentially
-> resources that are already freed. Just for the timing issue if it
-> happens or not.
->
-> } else if (ret == RECONNECTS_USB) {
-> ret = 0;
-> goto exit_usb_driver_release_interface;
->
-> add return 0 here without releasing interface and test.
->
->
->>> I tested it using one non-public Cypress FX2 device - it was changing
->>> USB ID after the FX download, but from the driver perspective it does
->>> not matter. It is always new device if it reconnects USB.
->>>
->>
->> Have double checked that the thread is not continuing to write on the
->> old ID?
->
-> Nope, but likely delayed probe() is finished until it reconnects so I
-> cannot see problem. You device disconnects faster and thus USB core
-> traps .disconnect() earlier...
->
-> Could you test returning 0 and if it works sent new patch.
->
->> The zero condition will lead to dvb_usb_init.
->>
->>> PS. as I looked that driver I saw many different firmwares. That is now
->>> supported and you should use .get_firmware_name() (maybe you already did
->>> it).
->>>
->> Yes, I have supported this in the driver.
+Hi,
 
-Malcolm,
+Compared to the previous version of the patchset, I've addressed
+Sylwester's comments on the 3th patch, and made a few other changes:
 
-could you just test if returning from the routines after fw download is 
-enough to fix all your problems?
+- Selection flags have also been unified (patches 5 and 6),
+- Documentation had references to old subdev targets (which are now
+fixed) and
+- The common selections section has now been moved under appendices (B).
 
-I mean those two fixes:
-dvb_usb_download_firmware()
-* return RECONNECTS_USB correctly
+The resulting HTML documentation is available here:
 
-dvb_usbv2_init_work()
-* return without releasing USB interface if RECONNECTS_USB
+<URL:http://www.retiisi.org.uk/v4l2/tmp/media_api5/>
 
-regardss
-Antti
+I'm planning to send a pull req to Mauro on this late tomorrow Finnish
+time so if you wish to review it please be quick. :-) :-)
+
+Kind regards,
+
 -- 
-http://palosaari.fi/
+Sakari Ailus
+sakari.ailus@iki.fi
+
