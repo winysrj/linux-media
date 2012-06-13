@@ -1,68 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:56916 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756627Ab2FPWC7 (ORCPT
+Received: from mail-1-out2.atlantis.sk ([80.94.52.71]:56716 "EHLO
+	mail.atlantis.sk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754218Ab2FMV0E (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 16 Jun 2012 18:02:59 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [GIT PULL FOR 3.6] V4L2 API cleanups
-Date: Sun, 17 Jun 2012 00:03:06 +0200
-Message-ID: <5239489.ghNmaKI2zP@avalon>
-In-Reply-To: <20120611093944.GF12505@valkosipuli.retiisi.org.uk>
-References: <4FD50223.4030501@iki.fi> <6836133.PoLuVdfeXV@avalon> <20120611093944.GF12505@valkosipuli.retiisi.org.uk>
+	Wed, 13 Jun 2012 17:26:04 -0400
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH v2 2/3] radio-aimslab: Use LM7000 driver
+Cc: linux-media@vger.kernel.org
+Content-Disposition: inline
+From: Ondrej Zary <linux@rainbow-software.org>
+Date: Wed, 13 Jun 2012 23:25:39 +0200
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201206132325.41925.linux@rainbow-software.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Convert radio-aimslab to use generic LM7000 driver.
+Tested with Reveal RA300.
 
-On Monday 11 June 2012 12:39:44 Sakari Ailus wrote:
-> On Mon, Jun 11, 2012 at 09:50:54AM +0200, Laurent Pinchart wrote:
-> > On Sunday 10 June 2012 23:22:59 Sakari Ailus wrote:
-> > > Hi Mauro,
-> > > 
-> > > Here are two V4L2 API cleanup patches; the first removes __user from
-> > > videodev2.h from a few places, making it possible to use the header file
-> > > as such in user space, while the second one changes the
-> > > v4l2_buffer.input field back to reserved.
-> > > 
-> > > The following changes since commit 
-5472d3f17845c4398c6a510b46855820920c2181:
-> > >   [media] mt9m032: Implement V4L2_CID_PIXEL_RATE control (2012-05-24
-> > > 
-> > > 09:27:24 -0300)
-> > > 
-> > > are available in the git repository at:
-> > >   ssh://linuxtv.org/git/sailus/media_tree.git media-for-3.6
-> > > 
-> > > Sakari Ailus (2):
-> > >       v4l: Remove __user from interface structure definitions
-> > 
-> > NAK, sorry.
-> > 
-> > __user has a purpose, we need to add it where it's missing, not remove it
-> > where it's rightfully present.
-> 
-> It's not quite as simple as adding __user everywhere it might belong to ---
-> these structs are being used in kernel space, too. The structs that are part
-> of the user space interface may at some point contain pointers to memory
-> which is in user space. That is being dealt by video_usercopy(), so the
-> individual drivers or the rest of the V4L2 framework always gets pointers
-> pointing to kernel memory.
+Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
 
-Very good point, I haven't thought about that. I'm not sure how to deal with 
-this, splitting structures in a __user and a non __user version isn't really a 
-good option. Maybe the sparse tool should be somehow extended ?
+--- a/drivers/media/radio/radio-aimslab.c
++++ b/drivers/media/radio/radio-aimslab.c
+@@ -37,6 +37,7 @@
+ #include <media/v4l2-ioctl.h>
+ #include <media/v4l2-ctrls.h>
+ #include "radio-isa.h"
++#include "lm7000.h"
+ 
+ MODULE_AUTHOR("M. Kirkwood");
+ MODULE_DESCRIPTION("A driver for the RadioTrack/RadioReveal radio card.");
+@@ -72,55 +73,38 @@ static struct radio_isa_card *rtrack_alloc(void)
+ 	return rt ? &rt->isa : NULL;
+ }
+ 
+-/* The 128+64 on these outb's is to keep the volume stable while tuning.
+- * Without them, the volume _will_ creep up with each frequency change
+- * and bit 4 (+16) is to keep the signal strength meter enabled.
+- */
++#define AIMS_BIT_TUN_CE		(1 << 0)
++#define AIMS_BIT_TUN_CLK	(1 << 1)
++#define AIMS_BIT_TUN_DATA	(1 << 2)
++#define AIMS_BIT_VOL_CE		(1 << 3)
++#define AIMS_BIT_TUN_STRQ	(1 << 4)
++/* bit 5 is not connected */
++#define AIMS_BIT_VOL_UP		(1 << 6)	/* active low */
++#define AIMS_BIT_VOL_DN		(1 << 7)	/* active low */
+ 
+-static void send_0_byte(struct radio_isa_card *isa, int on)
++void rtrack_set_pins(void *handle, u8 pins)
+ {
+-	outb_p(128+64+16+on+1, isa->io);	/* wr-enable + data low */
+-	outb_p(128+64+16+on+2+1, isa->io);	/* clock */
+-	msleep(1);
+-}
++	struct radio_isa_card *isa = handle;
++	struct rtrack *rt = container_of(isa, struct rtrack, isa);
++	u8 bits = AIMS_BIT_VOL_DN | AIMS_BIT_VOL_UP | AIMS_BIT_TUN_STRQ;
+ 
+-static void send_1_byte(struct radio_isa_card *isa, int on)
+-{
+-	outb_p(128+64+16+on+4+1, isa->io);	/* wr-enable+data high */
+-	outb_p(128+64+16+on+4+2+1, isa->io);	/* clock */
+-	msleep(1);
++	if (!v4l2_ctrl_g_ctrl(rt->isa.mute))
++		bits |= AIMS_BIT_VOL_CE;
++
++	if (pins & LM7000_DATA)
++		bits |= AIMS_BIT_TUN_DATA;
++	if (pins & LM7000_CLK)
++		bits |= AIMS_BIT_TUN_CLK;
++	if (pins & LM7000_CE)
++		bits |= AIMS_BIT_TUN_CE;
++
++	outb_p(bits, rt->isa.io);
+ }
+ 
+ static int rtrack_s_frequency(struct radio_isa_card *isa, u32 freq)
+ {
+-	int on = v4l2_ctrl_g_ctrl(isa->mute) ? 0 : 8;
+-	int i;
+-
+-	freq += 171200;			/* Add 10.7 MHz IF 		*/
+-	freq /= 800;			/* Convert to 50 kHz units	*/
+-
+-	send_0_byte(isa, on);		/*  0: LSB of frequency		*/
+-
+-	for (i = 0; i < 13; i++)	/*   : frequency bits (1-13)	*/
+-		if (freq & (1 << i))
+-			send_1_byte(isa, on);
+-		else
+-			send_0_byte(isa, on);
+-
+-	send_0_byte(isa, on);		/* 14: test bit - always 0    */
+-	send_0_byte(isa, on);		/* 15: test bit - always 0    */
+-
+-	send_0_byte(isa, on);		/* 16: band data 0 - always 0 */
+-	send_0_byte(isa, on);		/* 17: band data 1 - always 0 */
+-	send_0_byte(isa, on);		/* 18: band data 2 - always 0 */
+-	send_0_byte(isa, on);		/* 19: time base - always 0   */
+-
+-	send_0_byte(isa, on);		/* 20: spacing (0 = 25 kHz)   */
+-	send_1_byte(isa, on);		/* 21: spacing (1 = 25 kHz)   */
+-	send_0_byte(isa, on);		/* 22: spacing (0 = 25 kHz)   */
+-	send_1_byte(isa, on);		/* 23: AM/FM (FM = 1, always) */
++	lm7000_set_freq(freq, isa, rtrack_set_pins);
+ 
+-	outb(0xd0 + on, isa->io);	/* volume steady + sigstr */
+ 	return 0;
+ }
+ 
 
-> These particular fields aren't handled by the framework currently, so
-> removing __user there requires adding the support to video_usercopy().
 
 -- 
-Regards,
-
-Laurent Pinchart
-
+Ondrej Zary
