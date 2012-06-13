@@ -1,54 +1,29 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:41888 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750842Ab2FKIFP (ORCPT
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:40258 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754463Ab2FMO4J convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Jun 2012 04:05:15 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Ezequiel Garcia <elezegarcia@gmail.com>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [Q] Why is it needed to add an alsa module to v4l audio capture devices?
-Date: Mon, 11 Jun 2012 10:05:20 +0200
-Message-ID: <2041118.ct8h3d9SmG@avalon>
-In-Reply-To: <CALF0-+VmR6izw6zXj+kOsrQDPN94v8jqhoRmeYp1vvexuoFJ1Q@mail.gmail.com>
-References: <CALF0-+VmR6izw6zXj+kOsrQDPN94v8jqhoRmeYp1vvexuoFJ1Q@mail.gmail.com>
+	Wed, 13 Jun 2012 10:56:09 -0400
+Received: by yhmm54 with SMTP id m54so593904yhm.19
+        for <linux-media@vger.kernel.org>; Wed, 13 Jun 2012 07:56:09 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <BE0BB692-35BF-42C3-B2F1-5AC9AB053321@dinkum.org.uk>
+References: <CAPz3gmnaPdm1V6GyPB8wPv5WCcg_pJ4HctsQiqROLanbLA=amA@mail.gmail.com>
+	<BE0BB692-35BF-42C3-B2F1-5AC9AB053321@dinkum.org.uk>
+Date: Wed, 13 Jun 2012 16:56:08 +0200
+Message-ID: <CAPz3gmke-ASEXzhcqn+9R-5f10hrux3cqS1NAQ6VYmH3JSjb-Q@mail.gmail.com>
+Subject: Re: Hauppauge WinTV Nova S Plus Composite IN
+From: shacky <shacky83@gmail.com>
+To: Andre <linux-media@dinkum.org.uk>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ezequiel,
+> mencoder -oac lavc -ovc lavc -of mpeg -mpegopts format=dvd:tsaf   -vf scale=720:576,harddup -srate 48000 -af lavcresample=48000   -lavcopts vcodec=mpeg2video:vrc_buf_size=1835:vrc_maxrate=9800:vbitrate=8000:keyint=15:vstrict=0:acodec=ac3:abitrate=192:aspect=4/3 -ofps 25   -o johntest1.mpg tv:// -tv input=1:norm=PAL-BG:amode=1:alsa=1:adevice=hw.2,0:forceaudio:immediatemode=0:volume=100
 
-On Thursday 07 June 2012 15:26:04 Ezequiel Garcia wrote:
-> Hi all,
-> 
-> (I hope this is a genuine question, and I'm not avoiding my own homework
-> here.)
-> 
-> I'm trying to support the audio part of the stk1160 usb bridge (similar to
-> em28xx). Currently, the snd-usb-audio module is being loaded when I
-> physically plug my device, but I can't seem to capture any sound with vlc.
-> 
-> I still have to research and work a lot to understand the connection between
-> my device and alsa, and altough I could write a working module similar to
-> em28xx-alsa.ko, I still can't figure out why do I need to write one in the
-> first place.
-> 
-> Why is this module suffficient for gspca microphone devices (gspca, to name
-> one) and why is a new alsa driver needed for em28xx (or stk1160)?
+Thank you very much Andre! It works!
 
-Some devices expose audio functionality by implementing the UAC (USB Audio 
-Class) specification. The snd-usb-audio module is all you should need for 
-those devices.
-
-Other vendors support audio by using their own proprietary protocol. In those 
-cases you will need a device-specific kernel module.
-
--- 
-Regards,
-
-Laurent Pinchart
-
+I only have a problem with the audio quality: it is distorted
+especially on the high frequencies.
+Do you have any idea?
