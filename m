@@ -1,140 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:44884 "EHLO mail.kapsi.fi"
+Received: from mail.kapsi.fi ([217.30.184.167]:34069 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757884Ab2FPBQg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Jun 2012 21:16:36 -0400
-Message-ID: <4FDBDE70.1080302@iki.fi>
-Date: Sat, 16 Jun 2012 04:16:32 +0300
+	id S1752648Ab2FMWz2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 13 Jun 2012 18:55:28 -0400
+Message-ID: <4FD91A5C.9060603@iki.fi>
+Date: Thu, 14 Jun 2012 01:55:24 +0300
 From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
 To: Malcolm Priestley <tvboxspy@gmail.com>
 CC: linux-media <linux-media@vger.kernel.org>
-Subject: Re: dvb_usb_v2: use pointers to properties[REGRESSION]
-References: <1339798273.12274.21.camel@Route3278> <4FDBBD36.9020302@iki.fi> <1339806912.13364.35.camel@Route3278> <4FDBD966.2030505@iki.fi>
-In-Reply-To: <4FDBD966.2030505@iki.fi>
+Subject: Re: [PATCH 2/2] dvb_usb_v2 Allow d->props.bInterfaceNumber to set
+ the correct  interface.
+References: <1339626396.2421.75.camel@Route3278>
+In-Reply-To: <1339626396.2421.75.camel@Route3278>
 Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I did example for you, here you are :)
-
-On 06/16/2012 03:55 AM, Antti Palosaari wrote:
-> On 06/16/2012 03:35 AM, Malcolm Priestley wrote:
->> On Sat, 2012-06-16 at 01:54 +0300, Antti Palosaari wrote:
->>> Hello Malcolm,
->>>
->>> On 06/16/2012 01:11 AM, Malcolm Priestley wrote:
->>>> Hi Antti
->>>>
->>>> You can't have dvb_usb_device_properties as constant structure pointer.
->>>>
->>>> At run time it needs to be copied to a private area.
->>>
->>> Having constant structure for properties was one of main idea of whole
->>> change. Earlier it causes some problems when driver changes those values
->>> - for example remote configuration based info from the eeprom.
->>>
->>>> Two or more devices of the same type on the system will be pointing to
->>>> the same structure.
->>>
->>> Yes and no. You can define struct dvb_usb_device_properties for each
->>> USB ID.
->>>
->>>> Any changes they make to the structure will be common to all.
->>>
->>> For those devices having same USB ID only.
->>> Changing dvb_usb_device_properties is *not* allowed. It is constant and
->>> should be. That was how I designed it. Due to that I introduced those
->>> new callbacks to resolve needed values dynamically.
->> Yes, but it does make run-time tweaks difficult.
->>
->>> If there is still something that is needed to resolve at runtime I am
->>> happy to add new callback. For example PID filter configuration is
->>> static currently as per adapter and if it is needed to to reconfigure at
->>> runtime new callback is needed.
->> I will look at the PID filter later, it defaulted to off.
->>
->> However, in my builds for ARM devices it is defaulted on. I will be
->> testing this later. I can't see any problems.
->>
->>>
->>> Could you say what is your problem I can likely say how to resolve it.
->>>
->>
->> Well, the problem is, I now need two separate structures for LME2510 and
->> LME2510C as in the existing driver, the hope was to merge them as one.
->> The only difference being the stream endpoint number.
+On 06/14/2012 01:26 AM, Malcolm Priestley wrote:
+> Although the interface could be set in identify state, ideally it should be done in
+> the probe.
 >
-> Then you should use .get_usb_stream_config() instead of static stream
-> configuration. That is now supported.
->
-> I have found one logical error in my current implementation.
-> get_usb_stream_config gets frontend as a parameter, but it is called
-> frontend == NULL when attaching adapters and after that frontend is real
-> value when called (just before streaming is started). Now what happens
-> if we has multiple adapters? We cannot know which adapter is requested
-> during attach since FE is NULL :)
-> But that is problem case only if you have multiple adapters. I will find
-> out better solution next few days. It is ugly now.
-> You can just skip fe checking or something. See AF9015 for example.
->
->> Currently, it is implemented in identify_state on dvb_usb_v2.
->>
->> The get_usb_stream_config has no access to device to to allow a run-time
->> change there.
->
-> Hmmm, what you try to say? As FE is given as a pointer, you have also
-> adapter and device. Those are nested, device is root, then adapter is
-> under that and finally frontend are under the adapter.
+> Allow d->props.bInterfaceNumber try to set the correct interface rather than return error.
 >
 >
-> .
-> └── device
->      ├── adapter0
->      │   ├── frontend0
->      │   ├── frontend1
->      │   └── frontend2
->      └── adapter1
->          ├── frontend0
->          ├── frontend1
->          └── frontend2
+> Signed-off-by: Malcolm Priestley<tvboxspy@gmail.com>
+> ---
+>   drivers/media/dvb/dvb-usb/dvb_usb_init.c |   11 +++++++++--
+>   1 file changed, 9 insertions(+), 2 deletions(-)
 >
+> diff --git a/drivers/media/dvb/dvb-usb/dvb_usb_init.c b/drivers/media/dvb/dvb-usb/dvb_usb_init.c
+> index c16a28a..b2eb8ac 100644
+> --- a/drivers/media/dvb/dvb-usb/dvb_usb_init.c
+> +++ b/drivers/media/dvb/dvb-usb/dvb_usb_init.c
+> @@ -391,8 +391,15 @@ int dvb_usbv2_probe(struct usb_interface *intf,
 >
-> regards
-> Antti
+>   	if (d->intf->cur_altsetting->desc.bInterfaceNumber !=
+>   			d->props.bInterfaceNumber) {
+> -		ret = -ENODEV;
+> -		goto err_kfree;
+> +		usb_reset_configuration(d->udev);
+> +
+> +		ret = usb_set_interface(d->udev,
+> +			d->intf->cur_altsetting->desc.bInterfaceNumber,
+> +				d->props.bInterfaceNumber);
 
-static int lme2510_get_usb_stream_config(struct dvb_frontend *fe,
-		struct usb_data_stream_properties *stream)
-{
-	struct dvb_usb_adapter *adap;
-	struct lme2510_state *state;
+I suspect it is wrong, as is changes alternate setting (to the 
+bInterfaceNumber given as a property) whilst interface seems to be same 
+what I understand. You are confusing with alternate setting and 
+interface, right?
 
-	stream->type = USB_BULK;
-	stream->count = 10;
-	stream->u.bulk.buffersize = 4096;
+http://ftp.au.debian.org/linux-mandocs/2.6.12.6/usb_set_interface.html
 
-// ugly part begins
-	if (fe == NULL)
-		return 0;
-	adap = fe->dvb->priv;
-	state = adap->dev->priv;
-// ugly part ends
+After my explanation, are you really sure that this is correct?
 
-	if (state->chip_id == lme2510c)
-		stream->endpoint = 8;
-	else
-		stream->endpoint = 6;
+USB device could have multiple interfaces. And each interface could have 
+multiple alternate settings.
 
-	return 0;
-}
+For the DVB device point of view those means generally that if we have 
+multiple interfaces those are one for remote and one for DVB. And if we 
+have multiple alternate settings inside DVB interface it is selecting 
+for USB stream settings (BULK vs. ISOC, different ISOC profiles). That 
+kind of alternate setting change belongs to streaming control callback 
+of driver.
 
-Ugly part between comments is what I am going to change, but currently 
-it works as is.
+But I like the idea of switching to correct interface. But I doubt it is 
+not possible, as USB core claims interfaces. And my opinion is that 
+interface should be added as a USB match flag, instead of that kind 
+driver checks.
 
+> +		if (ret<  0) {
+> +			ret = -ENODEV;
+> +			goto err_kfree;
+> +		}
+>   	}
+>
+>   	mutex_init(&d->usb_mutex);
 
 regards
-Antti--
+Antti
+-- 
 http://palosaari.fi/
-
-
