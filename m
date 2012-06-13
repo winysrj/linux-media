@@ -1,93 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:17713 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753255Ab2FLNYV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Jun 2012 09:24:21 -0400
-Message-ID: <4FD74302.2030908@redhat.com>
-Date: Tue, 12 Jun 2012 15:24:18 +0200
-From: Hans de Goede <hdegoede@redhat.com>
+Received: from mail-1-out2.atlantis.sk ([80.94.52.71]:44575 "EHLO
+	mail.atlantis.sk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752650Ab2FMVZ7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 13 Jun 2012 17:25:59 -0400
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH v2 1/3] radio: Add Sanyo LM7000 tuner driver
+Cc: linux-media@vger.kernel.org
+Content-Disposition: inline
+From: Ondrej Zary <linux@rainbow-software.org>
+Date: Wed, 13 Jun 2012 23:25:32 +0200
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Andy Walls <awalls@md.metrocast.net>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Pawel Osciak <pawel@osciak.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: Re: [RFCv1 PATCH 00/32] Core and vb2 enhancements
-References: <1339323954-1404-1-git-send-email-hverkuil@xs4all.nl> <4FD4CF7C.3020000@redhat.com> <201206101932.36886.hverkuil@xs4all.nl> <201206102127.12029.hverkuil@xs4all.nl> <4FD7296E.9080400@redhat.com>
-In-Reply-To: <4FD7296E.9080400@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201206132325.34370.linux@rainbow-software.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Add very simple driver for Sanyo LM7000 AM/FM tuner chip. Only FM is supported
+as there is no known HW with AM implemented.
 
-On 06/12/2012 01:35 PM, Mauro Carvalho Chehab wrote:
-> Em 10-06-2012 16:27, Hans Verkuil escreveu:
->> On Sun June 10 2012 19:32:36 Hans Verkuil wrote:
->>> On Sun June 10 2012 18:46:52 Mauro Carvalho Chehab wrote:
->>>> 3) it would be interesting if you could benchmark the previous code and the new
->>>> one, to see what gains this change introduced, in terms of v4l2-core footprint and
->>>> performance.
->>>
->>> I'll try that, should be interesting. Actually, my prediction is that I won't notice any
->>> difference. Todays CPUs are so fast that the overhead of the switch is probably hard to
->>> measure.
->>
->> I did some tests, calling various ioctls 100,000,000 times. The actual call into the
->> driver was disabled so that I only measure the time spent in v4l2-ioctl.c.
->>
->> I ran the test program with 'time ./t' and measured the sys time.
->>
->> For each ioctl I tested 5 times and averaged the results. Times are in seconds.
->>
->> 					Old		New
->> QUERYCAP			24.86	24.37
->> UNSUBSCRIBE_EVENT	23.40	23.10
->> LOG_STATUS			18.84	18.76
->> ENUMINPUT			28.82	28.90
->>
->> Particularly for QUERYCAP and UNSUBSCRIBE_EVENT I found a small but reproducible
->> improvement in speed. The results for LOG_STATUS and ENUMINPUT are too close to
->> call.
->>
->> After looking at the assembly code that the old code produces I suspect (but it
->> is hard to be sure) that LOG_STATUS and ENUMINPUT are tested quite early on, whereas
->> QUERYCAP and UNSUBSCRIBE_EVENT are tested quite late. The order in which the compiler
->> tests definitely has no relationship with the order of the case statements in the
->> switch.
->
-> The ioctl's are reordered, as gcc optimizes them in order to do a tree search and to avoid
-> cache flush. The worse case is likely converted into 7 CMP asm calls (log2(128)).
->
-> On your code, gcc may not be able to predict the JMP's, so it may actually have cache flushes,
-> depending on the cache size, and if the caller functions are before of after the video_ioctl2
-> handler.
->
-> I suspect that, if you compare the code with debug enabled, the new code can actually be worse
-> than the previous one.
->
-> It would be good if you could test what happens with QBUF/DQBUF.
->
->> This would certainly explain what I am seeing. I'm actually a bit surprised that
->> this is measurable at all.
->
-> The timing difference is not significant, especially because those ioctl's aren't the ones
-> used inside the streaming loop. The only ioctl's that are more time-sensitive are the streaming
-> ones, especially QBUF/DQBUF.
+This will be used by radio-aimslab and radio-sf16fmi.
 
-Even QBUF / DQBUF are called max circa 100 times / second. I think Hans V's patchset should not
-be seen from a performance pov (other then that it should not cause performance regressions), but
-more as a nice code cleanup / simplification.
+Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
 
-It certainly makes things a lot more readable by avoiding a lot of code duplication. Not sure if
-in the end it actually saves any lines of code, but readability, and being able to understand the
-intent of the code is key here IMHO.
+diff --git a/drivers/media/radio/lm7000.h b/drivers/media/radio/lm7000.h
+new file mode 100644
+index 0000000..139cd6b
+--- /dev/null
++++ b/drivers/media/radio/lm7000.h
+@@ -0,0 +1,43 @@
++#ifndef __LM7000_H
++#define __LM7000_H
++
++/* Sanyo LM7000 tuner chip control
++ *
++ * Copyright 2012 Ondrej Zary <linux@rainbow-software.org>
++ * based on radio-aimslab.c by M. Kirkwood
++ * and radio-sf16fmi.c by M. Kirkwood and Petr Vandrovec
++ */
++
++#define LM7000_DATA	(1 << 0)
++#define LM7000_CLK	(1 << 1)
++#define LM7000_CE	(1 << 2)
++
++#define LM7000_FM_100	(0 << 20)
++#define LM7000_FM_50	(1 << 20)
++#define LM7000_FM_25	(2 << 20)
++#define LM7000_BIT_FM	(1 << 23)
++
++static inline void lm7000_set_freq(u32 freq, void *handle,
++				void (*set_pins)(void *handle, u8 pins))
++{
++	int i;
++	u8 data;
++	u32 val;
++
++	freq += 171200;		/* Add 10.7 MHz IF */
++	freq /= 400;		/* Convert to 25 kHz units */
++	val = freq | LM7000_FM_25 | LM7000_BIT_FM;
++	/* write the 24-bit register, starting with LSB */
++	for (i = 0; i < 24; i++) {
++		data = val & (1 << i) ? LM7000_DATA : 0;
++		set_pins(handle, data | LM7000_CE);
++		udelay(2);
++		set_pins(handle, data | LM7000_CE | LM7000_CLK);
++		udelay(2);
++		set_pins(handle, data | LM7000_CE);
++		udelay(2);
++	}
++	set_pins(handle, 0);
++}
++
++#endif /* __LM7000_H */
 
-Regards,
 
-Hans (who likes Hans V's patchset :)
 
+-- 
+Ondrej Zary
