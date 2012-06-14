@@ -1,77 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eu1sys200aog102.obsmtp.com ([207.126.144.113]:57474 "EHLO
-	eu1sys200aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754108Ab2FDPVb convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 4 Jun 2012 11:21:31 -0400
-From: Bhupesh SHARMA <bhupesh.sharma@st.com>
-To: "balbi@ti.com" <balbi@ti.com>
-Cc: "laurent.pinchart@ideasonboard.com"
-	<laurent.pinchart@ideasonboard.com>,
-	"linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>
-Date: Mon, 4 Jun 2012 23:21:13 +0800
-Subject: RE: [PATCH 4/5] usb: gadget/uvc: Port UVC webcam gadget to use
- videobuf2 framework
-Message-ID: <D5ECB3C7A6F99444980976A8C6D896384FA5EC4AF1@EAPEX1MAIL1.st.com>
-References: <cover.1338543124.git.bhupesh.sharma@st.com>
- <243660e539dcccd868c641188faef26d83c2b894.1338543124.git.bhupesh.sharma@st.com>
- <20120604151355.GA20313@arwen.pp.htv.fi>
-In-Reply-To: <20120604151355.GA20313@arwen.pp.htv.fi>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from mail.kapsi.fi ([217.30.184.167]:43896 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754634Ab2FNBPn (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 13 Jun 2012 21:15:43 -0400
+Message-ID: <4FD93B3B.9000003@iki.fi>
+Date: Thu, 14 Jun 2012 04:15:39 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
+To: Malcolm Priestley <tvboxspy@gmail.com>
+CC: linux-media <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 1/2] [BUG] dvb_usb_v2:  return the download ret in dvb_usb_download_firmware
+References: <1339626272.2421.74.camel@Route3278> <4FD9224F.7050809@iki.fi> <1339634648.3833.37.camel@Route3278>
+In-Reply-To: <1339634648.3833.37.camel@Route3278>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Felipe,
+On 06/14/2012 03:44 AM, Malcolm Priestley wrote:
+> On Thu, 2012-06-14 at 02:29 +0300, Antti Palosaari wrote:
+>> Hi Malcolm,
+>> I was really surprised someone has had interest to test that stuff at
+>> that phase as I did not even advertised it yet :) It is likely happen
+>> next Monday or so as there is some issues I would like to check / solve.
+>>
+>>
+>> On 06/14/2012 01:24 AM, Malcolm Priestley wrote:
+>>> Hi antti
+>>>
+>>> There some issues with dvb_usb_v2 with the lmedm04 driver.
+>>>
+>>> The first being this patch, no return value from dvb_usb_download_firmware
+>>> causes system wide dead lock with COLD disconnect as system attempts to continue
+>>> to warm state.
+>>
+>> Hmm, I did not understand what you mean. What I looked lmedm04 driver I
+>> think it uses single USB ID (no cold + warm IDs). So it downloads
+>> firmware and then reconnects itself from the USB bus?
+>> For that scenario you should "return RECONNECTS_USB;" from the driver
+>> .download_firmware().
+>>
+> If the device disconnects from the USB bus after the firmware download.
+>
+> In most cases the device is already gone.
+>
+> There is currently no way to insert RECONNECTS_USB into the return.
 
-> -----Original Message-----
-> From: Felipe Balbi [mailto:balbi@ti.com]
-> Sent: Monday, June 04, 2012 8:44 PM
-> To: Bhupesh SHARMA
-> Cc: laurent.pinchart@ideasonboard.com; linux-usb@vger.kernel.org;
-> balbi@ti.com; linux-media@vger.kernel.org; gregkh@linuxfoundation.org
-> Subject: Re: [PATCH 4/5] usb: gadget/uvc: Port UVC webcam gadget to use
-> videobuf2 framework
-> 
-> On Fri, Jun 01, 2012 at 03:08:57PM +0530, Bhupesh Sharma wrote:
-> > This patch reworks the videobuffer management logic present in the
-> UVC
-> > webcam gadget and ports it to use the "more apt" videobuf2 framework
-> > for video buffer management.
-> >
-> > To support routing video data captured from a real V4L2 video capture
-> > device with a "zero copy" operation on videobuffers (as they pass
-> from
-> > the V4L2 domain to UVC domain via a user-space application), we need
-> > to support USER_PTR IO method at the UVC gadget side.
-> >
-> > So the V4L2 capture device driver can still continue to use MMAO IO
-> > method and now the user-space application can just pass a pointer to
-> > the video buffers being DeQueued from the V4L2 device side while
-> > Queueing them at the UVC gadget end. This ensures that we have a
-> > "zero-copy" design as the videobuffers pass from the V4L2 capture
-> device to the UVC gadget.
-> >
-> > Note that there will still be a need to apply UVC specific payload
-> > headers on top of each UVC payload data, which will still require a
-> > copy operation to be performed in the 'encode' routines of the UVC
-> gadget.
-> >
-> > Signed-off-by: Bhupesh Sharma <bhupesh.sharma@st.com>
-> 
-> this patch doesn't apply. Please refresh on top of v3.5-rc1 or my
-> gadget branch which I will update in a while.
-> 
+Argh, I was blind! You are absolutely correct. It never returns value 1 
+(RECONNECTS_USB) from the .download_firmware().
 
-I rebased and submitted my changes on your "gadget-for-v3.5" tag.
-Should I now refresh my patches on top of your "v3.5-rc1" branch ?
+That patch is fine, I will apply it, thanks!
 
-I am a bit confused on what is the latest gadget branch to be used now.
-Thanks for helping out.
+I think that must be also changed to return immediately without 
+releasing the interface. Let the USB core release it when it detects 
+disconnect - otherwise it could crash as it tries to access potentially 
+resources that are already freed. Just for the timing issue if it 
+happens or not.
 
-Regards,
-Bhupesh
+} else if (ret == RECONNECTS_USB) {
+	ret = 0;
+	goto exit_usb_driver_release_interface;
+
+add return 0 here without releasing interface and test.
+
+
+>> I tested it using one non-public Cypress FX2 device - it was changing
+>> USB ID after the FX download, but from the driver perspective it does
+>> not matter. It is always new device if it reconnects USB.
+>>
+>
+> Have double checked that the thread is not continuing to write on the
+> old ID?
+
+Nope, but likely delayed probe() is finished until it reconnects so I 
+cannot see problem. You device disconnects faster and thus USB core 
+traps .disconnect() earlier...
+
+Could you test returning 0 and if it works sent new patch.
+
+> The zero condition will lead to dvb_usb_init.
+>
+>> PS. as I looked that driver I saw many different firmwares. That is now
+>> supported and you should use .get_firmware_name() (maybe you already did
+>> it).
+>>
+> Yes, I have supported this in the driver.
+
+regards
+Antti
+
+-- 
+http://palosaari.fi/
