@@ -1,51 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:4554 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755695Ab2FJK0U (ORCPT
+Received: from mail-gh0-f174.google.com ([209.85.160.174]:33431 "EHLO
+	mail-gh0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756526Ab2FNSAn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Jun 2012 06:26:20 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Andy Walls <awalls@md.metrocast.net>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Pawel Osciak <pawel@osciak.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv1 PATCH 05/32] v4l2-ioctl.c: remove an unnecessary #ifdef.
-Date: Sun, 10 Jun 2012 12:25:27 +0200
-Message-Id: <43b7c2af858ff68e509402da2334bbaeb4ea75d5.1339321562.git.hans.verkuil@cisco.com>
-In-Reply-To: <1339323954-1404-1-git-send-email-hverkuil@xs4all.nl>
-References: <1339323954-1404-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <ef490f7ebca5b6df91db6b1acfb9928ada3bcd70.1339321562.git.hans.verkuil@cisco.com>
-References: <ef490f7ebca5b6df91db6b1acfb9928ada3bcd70.1339321562.git.hans.verkuil@cisco.com>
+	Thu, 14 Jun 2012 14:00:43 -0400
+Received: by ghrr11 with SMTP id r11so1614804ghr.19
+        for <linux-media@vger.kernel.org>; Thu, 14 Jun 2012 11:00:42 -0700 (PDT)
+From: Peter Senna Tschudin <peter.senna@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org
+Cc: Peter Senna Tschudin <peter.senna@gmail.com>
+Subject: [PATCH 6/8] stv0367: variable 'tps_rcvd' set but not used
+Date: Thu, 14 Jun 2012 14:58:14 -0300
+Message-Id: <1339696716-14373-6-git-send-email-peter.senna@gmail.com>
+In-Reply-To: <1339696716-14373-1-git-send-email-peter.senna@gmail.com>
+References: <1339696716-14373-1-git-send-email-peter.senna@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Tested by compilation only.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
 ---
- drivers/media/video/v4l2-ioctl.c |    2 --
- 1 file changed, 2 deletions(-)
+ drivers/media/dvb/frontends/stv0367.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
-index a4115ce..109615d 100644
---- a/drivers/media/video/v4l2-ioctl.c
-+++ b/drivers/media/video/v4l2-ioctl.c
-@@ -506,10 +506,8 @@ static struct v4l2_ioctl_info v4l2_ioctls[] = {
- 	IOCTL_INFO(VIDIOC_TRY_ENCODER_CMD, INFO_FL_CLEAR(v4l2_encoder_cmd, flags)),
- 	IOCTL_INFO(VIDIOC_DECODER_CMD, INFO_FL_PRIO),
- 	IOCTL_INFO(VIDIOC_TRY_DECODER_CMD, 0),
--#ifdef CONFIG_VIDEO_ADV_DEBUG
- 	IOCTL_INFO(VIDIOC_DBG_S_REGISTER, 0),
- 	IOCTL_INFO(VIDIOC_DBG_G_REGISTER, 0),
--#endif
- 	IOCTL_INFO(VIDIOC_DBG_G_CHIP_IDENT, 0),
- 	IOCTL_INFO(VIDIOC_S_HW_FREQ_SEEK, INFO_FL_PRIO),
- 	IOCTL_INFO(VIDIOC_ENUM_DV_PRESETS, 0),
+diff --git a/drivers/media/dvb/frontends/stv0367.c b/drivers/media/dvb/frontends/stv0367.c
+index fdd20c7..2a8aaeb 100644
+--- a/drivers/media/dvb/frontends/stv0367.c
++++ b/drivers/media/dvb/frontends/stv0367.c
+@@ -1584,7 +1584,7 @@ static int stv0367ter_algo(struct dvb_frontend *fe)
+ 	struct stv0367ter_state *ter_state = state->ter_state;
+ 	int offset = 0, tempo = 0;
+ 	u8 u_var;
+-	u8 /*constell,*/ counter, tps_rcvd[2];
++	u8 /*constell,*/ counter;
+ 	s8 step;
+ 	s32 timing_offset = 0;
+ 	u32 trl_nomrate = 0, InternalFreq = 0, temp = 0;
+@@ -1709,9 +1709,6 @@ static int stv0367ter_algo(struct dvb_frontend *fe)
+ 		return 0;
+ 
+ 	ter_state->state = FE_TER_LOCKOK;
+-	/* update results */
+-	tps_rcvd[0] = stv0367_readreg(state, R367TER_TPS_RCVD2);
+-	tps_rcvd[1] = stv0367_readreg(state, R367TER_TPS_RCVD3);
+ 
+ 	ter_state->mode = stv0367_readbits(state, F367TER_SYR_MODE);
+ 	ter_state->guard = stv0367_readbits(state, F367TER_SYR_GUARD);
 -- 
-1.7.10
+1.7.10.2
 
