@@ -1,157 +1,155 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:35891 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756679Ab2FPMG1 (ORCPT
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:22500 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756030Ab2FNOcj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 16 Jun 2012 08:06:27 -0400
-Received: by eeit10 with SMTP id t10so1161777eei.19
-        for <linux-media@vger.kernel.org>; Sat, 16 Jun 2012 05:06:26 -0700 (PDT)
-Message-ID: <1339848379.2439.18.camel@Route3278>
-Subject: Re: dvb_usb_v2: use pointers to properties[REGRESSION]
-From: Malcolm Priestley <tvboxspy@gmail.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media <linux-media@vger.kernel.org>
-Date: Sat, 16 Jun 2012 13:06:19 +0100
-In-Reply-To: <4FDBDE70.1080302@iki.fi>
-References: <1339798273.12274.21.camel@Route3278> <4FDBBD36.9020302@iki.fi>
-	 <1339806912.13364.35.camel@Route3278> <4FDBD966.2030505@iki.fi>
-	 <4FDBDE70.1080302@iki.fi>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+	Thu, 14 Jun 2012 10:32:39 -0400
+Received: from euspt1 (mailout4.w1.samsung.com [210.118.77.14])
+ by mailout4.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0M5M005WD33IMH70@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 14 Jun 2012 15:33:18 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0M5M00L2W32CFX@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 14 Jun 2012 15:32:37 +0100 (BST)
+Date: Thu, 14 Jun 2012 16:32:23 +0200
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: [PATCHv2 3/9] v4l: add buffer exporting via dmabuf
+In-reply-to: <1339684349-28882-1-git-send-email-t.stanislaws@samsung.com>
+To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
+Cc: airlied@redhat.com, m.szyprowski@samsung.com,
+	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
+	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
+	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
+	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
+	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
+	mchehab@redhat.com, g.liakhovetski@gmx.de
+Message-id: <1339684349-28882-4-git-send-email-t.stanislaws@samsung.com>
+Content-transfer-encoding: 7BIT
+References: <1339684349-28882-1-git-send-email-t.stanislaws@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 2012-06-16 at 04:16 +0300, Antti Palosaari wrote:
-> I did example for you, here you are :)
-> 
-> On 06/16/2012 03:55 AM, Antti Palosaari wrote:
-> > On 06/16/2012 03:35 AM, Malcolm Priestley wrote:
-> >> On Sat, 2012-06-16 at 01:54 +0300, Antti Palosaari wrote:
-> >>> Hello Malcolm,
-> >>>
-> >>> On 06/16/2012 01:11 AM, Malcolm Priestley wrote:
-> >>>> Hi Antti
-> >>>>
-> >>>> You can't have dvb_usb_device_properties as constant structure pointer.
-> >>>>
-> >>>> At run time it needs to be copied to a private area.
-> >>>
-> >>> Having constant structure for properties was one of main idea of whole
-> >>> change. Earlier it causes some problems when driver changes those values
-> >>> - for example remote configuration based info from the eeprom.
-> >>>
-> >>>> Two or more devices of the same type on the system will be pointing to
-> >>>> the same structure.
-> >>>
-> >>> Yes and no. You can define struct dvb_usb_device_properties for each
-> >>> USB ID.
-> >>>
-> >>>> Any changes they make to the structure will be common to all.
-> >>>
-> >>> For those devices having same USB ID only.
-> >>> Changing dvb_usb_device_properties is *not* allowed. It is constant and
-> >>> should be. That was how I designed it. Due to that I introduced those
-> >>> new callbacks to resolve needed values dynamically.
-> >> Yes, but it does make run-time tweaks difficult.
-> >>
-> >>> If there is still something that is needed to resolve at runtime I am
-> >>> happy to add new callback. For example PID filter configuration is
-> >>> static currently as per adapter and if it is needed to to reconfigure at
-> >>> runtime new callback is needed.
-> >> I will look at the PID filter later, it defaulted to off.
-> >>
-> >> However, in my builds for ARM devices it is defaulted on. I will be
-> >> testing this later. I can't see any problems.
-> >>
-> >>>
-> >>> Could you say what is your problem I can likely say how to resolve it.
-> >>>
-> >>
-> >> Well, the problem is, I now need two separate structures for LME2510 and
-> >> LME2510C as in the existing driver, the hope was to merge them as one.
-> >> The only difference being the stream endpoint number.
-> >
-> > Then you should use .get_usb_stream_config() instead of static stream
-> > configuration. That is now supported.
-> >
-> > I have found one logical error in my current implementation.
-> > get_usb_stream_config gets frontend as a parameter, but it is called
-> > frontend == NULL when attaching adapters and after that frontend is real
-> > value when called (just before streaming is started). Now what happens
-> > if we has multiple adapters? We cannot know which adapter is requested
-> > during attach since FE is NULL :)
-> > But that is problem case only if you have multiple adapters. I will find
-> > out better solution next few days. It is ugly now.
-> > You can just skip fe checking or something. See AF9015 for example.
-> >
-> >> Currently, it is implemented in identify_state on dvb_usb_v2.
-> >>
-> >> The get_usb_stream_config has no access to device to to allow a run-time
-> >> change there.
-> >
-> > Hmmm, what you try to say? As FE is given as a pointer, you have also
-> > adapter and device. Those are nested, device is root, then adapter is
-> > under that and finally frontend are under the adapter.
-> >
-> >
-> > .
-> > └── device
-> >      ├── adapter0
-> >      │   ├── frontend0
-> >      │   ├── frontend1
-> >      │   └── frontend2
-> >      └── adapter1
-> >          ├── frontend0
-> >          ├── frontend1
-> >          └── frontend2
-> >
-> >
-> > regards
-> > Antti
-> 
-> static int lme2510_get_usb_stream_config(struct dvb_frontend *fe,
-> 		struct usb_data_stream_properties *stream)
-> {
-> 	struct dvb_usb_adapter *adap;
-> 	struct lme2510_state *state;
-> 
-> 	stream->type = USB_BULK;
-> 	stream->count = 10;
-> 	stream->u.bulk.buffersize = 4096;
-> 
-> // ugly part begins
-> 	if (fe == NULL)
-> 		return 0;
-> 	adap = fe->dvb->priv;
-> 	state = adap->dev->priv;
-> // ugly part ends
-> 
-> 	if (state->chip_id == lme2510c)
-> 		stream->endpoint = 8;
-> 	else
-> 		stream->endpoint = 6;
-> 
-> 	return 0;
-> }
-> 
-> Ugly part between comments is what I am going to change, but currently 
-> it works as is.
-> 
-This doesn't work because the code will return the stream->endpoint
-unset and then try to initialise usb_urb_init.
+This patch adds extension to V4L2 api. It allow to export a mmap buffer as file
+descriptor. New ioctl VIDIOC_EXPBUF is added. It takes a buffer offset used by
+mmap and return a file descriptor on success.
 
-It would be far better to have get_usb_stream_config point to adapter
-and point to adap->fe[adap->active_fe] inside if need be.
+Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/video/v4l2-compat-ioctl32.c |    1 +
+ drivers/media/video/v4l2-dev.c            |    1 +
+ drivers/media/video/v4l2-ioctl.c          |    6 ++++++
+ include/linux/videodev2.h                 |   26 ++++++++++++++++++++++++++
+ include/media/v4l2-ioctl.h                |    2 ++
+ 5 files changed, 36 insertions(+)
 
-This is also the case with af9015, the code is extracting adapter
-through another module.
-
-Regards
-
-
-Malcolm
-
-
-
+diff --git a/drivers/media/video/v4l2-compat-ioctl32.c b/drivers/media/video/v4l2-compat-ioctl32.c
+index d33ab18..141e745 100644
+--- a/drivers/media/video/v4l2-compat-ioctl32.c
++++ b/drivers/media/video/v4l2-compat-ioctl32.c
+@@ -970,6 +970,7 @@ long v4l2_compat_ioctl32(struct file *file, unsigned int cmd, unsigned long arg)
+ 	case VIDIOC_S_FBUF32:
+ 	case VIDIOC_OVERLAY32:
+ 	case VIDIOC_QBUF32:
++	case VIDIOC_EXPBUF:
+ 	case VIDIOC_DQBUF32:
+ 	case VIDIOC_STREAMON32:
+ 	case VIDIOC_STREAMOFF32:
+diff --git a/drivers/media/video/v4l2-dev.c b/drivers/media/video/v4l2-dev.c
+index 5ccbd46..6bf6307 100644
+--- a/drivers/media/video/v4l2-dev.c
++++ b/drivers/media/video/v4l2-dev.c
+@@ -597,6 +597,7 @@ static void determine_valid_ioctls(struct video_device *vdev)
+ 	SET_VALID_IOCTL(ops, VIDIOC_REQBUFS, vidioc_reqbufs);
+ 	SET_VALID_IOCTL(ops, VIDIOC_QUERYBUF, vidioc_querybuf);
+ 	SET_VALID_IOCTL(ops, VIDIOC_QBUF, vidioc_qbuf);
++	SET_VALID_IOCTL(ops, VIDIOC_EXPBUF, vidioc_expbuf);
+ 	SET_VALID_IOCTL(ops, VIDIOC_DQBUF, vidioc_dqbuf);
+ 	SET_VALID_IOCTL(ops, VIDIOC_OVERLAY, vidioc_overlay);
+ 	SET_VALID_IOCTL(ops, VIDIOC_G_FBUF, vidioc_g_fbuf);
+diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
+index 31fc2ad..a73b14e 100644
+--- a/drivers/media/video/v4l2-ioctl.c
++++ b/drivers/media/video/v4l2-ioctl.c
+@@ -212,6 +212,7 @@ static struct v4l2_ioctl_info v4l2_ioctls[] = {
+ 	IOCTL_INFO(VIDIOC_S_FBUF, INFO_FL_PRIO),
+ 	IOCTL_INFO(VIDIOC_OVERLAY, INFO_FL_PRIO),
+ 	IOCTL_INFO(VIDIOC_QBUF, 0),
++	IOCTL_INFO(VIDIOC_EXPBUF, 0),
+ 	IOCTL_INFO(VIDIOC_DQBUF, 0),
+ 	IOCTL_INFO(VIDIOC_STREAMON, INFO_FL_PRIO),
+ 	IOCTL_INFO(VIDIOC_STREAMOFF, INFO_FL_PRIO),
+@@ -957,6 +958,11 @@ static long __video_do_ioctl(struct file *file,
+ 			dbgbuf(cmd, vfd, p);
+ 		break;
+ 	}
++	case VIDIOC_EXPBUF:
++	{
++		ret = ops->vidioc_expbuf(file, fh, arg);
++		break;
++	}
+ 	case VIDIOC_DQBUF:
+ 	{
+ 		struct v4l2_buffer *p = arg;
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index 51b20f4..e8893a5 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -684,6 +684,31 @@ struct v4l2_buffer {
+ #define V4L2_BUF_FLAG_NO_CACHE_INVALIDATE	0x0800
+ #define V4L2_BUF_FLAG_NO_CACHE_CLEAN		0x1000
+ 
++/**
++ * struct v4l2_exportbuffer - export of video buffer as DMABUF file descriptor
++ *
++ * @fd:		file descriptor associated with DMABUF (set by driver)
++ * @mem_offset:	buffer memory offset as returned by VIDIOC_QUERYBUF in struct
++ *		v4l2_buffer::m.offset (for single-plane formats) or
++ *		v4l2_plane::m.offset (for multi-planar formats)
++ * @flags:	flags for newly created file, currently only O_CLOEXEC is
++ *		supported, refer to manual of open syscall for more details
++ *
++ * Contains data used for exporting a video buffer as DMABUF file descriptor.
++ * The buffer is identified by a 'cookie' returned by VIDIOC_QUERYBUF
++ * (identical to the cookie used to mmap() the buffer to userspace). All
++ * reserved fields must be set to zero. The field reserved0 is expected to
++ * become a structure 'type' allowing an alternative layout of the structure
++ * content. Therefore this field should not be used for any other extensions.
++ */
++struct v4l2_exportbuffer {
++	__u32		fd;
++	__u32		reserved0;
++	__u32		mem_offset;
++	__u32		flags;
++	__u32		reserved[12];
++};
++
+ /*
+  *	O V E R L A Y   P R E V I E W
+  */
+@@ -2553,6 +2578,7 @@ struct v4l2_create_buffers {
+ #define VIDIOC_S_FBUF		 _IOW('V', 11, struct v4l2_framebuffer)
+ #define VIDIOC_OVERLAY		 _IOW('V', 14, int)
+ #define VIDIOC_QBUF		_IOWR('V', 15, struct v4l2_buffer)
++#define VIDIOC_EXPBUF		_IOWR('V', 16, struct v4l2_exportbuffer)
+ #define VIDIOC_DQBUF		_IOWR('V', 17, struct v4l2_buffer)
+ #define VIDIOC_STREAMON		 _IOW('V', 18, int)
+ #define VIDIOC_STREAMOFF	 _IOW('V', 19, int)
+diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
+index d8b76f7..ccd1faa 100644
+--- a/include/media/v4l2-ioctl.h
++++ b/include/media/v4l2-ioctl.h
+@@ -119,6 +119,8 @@ struct v4l2_ioctl_ops {
+ 	int (*vidioc_reqbufs) (struct file *file, void *fh, struct v4l2_requestbuffers *b);
+ 	int (*vidioc_querybuf)(struct file *file, void *fh, struct v4l2_buffer *b);
+ 	int (*vidioc_qbuf)    (struct file *file, void *fh, struct v4l2_buffer *b);
++	int (*vidioc_expbuf)  (struct file *file, void *fh,
++				struct v4l2_exportbuffer *e);
+ 	int (*vidioc_dqbuf)   (struct file *file, void *fh, struct v4l2_buffer *b);
+ 
+ 	int (*vidioc_create_bufs)(struct file *file, void *fh, struct v4l2_create_buffers *b);
+-- 
+1.7.9.5
 
