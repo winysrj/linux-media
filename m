@@ -1,158 +1,137 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:1150 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756019Ab2FXL3Z (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 Jun 2012 07:29:25 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Andy Walls <awalls@md.metrocast.net>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Scott Jiang <scott.jiang.linux@gmail.com>,
-	Manjunatha Halli <manjunatha_halli@ti.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>,
-	Anatolij Gustschin <agust@denx.de>,
-	Javier Martin <javier.martin@vista-silicon.com>,
-	Sensoray Linux Development <linux-dev@sensoray.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
-	Sachin Kamat <sachin.kamat@linaro.org>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	mitov@issp.bas.bg, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 18/26] cx231xx: remove V4L2_FL_LOCK_ALL_FOPS
-Date: Sun, 24 Jun 2012 13:26:10 +0200
-Message-Id: <ef7ba462c7093f67765ad08fbe31239cc09ee5f8.1340536092.git.hans.verkuil@cisco.com>
-In-Reply-To: <1340537178-18768-1-git-send-email-hverkuil@xs4all.nl>
-References: <1340537178-18768-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <f854d2a0a932187cd895bf9cd81d2da8343b52c9.1340536092.git.hans.verkuil@cisco.com>
-References: <f854d2a0a932187cd895bf9cd81d2da8343b52c9.1340536092.git.hans.verkuil@cisco.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:55396 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751106Ab2FNXOy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 14 Jun 2012 19:14:54 -0400
+Message-ID: <4FDA706B.204@iki.fi>
+Date: Fri, 15 Jun 2012 02:14:51 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Malcolm Priestley <tvboxspy@gmail.com>
+CC: linux-media <linux-media@vger.kernel.org>,
+	htl10@users.sourceforge.net
+Subject: Re: [PATCH 1/2] [BUG] dvb_usb_v2:  return the download ret in dvb_usb_download_firmware
+References: <1339626272.2421.74.camel@Route3278> <4FD9224F.7050809@iki.fi>   <1339634648.3833.37.camel@Route3278> <4FD93B3B.9000003@iki.fi>   <4FDA4A18.5050900@iki.fi> <1339709613.16046.11.camel@Route3278>  <4FDA61BD.9040809@iki.fi> <1339713121.27851.9.camel@Route3278>
+In-Reply-To: <1339713121.27851.9.camel@Route3278>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On 06/15/2012 01:32 AM, Malcolm Priestley wrote:
+> On Fri, 2012-06-15 at 01:12 +0300, Antti Palosaari wrote:
+>> On 06/15/2012 12:33 AM, Malcolm Priestley wrote:
+>>> On Thu, 2012-06-14 at 23:31 +0300, Antti Palosaari wrote:
+>>>> On 06/14/2012 04:15 AM, Antti Palosaari wrote:
+>>>>> On 06/14/2012 03:44 AM, Malcolm Priestley wrote:
+>>>>>> On Thu, 2012-06-14 at 02:29 +0300, Antti Palosaari wrote:
+>>>>>>> Hi Malcolm,
+>>>>>>> I was really surprised someone has had interest to test that stuff at
+>>>>>>> that phase as I did not even advertised it yet :) It is likely happen
+>>>>>>> next Monday or so as there is some issues I would like to check / solve.
+>>>>>>>
+>>>>>>>
+>>>>>>> On 06/14/2012 01:24 AM, Malcolm Priestley wrote:
+>>>>>>>> Hi antti
+>>>>>>>>
+>>>>>>>> There some issues with dvb_usb_v2 with the lmedm04 driver.
+>>>>>>>>
+>>>>>>>> The first being this patch, no return value from
+>>>>>>>> dvb_usb_download_firmware
+>>>>>>>> causes system wide dead lock with COLD disconnect as system attempts
+>>>>>>>> to continue
+>>>>>>>> to warm state.
+>>>>>>>
+>>>>>>> Hmm, I did not understand what you mean. What I looked lmedm04 driver I
+>>>>>>> think it uses single USB ID (no cold + warm IDs). So it downloads
+>>>>>>> firmware and then reconnects itself from the USB bus?
+>>>>>>> For that scenario you should "return RECONNECTS_USB;" from the driver
+>>>>>>> .download_firmware().
+>>>>>>>
+>>>>>> If the device disconnects from the USB bus after the firmware download.
+>>>>>>
+>>>>>> In most cases the device is already gone.
+>>>>>>
+>>>>>> There is currently no way to insert RECONNECTS_USB into the return.
+>>>>>
+>>>>> Argh, I was blind! You are absolutely correct. It never returns value 1
+>>>>> (RECONNECTS_USB) from the .download_firmware().
+>>>>>
+>>>>> That patch is fine, I will apply it, thanks!
+>>>>>
+>>>>> I think that must be also changed to return immediately without
+>>>>> releasing the interface. Let the USB core release it when it detects
+>>>>> disconnect - otherwise it could crash as it tries to access potentially
+>>>>> resources that are already freed. Just for the timing issue if it
+>>>>> happens or not.
+>>>>>
+>>>>> } else if (ret == RECONNECTS_USB) {
+>>>>> ret = 0;
+>>>>> goto exit_usb_driver_release_interface;
+>>>>>
+>>>>> add return 0 here without releasing interface and test.
+>>>>>
+>>>>>
+>>>>>>> I tested it using one non-public Cypress FX2 device - it was changing
+>>>>>>> USB ID after the FX download, but from the driver perspective it does
+>>>>>>> not matter. It is always new device if it reconnects USB.
+>>>>>>>
+>>>>>>
+>>>>>> Have double checked that the thread is not continuing to write on the
+>>>>>> old ID?
+>>>>>
+>>>>> Nope, but likely delayed probe() is finished until it reconnects so I
+>>>>> cannot see problem. You device disconnects faster and thus USB core
+>>>>> traps .disconnect() earlier...
+>>>>>
+>>>>> Could you test returning 0 and if it works sent new patch.
+>>>>>
+>>>>>> The zero condition will lead to dvb_usb_init.
+>>>>>>
+>>>>>>> PS. as I looked that driver I saw many different firmwares. That is now
+>>>>>>> supported and you should use .get_firmware_name() (maybe you already did
+>>>>>>> it).
+>>>>>>>
+>>>>>> Yes, I have supported this in the driver.
+>>>>
+>>>> Malcolm,
+>>>>
+>>>> could you just test if returning from the routines after fw download is
+>>>> enough to fix all your problems?
+>>>>
+>>>> I mean those two fixes:
+>>>> dvb_usb_download_firmware()
+>>>> * return RECONNECTS_USB correctly
+>>>>
+>>>> dvb_usbv2_init_work()
+>>>> * return without releasing USB interface if RECONNECTS_USB
+>>> Hi Antti,
+>>>
+>>> Yes, I have tested it and there is no difference.
+>>>
+>>> My understanding is, if the interface is no longer bound it returns
+>>> anyway.
+>>>
+>>> It is best not to use it, other drivers in the dvb-usb tree may not like
+>>> to be forcibly unbound prior to their reset.
+>>
+>> I don't understand why this logic cannot work. Do you have some crash
+>> dump I can see likely functions in path?
+> Sorry, you misunderstood me, there is no crash.
+>
+> I was only talking using usb_driver_release_interface() or not.
+>
+> The skeleton code below would work fine :-)
 
-Add proper locking to the file operations, allowing for the removal
-of the V4L2_FL_LOCK_ALL_FOPS flag.
+Hi Malcolm,
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/video/cx231xx/cx231xx-video.c |   47 ++++++++++++++++++++-------
- 1 file changed, 36 insertions(+), 11 deletions(-)
+Are you fine now with these two patches and no further changes are needed?
 
-diff --git a/drivers/media/video/cx231xx/cx231xx-video.c b/drivers/media/video/cx231xx/cx231xx-video.c
-index 523aa49..790b28d 100644
---- a/drivers/media/video/cx231xx/cx231xx-video.c
-+++ b/drivers/media/video/cx231xx/cx231xx-video.c
-@@ -2168,6 +2168,10 @@ static int cx231xx_v4l2_open(struct file *filp)
- 		cx231xx_errdev("cx231xx-video.c: Out of memory?!\n");
- 		return -ENOMEM;
- 	}
-+	if (mutex_lock_interruptible(&dev->lock)) {
-+		kfree(fh);
-+		return -ERESTARTSYS;
-+	}
- 	fh->dev = dev;
- 	fh->radio = radio;
- 	fh->type = fh_type;
-@@ -2226,6 +2230,7 @@ static int cx231xx_v4l2_open(struct file *filp)
- 					    sizeof(struct cx231xx_buffer),
- 					    fh, &dev->lock);
- 	}
-+	mutex_unlock(&dev->lock);
- 
- 	return errCode;
- }
-@@ -2272,11 +2277,11 @@ void cx231xx_release_analog_resources(struct cx231xx *dev)
- }
- 
- /*
-- * cx231xx_v4l2_close()
-+ * cx231xx_close()
-  * stops streaming and deallocates all resources allocated by the v4l2
-  * calls and ioctls
-  */
--static int cx231xx_v4l2_close(struct file *filp)
-+static int cx231xx_close(struct file *filp)
- {
- 	struct cx231xx_fh *fh = filp->private_data;
- 	struct cx231xx *dev = fh->dev;
-@@ -2355,6 +2360,18 @@ static int cx231xx_v4l2_close(struct file *filp)
- 	return 0;
- }
- 
-+static int cx231xx_v4l2_close(struct file *filp)
-+{
-+	struct cx231xx_fh *fh = filp->private_data;
-+	struct cx231xx *dev = fh->dev;
-+	int rc;
-+
-+	mutex_lock(&dev->lock);
-+	rc = cx231xx_close(filp);
-+	mutex_unlock(&dev->lock);
-+	return rc;
-+}
-+
- /*
-  * cx231xx_v4l2_read()
-  * will allocate buffers when called for the first time
-@@ -2378,8 +2395,12 @@ cx231xx_v4l2_read(struct file *filp, char __user *buf, size_t count,
- 		if (unlikely(rc < 0))
- 			return rc;
- 
--		return videobuf_read_stream(&fh->vb_vidq, buf, count, pos, 0,
-+		if (mutex_lock_interruptible(&dev->lock))
-+			return -ERESTARTSYS;
-+		rc = videobuf_read_stream(&fh->vb_vidq, buf, count, pos, 0,
- 					    filp->f_flags & O_NONBLOCK);
-+		mutex_unlock(&dev->lock);
-+		return rc;
- 	}
- 	return 0;
- }
-@@ -2404,10 +2425,15 @@ static unsigned int cx231xx_v4l2_poll(struct file *filp, poll_table *wait)
- 		return POLLERR;
- 
- 	if ((V4L2_BUF_TYPE_VIDEO_CAPTURE == fh->type) ||
--	    (V4L2_BUF_TYPE_VBI_CAPTURE == fh->type))
--		return videobuf_poll_stream(filp, &fh->vb_vidq, wait);
--	else
--		return POLLERR;
-+	    (V4L2_BUF_TYPE_VBI_CAPTURE == fh->type)) {
-+		unsigned int res;
-+
-+		mutex_lock(&dev->lock);
-+		res = videobuf_poll_stream(filp, &fh->vb_vidq, wait);
-+		mutex_unlock(&dev->lock);
-+		return res;
-+	}
-+	return POLLERR;
- }
- 
- /*
-@@ -2428,7 +2454,10 @@ static int cx231xx_v4l2_mmap(struct file *filp, struct vm_area_struct *vma)
- 	if (unlikely(rc < 0))
- 		return rc;
- 
-+	if (mutex_lock_interruptible(&dev->lock))
-+		return -ERESTARTSYS;
- 	rc = videobuf_mmap_mapper(&fh->vb_vidq, vma);
-+	mutex_unlock(&dev->lock);
- 
- 	cx231xx_videodbg("vma start=0x%08lx, size=%ld, ret=%d\n",
- 			 (unsigned long)vma->vm_start,
-@@ -2545,10 +2574,6 @@ static struct video_device *cx231xx_vdev_init(struct cx231xx *dev,
- 	vfd->release = video_device_release;
- 	vfd->debug = video_debug;
- 	vfd->lock = &dev->lock;
--	/* Locking in file operations other than ioctl should be done
--	   by the driver, not the V4L2 core.
--	   This driver needs auditing so that this flag can be removed. */
--	set_bit(V4L2_FL_LOCK_ALL_FOPS, &vfd->flags);
- 
- 	snprintf(vfd->name, sizeof(vfd->name), "%s %s", dev->name, type_name);
- 
+http://git.linuxtv.org/anttip/media_tree.git/commit/2ced3f3b5763b4817c5a884b0980a9a7c87e4d96
+
+http://git.linuxtv.org/anttip/media_tree.git/commit/ddd75d554b2b08cb112c756983301cb9418ccd42
+
+regards
+Antti
 -- 
-1.7.10
-
+http://palosaari.fi/
