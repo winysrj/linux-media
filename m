@@ -1,312 +1,160 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:21916 "EHLO
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:9112 "EHLO
 	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756033Ab2FNOcl (ORCPT
+	with ESMTP id S1755682Ab2FNNJ2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Jun 2012 10:32:41 -0400
-Date: Thu, 14 Jun 2012 16:32:22 +0200
+	Thu, 14 Jun 2012 09:09:28 -0400
+Message-id: <4FD9E27C.9030109@samsung.com>
+Date: Thu, 14 Jun 2012 15:09:16 +0200
 From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: [PATCHv2 2/9] Documentation: media: description of DMABUF exporting in
- V4L2
-In-reply-to: <1339684349-28882-1-git-send-email-t.stanislaws@samsung.com>
-To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
-Cc: airlied@redhat.com, m.szyprowski@samsung.com,
-	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
-	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
-	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
-	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
-	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
-	mchehab@redhat.com, g.liakhovetski@gmx.de,
-	linux-doc@vger.kernel.org
-Message-id: <1339684349-28882-3-git-send-email-t.stanislaws@samsung.com>
-Content-transfer-encoding: 7BIT
-References: <1339684349-28882-1-git-send-email-t.stanislaws@samsung.com>
+MIME-version: 1.0
+Cc: paul.gortmaker@windriver.com,
+	=?UTF-8?B?J+uwleqyveuvvCc=?= <kyungmin.park@samsung.com>,
+	amwang@redhat.com, dri-devel@lists.freedesktop.org,
+	"'???/Mobile S/W Platform Lab.(???)/E3(??)/????'"
+	<inki.dae@samsung.com>, prashanth.g@samsung.com,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Rob Clark <rob@ti.com>, Dave Airlie <airlied@redhat.com>,
+	"'???/Mobile S/W Platform Lab.(???)/E3(??)/????'"
+	<inki.dae@samsung.com>, linux-kernel@vger.kernel.org,
+	Andrew Morton <akpm@linux-foundation.org>
+Subject: [PATCH v4] scatterlist: add sg_alloc_table_from_pages function
+Content-type: text/plain; charset=UTF-8
+Content-transfer-encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds description and usage examples for exporting
-DMABUF file descriptor in V4L2.
+This patch adds a new constructor for an sg table. The table is constructed
+from an array of struct pages. All contiguous chunks of the pages are merged
+into a single sg nodes. A user may provide an offset and a size of a buffer if
+the buffer is not page-aligned.
+
+The function is dedicated for DMABUF exporters which often perform conversion
+from an page array to a scatterlist. Moreover the scatterlist should be
+squashed in order to save memory and to speed-up the process of DMA mapping
+using dma_map_sg.
+
+The code is based on the patch 'v4l: vb2-dma-contig: add support for
+scatterlist in userptr mode' and hints from Laurent Pinchart.
 
 Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
 Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-CC: linux-doc@vger.kernel.org
+Acked-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+CC: Andrew Morton <akpm@linux-foundation.org>
 ---
- Documentation/DocBook/media/v4l/compat.xml        |    3 +
- Documentation/DocBook/media/v4l/io.xml            |    3 +
- Documentation/DocBook/media/v4l/v4l2.xml          |    1 +
- Documentation/DocBook/media/v4l/vidioc-expbuf.xml |  223 +++++++++++++++++++++
- 4 files changed, 230 insertions(+)
- create mode 100644 Documentation/DocBook/media/v4l/vidioc-expbuf.xml
+v4:
+- fix typos
+- add Changelog
 
-diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
-index 07a311f..7773450 100644
---- a/Documentation/DocBook/media/v4l/compat.xml
-+++ b/Documentation/DocBook/media/v4l/compat.xml
-@@ -2591,6 +2591,9 @@ ioctls.</para>
- 	  <para>Importing DMABUF file descriptors as a new IO method described
- 	  in <xref linkend="dmabuf" />.</para>
-         </listitem>
-+        <listitem>
-+	  <para>Exporting DMABUF files using &VIDIOC-EXPBUF; ioctl.</para>
-+        </listitem>
-       </itemizedlist>
-     </section>
- 
-diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
-index f55b0ab..7a0dfc9 100644
---- a/Documentation/DocBook/media/v4l/io.xml
-+++ b/Documentation/DocBook/media/v4l/io.xml
-@@ -488,6 +488,9 @@ buffer from userspace using a file descriptor previously exported for a
- different or the same device (known as the importer role), or both. This
- section describes the DMABUF importer role API in V4L2.</para>
- 
-+    <para>Refer to <link linked="vidioc-expbuf"> DMABUF exporting </link> for
-+details about exporting a V4L2 buffers as DMABUF file descriptors.</para>
-+
- <para>Input and output devices support the streaming I/O method when the
- <constant>V4L2_CAP_STREAMING</constant> flag in the
- <structfield>capabilities</structfield> field of &v4l2-capability; returned by
-diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
-index 015c561..8f650d2 100644
---- a/Documentation/DocBook/media/v4l/v4l2.xml
-+++ b/Documentation/DocBook/media/v4l/v4l2.xml
-@@ -561,6 +561,7 @@ and discussions on the V4L mailing list.</revremark>
-     &sub-log-status;
-     &sub-overlay;
-     &sub-qbuf;
-+    &sub-expbuf;
-     &sub-querybuf;
-     &sub-querycap;
-     &sub-queryctrl;
-diff --git a/Documentation/DocBook/media/v4l/vidioc-expbuf.xml b/Documentation/DocBook/media/v4l/vidioc-expbuf.xml
-new file mode 100644
-index 0000000..30ebf67
---- /dev/null
-+++ b/Documentation/DocBook/media/v4l/vidioc-expbuf.xml
-@@ -0,0 +1,223 @@
-+<refentry id="vidioc-expbuf">
-+
-+  <refmeta>
-+    <refentrytitle>ioctl VIDIOC_EXPBUF</refentrytitle>
-+    &manvol;
-+  </refmeta>
-+
-+  <refnamediv>
-+    <refname>VIDIOC_EXPBUF</refname>
-+    <refpurpose>Export a buffer as a DMABUF file descriptor.</refpurpose>
-+  </refnamediv>
-+
-+  <refsynopsisdiv>
-+    <funcsynopsis>
-+      <funcprototype>
-+	<funcdef>int <function>ioctl</function></funcdef>
-+	<paramdef>int <parameter>fd</parameter></paramdef>
-+	<paramdef>int <parameter>request</parameter></paramdef>
-+	<paramdef>struct v4l2_exportbuffer *<parameter>argp</parameter></paramdef>
-+      </funcprototype>
-+    </funcsynopsis>
-+  </refsynopsisdiv>
-+
-+  <refsect1>
-+    <title>Arguments</title>
-+
-+    <variablelist>
-+      <varlistentry>
-+	<term><parameter>fd</parameter></term>
-+	<listitem>
-+	  <para>&fd;</para>
-+	</listitem>
-+      </varlistentry>
-+      <varlistentry>
-+	<term><parameter>request</parameter></term>
-+	<listitem>
-+	  <para>VIDIOC_EXPBUF</para>
-+	</listitem>
-+      </varlistentry>
-+      <varlistentry>
-+	<term><parameter>argp</parameter></term>
-+	<listitem>
-+	  <para></para>
-+	</listitem>
-+      </varlistentry>
-+    </variablelist>
-+  </refsect1>
-+
-+  <refsect1>
-+    <title>Description</title>
-+
-+    <note>
-+      <title>Experimental</title>
-+      <para>This is an <link linkend="experimental"> experimental </link>
-+      interface and may change in the future.</para>
-+    </note>
-+
-+<para>This ioctl is an extension to the <link linkend="mmap">memory
-+mapping</link> I/O method therefore it is available only for
-+<constant>V4L2_MEMORY_MMAP</constant> buffers.  It can be used to export a
-+buffer as DMABUF file at any time after buffers have been allocated with the
-+&VIDIOC-REQBUFS; ioctl.</para>
-+
-+<para>Prior to exporting an application calls <link
-+linkend="vidioc-querybuf">VIDIOC_QUERYBUF</link> to obtain memory offsets. When
-+using the <link linkend="planar-apis">multi-planar API</link> every plane has
-+own offset.</para>
-+
-+<para>To export a buffer, the application fills &v4l2-exportbuffer;.  The
-+<structfield> mem_offset </structfield> field is set to the offset obtained
-+from <constant> VIDIOC_QUERYBUF </constant>.  Additional flags may be posted in
-+the <structfield> flags </structfield> field.  Refer to manual for open syscall
-+for details. Currently only O_CLOEXEC is guaranteed to be supported.  All other
-+fields must be set to zero.  In a case of multi-planar API, every plane is
-+exported separately using multiple <constant> VIDIOC_EXPBUF </constant>
-+calls.</para>
-+
-+<para> After calling <constant>VIDIOC_EXPBUF</constant> the <structfield> fd
-+</structfield> field will be set by a driver.  This is a DMABUF file
-+descriptor. The application may pass it to other API. Refer to <link
-+linkend="dmabuf">DMABUF importing</link> for details about importing DMABUF
-+files into V4L2 nodes. A developer is encouraged to close a DMABUF file when it
-+is no longer used.  </para>
-+
-+  </refsect1>
-+  <refsect1>
-+   <section>
-+      <title>Examples</title>
-+
-+      <example>
-+	<title>Exporting a buffer.</title>
-+	<programlisting>
-+int buffer_export(int v4lfd, &v4l2-buf-type; bt, int index, int *dmafd)
+v3:
+- use PFNs instead of page pointers to check contiguity
+
+v2:
+- rename sg_table_alloc_by_pages to sg_table_alloc_from_pages
+- add some comments about error value
+
+v1:
+- initial version
+
+---
+ include/linux/scatterlist.h |    4 +++
+ lib/scatterlist.c           |   64 +++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 68 insertions(+)
+
+diff --git a/include/linux/scatterlist.h b/include/linux/scatterlist.h
+index ac9586d..7b600da 100644
+--- a/include/linux/scatterlist.h
++++ b/include/linux/scatterlist.h
+@@ -214,6 +214,10 @@ void sg_free_table(struct sg_table *);
+ int __sg_alloc_table(struct sg_table *, unsigned int, unsigned int, gfp_t,
+ 		     sg_alloc_fn *);
+ int sg_alloc_table(struct sg_table *, unsigned int, gfp_t);
++int sg_alloc_table_from_pages(struct sg_table *sgt,
++	struct page **pages, unsigned int n_pages,
++	unsigned long offset, unsigned long size,
++	gfp_t gfp_mask);
+
+ size_t sg_copy_from_buffer(struct scatterlist *sgl, unsigned int nents,
+ 			   void *buf, size_t buflen);
+diff --git a/lib/scatterlist.c b/lib/scatterlist.c
+index 6096e89..e719adf 100644
+--- a/lib/scatterlist.c
++++ b/lib/scatterlist.c
+@@ -319,6 +319,70 @@ int sg_alloc_table(struct sg_table *table, unsigned int nents, gfp_t gfp_mask)
+ EXPORT_SYMBOL(sg_alloc_table);
+
+ /**
++ * sg_alloc_table_from_pages - Allocate and initialize an sg table from
++ *			       an array of pages
++ * @sgt:	The sg table header to use
++ * @pages:	Pointer to an array of page pointers
++ * @n_pages:	Number of pages in the pages array
++ * @offset:     Offset from start of the first page to the start of a buffer
++ * @size:       Number of valid bytes in the buffer (after offset)
++ * @gfp_mask:	GFP allocation mask
++ *
++ *  Description:
++ *    Allocate and initialize an sg table from a list of pages. Contiguous
++ *    ranges of the pages are squashed into a single scatterlist node. A user
++ *    may provide an offset at a start and a size of valid data in a buffer
++ *    specified by the page array. The returned sg table is released by
++ *    sg_free_table.
++ *
++ * Returns:
++ *   0 on success, negative error on failure
++ */
++int sg_alloc_table_from_pages(struct sg_table *sgt,
++	struct page **pages, unsigned int n_pages,
++	unsigned long offset, unsigned long size,
++	gfp_t gfp_mask)
 +{
-+	&v4l2-buffer; buf;
-+	&v4l2-exportbuffer; expbuf;
++	unsigned int chunks;
++	unsigned int i;
++	unsigned int cur_page;
++	int ret;
++	struct scatterlist *s;
 +
-+	memset(&amp;buf, 0, sizeof buf);
-+	buf.type = bt;
-+	buf.memory = V4L2_MEMORY_MMAP;
-+	buf.index = index;
++	/* compute number of contiguous chunks */
++	chunks = 1;
++	for (i = 1; i < n_pages; ++i)
++		if (page_to_pfn(pages[i]) != page_to_pfn(pages[i - 1]) + 1)
++			++chunks;
 +
-+	if (ioctl (v4lfd, &VIDIOC-QUERYBUF;, &amp;buf) == -1) {
-+		perror ("VIDIOC_QUERYBUF");
-+		return -1;
-+	}
++	ret = sg_alloc_table(sgt, chunks, gfp_mask);
++	if (unlikely(ret))
++		return ret;
 +
-+	memset(&amp;expbuf, 0, sizeof expbuf);
-+	expbuf.mem_offset = buf.m.offset;
-+	if (ioctl (v4lfd, &VIDIOC-EXPBUF;, &amp;expbuf) == -1) {
-+		perror ("VIDIOC_EXPBUF");
-+		return -1;
-+	}
++	/* merging chunks and putting them into the scatterlist */
++	cur_page = 0;
++	for_each_sg(sgt->sgl, s, sgt->orig_nents, i) {
++		unsigned long chunk_size;
++		unsigned int j;
 +
-+	*dmafd = expbuf.fd;
++		/* look for the end of the current chunk */
++		for (j = cur_page + 1; j < n_pages; ++j)
++			if (page_to_pfn(pages[j]) !=
++			    page_to_pfn(pages[j - 1]) + 1)
++				break;
 +
-+	return 0;
-+}
-+        </programlisting>
-+      </example>
-+
-+      <example>
-+	<title>Exporting a buffer using multi plane API.</title>
-+	<programlisting>
-+int buffer_export_mp(int v4lfd, &v4l2-buf-type; bt, int index,
-+	int dmafd[], int n_planes)
-+{
-+	&v4l2-buffer; buf;
-+	&v4l2-plane; planes[VIDEO_MAX_PLANES];
-+	int i;
-+
-+	memset(&amp;buf, 0, sizeof buf);
-+	buf.type = bt;
-+	buf.memory = V4L2_MEMORY_MMAP;
-+	buf.index = index;
-+	buf.m.planes = planes;
-+	buf.length = n_planes;
-+	memset(&amp;planes, 0, sizeof planes);
-+
-+	if (ioctl (v4lfd, &VIDIOC-QUERYBUF;, &amp;buf) == -1) {
-+		perror ("VIDIOC_QUERYBUF");
-+		return -1;
-+	}
-+
-+	for (i = 0; i &lt; n_planes; ++i) {
-+		&v4l2-exportbuffer; expbuf;
-+
-+		memset(&amp;expbuf, 0, sizeof expbuf);
-+		expbuf.mem_offset = plane[i].m.offset;
-+		if (ioctl (v4lfd, &VIDIOC-EXPBUF;, &amp;expbuf) == -1) {
-+			perror ("VIDIOC_EXPBUF");
-+			while (i)
-+				close(dmafd[--i]);
-+			return -1;
-+		}
-+		dmafd[i] = expbuf.fd;
++		chunk_size = ((j - cur_page) << PAGE_SHIFT) - offset;
++		sg_set_page(s, pages[cur_page], min(size, chunk_size), offset);
++		size -= chunk_size;
++		offset = 0;
++		cur_page = j;
 +	}
 +
 +	return 0;
 +}
-+        </programlisting>
-+      </example>
-+   </section>
-+  </refsect1>
++EXPORT_SYMBOL(sg_alloc_table_from_pages);
 +
-+  <refsect1>
-+    <table pgwide="1" frame="none" id="v4l2-exportbuffer">
-+      <title>struct <structname>v4l2_exportbuffer</structname></title>
-+      <tgroup cols="3">
-+	&cs-str;
-+	<tbody valign="top">
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>fd</structfield></entry>
-+	    <entry>The DMABUF file descriptor associated with a buffer. Set by
-+		a driver.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>reserved0</structfield></entry>
-+	    <entry>Reserved field for future use. Must be set to zero.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>mem_offset</structfield></entry>
-+	    <entry>Buffer memory offset as returned by <constant>
-+VIDIOC_QUERYBUF </constant> in &v4l2-buffer;<structfield> ::m.offset
-+</structfield> (for single-plane formats) or &v4l2-plane;<structfield>
-+::m.offset </structfield> (for multi-planar formats)</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>flags</structfield></entry>
-+	    <entry>Flags for newly created file, currently only <constant>
-+O_CLOEXEC </constant> is supported, refer to manual of open syscall for more
-+details.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>reserved[12]</structfield></entry>
-+	    <entry>Reserved field for future use. Must be set to zero.</entry>
-+	  </row>
-+	</tbody>
-+      </tgroup>
-+    </table>
-+
-+  </refsect1>
-+
-+  <refsect1>
-+    &return-value;
-+    <variablelist>
-+      <varlistentry>
-+	<term><errorcode>EINVAL</errorcode></term>
-+	<listitem>
-+	  <para>A queue is not in MMAP mode or DMABUF exporting is not
-+supported or <structfield> flag </structfield> or <structfield> mem_offset
-+</structfield> fields are invalid.</para>
-+	</listitem>
-+      </varlistentry>
-+    </variablelist>
-+  </refsect1>
-+
-+</refentry>
++/**
+  * sg_miter_start - start mapping iteration over a sg list
+  * @miter: sg mapping iter to be started
+  * @sgl: sg list to iterate over
 -- 
 1.7.9.5
-
