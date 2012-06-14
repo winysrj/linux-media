@@ -1,145 +1,153 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:3968 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755998Ab2FXL3T (ORCPT
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:14329 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756059Ab2FNNiO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 Jun 2012 07:29:19 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Andy Walls <awalls@md.metrocast.net>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Scott Jiang <scott.jiang.linux@gmail.com>,
-	Manjunatha Halli <manjunatha_halli@ti.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>,
-	Anatolij Gustschin <agust@denx.de>,
-	Javier Martin <javier.martin@vista-silicon.com>,
-	Sensoray Linux Development <linux-dev@sensoray.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
-	Sachin Kamat <sachin.kamat@linaro.org>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	mitov@issp.bas.bg, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 10/26] fsl-viu: remove V4L2_FL_LOCK_ALL_FOPS
-Date: Sun, 24 Jun 2012 13:26:02 +0200
-Message-Id: <b29f8ac3c3f204397f557df4988f2cd17a170a1a.1340536092.git.hans.verkuil@cisco.com>
-In-Reply-To: <1340537178-18768-1-git-send-email-hverkuil@xs4all.nl>
-References: <1340537178-18768-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <f854d2a0a932187cd895bf9cd81d2da8343b52c9.1340536092.git.hans.verkuil@cisco.com>
-References: <f854d2a0a932187cd895bf9cd81d2da8343b52c9.1340536092.git.hans.verkuil@cisco.com>
+	Thu, 14 Jun 2012 09:38:14 -0400
+Received: from euspt2 (mailout4.w1.samsung.com [210.118.77.14])
+ by mailout4.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0M5M005NJ0KR2N60@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 14 Jun 2012 14:38:51 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0M5M00EVV0JJDX@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 14 Jun 2012 14:38:08 +0100 (BST)
+Date: Thu, 14 Jun 2012 15:37:39 +0200
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: [PATCHv7 05/15] v4l: vb2-dma-contig: Shorten vb2_dma_contig prefix to
+ vb2_dc
+In-reply-to: <1339681069-8483-1-git-send-email-t.stanislaws@samsung.com>
+To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
+Cc: airlied@redhat.com, m.szyprowski@samsung.com,
+	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
+	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
+	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
+	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
+	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
+	mchehab@redhat.com, g.liakhovetski@gmx.de
+Message-id: <1339681069-8483-6-git-send-email-t.stanislaws@samsung.com>
+Content-transfer-encoding: 7BIT
+References: <1339681069-8483-1-git-send-email-t.stanislaws@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-Add proper locking to the file operations, allowing for the removal
-of the V4L2_FL_LOCK_ALL_FOPS flag.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/video/fsl-viu.c |   27 ++++++++++++++++++++++-----
- 1 file changed, 22 insertions(+), 5 deletions(-)
+ drivers/media/video/videobuf2-dma-contig.c |   36 ++++++++++++++--------------
+ 1 file changed, 18 insertions(+), 18 deletions(-)
 
-diff --git a/drivers/media/video/fsl-viu.c b/drivers/media/video/fsl-viu.c
-index 777486f..20f9810 100644
---- a/drivers/media/video/fsl-viu.c
-+++ b/drivers/media/video/fsl-viu.c
-@@ -1279,10 +1279,16 @@ static int viu_open(struct file *file)
- 	dprintk(1, "open minor=%d type=%s users=%d\n", minor,
- 		v4l2_type_names[V4L2_BUF_TYPE_VIDEO_CAPTURE], dev->users);
+diff --git a/drivers/media/video/videobuf2-dma-contig.c b/drivers/media/video/videobuf2-dma-contig.c
+index 4b71326..a05784f 100644
+--- a/drivers/media/video/videobuf2-dma-contig.c
++++ b/drivers/media/video/videobuf2-dma-contig.c
+@@ -32,9 +32,9 @@ struct vb2_dc_buf {
+ 	struct vb2_vmarea_handler	handler;
+ };
  
-+	if (mutex_lock_interruptible(&dev->lock)) {
-+		dev->users--;
-+		return -ERESTARTSYS;
-+	}
-+
- 	/* allocate and initialize per filehandle data */
- 	fh = kzalloc(sizeof(*fh), GFP_KERNEL);
- 	if (!fh) {
- 		dev->users--;
-+		mutex_unlock(&dev->lock);
- 		return -ENOMEM;
- 	}
+-static void vb2_dma_contig_put(void *buf_priv);
++static void vb2_dc_put(void *buf_priv);
  
-@@ -1325,6 +1331,7 @@ static int viu_open(struct file *file)
- 				       fh->type, V4L2_FIELD_INTERLACED,
- 				       sizeof(struct viu_buf), fh,
- 				       &fh->dev->lock);
-+	mutex_unlock(&dev->lock);
- 	return 0;
+-static void *vb2_dma_contig_alloc(void *alloc_ctx, unsigned long size)
++static void *vb2_dc_alloc(void *alloc_ctx, unsigned long size)
+ {
+ 	struct vb2_dc_conf *conf = alloc_ctx;
+ 	struct vb2_dc_buf *buf;
+@@ -56,7 +56,7 @@ static void *vb2_dma_contig_alloc(void *alloc_ctx, unsigned long size)
+ 	buf->size = size;
+ 
+ 	buf->handler.refcount = &buf->refcount;
+-	buf->handler.put = vb2_dma_contig_put;
++	buf->handler.put = vb2_dc_put;
+ 	buf->handler.arg = buf;
+ 
+ 	atomic_inc(&buf->refcount);
+@@ -64,7 +64,7 @@ static void *vb2_dma_contig_alloc(void *alloc_ctx, unsigned long size)
+ 	return buf;
  }
  
-@@ -1340,9 +1347,12 @@ static ssize_t viu_read(struct file *file, char __user *data, size_t count,
- 		dev->ovenable = 0;
- 
- 	if (fh->type == V4L2_BUF_TYPE_VIDEO_CAPTURE) {
-+		if (mutex_lock_interruptible(&dev->lock))
-+			return -ERESTARTSYS;
- 		viu_start_dma(dev);
- 		ret = videobuf_read_stream(&fh->vb_vidq, data, count,
- 				ppos, 0, file->f_flags & O_NONBLOCK);
-+		mutex_unlock(&dev->lock);
- 		return ret;
- 	}
- 	return 0;
-@@ -1352,11 +1362,16 @@ static unsigned int viu_poll(struct file *file, struct poll_table_struct *wait)
+-static void vb2_dma_contig_put(void *buf_priv)
++static void vb2_dc_put(void *buf_priv)
  {
- 	struct viu_fh *fh = file->private_data;
- 	struct videobuf_queue *q = &fh->vb_vidq;
-+	struct viu_dev *dev = fh->dev;
-+	unsigned int res;
+ 	struct vb2_dc_buf *buf = buf_priv;
  
- 	if (V4L2_BUF_TYPE_VIDEO_CAPTURE != fh->type)
- 		return POLLERR;
- 
--	return videobuf_poll_stream(file, q, wait);
-+	mutex_lock(&dev->lock);
-+	res = videobuf_poll_stream(file, q, wait);
-+	mutex_unlock(&dev->lock);
-+	return res;
+@@ -75,14 +75,14 @@ static void vb2_dma_contig_put(void *buf_priv)
+ 	}
  }
  
- static int viu_release(struct file *file)
-@@ -1365,9 +1380,11 @@ static int viu_release(struct file *file)
- 	struct viu_dev *dev = fh->dev;
- 	int minor = video_devdata(file)->minor;
- 
-+	mutex_lock(&dev->lock);
- 	viu_stop_dma(dev);
- 	videobuf_stop(&fh->vb_vidq);
- 	videobuf_mmap_free(&fh->vb_vidq);
-+	mutex_unlock(&dev->lock);
- 
- 	kfree(fh);
- 
-@@ -1394,11 +1411,15 @@ void viu_reset(struct viu_reg *reg)
- static int viu_mmap(struct file *file, struct vm_area_struct *vma)
+-static void *vb2_dma_contig_cookie(void *buf_priv)
++static void *vb2_dc_cookie(void *buf_priv)
  {
- 	struct viu_fh *fh = file->private_data;
-+	struct viu_dev *dev = fh->dev;
- 	int ret;
+ 	struct vb2_dc_buf *buf = buf_priv;
  
- 	dprintk(1, "mmap called, vma=0x%08lx\n", (unsigned long)vma);
+ 	return &buf->dma_addr;
+ }
  
-+	if (mutex_lock_interruptible(&dev->lock))
-+		return -ERESTARTSYS;
- 	ret = videobuf_mmap_mapper(&fh->vb_vidq, vma);
-+	mutex_unlock(&dev->lock);
+-static void *vb2_dma_contig_vaddr(void *buf_priv)
++static void *vb2_dc_vaddr(void *buf_priv)
+ {
+ 	struct vb2_dc_buf *buf = buf_priv;
+ 	if (!buf)
+@@ -91,14 +91,14 @@ static void *vb2_dma_contig_vaddr(void *buf_priv)
+ 	return buf->vaddr;
+ }
  
- 	dprintk(1, "vma start=0x%08lx, size=%ld, ret=%d\n",
- 		(unsigned long)vma->vm_start,
-@@ -1544,10 +1565,6 @@ static int __devinit viu_of_probe(struct platform_device *op)
+-static unsigned int vb2_dma_contig_num_users(void *buf_priv)
++static unsigned int vb2_dc_num_users(void *buf_priv)
+ {
+ 	struct vb2_dc_buf *buf = buf_priv;
  
- 	/* initialize locks */
- 	mutex_init(&viu_dev->lock);
--	/* Locking in file operations other than ioctl should be done
--	   by the driver, not the V4L2 core.
--	   This driver needs auditing so that this flag can be removed. */
--	set_bit(V4L2_FL_LOCK_ALL_FOPS, &viu_dev->vdev->flags);
- 	viu_dev->vdev->lock = &viu_dev->lock;
- 	spin_lock_init(&viu_dev->slock);
+ 	return atomic_read(&buf->refcount);
+ }
+ 
+-static int vb2_dma_contig_mmap(void *buf_priv, struct vm_area_struct *vma)
++static int vb2_dc_mmap(void *buf_priv, struct vm_area_struct *vma)
+ {
+ 	struct vb2_dc_buf *buf = buf_priv;
+ 
+@@ -111,7 +111,7 @@ static int vb2_dma_contig_mmap(void *buf_priv, struct vm_area_struct *vma)
+ 				  &vb2_common_vm_ops, &buf->handler);
+ }
+ 
+-static void *vb2_dma_contig_get_userptr(void *alloc_ctx, unsigned long vaddr,
++static void *vb2_dc_get_userptr(void *alloc_ctx, unsigned long vaddr,
+ 					unsigned long size, int write)
+ {
+ 	struct vb2_dc_buf *buf;
+@@ -138,7 +138,7 @@ static void *vb2_dma_contig_get_userptr(void *alloc_ctx, unsigned long vaddr,
+ 	return buf;
+ }
+ 
+-static void vb2_dma_contig_put_userptr(void *mem_priv)
++static void vb2_dc_put_userptr(void *mem_priv)
+ {
+ 	struct vb2_dc_buf *buf = mem_priv;
+ 
+@@ -150,14 +150,14 @@ static void vb2_dma_contig_put_userptr(void *mem_priv)
+ }
+ 
+ const struct vb2_mem_ops vb2_dma_contig_memops = {
+-	.alloc		= vb2_dma_contig_alloc,
+-	.put		= vb2_dma_contig_put,
+-	.cookie		= vb2_dma_contig_cookie,
+-	.vaddr		= vb2_dma_contig_vaddr,
+-	.mmap		= vb2_dma_contig_mmap,
+-	.get_userptr	= vb2_dma_contig_get_userptr,
+-	.put_userptr	= vb2_dma_contig_put_userptr,
+-	.num_users	= vb2_dma_contig_num_users,
++	.alloc		= vb2_dc_alloc,
++	.put		= vb2_dc_put,
++	.cookie		= vb2_dc_cookie,
++	.vaddr		= vb2_dc_vaddr,
++	.mmap		= vb2_dc_mmap,
++	.get_userptr	= vb2_dc_get_userptr,
++	.put_userptr	= vb2_dc_put_userptr,
++	.num_users	= vb2_dc_num_users,
+ };
+ EXPORT_SYMBOL_GPL(vb2_dma_contig_memops);
  
 -- 
-1.7.10
+1.7.9.5
 
