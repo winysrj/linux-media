@@ -1,119 +1,242 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:2450 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761604Ab2FVMVr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Jun 2012 08:21:47 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Pawel Osciak <pawel@osciak.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv2 PATCH 29/34] vivi: embed struct video_device instead of allocating it.
-Date: Fri, 22 Jun 2012 14:21:23 +0200
-Message-Id: <2ddf8acdcefdfbd012459e59240da4e5a8751f92.1340366355.git.hans.verkuil@cisco.com>
-In-Reply-To: <1340367688-8722-1-git-send-email-hverkuil@xs4all.nl>
-References: <1340367688-8722-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1cee710ae251aa69bed8e563a94b419ed99bc41a.1340366355.git.hans.verkuil@cisco.com>
-References: <1cee710ae251aa69bed8e563a94b419ed99bc41a.1340366355.git.hans.verkuil@cisco.com>
+Received: from mx1.redhat.com ([209.132.183.28]:24539 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756081Ab2FNNm4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 14 Jun 2012 09:42:56 -0400
+From: Hans de Goede <hdegoede@redhat.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: hverkuil@xs4all.nl, Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH 2/4] radio-si470x: Always use interrupt to wait for tune/seek completion
+Date: Thu, 14 Jun 2012 15:43:12 +0200
+Message-Id: <1339681394-11348-2-git-send-email-hdegoede@redhat.com>
+In-Reply-To: <1339681394-11348-1-git-send-email-hdegoede@redhat.com>
+References: <1339681394-11348-1-git-send-email-hdegoede@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Since USB receives STATUS_RSSI updates through the interrupt endpoint,
+there is no need to poll with USB, so get rid of the polling.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Note this also changes the order in which the probing of USB devices is done,
+to avoid si470x_set_chan getting called before the interrupt endpoint is being
+monitored.
+
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 ---
- drivers/media/video/vivi.c |   24 +++++++-----------------
- 1 file changed, 7 insertions(+), 17 deletions(-)
+ drivers/media/radio/si470x/radio-si470x-common.c |   56 +++++-----------------
+ drivers/media/radio/si470x/radio-si470x-i2c.c    |    5 +-
+ drivers/media/radio/si470x/radio-si470x-usb.c    |   25 ++++++----
+ drivers/media/radio/si470x/radio-si470x.h        |    1 -
+ 4 files changed, 28 insertions(+), 59 deletions(-)
 
-diff --git a/drivers/media/video/vivi.c b/drivers/media/video/vivi.c
-index e00efcf..1e4da5e 100644
---- a/drivers/media/video/vivi.c
-+++ b/drivers/media/video/vivi.c
-@@ -188,6 +188,7 @@ struct vivi_dev {
- 	struct list_head           vivi_devlist;
- 	struct v4l2_device 	   v4l2_dev;
- 	struct v4l2_ctrl_handler   ctrl_handler;
-+	struct video_device	   vdev;
+diff --git a/drivers/media/radio/si470x/radio-si470x-common.c b/drivers/media/radio/si470x/radio-si470x-common.c
+index 5dbb897..9f8b675 100644
+--- a/drivers/media/radio/si470x/radio-si470x-common.c
++++ b/drivers/media/radio/si470x/radio-si470x-common.c
+@@ -164,7 +164,6 @@ MODULE_PARM_DESC(seek_timeout, "Seek timeout: *5000*");
+ static int si470x_set_chan(struct si470x_device *radio, unsigned short chan)
+ {
+ 	int retval;
+-	unsigned long timeout;
+ 	bool timed_out = 0;
  
- 	/* controls */
- 	struct v4l2_ctrl	   *brightness;
-@@ -213,9 +214,6 @@ struct vivi_dev {
- 	spinlock_t                 slock;
- 	struct mutex		   mutex;
+ 	/* start tuning */
+@@ -174,26 +173,12 @@ static int si470x_set_chan(struct si470x_device *radio, unsigned short chan)
+ 	if (retval < 0)
+ 		goto done;
  
--	/* various device info */
--	struct video_device        *vfd;
+-	/* currently I2C driver only uses interrupt way to tune */
+-	if (radio->stci_enabled) {
+-		INIT_COMPLETION(radio->completion);
 -
- 	struct vivi_dmaqueue       vidq;
+-		/* wait till tune operation has completed */
+-		retval = wait_for_completion_timeout(&radio->completion,
+-				msecs_to_jiffies(tune_timeout));
+-		if (!retval)
+-			timed_out = true;
+-	} else {
+-		/* wait till tune operation has completed */
+-		timeout = jiffies + msecs_to_jiffies(tune_timeout);
+-		do {
+-			retval = si470x_get_register(radio, STATUSRSSI);
+-			if (retval < 0)
+-				goto stop;
+-			timed_out = time_after(jiffies, timeout);
+-		} while (((radio->registers[STATUSRSSI] & STATUSRSSI_STC) == 0)
+-				&& (!timed_out));
+-	}
++	/* wait till tune operation has completed */
++	INIT_COMPLETION(radio->completion);
++	retval = wait_for_completion_timeout(&radio->completion,
++			msecs_to_jiffies(tune_timeout));
++	if (!retval)
++		timed_out = true;
  
- 	/* Several counters */
-@@ -1326,7 +1324,7 @@ static struct video_device vivi_template = {
- 	.name		= "vivi",
- 	.fops           = &vivi_fops,
- 	.ioctl_ops 	= &vivi_ioctl_ops,
--	.release	= video_device_release,
-+	.release	= video_device_release_empty,
- };
+ 	if ((radio->registers[STATUSRSSI] & STATUSRSSI_STC) == 0)
+ 		dev_warn(&radio->videodev.dev, "tune does not complete\n");
+@@ -201,7 +186,6 @@ static int si470x_set_chan(struct si470x_device *radio, unsigned short chan)
+ 		dev_warn(&radio->videodev.dev,
+ 			"tune timed out after %u ms\n", tune_timeout);
  
- /* -----------------------------------------------------------------
-@@ -1344,8 +1342,8 @@ static int vivi_release(void)
- 		dev = list_entry(list, struct vivi_dev, vivi_devlist);
+-stop:
+ 	/* stop tuning */
+ 	radio->registers[CHANNEL] &= ~CHANNEL_TUNE;
+ 	retval = si470x_set_register(radio, CHANNEL);
+@@ -312,7 +296,6 @@ static int si470x_set_seek(struct si470x_device *radio,
+ 		unsigned int wrap_around, unsigned int seek_upward)
+ {
+ 	int retval = 0;
+-	unsigned long timeout;
+ 	bool timed_out = 0;
  
- 		v4l2_info(&dev->v4l2_dev, "unregistering %s\n",
--			video_device_node_name(dev->vfd));
--		video_unregister_device(dev->vfd);
-+			video_device_node_name(&dev->vdev));
-+		video_unregister_device(&dev->vdev);
- 		v4l2_device_unregister(&dev->v4l2_dev);
- 		v4l2_ctrl_handler_free(&dev->ctrl_handler);
- 		kfree(dev);
-@@ -1430,11 +1428,7 @@ static int __init vivi_create_instance(int inst)
- 	INIT_LIST_HEAD(&dev->vidq.active);
- 	init_waitqueue_head(&dev->vidq.wq);
+ 	/* start seeking */
+@@ -329,26 +312,12 @@ static int si470x_set_seek(struct si470x_device *radio,
+ 	if (retval < 0)
+ 		return retval;
  
--	ret = -ENOMEM;
--	vfd = video_device_alloc();
--	if (!vfd)
--		goto unreg_dev;
+-	/* currently I2C driver only uses interrupt way to seek */
+-	if (radio->stci_enabled) {
+-		INIT_COMPLETION(radio->completion);
 -
-+	vfd = &dev->vdev;
- 	*vfd = vivi_template;
- 	vfd->debug = debug;
- 	vfd->v4l2_dev = &dev->v4l2_dev;
-@@ -1445,12 +1439,11 @@ static int __init vivi_create_instance(int inst)
- 	 * all fops and v4l2 ioctls.
- 	 */
- 	vfd->lock = &dev->mutex;
-+	video_set_drvdata(vfd, dev);
+-		/* wait till seek operation has completed */
+-		retval = wait_for_completion_timeout(&radio->completion,
+-				msecs_to_jiffies(seek_timeout));
+-		if (!retval)
+-			timed_out = true;
+-	} else {
+-		/* wait till seek operation has completed */
+-		timeout = jiffies + msecs_to_jiffies(seek_timeout);
+-		do {
+-			retval = si470x_get_register(radio, STATUSRSSI);
+-			if (retval < 0)
+-				goto stop;
+-			timed_out = time_after(jiffies, timeout);
+-		} while (((radio->registers[STATUSRSSI] & STATUSRSSI_STC) == 0)
+-				&& (!timed_out));
+-	}
++	/* wait till tune operation has completed */
++	INIT_COMPLETION(radio->completion);
++	retval = wait_for_completion_timeout(&radio->completion,
++			msecs_to_jiffies(seek_timeout));
++	if (!retval)
++		timed_out = true;
  
- 	ret = video_register_device(vfd, VFL_TYPE_GRABBER, video_nr);
- 	if (ret < 0)
--		goto rel_vdev;
+ 	if ((radio->registers[STATUSRSSI] & STATUSRSSI_STC) == 0)
+ 		dev_warn(&radio->videodev.dev, "seek does not complete\n");
+@@ -356,7 +325,6 @@ static int si470x_set_seek(struct si470x_device *radio,
+ 		dev_warn(&radio->videodev.dev,
+ 			"seek failed / band limit reached\n");
+ 
+-stop:
+ 	/* stop seeking */
+ 	radio->registers[POWERCFG] &= ~POWERCFG_SEEK;
+ 	retval = si470x_set_register(radio, POWERCFG);
+diff --git a/drivers/media/radio/si470x/radio-si470x-i2c.c b/drivers/media/radio/si470x/radio-si470x-i2c.c
+index a80044c..fb401a2 100644
+--- a/drivers/media/radio/si470x/radio-si470x-i2c.c
++++ b/drivers/media/radio/si470x/radio-si470x-i2c.c
+@@ -351,6 +351,7 @@ static int __devinit si470x_i2c_probe(struct i2c_client *client,
+ 
+ 	radio->client = client;
+ 	mutex_init(&radio->lock);
++	init_completion(&radio->completion);
+ 
+ 	/* video device initialization */
+ 	radio->videodev = si470x_viddev_template;
+@@ -406,10 +407,6 @@ static int __devinit si470x_i2c_probe(struct i2c_client *client,
+ 	radio->rd_index = 0;
+ 	init_waitqueue_head(&radio->read_queue);
+ 
+-	/* mark Seek/Tune Complete Interrupt enabled */
+-	radio->stci_enabled = true;
+-	init_completion(&radio->completion);
 -
--	video_set_drvdata(vfd, dev);
-+		goto unreg_dev;
+ 	retval = request_threaded_irq(client->irq, NULL, si470x_i2c_interrupt,
+ 			IRQF_TRIGGER_FALLING, DRIVER_NAME, radio);
+ 	if (retval) {
+diff --git a/drivers/media/radio/si470x/radio-si470x-usb.c b/drivers/media/radio/si470x/radio-si470x-usb.c
+index 0da5c98..66b1ba8 100644
+--- a/drivers/media/radio/si470x/radio-si470x-usb.c
++++ b/drivers/media/radio/si470x/radio-si470x-usb.c
+@@ -406,6 +406,9 @@ static void si470x_int_in_callback(struct urb *urb)
+ 	radio->registers[STATUSRSSI] =
+ 		get_unaligned_be16(&radio->int_in_buffer[1]);
  
- 	/* Now that everything is fine, let's add it to device list */
- 	list_add_tail(&dev->vivi_devlist, &vivi_devlist);
-@@ -1458,13 +1451,10 @@ static int __init vivi_create_instance(int inst)
- 	if (video_nr != -1)
- 		video_nr++;
++	if (radio->registers[STATUSRSSI] & STATUSRSSI_STC)
++		complete(&radio->completion);
++
+ 	if ((radio->registers[SYSCONFIG1] & SYSCONFIG1_RDS)) {
+ 		/* Update RDS registers with URB data */
+ 		for (regnr = 1; regnr < RDS_REGISTER_NUM; regnr++)
+@@ -539,13 +542,6 @@ static int si470x_start_usb(struct si470x_device *radio)
+ {
+ 	int retval;
  
--	dev->vfd = vfd;
- 	v4l2_info(&dev->v4l2_dev, "V4L2 device registered as %s\n",
- 		  video_device_node_name(vfd));
- 	return 0;
+-	/* start radio */
+-	retval = si470x_start(radio);
+-	if (retval < 0)
+-		return retval;
+-
+-	v4l2_ctrl_handler_setup(&radio->hdl);
+-
+ 	/* initialize interrupt urb */
+ 	usb_fill_int_urb(radio->int_in_urb, radio->usbdev,
+ 			usb_rcvintpipe(radio->usbdev,
+@@ -566,6 +562,14 @@ static int si470x_start_usb(struct si470x_device *radio)
+ 		radio->int_in_running = 0;
+ 	}
+ 	radio->status_rssi_auto_update = radio->int_in_running;
++
++	/* start radio */
++	retval = si470x_start(radio);
++	if (retval < 0)
++		return retval;
++
++	v4l2_ctrl_handler_setup(&radio->hdl);
++
+ 	return retval;
+ }
  
--rel_vdev:
--	video_device_release(vfd);
- unreg_dev:
- 	v4l2_ctrl_handler_free(hdl);
- 	v4l2_device_unregister(&dev->v4l2_dev);
+@@ -594,6 +598,7 @@ static int si470x_usb_driver_probe(struct usb_interface *intf,
+ 	radio->usbdev = interface_to_usbdev(intf);
+ 	radio->intf = intf;
+ 	mutex_init(&radio->lock);
++	init_completion(&radio->completion);
+ 
+ 	iface_desc = intf->cur_altsetting;
+ 
+@@ -704,9 +709,6 @@ static int si470x_usb_driver_probe(struct usb_interface *intf,
+ 			"linux-media@vger.kernel.org\n");
+ 	}
+ 
+-	/* set initial frequency */
+-	si470x_set_freq(radio, 87.5 * FREQ_MUL); /* available in all regions */
+-
+ 	/* set led to connect state */
+ 	si470x_set_led_state(radio, BLINK_GREEN_LED);
+ 
+@@ -729,6 +731,9 @@ static int si470x_usb_driver_probe(struct usb_interface *intf,
+ 	if (retval < 0)
+ 		goto err_all;
+ 
++	/* set initial frequency */
++	si470x_set_freq(radio, 87.5 * FREQ_MUL); /* available in all regions */
++
+ 	/* register video device */
+ 	retval = video_register_device(&radio->videodev, VFL_TYPE_RADIO,
+ 			radio_nr);
+diff --git a/drivers/media/radio/si470x/radio-si470x.h b/drivers/media/radio/si470x/radio-si470x.h
+index 2a0a46f..fbf713d 100644
+--- a/drivers/media/radio/si470x/radio-si470x.h
++++ b/drivers/media/radio/si470x/radio-si470x.h
+@@ -160,7 +160,6 @@ struct si470x_device {
+ 	unsigned int wr_index;
+ 
+ 	struct completion completion;
+-	bool stci_enabled;		/* Seek/Tune Complete Interrupt */
+ 	bool status_rssi_auto_update;	/* Does RSSI get updated automatic? */
+ 
+ #if defined(CONFIG_USB_SI470X) || defined(CONFIG_USB_SI470X_MODULE)
 -- 
-1.7.10
+1.7.10.2
 
