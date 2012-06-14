@@ -1,124 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-1-out2.atlantis.sk ([80.94.52.71]:58011 "EHLO
-	mail.atlantis.sk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754339Ab2FMV0K (ORCPT
+Received: from mail-qc0-f174.google.com ([209.85.216.174]:52985 "EHLO
+	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750986Ab2FNGqI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Jun 2012 17:26:10 -0400
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH v2 3/3] radio-sf16fmi: Use LM7000 driver
-Cc: linux-media@vger.kernel.org
-Content-Disposition: inline
-From: Ondrej Zary <linux@rainbow-software.org>
-Date: Wed, 13 Jun 2012 23:25:44 +0200
+	Thu, 14 Jun 2012 02:46:08 -0400
+Received: by qcro28 with SMTP id o28so814795qcr.19
+        for <linux-media@vger.kernel.org>; Wed, 13 Jun 2012 23:46:07 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201206132325.48390.linux@rainbow-software.org>
+Date: Thu, 14 Jun 2012 14:46:07 +0800
+Message-ID: <CAN6EUtu2N2hR2CLG1BWqR3mp9t0vbzfKeQXnhdB+FgeMw5Uf8g@mail.gmail.com>
+Subject: DVB streaming failed after running tzap
+From: Bruce Ying <bruce.ying@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Convert radio-sf16fmi to use generic LM7000 driver.
-Tested with SF16-FMI, SF16-FMP and SF16-FMD.
+I'm new to this mailing list, so excuse me if I'm posting to the wrong place.
+I'm using a DiBcom USB module on an Ubuntu 11.04 host. The v4l-dvb
+drivers were downloaded via git and built on June 13, 2012.
+Basically, I can watch DVB-T by running mplayer (version
+SVN-r35003-4.5.2); however, if I ran tzap before launching mplayer,
+then I would get a series of "dvb_streaming_read, attempt N. 6 failed
+with errno 0 when reading 2048 bytes" failure messages. Then I must
+unplug the DiBcom USB tuner and plug it in again so that I could
+relaunch mplayer to tune to a DVB-T channel. The console output of
+running mplayer as well as tzap is as attached below.
+Has anyone experienced the same problem?
 
-Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
+==========================================================================
 
---- a/drivers/media/radio/radio-sf16fmi.c
-+++ b/drivers/media/radio/radio-sf16fmi.c
-@@ -27,6 +27,7 @@
- #include <linux/io.h>		/* outb, outb_p			*/
- #include <media/v4l2-device.h>
- #include <media/v4l2-ioctl.h>
-+#include "lm7000.h"
- 
- MODULE_AUTHOR("Petr Vandrovec, vandrove@vc.cvut.cz and M. Kirkwood");
- MODULE_DESCRIPTION("A driver for the SF16-FMI, SF16-FMP and SF16-FMD radio.");
-@@ -54,31 +55,33 @@ static struct fmi fmi_card;
- static struct pnp_dev *dev;
- bool pnp_attached;
- 
--/* freq is in 1/16 kHz to internal number, hw precision is 50 kHz */
--/* It is only useful to give freq in interval of 800 (=0.05Mhz),
-- * other bits will be truncated, e.g 92.7400016 -> 92.7, but
-- * 92.7400017 -> 92.75
-- */
--#define RSF16_ENCODE(x)	((x) / 800 + 214)
- #define RSF16_MINFREQ (87 * 16000)
- #define RSF16_MAXFREQ (108 * 16000)
- 
--static void outbits(int bits, unsigned int data, int io)
-+#define FMI_BIT_TUN_CE		(1 << 0)
-+#define FMI_BIT_TUN_CLK		(1 << 1)
-+#define FMI_BIT_TUN_DATA	(1 << 2)
-+#define FMI_BIT_VOL_SW		(1 << 3)
-+#define FMI_BIT_TUN_STRQ	(1 << 4)
-+
-+void fmi_set_pins(void *handle, u8 pins)
- {
--	while (bits--) {
--		if (data & 1) {
--			outb(5, io);
--			udelay(6);
--			outb(7, io);
--			udelay(6);
--		} else {
--			outb(1, io);
--			udelay(6);
--			outb(3, io);
--			udelay(6);
--		}
--		data >>= 1;
--	}
-+	struct fmi *fmi = handle;
-+	u8 bits = FMI_BIT_TUN_STRQ;
-+
-+	if (!fmi->mute)
-+		bits |= FMI_BIT_VOL_SW;
-+
-+	if (pins & LM7000_DATA)
-+		bits |= FMI_BIT_TUN_DATA;
-+	if (pins & LM7000_CLK)
-+		bits |= FMI_BIT_TUN_CLK;
-+	if (pins & LM7000_CE)
-+		bits |= FMI_BIT_TUN_CE;
-+
-+	mutex_lock(&fmi->lock);
-+	outb_p(bits, fmi->io);
-+	mutex_unlock(&fmi->lock);
- }
- 
- static inline void fmi_mute(struct fmi *fmi)
-@@ -95,20 +98,6 @@ static inline void fmi_unmute(struct fmi *fmi)
- 	mutex_unlock(&fmi->lock);
- }
- 
--static inline int fmi_setfreq(struct fmi *fmi, unsigned long freq)
--{
--	mutex_lock(&fmi->lock);
--	fmi->curfreq = freq;
--
--	outbits(16, RSF16_ENCODE(freq), fmi->io);
--	outbits(8, 0xC0, fmi->io);
--	msleep(143);		/* was schedule_timeout(HZ/7) */
--	mutex_unlock(&fmi->lock);
--	if (!fmi->mute)
--		fmi_unmute(fmi);
--	return 0;
--}
--
- static inline int fmi_getsigstr(struct fmi *fmi)
- {
- 	int val;
-@@ -173,7 +162,7 @@ static int vidioc_s_frequency(struct file *file, void *priv,
- 		return -EINVAL;
- 	/* rounding in steps of 800 to match the freq
- 	   that will be used */
--	fmi_setfreq(fmi, (f->frequency / 800) * 800);
-+	lm7000_set_freq((f->frequency / 800) * 800, fmi, fmi_set_pins);
- 	return 0;
- }
- 
- 
+hying@hying-VT3410-8595CMB:~$ gmplayer dvb://CTS
+MPlayer SVN-r35003-4.5.2 (C) 2000-2012 MPlayer Team
 
--- 
-Ondrej Zary
+Playing dvb://CTS.
+dvb_tune Freq: 593000000
+TS file format detected.
+VIDEO MPEG2(pid=5011) AUDIO MPA(pid=5012) NO SUBS (yet)!  PROGRAM N. 0
+VIDEO:  MPEG2  704x480  (aspect 2)  29.970 fps  15000.0 kbps (1875.0 kbyte/s)
+==========================================================================
+Opening video decoder: [ffmpeg] FFmpeg's libavcodec codec family
+libavcodec version 54.25.100 (internal)
+Selected video codec: [ffmpeg2] vfm: ffmpeg (FFmpeg MPEG-2)
+==========================================================================
+==========================================================================
+Opening audio decoder: [mpg123] MPEG 1.0/2.0/2.5 layers I, II, III
+AUDIO: 48000 Hz, 2 ch, s16le, 128.0 kbit/8.33% (ratio: 16000->192000)
+Selected audio codec: [mpg123] afm: mpg123 (MPEG 1.0/2.0/2.5 layers I, II, III)
+==========================================================================
+[AO OSS] audio_setup: Can't open audio device /dev/dsp: No such file
+or directory
+AO: [alsa] 48000Hz 2ch s16le (2 bytes per sample)
+[AO_ALSA] Unable to find simple control 'PCM',0.
+Starting playback...
+[VD_FFMPEG] Trying pixfmt=0.
+Could not find matching colorspace - retrying with -vf scale...
+Opening video filter: [scale]
+The selected video_out device is incompatible with this codec.
+Try appending the scale filter to your filter list,
+e.g. -vf spp,scale instead of -vf spp.
+Movie-Aspect is 1.33:1 - prescaling to correct movie aspect.
+VO: [vdpau] 704x480 => 704x528 Planar YV12
+A:42279.3 V:42279.6 A-V: -0.336 ct:  0.000   4/  4 ??% ??% ??,?% 0 0
+[AO_ALSA] Unable to find simple control 'PCM',0.
+
+[snip]
+
+hying@hying-VT3410-8595CMB:~$ tzap -r -c .tzap/channels.conf CTS
+using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+reading channels from file '.tzap/channels.conf'
+tuning to 593000000 Hz
+video pid 0x1393, audio pid 0x1394
+status 0f | signal 6322 | snr 008a | ber 001fffff | unc 00000000 |
+status 1f | signal 614f | snr 0098 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal 5f5d | snr 0099 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal 5fbf | snr 00a1 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal 5f9e | snr 009d | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal 6027 | snr 009e | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal 608d | snr 00a1 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal 625e | snr 00a1 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal 6127 | snr 009f | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal 60ad | snr 00a2 | ber 00000030 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal 614f | snr 009e | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal 6323 | snr 00a3 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal 604d | snr 00a4 | ber 00000030 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal 6294 | snr 009f | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal 60a9 | snr 009d | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+^C
+hying@hying-VT3410-8595CMB:~$ gmplayer dvb://CTS
+MPlayer SVN-r35003-4.5.2 (C) 2000-2012 MPlayer Team
+
+Playing dvb://CTS.
+dvb_tune Freq: 593000000
+dvb_streaming_read, attempt N. 6 failed with errno 0 when reading 2048 bytes
+dvb_streaming_read, attempt N. 5 failed with errno 0 when reading 2048 bytes
+dvb_streaming_read, attempt N. 4 failed with errno 0 when reading 2048 bytes
+dvb_streaming_read, attempt N. 3 failed with errno 0 when reading 2048 bytes
+dvb_streaming_read, attempt N. 2 failed with errno 0 when reading 2048 bytes
+dvb_streaming_read, attempt N. 1 failed with errno 0 when reading 2048 bytes
+dvb_streaming_read, return 0 bytes
