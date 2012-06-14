@@ -1,66 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from emh07.mail.saunalahti.fi ([62.142.5.117]:43218 "EHLO
-	emh07.mail.saunalahti.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752200Ab2F3JoH (ORCPT
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:14329 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756007Ab2FNNiM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 30 Jun 2012 05:44:07 -0400
-Message-ID: <4FEECA65.9090205@kolumbus.fi>
-Date: Sat, 30 Jun 2012 12:44:05 +0300
-From: Marko Ristola <marko.ristola@kolumbus.fi>
-MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: linux-media <linux-media@vger.kernel.org>,
-	htl10@users.sourceforge.net
-Subject: Re: DVB core enhancements - comments please?
-References: <4FEBA656.7060608@iki.fi>
-In-Reply-To: <4FEBA656.7060608@iki.fi>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+	Thu, 14 Jun 2012 09:38:12 -0400
+Received: from euspt2 (mailout4.w1.samsung.com [210.118.77.14])
+ by mailout4.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0M5M005NJ0KR2N60@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 14 Jun 2012 14:38:51 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0M5M00C110JJHO@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 14 Jun 2012 14:38:08 +0100 (BST)
+Date: Thu, 14 Jun 2012 15:37:40 +0200
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: [PATCHv7 06/15] v4l: vb2-dma-contig: remove reference of alloc_ctx
+ from a buffer
+In-reply-to: <1339681069-8483-1-git-send-email-t.stanislaws@samsung.com>
+To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
+Cc: airlied@redhat.com, m.szyprowski@samsung.com,
+	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
+	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
+	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
+	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
+	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
+	mchehab@redhat.com, g.liakhovetski@gmx.de
+Message-id: <1339681069-8483-7-git-send-email-t.stanislaws@samsung.com>
+Content-transfer-encoding: 7BIT
+References: <1339681069-8483-1-git-send-email-t.stanislaws@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This patch removes a reference to alloc_ctx from an instance of a DMA
+contiguous buffer. It helps to avoid a risk of a dangling pointer if the
+context is released while the buffer is still valid. Moreover it removes one
+dereference step while accessing a device structure.
 
-Hi Antti.
+Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/video/videobuf2-dma-contig.c |   13 ++++++-------
+ 1 file changed, 6 insertions(+), 7 deletions(-)
 
-My suspend / resume patch implemented "Kaffeine continues viewing channel after resume".
-Some of the ideas could be still useful: http://www.spinics.net/lists/linux-dvb/msg19651.html
+diff --git a/drivers/media/video/videobuf2-dma-contig.c b/drivers/media/video/videobuf2-dma-contig.c
+index a05784f..20c95da 100644
+--- a/drivers/media/video/videobuf2-dma-contig.c
++++ b/drivers/media/video/videobuf2-dma-contig.c
+@@ -23,7 +23,7 @@ struct vb2_dc_conf {
+ };
+ 
+ struct vb2_dc_buf {
+-	struct vb2_dc_conf		*conf;
++	struct device			*dev;
+ 	void				*vaddr;
+ 	dma_addr_t			dma_addr;
+ 	unsigned long			size;
+@@ -37,22 +37,21 @@ static void vb2_dc_put(void *buf_priv);
+ static void *vb2_dc_alloc(void *alloc_ctx, unsigned long size)
+ {
+ 	struct vb2_dc_conf *conf = alloc_ctx;
++	struct device *dev = conf->dev;
+ 	struct vb2_dc_buf *buf;
+ 
+ 	buf = kzalloc(sizeof *buf, GFP_KERNEL);
+ 	if (!buf)
+ 		return ERR_PTR(-ENOMEM);
+ 
+-	buf->vaddr = dma_alloc_coherent(conf->dev, size, &buf->dma_addr,
+-					GFP_KERNEL);
++	buf->vaddr = dma_alloc_coherent(dev, size, &buf->dma_addr, GFP_KERNEL);
+ 	if (!buf->vaddr) {
+-		dev_err(conf->dev, "dma_alloc_coherent of size %ld failed\n",
+-			size);
++		dev_err(dev, "dma_alloc_coherent of size %ld failed\n", size);
+ 		kfree(buf);
+ 		return ERR_PTR(-ENOMEM);
+ 	}
+ 
+-	buf->conf = conf;
++	buf->dev = dev;
+ 	buf->size = size;
+ 
+ 	buf->handler.refcount = &buf->refcount;
+@@ -69,7 +68,7 @@ static void vb2_dc_put(void *buf_priv)
+ 	struct vb2_dc_buf *buf = buf_priv;
+ 
+ 	if (atomic_dec_and_test(&buf->refcount)) {
+-		dma_free_coherent(buf->conf->dev, buf->size, buf->vaddr,
++		dma_free_coherent(buf->dev, buf->size, buf->vaddr,
+ 				  buf->dma_addr);
+ 		kfree(buf);
+ 	}
+-- 
+1.7.9.5
 
-Rest of this email has a more thorough description.
-
-Regards,
-Marko Ristola
-
-On 06/28/2012 03:33 AM, Antti Palosaari wrote:
-> Here is my list of needed DVB core related changes. Feel free to comment - what are not needed or what you would like to see instead. I will try to implement what I can (and what I like most interesting :).
->
-...
-> suspend / resume support
-> --------------------------------------------------
-> * support is currently quite missing, all what is done is on interface drivers
-> * needs power management
-> * streaming makes it hard
-> * quite a lot work to get it working in case of straming is ongoing
-
-
-I've implemented Suspend/Resume for Mantis cu1216 in 2007 (PCI DVB-C device):
-Kaffeine continued viewing the channel after resume.
-When Tuner was idle too long, it was powered off too.
-
-According to Manu Abraham at that time, somewhat smaller patch would have sufficed.
-That patch contais nonrelated fixes too, and won't compile now.
-
-Here is the reference (with Manu's answer):
-Start of the thread: http://www.spinics.net/lists/linux-dvb/msg19532.html
-The patch: http://www.spinics.net/lists/linux-dvb/msg19651.html
-Manu's answer: http://www.spinics.net/lists/linux-dvb/msg19668.html
-
-Thoughts about up-to-date implementation
-- Bridge (PCI) device must implement suspend/resume callbacks.
-- Frontend might need some change (power off / power on callbacks)?
-- "save Tuner / DMA transfer state to memory" might be addable to dvb_core.
-- Bridge device supporting suspend/resume needs to have a (non-regression)
-   fallback for (frontend) devices that don't have a full tested "Kaffeine works"
-   suspend/resume implementation yet.
-- What changes encrypted channels need?
-
-Marko
