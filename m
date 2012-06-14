@@ -1,46 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gg0-f174.google.com ([209.85.161.174]:48879 "EHLO
-	mail-gg0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752005Ab2FRTY0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jun 2012 15:24:26 -0400
-Received: by mail-gg0-f174.google.com with SMTP id u4so4009733ggl.19
-        for <linux-media@vger.kernel.org>; Mon, 18 Jun 2012 12:24:26 -0700 (PDT)
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: <linux-media@vger.kernel.org>,
-	Ezequiel Garcia <elezegarcia@gmail.com>
-Subject: [PATCH 12/12] cx25821: Replace struct memcpy with struct assignment
-Date: Mon, 18 Jun 2012 16:23:45 -0300
-Message-Id: <1340047425-32000-12-git-send-email-elezegarcia@gmail.com>
-In-Reply-To: <1340047425-32000-1-git-send-email-elezegarcia@gmail.com>
-References: <1340047425-32000-1-git-send-email-elezegarcia@gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:54419 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756139Ab2FNNm7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 14 Jun 2012 09:42:59 -0400
+From: Hans de Goede <hdegoede@redhat.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: hverkuil@xs4all.nl, Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH 4/4] radio-si470x: Lower firmware version requirements
+Date: Thu, 14 Jun 2012 15:43:14 +0200
+Message-Id: <1339681394-11348-4-git-send-email-hdegoede@redhat.com>
+In-Reply-To: <1339681394-11348-1-git-send-email-hdegoede@redhat.com>
+References: <1339681394-11348-1-git-send-email-hdegoede@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
----
- drivers/media/video/cx25821/cx25821-i2c.c |    7 ++-----
- 1 files changed, 2 insertions(+), 5 deletions(-)
+With the changes from the previous patches device firmware version 14 +
+usb microcontroller software version 1 works fine too.
 
-diff --git a/drivers/media/video/cx25821/cx25821-i2c.c b/drivers/media/video/cx25821/cx25821-i2c.c
-index 431fa7f..8a823b8 100644
---- a/drivers/media/video/cx25821/cx25821-i2c.c
-+++ b/drivers/media/video/cx25821/cx25821-i2c.c
-@@ -305,11 +305,8 @@ int cx25821_i2c_register(struct cx25821_i2c *bus)
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+ drivers/media/radio/si470x/radio-si470x-usb.c |    2 +-
+ drivers/media/radio/si470x/radio-si470x.h     |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/radio/si470x/radio-si470x-usb.c b/drivers/media/radio/si470x/radio-si470x-usb.c
+index 66b1ba8..40b963c 100644
+--- a/drivers/media/radio/si470x/radio-si470x-usb.c
++++ b/drivers/media/radio/si470x/radio-si470x-usb.c
+@@ -143,7 +143,7 @@ MODULE_PARM_DESC(max_rds_errors, "RDS maximum block errors: *1*");
+  * Software/Hardware Versions from Scratch Page
+  **************************************************************************/
+ #define RADIO_SW_VERSION_NOT_BOOTLOADABLE	6
+-#define RADIO_SW_VERSION			7
++#define RADIO_SW_VERSION			1
+ #define RADIO_HW_VERSION			1
  
- 	dprintk(1, "%s(bus = %d)\n", __func__, bus->nr);
  
--	memcpy(&bus->i2c_adap, &cx25821_i2c_adap_template,
--	       sizeof(bus->i2c_adap));
--	memcpy(&bus->i2c_client, &cx25821_i2c_client_template,
--	       sizeof(bus->i2c_client));
--
-+	bus->i2c_adap = cx25821_i2c_adap_template;
-+	bus->i2c_client = cx25821_i2c_client_template;
- 	bus->i2c_adap.dev.parent = &dev->pci->dev;
+diff --git a/drivers/media/radio/si470x/radio-si470x.h b/drivers/media/radio/si470x/radio-si470x.h
+index fbf713d..b3b612f 100644
+--- a/drivers/media/radio/si470x/radio-si470x.h
++++ b/drivers/media/radio/si470x/radio-si470x.h
+@@ -189,7 +189,7 @@ struct si470x_device {
+  * Firmware Versions
+  **************************************************************************/
  
- 	strlcpy(bus->i2c_adap.name, bus->dev->name, sizeof(bus->i2c_adap.name));
+-#define RADIO_FW_VERSION	15
++#define RADIO_FW_VERSION	14
+ 
+ 
+ 
 -- 
-1.7.4.4
+1.7.10.2
 
