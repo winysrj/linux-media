@@ -1,113 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:3966 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755898Ab2FXL3R (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 Jun 2012 07:29:17 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Andy Walls <awalls@md.metrocast.net>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Scott Jiang <scott.jiang.linux@gmail.com>,
-	Manjunatha Halli <manjunatha_halli@ti.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>,
-	Anatolij Gustschin <agust@denx.de>,
-	Javier Martin <javier.martin@vista-silicon.com>,
-	Sensoray Linux Development <linux-dev@sensoray.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
-	Sachin Kamat <sachin.kamat@linaro.org>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	mitov@issp.bas.bg, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 21/26] s5p-g2d: remove V4L2_FL_LOCK_ALL_FOPS
-Date: Sun, 24 Jun 2012 13:26:13 +0200
-Message-Id: <0c5af6204bf82f2a7acd17376f61bac13cfc2547.1340536092.git.hans.verkuil@cisco.com>
-In-Reply-To: <1340537178-18768-1-git-send-email-hverkuil@xs4all.nl>
-References: <1340537178-18768-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <f854d2a0a932187cd895bf9cd81d2da8343b52c9.1340536092.git.hans.verkuil@cisco.com>
-References: <f854d2a0a932187cd895bf9cd81d2da8343b52c9.1340536092.git.hans.verkuil@cisco.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:59331 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756393Ab2FNUbY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 14 Jun 2012 16:31:24 -0400
+Message-ID: <4FDA4A18.5050900@iki.fi>
+Date: Thu, 14 Jun 2012 23:31:20 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Malcolm Priestley <tvboxspy@gmail.com>
+CC: linux-media <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 1/2] [BUG] dvb_usb_v2:  return the download ret in dvb_usb_download_firmware
+References: <1339626272.2421.74.camel@Route3278> <4FD9224F.7050809@iki.fi> <1339634648.3833.37.camel@Route3278> <4FD93B3B.9000003@iki.fi>
+In-Reply-To: <4FD93B3B.9000003@iki.fi>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On 06/14/2012 04:15 AM, Antti Palosaari wrote:
+> On 06/14/2012 03:44 AM, Malcolm Priestley wrote:
+>> On Thu, 2012-06-14 at 02:29 +0300, Antti Palosaari wrote:
+>>> Hi Malcolm,
+>>> I was really surprised someone has had interest to test that stuff at
+>>> that phase as I did not even advertised it yet :) It is likely happen
+>>> next Monday or so as there is some issues I would like to check / solve.
+>>>
+>>>
+>>> On 06/14/2012 01:24 AM, Malcolm Priestley wrote:
+>>>> Hi antti
+>>>>
+>>>> There some issues with dvb_usb_v2 with the lmedm04 driver.
+>>>>
+>>>> The first being this patch, no return value from
+>>>> dvb_usb_download_firmware
+>>>> causes system wide dead lock with COLD disconnect as system attempts
+>>>> to continue
+>>>> to warm state.
+>>>
+>>> Hmm, I did not understand what you mean. What I looked lmedm04 driver I
+>>> think it uses single USB ID (no cold + warm IDs). So it downloads
+>>> firmware and then reconnects itself from the USB bus?
+>>> For that scenario you should "return RECONNECTS_USB;" from the driver
+>>> .download_firmware().
+>>>
+>> If the device disconnects from the USB bus after the firmware download.
+>>
+>> In most cases the device is already gone.
+>>
+>> There is currently no way to insert RECONNECTS_USB into the return.
+>
+> Argh, I was blind! You are absolutely correct. It never returns value 1
+> (RECONNECTS_USB) from the .download_firmware().
+>
+> That patch is fine, I will apply it, thanks!
+>
+> I think that must be also changed to return immediately without
+> releasing the interface. Let the USB core release it when it detects
+> disconnect - otherwise it could crash as it tries to access potentially
+> resources that are already freed. Just for the timing issue if it
+> happens or not.
+>
+> } else if (ret == RECONNECTS_USB) {
+> ret = 0;
+> goto exit_usb_driver_release_interface;
+>
+> add return 0 here without releasing interface and test.
+>
+>
+>>> I tested it using one non-public Cypress FX2 device - it was changing
+>>> USB ID after the FX download, but from the driver perspective it does
+>>> not matter. It is always new device if it reconnects USB.
+>>>
+>>
+>> Have double checked that the thread is not continuing to write on the
+>> old ID?
+>
+> Nope, but likely delayed probe() is finished until it reconnects so I
+> cannot see problem. You device disconnects faster and thus USB core
+> traps .disconnect() earlier...
+>
+> Could you test returning 0 and if it works sent new patch.
+>
+>> The zero condition will lead to dvb_usb_init.
+>>
+>>> PS. as I looked that driver I saw many different firmwares. That is now
+>>> supported and you should use .get_firmware_name() (maybe you already did
+>>> it).
+>>>
+>> Yes, I have supported this in the driver.
 
-Add proper locking to the file operations, allowing for the removal
-of the V4L2_FL_LOCK_ALL_FOPS flag.
+Malcolm,
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/video/s5p-g2d/g2d.c |   27 +++++++++++++++++++++------
- 1 file changed, 21 insertions(+), 6 deletions(-)
+could you just test if returning from the routines after fw download is 
+enough to fix all your problems?
 
-diff --git a/drivers/media/video/s5p-g2d/g2d.c b/drivers/media/video/s5p-g2d/g2d.c
-index 7c98ee7..d8cf1db 100644
---- a/drivers/media/video/s5p-g2d/g2d.c
-+++ b/drivers/media/video/s5p-g2d/g2d.c
-@@ -248,9 +248,14 @@ static int g2d_open(struct file *file)
- 	ctx->in		= def_frame;
- 	ctx->out	= def_frame;
- 
-+	if (mutex_lock_interruptible(&dev->mutex)) {
-+		kfree(ctx);
-+		return -ERESTARTSYS;
-+	}
- 	ctx->m2m_ctx = v4l2_m2m_ctx_init(dev->m2m_dev, ctx, &queue_init);
- 	if (IS_ERR(ctx->m2m_ctx)) {
- 		ret = PTR_ERR(ctx->m2m_ctx);
-+		mutex_unlock(&dev->mutex);
- 		kfree(ctx);
- 		return ret;
- 	}
-@@ -264,6 +269,7 @@ static int g2d_open(struct file *file)
- 	v4l2_ctrl_handler_setup(&ctx->ctrl_handler);
- 
- 	ctx->fh.ctrl_handler = &ctx->ctrl_handler;
-+	mutex_unlock(&dev->mutex);
- 
- 	v4l2_info(&dev->v4l2_dev, "instance opened\n");
- 	return 0;
-@@ -401,13 +407,26 @@ static int vidioc_s_fmt(struct file *file, void *prv, struct v4l2_format *f)
- static unsigned int g2d_poll(struct file *file, struct poll_table_struct *wait)
- {
- 	struct g2d_ctx *ctx = fh2ctx(file->private_data);
--	return v4l2_m2m_poll(file, ctx->m2m_ctx, wait);
-+	struct g2d_dev *dev = ctx->dev;
-+	unsigned int res;
-+
-+	mutex_lock(&dev->mutex);
-+	res = v4l2_m2m_poll(file, ctx->m2m_ctx, wait);
-+	mutex_unlock(&dev->mutex);
-+	return res;
- }
- 
- static int g2d_mmap(struct file *file, struct vm_area_struct *vma)
- {
- 	struct g2d_ctx *ctx = fh2ctx(file->private_data);
--	return v4l2_m2m_mmap(file, ctx->m2m_ctx, vma);
-+	struct g2d_dev *dev = ctx->dev;
-+	int ret;
-+
-+	if (mutex_lock_interruptible(&dev->mutex))
-+		return -ERESTARTSYS;
-+	ret = v4l2_m2m_mmap(file, ctx->m2m_ctx, vma);
-+	mutex_unlock(&dev->mutex);
-+	return ret;
- }
- 
- static int vidioc_reqbufs(struct file *file, void *priv,
-@@ -748,10 +767,6 @@ static int g2d_probe(struct platform_device *pdev)
- 		goto unreg_v4l2_dev;
- 	}
- 	*vfd = g2d_videodev;
--	/* Locking in file operations other than ioctl should be done
--	   by the driver, not the V4L2 core.
--	   This driver needs auditing so that this flag can be removed. */
--	set_bit(V4L2_FL_LOCK_ALL_FOPS, &vfd->flags);
- 	vfd->lock = &dev->mutex;
- 	ret = video_register_device(vfd, VFL_TYPE_GRABBER, 0);
- 	if (ret) {
+I mean those two fixes:
+dvb_usb_download_firmware()
+* return RECONNECTS_USB correctly
+
+dvb_usbv2_init_work()
+* return without releasing USB interface if RECONNECTS_USB
+
+regardss
+Antti
 -- 
-1.7.10
-
+http://palosaari.fi/
