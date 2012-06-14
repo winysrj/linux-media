@@ -1,330 +1,415 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.48]:41146 "EHLO mgw-sa02.nokia.com"
+Received: from mx1.redhat.com ([209.132.183.28]:46746 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755804Ab2FJTfE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Jun 2012 15:35:04 -0400
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: snjw23@gmail.com, hverkuil@xs4all.nl,
-	laurent.pinchart@ideasonboard.com
-Subject: [PATCH 2/4] v4l: Remove "_ACTUAL" from subdev selection API target definition names
-Date: Sun, 10 Jun 2012 22:34:36 +0300
-Message-Id: <1339356878-2179-2-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <4FD4F6B6.1070605@iki.fi>
-References: <4FD4F6B6.1070605@iki.fi>
+	id S1756545Ab2FNUiy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 14 Jun 2012 16:38:54 -0400
+Received: from int-mx11.intmail.prod.int.phx2.redhat.com (int-mx11.intmail.prod.int.phx2.redhat.com [10.5.11.24])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q5EKcsDC017489
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Thu, 14 Jun 2012 16:38:54 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH RFC 07/10] [media] b2c2: break it into common/pci/usb directories
+Date: Thu, 14 Jun 2012 17:35:58 -0300
+Message-Id: <1339706161-22713-8-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1339706161-22713-1-git-send-email-mchehab@redhat.com>
+References: <1339706161-22713-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The string "_ACTUAL" does not say anything more about the target names. Drop
-it. V4L2 selection API was changed by "V4L: Rename V4L2_SEL_TGT_[CROP/COMPOSE]_ACTIVE to
-V4L2_SEL_TGT_[CROP/COMPOSE]" by Sylwester Nawrocki. This patch does the same
-for the V4L2 subdev API.
+b2c2 is, in fact, 2 drivers: one for PCI and one for USB, plus
+a common bus-independent code. Break it accordingly.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
- Documentation/DocBook/media/v4l/dev-subdev.xml     |   25 +++++++++----------
- .../media/v4l/vidioc-subdev-g-selection.xml        |   12 ++++----
- drivers/media/video/omap3isp/ispccdc.c             |    4 +-
- drivers/media/video/omap3isp/isppreview.c          |    4 +-
- drivers/media/video/omap3isp/ispresizer.c          |    4 +-
- drivers/media/video/smiapp/smiapp-core.c           |   22 ++++++++--------
- drivers/media/video/v4l2-subdev.c                  |    4 +-
- include/linux/v4l2-subdev.h                        |    4 +-
- 8 files changed, 39 insertions(+), 40 deletions(-)
+ drivers/media/Kconfig                              |    4 +-
+ drivers/media/common/Kconfig                       |    2 +
+ drivers/media/common/Makefile                      |    2 +-
+ drivers/media/common/b2c2/Kconfig                  |   31 ++++++++++++++++
+ drivers/media/common/b2c2/Makefile                 |    7 ++++
+ .../media/{pci => common}/b2c2/flexcop-common.h    |    0
+ .../media/{pci => common}/b2c2/flexcop-eeprom.c    |    0
+ .../media/{pci => common}/b2c2/flexcop-fe-tuner.c  |    0
+ .../media/{pci => common}/b2c2/flexcop-hw-filter.c |    0
+ drivers/media/{pci => common}/b2c2/flexcop-i2c.c   |    0
+ drivers/media/{pci => common}/b2c2/flexcop-misc.c  |    0
+ drivers/media/{pci => common}/b2c2/flexcop-reg.h   |    0
+ drivers/media/{pci => common}/b2c2/flexcop-sram.c  |    0
+ drivers/media/{pci => common}/b2c2/flexcop.c       |    0
+ drivers/media/{pci => common}/b2c2/flexcop.h       |    0
+ .../{pci => common}/b2c2/flexcop_ibi_value_be.h    |    0
+ .../{pci => common}/b2c2/flexcop_ibi_value_le.h    |    0
+ drivers/media/pci/Kconfig                          |   21 +++--------
+ drivers/media/pci/Makefile                         |    3 +-
+ drivers/media/pci/b2c2/Kconfig                     |   39 --------------------
+ drivers/media/pci/b2c2/Makefile                    |   13 ++-----
+ drivers/media/usb/Kconfig                          |    1 +
+ drivers/media/usb/Makefile                         |    2 +-
+ drivers/media/usb/b2c2/Kconfig                     |    6 +++
+ drivers/media/usb/b2c2/Makefile                    |    7 ++++
+ drivers/media/{pci => usb}/b2c2/flexcop-usb.c      |    0
+ drivers/media/{pci => usb}/b2c2/flexcop-usb.h      |    0
+ 27 files changed, 71 insertions(+), 67 deletions(-)
+ create mode 100644 drivers/media/common/b2c2/Kconfig
+ create mode 100644 drivers/media/common/b2c2/Makefile
+ rename drivers/media/{pci => common}/b2c2/flexcop-common.h (100%)
+ rename drivers/media/{pci => common}/b2c2/flexcop-eeprom.c (100%)
+ rename drivers/media/{pci => common}/b2c2/flexcop-fe-tuner.c (100%)
+ rename drivers/media/{pci => common}/b2c2/flexcop-hw-filter.c (100%)
+ rename drivers/media/{pci => common}/b2c2/flexcop-i2c.c (100%)
+ rename drivers/media/{pci => common}/b2c2/flexcop-misc.c (100%)
+ rename drivers/media/{pci => common}/b2c2/flexcop-reg.h (100%)
+ rename drivers/media/{pci => common}/b2c2/flexcop-sram.c (100%)
+ rename drivers/media/{pci => common}/b2c2/flexcop.c (100%)
+ rename drivers/media/{pci => common}/b2c2/flexcop.h (100%)
+ rename drivers/media/{pci => common}/b2c2/flexcop_ibi_value_be.h (100%)
+ rename drivers/media/{pci => common}/b2c2/flexcop_ibi_value_le.h (100%)
+ create mode 100644 drivers/media/usb/b2c2/Kconfig
+ create mode 100644 drivers/media/usb/b2c2/Makefile
+ rename drivers/media/{pci => usb}/b2c2/flexcop-usb.c (100%)
+ rename drivers/media/{pci => usb}/b2c2/flexcop-usb.h (100%)
 
-diff --git a/Documentation/DocBook/media/v4l/dev-subdev.xml b/Documentation/DocBook/media/v4l/dev-subdev.xml
-index 4afcbbe..ac715dd 100644
---- a/Documentation/DocBook/media/v4l/dev-subdev.xml
-+++ b/Documentation/DocBook/media/v4l/dev-subdev.xml
-@@ -289,8 +289,8 @@
-       &v4l2-rect; by the coordinates of the top left corner and the rectangle
-       size. Both the coordinates and sizes are expressed in pixels.</para>
+diff --git a/drivers/media/Kconfig b/drivers/media/Kconfig
+index bd415c4..efc3055 100644
+--- a/drivers/media/Kconfig
++++ b/drivers/media/Kconfig
+@@ -141,7 +141,6 @@ config DVB_NET
+ 	  You may want to disable the network support on embedded devices. If
+ 	  unsure say Y.
  
--      <para>As for pad formats, drivers store try and active
--      rectangles for the selection targets of ACTUAL type <xref
-+      <para>As for pad formats, drivers store try and active rectangles for
-+      the selection targets <xref
-       linkend="v4l2-subdev-selection-targets">.</xref></para>
+-source "drivers/media/common/Kconfig"
+ source "drivers/media/rc/Kconfig"
  
-       <para>On sink pads, cropping is applied relative to the
-@@ -308,7 +308,7 @@
-       <para>Scaling support is optional. When supported by a subdev,
-       the crop rectangle on the subdev's sink pad is scaled to the
-       size configured using the &VIDIOC-SUBDEV-S-SELECTION; IOCTL
--      using <constant>V4L2_SUBDEV_SEL_COMPOSE_ACTUAL</constant>
-+      using <constant>V4L2_SUBDEV_SEL_TGT_COMPOSE</constant>
-       selection target on the same pad. If the subdev supports scaling
-       but not composing, the top and left values are not used and must
-       always be set to zero.</para>
-@@ -333,22 +333,21 @@
-       <title>Types of selection targets</title>
+ #
+@@ -175,4 +174,7 @@ comment "Supported DVB Frontends"
+ 	depends on DVB_CORE
+ source "drivers/media/dvb-frontends/Kconfig"
  
-       <section>
--	<title>ACTUAL targets</title>
-+	<title>Actual targets</title>
++# Common drivers
++source "drivers/media/common/Kconfig"
++
+ endif # MEDIA_SUPPORT
+diff --git a/drivers/media/common/Kconfig b/drivers/media/common/Kconfig
+index 769c6f8..4672f7d 100644
+--- a/drivers/media/common/Kconfig
++++ b/drivers/media/common/Kconfig
+@@ -7,3 +7,5 @@ config VIDEO_SAA7146_VV
+ 	depends on VIDEO_V4L2
+ 	select VIDEOBUF_DMA_SG
+ 	select VIDEO_SAA7146
++
++source "drivers/media/common/b2c2/Kconfig"
+diff --git a/drivers/media/common/Makefile b/drivers/media/common/Makefile
+index e3ec963..d0512d7 100644
+--- a/drivers/media/common/Makefile
++++ b/drivers/media/common/Makefile
+@@ -1,6 +1,6 @@
+ saa7146-objs    := saa7146_i2c.o saa7146_core.o
+ saa7146_vv-objs := saa7146_fops.o saa7146_video.o saa7146_hlp.o saa7146_vbi.o
  
--	<para>ACTUAL targets reflect the actual hardware configuration
--	at any point of time. There is a BOUNDS target
--	corresponding to every ACTUAL.</para>
-+	<para>Actual targets (without a postfix) reflect the actual hardware
-+	configuration at any point of time.</para>
-       </section>
+-obj-y += tuners/
++obj-y += tuners/ b2c2/
+ obj-$(CONFIG_VIDEO_SAA7146) += saa7146.o
+ obj-$(CONFIG_VIDEO_SAA7146_VV) += saa7146_vv.o
+diff --git a/drivers/media/common/b2c2/Kconfig b/drivers/media/common/b2c2/Kconfig
+new file mode 100644
+index 0000000..e270dd8
+--- /dev/null
++++ b/drivers/media/common/b2c2/Kconfig
+@@ -0,0 +1,31 @@
++config DVB_B2C2_FLEXCOP
++	tristate
++	depends on DVB_CORE && I2C
++	depends on DVB_B2C2_FLEXCOP_PCI || DVB_B2C2_FLEXCOP_USB
++	default y
++	select DVB_PLL if !DVB_FE_CUSTOMISE
++	select DVB_STV0299 if !DVB_FE_CUSTOMISE
++	select DVB_MT352 if !DVB_FE_CUSTOMISE
++	select DVB_MT312 if !DVB_FE_CUSTOMISE
++	select DVB_NXT200X if !DVB_FE_CUSTOMISE
++	select DVB_STV0297 if !DVB_FE_CUSTOMISE
++	select DVB_BCM3510 if !DVB_FE_CUSTOMISE
++	select DVB_LGDT330X if !DVB_FE_CUSTOMISE
++	select DVB_S5H1420 if !DVB_FE_CUSTOMISE
++	select DVB_TUNER_ITD1000 if !DVB_FE_CUSTOMISE
++	select DVB_ISL6421 if !DVB_FE_CUSTOMISE
++	select DVB_CX24123 if !DVB_FE_CUSTOMISE
++	select MEDIA_TUNER_SIMPLE if !MEDIA_TUNER_CUSTOMISE
++	select DVB_TUNER_CX24113 if !DVB_FE_CUSTOMISE
++	help
++	  Support for the digital TV receiver chip made by B2C2 Inc. included in
++	  Technisats PCI cards and USB boxes.
++
++	  Say Y if you own such a device and want to use it.
++
++config DVB_B2C2_FLEXCOP_DEBUG
++	bool "Enable debug for the B2C2 FlexCop drivers"
++	depends on DVB_B2C2_FLEXCOP
++	help
++	  Say Y if you want to enable the module option to control debug messages
++	  of all B2C2 FlexCop drivers.
+diff --git a/drivers/media/common/b2c2/Makefile b/drivers/media/common/b2c2/Makefile
+new file mode 100644
+index 0000000..377d051
+--- /dev/null
++++ b/drivers/media/common/b2c2/Makefile
+@@ -0,0 +1,7 @@
++b2c2-flexcop-objs = flexcop.o flexcop-fe-tuner.o flexcop-i2c.o \
++	flexcop-sram.o flexcop-eeprom.o flexcop-misc.o flexcop-hw-filter.o
++obj-$(CONFIG_DVB_B2C2_FLEXCOP) += b2c2-flexcop.o
++
++ccflags-y += -Idrivers/media/dvb-core/
++ccflags-y += -Idrivers/media/dvb-frontends/
++ccflags-y += -Idrivers/media/common/tuners/
+diff --git a/drivers/media/pci/b2c2/flexcop-common.h b/drivers/media/common/b2c2/flexcop-common.h
+similarity index 100%
+rename from drivers/media/pci/b2c2/flexcop-common.h
+rename to drivers/media/common/b2c2/flexcop-common.h
+diff --git a/drivers/media/pci/b2c2/flexcop-eeprom.c b/drivers/media/common/b2c2/flexcop-eeprom.c
+similarity index 100%
+rename from drivers/media/pci/b2c2/flexcop-eeprom.c
+rename to drivers/media/common/b2c2/flexcop-eeprom.c
+diff --git a/drivers/media/pci/b2c2/flexcop-fe-tuner.c b/drivers/media/common/b2c2/flexcop-fe-tuner.c
+similarity index 100%
+rename from drivers/media/pci/b2c2/flexcop-fe-tuner.c
+rename to drivers/media/common/b2c2/flexcop-fe-tuner.c
+diff --git a/drivers/media/pci/b2c2/flexcop-hw-filter.c b/drivers/media/common/b2c2/flexcop-hw-filter.c
+similarity index 100%
+rename from drivers/media/pci/b2c2/flexcop-hw-filter.c
+rename to drivers/media/common/b2c2/flexcop-hw-filter.c
+diff --git a/drivers/media/pci/b2c2/flexcop-i2c.c b/drivers/media/common/b2c2/flexcop-i2c.c
+similarity index 100%
+rename from drivers/media/pci/b2c2/flexcop-i2c.c
+rename to drivers/media/common/b2c2/flexcop-i2c.c
+diff --git a/drivers/media/pci/b2c2/flexcop-misc.c b/drivers/media/common/b2c2/flexcop-misc.c
+similarity index 100%
+rename from drivers/media/pci/b2c2/flexcop-misc.c
+rename to drivers/media/common/b2c2/flexcop-misc.c
+diff --git a/drivers/media/pci/b2c2/flexcop-reg.h b/drivers/media/common/b2c2/flexcop-reg.h
+similarity index 100%
+rename from drivers/media/pci/b2c2/flexcop-reg.h
+rename to drivers/media/common/b2c2/flexcop-reg.h
+diff --git a/drivers/media/pci/b2c2/flexcop-sram.c b/drivers/media/common/b2c2/flexcop-sram.c
+similarity index 100%
+rename from drivers/media/pci/b2c2/flexcop-sram.c
+rename to drivers/media/common/b2c2/flexcop-sram.c
+diff --git a/drivers/media/pci/b2c2/flexcop.c b/drivers/media/common/b2c2/flexcop.c
+similarity index 100%
+rename from drivers/media/pci/b2c2/flexcop.c
+rename to drivers/media/common/b2c2/flexcop.c
+diff --git a/drivers/media/pci/b2c2/flexcop.h b/drivers/media/common/b2c2/flexcop.h
+similarity index 100%
+rename from drivers/media/pci/b2c2/flexcop.h
+rename to drivers/media/common/b2c2/flexcop.h
+diff --git a/drivers/media/pci/b2c2/flexcop_ibi_value_be.h b/drivers/media/common/b2c2/flexcop_ibi_value_be.h
+similarity index 100%
+rename from drivers/media/pci/b2c2/flexcop_ibi_value_be.h
+rename to drivers/media/common/b2c2/flexcop_ibi_value_be.h
+diff --git a/drivers/media/pci/b2c2/flexcop_ibi_value_le.h b/drivers/media/common/b2c2/flexcop_ibi_value_le.h
+similarity index 100%
+rename from drivers/media/pci/b2c2/flexcop_ibi_value_le.h
+rename to drivers/media/common/b2c2/flexcop_ibi_value_le.h
+diff --git a/drivers/media/pci/Kconfig b/drivers/media/pci/Kconfig
+index 3b9164a..b16529b 100644
+--- a/drivers/media/pci/Kconfig
++++ b/drivers/media/pci/Kconfig
+@@ -3,48 +3,39 @@
+ #
  
-       <section>
- 	<title>BOUNDS targets</title>
+ menuconfig DVB_CAPTURE_DRIVERS
+-	bool "DVB/ATSC adapters"
++	bool "DVB/ATSC PCI adapters"
+ 	depends on DVB_CORE
+ 	default y
+ 	---help---
+ 	  Say Y to select Digital TV adapters
  
--	<para>BOUNDS targets is the smallest rectangle that contains
--	all valid ACTUAL rectangles. It may not be possible to set the
--	ACTUAL rectangle as large as the BOUNDS rectangle, however.
--	This may be because e.g. a sensor's pixel array is not
--	rectangular but cross-shaped or round. The maximum size may
--	also be smaller than the BOUNDS rectangle.</para>
-+	<para>BOUNDS targets is the smallest rectangle that contains all
-+	valid actual rectangles. It may not be possible to set the actual
-+	rectangle as large as the BOUNDS rectangle, however. This may be
-+	because e.g. a sensor's pixel array is not rectangular but
-+	cross-shaped or round. The maximum size may also be smaller than the
-+	BOUNDS rectangle.</para>
-       </section>
+-if DVB_CAPTURE_DRIVERS && DVB_CORE
++if DVB_CAPTURE_DRIVERS && DVB_CORE && PCI && I2C
  
-     </section>
-diff --git a/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml b/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml
-index 208e9f0..96ab51e 100644
---- a/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml
-@@ -72,10 +72,10 @@
-     <section>
-       <title>Types of selection targets</title>
+ comment "Supported SAA7146 based PCI Adapters"
+-	depends on DVB_CORE && PCI && I2C
+ source "drivers/media/pci/ttpci/Kconfig"
  
--      <para>There are two types of selection targets: actual and bounds.
--      The ACTUAL targets are the targets which configure the hardware.
--      The BOUNDS target will return a rectangle that contain all
--      possible ACTUAL rectangles.</para>
-+      <para>There are two types of selection targets: plain and bounds. The
-+      actual targets are the targets which configure the hardware. The BOUNDS
-+      target will return a rectangle that contain all possible actual
-+      rectangles.</para>
-     </section>
+-comment "Supported FlexCopII (B2C2) Adapters"
+-	depends on DVB_CORE && (PCI || USB) && I2C
++comment "Supported FlexCopII (B2C2) PCI Adapters"
+ source "drivers/media/pci/b2c2/Kconfig"
  
-     <section>
-@@ -93,7 +93,7 @@
-         &cs-def;
- 	<tbody valign="top">
- 	  <row>
--	    <entry><constant>V4L2_SUBDEV_SEL_TGT_CROP_ACTUAL</constant></entry>
-+	    <entry><constant>V4L2_SUBDEV_SEL_TGT_CROP</constant></entry>
- 	    <entry>0x0000</entry>
- 	    <entry>Actual crop. Defines the cropping
- 	    performed by the processing step.</entry>
-@@ -104,7 +104,7 @@
- 	    <entry>Bounds of the crop rectangle.</entry>
- 	  </row>
- 	  <row>
--	    <entry><constant>V4L2_SUBDEV_SEL_TGT_COMPOSE_ACTUAL</constant></entry>
-+	    <entry><constant>V4L2_SUBDEV_SEL_TGT_COMPOSE</constant></entry>
- 	    <entry>0x0100</entry>
- 	    <entry>Actual compose rectangle. Used to configure scaling
- 	    on sink pads and composition on source pads.</entry>
-diff --git a/drivers/media/video/omap3isp/ispccdc.c b/drivers/media/video/omap3isp/ispccdc.c
-index 7e32331..f19774f 100644
---- a/drivers/media/video/omap3isp/ispccdc.c
-+++ b/drivers/media/video/omap3isp/ispccdc.c
-@@ -2024,7 +2024,7 @@ static int ccdc_get_selection(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
- 		ccdc_try_crop(ccdc, format, &sel->r);
- 		break;
+ comment "Supported BT878 Adapters"
+-	depends on DVB_CORE && PCI && I2C
+ source "drivers/media/pci/bt8xx/Kconfig"
  
--	case V4L2_SUBDEV_SEL_TGT_CROP_ACTUAL:
-+	case V4L2_SUBDEV_SEL_TGT_CROP:
- 		sel->r = *__ccdc_get_crop(ccdc, fh, sel->which);
- 		break;
+ comment "Supported Pluto2 Adapters"
+-	depends on DVB_CORE && PCI && I2C
+ source "drivers/media/pci/pluto2/Kconfig"
  
-@@ -2052,7 +2052,7 @@ static int ccdc_set_selection(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
- 	struct isp_ccdc_device *ccdc = v4l2_get_subdevdata(sd);
- 	struct v4l2_mbus_framefmt *format;
+ comment "Supported SDMC DM1105 Adapters"
+-	depends on DVB_CORE && PCI && I2C
+ source "drivers/media/pci/dm1105/Kconfig"
  
--	if (sel->target != V4L2_SUBDEV_SEL_TGT_CROP_ACTUAL ||
-+	if (sel->target != V4L2_SUBDEV_SEL_TGT_CROP ||
- 	    sel->pad != CCDC_PAD_SOURCE_OF)
- 		return -EINVAL;
+ comment "Supported Earthsoft PT1 Adapters"
+-	depends on DVB_CORE && PCI && I2C
+ source "drivers/media/pci/pt1/Kconfig"
  
-diff --git a/drivers/media/video/omap3isp/isppreview.c b/drivers/media/video/omap3isp/isppreview.c
-index 8a4935e..1086f6a 100644
---- a/drivers/media/video/omap3isp/isppreview.c
-+++ b/drivers/media/video/omap3isp/isppreview.c
-@@ -1960,7 +1960,7 @@ static int preview_get_selection(struct v4l2_subdev *sd,
- 		preview_try_crop(prev, format, &sel->r);
- 		break;
+ comment "Supported Mantis Adapters"
+-	depends on DVB_CORE && PCI && I2C
+-	source "drivers/media/pci/mantis/Kconfig"
++source "drivers/media/pci/mantis/Kconfig"
  
--	case V4L2_SUBDEV_SEL_TGT_CROP_ACTUAL:
-+	case V4L2_SUBDEV_SEL_TGT_CROP:
- 		sel->r = *__preview_get_crop(prev, fh, sel->which);
- 		break;
+ comment "Supported nGene Adapters"
+-	depends on DVB_CORE && PCI && I2C
+-	source "drivers/media/pci/ngene/Kconfig"
++source "drivers/media/pci/ngene/Kconfig"
  
-@@ -1988,7 +1988,7 @@ static int preview_set_selection(struct v4l2_subdev *sd,
- 	struct isp_prev_device *prev = v4l2_get_subdevdata(sd);
- 	struct v4l2_mbus_framefmt *format;
+ comment "Supported ddbridge ('Octopus') Adapters"
+-	depends on DVB_CORE && PCI && I2C
+-	source "drivers/media/pci/ddbridge/Kconfig"
++source "drivers/media/pci/ddbridge/Kconfig"
  
--	if (sel->target != V4L2_SUBDEV_SEL_TGT_CROP_ACTUAL ||
-+	if (sel->target != V4L2_SUBDEV_SEL_TGT_CROP ||
- 	    sel->pad != PREV_PAD_SINK)
- 		return -EINVAL;
+ endif # DVB_CAPTURE_DRIVERS
+diff --git a/drivers/media/pci/Makefile b/drivers/media/pci/Makefile
+index c5fa43a..1d44fbd 100644
+--- a/drivers/media/pci/Makefile
++++ b/drivers/media/pci/Makefile
+@@ -10,4 +10,5 @@ obj-y        :=	ttpci/		\
+ 		pt1/		\
+ 		mantis/		\
+ 		ngene/		\
+-		ddbridge/
++		ddbridge/	\
++		b2c2/
+diff --git a/drivers/media/pci/b2c2/Kconfig b/drivers/media/pci/b2c2/Kconfig
+index 9e57814..aaa1f30 100644
+--- a/drivers/media/pci/b2c2/Kconfig
++++ b/drivers/media/pci/b2c2/Kconfig
+@@ -1,45 +1,6 @@
+-config DVB_B2C2_FLEXCOP
+-	tristate "Technisat/B2C2 FlexCopII(b) and FlexCopIII adapters"
+-	depends on DVB_CORE && I2C
+-	select DVB_PLL if !DVB_FE_CUSTOMISE
+-	select DVB_STV0299 if !DVB_FE_CUSTOMISE
+-	select DVB_MT352 if !DVB_FE_CUSTOMISE
+-	select DVB_MT312 if !DVB_FE_CUSTOMISE
+-	select DVB_NXT200X if !DVB_FE_CUSTOMISE
+-	select DVB_STV0297 if !DVB_FE_CUSTOMISE
+-	select DVB_BCM3510 if !DVB_FE_CUSTOMISE
+-	select DVB_LGDT330X if !DVB_FE_CUSTOMISE
+-	select DVB_S5H1420 if !DVB_FE_CUSTOMISE
+-	select DVB_TUNER_ITD1000 if !DVB_FE_CUSTOMISE
+-	select DVB_ISL6421 if !DVB_FE_CUSTOMISE
+-	select DVB_CX24123 if !DVB_FE_CUSTOMISE
+-	select MEDIA_TUNER_SIMPLE if !MEDIA_TUNER_CUSTOMISE
+-	select DVB_TUNER_CX24113 if !DVB_FE_CUSTOMISE
+-	help
+-	  Support for the digital TV receiver chip made by B2C2 Inc. included in
+-	  Technisats PCI cards and USB boxes.
+-
+-	  Say Y if you own such a device and want to use it.
+-
+ config DVB_B2C2_FLEXCOP_PCI
+ 	tristate "Technisat/B2C2 Air/Sky/Cable2PC PCI"
+-	depends on DVB_B2C2_FLEXCOP && PCI && I2C
+ 	help
+ 	  Support for the Air/Sky/CableStar2 PCI card (DVB/ATSC) by Technisat/B2C2.
  
-diff --git a/drivers/media/video/omap3isp/ispresizer.c b/drivers/media/video/omap3isp/ispresizer.c
-index 14041c9..9456652 100644
---- a/drivers/media/video/omap3isp/ispresizer.c
-+++ b/drivers/media/video/omap3isp/ispresizer.c
-@@ -1259,7 +1259,7 @@ static int resizer_get_selection(struct v4l2_subdev *sd,
- 		resizer_calc_ratios(res, &sel->r, format_source, &ratio);
- 		break;
+ 	  Say Y if you own such a device and want to use it.
+-
+-config DVB_B2C2_FLEXCOP_USB
+-	tristate "Technisat/B2C2 Air/Sky/Cable2PC USB"
+-	depends on DVB_B2C2_FLEXCOP && USB && I2C
+-	help
+-	  Support for the Air/Sky/Cable2PC USB1.1 box (DVB/ATSC) by Technisat/B2C2,
+-
+-	  Say Y if you own such a device and want to use it.
+-
+-config DVB_B2C2_FLEXCOP_DEBUG
+-	bool "Enable debug for the B2C2 FlexCop drivers"
+-	depends on DVB_B2C2_FLEXCOP
+-	help
+-	  Say Y if you want to enable the module option to control debug messages
+-	  of all B2C2 FlexCop drivers.
+diff --git a/drivers/media/pci/b2c2/Makefile b/drivers/media/pci/b2c2/Makefile
+index 7a1f5ce..e90e236 100644
+--- a/drivers/media/pci/b2c2/Makefile
++++ b/drivers/media/pci/b2c2/Makefile
+@@ -1,16 +1,11 @@
+-b2c2-flexcop-objs = flexcop.o flexcop-fe-tuner.o flexcop-i2c.o \
+-	flexcop-sram.o flexcop-eeprom.o flexcop-misc.o flexcop-hw-filter.o
+-obj-$(CONFIG_DVB_B2C2_FLEXCOP) += b2c2-flexcop.o
+-
+ ifneq ($(CONFIG_DVB_B2C2_FLEXCOP_PCI),)
+-b2c2-flexcop-objs += flexcop-dma.o
++b2c2-flexcop-pci-objs += flexcop-dma.o
+ endif
  
--	case V4L2_SUBDEV_SEL_TGT_CROP_ACTUAL:
-+	case V4L2_SUBDEV_SEL_TGT_CROP:
- 		sel->r = *__resizer_get_crop(res, fh, sel->which);
- 		resizer_calc_ratios(res, &sel->r, format_source, &ratio);
- 		break;
-@@ -1293,7 +1293,7 @@ static int resizer_set_selection(struct v4l2_subdev *sd,
- 	struct v4l2_mbus_framefmt *format_sink, *format_source;
- 	struct resizer_ratio ratio;
+ b2c2-flexcop-pci-objs = flexcop-pci.o
+ obj-$(CONFIG_DVB_B2C2_FLEXCOP_PCI) += b2c2-flexcop-pci.o
  
--	if (sel->target != V4L2_SUBDEV_SEL_TGT_CROP_ACTUAL ||
-+	if (sel->target != V4L2_SUBDEV_SEL_TGT_CROP ||
- 	    sel->pad != RESZ_PAD_SINK)
- 		return -EINVAL;
+-b2c2-flexcop-usb-objs = flexcop-usb.o
+-obj-$(CONFIG_DVB_B2C2_FLEXCOP_USB) += b2c2-flexcop-usb.o
+-
+-ccflags-y += -Idrivers/media/dvb-core/ -Idrivers/media/dvb-frontends/
++ccflags-y += -Idrivers/media/dvb-core/
++ccflags-y += -Idrivers/media/dvb-frontends/
+ ccflags-y += -Idrivers/media/common/tuners/
++ccflags-y += -Idrivers/media/common/b2c2/
+diff --git a/drivers/media/usb/Kconfig b/drivers/media/usb/Kconfig
+index d8891ad..b6f348a 100644
+--- a/drivers/media/usb/Kconfig
++++ b/drivers/media/usb/Kconfig
+@@ -13,5 +13,6 @@ source "drivers/media/usb/dvb-usb/Kconfig"
+ source "drivers/media/usb/ttusb-budget/Kconfig"
+ source "drivers/media/usb/ttusb-dec/Kconfig"
+ source "drivers/media/usb/siano/Kconfig"
++source "drivers/media/usb/b2c2/Kconfig"
  
-diff --git a/drivers/media/video/smiapp/smiapp-core.c b/drivers/media/video/smiapp/smiapp-core.c
-index f518026..6789a26 100644
---- a/drivers/media/video/smiapp/smiapp-core.c
-+++ b/drivers/media/video/smiapp/smiapp-core.c
-@@ -1629,7 +1629,7 @@ static void smiapp_propagate(struct v4l2_subdev *subdev,
- 	smiapp_get_crop_compose(subdev, fh, crops, &comp, which);
+ endif
+diff --git a/drivers/media/usb/Makefile b/drivers/media/usb/Makefile
+index b6c2229..669c48f 100644
+--- a/drivers/media/usb/Makefile
++++ b/drivers/media/usb/Makefile
+@@ -3,4 +3,4 @@
+ #
  
- 	switch (target) {
--	case V4L2_SUBDEV_SEL_TGT_CROP_ACTUAL:
-+	case V4L2_SUBDEV_SEL_TGT_CROP:
- 		comp->width = crops[SMIAPP_PAD_SINK]->width;
- 		comp->height = crops[SMIAPP_PAD_SINK]->height;
- 		if (which == V4L2_SUBDEV_FORMAT_ACTIVE) {
-@@ -1645,7 +1645,7 @@ static void smiapp_propagate(struct v4l2_subdev *subdev,
- 			}
- 		}
- 		/* Fall through */
--	case V4L2_SUBDEV_SEL_TGT_COMPOSE_ACTUAL:
-+	case V4L2_SUBDEV_SEL_TGT_COMPOSE:
- 		*crops[SMIAPP_PAD_SRC] = *comp;
- 		break;
- 	default:
-@@ -1721,7 +1721,7 @@ static int smiapp_set_format(struct v4l2_subdev *subdev,
- 	if (fmt->which == V4L2_SUBDEV_FORMAT_ACTIVE)
- 		ssd->sink_fmt = *crops[ssd->sink_pad];
- 	smiapp_propagate(subdev, fh, fmt->which,
--			 V4L2_SUBDEV_SEL_TGT_CROP_ACTUAL);
-+			 V4L2_SUBDEV_SEL_TGT_CROP);
- 
- 	mutex_unlock(&sensor->mutex);
- 
-@@ -1956,7 +1956,7 @@ static int smiapp_set_compose(struct v4l2_subdev *subdev,
- 
- 	*comp = sel->r;
- 	smiapp_propagate(subdev, fh, sel->which,
--			 V4L2_SUBDEV_SEL_TGT_COMPOSE_ACTUAL);
-+			 V4L2_SUBDEV_SEL_TGT_COMPOSE);
- 
- 	if (sel->which == V4L2_SUBDEV_FORMAT_ACTIVE)
- 		return smiapp_update_mode(sensor);
-@@ -1972,7 +1972,7 @@ static int __smiapp_sel_supported(struct v4l2_subdev *subdev,
- 
- 	/* We only implement crop in three places. */
- 	switch (sel->target) {
--	case V4L2_SUBDEV_SEL_TGT_CROP_ACTUAL:
-+	case V4L2_SUBDEV_SEL_TGT_CROP:
- 	case V4L2_SUBDEV_SEL_TGT_CROP_BOUNDS:
- 		if (ssd == sensor->pixel_array
- 		    && sel->pad == SMIAPP_PA_PAD_SRC)
-@@ -1986,7 +1986,7 @@ static int __smiapp_sel_supported(struct v4l2_subdev *subdev,
- 		    == SMIAPP_DIGITAL_CROP_CAPABILITY_INPUT_CROP)
- 			return 0;
- 		return -EINVAL;
--	case V4L2_SUBDEV_SEL_TGT_COMPOSE_ACTUAL:
-+	case V4L2_SUBDEV_SEL_TGT_COMPOSE:
- 	case V4L2_SUBDEV_SEL_TGT_COMPOSE_BOUNDS:
- 		if (sel->pad == ssd->source_pad)
- 			return -EINVAL;
-@@ -2049,7 +2049,7 @@ static int smiapp_set_crop(struct v4l2_subdev *subdev,
- 
- 	if (ssd != sensor->pixel_array && sel->pad == SMIAPP_PAD_SINK)
- 		smiapp_propagate(subdev, fh, sel->which,
--				 V4L2_SUBDEV_SEL_TGT_CROP_ACTUAL);
-+				 V4L2_SUBDEV_SEL_TGT_CROP);
- 
- 	return 0;
- }
-@@ -2095,11 +2095,11 @@ static int __smiapp_get_selection(struct v4l2_subdev *subdev,
- 			sel->r = *comp;
- 		}
- 		break;
--	case V4L2_SUBDEV_SEL_TGT_CROP_ACTUAL:
-+	case V4L2_SUBDEV_SEL_TGT_CROP:
- 	case V4L2_SUBDEV_SEL_TGT_COMPOSE_BOUNDS:
- 		sel->r = *crops[sel->pad];
- 		break;
--	case V4L2_SUBDEV_SEL_TGT_COMPOSE_ACTUAL:
-+	case V4L2_SUBDEV_SEL_TGT_COMPOSE:
- 		sel->r = *comp;
- 		break;
- 	}
-@@ -2146,10 +2146,10 @@ static int smiapp_set_selection(struct v4l2_subdev *subdev,
- 			      sel->r.height);
- 
- 	switch (sel->target) {
--	case V4L2_SUBDEV_SEL_TGT_CROP_ACTUAL:
-+	case V4L2_SUBDEV_SEL_TGT_CROP:
- 		ret = smiapp_set_crop(subdev, fh, sel);
- 		break;
--	case V4L2_SUBDEV_SEL_TGT_COMPOSE_ACTUAL:
-+	case V4L2_SUBDEV_SEL_TGT_COMPOSE:
- 		ret = smiapp_set_compose(subdev, fh, sel);
- 		break;
- 	default:
-diff --git a/drivers/media/video/v4l2-subdev.c b/drivers/media/video/v4l2-subdev.c
-index db6e859..cd86f0c 100644
---- a/drivers/media/video/v4l2-subdev.c
-+++ b/drivers/media/video/v4l2-subdev.c
-@@ -245,7 +245,7 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 		memset(&sel, 0, sizeof(sel));
- 		sel.which = crop->which;
- 		sel.pad = crop->pad;
--		sel.target = V4L2_SUBDEV_SEL_TGT_CROP_ACTUAL;
-+		sel.target = V4L2_SUBDEV_SEL_TGT_CROP;
- 
- 		rval = v4l2_subdev_call(
- 			sd, pad, get_selection, subdev_fh, &sel);
-@@ -274,7 +274,7 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 		memset(&sel, 0, sizeof(sel));
- 		sel.which = crop->which;
- 		sel.pad = crop->pad;
--		sel.target = V4L2_SUBDEV_SEL_TGT_CROP_ACTUAL;
-+		sel.target = V4L2_SUBDEV_SEL_TGT_CROP;
- 		sel.r = crop->rect;
- 
- 		rval = v4l2_subdev_call(
-diff --git a/include/linux/v4l2-subdev.h b/include/linux/v4l2-subdev.h
-index 812019e..01eee06 100644
---- a/include/linux/v4l2-subdev.h
-+++ b/include/linux/v4l2-subdev.h
-@@ -128,11 +128,11 @@ struct v4l2_subdev_frame_interval_enum {
- #define V4L2_SUBDEV_SEL_FLAG_KEEP_CONFIG		(1 << 2)
- 
- /* active cropping area */
--#define V4L2_SUBDEV_SEL_TGT_CROP_ACTUAL			0x0000
-+#define V4L2_SUBDEV_SEL_TGT_CROP			0x0000
- /* cropping bounds */
- #define V4L2_SUBDEV_SEL_TGT_CROP_BOUNDS			0x0002
- /* current composing area */
--#define V4L2_SUBDEV_SEL_TGT_COMPOSE_ACTUAL		0x0100
-+#define V4L2_SUBDEV_SEL_TGT_COMPOSE			0x0100
- /* composing bounds */
- #define V4L2_SUBDEV_SEL_TGT_COMPOSE_BOUNDS		0x0102
- 
+ # DVB USB-only drivers
+-obj-y := ttusb-dec/ ttusb-budget/ dvb-usb/ siano/
++obj-y := ttusb-dec/ ttusb-budget/ dvb-usb/ siano/ b2c2/
+diff --git a/drivers/media/usb/b2c2/Kconfig b/drivers/media/usb/b2c2/Kconfig
+new file mode 100644
+index 0000000..3af7c41
+--- /dev/null
++++ b/drivers/media/usb/b2c2/Kconfig
+@@ -0,0 +1,6 @@
++config DVB_B2C2_FLEXCOP_USB
++	tristate "Technisat/B2C2 Air/Sky/Cable2PC USB"
++	help
++	  Support for the Air/Sky/Cable2PC USB1.1 box (DVB/ATSC) by Technisat/B2C2,
++
++	  Say Y if you own such a device and want to use it.
+diff --git a/drivers/media/usb/b2c2/Makefile b/drivers/media/usb/b2c2/Makefile
+new file mode 100644
+index 0000000..9eaf208
+--- /dev/null
++++ b/drivers/media/usb/b2c2/Makefile
+@@ -0,0 +1,7 @@
++b2c2-flexcop-usb-objs = flexcop-usb.o
++obj-$(CONFIG_DVB_B2C2_FLEXCOP_USB) += b2c2-flexcop-usb.o
++
++ccflags-y += -Idrivers/media/dvb-core/
++ccflags-y += -Idrivers/media/dvb-frontends/
++ccflags-y += -Idrivers/media/common/tuners/
++ccflags-y += -Idrivers/media/common/b2c2/
+diff --git a/drivers/media/pci/b2c2/flexcop-usb.c b/drivers/media/usb/b2c2/flexcop-usb.c
+similarity index 100%
+rename from drivers/media/pci/b2c2/flexcop-usb.c
+rename to drivers/media/usb/b2c2/flexcop-usb.c
+diff --git a/drivers/media/pci/b2c2/flexcop-usb.h b/drivers/media/usb/b2c2/flexcop-usb.h
+similarity index 100%
+rename from drivers/media/pci/b2c2/flexcop-usb.h
+rename to drivers/media/usb/b2c2/flexcop-usb.h
 -- 
-1.7.2.5
+1.7.10.2
 
