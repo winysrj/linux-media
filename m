@@ -1,65 +1,145 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gg0-f174.google.com ([209.85.161.174]:32996 "EHLO
-	mail-gg0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752582Ab2FRTXP (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:21916 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755876Ab2FNOck (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jun 2012 15:23:15 -0400
-Received: by gglu4 with SMTP id u4so4008942ggl.19
-        for <linux-media@vger.kernel.org>; Mon, 18 Jun 2012 12:23:15 -0700 (PDT)
-MIME-Version: 1.0
-Date: Mon, 18 Jun 2012 16:23:14 -0300
-Message-ID: <CALF0-+XS6gjiLDSGwumBp1xfXYvzii9f_Lw4qhyxVzwMzfh9Rg@mail.gmail.com>
-Subject: [PATCH 0/12] struct i2c_algo_bit_data cleanup on several drivers
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	Dan Carpenter <dan.carpenter@oracle.com>,
-	Palash Bandyopadhyay <palash.bandyopadhyay@conexant.com>,
-	stoth@kernellabs.com
-Content-Type: text/plain; charset=ISO-8859-1
+	Thu, 14 Jun 2012 10:32:40 -0400
+Received: from euspt2 (mailout1.w1.samsung.com [210.118.77.11])
+ by mailout1.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0M5M00LTK3381770@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 14 Jun 2012 15:33:08 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0M5M00FKH32A8T@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 14 Jun 2012 15:32:35 +0100 (BST)
+Date: Thu, 14 Jun 2012 16:32:24 +0200
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: [PATCHv2 4/9] v4l: vb2: add buffer exporting via dmabuf
+In-reply-to: <1339684349-28882-1-git-send-email-t.stanislaws@samsung.com>
+To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
+Cc: airlied@redhat.com, m.szyprowski@samsung.com,
+	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
+	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
+	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
+	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
+	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
+	mchehab@redhat.com, g.liakhovetski@gmx.de
+Message-id: <1339684349-28882-5-git-send-email-t.stanislaws@samsung.com>
+Content-transfer-encoding: 7BIT
+References: <1339684349-28882-1-git-send-email-t.stanislaws@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+This patch adds extension to videobuf2-core. It allow to export a mmap buffer
+as a file descriptor.
 
-This patchset cleans the i2c part of some drivers.
-This issue was recently reported by Dan Carpenter [1],
-and revealed wrong (and harmless) usage of struct i2c_algo_bit.
+Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/video/videobuf2-core.c |   67 ++++++++++++++++++++++++++++++++++
+ include/media/videobuf2-core.h       |    2 +
+ 2 files changed, 69 insertions(+)
 
-Also, I properly assigned bus->i2c_rc (return code variable) and
-replaced struct memcpy with struct assignment.
-The latter is, in my opinion, a much safer way for struct filling
-and I'm not aware of any drawbacks.
+diff --git a/drivers/media/video/videobuf2-core.c b/drivers/media/video/videobuf2-core.c
+index d60ed25..923165a 100644
+--- a/drivers/media/video/videobuf2-core.c
++++ b/drivers/media/video/videobuf2-core.c
+@@ -1730,6 +1730,73 @@ static int __find_plane_by_offset(struct vb2_queue *q, unsigned long off,
+ }
+ 
+ /**
++ * vb2_expbuf() - Export a buffer as a file descriptor
++ * @q:		videobuf2 queue
++ * @eb:		export buffer structure passed from userspace to vidioc_expbuf
++ *		handler in driver
++ *
++ * The return values from this function are intended to be directly returned
++ * from vidioc_expbuf handler in driver.
++ */
++int vb2_expbuf(struct vb2_queue *q, struct v4l2_exportbuffer *eb)
++{
++	struct vb2_buffer *vb = NULL;
++	struct vb2_plane *vb_plane;
++	unsigned int buffer, plane;
++	int ret;
++	struct dma_buf *dbuf;
++
++	if (q->memory != V4L2_MEMORY_MMAP) {
++		dprintk(1, "Queue is not currently set up for mmap\n");
++		return -EINVAL;
++	}
++
++	if (!q->mem_ops->get_dmabuf) {
++		dprintk(1, "Queue does not support DMA buffer exporting\n");
++		return -EINVAL;
++	}
++
++	if (eb->flags & ~O_CLOEXEC) {
++		dprintk(1, "Queue does support only O_CLOEXEC flag\n");
++		return -EINVAL;
++	}
++
++	/*
++	 * Find the plane corresponding to the offset passed by userspace.
++	 */
++	ret = __find_plane_by_offset(q, eb->mem_offset, &buffer, &plane);
++	if (ret) {
++		dprintk(1, "invalid offset %u\n", eb->mem_offset);
++		return ret;
++	}
++
++	vb = q->bufs[buffer];
++	vb_plane = &vb->planes[plane];
++
++	dbuf = call_memop(q, get_dmabuf, vb_plane->mem_priv);
++	if (IS_ERR_OR_NULL(dbuf)) {
++		dprintk(1, "Failed to export buffer %d, plane %d\n",
++			buffer, plane);
++		return -EINVAL;
++	}
++
++	ret = dma_buf_fd(dbuf, eb->flags);
++	if (ret < 0) {
++		dprintk(3, "buffer %d, plane %d failed to export (%d)\n",
++			buffer, plane, ret);
++		dma_buf_put(dbuf);
++		return ret;
++	}
++
++	dprintk(3, "buffer %d, plane %d exported as %d descriptor\n",
++		buffer, plane, ret);
++	eb->fd = ret;
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(vb2_expbuf);
++
++/**
+  * vb2_mmap() - map video buffers into application address space
+  * @q:		videobuf2 queue
+  * @vma:	vma passed to the mmap file operation handler in the driver
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index d079f92..fe01f95 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -81,6 +81,7 @@ struct vb2_fileio_data;
+ struct vb2_mem_ops {
+ 	void		*(*alloc)(void *alloc_ctx, unsigned long size);
+ 	void		(*put)(void *buf_priv);
++	struct dma_buf *(*get_dmabuf)(void *buf_priv);
+ 
+ 	void		*(*get_userptr)(void *alloc_ctx, unsigned long vaddr,
+ 					unsigned long size, int write);
+@@ -350,6 +351,7 @@ int vb2_queue_init(struct vb2_queue *q);
+ void vb2_queue_release(struct vb2_queue *q);
+ 
+ int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b);
++int vb2_expbuf(struct vb2_queue *q, struct v4l2_exportbuffer *eb);
+ int vb2_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b, bool nonblocking);
+ 
+ int vb2_streamon(struct vb2_queue *q, enum v4l2_buf_type type);
+-- 
+1.7.9.5
 
-The patches are based on today's linux-next; I hope this is okey.
-As I don't own any of these devices, I can't test the changes beyond
-compilation.
-
-Ezequiel Garcia (12):
-  cx25821: Replace struct memcpy with struct assignment
-  cx25821: Remove useless struct i2c_algo_bit_data usage
-  cx25821: Use i2c_rc properly to store i2c register status
-  cx231xx: Replace struct memcpy with struct assignment
-  cx231xx: Remove useless struct i2c_algo_bit_data usage
-  cx231xx: Use i2c_rc properly to store i2c register status
-  cx23885: Replace struct memcpy with struct assignment
-  cx23885: Remove useless struct i2c_algo_bit_data
-  cx23885: Use i2c_rc properly to store i2c register status
-  saa7164: Replace struct memcpy with struct assignment
-  saa7164: Remove useless struct i2c_algo_bit_data
-  saa7164: Use i2c_rc properly to store i2c register status
-
- drivers/media/video/cx231xx/cx231xx-i2c.c |   10 +++-------
- drivers/media/video/cx231xx/cx231xx.h     |    2 --
- drivers/media/video/cx23885/cx23885-i2c.c |   12 +++---------
- drivers/media/video/cx23885/cx23885.h     |    2 --
- drivers/media/video/cx25821/cx25821-i2c.c |   12 +++---------
- drivers/media/video/cx25821/cx25821.h     |    2 --
- drivers/media/video/saa7164/saa7164-i2c.c |   13 +++----------
- drivers/media/video/saa7164/saa7164.h     |    2 --
- 8 files changed, 12 insertions(+), 43 deletions(-)
-
-Thanks,
-Ezequiel.
-
-[1] http://comments.gmane.org/gmane.linux.drivers.video-input-infrastructure/49553
