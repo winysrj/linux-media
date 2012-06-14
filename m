@@ -1,81 +1,167 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from shadbolt.e.decadent.org.uk ([88.96.1.126]:50855 "EHLO
-	shadbolt.e.decadent.org.uk" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750812Ab2F2FKP (ORCPT
+Received: from mail-we0-f174.google.com ([74.125.82.174]:46633 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752666Ab2FNWcL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Jun 2012 01:10:15 -0400
-Message-ID: <1340946601.4852.12.camel@deadeye.wl.decadent.org.uk>
-Subject: Re: [git:v4l-dvb/for_v3.6] [media] gspca-core: Fix buffers staying
- in queued state after a stream_off
-From: Ben Hutchings <ben@decadent.org.uk>
-To: linux-media@vger.kernel.org
-Cc: linuxtv-commits@linuxtv.org,
-	Antonio Ospite <ospite@studenti.unina.it>,
-	Hans de Goede <hdegoede@redhat.com>, stable@vger.kernel.org
-Date: Fri, 29 Jun 2012 06:10:01 +0100
-In-Reply-To: <E1Sjr0a-0006XB-Lg@www.linuxtv.org>
-References: <E1Sjr0a-0006XB-Lg@www.linuxtv.org>
-Content-Type: multipart/signed; micalg="pgp-sha512";
-	protocol="application/pgp-signature"; boundary="=-l7MgOXjfgQC9RkTOOxEy"
+	Thu, 14 Jun 2012 18:32:11 -0400
+Received: by weyu7 with SMTP id u7so1610178wey.19
+        for <linux-media@vger.kernel.org>; Thu, 14 Jun 2012 15:32:10 -0700 (PDT)
+Message-ID: <1339713121.27851.9.camel@Route3278>
+Subject: Re: [PATCH 1/2] [BUG] dvb_usb_v2:  return the download ret in
+ dvb_usb_download_firmware
+From: Malcolm Priestley <tvboxspy@gmail.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	htl10@users.sourceforge.net
+Date: Thu, 14 Jun 2012 23:32:01 +0100
+In-Reply-To: <4FDA61BD.9040809@iki.fi>
+References: <1339626272.2421.74.camel@Route3278> <4FD9224F.7050809@iki.fi>
+	  <1339634648.3833.37.camel@Route3278> <4FD93B3B.9000003@iki.fi>
+	  <4FDA4A18.5050900@iki.fi> <1339709613.16046.11.camel@Route3278>
+	 <4FDA61BD.9040809@iki.fi>
+Content-Type: text/plain; charset="UTF-8"
 Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Fri, 2012-06-15 at 01:12 +0300, Antti Palosaari wrote:
+> On 06/15/2012 12:33 AM, Malcolm Priestley wrote:
+> > On Thu, 2012-06-14 at 23:31 +0300, Antti Palosaari wrote:
+> >> On 06/14/2012 04:15 AM, Antti Palosaari wrote:
+> >>> On 06/14/2012 03:44 AM, Malcolm Priestley wrote:
+> >>>> On Thu, 2012-06-14 at 02:29 +0300, Antti Palosaari wrote:
+> >>>>> Hi Malcolm,
+> >>>>> I was really surprised someone has had interest to test that stuff at
+> >>>>> that phase as I did not even advertised it yet :) It is likely happen
+> >>>>> next Monday or so as there is some issues I would like to check / solve.
+> >>>>>
+> >>>>>
+> >>>>> On 06/14/2012 01:24 AM, Malcolm Priestley wrote:
+> >>>>>> Hi antti
+> >>>>>>
+> >>>>>> There some issues with dvb_usb_v2 with the lmedm04 driver.
+> >>>>>>
+> >>>>>> The first being this patch, no return value from
+> >>>>>> dvb_usb_download_firmware
+> >>>>>> causes system wide dead lock with COLD disconnect as system attempts
+> >>>>>> to continue
+> >>>>>> to warm state.
+> >>>>>
+> >>>>> Hmm, I did not understand what you mean. What I looked lmedm04 driver I
+> >>>>> think it uses single USB ID (no cold + warm IDs). So it downloads
+> >>>>> firmware and then reconnects itself from the USB bus?
+> >>>>> For that scenario you should "return RECONNECTS_USB;" from the driver
+> >>>>> .download_firmware().
+> >>>>>
+> >>>> If the device disconnects from the USB bus after the firmware download.
+> >>>>
+> >>>> In most cases the device is already gone.
+> >>>>
+> >>>> There is currently no way to insert RECONNECTS_USB into the return.
+> >>>
+> >>> Argh, I was blind! You are absolutely correct. It never returns value 1
+> >>> (RECONNECTS_USB) from the .download_firmware().
+> >>>
+> >>> That patch is fine, I will apply it, thanks!
+> >>>
+> >>> I think that must be also changed to return immediately without
+> >>> releasing the interface. Let the USB core release it when it detects
+> >>> disconnect - otherwise it could crash as it tries to access potentially
+> >>> resources that are already freed. Just for the timing issue if it
+> >>> happens or not.
+> >>>
+> >>> } else if (ret == RECONNECTS_USB) {
+> >>> ret = 0;
+> >>> goto exit_usb_driver_release_interface;
+> >>>
+> >>> add return 0 here without releasing interface and test.
+> >>>
+> >>>
+> >>>>> I tested it using one non-public Cypress FX2 device - it was changing
+> >>>>> USB ID after the FX download, but from the driver perspective it does
+> >>>>> not matter. It is always new device if it reconnects USB.
+> >>>>>
+> >>>>
+> >>>> Have double checked that the thread is not continuing to write on the
+> >>>> old ID?
+> >>>
+> >>> Nope, but likely delayed probe() is finished until it reconnects so I
+> >>> cannot see problem. You device disconnects faster and thus USB core
+> >>> traps .disconnect() earlier...
+> >>>
+> >>> Could you test returning 0 and if it works sent new patch.
+> >>>
+> >>>> The zero condition will lead to dvb_usb_init.
+> >>>>
+> >>>>> PS. as I looked that driver I saw many different firmwares. That is now
+> >>>>> supported and you should use .get_firmware_name() (maybe you already did
+> >>>>> it).
+> >>>>>
+> >>>> Yes, I have supported this in the driver.
+> >>
+> >> Malcolm,
+> >>
+> >> could you just test if returning from the routines after fw download is
+> >> enough to fix all your problems?
+> >>
+> >> I mean those two fixes:
+> >> dvb_usb_download_firmware()
+> >> * return RECONNECTS_USB correctly
+> >>
+> >> dvb_usbv2_init_work()
+> >> * return without releasing USB interface if RECONNECTS_USB
+> > Hi Antti,
+> >
+> > Yes, I have tested it and there is no difference.
+> >
+> > My understanding is, if the interface is no longer bound it returns
+> > anyway.
+> >
+> > It is best not to use it, other drivers in the dvb-usb tree may not like
+> > to be forcibly unbound prior to their reset.
+> 
+> I don't understand why this logic cannot work. Do you have some crash 
+> dump I can see likely functions in path?
+Sorry, you misunderstood me, there is no crash.
 
---=-l7MgOXjfgQC9RkTOOxEy
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+I was only talking using usb_driver_release_interface() or not.
 
-On Mon, 2012-06-11 at 21:06 +0200, Mauro Carvalho Chehab wrote:
-> This is an automatic generated email to let you know that the following p=
-atch were queued at the=20
-> http://git.linuxtv.org/media_tree.git tree:
->=20
-> Subject: [media] gspca-core: Fix buffers staying in queued state after a =
-stream_off
-> Author:  Hans de Goede <hdegoede@redhat.com>
-> Date:    Tue May 22 11:24:05 2012 -0300
->=20
-> This fixes a regression introduced by commit f7059ea and should be
-> backported to all supported stable kernels which have this commit.
->=20
-> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-> Tested-by: Antonio Ospite <ospite@studenti.unina.it>
-> CC: stable@vger.kernel.org
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-[...]
+The skeleton code below would work fine :-)
 
-This surely can't both be so important that it should go into stable
-updates, yet so unimportant that it can wait for 3.6.
+Regards
 
-Ben.
+Malcolm
 
---=20
-Ben Hutchings
-Lowery's Law:
-             If it jams, force it. If it breaks, it needed replacing anyway=
-.
+> 
+> I draw it here as a skeleton code.
+> 
+> dvb_usbv2_init_work()
+>    ret = download_firmware()
+>    if (ret == DEVICE_IS_WARM)
+>      init_device()
+>      return
+>    else if (ret == DEVICE_RECONECTS_USB)
+>      return
+>    else (ret == some error code)
+>      usb_driver_release_interface()
+>      return
+> 
+> dvb_usbv2_probe()
+>    state = alloc()
+>    usb_set_intfdata(state)
+>    schedule_work(dvb_usbv2_init_work)
+>    return 0
+> 
+> dvb_usbv2_disconnect()
+>    state = usb_get_intfdata()
+>    cancel_work_sync(dvb_usbv2_init_work)
+>    free(state)
+> 
+> Anyhow, I have devices I know how to force reconnect USB (AF9015, EC168) 
+> when needed. So I will make some tests here.
+> 
+> regards
+> Antti
 
---=-l7MgOXjfgQC9RkTOOxEy
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIVAwUAT+04qee/yOyVhhEJAQqXfBAAw32+o7+lzRHKfjah0BAsmRJtKiR8z26Z
-BO1WHA+02wWl14Gpmy1PiBlswAuka5TRVs0UlZDl9MA8hKpEVEladd5kwXRf76kh
-1NEGRk7SzbLoOiQeuQl9knunWddXwShajjWlFs/oXEw59sH265AmebFxMN8gPBSR
-WmjoVwnJUc91kj6ydXzdzYvUE08it0HqZvpTij7W+PGAhhQpeBpM/P2LerG6RvMY
-G4iMegYlW7XlLIe1XKdnodPuv30KGyO014JqFi/35jAf3/r+Bj7nkJTmLEEL2PrL
-MdQxmYfkTkjwpFISKGNAJ0qH/ytlVqiEPZPmWqqoqn3eW1Y8joum2aKXFzKzqYpC
-ZY3Zrdd9uDwS4e4LlTJ00P/IWSAGORoqM6VLt/T8mNEX6+o4H7oWECNd9ClJkYt+
-ebDki/SIkHadfVqmYdLsTB2fsxvrPovGa/e9MokQb8uM/NIeG0UB39wdQccP1fSh
-LSCbEy6/vAI6D8lqdHQELkT2hLza7uRy4Y9/AXeN+80juLfoQzo+0gELkLr5+iMl
-0PnWLdYfxEfaQjf8l9Ruwp7sQDDbWz9+cHrLcOTLS4wd+a4hX08yB44joinxPeGE
-Pk80oJyg8NnPrdLUcs+5HzvgQ1sNQlw9Y54XsB6UowLXVsIyBWyVx0SjQX7x3lin
-EVbEZwiX1Co=
-=cvDf
------END PGP SIGNATURE-----
-
---=-l7MgOXjfgQC9RkTOOxEy--
