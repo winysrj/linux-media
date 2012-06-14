@@ -1,307 +1,168 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:56919 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751003Ab2FSTzy (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:21916 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756029Ab2FNOcj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Jun 2012 15:55:54 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	airlied@redhat.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, sumit.semwal@ti.com, daeinki@gmail.com,
-	daniel.vetter@ffwll.ch, robdclark@gmail.com, pawel@osciak.com,
-	linaro-mm-sig@lists.linaro.org, hverkuil@xs4all.nl,
-	remi@remlab.net, subashrp@gmail.com, mchehab@redhat.com,
-	g.liakhovetski@gmx.de, linux-doc@vger.kernel.org
-Subject: Re: [PATCHv7 02/15] Documentation: media: description of DMABUF importing in V4L2
-Date: Tue, 19 Jun 2012 21:56:04 +0200
-Message-ID: <1434318.6p4M9j2usm@avalon>
-In-Reply-To: <1339681069-8483-3-git-send-email-t.stanislaws@samsung.com>
-References: <1339681069-8483-1-git-send-email-t.stanislaws@samsung.com> <1339681069-8483-3-git-send-email-t.stanislaws@samsung.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Thu, 14 Jun 2012 10:32:39 -0400
+Received: from euspt1 (mailout1.w1.samsung.com [210.118.77.11])
+ by mailout1.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0M5M001TH3388Z70@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 14 Jun 2012 15:33:08 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0M5M00I7F32CBI@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 14 Jun 2012 15:32:37 +0100 (BST)
+Date: Thu, 14 Jun 2012 16:32:21 +0200
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: [PATCHv2 1/9] v4l: vb2-dma-contig: let mmap method to use
+ dma_mmap_coherent call
+In-reply-to: <1339684349-28882-1-git-send-email-t.stanislaws@samsung.com>
+To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
+Cc: airlied@redhat.com, m.szyprowski@samsung.com,
+	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
+	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
+	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
+	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
+	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
+	mchehab@redhat.com, g.liakhovetski@gmx.de
+Message-id: <1339684349-28882-2-git-send-email-t.stanislaws@samsung.com>
+Content-transfer-encoding: 7BIT
+References: <1339684349-28882-1-git-send-email-t.stanislaws@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Thomas,
+From: Marek Szyprowski <m.szyprowski@samsung.com>
 
-Thanks for the patch.
+Let mmap method to use dma_mmap_coherent call.  This patch depends on DMA
+mapping redesign patches because the usage of dma_mmap_coherent breaks
+dma-contig allocator for architectures other than ARM and AVR.
 
-On Thursday 14 June 2012 15:37:36 Tomasz Stanislawski wrote:
-> This patch adds description and usage examples for importing
-> DMABUF file descriptor in V4L2.
-> 
-> Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> CC: linux-doc@vger.kernel.org
+Moreover, this patch removes vb2_mmap_pfn_range from videobuf2 helpers.
+The function is no longer used in vb2 code.
 
-I just have a couple of minor comments, after taking them into account you can 
-add
-
+Suggested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/video/videobuf2-dma-contig.c |   28 +++++++++++++++++--
+ drivers/media/video/videobuf2-memops.c     |   40 ----------------------------
+ include/media/videobuf2-memops.h           |    5 ----
+ 3 files changed, 26 insertions(+), 47 deletions(-)
 
-> ---
->  Documentation/DocBook/media/v4l/compat.xml         |    4 +
->  Documentation/DocBook/media/v4l/io.xml             |  179 +++++++++++++++++
->  .../DocBook/media/v4l/vidioc-create-bufs.xml       |    3 +-
->  Documentation/DocBook/media/v4l/vidioc-qbuf.xml    |   15 ++
->  Documentation/DocBook/media/v4l/vidioc-reqbufs.xml |   47 ++---
->  5 files changed, 225 insertions(+), 23 deletions(-)
-> 
-
-[snip]
-
-> diff --git a/Documentation/DocBook/media/v4l/io.xml
-> b/Documentation/DocBook/media/v4l/io.xml index fd6aca2..f55b0ab 100644
-> --- a/Documentation/DocBook/media/v4l/io.xml
-> +++ b/Documentation/DocBook/media/v4l/io.xml
-
-[snip]
-
-> +    <example>
-> +      <title>Initiating streaming I/O with DMABUF file descriptors</title>
-> +
-> +      <programlisting>
-> +&v4l2-requestbuffers; reqbuf;
-> +
-> +memset (&amp;reqbuf, 0, sizeof (reqbuf));
-> +reqbuf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-> +reqbuf.memory = V4L2_MEMORY_DMABUF;
-
-You need to set reqbuf.count to a non-zero value.
-
-> +
-> +if (ioctl (fd, &VIDIOC-REQBUFS;, &amp;reqbuf) == -1) {
-> +	if (errno == EINVAL)
-> +		printf ("Video capturing or DMABUF streaming is not supported\n");
-> +	else
-> +		perror ("VIDIOC_REQBUFS");
-> +
-> +	exit (EXIT_FAILURE);
-> +}
-> +      </programlisting>
-> +    </example>
-> +
-> +    <para>Buffer (plane) file is passed on the fly with the &VIDIOC-QBUF;
-
-s/file/file descriptor/
-
-> +ioctl. In case of multiplanar buffers, every plane can be associated with a
-> +different DMABUF descriptor.Although buffers are commonly cycled,
-
-s/descriptor./descriptor. /
-
-> applications +can pass different DMABUF descriptor at each
-
-s/pass/pass a/
-
-> <constant>VIDIOC_QBUF</constant> +call.</para>
-> +
-> +    <example>
-> +      <title>Queueing DMABUF using single plane API</title>
-> +
-> +      <programlisting>
-> +int buffer_queue(int v4lfd, int index, int dmafd)
-> +{
-> +	&v4l2-buffer; buf;
-> +
-> +	memset(&amp;buf, 0, sizeof buf);
-> +	buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-> +	buf.memory = V4L2_MEMORY_DMABUF;
-> +	buf.index = index;
-> +	buf.m.fd = dmafd;
-> +
-> +	if (ioctl (v4lfd, &VIDIOC-QBUF;, &amp;buf) == -1) {
-> +		perror ("VIDIOC_QBUF");
-> +		return -1;
-> +	}
-> +
-> +	return 0;
-> +}
-> +      </programlisting>
-> +    </example>
-> +
-> +    <example>
-> +      <title>Queueing DMABUF using multi plane API</title>
-> +
-> +      <programlisting>
-> +int buffer_queue_mp(int v4lfd, int index, int dmafd[], int n_planes)
-> +{
-> +	&v4l2-buffer; buf;
-> +	&v4l2-plane; planes[VIDEO_MAX_PLANES];
-> +	int i;
-> +
-> +	memset(&amp;buf, 0, sizeof buf);
-> +	buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
-> +	buf.memory = V4L2_MEMORY_DMABUF;
-> +	buf.index = index;
-> +	buf.m.planes = planes;
-> +	buf.length = n_planes;
-> +
-> +	memset(&amp;planes, 0, sizeof planes);
-> +
-> +	for (i = 0; i &lt; n_planes; ++i)
-> +		buf.m.planes[i].m.fd = dmafd[i];
-> +
-> +	if (ioctl (v4lfd, &VIDIOC-QBUF;, &amp;buf) == -1) {
-> +		perror ("VIDIOC_QBUF");
-> +		return -1;
-> +	}
-> +
-> +	return 0;
-> +}
-> +      </programlisting>
-> +    </example>
-> +
-> +    <para>Filled or displayed buffers are dequeued with the
-> +&VIDIOC-DQBUF; ioctl. The driver can unlock the buffer at any
-> +time between the completion of the DMA and this ioctl. The memory is
-> +also unlocked when &VIDIOC-STREAMOFF; is called, &VIDIOC-REQBUFS;, or
-> +when the device is closed.</para>
-> +
-> +    <para>For capturing applications it is customary to enqueue a
-> +number of empty buffers, to start capturing and enter the read loop.
-> +Here the application waits until a filled buffer can be dequeued, and
-> +re-enqueues the buffer when the data is no longer needed. Output
-> +applications fill and enqueue buffers, when enough buffers are stacked
-> +up output is started. In the write loop, when the application
-> +runs out of free buffers it must wait until an empty buffer can be
-> +dequeued and reused. Two methods exist to suspend execution of the
-> +application until one or more buffers can be dequeued. By default
-> +<constant>VIDIOC_DQBUF</constant> blocks when no buffer is in the
-> +outgoing queue. When the <constant>O_NONBLOCK</constant> flag was
-> +given to the &func-open; function, <constant>VIDIOC_DQBUF</constant>
-> +returns immediately with an &EAGAIN; when no buffer is available. The
-> +&func-select; or &func-poll; function are always available.</para>
-> +
-> +    <para>To start and stop capturing or output applications call the
-> +&VIDIOC-STREAMON; and &VIDIOC-STREAMOFF; ioctls. Note that
-> +<constant>VIDIOC_STREAMOFF</constant> removes all buffers from both queues
-> and +unlocks all buffers as a side effect. Since there is no notion of
-> doing +anything "now" on a multitasking system, if an application needs to
-> synchronize +with another event it should examine the &v4l2-buffer;
-> +<structfield>timestamp</structfield> of captured buffers, or set the field
-> +before enqueuing buffers for output.</para>
-> +
-> +    <para>Drivers implementing DMABUF importing I/O must support the
-> +<constant>VIDIOC_REQBUFS</constant>, <constant>VIDIOC_QBUF</constant>,
-> +<constant>VIDIOC_DQBUF</constant>, <constant>VIDIOC_STREAMON</constant> and
-> +<constant>VIDIOC_STREAMOFF</constant> ioctl, the
-
-s/ioctl/ioctls/
-s/, the/, and the/
-
-> <function>select()</function> +and <function>poll()</function>
-> function.</para>
-
-s/function/functions/
-
-> +
-> +  </section>
-> +
->    <section id="async">
->      <title>Asynchronous I/O</title>
-> 
-> @@ -673,6 +829,14 @@ memory, set by the application. See <xref
-> linkend="userp" /> for details. <structname>v4l2_buffer</structname>
-> structure.</entry>
->  	  </row>
->  	  <row>
-> +	    <entry></entry>
-> +	    <entry>int</entry>
-> +	    <entry><structfield>fd</structfield></entry>
-> +	    <entry>For the single-plane API and when
-> +<structfield>memory</structfield> is
-> <constant>V4L2_MEMORY_DMABUF</constant> this +is the file descriptor
-> associated with a DMABUF buffer.</entry>
-> +	  </row>
-> +	  <row>
->  	    <entry>__u32</entry>
->  	    <entry><structfield>length</structfield></entry>
->  	    <entry></entry>
-> @@ -748,6 +912,15 @@ should set this to 0.</entry>
->  	      </entry>
->  	  </row>
->  	  <row>
-> +	    <entry></entry>
-> +	    <entry>int</entry>
-> +	    <entry><structfield>fd</structfield></entry>
-> +	    <entry>When the memory type in the containing &v4l2-buffer; is
-> +		<constant>V4L2_MEMORY_DMABUF</constant>, this is a file
-> +		descriptor associated with a DMABUF buffer, similar to the
-> +		<structfield>fd</structfield> field in &v4l2-buffer;.</entry>
-> +	  </row>
-> +	  <row>
->  	    <entry>__u32</entry>
->  	    <entry><structfield>data_offset</structfield></entry>
->  	    <entry></entry>
-> @@ -982,6 +1155,12 @@ pointer</link> I/O.</entry>
->  	    <entry>3</entry>
->  	    <entry>[to do]</entry>
->  	  </row>
-> +	  <row>
-> +	    <entry><constant>V4L2_MEMORY_DMABUF</constant></entry>
-> +	    <entry>4</entry>
-> +	    <entry>The buffer is used for <link linkend="dmabuf">DMA shared
-> +buffer</link> I/O.</entry>
-> +	  </row>
->  	</tbody>
->        </tgroup>
->      </table>
-> diff --git a/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
-> b/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml index
-> 765549f..4444c66 100644
-> --- a/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
-> +++ b/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
-> @@ -103,7 +103,8 @@ information.</para>
->  	    <entry>__u32</entry>
->  	    <entry><structfield>memory</structfield></entry>
->  	    <entry>Applications set this field to
-> -<constant>V4L2_MEMORY_MMAP</constant> or
-> +<constant>V4L2_MEMORY_MMAP</constant>,
-> +<constant>V4L2_MEMORY_DMABUF</constant> or
->  <constant>V4L2_MEMORY_USERPTR</constant>. See <xref linkend="v4l2-memory"
->  /></entry>
->  	  </row>
-> diff --git a/Documentation/DocBook/media/v4l/vidioc-qbuf.xml
-> b/Documentation/DocBook/media/v4l/vidioc-qbuf.xml index 9caa49a..cb5f5ff
-> 100644
-> --- a/Documentation/DocBook/media/v4l/vidioc-qbuf.xml
-> +++ b/Documentation/DocBook/media/v4l/vidioc-qbuf.xml
-> @@ -112,6 +112,21 @@ they cannot be swapped out to disk. Buffers remain
-> locked until dequeued, until the &VIDIOC-STREAMOFF; or &VIDIOC-REQBUFS;
-> ioctl is called, or until the device is closed.</para>
-> 
-> +    <para>To enqueue a <link linkend="dmabuf">DMABUF</link> buffer
-> applications +set the <structfield>memory</structfield> field to
-> +<constant>V4L2_MEMORY_DMABUF</constant> and the
-> <structfield>m.fd</structfield>
-
-s/$/ field/
-
-> +to a file descriptor associated with a
-> DMABUF buffer. When the multi-planar API is +used and
-
-s/and//
-
-> <structfield>m.fd</structfield> of the passed array of &v4l2-plane; +have
-> to be used instead. When <constant>VIDIOC_QBUF</constant> is called with a
-> +pointer to this structure the driver sets the
-> +<constant>V4L2_BUF_FLAG_QUEUED</constant> flag and clears the
-> +<constant>V4L2_BUF_FLAG_MAPPED</constant> and
-> +<constant>V4L2_BUF_FLAG_DONE</constant> flags in the
-> +<structfield>flags</structfield> field, or it returns an error code.  This
-> +ioctl locks the buffer. Buffers remain locked until dequeued,
-> +until the &VIDIOC-STREAMOFF; or &VIDIOC-REQBUFS; ioctl is called, or until
-> the +device is closed.</para>
-> +
->      <para>Applications call the <constant>VIDIOC_DQBUF</constant>
->  ioctl to dequeue a filled (capturing) or displayed (output) buffer
->  from the driver's outgoing queue. They just set the
-
+diff --git a/drivers/media/video/videobuf2-dma-contig.c b/drivers/media/video/videobuf2-dma-contig.c
+index 040829b..00b776c 100644
+--- a/drivers/media/video/videobuf2-dma-contig.c
++++ b/drivers/media/video/videobuf2-dma-contig.c
+@@ -178,14 +178,38 @@ static void *vb2_dc_alloc(void *alloc_ctx, unsigned long size)
+ static int vb2_dc_mmap(void *buf_priv, struct vm_area_struct *vma)
+ {
+ 	struct vb2_dc_buf *buf = buf_priv;
++	int ret;
+ 
+ 	if (!buf) {
+ 		printk(KERN_ERR "No buffer to map\n");
+ 		return -EINVAL;
+ 	}
+ 
+-	return vb2_mmap_pfn_range(vma, buf->dma_addr, buf->size,
+-				  &vb2_common_vm_ops, &buf->handler);
++	/*
++	 * dma_mmap_* uses vm_pgoff as in-buffer offset, but we want to
++	 * map whole buffer
++	 */
++	vma->vm_pgoff = 0;
++
++	ret = dma_mmap_coherent(buf->dev, vma, buf->vaddr,
++		buf->dma_addr, buf->size);
++
++	if (ret) {
++		printk(KERN_ERR "Remapping memory failed, error: %d\n", ret);
++		return ret;
++	}
++
++	vma->vm_flags		|= VM_DONTEXPAND | VM_RESERVED;
++	vma->vm_private_data	= &buf->handler;
++	vma->vm_ops		= &vb2_common_vm_ops;
++
++	vma->vm_ops->open(vma);
++
++	printk(KERN_DEBUG "%s: mapped dma addr 0x%08lx at 0x%08lx, size %ld\n",
++		__func__, (unsigned long)buf->dma_addr, vma->vm_start,
++		buf->size);
++
++	return 0;
+ }
+ 
+ /*********************************************/
+diff --git a/drivers/media/video/videobuf2-memops.c b/drivers/media/video/videobuf2-memops.c
+index 504cd4c..81c1ad8 100644
+--- a/drivers/media/video/videobuf2-memops.c
++++ b/drivers/media/video/videobuf2-memops.c
+@@ -137,46 +137,6 @@ int vb2_get_contig_userptr(unsigned long vaddr, unsigned long size,
+ EXPORT_SYMBOL_GPL(vb2_get_contig_userptr);
+ 
+ /**
+- * vb2_mmap_pfn_range() - map physical pages to userspace
+- * @vma:	virtual memory region for the mapping
+- * @paddr:	starting physical address of the memory to be mapped
+- * @size:	size of the memory to be mapped
+- * @vm_ops:	vm operations to be assigned to the created area
+- * @priv:	private data to be associated with the area
+- *
+- * Returns 0 on success.
+- */
+-int vb2_mmap_pfn_range(struct vm_area_struct *vma, unsigned long paddr,
+-				unsigned long size,
+-				const struct vm_operations_struct *vm_ops,
+-				void *priv)
+-{
+-	int ret;
+-
+-	size = min_t(unsigned long, vma->vm_end - vma->vm_start, size);
+-
+-	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
+-	ret = remap_pfn_range(vma, vma->vm_start, paddr >> PAGE_SHIFT,
+-				size, vma->vm_page_prot);
+-	if (ret) {
+-		printk(KERN_ERR "Remapping memory failed, error: %d\n", ret);
+-		return ret;
+-	}
+-
+-	vma->vm_flags		|= VM_DONTEXPAND | VM_RESERVED;
+-	vma->vm_private_data	= priv;
+-	vma->vm_ops		= vm_ops;
+-
+-	vma->vm_ops->open(vma);
+-
+-	pr_debug("%s: mapped paddr 0x%08lx at 0x%08lx, size %ld\n",
+-			__func__, paddr, vma->vm_start, size);
+-
+-	return 0;
+-}
+-EXPORT_SYMBOL_GPL(vb2_mmap_pfn_range);
+-
+-/**
+  * vb2_common_vm_open() - increase refcount of the vma
+  * @vma:	virtual memory region for the mapping
+  *
+diff --git a/include/media/videobuf2-memops.h b/include/media/videobuf2-memops.h
+index 84e1f6c..f05444c 100644
+--- a/include/media/videobuf2-memops.h
++++ b/include/media/videobuf2-memops.h
+@@ -33,11 +33,6 @@ extern const struct vm_operations_struct vb2_common_vm_ops;
+ int vb2_get_contig_userptr(unsigned long vaddr, unsigned long size,
+ 			   struct vm_area_struct **res_vma, dma_addr_t *res_pa);
+ 
+-int vb2_mmap_pfn_range(struct vm_area_struct *vma, unsigned long paddr,
+-				unsigned long size,
+-				const struct vm_operations_struct *vm_ops,
+-				void *priv);
+-
+ struct vm_area_struct *vb2_get_vma(struct vm_area_struct *vma);
+ void vb2_put_vma(struct vm_area_struct *vma);
+ 
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.9.5
 
