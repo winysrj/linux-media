@@ -1,76 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f42.google.com ([74.125.82.42]:59855 "EHLO
-	mail-wg0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758482Ab2FPAfV (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:13593 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756014Ab2FNNiR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Jun 2012 20:35:21 -0400
-Received: by wgbds11 with SMTP id ds11so28264wgb.1
-        for <linux-media@vger.kernel.org>; Fri, 15 Jun 2012 17:35:19 -0700 (PDT)
-Message-ID: <1339806912.13364.35.camel@Route3278>
-Subject: Re: dvb_usb_v2: use pointers to properties[REGRESSION]
-From: Malcolm Priestley <tvboxspy@gmail.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media <linux-media@vger.kernel.org>
-Date: Sat, 16 Jun 2012 01:35:12 +0100
-In-Reply-To: <4FDBBD36.9020302@iki.fi>
-References: <1339798273.12274.21.camel@Route3278> <4FDBBD36.9020302@iki.fi>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Thu, 14 Jun 2012 09:38:17 -0400
+Received: from euspt1 (mailout1.w1.samsung.com [210.118.77.11])
+ by mailout1.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0M5M005150KIWO60@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 14 Jun 2012 14:38:42 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0M5M00MIC0JM1H@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 14 Jun 2012 14:38:11 +0100 (BST)
+Date: Thu, 14 Jun 2012 15:37:48 +0200
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: [PATCHv7 14/15] v4l: s5p-tv: mixer: support for dmabuf importing
+In-reply-to: <1339681069-8483-1-git-send-email-t.stanislaws@samsung.com>
+To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
+Cc: airlied@redhat.com, m.szyprowski@samsung.com,
+	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
+	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
+	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
+	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
+	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
+	mchehab@redhat.com, g.liakhovetski@gmx.de
+Message-id: <1339681069-8483-15-git-send-email-t.stanislaws@samsung.com>
+Content-transfer-encoding: 7BIT
+References: <1339681069-8483-1-git-send-email-t.stanislaws@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 2012-06-16 at 01:54 +0300, Antti Palosaari wrote:
-> Hello Malcolm,
-> 
-> On 06/16/2012 01:11 AM, Malcolm Priestley wrote:
-> > Hi Antti
-> >
-> > You can't have dvb_usb_device_properties as constant structure pointer.
-> >
-> > At run time it needs to be copied to a private area.
-> 
-> Having constant structure for properties was one of main idea of whole 
-> change. Earlier it causes some problems when driver changes those values 
-> - for example remote configuration based info from the eeprom.
-> 
-> > Two or more devices of the same type on the system will be pointing to
-> > the same structure.
-> 
-> Yes and no. You can define struct dvb_usb_device_properties for each USB ID.
-> 
-> > Any changes they make to the structure will be common to all.
-> 
-> For those devices having same USB ID only.
-> Changing dvb_usb_device_properties is *not* allowed. It is constant and 
-> should be. That was how I designed it. Due to that I introduced those 
-> new callbacks to resolve needed values dynamically.
-Yes, but it does make run-time tweaks difficult.
+This patch enhances s5p-tv with support for DMABUF importing via
+V4L2_MEMORY_DMABUF memory type.
 
-> If there is still something that is needed to resolve at runtime I am 
-> happy to add new callback. For example PID filter configuration is 
-> static currently as per adapter and if it is needed to to reconfigure at 
-> runtime new callback is needed.
-I will look at the PID filter later, it defaulted to off.
+Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/video/s5p-tv/Kconfig       |    1 +
+ drivers/media/video/s5p-tv/mixer_video.c |    2 +-
+ 2 files changed, 2 insertions(+), 1 deletion(-)
 
-However, in my builds for ARM devices it is defaulted on. I will be
-testing this later. I can't see any problems.
-
-> 
-> Could you say what is your problem I can likely say how to resolve it.
-> 
-
-Well, the problem is, I now need two separate structures for LME2510 and
-LME2510C as in the existing driver, the hope was to merge them as one.
-The only difference being the stream endpoint number.
-
-Currently, it is implemented in identify_state on dvb_usb_v2.
-
-The get_usb_stream_config has no access to device to to allow a run-time
-change there.
-
-Regards
-
-
-Malcolm
+diff --git a/drivers/media/video/s5p-tv/Kconfig b/drivers/media/video/s5p-tv/Kconfig
+index f248b28..2e80126 100644
+--- a/drivers/media/video/s5p-tv/Kconfig
++++ b/drivers/media/video/s5p-tv/Kconfig
+@@ -10,6 +10,7 @@ config VIDEO_SAMSUNG_S5P_TV
+ 	bool "Samsung TV driver for S5P platform (experimental)"
+ 	depends on PLAT_S5P && PM_RUNTIME
+ 	depends on EXPERIMENTAL
++	select DMA_SHARED_BUFFER
+ 	default n
+ 	---help---
+ 	  Say Y here to enable selecting the TV output devices for
+diff --git a/drivers/media/video/s5p-tv/mixer_video.c b/drivers/media/video/s5p-tv/mixer_video.c
+index 33fde2a..cff974a 100644
+--- a/drivers/media/video/s5p-tv/mixer_video.c
++++ b/drivers/media/video/s5p-tv/mixer_video.c
+@@ -1078,7 +1078,7 @@ struct mxr_layer *mxr_base_layer_create(struct mxr_device *mdev,
+ 
+ 	layer->vb_queue = (struct vb2_queue) {
+ 		.type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE,
+-		.io_modes = VB2_MMAP | VB2_USERPTR,
++		.io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF,
+ 		.drv_priv = layer,
+ 		.buf_struct_size = sizeof(struct mxr_buffer),
+ 		.ops = &mxr_video_qops,
+-- 
+1.7.9.5
 
