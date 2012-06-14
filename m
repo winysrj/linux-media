@@ -1,52 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from zose-mta12.web4all.fr ([178.33.204.89]:47701 "EHLO
-	zose-mta12.web4all.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752990Ab2FRTDj convert rfc822-to-8bit (ORCPT
+Received: from mail-gg0-f174.google.com ([209.85.161.174]:47276 "EHLO
+	mail-gg0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755624Ab2FNR7T (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jun 2012 15:03:39 -0400
-Date: Mon, 18 Jun 2012 21:02:20 +0200 (CEST)
-From: =?utf-8?Q?Beno=C3=AEt_Th=C3=A9baudeau?=
-	<benoit.thebaudeau@advansee.com>
+	Thu, 14 Jun 2012 13:59:19 -0400
+Received: by gglu4 with SMTP id u4so1627280ggl.19
+        for <linux-media@vger.kernel.org>; Thu, 14 Jun 2012 10:59:18 -0700 (PDT)
+From: Peter Senna Tschudin <peter.senna@gmail.com>
 To: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Ravi Kumar V <kumarrav@codeaurora.org>,
+	Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Julia Lawall <julia@diku.dk>,
+	Greg Kroah-Hartman <gregkh@suse.de>,
 	linux-media@vger.kernel.org
-Message-ID: <658568472.2884466.1340046140263.JavaMail.root@advansee.com>
-Subject: [PATCH 1 of 3] media: gpio-ir-recv: fix missing udev by-path entry
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
+Cc: Peter Senna Tschudin <peter.senna@gmail.com>
+Subject: [PATCH 1/8] [RESEND] cx231xx: Paranoic stack memory save
+Date: Thu, 14 Jun 2012 14:58:09 -0300
+Message-Id: <1339696716-14373-1-git-send-email-peter.senna@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add missing information so that udev can create an entry for gpio-ir-recv under
-/dev/input/by-path/ .
+Saves 255 bytes of stack memory on cx231xx_usb_probe() by removing a char array.
 
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Ravi Kumar V <kumarrav@codeaurora.org>
-Cc: <linux-media@vger.kernel.org>
-Signed-off-by: Benoît Thébaudeau <benoit.thebaudeau@advansee.com>
+Tested by compilation only.
+
+Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
 ---
- .../drivers/media/rc/gpio-ir-recv.c                |    6 ++++++
- 1 file changed, 6 insertions(+)
+ drivers/media/video/cx231xx/cx231xx-cards.c |   17 +++--------------
+ 1 file changed, 3 insertions(+), 14 deletions(-)
 
-diff --git linux-next-HEAD-6c86b58.orig/drivers/media/rc/gpio-ir-recv.c linux-next-HEAD-6c86b58/drivers/media/rc/gpio-ir-recv.c
-index 0d87545..b41e13c 100644
---- linux-next-HEAD-6c86b58.orig/drivers/media/rc/gpio-ir-recv.c
-+++ linux-next-HEAD-6c86b58/drivers/media/rc/gpio-ir-recv.c
-@@ -82,10 +82,16 @@ static int __devinit gpio_ir_recv_probe(struct platform_device *pdev)
- 		goto err_allocate_device;
+diff --git a/drivers/media/video/cx231xx/cx231xx-cards.c b/drivers/media/video/cx231xx/cx231xx-cards.c
+index 8ed460d..02d4d36 100644
+--- a/drivers/media/video/cx231xx/cx231xx-cards.c
++++ b/drivers/media/video/cx231xx/cx231xx-cards.c
+@@ -1023,7 +1023,6 @@ static int cx231xx_usb_probe(struct usb_interface *interface,
+ 	int nr = 0, ifnum;
+ 	int i, isoc_pipe = 0;
+ 	char *speed;
+-	char descr[255] = "";
+ 	struct usb_interface_assoc_descriptor *assoc_desc;
+ 
+ 	udev = usb_get_dev(interface_to_usbdev(interface));
+@@ -1098,20 +1097,10 @@ static int cx231xx_usb_probe(struct usb_interface *interface,
+ 		speed = "unknown";
  	}
  
-+	rcdev->priv = gpio_dev;
- 	rcdev->driver_type = RC_DRIVER_IR_RAW;
- 	rcdev->allowed_protos = RC_TYPE_ALL;
- 	rcdev->input_name = GPIO_IR_DEVICE_NAME;
-+	rcdev->input_phys = GPIO_IR_DEVICE_NAME "/input0";
- 	rcdev->input_id.bustype = BUS_HOST;
-+	rcdev->input_id.vendor = 0x0001;
-+	rcdev->input_id.product = 0x0001;
-+	rcdev->input_id.version = 0x0100;
-+	rcdev->dev.parent = &pdev->dev;
- 	rcdev->driver_name = GPIO_IR_DRIVER_NAME;
- 	rcdev->map_name = RC_MAP_EMPTY;
- 
+-	if (udev->manufacturer)
+-		strlcpy(descr, udev->manufacturer, sizeof(descr));
+-
+-	if (udev->product) {
+-		if (*descr)
+-			strlcat(descr, " ", sizeof(descr));
+-		strlcat(descr, udev->product, sizeof(descr));
+-	}
+-	if (*descr)
+-		strlcat(descr, " ", sizeof(descr));
+-
+-	cx231xx_info("New device %s@ %s Mbps "
++	cx231xx_info("New device %s %s @ %s Mbps "
+ 	     "(%04x:%04x) with %d interfaces\n",
+-	     descr,
++	     udev->manufacturer ? udev->manufacturer : "",
++	     udev->product ? udev->product : "",
+ 	     speed,
+ 	     le16_to_cpu(udev->descriptor.idVendor),
+ 	     le16_to_cpu(udev->descriptor.idProduct),
+-- 
+1.7.10.2
+
