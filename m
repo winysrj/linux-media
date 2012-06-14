@@ -1,63 +1,173 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from plane.gmane.org ([80.91.229.3]:55653 "EHLO plane.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752276Ab2FCOi2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 3 Jun 2012 10:38:28 -0400
-Received: from list by plane.gmane.org with local (Exim 4.69)
-	(envelope-from <gldv-linux-media@m.gmane.org>)
-	id 1SbBwk-0000Cb-GW
-	for linux-media@vger.kernel.org; Sun, 03 Jun 2012 16:38:22 +0200
-Received: from mail.interlinx.bc.ca ([216.58.37.5])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Sun, 03 Jun 2012 16:38:22 +0200
-Received: from brian by mail.interlinx.bc.ca with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Sun, 03 Jun 2012 16:38:22 +0200
-To: linux-media@vger.kernel.org
-From: "Brian J. Murrell" <brian@interlinx.bc.ca>
-Subject: Re: Fwd: [Bug 827538] DVB USB device firmware requested in module_init()
-Date: Sun, 03 Jun 2012 10:38:11 -0400
-Message-ID: <4FCB76D3.7090800@interlinx.bc.ca>
-References: <bug-827538-199927-UDXT6TGYkq@bugzilla.redhat.com> <4FC91D64.6090305@iki.fi> <4FCA41D7.2060206@iki.fi> <4FCACF9C.8060509@iki.fi>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="------------enigA0AE24AAFD333601984D0DA3"
-In-Reply-To: <4FCACF9C.8060509@iki.fi>
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:22575 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756052Ab2FNNiP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 14 Jun 2012 09:38:15 -0400
+Received: from euspt1 (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0M5M001HW0KH0S60@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 14 Jun 2012 14:38:41 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0M5M00LKH0JLFX@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 14 Jun 2012 14:38:10 +0100 (BST)
+Date: Thu, 14 Jun 2012 15:37:41 +0200
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: [PATCHv7 07/15] v4l: vb2-dma-contig: Reorder functions
+In-reply-to: <1339681069-8483-1-git-send-email-t.stanislaws@samsung.com>
+To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
+Cc: airlied@redhat.com, m.szyprowski@samsung.com,
+	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
+	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
+	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
+	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
+	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
+	mchehab@redhat.com, g.liakhovetski@gmx.de
+Message-id: <1339681069-8483-8-git-send-email-t.stanislaws@samsung.com>
+Content-transfer-encoding: 7BIT
+References: <1339681069-8483-1-git-send-email-t.stanislaws@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enigA0AE24AAFD333601984D0DA3
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-On 12-06-02 10:44 PM, Antti Palosaari wrote:
->=20
-> That solves DVB USB firmware loading problems.
+Group functions by buffer type.
 
-As in you have a patch that works or it's just solved "in theory".  If
-you have a patch I'd love to apply it here and get this machine
-suspendable again.
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/video/videobuf2-dma-contig.c |   92 ++++++++++++++++------------
+ 1 file changed, 54 insertions(+), 38 deletions(-)
 
-Cheers,
-b.
-
-
---------------enigA0AE24AAFD333601984D0DA3
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
-
-iEYEARECAAYFAk/LdtQACgkQl3EQlGLyuXBTjACfWB+1rBi0cxHl8JmwkwGm1XmC
-B1QAnRbJ5soRZEZlur90S5LHT/YaeqOS
-=5IQO
------END PGP SIGNATURE-----
-
---------------enigA0AE24AAFD333601984D0DA3--
+diff --git a/drivers/media/video/videobuf2-dma-contig.c b/drivers/media/video/videobuf2-dma-contig.c
+index 20c95da..daac2b2 100644
+--- a/drivers/media/video/videobuf2-dma-contig.c
++++ b/drivers/media/video/videobuf2-dma-contig.c
+@@ -25,14 +25,56 @@ struct vb2_dc_conf {
+ struct vb2_dc_buf {
+ 	struct device			*dev;
+ 	void				*vaddr;
+-	dma_addr_t			dma_addr;
+ 	unsigned long			size;
+-	struct vm_area_struct		*vma;
+-	atomic_t			refcount;
++	dma_addr_t			dma_addr;
++
++	/* MMAP related */
+ 	struct vb2_vmarea_handler	handler;
++	atomic_t			refcount;
++
++	/* USERPTR related */
++	struct vm_area_struct		*vma;
+ };
+ 
+-static void vb2_dc_put(void *buf_priv);
++/*********************************************/
++/*         callbacks for all buffers         */
++/*********************************************/
++
++static void *vb2_dc_cookie(void *buf_priv)
++{
++	struct vb2_dc_buf *buf = buf_priv;
++
++	return &buf->dma_addr;
++}
++
++static void *vb2_dc_vaddr(void *buf_priv)
++{
++	struct vb2_dc_buf *buf = buf_priv;
++
++	return buf->vaddr;
++}
++
++static unsigned int vb2_dc_num_users(void *buf_priv)
++{
++	struct vb2_dc_buf *buf = buf_priv;
++
++	return atomic_read(&buf->refcount);
++}
++
++/*********************************************/
++/*        callbacks for MMAP buffers         */
++/*********************************************/
++
++static void vb2_dc_put(void *buf_priv)
++{
++	struct vb2_dc_buf *buf = buf_priv;
++
++	if (!atomic_dec_and_test(&buf->refcount))
++		return;
++
++	dma_free_coherent(buf->dev, buf->size, buf->vaddr, buf->dma_addr);
++	kfree(buf);
++}
+ 
+ static void *vb2_dc_alloc(void *alloc_ctx, unsigned long size)
+ {
+@@ -63,40 +105,6 @@ static void *vb2_dc_alloc(void *alloc_ctx, unsigned long size)
+ 	return buf;
+ }
+ 
+-static void vb2_dc_put(void *buf_priv)
+-{
+-	struct vb2_dc_buf *buf = buf_priv;
+-
+-	if (atomic_dec_and_test(&buf->refcount)) {
+-		dma_free_coherent(buf->dev, buf->size, buf->vaddr,
+-				  buf->dma_addr);
+-		kfree(buf);
+-	}
+-}
+-
+-static void *vb2_dc_cookie(void *buf_priv)
+-{
+-	struct vb2_dc_buf *buf = buf_priv;
+-
+-	return &buf->dma_addr;
+-}
+-
+-static void *vb2_dc_vaddr(void *buf_priv)
+-{
+-	struct vb2_dc_buf *buf = buf_priv;
+-	if (!buf)
+-		return NULL;
+-
+-	return buf->vaddr;
+-}
+-
+-static unsigned int vb2_dc_num_users(void *buf_priv)
+-{
+-	struct vb2_dc_buf *buf = buf_priv;
+-
+-	return atomic_read(&buf->refcount);
+-}
+-
+ static int vb2_dc_mmap(void *buf_priv, struct vm_area_struct *vma)
+ {
+ 	struct vb2_dc_buf *buf = buf_priv;
+@@ -110,6 +118,10 @@ static int vb2_dc_mmap(void *buf_priv, struct vm_area_struct *vma)
+ 				  &vb2_common_vm_ops, &buf->handler);
+ }
+ 
++/*********************************************/
++/*       callbacks for USERPTR buffers       */
++/*********************************************/
++
+ static void *vb2_dc_get_userptr(void *alloc_ctx, unsigned long vaddr,
+ 					unsigned long size, int write)
+ {
+@@ -148,6 +160,10 @@ static void vb2_dc_put_userptr(void *mem_priv)
+ 	kfree(buf);
+ }
+ 
++/*********************************************/
++/*       DMA CONTIG exported functions       */
++/*********************************************/
++
+ const struct vb2_mem_ops vb2_dma_contig_memops = {
+ 	.alloc		= vb2_dc_alloc,
+ 	.put		= vb2_dc_put,
+-- 
+1.7.9.5
 
