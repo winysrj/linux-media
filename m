@@ -1,55 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:45861 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751555Ab2FROhA (ORCPT
+Received: from shadbolt.e.decadent.org.uk ([88.96.1.126]:50326 "EHLO
+	shadbolt.e.decadent.org.uk" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756085Ab2FNTC1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jun 2012 10:37:00 -0400
-Received: by obbtb18 with SMTP id tb18so8555859obb.19
-        for <linux-media@vger.kernel.org>; Mon, 18 Jun 2012 07:36:59 -0700 (PDT)
+	Thu, 14 Jun 2012 15:02:27 -0400
+Date: Thu, 14 Jun 2012 20:02:19 +0100
+From: Ben Hutchings <ben@decadent.org.uk>
+To: Peter Senna Tschudin <peter.senna@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jarod Wilson <jarod@redhat.com>,
+	David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>,
+	Luis Henriques <luis.henriques@canonical.com>,
+	linux-media@vger.kernel.org
+Message-ID: <20120614190219.GK2753@decadent.org.uk>
+References: <1339696716-14373-1-git-send-email-peter.senna@gmail.com>
+ <1339696716-14373-5-git-send-email-peter.senna@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <1340029964.23706.4.camel@obelisk.thedillows.org>
-References: <1339994998.32360.61.camel@obelisk.thedillows.org>
-	<201206180929.48107.hverkuil@xs4all.nl>
-	<1340028940.32360.70.camel@obelisk.thedillows.org>
-	<CAGoCfize92S-8cR9f-RjQDcZARKiT84UtX-oH0EcPomCYFAyxQ@mail.gmail.com>
-	<1340029964.23706.4.camel@obelisk.thedillows.org>
-Date: Mon, 18 Jun 2012 10:36:59 -0400
-Message-ID: <CAGoCfix48wNUBRuUbehjSHpqV33D68AA7mBy_4zu22JWTkbcmQ@mail.gmail.com>
-Subject: Re: [RFC] [media] cx231xx: restore tuner settings on first open
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: David Dillow <dave@thedillows.org>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1339696716-14373-5-git-send-email-peter.senna@gmail.com>
+Subject: Re: [PATCH 5/8] nuvoton-cir: Code cleanup: remove unused variable
+ and function
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jun 18, 2012 at 10:32 AM, David Dillow <dave@thedillows.org> wrote:
-> Hmm, it sounds like perhaps changing the standby call in the tuner core
-> to asynchronously power down the tuner may be the way to go -- ie, when
-> we tell it to standby, it will do a schedule_work for some 10 seconds
-> later to really pull it down. If we get a resume call prior to then,
-> we'll just cancel the work, otherwise we wait for the work to finish and
-> then issue the resume.
->
-> Does that sound reasonable?
+On Thu, Jun 14, 2012 at 02:58:13PM -0300, Peter Senna Tschudin wrote:
+> Tested by compilation only.
+[...]
 
-At face value it sounds reasonable, except the approach breaks down as
-soon as you have hybrid tuners which support both analog and digital.
-Because the digital side of the tuner isn't tied into tuner-core,
-you'll break in the following situation:
+I can't say whether this is correct since I never used the driver
+either, but the function you remove is reading registers so it may
+have important side-effects.
 
-Start using analog
-Stop using analog [schedule_work() call]
-Start using digital
-Timer pops and powers down the tuner even though it's in use for ATSC
-or ClearQAM
-
-Again, I'm not proposing a solution, but just poking a fatal hole in
-your proposal (believe me, I had considered the same approach when
-first looking at the problem).
-
-Devin
+Ben.
 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Ben Hutchings
+We get into the habit of living before acquiring the habit of thinking.
+                                                              - Albert Camus
