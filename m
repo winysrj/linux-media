@@ -1,179 +1,156 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-1-out2.atlantis.sk ([80.94.52.71]:53619 "EHLO
-	mail.atlantis.sk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754186Ab2FLUmm (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:13593 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755951Ab2FNNiL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Jun 2012 16:42:42 -0400
-From: Ondrej Zary <linux@rainbow-software.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH 1/3] radio: Add Sanyo LM7000 tuner driver
-Date: Tue, 12 Jun 2012 22:42:11 +0200
-Cc: linux-media@vger.kernel.org
-References: <201206122037.57039.linux@rainbow-software.org> <201206122217.43545.hverkuil@xs4all.nl>
-In-Reply-To: <201206122217.43545.hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <201206122242.13823.linux@rainbow-software.org>
+	Thu, 14 Jun 2012 09:38:11 -0400
+Received: from euspt2 (mailout1.w1.samsung.com [210.118.77.11])
+ by mailout1.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0M5M00LRT0KG1760@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 14 Jun 2012 14:38:40 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0M5M00EVF0JIDX@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 14 Jun 2012 14:38:07 +0100 (BST)
+Date: Thu, 14 Jun 2012 15:37:34 +0200
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: [PATCHv7 00/15] Integration of videobuf2 with dmabuf
+To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
+Cc: airlied@redhat.com, m.szyprowski@samsung.com,
+	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
+	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
+	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
+	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
+	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
+	mchehab@redhat.com, g.liakhovetski@gmx.de
+Message-id: <1339681069-8483-1-git-send-email-t.stanislaws@samsung.com>
+Content-transfer-encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday 12 June 2012 22:17:43 Hans Verkuil wrote:
-> Hi Ondrej!
->
-> On Tue June 12 2012 20:37:54 Ondrej Zary wrote:
-> > Add very simple driver for Sanyo LM7000 AM/FM tuner chip. Only FM is
-> > supported as there is no known HW with AM implemented.
->
-> It feels to me that it is overkill to turn this into a full blown module.
-> Can't this be done as a single lm7000.h header that contains a single
-> static inline function like this:
->
-> static inline void lm7000_set_freq(u32 freq, void *handle,
-> 						void (*set_pins)(void *handle, u8 pins))
-> {
-> 	...
-> }
->
-> It does the job just as well.
+Hello everyone,
+This patchset adds support for DMABUF [2] importing to V4L2 stack.
+The support for DMABUF exporting was moved to separate patchset
+due to dependency on patches for DMA mapping redesign by
+Marek Szyprowski [4]. This patchset depends on new scatterlist
+constructor [5].
 
-Thanks for idea, it will simplify this a lot. Will resend updated patches.
+v7:
+- support for V4L2_MEMORY_DMABUF in v4l2-compact-ioctl32.c
+- cosmetic fixes to the documentation
+- added importing for vmalloc because vmap support in dmabuf for 3.5
+  was pull-requested
+- support for dmabuf importing for VIVI
+- resurrect allocation of dma-contig context
+- remove reference of alloc_ctx in dma-contig buffer
+- use sg_alloc_table_from_pages
+- fix DMA scatterlist calls to use orig_nents instead of nents
+- fix memleak in vb2_dc_sgt_foreach_page (use orig_nents instead of nents)
 
-> Otherwise it looks fine.
->
-> Regards,
->
-> 	Hans
->
-> > This will be used by radio-aimslab and radio-sf16fmi.
-> >
-> > Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
-> >
-> > diff --git a/drivers/media/radio/Kconfig b/drivers/media/radio/Kconfig
-> > index c257da1..5bcce12 100644
-> > --- a/drivers/media/radio/Kconfig
-> > +++ b/drivers/media/radio/Kconfig
-> > @@ -191,6 +191,9 @@ config RADIO_CADET
-> >  	  To compile this driver as a module, choose M here: the
-> >  	  module will be called radio-cadet.
-> >
-> > +config RADIO_LM7000
-> > +	tristate
-> > +
-> >  config RADIO_RTRACK
-> >  	tristate "AIMSlab RadioTrack (aka RadioReveal) support"
-> >  	depends on ISA && VIDEO_V4L2
-> > diff --git a/drivers/media/radio/Makefile b/drivers/media/radio/Makefile
-> > index ca8c7d1..7f6aa63 100644
-> > --- a/drivers/media/radio/Makefile
-> > +++ b/drivers/media/radio/Makefile
-> > @@ -28,5 +28,6 @@ obj-$(CONFIG_RADIO_TEF6862) += tef6862.o
-> >  obj-$(CONFIG_RADIO_TIMBERDALE) += radio-timb.o
-> >  obj-$(CONFIG_RADIO_WL1273) += radio-wl1273.o
-> >  obj-$(CONFIG_RADIO_WL128X) += wl128x/
-> > +obj-$(CONFIG_RADIO_LM7000) += lm7000.o
-> >
-> >  ccflags-y += -Isound
-> > diff --git a/drivers/media/radio/lm7000.c b/drivers/media/radio/lm7000.c
-> > new file mode 100644
-> > index 0000000..681f3af
-> > --- /dev/null
-> > +++ b/drivers/media/radio/lm7000.c
-> > @@ -0,0 +1,52 @@
-> > +/* Sanyo LM7000 tuner chip driver
-> > + *
-> > + * Copyright 2012 Ondrej Zary <linux@rainbow-software.org>
-> > + * based on radio-aimslab.c by M. Kirkwood
-> > + * and radio-sf16fmi.c by M. Kirkwood and Petr Vandrovec
-> > + */
-> > +
-> > +#include <linux/delay.h>
-> > +#include <linux/module.h>
-> > +#include "lm7000.h"
-> > +
-> > +MODULE_AUTHOR("Ondrej Zary <linux@rainbow-software.org>");
-> > +MODULE_DESCRIPTION("Routines for Sanyo LM7000 AM/FM radio tuner chip");
-> > +MODULE_LICENSE("GPL");
-> > +
-> > +/* write the 24-bit register, starting with LSB */
-> > +static void lm7000_write(struct lm7000 *lm, u32 val)
-> > +{
-> > +	int i;
-> > +	u8 data;
-> > +
-> > +	for (i = 0; i < 24; i++) {
-> > +		data = val & (1 << i) ? LM7000_DATA : 0;
-> > +		lm->set_pins(lm, data | LM7000_CE);
-> > +		udelay(2);
-> > +		lm->set_pins(lm, data | LM7000_CE | LM7000_CLK);
-> > +		udelay(2);
-> > +		lm->set_pins(lm, data | LM7000_CE);
-> > +		udelay(2);
-> > +	}
-> > +	lm->set_pins(lm, 0);
-> > +}
-> > +
-> > +void lm7000_set_freq(struct lm7000 *lm, u32 freq)
-> > +{
-> > +	freq += 171200;		/* Add 10.7 MHz IF */
-> > +	freq /= 400;		/* Convert to 25 kHz units */
-> > +	lm7000_write(lm, freq | LM7000_FM_25 | LM7000_BIT_FM);
-> > +}
-> > +EXPORT_SYMBOL(lm7000_set_freq);
-> > +
-> > +static int __init lm7000_module_init(void)
-> > +{
-> > +	return 0;
-> > +}
-> > +
-> > +static void __exit lm7000_module_exit(void)
-> > +{
-> > +}
-> > +
-> > +module_init(lm7000_module_init)
-> > +module_exit(lm7000_module_exit)
-> > diff --git a/drivers/media/radio/lm7000.h b/drivers/media/radio/lm7000.h
-> > new file mode 100644
-> > index 0000000..a5bc7d6
-> > --- /dev/null
-> > +++ b/drivers/media/radio/lm7000.h
-> > @@ -0,0 +1,32 @@
-> > +#ifndef __LM7000_H
-> > +#define __LM7000_H
-> > +
-> > +#define LM7000_DATA	(1 << 0)
-> > +#define LM7000_CLK	(1 << 1)
-> > +#define LM7000_CE	(1 << 2)
-> > +
-> > +#define LM7000_FREQ_MASK 0x3fff
-> > +#define LM7000_BIT_T0	(1 << 14)
-> > +#define LM7000_BIT_T1	(1 << 15)
-> > +#define LM7000_BIT_B0	(1 << 16)
-> > +#define LM7000_BIT_B1	(1 << 17)
-> > +#define LM7000_BIT_B2	(1 << 18)
-> > +#define LM7000_BIT_TB	(1 << 19)
-> > +#define LM7000_FM_100	(0 << 20)
-> > +#define LM7000_FM_50	(1 << 20)
-> > +#define LM7000_FM_25	(2 << 20)
-> > +#define LM7000_AM_5	(3 << 20)
-> > +#define LM7000_AM_10	(4 << 20)
-> > +#define LM7000_AM_9	(5 << 20)
-> > +#define LM7000_AM_1	(6 << 20)
-> > +#define LM7000_AM_5_	(7 << 20)
-> > +#define LM7000_BIT_FM	(1 << 23)
-> > +
-> > +
-> > +struct lm7000 {
-> > +	void (*set_pins)(struct lm7000 *lm, u8 pins);
-> > +};
-> > +
-> > +void lm7000_set_freq(struct lm7000 *lm, u32 freq);
-> > +
-> > +#endif /* __LM7000_H */
+v6:
+- fixed missing entry in v4l2_memory_names
+- fixed a bug occuring after get_user_pages failure
+- fixed a bug caused by using invalid vma for get_user_pages
+- prepare/finish no longer call dma_sync for dmabuf buffers
 
+v5:
+- removed change of importer/exporter behaviour
+- fixes vb2_dc_pages_to_sgt basing on Laurent's hints
+- changed pin/unpin words to lock/unlock in Doc
 
+v4:
+- rebased on mainline 3.4-rc2
+- included missing importing support for s5p-fimc and s5p-tv
+- added patch for changing map/unmap for importers
+- fixes to Documentation part
+- coding style fixes
+- pairing {map/unmap}_dmabuf in vb2-core
+- fixing variable types and semantic of arguments in videobufb2-dma-contig.c
+
+v3:
+- rebased on mainline 3.4-rc1
+- split 'code refactor' patch to multiple smaller patches
+- squashed fixes to Sumit's patches
+- patchset is no longer dependant on 'DMA mapping redesign'
+- separated path for handling IO and non-IO mappings
+- add documentation for DMABUF importing to V4L
+- removed all DMABUF exporter related code
+- removed usage of dma_get_pages extension
+
+v2:
+- extended VIDIOC_EXPBUF argument from integer memoffset to struct
+  v4l2_exportbuffer
+- added patch that breaks DMABUF spec on (un)map_atachment callcacks but allows
+  to work with existing implementation of DMABUF prime in DRM
+- all dma-contig code refactoring patches were squashed
+- bugfixes
+
+v1: List of changes since [1].
+- support for DMA api extension dma_get_pages, the function is used to retrieve
+  pages used to create DMA mapping.
+- small fixes/code cleanup to videobuf2
+- added prepare and finish callbacks to vb2 allocators, it is used keep
+  consistency between dma-cpu acess to the memory (by Marek Szyprowski)
+- support for exporting of DMABUF buffer in V4L2 and Videobuf2, originated from
+  [3].
+- support for dma-buf exporting in vb2-dma-contig allocator
+- support for DMABUF for s5p-tv and s5p-fimc (capture interface) drivers,
+  originated from [3]
+- changed handling for userptr buffers (by Marek Szyprowski, Andrzej
+  Pietrasiewicz)
+- let mmap method to use dma_mmap_writecombine call (by Marek Szyprowski)
+
+[1] http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/42966/focus=42968
+[2] https://lkml.org/lkml/2011/12/26/29
+[3] http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/36354/focus=36355
+[4] http://thread.gmane.org/gmane.linux.kernel.cross-arch/12819
+[5] http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/47983
+
+Laurent Pinchart (2):
+  v4l: vb2-dma-contig: Shorten vb2_dma_contig prefix to vb2_dc
+  v4l: vb2-dma-contig: Reorder functions
+
+Marek Szyprowski (2):
+  v4l: vb2: add prepare/finish callbacks to allocators
+  v4l: vb2-dma-contig: add prepare/finish to dma-contig allocator
+
+Sumit Semwal (4):
+  v4l: Add DMABUF as a memory type
+  v4l: vb2: add support for shared buffer (dma_buf)
+  v4l: vb: remove warnings about MEMORY_DMABUF
+  v4l: vb2-dma-contig: add support for dma_buf importing
+
+Tomasz Stanislawski (7):
+  Documentation: media: description of DMABUF importing in V4L2
+  v4l: vb2-dma-contig: remove reference of alloc_ctx from a buffer
+  v4l: vb2-dma-contig: add support for scatterlist in userptr mode
+  v4l: vb2-vmalloc: add support for dmabuf importing
+  v4l: vivi: support for dmabuf importing
+  v4l: s5p-tv: mixer: support for dmabuf importing
+  v4l: s5p-fimc: support for dmabuf importing
+
+ Documentation/DocBook/media/v4l/compat.xml         |    4 +
+ Documentation/DocBook/media/v4l/io.xml             |  179 ++++++++
+ .../DocBook/media/v4l/vidioc-create-bufs.xml       |    3 +-
+ Documentation/DocBook/media/v4l/vidioc-qbuf.xml    |   15 +
+ Documentation/DocBook/media/v4l/vidioc-reqbufs.xml |   47 +-
+ drivers/media/video/Kconfig                        |    1 +
+ drivers/media/video/s5p-fimc/Kconfig               |    1 +
+ drivers/media/video/s5p-fimc/fimc-capture.c        |    2 +-
+ drivers/media/video/s5p-tv/Kconfig                 |    1 +
+ drivers/media/video/s5p-tv/mixer_video.c           |    2 +-
+ drivers/media/video/v4l2-compat-ioctl32.c          |   16 +
+ drivers/media/video/v4l2-ioctl.c                   |    1 +
+ drivers/media/video/videobuf-core.c                |    4 +
+ drivers/media/video/videobuf2-core.c               |  207 ++++++++-
+ drivers/media/video/videobuf2-dma-contig.c         |  470 +++++++++++++++++---
+ drivers/media/video/videobuf2-vmalloc.c            |   56 +++
+ drivers/media/video/vivi.c                         |    2 +-
+ include/linux/videodev2.h                          |    7 +
+ include/media/videobuf2-core.h                     |   34 ++
+ 19 files changed, 963 insertions(+), 89 deletions(-)
 
 -- 
-Ondrej Zary
+1.7.9.5
+
