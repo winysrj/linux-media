@@ -1,46 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gh0-f174.google.com ([209.85.160.174]:38201 "EHLO
-	mail-gh0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752708Ab2FRTYI (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:21916 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754256Ab2FNOcn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jun 2012 15:24:08 -0400
-Received: by mail-gh0-f174.google.com with SMTP id r11so3997516ghr.19
-        for <linux-media@vger.kernel.org>; Mon, 18 Jun 2012 12:24:08 -0700 (PDT)
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: <linux-media@vger.kernel.org>,
-	Ezequiel Garcia <elezegarcia@gmail.com>
-Subject: [PATCH 03/12] saa7164: Replace struct memcpy with struct assignment
-Date: Mon, 18 Jun 2012 16:23:36 -0300
-Message-Id: <1340047425-32000-3-git-send-email-elezegarcia@gmail.com>
-In-Reply-To: <1340047425-32000-1-git-send-email-elezegarcia@gmail.com>
-References: <1340047425-32000-1-git-send-email-elezegarcia@gmail.com>
+	Thu, 14 Jun 2012 10:32:43 -0400
+Received: from euspt1 (mailout1.w1.samsung.com [210.118.77.11])
+ by mailout1.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0M5M001TQ3398Z70@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 14 Jun 2012 15:33:09 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0M5M00M2932D1H@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 14 Jun 2012 15:32:38 +0100 (BST)
+Date: Thu, 14 Jun 2012 16:32:28 +0200
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: [PATCHv2 8/9] v4l: s5p-mfc: support for dmabuf exporting
+In-reply-to: <1339684349-28882-1-git-send-email-t.stanislaws@samsung.com>
+To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
+Cc: airlied@redhat.com, m.szyprowski@samsung.com,
+	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
+	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
+	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
+	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
+	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
+	mchehab@redhat.com, g.liakhovetski@gmx.de,
+	Kamil Debski <k.debski@samsung.com>
+Message-id: <1339684349-28882-9-git-send-email-t.stanislaws@samsung.com>
+Content-transfer-encoding: 7BIT
+References: <1339684349-28882-1-git-send-email-t.stanislaws@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
----
- drivers/media/video/saa7164/saa7164-i2c.c |    7 ++-----
- 1 files changed, 2 insertions(+), 5 deletions(-)
+This patch enhances s5p-mfc with support for DMABUF exporting via
+VIDIOC_EXPBUF ioctl.
 
-diff --git a/drivers/media/video/saa7164/saa7164-i2c.c b/drivers/media/video/saa7164/saa7164-i2c.c
-index 8df15ca..57849d6 100644
---- a/drivers/media/video/saa7164/saa7164-i2c.c
-+++ b/drivers/media/video/saa7164/saa7164-i2c.c
-@@ -106,11 +106,8 @@ int saa7164_i2c_register(struct saa7164_i2c *bus)
+Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+CC: Kamil Debski <k.debski@samsung.com>
+---
+ drivers/media/video/s5p-mfc/s5p_mfc_dec.c |   18 ++++++++++++++++++
+ drivers/media/video/s5p-mfc/s5p_mfc_enc.c |   18 ++++++++++++++++++
+ 2 files changed, 36 insertions(+)
+
+diff --git a/drivers/media/video/s5p-mfc/s5p_mfc_dec.c b/drivers/media/video/s5p-mfc/s5p_mfc_dec.c
+index c25ec02..8344ce5 100644
+--- a/drivers/media/video/s5p-mfc/s5p_mfc_dec.c
++++ b/drivers/media/video/s5p-mfc/s5p_mfc_dec.c
+@@ -564,6 +564,23 @@ static int vidioc_dqbuf(struct file *file, void *priv, struct v4l2_buffer *buf)
+ 	return -EINVAL;
+ }
  
- 	dprintk(DBGLVL_I2C, "%s(bus = %d)\n", __func__, bus->nr);
++/* Export DMA buffer */
++static int vidioc_expbuf(struct file *file, void *priv,
++	struct v4l2_exportbuffer *eb)
++{
++	struct s5p_mfc_ctx *ctx = fh_to_ctx(priv);
++	int ret;
++
++	if (eb->mem_offset < DST_QUEUE_OFF_BASE)
++		return vb2_expbuf(&ctx->vq_src, eb);
++
++	eb->mem_offset -= DST_QUEUE_OFF_BASE;
++	ret = vb2_expbuf(&ctx->vq_dst, eb);
++	eb->mem_offset += DST_QUEUE_OFF_BASE;
++
++	return ret;
++}
++
+ /* Stream on */
+ static int vidioc_streamon(struct file *file, void *priv,
+ 			   enum v4l2_buf_type type)
+@@ -739,6 +756,7 @@ static const struct v4l2_ioctl_ops s5p_mfc_dec_ioctl_ops = {
+ 	.vidioc_querybuf = vidioc_querybuf,
+ 	.vidioc_qbuf = vidioc_qbuf,
+ 	.vidioc_dqbuf = vidioc_dqbuf,
++	.vidioc_expbuf = vidioc_expbuf,
+ 	.vidioc_streamon = vidioc_streamon,
+ 	.vidioc_streamoff = vidioc_streamoff,
+ 	.vidioc_g_crop = vidioc_g_crop,
+diff --git a/drivers/media/video/s5p-mfc/s5p_mfc_enc.c b/drivers/media/video/s5p-mfc/s5p_mfc_enc.c
+index acedb20..db110c5 100644
+--- a/drivers/media/video/s5p-mfc/s5p_mfc_enc.c
++++ b/drivers/media/video/s5p-mfc/s5p_mfc_enc.c
+@@ -1141,6 +1141,23 @@ static int vidioc_dqbuf(struct file *file, void *priv, struct v4l2_buffer *buf)
+ 	return -EINVAL;
+ }
  
--	memcpy(&bus->i2c_adap, &saa7164_i2c_adap_template,
--	       sizeof(bus->i2c_adap));
--
--	memcpy(&bus->i2c_client, &saa7164_i2c_client_template,
--	       sizeof(bus->i2c_client));
-+	bus->i2c_adap = saa7164_i2c_adap_template;
-+	bus->i2c_client = saa7164_i2c_client_template;
- 
- 	bus->i2c_adap.dev.parent = &dev->pci->dev;
- 
++/* Export DMA buffer */
++static int vidioc_expbuf(struct file *file, void *priv,
++	struct v4l2_exportbuffer *eb)
++{
++	struct s5p_mfc_ctx *ctx = fh_to_ctx(priv);
++	int ret;
++
++	if (eb->mem_offset < DST_QUEUE_OFF_BASE)
++		return vb2_expbuf(&ctx->vq_src, eb);
++
++	eb->mem_offset -= DST_QUEUE_OFF_BASE;
++	ret = vb2_expbuf(&ctx->vq_dst, eb);
++	eb->mem_offset += DST_QUEUE_OFF_BASE;
++
++	return ret;
++}
++
+ /* Stream on */
+ static int vidioc_streamon(struct file *file, void *priv,
+ 			   enum v4l2_buf_type type)
+@@ -1486,6 +1503,7 @@ static const struct v4l2_ioctl_ops s5p_mfc_enc_ioctl_ops = {
+ 	.vidioc_querybuf = vidioc_querybuf,
+ 	.vidioc_qbuf = vidioc_qbuf,
+ 	.vidioc_dqbuf = vidioc_dqbuf,
++	.vidioc_expbuf = vidioc_expbuf,
+ 	.vidioc_streamon = vidioc_streamon,
+ 	.vidioc_streamoff = vidioc_streamoff,
+ 	.vidioc_s_parm = vidioc_s_parm,
 -- 
-1.7.4.4
+1.7.9.5
 
