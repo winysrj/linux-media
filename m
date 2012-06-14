@@ -1,247 +1,159 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:65156 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753666Ab2F3TYa (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:22575 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755992Ab2FNNiM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 30 Jun 2012 15:24:30 -0400
-Received: by mail-ee0-f46.google.com with SMTP id t10so1687663eei.19
-        for <linux-media@vger.kernel.org>; Sat, 30 Jun 2012 12:24:29 -0700 (PDT)
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: posciak@google.com, andrzej.p@samsung.com, hans.verkuil@cisco.com,
-	hdegoede@redhat.com, javier.martin@vista-silicon.com,
-	jtp.park@samsung.com, kyungmin.park@samsung.com,
-	k.debski@samsung.com, mchehab@infradead.org,
-	m.szyprowski@samsung.com,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Subject: [PATCH/RFC 1/2] V4L: Add capability flags for memory-to-memory devices
-Date: Sat, 30 Jun 2012 21:23:42 +0200
-Message-Id: <1341084223-4616-2-git-send-email-sylvester.nawrocki@gmail.com>
-In-Reply-To: <1341084223-4616-1-git-send-email-sylvester.nawrocki@gmail.com>
-References: <1341084223-4616-1-git-send-email-sylvester.nawrocki@gmail.com>
+	Thu, 14 Jun 2012 09:38:12 -0400
+Received: from euspt1 (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0M5M00AEC0KGDX70@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 14 Jun 2012 14:38:40 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0M5M00INL0JKBI@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 14 Jun 2012 14:38:09 +0100 (BST)
+Date: Thu, 14 Jun 2012 15:37:35 +0200
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: [PATCHv7 01/15] v4l: Add DMABUF as a memory type
+In-reply-to: <1339681069-8483-1-git-send-email-t.stanislaws@samsung.com>
+To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
+Cc: airlied@redhat.com, m.szyprowski@samsung.com,
+	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
+	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
+	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
+	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
+	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
+	mchehab@redhat.com, g.liakhovetski@gmx.de,
+	Sumit Semwal <sumit.semwal@linaro.org>
+Message-id: <1339681069-8483-2-git-send-email-t.stanislaws@samsung.com>
+Content-transfer-encoding: 7BIT
+References: <1339681069-8483-1-git-send-email-t.stanislaws@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds new V4L2_CAP_VIDEO_M2M and V4L2_CAP_VIDEO_M2M_MPLANE capability
-flags that are intended to be used for memory-to-memory (M2M) devices, instead
-of ORed V4L2_CAP_VIDEO_CAPTURE and V4L2_CAP_VIDEO_OUTPUT.
+From: Sumit Semwal <sumit.semwal@ti.com>
 
-V4L2_CAP_VIDEO_M2M flag is added at the drivers, CAPTURE and OUTPUT capability
-flags are left untouched and will be removed in future, after a transition
-period required for existing applications to be adapted to check only for
-V4L2_CAP_VIDEO_M2M.
+Adds DMABUF memory type to v4l framework. Also adds the related file
+descriptor in v4l2_plane and v4l2_buffer.
 
-Signed-off-by: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+   [original work in the PoC for buffer sharing]
+Signed-off-by: Sumit Semwal <sumit.semwal@ti.com>
+Signed-off-by: Sumit Semwal <sumit.semwal@linaro.org>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- Documentation/DocBook/media/v4l/compat.xml         |    9 +++++++++
- .../DocBook/media/v4l/vidioc-querycap.xml          |   13 +++++++++++++
- drivers/media/video/mem2mem_testdev.c              |    4 +---
- drivers/media/video/mx2_emmaprp.c                  |   10 +++++++---
- drivers/media/video/s5p-fimc/fimc-m2m.c            |    7 ++++++-
- drivers/media/video/s5p-g2d/g2d.c                  |    9 +++++++--
- drivers/media/video/s5p-jpeg/jpeg-core.c           |   10 +++++++---
- drivers/media/video/s5p-mfc/s5p_mfc_dec.c          |   10 ++++++++--
- drivers/media/video/s5p-mfc/s5p_mfc_enc.c          |   11 ++++++++---
- include/linux/videodev2.h                          |    4 ++++
- 10 files changed, 70 insertions(+), 17 deletions(-)
+ drivers/media/video/v4l2-compat-ioctl32.c |   16 ++++++++++++++++
+ drivers/media/video/v4l2-ioctl.c          |    1 +
+ include/linux/videodev2.h                 |    7 +++++++
+ 3 files changed, 24 insertions(+)
 
-diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
-index ea42ef8..3ab6e0fc9 100644
---- a/Documentation/DocBook/media/v4l/compat.xml
-+++ b/Documentation/DocBook/media/v4l/compat.xml
-@@ -2458,6 +2458,15 @@ details.</para>
-       </orderedlist>
-     </section>
+diff --git a/drivers/media/video/v4l2-compat-ioctl32.c b/drivers/media/video/v4l2-compat-ioctl32.c
+index 5327ad3..d33ab18 100644
+--- a/drivers/media/video/v4l2-compat-ioctl32.c
++++ b/drivers/media/video/v4l2-compat-ioctl32.c
+@@ -348,6 +348,9 @@ static int get_v4l2_plane32(struct v4l2_plane *up, struct v4l2_plane32 *up32,
+ 		up_pln = compat_ptr(p);
+ 		if (put_user((unsigned long)up_pln, &up->m.userptr))
+ 			return -EFAULT;
++	} else if (memory == V4L2_MEMORY_DMABUF) {
++		if (copy_in_user(&up->m.fd, &up32->m.fd, sizeof(int)))
++			return -EFAULT;
+ 	} else {
+ 		if (copy_in_user(&up->m.mem_offset, &up32->m.mem_offset,
+ 					sizeof(__u32)))
+@@ -371,6 +374,11 @@ static int put_v4l2_plane32(struct v4l2_plane *up, struct v4l2_plane32 *up32,
+ 		if (copy_in_user(&up32->m.mem_offset, &up->m.mem_offset,
+ 					sizeof(__u32)))
+ 			return -EFAULT;
++	/* For DMABUF, driver might've set up the fd, so copy it back. */
++	if (memory == V4L2_MEMORY_DMABUF)
++		if (copy_in_user(&up32->m.fd, &up->m.fd,
++					sizeof(int)))
++			return -EFAULT;
  
-+    <section>
-+      <title>V4L2 in Linux 3.6</title>
-+      <orderedlist>
-+        <listitem>
-+	  <para>Added V4L2_CAP_VIDEO_M2M and V4L2_CAP_VIDEO_M2M_MPLANE capabilities.</para>
-+        </listitem>
-+      </orderedlist>
-+    </section>
-+
-     <section id="other">
-       <title>Relation of V4L2 to other Linux multimedia APIs</title>
- 
-diff --git a/Documentation/DocBook/media/v4l/vidioc-querycap.xml b/Documentation/DocBook/media/v4l/vidioc-querycap.xml
-index 4643505..f33dd74 100644
---- a/Documentation/DocBook/media/v4l/vidioc-querycap.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-querycap.xml
-@@ -192,6 +192,19 @@ linkend="output">Video Output</link> interface.</entry>
- 	    <link linkend="output">Video Output</link> interface.</entry>
- 	  </row>
- 	  <row>
-+	    <entry><constant>V4L2_CAP_VIDEO_M2M</constant></entry>
-+	    <entry>0x00004000</entry>
-+	    <entry>The device supports the single-planar API through the
-+	    Video Memory-To-Memory interface.</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>V4L2_CAP_VIDEO_M2M_MPLANE</constant></entry>
-+	    <entry>0x00008000</entry>
-+	    <entry>The device supports the
-+	    <link linkend="planar-apis">multi-planar API</link> through the
-+	    Video Memory-To-Memory  interface.</entry>
-+	  </row>
-+	  <row>
- 	    <entry><constant>V4L2_CAP_VIDEO_OVERLAY</constant></entry>
- 	    <entry>0x00000004</entry>
- 	    <entry>The device supports the <link
-diff --git a/drivers/media/video/mem2mem_testdev.c b/drivers/media/video/mem2mem_testdev.c
-index 3945556..a8fa79a 100644
---- a/drivers/media/video/mem2mem_testdev.c
-+++ b/drivers/media/video/mem2mem_testdev.c
-@@ -381,9 +381,7 @@ static int vidioc_querycap(struct file *file, void *priv,
- 	strncpy(cap->driver, MEM2MEM_NAME, sizeof(cap->driver) - 1);
- 	strncpy(cap->card, MEM2MEM_NAME, sizeof(cap->card) - 1);
- 	cap->bus_info[0] = 0;
--	cap->capabilities = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_VIDEO_OUTPUT
--			  | V4L2_CAP_STREAMING;
--
-+	cap->capabilities = V4L2_CAP_VIDEO_M2M | V4L2_CAP_STREAMING;
  	return 0;
  }
- 
-diff --git a/drivers/media/video/mx2_emmaprp.c b/drivers/media/video/mx2_emmaprp.c
-index 0bd5815..5f8a6f5 100644
---- a/drivers/media/video/mx2_emmaprp.c
-+++ b/drivers/media/video/mx2_emmaprp.c
-@@ -396,9 +396,13 @@ static int vidioc_querycap(struct file *file, void *priv,
- {
- 	strncpy(cap->driver, MEM2MEM_NAME, sizeof(cap->driver) - 1);
- 	strncpy(cap->card, MEM2MEM_NAME, sizeof(cap->card) - 1);
--	cap->capabilities = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_VIDEO_OUTPUT
--			  | V4L2_CAP_STREAMING;
--
-+	/*
-+	 * This is only a mem-to-mem video device. The capture and output
-+	 * device capability flags are left only for backward compatibility
-+	 * and are scheduled for removal.
-+	 */
-+	cap->capabilities = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_VIDEO_OUTPUT |
-+			    V4L2_CAP_VIDEO_M2M | V4L2_CAP_STREAMING;
- 	return 0;
- }
- 
-diff --git a/drivers/media/video/s5p-fimc/fimc-m2m.c b/drivers/media/video/s5p-fimc/fimc-m2m.c
-index 4c58e05..98b080e 100644
---- a/drivers/media/video/s5p-fimc/fimc-m2m.c
-+++ b/drivers/media/video/s5p-fimc/fimc-m2m.c
-@@ -259,7 +259,12 @@ static int fimc_m2m_querycap(struct file *file, void *fh,
- 	strncpy(cap->driver, fimc->pdev->name, sizeof(cap->driver) - 1);
- 	strncpy(cap->card, fimc->pdev->name, sizeof(cap->card) - 1);
- 	cap->bus_info[0] = 0;
--	cap->capabilities = V4L2_CAP_STREAMING |
-+	/*
-+	 * This is only a mem-to-mem video device. The capture and output
-+	 * device capability flags are left only for backward compatibility
-+	 * and are scheduled for removal.
-+	 */
-+	cap->capabilities = V4L2_CAP_STREAMING | V4L2_CAP_VIDEO_M2M_MPLANE |
- 		V4L2_CAP_VIDEO_CAPTURE_MPLANE | V4L2_CAP_VIDEO_OUTPUT_MPLANE;
- 
- 	return 0;
-diff --git a/drivers/media/video/s5p-g2d/g2d.c b/drivers/media/video/s5p-g2d/g2d.c
-index 7c98ee7..7c22004 100644
---- a/drivers/media/video/s5p-g2d/g2d.c
-+++ b/drivers/media/video/s5p-g2d/g2d.c
-@@ -290,8 +290,13 @@ static int vidioc_querycap(struct file *file, void *priv,
- 	strncpy(cap->card, G2D_NAME, sizeof(cap->card) - 1);
- 	cap->bus_info[0] = 0;
- 	cap->version = KERNEL_VERSION(1, 0, 0);
--	cap->capabilities = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_VIDEO_OUTPUT
--							| V4L2_CAP_STREAMING;
-+	/*
-+	 * This is only a mem-to-mem video device. The capture and output
-+	 * device capability flags are left only for backward compatibility
-+	 * and are scheduled for removal.
-+	 */
-+	cap->capabilities = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_VIDEO_OUTPUT |
-+			    V4L2_CAP_VIDEO_M2M | V4L2_CAP_STREAMING;
- 	return 0;
- }
- 
-diff --git a/drivers/media/video/s5p-jpeg/jpeg-core.c b/drivers/media/video/s5p-jpeg/jpeg-core.c
-index 28b5225d..2bde13f 100644
---- a/drivers/media/video/s5p-jpeg/jpeg-core.c
-+++ b/drivers/media/video/s5p-jpeg/jpeg-core.c
-@@ -489,9 +489,13 @@ static int s5p_jpeg_querycap(struct file *file, void *priv,
- 			sizeof(cap->card));
+@@ -454,6 +462,10 @@ static int get_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
+ 			if (get_user(kp->m.offset, &up->m.offset))
+ 				return -EFAULT;
+ 			break;
++		case V4L2_MEMORY_DMABUF:
++			if (get_user(kp->m.fd, &up->m.fd))
++				return -EFAULT;
++			break;
+ 		}
  	}
- 	cap->bus_info[0] = 0;
--	cap->capabilities = V4L2_CAP_STREAMING |
--			    V4L2_CAP_VIDEO_CAPTURE |
--			    V4L2_CAP_VIDEO_OUTPUT;
-+	/*
-+	 * This is only a mem-to-mem video device. The capture and output
-+	 * device capability flags are left only for backward compatibility
-+	 * and are scheduled for removal.
-+	 */
-+	cap->capabilities = V4L2_CAP_STREAMING | V4L2_CAP_VIDEO_M2M |
-+			    V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_VIDEO_OUTPUT;
- 	return 0;
- }
  
-diff --git a/drivers/media/video/s5p-mfc/s5p_mfc_dec.c b/drivers/media/video/s5p-mfc/s5p_mfc_dec.c
-index 4dd32fc..00fc4ac 100644
---- a/drivers/media/video/s5p-mfc/s5p_mfc_dec.c
-+++ b/drivers/media/video/s5p-mfc/s5p_mfc_dec.c
-@@ -220,8 +220,14 @@ static int vidioc_querycap(struct file *file, void *priv,
- 	strncpy(cap->card, dev->plat_dev->name, sizeof(cap->card) - 1);
- 	cap->bus_info[0] = 0;
- 	cap->version = KERNEL_VERSION(1, 0, 0);
--	cap->capabilities = V4L2_CAP_VIDEO_CAPTURE_MPLANE |
--			V4L2_CAP_VIDEO_OUTPUT_MPLANE | V4L2_CAP_STREAMING;
-+	/*
-+	 * This is only a mem-to-mem video device. The capture and output
-+	 * device capability flags are left only for backward compatibility
-+	 * and are scheduled for removal.
-+	 */
-+	cap->capabilities = V4L2_CAP_VIDEO_M2M_MPLANE | V4L2_CAP_STREAMING |
-+			    V4L2_CAP_VIDEO_CAPTURE_MPLANE |
-+			    V4L2_CAP_VIDEO_OUTPUT_MPLANE;
- 	return 0;
- }
+@@ -518,6 +530,10 @@ static int put_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
+ 			if (put_user(kp->m.offset, &up->m.offset))
+ 				return -EFAULT;
+ 			break;
++		case V4L2_MEMORY_DMABUF:
++			if (put_user(kp->m.fd, &up->m.fd))
++				return -EFAULT;
++			break;
+ 		}
+ 	}
  
-diff --git a/drivers/media/video/s5p-mfc/s5p_mfc_enc.c b/drivers/media/video/s5p-mfc/s5p_mfc_enc.c
-index 03d8334..b5ade31 100644
---- a/drivers/media/video/s5p-mfc/s5p_mfc_enc.c
-+++ b/drivers/media/video/s5p-mfc/s5p_mfc_enc.c
-@@ -779,9 +779,14 @@ static int vidioc_querycap(struct file *file, void *priv,
- 	strncpy(cap->card, dev->plat_dev->name, sizeof(cap->card) - 1);
- 	cap->bus_info[0] = 0;
- 	cap->version = KERNEL_VERSION(1, 0, 0);
--	cap->capabilities = V4L2_CAP_VIDEO_CAPTURE_MPLANE
--			  | V4L2_CAP_VIDEO_OUTPUT_MPLANE
--			  | V4L2_CAP_STREAMING;
-+	/*
-+	 * This is only a mem-to-mem video device. The capture and output
-+	 * device capability flags are left only for backward compatibility
-+	 * and are scheduled for removal.
-+	 */
-+	cap->capabilities = V4L2_CAP_VIDEO_M2M_MPLANE | V4L2_CAP_STREAMING |
-+			    V4L2_CAP_VIDEO_CAPTURE_MPLANE |
-+			    V4L2_CAP_VIDEO_OUTPUT_MPLANE;
- 	return 0;
- }
+diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
+index 91be4e8..31fc2ad 100644
+--- a/drivers/media/video/v4l2-ioctl.c
++++ b/drivers/media/video/v4l2-ioctl.c
+@@ -175,6 +175,7 @@ static const char *v4l2_memory_names[] = {
+ 	[V4L2_MEMORY_MMAP]    = "mmap",
+ 	[V4L2_MEMORY_USERPTR] = "userptr",
+ 	[V4L2_MEMORY_OVERLAY] = "overlay",
++	[V4L2_MEMORY_DMABUF] = "dmabuf",
+ };
  
+ #define prt_names(a, arr) ((((a) >= 0) && ((a) < ARRAY_SIZE(arr))) ? \
 diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index f79d0cc..b960c48 100644
+index 370d111..51b20f4 100644
 --- a/include/linux/videodev2.h
 +++ b/include/linux/videodev2.h
-@@ -273,6 +273,10 @@ struct v4l2_capability {
- #define V4L2_CAP_VIDEO_CAPTURE_MPLANE	0x00001000
- /* Is a video output device that supports multiplanar formats */
- #define V4L2_CAP_VIDEO_OUTPUT_MPLANE	0x00002000
-+/* Is a video mem-to-mem device that supports multiplanar formats */
-+#define V4L2_CAP_VIDEO_M2M_MPLANE	0x00004000
-+/* Is a video mem-to-mem device */
-+#define V4L2_CAP_VIDEO_M2M		0x00008000
+@@ -185,6 +185,7 @@ enum v4l2_memory {
+ 	V4L2_MEMORY_MMAP             = 1,
+ 	V4L2_MEMORY_USERPTR          = 2,
+ 	V4L2_MEMORY_OVERLAY          = 3,
++	V4L2_MEMORY_DMABUF           = 4,
+ };
  
- #define V4L2_CAP_TUNER			0x00010000  /* has a tuner */
- #define V4L2_CAP_AUDIO			0x00020000  /* has audio support */
+ /* see also http://vektor.theorem.ca/graphics/ycbcr/ */
+@@ -591,6 +592,8 @@ struct v4l2_requestbuffers {
+  *			should be passed to mmap() called on the video node)
+  * @userptr:		when memory is V4L2_MEMORY_USERPTR, a userspace pointer
+  *			pointing to this plane
++ * @fd:			when memory is V4L2_MEMORY_DMABUF, a userspace file
++ *			descriptor associated with this plane
+  * @data_offset:	offset in the plane to the start of data; usually 0,
+  *			unless there is a header in front of the data
+  *
+@@ -605,6 +608,7 @@ struct v4l2_plane {
+ 	union {
+ 		__u32		mem_offset;
+ 		unsigned long	userptr;
++		int		fd;
+ 	} m;
+ 	__u32			data_offset;
+ 	__u32			reserved[11];
+@@ -629,6 +633,8 @@ struct v4l2_plane {
+  *		(or a "cookie" that should be passed to mmap() as offset)
+  * @userptr:	for non-multiplanar buffers with memory == V4L2_MEMORY_USERPTR;
+  *		a userspace pointer pointing to this buffer
++ * @fd:		for non-multiplanar buffers with memory == V4L2_MEMORY_DMABUF;
++ *		a userspace file descriptor associated with this buffer
+  * @planes:	for multiplanar buffers; userspace pointer to the array of plane
+  *		info structs for this buffer
+  * @length:	size in bytes of the buffer (NOT its payload) for single-plane
+@@ -655,6 +661,7 @@ struct v4l2_buffer {
+ 		__u32           offset;
+ 		unsigned long   userptr;
+ 		struct v4l2_plane *planes;
++		int		fd;
+ 	} m;
+ 	__u32			length;
+ 	__u32			input;
 -- 
-1.7.4.1
+1.7.9.5
 
