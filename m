@@ -1,92 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:39520 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751299Ab2FHGvL convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Jun 2012 02:51:11 -0400
-Received: by yhmm54 with SMTP id m54so1032343yhm.19
-        for <linux-media@vger.kernel.org>; Thu, 07 Jun 2012 23:51:10 -0700 (PDT)
+Received: from perceval.ideasonboard.com ([95.142.166.194]:39908 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756961Ab2FOOOP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 15 Jun 2012 10:14:15 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl, snjw23@gmail.com,
+	t.stanislaws@samsung.com
+Subject: Re: [PATCH v4 7/7] v4l: Correct conflicting V4L2 subdev selection API documentation
+Date: Fri, 15 Jun 2012 16:14:21 +0200
+Message-ID: <1580520.TYuvdPHuRK@avalon>
+In-Reply-To: <1339767880-8412-7-git-send-email-sakari.ailus@iki.fi>
+References: <4FDB3C2E.9060502@iki.fi> <1339767880-8412-7-git-send-email-sakari.ailus@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <CAOMZO5CaW+pUmVrgDFT857eyaR8kjzcE89K4ZBwi8TF0f5dxaA@mail.gmail.com>
-References: <1338905173-5968-1-git-send-email-javier.martin@vista-silicon.com>
-	<CAOMZO5AnR9e9O+A+8zH+W+3pa0=cey=9wL0Oa2z+YrhYadvQ1w@mail.gmail.com>
-	<CACKLOr28+2pQqOKyVP728kiD2BAnCzkMFgNL=059jmTpeFvQHg@mail.gmail.com>
-	<CAOMZO5BA9pT0vwXT1zr+-fjHr5eT6eTYEzsKbrCs8rzxiQCwWg@mail.gmail.com>
-	<CACKLOr1_pOSkMfo7xWMPd4qJvo8MgNa-dswWVKGBx=enaEB2CQ@mail.gmail.com>
-	<CAOMZO5CaW+pUmVrgDFT857eyaR8kjzcE89K4ZBwi8TF0f5dxaA@mail.gmail.com>
-Date: Fri, 8 Jun 2012 08:51:10 +0200
-Message-ID: <CACKLOr083hwix+C+0L+Gh93-j_XkekQZSMANxsXZJeJ4Pxm+Fw@mail.gmail.com>
-Subject: Re: [PATCH] media: mx2_camera: Add YUYV output format.
-From: javier Martin <javier.martin@vista-silicon.com>
-To: Fabio Estevam <festevam@gmail.com>
-Cc: linux-media@vger.kernel.org, Sascha Hauer <kernel@pengutronix.de>,
-	Shawn Guo <shawn.guo@linaro.org>,
-	Dirk Behme <dirk.behme@googlemail.com>,
-	linux-arm-kernel@lists.infradead.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Fabio,
+Hi Sakari,
 
-On 7 June 2012 19:35, Fabio Estevam <festevam@gmail.com> wrote:
-> Hi Javier,
->
-> On Thu, Jun 7, 2012 at 5:30 AM, javier Martin
-> <javier.martin@vista-silicon.com> wrote:
->
->> As i stated, the driver is still in an early development stage, it
->> doesn't do anything useful yet. But this is the public git repository
->> if you want to take a look:
->>
->> git repo: https://github.com/jmartinc/video_visstrim.git
->> branch:  mx27-codadx6
->
-> Thanks, I will take a look at your tree when I am back to the office next week.
->
-> I also see that Linaro's tree has support for VPU for mx5/mx6:
-> http://git.linaro.org/gitweb?p=landing-teams/working/freescale/kernel.git;a=summary
->
-> ,so we should probably think in unifying it with mx27 support there too.
->
->>
->> FYI we are only interested on adding support for the encoding path of
->> the VPU, but we are trying our best to make it modular (as it is done
->> in Samsung's [1]), so that anyone can add decoding support later.
->
-> Ok, sounds good.
->
->> By the way, you work for Freescale, don't you?
->
-> Yes, correct.
->
->> We have a couple of issues with the i.MX27 VPU:
->>
->> 1- Firmware for the VPU is provided as a table of binary values inside
->> a source file which is licensed as GPL, however software is packaged
->> in a .tar.gz file that is marked as NDA. Do we have the right to
->> distribute this firmware with our products?
+Thanks for the patch.
 
-To address this issue it would be great if you, as a Freescale
-employee, could send VPU firmware binary file to linux-firmware with a
-LICENSE.xxxx file as well:
+On Friday 15 June 2012 16:44:40 Sakari Ailus wrote:
+> The API reference documents that the KEEP_CONFIG flag tells the
+> configuration should not be propatgated by the driver whereas the interface
 
-http://git.kernel.org/?p=linux/kernel/git/dwmw2/linux-firmware.git;a=tree
+s/propatgated/propagated/
 
->> 2- There is a BUG in the firmware that marks P frames as IDR when it
->> should only be done to I frames. Would it be possible to have access
->> to the source code of the firmware in order to fix that problem?
->
-> I will need to check this next week when I am back to the office.
+> documentation (dev-subdev.xml) categorically prohibited any changes to the
+> rest of the pipeline. The latter makes no sense, since it would severely
+> limit the usefulness of the KEEP_CONFIG flag.
+> 
+> Correct the documentation in dev-subddev.xml.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> ---
+>  Documentation/DocBook/media/v4l/dev-subdev.xml |   10 +++++-----
+>  1 files changed, 5 insertions(+), 5 deletions(-)
+> 
+> diff --git a/Documentation/DocBook/media/v4l/dev-subdev.xml
+> b/Documentation/DocBook/media/v4l/dev-subdev.xml index 8c44b3f..95ebf87
+> 100644
+> --- a/Documentation/DocBook/media/v4l/dev-subdev.xml
+> +++ b/Documentation/DocBook/media/v4l/dev-subdev.xml
+> @@ -361,11 +361,11 @@
+>        performed by the user: the changes made will be propagated to
+>        any subsequent stages. If this behaviour is not desired, the
+>        user must set
+> -      <constant>V4L2_SUBDEV_SEL_FLAG_KEEP_CONFIG</constant> flag. This
+> -      flag causes no propagation of the changes are allowed in any
+> -      circumstances. This may also cause the accessed rectangle to be
+> -      adjusted by the driver, depending on the properties of the
+> -      underlying hardware.</para>
+> +      <constant>V4L2_SUBDEV_SEL_FLAG_KEEP_CONFIG</constant> flag,
 
+This should be V4L2_SEL_FLAG_KEEP_CONFIG.
 
-Regards.
+> +      which tells the driver to make minimum changes to the rest of
+> +      the subdev's configuration.
+
+I'm not sure to like this. "minimum changes" is not clearly defined. Isn't the 
+point of the KEEP_CONFIG flag is to avoid propagating *any* change down the 
+pipeline inside the subdev ?
+
+> This may also cause the accessed
+> +      rectangle to be adjusted by the driver, depending on the
+> +      properties of the underlying hardware.</para>
+> 
+>        <para>The coordinates to a step always refer to the actual size
+>        of the previous step. The exception to this rule is the source
 
 -- 
-Javier Martin
-Vista Silicon S.L.
-CDTUC - FASE C - Oficina S-345
-Avda de los Castros s/n
-39005- Santander. Cantabria. Spain
-+34 942 25 32 60
-www.vista-silicon.com
+Regards,
+
+Laurent Pinchart
+
