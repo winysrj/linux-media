@@ -1,126 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-2.cisco.com ([144.254.224.141]:34831 "EHLO
-	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752255Ab2FTLAg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Jun 2012 07:00:36 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: extend v4l2_mbus_framefmt
-Date: Wed, 20 Jun 2012 13:00:34 +0200
-Cc: Scott Jiang <scott.jiang.linux@gmail.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	LMML <linux-media@vger.kernel.org>,
-	uclinux-dist-devel@blackfin.uclinux.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-References: <CAHG8p1AW6577=oGPo3o8S0LgF2p8_cfmLLnvYbikk7kEaYdxzw@mail.gmail.com> <CAHG8p1CEPKXs+febefA5LDPU=Zicbpm-GYLpkfuOGrhpK6SHvw@mail.gmail.com> <4FE1A505.2080908@iki.fi>
-In-Reply-To: <4FE1A505.2080908@iki.fi>
+Received: from mx1.redhat.com ([209.132.183.28]:52099 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751364Ab2FOKbO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 15 Jun 2012 06:31:14 -0400
+Message-ID: <4FDB0EEE.3000501@redhat.com>
+Date: Fri, 15 Jun 2012 07:31:10 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH RFC 00/10] media file tree reorg - part 1
+References: <1339706161-22713-1-git-send-email-mchehab@redhat.com> <4FDAE6B0.5020301@xs4all.nl>
+In-Reply-To: <4FDAE6B0.5020301@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Message-Id: <201206201300.34614.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed 20 June 2012 12:25:09 Sakari Ailus wrote:
-> Hi Scott,
+Em 15-06-2012 04:39, Hans Verkuil escreveu:
+> On 14/06/12 22:35, Mauro Carvalho Chehab wrote:
+>> As discussed a while ago, breaking media drivers by V4L or DVB
+>> is confusing, as:
+>>     - hybrid devices are at V4L drivers;
+>>     - DVB-only devices for chips that support analog are at
+>>       V4L drivers;
+>>     - Analog support addition on a DVB driver would require it
+>>       to move to V4L drivers.
+>>
+>> Instead, move all drivers into a per-bus directory, and common drivers
+>> used by more than one driver into /common.
+>>
+>> This is the part 1 of this idea: it moves the core drivers to
+>> /drivers/media/foo-core, and re-arranges the DVB files.
+>>
+>> After this patch series, the directory structure will be:
+>>
+>> drivers/media/
+>> |-- common
+>> |   `--<common drivers>
+>> |-- dvb-core
+>> |-- dvb-frontends
+>> |-- firewire
+>> |-- mmc
+>> |   `--<mmc/sdio drivers>
+>> |-- pci
+>> |   `--<pci/pcie drivers>
+>> |-- radio
+>> |   `--<radio drivers>
+>> |-- rc
+>> |   `-- keymaps
+>> |-- tuners
+>> |-- usb
+>> |   `--<usb drivers>
+>> |-- v4l2-core
+>> `-- video
+>>
+>> PS.: The "video" directory is currently unchanged. It currently
+>>       contains subdevs, common V4L drivers, and V4L bridges.
+>>
+>> On this series, I avoided mixing the file tree reorganization with
+>> menu improvements. Those will happen together with the second part,
+>> when the devices under video will be moved to /common, /usb, /pci...
+>> dirs.
 > 
-> Scott Jiang wrote:
-> >>>>>> I would expect that the combination of v4l2_mbus_framefmt +
-> >>>>>> v4l2_dv_timings
-> >>>>>> gives you the information you need.
-> >>>>>>
-> >>>>> I can solve this problem in HD, but how about SD? Add a fake
-> >>>>> dv_timings ops in SD decoder driver?
-> >>>>>
-> >>>>
-> >>>> No, you add g/s_std instead. SD timings are set through that API. It is
-> >>>> not so
-> >>>> much that you give explicit timings, but that you give the SD standard.
-> >>>> And from
-> >>>> that you can derive the timings (i.e., one for 60 Hz formats, and one for
-> >>>> 50 Hz
-> >>>> formats).
-> >>>>
-> >>> Yes, it's a solution for decoder. I can convert one by one. But how
-> >>> about sensors?They can output VGA, QVGA or any manual resolution.
-> >>> My question is why we can't add these blanking details in
-> >>> v4l2_mbus_framefmt? This structure is used to describe frame format on
-> >>> media bus. And I believe blanking data also transfer on this bus. I
-> >>> know most hardwares don't care about blanking areas, but some hardware
-> >>> such as PPI does. PPI can capture ancillary data both in herizontal
-> >>> and vertical interval. Even it works in active video only mode, it
-> >>> expects to get total timing info.
-> >>
-> >>
-> >> Since I don't know what you are trying to do, it is hard for me to give
-> >> a good answer.
-> >>
-> >> So first I'd like to know if this is related to the adv7842 chip? I think
-> >> you are talking about how this is done in general, and not specifically in
-> >> relationship to the adv7842. At least, I can't see how/why you would
-> >> hook up a sensor to the adv7842.
-> > Yes, I want to have a general solution.
-> >
-> >>
-> >> Sensor configuration is a separate topic, and something I am not an
-> >> expert on. People like Sakari Ailus and Laurent Pinchart know much
-> >> more about that than I do.
-> >>
-> >> I know that there is some support for blanking through low-level image
-> >> source
-> >> controls:
-> >>
-> >> http://hverkuil.home.xs4all.nl/spec/media.html#image-source-controls
-> >>
-> >> This is experimental and if this is insufficient for your requirements than
-> >> I suggest posting a message where you explain what you need, CC-ing the
-> >> people
-> >> I mentioned,
-> >>
-> >> Most of these APIs are quite new and by marking them as experimental we can
-> >> make changes later if it turns out it is not good enough.
-> > I remember I have discussed this topic with Sakari before but without
-> > working out a solution.
-> > In conclusion, my current solution is:
-> > if (HD)
-> >      dv_timings
-> > else if (SD)
-> >      fill in according to PAL/NTSC timings
-> > else
-> >      get control of V4L2_CID_HBLANK/V4L2_CID_VBLANK
-> >
-> > I guess this can solve my problem. But it's a bit complicated. If
-> > v4l2_mbus_framefmt contains thes members, it's convenient and simple.
-> 
-> Adding horizontal and vertical blanking as fields to struct 
-> v4l2_mbus_framefmt was discussed long ago --- I even sent a patch doing 
-> that AFAIR. It'd have been a simple solution, yes. The resulting 
-> discussion concluded, however, that as the horizontal or vertical 
-> blanking are not really a property of the image format, and generally 
-> only affect timing (frame rate, they do not belong to this struct.
-> 
-> Also changing them while streaming is almost always possible (except in 
-> your case, I believe) whereas the rest of the fields are considered 
-> static. It'd be difficult for the user to know which fields can be 
-> actually changed while streamon, and which can't.
-> 
-> For these reasons (AFAIR) we chose to use controls instead.
-> 
-> I think the right solution to the problem when it comes to sensors, is 
-> to mark these controls busy from the bridge driver if the bridge 
-> hardware can't cope with changes in blanking. The control framework 
-> doesn't support this currently but it might not be that much of work to 
-> implement it. Such feature would definitely have to be used with care.
-> 
-> Hans, what do you think?
+> Looks good to me. I like that saa7146 gets its own directory :-)
 
-That's already supported for a long time. If the control flag V4L2_CTRL_FLAG_GRABBED
-is set, then the control is marked busy.
+Yes, this is good.
 
-There aren't many drivers that use this flag, but some do.
+> One request: before you commit this, can you go through the pending patches for 3.6 and apply all the non-controversial ones? Otherwise everyone will have to rebase their work.
 
+Yeah, that's my plan.
+
+> Regards,
+> 
+>      Hans
 Regards,
+Mauro
 
-	Hans
