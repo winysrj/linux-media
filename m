@@ -1,51 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f174.google.com ([209.85.217.174]:46212 "EHLO
-	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756001Ab2FZKgo (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:34322 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754426Ab2FOR2b (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Jun 2012 06:36:44 -0400
-Received: by lbbgm6 with SMTP id gm6so7828727lbb.19
-        for <linux-media@vger.kernel.org>; Tue, 26 Jun 2012 03:36:42 -0700 (PDT)
-Message-ID: <4FE99091.7070001@mvista.com>
-Date: Tue, 26 Jun 2012 14:36:01 +0400
-From: Sergei Shtylyov <sshtylyov@mvista.com>
+	Fri, 15 Jun 2012 13:28:31 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl, snjw23@gmail.com,
+	t.stanislaws@samsung.com
+Subject: Re: [PATCH v4 7/7] v4l: Correct conflicting V4L2 subdev selection API documentation
+Date: Fri, 15 Jun 2012 19:28:37 +0200
+Message-ID: <1969837.7mioik4VZv@avalon>
+In-Reply-To: <20120615153150.GJ12505@valkosipuli.retiisi.org.uk>
+References: <4FDB3C2E.9060502@iki.fi> <1580520.TYuvdPHuRK@avalon> <20120615153150.GJ12505@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-To: Manjunath Hadli <manjunath.hadli@ti.com>
-CC: LMML <linux-media@vger.kernel.org>,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>
-Subject: Re: [PATCH v3 04/13] davinci: vpif: fix setting of data width in
- config_vpif_params() function
-References: <1340622455-10419-1-git-send-email-manjunath.hadli@ti.com> <1340622455-10419-5-git-send-email-manjunath.hadli@ti.com>
-In-Reply-To: <1340622455-10419-5-git-send-email-manjunath.hadli@ti.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello.
+Hi Sakari,
 
-On 25-06-2012 15:07, Manjunath Hadli wrote:
+On Friday 15 June 2012 18:31:50 Sakari Ailus wrote:
+> On Fri, Jun 15, 2012 at 04:14:21PM +0200, Laurent Pinchart wrote:
+> > On Friday 15 June 2012 16:44:40 Sakari Ailus wrote:
+> > > The API reference documents that the KEEP_CONFIG flag tells the
+> > > configuration should not be propatgated by the driver whereas the
+> > > interface
+> > 
+> > s/propatgated/propagated/
+> > 
+> > > documentation (dev-subdev.xml) categorically prohibited any changes to
+> > > the
+> > > rest of the pipeline. The latter makes no sense, since it would severely
+> > > limit the usefulness of the KEEP_CONFIG flag.
+> > > 
+> > > Correct the documentation in dev-subddev.xml.
+> > > 
+> > > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> > > ---
+> > > 
+> > >  Documentation/DocBook/media/v4l/dev-subdev.xml |   10 +++++-----
+> > >  1 files changed, 5 insertions(+), 5 deletions(-)
+> > > 
+> > > diff --git a/Documentation/DocBook/media/v4l/dev-subdev.xml
+> > > b/Documentation/DocBook/media/v4l/dev-subdev.xml index 8c44b3f..95ebf87
+> > > 100644
+> > > --- a/Documentation/DocBook/media/v4l/dev-subdev.xml
+> > > +++ b/Documentation/DocBook/media/v4l/dev-subdev.xml
+> > > @@ -361,11 +361,11 @@
+> > > 
+> > >        performed by the user: the changes made will be propagated to
+> > >        any subsequent stages. If this behaviour is not desired, the
+> > >        user must set
+> > > 
+> > > -      <constant>V4L2_SUBDEV_SEL_FLAG_KEEP_CONFIG</constant> flag. This
+> > > -      flag causes no propagation of the changes are allowed in any
+> > > -      circumstances. This may also cause the accessed rectangle to be
+> > > -      adjusted by the driver, depending on the properties of the
+> > > -      underlying hardware.</para>
+> > > +      <constant>V4L2_SUBDEV_SEL_FLAG_KEEP_CONFIG</constant> flag,
+> > 
+> > This should be V4L2_SEL_FLAG_KEEP_CONFIG.
+> > 
+> > > +      which tells the driver to make minimum changes to the rest of
+> > > +      the subdev's configuration.
+> > 
+> > I'm not sure to like this. "minimum changes" is not clearly defined. Isn't
+> > the point of the KEEP_CONFIG flag is to avoid propagating *any* change
+> > down the pipeline inside the subdev ?
+> 
+> Yes, but the hardware may have restrictions that essentially makes the
+> configuration static is absolutely no changes are allowed elsewhere. In
+> those cases it should be possible to allow changes elsewhere.
+> 
+> Or do you think we should just completely disallow them? Would that work
+> e.g. for the OMAP 3 ISP resizer?
 
-> fix setting of data width in config_vpif_params() function,
-> which was wrongly set.
+I think the point of KEEP_CONFIG was to disallow changes completely, to make 
+it possible to change the digital zoom factor during streaming for instance. 
+The OMAP3 ISP resizer should accomodate that. If we allow changes under "some 
+circumstances" applications won't be able to rely on the flag.
 
-> Signed-off-by: Manjunath Hadli<manjunath.hadli@ti.com>
-> Signed-off-by: Lad, Prabhakar<prabhakar.lad@ti.com>
-> ---
->   drivers/media/video/davinci/vpif.c |    2 +-
->   1 files changed, 1 insertions(+), 1 deletions(-)
+Tomasz, Sylwester, what's your opinion on this ?
 
-> diff --git a/drivers/media/video/davinci/vpif.c b/drivers/media/video/davinci/vpif.c
-> index 774bcd3..08fb81f 100644
-> --- a/drivers/media/video/davinci/vpif.c
-> +++ b/drivers/media/video/davinci/vpif.c
-> @@ -346,7 +346,7 @@ static void config_vpif_params(struct vpif_params *vpifparams,
->
->   			value = regr(reg);
->   			/* Set data width */
-> -			value&= ((~(unsigned int)(0x3))<<
-> +			value&= ~(((unsigned int)(0x3))<<
+-- 
+Regards,
 
-    Why not just 0x3u instead of (unsigned int)(0x3)?
+Laurent Pinchart
 
-WBR, Sergei
