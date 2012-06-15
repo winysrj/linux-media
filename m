@@ -1,101 +1,159 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qc0-f174.google.com ([209.85.216.174]:52985 "EHLO
-	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750986Ab2FNGqI (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:46509 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750910Ab2FONzW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Jun 2012 02:46:08 -0400
-Received: by qcro28 with SMTP id o28so814795qcr.19
-        for <linux-media@vger.kernel.org>; Wed, 13 Jun 2012 23:46:07 -0700 (PDT)
+	Fri, 15 Jun 2012 09:55:22 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl, snjw23@gmail.com,
+	t.stanislaws@samsung.com
+Subject: Re: [PATCH v4 2/7] v4l: Remove "_ACTUAL" from subdev selection API target definition names
+Date: Fri, 15 Jun 2012 15:55:28 +0200
+Message-ID: <2070008.tlNKc1tQnO@avalon>
+In-Reply-To: <1339767880-8412-2-git-send-email-sakari.ailus@iki.fi>
+References: <4FDB3C2E.9060502@iki.fi> <1339767880-8412-2-git-send-email-sakari.ailus@iki.fi>
 MIME-Version: 1.0
-Date: Thu, 14 Jun 2012 14:46:07 +0800
-Message-ID: <CAN6EUtu2N2hR2CLG1BWqR3mp9t0vbzfKeQXnhdB+FgeMw5Uf8g@mail.gmail.com>
-Subject: DVB streaming failed after running tzap
-From: Bruce Ying <bruce.ying@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I'm new to this mailing list, so excuse me if I'm posting to the wrong place.
-I'm using a DiBcom USB module on an Ubuntu 11.04 host. The v4l-dvb
-drivers were downloaded via git and built on June 13, 2012.
-Basically, I can watch DVB-T by running mplayer (version
-SVN-r35003-4.5.2); however, if I ran tzap before launching mplayer,
-then I would get a series of "dvb_streaming_read, attempt N. 6 failed
-with errno 0 when reading 2048 bytes" failure messages. Then I must
-unplug the DiBcom USB tuner and plug it in again so that I could
-relaunch mplayer to tune to a DVB-T channel. The console output of
-running mplayer as well as tzap is as attached below.
-Has anyone experienced the same problem?
+Hi Sakari,
 
-==========================================================================
+Thanks for the patch.
 
-hying@hying-VT3410-8595CMB:~$ gmplayer dvb://CTS
-MPlayer SVN-r35003-4.5.2 (C) 2000-2012 MPlayer Team
+On Friday 15 June 2012 16:44:35 Sakari Ailus wrote:
+> The string "_ACTUAL" does not say anything more about the target names. Drop
+> it. V4L2 selection API was changed by "V4L: Remove "_ACTIVE" from the
+> selection target name definitions" by Sylwester Nawrocki. This patch does
+> the same for the V4L2 subdev API.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> ---
+>  Documentation/DocBook/media/v4l/dev-subdev.xml     |   25
+> +++++++++---------- .../media/v4l/vidioc-subdev-g-selection.xml        |  
+> 12 ++++---- drivers/media/video/omap3isp/ispccdc.c             |    4 +-
+>  drivers/media/video/omap3isp/isppreview.c          |    4 +-
+>  drivers/media/video/omap3isp/ispresizer.c          |    4 +-
+>  drivers/media/video/smiapp/smiapp-core.c           |   22 ++++++++--------
+>  drivers/media/video/v4l2-subdev.c                  |    4 +-
+>  include/linux/v4l2-subdev.h                        |    4 +-
+>  8 files changed, 39 insertions(+), 40 deletions(-)
+> 
+> diff --git a/Documentation/DocBook/media/v4l/dev-subdev.xml
+> b/Documentation/DocBook/media/v4l/dev-subdev.xml index 4afcbbe..ac715dd
+> 100644
+> --- a/Documentation/DocBook/media/v4l/dev-subdev.xml
+> +++ b/Documentation/DocBook/media/v4l/dev-subdev.xml
+> @@ -289,8 +289,8 @@
+>        &v4l2-rect; by the coordinates of the top left corner and the
+> rectangle size. Both the coordinates and sizes are expressed in
+> pixels.</para>
+> 
+> -      <para>As for pad formats, drivers store try and active
+> -      rectangles for the selection targets of ACTUAL type <xref
+> +      <para>As for pad formats, drivers store try and active rectangles for
+> +      the selection targets <xref
+>        linkend="v4l2-subdev-selection-targets">.</xref></para>
 
-Playing dvb://CTS.
-dvb_tune Freq: 593000000
-TS file format detected.
-VIDEO MPEG2(pid=5011) AUDIO MPA(pid=5012) NO SUBS (yet)!  PROGRAM N. 0
-VIDEO:  MPEG2  704x480  (aspect 2)  29.970 fps  15000.0 kbps (1875.0 kbyte/s)
-==========================================================================
-Opening video decoder: [ffmpeg] FFmpeg's libavcodec codec family
-libavcodec version 54.25.100 (internal)
-Selected video codec: [ffmpeg2] vfm: ffmpeg (FFmpeg MPEG-2)
-==========================================================================
-==========================================================================
-Opening audio decoder: [mpg123] MPEG 1.0/2.0/2.5 layers I, II, III
-AUDIO: 48000 Hz, 2 ch, s16le, 128.0 kbit/8.33% (ratio: 16000->192000)
-Selected audio codec: [mpg123] afm: mpg123 (MPEG 1.0/2.0/2.5 layers I, II, III)
-==========================================================================
-[AO OSS] audio_setup: Can't open audio device /dev/dsp: No such file
-or directory
-AO: [alsa] 48000Hz 2ch s16le (2 bytes per sample)
-[AO_ALSA] Unable to find simple control 'PCM',0.
-Starting playback...
-[VD_FFMPEG] Trying pixfmt=0.
-Could not find matching colorspace - retrying with -vf scale...
-Opening video filter: [scale]
-The selected video_out device is incompatible with this codec.
-Try appending the scale filter to your filter list,
-e.g. -vf spp,scale instead of -vf spp.
-Movie-Aspect is 1.33:1 - prescaling to correct movie aspect.
-VO: [vdpau] 704x480 => 704x528 Planar YV12
-A:42279.3 V:42279.6 A-V: -0.336 ct:  0.000   4/  4 ??% ??% ??,?% 0 0
-[AO_ALSA] Unable to find simple control 'PCM',0.
+Could you please also fix the xref issue ? According to 
+http://www.docbook.org/tdg/en/html/xref.html, the xref element is supposed to 
+be empty. You can either use something like
 
-[snip]
+... the selection targets described in <xref .../>
 
-hying@hying-VT3410-8595CMB:~$ tzap -r -c .tzap/channels.conf CTS
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-reading channels from file '.tzap/channels.conf'
-tuning to 593000000 Hz
-video pid 0x1393, audio pid 0x1394
-status 0f | signal 6322 | snr 008a | ber 001fffff | unc 00000000 |
-status 1f | signal 614f | snr 0098 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
-status 1f | signal 5f5d | snr 0099 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
-status 1f | signal 5fbf | snr 00a1 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
-status 1f | signal 5f9e | snr 009d | ber 00000000 | unc 00000000 | FE_HAS_LOCK
-status 1f | signal 6027 | snr 009e | ber 00000000 | unc 00000000 | FE_HAS_LOCK
-status 1f | signal 608d | snr 00a1 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
-status 1f | signal 625e | snr 00a1 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
-status 1f | signal 6127 | snr 009f | ber 00000000 | unc 00000000 | FE_HAS_LOCK
-status 1f | signal 60ad | snr 00a2 | ber 00000030 | unc 00000000 | FE_HAS_LOCK
-status 1f | signal 614f | snr 009e | ber 00000000 | unc 00000000 | FE_HAS_LOCK
-status 1f | signal 6323 | snr 00a3 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
-status 1f | signal 604d | snr 00a4 | ber 00000030 | unc 00000000 | FE_HAS_LOCK
-status 1f | signal 6294 | snr 009f | ber 00000000 | unc 00000000 | FE_HAS_LOCK
-status 1f | signal 60a9 | snr 009d | ber 00000000 | unc 00000000 | FE_HAS_LOCK
-^C
-hying@hying-VT3410-8595CMB:~$ gmplayer dvb://CTS
-MPlayer SVN-r35003-4.5.2 (C) 2000-2012 MPlayer Team
+or a link element around "selection targets".
 
-Playing dvb://CTS.
-dvb_tune Freq: 593000000
-dvb_streaming_read, attempt N. 6 failed with errno 0 when reading 2048 bytes
-dvb_streaming_read, attempt N. 5 failed with errno 0 when reading 2048 bytes
-dvb_streaming_read, attempt N. 4 failed with errno 0 when reading 2048 bytes
-dvb_streaming_read, attempt N. 3 failed with errno 0 when reading 2048 bytes
-dvb_streaming_read, attempt N. 2 failed with errno 0 when reading 2048 bytes
-dvb_streaming_read, attempt N. 1 failed with errno 0 when reading 2048 bytes
-dvb_streaming_read, return 0 bytes
+>        <para>On sink pads, cropping is applied relative to the
+> @@ -308,7 +308,7 @@
+>        <para>Scaling support is optional. When supported by a subdev,
+>        the crop rectangle on the subdev's sink pad is scaled to the
+>        size configured using the &VIDIOC-SUBDEV-S-SELECTION; IOCTL
+> -      using <constant>V4L2_SUBDEV_SEL_COMPOSE_ACTUAL</constant>
+> +      using <constant>V4L2_SUBDEV_SEL_TGT_COMPOSE</constant>
+>        selection target on the same pad. If the subdev supports scaling
+>        but not composing, the top and left values are not used and must
+>        always be set to zero.</para>
+> @@ -333,22 +333,21 @@
+>        <title>Types of selection targets</title>
+> 
+>        <section>
+> -	<title>ACTUAL targets</title>
+> +	<title>Actual targets</title>
+> 
+> -	<para>ACTUAL targets reflect the actual hardware configuration
+> -	at any point of time. There is a BOUNDS target
+> -	corresponding to every ACTUAL.</para>
+> +	<para>Actual targets (without a postfix) reflect the actual hardware
+> +	configuration at any point of time.</para>
+>        </section>
+
+Don't we have a bounds target for every actual target ?
+
+>        <section>
+>  	<title>BOUNDS targets</title>
+> 
+> -	<para>BOUNDS targets is the smallest rectangle that contains
+> -	all valid ACTUAL rectangles. It may not be possible to set the
+> -	ACTUAL rectangle as large as the BOUNDS rectangle, however.
+> -	This may be because e.g. a sensor's pixel array is not
+> -	rectangular but cross-shaped or round. The maximum size may
+> -	also be smaller than the BOUNDS rectangle.</para>
+> +	<para>BOUNDS targets is the smallest rectangle that contains all
+> +	valid actual rectangles. It may not be possible to set the actual
+> +	rectangle as large as the BOUNDS rectangle, however. This may be
+> +	because e.g. a sensor's pixel array is not rectangular but
+> +	cross-shaped or round. The maximum size may also be smaller than the
+> +	BOUNDS rectangle.</para>
+>        </section>
+> 
+>      </section>
+> diff --git a/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml
+> b/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml index
+> 208e9f0..96ab51e 100644
+> --- a/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml
+> +++ b/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml
+> @@ -72,10 +72,10 @@
+>      <section>
+>        <title>Types of selection targets</title>
+> 
+> -      <para>There are two types of selection targets: actual and bounds.
+> -      The ACTUAL targets are the targets which configure the hardware.
+> -      The BOUNDS target will return a rectangle that contain all
+> -      possible ACTUAL rectangles.</para>
+> +      <para>There are two types of selection targets: plain and bounds. The
+
+plain or actual ?
+
+> +      actual targets are the targets which configure the hardware. The
+> BOUNDS +      target will return a rectangle that contain all possible
+> actual +      rectangles.</para>
+>      </section>
+> 
+>      <section>
+> @@ -93,7 +93,7 @@
+>          &cs-def;
+>  	<tbody valign="top">
+>  	  <row>
+> -	    <entry><constant>V4L2_SUBDEV_SEL_TGT_CROP_ACTUAL</constant></entry>
+> +	    <entry><constant>V4L2_SUBDEV_SEL_TGT_CROP</constant></entry>
+>  	    <entry>0x0000</entry>
+>  	    <entry>Actual crop. Defines the cropping
+>  	    performed by the processing step.</entry>
+> @@ -104,7 +104,7 @@
+>  	    <entry>Bounds of the crop rectangle.</entry>
+>  	  </row>
+>  	  <row>
+> -	    
+<entry><constant>V4L2_SUBDEV_SEL_TGT_COMPOSE_ACTUAL</constant></entry>
+> +	    <entry><constant>V4L2_SUBDEV_SEL_TGT_COMPOSE</constant></entry>
+> <entry>0x0100</entry>
+>  	    <entry>Actual compose rectangle. Used to configure scaling
+>  	    on sink pads and composition on source pads.</entry>
+
+-- 
+Regards,
+
+Laurent Pinchart
+
