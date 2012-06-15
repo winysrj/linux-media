@@ -1,128 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:3022 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755386Ab2FJK0R (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40799 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S932125Ab2FOPb5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Jun 2012 06:26:17 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Andy Walls <awalls@md.metrocast.net>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Pawel Osciak <pawel@osciak.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv1 PATCH 27/32] vivi: embed struct video_device instead of allocating it.
-Date: Sun, 10 Jun 2012 12:25:49 +0200
-Message-Id: <9b33e257c9f308801652f90514a330388d214c34.1339321562.git.hans.verkuil@cisco.com>
-In-Reply-To: <1339323954-1404-1-git-send-email-hverkuil@xs4all.nl>
-References: <1339323954-1404-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <ef490f7ebca5b6df91db6b1acfb9928ada3bcd70.1339321562.git.hans.verkuil@cisco.com>
-References: <ef490f7ebca5b6df91db6b1acfb9928ada3bcd70.1339321562.git.hans.verkuil@cisco.com>
+	Fri, 15 Jun 2012 11:31:57 -0400
+Date: Fri, 15 Jun 2012 18:31:50 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl, snjw23@gmail.com,
+	t.stanislaws@samsung.com
+Subject: Re: [PATCH v4 7/7] v4l: Correct conflicting V4L2 subdev selection
+ API documentation
+Message-ID: <20120615153150.GJ12505@valkosipuli.retiisi.org.uk>
+References: <4FDB3C2E.9060502@iki.fi>
+ <1339767880-8412-7-git-send-email-sakari.ailus@iki.fi>
+ <1580520.TYuvdPHuRK@avalon>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1580520.TYuvdPHuRK@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Laurent,
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/video/vivi.c |   25 +++++++------------------
- 1 file changed, 7 insertions(+), 18 deletions(-)
+Thanks for the comments!
 
-diff --git a/drivers/media/video/vivi.c b/drivers/media/video/vivi.c
-index 8dd5ae6..1e4da5e 100644
---- a/drivers/media/video/vivi.c
-+++ b/drivers/media/video/vivi.c
-@@ -188,6 +188,7 @@ struct vivi_dev {
- 	struct list_head           vivi_devlist;
- 	struct v4l2_device 	   v4l2_dev;
- 	struct v4l2_ctrl_handler   ctrl_handler;
-+	struct video_device	   vdev;
- 
- 	/* controls */
- 	struct v4l2_ctrl	   *brightness;
-@@ -213,9 +214,6 @@ struct vivi_dev {
- 	spinlock_t                 slock;
- 	struct mutex		   mutex;
- 
--	/* various device info */
--	struct video_device        *vfd;
--
- 	struct vivi_dmaqueue       vidq;
- 
- 	/* Several counters */
-@@ -1080,7 +1078,6 @@ static int vidioc_enum_input(struct file *file, void *priv,
- 		return -EINVAL;
- 
- 	inp->type = V4L2_INPUT_TYPE_CAMERA;
--	inp->std = V4L2_STD_525_60;
- 	sprintf(inp->name, "Camera %u", inp->index);
- 	return 0;
- }
-@@ -1327,7 +1324,7 @@ static struct video_device vivi_template = {
- 	.name		= "vivi",
- 	.fops           = &vivi_fops,
- 	.ioctl_ops 	= &vivi_ioctl_ops,
--	.release	= video_device_release,
-+	.release	= video_device_release_empty,
- };
- 
- /* -----------------------------------------------------------------
-@@ -1345,8 +1342,8 @@ static int vivi_release(void)
- 		dev = list_entry(list, struct vivi_dev, vivi_devlist);
- 
- 		v4l2_info(&dev->v4l2_dev, "unregistering %s\n",
--			video_device_node_name(dev->vfd));
--		video_unregister_device(dev->vfd);
-+			video_device_node_name(&dev->vdev));
-+		video_unregister_device(&dev->vdev);
- 		v4l2_device_unregister(&dev->v4l2_dev);
- 		v4l2_ctrl_handler_free(&dev->ctrl_handler);
- 		kfree(dev);
-@@ -1431,11 +1428,7 @@ static int __init vivi_create_instance(int inst)
- 	INIT_LIST_HEAD(&dev->vidq.active);
- 	init_waitqueue_head(&dev->vidq.wq);
- 
--	ret = -ENOMEM;
--	vfd = video_device_alloc();
--	if (!vfd)
--		goto unreg_dev;
--
-+	vfd = &dev->vdev;
- 	*vfd = vivi_template;
- 	vfd->debug = debug;
- 	vfd->v4l2_dev = &dev->v4l2_dev;
-@@ -1446,12 +1439,11 @@ static int __init vivi_create_instance(int inst)
- 	 * all fops and v4l2 ioctls.
- 	 */
- 	vfd->lock = &dev->mutex;
-+	video_set_drvdata(vfd, dev);
- 
- 	ret = video_register_device(vfd, VFL_TYPE_GRABBER, video_nr);
- 	if (ret < 0)
--		goto rel_vdev;
--
--	video_set_drvdata(vfd, dev);
-+		goto unreg_dev;
- 
- 	/* Now that everything is fine, let's add it to device list */
- 	list_add_tail(&dev->vivi_devlist, &vivi_devlist);
-@@ -1459,13 +1451,10 @@ static int __init vivi_create_instance(int inst)
- 	if (video_nr != -1)
- 		video_nr++;
- 
--	dev->vfd = vfd;
- 	v4l2_info(&dev->v4l2_dev, "V4L2 device registered as %s\n",
- 		  video_device_node_name(vfd));
- 	return 0;
- 
--rel_vdev:
--	video_device_release(vfd);
- unreg_dev:
- 	v4l2_ctrl_handler_free(hdl);
- 	v4l2_device_unregister(&dev->v4l2_dev);
+On Fri, Jun 15, 2012 at 04:14:21PM +0200, Laurent Pinchart wrote:
+> Hi Sakari,
+> 
+> Thanks for the patch.
+> 
+> On Friday 15 June 2012 16:44:40 Sakari Ailus wrote:
+> > The API reference documents that the KEEP_CONFIG flag tells the
+> > configuration should not be propatgated by the driver whereas the interface
+> 
+> s/propatgated/propagated/
+> 
+> > documentation (dev-subdev.xml) categorically prohibited any changes to the
+> > rest of the pipeline. The latter makes no sense, since it would severely
+> > limit the usefulness of the KEEP_CONFIG flag.
+> > 
+> > Correct the documentation in dev-subddev.xml.
+> > 
+> > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> > ---
+> >  Documentation/DocBook/media/v4l/dev-subdev.xml |   10 +++++-----
+> >  1 files changed, 5 insertions(+), 5 deletions(-)
+> > 
+> > diff --git a/Documentation/DocBook/media/v4l/dev-subdev.xml
+> > b/Documentation/DocBook/media/v4l/dev-subdev.xml index 8c44b3f..95ebf87
+> > 100644
+> > --- a/Documentation/DocBook/media/v4l/dev-subdev.xml
+> > +++ b/Documentation/DocBook/media/v4l/dev-subdev.xml
+> > @@ -361,11 +361,11 @@
+> >        performed by the user: the changes made will be propagated to
+> >        any subsequent stages. If this behaviour is not desired, the
+> >        user must set
+> > -      <constant>V4L2_SUBDEV_SEL_FLAG_KEEP_CONFIG</constant> flag. This
+> > -      flag causes no propagation of the changes are allowed in any
+> > -      circumstances. This may also cause the accessed rectangle to be
+> > -      adjusted by the driver, depending on the properties of the
+> > -      underlying hardware.</para>
+> > +      <constant>V4L2_SUBDEV_SEL_FLAG_KEEP_CONFIG</constant> flag,
+> 
+> This should be V4L2_SEL_FLAG_KEEP_CONFIG.
+> 
+> > +      which tells the driver to make minimum changes to the rest of
+> > +      the subdev's configuration.
+> 
+> I'm not sure to like this. "minimum changes" is not clearly defined. Isn't the 
+> point of the KEEP_CONFIG flag is to avoid propagating *any* change down the 
+> pipeline inside the subdev ?
+
+Yes, but the hardware may have restrictions that essentially makes the
+configuration static is absolutely no changes are allowed elsewhere. In
+those cases it should be possible to allow changes elsewhere.
+
+Or do you think we should just completely disallow them? Would that work
+e.g. for the OMAP 3 ISP resizer?
+
+Regards,
+
 -- 
-1.7.10
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
