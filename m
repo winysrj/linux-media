@@ -1,62 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:4730 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754125Ab2FFVsu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jun 2012 17:48:50 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "linux-media" <linux-media@vger.kernel.org>
-Subject: [PATCH for v3.5] V4L2 spec fix
-Date: Wed, 6 Jun 2012 23:48:46 +0200
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
+Received: from plane.gmane.org ([80.91.229.3]:36406 "EHLO plane.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755630Ab2FOBuP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 14 Jun 2012 21:50:15 -0400
+Received: from list by plane.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1SfLfq-0003Tv-SX
+	for linux-media@vger.kernel.org; Fri, 15 Jun 2012 03:50:07 +0200
+Received: from 111-250-48-245.dynamic.hinet.net ([111.250.48.245])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Fri, 15 Jun 2012 03:50:06 +0200
+Received: from bruce.ying by 111-250-48-245.dynamic.hinet.net with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Fri, 15 Jun 2012 03:50:06 +0200
+To: linux-media@vger.kernel.org
+From: Bruce Ying <bruce.ying@gmail.com>
+Subject: Re: DVB streaming failed after running tzap
+Date: Fri, 15 Jun 2012 01:45:53 +0000 (UTC)
+Message-ID: <loom.20120615T033810-522@post.gmane.org>
+References: <CAN6EUtu2N2hR2CLG1BWqR3mp9t0vbzfKeQXnhdB+FgeMw5Uf8g@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Message-Id: <201206062348.46728.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Two small docbook fixes:
+To avoid misunderstanding, I'd like to rephrase the passage below:
 
-- prepare-buf was not positioned in alphabetical order, moved to the right place.
-- the format field in create_bufs had the wrong type in the documentation
+> SVN-r35003-4.5.2); however, if I ran tzap before launching mplayer,
+> then I would get a series of "dvb_streaming_read, attempt N. 6 failed
+> with errno 0 when reading 2048 bytes" failure messages. Then I must
+> unplug the DiBcom USB tuner and plug it in again so that I could
+> relaunch mplayer to tune to a DVB-T channel.
 
-Regards,
+If I launched mplayer after running tzap, I would get a series of 
+"dvb_streaming_read, attempt N. n failed with errno 0 when reading 2048 bytes" 
+failure messages. I must unplug the DiBcom USB tuner and plug it in again so 
+that I could relaunch mplayer to tune to a DVB-T channel.
 
-	Hans
+Looks like tzap messed up something with the DiBcom kernel modules?
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
-index 015c561..008c2d7 100644
---- a/Documentation/DocBook/media/v4l/v4l2.xml
-+++ b/Documentation/DocBook/media/v4l/v4l2.xml
-@@ -560,6 +560,7 @@ and discussions on the V4L mailing list.</revremark>
-     &sub-g-tuner;
-     &sub-log-status;
-     &sub-overlay;
-+    &sub-prepare-buf;
-     &sub-qbuf;
-     &sub-querybuf;
-     &sub-querycap;
-@@ -567,7 +568,6 @@ and discussions on the V4L mailing list.</revremark>
-     &sub-query-dv-preset;
-     &sub-query-dv-timings;
-     &sub-querystd;
--    &sub-prepare-buf;
-     &sub-reqbufs;
-     &sub-s-hw-freq-seek;
-     &sub-streamon;
-diff --git a/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml b/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
-index 765549f..6cd2bc3 100644
---- a/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
-@@ -108,7 +108,7 @@ information.</para>
- /></entry>
- 	  </row>
- 	  <row>
--	    <entry>__u32</entry>
-+	    <entry>struct&nbsp;v4l2_format</entry>
- 	    <entry><structfield>format</structfield></entry>
- 	    <entry>Filled in by the application, preserved by the driver.
- 	    See <xref linkend="v4l2-format" />.</entry>
+
