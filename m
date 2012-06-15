@@ -1,397 +1,500 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:37290 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932115Ab2FZNpn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Jun 2012 09:45:43 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Received: from smtp.nokia.com ([147.243.1.47]:19034 "EHLO mgw-sa01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756946Ab2FONox (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 15 Jun 2012 09:44:53 -0400
+From: Sakari Ailus <sakari.ailus@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: sakari.ailus@iki.fi, Enrico <ebutera@users.berlios.de>,
-	Jean-Philippe Francois <jp.francois@cynove.com>,
-	Abhishek Reddy Kondaveeti <areddykondaveeti@aptina.com>,
-	Gary Thomas <gary@mlbassoc.com>,
-	Javier Martinez Canillas <martinez.javier@gmail.com>
-Subject: [PATCH 6/6] omap3isp: ccdc: Add YUV input formats support
-Date: Tue, 26 Jun 2012 15:45:39 +0200
-Message-Id: <1340718339-29915-7-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1340718339-29915-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1340718339-29915-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
+	snjw23@gmail.com, t.stanislaws@samsung.com
+Subject: [PATCH v4 3/7] v4l: Unify selection targets across V4L2 and V4L2 subdev interfaces
+Date: Fri, 15 Jun 2012 16:44:36 +0300
+Message-Id: <1339767880-8412-3-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <4FDB3C2E.9060502@iki.fi>
+References: <4FDB3C2E.9060502@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Enable the bridge automatically when the input format is YUYV8 or UYVY8.
-
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
 ---
- drivers/media/video/omap3isp/isp.c      |    4 +-
- drivers/media/video/omap3isp/isp.h      |    2 +-
- drivers/media/video/omap3isp/ispccdc.c  |  145 ++++++++++++++++++++++++++-----
- drivers/media/video/omap3isp/ispvideo.c |    4 +
- include/media/omap3isp.h                |   11 ---
- 5 files changed, 129 insertions(+), 37 deletions(-)
+ drivers/media/video/omap3isp/ispccdc.c      |    6 ++--
+ drivers/media/video/omap3isp/isppreview.c   |    6 ++--
+ drivers/media/video/omap3isp/ispresizer.c   |    6 ++--
+ drivers/media/video/s5p-fimc/fimc-capture.c |   18 +++++-----
+ drivers/media/video/s5p-fimc/fimc-lite.c    |   11 +++---
+ drivers/media/video/smiapp/smiapp-core.c    |   30 ++++++++--------
+ drivers/media/video/v4l2-subdev.c           |    4 +-
+ include/linux/v4l2-common.h                 |   53 +++++++++++++++++++++++++++
+ include/linux/v4l2-subdev.h                 |   14 ++------
+ include/linux/videodev2.h                   |   25 ++-----------
+ 10 files changed, 99 insertions(+), 74 deletions(-)
+ create mode 100644 include/linux/v4l2-common.h
 
-diff --git a/drivers/media/video/omap3isp/isp.c b/drivers/media/video/omap3isp/isp.c
-index 36805ca..e0096e0 100644
---- a/drivers/media/video/omap3isp/isp.c
-+++ b/drivers/media/video/omap3isp/isp.c
-@@ -293,7 +293,7 @@ static void isp_core_init(struct isp_device *isp, int idle)
- void omap3isp_configure_bridge(struct isp_device *isp,
- 			       enum ccdc_input_entity input,
- 			       const struct isp_parallel_platform_data *pdata,
--			       unsigned int shift)
-+			       unsigned int shift, unsigned int bridge)
- {
- 	u32 ispctrl_val;
- 
-@@ -302,12 +302,12 @@ void omap3isp_configure_bridge(struct isp_device *isp,
- 	ispctrl_val &= ~ISPCTRL_PAR_CLK_POL_INV;
- 	ispctrl_val &= ~ISPCTRL_PAR_SER_CLK_SEL_MASK;
- 	ispctrl_val &= ~ISPCTRL_PAR_BRIDGE_MASK;
-+	ispctrl_val |= bridge;
- 
- 	switch (input) {
- 	case CCDC_INPUT_PARALLEL:
- 		ispctrl_val |= ISPCTRL_PAR_SER_CLK_SEL_PARALLEL;
- 		ispctrl_val |= pdata->clk_pol << ISPCTRL_PAR_CLK_POL_SHIFT;
--		ispctrl_val |= pdata->bridge << ISPCTRL_PAR_BRIDGE_SHIFT;
- 		shift += pdata->data_lane_shift * 2;
- 		break;
- 
-diff --git a/drivers/media/video/omap3isp/isp.h b/drivers/media/video/omap3isp/isp.h
-index ba2159b..8be7487 100644
---- a/drivers/media/video/omap3isp/isp.h
-+++ b/drivers/media/video/omap3isp/isp.h
-@@ -236,7 +236,7 @@ int omap3isp_pipeline_set_stream(struct isp_pipeline *pipe,
- void omap3isp_configure_bridge(struct isp_device *isp,
- 			       enum ccdc_input_entity input,
- 			       const struct isp_parallel_platform_data *pdata,
--			       unsigned int shift);
-+			       unsigned int shift, unsigned int bridge);
- 
- struct isp_device *omap3isp_get(struct isp_device *isp);
- void omap3isp_put(struct isp_device *isp);
 diff --git a/drivers/media/video/omap3isp/ispccdc.c b/drivers/media/video/omap3isp/ispccdc.c
-index d5aed79..7e148c8 100644
+index f19774f..82df7a0 100644
 --- a/drivers/media/video/omap3isp/ispccdc.c
 +++ b/drivers/media/video/omap3isp/ispccdc.c
-@@ -61,6 +61,8 @@ static const unsigned int ccdc_fmts[] = {
- 	V4L2_MBUS_FMT_SRGGB12_1X12,
- 	V4L2_MBUS_FMT_SBGGR12_1X12,
- 	V4L2_MBUS_FMT_SGBRG12_1X12,
-+	V4L2_MBUS_FMT_YUYV8_2X8,
-+	V4L2_MBUS_FMT_UYVY8_2X8,
- };
+@@ -2014,7 +2014,7 @@ static int ccdc_get_selection(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
+ 		return -EINVAL;
+ 
+ 	switch (sel->target) {
+-	case V4L2_SUBDEV_SEL_TGT_CROP_BOUNDS:
++	case V4L2_SEL_TGT_CROP_BOUNDS:
+ 		sel->r.left = 0;
+ 		sel->r.top = 0;
+ 		sel->r.width = INT_MAX;
+@@ -2024,7 +2024,7 @@ static int ccdc_get_selection(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
+ 		ccdc_try_crop(ccdc, format, &sel->r);
+ 		break;
+ 
+-	case V4L2_SUBDEV_SEL_TGT_CROP:
++	case V4L2_SEL_TGT_CROP:
+ 		sel->r = *__ccdc_get_crop(ccdc, fh, sel->which);
+ 		break;
+ 
+@@ -2052,7 +2052,7 @@ static int ccdc_set_selection(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
+ 	struct isp_ccdc_device *ccdc = v4l2_get_subdevdata(sd);
+ 	struct v4l2_mbus_framefmt *format;
+ 
+-	if (sel->target != V4L2_SUBDEV_SEL_TGT_CROP ||
++	if (sel->target != V4L2_SEL_TGT_CROP ||
+ 	    sel->pad != CCDC_PAD_SOURCE_OF)
+ 		return -EINVAL;
+ 
+diff --git a/drivers/media/video/omap3isp/isppreview.c b/drivers/media/video/omap3isp/isppreview.c
+index 1086f6a..6fa70f4 100644
+--- a/drivers/media/video/omap3isp/isppreview.c
++++ b/drivers/media/video/omap3isp/isppreview.c
+@@ -1949,7 +1949,7 @@ static int preview_get_selection(struct v4l2_subdev *sd,
+ 		return -EINVAL;
+ 
+ 	switch (sel->target) {
+-	case V4L2_SUBDEV_SEL_TGT_CROP_BOUNDS:
++	case V4L2_SEL_TGT_CROP_BOUNDS:
+ 		sel->r.left = 0;
+ 		sel->r.top = 0;
+ 		sel->r.width = INT_MAX;
+@@ -1960,7 +1960,7 @@ static int preview_get_selection(struct v4l2_subdev *sd,
+ 		preview_try_crop(prev, format, &sel->r);
+ 		break;
+ 
+-	case V4L2_SUBDEV_SEL_TGT_CROP:
++	case V4L2_SEL_TGT_CROP:
+ 		sel->r = *__preview_get_crop(prev, fh, sel->which);
+ 		break;
+ 
+@@ -1988,7 +1988,7 @@ static int preview_set_selection(struct v4l2_subdev *sd,
+ 	struct isp_prev_device *prev = v4l2_get_subdevdata(sd);
+ 	struct v4l2_mbus_framefmt *format;
+ 
+-	if (sel->target != V4L2_SUBDEV_SEL_TGT_CROP ||
++	if (sel->target != V4L2_SEL_TGT_CROP ||
+ 	    sel->pad != PREV_PAD_SINK)
+ 		return -EINVAL;
+ 
+diff --git a/drivers/media/video/omap3isp/ispresizer.c b/drivers/media/video/omap3isp/ispresizer.c
+index 9456652..ae17d91 100644
+--- a/drivers/media/video/omap3isp/ispresizer.c
++++ b/drivers/media/video/omap3isp/ispresizer.c
+@@ -1249,7 +1249,7 @@ static int resizer_get_selection(struct v4l2_subdev *sd,
+ 					     sel->which);
+ 
+ 	switch (sel->target) {
+-	case V4L2_SUBDEV_SEL_TGT_CROP_BOUNDS:
++	case V4L2_SEL_TGT_CROP_BOUNDS:
+ 		sel->r.left = 0;
+ 		sel->r.top = 0;
+ 		sel->r.width = INT_MAX;
+@@ -1259,7 +1259,7 @@ static int resizer_get_selection(struct v4l2_subdev *sd,
+ 		resizer_calc_ratios(res, &sel->r, format_source, &ratio);
+ 		break;
+ 
+-	case V4L2_SUBDEV_SEL_TGT_CROP:
++	case V4L2_SEL_TGT_CROP:
+ 		sel->r = *__resizer_get_crop(res, fh, sel->which);
+ 		resizer_calc_ratios(res, &sel->r, format_source, &ratio);
+ 		break;
+@@ -1293,7 +1293,7 @@ static int resizer_set_selection(struct v4l2_subdev *sd,
+ 	struct v4l2_mbus_framefmt *format_sink, *format_source;
+ 	struct resizer_ratio ratio;
+ 
+-	if (sel->target != V4L2_SUBDEV_SEL_TGT_CROP ||
++	if (sel->target != V4L2_SEL_TGT_CROP ||
+ 	    sel->pad != RESZ_PAD_SINK)
+ 		return -EINVAL;
+ 
+diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c b/drivers/media/video/s5p-fimc/fimc-capture.c
+index 356cc5c..22c28ab 100644
+--- a/drivers/media/video/s5p-fimc/fimc-capture.c
++++ b/drivers/media/video/s5p-fimc/fimc-capture.c
+@@ -1429,9 +1429,9 @@ static int fimc_subdev_get_selection(struct v4l2_subdev *sd,
+ 	mutex_lock(&fimc->lock);
+ 
+ 	switch (sel->target) {
+-	case V4L2_SUBDEV_SEL_TGT_COMPOSE_BOUNDS:
++	case V4L2_SEL_TGT_COMPOSE_BOUNDS:
+ 		f = &ctx->d_frame;
+-	case V4L2_SUBDEV_SEL_TGT_CROP_BOUNDS:
++	case V4L2_SEL_TGT_CROP_BOUNDS:
+ 		r->width = f->o_width;
+ 		r->height = f->o_height;
+ 		r->left = 0;
+@@ -1439,10 +1439,10 @@ static int fimc_subdev_get_selection(struct v4l2_subdev *sd,
+ 		mutex_unlock(&fimc->lock);
+ 		return 0;
+ 
+-	case V4L2_SUBDEV_SEL_TGT_CROP_ACTUAL:
++	case V4L2_SEL_TGT_CROP:
+ 		try_sel = v4l2_subdev_get_try_crop(fh, sel->pad);
+ 		break;
+-	case V4L2_SUBDEV_SEL_TGT_COMPOSE_ACTUAL:
++	case V4L2_SEL_TGT_COMPOSE:
+ 		try_sel = v4l2_subdev_get_try_compose(fh, sel->pad);
+ 		f = &ctx->d_frame;
+ 		break;
+@@ -1486,9 +1486,9 @@ static int fimc_subdev_set_selection(struct v4l2_subdev *sd,
+ 	fimc_capture_try_selection(ctx, r, V4L2_SEL_TGT_CROP);
+ 
+ 	switch (sel->target) {
+-	case V4L2_SUBDEV_SEL_TGT_COMPOSE_BOUNDS:
++	case V4L2_SEL_TGT_COMPOSE_BOUNDS:
+ 		f = &ctx->d_frame;
+-	case V4L2_SUBDEV_SEL_TGT_CROP_BOUNDS:
++	case V4L2_SEL_TGT_CROP_BOUNDS:
+ 		r->width = f->o_width;
+ 		r->height = f->o_height;
+ 		r->left = 0;
+@@ -1496,10 +1496,10 @@ static int fimc_subdev_set_selection(struct v4l2_subdev *sd,
+ 		mutex_unlock(&fimc->lock);
+ 		return 0;
+ 
+-	case V4L2_SUBDEV_SEL_TGT_CROP_ACTUAL:
++	case V4L2_SEL_TGT_CROP:
+ 		try_sel = v4l2_subdev_get_try_crop(fh, sel->pad);
+ 		break;
+-	case V4L2_SUBDEV_SEL_TGT_COMPOSE_ACTUAL:
++	case V4L2_SEL_TGT_COMPOSE:
+ 		try_sel = v4l2_subdev_get_try_compose(fh, sel->pad);
+ 		f = &ctx->d_frame;
+ 		break;
+@@ -1515,7 +1515,7 @@ static int fimc_subdev_set_selection(struct v4l2_subdev *sd,
+ 		set_frame_crop(f, r->left, r->top, r->width, r->height);
+ 		set_bit(ST_CAPT_APPLY_CFG, &fimc->state);
+ 		spin_unlock_irqrestore(&fimc->slock, flags);
+-		if (sel->target == V4L2_SUBDEV_SEL_TGT_COMPOSE_ACTUAL)
++		if (sel->target == V4L2_SEL_TGT_COMPOSE)
+ 			ctx->state |= FIMC_COMPOSE;
+ 	}
+ 
+diff --git a/drivers/media/video/s5p-fimc/fimc-lite.c b/drivers/media/video/s5p-fimc/fimc-lite.c
+index 52ede56..8785089 100644
+--- a/drivers/media/video/s5p-fimc/fimc-lite.c
++++ b/drivers/media/video/s5p-fimc/fimc-lite.c
+@@ -1086,9 +1086,9 @@ static int fimc_lite_subdev_get_selection(struct v4l2_subdev *sd,
+ 	struct fimc_lite *fimc = v4l2_get_subdevdata(sd);
+ 	struct flite_frame *f = &fimc->inp_frame;
+ 
+-	if ((sel->target != V4L2_SUBDEV_SEL_TGT_CROP_ACTUAL &&
+-	     sel->target != V4L2_SUBDEV_SEL_TGT_CROP_BOUNDS) ||
+-	    sel->pad != FLITE_SD_PAD_SINK)
++	if ((sel->target != V4L2_SEL_TGT_CROP &&
++	     sel->target != V4L2_SEL_TGT_CROP_BOUNDS) ||
++	     sel->pad != FLITE_SD_PAD_SINK)
+ 		return -EINVAL;
+ 
+ 	if (sel->which == V4L2_SUBDEV_FORMAT_TRY) {
+@@ -1097,7 +1097,7 @@ static int fimc_lite_subdev_get_selection(struct v4l2_subdev *sd,
+ 	}
+ 
+ 	mutex_lock(&fimc->lock);
+-	if (sel->target == V4L2_SUBDEV_SEL_TGT_CROP_ACTUAL) {
++	if (sel->target == V4L2_SEL_TGT_CROP) {
+ 		sel->r = f->rect;
+ 	} else {
+ 		sel->r.left = 0;
+@@ -1122,8 +1122,7 @@ static int fimc_lite_subdev_set_selection(struct v4l2_subdev *sd,
+ 	struct flite_frame *f = &fimc->inp_frame;
+ 	int ret = 0;
+ 
+-	if (sel->target != V4L2_SUBDEV_SEL_TGT_CROP_ACTUAL ||
+-	    sel->pad != FLITE_SD_PAD_SINK)
++	if (sel->target != V4L2_SEL_TGT_CROP || sel->pad != FLITE_SD_PAD_SINK)
+ 		return -EINVAL;
+ 
+ 	mutex_lock(&fimc->lock);
+diff --git a/drivers/media/video/smiapp/smiapp-core.c b/drivers/media/video/smiapp/smiapp-core.c
+index 6789a26..09f0e30 100644
+--- a/drivers/media/video/smiapp/smiapp-core.c
++++ b/drivers/media/video/smiapp/smiapp-core.c
+@@ -1629,7 +1629,7 @@ static void smiapp_propagate(struct v4l2_subdev *subdev,
+ 	smiapp_get_crop_compose(subdev, fh, crops, &comp, which);
+ 
+ 	switch (target) {
+-	case V4L2_SUBDEV_SEL_TGT_CROP:
++	case V4L2_SEL_TGT_CROP:
+ 		comp->width = crops[SMIAPP_PAD_SINK]->width;
+ 		comp->height = crops[SMIAPP_PAD_SINK]->height;
+ 		if (which == V4L2_SUBDEV_FORMAT_ACTIVE) {
+@@ -1645,7 +1645,7 @@ static void smiapp_propagate(struct v4l2_subdev *subdev,
+ 			}
+ 		}
+ 		/* Fall through */
+-	case V4L2_SUBDEV_SEL_TGT_COMPOSE:
++	case V4L2_SEL_TGT_COMPOSE:
+ 		*crops[SMIAPP_PAD_SRC] = *comp;
+ 		break;
+ 	default:
+@@ -1721,7 +1721,7 @@ static int smiapp_set_format(struct v4l2_subdev *subdev,
+ 	if (fmt->which == V4L2_SUBDEV_FORMAT_ACTIVE)
+ 		ssd->sink_fmt = *crops[ssd->sink_pad];
+ 	smiapp_propagate(subdev, fh, fmt->which,
+-			 V4L2_SUBDEV_SEL_TGT_CROP);
++			 V4L2_SEL_TGT_CROP);
+ 
+ 	mutex_unlock(&sensor->mutex);
+ 
+@@ -1956,7 +1956,7 @@ static int smiapp_set_compose(struct v4l2_subdev *subdev,
+ 
+ 	*comp = sel->r;
+ 	smiapp_propagate(subdev, fh, sel->which,
+-			 V4L2_SUBDEV_SEL_TGT_COMPOSE);
++			 V4L2_SEL_TGT_COMPOSE);
+ 
+ 	if (sel->which == V4L2_SUBDEV_FORMAT_ACTIVE)
+ 		return smiapp_update_mode(sensor);
+@@ -1972,8 +1972,8 @@ static int __smiapp_sel_supported(struct v4l2_subdev *subdev,
+ 
+ 	/* We only implement crop in three places. */
+ 	switch (sel->target) {
+-	case V4L2_SUBDEV_SEL_TGT_CROP:
+-	case V4L2_SUBDEV_SEL_TGT_CROP_BOUNDS:
++	case V4L2_SEL_TGT_CROP:
++	case V4L2_SEL_TGT_CROP_BOUNDS:
+ 		if (ssd == sensor->pixel_array
+ 		    && sel->pad == SMIAPP_PA_PAD_SRC)
+ 			return 0;
+@@ -1986,8 +1986,8 @@ static int __smiapp_sel_supported(struct v4l2_subdev *subdev,
+ 		    == SMIAPP_DIGITAL_CROP_CAPABILITY_INPUT_CROP)
+ 			return 0;
+ 		return -EINVAL;
+-	case V4L2_SUBDEV_SEL_TGT_COMPOSE:
+-	case V4L2_SUBDEV_SEL_TGT_COMPOSE_BOUNDS:
++	case V4L2_SEL_TGT_COMPOSE:
++	case V4L2_SEL_TGT_COMPOSE_BOUNDS:
+ 		if (sel->pad == ssd->source_pad)
+ 			return -EINVAL;
+ 		if (ssd == sensor->binner)
+@@ -2049,7 +2049,7 @@ static int smiapp_set_crop(struct v4l2_subdev *subdev,
+ 
+ 	if (ssd != sensor->pixel_array && sel->pad == SMIAPP_PAD_SINK)
+ 		smiapp_propagate(subdev, fh, sel->which,
+-				 V4L2_SUBDEV_SEL_TGT_CROP);
++				 V4L2_SEL_TGT_CROP);
+ 
+ 	return 0;
+ }
+@@ -2083,7 +2083,7 @@ static int __smiapp_get_selection(struct v4l2_subdev *subdev,
+ 	}
+ 
+ 	switch (sel->target) {
+-	case V4L2_SUBDEV_SEL_TGT_CROP_BOUNDS:
++	case V4L2_SEL_TGT_CROP_BOUNDS:
+ 		if (ssd == sensor->pixel_array) {
+ 			sel->r.width =
+ 				sensor->limits[SMIAPP_LIMIT_X_ADDR_MAX] + 1;
+@@ -2095,11 +2095,11 @@ static int __smiapp_get_selection(struct v4l2_subdev *subdev,
+ 			sel->r = *comp;
+ 		}
+ 		break;
+-	case V4L2_SUBDEV_SEL_TGT_CROP:
+-	case V4L2_SUBDEV_SEL_TGT_COMPOSE_BOUNDS:
++	case V4L2_SEL_TGT_CROP:
++	case V4L2_SEL_TGT_COMPOSE_BOUNDS:
+ 		sel->r = *crops[sel->pad];
+ 		break;
+-	case V4L2_SUBDEV_SEL_TGT_COMPOSE:
++	case V4L2_SEL_TGT_COMPOSE:
+ 		sel->r = *comp;
+ 		break;
+ 	}
+@@ -2146,10 +2146,10 @@ static int smiapp_set_selection(struct v4l2_subdev *subdev,
+ 			      sel->r.height);
+ 
+ 	switch (sel->target) {
+-	case V4L2_SUBDEV_SEL_TGT_CROP:
++	case V4L2_SEL_TGT_CROP:
+ 		ret = smiapp_set_crop(subdev, fh, sel);
+ 		break;
+-	case V4L2_SUBDEV_SEL_TGT_COMPOSE:
++	case V4L2_SEL_TGT_COMPOSE:
+ 		ret = smiapp_set_compose(subdev, fh, sel);
+ 		break;
+ 	default:
+diff --git a/drivers/media/video/v4l2-subdev.c b/drivers/media/video/v4l2-subdev.c
+index cd86f0c..9182f81 100644
+--- a/drivers/media/video/v4l2-subdev.c
++++ b/drivers/media/video/v4l2-subdev.c
+@@ -245,7 +245,7 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+ 		memset(&sel, 0, sizeof(sel));
+ 		sel.which = crop->which;
+ 		sel.pad = crop->pad;
+-		sel.target = V4L2_SUBDEV_SEL_TGT_CROP;
++		sel.target = V4L2_SEL_TGT_CROP;
+ 
+ 		rval = v4l2_subdev_call(
+ 			sd, pad, get_selection, subdev_fh, &sel);
+@@ -274,7 +274,7 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+ 		memset(&sel, 0, sizeof(sel));
+ 		sel.which = crop->which;
+ 		sel.pad = crop->pad;
+-		sel.target = V4L2_SUBDEV_SEL_TGT_CROP;
++		sel.target = V4L2_SEL_TGT_CROP;
+ 		sel.r = crop->rect;
+ 
+ 		rval = v4l2_subdev_call(
+diff --git a/include/linux/v4l2-common.h b/include/linux/v4l2-common.h
+new file mode 100644
+index 0000000..45b9ec4
+--- /dev/null
++++ b/include/linux/v4l2-common.h
+@@ -0,0 +1,53 @@
++/*
++ * include/linux/v4l2-common.h
++ *
++ * Common V4L2 and V4L2 subdev definitions.
++ *
++ * Users are advised to #include this file either through videodev2.h
++ * (V4L2) or through v4l2-subdev.h (V4L2 subdev) rather than to refer
++ * to this file directly.
++ *
++ * Copyright (C) 2012 Nokia Corporation
++ * Contact: Sakari Ailus <sakari.ailus@iki.fi>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
++ * 02110-1301 USA
++ *
++ */
++
++#ifndef __V4L2_COMMON__
++#define __V4L2_COMMON__
++
++/* Selection target definitions */
++
++/* Current cropping area */
++#define V4L2_SEL_TGT_CROP		0x0000
++/* Default cropping area */
++#define V4L2_SEL_TGT_CROP_DEFAULT	0x0001
++/* Cropping bounds */
++#define V4L2_SEL_TGT_CROP_BOUNDS	0x0002
++/* Current composing area */
++#define V4L2_SEL_TGT_COMPOSE		0x0100
++/* Default composing area */
++#define V4L2_SEL_TGT_COMPOSE_DEFAULT	0x0101
++/* Composing bounds */
++#define V4L2_SEL_TGT_COMPOSE_BOUNDS	0x0102
++/* Current composing area plus all padding pixels */
++#define V4L2_SEL_TGT_COMPOSE_PADDED	0x0103
++
++/* Backward compatibility definitions */
++#define V4L2_SEL_TGT_CROP_ACTIVE	V4L2_SEL_TGT_CROP
++#define V4L2_SEL_TGT_COMPOSE_ACTIVE	V4L2_SEL_TGT_COMPOSE
++
++#endif /* __V4L2_COMMON__  */
+diff --git a/include/linux/v4l2-subdev.h b/include/linux/v4l2-subdev.h
+index 01eee06..1d7d457 100644
+--- a/include/linux/v4l2-subdev.h
++++ b/include/linux/v4l2-subdev.h
+@@ -25,6 +25,7 @@
+ 
+ #include <linux/ioctl.h>
+ #include <linux/types.h>
++#include <linux/v4l2-common.h>
+ #include <linux/v4l2-mediabus.h>
+ 
+ /**
+@@ -127,22 +128,13 @@ struct v4l2_subdev_frame_interval_enum {
+ #define V4L2_SUBDEV_SEL_FLAG_SIZE_LE			(1 << 1)
+ #define V4L2_SUBDEV_SEL_FLAG_KEEP_CONFIG		(1 << 2)
+ 
+-/* active cropping area */
+-#define V4L2_SUBDEV_SEL_TGT_CROP			0x0000
+-/* cropping bounds */
+-#define V4L2_SUBDEV_SEL_TGT_CROP_BOUNDS			0x0002
+-/* current composing area */
+-#define V4L2_SUBDEV_SEL_TGT_COMPOSE			0x0100
+-/* composing bounds */
+-#define V4L2_SUBDEV_SEL_TGT_COMPOSE_BOUNDS		0x0102
+-
+-
+ /**
+  * struct v4l2_subdev_selection - selection info
+  *
+  * @which: either V4L2_SUBDEV_FORMAT_ACTIVE or V4L2_SUBDEV_FORMAT_TRY
+  * @pad: pad number, as reported by the media API
+- * @target: selection target, used to choose one of possible rectangles
++ * @target: Selection target, used to choose one of possible rectangles,
++ *	    defined in v4l2-common.h; V4L2_SEL_TGT_* .
+  * @flags: constraint flags
+  * @r: coordinates of the selection window
+  * @reserved: for future use, set to zero for now
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index 7478e7e..252f4b2 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -64,6 +64,7 @@
+ #include <linux/compiler.h>
+ #include <linux/ioctl.h>
+ #include <linux/types.h>
++#include <linux/v4l2-common.h>
  
  /*
-@@ -973,8 +975,19 @@ static void ccdc_config_sync_if(struct isp_ccdc_device *ccdc,
- 				unsigned int data_size)
- {
- 	struct isp_device *isp = to_isp_device(ccdc);
-+	const struct v4l2_mbus_framefmt *format;
- 	u32 syn_mode = ISPCCDC_SYN_MODE_VDHDEN;
+  * Common stuff for both V4L1 and V4L2
+@@ -765,31 +766,11 @@ struct v4l2_crop {
+ #define V4L2_SEL_FLAG_GE	0x00000001
+ #define V4L2_SEL_FLAG_LE	0x00000002
  
-+	format = &ccdc->formats[CCDC_PAD_SINK];
-+
-+	if (format->code == V4L2_MBUS_FMT_YUYV8_2X8 ||
-+	    format->code == V4L2_MBUS_FMT_UYVY8_2X8) {
-+		/* The bridge is enabled for YUV8 formats. Configure the input
-+		 * mode accordingly.
-+		 */
-+		syn_mode |= ISPCCDC_SYN_MODE_INPMOD_YCBCR16;
-+	}
-+
- 	switch (data_size) {
- 	case 8:
- 		syn_mode |= ISPCCDC_SYN_MODE_DATSIZ_8;
-@@ -1000,6 +1013,19 @@ static void ccdc_config_sync_if(struct isp_ccdc_device *ccdc,
- 		syn_mode |= ISPCCDC_SYN_MODE_VDPOL;
- 
- 	isp_reg_writel(isp, syn_mode, OMAP3_ISP_IOMEM_CCDC, ISPCCDC_SYN_MODE);
-+
-+	/* The CCDC_CFG.Y8POS bit is used in YCbCr8 input mode only. The
-+	 * hardware seems to ignore it in all other input modes.
-+	 */
-+	if (format->code == V4L2_MBUS_FMT_UYVY8_2X8)
-+		isp_reg_set(isp, OMAP3_ISP_IOMEM_CCDC, ISPCCDC_CFG,
-+			    ISPCCDC_CFG_Y8POS);
-+	else
-+		isp_reg_clr(isp, OMAP3_ISP_IOMEM_CCDC, ISPCCDC_CFG,
-+			    ISPCCDC_CFG_Y8POS);
-+
-+	isp_reg_clr(isp, OMAP3_ISP_IOMEM_CCDC, ISPCCDC_REC656IF,
-+		    ISPCCDC_REC656IF_R656ON);
- }
- 
- /* CCDC formats descriptions */
-@@ -1088,6 +1114,7 @@ static void ccdc_configure(struct isp_ccdc_device *ccdc)
- 	unsigned int depth_in = 0;
- 	struct media_pad *pad;
- 	unsigned long flags;
-+	unsigned int bridge;
- 	unsigned int shift;
- 	u32 syn_mode;
- 	u32 ccdc_pattern;
-@@ -1098,7 +1125,9 @@ static void ccdc_configure(struct isp_ccdc_device *ccdc)
- 		pdata = &((struct isp_v4l2_subdevs_group *)sensor->host_priv)
- 			->bus.parallel;
- 
--	/* Compute shift value for lane shifter to configure the bridge. */
-+	/* Compute the lane shifter shift value and enable the bridge when the
-+	 * input format is YUV.
-+	 */
- 	fmt_src.pad = pad->index;
- 	fmt_src.which = V4L2_SUBDEV_FORMAT_ACTIVE;
- 	if (!v4l2_subdev_call(sensor, pad, get_fmt, NULL, &fmt_src)) {
-@@ -1109,14 +1138,18 @@ static void ccdc_configure(struct isp_ccdc_device *ccdc)
- 	fmt_info = omap3isp_video_format_info
- 		(isp->isp_ccdc.formats[CCDC_PAD_SINK].code);
- 	depth_out = fmt_info->width;
+-/* Selection targets */
 -
- 	shift = depth_in - depth_out;
--	omap3isp_configure_bridge(isp, ccdc->input, pdata, shift);
- 
--	ccdc_config_sync_if(ccdc, pdata, depth_out);
-+	if (fmt_info->code == V4L2_MBUS_FMT_YUYV8_2X8)
-+		bridge = ISPCTRL_PAR_BRIDGE_LENDIAN;
-+	else if (fmt_info->code == V4L2_MBUS_FMT_UYVY8_2X8)
-+		bridge = ISPCTRL_PAR_BRIDGE_BENDIAN;
-+	else
-+		bridge = ISPCTRL_PAR_BRIDGE_DISABLE;
- 
--	/* CCDC_PAD_SINK */
--	format = &ccdc->formats[CCDC_PAD_SINK];
-+	omap3isp_configure_bridge(isp, ccdc->input, pdata, shift, bridge);
-+
-+	ccdc_config_sync_if(ccdc, pdata, depth_out);
- 
- 	syn_mode = isp_reg_readl(isp, OMAP3_ISP_IOMEM_CCDC, ISPCCDC_SYN_MODE);
- 
-@@ -1135,13 +1168,8 @@ static void ccdc_configure(struct isp_ccdc_device *ccdc)
- 	else
- 		syn_mode &= ~ISPCCDC_SYN_MODE_SDR2RSZ;
- 
--	/* Use PACK8 mode for 1byte per pixel formats. */
--	if (omap3isp_video_format_info(format->code)->width <= 8)
--		syn_mode |= ISPCCDC_SYN_MODE_PACK8;
--	else
--		syn_mode &= ~ISPCCDC_SYN_MODE_PACK8;
+-/* Current cropping area */
+-#define V4L2_SEL_TGT_CROP		0x0000
+-/* Default cropping area */
+-#define V4L2_SEL_TGT_CROP_DEFAULT	0x0001
+-/* Cropping bounds */
+-#define V4L2_SEL_TGT_CROP_BOUNDS	0x0002
+-/* Current composing area */
+-#define V4L2_SEL_TGT_COMPOSE		0x0100
+-/* Default composing area */
+-#define V4L2_SEL_TGT_COMPOSE_DEFAULT	0x0101
+-/* Composing bounds */
+-#define V4L2_SEL_TGT_COMPOSE_BOUNDS	0x0102
+-/* Current composing area plus all padding pixels */
+-#define V4L2_SEL_TGT_COMPOSE_PADDED	0x0103
 -
--	isp_reg_writel(isp, syn_mode, OMAP3_ISP_IOMEM_CCDC, ISPCCDC_SYN_MODE);
-+	/* CCDC_PAD_SINK */
-+	format = &ccdc->formats[CCDC_PAD_SINK];
- 
- 	/* Mosaic filter */
- 	switch (format->code) {
-@@ -1172,6 +1200,7 @@ static void ccdc_configure(struct isp_ccdc_device *ccdc)
- 		       OMAP3_ISP_IOMEM_CCDC, ISPCCDC_VDINT);
- 
- 	/* CCDC_PAD_SOURCE_OF */
-+	format = &ccdc->formats[CCDC_PAD_SOURCE_OF];
- 	crop = &ccdc->crop;
- 
- 	isp_reg_writel(isp, (crop->left << ISPCCDC_HORZ_INFO_SPH_SHIFT) |
-@@ -1185,6 +1214,24 @@ static void ccdc_configure(struct isp_ccdc_device *ccdc)
- 
- 	ccdc_config_outlineoffset(ccdc, ccdc->video_out.bpl_value, 0, 0);
- 
-+	/* The CCDC outputs data in UYVY order by default. Swap bytes to get
-+	 * YUYV.
-+	 */
-+	if (format->code == V4L2_MBUS_FMT_YUYV8_1X16)
-+		isp_reg_set(isp, OMAP3_ISP_IOMEM_CCDC, ISPCCDC_CFG,
-+			    ISPCCDC_CFG_BSWD);
-+	else
-+		isp_reg_clr(isp, OMAP3_ISP_IOMEM_CCDC, ISPCCDC_CFG,
-+			    ISPCCDC_CFG_BSWD);
-+
-+	/* Use PACK8 mode for 1byte per pixel formats. */
-+	if (omap3isp_video_format_info(format->code)->width <= 8)
-+		syn_mode |= ISPCCDC_SYN_MODE_PACK8;
-+	else
-+		syn_mode &= ~ISPCCDC_SYN_MODE_PACK8;
-+
-+	isp_reg_writel(isp, syn_mode, OMAP3_ISP_IOMEM_CCDC, ISPCCDC_SYN_MODE);
-+
- 	/* CCDC_PAD_SOURCE_VP */
- 	format = &ccdc->formats[CCDC_PAD_SOURCE_VP];
- 
-@@ -1199,6 +1246,7 @@ static void ccdc_configure(struct isp_ccdc_device *ccdc)
- 		       (format->height << ISPCCDC_VP_OUT_VERT_NUM_SHIFT),
- 		       OMAP3_ISP_IOMEM_CCDC, ISPCCDC_VP_OUT);
- 
-+	/* Lens shading correction. */
- 	spin_lock_irqsave(&ccdc->lsc.req_lock, flags);
- 	if (ccdc->lsc.request == NULL)
- 		goto unlock;
-@@ -1776,8 +1824,8 @@ ccdc_try_format(struct isp_ccdc_device *ccdc, struct v4l2_subdev_fh *fh,
- 		unsigned int pad, struct v4l2_mbus_framefmt *fmt,
- 		enum v4l2_subdev_format_whence which)
- {
--	struct v4l2_mbus_framefmt *format;
- 	const struct isp_format_info *info;
-+	enum v4l2_mbus_pixelcode pixelcode;
- 	unsigned int width = fmt->width;
- 	unsigned int height = fmt->height;
- 	struct v4l2_rect *crop;
-@@ -1785,9 +1833,6 @@ ccdc_try_format(struct isp_ccdc_device *ccdc, struct v4l2_subdev_fh *fh,
- 
- 	switch (pad) {
- 	case CCDC_PAD_SINK:
--		/* TODO: If the CCDC output formatter pad is connected directly
--		 * to the resizer, only YUV formats can be used.
--		 */
- 		for (i = 0; i < ARRAY_SIZE(ccdc_fmts); i++) {
- 			if (fmt->code == ccdc_fmts[i])
- 				break;
-@@ -1803,8 +1848,26 @@ ccdc_try_format(struct isp_ccdc_device *ccdc, struct v4l2_subdev_fh *fh,
- 		break;
- 
- 	case CCDC_PAD_SOURCE_OF:
--		format = __ccdc_get_format(ccdc, fh, CCDC_PAD_SINK, which);
--		memcpy(fmt, format, sizeof(*fmt));
-+		pixelcode = fmt->code;
-+		*fmt = *__ccdc_get_format(ccdc, fh, CCDC_PAD_SINK, which);
-+
-+		/* YUV formats are converted from 2X8 to 1X16 by the bridge and
-+		 * can be byte-swapped.
-+		 */
-+		if (fmt->code == V4L2_MBUS_FMT_YUYV8_2X8 ||
-+		    fmt->code == V4L2_MBUS_FMT_UYVY8_2X8) {
-+			/* Use the user requested format if YUV. */
-+			if (pixelcode == V4L2_MBUS_FMT_YUYV8_2X8 ||
-+			    pixelcode == V4L2_MBUS_FMT_UYVY8_2X8 ||
-+			    pixelcode == V4L2_MBUS_FMT_YUYV8_1X16 ||
-+			    pixelcode == V4L2_MBUS_FMT_UYVY8_1X16)
-+				fmt->code = pixelcode;
-+
-+			if (fmt->code == V4L2_MBUS_FMT_YUYV8_2X8)
-+				fmt->code = V4L2_MBUS_FMT_YUYV8_1X16;
-+			else if (fmt->code == V4L2_MBUS_FMT_UYVY8_2X8)
-+				fmt->code = V4L2_MBUS_FMT_UYVY8_1X16;
-+		}
- 
- 		/* Hardcode the output size to the crop rectangle size. */
- 		crop = __ccdc_get_crop(ccdc, fh, which);
-@@ -1813,13 +1876,17 @@ ccdc_try_format(struct isp_ccdc_device *ccdc, struct v4l2_subdev_fh *fh,
- 		break;
- 
- 	case CCDC_PAD_SOURCE_VP:
--		format = __ccdc_get_format(ccdc, fh, CCDC_PAD_SINK, which);
--		memcpy(fmt, format, sizeof(*fmt));
-+		*fmt = *__ccdc_get_format(ccdc, fh, CCDC_PAD_SINK, which);
- 
- 		/* The video port interface truncates the data to 10 bits. */
- 		info = omap3isp_video_format_info(fmt->code);
- 		fmt->code = info->truncated;
- 
-+		/* YUV formats are not supported by the video port. */
-+		if (fmt->code == V4L2_MBUS_FMT_YUYV8_2X8 ||
-+		    fmt->code == V4L2_MBUS_FMT_UYVY8_2X8)
-+			fmt->code = 0;
-+
- 		/* The number of lines that can be clocked out from the video
- 		 * port output must be at least one line less than the number
- 		 * of input lines.
-@@ -1902,14 +1969,46 @@ static int ccdc_enum_mbus_code(struct v4l2_subdev *sd,
- 		break;
- 
- 	case CCDC_PAD_SOURCE_OF:
-+		format = __ccdc_get_format(ccdc, fh, code->pad,
-+					   V4L2_SUBDEV_FORMAT_TRY);
-+
-+		if (format->code == V4L2_MBUS_FMT_YUYV8_2X8 ||
-+		    format->code == V4L2_MBUS_FMT_UYVY8_2X8) {
-+			/* In YUV mode the CCDC can swap bytes. */
-+			if (code->index == 0)
-+				code->code = V4L2_MBUS_FMT_YUYV8_1X16;
-+			else if (code->index == 1)
-+				code->code = V4L2_MBUS_FMT_UYVY8_1X16;
-+			else
-+				return -EINVAL;
-+		} else {
-+			/* In raw mode, no configurable format confversion is
-+			 * available.
-+			 */
-+			if (code->index == 0)
-+				code->code = format->code;
-+			else
-+				return -EINVAL;
-+		}
-+		break;
-+
- 	case CCDC_PAD_SOURCE_VP:
--		/* No format conversion inside CCDC */
-+		/* The CCDC supports no configurable format conversion
-+		 * compatible with the video port. Enumerate a single output
-+		 * format code.
-+		 */
- 		if (code->index != 0)
- 			return -EINVAL;
- 
--		format = __ccdc_get_format(ccdc, fh, CCDC_PAD_SINK,
-+		format = __ccdc_get_format(ccdc, fh, code->pad,
- 					   V4L2_SUBDEV_FORMAT_TRY);
- 
-+		/* A pixel code equal to 0 means that the video port doesn't
-+		 * support the input format. Don't enumerate any pixel code.
-+		 */
-+		if (format->code == 0)
-+			return -EINVAL;
-+
- 		code->code = format->code;
- 		break;
- 
-diff --git a/drivers/media/video/omap3isp/ispvideo.c b/drivers/media/video/omap3isp/ispvideo.c
-index 9ce158e..f837b76 100644
---- a/drivers/media/video/omap3isp/ispvideo.c
-+++ b/drivers/media/video/omap3isp/ispvideo.c
-@@ -120,6 +120,10 @@ static struct isp_format_info formats[] = {
- 	{ V4L2_MBUS_FMT_YUYV8_2X8, V4L2_MBUS_FMT_YUYV8_2X8,
- 	  V4L2_MBUS_FMT_YUYV8_2X8, 0,
- 	  V4L2_PIX_FMT_YUYV, 8, 16, },
-+	/* Empty entry to catch the unsupported pixel code (0) used by the CCDC
-+	 * module and avoid NULL pointer dereferences.
-+	 */
-+	{ 0, }
- };
- 
- const struct isp_format_info *
-diff --git a/include/media/omap3isp.h b/include/media/omap3isp.h
-index 5ab9449..9584269 100644
---- a/include/media/omap3isp.h
-+++ b/include/media/omap3isp.h
-@@ -42,12 +42,6 @@ enum isp_interface_type {
- };
- 
- enum {
--	ISP_BRIDGE_DISABLE = 0,
--	ISP_BRIDGE_LITTLE_ENDIAN = 2,
--	ISP_BRIDGE_BIG_ENDIAN = 3,
--};
+-/* Backward compatibility definitions */
+-#define V4L2_SEL_TGT_CROP_ACTIVE	V4L2_SEL_TGT_CROP
+-#define V4L2_SEL_TGT_COMPOSE_ACTIVE	V4L2_SEL_TGT_COMPOSE
 -
--enum {
- 	ISP_LANE_SHIFT_0 = 0,
- 	ISP_LANE_SHIFT_2 = 1,
- 	ISP_LANE_SHIFT_4 = 2,
-@@ -69,10 +63,6 @@ enum {
-  *		0 - Active high, 1 - Active low
-  * @data_pol: Data polarity
-  *		0 - Normal, 1 - One's complement
-- * @bridge: CCDC Bridge input control
-- *		ISP_BRIDGE_DISABLE - Disable
-- *		ISP_BRIDGE_LITTLE_ENDIAN - Little endian
-- *		ISP_BRIDGE_BIG_ENDIAN - Big endian
-  */
- struct isp_parallel_platform_data {
- 	unsigned int data_lane_shift:2;
-@@ -80,7 +70,6 @@ struct isp_parallel_platform_data {
- 	unsigned int hs_pol:1;
- 	unsigned int vs_pol:1;
- 	unsigned int data_pol:1;
--	unsigned int bridge:2;
- };
- 
- enum {
+ /**
+  * struct v4l2_selection - selection info
+  * @type:	buffer type (do not use *_MPLANE types)
+- * @target:	selection target, used to choose one of possible rectangles
++ * @target:	Selection target, used to choose one of possible rectangles;
++ *		defined in v4l2-common.h; V4L2_SEL_TGT_* .
+  * @flags:	constraints flags
+  * @r:		coordinates of selection window
+  * @reserved:	for future use, rounds structure size to 64 bytes, set to zero
 -- 
-1.7.3.4
+1.7.2.5
 
