@@ -1,53 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-3.cisco.com ([144.254.224.146]:44172 "EHLO
-	ams-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750695Ab2FKIWA (ORCPT
+Received: from mailout1.samsung.com ([203.254.224.24]:42651 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756780Ab2FOMVd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Jun 2012 04:22:00 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH 1/1] v4l: Remove __user from interface structure definitions
-Date: Mon, 11 Jun 2012 10:21:49 +0200
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org
-References: <1338062869-23922-1-git-send-email-sakari.ailus@iki.fi> <2510696.MjJJuAAVnT@avalon> <20120611081211.GE12505@valkosipuli.retiisi.org.uk>
-In-Reply-To: <20120611081211.GE12505@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201206111021.49337.hverkuil@xs4all.nl>
+	Fri, 15 Jun 2012 08:21:33 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 8BIT
+Content-type: text/plain; charset=UTF-8
+Received: from epcpsbgm1.samsung.com (mailout1.samsung.com [203.254.224.24])
+ by mailout1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0M5N00KU3RNWJBM0@mailout1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 15 Jun 2012 21:21:32 +0900 (KST)
+Received: from mcdsrvbld02.digital.local ([106.116.37.23])
+ by mmp2.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTPA id <0M5N008WHRNEUE50@mmp2.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 15 Jun 2012 21:21:29 +0900 (KST)
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linux-media@vger.kernel.org,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: =?UTF-8?q?=5BGIT=20PULL=5D=20Samsung=20fixes=20for=20v3=2E5?=
+Date: Fri, 15 Jun 2012 14:21:03 +0200
+Message-id: <1339762863-27308-1-git-send-email-m.szyprowski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon 11 June 2012 10:12:11 Sakari Ailus wrote:
-> On Mon, Jun 11, 2012 at 09:49:25AM +0200, Laurent Pinchart wrote:
-> > Hi Sakari,
-> 
-> Hi Laurent,
-> 
-> > On Saturday 26 May 2012 23:07:49 Sakari Ailus wrote:
-> > > The __user macro is not strictly needed in videodev2.h, and it also prevents
-> > > using the header file as such in the user space. __user is already not used
-> > > in many of the interface structs containing pointers.
-> > > 
-> > > Stop using __user in videodev2.h.
-> > 
-> > Please don't. __user is useful. You should not use kernel headers as-is in 
-> > userspace, they need to be installed use make headers_install first.
-> 
-> Then we should consistently use it, and not just in these two occasions.
-> Currently most structures having pointers and which are part of the user
-> space interface don't have that. One example is v4l2_ext_controls.
+Hello Mauro,
 
-Yes, that should be fixed. All pointers in structs whose contents is going
-to be copied to/from kernelspace need a __user annotation.
+Please pull various fixes for V4L drivers for v3.5 kernel series.
 
-The sparse checker checks for that. I'm running it in my daily build, but
-nobody ever pays any attention to it :-)
+Best regards,
+Marek Szyprowski
+Samsung Poland R&D Center
 
-There are too many error/warnings reported for it to be any use.
 
-Regards,
+The following changes since commit f8f5701bdaf9134b1f90e5044a82c66324d2073f:
 
-	Hans
+  Linux 3.5-rc1 (2012-06-02 18:29:26 -0700)
+
+are available in the git repository at:
+  git://git.infradead.org/users/kmpark/linux-samsung v4l-fixes
+
+Andrzej Hajda (2):
+      v4l/s5p-mfc: corrected encoder v4l control definitions
+      v4l/s5p-mfc: added image size align in VIDIOC_TRY_FMT
+
+Kamil Debski (2):
+      s5p-mfc: Bug fix of timestamp/timecode copy mechanism
+      s5p-mfc: Fix setting controls
+
+Tomasz Moń (1):
+      v4l: mem2mem_testdev: Fix race conditions in driver.
+
+ drivers/media/video/mem2mem_testdev.c     |   50 +++++++++++++++--------------
+ drivers/media/video/s5p-mfc/regs-mfc.h    |    5 +++
+ drivers/media/video/s5p-mfc/s5p_mfc_dec.c |    4 +-
+ drivers/media/video/s5p-mfc/s5p_mfc_enc.c |   12 ++-----
+ drivers/media/video/s5p-mfc/s5p_mfc_opr.h |    4 ++-
+ 5 files changed, 40 insertions(+), 35 deletions(-)
