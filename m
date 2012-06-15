@@ -1,41 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from snail.math.uni-duesseldorf.de ([134.99.156.233]:58290 "EHLO
-	snail.math.uni-duesseldorf.de" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932142Ab2F2Qrv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Jun 2012 12:47:51 -0400
-Received: from p50851618.dip.t-dialin.net ([80.133.22.24] helo=[192.168.101.135])
-	by snail.math.uni-duesseldorf.de with esmtpsa (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
-	(Exim 4.71)
-	(envelope-from <jansing@am.uni-duesseldorf.de>)
-	id 1Skdvd-0004hV-MI
-	for linux-media@vger.kernel.org; Fri, 29 Jun 2012 18:20:17 +0200
-Message-ID: <4FEDD748.2060506@am.uni-duesseldorf.de>
-Date: Fri, 29 Jun 2012 18:26:48 +0200
-From: Georg Jansing <jansing@am.uni-duesseldorf.de>
+Received: from mx1.redhat.com ([209.132.183.28]:40104 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752814Ab2FON0m (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 15 Jun 2012 09:26:42 -0400
+Date: Fri, 15 Jun 2012 09:26:17 -0400
+From: Jarod Wilson <jarod@redhat.com>
+To: Peter Senna Tschudin <peter.senna@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>,
+	Ben Hutchings <ben@decadent.org.uk>,
+	Luis Henriques <luis.henriques@canonical.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 5/8] nuvoton-cir: Code cleanup: remove unused variable
+ and function
+Message-ID: <20120615132617.GB32380@redhat.com>
+References: <1339696716-14373-1-git-send-email-peter.senna@gmail.com>
+ <1339696716-14373-5-git-send-email-peter.senna@gmail.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: [PATCH] openSUSE hints for media_build
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1339696716-14373-5-git-send-email-peter.senna@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello everybody,
+On Thu, Jun 14, 2012 at 02:58:13PM -0300, Peter Senna Tschudin wrote:
+> Tested by compilation only.
 
-I was trying to install Linux TV Kernel Modules via your media_build git 
-repo/scripts. Since I am on openSUSE and there are no installation hints 
-yet, and I needed to look up the correct packages anyways, here is a 
-small patch that adds the corresponding infomation to your script.
+Making use of this code is on the TODO list, possibly even happens by way
+of David's pending patches for lirc interface parity, so I'm against
+removing it.
 
-I hope, the formulation for adding the perl buildservice repository 
-(something like Ubuntu's PPAs) is clear enough. Please also be warned, 
-that I never did anything in perl yet, so I don't know if I chose the 
-best/perl way to add the repo message.
+-- 
+Jarod Wilson
+jarod@redhat.com
 
-Sadly, the media_build drivers did not work for me, but with the script 
-I could at least compile them correctly (I think ;-)).
-
-Kind regards,
-
-Georg Jansing
