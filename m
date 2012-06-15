@@ -1,40 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gh0-f174.google.com ([209.85.160.174]:62656 "EHLO
-	mail-gh0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750852Ab2FKTRo (ORCPT
+Received: from mail-wi0-f178.google.com ([209.85.212.178]:63832 "EHLO
+	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757954Ab2FOWLX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Jun 2012 15:17:44 -0400
-Received: by ghrr11 with SMTP id r11so2810023ghr.19
-        for <linux-media@vger.kernel.org>; Mon, 11 Jun 2012 12:17:44 -0700 (PDT)
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>,
-	Gianluca Gennari <gennarone@gmail.com>,
-	Ezequiel Garcia <elezegarcia@gmail.com>
-Subject: [PATCH 1/3] em28xx: Fix wrong AC97 mic register usage
-Date: Mon, 11 Jun 2012 16:17:22 -0300
-Message-Id: <1339442244-11546-1-git-send-email-elezegarcia@gmail.com>
+	Fri, 15 Jun 2012 18:11:23 -0400
+Received: by wibhn6 with SMTP id hn6so1117298wib.1
+        for <linux-media@vger.kernel.org>; Fri, 15 Jun 2012 15:11:22 -0700 (PDT)
+Message-ID: <1339798273.12274.21.camel@Route3278>
+Subject: dvb_usb_v2: use pointers to properties[REGRESSION]
+From: Malcolm Priestley <tvboxspy@gmail.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: linux-media <linux-media@vger.kernel.org>
+Date: Fri, 15 Jun 2012 23:11:13 +0100
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
----
- drivers/media/video/em28xx/em28xx-audio.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+Hi Antti
 
-diff --git a/drivers/media/video/em28xx/em28xx-audio.c b/drivers/media/video/em28xx/em28xx-audio.c
-index d7e2a3d..e2a7a00 100644
---- a/drivers/media/video/em28xx/em28xx-audio.c
-+++ b/drivers/media/video/em28xx/em28xx-audio.c
-@@ -682,7 +682,7 @@ static int em28xx_audio_init(struct em28xx *dev)
- 		em28xx_cvol_new(card, dev, "Video", AC97_VIDEO_VOL);
- 		em28xx_cvol_new(card, dev, "Line In", AC97_LINEIN_VOL);
- 		em28xx_cvol_new(card, dev, "Phone", AC97_PHONE_VOL);
--		em28xx_cvol_new(card, dev, "Microphone", AC97_PHONE_VOL);
-+		em28xx_cvol_new(card, dev, "Microphone", AC97_MIC_VOL);
- 		em28xx_cvol_new(card, dev, "CD", AC97_CD_VOL);
- 		em28xx_cvol_new(card, dev, "AUX", AC97_AUX_VOL);
- 		em28xx_cvol_new(card, dev, "PCM", AC97_PCM_OUT_VOL);
--- 
-1.7.4.4
+You can't have dvb_usb_device_properties as constant structure pointer.
+
+At run time it needs to be copied to a private area.
+
+Two or more devices of the same type on the system will be pointing to
+the same structure.
+
+Any changes they make to the structure will be common to all.
+
+Regards
+
+
+Malcolm
 
