@@ -1,48 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:33012 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753225Ab2FZUnr (ORCPT
+Received: from cnxtsmtp1.conexant.com ([198.62.9.252]:18838 "EHLO
+	Cnxtsmtp1.conexant.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753034Ab2FPPzv convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Jun 2012 16:43:47 -0400
-Received: by mail-pb0-f46.google.com with SMTP id rp8so566936pbb.19
-        for <linux-media@vger.kernel.org>; Tue, 26 Jun 2012 13:43:47 -0700 (PDT)
-Date: Tue, 26 Jun 2012 13:43:44 -0700
-From: Greg KH <gregkh@linuxfoundation.org>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Antti Palosaari <crope@iki.fi>, Kay Sievers <kay@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH RFC 2/4] em28xx: defer probe() if userspace mode is
- disabled
-Message-ID: <20120626204344.GD3885@kroah.com>
-References: <4FE9169D.5020300@redhat.com>
- <1340739262-13747-1-git-send-email-mchehab@redhat.com>
- <1340739262-13747-3-git-send-email-mchehab@redhat.com>
+	Sat, 16 Jun 2012 11:55:51 -0400
+From: "Palash Bandyopadhyay" <Palash.Bandyopadhyay@conexant.com>
+To: "Dan Carpenter" <dan.carpenter@oracle.com>,
+	"mchehab@redhat.com" <mchehab@redhat.com>
+cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Sat, 16 Jun 2012 08:15:33 -0700
+Subject: RE: V4L/DVB (12730): Add conexant cx25821 driver
+Message-ID: <34B38BE41EDBA046A4AFBB591FA311320509E980E9@NBMBX01.bbnet.ad>
+References: <20120616131611.GA17802@elgon.mountain>
+In-Reply-To: <20120616131611.GA17802@elgon.mountain>
+Content-Language: en-US
+Content-Type: text/plain;
+ charset=us-ascii
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1340739262-13747-3-git-send-email-mchehab@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jun 26, 2012 at 04:34:20PM -0300, Mauro Carvalho Chehab wrote:
-> +	/*
-> +	 * If the device requires firmware, probe() may need to be
-> +	 * postponed, as udev may not be ready yet to honour firmware
-> +	 * load requests.
-> +	 */
-> +	if (em28xx_boards[id->driver_info].needs_firmware &&
-> +	    is_usermodehelp_disabled()) {
-> +		printk_once(KERN_DEBUG DRIVER_NAME
-> +		            ": probe deferred for board %d.\n",
-> +		            (unsigned)id->driver_info);
-> +		return -EPROBE_DEFER;
+Thanks Dan.
 
-You should printk once per device, right?  Not just for one time per
-module load.
+  Let me take a look and get back to you.
 
-Also, what about using dev_dbg()?  Is there a _once version that works
-for that?
+Rgds,
+Palash
+________________________________________
+From: Dan Carpenter [dan.carpenter@oracle.com]
+Sent: Saturday, June 16, 2012 6:16 AM
+To: Palash Bandyopadhyay; mchehab@redhat.com
+Cc: linux-media@vger.kernel.org
+Subject: re: V4L/DVB (12730): Add conexant cx25821 driver
 
-thanks,
+Hello Palash Bandyopadhyay,
 
-greg k-h
+The patch 02b20b0b4cde: "V4L/DVB (12730): Add conexant cx25821
+driver" from Sep 15, 2009, leads to the following warning:
+drivers/media/video/cx25821/cx25821-i2c.c:310 cx25821_i2c_register()
+         error: memcpy() '&cx25821_i2c_algo_template' too small (24 vs 64)
+
+   306          dprintk(1, "%s(bus = %d)\n", __func__, bus->nr);
+   307
+   308          memcpy(&bus->i2c_adap, &cx25821_i2c_adap_template,
+   309                 sizeof(bus->i2c_adap));
+ > 310          memcpy(&bus->i2c_algo, &cx25821_i2c_algo_template,
+   311                 sizeof(bus->i2c_algo));
+   312          memcpy(&bus->i2c_client, &cx25821_i2c_client_template,
+   313                 sizeof(bus->i2c_client));
+   314
+
+The problem is that "bus->i2c_algo" is a i2c_algo_bit_data struct and
+cx25821_i2c_algo_template is a i2c_algorithm struct.  They are different
+sizes and the function pointers don't line up at all.  I don't see how
+this can work at all.
+
+regards,
+dan carpenter
+Conexant E-mail Firewall (Conexant.Com) made the following annotations
+---------------------------------------------------------------------
+********************** Legal Disclaimer **************************** 
+
+"This email may contain confidential and privileged material for the sole use of the intended recipient. Any unauthorized review, use or distribution by others is strictly prohibited. If you have received the message in error, please advise the sender by reply email and delete the message. Thank you." 
+
+********************************************************************** 
+
+---------------------------------------------------------------------
+
