@@ -1,55 +1,31 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:64034 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751733Ab2F1NlS convert rfc822-to-8bit (ORCPT
+Received: from acsinet15.oracle.com ([141.146.126.227]:49031 "EHLO
+	acsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756769Ab2FPNff (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Jun 2012 09:41:18 -0400
-Received: by obbuo13 with SMTP id uo13so3039722obb.19
-        for <linux-media@vger.kernel.org>; Thu, 28 Jun 2012 06:41:18 -0700 (PDT)
+	Sat, 16 Jun 2012 09:35:35 -0400
+Date: Sat, 16 Jun 2012 16:35:12 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Palash Bandyopadhyay <palash.bandyopadhyay@conexant.com>,
+	mchehab@redhat.com
+Cc: linux-media@vger.kernel.org
+Subject: Re: V4L/DVB (12730): Add conexant cx25821 driver
+Message-ID: <20120616133512.GB13539@mwanda>
+References: <20120616131611.GA17802@elgon.mountain>
 MIME-Version: 1.0
-In-Reply-To: <CA+MoWDrBaVAStQwQKrWb+CuNTZHuXJBuewgLJbu9ZrBg7rrJVg@mail.gmail.com>
-References: <1340835544-12053-1-git-send-email-peter.senna@gmail.com>
-	<CALF0-+XZybEFqndCEo4nGGH-achE5CuYOsC+EXiH-k06GSB5vA@mail.gmail.com>
-	<CA+MoWDrBaVAStQwQKrWb+CuNTZHuXJBuewgLJbu9ZrBg7rrJVg@mail.gmail.com>
-Date: Thu, 28 Jun 2012 10:41:18 -0300
-Message-ID: <CALF0-+VFCf9vr=T3GHauuye1CiOHeGNfC7hrecWzs=2jAtQQ4w@mail.gmail.com>
-Subject: Re: [PATCH] [V2] stv090x: variable 'no_signal' set but not used
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: Peter Senna Tschudin <peter.senna@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Guy Martin <gmsoft@tuxicoman.be>,
-	Manu Abraham <abraham.manu@gmail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20120616131611.GA17802@elgon.mountain>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jun 28, 2012 at 10:17 AM, Peter Senna Tschudin
-<peter.senna@gmail.com> wrote:
-> Hey Ezequiel,
->
-> On Thu, Jun 28, 2012 at 1:02 AM, Ezequiel Garcia <elezegarcia@gmail.com> wrote:
->> Hey Peter,
->>
->> On Wed, Jun 27, 2012 at 7:18 PM, Peter Senna Tschudin
->> <peter.senna@gmail.com> wrote:
->>> -                       no_signal = stv090x_chk_signal(state);
->>> +                       (void) stv090x_chk_signal(state);
->>
->> Why are you casting return to void? I can't see there is a reason to it.
-> The idea is to tell the compiler that I know that stv090x_chk_signal()
-> return a value and I want to ignore it. It is to prevent the compiler
-> to issue warn_unused_result. I found two ways of doing it. First is
-> casting the return to void, second is to change the function
-> definition adding the macro __must_check defined at <linux/compiler.c>
-> like on:
 
-This would be true if stv090x_chk_signal() would be declared with __must_check.
-But this is not the case, so I think you should try to just ignore the result.
+Hm...  There are several more places which have this same problem.
+I'm not sure what's going on here.
 
-I'm pretty sure you won't find any warning at all from the compiler.
+drivers/media/video/saa7164/saa7164-i2c.c:112 saa7164_i2c_register() error: memcpy() '&saa7164_i2c_algo_template' too small (24 vs 64)
+drivers/media/video/cx23885/cx23885-i2c.c:321 cx23885_i2c_register() error: memcpy() '&cx23885_i2c_algo_template' too small (24 vs 64)
+drivers/media/video/cx231xx/cx231xx-i2c.c:503 cx231xx_i2c_register() error: memcpy() '&cx231xx_algo' too small (24 vs 64)
 
-Regards,
-Ezequiel.
+regards,
+dan carpenter
