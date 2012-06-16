@@ -1,88 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f42.google.com ([209.85.213.42]:59095 "EHLO
-	mail-yw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752445Ab2F2VPw convert rfc822-to-8bit (ORCPT
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:53398 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754276Ab2FPQDI convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Jun 2012 17:15:52 -0400
-Received: by yhfq11 with SMTP id q11so4580851yhf.1
-        for <linux-media@vger.kernel.org>; Fri, 29 Jun 2012 14:15:51 -0700 (PDT)
+	Sat, 16 Jun 2012 12:03:08 -0400
+Received: by obbtb18 with SMTP id tb18so5677445obb.19
+        for <linux-media@vger.kernel.org>; Sat, 16 Jun 2012 09:03:08 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <CAC-OdnAEsT=wDGZZVcNaywAFg2aquRNk3NkYFZZjbYH+VBPpBQ@mail.gmail.com>
-References: <CAC-OdnAEsT=wDGZZVcNaywAFg2aquRNk3NkYFZZjbYH+VBPpBQ@mail.gmail.com>
-Date: Fri, 29 Jun 2012 16:15:51 -0500
-Message-ID: <CAC-OdnD+9gTdnSBjdV2qps=cA66mdGHd6p8vALj3XtNWY1uy0w@mail.gmail.com>
-Subject: Re: [Query] Clearing V4L2_BUF_FLAG_MAPPED flag on a videobuf2 buffer
- after munmap
-From: Sergio Aguirre <sergio.a.aguirre@gmail.com>
-To: linux-media@vger.kernel.org
+In-Reply-To: <20120616133512.GB13539@mwanda>
+References: <20120616131611.GA17802@elgon.mountain>
+	<20120616133512.GB13539@mwanda>
+Date: Sat, 16 Jun 2012 13:03:07 -0300
+Message-ID: <CALF0-+U6ttGwXiQgmXO6b6T_HyZA079+L=C=X2ZQi++2eOG6Hw@mail.gmail.com>
+Subject: Re: V4L/DVB (12730): Add conexant cx25821 driver
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Palash Bandyopadhyay <palash.bandyopadhyay@conexant.com>,
+	mchehab@redhat.com, linux-media <linux-media@vger.kernel.org>,
+	stoth@kernellabs.com
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jun 29, 2012 at 9:13 AM, Sergio Aguirre
-<sergio.a.aguirre@gmail.com> wrote:
-> Hi all,
->
-> So, I've been trying to test the REQBUFS(0) from libv4l2 with my
-> omap4iss device, and I've hit the following problem:
+Hi everyone,
 
-Actually... nevermind :(
+On Sat, Jun 16, 2012 at 10:35 AM, Dan Carpenter
+<dan.carpenter@oracle.com> wrote:
+>
+> Hm...  There are several more places which have this same problem.
+> I'm not sure what's going on here.
+>
+> drivers/media/video/saa7164/saa7164-i2c.c:112 saa7164_i2c_register() error: memcpy() '&saa7164_i2c_algo_template' too small (24 vs 64)
 
-I just realized that multiple fixes went in after 3.1.
+I was just looking at that lines in saa7164_i2c_register:
 
-This problem i had is on a Android ICS kernel, which is v3.0, and didn't had
-some REQBUFS(0) patches.
+112         memcpy(&bus->i2c_algo, &saa7164_i2c_algo_template,
+113                sizeof(bus->i2c_algo));
 
-Very sorry for the noise.
+They seem like pointless to me. The real algo is set here:
 
-Regards,
-Sergio
+ 93 static struct i2c_adapter saa7164_i2c_adap_template = {
+ 94         .name              = "saa7164",
+ 95         .owner             = THIS_MODULE,
+ 96         .algo              = &saa7164_i2c_algo_template,
+ 97 };
 
->
-> So, I basically do the basic IOCTL sequence:
->
-> open(/dev/video0)
-> VIDIOC_QUERYCAP
-> VIDIOC_ENUM_FMT
-> VIDIOC_ENUM_FRAMESIZES
-> VIDIOC_ENUM_FRAMEINTERVALS
-> VIDIOC_S_FMT (w = 640, h = 480, pixfmt = V4L2_PIX_FMT_YUYV, type =
-> V4L2_BUF_TYPE_VIDEO_CAPTURE)
-> VIDIOC_S_PARM (capability = V4L2_CAP_TIMEPERFRAME, timeperframe = 1/30)
-> VIDIOC_REQBUFS (count = 6, MMAP)
->  Loop for 6 times:
->    VIDIOC_QUERYBUF (to get buff length)
->    mmap(length)
->  Loop for 6 times:
->    VIDIOC_QBUF(index = 0-5)
-> VIDIOC_STREAMON
->  (Loop to poll, DQBUF and QBUF the same buffer)
-> VIDIOC_STREAMOFF
->  Loop for 6 times:
->    munmap()
-> VIDIOC_REQBUFS (count = 0, MMAP)
->
-> ... And in this call, it fails on libv4l2 level, since it checks all
-> buffers to see
-> if they're mapped, by doign QUERYBUF on each index, and checking for
-> "V4L2_BUF_FLAG_MAPPED" flag.
->
-> Now, digging deep into how this flag is populated, I noticed the following:
->
-> I notice that in "drivers/media/video/videobuf2-core.c", inside:
-> vb2_querybuf()
->  -> __fill_v4l2_buffer()
->
-> There's this condition:
->        if (vb->num_planes_mapped == vb->num_planes)
->                b->flags |= V4L2_BUF_FLAG_MAPPED;
->
-> The problem is that, even if i did a munmap, the count of vb->num_planes_mapped
-> is not decreased... :/
->
-> How's this supposed to work? Do I need to do something in my driver to avoid
-> this flag to be set?
->
-> Regards,
-> Sergio
+This would also mean that this fields are also pointless:
+
+254         struct i2c_algo_bit_data        i2c_algo;
+255         struct i2c_client               i2c_client;
+
+IMO, the issue pointed out by Dan would never appeared
+if instead of using memcpy to fill the structures, it would just
+get assigned; it's type safe, right?
+
+Please correct me if I'm wrong,
+Ezequiel.
