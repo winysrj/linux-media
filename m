@@ -1,79 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:2109 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751201Ab2FRLn1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jun 2012 07:43:27 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [RFCv1 PATCH 25/32] create_bufs: handle count == 0.
-Date: Mon, 18 Jun 2012 13:43:22 +0200
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Andy Walls <awalls@md.metrocast.net>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Pawel Osciak <pawel@osciak.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-References: <1339323954-1404-1-git-send-email-hverkuil@xs4all.nl> <0b5df251d2a54d54ee2810d86b6da0cf7efbe38d.1339321562.git.hans.verkuil@cisco.com> <2569605.k0h3VBEz9A@avalon>
-In-Reply-To: <2569605.k0h3VBEz9A@avalon>
+Received: from mail.kapsi.fi ([217.30.184.167]:44884 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757884Ab2FPBQg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 15 Jun 2012 21:16:36 -0400
+Message-ID: <4FDBDE70.1080302@iki.fi>
+Date: Sat, 16 Jun 2012 04:16:32 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201206181343.22067.hverkuil@xs4all.nl>
+To: Malcolm Priestley <tvboxspy@gmail.com>
+CC: linux-media <linux-media@vger.kernel.org>
+Subject: Re: dvb_usb_v2: use pointers to properties[REGRESSION]
+References: <1339798273.12274.21.camel@Route3278> <4FDBBD36.9020302@iki.fi> <1339806912.13364.35.camel@Route3278> <4FDBD966.2030505@iki.fi>
+In-Reply-To: <4FDBD966.2030505@iki.fi>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon June 18 2012 12:11:27 Laurent Pinchart wrote:
-> Hi Hans,
-> 
-> Thanks for the patch.
-> 
-> On Sunday 10 June 2012 12:25:47 Hans Verkuil wrote:
-> > From: Hans Verkuil <hans.verkuil@cisco.com>
-> > 
-> > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> > ---
-> >  Documentation/DocBook/media/v4l/vidioc-create-bufs.xml |    8 +++++++-
-> >  1 file changed, 7 insertions(+), 1 deletion(-)
-> > 
-> > diff --git a/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
-> > b/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml index
-> > 765549f..afdba4d 100644
-> > --- a/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
-> > +++ b/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
-> > @@ -97,7 +97,13 @@ information.</para>
-> >  	  <row>
-> >  	    <entry>__u32</entry>
-> >  	    <entry><structfield>count</structfield></entry>
-> > -	    <entry>The number of buffers requested or granted.</entry>
-> > +	    <entry>The number of buffers requested or granted. If count == 0,
-> > then
-> > +	    <constant>VIDIOC_CREATE_BUFS</constant> will set
-> > <structfield>index</structfield>
-> > +	    to the starting buffer index,
-> 
-> I find "starting buffer index" a bit unclear in this context, as we don't 
-> create any buffer.
+I did example for you, here you are :)
 
-How about:
+On 06/16/2012 03:55 AM, Antti Palosaari wrote:
+> On 06/16/2012 03:35 AM, Malcolm Priestley wrote:
+>> On Sat, 2012-06-16 at 01:54 +0300, Antti Palosaari wrote:
+>>> Hello Malcolm,
+>>>
+>>> On 06/16/2012 01:11 AM, Malcolm Priestley wrote:
+>>>> Hi Antti
+>>>>
+>>>> You can't have dvb_usb_device_properties as constant structure pointer.
+>>>>
+>>>> At run time it needs to be copied to a private area.
+>>>
+>>> Having constant structure for properties was one of main idea of whole
+>>> change. Earlier it causes some problems when driver changes those values
+>>> - for example remote configuration based info from the eeprom.
+>>>
+>>>> Two or more devices of the same type on the system will be pointing to
+>>>> the same structure.
+>>>
+>>> Yes and no. You can define struct dvb_usb_device_properties for each
+>>> USB ID.
+>>>
+>>>> Any changes they make to the structure will be common to all.
+>>>
+>>> For those devices having same USB ID only.
+>>> Changing dvb_usb_device_properties is *not* allowed. It is constant and
+>>> should be. That was how I designed it. Due to that I introduced those
+>>> new callbacks to resolve needed values dynamically.
+>> Yes, but it does make run-time tweaks difficult.
+>>
+>>> If there is still something that is needed to resolve at runtime I am
+>>> happy to add new callback. For example PID filter configuration is
+>>> static currently as per adapter and if it is needed to to reconfigure at
+>>> runtime new callback is needed.
+>> I will look at the PID filter later, it defaulted to off.
+>>
+>> However, in my builds for ARM devices it is defaulted on. I will be
+>> testing this later. I can't see any problems.
+>>
+>>>
+>>> Could you say what is your problem I can likely say how to resolve it.
+>>>
+>>
+>> Well, the problem is, I now need two separate structures for LME2510 and
+>> LME2510C as in the existing driver, the hope was to merge them as one.
+>> The only difference being the stream endpoint number.
+>
+> Then you should use .get_usb_stream_config() instead of static stream
+> configuration. That is now supported.
+>
+> I have found one logical error in my current implementation.
+> get_usb_stream_config gets frontend as a parameter, but it is called
+> frontend == NULL when attaching adapters and after that frontend is real
+> value when called (just before streaming is started). Now what happens
+> if we has multiple adapters? We cannot know which adapter is requested
+> during attach since FE is NULL :)
+> But that is problem case only if you have multiple adapters. I will find
+> out better solution next few days. It is ugly now.
+> You can just skip fe checking or something. See AF9015 for example.
+>
+>> Currently, it is implemented in identify_state on dvb_usb_v2.
+>>
+>> The get_usb_stream_config has no access to device to to allow a run-time
+>> change there.
+>
+> Hmmm, what you try to say? As FE is given as a pointer, you have also
+> adapter and device. Those are nested, device is root, then adapter is
+> under that and finally frontend are under the adapter.
+>
+>
+> .
+> └── device
+>      ├── adapter0
+>      │   ├── frontend0
+>      │   ├── frontend1
+>      │   └── frontend2
+>      └── adapter1
+>          ├── frontend0
+>          ├── frontend1
+>          └── frontend2
+>
+>
+> regards
+> Antti
 
-... will set index to the current number of created buffers,
+static int lme2510_get_usb_stream_config(struct dvb_frontend *fe,
+		struct usb_data_stream_properties *stream)
+{
+	struct dvb_usb_adapter *adap;
+	struct lme2510_state *state;
 
-Better alternatives welcome :-)
+	stream->type = USB_BULK;
+	stream->count = 10;
+	stream->u.bulk.buffersize = 4096;
 
-	Hans
+// ugly part begins
+	if (fe == NULL)
+		return 0;
+	adap = fe->dvb->priv;
+	state = adap->dev->priv;
+// ugly part ends
 
-> 
-> > and it will check the validity of
-> > +	    <structfield>memory</structfield> and
-> > <structfield>format.type</structfield>.
-> > +	    If those are invalid -1 is returned and errno is set to &EINVAL;,
-> > +	    otherwise <constant>VIDIOC_CREATE_BUFS</constant> returns 0. It will
-> > +	    never set errno to &EBUSY; in this particular case.</entry>
-> >  	  </row>
-> >  	  <row>
-> >  	    <entry>__u32</entry>
-> 
+	if (state->chip_id == lme2510c)
+		stream->endpoint = 8;
+	else
+		stream->endpoint = 6;
+
+	return 0;
+}
+
+Ugly part between comments is what I am going to change, but currently 
+it works as is.
+
+
+regards
+Antti--
+http://palosaari.fi/
+
+
