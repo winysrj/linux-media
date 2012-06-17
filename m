@@ -1,195 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:2870 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751471Ab2FWJOT (ORCPT
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:36630 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757642Ab2FQS5H (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 23 Jun 2012 05:14:19 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [git:v4l-dvb/for_v3.6] [media] radio: Add Sanyo LM7000 tuner driver
-Date: Sat, 23 Jun 2012 11:14:06 +0200
-Cc: linux-media@vger.kernel.org,
-	Ondrej Zary <linux@rainbow-software.org>
-References: <E1Shleh-0006kq-F7@www.linuxtv.org>
-In-Reply-To: <E1Shleh-0006kq-F7@www.linuxtv.org>
+	Sun, 17 Jun 2012 14:57:07 -0400
+Received: by obbtb18 with SMTP id tb18so7313677obb.19
+        for <linux-media@vger.kernel.org>; Sun, 17 Jun 2012 11:57:07 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201206231114.06812.hverkuil@xs4all.nl>
+In-Reply-To: <CAPHtXi1nVStCzq+h1Kd_TWefNBTdBc18giWCwH3dBygsVgnqKw@mail.gmail.com>
+References: <CAPHtXi1nVStCzq+h1Kd_TWefNBTdBc18giWCwH3dBygsVgnqKw@mail.gmail.com>
+From: Leyorus <leyorus@gmail.com>
+Date: Sun, 17 Jun 2012 20:56:46 +0200
+Message-ID: <CAPHtXi1f=iVWPjx6xFw20xath+7fe-rHobaYHnMiS1OEaqKWKA@mail.gmail.com>
+Subject: TERRATEC Cinergy T PCIE dual remote control support ?
+To: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hello everybody !
 
-You accidentally merged the wrong first version of the lm7000 patch series.
+First of all, i would like to thank you all for your wonderful work.
+Thanks to you, my new Terratec Cinergy T PCIE dual card is now
+receiving TV on my linux HTPC.
 
-These are the correct second version patches:
+The only remaining thing that is not working is the remote control (not at all).
+This remote control seems to be the same as a Cinergy HTC USB XS. It
+can be seen on image
+http://www.terratec.net/us/produits/photos/img/3923630_4ac1bb0a60.png
+So the mapping is probably the same as a Cinergy XS product.
 
-http://patchwork.linuxtv.org/patch/11689/
-http://patchwork.linuxtv.org/patch/11690/
-http://patchwork.linuxtv.org/patch/11691/
+In fact, when the cx23885 module driver is loaded, no ir input is
+associated with the card nor created in /dev/input.
 
-The second version is much simpler and doesn't require the creation of a whole
-new driver.
+Here is the output of dmesg when inserting the cx23885 module in the kernel :
 
-Can you revert the old version and apply the correct one?
+[ 9321.995048] cx23885 driver version 0.0.3 loaded
+[ 9321.999469] CORE cx23885[0]: subsystem: 153b:117e, board: TerraTec
+Cinergy T PCIe Dual [card=34,autodetected]
+[ 9322.130326] cx25840 5-0044: cx23885 A/V decoder found @ 0x88 (cx23885[0])
+[ 9322.755350] cx25840 5-0044: loaded v4l-cx23885-avcore-01.fw
+firmware (16382 bytes)
+[ 9322.788281] cx23885_dvb_register() allocating 1 frontend(s)
+[ 9322.788285] cx23885[0]: cx23885 based dvb card
+[ 9322.803661] drxk: status = 0x639160d9
+[ 9322.803666] drxk: detected a drx-3916k, spin A3, xtal 20.250 MHz
+[ 9322.876517] DRXK driver version 0.9.4300
+[ 9322.900430] drxk: frontend initialized.
+[ 9322.900449] mt2063_attach: Attaching MT2063
+[ 9322.900451] DVB: registering new adapter (cx23885[0])
+[ 9322.900454] DVB: registering adapter 0 frontend 0 (DRXK DVB-T)...
+[ 9322.901581] cx23885_dvb_register() allocating 1 frontend(s)
+[ 9322.901586] cx23885[0]: cx23885 based dvb card
+[ 9322.916744] drxk: status = 0x639130d9
+[ 9322.916749] drxk: detected a drx-3913k, spin A3, xtal 20.250 MHz
+[ 9322.989590] DRXK driver version 0.9.4300
+[ 9323.013545] drxk: frontend initialized.
+[ 9323.013567] mt2063_attach: Attaching MT2063
+[ 9323.013570] DVB: registering new adapter (cx23885[0])
+[ 9323.013573] DVB: registering adapter 1 frontend 0 (DRXK DVB-C DVB-T)...
+[ 9323.013955] cx23885_dev_checkrevision() Hardware revision = 0xa5
+[ 9323.013961] cx23885[0]/0: found at 0000:02:00.0, rev: 4, irq: 16,
+latency: 0, mmio: 0xfd800000
 
-Thanks!
-
-	Hans
-
-On Thu June 21 2012 17:12:03 Mauro Carvalho Chehab wrote:
-> This is an automatic generated email to let you know that the following patch were queued at the 
-> http://git.linuxtv.org/media_tree.git tree:
-> 
-> Subject: [media] radio: Add Sanyo LM7000 tuner driver
-> Author:  Ondrej Zary <linux@rainbow-software.org>
-> Date:    Tue Jun 12 14:37:54 2012 -0300
-> 
-> Add very simple driver for Sanyo LM7000 AM/FM tuner chip. Only FM is supported
-> as there is no known HW with AM implemented.
-> 
-> This will be used by radio-aimslab and radio-sf16fmi.
-> 
-> Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
-> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> 
->  drivers/media/radio/Kconfig  |    3 ++
->  drivers/media/radio/Makefile |    1 +
->  drivers/media/radio/lm7000.c |   52 ++++++++++++++++++++++++++++++++++++++++++
->  drivers/media/radio/lm7000.h |   32 +++++++++++++++++++++++++
->  4 files changed, 88 insertions(+), 0 deletions(-)
-> 
-> ---
-> 
-> http://git.linuxtv.org/media_tree.git?a=commitdiff;h=4ecbb69414c61af3594209e081d6e834ea68a16d
-> 
-> diff --git a/drivers/media/radio/Kconfig b/drivers/media/radio/Kconfig
-> index c257da1..5bcce12 100644
-> --- a/drivers/media/radio/Kconfig
-> +++ b/drivers/media/radio/Kconfig
-> @@ -191,6 +191,9 @@ config RADIO_CADET
->  	  To compile this driver as a module, choose M here: the
->  	  module will be called radio-cadet.
->  
-> +config RADIO_LM7000
-> +	tristate
-> +
->  config RADIO_RTRACK
->  	tristate "AIMSlab RadioTrack (aka RadioReveal) support"
->  	depends on ISA && VIDEO_V4L2
-> diff --git a/drivers/media/radio/Makefile b/drivers/media/radio/Makefile
-> index ca8c7d1..7f6aa63 100644
-> --- a/drivers/media/radio/Makefile
-> +++ b/drivers/media/radio/Makefile
-> @@ -28,5 +28,6 @@ obj-$(CONFIG_RADIO_TEF6862) += tef6862.o
->  obj-$(CONFIG_RADIO_TIMBERDALE) += radio-timb.o
->  obj-$(CONFIG_RADIO_WL1273) += radio-wl1273.o
->  obj-$(CONFIG_RADIO_WL128X) += wl128x/
-> +obj-$(CONFIG_RADIO_LM7000) += lm7000.o
->  
->  ccflags-y += -Isound
-> diff --git a/drivers/media/radio/lm7000.c b/drivers/media/radio/lm7000.c
-> new file mode 100644
-> index 0000000..681f3af
-> --- /dev/null
-> +++ b/drivers/media/radio/lm7000.c
-> @@ -0,0 +1,52 @@
-> +/* Sanyo LM7000 tuner chip driver
-> + *
-> + * Copyright 2012 Ondrej Zary <linux@rainbow-software.org>
-> + * based on radio-aimslab.c by M. Kirkwood
-> + * and radio-sf16fmi.c by M. Kirkwood and Petr Vandrovec
-> + */
-> +
-> +#include <linux/delay.h>
-> +#include <linux/module.h>
-> +#include "lm7000.h"
-> +
-> +MODULE_AUTHOR("Ondrej Zary <linux@rainbow-software.org>");
-> +MODULE_DESCRIPTION("Routines for Sanyo LM7000 AM/FM radio tuner chip");
-> +MODULE_LICENSE("GPL");
-> +
-> +/* write the 24-bit register, starting with LSB */
-> +static void lm7000_write(struct lm7000 *lm, u32 val)
-> +{
-> +	int i;
-> +	u8 data;
-> +
-> +	for (i = 0; i < 24; i++) {
-> +		data = val & (1 << i) ? LM7000_DATA : 0;
-> +		lm->set_pins(lm, data | LM7000_CE);
-> +		udelay(2);
-> +		lm->set_pins(lm, data | LM7000_CE | LM7000_CLK);
-> +		udelay(2);
-> +		lm->set_pins(lm, data | LM7000_CE);
-> +		udelay(2);
-> +	}
-> +	lm->set_pins(lm, 0);
-> +}
-> +
-> +void lm7000_set_freq(struct lm7000 *lm, u32 freq)
-> +{
-> +	freq += 171200;		/* Add 10.7 MHz IF */
-> +	freq /= 400;		/* Convert to 25 kHz units */
-> +	lm7000_write(lm, freq | LM7000_FM_25 | LM7000_BIT_FM);
-> +}
-> +EXPORT_SYMBOL(lm7000_set_freq);
-> +
-> +static int __init lm7000_module_init(void)
-> +{
-> +	return 0;
-> +}
-> +
-> +static void __exit lm7000_module_exit(void)
-> +{
-> +}
-> +
-> +module_init(lm7000_module_init)
-> +module_exit(lm7000_module_exit)
-> diff --git a/drivers/media/radio/lm7000.h b/drivers/media/radio/lm7000.h
-> new file mode 100644
-> index 0000000..a5bc7d6
-> --- /dev/null
-> +++ b/drivers/media/radio/lm7000.h
-> @@ -0,0 +1,32 @@
-> +#ifndef __LM7000_H
-> +#define __LM7000_H
-> +
-> +#define LM7000_DATA	(1 << 0)
-> +#define LM7000_CLK	(1 << 1)
-> +#define LM7000_CE	(1 << 2)
-> +
-> +#define LM7000_FREQ_MASK 0x3fff
-> +#define LM7000_BIT_T0	(1 << 14)
-> +#define LM7000_BIT_T1	(1 << 15)
-> +#define LM7000_BIT_B0	(1 << 16)
-> +#define LM7000_BIT_B1	(1 << 17)
-> +#define LM7000_BIT_B2	(1 << 18)
-> +#define LM7000_BIT_TB	(1 << 19)
-> +#define LM7000_FM_100	(0 << 20)
-> +#define LM7000_FM_50	(1 << 20)
-> +#define LM7000_FM_25	(2 << 20)
-> +#define LM7000_AM_5	(3 << 20)
-> +#define LM7000_AM_10	(4 << 20)
-> +#define LM7000_AM_9	(5 << 20)
-> +#define LM7000_AM_1	(6 << 20)
-> +#define LM7000_AM_5_	(7 << 20)
-> +#define LM7000_BIT_FM	(1 << 23)
-> +
-> +
-> +struct lm7000 {
-> +	void (*set_pins)(struct lm7000 *lm, u8 pins);
-> +};
-> +
-> +void lm7000_set_freq(struct lm7000 *lm, u32 freq);
-> +
-> +#endif /* __LM7000_H */
-> 
-> _______________________________________________
-> linuxtv-commits mailing list
-> linuxtv-commits@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linuxtv-commits
-> 
+Any ideas on how to make the ir receiver recognized and work ?
