@@ -1,83 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:30371 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750828Ab2FRLY3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jun 2012 07:24:29 -0400
-Message-ID: <4FDF0FE6.3060301@redhat.com>
-Date: Mon, 18 Jun 2012 08:24:22 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:37123 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751468Ab2FRKlv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Jun 2012 06:41:51 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Philipp Dreimann <philipp@dreimann.net>
+Cc: linux-media@vger.kernel.org
+Subject: Re: uvcvideo issue with kernel 3.5-rc2 and 3
+Date: Mon, 18 Jun 2012 12:41:59 +0200
+Message-ID: <4704338.LhTThHjxGK@avalon>
+In-Reply-To: <CADYPuQ4eoX-eZNPQE6S2DYQFA-z2UuBNdpUNz4UCVi6GJWHruw@mail.gmail.com>
+References: <CADYPuQ4eoX-eZNPQE6S2DYQFA-z2UuBNdpUNz4UCVi6GJWHruw@mail.gmail.com>
 MIME-Version: 1.0
-To: Andrzej Hajda <a.hajda@samsung.com>
-CC: linux-media@vger.kernel.org, hans.verkuil@cisco.com,
-	m.szyprowski@samsung.com, k.debski@samsung.com
-Subject: Re: [PATCH 1/2] v4l: added V4L2_BUF_FLAG_EOS flag indicating the
- last frame in the stream
-References: <1337700835-13634-1-git-send-email-a.hajda@samsung.com> <1337700835-13634-2-git-send-email-a.hajda@samsung.com>
-In-Reply-To: <1337700835-13634-2-git-send-email-a.hajda@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 22-05-2012 12:33, Andrzej Hajda escreveu:
-> Some devices requires indicator if the buffer is the last one in the stream.
-> Applications and drivers can use this flag in such case.
-> 
-> Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> ---
->   Documentation/DocBook/media/v4l/io.xml          |    7 +++++++
->   Documentation/DocBook/media/v4l/vidioc-qbuf.xml |    2 ++
->   include/linux/videodev2.h                       |    1 +
->   3 files changed, 10 insertions(+), 0 deletions(-)
-> 
-> diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
-> index fd6aca2..dcbf1e0 100644
-> --- a/Documentation/DocBook/media/v4l/io.xml
-> +++ b/Documentation/DocBook/media/v4l/io.xml
-> @@ -956,6 +956,13 @@ Typically applications shall use this flag for output buffers if the data
->   in this buffer has not been created by the CPU but by some DMA-capable unit,
->   in which case caches have not been used.</entry>
->   	  </row>
-> +	  <row>
-> +	    <entry><constant>V4L2_BUF_FLAG_EOS</constant></entry>
-> +	    <entry>0x2000</entry>
-> +	    <entry>Application should set this flag in the output buffer
-> +in order to inform the driver about the last frame of the stream. Some
-> +drivers may require it to properly finish processing the stream.</entry>
+Hi Philipp,
 
-This breaks backward compatibility, as applications written before this change
-won't set this flag.
-
-> +	  </row>
->   	</tbody>
->         </tgroup>
->       </table>
-> diff --git a/Documentation/DocBook/media/v4l/vidioc-qbuf.xml b/Documentation/DocBook/media/v4l/vidioc-qbuf.xml
-> index 9caa49a..ad49f7d 100644
-> --- a/Documentation/DocBook/media/v4l/vidioc-qbuf.xml
-> +++ b/Documentation/DocBook/media/v4l/vidioc-qbuf.xml
-> @@ -76,6 +76,8 @@ supports capturing from specific video inputs and you want to specify a video
->   input, then <structfield>flags</structfield> should be set to
->   <constant>V4L2_BUF_FLAG_INPUT</constant> and the field
->   <structfield>input</structfield> must be initialized to the desired input.
-> +Some drivers expects applications set <constant>V4L2_BUF_FLAG_EOS</constant>
-> +flag on the last buffer of the stream.
->   The <structfield>reserved</structfield> field must be set to 0. When using
->   the <link linkend="planar-apis">multi-planar API</link>, the
->   <structfield>m.planes</structfield> field must contain a userspace pointer
-> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-> index 370d111..e44a7cd 100644
-> --- a/include/linux/videodev2.h
-> +++ b/include/linux/videodev2.h
-> @@ -676,6 +676,7 @@ struct v4l2_buffer {
->   /* Cache handling flags */
->   #define V4L2_BUF_FLAG_NO_CACHE_INVALIDATE	0x0800
->   #define V4L2_BUF_FLAG_NO_CACHE_CLEAN		0x1000
-> +#define V4L2_BUF_FLAG_EOS	0x2000	/* The last buffer in the stream */
->   
->   /*
->    *	O V E R L A Y   P R E V I E W
+On Sunday 17 June 2012 13:35:07 Philipp Dreimann wrote:
+> Hello,
 > 
+> my external webcam from Logitech (I guess it's a c910) stopped working
+> using kernel 3.5-rc3.( 3.4 worked fine.)
+> 
+> uvcvideo: Found UVC 1.00 device <unnamed> (046d:0821)
+> input: UVC Camera (046d:0821) as
+> /devices/pci0000:00/0000:00:1a.0/usb1/1-1/1-1.2/1-1.2:1.2/input/input14
+> usbcore: registered new interface driver uvcvideo
+> USB Video Class driver (1.1.1)
+> uvcvideo: Failed to query (GET_DEF) UVC control 2 on unit 2: -71 (exp. 2).
+> uvcvideo: Failed to query (GET_DEF) UVC control 2 on unit 2: -71 (exp. 2).
+> uvcvideo: Failed to query (GET_DEF) UVC control 3 on unit 2: -71 (exp. 2).
+> uvcvideo: Failed to query (GET_DEF) UVC control 7 on unit 2: -71 (exp. 2).
+> uvcvideo: Failed to query (GET_DEF) UVC control 11 on unit 2: -71 (exp. 1).
+> uvcvideo: Failed to query (GET_DEF) UVC control 4 on unit 2: -71 (exp. 2).
+> uvcvideo: Failed to query (GET_DEF) UVC control 5 on unit 2: -71 (exp. 1).
+> uvcvideo: Failed to query (GET_CUR) UVC control 11 on unit 2: -71 (exp. 1).
+> uvcvideo: Failed to query (GET_DEF) UVC control 8 on unit 2: -71 (exp. 2).
+> uvcvideo: Failed to query (GET_DEF) UVC control 1 on unit 2: -71 (exp. 2).
+> uvcvideo: Failed to set UVC probe control : -71 (exp. 26).
+> uvcvideo: Failed to set UVC probe control : -71 (exp. 26).
+> uvcvideo: Failed to set UVC probe control : -71 (exp. 26).
+> uvcvideo: Failed to set UVC probe control : -71 (exp. 26).
+> (the last line is being repeated...)
 
+This might be cause by a bug in the USB core or in the UVC driver. Would you 
+be able to bisect the regression ? Or, alternatively, test the v3.4 uvcvideo 
+driver on v3.5-rc3 ? Or the other way around, test the latest v4l tree on v3.4 
+(instructions regarding how to compile the v4l tree with a different kernel 
+are available at 
+http://linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-
+DVB_Device_Drivers).
+
+> I used cheese to test the webcam. My other webcam is working fine:
+> uvcvideo: Found UVC 1.00 device Integrated Camera (04f2:b217)
+> input: Integrated Camera as
+> /devices/pci0000:00/0000:00:1a.0/usb1/1-1/1-1.6/1-1.6:1.0/input/input13
+
+-- 
+Regards,
+
+Laurent Pinchart
 
