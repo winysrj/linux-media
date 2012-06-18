@@ -1,134 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:1855 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932870Ab2FVMWX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Jun 2012 08:22:23 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Pawel Osciak <pawel@osciak.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: [RFCv2 PATCH 00/34] Core and vb2 enhancements
-Date: Fri, 22 Jun 2012 14:20:54 +0200
-Message-Id: <1340367688-8722-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mx1.redhat.com ([209.132.183.28]:15981 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751290Ab2FRMH1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Jun 2012 08:07:27 -0400
+Message-ID: <4FDF19F9.6040002@redhat.com>
+Date: Mon, 18 Jun 2012 09:07:21 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Andrzej Hajda <a.hajda@samsung.com>
+CC: linux-media@vger.kernel.org, hans.verkuil@cisco.com,
+	m.szyprowski@samsung.com, k.debski@samsung.com
+Subject: Re: [PATCH 1/2] v4l: added V4L2_BUF_FLAG_EOS flag indicating the
+ last frame in the stream
+References: <1337700835-13634-1-git-send-email-a.hajda@samsung.com> <1337700835-13634-2-git-send-email-a.hajda@samsung.com> <4FDF0FE6.3060301@redhat.com> <1340020486.21426.104.camel@AMDC1061>
+In-Reply-To: <1340020486.21426.104.camel@AMDC1061>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+Em 18-06-2012 08:54, Andrzej Hajda escreveu:
+> On Mon, 2012-06-18 at 08:24 -0300, Mauro Carvalho Chehab wrote:
+>> Em 22-05-2012 12:33, Andrzej Hajda escreveu:
+>>> Some devices requires indicator if the buffer is the last one in the stream.
+>>> Applications and drivers can use this flag in such case.
+>>>
+>>> Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
+>>> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+>>> ---
+>>>    Documentation/DocBook/media/v4l/io.xml          |    7 +++++++
+>>>    Documentation/DocBook/media/v4l/vidioc-qbuf.xml |    2 ++
+>>>    include/linux/videodev2.h                       |    1 +
+>>>    3 files changed, 10 insertions(+), 0 deletions(-)
+>>>
+>>> diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
+>>> index fd6aca2..dcbf1e0 100644
+>>> --- a/Documentation/DocBook/media/v4l/io.xml
+>>> +++ b/Documentation/DocBook/media/v4l/io.xml
+>>> @@ -956,6 +956,13 @@ Typically applications shall use this flag for output buffers if the data
+>>>    in this buffer has not been created by the CPU but by some DMA-capable unit,
+>>>    in which case caches have not been used.</entry>
+>>>    	  </row>
+>>> +	  <row>
+>>> +	    <entry><constant>V4L2_BUF_FLAG_EOS</constant></entry>
+>>> +	    <entry>0x2000</entry>
+>>> +	    <entry>Application should set this flag in the output buffer
+>>> +in order to inform the driver about the last frame of the stream. Some
+>>> +drivers may require it to properly finish processing the stream.</entry>
+>>
+>> This breaks backward compatibility, as applications written before this change
+>> won't set this flag.
+> 
+> I am preparing a new patch which will use VIDIOC_ENCODER_CMD with
+> command V4L2_ENC_CMD_STOP and a new flag
+> V4L2_ENC_CMD_STOP_AFTER_NEXT_FRAME, according to suggestions by Hans
+> Verkuil. Discussion is at thread started from the parent email (subject
+> "[PATCH 0/2] s5p-mfc: added encoder support for end of stream
+> handling").
 
-This is the second version of this patch series.
+So?
 
-The first version is here:
+The point is: new changes should not break backward compatibility,
+otherwise a regression is introduced, and such patch should be nacked.
 
-http://www.mail-archive.com/linux-media@vger.kernel.org/msg47558.html
+So, newer functionality should carefully be introduced in a way that it
+won't make older apps to break.
 
-Changes since RFCv1:
-
-- Incorporated all review comments from Hans de Goede and Laurent Pinchart (Thanks!)
-  except for splitting off the vb2 helper functions into a separate source. I decided
-  to keep it together with the vb2-core code.
-
-- Improved commit messages, added more comments to the code.
-
-- The owner filehandle and the queue lock are both moved to struct vb2_queue since
-  these are a property of the queue.
-
-- The debug function has a new 'write_only' boolean: some debug functions can only
-  print a subset of the arguments if it is called by an _IOW ioctl. The previous
-  patch series split this up into two functions. Handling the debug function for
-  a write-only ioctl is annoying at the moment: you have to print the arguments
-  before calling the ioctl since the ioctl can overwrite arguments. I am considering
-  changing the op argument to const for such ioctls and see if any driver is
-  actually messing around with the contents of such structs. If we can guarantee
-  that drivers do not change the argument struct, then we can simplify the debug
-  code.
-
-- All debugging is now KERN_DEBUG instead of KERN_INFO.
-
-I still have one outstanding question: should anyone be able to call mmap() or
-only the owner of the vb2 queue? Right now anyone can call mmap().
-
-Comments are welcome!
+That means that you'll need to work on some design that an EOS flag will
+be used only if the application is known to be compiled with EOS flag support.
 
 Regards,
+Mauro
 
-	Hans
+>>
+>>> +	  </row>
+>>>    	</tbody>
+>>>          </tgroup>
+>>>        </table>
+>>> diff --git a/Documentation/DocBook/media/v4l/vidioc-qbuf.xml b/Documentation/DocBook/media/v4l/vidioc-qbuf.xml
+>>> index 9caa49a..ad49f7d 100644
+>>> --- a/Documentation/DocBook/media/v4l/vidioc-qbuf.xml
+>>> +++ b/Documentation/DocBook/media/v4l/vidioc-qbuf.xml
+>>> @@ -76,6 +76,8 @@ supports capturing from specific video inputs and you want to specify a video
+>>>    input, then <structfield>flags</structfield> should be set to
+>>>    <constant>V4L2_BUF_FLAG_INPUT</constant> and the field
+>>>    <structfield>input</structfield> must be initialized to the desired input.
+>>> +Some drivers expects applications set <constant>V4L2_BUF_FLAG_EOS</constant>
+>>> +flag on the last buffer of the stream.
+>>>    The <structfield>reserved</structfield> field must be set to 0. When using
+>>>    the <link linkend="planar-apis">multi-planar API</link>, the
+>>>    <structfield>m.planes</structfield> field must contain a userspace pointer
+>>> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+>>> index 370d111..e44a7cd 100644
+>>> --- a/include/linux/videodev2.h
+>>> +++ b/include/linux/videodev2.h
+>>> @@ -676,6 +676,7 @@ struct v4l2_buffer {
+>>>    /* Cache handling flags */
+>>>    #define V4L2_BUF_FLAG_NO_CACHE_INVALIDATE	0x0800
+>>>    #define V4L2_BUF_FLAG_NO_CACHE_CLEAN		0x1000
+>>> +#define V4L2_BUF_FLAG_EOS	0x2000	/* The last buffer in the stream */
+>>>    
+>>>    /*
+>>>     *	O V E R L A Y   P R E V I E W
+>>>
+>>
+>>
+> Regards
+> Andrzej
+> 
+> 
 
-diffstat & git repo:
-
-The following changes since commit 17bd27bd78b59f7cbe0ff2cb8bb0e473260a9801:
-
-  [media] stradis: remove unused V4L1 headers (2012-06-21 14:43:04 -0300)
-
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git ioctlv6
-
-for you to fetch changes up to 11e684f2052cfea1b3897b3a06e0b4021acca85d:
-
-  pwc: v4l2-compliance fixes. (2012-06-22 13:26:26 +0200)
-
-----------------------------------------------------------------
-Hans Verkuil (34):
-      Regression fixes.
-      v4l2-ioctl.c: move a block of code down, no other changes.
-      v4l2-ioctl.c: introduce INFO_FL_CLEAR to replace switch.
-      v4l2-ioctl.c: v4l2-ioctl: add debug and callback/offset functionality.
-      v4l2-ioctl.c: remove an unnecessary #ifdef.
-      v4l2-ioctl.c: use the new table for querycap and i/o ioctls.
-      v4l2-ioctl.c: use the new table for priority ioctls.
-      v4l2-ioctl.c: use the new table for format/framebuffer ioctls.
-      v4l2-ioctl.c: use the new table for overlay/streamon/off ioctls.
-      v4l2-ioctl.c: use the new table for std/tuner/modulator ioctls.
-      v4l2-ioctl.c: use the new table for queuing/parm ioctls.
-      v4l2-ioctl.c: use the new table for control ioctls.
-      v4l2-ioctl.c: use the new table for selection ioctls.
-      v4l2-ioctl.c: use the new table for compression ioctls.
-      v4l2-ioctl.c: use the new table for debug ioctls.
-      v4l2-ioctl.c: use the new table for preset/timings ioctls.
-      v4l2-ioctl.c: use the new table for the remaining ioctls.
-      v4l2-ioctl.c: finalize table conversion.
-      v4l2-dev.c: add debug sysfs entry.
-      v4l2-ioctl: remove v4l_(i2c_)print_ioctl
-      ivtv: don't mess with vfd->debug.
-      cx18: don't mess with vfd->debug.
-      vb2-core: refactor reqbufs/create_bufs.
-      vb2-core: add support for count == 0 in create_bufs.
-      Spec: document CREATE_BUFS behavior if count == 0.
-      v4l2-dev/ioctl.c: add vb2_queue support to video_device.
-      videobuf2-core: add helper functions.
-      vivi: remove pointless g/s_std support
-      vivi: embed struct video_device instead of allocating it.
-      vivi: use vb2 helper functions.
-      vivi: add create_bufs/preparebuf support.
-      v4l2-dev.c: also add debug support for the fops.
-      pwc: use the new vb2 helpers.
-      pwc: v4l2-compliance fixes.
-
- Documentation/DocBook/media/v4l/vidioc-create-bufs.xml |    8 +-
- drivers/media/video/cx18/cx18-ioctl.c                  |   18 -
- drivers/media/video/cx18/cx18-ioctl.h                  |    2 -
- drivers/media/video/cx18/cx18-streams.c                |    4 +-
- drivers/media/video/ivtv/ivtv-ioctl.c                  |   12 -
- drivers/media/video/ivtv/ivtv-ioctl.h                  |    1 -
- drivers/media/video/ivtv/ivtv-streams.c                |    4 +-
- drivers/media/video/pvrusb2/pvrusb2-v4l2.c             |    4 +-
- drivers/media/video/pwc/pwc-if.c                       |  155 +---
- drivers/media/video/pwc/pwc-v4l.c                      |  165 +---
- drivers/media/video/pwc/pwc.h                          |    3 -
- drivers/media/video/sn9c102/sn9c102.h                  |    2 +-
- drivers/media/video/uvc/uvc_v4l2.c                     |    2 +-
- drivers/media/video/v4l2-dev.c                         |   67 +-
- drivers/media/video/v4l2-ioctl.c                       | 3283 +++++++++++++++++++++++++++++++++++++---------------------------------------
- drivers/media/video/videobuf2-core.c                   |  390 +++++++--
- drivers/media/video/vivi.c                             |  190 +----
- include/linux/videodev2.h                              |    6 +-
- include/media/v4l2-dev.h                               |    3 +
- include/media/v4l2-ioctl.h                             |   25 +-
- include/media/videobuf2-core.h                         |   45 ++
- 21 files changed, 2123 insertions(+), 2266 deletions(-)
 
