@@ -1,83 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:49465 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752286Ab2FDQkq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jun 2012 12:40:46 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: balbi@ti.com
-Cc: Bhupesh SHARMA <bhupesh.sharma@st.com>,
-	"linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>
-Subject: Re: [PATCH 4/5] usb: gadget/uvc: Port UVC webcam gadget to use videobuf2 framework
-Date: Mon, 04 Jun 2012 18:40:46 +0200
-Message-ID: <12753426.T5yg9NUgS1@avalon>
-In-Reply-To: <20120604152831.GB20313@arwen.pp.htv.fi>
-References: <cover.1338543124.git.bhupesh.sharma@st.com> <D5ECB3C7A6F99444980976A8C6D896384FA5EC4AF1@EAPEX1MAIL1.st.com> <20120604152831.GB20313@arwen.pp.htv.fi>
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:2947 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750792Ab2FROck (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Jun 2012 10:32:40 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: David Dillow <dave@thedillows.org>
+Subject: Re: [RFC] [media] cx231xx: restore tuner settings on first open
+Date: Mon, 18 Jun 2012 16:31:59 +0200
+Cc: linux-media@vger.kernel.org
+References: <1339994998.32360.61.camel@obelisk.thedillows.org> <201206180929.48107.hverkuil@xs4all.nl> <1340028940.32360.70.camel@obelisk.thedillows.org>
+In-Reply-To: <1340028940.32360.70.camel@obelisk.thedillows.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201206181631.59966.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Felipe,
-
-On Monday 04 June 2012 18:28:33 Felipe Balbi wrote:
-> On Mon, Jun 04, 2012 at 11:21:13PM +0800, Bhupesh SHARMA wrote:
-> > On Monday, June 04, 2012 8:44 PM Felipe Balbi wrote:
-> > > On Fri, Jun 01, 2012 at 03:08:57PM +0530, Bhupesh Sharma wrote:
-> > > > This patch reworks the videobuffer management logic present in the
-> > > > UVC webcam gadget and ports it to use the "more apt" videobuf2
-> > > > framework for video buffer management.
-> > > > 
-> > > > To support routing video data captured from a real V4L2 video capture
-> > > > device with a "zero copy" operation on videobuffers (as they pass from
-> > > > the V4L2 domain to UVC domain via a user-space application), we need
-> > > > to support USER_PTR IO method at the UVC gadget side.
-> > > > 
-> > > > So the V4L2 capture device driver can still continue to use MMAO IO
-> > > > method and now the user-space application can just pass a pointer to
-> > > > the video buffers being DeQueued from the V4L2 device side while
-> > > > Queueing them at the UVC gadget end. This ensures that we have a
-> > > > "zero-copy" design as the videobuffers pass from the V4L2 capture
-> > > > device to the UVC gadget.
-> > > >
-> > > > Note that there will still be a need to apply UVC specific payload
-> > > > headers on top of each UVC payload data, which will still require a
-> > > > copy operation to be performed in the 'encode' routines of the UVC
-> > > > gadget.
-> > > >
-> > > > Signed-off-by: Bhupesh Sharma <bhupesh.sharma@st.com>
-> > > 
-> > > this patch doesn't apply. Please refresh on top of v3.5-rc1 or my gadget
-> > > branch which I will update in a while.
+On Mon June 18 2012 16:15:40 David Dillow wrote:
+> On Mon, 2012-06-18 at 09:29 +0200, Hans Verkuil wrote:
+> > On Mon June 18 2012 06:49:58 David Dillow wrote:
+> > > What does the V4L2 API spec say about tuning frequency being persistent
+> > > when there are no users of a video capture device? Is MythTV wrong to
+> > > have that assumption, or is cx231xx wrong to not restore the frequency
+> > > when a user first opens the device?
 > > 
-> > I rebased and submitted my changes on your "gadget-for-v3.5" tag.
-> > Should I now refresh my patches on top of your "v3.5-rc1" branch ?
+> > Tuner standards and frequencies must be persistent. So cx231xx is wrong.
+> > Actually, all V4L2 settings must in general be persistent (there are
+> > some per-filehandle settings when dealing with low-level subdev setups or
+> > mem2mem devices).
+> 
+> Is there a document somewhere I can reference; I need to go through the
+> cx231xx driver and make sure it is doing the right things and it would
+> be handy to have a checklist.
+
+By far the easiest method is to run v4l2-compliance from the v4l-utils
+repository on the driver. It's not 100%, but it is achieving pretty good
+coverage. It's purpose is to verify all the fields are properly filled in,
+all the latest frameworks are used, and everything is according to spec.
+
+Make sure you compile the v4l-utils repository yourself to be sure you
+use the latest version of this utility.
+
+In principle the V4L2 spec should contain all that information, but it is
+sometimes buries in the text and there are some things that are only
+available in the collective memory of the developers :-)
+
+> > > Either way, I think MythTV should keep the device open until it is done
+> > > with it, as that would avoid added latency from putting the tuner to
+> > > sleep and waking it back up. But, I think we should address the issue in
+> > > the driver if it is not living up to the guarantees of the API.
 > > 
-> > I am a bit confused on what is the latest gadget branch to be used now.
-> > Thanks for helping out.
+> > From what I can tell it is a bug in the tda tuner (not restoring the frequency)
+> > and cx231xx (not setting the initial standard and possibly frequency).
 > 
-> The gadget branch is the branch called gadget on my kernel.org tree. For
-> some reason this didn't apply. Probably some patches on
-> drivers/usb/gadget/*uvc* went into v3.5 without my knowledge. Possibly
-> because I was out for quite a while and asked Greg to help me out during
-> the merge window.
-> 
-> Anyway, I just pushed gadget with a bunch of new patches and part of
-> your series.
+> Ok, I'll break this up and have a go at a proper fix. Thanks for the
+> pointers on the persistence of parameters.
 
-I would have appreciated an occasion to review them first (especially 3/5 
-which should *really* have been split into several patches) :-( Have they been 
-pushed to mainline yet ?
+As Devin mentioned, putting the fix in tuner-core is a better approach
+since that fixes it for all such tuners.
 
-I'm currently traveling to Japan for LinuxCon so I won't have time to look 
-into this before next week. I'll send incremental patches to fix issues with 
-the already applied patches, *please* don't apply 4/5 and 5/5 before I can 
-review them.
+And a quite separate problem is when to put a tuner to sleep. That's a very
+dark corner in V4L2.
 
--- 
+For that someone would have to write an RFC, outlining the various options
+and starting a proper discussion on how to solve this.
+
 Regards,
 
-Laurent Pinchart
+	Hans
 
+> 
+> Dave
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
