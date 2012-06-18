@@ -1,73 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:38227 "EHLO
-	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756040Ab2FYOZS (ORCPT
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:4021 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751016Ab2FRMtA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Jun 2012 10:25:18 -0400
-Received: by qaeb19 with SMTP id b19so1516625qae.11
-        for <linux-media@vger.kernel.org>; Mon, 25 Jun 2012 07:25:15 -0700 (PDT)
+	Mon, 18 Jun 2012 08:49:00 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [RFCv1 PATCH 29/32] v4l2-dev.c: also add debug support for the fops.
+Date: Mon, 18 Jun 2012 14:48:53 +0200
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Andy Walls <awalls@md.metrocast.net>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Pawel Osciak <pawel@osciak.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+References: <1339323954-1404-1-git-send-email-hverkuil@xs4all.nl> <201206181340.24860.hverkuil@xs4all.nl> <2461283.FaTdpDH5hz@avalon>
+In-Reply-To: <2461283.FaTdpDH5hz@avalon>
 MIME-Version: 1.0
-In-Reply-To: <Pine.LNX.4.64.1206251540490.29019@axis700.grange>
-References: <CAH9_wRP4+hzFpCdcZWmyyTZpTTFi+9wyTJxX2vPd+3r0QNhLkA@mail.gmail.com>
- <CAKnK67Qdte8qJ9L18OL2ft=YaF4YEAD-5rTP_bk7+_nQAn4u+A@mail.gmail.com>
- <Pine.LNX.4.64.1205072321530.3564@axis700.grange> <CAKnK67SpO-roU_d_5DV4bq4J5URX0Niw=hCjXY3N=GUAumZLig@mail.gmail.com>
- <Pine.LNX.4.64.1206251540490.29019@axis700.grange>
-From: "Aguirre, Sergio" <saaguirre@ti.com>
-Date: Mon, 25 Jun 2012 09:24:54 -0500
-Message-ID: <CAKnK67Rdxfjvk25uy5cLhVmpK3bWyyN_P5nCAnHeZZw9UAHWVQ@mail.gmail.com>
-Subject: Re: [ANNOUNCEMENT] (tentative) Android generic V4L2 camera HAL
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Sriram V <vshrirama@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sergio Aguirre <sergio.a.aguirre@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201206181448.53989.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-(+ My gmail address, please start using that address from next week
-on, since I'm leaving TI)
+On Mon June 18 2012 14:19:51 Laurent Pinchart wrote:
+> Hi Hans,
+> 
+> On Monday 18 June 2012 13:40:24 Hans Verkuil wrote:
+> > On Mon June 18 2012 12:01:47 Laurent Pinchart wrote:
+> > > On Sunday 10 June 2012 12:25:51 Hans Verkuil wrote:
+> > > > From: Hans Verkuil <hans.verkuil@cisco.com>
+> > > > 
+> > > > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> > > > ---
+> > > > 
+> > > >  drivers/media/video/v4l2-dev.c |   41 ++++++++++++++++++++++-----------
+> > > >  1 file changed, 29 insertions(+), 12 deletions(-)
+> > > > 
+> > > > diff --git a/drivers/media/video/v4l2-dev.c
+> > > > b/drivers/media/video/v4l2-dev.c index 5c0bb18..54f387d 100644
+> > > > --- a/drivers/media/video/v4l2-dev.c
+> > > > +++ b/drivers/media/video/v4l2-dev.c
+> > > > @@ -305,6 +305,9 @@ static ssize_t v4l2_read(struct file *filp, char
+> > > > __user
+> > > > *buf, ret = vdev->fops->read(filp, buf, sz, off);
+> > > > 
+> > > >  	if (test_bit(V4L2_FL_LOCK_ALL_FOPS, &vdev->flags))
+> > > >  	
+> > > >  		mutex_unlock(vdev->lock);
+> > > > 
+> > > > +	if (vdev->debug)
+> > > 
+> > > As vdev->debug is a bitmask, shouldn't we add an fops debug bit ?
+> > 
+> > I actually want to move away from the bitmask idea. I've never really liked
+> > it here.
+> 
+> Would using dev_dbg with dynamic printk instead of creating our own logging 
+> system be an option ?
 
-Hi Guennadi,
+I don't think so. There are lots of printk message you'd all have to enable.
+You just want to have a standard method of debugging which ioctls are called
+that anyone can use and that's consistent for all v4l drivers.
 
-Thanks a lot for sharing these! Nice job.
+This does just that.
 
-I immediately noticed you have changes on hardware/ti/omap4xxx/
-subproject. So, Which devices did you used for testing this?
+> 
+> > > > +		pr_info("%s: read: %zd (%d)\n",
+> > > > +			video_device_node_name(vdev), sz, ret);
+> > > 
+> > > Shouldn't we use KERN_DEBUG instead of KERN_INFO ? BTW, what about
+> > > replacing the pr_* calls with dev_* calls ?
+> > 
+> > KERN_DEBUG vs KERN_INFO is actually a good question. My reasoning is that
+> > you explicitly enable logging, and so you really want to see it in the log,
+> > so we use KERN_INFO. With KERN_DEBUG you might have the situation where the
+> > debug level of the logging is disabled, so the messages are ignored.
+> > 
+> > However, if people disagree with this, then I'm happy to move it back to
+> > KERN_DEBUG.
+> 
+> On embedded systems KERN_INFO will be printed to the serial console. 
+> Interleaving kernel messages with application output during capture result in 
+> a mess.
+> 
+> If someone enables debugging I expect him/her to know enough to get the kernel 
+> log debug messages.
 
-I got confused since you had changes for the Samsung Nexus S, which
-has an Exynos chip...
-
-And you also have this Renesas Mackerel, which seems to use a SuperH 7372.
-
-Or maybe you just patched the omap4xxx related file to fix a build :)
+OK, I'll change this back to KERN_DEBUG. Good argument.
 
 Regards,
-Sergio
 
-On Mon, Jun 25, 2012 at 8:55 AM, Guennadi Liakhovetski
-<g.liakhovetski@gmx.de> wrote:
-> Hi all
->
-> It's been a while since I've actually done this work. We have been waiting
-> for various formalities to be resolved to be able to publish this work
-> upstream. There are still a couple of formal issues to sort out before we
-> can begin the submission process, but at least it has been decided to
-> release patches for independent review and testing.
->
-> For now I've uploaded a development snapshot to
->
-> http://download.open-technology.de/android/20120625/
->
-> In the future we probably will provide git trees at least for the
-> system/media/v4l_camera development.
->
-> Enjoy:-) Any comments welcome.
->
-> Thanks
-> Guennadi
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> http://www.open-technology.de/
+	Hans
