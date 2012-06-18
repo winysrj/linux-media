@@ -1,73 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gh0-f180.google.com ([209.85.160.180]:51052 "EHLO
-	mail-gh0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759291Ab2FAJfb convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 1 Jun 2012 05:35:31 -0400
-Received: by ghbz12 with SMTP id z12so1823223ghb.11
-        for <linux-media@vger.kernel.org>; Fri, 01 Jun 2012 02:35:30 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1337638227-20379-1-git-send-email-fabio.estevam@freescale.com>
-References: <1337638227-20379-1-git-send-email-fabio.estevam@freescale.com>
-Date: Fri, 1 Jun 2012 11:35:29 +0200
-Message-ID: <CACKLOr1EZg2iKjXp7MPP37GFogCbmXHt9UQ2WcMhjVQkLRzLww@mail.gmail.com>
-Subject: Re: [PATCH] video: mx2_camera: Fix build error due to the lack of
- 'pixfmt' definition
-From: javier Martin <javier.martin@vista-silicon.com>
-To: Fabio Estevam <fabio.estevam@freescale.com>
-Cc: g.liakhovetski@gmx.de, mchehab@infradead.org,
-	linux-media@vger.kernel.org, kernel@pengutronix.de
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from matrix.voodoobox.net ([75.127.97.206]:34776 "EHLO
+	matrix.voodoobox.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750698Ab2FREUv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Jun 2012 00:20:51 -0400
+Received: from shed.thedillows.org ([IPv6:2001:470:8:bf8::2])
+	by matrix.voodoobox.net (8.13.8/8.13.8) with ESMTP id q5I4Kous024511
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Mon, 18 Jun 2012 00:20:50 -0400
+Received: from [192.168.0.10] (obelisk.thedillows.org [192.168.0.10])
+	by shed.thedillows.org (8.14.4/8.14.4) with ESMTP id q5I4Knla030942
+	for <linux-media@vger.kernel.org>; Mon, 18 Jun 2012 00:20:49 -0400
+Message-ID: <1339993249.32360.44.camel@obelisk.thedillows.org>
+Subject: Re: [PATCH 1/2] [media] cx231xx: don't DMA to random addresses
+From: David Dillow <dave@thedillows.org>
+To: linux-media@vger.kernel.org
+Date: Mon, 18 Jun 2012 00:20:49 -0400
+In-Reply-To: <1339992921.32360.38.camel@obelisk.thedillows.org>
+References: <1339992819.32360.36.camel@obelisk.thedillows.org>
+	 <1339992921.32360.38.camel@obelisk.thedillows.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Fabio,
+On Mon, 2012-06-18 at 00:15 -0400, David Dillow wrote:
+> Commit 7a6f6c29d264cdd2fe0eb3d923217eed5f0ad134 (cx231xx: use
+> URB_NO_TRANSFER_DMA_MAP) was intended to avoid mapping the DMA buffer
+> for URB twice. This works for the URBs allocated with usb_alloc_urb(),
+> as those are allocated from cohernent DMA pools, but the flag was also
 
-On 22 May 2012 00:10, Fabio Estevam <fabio.estevam@freescale.com> wrote:
-> commit d509835 ([media] media: mx2_camera: Fix mbus format handling) caused
-> the following build error:
->
-> drivers/media/video/mx2_camera.c:1032:42: error: 'pixfmt' undeclared (first use in this function)
-> make[4]: *** [drivers/media/video/mx2_camera.o] Error 1
->
-> Fix this build error by providing a 'pixfmt' definition.
->
-> Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
-> ---
->  drivers/media/video/mx2_camera.c |    1 +
->  1 files changed, 1 insertions(+), 0 deletions(-)
->
-> diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
-> index ded26b7..ef72733 100644
-> --- a/drivers/media/video/mx2_camera.c
-> +++ b/drivers/media/video/mx2_camera.c
-> @@ -989,6 +989,7 @@ static int mx2_camera_set_bus_param(struct soc_camera_device *icd)
->        int ret;
->        int bytesperline;
->        u32 csicr1 = pcdev->csicr1;
-> +       u32 pixfmt = icd->current_fmt->host_fmt->fourcc;
->
->        ret = v4l2_subdev_call(sd, video, g_mbus_config, &cfg);
->        if (!ret) {
-> --
-> 1.7.1
+Nothing like finding a typo once you've sent a patch out to the wild...
 
-This patch is not needed anymore since Guennadi has requested one of
-my patches to be removed from 'for_v3.5':
+s/cohernent/coherent/
 
-[PATCH] Revert "[media] media: mx2_camera: Fix mbus format handling"
-
-And I've sent a new version addressing this merge issue and the
-problem mentioned by Guennadi:
-
-[PATCH v3][for_v3.5] media: mx2_camera: Fix mbus format handling
-
-
--- 
-Javier Martin
-Vista Silicon S.L.
-CDTUC - FASE C - Oficina S-345
-Avda de los Castros s/n
-39005- Santander. Cantabria. Spain
-+34 942 25 32 60
-www.vista-silicon.com
