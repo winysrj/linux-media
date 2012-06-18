@@ -1,97 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:46052 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750748Ab2FKNA2 (ORCPT
+Received: from mailout1.samsung.com ([203.254.224.24]:38472 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751425Ab2FRIiZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Jun 2012 09:00:28 -0400
-Received: by bkcji2 with SMTP id ji2so3490845bkc.19
-        for <linux-media@vger.kernel.org>; Mon, 11 Jun 2012 06:00:27 -0700 (PDT)
-Message-ID: <4FD5EBE9.509@gmail.com>
-Date: Mon, 11 Jun 2012 15:00:25 +0200
-From: Sylwester Nawrocki <snjw23@gmail.com>
-MIME-Version: 1.0
-To: Sachin Kamat <sachin.kamat@linaro.org>
-CC: linux-media@vger.kernel.org, t.stanislaws@samsung.com,
-	k.debski@samsung.com, s.nawrocki@samsung.com,
-	kyungmin.park@samsung.com, mchehab@infradead.org,
-	patches@linaro.org
-Subject: Re: [PATCH 3/3] [media] s5p-fimc: Replace printk with pr_* functions
-References: <1339409634-13657-1-git-send-email-sachin.kamat@linaro.org> <1339409634-13657-3-git-send-email-sachin.kamat@linaro.org>
-In-Reply-To: <1339409634-13657-3-git-send-email-sachin.kamat@linaro.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Mon, 18 Jun 2012 04:38:25 -0400
+Received: from epcpsbgm1.samsung.com (mailout1.samsung.com [203.254.224.24])
+ by mailout1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0M5T007EA1BXQVQ0@mailout1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 18 Jun 2012 17:38:24 +0900 (KST)
+Received: from localhost.localdomain ([106.116.37.195])
+ by mmp1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTPA id <0M5T00MMO1BTIG80@mmp1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 18 Jun 2012 17:38:24 +0900 (KST)
+From: Kamil Debski <k.debski@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: m.szyprowski@samsung.com, s.nawrocki@samsung.com, snjw23@gmail.com,
+	Kamil Debski <k.debski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: [PATCH] s5p-fimc: Fix control creation function
+Date: Mon, 18 Jun 2012 10:38:14 +0200
+Message-id: <1340008694-28508-1-git-send-email-k.debski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sachin,
+Fixed the size of the V4L2_CID_COLORFX control cluster.
+Prior to this fix V4L2_CID_ROTATE was also icluded in
+the cluster preventing applications from enabling rotation.
 
-On 06/11/2012 12:13 PM, Sachin Kamat wrote:
-> Replace printk with pr_* functions to silence checkpatch warnings.
-> 
-> Signed-off-by: Sachin Kamat<sachin.kamat@linaro.org>
-> ---
->   drivers/media/video/s5p-fimc/fimc-core.h |    2 +-
->   1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/media/video/s5p-fimc/fimc-core.h b/drivers/media/video/s5p-fimc/fimc-core.h
-> index 95b27ae..c22fb0a 100644
-> --- a/drivers/media/video/s5p-fimc/fimc-core.h
-> +++ b/drivers/media/video/s5p-fimc/fimc-core.h
-> @@ -28,7 +28,7 @@
->   #include<media/s5p_fimc.h>
-> 
->   #define err(fmt, args...) \
-> -	printk(KERN_ERR "%s:%d: " fmt "\n", __func__, __LINE__, ##args)
-> +	pr_err("%s:%d: " fmt "\n", __func__, __LINE__, ##args)
+Reported-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Signed-off-by: Kamil Debski <k.debski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/video/s5p-fimc/fimc-core.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-I don't think it's worth the effort. If you really want to get rid
-of that warnings, please remove the err() macro altogether and
-do something like this instead:
-
-8<----------------------------------------------------------------
-
-diff --git a/drivers/media/video/s5p-fimc/fimc-core.h b/drivers/media/video/s5p-fimc/fimc-core.h
-index 95b27ae..808ccc6 100644
---- a/drivers/media/video/s5p-fimc/fimc-core.h
-+++ b/drivers/media/video/s5p-fimc/fimc-core.h
-@@ -27,9 +27,6 @@
- #include <media/v4l2-mediabus.h>
- #include <media/s5p_fimc.h>
+diff --git a/drivers/media/video/s5p-fimc/fimc-core.c b/drivers/media/video/s5p-fimc/fimc-core.c
+index fedcd56..92fc5a2 100644
+--- a/drivers/media/video/s5p-fimc/fimc-core.c
++++ b/drivers/media/video/s5p-fimc/fimc-core.c
+@@ -615,7 +615,7 @@ int fimc_ctrls_create(struct fimc_ctx *ctx)
+ 	ctx->effect.type = FIMC_REG_CIIMGEFF_FIN_BYPASS;
  
--#define err(fmt, args...) \
--       printk(KERN_ERR "%s:%d: " fmt "\n", __func__, __LINE__, ##args)
--
- #define dbg(fmt, args...) \
-        pr_debug("%s:%d: " fmt "\n", __func__, __LINE__, ##args)
+ 	if (!handler->error) {
+-		v4l2_ctrl_cluster(3, &ctrls->colorfx);
++		v4l2_ctrl_cluster(2, &ctrls->colorfx);
+ 		ctrls->ready = true;
+ 	}
  
-diff --git a/drivers/media/video/s5p-fimc/fimc-reg.c b/drivers/media/video/s5p-fimc/fimc-reg.c
-index 1fc4ce8..74a2fba 100644
---- a/drivers/media/video/s5p-fimc/fimc-reg.c
-+++ b/drivers/media/video/s5p-fimc/fimc-reg.c
-@@ -683,8 +683,8 @@ int fimc_hw_set_camera_type(struct fimc_dev *fimc,
-                        cfg |= FIMC_REG_CIGCTRL_CAM_JPEG;
-                        break;
-                default:
--                       v4l2_err(fimc->vid_cap.vfd,
--                                "Not supported camera pixel format: %d",
-+                       v4l2_err(vid_cap->vfd,
-+                                "Not supported camera pixel format: %#x\n",
-                                 vid_cap->mf.code);
-                        return -EINVAL;
-                }
-@@ -699,7 +699,7 @@ int fimc_hw_set_camera_type(struct fimc_dev *fimc,
-        } else if (cam->bus_type == FIMC_LCD_WB) {
-                cfg |= FIMC_REG_CIGCTRL_CAMIF_SELWB;
-        } else {
--               err("invalid camera bus type selected\n");
-+               v4l2_err(vid_cap->vfd, "Invalid camera bus type selected\n");
-                return -EINVAL;
-        }
-        writel(cfg, fimc->regs + FIMC_REG_CIGCTRL);
+-- 
+1.7.0.4
 
-8>----------------------------------------------------------------
-
-
-Thanks!
-
-Sylwester
