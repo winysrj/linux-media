@@ -1,282 +1,236 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:3610 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754613Ab2FJKzL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Jun 2012 06:55:11 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Steven Toth <stoth@kernellabs.com>,
-	Michael Krufky <mkrufky@linuxtv.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv1 PATCH 04/11] cx88: convert cx88-blackbird to the control framework.
-Date: Sun, 10 Jun 2012 12:54:50 +0200
-Message-Id: <a41e025b5dd33040b2236c11937c4ed157ec934d.1339325224.git.hans.verkuil@cisco.com>
-In-Reply-To: <1339325697-23280-1-git-send-email-hverkuil@xs4all.nl>
-References: <1339325697-23280-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <541a39bdcc8a94d3de87a6a6d0b1b7c476983984.1339325224.git.hans.verkuil@cisco.com>
-References: <541a39bdcc8a94d3de87a6a6d0b1b7c476983984.1339325224.git.hans.verkuil@cisco.com>
+Received: from eu1sys200aog111.obsmtp.com ([207.126.144.131]:58533 "EHLO
+	eu1sys200aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751591Ab2FRKPF convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Jun 2012 06:15:05 -0400
+From: Bhupesh SHARMA <bhupesh.sharma@st.com>
+To: Bhupesh SHARMA <bhupesh.sharma@st.com>,
+	"laurent.pinchart@ideasonboard.com"
+	<laurent.pinchart@ideasonboard.com>,
+	"linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>
+Cc: "balbi@ti.com" <balbi@ti.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>
+Date: Mon, 18 Jun 2012 18:14:51 +0800
+Subject: RE: [PATCH 5/5] usb: gadget/uvc: Add support for
+ 'USB_GADGET_DELAYED_STATUS' response for a set_intf(alt-set 1) command
+Message-ID: <D5ECB3C7A6F99444980976A8C6D896384FAA27582D@EAPEX1MAIL1.st.com>
+References: <cover.1338543124.git.bhupesh.sharma@st.com>
+ <b0c0023b38755f2b9103adb17fd7847b9ba45d0b.1338543124.git.bhupesh.sharma@st.com>
+In-Reply-To: <b0c0023b38755f2b9103adb17fd7847b9ba45d0b.1338543124.git.bhupesh.sharma@st.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Laurent,
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/video/cx88/cx88-blackbird.c |  108 +++++++++++------------------
- drivers/media/video/cx88/cx88.h           |    2 +-
- 2 files changed, 40 insertions(+), 70 deletions(-)
+Can you please review this patch and let me know if any modifications are required..
 
-diff --git a/drivers/media/video/cx88/cx88-blackbird.c b/drivers/media/video/cx88/cx88-blackbird.c
-index c9bbe9f..18ed14b 100644
---- a/drivers/media/video/cx88/cx88-blackbird.c
-+++ b/drivers/media/video/cx88/cx88-blackbird.c
-@@ -523,11 +523,10 @@ static void blackbird_codec_settings(struct cx8802_dev *dev)
- 	blackbird_api_cmd(dev, CX2341X_ENC_SET_FRAME_SIZE, 2, 0,
- 				dev->height, dev->width);
- 
--	dev->params.width = dev->width;
--	dev->params.height = dev->height;
--	dev->params.is_50hz = (dev->core->tvnorm & V4L2_STD_625_50) != 0;
--
--	cx2341x_update(dev, blackbird_mbox_func, NULL, &dev->params);
-+	dev->cxhdl.width = dev->width;
-+	dev->cxhdl.height = dev->height;
-+	cx2341x_handler_set_50hz(&dev->cxhdl, dev->core->tvnorm & V4L2_STD_625_50);
-+	cx2341x_handler_setup(&dev->cxhdl);
- }
- 
- static int blackbird_initialize_codec(struct cx8802_dev *dev)
-@@ -618,6 +617,8 @@ static int blackbird_start_codec(struct file *file, void *priv)
- 	/* initialize the video input */
- 	blackbird_api_cmd(dev, CX2341X_ENC_INITIALIZE_INPUT, 0, 0);
- 
-+	cx2341x_handler_set_busy(&dev->cxhdl, 1);
-+
- 	/* start capturing to the host interface */
- 	blackbird_api_cmd(dev, CX2341X_ENC_START_CAPTURE, 2, 0,
- 			BLACKBIRD_MPEG_CAPTURE,
-@@ -636,6 +637,8 @@ static int blackbird_stop_codec(struct cx8802_dev *dev)
- 			BLACKBIRD_RAW_BITS_NONE
- 		);
- 
-+	cx2341x_handler_set_busy(&dev->cxhdl, 0);
-+
- 	dev->mpeg_active = 0;
- 	return 0;
- }
-@@ -721,7 +724,7 @@ static int vidioc_g_fmt_vid_cap (struct file *file, void *priv,
- 	f->fmt.pix.width        = dev->width;
- 	f->fmt.pix.height       = dev->height;
- 	f->fmt.pix.field        = fh->mpegq.field;
--	dprintk(0,"VIDIOC_G_FMT: w: %d, h: %d, f: %d\n",
-+	dprintk(1, "VIDIOC_G_FMT: w: %d, h: %d, f: %d\n",
- 		dev->width, dev->height, fh->mpegq.field );
- 	return 0;
- }
-@@ -736,7 +739,7 @@ static int vidioc_try_fmt_vid_cap (struct file *file, void *priv,
- 	f->fmt.pix.bytesperline = 0;
- 	f->fmt.pix.sizeimage    = dev->ts_packet_size * dev->ts_packet_count; /* 188 * 4 * 1024; */;
- 	f->fmt.pix.colorspace   = 0;
--	dprintk(0,"VIDIOC_TRY_FMT: w: %d, h: %d, f: %d\n",
-+	dprintk(1, "VIDIOC_TRY_FMT: w: %d, h: %d, f: %d\n",
- 		dev->width, dev->height, fh->mpegq.field );
- 	return 0;
- }
-@@ -758,7 +761,7 @@ static int vidioc_s_fmt_vid_cap (struct file *file, void *priv,
- 	cx88_set_scale(core, f->fmt.pix.width, f->fmt.pix.height, f->fmt.pix.field);
- 	blackbird_api_cmd(dev, CX2341X_ENC_SET_FRAME_SIZE, 2, 0,
- 				f->fmt.pix.height, f->fmt.pix.width);
--	dprintk(0,"VIDIOC_S_FMT: w: %d, h: %d, f: %d\n",
-+	dprintk(1, "VIDIOC_S_FMT: w: %d, h: %d, f: %d\n",
- 		f->fmt.pix.width, f->fmt.pix.height, f->fmt.pix.field );
- 	return 0;
- }
-@@ -791,60 +794,21 @@ static int vidioc_dqbuf (struct file *file, void *priv, struct v4l2_buffer *p)
- static int vidioc_streamon(struct file *file, void *priv, enum v4l2_buf_type i)
- {
- 	struct cx8802_fh  *fh   = priv;
-+	struct cx8802_dev *dev  = fh->dev;
-+
-+	if (!dev->mpeg_active)
-+		blackbird_start_codec(file, fh);
- 	return videobuf_streamon(&fh->mpegq);
- }
- 
- static int vidioc_streamoff(struct file *file, void *priv, enum v4l2_buf_type i)
- {
- 	struct cx8802_fh  *fh   = priv;
--	return videobuf_streamoff(&fh->mpegq);
--}
--
--static int vidioc_g_ext_ctrls (struct file *file, void *priv,
--			       struct v4l2_ext_controls *f)
--{
--	struct cx8802_dev *dev  = ((struct cx8802_fh *)priv)->dev;
--
--	if (f->ctrl_class != V4L2_CTRL_CLASS_MPEG)
--		return -EINVAL;
--	return cx2341x_ext_ctrls(&dev->params, 0, f, VIDIOC_G_EXT_CTRLS);
--}
--
--static int vidioc_s_ext_ctrls (struct file *file, void *priv,
--			       struct v4l2_ext_controls *f)
--{
--	struct cx8802_dev *dev  = ((struct cx8802_fh *)priv)->dev;
--	struct cx2341x_mpeg_params p;
--	int err;
--
--	if (f->ctrl_class != V4L2_CTRL_CLASS_MPEG)
--		return -EINVAL;
-+	struct cx8802_dev *dev  = fh->dev;
- 
- 	if (dev->mpeg_active)
- 		blackbird_stop_codec(dev);
--
--	p = dev->params;
--	err = cx2341x_ext_ctrls(&p, 0, f, VIDIOC_S_EXT_CTRLS);
--	if (!err) {
--		err = cx2341x_update(dev, blackbird_mbox_func, &dev->params, &p);
--		dev->params = p;
--	}
--	return err;
--}
--
--static int vidioc_try_ext_ctrls (struct file *file, void *priv,
--			       struct v4l2_ext_controls *f)
--{
--	struct cx8802_dev *dev  = ((struct cx8802_fh *)priv)->dev;
--	struct cx2341x_mpeg_params p;
--	int err;
--
--	if (f->ctrl_class != V4L2_CTRL_CLASS_MPEG)
--		return -EINVAL;
--	p = dev->params;
--	err = cx2341x_ext_ctrls(&p, 0, f, VIDIOC_TRY_EXT_CTRLS);
--
--	return err;
-+	return videobuf_streamoff(&fh->mpegq);
- }
- 
- static int vidioc_s_frequency (struct file *file, void *priv,
-@@ -870,13 +834,9 @@ static int vidioc_log_status (struct file *file, void *priv)
- 	struct cx88_core  *core = dev->core;
- 	char name[32 + 2];
- 
--	snprintf(name, sizeof(name), "%s/2", core->name);
--	printk("%s/2: ============  START LOG STATUS  ============\n",
--		core->name);
-+ 	snprintf(name, sizeof(name), "%s/2", core->name);
- 	call_all(core, core, log_status);
--	cx2341x_log_status(&dev->params, name);
--	printk("%s/2: =============  END LOG STATUS  =============\n",
--		core->name);
-+	v4l2_ctrl_handler_log_status(&dev->cxhdl.hdl, name);
- 	return 0;
- }
- 
-@@ -1082,10 +1042,11 @@ mpeg_read(struct file *file, char __user *data, size_t count, loff_t *ppos)
- static unsigned int
- mpeg_poll(struct file *file, struct poll_table_struct *wait)
- {
-+	unsigned long req_events = poll_requested_events(wait);
- 	struct cx8802_fh *fh = file->private_data;
- 	struct cx8802_dev *dev = fh->dev;
- 
--	if (!dev->mpeg_active)
-+	if (!dev->mpeg_active && (req_events & (POLLIN | POLLRDNORM)))
- 		blackbird_start_codec(file, fh);
- 
- 	return videobuf_poll_stream(file, &fh->mpegq, wait);
-@@ -1122,9 +1083,6 @@ static const struct v4l2_ioctl_ops mpeg_ioctl_ops = {
- 	.vidioc_dqbuf         = vidioc_dqbuf,
- 	.vidioc_streamon      = vidioc_streamon,
- 	.vidioc_streamoff     = vidioc_streamoff,
--	.vidioc_g_ext_ctrls   = vidioc_g_ext_ctrls,
--	.vidioc_s_ext_ctrls   = vidioc_s_ext_ctrls,
--	.vidioc_try_ext_ctrls = vidioc_try_ext_ctrls,
- 	.vidioc_s_frequency   = vidioc_s_frequency,
- 	.vidioc_log_status    = vidioc_log_status,
- 	.vidioc_enum_input    = vidioc_enum_input,
-@@ -1209,6 +1167,7 @@ static int blackbird_register_video(struct cx8802_dev *dev)
- 
- 	dev->mpeg_dev = cx88_vdev_init(dev->core,dev->pci,
- 				       &cx8802_mpeg_template,"mpeg");
-+	dev->mpeg_dev->ctrl_handler = &dev->cxhdl.hdl;
- 	video_set_drvdata(dev->mpeg_dev, dev);
- 	err = video_register_device(dev->mpeg_dev,VFL_TYPE_GRABBER, -1);
- 	if (err < 0) {
-@@ -1240,18 +1199,23 @@ static int cx8802_blackbird_probe(struct cx8802_driver *drv)
- 	if (!(core->board.mpeg & CX88_MPEG_BLACKBIRD))
- 		goto fail_core;
- 
--	dev->width = 720;
--	dev->height = 576;
--	cx2341x_fill_defaults(&dev->params);
--	dev->params.port = CX2341X_PORT_STREAMING;
--
- 	cx8802_mpeg_template.current_norm = core->tvnorm;
- 
-+	dev->width = 720;
- 	if (core->tvnorm & V4L2_STD_525_60) {
- 		dev->height = 480;
- 	} else {
- 		dev->height = 576;
- 	}
-+	dev->cxhdl.port = CX2341X_PORT_STREAMING;
-+	dev->cxhdl.width = dev->width;
-+	dev->cxhdl.height = dev->height;
-+	dev->cxhdl.func = blackbird_mbox_func;
-+	dev->cxhdl.priv = dev;
-+	err = cx2341x_handler_init(&dev->cxhdl, 36);
-+	if (err)
-+		goto fail_core;
-+	v4l2_ctrl_add_handler(&dev->cxhdl.hdl, &core->video_hdl);
- 
- 	/* blackbird stuff */
- 	printk("%s/2: cx23416 based mpeg encoder (blackbird reference design)\n",
-@@ -1259,12 +1223,14 @@ static int cx8802_blackbird_probe(struct cx8802_driver *drv)
- 	host_setup(dev->core);
- 
- 	blackbird_initialize_codec(dev);
--	blackbird_register_video(dev);
- 
- 	/* initial device configuration: needed ? */
- //	init_controls(core);
- 	cx88_set_tvnorm(core,core->tvnorm);
- 	cx88_video_mux(core,0);
-+	cx2341x_handler_set_50hz(&dev->cxhdl, dev->height == 576);
-+	cx2341x_handler_setup(&dev->cxhdl);
-+	blackbird_register_video(dev);
- 
- 	return 0;
- 
-@@ -1274,8 +1240,12 @@ static int cx8802_blackbird_probe(struct cx8802_driver *drv)
- 
- static int cx8802_blackbird_remove(struct cx8802_driver *drv)
- {
-+	struct cx88_core *core = drv->core;
-+	struct cx8802_dev *dev = core->dvbdev;
-+
- 	/* blackbird */
- 	blackbird_unregister_video(drv->core->dvbdev);
-+	v4l2_ctrl_handler_free(&dev->cxhdl.hdl);
- 
- 	return 0;
- }
-diff --git a/drivers/media/video/cx88/cx88.h b/drivers/media/video/cx88/cx88.h
-index 280bf6a..e79cb87 100644
---- a/drivers/media/video/cx88/cx88.h
-+++ b/drivers/media/video/cx88/cx88.h
-@@ -575,7 +575,7 @@ struct cx8802_dev {
- 	unsigned char              mpeg_active; /* nonzero if mpeg encoder is active */
- 
- 	/* mpeg params */
--	struct cx2341x_mpeg_params params;
-+	struct cx2341x_handler     cxhdl;
- #endif
- 
- #if defined(CONFIG_VIDEO_CX88_DVB) || defined(CONFIG_VIDEO_CX88_DVB_MODULE)
--- 
-1.7.10
+> -----Original Message-----
+> From: Bhupesh SHARMA
+> Sent: Friday, June 01, 2012 3:09 PM
+> To: laurent.pinchart@ideasonboard.com; linux-usb@vger.kernel.org
+> Cc: balbi@ti.com; linux-media@vger.kernel.org;
+> gregkh@linuxfoundation.org; Bhupesh SHARMA
+> Subject: [PATCH 5/5] usb: gadget/uvc: Add support for
+> 'USB_GADGET_DELAYED_STATUS' response for a set_intf(alt-set 1) command
+> 
+> This patch adds the support in UVC webcam gadget design for providing
+> USB_GADGET_DELAYED_STATUS in response to a set_interface(alt setting 1)
+> command
+> issue by the Host.
+> 
+> The current UVC webcam gadget design generates a STREAMON event
+> corresponding
+> to a set_interface(alt setting 1) command from the Host. This STREAMON
+> event
+> will eventually be routed to a real V4L2 device.
+> 
+> To start video streaming, it may be required to perform some register
+> writes to
+> a camera sensor device over slow external busses like I2C or SPI. So,
+> it makes
+> sense to ensure that we delay the STATUS stage of the
+> set_interface(alt setting 1) command.
+> 
+> Otherwise, a lot of ISOC IN tokens sent by the Host will be replied to
+> by
+> zero-length packets by the webcam device. On certain Hosts this may
+> even lead
+> to ISOC URBs been cancelled from the Host side.
+> 
+> So, as soon as we finish doing all the "streaming" related stuff on the
+> real
+> V4L2 device, we call a STREAMON ioctl on the UVC side and from here we
+> call the
+> 'usb_composite_setup_continue' function to complete the status stage of
+> the
+> set_interface(alt setting 1) command.
+> 
+> Further, we need to ensure that we queue no video buffers on the UVC
+> webcam
+> gadget, until we de-queue a video buffer from the V4L2 device. Also, we
+> need to
+> enable UVC video related stuff at the first QBUF ioctl call itself,
+> as the application will call the STREAMON on UVC side only when it has
+> dequeued sufficient buffers from the V4L2 side and queued them to the
+> UVC
+> gadget. So, the UVC video enable stuff cannot be done in STREAMON ioctl
+> call.
+> 
+> For the same we add two more UVC states:
+> 	- PRE_STREAMING : not even a single buffer has been queued to UVC
+> 	- BUF_QUEUED_STREAMING_OFF : one video buffer has been queued to
+> UVC
+> 			but we have not yet enabled STREAMING on UVC side.
+> 
+> Signed-off-by: Bhupesh Sharma <bhupesh.sharma@st.com>
+> ---
+>  drivers/usb/gadget/f_uvc.c    |   17 ++++++++++++-----
+>  drivers/usb/gadget/uvc.h      |    3 +++
+>  drivers/usb/gadget/uvc_v4l2.c |   38
+> ++++++++++++++++++++++++++++++++++++--
+>  3 files changed, 51 insertions(+), 7 deletions(-)
+> 
+> diff --git a/drivers/usb/gadget/f_uvc.c b/drivers/usb/gadget/f_uvc.c
+> index 2a8bf06..3589ed0 100644
+> --- a/drivers/usb/gadget/f_uvc.c
+> +++ b/drivers/usb/gadget/f_uvc.c
+> @@ -272,6 +272,13 @@ uvc_function_setup(struct usb_function *f, const
+> struct usb_ctrlrequest *ctrl)
+>  	return 0;
+>  }
+> 
+> +void uvc_function_setup_continue(struct uvc_device *uvc)
+> +{
+> +	struct usb_composite_dev *cdev = uvc->func.config->cdev;
+> +
+> +	usb_composite_setup_continue(cdev);
+> +}
+> +
+>  static int
+>  uvc_function_get_alt(struct usb_function *f, unsigned interface)
+>  {
+> @@ -334,7 +341,8 @@ uvc_function_set_alt(struct usb_function *f,
+> unsigned interface, unsigned alt)
+>  		v4l2_event_queue(uvc->vdev, &v4l2_event);
+> 
+>  		uvc->state = UVC_STATE_CONNECTED;
+> -		break;
+> +
+> +		return 0;
+> 
+>  	case 1:
+>  		if (uvc->state != UVC_STATE_CONNECTED)
+> @@ -352,14 +360,13 @@ uvc_function_set_alt(struct usb_function *f,
+> unsigned interface, unsigned alt)
+>  		v4l2_event.type = UVC_EVENT_STREAMON;
+>  		v4l2_event_queue(uvc->vdev, &v4l2_event);
+> 
+> -		uvc->state = UVC_STATE_STREAMING;
+> -		break;
+> +		uvc->state = UVC_STATE_PRE_STREAMING;
+> +
+> +		return USB_GADGET_DELAYED_STATUS;
+> 
+>  	default:
+>  		return -EINVAL;
+>  	}
+> -
+> -	return 0;
+>  }
+> 
+>  static void
+> diff --git a/drivers/usb/gadget/uvc.h b/drivers/usb/gadget/uvc.h
+> index d78ea25..6cd1435 100644
+> --- a/drivers/usb/gadget/uvc.h
+> +++ b/drivers/usb/gadget/uvc.h
+> @@ -141,6 +141,8 @@ enum uvc_state
+>  {
+>  	UVC_STATE_DISCONNECTED,
+>  	UVC_STATE_CONNECTED,
+> +	UVC_STATE_PRE_STREAMING,
+> +	UVC_STATE_BUF_QUEUED_STREAMING_OFF,
+>  	UVC_STATE_STREAMING,
+>  };
+> 
+> @@ -190,6 +192,7 @@ struct uvc_file_handle
+>   * Functions
+>   */
+> 
+> +extern void uvc_function_setup_continue(struct uvc_device *uvc);
+>  extern void uvc_endpoint_stream(struct uvc_device *dev);
+> 
+>  extern void uvc_function_connect(struct uvc_device *uvc);
+> diff --git a/drivers/usb/gadget/uvc_v4l2.c
+> b/drivers/usb/gadget/uvc_v4l2.c
+> index 9c2b45b..5f23571 100644
+> --- a/drivers/usb/gadget/uvc_v4l2.c
+> +++ b/drivers/usb/gadget/uvc_v4l2.c
+> @@ -235,10 +235,36 @@ uvc_v4l2_do_ioctl(struct file *file, unsigned int
+> cmd, void *arg)
+>  	}
+> 
+>  	case VIDIOC_QBUF:
+> +		/*
+> +		 * Theory of operation:
+> +		 * - for the very first QBUF call the uvc state will be
+> +		 *   UVC_STATE_PRE_STREAMING, so we need to initialize
+> +		 *   the UVC video pipe (allocate requests, init queue,
+> +		 *   ..) and change the uvc state to
+> +		 *   UVC_STATE_BUF_QUEUED_STREAMING_OFF.
+> +		 *
+> +		 * - For the QBUF calls thereafter, (until STREAMON is
+> +		 *   called) we just need to queue the buffers.
+> +		 *
+> +		 * - Once STREAMON has been called (which is handled by the
+> +		 *   STREAMON case below), we need to start pumping the
+> data
+> +		 *   to USB side here itself.
+> +		 */
+>  		if ((ret = uvc_queue_buffer(&video->queue, arg)) < 0)
+>  			return ret;
+> 
+> -		return uvc_video_pump(video);
+> +		if (uvc->state == UVC_STATE_PRE_STREAMING) {
+> +			ret = uvc_video_enable(video, 1);
+> +			if (ret < 0)
+> +				return ret;
+> +
+> +			uvc->state = UVC_STATE_BUF_QUEUED_STREAMING_OFF;
+> +			return 0;
+> +		} else if (uvc->state == UVC_STATE_STREAMING) {
+> +			return uvc_video_pump(video);
+> +		} else {
+> +			return 0;
+> +		}
+> 
+>  	case VIDIOC_DQBUF:
+>  		return uvc_dequeue_buffer(&video->queue, arg,
+> @@ -251,7 +277,15 @@ uvc_v4l2_do_ioctl(struct file *file, unsigned int
+> cmd, void *arg)
+>  		if (*type != video->queue.queue.type)
+>  			return -EINVAL;
+> 
+> -		return uvc_video_enable(video, 1);
+> +		/*
+> +		 * since the real video device has now started streaming
+> +		 * its safe now to complete the status phase of the
+> +		 * set_interface (alt setting 1)
+> +		 */
+> +		uvc_function_setup_continue(uvc);
+> +		uvc->state = UVC_STATE_STREAMING;
+> +
+> +		return 0;
+>  	}
+> 
+>  	case VIDIOC_STREAMOFF:
+> --
+> 1.7.2.2
 
+Regards,
+Bhupesh
