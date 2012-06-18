@@ -1,60 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr19.xs4all.nl ([194.109.24.39]:1386 "EHLO
-	smtp-vbr19.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751161Ab2FHLGt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Jun 2012 07:06:49 -0400
-Received: from alastor.dyndns.org (189.80-203-102.nextgentel.com [80.203.102.189] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr19.xs4all.nl (8.13.8/8.13.8) with ESMTP id q58B6ka1036858
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Fri, 8 Jun 2012 13:06:47 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from tschai.localnet (64-103-25-233.cisco.com [64.103.25.233])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id B5568CDE0005
-	for <linux-media@vger.kernel.org>; Fri,  8 Jun 2012 13:06:45 +0200 (CEST)
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:4638 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751246Ab2FRLlQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Jun 2012 07:41:16 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "linux-media" <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR v3.6] Clean up and improve zr364xx
-Date: Fri, 8 Jun 2012 13:06:44 +0200
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [RFCv1 PATCH 28/32] vivi: use vb2 helper functions.
+Date: Mon, 18 Jun 2012 13:40:59 +0200
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Andy Walls <awalls@md.metrocast.net>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Pawel Osciak <pawel@osciak.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+References: <1339323954-1404-1-git-send-email-hverkuil@xs4all.nl> <47a839710682872826a3da4ef631fccded2ed299.1339321562.git.hans.verkuil@cisco.com> <27919488.Es5OfZrXDC@avalon>
+In-Reply-To: <27919488.Es5OfZrXDC@avalon>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="us-ascii"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201206081306.44487.hverkuil@xs4all.nl>
+Message-Id: <201206181340.59382.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Update zr364xx to the latest frameworks (except for vb2) and add
-suspend/resume support.
+On Mon June 18 2012 12:08:10 Laurent Pinchart wrote:
+> Hi Hans,
+> 
+> Thanks for the patch.
+> 
+> On Sunday 10 June 2012 12:25:50 Hans Verkuil wrote:
+> > From: Hans Verkuil <hans.verkuil@cisco.com>
+> > 
+> > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> > ---
+> >  drivers/media/video/vivi.c |  160 ++++++-----------------------------------
+> >  1 file changed, 21 insertions(+), 139 deletions(-)
+> > 
+> > diff --git a/drivers/media/video/vivi.c b/drivers/media/video/vivi.c
+> > index 1e4da5e..1e8c4f3 100644
+> > --- a/drivers/media/video/vivi.c
+> > +++ b/drivers/media/video/vivi.c
+> > @@ -767,7 +767,13 @@ static int queue_setup(struct vb2_queue *vq, const
+> > struct v4l2_format *fmt, struct vivi_dev *dev = vb2_get_drv_priv(vq);
+> >  	unsigned long size;
+> > 
+> > -	size = dev->width * dev->height * dev->pixelsize;
+> > +	if (fmt)
+> > +		size = fmt->fmt.pix.sizeimage;
+> > +	else
+> > +		size = dev->width * dev->height * dev->pixelsize;
+> > +
+> > +	if (size == 0)
+> > +		return -EINVAL;
+> 
+> If I'm not mistaken, this is a bug fix to properly support CREATE_BUF, right ? 
+> If so it should be split to its own patch.
 
-Tested with actual hardware on both little and big endian hosts.
-
-Regards,
+OK.
 
 	Hans
-
-The following changes since commit 5472d3f17845c4398c6a510b46855820920c2181:
-
-  [media] mt9m032: Implement V4L2_CID_PIXEL_RATE control (2012-05-24 09:27:24 -0300)
-
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git zr364xx
-
-for you to fetch changes up to d08f93c5d6b195f0c85683703c737a2b1714d9a5:
-
-  zr364xx: add suspend/resume support. (2012-06-08 13:04:55 +0200)
-
-----------------------------------------------------------------
-Hans Verkuil (7):
-      zr364xx: embed video_device and register it at the end of probe.
-      zr364xx: introduce v4l2_device.
-      zr364xx: convert to the control framework.
-      zr364xx: fix querycap and fill in colorspace.
-      zr364xx: add support for control events.
-      zr364xx: allow multiple opens.
-      zr364xx: add suspend/resume support.
-
- drivers/media/video/zr364xx.c |  484 +++++++++++++++++++++++++++++++++++++++++++++--------------------------------------------------------
- 1 file changed, 213 insertions(+), 271 deletions(-)
