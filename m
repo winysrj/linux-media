@@ -1,346 +1,418 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr19.xs4all.nl ([194.109.24.39]:2969 "EHLO
-	smtp-vbr19.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753594Ab2FJK0L (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:53650 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752488Ab2FRWs6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Jun 2012 06:26:11 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Andy Walls <awalls@md.metrocast.net>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Pawel Osciak <pawel@osciak.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv1 PATCH 02/32] v4l2-ioctl.c: move a block of code down, no other changes.
-Date: Sun, 10 Jun 2012 12:25:24 +0200
-Message-Id: <34fa84b0672a439ee6a4afacc33266901cfb82e9.1339321562.git.hans.verkuil@cisco.com>
-In-Reply-To: <1339323954-1404-1-git-send-email-hverkuil@xs4all.nl>
-References: <1339323954-1404-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <ef490f7ebca5b6df91db6b1acfb9928ada3bcd70.1339321562.git.hans.verkuil@cisco.com>
-References: <ef490f7ebca5b6df91db6b1acfb9928ada3bcd70.1339321562.git.hans.verkuil@cisco.com>
+	Mon, 18 Jun 2012 18:48:58 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Bhupesh Sharma <bhupesh.sharma@st.com>
+Cc: linux-usb@vger.kernel.org, balbi@ti.com,
+	linux-media@vger.kernel.org, gregkh@linuxfoundation.org
+Subject: Re: [PATCH 4/5] usb: gadget/uvc: Port UVC webcam gadget to use videobuf2 framework
+Date: Tue, 19 Jun 2012 00:49:07 +0200
+Message-ID: <2099637.B2epIePqJp@avalon>
+In-Reply-To: <243660e539dcccd868c641188faef26d83c2b894.1338543124.git.bhupesh.sharma@st.com>
+References: <cover.1338543124.git.bhupesh.sharma@st.com> <243660e539dcccd868c641188faef26d83c2b894.1338543124.git.bhupesh.sharma@st.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Bhupesh,
 
-A block of code is moved down in the code to make later changes easier.
-Do just the move without other changes to keep the diff readable for the
-upcoming patch.
+Thanks for the patch. It looks quite good, please see below for various small 
+comments.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/video/v4l2-ioctl.c |  288 +++++++++++++++++++-------------------
- 1 file changed, 144 insertions(+), 144 deletions(-)
+On Friday 01 June 2012 15:08:57 Bhupesh Sharma wrote:
+> This patch reworks the videobuffer management logic present in the UVC
+> webcam gadget and ports it to use the "more apt" videobuf2 framework for
+> video buffer management.
+> 
+> To support routing video data captured from a real V4L2 video capture
+> device with a "zero copy" operation on videobuffers (as they pass from the
+> V4L2 domain to UVC domain via a user-space application), we need to support
+> USER_PTR IO method at the UVC gadget side.
+> 
+> So the V4L2 capture device driver can still continue to use MMAO IO method
 
-diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
-index 91be4e8..7c6831f 100644
---- a/drivers/media/video/v4l2-ioctl.c
-+++ b/drivers/media/video/v4l2-ioctl.c
-@@ -183,150 +183,6 @@ static const char *v4l2_memory_names[] = {
- /* ------------------------------------------------------------------ */
- /* debug help functions                                               */
- 
--struct v4l2_ioctl_info {
--	unsigned int ioctl;
--	u16 flags;
--	const char * const name;
--};
--
--/* This control needs a priority check */
--#define INFO_FL_PRIO	(1 << 0)
--/* This control can be valid if the filehandle passes a control handler. */
--#define INFO_FL_CTRL	(1 << 1)
--
--#define IOCTL_INFO(_ioctl, _flags) [_IOC_NR(_ioctl)] = {	\
--	.ioctl = _ioctl,					\
--	.flags = _flags,					\
--	.name = #_ioctl,					\
--}
--
--static struct v4l2_ioctl_info v4l2_ioctls[] = {
--	IOCTL_INFO(VIDIOC_QUERYCAP, 0),
--	IOCTL_INFO(VIDIOC_ENUM_FMT, 0),
--	IOCTL_INFO(VIDIOC_G_FMT, 0),
--	IOCTL_INFO(VIDIOC_S_FMT, INFO_FL_PRIO),
--	IOCTL_INFO(VIDIOC_REQBUFS, INFO_FL_PRIO),
--	IOCTL_INFO(VIDIOC_QUERYBUF, 0),
--	IOCTL_INFO(VIDIOC_G_FBUF, 0),
--	IOCTL_INFO(VIDIOC_S_FBUF, INFO_FL_PRIO),
--	IOCTL_INFO(VIDIOC_OVERLAY, INFO_FL_PRIO),
--	IOCTL_INFO(VIDIOC_QBUF, 0),
--	IOCTL_INFO(VIDIOC_DQBUF, 0),
--	IOCTL_INFO(VIDIOC_STREAMON, INFO_FL_PRIO),
--	IOCTL_INFO(VIDIOC_STREAMOFF, INFO_FL_PRIO),
--	IOCTL_INFO(VIDIOC_G_PARM, 0),
--	IOCTL_INFO(VIDIOC_S_PARM, INFO_FL_PRIO),
--	IOCTL_INFO(VIDIOC_G_STD, 0),
--	IOCTL_INFO(VIDIOC_S_STD, INFO_FL_PRIO),
--	IOCTL_INFO(VIDIOC_ENUMSTD, 0),
--	IOCTL_INFO(VIDIOC_ENUMINPUT, 0),
--	IOCTL_INFO(VIDIOC_G_CTRL, INFO_FL_CTRL),
--	IOCTL_INFO(VIDIOC_S_CTRL, INFO_FL_PRIO | INFO_FL_CTRL),
--	IOCTL_INFO(VIDIOC_G_TUNER, 0),
--	IOCTL_INFO(VIDIOC_S_TUNER, INFO_FL_PRIO),
--	IOCTL_INFO(VIDIOC_G_AUDIO, 0),
--	IOCTL_INFO(VIDIOC_S_AUDIO, INFO_FL_PRIO),
--	IOCTL_INFO(VIDIOC_QUERYCTRL, INFO_FL_CTRL),
--	IOCTL_INFO(VIDIOC_QUERYMENU, INFO_FL_CTRL),
--	IOCTL_INFO(VIDIOC_G_INPUT, 0),
--	IOCTL_INFO(VIDIOC_S_INPUT, INFO_FL_PRIO),
--	IOCTL_INFO(VIDIOC_G_OUTPUT, 0),
--	IOCTL_INFO(VIDIOC_S_OUTPUT, INFO_FL_PRIO),
--	IOCTL_INFO(VIDIOC_ENUMOUTPUT, 0),
--	IOCTL_INFO(VIDIOC_G_AUDOUT, 0),
--	IOCTL_INFO(VIDIOC_S_AUDOUT, INFO_FL_PRIO),
--	IOCTL_INFO(VIDIOC_G_MODULATOR, 0),
--	IOCTL_INFO(VIDIOC_S_MODULATOR, INFO_FL_PRIO),
--	IOCTL_INFO(VIDIOC_G_FREQUENCY, 0),
--	IOCTL_INFO(VIDIOC_S_FREQUENCY, INFO_FL_PRIO),
--	IOCTL_INFO(VIDIOC_CROPCAP, 0),
--	IOCTL_INFO(VIDIOC_G_CROP, 0),
--	IOCTL_INFO(VIDIOC_S_CROP, INFO_FL_PRIO),
--	IOCTL_INFO(VIDIOC_G_SELECTION, 0),
--	IOCTL_INFO(VIDIOC_S_SELECTION, INFO_FL_PRIO),
--	IOCTL_INFO(VIDIOC_G_JPEGCOMP, 0),
--	IOCTL_INFO(VIDIOC_S_JPEGCOMP, INFO_FL_PRIO),
--	IOCTL_INFO(VIDIOC_QUERYSTD, 0),
--	IOCTL_INFO(VIDIOC_TRY_FMT, 0),
--	IOCTL_INFO(VIDIOC_ENUMAUDIO, 0),
--	IOCTL_INFO(VIDIOC_ENUMAUDOUT, 0),
--	IOCTL_INFO(VIDIOC_G_PRIORITY, 0),
--	IOCTL_INFO(VIDIOC_S_PRIORITY, INFO_FL_PRIO),
--	IOCTL_INFO(VIDIOC_G_SLICED_VBI_CAP, 0),
--	IOCTL_INFO(VIDIOC_LOG_STATUS, 0),
--	IOCTL_INFO(VIDIOC_G_EXT_CTRLS, INFO_FL_CTRL),
--	IOCTL_INFO(VIDIOC_S_EXT_CTRLS, INFO_FL_PRIO | INFO_FL_CTRL),
--	IOCTL_INFO(VIDIOC_TRY_EXT_CTRLS, 0),
--	IOCTL_INFO(VIDIOC_ENUM_FRAMESIZES, 0),
--	IOCTL_INFO(VIDIOC_ENUM_FRAMEINTERVALS, 0),
--	IOCTL_INFO(VIDIOC_G_ENC_INDEX, 0),
--	IOCTL_INFO(VIDIOC_ENCODER_CMD, INFO_FL_PRIO),
--	IOCTL_INFO(VIDIOC_TRY_ENCODER_CMD, 0),
--	IOCTL_INFO(VIDIOC_DECODER_CMD, INFO_FL_PRIO),
--	IOCTL_INFO(VIDIOC_TRY_DECODER_CMD, 0),
--#ifdef CONFIG_VIDEO_ADV_DEBUG
--	IOCTL_INFO(VIDIOC_DBG_S_REGISTER, 0),
--	IOCTL_INFO(VIDIOC_DBG_G_REGISTER, 0),
--#endif
--	IOCTL_INFO(VIDIOC_DBG_G_CHIP_IDENT, 0),
--	IOCTL_INFO(VIDIOC_S_HW_FREQ_SEEK, INFO_FL_PRIO),
--	IOCTL_INFO(VIDIOC_ENUM_DV_PRESETS, 0),
--	IOCTL_INFO(VIDIOC_S_DV_PRESET, INFO_FL_PRIO),
--	IOCTL_INFO(VIDIOC_G_DV_PRESET, 0),
--	IOCTL_INFO(VIDIOC_QUERY_DV_PRESET, 0),
--	IOCTL_INFO(VIDIOC_S_DV_TIMINGS, INFO_FL_PRIO),
--	IOCTL_INFO(VIDIOC_G_DV_TIMINGS, 0),
--	IOCTL_INFO(VIDIOC_DQEVENT, 0),
--	IOCTL_INFO(VIDIOC_SUBSCRIBE_EVENT, 0),
--	IOCTL_INFO(VIDIOC_UNSUBSCRIBE_EVENT, 0),
--	IOCTL_INFO(VIDIOC_CREATE_BUFS, INFO_FL_PRIO),
--	IOCTL_INFO(VIDIOC_PREPARE_BUF, 0),
--	IOCTL_INFO(VIDIOC_ENUM_DV_TIMINGS, 0),
--	IOCTL_INFO(VIDIOC_QUERY_DV_TIMINGS, 0),
--	IOCTL_INFO(VIDIOC_DV_TIMINGS_CAP, 0),
--};
--#define V4L2_IOCTLS ARRAY_SIZE(v4l2_ioctls)
--
--bool v4l2_is_known_ioctl(unsigned int cmd)
--{
--	if (_IOC_NR(cmd) >= V4L2_IOCTLS)
--		return false;
--	return v4l2_ioctls[_IOC_NR(cmd)].ioctl == cmd;
--}
--
--/* Common ioctl debug function. This function can be used by
--   external ioctl messages as well as internal V4L ioctl */
--void v4l_printk_ioctl(unsigned int cmd)
--{
--	char *dir, *type;
--
--	switch (_IOC_TYPE(cmd)) {
--	case 'd':
--		type = "v4l2_int";
--		break;
--	case 'V':
--		if (_IOC_NR(cmd) >= V4L2_IOCTLS) {
--			type = "v4l2";
--			break;
--		}
--		printk("%s", v4l2_ioctls[_IOC_NR(cmd)].name);
--		return;
--	default:
--		type = "unknown";
--	}
--
--	switch (_IOC_DIR(cmd)) {
--	case _IOC_NONE:              dir = "--"; break;
--	case _IOC_READ:              dir = "r-"; break;
--	case _IOC_WRITE:             dir = "-w"; break;
--	case _IOC_READ | _IOC_WRITE: dir = "rw"; break;
--	default:                     dir = "*ERR*"; break;
--	}
--	printk("%s ioctl '%c', dir=%s, #%d (0x%08x)",
--		type, _IOC_TYPE(cmd), dir, _IOC_NR(cmd), cmd);
--}
--EXPORT_SYMBOL(v4l_printk_ioctl);
--
- static void dbgbuf(unsigned int cmd, struct video_device *vfd,
- 					struct v4l2_buffer *p)
- {
-@@ -536,6 +392,150 @@ static int check_fmt(const struct v4l2_ioctl_ops *ops, enum v4l2_buf_type type)
- 	return -EINVAL;
- }
- 
-+struct v4l2_ioctl_info {
-+	unsigned int ioctl;
-+	u16 flags;
-+	const char * const name;
-+};
-+
-+/* This control needs a priority check */
-+#define INFO_FL_PRIO	(1 << 0)
-+/* This control can be valid if the filehandle passes a control handler. */
-+#define INFO_FL_CTRL	(1 << 1)
-+
-+#define IOCTL_INFO(_ioctl, _flags) [_IOC_NR(_ioctl)] = {	\
-+	.ioctl = _ioctl,					\
-+	.flags = _flags,					\
-+	.name = #_ioctl,					\
-+}
-+
-+static struct v4l2_ioctl_info v4l2_ioctls[] = {
-+	IOCTL_INFO(VIDIOC_QUERYCAP, 0),
-+	IOCTL_INFO(VIDIOC_ENUM_FMT, 0),
-+	IOCTL_INFO(VIDIOC_G_FMT, 0),
-+	IOCTL_INFO(VIDIOC_S_FMT, INFO_FL_PRIO),
-+	IOCTL_INFO(VIDIOC_REQBUFS, INFO_FL_PRIO),
-+	IOCTL_INFO(VIDIOC_QUERYBUF, 0),
-+	IOCTL_INFO(VIDIOC_G_FBUF, 0),
-+	IOCTL_INFO(VIDIOC_S_FBUF, INFO_FL_PRIO),
-+	IOCTL_INFO(VIDIOC_OVERLAY, INFO_FL_PRIO),
-+	IOCTL_INFO(VIDIOC_QBUF, 0),
-+	IOCTL_INFO(VIDIOC_DQBUF, 0),
-+	IOCTL_INFO(VIDIOC_STREAMON, INFO_FL_PRIO),
-+	IOCTL_INFO(VIDIOC_STREAMOFF, INFO_FL_PRIO),
-+	IOCTL_INFO(VIDIOC_G_PARM, 0),
-+	IOCTL_INFO(VIDIOC_S_PARM, INFO_FL_PRIO),
-+	IOCTL_INFO(VIDIOC_G_STD, 0),
-+	IOCTL_INFO(VIDIOC_S_STD, INFO_FL_PRIO),
-+	IOCTL_INFO(VIDIOC_ENUMSTD, 0),
-+	IOCTL_INFO(VIDIOC_ENUMINPUT, 0),
-+	IOCTL_INFO(VIDIOC_G_CTRL, INFO_FL_CTRL),
-+	IOCTL_INFO(VIDIOC_S_CTRL, INFO_FL_PRIO | INFO_FL_CTRL),
-+	IOCTL_INFO(VIDIOC_G_TUNER, 0),
-+	IOCTL_INFO(VIDIOC_S_TUNER, INFO_FL_PRIO),
-+	IOCTL_INFO(VIDIOC_G_AUDIO, 0),
-+	IOCTL_INFO(VIDIOC_S_AUDIO, INFO_FL_PRIO),
-+	IOCTL_INFO(VIDIOC_QUERYCTRL, INFO_FL_CTRL),
-+	IOCTL_INFO(VIDIOC_QUERYMENU, INFO_FL_CTRL),
-+	IOCTL_INFO(VIDIOC_G_INPUT, 0),
-+	IOCTL_INFO(VIDIOC_S_INPUT, INFO_FL_PRIO),
-+	IOCTL_INFO(VIDIOC_G_OUTPUT, 0),
-+	IOCTL_INFO(VIDIOC_S_OUTPUT, INFO_FL_PRIO),
-+	IOCTL_INFO(VIDIOC_ENUMOUTPUT, 0),
-+	IOCTL_INFO(VIDIOC_G_AUDOUT, 0),
-+	IOCTL_INFO(VIDIOC_S_AUDOUT, INFO_FL_PRIO),
-+	IOCTL_INFO(VIDIOC_G_MODULATOR, 0),
-+	IOCTL_INFO(VIDIOC_S_MODULATOR, INFO_FL_PRIO),
-+	IOCTL_INFO(VIDIOC_G_FREQUENCY, 0),
-+	IOCTL_INFO(VIDIOC_S_FREQUENCY, INFO_FL_PRIO),
-+	IOCTL_INFO(VIDIOC_CROPCAP, 0),
-+	IOCTL_INFO(VIDIOC_G_CROP, 0),
-+	IOCTL_INFO(VIDIOC_S_CROP, INFO_FL_PRIO),
-+	IOCTL_INFO(VIDIOC_G_SELECTION, 0),
-+	IOCTL_INFO(VIDIOC_S_SELECTION, INFO_FL_PRIO),
-+	IOCTL_INFO(VIDIOC_G_JPEGCOMP, 0),
-+	IOCTL_INFO(VIDIOC_S_JPEGCOMP, INFO_FL_PRIO),
-+	IOCTL_INFO(VIDIOC_QUERYSTD, 0),
-+	IOCTL_INFO(VIDIOC_TRY_FMT, 0),
-+	IOCTL_INFO(VIDIOC_ENUMAUDIO, 0),
-+	IOCTL_INFO(VIDIOC_ENUMAUDOUT, 0),
-+	IOCTL_INFO(VIDIOC_G_PRIORITY, 0),
-+	IOCTL_INFO(VIDIOC_S_PRIORITY, INFO_FL_PRIO),
-+	IOCTL_INFO(VIDIOC_G_SLICED_VBI_CAP, 0),
-+	IOCTL_INFO(VIDIOC_LOG_STATUS, 0),
-+	IOCTL_INFO(VIDIOC_G_EXT_CTRLS, INFO_FL_CTRL),
-+	IOCTL_INFO(VIDIOC_S_EXT_CTRLS, INFO_FL_PRIO | INFO_FL_CTRL),
-+	IOCTL_INFO(VIDIOC_TRY_EXT_CTRLS, 0),
-+	IOCTL_INFO(VIDIOC_ENUM_FRAMESIZES, 0),
-+	IOCTL_INFO(VIDIOC_ENUM_FRAMEINTERVALS, 0),
-+	IOCTL_INFO(VIDIOC_G_ENC_INDEX, 0),
-+	IOCTL_INFO(VIDIOC_ENCODER_CMD, INFO_FL_PRIO),
-+	IOCTL_INFO(VIDIOC_TRY_ENCODER_CMD, 0),
-+	IOCTL_INFO(VIDIOC_DECODER_CMD, INFO_FL_PRIO),
-+	IOCTL_INFO(VIDIOC_TRY_DECODER_CMD, 0),
-+#ifdef CONFIG_VIDEO_ADV_DEBUG
-+	IOCTL_INFO(VIDIOC_DBG_S_REGISTER, 0),
-+	IOCTL_INFO(VIDIOC_DBG_G_REGISTER, 0),
-+#endif
-+	IOCTL_INFO(VIDIOC_DBG_G_CHIP_IDENT, 0),
-+	IOCTL_INFO(VIDIOC_S_HW_FREQ_SEEK, INFO_FL_PRIO),
-+	IOCTL_INFO(VIDIOC_ENUM_DV_PRESETS, 0),
-+	IOCTL_INFO(VIDIOC_S_DV_PRESET, INFO_FL_PRIO),
-+	IOCTL_INFO(VIDIOC_G_DV_PRESET, 0),
-+	IOCTL_INFO(VIDIOC_QUERY_DV_PRESET, 0),
-+	IOCTL_INFO(VIDIOC_S_DV_TIMINGS, INFO_FL_PRIO),
-+	IOCTL_INFO(VIDIOC_G_DV_TIMINGS, 0),
-+	IOCTL_INFO(VIDIOC_DQEVENT, 0),
-+	IOCTL_INFO(VIDIOC_SUBSCRIBE_EVENT, 0),
-+	IOCTL_INFO(VIDIOC_UNSUBSCRIBE_EVENT, 0),
-+	IOCTL_INFO(VIDIOC_CREATE_BUFS, INFO_FL_PRIO),
-+	IOCTL_INFO(VIDIOC_PREPARE_BUF, 0),
-+	IOCTL_INFO(VIDIOC_ENUM_DV_TIMINGS, 0),
-+	IOCTL_INFO(VIDIOC_QUERY_DV_TIMINGS, 0),
-+	IOCTL_INFO(VIDIOC_DV_TIMINGS_CAP, 0),
-+};
-+#define V4L2_IOCTLS ARRAY_SIZE(v4l2_ioctls)
-+
-+bool v4l2_is_known_ioctl(unsigned int cmd)
-+{
-+	if (_IOC_NR(cmd) >= V4L2_IOCTLS)
-+		return false;
-+	return v4l2_ioctls[_IOC_NR(cmd)].ioctl == cmd;
-+}
-+
-+/* Common ioctl debug function. This function can be used by
-+   external ioctl messages as well as internal V4L ioctl */
-+void v4l_printk_ioctl(unsigned int cmd)
-+{
-+	char *dir, *type;
-+
-+	switch (_IOC_TYPE(cmd)) {
-+	case 'd':
-+		type = "v4l2_int";
-+		break;
-+	case 'V':
-+		if (_IOC_NR(cmd) >= V4L2_IOCTLS) {
-+			type = "v4l2";
-+			break;
-+		}
-+		printk("%s", v4l2_ioctls[_IOC_NR(cmd)].name);
-+		return;
-+	default:
-+		type = "unknown";
-+	}
-+
-+	switch (_IOC_DIR(cmd)) {
-+	case _IOC_NONE:              dir = "--"; break;
-+	case _IOC_READ:              dir = "r-"; break;
-+	case _IOC_WRITE:             dir = "-w"; break;
-+	case _IOC_READ | _IOC_WRITE: dir = "rw"; break;
-+	default:                     dir = "*ERR*"; break;
-+	}
-+	printk("%s ioctl '%c', dir=%s, #%d (0x%08x)",
-+		type, _IOC_TYPE(cmd), dir, _IOC_NR(cmd), cmd);
-+}
-+EXPORT_SYMBOL(v4l_printk_ioctl);
-+
- static long __video_do_ioctl(struct file *file,
- 		unsigned int cmd, void *arg)
- {
+s/MMAO/MMAP/
+
+> and now the user-space application can just pass a pointer to the video
+> buffers being DeQueued from the V4L2 device side while Queueing them at the
+
+I don't think dequeued and queueing need capitals :-)
+
+> UVC gadget end. This ensures that we have a "zero-copy" design as the
+> videobuffers pass from the V4L2 capture device to the UVC gadget.
+> 
+> Note that there will still be a need to apply UVC specific payload headers
+> on top of each UVC payload data, which will still require a copy operation
+> to be performed in the 'encode' routines of the UVC gadget.
+> 
+> Signed-off-by: Bhupesh Sharma <bhupesh.sharma@st.com>
+> ---
+>  drivers/usb/gadget/Kconfig     |    1 +
+>  drivers/usb/gadget/uvc_queue.c |  524 ++++++++++---------------------------
+>  drivers/usb/gadget/uvc_queue.h |   25 +--
+>  drivers/usb/gadget/uvc_v4l2.c  |   35 ++--
+>  drivers/usb/gadget/uvc_video.c |   17 +-
+>  5 files changed, 184 insertions(+), 418 deletions(-)
+
+[snip]
+
+> diff --git a/drivers/usb/gadget/uvc_queue.c b/drivers/usb/gadget/uvc_queue.c
+> index 0cdf89d..907ece8 100644
+> --- a/drivers/usb/gadget/uvc_queue.c
+> +++ b/drivers/usb/gadget/uvc_queue.c
+
+[snip]
+
+This part is a bit difficult to review, as git tried too hard to create a 
+universal diff where your patch really replaces the code. I'll remove the - 
+lines to make the comments as readable as possible.
+
+> +/*
+> ---------------------------------------------------------------------------
+> --
+> + * videobuf2 queue operations
+>   */
+> +
+> +static int uvc_queue_setup(struct vb2_queue *vq, const struct v4l2_format
+> *fmt,
+> +				unsigned int *nbuffers, unsigned int *nplanes,
+> +				unsigned int sizes[], void *alloc_ctxs[])
+>  {
+> +	struct uvc_video_queue *queue = vb2_get_drv_priv(vq);
+> +	struct uvc_video *video =
+> +			container_of(queue, struct uvc_video, queue);
+
+No need for a line split.
+
+> 
+> +	if (*nbuffers > UVC_MAX_VIDEO_BUFFERS)
+> +		*nbuffers = UVC_MAX_VIDEO_BUFFERS;
+> 
+> +	*nplanes = 1;
+> +
+> +	sizes[0] = video->imagesize;
+> 
+>  	return 0;
+>  }
+> 
+> +static int uvc_buffer_prepare(struct vb2_buffer *vb)
+>  {
+> +	struct uvc_video_queue *queue = vb2_get_drv_priv(vb->vb2_queue);
+> +	struct uvc_buffer *buf = container_of(vb, struct uvc_buffer, buf);
+> 
+> +	if (vb->v4l2_buf.type == V4L2_BUF_TYPE_VIDEO_OUTPUT &&
+> +			vb2_get_plane_payload(vb, 0) > vb2_plane_size(vb, 0)) {
+
+Please align vb2 with the vb-> on the previous line.
+
+Have you by any chance found some inspiration in 
+drivers/media/video/uvc/uvc_queue.c ? :-) It would probably make sense to move 
+this check to vb2 core, but that's outside of the scope of this patch.
+
+> +		uvc_trace(UVC_TRACE_CAPTURE, "[E] Bytes used out of bounds.\n");
+> +		return -EINVAL;
+> +	}
+> 
+> +	if (unlikely(queue->flags & UVC_QUEUE_DISCONNECTED))
+> +		return -ENODEV;
+> 
+> +	buf->state = UVC_BUF_STATE_QUEUED;
+> +	buf->mem = vb2_plane_vaddr(vb, 0);
+> +	buf->length = vb2_plane_size(vb, 0);
+> +	if (vb->v4l2_buf.type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
+> +		buf->bytesused = 0;
+> +	else
+> +		buf->bytesused = vb2_get_plane_payload(vb, 0);
+
+The driver doesn't support the capture type at the moment so this might be a 
+bit overkill, but I think it's a good idea to support capture in the queue 
+imeplementation. I plan to try and merge the uvcvideo and uvcgadget queue 
+implementations at some point.
+
+> 
+> +	return 0;
+> +}
+> 
+> +static void uvc_buffer_queue(struct vb2_buffer *vb)
+> +{
+> +	struct uvc_video_queue *queue = vb2_get_drv_priv(vb->vb2_queue);
+> +	struct uvc_buffer *buf = container_of(vb, struct uvc_buffer, buf);
+> +	unsigned long flags;
+> 
+> +	spin_lock_irqsave(&queue->irqlock, flags);
+> 
+> +	if (likely(!(queue->flags & UVC_QUEUE_DISCONNECTED))) {
+> +		list_add_tail(&buf->queue, &queue->irqqueue);
+> +	} else {
+> +		/* If the device is disconnected return the buffer to userspace
+> +		 * directly. The next QBUF call will fail with -ENODEV.
+> +		 */
+> +		buf->state = UVC_BUF_STATE_ERROR;
+> +		vb2_buffer_done(&buf->buf, VB2_BUF_STATE_ERROR);
+>  	}
+> 
+> +	spin_unlock_irqrestore(&queue->irqlock, flags);
+>  }
+> 
+> +static struct vb2_ops uvc_queue_qops = {
+> +	.queue_setup = uvc_queue_setup,
+> +	.buf_prepare = uvc_buffer_prepare,
+> +	.buf_queue = uvc_buffer_queue,
+> +};
+> +
+> +static
+> +void uvc_queue_init(struct uvc_video_queue *queue,
+> +				enum v4l2_buf_type type)
+
+This can fit on two lines. Please align enum with struct.
+
+>  {
+> +	mutex_init(&queue->mutex);
+> +	spin_lock_init(&queue->irqlock);
+> +	INIT_LIST_HEAD(&queue->irqqueue);
+
+Please add a blank line here.
+
+> +	queue->queue.type = type;
+> +	queue->queue.io_modes = VB2_MMAP | VB2_USERPTR;
+> +	queue->queue.drv_priv = queue;
+> +	queue->queue.buf_struct_size = sizeof(struct uvc_buffer);
+> +	queue->queue.ops = &uvc_queue_qops;
+> +	queue->queue.mem_ops = &vb2_vmalloc_memops;
+> +	vb2_queue_init(&queue->queue);
+>  }
+
+[snip]
+
+>  /*
+> + * Allocate the video buffers.
+>   */
+> +static int uvc_alloc_buffers(struct uvc_video_queue *queue,
+> +				struct v4l2_requestbuffers *rb)
+
+Please align struct with struct (same for the rest of the file).
+
+>  {
+> +	int ret;
+> 
+> +	/*
+> +	 * we can support a max of UVC_MAX_VIDEO_BUFFERS video buffers
+> +	 */
+> +	if (rb->count > UVC_MAX_VIDEO_BUFFERS)
+> +		rb->count = UVC_MAX_VIDEO_BUFFERS;
+> 
+
+The check is already present in uvc_queue_setup(), you can remove it here.
+
+>  	mutex_lock(&queue->mutex);
+> +	ret = vb2_reqbufs(&queue->queue, rb);
+> +	mutex_unlock(&queue->mutex);
+> 
+> +	return ret ? ret : rb->count;
+> +}
+
+[snip]
+
+> @@ -481,10 +250,10 @@ static void uvc_queue_cancel(struct uvc_video_queue
+> *queue, int disconnect) spin_lock_irqsave(&queue->irqlock, flags);
+>  	while (!list_empty(&queue->irqqueue)) {
+>  		buf = list_first_entry(&queue->irqqueue, struct uvc_buffer,
+> -				       queue);
+> +					queue);
+
+No need to change indentation here.
+
+>  		list_del(&buf->queue);
+>  		buf->state = UVC_BUF_STATE_ERROR;
+> -		wake_up(&buf->wait);
+> +		vb2_buffer_done(&buf->buf, VB2_BUF_STATE_ERROR);
+>  	}
+>  	/* This must be protected by the irqlock spinlock to avoid race
+>  	 * conditions between uvc_queue_buffer and the disconnection event that
+> @@ -516,26 +285,28 @@ static void uvc_queue_cancel(struct uvc_video_queue
+> *queue, int disconnect) */
+>  static int uvc_queue_enable(struct uvc_video_queue *queue, int enable)
+>  {
+> +	unsigned long flags;
+>  	int ret = 0;
+> 
+>  	mutex_lock(&queue->mutex);
+>  	if (enable) {
+> +		ret = vb2_streamon(&queue->queue, queue->queue.type);
+> +		if (ret < 0)
+>  			goto done;
+> +
+>  		queue->buf_used = 0;
+> +		queue->flags |= UVC_QUEUE_STREAMING;
+
+I think UVC_QUEUE_STREAMING isn't used anymore.
+
+>  	} else {
+> +		if (uvc_queue_streaming(queue)) {
+
+The uvcvideo driver doesn't have this check. It thus returns -EINVAL if 
+VIDIOC_STREAMOFF is called on a stream that is already stopped. I'm not sure 
+what the right behaviour is, so let's keep the check here until we figure it 
+out.
+
+> +			ret = vb2_streamoff(&queue->queue, queue->queue.type);
+> +			if (ret < 0)
+> +				goto done;
+> +
+> +			spin_lock_irqsave(&queue->irqlock, flags);
+> +			INIT_LIST_HEAD(&queue->irqqueue);
+> +			queue->flags &= ~UVC_QUEUE_STREAMING;
+> +			spin_unlock_irqrestore(&queue->irqlock, flags);
+> +		}
+>  	}
+> 
+>  done:
+> @@ -543,30 +314,29 @@ done:
+>  	return ret;
+>  }
+> 
+> -/* called with queue->irqlock held.. */
+> +/* called with &queue_irqlock held.. */
+>  static struct uvc_buffer *
+>  uvc_queue_next_buffer(struct uvc_video_queue *queue, struct uvc_buffer
+> *buf) {
+>  	struct uvc_buffer *nextbuf;
+> 
+>  	if ((queue->flags & UVC_QUEUE_DROP_INCOMPLETE) &&
+> -	    buf->buf.length != buf->buf.bytesused) {
+> +			buf->length != buf->bytesused) {
+
+Please keep the indentation.
+
+>  		buf->state = UVC_BUF_STATE_QUEUED;
+> -		buf->buf.bytesused = 0;
+> +		vb2_set_plane_payload(&buf->buf, 0, 0);
+>  		return buf;
+>  	}
+> 
+>  	list_del(&buf->queue);
+>  	if (!list_empty(&queue->irqqueue))
+>  		nextbuf = list_first_entry(&queue->irqqueue, struct uvc_buffer,
+> -					   queue);
+> +						queue);
+
+Same here.
+
+>  	else
+>  		nextbuf = NULL;
+> 
+> -	buf->buf.sequence = queue->sequence++;
+> -	do_gettimeofday(&buf->buf.timestamp);
+
+videobuf2 doesn't fill the sequence number or timestamp fields, so you either 
+need to keep this here or move it to the caller.
+
+> +	vb2_set_plane_payload(&buf->buf, 0, buf->bytesused);
+> +	vb2_buffer_done(&buf->buf, VB2_BUF_STATE_DONE);
+> 
+> -	wake_up(&buf->wait);
+>  	return nextbuf;
+>  }
+> 
+> @@ -576,7 +346,7 @@ static struct uvc_buffer *uvc_queue_head(struct
+> uvc_video_queue *queue)
+> 
+>  	if (!list_empty(&queue->irqqueue))
+>  		buf = list_first_entry(&queue->irqqueue, struct uvc_buffer,
+> -				       queue);
+> +					queue);
+
+Please keep the indentation.
+
+>  	else
+>  		queue->flags |= UVC_QUEUE_PAUSED;
+> 
+
+[snip]
+
+> diff --git a/drivers/usb/gadget/uvc_v4l2.c b/drivers/usb/gadget/uvc_v4l2.c
+> index f6e083b..9c2b45b 100644
+> --- a/drivers/usb/gadget/uvc_v4l2.c
+> +++ b/drivers/usb/gadget/uvc_v4l2.c
+> @@ -144,20 +144,23 @@ uvc_v4l2_release(struct file *file)
+>  	struct uvc_device *uvc = video_get_drvdata(vdev);
+>  	struct uvc_file_handle *handle = to_uvc_file_handle(file->private_data);
+>  	struct uvc_video *video = handle->device;
+> +	int ret;
+> 
+>  	uvc_function_disconnect(uvc);
+> 
+> -	uvc_video_enable(video, 0);
+> -	mutex_lock(&video->queue.mutex);
+> -	if (uvc_free_buffers(&video->queue) < 0)
+> -		printk(KERN_ERR "uvc_v4l2_release: Unable to free "
+> -				"buffers.\n");
+> -	mutex_unlock(&video->queue.mutex);
+> +	ret = uvc_video_enable(video, 0);
+> +	if (ret < 0) {
+> +		printk(KERN_ERR "uvc_v4l2_release: uvc video disable failed\n");
+> +		return ret;
+> +	}
+
+This shouldn't prevent uvc_v4l2_release() from succeeding. In practive 
+uvc_video_enable(0) will never fail, so you can remove the error check.
+
+> +
+> +	uvc_free_buffers(&video->queue);
+> 
+>  	file->private_data = NULL;
+>  	v4l2_fh_del(&handle->vfh);
+>  	v4l2_fh_exit(&handle->vfh);
+>  	kfree(handle);
+> +
+>  	return 0;
+>  }
+
+[snip]
+
+> diff --git a/drivers/usb/gadget/uvc_video.c b/drivers/usb/gadget/uvc_video.c
+> index b0e53a8..195bbb6 100644
+> --- a/drivers/usb/gadget/uvc_video.c
+> +++ b/drivers/usb/gadget/uvc_video.c
+
+[snip]
+
+> @@ -161,6 +161,7 @@ static void
+>  uvc_video_complete(struct usb_ep *ep, struct usb_request *req)
+>  {
+>  	struct uvc_video *video = req->context;
+> +	struct uvc_video_queue *queue = &video->queue;
+>  	struct uvc_buffer *buf;
+>  	unsigned long flags;
+>  	int ret;
+> @@ -169,13 +170,15 @@ uvc_video_complete(struct usb_ep *ep, struct
+> usb_request *req) case 0:
+>  		break;
+> 
+> -	case -ESHUTDOWN:
+> +	case -ESHUTDOWN:	/* disconnect from host. */
+>  		printk(KERN_INFO "VS request cancelled.\n");
+> +		uvc_queue_cancel(queue, 1);
+>  		goto requeue;
+> 
+>  	default:
+>  		printk(KERN_INFO "VS request completed with status %d.\n",
+>  			req->status);
+> +		uvc_queue_cancel(queue, 0);
+
+I wonder why there was no uvc_queue_cancel() here already, it makes me a bit 
+suspicious :-) Have you double-checked this ?
+
+>  		goto requeue;
+>  	}
+
 -- 
-1.7.10
+Regards,
+
+Laurent Pinchart
 
