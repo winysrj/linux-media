@@ -1,64 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:48628 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754936Ab2FMW0o (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Jun 2012 18:26:44 -0400
-Received: by weyu7 with SMTP id u7so816356wey.19
-        for <linux-media@vger.kernel.org>; Wed, 13 Jun 2012 15:26:43 -0700 (PDT)
-Message-ID: <1339626396.2421.75.camel@Route3278>
-Subject: [PATCH 2/2] dvb_usb_v2 Allow d->props.bInterfaceNumber to set the
- correct  interface.
-From: Malcolm Priestley <tvboxspy@gmail.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media <linux-media@vger.kernel.org>
-Date: Wed, 13 Jun 2012 23:26:36 +0100
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
+Received: from mx1.redhat.com ([209.132.183.28]:30371 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750828Ab2FRLY3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Jun 2012 07:24:29 -0400
+Message-ID: <4FDF0FE6.3060301@redhat.com>
+Date: Mon, 18 Jun 2012 08:24:22 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Andrzej Hajda <a.hajda@samsung.com>
+CC: linux-media@vger.kernel.org, hans.verkuil@cisco.com,
+	m.szyprowski@samsung.com, k.debski@samsung.com
+Subject: Re: [PATCH 1/2] v4l: added V4L2_BUF_FLAG_EOS flag indicating the
+ last frame in the stream
+References: <1337700835-13634-1-git-send-email-a.hajda@samsung.com> <1337700835-13634-2-git-send-email-a.hajda@samsung.com>
+In-Reply-To: <1337700835-13634-2-git-send-email-a.hajda@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Although the interface could be set in identify state, ideally it should be done in
-the probe.
+Em 22-05-2012 12:33, Andrzej Hajda escreveu:
+> Some devices requires indicator if the buffer is the last one in the stream.
+> Applications and drivers can use this flag in such case.
+> 
+> Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> ---
+>   Documentation/DocBook/media/v4l/io.xml          |    7 +++++++
+>   Documentation/DocBook/media/v4l/vidioc-qbuf.xml |    2 ++
+>   include/linux/videodev2.h                       |    1 +
+>   3 files changed, 10 insertions(+), 0 deletions(-)
+> 
+> diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
+> index fd6aca2..dcbf1e0 100644
+> --- a/Documentation/DocBook/media/v4l/io.xml
+> +++ b/Documentation/DocBook/media/v4l/io.xml
+> @@ -956,6 +956,13 @@ Typically applications shall use this flag for output buffers if the data
+>   in this buffer has not been created by the CPU but by some DMA-capable unit,
+>   in which case caches have not been used.</entry>
+>   	  </row>
+> +	  <row>
+> +	    <entry><constant>V4L2_BUF_FLAG_EOS</constant></entry>
+> +	    <entry>0x2000</entry>
+> +	    <entry>Application should set this flag in the output buffer
+> +in order to inform the driver about the last frame of the stream. Some
+> +drivers may require it to properly finish processing the stream.</entry>
 
-Allow d->props.bInterfaceNumber try to set the correct interface rather than return error.
+This breaks backward compatibility, as applications written before this change
+won't set this flag.
 
-
-Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
----
- drivers/media/dvb/dvb-usb/dvb_usb_init.c |   11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/dvb/dvb-usb/dvb_usb_init.c b/drivers/media/dvb/dvb-usb/dvb_usb_init.c
-index c16a28a..b2eb8ac 100644
---- a/drivers/media/dvb/dvb-usb/dvb_usb_init.c
-+++ b/drivers/media/dvb/dvb-usb/dvb_usb_init.c
-@@ -391,8 +391,15 @@ int dvb_usbv2_probe(struct usb_interface *intf,
- 
- 	if (d->intf->cur_altsetting->desc.bInterfaceNumber !=
- 			d->props.bInterfaceNumber) {
--		ret = -ENODEV;
--		goto err_kfree;
-+		usb_reset_configuration(d->udev);
-+
-+		ret = usb_set_interface(d->udev,
-+			d->intf->cur_altsetting->desc.bInterfaceNumber,
-+				d->props.bInterfaceNumber);
-+		if (ret < 0) {
-+			ret = -ENODEV;
-+			goto err_kfree;
-+		}
- 	}
- 
- 	mutex_init(&d->usb_mutex);
--- 
-1.7.10
-
-
-
-
-
-
+> +	  </row>
+>   	</tbody>
+>         </tgroup>
+>       </table>
+> diff --git a/Documentation/DocBook/media/v4l/vidioc-qbuf.xml b/Documentation/DocBook/media/v4l/vidioc-qbuf.xml
+> index 9caa49a..ad49f7d 100644
+> --- a/Documentation/DocBook/media/v4l/vidioc-qbuf.xml
+> +++ b/Documentation/DocBook/media/v4l/vidioc-qbuf.xml
+> @@ -76,6 +76,8 @@ supports capturing from specific video inputs and you want to specify a video
+>   input, then <structfield>flags</structfield> should be set to
+>   <constant>V4L2_BUF_FLAG_INPUT</constant> and the field
+>   <structfield>input</structfield> must be initialized to the desired input.
+> +Some drivers expects applications set <constant>V4L2_BUF_FLAG_EOS</constant>
+> +flag on the last buffer of the stream.
+>   The <structfield>reserved</structfield> field must be set to 0. When using
+>   the <link linkend="planar-apis">multi-planar API</link>, the
+>   <structfield>m.planes</structfield> field must contain a userspace pointer
+> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+> index 370d111..e44a7cd 100644
+> --- a/include/linux/videodev2.h
+> +++ b/include/linux/videodev2.h
+> @@ -676,6 +676,7 @@ struct v4l2_buffer {
+>   /* Cache handling flags */
+>   #define V4L2_BUF_FLAG_NO_CACHE_INVALIDATE	0x0800
+>   #define V4L2_BUF_FLAG_NO_CACHE_CLEAN		0x1000
+> +#define V4L2_BUF_FLAG_EOS	0x2000	/* The last buffer in the stream */
+>   
+>   /*
+>    *	O V E R L A Y   P R E V I E W
+> 
 
 
