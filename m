@@ -1,49 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:53221 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750888Ab2FXU1G (ORCPT
+Received: from mail-gh0-f174.google.com ([209.85.160.174]:38201 "EHLO
+	mail-gh0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751700Ab2FRTX5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 Jun 2012 16:27:06 -0400
-Received: by wgbdr13 with SMTP id dr13so3428048wgb.1
-        for <linux-media@vger.kernel.org>; Sun, 24 Jun 2012 13:27:04 -0700 (PDT)
-MIME-Version: 1.0
-Date: Sun, 24 Jun 2012 22:27:04 +0200
-Message-ID: <CABKcTNpNCKSQxHUtsB_Q=ZeHptL1w0hQPtkfQRvF5abKZwABww@mail.gmail.com>
-Subject: homebrew versatile set top box
-From: Sebastiano Fabio Genovese <synapse@videobank.it>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+	Mon, 18 Jun 2012 15:23:57 -0400
+Received: by ghrr11 with SMTP id r11so3997516ghr.19
+        for <linux-media@vger.kernel.org>; Mon, 18 Jun 2012 12:23:57 -0700 (PDT)
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: <linux-media@vger.kernel.org>,
+	Ezequiel Garcia <elezegarcia@gmail.com>
+Subject: [PATCH 01/12] saa7164: Use i2c_rc properly to store i2c register status
+Date: Mon, 18 Jun 2012 16:23:34 -0300
+Message-Id: <1340047425-32000-1-git-send-email-elezegarcia@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-excuse my poor English, since a month I'm thinking of developing a
-new, homebrew, dvb platform based on tu1216l tuner (DVB-T tda10046
-Channel Receiver and PLL synthesizer for hybrid terrestrial tda6650
-tuner). I found the datasheet in a very difficult, trying for weeks,
-but now I have: I have not signed any nda ;)
+Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
+---
+ drivers/media/video/saa7164/saa7164-i2c.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-my goals is provide cheap and  free to build:
-- dvb usb stb
-- sprectrum analyzer
-- field measurer
-- radioastronomy equipment
-- and so on..
+diff --git a/drivers/media/video/saa7164/saa7164-i2c.c b/drivers/media/video/saa7164/saa7164-i2c.c
+index 26148f7..536f7dc 100644
+--- a/drivers/media/video/saa7164/saa7164-i2c.c
++++ b/drivers/media/video/saa7164/saa7164-i2c.c
+@@ -123,7 +123,7 @@ int saa7164_i2c_register(struct saa7164_i2c *bus)
+ 	bus->i2c_algo.data = bus;
+ 	bus->i2c_adap.algo_data = bus;
+ 	i2c_set_adapdata(&bus->i2c_adap, bus);
+-	i2c_add_adapter(&bus->i2c_adap);
++	bus->i2c_rc = i2c_add_adapter(&bus->i2c_adap);
+ 
+ 	bus->i2c_client.adapter = &bus->i2c_adap;
+ 
+-- 
+1.7.4.4
 
-in the future would also be possible to replace the tuner with a
-satellite type and extend the functionality, allowing datv receiving,
-and more.
-
-Now I'm considering whether to use the classic CYPRESS FX2, covered by
-rights (including the tuner is, but they all are!),  or use FT2232, I
-have seen to be sufficiently fast and versatile, someone confirm my
-theory.
-
-For the electronic part I am able to complete the project in its
-entirety, for software I would have some difficulty, as I should be
-studying very hard for months because I have no experience in
-developing kernel driver, especially the difficulty of v4l.
-
-I thank all those who can help me or give me a simple piece of advice,
-Thanks in advance,
-Genovese Fabio
