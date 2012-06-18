@@ -1,52 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:52927 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755653Ab2F0QxV (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:53660 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752488Ab2FRWud (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Jun 2012 12:53:21 -0400
-Received: by yenl2 with SMTP id l2so1090102yen.19
-        for <linux-media@vger.kernel.org>; Wed, 27 Jun 2012 09:53:20 -0700 (PDT)
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: <linux-media@vger.kernel.org>, stoth@kernellabs.com,
-	dan.carpenter@oracle.com, palash.bandyopadhyay@conexant.com,
-	Ezequiel Garcia <elezegarcia@gmail.com>
-Subject: [PATCH 5/9] saa7164: Remove unused saa7164_call_i2c_clients()
-Date: Wed, 27 Jun 2012 13:52:50 -0300
-Message-Id: <1340815974-4120-5-git-send-email-elezegarcia@gmail.com>
-In-Reply-To: <1340815974-4120-1-git-send-email-elezegarcia@gmail.com>
-References: <1340815974-4120-1-git-send-email-elezegarcia@gmail.com>
+	Mon, 18 Jun 2012 18:50:33 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Bhupesh SHARMA <bhupesh.sharma@st.com>
+Cc: "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>,
+	"balbi@ti.com" <balbi@ti.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 4/5] usb: gadget/uvc: Port UVC webcam gadget to use videobuf2 framework
+Date: Tue, 19 Jun 2012 00:50:42 +0200
+Message-ID: <1848329.6uXTo7lYiU@avalon>
+In-Reply-To: <D5ECB3C7A6F99444980976A8C6D896384FAA27582B@EAPEX1MAIL1.st.com>
+References: <cover.1338543124.git.bhupesh.sharma@st.com> <243660e539dcccd868c641188faef26d83c2b894.1338543124.git.bhupesh.sharma@st.com> <D5ECB3C7A6F99444980976A8C6D896384FAA27582B@EAPEX1MAIL1.st.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This function has no users, so it's safe to remove it.
-Tested by compilation only.
+Hi Bhupesh,
 
-Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
----
- drivers/media/video/saa7164/saa7164-i2c.c |    9 ---------
- 1 files changed, 0 insertions(+), 9 deletions(-)
+On Monday 18 June 2012 18:14:16 Bhupesh SHARMA wrote:
+> Hi Laurent,
+> 
+> Can you please review this patch and let me know if any modifications
+> are required..
 
-diff --git a/drivers/media/video/saa7164/saa7164-i2c.c b/drivers/media/video/saa7164/saa7164-i2c.c
-index 1c54ab4..d8d7baa 100644
---- a/drivers/media/video/saa7164/saa7164-i2c.c
-+++ b/drivers/media/video/saa7164/saa7164-i2c.c
-@@ -69,15 +69,6 @@ err:
- 	return retval;
- }
- 
--void saa7164_call_i2c_clients(struct saa7164_i2c *bus, unsigned int cmd,
--	void *arg)
--{
--	if (bus->i2c_rc != 0)
--		return;
--
--	i2c_clients_command(&bus->i2c_adap, cmd, arg);
--}
--
- static u32 saa7164_functionality(struct i2c_adapter *adap)
- {
- 	return I2C_FUNC_I2C;
+Done. I'm sorry for not having done this before, I've been really busy lately. 
+I'll review 5/5 tomorrow.
+
 -- 
-1.7.4.4
+Regards,
+
+Laurent Pinchart
 
