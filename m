@@ -1,58 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:2223 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758063Ab2FBNCf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 2 Jun 2012 09:02:35 -0400
-Message-ID: <4FCA0EF6.3020900@redhat.com>
-Date: Sat, 02 Jun 2012 15:02:46 +0200
-From: Hans de Goede <hdegoede@redhat.com>
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:3765 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750792Ab2FRLuB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Jun 2012 07:50:01 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [RFCv1 PATCH 18/32] v4l2-ioctl.c: finalize table conversion.
+Date: Mon, 18 Jun 2012 13:49:56 +0200
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Andy Walls <awalls@md.metrocast.net>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Pawel Osciak <pawel@osciak.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+References: <1339323954-1404-1-git-send-email-hverkuil@xs4all.nl> <10390224.oHYD7VJvJs@avalon> <4FDF07FB.1080802@redhat.com>
+In-Reply-To: <4FDF07FB.1080802@redhat.com>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org
-Subject: Re: [git:v4l-utils/master] Add HW_SEEK and TUNER_BAND capabilities
- to videodev2.h
-References: <E1San4T-0004po-C8@www.linuxtv.org> <201206021415.22627.hverkuil@xs4all.nl>
-In-Reply-To: <201206021415.22627.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201206181349.56977.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Mon June 18 2012 12:50:35 Mauro Carvalho Chehab wrote:
+> Em 18-06-2012 06:46, Laurent Pinchart escreveu:
+> > Hi Hans,
+> > 
+> > Thanks for the patch.
+> > 
+> > On Sunday 10 June 2012 12:25:40 Hans Verkuil wrote:
+> >> From: Hans Verkuil <hans.verkuil@cisco.com>
+> >>
+> >> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> >> ---
+> >>   drivers/media/video/v4l2-ioctl.c |   35 +++++++++++++----------------------
+> >> 1 file changed, 13 insertions(+), 22 deletions(-)
+> >>
+> >> diff --git a/drivers/media/video/v4l2-ioctl.c
+> >> b/drivers/media/video/v4l2-ioctl.c index 0de31c4..6c91674 100644
+> >> --- a/drivers/media/video/v4l2-ioctl.c
+> >> +++ b/drivers/media/video/v4l2-ioctl.c
+> >> @@ -870,6 +870,11 @@ static void v4l_print_newline(const void *arg)
+> >>   	pr_cont("\n");
+> >>   }
+> >>
+> >> +static void v4l_print_default(const void *arg)
+> >> +{
+> >> +	pr_cont("non-standard ioctl\n");
+> > 
+> > I'd say "driver-specific ioctl" instead. "non-standard" may sound like an
+> > error to users.
+> 
+> This message is useless as-is, as it provides no glue about what ioctl was
+> called. You should either remove it or print the ioctl number, in hexa.
 
-On 06/02/2012 02:15 PM, Hans Verkuil wrote:
-> On Sat June 2 2012 11:11:53 Hans de Goede wrote:
->> This is an automatic generated email to let you know that the following patch were queued at the
->> http://git.linuxtv.org/v4l-utils.git tree:
->>
->> Subject: Add HW_SEEK and TUNER_BAND capabilities to videodev2.h
->> Author:  Hans de Goede<hdegoede@redhat.com>
->> Date:    Sat Jun 2 11:11:53 2012 +0200
->>
->> Bring in the pending (reviewed and acked) changes from:
->
-> But not merged. I think this is a bit too quick. It is good practice to wait
-> with making such changes to v4l-utils until Mauro has merged the videodev2.h
-> changes as well.
-
-Ok, next time around I'll wait.
-
-> I also have a small request:
->
-> +static const char *band_names[] = {
-> +       "default",
-> +       "fm-eur_us",
-> +       "fm-japan",
-> +       "fm-russian",
-> +       "fm-weather",
-> +       "am-mw",
-> +};
->
-> Can you rename "fm-eur_us" to "fm-eur-us"? That mix of '-' and '_' is very
-> jarring and awkward to type IMHO.
-
-Done.
+That ioctl number is already printed in front of this message.
 
 Regards,
 
-Hans
+	Hans
