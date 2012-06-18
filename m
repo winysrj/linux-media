@@ -1,82 +1,159 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:2947 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750792Ab2FROck (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:35215 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751906Ab2FRKBj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jun 2012 10:32:40 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: David Dillow <dave@thedillows.org>
-Subject: Re: [RFC] [media] cx231xx: restore tuner settings on first open
-Date: Mon, 18 Jun 2012 16:31:59 +0200
-Cc: linux-media@vger.kernel.org
-References: <1339994998.32360.61.camel@obelisk.thedillows.org> <201206180929.48107.hverkuil@xs4all.nl> <1340028940.32360.70.camel@obelisk.thedillows.org>
-In-Reply-To: <1340028940.32360.70.camel@obelisk.thedillows.org>
+	Mon, 18 Jun 2012 06:01:39 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Andy Walls <awalls@md.metrocast.net>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Pawel Osciak <pawel@osciak.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFCv1 PATCH 29/32] v4l2-dev.c: also add debug support for the fops.
+Date: Mon, 18 Jun 2012 12:01:47 +0200
+Message-ID: <7168376.Vf6x0R8Nod@avalon>
+In-Reply-To: <5b43d9cfe9cf989cc2fd23140b7d76d2255b49f3.1339321562.git.hans.verkuil@cisco.com>
+References: <1339323954-1404-1-git-send-email-hverkuil@xs4all.nl> <5b43d9cfe9cf989cc2fd23140b7d76d2255b49f3.1339321562.git.hans.verkuil@cisco.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201206181631.59966.hverkuil@xs4all.nl>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon June 18 2012 16:15:40 David Dillow wrote:
-> On Mon, 2012-06-18 at 09:29 +0200, Hans Verkuil wrote:
-> > On Mon June 18 2012 06:49:58 David Dillow wrote:
-> > > What does the V4L2 API spec say about tuning frequency being persistent
-> > > when there are no users of a video capture device? Is MythTV wrong to
-> > > have that assumption, or is cx231xx wrong to not restore the frequency
-> > > when a user first opens the device?
-> > 
-> > Tuner standards and frequencies must be persistent. So cx231xx is wrong.
-> > Actually, all V4L2 settings must in general be persistent (there are
-> > some per-filehandle settings when dealing with low-level subdev setups or
-> > mem2mem devices).
+Hi Hans,
+
+Thanks for the patch.
+
+On Sunday 10 June 2012 12:25:51 Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
 > 
-> Is there a document somewhere I can reference; I need to go through the
-> cx231xx driver and make sure it is doing the right things and it would
-> be handy to have a checklist.
-
-By far the easiest method is to run v4l2-compliance from the v4l-utils
-repository on the driver. It's not 100%, but it is achieving pretty good
-coverage. It's purpose is to verify all the fields are properly filled in,
-all the latest frameworks are used, and everything is according to spec.
-
-Make sure you compile the v4l-utils repository yourself to be sure you
-use the latest version of this utility.
-
-In principle the V4L2 spec should contain all that information, but it is
-sometimes buries in the text and there are some things that are only
-available in the collective memory of the developers :-)
-
-> > > Either way, I think MythTV should keep the device open until it is done
-> > > with it, as that would avoid added latency from putting the tuner to
-> > > sleep and waking it back up. But, I think we should address the issue in
-> > > the driver if it is not living up to the guarantees of the API.
-> > 
-> > From what I can tell it is a bug in the tda tuner (not restoring the frequency)
-> > and cx231xx (not setting the initial standard and possibly frequency).
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  drivers/media/video/v4l2-dev.c |   41 ++++++++++++++++++++++++++-----------
+>  1 file changed, 29 insertions(+), 12 deletions(-)
 > 
-> Ok, I'll break this up and have a go at a proper fix. Thanks for the
-> pointers on the persistence of parameters.
+> diff --git a/drivers/media/video/v4l2-dev.c b/drivers/media/video/v4l2-dev.c
+> index 5c0bb18..54f387d 100644
+> --- a/drivers/media/video/v4l2-dev.c
+> +++ b/drivers/media/video/v4l2-dev.c
+> @@ -305,6 +305,9 @@ static ssize_t v4l2_read(struct file *filp, char __user
+> *buf, ret = vdev->fops->read(filp, buf, sz, off);
+>  	if (test_bit(V4L2_FL_LOCK_ALL_FOPS, &vdev->flags))
+>  		mutex_unlock(vdev->lock);
+> +	if (vdev->debug)
 
-As Devin mentioned, putting the fix in tuner-core is a better approach
-since that fixes it for all such tuners.
+As vdev->debug is a bitmask, shouldn't we add an fops debug bit ?
 
-And a quite separate problem is when to put a tuner to sleep. That's a very
-dark corner in V4L2.
+> +		pr_info("%s: read: %zd (%d)\n",
+> +			video_device_node_name(vdev), sz, ret);
 
-For that someone would have to write an RFC, outlining the various options
-and starting a proper discussion on how to solve this.
+Shouldn't we use KERN_DEBUG instead of KERN_INFO ? BTW, what about replacing 
+the pr_* calls with dev_* calls ?
 
+>  	return ret;
+>  }
+> 
+> @@ -323,6 +326,9 @@ static ssize_t v4l2_write(struct file *filp, const char
+> __user *buf, ret = vdev->fops->write(filp, buf, sz, off);
+>  	if (test_bit(V4L2_FL_LOCK_ALL_FOPS, &vdev->flags))
+>  		mutex_unlock(vdev->lock);
+> +	if (vdev->debug)
+> +		pr_info("%s: write: %zd (%d)\n",
+> +			video_device_node_name(vdev), sz, ret);
+>  	return ret;
+>  }
+> 
+> @@ -339,6 +345,9 @@ static unsigned int v4l2_poll(struct file *filp, struct
+> poll_table_struct *poll) ret = vdev->fops->poll(filp, poll);
+>  	if (test_bit(V4L2_FL_LOCK_ALL_FOPS, &vdev->flags))
+>  		mutex_unlock(vdev->lock);
+> +	if (vdev->debug)
+> +		pr_info("%s: poll: %08x\n",
+> +			video_device_node_name(vdev), ret);
+>  	return ret;
+>  }
+> 
+> @@ -348,20 +357,14 @@ static long v4l2_ioctl(struct file *filp, unsigned int
+> cmd, unsigned long arg) int ret = -ENODEV;
+> 
+>  	if (vdev->fops->unlocked_ioctl) {
+> -		bool locked = false;
+> +		struct mutex *lock = v4l2_ioctl_get_lock(vdev, cmd);
+> 
+> -		if (vdev->lock) {
+> -			/* always lock unless the cmd is marked as "don't use lock" */
+> -			locked = !v4l2_is_known_ioctl(cmd) ||
+> -				 !test_bit(_IOC_NR(cmd), vdev->disable_locking);
+> -
+> -			if (locked && mutex_lock_interruptible(vdev->lock))
+> -				return -ERESTARTSYS;
+> -		}
+> +		if (lock && mutex_lock_interruptible(lock))
+> +			return -ERESTARTSYS;
+>  		if (video_is_registered(vdev))
+>  			ret = vdev->fops->unlocked_ioctl(filp, cmd, arg);
+> -		if (locked)
+> -			mutex_unlock(vdev->lock);
+> +		if (lock)
+> +			mutex_unlock(lock);
+>  	} else if (vdev->fops->ioctl) {
+>  		/* This code path is a replacement for the BKL. It is a major
+>  		 * hack but it will have to do for those drivers that are not
+> @@ -409,12 +412,17 @@ static unsigned long v4l2_get_unmapped_area(struct
+> file *filp, unsigned long flags)
+>  {
+>  	struct video_device *vdev = video_devdata(filp);
+> +	int ret;
+> 
+>  	if (!vdev->fops->get_unmapped_area)
+>  		return -ENOSYS;
+>  	if (!video_is_registered(vdev))
+>  		return -ENODEV;
+> -	return vdev->fops->get_unmapped_area(filp, addr, len, pgoff, flags);
+> +	ret = vdev->fops->get_unmapped_area(filp, addr, len, pgoff, flags);
+> +	if (vdev->debug)
+> +		pr_info("%s: get_unmapped_area (%d)\n",
+> +			video_device_node_name(vdev), ret);
+> +	return ret;
+>  }
+>  #endif
+> 
+> @@ -432,6 +440,9 @@ static int v4l2_mmap(struct file *filp, struct
+> vm_area_struct *vm) ret = vdev->fops->mmap(filp, vm);
+>  	if (test_bit(V4L2_FL_LOCK_ALL_FOPS, &vdev->flags))
+>  		mutex_unlock(vdev->lock);
+> +	if (vdev->debug)
+> +		pr_info("%s: mmap (%d)\n",
+> +			video_device_node_name(vdev), ret);
+>  	return ret;
+>  }
+> 
+> @@ -470,6 +481,9 @@ err:
+>  	/* decrease the refcount in case of an error */
+>  	if (ret)
+>  		video_put(vdev);
+> +	if (vdev->debug)
+> +		pr_info("%s: open (%d)\n",
+> +			video_device_node_name(vdev), ret);
+>  	return ret;
+>  }
+> 
+> @@ -489,6 +503,9 @@ static int v4l2_release(struct inode *inode, struct file
+> *filp) /* decrease the refcount unconditionally since the release()
+>  	   return value is ignored. */
+>  	video_put(vdev);
+> +	if (vdev->debug)
+> +		pr_info("%s: release\n",
+> +			video_device_node_name(vdev));
+>  	return ret;
+>  }
+-- 
 Regards,
 
-	Hans
+Laurent Pinchart
 
-> 
-> Dave
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
