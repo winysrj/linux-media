@@ -1,51 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from plane.gmane.org ([80.91.229.3]:50838 "EHLO plane.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752114Ab2FTHRy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Jun 2012 03:17:54 -0400
-Received: from list by plane.gmane.org with local (Exim 4.69)
-	(envelope-from <gldv-linux-media@m.gmane.org>)
-	id 1ShFAi-0001iV-P0
-	for linux-media@vger.kernel.org; Wed, 20 Jun 2012 09:17:49 +0200
-Received: from 114-24-67-85.dynamic.hinet.net ([114.24.67.85])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Wed, 20 Jun 2012 09:17:48 +0200
-Received: from bruce.ying by 114-24-67-85.dynamic.hinet.net with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Wed, 20 Jun 2012 09:17:48 +0200
-To: linux-media@vger.kernel.org
-From: Bruce Ying <bruce.ying@gmail.com>
-Subject: Re: DVB streaming failed after running tzap
-Date: Wed, 20 Jun 2012 07:17:39 +0000 (UTC)
-Message-ID: <loom.20120620T090501-319@post.gmane.org>
-References: <CAN6EUtu2N2hR2CLG1BWqR3mp9t0vbzfKeQXnhdB+FgeMw5Uf8g@mail.gmail.com> <loom.20120615T033810-522@post.gmane.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Received: from perceval.ideasonboard.com ([95.142.166.194]:39823 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751797Ab2FRKIC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Jun 2012 06:08:02 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Andy Walls <awalls@md.metrocast.net>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Pawel Osciak <pawel@osciak.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFCv1 PATCH 28/32] vivi: use vb2 helper functions.
+Date: Mon, 18 Jun 2012 12:08:10 +0200
+Message-ID: <27919488.Es5OfZrXDC@avalon>
+In-Reply-To: <47a839710682872826a3da4ef631fccded2ed299.1339321562.git.hans.verkuil@cisco.com>
+References: <1339323954-1404-1-git-send-email-hverkuil@xs4all.nl> <47a839710682872826a3da4ef631fccded2ed299.1339321562.git.hans.verkuil@cisco.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Bruce Ying <bruce.ying <at> gmail.com> writes:
- 
-> If I launched mplayer after running tzap, I would get a series of 
-> "dvb_streaming_read, attempt N. n failed with errno 0 when reading 2048 bytes" 
-> failure messages. I must unplug the DiBcom USB tuner and plug it in again so 
-> that I could relaunch mplayer to tune to a DVB-T channel.
+Hi Hans,
+
+Thanks for the patch.
+
+On Sunday 10 June 2012 12:25:50 Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
 > 
-> Looks like tzap messed up something with the DiBcom kernel modules?
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  drivers/media/video/vivi.c |  160 ++++++-----------------------------------
+>  1 file changed, 21 insertions(+), 139 deletions(-)
 > 
+> diff --git a/drivers/media/video/vivi.c b/drivers/media/video/vivi.c
+> index 1e4da5e..1e8c4f3 100644
+> --- a/drivers/media/video/vivi.c
+> +++ b/drivers/media/video/vivi.c
+> @@ -767,7 +767,13 @@ static int queue_setup(struct vb2_queue *vq, const
+> struct v4l2_format *fmt, struct vivi_dev *dev = vb2_get_drv_priv(vq);
+>  	unsigned long size;
 > 
+> -	size = dev->width * dev->height * dev->pixelsize;
+> +	if (fmt)
+> +		size = fmt->fmt.pix.sizeimage;
+> +	else
+> +		size = dev->width * dev->height * dev->pixelsize;
+> +
+> +	if (size == 0)
+> +		return -EINVAL;
 
-Just found out that I should not use '-r' option for tzap before launching
-"mplayer dvb://" (If 'tzap -r' were used, then 'mplayer /dev/dvb/adapterX/dvr0',
-instead of 'mplayer dvb://', should be the proper syntax for the mplayer command
-line.)
+If I'm not mistaken, this is a bug fix to properly support CREATE_BUF, right ? 
+If so it should be split to its own patch.
 
-Or use the following pair of command lines:
+>  	if (0 == *nbuffers)
+>  		*nbuffers = 32;
 
-$ tzap -F -c .tzap/channels.conf CTS
-$ mplayer dvb://CTS
+-- 
+Regards,
 
-
+Laurent Pinchart
 
