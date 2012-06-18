@@ -1,79 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:52099 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751364Ab2FOKbO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Jun 2012 06:31:14 -0400
-Message-ID: <4FDB0EEE.3000501@redhat.com>
-Date: Fri, 15 Jun 2012 07:31:10 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:45861 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751555Ab2FROhA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 Jun 2012 10:37:00 -0400
+Received: by obbtb18 with SMTP id tb18so8555859obb.19
+        for <linux-media@vger.kernel.org>; Mon, 18 Jun 2012 07:36:59 -0700 (PDT)
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH RFC 00/10] media file tree reorg - part 1
-References: <1339706161-22713-1-git-send-email-mchehab@redhat.com> <4FDAE6B0.5020301@xs4all.nl>
-In-Reply-To: <4FDAE6B0.5020301@xs4all.nl>
+In-Reply-To: <1340029964.23706.4.camel@obelisk.thedillows.org>
+References: <1339994998.32360.61.camel@obelisk.thedillows.org>
+	<201206180929.48107.hverkuil@xs4all.nl>
+	<1340028940.32360.70.camel@obelisk.thedillows.org>
+	<CAGoCfize92S-8cR9f-RjQDcZARKiT84UtX-oH0EcPomCYFAyxQ@mail.gmail.com>
+	<1340029964.23706.4.camel@obelisk.thedillows.org>
+Date: Mon, 18 Jun 2012 10:36:59 -0400
+Message-ID: <CAGoCfix48wNUBRuUbehjSHpqV33D68AA7mBy_4zu22JWTkbcmQ@mail.gmail.com>
+Subject: Re: [RFC] [media] cx231xx: restore tuner settings on first open
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: David Dillow <dave@thedillows.org>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 15-06-2012 04:39, Hans Verkuil escreveu:
-> On 14/06/12 22:35, Mauro Carvalho Chehab wrote:
->> As discussed a while ago, breaking media drivers by V4L or DVB
->> is confusing, as:
->>     - hybrid devices are at V4L drivers;
->>     - DVB-only devices for chips that support analog are at
->>       V4L drivers;
->>     - Analog support addition on a DVB driver would require it
->>       to move to V4L drivers.
->>
->> Instead, move all drivers into a per-bus directory, and common drivers
->> used by more than one driver into /common.
->>
->> This is the part 1 of this idea: it moves the core drivers to
->> /drivers/media/foo-core, and re-arranges the DVB files.
->>
->> After this patch series, the directory structure will be:
->>
->> drivers/media/
->> |-- common
->> |   `--<common drivers>
->> |-- dvb-core
->> |-- dvb-frontends
->> |-- firewire
->> |-- mmc
->> |   `--<mmc/sdio drivers>
->> |-- pci
->> |   `--<pci/pcie drivers>
->> |-- radio
->> |   `--<radio drivers>
->> |-- rc
->> |   `-- keymaps
->> |-- tuners
->> |-- usb
->> |   `--<usb drivers>
->> |-- v4l2-core
->> `-- video
->>
->> PS.: The "video" directory is currently unchanged. It currently
->>       contains subdevs, common V4L drivers, and V4L bridges.
->>
->> On this series, I avoided mixing the file tree reorganization with
->> menu improvements. Those will happen together with the second part,
->> when the devices under video will be moved to /common, /usb, /pci...
->> dirs.
-> 
-> Looks good to me. I like that saa7146 gets its own directory :-)
+On Mon, Jun 18, 2012 at 10:32 AM, David Dillow <dave@thedillows.org> wrote:
+> Hmm, it sounds like perhaps changing the standby call in the tuner core
+> to asynchronously power down the tuner may be the way to go -- ie, when
+> we tell it to standby, it will do a schedule_work for some 10 seconds
+> later to really pull it down. If we get a resume call prior to then,
+> we'll just cancel the work, otherwise we wait for the work to finish and
+> then issue the resume.
+>
+> Does that sound reasonable?
 
-Yes, this is good.
+At face value it sounds reasonable, except the approach breaks down as
+soon as you have hybrid tuners which support both analog and digital.
+Because the digital side of the tuner isn't tied into tuner-core,
+you'll break in the following situation:
 
-> One request: before you commit this, can you go through the pending patches for 3.6 and apply all the non-controversial ones? Otherwise everyone will have to rebase their work.
+Start using analog
+Stop using analog [schedule_work() call]
+Start using digital
+Timer pops and powers down the tuner even though it's in use for ATSC
+or ClearQAM
 
-Yeah, that's my plan.
+Again, I'm not proposing a solution, but just poking a fatal hole in
+your proposal (believe me, I had considered the same approach when
+first looking at the problem).
 
-> Regards,
-> 
->      Hans
-Regards,
-Mauro
+Devin
 
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
