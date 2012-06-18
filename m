@@ -1,71 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ey0-f194.google.com ([209.85.215.194]:45061 "EHLO
-	mail-ey0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751653Ab2F3VBG (ORCPT
+Received: from zose-mta12.web4all.fr ([178.33.204.89]:47805 "EHLO
+	zose-mta12.web4all.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752249Ab2FRTIj convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 30 Jun 2012 17:01:06 -0400
-Received: by eaaa14 with SMTP id a14so374837eaa.1
-        for <linux-media@vger.kernel.org>; Sat, 30 Jun 2012 14:01:04 -0700 (PDT)
-Message-ID: <4FEF690D.10305@gmail.com>
-Date: Sat, 30 Jun 2012 23:01:01 +0200
-From: Sylwester Nawrocki <sylwester.nawrocki@gmail.com>
+	Mon, 18 Jun 2012 15:08:39 -0400
+Date: Mon, 18 Jun 2012 21:03:06 +0200 (CEST)
+From: =?utf-8?Q?Beno=C3=AEt_Th=C3=A9baudeau?=
+	<benoit.thebaudeau@advansee.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Ravi Kumar V <kumarrav@codeaurora.org>,
+	linux-media@vger.kernel.org
+Message-ID: <659567571.2884478.1340046186135.JavaMail.root@advansee.com>
+Subject: [PATCH 3 of 3] media: gpio-ir-recv: switch to
+ module_platform_driver
 MIME-Version: 1.0
-To: Sakari Ailus <sakari.ailus@iki.fi>
-CC: linux-media@vger.kernel.org, t.stanislaws@samsung.com,
-	laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl
-Subject: Re: [PATCH 4/8] v4l: Common documentation for selection targets
-References: <20120630170506.GE19384@valkosipuli.retiisi.org.uk> <1341075839-18586-4-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1341075839-18586-4-git-send-email-sakari.ailus@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/30/2012 07:03 PM, Sakari Ailus wrote:
-> Both V4L2 and V4L2 subdev interface have very similar selection APIs with
-> differences foremost related to in-memory and media bus formats. However,
-> the selection targets are the same for both. Most targets are and in the
-> future will likely continue to be more the same than with any differences.
-> Thus it makes sense to unify the documentation of the targets.
->
-> Signed-off-by: Sakari Ailus<sakari.ailus@iki.fi>
-> ---
-..
-> diff --git a/Documentation/DocBook/media/v4l/selections-common.xml b/Documentation/DocBook/media/v4l/selections-common.xml
-> new file mode 100644
-> index 0000000..d0411ab
-> --- /dev/null
-> +++ b/Documentation/DocBook/media/v4l/selections-common.xml
-> @@ -0,0 +1,92 @@
-> +<section id="v4l2-selections-common">
-> +
-> +<title>Selection targets</title>
-> +
-> +<para>While the<link linkend="selection-api">V4L2 selection
-> +  API</link>  and<link linkend="v4l2-subdev-selections">V4L2 subdev
-> +  selection APIs</link>  are very similar, there's one fundamental
-> +  difference between the two. On sub-device API, the selection
-> +  rectangle refers to the media bus format, and is bound to a
-> +  sub-device's pad. On the V4L2 interface the selection rectangles
-> +  refer to the in-memory pixel format.</para>
-> +
-> +<para>The precise meaning of the selection targets may thus be
-> +  affected on which of the two interfaces they are used.</para>
-> +
-> +<table pgwide="1" frame="none" id="v4l2-selection-targets-table">
-> +<title>Selection target definitions</title>
-> +<tgroup cols="4">
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Ravi Kumar V <kumarrav@codeaurora.org>
+Cc: <linux-media@vger.kernel.org>
+Signed-off-by: Benoît Thébaudeau <benoit.thebaudeau@advansee.com>
+---
+ .../drivers/media/rc/gpio-ir-recv.c                |   13 +------------
+ 1 file changed, 1 insertion(+), 12 deletions(-)
 
-s/4/5
-
-Looks good otherwise.
-
-Acked-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-
- > +<colspec colname="c1" />
- > +<colspec colname="c2" />
- > +<colspec colname="c3" />
- > +<colspec colname="c4" />
- > +<colspec colname="c5" />
- > +&cs-def;
- > +<thead>
+diff --git linux-next-HEAD-6c86b58.orig/drivers/media/rc/gpio-ir-recv.c linux-next-HEAD-6c86b58/drivers/media/rc/gpio-ir-recv.c
+index 15e346e..59fe60c 100644
+--- linux-next-HEAD-6c86b58.orig/drivers/media/rc/gpio-ir-recv.c
++++ linux-next-HEAD-6c86b58/drivers/media/rc/gpio-ir-recv.c
+@@ -194,18 +194,7 @@ static struct platform_driver gpio_ir_recv_driver = {
+ #endif
+ 	},
+ };
+-
+-static int __init gpio_ir_recv_init(void)
+-{
+-	return platform_driver_register(&gpio_ir_recv_driver);
+-}
+-module_init(gpio_ir_recv_init);
+-
+-static void __exit gpio_ir_recv_exit(void)
+-{
+-	platform_driver_unregister(&gpio_ir_recv_driver);
+-}
+-module_exit(gpio_ir_recv_exit);
++module_platform_driver(gpio_ir_recv_driver);
+ 
+ MODULE_DESCRIPTION("GPIO IR Receiver driver");
+ MODULE_LICENSE("GPL v2");
