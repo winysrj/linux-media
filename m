@@ -1,292 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:2974 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753814Ab2F1Gsr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Jun 2012 02:48:47 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from plane.gmane.org ([80.91.229.3]:44082 "EHLO plane.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754127Ab2FTIPH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 20 Jun 2012 04:15:07 -0400
+Received: from list by plane.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1ShG49-0002hz-66
+	for linux-media@vger.kernel.org; Wed, 20 Jun 2012 10:15:05 +0200
+Received: from cgq171.neoplus.adsl.tpnet.pl ([83.30.244.171])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Wed, 20 Jun 2012 10:15:04 +0200
+Received: from acc.for.news by cgq171.neoplus.adsl.tpnet.pl with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Wed, 20 Jun 2012 10:15:04 +0200
 To: linux-media@vger.kernel.org
-Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv3 PATCH 15/33] v4l2-ioctl.c: use the new table for preset/timings ioctls.
-Date: Thu, 28 Jun 2012 08:48:09 +0200
-Message-Id: <17b839bde906a57c04635f75025b0d39bb6f0870.1340865818.git.hans.verkuil@cisco.com>
-In-Reply-To: <1340866107-4188-1-git-send-email-hverkuil@xs4all.nl>
-References: <1340866107-4188-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <d97434d2319fb8dbea360404f9343c680b5b196e.1340865818.git.hans.verkuil@cisco.com>
-References: <d97434d2319fb8dbea360404f9343c680b5b196e.1340865818.git.hans.verkuil@cisco.com>
+From: Marx <acc.for.news@gmail.com>
+Subject: How to make bug report
+Date: Mon, 18 Jun 2012 08:40:53 +0200
+Message-ID: <p4v2b9-nd7.ln1@wuwek.kopernik.gliwice.pl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hello
+I have four DVB cards:
+DVB-S2:
+-Pinnacle PCTV SAT HDTV 452E PRO USB (main kernel support)
+-Terratec Cinergy S2 USB HD v.2
+-Prof Revolution DVB-S2 8000 PCIe
+DVB-T:
+-AF9015 noname USB (main kernel support)
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/video/v4l2-ioctl.c |  207 ++++++++++++--------------------------
- 1 file changed, 67 insertions(+), 140 deletions(-)
+on AMD Brazos platform (Asrock E350M1) with Debian (lately with 3.4 kernel).
 
-diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
-index ee11e08..fdceac8 100644
---- a/drivers/media/video/v4l2-ioctl.c
-+++ b/drivers/media/video/v4l2-ioctl.c
-@@ -655,29 +655,35 @@ static void v4l_print_dbg_register(const void *arg, bool write_only)
- 			p->reg, p->val);
- }
- 
--static void v4l_print_u32(const void *arg, bool write_only)
-+static void v4l_print_dv_enum_presets(const void *arg, bool write_only)
- {
--	pr_cont("value=%u\n", *(const u32 *)arg);
-+	const struct v4l2_dv_enum_preset *p = arg;
-+
-+	pr_cont("index=%u, preset=%u, name=%s, width=%u, height=%u\n",
-+			p->index, p->preset, p->name, p->width, p->height);
- }
- 
--static void v4l_print_newline(const void *arg, bool write_only)
-+static void v4l_print_dv_preset(const void *arg, bool write_only)
- {
--	pr_cont("\n");
-+	const struct v4l2_dv_preset *p = arg;
-+
-+	pr_cont("preset=%u\n", p->preset);
- }
- 
--static void dbgtimings(struct video_device *vfd,
--			const struct v4l2_dv_timings *p)
-+static void v4l_print_dv_timings(const void *arg, bool write_only)
- {
-+	const struct v4l2_dv_timings *p = arg;
-+
- 	switch (p->type) {
- 	case V4L2_DV_BT_656_1120:
--		dbgarg2("bt-656/1120:interlaced=%d,"
--				" pixelclock=%lld,"
--				" width=%d, height=%d, polarities=%x,"
--				" hfrontporch=%d, hsync=%d,"
--				" hbackporch=%d, vfrontporch=%d,"
--				" vsync=%d, vbackporch=%d,"
--				" il_vfrontporch=%d, il_vsync=%d,"
--				" il_vbackporch=%d, standards=%x, flags=%x\n",
-+		pr_cont("type=bt-656/1120, interlaced=%u, "
-+			"pixelclock=%llu, "
-+			"width=%u, height=%u, polarities=0x%x, "
-+			"hfrontporch=%u, hsync=%u, "
-+			"hbackporch=%u, vfrontporch=%u, "
-+			"vsync=%u, vbackporch=%u, "
-+			"il_vfrontporch=%u, il_vsync=%u, "
-+			"il_vbackporch=%u, standards=0x%x, flags=0x%x\n",
- 				p->bt.interlaced, p->bt.pixelclock,
- 				p->bt.width, p->bt.height,
- 				p->bt.polarities, p->bt.hfrontporch,
-@@ -688,11 +694,48 @@ static void dbgtimings(struct video_device *vfd,
- 				p->bt.standards, p->bt.flags);
- 		break;
- 	default:
--		dbgarg2("Unknown type %d!\n", p->type);
-+		pr_cont("type=%d\n", p->type);
- 		break;
- 	}
- }
- 
-+static void v4l_print_enum_dv_timings(const void *arg, bool write_only)
-+{
-+	const struct v4l2_enum_dv_timings *p = arg;
-+
-+	pr_cont("index=%u, ", p->index);
-+	v4l_print_dv_timings(&p->timings, write_only);
-+}
-+
-+static void v4l_print_dv_timings_cap(const void *arg, bool write_only)
-+{
-+	const struct v4l2_dv_timings_cap *p = arg;
-+
-+	switch (p->type) {
-+	case V4L2_DV_BT_656_1120:
-+		pr_cont("type=bt-656/1120, width=%u-%u, height=%u-%u, "
-+			"pixelclock=%llu-%llu, standards=0x%x, capabilities=0x%x\n",
-+			p->bt.min_width, p->bt.max_width,
-+			p->bt.min_height, p->bt.max_height,
-+			p->bt.min_pixelclock, p->bt.max_pixelclock,
-+			p->bt.standards, p->bt.capabilities);
-+		break;
-+	default:
-+		pr_cont("type=%u\n", p->type);
-+		break;
-+	}
-+}
-+
-+static void v4l_print_u32(const void *arg, bool write_only)
-+{
-+	pr_cont("value=%u\n", *(const u32 *)arg);
-+}
-+
-+static void v4l_print_newline(const void *arg, bool write_only)
-+{
-+	pr_cont("\n");
-+}
-+
- static int check_ext_ctrls(struct v4l2_ext_controls *c, int allow_priv)
- {
- 	__u32 i;
-@@ -1740,20 +1783,20 @@ static struct v4l2_ioctl_info v4l2_ioctls[] = {
- 	IOCTL_INFO_FNC(VIDIOC_DBG_G_REGISTER, v4l_dbg_g_register, v4l_print_dbg_register, 0),
- 	IOCTL_INFO_FNC(VIDIOC_DBG_G_CHIP_IDENT, v4l_dbg_g_chip_ident, v4l_print_dbg_chip_ident, 0),
- 	IOCTL_INFO_FNC(VIDIOC_S_HW_FREQ_SEEK, v4l_s_hw_freq_seek, v4l_print_hw_freq_seek, INFO_FL_PRIO),
--	IOCTL_INFO(VIDIOC_ENUM_DV_PRESETS, 0),
--	IOCTL_INFO(VIDIOC_S_DV_PRESET, INFO_FL_PRIO),
--	IOCTL_INFO(VIDIOC_G_DV_PRESET, 0),
--	IOCTL_INFO(VIDIOC_QUERY_DV_PRESET, 0),
--	IOCTL_INFO(VIDIOC_S_DV_TIMINGS, INFO_FL_PRIO),
--	IOCTL_INFO(VIDIOC_G_DV_TIMINGS, 0),
-+	IOCTL_INFO_STD(VIDIOC_ENUM_DV_PRESETS, vidioc_enum_dv_presets, v4l_print_dv_enum_presets, 0),
-+	IOCTL_INFO_STD(VIDIOC_S_DV_PRESET, vidioc_s_dv_preset, v4l_print_dv_preset, INFO_FL_PRIO),
-+	IOCTL_INFO_STD(VIDIOC_G_DV_PRESET, vidioc_g_dv_preset, v4l_print_dv_preset, 0),
-+	IOCTL_INFO_STD(VIDIOC_QUERY_DV_PRESET, vidioc_query_dv_preset, v4l_print_dv_preset, 0),
-+	IOCTL_INFO_STD(VIDIOC_S_DV_TIMINGS, vidioc_s_dv_timings, v4l_print_dv_timings, INFO_FL_PRIO),
-+	IOCTL_INFO_STD(VIDIOC_G_DV_TIMINGS, vidioc_g_dv_timings, v4l_print_dv_timings, 0),
- 	IOCTL_INFO(VIDIOC_DQEVENT, 0),
- 	IOCTL_INFO(VIDIOC_SUBSCRIBE_EVENT, 0),
- 	IOCTL_INFO(VIDIOC_UNSUBSCRIBE_EVENT, 0),
- 	IOCTL_INFO_FNC(VIDIOC_CREATE_BUFS, v4l_create_bufs, v4l_print_create_buffers, INFO_FL_PRIO),
- 	IOCTL_INFO_FNC(VIDIOC_PREPARE_BUF, v4l_prepare_buf, v4l_print_buffer, 0),
--	IOCTL_INFO(VIDIOC_ENUM_DV_TIMINGS, 0),
--	IOCTL_INFO(VIDIOC_QUERY_DV_TIMINGS, 0),
--	IOCTL_INFO(VIDIOC_DV_TIMINGS_CAP, 0),
-+	IOCTL_INFO_STD(VIDIOC_ENUM_DV_TIMINGS, vidioc_enum_dv_timings, v4l_print_enum_dv_timings, 0),
-+	IOCTL_INFO_STD(VIDIOC_QUERY_DV_TIMINGS, vidioc_query_dv_timings, v4l_print_dv_timings, 0),
-+	IOCTL_INFO_STD(VIDIOC_DV_TIMINGS_CAP, vidioc_dv_timings_cap, v4l_print_dv_timings_cap, 0),
- };
- #define V4L2_IOCTLS ARRAY_SIZE(v4l2_ioctls)
- 
-@@ -1938,122 +1981,6 @@ static long __video_do_ioctl(struct file *file,
- 		}
- 		break;
- 	}
--	case VIDIOC_ENUM_DV_PRESETS:
--	{
--		struct v4l2_dv_enum_preset *p = arg;
--
--		ret = ops->vidioc_enum_dv_presets(file, fh, p);
--		if (!ret)
--			dbgarg(cmd,
--				"index=%d, preset=%d, name=%s, width=%d,"
--				" height=%d ",
--				p->index, p->preset, p->name, p->width,
--				p->height);
--		break;
--	}
--	case VIDIOC_S_DV_PRESET:
--	{
--		struct v4l2_dv_preset *p = arg;
--
--		dbgarg(cmd, "preset=%d\n", p->preset);
--		ret = ops->vidioc_s_dv_preset(file, fh, p);
--		break;
--	}
--	case VIDIOC_G_DV_PRESET:
--	{
--		struct v4l2_dv_preset *p = arg;
--
--		ret = ops->vidioc_g_dv_preset(file, fh, p);
--		if (!ret)
--			dbgarg(cmd, "preset=%d\n", p->preset);
--		break;
--	}
--	case VIDIOC_QUERY_DV_PRESET:
--	{
--		struct v4l2_dv_preset *p = arg;
--
--		ret = ops->vidioc_query_dv_preset(file, fh, p);
--		if (!ret)
--			dbgarg(cmd, "preset=%d\n", p->preset);
--		break;
--	}
--	case VIDIOC_S_DV_TIMINGS:
--	{
--		struct v4l2_dv_timings *p = arg;
--
--		dbgtimings(vfd, p);
--		switch (p->type) {
--		case V4L2_DV_BT_656_1120:
--			ret = ops->vidioc_s_dv_timings(file, fh, p);
--			break;
--		default:
--			ret = -EINVAL;
--			break;
--		}
--		break;
--	}
--	case VIDIOC_G_DV_TIMINGS:
--	{
--		struct v4l2_dv_timings *p = arg;
--
--		ret = ops->vidioc_g_dv_timings(file, fh, p);
--		if (!ret)
--			dbgtimings(vfd, p);
--		break;
--	}
--	case VIDIOC_ENUM_DV_TIMINGS:
--	{
--		struct v4l2_enum_dv_timings *p = arg;
--
--		if (!ops->vidioc_enum_dv_timings)
--			break;
--
--		ret = ops->vidioc_enum_dv_timings(file, fh, p);
--		if (!ret) {
--			dbgarg(cmd, "index=%d: ", p->index);
--			dbgtimings(vfd, &p->timings);
--		}
--		break;
--	}
--	case VIDIOC_QUERY_DV_TIMINGS:
--	{
--		struct v4l2_dv_timings *p = arg;
--
--		if (!ops->vidioc_query_dv_timings)
--			break;
--
--		ret = ops->vidioc_query_dv_timings(file, fh, p);
--		if (!ret)
--			dbgtimings(vfd, p);
--		break;
--	}
--	case VIDIOC_DV_TIMINGS_CAP:
--	{
--		struct v4l2_dv_timings_cap *p = arg;
--
--		if (!ops->vidioc_dv_timings_cap)
--			break;
--
--		ret = ops->vidioc_dv_timings_cap(file, fh, p);
--		if (ret)
--			break;
--		switch (p->type) {
--		case V4L2_DV_BT_656_1120:
--			dbgarg(cmd,
--			       "type=%d, width=%u-%u, height=%u-%u, "
--			       "pixelclock=%llu-%llu, standards=%x, capabilities=%x ",
--			       p->type,
--			       p->bt.min_width, p->bt.max_width,
--			       p->bt.min_height, p->bt.max_height,
--			       p->bt.min_pixelclock, p->bt.max_pixelclock,
--			       p->bt.standards, p->bt.capabilities);
--			break;
--		default:
--			dbgarg(cmd, "unknown type ");
--			break;
--		}
--		break;
--	}
- 	case VIDIOC_DQEVENT:
- 	{
- 		struct v4l2_event *ev = arg;
--- 
-1.7.10
+While I could be able to make all of them working via different drivers 
+(media-build, patches, vendor drivers, Igor Liplianin's repo, yavdr dkms 
+package etc) none of this card works stable (unlike Twinhan PCI I had 
+previously). Prof hangs system, Pinnacle doesn't work with DVB-S2, 
+Terratec records streams partially unplayable, AF9015 stops working 
+after and hour or so etc. Often I see errors of I2C subsystem.
+
+While I'm in process of testing it on different hardware (laptop) I 
+would like to know if it's good place to write about dvb drivers bugs. 
+Or maybe should I write directly to developer? or write bugs in 
+Debian/kernel bugzilla or sth similair?
+How to properly report bugs? What kernel should I use, which driverset? 
+What logs to attach (kernel.log)? how to enable debug options (if needed)?
+
+I think it's rather unusual all of cards doesn't work, so I suspect that 
+there can be something wrong with my system. Maybe you, as skilled 
+developers, can direct me what can be wrong, what can I test?
+
+Marx
+
+
+_______________________________________________
+vdr mailing list
+vdr@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/vdr
+
 
