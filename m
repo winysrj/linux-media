@@ -1,74 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:19733 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753971Ab2FMMLU (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:39845 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751864Ab2FRKLT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Jun 2012 08:11:20 -0400
-Received: from epcpsbgm1.samsung.com (mailout4.samsung.com [203.254.224.34])
- by mailout4.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0M5K00HXC1UOGD01@mailout4.samsung.com> for
- linux-media@vger.kernel.org; Wed, 13 Jun 2012 21:11:18 +0900 (KST)
-Received: from AMDN157 ([106.116.48.215])
- by mmp1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTPA id <0M5K00KIY1UQZ310@mmp1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 13 Jun 2012 21:11:18 +0900 (KST)
-From: Kamil Debski <k.debski@samsung.com>
-To: 'Sachin Kamat' <sachin.kamat@linaro.org>,
-	linux-media@vger.kernel.org
-Cc: kyungmin.park@samsung.com, mchehab@infradead.org,
-	patches@linaro.org
-References: <1339412322-15524-1-git-send-email-sachin.kamat@linaro.org>
-In-reply-to: <1339412322-15524-1-git-send-email-sachin.kamat@linaro.org>
-Subject: RE: [PATCH] [media] s5p-mfc: Fix checkpatch error in s5p_mfc_shm.h file
-Date: Wed, 13 Jun 2012 14:11:13 +0200
-Message-id: <001701cd495d$a3279980$e976cc80$%debski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: en-gb
+	Mon, 18 Jun 2012 06:11:19 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Andy Walls <awalls@md.metrocast.net>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Pawel Osciak <pawel@osciak.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFCv1 PATCH 25/32] create_bufs: handle count == 0.
+Date: Mon, 18 Jun 2012 12:11:27 +0200
+Message-ID: <2569605.k0h3VBEz9A@avalon>
+In-Reply-To: <0b5df251d2a54d54ee2810d86b6da0cf7efbe38d.1339321562.git.hans.verkuil@cisco.com>
+References: <1339323954-1404-1-git-send-email-hverkuil@xs4all.nl> <0b5df251d2a54d54ee2810d86b6da0cf7efbe38d.1339321562.git.hans.verkuil@cisco.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Hans,
 
 Thanks for the patch.
 
-Best wishes,
-Kamil Debski
-
-> From: Sachin Kamat [mailto:sachin.kamat@linaro.org]
-> Sent: 11 June 2012 12:59
+On Sunday 10 June 2012 12:25:47 Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
 > 
-> Fixes the following error:
-> ERROR: open brace '{' following enum go on the same line
-> +enum MFC_SHM_OFS
-> +{
-> 
-> Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
-
-Acked-by: Kamil Debski <k.debski@samsung.com>
-
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 > ---
->  drivers/media/video/s5p-mfc/s5p_mfc_shm.h |    3 +--
->  1 files changed, 1 insertions(+), 2 deletions(-)
+>  Documentation/DocBook/media/v4l/vidioc-create-bufs.xml |    8 +++++++-
+>  1 file changed, 7 insertions(+), 1 deletion(-)
 > 
-> diff --git a/drivers/media/video/s5p-mfc/s5p_mfc_shm.h
-> b/drivers/media/video/s5p-mfc/s5p_mfc_shm.h
-> index 764eac6..cf962a4 100644
-> --- a/drivers/media/video/s5p-mfc/s5p_mfc_shm.h
-> +++ b/drivers/media/video/s5p-mfc/s5p_mfc_shm.h
-> @@ -13,8 +13,7 @@
->  #ifndef S5P_MFC_SHM_H_
->  #define S5P_MFC_SHM_H_
-> 
-> -enum MFC_SHM_OFS
-> -{
-> +enum MFC_SHM_OFS {
->  	EXTENEDED_DECODE_STATUS	= 0x00,	/* D */
->  	SET_FRAME_TAG		= 0x04, /* D */
->  	GET_FRAME_TAG_TOP	= 0x08, /* D */
-> --
-> 1.7.4.1
+> diff --git a/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
+> b/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml index
+> 765549f..afdba4d 100644
+> --- a/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
+> +++ b/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
+> @@ -97,7 +97,13 @@ information.</para>
+>  	  <row>
+>  	    <entry>__u32</entry>
+>  	    <entry><structfield>count</structfield></entry>
+> -	    <entry>The number of buffers requested or granted.</entry>
+> +	    <entry>The number of buffers requested or granted. If count == 0,
+> then
+> +	    <constant>VIDIOC_CREATE_BUFS</constant> will set
+> <structfield>index</structfield>
+> +	    to the starting buffer index,
+
+I find "starting buffer index" a bit unclear in this context, as we don't 
+create any buffer.
+
+> and it will check the validity of
+> +	    <structfield>memory</structfield> and
+> <structfield>format.type</structfield>.
+> +	    If those are invalid -1 is returned and errno is set to &EINVAL;,
+> +	    otherwise <constant>VIDIOC_CREATE_BUFS</constant> returns 0. It will
+> +	    never set errno to &EBUSY; in this particular case.</entry>
+>  	  </row>
+>  	  <row>
+>  	    <entry>__u32</entry>
+-- 
+Regards,
+
+Laurent Pinchart
 
