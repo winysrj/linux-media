@@ -1,57 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:38063 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753666Ab2F3TYd (ORCPT
+Received: from cnxtsmtp1.conexant.com ([198.62.9.252]:13131 "EHLO
+	Cnxtsmtp1.conexant.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752839Ab2FRUsE convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 30 Jun 2012 15:24:33 -0400
-Received: by eaak11 with SMTP id k11so1705020eaa.19
-        for <linux-media@vger.kernel.org>; Sat, 30 Jun 2012 12:24:31 -0700 (PDT)
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: posciak@google.com, andrzej.p@samsung.com, hans.verkuil@cisco.com,
-	hdegoede@redhat.com, javier.martin@vista-silicon.com,
-	jtp.park@samsung.com, kyungmin.park@samsung.com,
-	k.debski@samsung.com, mchehab@infradead.org,
-	m.szyprowski@samsung.com,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Subject: [PATCH/RFC 2/2] Feature removal: using capture and output capabilities for m2m devices
-Date: Sat, 30 Jun 2012 21:23:43 +0200
-Message-Id: <1341084223-4616-3-git-send-email-sylvester.nawrocki@gmail.com>
-In-Reply-To: <1341084223-4616-1-git-send-email-sylvester.nawrocki@gmail.com>
-References: <1341084223-4616-1-git-send-email-sylvester.nawrocki@gmail.com>
+	Mon, 18 Jun 2012 16:48:04 -0400
+From: "Palash Bandyopadhyay" <Palash.Bandyopadhyay@conexant.com>
+To: "Ezequiel Garcia" <elezegarcia@gmail.com>,
+	"Mauro Carvalho Chehab" <mchehab@redhat.com>
+cc: "linux-media" <linux-media@vger.kernel.org>,
+	"Dan Carpenter" <dan.carpenter@oracle.com>,
+	"stoth@kernellabs.com" <stoth@kernellabs.com>
+Date: Mon, 18 Jun 2012 13:30:26 -0700
+Subject: RE: [PATCH 0/12] struct i2c_algo_bit_data cleanup on several drivers
+Message-ID: <34B38BE41EDBA046A4AFBB591FA311320509E66E05@NBMBX01.bbnet.ad>
+References: <CALF0-+XS6gjiLDSGwumBp1xfXYvzii9f_Lw4qhyxVzwMzfh9Rg@mail.gmail.com>
+In-Reply-To: <CALF0-+XS6gjiLDSGwumBp1xfXYvzii9f_Lw4qhyxVzwMzfh9Rg@mail.gmail.com>
+Content-Language: en-US
+Content-Type: text/plain;
+ charset=us-ascii
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Identifying a memory-to-memory video device through an ORed output and capture
-capability flags is not reliable. Schedule this for removal.
+Thanks Ezequiel and Dan. The changes look ok. I'll have someone check out the changes on the CX devices.
 
-Signed-off-by: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
----
- Documentation/feature-removal-schedule.txt |   14 ++++++++++++++
- 1 files changed, 14 insertions(+), 0 deletions(-)
+Rgds,
+Palash
 
-diff --git a/Documentation/feature-removal-schedule.txt b/Documentation/feature-removal-schedule.txt
-index 09701af..950d84a 100644
---- a/Documentation/feature-removal-schedule.txt
-+++ b/Documentation/feature-removal-schedule.txt
-@@ -558,3 +558,17 @@ Why:	The V4L2_CID_VCENTER, V4L2_CID_HCENTER controls have been deprecated
- 	There are newer controls (V4L2_CID_PAN*, V4L2_CID_TILT*) that provide
- 	similar	functionality.
- Who:	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-+
-+----------------------------
-+
-+What:	Using V4L2_CAP_VIDEO_CAPTURE and V4L2_CAP_VIDEO_OUTPUT flags
-+	to indicate a V4L2 memory-to-memory device capability
-+When:	3.8
-+Why:	New drivers should use new V4L2_CAP_VIDEO_M2M capability flag
-+	to indicate a V4L2 video memory-to-memory (M2M) device and
-+	applications can now identify a M2M video device by checking
-+	for V4L2_CAP_VIDEO_M2M, with VIDIOC_QUERYCAP ioctl. Using ORed
-+	V4L2_CAP_VIDEO_CAPTURE and V4L2_CAP_VIDEO_OUTPUT flags for M2M
-+	devices is ambiguous and may lead, for example, to identifying
-+	a M2M device as a video	capture or output device.
-+Who:	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
---
-1.7.4.1
+-----Original Message-----
+From: Ezequiel Garcia [mailto:elezegarcia@gmail.com] 
+Sent: Monday, June 18, 2012 12:23 PM
+To: Mauro Carvalho Chehab
+Cc: linux-media; Dan Carpenter; Palash Bandyopadhyay; stoth@kernellabs.com
+Subject: [PATCH 0/12] struct i2c_algo_bit_data cleanup on several drivers
+
+Hi Mauro,
+
+This patchset cleans the i2c part of some drivers.
+This issue was recently reported by Dan Carpenter [1], and revealed wrong (and harmless) usage of struct i2c_algo_bit.
+
+Also, I properly assigned bus->i2c_rc (return code variable) and replaced struct memcpy with struct assignment.
+The latter is, in my opinion, a much safer way for struct filling and I'm not aware of any drawbacks.
+
+The patches are based on today's linux-next; I hope this is okey.
+As I don't own any of these devices, I can't test the changes beyond compilation.
+
+Ezequiel Garcia (12):
+  cx25821: Replace struct memcpy with struct assignment
+  cx25821: Remove useless struct i2c_algo_bit_data usage
+  cx25821: Use i2c_rc properly to store i2c register status
+  cx231xx: Replace struct memcpy with struct assignment
+  cx231xx: Remove useless struct i2c_algo_bit_data usage
+  cx231xx: Use i2c_rc properly to store i2c register status
+  cx23885: Replace struct memcpy with struct assignment
+  cx23885: Remove useless struct i2c_algo_bit_data
+  cx23885: Use i2c_rc properly to store i2c register status
+  saa7164: Replace struct memcpy with struct assignment
+  saa7164: Remove useless struct i2c_algo_bit_data
+  saa7164: Use i2c_rc properly to store i2c register status
+
+ drivers/media/video/cx231xx/cx231xx-i2c.c |   10 +++-------
+ drivers/media/video/cx231xx/cx231xx.h     |    2 --
+ drivers/media/video/cx23885/cx23885-i2c.c |   12 +++---------
+ drivers/media/video/cx23885/cx23885.h     |    2 --
+ drivers/media/video/cx25821/cx25821-i2c.c |   12 +++---------
+ drivers/media/video/cx25821/cx25821.h     |    2 --
+ drivers/media/video/saa7164/saa7164-i2c.c |   13 +++----------
+ drivers/media/video/saa7164/saa7164.h     |    2 --
+ 8 files changed, 12 insertions(+), 43 deletions(-)
+
+Thanks,
+Ezequiel.
+
+[1] http://comments.gmane.org/gmane.linux.drivers.video-input-infrastructure/49553
+
+Conexant E-mail Firewall (Conexant.Com) made the following annotations
+---------------------------------------------------------------------
+********************** Legal Disclaimer **************************** 
+
+"This email may contain confidential and privileged material for the sole use of the intended recipient. Any unauthorized review, use or distribution by others is strictly prohibited. If you have received the message in error, please advise the sender by reply email and delete the message. Thank you." 
+
+********************************************************************** 
+
+---------------------------------------------------------------------
 
