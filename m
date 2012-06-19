@@ -1,184 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:34778 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758777Ab2FUJFP (ORCPT
+Received: from matrix.voodoobox.net ([75.127.97.206]:49271 "EHLO
+	matrix.voodoobox.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751750Ab2FSEi1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Jun 2012 05:05:15 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Cc: linux-fbdev@vger.kernel.org, linaro-mm-sig@lists.linaro.org,
-	linux-media@vger.kernel.org
-Subject: Re: [Linaro-mm-sig] [RFC/PATCH] fb: Add dma-buf support
-Date: Thu, 21 Jun 2012 11:05:26 +0200
-Message-ID: <1573698.OuR8v0JOMq@avalon>
-In-Reply-To: <4FE1EF42.1000403@samsung.com>
-References: <1340201368-20751-1-git-send-email-laurent.pinchart@ideasonboard.com> <4FE1EF42.1000403@samsung.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Tue, 19 Jun 2012 00:38:27 -0400
+Message-ID: <1340080702.24618.15.camel@obelisk.thedillows.org>
+Subject: Re: [RFC] [media] cx231xx: restore tuner settings on first open
+From: David Dillow <dave@thedillows.org>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Date: Tue, 19 Jun 2012 00:38:22 -0400
+In-Reply-To: <CAGoCfix48wNUBRuUbehjSHpqV33D68AA7mBy_4zu22JWTkbcmQ@mail.gmail.com>
+References: <1339994998.32360.61.camel@obelisk.thedillows.org>
+	 <201206180929.48107.hverkuil@xs4all.nl>
+	 <1340028940.32360.70.camel@obelisk.thedillows.org>
+	 <CAGoCfize92S-8cR9f-RjQDcZARKiT84UtX-oH0EcPomCYFAyxQ@mail.gmail.com>
+	 <1340029964.23706.4.camel@obelisk.thedillows.org>
+	 <CAGoCfix48wNUBRuUbehjSHpqV33D68AA7mBy_4zu22JWTkbcmQ@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tomasz,
-
-Thank you for the review.
-
-On Wednesday 20 June 2012 17:41:54 Tomasz Stanislawski wrote:
-> Hi Laurent,
-> Thank you for the patch.
+On Mon, 2012-06-18 at 10:36 -0400, Devin Heitmueller wrote:
+> On Mon, Jun 18, 2012 at 10:32 AM, David Dillow <dave@thedillows.org> wrote:
+> > Hmm, it sounds like perhaps changing the standby call in the tuner core
+> > to asynchronously power down the tuner may be the way to go -- ie, when
+> > we tell it to standby, it will do a schedule_work for some 10 seconds
+> > later to really pull it down. If we get a resume call prior to then,
+> > we'll just cancel the work, otherwise we wait for the work to finish and
+> > then issue the resume.
+> >
+> > Does that sound reasonable?
 > 
-> On 06/20/2012 04:09 PM, Laurent Pinchart wrote:
-> > Add support for the dma-buf exporter role to the frame buffer API. The
-> > importer role isn't meaningful for frame buffer devices, as the frame
-> > buffer device model doesn't allow using externally allocated memory.
-> > 
-> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > ---
-> > 
-> >  Documentation/fb/api.txt |   36 ++++++++++++++++++++++++++++++++++++
-> >  drivers/video/fbmem.c    |   36 ++++++++++++++++++++++++++++++++++++
-> >  include/linux/fb.h       |   12 ++++++++++++
-> >  3 files changed, 84 insertions(+), 0 deletions(-)
+> At face value it sounds reasonable, except the approach breaks down as
+> soon as you have hybrid tuners which support both analog and digital.
+> Because the digital side of the tuner isn't tied into tuner-core,
+> you'll break in the following situation:
 > 
-> [snip]
+> Start using analog
+> Stop using analog [schedule_work() call]
+> Start using digital
+> Timer pops and powers down the tuner even though it's in use for ATSC
+> or ClearQAM
 > 
-> > +The export a frame buffer as a dma-buf file descriptors, applications
-> > call the +FBIOGET_DMABUF ioctl. The ioctl takes a pointer to a
-> > fb_dmabuf_export +structure.
-> > +
-> > +struct fb_dmabuf_export {
-> > +	__u32 fd;
-> > +	__u32 flags;
-> > +};
-> 
-> What do you think about adding some reserved fields to struct
-> fb_dmabuf_export to make it future-proof for DMABUF extensions?
+> Again, I'm not proposing a solution, but just poking a fatal hole in
+> your proposal (believe me, I had considered the same approach when
+> first looking at the problem).
 
-Already done. I've added them at the last minute, and for some reason I've 
-sent the previous version of the patch.
+No worries, I just started looking at V4L stuff on Friday, so I expect
+to make some mistakes...
 
-> > +
-> > +The flag field specifies the flags to be used when creating the dma-buf
-> > file +descriptor. The only supported flag is O_CLOEXEC. If the call is
-> > successful, +the driver will set the fd field to a file descriptor
-> > corresponding to the +dma-buf object.
-> > +
-> > +Applications can then pass the file descriptors to another application or
-> > +another device driver. The dma-buf object is automatically
-> > reference-counted, +applications can and should close the file descriptor
-> > as soon as they don't +need it anymore. The underlying dma-buf object
-> > will not be freed before the +last device that uses the dma-buf object
-> > releases it.
-> > diff --git a/drivers/video/fbmem.c b/drivers/video/fbmem.c
-> > index 0dff12a..400e449 100644
-> > --- a/drivers/video/fbmem.c
-> > +++ b/drivers/video/fbmem.c
-> > @@ -15,6 +15,7 @@
-> > 
-> >  #include <linux/compat.h>
-> >  #include <linux/types.h>
-> > 
-> > +#include <linux/dma-buf.h>
-> > 
-> >  #include <linux/errno.h>
-> >  #include <linux/kernel.h>
-> >  #include <linux/major.h>
-> > 
-> > @@ -1074,6 +1075,23 @@ fb_blank(struct fb_info *info, int blank)
-> > 
-> >   	return ret;
-> >  
-> >  }
-> > 
-> > +#ifdef CONFIG_DMA_SHARED_BUFFER
-> > +int
-> > +fb_get_dmabuf(struct fb_info *info, int flags)
-> > +{
-> > +	struct dma_buf *dmabuf;
-> > +
-> > +	if (info->fbops->fb_dmabuf_export == NULL)
-> > +		return -ENOTTY;
-> > +
-> > +	dmabuf = info->fbops->fb_dmabuf_export(info);
-> 
-> IMO, it is not a good idea to delegate an implementation of DMABUF ops to
-> the driver. Maybe exporting could be handled inside FB stack. As I
-> understand, the FB stack needs only 'get-scatterlist' ops from an FB driver.
-> All other DMABUF magic does not need driver involvement, does it?
+It sounds like we want a solution that
+      * lives in core code
+      * doesn't require tuner drivers to save state
+      * manages hybrid tuners appropriately
+      * allows for gradual API change-over (no flag day for tuners or
+        for capture devices)
+      * has a reasonable grace period before putting tuner to standby
 
-Beside creating the sg-list, drivers also need to prevent the underlying 
-memory from being freed. If an application requests a frame buffer format or 
-size change, the driver could resize the underlying memory, which needs to be 
-prevented as long as the buffer is exported.
+Aside from the entering standby issue, fixing the loss of mode/frequency
+looks like it may be fixable by just having the capture cards explicitly
+request the tuner become active -- the tuner core will already restore
+those for us. It's just that few cards do that today.
 
-The dma-buf support implementation in the sh_mobile_lcdcfb driver also takes a 
-reference to the device and the driver for the duration of the export, to 
-prevent the driver from being unloaded and the device from being released.
+Is it safe to say that the tuner core will know about all hybrid tuners,
+even if it doesn't know if the digital side is still in use?
 
-static struct dma_buf *sh_mobile_dmabuf_export(struct fb_info *info)
-{
-      struct sh_mobile_lcdc_chan *ch = info->par;
-      struct dma_buf *dmabuf;
+Can a single tuner be used for both digital and analog tuning at the
+same time?
 
-      dmabuf = dma_buf_export(ch, &sh_mobile_lcdc_dmabuf_ops, ch->fb_size, 0);
-      if (!IS_ERR(dmabuf)) {
-              /* We already hold references to the module and the device, so
-               * we don't have to take them prior to calling dma_buf_export().
-               */
-              get_device(ch->lcdc->dev);
-              __module_get(THIS_MODULE);
-      }
+I'm wondering if just having a simple counter would work, with the
+digital side calling for power just as the capture side should already
+be doing. If the count is non-zero on a standby call, don't do anything.
+If it goes to zero, then schedule the HW standby. The challenge would
+seem to be getting the DVB system to call into the tuner-core (or other
+proper place).
 
-      return dmabuf;
-}
+So much to learn... thank you for your patience,
+Dave
 
-This could be moved in the fbdev core though, as ch->lcdc->dev is available 
-trhough info->dev, and THIS_MODULE could be replaced with info->dev->driver-
->owner.
 
-Moving the implementation to the fbdev core would thus require 3 callbacks to 
-lock the frame buffer, get the sg list, and release the frame buffer. However, 
-in practice, we might not have drivers that resize buffers when the format or 
-size is modified, in which case a single callback would be enough.
-
-> > +	if (IS_ERR(dmabuf))
-> > +		return PTR_ERR(dmabuf);
-> > +
-> > +	return dma_buf_fd(dmabuf, flags);
-> > +}
-> > +#endif
-> > +
-> 
-> [snip]
-> 
-> > diff --git a/include/linux/fb.h b/include/linux/fb.h
-> > index ac3f1c6..c9fee75 100644
-> > --- a/include/linux/fb.h
-> > +++ b/include/linux/fb.h
-> > @@ -701,6 +708,11 @@ struct fb_ops {
-> > 
-> >  	/* called at KDB enter and leave time to prepare the console */
-> >  	int (*fb_debug_enter)(struct fb_info *info);
-> >  	int (*fb_debug_leave)(struct fb_info *info);
-> > 
-> > +
-> > +#ifdef CONFIG_DMA_SHARED_BUFFER
-> > +	/* Export the frame buffer as a dmabuf object */
-> > +	struct dma_buf *(*fb_dmabuf_export)(struct fb_info *info);
-> > +#endif
-> 
-> Memory trashing or even kernel crash may happen if a module compiled
-> with CONFIG_DMA_SHARED_BUFFER enabled is loaded into kernel with
-> CONFIG_DMA_SHARED_BUFFER disabled.
-
-I'll remove the #ifdef. The memory savings are not worth the potential issues.
-
-> >  };
-> >  
-> >  #ifdef CONFIG_FB_TILEBLITTING
-
--- 
-Regards,
-
-Laurent Pinchart
 
