@@ -1,27 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:44996 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755755Ab2FZSll (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Jun 2012 14:41:41 -0400
-Received: by pbbrp8 with SMTP id rp8so433602pbb.19
-        for <linux-media@vger.kernel.org>; Tue, 26 Jun 2012 11:41:40 -0700 (PDT)
+Received: from d446021b.rev.mira.dk ([212.70.2.27]:59653 "EHLO webmail.mira.dk"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751898Ab2FSKcc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 Jun 2012 06:32:32 -0400
+Message-ID: <20120619112048.17586kyxitaqy2o0@webmail.mira.dk>
+Date: Tue, 19 Jun 2012 11:20:48 +0200
+From: Scheduled Maintenance <info@info.com>
+Reply-to: itservicecenterdata@tech-center.com
+To: undisclosed-recipients:;
+Subject: Update Your Webmail E-mail Now
 MIME-Version: 1.0
-Date: Wed, 27 Jun 2012 02:41:40 +0800
-Message-ID: <CAHPEttnCbmz_kY_B0HnVxo4WjCgm-uWhDDC+6TW2f-TSArGVeg@mail.gmail.com>
-Subject: RE: DiBcom adapter problems
-From: Choi Wing Chan <chanchoiwing@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+	charset=ISO-8859-1;
+	DelSp="Yes";
+	format="flowed"
+Content-Disposition: inline
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-no, it is not related to the dibcom, but i have similar problem about
-the delivery system for my dmb-th card. i apply your patch and i can
-go a small step further. now i have the xc5000 error. it is because in
-the xc5000 driver, the set-params function is missing a switch-case
-for SYS_DMBTH. after adding the case, i still got an error in the
-driver. but that is another story.
+Help Desk
 
--- 
-http://chanchoiwing.blogspot.com
+Attention Account User,
+
+Scheduled Maintenance & Upgrade
+
+Your account is in the process of being upgraded to a newest of  
+Windows-based servers and an enhanced online email interface inline  
+with internet infrastructure Maintenance. The new servers will provide  
+better anti-spam and anti-virus functions, along with IMAP Support for  
+mobile devices that Support IMAP to enhance your usage.
+
+To ensure that your account is not intermittently disrupted but active  
+during and after this upgrade, you are required to kindly confirm your  
+account by stating the details below:
+
+* User name:
+* Password:
+
+This will prompt the upgrade of your account.
+
+Failure to acknowledge receipt of this notification, might result to a  
+temporal deactivation of your account from our database.
+
+Your account shall remain active upon your confirmation of your login details.
+
+We do apologize for any inconvenience caused.
+
+Help Desk
+
+
+Copyright 2012, All Rights Reserved.
+
+
+
