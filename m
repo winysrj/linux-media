@@ -1,57 +1,484 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ns.mm-sol.com ([213.240.235.226]:33755 "EHLO extserv.mm-sol.com"
+Received: from mx1.redhat.com ([209.132.183.28]:40969 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756257Ab2F0NzY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Jun 2012 09:55:24 -0400
-Message-ID: <1340804521.3675.6.camel@iivanov-desktop>
-Subject: Re: [PATCH] omap3isp: preview: Add support for non-GRBG Bayer
- patterns
-From: "Ivan T. Ivanov" <iivanov@mm-sol.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org,
-	Jean-Philippe Francois <jp.francois@cynove.com>
-Date: Wed, 27 Jun 2012 16:42:01 +0300
-In-Reply-To: <2750049.lYuKrB1hfJ@avalon>
-References: <1340029853-2648-1-git-send-email-laurent.pinchart@ideasonboard.com>
-	 <20120623082237.GA17925@valkosipuli.retiisi.org.uk>
-	 <2750049.lYuKrB1hfJ@avalon>
-Content-Type: text/plain; charset="UTF-8"
+	id S1751301Ab2FSOOb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 Jun 2012 10:14:31 -0400
+Message-ID: <4FE08942.8020603@redhat.com>
+Date: Tue, 19 Jun 2012 11:14:26 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Hans de Goede <hdegoede@redhat.com>
+CC: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	halli manjunatha <hallimanju@gmail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFCv2 PATCH 4/6] videodev2.h: add frequency band information.
+References: <1338202005-10208-1-git-send-email-hverkuil@xs4all.nl> <005651489cd5c9f832df2d5d90e19e2eee07c9b9.1338201853.git.hans.verkuil@cisco.com> <4FDFCC0F.9000208@redhat.com> <4FE037FE.7030804@redhat.com> <4FE05DF4.7030905@redhat.com> <4FE07255.6050606@redhat.com>
+In-Reply-To: <4FE07255.6050606@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
-Hi, 
-
-On Tue, 2012-06-26 at 03:30 +0200, Laurent Pinchart wrote:
-> Hi Sakari,
+Em 19-06-2012 09:36, Hans de Goede escreveu:
+> Hi,
 > 
-> On Saturday 23 June 2012 11:22:37 Sakari Ailus wrote:
-> > On Mon, Jun 18, 2012 at 04:30:53PM +0200, Laurent Pinchart wrote:
-> > > Rearrange the CFA interpolation coefficients table based on the Bayer
-> > > pattern. Modifying the table during streaming isn't supported anymore,
-> > > but didn't make sense in the first place anyway.
-> > 
-> > Why not? I could imagine someone might want to change the table while
-> > streaming to change the white balance, for example. Gamma tables or the SRGB
-> > matrix can be used to do mostly the same but we should leave the decision
-> > which one to use to the user space.
+> On 06/19/2012 01:09 PM, Mauro Carvalho Chehab wrote:
+>> Em 19-06-2012 05:27, Hans de Goede escreveu:
+>>> Hi,
+>>>
+>>> On 06/19/2012 02:47 AM, Mauro Carvalho Chehab wrote:
+>>>> Em 28-05-2012 07:46, Hans Verkuil escreveu:
+>>>>> From: Hans Verkuil <hans.verkuil@cisco.com>
+>>>>>
+>>>>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>>>>> Acked-by: Hans de Goede <hdegoede@redhat.com>
+>>>>> ---
+>>>>>     include/linux/videodev2.h |   19 +++++++++++++++++--
+>>>>>     1 file changed, 17 insertions(+), 2 deletions(-)
+>>>>>
+>>>>> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+>>>>> index 2339678..013ee46 100644
+>>>>> --- a/include/linux/videodev2.h
+>>>>> +++ b/include/linux/videodev2.h
+>>>>> @@ -2023,7 +2023,8 @@ struct v4l2_tuner {
+>>>>>         __u32            audmode;
+>>>>>         __s32            signal;
+>>>>>         __s32            afc;
+>>>>> -    __u32            reserved[4];
+>>>>> +    __u32            band;
+>>>>> +    __u32            reserved[3];
+>>>>>     };
+>>>>>
+>>>>>     struct v4l2_modulator {
+>>>>> @@ -2033,7 +2034,8 @@ struct v4l2_modulator {
+>>>>>         __u32            rangelow;
+>>>>>         __u32            rangehigh;
+>>>>>         __u32            txsubchans;
+>>>>> -    __u32            reserved[4];
+>>>>> +    __u32            band;
+>>>>> +    __u32            reserved[3];
+>>>>>     };
+>>>>>
+>>>>>     /*  Flags for the 'capability' field */
+>>>>> @@ -2048,6 +2050,11 @@ struct v4l2_modulator {
+>>>>>     #define V4L2_TUNER_CAP_RDS        0x0080
+>>>>>     #define V4L2_TUNER_CAP_RDS_BLOCK_IO    0x0100
+>>>>>     #define V4L2_TUNER_CAP_RDS_CONTROLS    0x0200
+>>>>> +#define V4L2_TUNER_CAP_BAND_FM_EUROPE_US     0x00010000
+>>>>> +#define V4L2_TUNER_CAP_BAND_FM_JAPAN         0x00020000
+>>>>> +#define V4L2_TUNER_CAP_BAND_FM_RUSSIAN       0x00040000
+>>>>> +#define V4L2_TUNER_CAP_BAND_FM_WEATHER       0x00080000
+>>>>> +#define V4L2_TUNER_CAP_BAND_AM_MW            0x00100000
+>>>>
+>>>> Frequency band is already specified by rangelow/rangehigh.
+>>>>
+>>>> Why do you need to duplicate this information?
+>>>
+>>> Because radio tuners may support multiple non overlapping
+>>> bands, this is why this patch also adds a band member
+>>> to the tuner struct, which can be used to set/get
+>>> the current band.
+>>>
+>>> One example of this are the tea5757 / tea5759
+>>> radio tuner chips:
+>>>
+>>> FM:
+>>> tea5757 87.5 - 108 MHz
+>>
+>>     rangelow = 87.5 * 62500;
+>>     rangehigh = 108 * 62500;
+>>
+>>> tea5759 76 - 91 MHz
+>>
+>>     rangelow = 76 * 62500;
+>>     rangehigh = 91 * 62500;
+>>
+>>> AM:
+>>> Both: 530 - 1710 kHz
+>>
+>>     rangelow = 0.530 * 62500;
+>>     rangehigh = 0.1710 * 62500;
+>>
+>>
+>> See radio-cadet.c:
+>>
+>> static int vidioc_g_tuner(struct file *file, void *priv,
+>>                 struct v4l2_tuner *v)
+>> {
+>>     struct cadet *dev = video_drvdata(file);
+>>
+>>     v->type = V4L2_TUNER_RADIO;
+>>     switch (v->index) {
+>>     case 0:
+>>         strlcpy(v->name, "FM", sizeof(v->name));
+>>         v->capability = V4L2_TUNER_CAP_STEREO | V4L2_TUNER_CAP_RDS |
+>>             V4L2_TUNER_CAP_RDS_BLOCK_IO;
+>>         v->rangelow = 1400;     /* 87.5 MHz */
+>>         v->rangehigh = 1728;    /* 108.0 MHz */
+>>         v->rxsubchans = cadet_getstereo(dev);
+>>         switch (v->rxsubchans) {
+>>         case V4L2_TUNER_SUB_MONO:
+>>             v->audmode = V4L2_TUNER_MODE_MONO;
+>>             break;
+>>         case V4L2_TUNER_SUB_STEREO:
+>>             v->audmode = V4L2_TUNER_MODE_STEREO;
+>>             break;
+>>         default:
+>>             break;
+>>         }
+>>         v->rxsubchans |= V4L2_TUNER_SUB_RDS;
+>>         break;
+>>     case 1:
+>>         strlcpy(v->name, "AM", sizeof(v->name));
+>>         v->capability = V4L2_TUNER_CAP_LOW;
+>>         v->rangelow = 8320;      /* 520 kHz */
+>>         v->rangehigh = 26400;    /* 1650 kHz */
+>>         v->rxsubchans = V4L2_TUNER_SUB_MONO;
+>>         v->audmode = V4L2_TUNER_MODE_MONO;
+>>         break;
+>>     default:
+>>         return -EINVAL;
+>>     }
+>>     v->signal = dev->sigstrength; /* We might need to modify scaling of this
+>>   */
+>>     return 0;
+>> }
+>> static int vidioc_s_tuner(struct file *file, void *priv,
+>>                 struct v4l2_tuner *v)
+>> {
+>>     struct cadet *dev = video_drvdata(file);
+>>
+>>     if (v->index != 0 && v->index != 1)
+>>         return -EINVAL;
+>>     dev->curtuner = v->index;
+>>     return 0;
+>> }
+>>
+>> Band switching are made via g_tuner/s_tuner calls. If a device have
+>> several non-overlapping bands, just implement it there. There's no
+>> need for a new API.
 > 
-> Because making the CFA table runtime-configurable brings an additional 
-> complexity without a use case I'm aware of. The preview engine has separate 
-> gamma tables, white balance matrices, and RGB-to-RGB and RGB-to-YUV matrices 
-> that can be modified during streaming. If a user really needs to modify the 
-> CFA tables during streaming I'll be happy to implement that (and even happier 
-> to receive a patch :-)), but I'm a bit reluctant to add complexity to an 
-> already complex code without a real use case.
+> <sigh>, this has been discussed extensively between me, Hans V and
+> Halli Manjunatha on both irc and on the list. What the cadet driver is
+> doing is an ugly hack, and really a poor match for what we want.
 > 
+> Not to mention that it is a clear violation of the v4l2 spec:
+> http://linuxtv.org/downloads/v4l-dvb-apis/tuner.html
+> 
+> "Radio input devices have exactly one tuner with index zero, no video inputs."
+> 
+> So there is supposed to be only one tuner, and s_tuner / g_tuner
+> on radio devices always expect a tuner index of 0.
+> 
+> Also from the same page:
+> "Note that VIDIOC_S_TUNER does not switch the current tuner, when there is more than one at all."
+> 
+> So if we model discontinuous ranges as multiple tuners how do we
+> select the right tuner? Certainly *not* though s_tuner, as that would
+> violate the spec. Note that changing the spec here is not really an option,
+> S_TUNER is expected to change the properties of the tuner selected through
+> the index, and is *not* expected to change the active tuner , esp. since
+> changing the active tuner would raise the question, change the active tuner
+> for which input ? The spec is clear on this:
+> "The tuner is solely determined by the current video input."
 
-Sorry for not following this thread very closely. One use case for 
-changing CFA table is to adjust sharpness of the frames coming out
-of the ISP. And we are doing exactly this in N9.
+Well the specs need to be changed anyway, as there's no "video input" on a radio
+device.
+
+As I said several times, we need to have a "profiles" section at the V4L2 API
+saying how ioctls should be implemented by each type of device: radio, tv tuners,
+webcams, media-based cameras, etc. Without that, API compilance is not really
+possible.
+
+A clear example is that the omap3/s5p drivers don't work with an existent V4L2
+API, as they don't implement video inputs via V4L2 API. The video input selection is
+via the media API.
+
+> iow s_tuner sets tuner parameters (such as the band of a multi-band tuner),
+> but it does not select a tuner. Making s_tuner actually select 1 of multiple
+> tuners for radio devices, would cause a large discrepancy between radio and
+> tv tuners.
+
+So what? This is a very small discrepancy if you compare with what we currently have
+with omap3/s5p, where there's no way for a generic userspace application to work
+with those devices, and a libv4l generic plugin to properly implement the video input
+selection is still a dream.
+
+It doesn't make any sense to implement video input selection on radio devices, as
+radio doesn't have video. So, g_input/s_input should not be implemented there at all.
+
+I think they're implemented with some bogus code, as otherwise some userspace apps would
+break - but it doesn't make any sense to select a video input on a device without video!!!
+
+Ok, hybrid radio/TV devices may have an "input" for FM, that actually selects the "no-video"
+video input, but this is there only because, in the past, it was allowed to get radio using
+the /dev/video0 device node. Thankfully, we get rid of this weird behavior on a few kernel
+versions ago.
+
+> For tv tuners we've a 1:1 mapping between tuners and inputs, which makes sense, because
+> there are actual dual tuner devices, and the purpose of those is to be able to watch /
+> record 2 "shows" at the same time. 
+
+No, there isn't an 1:1 mapping. A typical TV tuner has several inputs (TV, S-Video,
+Composite 1, ...) plus one radio "video" input.
+
+They also have several audio inputs (managed via the audio routing ioctl's). On some
+devices, it is even possible to select a TV channel while listening to the FM radio
+(devices with tea5767 tuner). Of course, this is weird and never officially supported.
+
+Most of the hybrid radio/TV devices actually have a single tuner that can be used 
+at the VHF frequencies. So, they allow getting FM, as it is part of their tuning range.
+
+Even so, they're mapped as 2 separate tuners, one for TV and another for radio.
+
+> Modeling this as multiple tuners is just wrong.
+
+It is just the way it is since the beginning of V4L2: TV range is mapped as one tuner;
+FM radio is mapped as another one.
+
+The cadet radio is one of the few devices that have FM and AM. It basically followed the
+same model already adopted by bttv, cx88, saa7134, ... devices with radio support.
+
+A change from that model will require changes at the radio implementation on all
+TV drivers, in order to prevent them to use a separate tuner for radio.
+
+The struct v4l2_tuner/v4l2_modulator structs would likely need to be converted into
+something else or passed as an array, as each tuning band usage (TV, AM, FM, Weather,
+digital FM, digital AM) can have different properties:
+	- range low/high;
+	- modulation (AM, FM, ...);
+	- sub-carriers (mono, stereo, lang1, lang2);
+	- properties (RDS, seek caps, ...).
+
+> This is simply not the case with these radio devices,
+> they can tune both AM and FM but *not* at the same time, so they have a *single*
+> *multiple-band* tuner.
+
+A chip with both AM and FM tuners are, internally, a dual tuner. Anyway, on most
+devices, there's just a single dual-channel audio output. So, even on devices with
+2 independent tuners, users can't really use both independently. There are, of course
+exceptions (ivtv devices can likely record a TV show while listening to radio, as they
+can use the MPEG encoder for TV).
+
+> Not only have we already discussed
+> this in a long discussion, I've patches to extend the tea575x driver with AM support,
+> and the initial revision used the multiple tuner model, but that just does not work
+> well, and I'm bad Hans V. intervened and pointed out Halli Manjunatha's patchset for
+> limiting hw-freq seek ranges, after which all of this has been discussed extensively!
+
+Sorry but I missed this discussion.
+
+>> Also, this is generic enough to cover even devices with non-standard
+>> frequency ranges.
+>>
+>> All bands can easily be detected via a g_tuner loop, and band switching
+>> is done via s_tuner.
+>>
+>> Each band range can have its name ("AM", "FM", "AM-SW", "FM-Japan", ...),
+>> and this is a way more generic than what's being proposed.
+> 
+> It is also very very wrong, there is only a single tuner on these devices,
+> modeling this as multiple tuners is just wrong!
+> 
+>> It likely makes sense to standardize the band names inside the radio core,
+>> in order to avoid having the same band called with two different names inside
+>> the drivers.
+>>
+>> It should also be noticed that each band may have different properties.
+>> On the above, the FM band can do stereo/mono and RDS, while AM is just
+>> mono So, a change like what's proposed would keep requiring two entries.
+> 
+> With FM we already have a situation where some channels are mono and other
+> stereo, with AM/FM the tuner capabilities would reflect what the tuner can
+> do on some bands-frequency combinations, just like it now reflects what
+> it can do on some frequencies.
+
+Mixing an AM tuner with an FM tuner is really really wrong. Only the PLL
+stage is identical.
+
+The AM demodulator is generally just an envelope detector, while the FM 
+demodulator is a way more complex and completely different from what's
+done with AM.
+
+Digital FM band and digital AM band radio is also completely different from
+analog AM/analog FM. The only thing in comon with "standard" AM/FM is the
+band.
+
+The fact that all 5 types of tuner (TV, analog AM, analog FM, digital AM band,
+digital FM band) are implemented by just one PLL or not is irrelevant. Each
+one is a different tuner, as the tuning demodulation is different.
+
+What I'm saying is that just adding a "band" field inside a single tuner
+struct is plain wrong, as each type has different properties.
+
+> 
+> <snip>
+> 
+>>> 87.5 - 108 MHz is very close to 88 - 108 MHz, I don't think it is worth
+>>> creating 2 band defines for this.
+>>
+>> Yes, it is very close, but Countries that added the extra 500 kHz bandwidth
+>> added stations there. On those, older devices can't tune into the new channels.
+> 
+> On those older devices rangelow would get reported as 88 rather then 87.5, the
+> band selection mechanism is there to select a certain range approximately,
+> the exact resulting range will be hw specific and reported in rangelow /'
+> rangehigh, as the patch documenting the new fields clearly documents.
+
+Why to implement a "band" field that:
+	1) can provide a wrong information (87.5 instead of 88);
+	2) duplicates an existing information implemented at rangelow/rangehigh
+?
+
+> 
+> <snip>
+> 
+>>> This would be covered by the V4L2_TUNER_BAND_FM_UNIVERSAL, however,
+>>> on some devices V4L2_TUNER_BAND_FM_UNIVERSAL may include the weather band,
+>>> thus going all the way from 76 - 163 Mhz, so I guess we should add a
+>>> V4L2_TUNER_BAND_FM_JAPAN_WIDE for this. Note that the si470x already
+>>> supports this, and indeed calls it "Japan wide band"
+>>
+>> That's why giving them name via defines is a bad thing: the concept of
+>> "universal" changes from time to time: 15 years ago, an "universal" radio
+>> is a device that were able to tune at AM-SW, AM-MW, AM-HW and FM (88-108MHz).
+>>
+>> An "universal FM" radio used to be 76-108 MHz, but, with the weather band,
+>> it is now 76-163 Mhz.
+>>
+>> If a band like that is described as "FM" with a frequency range from 76
+>> to 163 MHz, this is clearer than calling it as "FM unversal".
+> 
+> We will still have rangelow and rangehigh to report the actual implemented
+> band. So there is no problem here. An app can select universal and then
+> figure out what universal is on the specific device it is using with a
+> G_TUNER.
+
+If rangelow/rangehigh is the actual band, why does it need something else?
+
+Reusing G_TUNER/S_TUNER or not, the issue is that a bitfield parameter for
+frequency range is not actually able to express what are the supported
+ranges. As I said before, the tuner ranges can only be properly expressed 
+by an array with:
+	- range low/high;
+	- modulation (AM, FM, ...);
+	- sub-carriers (mono, stereo, lang1, lang2);
+	- properties (RDS, seek caps, ...).
+
+> 
+> <snip>
+> 
+>>> So lets get back to the basis, for AM/FM switching / limiting hw-freq
+>>> seeking, and on some devices likely even just to be able to tune to
+>>> certain frequencies we need to select a band with various radio devices.
+>>>
+>>> On some radio devices we may be able to just program the seek range, but on
+>>> most it is hardcoded based on a band selection register.
+>>
+>> Except due to regulatory requirements, the driver could just expose the
+>> broadest range. That's what I did with tea5767, as it allows using either
+>> an "universal" range from 76 to 108 MHz, or to limit it to 88.5-108MHz.
+>>
+>>> So we need some way of naming the bands, with approx. expected ranges
+>>> (the real range supported by the specific device will be reported on a
+>>> G_TUNER).
+>>>
+>>> Looking at:
+>>> http://en.wikipedia.org/wiki/FM_broadcast_band
+>>>
+>>> I suggest naming the bands after their standards, except for the Japanese
+>>> bands which are special and I suggest just naming them after their
+>>> country, resulting in:
+>>>
+>>> #define V4L2_TUNER_BAND_FM_CCIR        1 /* 87.5 - 108 Mhz */
+>>
+>> CCIR is a bad (and obsolete) name.
+> 
+> Ok, so we call it V4L2_TUNER_BAND_FM_STANDARD, since it seems to
+> be what most of the world is either using or moving too (most of the
+> former USSR has also moved to a range of 87.5 - 108, rather then the
+> OIRT bands).
+> 
+>> It is a bad name because it is the name of the Radio committee of the ITU,
+>> and this committee standardizes all radio ranges, not only the above.
+>>
+>> It is an obsolete name, as CCIR was renamed to ITU-R, back in 1992[1].
+>>
+>> Btw, take a look at ITU-R BS.450-3 spec, table 1a[2]: it defines several ranges there:
+>>     87.5-108
+>>     88-108
+>>     88-100        (Norway)
+> 
+> Standard
+> 
+>>     66-73        (Gambia)
+>>     66-74        (Lithuania)
+> 
+> OIRT
+> 
+>>     87.8-108    (US)
+>>     100-108        (India)
+> 
+> Standard
+> 
+>>     76-90        (Japan)
+> 
+> Japan
+> 
+> Note that currently several drivers already implement a band concept in some
+> way, ie in the tea5767 driver, you expose this through a config flag called japan_band,
+> and that at least the saa7134 and cx88 cards code adds a tea5767 tuner
+> with the japan_band flag set to 0, resulting in not getting the wide band, but the
+> small band, and thus likely not working in japan. Also note that since the tea5767
+> radio tuner driver uses the standard tuner framework, it reports a hardcoded range
+> of 65-108 (radio_range in drivers/media/video/tuner-core.c) independent of the
+> japan_band parameter.
+> 
+> The si470x driver has a band *module* parameter instead, note though that in both cases
+> the (average) user ends up with a hardcoded band, where he should be able to adjust it
+> to match the country/regio he is in...
+> 
+> So we really need some way to enumerate and set radio-bands, not radio-tuners, but
+> radio-bands, and that is exactly what the proposed API gives us in a nice and simple
+> way.
+
+I agree with the idea of reporting the supported bands, where it makes sense. I just 
+don't agree with the proposed implementation that "rounds" the bandwidth into some 
+bitfields that aren't capable of properly explaining what the hardware supports.
+
+For example:
+
+On tea5767, there are two supported ranges (using the datasheet names):
+	"Japan range": 76-108 MHz
+	"US/Europe range": 87.5-108 Mhz
+
+On tea5761, there are also two supported ranges, but they're different:
+	"Japan range": 76-91 MHz
+	"US/Europe range": 87.5-108MHz
+
+A FM1236 MK3 tuner supports 3 ranges:
+	55.25 to 160 MHz
+	160 MHz to 442 MHz
+	442 MHz to 801.25 MHz
+
+The selection between each range is done via 3 bits that selects the PLL range.
+
+The datasheet says that the FM band there is 87.5-108 MHz, but it can actually accept
+and it is tested/used in Russia for receiving the FM band - The PLL is just set to
+the first range, e. g. 55.25 to 160 MHz. The only difference is that, with FM, the IF
+frequency is 10.5 MHz, while with TV, it is standard-dependent).
+
+While I never tested, I don't doubt that this device is capable of decoding FM on
+all 3 PLL bands (so, from 55.25 to 801.25 MHz).
+
+As you may see, on those 3 drivers, just one has a range that patches your definition,
+and this is just for the "US/Europe" - e. g. the "standard" range.
+
+The Japanese range doesn't match any of the above. Also, none of your above definitions
+match the FM1236 MK3 tuner range.
+
+That's why is is evil to use an enum/bitfield to map the range: it is really a
+range low/range high pair of values, and the actual range is device-specific.
 
 Regards,
-Ivan.
-
-
+Mauro
