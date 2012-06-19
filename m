@@ -1,56 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:4130 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756091Ab2FDVnK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jun 2012 17:43:10 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Ezequiel Garcia <elezegarcia@gmail.com>
-Subject: Re: [RFC/PATCH v2] media: Add stk1160 new driver
-Date: Mon, 4 Jun 2012 23:42:58 +0200
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Sylwester Nawrocki <snjw23@gmail.com>
-References: <1338651169-10446-1-git-send-email-elezegarcia@gmail.com> <201206041047.40804.hverkuil@xs4all.nl> <CALF0-+XZ_LTgk8n32gD7H4+dJTyxADPzs-1tw2AVjNzXU9waXg@mail.gmail.com>
-In-Reply-To: <CALF0-+XZ_LTgk8n32gD7H4+dJTyxADPzs-1tw2AVjNzXU9waXg@mail.gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:43364 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752053Ab2FSR3P (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 Jun 2012 13:29:15 -0400
+Message-ID: <4FE0B802.3080703@redhat.com>
+Date: Tue, 19 Jun 2012 19:33:54 +0200
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	halli manjunatha <hallimanju@gmail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFCv2 PATCH 4/6] videodev2.h: add frequency band information.
+References: <1338202005-10208-1-git-send-email-hverkuil@xs4all.nl> <005651489cd5c9f832df2d5d90e19e2eee07c9b9.1338201853.git.hans.verkuil@cisco.com> <4FDFCC0F.9000208@redhat.com> <4FE037FE.7030804@redhat.com> <4FE05DF4.7030905@redhat.com> <4FE07255.6050606@redhat.com> <4FE08942.8020603@redhat.com> <4FE0AD29.4070300@redhat.com>
+In-Reply-To: <4FE0AD29.4070300@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <201206042342.58718.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon June 4 2012 21:50:46 Ezequiel Garcia wrote:
-> On Mon, Jun 4, 2012 at 5:47 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> >
-> >> Would you care to explain me this change in your patch?
-> >> +       set_bit(V4L2_FL_USE_FH_PRIO, &dev->vdev.flags);
-> >
-> > See Documentation/video4linux/v4l2-framework.txt:
-> >
-> > "flags: optional. Set to V4L2_FL_USE_FH_PRIO if you want to let the framework
-> >  handle the VIDIOC_G/S_PRIORITY ioctls. This requires that you use struct
-> >  v4l2_fh. Eventually this flag will disappear once all drivers use the core
-> >  priority handling. But for now it has to be set explicitly."
-> >
-> 
-> So, by using v4l2_fh and setting V4L2_FL_USE_FH_PRIO, I can have
-> {g,s}_priority ioctls for free, right?
+Hi,
 
-Yes.
+On 06/19/2012 06:47 PM, Hans de Goede wrote:
+> Hi,
+>
+> <snip long discussion about having a fixed set of bands versus
+> a way to enumerate bands, including their rangelow, rangehigh
+> and capabilities>
+>
+> Ok, you've convinced me. I agree that having a way to actually
+> enumerate ranges, rather then having a fixed set of ranges, is
+> better.
+>
+> Which brings us back many weeks to the proposal for making
+> it possible to enumerate bands on radio devices. Rather
+> then digging up the old mails lets start anew, I propose
+> the following API for this:
+>
+> 1. A radio device can have multiple tuners, but only 1 can
+> be active (streaming audio to the associated audio input)
+> at the same time.
+>
+> 2. Radio device tuners are enumerated by calling G_TUNER
+> with an increasing index until EINVAL gets returned
+>
+> 3. G_FREQUENCY will always return the frequency and index
+> of the currently active tuner
+>
+> 4. When calling S_TUNER on a radio device, the active
+> tuner will be set to the v4l2_tuner index field
+>
+> 5. When calling S_FREQUENCY on a radio device, the active
+> tuner will be set to the v4l2_frequency tuner field
+>
+> 6. On a G_TUNER call on a radio device the rxsubchans,
+> audmode, signal and afc v4l2_tuner fields are only
+> filled on for the active tuner (as returned by
+> G_FREQUENCY) for inactive tuners these fields are reported
+> as 0.
 
-> As far as I can see __video_do_ioctl checks if the ioctl is possible, like this:
-> 
->  520     if (test_bit(V4L2_FL_USES_V4L2_FH, &vfd->flags)) {
->  521         vfh = file->private_data;
->  522         use_fh_prio = test_bit(V4L2_FL_USE_FH_PRIO, &vfd->flags);
->  523     }
->  524
->  525     if (use_fh_prio)
->  526         ret_prio = v4l2_prio_check(vfd->prio, vfh->prio);
+p.s.
 
-And V4L2_FL_USES_V4L2_FH is set by v4l2_fh_init() (called by v4l2_fh_open()).
+I forgot:
+
+7. When calling VIDIOC_S_HW_FREQ_SEEK on a radio device, the active
+tuner will be set to the v4l2_hw_freq_seek tuner field
+
+8. When changing the active tuner with S_TUNER or S_HW_FREQ_SEEK,
+the current frequency may be changed to fit in the range of the
+new active tuner
+
+9. For backwards compatibility reasons tuner 0 should be the tuner
+with the broadest possible FM range
 
 Regards,
 
-	Hans
+Hans
