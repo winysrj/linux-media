@@ -1,141 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:3961 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755870Ab2FXL3O (ORCPT
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:35307 "EHLO
+	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756459Ab2FTO1f (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 Jun 2012 07:29:14 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Andy Walls <awalls@md.metrocast.net>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Scott Jiang <scott.jiang.linux@gmail.com>,
-	Manjunatha Halli <manjunatha_halli@ti.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>,
-	Anatolij Gustschin <agust@denx.de>,
-	Javier Martin <javier.martin@vista-silicon.com>,
-	Sensoray Linux Development <linux-dev@sensoray.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
-	Sachin Kamat <sachin.kamat@linaro.org>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	mitov@issp.bas.bg, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 20/26] s5p-jpeg: remove V4L2_FL_LOCK_ALL_FOPS
-Date: Sun, 24 Jun 2012 13:26:12 +0200
-Message-Id: <b33f0e65af2264f2a173d14ac2900402ffe7fc54.1340536092.git.hans.verkuil@cisco.com>
-In-Reply-To: <1340537178-18768-1-git-send-email-hverkuil@xs4all.nl>
-References: <1340537178-18768-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <f854d2a0a932187cd895bf9cd81d2da8343b52c9.1340536092.git.hans.verkuil@cisco.com>
-References: <f854d2a0a932187cd895bf9cd81d2da8343b52c9.1340536092.git.hans.verkuil@cisco.com>
+	Wed, 20 Jun 2012 10:27:35 -0400
+Date: Wed, 20 Jun 2012 15:27:33 +0100
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+To: Shawn Guo <shawn.guo@linaro.org>
+Cc: Sascha Hauer <s.hauer@pengutronix.de>,
+	javier Martin <javier.martin@vista-silicon.com>,
+	fabio.estevam@freescale.com, dirk.behme@googlemail.com,
+	r.schwebel@pengutronix.de, kernel@pengutronix.de,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Subject: Re: [RFC] Support for 'Coda' video codec IP.
+Message-ID: <20120620142733.GQ3978@opensource.wolfsonmicro.com>
+References: <1340115094-859-1-git-send-email-javier.martin@vista-silicon.com>
+ <20120619181717.GE28394@pengutronix.de>
+ <CACKLOr1zCp2NfLjBrHjtXpmsFMHqhoHFPpghN=Tyf3YAcyRrYg@mail.gmail.com>
+ <20120620090126.GO28394@pengutronix.de>
+ <20120620100015.GA30243@sirena.org.uk>
+ <20120620130941.GB2253@S2101-09.ap.freescale.net>
+ <20120620133148.GP3978@opensource.wolfsonmicro.com>
+ <20120620135633.GA2513@S2101-09.ap.freescale.net>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="aNvCJ41Feu8IgPyB"
+Content-Disposition: inline
+In-Reply-To: <20120620135633.GA2513@S2101-09.ap.freescale.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Add proper locking to the file operations, allowing for the removal
-of the V4L2_FL_LOCK_ALL_FOPS flag.
+--aNvCJ41Feu8IgPyB
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/video/s5p-jpeg/jpeg-core.c |   34 +++++++++++++++++++++---------
- 1 file changed, 24 insertions(+), 10 deletions(-)
+On Wed, Jun 20, 2012 at 09:56:37PM +0800, Shawn Guo wrote:
+> On Wed, Jun 20, 2012 at 02:31:48PM +0100, Mark Brown wrote:
 
-diff --git a/drivers/media/video/s5p-jpeg/jpeg-core.c b/drivers/media/video/s5p-jpeg/jpeg-core.c
-index 28b5225d..ff0cc37 100644
---- a/drivers/media/video/s5p-jpeg/jpeg-core.c
-+++ b/drivers/media/video/s5p-jpeg/jpeg-core.c
-@@ -292,6 +292,11 @@ static int s5p_jpeg_open(struct file *file)
- 	if (!ctx)
- 		return -ENOMEM;
- 
-+	if (mutex_lock_interruptible(&jpeg->lock)) {
-+		ret = -ERESTARTSYS;
-+		goto free;
-+	}
-+
- 	v4l2_fh_init(&ctx->fh, vfd);
- 	/* Use separate control handler per file handle */
- 	ctx->fh.ctrl_handler = &ctx->ctrl_handler;
-@@ -319,20 +324,26 @@ static int s5p_jpeg_open(struct file *file)
- 
- 	ctx->out_q.fmt = out_fmt;
- 	ctx->cap_q.fmt = s5p_jpeg_find_format(ctx->mode, V4L2_PIX_FMT_YUYV);
-+	mutex_unlock(&jpeg->lock);
- 	return 0;
- 
- error:
- 	v4l2_fh_del(&ctx->fh);
- 	v4l2_fh_exit(&ctx->fh);
-+	mutex_unlock(&jpeg->lock);
-+free:
- 	kfree(ctx);
- 	return ret;
- }
- 
- static int s5p_jpeg_release(struct file *file)
- {
-+	struct s5p_jpeg *jpeg = video_drvdata(file);
- 	struct s5p_jpeg_ctx *ctx = fh_to_ctx(file->private_data);
- 
-+	mutex_lock(&jpeg->lock);
- 	v4l2_m2m_ctx_release(ctx->m2m_ctx);
-+	mutex_unlock(&jpeg->lock);
- 	v4l2_ctrl_handler_free(&ctx->ctrl_handler);
- 	v4l2_fh_del(&ctx->fh);
- 	v4l2_fh_exit(&ctx->fh);
-@@ -344,16 +355,27 @@ static int s5p_jpeg_release(struct file *file)
- static unsigned int s5p_jpeg_poll(struct file *file,
- 				 struct poll_table_struct *wait)
- {
-+	struct s5p_jpeg *jpeg = video_drvdata(file);
- 	struct s5p_jpeg_ctx *ctx = fh_to_ctx(file->private_data);
-+	unsigned int res;
- 
--	return v4l2_m2m_poll(file, ctx->m2m_ctx, wait);
-+	mutex_lock(&jpeg->lock);
-+	res = v4l2_m2m_poll(file, ctx->m2m_ctx, wait);
-+	mutex_unlock(&jpeg->lock);
-+	return res;
- }
- 
- static int s5p_jpeg_mmap(struct file *file, struct vm_area_struct *vma)
- {
-+	struct s5p_jpeg *jpeg = video_drvdata(file);
- 	struct s5p_jpeg_ctx *ctx = fh_to_ctx(file->private_data);
-+	int ret;
- 
--	return v4l2_m2m_mmap(file, ctx->m2m_ctx, vma);
-+	if (mutex_lock_interruptible(&jpeg->lock))
-+		return -ERESTARTSYS;
-+	ret = v4l2_m2m_mmap(file, ctx->m2m_ctx, vma);
-+	mutex_unlock(&jpeg->lock);
-+	return ret;
- }
- 
- static const struct v4l2_file_operations s5p_jpeg_fops = {
-@@ -1368,10 +1390,6 @@ static int s5p_jpeg_probe(struct platform_device *pdev)
- 	jpeg->vfd_encoder->release	= video_device_release;
- 	jpeg->vfd_encoder->lock		= &jpeg->lock;
- 	jpeg->vfd_encoder->v4l2_dev	= &jpeg->v4l2_dev;
--	/* Locking in file operations other than ioctl should be done
--	   by the driver, not the V4L2 core.
--	   This driver needs auditing so that this flag can be removed. */
--	set_bit(V4L2_FL_LOCK_ALL_FOPS, &jpeg->vfd_encoder->flags);
- 
- 	ret = video_register_device(jpeg->vfd_encoder, VFL_TYPE_GRABBER, -1);
- 	if (ret) {
-@@ -1399,10 +1417,6 @@ static int s5p_jpeg_probe(struct platform_device *pdev)
- 	jpeg->vfd_decoder->release	= video_device_release;
- 	jpeg->vfd_decoder->lock		= &jpeg->lock;
- 	jpeg->vfd_decoder->v4l2_dev	= &jpeg->v4l2_dev;
--	/* Locking in file operations other than ioctl should be done by the driver,
--	   not the V4L2 core.
--	   This driver needs auditing so that this flag can be removed. */
--	set_bit(V4L2_FL_LOCK_ALL_FOPS, &jpeg->vfd_decoder->flags);
- 
- 	ret = video_register_device(jpeg->vfd_decoder, VFL_TYPE_GRABBER, -1);
- 	if (ret) {
--- 
-1.7.10
+> > Moving to irqdomain without DT is really very easy, you just need to
+> > select a legacy mapping if a base is provided and otherwise all the code
+> > is identical - it just comes down to a field in platform data and an if
+> > statement.
 
+> Yeah, but I guess what I'm saying is *linear* irqdomain.
+
+Sure, but like I say the only code change required for keeping platform
+data working is the three lines or so required to change to a legacy
+mapping if you've got an irq_base.  All my development systems currently
+use linear domains for several of the IRQ domains on a totally non-DT
+system.
+
+--aNvCJ41Feu8IgPyB
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJP4d1hAAoJEBus8iNuMP3dFmYQAIwq9dnpARPXcJiL9RwP3T1Z
+zgwHNLMS+fw5+o3dqBX8z70LhDcq+Zp1Bduy6rZfFTOAfWDMiigNcTJWwyAEOY7B
+P4A15A/mQ6Hp6MVYVBDo+ZUR4aR4A1a3NKFkpTvP3R9Avlk23meEX/odVhN/0aHp
+KbYhkIsQ/QQcmv1Lv1Lfcn5oy+Qj6ZgEHuSFy18DrD9+JlHWQE5nMzDWX2+4RKRl
+yqjWGHXJYDPr0/HR/bTEuZHkjOh8EX9ocCS/p0hbMzaynmkxhGDdm9DeykAY26EN
+PAbFhq6+L/WY7RBtJ7L9MnE2WFPcoiSjFD8PQIucB7ipljeh0ZvHKa9UqR3IzKwo
+IRrOq+P5I/xdGl3TVYHGr+06lJUBTc3aAFv1GN1WQ8V4LVEPTkoZsfto3Eaf015Z
+F6InNDNa4Rfoa3nAJ4hr7Bh36aEEAtD6vo2Z4sjuQEYTM1Up9Tu73PREPqSnWwKy
+zVT2v/Z70tgNawnY8f1izV4Hvg3jN5IwvSZ53oMgeDUliGw0RrZhflV4np/32MR8
+SVG9usIZAEkkYdpSWTCOJcN9JluG75mIpPa4vvl93k+0/iSW9GtdwFaHT+7iiRM/
+Jcyu36UE7oQm3knj81jbfQ4RxLsEH/5JNOhX3+eUJrCn5hgE5jNI05SUaVcvfI1z
+klVYOsOC2Et3z6la5dPZ
+=ECmb
+-----END PGP SIGNATURE-----
+
+--aNvCJ41Feu8IgPyB--
