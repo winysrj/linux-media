@@ -1,64 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:50182 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756805Ab2F1J11 convert rfc822-to-8bit (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:8747 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756779Ab2FTPl5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Jun 2012 05:27:27 -0400
-Received: by yenl2 with SMTP id l2so1645503yen.19
-        for <linux-media@vger.kernel.org>; Thu, 28 Jun 2012 02:27:27 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <a7faf8fbd12471e355c78859062184fea7beb6b2.1340865818.git.hans.verkuil@cisco.com>
-References: <d97434d2319fb8dbea360404f9343c680b5b196e.1340865818.git.hans.verkuil@cisco.com>
-	<1340866107-4188-1-git-send-email-hverkuil@xs4all.nl>
-	<a7faf8fbd12471e355c78859062184fea7beb6b2.1340865818.git.hans.verkuil@cisco.com>
-Date: Thu, 28 Jun 2012 17:27:26 +0800
-Message-ID: <CAHG8p1ADgmzMFZCwULrU__vCuuEGTwEXr+DTfDTcZYA_0iNgkw@mail.gmail.com>
-Subject: Re: [RFCv3 PATCH 26/33] videobuf2-core: add helper functions.
-From: Scott Jiang <scott.jiang.linux@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	uclinux-dist-devel@blackfin.uclinux.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Wed, 20 Jun 2012 11:41:57 -0400
+Message-id: <4FE1EF42.1000403@samsung.com>
+Date: Wed, 20 Jun 2012 17:41:54 +0200
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+MIME-version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-fbdev@vger.kernel.org, linaro-mm-sig@lists.linaro.org,
+	linux-media@vger.kernel.org
+Subject: Re: [Linaro-mm-sig] [RFC/PATCH] fb: Add dma-buf support
+References: <1340201368-20751-1-git-send-email-laurent.pinchart@ideasonboard.com>
+In-reply-to: <1340201368-20751-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> +int vb2_fop_mmap(struct file *file, struct vm_area_struct *vma)
-> +{
-> +       struct video_device *vdev = video_devdata(file);
+Hi Laurent,
+Thank you for the patch.
+
+On 06/20/2012 04:09 PM, Laurent Pinchart wrote:
+> Add support for the dma-buf exporter role to the frame buffer API. The
+> importer role isn't meaningful for frame buffer devices, as the frame
+> buffer device model doesn't allow using externally allocated memory.
+> 
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> ---
+>  Documentation/fb/api.txt |   36 ++++++++++++++++++++++++++++++++++++
+>  drivers/video/fbmem.c    |   36 ++++++++++++++++++++++++++++++++++++
+>  include/linux/fb.h       |   12 ++++++++++++
+>  3 files changed, 84 insertions(+), 0 deletions(-)
+> 
+
+[snip]
+
+> +The export a frame buffer as a dma-buf file descriptors, applications call the
+> +FBIOGET_DMABUF ioctl. The ioctl takes a pointer to a fb_dmabuf_export
+> +structure.
 > +
-> +       return vb2_mmap(vdev->queue, vma);
+> +struct fb_dmabuf_export {
+> +	__u32 fd;
+> +	__u32 flags;
+> +};
+
+What do you think about adding some reserved fields to
+struct fb_dmabuf_export to make it future-proof for
+DMABUF extensions?
+
+> +
+> +The flag field specifies the flags to be used when creating the dma-buf file
+> +descriptor. The only supported flag is O_CLOEXEC. If the call is successful,
+> +the driver will set the fd field to a file descriptor corresponding to the
+> +dma-buf object.
+> +
+> +Applications can then pass the file descriptors to another application or
+> +another device driver. The dma-buf object is automatically reference-counted,
+> +applications can and should close the file descriptor as soon as they don't
+> +need it anymore. The underlying dma-buf object will not be freed before the
+> +last device that uses the dma-buf object releases it.
+> diff --git a/drivers/video/fbmem.c b/drivers/video/fbmem.c
+> index 0dff12a..400e449 100644
+> --- a/drivers/video/fbmem.c
+> +++ b/drivers/video/fbmem.c
+> @@ -15,6 +15,7 @@
+>  
+>  #include <linux/compat.h>
+>  #include <linux/types.h>
+> +#include <linux/dma-buf.h>
+>  #include <linux/errno.h>
+>  #include <linux/kernel.h>
+>  #include <linux/major.h>
+> @@ -1074,6 +1075,23 @@ fb_blank(struct fb_info *info, int blank)
+>   	return ret;
+>  }
+>  
+> +#ifdef CONFIG_DMA_SHARED_BUFFER
+> +int
+> +fb_get_dmabuf(struct fb_info *info, int flags)
+> +{
+> +	struct dma_buf *dmabuf;
+> +
+> +	if (info->fbops->fb_dmabuf_export == NULL)
+> +		return -ENOTTY;
+> +
+> +	dmabuf = info->fbops->fb_dmabuf_export(info);
+
+IMO, it is not a good idea to delegate an implementation of
+DMABUF ops to the driver. Maybe exporting could be handled
+inside FB stack. As I understand, the FB stack needs only
+'get-scatterlist' ops from an FB driver. All other
+DMABUF magic does not need driver involvement, does it?
+
+> +	if (IS_ERR(dmabuf))
+> +		return PTR_ERR(dmabuf);
+> +
+> +	return dma_buf_fd(dmabuf, flags);
 > +}
-> +EXPORT_SYMBOL_GPL(vb2_fop_mmap);
-Missed one file ops.
+> +#endif
+> +
+>
 
-#ifndef CONFIG_MMU
-unsigned long vb2_fop_get_unmapped_area(struct file *file,
+[snip]
 
- unsigned long addr,
+> diff --git a/include/linux/fb.h b/include/linux/fb.h
+> index ac3f1c6..c9fee75 100644
+> --- a/include/linux/fb.h
+> +++ b/include/linux/fb.h
+> @@ -701,6 +708,11 @@ struct fb_ops {
+>  	/* called at KDB enter and leave time to prepare the console */
+>  	int (*fb_debug_enter)(struct fb_info *info);
+>  	int (*fb_debug_leave)(struct fb_info *info);
+> +
+> +#ifdef CONFIG_DMA_SHARED_BUFFER
+> +	/* Export the frame buffer as a dmabuf object */
+> +	struct dma_buf *(*fb_dmabuf_export)(struct fb_info *info);
+> +#endif
 
- unsigned long len,
+Memory trashing or even kernel crash may happen if a module compiled
+with CONFIG_DMA_SHARED_BUFFER enabled is loaded into kernel with
+CONFIG_DMA_SHARED_BUFFER disabled.
 
- unsigned long pgoff,
+>  };
+>  
+>  #ifdef CONFIG_FB_TILEBLITTING
 
- unsigned long flags)
-{
-        struct video_device *vdev = video_devdata(file);
-
-        return vb2_get_unmapped_area(vdev->queue,
-                                                             addr,
-                                                             len,
-                                                             pgoff,
-                                                             flags);
-}
-EXPORT_SYMBOL_GPL(vb2_fop_get_unmapped_area);
-#endif
-
-Scott
