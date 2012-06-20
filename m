@@ -1,135 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:34837 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755548Ab2FYM4W (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Jun 2012 08:56:22 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: davinci-linux-open-source@linux.davincidsp.com
-Cc: Manjunath Hadli <manjunath.hadli@ti.com>,
-	LMML <linux-media@vger.kernel.org>
-Subject: Re: [PATCH v3 09/13] davinci: vpif display: Add power management support
-Date: Mon, 25 Jun 2012 14:56:22 +0200
-Message-ID: <1729355.CdrR2sFBDH@avalon>
-In-Reply-To: <1340622455-10419-10-git-send-email-manjunath.hadli@ti.com>
-References: <1340622455-10419-1-git-send-email-manjunath.hadli@ti.com> <1340622455-10419-10-git-send-email-manjunath.hadli@ti.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from plane.gmane.org ([80.91.229.3]:50838 "EHLO plane.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752114Ab2FTHRy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 20 Jun 2012 03:17:54 -0400
+Received: from list by plane.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1ShFAi-0001iV-P0
+	for linux-media@vger.kernel.org; Wed, 20 Jun 2012 09:17:49 +0200
+Received: from 114-24-67-85.dynamic.hinet.net ([114.24.67.85])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Wed, 20 Jun 2012 09:17:48 +0200
+Received: from bruce.ying by 114-24-67-85.dynamic.hinet.net with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Wed, 20 Jun 2012 09:17:48 +0200
+To: linux-media@vger.kernel.org
+From: Bruce Ying <bruce.ying@gmail.com>
+Subject: Re: DVB streaming failed after running tzap
+Date: Wed, 20 Jun 2012 07:17:39 +0000 (UTC)
+Message-ID: <loom.20120620T090501-319@post.gmane.org>
+References: <CAN6EUtu2N2hR2CLG1BWqR3mp9t0vbzfKeQXnhdB+FgeMw5Uf8g@mail.gmail.com> <loom.20120615T033810-522@post.gmane.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Manjunath,
-
-Thank you for the patch.
-
-On Monday 25 June 2012 16:37:31 Manjunath Hadli wrote:
-> Implement power management operations - suspend and resume as part of
-> dev_pm_ops for VPIF display driver.
+Bruce Ying <bruce.ying <at> gmail.com> writes:
+ 
+> If I launched mplayer after running tzap, I would get a series of 
+> "dvb_streaming_read, attempt N. n failed with errno 0 when reading 2048 bytes" 
+> failure messages. I must unplug the DiBcom USB tuner and plug it in again so 
+> that I could relaunch mplayer to tune to a DVB-T channel.
 > 
-> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-> Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
-> ---
->  drivers/media/video/davinci/vpif_display.c |   75 +++++++++++++++++++++++++
->  1 files changed, 75 insertions(+), 0 deletions(-)
+> Looks like tzap messed up something with the DiBcom kernel modules?
 > 
-> diff --git a/drivers/media/video/davinci/vpif_display.c
-> b/drivers/media/video/davinci/vpif_display.c index 4436ef6..7408733 100644
-> --- a/drivers/media/video/davinci/vpif_display.c
-> +++ b/drivers/media/video/davinci/vpif_display.c
-> @@ -1807,10 +1807,85 @@ static int vpif_remove(struct platform_device
-> *device) return 0;
->  }
 > 
-> +#ifdef CONFIG_PM
-> +static int vpif_suspend(struct device *dev)
-> +{
-> +	struct common_obj *common;
-> +	struct channel_obj *ch;
-> +	int i;
-> +
-> +	for (i = 0; i < VPIF_DISPLAY_MAX_DEVICES; i++) {
-> +		/* Get the pointer to the channel object */
-> +		ch = vpif_obj.dev[i];
-> +		common = &ch->common[VPIF_VIDEO_INDEX];
-> +		if (mutex_lock_interruptible(&common->lock))
-> +			return -ERESTARTSYS;
 
-I might be wrong, but I don't think the suspend/resume handlers react 
-correctly to -ERESTARTSYS. If that's correct you should use mutex_lock() 
-instead of mutex_lock_interruptible().
+Just found out that I should not use '-r' option for tzap before launching
+"mplayer dvb://" (If 'tzap -r' were used, then 'mplayer /dev/dvb/adapterX/dvr0',
+instead of 'mplayer dvb://', should be the proper syntax for the mplayer command
+line.)
 
-> +
-> +		if (atomic_read(&ch->usrs) && common->io_usrs) {
-> +			/* Disable channel */
-> +			if (ch->channel_id == VPIF_CHANNEL2_VIDEO) {
-> +				enable_channel2(0);
-> +				channel2_intr_enable(0);
-> +			}
-> +			if (ch->channel_id == VPIF_CHANNEL3_VIDEO ||
-> +					common->started == 2) {
-> +				enable_channel3(0);
-> +				channel3_intr_enable(0);
-> +			}
-> +		}
-> +		mutex_unlock(&common->lock);
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static int vpif_resume(struct device *dev)
-> +{
-> +
-> +	struct common_obj *common;
-> +	struct channel_obj *ch;
-> +	int i;
-> +
-> +	for (i = 0; i < VPIF_DISPLAY_MAX_DEVICES; i++) {
-> +		/* Get the pointer to the channel object */
-> +		ch = vpif_obj.dev[i];
-> +		common = &ch->common[VPIF_VIDEO_INDEX];
-> +		if (mutex_lock_interruptible(&common->lock))
-> +			return -ERESTARTSYS;
-> +
-> +		if (atomic_read(&ch->usrs) && common->io_usrs) {
-> +			/* Enable channel */
-> +			if (ch->channel_id == VPIF_CHANNEL2_VIDEO) {
-> +				enable_channel2(1);
-> +				channel2_intr_enable(1);
-> +			}
-> +			if (ch->channel_id == VPIF_CHANNEL3_VIDEO ||
-> +					common->started == 2) {
-> +				enable_channel3(1);
-> +				channel3_intr_enable(1);
-> +			}
-> +		}
-> +		mutex_unlock(&common->lock);
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static const struct dev_pm_ops vpif_pm = {
-> +	.suspend        = vpif_suspend,
-> +	.resume         = vpif_resume,
-> +};
-> +
-> +#define vpif_pm_ops (&vpif_pm)
-> +#else
-> +#define vpif_pm_ops NULL
-> +#endif
-> +
->  static __refdata struct platform_driver vpif_driver = {
->  	.driver	= {
->  			.name	= "vpif_display",
->  			.owner	= THIS_MODULE,
-> +			.pm	= vpif_pm_ops,
->  	},
->  	.probe	= vpif_probe,
->  	.remove	= vpif_remove,
--- 
-Regards,
+Or use the following pair of command lines:
 
-Laurent Pinchart
+$ tzap -F -c .tzap/channels.conf CTS
+$ mplayer dvb://CTS
+
+
 
