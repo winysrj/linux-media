@@ -1,54 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 124-248-200-89.sunnyvision.com ([124.248.200.89]:56843 "EHLO
-	teamb02.edmhongkong.com" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
-	with ESMTP id S1756006Ab2FEKNQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Jun 2012 06:13:16 -0400
-Message-ID: <D7cj2@microsoft.com>
-From: borislamsv2@gmail.com
-Subject: Server Rental Service in Hong Kong
-Content-Type: text/plain;
-Content-Transfer-Encoding: Quoted-Printable
-Date: Mon,  4 Jun 2012 16:45:14 +0800 (HKT)
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from [65.55.88.15] ([65.55.88.15]:28150 "EHLO
+	tx2outboundpool.messaging.microsoft.com" rhost-flags-FAIL-FAIL-OK-OK)
+	by vger.kernel.org with ESMTP id S1753409Ab2FTNLB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 20 Jun 2012 09:11:01 -0400
+Date: Wed, 20 Jun 2012 21:09:43 +0800
+From: Shawn Guo <shawn.guo@linaro.org>
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+CC: Sascha Hauer <s.hauer@pengutronix.de>,
+	javier Martin <javier.martin@vista-silicon.com>,
+	<fabio.estevam@freescale.com>, <dirk.behme@googlemail.com>,
+	<r.schwebel@pengutronix.de>, <kernel@pengutronix.de>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-media@vger.kernel.org>
+Subject: Re: [RFC] Support for 'Coda' video codec IP.
+Message-ID: <20120620130941.GB2253@S2101-09.ap.freescale.net>
+References: <1340115094-859-1-git-send-email-javier.martin@vista-silicon.com>
+ <20120619181717.GE28394@pengutronix.de>
+ <CACKLOr1zCp2NfLjBrHjtXpmsFMHqhoHFPpghN=Tyf3YAcyRrYg@mail.gmail.com>
+ <20120620090126.GO28394@pengutronix.de>
+ <20120620100015.GA30243@sirena.org.uk>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <20120620100015.GA30243@sirena.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dear All,
+On Wed, Jun 20, 2012 at 11:00:15AM +0100, Mark Brown wrote:
+> The approach a lot of platforms have been taking is that it's OK to keep
+> on maintaining existing boards using board files (especially for trivial
+> things like adding new devices).
 
-We have our own datacenter in Hong Kong & provide email/application/web rental service to clients.We are APNIC member & provide clean IP to clients.
+I think that's the approach being taken during the transition to device
+tree.  But it's definitely a desirable thing to remove those board
+files with device tree support at some point, because not having non-DT
+users will ease platform maintenance and new feature adoption a lot
+easier, for example linear irqdomain.
 
-Dell=3F PowerEdge=3F EnterpriseRack Mount Server
--Intel(R) Xeon(R) E3-1240 Processor (3.3GHz, 8M Cache, Turbo, 4C/8T, 80W)
--8GB RAM, 2x4GB, 1333MHz, DDR-3, Dual Ranked UDIMMs
--500GB, 3.5", 6Gbps SAS x 2
--Raid 1 Mirroring Protection
--Remote KVM (iDRAC6 Enterprise)
-
-Dell(TM) PowerEdge(TM) R410 Rack Mount Server
--Intel(R) Quad Core E5606 Xeon(R) CPU, 2.13GHz, 4M Cache, 4.86 GT/s QPI
--4GB Memory (2x2GB), 1333MHz Dual Ranked RDIMMs Fully-Buffered
--500GB 7.2K RPM SATAII 3.5" Hard Drive x 2
--iDRAC6 Enterprise or Express (Remote KVM Management)
-
-Every Dedicated Server Hosting Solution Also Includes: 
- 
-Software Specification 
-- CentOS / Fedora / Debian / FreeBSD / Ubuntu / Redhat Linux 
-- Full root-level access 
-- Data Center Facilities 
-- Shared Local & International Bandwidth 
-- 2 IP Addresses Allocation 
-- Un-interruptible Power Supply (UPS) backed up by private diesel generator 
-- FM200=A1=A7based fire suppression system 
-- 24x7 CRAC Air Conditioning and Humidity Control 
-- 24x7 Security Control 
-- 24x7 Remote Hand Service 
-
-Pls send us email for further information.Thanks,
-
-Boris 
-boris@dedicatedserver.com.hk
-
-If you do not wish to further receive this event message, email "borislamsv2@gmail.com" to unsubscribe this message or remove your email from the list.
-
+-- 
+Regards,
+Shawn
 
