@@ -1,74 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:62118 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932177Ab2FHJA7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Jun 2012 05:00:59 -0400
-Received: by bkcji2 with SMTP id ji2so1534718bkc.19
-        for <linux-media@vger.kernel.org>; Fri, 08 Jun 2012 02:00:57 -0700 (PDT)
+Received: from ams-iport-2.cisco.com ([144.254.224.141]:34831 "EHLO
+	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752255Ab2FTLAg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 20 Jun 2012 07:00:36 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: extend v4l2_mbus_framefmt
+Date: Wed, 20 Jun 2012 13:00:34 +0200
+Cc: Scott Jiang <scott.jiang.linux@gmail.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	LMML <linux-media@vger.kernel.org>,
+	uclinux-dist-devel@blackfin.uclinux.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+References: <CAHG8p1AW6577=oGPo3o8S0LgF2p8_cfmLLnvYbikk7kEaYdxzw@mail.gmail.com> <CAHG8p1CEPKXs+febefA5LDPU=Zicbpm-GYLpkfuOGrhpK6SHvw@mail.gmail.com> <4FE1A505.2080908@iki.fi>
+In-Reply-To: <4FE1A505.2080908@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <20120608084802.GS30400@pengutronix.de>
-References: <CACKLOr2jQMnBPTaTFOcfLN_9J1n39tLx-ffDcVGuZ4ZB-odYfg@mail.gmail.com>
-	<20120608072601.GD30137@pengutronix.de>
-	<CACKLOr1OShoEnLxs8BP6q2TyZrOH0oCnpbKZJqyAo-yXKck9Zw@mail.gmail.com>
-	<20120608084802.GS30400@pengutronix.de>
-Date: Fri, 8 Jun 2012 11:00:57 +0200
-Message-ID: <CACKLOr2wdF4tnovpnCO+ys7OMhbaKoruorSsj5hPfB26jGzQTA@mail.gmail.com>
-Subject: Re: [RFC] Support for H.264/MPEG4 encoder (VPU) in i.MX27.
-From: javier Martin <javier.martin@vista-silicon.com>
-To: Sascha Hauer <s.hauer@pengutronix.de>
-Cc: Robert Schwebel <r.schwebel@pengutronix.de>, kernel@pengutronix.de,
-	Fabio Estevam <festevam@gmail.com>,
-	linux-media@vger.kernel.org, Shawn Guo <shawn.guo@linaro.org>,
-	Dirk Behme <dirk.behme@googlemail.com>,
-	linux-arm-kernel@lists.infradead.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201206201300.34614.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 8 June 2012 10:48, Sascha Hauer <s.hauer@pengutronix.de> wrote:
-> On Fri, Jun 08, 2012 at 09:39:15AM +0200, javier Martin wrote:
->> Hi Robert,
->>
->> On 8 June 2012 09:26, Robert Schwebel <r.schwebel@pengutronix.de> wrote:
->> > Hi Javier,
->> >
->> > On Fri, Jun 08, 2012 at 09:21:13AM +0200, javier Martin wrote:
->> >> If you refer to driver in [1] I have some concerns: i.MX27 VPU should
->> >> be implemented as a V4L2 mem2mem device since it gets raw pictures
->> >> from memory and outputs encoded frames to memory (some discussion
->> >> about the subject can be fond here [2]), as Exynos driver from Samsung
->> >> does. However, this driver you've mentioned doesn't do that: it just
->> >> creates several mapping regions so that the actual functionality is
->> >> implemented in user space by a library provided by Freescale, which
->> >> regarding i.MX27 it is also GPL.
->> >>
->> >> What we are trying to do is implementing all the functionality in
->> >> kernel space using mem2mem V4L2 framework so that it can be accepted
->> >> in mainline.
->> >
->> > We will work on the VPU driver and it's migration towards a proper
->> > mem2mem device very soon, mainly on MX53, but of course MX27 should be
->> > taken care of by the same driver.
->> >
->> > So I'd suggest that we coordinate that work somehow.
->>
->> Do you plan to provide both encoding and decoding support or just one of them?
->
-> We have both encoding and decoding. It works on i.MX51/53, but was
-> originally written for i.MX27 aswell. I haven't tested i.MX27 for longer
-> now, so it might or might not work. Find the source here:
->
-> git://git.pengutronix.de/git/imx/gst-plugins-fsl-vpu.git
+On Wed 20 June 2012 12:25:09 Sakari Ailus wrote:
+> Hi Scott,
+> 
+> Scott Jiang wrote:
+> >>>>>> I would expect that the combination of v4l2_mbus_framefmt +
+> >>>>>> v4l2_dv_timings
+> >>>>>> gives you the information you need.
+> >>>>>>
+> >>>>> I can solve this problem in HD, but how about SD? Add a fake
+> >>>>> dv_timings ops in SD decoder driver?
+> >>>>>
+> >>>>
+> >>>> No, you add g/s_std instead. SD timings are set through that API. It is
+> >>>> not so
+> >>>> much that you give explicit timings, but that you give the SD standard.
+> >>>> And from
+> >>>> that you can derive the timings (i.e., one for 60 Hz formats, and one for
+> >>>> 50 Hz
+> >>>> formats).
+> >>>>
+> >>> Yes, it's a solution for decoder. I can convert one by one. But how
+> >>> about sensors?They can output VGA, QVGA or any manual resolution.
+> >>> My question is why we can't add these blanking details in
+> >>> v4l2_mbus_framefmt? This structure is used to describe frame format on
+> >>> media bus. And I believe blanking data also transfer on this bus. I
+> >>> know most hardwares don't care about blanking areas, but some hardware
+> >>> such as PPI does. PPI can capture ancillary data both in herizontal
+> >>> and vertical interval. Even it works in active video only mode, it
+> >>> expects to get total timing info.
+> >>
+> >>
+> >> Since I don't know what you are trying to do, it is hard for me to give
+> >> a good answer.
+> >>
+> >> So first I'd like to know if this is related to the adv7842 chip? I think
+> >> you are talking about how this is done in general, and not specifically in
+> >> relationship to the adv7842. At least, I can't see how/why you would
+> >> hook up a sensor to the adv7842.
+> > Yes, I want to have a general solution.
+> >
+> >>
+> >> Sensor configuration is a separate topic, and something I am not an
+> >> expert on. People like Sakari Ailus and Laurent Pinchart know much
+> >> more about that than I do.
+> >>
+> >> I know that there is some support for blanking through low-level image
+> >> source
+> >> controls:
+> >>
+> >> http://hverkuil.home.xs4all.nl/spec/media.html#image-source-controls
+> >>
+> >> This is experimental and if this is insufficient for your requirements than
+> >> I suggest posting a message where you explain what you need, CC-ing the
+> >> people
+> >> I mentioned,
+> >>
+> >> Most of these APIs are quite new and by marking them as experimental we can
+> >> make changes later if it turns out it is not good enough.
+> > I remember I have discussed this topic with Sakari before but without
+> > working out a solution.
+> > In conclusion, my current solution is:
+> > if (HD)
+> >      dv_timings
+> > else if (SD)
+> >      fill in according to PAL/NTSC timings
+> > else
+> >      get control of V4L2_CID_HBLANK/V4L2_CID_VBLANK
+> >
+> > I guess this can solve my problem. But it's a bit complicated. If
+> > v4l2_mbus_framefmt contains thes members, it's convenient and simple.
+> 
+> Adding horizontal and vertical blanking as fields to struct 
+> v4l2_mbus_framefmt was discussed long ago --- I even sent a patch doing 
+> that AFAIR. It'd have been a simple solution, yes. The resulting 
+> discussion concluded, however, that as the horizontal or vertical 
+> blanking are not really a property of the image format, and generally 
+> only affect timing (frame rate, they do not belong to this struct.
+> 
+> Also changing them while streaming is almost always possible (except in 
+> your case, I believe) whereas the rest of the fields are considered 
+> static. It'd be difficult for the user to know which fields can be 
+> actually changed while streamon, and which can't.
+> 
+> For these reasons (AFAIR) we chose to use controls instead.
+> 
+> I think the right solution to the problem when it comes to sensors, is 
+> to mark these controls busy from the bridge driver if the bridge 
+> hardware can't cope with changes in blanking. The control framework 
+> doesn't support this currently but it might not be that much of work to 
+> implement it. Such feature would definitely have to be used with care.
+> 
+> Hans, what do you think?
 
-Much too late...
+That's already supported for a long time. If the control flag V4L2_CTRL_FLAG_GRABBED
+is set, then the control is marked busy.
 
-http://www.digipedia.pl/usenet/thread/18550/20724/
+There aren't many drivers that use this flag, but some do.
 
--- 
-Javier Martin
-Vista Silicon S.L.
-CDTUC - FASE C - Oficina S-345
-Avda de los Castros s/n
-39005- Santander. Cantabria. Spain
-+34 942 25 32 60
-www.vista-silicon.com
+Regards,
+
+	Hans
