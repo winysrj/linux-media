@@ -1,69 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:13593 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756014Ab2FNNiM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Jun 2012 09:38:12 -0400
-Received: from euspt2 (mailout1.w1.samsung.com [210.118.77.11])
- by mailout1.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0M5M00LRV0KG1760@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 14 Jun 2012 14:38:40 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0M5M00GSN0JI22@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 14 Jun 2012 14:38:07 +0100 (BST)
-Date: Thu, 14 Jun 2012 15:37:38 +0200
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: [PATCHv7 04/15] v4l: vb: remove warnings about MEMORY_DMABUF
-In-reply-to: <1339681069-8483-1-git-send-email-t.stanislaws@samsung.com>
-To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
-Cc: airlied@redhat.com, m.szyprowski@samsung.com,
-	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
-	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
-	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
-	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
-	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
-	mchehab@redhat.com, g.liakhovetski@gmx.de
-Message-id: <1339681069-8483-5-git-send-email-t.stanislaws@samsung.com>
-Content-transfer-encoding: 7BIT
-References: <1339681069-8483-1-git-send-email-t.stanislaws@samsung.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:42769 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757076Ab2FTQml (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 20 Jun 2012 12:42:41 -0400
+Message-ID: <4FE1FD7B.4050108@iki.fi>
+Date: Wed, 20 Jun 2012 19:42:35 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Marx <acc.for.news@gmail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: How to make bug report
+References: <p4v2b9-nd7.ln1@wuwek.kopernik.gliwice.pl>
+In-Reply-To: <p4v2b9-nd7.ln1@wuwek.kopernik.gliwice.pl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Sumit Semwal <sumit.semwal@ti.com>
+On 06/18/2012 09:40 AM, Marx wrote:
+> Hello
+> I have four DVB cards:
+> DVB-S2:
+> -Pinnacle PCTV SAT HDTV 452E PRO USB (main kernel support)
+> -Terratec Cinergy S2 USB HD v.2
+> -Prof Revolution DVB-S2 8000 PCIe
+> DVB-T:
+> -AF9015 noname USB (main kernel support)
+>
+> on AMD Brazos platform (Asrock E350M1) with Debian (lately with 3.4
+> kernel).
+>
+> While I could be able to make all of them working via different drivers
+> (media-build, patches, vendor drivers, Igor Liplianin's repo, yavdr dkms
+> package etc) none of this card works stable (unlike Twinhan PCI I had
+> previously). Prof hangs system, Pinnacle doesn't work with DVB-S2,
+> Terratec records streams partially unplayable, AF9015 stops working
+> after and hour or so etc. Often I see errors of I2C subsystem.
 
-Adding DMABUF memory type causes videobuf to complain about not using it
-in some switch cases. This patch removes these warnings.
+As author of the AF9015 I would like to see some of those errors. And 
+your driver version. Use latest v4l-dvb if possible as I have changed it 
+very much recently.
 
-Signed-off-by: Sumit Semwal <sumit.semwal@ti.com>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/video/videobuf-core.c |    4 ++++
- 1 file changed, 4 insertions(+)
+> While I'm in process of testing it on different hardware (laptop) I
+> would like to know if it's good place to write about dvb drivers bugs.
+> Or maybe should I write directly to developer? or write bugs in
+> Debian/kernel bugzilla or sth similair?
+> How to properly report bugs? What kernel should I use, which driverset?
+> What logs to attach (kernel.log)? how to enable debug options (if needed)?
 
-diff --git a/drivers/media/video/videobuf-core.c b/drivers/media/video/videobuf-core.c
-index ffdf59c..3e3e55f 100644
---- a/drivers/media/video/videobuf-core.c
-+++ b/drivers/media/video/videobuf-core.c
-@@ -335,6 +335,9 @@ static void videobuf_status(struct videobuf_queue *q, struct v4l2_buffer *b,
- 	case V4L2_MEMORY_OVERLAY:
- 		b->m.offset  = vb->boff;
- 		break;
-+	case V4L2_MEMORY_DMABUF:
-+		/* DMABUF is not handled in videobuf framework */
-+		break;
- 	}
- 
- 	b->flags    = 0;
-@@ -411,6 +414,7 @@ int __videobuf_mmap_setup(struct videobuf_queue *q,
- 			break;
- 		case V4L2_MEMORY_USERPTR:
- 		case V4L2_MEMORY_OVERLAY:
-+		case V4L2_MEMORY_DMABUF:
- 			/* nothing */
- 			break;
- 		}
+Maybe best to contact driver author directly and CC this mailing list.
+
+> I think it's rather unusual all of cards doesn't work, so I suspect that
+> there can be something wrong with my system. Maybe you, as skilled
+> developers, can direct me what can be wrong, what can I test?
+
+regards
+Antti
+
 -- 
-1.7.9.5
+http://palosaari.fi/
+
 
