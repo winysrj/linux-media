@@ -1,66 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from oproxy7-pub.bluehost.com ([67.222.55.9]:53926 "HELO
-	oproxy7-pub.bluehost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1755344Ab2FOQPo (ORCPT
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:44035 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754850Ab2FTWOD convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Jun 2012 12:15:44 -0400
-Message-ID: <4FDB5F9D.3030406@xenotime.net>
-Date: Fri, 15 Jun 2012 09:15:25 -0700
-From: Randy Dunlap <rdunlap@xenotime.net>
+	Wed, 20 Jun 2012 18:14:03 -0400
+Received: by yenl2 with SMTP id l2so5704201yen.19
+        for <linux-media@vger.kernel.org>; Wed, 20 Jun 2012 15:14:02 -0700 (PDT)
 MIME-Version: 1.0
-To: Peter Senna Tschudin <peter.senna@gmail.com>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media <linux-media@vger.kernel.org>
-Subject: Re: Patches
-References: <CA+MoWDpfKTsW1YDwVwWYqDHrT=yXih6YVUtttSHerku83MSUGg@mail.gmail.com>	<4FDA5B07.4040304@xenotime.net> <CA+MoWDq-exxGDbP4KjWJjU8RJKBb4vGO_Dk_C6UcGrzRmu-hiA@mail.gmail.com>
-In-Reply-To: <CA+MoWDq-exxGDbP4KjWJjU8RJKBb4vGO_Dk_C6UcGrzRmu-hiA@mail.gmail.com>
+In-Reply-To: <4FE24132.4090705@gmail.com>
+References: <4FE24132.4090705@gmail.com>
+Date: Wed, 20 Jun 2012 18:14:02 -0400
+Message-ID: <CAGoCfixL-tEFq4SpjxChH7uc0aDZGtdoO6EqrEH3tzPzoTqK8w@mail.gmail.com>
+Subject: Re: Chipset change for CX88_BOARD_PINNACLE_PCTV_HD_800i
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Mack Stanley <mcs1937@gmail.com>
+Cc: c.pascoe@itee.uq.edu.au, linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/14/2012 05:23 PM, Peter Senna Tschudin wrote:
+On Wed, Jun 20, 2012 at 5:31 PM, Mack Stanley <mcs1937@gmail.com> wrote:
+> Dear Mr. Pascoe,
+>
+> I'm writing to you as the maintainer of the cx88-dvb kernel module.
+>
+> I recently bought a pci tv card that the kernel identifies as supported:
+>
+> 05:00.0 Multimedia video controller [0400]: Conexant Systems, Inc.
+> CX23880/1/2/3 PCI Video and Audio Decoder [14f1:8800] (rev 05)
+> Subsystem: Pinnacle Systems Inc. Device [11bd:0051]
+>
+> My card appears to be the same card as this Pinnacle card
+> (http://www.linuxtv.org/wiki/index.php/Pinnacle_PCTV_HD_Card_%28800i%29)
+> except that it has a Samsung S5H1411 chip in place of the S5H1409 on the
+> original Pinnacle card identified by the kernel.
+>
+> My card is branded "PCTV HD PCI Card 800i"
+> (http://www.pctvsystems.com/Products/ProductsNorthAmerica/HybridproductsUSA/PCTVHDCard/tabid/171/language/en-US/Default.aspx),
+> though I bought it as a Hauppauge card
+> (http://www.newegg.com/Product/Product.aspx?Item=15-116-043&SortField=0&SummaryType=0&Pagesize=10&PurchaseMark=&SelectedRating=-1&VideoOnlyMark=False&VendorMark=&IsFeedbackTab=true&Keywords=linux&Page=1#scrollFullInfo).
+>
+> Because of the changed chip, "dvb_attach" returns NULL, so the cx88-dvb
+> module fails to insert, and no /dev/dvb nodes are created.
+>
+> I was able to get around this by copying s5h1411_config
+> dvico_fusionhdtv7_config to a new
+> "s5h1411_config pinnacle_pctv_hd_800i_config", then replacing
+> s5h1409_attach with s5h1411_attach in
+> case CX88_BOARD_PINNACLE_PCTV_HD_800i in the definition of dvb_register.
+>
+> I built against headers for Fedora 16 kernel 3.3.8-1.fc16.x86_64.  The
+> result loads normally and creates /dev/dvb/adaper0 containing demux0,
+> dvr0,  frontend0,  and net0.
+>
+> "w_scan -fa -A2 -c US -x " produces a long list of frequencies, all but
+> two of which are in us-Cable-IRC-center-frequencies-QAM256. However,
+> w_scan finds no "services" and I haven't been able to coax either
+> scandvb or scte65scan into finding any channels. I don't know whether
+> this is because my shot-in-the-dark modification to cx88-dvb doesn't
+> work, or because Comcast has some screwy way of sending signals to its
+> DTA's.
+>
+> I'm of course more than happy to help in any way.
+>
+> Thanks for your time,
+> Mack
 
-> Hello Randy,
-> 
->>> ./scripts/get_maintainer.pl  -f drivers/media/video/cx231xx/
->> Mauro Carvalho Chehab <mchehab@infradead.org> (maintainer:MEDIA INPUT INFRA...,commit_signer:23/24=96%)
->> Devin Heitmueller <dheitmueller@kernellabs.com> (commit_signer:4/24=17%)
->> Hans Verkuil <hans.verkuil@cisco.com> (commit_signer:4/24=17%)
->> Thomas Petazzoni <thomas.petazzoni@free-electrons.com> (commit_signer:4/24=17%)
->> linux-media@vger.kernel.org (open list:MEDIA INPUT INFRA...)
->> linux-kernel@vger.kernel.org (open list)
-> 
-> When I run it pointing to the patch, it also includes Julia Lawall and
-> Greg Kroah-Hartman. See:
-> 
-> $ scripts/get_maintainer.pl
-> outgoing/0001-RESEND-cx231xx-Paranoic-stack-memory-save.patch
-> Mauro Carvalho Chehab <mchehab@infradead.org> (maintainer:MEDIA INPUT
-> INFRA...,commit_signer:11/12=92%)
-> Thomas Petazzoni <thomas.petazzoni@free-electrons.com> (commit_signer:3/12=25%)
-> Devin Heitmueller <dheitmueller@kernellabs.com> (commit_signer:2/12=17%)
-> Julia Lawall <julia@diku.dk> (commit_signer:1/12=8%)
-> Greg Kroah-Hartman <gregkh@suse.de> (commit_signer:1/12=8%)
-> linux-media@vger.kernel.org (open list:MEDIA INPUT INFRA...)
-> linux-kernel@vger.kernel.org (open list)
-> 
-> The patch was sent to all people above but Greg did not get it due
-> invalid E-mail. I've removed linux-kernel@vger.kernel.org list.
-> 
->>
->>
->> That (above) should be enough.
->> If you feel that you need to copy GregKH on the patches, his current
->> email address is in the MAINTAINERS file.
-> I feel there is no need of sending the patch to him, but I'm not sure
-> about the need of reporting the broken E-mail.
+Hmmm, ok.  Let me talk to my contacts at PCTV and see what the deal is
+there.  My guess is the 1409 reached end of life, so they had to
+switch to the 1411.
 
+I'm pretty surprised that they didn't bump the PCI ID though.  I'll
+find out if they're relying on the eeprom to know which demod is
+present.
 
-Nope.  The script is reporting what is in the git log,
-and that was Greg's email address when those patches were made.
-Just because his email address changed, we are not going to modify
-the patch logs with his current email address.
+The scan is probably failing due to something like a mismatched IF
+output frequency.
+
+Devin
 
 -- 
-~Randy
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
