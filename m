@@ -1,57 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gh0-f174.google.com ([209.85.160.174]:54346 "EHLO
-	mail-gh0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757591Ab2FZQkk (ORCPT
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:49939 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754681Ab2FTVbc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Jun 2012 12:40:40 -0400
-Received: by ghrr11 with SMTP id r11so124338ghr.19
-        for <linux-media@vger.kernel.org>; Tue, 26 Jun 2012 09:40:39 -0700 (PDT)
+	Wed, 20 Jun 2012 17:31:32 -0400
+Received: by pbbrp8 with SMTP id rp8so1143616pbb.19
+        for <linux-media@vger.kernel.org>; Wed, 20 Jun 2012 14:31:32 -0700 (PDT)
+Message-ID: <4FE24132.4090705@gmail.com>
+Date: Wed, 20 Jun 2012 14:31:30 -0700
+From: Mack Stanley <mcs1937@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <4FE8CFAC.20302@redhat.com>
-References: <1340047425-32000-1-git-send-email-elezegarcia@gmail.com>
-	<4FE8BC2D.9030902@redhat.com>
-	<CALF0-+UyWjbbPYCKV-AgS=6FZ349D27GrijrYa_RWPUqcfo8rw@mail.gmail.com>
-	<4FE8C0E0.3080104@redhat.com>
-	<CALF0-+V_NCb2TMdd9SS-jrPKS8ocWRNAvwo1-ptPCW2GtNZEkw@mail.gmail.com>
-	<4FE8CFAC.20302@redhat.com>
-Date: Tue, 26 Jun 2012 13:40:39 -0300
-Message-ID: <CALF0-+VDcVLzRjcrLzyquqSFoN5G-QF6GjaNpdVhbamRsRbA7w@mail.gmail.com>
-Subject: Re: [PATCH 01/12] saa7164: Use i2c_rc properly to store i2c register status
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linux-media@vger.kernel.org
+To: c.pascoe@itee.uq.edu.au
+CC: linux-media@vger.kernel.org
+Subject: Chipset change for CX88_BOARD_PINNACLE_PCTV_HD_800i
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro,
+Dear Mr. Pascoe,
 
-On Mon, Jun 25, 2012 at 5:53 PM, Mauro Carvalho Chehab
-<mchehab@redhat.com> wrote:
->
-> Yeah, research is needed ;) As "bttv" is the mother of the I2C code found at
-> other PCI drivers, as it is one of the oldest implementations, I bet you'll
-> find this field propagated without usage on some drivers (and probably other
-> unused fields as well ;) )
->
+I'm writing to you as the maintainer of the cx88-dvb kernel module.
 
-I did some research and it looks like this patch series should be broke in two:
-- cleanup i2c_rc and i2c unused stuff
-- struct i2c_algo_bit_data cleanup (already sent)
+I recently bought a pci tv card that the kernel identifies as supported:
 
-Unless there is some problem with the latter, could you pick this patches:
-(i.e, the whole series except the i2c_rc part)
- cx25821: Replace struct memcpy with struct assignment
- cx25821: Remove useless struct i2c_algo_bit_data usage
- cx231xx: Replace struct memcpy with struct assignment
- cx231xx: Remove useless struct i2c_algo_bit_data usage
- cx23885: Replace struct memcpy with struct assignment
- cx23885: Remove useless struct i2c_algo_bit_data
- saa7164: Replace struct memcpy with struct assignment
- saa7164: Remove useless struct i2c_algo_bit_data
+05:00.0 Multimedia video controller [0400]: Conexant Systems, Inc.
+CX23880/1/2/3 PCI Video and Audio Decoder [14f1:8800] (rev 05)
+Subsystem: Pinnacle Systems Inc. Device [11bd:0051]
 
- I'll fix a new patch series for i2c_rc cleaning.
+My card appears to be the same card as this Pinnacle card
+(http://www.linuxtv.org/wiki/index.php/Pinnacle_PCTV_HD_Card_%28800i%29)
+except that it has a Samsung S5H1411 chip in place of the S5H1409 on the
+original Pinnacle card identified by the kernel. 
 
-Hope this is not too much trouble for you.
-Thanks,
-Ezequiel.
+My card is branded "PCTV HD PCI Card 800i"
+(http://www.pctvsystems.com/Products/ProductsNorthAmerica/HybridproductsUSA/PCTVHDCard/tabid/171/language/en-US/Default.aspx),
+though I bought it as a Hauppauge card
+(http://www.newegg.com/Product/Product.aspx?Item=15-116-043&SortField=0&SummaryType=0&Pagesize=10&PurchaseMark=&SelectedRating=-1&VideoOnlyMark=False&VendorMark=&IsFeedbackTab=true&Keywords=linux&Page=1#scrollFullInfo).
+
+Because of the changed chip, "dvb_attach" returns NULL, so the cx88-dvb
+module fails to insert, and no /dev/dvb nodes are created. 
+
+I was able to get around this by copying s5h1411_config
+dvico_fusionhdtv7_config to a new
+"s5h1411_config pinnacle_pctv_hd_800i_config", then replacing
+s5h1409_attach with s5h1411_attach in
+case CX88_BOARD_PINNACLE_PCTV_HD_800i in the definition of dvb_register.
+
+I built against headers for Fedora 16 kernel 3.3.8-1.fc16.x86_64.  The
+result loads normally and creates /dev/dvb/adaper0 containing demux0, 
+dvr0,  frontend0,  and net0. 
+
+"w_scan -fa -A2 -c US -x " produces a long list of frequencies, all but
+two of which are in us-Cable-IRC-center-frequencies-QAM256. However,
+w_scan finds no "services" and I haven't been able to coax either
+scandvb or scte65scan into finding any channels. I don't know whether
+this is because my shot-in-the-dark modification to cx88-dvb doesn't
+work, or because Comcast has some screwy way of sending signals to its
+DTA's.
+
+I'm of course more than happy to help in any way.
+
+Thanks for your time,
+Mack
+
+
