@@ -1,167 +1,214 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:39910 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750914Ab2FRK4W convert rfc822-to-8bit (ORCPT
+Received: from mail-vc0-f174.google.com ([209.85.220.174]:58517 "EHLO
+	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753865Ab2FTPJU convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jun 2012 06:56:22 -0400
-Received: by yenl2 with SMTP id l2so3073516yen.19
-        for <linux-media@vger.kernel.org>; Mon, 18 Jun 2012 03:56:21 -0700 (PDT)
+	Wed, 20 Jun 2012 11:09:20 -0400
+Received: by vcbf11 with SMTP id f11so3870930vcb.19
+        for <linux-media@vger.kernel.org>; Wed, 20 Jun 2012 08:09:20 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <1448068.cLOEOI22jq@avalon>
-References: <4875438356E7CA4A8F2145FCD3E61C0B2CC9525492@MEP-EXCH.meprolight.com>
- <Pine.LNX.4.64.1205020044000.12201@axis700.grange> <CA+V-a8uNKVprBHj9Qeiw_qm6_BghK6RkZjUrjB14dxSdiNzFjw@mail.gmail.com>
- <1448068.cLOEOI22jq@avalon>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Mon, 18 Jun 2012 16:26:01 +0530
-Message-ID: <CA+V-a8tX5tat3D2A_UFcRY-hAx1fZsXVLhO-hH8ib-L5JopO6g@mail.gmail.com>
-Subject: Re: SoC i.mx35 userptr method failure while running capture-example utility
+In-Reply-To: <1340201368-20751-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1340201368-20751-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Date: Wed, 20 Jun 2012 08:09:19 -0700
+Message-ID: <CAC57bwtvfYDGO91r3zRry+WENm7x=UZ6TdOkXpmHDbQWT0feRA@mail.gmail.com>
+Subject: Re: [Linaro-mm-sig] [RFC/PATCH] fb: Add dma-buf support
+From: Jesse Barker <jesse.barker@linaro.org>
 To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Alex Gershgorin <alexg@meprolight.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Cc: linux-fbdev@vger.kernel.org, linaro-mm-sig@lists.linaro.org,
+	linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Laurent,
 
+Your recent documentation efforts are extremely commendable.  Just a
+couple of small nits below...
 
-On Mon, Jun 18, 2012 at 4:05 PM, Laurent Pinchart
+On Wed, Jun 20, 2012 at 7:09 AM, Laurent Pinchart
 <laurent.pinchart@ideasonboard.com> wrote:
-> Hi,
+> Add support for the dma-buf exporter role to the frame buffer API. The
+> importer role isn't meaningful for frame buffer devices, as the frame
+> buffer device model doesn't allow using externally allocated memory.
 >
-> On Monday 18 June 2012 12:28:44 Prabhakar Lad wrote:
->> On Wed, May 2, 2012 at 4:20 AM, Guennadi Liakhovetski wrote:
->> > On Tue, 1 May 2012, Alex Gershgorin wrote:
->> >> Hi everyone,
->> >>
->> >> I use user-space utility from
->> >>  http://git.linuxtv.org/v4l-utils.git/blob/HEAD:/contrib/test/capture-ex
->> >> ample.c I made two small changes in this application and this is running
->> >> on i.MX35 SoC
->> >>
->> >> fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_RGB565;
->> >> fmt.fmt.pix.field       = V4L2_FIELD_ANY;
->> >>
->> >> When MMAP method is used everything works fine, problem occurs when using
->> >> USERPTR method this can see bellow :
->> >>
->> >> ./capture-example -u -f -d /dev/video0
->> >> mx3-camera mx3-camera.0: MX3 Camera driver attached to camera 0
->> >> Failed acquiring VMA for vaddr 0x76cd9008
->> >> VIDIOC_QBUF error 22, Invalid arg
->> >
->> > It doesn't surprise me, that this doesn't work. capture-example allocates
->> > absolutely normal user-space buffers, when called with USERPTR, and those
->> > buffers are very likely discontiguous. Whereas mx3-camera needs physically
->> > contiguous buffers, so, this can only fail. This means, you either have to
->> > use MMAP or you need to allocate USERPTR buffers in a special way to
->> > guarantee their contiguity.
->>
->>   Even I am facing a similar issue when ported to VB2 for USERPTR.
->>  How do we ensure the buffers not discontiguous. Would cmem assure it?
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> ---
+>  Documentation/fb/api.txt |   36 ++++++++++++++++++++++++++++++++++++
+>  drivers/video/fbmem.c    |   36 ++++++++++++++++++++++++++++++++++++
+>  include/linux/fb.h       |   12 ++++++++++++
+>  3 files changed, 84 insertions(+), 0 deletions(-)
 >
-> CMEM is definitely not the way to go, it's an out-of-tree hack that should
-> disappear once we get proper CMA and DMABUF support in the kernel.
->
-> How to allocate memory depends on your use case(s). If you just need to
-> capture to anonymous memory that will then be read by userspace you shouldn't
-> use USERPTR, but MMAP. If you need to capture to device memory (for instance
-> capturing directly to a frame buffer), you should export a DMABUF object on
-> from the frame buffer driver (this isn't available in mainline yet, I'll try
-> to send a patch soon) and then import it on the V4L2 side (not available in
-> mainline yet either I'm afraid :-)). As an interim solution, mmap() your frame
-> buffer to userspace and then use USERPTR.
->
+> diff --git a/Documentation/fb/api.txt b/Documentation/fb/api.txt
+> index d4ff7de..f0b2173 100644
+> --- a/Documentation/fb/api.txt
+> +++ b/Documentation/fb/api.txt
+> @@ -304,3 +304,39 @@ extensions.
+>  Upon successful format configuration, drivers update the fb_fix_screeninfo
+>  type, visual and line_length fields depending on the selected format. The type
+>  and visual fields are set to FB_TYPE_FOURCC and FB_VISUAL_FOURCC respectively.
+> +
+> +
+> +5. DMA buffer sharing
+> +---------------------
+> +
+> +The dma-buf kernel framework allows DMA buffers to be shared across devices
+> +and applications. Sharing buffers across display devices and video capture or
+> +video decoding devices allow zero-copy operation when displaying video content
+> +produced by a hardware device such as a camera or a hardware codec. This is
+> +crucial to achieve optimal system performances during video display.
+> +
+> +While dma-buf supports both exporting internally allocated memory as a dma-buf
+> +object (known as the exporter role) and importing a dma-buf object to be used
+> +as device memory (known as the importer role), the frame buffer API only
+> +supports the exporter role, as the frame buffer device model doesn't support
+> +using externally-allocated memory.
+> +
+> +The export a frame buffer as a dma-buf file descriptors, applications call the
 
-I have got MMAP working with videobuf2, with videobuf there was a support for
-userptr which I need to achieve this with videobuf2. Can you point me to your
-branch where you are working on it and also an example if you have to
-interim solution as you suggested above.
+s/The/To
+s/descriptors/descriptor
 
-Thx,
---Prabhakar Lad
->> >> Unable to handle kernel NULL pointer dereference at virtual address
->> >> 00000000>
->> > This, however, is bad and is a bug in the driver. The capture-example
->> > should just fail nicely with no trouble. I'll add it to my TODO and will
->> > try to find some time to debug and fix this, however, I'd be more than
->> > happy if someone else would beat me on this ;-)
->> >
->> > Thanks
->> > Guennadi
->> >
->> >> pgd = 80004000
->> >> [00000000] *pgd=00000000
->> >> Internal error: Oops: 817 [#1] ARM
->> >> CPU: 0    Not tainted  (3.4.0-rc5+ #2283
->> >> PC is at mx3_videobuf_release+0x9c/0x10c
->> >> LR is at mx3_videobuf_release+0x20/0x10c
->> >> pc : [<802cd92c>]    lr : [<802cd8b0>]    psr: 00000093
->> >> sp : 86db3e00  ip : 86db3e00  fp : 86db3e2c
->> >> r10: 86ff6b20  r9 : 86817200  r8 : 00000000
->> >> r7 : 86ff568c  r6 : 00000000  r5 : 8801a000  r4 : 86da3000
->> >> r3 : 60000013  r2 : 86da3264  r1 : 00000000  r0 : 00000000
->> >> Flags: nzcv  IRQs off  FIQs on  Mode SVC_32  ISA ARM  Segment user
->> >> Control: 00c5387d  Table: 86dcc008  DAC: 00000015
->> >> Process capture-example (pid: 52, stack limit = 0x86db2268)
->> >> Stack: (0x86db3e00 to 0x86db4000)
->> >> 3e00: 00000000 60000013 00000000 86ff568c 00000000 00000002 86ff56ac
->> >> 00000000 3e20: 86db3e64 86db3e30 802c8978 802cd89c 00000000 80099414
->> >> 86db3e84 86ff568c 3e40: 86dc9a80 8801a03c 80491828 00000000 86817200
->> >> 86ff6b20 86db3e7c 86db3e68 3e60: 802c9a1c 802c8930 802ce048 86ff5600
->> >> 86db3e9c 86db3e80 802cca14 802c9a00 3e80: 86ff5800 86dc9a80 00000008
->> >> 86dc9a88 86db3eb4 86db3ea0 802b936c 802cc9d0 3ea0: 86dc9a80 86ff6b20
->> >> 86db3ef4 86db3eb8 80082f00 802b932c 00000000 00000000 3ec0: 00000000
->> >> 86d35010 86d7f000 86dc9a80 00000000 86d59000 86d90120 0000000c 3ee0:
->> >> 86db2000 00000000 86db3f14 86db3ef8 8007ff58 80082df0 00000000 86d59000
->> >> 3f00: 00000000 00000001 86db3f3c 86db3f18 8001c72c 8007fee4 86d59000
->> >> 86d82000 3f20: 00000100 76ef1770 000000f8 8000e564 86db3f4c 86db3f40
->> >> 8001c7a8 8001c6b4 3f40: 86db3f7c 86db3f50 8001dab4 8001c78c 7eb002b8
->> >> 00000001 00000004 00000000 3f60: 86db3fa4 86db3f70 800824fc 000000f8
->> >> 86db3f94 86db3f80 8001dfc0 8001d8c4 3f80: 0000ffff 000a3d78 86db3fa4
->> >> 86db3f98 8001e004 8001df4c 00000000 86db3fa8 3fa0: 8000e3e0 8001dff8
->> >> 000a3d78 76ef1770 00000001 000a3d64 00000008 00000001 3fc0: 000a3d78
->> >> 76ef1770 76ef1770 000000f8 76e1d248 00000000 00009ecc 7eb02954 3fe0:
->> >> 76f2e000 7eb02908 76de14dc 76e4f3d4 60000010 00000001 00000000 00000000
->> >> Backtrace:
->> >> [<802cd890>] (mx3_videobuf_release+0x0/0x10c) from [<802c8978>]
->> >> (__vb2_queue_free+0x54/0x15c) r8:00000000 r7:86ff56ac r6:00000002
->> >> r5:00000000 r4:86ff568c
->> >> [<802c8924>] (__vb2_queue_free+0x0/0x15c) from [<802c9a1c>]
->> >> (vb2_queue_release+0x28/0x2c) [<802c99f4>] (vb2_queue_release+0x0/0x2c)
->> >> from [<802cca14>] (soc_camera_close+0x50/0xac) r4:86ff5600 r3:802ce048
->> >> [<802cc9c4>] (soc_camera_close+0x0/0xac) from [<802b936c>]
->> >> (v4l2_release+0x4c/0x6c) r7:86dc9a88 r6:00000008 r5:86dc9a80 r4:86ff5800
->> >> [<802b9320>] (v4l2_release+0x0/0x6c) from [<80082f00>] (fput+0x11c/0x204)
->> >>  r5:86ff6b20 r4:86dc9a80
->> >> [<80082de4>] (fput+0x0/0x204) from [<8007ff58>] (filp_close+0x80/0x8c)
->> >> [<8007fed8>] (filp_close+0x0/0x8c) from [<8001c72c>]
->> >> (put_files_struct+0x84/0xd8) r6:00000001 r5:00000000 r4:86d59000
->> >> r3:00000000
->> >> [<8001c6a8>] (put_files_struct+0x0/0xd8) from [<8001c7a8>]
->> >> (exit_files+0x28/0x2c) r8:8000e564 r7:000000f8 r6:76ef1770 r5:00000100
->> >> r4:86d82000
->> >> r3:86d59000
->> >> [<8001c780>] (exit_files+0x0/0x2c) from [<8001dab4>]
->> >> (do_exit+0x1fc/0x688)
->> >> [<8001d8b8>] (do_exit+0x0/0x688) from [<8001dfc0>]
->> >> (do_group_exit+0x80/0xac) r7:000000f8
->> >> [<8001df40>] (do_group_exit+0x0/0xac) from [<8001e004>]
->> >> (sys_exit_group+0x18/0x24) r4:000a3d78 r3:0000ffff
->> >> [<8001dfec>] (sys_exit_group+0x0/0x24) from [<8000e3e0>]
->> >> (ret_fast_syscall+0x0/0x30) Code: 05852024 e5941268 e5940264 e2842f99
->> >> (e5810000)
->> >> ument
->> >> ---[ end trace 23ac1073b67b7fc0 ]---
->> >> Fixing recursive fault but reboot is needed!
->> >>
->> >> Unfortunately I do not have enough knowledge in this kind of problems,
->> >> any help will be welcomed.
+cheers,
+Jesse
+
+> +FBIOGET_DMABUF ioctl. The ioctl takes a pointer to a fb_dmabuf_export
+> +structure.
+> +
+> +struct fb_dmabuf_export {
+> +       __u32 fd;
+> +       __u32 flags;
+> +};
+> +
+> +The flag field specifies the flags to be used when creating the dma-buf file
+> +descriptor. The only supported flag is O_CLOEXEC. If the call is successful,
+> +the driver will set the fd field to a file descriptor corresponding to the
+> +dma-buf object.
+> +
+> +Applications can then pass the file descriptors to another application or
+> +another device driver. The dma-buf object is automatically reference-counted,
+> +applications can and should close the file descriptor as soon as they don't
+> +need it anymore. The underlying dma-buf object will not be freed before the
+> +last device that uses the dma-buf object releases it.
+> diff --git a/drivers/video/fbmem.c b/drivers/video/fbmem.c
+> index 0dff12a..400e449 100644
+> --- a/drivers/video/fbmem.c
+> +++ b/drivers/video/fbmem.c
+> @@ -15,6 +15,7 @@
 >
+>  #include <linux/compat.h>
+>  #include <linux/types.h>
+> +#include <linux/dma-buf.h>
+>  #include <linux/errno.h>
+>  #include <linux/kernel.h>
+>  #include <linux/major.h>
+> @@ -1074,6 +1075,23 @@ fb_blank(struct fb_info *info, int blank)
+>        return ret;
+>  }
+>
+> +#ifdef CONFIG_DMA_SHARED_BUFFER
+> +int
+> +fb_get_dmabuf(struct fb_info *info, int flags)
+> +{
+> +       struct dma_buf *dmabuf;
+> +
+> +       if (info->fbops->fb_dmabuf_export == NULL)
+> +               return -ENOTTY;
+> +
+> +       dmabuf = info->fbops->fb_dmabuf_export(info);
+> +       if (IS_ERR(dmabuf))
+> +               return PTR_ERR(dmabuf);
+> +
+> +       return dma_buf_fd(dmabuf, flags);
+> +}
+> +#endif
+> +
+>  static long do_fb_ioctl(struct fb_info *info, unsigned int cmd,
+>                        unsigned long arg)
+>  {
+> @@ -1084,6 +1102,7 @@ static long do_fb_ioctl(struct fb_info *info, unsigned int cmd,
+>        struct fb_cmap cmap_from;
+>        struct fb_cmap_user cmap;
+>        struct fb_event event;
+> +       struct fb_dmabuf_export dmaexp;
+>        void __user *argp = (void __user *)arg;
+>        long ret = 0;
+>
+> @@ -1191,6 +1210,23 @@ static long do_fb_ioctl(struct fb_info *info, unsigned int cmd,
+>                console_unlock();
+>                unlock_fb_info(info);
+>                break;
+> +#ifdef CONFIG_DMA_SHARED_BUFFER
+> +       case FBIOGET_DMABUF:
+> +               if (copy_from_user(&dmaexp, argp, sizeof(dmaexp)))
+> +                       return -EFAULT;
+> +
+> +               if (!lock_fb_info(info))
+> +                       return -ENODEV;
+> +               dmaexp.fd = fb_get_dmabuf(info, dmaexp.flags);
+> +               unlock_fb_info(info);
+> +
+> +               if (dmaexp.fd < 0)
+> +                       return dmaexp.fd;
+> +
+> +               ret = copy_to_user(argp, &dmaexp, sizeof(dmaexp))
+> +                   ? -EFAULT : 0;
+> +               break;
+> +#endif
+>        default:
+>                if (!lock_fb_info(info))
+>                        return -ENODEV;
+> diff --git a/include/linux/fb.h b/include/linux/fb.h
+> index ac3f1c6..c9fee75 100644
+> --- a/include/linux/fb.h
+> +++ b/include/linux/fb.h
+> @@ -39,6 +39,7 @@
+>  #define FBIOPUT_MODEINFO        0x4617
+>  #define FBIOGET_DISPINFO        0x4618
+>  #define FBIO_WAITFORVSYNC      _IOW('F', 0x20, __u32)
+> +#define FBIOGET_DMABUF         _IOR('F', 0x21, struct fb_dmabuf_export)
+>
+>  #define FB_TYPE_PACKED_PIXELS          0       /* Packed Pixels        */
+>  #define FB_TYPE_PLANES                 1       /* Non interleaved planes */
+> @@ -403,6 +404,11 @@ struct fb_cursor {
+>  #define FB_BACKLIGHT_MAX       0xFF
+>  #endif
+>
+> +struct fb_dmabuf_export {
+> +       __u32 fd;
+> +       __u32 flags;
+> +};
+> +
+>  #ifdef __KERNEL__
+>
+>  #include <linux/fs.h>
+> @@ -418,6 +424,7 @@ struct vm_area_struct;
+>  struct fb_info;
+>  struct device;
+>  struct file;
+> +struct dma_buf;
+>
+>  /* Definitions below are used in the parsed monitor specs */
+>  #define FB_DPMS_ACTIVE_OFF     1
+> @@ -701,6 +708,11 @@ struct fb_ops {
+>        /* called at KDB enter and leave time to prepare the console */
+>        int (*fb_debug_enter)(struct fb_info *info);
+>        int (*fb_debug_leave)(struct fb_info *info);
+> +
+> +#ifdef CONFIG_DMA_SHARED_BUFFER
+> +       /* Export the frame buffer as a dmabuf object */
+> +       struct dma_buf *(*fb_dmabuf_export)(struct fb_info *info);
+> +#endif
+>  };
+>
+>  #ifdef CONFIG_FB_TILEBLITTING
 > --
 > Regards,
 >
 > Laurent Pinchart
 >
+>
+> _______________________________________________
+> Linaro-mm-sig mailing list
+> Linaro-mm-sig@lists.linaro.org
+> http://lists.linaro.org/mailman/listinfo/linaro-mm-sig
