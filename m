@@ -1,53 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from zose-mta12.web4all.fr ([178.33.204.89]:47805 "EHLO
-	zose-mta12.web4all.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752249Ab2FRTIj convert rfc822-to-8bit (ORCPT
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:37403 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758423Ab2FTXMw convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jun 2012 15:08:39 -0400
-Date: Mon, 18 Jun 2012 21:03:06 +0200 (CEST)
-From: =?utf-8?Q?Beno=C3=AEt_Th=C3=A9baudeau?=
-	<benoit.thebaudeau@advansee.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Ravi Kumar V <kumarrav@codeaurora.org>,
-	linux-media@vger.kernel.org
-Message-ID: <659567571.2884478.1340046186135.JavaMail.root@advansee.com>
-Subject: [PATCH 3 of 3] media: gpio-ir-recv: switch to
- module_platform_driver
+	Wed, 20 Jun 2012 19:12:52 -0400
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+In-Reply-To: <1339203038-13069-1-git-send-email-akinobu.mita@gmail.com>
+References: <1339203038-13069-1-git-send-email-akinobu.mita@gmail.com>
+Date: Wed, 20 Jun 2012 16:12:51 -0700
+Message-ID: <CA+8MBb+Kk=G5GQbSdbjXqFmw+GCON6jLZABCAGuL+bNDC+dLgA@mail.gmail.com>
+Subject: Re: [PATCH v3 1/9] string: introduce memweight
+From: Tony Luck <tony.luck@gmail.com>
+To: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: linux-kernel@vger.kernel.org, akpm@linux-foundation.org,
+	Anders Larsen <al@alarsen.net>,
+	Alasdair Kergon <agk@redhat.com>, dm-devel@redhat.com,
+	linux-fsdevel@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org, Mark Fasheh <mfasheh@suse.com>,
+	Joel Becker <jlbec@evilplan.org>, ocfs2-devel@oss.oracle.com,
+	Jan Kara <jack@suse.cz>, linux-ext4@vger.kernel.org,
+	Andreas Dilger <adilger.kernel@dilger.ca>,
+	"Theodore Ts'o" <tytso@mit.edu>, Matthew Wilcox <matthew@wil.cx>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Ravi Kumar V <kumarrav@codeaurora.org>
-Cc: <linux-media@vger.kernel.org>
-Signed-off-by: Beno√Æt Th√©baudeau <benoit.thebaudeau@advansee.com>
----
- .../drivers/media/rc/gpio-ir-recv.c                |   13 +------------
- 1 file changed, 1 insertion(+), 12 deletions(-)
+On Fri, Jun 8, 2012 at 5:50 PM, Akinobu Mita <akinobu.mita@gmail.com> wrote:
+> †lib/string.c † † † † † | † 36 ++++++++++++++++++++++++++++++++++++
 
-diff --git linux-next-HEAD-6c86b58.orig/drivers/media/rc/gpio-ir-recv.c linux-next-HEAD-6c86b58/drivers/media/rc/gpio-ir-recv.c
-index 15e346e..59fe60c 100644
---- linux-next-HEAD-6c86b58.orig/drivers/media/rc/gpio-ir-recv.c
-+++ linux-next-HEAD-6c86b58/drivers/media/rc/gpio-ir-recv.c
-@@ -194,18 +194,7 @@ static struct platform_driver gpio_ir_recv_driver = {
- #endif
- 	},
- };
--
--static int __init gpio_ir_recv_init(void)
--{
--	return platform_driver_register(&gpio_ir_recv_driver);
--}
--module_init(gpio_ir_recv_init);
--
--static void __exit gpio_ir_recv_exit(void)
--{
--	platform_driver_unregister(&gpio_ir_recv_driver);
--}
--module_exit(gpio_ir_recv_exit);
-+module_platform_driver(gpio_ir_recv_driver);
- 
- MODULE_DESCRIPTION("GPIO IR Receiver driver");
- MODULE_LICENSE("GPL v2");
+Is lib/string.c the right place for this?  I get a build error on the
+ia64 sim_defconfig:
+
+  LD      arch/ia64/hp/sim/boot/bootloader
+
+It fails because it pulls in lib/lib.a(string.o) to get some
+innocuous function like strcpy() ... but it also gets
+given memweight() which relies on __bitmap_weight()
+which it doesn't have, because it doesn't include lib/built-in.o
+(which is where bitmap.o, the definer of __bitmap_weight(), has
+been linked).
+
+Moving memweight() to lib/bitmap.c fixes the problem. But it
+isn't really clear that it belongs there either.  Perhaps it should
+be its own file lib/memweight.c that gets included in lib/lib.a?
+
+-Tony
