@@ -1,89 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gg0-f174.google.com ([209.85.161.174]:59908 "EHLO
-	mail-gg0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757587Ab2FQRMu convert rfc822-to-8bit (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:55943 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758867Ab2FUIqH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 Jun 2012 13:12:50 -0400
-Date: Sun, 17 Jun 2012 12:12:44 -0500
-From: Jonathan Nieder <jrnieder@gmail.com>
-To: =?utf-8?Q?Martin-=C3=89ric?= Racine <martin-eric.racine@iki.fi>
-Cc: =?utf-8?Q?Jean-Fran=C3=A7ois?= Moine <moinejf@free.fr>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Hans de Goede <hdegoede@redhat.com>
-Subject: Re: video: USB webcam fails since kernel 3.2
-Message-ID: <20120617171244.GL12429@burratino>
-References: <20120614162609.4613.22122.reportbug@henna.lan>
- <20120614215359.GF3537@burratino>
- <CAPZXPQd9gNCxn7xGyqj_xymPaF5OxvRtxRFkt+SsLs942te4og@mail.gmail.com>
- <20120616044137.GB4076@burratino>
- <1339932233.20497.14.camel@henna.lan>
- <20120617171138.GK12429@burratino>
+	Thu, 21 Jun 2012 04:46:07 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Jesse Barker <jesse.barker@linaro.org>
+Cc: linux-fbdev@vger.kernel.org, linaro-mm-sig@lists.linaro.org,
+	linux-media@vger.kernel.org
+Subject: Re: [Linaro-mm-sig] [RFC/PATCH] fb: Add dma-buf support
+Date: Thu, 21 Jun 2012 10:46:15 +0200
+Message-ID: <2493661.GRYQti1C6z@avalon>
+In-Reply-To: <CAC57bwtvfYDGO91r3zRry+WENm7x=UZ6TdOkXpmHDbQWT0feRA@mail.gmail.com>
+References: <1340201368-20751-1-git-send-email-laurent.pinchart@ideasonboard.com> <CAC57bwtvfYDGO91r3zRry+WENm7x=UZ6TdOkXpmHDbQWT0feRA@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8BIT
-In-Reply-To: <20120617171138.GK12429@burratino>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Jonathan Nieder wrote:
+Hi Jesse,
 
-> (cc-ing Hans de Goede, the new gspca maintainer.  Sorry I missed
-> that before.)
+Thank you for the review.
 
-Actually cc-ing this time.  Sorry for the noise.
+On Wednesday 20 June 2012 08:09:19 Jesse Barker wrote:
+> Laurent,
+> 
+> Your recent documentation efforts are extremely commendable.  Just a
+> couple of small nits below...
+> 
+> On Wed, Jun 20, 2012 at 7:09 AM, Laurent Pinchart
+> 
+> <laurent.pinchart@ideasonboard.com> wrote:
+> > Add support for the dma-buf exporter role to the frame buffer API. The
+> > importer role isn't meaningful for frame buffer devices, as the frame
+> > buffer device model doesn't allow using externally allocated memory.
+> > 
+> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > ---
+> >  Documentation/fb/api.txt |   36 ++++++++++++++++++++++++++++++++++++
+> >  drivers/video/fbmem.c    |   36 ++++++++++++++++++++++++++++++++++++
+> >  include/linux/fb.h       |   12 ++++++++++++
+> >  3 files changed, 84 insertions(+), 0 deletions(-)
+> > 
+> > diff --git a/Documentation/fb/api.txt b/Documentation/fb/api.txt
+> > index d4ff7de..f0b2173 100644
+> > --- a/Documentation/fb/api.txt
+> > +++ b/Documentation/fb/api.txt
+> > @@ -304,3 +304,39 @@ extensions.
+> >  Upon successful format configuration, drivers update the
+> > fb_fix_screeninfo
+> >  type, visual and line_length fields depending on the selected format. The
+> > type and visual fields are set to FB_TYPE_FOURCC and FB_VISUAL_FOURCC
+> > respectively. +
+> > +
+> > +5. DMA buffer sharing
+> > +---------------------
+> > +
+> > +The dma-buf kernel framework allows DMA buffers to be shared across
+> > devices +and applications. Sharing buffers across display devices and
+> > video capture or +video decoding devices allow zero-copy operation when
+> > displaying video content +produced by a hardware device such as a camera
+> > or a hardware codec. This is +crucial to achieve optimal system
+> > performances during video display. +
+> > +While dma-buf supports both exporting internally allocated memory as a
+> > dma-buf +object (known as the exporter role) and importing a dma-buf
+> > object to be used +as device memory (known as the importer role), the
+> > frame buffer API only +supports the exporter role, as the frame buffer
+> > device model doesn't support +using externally-allocated memory.
+> > +
+> > +The export a frame buffer as a dma-buf file descriptors, applications
+> > call the
+> s/The/To
+> s/descriptors/descriptor
 
->> Martin-Éric Racine wrote:
->>> usb 1-7: new high-speed USB device number 3 using ehci_hcd
-[...]
->>> usb 1-7: Product: USB2.0 Web Camera
->>> usb 1-7: Manufacturer: Vimicro Corp.
-[...]
->>> gspca_main: v2.14.0 registered
->>> gspca_main: vc032x-2.14.0 probing 0ac8:0321
-[...]
->>> gspca_main: ISOC data error: [36] len=0, status=-71
->>> gspca_main: ISOC data error: [65] len=0, status=-71
-[...]
->>> gspca_main: ISOC data error: [48] len=0, status=-71
->>> video_source:sr[3246]: segfault at 0 ip   (null) sp ab36de1c error 14 in cheese[8048000+21000]
->>> gspca_main: ISOC data error: [17] len=0, status=-71
+Fixed, thanks.
 
-Thanks again.
+-- 
+Regards,
 
-If you get a chance to test Hans's media-for_v3.5 branch, that would
-be interesting.  It works like so:
+Laurent Pinchart
 
- 0. prerequisites:
-
-	apt-get install git build-essential
-
- 1. get the kernel history, if you don't already have it:
-
-	git clone \
-	  git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
-
- 2. fetch gspca updates:
-
-	cd linux
-	git remote add gspca \
-	  git://linuxtv.org/hgoede/gspca.git
-	git fetch gspca
-
- 3. configure, build, test:
-
-	git checkout gspca/media-for_v3.5
-	cp /boot/config-$(uname -r) .config; # current configuration
-	scripts/config --disable DEBUG_INFO
-	make localmodconfig; # optional: minimize configuration
-	make deb-pkg; # optionally with -j<num> for parallel build
-	dpkg -i ../<name of package>; # as root
-	reboot
-	... test test test ...
-
-I ask because there have been some gspca core fixes cooking that are
-not part of the 3.4.y tree, though none of them looks especially
-relevant.
-
-Hope that helps,
-Jonathan
