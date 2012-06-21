@@ -1,98 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:59401 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753366Ab2FFMOh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jun 2012 08:14:37 -0400
-Message-id: <4FCF49A7.8040203@samsung.com>
-Date: Wed, 06 Jun 2012 14:14:31 +0200
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-MIME-version: 1.0
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: paul.gortmaker@windriver.com,
-	=?UTF-8?B?J+uwleqyveuvvCc=?= <kyungmin.park@samsung.com>,
-	amwang@redhat.com, dri-devel@lists.freedesktop.org,
-	"'???/Mobile S/W Platform Lab.(???)/E3(??)/????'"
-	<inki.dae@samsung.com>, prashanth.g@samsung.com,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Rob Clark <rob@ti.com>, Dave Airlie <airlied@redhat.com>,
-	linux-kernel@vger.kernel.org, linux-mm@kvack.org,
-	Andy Whitcroft <apw@shadowen.org>,
-	Johannes Weiner <hannes@cmpxchg.org>
-Subject: Re: [PATCH v3] scatterlist: add sg_alloc_table_from_pages function
-References: <4FA8EC69.8010805@samsung.com>
- <20120517165614.d5e6e4b6.akpm@linux-foundation.org>
- <4FBA4ACE.4080602@samsung.com>
- <20120522131059.415a881c.akpm@linux-foundation.org>
-In-reply-to: <20120522131059.415a881c.akpm@linux-foundation.org>
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 7bit
+Received: from perceval.ideasonboard.com ([95.142.166.194]:44755 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760626Ab2FUXMW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 21 Jun 2012 19:12:22 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Oleksij Rempel <bug-track@fisher-privat.net>
+Cc: linux-uvc-devel@lists.sourceforge.net, linux-media@vger.kernel.org
+Subject: Re: [linux-uvc-devel] [RFC] Media controller entity information ioctl [was "Re: [patch] suggestion for media framework"]
+Date: Fri, 22 Jun 2012 01:12:33 +0200
+Message-ID: <8600912.NnP0Jj1IK2@avalon>
+In-Reply-To: <4FE355B2.50906@fisher-privat.net>
+References: <4FCB9C12.1@fisher-privat.net> <1915602.ON5YbSOUmP@avalon> <4FE355B2.50906@fisher-privat.net>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/22/2012 10:10 PM, Andrew Morton wrote:
-> On Mon, 21 May 2012 16:01:50 +0200
-> Tomasz Stanislawski <t.stanislaws@samsung.com> wrote:
-> 
->>>> +int sg_alloc_table_from_pages(struct sg_table *sgt,
->>>> +	struct page **pages, unsigned int n_pages,
->>>> +	unsigned long offset, unsigned long size,
->>>> +	gfp_t gfp_mask)
->>>
->>> I guess a 32-bit n_pages is OK.  A 16TB IO seems enough ;)
->>>
->>
->> Do you think that 'unsigned long' for offset is too big?
->>
->> Ad n_pages. Assuming that Moore's law holds it will take
->> circa 25 years before the limit of 16 TB is reached :) for
->> high-end scatterlist operations.
->> Or I can change the type of n_pages to 'unsigned long' now at
->> no cost :).
-> 
-> By then it will be Someone Else's Problem ;)
-> 
+Hi,
 
-Ok. So let's keep to 'unsigned int n_pages'.
+On Thursday 21 June 2012 19:11:14 Oleksij Rempel wrote:
+> On 08.06.2012 04:46, Laurent Pinchart wrote:
+> > On Monday 04 June 2012 10:11:33 Robert Krakora wrote:
+> >> When you say "static" you mean items that are "well known" by the system
+> >> by reading a registry at initialization?
+> > 
+> > By static I mean items that are initialized at driver initialization time
+> > and not modified afterwards. I don't think we should support
+> > adding/removing items at runtime, at least in the first version.
+> > 
+> >> When a new device exposes functionality that necessitates the creation of
+> >> a new "static" item then how does the registry get updated to reflect
+> >> this or am I misunderstanding?
+> > 
+> > Item types should be defined in a kernel header and documented. If a
+> > driver needs a new item types, the driver developer should add the new
+> > type to the header and document it.
+> 
+> Hi Laurent,
+> 
+> what is your progress on this issue?
 
->>>> +{
->>>> +	unsigned int chunks;
->>>> +	unsigned int i;
->>>
->>> erk, please choose a different name for this.  When a C programmer sees
->>> "i", he very much assumes it has type "int".  Making it unsigned causes
->>> surprise.
->>>
->>> And don't rename it to "u"!  Let's give it a nice meaningful name.  pageno?
->>>
->>
->> The problem is that 'i' is  a natural name for a loop counter.
-> 
-> It's also the natural name for an integer.  If a C programmer sees "i",
-> he thinks "int".  It's a Fortran thing ;)
-> 
->> AFAIK, in the kernel code developers try to avoid Hungarian notation.
->> A name of a variable should reflect its purpose, not its type.
->> I can change the name of 'i' to 'pageno' and 'j' to 'pageno2' (?)
->> but I think it will make the code less reliable.
-> 
-> Well, one could do something radical such as using "p".
-> 
-> 
+None unfortunately. I won't have time to work on this before July at the 
+earliest.
 
-I can not change the type to 'int' due to 'signed vs unsigned' comparisons
-in the loop condition.
-What do you think about changing the names 'i' -> 'p' and 'j' -> 'q'?
+> I was able to make video stream on my webcam work more stable by setting
+> "snd_usb_audio ignore_ctl_error=1". I think it is one of cases where
+> media framework should help.
 
+-- 
 Regards,
-Tomasz Stanislawski
 
-> --
-> To unsubscribe, send a message with 'unsubscribe linux-mm' in
-> the body to majordomo@kvack.org.  For more info on Linux MM,
-> see: http://www.linux-mm.org/ .
-> Fight unfair telecom internet charges in Canada: sign http://stopthemeter.ca/
-> Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
-> 
+Laurent Pinchart
 
