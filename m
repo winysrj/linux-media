@@ -1,148 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:4153 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755879Ab2FXL3P (ORCPT
+Received: from mail-gg0-f174.google.com ([209.85.161.174]:54334 "EHLO
+	mail-gg0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759914Ab2FUTyA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 Jun 2012 07:29:15 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Andy Walls <awalls@md.metrocast.net>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Scott Jiang <scott.jiang.linux@gmail.com>,
-	Manjunatha Halli <manjunatha_halli@ti.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>,
-	Anatolij Gustschin <agust@denx.de>,
-	Javier Martin <javier.martin@vista-silicon.com>,
-	Sensoray Linux Development <linux-dev@sensoray.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
-	Sachin Kamat <sachin.kamat@linaro.org>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	mitov@issp.bas.bg, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 23/26] fimc-capture.c: remove V4L2_FL_LOCK_ALL_FOPS
-Date: Sun, 24 Jun 2012 13:26:15 +0200
-Message-Id: <d78ece169a8da8e72ef0ed784fe88b4f62ca345c.1340536092.git.hans.verkuil@cisco.com>
-In-Reply-To: <1340537178-18768-1-git-send-email-hverkuil@xs4all.nl>
-References: <1340537178-18768-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <f854d2a0a932187cd895bf9cd81d2da8343b52c9.1340536092.git.hans.verkuil@cisco.com>
-References: <f854d2a0a932187cd895bf9cd81d2da8343b52c9.1340536092.git.hans.verkuil@cisco.com>
+	Thu, 21 Jun 2012 15:54:00 -0400
+Received: by gglu4 with SMTP id u4so881447ggl.19
+        for <linux-media@vger.kernel.org>; Thu, 21 Jun 2012 12:53:59 -0700 (PDT)
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Ben Collins <bcollins@bluecherry.net>,
+	<linux-media@vger.kernel.org>,
+	Ezequiel Garcia <elezegarcia@gmail.com>
+Subject: [PATCH 09/10] staging: solo6x10: Fix several over 80 character lines
+Date: Thu, 21 Jun 2012 16:52:11 -0300
+Message-Id: <1340308332-1118-9-git-send-email-elezegarcia@gmail.com>
+In-Reply-To: <1340308332-1118-1-git-send-email-elezegarcia@gmail.com>
+References: <1340308332-1118-1-git-send-email-elezegarcia@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
-
-Add proper locking to the file operations, allowing for the removal
-of the V4L2_FL_LOCK_ALL_FOPS flag.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
 ---
- drivers/media/video/s5p-fimc/fimc-capture.c |   36 +++++++++++++++++++--------
- 1 file changed, 25 insertions(+), 11 deletions(-)
+ drivers/staging/media/solo6x10/i2c.c      |    3 ++-
+ drivers/staging/media/solo6x10/v4l2-enc.c |   28 ++++++++++++++--------------
+ drivers/staging/media/solo6x10/v4l2.c     |    5 ++++-
+ 3 files changed, 20 insertions(+), 16 deletions(-)
 
-diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c b/drivers/media/video/s5p-fimc/fimc-capture.c
-index 62ce539..62045dc 100644
---- a/drivers/media/video/s5p-fimc/fimc-capture.c
-+++ b/drivers/media/video/s5p-fimc/fimc-capture.c
-@@ -479,17 +479,22 @@ static int fimc_capture_set_default_format(struct fimc_dev *fimc);
- static int fimc_capture_open(struct file *file)
- {
- 	struct fimc_dev *fimc = video_drvdata(file);
--	int ret = v4l2_fh_open(file);
-+	int ret;
-+
-+	/* Return if the corresponding video mem2mem node is already opened. */
-+	if (fimc_m2m_active(fimc))
-+		return -EBUSY;
+diff --git a/drivers/staging/media/solo6x10/i2c.c b/drivers/staging/media/solo6x10/i2c.c
+index ef95a50..795818b 100644
+--- a/drivers/staging/media/solo6x10/i2c.c
++++ b/drivers/staging/media/solo6x10/i2c.c
+@@ -288,7 +288,8 @@ int solo_i2c_init(struct solo_dev *solo_dev)
+ 	for (i = 0; i < SOLO_I2C_ADAPTERS; i++) {
+ 		struct i2c_adapter *adap = &solo_dev->i2c_adap[i];
  
-+	ret = v4l2_fh_open(file);
- 	if (ret)
- 		return ret;
+-		snprintf(adap->name, I2C_NAME_SIZE, "%s I2C %d", SOLO6X10_NAME, i);
++		snprintf(adap->name, I2C_NAME_SIZE,
++			"%s I2C %d", SOLO6X10_NAME, i);
+ 		adap->algo = &solo_i2c_algo;
+ 		adap->algo_data = solo_dev;
+ 		adap->retries = 1;
+diff --git a/drivers/staging/media/solo6x10/v4l2-enc.c b/drivers/staging/media/solo6x10/v4l2-enc.c
+index 9333a00..fd52a42 100644
+--- a/drivers/staging/media/solo6x10/v4l2-enc.c
++++ b/drivers/staging/media/solo6x10/v4l2-enc.c
+@@ -297,19 +297,19 @@ static int enc_get_mpeg_dma_sg(struct solo_dev *solo_dev,
  
- 	dbg("pid: %d, state: 0x%lx", task_pid_nr(current), fimc->state);
- 
--	/* Return if the corresponding video mem2mem node is already opened. */
--	if (fimc_m2m_active(fimc))
--		return -EBUSY;
--
-+	if (mutex_lock_interruptible(&fimc->lock)) {
-+		v4l2_fh_release(file);
-+		return -ERESTARTSYS;
-+	}
- 	set_bit(ST_CAPT_BUSY, &fimc->state);
- 	pm_runtime_get_sync(&fimc->pdev->dev);
- 
-@@ -503,6 +508,7 @@ static int fimc_capture_open(struct file *file)
- 			fimc->vid_cap.refcnt--;
- 			v4l2_fh_release(file);
- 			clear_bit(ST_CAPT_BUSY, &fimc->state);
-+			mutex_unlock(&fimc->lock);
- 			return ret;
- 		}
- 		ret = fimc_capture_ctrls_create(fimc);
-@@ -510,6 +516,7 @@ static int fimc_capture_open(struct file *file)
- 		if (!ret && !fimc->vid_cap.user_subdev_api)
- 			ret = fimc_capture_set_default_format(fimc);
+ 	if (off + size <= SOLO_MP4E_EXT_SIZE(solo_dev)) {
+ 		return solo_p2m_dma_sg(solo_dev, SOLO_P2M_DMA_ID_MP4E,
+-				       desc, 0, sglist, skip,
+-				       SOLO_MP4E_EXT_ADDR(solo_dev) + off, size);
++				desc, 0, sglist, skip,
++				SOLO_MP4E_EXT_ADDR(solo_dev) + off, size);
  	}
-+	mutex_unlock(&fimc->lock);
+ 
+ 	/* Buffer wrap */
+ 	ret = solo_p2m_dma_sg(solo_dev, SOLO_P2M_DMA_ID_MP4E, desc, 0,
+-			      sglist, skip, SOLO_MP4E_EXT_ADDR(solo_dev) + off,
+-			      SOLO_MP4E_EXT_SIZE(solo_dev) - off);
++			sglist, skip, SOLO_MP4E_EXT_ADDR(solo_dev) + off,
++			SOLO_MP4E_EXT_SIZE(solo_dev) - off);
+ 
+ 	ret |= solo_p2m_dma_sg(solo_dev, SOLO_P2M_DMA_ID_MP4E, desc, 0,
+-			       sglist, skip + SOLO_MP4E_EXT_SIZE(solo_dev) - off,
+-			       SOLO_MP4E_EXT_ADDR(solo_dev),
+-			       size + off - SOLO_MP4E_EXT_SIZE(solo_dev));
++			sglist, skip + SOLO_MP4E_EXT_SIZE(solo_dev) - off,
++			SOLO_MP4E_EXT_ADDR(solo_dev),
++			size + off - SOLO_MP4E_EXT_SIZE(solo_dev));
+ 
  	return ret;
  }
+@@ -366,19 +366,19 @@ static int enc_get_jpeg_dma_sg(struct solo_dev *solo_dev,
  
-@@ -519,6 +526,7 @@ static int fimc_capture_close(struct file *file)
- 
- 	dbg("pid: %d, state: 0x%lx", task_pid_nr(current), fimc->state);
- 
-+	mutex_lock(&fimc->lock);
- 	if (--fimc->vid_cap.refcnt == 0) {
- 		clear_bit(ST_CAPT_BUSY, &fimc->state);
- 		fimc_stop_capture(fimc, false);
-@@ -532,6 +540,7 @@ static int fimc_capture_close(struct file *file)
- 		vb2_queue_release(&fimc->vid_cap.vbq);
- 		fimc_ctrls_delete(fimc->vid_cap.ctx);
+ 	if (off + size <= SOLO_JPEG_EXT_SIZE(solo_dev)) {
+ 		return solo_p2m_dma_sg(solo_dev, SOLO_P2M_DMA_ID_JPEG,
+-				       desc, 0, sglist, skip,
+-				       SOLO_JPEG_EXT_ADDR(solo_dev) + off, size);
++			       desc, 0, sglist, skip,
++			       SOLO_JPEG_EXT_ADDR(solo_dev) + off, size);
  	}
-+	mutex_unlock(&fimc->lock);
- 	return v4l2_fh_release(file);
+ 
+ 	/* Buffer wrap */
+ 	ret = solo_p2m_dma_sg(solo_dev, SOLO_P2M_DMA_ID_JPEG, desc, 0,
+-			      sglist, skip, SOLO_JPEG_EXT_ADDR(solo_dev) + off,
+-			      SOLO_JPEG_EXT_SIZE(solo_dev) - off);
++		      sglist, skip, SOLO_JPEG_EXT_ADDR(solo_dev) + off,
++		      SOLO_JPEG_EXT_SIZE(solo_dev) - off);
+ 
+ 	ret |= solo_p2m_dma_sg(solo_dev, SOLO_P2M_DMA_ID_JPEG, desc, 0,
+-			       sglist, skip + SOLO_JPEG_EXT_SIZE(solo_dev) - off,
+-			       SOLO_JPEG_EXT_ADDR(solo_dev),
+-			       size + off - SOLO_JPEG_EXT_SIZE(solo_dev));
++		       sglist, skip + SOLO_JPEG_EXT_SIZE(solo_dev) - off,
++		       SOLO_JPEG_EXT_ADDR(solo_dev),
++		       size + off - SOLO_JPEG_EXT_SIZE(solo_dev));
+ 
+ 	return ret;
  }
+diff --git a/drivers/staging/media/solo6x10/v4l2.c b/drivers/staging/media/solo6x10/v4l2.c
+index 1f896b9..acc0ca0 100644
+--- a/drivers/staging/media/solo6x10/v4l2.c
++++ b/drivers/staging/media/solo6x10/v4l2.c
+@@ -324,7 +324,10 @@ static void solo_fillbuf(struct solo_filehandle *fh,
+ 			continue;
+ 		}
  
-@@ -539,15 +548,24 @@ static unsigned int fimc_capture_poll(struct file *file,
- 				      struct poll_table_struct *wait)
- {
- 	struct fimc_dev *fimc = video_drvdata(file);
-+	unsigned res;
+-		/* Shove as many lines into a repeating descriptor as possible */
++		/*
++		 * Shove as many lines into a repeating
++		 * descriptor as possible
++		 */
+ 		lines = min(sg_size_left / line_len,
+ 			    solo_vlines(solo_dev) - i);
  
--	return vb2_poll(&fimc->vid_cap.vbq, file, wait);
-+	mutex_lock(&fimc->lock);
-+	res = vb2_poll(&fimc->vid_cap.vbq, file, wait);
-+	mutex_unlock(&fimc->lock);
-+	return res;
- }
- 
- static int fimc_capture_mmap(struct file *file, struct vm_area_struct *vma)
- {
- 	struct fimc_dev *fimc = video_drvdata(file);
-+	int ret;
- 
--	return vb2_mmap(&fimc->vid_cap.vbq, vma);
-+	if (mutex_lock_interruptible(&fimc->lock))
-+		return -ERESTARTSYS;
-+	ret = vb2_mmap(&fimc->vid_cap.vbq, vma);
-+	mutex_unlock(&fimc->lock);
-+	return ret;
- }
- 
- static const struct v4l2_file_operations fimc_capture_fops = {
-@@ -1590,10 +1608,6 @@ static int fimc_register_capture_device(struct fimc_dev *fimc,
- 	vfd->minor	= -1;
- 	vfd->release	= video_device_release;
- 	vfd->lock	= &fimc->lock;
--	/* Locking in file operations other than ioctl should be done
--	   by the driver, not the V4L2 core.
--	   This driver needs auditing so that this flag can be removed. */
--	set_bit(V4L2_FL_LOCK_ALL_FOPS, &vfd->flags);
- 	video_set_drvdata(vfd, fimc);
- 
- 	vid_cap = &fimc->vid_cap;
 -- 
-1.7.10
+1.7.4.4
 
