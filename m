@@ -1,172 +1,151 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:3229 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751116Ab2FLURy (ORCPT
+Received: from ams-iport-4.cisco.com ([144.254.224.147]:49993 "EHLO
+	ams-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759192Ab2FUKCU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Jun 2012 16:17:54 -0400
+	Thu, 21 Jun 2012 06:02:20 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Ondrej Zary <linux@rainbow-software.org>
-Subject: Re: [PATCH 1/3] radio: Add Sanyo LM7000 tuner driver
-Date: Tue, 12 Jun 2012 22:17:43 +0200
-Cc: linux-media@vger.kernel.org
-References: <201206122037.57039.linux@rainbow-software.org>
-In-Reply-To: <201206122037.57039.linux@rainbow-software.org>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: extend v4l2_mbus_framefmt
+Date: Thu, 21 Jun 2012 12:02:16 +0200
+Cc: Scott Jiang <scott.jiang.linux@gmail.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	LMML <linux-media@vger.kernel.org>,
+	uclinux-dist-devel@blackfin.uclinux.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+References: <CAHG8p1AW6577=oGPo3o8S0LgF2p8_cfmLLnvYbikk7kEaYdxzw@mail.gmail.com> <201206201300.34614.hverkuil@xs4all.nl> <20120621065324.GN12505@valkosipuli.retiisi.org.uk>
+In-Reply-To: <20120621065324.GN12505@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201206122217.43545.hverkuil@xs4all.nl>
+Message-Id: <201206211202.16752.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ondrej!
+On Thu 21 June 2012 08:53:25 Sakari Ailus wrote:
+> Hi Hans,
+> 
+> On Wed, Jun 20, 2012 at 01:00:34PM +0200, Hans Verkuil wrote:
+> > On Wed 20 June 2012 12:25:09 Sakari Ailus wrote:
+> > > Hi Scott,
+> > > 
+> > > Scott Jiang wrote:
+> > > >>>>>> I would expect that the combination of v4l2_mbus_framefmt +
+> > > >>>>>> v4l2_dv_timings
+> > > >>>>>> gives you the information you need.
+> > > >>>>>>
+> > > >>>>> I can solve this problem in HD, but how about SD? Add a fake
+> > > >>>>> dv_timings ops in SD decoder driver?
+> > > >>>>>
+> > > >>>>
+> > > >>>> No, you add g/s_std instead. SD timings are set through that API. It is
+> > > >>>> not so
+> > > >>>> much that you give explicit timings, but that you give the SD standard.
+> > > >>>> And from
+> > > >>>> that you can derive the timings (i.e., one for 60 Hz formats, and one for
+> > > >>>> 50 Hz
+> > > >>>> formats).
+> > > >>>>
+> > > >>> Yes, it's a solution for decoder. I can convert one by one. But how
+> > > >>> about sensors?They can output VGA, QVGA or any manual resolution.
+> > > >>> My question is why we can't add these blanking details in
+> > > >>> v4l2_mbus_framefmt? This structure is used to describe frame format on
+> > > >>> media bus. And I believe blanking data also transfer on this bus. I
+> > > >>> know most hardwares don't care about blanking areas, but some hardware
+> > > >>> such as PPI does. PPI can capture ancillary data both in herizontal
+> > > >>> and vertical interval. Even it works in active video only mode, it
+> > > >>> expects to get total timing info.
+> > > >>
+> > > >>
+> > > >> Since I don't know what you are trying to do, it is hard for me to give
+> > > >> a good answer.
+> > > >>
+> > > >> So first I'd like to know if this is related to the adv7842 chip? I think
+> > > >> you are talking about how this is done in general, and not specifically in
+> > > >> relationship to the adv7842. At least, I can't see how/why you would
+> > > >> hook up a sensor to the adv7842.
+> > > > Yes, I want to have a general solution.
+> > > >
+> > > >>
+> > > >> Sensor configuration is a separate topic, and something I am not an
+> > > >> expert on. People like Sakari Ailus and Laurent Pinchart know much
+> > > >> more about that than I do.
+> > > >>
+> > > >> I know that there is some support for blanking through low-level image
+> > > >> source
+> > > >> controls:
+> > > >>
+> > > >> http://hverkuil.home.xs4all.nl/spec/media.html#image-source-controls
+> > > >>
+> > > >> This is experimental and if this is insufficient for your requirements than
+> > > >> I suggest posting a message where you explain what you need, CC-ing the
+> > > >> people
+> > > >> I mentioned,
+> > > >>
+> > > >> Most of these APIs are quite new and by marking them as experimental we can
+> > > >> make changes later if it turns out it is not good enough.
+> > > > I remember I have discussed this topic with Sakari before but without
+> > > > working out a solution.
+> > > > In conclusion, my current solution is:
+> > > > if (HD)
+> > > >      dv_timings
+> > > > else if (SD)
+> > > >      fill in according to PAL/NTSC timings
+> > > > else
+> > > >      get control of V4L2_CID_HBLANK/V4L2_CID_VBLANK
+> > > >
+> > > > I guess this can solve my problem. But it's a bit complicated. If
+> > > > v4l2_mbus_framefmt contains thes members, it's convenient and simple.
+> > > 
+> > > Adding horizontal and vertical blanking as fields to struct 
+> > > v4l2_mbus_framefmt was discussed long ago --- I even sent a patch doing 
+> > > that AFAIR. It'd have been a simple solution, yes. The resulting 
+> > > discussion concluded, however, that as the horizontal or vertical 
+> > > blanking are not really a property of the image format, and generally 
+> > > only affect timing (frame rate, they do not belong to this struct.
+> > > 
+> > > Also changing them while streaming is almost always possible (except in 
+> > > your case, I believe) whereas the rest of the fields are considered 
+> > > static. It'd be difficult for the user to know which fields can be 
+> > > actually changed while streamon, and which can't.
+> > > 
+> > > For these reasons (AFAIR) we chose to use controls instead.
+> > > 
+> > > I think the right solution to the problem when it comes to sensors, is 
+> > > to mark these controls busy from the bridge driver if the bridge 
+> > > hardware can't cope with changes in blanking. The control framework 
+> > > doesn't support this currently but it might not be that much of work to 
+> > > implement it. Such feature would definitely have to be used with care.
+> > > 
+> > > Hans, what do you think?
+> > 
+> > That's already supported for a long time. If the control flag V4L2_CTRL_FLAG_GRABBED
+> > is set, then the control is marked busy.
+> > 
+> > There aren't many drivers that use this flag, but some do.
+> 
+> The problem is it's a flag. In this case the driver marking the control busy
+> would be a different driver from the one that implements it, and I don't
+> think we could trust only one of the drivers will want to modify it. So it'd
+> have to be a counter instead.
 
-On Tue June 12 2012 20:37:54 Ondrej Zary wrote:
-> Add very simple driver for Sanyo LM7000 AM/FM tuner chip. Only FM is supported
-> as there is no known HW with AM implemented.
+Why would another driver than the bridge driver want to change this?
 
-It feels to me that it is overkill to turn this into a full blown module.
-Can't this be done as a single lm7000.h header that contains a single
-static inline function like this:
+Right now it is no problem for the bridge driver to change the grabbed flag of
+a control of a subdev driver.
 
-static inline void lm7000_set_freq(u32 freq, void *handle,
-						void (*set_pins)(void *handle, u8 pins))
-{
-	...
-}
+If this would have to be implemented as a counter, then that would make things
+more complicated. But I'd like to see an actual need for that before I would
+consider implementing this.
 
-It does the job just as well.
+> That could still require special handling in some cases so we could specify
+> which controls may be grabbed by other drivers and when as the drivers may
+> want to modify the controls themselves, too.
 
-Otherwise it looks fine.
+Well, if someone grabbed the control, then no driver or application should be
+able to modify it until it is 'ungrabbed'.
 
 Regards,
 
 	Hans
-
-> This will be used by radio-aimslab and radio-sf16fmi.
-> 
-> Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
-> 
-> diff --git a/drivers/media/radio/Kconfig b/drivers/media/radio/Kconfig
-> index c257da1..5bcce12 100644
-> --- a/drivers/media/radio/Kconfig
-> +++ b/drivers/media/radio/Kconfig
-> @@ -191,6 +191,9 @@ config RADIO_CADET
->  	  To compile this driver as a module, choose M here: the
->  	  module will be called radio-cadet.
->  
-> +config RADIO_LM7000
-> +	tristate
-> +
->  config RADIO_RTRACK
->  	tristate "AIMSlab RadioTrack (aka RadioReveal) support"
->  	depends on ISA && VIDEO_V4L2
-> diff --git a/drivers/media/radio/Makefile b/drivers/media/radio/Makefile
-> index ca8c7d1..7f6aa63 100644
-> --- a/drivers/media/radio/Makefile
-> +++ b/drivers/media/radio/Makefile
-> @@ -28,5 +28,6 @@ obj-$(CONFIG_RADIO_TEF6862) += tef6862.o
->  obj-$(CONFIG_RADIO_TIMBERDALE) += radio-timb.o
->  obj-$(CONFIG_RADIO_WL1273) += radio-wl1273.o
->  obj-$(CONFIG_RADIO_WL128X) += wl128x/
-> +obj-$(CONFIG_RADIO_LM7000) += lm7000.o
->  
->  ccflags-y += -Isound
-> diff --git a/drivers/media/radio/lm7000.c b/drivers/media/radio/lm7000.c
-> new file mode 100644
-> index 0000000..681f3af
-> --- /dev/null
-> +++ b/drivers/media/radio/lm7000.c
-> @@ -0,0 +1,52 @@
-> +/* Sanyo LM7000 tuner chip driver
-> + *
-> + * Copyright 2012 Ondrej Zary <linux@rainbow-software.org>
-> + * based on radio-aimslab.c by M. Kirkwood
-> + * and radio-sf16fmi.c by M. Kirkwood and Petr Vandrovec
-> + */
-> +
-> +#include <linux/delay.h>
-> +#include <linux/module.h>
-> +#include "lm7000.h"
-> +
-> +MODULE_AUTHOR("Ondrej Zary <linux@rainbow-software.org>");
-> +MODULE_DESCRIPTION("Routines for Sanyo LM7000 AM/FM radio tuner chip");
-> +MODULE_LICENSE("GPL");
-> +
-> +/* write the 24-bit register, starting with LSB */
-> +static void lm7000_write(struct lm7000 *lm, u32 val)
-> +{
-> +	int i;
-> +	u8 data;
-> +
-> +	for (i = 0; i < 24; i++) {
-> +		data = val & (1 << i) ? LM7000_DATA : 0;
-> +		lm->set_pins(lm, data | LM7000_CE);
-> +		udelay(2);
-> +		lm->set_pins(lm, data | LM7000_CE | LM7000_CLK);
-> +		udelay(2);
-> +		lm->set_pins(lm, data | LM7000_CE);
-> +		udelay(2);
-> +	}
-> +	lm->set_pins(lm, 0);
-> +}
-> +
-> +void lm7000_set_freq(struct lm7000 *lm, u32 freq)
-> +{
-> +	freq += 171200;		/* Add 10.7 MHz IF */
-> +	freq /= 400;		/* Convert to 25 kHz units */
-> +	lm7000_write(lm, freq | LM7000_FM_25 | LM7000_BIT_FM);
-> +}
-> +EXPORT_SYMBOL(lm7000_set_freq);
-> +
-> +static int __init lm7000_module_init(void)
-> +{
-> +	return 0;
-> +}
-> +
-> +static void __exit lm7000_module_exit(void)
-> +{
-> +}
-> +
-> +module_init(lm7000_module_init)
-> +module_exit(lm7000_module_exit)
-> diff --git a/drivers/media/radio/lm7000.h b/drivers/media/radio/lm7000.h
-> new file mode 100644
-> index 0000000..a5bc7d6
-> --- /dev/null
-> +++ b/drivers/media/radio/lm7000.h
-> @@ -0,0 +1,32 @@
-> +#ifndef __LM7000_H
-> +#define __LM7000_H
-> +
-> +#define LM7000_DATA	(1 << 0)
-> +#define LM7000_CLK	(1 << 1)
-> +#define LM7000_CE	(1 << 2)
-> +
-> +#define LM7000_FREQ_MASK 0x3fff
-> +#define LM7000_BIT_T0	(1 << 14)
-> +#define LM7000_BIT_T1	(1 << 15)
-> +#define LM7000_BIT_B0	(1 << 16)
-> +#define LM7000_BIT_B1	(1 << 17)
-> +#define LM7000_BIT_B2	(1 << 18)
-> +#define LM7000_BIT_TB	(1 << 19)
-> +#define LM7000_FM_100	(0 << 20)
-> +#define LM7000_FM_50	(1 << 20)
-> +#define LM7000_FM_25	(2 << 20)
-> +#define LM7000_AM_5	(3 << 20)
-> +#define LM7000_AM_10	(4 << 20)
-> +#define LM7000_AM_9	(5 << 20)
-> +#define LM7000_AM_1	(6 << 20)
-> +#define LM7000_AM_5_	(7 << 20)
-> +#define LM7000_BIT_FM	(1 << 23)
-> +
-> +
-> +struct lm7000 {
-> +	void (*set_pins)(struct lm7000 *lm, u8 pins);
-> +};
-> +
-> +void lm7000_set_freq(struct lm7000 *lm, u32 freq);
-> +
-> +#endif /* __LM7000_H */
-> 
-> 
