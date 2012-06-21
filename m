@@ -1,84 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-1.cisco.com ([144.254.224.140]:39909 "EHLO
-	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755940Ab2FYLnu convert rfc822-to-8bit (ORCPT
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:49911 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756589Ab2FUTxq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Jun 2012 07:43:50 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Prabhakar Lad <prabhakar.lad@ti.com>
-Subject: Re: [PATCH] [media] videobuf-dma-contig: restore buffer mapping for uncached bufers
-Date: Mon, 25 Jun 2012 13:43:39 +0200
-Cc: Federico Vaga <federico.vaga@gmail.com>,
-	LMML <linux-media@vger.kernel.org>,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hadli Manjunath <manjunath.hadli@ti.com>
-References: <1340360046-23429-1-git-send-email-prabhakar.lad@ti.com> <3127105.r3h7rO2WIQ@harkonnen> <201206231119.24537.hverkuil@xs4all.nl>
-In-Reply-To: <201206231119.24537.hverkuil@xs4all.nl>
+	Thu, 21 Jun 2012 15:53:46 -0400
+Received: by mail-yx0-f174.google.com with SMTP id l2so879477yen.19
+        for <linux-media@vger.kernel.org>; Thu, 21 Jun 2012 12:53:46 -0700 (PDT)
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Ben Collins <bcollins@bluecherry.net>,
+	<linux-media@vger.kernel.org>,
+	Ezequiel Garcia <elezegarcia@gmail.com>
+Subject: [PATCH 05/10] staging: solo6x10: Remove format type mismatch warning
+Date: Thu, 21 Jun 2012 16:52:07 -0300
+Message-Id: <1340308332-1118-5-git-send-email-elezegarcia@gmail.com>
+In-Reply-To: <1340308332-1118-1-git-send-email-elezegarcia@gmail.com>
+References: <1340308332-1118-1-git-send-email-elezegarcia@gmail.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201206251343.39919.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat 23 June 2012 11:19:24 Hans Verkuil wrote:
-> On Fri June 22 2012 18:53:27 Federico Vaga wrote:
-> > In data venerd� 22 giugno 2012 18:45:31, Hans Verkuil ha scritto:
-> > > On Fri June 22 2012 17:28:04 Federico Vaga wrote:
-> > > > > from commit a8f3c203e19b702fa5e8e83a9b6fb3c5a6d1cce4
-> > > > > restore the mapping scheme for uncached buffers,
-> > > > > which was changed in a common scheme for cached and uncached.
-> > > > > This apparently was wrong, and was probably intended only for
-> > > > > cached
-> > > > > buffers. the fix fixes the crash observed while mapping uncached
-> > > > > buffers.
-> > > > > 
-> > > > > Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
-> > > > > Signed-off-by: Hadli, Manjunath <manjunath.hadli@ti.com>
-> > > > 
-> > > > Acked-by: Federico Vaga <federico.vaga@gmail.com>
-> > > > 
-> > > > I tested the patch on the STA2X11 board.
-> > > 
-> > > Was this patch ever posted on linux-media? I didn't see it on the
-> > > mailinglist, nor in my personal inbox.
-> > > 
-> > > Perhaps something went wrong?
-> > 
-> > I recived the email as CC and linux-media was the main destination.
-> > Davinci list was also added as CC and you can find the patch there:
-> > 
-> > http://www.mail-archive.com/davinci-linux-open-
-> > source@linux.davincidsp.com/msg22998.html
-> > 
-> > Something went wrong.
-> 
-> Weird, it never ended up at the linux-media mailinglist (not just me, it's
-> not in the linux-media archives either).
-> 
-> Anyway, I'll test this on Monday and if it works fine for me as well I'll Ack it.
+The patch removes this warning:
+warning: format ‘%d’ expects type ‘int’,
+but argument 2 has type ‘long unsigned int’
 
-I've tested this patch, and it looks good:
+Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
+---
+ drivers/staging/media/solo6x10/tw28.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+diff --git a/drivers/staging/media/solo6x10/tw28.c b/drivers/staging/media/solo6x10/tw28.c
+index db56b42..f946f68 100644
+--- a/drivers/staging/media/solo6x10/tw28.c
++++ b/drivers/staging/media/solo6x10/tw28.c
+@@ -586,11 +586,11 @@ int solo_tw28_init(struct solo_dev *solo_dev)
+ 		 solo_dev->tw28_cnt, solo_dev->tw28_cnt == 1 ? "" : "s");
+ 
+ 	if (solo_dev->tw2865)
+-		printk(" tw2865[%d]", hweight32(solo_dev->tw2865));
++		printk(" tw2865[%lu]", hweight32(solo_dev->tw2865));
+ 	if (solo_dev->tw2864)
+-		printk(" tw2864[%d]", hweight32(solo_dev->tw2864));
++		printk(" tw2864[%lu]", hweight32(solo_dev->tw2864));
+ 	if (solo_dev->tw2815)
+-		printk(" tw2815[%d]", hweight32(solo_dev->tw2815));
++		printk(" tw2815[%lu]", hweight32(solo_dev->tw2815));
+ 	printk("\n");
+ 
+ 	return 0;
+-- 
+1.7.4.4
 
-Prabhakar: Please post this again with all acks and marked as [PATCH for v3.5] to the
-linux-media mailinglist asap. This patch never made it to this list for some reason,
-so make sure it gets there this time.
-
-Regards,
-
-	Hans
-
-> 
-> Regards,
-> 
-> 	Hans
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
