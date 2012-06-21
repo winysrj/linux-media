@@ -1,141 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:55650 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756952Ab2FYOGp (ORCPT
+Received: from fallback-out2.mxes.net ([216.86.168.191]:20526 "EHLO
+	fallback-in2.mxes.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753769Ab2FUQuP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Jun 2012 10:06:45 -0400
-Received: by obbuo13 with SMTP id uo13so6500461obb.19
-        for <linux-media@vger.kernel.org>; Mon, 25 Jun 2012 07:06:45 -0700 (PDT)
+	Thu, 21 Jun 2012 12:50:15 -0400
+Received: from mxout-07.mxes.net (mxout-07.mxes.net [216.86.168.182])
+	by fallback-in1.mxes.net (Postfix) with ESMTP id 821672FD7BD
+	for <linux-media@vger.kernel.org>; Thu, 21 Jun 2012 12:39:52 -0400 (EDT)
+Received: from [192.168.0.114] (unknown [24.18.255.233])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by smtp.mxes.net (Postfix) with ESMTPSA id 7C16222E257
+	for <linux-media@vger.kernel.org>; Thu, 21 Jun 2012 12:38:21 -0400 (EDT)
+Message-ID: <4FE34DF3.6070009@cybermato.com>
+Date: Thu, 21 Jun 2012 09:38:11 -0700
+From: Chris MacGregor <chris@cybermato.com>
 MIME-Version: 1.0
-In-Reply-To: <CACK0K0i53VJVCVsJy2YGX_pWab0QVSkew5tJL5MQ7CcLyGvjMg@mail.gmail.com>
-References: <CACK0K0gXr08aNe3gKkWXmKkZ+JA0RBcWtq35aFfNaSqCCWMM1Q@mail.gmail.com>
-	<CALF0-+ViQTmGnAS19kOCZPZAj0ZYZX4Ef-+J7A=k1J2OFhFuVg@mail.gmail.com>
-	<CALF0-+XoKmw0fe_vpOs-BEZXDZThA5WuNw8CRjohLJojZ2O4Dw@mail.gmail.com>
-	<CACK0K0j4mSG=EtU1R-VvvoF_5ZCxrTk4p3niyHBt4tAGVdqLVA@mail.gmail.com>
-	<CALF0-+XR_ZE8_52zQKZ9n9x8sGrmJWNpeXnKD_j6Lg1YHta=vQ@mail.gmail.com>
-	<CACK0K0i53VJVCVsJy2YGX_pWab0QVSkew5tJL5MQ7CcLyGvjMg@mail.gmail.com>
-Date: Mon, 25 Jun 2012 11:06:45 -0300
-Message-ID: <CALF0-+Ws+EWs5CjJedJMFL4mLkKx--kg5VZpa=f_+x2iiUiK5Q@mail.gmail.com>
-Subject: Re: stk1160 linux driver
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: Gianluca Bergamo <gianluca.bergamo@gmail.com>
-Cc: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+To: linux-media@vger.kernel.org
+Subject: hacking MT9P031 (LI-5M03) driver in Ubuntu 12.04 on BeagleBoard xM?
+References: <ade8080d-dbbf-4b60-804c-333d7340c01e@googlegroups.com>
+In-Reply-To: <ade8080d-dbbf-4b60-804c-333d7340c01e@googlegroups.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Gianluca,
+Hi.  I was redirected to this list by a response to my post (below) on 
+the BeagleBoard group.  I'm happy to help/cooperate/etc. in whatever way 
+I reasonably can.
 
+-------- Original Message --------
 
+Hello, all.
 
-On Mon, Jun 25, 2012 at 4:09 AM, Gianluca Bergamo
-<gianluca.bergamo@gmail.com> wrote:
-> Hi Ezequiel,
->
-> No problem in patching each new release you made.
+I managed to get the MT9P031 driver (for the Leopard Imaging LI-5M03 
+camera board) working using a slightly modified Ubuntu 12.04 kernel, 
+including the mainline kernel version of the MT9P031 driver.  Once 
+everything is clean and happy I will post info for those still trying to 
+get there.  Meanwhile, though, there are some odd issues, and a few 
+driver bugs I need to fix and features I need to add.  I wanted to reach 
+out to others who are working with this hardware in current (not 
+Angstrom 2.6.x) kernels so we can compare notes, and so we don't go off 
+in the wrong (or a different) direction on solving some of the problems.
 
+For our application, we are capturing video in raw format (raw Bayer), 
+with MT9P031 -> CCDC -> CCDC output (no resizer etc.), reading from 
+/dev/video2.  The new media controller framework is pretty cool once you 
+get the hang of it - it addresses some significant deficiencies.  I just 
+wish the new subdev selection was available, but it's not in 3.2.x...  
+hopefully we can move to 3.5 soon and then I just need to implement it 
+in the MT9P031 driver (if someone else doesn't do that before I get there).
 
-Please note I've just send a v3 of stk1160 driver.
-It adds support for controlling ac97 and for selecting video inputs.
+Some of the issues:
 
+1. To get it working, I had to patch in the Aptina driver mods for 
+board-omap3beagle.c etc.  I'm not at all sure this is kosher since I'm 
+using the mainline kernel driver, not the Aptina driver (nor the 
+RidgeRun one, in which I had to fix a lot of bugs when we were doing 
+this on a Leopardboard).  But without these changes, the camera was not 
+recognized (likely because it wasn't being powered up).  I would think 
+that someone out there must be using the driver in the mainline kernel, 
+since it's in there, but how are they getting the camera to be recognized?
 
->
-> In my environment this command line gives only one format supported (UYVY)
-> and then yavta freezes.
-> I suspect it freezes on an ioctl to the driver. I must check it.
->
+2. Max frame rate at full resolution seems to be 6.86 fps.  I think 
+we're running at half clock speed.  We'd like to fix that.  I can track 
+it down, but I don't want to duplicate work already done by someone 
+else, and of course this likely relates to issue # 1, above.
 
+3. When I start streaming, then stop streaming, then start streaming 
+again without closing and reopening the device in between (and sometimes 
+even if I do but reopen right after closing), the second time we start 
+streaming, it appears that the green and non-green (red or blue as the 
+case may be) pixels are swapped - as if it was offset by one column.  
+But if I change the cropping (using VIDIOC_SUBDEV_S_FMT on 
+/ev/v4l-subdev8, which is the MT9P031 directly) to include the black 
+(inactive) pixels on the top and left, it is still true - but the black 
+pixels don't change, only the active ones, even though they still start 
+at the same offset (+10,+50 IIRC).  I don't even see how that should be 
+possible.  The MT9P031 registers (all of them) are the same whether the 
+swapping is occurring or not, and ditto for the CCDC registers per the 
+dump in the kernel log.  Has anyone else seen this?  I have worked 
+around it for now by closing the device (all of them), sleeping for 2 
+ms, and then reopening and reconfiguring.  However, I'd really like to 
+find a proper solution, or at least understand the root cause - it's 
+kind of disturbing, especially since without the sleep it still didn't 
+reliably work correctly.  This may also relate to issue # 1, above.
 
+4. I need to add some additional controls (like a way to manipulate the 
+vblank register setting so we can reduce the frame rate without just 
+randomly dropping frames - we want to adjust the frame rate to what we 
+can fairly reliably store without dropping frames - and access to the 
+separate gain controls for R, Gr, Gb, and B, since we're using color 
+sensors (cheaper) with IR illumination).  I'd like to get some feedback 
+on the most appropriate way to do this.  Obviously I could just hack it 
+in, but I'd rather do it right and hopefully get it into the mainline 
+driver.  In 3.5-rc2, I see a definition for a VBLANK control, but it 
+still isn't clear what ought to be used for separate gain controls.
 
-Weird. I've just tested with yavta and it works perfectly. You should note that
-this command is wrong:
+5. The driver (and likewise the CCDC driver) needs a few small fixes, 
+and I'd like to avoid duplication of effort, etc.
 
-./yavta -f YUYV -s 720x576 -n 4 --capture=4 -F /dev/video1
+Thanks,
+       Chris MacGregor
 
-and it should be:
-
-./yavta -f UYVY -s 720x576 -n 4 --capture=4 -F /dev/video1
-
-Since, as you noted the only supported format is UYVY. Some applications take
-advantage of libv4l2 wrapper library to increase the output format set.
-For instance, if I do ENUM_FMT using v4l2-ctl I get just one supported format:
-
-$ v4l2-ctl --list-formats
-ioctl: VIDIOC_ENUM_FMT
-	Index       : 0
-	Type        : Video Capture
-	Pixel Format: 'UYVY'
-	Name        : 16 bpp YUY2, 4:2:2, packed
-
-But if I use wrapper library:
-
-$ v4l2-ctl -w --list-formats
-ioctl: VIDIOC_ENUM_FMT
-	Index       : 0
-	Type        : Video Capture
-	Pixel Format: 'UYVY'
-	Name        : 16 bpp YUY2, 4:2:2, packed
-
-	Index       : 1
-	Type        : Video Capture
-	Pixel Format: 'RGB3' (emulated)
-	Name        : RGB3
-
-	Index       : 2
-	Type        : Video Capture
-	Pixel Format: 'BGR3' (emulated)
-	Name        : BGR3
-
-	Index       : 3
-	Type        : Video Capture
-	Pixel Format: 'YU12' (emulated)
-	Name        : YU12
-
-	Index       : 4
-	Type        : Video Capture
-	Pixel Format: 'YV12' (emulated)
-	Name        : YV12
-
-
-In case you need it, here's my yavta output:
-
-$ ./yavta --enum-formats /dev/video0
-Device /dev/video0 opened.
-Device `stk1160' on `usb-0000:00:13.2-2' is a video capture device.
-- Available formats:
-	Format 0: UYVY (59565955)
-	Type: Video capture (1)
-	Name: 16 bpp YUY2, 4:2:2, packed
-
-$ ./yavta -f YUYV -s 720x576 -n 4 --capture=4 -F /dev/video0
-Device /dev/video0 opened.
-Device `stk1160' on `usb-0000:00:13.2-2' is a video capture device.
-Unable to set format: Invalid argument (22).
-localhost yavta # ./yavta -f UYVY -s 720x576 -n 4 --capture=4 -F /dev/video0
-Device /dev/video0 opened.
-Device `stk1160' on `usb-0000:00:13.2-2' is a video capture device.
-Video format set: UYVY (59565955) 720x480 (stride 1440) buffer size 691200
-Video format: UYVY (59565955) 720x480 (stride 1440) buffer size 691200
-8 buffers requested.
-length: 691200 offset: 0
-Buffer 0 mapped at address 0xb7584000.
-length: 691200 offset: 692224
-Buffer 1 mapped at address 0xb74db000.
-length: 691200 offset: 1384448
-Buffer 2 mapped at address 0xb7432000.
-length: 691200 offset: 2076672
-Buffer 3 mapped at address 0xb7389000.
-length: 691200 offset: 2768896
-Buffer 4 mapped at address 0xb72e0000.
-length: 691200 offset: 3461120
-Buffer 5 mapped at address 0xb7237000.
-length: 691200 offset: 4153344
-Buffer 6 mapped at address 0xb718e000.
-length: 691200 offset: 4845568
-Buffer 7 mapped at address 0xb70e5000.
-0 (0) [-] 0 691200 bytes 1340632305.824287 1826.669365 -0.002 fps
-1 (1) [-] 1 691200 bytes 1340632305.856350 1826.709943 31.189 fps
-2 (2) [-] 1 691200 bytes 1340632305.896222 1826.741385 25.080 fps
-3 (3) [-] 2 691200 bytes 1340632305.928226 1826.773354 31.246 fps
-Captured 4 frames in 0.199372 seconds (20.062936 fps, 13867501.311552 B/s).
-8 buffers released.
