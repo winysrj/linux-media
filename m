@@ -1,119 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gg0-f174.google.com ([209.85.161.174]:54334 "EHLO
-	mail-gg0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759914Ab2FUTyA (ORCPT
+Received: from mailout2.samsung.com ([203.254.224.25]:58838 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760648Ab2FUXqe (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 Jun 2012 15:54:00 -0400
-Received: by gglu4 with SMTP id u4so881447ggl.19
-        for <linux-media@vger.kernel.org>; Thu, 21 Jun 2012 12:53:59 -0700 (PDT)
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Ben Collins <bcollins@bluecherry.net>,
-	<linux-media@vger.kernel.org>,
-	Ezequiel Garcia <elezegarcia@gmail.com>
-Subject: [PATCH 09/10] staging: solo6x10: Fix several over 80 character lines
-Date: Thu, 21 Jun 2012 16:52:11 -0300
-Message-Id: <1340308332-1118-9-git-send-email-elezegarcia@gmail.com>
-In-Reply-To: <1340308332-1118-1-git-send-email-elezegarcia@gmail.com>
-References: <1340308332-1118-1-git-send-email-elezegarcia@gmail.com>
+	Thu, 21 Jun 2012 19:46:34 -0400
+Received: from epcpsbge4.samsung.com (mailout2.samsung.com [203.254.224.25])
+ by mailout2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0M5Z00G0GRDC7220@mailout2.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 22 Jun 2012 08:46:30 +0900 (KST)
+Date: Thu, 21 Jun 2012 23:46:30 +0000 (GMT)
+From: NAVEEN KRISHNA CHATRADHI <ch.naveen@samsung.com>
+Subject: Re: [PATCH] s5p-mfc: Fix setting controls
+To: Kamil Debski <k.debski@samsung.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Jeongtae Park <jtp.park@samsung.com>
+Reply-to: ch.naveen@samsung.com
+MIME-version: 1.0
+Content-transfer-encoding: base64
+Content-type: text/plain; charset=windows-1252
+MIME-version: 1.0
+Message-id: <23828524.675831340322390207.JavaMail.weblogic@epml09>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
----
- drivers/staging/media/solo6x10/i2c.c      |    3 ++-
- drivers/staging/media/solo6x10/v4l2-enc.c |   28 ++++++++++++++--------------
- drivers/staging/media/solo6x10/v4l2.c     |    5 ++++-
- 3 files changed, 20 insertions(+), 16 deletions(-)
+SGVsbG8gS2FtaWwsDQoNClNvcnJ5IGZvciB0aGUgZGVsYXllZCByZXBseS4gSSdtIGFmcmFpZCB0
+aGlzIGRvZXNudCBmaXggdGhlIHdob2xlIGlzc3VlLg0KU3RpbGwgdGhlcmUgaXMgc29tZSBwcm9i
+bGVtIHdpdGggU19DVFJMIHdoZW4gdXNlZCB3aXRoIGN1c3RvbSBjb250cm9scy4NCiANCndoZW4g
+bXkgYXBwbGljYXRpb24gY2FsbCBzX2N0cmwgd2l0aCBWNEwyX0NJRF9NUEVHX01GQzUxX1ZJREVP
+X0RFQ09ERVJfSDI2NF9ESVNQTEFZX0RFTEFZDQp0aGUgY2FsbCBmaW5hbGx5IGxhbmRzIG9uIFY0
+TDJfQ0lEX01QRUdfVklERU9fREVDT0RFUl9NUEVHNF9ERUJMT0NLX0ZJTFRFUiBpbiBkcml2ZXIg
+KFRoZSBzZXQgdmFsdWUgaXMgYWxzbyBsb3N0KS4NCg0KSSB0aGluayB0aGlzIGlzIGJlY2F1c2Ug
+b2YgY29ycnVwdGlvbiBvZiB0aGUgbWFzdGVyIG9yIGNsdXN0ZXIgaW4gdjRsMi1pb2N0bC5jL2N0
+cmwuYyBhbmQgcG9pbnRpbmcgdG8gdGhlIHN0YW5kYXJkIGNvbnRyb2xzIG1hc3Rlci4NCmluc3Rl
+YWQgb2YgdGhlIGN1c3RvbSBjb250cm9sIG1hc3Rlci4NCg0KS2luZGx5LCBsZXQgbWUga25vdyB5
+b3VyIG9waW5pb24gb3IgYW55IGNsdWVzIG9uIHRoaXMuDQoNClRoYW5rcyAmIFJlZ2FyZHMNCk5h
+dmVlbiBLcmlzaG5hDQoNCg0KDQotLS0tLS0tIE9yaWdpbmFsIE1lc3NhZ2UgLS0tLS0tLQ0KU2Vu
+ZGVyIDogS2FtaWwgRGVic2tpPGsuZGVic2tpQHNhbXN1bmcuY29tPiAgU29mdHdhcmUgRW5naW5l
+ZXIvUG9sYW5kIFImRCBDZW50ZXItTGludXggUGxhdGZvcm0gKFNTRCkvU2Ftc3VuZyBFbGVjdHJv
+bmljcw0KRGF0ZSAgIDogSnVuIDE1LCAyMDEyIDEzOjUxIChHTVQrMDU6MDApDQpUaXRsZSAgOiBb
+UEFUQ0hdIHM1cC1tZmM6IEZpeCBzZXR0aW5nIGNvbnRyb2xzDQoNCkZpeGVkIHNfY3RybCBmdW5j
+dGlvbiB3aGVuIHNldHRpbmcgdGhlIGZvbGxvd2luZyBjb250cm9sczoNCi0gVjRMMl9DSURfTVBF
+R19WSURFT19ERUNPREVSX01QRUc0X0RFQkxPQ0tfRklMVEVSDQotIFY0TDJfQ0lEX01QRUdfTUZD
+NTFfVklERU9fREVDT0RFUl9IMjY0X0RJU1BMQVlfREVMQVkNCg0KU2lnbmVkLW9mZi1ieTogS2Ft
+aWwgRGVic2tpIDxrLmRlYnNraUBzYW1zdW5nLmNvbT4NClNpZ25lZC1vZmYtYnk6IEt5dW5nbWlu
+IFBhcmsgPGt5dW5nbWluLnBhcmtAc2Ftc3VuZy5jb20+DQotLS0NCiBkcml2ZXJzL21lZGlhL3Zp
+ZGVvL3M1cC1tZmMvczVwX21mY19kZWMuYyB8ICAgIDQgKystLQ0KIDEgZmlsZXMgY2hhbmdlZCwg
+MiBpbnNlcnRpb25zKCspLCAyIGRlbGV0aW9ucygtKQ0KDQpkaWZmIC0tZ2l0IGEvZHJpdmVycy9t
+ZWRpYS92aWRlby9zNXAtbWZjL3M1cF9tZmNfZGVjLmMgYi9kcml2ZXJzL21lZGlhL3ZpZGVvL3M1
+cC1tZmMvczVwX21mY19kZWMuYw0KaW5kZXggZTFlYmM3Ni4uZWFhYjEzZSAxMDA2NDQNCi0tLSBh
+L2RyaXZlcnMvbWVkaWEvdmlkZW8vczVwLW1mYy9zNXBfbWZjX2RlYy5jDQorKysgYi9kcml2ZXJz
+L21lZGlhL3ZpZGVvL3M1cC1tZmMvczVwX21mY19kZWMuYw0KQEAgLTYzOSwxMyArNjM5LDEzIEBA
+IHN0YXRpYyBpbnQgczVwX21mY19kZWNfc19jdHJsKHN0cnVjdCB2NGwyX2N0cmwgKmN0cmwpDQog
+DQogCXN3aXRjaCAoY3RybC0+aWQpIHsNCiAJY2FzZSBWNEwyX0NJRF9NUEVHX01GQzUxX1ZJREVP
+X0RFQ09ERVJfSDI2NF9ESVNQTEFZX0RFTEFZOg0KLQkJY3R4LT5sb29wX2ZpbHRlcl9tcGVnNCA9
+IGN0cmwtPnZhbDsNCisJCWN0eC0+ZGlzcGxheV9kZWxheSA9IGN0cmwtPnZhbDsNCiAJCWJyZWFr
+Ow0KIAljYXNlIFY0TDJfQ0lEX01QRUdfTUZDNTFfVklERU9fREVDT0RFUl9IMjY0X0RJU1BMQVlf
+REVMQVlfRU5BQkxFOg0KIAkJY3R4LT5kaXNwbGF5X2RlbGF5X2VuYWJsZSA9IGN0cmwtPnZhbDsN
+CiAJCWJyZWFrOw0KIAljYXNlIFY0TDJfQ0lEX01QRUdfVklERU9fREVDT0RFUl9NUEVHNF9ERUJM
+T0NLX0ZJTFRFUjoNCi0JCWN0eC0+ZGlzcGxheV9kZWxheSA9IGN0cmwtPnZhbDsNCisJCWN0eC0+
+bG9vcF9maWx0ZXJfbXBlZzQgPSBjdHJsLT52YWw7DQogCQlicmVhazsNCiAJY2FzZSBWNEwyX0NJ
+RF9NUEVHX1ZJREVPX0RFQ09ERVJfU0xJQ0VfSU5URVJGQUNFOg0KIAkJY3R4LT5zbGljZV9pbnRl
+cmZhY2UgPSBjdHJsLT52YWw7DQotLSANCjEuNy4wLjQNCg0KPHA+Jm5ic3A7PC9wPjxwPiZuYnNw
+OzwvcD5UaGFua3MgJiBCZXN0IFJlZ2FyZHMsDQpOYXZlZW4gS3Jpc2huYSBDaA0KU0UgQCBTYW1z
+dW5nLUIuTEFC
 
-diff --git a/drivers/staging/media/solo6x10/i2c.c b/drivers/staging/media/solo6x10/i2c.c
-index ef95a50..795818b 100644
---- a/drivers/staging/media/solo6x10/i2c.c
-+++ b/drivers/staging/media/solo6x10/i2c.c
-@@ -288,7 +288,8 @@ int solo_i2c_init(struct solo_dev *solo_dev)
- 	for (i = 0; i < SOLO_I2C_ADAPTERS; i++) {
- 		struct i2c_adapter *adap = &solo_dev->i2c_adap[i];
- 
--		snprintf(adap->name, I2C_NAME_SIZE, "%s I2C %d", SOLO6X10_NAME, i);
-+		snprintf(adap->name, I2C_NAME_SIZE,
-+			"%s I2C %d", SOLO6X10_NAME, i);
- 		adap->algo = &solo_i2c_algo;
- 		adap->algo_data = solo_dev;
- 		adap->retries = 1;
-diff --git a/drivers/staging/media/solo6x10/v4l2-enc.c b/drivers/staging/media/solo6x10/v4l2-enc.c
-index 9333a00..fd52a42 100644
---- a/drivers/staging/media/solo6x10/v4l2-enc.c
-+++ b/drivers/staging/media/solo6x10/v4l2-enc.c
-@@ -297,19 +297,19 @@ static int enc_get_mpeg_dma_sg(struct solo_dev *solo_dev,
- 
- 	if (off + size <= SOLO_MP4E_EXT_SIZE(solo_dev)) {
- 		return solo_p2m_dma_sg(solo_dev, SOLO_P2M_DMA_ID_MP4E,
--				       desc, 0, sglist, skip,
--				       SOLO_MP4E_EXT_ADDR(solo_dev) + off, size);
-+				desc, 0, sglist, skip,
-+				SOLO_MP4E_EXT_ADDR(solo_dev) + off, size);
- 	}
- 
- 	/* Buffer wrap */
- 	ret = solo_p2m_dma_sg(solo_dev, SOLO_P2M_DMA_ID_MP4E, desc, 0,
--			      sglist, skip, SOLO_MP4E_EXT_ADDR(solo_dev) + off,
--			      SOLO_MP4E_EXT_SIZE(solo_dev) - off);
-+			sglist, skip, SOLO_MP4E_EXT_ADDR(solo_dev) + off,
-+			SOLO_MP4E_EXT_SIZE(solo_dev) - off);
- 
- 	ret |= solo_p2m_dma_sg(solo_dev, SOLO_P2M_DMA_ID_MP4E, desc, 0,
--			       sglist, skip + SOLO_MP4E_EXT_SIZE(solo_dev) - off,
--			       SOLO_MP4E_EXT_ADDR(solo_dev),
--			       size + off - SOLO_MP4E_EXT_SIZE(solo_dev));
-+			sglist, skip + SOLO_MP4E_EXT_SIZE(solo_dev) - off,
-+			SOLO_MP4E_EXT_ADDR(solo_dev),
-+			size + off - SOLO_MP4E_EXT_SIZE(solo_dev));
- 
- 	return ret;
- }
-@@ -366,19 +366,19 @@ static int enc_get_jpeg_dma_sg(struct solo_dev *solo_dev,
- 
- 	if (off + size <= SOLO_JPEG_EXT_SIZE(solo_dev)) {
- 		return solo_p2m_dma_sg(solo_dev, SOLO_P2M_DMA_ID_JPEG,
--				       desc, 0, sglist, skip,
--				       SOLO_JPEG_EXT_ADDR(solo_dev) + off, size);
-+			       desc, 0, sglist, skip,
-+			       SOLO_JPEG_EXT_ADDR(solo_dev) + off, size);
- 	}
- 
- 	/* Buffer wrap */
- 	ret = solo_p2m_dma_sg(solo_dev, SOLO_P2M_DMA_ID_JPEG, desc, 0,
--			      sglist, skip, SOLO_JPEG_EXT_ADDR(solo_dev) + off,
--			      SOLO_JPEG_EXT_SIZE(solo_dev) - off);
-+		      sglist, skip, SOLO_JPEG_EXT_ADDR(solo_dev) + off,
-+		      SOLO_JPEG_EXT_SIZE(solo_dev) - off);
- 
- 	ret |= solo_p2m_dma_sg(solo_dev, SOLO_P2M_DMA_ID_JPEG, desc, 0,
--			       sglist, skip + SOLO_JPEG_EXT_SIZE(solo_dev) - off,
--			       SOLO_JPEG_EXT_ADDR(solo_dev),
--			       size + off - SOLO_JPEG_EXT_SIZE(solo_dev));
-+		       sglist, skip + SOLO_JPEG_EXT_SIZE(solo_dev) - off,
-+		       SOLO_JPEG_EXT_ADDR(solo_dev),
-+		       size + off - SOLO_JPEG_EXT_SIZE(solo_dev));
- 
- 	return ret;
- }
-diff --git a/drivers/staging/media/solo6x10/v4l2.c b/drivers/staging/media/solo6x10/v4l2.c
-index 1f896b9..acc0ca0 100644
---- a/drivers/staging/media/solo6x10/v4l2.c
-+++ b/drivers/staging/media/solo6x10/v4l2.c
-@@ -324,7 +324,10 @@ static void solo_fillbuf(struct solo_filehandle *fh,
- 			continue;
- 		}
- 
--		/* Shove as many lines into a repeating descriptor as possible */
-+		/*
-+		 * Shove as many lines into a repeating
-+		 * descriptor as possible
-+		 */
- 		lines = min(sg_size_left / line_len,
- 			    solo_vlines(solo_dev) - i);
- 
--- 
-1.7.4.4
 
