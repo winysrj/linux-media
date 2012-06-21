@@ -1,40 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from tx2ehsobe001.messaging.microsoft.com ([65.55.88.11]:45836 "EHLO
-	tx2outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755420Ab2FTOdu (ORCPT
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:49911 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759914Ab2FUTxw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 Jun 2012 10:33:50 -0400
-Date: Wed, 20 Jun 2012 22:33:38 +0800
-From: Shawn Guo <shawn.guo@linaro.org>
-To: javier Martin <javier.martin@vista-silicon.com>
-CC: Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	<fabio.estevam@freescale.com>, <dirk.behme@googlemail.com>,
-	<r.schwebel@pengutronix.de>, <kernel@pengutronix.de>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-media@vger.kernel.org>
-Subject: Re: [RFC] Support for 'Coda' video codec IP.
-Message-ID: <20120620143336.GE2253@S2101-09.ap.freescale.net>
-References: <1340115094-859-1-git-send-email-javier.martin@vista-silicon.com>
- <20120619181717.GE28394@pengutronix.de>
- <CACKLOr1zCp2NfLjBrHjtXpmsFMHqhoHFPpghN=Tyf3YAcyRrYg@mail.gmail.com>
- <20120620090126.GO28394@pengutronix.de>
- <20120620100015.GA30243@sirena.org.uk>
- <20120620130941.GB2253@S2101-09.ap.freescale.net>
- <CACKLOr28vm9n08VSOim=riB54os665be1CHdUqFXk+3MqPqtWQ@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <CACKLOr28vm9n08VSOim=riB54os665be1CHdUqFXk+3MqPqtWQ@mail.gmail.com>
+	Thu, 21 Jun 2012 15:53:52 -0400
+Received: by mail-yx0-f174.google.com with SMTP id l2so879477yen.19
+        for <linux-media@vger.kernel.org>; Thu, 21 Jun 2012 12:53:52 -0700 (PDT)
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Ben Collins <bcollins@bluecherry.net>,
+	<linux-media@vger.kernel.org>,
+	Ezequiel Garcia <elezegarcia@gmail.com>
+Subject: [PATCH 07/10] staging: solo6x10: Merge quoted string split across lines
+Date: Thu, 21 Jun 2012 16:52:09 -0300
+Message-Id: <1340308332-1118-7-git-send-email-elezegarcia@gmail.com>
+In-Reply-To: <1340308332-1118-1-git-send-email-elezegarcia@gmail.com>
+References: <1340308332-1118-1-git-send-email-elezegarcia@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jun 20, 2012 at 04:25:54PM +0200, javier Martin wrote:
-> Do you plan to add pinctrl support for i.MX27 and i.MX21?
-> 
-We will have to when we are there to convert these platforms over to DT.
+Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
+---
+ drivers/staging/media/solo6x10/core.c |    4 ++--
+ drivers/staging/media/solo6x10/v4l2.c |    6 +++---
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
+diff --git a/drivers/staging/media/solo6x10/core.c b/drivers/staging/media/solo6x10/core.c
+index 8c4f5cf..2cfe906 100644
+--- a/drivers/staging/media/solo6x10/core.c
++++ b/drivers/staging/media/solo6x10/core.c
+@@ -174,8 +174,8 @@ static int __devinit solo_pci_probe(struct pci_dev *pdev,
+ 		solo_dev->nr_ext = 2;
+ 		break;
+ 	default:
+-		dev_warn(&pdev->dev, "Invalid chip_id 0x%02x, "
+-			 "defaulting to 4 channels\n",
++		dev_warn(&pdev->dev,
++			 "Invalid chip_id 0x%02x, defaulting to 4 channels\n",
+ 			 chip_id);
+ 	case 5:
+ 		solo_dev->nr_chans = 4;
+diff --git a/drivers/staging/media/solo6x10/v4l2.c b/drivers/staging/media/solo6x10/v4l2.c
+index 571c3a3..90e1379 100644
+--- a/drivers/staging/media/solo6x10/v4l2.c
++++ b/drivers/staging/media/solo6x10/v4l2.c
+@@ -933,9 +933,9 @@ int solo_v4l2_init(struct solo_dev *solo_dev)
+ 	if (video_nr != -1)
+ 		video_nr++;
+ 
+-	dev_info(&solo_dev->pdev->dev, "Display as /dev/video%d with "
+-		 "%d inputs (%d extended)\n", solo_dev->vfd->num,
+-		 solo_dev->nr_chans, solo_dev->nr_ext);
++	dev_info(&solo_dev->pdev->dev,
++		"Display as /dev/video%d with %d inputs (%d extended)\n",
++		 solo_dev->vfd->num, solo_dev->nr_chans, solo_dev->nr_ext);
+ 
+ 	/* Cycle all the channels and clear */
+ 	for (i = 0; i < solo_dev->nr_chans; i++) {
 -- 
-Regards,
-Shawn
+1.7.4.4
 
