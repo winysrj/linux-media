@@ -1,73 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:21916 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756038Ab2FNOcm (ORCPT
+Received: from mail-gg0-f174.google.com ([209.85.161.174]:54666 "EHLO
+	mail-gg0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752393Ab2FVQXR convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Jun 2012 10:32:42 -0400
-Received: from euspt2 (mailout1.w1.samsung.com [210.118.77.11])
- by mailout1.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0M5M0050I339WO70@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 14 Jun 2012 15:33:09 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0M5M00EK532BDX@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 14 Jun 2012 15:32:36 +0100 (BST)
-Date: Thu, 14 Jun 2012 16:32:27 +0200
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: [PATCHv2 7/9] v4l: s5p-tv: mixer: support for dmabuf exporting
-In-reply-to: <1339684349-28882-1-git-send-email-t.stanislaws@samsung.com>
-To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
-Cc: airlied@redhat.com, m.szyprowski@samsung.com,
-	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
-	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
-	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
-	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
-	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
-	mchehab@redhat.com, g.liakhovetski@gmx.de
-Message-id: <1339684349-28882-8-git-send-email-t.stanislaws@samsung.com>
-Content-transfer-encoding: 7BIT
-References: <1339684349-28882-1-git-send-email-t.stanislaws@samsung.com>
+	Fri, 22 Jun 2012 12:23:17 -0400
+Received: by gglu4 with SMTP id u4so1679740ggl.19
+        for <linux-media@vger.kernel.org>; Fri, 22 Jun 2012 09:23:16 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <CALF0-+ViQTmGnAS19kOCZPZAj0ZYZX4Ef-+J7A=k1J2OFhFuVg@mail.gmail.com>
+References: <CACK0K0gXr08aNe3gKkWXmKkZ+JA0RBcWtq35aFfNaSqCCWMM1Q@mail.gmail.com>
+	<CALF0-+ViQTmGnAS19kOCZPZAj0ZYZX4Ef-+J7A=k1J2OFhFuVg@mail.gmail.com>
+Date: Fri, 22 Jun 2012 13:23:16 -0300
+Message-ID: <CALF0-+XoKmw0fe_vpOs-BEZXDZThA5WuNw8CRjohLJojZ2O4Dw@mail.gmail.com>
+Subject: Fwd: stk1160 linux driver
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: Gianluca Bergamo <gianluca.bergamo@gmail.com>
+Cc: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch enhances s5p-tv with support for DMABUF exporting via
-VIDIOC_EXPBUF ioctl.
+Gianluca,
 
-Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/video/s5p-tv/mixer_video.c |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+Forwarded to linux-media, since it could be interesting
+and/or might get some extra help.
 
-diff --git a/drivers/media/video/s5p-tv/mixer_video.c b/drivers/media/video/s5p-tv/mixer_video.c
-index cff974a..d8def5b 100644
---- a/drivers/media/video/s5p-tv/mixer_video.c
-+++ b/drivers/media/video/s5p-tv/mixer_video.c
-@@ -697,6 +697,15 @@ static int mxr_dqbuf(struct file *file, void *priv, struct v4l2_buffer *p)
- 	return vb2_dqbuf(&layer->vb_queue, p, file->f_flags & O_NONBLOCK);
- }
- 
-+static int mxr_expbuf(struct file *file, void *priv,
-+	struct v4l2_exportbuffer *eb)
-+{
-+	struct mxr_layer *layer = video_drvdata(file);
-+
-+	mxr_dbg(layer->mdev, "%s:%d\n", __func__, __LINE__);
-+	return vb2_expbuf(&layer->vb_queue, eb);
-+}
-+
- static int mxr_streamon(struct file *file, void *priv, enum v4l2_buf_type i)
- {
- 	struct mxr_layer *layer = video_drvdata(file);
-@@ -724,6 +733,7 @@ static const struct v4l2_ioctl_ops mxr_ioctl_ops = {
- 	.vidioc_querybuf = mxr_querybuf,
- 	.vidioc_qbuf = mxr_qbuf,
- 	.vidioc_dqbuf = mxr_dqbuf,
-+	.vidioc_expbuf = mxr_expbuf,
- 	/* Streaming control */
- 	.vidioc_streamon = mxr_streamon,
- 	.vidioc_streamoff = mxr_streamoff,
--- 
-1.7.9.5
+Please, keep linux-media in Cc when you reply.
 
+Ezequiel.
+
+---------- Forwarded message ----------
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+Date: Fri, Jun 22, 2012 at 1:19 PM
+Subject: Re: stk1160 linux driver
+To: Gianluca Bergamo <gianluca.bergamo@gmail.com>
+
+
+Hi!
+
+On Fri, Jun 22, 2012 at 9:00 AM, Gianluca Bergamo
+<gianluca.bergamo@gmail.com> wrote:
+> Dear Ezequiel,
+>
+> I've found your driver implementation for stk1160 grabber card:
+> http://patchwork.linuxtv.org/patch/11575/
+>
+> I've patched my kernel 3.0.8 and it compiles without problems.
+> I've compiled it NOT as a module but directly built in in the kernel.
+>
+> Now when I insert my grabber card I see only the USB level messages:
+>
+> [   83.638497] usb 1-1: new high speed USB device number 2 using usb20_otg
+> [   83.849347] usb 1-1: New USB device found, idVendor=05e1, idProduct=0408
+> [   83.856077] usb 1-1: New USB device strings: Mfr=1, Product=2,
+> SerialNumber=0
+> [   83.863258] usb 1-1: Product: USB 2.0 Video Capture Controller
+> [   83.869634] usb 1-1: Manufacturer: Syntek Semiconductor
+>
+> VID and PID are ok.
+>
+> What am I doing wrong?
+>
+
+Glad to see someone is using the driver :-)
+
+Why are you compiling it built-in instead of module?
+I can't try it right now, but tomorrow I'll compile built-in myself
+with 3.0.8 and let you now.
+
+Anyway, send me full dmesg.
+
+Thanks,
+Ezequiel.
