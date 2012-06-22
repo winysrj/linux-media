@@ -1,36 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:60965 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751841Ab2FZWqD (ORCPT
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:2653 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932751Ab2FVMVp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Jun 2012 18:46:03 -0400
-Received: by pbbrp8 with SMTP id rp8so688120pbb.19
-        for <linux-media@vger.kernel.org>; Tue, 26 Jun 2012 15:46:03 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <CAFBinCDuifSK0m8D8SkdSHFJzomF0oh7LUpbvzx3N8TjYEjPQQ@mail.gmail.com>
-References: <1339539568-7725-1-git-send-email-martin.blumenstingl@googlemail.com>
- <4FD818EC.6060300@ims.uni-hannover.de> <CAFBinCC9fZe84j9kVePVjA6y+HzGm3tf4sTgufhWTiTPLQ=KJg@mail.gmail.com>
- <4FDA2969.4010002@ims.uni-hannover.de> <CAFBinCDuifSK0m8D8SkdSHFJzomF0oh7LUpbvzx3N8TjYEjPQQ@mail.gmail.com>
-From: Martin Blumenstingl <martin.blumenstingl@googlemail.com>
-Date: Wed, 27 Jun 2012 00:45:43 +0200
-Message-ID: <CAFBinCBb8KJ=eJxtgfqpu-tCsf4jq2YBoKa7RzrP--R-MF92MQ@mail.gmail.com>
-Subject: Re: [PATCH 0/3] em28xx: Improve compatiblity with the Terratec
- Cinergy HTC Stick HD
-To: =?ISO-8859-1?Q?S=F6ren_Moch?= <soeren.moch@ims.uni-hannover.de>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+	Fri, 22 Jun 2012 08:21:45 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Pawel Osciak <pawel@osciak.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv2 PATCH 05/34] v4l2-ioctl.c: remove an unnecessary #ifdef.
+Date: Fri, 22 Jun 2012 14:20:59 +0200
+Message-Id: <05f2265e86ef1f37c0d83761674f2917dafe5eb4.1340366355.git.hans.verkuil@cisco.com>
+In-Reply-To: <1340367688-8722-1-git-send-email-hverkuil@xs4all.nl>
+References: <1340367688-8722-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1cee710ae251aa69bed8e563a94b419ed99bc41a.1340366355.git.hans.verkuil@cisco.com>
+References: <1cee710ae251aa69bed8e563a94b419ed99bc41a.1340366355.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Soren,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-I'm just CC'ing the linux-media mailing list ;)
-For the record, here's what Soren wrote a few minutes ago:
-> thank you for your help and tests. I tried to avoid this, but now I
-> installed the windows software of this HTC stick. I see the same reception
-> problems in windows, too. So this must be a hardware fault, no driver
-> problem.
-Thank you for trying it out!
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/video/v4l2-ioctl.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-Regards,
-Martin
+diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
+index 3b11e0d..e72babf 100644
+--- a/drivers/media/video/v4l2-ioctl.c
++++ b/drivers/media/video/v4l2-ioctl.c
+@@ -506,10 +506,8 @@ static struct v4l2_ioctl_info v4l2_ioctls[] = {
+ 	IOCTL_INFO(VIDIOC_TRY_ENCODER_CMD, INFO_FL_CLEAR(v4l2_encoder_cmd, flags)),
+ 	IOCTL_INFO(VIDIOC_DECODER_CMD, INFO_FL_PRIO),
+ 	IOCTL_INFO(VIDIOC_TRY_DECODER_CMD, 0),
+-#ifdef CONFIG_VIDEO_ADV_DEBUG
+ 	IOCTL_INFO(VIDIOC_DBG_S_REGISTER, 0),
+ 	IOCTL_INFO(VIDIOC_DBG_G_REGISTER, 0),
+-#endif
+ 	IOCTL_INFO(VIDIOC_DBG_G_CHIP_IDENT, 0),
+ 	IOCTL_INFO(VIDIOC_S_HW_FREQ_SEEK, INFO_FL_PRIO),
+ 	IOCTL_INFO(VIDIOC_ENUM_DV_PRESETS, 0),
+-- 
+1.7.10
+
