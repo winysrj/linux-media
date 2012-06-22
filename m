@@ -1,114 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:49994 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759650Ab2FBNkr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 2 Jun 2012 09:40:47 -0400
-From: Akinobu Mita <akinobu.mita@gmail.com>
-To: linux-kernel@vger.kernel.org, akpm@linux-foundation.org
-Cc: Akinobu Mita <akinobu.mita@gmail.com>,
-	Anders Larsen <al@alarsen.net>,
-	Alasdair Kergon <agk@redhat.com>, dm-devel@redhat.com,
-	linux-fsdevel@vger.kernel.org,
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:34972 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1762322Ab2FVPYd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 Jun 2012 11:24:33 -0400
+Received: by bkcji2 with SMTP id ji2so1670972bkc.19
+        for <linux-media@vger.kernel.org>; Fri, 22 Jun 2012 08:24:32 -0700 (PDT)
+From: Federico Vaga <federico.vaga@gmail.com>
+To: Prabhakar Lad <prabhakar.lad@ti.com>
+Cc: LMML <linux-media@vger.kernel.org>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
 	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org, Mark Fasheh <mfasheh@suse.com>,
-	Joel Becker <jlbec@evilplan.org>, ocfs2-devel@oss.oracle.com,
-	Jan Kara <jack@suse.cz>, linux-ext4@vger.kernel.org,
-	Andreas Dilger <adilger.kernel@dilger.ca>,
-	"Theodore Ts'o" <tytso@mit.edu>, Matthew Wilcox <matthew@wil.cx>
-Subject: [PATCH v2 01/10] string: introduce memweight
-Date: Sat,  2 Jun 2012 22:40:07 +0900
-Message-Id: <1338644416-11417-1-git-send-email-akinobu.mita@gmail.com>
+	Hadli Manjunath <manjunath.hadli@ti.com>
+Subject: Re: [PATCH] [media] videobuf-dma-contig: restore buffer mapping for uncached bufers
+Date: Fri, 22 Jun 2012 17:28:04 +0200
+Message-ID: <3457845.jM9enoQY42@harkonnen>
+In-Reply-To: <1340360046-23429-1-git-send-email-prabhakar.lad@ti.com>
+References: <1340360046-23429-1-git-send-email-prabhakar.lad@ti.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-memweight() is the function that counts the total number of bits set
-in memory area.  Unlike bitmap_weight(), memweight() takes pointer
-and size in bytes to specify a memory area which does not need to be
-aligned to long-word boundary.
+> from commit a8f3c203e19b702fa5e8e83a9b6fb3c5a6d1cce4
+> restore the mapping scheme for uncached buffers,
+> which was changed in a common scheme for cached and uncached.
+> This apparently was wrong, and was probably intended only for cached
+> buffers. the fix fixes the crash observed while mapping uncached
+> buffers.
+> 
+> Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+> Signed-off-by: Hadli, Manjunath <manjunath.hadli@ti.com>
 
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Anders Larsen <al@alarsen.net>
-Cc: Alasdair Kergon <agk@redhat.com>
-Cc: dm-devel@redhat.com
-Cc: linux-fsdevel@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org
-Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: ocfs2-devel@oss.oracle.com
-Cc: Jan Kara <jack@suse.cz>
-Cc: linux-ext4@vger.kernel.org
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Andreas Dilger <adilger.kernel@dilger.ca>
-Cc: "Theodore Ts'o" <tytso@mit.edu>
-Cc: Matthew Wilcox <matthew@wil.cx>
----
+Acked-by: Federico Vaga <federico.vaga@gmail.com>
 
-v2: simplify memweight(), adviced by Jan Kara
+I tested the patch on the STA2X11 board.
 
- include/linux/string.h |    3 +++
- lib/string.c           |   32 ++++++++++++++++++++++++++++++++
- 2 files changed, 35 insertions(+), 0 deletions(-)
-
-diff --git a/include/linux/string.h b/include/linux/string.h
-index e033564..ffe0442 100644
---- a/include/linux/string.h
-+++ b/include/linux/string.h
-@@ -145,4 +145,7 @@ static inline bool strstarts(const char *str, const char *prefix)
- 	return strncmp(str, prefix, strlen(prefix)) == 0;
- }
- #endif
-+
-+extern size_t memweight(const void *ptr, size_t bytes);
-+
- #endif /* _LINUX_STRING_H_ */
-diff --git a/lib/string.c b/lib/string.c
-index e5878de..bf4d5a8 100644
---- a/lib/string.c
-+++ b/lib/string.c
-@@ -26,6 +26,7 @@
- #include <linux/export.h>
- #include <linux/bug.h>
- #include <linux/errno.h>
-+#include <linux/bitmap.h>
- 
- #ifndef __HAVE_ARCH_STRNICMP
- /**
-@@ -824,3 +825,34 @@ void *memchr_inv(const void *start, int c, size_t bytes)
- 	return check_bytes8(start, value, bytes % 8);
- }
- EXPORT_SYMBOL(memchr_inv);
-+
-+/**
-+ * memweight - count the total number of bits set in memory area
-+ * @ptr: pointer to the start of the area
-+ * @bytes: the size of the area
-+ */
-+size_t memweight(const void *ptr, size_t bytes)
-+{
-+	size_t w = 0;
-+	size_t longs;
-+	const unsigned char *bitmap = ptr;
-+
-+	for (; bytes > 0 && ((unsigned long)bitmap) % sizeof(long);
-+			bytes--, bitmap++)
-+		w += hweight8(*bitmap);
-+
-+	longs = bytes / sizeof(long);
-+	if (longs) {
-+		BUG_ON(longs >= INT_MAX / BITS_PER_LONG);
-+		w += bitmap_weight((unsigned long *)bitmap,
-+				longs * BITS_PER_LONG);
-+		bytes -= longs * sizeof(long);
-+		bitmap += longs * sizeof(long);
-+	}
-+
-+	for (; bytes > 0; bytes--, bitmap++)
-+		w += hweight8(*bitmap);
-+
-+	return w;
-+}
-+EXPORT_SYMBOL(memweight);
 -- 
-1.7.7.6
-
+Federico Vaga
