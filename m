@@ -1,21 +1,25 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1651 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755721Ab2FJKzM (ORCPT
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:3388 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761653Ab2FVMVt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Jun 2012 06:55:12 -0400
+	Fri, 22 Jun 2012 08:21:49 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Steven Toth <stoth@kernellabs.com>,
-	Michael Krufky <mkrufky@linuxtv.org>,
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Pawel Osciak <pawel@osciak.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
 	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv1 PATCH 11/11] cx88-blackbird: replace ioctl by unlocked_ioctl.
-Date: Sun, 10 Jun 2012 12:54:57 +0200
-Message-Id: <1072b41a05f94356c7b2e530dc32d51cb51c4e6f.1339325224.git.hans.verkuil@cisco.com>
-In-Reply-To: <1339325697-23280-1-git-send-email-hverkuil@xs4all.nl>
-References: <1339325697-23280-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <541a39bdcc8a94d3de87a6a6d0b1b7c476983984.1339325224.git.hans.verkuil@cisco.com>
-References: <541a39bdcc8a94d3de87a6a6d0b1b7c476983984.1339325224.git.hans.verkuil@cisco.com>
+Subject: [RFCv2 PATCH 25/34] Spec: document CREATE_BUFS behavior if count == 0.
+Date: Fri, 22 Jun 2012 14:21:19 +0200
+Message-Id: <44d7a0693cc5edf9a2c9e098dda7a294635238df.1340366355.git.hans.verkuil@cisco.com>
+In-Reply-To: <1340367688-8722-1-git-send-email-hverkuil@xs4all.nl>
+References: <1340367688-8722-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1cee710ae251aa69bed8e563a94b419ed99bc41a.1340366355.git.hans.verkuil@cisco.com>
+References: <1cee710ae251aa69bed8e563a94b419ed99bc41a.1340366355.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
@@ -23,22 +27,28 @@ From: Hans Verkuil <hans.verkuil@cisco.com>
 
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/video/cx88/cx88-blackbird.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/DocBook/media/v4l/vidioc-create-bufs.xml |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/video/cx88/cx88-blackbird.c b/drivers/media/video/cx88/cx88-blackbird.c
-index 9cc6c95..8b13620 100644
---- a/drivers/media/video/cx88/cx88-blackbird.c
-+++ b/drivers/media/video/cx88/cx88-blackbird.c
-@@ -1089,7 +1089,7 @@ static const struct v4l2_file_operations mpeg_fops =
- 	.read	       = mpeg_read,
- 	.poll          = mpeg_poll,
- 	.mmap	       = mpeg_mmap,
--	.ioctl	       = video_ioctl2,
-+	.unlocked_ioctl = video_ioctl2,
- };
- 
- static const struct v4l2_ioctl_ops mpeg_ioctl_ops = {
+diff --git a/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml b/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
+index 7cf3116..db5ac51 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
+@@ -97,7 +97,13 @@ information.</para>
+ 	  <row>
+ 	    <entry>__u32</entry>
+ 	    <entry><structfield>count</structfield></entry>
+-	    <entry>The number of buffers requested or granted.</entry>
++	    <entry>The number of buffers requested or granted. If count == 0, then
++	    <constant>VIDIOC_CREATE_BUFS</constant> will set <structfield>index</structfield>
++	    to the current number of created buffers, and it will check the validity of
++	    <structfield>memory</structfield> and <structfield>format.type</structfield>.
++	    If those are invalid -1 is returned and errno is set to &EINVAL;,
++	    otherwise <constant>VIDIOC_CREATE_BUFS</constant> returns 0. It will
++	    never set errno to &EBUSY; in this particular case.</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry>__u32</entry>
 -- 
 1.7.10
 
