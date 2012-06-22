@@ -1,90 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.186]:59959 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756949Ab2FYObi (ORCPT
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:4964 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761734Ab2FVJAQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Jun 2012 10:31:38 -0400
-Date: Mon, 25 Jun 2012 16:31:34 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Sergio Aguirre <sergio.a.aguirre@gmail.com>
-cc: Sriram V <vshrirama@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [ANNOUNCEMENT] (tentative) Android generic V4L2 camera HAL
-In-Reply-To: <CAKnK67Rdxfjvk25uy5cLhVmpK3bWyyN_P5nCAnHeZZw9UAHWVQ@mail.gmail.com>
-Message-ID: <Pine.LNX.4.64.1206251628580.29019@axis700.grange>
-References: <CAH9_wRP4+hzFpCdcZWmyyTZpTTFi+9wyTJxX2vPd+3r0QNhLkA@mail.gmail.com>
- <CAKnK67Qdte8qJ9L18OL2ft=YaF4YEAD-5rTP_bk7+_nQAn4u+A@mail.gmail.com>
- <Pine.LNX.4.64.1205072321530.3564@axis700.grange>
- <CAKnK67SpO-roU_d_5DV4bq4J5URX0Niw=hCjXY3N=GUAumZLig@mail.gmail.com>
- <Pine.LNX.4.64.1206251540490.29019@axis700.grange>
- <CAKnK67Rdxfjvk25uy5cLhVmpK3bWyyN_P5nCAnHeZZw9UAHWVQ@mail.gmail.com>
+	Fri, 22 Jun 2012 05:00:16 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: Recent patch for videobuf causing a crash to my driver
+Date: Fri, 22 Jun 2012 10:59:31 +0200
+Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	linux-media@vger.kernel.org,
+	Federico Vaga <federico.vaga@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+References: <CA+V-a8uDgmiy52wEs0rR5B08aAmSk=Wyf+e3mMzazeGykdMA4w@mail.gmail.com> <4FE423D4.9010609@xs4all.nl> <2147318.3kAzv4eQOG@avalon>
+In-Reply-To: <2147318.3kAzv4eQOG@avalon>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201206221059.31976.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sergio
-
-On Mon, 25 Jun 2012, Aguirre, Sergio wrote:
-
-> (+ My gmail address, please start using that address from next week
-> on, since I'm leaving TI)
+On Fri June 22 2012 10:50:23 Laurent Pinchart wrote:
+> Hi Hans,
 > 
-> Hi Guennadi,
+> On Friday 22 June 2012 09:50:44 Hans Verkuil wrote:
+> > On 22/06/12 05:39, Prabhakar Lad wrote:
+> > > Hi Federico,
+> > > 
+> > > Recent patch from you (commit id a8f3c203e19b702fa5e8e83a9b6fb3c5a6d1cce4)
+> > > which added cached buffer support to videobuf dma contig, is causing my
+> > > driver to crash.
+> > > Has this patch being tested for 'uncached' buffers ? If I replace this
+> > > mapping logic with remap_pfn_range() my driver works without any crash.
+> > > 
+> > > Or is that I am missing somewhere ?
+> > 
+> > No, I had the same problem this week with vpif_capture. Since I was running
+> > an unusual setup (a 3.0 kernel with the media subsystem patched to 3.5-rc1)
+> > I didn't know whether it was caused by a mismatch between 3.0 and a 3.5
+> > media subsystem.
+> > 
+> > I intended to investigate this next week, but now it is clear that it is
+> > this patch that is causing the problem.
 > 
-> Thanks a lot for sharing these! Nice job.
+> Time to port the driver to videobuf2 ? ;-)
 > 
-> I immediately noticed you have changes on hardware/ti/omap4xxx/
-> subproject. So, Which devices did you used for testing this?
-> 
-> I got confused since you had changes for the Samsung Nexus S, which
-> has an Exynos chip...
-> 
-> And you also have this Renesas Mackerel, which seems to use a SuperH 7372.
-> 
-> Or maybe you just patched the omap4xxx related file to fix a build :)
-
-Right, I only used the sh7372 based mackerel board from Renesas, as 
-lightly hinted in the README, not all patches in that directory are really 
-related to the camera library, some are unrelated fixes and improvements, 
-others are build fixes to compensate for a changed API.
-
-Thanks
-Guennadi
-
-> Regards,
-> Sergio
-> 
-> On Mon, Jun 25, 2012 at 8:55 AM, Guennadi Liakhovetski
-> <g.liakhovetski@gmx.de> wrote:
-> > Hi all
-> >
-> > It's been a while since I've actually done this work. We have been waiting
-> > for various formalities to be resolved to be able to publish this work
-> > upstream. There are still a couple of formal issues to sort out before we
-> > can begin the submission process, but at least it has been decided to
-> > release patches for independent review and testing.
-> >
-> > For now I've uploaded a development snapshot to
-> >
-> > http://download.open-technology.de/android/20120625/
-> >
-> > In the future we probably will provide git trees at least for the
-> > system/media/v4l_camera development.
-> >
-> > Enjoy:-) Any comments welcome.
-> >
-> > Thanks
-> > Guennadi
-> > ---
-> > Guennadi Liakhovetski, Ph.D.
-> > Freelance Open-Source Software Developer
-> > http://www.open-technology.de/
 > 
 
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+That's actually something on my todo list...
+
+Regards,
+
+	Hans
