@@ -1,56 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.24]:37885 "EHLO mgw-da01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752471Ab2FJUXC (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Jun 2012 16:23:02 -0400
-Received: from [192.168.239.74] (maxwell.research.nokia.com [172.21.199.25])
-	by mgw-da01.nokia.com (Sentrion-MTA-4.2.2/Sentrion-MTA-4.2.2) with ESMTP id q5AKMsFZ019825
-	for <linux-media@vger.kernel.org>; Sun, 10 Jun 2012 23:22:57 +0300
-Message-ID: <4FD50223.4030501@iki.fi>
-Date: Sun, 10 Jun 2012 23:22:59 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:41470 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751246Ab2FVUKx convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 Jun 2012 16:10:53 -0400
+Received: by obbuo13 with SMTP id uo13so2398539obb.19
+        for <linux-media@vger.kernel.org>; Fri, 22 Jun 2012 13:10:53 -0700 (PDT)
 MIME-Version: 1.0
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR 3.6] V4L2 API cleanups
+In-Reply-To: <4FE4CF8F.4050306@gmail.com>
+References: <4FE4BC43.9070100@gmail.com>
+	<CALF0-+VM902A0x+TNXB1qe_jhKcYOs6ti1hMZBsTuTe6Ucmpeg@mail.gmail.com>
+	<4FE4C2BE.2060301@gmail.com>
+	<CALF0-+V430u34yv8arUsN=N5Vh-cJs=7JJdiaEH_OonarJ065g@mail.gmail.com>
+	<4FE4CA11.5030208@gmail.com>
+	<CALF0-+X4gHGogHWaHUHMRGXbK5JjGZ0hgLOGRVMQx-QXV15tGg@mail.gmail.com>
+	<4FE4CF8F.4050306@gmail.com>
+Date: Fri, 22 Jun 2012 17:10:53 -0300
+Message-ID: <CALF0-+WGL1_5ZgexDjfA6HM7D1+M3OUbu30HcaW6D4r1uOtM5w@mail.gmail.com>
+Subject: Re: Tuner NOGANET NG-PTV FM
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: Ariel Mammoli <cmammoli@gmail.com>
+Cc: linux-media <linux-media@vger.kernel.org>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+On Fri, Jun 22, 2012 at 5:03 PM, Ariel Mammoli <cmammoli@gmail.com> wrote:
+> Ezequiel;
+>
+> El vie 22 jun 2012 16:54:52 ART, Ezequiel Garcia ha escrito:
+>> Hi Ariel,
+>>
+>> On Fri, Jun 22, 2012 at 4:40 PM, Ariel Mammoli <cmammoli@gmail.com> wrote:
+>>> Hello again Ezequiel,
+>>>
+>>> El vie 22 jun 2012 16:16:51 ART, Ezequiel Garcia ha escrito:
+>>>> Hi Ariel,
+>>>>
+>>>> Please don't drop linux-media from Cc.
+>>>>
+>>>> On Fri, Jun 22, 2012 at 4:08 PM, Ariel Mammoli <cmammoli@gmail.com> wrote:
+>>>>> Hi Ezequiel,
+>>>>>
+>>>>> El vie 22 jun 2012 15:51:02 ART, Ezequiel Garcia ha escrito:
+>>>>>> Hi Ariel,
+>>>>>>
+>>>>>> On Fri, Jun 22, 2012 at 3:41 PM, Ariel Mammoli <cmammoli@gmail.com> wrote:
+>>>>>>>
+>>>>>>> I have a tuner NOGANET "NG-FM PTV" which has the Philips chip 7134.
+>>>>>>> I have reviewed the list of values several times but can not find it.
+>>>>>>> What are the correct values to configure the module saa7134?
+>>>>>>>
+>>>>>>
+>>>>>> That's a PCI card, right? PCI are identified by subvendor  and subdevice IDs.
+>>>>>>
+>>>>>> Can you tell us those IDs for your card?
+>>>>>>
+>>>>>> Regards,
+>>>>>> Ezequiel.
+>>>>>
+>>>>> Indeed it is a PCI card. Below are the data:
+>>>>> 04:05.0 Multimedia controller [0480]: Philips Semiconductors SAA7130
+>>>>> Video Broadcast Decoder [1131:7130] (rev 01)
+>>>>>
+>>>>
+>>>> I believe it is currently not supported under Linux.
+>>>>
+>>
+>> I was just looking here:
+>>
+>> http://linuxtv.org/wiki/index.php/Compro_VideoMate_S350
+>>
+>> and I think I gave you wrong information, sorry.
+>>
+>> Could you better *full* output of
+>>
+>> $ lspci -vvnn
+>>
+>> with the board connected?
+>>
+>> Sorry again for misdirections,
+>> Ezequiel.
+>
+> No problem :) , here is the result of lspci-vvnn:
+>
 
-Here are two V4L2 API cleanup patches; the first removes __user from
-videodev2.h from a few places, making it possible to use the header file
-as such in user space, while the second one changes the
-v4l2_buffer.input field back to reserved.
+dmesg? lsmod?
 
-
-The following changes since commit 5472d3f17845c4398c6a510b46855820920c2181:
-
-  [media] mt9m032: Implement V4L2_CID_PIXEL_RATE control (2012-05-24
-09:27:24 -0300)
-
-are available in the git repository at:
-  ssh://linuxtv.org/git/sailus/media_tree.git media-for-3.6
-
-Sakari Ailus (2):
-      v4l: Remove __user from interface structure definitions
-      v4l: drop v4l2_buffer.input and V4L2_BUF_FLAG_INPUT
-
- Documentation/DocBook/media/v4l/compat.xml      |   12 ++++++++++++
- Documentation/DocBook/media/v4l/io.xml          |   19 +++++--------------
- Documentation/DocBook/media/v4l/vidioc-qbuf.xml |    9 +++------
- drivers/media/video/cpia2/cpia2_v4l.c           |    2 +-
- drivers/media/video/v4l2-compat-ioctl32.c       |   11 +++++------
- drivers/media/video/videobuf-core.c             |   16 ----------------
- drivers/media/video/videobuf2-core.c            |    5 ++---
- include/linux/videodev2.h                       |    9 ++++-----
- 8 files changed, 32 insertions(+), 51 deletions(-)
-
-
-Kind regards,
-
--- 
-Sakari Ailus
-sakari.ailus@iki.fi
-
+PS: For some reason when your reply address is different from your address.
