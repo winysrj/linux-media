@@ -1,48 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:57064 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752590Ab2FVO2R (ORCPT
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:4201 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932823Ab2FVMVx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Jun 2012 10:28:17 -0400
-Received: by obbuo13 with SMTP id uo13so2014326obb.19
-        for <linux-media@vger.kernel.org>; Fri, 22 Jun 2012 07:28:17 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <4FE3A3A6.5050500@gmail.com>
-References: <4FE24132.4090705@gmail.com>
-	<CAGoCfixL-tEFq4SpjxChH7uc0aDZGtdoO6EqrEH3tzPzoTqK8w@mail.gmail.com>
-	<4FE3A3A6.5050500@gmail.com>
-Date: Fri, 22 Jun 2012 10:28:16 -0400
-Message-ID: <CAGoCfiympaYxeypnq0uuX_azsHhk3OFuLu-=r0yEvOz51Eznqw@mail.gmail.com>
-Subject: Re: Chipset change for CX88_BOARD_PINNACLE_PCTV_HD_800i
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Mack Stanley <mcs1937@gmail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+	Fri, 22 Jun 2012 08:21:53 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Pawel Osciak <pawel@osciak.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv2 PATCH 18/34] v4l2-ioctl.c: finalize table conversion.
+Date: Fri, 22 Jun 2012 14:21:12 +0200
+Message-Id: <2bd86bbede6c86168441988596648ce966b7e544.1340366355.git.hans.verkuil@cisco.com>
+In-Reply-To: <1340367688-8722-1-git-send-email-hverkuil@xs4all.nl>
+References: <1340367688-8722-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1cee710ae251aa69bed8e563a94b419ed99bc41a.1340366355.git.hans.verkuil@cisco.com>
+References: <1cee710ae251aa69bed8e563a94b419ed99bc41a.1340366355.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jun 21, 2012 at 6:43 PM, Mack Stanley <mcs1937@gmail.com> wrote:
-> mplayer [various options] dvb://6
->
-> tunes to different channels different times, sometimes to video from one
-> channel and sound from another, sometimes to video but no sound.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-I would try tuning to the same channel multiple times and see if it
-behaves *consistently*.  In other words, does it always tune to the
-same "wrong" channel or consistently show the same wrong audio/video
-stream.  My guess is this has nothing to do with the card but rather
-is a problem with the scanner putting the right values into the
-channels.conf (wrong video/audio PIDs in the file).
+Implement the default case which finalizes the table conversion and allows
+us to remove the last part of the switch.
 
-> I'll be interested in what your contacts at pctv suggest.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/video/v4l2-ioctl.c |   35 +++++++++++++----------------------
+ 1 file changed, 13 insertions(+), 22 deletions(-)
 
-I'm going back and forth with my PCTV contact.  He says the chip was
-swapped out and there weren't any other changes to the PCB.  However
-as you discovered, driver changes are required.  Should be pretty easy
-to get working.
-
-Devin
-
+diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
+index 2ec1755..0531d9a 100644
+--- a/drivers/media/video/v4l2-ioctl.c
++++ b/drivers/media/video/v4l2-ioctl.c
+@@ -855,6 +855,11 @@ static void v4l_print_newline(const void *arg, bool write_only)
+ 	pr_cont("\n");
+ }
+ 
++static void v4l_print_default(const void *arg, bool write_only)
++{
++	pr_cont("driver-specific ioctl\n");
++}
++
+ static int check_ext_ctrls(struct v4l2_ext_controls *c, int allow_priv)
+ {
+ 	__u32 i;
+@@ -1838,12 +1843,6 @@ struct v4l2_ioctl_info {
+ 	  sizeof(((struct v4l2_struct *)0)->field)) << 16)
+ #define INFO_FL_CLEAR_MASK (_IOC_SIZEMASK << 16)
+ 
+-#define IOCTL_INFO(_ioctl, _flags) [_IOC_NR(_ioctl)] = {	\
+-	.ioctl = _ioctl,					\
+-	.flags = _flags,					\
+-	.name = #_ioctl,					\
+-}
+-
+ #define IOCTL_INFO_STD(_ioctl, _vidioc, _debug, _flags)			\
+ 	[_IOC_NR(_ioctl)] = {						\
+ 		.ioctl = _ioctl,					\
+@@ -2027,12 +2026,12 @@ static long __video_do_ioctl(struct file *file,
+ 	} else {
+ 		default_info.ioctl = cmd;
+ 		default_info.flags = 0;
+-		default_info.debug = NULL;
++		default_info.debug = v4l_print_default;
+ 		info = &default_info;
+ 	}
+ 
+ 	write_only = _IOC_DIR(cmd) == _IOC_WRITE;
+-	if (info->debug && write_only && vfd->debug > V4L2_DEBUG_IOCTL) {
++	if (write_only && vfd->debug > V4L2_DEBUG_IOCTL) {
+ 		v4l_print_ioctl(vfd->name, cmd);
+ 		pr_cont(": ");
+ 		info->debug(arg, write_only);
+@@ -2043,22 +2042,16 @@ static long __video_do_ioctl(struct file *file,
+ 		const vidioc_op *vidioc = p + info->offset;
+ 
+ 		ret = (*vidioc)(file, fh, arg);
+-		goto done;
+ 	} else if (info->flags & INFO_FL_FUNC) {
+ 		ret = info->func(ops, file, fh, arg);
+-		goto done;
++	} else if (!ops->vidioc_default) {
++		ret = -ENOTTY;
++	} else {
++		ret = ops->vidioc_default(file, fh,
++			use_fh_prio ? v4l2_prio_check(vfd->prio, vfh->prio) >= 0 : 0,
++			cmd, arg);
+ 	}
+ 
+-	switch (cmd) {
+-	default:
+-		if (!ops->vidioc_default)
+-			break;
+-		ret = ops->vidioc_default(file, fh, use_fh_prio ?
+-				v4l2_prio_check(vfd->prio, vfh->prio) >= 0 : 0,
+-				cmd, arg);
+-		break;
+-	} /* switch */
+-
+ done:
+ 	if (vfd->debug) {
+ 		if (write_only && vfd->debug > V4L2_DEBUG_IOCTL) {
+@@ -2072,8 +2065,6 @@ done:
+ 			pr_cont(": error %ld\n", ret);
+ 		else if (vfd->debug == V4L2_DEBUG_IOCTL)
+ 			pr_cont("\n");
+-		else if (!info->debug)
+-			return ret;
+ 		else if (_IOC_DIR(cmd) == _IOC_NONE)
+ 			info->debug(arg, write_only);
+ 		else {
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+1.7.10
+
