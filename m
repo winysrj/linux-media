@@ -1,67 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2736 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755477Ab2F1GtT (ORCPT
+Received: from mail-gh0-f174.google.com ([209.85.160.174]:33600 "EHLO
+	mail-gh0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760380Ab2FVMPs (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Jun 2012 02:49:19 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [RFCv3 PATCH 00/33] Core and vb2 enhancements
-Date: Thu, 28 Jun 2012 08:47:54 +0200
-Message-Id: <1340866107-4188-1-git-send-email-hverkuil@xs4all.nl>
+	Fri, 22 Jun 2012 08:15:48 -0400
+Received: by ghrr11 with SMTP id r11so1439108ghr.19
+        for <linux-media@vger.kernel.org>; Fri, 22 Jun 2012 05:15:48 -0700 (PDT)
+Message-ID: <4FE461E8.60101@gmail.com>
+Date: Fri, 22 Jun 2012 09:15:36 -0300
+From: Zhu Sha Zang <zhushazang@gmail.com>
+MIME-Version: 1.0
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+CC: Olivier GRENIE <olivier.grenie@parrot.com>
+Subject: Re: DiBcom adapter problems
+References: <4FDDE29B.9040500@gmail.com> <C73E570AC040D442A4DD326F39F0F00E138E9533E7@SAPHIR.xi-lite.lan>,<4FE31AB1.7020706@gmail.com> <C73E570AC040D442A4DD326F39F0F00E138E9533EE@SAPHIR.xi-lite.lan>
+In-Reply-To: <C73E570AC040D442A4DD326F39F0F00E138E9533EE@SAPHIR.xi-lite.lan>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+Excuse me, dumb question, but where and how can i apply this patch?
 
-This is the third version of this patch series.
+Thanks again!
 
-The first version is here:
+Em 21-06-2012 14:07, Olivier GRENIE escreveu:
+> Hello,
+> can you test the following patch.
+>
+> regards,
+> Olivier
+>
+> From: Olivier Grenie <olivier.grenie@parrot.com>
+> Date: Thu, 21 Jun 2012 18:57:14 +0200
+> Subject: [PATCH] [media] dvb frontend core: tuning in ISDB-T using DVB API v3
+>   The intend of this patch is to be able to tune ISDB-T using
+>   the DVB API v3
+>
+> Signed-off-by: Olivier Grenie <olivier.grenie@parrot.com>
+> ---
+>   drivers/media/dvb/dvb-core/dvb_frontend.c |    7 +++++++
+>   1 file changed, 7 insertions(+)
+>
+> diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-core/dvb_frontend.c
+> index aebcdf2..ee1cc10 100644
+> --- a/drivers/media/dvb/dvb-core/dvb_frontend.c
+> +++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
+> @@ -1531,6 +1531,13 @@ static int set_delivery_system(struct dvb_frontend *fe, u32 desired_system)
+>                                  delsys = desired_system;
+>                                  break;
+>                          }
+> +
+> +                       /* check if the fe delivery system corresponds
+> +                          to the delivery system in cache */
+> +                       if (fe->ops.delsys[ncaps] == c->delivery_system) {
+> +                               delsys = c->delivery_system;
+> +                               break;
+> +                       }
+>                          ncaps++;
+>                  }
+>                  if (delsys == SYS_UNDEFINED) {
+>
 
-http://www.mail-archive.com/linux-media@vger.kernel.org/msg47558.html
 
-Changes since RFCv2:
+-- 
 
-- Rebased to staging/for_v3.6.
+---
+Rodolfo Timóteo da Silva
+Linux Counter: 359362
+msn: zhushazang@gmail.com
+skype: zhushazang
 
-- Incorporated Laurent's review comments in patch 22: vb2-core: refactor reqbufs/create_bufs.
+Ribeirão Preto - SP
 
-Changes since RFCv1:
-
-- Incorporated all review comments from Hans de Goede and Laurent Pinchart (Thanks!)
-  except for splitting off the vb2 helper functions into a separate source. I decided
-  to keep it together with the vb2-core code.
-
-- Improved commit messages, added more comments to the code.
-
-- The owner filehandle and the queue lock are both moved to struct vb2_queue since
-  these are a property of the queue.
-
-- The debug function has a new 'write_only' boolean: some debug functions can only
-  print a subset of the arguments if it is called by an _IOW ioctl. The previous
-  patch series split this up into two functions. Handling the debug function for
-  a write-only ioctl is annoying at the moment: you have to print the arguments
-  before calling the ioctl since the ioctl can overwrite arguments. I am considering
-  changing the op argument to const for such ioctls and see if any driver is
-  actually messing around with the contents of such structs. If we can guarantee
-  that drivers do not change the argument struct, then we can simplify the debug
-  code.
-
-- All debugging is now KERN_DEBUG instead of KERN_INFO.
-
-I still have one outstanding question: should anyone be able to call mmap() or
-only the owner of the vb2 queue? Right now anyone can call mmap().
-
-Comments are welcome, but if I don't see any in the next 2-3 days, then I'll make
-a pull request for this on Sunday.
-
-Regards,
-
-        Hans
 
