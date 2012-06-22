@@ -1,210 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:1867 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755171Ab2FXL3T (ORCPT
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2236 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932809Ab2FVMVu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 Jun 2012 07:29:19 -0400
+	Fri, 22 Jun 2012 08:21:50 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Andy Walls <awalls@md.metrocast.net>,
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
 	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Scott Jiang <scott.jiang.linux@gmail.com>,
-	Manjunatha Halli <manjunatha_halli@ti.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>,
-	Anatolij Gustschin <agust@denx.de>,
-	Javier Martin <javier.martin@vista-silicon.com>,
-	Sensoray Linux Development <linux-dev@sensoray.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
-	Sachin Kamat <sachin.kamat@linaro.org>,
+	Pawel Osciak <pawel@osciak.com>,
 	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	mitov@issp.bas.bg, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 11/26] s2255drv: remove V4L2_FL_LOCK_ALL_FOPS
-Date: Sun, 24 Jun 2012 13:26:03 +0200
-Message-Id: <aa92f15566079d468d8aae2a1167985eb832116d.1340536092.git.hans.verkuil@cisco.com>
-In-Reply-To: <1340537178-18768-1-git-send-email-hverkuil@xs4all.nl>
-References: <1340537178-18768-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <f854d2a0a932187cd895bf9cd81d2da8343b52c9.1340536092.git.hans.verkuil@cisco.com>
-References: <f854d2a0a932187cd895bf9cd81d2da8343b52c9.1340536092.git.hans.verkuil@cisco.com>
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv2 PATCH 32/34] v4l2-dev.c: also add debug support for the fops.
+Date: Fri, 22 Jun 2012 14:21:26 +0200
+Message-Id: <b4bdccc87fa1e14e3605c28468a67ebdf290ff83.1340366355.git.hans.verkuil@cisco.com>
+In-Reply-To: <1340367688-8722-1-git-send-email-hverkuil@xs4all.nl>
+References: <1340367688-8722-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1cee710ae251aa69bed8e563a94b419ed99bc41a.1340366355.git.hans.verkuil@cisco.com>
+References: <1cee710ae251aa69bed8e563a94b419ed99bc41a.1340366355.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Add proper locking to the file operations, allowing for the removal
-of the V4L2_FL_LOCK_ALL_FOPS flag.
-
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/video/s2255drv.c |   42 ++++++++++++++++++++--------------------
- 1 file changed, 21 insertions(+), 21 deletions(-)
+ drivers/media/video/v4l2-dev.c |   25 ++++++++++++++++++++++++-
+ 1 file changed, 24 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/video/s2255drv.c b/drivers/media/video/s2255drv.c
-index 01c2179..0001f1d 100644
---- a/drivers/media/video/s2255drv.c
-+++ b/drivers/media/video/s2255drv.c
-@@ -258,7 +258,6 @@ struct s2255_dev {
- 	atomic_t                num_channels;
- 	int			frames;
- 	struct mutex		lock;	/* channels[].vdev.lock */
--	struct mutex		open_lock;
- 	struct usb_device	*udev;
- 	struct usb_interface	*interface;
- 	u8			read_endpoint;
-@@ -1684,7 +1683,7 @@ static int vidioc_enum_frameintervals(struct file *file, void *priv,
- 	return 0;
+diff --git a/drivers/media/video/v4l2-dev.c b/drivers/media/video/v4l2-dev.c
+index 1b34360..b51bee9 100644
+--- a/drivers/media/video/v4l2-dev.c
++++ b/drivers/media/video/v4l2-dev.c
+@@ -305,6 +305,9 @@ static ssize_t v4l2_read(struct file *filp, char __user *buf,
+ 		ret = vdev->fops->read(filp, buf, sz, off);
+ 	if (test_bit(V4L2_FL_LOCK_ALL_FOPS, &vdev->flags))
+ 		mutex_unlock(vdev->lock);
++	if (vdev->debug)
++		printk(KERN_DEBUG "%s: read: %zd (%d)\n",
++			video_device_node_name(vdev), sz, ret);
+ 	return ret;
  }
  
--static int s2255_open(struct file *file)
-+static int __s2255_open(struct file *file)
+@@ -323,6 +326,9 @@ static ssize_t v4l2_write(struct file *filp, const char __user *buf,
+ 		ret = vdev->fops->write(filp, buf, sz, off);
+ 	if (test_bit(V4L2_FL_LOCK_ALL_FOPS, &vdev->flags))
+ 		mutex_unlock(vdev->lock);
++	if (vdev->debug)
++		printk(KERN_DEBUG "%s: write: %zd (%d)\n",
++			video_device_node_name(vdev), sz, ret);
+ 	return ret;
+ }
+ 
+@@ -339,6 +345,9 @@ static unsigned int v4l2_poll(struct file *filp, struct poll_table_struct *poll)
+ 		ret = vdev->fops->poll(filp, poll);
+ 	if (test_bit(V4L2_FL_LOCK_ALL_FOPS, &vdev->flags))
+ 		mutex_unlock(vdev->lock);
++	if (vdev->debug)
++		printk(KERN_DEBUG "%s: poll: %08x\n",
++			video_device_node_name(vdev), ret);
+ 	return ret;
+ }
+ 
+@@ -403,12 +412,17 @@ static unsigned long v4l2_get_unmapped_area(struct file *filp,
+ 		unsigned long flags)
  {
- 	struct video_device *vdev = video_devdata(file);
- 	struct s2255_channel *channel = video_drvdata(file);
-@@ -1694,16 +1693,9 @@ static int s2255_open(struct file *file)
- 	int state;
- 	dprintk(1, "s2255: open called (dev=%s)\n",
- 		video_device_node_name(vdev));
--	/*
--	 * open lock necessary to prevent multiple instances
--	 * of v4l-conf (or other programs) from simultaneously
--	 * reloading firmware.
--	 */
--	mutex_lock(&dev->open_lock);
- 	state = atomic_read(&dev->fw_data->fw_state);
- 	switch (state) {
- 	case S2255_FW_DISCONNECTING:
--		mutex_unlock(&dev->open_lock);
- 		return -ENODEV;
- 	case S2255_FW_FAILED:
- 		s2255_dev_err(&dev->udev->dev,
-@@ -1742,11 +1734,9 @@ static int s2255_open(struct file *file)
- 		break;
- 	case S2255_FW_FAILED:
- 		printk(KERN_INFO "2255 firmware load failed.\n");
--		mutex_unlock(&dev->open_lock);
- 		return -ENODEV;
- 	case S2255_FW_DISCONNECTING:
- 		printk(KERN_INFO "%s: disconnecting\n", __func__);
--		mutex_unlock(&dev->open_lock);
- 		return -ENODEV;
- 	case S2255_FW_LOADED_DSPWAIT:
- 	case S2255_FW_NOTLOADED:
-@@ -1760,14 +1750,11 @@ static int s2255_open(struct file *file)
- 		 */
- 		atomic_set(&dev->fw_data->fw_state,
- 			   S2255_FW_FAILED);
--		mutex_unlock(&dev->open_lock);
- 		return -EAGAIN;
- 	default:
- 		printk(KERN_INFO "%s: unknown state\n", __func__);
--		mutex_unlock(&dev->open_lock);
- 		return -EFAULT;
- 	}
--	mutex_unlock(&dev->open_lock);
- 	/* allocate + initialize per filehandle data */
- 	fh = kzalloc(sizeof(*fh), GFP_KERNEL);
- 	if (NULL == fh)
-@@ -1798,16 +1785,30 @@ static int s2255_open(struct file *file)
- 	return 0;
- }
- 
-+static int s2255_open(struct file *file)
-+{
-+	struct video_device *vdev = video_devdata(file);
+ 	struct video_device *vdev = video_devdata(filp);
 +	int ret;
-+
-+	if (mutex_lock_interruptible(vdev->lock))
-+		return -ERESTARTSYS;
-+	ret = __s2255_open(file);
-+	mutex_unlock(vdev->lock);
-+	return ret;
-+}
  
- static unsigned int s2255_poll(struct file *file,
- 			       struct poll_table_struct *wait)
- {
- 	struct s2255_fh *fh = file->private_data;
-+	struct s2255_dev *dev = fh->dev;
- 	int rc;
- 	dprintk(100, "%s\n", __func__);
- 	if (V4L2_BUF_TYPE_VIDEO_CAPTURE != fh->type)
- 		return POLLERR;
-+	mutex_lock(&dev->lock);
- 	rc = videobuf_poll_stream(file, &fh->vb_vidq, wait);
-+	mutex_unlock(&dev->lock);
- 	return rc;
+ 	if (!vdev->fops->get_unmapped_area)
+ 		return -ENOSYS;
+ 	if (!video_is_registered(vdev))
+ 		return -ENODEV;
+-	return vdev->fops->get_unmapped_area(filp, addr, len, pgoff, flags);
++	ret = vdev->fops->get_unmapped_area(filp, addr, len, pgoff, flags);
++	if (vdev->debug)
++		printk(KERN_DEBUG "%s: get_unmapped_area (%d)\n",
++			video_device_node_name(vdev), ret);
++	return ret;
+ }
+ #endif
+ 
+@@ -426,6 +440,9 @@ static int v4l2_mmap(struct file *filp, struct vm_area_struct *vm)
+ 		ret = vdev->fops->mmap(filp, vm);
+ 	if (test_bit(V4L2_FL_LOCK_ALL_FOPS, &vdev->flags))
+ 		mutex_unlock(vdev->lock);
++	if (vdev->debug)
++		printk(KERN_DEBUG "%s: mmap (%d)\n",
++			video_device_node_name(vdev), ret);
+ 	return ret;
  }
  
-@@ -1827,7 +1828,6 @@ static void s2255_destroy(struct s2255_dev *dev)
- 	kfree(dev->fw_data);
- 	/* reset the DSP so firmware can be reloaded next time */
- 	s2255_reset_dsppower(dev);
--	mutex_destroy(&dev->open_lock);
- 	mutex_destroy(&dev->lock);
- 	usb_put_dev(dev->udev);
- 	v4l2_device_unregister(&dev->v4l2_dev);
-@@ -1843,6 +1843,7 @@ static int s2255_release(struct file *file)
- 	struct s2255_channel *channel = fh->channel;
- 	if (!dev)
- 		return -ENODEV;
-+	mutex_lock(&dev->lock);
- 	/* turn off stream */
- 	if (res_check(fh)) {
- 		if (channel->b_acquire)
-@@ -1851,6 +1852,7 @@ static int s2255_release(struct file *file)
- 		res_free(fh);
- 	}
- 	videobuf_mmap_free(&fh->vb_vidq);
-+	mutex_unlock(&dev->lock);
- 	dprintk(1, "%s (dev=%s)\n", __func__, video_device_node_name(vdev));
- 	kfree(fh);
- 	return 0;
-@@ -1859,12 +1861,16 @@ static int s2255_release(struct file *file)
- static int s2255_mmap_v4l(struct file *file, struct vm_area_struct *vma)
- {
- 	struct s2255_fh *fh = file->private_data;
-+	struct s2255_dev *dev = fh->dev;
- 	int ret;
+@@ -464,6 +481,9 @@ err:
+ 	/* decrease the refcount in case of an error */
+ 	if (ret)
+ 		video_put(vdev);
++	if (vdev->debug)
++		printk(KERN_DEBUG "%s: open (%d)\n",
++			video_device_node_name(vdev), ret);
+ 	return ret;
+ }
  
- 	if (!fh)
- 		return -ENODEV;
- 	dprintk(4, "%s, vma=0x%08lx\n", __func__, (unsigned long)vma);
-+	if (mutex_lock_interruptible(&dev->lock))
-+		return -ERESTARTSYS;
- 	ret = videobuf_mmap_mapper(&fh->vb_vidq, vma);
-+	mutex_unlock(&dev->lock);
- 	dprintk(4, "%s vma start=0x%08lx, size=%ld, ret=%d\n", __func__,
- 		(unsigned long)vma->vm_start,
- 		(unsigned long)vma->vm_end - (unsigned long)vma->vm_start, ret);
-@@ -1944,10 +1950,6 @@ static int s2255_probe_v4l(struct s2255_dev *dev)
- 		/* register 4 video devices */
- 		channel->vdev = template;
- 		channel->vdev.lock = &dev->lock;
--		/* Locking in file operations other than ioctl should be done
--		   by the driver, not the V4L2 core.
--		   This driver needs auditing so that this flag can be removed. */
--		set_bit(V4L2_FL_LOCK_ALL_FOPS, &channel->vdev.flags);
- 		channel->vdev.v4l2_dev = &dev->v4l2_dev;
- 		video_set_drvdata(&channel->vdev, channel);
- 		if (video_nr == -1)
-@@ -2535,7 +2537,6 @@ static int s2255_probe(struct usb_interface *interface,
- 	if (!dev->fw_data)
- 		goto errorFWDATA1;
- 	mutex_init(&dev->lock);
--	mutex_init(&dev->open_lock);
- 	/* grab usb_device and save it */
- 	dev->udev = usb_get_dev(interface_to_usbdev(interface));
- 	if (dev->udev == NULL) {
-@@ -2637,7 +2638,6 @@ errorEP:
- 	usb_put_dev(dev->udev);
- errorUDEV:
- 	kfree(dev->fw_data);
--	mutex_destroy(&dev->open_lock);
- 	mutex_destroy(&dev->lock);
- errorFWDATA1:
- 	kfree(dev);
+@@ -483,6 +503,9 @@ static int v4l2_release(struct inode *inode, struct file *filp)
+ 	/* decrease the refcount unconditionally since the release()
+ 	   return value is ignored. */
+ 	video_put(vdev);
++	if (vdev->debug)
++		printk(KERN_DEBUG "%s: release\n",
++			video_device_node_name(vdev));
+ 	return ret;
+ }
+ 
 -- 
 1.7.10
 
