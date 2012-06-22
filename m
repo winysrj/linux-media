@@ -1,47 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:52364 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760818Ab2FDQV2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jun 2012 12:21:28 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Ritesh <yuva_dashing@yahoo.com>
-Cc: Enrico <ebutera@users.berlios.de>,
-	jean-philippe francois <jp.francois@cynove.com>,
-	Alex Gershgorin <alexg@meprolight.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: OMAP 3 ISP
-Date: Mon, 04 Jun 2012 18:21:27 +0200
-Message-ID: <1568562.Y6i3jeOFzQ@avalon>
-In-Reply-To: <C64BB294-2228-4EB5-B839-27480B232B8D@yahoo.com>
-References: <B9D34818-CE30-4125-997B-71C50CFC4F0D@yahoo.com> <12509952.dDkgsjd7gb@avalon> <C64BB294-2228-4EB5-B839-27480B232B8D@yahoo.com>
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:49195 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756014Ab2FVQxa convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 Jun 2012 12:53:30 -0400
+Received: by bkcji2 with SMTP id ji2so1765836bkc.19
+        for <linux-media@vger.kernel.org>; Fri, 22 Jun 2012 09:53:29 -0700 (PDT)
+From: Federico Vaga <federico.vaga@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Prabhakar Lad <prabhakar.lad@ti.com>,
+	LMML <linux-media@vger.kernel.org>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hadli Manjunath <manjunath.hadli@ti.com>
+Subject: Re: [PATCH] [media] videobuf-dma-contig: restore buffer mapping for uncached bufers
+Date: Fri, 22 Jun 2012 09:53:27 -0700 (PDT)
+Message-ID: <3127105.r3h7rO2WIQ@harkonnen>
+In-Reply-To: <201206221845.31286.hverkuil@xs4all.nl>
+References: <1340360046-23429-1-git-send-email-prabhakar.lad@ti.com> <3457845.jM9enoQY42@harkonnen> <201206221845.31286.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ritesh,
-
-On Thursday 31 May 2012 03:26:57 Ritesh wrote:
-> Hi Laurent,
-> For me even ISP revision print log is not displaying and moreover when I am
-> checking the interrupts using cat /proc/interrupts
-> Only iommu interrupt is showing for interrupt line 24
+In data venerdì 22 giugno 2012 18:45:31, Hans Verkuil ha scritto:
+> On Fri June 22 2012 17:28:04 Federico Vaga wrote:
+> > > from commit a8f3c203e19b702fa5e8e83a9b6fb3c5a6d1cce4
+> > > restore the mapping scheme for uncached buffers,
+> > > which was changed in a common scheme for cached and uncached.
+> > > This apparently was wrong, and was probably intended only for
+> > > cached
+> > > buffers. the fix fixes the crash observed while mapping uncached
+> > > buffers.
+> > > 
+> > > Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+> > > Signed-off-by: Hadli, Manjunath <manjunath.hadli@ti.com>
+> > 
+> > Acked-by: Federico Vaga <federico.vaga@gmail.com>
+> > 
+> > I tested the patch on the STA2X11 board.
 > 
-> Seems ISP probe function is not at all getting called
-> Right now board is not available for me so that I can't post here complete
-> log
+> Was this patch ever posted on linux-media? I didn't see it on the
+> mailinglist, nor in my personal inbox.
 > 
-> Can u please send me working Linux kernel repository link for omap35x
-> torpedo kit
+> Perhaps something went wrong?
 
-I can't, as I don't have that. You should take the latest mainline code and 
-add ISP board code for your board. You can find examples of such board code at 
-http://git.linuxtv.org/pinchartl/media.git/shortlog/refs/heads/omap3isp-
-sensors-board for the Beagleboard, the Gumstix Overo and the OMAP3 EVM.
+I recived the email as CC and linux-media was the main destination.
+Davinci list was also added as CC and you can find the patch there:
+
+http://www.mail-archive.com/davinci-linux-open-
+source@linux.davincidsp.com/msg22998.html
+
+Something went wrong.
+
 
 -- 
-Regards,
-
-Laurent Pinchart
-
+Federico Vaga
