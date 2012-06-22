@@ -1,227 +1,345 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:53341 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761487Ab2FVLXZ (ORCPT
+Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:1562 "EHLO
+	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761507Ab2FVMVp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Jun 2012 07:23:25 -0400
-Date: Fri, 22 Jun 2012 13:23:23 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 8/8] soc-camera: Push probe-time power management to
- drivers
-In-Reply-To: <1337786855-28759-9-git-send-email-laurent.pinchart@ideasonboard.com>
-Message-ID: <Pine.LNX.4.64.1206212319470.3513@axis700.grange>
-References: <1337786855-28759-1-git-send-email-laurent.pinchart@ideasonboard.com>
- <1337786855-28759-9-git-send-email-laurent.pinchart@ideasonboard.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+	Fri, 22 Jun 2012 08:21:45 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Pawel Osciak <pawel@osciak.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv2 PATCH 02/34] v4l2-ioctl.c: move a block of code down, no other changes.
+Date: Fri, 22 Jun 2012 14:20:56 +0200
+Message-Id: <d0b49ca68c59306d0668406c4d1babf0c1ff2342.1340366355.git.hans.verkuil@cisco.com>
+In-Reply-To: <1340367688-8722-1-git-send-email-hverkuil@xs4all.nl>
+References: <1340367688-8722-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1cee710ae251aa69bed8e563a94b419ed99bc41a.1340366355.git.hans.verkuil@cisco.com>
+References: <1cee710ae251aa69bed8e563a94b419ed99bc41a.1340366355.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 23 May 2012, Laurent Pinchart wrote:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-> Several client drivers access the hardware at probe time, for instance
-> to read the probe chip ID. Such chips need to be powered up when being
-> probed.
-> 
-> soc-camera handles this by powering chips up in the soc-camera probe
-> implementation. However, this will break with non soc-camera hosts that
-> don't perform the same operations.
-> 
-> Fix the problem by pushing the power up/down from the soc-camera core
-> down to individual drivers on a needs basis.
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> ---
->  drivers/media/video/imx074.c     |   21 ++++++++--
->  drivers/media/video/mt9m001.c    |   17 +++++++-
->  drivers/media/video/mt9m111.c    |   80 +++++++++++++++++++++----------------
->  drivers/media/video/mt9t031.c    |   18 ++++++---
->  drivers/media/video/mt9t112.c    |   12 +++++-
->  drivers/media/video/mt9v022.c    |    5 ++
->  drivers/media/video/ov2640.c     |   11 ++++-
->  drivers/media/video/ov5642.c     |   21 ++++++++--
->  drivers/media/video/ov6650.c     |   19 ++++++---
->  drivers/media/video/ov772x.c     |   14 ++++++-
->  drivers/media/video/ov9640.c     |   17 ++++++--
->  drivers/media/video/ov9740.c     |   23 +++++++----
->  drivers/media/video/rj54n1cb0c.c |   18 ++++++--
->  drivers/media/video/soc_camera.c |   14 -------
->  drivers/media/video/tw9910.c     |   12 +++++-
->  15 files changed, 201 insertions(+), 101 deletions(-)
-> 
-> diff --git a/drivers/media/video/imx074.c b/drivers/media/video/imx074.c
-> index 1166c89..fc86e68 100644
-> --- a/drivers/media/video/imx074.c
-> +++ b/drivers/media/video/imx074.c
-> @@ -313,26 +313,33 @@ static struct v4l2_subdev_ops imx074_subdev_ops = {
->  
->  static int imx074_video_probe(struct i2c_client *client)
->  {
-> +	struct v4l2_subdev *subdev = i2c_get_clientdata(client);
->  	int ret;
->  	u16 id;
->  
-> +	ret = imx074_s_power(subdev, 1);
-> +	if (ret < 0)
-> +		return ret;
-> +
->  	/* Read sensor Model ID */
->  	ret = reg_read(client, 0);
->  	if (ret < 0)
-> -		return ret;
-> +		goto done;
->  
->  	id = ret << 8;
->  
->  	ret = reg_read(client, 1);
->  	if (ret < 0)
-> -		return ret;
-> +		goto done;
->  
->  	id |= ret;
->  
->  	dev_info(&client->dev, "Chip ID 0x%04x detected\n", id);
->  
-> -	if (id != 0x74)
-> -		return -ENODEV;
-> +	if (id != 0x74) {
-> +		ret = -ENODEV;
-> +		goto done;
-> +	}
->  
->  	/* PLL Setting EXTCLK=24MHz, 22.5times */
->  	reg_write(client, PLL_MULTIPLIER, 0x2D);
-> @@ -414,7 +421,11 @@ static int imx074_video_probe(struct i2c_client *client)
->  
->  	reg_write(client, GROUPED_PARAMETER_HOLD, 0x00);	/* off */
+A block of code is moved down in the code to make later changes easier.
+Do just the move without other changes to keep the diff readable for the
+upcoming patch.
 
-Looking at this and other soc-camera sensor drivers, most of them do some 
-initialisation during probe(), that is not automatically re-applied at any 
-point during operation. This means, the current power switching in 
-soc-camera core, turning clients off directly after probe() and after each 
-last close() only works with "soft" power off variants, e.g., where the 
-board only switches off analog parts of a camera sensor and preserves 
-register contents. There are indeed multiple boards currently in the 
-mainline, implementing the soc_camera_link::power() callback. This means, 
-they all either only do the soft power-off, or have been lucky to not need 
-any of the lost register contents.
-
-The v4l2_subdev_core_ops::s_power() operation is documented as
-
-   s_power: puts subdevice in power saving mode (on == 0) or normal operation
-	mode (on == 1).
-
-"power saving mode" means pretty much the same to me - switch off power 
-consuming parts, but keep register contents. So, I think, we're fine here 
-just "mechanically" bringing over the power switching functionality into 
-client drivers, we might only want to improve struct soc_camera_link 
-documentation :-)
-
->  
-> -	return 0;
-> +	ret = 0;
-> +
-> +done:
-> +	imx074_s_power(subdev, 0);
-> +	return ret;
->  }
->  
->  static int imx074_probe(struct i2c_client *client,
-
-[snip]
-
-> @@ -940,6 +905,51 @@ static struct v4l2_subdev_ops mt9m111_subdev_ops = {
->  	.video	= &mt9m111_subdev_video_ops,
->  };
->  
-> +/*
-> + * Interface active, can use i2c. If it fails, it can indeed mean, that
-> + * this wasn't our capture interface, so, we wait for the right one
-> + */
-> +static int mt9m111_video_probe(struct i2c_client *client)
-> +{
-> +	struct mt9m111 *mt9m111 = to_mt9m111(client);
-> +	s32 data;
-> +	int ret;
-> +
-> +	ret = mt9m111_s_power(&mt9m111->subdev, 1);
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	data = reg_read(CHIP_VERSION);
-> +
-> +	switch (data) {
-> +	case 0x143a: /* MT9M111 or MT9M131 */
-> +		mt9m111->model = V4L2_IDENT_MT9M111;
-> +		dev_info(&client->dev,
-> +			"Detected a MT9M111/MT9M131 chip ID %x\n", data);
-> +		break;
-> +	case 0x148c: /* MT9M112 */
-> +		mt9m111->model = V4L2_IDENT_MT9M112;
-> +		dev_info(&client->dev, "Detected a MT9M112 chip ID %x\n", data);
-> +		break;
-> +	default:
-> +		dev_err(&client->dev,
-> +			"No MT9M111/MT9M112/MT9M131 chip detected register read %x\n",
-> +			data);
-> +		ret = -ENODEV;
-> +		goto done;
-> +	}
-> +
-> +	ret = mt9m111_init(mt9m111);
-> +	if (ret)
-> +		goto done;
-> +
-> +	ret = v4l2_ctrl_handler_setup(&mt9m111->hdl);
-
-You're losing this return code...
-
-> +
-> +done:
-> +	ret = mt9m111_s_power(&mt9m111->subdev, 0);
-> +	return ret;
-
-	return mt9m111_s_power(&mt9m111->subdev, 0);
-
-But in mt9m001 you discard return code from *_s_power(0) and return the 
-error from v4l2_ctrl_handler_setup(). Better be consistent, IMHO.
-
-> +}
-> +
->  static int mt9m111_probe(struct i2c_client *client,
->  			 const struct i2c_device_id *did)
->  {
-> diff --git a/drivers/media/video/mt9t031.c b/drivers/media/video/mt9t031.c
-> index 9666e20..56dd31c 100644
-> --- a/drivers/media/video/mt9t031.c
-> +++ b/drivers/media/video/mt9t031.c
-> @@ -643,6 +643,12 @@ static int mt9t031_video_probe(struct i2c_client *client)
->  	s32 data;
->  	int ret;
->  
-> +	ret = mt9t031_s_power(&mt9t031->subdev, 1);
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	mt9t031_idle(client);
-> +
-
-There's one more call to mt9t031_idle() a couple of lines down in 
-mt9t031_video_probe()... I think, the latter one can be dropped 
-together with...
-
->  	/* Enable the chip */
->  	data = reg_write(client, MT9T031_CHIP_ENABLE, 1);
-
-the one above - it starts the read-out, which we don't necessarily want 
-immediately after probe(), and it is anyway disabled again a few lines 
-further down in mt9t031_disable().
-
-Thanks
-Guennadi
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ drivers/media/video/v4l2-ioctl.c |  288 +++++++++++++++++++-------------------
+ 1 file changed, 144 insertions(+), 144 deletions(-)
+
+diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
+index 91be4e8..7c6831f 100644
+--- a/drivers/media/video/v4l2-ioctl.c
++++ b/drivers/media/video/v4l2-ioctl.c
+@@ -183,150 +183,6 @@ static const char *v4l2_memory_names[] = {
+ /* ------------------------------------------------------------------ */
+ /* debug help functions                                               */
+ 
+-struct v4l2_ioctl_info {
+-	unsigned int ioctl;
+-	u16 flags;
+-	const char * const name;
+-};
+-
+-/* This control needs a priority check */
+-#define INFO_FL_PRIO	(1 << 0)
+-/* This control can be valid if the filehandle passes a control handler. */
+-#define INFO_FL_CTRL	(1 << 1)
+-
+-#define IOCTL_INFO(_ioctl, _flags) [_IOC_NR(_ioctl)] = {	\
+-	.ioctl = _ioctl,					\
+-	.flags = _flags,					\
+-	.name = #_ioctl,					\
+-}
+-
+-static struct v4l2_ioctl_info v4l2_ioctls[] = {
+-	IOCTL_INFO(VIDIOC_QUERYCAP, 0),
+-	IOCTL_INFO(VIDIOC_ENUM_FMT, 0),
+-	IOCTL_INFO(VIDIOC_G_FMT, 0),
+-	IOCTL_INFO(VIDIOC_S_FMT, INFO_FL_PRIO),
+-	IOCTL_INFO(VIDIOC_REQBUFS, INFO_FL_PRIO),
+-	IOCTL_INFO(VIDIOC_QUERYBUF, 0),
+-	IOCTL_INFO(VIDIOC_G_FBUF, 0),
+-	IOCTL_INFO(VIDIOC_S_FBUF, INFO_FL_PRIO),
+-	IOCTL_INFO(VIDIOC_OVERLAY, INFO_FL_PRIO),
+-	IOCTL_INFO(VIDIOC_QBUF, 0),
+-	IOCTL_INFO(VIDIOC_DQBUF, 0),
+-	IOCTL_INFO(VIDIOC_STREAMON, INFO_FL_PRIO),
+-	IOCTL_INFO(VIDIOC_STREAMOFF, INFO_FL_PRIO),
+-	IOCTL_INFO(VIDIOC_G_PARM, 0),
+-	IOCTL_INFO(VIDIOC_S_PARM, INFO_FL_PRIO),
+-	IOCTL_INFO(VIDIOC_G_STD, 0),
+-	IOCTL_INFO(VIDIOC_S_STD, INFO_FL_PRIO),
+-	IOCTL_INFO(VIDIOC_ENUMSTD, 0),
+-	IOCTL_INFO(VIDIOC_ENUMINPUT, 0),
+-	IOCTL_INFO(VIDIOC_G_CTRL, INFO_FL_CTRL),
+-	IOCTL_INFO(VIDIOC_S_CTRL, INFO_FL_PRIO | INFO_FL_CTRL),
+-	IOCTL_INFO(VIDIOC_G_TUNER, 0),
+-	IOCTL_INFO(VIDIOC_S_TUNER, INFO_FL_PRIO),
+-	IOCTL_INFO(VIDIOC_G_AUDIO, 0),
+-	IOCTL_INFO(VIDIOC_S_AUDIO, INFO_FL_PRIO),
+-	IOCTL_INFO(VIDIOC_QUERYCTRL, INFO_FL_CTRL),
+-	IOCTL_INFO(VIDIOC_QUERYMENU, INFO_FL_CTRL),
+-	IOCTL_INFO(VIDIOC_G_INPUT, 0),
+-	IOCTL_INFO(VIDIOC_S_INPUT, INFO_FL_PRIO),
+-	IOCTL_INFO(VIDIOC_G_OUTPUT, 0),
+-	IOCTL_INFO(VIDIOC_S_OUTPUT, INFO_FL_PRIO),
+-	IOCTL_INFO(VIDIOC_ENUMOUTPUT, 0),
+-	IOCTL_INFO(VIDIOC_G_AUDOUT, 0),
+-	IOCTL_INFO(VIDIOC_S_AUDOUT, INFO_FL_PRIO),
+-	IOCTL_INFO(VIDIOC_G_MODULATOR, 0),
+-	IOCTL_INFO(VIDIOC_S_MODULATOR, INFO_FL_PRIO),
+-	IOCTL_INFO(VIDIOC_G_FREQUENCY, 0),
+-	IOCTL_INFO(VIDIOC_S_FREQUENCY, INFO_FL_PRIO),
+-	IOCTL_INFO(VIDIOC_CROPCAP, 0),
+-	IOCTL_INFO(VIDIOC_G_CROP, 0),
+-	IOCTL_INFO(VIDIOC_S_CROP, INFO_FL_PRIO),
+-	IOCTL_INFO(VIDIOC_G_SELECTION, 0),
+-	IOCTL_INFO(VIDIOC_S_SELECTION, INFO_FL_PRIO),
+-	IOCTL_INFO(VIDIOC_G_JPEGCOMP, 0),
+-	IOCTL_INFO(VIDIOC_S_JPEGCOMP, INFO_FL_PRIO),
+-	IOCTL_INFO(VIDIOC_QUERYSTD, 0),
+-	IOCTL_INFO(VIDIOC_TRY_FMT, 0),
+-	IOCTL_INFO(VIDIOC_ENUMAUDIO, 0),
+-	IOCTL_INFO(VIDIOC_ENUMAUDOUT, 0),
+-	IOCTL_INFO(VIDIOC_G_PRIORITY, 0),
+-	IOCTL_INFO(VIDIOC_S_PRIORITY, INFO_FL_PRIO),
+-	IOCTL_INFO(VIDIOC_G_SLICED_VBI_CAP, 0),
+-	IOCTL_INFO(VIDIOC_LOG_STATUS, 0),
+-	IOCTL_INFO(VIDIOC_G_EXT_CTRLS, INFO_FL_CTRL),
+-	IOCTL_INFO(VIDIOC_S_EXT_CTRLS, INFO_FL_PRIO | INFO_FL_CTRL),
+-	IOCTL_INFO(VIDIOC_TRY_EXT_CTRLS, 0),
+-	IOCTL_INFO(VIDIOC_ENUM_FRAMESIZES, 0),
+-	IOCTL_INFO(VIDIOC_ENUM_FRAMEINTERVALS, 0),
+-	IOCTL_INFO(VIDIOC_G_ENC_INDEX, 0),
+-	IOCTL_INFO(VIDIOC_ENCODER_CMD, INFO_FL_PRIO),
+-	IOCTL_INFO(VIDIOC_TRY_ENCODER_CMD, 0),
+-	IOCTL_INFO(VIDIOC_DECODER_CMD, INFO_FL_PRIO),
+-	IOCTL_INFO(VIDIOC_TRY_DECODER_CMD, 0),
+-#ifdef CONFIG_VIDEO_ADV_DEBUG
+-	IOCTL_INFO(VIDIOC_DBG_S_REGISTER, 0),
+-	IOCTL_INFO(VIDIOC_DBG_G_REGISTER, 0),
+-#endif
+-	IOCTL_INFO(VIDIOC_DBG_G_CHIP_IDENT, 0),
+-	IOCTL_INFO(VIDIOC_S_HW_FREQ_SEEK, INFO_FL_PRIO),
+-	IOCTL_INFO(VIDIOC_ENUM_DV_PRESETS, 0),
+-	IOCTL_INFO(VIDIOC_S_DV_PRESET, INFO_FL_PRIO),
+-	IOCTL_INFO(VIDIOC_G_DV_PRESET, 0),
+-	IOCTL_INFO(VIDIOC_QUERY_DV_PRESET, 0),
+-	IOCTL_INFO(VIDIOC_S_DV_TIMINGS, INFO_FL_PRIO),
+-	IOCTL_INFO(VIDIOC_G_DV_TIMINGS, 0),
+-	IOCTL_INFO(VIDIOC_DQEVENT, 0),
+-	IOCTL_INFO(VIDIOC_SUBSCRIBE_EVENT, 0),
+-	IOCTL_INFO(VIDIOC_UNSUBSCRIBE_EVENT, 0),
+-	IOCTL_INFO(VIDIOC_CREATE_BUFS, INFO_FL_PRIO),
+-	IOCTL_INFO(VIDIOC_PREPARE_BUF, 0),
+-	IOCTL_INFO(VIDIOC_ENUM_DV_TIMINGS, 0),
+-	IOCTL_INFO(VIDIOC_QUERY_DV_TIMINGS, 0),
+-	IOCTL_INFO(VIDIOC_DV_TIMINGS_CAP, 0),
+-};
+-#define V4L2_IOCTLS ARRAY_SIZE(v4l2_ioctls)
+-
+-bool v4l2_is_known_ioctl(unsigned int cmd)
+-{
+-	if (_IOC_NR(cmd) >= V4L2_IOCTLS)
+-		return false;
+-	return v4l2_ioctls[_IOC_NR(cmd)].ioctl == cmd;
+-}
+-
+-/* Common ioctl debug function. This function can be used by
+-   external ioctl messages as well as internal V4L ioctl */
+-void v4l_printk_ioctl(unsigned int cmd)
+-{
+-	char *dir, *type;
+-
+-	switch (_IOC_TYPE(cmd)) {
+-	case 'd':
+-		type = "v4l2_int";
+-		break;
+-	case 'V':
+-		if (_IOC_NR(cmd) >= V4L2_IOCTLS) {
+-			type = "v4l2";
+-			break;
+-		}
+-		printk("%s", v4l2_ioctls[_IOC_NR(cmd)].name);
+-		return;
+-	default:
+-		type = "unknown";
+-	}
+-
+-	switch (_IOC_DIR(cmd)) {
+-	case _IOC_NONE:              dir = "--"; break;
+-	case _IOC_READ:              dir = "r-"; break;
+-	case _IOC_WRITE:             dir = "-w"; break;
+-	case _IOC_READ | _IOC_WRITE: dir = "rw"; break;
+-	default:                     dir = "*ERR*"; break;
+-	}
+-	printk("%s ioctl '%c', dir=%s, #%d (0x%08x)",
+-		type, _IOC_TYPE(cmd), dir, _IOC_NR(cmd), cmd);
+-}
+-EXPORT_SYMBOL(v4l_printk_ioctl);
+-
+ static void dbgbuf(unsigned int cmd, struct video_device *vfd,
+ 					struct v4l2_buffer *p)
+ {
+@@ -536,6 +392,150 @@ static int check_fmt(const struct v4l2_ioctl_ops *ops, enum v4l2_buf_type type)
+ 	return -EINVAL;
+ }
+ 
++struct v4l2_ioctl_info {
++	unsigned int ioctl;
++	u16 flags;
++	const char * const name;
++};
++
++/* This control needs a priority check */
++#define INFO_FL_PRIO	(1 << 0)
++/* This control can be valid if the filehandle passes a control handler. */
++#define INFO_FL_CTRL	(1 << 1)
++
++#define IOCTL_INFO(_ioctl, _flags) [_IOC_NR(_ioctl)] = {	\
++	.ioctl = _ioctl,					\
++	.flags = _flags,					\
++	.name = #_ioctl,					\
++}
++
++static struct v4l2_ioctl_info v4l2_ioctls[] = {
++	IOCTL_INFO(VIDIOC_QUERYCAP, 0),
++	IOCTL_INFO(VIDIOC_ENUM_FMT, 0),
++	IOCTL_INFO(VIDIOC_G_FMT, 0),
++	IOCTL_INFO(VIDIOC_S_FMT, INFO_FL_PRIO),
++	IOCTL_INFO(VIDIOC_REQBUFS, INFO_FL_PRIO),
++	IOCTL_INFO(VIDIOC_QUERYBUF, 0),
++	IOCTL_INFO(VIDIOC_G_FBUF, 0),
++	IOCTL_INFO(VIDIOC_S_FBUF, INFO_FL_PRIO),
++	IOCTL_INFO(VIDIOC_OVERLAY, INFO_FL_PRIO),
++	IOCTL_INFO(VIDIOC_QBUF, 0),
++	IOCTL_INFO(VIDIOC_DQBUF, 0),
++	IOCTL_INFO(VIDIOC_STREAMON, INFO_FL_PRIO),
++	IOCTL_INFO(VIDIOC_STREAMOFF, INFO_FL_PRIO),
++	IOCTL_INFO(VIDIOC_G_PARM, 0),
++	IOCTL_INFO(VIDIOC_S_PARM, INFO_FL_PRIO),
++	IOCTL_INFO(VIDIOC_G_STD, 0),
++	IOCTL_INFO(VIDIOC_S_STD, INFO_FL_PRIO),
++	IOCTL_INFO(VIDIOC_ENUMSTD, 0),
++	IOCTL_INFO(VIDIOC_ENUMINPUT, 0),
++	IOCTL_INFO(VIDIOC_G_CTRL, INFO_FL_CTRL),
++	IOCTL_INFO(VIDIOC_S_CTRL, INFO_FL_PRIO | INFO_FL_CTRL),
++	IOCTL_INFO(VIDIOC_G_TUNER, 0),
++	IOCTL_INFO(VIDIOC_S_TUNER, INFO_FL_PRIO),
++	IOCTL_INFO(VIDIOC_G_AUDIO, 0),
++	IOCTL_INFO(VIDIOC_S_AUDIO, INFO_FL_PRIO),
++	IOCTL_INFO(VIDIOC_QUERYCTRL, INFO_FL_CTRL),
++	IOCTL_INFO(VIDIOC_QUERYMENU, INFO_FL_CTRL),
++	IOCTL_INFO(VIDIOC_G_INPUT, 0),
++	IOCTL_INFO(VIDIOC_S_INPUT, INFO_FL_PRIO),
++	IOCTL_INFO(VIDIOC_G_OUTPUT, 0),
++	IOCTL_INFO(VIDIOC_S_OUTPUT, INFO_FL_PRIO),
++	IOCTL_INFO(VIDIOC_ENUMOUTPUT, 0),
++	IOCTL_INFO(VIDIOC_G_AUDOUT, 0),
++	IOCTL_INFO(VIDIOC_S_AUDOUT, INFO_FL_PRIO),
++	IOCTL_INFO(VIDIOC_G_MODULATOR, 0),
++	IOCTL_INFO(VIDIOC_S_MODULATOR, INFO_FL_PRIO),
++	IOCTL_INFO(VIDIOC_G_FREQUENCY, 0),
++	IOCTL_INFO(VIDIOC_S_FREQUENCY, INFO_FL_PRIO),
++	IOCTL_INFO(VIDIOC_CROPCAP, 0),
++	IOCTL_INFO(VIDIOC_G_CROP, 0),
++	IOCTL_INFO(VIDIOC_S_CROP, INFO_FL_PRIO),
++	IOCTL_INFO(VIDIOC_G_SELECTION, 0),
++	IOCTL_INFO(VIDIOC_S_SELECTION, INFO_FL_PRIO),
++	IOCTL_INFO(VIDIOC_G_JPEGCOMP, 0),
++	IOCTL_INFO(VIDIOC_S_JPEGCOMP, INFO_FL_PRIO),
++	IOCTL_INFO(VIDIOC_QUERYSTD, 0),
++	IOCTL_INFO(VIDIOC_TRY_FMT, 0),
++	IOCTL_INFO(VIDIOC_ENUMAUDIO, 0),
++	IOCTL_INFO(VIDIOC_ENUMAUDOUT, 0),
++	IOCTL_INFO(VIDIOC_G_PRIORITY, 0),
++	IOCTL_INFO(VIDIOC_S_PRIORITY, INFO_FL_PRIO),
++	IOCTL_INFO(VIDIOC_G_SLICED_VBI_CAP, 0),
++	IOCTL_INFO(VIDIOC_LOG_STATUS, 0),
++	IOCTL_INFO(VIDIOC_G_EXT_CTRLS, INFO_FL_CTRL),
++	IOCTL_INFO(VIDIOC_S_EXT_CTRLS, INFO_FL_PRIO | INFO_FL_CTRL),
++	IOCTL_INFO(VIDIOC_TRY_EXT_CTRLS, 0),
++	IOCTL_INFO(VIDIOC_ENUM_FRAMESIZES, 0),
++	IOCTL_INFO(VIDIOC_ENUM_FRAMEINTERVALS, 0),
++	IOCTL_INFO(VIDIOC_G_ENC_INDEX, 0),
++	IOCTL_INFO(VIDIOC_ENCODER_CMD, INFO_FL_PRIO),
++	IOCTL_INFO(VIDIOC_TRY_ENCODER_CMD, 0),
++	IOCTL_INFO(VIDIOC_DECODER_CMD, INFO_FL_PRIO),
++	IOCTL_INFO(VIDIOC_TRY_DECODER_CMD, 0),
++#ifdef CONFIG_VIDEO_ADV_DEBUG
++	IOCTL_INFO(VIDIOC_DBG_S_REGISTER, 0),
++	IOCTL_INFO(VIDIOC_DBG_G_REGISTER, 0),
++#endif
++	IOCTL_INFO(VIDIOC_DBG_G_CHIP_IDENT, 0),
++	IOCTL_INFO(VIDIOC_S_HW_FREQ_SEEK, INFO_FL_PRIO),
++	IOCTL_INFO(VIDIOC_ENUM_DV_PRESETS, 0),
++	IOCTL_INFO(VIDIOC_S_DV_PRESET, INFO_FL_PRIO),
++	IOCTL_INFO(VIDIOC_G_DV_PRESET, 0),
++	IOCTL_INFO(VIDIOC_QUERY_DV_PRESET, 0),
++	IOCTL_INFO(VIDIOC_S_DV_TIMINGS, INFO_FL_PRIO),
++	IOCTL_INFO(VIDIOC_G_DV_TIMINGS, 0),
++	IOCTL_INFO(VIDIOC_DQEVENT, 0),
++	IOCTL_INFO(VIDIOC_SUBSCRIBE_EVENT, 0),
++	IOCTL_INFO(VIDIOC_UNSUBSCRIBE_EVENT, 0),
++	IOCTL_INFO(VIDIOC_CREATE_BUFS, INFO_FL_PRIO),
++	IOCTL_INFO(VIDIOC_PREPARE_BUF, 0),
++	IOCTL_INFO(VIDIOC_ENUM_DV_TIMINGS, 0),
++	IOCTL_INFO(VIDIOC_QUERY_DV_TIMINGS, 0),
++	IOCTL_INFO(VIDIOC_DV_TIMINGS_CAP, 0),
++};
++#define V4L2_IOCTLS ARRAY_SIZE(v4l2_ioctls)
++
++bool v4l2_is_known_ioctl(unsigned int cmd)
++{
++	if (_IOC_NR(cmd) >= V4L2_IOCTLS)
++		return false;
++	return v4l2_ioctls[_IOC_NR(cmd)].ioctl == cmd;
++}
++
++/* Common ioctl debug function. This function can be used by
++   external ioctl messages as well as internal V4L ioctl */
++void v4l_printk_ioctl(unsigned int cmd)
++{
++	char *dir, *type;
++
++	switch (_IOC_TYPE(cmd)) {
++	case 'd':
++		type = "v4l2_int";
++		break;
++	case 'V':
++		if (_IOC_NR(cmd) >= V4L2_IOCTLS) {
++			type = "v4l2";
++			break;
++		}
++		printk("%s", v4l2_ioctls[_IOC_NR(cmd)].name);
++		return;
++	default:
++		type = "unknown";
++	}
++
++	switch (_IOC_DIR(cmd)) {
++	case _IOC_NONE:              dir = "--"; break;
++	case _IOC_READ:              dir = "r-"; break;
++	case _IOC_WRITE:             dir = "-w"; break;
++	case _IOC_READ | _IOC_WRITE: dir = "rw"; break;
++	default:                     dir = "*ERR*"; break;
++	}
++	printk("%s ioctl '%c', dir=%s, #%d (0x%08x)",
++		type, _IOC_TYPE(cmd), dir, _IOC_NR(cmd), cmd);
++}
++EXPORT_SYMBOL(v4l_printk_ioctl);
++
+ static long __video_do_ioctl(struct file *file,
+ 		unsigned int cmd, void *arg)
+ {
+-- 
+1.7.10
+
