@@ -1,162 +1,435 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-2.cisco.com ([144.254.224.141]:55060 "EHLO
-	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756413Ab2FYNIV (ORCPT
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:2088 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932773Ab2FVMVx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Jun 2012 09:08:21 -0400
+	Fri, 22 Jun 2012 08:21:53 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH v3 08/13] davinci: vpif: add support for clipping on output data
-Date: Mon, 25 Jun 2012 15:08:10 +0200
-Cc: davinci-linux-open-source@linux.davincidsp.com,
-	Manjunath Hadli <manjunath.hadli@ti.com>,
-	LMML <linux-media@vger.kernel.org>
-References: <1340622455-10419-1-git-send-email-manjunath.hadli@ti.com> <1340622455-10419-9-git-send-email-manjunath.hadli@ti.com> <2408615.OIAyvZB6Tt@avalon>
-In-Reply-To: <2408615.OIAyvZB6Tt@avalon>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201206251508.10347.hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Pawel Osciak <pawel@osciak.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv2 PATCH 11/34] v4l2-ioctl.c: use the new table for queuing/parm ioctls.
+Date: Fri, 22 Jun 2012 14:21:05 +0200
+Message-Id: <86e706cbb7825b9c7fb165b141b43cd8be493a2c.1340366355.git.hans.verkuil@cisco.com>
+In-Reply-To: <1340367688-8722-1-git-send-email-hverkuil@xs4all.nl>
+References: <1340367688-8722-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1cee710ae251aa69bed8e563a94b419ed99bc41a.1340366355.git.hans.verkuil@cisco.com>
+References: <1cee710ae251aa69bed8e563a94b419ed99bc41a.1340366355.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon 25 June 2012 14:54:39 Laurent Pinchart wrote:
-> Hi Manjunath,
-> 
-> Thank you for the patch.
-> 
-> On Monday 25 June 2012 16:37:30 Manjunath Hadli wrote:
-> > add hardware clipping support for VPIF output data. This
-> > is needed as it is possible that the external encoder
-> > might get confused between the FF or 00 which are a part
-> > of the data and that of the SAV or EAV codes.
-> > 
-> > Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-> > Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
-> > ---
-> >  drivers/media/video/davinci/vpif.h         |   30 +++++++++++++++++++++++++
-> >  drivers/media/video/davinci/vpif_display.c |   10 +++++++++
-> >  include/media/davinci/vpif_types.h         |    2 +
-> >  3 files changed, 42 insertions(+), 0 deletions(-)
-> > 
-> > diff --git a/drivers/media/video/davinci/vpif.h
-> > b/drivers/media/video/davinci/vpif.h index a4d2141..c2ce4d9 100644
-> > --- a/drivers/media/video/davinci/vpif.h
-> > +++ b/drivers/media/video/davinci/vpif.h
-> > @@ -211,6 +211,12 @@ static inline void vpif_clr_bit(u32 reg, u32 bit)
-> >  #define VPIF_CH3_INT_CTRL_SHIFT	(6)
-> >  #define VPIF_CH_INT_CTRL_SHIFT	(6)
-> > 
-> > +#define VPIF_CH2_CLIP_ANC_EN	14
-> > +#define VPIF_CH2_CLIP_ACTIVE_EN	13
-> > +
-> > +#define VPIF_CH3_CLIP_ANC_EN	14
-> > +#define VPIF_CH3_CLIP_ACTIVE_EN	13
-> > +
-> >  /* enabled interrupt on both the fields on vpid_ch0_ctrl register */
-> >  #define channel0_intr_assert()	(regw((regr(VPIF_CH0_CTRL)|\
-> >  	(VPIF_INT_BOTH << VPIF_CH0_INT_CTRL_SHIFT)), VPIF_CH0_CTRL))
-> > @@ -515,6 +521,30 @@ static inline void channel3_raw_enable(int enable, u8
-> > index) vpif_clr_bit(VPIF_CH3_CTRL, mask);
-> >  }
-> > 
-> > +/* function to enable clipping (for both active and blanking regions) on ch
-> > 2 */ +static inline void channel2_clipping_enable(int enable)
-> > +{
-> > +	if (enable) {
-> > +		vpif_set_bit(VPIF_CH2_CTRL, VPIF_CH2_CLIP_ANC_EN);
-> > +		vpif_set_bit(VPIF_CH2_CTRL, VPIF_CH2_CLIP_ACTIVE_EN);
-> > +	} else {
-> > +		vpif_clr_bit(VPIF_CH2_CTRL, VPIF_CH2_CLIP_ANC_EN);
-> > +		vpif_clr_bit(VPIF_CH2_CTRL, VPIF_CH2_CLIP_ACTIVE_EN);
-> > +	}
-> > +}
-> > +
-> > +/* function to enable clipping (for both active and blanking regions) on ch
-> > 2 */ +static inline void channel3_clipping_enable(int enable)
-> > +{
-> > +	if (enable) {
-> > +		vpif_set_bit(VPIF_CH3_CTRL, VPIF_CH3_CLIP_ANC_EN);
-> > +		vpif_set_bit(VPIF_CH3_CTRL, VPIF_CH3_CLIP_ACTIVE_EN);
-> > +	} else {
-> > +		vpif_clr_bit(VPIF_CH3_CTRL, VPIF_CH3_CLIP_ANC_EN);
-> > +		vpif_clr_bit(VPIF_CH3_CTRL, VPIF_CH3_CLIP_ACTIVE_EN);
-> > +	}
-> > +}
-> > +
-> >  /* inline function to set buffer addresses in case of Y/C non mux mode */
-> >  static inline void ch2_set_videobuf_addr_yc_nmux(unsigned long
-> > top_strt_luma, unsigned long btm_strt_luma,
-> > diff --git a/drivers/media/video/davinci/vpif_display.c
-> > b/drivers/media/video/davinci/vpif_display.c index 61ea8bc..4436ef6 100644
-> > --- a/drivers/media/video/davinci/vpif_display.c
-> > +++ b/drivers/media/video/davinci/vpif_display.c
-> > @@ -1046,6 +1046,8 @@ static int vpif_streamon(struct file *file, void
-> > *priv, channel2_intr_assert();
-> >  			channel2_intr_enable(1);
-> >  			enable_channel2(1);
-> > +			if (vpif_config_data->ch2_clip_en)
-> > +				channel2_clipping_enable(1);
-> >  		}
-> > 
-> >  		if ((VPIF_CHANNEL3_VIDEO == ch->channel_id)
-> > @@ -1053,6 +1055,8 @@ static int vpif_streamon(struct file *file, void
-> > *priv, channel3_intr_assert();
-> >  			channel3_intr_enable(1);
-> >  			enable_channel3(1);
-> > +			if (vpif_config_data->ch3_clip_en)
-> > +				channel3_clipping_enable(1);
-> >  		}
-> >  		channel_first_int[VPIF_VIDEO_INDEX][ch->channel_id] = 1;
-> >  	}
-> > @@ -1065,6 +1069,8 @@ static int vpif_streamoff(struct file *file, void
-> > *priv, struct vpif_fh *fh = priv;
-> >  	struct channel_obj *ch = fh->channel;
-> >  	struct common_obj *common = &ch->common[VPIF_VIDEO_INDEX];
-> > +	struct vpif_display_config *vpif_config_data =
-> > +					vpif_dev->platform_data;
-> > 
-> >  	if (buftype != V4L2_BUF_TYPE_VIDEO_OUTPUT) {
-> >  		vpif_err("buffer type not supported\n");
-> > @@ -1084,11 +1090,15 @@ static int vpif_streamoff(struct file *file, void
-> > *priv, if (buftype == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
-> >  		/* disable channel */
-> >  		if (VPIF_CHANNEL2_VIDEO == ch->channel_id) {
-> > +			if (vpif_config_data->ch2_clip_en)
-> > +				channel2_clipping_enable(0);
-> >  			enable_channel2(0);
-> >  			channel2_intr_enable(0);
-> >  		}
-> >  		if ((VPIF_CHANNEL3_VIDEO == ch->channel_id) ||
-> >  					(2 == common->started)) {
-> > +			if (vpif_config_data->ch3_clip_en)
-> > +				channel3_clipping_enable(0);
-> >  			enable_channel3(0);
-> >  			channel3_intr_enable(0);
-> >  		}
-> > diff --git a/include/media/davinci/vpif_types.h
-> > b/include/media/davinci/vpif_types.h index bd8217c..d8f6ab1 100644
-> > --- a/include/media/davinci/vpif_types.h
-> > +++ b/include/media/davinci/vpif_types.h
-> > @@ -50,6 +50,8 @@ struct vpif_display_config {
-> >  	const char **output;
-> >  	int output_count;
-> >  	const char *card_name;
-> > +	bool ch2_clip_en;
-> > +	bool ch3_clip_en;
-> 
-> Instead of hardcoding this in platform data, I think it would be better to 
-> make this runtime-configurable. One option is to use the value of the 
-> v4l2_pix_format::colorspace field configured by userspace. We already have 
-> V4L2_COLORSPACE_JPEG which maps to the full 0-255 range, but we're missing a 
-> colorspace for the clipped 1-254 range used by the VPIF and I'm not sure 
-> whether it would really make sense to add one. Another option is to use a V4L2 
-> control.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-This is something for a V4L2 control I think since clipping is colorspace
-independent (you have the same situation for e.g. YCbCr).
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/video/v4l2-ioctl.c |  315 ++++++++++++++++++++------------------
+ 1 file changed, 165 insertions(+), 150 deletions(-)
 
-Regards,
+diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
+index 2a5ed40..dca495a 100644
+--- a/drivers/media/video/v4l2-ioctl.c
++++ b/drivers/media/video/v4l2-ioctl.c
+@@ -426,48 +426,97 @@ static void v4l_print_hw_freq_seek(const void *arg, bool write_only)
+ 		p->tuner, p->type, p->seek_upward, p->wrap_around, p->spacing);
+ }
+ 
+-static void v4l_print_u32(const void *arg, bool write_only)
++static void v4l_print_requestbuffers(const void *arg, bool write_only)
+ {
+-	pr_cont("value=%u\n", *(const u32 *)arg);
++	const struct v4l2_requestbuffers *p = arg;
++
++	pr_cont("count=%d, type=%s, memory=%s\n",
++		p->count,
++		prt_names(p->type, v4l2_type_names),
++		prt_names(p->memory, v4l2_memory_names));
+ }
+ 
+-static void dbgbuf(unsigned int cmd, struct video_device *vfd,
+-					struct v4l2_buffer *p)
++static void v4l_print_buffer(const void *arg, bool write_only)
+ {
+-	struct v4l2_timecode *tc = &p->timecode;
+-	struct v4l2_plane *plane;
++	const struct v4l2_buffer *p = arg;
++	const struct v4l2_timecode *tc = &p->timecode;
++	const struct v4l2_plane *plane;
+ 	int i;
+ 
+-	dbgarg(cmd, "%02ld:%02d:%02d.%08ld index=%d, type=%s, "
+-		"flags=0x%08d, field=%0d, sequence=%d, memory=%s\n",
++	pr_cont("%02ld:%02d:%02d.%08ld index=%d, type=%s, "
++		"flags=0x%08x, field=%s, sequence=%d, memory=%s",
+ 			p->timestamp.tv_sec / 3600,
+ 			(int)(p->timestamp.tv_sec / 60) % 60,
+ 			(int)(p->timestamp.tv_sec % 60),
+ 			(long)p->timestamp.tv_usec,
+ 			p->index,
+ 			prt_names(p->type, v4l2_type_names),
+-			p->flags, p->field, p->sequence,
+-			prt_names(p->memory, v4l2_memory_names));
++			p->flags, prt_names(p->field, v4l2_field_names),
++			p->sequence, prt_names(p->memory, v4l2_memory_names));
+ 
+ 	if (V4L2_TYPE_IS_MULTIPLANAR(p->type) && p->m.planes) {
++		pr_cont("\n");
+ 		for (i = 0; i < p->length; ++i) {
+ 			plane = &p->m.planes[i];
+-			dbgarg2("plane %d: bytesused=%d, data_offset=0x%08x "
+-				"offset/userptr=0x%08lx, length=%d\n",
++			printk(KERN_DEBUG
++				"plane %d: bytesused=%d, data_offset=0x%08x "
++				"offset/userptr=0x%lx, length=%d\n",
+ 				i, plane->bytesused, plane->data_offset,
+ 				plane->m.userptr, plane->length);
+ 		}
+ 	} else {
+-		dbgarg2("bytesused=%d, offset/userptr=0x%08lx, length=%d\n",
++		pr_cont("bytesused=%d, offset/userptr=0x%lx, length=%d\n",
+ 			p->bytesused, p->m.userptr, p->length);
+ 	}
+ 
+-	dbgarg2("timecode=%02d:%02d:%02d type=%d, "
+-		"flags=0x%08d, frames=%d, userbits=0x%08x\n",
++	printk(KERN_DEBUG "timecode=%02d:%02d:%02d type=%d, "
++		"flags=0x%08x, frames=%d, userbits=0x%08x\n",
+ 			tc->hours, tc->minutes, tc->seconds,
+ 			tc->type, tc->flags, tc->frames, *(__u32 *)tc->userbits);
+ }
+ 
++static void v4l_print_create_buffers(const void *arg, bool write_only)
++{
++	const struct v4l2_create_buffers *p = arg;
++
++	pr_cont("index=%d, count=%d, memory=%s, ",
++			p->index, p->count,
++			prt_names(p->memory, v4l2_memory_names));
++	v4l_print_format(&p->format, write_only);
++}
++
++static void v4l_print_streamparm(const void *arg, bool write_only)
++{
++	const struct v4l2_streamparm *p = arg;
++
++	pr_cont("type=%s", prt_names(p->type, v4l2_type_names));
++
++	if (p->type == V4L2_BUF_TYPE_VIDEO_CAPTURE ||
++	    p->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
++		const struct v4l2_captureparm *c = &p->parm.capture;
++
++		pr_cont(", capability=0x%x, capturemode=0x%x, timeperframe=%d/%d, "
++			"extendedmode=%d, readbuffers=%d\n",
++			c->capability, c->capturemode,
++			c->timeperframe.numerator, c->timeperframe.denominator,
++			c->extendedmode, c->readbuffers);
++	} else if (p->type == V4L2_BUF_TYPE_VIDEO_OUTPUT ||
++		   p->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
++		const struct v4l2_outputparm *c = &p->parm.output;
++
++		pr_cont(", capability=0x%x, outputmode=0x%x, timeperframe=%d/%d, "
++			"extendedmode=%d, writebuffers=%d\n",
++			c->capability, c->outputmode,
++			c->timeperframe.numerator, c->timeperframe.denominator,
++			c->extendedmode, c->writebuffers);
++	}
++}
++
++static void v4l_print_u32(const void *arg, bool write_only)
++{
++	pr_cont("value=%u\n", *(const u32 *)arg);
++}
++
+ static inline void dbgrect(struct video_device *vfd, char *s,
+ 							struct v4l2_rect *r)
+ {
+@@ -1070,6 +1119,99 @@ static int v4l_s_hw_freq_seek(const struct v4l2_ioctl_ops *ops,
+ 	return ops->vidioc_s_hw_freq_seek(file, fh, p);
+ }
+ 
++static int v4l_reqbufs(const struct v4l2_ioctl_ops *ops,
++				struct file *file, void *fh, void *arg)
++{
++	struct v4l2_requestbuffers *p = arg;
++	int ret = check_fmt(ops, p->type);
++
++	if (ret)
++		return ret;
++
++	if (p->type < V4L2_BUF_TYPE_PRIVATE)
++		CLEAR_AFTER_FIELD(p, memory);
++
++	return ops->vidioc_reqbufs(file, fh, p);
++}
++
++static int v4l_querybuf(const struct v4l2_ioctl_ops *ops,
++				struct file *file, void *fh, void *arg)
++{
++	struct v4l2_buffer *p = arg;
++	int ret = check_fmt(ops, p->type);
++
++	return ret ? ret : ops->vidioc_querybuf(file, fh, p);
++}
++
++static int v4l_qbuf(const struct v4l2_ioctl_ops *ops,
++				struct file *file, void *fh, void *arg)
++{
++	struct v4l2_buffer *p = arg;
++	int ret = check_fmt(ops, p->type);
++
++	return ret ? ret : ops->vidioc_qbuf(file, fh, p);
++}
++
++static int v4l_dqbuf(const struct v4l2_ioctl_ops *ops,
++				struct file *file, void *fh, void *arg)
++{
++	struct v4l2_buffer *p = arg;
++	int ret = check_fmt(ops, p->type);
++
++	return ret ? ret : ops->vidioc_dqbuf(file, fh, p);
++}
++
++static int v4l_create_bufs(const struct v4l2_ioctl_ops *ops,
++				struct file *file, void *fh, void *arg)
++{
++	struct v4l2_create_buffers *create = arg;
++	int ret = check_fmt(ops, create->format.type);
++
++	return ret ? ret : ops->vidioc_create_bufs(file, fh, create);
++}
++
++static int v4l_prepare_buf(const struct v4l2_ioctl_ops *ops,
++				struct file *file, void *fh, void *arg)
++{
++	struct v4l2_buffer *b = arg;
++	int ret = check_fmt(ops, b->type);
++
++	return ret ? ret : ops->vidioc_prepare_buf(file, fh, b);
++}
++
++static int v4l_g_parm(const struct v4l2_ioctl_ops *ops,
++				struct file *file, void *fh, void *arg)
++{
++	struct video_device *vfd = video_devdata(file);
++	struct v4l2_streamparm *p = arg;
++	v4l2_std_id std;
++	int ret = check_fmt(ops, p->type);
++
++	if (ret)
++		return ret;
++	if (ops->vidioc_g_parm)
++		return ops->vidioc_g_parm(file, fh, p);
++	std = vfd->current_norm;
++	if (p->type != V4L2_BUF_TYPE_VIDEO_CAPTURE &&
++	    p->type != V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
++		return -EINVAL;
++	if (ops->vidioc_g_std)
++		ret = ops->vidioc_g_std(file, fh, &std);
++	if (ret == 0)
++		v4l2_video_std_frame_period(std,
++			    &p->parm.capture.timeperframe);
++	return ret;
++}
++
++static int v4l_s_parm(const struct v4l2_ioctl_ops *ops,
++				struct file *file, void *fh, void *arg)
++{
++	struct v4l2_streamparm *p = arg;
++	int ret = check_fmt(ops, p->type);
++
++	return ret ? ret : ops->vidioc_s_parm(file, fh, p);
++}
++
+ struct v4l2_ioctl_info {
+ 	unsigned int ioctl;
+ 	u32 flags;
+@@ -1125,17 +1267,17 @@ static struct v4l2_ioctl_info v4l2_ioctls[] = {
+ 	IOCTL_INFO_FNC(VIDIOC_ENUM_FMT, v4l_enum_fmt, v4l_print_fmtdesc, INFO_FL_CLEAR(v4l2_fmtdesc, type)),
+ 	IOCTL_INFO_FNC(VIDIOC_G_FMT, v4l_g_fmt, v4l_print_format, INFO_FL_CLEAR(v4l2_format, type)),
+ 	IOCTL_INFO_FNC(VIDIOC_S_FMT, v4l_s_fmt, v4l_print_format, INFO_FL_PRIO),
+-	IOCTL_INFO(VIDIOC_REQBUFS, INFO_FL_PRIO),
+-	IOCTL_INFO(VIDIOC_QUERYBUF, INFO_FL_CLEAR(v4l2_buffer, length)),
++	IOCTL_INFO_FNC(VIDIOC_REQBUFS, v4l_reqbufs, v4l_print_requestbuffers, INFO_FL_PRIO),
++	IOCTL_INFO_FNC(VIDIOC_QUERYBUF, v4l_querybuf, v4l_print_buffer, INFO_FL_CLEAR(v4l2_buffer, length)),
+ 	IOCTL_INFO_STD(VIDIOC_G_FBUF, vidioc_g_fbuf, v4l_print_framebuffer, 0),
+ 	IOCTL_INFO_STD(VIDIOC_S_FBUF, vidioc_s_fbuf, v4l_print_framebuffer, INFO_FL_PRIO),
+ 	IOCTL_INFO_STD(VIDIOC_OVERLAY, vidioc_overlay, v4l_print_u32, INFO_FL_PRIO),
+-	IOCTL_INFO(VIDIOC_QBUF, 0),
+-	IOCTL_INFO(VIDIOC_DQBUF, 0),
++	IOCTL_INFO_FNC(VIDIOC_QBUF, v4l_qbuf, v4l_print_buffer, 0),
++	IOCTL_INFO_FNC(VIDIOC_DQBUF, v4l_dqbuf, v4l_print_buffer, 0),
+ 	IOCTL_INFO_FNC(VIDIOC_STREAMON, v4l_streamon, v4l_print_buftype, INFO_FL_PRIO),
+ 	IOCTL_INFO_FNC(VIDIOC_STREAMOFF, v4l_streamoff, v4l_print_buftype, INFO_FL_PRIO),
+-	IOCTL_INFO(VIDIOC_G_PARM, INFO_FL_CLEAR(v4l2_streamparm, type)),
+-	IOCTL_INFO(VIDIOC_S_PARM, INFO_FL_PRIO),
++	IOCTL_INFO_FNC(VIDIOC_G_PARM, v4l_g_parm, v4l_print_streamparm, INFO_FL_CLEAR(v4l2_streamparm, type)),
++	IOCTL_INFO_FNC(VIDIOC_S_PARM, v4l_s_parm, v4l_print_streamparm, INFO_FL_PRIO),
+ 	IOCTL_INFO_FNC(VIDIOC_G_STD, v4l_g_std, v4l_print_std, 0),
+ 	IOCTL_INFO_FNC(VIDIOC_S_STD, v4l_s_std, v4l_print_std, INFO_FL_PRIO),
+ 	IOCTL_INFO_FNC(VIDIOC_ENUMSTD, v4l_enumstd, v4l_print_standard, INFO_FL_CLEAR(v4l2_standard, index)),
+@@ -1197,8 +1339,8 @@ static struct v4l2_ioctl_info v4l2_ioctls[] = {
+ 	IOCTL_INFO(VIDIOC_DQEVENT, 0),
+ 	IOCTL_INFO(VIDIOC_SUBSCRIBE_EVENT, 0),
+ 	IOCTL_INFO(VIDIOC_UNSUBSCRIBE_EVENT, 0),
+-	IOCTL_INFO(VIDIOC_CREATE_BUFS, INFO_FL_PRIO),
+-	IOCTL_INFO(VIDIOC_PREPARE_BUF, 0),
++	IOCTL_INFO_FNC(VIDIOC_CREATE_BUFS, v4l_create_bufs, v4l_print_create_buffers, INFO_FL_PRIO),
++	IOCTL_INFO_FNC(VIDIOC_PREPARE_BUF, v4l_prepare_buf, v4l_print_buffer, 0),
+ 	IOCTL_INFO(VIDIOC_ENUM_DV_TIMINGS, 0),
+ 	IOCTL_INFO(VIDIOC_QUERY_DV_TIMINGS, 0),
+ 	IOCTL_INFO(VIDIOC_DV_TIMINGS_CAP, 0),
+@@ -1308,68 +1450,6 @@ static long __video_do_ioctl(struct file *file,
+ 	}
+ 
+ 	switch (cmd) {
+-	/* FIXME: Those buf reqs could be handled here,
+-	   with some changes on videobuf to allow its header to be included at
+-	   videodev2.h or being merged at videodev2.
+-	 */
+-	case VIDIOC_REQBUFS:
+-	{
+-		struct v4l2_requestbuffers *p = arg;
+-
+-		ret = check_fmt(ops, p->type);
+-		if (ret)
+-			break;
+-
+-		if (p->type < V4L2_BUF_TYPE_PRIVATE)
+-			CLEAR_AFTER_FIELD(p, memory);
+-
+-		ret = ops->vidioc_reqbufs(file, fh, p);
+-		dbgarg(cmd, "count=%d, type=%s, memory=%s\n",
+-				p->count,
+-				prt_names(p->type, v4l2_type_names),
+-				prt_names(p->memory, v4l2_memory_names));
+-		break;
+-	}
+-	case VIDIOC_QUERYBUF:
+-	{
+-		struct v4l2_buffer *p = arg;
+-
+-		ret = check_fmt(ops, p->type);
+-		if (ret)
+-			break;
+-
+-		ret = ops->vidioc_querybuf(file, fh, p);
+-		if (!ret)
+-			dbgbuf(cmd, vfd, p);
+-		break;
+-	}
+-	case VIDIOC_QBUF:
+-	{
+-		struct v4l2_buffer *p = arg;
+-
+-		ret = check_fmt(ops, p->type);
+-		if (ret)
+-			break;
+-
+-		ret = ops->vidioc_qbuf(file, fh, p);
+-		if (!ret)
+-			dbgbuf(cmd, vfd, p);
+-		break;
+-	}
+-	case VIDIOC_DQBUF:
+-	{
+-		struct v4l2_buffer *p = arg;
+-
+-		ret = check_fmt(ops, p->type);
+-		if (ret)
+-			break;
+-
+-		ret = ops->vidioc_dqbuf(file, fh, p);
+-		if (!ret)
+-			dbgbuf(cmd, vfd, p);
+-		break;
+-	}
+-
+ 	/* --- controls ---------------------------------------------- */
+ 	case VIDIOC_QUERYCTRL:
+ 	{
+@@ -1732,45 +1812,6 @@ static long __video_do_ioctl(struct file *file,
+ 			dbgarg(cmd, "cmd=%d, flags=%x\n", p->cmd, p->flags);
+ 		break;
+ 	}
+-	case VIDIOC_G_PARM:
+-	{
+-		struct v4l2_streamparm *p = arg;
+-
+-		if (ops->vidioc_g_parm) {
+-			ret = check_fmt(ops, p->type);
+-			if (ret)
+-				break;
+-			ret = ops->vidioc_g_parm(file, fh, p);
+-		} else {
+-			v4l2_std_id std = vfd->current_norm;
+-
+-			ret = -EINVAL;
+-			if (p->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+-				break;
+-
+-			ret = 0;
+-			if (ops->vidioc_g_std)
+-				ret = ops->vidioc_g_std(file, fh, &std);
+-			if (ret == 0)
+-				v4l2_video_std_frame_period(std,
+-						    &p->parm.capture.timeperframe);
+-		}
+-
+-		dbgarg(cmd, "type=%d\n", p->type);
+-		break;
+-	}
+-	case VIDIOC_S_PARM:
+-	{
+-		struct v4l2_streamparm *p = arg;
+-
+-		ret = check_fmt(ops, p->type);
+-		if (ret)
+-			break;
+-
+-		dbgarg(cmd, "type=%d\n", p->type);
+-		ret = ops->vidioc_s_parm(file, fh, p);
+-		break;
+-	}
+ 	case VIDIOC_G_SLICED_VBI_CAP:
+ 	{
+ 		struct v4l2_sliced_vbi_cap *p = arg;
+@@ -2051,32 +2092,6 @@ static long __video_do_ioctl(struct file *file,
+ 		dbgarg(cmd, "type=0x%8.8x", sub->type);
+ 		break;
+ 	}
+-	case VIDIOC_CREATE_BUFS:
+-	{
+-		struct v4l2_create_buffers *create = arg;
+-
+-		ret = check_fmt(ops, create->format.type);
+-		if (ret)
+-			break;
+-
+-		ret = ops->vidioc_create_bufs(file, fh, create);
+-
+-		dbgarg(cmd, "count=%d @ %d\n", create->count, create->index);
+-		break;
+-	}
+-	case VIDIOC_PREPARE_BUF:
+-	{
+-		struct v4l2_buffer *b = arg;
+-
+-		ret = check_fmt(ops, b->type);
+-		if (ret)
+-			break;
+-
+-		ret = ops->vidioc_prepare_buf(file, fh, b);
+-
+-		dbgarg(cmd, "index=%d", b->index);
+-		break;
+-	}
+ 	default:
+ 		if (!ops->vidioc_default)
+ 			break;
+-- 
+1.7.10
 
-	Hans
