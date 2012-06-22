@@ -1,161 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtprelay-b11.telenor.se ([62.127.194.20]:60959 "EHLO
-	smtprelay-b11.telenor.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751132Ab2FMIqY (ORCPT
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:1855 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932870Ab2FVMWX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 Jun 2012 04:46:24 -0400
-Received: from ipb4.telenor.se (ipb4.telenor.se [195.54.127.167])
-	by smtprelay-b11.telenor.se (Postfix) with ESMTP id B9900D2E9
-	for <linux-media@vger.kernel.org>; Wed, 13 Jun 2012 10:46:20 +0200 (CEST)
-From: "Fontana" <shade@bredband.net>
-To: <linux-media@vger.kernel.org>
-Subject: SV: stv0297 signal issues on QAM256
-Date: Wed, 13 Jun 2012 10:46:00 +0200
-Message-ID: <NIEIIOCBEBNKDBNEFBEBCEDHCBAA.shade@bredband.net>
-MIME-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <NIEIIOCBEBNKDBNEFBEBOEDACBAA.shade@bredband.net>
+	Fri, 22 Jun 2012 08:22:23 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Pawel Osciak <pawel@osciak.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: [RFCv2 PATCH 00/34] Core and vb2 enhancements
+Date: Fri, 22 Jun 2012 14:20:54 +0200
+Message-Id: <1340367688-8722-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Hi all,
 
-After some further digging i found a post with attached patch.
+This is the second version of this patch series.
 
-http://www.linuxtv.org/pipermail/linux-dvb/attachments/20080731/de8768ed/att
-achment.diff
+The first version is here:
 
-Dunno why there were no followup on this one?
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg47558.html
 
-http://linuxtv.org/pipermail/linux-dvb/2008-July/027517.html
+Changes since RFCv1:
 
-Applied cleanly to kernel 3.4.0 with the following change.
+- Incorporated all review comments from Hans de Goede and Laurent Pinchart (Thanks!)
+  except for splitting off the vb2 helper functions into a separate source. I decided
+  to keep it together with the vb2-core code.
 
-- (p->u.qam.modulation == QAM_256) ? 6718 : 7250);
-+ (p->modulation == QAM_256) ? 6718 : 7250);
+- Improved commit messages, added more comments to the code.
 
-//Br Fredrik
+- The owner filehandle and the queue lock are both moved to struct vb2_queue since
+  these are a property of the queue.
 
+- The debug function has a new 'write_only' boolean: some debug functions can only
+  print a subset of the arguments if it is called by an _IOW ioctl. The previous
+  patch series split this up into two functions. Handling the debug function for
+  a write-only ioctl is annoying at the moment: you have to print the arguments
+  before calling the ioctl since the ioctl can overwrite arguments. I am considering
+  changing the op argument to const for such ioctls and see if any driver is
+  actually messing around with the contents of such structs. If we can guarantee
+  that drivers do not change the argument struct, then we can simplify the debug
+  code.
 
+- All debugging is now KERN_DEBUG instead of KERN_INFO.
 
------Ursprungligt meddelande-----
-Från: linux-media-owner@vger.kernel.org
-[mailto:linux-media-owner@vger.kernel.org]För Fontana
-Skickat: den 11 juni 2012 10:13
-Till: Fredrik; linux-media@vger.kernel.org
-Ämne: stv0297 signal issues on QAM256
+I still have one outstanding question: should anyone be able to call mmap() or
+only the owner of the vb2 queue? Right now anyone can call mmap().
 
+Comments are welcome!
 
-typo in subject
+Regards,
 
------Ursprungligt meddelande-----
-Från: linux-media-owner@vger.kernel.org
-[mailto:linux-media-owner@vger.kernel.org]För Fredrik
-Skickat: den 10 juni 2012 14:25
-Till: linux-media@vger.kernel.org
-Ämne: stv0298 signal issues on QAM256
+	Hans
 
+diffstat & git repo:
 
-Hi.
+The following changes since commit 17bd27bd78b59f7cbe0ff2cb8bb0e473260a9801:
 
-Unfortunatly my cable provider "Comhem" moved almost all channels to
-QAM256.
-The results are terrible on my two cards. Blocky picture and skipping
-audio.
-I've tried all suggestions i've found on mailing lists to change
-different values in stv0297.c  but without luck.
-What i cannot see is, if those who reported problems since 2005, are
-happy now or not. Perhaps this hardware is too obsolete.
-On other devices QAM256 is ok.
-Anyway im hoping for some help or some information to make me decide
-about placing these card in the junkbox.
+  [media] stradis: remove unused V4L1 headers (2012-06-21 14:43:04 -0300)
 
+are available in the git repository at:
 
-04:00.0 Multimedia controller: Philips Semiconductors SAA7146 (rev 01)
-         Subsystem: Technotrend Systemtechnik GmbH Octal/Technotrend
-DVB-C for iTV
-         Kernel driver in use: av7110
-         Kernel modules: dvb-ttpci
+  git://linuxtv.org/hverkuil/media_tree.git ioctlv6
 
-dmsg snip..
-[    1.572820] DVB: registering new adapter (Technotrend/Hauppauge WinTV
-Nexus-CA rev1.X)
-[    1.584677] DVB: registering adapter 0 frontend 0 (Philips TDA10023
-DVB-C)...
-[    1.590877] adapter has MAC addr = 00:d0:5c:24:5c:71
-[    1.592807] IR keymap rc-anysee not found
-[    1.592809] Registered IR keymap rc-empty
-[    1.592852] input: IR-receiver inside an USB DVB receiver as
-/devices/pci0000:00/0000:00:1d.7/usb1/1-6/rc/rc0/input0
-[    1.592869] rc0: IR-receiver inside an USB DVB receiver as
-/devices/pci0000:00/0000:00:1d.7/usb1/1-6/rc/rc0
-[    1.592871] dvb-usb: schedule remote query interval to 250 msecs.
-[    1.592873] dvb-usb: Anysee DVB USB2.0 successfully initialized and
-connected.
-[    1.594442] usbcore: registered new interface driver dvb_usb_anysee
-[    1.731015] usb 2-2: new full-speed USB device number 2 using uhci_hcd
-[    1.900088] usb 2-2: New USB device found, idVendor=046d, idProduct=0b04
-[    1.900092] usb 2-2: New USB device strings: Mfr=1, Product=2,
-SerialNumber=0
-[    1.900095] usb 2-2: Product: Logitech BT Mini-Receiver
-[    1.900098] usb 2-2: Manufacturer: Logitech
-[    1.903118] hub 2-2:1.0: USB hub found
-[    1.905092] hub 2-2:1.0: 3 ports detected
-[    1.924098] dvb-ttpci: info @ card 1: firm f0240009, rtsl b0250018,
-vid 71010068, app 80f12623
-[    1.924102] dvb-ttpci: firmware @ card 1 supports CI link layer
-interface
-[    1.998276] dvb_ttpci: DVB-C analog module @ card 1 detected,
-initializing MSP3415
-[    2.101563] dvb_ttpci: saa7113 not accessible
-[    2.116015] usb 3-1: new full-speed USB device number 2 using uhci_hcd
-[    2.131523] saa7146_vv: saa7146 (0): registered device video0 [v4l2]
-[    2.131535] saa7146_vv: saa7146 (0): registered device vbi0 [v4l2]
-[    2.133473] DVB: registering adapter 1 frontend 0 (ST STV0297 DVB-C)...
-[    2.136094] input: DVB on-card IR receiver as
-/devices/pci0000:00/0000:00:1e.0/0000:04:00.0/input/input1
-[    2.136119] dvb-ttpci: found av7110-0.
-[    2.136157] saa7146: found saa7146 @ mem fa0b0000 (revision 1, irq
-19) (0x13c2,0x000a)
-[    2.137704] DVB: registering new adapter (Technotrend/Hauppauge WinTV
-Nexus-CA rev1.X)
-[    2.155901] adapter has MAC addr = 00:d0:5c:24:47:2a
-[    2.283286] usb 3-1: New USB device found, idVendor=08e6, idProduct=3437
-[    2.283290] usb 3-1: New USB device strings: Mfr=1, Product=2,
-SerialNumber=0
-[    2.283293] usb 3-1: Product: USB SmartCard Reader
-[    2.283296] usb 3-1: Manufacturer: Gemplus
-[    2.485099] dvb-ttpci: info @ card 2: firm f0240009, rtsl b0250018,
-vid 71010068, app 80f12623
-[    2.485102] dvb-ttpci: firmware @ card 2 supports CI link layer
-interface
-[    2.492128] usb 5-2: new full-speed USB device number 2 using uhci_hcd
-[    2.562280] dvb_ttpci: DVB-C analog module @ card 2 detected,
-initializing MSP3415
-[    2.650542] usb 5-2: New USB device found, idVendor=0471, idProduct=0815
-[    2.650545] usb 5-2: New USB device strings: Mfr=1, Product=2,
-SerialNumber=3
-[    2.650548] usb 5-2: Product: eHome Infrared Transceiver
-[    2.650551] usb 5-2: Manufacturer: Philips
-[    2.650553] usb 5-2: SerialNumber: PH00GEFN
-[    2.665560] dvb_ttpci: saa7113 not accessible
-[    2.695510] saa7146_vv: saa7146 (1): registered device video1 [v4l2]
-[    2.695522] saa7146_vv: saa7146 (1): registered device vbi1 [v4l2]
-[    2.695832] DVB: registering adapter 2 frontend 0 (ST STV0297 DVB-C)...
-[    2.695906] input: DVB on-card IR receiver as
-/devices/pci0000:00/0000:00:1e.0/0000:04:01.0/input/input2
-[    2.695923] dvb-ttpci: found av7110-1.
+for you to fetch changes up to 11e684f2052cfea1b3897b3a06e0b4021acca85d:
 
-Br Fredrik
---
-To unsubscribe from this list: send the line "unsubscribe linux-media" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+  pwc: v4l2-compliance fixes. (2012-06-22 13:26:26 +0200)
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-media" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+----------------------------------------------------------------
+Hans Verkuil (34):
+      Regression fixes.
+      v4l2-ioctl.c: move a block of code down, no other changes.
+      v4l2-ioctl.c: introduce INFO_FL_CLEAR to replace switch.
+      v4l2-ioctl.c: v4l2-ioctl: add debug and callback/offset functionality.
+      v4l2-ioctl.c: remove an unnecessary #ifdef.
+      v4l2-ioctl.c: use the new table for querycap and i/o ioctls.
+      v4l2-ioctl.c: use the new table for priority ioctls.
+      v4l2-ioctl.c: use the new table for format/framebuffer ioctls.
+      v4l2-ioctl.c: use the new table for overlay/streamon/off ioctls.
+      v4l2-ioctl.c: use the new table for std/tuner/modulator ioctls.
+      v4l2-ioctl.c: use the new table for queuing/parm ioctls.
+      v4l2-ioctl.c: use the new table for control ioctls.
+      v4l2-ioctl.c: use the new table for selection ioctls.
+      v4l2-ioctl.c: use the new table for compression ioctls.
+      v4l2-ioctl.c: use the new table for debug ioctls.
+      v4l2-ioctl.c: use the new table for preset/timings ioctls.
+      v4l2-ioctl.c: use the new table for the remaining ioctls.
+      v4l2-ioctl.c: finalize table conversion.
+      v4l2-dev.c: add debug sysfs entry.
+      v4l2-ioctl: remove v4l_(i2c_)print_ioctl
+      ivtv: don't mess with vfd->debug.
+      cx18: don't mess with vfd->debug.
+      vb2-core: refactor reqbufs/create_bufs.
+      vb2-core: add support for count == 0 in create_bufs.
+      Spec: document CREATE_BUFS behavior if count == 0.
+      v4l2-dev/ioctl.c: add vb2_queue support to video_device.
+      videobuf2-core: add helper functions.
+      vivi: remove pointless g/s_std support
+      vivi: embed struct video_device instead of allocating it.
+      vivi: use vb2 helper functions.
+      vivi: add create_bufs/preparebuf support.
+      v4l2-dev.c: also add debug support for the fops.
+      pwc: use the new vb2 helpers.
+      pwc: v4l2-compliance fixes.
+
+ Documentation/DocBook/media/v4l/vidioc-create-bufs.xml |    8 +-
+ drivers/media/video/cx18/cx18-ioctl.c                  |   18 -
+ drivers/media/video/cx18/cx18-ioctl.h                  |    2 -
+ drivers/media/video/cx18/cx18-streams.c                |    4 +-
+ drivers/media/video/ivtv/ivtv-ioctl.c                  |   12 -
+ drivers/media/video/ivtv/ivtv-ioctl.h                  |    1 -
+ drivers/media/video/ivtv/ivtv-streams.c                |    4 +-
+ drivers/media/video/pvrusb2/pvrusb2-v4l2.c             |    4 +-
+ drivers/media/video/pwc/pwc-if.c                       |  155 +---
+ drivers/media/video/pwc/pwc-v4l.c                      |  165 +---
+ drivers/media/video/pwc/pwc.h                          |    3 -
+ drivers/media/video/sn9c102/sn9c102.h                  |    2 +-
+ drivers/media/video/uvc/uvc_v4l2.c                     |    2 +-
+ drivers/media/video/v4l2-dev.c                         |   67 +-
+ drivers/media/video/v4l2-ioctl.c                       | 3283 +++++++++++++++++++++++++++++++++++++---------------------------------------
+ drivers/media/video/videobuf2-core.c                   |  390 +++++++--
+ drivers/media/video/vivi.c                             |  190 +----
+ include/linux/videodev2.h                              |    6 +-
+ include/media/v4l2-dev.h                               |    3 +
+ include/media/v4l2-ioctl.h                             |   25 +-
+ include/media/videobuf2-core.h                         |   45 ++
+ 21 files changed, 2123 insertions(+), 2266 deletions(-)
 
