@@ -1,59 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:42038 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760601Ab2FDNf6 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jun 2012 09:35:58 -0400
-Received: by yenm10 with SMTP id m10so2982822yen.19
-        for <linux-media@vger.kernel.org>; Mon, 04 Jun 2012 06:35:57 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <4FCCB8F4.7090407@interlinx.bc.ca>
-References: <bug-827538-199927-UDXT6TGYkq@bugzilla.redhat.com>
-	<4FC91D64.6090305@iki.fi>
-	<4FCA41D7.2060206@iki.fi>
-	<4FCACF9C.8060509@iki.fi>
-	<4FCB76D3.7090800@interlinx.bc.ca>
-	<4FCB77FB.50804@iki.fi>
-	<4FCBD095.30901@iki.fi>
-	<4FCCB8F4.7090407@interlinx.bc.ca>
-Date: Mon, 4 Jun 2012 09:35:54 -0400
-Message-ID: <CAGoCfixoe5jyYrgwNnadbFsvRqF1P3rk5jMZbmtmvhyvAieZ0g@mail.gmail.com>
-Subject: Re: Fwd: [Bug 827538] DVB USB device firmware requested in module_init()
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: "Brian J. Murrell" <brian@interlinx.bc.ca>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from shadbolt.e.decadent.org.uk ([88.96.1.126]:37697 "EHLO
+	shadbolt.e.decadent.org.uk" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756726Ab2FVEwj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 Jun 2012 00:52:39 -0400
+Message-ID: <1340340750.6871.212.camel@deadeye.wl.decadent.org.uk>
+Subject: [3.2->3.3 regression] mceusb: only every second keypress is
+ recognised
+From: Ben Hutchings <ben@decadent.org.uk>
+To: Jarod Wilson <jarod@redhat.com>,
+	linux-media <linux-media@vger.kernel.org>
+Cc: 677727@bugs.debian.org, Michael Schmitt <tcwardrobe@gmail.com>
+Date: Fri, 22 Jun 2012 05:52:30 +0100
+In-Reply-To: <4FDF2B39.1000402@gmail.com>
+References: <20120616142624.11863.63977.reportbug@ganymed.tcw.local>
+	 <1339865057.4942.184.camel@deadeye.wl.decadent.org.uk>
+	 <4FDE4C13.8030308@gmail.com>
+	 <1339978963.4942.273.camel@deadeye.wl.decadent.org.uk>
+	 <4FDF2B39.1000402@gmail.com>
+Content-Type: multipart/signed; micalg="pgp-sha512";
+	protocol="application/pgp-signature"; boundary="=-jWyJWyaIN/0XeUQjxFC/"
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jun 4, 2012 at 9:32 AM, Brian J. Murrell <brian@interlinx.bc.ca> wrote:
-> On 12-06-03 05:01 PM, Antti Palosaari wrote:
->>
->> That firmware downloading patch is done top of my new dvb-usb
->> development tree. I have converted very limited set of drivers for that
->> tree, af9015, au6610, ec168 and anysee (and those are only on my local
->> hard disk). I tried to backport patch for the current dvb-usb but I ran
->> many problems and gave up. Looks like it is almost impossible to convert
->> old dvb-usb without big changes...
->>
->> So what driver you are using?
->
-> I'm using the hvr-950q per
-> https://bugzilla.kernel.org/show_bug.cgi?id=43145 and
-> https://bugzilla.kernel.org/show_bug.cgi?id=43146.
->
->> It is possible I can convert your driver
->> too and then it is possible to test.
->
-> Great.  Ideally it would be great to get this backported and applied to
-> the linux 3.2.0 release stream.
 
-The 950q doesn't use the dvb-usb framework (nor does it load the
-firmware at init).  Whatever is going on there is completely unrelated
-to what Antti is debugging.
+--=-jWyJWyaIN/0XeUQjxFC/
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Devin
+[Full bug log is at <http://bugs.debian.org/677727>.]
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+On Mon, 2012-06-18 at 15:20 +0200, Michael Schmitt wrote:
+> Hi Ben,
+>=20
+> mschmitt@ganymed:~$ dmesg |head -3
+> [    0.000000] Initializing cgroup subsys cpuset
+> [    0.000000] Initializing cgroup subsys cpu
+> [    0.000000] Linux version 3.3.0-rc6-686-pae (Debian=20
+> 3.3~rc6-1~experimental.1) (debian-kernel@lists.debian.org) (gcc version=
+=20
+> 4.6.3 (Debian 4.6.3-1) ) #1 SMP Mon Mar 5 21:21:52 UTC 2012
+>=20
+> that is the first kernel I found on snapshot.d.o that does show that=20
+> issue. The next one backwards is "linux-image-3.2.0-2-686-pae=20
+> (3.2.20-1)" and that one works.
+>=20
+> Is there anything that comes to your mind?
+
+No, but this version information should help to track down how the bug
+was introduced.
+
+Michael originally wrote:
+> with the current kernel from experimental only every second keypress is
+> recognized on my ir remote control. Reboot to kernel 3.2 from sid, all ba=
+ck to
+> normal.
+> I have no idea how the kernel could be responsible there... ok, a weird b=
+ug in
+> the responsible kernel module for the remote, but somehow I doubt that.
+
+The driver in question is mceusb.
+
+Ben.
+
+--=20
+Ben Hutchings
+Every program is either trivial or else contains at least one bug
+
+--=-jWyJWyaIN/0XeUQjxFC/
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIVAwUAT+P6Due/yOyVhhEJAQoQ8Q/9Gy1cxOZC4Cv9R8WGQ3XGIQ/tX4UkZscR
+kT8+xkm0nUgjcx5ReWMljR+/J/JQG1w0TA+3VUmota/JnwpnlWfF8YgS5KlQBYRj
+REqHAn6YmqBB7uZA5dauyllds5cM64xHoDA4xW8VbmqwGpF1aWPnez+GWWcipreZ
+3JwiCbxmHA1z4iPMd2kcmOU2QNvm+Oh0WhKAI8BJpHVlg43Ph69zDWzcNdyu7EKH
+f9GoKZQ8ZQDLcsLnrsbuHGTc3X/ctn+SHlgLb02pmkp8eAhIX2Oj2KOxbvIaeoo5
+0Ih82U5+CElmUk9rgQE5sQc+nx4zF49lYfa2k5oCJJXqG6SOQw0yPQTYopTVckRR
+7tUGA+0+pYwAlawhBl9IQjaAgDNmQf113gmjARmaP1JX/paDQdJW0RmAKCutff9y
+xgD10q/3PnaVRfqGuYoKDPNJLxFioBSmRedA7w9/dVrYj2tHOUKWUWv5jKy+PEg8
+O/6RJs4oljaWozyrmeVYLqgOJqjTnfjigI+lzE3kHNucLf47UeKhoKEk632meyPI
+nG3aqYt4q5HSUGMrJMYDY7VVz8IDc/uRVi5f/jPSY2xFf+HnrNFTCRkqLgtNgHLo
+MRO+OUWSvnqnhqKSeY2cwozweXDJFtqN8WdQ1DPwsZFgO4Ce0InBsLDOAiKujwqF
+RfVlHzUPtgU=
+=aw8/
+-----END PGP SIGNATURE-----
+
+--=-jWyJWyaIN/0XeUQjxFC/--
