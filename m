@@ -1,64 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f170.google.com ([209.85.212.170]:48816 "EHLO
-	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755516Ab2FYU72 convert rfc822-to-8bit (ORCPT
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:3335 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932772Ab2FVMVu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Jun 2012 16:59:28 -0400
-Received: by wibhq12 with SMTP id hq12so3077817wib.1
-        for <linux-media@vger.kernel.org>; Mon, 25 Jun 2012 13:59:27 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <0DB44B38-19BB-49E5-9286-18846E23D5E7@gmail.com>
-References: <0DB44B38-19BB-49E5-9286-18846E23D5E7@gmail.com>
-From: Andrew Hakman <andrew.hakman@gmail.com>
-Date: Mon, 25 Jun 2012 14:59:07 -0600
-Message-ID: <CABKuU7oRB41h1gbxVAvopVB06Cb=8aaNfUOF2V_N7rS1xqb9-g@mail.gmail.com>
-Subject: Re: Skystar HD2 / mantis status?
-To: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Fri, 22 Jun 2012 08:21:50 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Pawel Osciak <pawel@osciak.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv2 PATCH 34/34] pwc: v4l2-compliance fixes.
+Date: Fri, 22 Jun 2012 14:21:28 +0200
+Message-Id: <11e684f2052cfea1b3897b3a06e0b4021acca85d.1340366355.git.hans.verkuil@cisco.com>
+In-Reply-To: <1340367688-8722-1-git-send-email-hverkuil@xs4all.nl>
+References: <1340367688-8722-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1cee710ae251aa69bed8e563a94b419ed99bc41a.1340366355.git.hans.verkuil@cisco.com>
+References: <1cee710ae251aa69bed8e563a94b419ed99bc41a.1340366355.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I'm using 3.2-4.slh.1-aptosid-amd64
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-It seems to me something isn't quite setup with the STB0899 properly.
-Tuning the same mux on a TT-3200 (which uses the same tuner and demod
-chip) on a windows box coming from the same signal source at the same
-time in TSReader, zero errors on the TT-3200, and pretty much
-continual continuity and TEI errors from the Skystar HD2. (I'm using
-DVBlast, so it prints out all the errors -  makes it easy to see
-what's going on). The TEI errors lead me to suspect a setup problem
-with the STB0899, as it's actually marking the packets as
-uncorrectable after FEC processing. Also in the DVB wiki, it says the
-TT3200 doesn't work properly either in linux, and again, that would
-lead to a problem with the STB0899 code. I will try putting my TT3200
-into the linux box and see if it does any better.
+- add device_caps
+- set colorspace
+- s_parm should support a fps of 0 (== reset to nominal fps)
 
-I managed to find the Twinhan released source (after much searching,
-and setting up a windows VM to use driver guide's stupid download
-program - didn't trust it enough to just run it on my windows box),
-which seems like it's the reference code from ST for the STB0899 (been
-discussed before on the mailing list, in 2009 I think), but it's not
-exactly a 1:1 comparison between that code, and the current driver. I
-do notice fewer registers being set on init in the current STB0899
-code than the 'reference' code, but I'm not at a point where I'm ready
-to actually make any official statements on that.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/video/pwc/pwc-v4l.c |   25 ++++++++++++++++---------
+ 1 file changed, 16 insertions(+), 9 deletions(-)
 
-I seem to recall the STB0899 driver is kindof a touchy subject around
-these parts...
+diff --git a/drivers/media/video/pwc/pwc-v4l.c b/drivers/media/video/pwc/pwc-v4l.c
+index 114ae41..545e9bb 100644
+--- a/drivers/media/video/pwc/pwc-v4l.c
++++ b/drivers/media/video/pwc/pwc-v4l.c
+@@ -405,6 +405,7 @@ static void pwc_vidioc_fill_fmt(struct v4l2_format *f,
+ 	f->fmt.pix.pixelformat  = pixfmt;
+ 	f->fmt.pix.bytesperline = f->fmt.pix.width;
+ 	f->fmt.pix.sizeimage	= f->fmt.pix.height * f->fmt.pix.width * 3 / 2;
++	f->fmt.pix.colorspace	= V4L2_COLORSPACE_SRGB;
+ 	PWC_DEBUG_IOCTL("pwc_vidioc_fill_fmt() "
+ 			"width=%d, height=%d, bytesperline=%d, sizeimage=%d, pixelformat=%c%c%c%c\n",
+ 			f->fmt.pix.width,
+@@ -497,10 +498,9 @@ static int pwc_querycap(struct file *file, void *fh, struct v4l2_capability *cap
+ 	strcpy(cap->driver, PWC_NAME);
+ 	strlcpy(cap->card, pdev->vdev.name, sizeof(cap->card));
+ 	usb_make_path(pdev->udev, cap->bus_info, sizeof(cap->bus_info));
+-	cap->capabilities =
+-		V4L2_CAP_VIDEO_CAPTURE	|
+-		V4L2_CAP_STREAMING	|
+-		V4L2_CAP_READWRITE;
++	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING |
++					V4L2_CAP_READWRITE;
++	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
+ 	return 0;
+ }
+ 
+@@ -509,7 +509,8 @@ static int pwc_enum_input(struct file *file, void *fh, struct v4l2_input *i)
+ 	if (i->index)	/* Only one INPUT is supported */
+ 		return -EINVAL;
+ 
+-	strcpy(i->name, "usb");
++	strlcpy(i->name, "Camera", sizeof(i->name));
++	i->type = V4L2_INPUT_TYPE_CAMERA;
+ 	return 0;
+ }
+ 
+@@ -1003,12 +1004,18 @@ static int pwc_s_parm(struct file *file, void *fh,
+ 	int compression = 0;
+ 	int ret, fps;
+ 
+-	if (parm->type != V4L2_BUF_TYPE_VIDEO_CAPTURE ||
+-	    parm->parm.capture.timeperframe.numerator == 0)
++	if (parm->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+ 		return -EINVAL;
+ 
+-	fps = parm->parm.capture.timeperframe.denominator /
+-	      parm->parm.capture.timeperframe.numerator;
++	/* If timeperframe == 0, then reset the framerate to the nominal value.
++	   We pick a high framerate here, and let pwc_set_video_mode() figure
++	   out the best match. */
++	if (parm->parm.capture.timeperframe.numerator == 0 ||
++	    parm->parm.capture.timeperframe.denominator == 0)
++		fps = 30;
++	else
++		fps = parm->parm.capture.timeperframe.denominator /
++		      parm->parm.capture.timeperframe.numerator;
+ 
+ 	if (vb2_is_busy(&pdev->vb_queue))
+ 		return -EBUSY;
+-- 
+1.7.10
 
-The other thing that would be interesting would be to scope the I2C
-lines on the STB0899, and tune the same things in windows and linux,
-and see if the STB0899 is being setup the same way. Only trouble is I
-don't know which pins are SCL and SDA on the STB0899, and of course
-the actual data sheet is NDA only. Looks like all the digital-ish
-looking pins have convenient series resistors which make for great
-soldering locations!
-
-On Mon, Jun 25, 2012 at 2:34 PM, walou <walou.media@gmail.com> wrote:
-> I tried xubuntu 12.04 with 3.2.0-26 kernel and no success to get it work properly.
-> I have the 1ae4:0003 subsystem device.
-> Pls help.--
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
