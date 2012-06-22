@@ -1,191 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eu1sys200aog102.obsmtp.com ([207.126.144.113]:56442 "EHLO
-	eu1sys200aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932258Ab2FAJjs (ORCPT
+Received: from co202.xi-lite.net ([149.6.83.202]:41285 "EHLO co202.xi-lite.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754606Ab2FVOK5 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 1 Jun 2012 05:39:48 -0400
-From: Bhupesh Sharma <bhupesh.sharma@st.com>
-To: <laurent.pinchart@ideasonboard.com>, <linux-usb@vger.kernel.org>
-Cc: <balbi@ti.com>, <linux-media@vger.kernel.org>,
-	<gregkh@linuxfoundation.org>,
-	Bhupesh Sharma <bhupesh.sharma@st.com>
-Subject: [PATCH 5/5] usb: gadget/uvc: Add support for 'USB_GADGET_DELAYED_STATUS' response for a set_intf(alt-set 1) command
-Date: Fri, 1 Jun 2012 15:08:58 +0530
-Message-ID: <b0c0023b38755f2b9103adb17fd7847b9ba45d0b.1338543124.git.bhupesh.sharma@st.com>
-In-Reply-To: <cover.1338543124.git.bhupesh.sharma@st.com>
-References: <cover.1338543124.git.bhupesh.sharma@st.com>
+	Fri, 22 Jun 2012 10:10:57 -0400
+From: Olivier GRENIE <olivier.grenie@parrot.com>
+To: Zhu Sha Zang <zhushazang@gmail.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Fri, 22 Jun 2012 15:10:44 +0100
+Subject: RE: DiBcom adapter problems
+Message-ID: <C73E570AC040D442A4DD326F39F0F00E138E9533F9@SAPHIR.xi-lite.lan>
+References: <4FDDE29B.9040500@gmail.com>
+ <C73E570AC040D442A4DD326F39F0F00E138E9533E7@SAPHIR.xi-lite.lan>,<4FE31AB1.7020706@gmail.com>
+ <C73E570AC040D442A4DD326F39F0F00E138E9533EE@SAPHIR.xi-lite.lan>,<4FE461E8.60101@gmail.com>
+In-Reply-To: <4FE461E8.60101@gmail.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds the support in UVC webcam gadget design for providing
-USB_GADGET_DELAYED_STATUS in response to a set_interface(alt setting 1) command
-issue by the Host.
+You need to get the source code of your kernel, apply the path and recompile the kernel. There is another solution by compiling the module externally (http://git.linuxtv.org/media_build.git). You will also need to patch it.
 
-The current UVC webcam gadget design generates a STREAMON event corresponding
-to a set_interface(alt setting 1) command from the Host. This STREAMON event
-will eventually be routed to a real V4L2 device.
+regards,
+Olivier
+________________________________________
+From: Zhu Sha Zang [zhushazang@gmail.com]
+Sent: Friday, June 22, 2012 2:15 PM
+To: linux-media@vger.kernel.org
+Cc: Olivier GRENIE
+Subject: Re: DiBcom adapter problems
 
-To start video streaming, it may be required to perform some register writes to
-a camera sensor device over slow external busses like I2C or SPI. So, it makes
-sense to ensure that we delay the STATUS stage of the
-set_interface(alt setting 1) command.
+Excuse me, dumb question, but where and how can i apply this patch?
 
-Otherwise, a lot of ISOC IN tokens sent by the Host will be replied to by
-zero-length packets by the webcam device. On certain Hosts this may even lead
-to ISOC URBs been cancelled from the Host side.
+Thanks again!
 
-So, as soon as we finish doing all the "streaming" related stuff on the real
-V4L2 device, we call a STREAMON ioctl on the UVC side and from here we call the
-'usb_composite_setup_continue' function to complete the status stage of the
-set_interface(alt setting 1) command.
+Em 21-06-2012 14:07, Olivier GRENIE escreveu:
+> Hello,
+> can you test the following patch.
+>
+> regards,
+> Olivier
+>
+> From: Olivier Grenie <olivier.grenie@parrot.com>
+> Date: Thu, 21 Jun 2012 18:57:14 +0200
+> Subject: [PATCH] [media] dvb frontend core: tuning in ISDB-T using DVB API v3
+>   The intend of this patch is to be able to tune ISDB-T using
+>   the DVB API v3
+>
+> Signed-off-by: Olivier Grenie <olivier.grenie@parrot.com>
+> ---
+>   drivers/media/dvb/dvb-core/dvb_frontend.c |    7 +++++++
+>   1 file changed, 7 insertions(+)
+>
+> diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-core/dvb_frontend.c
+> index aebcdf2..ee1cc10 100644
+> --- a/drivers/media/dvb/dvb-core/dvb_frontend.c
+> +++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
+> @@ -1531,6 +1531,13 @@ static int set_delivery_system(struct dvb_frontend *fe, u32 desired_system)
+>                                  delsys = desired_system;
+>                                  break;
+>                          }
+> +
+> +                       /* check if the fe delivery system corresponds
+> +                          to the delivery system in cache */
+> +                       if (fe->ops.delsys[ncaps] == c->delivery_system) {
+> +                               delsys = c->delivery_system;
+> +                               break;
+> +                       }
+>                          ncaps++;
+>                  }
+>                  if (delsys == SYS_UNDEFINED) {
+>
 
-Further, we need to ensure that we queue no video buffers on the UVC webcam
-gadget, until we de-queue a video buffer from the V4L2 device. Also, we need to
-enable UVC video related stuff at the first QBUF ioctl call itself,
-as the application will call the STREAMON on UVC side only when it has
-dequeued sufficient buffers from the V4L2 side and queued them to the UVC
-gadget. So, the UVC video enable stuff cannot be done in STREAMON ioctl call.
 
-For the same we add two more UVC states:
-	- PRE_STREAMING : not even a single buffer has been queued to UVC
-	- BUF_QUEUED_STREAMING_OFF : one video buffer has been queued to UVC
-			but we have not yet enabled STREAMING on UVC side.
+--
 
-Signed-off-by: Bhupesh Sharma <bhupesh.sharma@st.com>
 ---
- drivers/usb/gadget/f_uvc.c    |   17 ++++++++++++-----
- drivers/usb/gadget/uvc.h      |    3 +++
- drivers/usb/gadget/uvc_v4l2.c |   38 ++++++++++++++++++++++++++++++++++++--
- 3 files changed, 51 insertions(+), 7 deletions(-)
+Rodolfo Timóteo da Silva
+Linux Counter: 359362
+msn: zhushazang@gmail.com
+skype: zhushazang
 
-diff --git a/drivers/usb/gadget/f_uvc.c b/drivers/usb/gadget/f_uvc.c
-index 2a8bf06..3589ed0 100644
---- a/drivers/usb/gadget/f_uvc.c
-+++ b/drivers/usb/gadget/f_uvc.c
-@@ -272,6 +272,13 @@ uvc_function_setup(struct usb_function *f, const struct usb_ctrlrequest *ctrl)
- 	return 0;
- }
- 
-+void uvc_function_setup_continue(struct uvc_device *uvc)
-+{
-+	struct usb_composite_dev *cdev = uvc->func.config->cdev;
-+
-+	usb_composite_setup_continue(cdev);
-+}
-+
- static int
- uvc_function_get_alt(struct usb_function *f, unsigned interface)
- {
-@@ -334,7 +341,8 @@ uvc_function_set_alt(struct usb_function *f, unsigned interface, unsigned alt)
- 		v4l2_event_queue(uvc->vdev, &v4l2_event);
- 
- 		uvc->state = UVC_STATE_CONNECTED;
--		break;
-+
-+		return 0;
- 
- 	case 1:
- 		if (uvc->state != UVC_STATE_CONNECTED)
-@@ -352,14 +360,13 @@ uvc_function_set_alt(struct usb_function *f, unsigned interface, unsigned alt)
- 		v4l2_event.type = UVC_EVENT_STREAMON;
- 		v4l2_event_queue(uvc->vdev, &v4l2_event);
- 
--		uvc->state = UVC_STATE_STREAMING;
--		break;
-+		uvc->state = UVC_STATE_PRE_STREAMING;
-+
-+		return USB_GADGET_DELAYED_STATUS;
- 
- 	default:
- 		return -EINVAL;
- 	}
--
--	return 0;
- }
- 
- static void
-diff --git a/drivers/usb/gadget/uvc.h b/drivers/usb/gadget/uvc.h
-index d78ea25..6cd1435 100644
---- a/drivers/usb/gadget/uvc.h
-+++ b/drivers/usb/gadget/uvc.h
-@@ -141,6 +141,8 @@ enum uvc_state
- {
- 	UVC_STATE_DISCONNECTED,
- 	UVC_STATE_CONNECTED,
-+	UVC_STATE_PRE_STREAMING,
-+	UVC_STATE_BUF_QUEUED_STREAMING_OFF,
- 	UVC_STATE_STREAMING,
- };
- 
-@@ -190,6 +192,7 @@ struct uvc_file_handle
-  * Functions
-  */
- 
-+extern void uvc_function_setup_continue(struct uvc_device *uvc);
- extern void uvc_endpoint_stream(struct uvc_device *dev);
- 
- extern void uvc_function_connect(struct uvc_device *uvc);
-diff --git a/drivers/usb/gadget/uvc_v4l2.c b/drivers/usb/gadget/uvc_v4l2.c
-index 9c2b45b..5f23571 100644
---- a/drivers/usb/gadget/uvc_v4l2.c
-+++ b/drivers/usb/gadget/uvc_v4l2.c
-@@ -235,10 +235,36 @@ uvc_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 	}
- 
- 	case VIDIOC_QBUF:
-+		/*
-+		 * Theory of operation:
-+		 * - for the very first QBUF call the uvc state will be
-+		 *   UVC_STATE_PRE_STREAMING, so we need to initialize
-+		 *   the UVC video pipe (allocate requests, init queue,
-+		 *   ..) and change the uvc state to
-+		 *   UVC_STATE_BUF_QUEUED_STREAMING_OFF.
-+		 *
-+		 * - For the QBUF calls thereafter, (until STREAMON is
-+		 *   called) we just need to queue the buffers.
-+		 *
-+		 * - Once STREAMON has been called (which is handled by the
-+		 *   STREAMON case below), we need to start pumping the data
-+		 *   to USB side here itself.
-+		 */
- 		if ((ret = uvc_queue_buffer(&video->queue, arg)) < 0)
- 			return ret;
- 
--		return uvc_video_pump(video);
-+		if (uvc->state == UVC_STATE_PRE_STREAMING) {
-+			ret = uvc_video_enable(video, 1);
-+			if (ret < 0)
-+				return ret;
-+
-+			uvc->state = UVC_STATE_BUF_QUEUED_STREAMING_OFF;
-+			return 0;
-+		} else if (uvc->state == UVC_STATE_STREAMING) {
-+			return uvc_video_pump(video);
-+		} else {
-+			return 0;
-+		}
- 
- 	case VIDIOC_DQBUF:
- 		return uvc_dequeue_buffer(&video->queue, arg,
-@@ -251,7 +277,15 @@ uvc_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 		if (*type != video->queue.queue.type)
- 			return -EINVAL;
- 
--		return uvc_video_enable(video, 1);
-+		/*
-+		 * since the real video device has now started streaming
-+		 * its safe now to complete the status phase of the
-+		 * set_interface (alt setting 1)
-+		 */
-+		uvc_function_setup_continue(uvc);
-+		uvc->state = UVC_STATE_STREAMING;
-+
-+		return 0;
- 	}
- 
- 	case VIDIOC_STREAMOFF:
--- 
-1.7.2.2
+Ribeirão Preto - SP
 
