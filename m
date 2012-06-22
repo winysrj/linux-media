@@ -1,66 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:13082 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752710Ab2F2MDU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Jun 2012 08:03:20 -0400
-Message-ID: <4FED9972.9090105@redhat.com>
-Date: Fri, 29 Jun 2012 09:02:58 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: linux-media <linux-media@vger.kernel.org>,
-	htl10@users.sourceforge.net
-Subject: Re: DVB core enhancements - comments please?
-References: <4FEBA656.7060608@iki.fi> <4FED2FE0.9010602@redhat.com> <4FED3714.2080901@iki.fi>
-In-Reply-To: <4FED3714.2080901@iki.fi>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:3963 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932843Ab2FVMV6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 Jun 2012 08:21:58 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Pawel Osciak <pawel@osciak.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv2 PATCH 21/34] ivtv: don't mess with vfd->debug.
+Date: Fri, 22 Jun 2012 14:21:15 +0200
+Message-Id: <0fdd42bc4859e0929d1fe7329ee3be492bd47625.1340366355.git.hans.verkuil@cisco.com>
+In-Reply-To: <1340367688-8722-1-git-send-email-hverkuil@xs4all.nl>
+References: <1340367688-8722-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1cee710ae251aa69bed8e563a94b419ed99bc41a.1340366355.git.hans.verkuil@cisco.com>
+References: <1cee710ae251aa69bed8e563a94b419ed99bc41a.1340366355.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 29-06-2012 02:03, Antti Palosaari escreveu:
-> On 06/29/2012 07:32 AM, Mauro Carvalho Chehab wrote:
->> Em 27-06-2012 21:33, Antti Palosaari escreveu:
->>> SDR - Softaware Defined Radio support DVB API
->>> --------------------------------------------------
->>> * http://comments.gmane.org/gmane.linux.drivers.video-input-infrastructure/44461
->>> * there is existing devices that are SDR (RTL2832U "rtl-sdr")
->>> * SDR is quite near what is digital TV streaming
->>> * study what is needed
->>> * new delivery system for frontend API called SDR?
->>> * some core changes needed, like status (is locked etc)
->>> * how about demuxer?
->>> * stream conversion, inside Kernel?
->>> * what are new parameters needed for DVB API?
->>
->> Let's not mix APIs: the radio control should use the V4L2 API, as this is not
->> DVB. The V4L2 API has already everything needed for radio. The only missing
->> part ther is the audio stream. However, there are a few drivers that provide
->> audio via the radio device node, using read()/poll() syscalls, like pvrusb.
->> On this specific driver, audio comes through a MPEG stream. As SDR provides
->> audio on a different format, it could make sense to use VIDIOC_S_STD/VIDIOC_G_STD
->> to set/retrieve the type of audio stream, for SDR, but maybe it better to just
->> add capabilities flag at VIDIOC_QUERYCTL or VIDIOC_G_TUNER to indicate that
->> the audio will come though the radio node and if the format is MPEG or SDR.
-> 
-> SDR is not a radio in mean of V4L2 analog audio radios.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Why not? There's nothing at V4L2 API that limits it to analog, otherwise it couldn't
-be used by digital cameras.
+This is now controlled by sysfs.
 
-> SDR can receive all kind of signals, analog audio, analog television, digital radio,
-> digital television, cellular phones, etc. You can even receive DVB-T, but hardware I
-> have is not capable to receive such wide stream.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/video/ivtv/ivtv-ioctl.c   |   12 ------------
+ drivers/media/video/ivtv/ivtv-ioctl.h   |    1 -
+ drivers/media/video/ivtv/ivtv-streams.c |    4 ++--
+ 3 files changed, 2 insertions(+), 15 deletions(-)
 
-The V4L2 API has everything to control receivers. What it doesn't have (and it doesn't make
-sense to have, as such thing would just duplicate existing features at DVB API)
-are the per delivery-system specific demodulator properties and PID filtering.
+diff --git a/drivers/media/video/ivtv/ivtv-ioctl.c b/drivers/media/video/ivtv/ivtv-ioctl.c
+index f7d57b3..32a5910 100644
+--- a/drivers/media/video/ivtv/ivtv-ioctl.c
++++ b/drivers/media/video/ivtv/ivtv-ioctl.c
+@@ -1830,18 +1830,6 @@ static long ivtv_default(struct file *file, void *fh, bool valid_prio,
+ 	return 0;
+ }
+ 
+-long ivtv_v4l2_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+-{
+-	struct video_device *vfd = video_devdata(filp);
+-	long ret;
+-
+-	if (ivtv_debug & IVTV_DBGFLG_IOCTL)
+-		vfd->debug = V4L2_DEBUG_IOCTL | V4L2_DEBUG_IOCTL_ARG;
+-	ret = video_ioctl2(filp, cmd, arg);
+-	vfd->debug = 0;
+-	return ret;
+-}
+-
+ static const struct v4l2_ioctl_ops ivtv_ioctl_ops = {
+ 	.vidioc_querycap    		    = ivtv_querycap,
+ 	.vidioc_s_audio     		    = ivtv_s_audio,
+diff --git a/drivers/media/video/ivtv/ivtv-ioctl.h b/drivers/media/video/ivtv/ivtv-ioctl.h
+index 89185ca..7c553d1 100644
+--- a/drivers/media/video/ivtv/ivtv-ioctl.h
++++ b/drivers/media/video/ivtv/ivtv-ioctl.h
+@@ -31,6 +31,5 @@ void ivtv_s_std_enc(struct ivtv *itv, v4l2_std_id *std);
+ void ivtv_s_std_dec(struct ivtv *itv, v4l2_std_id *std);
+ int ivtv_s_frequency(struct file *file, void *fh, struct v4l2_frequency *vf);
+ int ivtv_s_input(struct file *file, void *fh, unsigned int inp);
+-long ivtv_v4l2_ioctl(struct file *filp, unsigned int cmd, unsigned long arg);
+ 
+ #endif
+diff --git a/drivers/media/video/ivtv/ivtv-streams.c b/drivers/media/video/ivtv/ivtv-streams.c
+index 6738592..87990c5 100644
+--- a/drivers/media/video/ivtv/ivtv-streams.c
++++ b/drivers/media/video/ivtv/ivtv-streams.c
+@@ -50,7 +50,7 @@ static const struct v4l2_file_operations ivtv_v4l2_enc_fops = {
+ 	.read = ivtv_v4l2_read,
+ 	.write = ivtv_v4l2_write,
+ 	.open = ivtv_v4l2_open,
+-	.unlocked_ioctl = ivtv_v4l2_ioctl,
++	.unlocked_ioctl = video_ioctl2,
+ 	.release = ivtv_v4l2_close,
+ 	.poll = ivtv_v4l2_enc_poll,
+ };
+@@ -60,7 +60,7 @@ static const struct v4l2_file_operations ivtv_v4l2_dec_fops = {
+ 	.read = ivtv_v4l2_read,
+ 	.write = ivtv_v4l2_write,
+ 	.open = ivtv_v4l2_open,
+-	.unlocked_ioctl = ivtv_v4l2_ioctl,
++	.unlocked_ioctl = video_ioctl2,
+ 	.release = ivtv_v4l2_close,
+ 	.poll = ivtv_v4l2_dec_poll,
+ };
+-- 
+1.7.10
 
-> That chip supports natively DVB-T TS but change be switched to SDR mode. Is it even possible
-> to switch from DVB API (DVB-T delivery system) to V4L2 API at runtime?
-
-Yes. There are lots of drivers that do that. There are even a few that allow to control the
-frontend and demod via DVB API and to receive streams via V4L2 mmap or read API.
-
-Regards,
-Mauro
