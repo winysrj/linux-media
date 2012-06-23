@@ -1,101 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:4296 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755900Ab2FJK0W (ORCPT
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:49456 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755159Ab2FWQCA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Jun 2012 06:26:22 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Andy Walls <awalls@md.metrocast.net>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Pawel Osciak <pawel@osciak.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv1 PATCH 22/32] cx18: don't mess with vfd->debug.
-Date: Sun, 10 Jun 2012 12:25:44 +0200
-Message-Id: <3408e3f38d609a3d176ea0b96de8224fffcaf05a.1339321562.git.hans.verkuil@cisco.com>
-In-Reply-To: <1339323954-1404-1-git-send-email-hverkuil@xs4all.nl>
-References: <1339323954-1404-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <ef490f7ebca5b6df91db6b1acfb9928ada3bcd70.1339321562.git.hans.verkuil@cisco.com>
-References: <ef490f7ebca5b6df91db6b1acfb9928ada3bcd70.1339321562.git.hans.verkuil@cisco.com>
+	Sat, 23 Jun 2012 12:02:00 -0400
+Received: by obbuo13 with SMTP id uo13so3653088obb.19
+        for <linux-media@vger.kernel.org>; Sat, 23 Jun 2012 09:02:00 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <CACK0K0j4mSG=EtU1R-VvvoF_5ZCxrTk4p3niyHBt4tAGVdqLVA@mail.gmail.com>
+References: <CACK0K0gXr08aNe3gKkWXmKkZ+JA0RBcWtq35aFfNaSqCCWMM1Q@mail.gmail.com>
+	<CALF0-+ViQTmGnAS19kOCZPZAj0ZYZX4Ef-+J7A=k1J2OFhFuVg@mail.gmail.com>
+	<CALF0-+XoKmw0fe_vpOs-BEZXDZThA5WuNw8CRjohLJojZ2O4Dw@mail.gmail.com>
+	<CACK0K0j4mSG=EtU1R-VvvoF_5ZCxrTk4p3niyHBt4tAGVdqLVA@mail.gmail.com>
+Date: Sat, 23 Jun 2012 13:01:59 -0300
+Message-ID: <CALF0-+XR_ZE8_52zQKZ9n9x8sGrmJWNpeXnKD_j6Lg1YHta=vQ@mail.gmail.com>
+Subject: Re: stk1160 linux driver
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: Gianluca Bergamo <gianluca.bergamo@gmail.com>
+Cc: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Gianluca,
 
-That is now handled by sysfs.
+On Sat, Jun 23, 2012 at 10:51 AM, Gianluca Bergamo
+<gianluca.bergamo@gmail.com> wrote:
+> You are using :
+>
+> module_usb_driver(stk1160_usb_driver);
+>
+> That has been introduced in kernel 3.3 and so in my kernel 3.0.8 it does not
+> give compiler error (I don't know why) but the probe method is never called.
+> I've added the init and exit methods by myself and the probe now works.
+>
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/video/cx18/cx18-ioctl.c   |   18 ------------------
- drivers/media/video/cx18/cx18-ioctl.h   |    2 --
- drivers/media/video/cx18/cx18-streams.c |    4 ++--
- 3 files changed, 2 insertions(+), 22 deletions(-)
+I think you might want to take a look to media_build:
 
-diff --git a/drivers/media/video/cx18/cx18-ioctl.c b/drivers/media/video/cx18/cx18-ioctl.c
-index 35fde4e..e9912db 100644
---- a/drivers/media/video/cx18/cx18-ioctl.c
-+++ b/drivers/media/video/cx18/cx18-ioctl.c
-@@ -1142,24 +1142,6 @@ static long cx18_default(struct file *file, void *fh, bool valid_prio,
- 	return 0;
- }
- 
--long cx18_v4l2_ioctl(struct file *filp, unsigned int cmd,
--		    unsigned long arg)
--{
--	struct video_device *vfd = video_devdata(filp);
--	struct cx18_open_id *id = file2id(filp);
--	struct cx18 *cx = id->cx;
--	long res;
--
--	mutex_lock(&cx->serialize_lock);
--
--	if (cx18_debug & CX18_DBGFLG_IOCTL)
--		vfd->debug = V4L2_DEBUG_IOCTL | V4L2_DEBUG_IOCTL_ARG;
--	res = video_ioctl2(filp, cmd, arg);
--	vfd->debug = 0;
--	mutex_unlock(&cx->serialize_lock);
--	return res;
--}
--
- static const struct v4l2_ioctl_ops cx18_ioctl_ops = {
- 	.vidioc_querycap                = cx18_querycap,
- 	.vidioc_s_audio                 = cx18_s_audio,
-diff --git a/drivers/media/video/cx18/cx18-ioctl.h b/drivers/media/video/cx18/cx18-ioctl.h
-index dcb2559..2f9dd59 100644
---- a/drivers/media/video/cx18/cx18-ioctl.h
-+++ b/drivers/media/video/cx18/cx18-ioctl.h
-@@ -29,5 +29,3 @@ void cx18_set_funcs(struct video_device *vdev);
- int cx18_s_std(struct file *file, void *fh, v4l2_std_id *std);
- int cx18_s_frequency(struct file *file, void *fh, struct v4l2_frequency *vf);
- int cx18_s_input(struct file *file, void *fh, unsigned int inp);
--long cx18_v4l2_ioctl(struct file *filp, unsigned int cmd,
--		    unsigned long arg);
-diff --git a/drivers/media/video/cx18/cx18-streams.c b/drivers/media/video/cx18/cx18-streams.c
-index 4185bcb..9d598ab 100644
---- a/drivers/media/video/cx18/cx18-streams.c
-+++ b/drivers/media/video/cx18/cx18-streams.c
-@@ -40,8 +40,7 @@ static struct v4l2_file_operations cx18_v4l2_enc_fops = {
- 	.owner = THIS_MODULE,
- 	.read = cx18_v4l2_read,
- 	.open = cx18_v4l2_open,
--	/* FIXME change to video_ioctl2 if serialization lock can be removed */
--	.unlocked_ioctl = cx18_v4l2_ioctl,
-+	.unlocked_ioctl = video_ioctl2,
- 	.release = cx18_v4l2_close,
- 	.poll = cx18_v4l2_enc_poll,
- 	.mmap = cx18_v4l2_mmap,
-@@ -376,6 +375,7 @@ static int cx18_prep_dev(struct cx18 *cx, int type)
- 	s->video_dev->fops = &cx18_v4l2_enc_fops;
- 	s->video_dev->release = video_device_release;
- 	s->video_dev->tvnorms = V4L2_STD_ALL;
-+	s->video_dev->lock = &cx->serialize_lock;
- 	set_bit(V4L2_FL_USE_FH_PRIO, &s->video_dev->flags);
- 	cx18_set_funcs(s->video_dev);
- 	return 0;
--- 
-1.7.10
+http://git.linuxtv.org/media_build.git
+http://www.linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-DVB_Device_Drivers
 
+This allows latest drivers to be built against old kernels.
+
+A "backward-compatible" solution for stk1160 wouldn't be accepted mainline,
+but feel free to use (in a personal fashion)
+your patched driver and/or ask me to review your patch.
+
+Unfortunately, you'll have to patch yourself each time I release a new
+driver version,
+so you may wan to try media_build as I previously suggested.
+
+Hope this helps,
+Ezequiel.
