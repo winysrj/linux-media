@@ -1,79 +1,214 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vc0-f174.google.com ([209.85.220.174]:44789 "EHLO
-	mail-vc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752687Ab2FHWXR convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Jun 2012 18:23:17 -0400
-Received: by vcbf11 with SMTP id f11so1282195vcb.19
-        for <linux-media@vger.kernel.org>; Fri, 08 Jun 2012 15:23:17 -0700 (PDT)
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:43048 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751289Ab2FWIWm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 23 Jun 2012 04:22:42 -0400
+Date: Sat, 23 Jun 2012 11:22:37 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org,
+	Jean-Philippe Francois <jp.francois@cynove.com>
+Subject: Re: [PATCH] omap3isp: preview: Add support for non-GRBG Bayer
+ patterns
+Message-ID: <20120623082237.GA17925@valkosipuli.retiisi.org.uk>
+References: <1340029853-2648-1-git-send-email-laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-In-Reply-To: <20120608214229.GH5761@phenom.ffwll.local>
-References: <4fbf6893.a709d80a.4f7b.0e0eSMTPIN_ADDED@mx.google.com>
- <CACSP8SgSi+v70+-r1wR1hM0rDzmJK0g20i0fxRePLPuTXqrxuA@mail.gmail.com>
- <CAO8GWq=UYWTuJ=V6Luh4z49=og2X2wrHzVNYvbK7Tnw2zgzNeA@mail.gmail.com>
- <CACSP8Sgog0cDtxG+JsWQ=aYyiXtEr-N7+xPPRsAjwt3LAYC+uw@mail.gmail.com>
- <CAO8GWqnVN3tVp2chzsYKjhfzoupxsWwUT_LojzJ7kYWPRdZYJw@mail.gmail.com>
- <CACSP8SiVYiEg8BY9gvmbqiKNXEwEjHa+vxOvXpEgr+W-Wd5+rg@mail.gmail.com>
- <4fd09200.830ed80a.24f9.1a54SMTPIN_ADDED@mx.google.com> <CACSP8SgrB2YxsvUx6y-EomgJhupb3uVmF_hH0Sd-PG6G6G9Cfg@mail.gmail.com>
- <20120608214229.GH5761@phenom.ffwll.local>
-From: Erik Gilling <konkers@android.com>
-Date: Fri, 8 Jun 2012 15:22:56 -0700
-Message-ID: <CACSP8SiyzYHZJNxuNoVOqPCj-FwWy3dNMxhoixrwKfQt+2g7jg@mail.gmail.com>
-Subject: Re: [Linaro-mm-sig] [RFC] Synchronizing access to buffers shared with
- dma-buf between drivers/devices
-To: Daniel Vetter <daniel@ffwll.ch>
-Cc: Tom Cooksey <tom.cooksey@arm.com>, linaro-mm-sig@lists.linaro.org,
-	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1340029853-2648-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jun 8, 2012 at 2:42 PM, Daniel Vetter <daniel@ffwll.ch> wrote:
->> I think this is an approach worth investigating.  I'd like a way to
->> either opt out of implicit sync or have a way to check if a dma-buf
->> has an attached fence and detach it.  Actually, that could work really
->> well. Consider:
->>
->> * Each dma_buf has a single fence "slot"
->> * on submission
->>    * the driver will extract the fence from the dma_buf and queue a wait on it.
->>    * the driver will replace that fence with it's own complettion
->> fence before the job submission ioctl returns.
->
-> This is pretty much what I've had in mind with the extension that we
-> probably need both a read and a write fence - in a lot of cases multiple
-> people want to use a buffer for reads (e.g. when decoding video streams
-> the decode needs it as a reference frame wheras later stages use it
-> read-only, too).
+Hi Laurent,
 
-I actually hit "send" instead of "save draft" on this before talking
-this over with some co-workers.  We came up with the same issues.  I'm
-actually less concerned about the specifics as long as we have a way
-to attach and detach the fences.
+On Mon, Jun 18, 2012 at 04:30:53PM +0200, Laurent Pinchart wrote:
+> Rearrange the CFA interpolation coefficients table based on the Bayer
+> pattern. Modifying the table during streaming isn't supported anymore,
+> but didn't make sense in the first place anyway.
 
->> * dma_buf will have two userspace ioctls:
->>    * DETACH: will return the fence as an FD to userspace and clear the
->> fence slot in the dma_buf
->>    * ATTACH: takes a fence FD from userspace and attaches it to the
->> dma_buf fence slot.  Returns an error if the fence slot is non-empty.
->
-> I am not yet sold on explicit fences, especially for cross-device sync. I
-> do see uses for explicit fences that can be accessed from userspace for
-> individual drivers - otherwise tricks like suballocation are a bit hard to
-> pull off. But for cross-device buffer sharing I don't quite see the point,
-> especially since the current Linux userspace graphics stack manages to do
-> so without (e.g. DRI2 is all implicit sync'ed).
+Why not? I could imagine someone might want to change the table while
+streaming to change the white balance, for example. Gamma tables or the SRGB
+matrix can be used to do mostly the same but we should leave the decision
+which one to use to the user space.
 
-The current linux graphics stack does not allow synchronization
-between the GPU and a camera/video decoder.  When we've seen people
-try to support this behind the scenes, they get it wrong and introduce
-bugs that can take weeks to track down.  As stated in the previous
-email, one of our goals is to centrally manage synchronization so that
-it's easer for people bringing up a platform to get it right.
+> Support for non-Bayer CFA patterns is dropped as they were not correctly
+> supported, and have never been tested.
+> 
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> ---
+>  drivers/media/video/omap3isp/isppreview.c |  118 ++++++++++++++++------------
+>  1 files changed, 67 insertions(+), 51 deletions(-)
+> 
+> Jean-Philippe,
+> 
+> Could you please test this patch on your hardware ?
+> 
+> diff --git a/drivers/media/video/omap3isp/isppreview.c b/drivers/media/video/omap3isp/isppreview.c
+> index 8a4935e..bfa3107 100644
+> --- a/drivers/media/video/omap3isp/isppreview.c
+> +++ b/drivers/media/video/omap3isp/isppreview.c
+> @@ -309,36 +309,6 @@ preview_config_dcor(struct isp_prev_device *prev, const void *prev_dcor)
+>  }
+>  
+>  /*
+> - * preview_config_cfa - Configures the CFA Interpolation parameters.
+> - * @prev_cfa: Structure containing the CFA interpolation table, CFA format
+> - *            in the image, vertical and horizontal gradient threshold.
+> - */
+> -static void
+> -preview_config_cfa(struct isp_prev_device *prev, const void *prev_cfa)
+> -{
+> -	struct isp_device *isp = to_isp_device(prev);
+> -	const struct omap3isp_prev_cfa *cfa = prev_cfa;
+> -	unsigned int i;
+> -
+> -	isp_reg_clr_set(isp, OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR,
+> -			ISPPRV_PCR_CFAFMT_MASK,
+> -			cfa->format << ISPPRV_PCR_CFAFMT_SHIFT);
+> -
+> -	isp_reg_writel(isp,
+> -		(cfa->gradthrs_vert << ISPPRV_CFA_GRADTH_VER_SHIFT) |
+> -		(cfa->gradthrs_horz << ISPPRV_CFA_GRADTH_HOR_SHIFT),
+> -		OMAP3_ISP_IOMEM_PREV, ISPPRV_CFA);
+> -
+> -	isp_reg_writel(isp, ISPPRV_CFA_TABLE_ADDR,
+> -		       OMAP3_ISP_IOMEM_PREV, ISPPRV_SET_TBL_ADDR);
+> -
+> -	for (i = 0; i < OMAP3ISP_PREV_CFA_TBL_SIZE; i++) {
+> -		isp_reg_writel(isp, cfa->table[i],
+> -			       OMAP3_ISP_IOMEM_PREV, ISPPRV_SET_TBL_DATA);
+> -	}
+> -}
+> -
+> -/*
+>   * preview_config_gammacorrn - Configures the Gamma Correction table values
+>   * @gtable: Structure containing the table for red, blue, green gamma table.
+>   */
+> @@ -813,7 +783,7 @@ static const struct preview_update update_attrs[] = {
+>  		FIELD_SIZEOF(struct prev_params, hmed),
+>  		offsetof(struct omap3isp_prev_update_config, hmed),
+>  	}, /* OMAP3ISP_PREV_CFA */ {
+> -		preview_config_cfa,
+> +		NULL,
+>  		NULL,
+>  		offsetof(struct prev_params, cfa),
+>  		FIELD_SIZEOF(struct prev_params, cfa),
+> @@ -1043,42 +1013,88 @@ preview_config_ycpos(struct isp_prev_device *prev,
+>  static void preview_config_averager(struct isp_prev_device *prev, u8 average)
+>  {
+>  	struct isp_device *isp = to_isp_device(prev);
+> -	struct prev_params *params;
+> -	int reg = 0;
+>  
+> -	params = (prev->params.active & OMAP3ISP_PREV_CFA)
+> -	       ? &prev->params.params[0] : &prev->params.params[1];
+> -
+> -	if (params->cfa.format == OMAP3ISP_CFAFMT_BAYER)
+> -		reg = ISPPRV_AVE_EVENDIST_2 << ISPPRV_AVE_EVENDIST_SHIFT |
+> -		      ISPPRV_AVE_ODDDIST_2 << ISPPRV_AVE_ODDDIST_SHIFT |
+> -		      average;
+> -	else if (params->cfa.format == OMAP3ISP_CFAFMT_RGBFOVEON)
+> -		reg = ISPPRV_AVE_EVENDIST_3 << ISPPRV_AVE_EVENDIST_SHIFT |
+> -		      ISPPRV_AVE_ODDDIST_3 << ISPPRV_AVE_ODDDIST_SHIFT |
+> -		      average;
+> -	isp_reg_writel(isp, reg, OMAP3_ISP_IOMEM_PREV, ISPPRV_AVE);
+> +	isp_reg_writel(isp, ISPPRV_AVE_EVENDIST_2 << ISPPRV_AVE_EVENDIST_SHIFT |
+> +		       ISPPRV_AVE_ODDDIST_2 << ISPPRV_AVE_ODDDIST_SHIFT |
+> +		       average, OMAP3_ISP_IOMEM_PREV, ISPPRV_AVE);
+>  }
+>  
+> +
+> +#define OMAP3ISP_PREV_CFA_BLK_SIZE	(OMAP3ISP_PREV_CFA_TBL_SIZE / 4)
+> +
+>  /*
+>   * preview_config_input_format - Configure the input format
+>   * @prev: The preview engine
+>   * @format: Format on the preview engine sink pad
+>   *
+> - * Enable CFA interpolation for Bayer formats and disable it for greyscale
+> - * formats.
+> + * Enable and configure CFA interpolation for Bayer formats and disable it for
+> + * greyscale formats.
+> + *
+> + * The CFA table is organised in four blocks, one per Bayer component. The
+> + * hardware expects blocks to follow the Bayer order of the input data, while
+> + * the driver stores the table in GRBG order in memory. The blocks need to be
+> + * reordered to support non-GRBG Bayer patterns.
+>   */
+>  static void preview_config_input_format(struct isp_prev_device *prev,
+>  					const struct v4l2_mbus_framefmt *format)
+>  {
+> +	static const unsigned int cfa_coef_order[4][4] = {
+> +		{ 0, 1, 2, 3 }, /* GRBG */
+> +		{ 1, 0, 3, 2 }, /* RGGB */
+> +		{ 2, 3, 0, 1 }, /* BGGR */
+> +		{ 3, 2, 1, 0 }, /* GBRG */
+> +	};
+>  	struct isp_device *isp = to_isp_device(prev);
+> +	struct prev_params *params;
+> +	const unsigned int *order;
+> +	unsigned int i;
+> +	unsigned int j;
+>  
+> -	if (format->code != V4L2_MBUS_FMT_Y10_1X10)
+> -		isp_reg_set(isp, OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR,
+> -			    ISPPRV_PCR_CFAEN);
+> -	else
+> +	if (format->code == V4L2_MBUS_FMT_Y10_1X10) {
+>  		isp_reg_clr(isp, OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR,
+>  			    ISPPRV_PCR_CFAEN);
+> +		return;
+> +	}
+> +
+> +	params = (prev->params.active & OMAP3ISP_PREV_CFA)
+> +	       ? &prev->params.params[0] : &prev->params.params[1];
+> +
+> +	isp_reg_set(isp, OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR, ISPPRV_PCR_CFAEN);
+> +	isp_reg_clr_set(isp, OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR,
+> +			ISPPRV_PCR_CFAFMT_MASK, ISPPRV_PCR_CFAFMT_BAYER);
+> +
+> +	isp_reg_writel(isp,
+> +		(params->cfa.gradthrs_vert << ISPPRV_CFA_GRADTH_VER_SHIFT) |
+> +		(params->cfa.gradthrs_horz << ISPPRV_CFA_GRADTH_HOR_SHIFT),
+> +		OMAP3_ISP_IOMEM_PREV, ISPPRV_CFA);
+> +
+> +	switch (prev->formats[PREV_PAD_SINK].code) {
+> +	case V4L2_MBUS_FMT_SGRBG10_1X10:
+> +	default:
 
-> btw, I'll try to stitch together a more elaborate discussion over the w/e,
-> I have a few more pet-peeves with your actual implementation ;-)
+Is the "default" case expected to ever happen?
 
-Happy to hear feedback on the specifics.
+> +		order = cfa_coef_order[0];
+> +		break;
+> +	case V4L2_MBUS_FMT_SRGGB10_1X10:
+> +		order = cfa_coef_order[1];
+> +		break;
+> +	case V4L2_MBUS_FMT_SBGGR10_1X10:
+> +		order = cfa_coef_order[2];
+> +		break;
+> +	case V4L2_MBUS_FMT_SGBRG10_1X10:
+> +		order = cfa_coef_order[3];
+> +		break;
+> +	}
+> +
+> +	isp_reg_writel(isp, ISPPRV_CFA_TABLE_ADDR,
+> +		       OMAP3_ISP_IOMEM_PREV, ISPPRV_SET_TBL_ADDR);
+> +
+> +	for (i = 0; i < 4; ++i) {
+> +		__u32 *block = params->cfa.table
+> +			     + order[i] * OMAP3ISP_PREV_CFA_BLK_SIZE;
+> +
+> +		for (j = 0; j < OMAP3ISP_PREV_CFA_BLK_SIZE; ++j)
+> +			isp_reg_writel(isp, block[j], OMAP3_ISP_IOMEM_PREV,
+> +				       ISPPRV_SET_TBL_DATA);
+> +	}
+>  }
+>  
+>  /*
 
--Erik
+Cheers,
+
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
