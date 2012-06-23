@@ -1,72 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:39845 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751864Ab2FRKLT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jun 2012 06:11:19 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Andy Walls <awalls@md.metrocast.net>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Pawel Osciak <pawel@osciak.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFCv1 PATCH 25/32] create_bufs: handle count == 0.
-Date: Mon, 18 Jun 2012 12:11:27 +0200
-Message-ID: <2569605.k0h3VBEz9A@avalon>
-In-Reply-To: <0b5df251d2a54d54ee2810d86b6da0cf7efbe38d.1339321562.git.hans.verkuil@cisco.com>
-References: <1339323954-1404-1-git-send-email-hverkuil@xs4all.nl> <0b5df251d2a54d54ee2810d86b6da0cf7efbe38d.1339321562.git.hans.verkuil@cisco.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from elasmtp-dupuy.atl.sa.earthlink.net ([209.86.89.62]:37341 "EHLO
+	elasmtp-dupuy.atl.sa.earthlink.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752049Ab2FWNiX convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 23 Jun 2012 09:38:23 -0400
+Message-ID: <16989749.1340458702473.JavaMail.root@elwamui-royal.atl.sa.earthlink.net>
+Date: Sat, 23 Jun 2012 09:38:22 -0400 (GMT-04:00)
+From: sitten74490@mypacks.net
+To: Janne Grunau <janne@jannau.net>
+Subject: Re: hdpvr lockup with audio dropouts
+Cc: linux-media@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+>On 2012-06-09 10:31:36 -0400, sitten74490@mypacks.net wrote:
+>> >
+>> >On Thu, Jun 7, 2012 at 7:53 PM,  <sitten74490@mypacks.net> wrote:
+>> >> Apparently there is a known issue where the HD-PVR cannot handle the loss
+>> >> of audio signal over SPDIF while recording.  If this happens, the unit
+>> >> locks up requiring it to be power cycled before it can be used again. This
+>> >> behavior can easily be reproduced by pulling the SPDIF cable during
+>> >> recording.  My question is this:  are there any changes that could be made
+>> >> to the hdpvr driver that would make it more tolerant of brief audio
+>> >> dropouts?
+>> >
+>> >Does it do this under Windows?  If it does, then call Hauppauge and get them
+>> >to fix it (and if that results in a firmware fix, then it will help Linux
+>> >too).  If it works under Windows, then we know it's some sort of driver
+>> >issue which would be needed.
+>> >
+>> >It's always good when it's readily reproducible.  :-)
+>> >
+>> 
+>> Well, I tested it in Windows and no, the HD-PVR does not lock up when the
+>> audio signal is lost.  It does pause, but when the signal comes back it
+>> resumes playing normally.  So if I understand you correctly, this would most
+>> likely be a Linux driver bug rather than a firmware problem.
+>
+>Yes, it's a driver bug (although iirc the device locked up when I wrote
+>the driver). If you have usb traffic logs from the windows driver I'll
+>look at them. If not I'll try to set my hdpvr up in the next days.
+>
+>Janne
 
-Thanks for the patch.
+Here's a link to a USB traffic capture I made with USBlyzer (http://www.usblyzer.com/):
 
-On Sunday 10 June 2012 12:25:47 Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  Documentation/DocBook/media/v4l/vidioc-create-bufs.xml |    8 +++++++-
->  1 file changed, 7 insertions(+), 1 deletion(-)
-> 
-> diff --git a/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
-> b/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml index
-> 765549f..afdba4d 100644
-> --- a/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
-> +++ b/Documentation/DocBook/media/v4l/vidioc-create-bufs.xml
-> @@ -97,7 +97,13 @@ information.</para>
->  	  <row>
->  	    <entry>__u32</entry>
->  	    <entry><structfield>count</structfield></entry>
-> -	    <entry>The number of buffers requested or granted.</entry>
-> +	    <entry>The number of buffers requested or granted. If count == 0,
-> then
-> +	    <constant>VIDIOC_CREATE_BUFS</constant> will set
-> <structfield>index</structfield>
-> +	    to the starting buffer index,
+https://dl.dropbox.com/u/5664816/hdpvr.ulz
 
-I find "starting buffer index" a bit unclear in this context, as we don't 
-create any buffer.
+I disconnected the SPDIF cable several seconds into the capture and then reconnected several seconds later.
+If you need the capture in a different format, please let me know.  Thanks for your help.
 
-> and it will check the validity of
-> +	    <structfield>memory</structfield> and
-> <structfield>format.type</structfield>.
-> +	    If those are invalid -1 is returned and errno is set to &EINVAL;,
-> +	    otherwise <constant>VIDIOC_CREATE_BUFS</constant> returns 0. It will
-> +	    never set errno to &EBUSY; in this particular case.</entry>
->  	  </row>
->  	  <row>
->  	    <entry>__u32</entry>
--- 
-Regards,
+Jonathan
 
-Laurent Pinchart
+
 
