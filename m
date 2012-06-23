@@ -1,102 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gg0-f174.google.com ([209.85.161.174]:37016 "EHLO
-	mail-gg0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932089Ab2FVUDc (ORCPT
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:60850 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755228Ab2FWQh2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Jun 2012 16:03:32 -0400
-Received: by gglu4 with SMTP id u4so1870774ggl.19
-        for <linux-media@vger.kernel.org>; Fri, 22 Jun 2012 13:03:31 -0700 (PDT)
-Message-ID: <4FE4CF8F.4050306@gmail.com>
-Date: Fri, 22 Jun 2012 17:03:27 -0300
-From: Ariel Mammoli <cmammoli@gmail.com>
-Reply-To: admin@vpisa.com.ar
-MIME-Version: 1.0
-To: Ezequiel Garcia <elezegarcia@gmail.com>
-CC: linux-media <linux-media@vger.kernel.org>
-Subject: Re: Tuner NOGANET NG-PTV FM
-References: <4FE4BC43.9070100@gmail.com> <CALF0-+VM902A0x+TNXB1qe_jhKcYOs6ti1hMZBsTuTe6Ucmpeg@mail.gmail.com> <4FE4C2BE.2060301@gmail.com> <CALF0-+V430u34yv8arUsN=N5Vh-cJs=7JJdiaEH_OonarJ065g@mail.gmail.com> <4FE4CA11.5030208@gmail.com> <CALF0-+X4gHGogHWaHUHMRGXbK5JjGZ0hgLOGRVMQx-QXV15tGg@mail.gmail.com>
-In-Reply-To: <CALF0-+X4gHGogHWaHUHMRGXbK5JjGZ0hgLOGRVMQx-QXV15tGg@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+	Sat, 23 Jun 2012 12:37:28 -0400
+Received: by mail-bk0-f46.google.com with SMTP id ji2so2283417bkc.19
+        for <linux-media@vger.kernel.org>; Sat, 23 Jun 2012 09:37:28 -0700 (PDT)
+From: Gregor Jasny <gjasny@googlemail.com>
+To: linux-media@vger.kernel.org
+Cc: mchehab@redhat.com, Gregor Jasny <gjasny@googlemail.com>
+Subject: [PATCH 2/3] keytable: Preinstall keytables relative to sysconfdir
+Date: Sat, 23 Jun 2012 18:36:46 +0200
+Message-Id: <1340469407-25580-3-git-send-email-gjasny@googlemail.com>
+In-Reply-To: <1340469407-25580-1-git-send-email-gjasny@googlemail.com>
+References: <1340469407-25580-1-git-send-email-gjasny@googlemail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Ezequiel;
+Signed-off-by: Gregor Jasny <gjasny@googlemail.com>
+---
+ configure.ac               |    5 +++--
+ utils/keytable/Makefile.am |    5 ++---
+ utils/keytable/keytable.c  |    7 ++-----
+ 3 files changed, 7 insertions(+), 10 deletions(-)
 
-El vie 22 jun 2012 16:54:52 ART, Ezequiel Garcia ha escrito:
-> Hi Ariel,
->
-> On Fri, Jun 22, 2012 at 4:40 PM, Ariel Mammoli <cmammoli@gmail.com> wrote:
->> Hello again Ezequiel,
->>
->> El vie 22 jun 2012 16:16:51 ART, Ezequiel Garcia ha escrito:
->>> Hi Ariel,
->>>
->>> Please don't drop linux-media from Cc.
->>>
->>> On Fri, Jun 22, 2012 at 4:08 PM, Ariel Mammoli <cmammoli@gmail.com> wrote:
->>>> Hi Ezequiel,
->>>>
->>>> El vie 22 jun 2012 15:51:02 ART, Ezequiel Garcia ha escrito:
->>>>> Hi Ariel,
->>>>>
->>>>> On Fri, Jun 22, 2012 at 3:41 PM, Ariel Mammoli <cmammoli@gmail.com> wrote:
->>>>>>
->>>>>> I have a tuner NOGANET "NG-FM PTV" which has the Philips chip 7134.
->>>>>> I have reviewed the list of values several times but can not find it.
->>>>>> What are the correct values to configure the module saa7134?
->>>>>>
->>>>>
->>>>> That's a PCI card, right? PCI are identified by subvendor  and subdevice IDs.
->>>>>
->>>>> Can you tell us those IDs for your card?
->>>>>
->>>>> Regards,
->>>>> Ezequiel.
->>>>
->>>> Indeed it is a PCI card. Below are the data:
->>>> 04:05.0 Multimedia controller [0480]: Philips Semiconductors SAA7130
->>>> Video Broadcast Decoder [1131:7130] (rev 01)
->>>>
->>>
->>> I believe it is currently not supported under Linux.
->>>
->
-> I was just looking here:
->
-> http://linuxtv.org/wiki/index.php/Compro_VideoMate_S350
->
-> and I think I gave you wrong information, sorry.
->
-> Could you better *full* output of
->
-> $ lspci -vvnn
->
-> with the board connected?
->
-> Sorry again for misdirections,
-> Ezequiel.
-
-No problem :) , here is the result of lspci-vvnn:
-
-04:05.0 Multimedia controller [0480]: Philips Semiconductors SAA7130 
-Video Broadcast Decoder [1131:7130] (rev 01)
-	Subsystem: Philips Semiconductors SAA7130-based TV tuner card 
-[1131:0000]
-	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- 
-Stepping- SERR- FastB2B- DisINTx-
-	Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- 
-<TAbort- <MAbort- >SERR- <PERR- INTx-
-	Latency: 64 (3750ns min, 9500ns max)
-	Interrupt: pin A routed to IRQ 16
-	Region 0: Memory at fbfffc00 (32-bit, non-prefetchable) [size=1K]
-	Capabilities: [40] Power Management version 1
-		Flags: PMEClk- DSI- D1+ D2+ AuxCurrent=0mA 
-PME(D0-,D1-,D2-,D3hot-,D3cold-)
-		Status: D0 NoSoftRst- PME-Enable- DSel=0 DScale=0 PME-
-	Kernel driver in use: saa7134
-	Kernel modules: saa7134
-
-Regards,
-Ariel.
+diff --git a/configure.ac b/configure.ac
+index 1a12abd..661eb20 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -153,7 +153,7 @@ libv4l2privdir="$libdir/$libv4l2subdir"
+ libv4l2plugindir="$libv4l2privdir/plugins"
+ libv4lconvertprivdir="$libdir/$libv4lconvertsubdir"
+ 
+-rootetcdir="/etc"
++keytablesystemdir="$sysconfdir/rc_keymaps"
+ udevrulesdir="$udevdir/rules.d"
+ pkgconfigdir="$libdir/pkgconfig"
+ 
+@@ -161,7 +161,7 @@ AC_SUBST(libv4l1privdir)
+ AC_SUBST(libv4l2privdir)
+ AC_SUBST(libv4l2plugindir)
+ AC_SUBST(libv4lconvertprivdir)
+-AC_SUBST(rootetcdir)
++AC_SUBST(keytablesystemdir)
+ AC_SUBST(udevrulesdir)
+ AC_SUBST(pkgconfigdir)
+ 
+@@ -170,6 +170,7 @@ AC_DEFINE_DIR([LIBV4L1_PRIV_DIR], [libv4l1privdir], [libv4l1 private lib directo
+ AC_DEFINE_DIR([LIBV4L2_PRIV_DIR], [libv4l2privdir], [libv4l2 private lib directory])
+ AC_DEFINE_DIR([LIBV4L2_PLUGIN_DIR], [libv4l2plugindir], [libv4l2 plugin directory])
+ AC_DEFINE_DIR([LIBV4LCONVERT_PRIV_DIR], [libv4lconvertprivdir], [libv4lconvert private lib directory])
++AC_DEFINE_DIR([IR_KEYTABLE_SYSTEM_DIR], [keytablesystemdir], [ir-keytable preinstalled tables directory])
+ 
+ # options
+ 
+diff --git a/utils/keytable/Makefile.am b/utils/keytable/Makefile.am
+index 3d510e0..4505fc1 100644
+--- a/utils/keytable/Makefile.am
++++ b/utils/keytable/Makefile.am
+@@ -1,8 +1,7 @@
+-rootetcdir="/etc"
+-
+ bin_PROGRAMS = ir-keytable
+ man_MANS = ir-keytable.1
+-nobase_rootetc_DATA = rc_maps.cfg $(srcdir)/rc_keymaps/*
++sysconf_DATA = rc_maps.cfg
++keytablesystem_DATA = $(srcdir)/rc_keymaps/*
+ udevrules_DATA = 70-infrared.rules
+ 
+ ir_keytable_SOURCES = keytable.c parse.h
+diff --git a/utils/keytable/keytable.c b/utils/keytable/keytable.c
+index fbf9c03..31376f3 100644
+--- a/utils/keytable/keytable.c
++++ b/utils/keytable/keytable.c
+@@ -28,9 +28,6 @@
+ 
+ #include "parse.h"
+ 
+-/* Default place where the keymaps will be stored */
+-#define CFGDIR "/etc/rc_keymaps"
+-
+ struct input_keymap_entry_v2 {
+ #define KEYMAP_BY_INDEX	(1 << 0)
+ 	u_int8_t  flags;
+@@ -1516,8 +1513,8 @@ int main(int argc, char *argv[])
+ 		if (cur->fname[0] == '/' || ((cur->fname[0] == '.') && strchr(cur->fname, '/'))) {
+ 			fname = cur->fname;
+ 		} else {
+-			fname = malloc(strlen(cur->fname) + strlen(CFGDIR) + 2);
+-			strcpy(fname, CFGDIR);
++			fname = malloc(strlen(cur->fname) + strlen(IR_KEYTABLE_SYSTEM_DIR) + 2);
++			strcpy(fname, IR_KEYTABLE_SYSTEM_DIR);
+ 			strcat(fname, "/");
+ 			strcat(fname, cur->fname);
+ 		}
+-- 
+1.7.10
 
