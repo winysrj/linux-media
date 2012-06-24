@@ -1,159 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:49932 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757779Ab2FYWdL (ORCPT
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:4985 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755899Ab2FXL3S (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Jun 2012 18:33:11 -0400
-Received: by dady13 with SMTP id y13so5934049dad.19
-        for <linux-media@vger.kernel.org>; Mon, 25 Jun 2012 15:33:10 -0700 (PDT)
-Date: Mon, 25 Jun 2012 15:33:06 -0700
-From: Greg KH <gregkh@linuxfoundation.org>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Antti Palosaari <crope@iki.fi>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Kay Sievers <kay@redhat.com>
-Subject: Re: Need of an ".async_probe()" type of callback at driver's core -
- Was: Re: [PATCH] [media] drxk: change it to use request_firmware_nowait()
-Message-ID: <20120625223306.GA2764@kroah.com>
-References: <1340285798-8322-1-git-send-email-mchehab@redhat.com>
- <4FE37194.30407@redhat.com>
- <4FE8B8BC.3020702@iki.fi>
- <4FE8C4C4.1050901@redhat.com>
- <4FE8CED5.104@redhat.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4FE8CED5.104@redhat.com>
+	Sun, 24 Jun 2012 07:29:18 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Andy Walls <awalls@md.metrocast.net>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Scott Jiang <scott.jiang.linux@gmail.com>,
+	Manjunatha Halli <manjunatha_halli@ti.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>,
+	Anatolij Gustschin <agust@denx.de>,
+	Javier Martin <javier.martin@vista-silicon.com>,
+	Sensoray Linux Development <linux-dev@sensoray.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
+	Sachin Kamat <sachin.kamat@linaro.org>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	mitov@issp.bas.bg, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 24/26] fimc-m2m.c: remove V4L2_FL_LOCK_ALL_FOPS
+Date: Sun, 24 Jun 2012 13:26:16 +0200
+Message-Id: <73ea71dfb4e307a78a9f993dd3d778d639ad7228.1340536092.git.hans.verkuil@cisco.com>
+In-Reply-To: <1340537178-18768-1-git-send-email-hverkuil@xs4all.nl>
+References: <1340537178-18768-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <f854d2a0a932187cd895bf9cd81d2da8343b52c9.1340536092.git.hans.verkuil@cisco.com>
+References: <f854d2a0a932187cd895bf9cd81d2da8343b52c9.1340536092.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jun 25, 2012 at 05:49:25PM -0300, Mauro Carvalho Chehab wrote:
-> Greg,
-> 
-> Basically, the recent changes at request_firmware() exposed an issue that
-> affects all media drivers that use firmware (64 drivers).
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-What change was that?  How did it break anything?
+Add proper locking to the file operations, allowing for the removal
+of the V4L2_FL_LOCK_ALL_FOPS flag.
 
-> Driver's documentation at Documentation/driver-model/driver.txt says that the
-> .probe() callback should "bind the driver to a given device.  That includes 
-> verifying that the device is present, that it's a version the driver can handle, 
-> that driver data structures can be allocated and initialized, and that any
-> hardware can be initialized".
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/video/s5p-fimc/fimc-m2m.c |   28 ++++++++++++++++++++++------
+ 1 file changed, 22 insertions(+), 6 deletions(-)
 
-Yes.
+diff --git a/drivers/media/video/s5p-fimc/fimc-m2m.c b/drivers/media/video/s5p-fimc/fimc-m2m.c
+index 4c58e05..1074397 100644
+--- a/drivers/media/video/s5p-fimc/fimc-m2m.c
++++ b/drivers/media/video/s5p-fimc/fimc-m2m.c
+@@ -660,6 +660,11 @@ static int fimc_m2m_open(struct file *file)
+ 	v4l2_fh_init(&ctx->fh, fimc->m2m.vfd);
+ 	ctx->fimc_dev = fimc;
+ 
++	if (mutex_lock_interruptible(&fimc->lock)) {
++		kfree(ctx);
++		return -ERESTARTSYS;
++	}
++
+ 	/* Default color format */
+ 	ctx->s_frame.fmt = fimc_get_format(0);
+ 	ctx->d_frame.fmt = fimc_get_format(0);
+@@ -687,6 +692,7 @@ static int fimc_m2m_open(struct file *file)
+ 
+ 	if (fimc->m2m.refcnt++ == 0)
+ 		set_bit(ST_M2M_RUN, &fimc->state);
++	mutex_unlock(&fimc->lock);
+ 	return 0;
+ 
+ error_c:
+@@ -695,6 +701,7 @@ error_fh:
+ 	v4l2_fh_del(&ctx->fh);
+ 	v4l2_fh_exit(&ctx->fh);
+ 	kfree(ctx);
++	mutex_unlock(&fimc->lock);
+ 	return ret;
+ }
+ 
+@@ -706,6 +713,7 @@ static int fimc_m2m_release(struct file *file)
+ 	dbg("pid: %d, state: 0x%lx, refcnt= %d",
+ 		task_pid_nr(current), fimc->state, fimc->m2m.refcnt);
+ 
++	mutex_lock(&fimc->lock);
+ 	v4l2_m2m_ctx_release(ctx->m2m_ctx);
+ 	fimc_ctrls_delete(ctx);
+ 	v4l2_fh_del(&ctx->fh);
+@@ -713,6 +721,7 @@ static int fimc_m2m_release(struct file *file)
+ 
+ 	if (--fimc->m2m.refcnt <= 0)
+ 		clear_bit(ST_M2M_RUN, &fimc->state);
++	mutex_unlock(&fimc->lock);
+ 	kfree(ctx);
+ 	return 0;
+ }
+@@ -721,16 +730,27 @@ static unsigned int fimc_m2m_poll(struct file *file,
+ 				  struct poll_table_struct *wait)
+ {
+ 	struct fimc_ctx *ctx = fh_to_ctx(file->private_data);
++	struct fimc_dev *fimc = ctx->fimc_dev;
++	unsigned int res;
+ 
+-	return v4l2_m2m_poll(file, ctx->m2m_ctx, wait);
++	mutex_lock(&fimc->lock);
++	res = v4l2_m2m_poll(file, ctx->m2m_ctx, wait);
++	mutex_unlock(&fimc->lock);
++	return res;
+ }
+ 
+ 
+ static int fimc_m2m_mmap(struct file *file, struct vm_area_struct *vma)
+ {
+ 	struct fimc_ctx *ctx = fh_to_ctx(file->private_data);
++	struct fimc_dev *fimc = ctx->fimc_dev;
++	int ret;
+ 
+-	return v4l2_m2m_mmap(file, ctx->m2m_ctx, vma);
++	if (mutex_lock_interruptible(&fimc->lock))
++		return -ERESTARTSYS;
++	ret = v4l2_m2m_mmap(file, ctx->m2m_ctx, vma);
++	mutex_unlock(&fimc->lock);
++	return ret;
+ }
+ 
+ static const struct v4l2_file_operations fimc_m2m_fops = {
+@@ -772,10 +792,6 @@ int fimc_register_m2m_device(struct fimc_dev *fimc,
+ 	vfd->minor = -1;
+ 	vfd->release = video_device_release;
+ 	vfd->lock = &fimc->lock;
+-	/* Locking in file operations other than ioctl should be done
+-	   by the driver, not the V4L2 core.
+-	   This driver needs auditing so that this flag can be removed. */
+-	set_bit(V4L2_FL_LOCK_ALL_FOPS, &vfd->flags);
+ 
+ 	snprintf(vfd->name, sizeof(vfd->name), "fimc.%d.m2m", fimc->id);
+ 	video_set_drvdata(vfd, fimc);
+-- 
+1.7.10
 
-> All media device drivers are complaint with that, returning 0 on success
-> (meaning that the device was successfully probed) or an error otherwise.
-
-Great, no probems then :)
-
-> Almost all media devices are made by a SoC or a RISC CPU that works
-> as a DMA engine and exposes a set of registers to allow I2C access to the
-> device's internal and/or external I2C buses. Part of them have an internal
-> EEPROM/ROM that stores firmware internally at the board, but others require
-> a firmware to be loaded before being able to init/control the device and to
-> export the I2C bus interface.
-> 
-> The media handling function is then implemented via a series of I2C devices[1]:
-> 	- analog video decoders;
-> 	- TV tuners;
-> 	- radio tuners;
-> 	- I2C remote controller decoders;
-> 	- DVB frontends;
-> 	- mpeg decoders;
-> 	- mpeg encoders;
-> 	- video enhancement devices;
-> 	...
-> 
-> [1] several media chips have part of those function implemented internally,
-> but almost all require external I2C components to be probed.
-> 
-> In order to properly refer to each component, we call the "main" kernel module
-> that talks with the media device via USB/PCI bus is called "bridge driver", 
-> and the I2C components are called as "sub-devices".
-> 
-> Different vendors use the same bridge driver to work with different sub-devices.
-> 
-> It is a .probe()'s task to detect what sub-devices are there inside the board.
-> 
-> There are several cases where the vendor switched the sub-devices without
-> changing the PCI ID/USB ID.
-
-Hardware vendors suck, we all know that :(
-
-> So, drivers do things like the code below, inside the .probe() callback:
-> 
-> static int check_if_dvb_frontend_is_supported_and_bind()
-> {
-> 	switch (device_model) {
-> 	case VENDOR_A_MODEL_1:
-> 		if (test_and_bind_frontend_1())	/* Doesn't require firmware */
-> 			return 0;
-> 		if (test_and_bind_frontend_2())	/* requires firmware "foo" */
-> 			return 0;
-> 		if (test_and_bind_frontend_3())	/* requires firmware "bar" */
-> 			return 0;
-
-Wait, why would these, if they require firmware, not load the firmware
-at this point in time?  Why are they saying "all is fine" here?
-
-> 		if (test_and_bind_frontend_4()) /* doesn't require firmware */
-> 			return 0;
-> 		break;
-> 	case VENDOR_A_MODEL_2:
-> 		/* Analog device - no DVB frontend on it */
-> 		return 0;
-> 	...
-> 	}
-> 	return -ENODEV;
-> }
-> 
-> On several devices, before being able to register the bus and do the actual
-> probe, the kernel needs to load a firmware.
-
-That's common.
-
-> Also, during the I2C device probing time, firmware may be required, in order
-> to properly expose the device's internal models and their capabilities. 
-> 
-> For example, drx-k sub-device can have support for either DVB-C or DVB-T or both,
-> depending on the device model. That affects the frontend properties exposed 
-> to the user and might affect the bridge driver's initialization task.
-> 
-> In practice, a driver like em28xx have a few devices like HVR-930C that require
-> the drx-k sub-device. For those devices, a firmware is required; for other
-> devices, a firmware is not required.
-> 
-> What's happening is that newer versions of request_firmware and udev are being
-> more pedantic (for a reason) about not requesting firmwares during module_init
-> or PCI/USB register's probe callback.
-
-It is?  What changed to require this?  What commit id?
-
-> Worse than that, the same device driver may require a firmware or not, depending on
-> the I2C devices inside it. One such example is em28xx: for the great majority of
-> the supported devices, no firmware is needed, but devices like HVR-930C require
-> a firmware, because it uses a frontend that needs firmware.
-> 
-> After some discussions, it seems that the best model would be to add an async_probe()
-> callback to be used by devices similar to media ones. The async_probe() should be
-> not probed during the module_init; the probe() will be deferred to happen later,
-> when firmware's usermodehelper_disabled is false, allowing those drivers to load their
-> firmwares if needed.
-> 
-> What do you think?
-
-We already have deferred probe() calls, you just need to return a
-different value (can't remember it at the moment), and your probe
-function will be called again at a later time after the rest of the
-devices in the system have been initialized.  Can that work for you?
-
-Or, if you "know" you are going to accept this device, just return 0
-from probe() after spawning a workqueue or thread to load the firmware
-properly and do everything else you need to do to initialize.  If
-something bad happens, unbind your device with a call to unbind things.
-
-thanks,
-
-greg k-h
