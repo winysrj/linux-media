@@ -1,58 +1,181 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:55763 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752482Ab2FIPxz convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 9 Jun 2012 11:53:55 -0400
-Received: by obbtb18 with SMTP id tb18so4050393obb.19
-        for <linux-media@vger.kernel.org>; Sat, 09 Jun 2012 08:53:54 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <CACSP8SiyzYHZJNxuNoVOqPCj-FwWy3dNMxhoixrwKfQt+2g7jg@mail.gmail.com>
-References: <4fbf6893.a709d80a.4f7b.0e0eSMTPIN_ADDED@mx.google.com>
-	<CACSP8SgSi+v70+-r1wR1hM0rDzmJK0g20i0fxRePLPuTXqrxuA@mail.gmail.com>
-	<CAO8GWq=UYWTuJ=V6Luh4z49=og2X2wrHzVNYvbK7Tnw2zgzNeA@mail.gmail.com>
-	<CACSP8Sgog0cDtxG+JsWQ=aYyiXtEr-N7+xPPRsAjwt3LAYC+uw@mail.gmail.com>
-	<CAO8GWqnVN3tVp2chzsYKjhfzoupxsWwUT_LojzJ7kYWPRdZYJw@mail.gmail.com>
-	<CACSP8SiVYiEg8BY9gvmbqiKNXEwEjHa+vxOvXpEgr+W-Wd5+rg@mail.gmail.com>
-	<4fd09200.830ed80a.24f9.1a54SMTPIN_ADDED@mx.google.com>
-	<CACSP8SgrB2YxsvUx6y-EomgJhupb3uVmF_hH0Sd-PG6G6G9Cfg@mail.gmail.com>
-	<20120608214229.GH5761@phenom.ffwll.local>
-	<CACSP8SiyzYHZJNxuNoVOqPCj-FwWy3dNMxhoixrwKfQt+2g7jg@mail.gmail.com>
-Date: Sat, 9 Jun 2012 17:53:54 +0200
-Message-ID: <CAKMK7uHwMo6DTNFeV4pTX7snb+mYkcyZS3W6KQAj7f2JsRPk=g@mail.gmail.com>
-Subject: Re: [Linaro-mm-sig] [RFC] Synchronizing access to buffers shared with
- dma-buf between drivers/devices
-From: Daniel Vetter <daniel@ffwll.ch>
-To: Erik Gilling <konkers@android.com>
-Cc: Tom Cooksey <tom.cooksey@arm.com>, linaro-mm-sig@lists.linaro.org,
-	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:3334 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755434Ab2FXL3H (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 24 Jun 2012 07:29:07 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Andy Walls <awalls@md.metrocast.net>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Scott Jiang <scott.jiang.linux@gmail.com>,
+	Manjunatha Halli <manjunatha_halli@ti.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>,
+	Anatolij Gustschin <agust@denx.de>,
+	Javier Martin <javier.martin@vista-silicon.com>,
+	Sensoray Linux Development <linux-dev@sensoray.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
+	Sachin Kamat <sachin.kamat@linaro.org>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	mitov@issp.bas.bg, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 01/26] ivtv: remove V4L2_FL_LOCK_ALL_FOPS
+Date: Sun, 24 Jun 2012 13:25:53 +0200
+Message-Id: <f854d2a0a932187cd895bf9cd81d2da8343b52c9.1340536092.git.hans.verkuil@cisco.com>
+In-Reply-To: <1340537178-18768-1-git-send-email-hverkuil@xs4all.nl>
+References: <1340537178-18768-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Jun 9, 2012 at 12:22 AM, Erik Gilling <konkers@android.com> wrote:
-> The current linux graphics stack does not allow synchronization
-> between the GPU and a camera/video decoder.  When we've seen people
-> try to support this behind the scenes, they get it wrong and introduce
-> bugs that can take weeks to track down.  As stated in the previous
-> email, one of our goals is to centrally manage synchronization so that
-> it's easer for people bringing up a platform to get it right.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-I agree that letting everyone reinvent the wheel isn't the best idea
-for cross-device sync - people will just get it wrong way too often.
-I'm not convinced yet that doing it with explicit sync points/fences
-and in userspace is the best solution. dri2/gem all use implicit sync
-points managed by the kernel in a transparent fashion, so I'm leaning
-towards such a sulotion for cross-device sync, too. Imo the big upside
-of such an implicitly sync'ed approach is that it massively simplifies
-cross-process protocols (i.e. for the display server).
+Add proper locking to the file operations, allowing for the removal
+of the V4L2_FL_LOCK_ALL_FOPS flag.
 
-So to foster understanding of the various requirements and use-cases,
-could you elaborate on the pros and cons a bit and explain why you
-think explicit sync points managed by the userspace display server is
-the best approach for android?
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/video/ivtv/ivtv-fileops.c |   52 +++++++++++++++++++++++++------
+ drivers/media/video/ivtv/ivtv-streams.c |    4 ---
+ 2 files changed, 42 insertions(+), 14 deletions(-)
 
-Yours, Daniel
+diff --git a/drivers/media/video/ivtv/ivtv-fileops.c b/drivers/media/video/ivtv/ivtv-fileops.c
+index 9ff69b5..88bce90 100644
+--- a/drivers/media/video/ivtv/ivtv-fileops.c
++++ b/drivers/media/video/ivtv/ivtv-fileops.c
+@@ -505,14 +505,17 @@ ssize_t ivtv_v4l2_read(struct file * filp, char __user *buf, size_t count, loff_
+ 	struct ivtv_open_id *id = fh2id(filp->private_data);
+ 	struct ivtv *itv = id->itv;
+ 	struct ivtv_stream *s = &itv->streams[id->type];
+-	int rc;
++	ssize_t rc;
+ 
+ 	IVTV_DEBUG_HI_FILE("read %zd bytes from %s\n", count, s->name);
+ 
++	if (mutex_lock_interruptible(&itv->serialize_lock))
++		return -ERESTARTSYS;
+ 	rc = ivtv_start_capture(id);
+-	if (rc)
+-		return rc;
+-	return ivtv_read_pos(s, buf, count, pos, filp->f_flags & O_NONBLOCK);
++	if (!rc)
++		rc = ivtv_read_pos(s, buf, count, pos, filp->f_flags & O_NONBLOCK);
++	mutex_unlock(&itv->serialize_lock);
++	return rc;
+ }
+ 
+ int ivtv_start_decoding(struct ivtv_open_id *id, int speed)
+@@ -540,7 +543,7 @@ int ivtv_start_decoding(struct ivtv_open_id *id, int speed)
+ 	return 0;
+ }
+ 
+-ssize_t ivtv_v4l2_write(struct file *filp, const char __user *user_buf, size_t count, loff_t *pos)
++static ssize_t ivtv_write(struct file *filp, const char __user *user_buf, size_t count, loff_t *pos)
+ {
+ 	struct ivtv_open_id *id = fh2id(filp->private_data);
+ 	struct ivtv *itv = id->itv;
+@@ -712,6 +715,19 @@ retry:
+ 	return bytes_written;
+ }
+ 
++ssize_t ivtv_v4l2_write(struct file *filp, const char __user *user_buf, size_t count, loff_t *pos)
++{
++	struct ivtv_open_id *id = fh2id(filp->private_data);
++	struct ivtv *itv = id->itv;
++	ssize_t res;
++
++	if (mutex_lock_interruptible(&itv->serialize_lock))
++		return -ERESTARTSYS;
++	res = ivtv_write(filp, user_buf, count, pos);
++	mutex_unlock(&itv->serialize_lock);
++	return res;
++}
++
+ unsigned int ivtv_v4l2_dec_poll(struct file *filp, poll_table *wait)
+ {
+ 	struct ivtv_open_id *id = fh2id(filp->private_data);
+@@ -760,7 +776,9 @@ unsigned int ivtv_v4l2_enc_poll(struct file *filp, poll_table *wait)
+ 			(req_events & (POLLIN | POLLRDNORM))) {
+ 		int rc;
+ 
++		mutex_lock(&itv->serialize_lock);
+ 		rc = ivtv_start_capture(id);
++		mutex_unlock(&itv->serialize_lock);
+ 		if (rc) {
+ 			IVTV_DEBUG_INFO("Could not start capture for %s (%d)\n",
+ 					s->name, rc);
+@@ -863,6 +881,8 @@ int ivtv_v4l2_close(struct file *filp)
+ 
+ 	IVTV_DEBUG_FILE("close %s\n", s->name);
+ 
++	mutex_lock(&itv->serialize_lock);
++
+ 	/* Stop radio */
+ 	if (id->type == IVTV_ENC_STREAM_TYPE_RAD &&
+ 			v4l2_fh_is_singular_file(filp)) {
+@@ -892,10 +912,8 @@ int ivtv_v4l2_close(struct file *filp)
+ 	v4l2_fh_exit(fh);
+ 
+ 	/* Easy case first: this stream was never claimed by us */
+-	if (s->fh != &id->fh) {
+-		kfree(id);
+-		return 0;
+-	}
++	if (s->fh != &id->fh)
++		goto close_done;
+ 
+ 	/* 'Unclaim' this stream */
+ 
+@@ -913,11 +931,13 @@ int ivtv_v4l2_close(struct file *filp)
+ 	} else {
+ 		ivtv_stop_capture(id, 0);
+ 	}
++close_done:
+ 	kfree(id);
++	mutex_unlock(&itv->serialize_lock);
+ 	return 0;
+ }
+ 
+-int ivtv_v4l2_open(struct file *filp)
++static int ivtv_open(struct file *filp)
+ {
+ 	struct video_device *vdev = video_devdata(filp);
+ 	struct ivtv_stream *s = video_get_drvdata(vdev);
+@@ -1020,6 +1040,18 @@ int ivtv_v4l2_open(struct file *filp)
+ 	return 0;
+ }
+ 
++int ivtv_v4l2_open(struct file *filp)
++{
++	struct video_device *vdev = video_devdata(filp);
++	int res;
++
++	if (mutex_lock_interruptible(vdev->lock))
++		return -ERESTARTSYS;
++	res = ivtv_open(filp);
++	mutex_unlock(vdev->lock);
++	return res;
++}
++
+ void ivtv_mute(struct ivtv *itv)
+ {
+ 	if (atomic_read(&itv->capturing))
+diff --git a/drivers/media/video/ivtv/ivtv-streams.c b/drivers/media/video/ivtv/ivtv-streams.c
+index 6738592..7ea5ca7 100644
+--- a/drivers/media/video/ivtv/ivtv-streams.c
++++ b/drivers/media/video/ivtv/ivtv-streams.c
+@@ -228,10 +228,6 @@ static int ivtv_prep_dev(struct ivtv *itv, int type)
+ 	s->vdev->release = video_device_release;
+ 	s->vdev->tvnorms = V4L2_STD_ALL;
+ 	s->vdev->lock = &itv->serialize_lock;
+-	/* Locking in file operations other than ioctl should be done
+-	   by the driver, not the V4L2 core.
+-	   This driver needs auditing so that this flag can be removed. */
+-	set_bit(V4L2_FL_LOCK_ALL_FOPS, &s->vdev->flags);
+ 	set_bit(V4L2_FL_USE_FH_PRIO, &s->vdev->flags);
+ 	ivtv_set_funcs(s->vdev);
+ 	return 0;
 -- 
-Daniel Vetter
-daniel.vetter@ffwll.ch - +41 (0) 79 364 57 48 - http://blog.ffwll.ch
+1.7.10
+
