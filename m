@@ -1,102 +1,141 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:28532 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753094Ab2FRXBR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jun 2012 19:01:17 -0400
-Message-ID: <4FDFB335.2070503@redhat.com>
-Date: Mon, 18 Jun 2012 20:01:09 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: cheng renquan <crquan@gmail.com>
-CC: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	VDR User <user.vdr@gmail.com>
-Subject: Re: [PATCH] make VIDEO_MEDIA depends on DVB_CORE only (removing depends
- VIDEO_DEV)
-References: <CAH5vBdLM4SnXcj7+5+qUXeWRhp4J=kp_V0eSBXMJVMORPd690Q@mail.gmail.com>
-In-Reply-To: <CAH5vBdLM4SnXcj7+5+qUXeWRhp4J=kp_V0eSBXMJVMORPd690Q@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:3961 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755870Ab2FXL3O (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 24 Jun 2012 07:29:14 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Andy Walls <awalls@md.metrocast.net>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Scott Jiang <scott.jiang.linux@gmail.com>,
+	Manjunatha Halli <manjunatha_halli@ti.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>,
+	Anatolij Gustschin <agust@denx.de>,
+	Javier Martin <javier.martin@vista-silicon.com>,
+	Sensoray Linux Development <linux-dev@sensoray.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
+	Sachin Kamat <sachin.kamat@linaro.org>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	mitov@issp.bas.bg, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 20/26] s5p-jpeg: remove V4L2_FL_LOCK_ALL_FOPS
+Date: Sun, 24 Jun 2012 13:26:12 +0200
+Message-Id: <b33f0e65af2264f2a173d14ac2900402ffe7fc54.1340536092.git.hans.verkuil@cisco.com>
+In-Reply-To: <1340537178-18768-1-git-send-email-hverkuil@xs4all.nl>
+References: <1340537178-18768-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <f854d2a0a932187cd895bf9cd81d2da8343b52c9.1340536092.git.hans.verkuil@cisco.com>
+References: <f854d2a0a932187cd895bf9cd81d2da8343b52c9.1340536092.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 07-06-2012 22:55, cheng renquan escreveu:
-> I think the root cause is VIDEO_MEDIA depending on VIDEO_DEV or DVB_CORE;
-> since MEDIA_TUNER is depending on VIDEO_MEDIA;
-> I have VIDEO_DEV but not DVB_CORE, hence should be no VIDEO_MEDIA,
-> 
-> config MEDIA_TUNER
->          tristate
->          default VIDEO_MEDIA && I2C
->          depends on VIDEO_MEDIA && I2C
-> 
-> 
-> diff --git a/drivers/media/Kconfig b/drivers/media/Kconfig
-> index 9575db4..1b35dae 100644
-> --- a/drivers/media/Kconfig
-> +++ b/drivers/media/Kconfig
-> @@ -99,7 +99,7 @@ config DVB_NET
-> 
->   config VIDEO_MEDIA
->   	tristate
-> -	default (DVB_CORE && (VIDEO_DEV = n)) || (VIDEO_DEV && (DVB_CORE =
-> n)) || (DVB_CORE && VIDEO_DEV)
-> +	default DVB_CORE
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Sorry, but this is wrong and will break compilation for analog drivers.
+Add proper locking to the file operations, allowing for the removal
+of the V4L2_FL_LOCK_ALL_FOPS flag.
 
-I think my RFC patches should fix this issue[1] and [2]. If not, they will at the final
-version, after removing drivers/media/video and drivers/media/dvb, and
-re-writing the dependency chain (planned as part 2 and 3 of my patch series).
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/video/s5p-jpeg/jpeg-core.c |   34 +++++++++++++++++++++---------
+ 1 file changed, 24 insertions(+), 10 deletions(-)
 
-[1] http://www.spinics.net/lists/linux-media/msg48451.html
-
-[2] http://www.spinics.net/lists/linux-media/msg48974.html
-
-Regards,
-Mauro
-
-> 
->   comment "Multimedia drivers"
-> 
-> 
-> On Thu, Jun 7, 2012 at 4:09 PM, VDR User <user.vdr@gmail.com> wrote:
->> On Thu, Jun 7, 2012 at 2:53 PM, cheng renquan <crquan@gmail.com> wrote:
->>> till recently I found that also chosen those media tuner modules,
->>>
->>> $ grep MEDIA_TUNER /boot/config
->>> CONFIG_MEDIA_TUNER=m
->>> # CONFIG_MEDIA_TUNER_CUSTOMISE is not set
->>> CONFIG_MEDIA_TUNER_SIMPLE=m
->>> CONFIG_MEDIA_TUNER_TDA8290=m
->>> CONFIG_MEDIA_TUNER_TDA827X=m
->>> CONFIG_MEDIA_TUNER_TDA18271=m
->>> CONFIG_MEDIA_TUNER_TDA9887=m
->>> CONFIG_MEDIA_TUNER_TEA5761=m
->>> CONFIG_MEDIA_TUNER_TEA5767=m
->>> CONFIG_MEDIA_TUNER_MT20XX=m
->>> CONFIG_MEDIA_TUNER_XC2028=m
->>> CONFIG_MEDIA_TUNER_XC5000=m
->>> CONFIG_MEDIA_TUNER_XC4000=m
->>> CONFIG_MEDIA_TUNER_MC44S803=m
->>>
->>> as I understand, MEDIA_TUNER is for some tv adapters but I don't have
->>> such hardware,
->>> to disable them I need to enable MEDIA_TUNER_CUSTOMISE, then
->>> a menu "Customize TV tuners" becomes visible then I need to enter that
->>> menu and disable all the tuners one-by-one;
->>> this looks not convenient,
->>
->> I hate that too so you're not alone. I've just gotten into the habit
->> of having to manually disabling everything I don't need as opposed to
->> only needing to enable what I do need. :\
-
-
-
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
+diff --git a/drivers/media/video/s5p-jpeg/jpeg-core.c b/drivers/media/video/s5p-jpeg/jpeg-core.c
+index 28b5225d..ff0cc37 100644
+--- a/drivers/media/video/s5p-jpeg/jpeg-core.c
++++ b/drivers/media/video/s5p-jpeg/jpeg-core.c
+@@ -292,6 +292,11 @@ static int s5p_jpeg_open(struct file *file)
+ 	if (!ctx)
+ 		return -ENOMEM;
+ 
++	if (mutex_lock_interruptible(&jpeg->lock)) {
++		ret = -ERESTARTSYS;
++		goto free;
++	}
++
+ 	v4l2_fh_init(&ctx->fh, vfd);
+ 	/* Use separate control handler per file handle */
+ 	ctx->fh.ctrl_handler = &ctx->ctrl_handler;
+@@ -319,20 +324,26 @@ static int s5p_jpeg_open(struct file *file)
+ 
+ 	ctx->out_q.fmt = out_fmt;
+ 	ctx->cap_q.fmt = s5p_jpeg_find_format(ctx->mode, V4L2_PIX_FMT_YUYV);
++	mutex_unlock(&jpeg->lock);
+ 	return 0;
+ 
+ error:
+ 	v4l2_fh_del(&ctx->fh);
+ 	v4l2_fh_exit(&ctx->fh);
++	mutex_unlock(&jpeg->lock);
++free:
+ 	kfree(ctx);
+ 	return ret;
+ }
+ 
+ static int s5p_jpeg_release(struct file *file)
+ {
++	struct s5p_jpeg *jpeg = video_drvdata(file);
+ 	struct s5p_jpeg_ctx *ctx = fh_to_ctx(file->private_data);
+ 
++	mutex_lock(&jpeg->lock);
+ 	v4l2_m2m_ctx_release(ctx->m2m_ctx);
++	mutex_unlock(&jpeg->lock);
+ 	v4l2_ctrl_handler_free(&ctx->ctrl_handler);
+ 	v4l2_fh_del(&ctx->fh);
+ 	v4l2_fh_exit(&ctx->fh);
+@@ -344,16 +355,27 @@ static int s5p_jpeg_release(struct file *file)
+ static unsigned int s5p_jpeg_poll(struct file *file,
+ 				 struct poll_table_struct *wait)
+ {
++	struct s5p_jpeg *jpeg = video_drvdata(file);
+ 	struct s5p_jpeg_ctx *ctx = fh_to_ctx(file->private_data);
++	unsigned int res;
+ 
+-	return v4l2_m2m_poll(file, ctx->m2m_ctx, wait);
++	mutex_lock(&jpeg->lock);
++	res = v4l2_m2m_poll(file, ctx->m2m_ctx, wait);
++	mutex_unlock(&jpeg->lock);
++	return res;
+ }
+ 
+ static int s5p_jpeg_mmap(struct file *file, struct vm_area_struct *vma)
+ {
++	struct s5p_jpeg *jpeg = video_drvdata(file);
+ 	struct s5p_jpeg_ctx *ctx = fh_to_ctx(file->private_data);
++	int ret;
+ 
+-	return v4l2_m2m_mmap(file, ctx->m2m_ctx, vma);
++	if (mutex_lock_interruptible(&jpeg->lock))
++		return -ERESTARTSYS;
++	ret = v4l2_m2m_mmap(file, ctx->m2m_ctx, vma);
++	mutex_unlock(&jpeg->lock);
++	return ret;
+ }
+ 
+ static const struct v4l2_file_operations s5p_jpeg_fops = {
+@@ -1368,10 +1390,6 @@ static int s5p_jpeg_probe(struct platform_device *pdev)
+ 	jpeg->vfd_encoder->release	= video_device_release;
+ 	jpeg->vfd_encoder->lock		= &jpeg->lock;
+ 	jpeg->vfd_encoder->v4l2_dev	= &jpeg->v4l2_dev;
+-	/* Locking in file operations other than ioctl should be done
+-	   by the driver, not the V4L2 core.
+-	   This driver needs auditing so that this flag can be removed. */
+-	set_bit(V4L2_FL_LOCK_ALL_FOPS, &jpeg->vfd_encoder->flags);
+ 
+ 	ret = video_register_device(jpeg->vfd_encoder, VFL_TYPE_GRABBER, -1);
+ 	if (ret) {
+@@ -1399,10 +1417,6 @@ static int s5p_jpeg_probe(struct platform_device *pdev)
+ 	jpeg->vfd_decoder->release	= video_device_release;
+ 	jpeg->vfd_decoder->lock		= &jpeg->lock;
+ 	jpeg->vfd_decoder->v4l2_dev	= &jpeg->v4l2_dev;
+-	/* Locking in file operations other than ioctl should be done by the driver,
+-	   not the V4L2 core.
+-	   This driver needs auditing so that this flag can be removed. */
+-	set_bit(V4L2_FL_LOCK_ALL_FOPS, &jpeg->vfd_decoder->flags);
+ 
+ 	ret = video_register_device(jpeg->vfd_decoder, VFL_TYPE_GRABBER, -1);
+ 	if (ret) {
+-- 
+1.7.10
 
