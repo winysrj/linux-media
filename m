@@ -1,38 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.24]:49988 "EHLO mgw-da01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756928Ab2FONo0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Jun 2012 09:44:26 -0400
-Message-ID: <4FDB3C2E.9060502@iki.fi>
-Date: Fri, 15 Jun 2012 16:44:14 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-MIME-Version: 1.0
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-CC: Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sylwester Nawrocki <snjw23@gmail.com>
-Subject: [PATCH v4 0/7] V4L2 and V4L2 subdev selection target and flag changes
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:2703 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755916Ab2FXL3S (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 24 Jun 2012 07:29:18 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Andy Walls <awalls@md.metrocast.net>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Scott Jiang <scott.jiang.linux@gmail.com>,
+	Manjunatha Halli <manjunatha_halli@ti.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>,
+	Anatolij Gustschin <agust@denx.de>,
+	Javier Martin <javier.martin@vista-silicon.com>,
+	Sensoray Linux Development <linux-dev@sensoray.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
+	Sachin Kamat <sachin.kamat@linaro.org>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	mitov@issp.bas.bg, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 07/26] mem2mem_testdev: remove V4L2_FL_LOCK_ALL_FOPS
+Date: Sun, 24 Jun 2012 13:25:59 +0200
+Message-Id: <68b02bb05ec7fbedda7f563b2bf135b725a85774.1340536092.git.hans.verkuil@cisco.com>
+In-Reply-To: <1340537178-18768-1-git-send-email-hverkuil@xs4all.nl>
+References: <1340537178-18768-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <f854d2a0a932187cd895bf9cd81d2da8343b52c9.1340536092.git.hans.verkuil@cisco.com>
+References: <f854d2a0a932187cd895bf9cd81d2da8343b52c9.1340536092.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Compared to the previous version of the patchset, I've fixed a few
-spelling errors, changed X/O to tell whether a target or a flag is valid
-on an interface to more clear Yes/No. There's also a new patch to V4L2
-subdev selection API documentation fixing conflicting definition of the
-KEEP_CONFIG flag.
+Add proper locking to the file operations, allowing for the removal
+of the V4L2_FL_LOCK_ALL_FOPS flag.
 
-The resulting HTML documentation is available here (same location as
-last time):
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/video/mem2mem_testdev.c |   29 ++++++++++++++++++++---------
+ 1 file changed, 20 insertions(+), 9 deletions(-)
 
-<URL:http://www.retiisi.org.uk/v4l2/tmp/media_api5/>
-
-Kind regards,
-
+diff --git a/drivers/media/video/mem2mem_testdev.c b/drivers/media/video/mem2mem_testdev.c
+index d2dec58..595e268 100644
+--- a/drivers/media/video/mem2mem_testdev.c
++++ b/drivers/media/video/mem2mem_testdev.c
+@@ -849,10 +849,15 @@ static int m2mtest_open(struct file *file)
+ {
+ 	struct m2mtest_dev *dev = video_drvdata(file);
+ 	struct m2mtest_ctx *ctx = NULL;
++	int rc = 0;
+ 
++	if (mutex_lock_interruptible(&dev->dev_mutex))
++		return -ERESTARTSYS;
+ 	ctx = kzalloc(sizeof *ctx, GFP_KERNEL);
+-	if (!ctx)
+-		return -ENOMEM;
++	if (!ctx) {
++		rc = -ENOMEM;
++		goto open_unlock;
++	}
+ 
+ 	file->private_data = ctx;
+ 	ctx->dev = dev;
+@@ -863,16 +868,18 @@ static int m2mtest_open(struct file *file)
+ 	ctx->m2m_ctx = v4l2_m2m_ctx_init(dev->m2m_dev, ctx, &queue_init);
+ 
+ 	if (IS_ERR(ctx->m2m_ctx)) {
+-		int ret = PTR_ERR(ctx->m2m_ctx);
++		rc = PTR_ERR(ctx->m2m_ctx);
+ 
+ 		kfree(ctx);
+-		return ret;
++		goto open_unlock;
+ 	}
+ 
+ 	atomic_inc(&dev->num_inst);
+ 
+ 	dprintk(dev, "Created instance %p, m2m_ctx: %p\n", ctx, ctx->m2m_ctx);
+ 
++open_unlock:
++	mutex_unlock(&dev->dev_mutex);
+ 	return 0;
+ }
+ 
+@@ -883,7 +890,9 @@ static int m2mtest_release(struct file *file)
+ 
+ 	dprintk(dev, "Releasing instance %p\n", ctx);
+ 
++	mutex_lock(&dev->dev_mutex);
+ 	v4l2_m2m_ctx_release(ctx->m2m_ctx);
++	mutex_unlock(&dev->dev_mutex);
+ 	kfree(ctx);
+ 
+ 	atomic_dec(&dev->num_inst);
+@@ -901,9 +910,15 @@ static unsigned int m2mtest_poll(struct file *file,
+ 
+ static int m2mtest_mmap(struct file *file, struct vm_area_struct *vma)
+ {
++	struct m2mtest_dev *dev = video_drvdata(file);
+ 	struct m2mtest_ctx *ctx = file->private_data;
++	int res;
+ 
+-	return v4l2_m2m_mmap(file, ctx->m2m_ctx, vma);
++	if (mutex_lock_interruptible(&dev->dev_mutex))
++		return -ERESTARTSYS;
++	res = v4l2_m2m_mmap(file, ctx->m2m_ctx, vma);
++	mutex_unlock(&dev->dev_mutex);
++	return res;
+ }
+ 
+ static const struct v4l2_file_operations m2mtest_fops = {
+@@ -958,10 +973,6 @@ static int m2mtest_probe(struct platform_device *pdev)
+ 	}
+ 
+ 	*vfd = m2mtest_videodev;
+-	/* Locking in file operations other than ioctl should be done
+-	   by the driver, not the V4L2 core.
+-	   This driver needs auditing so that this flag can be removed. */
+-	set_bit(V4L2_FL_LOCK_ALL_FOPS, &vfd->flags);
+ 	vfd->lock = &dev->dev_mutex;
+ 
+ 	ret = video_register_device(vfd, VFL_TYPE_GRABBER, 0);
 -- 
-Sakari Ailus
-sakari.ailus@iki.fi
+1.7.10
+
