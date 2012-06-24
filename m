@@ -1,127 +1,254 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.186]:54416 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751981Ab2FFOW3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jun 2012 10:22:29 -0400
-Date: Wed, 6 Jun 2012 16:22:26 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Janusz Uzycki <janusz.uzycki@elproma.com.pl>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: SH7724, VOU, PAL mode
-In-Reply-To: <151B1A2540C945E48D7AAE0A8FC2DDEE@laptop2>
-Message-ID: <Pine.LNX.4.64.1206061614250.12739@axis700.grange>
-References: <1E539FC23CF84B8A91428720570395E0@laptop2>
- <Pine.LNX.4.64.1101241720001.17567@axis700.grange> <AD14536027B946D6B4504D4F43E352A5@laptop2>
- <Pine.LNX.4.64.1101262045550.3989@axis700.grange> <F95361ABAE1D4A70A10790A798004482@laptop2>
- <Pine.LNX.4.64.1101271809030.8916@axis700.grange> <8026191608244DB98F002E983C866149@laptop2>
- <Pine.LNX.4.64.1102011420540.6673@axis700.grange> <18BE1662A1F04B6C8B39AA46440A3FBB@laptop2>
- <Pine.LNX.4.64.1102011532360.6673@axis700.grange> <2F2263A44E0F466F898DD3E2F1D19F12@laptop2>
- <Pine.LNX.4.64.1102081427500.1393@axis700.grange> <CEA83F28AF7C47E7B83AE1DBFFBC8514@laptop2>
- <Pine.LNX.4.64.1206051651220.2145@axis700.grange> <151B1A2540C945E48D7AAE0A8FC2DDEE@laptop2>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:4516 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755492Ab2FXL3L (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 24 Jun 2012 07:29:11 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Andy Walls <awalls@md.metrocast.net>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Scott Jiang <scott.jiang.linux@gmail.com>,
+	Manjunatha Halli <manjunatha_halli@ti.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>,
+	Anatolij Gustschin <agust@denx.de>,
+	Javier Martin <javier.martin@vista-silicon.com>,
+	Sensoray Linux Development <linux-dev@sensoray.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
+	Sachin Kamat <sachin.kamat@linaro.org>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	mitov@issp.bas.bg, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 02/26] saa7146: remove V4L2_FL_LOCK_ALL_FOPS
+Date: Sun, 24 Jun 2012 13:25:54 +0200
+Message-Id: <69b55a1bac9833d7dba4d42cf41b3a5be3cd4cfb.1340536092.git.hans.verkuil@cisco.com>
+In-Reply-To: <1340537178-18768-1-git-send-email-hverkuil@xs4all.nl>
+References: <1340537178-18768-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <f854d2a0a932187cd895bf9cd81d2da8343b52c9.1340536092.git.hans.verkuil@cisco.com>
+References: <f854d2a0a932187cd895bf9cd81d2da8343b52c9.1340536092.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 6 Jun 2012, Janusz Uzycki wrote:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-> Hi.
-> 
-> > Sorry, this is not going to be a very detailed reply. It's been a long
-> > time since I've worked with VOU and AK8813(4).
-> 
-> I see.
-> 
-> > > If I set PAL mode (v4l2-ctl -s) VOUCR::MD is still configured for NTSC.
-> > 
-> > This shouldn't be the case: look at sh_vou_s_std(). Can you try to add
-> > debugging to the driver to see, whether that function gets called, when
-> > you run v4l2-ctl? If not - either you're calling it wrongly, or there's a
-> > bug in it. If it is - see, whether it's not configuring VOUCR properly or
-> > somehow it gets reset again later.
-> 
-> Before I turned on CONFIG_VIDEO_ADV_DEBUG only for I2C debug (v4l2-dbg). Now I
-> turned on dynamic printk (dev_dbg) for sh_vou.c and observed that
-> sh_vou_open() calls sh_vou_hw_init() what causes VOU reset:
-> v4l2-ctl  -s 5
-> sh-vou sh-vou: sh_vou_open()
-> sh-vou sh-vou: Reset took 1us
-> sh-vou sh-vou: sh_vou_querycap()
-> sh-vou sh-vou: sh_vou_s_std(): 0xff
-> CS495X-set: VOUER was 0x00000000, now SEN and ST bits are set
-> CS495X set format: 000000ff
-> CS495X-set: VOUER 0x00000000 restored
-> sh-vou sh-vou: sh_vou_release()
-> Standard set to 000000ff
-> 
-> This is why "v4l2-ctl -s 5" used before my simple test program (modified
-> capture example with mmap method) finally has no effect for VOU.
-> When the test program opens video device it causes reset PAL mode in VOU and
-> does not in TV encoder.
+Add proper locking to the file operations, allowing for the removal
+of the V4L2_FL_LOCK_ALL_FOPS flag.
 
-Right, this is actually a bug in the VOU driver. It didn't affect me, 
-because I was opening the device only once before all the configuration 
-and streaming. Could you create and submit a patch to save the standard in 
-driver private data and restore it on open() after the reset? I guess, 
-other configuration parameters are lost too, feel free to fix them as 
-well.
+I also removed some dead code in the form of the saa7146_devices list and
+saa7146_devices_lock mutex: these were used once but that was a long time
+ago.
 
-> Thanks Guennadi for the hints.
-> (VOUER messages explanation: I have to set SEN and ST bits in CS49X driver
-> because the chip needs 27MHz clock to I2C block operate)
-> 
-> > > I noticed that VOU is limited to NTSC resolution: "Maximum destination
-> > > image
-> > > size: 720 x 240 per field".
-> > 
-> > You mean in the datasheet?
-> 
-> Yes, exactly.
-> 
-> > I don't have it currently at hand, but I seem
-> > to remember, that there was a bug and the VOU does actually support a full
-> > PAL resolution too. I'm not 100% certain, though.
-> 
-> OK, I will test it. Do you remember how you discovered that?
-
-Asked the manufacturer company :)
-
-> > > Unfortunately I can't still manage to work video data from VOU to the
-> > > encoder
-> > > - green picture only. Do you have any test program for video v4l2 output?
-> > 
-> > You can use gstreamer, e.g.:
-> > 
-> > gst-launch -v filesrc location=x.avi ! decodebin ! ffmpegcolorspace ! \
-> > video/x-raw-rgb,bpp=24 ! v4l2sink device=/dev/video0 tv-norm=PAL-B
-> 
-> thanks
-> 
-> > I also used a (possibly modified) program by Laurent (cc'ed) which either
-> > I - with his agreement - can re-send to you, or maybe he'd send you the
-> > original.
-> 
-> ok, is it media-ctl (git://git.ideasonboard.org/media-ctl.git)?
-
-No, I'll send it to you off the list - Laurent agreed. But he also said, 
-it was a preliminary version of his yavta proram, so, you might be able to 
-use that one.
-
-> > > Does
-> > > the idea fb->v4l2 output
-> > > http://www.spinics.net/lists/linux-fbdev/msg01102.html is alive?
-> > 
-> > More dead, than alive, I think.
-> 
-> Ok. Did you find another solution (software/library like DirectFB) for common
-> and easier video output support in userspace?
-
-No, sorry, I did not.
-
-Thanks
-Guennadi
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ drivers/media/common/saa7146_core.c |    8 -----
+ drivers/media/common/saa7146_fops.c |   55 +++++++++++++++++++++++++----------
+ include/media/saa7146.h             |    4 ---
+ 3 files changed, 39 insertions(+), 28 deletions(-)
+
+diff --git a/drivers/media/common/saa7146_core.c b/drivers/media/common/saa7146_core.c
+index d6b1cf6..bb6ee51 100644
+--- a/drivers/media/common/saa7146_core.c
++++ b/drivers/media/common/saa7146_core.c
+@@ -23,9 +23,6 @@
+ #include <media/saa7146.h>
+ #include <linux/module.h>
+ 
+-LIST_HEAD(saa7146_devices);
+-DEFINE_MUTEX(saa7146_devices_lock);
+-
+ static int saa7146_num;
+ 
+ unsigned int saa7146_debug;
+@@ -482,8 +479,6 @@ static int saa7146_init_one(struct pci_dev *pci, const struct pci_device_id *ent
+ 	   set it explicitly. */
+ 	pci_set_drvdata(pci, &dev->v4l2_dev);
+ 
+-	INIT_LIST_HEAD(&dev->item);
+-	list_add_tail(&dev->item,&saa7146_devices);
+ 	saa7146_num++;
+ 
+ 	err = 0;
+@@ -545,7 +540,6 @@ static void saa7146_remove_one(struct pci_dev *pdev)
+ 
+ 	iounmap(dev->mem);
+ 	pci_release_region(pdev, 0);
+-	list_del(&dev->item);
+ 	pci_disable_device(pdev);
+ 	kfree(dev);
+ 
+@@ -592,8 +586,6 @@ EXPORT_SYMBOL_GPL(saa7146_setgpio);
+ EXPORT_SYMBOL_GPL(saa7146_i2c_adapter_prepare);
+ 
+ EXPORT_SYMBOL_GPL(saa7146_debug);
+-EXPORT_SYMBOL_GPL(saa7146_devices);
+-EXPORT_SYMBOL_GPL(saa7146_devices_lock);
+ 
+ MODULE_AUTHOR("Michael Hunold <michael@mihu.de>");
+ MODULE_DESCRIPTION("driver for generic saa7146-based hardware");
+diff --git a/drivers/media/common/saa7146_fops.c b/drivers/media/common/saa7146_fops.c
+index 0cdbd74..b3890bd 100644
+--- a/drivers/media/common/saa7146_fops.c
++++ b/drivers/media/common/saa7146_fops.c
+@@ -201,7 +201,7 @@ static int fops_open(struct file *file)
+ 
+ 	DEB_EE("file:%p, dev:%s\n", file, video_device_node_name(vdev));
+ 
+-	if (mutex_lock_interruptible(&saa7146_devices_lock))
++	if (mutex_lock_interruptible(vdev->lock))
+ 		return -ERESTARTSYS;
+ 
+ 	DEB_D("using: %p\n", dev);
+@@ -253,7 +253,7 @@ out:
+ 		kfree(fh);
+ 		file->private_data = NULL;
+ 	}
+-	mutex_unlock(&saa7146_devices_lock);
++	mutex_unlock(vdev->lock);
+ 	return result;
+ }
+ 
+@@ -265,7 +265,7 @@ static int fops_release(struct file *file)
+ 
+ 	DEB_EE("file:%p\n", file);
+ 
+-	if (mutex_lock_interruptible(&saa7146_devices_lock))
++	if (mutex_lock_interruptible(vdev->lock))
+ 		return -ERESTARTSYS;
+ 
+ 	if (vdev->vfl_type == VFL_TYPE_VBI) {
+@@ -283,7 +283,7 @@ static int fops_release(struct file *file)
+ 	file->private_data = NULL;
+ 	kfree(fh);
+ 
+-	mutex_unlock(&saa7146_devices_lock);
++	mutex_unlock(vdev->lock);
+ 
+ 	return 0;
+ }
+@@ -293,6 +293,7 @@ static int fops_mmap(struct file *file, struct vm_area_struct * vma)
+ 	struct video_device *vdev = video_devdata(file);
+ 	struct saa7146_fh *fh = file->private_data;
+ 	struct videobuf_queue *q;
++	int res;
+ 
+ 	switch (vdev->vfl_type) {
+ 	case VFL_TYPE_GRABBER: {
+@@ -314,10 +315,14 @@ static int fops_mmap(struct file *file, struct vm_area_struct * vma)
+ 		return 0;
+ 	}
+ 
+-	return videobuf_mmap_mapper(q,vma);
++	if (mutex_lock_interruptible(vdev->lock))
++		return -ERESTARTSYS;
++	res = videobuf_mmap_mapper(q, vma);
++	mutex_unlock(vdev->lock);
++	return res;
+ }
+ 
+-static unsigned int fops_poll(struct file *file, struct poll_table_struct *wait)
++static unsigned int __fops_poll(struct file *file, struct poll_table_struct *wait)
+ {
+ 	struct video_device *vdev = video_devdata(file);
+ 	struct saa7146_fh *fh = file->private_data;
+@@ -356,10 +361,22 @@ static unsigned int fops_poll(struct file *file, struct poll_table_struct *wait)
+ 	return res;
+ }
+ 
++static unsigned int fops_poll(struct file *file, struct poll_table_struct *wait)
++{
++	struct video_device *vdev = video_devdata(file);
++	unsigned int res;
++
++	mutex_lock(vdev->lock);
++	res = __fops_poll(file, wait);
++	mutex_unlock(vdev->lock);
++	return res;
++}
++
+ static ssize_t fops_read(struct file *file, char __user *data, size_t count, loff_t *ppos)
+ {
+ 	struct video_device *vdev = video_devdata(file);
+ 	struct saa7146_fh *fh = file->private_data;
++	int ret;
+ 
+ 	switch (vdev->vfl_type) {
+ 	case VFL_TYPE_GRABBER:
+@@ -373,8 +390,13 @@ static ssize_t fops_read(struct file *file, char __user *data, size_t count, lof
+ 		DEB_EE("V4L2_BUF_TYPE_VBI_CAPTURE: file:%p, data:%p, count:%lu\n",
+ 		       file, data, (unsigned long)count);
+ */
+-		if (fh->dev->ext_vv_data->capabilities & V4L2_CAP_VBI_CAPTURE)
+-			return saa7146_vbi_uops.read(file,data,count,ppos);
++		if (fh->dev->ext_vv_data->capabilities & V4L2_CAP_VBI_CAPTURE) {
++			if (mutex_lock_interruptible(vdev->lock))
++				return -ERESTARTSYS;
++			ret = saa7146_vbi_uops.read(file, data, count, ppos);
++			mutex_unlock(vdev->lock);
++			return ret;
++		}
+ 		return -EINVAL;
+ 	default:
+ 		BUG();
+@@ -386,15 +408,20 @@ static ssize_t fops_write(struct file *file, const char __user *data, size_t cou
+ {
+ 	struct video_device *vdev = video_devdata(file);
+ 	struct saa7146_fh *fh = file->private_data;
++	int ret;
+ 
+ 	switch (vdev->vfl_type) {
+ 	case VFL_TYPE_GRABBER:
+ 		return -EINVAL;
+ 	case VFL_TYPE_VBI:
+-		if (fh->dev->ext_vv_data->vbi_fops.write)
+-			return fh->dev->ext_vv_data->vbi_fops.write(file, data, count, ppos);
+-		else
+-			return -EINVAL;
++		if (fh->dev->ext_vv_data->vbi_fops.write) {
++			if (mutex_lock_interruptible(vdev->lock))
++				return -ERESTARTSYS;
++			ret = fh->dev->ext_vv_data->vbi_fops.write(file, data, count, ppos);
++			mutex_unlock(vdev->lock);
++			return ret;
++		}
++		return -EINVAL;
+ 	default:
+ 		BUG();
+ 		return -EINVAL;
+@@ -584,10 +611,6 @@ int saa7146_register_device(struct video_device **vid, struct saa7146_dev* dev,
+ 	else
+ 		vfd->ioctl_ops = &dev->ext_vv_data->vbi_ops;
+ 	vfd->release = video_device_release;
+-	/* Locking in file operations other than ioctl should be done by
+-	   the driver, not the V4L2 core.
+-	   This driver needs auditing so that this flag can be removed. */
+-	set_bit(V4L2_FL_LOCK_ALL_FOPS, &vfd->flags);
+ 	vfd->lock = &dev->v4l2_lock;
+ 	vfd->v4l2_dev = &dev->v4l2_dev;
+ 	vfd->tvnorms = 0;
+diff --git a/include/media/saa7146.h b/include/media/saa7146.h
+index 773e527..96058a5 100644
+--- a/include/media/saa7146.h
++++ b/include/media/saa7146.h
+@@ -117,8 +117,6 @@ struct saa7146_dev
+ {
+ 	struct module			*module;
+ 
+-	struct list_head		item;
+-
+ 	struct v4l2_device 		v4l2_dev;
+ 	struct v4l2_ctrl_handler	ctrl_handler;
+ 
+@@ -166,8 +164,6 @@ static inline struct saa7146_dev *to_saa7146_dev(struct v4l2_device *v4l2_dev)
+ int saa7146_i2c_adapter_prepare(struct saa7146_dev *dev, struct i2c_adapter *i2c_adapter, u32 bitrate);
+ 
+ /* from saa7146_core.c */
+-extern struct list_head saa7146_devices;
+-extern struct mutex saa7146_devices_lock;
+ int saa7146_register_extension(struct saa7146_extension*);
+ int saa7146_unregister_extension(struct saa7146_extension*);
+ struct saa7146_format* saa7146_format_by_fourcc(struct saa7146_dev *dev, int fourcc);
+-- 
+1.7.10
+
