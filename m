@@ -1,203 +1,176 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:4644 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755451Ab2FJK0S (ORCPT
+Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:3296 "EHLO
+	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754027Ab2FXL3B (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Jun 2012 06:26:18 -0400
+	Sun, 24 Jun 2012 07:29:01 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Andy Walls <awalls@md.metrocast.net>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+Cc: Andy Walls <awalls@md.metrocast.net>,
 	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Pawel Osciak <pawel@osciak.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Scott Jiang <scott.jiang.linux@gmail.com>,
+	Manjunatha Halli <manjunatha_halli@ti.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>,
+	Anatolij Gustschin <agust@denx.de>,
+	Javier Martin <javier.martin@vista-silicon.com>,
+	Sensoray Linux Development <linux-dev@sensoray.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
+	Sachin Kamat <sachin.kamat@linaro.org>,
 	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv1 PATCH 20/32] v4l2-ioctl: remove v4l_(i2c_)print_ioctl
-Date: Sun, 10 Jun 2012 12:25:42 +0200
-Message-Id: <e3bb80cda094990893fb856b7444e0909e37b505.1339321562.git.hans.verkuil@cisco.com>
-In-Reply-To: <1339323954-1404-1-git-send-email-hverkuil@xs4all.nl>
-References: <1339323954-1404-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <ef490f7ebca5b6df91db6b1acfb9928ada3bcd70.1339321562.git.hans.verkuil@cisco.com>
-References: <ef490f7ebca5b6df91db6b1acfb9928ada3bcd70.1339321562.git.hans.verkuil@cisco.com>
+	mitov@issp.bas.bg, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 04/26] usbvision: remove V4L2_FL_LOCK_ALL_FOPS
+Date: Sun, 24 Jun 2012 13:25:56 +0200
+Message-Id: <76823a2f9c23a9fba29370d1fae9d8c072e6548c.1340536092.git.hans.verkuil@cisco.com>
+In-Reply-To: <1340537178-18768-1-git-send-email-hverkuil@xs4all.nl>
+References: <1340537178-18768-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <f854d2a0a932187cd895bf9cd81d2da8343b52c9.1340536092.git.hans.verkuil@cisco.com>
+References: <f854d2a0a932187cd895bf9cd81d2da8343b52c9.1340536092.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 From: Hans Verkuil <hans.verkuil@cisco.com>
 
-v4l_i2c_print_ioctl wasn't used and v4l_print_ioctl could be replaced by
-v4l_i2c_printk_ioctl.
+Add proper locking to the file operations, allowing for the removal
+of the V4L2_FL_LOCK_ALL_FOPS flag.
 
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/video/pvrusb2/pvrusb2-v4l2.c |    4 ++--
- drivers/media/video/sn9c102/sn9c102.h      |    2 +-
- drivers/media/video/uvc/uvc_v4l2.c         |    2 +-
- drivers/media/video/v4l2-ioctl.c           |   34 +++++++---------------------
- include/media/v4l2-ioctl.h                 |   20 +++-------------
- 5 files changed, 15 insertions(+), 47 deletions(-)
+ drivers/media/video/usbvision/usbvision-video.c |   42 +++++++++++++++++++----
+ 1 file changed, 36 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/media/video/pvrusb2/pvrusb2-v4l2.c b/drivers/media/video/pvrusb2/pvrusb2-v4l2.c
-index 7bddfae..81ac586 100644
---- a/drivers/media/video/pvrusb2/pvrusb2-v4l2.c
-+++ b/drivers/media/video/pvrusb2/pvrusb2-v4l2.c
-@@ -965,7 +965,7 @@ static long pvr2_v4l2_ioctl(struct file *file,
- 	long ret = -EINVAL;
+diff --git a/drivers/media/video/usbvision/usbvision-video.c b/drivers/media/video/usbvision/usbvision-video.c
+index 9bd8f08..8a43179 100644
+--- a/drivers/media/video/usbvision/usbvision-video.c
++++ b/drivers/media/video/usbvision/usbvision-video.c
+@@ -349,6 +349,8 @@ static int usbvision_v4l2_open(struct file *file)
  
- 	if (pvrusb2_debug & PVR2_TRACE_V4LIOCTL)
--		v4l_print_ioctl(pvr2_hdw_get_driver_name(hdw), cmd);
-+		v4l_printk_ioctl(pvr2_hdw_get_driver_name(hdw), cmd);
+ 	PDEBUG(DBG_IO, "open");
  
- 	if (!pvr2_hdw_dev_ok(hdw)) {
- 		pvr2_trace(PVR2_TRACE_ERROR_LEGS,
-@@ -998,7 +998,7 @@ static long pvr2_v4l2_ioctl(struct file *file,
- 				pvr2_trace(PVR2_TRACE_V4LIOCTL,
- 					   "pvr2_v4l2_do_ioctl failure, ret=%ld"
- 					   " command was:", ret);
--				v4l_print_ioctl(pvr2_hdw_get_driver_name(hdw),
-+				v4l_printk_ioctl(pvr2_hdw_get_driver_name(hdw),
- 						cmd);
- 			}
- 		}
-diff --git a/drivers/media/video/sn9c102/sn9c102.h b/drivers/media/video/sn9c102/sn9c102.h
-index 22ea211..2bc153e 100644
---- a/drivers/media/video/sn9c102/sn9c102.h
-+++ b/drivers/media/video/sn9c102/sn9c102.h
-@@ -182,7 +182,7 @@ do {                                                                          \
- #	define V4LDBG(level, name, cmd)                                       \
- do {                                                                          \
- 	if (debug >= (level))                                                 \
--		v4l_print_ioctl(name, cmd);                                   \
-+		v4l_printk_ioctl(name, cmd);                                  \
- } while (0)
- #	define KDBG(level, fmt, args...)                                      \
- do {                                                                          \
-diff --git a/drivers/media/video/uvc/uvc_v4l2.c b/drivers/media/video/uvc/uvc_v4l2.c
-index 759bef8..f00db30 100644
---- a/drivers/media/video/uvc/uvc_v4l2.c
-+++ b/drivers/media/video/uvc/uvc_v4l2.c
-@@ -1051,7 +1051,7 @@ static long uvc_v4l2_ioctl(struct file *file,
- {
- 	if (uvc_trace_param & UVC_TRACE_IOCTL) {
- 		uvc_printk(KERN_DEBUG, "uvc_v4l2_ioctl(");
--		v4l_printk_ioctl(cmd);
-+		v4l_printk_ioctl(NULL, cmd);
- 		printk(")\n");
++	if (mutex_lock_interruptible(&usbvision->v4l2_lock))
++		return -ERESTARTSYS;
+ 	usbvision_reset_power_off_timer(usbvision);
+ 
+ 	if (usbvision->user)
+@@ -402,6 +404,7 @@ static int usbvision_v4l2_open(struct file *file)
+ 
+ 	/* prepare queues */
+ 	usbvision_empty_framequeues(usbvision);
++	mutex_unlock(&usbvision->v4l2_lock);
+ 
+ 	PDEBUG(DBG_IO, "success");
+ 	return err_code;
+@@ -421,6 +424,7 @@ static int usbvision_v4l2_close(struct file *file)
+ 
+ 	PDEBUG(DBG_IO, "close");
+ 
++	mutex_lock(&usbvision->v4l2_lock);
+ 	usbvision_audio_off(usbvision);
+ 	usbvision_restart_isoc(usbvision);
+ 	usbvision_stop_isoc(usbvision);
+@@ -443,6 +447,7 @@ static int usbvision_v4l2_close(struct file *file)
+ 		printk(KERN_INFO "%s: Final disconnect\n", __func__);
+ 		usbvision_release(usbvision);
  	}
++	mutex_unlock(&usbvision->v4l2_lock);
  
-diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
-index 6c91674..c82cf98 100644
---- a/drivers/media/video/v4l2-ioctl.c
-+++ b/drivers/media/video/v4l2-ioctl.c
-@@ -28,27 +28,6 @@
- #include <media/v4l2-device.h>
- #include <media/v4l2-chip-ident.h>
+ 	PDEBUG(DBG_IO, "success");
+ 	return 0;
+@@ -956,7 +961,7 @@ static int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
+ 	return 0;
+ }
  
--#define dbgarg(cmd, fmt, arg...) \
--		do {							\
--		    if (vfd->debug & V4L2_DEBUG_IOCTL_ARG) {		\
--			printk(KERN_DEBUG "%s: ",  vfd->name);		\
--			v4l_printk_ioctl(cmd);				\
--			printk(" " fmt,  ## arg);			\
--		    }							\
--		} while (0)
--
--#define dbgarg2(fmt, arg...) \
--		do {							\
--		    if (vfd->debug & V4L2_DEBUG_IOCTL_ARG)		\
--			printk(KERN_DEBUG "%s: " fmt, vfd->name, ## arg);\
--		} while (0)
--
--#define dbgarg3(fmt, arg...) \
--		do {							\
--		    if (vfd->debug & V4L2_DEBUG_IOCTL_ARG)		\
--			printk(KERN_CONT "%s: " fmt, vfd->name, ## arg);\
--		} while (0)
--
- /* Zero out the end of the struct pointed to by p.  Everything after, but
-  * not including, the specified field is cleared. */
- #define CLEAR_AFTER_FIELD(p, field) \
-@@ -1970,10 +1949,13 @@ bool v4l2_is_known_ioctl(unsigned int cmd)
- 
- /* Common ioctl debug function. This function can be used by
-    external ioctl messages as well as internal V4L ioctl */
--void v4l_printk_ioctl(unsigned int cmd)
-+void v4l_printk_ioctl(const char *prefix, unsigned int cmd)
+-static ssize_t usbvision_v4l2_read(struct file *file, char __user *buf,
++static ssize_t usbvision_read(struct file *file, char __user *buf,
+ 		      size_t count, loff_t *ppos)
  {
- 	const char *dir, *type;
+ 	struct usb_usbvision *usbvision = video_drvdata(file);
+@@ -1060,7 +1065,20 @@ static ssize_t usbvision_v4l2_read(struct file *file, char __user *buf,
+ 	return count;
+ }
  
-+	if (prefix)
-+		pr_info("%s: ", prefix);
+-static int usbvision_v4l2_mmap(struct file *file, struct vm_area_struct *vma)
++static ssize_t usbvision_v4l2_read(struct file *file, char __user *buf,
++		      size_t count, loff_t *ppos)
++{
++	struct usb_usbvision *usbvision = video_drvdata(file);
++	int res;
 +
- 	switch (_IOC_TYPE(cmd)) {
- 	case 'd':
- 		type = "v4l2_int";
-@@ -2016,8 +1998,8 @@ static long __video_do_ioctl(struct file *file,
- 	long ret = -ENOTTY;
++	if (mutex_lock_interruptible(&usbvision->v4l2_lock))
++		return -ERESTARTSYS;
++	res = usbvision_read(file, buf, count, ppos);
++	mutex_unlock(&usbvision->v4l2_lock);
++	return res;
++}
++
++static int usbvision_mmap(struct file *file, struct vm_area_struct *vma)
+ {
+ 	unsigned long size = vma->vm_end - vma->vm_start,
+ 		start = vma->vm_start;
+@@ -1107,6 +1125,17 @@ static int usbvision_v4l2_mmap(struct file *file, struct vm_area_struct *vma)
+ 	return 0;
+ }
  
- 	if (ops == NULL) {
--		printk(KERN_WARNING "videodev: \"%s\" has no ioctl_ops.\n",
--				vfd->name);
-+		pr_warn("%s: has no ioctl_ops.\n",
-+				video_device_node_name(vfd));
- 		return ret;
- 	}
++static int usbvision_v4l2_mmap(struct file *file, struct vm_area_struct *vma)
++{
++	struct usb_usbvision *usbvision = video_drvdata(file);
++	int res;
++
++	if (mutex_lock_interruptible(&usbvision->v4l2_lock))
++		return -ERESTARTSYS;
++	res = usbvision_mmap(file, vma);
++	mutex_unlock(&usbvision->v4l2_lock);
++	return res;
++}
  
-@@ -2047,7 +2029,7 @@ static long __video_do_ioctl(struct file *file,
+ /*
+  * Here comes the stuff for radio on usbvision based devices
+@@ -1119,6 +1148,8 @@ static int usbvision_radio_open(struct file *file)
  
- 	write_only = _IOC_DIR(cmd) == _IOC_WRITE;
- 	if (write_only && vfd->debug > V4L2_DEBUG_IOCTL) {
--		v4l_print_ioctl(vfd->name, cmd);
-+		v4l_printk_ioctl(video_device_node_name(vfd), cmd);
- 		pr_cont(": ");
- 		info->debug(arg);
- 	}
-@@ -2075,7 +2057,7 @@ error:
- 					video_device_node_name(vfd), ret);
- 			return ret;
+ 	PDEBUG(DBG_IO, "%s:", __func__);
+ 
++	if (mutex_lock_interruptible(&usbvision->v4l2_lock))
++		return -ERESTARTSYS;
+ 	if (usbvision->user) {
+ 		dev_err(&usbvision->rdev->dev,
+ 			"%s: Someone tried to open an already opened USBVision Radio!\n",
+@@ -1156,6 +1187,7 @@ static int usbvision_radio_open(struct file *file)
  		}
--		v4l_print_ioctl(vfd->name, cmd);
-+		v4l_printk_ioctl(video_device_node_name(vfd), cmd);
- 		if (ret)
- 			pr_cont(": error %ld\n", ret);
- 		else if (vfd->debug == V4L2_DEBUG_IOCTL)
-diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
-index d8b76f7..dfd984f 100644
---- a/include/media/v4l2-ioctl.h
-+++ b/include/media/v4l2-ioctl.h
-@@ -295,28 +295,14 @@ struct v4l2_ioctl_ops {
- #define V4L2_DEBUG_IOCTL     0x01
- #define V4L2_DEBUG_IOCTL_ARG 0x02
+ 	}
+ out:
++	mutex_unlock(&usbvision->v4l2_lock);
+ 	return err_code;
+ }
  
--/* Use this macro for non-I2C drivers. Pass the driver name as the first arg. */
--#define v4l_print_ioctl(name, cmd)  		 \
--	do {  					 \
--		printk(KERN_DEBUG "%s: ", name); \
--		v4l_printk_ioctl(cmd);		 \
--	} while (0)
--
--/* Use this macro in I2C drivers where 'client' is the struct i2c_client
--   pointer */
--#define v4l_i2c_print_ioctl(client, cmd) 		   \
--	do {      					   \
--		v4l_client_printk(KERN_DEBUG, client, ""); \
--		v4l_printk_ioctl(cmd);			   \
--	} while (0)
--
- /*  Video standard functions  */
- extern const char *v4l2_norm_to_name(v4l2_std_id id);
- extern void v4l2_video_std_frame_period(int id, struct v4l2_fract *frameperiod);
- extern int v4l2_video_std_construct(struct v4l2_standard *vs,
- 				    int id, const char *name);
--/* Prints the ioctl in a human-readable format */
--extern void v4l_printk_ioctl(unsigned int cmd);
-+/* Prints the ioctl in a human-readable format. If prefix != NULL,
-+   then do printk(KERN_DEBUG "%s: ", prefix) first. */
-+extern void v4l_printk_ioctl(const char *prefix, unsigned int cmd);
+@@ -1167,6 +1199,7 @@ static int usbvision_radio_close(struct file *file)
  
- /* names for fancy debug output */
- extern const char *v4l2_field_names[];
+ 	PDEBUG(DBG_IO, "");
+ 
++	mutex_lock(&usbvision->v4l2_lock);
+ 	/* Set packet size to 0 */
+ 	usbvision->iface_alt = 0;
+ 	err_code = usb_set_interface(usbvision->dev, usbvision->iface,
+@@ -1186,6 +1219,7 @@ static int usbvision_radio_close(struct file *file)
+ 		usbvision_release(usbvision);
+ 	}
+ 
++	mutex_unlock(&usbvision->v4l2_lock);
+ 	PDEBUG(DBG_IO, "success");
+ 	return err_code;
+ }
+@@ -1296,10 +1330,6 @@ static struct video_device *usbvision_vdev_init(struct usb_usbvision *usbvision,
+ 	if (NULL == vdev)
+ 		return NULL;
+ 	*vdev = *vdev_template;
+-	/* Locking in file operations other than ioctl should be done
+-	   by the driver, not the V4L2 core.
+-	   This driver needs auditing so that this flag can be removed. */
+-	set_bit(V4L2_FL_LOCK_ALL_FOPS, &vdev->flags);
+ 	vdev->lock = &usbvision->v4l2_lock;
+ 	vdev->v4l2_dev = &usbvision->v4l2_dev;
+ 	snprintf(vdev->name, sizeof(vdev->name), "%s", name);
 -- 
 1.7.10
 
