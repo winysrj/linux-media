@@ -1,222 +1,144 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:53391 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752723Ab2FJRSk (ORCPT
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:3968 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755998Ab2FXL3T (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Jun 2012 13:18:40 -0400
-From: =?UTF-8?q?Tomasz=20Mo=C5=84?= <desowin@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Sun, 24 Jun 2012 07:29:19 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Andy Walls <awalls@md.metrocast.net>,
 	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Hans de Goede <hdegoede@redhat.com>,
-	linux-media@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org,
-	=?UTF-8?q?Tomasz=20Mo=C5=84?= <desowin@gmail.com>
-Subject: [PATCH 1/1] v4l: mem2mem_testdev: Add horizontal and vertical flip.
-Date: Sun, 10 Jun 2012 21:18:03 +0200
-Message-Id: <1339355883-4249-1-git-send-email-desowin@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Scott Jiang <scott.jiang.linux@gmail.com>,
+	Manjunatha Halli <manjunatha_halli@ti.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>,
+	Anatolij Gustschin <agust@denx.de>,
+	Javier Martin <javier.martin@vista-silicon.com>,
+	Sensoray Linux Development <linux-dev@sensoray.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
+	Sachin Kamat <sachin.kamat@linaro.org>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	mitov@issp.bas.bg, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 10/26] fsl-viu: remove V4L2_FL_LOCK_ALL_FOPS
+Date: Sun, 24 Jun 2012 13:26:02 +0200
+Message-Id: <b29f8ac3c3f204397f557df4988f2cd17a170a1a.1340536092.git.hans.verkuil@cisco.com>
+In-Reply-To: <1340537178-18768-1-git-send-email-hverkuil@xs4all.nl>
+References: <1340537178-18768-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <f854d2a0a932187cd895bf9cd81d2da8343b52c9.1340536092.git.hans.verkuil@cisco.com>
+References: <f854d2a0a932187cd895bf9cd81d2da8343b52c9.1340536092.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Tomasz Moń <desowin@gmail.com>
+Add proper locking to the file operations, allowing for the removal
+of the V4L2_FL_LOCK_ALL_FOPS flag.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/video/mem2mem_testdev.c |  135 ++++++++++++++++++++++++++++++---
- 1 file changed, 124 insertions(+), 11 deletions(-)
+ drivers/media/video/fsl-viu.c |   27 ++++++++++++++++++++++-----
+ 1 file changed, 22 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/media/video/mem2mem_testdev.c b/drivers/media/video/mem2mem_testdev.c
-index d2dec58..e1b66e9 100644
---- a/drivers/media/video/mem2mem_testdev.c
-+++ b/drivers/media/video/mem2mem_testdev.c
-@@ -60,6 +60,10 @@ MODULE_VERSION("0.1.1");
- #define MEM2MEM_COLOR_STEP	(0xff >> 4)
- #define MEM2MEM_NUM_TILES	8
+diff --git a/drivers/media/video/fsl-viu.c b/drivers/media/video/fsl-viu.c
+index 777486f..20f9810 100644
+--- a/drivers/media/video/fsl-viu.c
++++ b/drivers/media/video/fsl-viu.c
+@@ -1279,10 +1279,16 @@ static int viu_open(struct file *file)
+ 	dprintk(1, "open minor=%d type=%s users=%d\n", minor,
+ 		v4l2_type_names[V4L2_BUF_TYPE_VIDEO_CAPTURE], dev->users);
  
-+/* Flags that indicate processing mode */
-+#define MEM2MEM_HFLIP	(1 << 0)
-+#define MEM2MEM_VFLIP	(1 << 1)
++	if (mutex_lock_interruptible(&dev->lock)) {
++		dev->users--;
++		return -ERESTARTSYS;
++	}
 +
- #define dprintk(dev, fmt, arg...) \
- 	v4l2_dbg(1, 1, &dev->v4l2_dev, "%s: " fmt, __func__, ## arg)
- 
-@@ -131,6 +135,24 @@ static struct m2mtest_q_data *get_q_data(enum v4l2_buf_type type)
- 
- static struct v4l2_queryctrl m2mtest_ctrls[] = {
- 	{
-+		.id		= V4L2_CID_HFLIP,
-+		.type		= V4L2_CTRL_TYPE_BOOLEAN,
-+		.name		= "Mirror",
-+		.minimum	= 0,
-+		.maximum	= 1,
-+		.step		= 1,
-+		.default_value	= 0,
-+		.flags		= 0,
-+	}, {
-+		.id		= V4L2_CID_VFLIP,
-+		.type		= V4L2_CTRL_TYPE_BOOLEAN,
-+		.name		= "Vertical Mirror",
-+		.minimum	= 0,
-+		.maximum	= 1,
-+		.step		= 1,
-+		.default_value	= 0,
-+		.flags		= 0,
-+	}, {
- 		.id		= V4L2_CID_TRANS_TIME_MSEC,
- 		.type		= V4L2_CTRL_TYPE_INTEGER,
- 		.name		= "Transaction time (msec)",
-@@ -197,6 +219,9 @@ struct m2mtest_ctx {
- 	/* Abort requested by m2m */
- 	int			aborting;
- 
-+	/* Processing mode */
-+	int			mode;
-+
- 	struct v4l2_m2m_ctx	*m2m_ctx;
- };
- 
-@@ -247,19 +272,84 @@ static int device_process(struct m2mtest_ctx *ctx,
- 	bytes_left = bytesperline - tile_w * MEM2MEM_NUM_TILES;
- 	w = 0;
- 
--	for (y = 0; y < height; ++y) {
--		for (t = 0; t < MEM2MEM_NUM_TILES; ++t) {
--			if (w & 0x1) {
--				for (x = 0; x < tile_w; ++x)
--					*p_out++ = *p_in++ + MEM2MEM_COLOR_STEP;
--			} else {
--				for (x = 0; x < tile_w; ++x)
--					*p_out++ = *p_in++ - MEM2MEM_COLOR_STEP;
-+	switch (ctx->mode) {
-+	case MEM2MEM_HFLIP | MEM2MEM_VFLIP:
-+		p_out += bytesperline * height - bytes_left;
-+		for (y = 0; y < height; ++y) {
-+			for (t = 0; t < MEM2MEM_NUM_TILES; ++t) {
-+				if (w & 0x1) {
-+					for (x = 0; x < tile_w; ++x)
-+						*--p_out = *p_in++ +
-+							MEM2MEM_COLOR_STEP;
-+				} else {
-+					for (x = 0; x < tile_w; ++x)
-+						*--p_out = *p_in++ -
-+							MEM2MEM_COLOR_STEP;
-+				}
-+				++w;
- 			}
--			++w;
-+			p_in += bytes_left;
-+			p_out -= bytes_left;
-+		}
-+		break;
-+
-+	case MEM2MEM_HFLIP:
-+		for (y = 0; y < height; ++y) {
-+			p_out += MEM2MEM_NUM_TILES * tile_w;
-+			for (t = 0; t < MEM2MEM_NUM_TILES; ++t) {
-+				if (w & 0x01) {
-+					for (x = 0; x < tile_w; ++x)
-+						*--p_out = *p_in++ +
-+							MEM2MEM_COLOR_STEP;
-+				} else {
-+					for (x = 0; x < tile_w; ++x)
-+						*--p_out = *p_in++ -
-+							MEM2MEM_COLOR_STEP;
-+				}
-+				++w;
-+			}
-+			p_in += bytes_left;
-+			p_out += bytesperline;
-+		}
-+		break;
-+
-+	case MEM2MEM_VFLIP:
-+		p_out += bytesperline * (height - 1);
-+		for (y = 0; y < height; ++y) {
-+			for (t = 0; t < MEM2MEM_NUM_TILES; ++t) {
-+				if (w & 0x1) {
-+					for (x = 0; x < tile_w; ++x)
-+						*p_out++ = *p_in++ +
-+							MEM2MEM_COLOR_STEP;
-+				} else {
-+					for (x = 0; x < tile_w; ++x)
-+						*p_out++ = *p_in++ -
-+							MEM2MEM_COLOR_STEP;
-+				}
-+				++w;
-+			}
-+			p_in += bytes_left;
-+			p_out += bytes_left - 2 * bytesperline;
-+		}
-+		break;
-+
-+	default:
-+		for (y = 0; y < height; ++y) {
-+			for (t = 0; t < MEM2MEM_NUM_TILES; ++t) {
-+				if (w & 0x1) {
-+					for (x = 0; x < tile_w; ++x)
-+						*p_out++ = *p_in++ +
-+							MEM2MEM_COLOR_STEP;
-+				} else {
-+					for (x = 0; x < tile_w; ++x)
-+						*p_out++ = *p_in++ -
-+							MEM2MEM_COLOR_STEP;
-+				}
-+				++w;
-+			}
-+			p_in += bytes_left;
-+			p_out += bytes_left;
- 		}
--		p_in += bytes_left;
--		p_out += bytes_left;
+ 	/* allocate and initialize per filehandle data */
+ 	fh = kzalloc(sizeof(*fh), GFP_KERNEL);
+ 	if (!fh) {
+ 		dev->users--;
++		mutex_unlock(&dev->lock);
+ 		return -ENOMEM;
  	}
  
+@@ -1325,6 +1331,7 @@ static int viu_open(struct file *file)
+ 				       fh->type, V4L2_FIELD_INTERLACED,
+ 				       sizeof(struct viu_buf), fh,
+ 				       &fh->dev->lock);
++	mutex_unlock(&dev->lock);
  	return 0;
-@@ -646,6 +736,14 @@ static int vidioc_g_ctrl(struct file *file, void *priv,
- 	struct m2mtest_ctx *ctx = priv;
+ }
  
- 	switch (ctrl->id) {
-+	case V4L2_CID_HFLIP:
-+		ctrl->value = (ctx->mode & MEM2MEM_HFLIP) ? 1 : 0;
-+		break;
-+
-+	case V4L2_CID_VFLIP:
-+		ctrl->value = (ctx->mode & MEM2MEM_VFLIP) ? 1 : 0;
-+		break;
-+
- 	case V4L2_CID_TRANS_TIME_MSEC:
- 		ctrl->value = ctx->transtime;
- 		break;
-@@ -689,6 +787,20 @@ static int vidioc_s_ctrl(struct file *file, void *priv,
+@@ -1340,9 +1347,12 @@ static ssize_t viu_read(struct file *file, char __user *data, size_t count,
+ 		dev->ovenable = 0;
+ 
+ 	if (fh->type == V4L2_BUF_TYPE_VIDEO_CAPTURE) {
++		if (mutex_lock_interruptible(&dev->lock))
++			return -ERESTARTSYS;
+ 		viu_start_dma(dev);
+ 		ret = videobuf_read_stream(&fh->vb_vidq, data, count,
+ 				ppos, 0, file->f_flags & O_NONBLOCK);
++		mutex_unlock(&dev->lock);
  		return ret;
+ 	}
+ 	return 0;
+@@ -1352,11 +1362,16 @@ static unsigned int viu_poll(struct file *file, struct poll_table_struct *wait)
+ {
+ 	struct viu_fh *fh = file->private_data;
+ 	struct videobuf_queue *q = &fh->vb_vidq;
++	struct viu_dev *dev = fh->dev;
++	unsigned int res;
  
- 	switch (ctrl->id) {
-+	case V4L2_CID_HFLIP:
-+		if (ctrl->value)
-+			ctx->mode |= MEM2MEM_HFLIP;
-+		else
-+			ctx->mode &= ~MEM2MEM_HFLIP;
-+		break;
-+
-+	case V4L2_CID_VFLIP:
-+		if (ctrl->value)
-+			ctx->mode |= MEM2MEM_VFLIP;
-+		else
-+			ctx->mode &= ~MEM2MEM_VFLIP;
-+		break;
-+
- 	case V4L2_CID_TRANS_TIME_MSEC:
- 		ctx->transtime = ctrl->value;
- 		break;
-@@ -859,6 +971,7 @@ static int m2mtest_open(struct file *file)
- 	ctx->translen = MEM2MEM_DEF_TRANSLEN;
- 	ctx->transtime = MEM2MEM_DEF_TRANSTIME;
- 	ctx->num_processed = 0;
-+	ctx->mode = 0;
+ 	if (V4L2_BUF_TYPE_VIDEO_CAPTURE != fh->type)
+ 		return POLLERR;
  
- 	ctx->m2m_ctx = v4l2_m2m_ctx_init(dev->m2m_dev, ctx, &queue_init);
+-	return videobuf_poll_stream(file, q, wait);
++	mutex_lock(&dev->lock);
++	res = videobuf_poll_stream(file, q, wait);
++	mutex_unlock(&dev->lock);
++	return res;
+ }
+ 
+ static int viu_release(struct file *file)
+@@ -1365,9 +1380,11 @@ static int viu_release(struct file *file)
+ 	struct viu_dev *dev = fh->dev;
+ 	int minor = video_devdata(file)->minor;
+ 
++	mutex_lock(&dev->lock);
+ 	viu_stop_dma(dev);
+ 	videobuf_stop(&fh->vb_vidq);
+ 	videobuf_mmap_free(&fh->vb_vidq);
++	mutex_unlock(&dev->lock);
+ 
+ 	kfree(fh);
+ 
+@@ -1394,11 +1411,15 @@ void viu_reset(struct viu_reg *reg)
+ static int viu_mmap(struct file *file, struct vm_area_struct *vma)
+ {
+ 	struct viu_fh *fh = file->private_data;
++	struct viu_dev *dev = fh->dev;
+ 	int ret;
+ 
+ 	dprintk(1, "mmap called, vma=0x%08lx\n", (unsigned long)vma);
+ 
++	if (mutex_lock_interruptible(&dev->lock))
++		return -ERESTARTSYS;
+ 	ret = videobuf_mmap_mapper(&fh->vb_vidq, vma);
++	mutex_unlock(&dev->lock);
+ 
+ 	dprintk(1, "vma start=0x%08lx, size=%ld, ret=%d\n",
+ 		(unsigned long)vma->vm_start,
+@@ -1544,10 +1565,6 @@ static int __devinit viu_of_probe(struct platform_device *op)
+ 
+ 	/* initialize locks */
+ 	mutex_init(&viu_dev->lock);
+-	/* Locking in file operations other than ioctl should be done
+-	   by the driver, not the V4L2 core.
+-	   This driver needs auditing so that this flag can be removed. */
+-	set_bit(V4L2_FL_LOCK_ALL_FOPS, &viu_dev->vdev->flags);
+ 	viu_dev->vdev->lock = &viu_dev->lock;
+ 	spin_lock_init(&viu_dev->slock);
  
 -- 
 1.7.10
