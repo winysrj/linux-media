@@ -1,211 +1,136 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:33376 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752217Ab2F2VwB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Jun 2012 17:52:01 -0400
-Received: from int-mx11.intmail.prod.int.phx2.redhat.com (int-mx11.intmail.prod.int.phx2.redhat.com [10.5.11.24])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q5TLq1Oi024169
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Fri, 29 Jun 2012 17:52:01 -0400
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 4/4] [media] drxk: prevent doing something wrong when init is not ok
-Date: Fri, 29 Jun 2012 18:51:57 -0300
-Message-Id: <1341006717-32373-5-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1341006717-32373-1-git-send-email-mchehab@redhat.com>
-References: <20120629124719.2cf23f6b@endymion.delvare>
- <1341006717-32373-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:3465 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755958Ab2FXL3S (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 24 Jun 2012 07:29:18 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Andy Walls <awalls@md.metrocast.net>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Scott Jiang <scott.jiang.linux@gmail.com>,
+	Manjunatha Halli <manjunatha_halli@ti.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>,
+	Anatolij Gustschin <agust@denx.de>,
+	Javier Martin <javier.martin@vista-silicon.com>,
+	Sensoray Linux Development <linux-dev@sensoray.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
+	Sachin Kamat <sachin.kamat@linaro.org>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	mitov@issp.bas.bg, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 08/26] dt3155v4l: remove V4L2_FL_LOCK_ALL_FOPS
+Date: Sun, 24 Jun 2012 13:26:00 +0200
+Message-Id: <9d2c4dab5a81cad58d5a7d10df3366854066d423.1340536092.git.hans.verkuil@cisco.com>
+In-Reply-To: <1340537178-18768-1-git-send-email-hverkuil@xs4all.nl>
+References: <1340537178-18768-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <f854d2a0a932187cd895bf9cd81d2da8343b52c9.1340536092.git.hans.verkuil@cisco.com>
+References: <f854d2a0a932187cd895bf9cd81d2da8343b52c9.1340536092.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If firmware is not loaded for some reason, or if it is not ready
-yet, it makes no sense to honour to any DVB callbacks.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-So, return -EAGAIN, as the error condition may be temporary.
-If the device doesn't initialize, either because it requires a
-firmware or because there's an error during init_drxk, returns
--ENODEV, to indicate such error, on all DVB callbacks.
+Add proper locking to the file operations, allowing for the removal
+of the V4L2_FL_LOCK_ALL_FOPS flag.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/dvb/frontends/drxk_hard.c |   58 ++++++++++++++++++++++++++++++-
- drivers/media/dvb/frontends/drxk_hard.h |   10 +++++-
- 2 files changed, 66 insertions(+), 2 deletions(-)
+ drivers/staging/media/dt3155v4l/dt3155v4l.c |   29 ++++++++++++++++++++-------
+ 1 file changed, 22 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/media/dvb/frontends/drxk_hard.c b/drivers/media/dvb/frontends/drxk_hard.c
-index 87cb3f0..8fa28bb 100644
---- a/drivers/media/dvb/frontends/drxk_hard.c
-+++ b/drivers/media/dvb/frontends/drxk_hard.c
-@@ -2851,7 +2851,7 @@ static int ConfigureI2CBridge(struct drxk_state *state, bool bEnableBridge)
- 	dprintk(1, "\n");
+diff --git a/drivers/staging/media/dt3155v4l/dt3155v4l.c b/drivers/staging/media/dt3155v4l/dt3155v4l.c
+index c365cdf..f10ac45 100644
+--- a/drivers/staging/media/dt3155v4l/dt3155v4l.c
++++ b/drivers/staging/media/dt3155v4l/dt3155v4l.c
+@@ -381,6 +381,8 @@ dt3155_open(struct file *filp)
+ 	int ret = 0;
+ 	struct dt3155_priv *pd = video_drvdata(filp);
  
- 	if (state->m_DrxkState == DRXK_UNINITIALIZED)
--		goto error;
-+		return 0;
- 	if (state->m_DrxkState == DRXK_POWERED_DOWN)
- 		goto error;
++	if (mutex_lock_interruptible(&pd->mux))
++		return -ERESTARTSYS;
+ 	if (!pd->users) {
+ 		pd->q = kzalloc(sizeof(*pd->q), GFP_KERNEL);
+ 		if (!pd->q) {
+@@ -411,6 +413,7 @@ err_request_irq:
+ 	kfree(pd->q);
+ 	pd->q = NULL;
+ err_alloc_queue:
++	mutex_unlock(&pd->mux);
+ 	return ret;
+ }
  
-@@ -6197,6 +6197,7 @@ static int init_drxk(struct drxk_state *state)
+@@ -419,6 +422,7 @@ dt3155_release(struct file *filp)
+ {
+ 	struct dt3155_priv *pd = video_drvdata(filp);
+ 
++	mutex_lock(&pd->mux);
+ 	pd->users--;
+ 	BUG_ON(pd->users < 0);
+ 	if (!pd->users) {
+@@ -429,6 +433,7 @@ dt3155_release(struct file *filp)
+ 		kfree(pd->q);
+ 		pd->q = NULL;
  	}
- error:
- 	if (status < 0) {
-+		state->m_DrxkState = DRXK_NO_DEV;
- 		drxk_i2c_unlock(state);
- 		printk(KERN_ERR "drxk: Error %d on %s\n", status, __func__);
- 	}
-@@ -6209,6 +6210,7 @@ static void load_firmware_cb(const struct firmware *fw,
- {
- 	struct drxk_state *state = context;
- 
-+	dprintk(1, ": %s\n", fw ? "firmware loaded" : "firmware not loaded");
- 	if (!fw) {
- 		printk(KERN_ERR
- 		       "drxk: Could not load firmware file %s.\n",
-@@ -6250,6 +6252,12 @@ static int drxk_sleep(struct dvb_frontend *fe)
- 	struct drxk_state *state = fe->demodulator_priv;
- 
- 	dprintk(1, "\n");
-+
-+	if (state->m_DrxkState == DRXK_NO_DEV)
-+		return -ENODEV;
-+	if (state->m_DrxkState == DRXK_UNINITIALIZED)
-+		return 0;
-+
- 	ShutDown(state);
++	mutex_unlock(&pd->mux);
  	return 0;
  }
-@@ -6259,6 +6267,10 @@ static int drxk_gate_ctrl(struct dvb_frontend *fe, int enable)
- 	struct drxk_state *state = fe->demodulator_priv;
  
- 	dprintk(1, "%s\n", enable ? "enable" : "disable");
-+
-+	if (state->m_DrxkState == DRXK_NO_DEV)
-+		return -ENODEV;
-+
- 	return ConfigureI2CBridge(state, enable ? true : false);
+@@ -436,24 +441,38 @@ static ssize_t
+ dt3155_read(struct file *filp, char __user *user, size_t size, loff_t *loff)
+ {
+ 	struct dt3155_priv *pd = video_drvdata(filp);
++	ssize_t res;
+ 
+-	return vb2_read(pd->q, user, size, loff, filp->f_flags & O_NONBLOCK);
++	if (mutex_lock_interruptible(&pd->mux))
++		return -ERESTARTSYS;
++	res = vb2_read(pd->q, user, size, loff, filp->f_flags & O_NONBLOCK);
++	mutex_unlock(&pd->mux);
++	return res;
  }
  
-@@ -6271,6 +6283,12 @@ static int drxk_set_parameters(struct dvb_frontend *fe)
- 
- 	dprintk(1, "\n");
- 
-+	if (state->m_DrxkState == DRXK_NO_DEV)
-+		return -ENODEV;
-+
-+	if (state->m_DrxkState == DRXK_UNINITIALIZED)
-+		return -EAGAIN;
-+
- 	if (!fe->ops.tuner_ops.get_if_frequency) {
- 		printk(KERN_ERR
- 		       "drxk: Error: get_if_frequency() not defined at tuner. Can't work without it!\n");
-@@ -6324,6 +6342,12 @@ static int drxk_read_status(struct dvb_frontend *fe, fe_status_t *status)
- 	u32 stat;
- 
- 	dprintk(1, "\n");
-+
-+	if (state->m_DrxkState == DRXK_NO_DEV)
-+		return -ENODEV;
-+	if (state->m_DrxkState == DRXK_UNINITIALIZED)
-+		return -EAGAIN;
-+
- 	*status = 0;
- 	GetLockStatus(state, &stat, 0);
- 	if (stat == MPEG_LOCK)
-@@ -6337,8 +6361,15 @@ static int drxk_read_status(struct dvb_frontend *fe, fe_status_t *status)
- 
- static int drxk_read_ber(struct dvb_frontend *fe, u32 *ber)
+ static unsigned int
+ dt3155_poll(struct file *filp, struct poll_table_struct *polltbl)
  {
-+	struct drxk_state *state = fe->demodulator_priv;
-+
- 	dprintk(1, "\n");
+ 	struct dt3155_priv *pd = video_drvdata(filp);
++	unsigned int res;
  
-+	if (state->m_DrxkState == DRXK_NO_DEV)
-+		return -ENODEV;
-+	if (state->m_DrxkState == DRXK_UNINITIALIZED)
-+		return -EAGAIN;
-+
- 	*ber = 0;
- 	return 0;
+-	return vb2_poll(pd->q, filp, polltbl);
++	mutex_lock(&pd->mux);
++	res = vb2_poll(pd->q, filp, polltbl);
++	mutex_unlock(&pd->mux);
++	return res;
  }
-@@ -6350,6 +6381,12 @@ static int drxk_read_signal_strength(struct dvb_frontend *fe,
- 	u32 val = 0;
  
- 	dprintk(1, "\n");
-+
-+	if (state->m_DrxkState == DRXK_NO_DEV)
-+		return -ENODEV;
-+	if (state->m_DrxkState == DRXK_UNINITIALIZED)
-+		return -EAGAIN;
-+
- 	ReadIFAgc(state, &val);
- 	*strength = val & 0xffff;
- 	return 0;
-@@ -6361,6 +6398,12 @@ static int drxk_read_snr(struct dvb_frontend *fe, u16 *snr)
- 	s32 snr2;
- 
- 	dprintk(1, "\n");
-+
-+	if (state->m_DrxkState == DRXK_NO_DEV)
-+		return -ENODEV;
-+	if (state->m_DrxkState == DRXK_UNINITIALIZED)
-+		return -EAGAIN;
-+
- 	GetSignalToNoise(state, &snr2);
- 	*snr = snr2 & 0xffff;
- 	return 0;
-@@ -6372,6 +6415,12 @@ static int drxk_read_ucblocks(struct dvb_frontend *fe, u32 *ucblocks)
- 	u16 err;
- 
- 	dprintk(1, "\n");
-+
-+	if (state->m_DrxkState == DRXK_NO_DEV)
-+		return -ENODEV;
-+	if (state->m_DrxkState == DRXK_UNINITIALIZED)
-+		return -EAGAIN;
-+
- 	DVBTQAMGetAccPktErr(state, &err);
- 	*ucblocks = (u32) err;
- 	return 0;
-@@ -6380,9 +6429,16 @@ static int drxk_read_ucblocks(struct dvb_frontend *fe, u32 *ucblocks)
- static int drxk_get_tune_settings(struct dvb_frontend *fe, struct dvb_frontend_tune_settings
- 				    *sets)
+ static int
+ dt3155_mmap(struct file *filp, struct vm_area_struct *vma)
  {
-+	struct drxk_state *state = fe->demodulator_priv;
- 	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+ 	struct dt3155_priv *pd = video_drvdata(filp);
++	int res;
  
- 	dprintk(1, "\n");
-+
-+	if (state->m_DrxkState == DRXK_NO_DEV)
-+		return -ENODEV;
-+	if (state->m_DrxkState == DRXK_UNINITIALIZED)
-+		return -EAGAIN;
-+
- 	switch (p->delivery_system) {
- 	case SYS_DVBC_ANNEX_A:
- 	case SYS_DVBC_ANNEX_C:
-diff --git a/drivers/media/dvb/frontends/drxk_hard.h b/drivers/media/dvb/frontends/drxk_hard.h
-index c35ab2b..f417797 100644
---- a/drivers/media/dvb/frontends/drxk_hard.h
-+++ b/drivers/media/dvb/frontends/drxk_hard.h
-@@ -94,7 +94,15 @@ enum DRXPowerMode {
+-	return vb2_mmap(pd->q, vma);
++	if (mutex_lock_interruptible(&pd->mux))
++		return -ERESTARTSYS;
++	res = vb2_mmap(pd->q, vma);
++	mutex_unlock(&pd->mux);
++	return res;
+ }
  
- 
- enum AGC_CTRL_MODE { DRXK_AGC_CTRL_AUTO = 0, DRXK_AGC_CTRL_USER, DRXK_AGC_CTRL_OFF };
--enum EDrxkState { DRXK_UNINITIALIZED = 0, DRXK_STOPPED, DRXK_DTV_STARTED, DRXK_ATV_STARTED, DRXK_POWERED_DOWN };
-+enum EDrxkState {
-+	DRXK_UNINITIALIZED = 0,
-+	DRXK_STOPPED,
-+	DRXK_DTV_STARTED,
-+	DRXK_ATV_STARTED,
-+	DRXK_POWERED_DOWN,
-+	DRXK_NO_DEV			/* If drxk init failed */
-+};
-+
- enum EDrxkCoefArrayIndex {
- 	DRXK_COEF_IDX_MN = 0,
- 	DRXK_COEF_IDX_FM    ,
+ static const struct v4l2_file_operations dt3155_fops = {
+@@ -898,10 +917,6 @@ dt3155_probe(struct pci_dev *pdev, const struct pci_device_id *id)
+ 	INIT_LIST_HEAD(&pd->dmaq);
+ 	mutex_init(&pd->mux);
+ 	pd->vdev->lock = &pd->mux; /* for locking v4l2_file_operations */
+-	/* Locking in file operations other than ioctl should be done
+-	   by the driver, not the V4L2 core.
+-	   This driver needs auditing so that this flag can be removed. */
+-	set_bit(V4L2_FL_LOCK_ALL_FOPS, &pd->vdev->flags);
+ 	spin_lock_init(&pd->lock);
+ 	pd->csr2 = csr2_init;
+ 	pd->config = config_init;
 -- 
-1.7.10.2
+1.7.10
 
