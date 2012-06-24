@@ -1,236 +1,148 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eu1sys200aog111.obsmtp.com ([207.126.144.131]:58533 "EHLO
-	eu1sys200aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751591Ab2FRKPF convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jun 2012 06:15:05 -0400
-From: Bhupesh SHARMA <bhupesh.sharma@st.com>
-To: Bhupesh SHARMA <bhupesh.sharma@st.com>,
-	"laurent.pinchart@ideasonboard.com"
-	<laurent.pinchart@ideasonboard.com>,
-	"linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>
-Cc: "balbi@ti.com" <balbi@ti.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>
-Date: Mon, 18 Jun 2012 18:14:51 +0800
-Subject: RE: [PATCH 5/5] usb: gadget/uvc: Add support for
- 'USB_GADGET_DELAYED_STATUS' response for a set_intf(alt-set 1) command
-Message-ID: <D5ECB3C7A6F99444980976A8C6D896384FAA27582D@EAPEX1MAIL1.st.com>
-References: <cover.1338543124.git.bhupesh.sharma@st.com>
- <b0c0023b38755f2b9103adb17fd7847b9ba45d0b.1338543124.git.bhupesh.sharma@st.com>
-In-Reply-To: <b0c0023b38755f2b9103adb17fd7847b9ba45d0b.1338543124.git.bhupesh.sharma@st.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+Received: from smtp-vbr19.xs4all.nl ([194.109.24.39]:4916 "EHLO
+	smtp-vbr19.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756006Ab2FXL3V (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 24 Jun 2012 07:29:21 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Andy Walls <awalls@md.metrocast.net>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Scott Jiang <scott.jiang.linux@gmail.com>,
+	Manjunatha Halli <manjunatha_halli@ti.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>,
+	Anatolij Gustschin <agust@denx.de>,
+	Javier Martin <javier.martin@vista-silicon.com>,
+	Sensoray Linux Development <linux-dev@sensoray.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
+	Sachin Kamat <sachin.kamat@linaro.org>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	mitov@issp.bas.bg, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 25/26] s5p-mfc: remove V4L2_FL_LOCK_ALL_FOPS
+Date: Sun, 24 Jun 2012 13:26:17 +0200
+Message-Id: <451838d4b2e404fdc4babf044ac6326dfc5790d7.1340536092.git.hans.verkuil@cisco.com>
+In-Reply-To: <1340537178-18768-1-git-send-email-hverkuil@xs4all.nl>
+References: <1340537178-18768-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <f854d2a0a932187cd895bf9cd81d2da8343b52c9.1340536092.git.hans.verkuil@cisco.com>
+References: <f854d2a0a932187cd895bf9cd81d2da8343b52c9.1340536092.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Can you please review this patch and let me know if any modifications are required..
+Add proper locking to the file operations, allowing for the removal
+of the V4L2_FL_LOCK_ALL_FOPS flag.
 
-> -----Original Message-----
-> From: Bhupesh SHARMA
-> Sent: Friday, June 01, 2012 3:09 PM
-> To: laurent.pinchart@ideasonboard.com; linux-usb@vger.kernel.org
-> Cc: balbi@ti.com; linux-media@vger.kernel.org;
-> gregkh@linuxfoundation.org; Bhupesh SHARMA
-> Subject: [PATCH 5/5] usb: gadget/uvc: Add support for
-> 'USB_GADGET_DELAYED_STATUS' response for a set_intf(alt-set 1) command
-> 
-> This patch adds the support in UVC webcam gadget design for providing
-> USB_GADGET_DELAYED_STATUS in response to a set_interface(alt setting 1)
-> command
-> issue by the Host.
-> 
-> The current UVC webcam gadget design generates a STREAMON event
-> corresponding
-> to a set_interface(alt setting 1) command from the Host. This STREAMON
-> event
-> will eventually be routed to a real V4L2 device.
-> 
-> To start video streaming, it may be required to perform some register
-> writes to
-> a camera sensor device over slow external busses like I2C or SPI. So,
-> it makes
-> sense to ensure that we delay the STATUS stage of the
-> set_interface(alt setting 1) command.
-> 
-> Otherwise, a lot of ISOC IN tokens sent by the Host will be replied to
-> by
-> zero-length packets by the webcam device. On certain Hosts this may
-> even lead
-> to ISOC URBs been cancelled from the Host side.
-> 
-> So, as soon as we finish doing all the "streaming" related stuff on the
-> real
-> V4L2 device, we call a STREAMON ioctl on the UVC side and from here we
-> call the
-> 'usb_composite_setup_continue' function to complete the status stage of
-> the
-> set_interface(alt setting 1) command.
-> 
-> Further, we need to ensure that we queue no video buffers on the UVC
-> webcam
-> gadget, until we de-queue a video buffer from the V4L2 device. Also, we
-> need to
-> enable UVC video related stuff at the first QBUF ioctl call itself,
-> as the application will call the STREAMON on UVC side only when it has
-> dequeued sufficient buffers from the V4L2 side and queued them to the
-> UVC
-> gadget. So, the UVC video enable stuff cannot be done in STREAMON ioctl
-> call.
-> 
-> For the same we add two more UVC states:
-> 	- PRE_STREAMING : not even a single buffer has been queued to UVC
-> 	- BUF_QUEUED_STREAMING_OFF : one video buffer has been queued to
-> UVC
-> 			but we have not yet enabled STREAMING on UVC side.
-> 
-> Signed-off-by: Bhupesh Sharma <bhupesh.sharma@st.com>
-> ---
->  drivers/usb/gadget/f_uvc.c    |   17 ++++++++++++-----
->  drivers/usb/gadget/uvc.h      |    3 +++
->  drivers/usb/gadget/uvc_v4l2.c |   38
-> ++++++++++++++++++++++++++++++++++++--
->  3 files changed, 51 insertions(+), 7 deletions(-)
-> 
-> diff --git a/drivers/usb/gadget/f_uvc.c b/drivers/usb/gadget/f_uvc.c
-> index 2a8bf06..3589ed0 100644
-> --- a/drivers/usb/gadget/f_uvc.c
-> +++ b/drivers/usb/gadget/f_uvc.c
-> @@ -272,6 +272,13 @@ uvc_function_setup(struct usb_function *f, const
-> struct usb_ctrlrequest *ctrl)
->  	return 0;
->  }
-> 
-> +void uvc_function_setup_continue(struct uvc_device *uvc)
-> +{
-> +	struct usb_composite_dev *cdev = uvc->func.config->cdev;
-> +
-> +	usb_composite_setup_continue(cdev);
-> +}
-> +
->  static int
->  uvc_function_get_alt(struct usb_function *f, unsigned interface)
->  {
-> @@ -334,7 +341,8 @@ uvc_function_set_alt(struct usb_function *f,
-> unsigned interface, unsigned alt)
->  		v4l2_event_queue(uvc->vdev, &v4l2_event);
-> 
->  		uvc->state = UVC_STATE_CONNECTED;
-> -		break;
-> +
-> +		return 0;
-> 
->  	case 1:
->  		if (uvc->state != UVC_STATE_CONNECTED)
-> @@ -352,14 +360,13 @@ uvc_function_set_alt(struct usb_function *f,
-> unsigned interface, unsigned alt)
->  		v4l2_event.type = UVC_EVENT_STREAMON;
->  		v4l2_event_queue(uvc->vdev, &v4l2_event);
-> 
-> -		uvc->state = UVC_STATE_STREAMING;
-> -		break;
-> +		uvc->state = UVC_STATE_PRE_STREAMING;
-> +
-> +		return USB_GADGET_DELAYED_STATUS;
-> 
->  	default:
->  		return -EINVAL;
->  	}
-> -
-> -	return 0;
->  }
-> 
->  static void
-> diff --git a/drivers/usb/gadget/uvc.h b/drivers/usb/gadget/uvc.h
-> index d78ea25..6cd1435 100644
-> --- a/drivers/usb/gadget/uvc.h
-> +++ b/drivers/usb/gadget/uvc.h
-> @@ -141,6 +141,8 @@ enum uvc_state
->  {
->  	UVC_STATE_DISCONNECTED,
->  	UVC_STATE_CONNECTED,
-> +	UVC_STATE_PRE_STREAMING,
-> +	UVC_STATE_BUF_QUEUED_STREAMING_OFF,
->  	UVC_STATE_STREAMING,
->  };
-> 
-> @@ -190,6 +192,7 @@ struct uvc_file_handle
->   * Functions
->   */
-> 
-> +extern void uvc_function_setup_continue(struct uvc_device *uvc);
->  extern void uvc_endpoint_stream(struct uvc_device *dev);
-> 
->  extern void uvc_function_connect(struct uvc_device *uvc);
-> diff --git a/drivers/usb/gadget/uvc_v4l2.c
-> b/drivers/usb/gadget/uvc_v4l2.c
-> index 9c2b45b..5f23571 100644
-> --- a/drivers/usb/gadget/uvc_v4l2.c
-> +++ b/drivers/usb/gadget/uvc_v4l2.c
-> @@ -235,10 +235,36 @@ uvc_v4l2_do_ioctl(struct file *file, unsigned int
-> cmd, void *arg)
->  	}
-> 
->  	case VIDIOC_QBUF:
-> +		/*
-> +		 * Theory of operation:
-> +		 * - for the very first QBUF call the uvc state will be
-> +		 *   UVC_STATE_PRE_STREAMING, so we need to initialize
-> +		 *   the UVC video pipe (allocate requests, init queue,
-> +		 *   ..) and change the uvc state to
-> +		 *   UVC_STATE_BUF_QUEUED_STREAMING_OFF.
-> +		 *
-> +		 * - For the QBUF calls thereafter, (until STREAMON is
-> +		 *   called) we just need to queue the buffers.
-> +		 *
-> +		 * - Once STREAMON has been called (which is handled by the
-> +		 *   STREAMON case below), we need to start pumping the
-> data
-> +		 *   to USB side here itself.
-> +		 */
->  		if ((ret = uvc_queue_buffer(&video->queue, arg)) < 0)
->  			return ret;
-> 
-> -		return uvc_video_pump(video);
-> +		if (uvc->state == UVC_STATE_PRE_STREAMING) {
-> +			ret = uvc_video_enable(video, 1);
-> +			if (ret < 0)
-> +				return ret;
-> +
-> +			uvc->state = UVC_STATE_BUF_QUEUED_STREAMING_OFF;
-> +			return 0;
-> +		} else if (uvc->state == UVC_STATE_STREAMING) {
-> +			return uvc_video_pump(video);
-> +		} else {
-> +			return 0;
-> +		}
-> 
->  	case VIDIOC_DQBUF:
->  		return uvc_dequeue_buffer(&video->queue, arg,
-> @@ -251,7 +277,15 @@ uvc_v4l2_do_ioctl(struct file *file, unsigned int
-> cmd, void *arg)
->  		if (*type != video->queue.queue.type)
->  			return -EINVAL;
-> 
-> -		return uvc_video_enable(video, 1);
-> +		/*
-> +		 * since the real video device has now started streaming
-> +		 * its safe now to complete the status phase of the
-> +		 * set_interface (alt setting 1)
-> +		 */
-> +		uvc_function_setup_continue(uvc);
-> +		uvc->state = UVC_STATE_STREAMING;
-> +
-> +		return 0;
->  	}
-> 
->  	case VIDIOC_STREAMOFF:
-> --
-> 1.7.2.2
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/video/s5p-mfc/s5p_mfc.c |   19 +++++++++++++------
+ 1 file changed, 13 insertions(+), 6 deletions(-)
 
-Regards,
-Bhupesh
+diff --git a/drivers/media/video/s5p-mfc/s5p_mfc.c b/drivers/media/video/s5p-mfc/s5p_mfc.c
+index 9bb68e7..e3e616d 100644
+--- a/drivers/media/video/s5p-mfc/s5p_mfc.c
++++ b/drivers/media/video/s5p-mfc/s5p_mfc.c
+@@ -645,6 +645,8 @@ static int s5p_mfc_open(struct file *file)
+ 	int ret = 0;
+ 
+ 	mfc_debug_enter();
++	if (mutex_lock_interruptible(&dev->mfc_mutex))
++		return -ERESTARTSYS;
+ 	dev->num_inst++;	/* It is guarded by mfc_mutex in vfd */
+ 	/* Allocate memory for context */
+ 	ctx = kzalloc(sizeof *ctx, GFP_KERNEL);
+@@ -765,6 +767,7 @@ static int s5p_mfc_open(struct file *file)
+ 		goto err_queue_init;
+ 	}
+ 	init_waitqueue_head(&ctx->queue);
++	mutex_unlock(&dev->mfc_mutex);
+ 	mfc_debug_leave();
+ 	return ret;
+ 	/* Deinit when failure occured */
+@@ -790,6 +793,7 @@ err_no_ctx:
+ 	kfree(ctx);
+ err_alloc:
+ 	dev->num_inst--;
++	mutex_unlock(&dev->mfc_mutex);
+ 	mfc_debug_leave();
+ 	return ret;
+ }
+@@ -802,6 +806,7 @@ static int s5p_mfc_release(struct file *file)
+ 	unsigned long flags;
+ 
+ 	mfc_debug_enter();
++	mutex_lock(&dev->mfc_mutex);
+ 	s5p_mfc_clock_on();
+ 	vb2_queue_release(&ctx->vq_src);
+ 	vb2_queue_release(&ctx->vq_dst);
+@@ -855,6 +860,7 @@ static int s5p_mfc_release(struct file *file)
+ 	v4l2_fh_exit(&ctx->fh);
+ 	kfree(ctx);
+ 	mfc_debug_leave();
++	mutex_unlock(&dev->mfc_mutex);
+ 	return 0;
+ }
+ 
+@@ -869,6 +875,7 @@ static unsigned int s5p_mfc_poll(struct file *file,
+ 	unsigned int rc = 0;
+ 	unsigned long flags;
+ 
++	mutex_lock(&dev->mfc_mutex);
+ 	src_q = &ctx->vq_src;
+ 	dst_q = &ctx->vq_dst;
+ 	/*
+@@ -902,6 +909,7 @@ static unsigned int s5p_mfc_poll(struct file *file,
+ 		rc |= POLLIN | POLLRDNORM;
+ 	spin_unlock_irqrestore(&dst_q->done_lock, flags);
+ end:
++	mutex_unlock(&dev->mfc_mutex);
+ 	return rc;
+ }
+ 
+@@ -909,8 +917,12 @@ end:
+ static int s5p_mfc_mmap(struct file *file, struct vm_area_struct *vma)
+ {
+ 	struct s5p_mfc_ctx *ctx = fh_to_ctx(file->private_data);
++	struct s5p_mfc_dev *dev = ctx->dev;
+ 	unsigned long offset = vma->vm_pgoff << PAGE_SHIFT;
+ 	int ret;
++
++	if (mutex_lock_interruptible(&dev->mfc_mutex))
++		return -ERESTARTSYS;
+ 	if (offset < DST_QUEUE_OFF_BASE) {
+ 		mfc_debug(2, "mmaping source\n");
+ 		ret = vb2_mmap(&ctx->vq_src, vma);
+@@ -919,6 +931,7 @@ static int s5p_mfc_mmap(struct file *file, struct vm_area_struct *vma)
+ 		vma->vm_pgoff -= (DST_QUEUE_OFF_BASE >> PAGE_SHIFT);
+ 		ret = vb2_mmap(&ctx->vq_dst, vma);
+ 	}
++	mutex_unlock(&dev->mfc_mutex);
+ 	return ret;
+ }
+ 
+@@ -1034,10 +1047,6 @@ static int s5p_mfc_probe(struct platform_device *pdev)
+ 	vfd->ioctl_ops	= get_dec_v4l2_ioctl_ops();
+ 	vfd->release	= video_device_release,
+ 	vfd->lock	= &dev->mfc_mutex;
+-	/* Locking in file operations other than ioctl should be done
+-	   by the driver, not the V4L2 core.
+-	   This driver needs auditing so that this flag can be removed. */
+-	set_bit(V4L2_FL_LOCK_ALL_FOPS, &vfd->flags);
+ 	vfd->v4l2_dev	= &dev->v4l2_dev;
+ 	snprintf(vfd->name, sizeof(vfd->name), "%s", S5P_MFC_DEC_NAME);
+ 	dev->vfd_dec	= vfd;
+@@ -1062,8 +1071,6 @@ static int s5p_mfc_probe(struct platform_device *pdev)
+ 	vfd->ioctl_ops	= get_enc_v4l2_ioctl_ops();
+ 	vfd->release	= video_device_release,
+ 	vfd->lock	= &dev->mfc_mutex;
+-	/* This should not be necessary */
+-	set_bit(V4L2_FL_LOCK_ALL_FOPS, &vfd->flags);
+ 	vfd->v4l2_dev	= &dev->v4l2_dev;
+ 	snprintf(vfd->name, sizeof(vfd->name), "%s", S5P_MFC_ENC_NAME);
+ 	dev->vfd_enc	= vfd;
+-- 
+1.7.10
+
