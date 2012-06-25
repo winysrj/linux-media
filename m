@@ -1,107 +1,141 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:37295 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757329Ab2FZNpl (ORCPT
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:55650 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756952Ab2FYOGp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Jun 2012 09:45:41 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@iki.fi, Enrico <ebutera@users.berlios.de>,
-	Jean-Philippe Francois <jp.francois@cynove.com>,
-	Abhishek Reddy Kondaveeti <areddykondaveeti@aptina.com>,
-	Gary Thomas <gary@mlbassoc.com>,
-	Javier Martinez Canillas <martinez.javier@gmail.com>
-Subject: [PATCH 3/6] omap3isp: csi2: Add V4L2_MBUS_FMT_YUYV8_2X8 support
-Date: Tue, 26 Jun 2012 15:45:36 +0200
-Message-Id: <1340718339-29915-4-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1340718339-29915-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1340718339-29915-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Mon, 25 Jun 2012 10:06:45 -0400
+Received: by obbuo13 with SMTP id uo13so6500461obb.19
+        for <linux-media@vger.kernel.org>; Mon, 25 Jun 2012 07:06:45 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <CACK0K0i53VJVCVsJy2YGX_pWab0QVSkew5tJL5MQ7CcLyGvjMg@mail.gmail.com>
+References: <CACK0K0gXr08aNe3gKkWXmKkZ+JA0RBcWtq35aFfNaSqCCWMM1Q@mail.gmail.com>
+	<CALF0-+ViQTmGnAS19kOCZPZAj0ZYZX4Ef-+J7A=k1J2OFhFuVg@mail.gmail.com>
+	<CALF0-+XoKmw0fe_vpOs-BEZXDZThA5WuNw8CRjohLJojZ2O4Dw@mail.gmail.com>
+	<CACK0K0j4mSG=EtU1R-VvvoF_5ZCxrTk4p3niyHBt4tAGVdqLVA@mail.gmail.com>
+	<CALF0-+XR_ZE8_52zQKZ9n9x8sGrmJWNpeXnKD_j6Lg1YHta=vQ@mail.gmail.com>
+	<CACK0K0i53VJVCVsJy2YGX_pWab0QVSkew5tJL5MQ7CcLyGvjMg@mail.gmail.com>
+Date: Mon, 25 Jun 2012 11:06:45 -0300
+Message-ID: <CALF0-+Ws+EWs5CjJedJMFL4mLkKx--kg5VZpa=f_+x2iiUiK5Q@mail.gmail.com>
+Subject: Re: stk1160 linux driver
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: Gianluca Bergamo <gianluca.bergamo@gmail.com>
+Cc: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Ivaylo Petrov <ivpetrov@mm-sol.com>
+Hi Gianluca,
 
-Tested with ov9740 and
 
-struct isp_csi2_platform_data {
-	.interface = ISP_INTERFACE_CSI2A_PHY2,
-	.bus = {
-		.csi2 = {
-			.crc		= 1,
-			.vpclk_div	= 1,
-		}
-	},
-}
 
-Signed-off-by: Ivaylo Petrov <ivpetrov@mm-sol.com>
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/video/omap3isp/ispcsi2.c |   27 +++++++++++++++++++++++++--
- 1 files changed, 25 insertions(+), 2 deletions(-)
+On Mon, Jun 25, 2012 at 4:09 AM, Gianluca Bergamo
+<gianluca.bergamo@gmail.com> wrote:
+> Hi Ezequiel,
+>
+> No problem in patching each new release you made.
 
-diff --git a/drivers/media/video/omap3isp/ispcsi2.c b/drivers/media/video/omap3isp/ispcsi2.c
-index a172436..6a3ff79 100644
---- a/drivers/media/video/omap3isp/ispcsi2.c
-+++ b/drivers/media/video/omap3isp/ispcsi2.c
-@@ -96,11 +96,12 @@ static const unsigned int csi2_input_fmts[] = {
- 	V4L2_MBUS_FMT_SBGGR10_DPCM8_1X8,
- 	V4L2_MBUS_FMT_SGBRG10_1X10,
- 	V4L2_MBUS_FMT_SGBRG10_DPCM8_1X8,
-+	V4L2_MBUS_FMT_YUYV8_2X8,
- };
- 
- /* To set the format on the CSI2 requires a mapping function that takes
-  * the following inputs:
-- * - 2 different formats (at this time)
-+ * - 3 different formats (at this time)
-  * - 2 destinations (mem, vp+mem) (vp only handled separately)
-  * - 2 decompression options (on, off)
-  * - 2 isp revisions (certain format must be handled differently on OMAP3630)
-@@ -108,7 +109,7 @@ static const unsigned int csi2_input_fmts[] = {
-  * Array indices as follows: [format][dest][decompr][is_3630]
-  * Not all combinations are valid. 0 means invalid.
-  */
--static const u16 __csi2_fmt_map[2][2][2][2] = {
-+static const u16 __csi2_fmt_map[3][2][2][2] = {
- 	/* RAW10 formats */
- 	{
- 		/* Output to memory */
-@@ -147,6 +148,25 @@ static const u16 __csi2_fmt_map[2][2][2][2] = {
- 			  CSI2_USERDEF_8BIT_DATA1_DPCM10_VP },
- 		},
- 	},
-+	/* YUYV8 2X8 formats */
-+	{
-+		/* Output to memory */
-+		{
-+			/* No DPCM decompression */
-+			{ CSI2_PIX_FMT_YUV422_8BIT,
-+			  CSI2_PIX_FMT_YUV422_8BIT },
-+			/* DPCM decompression */
-+			{ 0, 0 },
-+		},
-+		/* Output to both */
-+		{
-+			/* No DPCM decompression */
-+			{ CSI2_PIX_FMT_YUV422_8BIT_VP,
-+			  CSI2_PIX_FMT_YUV422_8BIT_VP },
-+			/* DPCM decompression */
-+			{ 0, 0 },
-+		},
-+	},
- };
- 
- /*
-@@ -173,6 +193,9 @@ static u16 csi2_ctx_map_format(struct isp_csi2_device *csi2)
- 	case V4L2_MBUS_FMT_SGBRG10_DPCM8_1X8:
- 		fmtidx = 1;
- 		break;
-+	case V4L2_MBUS_FMT_YUYV8_2X8:
-+		fmtidx = 2;
-+		break;
- 	default:
- 		WARN(1, KERN_ERR "CSI2: pixel format %08x unsupported!\n",
- 		     fmt->code);
--- 
-1.7.3.4
 
+Please note I've just send a v3 of stk1160 driver.
+It adds support for controlling ac97 and for selecting video inputs.
+
+
+>
+> In my environment this command line gives only one format supported (UYVY)
+> and then yavta freezes.
+> I suspect it freezes on an ioctl to the driver. I must check it.
+>
+
+
+
+Weird. I've just tested with yavta and it works perfectly. You should note that
+this command is wrong:
+
+./yavta -f YUYV -s 720x576 -n 4 --capture=4 -F /dev/video1
+
+and it should be:
+
+./yavta -f UYVY -s 720x576 -n 4 --capture=4 -F /dev/video1
+
+Since, as you noted the only supported format is UYVY. Some applications take
+advantage of libv4l2 wrapper library to increase the output format set.
+For instance, if I do ENUM_FMT using v4l2-ctl I get just one supported format:
+
+$ v4l2-ctl --list-formats
+ioctl: VIDIOC_ENUM_FMT
+	Index       : 0
+	Type        : Video Capture
+	Pixel Format: 'UYVY'
+	Name        : 16 bpp YUY2, 4:2:2, packed
+
+But if I use wrapper library:
+
+$ v4l2-ctl -w --list-formats
+ioctl: VIDIOC_ENUM_FMT
+	Index       : 0
+	Type        : Video Capture
+	Pixel Format: 'UYVY'
+	Name        : 16 bpp YUY2, 4:2:2, packed
+
+	Index       : 1
+	Type        : Video Capture
+	Pixel Format: 'RGB3' (emulated)
+	Name        : RGB3
+
+	Index       : 2
+	Type        : Video Capture
+	Pixel Format: 'BGR3' (emulated)
+	Name        : BGR3
+
+	Index       : 3
+	Type        : Video Capture
+	Pixel Format: 'YU12' (emulated)
+	Name        : YU12
+
+	Index       : 4
+	Type        : Video Capture
+	Pixel Format: 'YV12' (emulated)
+	Name        : YV12
+
+
+In case you need it, here's my yavta output:
+
+$ ./yavta --enum-formats /dev/video0
+Device /dev/video0 opened.
+Device `stk1160' on `usb-0000:00:13.2-2' is a video capture device.
+- Available formats:
+	Format 0: UYVY (59565955)
+	Type: Video capture (1)
+	Name: 16 bpp YUY2, 4:2:2, packed
+
+$ ./yavta -f YUYV -s 720x576 -n 4 --capture=4 -F /dev/video0
+Device /dev/video0 opened.
+Device `stk1160' on `usb-0000:00:13.2-2' is a video capture device.
+Unable to set format: Invalid argument (22).
+localhost yavta # ./yavta -f UYVY -s 720x576 -n 4 --capture=4 -F /dev/video0
+Device /dev/video0 opened.
+Device `stk1160' on `usb-0000:00:13.2-2' is a video capture device.
+Video format set: UYVY (59565955) 720x480 (stride 1440) buffer size 691200
+Video format: UYVY (59565955) 720x480 (stride 1440) buffer size 691200
+8 buffers requested.
+length: 691200 offset: 0
+Buffer 0 mapped at address 0xb7584000.
+length: 691200 offset: 692224
+Buffer 1 mapped at address 0xb74db000.
+length: 691200 offset: 1384448
+Buffer 2 mapped at address 0xb7432000.
+length: 691200 offset: 2076672
+Buffer 3 mapped at address 0xb7389000.
+length: 691200 offset: 2768896
+Buffer 4 mapped at address 0xb72e0000.
+length: 691200 offset: 3461120
+Buffer 5 mapped at address 0xb7237000.
+length: 691200 offset: 4153344
+Buffer 6 mapped at address 0xb718e000.
+length: 691200 offset: 4845568
+Buffer 7 mapped at address 0xb70e5000.
+0 (0) [-] 0 691200 bytes 1340632305.824287 1826.669365 -0.002 fps
+1 (1) [-] 1 691200 bytes 1340632305.856350 1826.709943 31.189 fps
+2 (2) [-] 1 691200 bytes 1340632305.896222 1826.741385 25.080 fps
+3 (3) [-] 2 691200 bytes 1340632305.928226 1826.773354 31.246 fps
+Captured 4 frames in 0.199372 seconds (20.062936 fps, 13867501.311552 B/s).
+8 buffers released.
