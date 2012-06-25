@@ -1,159 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:22575 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755992Ab2FNNiM (ORCPT
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:46329 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754201Ab2FYRAA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Jun 2012 09:38:12 -0400
-Received: from euspt1 (mailout2.w1.samsung.com [210.118.77.12])
- by mailout2.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0M5M00AEC0KGDX70@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 14 Jun 2012 14:38:40 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0M5M00INL0JKBI@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 14 Jun 2012 14:38:09 +0100 (BST)
-Date: Thu, 14 Jun 2012 15:37:35 +0200
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: [PATCHv7 01/15] v4l: Add DMABUF as a memory type
-In-reply-to: <1339681069-8483-1-git-send-email-t.stanislaws@samsung.com>
-To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
-Cc: airlied@redhat.com, m.szyprowski@samsung.com,
-	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
-	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
-	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
-	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
-	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
-	mchehab@redhat.com, g.liakhovetski@gmx.de,
-	Sumit Semwal <sumit.semwal@linaro.org>
-Message-id: <1339681069-8483-2-git-send-email-t.stanislaws@samsung.com>
-Content-transfer-encoding: 7BIT
-References: <1339681069-8483-1-git-send-email-t.stanislaws@samsung.com>
+	Mon, 25 Jun 2012 13:00:00 -0400
+Received: by bkcji2 with SMTP id ji2so3372564bkc.19
+        for <linux-media@vger.kernel.org>; Mon, 25 Jun 2012 09:59:59 -0700 (PDT)
+Message-ID: <4FE8990B.7060402@gmail.com>
+Date: Mon, 25 Jun 2012 18:59:55 +0200
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+MIME-Version: 1.0
+To: sakari.ailus@iki.fi
+CC: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	mchehab@redhat.com, linux-media@vger.kernel.org
+Subject: Re: [PATCH] [media] Schedule the selections API compatibility definitions
+ for removal
+References: <4FDB80C8.4060505@iki.fi> <1340643118-32340-1-git-send-email-sylvester.nawrocki@gmail.com>
+In-Reply-To: <1340643118-32340-1-git-send-email-sylvester.nawrocki@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Sumit Semwal <sumit.semwal@ti.com>
+On 06/25/2012 06:51 PM, Sylwester Nawrocki wrote:
+> Signed-off-by: Sylwester Nawrocki<sylvester.nawrocki@gmail.com>
+> ---
 
-Adds DMABUF memory type to v4l framework. Also adds the related file
-descriptor in v4l2_plane and v4l2_buffer.
+Hi Sakari,
 
-Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-   [original work in the PoC for buffer sharing]
-Signed-off-by: Sumit Semwal <sumit.semwal@ti.com>
-Signed-off-by: Sumit Semwal <sumit.semwal@linaro.org>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/video/v4l2-compat-ioctl32.c |   16 ++++++++++++++++
- drivers/media/video/v4l2-ioctl.c          |    1 +
- include/linux/videodev2.h                 |    7 +++++++
- 3 files changed, 24 insertions(+)
+Let me add an explanation that was supposed to be originally included
+in that patch..
 
-diff --git a/drivers/media/video/v4l2-compat-ioctl32.c b/drivers/media/video/v4l2-compat-ioctl32.c
-index 5327ad3..d33ab18 100644
---- a/drivers/media/video/v4l2-compat-ioctl32.c
-+++ b/drivers/media/video/v4l2-compat-ioctl32.c
-@@ -348,6 +348,9 @@ static int get_v4l2_plane32(struct v4l2_plane *up, struct v4l2_plane32 *up32,
- 		up_pln = compat_ptr(p);
- 		if (put_user((unsigned long)up_pln, &up->m.userptr))
- 			return -EFAULT;
-+	} else if (memory == V4L2_MEMORY_DMABUF) {
-+		if (copy_in_user(&up->m.fd, &up32->m.fd, sizeof(int)))
-+			return -EFAULT;
- 	} else {
- 		if (copy_in_user(&up->m.mem_offset, &up32->m.mem_offset,
- 					sizeof(__u32)))
-@@ -371,6 +374,11 @@ static int put_v4l2_plane32(struct v4l2_plane *up, struct v4l2_plane32 *up32,
- 		if (copy_in_user(&up32->m.mem_offset, &up->m.mem_offset,
- 					sizeof(__u32)))
- 			return -EFAULT;
-+	/* For DMABUF, driver might've set up the fd, so copy it back. */
-+	if (memory == V4L2_MEMORY_DMABUF)
-+		if (copy_in_user(&up32->m.fd, &up->m.fd,
-+					sizeof(int)))
-+			return -EFAULT;
- 
- 	return 0;
- }
-@@ -454,6 +462,10 @@ static int get_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
- 			if (get_user(kp->m.offset, &up->m.offset))
- 				return -EFAULT;
- 			break;
-+		case V4L2_MEMORY_DMABUF:
-+			if (get_user(kp->m.fd, &up->m.fd))
-+				return -EFAULT;
-+			break;
- 		}
- 	}
- 
-@@ -518,6 +530,10 @@ static int put_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
- 			if (put_user(kp->m.offset, &up->m.offset))
- 				return -EFAULT;
- 			break;
-+		case V4L2_MEMORY_DMABUF:
-+			if (put_user(kp->m.fd, &up->m.fd))
-+				return -EFAULT;
-+			break;
- 		}
- 	}
- 
-diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
-index 91be4e8..31fc2ad 100644
---- a/drivers/media/video/v4l2-ioctl.c
-+++ b/drivers/media/video/v4l2-ioctl.c
-@@ -175,6 +175,7 @@ static const char *v4l2_memory_names[] = {
- 	[V4L2_MEMORY_MMAP]    = "mmap",
- 	[V4L2_MEMORY_USERPTR] = "userptr",
- 	[V4L2_MEMORY_OVERLAY] = "overlay",
-+	[V4L2_MEMORY_DMABUF] = "dmabuf",
- };
- 
- #define prt_names(a, arr) ((((a) >= 0) && ((a) < ARRAY_SIZE(arr))) ? \
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index 370d111..51b20f4 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -185,6 +185,7 @@ enum v4l2_memory {
- 	V4L2_MEMORY_MMAP             = 1,
- 	V4L2_MEMORY_USERPTR          = 2,
- 	V4L2_MEMORY_OVERLAY          = 3,
-+	V4L2_MEMORY_DMABUF           = 4,
- };
- 
- /* see also http://vektor.theorem.ca/graphics/ycbcr/ */
-@@ -591,6 +592,8 @@ struct v4l2_requestbuffers {
-  *			should be passed to mmap() called on the video node)
-  * @userptr:		when memory is V4L2_MEMORY_USERPTR, a userspace pointer
-  *			pointing to this plane
-+ * @fd:			when memory is V4L2_MEMORY_DMABUF, a userspace file
-+ *			descriptor associated with this plane
-  * @data_offset:	offset in the plane to the start of data; usually 0,
-  *			unless there is a header in front of the data
-  *
-@@ -605,6 +608,7 @@ struct v4l2_plane {
- 	union {
- 		__u32		mem_offset;
- 		unsigned long	userptr;
-+		int		fd;
- 	} m;
- 	__u32			data_offset;
- 	__u32			reserved[11];
-@@ -629,6 +633,8 @@ struct v4l2_plane {
-  *		(or a "cookie" that should be passed to mmap() as offset)
-  * @userptr:	for non-multiplanar buffers with memory == V4L2_MEMORY_USERPTR;
-  *		a userspace pointer pointing to this buffer
-+ * @fd:		for non-multiplanar buffers with memory == V4L2_MEMORY_DMABUF;
-+ *		a userspace file descriptor associated with this buffer
-  * @planes:	for multiplanar buffers; userspace pointer to the array of plane
-  *		info structs for this buffer
-  * @length:	size in bytes of the buffer (NOT its payload) for single-plane
-@@ -655,6 +661,7 @@ struct v4l2_buffer {
- 		__u32           offset;
- 		unsigned long   userptr;
- 		struct v4l2_plane *planes;
-+		int		fd;
- 	} m;
- 	__u32			length;
- 	__u32			input;
--- 
-1.7.9.5
+Here is the patch for Documentation/feature-removal-schedule.txt that
+is mentioned in the description of the first patch in this series.
+
+This change set looks good to me, except there seem to be missing
+compatibility definitions for the selections flags. I presume we
+are going to need those since the original subdev selections API
+will exist in v3.5 kernels, and this change set is going to be
+applied only to v3.6.
+
+So something like that might be needed:
+
+#define V4L2_SUBDEV_SEL_FLAG_SIZE_GE      V4L2_SEL_FLAG_SIZE_GE
+#define V4L2_SUBDEV_SEL_FLAG_SIZE_LE      V4L2_SEL_FLAG_SIZE_LE
+#define V4L2_SUBDEV_SEL_FLAG_KEEP_CONFIG  V4L2_SEL_FLAG_KEEP_CONFIG
+
+After adding that this series seems good for merging to me.
+
+Thanks and regards,
+Sylwester
+
+>   Documentation/feature-removal-schedule.txt |   15 +++++++++++++++
+>   1 files changed, 15 insertions(+), 0 deletions(-)
+>
+> diff --git a/Documentation/feature-removal-schedule.txt b/Documentation/feature-removal-schedule.txt
+> index 09701af..ef9f942 100644
+> --- a/Documentation/feature-removal-schedule.txt
+> +++ b/Documentation/feature-removal-schedule.txt
+> @@ -558,3 +558,18 @@ Why:	The V4L2_CID_VCENTER, V4L2_CID_HCENTER controls have been deprecated
+>   	There are newer controls (V4L2_CID_PAN*, V4L2_CID_TILT*) that provide
+>   	similar	functionality.
+>   Who:	Sylwester Nawrocki<sylvester.nawrocki@gmail.com>
+> +
+> +----------------------------
+> +
+> +What:	Remove the backward compatibility V4L2 selections target and selections
+> +	flags definitions
+> +When:	3.8
+> +Why:	The regular V4L2 selections and the subdev selection API originally
+> +	defined distinct names for the target rectangles and flags - V4L2_SEL_*
+> +	and V4L2_SUBDEV_SEL_*. Although, it turned out that the meaning of these
+> +	target rectangles is virtually identical and the APIs were consolidated
+> +	to use single set of names - V4L2_SEL_*. This consolidation didn't
+> +	change the ABI in any way. Alias definitions were created for the
+> +	original ones to avoid any instabilities in the user space interface.
+> +	After few cycles these comptibility definitions will be removed.
+> +Who:	Sylwester Nawrocki<sylvester.nawrocki@gmail.com>
 
