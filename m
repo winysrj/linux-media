@@ -1,52 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:32866 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761702Ab2FVIuP (ORCPT
+Received: from comal.ext.ti.com ([198.47.26.152]:49892 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751088Ab2FYL5M convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Jun 2012 04:50:15 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+	Mon, 25 Jun 2012 07:57:12 -0400
+From: "Lad, Prabhakar" <prabhakar.lad@ti.com>
 To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	linux-media@vger.kernel.org,
-	Federico Vaga <federico.vaga@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: Recent patch for videobuf causing a crash to my driver
-Date: Fri, 22 Jun 2012 10:50:23 +0200
-Message-ID: <2147318.3kAzv4eQOG@avalon>
-In-Reply-To: <4FE423D4.9010609@xs4all.nl>
-References: <CA+V-a8uDgmiy52wEs0rR5B08aAmSk=Wyf+e3mMzazeGykdMA4w@mail.gmail.com> <4FE423D4.9010609@xs4all.nl>
+CC: Federico Vaga <federico.vaga@gmail.com>,
+	LMML <linux-media@vger.kernel.org>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	"Hadli, Manjunath" <manjunath.hadli@ti.com>
+Subject: RE: [PATCH] [media] videobuf-dma-contig: restore buffer mapping for
+ uncached bufers
+Date: Mon, 25 Jun 2012 11:56:53 +0000
+Message-ID: <4665BC9CC4253445B213A010E6DC7B35CDCEAC@DBDE01.ent.ti.com>
+References: <1340360046-23429-1-git-send-email-prabhakar.lad@ti.com>
+ <3127105.r3h7rO2WIQ@harkonnen> <201206231119.24537.hverkuil@xs4all.nl>
+ <201206251343.39919.hverkuil@xs4all.nl>
+In-Reply-To: <201206251343.39919.hverkuil@xs4all.nl>
+Content-Language: en-US
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 Hi Hans,
 
-On Friday 22 June 2012 09:50:44 Hans Verkuil wrote:
-> On 22/06/12 05:39, Prabhakar Lad wrote:
-> > Hi Federico,
+On Mon, Jun 25, 2012 at 17:13:39, Hans Verkuil wrote:
+> On Sat 23 June 2012 11:19:24 Hans Verkuil wrote:
+> > On Fri June 22 2012 18:53:27 Federico Vaga wrote:
+> > > In data venerdì 22 giugno 2012 18:45:31, Hans Verkuil ha scritto:
+> > > > On Fri June 22 2012 17:28:04 Federico Vaga wrote:
+> > > > > > from commit a8f3c203e19b702fa5e8e83a9b6fb3c5a6d1cce4
+> > > > > > restore the mapping scheme for uncached buffers,
+> > > > > > which was changed in a common scheme for cached and uncached.
+> > > > > > This apparently was wrong, and was probably intended only for
+> > > > > > cached
+> > > > > > buffers. the fix fixes the crash observed while mapping uncached
+> > > > > > buffers.
+> > > > > > 
+> > > > > > Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+> > > > > > Signed-off-by: Hadli, Manjunath <manjunath.hadli@ti.com>
+> > > > > 
+> > > > > Acked-by: Federico Vaga <federico.vaga@gmail.com>
+> > > > > 
+> > > > > I tested the patch on the STA2X11 board.
+> > > > 
+> > > > Was this patch ever posted on linux-media? I didn't see it on the
+> > > > mailinglist, nor in my personal inbox.
+> > > > 
+> > > > Perhaps something went wrong?
+> > > 
+> > > I recived the email as CC and linux-media was the main destination.
+> > > Davinci list was also added as CC and you can find the patch there:
+> > > 
+> > > http://www.mail-archive.com/davinci-linux-open-
+> > > source@linux.davincidsp.com/msg22998.html
+> > > 
+> > > Something went wrong.
 > > 
-> > Recent patch from you (commit id a8f3c203e19b702fa5e8e83a9b6fb3c5a6d1cce4)
-> > which added cached buffer support to videobuf dma contig, is causing my
-> > driver to crash.
-> > Has this patch being tested for 'uncached' buffers ? If I replace this
-> > mapping logic with remap_pfn_range() my driver works without any crash.
+> > Weird, it never ended up at the linux-media mailinglist (not just me, it's
+> > not in the linux-media archives either).
 > > 
-> > Or is that I am missing somewhere ?
+> > Anyway, I'll test this on Monday and if it works fine for me as well I'll Ack it.
 > 
-> No, I had the same problem this week with vpif_capture. Since I was running
-> an unusual setup (a 3.0 kernel with the media subsystem patched to 3.5-rc1)
-> I didn't know whether it was caused by a mismatch between 3.0 and a 3.5
-> media subsystem.
+> I've tested this patch, and it looks good:
 > 
-> I intended to investigate this next week, but now it is clear that it is
-> this patch that is causing the problem.
+> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> Prabhakar: Please post this again with all acks and marked as [PATCH for v3.5] to the
+> linux-media mailinglist asap. This patch never made it to this list for some reason,
+> so make sure it gets there this time.
+>  
+  Ok. Thanks for the review.
 
-Time to port the driver to videobuf2 ? ;-)
+Thx,
+--Prabhakar Lad
 
--- 
-Regards,
-
-Laurent Pinchart
+> Regards,
+> 
+> 	Hans
+> 
+> > 
+> > Regards,
+> > 
+> > 	Hans
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > 
+> 
 
