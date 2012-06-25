@@ -1,40 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:47345 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751976Ab2FFDnE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 Jun 2012 23:43:04 -0400
-Received: by bkcji2 with SMTP id ji2so5232985bkc.19
-        for <linux-media@vger.kernel.org>; Tue, 05 Jun 2012 20:43:03 -0700 (PDT)
+Received: from mx1.redhat.com ([209.132.183.28]:1451 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755965Ab2FYUxD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 Jun 2012 16:53:03 -0400
+Message-ID: <4FE8CFAC.20302@redhat.com>
+Date: Mon, 25 Jun 2012 17:53:00 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <20120529092030.GI30400@pengutronix.de>
-References: <1337987696-31728-1-git-send-email-festevam@gmail.com>
-	<1337987696-31728-6-git-send-email-festevam@gmail.com>
-	<20120529092030.GI30400@pengutronix.de>
-Date: Wed, 6 Jun 2012 00:43:03 -0300
-Message-ID: <CAOMZO5DrVWNKscMdXORTJo+fss+O5Lykc+5hJ1d33Ae7M1mcHg@mail.gmail.com>
-Subject: Re: [PATCH 06/15] video: mx1_camera: Use clk_prepare_enable/clk_disable_unprepare
-From: Fabio Estevam <festevam@gmail.com>
-To: Sascha Hauer <s.hauer@pengutronix.de>
-Cc: kernel@pengutronix.de, shawn.guo@freescale.com,
-	Fabio Estevam <fabio.estevam@freescale.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+To: Ezequiel Garcia <elezegarcia@gmail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH 01/12] saa7164: Use i2c_rc properly to store i2c register
+ status
+References: <1340047425-32000-1-git-send-email-elezegarcia@gmail.com> <4FE8BC2D.9030902@redhat.com> <CALF0-+UyWjbbPYCKV-AgS=6FZ349D27GrijrYa_RWPUqcfo8rw@mail.gmail.com> <4FE8C0E0.3080104@redhat.com> <CALF0-+V_NCb2TMdd9SS-jrPKS8ocWRNAvwo1-ptPCW2GtNZEkw@mail.gmail.com>
+In-Reply-To: <CALF0-+V_NCb2TMdd9SS-jrPKS8ocWRNAvwo1-ptPCW2GtNZEkw@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Guennadi,
-
-On Tue, May 29, 2012 at 6:20 AM, Sascha Hauer <s.hauer@pengutronix.de> wrote:
-> On Fri, May 25, 2012 at 08:14:47PM -0300, Fabio Estevam wrote:
->> From: Fabio Estevam <fabio.estevam@freescale.com>
+Em 25-06-2012 17:06, Ezequiel Garcia escreveu:
+> On Mon, Jun 25, 2012 at 4:49 PM, Mauro Carvalho Chehab
+> <mchehab@redhat.com> wrote:
 >>
->> Prepare the clock before enabling it.
+>> If i2c_rc was never initialized, then just remove it. If it is required,
+>> then there's a bug somewhere out there on those drivers.
 >>
->> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
->> Cc: <linux-media@vger.kernel.org>
->> Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
->
-> Acked-by: Sascha Hauer <s.hauer@pengutronix.de>
+>> IMHO, if the I2C bus doesn't register, any driver that requires I2C bus
+>> should return -ENODEV.
+> 
+> Agreed.
+> 
+>>
+>> It should be noticed that there are a few devices that don't need I2C bus
+>> to work: simple video grabber cards that don't have anything on their I2C.
+>> There are several of them at bttv, and a few at cx88 and saa7134. Maybe that's
+>> the reason why those drivers have a var to indicate if i2c got registered.
+> 
+> Mmm, that would explain mysterious i2c_rc.
+> 
+> Anyway, I'm still a *q-bit* unsure about which drivers require i2c to
+> work and which don't.
+> I'm gonna investigate this carefully and send a v2 (probably just to
+> send a v3 later :)
 
-Can patches 6, 7 and 8 be applied?
+Yeah, research is needed ;) As "bttv" is the mother of the I2C code found at
+other PCI drivers, as it is one of the oldest implementations, I bet you'll
+find this field propagated without usage on some drivers (and probably other
+unused fields as well ;) )
+
+> 
+> Thanks for reviewing,
+> Ezequiel.
+> 
+
+Regards,
+Mauro
