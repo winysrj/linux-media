@@ -1,61 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:33092 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756271Ab2FYOrW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Jun 2012 10:47:22 -0400
-Received: by obbuo13 with SMTP id uo13so6545326obb.19
-        for <linux-media@vger.kernel.org>; Mon, 25 Jun 2012 07:47:22 -0700 (PDT)
+Received: from mail.kapsi.fi ([217.30.184.167]:38180 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752113Ab2FYTPP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 Jun 2012 15:15:15 -0400
+Message-ID: <4FE8B8BC.3020702@iki.fi>
+Date: Mon, 25 Jun 2012 22:15:08 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <CALF0-+X2g7FBv4_LTo6HnX=RO3v_RCgHaGMh+zf3GW_toYWs4Q@mail.gmail.com>
-References: <CACK0K0gXr08aNe3gKkWXmKkZ+JA0RBcWtq35aFfNaSqCCWMM1Q@mail.gmail.com>
-	<CALF0-+ViQTmGnAS19kOCZPZAj0ZYZX4Ef-+J7A=k1J2OFhFuVg@mail.gmail.com>
-	<CALF0-+XoKmw0fe_vpOs-BEZXDZThA5WuNw8CRjohLJojZ2O4Dw@mail.gmail.com>
-	<CACK0K0j4mSG=EtU1R-VvvoF_5ZCxrTk4p3niyHBt4tAGVdqLVA@mail.gmail.com>
-	<CALF0-+XR_ZE8_52zQKZ9n9x8sGrmJWNpeXnKD_j6Lg1YHta=vQ@mail.gmail.com>
-	<CACK0K0i53VJVCVsJy2YGX_pWab0QVSkew5tJL5MQ7CcLyGvjMg@mail.gmail.com>
-	<CALF0-+Ws+EWs5CjJedJMFL4mLkKx--kg5VZpa=f_+x2iiUiK5Q@mail.gmail.com>
-	<CACK0K0gTUWgpgErfMfXtQLN2gCW81RPp5yfGghtpigA0ALrm7w@mail.gmail.com>
-	<CALF0-+WE=WakSL5Thx4QKFDKg7GyK4mDk+r_cOm2=Bn=Fan4rg@mail.gmail.com>
-	<CACK0K0iPht7n4oxyR68zzz=Emau7kFNs0b3ooBwMn83_GVZnDw@mail.gmail.com>
-	<CALF0-+X2g7FBv4_LTo6HnX=RO3v_RCgHaGMh+zf3GW_toYWs4Q@mail.gmail.com>
-Date: Mon, 25 Jun 2012 10:47:21 -0400
-Message-ID: <CAGoCfix63V1p=yvNVEwDF7DHZZ_Yt=h91mcasDVnSGM=f3w0Mw@mail.gmail.com>
-Subject: Re: stk1160 linux driver
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Ezequiel Garcia <elezegarcia@gmail.com>
-Cc: Gianluca Bergamo <gianluca.bergamo@gmail.com>,
-	linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Kay Sievers <kay@redhat.com>, Jean Delvare <khali@linux-fr.org>
+Subject: Re: [PATCH] [media] drxk: change it to use request_firmware_nowait()
+References: <1340285798-8322-1-git-send-email-mchehab@redhat.com> <4FE37194.30407@redhat.com>
+In-Reply-To: <4FE37194.30407@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jun 25, 2012 at 10:36 AM, Ezequiel Garcia <elezegarcia@gmail.com> wrote:
-> I've added Devin in Cc:
-> Devin: You said you ran into some issues on em28xx on ARM, what kind
-> of issues?
+On 06/21/2012 10:10 PM, Mauro Carvalho Chehab wrote:
+> Em 21-06-2012 10:36, Mauro Carvalho Chehab escreveu:
+>> The firmware blob may not be available when the driver probes.
+>>
+>> Instead of blocking the whole kernel use request_firmware_nowait() and
+>> continue without firmware.
+>>
+>> This shouldn't be that bad on drx-k devices, as they all seem to have an
+>> internal firmware. So, only the firmware update will take a little longer
+>> to happen.
+>
+> While thinking on converting another DVB frontend driver, I just realized
+> that a patch like that won't work fine.
+>
+> As most of you know, there are _several_ I2C chips that don't tolerate any
+> usage of the I2C bus while a firmware is being loaded (I dunno if this is the
+> case of drx-k, but I won't doubt).
+>
+> The current approach makes the device probe() logic is serialized. So, there's
+> no chance that two different I2C drivers to try to access the bus at the same
+> time, if the bridge driver is properly implemented.
+>
+> However, now that firmware is loaded asynchronously, several other I2C drivers
+> may be trying to use the bus at the same time. So, events like IR (and CI) polling,
+> tuner get_status, etc can happen during a firmware transfer, causing the firmware
+> to not load properly.
+>
+> A fix for that will require to lock the firmware load I2C traffic into a single
+> transaction.
 
-There are a handful of issues, but the big one which everybody runs
-into is a typo in a left shift operation that causes capture to be
-completely broken on ARM.  I just never got around to sending a patch
-upstream for it.
+How about deferring registration or probe of every bus-interface (usb, 
+pci, firewire) drivers we have. If we defer interface driver using work 
+or some other trick we don't need to touch any other chip-drivers that 
+are chained behind interface driver. Demodulator, tuner, decoder, remote 
+and all the other peripheral drivers can be left as those are currently 
+because those are deferred by bus interface driver.
 
-I don't know if this is the original report, but the issue is
-summarized well here:
-
-http://www.mail-archive.com/linux-omap@vger.kernel.org/msg28407.html
-
-Others issue related to memory allocation on platforms like ARM with
-limited coherent memory (if the device is unplugged/replugged often,
-the device won't be able to allocate the URB buffers), as well as
-performance problems related to the type of memory used (dependent on
-which ARM chip is used).
-
-Most of this stuff is relatively straightforward to fix but I've just
-been too busy with other projects.
-
-Devin
+regards
+Antti
 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+http://palosaari.fi/
+
+
