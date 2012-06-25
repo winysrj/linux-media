@@ -1,152 +1,150 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:51012 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:36522 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757862Ab2FZBe7 (ORCPT
+	with ESMTP id S1755548Ab2FYM5W (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Jun 2012 21:34:59 -0400
+	Mon, 25 Jun 2012 08:57:22 -0400
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@iki.fi
-Subject: [PATCH 2/2] omap3isp: Configure HS/VS interrupt source before enabling interrupts
-Date: Tue, 26 Jun 2012 03:34:56 +0200
-Message-Id: <1340674496-31953-3-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1340674496-31953-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1340674496-31953-1-git-send-email-laurent.pinchart@ideasonboard.com>
+To: davinci-linux-open-source@linux.davincidsp.com
+Cc: Manjunath Hadli <manjunath.hadli@ti.com>,
+	LMML <linux-media@vger.kernel.org>
+Subject: Re: [PATCH v3 10/13] davinci: vpif capture:Add power management support
+Date: Mon, 25 Jun 2012 14:57:23 +0200
+Message-ID: <2777370.dWcj1X6j2h@avalon>
+In-Reply-To: <1340622455-10419-11-git-send-email-manjunath.hadli@ti.com>
+References: <1340622455-10419-1-git-send-email-manjunath.hadli@ti.com> <1340622455-10419-11-git-send-email-manjunath.hadli@ti.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This needs to be performed before enabling interrupts as the sensor
-might be free-running and the ISP default setting (HS edge) would put an
-unnecessary burden on the CPU.
+Hi Manjunath,
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/video/omap3isp/isp.c |   43 +++++++++++++++++++++--------------
- 1 files changed, 26 insertions(+), 17 deletions(-)
+Thank you for the patch.
 
-diff --git a/drivers/media/video/omap3isp/isp.c b/drivers/media/video/omap3isp/isp.c
-index 2e1f322..36805ca 100644
---- a/drivers/media/video/omap3isp/isp.c
-+++ b/drivers/media/video/omap3isp/isp.c
-@@ -252,13 +252,18 @@ static u32 isp_set_xclk(struct isp_device *isp, u32 xclk, u8 xclksel)
- }
- 
- /*
-- * isp_power_settings - Sysconfig settings, for Power Management.
-+ * isp_core_init - ISP core settings
-  * @isp: OMAP3 ISP device
-  * @idle: Consider idle state.
-  *
-- * Sets the power settings for the ISP, and SBL bus.
-+ * Set the power settings for the ISP and SBL bus and cConfigure the HS/VS
-+ * interrupt source.
-+ *
-+ * We need to configure the HS/VS interrupt source before interrupts get
-+ * enabled, as the sensor might be free-running and the ISP default setting
-+ * (HS edge) would put an unnecessary burden on the CPU.
-  */
--static void isp_power_settings(struct isp_device *isp, int idle)
-+static void isp_core_init(struct isp_device *isp, int idle)
- {
- 	isp_reg_writel(isp,
- 		       ((idle ? ISP_SYSCONFIG_MIDLEMODE_SMARTSTANDBY :
-@@ -268,9 +273,10 @@ static void isp_power_settings(struct isp_device *isp, int idle)
- 			  ISP_SYSCONFIG_AUTOIDLE : 0),
- 		       OMAP3_ISP_IOMEM_MAIN, ISP_SYSCONFIG);
- 
--	if (isp->autoidle)
--		isp_reg_writel(isp, ISPCTRL_SBL_AUTOIDLE, OMAP3_ISP_IOMEM_MAIN,
--			       ISP_CTRL);
-+	isp_reg_writel(isp,
-+		       (isp->autoidle ? ISPCTRL_SBL_AUTOIDLE : 0) |
-+		       ISPCTRL_SYNC_DETECT_VSRISE,
-+		       OMAP3_ISP_IOMEM_MAIN, ISP_CTRL);
- }
- 
- /*
-@@ -323,9 +329,6 @@ void omap3isp_configure_bridge(struct isp_device *isp,
- 
- 	ispctrl_val |= ((shift/2) << ISPCTRL_SHIFT_SHIFT) & ISPCTRL_SHIFT_MASK;
- 
--	ispctrl_val &= ~ISPCTRL_SYNC_DETECT_MASK;
--	ispctrl_val |= ISPCTRL_SYNC_DETECT_VSRISE;
--
- 	isp_reg_writel(isp, ispctrl_val, OMAP3_ISP_IOMEM_MAIN, ISP_CTRL);
- }
- 
-@@ -1443,7 +1446,7 @@ static int isp_get_clocks(struct isp_device *isp)
-  *
-  * Return a pointer to the ISP device structure, or NULL if an error occurred.
-  */
--struct isp_device *omap3isp_get(struct isp_device *isp)
-+static struct isp_device *__omap3isp_get(struct isp_device *isp, bool irq)
- {
- 	struct isp_device *__isp = isp;
- 
-@@ -1462,10 +1465,9 @@ struct isp_device *omap3isp_get(struct isp_device *isp)
- 	/* We don't want to restore context before saving it! */
- 	if (isp->has_context)
- 		isp_restore_ctx(isp);
--	else
--		isp->has_context = 1;
- 
--	isp_enable_interrupts(isp);
-+	if (irq)
-+		isp_enable_interrupts(isp);
- 
- out:
- 	if (__isp != NULL)
-@@ -1475,6 +1477,11 @@ out:
- 	return __isp;
- }
- 
-+struct isp_device *omap3isp_get(struct isp_device *isp)
-+{
-+	return __omap3isp_get(isp, true);
-+}
-+
- /*
-  * omap3isp_put - Release the ISP
-  *
-@@ -1490,8 +1497,10 @@ void omap3isp_put(struct isp_device *isp)
- 	BUG_ON(isp->ref_count == 0);
- 	if (--isp->ref_count == 0) {
- 		isp_disable_interrupts(isp);
--		if (isp->domain)
-+		if (isp->domain) {
- 			isp_save_ctx(isp);
-+			isp->has_context = 1;
-+		}
- 		/* Reset the ISP if an entity has failed to stop. This is the
- 		 * only way to recover from such conditions.
- 		 */
-@@ -1975,7 +1984,7 @@ static int __devexit isp_remove(struct platform_device *pdev)
- 	isp_unregister_entities(isp);
- 	isp_cleanup_modules(isp);
- 
--	omap3isp_get(isp);
-+	__omap3isp_get(isp, false);
- 	iommu_detach_device(isp->domain, &pdev->dev);
- 	iommu_domain_free(isp->domain);
- 	isp->domain = NULL;
-@@ -2093,7 +2102,7 @@ static int __devinit isp_probe(struct platform_device *pdev)
- 	if (ret < 0)
- 		goto error;
- 
--	if (omap3isp_get(isp) == NULL)
-+	if (__omap3isp_get(isp, false) == NULL)
- 		goto error;
- 
- 	ret = isp_reset(isp);
-@@ -2160,7 +2169,7 @@ static int __devinit isp_probe(struct platform_device *pdev)
- 	if (ret < 0)
- 		goto error_modules;
- 
--	isp_power_settings(isp, 1);
-+	isp_core_init(isp, 1);
- 	omap3isp_put(isp);
- 
- 	return 0;
+On Monday 25 June 2012 16:37:32 Manjunath Hadli wrote:
+> Implement power management operations - suspend and resume as part of
+> dev_pm_ops for VPIF capture driver.
+> 
+> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+> Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+> ---
+>  drivers/media/video/davinci/vpif_capture.c |   77 +++++++++++++++++++++----
+>  1 files changed, 65 insertions(+), 12 deletions(-)
+> 
+> diff --git a/drivers/media/video/davinci/vpif_capture.c
+> b/drivers/media/video/davinci/vpif_capture.c index 097e136..f1ee137 100644
+> --- a/drivers/media/video/davinci/vpif_capture.c
+> +++ b/drivers/media/video/davinci/vpif_capture.c
+> @@ -2300,26 +2300,74 @@ static int vpif_remove(struct platform_device
+> *device) return 0;
+>  }
+> 
+> +#ifdef CONFIG_PM
+>  /**
+>   * vpif_suspend: vpif device suspend
+> - *
+> - * TODO: Add suspend code here
+>   */
+> -static int
+> -vpif_suspend(struct device *dev)
+> +static int vpif_suspend(struct device *dev)
+>  {
+> -	return -1;
+> +
+> +	struct common_obj *common;
+> +	struct channel_obj *ch;
+> +	int i;
+> +
+> +	for (i = 0; i < VPIF_CAPTURE_MAX_DEVICES; i++) {
+> +		/* Get the pointer to the channel object */
+> +		ch = vpif_obj.dev[i];
+> +		common = &ch->common[VPIF_VIDEO_INDEX];
+> +		if (mutex_lock_interruptible(&common->lock))
+> +			return -ERESTARTSYS;
+
+As for the display driver, this should probably be replaced by mutex_lock().
+
+> +		if (ch->usrs && common->io_usrs) {
+> +			/* Disable channel */
+> +			if (ch->channel_id == VPIF_CHANNEL0_VIDEO) {
+> +				enable_channel0(0);
+> +				channel0_intr_enable(0);
+> +			}
+> +			if (ch->channel_id == VPIF_CHANNEL1_VIDEO ||
+> +			    common->started == 2) {
+> +				enable_channel1(0);
+> +				channel1_intr_enable(0);
+> +			}
+> +		}
+> +		mutex_unlock(&common->lock);
+> +	}
+> +
+> +	return 0;
+>  }
+> 
+> -/**
+> +/*
+>   * vpif_resume: vpif device suspend
+> - *
+> - * TODO: Add resume code here
+>   */
+> -static int
+> -vpif_resume(struct device *dev)
+> +static int vpif_resume(struct device *dev)
+>  {
+> -	return -1;
+> +	struct common_obj *common;
+> +	struct channel_obj *ch;
+> +	int i;
+> +
+> +	for (i = 0; i < VPIF_CAPTURE_MAX_DEVICES; i++) {
+> +		/* Get the pointer to the channel object */
+> +		ch = vpif_obj.dev[i];
+> +		common = &ch->common[VPIF_VIDEO_INDEX];
+> +		if (mutex_lock_interruptible(&common->lock))
+> +			return -ERESTARTSYS;
+> +
+> +		if (ch->usrs && common->io_usrs) {
+> +			/* Disable channel */
+> +			if (ch->channel_id == VPIF_CHANNEL0_VIDEO) {
+> +				enable_channel0(1);
+> +				channel0_intr_enable(1);
+> +			}
+> +			if (ch->channel_id == VPIF_CHANNEL1_VIDEO ||
+> +			    common->started == 2) {
+> +				enable_channel1(1);
+> +				channel1_intr_enable(1);
+> +			}
+> +		}
+> +		mutex_unlock(&common->lock);
+> +	}
+> +
+> +	return 0;
+>  }
+> 
+>  static const struct dev_pm_ops vpif_dev_pm_ops = {
+> @@ -2327,11 +2375,16 @@ static const struct dev_pm_ops vpif_dev_pm_ops = {
+>  	.resume = vpif_resume,
+>  };
+> 
+> +#define vpif_pm_ops (&vpif_dev_pm_ops)
+> +#else
+> +#define vpif_pm_ops NULL
+> +#endif
+> +
+>  static __refdata struct platform_driver vpif_driver = {
+>  	.driver	= {
+>  		.name	= "vpif_capture",
+>  		.owner	= THIS_MODULE,
+> -		.pm = &vpif_dev_pm_ops,
+> +		.pm	= vpif_pm_ops,
+>  	},
+>  	.probe = vpif_probe,
+>  	.remove = vpif_remove,
 -- 
-1.7.3.4
+Regards,
+
+Laurent Pinchart
 
