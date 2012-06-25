@@ -1,59 +1,162 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:63713 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753897Ab2FVTQw convert rfc822-to-8bit (ORCPT
+Received: from ams-iport-2.cisco.com ([144.254.224.141]:55060 "EHLO
+	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756413Ab2FYNIV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Jun 2012 15:16:52 -0400
-Received: by obbuo13 with SMTP id uo13so2337612obb.19
-        for <linux-media@vger.kernel.org>; Fri, 22 Jun 2012 12:16:51 -0700 (PDT)
+	Mon, 25 Jun 2012 09:08:21 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH v3 08/13] davinci: vpif: add support for clipping on output data
+Date: Mon, 25 Jun 2012 15:08:10 +0200
+Cc: davinci-linux-open-source@linux.davincidsp.com,
+	Manjunath Hadli <manjunath.hadli@ti.com>,
+	LMML <linux-media@vger.kernel.org>
+References: <1340622455-10419-1-git-send-email-manjunath.hadli@ti.com> <1340622455-10419-9-git-send-email-manjunath.hadli@ti.com> <2408615.OIAyvZB6Tt@avalon>
+In-Reply-To: <2408615.OIAyvZB6Tt@avalon>
 MIME-Version: 1.0
-In-Reply-To: <4FE4C2BE.2060301@gmail.com>
-References: <4FE4BC43.9070100@gmail.com>
-	<CALF0-+VM902A0x+TNXB1qe_jhKcYOs6ti1hMZBsTuTe6Ucmpeg@mail.gmail.com>
-	<4FE4C2BE.2060301@gmail.com>
-Date: Fri, 22 Jun 2012 16:16:51 -0300
-Message-ID: <CALF0-+V430u34yv8arUsN=N5Vh-cJs=7JJdiaEH_OonarJ065g@mail.gmail.com>
-Subject: Re: Tuner NOGANET NG-PTV FM
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: Ariel Mammoli <cmammoli@gmail.com>
-Cc: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201206251508.10347.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ariel,
+On Mon 25 June 2012 14:54:39 Laurent Pinchart wrote:
+> Hi Manjunath,
+> 
+> Thank you for the patch.
+> 
+> On Monday 25 June 2012 16:37:30 Manjunath Hadli wrote:
+> > add hardware clipping support for VPIF output data. This
+> > is needed as it is possible that the external encoder
+> > might get confused between the FF or 00 which are a part
+> > of the data and that of the SAV or EAV codes.
+> > 
+> > Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+> > Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
+> > ---
+> >  drivers/media/video/davinci/vpif.h         |   30 +++++++++++++++++++++++++
+> >  drivers/media/video/davinci/vpif_display.c |   10 +++++++++
+> >  include/media/davinci/vpif_types.h         |    2 +
+> >  3 files changed, 42 insertions(+), 0 deletions(-)
+> > 
+> > diff --git a/drivers/media/video/davinci/vpif.h
+> > b/drivers/media/video/davinci/vpif.h index a4d2141..c2ce4d9 100644
+> > --- a/drivers/media/video/davinci/vpif.h
+> > +++ b/drivers/media/video/davinci/vpif.h
+> > @@ -211,6 +211,12 @@ static inline void vpif_clr_bit(u32 reg, u32 bit)
+> >  #define VPIF_CH3_INT_CTRL_SHIFT	(6)
+> >  #define VPIF_CH_INT_CTRL_SHIFT	(6)
+> > 
+> > +#define VPIF_CH2_CLIP_ANC_EN	14
+> > +#define VPIF_CH2_CLIP_ACTIVE_EN	13
+> > +
+> > +#define VPIF_CH3_CLIP_ANC_EN	14
+> > +#define VPIF_CH3_CLIP_ACTIVE_EN	13
+> > +
+> >  /* enabled interrupt on both the fields on vpid_ch0_ctrl register */
+> >  #define channel0_intr_assert()	(regw((regr(VPIF_CH0_CTRL)|\
+> >  	(VPIF_INT_BOTH << VPIF_CH0_INT_CTRL_SHIFT)), VPIF_CH0_CTRL))
+> > @@ -515,6 +521,30 @@ static inline void channel3_raw_enable(int enable, u8
+> > index) vpif_clr_bit(VPIF_CH3_CTRL, mask);
+> >  }
+> > 
+> > +/* function to enable clipping (for both active and blanking regions) on ch
+> > 2 */ +static inline void channel2_clipping_enable(int enable)
+> > +{
+> > +	if (enable) {
+> > +		vpif_set_bit(VPIF_CH2_CTRL, VPIF_CH2_CLIP_ANC_EN);
+> > +		vpif_set_bit(VPIF_CH2_CTRL, VPIF_CH2_CLIP_ACTIVE_EN);
+> > +	} else {
+> > +		vpif_clr_bit(VPIF_CH2_CTRL, VPIF_CH2_CLIP_ANC_EN);
+> > +		vpif_clr_bit(VPIF_CH2_CTRL, VPIF_CH2_CLIP_ACTIVE_EN);
+> > +	}
+> > +}
+> > +
+> > +/* function to enable clipping (for both active and blanking regions) on ch
+> > 2 */ +static inline void channel3_clipping_enable(int enable)
+> > +{
+> > +	if (enable) {
+> > +		vpif_set_bit(VPIF_CH3_CTRL, VPIF_CH3_CLIP_ANC_EN);
+> > +		vpif_set_bit(VPIF_CH3_CTRL, VPIF_CH3_CLIP_ACTIVE_EN);
+> > +	} else {
+> > +		vpif_clr_bit(VPIF_CH3_CTRL, VPIF_CH3_CLIP_ANC_EN);
+> > +		vpif_clr_bit(VPIF_CH3_CTRL, VPIF_CH3_CLIP_ACTIVE_EN);
+> > +	}
+> > +}
+> > +
+> >  /* inline function to set buffer addresses in case of Y/C non mux mode */
+> >  static inline void ch2_set_videobuf_addr_yc_nmux(unsigned long
+> > top_strt_luma, unsigned long btm_strt_luma,
+> > diff --git a/drivers/media/video/davinci/vpif_display.c
+> > b/drivers/media/video/davinci/vpif_display.c index 61ea8bc..4436ef6 100644
+> > --- a/drivers/media/video/davinci/vpif_display.c
+> > +++ b/drivers/media/video/davinci/vpif_display.c
+> > @@ -1046,6 +1046,8 @@ static int vpif_streamon(struct file *file, void
+> > *priv, channel2_intr_assert();
+> >  			channel2_intr_enable(1);
+> >  			enable_channel2(1);
+> > +			if (vpif_config_data->ch2_clip_en)
+> > +				channel2_clipping_enable(1);
+> >  		}
+> > 
+> >  		if ((VPIF_CHANNEL3_VIDEO == ch->channel_id)
+> > @@ -1053,6 +1055,8 @@ static int vpif_streamon(struct file *file, void
+> > *priv, channel3_intr_assert();
+> >  			channel3_intr_enable(1);
+> >  			enable_channel3(1);
+> > +			if (vpif_config_data->ch3_clip_en)
+> > +				channel3_clipping_enable(1);
+> >  		}
+> >  		channel_first_int[VPIF_VIDEO_INDEX][ch->channel_id] = 1;
+> >  	}
+> > @@ -1065,6 +1069,8 @@ static int vpif_streamoff(struct file *file, void
+> > *priv, struct vpif_fh *fh = priv;
+> >  	struct channel_obj *ch = fh->channel;
+> >  	struct common_obj *common = &ch->common[VPIF_VIDEO_INDEX];
+> > +	struct vpif_display_config *vpif_config_data =
+> > +					vpif_dev->platform_data;
+> > 
+> >  	if (buftype != V4L2_BUF_TYPE_VIDEO_OUTPUT) {
+> >  		vpif_err("buffer type not supported\n");
+> > @@ -1084,11 +1090,15 @@ static int vpif_streamoff(struct file *file, void
+> > *priv, if (buftype == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
+> >  		/* disable channel */
+> >  		if (VPIF_CHANNEL2_VIDEO == ch->channel_id) {
+> > +			if (vpif_config_data->ch2_clip_en)
+> > +				channel2_clipping_enable(0);
+> >  			enable_channel2(0);
+> >  			channel2_intr_enable(0);
+> >  		}
+> >  		if ((VPIF_CHANNEL3_VIDEO == ch->channel_id) ||
+> >  					(2 == common->started)) {
+> > +			if (vpif_config_data->ch3_clip_en)
+> > +				channel3_clipping_enable(0);
+> >  			enable_channel3(0);
+> >  			channel3_intr_enable(0);
+> >  		}
+> > diff --git a/include/media/davinci/vpif_types.h
+> > b/include/media/davinci/vpif_types.h index bd8217c..d8f6ab1 100644
+> > --- a/include/media/davinci/vpif_types.h
+> > +++ b/include/media/davinci/vpif_types.h
+> > @@ -50,6 +50,8 @@ struct vpif_display_config {
+> >  	const char **output;
+> >  	int output_count;
+> >  	const char *card_name;
+> > +	bool ch2_clip_en;
+> > +	bool ch3_clip_en;
+> 
+> Instead of hardcoding this in platform data, I think it would be better to 
+> make this runtime-configurable. One option is to use the value of the 
+> v4l2_pix_format::colorspace field configured by userspace. We already have 
+> V4L2_COLORSPACE_JPEG which maps to the full 0-255 range, but we're missing a 
+> colorspace for the clipped 1-254 range used by the VPIF and I'm not sure 
+> whether it would really make sense to add one. Another option is to use a V4L2 
+> control.
 
-Please don't drop linux-media from Cc.
+This is something for a V4L2 control I think since clipping is colorspace
+independent (you have the same situation for e.g. YCbCr).
 
-On Fri, Jun 22, 2012 at 4:08 PM, Ariel Mammoli <cmammoli@gmail.com> wrote:
-> Hi Ezequiel,
->
-> El vie 22 jun 2012 15:51:02 ART, Ezequiel Garcia ha escrito:
->> Hi Ariel,
->>
->> On Fri, Jun 22, 2012 at 3:41 PM, Ariel Mammoli <cmammoli@gmail.com> wrote:
->>>
->>> I have a tuner NOGANET "NG-FM PTV" which has the Philips chip 7134.
->>> I have reviewed the list of values several times but can not find it.
->>> What are the correct values to configure the module saa7134?
->>>
->>
->> That's a PCI card, right? PCI are identified by subvendor  and subdevice IDs.
->>
->> Can you tell us those IDs for your card?
->>
->> Regards,
->> Ezequiel.
->
-> Indeed it is a PCI card. Below are the data:
-> 04:05.0 Multimedia controller [0480]: Philips Semiconductors SAA7130
-> Video Broadcast Decoder [1131:7130] (rev 01)
->
+Regards,
 
-I believe it is currently not supported under Linux.
-
-Perhaps you should contact the vendor and ask them to support it.
-
-Sorry,
-Ezequiel.
+	Hans
