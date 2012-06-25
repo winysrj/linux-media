@@ -1,38 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1579 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753694Ab2FJKzK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Jun 2012 06:55:10 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Steven Toth <stoth@kernellabs.com>,
-	Michael Krufky <mkrufky@linuxtv.org>
-Subject: [RFCv1 PATCH 00/11] cx88: convert to the control framework
-Date: Sun, 10 Jun 2012 12:54:46 +0200
-Message-Id: <1339325697-23280-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mx1.redhat.com ([209.132.183.28]:10310 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753091Ab2FYTt4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 Jun 2012 15:49:56 -0400
+Message-ID: <4FE8C0E0.3080104@redhat.com>
+Date: Mon, 25 Jun 2012 16:49:52 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Ezequiel Garcia <elezegarcia@gmail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH 01/12] saa7164: Use i2c_rc properly to store i2c register
+ status
+References: <1340047425-32000-1-git-send-email-elezegarcia@gmail.com> <4FE8BC2D.9030902@redhat.com> <CALF0-+UyWjbbPYCKV-AgS=6FZ349D27GrijrYa_RWPUqcfo8rw@mail.gmail.com>
+In-Reply-To: <CALF0-+UyWjbbPYCKV-AgS=6FZ349D27GrijrYa_RWPUqcfo8rw@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+Em 25-06-2012 16:42, Ezequiel Garcia escreveu:
+> Hi Mauro,
+> 
+> On Mon, Jun 25, 2012 at 4:29 PM, Mauro Carvalho Chehab
+> <mchehab@redhat.com> wrote:
+>>> diff --git a/drivers/media/video/saa7164/saa7164-i2c.c b/drivers/media/video/saa7164/saa7164-i2c.c
+>>> index 26148f7..536f7dc 100644
+>>> --- a/drivers/media/video/saa7164/saa7164-i2c.c
+>>> +++ b/drivers/media/video/saa7164/saa7164-i2c.c
+>>> @@ -123,7 +123,7 @@ int saa7164_i2c_register(struct saa7164_i2c *bus)
+>>>        bus->i2c_algo.data = bus;
+>>>        bus->i2c_adap.algo_data = bus;
+>>>        i2c_set_adapdata(&bus->i2c_adap, bus);
+>>> -     i2c_add_adapter(&bus->i2c_adap);
+>>> +     bus->i2c_rc = i2c_add_adapter(&bus->i2c_adap);
+>>>
+>>>        bus->i2c_client.adapter = &bus->i2c_adap;
+>>>
+>>>
+>>
+>> -ENODESCRIPTION.
+> 
+> Okey. Sorry for that.
+> 
+>>
+>> What are you intending with this change? AFAICT, i2c_add_bus_adapter()
+>> returns 0 on success and a negative value otherwise. Why should it be
+>> stored at bus->i2c_rc?
+> 
+> My intention was to give i2c_rc its proper use.
+> I looked at bttv-i2c.c and cx88-i2c.c and (perhaps wrongly) guessed
+> the intended use to i2c_rc was to save i2c registration result.
+> 
+> Without this patch, where is this bus->i2c_rc variable used?
+> Unless I've missed something, to me there are two options:
+> - use i2c_rc
+> - remove it
 
-This patch series converts the cx88 driver to use the control framework,
-and it also fixes various other things so that v4l2-compliance likes it
-a lot better.
+If i2c_rc was never initialized, then just remove it. If it is required,
+then there's a bug somewhere out there on those drivers.
 
-It also replaces .ioctl with .unlocked_ioctl in cx88-blackbird. I don't
-think I need to do extra locking myself, but let me know if I have to.
+IMHO, if the I2C bus doesn't register, any driver that requires I2C bus
+should return -ENODEV.
 
-This work is part of my effort to bring all v4l2 drivers up to speed with
-regards to all the new frameworks that we have. And yes, I am ignoring vb2
-at the moment as this is already hard enough, especially for a complex
-driver like cx88.
+It should be noticed that there are a few devices that don't need I2C bus
+to work: simple video grabber cards that don't have anything on their I2C.
+There are several of them at bttv, and a few at cx88 and saa7134. Maybe that's
+the reason why those drivers have a var to indicate if i2c got registered.
 
-Note that is patch series assumes that these patches are already applied:
+> 
+> Again sorry for lack of description, I thought it was self-explaining patch.
+> 
+> If you provide some feedback about proper solution, I can resend the
+> patch series.
 
-http://patchwork.linuxtv.org/patch/11509/
+Thanks!
 
-Regards,
+Mauro
+> 
+> Thanks,
+> Ezequiel.
+> 
 
-	Hans
 
