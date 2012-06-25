@@ -1,86 +1,193 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:3284 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753114Ab2FDOSB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 Jun 2012 10:18:01 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [RFC] Media controller entity information ioctl [was "Re: [patch] suggestion for media framework"]
-Date: Mon, 4 Jun 2012 16:17:32 +0200
-Cc: Oleksij Rempel <bug-track@fisher-privat.net>,
-	linux-uvc-devel@lists.sourceforge.net, linux-media@vger.kernel.org,
-	sakari.ailus@iki.fi,
-	Youness Alaoui <youness.alaoui@collabora.co.uk>
-References: <4FCB9C12.1@fisher-privat.net> <9993866.a3VUSWRbyi@avalon>
-In-Reply-To: <9993866.a3VUSWRbyi@avalon>
+Received: from mx1.redhat.com ([209.132.183.28]:4718 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756024Ab2FYUrR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 Jun 2012 16:47:17 -0400
+Message-ID: <4FE8CE48.3050508@redhat.com>
+Date: Mon, 25 Jun 2012 17:47:04 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: Antti Palosaari <crope@iki.fi>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Kay Sievers <kay@redhat.com>
+Subject: Need of an ".async_probe()" type of callback at driver's core - Was:
+ Re: [PATCH] [media] drxk: change it to use request_firmware_nowait()
+References: <1340285798-8322-1-git-send-email-mchehab@redhat.com> <4FE37194.30407@redhat.com> <4FE8B8BC.3020702@iki.fi> <4FE8C4C4.1050901@redhat.com>
+In-Reply-To: <4FE8C4C4.1050901@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Message-Id: <201206041617.32315.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon June 4 2012 16:02:12 Laurent Pinchart wrote:
-> Hi Oleksiy,
-> 
-> Thank you for the patch.
-> 
-> [CC'ing linux-media]
-> 
-> On Sunday 03 June 2012 19:17:06 Oleksij Rempel wrote:
-> > Hi Laurent,
-> > 
-> > in attachment is a suggestion patch for media framework and a test
-> > program which use this patch.
-> > 
-> > Suddenly we still didn't solved the problem with finding of XU. You
-> > know, the proper way to find them is guid (i do not need to explain this
-> > :)). Since uvc devices starting to have more and complicated XUs, media
-> > api is probably proper way to go - how you suggested.
-> > 
-> > On the wiki of TexasInstruments i found some code examples, how they use
-> > this api. And it looks like there is some desing differences between
-> > OMPA drivers and UVC. It is easy to find proper entity name for omap
-> > devices just by: "(!strcmp(entity[index].name, "OMAP3 ISP CCDC"))".
-> > We can't do the same for UVC, current names are just "Extension %u". We
-> > can put guid instead, but it will looks ugly and not really informative.
-> > This is why i added new struct uvc_ext.
-> > 
-> > If you do not agree with this patch, it will be good if you proved other
-> > solution. This problem need to be solved.
-> 
-> The patch goes in the right direction, in that I think the media controller 
-> API is the proper way to solve this problem. However, extending the 
-> media_entity_desc structure with information about all possible kinds of 
-> entities will not scale, especially given that an entity may need to expose 
-> information related to multiple types (for instance an XU need to expose its 
-> GUID, but also subdev-related information if it has a device node).
-> 
-> I've been thinking about adding a new ioctl to the media controller API for 
-> some time now, to report advanced static information about entities.
-> 
-> The idea is that each entity would be allowed to report an arbitrary number of 
-> static items. Items would have a type (for which we would likely need some 
-> kind of central registry, possible with driver-specific types), a length and 
-> data. The items would be static (registered an initialization time) and 
-> aggregated in a single buffer that would be read in one go through a new 
-> ioctl.
+Greg,
 
-And since it is static the media_entity_desc struct can tell the caller how many
-of these items there are, and use that information to retrieve them.
+Basically, the recent changes at request_firmware() exposed an issue that
+affects all media drivers that use firmware (64 drivers).
 
-> One important benefit of such an API would be to be able to report more than 
-> one entity type per subdev using entity type items. Many entities serve 
-> several purpose, for instance a sensor can integrate a flash controller. This 
-> can't be reported with the current API, as subdevs have a single type. By 
-> having several entity type items we could fix this issue.
-> 
-> Details remain to be drafted, but I'd like a feedback on the general approach.
+Driver's documentation at Documentation/driver-model/driver.txt says that the
+.probe() callback should "bind the driver to a given device.  That includes 
+verifying that the device is present, that it's a version the driver can handle, 
+that driver data structures can be allocated and initialized, and that any
+hardware can be initialized".
 
-Sound good. We discussed this before, and I agree that these seems to be the
-right approach.
+All media device drivers are complaint with that, returning 0 on success
+(meaning that the device was successfully probed) or an error otherwise.
+
+Almost all media devices are made by a SoC or a RISC CPU that works
+as a DMA engine and exposes a set of registers to allow I2C access to the
+device's internal and/or external I2C buses. Part of them have an internal
+EEPROM/ROM that stores firmware internally at the board, but others require
+a firmware to be loaded before being able to init/control the device and to
+export the I2C bus interface.
+
+The media handling function is then implemented via a series of I2C devices[1]:
+	- analog video decoders;
+	- TV tuners;
+	- radio tuners;
+	- I2C remote controller decoders;
+	- DVB frontends;
+	- mpeg decoders;
+	- mpeg encoders;
+	- video enhancement devices;
+	...
+
+[1] several media chips have part of those function implemented internally,
+but almost all require external I2C components to be probed.
+
+In order to properly refer to each component, we call the "main" kernel module
+that talks with the media device via USB/PCI bus is called "bridge driver", 
+and the I2C components are called as "sub-devices".
+
+Different vendors use the same bridge driver to work with different sub-devices.
+
+It is a .probe()'s task to detect what sub-devices are there inside the board.
+
+There are several cases where the vendor switched the sub-devices without
+changing the PCI ID/USB ID.
+
+So, drivers do things like the code below, inside the .probe() callback:
+
+static int check_if_dvb_frontend_is_supported_and_bind()
+{
+	switch (device_model) {
+	case VENDOR_A_MODEL_1:
+		if (test_and_bind_frontend_1())	/* Doesn't require firmware */
+			return 0;
+		if (test_and_bind_frontend_2())	/* requires firmware "foo" */
+			return 0;
+		if (test_and_bind_frontend_3())	/* requires firmware "bar" */
+			return 0;
+		if (test_and_bind_frontend_4()) /* doesn't require firmware */
+			return 0;
+		break;
+	case VENDOR_A_MODEL_2:
+		/* Analog device - no DVB frontend on it */
+		return 0;
+	...
+	}
+	return -ENODEV;
+}
+
+On several devices, before being able to register the bus and do the actual
+probe, the kernel needs to load a firmware.
+
+Also, during the I2C device probing time, firmware may be required, in order
+to properly expose the device's internal models and their capabilities. 
+
+For example, drx-k sub-device can have support for either DVB-C or DVB-T or both,
+depending on the device model. That affects the frontend properties exposed 
+to the user and might affect the bridge driver's initialization task.
+
+In practice, a driver like em28xx have a few devices like HVR-930C that require
+the drx-k sub-device. For those devices, a firmware is required; for other
+devices, a firmware is not required.
+
+What's happening is that newer versions of request_firmware and udev are being
+more pedantic (for a reason) about not requesting firmwares during module_init
+or PCI/USB register's probe callback.
+
+Worse than that, the same device driver may require a firmware or not, depending on
+the I2C devices inside it. One such example is em28xx: for the great majority of
+the supported devices, no firmware is needed, but devices like HVR-930C require
+a firmware, because it uses a frontend that needs firmware.
+
+After some discussions, it seems that the best model would be to add an async_probe()
+callback to be used by devices similar to media ones. The async_probe() should be
+not probed during the module_init; the probe() will be deferred to happen later,
+when firmware's usermodehelper_disabled is false, allowing those drivers to load their
+firmwares if needed.
+
+What do you think?
 
 Regards,
+Mauro
 
-	Hans
+Em 25-06-2012 17:06, Mauro Carvalho Chehab escreveu:
+> Em 25-06-2012 16:15, Antti Palosaari escreveu:
+>> On 06/21/2012 10:10 PM, Mauro Carvalho Chehab wrote:
+>>> Em 21-06-2012 10:36, Mauro Carvalho Chehab escreveu:
+>>>> The firmware blob may not be available when the driver probes.
+>>>>
+>>>> Instead of blocking the whole kernel use request_firmware_nowait() and
+>>>> continue without firmware.
+>>>>
+>>>> This shouldn't be that bad on drx-k devices, as they all seem to have an
+>>>> internal firmware. So, only the firmware update will take a little longer
+>>>> to happen.
+>>>
+>>> While thinking on converting another DVB frontend driver, I just realized
+>>> that a patch like that won't work fine.
+>>>
+>>> As most of you know, there are _several_ I2C chips that don't tolerate any
+>>> usage of the I2C bus while a firmware is being loaded (I dunno if this is the
+>>> case of drx-k, but I won't doubt).
+>>>
+>>> The current approach makes the device probe() logic is serialized. So, there's
+>>> no chance that two different I2C drivers to try to access the bus at the same
+>>> time, if the bridge driver is properly implemented.
+>>>
+>>> However, now that firmware is loaded asynchronously, several other I2C drivers
+>>> may be trying to use the bus at the same time. So, events like IR (and CI) polling,
+>>> tuner get_status, etc can happen during a firmware transfer, causing the firmware
+>>> to not load properly.
+>>>
+>>> A fix for that will require to lock the firmware load I2C traffic into a single
+>>> transaction.
+>>
+>> How about deferring registration or probe of every bus-interface (usb, pci, firewire) drivers we have.
+>> If we defer interface driver using work or some other trick we don't need to touch any other chip-drivers
+>> that are chained behind interface driver. Demodulator, tuner, decoder, remote and all the other peripheral
+>> drivers can be left as those are currently because those are deferred by bus interface driver.
+> 
+> There are some issues with regards to it:
+> 
+> 1) Currently, driver core doesn't allow a deferred probe. Drivers might implement
+> that, but they'll lie to the core that the driver were properly supported even when
+> probe fails. So, driver's core need an .async_probe() method;
+> 
+> 2) The firmware load issue will still happen at resume. So, a lock like that is
+> still needed;
+> 
+> 3) It can make some sense to async load the firmware for some drivers, especially
+> when the device detection may not be dependent on a firmware load.
+> 
+> I'm not fully convinced about (3), as the amount of changes are significant for
+> not much gain.
+> 
+> There's also another related issue: On devices where both bridge and sub-devices (like frontend)
+> needs firmware to be loaded, the load order is important at resume(), as the bridge
+> requires to get the firmware before the sub-devices.
+> 
+> That's said, IMO, the best approach is to do:
+> 
+> 1) add support for asynchronous probe at device core, for devices that requires firmware
+> at probe(). The async_probe() will only be active if !usermodehelper_disabled.
+> 
+> 2) export the I2C i2c_lock_adapter()/i2c_unlock_adapter() interface.
+> 
+> We can postpone or get rid of changing the I2C drivers to use request_firmware_async(),
+> if the request_firmware() core is not pedantic enough to complain and it is not gonna
+> to be deprecated.
+> 
+> Anyway, I'll open a thead c/c Greg KH (driver's core maintainer) with regards to the need
+> of an async_probe() callback.
