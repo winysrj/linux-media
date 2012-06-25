@@ -1,48 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rhombus.bright.net ([209.143.0.75]:40589 "EHLO
-	rhombus.bright.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753647Ab2F2RDh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Jun 2012 13:03:37 -0400
-Received: from spamtest4.bright.net (spamtest4.bright.net [209.143.0.182])
-	by rhombus.bright.net (8.14.4/8.14.4) with ESMTP id q5TGp9c7020250
-	for <linux-media@vger.kernel.org>; Fri, 29 Jun 2012 12:51:09 -0400
-Received: from rg7.cniteam.com (rg7.cniteam.com [209.143.0.247])
-	by spamtest4.bright.net (8.13.8/8.13.8) with ESMTP id q5TGn4Qv020079
-	for <linux-media@vger.kernel.org>; Fri, 29 Jun 2012 12:49:05 -0400
-Received: from ms2.cniteam.com (ms2.cniteam.com [209.143.0.237])
-	by rg7.cniteam.com (MOS 4.2.4-GA)
-	with ESMTP id BJF43410
-	for <linux-media@vger.kernel.org>;
-	Fri, 29 Jun 2012 12:49:04 -0400
-From: <aschuler@bright.net>
-Subject: AverTVHD Volar Max (h286DU)
-To: linux-media@vger.kernel.org
+Received: from mx1.redhat.com ([209.132.183.28]:16869 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753262Ab2FYT3x (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 Jun 2012 15:29:53 -0400
+Message-ID: <4FE8BC2D.9030902@redhat.com>
+Date: Mon, 25 Jun 2012 16:29:49 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Message-Id: <201206291649.000461@ms2.cniteam.com>
-Content-Type: text/plain; charset=us-ascii
+To: Ezequiel Garcia <elezegarcia@gmail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH 01/12] saa7164: Use i2c_rc properly to store i2c register
+ status
+References: <1340047425-32000-1-git-send-email-elezegarcia@gmail.com>
+In-Reply-To: <1340047425-32000-1-git-send-email-elezegarcia@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Date: Fri, 29 Jun 2012 12:49:04 -0400 (EDT)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello all,
+Em 18-06-2012 16:23, Ezequiel Garcia escreveu:
+> Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
+> ---
+>   drivers/media/video/saa7164/saa7164-i2c.c |    2 +-
+>   1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/media/video/saa7164/saa7164-i2c.c b/drivers/media/video/saa7164/saa7164-i2c.c
+> index 26148f7..536f7dc 100644
+> --- a/drivers/media/video/saa7164/saa7164-i2c.c
+> +++ b/drivers/media/video/saa7164/saa7164-i2c.c
+> @@ -123,7 +123,7 @@ int saa7164_i2c_register(struct saa7164_i2c *bus)
+>   	bus->i2c_algo.data = bus;
+>   	bus->i2c_adap.algo_data = bus;
+>   	i2c_set_adapdata(&bus->i2c_adap, bus);
+> -	i2c_add_adapter(&bus->i2c_adap);
+> +	bus->i2c_rc = i2c_add_adapter(&bus->i2c_adap);
+>   
+>   	bus->i2c_client.adapter = &bus->i2c_adap;
+>   
+> 
 
-I'm currently working on an automated process to increase the 
-number of online Closed Captions for the hearing-impaired 
-community on a popular video-streaming service. I've had a 
-successful proof-of-concept on mac and PC platforms, but to 
-take this process to scale, I'd like to design a linux 
-solution.
+-ENODESCRIPTION.
 
-The device I'm currently using is the AverTVHD Volar Max 
-(h286DU). I've attempted to use the Aver-supplied drivers in 
-Ubuntu 10.4 and 9.10 to no avail. Any help in developing a 
-working driver / installation method for my device would be 
-greatly appreciated by me, and, potentially, a very large and 
-very under-represented audience of hard-of-hearing.
+What are you intending with this change? AFAICT, i2c_add_bus_adapter()
+returns 0 on success and a negative value otherwise. Why should it be
+stored at bus->i2c_rc?
 
-Thanks for any support in this matter, and for all the 
-development done up to this point.
+The same applies to the entire patch series.
 
-Andy
+Regards,
+Mauro
