@@ -1,78 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:4127 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752634Ab2FFWJl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jun 2012 18:09:41 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "linux-media" <linux-media@vger.kernel.org>
-Subject: What should CREATE_BUFS do if count == 0?
-Date: Thu, 7 Jun 2012 00:09:27 +0200
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Pawel Osciak <pawel@osciak.com>
+Received: from moutng.kundenserver.de ([212.227.126.186]:59959 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756949Ab2FYObi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 Jun 2012 10:31:38 -0400
+Date: Mon, 25 Jun 2012 16:31:34 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Sergio Aguirre <sergio.a.aguirre@gmail.com>
+cc: Sriram V <vshrirama@gmail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [ANNOUNCEMENT] (tentative) Android generic V4L2 camera HAL
+In-Reply-To: <CAKnK67Rdxfjvk25uy5cLhVmpK3bWyyN_P5nCAnHeZZw9UAHWVQ@mail.gmail.com>
+Message-ID: <Pine.LNX.4.64.1206251628580.29019@axis700.grange>
+References: <CAH9_wRP4+hzFpCdcZWmyyTZpTTFi+9wyTJxX2vPd+3r0QNhLkA@mail.gmail.com>
+ <CAKnK67Qdte8qJ9L18OL2ft=YaF4YEAD-5rTP_bk7+_nQAn4u+A@mail.gmail.com>
+ <Pine.LNX.4.64.1205072321530.3564@axis700.grange>
+ <CAKnK67SpO-roU_d_5DV4bq4J5URX0Niw=hCjXY3N=GUAumZLig@mail.gmail.com>
+ <Pine.LNX.4.64.1206251540490.29019@axis700.grange>
+ <CAKnK67Rdxfjvk25uy5cLhVmpK3bWyyN_P5nCAnHeZZw9UAHWVQ@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201206070009.27409.hverkuil@xs4all.nl>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+Hi Sergio
 
-I'm extending v4l2-compliance with support for VIDIOC_REQBUFS and VIDIOC_CREATE_BUFS,
-and I ran into an undefined issue: what happens if VIDIOC_CREATE_BUFS is called with
-count set to 0?
+On Mon, 25 Jun 2012, Aguirre, Sergio wrote:
 
-I think there should be a separate test for that. Right now queue_setup will receive
-a request for 0 buffers, and I don't know if drivers expect a zero value there.
+> (+ My gmail address, please start using that address from next week
+> on, since I'm leaving TI)
+> 
+> Hi Guennadi,
+> 
+> Thanks a lot for sharing these! Nice job.
+> 
+> I immediately noticed you have changes on hardware/ti/omap4xxx/
+> subproject. So, Which devices did you used for testing this?
+> 
+> I got confused since you had changes for the Samsung Nexus S, which
+> has an Exynos chip...
+> 
+> And you also have this Renesas Mackerel, which seems to use a SuperH 7372.
+> 
+> Or maybe you just patched the omap4xxx related file to fix a build :)
 
-I suggest that CREATE_BUFS with a count of 0 will only check whether memory and
-format.type are valid, and if they are it will just return 0 and do nothing.
+Right, I only used the sh7372 based mackerel board from Renesas, as 
+lightly hinted in the README, not all patches in that directory are really 
+related to the camera library, some are unrelated fixes and improvements, 
+others are build fixes to compensate for a changed API.
 
-Also note that this code in vb2_create_bufs is wrong:
+Thanks
+Guennadi
 
-        ret = __vb2_queue_alloc(q, create->memory, num_buffers,
-                                num_planes);
-        if (ret < 0) {
-                dprintk(1, "Memory allocation failed with error: %d\n", ret);
-                return ret;
-        }
+> Regards,
+> Sergio
+> 
+> On Mon, Jun 25, 2012 at 8:55 AM, Guennadi Liakhovetski
+> <g.liakhovetski@gmx.de> wrote:
+> > Hi all
+> >
+> > It's been a while since I've actually done this work. We have been waiting
+> > for various formalities to be resolved to be able to publish this work
+> > upstream. There are still a couple of formal issues to sort out before we
+> > can begin the submission process, but at least it has been decided to
+> > release patches for independent review and testing.
+> >
+> > For now I've uploaded a development snapshot to
+> >
+> > http://download.open-technology.de/android/20120625/
+> >
+> > In the future we probably will provide git trees at least for the
+> > system/media/v4l_camera development.
+> >
+> > Enjoy:-) Any comments welcome.
+> >
+> > Thanks
+> > Guennadi
+> > ---
+> > Guennadi Liakhovetski, Ph.D.
+> > Freelance Open-Source Software Developer
+> > http://www.open-technology.de/
+> 
 
-It should be:
-
-		if (ret == 0) {
-
-__vb2_queue_alloc() returns the number of buffers it managed to allocate,
-which is never < 0.
-
-I propose to add the patch included below.
-
-Comments are welcome!
-
-Regards,
-
-	Hans
-
-diff --git a/drivers/media/video/videobuf2-core.c b/drivers/media/video/videobuf2-core.c
-index a0702fd..01a8312 100644
---- a/drivers/media/video/videobuf2-core.c
-+++ b/drivers/media/video/videobuf2-core.c
-@@ -647,6 +647,9 @@ int vb2_create_bufs(struct vb2_queue *q, struct v4l2_create_buffers *create)
- 		return -EINVAL;
- 	}
- 
-+	if (create->count == 0)
-+		return 0;
-+
- 	if (q->num_buffers == VIDEO_MAX_FRAME) {
- 		dprintk(1, "%s(): maximum number of buffers already allocated\n",
- 			__func__);
-@@ -675,7 +678,7 @@ int vb2_create_bufs(struct vb2_queue *q, struct v4l2_create_buffers *create)
- 	/* Finally, allocate buffers and video memory */
- 	ret = __vb2_queue_alloc(q, create->memory, num_buffers,
- 				num_planes);
--	if (ret < 0) {
-+	if (ret == 0) {
- 		dprintk(1, "Memory allocation failed with error: %d\n", ret);
- 		return ret;
- 	}
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
