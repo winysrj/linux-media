@@ -1,77 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:38764 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751483Ab2FKHJ3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Jun 2012 03:09:29 -0400
-Received: by bkcji2 with SMTP id ji2so3223204bkc.19
-        for <linux-media@vger.kernel.org>; Mon, 11 Jun 2012 00:09:28 -0700 (PDT)
-Message-ID: <4FD599A6.8060601@googlemail.com>
-Date: Mon, 11 Jun 2012 09:09:26 +0200
-From: Gregor Jasny <gjasny@googlemail.com>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org, ron@insweb.dyndns.org
-Subject: Fwd: [Bug 871427] Re: 1164:7efd YUANRD STK7700D DVB TV card
-References: <20120611014154.6602.99490.malone@chaenomeles.canonical.com>
-In-Reply-To: <20120611014154.6602.99490.malone@chaenomeles.canonical.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Received: from mx1.redhat.com ([209.132.183.28]:20226 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751910Ab2FZTeh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 Jun 2012 15:34:37 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Antti Palosaari <crope@iki.fi>, Kay Sievers <kay@redhat.com>,
+	Greg KH <gregkh@linuxfoundation.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH RFC 3/4] em28xx: Workaround for new udev versions
+Date: Tue, 26 Jun 2012 16:34:21 -0300
+Message-Id: <1340739262-13747-4-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1340739262-13747-1-git-send-email-mchehab@redhat.com>
+References: <4FE9169D.5020300@redhat.com>
+ <1340739262-13747-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+New udev-182 seems to be buggy: even when usermode is enabled, it
+insists on needing that probe would defer any firmware requests.
+So, drivers with firmware need to defer probe for the first
+driver's core request, otherwise an useless penalty of 30 seconds
+happens, as udev will refuse to load any firmware.
 
-this bug is lingering in the Ubuntu bugtracker since over half a year. 
-Does anyone know if this dongle just lacks an usb id entry in some 
-driver, a completely new driver or will never be supported due to the 
-lack of specs?
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
 
-Thanks,
-Gregor
+Note: this patch adds an ugly printk there, in order to allow testing it better.
+This will be removed at the final version.
 
--------- Original Message --------
-Subject: [Bug 871427] Re: 1164:7efd YUANRD STK7700D DVB TV card
-Date: Mon, 11 Jun 2012 01:41:54 -0000
-From: Ralph Richardson <ralph.richardson@internode.on.net>
-Reply-To: Bug 871427 <871427@bugs.launchpad.net>
-To: gjasny@googlemail.com
+ drivers/media/video/em28xx/em28xx-cards.c |   39 +++++++++++++++++++++++++----
+ 1 file changed, 34 insertions(+), 5 deletions(-)
 
-So what is the current status? It still is not working on my Toshiba
-Satelite P770
-
+diff --git a/drivers/media/video/em28xx/em28xx-cards.c b/drivers/media/video/em28xx/em28xx-cards.c
+index 9229cd2..9a1c16c 100644
+--- a/drivers/media/video/em28xx/em28xx-cards.c
++++ b/drivers/media/video/em28xx/em28xx-cards.c
+@@ -60,6 +60,8 @@ static unsigned int card[]     = {[0 ... (EM28XX_MAXBOARDS - 1)] = UNSET };
+ module_param_array(card,  int, NULL, 0444);
+ MODULE_PARM_DESC(card,     "card type");
+ 
++static bool is_em28xx_initialized;
++
+ /* Bitmask marking allocated devices from 0 to EM28XX_MAXBOARDS - 1 */
+ static unsigned long em28xx_devused;
+ 
+@@ -3167,11 +3169,14 @@ static int em28xx_usb_probe(struct usb_interface *interface,
+ 	 * postponed, as udev may not be ready yet to honour firmware
+ 	 * load requests.
+ 	 */
++printk("em28xx: init = %d, userspace_is_disabled = %d, needs firmware = %d\n",
++	is_em28xx_initialized,
++	is_usermodehelp_disabled(), em28xx_boards[id->driver_info].needs_firmware);
+ 	if (em28xx_boards[id->driver_info].needs_firmware &&
+-	    is_usermodehelp_disabled()) {
+-		printk_once(KERN_DEBUG DRIVER_NAME
+-		            ": probe deferred for board %d.\n",
+-		            (unsigned)id->driver_info);
++	    (!is_em28xx_initialized || is_usermodehelp_disabled())) {
++		printk(KERN_DEBUG DRIVER_NAME
++		       ": probe deferred for board %d.\n",
++		       (unsigned)id->driver_info);
+ 		return -EPROBE_DEFER;
+ 	}
+ 
+@@ -3456,4 +3461,28 @@ static struct usb_driver em28xx_usb_driver = {
+ 	.id_table = em28xx_id_table,
+ };
+ 
+-module_usb_driver(em28xx_usb_driver);
++static int __init em28xx_module_init(void)
++{
++	int result;
++
++	/* register this driver with the USB subsystem */
++	result = usb_register(&em28xx_usb_driver);
++	if (result)
++		em28xx_err(DRIVER_NAME
++			   " usb_register failed. Error number %d.\n", result);
++
++	printk(KERN_INFO DRIVER_NAME " driver loaded\n");
++
++	is_em28xx_initialized = true;
++
++	return result;
++}
++
++static void __exit em28xx_module_exit(void)
++{
++	/* deregister this driver with the USB subsystem */
++	usb_deregister(&em28xx_usb_driver);
++}
++
++module_init(em28xx_module_init);
++module_exit(em28xx_module_exit);
 -- 
-You received this bug notification because you are a member of libv4l,
-which is subscribed to the bug report.
-https://bugs.launchpad.net/bugs/871427
+1.7.10.2
 
-Title:
-   1164:7efd YUANRD STK7700D DVB TV card
-
-Status in “linux” package in Ubuntu:
-   Incomplete
-
-Bug description:
-   Hi,
-
-   would it be possible to get support for YUAN idProduct 0x7efd DVB TV
-   card in the new kernel ? idProduct seems missing in dvb-usb-ids.h
-
-   Bus 001 Device 004: ID 1164:7efd YUAN High-Tech Development Co., Ltd
-   Device Descriptor:
-     bLength                18
-     bDescriptorType         1
-     bcdUSB               2.00
-     bDeviceClass            0 (Defined at Interface level)
-     bDeviceSubClass         0
-     bDeviceProtocol         0
-     bMaxPacketSize0        64
-     idVendor           0x1164 YUAN High-Tech Development Co., Ltd
-     idProduct          0x7efd
-     bcdDevice            1.00
-     iManufacturer           1 YUANRD
-     iProduct                2 STK7700D
-     iSerial                 3 0000000001
-     bNumConfigurations      1
-
-   BR
-   Ron
