@@ -1,94 +1,256 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-out.abv.bg ([194.153.145.70]:54017 "EHLO smtp-out.abv.bg"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751632Ab2FNTkf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Jun 2012 15:40:35 -0400
-Received: from nm23.abv.bg (nm23.ni.bg [192.168.151.172])
-	by smtp-out.abv.bg (Postfix) with ESMTP id 5561450DA21
-	for <linux-media@vger.kernel.org>; Thu, 14 Jun 2012 22:33:06 +0300 (EEST)
-Received: from nm23.abv.bg (localhost.localdomain [127.0.0.1])
-	by nm23.abv.bg (Postfix) with ESMTP id 4D28C239D4C
-	for <linux-media@vger.kernel.org>; Thu, 14 Jun 2012 22:33:06 +0300 (EEST)
-Date: Thu, 14 Jun 2012 22:33:06 +0300 (EEST)
-From: "N. D." <named2@abv.bg>
-To: linux-media@vger.kernel.org
-Message-ID: <1560501507.509941.1339702386314.JavaMail.apache@nm23.abv.bg>
-Subject: stv090x: possible bug with 8psk,fec=5/6
+Received: from perceval.ideasonboard.com ([95.142.166.194]:38233 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757794Ab2FZBaJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 Jun 2012 21:30:09 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org,
+	Jean-Philippe Francois <jp.francois@cynove.com>
+Subject: Re: [PATCH] omap3isp: preview: Add support for non-GRBG Bayer patterns
+Date: Tue, 26 Jun 2012 03:30:09 +0200
+Message-ID: <2750049.lYuKrB1hfJ@avalon>
+In-Reply-To: <20120623082237.GA17925@valkosipuli.retiisi.org.uk>
+References: <1340029853-2648-1-git-send-email-laurent.pinchart@ideasonboard.com> <20120623082237.GA17925@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I own a Skystar USB HD which I use with vdr. Ever since I bought the card I have been having some strange issues with 11817V on Astra 23.5E. Femon reports that there is a lock and sound comes but the image is completely garbled. The same setup (Kernel: 3.3.8, VDR: 1.7.27) works fine with an HVR-4000. So I started to suspect that there might be something wrong with the driver. Trying to find out some more information I came across this forum:
-http://rickcaylor.websitetoolbox.com/post/stv0900_core.c-patch-5481028
-I tried the patch which is supposed to (among other things) make the tuner lock on high bitrate transponders (>60Mbps). But it did not help.
-So using the stock driver I gave dvbsnoop a whirl to see if there was something amiss.
+Hi Sakari,
 
-Astra 3B 11817.00 V DVB-S2 8PSK 27500 5/6 66.6 Mbps
+On Saturday 23 June 2012 11:22:37 Sakari Ailus wrote:
+> On Mon, Jun 18, 2012 at 04:30:53PM +0200, Laurent Pinchart wrote:
+> > Rearrange the CFA interpolation coefficients table based on the Bayer
+> > pattern. Modifying the table during streaming isn't supported anymore,
+> > but didn't make sense in the first place anyway.
+> 
+> Why not? I could imagine someone might want to change the table while
+> streaming to change the white balance, for example. Gamma tables or the SRGB
+> matrix can be used to do mostly the same but we should leave the decision
+> which one to use to the user space.
 
-packets read: 122/(343292)   d_time:  0.001 s  = 183488.000 kbit/s   (Avrg: 66142.860 kbit/s) [bad: 2]
-packets read:  42/(343334)   d_time:  0.001 s  = 63168.000 kbit/s   (Avrg: 66150.953 kbit/s) [bad: 0]
-packets read:  38/(343372)   d_time:  0.001 s  = 57152.000 kbit/s   (Avrg: 66158.274 kbit/s) [bad: 2]
-packets read:  34/(343406)   d_time:  0.001 s  = 51136.000 kbit/s   (Avrg: 66164.825 kbit/s) [bad: 1]
-packets read:  35/(343441)   d_time:  0.001 s  = 52640.000 kbit/s   (Avrg: 66171.569 kbit/s) [bad: 2]
-packets read:  31/(343472)   d_time:  0.001 s  = 46624.000 kbit/s   (Avrg: 66177.541 kbit/s) [bad: 4]
-packets read:  16/(343488)   d_time:  0.001 s  = 24064.000 kbit/s   (Avrg: 66180.624 kbit/s) [bad: 0]
-packets read:  29/(343517)   d_time:  0.008 s  =  5452.000 kbit/s   (Avrg: 66118.450 kbit/s) [bad: 1]
-packets read: 116/(343633)   d_time:  0.001 s  = 174464.000 kbit/s   (Avrg: 66140.777 kbit/s) [bad: 1]
-packets read:  38/(343671)   d_time:  0.001 s  = 57152.000 kbit/s   (Avrg: 66148.091 kbit/s) [bad: 1]
-packets read:  34/(343705)   d_time:  0.001 s  = 51136.000 kbit/s   (Avrg: 66154.635 kbit/s) [bad: 1]
-packets read:  30/(343735)   d_time:  0.001 s  = 45120.000 kbit/s   (Avrg: 66160.410 kbit/s) [bad: 0]
-packets read:  37/(343772)   d_time:  0.001 s  = 55648.000 kbit/s   (Avrg: 66167.531 kbit/s) [bad: 2]
-packets read:  38/(343810)   d_time:  0.001 s  = 57152.000 kbit/s   (Avrg: 66174.845 kbit/s) [bad: 1]
-packets read:  30/(343840)   d_time:  0.001 s  = 45120.000 kbit/s   (Avrg: 66180.619 kbit/s) [bad: 0]
+Because making the CFA table runtime-configurable brings an additional 
+complexity without a use case I'm aware of. The preview engine has separate 
+gamma tables, white balance matrices, and RGB-to-RGB and RGB-to-YUV matrices 
+that can be modified during streaming. If a user really needs to modify the 
+CFA tables during streaming I'll be happy to implement that (and even happier 
+to receive a patch :-)), but I'm a bit reluctant to add complexity to an 
+already complex code without a real use case.
 
-Then I experimented with a lot of other transponders and found another one with the same behavior.
+> > Support for non-Bayer CFA patterns is dropped as they were not correctly
+> > supported, and have never been tested.
+> > 
+> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > ---
+> > 
+> >  drivers/media/video/omap3isp/isppreview.c |  118 ++++++++++++++----------
+> >  1 files changed, 67 insertions(+), 51 deletions(-)
+> > 
+> > Jean-Philippe,
+> > 
+> > Could you please test this patch on your hardware ?
+> > 
+> > diff --git a/drivers/media/video/omap3isp/isppreview.c
+> > b/drivers/media/video/omap3isp/isppreview.c index 8a4935e..bfa3107 100644
+> > --- a/drivers/media/video/omap3isp/isppreview.c
+> > +++ b/drivers/media/video/omap3isp/isppreview.c
+> > @@ -309,36 +309,6 @@ preview_config_dcor(struct isp_prev_device *prev,
+> > const void *prev_dcor)> 
+> >  }
+> >  
+> >  /*
+> > 
+> > - * preview_config_cfa - Configures the CFA Interpolation parameters.
+> > - * @prev_cfa: Structure containing the CFA interpolation table, CFA
+> > format
+> > - *            in the image, vertical and horizontal gradient threshold.
+> > - */
+> > -static void
+> > -preview_config_cfa(struct isp_prev_device *prev, const void *prev_cfa)
+> > -{
+> > -	struct isp_device *isp = to_isp_device(prev);
+> > -	const struct omap3isp_prev_cfa *cfa = prev_cfa;
+> > -	unsigned int i;
+> > -
+> > -	isp_reg_clr_set(isp, OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR,
+> > -			ISPPRV_PCR_CFAFMT_MASK,
+> > -			cfa->format << ISPPRV_PCR_CFAFMT_SHIFT);
+> > -
+> > -	isp_reg_writel(isp,
+> > -		(cfa->gradthrs_vert << ISPPRV_CFA_GRADTH_VER_SHIFT) |
+> > -		(cfa->gradthrs_horz << ISPPRV_CFA_GRADTH_HOR_SHIFT),
+> > -		OMAP3_ISP_IOMEM_PREV, ISPPRV_CFA);
+> > -
+> > -	isp_reg_writel(isp, ISPPRV_CFA_TABLE_ADDR,
+> > -		       OMAP3_ISP_IOMEM_PREV, ISPPRV_SET_TBL_ADDR);
+> > -
+> > -	for (i = 0; i < OMAP3ISP_PREV_CFA_TBL_SIZE; i++) {
+> > -		isp_reg_writel(isp, cfa->table[i],
+> > -			       OMAP3_ISP_IOMEM_PREV, ISPPRV_SET_TBL_DATA);
+> > -	}
+> > -}
+> > -
+> > -/*
+> > 
+> >   * preview_config_gammacorrn - Configures the Gamma Correction table
+> >   values
+> >   * @gtable: Structure containing the table for red, blue, green gamma
+> >   table.
+> >   */
+> > 
+> > @@ -813,7 +783,7 @@ static const struct preview_update update_attrs[] = {
+> > 
+> >  		FIELD_SIZEOF(struct prev_params, hmed),
+> >  		offsetof(struct omap3isp_prev_update_config, hmed),
+> >  	
+> >  	}, /* OMAP3ISP_PREV_CFA */ {
+> > 
+> > -		preview_config_cfa,
+> > +		NULL,
+> > 
+> >  		NULL,
+> >  		offsetof(struct prev_params, cfa),
+> >  		FIELD_SIZEOF(struct prev_params, cfa),
+> > 
+> > @@ -1043,42 +1013,88 @@ preview_config_ycpos(struct isp_prev_device *prev,
+> > 
+> >  static void preview_config_averager(struct isp_prev_device *prev, u8
+> >  average) {
+> >  
+> >  	struct isp_device *isp = to_isp_device(prev);
+> > 
+> > -	struct prev_params *params;
+> > -	int reg = 0;
+> > 
+> > -	params = (prev->params.active & OMAP3ISP_PREV_CFA)
+> > -	       ? &prev->params.params[0] : &prev->params.params[1];
+> > -
+> > -	if (params->cfa.format == OMAP3ISP_CFAFMT_BAYER)
+> > -		reg = ISPPRV_AVE_EVENDIST_2 << ISPPRV_AVE_EVENDIST_SHIFT |
+> > -		      ISPPRV_AVE_ODDDIST_2 << ISPPRV_AVE_ODDDIST_SHIFT |
+> > -		      average;
+> > -	else if (params->cfa.format == OMAP3ISP_CFAFMT_RGBFOVEON)
+> > -		reg = ISPPRV_AVE_EVENDIST_3 << ISPPRV_AVE_EVENDIST_SHIFT |
+> > -		      ISPPRV_AVE_ODDDIST_3 << ISPPRV_AVE_ODDDIST_SHIFT |
+> > -		      average;
+> > -	isp_reg_writel(isp, reg, OMAP3_ISP_IOMEM_PREV, ISPPRV_AVE);
+> > +	isp_reg_writel(isp, ISPPRV_AVE_EVENDIST_2 << 
+ISPPRV_AVE_EVENDIST_SHIFT |
+> > +		       ISPPRV_AVE_ODDDIST_2 << ISPPRV_AVE_ODDDIST_SHIFT |
+> > +		       average, OMAP3_ISP_IOMEM_PREV, ISPPRV_AVE);
+> > 
+> >  }
+> > 
+> > +
+> > +#define OMAP3ISP_PREV_CFA_BLK_SIZE	(OMAP3ISP_PREV_CFA_TBL_SIZE / 4)
+> > +
+> > 
+> >  /*
+> >  
+> >   * preview_config_input_format - Configure the input format
+> >   * @prev: The preview engine
+> >   * @format: Format on the preview engine sink pad
+> >   *
+> > 
+> > - * Enable CFA interpolation for Bayer formats and disable it for
+> > greyscale
+> > - * formats.
+> > + * Enable and configure CFA interpolation for Bayer formats and disable
+> > it for + * greyscale formats.
+> > + *
+> > + * The CFA table is organised in four blocks, one per Bayer component.
+> > The
+> > + * hardware expects blocks to follow the Bayer order of the input data,
+> > while + * the driver stores the table in GRBG order in memory. The blocks
+> > need to be + * reordered to support non-GRBG Bayer patterns.
+> > 
+> >   */
+> >  
+> >  static void preview_config_input_format(struct isp_prev_device *prev,
+> >  
+> >  					const struct v4l2_mbus_framefmt *format)
+> >  
+> >  {
+> > 
+> > +	static const unsigned int cfa_coef_order[4][4] = {
+> > +		{ 0, 1, 2, 3 }, /* GRBG */
+> > +		{ 1, 0, 3, 2 }, /* RGGB */
+> > +		{ 2, 3, 0, 1 }, /* BGGR */
+> > +		{ 3, 2, 1, 0 }, /* GBRG */
+> > +	};
+> > 
+> >  	struct isp_device *isp = to_isp_device(prev);
+> > 
+> > +	struct prev_params *params;
+> > +	const unsigned int *order;
+> > +	unsigned int i;
+> > +	unsigned int j;
+> > 
+> > -	if (format->code != V4L2_MBUS_FMT_Y10_1X10)
+> > -		isp_reg_set(isp, OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR,
+> > -			    ISPPRV_PCR_CFAEN);
+> > -	else
+> > +	if (format->code == V4L2_MBUS_FMT_Y10_1X10) {
+> > 
+> >  		isp_reg_clr(isp, OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR,
+> >  		
+> >  			    ISPPRV_PCR_CFAEN);
+> > 
+> > +		return;
+> > +	}
+> > +
+> > +	params = (prev->params.active & OMAP3ISP_PREV_CFA)
+> > +	       ? &prev->params.params[0] : &prev->params.params[1];
+> > +
+> > +	isp_reg_set(isp, OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR, ISPPRV_PCR_CFAEN);
+> > +	isp_reg_clr_set(isp, OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR,
+> > +			ISPPRV_PCR_CFAFMT_MASK, ISPPRV_PCR_CFAFMT_BAYER);
+> > +
+> > +	isp_reg_writel(isp,
+> > +		(params->cfa.gradthrs_vert << ISPPRV_CFA_GRADTH_VER_SHIFT) |
+> > +		(params->cfa.gradthrs_horz << ISPPRV_CFA_GRADTH_HOR_SHIFT),
+> > +		OMAP3_ISP_IOMEM_PREV, ISPPRV_CFA);
+> > +
+> > +	switch (prev->formats[PREV_PAD_SINK].code) {
+> > +	case V4L2_MBUS_FMT_SGRBG10_1X10:
+> 
+> > +	default:
+> Is the "default" case expected to ever happen?
+> 
+> > +		order = cfa_coef_order[0];
+> > +		break;
+> > +	case V4L2_MBUS_FMT_SRGGB10_1X10:
+> > +		order = cfa_coef_order[1];
+> > +		break;
+> > +	case V4L2_MBUS_FMT_SBGGR10_1X10:
+> > +		order = cfa_coef_order[2];
+> > +		break;
+> > +	case V4L2_MBUS_FMT_SGBRG10_1X10:
+> > +		order = cfa_coef_order[3];
+> > +		break;
+> > +	}
+> > +
+> > +	isp_reg_writel(isp, ISPPRV_CFA_TABLE_ADDR,
+> > +		       OMAP3_ISP_IOMEM_PREV, ISPPRV_SET_TBL_ADDR);
+> > +
+> > +	for (i = 0; i < 4; ++i) {
+> > +		__u32 *block = params->cfa.table
+> > +			     + order[i] * OMAP3ISP_PREV_CFA_BLK_SIZE;
+> > +
+> > +		for (j = 0; j < OMAP3ISP_PREV_CFA_BLK_SIZE; ++j)
+> > +			isp_reg_writel(isp, block[j], OMAP3_ISP_IOMEM_PREV,
+> > +				       ISPPRV_SET_TBL_DATA);
+> > +	}
+> > 
+> >  }
+> >  
+> >  /*
 
-HotBird 13C 11411.00 H DVB-S2 8PSK 27500 5/6 68.2 Mbps
+-- 
+Regards,
 
-packets read:  40/(259860)   d_time:  0.001 s  = 60160.000 kbit/s   (Avrg: 65498.482 kbit/s) [bad: 0]
-packets read:  39/(259899)   d_time:  0.001 s  = 58656.000 kbit/s   (Avrg: 65508.312 kbit/s) [bad: 0]
-packets read:  34/(259933)   d_time:  0.001 s  = 51136.000 kbit/s   (Avrg: 65516.882 kbit/s) [bad: 1]
-packets read:  34/(259967)   d_time:  0.001 s  = 51136.000 kbit/s   (Avrg: 65525.451 kbit/s) [bad: 0]
-packets read:  36/(260003)   d_time:  0.001 s  = 54144.000 kbit/s   (Avrg: 65534.525 kbit/s) [bad: 2]
-packets read:  11/(260014)   d_time:  0.001 s  = 16544.000 kbit/s   (Avrg: 65537.298 kbit/s) [bad: 1]
-packets read: 349/(260363)   d_time:  0.008 s  = 65612.000 kbit/s   (Avrg: 65537.398 kbit/s) [bad: 7]
-packets read:  25/(260388)   d_time:  0.008 s  =  4700.000 kbit/s   (Avrg: 65456.051 kbit/s) [bad: 0]
-packets read: 129/(260517)   d_time:  0.001 s  = 194016.000 kbit/s   (Avrg: 65488.479 kbit/s) [bad: 2]
-packets read:  35/(260552)   d_time:  0.001 s  = 52640.000 kbit/s   (Avrg: 65497.277 kbit/s) [bad: 0]
-packets read:  37/(260589)   d_time:  0.001 s  = 55648.000 kbit/s   (Avrg: 65506.578 kbit/s) [bad: 2]
-packets read:  34/(260623)   d_time:  0.001 s  = 51136.000 kbit/s   (Avrg: 65515.125 kbit/s) [bad: 2]
-packets read:  36/(260659)   d_time:  0.001 s  = 54144.000 kbit/s   (Avrg: 65524.174 kbit/s) [bad: 3]
-packets read:  34/(260693)   d_time:  0.001 s  = 51136.000 kbit/s   (Avrg: 65532.721 kbit/s) [bad: 0]
-packets read:  21/(260714)   d_time:  0.001 s  = 31584.000 kbit/s   (Avrg: 65538.000 kbit/s) [bad: 0]
+Laurent Pinchart
 
-Both of these are 8psk 5/6 and have an average bitrate of over 65Mbps. The high bitrate per se could not explain what is wrong because there are a number of ~65Mbps transponders on Hotbird which are OK.
-
-For example:
-
-HotBird 13B 11785.00 H DVB-S2 8PSK 29900 3/4 65.1 Mbps
-
-packets read:  33/(434934)   d_time:  0.001 s  = 49632.000 kbit/s   (Avrg: 65101.586 kbit/s) [bad: 0]
-packets read:  38/(434972)   d_time:  0.001 s  = 57152.000 kbit/s   (Avrg: 65107.274 kbit/s) [bad: 0]
-packets read:  34/(435006)   d_time:  0.001 s  = 51136.000 kbit/s   (Avrg: 65112.363 kbit/s) [bad: 0]
-packets read:  36/(435042)   d_time:  0.001 s  = 54144.000 kbit/s   (Avrg: 65117.752 kbit/s) [bad: 0]
-packets read:  17/(435059)   d_time:  0.001 s  = 25568.000 kbit/s   (Avrg: 65120.296 kbit/s) [bad: 0]
-packets read:  32/(435091)   d_time:  0.007 s  =  6875.429 kbit/s   (Avrg: 65079.748 kbit/s) [bad: 0]
-packets read: 122/(435213)   d_time:  0.001 s  = 183488.000 kbit/s   (Avrg: 65091.523 kbit/s) [bad: 0]
-packets read:  38/(435251)   d_time:  0.001 s  = 57152.000 kbit/s   (Avrg: 65097.206 kbit/s) [bad: 0]
-packets read:  36/(435287)   d_time:  0.001 s  = 54144.000 kbit/s   (Avrg: 65102.590 kbit/s) [bad: 0]
-packets read:  36/(435323)   d_time:  0.001 s  = 54144.000 kbit/s   (Avrg: 65107.975 kbit/s) [bad: 0]
-packets read:  35/(435358)   d_time:  0.001 s  = 52640.000 kbit/s   (Avrg: 65113.209 kbit/s) [bad: 0]
-packets read:  36/(435394)   d_time:  0.001 s  = 54144.000 kbit/s   (Avrg: 65118.593 kbit/s) [bad: 0]
-packets read:   8/(435402)   d_time:  0.001 s  = 12032.000 kbit/s   (Avrg: 65119.790 kbit/s) [bad: 0]
-packets read: 348/(435750)   d_time:  0.008 s  = 65424.000 kbit/s   (Avrg: 65120.032 kbit/s) [bad: 0]
-packets read: 344/(436094)   d_time:  0.008 s  = 64672.000 kbit/s   (Avrg: 65119.676 kbit/s) [bad: 0]
-
-The only difference is in the code rate: 3/4 v 5/6. I also tried some DVB-S qpsk 5/6 transponders but none of them had such a high bitrate. So it seems to me that either my hardware is faulty or the combination of 8psk, fec 5/6 (and possibly the high bitrate) is triggering some bug in the driver.
-I hope someone more knowledgeable could chime in and shed more light.
-
-
------------------------------------------------------------------
-Гражданска отговорност – Цените на компаниите
-http://www.sdi.bg/onlineInsurance/?utm_source=gbg&utm_medium=txtLink&utm_content=home
