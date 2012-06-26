@@ -1,56 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gg0-f174.google.com ([209.85.161.174]:47276 "EHLO
-	mail-gg0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756423Ab2FNR7q (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:43946 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751001Ab2FZTBT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Jun 2012 13:59:46 -0400
-Received: by mail-gg0-f174.google.com with SMTP id u4so1627280ggl.19
-        for <linux-media@vger.kernel.org>; Thu, 14 Jun 2012 10:59:46 -0700 (PDT)
-From: Peter Senna Tschudin <peter.senna@gmail.com>
-To: Michael Hunold <michael@mihu.de>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org
-Cc: Peter Senna Tschudin <peter.senna@gmail.com>
-Subject: [PATCH 3/8] [RESEND] saa7146: Variable set but not used
-Date: Thu, 14 Jun 2012 14:58:11 -0300
-Message-Id: <1339696716-14373-3-git-send-email-peter.senna@gmail.com>
-In-Reply-To: <1339696716-14373-1-git-send-email-peter.senna@gmail.com>
-References: <1339696716-14373-1-git-send-email-peter.senna@gmail.com>
+	Tue, 26 Jun 2012 15:01:19 -0400
+Date: Tue, 26 Jun 2012 22:01:14 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org,
+	Jean-Philippe Francois <jp.francois@cynove.com>
+Subject: Re: [PATCH] omap3isp: preview: Add support for non-GRBG Bayer
+ patterns
+Message-ID: <20120626190114.GA18715@valkosipuli.retiisi.org.uk>
+References: <1340029853-2648-1-git-send-email-laurent.pinchart@ideasonboard.com>
+ <20120623082237.GA17925@valkosipuli.retiisi.org.uk>
+ <2750049.lYuKrB1hfJ@avalon>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <2750049.lYuKrB1hfJ@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In function fops_open variable type was set but not used.
+On Tue, Jun 26, 2012 at 03:30:09AM +0200, Laurent Pinchart wrote:
+> Hi Sakari,
 
-Tested by compilation only.
+Hi Laurent,
 
-Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
----
- drivers/media/common/saa7146_fops.c |    5 -----
- 1 file changed, 5 deletions(-)
+> On Saturday 23 June 2012 11:22:37 Sakari Ailus wrote:
+> > On Mon, Jun 18, 2012 at 04:30:53PM +0200, Laurent Pinchart wrote:
+> > > Rearrange the CFA interpolation coefficients table based on the Bayer
+> > > pattern. Modifying the table during streaming isn't supported anymore,
+> > > but didn't make sense in the first place anyway.
+> > 
+> > Why not? I could imagine someone might want to change the table while
+> > streaming to change the white balance, for example. Gamma tables or the SRGB
+> > matrix can be used to do mostly the same but we should leave the decision
+> > which one to use to the user space.
+> 
+> Because making the CFA table runtime-configurable brings an additional 
+> complexity without a use case I'm aware of. The preview engine has separate 
+> gamma tables, white balance matrices, and RGB-to-RGB and RGB-to-YUV matrices 
+> that can be modified during streaming. If a user really needs to modify the 
+> CFA tables during streaming I'll be happy to implement that (and even happier 
+> to receive a patch :-)), but I'm a bit reluctant to add complexity to an 
+> already complex code without a real use case.
 
-diff --git a/drivers/media/common/saa7146_fops.c b/drivers/media/common/saa7146_fops.c
-index 7d42c11..0cdbd74 100644
---- a/drivers/media/common/saa7146_fops.c
-+++ b/drivers/media/common/saa7146_fops.c
-@@ -198,7 +198,6 @@ static int fops_open(struct file *file)
- 	struct saa7146_dev *dev = video_drvdata(file);
- 	struct saa7146_fh *fh = NULL;
- 	int result = 0;
--	enum v4l2_buf_type type;
- 
- 	DEB_EE("file:%p, dev:%s\n", file, video_device_node_name(vdev));
- 
-@@ -207,10 +206,6 @@ static int fops_open(struct file *file)
- 
- 	DEB_D("using: %p\n", dev);
- 
--	type = vdev->vfl_type == VFL_TYPE_GRABBER
--	     ? V4L2_BUF_TYPE_VIDEO_CAPTURE
--	     : V4L2_BUF_TYPE_VBI_CAPTURE;
--
- 	/* check if an extension is registered */
- 	if( NULL == dev->ext ) {
- 		DEB_S("no extension registered for this device\n");
+I'm fine with that. Let's get back to the topic once this is really needed.
+
+...
+
+> > > +		return;
+> > > +	}
+> > > +
+> > > +	params = (prev->params.active & OMAP3ISP_PREV_CFA)
+> > > +	       ? &prev->params.params[0] : &prev->params.params[1];
+> > > +
+> > > +	isp_reg_set(isp, OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR, ISPPRV_PCR_CFAEN);
+> > > +	isp_reg_clr_set(isp, OMAP3_ISP_IOMEM_PREV, ISPPRV_PCR,
+> > > +			ISPPRV_PCR_CFAFMT_MASK, ISPPRV_PCR_CFAFMT_BAYER);
+> > > +
+> > > +	isp_reg_writel(isp,
+> > > +		(params->cfa.gradthrs_vert << ISPPRV_CFA_GRADTH_VER_SHIFT) |
+> > > +		(params->cfa.gradthrs_horz << ISPPRV_CFA_GRADTH_HOR_SHIFT),
+> > > +		OMAP3_ISP_IOMEM_PREV, ISPPRV_CFA);
+> > > +
+> > > +	switch (prev->formats[PREV_PAD_SINK].code) {
+> > > +	case V4L2_MBUS_FMT_SGRBG10_1X10:
+> > 
+> > > +	default:
+> > Is the "default" case expected to ever happen?
+
+How about this one?
+
+> > > +		order = cfa_coef_order[0];
+> > > +		break;
+> > > +	case V4L2_MBUS_FMT_SRGGB10_1X10:
+> > > +		order = cfa_coef_order[1];
+> > > +		break;
+> > > +	case V4L2_MBUS_FMT_SBGGR10_1X10:
+> > > +		order = cfa_coef_order[2];
+> > > +		break;
+> > > +	case V4L2_MBUS_FMT_SGBRG10_1X10:
+> > > +		order = cfa_coef_order[3];
+> > > +		break;
+> > > +	}
+> > > +
+> > > +	isp_reg_writel(isp, ISPPRV_CFA_TABLE_ADDR,
+> > > +		       OMAP3_ISP_IOMEM_PREV, ISPPRV_SET_TBL_ADDR);
+> > > +
+> > > +	for (i = 0; i < 4; ++i) {
+> > > +		__u32 *block = params->cfa.table
+> > > +			     + order[i] * OMAP3ISP_PREV_CFA_BLK_SIZE;
+> > > +
+> > > +		for (j = 0; j < OMAP3ISP_PREV_CFA_BLK_SIZE; ++j)
+> > > +			isp_reg_writel(isp, block[j], OMAP3_ISP_IOMEM_PREV,
+> > > +				       ISPPRV_SET_TBL_DATA);
+> > > +	}
+> > > 
+> > >  }
+> > >  
+> > >  /*
+
+Regards,
+
 -- 
-1.7.10.2
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
