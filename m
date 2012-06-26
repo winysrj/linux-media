@@ -1,68 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eu1sys200aog112.obsmtp.com ([207.126.144.133]:54580 "EHLO
-	eu1sys200aog112.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759324Ab2FAJjU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 1 Jun 2012 05:39:20 -0400
-From: Bhupesh Sharma <bhupesh.sharma@st.com>
-To: <laurent.pinchart@ideasonboard.com>, <linux-usb@vger.kernel.org>
-Cc: <balbi@ti.com>, <linux-media@vger.kernel.org>,
-	<gregkh@linuxfoundation.org>,
-	Bhupesh Sharma <bhupesh.sharma@st.com>
-Subject: [PATCH 2/5] usb: gadget/uvc: Use macro for interrupt endpoint status size instead of using a MAGIC number
-Date: Fri, 1 Jun 2012 15:08:55 +0530
-Message-ID: <6d0fcc5336f6a9cd10188ee5132be682f346f8f9.1338543124.git.bhupesh.sharma@st.com>
-In-Reply-To: <cover.1338543124.git.bhupesh.sharma@st.com>
-References: <cover.1338543124.git.bhupesh.sharma@st.com>
+Received: from cpsmtpb-ews08.kpnxchange.com ([213.75.39.13]:4236 "EHLO
+	cpsmtpb-ews08.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750760Ab2FZTnl convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 Jun 2012 15:43:41 -0400
+Date: Tue, 26 Jun 2012 21:43:37 +0200
+Message-ID: <4FC4F2690000C052@mta-nl-9.mail.tiscali.sys>
+In-Reply-To: <4FE8D35E.7080802@iki.fi>
+From: cedric.dewijs@telfort.nl
+Subject: Betr: Re: DiB0700 rc submit urb failed after reboot, ok after replug
+To: "Antti Palosaari" <crope@iki.fi>
+Cc: mchehab@infradead.org, linux-media@vger.kernel.org
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds a MACRO for the UVC video control status (interrupt) endpoint and
-removes the magic number which was being used earlier.
 
-Some UDCs have issues supporting an interrupt IN endpoint having a max packet
-size less than a particular value (say 32). It is easier in that case to simply
-change the MACRO value instead of changing the max packet size value at a
-number of locations.
+>> [    6.517631] rc0: IR-receiver inside an USB DVB receiver as /devices/pci0000:00/0000:00:1d.7/usb2/2-4/rc/rc0
+>> [    6.517821] dvb-usb: schedule remote query interval to 50 msecs.
+>> [    6.517825] dvb-usb: Pinnacle PCTV 73e SE successfully initialized
+and
+>> connected.
+>> [    6.517951] dib0700: rc submit urb failed
+>
+>I am almost sure it is that issue I fixed:
+>
+>http://git.linuxtv.org/anttip/media_tree.git/commit/36bd9e4ba1de78bfb9f3bcf8b07c63a157da6499
+>
+>
+>Antti
+>
+>-- 
+Hi Antti,
 
-Signed-off-by: Bhupesh Sharma <bhupesh.sharma@st.com>
----
- drivers/usb/gadget/f_uvc.c |    6 ++++--
- 1 files changed, 4 insertions(+), 2 deletions(-)
+I have tried to test your fix, but I fail to build your kernel. Here's what
+I've done:
+$ git clone git://linuxtv.org/anttip/media_tree.git
+$ cd media_tree/
+$ cp /proc/config.gz .
+$ gunzip config.gz
+$ mv config .config
+$ make Xconfig
+  CHECK   qt
+sed < scripts/kconfig/lkc_proto.h > scripts/kconfig/lkc_defs.h 's/P(\([^,]*\),.*/#define
+\1 (\*\1_p)/'
+  HOSTCC  scripts/kconfig/kconfig_load.o
+/usr/bin/moc -i scripts/kconfig/qconf.h -o scripts/kconfig/qconf.moc
+  HOSTCXX scripts/kconfig/qconf.o
+  HOSTLD  scripts/kconfig/qconf
+scripts/kconfig/qconf Kconfig
+drivers/media/Kconfig:102: can't open file "drivers/media/IR/Kconfig"
+make[1]: *** [xconfig] Error 1
+make: *** [xconfig] Error 2
 
-diff --git a/drivers/usb/gadget/f_uvc.c b/drivers/usb/gadget/f_uvc.c
-index 054c35a..dd7d7a9 100644
---- a/drivers/usb/gadget/f_uvc.c
-+++ b/drivers/usb/gadget/f_uvc.c
-@@ -59,6 +59,8 @@ static struct usb_gadget_strings *uvc_function_strings[] = {
- #define UVC_INTF_VIDEO_CONTROL			0
- #define UVC_INTF_VIDEO_STREAMING		1
- 
-+#define STATUS_BYTECOUNT			16	/* 16 bytes status */
-+
- static struct usb_interface_assoc_descriptor uvc_iad __initdata = {
- 	.bLength		= sizeof(uvc_iad),
- 	.bDescriptorType	= USB_DT_INTERFACE_ASSOCIATION,
-@@ -87,7 +89,7 @@ static struct usb_endpoint_descriptor uvc_control_ep __initdata = {
- 	.bDescriptorType	= USB_DT_ENDPOINT,
- 	.bEndpointAddress	= USB_DIR_IN,
- 	.bmAttributes		= USB_ENDPOINT_XFER_INT,
--	.wMaxPacketSize		= cpu_to_le16(16),
-+	.wMaxPacketSize		= cpu_to_le16(STATUS_BYTECOUNT),
- 	.bInterval		= 8,
- };
- 
-@@ -95,7 +97,7 @@ static struct uvc_control_endpoint_descriptor uvc_control_cs_ep __initdata = {
- 	.bLength		= UVC_DT_CONTROL_ENDPOINT_SIZE,
- 	.bDescriptorType	= USB_DT_CS_ENDPOINT,
- 	.bDescriptorSubType	= UVC_EP_INTERRUPT,
--	.wMaxTransferSize	= cpu_to_le16(16),
-+	.wMaxTransferSize	= cpu_to_le16(STATUS_BYTECOUNT),
- };
- 
- static struct usb_interface_descriptor uvc_streaming_intf_alt0 __initdata = {
--- 
-1.7.2.2
+I have googled for the error, but i could only find this site wich is not
+in a language I understand.
+http://www.linuxtv.fi/viewtopic.php?f=15&t=4560
+
+What have I missed?
+Best regards,
+Cedric
+
+
+
+
+       
+
+
 
