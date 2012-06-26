@@ -1,78 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f172.google.com ([209.85.212.172]:60953 "EHLO
-	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755995Ab2FPURO (ORCPT
+Received: from mail-gh0-f174.google.com ([209.85.160.174]:54346 "EHLO
+	mail-gh0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757591Ab2FZQkk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 16 Jun 2012 16:17:14 -0400
-Received: by wibhj8 with SMTP id hj8so689760wib.1
-        for <linux-media@vger.kernel.org>; Sat, 16 Jun 2012 13:17:13 -0700 (PDT)
-Message-ID: <1339877826.2697.4.camel@Route3278>
-Subject: Re: dvb_usb_v2: use pointers to properties[REGRESSION]
-From: Malcolm Priestley <tvboxspy@gmail.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media <linux-media@vger.kernel.org>
-Date: Sat, 16 Jun 2012 21:17:06 +0100
-In-Reply-To: <4FDCD35D.6020808@iki.fi>
-References: <1339798273.12274.21.camel@Route3278> <4FDBBD36.9020302@iki.fi>
-	   <1339806912.13364.35.camel@Route3278> <4FDBD966.2030505@iki.fi>
-	   <4FDBDE70.1080302@iki.fi> <1339848379.2439.18.camel@Route3278>
-	  <4FDCABDA.2000000@iki.fi> <1339870370.1865.37.camel@Route3278>
-	 <4FDCD35D.6020808@iki.fi>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Tue, 26 Jun 2012 12:40:40 -0400
+Received: by ghrr11 with SMTP id r11so124338ghr.19
+        for <linux-media@vger.kernel.org>; Tue, 26 Jun 2012 09:40:39 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <4FE8CFAC.20302@redhat.com>
+References: <1340047425-32000-1-git-send-email-elezegarcia@gmail.com>
+	<4FE8BC2D.9030902@redhat.com>
+	<CALF0-+UyWjbbPYCKV-AgS=6FZ349D27GrijrYa_RWPUqcfo8rw@mail.gmail.com>
+	<4FE8C0E0.3080104@redhat.com>
+	<CALF0-+V_NCb2TMdd9SS-jrPKS8ocWRNAvwo1-ptPCW2GtNZEkw@mail.gmail.com>
+	<4FE8CFAC.20302@redhat.com>
+Date: Tue, 26 Jun 2012 13:40:39 -0300
+Message-ID: <CALF0-+VDcVLzRjcrLzyquqSFoN5G-QF6GjaNpdVhbamRsRbA7w@mail.gmail.com>
+Subject: Re: [PATCH 01/12] saa7164: Use i2c_rc properly to store i2c register status
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 2012-06-16 at 21:41 +0300, Antti Palosaari wrote:
+Mauro,
 
-> 
-> That is what you want to do:
-> ****************************
-> CALLBACK(struct dvb_usb_adapter *adap)
-> {
->    struct dvb_frontend *fe = adap->fe[adap->active_fe];
->    // now we have pointer to adap and fe
-> }
-> 
-> That is what I want to do:
-> **************************
-> CALLBACK(struct dvb_frontend *fe)
-> {
->    struct dvb_usb_adapter *adap = fe->dvb->priv;
->    // now we have pointer to adap and fe
-> }
-I just don't like the idea of deliberately sending a NULL object to
-a callback.
+On Mon, Jun 25, 2012 at 5:53 PM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+>
+> Yeah, research is needed ;) As "bttv" is the mother of the I2C code found at
+> other PCI drivers, as it is one of the oldest implementations, I bet you'll
+> find this field propagated without usage on some drivers (and probably other
+> unused fields as well ;) )
+>
 
+I did some research and it looks like this patch series should be broke in two:
+- cleanup i2c_rc and i2c unused stuff
+- struct i2c_algo_bit_data cleanup (already sent)
 
-Ha ... I know what is causing the crash....its in usb_urb.c
+Unless there is some problem with the latter, could you pick this patches:
+(i.e, the whole series except the i2c_rc part)
+ cx25821: Replace struct memcpy with struct assignment
+ cx25821: Remove useless struct i2c_algo_bit_data usage
+ cx231xx: Replace struct memcpy with struct assignment
+ cx231xx: Remove useless struct i2c_algo_bit_data usage
+ cx23885: Replace struct memcpy with struct assignment
+ cx23885: Remove useless struct i2c_algo_bit_data
+ saa7164: Replace struct memcpy with struct assignment
+ saa7164: Remove useless struct i2c_algo_bit_data
 
+ I'll fix a new patch series for i2c_rc cleaning.
 
-int usb_urb_init(struct usb_data_stream *stream,
-		struct usb_data_stream_properties *props)
-{
-	int ret;
-
-	if (stream == NULL || props == NULL)
-		return -EINVAL;
-
-	memcpy(&stream->props, props, sizeof(*props));
-
-	usb_clear_halt(stream->udev, usb_rcvbulkpipe(stream->udev,
-			stream->props.endpoint));
-
-The usb_clear_halt with 0 endpoint.
-
-It can tweaked by sending a valid endpoint.
-
-
-Regards
-
-
-Malcolm
-
-
-
-
-
+Hope this is not too much trouble for you.
+Thanks,
+Ezequiel.
