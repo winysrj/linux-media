@@ -1,76 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:44535 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758345Ab2FBQjz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 2 Jun 2012 12:39:55 -0400
-Received: from dyn3-82-128-188-130.psoas.suomi.net ([82.128.188.130] helo=localhost.localdomain)
-	by mail.kapsi.fi with esmtpsa (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
-	(Exim 4.72)
-	(envelope-from <crope@iki.fi>)
-	id 1SarMm-000543-VQ
-	for linux-media@vger.kernel.org; Sat, 02 Jun 2012 19:39:52 +0300
-Message-ID: <4FCA41D7.2060206@iki.fi>
-Date: Sat, 02 Jun 2012 19:39:51 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: linux-media <linux-media@vger.kernel.org>
-Subject: Re: Fwd: [Bug 827538] DVB USB device firmware requested in module_init()
-References: <bug-827538-199927-UDXT6TGYkq@bugzilla.redhat.com> <4FC91D64.6090305@iki.fi>
-In-Reply-To: <4FC91D64.6090305@iki.fi>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mailout2.samsung.com ([203.254.224.25]:33361 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755729Ab2FZSBu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 Jun 2012 14:01:50 -0400
+Received: from epcpsbge3.samsung.com (mailout2.samsung.com [203.254.224.25])
+ by mailout2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0M680056YKR06080@mailout2.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 27 Jun 2012 03:01:49 +0900 (KST)
+Date: Tue, 26 Jun 2012 18:01:48 +0000 (GMT)
+From: NAVEEN KRISHNA CHATRADHI <ch.naveen@samsung.com>
+Subject: Re: RE: [PATCH] s5p-mfc: Fix setting controls
+To: Kamil Debski <k.debski@samsung.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Jeongtae Park <jtp.park@samsung.com>
+Reply-to: ch.naveen@samsung.com
+MIME-version: 1.0
+Content-transfer-encoding: base64
+Content-type: text/plain; charset=windows-1252
+MIME-version: 1.0
+Message-id: <16113864.53841340733708629.JavaMail.weblogic@epv6ml04>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/01/2012 10:52 PM, Antti Palosaari wrote:
->
->
-> -------- Original Message --------
-> Subject: [Bug 827538] DVB USB device firmware requested in module_init()
-> Date: Fri, 01 Jun 2012 19:44:17 +0000
-> From: bugzilla@redhat.com
-> To: crope@iki.fi
->
-> https://bugzilla.redhat.com/show_bug.cgi?id=827538
->
-> Kay Sievers <kay@redhat.com> changed:
->
-> What |Removed |Added
-> ----------------------------------------------------------------------------
->
-> CC| |gansalmon@Gmail.com,
-> | |itamar@ispbrasil.com.br,
-> | |kernel-maint@redhat.com,
-> | |madhu.chinakonda@gmail.com
-> Component|udev |kernel
-> Assignee|udev-maint@redhat.com |kernel-maint@redhat.com
-> Summary|DVB USB device firmware |DVB USB device firmware
-> |downloading takes 30 |requested in module_init()
-> |seconds |
->
-> --- Comment #1 from Kay Sievers <kay@redhat.com> ---
-> This is very likely a kernel driver issue.
->
-> Drivers must not load firmware in the module_init() path, or device
-> probe()/bind() path. This creates a deadlock in the event handling.
->
-> We used to silently try to work around that, but recently started
-> to log this error explicitely.
->
-> The firmware should in general be requested asynchronously, or at the first
-> open() of the device.
->
-> Details are here:
-> http://thread.gmane.org/gmane.linux.network/217729
->
+SGVsbG8gS2FtaWwsDQoNClllcyBpdCB3b3JrcyBub3cuIEknbSBvYnNlcnZpbmcgb25lIGlzc3Vl
+IGhlcmUuDQpFdmVyeSB0aW1lIGNhbGwgc19jdHJsIGhhcHBlbnMgZm9yIERJU1BMQVlfREVMQVks
+IGkgc2VlIGFsbCB0aGUgY2FzZXMgaW4gdGhlIHNfY3RybCBiZWluZyBjYWxsZWQuDQoNCkknbSB2
+ZXJpZnlpbmcgZnJvbSB0aGUgYXBwbGljYXRpb24gc2lkZSBub3csIHdpbGwgbGV0IHlvdSBrbm93
+Lg0KDQpUaGFua3MgJiBSZWdhcmRzLA0KTmF2ZWVuIEtyaXNobmENCg0KLS0tLS0tLSBPcmlnaW5h
+bCBNZXNzYWdlIC0tLS0tLS0NClNlbmRlciA6IEthbWlsIERlYnNraTxrLmRlYnNraUBzYW1zdW5n
+LmNvbT4gIFNvZnR3YXJlIEVuZ2luZWVyL1BvbGFuZCBSJkQgQ2VudGVyLUxpbnV4IFBsYXRmb3Jt
+IChTU0QpL1NhbXN1bmcgRWxlY3Ryb25pY3MNCkRhdGUgICA6IEp1biAyNiwgMjAxMiAxNDozMyAo
+R01UKzA1OjAwKQ0KVGl0bGUgIDogUkU6IFtQQVRDSF0gczVwLW1mYzogRml4IHNldHRpbmcgY29u
+dHJvbHMNCg0KSGkgTmF2ZWVuLA0KDQpUb2RheSBJIGhhdmUgcG9zdGVkIGEgcGF0Y2ggdGhhdCBz
+aG91bGQgcmVzb2x2ZSB5b3VyIHByb2JsZW1zIHdpdGggc2V0dGluZw0KY29udHJvbHMNCihbUEFU
+Q0hdIHM1cC1tZmM6IEZpeGVkIHNldHVwIG9mIGN1c3RvbSBjb250cm9scyBpbiBkZWNvZGVyIGFu
+ZCBlbmNvZGVyKS4NClBsZWFzZSBjaGVjayBpZiBpdCB3b3JrcyBub3cuDQoNCkJlc3Qgd2lzaGVz
+LA0KLS0NCkthbWlsIERlYnNraQ0KTGludXggUGxhdGZvcm0gR3JvdXANClNhbXN1bmcgUG9sYW5k
+IFImRCBDZW50ZXINCg0KDQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IE5B
+VkVFTiBLUklTSE5BIENIQVRSQURISSBbbWFpbHRvOmNoLm5hdmVlbkBzYW1zdW5nLmNvbV0NCj4g
+U2VudDogMjIgSnVuZSAyMDEyIDAxOjQ3DQo+IFRvOiBLYW1pbCBEZWJza2k7IGxpbnV4LW1lZGlh
+QHZnZXIua2VybmVsLm9yZw0KPiBDYzogTWFyZWsgU3p5cHJvd3NraTsgS3l1bmdtaW4gUGFyazsg
+SmVvbmd0YWUgUGFyaw0KPiBTdWJqZWN0OiBSZTogW1BBVENIXSBzNXAtbWZjOiBGaXggc2V0dGlu
+ZyBjb250cm9scw0KPiANCj4gSGVsbG8gS2FtaWwsDQo+IA0KPiBTb3JyeSBmb3IgdGhlIGRlbGF5
+ZWQgcmVwbHkuIEknbSBhZnJhaWQgdGhpcyBkb2VzbnQgZml4IHRoZSB3aG9sZSBpc3N1ZS4NCj4g
+U3RpbGwgdGhlcmUgaXMgc29tZSBwcm9ibGVtIHdpdGggU19DVFJMIHdoZW4gdXNlZCB3aXRoIGN1
+c3RvbSBjb250cm9scy4NCj4gDQo+IHdoZW4gbXkgYXBwbGljYXRpb24gY2FsbCBzX2N0cmwgd2l0
+aA0KPiBWNEwyX0NJRF9NUEVHX01GQzUxX1ZJREVPX0RFQ09ERVJfSDI2NF9ESVNQTEFZX0RFTEFZ
+DQo+IHRoZSBjYWxsIGZpbmFsbHkgbGFuZHMgb24NCj4gVjRMMl9DSURfTVBFR19WSURFT19ERUNP
+REVSX01QRUc0X0RFQkxPQ0tfRklMVEVSIGluIGRyaXZlciAoVGhlIHNldCB2YWx1ZQ0KPiBpcyBh
+bHNvIGxvc3QpLg0KPiANCj4gSSB0aGluayB0aGlzIGlzIGJlY2F1c2Ugb2YgY29ycnVwdGlvbiBv
+ZiB0aGUgbWFzdGVyIG9yIGNsdXN0ZXIgaW4gdjRsMi0NCj4gaW9jdGwuYy9jdHJsLmMgYW5kIHBv
+aW50aW5nIHRvIHRoZSBzdGFuZGFyZCBjb250cm9scyBtYXN0ZXIuDQo+IGluc3RlYWQgb2YgdGhl
+IGN1c3RvbSBjb250cm9sIG1hc3Rlci4NCj4gDQo+IEtpbmRseSwgbGV0IG1lIGtub3cgeW91ciBv
+cGluaW9uIG9yIGFueSBjbHVlcyBvbiB0aGlzLg0KPiANCj4gVGhhbmtzICYgUmVnYXJkcw0KPiBO
+YXZlZW4gS3Jpc2huYQ0KPiANCj4gDQo+IA0KPiAtLS0tLS0tIE9yaWdpbmFsIE1lc3NhZ2UgLS0t
+LS0tLQ0KPiBTZW5kZXIgOiBLYW1pbCBEZWJza2k8ay5kZWJza2lAc2Ftc3VuZy5jb20+ICBTb2Z0
+d2FyZSBFbmdpbmVlci9Qb2xhbmQgUiZEDQo+IENlbnRlci1MaW51eCBQbGF0Zm9ybSAoU1NEKS9T
+YW1zdW5nIEVsZWN0cm9uaWNzDQo+IERhdGUgICA6IEp1biAxNSwgMjAxMiAxMzo1MSAoR01UKzA1
+OjAwKQ0KPiBUaXRsZSAgOiBbUEFUQ0hdIHM1cC1tZmM6IEZpeCBzZXR0aW5nIGNvbnRyb2xzDQo+
+IA0KPiBGaXhlZCBzX2N0cmwgZnVuY3Rpb24gd2hlbiBzZXR0aW5nIHRoZSBmb2xsb3dpbmcgY29u
+dHJvbHM6DQo+IC0gVjRMMl9DSURfTVBFR19WSURFT19ERUNPREVSX01QRUc0X0RFQkxPQ0tfRklM
+VEVSDQo+IC0gVjRMMl9DSURfTVBFR19NRkM1MV9WSURFT19ERUNPREVSX0gyNjRfRElTUExBWV9E
+RUxBWQ0KPiANCj4gU2lnbmVkLW9mZi1ieTogS2FtaWwgRGVic2tpIDxrLmRlYnNraUBzYW1zdW5n
+LmNvbT4NCj4gU2lnbmVkLW9mZi1ieTogS3l1bmdtaW4gUGFyayA8a3l1bmdtaW4ucGFya0BzYW1z
+dW5nLmNvbT4NCj4gLS0tDQo+ICBkcml2ZXJzL21lZGlhL3ZpZGVvL3M1cC1tZmMvczVwX21mY19k
+ZWMuYyB8ICAgIDQgKystLQ0KPiAgMSBmaWxlcyBjaGFuZ2VkLCAyIGluc2VydGlvbnMoKyksIDIg
+ZGVsZXRpb25zKC0pDQo+IA0KPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9tZWRpYS92aWRlby9zNXAt
+bWZjL3M1cF9tZmNfZGVjLmMNCj4gYi9kcml2ZXJzL21lZGlhL3ZpZGVvL3M1cC1tZmMvczVwX21m
+Y19kZWMuYw0KPiBpbmRleCBlMWViYzc2Li5lYWFiMTNlIDEwMDY0NA0KPiAtLS0gYS9kcml2ZXJz
+L21lZGlhL3ZpZGVvL3M1cC1tZmMvczVwX21mY19kZWMuYw0KPiArKysgYi9kcml2ZXJzL21lZGlh
+L3ZpZGVvL3M1cC1tZmMvczVwX21mY19kZWMuYw0KPiBAQCAtNjM5LDEzICs2MzksMTMgQEAgc3Rh
+dGljIGludCBzNXBfbWZjX2RlY19zX2N0cmwoc3RydWN0IHY0bDJfY3RybA0KPiAqY3RybCkNCj4g
+DQo+ICAJc3dpdGNoIChjdHJsLT5pZCkgew0KPiAgCWNhc2UgVjRMMl9DSURfTVBFR19NRkM1MV9W
+SURFT19ERUNPREVSX0gyNjRfRElTUExBWV9ERUxBWToNCj4gLQkJY3R4LT5sb29wX2ZpbHRlcl9t
+cGVnNCA9IGN0cmwtPnZhbDsNCj4gKwkJY3R4LT5kaXNwbGF5X2RlbGF5ID0gY3RybC0+dmFsOw0K
+PiAgCQlicmVhazsNCj4gIAljYXNlIFY0TDJfQ0lEX01QRUdfTUZDNTFfVklERU9fREVDT0RFUl9I
+MjY0X0RJU1BMQVlfREVMQVlfRU5BQkxFOg0KPiAgCQljdHgtPmRpc3BsYXlfZGVsYXlfZW5hYmxl
+ID0gY3RybC0+dmFsOw0KPiAgCQlicmVhazsNCj4gIAljYXNlIFY0TDJfQ0lEX01QRUdfVklERU9f
+REVDT0RFUl9NUEVHNF9ERUJMT0NLX0ZJTFRFUjoNCj4gLQkJY3R4LT5kaXNwbGF5X2RlbGF5ID0g
+Y3RybC0+dmFsOw0KPiArCQljdHgtPmxvb3BfZmlsdGVyX21wZWc0ID0gY3RybC0+dmFsOw0KPiAg
+CQlicmVhazsNCj4gIAljYXNlIFY0TDJfQ0lEX01QRUdfVklERU9fREVDT0RFUl9TTElDRV9JTlRF
+UkZBQ0U6DQo+ICAJCWN0eC0+c2xpY2VfaW50ZXJmYWNlID0gY3RybC0+dmFsOw0KPiAtLQ0KPiAx
+LjcuMC40DQo+IA0KPiA8cD4mbmJzcDs8L3A+PHA+Jm5ic3A7PC9wPlRoYW5rcyAmIEJlc3QgUmVn
+YXJkcywNCj4gTmF2ZWVuIEtyaXNobmEgQ2gNCj4gU0UgQCBTYW1zdW5nLUIuTEFCDQoNCjxwPiZu
+YnNwOzwvcD48cD4mbmJzcDs8L3A+VGhhbmtzICYgQmVzdCBSZWdhcmRzLA0KTmF2ZWVuIEtyaXNo
+bmEgQ2gNClNFIEAgU2Ftc3VuZy1CLkxBQg==
 
-I suspect all of our DVB USB firmere downloading problems are coming 
-from that issues. I mean especially those suspend / resume failings too.
 
-What I think I will try to delay driver registertration using workqueue. 
-Return just success for the USB driver probe and continue real probe 
-from workqueue.
-
-Antti
--- 
-http://palosaari.fi/
