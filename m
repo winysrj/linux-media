@@ -1,62 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mo-p00-ob.rzone.de ([81.169.146.162]:14016 "EHLO
-	mo-p00-ob.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751785Ab2FJTmZ (ORCPT
+Received: from mail-lb0-f174.google.com ([209.85.217.174]:46212 "EHLO
+	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756001Ab2FZKgo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Jun 2012 15:42:25 -0400
-From: Ralph Metzler <rjkm@metzlerbros.de>
+	Tue, 26 Jun 2012 06:36:44 -0400
+Received: by lbbgm6 with SMTP id gm6so7828727lbb.19
+        for <linux-media@vger.kernel.org>; Tue, 26 Jun 2012 03:36:42 -0700 (PDT)
+Message-ID: <4FE99091.7070001@mvista.com>
+Date: Tue, 26 Jun 2012 14:36:01 +0400
+From: Sergei Shtylyov <sshtylyov@mvista.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+To: Manjunath Hadli <manjunath.hadli@ti.com>
+CC: LMML <linux-media@vger.kernel.org>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>
+Subject: Re: [PATCH v3 04/13] davinci: vpif: fix setting of data width in
+ config_vpif_params() function
+References: <1340622455-10419-1-git-send-email-manjunath.hadli@ti.com> <1340622455-10419-5-git-send-email-manjunath.hadli@ti.com>
+In-Reply-To: <1340622455-10419-5-git-send-email-manjunath.hadli@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-ID: <20436.63646.824176.351205@morden.metzler>
-Date: Sun, 10 Jun 2012 21:42:22 +0200
-To: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: linux-media@vger.kernel.org
-Subject: re: [media] DRX-K: Initial check-in
-In-Reply-To: <20120608134635.GA19517@elgon.mountain>
-References: <20120608134635.GA19517@elgon.mountain>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dan Carpenter writes:
- > Hello Ralph Metzler,
- > 
- > The patch 43dd07f758d8: "[media] DRX-K: Initial check-in" from Jul 3, 
- > 2011, leads to the following warning:
- > drivers/media/dvb/frontends/drxk_hard.c:2980 ADCSynchronization()
- > 	 warn: suspicious bitop condition
- > 
- >   2977                  status = read16(state, IQM_AF_CLKNEG__A, &clkNeg);
- >   2978                  if (status < 0)
- >   2979                          goto error;
- >   2980                  if ((clkNeg | IQM_AF_CLKNEG_CLKNEGDATA__M) ==
- >   2981                          IQM_AF_CLKNEG_CLKNEGDATA_CLK_ADC_DATA_POS) {
- > 
- > IQM_AF_CLKNEG_CLKNEGDATA__M is 2.
- > IQM_AF_CLKNEG_CLKNEGDATA_CLK_ADC_DATA_POS is 0.
- > So this condition can never be true.
+Hello.
 
-It seems this should be & instead of |. The mistake was also present in the windows driver.
+On 25-06-2012 15:07, Manjunath Hadli wrote:
 
+> fix setting of data width in config_vpif_params() function,
+> which was wrongly set.
 
- > 
- >   2982                          clkNeg &= (~(IQM_AF_CLKNEG_CLKNEGDATA__M));
- >   2983                          clkNeg |=
- >   2984                                  IQM_AF_CLKNEG_CLKNEGDATA_CLK_ADC_DATA_NEG;
- >   2985                  } else {
- >   2986                          clkNeg &= (~(IQM_AF_CLKNEG_CLKNEGDATA__M));
- >   2987                          clkNeg |=
- >   2988                                  IQM_AF_CLKNEG_CLKNEGDATA_CLK_ADC_DATA_POS;
- > 
- > 	clkNeg |= 0; <-- doesn't make much sense to the unenlightened.
- > 
- >   2989                  }
+> Signed-off-by: Manjunath Hadli<manjunath.hadli@ti.com>
+> Signed-off-by: Lad, Prabhakar<prabhakar.lad@ti.com>
+> ---
+>   drivers/media/video/davinci/vpif.c |    2 +-
+>   1 files changed, 1 insertions(+), 1 deletions(-)
 
-This is perfectly normal since those defines were automatically created from the 
-firmware source code. It is better to leave the code as it is. If there ever is a firmware update 
-and these bits change their values it will be much harder to adjust the driver.
+> diff --git a/drivers/media/video/davinci/vpif.c b/drivers/media/video/davinci/vpif.c
+> index 774bcd3..08fb81f 100644
+> --- a/drivers/media/video/davinci/vpif.c
+> +++ b/drivers/media/video/davinci/vpif.c
+> @@ -346,7 +346,7 @@ static void config_vpif_params(struct vpif_params *vpifparams,
+>
+>   			value = regr(reg);
+>   			/* Set data width */
+> -			value&= ((~(unsigned int)(0x3))<<
+> +			value&= ~(((unsigned int)(0x3))<<
 
+    Why not just 0x3u instead of (unsigned int)(0x3)?
 
-Regards,
-Ralph
-
+WBR, Sergei
