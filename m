@@ -1,75 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:4319 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:57008 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751841Ab2FZTeh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 Jun 2012 15:34:37 -0400
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Antti Palosaari <crope@iki.fi>, Kay Sievers <kay@redhat.com>,
-	Greg KH <gregkh@linuxfoundation.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH RFC 0/4] Defer probe() on em28xx when firmware load is required
-Date: Tue, 26 Jun 2012 16:34:18 -0300
-Message-Id: <1340739262-13747-1-git-send-email-mchehab@redhat.com>
-In-Reply-To: <4FE9169D.5020300@redhat.com>
-References: <4FE9169D.5020300@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+	id S1753804Ab2FZHig (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 Jun 2012 03:38:36 -0400
+Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q5Q7ca2v025267
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Tue, 26 Jun 2012 03:38:36 -0400
+Received: from gromit.localnet (dhcp-24-116.brq.redhat.com [10.34.24.116])
+	by int-mx09.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP id q5Q7cYsb025252
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Tue, 26 Jun 2012 03:38:36 -0400
+From: Jirka Klimes <jklimes@redhat.com>
+To: linux-media@vger.kernel.org
+Reply-To: Jirka Klimes <jklimes@redhat.com>
+Subject: dvb-apps: remove broken and not functional dvbscan
+Date: Tue, 26 Jun 2012 09:38:34 +0200
+Message-ID: <1969729.Q46QkrbvB0@gromit>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch series is an attempt to solve the recent issues with udev-182
-and media drivers.
+dvb-apps' "dvbsca"n from util/dvbscan/ doesn't work. It exits with "Unable to 
+query frontend status".
+By looking into source code I've found there's a bug in 
+util/dvbscan/dvbscan.c:309 that uses DVBFE_INFO_QUERYTYPE_IMMEDIATE return 
+value instead of DVBFE_INFO_LOCKSTATUS. However, a further look reveals that 
+scanning is not actually implemented and according to commit status (just  a 
+few on 2006-11-20) it is evident that the code is abandoned.
 
-The .probe() callback should "bind the driver to a given device.  That
-includes verifying that the device is present, that it's a version the
-driver can handle, that driver data structures can be allocated and 
-initialized, and that any hardware can be initialized".
+I suggest removing the code in favor of util/scan that works OK. The broken 
+dvbscan in the tree causes confusion as some users don't know there's another 
+scanning tool that actually works. 
+Another suggestion is to rename "scan" to "scandvb" otherwise it can collide 
+with other tools and some distributions rename it thus anyway.
 
-In order to comply witht he above, sometimes firmware is needed. However,
-PM and udev have problems with that.
-
-Newer versions of request_firmware block firmware load on some situations,
-due to PM. Also, udev simply refuses to load firmware when module_init
-doesn't finish, and .probe() can be called during USB/PCI bus register,
-if the device is plugged.
-
-This patch series consists of 4 patches:
-	1) a change at kmod, in order to export the information that
-	   userspace mode is disabled;
-
-	2) a patch at em28xx that defers probe() if firmware is needed
-	   and userspace mode is disabled;
-
-	3) a workaround due to udev-182 limitation of not loading firmware
-	   while a driver is modprobed;
-
-	4) a patch for tuner-xc2028, in order to indicate what firmware
-	   files are used there.
-
-I was hoping that dracut-018-40.git20120522.fc17.noarch would get the
-MODULE_FIRMWARE info while creating the initfs filesystem, copying there
-the right firmwares, but, unfortunately, this didn't work (at least while
-copiling tuners as builtin). Maybe will would honour it if I re-compile
-everything as module and force dracut to load em28xx at init time.
-
-Comments?
-
-Regards,
-Mauro
-
-Mauro Carvalho Chehab (4):
-  kmod: add a routine to return if usermode is disabled
-  em28xx: defer probe() if udev is not ready to request_firmware
-  em28xx: Workaround for new udev versions
-  tuner-xc2028: tag the usual firmwares to help dracut
-
- drivers/media/common/tuners/tuner-xc2028.c |    2 +
- drivers/media/video/em28xx/em28xx-cards.c  |   73 +++++++++++++++++++++++++++-
- drivers/media/video/em28xx/em28xx.h        |    1 +
- include/linux/firmware.h                   |    6 +++
- kernel/kmod.c                              |    6 +++
- 5 files changed, 87 insertions(+), 1 deletion(-)
-
--- 
-1.7.10.2
+Cheers,
+Jirka
 
