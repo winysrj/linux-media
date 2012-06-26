@@ -1,53 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f174.google.com ([209.85.217.174]:63810 "EHLO
-	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750988Ab2F2UMH (ORCPT
+Received: from mail-gg0-f174.google.com ([209.85.161.174]:33097 "EHLO
+	mail-gg0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753961Ab2FZUod convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 Jun 2012 16:12:07 -0400
-Received: by lbbgm6 with SMTP id gm6so5105527lbb.19
-        for <linux-media@vger.kernel.org>; Fri, 29 Jun 2012 13:12:05 -0700 (PDT)
+	Tue, 26 Jun 2012 16:44:33 -0400
+Received: by gglu4 with SMTP id u4so360411ggl.19
+        for <linux-media@vger.kernel.org>; Tue, 26 Jun 2012 13:44:32 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <CAGoCfix63V1p=yvNVEwDF7DHZZ_Yt=h91mcasDVnSGM=f3w0Mw@mail.gmail.com>
-References: <CACK0K0gXr08aNe3gKkWXmKkZ+JA0RBcWtq35aFfNaSqCCWMM1Q@mail.gmail.com>
-	<CALF0-+ViQTmGnAS19kOCZPZAj0ZYZX4Ef-+J7A=k1J2OFhFuVg@mail.gmail.com>
-	<CALF0-+XoKmw0fe_vpOs-BEZXDZThA5WuNw8CRjohLJojZ2O4Dw@mail.gmail.com>
-	<CACK0K0j4mSG=EtU1R-VvvoF_5ZCxrTk4p3niyHBt4tAGVdqLVA@mail.gmail.com>
-	<CALF0-+XR_ZE8_52zQKZ9n9x8sGrmJWNpeXnKD_j6Lg1YHta=vQ@mail.gmail.com>
-	<CACK0K0i53VJVCVsJy2YGX_pWab0QVSkew5tJL5MQ7CcLyGvjMg@mail.gmail.com>
-	<CALF0-+Ws+EWs5CjJedJMFL4mLkKx--kg5VZpa=f_+x2iiUiK5Q@mail.gmail.com>
-	<CACK0K0gTUWgpgErfMfXtQLN2gCW81RPp5yfGghtpigA0ALrm7w@mail.gmail.com>
-	<CALF0-+WE=WakSL5Thx4QKFDKg7GyK4mDk+r_cOm2=Bn=Fan4rg@mail.gmail.com>
-	<CACK0K0iPht7n4oxyR68zzz=Emau7kFNs0b3ooBwMn83_GVZnDw@mail.gmail.com>
-	<CALF0-+X2g7FBv4_LTo6HnX=RO3v_RCgHaGMh+zf3GW_toYWs4Q@mail.gmail.com>
-	<CAGoCfix63V1p=yvNVEwDF7DHZZ_Yt=h91mcasDVnSGM=f3w0Mw@mail.gmail.com>
-Date: Fri, 29 Jun 2012 17:12:04 -0300
-Message-ID: <CALF0-+XvrOqoQNcJvwChkrcV2hK3sCg4ibYrCLsLzmLxgSkbzA@mail.gmail.com>
-Subject: Re: stk1160 linux driver
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: Gianluca Bergamo <gianluca.bergamo@gmail.com>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>
+In-Reply-To: <4FE9758C.7030008@samsung.com>
+References: <1339681069-8483-1-git-send-email-t.stanislaws@samsung.com>
+	<1339681069-8483-4-git-send-email-t.stanislaws@samsung.com>
+	<20120620061216.GA19245@google.com>
+	<4FE9758C.7030008@samsung.com>
+Date: Tue, 26 Jun 2012 13:44:32 -0700
+Message-ID: <CAPz4a6Dzn+Y71QPc_YKxwp7OQvF0saScgQZsLEmVr9PCRc8F3A@mail.gmail.com>
+Subject: Re: [PATCHv7 03/15] v4l: vb2: add support for shared buffer (dma_buf)
+From: Dima Zavin <dima@android.com>
+To: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	airlied@redhat.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, laurent.pinchart@ideasonboard.com,
+	sumit.semwal@ti.com, daeinki@gmail.com, daniel.vetter@ffwll.ch,
+	robdclark@gmail.com, pawel@osciak.com,
+	linaro-mm-sig@lists.linaro.org, hverkuil@xs4all.nl,
+	remi@remlab.net, subashrp@gmail.com, mchehab@redhat.com,
+	g.liakhovetski@gmx.de, Sumit Semwal <sumit.semwal@linaro.org>
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hey Gianluca,
+On Tue, Jun 26, 2012 at 1:40 AM, Tomasz Stanislawski
+<t.stanislaws@samsung.com> wrote:
+> Hi Dima Zavin,
+> Thank you for the patch and for a ping remainder :).
+>
+> You are right. The unmap is missing in __vb2_queue_cancel.
+> I will apply your fix into next version of V4L2 support for dmabuf.
+>
+> Please refer to some comments below.
+>
+> On 06/20/2012 08:12 AM, Dima Zavin wrote:
+>> Tomasz,
+>>
+>> I've encountered an issue with this patch when userspace does several
+>> stream_on/stream_off cycles. When the user tries to qbuf a buffer
+>> after doing stream_off, we trigger the "dmabuf already pinned" warning
+>> since we didn't unmap the buffer as dqbuf was never called.
+>>
+>> The below patch adds calls to unmap in queue_cancel, but my feeling is that we
+>> probably should be calling detach too (i.e. put_dmabuf).
+>>
+>> Thoughts?
+>>
+>> --Dima
+>>
+>> Subject: [PATCH] v4l: vb2: unmap dmabufs on STREAM_OFF event
+>>
+>> Currently, if the user issues a STREAM_OFF request and then
+>> tries to re-enqueue buffers, it will trigger a warning in
+>> the vb2 allocators as the buffer would still be mapped
+>> from before STREAM_OFF was called. The current expectation
+>> is that buffers will be unmapped in dqbuf, but that will never
+>> be called on the mapped buffers after a STREAM_OFF event.
+>>
+>> Cc: Sumit Semwal <sumit.semwal@ti.com>
+>> Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>
+>> Signed-off-by: Dima Zavin <dima@android.com>
+>> ---
+>>  drivers/media/video/videobuf2-core.c |   22 ++++++++++++++++++++--
+>>  1 files changed, 20 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/drivers/media/video/videobuf2-core.c b/drivers/media/video/videobuf2-core.c
+>> index b431dc6..e2a8f12 100644
+>> --- a/drivers/media/video/videobuf2-core.c
+>> +++ b/drivers/media/video/videobuf2-core.c
+>> @@ -1592,8 +1592,26 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
+>>       /*
+>>        * Reinitialize all buffers for next use.
+>>        */
+>> -     for (i = 0; i < q->num_buffers; ++i)
+>> -             q->bufs[i]->state = VB2_BUF_STATE_DEQUEUED;
+>> +     for (i = 0; i < q->num_buffers; ++i) {
+>> +             struct vb2_buffer *vb = q->bufs[i];
+>> +             int plane;
+>> +
+>> +             vb->state = VB2_BUF_STATE_DEQUEUED;
+>> +
+>> +             if (q->memory != V4L2_MEMORY_DMABUF)
+>> +                     continue;
+>> +
+>> +             for (plane = 0; plane < vb->num_planes; ++plane) {
+>> +                     struct vb2_plane *p = &vb->planes[plane];
+>> +
+>> +                     if (!p->mem_priv)
+>> +                             continue;
+>
+> is the check above really needed? No check like this is done in
+> vb2_dqbuf.
 
-On Mon, Jun 25, 2012 at 11:47 AM, Devin Heitmueller
-<dheitmueller@kernellabs.com> wrote:
-> On Mon, Jun 25, 2012 at 10:36 AM, Ezequiel Garcia <elezegarcia@gmail.com> wrote:
-> Others issue related to memory allocation on platforms like ARM with
-> limited coherent memory (if the device is unplugged/replugged often,
-> the device won't be able to allocate the URB buffers), as well as
+I added it because queue_cancel gets called in release, so you never
+know what the state of the buffers will be. If we called req_bufs to
+allocate the buffer descriptors and then call release, then won't we
+have the vb2_buffer structs but nothing in mem_priv since we haven't
+attached a dmabuf yet?
 
-As Devin says there maybe some issues with memory allocation I've added a
-module parameter for stk1160 named "keep_buffers" that could be used to reduce
-memory fragmentation.
+>
+>> +                     if (p->dbuf_mapped) {
+>
+> If a buffer is queued then it is also mapped, so dbuf_mapped
+> should be always be true here (at least in theory).
 
-You may want to test the latest patch:
-http://patchwork.linuxtv.org/patch/13148/
+This loop doesn't check for what the buffer status was, it just
+iterates over the entire queue. The buffer may have been put into
+STATE_ERROR, and then you don't know if it was ever mapped, etc. It
+should always be safe to just follow the flag that says you mapped it
+and unmap it. If you think that this should always be true, we can
+change it to:
 
-If you have any problems/questions feel free to ask.
+    if (!WARN_ON(!p->dbuf_mapped))
 
-Thanks,
-Ezequiel.
+or something like that.
+
+Thanks!
+
+--Dima
+
+>
+>> +                             call_memop(q, unmap_dmabuf, p->mem_priv);
+>> +                             p->dbuf_mapped = 0;
+>> +                     }
+>> +             }
+>> +     }
+>>  }
+>>
+>>  /**
+>
+> Regards,
+> Tomasz Stanislawski
