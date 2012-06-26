@@ -1,50 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:52927 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755653Ab2F0QxZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Jun 2012 12:53:25 -0400
-Received: by mail-yx0-f174.google.com with SMTP id l2so1090102yen.19
-        for <linux-media@vger.kernel.org>; Wed, 27 Jun 2012 09:53:25 -0700 (PDT)
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: <linux-media@vger.kernel.org>, stoth@kernellabs.com,
-	dan.carpenter@oracle.com, palash.bandyopadhyay@conexant.com,
-	Ezequiel Garcia <elezegarcia@gmail.com>
-Subject: [PATCH 7/9] cx23885: Replace struct memcpy with struct assignment
-Date: Wed, 27 Jun 2012 13:52:52 -0300
-Message-Id: <1340815974-4120-7-git-send-email-elezegarcia@gmail.com>
-In-Reply-To: <1340815974-4120-1-git-send-email-elezegarcia@gmail.com>
-References: <1340815974-4120-1-git-send-email-elezegarcia@gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:5804 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751841Ab2FZTei (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 Jun 2012 15:34:38 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Antti Palosaari <crope@iki.fi>, Kay Sievers <kay@redhat.com>,
+	Greg KH <gregkh@linuxfoundation.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH RFC 1/4] kmod: add a routine to return if usermode is disabled
+Date: Tue, 26 Jun 2012 16:34:19 -0300
+Message-Id: <1340739262-13747-2-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1340739262-13747-1-git-send-email-mchehab@redhat.com>
+References: <4FE9169D.5020300@redhat.com>
+ <1340739262-13747-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Copying structs by assignment is type safe.
-Plus, is shorter and easier to read.
+Several media devices are only capable of probing the device if
+the firmware load is enabled, e. g. when the usermode var is not
+disabled.
 
-Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
+Add a routine to allow those drivers to test if probe can continue
+or need to be deferred.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
- drivers/media/video/cx23885/cx23885-i2c.c |    7 ++-----
- 1 files changed, 2 insertions(+), 5 deletions(-)
+ include/linux/firmware.h |    6 ++++++
+ kernel/kmod.c            |    6 ++++++
+ 2 files changed, 12 insertions(+)
 
-diff --git a/drivers/media/video/cx23885/cx23885-i2c.c b/drivers/media/video/cx23885/cx23885-i2c.c
-index 615c71f..4887314 100644
---- a/drivers/media/video/cx23885/cx23885-i2c.c
-+++ b/drivers/media/video/cx23885/cx23885-i2c.c
-@@ -316,11 +316,8 @@ int cx23885_i2c_register(struct cx23885_i2c *bus)
+diff --git a/include/linux/firmware.h b/include/linux/firmware.h
+index 1e7c011..cacf27e 100644
+--- a/include/linux/firmware.h
++++ b/include/linux/firmware.h
+@@ -35,6 +35,12 @@ struct builtin_fw {
+ 	static const struct builtin_fw __fw_concat(__builtin_fw,__COUNTER__) \
+ 	__used __section(.builtin_fw) = { name, blob, size }
  
- 	dprintk(1, "%s(bus = %d)\n", __func__, bus->nr);
++/**
++ * is_usermodehelp_disabled - returns true if firmware usermode is disabled
++ *			      false otherwise.
++ */
++bool is_usermodehelp_disabled(void);
++
+ #if defined(CONFIG_FW_LOADER) || (defined(CONFIG_FW_LOADER_MODULE) && defined(MODULE))
+ int request_firmware(const struct firmware **fw, const char *name,
+ 		     struct device *device);
+diff --git a/kernel/kmod.c b/kernel/kmod.c
+index 05698a7..68901308 100644
+--- a/kernel/kmod.c
++++ b/kernel/kmod.c
+@@ -339,6 +339,12 @@ static DECLARE_WAIT_QUEUE_HEAD(running_helpers_waitq);
+  */
+ static DECLARE_WAIT_QUEUE_HEAD(usermodehelper_disabled_waitq);
  
--	memcpy(&bus->i2c_adap, &cx23885_i2c_adap_template,
--	       sizeof(bus->i2c_adap));
--	memcpy(&bus->i2c_client, &cx23885_i2c_client_template,
--	       sizeof(bus->i2c_client));
--
-+	bus->i2c_adap = cx23885_i2c_adap_template;
-+	bus->i2c_client = cx23885_i2c_client_template;
- 	bus->i2c_adap.dev.parent = &dev->pci->dev;
- 
- 	strlcpy(bus->i2c_adap.name, bus->dev->name,
++bool is_usermodehelp_disabled(void)
++{
++	return usermodehelper_disabled ? true : false;
++}
++EXPORT_SYMBOL_GPL(is_usermodehelp_disabled);
++
+ /*
+  * Time to wait for running_helpers to become zero before the setting of
+  * usermodehelper_disabled in usermodehelper_disable() fails
 -- 
-1.7.4.4
+1.7.10.2
 
