@@ -1,84 +1,175 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:10310 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753091Ab2FYTt4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Jun 2012 15:49:56 -0400
-Message-ID: <4FE8C0E0.3080104@redhat.com>
-Date: Mon, 25 Jun 2012 16:49:52 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from rcdn-iport-6.cisco.com ([173.37.86.77]:17332 "EHLO
+	rcdn-iport-6.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751537Ab2FZJuT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 Jun 2012 05:50:19 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCHv7 03/15] v4l: vb2: add support for shared buffer (dma_buf)
+Date: Tue, 26 Jun 2012 11:40:37 +0200
+Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Dima Zavin <dmitriyz@google.com>, linux-media@vger.kernel.org,
+	dri-devel@lists.freedesktop.org, airlied@redhat.com,
+	m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	sumit.semwal@ti.com, daeinki@gmail.com, daniel.vetter@ffwll.ch,
+	robdclark@gmail.com, pawel@osciak.com,
+	linaro-mm-sig@lists.linaro.org, remi@remlab.net,
+	subashrp@gmail.com, mchehab@redhat.com, g.liakhovetski@gmx.de,
+	Sumit Semwal <sumit.semwal@linaro.org>
+References: <1339681069-8483-1-git-send-email-t.stanislaws@samsung.com> <4FE9758C.7030008@samsung.com> <3296650.k6kvMQSQ7k@avalon>
+In-Reply-To: <3296650.k6kvMQSQ7k@avalon>
 MIME-Version: 1.0
-To: Ezequiel Garcia <elezegarcia@gmail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH 01/12] saa7164: Use i2c_rc properly to store i2c register
- status
-References: <1340047425-32000-1-git-send-email-elezegarcia@gmail.com> <4FE8BC2D.9030902@redhat.com> <CALF0-+UyWjbbPYCKV-AgS=6FZ349D27GrijrYa_RWPUqcfo8rw@mail.gmail.com>
-In-Reply-To: <CALF0-+UyWjbbPYCKV-AgS=6FZ349D27GrijrYa_RWPUqcfo8rw@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201206261140.37666.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 25-06-2012 16:42, Ezequiel Garcia escreveu:
-> Hi Mauro,
+On Tue 26 June 2012 11:11:06 Laurent Pinchart wrote:
+> Hi Dima and Tomasz,
 > 
-> On Mon, Jun 25, 2012 at 4:29 PM, Mauro Carvalho Chehab
-> <mchehab@redhat.com> wrote:
->>> diff --git a/drivers/media/video/saa7164/saa7164-i2c.c b/drivers/media/video/saa7164/saa7164-i2c.c
->>> index 26148f7..536f7dc 100644
->>> --- a/drivers/media/video/saa7164/saa7164-i2c.c
->>> +++ b/drivers/media/video/saa7164/saa7164-i2c.c
->>> @@ -123,7 +123,7 @@ int saa7164_i2c_register(struct saa7164_i2c *bus)
->>>        bus->i2c_algo.data = bus;
->>>        bus->i2c_adap.algo_data = bus;
->>>        i2c_set_adapdata(&bus->i2c_adap, bus);
->>> -     i2c_add_adapter(&bus->i2c_adap);
->>> +     bus->i2c_rc = i2c_add_adapter(&bus->i2c_adap);
->>>
->>>        bus->i2c_client.adapter = &bus->i2c_adap;
->>>
->>>
->>
->> -ENODESCRIPTION.
+> Sorry for the late reply.
 > 
-> Okey. Sorry for that.
+> On Tuesday 26 June 2012 10:40:44 Tomasz Stanislawski wrote:
+> > Hi Dima Zavin,
+> > Thank you for the patch and for a ping remainder :).
+> > 
+> > You are right. The unmap is missing in __vb2_queue_cancel.
+> > I will apply your fix into next version of V4L2 support for dmabuf.
+> > 
+> > Please refer to some comments below.
+> > 
+> > On 06/20/2012 08:12 AM, Dima Zavin wrote:
+> > > Tomasz,
+> > > 
+> > > I've encountered an issue with this patch when userspace does several
+> > > stream_on/stream_off cycles. When the user tries to qbuf a buffer
+> > > after doing stream_off, we trigger the "dmabuf already pinned" warning
+> > > since we didn't unmap the buffer as dqbuf was never called.
+> > > 
+> > > The below patch adds calls to unmap in queue_cancel, but my feeling is
+> > > that we probably should be calling detach too (i.e. put_dmabuf).
 > 
->>
->> What are you intending with this change? AFAICT, i2c_add_bus_adapter()
->> returns 0 on success and a negative value otherwise. Why should it be
->> stored at bus->i2c_rc?
-> 
-> My intention was to give i2c_rc its proper use.
-> I looked at bttv-i2c.c and cx88-i2c.c and (perhaps wrongly) guessed
-> the intended use to i2c_rc was to save i2c registration result.
-> 
-> Without this patch, where is this bus->i2c_rc variable used?
-> Unless I've missed something, to me there are two options:
-> - use i2c_rc
-> - remove it
+> According to the V4L2 specification, the "VIDIOC_STREAMOFF ioctl, apart of 
+> aborting or finishing any DMA in progress, unlocks any user pointer buffers 
+> locked in physical memory, and it removes all buffers from the incoming and 
+> outgoing queues".
 
-If i2c_rc was never initialized, then just remove it. If it is required,
-then there's a bug somewhere out there on those drivers.
+Correct. And what that means in practice is that after a streamoff all buffers
+are returned to the state they had just before STREAMON was called.
 
-IMHO, if the I2C bus doesn't register, any driver that requires I2C bus
-should return -ENODEV.
+So after STREAMOFF you can immediately queue all buffers again with QBUF and
+call STREAMON to restart streaming. No mmap or other operations should be
+required. This behavior must be kept.
 
-It should be noticed that there are a few devices that don't need I2C bus
-to work: simple video grabber cards that don't have anything on their I2C.
-There are several of them at bttv, and a few at cx88 and saa7134. Maybe that's
-the reason why those drivers have a var to indicate if i2c got registered.
+VIDIOC_REQBUFS() or a close() are the only two operations that will actually
+free the buffers completely.
 
+In practice, a STREAMOFF is either followed by a STREAMON at a later time, or
+almost immediately followed by REQBUFS or close() to tear down the buffers.
+So I don't think the buffers should be detached at streamoff.
+
+Regards,
+
+	Hans
+
+> Detaching the buffer is thus not strictly required. At first thought I agreed 
+> with you, as not deatching the buffer might keep resources allocated for much 
+> longer than needed. For instance, an application that stops the stream and 
+> expects to resume it later will usually not free the buffers (with 
+> VIDIOC_REQBUFS(0)) between VIDIOC_STREAMOFF and VIDIOC_STREAMON. Buffer will 
+> thus be referenced for longer than needed.
 > 
-> Again sorry for lack of description, I thought it was self-explaining patch.
+> However, to reuse the same buffer after restarting the stream, the application 
+> will need to keep the dmabuf fds around in order to queue them. Detaching the 
+> buffer will thus bring little benefit in terms of resource usage, as the open 
+> file handles will keep the buffer around anyway. If an application cares about 
+> that and closes all dmabuf fds after stopping the stream, I expect it to free 
+> the buffers as well.
 > 
-> If you provide some feedback about proper solution, I can resend the
-> patch series.
-
-Thanks!
-
-Mauro
+> I don't have a very strong opinion about this, if you would rather detach the 
+> buffer at stream-off time I'm fine with that.
 > 
-> Thanks,
-> Ezequiel.
+> > > Thoughts?
+> > > 
+> > > --Dima
+> > > 
+> > > Subject: [PATCH] v4l: vb2: unmap dmabufs on STREAM_OFF event
+> > > 
+> > > Currently, if the user issues a STREAM_OFF request and then
+> > > tries to re-enqueue buffers, it will trigger a warning in
+> > > the vb2 allocators as the buffer would still be mapped
+> > > from before STREAM_OFF was called. The current expectation
+> > > is that buffers will be unmapped in dqbuf, but that will never
+> > > be called on the mapped buffers after a STREAM_OFF event.
+> > > 
+> > > Cc: Sumit Semwal <sumit.semwal@ti.com>
+> > > Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>
+> > > Signed-off-by: Dima Zavin <dima@android.com>
+> > > ---
+> > > 
+> > >  drivers/media/video/videobuf2-core.c |   22 ++++++++++++++++++++--
+> > >  1 files changed, 20 insertions(+), 2 deletions(-)
+> > > 
+> > > diff --git a/drivers/media/video/videobuf2-core.c
+> > > b/drivers/media/video/videobuf2-core.c index b431dc6..e2a8f12 100644
+> > > --- a/drivers/media/video/videobuf2-core.c
+> > > +++ b/drivers/media/video/videobuf2-core.c
+> > > @@ -1592,8 +1592,26 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
+> > > 
+> > >  	/*
+> > >  	 * Reinitialize all buffers for next use.
+> > >  	 */
+> > > 
+> > > -	for (i = 0; i < q->num_buffers; ++i)
+> > > -		q->bufs[i]->state = VB2_BUF_STATE_DEQUEUED;
+> > > +	for (i = 0; i < q->num_buffers; ++i) {
+> > > +		struct vb2_buffer *vb = q->bufs[i];
+> > > +		int plane;
+> > > +
+> > > +		vb->state = VB2_BUF_STATE_DEQUEUED;
+> > > +
+> > > +		if (q->memory != V4L2_MEMORY_DMABUF)
+> > > +			continue;
 > 
-
-
+> Don't we need to do something similat for USERPTR buffers as well ? They don't 
+> seem to get unpinned (put_userptr) at stream-off time.
+> 
+> If we decide to detach the buffer as well as unmapping it, we could just call 
+> __vb2_buf_put and __vb2_buf_userptr put here. If we don't, the code might 
+> still be simplified by adding an argument to __vb2_buf_dmabuf_put to select 
+> whether to unmap and detach the buffer, or just unmap it.
+> 
+> > > +		for (plane = 0; plane < vb->num_planes; ++plane) {
+> > > +			struct vb2_plane *p = &vb->planes[plane];
+> > > +
+> > > +			if (!p->mem_priv)
+> > > +				continue;
+> > 
+> > is the check above really needed? No check like this is done in
+> > vb2_dqbuf.
+> 
+> I think the check comes from __vb2_plane_dmabuf_put. If the buffer is not 
+> queued mem_priv will be NULL. However, that might be redundant with the next 
+> check
+> 
+> > > +			if (p->dbuf_mapped) {
+> > 
+> > If a buffer is queued then it is also mapped, so dbuf_mapped
+> > should be always be true here (at least in theory).
+> 
+> The buffer might never have been queued.
+> 
+> > > +				call_memop(q, unmap_dmabuf, p->mem_priv);
+> > > +				p->dbuf_mapped = 0;
+> > > +			}
+> > > +		}
+> > > +	}
+> > > 
+> > >  }
+> > >  
+> > >  /**
+> 
+> 
