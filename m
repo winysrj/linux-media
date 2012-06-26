@@ -1,85 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from matrix.voodoobox.net ([75.127.97.206]:49271 "EHLO
-	matrix.voodoobox.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751750Ab2FSEi1 (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:37295 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757329Ab2FZNpl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 Jun 2012 00:38:27 -0400
-Message-ID: <1340080702.24618.15.camel@obelisk.thedillows.org>
-Subject: Re: [RFC] [media] cx231xx: restore tuner settings on first open
-From: David Dillow <dave@thedillows.org>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Date: Tue, 19 Jun 2012 00:38:22 -0400
-In-Reply-To: <CAGoCfix48wNUBRuUbehjSHpqV33D68AA7mBy_4zu22JWTkbcmQ@mail.gmail.com>
-References: <1339994998.32360.61.camel@obelisk.thedillows.org>
-	 <201206180929.48107.hverkuil@xs4all.nl>
-	 <1340028940.32360.70.camel@obelisk.thedillows.org>
-	 <CAGoCfize92S-8cR9f-RjQDcZARKiT84UtX-oH0EcPomCYFAyxQ@mail.gmail.com>
-	 <1340029964.23706.4.camel@obelisk.thedillows.org>
-	 <CAGoCfix48wNUBRuUbehjSHpqV33D68AA7mBy_4zu22JWTkbcmQ@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Mime-Version: 1.0
+	Tue, 26 Jun 2012 09:45:41 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@iki.fi, Enrico <ebutera@users.berlios.de>,
+	Jean-Philippe Francois <jp.francois@cynove.com>,
+	Abhishek Reddy Kondaveeti <areddykondaveeti@aptina.com>,
+	Gary Thomas <gary@mlbassoc.com>,
+	Javier Martinez Canillas <martinez.javier@gmail.com>
+Subject: [PATCH 3/6] omap3isp: csi2: Add V4L2_MBUS_FMT_YUYV8_2X8 support
+Date: Tue, 26 Jun 2012 15:45:36 +0200
+Message-Id: <1340718339-29915-4-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1340718339-29915-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1340718339-29915-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 2012-06-18 at 10:36 -0400, Devin Heitmueller wrote:
-> On Mon, Jun 18, 2012 at 10:32 AM, David Dillow <dave@thedillows.org> wrote:
-> > Hmm, it sounds like perhaps changing the standby call in the tuner core
-> > to asynchronously power down the tuner may be the way to go -- ie, when
-> > we tell it to standby, it will do a schedule_work for some 10 seconds
-> > later to really pull it down. If we get a resume call prior to then,
-> > we'll just cancel the work, otherwise we wait for the work to finish and
-> > then issue the resume.
-> >
-> > Does that sound reasonable?
-> 
-> At face value it sounds reasonable, except the approach breaks down as
-> soon as you have hybrid tuners which support both analog and digital.
-> Because the digital side of the tuner isn't tied into tuner-core,
-> you'll break in the following situation:
-> 
-> Start using analog
-> Stop using analog [schedule_work() call]
-> Start using digital
-> Timer pops and powers down the tuner even though it's in use for ATSC
-> or ClearQAM
-> 
-> Again, I'm not proposing a solution, but just poking a fatal hole in
-> your proposal (believe me, I had considered the same approach when
-> first looking at the problem).
+From: Ivaylo Petrov <ivpetrov@mm-sol.com>
 
-No worries, I just started looking at V4L stuff on Friday, so I expect
-to make some mistakes...
+Tested with ov9740 and
 
-It sounds like we want a solution that
-      * lives in core code
-      * doesn't require tuner drivers to save state
-      * manages hybrid tuners appropriately
-      * allows for gradual API change-over (no flag day for tuners or
-        for capture devices)
-      * has a reasonable grace period before putting tuner to standby
+struct isp_csi2_platform_data {
+	.interface = ISP_INTERFACE_CSI2A_PHY2,
+	.bus = {
+		.csi2 = {
+			.crc		= 1,
+			.vpclk_div	= 1,
+		}
+	},
+}
 
-Aside from the entering standby issue, fixing the loss of mode/frequency
-looks like it may be fixable by just having the capture cards explicitly
-request the tuner become active -- the tuner core will already restore
-those for us. It's just that few cards do that today.
+Signed-off-by: Ivaylo Petrov <ivpetrov@mm-sol.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/video/omap3isp/ispcsi2.c |   27 +++++++++++++++++++++++++--
+ 1 files changed, 25 insertions(+), 2 deletions(-)
 
-Is it safe to say that the tuner core will know about all hybrid tuners,
-even if it doesn't know if the digital side is still in use?
-
-Can a single tuner be used for both digital and analog tuning at the
-same time?
-
-I'm wondering if just having a simple counter would work, with the
-digital side calling for power just as the capture side should already
-be doing. If the count is non-zero on a standby call, don't do anything.
-If it goes to zero, then schedule the HW standby. The challenge would
-seem to be getting the DVB system to call into the tuner-core (or other
-proper place).
-
-So much to learn... thank you for your patience,
-Dave
-
-
+diff --git a/drivers/media/video/omap3isp/ispcsi2.c b/drivers/media/video/omap3isp/ispcsi2.c
+index a172436..6a3ff79 100644
+--- a/drivers/media/video/omap3isp/ispcsi2.c
++++ b/drivers/media/video/omap3isp/ispcsi2.c
+@@ -96,11 +96,12 @@ static const unsigned int csi2_input_fmts[] = {
+ 	V4L2_MBUS_FMT_SBGGR10_DPCM8_1X8,
+ 	V4L2_MBUS_FMT_SGBRG10_1X10,
+ 	V4L2_MBUS_FMT_SGBRG10_DPCM8_1X8,
++	V4L2_MBUS_FMT_YUYV8_2X8,
+ };
+ 
+ /* To set the format on the CSI2 requires a mapping function that takes
+  * the following inputs:
+- * - 2 different formats (at this time)
++ * - 3 different formats (at this time)
+  * - 2 destinations (mem, vp+mem) (vp only handled separately)
+  * - 2 decompression options (on, off)
+  * - 2 isp revisions (certain format must be handled differently on OMAP3630)
+@@ -108,7 +109,7 @@ static const unsigned int csi2_input_fmts[] = {
+  * Array indices as follows: [format][dest][decompr][is_3630]
+  * Not all combinations are valid. 0 means invalid.
+  */
+-static const u16 __csi2_fmt_map[2][2][2][2] = {
++static const u16 __csi2_fmt_map[3][2][2][2] = {
+ 	/* RAW10 formats */
+ 	{
+ 		/* Output to memory */
+@@ -147,6 +148,25 @@ static const u16 __csi2_fmt_map[2][2][2][2] = {
+ 			  CSI2_USERDEF_8BIT_DATA1_DPCM10_VP },
+ 		},
+ 	},
++	/* YUYV8 2X8 formats */
++	{
++		/* Output to memory */
++		{
++			/* No DPCM decompression */
++			{ CSI2_PIX_FMT_YUV422_8BIT,
++			  CSI2_PIX_FMT_YUV422_8BIT },
++			/* DPCM decompression */
++			{ 0, 0 },
++		},
++		/* Output to both */
++		{
++			/* No DPCM decompression */
++			{ CSI2_PIX_FMT_YUV422_8BIT_VP,
++			  CSI2_PIX_FMT_YUV422_8BIT_VP },
++			/* DPCM decompression */
++			{ 0, 0 },
++		},
++	},
+ };
+ 
+ /*
+@@ -173,6 +193,9 @@ static u16 csi2_ctx_map_format(struct isp_csi2_device *csi2)
+ 	case V4L2_MBUS_FMT_SGBRG10_DPCM8_1X8:
+ 		fmtidx = 1;
+ 		break;
++	case V4L2_MBUS_FMT_YUYV8_2X8:
++		fmtidx = 2;
++		break;
+ 	default:
+ 		WARN(1, KERN_ERR "CSI2: pixel format %08x unsupported!\n",
+ 		     fmt->code);
+-- 
+1.7.3.4
 
