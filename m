@@ -1,152 +1,188 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:64462 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752418Ab2FKJVQ (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:31029 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750728Ab2FZJfl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Jun 2012 05:21:16 -0400
-Date: Mon, 11 Jun 2012 11:21:09 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Albert Wang <twang13@marvell.com>
-cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"pawel@osciak.com" <pawel@osciak.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: RE: [PATCH] media: videobuf2: fix kernel panic due to missing assign
- NULL to alloc_ctx
-In-Reply-To: <477F20668A386D41ADCC57781B1F7043083A7F0E11@SC-VEXCH1.marvell.com>
-Message-ID: <Pine.LNX.4.64.1206111118210.28244@axis700.grange>
-References: <1339156511-16509-1-git-send-email-twang13@marvell.com>
- <15576892.cR1LHefC7i@avalon> <477F20668A386D41ADCC57781B1F7043083A7F0E11@SC-VEXCH1.marvell.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+	Tue, 26 Jun 2012 05:35:41 -0400
+Received: from eusync3.samsung.com (mailout1.w1.samsung.com [210.118.77.11])
+ by mailout1.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0M67005DVXC9IE30@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 26 Jun 2012 10:36:09 +0100 (BST)
+Received: from AMDN157 ([106.116.147.102])
+ by eusync3.samsung.com (Oracle Communications Messaging Server 7u4-23.01
+ (7.0.4.23.0) 64bit (built Aug 10 2011))
+ with ESMTPA id <0M6700MCEXBBZR50@eusync3.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 26 Jun 2012 10:35:38 +0100 (BST)
+From: Kamil Debski <k.debski@samsung.com>
+To: 'Hans Verkuil' <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: 'Andy Walls' <awalls@md.metrocast.net>,
+	'Guennadi Liakhovetski' <g.liakhovetski@gmx.de>,
+	'Mauro Carvalho Chehab' <mchehab@redhat.com>,
+	'Scott Jiang' <scott.jiang.linux@gmail.com>,
+	'Manjunatha Halli' <manjunatha_halli@ti.com>,
+	'Manjunath Hadli' <manjunath.hadli@ti.com>,
+	'Anatolij Gustschin' <agust@denx.de>,
+	'Javier Martin' <javier.martin@vista-silicon.com>,
+	'Sensoray Linux Development' <linux-dev@sensoray.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
+	'Sachin Kamat' <sachin.kamat@linaro.org>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	mitov@issp.bas.bg, 'Hans Verkuil' <hans.verkuil@cisco.com>
+References: <1340537178-18768-1-git-send-email-hverkuil@xs4all.nl>
+ <451838d4b2e404fdc4babf044ac6326dfc5790d7.1340536092.git.hans.verkuil@cisco.com>
+In-reply-to: <451838d4b2e404fdc4babf044ac6326dfc5790d7.1340536092.git.hans.verkuil@cisco.com>
+Subject: RE: [RFC PATCH 25/26] s5p-mfc: remove V4L2_FL_LOCK_ALL_FOPS
+Date: Tue, 26 Jun 2012 11:35:33 +0200
+Message-id: <000101cd537f$0af765b0$20e63110$%debski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-language: en-gb
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Albert
+Hi Hans,
 
-On Mon, 11 Jun 2012, Albert Wang wrote:
+Thank you for your patch. I have tested it on our hardware and MFC works.
 
-> Hi, Laurent
-> 
-> Thanks for your reply!
-> 
-> We allocated the context when init_videobuf2() which will be called in 
-> soc_camera_open(), so if we get exit with exception in 
-> soc_camera_set_fmt()
-> Actually we will double call vb2_dma_contig_cleanup_ctx().
-> 
-> 	ret = soc_camera_set_fmt(icd, &f);
-> 	if (ret < 0)
-> 		goto esfmt;
-> 
-> 	if (ici->ops->init_videobuf) {
-> 		ici->ops->init_videobuf(&icd->vb_vidq, icd);
-> 	} else {
-> 		ret = ici->ops->init_videobuf2(&icd->vb2_vidq, icd);
-> 		if (ret < 0)
-> 			goto einitvb;
-> 	}
-> 
-> Actually, in current code, we can found some drivers allocated the 
-> context in probe(), and some drivers also do that in soc_camera_open().
+Best wishes,
+--
+Kamil Debski
+Linux Platform Group
+Samsung Poland R&D Center
 
-Sorry, AFAICS all soc-camera host drivers allocate vb2 context in their 
-.probe() methods. Can you point me out to the one(s) you mean, that do 
-that at open() time?
-
-> Of course, we can update our driver and move it to probe(), it will 
-> stand aside the issue, that's also OK for us.
-> 
-> But we still think it's not safe that leave the point be a non-NULL 
-> after we have kfree it. Do you think so?
-
-Your patch doesn't fix anything. It only changes the local variable in the 
-vb2_dma_contig_cleanup_ctx() function, which doesn't affect the caller in 
-any way.
-
-Thanks
-Guennadi
-
-> Thanks
-> Albert Wang
-> 86-21-61092656
-> 
 > -----Original Message-----
-> From: Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com] 
-> Sent: Monday, 11 June, 2012 16:00
-> To: Albert Wang
-> Cc: pawel@osciak.com; g.liakhovetski@gmx.de; linux-media@vger.kernel.org
-> Subject: Re: [PATCH] media: videobuf2: fix kernel panic due to missing assign NULL to alloc_ctx
+> From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
+> Sent: 24 June 2012 13:26
+> To: linux-media@vger.kernel.org
+> Cc: Andy Walls; Guennadi Liakhovetski; Mauro Carvalho Chehab; Scott Jiang;
+> Manjunatha Halli; Manjunath Hadli; Anatolij Gustschin; Javier Martin;
+> Sensoray Linux Development; Sylwester Nawrocki; Kamil Debski; Andrzej
+> Pietrasiewicz; Sachin Kamat; Tomasz Stanislawski; mitov@issp.bas.bg; Hans
+> Verkuil
+> Subject: [RFC PATCH 25/26] s5p-mfc: remove V4L2_FL_LOCK_ALL_FOPS
 > 
-> Hi Albert,
+> From: Hans Verkuil <hans.verkuil@cisco.com>
 > 
-> On Friday 08 June 2012 19:55:11 Albert Wang wrote:
-> >   In function vb2_dma_contig_cleanup_ctx(), we only kfree the alloc_ctx
-> >   If we didn't assign NULL to this point after kfree it,
-> >   we may encounter the following kernel panic:
-> > 
-> >  kernel BUG at kernel/cred.c:98!
-> >  Unable to handle kernel NULL pointer dereference at virtual address
-> > 00000000 pgd = c0004000
-> >  [00000000] *pgd=00000000
-> >  Internal error: Oops: 817 [#1] PREEMPT SMP  Modules linked in: 
-> > runcase_sysfs galcore mv_wtm_drv mv_wtm_prim
-> >  CPU: 0    Not tainted  (3.0.8+ #213)
-> >  PC is at __bug+0x18/0x24
-> >  LR is at __bug+0x14/0x24
-> >  pc : [<c0054670>]    lr : [<c005466c>]    psr: 60000113
-> >  sp : c0681ec0  ip : f683e000  fp : 00000000
-> >  r10: e8ab4b58  r9 : 00000fff  r8 : 00000002
-> >  r7 : e8665698  r6 : c10079ec  r5 : e8b13d80  r4 : e8b13d98
-> >  r3 : 00000000  r2 : c0681eb4  r1 : c05c9ccc  r0 : 00000035
-> >  Flags: nZCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment kernel
-> >  Control: 10c53c7d  Table: 29c3406a  DAC: 00000015
-> > 
-> >   the root cause is we may encounter some i2c or HW issue with sensor
-> >   which result in driver exit with exception during soc_camera_set_fmt()
-> >   from soc_camera_open():
-> > 
-> > 	ret = soc_camera_set_fmt(icd, &f);
-> > 	if (ret < 0)
-> > 		goto esfmt;
-> > 
-> >   it will call ici->ops->remove() in following code:
-> > 
-> >   esfmt:
-> > 	pm_runtime_disable(&icd->vdev->dev);
-> >   eresume:
-> > 	ici->ops->remove(icd);
-> > 
-> >   ici->ops->remove() will call vb2_dma_contig_cleanup_ctx() for cleanup
-> >   but we didn't do ici->ops->init_videobuf2() yet at that time
-> >   it will result in kfree a non-NULL point twice
+> Add proper locking to the file operations, allowing for the removal
+> of the V4L2_FL_LOCK_ALL_FOPS flag.
 > 
-> I'm not sure to follow you. How is init_videobuf2() related ? The context is allocated once only at probe time from what I can see. Your problem is more likely caused by a double call to vb2_dma_contig_cleanup_ctx(), which looks like a driver bug to me, not a videobuf2 bug.
-> 
-> > Change-Id: I1c66dd08438ae90abe555c52edcdbca0d39d829d
-> > Signed-off-by: Albert Wang <twang13@marvell.com>
-> > ---
-> >  drivers/media/video/videobuf2-dma-contig.c |    1 +
-> >  1 files changed, 1 insertions(+), 0 deletions(-)
-> > 
-> > diff --git a/drivers/media/video/videobuf2-dma-contig.c
-> > b/drivers/media/video/videobuf2-dma-contig.c index 4b71326..9881171 
-> > 100755
-> > --- a/drivers/media/video/videobuf2-dma-contig.c
-> > +++ b/drivers/media/video/videobuf2-dma-contig.c
-> > @@ -178,6 +178,7 @@ EXPORT_SYMBOL_GPL(vb2_dma_contig_init_ctx);
-> >  void vb2_dma_contig_cleanup_ctx(void *alloc_ctx)  {
-> >  	kfree(alloc_ctx);
-> > +	alloc_ctx = NULL;
-> >  }
-> >  EXPORT_SYMBOL_GPL(vb2_dma_contig_cleanup_ctx);
-> 
-> --
-> Regards,
-> 
-> Laurent Pinchart
-> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Acked-by: Kamil Debski <k.debski@samsung.com>
+
+> ---
+>  drivers/media/video/s5p-mfc/s5p_mfc.c |   19 +++++++++++++------
+>  1 file changed, 13 insertions(+), 6 deletions(-)
+> 
+> diff --git a/drivers/media/video/s5p-mfc/s5p_mfc.c
+> b/drivers/media/video/s5p-mfc/s5p_mfc.c
+> index 9bb68e7..e3e616d 100644
+> --- a/drivers/media/video/s5p-mfc/s5p_mfc.c
+> +++ b/drivers/media/video/s5p-mfc/s5p_mfc.c
+> @@ -645,6 +645,8 @@ static int s5p_mfc_open(struct file *file)
+>  	int ret = 0;
+> 
+>  	mfc_debug_enter();
+> +	if (mutex_lock_interruptible(&dev->mfc_mutex))
+> +		return -ERESTARTSYS;
+>  	dev->num_inst++;	/* It is guarded by mfc_mutex in vfd */
+>  	/* Allocate memory for context */
+>  	ctx = kzalloc(sizeof *ctx, GFP_KERNEL);
+> @@ -765,6 +767,7 @@ static int s5p_mfc_open(struct file *file)
+>  		goto err_queue_init;
+>  	}
+>  	init_waitqueue_head(&ctx->queue);
+> +	mutex_unlock(&dev->mfc_mutex);
+>  	mfc_debug_leave();
+>  	return ret;
+>  	/* Deinit when failure occured */
+> @@ -790,6 +793,7 @@ err_no_ctx:
+>  	kfree(ctx);
+>  err_alloc:
+>  	dev->num_inst--;
+> +	mutex_unlock(&dev->mfc_mutex);
+>  	mfc_debug_leave();
+>  	return ret;
+>  }
+> @@ -802,6 +806,7 @@ static int s5p_mfc_release(struct file *file)
+>  	unsigned long flags;
+> 
+>  	mfc_debug_enter();
+> +	mutex_lock(&dev->mfc_mutex);
+>  	s5p_mfc_clock_on();
+>  	vb2_queue_release(&ctx->vq_src);
+>  	vb2_queue_release(&ctx->vq_dst);
+> @@ -855,6 +860,7 @@ static int s5p_mfc_release(struct file *file)
+>  	v4l2_fh_exit(&ctx->fh);
+>  	kfree(ctx);
+>  	mfc_debug_leave();
+> +	mutex_unlock(&dev->mfc_mutex);
+>  	return 0;
+>  }
+> 
+> @@ -869,6 +875,7 @@ static unsigned int s5p_mfc_poll(struct file *file,
+>  	unsigned int rc = 0;
+>  	unsigned long flags;
+> 
+> +	mutex_lock(&dev->mfc_mutex);
+>  	src_q = &ctx->vq_src;
+>  	dst_q = &ctx->vq_dst;
+>  	/*
+> @@ -902,6 +909,7 @@ static unsigned int s5p_mfc_poll(struct file *file,
+>  		rc |= POLLIN | POLLRDNORM;
+>  	spin_unlock_irqrestore(&dst_q->done_lock, flags);
+>  end:
+> +	mutex_unlock(&dev->mfc_mutex);
+>  	return rc;
+>  }
+> 
+> @@ -909,8 +917,12 @@ end:
+>  static int s5p_mfc_mmap(struct file *file, struct vm_area_struct *vma)
+>  {
+>  	struct s5p_mfc_ctx *ctx = fh_to_ctx(file->private_data);
+> +	struct s5p_mfc_dev *dev = ctx->dev;
+>  	unsigned long offset = vma->vm_pgoff << PAGE_SHIFT;
+>  	int ret;
+> +
+> +	if (mutex_lock_interruptible(&dev->mfc_mutex))
+> +		return -ERESTARTSYS;
+>  	if (offset < DST_QUEUE_OFF_BASE) {
+>  		mfc_debug(2, "mmaping source\n");
+>  		ret = vb2_mmap(&ctx->vq_src, vma);
+> @@ -919,6 +931,7 @@ static int s5p_mfc_mmap(struct file *file, struct
+> vm_area_struct *vma)
+>  		vma->vm_pgoff -= (DST_QUEUE_OFF_BASE >> PAGE_SHIFT);
+>  		ret = vb2_mmap(&ctx->vq_dst, vma);
+>  	}
+> +	mutex_unlock(&dev->mfc_mutex);
+>  	return ret;
+>  }
+> 
+> @@ -1034,10 +1047,6 @@ static int s5p_mfc_probe(struct platform_device
+> *pdev)
+>  	vfd->ioctl_ops	= get_dec_v4l2_ioctl_ops();
+>  	vfd->release	= video_device_release,
+>  	vfd->lock	= &dev->mfc_mutex;
+> -	/* Locking in file operations other than ioctl should be done
+> -	   by the driver, not the V4L2 core.
+> -	   This driver needs auditing so that this flag can be removed. */
+> -	set_bit(V4L2_FL_LOCK_ALL_FOPS, &vfd->flags);
+>  	vfd->v4l2_dev	= &dev->v4l2_dev;
+>  	snprintf(vfd->name, sizeof(vfd->name), "%s", S5P_MFC_DEC_NAME);
+>  	dev->vfd_dec	= vfd;
+> @@ -1062,8 +1071,6 @@ static int s5p_mfc_probe(struct platform_device
+> *pdev)
+>  	vfd->ioctl_ops	= get_enc_v4l2_ioctl_ops();
+>  	vfd->release	= video_device_release,
+>  	vfd->lock	= &dev->mfc_mutex;
+> -	/* This should not be necessary */
+> -	set_bit(V4L2_FL_LOCK_ALL_FOPS, &vfd->flags);
+>  	vfd->v4l2_dev	= &dev->v4l2_dev;
+>  	snprintf(vfd->name, sizeof(vfd->name), "%s", S5P_MFC_ENC_NAME);
+>  	dev->vfd_enc	= vfd;
+> --
+> 1.7.10
+
