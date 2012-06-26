@@ -1,63 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:2313 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932433Ab2F1Gs5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 Jun 2012 02:48:57 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv3 PATCH 30/33] vivi: add create_bufs/preparebuf support.
-Date: Thu, 28 Jun 2012 08:48:24 +0200
-Message-Id: <a38c2a7ca5b0cdb8cb1a73703851d19d883a8933.1340865818.git.hans.verkuil@cisco.com>
-In-Reply-To: <1340866107-4188-1-git-send-email-hverkuil@xs4all.nl>
-References: <1340866107-4188-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <d97434d2319fb8dbea360404f9343c680b5b196e.1340865818.git.hans.verkuil@cisco.com>
-References: <d97434d2319fb8dbea360404f9343c680b5b196e.1340865818.git.hans.verkuil@cisco.com>
+Received: from mx1.redhat.com ([209.132.183.28]:56529 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751989Ab2FZTeh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 Jun 2012 15:34:37 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Antti Palosaari <crope@iki.fi>, Kay Sievers <kay@redhat.com>,
+	Greg KH <gregkh@linuxfoundation.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH RFC 4/4] tuner-xc2028: tag the usual firmwares to help dracut
+Date: Tue, 26 Jun 2012 16:34:22 -0300
+Message-Id: <1340739262-13747-5-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1340739262-13747-1-git-send-email-mchehab@redhat.com>
+References: <4FE9169D.5020300@redhat.com>
+ <1340739262-13747-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+When tuner-xc2028 is not compiled as a module, dracut will
+need to copy the firmware inside the initfs image.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+So, use MODULE_FIRMWARE() to indicate such need.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
- drivers/media/video/vivi.c |   10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+ drivers/media/common/tuners/tuner-xc2028.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/drivers/media/video/vivi.c b/drivers/media/video/vivi.c
-index f6d7c6e..1e8c4f3 100644
---- a/drivers/media/video/vivi.c
-+++ b/drivers/media/video/vivi.c
-@@ -767,7 +767,13 @@ static int queue_setup(struct vb2_queue *vq, const struct v4l2_format *fmt,
- 	struct vivi_dev *dev = vb2_get_drv_priv(vq);
- 	unsigned long size;
- 
--	size = dev->width * dev->height * dev->pixelsize;
-+	if (fmt)
-+		size = fmt->fmt.pix.sizeimage;
-+	else
-+		size = dev->width * dev->height * dev->pixelsize;
-+
-+	if (size == 0)
-+		return -EINVAL;
- 
- 	if (0 == *nbuffers)
- 		*nbuffers = 32;
-@@ -1180,6 +1186,8 @@ static const struct v4l2_ioctl_ops vivi_ioctl_ops = {
- 	.vidioc_try_fmt_vid_cap   = vidioc_try_fmt_vid_cap,
- 	.vidioc_s_fmt_vid_cap     = vidioc_s_fmt_vid_cap,
- 	.vidioc_reqbufs       = vb2_ioctl_reqbufs,
-+	.vidioc_create_bufs   = vb2_ioctl_create_bufs,
-+	.vidioc_prepare_buf   = vb2_ioctl_prepare_buf,
- 	.vidioc_querybuf      = vb2_ioctl_querybuf,
- 	.vidioc_qbuf          = vb2_ioctl_qbuf,
- 	.vidioc_dqbuf         = vb2_ioctl_dqbuf,
+diff --git a/drivers/media/common/tuners/tuner-xc2028.c b/drivers/media/common/tuners/tuner-xc2028.c
+index b5ee3eb..2e6c966 100644
+--- a/drivers/media/common/tuners/tuner-xc2028.c
++++ b/drivers/media/common/tuners/tuner-xc2028.c
+@@ -1375,3 +1375,5 @@ MODULE_DESCRIPTION("Xceive xc2028/xc3028 tuner driver");
+ MODULE_AUTHOR("Michel Ludwig <michel.ludwig@gmail.com>");
+ MODULE_AUTHOR("Mauro Carvalho Chehab <mchehab@infradead.org>");
+ MODULE_LICENSE("GPL");
++MODULE_FIRMWARE(XC2028_DEFAULT_FIRMWARE);
++MODULE_FIRMWARE(XC3028L_DEFAULT_FIRMWARE);
 -- 
-1.7.10
+1.7.10.2
 
