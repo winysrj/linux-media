@@ -1,257 +1,231 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:2877 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932706Ab2FVMV6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Jun 2012 08:21:58 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Pawel Osciak <pawel@osciak.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv2 PATCH 30/34] vivi: use vb2 helper functions.
-Date: Fri, 22 Jun 2012 14:21:24 +0200
-Message-Id: <fc6d100b11b4859548404052e55a7a57f6564b34.1340366355.git.hans.verkuil@cisco.com>
-In-Reply-To: <1340367688-8722-1-git-send-email-hverkuil@xs4all.nl>
-References: <1340367688-8722-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1cee710ae251aa69bed8e563a94b419ed99bc41a.1340366355.git.hans.verkuil@cisco.com>
-References: <1cee710ae251aa69bed8e563a94b419ed99bc41a.1340366355.git.hans.verkuil@cisco.com>
+Received: from mx1.redhat.com ([209.132.183.28]:36596 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757862Ab2FZBzy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 Jun 2012 21:55:54 -0400
+Message-ID: <4FE9169D.5020300@redhat.com>
+Date: Mon, 25 Jun 2012 22:55:41 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Greg KH <gregkh@linuxfoundation.org>
+CC: Antti Palosaari <crope@iki.fi>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Kay Sievers <kay@redhat.com>
+Subject: Re: Need of an ".async_probe()" type of callback at driver's core
+ - Was: Re: [PATCH] [media] drxk: change it to use request_firmware_nowait()
+References: <1340285798-8322-1-git-send-email-mchehab@redhat.com> <4FE37194.30407@redhat.com> <4FE8B8BC.3020702@iki.fi> <4FE8C4C4.1050901@redhat.com> <4FE8CED5.104@redhat.com> <20120625223306.GA2764@kroah.com>
+In-Reply-To: <20120625223306.GA2764@kroah.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Em 25-06-2012 19:33, Greg KH escreveu:
+> On Mon, Jun 25, 2012 at 05:49:25PM -0300, Mauro Carvalho Chehab wrote:
+>> Greg,
+>>
+>> Basically, the recent changes at request_firmware() exposed an issue that
+>> affects all media drivers that use firmware (64 drivers).
+> 
+> What change was that?  How did it break anything?
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/video/vivi.c |  150 ++++----------------------------------------
- 1 file changed, 12 insertions(+), 138 deletions(-)
+https://bugzilla.redhat.com/show_bug.cgi?id=827538
 
-diff --git a/drivers/media/video/vivi.c b/drivers/media/video/vivi.c
-index 1e4da5e..f6d7c6e 100644
---- a/drivers/media/video/vivi.c
-+++ b/drivers/media/video/vivi.c
-@@ -790,27 +790,6 @@ static int queue_setup(struct vb2_queue *vq, const struct v4l2_format *fmt,
- 	return 0;
- }
- 
--static int buffer_init(struct vb2_buffer *vb)
--{
--	struct vivi_dev *dev = vb2_get_drv_priv(vb->vb2_queue);
--
--	BUG_ON(NULL == dev->fmt);
--
--	/*
--	 * This callback is called once per buffer, after its allocation.
--	 *
--	 * Vivi does not allow changing format during streaming, but it is
--	 * possible to do so when streaming is paused (i.e. in streamoff state).
--	 * Buffers however are not freed when going into streamoff and so
--	 * buffer size verification has to be done in buffer_prepare, on each
--	 * qbuf.
--	 * It would be best to move verification code here to buf_init and
--	 * s_fmt though.
--	 */
--
--	return 0;
--}
--
- static int buffer_prepare(struct vb2_buffer *vb)
- {
- 	struct vivi_dev *dev = vb2_get_drv_priv(vb->vb2_queue);
-@@ -848,20 +827,6 @@ static int buffer_prepare(struct vb2_buffer *vb)
- 	return 0;
- }
- 
--static int buffer_finish(struct vb2_buffer *vb)
--{
--	struct vivi_dev *dev = vb2_get_drv_priv(vb->vb2_queue);
--	dprintk(dev, 1, "%s\n", __func__);
--	return 0;
--}
--
--static void buffer_cleanup(struct vb2_buffer *vb)
--{
--	struct vivi_dev *dev = vb2_get_drv_priv(vb->vb2_queue);
--	dprintk(dev, 1, "%s\n", __func__);
--
--}
--
- static void buffer_queue(struct vb2_buffer *vb)
- {
- 	struct vivi_dev *dev = vb2_get_drv_priv(vb->vb2_queue);
-@@ -907,10 +872,7 @@ static void vivi_unlock(struct vb2_queue *vq)
- 
- static struct vb2_ops vivi_video_qops = {
- 	.queue_setup		= queue_setup,
--	.buf_init		= buffer_init,
- 	.buf_prepare		= buffer_prepare,
--	.buf_finish		= buffer_finish,
--	.buf_cleanup		= buffer_cleanup,
- 	.buf_queue		= buffer_queue,
- 	.start_streaming	= start_streaming,
- 	.stop_streaming		= stop_streaming,
-@@ -1019,7 +981,7 @@ static int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
- 	if (ret < 0)
- 		return ret;
- 
--	if (vb2_is_streaming(q)) {
-+	if (vb2_is_busy(q)) {
- 		dprintk(dev, 1, "%s device busy\n", __func__);
- 		return -EBUSY;
- 	}
-@@ -1033,43 +995,6 @@ static int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
- 	return 0;
- }
- 
--static int vidioc_reqbufs(struct file *file, void *priv,
--			  struct v4l2_requestbuffers *p)
--{
--	struct vivi_dev *dev = video_drvdata(file);
--	return vb2_reqbufs(&dev->vb_vidq, p);
--}
--
--static int vidioc_querybuf(struct file *file, void *priv, struct v4l2_buffer *p)
--{
--	struct vivi_dev *dev = video_drvdata(file);
--	return vb2_querybuf(&dev->vb_vidq, p);
--}
--
--static int vidioc_qbuf(struct file *file, void *priv, struct v4l2_buffer *p)
--{
--	struct vivi_dev *dev = video_drvdata(file);
--	return vb2_qbuf(&dev->vb_vidq, p);
--}
--
--static int vidioc_dqbuf(struct file *file, void *priv, struct v4l2_buffer *p)
--{
--	struct vivi_dev *dev = video_drvdata(file);
--	return vb2_dqbuf(&dev->vb_vidq, p, file->f_flags & O_NONBLOCK);
--}
--
--static int vidioc_streamon(struct file *file, void *priv, enum v4l2_buf_type i)
--{
--	struct vivi_dev *dev = video_drvdata(file);
--	return vb2_streamon(&dev->vb_vidq, i);
--}
--
--static int vidioc_streamoff(struct file *file, void *priv, enum v4l2_buf_type i)
--{
--	struct vivi_dev *dev = video_drvdata(file);
--	return vb2_streamoff(&dev->vb_vidq, i);
--}
--
- /* only one input in this sample driver */
- static int vidioc_enum_input(struct file *file, void *priv,
- 				struct v4l2_input *inp)
-@@ -1137,58 +1062,6 @@ static int vivi_s_ctrl(struct v4l2_ctrl *ctrl)
- 	File operations for the device
-    ------------------------------------------------------------------*/
- 
--static ssize_t
--vivi_read(struct file *file, char __user *data, size_t count, loff_t *ppos)
--{
--	struct vivi_dev *dev = video_drvdata(file);
--	int err;
--
--	dprintk(dev, 1, "read called\n");
--	mutex_lock(&dev->mutex);
--	err = vb2_read(&dev->vb_vidq, data, count, ppos,
--		       file->f_flags & O_NONBLOCK);
--	mutex_unlock(&dev->mutex);
--	return err;
--}
--
--static unsigned int
--vivi_poll(struct file *file, struct poll_table_struct *wait)
--{
--	struct vivi_dev *dev = video_drvdata(file);
--	struct vb2_queue *q = &dev->vb_vidq;
--
--	dprintk(dev, 1, "%s\n", __func__);
--	return vb2_poll(q, file, wait);
--}
--
--static int vivi_close(struct file *file)
--{
--	struct video_device  *vdev = video_devdata(file);
--	struct vivi_dev *dev = video_drvdata(file);
--
--	dprintk(dev, 1, "close called (dev=%s), file %p\n",
--		video_device_node_name(vdev), file);
--
--	if (v4l2_fh_is_singular_file(file))
--		vb2_queue_release(&dev->vb_vidq);
--	return v4l2_fh_release(file);
--}
--
--static int vivi_mmap(struct file *file, struct vm_area_struct *vma)
--{
--	struct vivi_dev *dev = video_drvdata(file);
--	int ret;
--
--	dprintk(dev, 1, "mmap called, vma=0x%08lx\n", (unsigned long)vma);
--
--	ret = vb2_mmap(&dev->vb_vidq, vma);
--	dprintk(dev, 1, "vma start=0x%08lx, size=%ld, ret=%d\n",
--		(unsigned long)vma->vm_start,
--		(unsigned long)vma->vm_end - (unsigned long)vma->vm_start,
--		ret);
--	return ret;
--}
--
- static const struct v4l2_ctrl_ops vivi_ctrl_ops = {
- 	.g_volatile_ctrl = vivi_g_volatile_ctrl,
- 	.s_ctrl = vivi_s_ctrl,
-@@ -1293,11 +1166,11 @@ static const struct v4l2_ctrl_config vivi_ctrl_int_menu = {
- static const struct v4l2_file_operations vivi_fops = {
- 	.owner		= THIS_MODULE,
- 	.open           = v4l2_fh_open,
--	.release        = vivi_close,
--	.read           = vivi_read,
--	.poll		= vivi_poll,
-+	.release        = vb2_fop_release,
-+	.read           = vb2_fop_read,
-+	.poll		= vb2_fop_poll,
- 	.unlocked_ioctl = video_ioctl2, /* V4L2 ioctl handler */
--	.mmap           = vivi_mmap,
-+	.mmap           = vb2_fop_mmap,
- };
- 
- static const struct v4l2_ioctl_ops vivi_ioctl_ops = {
-@@ -1306,15 +1179,15 @@ static const struct v4l2_ioctl_ops vivi_ioctl_ops = {
- 	.vidioc_g_fmt_vid_cap     = vidioc_g_fmt_vid_cap,
- 	.vidioc_try_fmt_vid_cap   = vidioc_try_fmt_vid_cap,
- 	.vidioc_s_fmt_vid_cap     = vidioc_s_fmt_vid_cap,
--	.vidioc_reqbufs       = vidioc_reqbufs,
--	.vidioc_querybuf      = vidioc_querybuf,
--	.vidioc_qbuf          = vidioc_qbuf,
--	.vidioc_dqbuf         = vidioc_dqbuf,
-+	.vidioc_reqbufs       = vb2_ioctl_reqbufs,
-+	.vidioc_querybuf      = vb2_ioctl_querybuf,
-+	.vidioc_qbuf          = vb2_ioctl_qbuf,
-+	.vidioc_dqbuf         = vb2_ioctl_dqbuf,
- 	.vidioc_enum_input    = vidioc_enum_input,
- 	.vidioc_g_input       = vidioc_g_input,
- 	.vidioc_s_input       = vidioc_s_input,
--	.vidioc_streamon      = vidioc_streamon,
--	.vidioc_streamoff     = vidioc_streamoff,
-+	.vidioc_streamon      = vb2_ioctl_streamon,
-+	.vidioc_streamoff     = vb2_ioctl_streamoff,
- 	.vidioc_log_status    = v4l2_ctrl_log_status,
- 	.vidioc_subscribe_event = v4l2_ctrl_subscribe_event,
- 	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
-@@ -1432,6 +1305,7 @@ static int __init vivi_create_instance(int inst)
- 	*vfd = vivi_template;
- 	vfd->debug = debug;
- 	vfd->v4l2_dev = &dev->v4l2_dev;
-+	vfd->queue = q;
- 	set_bit(V4L2_FL_USE_FH_PRIO, &vfd->flags);
- 
- 	/*
--- 
-1.7.10
+Basically, userspace changes and some pm-related patches, mainly this one [1]:
 
+@@ -613,7 +606,14 @@ request_firmware(const struct firmware **firmware_p, const char *name,
+	if (ret <= 0)
+		return ret;
+ 
+-	ret = _request_firmware(*firmware_p, name, device, true, false);
++	ret = usermodehelper_read_trylock();
++	if (WARN_ON(ret)) {
++		dev_err(device, "firmware: %s will not be loaded\n", name);
++	} else {
++		ret = _request_firmware(*firmware_p, name, device, true, false,
++				        firmware_loading_timeout());
++		usermodehelper_read_unlock();
++	}
+	if (ret)
+		_request_firmware_cleanup(firmware_p);
+ 
+[1] at git commit 9b78c1da60b3c62ccdd1509f0902ad19ceaf776b
+
+>> Driver's documentation at Documentation/driver-model/driver.txt says that the
+>> .probe() callback should "bind the driver to a given device.  That includes
+>> verifying that the device is present, that it's a version the driver can handle,
+>> that driver data structures can be allocated and initialized, and that any
+>> hardware can be initialized".
+> 
+> Yes.
+> 
+>> All media device drivers are complaint with that, returning 0 on success
+>> (meaning that the device was successfully probed) or an error otherwise.
+> 
+> Great, no probems then :)
+> 
+>> Almost all media devices are made by a SoC or a RISC CPU that works
+>> as a DMA engine and exposes a set of registers to allow I2C access to the
+>> device's internal and/or external I2C buses. Part of them have an internal
+>> EEPROM/ROM that stores firmware internally at the board, but others require
+>> a firmware to be loaded before being able to init/control the device and to
+>> export the I2C bus interface.
+>>
+>> The media handling function is then implemented via a series of I2C devices[1]:
+>> 	- analog video decoders;
+>> 	- TV tuners;
+>> 	- radio tuners;
+>> 	- I2C remote controller decoders;
+>> 	- DVB frontends;
+>> 	- mpeg decoders;
+>> 	- mpeg encoders;
+>> 	- video enhancement devices;
+>> 	...
+>>
+>> [1] several media chips have part of those function implemented internally,
+>> but almost all require external I2C components to be probed.
+>>
+>> In order to properly refer to each component, we call the "main" kernel module
+>> that talks with the media device via USB/PCI bus is called "bridge driver",
+>> and the I2C components are called as "sub-devices".
+>>
+>> Different vendors use the same bridge driver to work with different sub-devices.
+>>
+>> It is a .probe()'s task to detect what sub-devices are there inside the board.
+>>
+>> There are several cases where the vendor switched the sub-devices without
+>> changing the PCI ID/USB ID.
+> 
+> Hardware vendors suck, we all know that :(
+> 
+>> So, drivers do things like the code below, inside the .probe() callback:
+>>
+>> static int check_if_dvb_frontend_is_supported_and_bind()
+>> {
+>> 	switch (device_model) {
+>> 	case VENDOR_A_MODEL_1:
+>> 		if (test_and_bind_frontend_1())	/* Doesn't require firmware */
+>> 			return 0;
+>> 		if (test_and_bind_frontend_2())	/* requires firmware "foo" */
+>> 			return 0;
+>> 		if (test_and_bind_frontend_3())	/* requires firmware "bar" */
+>> 			return 0;
+> 
+> Wait, why would these, if they require firmware, not load the firmware
+> at this point in time?  Why are they saying "all is fine" here?
+
+The above is a prototype of what happens. The "test_and_bind_frontend_n()" 
+logic are, in fact, more complex than that: it tries to load the firmware
+inside each frontend's code when needed.
+
+This is a real example (taken from ttpci budget driver):
+
+	switch(budget->dev->pci->subsystem_device) {
+	case 0x1003: // Hauppauge/TT Nova budget (stv0299/ALPS BSRU6(tsa5059) OR ves1893/ALPS BSRV2(sp5659))
+	case 0x1013:
+		// try the ALPS BSRV2 first of all
+		budget->dvb_frontend = dvb_attach(ves1x93_attach, &alps_bsrv2_config, &budget->i2c_adap);
+		if (budget->dvb_frontend) {
+			budget->dvb_frontend->ops.tuner_ops.set_params = alps_bsrv2_tuner_set_params;
+			budget->dvb_frontend->ops.diseqc_send_master_cmd = budget_diseqc_send_master_cmd;
+			budget->dvb_frontend->ops.diseqc_send_burst = budget_diseqc_send_burst;
+			budget->dvb_frontend->ops.set_tone = budget_set_tone;
+			break;
+		}
+
+		// try the ALPS BSRU6 now
+		budget->dvb_frontend = dvb_attach(stv0299_attach, &alps_bsru6_config, &budget->i2c_adap);
+		if (budget->dvb_frontend) {
+			budget->dvb_frontend->ops.tuner_ops.set_params = alps_bsru6_tuner_set_params;
+			budget->dvb_frontend->tuner_priv = &budget->i2c_adap;
+			if (budget->dev->pci->subsystem_device == 0x1003 && diseqc_method == 0) {
+				budget->dvb_frontend->ops.diseqc_send_master_cmd = budget_diseqc_send_master_cmd;
+				budget->dvb_frontend->ops.diseqc_send_burst = budget_diseqc_send_burst;
+				budget->dvb_frontend->ops.set_tone = budget_set_tone;
+			}
+			break;
+		}
+		break;
+
+>> 		if (test_and_bind_frontend_4()) /* doesn't require firmware */
+>> 			return 0;
+>> 		break;
+>> 	case VENDOR_A_MODEL_2:
+>> 		/* Analog device - no DVB frontend on it */
+>> 		return 0;
+>> 	...
+>> 	}
+>> 	return -ENODEV;
+>> }
+>>
+>> On several devices, before being able to register the bus and do the actual
+>> probe, the kernel needs to load a firmware.
+> 
+> That's common.
+> 
+>> Also, during the I2C device probing time, firmware may be required, in order
+>> to properly expose the device's internal models and their capabilities.
+>>
+>> For example, drx-k sub-device can have support for either DVB-C or DVB-T or both,
+>> depending on the device model. That affects the frontend properties exposed
+>> to the user and might affect the bridge driver's initialization task.
+>>
+>> In practice, a driver like em28xx have a few devices like HVR-930C that require
+>> the drx-k sub-device. For those devices, a firmware is required; for other
+>> devices, a firmware is not required.
+>>
+>> What's happening is that newer versions of request_firmware and udev are being
+>> more pedantic (for a reason) about not requesting firmwares during module_init
+>> or PCI/USB register's probe callback.
+> 
+> It is?  What changed to require this?  What commit id?
+
+See above.
+
+>> Worse than that, the same device driver may require a firmware or not, depending on
+>> the I2C devices inside it. One such example is em28xx: for the great majority of
+>> the supported devices, no firmware is needed, but devices like HVR-930C require
+>> a firmware, because it uses a frontend that needs firmware.
+>>
+>> After some discussions, it seems that the best model would be to add an async_probe()
+>> callback to be used by devices similar to media ones. The async_probe() should be
+>> not probed during the module_init; the probe() will be deferred to happen later,
+>> when firmware's usermodehelper_disabled is false, allowing those drivers to load their
+>> firmwares if needed.
+>>
+>> What do you think?
+> 
+> We already have deferred probe() calls, you just need to return a
+> different value (can't remember it at the moment), and your probe
+> function will be called again at a later time after the rest of the
+> devices in the system have been initialized.  Can that work for you?
+
+Yeah, I think so. From what I saw, devices that require firmware could do, inside
+their probe routine:
+
+	if (usermodehelper_disabled)
+		return -EPROBE_DEFER;
+
+As usermodehelper_disabled is an static symbol at kernel/kmod.c, we would need to
+either export it globally or to create a small routine that would return it to
+the drivers.
+
+For bridge drivers, a change like that would be trivial. For I2C devices, such change
+can be more complex, as the probe() routine will need to be broken into some stages,
+one for the bridge driver's core and another one for each I2C device that can be deferred,
+keeping a record on what it was deferred, but it seems feasible to me.
+
+Thank you for the suggestion!
+ 
+> Or, if you "know" you are going to accept this device, just return 0
+> from probe() after spawning a workqueue or thread to load the firmware
+> properly and do everything else you need to do to initialize.  If
+> something bad happens, unbind your device with a call to unbind things.
+
+Not sure if this would work, as there are some USB devices with multiple
+interfaces and some are handled by other drivers (like mceusb and snd-usb-audio).
+
+IMO, the deferred probe() is the right answer for this issue.
+
+Thanks!
+Mauro
