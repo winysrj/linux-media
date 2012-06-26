@@ -1,283 +1,152 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.48]:41187 "EHLO mgw-sa02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755914Ab2FJTfI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Jun 2012 15:35:08 -0400
-From: Sakari Ailus <sakari.ailus@iki.fi>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:51012 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757862Ab2FZBe7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 Jun 2012 21:34:59 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: snjw23@gmail.com, hverkuil@xs4all.nl,
-	laurent.pinchart@ideasonboard.com
-Subject: [PATCH 4/4] v4l: Common documentation for selection targets
-Date: Sun, 10 Jun 2012 22:34:38 +0300
-Message-Id: <1339356878-2179-4-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <4FD4F6B6.1070605@iki.fi>
-References: <4FD4F6B6.1070605@iki.fi>
+Cc: sakari.ailus@iki.fi
+Subject: [PATCH 2/2] omap3isp: Configure HS/VS interrupt source before enabling interrupts
+Date: Tue, 26 Jun 2012 03:34:56 +0200
+Message-Id: <1340674496-31953-3-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1340674496-31953-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1340674496-31953-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Both V4L2 and V4L2 subdev interface have very similar selection APIs with
-differences foremost related to in-memory and media bus formats. However,
-the selection targets are the same for both. Most targets are and in the
-future will likely continue to be more the same than with any differences.
-Thus it makes sense to unify the documentation of the targets.
+This needs to be performed before enabling interrupts as the sensor
+might be free-running and the ISP default setting (HS edge) would put an
+unnecessary burden on the CPU.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- Documentation/DocBook/media/v4l/compat.xml         |    9 +-
- Documentation/DocBook/media/v4l/dev-subdev.xml     |    2 +-
- Documentation/DocBook/media/v4l/selection-api.xml  |    3 +-
- .../DocBook/media/v4l/selection-targets.xml        |   93 ++++++++++++++++++++
- .../DocBook/media/v4l/vidioc-g-selection.xml       |   54 +----------
- .../media/v4l/vidioc-subdev-g-selection.xml        |    3 +
- 6 files changed, 108 insertions(+), 56 deletions(-)
- create mode 100644 Documentation/DocBook/media/v4l/selection-targets.xml
+ drivers/media/video/omap3isp/isp.c |   43 +++++++++++++++++++++--------------
+ 1 files changed, 26 insertions(+), 17 deletions(-)
 
-diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
-index ea42ef8..162a0ba 100644
---- a/Documentation/DocBook/media/v4l/compat.xml
-+++ b/Documentation/DocBook/media/v4l/compat.xml
-@@ -2377,10 +2377,11 @@ that used it. It was originally scheduled for removal in 2.6.35.
- 	  <para>V4L2_CTRL_FLAG_VOLATILE was added to signal volatile controls to userspace.</para>
-         </listitem>
-         <listitem>
--	  <para>Add selection API for extended control over cropping and
--composing. Does not affect the compatibility of current drivers and
--applications.  See <link linkend="selection-api"> selection API </link> for
--details.</para>
-+	  <para>Add selection API for extended control over cropping
-+	  and composing. Does not affect the compatibility of current
-+	  drivers and applications. See <link
-+	  linkend="selection-api"> selection API </link> for
-+	  details.</para>
-         </listitem>
-       </orderedlist>
-     </section>
-diff --git a/Documentation/DocBook/media/v4l/dev-subdev.xml b/Documentation/DocBook/media/v4l/dev-subdev.xml
-index ac715dd..dd2d78e 100644
---- a/Documentation/DocBook/media/v4l/dev-subdev.xml
-+++ b/Documentation/DocBook/media/v4l/dev-subdev.xml
-@@ -276,7 +276,7 @@
-       </para>
-     </section>
+diff --git a/drivers/media/video/omap3isp/isp.c b/drivers/media/video/omap3isp/isp.c
+index 2e1f322..36805ca 100644
+--- a/drivers/media/video/omap3isp/isp.c
++++ b/drivers/media/video/omap3isp/isp.c
+@@ -252,13 +252,18 @@ static u32 isp_set_xclk(struct isp_device *isp, u32 xclk, u8 xclksel)
+ }
  
--    <section>
-+    <section id="subdev-selections">
-       <title>Selections: cropping, scaling and composition</title>
+ /*
+- * isp_power_settings - Sysconfig settings, for Power Management.
++ * isp_core_init - ISP core settings
+  * @isp: OMAP3 ISP device
+  * @idle: Consider idle state.
+  *
+- * Sets the power settings for the ISP, and SBL bus.
++ * Set the power settings for the ISP and SBL bus and cConfigure the HS/VS
++ * interrupt source.
++ *
++ * We need to configure the HS/VS interrupt source before interrupts get
++ * enabled, as the sensor might be free-running and the ISP default setting
++ * (HS edge) would put an unnecessary burden on the CPU.
+  */
+-static void isp_power_settings(struct isp_device *isp, int idle)
++static void isp_core_init(struct isp_device *isp, int idle)
+ {
+ 	isp_reg_writel(isp,
+ 		       ((idle ? ISP_SYSCONFIG_MIDLEMODE_SMARTSTANDBY :
+@@ -268,9 +273,10 @@ static void isp_power_settings(struct isp_device *isp, int idle)
+ 			  ISP_SYSCONFIG_AUTOIDLE : 0),
+ 		       OMAP3_ISP_IOMEM_MAIN, ISP_SYSCONFIG);
  
-       <para>Many sub-devices support cropping frames on their input or output
-diff --git a/Documentation/DocBook/media/v4l/selection-api.xml b/Documentation/DocBook/media/v4l/selection-api.xml
-index ac013e5..23cc966 100644
---- a/Documentation/DocBook/media/v4l/selection-api.xml
-+++ b/Documentation/DocBook/media/v4l/selection-api.xml
-@@ -53,8 +53,7 @@ cropping and composing rectangles have the same size.</para>
- 	</mediaobject>
-       </figure>
+-	if (isp->autoidle)
+-		isp_reg_writel(isp, ISPCTRL_SBL_AUTOIDLE, OMAP3_ISP_IOMEM_MAIN,
+-			       ISP_CTRL);
++	isp_reg_writel(isp,
++		       (isp->autoidle ? ISPCTRL_SBL_AUTOIDLE : 0) |
++		       ISPCTRL_SYNC_DETECT_VSRISE,
++		       OMAP3_ISP_IOMEM_MAIN, ISP_CTRL);
+ }
  
--For complete list of the available selection targets see table <xref
--linkend="v4l2-sel-target"/>
-+      &sub-selection-targets;
+ /*
+@@ -323,9 +329,6 @@ void omap3isp_configure_bridge(struct isp_device *isp,
  
-     </section>
+ 	ispctrl_val |= ((shift/2) << ISPCTRL_SHIFT_SHIFT) & ISPCTRL_SHIFT_MASK;
  
-diff --git a/Documentation/DocBook/media/v4l/selection-targets.xml b/Documentation/DocBook/media/v4l/selection-targets.xml
-new file mode 100644
-index 0000000..4fa69fe
---- /dev/null
-+++ b/Documentation/DocBook/media/v4l/selection-targets.xml
-@@ -0,0 +1,93 @@
-+<section id="selection-targets">
+-	ispctrl_val &= ~ISPCTRL_SYNC_DETECT_MASK;
+-	ispctrl_val |= ISPCTRL_SYNC_DETECT_VSRISE;
+-
+ 	isp_reg_writel(isp, ispctrl_val, OMAP3_ISP_IOMEM_MAIN, ISP_CTRL);
+ }
+ 
+@@ -1443,7 +1446,7 @@ static int isp_get_clocks(struct isp_device *isp)
+  *
+  * Return a pointer to the ISP device structure, or NULL if an error occurred.
+  */
+-struct isp_device *omap3isp_get(struct isp_device *isp)
++static struct isp_device *__omap3isp_get(struct isp_device *isp, bool irq)
+ {
+ 	struct isp_device *__isp = isp;
+ 
+@@ -1462,10 +1465,9 @@ struct isp_device *omap3isp_get(struct isp_device *isp)
+ 	/* We don't want to restore context before saving it! */
+ 	if (isp->has_context)
+ 		isp_restore_ctx(isp);
+-	else
+-		isp->has_context = 1;
+ 
+-	isp_enable_interrupts(isp);
++	if (irq)
++		isp_enable_interrupts(isp);
+ 
+ out:
+ 	if (__isp != NULL)
+@@ -1475,6 +1477,11 @@ out:
+ 	return __isp;
+ }
+ 
++struct isp_device *omap3isp_get(struct isp_device *isp)
++{
++	return __omap3isp_get(isp, true);
++}
 +
-+  <title>V4L2 and V4L2 sub-device interfaces and selection targets</title>
-+
-+  <para>While the V4L2 <xref linkend="selection-api"/> and V4L2
-+  subdev <xref linkend="subdev-selections"/> selection APIs are very
-+  similar, there's one fundamental difference between the two. On
-+  sub-device API, the selection rectangle is refers to the media bus
-+  format, and is bound to a sub-device and a pad. On the V4L2
-+  interface the selection rectangles refer to the in-memory pixel
-+  format and a video device's buffer queue.</para>
-+
-+  <para>The meaning of the selection targets may thus be affected on
-+  which of the two interfaces they are used.</para>
-+
-+
-+  <table pgwide="1" frame="none" id="selection-targets-table">
-+  <title>Selection target definitions</title>
-+    <tgroup cols="4">
-+      <colspec colname="c1" />
-+      <colspec colname="c2" />
-+      <colspec colname="c3" />
-+      <colspec colname="c4" />
-+      <colspec colname="c5" />
-+      &cs-def;
-+      <thead>
-+	<row rowsep="1">
-+	  <entry align="left">Target name</entry>
-+	  <entry align="left">id</entry>
-+	  <entry align="left">Definition</entry>
-+	  <entry align="left">Valid for V4L2</entry>
-+	  <entry align="left">Valid for V4L2 subdev</entry>
-+	</row>
-+      </thead>
-+      <tbody valign="top">
-+	<row>
-+	  <entry><constant>V4L2_SEL_TGT_CROP</constant></entry>
-+	  <entry>0x0000</entry>
-+	  <entry>Crop rectangle. Defines the cropped area.</entry>
-+	  <entry>X</entry>
-+	  <entry>X</entry>
-+	</row>
-+	<row>
-+          <entry><constant>V4L2_SEL_TGT_CROP_DEFAULT</constant></entry>
-+          <entry>0x0001</entry>
-+          <entry>Suggested cropping rectangle that covers the "whole picture".</entry>
-+	  <entry>X</entry>
-+	  <entry>O</entry>
-+	</row>
-+	<row>
-+	  <entry><constant>V4L2_SEL_TGT_CROP_BOUNDS</constant></entry>
-+	  <entry>0x0002</entry>
-+	  <entry>Bounds of the crop rectangle. All valid crop
-+	  rectangles fit inside the crop bounds rectangle.
-+	  </entry>
-+	  <entry>X</entry>
-+	  <entry>X</entry>
-+	</row>
-+	<row>
-+	  <entry><constant>V4L2_SEL_TGT_COMPOSE</constant></entry>
-+	  <entry>0x0100</entry>
-+	  <entry>Compose rectangle. Used to configure scaling
-+	  and composition.</entry>
-+	  <entry>X</entry>
-+	  <entry>X</entry>
-+	</row>
-+	<row>
-+          <entry><constant>V4L2_SEL_TGT_COMPOSE_DEFAULT</constant></entry>
-+          <entry>0x0101</entry>
-+          <entry>Suggested composition rectangle that covers the "whole picture".</entry>
-+	  <entry>X</entry>
-+	  <entry>O</entry>
-+	</row>
-+	<row>
-+	  <entry><constant>V4L2_SEL_TGT_COMPOSE_BOUNDS</constant></entry>
-+	  <entry>0x0102</entry>
-+	  <entry>Bounds of the compose rectangle. All valid compose
-+	  rectangles fid inside the compose bounds rectangle.</entry>
-+	  <entry>X</entry>
-+	  <entry>X</entry>
-+	</row>
-+	<row>
-+          <entry><constant>V4L2_SEL_TGT_COMPOSE_PADDED</constant></entry>
-+          <entry>0x0103</entry>
-+          <entry>The active area and all padding pixels that are inserted or
-+	    modified by hardware.</entry>
-+	  <entry>X</entry>
-+	  <entry>O</entry>
-+	</row>
-+      </tbody>
-+    </tgroup>
-+  </table>
-+</section>
-diff --git a/Documentation/DocBook/media/v4l/vidioc-g-selection.xml b/Documentation/DocBook/media/v4l/vidioc-g-selection.xml
-index 6376e57..6362971 100644
---- a/Documentation/DocBook/media/v4l/vidioc-g-selection.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-g-selection.xml
-@@ -67,7 +67,7 @@ Do not use multiplanar buffers.  Use <constant> V4L2_BUF_TYPE_VIDEO_CAPTURE
- setting the value of &v4l2-selection; <structfield>target</structfield> field
- to <constant> V4L2_SEL_TGT_CROP </constant> (<constant>
- V4L2_SEL_TGT_COMPOSE </constant>).  Please refer to table <xref
--linkend="v4l2-sel-target" /> or <xref linkend="selection-api" /> for additional
-+linkend="selection-targets" /> or <xref linkend="selection-api" /> for additional
- targets.  The <structfield>flags</structfield> and <structfield>reserved
- </structfield> fields of &v4l2-selection; are ignored and they must be filled
- with zeros.  The driver fills the rest of the structure or
-@@ -88,7 +88,7 @@ use multiplanar buffers.  Use <constant> V4L2_BUF_TYPE_VIDEO_CAPTURE
- setting the value of &v4l2-selection; <structfield>target</structfield> to
- <constant>V4L2_SEL_TGT_CROP</constant> (<constant>
- V4L2_SEL_TGT_COMPOSE </constant>). Please refer to table <xref
--linkend="v4l2-sel-target" /> or <xref linkend="selection-api" /> for additional
-+linkend="selection-targets" /> or <xref linkend="selection-api" /> for additional
- targets.  The &v4l2-rect; <structfield>r</structfield> rectangle need to be
- set to the desired active area. Field &v4l2-selection; <structfield> reserved
- </structfield> is ignored and must be filled with zeros.  The driver may adjust
-@@ -154,52 +154,8 @@ exist no rectangle </emphasis> that satisfies the constraints.</para>
+ /*
+  * omap3isp_put - Release the ISP
+  *
+@@ -1490,8 +1497,10 @@ void omap3isp_put(struct isp_device *isp)
+ 	BUG_ON(isp->ref_count == 0);
+ 	if (--isp->ref_count == 0) {
+ 		isp_disable_interrupts(isp);
+-		if (isp->domain)
++		if (isp->domain) {
+ 			isp_save_ctx(isp);
++			isp->has_context = 1;
++		}
+ 		/* Reset the ISP if an entity has failed to stop. This is the
+ 		 * only way to recover from such conditions.
+ 		 */
+@@ -1975,7 +1984,7 @@ static int __devexit isp_remove(struct platform_device *pdev)
+ 	isp_unregister_entities(isp);
+ 	isp_cleanup_modules(isp);
  
-   </refsect1>
+-	omap3isp_get(isp);
++	__omap3isp_get(isp, false);
+ 	iommu_detach_device(isp->domain, &pdev->dev);
+ 	iommu_domain_free(isp->domain);
+ 	isp->domain = NULL;
+@@ -2093,7 +2102,7 @@ static int __devinit isp_probe(struct platform_device *pdev)
+ 	if (ret < 0)
+ 		goto error;
  
--  <refsect1>
--    <table frame="none" pgwide="1" id="v4l2-sel-target">
--      <title>Selection targets.</title>
--      <tgroup cols="3">
--	&cs-def;
--	<tbody valign="top">
--	  <row>
--            <entry><constant>V4L2_SEL_TGT_CROP</constant></entry>
--            <entry>0x0000</entry>
--            <entry>The area that is currently cropped by hardware.</entry>
--	  </row>
--	  <row>
--            <entry><constant>V4L2_SEL_TGT_CROP_DEFAULT</constant></entry>
--            <entry>0x0001</entry>
--            <entry>Suggested cropping rectangle that covers the "whole picture".</entry>
--	  </row>
--	  <row>
--            <entry><constant>V4L2_SEL_TGT_CROP_BOUNDS</constant></entry>
--            <entry>0x0002</entry>
--            <entry>Limits for the cropping rectangle.</entry>
--	  </row>
--	  <row>
--            <entry><constant>V4L2_SEL_TGT_COMPOSE</constant></entry>
--            <entry>0x0100</entry>
--            <entry>The area to which data is composed by hardware.</entry>
--	  </row>
--	  <row>
--            <entry><constant>V4L2_SEL_TGT_COMPOSE_DEFAULT</constant></entry>
--            <entry>0x0101</entry>
--            <entry>Suggested composing rectangle that covers the "whole picture".</entry>
--	  </row>
--	  <row>
--            <entry><constant>V4L2_SEL_TGT_COMPOSE_BOUNDS</constant></entry>
--            <entry>0x0102</entry>
--            <entry>Limits for the composing rectangle.</entry>
--	  </row>
--	  <row>
--            <entry><constant>V4L2_SEL_TGT_COMPOSE_PADDED</constant></entry>
--            <entry>0x0103</entry>
--            <entry>The active area and all padding pixels that are inserted or
--	      modified by hardware.</entry>
--	  </row>
--	</tbody>
--      </tgroup>
--    </table>
--  </refsect1>
-+  <para>Selection targets are documented in <xref
-+  linkend="selection-targets"/>.</para>
+-	if (omap3isp_get(isp) == NULL)
++	if (__omap3isp_get(isp, false) == NULL)
+ 		goto error;
  
-   <refsect1>
-     <table frame="none" pgwide="1" id="v4l2-sel-flags">
-@@ -253,7 +209,7 @@ exist no rectangle </emphasis> that satisfies the constraints.</para>
- 	  <row>
- 	    <entry>__u32</entry>
- 	    <entry><structfield>target</structfield></entry>
--            <entry>Used to select between <link linkend="v4l2-sel-target"> cropping
-+            <entry>Used to select between <link linkend="selection-targets"> cropping
- 	    and composing rectangles</link>.</entry>
- 	  </row>
- 	  <row>
-diff --git a/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml b/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml
-index 96ab51e..17f2e22 100644
---- a/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml
-@@ -87,6 +87,9 @@
-       <constant>EINVAL</constant>.</para>
-     </section>
+ 	ret = isp_reset(isp);
+@@ -2160,7 +2169,7 @@ static int __devinit isp_probe(struct platform_device *pdev)
+ 	if (ret < 0)
+ 		goto error_modules;
  
-+    <para>Selection targets are documented in <xref
-+    linkend="selection-targets"/>.</para>
-+
-     <table pgwide="1" frame="none" id="v4l2-subdev-selection-targets">
-       <title>V4L2 subdev selection targets</title>
-       <tgroup cols="3">
+-	isp_power_settings(isp, 1);
++	isp_core_init(isp, 1);
+ 	omap3isp_put(isp);
+ 
+ 	return 0;
 -- 
-1.7.2.5
+1.7.3.4
 
