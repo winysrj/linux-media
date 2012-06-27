@@ -1,183 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from na6sys009bog003.obsmtp.com ([74.125.150.46]:41165 "EHLO
-	na6sys009bog003.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750795Ab2FKKDh convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 Jun 2012 06:03:37 -0400
-From: Albert Wang <twang13@marvell.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"pawel@osciak.com" <pawel@osciak.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Mon, 11 Jun 2012 03:00:29 -0700
-Subject: RE: [PATCH] media: videobuf2: fix kernel panic due to missing
- assign NULL to alloc_ctx
-Message-ID: <477F20668A386D41ADCC57781B1F7043083A7F0E34@SC-VEXCH1.marvell.com>
-References: <1339156511-16509-1-git-send-email-twang13@marvell.com>
- <15576892.cR1LHefC7i@avalon>
- <477F20668A386D41ADCC57781B1F7043083A7F0E11@SC-VEXCH1.marvell.com>
- <Pine.LNX.4.64.1206111118210.28244@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1206111118210.28244@axis700.grange>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:33520 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754261Ab2F0L4g (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 27 Jun 2012 07:56:36 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, Enrico <ebutera@users.berlios.de>,
+	Jean-Philippe Francois <jp.francois@cynove.com>,
+	Abhishek Reddy Kondaveeti <areddykondaveeti@aptina.com>,
+	Gary Thomas <gary@mlbassoc.com>,
+	Javier Martinez Canillas <martinez.javier@gmail.com>
+Subject: Re: [PATCH 1/6] omap3isp: video: Split format info bpp field into width and bpp
+Date: Wed, 27 Jun 2012 13:56:39 +0200
+Message-ID: <1796541.b5QPTKTNYp@avalon>
+In-Reply-To: <3151444.lq5j8qGhle@avalon>
+References: <1340718339-29915-1-git-send-email-laurent.pinchart@ideasonboard.com> <4FEAE987.6060104@iki.fi> <3151444.lq5j8qGhle@avalon>
 MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi, Guennadi
-
-Sorry, I made a mistake, and I found marvell-ccic used vb2_dma_contig_init_ctx() when open, but it didn't use the soc_camera.
-So for the driver which had used soc_camera, you are right. Our driver should update the usage.
-
-So the kernel panic due to our driver misunderstand the usage, we can change the patch title.
-But I think it's not a "local" variable for vb2_dma_contig_cleanup_ctx(), It's the input parameter.
-
-Since this function has the name "cleanup", it should do it cleanly. And the rule should be free point and set point to NULL.
-For users who use this function in there driver, they think things had finished after called this function.
-It's safer if user called it twice.
-
-Anyway, this patch doesn't damage the driver; on the other hand, it can make it more stable if user used it with wrong method.
-Doesn't it? Of course, now we should change the patch title.
-
-Please correct me if I have something wrong.
-
-
-Thanks
-Albert Wang
-86-21-61092656
------Original Message-----
-From: Guennadi Liakhovetski [mailto:g.liakhovetski@gmx.de] 
-Sent: Monday, 11 June, 2012 17:21
-To: Albert Wang
-Cc: Laurent Pinchart; pawel@osciak.com; linux-media@vger.kernel.org
-Subject: RE: [PATCH] media: videobuf2: fix kernel panic due to missing assign NULL to alloc_ctx
-
-Hi Albert
-
-On Mon, 11 Jun 2012, Albert Wang wrote:
-
-> Hi, Laurent
+On Wednesday 27 June 2012 13:54:30 Laurent Pinchart wrote:
+> Hi Sakari,
 > 
-> Thanks for your reply!
+> Thanks for the review.
 > 
-> We allocated the context when init_videobuf2() which will be called in 
-> soc_camera_open(), so if we get exit with exception in
-> soc_camera_set_fmt()
-> Actually we will double call vb2_dma_contig_cleanup_ctx().
-> 
-> 	ret = soc_camera_set_fmt(icd, &f);
-> 	if (ret < 0)
-> 		goto esfmt;
-> 
-> 	if (ici->ops->init_videobuf) {
-> 		ici->ops->init_videobuf(&icd->vb_vidq, icd);
-> 	} else {
-> 		ret = ici->ops->init_videobuf2(&icd->vb2_vidq, icd);
-> 		if (ret < 0)
-> 			goto einitvb;
-> 	}
-> 
-> Actually, in current code, we can found some drivers allocated the 
-> context in probe(), and some drivers also do that in soc_camera_open().
-
-Sorry, AFAICS all soc-camera host drivers allocate vb2 context in their
-.probe() methods. Can you point me out to the one(s) you mean, that do that at open() time?
-
-> Of course, we can update our driver and move it to probe(), it will 
-> stand aside the issue, that's also OK for us.
-> 
-> But we still think it's not safe that leave the point be a non-NULL 
-> after we have kfree it. Do you think so?
-
-Your patch doesn't fix anything. It only changes the local variable in the
-vb2_dma_contig_cleanup_ctx() function, which doesn't affect the caller in any way.
-
-Thanks
-Guennadi
-
-> Thanks
-> Albert Wang
-> 86-21-61092656
-> 
-> -----Original Message-----
-> From: Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com]
-> Sent: Monday, 11 June, 2012 16:00
-> To: Albert Wang
-> Cc: pawel@osciak.com; g.liakhovetski@gmx.de; 
-> linux-media@vger.kernel.org
-> Subject: Re: [PATCH] media: videobuf2: fix kernel panic due to missing 
-> assign NULL to alloc_ctx
-> 
-> Hi Albert,
-> 
-> On Friday 08 June 2012 19:55:11 Albert Wang wrote:
-> >   In function vb2_dma_contig_cleanup_ctx(), we only kfree the alloc_ctx
-> >   If we didn't assign NULL to this point after kfree it,
-> >   we may encounter the following kernel panic:
+> On Wednesday 27 June 2012 14:07:51 Sakari Ailus wrote:
+> > Laurent Pinchart wrote:
+> > > The bpp field currently stores the sample width and is aligned to the
+> > > next multiple of 8 bits when computing data size in memory. This won't
+> > > work anymore for YUYV8_2X8 formats. Split the bpp field into a sample
+> > > width and a bits per pixel value.
+> > > 
+> > > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 > > 
-> >  kernel BUG at kernel/cred.c:98!
-> >  Unable to handle kernel NULL pointer dereference at virtual address
-> > 00000000 pgd = c0004000
-> >  [00000000] *pgd=00000000
-> >  Internal error: Oops: 817 [#1] PREEMPT SMP  Modules linked in: 
-> > runcase_sysfs galcore mv_wtm_drv mv_wtm_prim
-> >  CPU: 0    Not tainted  (3.0.8+ #213)
-> >  PC is at __bug+0x18/0x24
-> >  LR is at __bug+0x14/0x24
-> >  pc : [<c0054670>]    lr : [<c005466c>]    psr: 60000113
-> >  sp : c0681ec0  ip : f683e000  fp : 00000000
-> >  r10: e8ab4b58  r9 : 00000fff  r8 : 00000002
-> >  r7 : e8665698  r6 : c10079ec  r5 : e8b13d80  r4 : e8b13d98
-> >  r3 : 00000000  r2 : c0681eb4  r1 : c05c9ccc  r0 : 00000035
-> >  Flags: nZCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment kernel
-> >  Control: 10c53c7d  Table: 29c3406a  DAC: 00000015
+> > ...
 > > 
-> >   the root cause is we may encounter some i2c or HW issue with sensor
-> >   which result in driver exit with exception during soc_camera_set_fmt()
-> >   from soc_camera_open():
+> > > diff --git a/drivers/media/video/omap3isp/ispvideo.h
+> > > b/drivers/media/video/omap3isp/ispvideo.h index 5acc909..f8092cc 100644
+> > > --- a/drivers/media/video/omap3isp/ispvideo.h
+> > > +++ b/drivers/media/video/omap3isp/ispvideo.h
+> > > @@ -51,7 +51,8 @@ struct v4l2_pix_format;
+> > > 
+> > >   * @flavor: V4L2 media bus format code for the same pixel layout but
+> > >   *	shifted to be 8 bits per pixel. =0 if format is not shiftable.
+> > >   * @pixelformat: V4L2 pixel format FCC identifier
+> > > 
+> > > - * @bpp: Bits per pixel
+> > > + * @width: Data bus width
+> > > + * @bpp: Bits per pixel (when stored in memory)
 > > 
-> > 	ret = soc_camera_set_fmt(icd, &f);
-> > 	if (ret < 0)
-> > 		goto esfmt;
-> > 
-> >   it will call ici->ops->remove() in following code:
-> > 
-> >   esfmt:
-> > 	pm_runtime_disable(&icd->vdev->dev);
-> >   eresume:
-> > 	ici->ops->remove(icd);
-> > 
-> >   ici->ops->remove() will call vb2_dma_contig_cleanup_ctx() for cleanup
-> >   but we didn't do ici->ops->init_videobuf2() yet at that time
-> >   it will result in kfree a non-NULL point twice
+> > Would it make sense to use bytes rather than bits?
 > 
-> I'm not sure to follow you. How is init_videobuf2() related ? The context is allocated once only at probe time from what I can see. Your problem is more likely caused by a double call to vb2_dma_contig_cleanup_ctx(), which looks like a driver bug to me, not a videobuf2 bug.
+> I'll change that.
 > 
-> > Change-Id: I1c66dd08438ae90abe555c52edcdbca0d39d829d
-> > Signed-off-by: Albert Wang <twang13@marvell.com>
-> > ---
-> >  drivers/media/video/videobuf2-dma-contig.c |    1 +
-> >  1 files changed, 1 insertions(+), 0 deletions(-)
-> > 
-> > diff --git a/drivers/media/video/videobuf2-dma-contig.c
-> > b/drivers/media/video/videobuf2-dma-contig.c index 4b71326..9881171
-> > 100755
-> > --- a/drivers/media/video/videobuf2-dma-contig.c
-> > +++ b/drivers/media/video/videobuf2-dma-contig.c
-> > @@ -178,6 +178,7 @@ EXPORT_SYMBOL_GPL(vb2_dma_contig_init_ctx);
-> >  void vb2_dma_contig_cleanup_ctx(void *alloc_ctx)  {
-> >  	kfree(alloc_ctx);
-> > +	alloc_ctx = NULL;
-> >  }
-> >  EXPORT_SYMBOL_GPL(vb2_dma_contig_cleanup_ctx);
+> > Also width isn't really the width of the data bus on serial busses, is it?
+> > How about busses that transfer pixels 8 bits at the time?
 > 
-> --
-> Regards,
-> 
-> Laurent Pinchart
-> 
+> I could change the comment to "bits per pixel (when transferred on a bus)",
+> would that be better ?
 
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer http://www.open-technology.de/
+s/pixel/sample/
+
+> > You can also stop using ALIGN() in isp_video_mbus_to_pix() (in ispvideo.c)
+> > as the ISP will always write complete bytes.
+> 
+> Indeed.
+> 
+> > I might even switch the meaning between width and bpp but this is up to
+> > you.
+> I got used to width/bpp as defined by this patch, so that would be confusing
+> :-)
+> :
+> > >   */
+> > >  
+> > >  struct isp_format_info {
+> > >  
+> > >  	enum v4l2_mbus_pixelcode code;
+> > > 
+> > > @@ -59,6 +60,7 @@ struct isp_format_info {
+> > > 
+> > >  	enum v4l2_mbus_pixelcode uncompressed;
+> > >  	enum v4l2_mbus_pixelcode flavor;
+> > >  	u32 pixelformat;
+> > > 
+> > > +	unsigned int width;
+> > > 
+> > >  	unsigned int bpp;
+> > >  
+> > >  };
+> > > 
+> > > @@ -106,7 +108,7 @@ struct isp_pipeline {
+> > > 
+> > >  	struct v4l2_fract max_timeperframe;
+> > >  	struct v4l2_subdev *external;
+> > >  	unsigned int external_rate;
+> > > 
+> > > -	unsigned int external_bpp;
+> > > +	unsigned int external_width;
+> > > 
+> > >  };
+> > >  
+> > >  #define to_isp_pipeline(__e) \
+-- 
+Regards,
+
+Laurent Pinchart
+
