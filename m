@@ -1,158 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-1-out2.atlantis.sk ([80.94.52.71]:38846 "EHLO
-	mail.atlantis.sk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751612Ab2FLSip (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:50010 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757105Ab2F0Kwb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Jun 2012 14:38:45 -0400
-From: Ondrej Zary <linux@rainbow-software.org>
+	Wed, 27 Jun 2012 06:52:31 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH 2/3] radio-aimslab: Use LM7000 driver
-Date: Tue, 12 Jun 2012 20:38:00 +0200
-Cc: linux-media@vger.kernel.org
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Pawel Osciak <pawel@osciak.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFCv2 PATCH 19/34] v4l2-dev.c: add debug sysfs entry.
+Date: Wed, 27 Jun 2012 12:52:34 +0200
+Message-ID: <21286481.7Pjdm1koZj@avalon>
+In-Reply-To: <201206271238.54332.hverkuil@xs4all.nl>
+References: <1340367688-8722-1-git-send-email-hverkuil@xs4all.nl> <2029394.km7RaaeAMe@avalon> <201206271238.54332.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <201206122038.04939.linux@rainbow-software.org>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Convert radio-aimslab to use generic LM7000 driver.
-Tested with Reveal RA300.
+Hi Hans,
 
-Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
+On Wednesday 27 June 2012 12:38:54 Hans Verkuil wrote:
+> On Wed 27 June 2012 11:54:40 Laurent Pinchart wrote:
+> > On Friday 22 June 2012 14:21:13 Hans Verkuil wrote:
+> > > From: Hans Verkuil <hans.verkuil@cisco.com>
+> > > 
+> > > Since this could theoretically change the debug value while in the
+> > > middle of v4l2-ioctl.c, we make a copy of vfd->debug to ensure
+> > > consistent debug behavior.
+> > 
+> > In my review of RFCv1, I wrote that this could introduce a race condition:
+> > 
+> > "You test the debug value several times in the __video_do_ioctl()
+> > function. I haven't checked in details whether changing the value between
+> > the two tests could for instance lead to a KERN_CONT print without a
+> > previous non-KERN_CONT message. That won't crash the machine  but it
+> > should still be avoided."
+> > 
+> > Have you verified whether that problem can occur ?
+> 
+> Yes, this problem can occur. Which is why I've changed the code accordingly.
 
-diff --git a/drivers/media/radio/Kconfig b/drivers/media/radio/Kconfig
-index 5bcce12..abdf43c 100644
---- a/drivers/media/radio/Kconfig
-+++ b/drivers/media/radio/Kconfig
-@@ -193,11 +193,14 @@ config RADIO_CADET
- 
- config RADIO_LM7000
- 	tristate
-+	depends on RADIO_RTRACK
-+	default RADIO_RTRACK
- 
- config RADIO_RTRACK
- 	tristate "AIMSlab RadioTrack (aka RadioReveal) support"
- 	depends on ISA && VIDEO_V4L2
- 	select RADIO_ISA
-+	select RADIO_LM7000
- 	---help---
- 	  Choose Y here if you have one of these FM radio cards, and then fill
- 	  in the port address below.
-diff --git a/drivers/media/radio/radio-aimslab.c b/drivers/media/radio/radio-aimslab.c
-index 98e0c8c..48b72d8 100644
---- a/drivers/media/radio/radio-aimslab.c
-+++ b/drivers/media/radio/radio-aimslab.c
-@@ -37,6 +37,7 @@
- #include <media/v4l2-ioctl.h>
- #include <media/v4l2-ctrls.h>
- #include "radio-isa.h"
-+#include "lm7000.h"
- 
- MODULE_AUTHOR("M. Kirkwood");
- MODULE_DESCRIPTION("A driver for the RadioTrack/RadioReveal radio card.");
-@@ -61,66 +62,53 @@ MODULE_PARM_DESC(radio_nr, "Radio device numbers");
- struct rtrack {
- 	struct radio_isa_card isa;
- 	int curvol;
-+	struct lm7000 lm;
- };
- 
--static struct radio_isa_card *rtrack_alloc(void)
-+#define AIMS_BIT_TUN_CE		(1 << 0)
-+#define AIMS_BIT_TUN_CLK	(1 << 1)
-+#define AIMS_BIT_TUN_DATA	(1 << 2)
-+#define AIMS_BIT_VOL_CE		(1 << 3)
-+#define AIMS_BIT_TUN_STRQ	(1 << 4)
-+/* bit 5 is not connected */
-+#define AIMS_BIT_VOL_UP		(1 << 6)	/* active low */
-+#define AIMS_BIT_VOL_DN		(1 << 7)	/* active low */
-+
-+void rtrack_set_pins(struct lm7000 *lm, u8 pins)
- {
--	struct rtrack *rt = kzalloc(sizeof(struct rtrack), GFP_KERNEL);
-+	struct rtrack *rt = container_of(lm, struct rtrack, lm);
-+	u8 bits = AIMS_BIT_VOL_DN | AIMS_BIT_VOL_UP | AIMS_BIT_TUN_STRQ;
- 
--	if (rt)
--		rt->curvol = 0xff;
--	return rt ? &rt->isa : NULL;
--}
-+	if (!v4l2_ctrl_g_ctrl(rt->isa.mute))
-+		bits |= AIMS_BIT_VOL_CE;
- 
--/* The 128+64 on these outb's is to keep the volume stable while tuning.
-- * Without them, the volume _will_ creep up with each frequency change
-- * and bit 4 (+16) is to keep the signal strength meter enabled.
-- */
-+	if (pins & LM7000_DATA)
-+		bits |= AIMS_BIT_TUN_DATA;
-+	if (pins & LM7000_CLK)
-+		bits |= AIMS_BIT_TUN_CLK;
-+	if (pins & LM7000_CE)
-+		bits |= AIMS_BIT_TUN_CE;
- 
--static void send_0_byte(struct radio_isa_card *isa, int on)
--{
--	outb_p(128+64+16+on+1, isa->io);	/* wr-enable + data low */
--	outb_p(128+64+16+on+2+1, isa->io);	/* clock */
--	msleep(1);
-+	outb_p(bits, rt->isa.io);
- }
- 
--static void send_1_byte(struct radio_isa_card *isa, int on)
-+static struct radio_isa_card *rtrack_alloc(void)
- {
--	outb_p(128+64+16+on+4+1, isa->io);	/* wr-enable+data high */
--	outb_p(128+64+16+on+4+2+1, isa->io);	/* clock */
--	msleep(1);
-+	struct rtrack *rt = kzalloc(sizeof(struct rtrack), GFP_KERNEL);
-+
-+	if (rt) {
-+		rt->curvol = 0xff;
-+		rt->lm.set_pins = rtrack_set_pins;
-+	}
-+	return rt ? &rt->isa : NULL;
- }
- 
- static int rtrack_s_frequency(struct radio_isa_card *isa, u32 freq)
- {
--	int on = v4l2_ctrl_g_ctrl(isa->mute) ? 0 : 8;
--	int i;
--
--	freq += 171200;			/* Add 10.7 MHz IF 		*/
--	freq /= 800;			/* Convert to 50 kHz units	*/
--
--	send_0_byte(isa, on);		/*  0: LSB of frequency		*/
--
--	for (i = 0; i < 13; i++)	/*   : frequency bits (1-13)	*/
--		if (freq & (1 << i))
--			send_1_byte(isa, on);
--		else
--			send_0_byte(isa, on);
--
--	send_0_byte(isa, on);		/* 14: test bit - always 0    */
--	send_0_byte(isa, on);		/* 15: test bit - always 0    */
--
--	send_0_byte(isa, on);		/* 16: band data 0 - always 0 */
--	send_0_byte(isa, on);		/* 17: band data 1 - always 0 */
--	send_0_byte(isa, on);		/* 18: band data 2 - always 0 */
--	send_0_byte(isa, on);		/* 19: time base - always 0   */
-+	struct rtrack *rt = container_of(isa, struct rtrack, isa);
- 
--	send_0_byte(isa, on);		/* 20: spacing (0 = 25 kHz)   */
--	send_1_byte(isa, on);		/* 21: spacing (1 = 25 kHz)   */
--	send_0_byte(isa, on);		/* 22: spacing (0 = 25 kHz)   */
--	send_1_byte(isa, on);		/* 23: AM/FM (FM = 1, always) */
-+	lm7000_set_freq(&rt->lm, freq);
- 
--	outb(0xd0 + on, isa->io);	/* volume steady + sigstr */
- 	return 0;
- }
- 
+I've missed that. My bad, sorry.
 
 -- 
-Ondrej Zary
+Regards,
+
+Laurent Pinchart
+
