@@ -1,168 +1,145 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:21916 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756029Ab2FNOcj (ORCPT
+Received: from ams-iport-1.cisco.com ([144.254.224.140]:40657 "EHLO
+	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753538Ab2F0KjH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 Jun 2012 10:32:39 -0400
-Received: from euspt1 (mailout1.w1.samsung.com [210.118.77.11])
- by mailout1.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0M5M001TH3388Z70@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 14 Jun 2012 15:33:08 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0M5M00I7F32CBI@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 14 Jun 2012 15:32:37 +0100 (BST)
-Date: Thu, 14 Jun 2012 16:32:21 +0200
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: [PATCHv2 1/9] v4l: vb2-dma-contig: let mmap method to use
- dma_mmap_coherent call
-In-reply-to: <1339684349-28882-1-git-send-email-t.stanislaws@samsung.com>
-To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
-Cc: airlied@redhat.com, m.szyprowski@samsung.com,
-	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
-	laurent.pinchart@ideasonboard.com, sumit.semwal@ti.com,
-	daeinki@gmail.com, daniel.vetter@ffwll.ch, robdclark@gmail.com,
-	pawel@osciak.com, linaro-mm-sig@lists.linaro.org,
-	hverkuil@xs4all.nl, remi@remlab.net, subashrp@gmail.com,
-	mchehab@redhat.com, g.liakhovetski@gmx.de
-Message-id: <1339684349-28882-2-git-send-email-t.stanislaws@samsung.com>
-Content-transfer-encoding: 7BIT
-References: <1339684349-28882-1-git-send-email-t.stanislaws@samsung.com>
+	Wed, 27 Jun 2012 06:39:07 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [RFCv2 PATCH 19/34] v4l2-dev.c: add debug sysfs entry.
+Date: Wed, 27 Jun 2012 12:38:54 +0200
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Pawel Osciak <pawel@osciak.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+References: <1340367688-8722-1-git-send-email-hverkuil@xs4all.nl> <a497cef0c59c8872218faa5d83095fe03c01a430.1340366355.git.hans.verkuil@cisco.com> <2029394.km7RaaeAMe@avalon>
+In-Reply-To: <2029394.km7RaaeAMe@avalon>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201206271238.54332.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Marek Szyprowski <m.szyprowski@samsung.com>
+On Wed 27 June 2012 11:54:40 Laurent Pinchart wrote:
+> Hi Hans,
+> 
+> Thanks for the patch.
+> 
+> On Friday 22 June 2012 14:21:13 Hans Verkuil wrote:
+> > From: Hans Verkuil <hans.verkuil@cisco.com>
+> > 
+> > Since this could theoretically change the debug value while in the middle
+> > of v4l2-ioctl.c, we make a copy of vfd->debug to ensure consistent debug
+> > behavior.
+> 
+> In my review of RFCv1, I wrote that this could introduce a race condition:
+> 
+> "You test the debug value several times in the __video_do_ioctl() function. I 
+> haven't checked in details whether changing the value between the two tests 
+> could for instance lead to a KERN_CONT print without a previous non-KERN_CONT 
+> message. That won't crash the machine  but it should still be avoided."
+> 
+> Have you verified whether that problem can occur ?
 
-Let mmap method to use dma_mmap_coherent call.  This patch depends on DMA
-mapping redesign patches because the usage of dma_mmap_coherent breaks
-dma-contig allocator for architectures other than ARM and AVR.
+Yes, this problem can occur. Which is why I've changed the code accordingly.
 
-Moreover, this patch removes vb2_mmap_pfn_range from videobuf2 helpers.
-The function is no longer used in vb2 code.
+Regards,
 
-Suggested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/video/videobuf2-dma-contig.c |   28 +++++++++++++++++--
- drivers/media/video/videobuf2-memops.c     |   40 ----------------------------
- include/media/videobuf2-memops.h           |    5 ----
- 3 files changed, 26 insertions(+), 47 deletions(-)
+	Hans
 
-diff --git a/drivers/media/video/videobuf2-dma-contig.c b/drivers/media/video/videobuf2-dma-contig.c
-index 040829b..00b776c 100644
---- a/drivers/media/video/videobuf2-dma-contig.c
-+++ b/drivers/media/video/videobuf2-dma-contig.c
-@@ -178,14 +178,38 @@ static void *vb2_dc_alloc(void *alloc_ctx, unsigned long size)
- static int vb2_dc_mmap(void *buf_priv, struct vm_area_struct *vma)
- {
- 	struct vb2_dc_buf *buf = buf_priv;
-+	int ret;
- 
- 	if (!buf) {
- 		printk(KERN_ERR "No buffer to map\n");
- 		return -EINVAL;
- 	}
- 
--	return vb2_mmap_pfn_range(vma, buf->dma_addr, buf->size,
--				  &vb2_common_vm_ops, &buf->handler);
-+	/*
-+	 * dma_mmap_* uses vm_pgoff as in-buffer offset, but we want to
-+	 * map whole buffer
-+	 */
-+	vma->vm_pgoff = 0;
-+
-+	ret = dma_mmap_coherent(buf->dev, vma, buf->vaddr,
-+		buf->dma_addr, buf->size);
-+
-+	if (ret) {
-+		printk(KERN_ERR "Remapping memory failed, error: %d\n", ret);
-+		return ret;
-+	}
-+
-+	vma->vm_flags		|= VM_DONTEXPAND | VM_RESERVED;
-+	vma->vm_private_data	= &buf->handler;
-+	vma->vm_ops		= &vb2_common_vm_ops;
-+
-+	vma->vm_ops->open(vma);
-+
-+	printk(KERN_DEBUG "%s: mapped dma addr 0x%08lx at 0x%08lx, size %ld\n",
-+		__func__, (unsigned long)buf->dma_addr, vma->vm_start,
-+		buf->size);
-+
-+	return 0;
- }
- 
- /*********************************************/
-diff --git a/drivers/media/video/videobuf2-memops.c b/drivers/media/video/videobuf2-memops.c
-index 504cd4c..81c1ad8 100644
---- a/drivers/media/video/videobuf2-memops.c
-+++ b/drivers/media/video/videobuf2-memops.c
-@@ -137,46 +137,6 @@ int vb2_get_contig_userptr(unsigned long vaddr, unsigned long size,
- EXPORT_SYMBOL_GPL(vb2_get_contig_userptr);
- 
- /**
-- * vb2_mmap_pfn_range() - map physical pages to userspace
-- * @vma:	virtual memory region for the mapping
-- * @paddr:	starting physical address of the memory to be mapped
-- * @size:	size of the memory to be mapped
-- * @vm_ops:	vm operations to be assigned to the created area
-- * @priv:	private data to be associated with the area
-- *
-- * Returns 0 on success.
-- */
--int vb2_mmap_pfn_range(struct vm_area_struct *vma, unsigned long paddr,
--				unsigned long size,
--				const struct vm_operations_struct *vm_ops,
--				void *priv)
--{
--	int ret;
--
--	size = min_t(unsigned long, vma->vm_end - vma->vm_start, size);
--
--	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
--	ret = remap_pfn_range(vma, vma->vm_start, paddr >> PAGE_SHIFT,
--				size, vma->vm_page_prot);
--	if (ret) {
--		printk(KERN_ERR "Remapping memory failed, error: %d\n", ret);
--		return ret;
--	}
--
--	vma->vm_flags		|= VM_DONTEXPAND | VM_RESERVED;
--	vma->vm_private_data	= priv;
--	vma->vm_ops		= vm_ops;
--
--	vma->vm_ops->open(vma);
--
--	pr_debug("%s: mapped paddr 0x%08lx at 0x%08lx, size %ld\n",
--			__func__, paddr, vma->vm_start, size);
--
--	return 0;
--}
--EXPORT_SYMBOL_GPL(vb2_mmap_pfn_range);
--
--/**
-  * vb2_common_vm_open() - increase refcount of the vma
-  * @vma:	virtual memory region for the mapping
-  *
-diff --git a/include/media/videobuf2-memops.h b/include/media/videobuf2-memops.h
-index 84e1f6c..f05444c 100644
---- a/include/media/videobuf2-memops.h
-+++ b/include/media/videobuf2-memops.h
-@@ -33,11 +33,6 @@ extern const struct vm_operations_struct vb2_common_vm_ops;
- int vb2_get_contig_userptr(unsigned long vaddr, unsigned long size,
- 			   struct vm_area_struct **res_vma, dma_addr_t *res_pa);
- 
--int vb2_mmap_pfn_range(struct vm_area_struct *vma, unsigned long paddr,
--				unsigned long size,
--				const struct vm_operations_struct *vm_ops,
--				void *priv);
--
- struct vm_area_struct *vb2_get_vma(struct vm_area_struct *vma);
- void vb2_put_vma(struct vm_area_struct *vma);
- 
--- 
-1.7.9.5
-
+> 
+> > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> > ---
+> >  drivers/media/video/v4l2-dev.c   |   24 ++++++++++++++++++++++++
+> >  drivers/media/video/v4l2-ioctl.c |    9 +++++----
+> >  2 files changed, 29 insertions(+), 4 deletions(-)
+> > 
+> > diff --git a/drivers/media/video/v4l2-dev.c b/drivers/media/video/v4l2-dev.c
+> > index 1500208..5c0bb18 100644
+> > --- a/drivers/media/video/v4l2-dev.c
+> > +++ b/drivers/media/video/v4l2-dev.c
+> > @@ -46,6 +46,29 @@ static ssize_t show_index(struct device *cd,
+> >  	return sprintf(buf, "%i\n", vdev->index);
+> >  }
+> > 
+> > +static ssize_t show_debug(struct device *cd,
+> > +			 struct device_attribute *attr, char *buf)
+> > +{
+> > +	struct video_device *vdev = to_video_device(cd);
+> > +
+> > +	return sprintf(buf, "%i\n", vdev->debug);
+> > +}
+> > +
+> > +static ssize_t set_debug(struct device *cd, struct device_attribute *attr,
+> > +		   const char *buf, size_t len)
+> > +{
+> > +	struct video_device *vdev = to_video_device(cd);
+> > +	int res = 0;
+> > +	u16 value;
+> > +
+> > +	res = kstrtou16(buf, 0, &value);
+> > +	if (res)
+> > +		return res;
+> > +
+> > +	vdev->debug = value;
+> > +	return len;
+> > +}
+> > +
+> >  static ssize_t show_name(struct device *cd,
+> >  			 struct device_attribute *attr, char *buf)
+> >  {
+> > @@ -56,6 +79,7 @@ static ssize_t show_name(struct device *cd,
+> > 
+> >  static struct device_attribute video_device_attrs[] = {
+> >  	__ATTR(name, S_IRUGO, show_name, NULL),
+> > +	__ATTR(debug, 0644, show_debug, set_debug),
+> >  	__ATTR(index, S_IRUGO, show_index, NULL),
+> >  	__ATTR_NULL
+> >  };
+> > diff --git a/drivers/media/video/v4l2-ioctl.c
+> > b/drivers/media/video/v4l2-ioctl.c index 0531d9a..2e1421b 100644
+> > --- a/drivers/media/video/v4l2-ioctl.c
+> > +++ b/drivers/media/video/v4l2-ioctl.c
+> > @@ -1998,6 +1998,7 @@ static long __video_do_ioctl(struct file *file,
+> >  	void *fh = file->private_data;
+> >  	struct v4l2_fh *vfh = NULL;
+> >  	int use_fh_prio = 0;
+> > +	int debug = vfd->debug;
+> >  	long ret = -ENOTTY;
+> > 
+> >  	if (ops == NULL) {
+> > @@ -2031,7 +2032,7 @@ static long __video_do_ioctl(struct file *file,
+> >  	}
+> > 
+> >  	write_only = _IOC_DIR(cmd) == _IOC_WRITE;
+> > -	if (write_only && vfd->debug > V4L2_DEBUG_IOCTL) {
+> > +	if (write_only && debug > V4L2_DEBUG_IOCTL) {
+> >  		v4l_print_ioctl(vfd->name, cmd);
+> >  		pr_cont(": ");
+> >  		info->debug(arg, write_only);
+> > @@ -2053,8 +2054,8 @@ static long __video_do_ioctl(struct file *file,
+> >  	}
+> > 
+> >  done:
+> > -	if (vfd->debug) {
+> > -		if (write_only && vfd->debug > V4L2_DEBUG_IOCTL) {
+> > +	if (debug) {
+> > +		if (write_only && debug > V4L2_DEBUG_IOCTL) {
+> >  			if (ret < 0)
+> >  				printk(KERN_DEBUG "%s: error %ld\n",
+> >  					video_device_node_name(vfd), ret);
+> > @@ -2063,7 +2064,7 @@ done:
+> >  		v4l_print_ioctl(vfd->name, cmd);
+> >  		if (ret < 0)
+> >  			pr_cont(": error %ld\n", ret);
+> > -		else if (vfd->debug == V4L2_DEBUG_IOCTL)
+> > +		else if (debug == V4L2_DEBUG_IOCTL)
+> >  			pr_cont("\n");
+> >  		else if (_IOC_DIR(cmd) == _IOC_NONE)
+> >  			info->debug(arg, write_only);
+> 
