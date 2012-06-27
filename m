@@ -1,118 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:1936 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754752Ab2FJK0M (ORCPT
+Received: from mail-gh0-f174.google.com ([209.85.160.174]:43080 "EHLO
+	mail-gh0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753476Ab2F0WYk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Jun 2012 06:26:12 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Andy Walls <awalls@md.metrocast.net>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Pawel Osciak <pawel@osciak.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv1 PATCH 18/32] v4l2-ioctl.c: finalize table conversion.
-Date: Sun, 10 Jun 2012 12:25:40 +0200
-Message-Id: <a6aa2dd1a2275addc83150d41f131a74c7f9b977.1339321562.git.hans.verkuil@cisco.com>
-In-Reply-To: <1339323954-1404-1-git-send-email-hverkuil@xs4all.nl>
-References: <1339323954-1404-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <ef490f7ebca5b6df91db6b1acfb9928ada3bcd70.1339321562.git.hans.verkuil@cisco.com>
-References: <ef490f7ebca5b6df91db6b1acfb9928ada3bcd70.1339321562.git.hans.verkuil@cisco.com>
+	Wed, 27 Jun 2012 18:24:40 -0400
+Received: by ghrr11 with SMTP id r11so1391597ghr.19
+        for <linux-media@vger.kernel.org>; Wed, 27 Jun 2012 15:24:40 -0700 (PDT)
+From: Peter Senna Tschudin <peter.senna@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Guy Martin <gmsoft@tuxicoman.be>,
+	Manu Abraham <abraham.manu@gmail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	linux-media@vger.kernel.org
+Cc: Peter Senna Tschudin <peter.senna@gmail.com>
+Subject: [PATCH] [V2] stv090x: variable 'no_signal' set but not used
+Date: Wed, 27 Jun 2012 19:18:56 -0300
+Message-Id: <1340835544-12053-1-git-send-email-peter.senna@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Remove variable and ignore return value of stv090x_chk_signal().
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Tested by compilation only.
+
+Signed-off-by: Peter Senna Tschudin <peter.senna@gmail.com>
 ---
- drivers/media/video/v4l2-ioctl.c |   35 +++++++++++++----------------------
- 1 file changed, 13 insertions(+), 22 deletions(-)
+ drivers/media/dvb/frontends/stv090x.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
-index 0de31c4..6c91674 100644
---- a/drivers/media/video/v4l2-ioctl.c
-+++ b/drivers/media/video/v4l2-ioctl.c
-@@ -870,6 +870,11 @@ static void v4l_print_newline(const void *arg)
- 	pr_cont("\n");
- }
+diff --git a/drivers/media/dvb/frontends/stv090x.c b/drivers/media/dvb/frontends/stv090x.c
+index d79e69f..a4d5954 100644
+--- a/drivers/media/dvb/frontends/stv090x.c
++++ b/drivers/media/dvb/frontends/stv090x.c
+@@ -3172,7 +3172,7 @@ static enum stv090x_signal_state stv090x_algo(struct stv090x_state *state)
+ 	enum stv090x_signal_state signal_state = STV090x_NOCARRIER;
+ 	u32 reg;
+ 	s32 agc1_power, power_iq = 0, i;
+-	int lock = 0, low_sr = 0, no_signal = 0;
++	int lock = 0, low_sr = 0;
  
-+static void v4l_print_default(const void *arg)
-+{
-+	pr_cont("non-standard ioctl\n");
-+}
-+
- static int check_ext_ctrls(struct v4l2_ext_controls *c, int allow_priv)
- {
- 	__u32 i;
-@@ -1853,12 +1858,6 @@ struct v4l2_ioctl_info {
- 	  sizeof(((struct v4l2_struct *)0)->field)) << 16)
- #define INFO_FL_CLEAR_MASK (_IOC_SIZEMASK << 16)
- 
--#define IOCTL_INFO(_ioctl, _flags) [_IOC_NR(_ioctl)] = {	\
--	.ioctl = _ioctl,					\
--	.flags = _flags,					\
--	.name = #_ioctl,					\
--}
--
- #define IOCTL_INFO_STD(_ioctl, _vidioc, _debug, _flags)			\
- 	[_IOC_NR(_ioctl)] = {						\
- 		.ioctl = _ioctl,					\
-@@ -2042,12 +2041,12 @@ static long __video_do_ioctl(struct file *file,
- 	} else {
- 		default_info.ioctl = cmd;
- 		default_info.flags = 0;
--		default_info.debug = NULL;
-+		default_info.debug = v4l_print_default;
- 		info = &default_info;
+ 	reg = STV090x_READ_DEMOD(state, TSCFGH);
+ 	STV090x_SETFIELD_Px(reg, RST_HWARE_FIELD, 1); /* Stop path 1 stream merger */
+@@ -3413,7 +3413,7 @@ static enum stv090x_signal_state stv090x_algo(struct stv090x_state *state)
+ 				goto err;
+ 		} else {
+ 			signal_state = STV090x_NODATA;
+-			no_signal = stv090x_chk_signal(state);
++			(void) stv090x_chk_signal(state);
+ 		}
  	}
- 
- 	write_only = _IOC_DIR(cmd) == _IOC_WRITE;
--	if (info->debug && write_only && vfd->debug > V4L2_DEBUG_IOCTL) {
-+	if (write_only && vfd->debug > V4L2_DEBUG_IOCTL) {
- 		v4l_print_ioctl(vfd->name, cmd);
- 		pr_cont(": ");
- 		info->debug(arg);
-@@ -2058,22 +2057,16 @@ static long __video_do_ioctl(struct file *file,
- 		const vidioc_op *vidioc = p + info->offset;
- 
- 		ret = (*vidioc)(file, fh, arg);
--		goto error;
- 	} else if (info->flags & INFO_FL_FUNC) {
- 		ret = info->func(ops, file, fh, arg);
--		goto error;
-+	} else if (!ops->vidioc_default) {
-+		ret = -ENOTTY;
-+	} else {
-+		ret = ops->vidioc_default(file, fh,
-+			use_fh_prio ? v4l2_prio_check(vfd->prio, vfh->prio) >= 0 : 0,
-+			cmd, arg);
- 	}
- 
--	switch (cmd) {
--	default:
--		if (!ops->vidioc_default)
--			break;
--		ret = ops->vidioc_default(file, fh, use_fh_prio ?
--				v4l2_prio_check(vfd->prio, vfh->prio) >= 0 : 0,
--				cmd, arg);
--		break;
--	} /* switch */
--
- error:
- 	if (vfd->debug) {
- 		if (write_only && vfd->debug > V4L2_DEBUG_IOCTL) {
-@@ -2087,8 +2080,6 @@ error:
- 			pr_cont(": error %ld\n", ret);
- 		else if (vfd->debug == V4L2_DEBUG_IOCTL)
- 			pr_cont("\n");
--		else if (!info->debug)
--			return ret;
- 		else if (_IOC_DIR(cmd) == _IOC_NONE)
- 			info->debug(arg);
- 		else {
+ 	return signal_state;
 -- 
-1.7.10
+1.7.10.2
 
