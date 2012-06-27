@@ -1,150 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:36522 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755548Ab2FYM5W (ORCPT
+Received: from ams-iport-4.cisco.com ([144.254.224.147]:56088 "EHLO
+	ams-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751527Ab2F0JSZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Jun 2012 08:57:22 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: davinci-linux-open-source@linux.davincidsp.com
-Cc: Manjunath Hadli <manjunath.hadli@ti.com>,
-	LMML <linux-media@vger.kernel.org>
-Subject: Re: [PATCH v3 10/13] davinci: vpif capture:Add power management support
-Date: Mon, 25 Jun 2012 14:57:23 +0200
-Message-ID: <2777370.dWcj1X6j2h@avalon>
-In-Reply-To: <1340622455-10419-11-git-send-email-manjunath.hadli@ti.com>
-References: <1340622455-10419-1-git-send-email-manjunath.hadli@ti.com> <1340622455-10419-11-git-send-email-manjunath.hadli@ti.com>
+	Wed, 27 Jun 2012 05:18:25 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Federico Vaga <federico.vaga@gmail.com>
+Subject: Re: [GIT PULL FOR v3.5] Move sta2x11_vip to staging
+Date: Wed, 27 Jun 2012 11:17:56 +0200
+Cc: "linux-media" <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	"linux-kernel" <linux-kernel@vger.kernel.org>,
+	Giancarlo Asnaghi <giancarlo.asnaghi@st.com>
+References: <201205260939.58100.hverkuil@xs4all.nl> <1444585.tu7qHxh2Mp@harkonnen>
+In-Reply-To: <1444585.tu7qHxh2Mp@harkonnen>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201206271117.56365.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Manjunath,
+On Mon 28 May 2012 13:47:43 Federico Vaga wrote:
+> > I didn't get any reply from Federico when I posted my concerns last
+> > week, so that makes me unhappy as well.
+> > 
+> > I hope the author will fix these issues, but in the meantime this will
+> > move it to staging waiting for further developments.
+> 
+> The last time I worked on this device was 2 month and half ago (RFC 
+> time) and before answer "Ok, I'll fix it" I'm trying to understand if me 
+> or someone else will do that work. I'll provide a better answer than 
+> this when I have more information.
+> 
+> Sorry for not sending an ack immediately, but be reassured that I'm 
+> still on the hardware and following the developments.
 
-Thank you for the patch.
+Hi Federico,
 
-On Monday 25 June 2012 16:37:32 Manjunath Hadli wrote:
-> Implement power management operations - suspend and resume as part of
-> dev_pm_ops for VPIF capture driver.
-> 
-> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-> Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
-> ---
->  drivers/media/video/davinci/vpif_capture.c |   77 +++++++++++++++++++++----
->  1 files changed, 65 insertions(+), 12 deletions(-)
-> 
-> diff --git a/drivers/media/video/davinci/vpif_capture.c
-> b/drivers/media/video/davinci/vpif_capture.c index 097e136..f1ee137 100644
-> --- a/drivers/media/video/davinci/vpif_capture.c
-> +++ b/drivers/media/video/davinci/vpif_capture.c
-> @@ -2300,26 +2300,74 @@ static int vpif_remove(struct platform_device
-> *device) return 0;
->  }
-> 
-> +#ifdef CONFIG_PM
->  /**
->   * vpif_suspend: vpif device suspend
-> - *
-> - * TODO: Add suspend code here
->   */
-> -static int
-> -vpif_suspend(struct device *dev)
-> +static int vpif_suspend(struct device *dev)
->  {
-> -	return -1;
-> +
-> +	struct common_obj *common;
-> +	struct channel_obj *ch;
-> +	int i;
-> +
-> +	for (i = 0; i < VPIF_CAPTURE_MAX_DEVICES; i++) {
-> +		/* Get the pointer to the channel object */
-> +		ch = vpif_obj.dev[i];
-> +		common = &ch->common[VPIF_VIDEO_INDEX];
-> +		if (mutex_lock_interruptible(&common->lock))
-> +			return -ERESTARTSYS;
+Any news on this?
 
-As for the display driver, this should probably be replaced by mutex_lock().
-
-> +		if (ch->usrs && common->io_usrs) {
-> +			/* Disable channel */
-> +			if (ch->channel_id == VPIF_CHANNEL0_VIDEO) {
-> +				enable_channel0(0);
-> +				channel0_intr_enable(0);
-> +			}
-> +			if (ch->channel_id == VPIF_CHANNEL1_VIDEO ||
-> +			    common->started == 2) {
-> +				enable_channel1(0);
-> +				channel1_intr_enable(0);
-> +			}
-> +		}
-> +		mutex_unlock(&common->lock);
-> +	}
-> +
-> +	return 0;
->  }
-> 
-> -/**
-> +/*
->   * vpif_resume: vpif device suspend
-> - *
-> - * TODO: Add resume code here
->   */
-> -static int
-> -vpif_resume(struct device *dev)
-> +static int vpif_resume(struct device *dev)
->  {
-> -	return -1;
-> +	struct common_obj *common;
-> +	struct channel_obj *ch;
-> +	int i;
-> +
-> +	for (i = 0; i < VPIF_CAPTURE_MAX_DEVICES; i++) {
-> +		/* Get the pointer to the channel object */
-> +		ch = vpif_obj.dev[i];
-> +		common = &ch->common[VPIF_VIDEO_INDEX];
-> +		if (mutex_lock_interruptible(&common->lock))
-> +			return -ERESTARTSYS;
-> +
-> +		if (ch->usrs && common->io_usrs) {
-> +			/* Disable channel */
-> +			if (ch->channel_id == VPIF_CHANNEL0_VIDEO) {
-> +				enable_channel0(1);
-> +				channel0_intr_enable(1);
-> +			}
-> +			if (ch->channel_id == VPIF_CHANNEL1_VIDEO ||
-> +			    common->started == 2) {
-> +				enable_channel1(1);
-> +				channel1_intr_enable(1);
-> +			}
-> +		}
-> +		mutex_unlock(&common->lock);
-> +	}
-> +
-> +	return 0;
->  }
-> 
->  static const struct dev_pm_ops vpif_dev_pm_ops = {
-> @@ -2327,11 +2375,16 @@ static const struct dev_pm_ops vpif_dev_pm_ops = {
->  	.resume = vpif_resume,
->  };
-> 
-> +#define vpif_pm_ops (&vpif_dev_pm_ops)
-> +#else
-> +#define vpif_pm_ops NULL
-> +#endif
-> +
->  static __refdata struct platform_driver vpif_driver = {
->  	.driver	= {
->  		.name	= "vpif_capture",
->  		.owner	= THIS_MODULE,
-> -		.pm = &vpif_dev_pm_ops,
-> +		.pm	= vpif_pm_ops,
->  	},
->  	.probe = vpif_probe,
->  	.remove = vpif_remove,
--- 
 Regards,
 
-Laurent Pinchart
-
+	Hans
