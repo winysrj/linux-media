@@ -1,46 +1,31 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.26]:50647 "EHLO mgw-da02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750875Ab2FOHoH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Jun 2012 03:44:07 -0400
-Received: from [192.168.239.74] (maxwell.research.nokia.com [172.21.199.25])
-	by mgw-da02.nokia.com (Sentrion-MTA-4.2.2/Sentrion-MTA-4.2.2) with ESMTP id q5F7i4gr027824
-	for <linux-media@vger.kernel.org>; Fri, 15 Jun 2012 10:44:05 +0300
-Message-ID: <4FDAE7C4.7020304@iki.fi>
-Date: Fri, 15 Jun 2012 10:44:04 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:50327 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750708Ab2F0NDb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 27 Jun 2012 09:03:31 -0400
+From: Federico Vaga <federico.vaga@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-kernel <linux-kernel@vger.kernel.org>,
+	Giancarlo Asnaghi <giancarlo.asnaghi@st.com>
+Subject: Re: [GIT PULL FOR v3.5] Move sta2x11_vip to staging
+Date: Wed, 27 Jun 2012 15:07:03 +0200
+Message-ID: <7065995.lg2ecmA8tn@harkonnen>
+In-Reply-To: <201206271117.56365.hverkuil@xs4all.nl>
+References: <201205260939.58100.hverkuil@xs4all.nl> <1444585.tu7qHxh2Mp@harkonnen> <201206271117.56365.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR 3.5] SMIA++ compile fix
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+> Hi Federico,
+> 
+> Any news on this?
 
-This pull contains a simple compile fix for the SMIA++ driver. 3.5 would
-be preferred.
-
-The following changes since commit 5472d3f17845c4398c6a510b46855820920c2181:
-
-  [media] mt9m032: Implement V4L2_CID_PIXEL_RATE control (2012-05-24
-09:27:24 -0300)
-
-are available in the git repository at:
-  ssh://linuxtv.org/git/sailus/media_tree.git media-for-3.5-smiapp-fix
-
-Alan Cox (1):
-      smia: Fix compile failures
-
- drivers/media/video/smiapp/Kconfig       |    2 +-
- drivers/media/video/smiapp/smiapp-core.c |    1 +
- 2 files changed, 2 insertions(+), 1 deletions(-)
-
-
-Regards,
+Not at the moment. I'll ask for detail :)
 
 -- 
-Sakari Ailus
-sakari.ailus@iki.fi
-
+Federico Vaga
