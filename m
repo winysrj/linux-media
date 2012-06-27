@@ -1,220 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:1572 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755355Ab2FJK0Q (ORCPT
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:38194 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754627Ab2F0Q6l (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Jun 2012 06:26:16 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Andy Walls <awalls@md.metrocast.net>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Pawel Osciak <pawel@osciak.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv1 PATCH 03/32] v4l2-ioctl.c: introduce INFO_FL_CLEAR to replace switch.
-Date: Sun, 10 Jun 2012 12:25:25 +0200
-Message-Id: <2379a9c6203c9efb28a76add051d314299febf81.1339321562.git.hans.verkuil@cisco.com>
-In-Reply-To: <1339323954-1404-1-git-send-email-hverkuil@xs4all.nl>
-References: <1339323954-1404-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <ef490f7ebca5b6df91db6b1acfb9928ada3bcd70.1339321562.git.hans.verkuil@cisco.com>
-References: <ef490f7ebca5b6df91db6b1acfb9928ada3bcd70.1339321562.git.hans.verkuil@cisco.com>
+	Wed, 27 Jun 2012 12:58:41 -0400
+Received: by yenl2 with SMTP id l2so1095242yen.19
+        for <linux-media@vger.kernel.org>; Wed, 27 Jun 2012 09:58:40 -0700 (PDT)
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: <linux-media@vger.kernel.org>, stoth@kernellabs.com,
+	dan.carpenter@oracle.com, palash.bandyopadhyay@conexant.com,
+	Ezequiel Garcia <elezegarcia@gmail.com>
+Subject: [PATCH 6/9] saa7164: Replace struct memcpy with struct assignment
+Date: Wed, 27 Jun 2012 13:52:51 -0300
+Message-Id: <1340815974-4120-6-git-send-email-elezegarcia@gmail.com>
+In-Reply-To: <1340815974-4120-1-git-send-email-elezegarcia@gmail.com>
+References: <1340815974-4120-1-git-send-email-elezegarcia@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Copying structs by assignment is type safe.
+Plus, is shorter and easier to read.
 
-The switch statement that determine how much data should be copied from
-userspace is replaced by a table lookup.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
 ---
- drivers/media/video/v4l2-ioctl.c |  103 +++++++++++++++-----------------------
- 1 file changed, 41 insertions(+), 62 deletions(-)
+ drivers/media/video/saa7164/saa7164-i2c.c |    7 ++-----
+ 1 files changed, 2 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
-index 7c6831f..a9602db 100644
---- a/drivers/media/video/v4l2-ioctl.c
-+++ b/drivers/media/video/v4l2-ioctl.c
-@@ -394,7 +394,7 @@ static int check_fmt(const struct v4l2_ioctl_ops *ops, enum v4l2_buf_type type)
+diff --git a/drivers/media/video/saa7164/saa7164-i2c.c b/drivers/media/video/saa7164/saa7164-i2c.c
+index d8d7baa..4f7e3b4 100644
+--- a/drivers/media/video/saa7164/saa7164-i2c.c
++++ b/drivers/media/video/saa7164/saa7164-i2c.c
+@@ -97,11 +97,8 @@ int saa7164_i2c_register(struct saa7164_i2c *bus)
  
- struct v4l2_ioctl_info {
- 	unsigned int ioctl;
--	u16 flags;
-+	u32 flags;
- 	const char * const name;
- };
+ 	dprintk(DBGLVL_I2C, "%s(bus = %d)\n", __func__, bus->nr);
  
-@@ -402,6 +402,11 @@ struct v4l2_ioctl_info {
- #define INFO_FL_PRIO	(1 << 0)
- /* This control can be valid if the filehandle passes a control handler. */
- #define INFO_FL_CTRL	(1 << 1)
-+/* Zero struct from after the field to the end */
-+#define INFO_FL_CLEAR(v4l2_struct, field)			\
-+	((offsetof(struct v4l2_struct, field) +			\
-+	  sizeof(((struct v4l2_struct *)0)->field)) << 16)
-+#define INFO_FL_CLEAR_MASK (_IOC_SIZEMASK << 16)
- 
- #define IOCTL_INFO(_ioctl, _flags) [_IOC_NR(_ioctl)] = {	\
- 	.ioctl = _ioctl,					\
-@@ -411,11 +416,11 @@ struct v4l2_ioctl_info {
- 
- static struct v4l2_ioctl_info v4l2_ioctls[] = {
- 	IOCTL_INFO(VIDIOC_QUERYCAP, 0),
--	IOCTL_INFO(VIDIOC_ENUM_FMT, 0),
--	IOCTL_INFO(VIDIOC_G_FMT, 0),
-+	IOCTL_INFO(VIDIOC_ENUM_FMT, INFO_FL_CLEAR(v4l2_fmtdesc, type)),
-+	IOCTL_INFO(VIDIOC_G_FMT, INFO_FL_CLEAR(v4l2_format, type)),
- 	IOCTL_INFO(VIDIOC_S_FMT, INFO_FL_PRIO),
- 	IOCTL_INFO(VIDIOC_REQBUFS, INFO_FL_PRIO),
--	IOCTL_INFO(VIDIOC_QUERYBUF, 0),
-+	IOCTL_INFO(VIDIOC_QUERYBUF, INFO_FL_CLEAR(v4l2_buffer, length)),
- 	IOCTL_INFO(VIDIOC_G_FBUF, 0),
- 	IOCTL_INFO(VIDIOC_S_FBUF, INFO_FL_PRIO),
- 	IOCTL_INFO(VIDIOC_OVERLAY, INFO_FL_PRIO),
-@@ -423,33 +428,33 @@ static struct v4l2_ioctl_info v4l2_ioctls[] = {
- 	IOCTL_INFO(VIDIOC_DQBUF, 0),
- 	IOCTL_INFO(VIDIOC_STREAMON, INFO_FL_PRIO),
- 	IOCTL_INFO(VIDIOC_STREAMOFF, INFO_FL_PRIO),
--	IOCTL_INFO(VIDIOC_G_PARM, 0),
-+	IOCTL_INFO(VIDIOC_G_PARM, INFO_FL_CLEAR(v4l2_streamparm, type)),
- 	IOCTL_INFO(VIDIOC_S_PARM, INFO_FL_PRIO),
- 	IOCTL_INFO(VIDIOC_G_STD, 0),
- 	IOCTL_INFO(VIDIOC_S_STD, INFO_FL_PRIO),
--	IOCTL_INFO(VIDIOC_ENUMSTD, 0),
--	IOCTL_INFO(VIDIOC_ENUMINPUT, 0),
-+	IOCTL_INFO(VIDIOC_ENUMSTD, INFO_FL_CLEAR(v4l2_standard, index)),
-+	IOCTL_INFO(VIDIOC_ENUMINPUT, INFO_FL_CLEAR(v4l2_input, index)),
- 	IOCTL_INFO(VIDIOC_G_CTRL, INFO_FL_CTRL),
- 	IOCTL_INFO(VIDIOC_S_CTRL, INFO_FL_PRIO | INFO_FL_CTRL),
--	IOCTL_INFO(VIDIOC_G_TUNER, 0),
-+	IOCTL_INFO(VIDIOC_G_TUNER, INFO_FL_CLEAR(v4l2_tuner, index)),
- 	IOCTL_INFO(VIDIOC_S_TUNER, INFO_FL_PRIO),
- 	IOCTL_INFO(VIDIOC_G_AUDIO, 0),
- 	IOCTL_INFO(VIDIOC_S_AUDIO, INFO_FL_PRIO),
--	IOCTL_INFO(VIDIOC_QUERYCTRL, INFO_FL_CTRL),
--	IOCTL_INFO(VIDIOC_QUERYMENU, INFO_FL_CTRL),
-+	IOCTL_INFO(VIDIOC_QUERYCTRL, INFO_FL_CTRL | INFO_FL_CLEAR(v4l2_queryctrl, id)),
-+	IOCTL_INFO(VIDIOC_QUERYMENU, INFO_FL_CTRL | INFO_FL_CLEAR(v4l2_querymenu, index)),
- 	IOCTL_INFO(VIDIOC_G_INPUT, 0),
- 	IOCTL_INFO(VIDIOC_S_INPUT, INFO_FL_PRIO),
--	IOCTL_INFO(VIDIOC_G_OUTPUT, 0),
-+	IOCTL_INFO(VIDIOC_G_OUTPUT, INFO_FL_CLEAR(v4l2_output, index)),
- 	IOCTL_INFO(VIDIOC_S_OUTPUT, INFO_FL_PRIO),
- 	IOCTL_INFO(VIDIOC_ENUMOUTPUT, 0),
- 	IOCTL_INFO(VIDIOC_G_AUDOUT, 0),
- 	IOCTL_INFO(VIDIOC_S_AUDOUT, INFO_FL_PRIO),
--	IOCTL_INFO(VIDIOC_G_MODULATOR, 0),
-+	IOCTL_INFO(VIDIOC_G_MODULATOR, INFO_FL_CLEAR(v4l2_modulator, index)),
- 	IOCTL_INFO(VIDIOC_S_MODULATOR, INFO_FL_PRIO),
--	IOCTL_INFO(VIDIOC_G_FREQUENCY, 0),
-+	IOCTL_INFO(VIDIOC_G_FREQUENCY, INFO_FL_CLEAR(v4l2_frequency, tuner)),
- 	IOCTL_INFO(VIDIOC_S_FREQUENCY, INFO_FL_PRIO),
--	IOCTL_INFO(VIDIOC_CROPCAP, 0),
--	IOCTL_INFO(VIDIOC_G_CROP, 0),
-+	IOCTL_INFO(VIDIOC_CROPCAP, INFO_FL_CLEAR(v4l2_cropcap, type)),
-+	IOCTL_INFO(VIDIOC_G_CROP, INFO_FL_CLEAR(v4l2_crop, type)),
- 	IOCTL_INFO(VIDIOC_S_CROP, INFO_FL_PRIO),
- 	IOCTL_INFO(VIDIOC_G_SELECTION, 0),
- 	IOCTL_INFO(VIDIOC_S_SELECTION, INFO_FL_PRIO),
-@@ -457,20 +462,20 @@ static struct v4l2_ioctl_info v4l2_ioctls[] = {
- 	IOCTL_INFO(VIDIOC_S_JPEGCOMP, INFO_FL_PRIO),
- 	IOCTL_INFO(VIDIOC_QUERYSTD, 0),
- 	IOCTL_INFO(VIDIOC_TRY_FMT, 0),
--	IOCTL_INFO(VIDIOC_ENUMAUDIO, 0),
--	IOCTL_INFO(VIDIOC_ENUMAUDOUT, 0),
-+	IOCTL_INFO(VIDIOC_ENUMAUDIO, INFO_FL_CLEAR(v4l2_audio, index)),
-+	IOCTL_INFO(VIDIOC_ENUMAUDOUT, INFO_FL_CLEAR(v4l2_audioout, index)),
- 	IOCTL_INFO(VIDIOC_G_PRIORITY, 0),
- 	IOCTL_INFO(VIDIOC_S_PRIORITY, INFO_FL_PRIO),
--	IOCTL_INFO(VIDIOC_G_SLICED_VBI_CAP, 0),
-+	IOCTL_INFO(VIDIOC_G_SLICED_VBI_CAP, INFO_FL_CLEAR(v4l2_sliced_vbi_cap, type)),
- 	IOCTL_INFO(VIDIOC_LOG_STATUS, 0),
- 	IOCTL_INFO(VIDIOC_G_EXT_CTRLS, INFO_FL_CTRL),
- 	IOCTL_INFO(VIDIOC_S_EXT_CTRLS, INFO_FL_PRIO | INFO_FL_CTRL),
- 	IOCTL_INFO(VIDIOC_TRY_EXT_CTRLS, 0),
--	IOCTL_INFO(VIDIOC_ENUM_FRAMESIZES, 0),
--	IOCTL_INFO(VIDIOC_ENUM_FRAMEINTERVALS, 0),
-+	IOCTL_INFO(VIDIOC_ENUM_FRAMESIZES, INFO_FL_CLEAR(v4l2_frmsizeenum, pixel_format)),
-+	IOCTL_INFO(VIDIOC_ENUM_FRAMEINTERVALS, INFO_FL_CLEAR(v4l2_frmivalenum, height)),
- 	IOCTL_INFO(VIDIOC_G_ENC_INDEX, 0),
--	IOCTL_INFO(VIDIOC_ENCODER_CMD, INFO_FL_PRIO),
--	IOCTL_INFO(VIDIOC_TRY_ENCODER_CMD, 0),
-+	IOCTL_INFO(VIDIOC_ENCODER_CMD, INFO_FL_PRIO | INFO_FL_CLEAR(v4l2_encoder_cmd, flags)),
-+	IOCTL_INFO(VIDIOC_TRY_ENCODER_CMD, INFO_FL_CLEAR(v4l2_encoder_cmd, flags)),
- 	IOCTL_INFO(VIDIOC_DECODER_CMD, INFO_FL_PRIO),
- 	IOCTL_INFO(VIDIOC_TRY_DECODER_CMD, 0),
- #ifdef CONFIG_VIDEO_ADV_DEBUG
-@@ -2105,45 +2110,6 @@ static long __video_do_ioctl(struct file *file,
- 	return ret;
- }
- 
--/* In some cases, only a few fields are used as input, i.e. when the app sets
-- * "index" and then the driver fills in the rest of the structure for the thing
-- * with that index.  We only need to copy up the first non-input field.  */
--static unsigned long cmd_input_size(unsigned int cmd)
--{
--	/* Size of structure up to and including 'field' */
--#define CMDINSIZE(cmd, type, field) 				\
--	case VIDIOC_##cmd: 					\
--		return offsetof(struct v4l2_##type, field) + 	\
--			sizeof(((struct v4l2_##type *)0)->field);
+-	memcpy(&bus->i2c_adap, &saa7164_i2c_adap_template,
+-	       sizeof(bus->i2c_adap));
 -
--	switch (cmd) {
--		CMDINSIZE(ENUM_FMT,		fmtdesc,	type);
--		CMDINSIZE(G_FMT,		format,		type);
--		CMDINSIZE(QUERYBUF,		buffer,		length);
--		CMDINSIZE(G_PARM,		streamparm,	type);
--		CMDINSIZE(ENUMSTD,		standard,	index);
--		CMDINSIZE(ENUMINPUT,		input,		index);
--		CMDINSIZE(G_CTRL,		control,	id);
--		CMDINSIZE(G_TUNER,		tuner,		index);
--		CMDINSIZE(QUERYCTRL,		queryctrl,	id);
--		CMDINSIZE(QUERYMENU,		querymenu,	index);
--		CMDINSIZE(ENUMOUTPUT,		output,		index);
--		CMDINSIZE(G_MODULATOR,		modulator,	index);
--		CMDINSIZE(G_FREQUENCY,		frequency,	tuner);
--		CMDINSIZE(CROPCAP,		cropcap,	type);
--		CMDINSIZE(G_CROP,		crop,		type);
--		CMDINSIZE(ENUMAUDIO,		audio, 		index);
--		CMDINSIZE(ENUMAUDOUT,		audioout, 	index);
--		CMDINSIZE(ENCODER_CMD,		encoder_cmd,	flags);
--		CMDINSIZE(TRY_ENCODER_CMD,	encoder_cmd,	flags);
--		CMDINSIZE(G_SLICED_VBI_CAP,	sliced_vbi_cap,	type);
--		CMDINSIZE(ENUM_FRAMESIZES,	frmsizeenum,	pixel_format);
--		CMDINSIZE(ENUM_FRAMEINTERVALS,	frmivalenum,	height);
--	default:
--		return _IOC_SIZE(cmd);
--	}
--}
--
- static int check_array_args(unsigned int cmd, void *parg, size_t *array_size,
- 			    void * __user *user_ptr, void ***kernel_ptr)
- {
-@@ -2218,7 +2184,20 @@ video_usercopy(struct file *file, unsigned int cmd, unsigned long arg,
+-	memcpy(&bus->i2c_client, &saa7164_i2c_client_template,
+-	       sizeof(bus->i2c_client));
++	bus->i2c_adap = saa7164_i2c_adap_template;
++	bus->i2c_client = saa7164_i2c_client_template;
  
- 		err = -EFAULT;
- 		if (_IOC_DIR(cmd) & _IOC_WRITE) {
--			unsigned long n = cmd_input_size(cmd);
-+			unsigned int n = _IOC_SIZE(cmd);
-+
-+			/*
-+			 * In some cases, only a few fields are used as input,
-+			 * i.e. when the app sets "index" and then the driver
-+			 * fills in the rest of the structure for the thing
-+			 * with that index.  We only need to copy up the first
-+			 * non-input field.
-+			 */
-+			if (v4l2_is_known_ioctl(cmd)) {
-+				u32 flags = v4l2_ioctls[_IOC_NR(cmd)].flags;
-+				if (flags & INFO_FL_CLEAR_MASK)
-+					n = (flags & INFO_FL_CLEAR_MASK) >> 16;
-+			}
+ 	bus->i2c_adap.dev.parent = &dev->pci->dev;
  
- 			if (copy_from_user(parg, (void __user *)arg, n))
- 				goto out;
 -- 
-1.7.10
+1.7.4.4
 
