@@ -1,48 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 124-248-200-92.sunnyvision.com ([124.248.200.92]:39193 "EHLO
-	teamb04.edmhongkong.com" rhost-flags-OK-FAIL-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1755762Ab2F0US6 (ORCPT
+Received: from acsinet15.oracle.com ([141.146.126.227]:34857 "EHLO
+	acsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754598Ab2F0JHA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Jun 2012 16:18:58 -0400
-Message-ID: <buSzuNVeWNXVCbY@pavo.seed.net.tw>
-From: borislamsv2@gmail.com
-Subject: Server Rental Promotion
-Content-Type: text/plain;
-Content-Transfer-Encoding: Quoted-Printable
-Date: Thu, 28 Jun 2012 04:18:15 +0800 (HKT)
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+	Wed, 27 Jun 2012 05:07:00 -0400
+Date: Wed, 27 Jun 2012 12:06:44 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Jose Alberto Reguero <jareguero@telefonica.net>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	kernel-janitors@vger.kernel.org
+Subject: [patch -resend] [media] az6007: precedence bug in az6007_i2c_xfer()
+Message-ID: <20120627090644.GP31212@elgon.mountain>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20120627085800.GA3007@mwanda>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dear All,
+The intent here was to test that the flag was clear but the '!' has
+higher precedence than the '&'.  I2C_M_RD is 0x1 so the current code is
+equivalent to "&& (!sgs[i].flags) ..."
 
-We have our own datacenter in Hong Kong & provide email/application/web rental service to clients.We are APNIC member & provide clean IP to clients.
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+---
+I sent this originally on Wed, 25 Jan 2012 and Emil Goode sent the same
+fix on Thu, May 3, 2012.
 
-Dell=3F PowerEdge=3F EnterpriseRack Mount Server
--Intel(R) Xeon(R) E3-1240 Processor (3.3GHz, 8M Cache, Turbo, 4C/8T, 80W)
--8GB RAM, 2x4GB, 1333MHz, DDR-3, Dual Ranked UDIMMs
--500GB, 3.5", 6Gbps SAS x 2
--Raid 1 Mirroring Protection
-
-Every Dedicated Server Hosting Solution Also Includes: 
- 
-Software Specification 
-- CentOS / Fedora / Debian / FreeBSD / Ubuntu / Redhat Linux 
-- Full root-level access 
-- Data Center Facilities 
-- Shared Local & International Bandwidth 
-- 2 IP Addresses Allocation 
-- Un-interruptible Power Supply (UPS) backed up by private diesel generator 
-- FM200=A1=A7based fire suppression system 
-- 24x7 CRAC Air Conditioning and Humidity Control 
-- 24x7 Security Control 
-- 24x7 Remote Hand Service 
-
-Pls send us email for further information.Thanks,
-
-Boris 
-boris@dedicatedserver.co.hk
-
-If you do not wish to further receive this event message, email "borislamsv2@gmail.com" to unsubscribe this message or remove your email from the list.
-
-
+diff --git a/drivers/media/dvb/dvb-usb/az6007.c b/drivers/media/dvb/dvb-usb/az6007.c
+index 4008b9c..f6f0cf9 100644
+--- a/drivers/media/dvb/dvb-usb/az6007.c
++++ b/drivers/media/dvb/dvb-usb/az6007.c
+@@ -711,7 +711,7 @@ static int az6007_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msgs[],
+ 		addr = msgs[i].addr << 1;
+ 		if (((i + 1) < num)
+ 		    && (msgs[i].len == 1)
+-		    && (!msgs[i].flags & I2C_M_RD)
++		    && (!(msgs[i].flags & I2C_M_RD))
+ 		    && (msgs[i + 1].flags & I2C_M_RD)
+ 		    && (msgs[i].addr == msgs[i + 1].addr)) {
+ 			/*
