@@ -1,37 +1,150 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:56491 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752276Ab2FCOnK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 3 Jun 2012 10:43:10 -0400
-Message-ID: <4FCB77FB.50804@iki.fi>
-Date: Sun, 03 Jun 2012 17:43:07 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: "Brian J. Murrell" <brian@interlinx.bc.ca>
-CC: linux-media <linux-media@vger.kernel.org>
-Subject: Re: Fwd: [Bug 827538] DVB USB device firmware requested in module_init()
-References: <bug-827538-199927-UDXT6TGYkq@bugzilla.redhat.com> <4FC91D64.6090305@iki.fi> <4FCA41D7.2060206@iki.fi> <4FCACF9C.8060509@iki.fi> <4FCB76D3.7090800@interlinx.bc.ca>
-In-Reply-To: <4FCB76D3.7090800@interlinx.bc.ca>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mailout2.samsung.com ([203.254.224.25]:55342 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755778Ab2F0OLc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 27 Jun 2012 10:11:32 -0400
+Received: from epcpsbgm1.samsung.com (mailout2.samsung.com [203.254.224.25])
+ by mailout2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0M6A00I1O4R71K10@mailout2.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 27 Jun 2012 23:11:31 +0900 (KST)
+Received: from amdc248.digital.local ([106.116.147.32])
+ by mmp2.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTPA id <0M6A008NR4OC4950@mmp2.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 27 Jun 2012 23:11:31 +0900 (KST)
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: kyungmin.park@samsung.com, riverful.kim@samsung.com,
+	sw0312.kim@samsung.com, Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH] s5p-fimc: Add missing FIMC-LITE file operations locking
+Date: Wed, 27 Jun 2012 16:09:45 +0200
+Message-id: <1340806186-6484-2-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1340806186-6484-1-git-send-email-s.nawrocki@samsung.com>
+References: <1340806186-6484-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/03/2012 05:38 PM, Brian J. Murrell wrote:
-> On 12-06-02 10:44 PM, Antti Palosaari wrote:
->>
->> That solves DVB USB firmware loading problems.
->
-> As in you have a patch that works or it's just solved "in theory".  If
-> you have a patch I'd love to apply it here and get this machine
-> suspendable again.
+commit 5126f2590bee412e3053de851cb07f531e4be36a
+"v4l2-dev: add flag to have the core lock all file operations"
+introduced an additional bit flag (V4L2_FL_LOCK_ALL_FOPS) that
+should be set by drivers that use the v4l2 core lock for all file
+operations. Since this driver has been merged at the same time as
+the core changes it doesn't set this flags and thus its all file
+operations except IOCTL are not properly serialized. Fix this by
+adding file ops locking in the driver.
 
-I have patch which works but is as a proof-of-concept stage. I am just 
-finalizing it. I will inform when it is ready, likely later tonight (as 
-I would like to really see it fixes that suspend/resume problem as I am 
-not able to reproduce it for some reason).
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/video/s5p-fimc/fimc-lite.c |   61 +++++++++++++++++++++---------
+ 1 file changed, 44 insertions(+), 17 deletions(-)
 
-regards
-Antit
+diff --git a/drivers/media/video/s5p-fimc/fimc-lite.c b/drivers/media/video/s5p-fimc/fimc-lite.c
+index 4d269b8..74ff310 100644
+--- a/drivers/media/video/s5p-fimc/fimc-lite.c
++++ b/drivers/media/video/s5p-fimc/fimc-lite.c
+@@ -453,34 +453,42 @@ static int fimc_lite_open(struct file *file)
+ 	struct fimc_lite *fimc = video_drvdata(file);
+ 	int ret;
+ 
++	if (mutex_lock_interruptible(&fimc->lock))
++		return -ERESTARTSYS;
++
+ 	set_bit(ST_FLITE_IN_USE, &fimc->state);
+ 	ret = pm_runtime_get_sync(&fimc->pdev->dev);
+ 	if (ret < 0)
+-		return ret;
+-
+-	if (++fimc->ref_count != 1 || fimc->out_path != FIMC_IO_DMA)
+-		return 0;
++		goto done;
+ 
+ 	ret = v4l2_fh_open(file);
+ 	if (ret < 0)
+-		return ret;
++		goto done;
+ 
+-	ret = fimc_pipeline_initialize(&fimc->pipeline, &fimc->vfd->entity,
+-				       true);
+-	if (ret < 0) {
+-		pm_runtime_put_sync(&fimc->pdev->dev);
+-		fimc->ref_count--;
+-		v4l2_fh_release(file);
+-		clear_bit(ST_FLITE_IN_USE, &fimc->state);
+-	}
++	if (++fimc->ref_count == 1 && fimc->out_path == FIMC_IO_DMA) {
++		ret = fimc_pipeline_initialize(&fimc->pipeline,
++					       &fimc->vfd->entity, true);
++		if (ret < 0) {
++			pm_runtime_put_sync(&fimc->pdev->dev);
++			fimc->ref_count--;
++			v4l2_fh_release(file);
++			clear_bit(ST_FLITE_IN_USE, &fimc->state);
++		}
+ 
+-	fimc_lite_clear_event_counters(fimc);
++		fimc_lite_clear_event_counters(fimc);
++	}
++done:
++	mutex_unlock(&fimc->lock);
+ 	return ret;
+ }
+ 
+ static int fimc_lite_close(struct file *file)
+ {
+ 	struct fimc_lite *fimc = video_drvdata(file);
++	int ret;
++
++	if (mutex_lock_interruptible(&fimc->lock))
++		return -ERESTARTSYS;
+ 
+ 	if (--fimc->ref_count == 0 && fimc->out_path == FIMC_IO_DMA) {
+ 		clear_bit(ST_FLITE_IN_USE, &fimc->state);
+@@ -494,20 +502,39 @@ static int fimc_lite_close(struct file *file)
+ 	if (fimc->ref_count == 0)
+ 		vb2_queue_release(&fimc->vb_queue);
+ 
+-	return v4l2_fh_release(file);
++	ret = v4l2_fh_release(file);
++
++	mutex_unlock(&fimc->lock);
++	return ret;
+ }
+ 
+ static unsigned int fimc_lite_poll(struct file *file,
+ 				   struct poll_table_struct *wait)
+ {
+ 	struct fimc_lite *fimc = video_drvdata(file);
+-	return vb2_poll(&fimc->vb_queue, file, wait);
++	int ret;
++
++	if (mutex_lock_interruptible(&fimc->lock))
++		return POLL_ERR;
++
++	ret = vb2_poll(&fimc->vb_queue, file, wait);
++	mutex_unlock(&fimc->lock);
++
++	return ret;
+ }
+ 
+ static int fimc_lite_mmap(struct file *file, struct vm_area_struct *vma)
+ {
+ 	struct fimc_lite *fimc = video_drvdata(file);
+-	return vb2_mmap(&fimc->vb_queue, vma);
++	int ret;
++
++	if (mutex_lock_interruptible(&fimc->lock))
++		return -ERESTARTSYS;
++
++	ret = vb2_mmap(&fimc->vb_queue, vma);
++	mutex_unlock(&fimc->lock);
++
++	return ret;
+ }
+ 
+ static const struct v4l2_file_operations fimc_lite_fops = {
 -- 
-http://palosaari.fi/
+1.7.10
+
