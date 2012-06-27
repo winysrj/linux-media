@@ -1,239 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:58066 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751125Ab2FLHCD convert rfc822-to-8bit (ORCPT
+Received: from ams-iport-4.cisco.com ([144.254.224.147]:32124 "EHLO
+	ams-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757152Ab2F0K42 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 Jun 2012 03:02:03 -0400
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-To: =?utf-8?Q?'Tomasz_Mo=C5=84'?= <desowin@gmail.com>,
-	'Mauro Carvalho Chehab' <mchehab@infradead.org>,
-	'Guennadi Liakhovetski' <g.liakhovetski@gmx.de>,
-	'Hans Verkuil' <hans.verkuil@cisco.com>,
-	'Hans de Goede' <hdegoede@redhat.com>,
-	linux-media@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
-References: <1339355883-4249-1-git-send-email-desowin@gmail.com>
-In-reply-to: <1339355883-4249-1-git-send-email-desowin@gmail.com>
-Subject: RE: [PATCH 1/1] v4l: mem2mem_testdev: Add horizontal and vertical flip.
-Date: Tue, 12 Jun 2012 09:01:47 +0200
-Message-id: <051501cd4869$3f51bde0$bdf539a0$%szyprowski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=utf-8
-Content-transfer-encoding: 8BIT
-Content-language: pl
+	Wed, 27 Jun 2012 06:56:28 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Scott Jiang <scott.jiang.linux@gmail.com>
+Subject: Re: About s_std_output
+Date: Wed, 27 Jun 2012 12:56:15 +0200
+Cc: LMML <linux-media@vger.kernel.org>
+References: <CAHG8p1DaJPWwSxmMqk6Jkx8JO8m69OuTYpwHvhsB54e8RAMRVA@mail.gmail.com> <201206271155.17164.hverkuil@xs4all.nl> <CAHG8p1CM6JNRn4o+Zt2sauMZ0kVCq9UY7U8MYajnZQXpoe=b1w@mail.gmail.com>
+In-Reply-To: <CAHG8p1CM6JNRn4o+Zt2sauMZ0kVCq9UY7U8MYajnZQXpoe=b1w@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201206271256.15143.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tomasz,
+On Wed 27 June 2012 12:14:34 Scott Jiang wrote:
+> 2012/6/27 Hans Verkuil <hverkuil@xs4all.nl>:
+> > On Wed 27 June 2012 11:37:24 Scott Jiang wrote:
+> >> Hi Hans,
+> >>
+> >> I noticed there are two s_std ops in core and video for output. And
+> >> some drivers call video->s_std_out and then core->s_std in their S_STD
+> >> iotcl. Could anyone share me the story why we have
+> >> s_std_output/g_std_output/g_tvnorms_output ops in video instead of
+> >> making use of s_std/g_std in core?
+> >
+> > The core class is for common, often used ops. Setting the standard for
+> > capture devices is very common, so it is in core. Setting the standard
+> > for output devices is much less common (there aren't that many output
+> > devices in the kernel), so that stayed in the video class.
+> >
+> My question is why we can't reuse s_std/g_std for output device. We
+> use same VIDIOC_S_STD/VIDIOC_G_STD ioctl for both input and output.
 
-On Sunday, June 10, 2012 9:18 PM Tomasz Moń wrote:
+Ah, no. There some drivers that can do both capture and display (ivtv in
+particular). The capture and output part are independent and each have their
+own video node. So there is no confusion about whether the VIDIOC_S_STD is
+for capture or for output. But internally the S_STD ioctl is converted to a
+s_std or s_std_output broadcast to all i2c devices using v4l2_device_call_all().
 
-> Signed-off-by: Tomasz Moń <desowin@gmail.com>
+You don't want the s_std for the output to interfere with the s_std for
+input i2c devices or vice versa, hence the separate s_std_output. Note that
+this issue is specific to s_std. Many drivers need to broadcast an s_std to
+all their i2c devices (the TV receiver, the tuner, the demodulator, possibly
+audio demodulator devices as well). Depending on the PCI board these can
+exists in various configurations. So you need the broadcast functionality,
+and in that case you need to have separate s_std and s_std_output ops.
 
-Please add some commit description, even if it is as simple as repeating the subject with one
-additional line of comment.
+> 
+> > It is a bit arbitrary and I am not sure whether I would make the same
+> > choice now.
+> >
+> So I should ignore s_std/g_std  and use s_std_output/g_std_output in
+> encoder driver, right?
 
-> ---
->  drivers/media/video/mem2mem_testdev.c |  135 ++++++++++++++++++++++++++++++---
->  1 file changed, 124 insertions(+), 11 deletions(-)
-> 
-> diff --git a/drivers/media/video/mem2mem_testdev.c b/drivers/media/video/mem2mem_testdev.c
-> index d2dec58..e1b66e9 100644
-> --- a/drivers/media/video/mem2mem_testdev.c
-> +++ b/drivers/media/video/mem2mem_testdev.c
-> @@ -60,6 +60,10 @@ MODULE_VERSION("0.1.1");
->  #define MEM2MEM_COLOR_STEP	(0xff >> 4)
->  #define MEM2MEM_NUM_TILES	8
-> 
-> +/* Flags that indicate processing mode */
-> +#define MEM2MEM_HFLIP	(1 << 0)
-> +#define MEM2MEM_VFLIP	(1 << 1)
-> +
->  #define dprintk(dev, fmt, arg...) \
->  	v4l2_dbg(1, 1, &dev->v4l2_dev, "%s: " fmt, __func__, ## arg)
-> 
-> @@ -131,6 +135,24 @@ static struct m2mtest_q_data *get_q_data(enum v4l2_buf_type type)
-> 
->  static struct v4l2_queryctrl m2mtest_ctrls[] = {
->  	{
-> +		.id		= V4L2_CID_HFLIP,
-> +		.type		= V4L2_CTRL_TYPE_BOOLEAN,
-> +		.name		= "Mirror",
-> +		.minimum	= 0,
-> +		.maximum	= 1,
-> +		.step		= 1,
-> +		.default_value	= 0,
-> +		.flags		= 0,
-> +	}, {
-> +		.id		= V4L2_CID_VFLIP,
-> +		.type		= V4L2_CTRL_TYPE_BOOLEAN,
-> +		.name		= "Vertical Mirror",
-> +		.minimum	= 0,
-> +		.maximum	= 1,
-> +		.step		= 1,
-> +		.default_value	= 0,
-> +		.flags		= 0,
-> +	}, {
->  		.id		= V4L2_CID_TRANS_TIME_MSEC,
->  		.type		= V4L2_CTRL_TYPE_INTEGER,
->  		.name		= "Transaction time (msec)",
-> @@ -197,6 +219,9 @@ struct m2mtest_ctx {
->  	/* Abort requested by m2m */
->  	int			aborting;
-> 
-> +	/* Processing mode */
-> +	int			mode;
-> +
->  	struct v4l2_m2m_ctx	*m2m_ctx;
->  };
-> 
-> @@ -247,19 +272,84 @@ static int device_process(struct m2mtest_ctx *ctx,
->  	bytes_left = bytesperline - tile_w * MEM2MEM_NUM_TILES;
->  	w = 0;
-> 
-> -	for (y = 0; y < height; ++y) {
-> -		for (t = 0; t < MEM2MEM_NUM_TILES; ++t) {
-> -			if (w & 0x1) {
-> -				for (x = 0; x < tile_w; ++x)
-> -					*p_out++ = *p_in++ + MEM2MEM_COLOR_STEP;
-> -			} else {
-> -				for (x = 0; x < tile_w; ++x)
-> -					*p_out++ = *p_in++ - MEM2MEM_COLOR_STEP;
-> +	switch (ctx->mode) {
-> +	case MEM2MEM_HFLIP | MEM2MEM_VFLIP:
-> +		p_out += bytesperline * height - bytes_left;
-> +		for (y = 0; y < height; ++y) {
-> +			for (t = 0; t < MEM2MEM_NUM_TILES; ++t) {
-> +				if (w & 0x1) {
-> +					for (x = 0; x < tile_w; ++x)
-> +						*--p_out = *p_in++ +
-> +							MEM2MEM_COLOR_STEP;
-> +				} else {
-> +					for (x = 0; x < tile_w; ++x)
-> +						*--p_out = *p_in++ -
-> +							MEM2MEM_COLOR_STEP;
-> +				}
-> +				++w;
->  			}
-> -			++w;
-> +			p_in += bytes_left;
-> +			p_out -= bytes_left;
-> +		}
-> +		break;
-> +
-> +	case MEM2MEM_HFLIP:
-> +		for (y = 0; y < height; ++y) {
-> +			p_out += MEM2MEM_NUM_TILES * tile_w;
-> +			for (t = 0; t < MEM2MEM_NUM_TILES; ++t) {
-> +				if (w & 0x01) {
-> +					for (x = 0; x < tile_w; ++x)
-> +						*--p_out = *p_in++ +
-> +							MEM2MEM_COLOR_STEP;
-> +				} else {
-> +					for (x = 0; x < tile_w; ++x)
-> +						*--p_out = *p_in++ -
-> +							MEM2MEM_COLOR_STEP;
-> +				}
-> +				++w;
-> +			}
-> +			p_in += bytes_left;
-> +			p_out += bytesperline;
-> +		}
-> +		break;
-> +
-> +	case MEM2MEM_VFLIP:
-> +		p_out += bytesperline * (height - 1);
-> +		for (y = 0; y < height; ++y) {
-> +			for (t = 0; t < MEM2MEM_NUM_TILES; ++t) {
-> +				if (w & 0x1) {
-> +					for (x = 0; x < tile_w; ++x)
-> +						*p_out++ = *p_in++ +
-> +							MEM2MEM_COLOR_STEP;
-> +				} else {
-> +					for (x = 0; x < tile_w; ++x)
-> +						*p_out++ = *p_in++ -
-> +							MEM2MEM_COLOR_STEP;
-> +				}
-> +				++w;
-> +			}
-> +			p_in += bytes_left;
-> +			p_out += bytes_left - 2 * bytesperline;
-> +		}
-> +		break;
-> +
-> +	default:
-> +		for (y = 0; y < height; ++y) {
-> +			for (t = 0; t < MEM2MEM_NUM_TILES; ++t) {
-> +				if (w & 0x1) {
-> +					for (x = 0; x < tile_w; ++x)
-> +						*p_out++ = *p_in++ +
-> +							MEM2MEM_COLOR_STEP;
-> +				} else {
-> +					for (x = 0; x < tile_w; ++x)
-> +						*p_out++ = *p_in++ -
-> +							MEM2MEM_COLOR_STEP;
-> +				}
-> +				++w;
-> +			}
-> +			p_in += bytes_left;
-> +			p_out += bytes_left;
->  		}
-> -		p_in += bytes_left;
-> -		p_out += bytes_left;
->  	}
-> 
->  	return 0;
-> @@ -646,6 +736,14 @@ static int vidioc_g_ctrl(struct file *file, void *priv,
->  	struct m2mtest_ctx *ctx = priv;
-> 
->  	switch (ctrl->id) {
-> +	case V4L2_CID_HFLIP:
-> +		ctrl->value = (ctx->mode & MEM2MEM_HFLIP) ? 1 : 0;
-> +		break;
-> +
-> +	case V4L2_CID_VFLIP:
-> +		ctrl->value = (ctx->mode & MEM2MEM_VFLIP) ? 1 : 0;
-> +		break;
-> +
->  	case V4L2_CID_TRANS_TIME_MSEC:
->  		ctrl->value = ctx->transtime;
->  		break;
-> @@ -689,6 +787,20 @@ static int vidioc_s_ctrl(struct file *file, void *priv,
->  		return ret;
-> 
->  	switch (ctrl->id) {
-> +	case V4L2_CID_HFLIP:
-> +		if (ctrl->value)
-> +			ctx->mode |= MEM2MEM_HFLIP;
-> +		else
-> +			ctx->mode &= ~MEM2MEM_HFLIP;
-> +		break;
-> +
-> +	case V4L2_CID_VFLIP:
-> +		if (ctrl->value)
-> +			ctx->mode |= MEM2MEM_VFLIP;
-> +		else
-> +			ctx->mode &= ~MEM2MEM_VFLIP;
-> +		break;
-> +
->  	case V4L2_CID_TRANS_TIME_MSEC:
->  		ctx->transtime = ctrl->value;
->  		break;
-> @@ -859,6 +971,7 @@ static int m2mtest_open(struct file *file)
->  	ctx->translen = MEM2MEM_DEF_TRANSLEN;
->  	ctx->transtime = MEM2MEM_DEF_TRANSTIME;
->  	ctx->num_processed = 0;
-> +	ctx->mode = 0;
-> 
->  	ctx->m2m_ctx = v4l2_m2m_ctx_init(dev->m2m_dev, ctx, &queue_init);
-> 
-> --
-> 1.7.10
+Correct.
 
+> 
+> > There is no g_tvnorms_output, BTW.
+> >
+> It really exists.
+> struct v4l2_subdev_video_ops {
+>         int (*s_routing)(struct v4l2_subdev *sd, u32 input, u32
+> output, u32 config);
+>         int (*s_crystal_freq)(struct v4l2_subdev *sd, u32 freq, u32 flags);
+>         int (*s_std_output)(struct v4l2_subdev *sd, v4l2_std_id std);
+>         int (*g_std_output)(struct v4l2_subdev *sd, v4l2_std_id *std);
+>         int (*querystd)(struct v4l2_subdev *sd, v4l2_std_id *std);
+>         int (*g_tvnorms_output)(struct v4l2_subdev *sd, v4l2_std_id *std);
+> 
 
-Best regards
--- 
-Marek Szyprowski
-Samsung Poland R&D Center
+Oops, you are correct. Hmm, odd that nobody needed a g_tvnorms for input.
 
+Regards,
 
+	Hans
