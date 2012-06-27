@@ -1,90 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from static.121.164.40.188.clients.your-server.de ([188.40.164.121]:59997
-	"EHLO smtp.eikelenboom.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932222Ab2F0VWl (ORCPT
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:53642 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750929Ab2F0FVS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Jun 2012 17:22:41 -0400
-Date: Wed, 27 Jun 2012 23:15:16 +0200
-From: Sander Eikelenboom <linux@eikelenboom.it>
-Message-ID: <1902016850.20120627231516@eikelenboom.it>
-To: Hans de Goede <hdegoede@redhat.com>
-CC: Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	<linux-media@vger.kernel.org>, <hans.verkuil@cisco.com>
-Subject: Re: [ 3960.758784] 1 lock held by motion/7776: [ 3960.758788]  #0: (&queue->mutex){......}, at: [<ffffffff815c62d2>] uvc_queue_enable+0x32/0xc0
-In-Reply-To: <4FA7CE04.10004@redhat.com>
-References: <4410483770.20120428220246@eikelenboom.it> <21221178.20120506165440@eikelenboom.it> <1363463.HQ7LJLv1Qi@avalon> <201205071344.59861.hverkuil@xs4all.nl> <4FA7CE04.10004@redhat.com>
+	Wed, 27 Jun 2012 01:21:18 -0400
+Received: by bkcji2 with SMTP id ji2so589493bkc.19
+        for <linux-media@vger.kernel.org>; Tue, 26 Jun 2012 22:21:17 -0700 (PDT)
+Message-ID: <4FEA9849.5010105@googlemail.com>
+Date: Wed, 27 Jun 2012 07:21:13 +0200
+From: Thomas Mair <thomas.mair86@googlemail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+To: poma <pomidorabelisima@gmail.com>
+CC: Hans-Frieder Vogt <hfvogt@gmx.net>, Antti Palosaari <crope@iki.fi>,
+	mchehab@redhat.com, linux-media@vger.kernel.org
+Subject: Re: rtl28xxu - rtl2832 frontend attach
+References: <4FB92428.3080201@gmail.com> <4FB94F2C.4050905@iki.fi> <4FB95E4B.9090006@googlemail.com> <4FC0443F.8030004@gmail.com> <4FC32233.1040407@googlemail.com> <4FC3902D.3090506@googlemail.com> <4FE9EEB4.9010005@gmail.com>
+In-Reply-To: <4FE9EEB4.9010005@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
-Monday, May 7, 2012, 3:28:36 PM, you wrote:
-
-> Hi,
-
-> On 05/07/2012 01:44 PM, Hans Verkuil wrote:
->> On Monday 07 May 2012 13:06:01 Laurent Pinchart wrote:
->>> Hi Sanser,
->>>
->>> On Sunday 06 May 2012 16:54:40 Sander Eikelenboom wrote:
->>>> Hello Laurent / Mauro,
+On 26.06.2012 19:17, poma wrote:
+> On 05/28/2012 04:48 PM, Thomas Mair wrote:
+>> On 28.05.2012 08:58, Thomas Mair wrote:
+>>> On 26.05.2012 04:47, poma wrote:
+>>>> On 05/20/2012 11:12 PM, Thomas Mair wrote:
+>>>>> On 20.05.2012 22:08, Antti Palosaari wrote:
+>>>>>> On 20.05.2012 20:04, poma wrote:
+>>>>>>> After hard/cold boot:
+>>>>>>
+>>>>>>> DVB: register adapter0/net0 @ minor: 2 (0x02)
+>>>>>>> rtl2832u_frontend_attach:
+>>>>>>> rtl28xxu_ctrl_msg: failed=-32
+>>>>>>> rtl28xxu_ctrl_msg: failed=-32
+>>>>>>> rtl28xxu_ctrl_msg: failed=-32
+>>>>>>> rtl28xxu_ctrl_msg: failed=-32
+>>>>>>> rtl28xxu_ctrl_msg: failed=-32
+>>>>>>> rtl28xxu_ctrl_msg: failed=-32
+>>>>>>> rtl28xxu_ctrl_msg: failed=-32
+>>>>>>> rtl28xxu_ctrl_msg: failed=-32
+>>>>>>> rtl28xxu_ctrl_msg: failed=-32
+>>>>>>> rtl28xxu_ctrl_msg: failed=-32
+>>>>>>> No compatible tuner found
+>>>>>>
+>>>>>> These errors are coming from tuner probe. As it still goes to probing and did not jump out earlier when gate is opened it means that demod is answering commands but tuner are not.
+>>>>>>
+>>>>>> My guess is that tuner is still on the reset or not powered at all. It is almost 100% sure error is wrong tuner GPIO.
+>>>>>
+>>>>> There is an issue with GPIO, as FC0012 tuner callback will set 
+>>>>> the value of one of the GPIO outputs. However fixing that, will
+>>>>> not resolve the issue. So I need to debug the problem further.
+>>>>>
+>>>> True. Whatever a value is changed - 'rtl2832u_power_ctrl', it brakes
+>>>> even more.
+>>>> Precisely, what breaks a tuner on next soft [re]boot are apps/utils
+>>>> which engage tzap/scan[dvb].
 >>>>
->>>> I have updated to latest 3.4-rc5-tip, running multiple video grabbers.
->>>> I don't see anything specific to uvcvideo anymore, but i do get the possible
->>>> circular locking dependency below.
 >>>
->>> Thanks for the report.
+>>> To reproduce the bug it is not necessary to reboot the machine. Simply 
+>>> unload and load of the dvb_usb_rtl28xxu module will lead to the same 
+>>> situation.
 >>>
->>> We indeed have a serious issue there (CC'ing Hans Verkuil).
+>>> I suspect, that when power is turned off, the tuner power is not 
+>>> switched on correctly. The mistake is not related to the OUTPUT_VAL
+>>> registers but probably to the OUTPUT_DIR or OUTPUT_EN registers.
 >>>
->>> Hans, serializing both ioctl handling an mmap with a single device lock as we
->>> currently do in V4L2 is prone to AB-BA deadlocks (uvcvideo shouldn't be
->>> affected as it has no device-wide lock).
+>>> What makes me wonder is if no tuning operation is performed before
+>>> reboot, the driver does work correctly after that, as poma already
+>>> noticed.
 >>>
->>> If we want to keep a device-wide lock we need to take it after the mm-
->>>> mmap_sem lock in all code paths, as there's no way we can change the lock
->>> ordering for mmap(). The copy_from_user/copy_to_user issue could be solved by
->>> moving locking from v4l2_ioctl to __video_do_ioctl (device-wide locks would
->>> then require using video_ioctl2), but I'm not sure whether that will play
->>> nicely with the QBUF implementation in videobuf2 (which already includes a
->>> workaround for this particular AB-BA deadlock issue).
+>>> I have some spare time today and will investigate the problem further.
+>>>
 >>
->> I've seen the same thing. It was on my TODO list of things to look into. I think
->> mmap shouldn't take the device wide lock at all. But it will mean reviewing
->> affected drivers before I can remove it.
+>> I tried a few things regarding the problem today and could find out a 
+>> few more details, but could not resolve the issue.
 >>
->> To be honest, I wasn't sure whether or not to take the device lock for mmap when
->> I first wrote that code.
+>> The GPIO pin configuration for the devices with the fc0012 (and probably
+>> also with the fc0013) tuner is the following:
 >>
->> If you look at irc I had a discussion today with HdG about adding flags to
->> selectively disable locks for fops. It may be an idea to implement this soon so
->> we can start updating drivers one-by-one.
+>> GPIO0: demod power
+>> GPIO3: tuner power? (the realtek driver puts this to 1 and never touches it again)
+>> GPIO4: tuner power? (maybe antenna power?)
+>> GPIO5: tuner reset
+>> GPIO6: UHF/VHF band selection
+>>
+>> All of these GPIOs are configured as output. When the device is plugged in
+>> the tuner is powered up correctly, but I am not able to power it up when
+>> a reboot is performed. What I tried was the following:
+>>
+>> - on rtl28xxu_power_ctrl off:
+>>   - GPIO4 = 1 (off)
+>>   - GPIO5 = 0 
+>>   - GPIO6 = 0 (default state)
+>>
+>> - on rtl28xxu_power_ctrl on:
+>>   - GPIO3 = 1
+>>   - GPIO4 = 0 (on)
+>>   - GPIO5 = 0 
+>>   - GPIO6 = 0 (default state)
+>>
+>> - on rtl2832_frontend_attach:
+>>   - GPIO5 = 1 
+>>   - GPIO5 = 0 
+>>
+>> This sequence should ensure that the tuner is powered on when the frontend
+>> is attached, and a tuner reset is being performed before the tuner is probed.
+>> However this sequence fails the same way as it did before. I tried to add
+>> timeouts to be sure that the tuner is not probed while it is reset but that
+>> did not help either.
+>>
+>> Right now I really don't know where I should look for the solution of
+>> the problem. It seems that the tuner reset does not have any effect on the 
+>> tuner whatsoever.
+>>
+>> Is there anybody who could look at the code, or maybe knows what could be
+>> the cause of the problem? I suspect I am just too blind to see my own mistakes.
+>>
+>> Regards
+>> Thomas
+>>
+> 
+> Cheers Thomas, Hans-Frieder, Antti, Mauro!
+> Hans-Frieder, are you having the same issue with fc0011&af9035?
+> Antti, no tricks up your sleeve?
+> Senhor Mauro, is rtl2832 demod going to be merged?
+> 
+> regards,
+> poma
+> 
+Hi all,
 
-> I've a patch almost ready for this, when I'm happy with it I'll send of a new
-> version of the (ever growing) gspca use control framework patchset both me and
-> the other Hans have been working on, which will include this patch.
+I will try to solve the issue as soon as I have some spare time. In the meantime I 
+asked Realtek if they knew of any problems with the hardware, and I got a GPIO
+list which might help me to solve the problem.
 
-Hi Hans,
-
-Is there any progress on this ?
-It still happens when booting with a 3.5-rc4 kernel.
-Probably with either the PWC or the em28xx driver.
-
---
-Sander
-
-> Regards,
-
-> Hans
-
-
-
-
--- 
-Best regards,
- Sander                            mailto:linux@eikelenboom.it
+Regrads
+Thomas
 
