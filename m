@@ -1,68 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gh0-f174.google.com ([209.85.160.174]:57788 "EHLO
-	mail-gh0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757764Ab2F0Q6t (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Jun 2012 12:58:49 -0400
-Received: by ghrr11 with SMTP id r11so1113520ghr.19
-        for <linux-media@vger.kernel.org>; Wed, 27 Jun 2012 09:58:48 -0700 (PDT)
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: <linux-media@vger.kernel.org>, stoth@kernellabs.com,
-	dan.carpenter@oracle.com, palash.bandyopadhyay@conexant.com,
-	Ezequiel Garcia <elezegarcia@gmail.com>
-Subject: [PATCH 1/9] saa7164: Remove useless struct i2c_algo_bit_data
-Date: Wed, 27 Jun 2012 13:52:46 -0300
-Message-Id: <1340815974-4120-1-git-send-email-elezegarcia@gmail.com>
+Received: from smtp.nokia.com ([147.243.128.24]:21386 "EHLO mgw-da01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754433Ab2F0L4G (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 27 Jun 2012 07:56:06 -0400
+Message-ID: <4FEAF4C4.8020600@iki.fi>
+Date: Wed, 27 Jun 2012 14:55:48 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media@vger.kernel.org, Enrico <ebutera@users.berlios.de>,
+	Jean-Philippe Francois <jp.francois@cynove.com>,
+	Abhishek Reddy Kondaveeti <areddykondaveeti@aptina.com>,
+	Gary Thomas <gary@mlbassoc.com>,
+	Javier Martinez Canillas <martinez.javier@gmail.com>
+Subject: Re: [PATCH 6/6] omap3isp: ccdc: Add YUV input formats support
+References: <1340718339-29915-1-git-send-email-laurent.pinchart@ideasonboard.com> <1340718339-29915-7-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1340718339-29915-7-git-send-email-laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The field 'struct i2c_algo_bit_data i2c_algo' is wrongly confused with
-struct i2c_algorithm. Moreover, i2c_algo field is not used since
-i2c is registered using i2c_add_adpater() and not i2c_bit_add_bus().
-Therefore, it's safe to remove it.
-Tested by compilation only.
+Laurent Pinchart wrote:
+> Enable the bridge automatically when the input format is YUYV8 or UYVY8.
+> 
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
----
- drivers/media/video/saa7164/saa7164-i2c.c |    4 ----
- drivers/media/video/saa7164/saa7164.h     |    1 -
- 2 files changed, 0 insertions(+), 5 deletions(-)
+Thanks for the patch, Laurent!
 
-diff --git a/drivers/media/video/saa7164/saa7164-i2c.c b/drivers/media/video/saa7164/saa7164-i2c.c
-index 26148f7..1c54ab4 100644
---- a/drivers/media/video/saa7164/saa7164-i2c.c
-+++ b/drivers/media/video/saa7164/saa7164-i2c.c
-@@ -109,9 +109,6 @@ int saa7164_i2c_register(struct saa7164_i2c *bus)
- 	memcpy(&bus->i2c_adap, &saa7164_i2c_adap_template,
- 	       sizeof(bus->i2c_adap));
- 
--	memcpy(&bus->i2c_algo, &saa7164_i2c_algo_template,
--	       sizeof(bus->i2c_algo));
--
- 	memcpy(&bus->i2c_client, &saa7164_i2c_client_template,
- 	       sizeof(bus->i2c_client));
- 
-@@ -120,7 +117,6 @@ int saa7164_i2c_register(struct saa7164_i2c *bus)
- 	strlcpy(bus->i2c_adap.name, bus->dev->name,
- 		sizeof(bus->i2c_adap.name));
- 
--	bus->i2c_algo.data = bus;
- 	bus->i2c_adap.algo_data = bus;
- 	i2c_set_adapdata(&bus->i2c_adap, bus);
- 	i2c_add_adapter(&bus->i2c_adap);
-diff --git a/drivers/media/video/saa7164/saa7164.h b/drivers/media/video/saa7164/saa7164.h
-index 8d120e3..fc1f854 100644
---- a/drivers/media/video/saa7164/saa7164.h
-+++ b/drivers/media/video/saa7164/saa7164.h
-@@ -251,7 +251,6 @@ struct saa7164_i2c {
- 
- 	/* I2C I/O */
- 	struct i2c_adapter		i2c_adap;
--	struct i2c_algo_bit_data	i2c_algo;
- 	struct i2c_client		i2c_client;
- 	u32				i2c_rc;
- };
+Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
+
 -- 
-1.7.4.4
+Sakari Ailus
+sakari.ailus@iki.fi
+
 
