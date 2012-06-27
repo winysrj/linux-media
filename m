@@ -1,118 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:50988 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932201Ab2FIAuz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 Jun 2012 20:50:55 -0400
-From: Akinobu Mita <akinobu.mita@gmail.com>
-To: linux-kernel@vger.kernel.org, akpm@linux-foundation.org
-Cc: Akinobu Mita <akinobu.mita@gmail.com>,
-	Anders Larsen <al@alarsen.net>,
-	Alasdair Kergon <agk@redhat.com>, dm-devel@redhat.com,
-	linux-fsdevel@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org, Mark Fasheh <mfasheh@suse.com>,
-	Joel Becker <jlbec@evilplan.org>, ocfs2-devel@oss.oracle.com,
-	Jan Kara <jack@suse.cz>, linux-ext4@vger.kernel.org,
-	Andreas Dilger <adilger.kernel@dilger.ca>,
-	"Theodore Ts'o" <tytso@mit.edu>, Matthew Wilcox <matthew@wil.cx>
-Subject: [PATCH v3 1/9] string: introduce memweight
-Date: Sat,  9 Jun 2012 09:50:30 +0900
-Message-Id: <1339203038-13069-1-git-send-email-akinobu.mita@gmail.com>
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:52927 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755653Ab2F0QxZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 27 Jun 2012 12:53:25 -0400
+Received: by mail-yx0-f174.google.com with SMTP id l2so1090102yen.19
+        for <linux-media@vger.kernel.org>; Wed, 27 Jun 2012 09:53:25 -0700 (PDT)
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: <linux-media@vger.kernel.org>, stoth@kernellabs.com,
+	dan.carpenter@oracle.com, palash.bandyopadhyay@conexant.com,
+	Ezequiel Garcia <elezegarcia@gmail.com>
+Subject: [PATCH 7/9] cx23885: Replace struct memcpy with struct assignment
+Date: Wed, 27 Jun 2012 13:52:52 -0300
+Message-Id: <1340815974-4120-7-git-send-email-elezegarcia@gmail.com>
+In-Reply-To: <1340815974-4120-1-git-send-email-elezegarcia@gmail.com>
+References: <1340815974-4120-1-git-send-email-elezegarcia@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-memweight() is the function that counts the total number of bits set
-in memory area.  Unlike bitmap_weight(), memweight() takes pointer
-and size in bytes to specify a memory area which does not need to be
-aligned to long-word boundary.
+Copying structs by assignment is type safe.
+Plus, is shorter and easier to read.
 
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Anders Larsen <al@alarsen.net>
-Cc: Alasdair Kergon <agk@redhat.com>
-Cc: dm-devel@redhat.com
-Cc: linux-fsdevel@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org
-Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: ocfs2-devel@oss.oracle.com
-Cc: Jan Kara <jack@suse.cz>
-Cc: linux-ext4@vger.kernel.org
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Andreas Dilger <adilger.kernel@dilger.ca>
-Cc: "Theodore Ts'o" <tytso@mit.edu>
-Cc: Matthew Wilcox <matthew@wil.cx>
+Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
 ---
-v3: add comment for the last loop, adviced by Jan Kara
-v2: simplify memweight(), adviced by Jan Kara
+ drivers/media/video/cx23885/cx23885-i2c.c |    7 ++-----
+ 1 files changed, 2 insertions(+), 5 deletions(-)
 
- include/linux/string.h |    3 +++
- lib/string.c           |   36 ++++++++++++++++++++++++++++++++++++
- 2 files changed, 39 insertions(+), 0 deletions(-)
-
-diff --git a/include/linux/string.h b/include/linux/string.h
-index e033564..ffe0442 100644
---- a/include/linux/string.h
-+++ b/include/linux/string.h
-@@ -145,4 +145,7 @@ static inline bool strstarts(const char *str, const char *prefix)
- 	return strncmp(str, prefix, strlen(prefix)) == 0;
- }
- #endif
-+
-+extern size_t memweight(const void *ptr, size_t bytes);
-+
- #endif /* _LINUX_STRING_H_ */
-diff --git a/lib/string.c b/lib/string.c
-index e5878de..e467186 100644
---- a/lib/string.c
-+++ b/lib/string.c
-@@ -26,6 +26,7 @@
- #include <linux/export.h>
- #include <linux/bug.h>
- #include <linux/errno.h>
-+#include <linux/bitmap.h>
+diff --git a/drivers/media/video/cx23885/cx23885-i2c.c b/drivers/media/video/cx23885/cx23885-i2c.c
+index 615c71f..4887314 100644
+--- a/drivers/media/video/cx23885/cx23885-i2c.c
++++ b/drivers/media/video/cx23885/cx23885-i2c.c
+@@ -316,11 +316,8 @@ int cx23885_i2c_register(struct cx23885_i2c *bus)
  
- #ifndef __HAVE_ARCH_STRNICMP
- /**
-@@ -824,3 +825,38 @@ void *memchr_inv(const void *start, int c, size_t bytes)
- 	return check_bytes8(start, value, bytes % 8);
- }
- EXPORT_SYMBOL(memchr_inv);
-+
-+/**
-+ * memweight - count the total number of bits set in memory area
-+ * @ptr: pointer to the start of the area
-+ * @bytes: the size of the area
-+ */
-+size_t memweight(const void *ptr, size_t bytes)
-+{
-+	size_t w = 0;
-+	size_t longs;
-+	const unsigned char *bitmap = ptr;
-+
-+	for (; bytes > 0 && ((unsigned long)bitmap) % sizeof(long);
-+			bytes--, bitmap++)
-+		w += hweight8(*bitmap);
-+
-+	longs = bytes / sizeof(long);
-+	if (longs) {
-+		BUG_ON(longs >= INT_MAX / BITS_PER_LONG);
-+		w += bitmap_weight((unsigned long *)bitmap,
-+				longs * BITS_PER_LONG);
-+		bytes -= longs * sizeof(long);
-+		bitmap += longs * sizeof(long);
-+	}
-+	/*
-+	 * The reason that this last loop is distinct from the preceding
-+	 * bitmap_weight() call is to compute 1-bits in the last region smaller
-+	 * than sizeof(long) properly on big-endian systems.
-+	 */
-+	for (; bytes > 0; bytes--, bitmap++)
-+		w += hweight8(*bitmap);
-+
-+	return w;
-+}
-+EXPORT_SYMBOL(memweight);
+ 	dprintk(1, "%s(bus = %d)\n", __func__, bus->nr);
+ 
+-	memcpy(&bus->i2c_adap, &cx23885_i2c_adap_template,
+-	       sizeof(bus->i2c_adap));
+-	memcpy(&bus->i2c_client, &cx23885_i2c_client_template,
+-	       sizeof(bus->i2c_client));
+-
++	bus->i2c_adap = cx23885_i2c_adap_template;
++	bus->i2c_client = cx23885_i2c_client_template;
+ 	bus->i2c_adap.dev.parent = &dev->pci->dev;
+ 
+ 	strlcpy(bus->i2c_adap.name, bus->dev->name,
 -- 
-1.7.7.6
+1.7.4.4
 
