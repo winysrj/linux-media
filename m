@@ -1,63 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gg0-f174.google.com ([209.85.161.174]:48879 "EHLO
-	mail-gg0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751722Ab2FRTYG (ORCPT
+Received: from ams-iport-4.cisco.com ([144.254.224.147]:29217 "EHLO
+	ams-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754799Ab2F0KcL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jun 2012 15:24:06 -0400
-Received: by gglu4 with SMTP id u4so4009733ggl.19
-        for <linux-media@vger.kernel.org>; Mon, 18 Jun 2012 12:24:06 -0700 (PDT)
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: <linux-media@vger.kernel.org>,
-	Ezequiel Garcia <elezegarcia@gmail.com>
-Subject: [PATCH 02/12] saa7164: Remove useless struct i2c_algo_bit_data
-Date: Mon, 18 Jun 2012 16:23:35 -0300
-Message-Id: <1340047425-32000-2-git-send-email-elezegarcia@gmail.com>
-In-Reply-To: <1340047425-32000-1-git-send-email-elezegarcia@gmail.com>
-References: <1340047425-32000-1-git-send-email-elezegarcia@gmail.com>
+	Wed, 27 Jun 2012 06:32:11 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [RFCv2 PATCH 27/34] videobuf2-core: add helper functions.
+Date: Wed, 27 Jun 2012 12:31:58 +0200
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Pawel Osciak <pawel@osciak.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+References: <1340367688-8722-1-git-send-email-hverkuil@xs4all.nl> <a538431d6717db3fb47f1b4428379a5196346cd3.1340366355.git.hans.verkuil@cisco.com> <9935809.5Gr6bgoHjt@avalon>
+In-Reply-To: <9935809.5Gr6bgoHjt@avalon>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201206271231.58249.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
----
- drivers/media/video/saa7164/saa7164-i2c.c |    4 ----
- drivers/media/video/saa7164/saa7164.h     |    1 -
- 2 files changed, 0 insertions(+), 5 deletions(-)
+On Wed 27 June 2012 11:42:31 Laurent Pinchart wrote:
+> Hi Hans,
+> 
+> Thanks for the patch.
+> 
+> On Friday 22 June 2012 14:21:21 Hans Verkuil wrote:
+> > From: Hans Verkuil <hans.verkuil@cisco.com>
+> > 
+> > Add helper functions to make it easier to adapt drivers to vb2.
+> > 
+> > These helpers take care of core locking and check if the filehandle is the
+> > owner of the queue.
+> > 
+> > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> > ---
+> >  drivers/media/video/videobuf2-core.c |  227 +++++++++++++++++++++++++++++++
+> 
+> Was it not possible to move the functions to videobuf2-ioctl.c ?
 
-diff --git a/drivers/media/video/saa7164/saa7164-i2c.c b/drivers/media/video/saa7164/saa7164-i2c.c
-index 536f7dc..8df15ca 100644
---- a/drivers/media/video/saa7164/saa7164-i2c.c
-+++ b/drivers/media/video/saa7164/saa7164-i2c.c
-@@ -109,9 +109,6 @@ int saa7164_i2c_register(struct saa7164_i2c *bus)
- 	memcpy(&bus->i2c_adap, &saa7164_i2c_adap_template,
- 	       sizeof(bus->i2c_adap));
- 
--	memcpy(&bus->i2c_algo, &saa7164_i2c_algo_template,
--	       sizeof(bus->i2c_algo));
--
- 	memcpy(&bus->i2c_client, &saa7164_i2c_client_template,
- 	       sizeof(bus->i2c_client));
- 
-@@ -120,7 +117,6 @@ int saa7164_i2c_register(struct saa7164_i2c *bus)
- 	strlcpy(bus->i2c_adap.name, bus->dev->name,
- 		sizeof(bus->i2c_adap.name));
- 
--	bus->i2c_algo.data = bus;
- 	bus->i2c_adap.algo_data = bus;
- 	i2c_set_adapdata(&bus->i2c_adap, bus);
- 	bus->i2c_rc = i2c_add_adapter(&bus->i2c_adap);
-diff --git a/drivers/media/video/saa7164/saa7164.h b/drivers/media/video/saa7164/saa7164.h
-index 8d120e3..fc1f854 100644
---- a/drivers/media/video/saa7164/saa7164.h
-+++ b/drivers/media/video/saa7164/saa7164.h
-@@ -251,7 +251,6 @@ struct saa7164_i2c {
- 
- 	/* I2C I/O */
- 	struct i2c_adapter		i2c_adap;
--	struct i2c_algo_bit_data	i2c_algo;
- 	struct i2c_client		i2c_client;
- 	u32				i2c_rc;
- };
--- 
-1.7.4.4
+Yes, it was possible, but it would require making some functions extern instead
+of static. In my opinion there is not enough advantage in moving these functions
+to a separate file. I've added additional comments that should prevent any
+confusion.
 
+Regards,
+
+	Hans
