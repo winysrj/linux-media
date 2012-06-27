@@ -1,59 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:49618 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751602Ab2F0NyN (ORCPT
+Received: from mail-gg0-f174.google.com ([209.85.161.174]:48325 "EHLO
+	mail-gg0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756724Ab2F0Q65 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Jun 2012 09:54:13 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: "Ivan T. Ivanov" <iivanov@mm-sol.com>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org,
-	Jean-Philippe Francois <jp.francois@cynove.com>
-Subject: Re: [PATCH] omap3isp: preview: Add support for non-GRBG Bayer patterns
-Date: Wed, 27 Jun 2012 15:54:16 +0200
-Message-ID: <2983598.xxGvaJclHQ@avalon>
-In-Reply-To: <1340804521.3675.6.camel@iivanov-desktop>
-References: <1340029853-2648-1-git-send-email-laurent.pinchart@ideasonboard.com> <2750049.lYuKrB1hfJ@avalon> <1340804521.3675.6.camel@iivanov-desktop>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Wed, 27 Jun 2012 12:58:57 -0400
+Received: by mail-gg0-f174.google.com with SMTP id u4so1103063ggl.19
+        for <linux-media@vger.kernel.org>; Wed, 27 Jun 2012 09:58:56 -0700 (PDT)
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: <linux-media@vger.kernel.org>, stoth@kernellabs.com,
+	dan.carpenter@oracle.com, palash.bandyopadhyay@conexant.com,
+	Ezequiel Garcia <elezegarcia@gmail.com>
+Subject: [PATCH 2/9] cx23885: Remove useless struct i2c_algo_bit_data
+Date: Wed, 27 Jun 2012 13:52:47 -0300
+Message-Id: <1340815974-4120-2-git-send-email-elezegarcia@gmail.com>
+In-Reply-To: <1340815974-4120-1-git-send-email-elezegarcia@gmail.com>
+References: <1340815974-4120-1-git-send-email-elezegarcia@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ivan,
+The field 'struct i2c_algo_bit_data i2c_algo' is wrongly confused with
+struct i2c_algorithm. Moreover, i2c_algo field is not used since
+i2c is registered using i2c_add_adpater() and not i2c_bit_add_bus().
+Therefore, it's safe to remove it.
+Tested by compilation only.
 
-On Wednesday 27 June 2012 16:42:01 Ivan T. Ivanov wrote:
-> On Tue, 2012-06-26 at 03:30 +0200, Laurent Pinchart wrote:
-> > On Saturday 23 June 2012 11:22:37 Sakari Ailus wrote:
-> > > On Mon, Jun 18, 2012 at 04:30:53PM +0200, Laurent Pinchart wrote:
-> > > > Rearrange the CFA interpolation coefficients table based on the Bayer
-> > > > pattern. Modifying the table during streaming isn't supported anymore,
-> > > > but didn't make sense in the first place anyway.
-> > > 
-> > > Why not? I could imagine someone might want to change the table while
-> > > streaming to change the white balance, for example. Gamma tables or the
-> > > SRGB matrix can be used to do mostly the same but we should leave the
-> > > decision which one to use to the user space.
-> > 
-> > Because making the CFA table runtime-configurable brings an additional
-> > complexity without a use case I'm aware of. The preview engine has
-> > separate
-> > gamma tables, white balance matrices, and RGB-to-RGB and RGB-to-YUV
-> > matrices that can be modified during streaming. If a user really needs to
-> > modify the CFA tables during streaming I'll be happy to implement that
-> > (and even happier to receive a patch :-)), but I'm a bit reluctant to add
-> > complexity to an already complex code without a real use case.
-> 
-> Sorry for not following this thread very closely. One use case for
-> changing CFA table is to adjust sharpness of the frames coming out
-> of the ISP. And we are doing exactly this in N9.
+Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
+---
+ drivers/media/video/cx23885/cx23885-i2c.c |    3 ---
+ drivers/media/video/cx23885/cx23885.h     |    2 --
+ drivers/media/video/saa7164/saa7164.h     |    1 -
+ 3 files changed, 0 insertions(+), 6 deletions(-)
 
-Thank you for the valuable feedback. Now we have a use case :-) I'll make sure 
-the CFA table can be updated during streaming then. Are you fine with always 
-specifying the table in SGRBG order, and letting the driver rearrange the 4 
-blocks based on the input bayer pattern ?
-
+diff --git a/drivers/media/video/cx23885/cx23885-i2c.c b/drivers/media/video/cx23885/cx23885-i2c.c
+index be1e21d..615c71f 100644
+--- a/drivers/media/video/cx23885/cx23885-i2c.c
++++ b/drivers/media/video/cx23885/cx23885-i2c.c
+@@ -318,8 +318,6 @@ int cx23885_i2c_register(struct cx23885_i2c *bus)
+ 
+ 	memcpy(&bus->i2c_adap, &cx23885_i2c_adap_template,
+ 	       sizeof(bus->i2c_adap));
+-	memcpy(&bus->i2c_algo, &cx23885_i2c_algo_template,
+-	       sizeof(bus->i2c_algo));
+ 	memcpy(&bus->i2c_client, &cx23885_i2c_client_template,
+ 	       sizeof(bus->i2c_client));
+ 
+@@ -328,7 +326,6 @@ int cx23885_i2c_register(struct cx23885_i2c *bus)
+ 	strlcpy(bus->i2c_adap.name, bus->dev->name,
+ 		sizeof(bus->i2c_adap.name));
+ 
+-	bus->i2c_algo.data = bus;
+ 	bus->i2c_adap.algo_data = bus;
+ 	i2c_set_adapdata(&bus->i2c_adap, &dev->v4l2_dev);
+ 	i2c_add_adapter(&bus->i2c_adap);
+diff --git a/drivers/media/video/cx23885/cx23885.h b/drivers/media/video/cx23885/cx23885.h
+index d884784..3cf397f 100644
+--- a/drivers/media/video/cx23885/cx23885.h
++++ b/drivers/media/video/cx23885/cx23885.h
+@@ -21,7 +21,6 @@
+ 
+ #include <linux/pci.h>
+ #include <linux/i2c.h>
+-#include <linux/i2c-algo-bit.h>
+ #include <linux/kdev_t.h>
+ #include <linux/slab.h>
+ 
+@@ -246,7 +245,6 @@ struct cx23885_i2c {
+ 
+ 	/* i2c i/o */
+ 	struct i2c_adapter         i2c_adap;
+-	struct i2c_algo_bit_data   i2c_algo;
+ 	struct i2c_client          i2c_client;
+ 	u32                        i2c_rc;
+ 
+diff --git a/drivers/media/video/saa7164/saa7164.h b/drivers/media/video/saa7164/saa7164.h
+index fc1f854..35219b9 100644
+--- a/drivers/media/video/saa7164/saa7164.h
++++ b/drivers/media/video/saa7164/saa7164.h
+@@ -46,7 +46,6 @@
+ 
+ #include <linux/pci.h>
+ #include <linux/i2c.h>
+-#include <linux/i2c-algo-bit.h>
+ #include <linux/kdev_t.h>
+ #include <linux/mutex.h>
+ #include <linux/crc32.h>
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.4.4
 
