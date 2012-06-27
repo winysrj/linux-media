@@ -1,70 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cnxtsmtp1.conexant.com ([198.62.9.252]:18838 "EHLO
-	Cnxtsmtp1.conexant.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753034Ab2FPPzv convert rfc822-to-8bit (ORCPT
+Received: from mail-gh0-f174.google.com ([209.85.160.174]:57788 "EHLO
+	mail-gh0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757764Ab2F0Q6t (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 16 Jun 2012 11:55:51 -0400
-From: "Palash Bandyopadhyay" <Palash.Bandyopadhyay@conexant.com>
-To: "Dan Carpenter" <dan.carpenter@oracle.com>,
-	"mchehab@redhat.com" <mchehab@redhat.com>
-cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Sat, 16 Jun 2012 08:15:33 -0700
-Subject: RE: V4L/DVB (12730): Add conexant cx25821 driver
-Message-ID: <34B38BE41EDBA046A4AFBB591FA311320509E980E9@NBMBX01.bbnet.ad>
-References: <20120616131611.GA17802@elgon.mountain>
-In-Reply-To: <20120616131611.GA17802@elgon.mountain>
-Content-Language: en-US
-Content-Type: text/plain;
- charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+	Wed, 27 Jun 2012 12:58:49 -0400
+Received: by ghrr11 with SMTP id r11so1113520ghr.19
+        for <linux-media@vger.kernel.org>; Wed, 27 Jun 2012 09:58:48 -0700 (PDT)
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: <linux-media@vger.kernel.org>, stoth@kernellabs.com,
+	dan.carpenter@oracle.com, palash.bandyopadhyay@conexant.com,
+	Ezequiel Garcia <elezegarcia@gmail.com>
+Subject: [PATCH 1/9] saa7164: Remove useless struct i2c_algo_bit_data
+Date: Wed, 27 Jun 2012 13:52:46 -0300
+Message-Id: <1340815974-4120-1-git-send-email-elezegarcia@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Thanks Dan.
+The field 'struct i2c_algo_bit_data i2c_algo' is wrongly confused with
+struct i2c_algorithm. Moreover, i2c_algo field is not used since
+i2c is registered using i2c_add_adpater() and not i2c_bit_add_bus().
+Therefore, it's safe to remove it.
+Tested by compilation only.
 
-  Let me take a look and get back to you.
+Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
+---
+ drivers/media/video/saa7164/saa7164-i2c.c |    4 ----
+ drivers/media/video/saa7164/saa7164.h     |    1 -
+ 2 files changed, 0 insertions(+), 5 deletions(-)
 
-Rgds,
-Palash
-________________________________________
-From: Dan Carpenter [dan.carpenter@oracle.com]
-Sent: Saturday, June 16, 2012 6:16 AM
-To: Palash Bandyopadhyay; mchehab@redhat.com
-Cc: linux-media@vger.kernel.org
-Subject: re: V4L/DVB (12730): Add conexant cx25821 driver
-
-Hello Palash Bandyopadhyay,
-
-The patch 02b20b0b4cde: "V4L/DVB (12730): Add conexant cx25821
-driver" from Sep 15, 2009, leads to the following warning:
-drivers/media/video/cx25821/cx25821-i2c.c:310 cx25821_i2c_register()
-         error: memcpy() '&cx25821_i2c_algo_template' too small (24 vs 64)
-
-   306          dprintk(1, "%s(bus = %d)\n", __func__, bus->nr);
-   307
-   308          memcpy(&bus->i2c_adap, &cx25821_i2c_adap_template,
-   309                 sizeof(bus->i2c_adap));
- > 310          memcpy(&bus->i2c_algo, &cx25821_i2c_algo_template,
-   311                 sizeof(bus->i2c_algo));
-   312          memcpy(&bus->i2c_client, &cx25821_i2c_client_template,
-   313                 sizeof(bus->i2c_client));
-   314
-
-The problem is that "bus->i2c_algo" is a i2c_algo_bit_data struct and
-cx25821_i2c_algo_template is a i2c_algorithm struct.  They are different
-sizes and the function pointers don't line up at all.  I don't see how
-this can work at all.
-
-regards,
-dan carpenter
-Conexant E-mail Firewall (Conexant.Com) made the following annotations
----------------------------------------------------------------------
-********************** Legal Disclaimer **************************** 
-
-"This email may contain confidential and privileged material for the sole use of the intended recipient. Any unauthorized review, use or distribution by others is strictly prohibited. If you have received the message in error, please advise the sender by reply email and delete the message. Thank you." 
-
-********************************************************************** 
-
----------------------------------------------------------------------
+diff --git a/drivers/media/video/saa7164/saa7164-i2c.c b/drivers/media/video/saa7164/saa7164-i2c.c
+index 26148f7..1c54ab4 100644
+--- a/drivers/media/video/saa7164/saa7164-i2c.c
++++ b/drivers/media/video/saa7164/saa7164-i2c.c
+@@ -109,9 +109,6 @@ int saa7164_i2c_register(struct saa7164_i2c *bus)
+ 	memcpy(&bus->i2c_adap, &saa7164_i2c_adap_template,
+ 	       sizeof(bus->i2c_adap));
+ 
+-	memcpy(&bus->i2c_algo, &saa7164_i2c_algo_template,
+-	       sizeof(bus->i2c_algo));
+-
+ 	memcpy(&bus->i2c_client, &saa7164_i2c_client_template,
+ 	       sizeof(bus->i2c_client));
+ 
+@@ -120,7 +117,6 @@ int saa7164_i2c_register(struct saa7164_i2c *bus)
+ 	strlcpy(bus->i2c_adap.name, bus->dev->name,
+ 		sizeof(bus->i2c_adap.name));
+ 
+-	bus->i2c_algo.data = bus;
+ 	bus->i2c_adap.algo_data = bus;
+ 	i2c_set_adapdata(&bus->i2c_adap, bus);
+ 	i2c_add_adapter(&bus->i2c_adap);
+diff --git a/drivers/media/video/saa7164/saa7164.h b/drivers/media/video/saa7164/saa7164.h
+index 8d120e3..fc1f854 100644
+--- a/drivers/media/video/saa7164/saa7164.h
++++ b/drivers/media/video/saa7164/saa7164.h
+@@ -251,7 +251,6 @@ struct saa7164_i2c {
+ 
+ 	/* I2C I/O */
+ 	struct i2c_adapter		i2c_adap;
+-	struct i2c_algo_bit_data	i2c_algo;
+ 	struct i2c_client		i2c_client;
+ 	u32				i2c_rc;
+ };
+-- 
+1.7.4.4
 
