@@ -1,210 +1,141 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:4116 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754294Ab2FJK0J (ORCPT
+Received: from ams-iport-2.cisco.com ([144.254.224.141]:63836 "EHLO
+	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753605Ab2F0KoP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 10 Jun 2012 06:26:09 -0400
+	Wed, 27 Jun 2012 06:44:15 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [RFCv2 PATCH 32/34] v4l2-dev.c: also add debug support for the fops.
+Date: Wed, 27 Jun 2012 12:44:01 +0200
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
 	Hans de Goede <hdegoede@redhat.com>,
-	Andy Walls <awalls@md.metrocast.net>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
 	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
 	Pawel Osciak <pawel@osciak.com>,
 	Tomasz Stanislawski <t.stanislaws@samsung.com>,
 	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv1 PATCH 04/32] v4l2-ioctl.c: v4l2-ioctl: add debug and callback/offset functionality.
-Date: Sun, 10 Jun 2012 12:25:26 +0200
-Message-Id: <04d048ef96f333b1dfd644ee8861d81080123e01.1339321562.git.hans.verkuil@cisco.com>
-In-Reply-To: <1339323954-1404-1-git-send-email-hverkuil@xs4all.nl>
-References: <1339323954-1404-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <ef490f7ebca5b6df91db6b1acfb9928ada3bcd70.1339321562.git.hans.verkuil@cisco.com>
-References: <ef490f7ebca5b6df91db6b1acfb9928ada3bcd70.1339321562.git.hans.verkuil@cisco.com>
+References: <1340367688-8722-1-git-send-email-hverkuil@xs4all.nl> <b4bdccc87fa1e14e3605c28468a67ebdf290ff83.1340366355.git.hans.verkuil@cisco.com> <1911273.6nHMAvcosU@avalon>
+In-Reply-To: <1911273.6nHMAvcosU@avalon>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201206271244.01746.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Wed 27 June 2012 11:59:06 Laurent Pinchart wrote:
+> Hi Hans,
+> 
+> Thanks for the patch.
+> 
+> On Friday 22 June 2012 14:21:26 Hans Verkuil wrote:
+> > From: Hans Verkuil <hans.verkuil@cisco.com>
+> > 
+> > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> > ---
+> >  drivers/media/video/v4l2-dev.c |   25 ++++++++++++++++++++++++-
+> >  1 file changed, 24 insertions(+), 1 deletion(-)
+> > 
+> > diff --git a/drivers/media/video/v4l2-dev.c b/drivers/media/video/v4l2-dev.c
+> > index 1b34360..b51bee9 100644
+> > --- a/drivers/media/video/v4l2-dev.c
+> > +++ b/drivers/media/video/v4l2-dev.c
+> > @@ -305,6 +305,9 @@ static ssize_t v4l2_read(struct file *filp, char __user
+> > *buf, ret = vdev->fops->read(filp, buf, sz, off);
+> >  	if (test_bit(V4L2_FL_LOCK_ALL_FOPS, &vdev->flags))
+> >  		mutex_unlock(vdev->lock);
+> > +	if (vdev->debug)
+> > +		printk(KERN_DEBUG "%s: read: %zd (%d)\n",
+> > +			video_device_node_name(vdev), sz, ret);
+> 
+> Would it make sense to introduce a v4l_dbg macro ? BTW, what was the outcome 
+> of the pr_ vs. dev_ tests ?
 
-Add the necessary plumbing to make it possible to replace the switch by a
-table driven implementation.
+When using e.g. dev_info you would get 'video4linux video0' as prefix, which is a
+mouthful. So I decided against using it.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/video/v4l2-ioctl.c |   91 ++++++++++++++++++++++++++++++++------
- 1 file changed, 78 insertions(+), 13 deletions(-)
+I've thought about adding a v4l_dbg macro, but I decided against it. This use of
+KERN_DEBUG is quite unusual: usually any _dbg macro is either compiled away if
+DEBUG isn't defined, uses dynamic printk, or uses a debug variable somewhere. In
+this case you don't want any of those, you really want to print a message
+unconditionally to the log at log level KERN_DEBUG.
 
-diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
-index a9602db..a4115ce 100644
---- a/drivers/media/video/v4l2-ioctl.c
-+++ b/drivers/media/video/v4l2-ioctl.c
-@@ -396,12 +396,22 @@ struct v4l2_ioctl_info {
- 	unsigned int ioctl;
- 	u32 flags;
- 	const char * const name;
-+	union {
-+		u32 offset;
-+		int (*func)(const struct v4l2_ioctl_ops *ops,
-+				struct file *file, void *fh, void *p);
-+	};
-+	void (*debug)(const void *arg);
- };
- 
- /* This control needs a priority check */
- #define INFO_FL_PRIO	(1 << 0)
- /* This control can be valid if the filehandle passes a control handler. */
- #define INFO_FL_CTRL	(1 << 1)
-+/* This is a standard ioctl, no need for special code */
-+#define INFO_FL_STD	(1 << 2)
-+/* This is ioctl has its own function */
-+#define INFO_FL_FUNC	(1 << 3)
- /* Zero struct from after the field to the end */
- #define INFO_FL_CLEAR(v4l2_struct, field)			\
- 	((offsetof(struct v4l2_struct, field) +			\
-@@ -414,6 +424,24 @@ struct v4l2_ioctl_info {
- 	.name = #_ioctl,					\
- }
- 
-+#define IOCTL_INFO_STD(_ioctl, _vidioc, _debug, _flags)			\
-+	[_IOC_NR(_ioctl)] = {						\
-+		.ioctl = _ioctl,					\
-+		.flags = _flags | INFO_FL_STD,				\
-+		.name = #_ioctl,					\
-+		.offset = offsetof(struct v4l2_ioctl_ops, _vidioc),	\
-+		.debug = _debug,					\
-+	}
-+
-+#define IOCTL_INFO_FNC(_ioctl, _func, _debug, _flags)			\
-+	[_IOC_NR(_ioctl)] = {						\
-+		.ioctl = _ioctl,					\
-+		.flags = _flags | INFO_FL_FUNC,				\
-+		.name = #_ioctl,					\
-+		.func = _func,						\
-+		.debug = _debug,					\
-+	}
-+
- static struct v4l2_ioctl_info v4l2_ioctls[] = {
- 	IOCTL_INFO(VIDIOC_QUERYCAP, 0),
- 	IOCTL_INFO(VIDIOC_ENUM_FMT, INFO_FL_CLEAR(v4l2_fmtdesc, type)),
-@@ -512,7 +540,7 @@ bool v4l2_is_known_ioctl(unsigned int cmd)
-    external ioctl messages as well as internal V4L ioctl */
- void v4l_printk_ioctl(unsigned int cmd)
- {
--	char *dir, *type;
-+	const char *dir, *type;
- 
- 	switch (_IOC_TYPE(cmd)) {
- 	case 'd':
-@@ -523,10 +551,11 @@ void v4l_printk_ioctl(unsigned int cmd)
- 			type = "v4l2";
- 			break;
- 		}
--		printk("%s", v4l2_ioctls[_IOC_NR(cmd)].name);
-+		pr_cont("%s", v4l2_ioctls[_IOC_NR(cmd)].name);
- 		return;
- 	default:
- 		type = "unknown";
-+		break;
- 	}
- 
- 	switch (_IOC_DIR(cmd)) {
-@@ -536,7 +565,7 @@ void v4l_printk_ioctl(unsigned int cmd)
- 	case _IOC_READ | _IOC_WRITE: dir = "rw"; break;
- 	default:                     dir = "*ERR*"; break;
- 	}
--	printk("%s ioctl '%c', dir=%s, #%d (0x%08x)",
-+	pr_cont("%s ioctl '%c', dir=%s, #%d (0x%08x)",
- 		type, _IOC_TYPE(cmd), dir, _IOC_NR(cmd), cmd);
- }
- EXPORT_SYMBOL(v4l_printk_ioctl);
-@@ -546,6 +575,9 @@ static long __video_do_ioctl(struct file *file,
- {
- 	struct video_device *vfd = video_devdata(file);
- 	const struct v4l2_ioctl_ops *ops = vfd->ioctl_ops;
-+	bool write_only = false;
-+	struct v4l2_ioctl_info default_info;
-+	const struct v4l2_ioctl_info *info;
- 	void *fh = file->private_data;
- 	struct v4l2_fh *vfh = NULL;
- 	int use_fh_prio = 0;
-@@ -563,23 +595,40 @@ static long __video_do_ioctl(struct file *file,
- 	}
- 
- 	if (v4l2_is_known_ioctl(cmd)) {
--		struct v4l2_ioctl_info *info = &v4l2_ioctls[_IOC_NR(cmd)];
-+		info = &v4l2_ioctls[_IOC_NR(cmd)];
- 
- 	        if (!test_bit(_IOC_NR(cmd), vfd->valid_ioctls) &&
- 		    !((info->flags & INFO_FL_CTRL) && vfh && vfh->ctrl_handler))
--			return -ENOTTY;
-+			goto error;
- 
- 		if (use_fh_prio && (info->flags & INFO_FL_PRIO)) {
- 			ret = v4l2_prio_check(vfd->prio, vfh->prio);
- 			if (ret)
--				return ret;
-+				goto error;
- 		}
-+	} else {
-+		default_info.ioctl = cmd;
-+		default_info.flags = 0;
-+		default_info.debug = NULL;
-+		info = &default_info;
- 	}
- 
--	if ((vfd->debug & V4L2_DEBUG_IOCTL) &&
--				!(vfd->debug & V4L2_DEBUG_IOCTL_ARG)) {
-+	write_only = _IOC_DIR(cmd) == _IOC_WRITE;
-+	if (info->debug && write_only && vfd->debug > V4L2_DEBUG_IOCTL) {
- 		v4l_print_ioctl(vfd->name, cmd);
--		printk(KERN_CONT "\n");
-+		pr_cont(": ");
-+		info->debug(arg);
-+	}
-+	if (info->flags & INFO_FL_STD) {
-+		typedef int (*vidioc_op)(struct file *file, void *fh, void *p);
-+		const void *p = vfd->ioctl_ops;
-+		const vidioc_op *vidioc = p + info->offset;
-+
-+		ret = (*vidioc)(file, fh, arg);
-+		goto error;
-+	} else if (info->flags & INFO_FL_FUNC) {
-+		ret = info->func(ops, file, fh, arg);
-+		goto error;
- 	}
- 
- 	switch (cmd) {
-@@ -2100,10 +2149,26 @@ static long __video_do_ioctl(struct file *file,
- 		break;
- 	} /* switch */
- 
--	if (vfd->debug & V4L2_DEBUG_IOCTL_ARG) {
--		if (ret < 0) {
--			v4l_print_ioctl(vfd->name, cmd);
--			printk(KERN_CONT " error %ld\n", ret);
-+error:
-+	if (vfd->debug) {
-+		if (write_only && vfd->debug > V4L2_DEBUG_IOCTL) {
-+			if (ret)
-+				pr_info("%s: error %ld\n",
-+					video_device_node_name(vfd), ret);
-+			return ret;
-+		}
-+		v4l_print_ioctl(vfd->name, cmd);
-+		if (ret)
-+			pr_cont(": error %ld\n", ret);
-+		else if (vfd->debug == V4L2_DEBUG_IOCTL)
-+			pr_cont("\n");
-+		else if (!info->debug)
-+			return ret;
-+		else if (_IOC_DIR(cmd) == _IOC_NONE)
-+			info->debug(arg);
-+		else {
-+			pr_cont(": ");
-+			info->debug(arg);
- 		}
- 	}
- 
--- 
-1.7.10
+Regards,
 
+	Hans
+
+> 
+> >  	return ret;
+> >  }
+> > 
+> > @@ -323,6 +326,9 @@ static ssize_t v4l2_write(struct file *filp, const char
+> > __user *buf, ret = vdev->fops->write(filp, buf, sz, off);
+> >  	if (test_bit(V4L2_FL_LOCK_ALL_FOPS, &vdev->flags))
+> >  		mutex_unlock(vdev->lock);
+> > +	if (vdev->debug)
+> > +		printk(KERN_DEBUG "%s: write: %zd (%d)\n",
+> > +			video_device_node_name(vdev), sz, ret);
+> >  	return ret;
+> >  }
+> > 
+> > @@ -339,6 +345,9 @@ static unsigned int v4l2_poll(struct file *filp, struct
+> > poll_table_struct *poll) ret = vdev->fops->poll(filp, poll);
+> >  	if (test_bit(V4L2_FL_LOCK_ALL_FOPS, &vdev->flags))
+> >  		mutex_unlock(vdev->lock);
+> > +	if (vdev->debug)
+> > +		printk(KERN_DEBUG "%s: poll: %08x\n",
+> > +			video_device_node_name(vdev), ret);
+> >  	return ret;
+> >  }
+> > 
+> > @@ -403,12 +412,17 @@ static unsigned long v4l2_get_unmapped_area(struct
+> > file *filp, unsigned long flags)
+> >  {
+> >  	struct video_device *vdev = video_devdata(filp);
+> > +	int ret;
+> > 
+> >  	if (!vdev->fops->get_unmapped_area)
+> >  		return -ENOSYS;
+> >  	if (!video_is_registered(vdev))
+> >  		return -ENODEV;
+> > -	return vdev->fops->get_unmapped_area(filp, addr, len, pgoff, flags);
+> > +	ret = vdev->fops->get_unmapped_area(filp, addr, len, pgoff, flags);
+> > +	if (vdev->debug)
+> > +		printk(KERN_DEBUG "%s: get_unmapped_area (%d)\n",
+> > +			video_device_node_name(vdev), ret);
+> > +	return ret;
+> >  }
+> >  #endif
+> > 
+> > @@ -426,6 +440,9 @@ static int v4l2_mmap(struct file *filp, struct
+> > vm_area_struct *vm) ret = vdev->fops->mmap(filp, vm);
+> >  	if (test_bit(V4L2_FL_LOCK_ALL_FOPS, &vdev->flags))
+> >  		mutex_unlock(vdev->lock);
+> > +	if (vdev->debug)
+> > +		printk(KERN_DEBUG "%s: mmap (%d)\n",
+> > +			video_device_node_name(vdev), ret);
+> >  	return ret;
+> >  }
+> > 
+> > @@ -464,6 +481,9 @@ err:
+> >  	/* decrease the refcount in case of an error */
+> >  	if (ret)
+> >  		video_put(vdev);
+> > +	if (vdev->debug)
+> > +		printk(KERN_DEBUG "%s: open (%d)\n",
+> > +			video_device_node_name(vdev), ret);
+> >  	return ret;
+> >  }
+> > 
+> > @@ -483,6 +503,9 @@ static int v4l2_release(struct inode *inode, struct file
+> > *filp) /* decrease the refcount unconditionally since the release()
+> >  	   return value is ignored. */
+> >  	video_put(vdev);
+> > +	if (vdev->debug)
+> > +		printk(KERN_DEBUG "%s: release\n",
+> > +			video_device_node_name(vdev));
+> >  	return ret;
+> >  }
+> 
