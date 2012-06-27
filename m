@@ -1,52 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rcsinet15.oracle.com ([148.87.113.117]:22647 "EHLO
-	rcsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752223Ab2FRVRf (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:54861 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932089Ab2F0Kts (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 Jun 2012 17:17:35 -0400
-Date: Tue, 19 Jun 2012 00:17:18 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Ezequiel Garcia <elezegarcia@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media <linux-media@vger.kernel.org>,
-	Palash Bandyopadhyay <palash.bandyopadhyay@conexant.com>,
-	stoth@kernellabs.com
-Subject: Re: [PATCH 0/12] struct i2c_algo_bit_data cleanup on several drivers
-Message-ID: <20120618211718.GJ13539@mwanda>
-References: <CALF0-+XS6gjiLDSGwumBp1xfXYvzii9f_Lw4qhyxVzwMzfh9Rg@mail.gmail.com>
- <20120618205629.GI13539@mwanda>
- <CALF0-+WX+cbF1s4vUBE0Fa6AMA3QcBwp7Bd1i=0rofZp7F_VAA@mail.gmail.com>
+	Wed, 27 Jun 2012 06:49:48 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Pawel Osciak <pawel@osciak.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFCv2 PATCH 23/34] vb2-core: refactor reqbufs/create_bufs.
+Date: Wed, 27 Jun 2012 12:49:45 +0200
+Message-ID: <7844932.d669S5i05h@avalon>
+In-Reply-To: <201206271237.21149.hverkuil@xs4all.nl>
+References: <1340367688-8722-1-git-send-email-hverkuil@xs4all.nl> <2768547.EFJTNiot7U@avalon> <201206271237.21149.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CALF0-+WX+cbF1s4vUBE0Fa6AMA3QcBwp7Bd1i=0rofZp7F_VAA@mail.gmail.com>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jun 18, 2012 at 06:00:52PM -0300, Ezequiel Garcia wrote:
-> On Mon, Jun 18, 2012 at 5:56 PM, Dan Carpenter <dan.carpenter@oracle.com> wrote:
-> > On Mon, Jun 18, 2012 at 04:23:14PM -0300, Ezequiel Garcia wrote:
-> >> Hi Mauro,
-> >>
-> >> This patchset cleans the i2c part of some drivers.
-> >> This issue was recently reported by Dan Carpenter [1],
-> >> and revealed wrong (and harmless) usage of struct i2c_algo_bit.
-> >>
-> >
-> > How is this harmless?  We are setting the function pointers to
-> > something completely bogus.  It seems like a bad thing.
-> >
-> 
-> You're right, but that wrongly assigned struct  algo_bit_data is never
-> *ever* used,
-> since it is not registered.
-> 
-> So, I meant it was harmless in that way, perhaps it wasn't the right term.
+On Wednesday 27 June 2012 12:37:21 Hans Verkuil wrote:
+> On Wed 27 June 2012 11:52:10 Laurent Pinchart wrote:
+> > On Friday 22 June 2012 14:21:17 Hans Verkuil wrote:
+> > > From: Hans Verkuil <hans.verkuil@cisco.com>
+> > > 
+> > > Split off the memory and type validation. This is done both from reqbufs
+> > > and create_bufs, and will also be done by vb2 helpers in a later patch.
+> > > 
+> > > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-No no.  I didn't realize these files didn't call i2c_add_bus().
-Harmless is the right term.
+[snip]
 
-regards,
-dan carpenter
+> > > +
+> > > +/**
+> > > + * vb2_reqbufs() - Wrapper for __reqbufs() that also verifies the
+> > > memory and
+> > > + * type values.
+> > > + * @q:		videobuf2 queue
+> > > + * @create:	creation parameters, passed from userspace to
+> > > vidioc_create_bufs
+> > > + *		handler in driver
+> > > + */
+> > > +int vb2_create_bufs(struct vb2_queue *q, struct v4l2_create_buffers
+> > > *create)
+> > > +{
+> > > +	int ret = __verify_memory_type(q, create->memory,
+> > > create->format.type);
+> > > +
+> > > +	create->index = q->num_buffers;
+> > 
+> > I think this changes the behaviour of create_bufs, it should thus belong
+> > to the next patch.
+> 
+> No, I don't think this changes the behavior as far as I can tell.
+
+Without your patch create->index isn't modified if the checks fail. On the 
+other hand, I've just remembered that video_usercopy won't copy the structure 
+back to userspace if ret < 0, so you should be right.
+
+> > > +	return ret ? ret : __create_bufs(q, create);
+> > > +}
+> > > 
+> > >  EXPORT_SYMBOL_GPL(vb2_create_bufs);
+> > >  
+> > >  /**
+-- 
+Regards,
+
+Laurent Pinchart
 
