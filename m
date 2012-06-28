@@ -1,87 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:4106 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755177Ab2FVMVl (ORCPT
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:1237 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754513Ab2F1Gst (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 Jun 2012 08:21:41 -0400
+	Thu, 28 Jun 2012 02:48:49 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>,
 	Pawel Osciak <pawel@osciak.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
 	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv2 PATCH 01/34] Regression fixes.
-Date: Fri, 22 Jun 2012 14:20:55 +0200
-Message-Id: <1cee710ae251aa69bed8e563a94b419ed99bc41a.1340366355.git.hans.verkuil@cisco.com>
-In-Reply-To: <1340367688-8722-1-git-send-email-hverkuil@xs4all.nl>
-References: <1340367688-8722-1-git-send-email-hverkuil@xs4all.nl>
+Subject: [RFCv3 PATCH 21/33] cx18: don't mess with vfd->debug.
+Date: Thu, 28 Jun 2012 08:48:15 +0200
+Message-Id: <05ef9fbc5c20807a69f319adfc5e101edec22f42.1340865818.git.hans.verkuil@cisco.com>
+In-Reply-To: <1340866107-4188-1-git-send-email-hverkuil@xs4all.nl>
+References: <1340866107-4188-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <d97434d2319fb8dbea360404f9343c680b5b196e.1340865818.git.hans.verkuil@cisco.com>
+References: <d97434d2319fb8dbea360404f9343c680b5b196e.1340865818.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Waiting for these to be upstreamed...
+This is now controlled by sysfs.
 
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/video/v4l2-dev.c |    2 ++
- drivers/media/video/vivi.c     |    6 +++++-
- include/linux/videodev2.h      |    6 +++---
- 3 files changed, 10 insertions(+), 4 deletions(-)
+ drivers/media/video/cx18/cx18-ioctl.c   |   18 ------------------
+ drivers/media/video/cx18/cx18-ioctl.h   |    2 --
+ drivers/media/video/cx18/cx18-streams.c |    4 ++--
+ 3 files changed, 2 insertions(+), 22 deletions(-)
 
-diff --git a/drivers/media/video/v4l2-dev.c b/drivers/media/video/v4l2-dev.c
-index 5ccbd46..1500208 100644
---- a/drivers/media/video/v4l2-dev.c
-+++ b/drivers/media/video/v4l2-dev.c
-@@ -679,6 +679,8 @@ static void determine_valid_ioctls(struct video_device *vdev)
- 	SET_VALID_IOCTL(ops, VIDIOC_QUERY_DV_PRESET, vidioc_query_dv_preset);
- 	SET_VALID_IOCTL(ops, VIDIOC_S_DV_TIMINGS, vidioc_s_dv_timings);
- 	SET_VALID_IOCTL(ops, VIDIOC_G_DV_TIMINGS, vidioc_g_dv_timings);
-+	SET_VALID_IOCTL(ops, VIDIOC_ENUM_DV_TIMINGS, vidioc_enum_dv_timings);
-+	SET_VALID_IOCTL(ops, VIDIOC_QUERY_DV_TIMINGS, vidioc_query_dv_timings);
- 	/* yes, really vidioc_subscribe_event */
- 	SET_VALID_IOCTL(ops, VIDIOC_DQEVENT, vidioc_subscribe_event);
- 	SET_VALID_IOCTL(ops, VIDIOC_SUBSCRIBE_EVENT, vidioc_subscribe_event);
-diff --git a/drivers/media/video/vivi.c b/drivers/media/video/vivi.c
-index 0960d7f..08c1024 100644
---- a/drivers/media/video/vivi.c
-+++ b/drivers/media/video/vivi.c
-@@ -1149,10 +1149,14 @@ static ssize_t
- vivi_read(struct file *file, char __user *data, size_t count, loff_t *ppos)
- {
- 	struct vivi_dev *dev = video_drvdata(file);
-+	int err;
- 
- 	dprintk(dev, 1, "read called\n");
--	return vb2_read(&dev->vb_vidq, data, count, ppos,
-+	mutex_lock(&dev->mutex);
-+	err = vb2_read(&dev->vb_vidq, data, count, ppos,
- 		       file->f_flags & O_NONBLOCK);
-+	mutex_unlock(&dev->mutex);
-+	return err;
+diff --git a/drivers/media/video/cx18/cx18-ioctl.c b/drivers/media/video/cx18/cx18-ioctl.c
+index 35fde4e..e9912db 100644
+--- a/drivers/media/video/cx18/cx18-ioctl.c
++++ b/drivers/media/video/cx18/cx18-ioctl.c
+@@ -1142,24 +1142,6 @@ static long cx18_default(struct file *file, void *fh, bool valid_prio,
+ 	return 0;
  }
  
- static unsigned int
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index 2339678..f79d0cc 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -2642,9 +2642,9 @@ struct v4l2_create_buffers {
- 
- /* Experimental, these three ioctls may change over the next couple of kernel
-    versions. */
--#define VIDIOC_ENUM_DV_TIMINGS  _IOWR('V', 96, struct v4l2_enum_dv_timings)
--#define VIDIOC_QUERY_DV_TIMINGS  _IOR('V', 97, struct v4l2_dv_timings)
--#define VIDIOC_DV_TIMINGS_CAP   _IOWR('V', 98, struct v4l2_dv_timings_cap)
-+#define VIDIOC_ENUM_DV_TIMINGS  _IOWR('V', 98, struct v4l2_enum_dv_timings)
-+#define VIDIOC_QUERY_DV_TIMINGS  _IOR('V', 99, struct v4l2_dv_timings)
-+#define VIDIOC_DV_TIMINGS_CAP   _IOWR('V', 100, struct v4l2_dv_timings_cap)
- 
- /* Reminder: when adding new ioctls please add support for them to
-    drivers/media/video/v4l2-compat-ioctl32.c as well! */
+-long cx18_v4l2_ioctl(struct file *filp, unsigned int cmd,
+-		    unsigned long arg)
+-{
+-	struct video_device *vfd = video_devdata(filp);
+-	struct cx18_open_id *id = file2id(filp);
+-	struct cx18 *cx = id->cx;
+-	long res;
+-
+-	mutex_lock(&cx->serialize_lock);
+-
+-	if (cx18_debug & CX18_DBGFLG_IOCTL)
+-		vfd->debug = V4L2_DEBUG_IOCTL | V4L2_DEBUG_IOCTL_ARG;
+-	res = video_ioctl2(filp, cmd, arg);
+-	vfd->debug = 0;
+-	mutex_unlock(&cx->serialize_lock);
+-	return res;
+-}
+-
+ static const struct v4l2_ioctl_ops cx18_ioctl_ops = {
+ 	.vidioc_querycap                = cx18_querycap,
+ 	.vidioc_s_audio                 = cx18_s_audio,
+diff --git a/drivers/media/video/cx18/cx18-ioctl.h b/drivers/media/video/cx18/cx18-ioctl.h
+index dcb2559..2f9dd59 100644
+--- a/drivers/media/video/cx18/cx18-ioctl.h
++++ b/drivers/media/video/cx18/cx18-ioctl.h
+@@ -29,5 +29,3 @@ void cx18_set_funcs(struct video_device *vdev);
+ int cx18_s_std(struct file *file, void *fh, v4l2_std_id *std);
+ int cx18_s_frequency(struct file *file, void *fh, struct v4l2_frequency *vf);
+ int cx18_s_input(struct file *file, void *fh, unsigned int inp);
+-long cx18_v4l2_ioctl(struct file *filp, unsigned int cmd,
+-		    unsigned long arg);
+diff --git a/drivers/media/video/cx18/cx18-streams.c b/drivers/media/video/cx18/cx18-streams.c
+index 4185bcb..9d598ab 100644
+--- a/drivers/media/video/cx18/cx18-streams.c
++++ b/drivers/media/video/cx18/cx18-streams.c
+@@ -40,8 +40,7 @@ static struct v4l2_file_operations cx18_v4l2_enc_fops = {
+ 	.owner = THIS_MODULE,
+ 	.read = cx18_v4l2_read,
+ 	.open = cx18_v4l2_open,
+-	/* FIXME change to video_ioctl2 if serialization lock can be removed */
+-	.unlocked_ioctl = cx18_v4l2_ioctl,
++	.unlocked_ioctl = video_ioctl2,
+ 	.release = cx18_v4l2_close,
+ 	.poll = cx18_v4l2_enc_poll,
+ 	.mmap = cx18_v4l2_mmap,
+@@ -376,6 +375,7 @@ static int cx18_prep_dev(struct cx18 *cx, int type)
+ 	s->video_dev->fops = &cx18_v4l2_enc_fops;
+ 	s->video_dev->release = video_device_release;
+ 	s->video_dev->tvnorms = V4L2_STD_ALL;
++	s->video_dev->lock = &cx->serialize_lock;
+ 	set_bit(V4L2_FL_USE_FH_PRIO, &s->video_dev->flags);
+ 	cx18_set_funcs(s->video_dev);
+ 	return 0;
 -- 
 1.7.10
 
