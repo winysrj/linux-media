@@ -1,198 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:62036 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756366Ab2FYUti (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 Jun 2012 16:49:38 -0400
-Message-ID: <4FE8CED5.104@redhat.com>
-Date: Mon, 25 Jun 2012 17:49:25 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:44298 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751012Ab2F1WB7 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 Jun 2012 18:01:59 -0400
+Received: by yenl2 with SMTP id l2so2270869yen.19
+        for <linux-media@vger.kernel.org>; Thu, 28 Jun 2012 15:01:58 -0700 (PDT)
 MIME-Version: 1.0
-To: Greg KH <gregkh@linuxfoundation.org>
-CC: Antti Palosaari <crope@iki.fi>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Kay Sievers <kay@redhat.com>
-Subject: Need of an ".async_probe()" type of callback at driver's core - Was:
- Re: [PATCH] [media] drxk: change it to use request_firmware_nowait()
-References: <1340285798-8322-1-git-send-email-mchehab@redhat.com> <4FE37194.30407@redhat.com> <4FE8B8BC.3020702@iki.fi> <4FE8C4C4.1050901@redhat.com>
-In-Reply-To: <4FE8C4C4.1050901@redhat.com>
+In-Reply-To: <4FECCCB4.9000402@gmail.com>
+References: <4FECCCB4.9000402@gmail.com>
+Date: Thu, 28 Jun 2012 18:01:58 -0400
+Message-ID: <CAGoCfizFta5ZJOYKXP7_2Z+ygKku2gr1x1p9UnXqLLRC8wCEPA@mail.gmail.com>
+Subject: Re: [PATCH 1/1] Add support for newer PCTV 800i cards with s5h1411 demodulators
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Mack Stanley <mcs1937@gmail.com>
+Cc: linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Greg,
+On Thu, Jun 28, 2012 at 5:29 PM, Mack Stanley <mcs1937@gmail.com> wrote:
+> Testing is needed on older (aka Pinnacle) PCTV 800i cards with S5H1409
+> demodulators
+> to check that current support for them isn't broken by this patch.
+>
+> Signed-off-by: Mack Stanley <mcs1937@gmail.com>
+> ---
+>  drivers/media/video/cx88/cx88-dvb.c |   40
+> ++++++++++++++++++++++++----------
+>  1 files changed, 28 insertions(+), 12 deletions(-)
+>
+> diff --git a/drivers/media/video/cx88/cx88-dvb.c
+> b/drivers/media/video/cx88/cx88-dvb.c
+> index 003937c..6d49672 100644
+> --- a/drivers/media/video/cx88/cx88-dvb.c
+> +++ b/drivers/media/video/cx88/cx88-dvb.c
+> @@ -501,7 +501,7 @@ static const struct cx24123_config
+> kworld_dvbs_100_config = {
+>        .lnb_polarity  = 1,
+>  };
+>
+> -static const struct s5h1409_config pinnacle_pctv_hd_800i_config = {
+> +static const struct s5h1409_config pinnacle_pctv_hd_800i_s5h1409_config = {
+>        .demod_address = 0x32 >> 1,
+>        .output_mode   = S5H1409_PARALLEL_OUTPUT,
+>        .gpio          = S5H1409_GPIO_ON,
+> @@ -509,7 +509,7 @@ static const struct s5h1409_config
+> pinnacle_pctv_hd_800i_config = {
+>        .inversion     = S5H1409_INVERSION_OFF,
+>        .status_mode   = S5H1409_DEMODLOCKING,
+>        .mpeg_timing   = S5H1409_MPEGTIMING_NONCONTINOUS_NONINVERTING_CLOCK,
+> -};
+> +};
+>
+>  static const struct s5h1409_config dvico_hdtv5_pci_nano_config = {
+>        .demod_address = 0x32 >> 1,
+> @@ -556,6 +556,16 @@ static const struct s5h1411_config
+> dvico_fusionhdtv7_config = {
+>        .status_mode   = S5H1411_DEMODLOCKING
+>  };
+>
+> +static const struct s5h1411_config pinnacle_pctv_hd_800i_s5h1411_config = {
+> +       .output_mode   = S5H1411_PARALLEL_OUTPUT,
+> +       .gpio          = S5H1411_GPIO_ON,
+> +       .mpeg_timing   = S5H1411_MPEGTIMING_NONCONTINOUS_NONINVERTING_CLOCK,
+> +       .qam_if        = S5H1411_IF_44000,
+> +       .vsb_if        = S5H1411_IF_44000,
+> +       .inversion     = S5H1411_INVERSION_OFF,
+> +       .status_mode   = S5H1411_DEMODLOCKING
+> +};
+> +
+>  static const struct xc5000_config dvico_fusionhdtv7_tuner_config = {
+>        .i2c_address    = 0xc2 >> 1,
+>        .if_khz         = 5380,
+> @@ -1297,16 +1307,22 @@ static int dvb_register(struct cx8802_dev *dev)
+>                }
+>                break;
+>        case CX88_BOARD_PINNACLE_PCTV_HD_800i:
+> -               fe0->dvb.frontend = dvb_attach(s5h1409_attach,
+> -
+> &pinnacle_pctv_hd_800i_config,
+> -                                              &core->i2c_adap);
+> -               if (fe0->dvb.frontend != NULL) {
+> -                       if (!dvb_attach(xc5000_attach, fe0->dvb.frontend,
+> -                                       &core->i2c_adap,
+> -
+> &pinnacle_pctv_hd_800i_tuner_config))
+> -                               goto frontend_detach;
+> -               }
+> -               break;
+> +               /* Try s5h1409 chip first */
+> +               fe0->dvb.frontend = dvb_attach(s5h1409_attach,
+> +
+> &pinnacle_pctv_hd_800i_s5h1409_config,
+> +                                       &core->i2c_adap);
+> +               /* Otherwise, try s5h1411 */
+> +               if (fe0->dvb.frontend == NULL)
+> +                       fe0->dvb.frontend = dvb_attach(s5h1411_attach,
+> +
+> &pinnacle_pctv_hd_800i_s5h1411_config,
+> +                                       &core->i2c_adap);
+> +               if (fe0->dvb.frontend != NULL) {
+> +                       if (!dvb_attach(xc5000_attach, fe0->dvb.frontend,
+> +                                       &core->i2c_adap,
+> +
+> &pinnacle_pctv_hd_800i_tuner_config))
+> +                               goto frontend_detach;
+> +               }
+> +               break;
+>        case CX88_BOARD_DVICO_FUSIONHDTV_5_PCI_NANO:
+>                fe0->dvb.frontend = dvb_attach(s5h1409_attach,
+>
+> &dvico_hdtv5_pci_nano_config,
+> --
+> 1.7.7.6
+>
+>
 
-Basically, the recent changes at request_firmware() exposed an issue that
-affects all media drivers that use firmware (64 drivers).
+Looks good.  Thanks for taking the time to put this together.
 
-Driver's documentation at Documentation/driver-model/driver.txt says that the
-.probe() callback should "bind the driver to a given device.  That includes 
-verifying that the device is present, that it's a version the driver can handle, 
-that driver data structures can be allocated and initialized, and that any
-hardware can be initialized".
+Reviewed-by: Devin Heitmueller <dheitmueller@kernellabs.com>
 
-All media device drivers are complaint with that, returning 0 on success
-(meaning that the device was successfully probed) or an error otherwise.
-
-Almost all media devices are made by a SoC or a RISC CPU that works
-as a DMA engine and exposes a set of registers to allow I2C access to the
-device's internal and/or external I2C buses. Part of them have an internal
-EEPROM/ROM that stores firmware internally at the board, but others require
-a firmware to be loaded before being able to init/control the device and to
-export the I2C bus interface.
-
-The media handling function is then implemented via a series of I2C devices[1]:
-	- analog video decoders;
-	- TV tuners;
-	- radio tuners;
-	- I2C remote controller decoders;
-	- DVB frontends;
-	- mpeg decoders;
-	- mpeg encoders;
-	- video enhancement devices;
-	...
-
-[1] several media chips have part of those function implemented internally,
-but almost all require external I2C components to be probed.
-
-In order to properly refer to each component, we call the "main" kernel module
-that talks with the media device via USB/PCI bus is called "bridge driver", 
-and the I2C components are called as "sub-devices".
-
-Different vendors use the same bridge driver to work with different sub-devices.
-
-It is a .probe()'s task to detect what sub-devices are there inside the board.
-
-There are several cases where the vendor switched the sub-devices without
-changing the PCI ID/USB ID.
-
-So, drivers do things like the code below, inside the .probe() callback:
-
-static int check_if_dvb_frontend_is_supported_and_bind()
-{
-	switch (device_model) {
-	case VENDOR_A_MODEL_1:
-		if (test_and_bind_frontend_1())	/* Doesn't require firmware */
-			return 0;
-		if (test_and_bind_frontend_2())	/* requires firmware "foo" */
-			return 0;
-		if (test_and_bind_frontend_3())	/* requires firmware "bar" */
-			return 0;
-		if (test_and_bind_frontend_4()) /* doesn't require firmware */
-			return 0;
-		break;
-	case VENDOR_A_MODEL_2:
-		/* Analog device - no DVB frontend on it */
-		return 0;
-	...
-	}
-	return -ENODEV;
-}
-
-On several devices, before being able to register the bus and do the actual
-probe, the kernel needs to load a firmware.
-
-Also, during the I2C device probing time, firmware may be required, in order
-to properly expose the device's internal models and their capabilities. 
-
-For example, drx-k sub-device can have support for either DVB-C or DVB-T or both,
-depending on the device model. That affects the frontend properties exposed 
-to the user and might affect the bridge driver's initialization task.
-
-In practice, a driver like em28xx have a few devices like HVR-930C that require
-the drx-k sub-device. For those devices, a firmware is required; for other
-devices, a firmware is not required.
-
-What's happening is that newer versions of request_firmware and udev are being
-more pedantic (for a reason) about not requesting firmwares during module_init
-or PCI/USB register's probe callback.
-
-Worse than that, the same device driver may require a firmware or not, depending on
-the I2C devices inside it. One such example is em28xx: for the great majority of
-the supported devices, no firmware is needed, but devices like HVR-930C require
-a firmware, because it uses a frontend that needs firmware.
-
-After some discussions, it seems that the best model would be to add an async_probe()
-callback to be used by devices similar to media ones. The async_probe() should be
-not probed during the module_init; the probe() will be deferred to happen later,
-when firmware's usermodehelper_disabled is false, allowing those drivers to load their
-firmwares if needed.
-
-What do you think?
-
-Regards,
-Mauro
-
-Em 25-06-2012 17:06, Mauro Carvalho Chehab escreveu:
-> Em 25-06-2012 16:15, Antti Palosaari escreveu:
->> On 06/21/2012 10:10 PM, Mauro Carvalho Chehab wrote:
->>> Em 21-06-2012 10:36, Mauro Carvalho Chehab escreveu:
->>>> The firmware blob may not be available when the driver probes.
->>>>
->>>> Instead of blocking the whole kernel use request_firmware_nowait() and
->>>> continue without firmware.
->>>>
->>>> This shouldn't be that bad on drx-k devices, as they all seem to have an
->>>> internal firmware. So, only the firmware update will take a little longer
->>>> to happen.
->>>
->>> While thinking on converting another DVB frontend driver, I just realized
->>> that a patch like that won't work fine.
->>>
->>> As most of you know, there are _several_ I2C chips that don't tolerate any
->>> usage of the I2C bus while a firmware is being loaded (I dunno if this is the
->>> case of drx-k, but I won't doubt).
->>>
->>> The current approach makes the device probe() logic is serialized. So, there's
->>> no chance that two different I2C drivers to try to access the bus at the same
->>> time, if the bridge driver is properly implemented.
->>>
->>> However, now that firmware is loaded asynchronously, several other I2C drivers
->>> may be trying to use the bus at the same time. So, events like IR (and CI) polling,
->>> tuner get_status, etc can happen during a firmware transfer, causing the firmware
->>> to not load properly.
->>>
->>> A fix for that will require to lock the firmware load I2C traffic into a single
->>> transaction.
->>
->> How about deferring registration or probe of every bus-interface (usb, pci, firewire) drivers we have.
->> If we defer interface driver using work or some other trick we don't need to touch any other chip-drivers
->> that are chained behind interface driver. Demodulator, tuner, decoder, remote and all the other peripheral
->> drivers can be left as those are currently because those are deferred by bus interface driver.
-> 
-> There are some issues with regards to it:
-> 
-> 1) Currently, driver core doesn't allow a deferred probe. Drivers might implement
-> that, but they'll lie to the core that the driver were properly supported even when
-> probe fails. So, driver's core need an .async_probe() method;
-> 
-> 2) The firmware load issue will still happen at resume. So, a lock like that is
-> still needed;
-> 
-> 3) It can make some sense to async load the firmware for some drivers, especially
-> when the device detection may not be dependent on a firmware load.
-> 
-> I'm not fully convinced about (3), as the amount of changes are significant for
-> not much gain.
-> 
-> There's also another related issue: On devices where both bridge and sub-devices (like frontend)
-> needs firmware to be loaded, the load order is important at resume(), as the bridge
-> requires to get the firmware before the sub-devices.
-> 
-> That's said, IMO, the best approach is to do:
-> 
-> 1) add support for asynchronous probe at device core, for devices that requires firmware
-> at probe(). The async_probe() will only be active if !usermodehelper_disabled.
-> 
-> 2) export the I2C i2c_lock_adapter()/i2c_unlock_adapter() interface.
-> 
-> We can postpone or get rid of changing the I2C drivers to use request_firmware_async(),
-> if the request_firmware() core is not pedantic enough to complain and it is not gonna
-> to be deprecated.
-> 
-> Anyway, I'll open a thead c/c Greg KH (driver's core maintainer) with regards to the need
-> of an async_probe() callback.
---
-To unsubscribe from this list: send the line "unsubscribe linux-media" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
