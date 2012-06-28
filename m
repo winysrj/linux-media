@@ -1,70 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ns.mm-sol.com ([213.240.235.226]:41698 "EHLO extserv.mm-sol.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754670Ab2F0OhW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 Jun 2012 10:37:22 -0400
-Message-ID: <1340807432.3675.20.camel@iivanov-desktop>
-Subject: Re: [PATCH] omap3isp: preview: Add support for non-GRBG Bayer
- patterns
-From: "Ivan T. Ivanov" <iivanov@mm-sol.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org,
-	Jean-Philippe Francois <jp.francois@cynove.com>
-Date: Wed, 27 Jun 2012 17:30:32 +0300
-In-Reply-To: <2983598.xxGvaJclHQ@avalon>
-References: <1340029853-2648-1-git-send-email-laurent.pinchart@ideasonboard.com>
-	 <2750049.lYuKrB1hfJ@avalon> <1340804521.3675.6.camel@iivanov-desktop>
-	 <2983598.xxGvaJclHQ@avalon>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Mime-Version: 1.0
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:3685 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932163Ab2F1Gsr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 Jun 2012 02:48:47 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv3 PATCH 23/33] vb2-core: add support for count == 0 in create_bufs.
+Date: Thu, 28 Jun 2012 08:48:17 +0200
+Message-Id: <062a4c549e24e84129c03163995dd3d912706abb.1340865818.git.hans.verkuil@cisco.com>
+In-Reply-To: <1340866107-4188-1-git-send-email-hverkuil@xs4all.nl>
+References: <1340866107-4188-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <d97434d2319fb8dbea360404f9343c680b5b196e.1340865818.git.hans.verkuil@cisco.com>
+References: <d97434d2319fb8dbea360404f9343c680b5b196e.1340865818.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Hi, 
+This also fixes incorrect error handling in create_bufs: the return code
+of __vb2_queue_alloc is the number of allocated buffers, and not a
+traditional error code.
 
-On Wed, 2012-06-27 at 15:54 +0200, Laurent Pinchart wrote:
-> Hi Ivan,
-> 
-> On Wednesday 27 June 2012 16:42:01 Ivan T. Ivanov wrote:
-> > On Tue, 2012-06-26 at 03:30 +0200, Laurent Pinchart wrote:
-> > > On Saturday 23 June 2012 11:22:37 Sakari Ailus wrote:
-> > > > On Mon, Jun 18, 2012 at 04:30:53PM +0200, Laurent Pinchart wrote:
-> > > > > Rearrange the CFA interpolation coefficients table based on the Bayer
-> > > > > pattern. Modifying the table during streaming isn't supported anymore,
-> > > > > but didn't make sense in the first place anyway.
-> > > > 
-> > > > Why not? I could imagine someone might want to change the table while
-> > > > streaming to change the white balance, for example. Gamma tables or the
-> > > > SRGB matrix can be used to do mostly the same but we should leave the
-> > > > decision which one to use to the user space.
-> > > 
-> > > Because making the CFA table runtime-configurable brings an additional
-> > > complexity without a use case I'm aware of. The preview engine has
-> > > separate
-> > > gamma tables, white balance matrices, and RGB-to-RGB and RGB-to-YUV
-> > > matrices that can be modified during streaming. If a user really needs to
-> > > modify the CFA tables during streaming I'll be happy to implement that
-> > > (and even happier to receive a patch :-)), but I'm a bit reluctant to add
-> > > complexity to an already complex code without a real use case.
-> > 
-> > Sorry for not following this thread very closely. One use case for
-> > changing CFA table is to adjust sharpness of the frames coming out
-> > of the ISP. And we are doing exactly this in N9.
-> 
-> Thank you for the valuable feedback. Now we have a use case :-) I'll make sure 
-> the CFA table can be updated during streaming then. Are you fine with always 
-> specifying the table in SGRBG order, and letting the driver rearrange the 4 
-> blocks based on the input bayer pattern ?
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/video/videobuf2-core.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-I am afraid that I am not :-). Primary and secondary cameras of the
-above device have different order of the color channels. We are 
-selecting desired CFA table pattern based on sensor used. Probably
-we can add yet another IOCTL to previewer sub-device, which will 
-explicitly overwrite "order" of the user supplied table?
-
-Regards,
-Ivan
-
+diff --git a/drivers/media/video/videobuf2-core.c b/drivers/media/video/videobuf2-core.c
+index 7d7f86f..4461106 100644
+--- a/drivers/media/video/videobuf2-core.c
++++ b/drivers/media/video/videobuf2-core.c
+@@ -669,9 +669,9 @@ static int __create_bufs(struct vb2_queue *q, struct v4l2_create_buffers *create
+ 	/* Finally, allocate buffers and video memory */
+ 	ret = __vb2_queue_alloc(q, create->memory, num_buffers,
+ 				num_planes);
+-	if (ret < 0) {
+-		dprintk(1, "Memory allocation failed with error: %d\n", ret);
+-		return ret;
++	if (ret == 0) {
++		dprintk(1, "Memory allocation failed\n");
++		return -ENOMEM;
+ 	}
+ 
+ 	allocated_buffers = ret;
+@@ -702,7 +702,7 @@ static int __create_bufs(struct vb2_queue *q, struct v4l2_create_buffers *create
+ 
+ 	if (ret < 0) {
+ 		__vb2_queue_free(q, allocated_buffers);
+-		return ret;
++		return -ENOMEM;
+ 	}
+ 
+ 	/*
+@@ -726,6 +726,8 @@ int vb2_create_bufs(struct vb2_queue *q, struct v4l2_create_buffers *create)
+ 	int ret = __verify_memory_type(q, create->memory, create->format.type);
+ 
+ 	create->index = q->num_buffers;
++	if (create->count == 0)
++		return ret != -EBUSY ? ret : 0;
+ 	return ret ? ret : __create_bufs(q, create);
+ }
+ EXPORT_SYMBOL_GPL(vb2_create_bufs);
+-- 
+1.7.10
 
