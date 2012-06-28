@@ -1,173 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.26]:37334 "EHLO mgw-da02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756083Ab2FORa0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 Jun 2012 13:30:26 -0400
-Message-ID: <4FDB7122.2050003@iki.fi>
-Date: Fri, 15 Jun 2012 20:30:10 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
+Received: from mail-wi0-f178.google.com ([209.85.212.178]:35556 "EHLO
+	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751946Ab2F1NRg convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 Jun 2012 09:17:36 -0400
+Received: by wibhr14 with SMTP id hr14so49528wib.1
+        for <linux-media@vger.kernel.org>; Thu, 28 Jun 2012 06:17:35 -0700 (PDT)
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-media@vger.kernel.org, hverkuil@xs4all.nl, snjw23@gmail.com,
-	t.stanislaws@samsung.com
-Subject: Re: [PATCH v4 2/7] v4l: Remove "_ACTUAL" from subdev selection API
- target definition names
-References: <4FDB3C2E.9060502@iki.fi> <1339767880-8412-2-git-send-email-sakari.ailus@iki.fi> <2070008.tlNKc1tQnO@avalon>
-In-Reply-To: <2070008.tlNKc1tQnO@avalon>
+In-Reply-To: <CALF0-+XZybEFqndCEo4nGGH-achE5CuYOsC+EXiH-k06GSB5vA@mail.gmail.com>
+References: <1340835544-12053-1-git-send-email-peter.senna@gmail.com>
+	<CALF0-+XZybEFqndCEo4nGGH-achE5CuYOsC+EXiH-k06GSB5vA@mail.gmail.com>
+Date: Thu, 28 Jun 2012 10:17:35 -0300
+Message-ID: <CA+MoWDrBaVAStQwQKrWb+CuNTZHuXJBuewgLJbu9ZrBg7rrJVg@mail.gmail.com>
+Subject: Re: [PATCH] [V2] stv090x: variable 'no_signal' set but not used
+From: Peter Senna Tschudin <peter.senna@gmail.com>
+To: Ezequiel Garcia <elezegarcia@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Guy Martin <gmsoft@tuxicoman.be>,
+	Manu Abraham <abraham.manu@gmail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hey Ezequiel,
 
-Laurent Pinchart wrote:
-> Hi Sakari,
-> 
-> Thanks for the patch.
+On Thu, Jun 28, 2012 at 1:02 AM, Ezequiel Garcia <elezegarcia@gmail.com> wrote:
+> Hey Peter,
+>
+> On Wed, Jun 27, 2012 at 7:18 PM, Peter Senna Tschudin
+> <peter.senna@gmail.com> wrote:
+>> -                       no_signal = stv090x_chk_signal(state);
+>> +                       (void) stv090x_chk_signal(state);
+>
+> Why are you casting return to void? I can't see there is a reason to it.
+The idea is to tell the compiler that I know that stv090x_chk_signal()
+return a value and I want to ignore it. It is to prevent the compiler
+to issue warn_unused_result. I found two ways of doing it. First is
+casting the return to void, second is to change the function
+definition adding the macro __must_check defined at <linux/compiler.c>
+like on:
 
-Thanks for the comments!
+http://lxr.linux.no/linux+v3.4.4/include/linux/kernel.h#L215
 
-> On Friday 15 June 2012 16:44:35 Sakari Ailus wrote:
->> The string "_ACTUAL" does not say anything more about the target names. Drop
->> it. V4L2 selection API was changed by "V4L: Remove "_ACTIVE" from the
->> selection target name definitions" by Sylwester Nawrocki. This patch does
->> the same for the V4L2 subdev API.
->>
->> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
->> ---
->>  Documentation/DocBook/media/v4l/dev-subdev.xml     |   25
->> +++++++++---------- .../media/v4l/vidioc-subdev-g-selection.xml        |  
->> 12 ++++---- drivers/media/video/omap3isp/ispccdc.c             |    4 +-
->>  drivers/media/video/omap3isp/isppreview.c          |    4 +-
->>  drivers/media/video/omap3isp/ispresizer.c          |    4 +-
->>  drivers/media/video/smiapp/smiapp-core.c           |   22 ++++++++--------
->>  drivers/media/video/v4l2-subdev.c                  |    4 +-
->>  include/linux/v4l2-subdev.h                        |    4 +-
->>  8 files changed, 39 insertions(+), 40 deletions(-)
->>
->> diff --git a/Documentation/DocBook/media/v4l/dev-subdev.xml
->> b/Documentation/DocBook/media/v4l/dev-subdev.xml index 4afcbbe..ac715dd
->> 100644
->> --- a/Documentation/DocBook/media/v4l/dev-subdev.xml
->> +++ b/Documentation/DocBook/media/v4l/dev-subdev.xml
->> @@ -289,8 +289,8 @@
->>        &v4l2-rect; by the coordinates of the top left corner and the
->> rectangle size. Both the coordinates and sizes are expressed in
->> pixels.</para>
->>
->> -      <para>As for pad formats, drivers store try and active
->> -      rectangles for the selection targets of ACTUAL type <xref
->> +      <para>As for pad formats, drivers store try and active rectangles for
->> +      the selection targets <xref
->>        linkend="v4l2-subdev-selection-targets">.</xref></para>
-> 
-> Could you please also fix the xref issue ? According to 
-> http://www.docbook.org/tdg/en/html/xref.html, the xref element is supposed to 
-> be empty. You can either use something like
-> 
-> ... the selection targets described in <xref .../>
-> 
-> or a link element around "selection targets".
+The (void) solution looked simpler to me, but I'll be happy to change
+to the __must_check solution if better. What do you think? Keep as is?
+Add a comment? Change to __must_check?
 
-Fixed the xref.
 
->>        <para>On sink pads, cropping is applied relative to the
->> @@ -308,7 +308,7 @@
->>        <para>Scaling support is optional. When supported by a subdev,
->>        the crop rectangle on the subdev's sink pad is scaled to the
->>        size configured using the &VIDIOC-SUBDEV-S-SELECTION; IOCTL
->> -      using <constant>V4L2_SUBDEV_SEL_COMPOSE_ACTUAL</constant>
->> +      using <constant>V4L2_SUBDEV_SEL_TGT_COMPOSE</constant>
->>        selection target on the same pad. If the subdev supports scaling
->>        but not composing, the top and left values are not used and must
->>        always be set to zero.</para>
->> @@ -333,22 +333,21 @@
->>        <title>Types of selection targets</title>
->>
->>        <section>
->> -	<title>ACTUAL targets</title>
->> +	<title>Actual targets</title>
->>
->> -	<para>ACTUAL targets reflect the actual hardware configuration
->> -	at any point of time. There is a BOUNDS target
->> -	corresponding to every ACTUAL.</para>
->> +	<para>Actual targets (without a postfix) reflect the actual hardware
->> +	configuration at any point of time.</para>
->>        </section>
-> 
-> Don't we have a bounds target for every actual target ?
 
-Oh. That probably got accidentally removed. I'll fix it.
 
->>        <section>
->>  	<title>BOUNDS targets</title>
->>
->> -	<para>BOUNDS targets is the smallest rectangle that contains
->> -	all valid ACTUAL rectangles. It may not be possible to set the
->> -	ACTUAL rectangle as large as the BOUNDS rectangle, however.
->> -	This may be because e.g. a sensor's pixel array is not
->> -	rectangular but cross-shaped or round. The maximum size may
->> -	also be smaller than the BOUNDS rectangle.</para>
->> +	<para>BOUNDS targets is the smallest rectangle that contains all
->> +	valid actual rectangles. It may not be possible to set the actual
->> +	rectangle as large as the BOUNDS rectangle, however. This may be
->> +	because e.g. a sensor's pixel array is not rectangular but
->> +	cross-shaped or round. The maximum size may also be smaller than the
->> +	BOUNDS rectangle.</para>
->>        </section>
->>
->>      </section>
->> diff --git a/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml
->> b/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml index
->> 208e9f0..96ab51e 100644
->> --- a/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml
->> +++ b/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml
->> @@ -72,10 +72,10 @@
->>      <section>
->>        <title>Types of selection targets</title>
->>
->> -      <para>There are two types of selection targets: actual and bounds.
->> -      The ACTUAL targets are the targets which configure the hardware.
->> -      The BOUNDS target will return a rectangle that contain all
->> -      possible ACTUAL rectangles.</para>
->> +      <para>There are two types of selection targets: plain and bounds. The
-> 
-> plain or actual ?
+>
+> Regards,
+> Ezequiel.
 
-Fixed.
+Regards,
 
->> +      actual targets are the targets which configure the hardware. The
->> BOUNDS +      target will return a rectangle that contain all possible
->> actual +      rectangles.</para>
->>      </section>
->>
->>      <section>
->> @@ -93,7 +93,7 @@
->>          &cs-def;
->>  	<tbody valign="top">
->>  	  <row>
->> -	    <entry><constant>V4L2_SUBDEV_SEL_TGT_CROP_ACTUAL</constant></entry>
->> +	    <entry><constant>V4L2_SUBDEV_SEL_TGT_CROP</constant></entry>
->>  	    <entry>0x0000</entry>
->>  	    <entry>Actual crop. Defines the cropping
->>  	    performed by the processing step.</entry>
->> @@ -104,7 +104,7 @@
->>  	    <entry>Bounds of the crop rectangle.</entry>
->>  	  </row>
->>  	  <row>
->> -	    
-> <entry><constant>V4L2_SUBDEV_SEL_TGT_COMPOSE_ACTUAL</constant></entry>
->> +	    <entry><constant>V4L2_SUBDEV_SEL_TGT_COMPOSE</constant></entry>
->> <entry>0x0100</entry>
->>  	    <entry>Actual compose rectangle. Used to configure scaling
->>  	    on sink pads and composition on source pads.</entry>
-> 
-
-Cheers,
+Peter
 
 -- 
-Sakari Ailus
-sakari.ailus@iki.fi
-
-
+Peter Senna Tschudin
+peter.senna@gmail.com
+gpg id: 48274C36
