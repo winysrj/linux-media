@@ -1,161 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:53728 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751232Ab2FFHzY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 Jun 2012 03:55:24 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	airlied@redhat.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, sumit.semwal@ti.com, daeinki@gmail.com,
-	daniel.vetter@ffwll.ch, robdclark@gmail.com, pawel@osciak.com,
-	linaro-mm-sig@lists.linaro.org, hverkuil@xs4all.nl,
-	remi@remlab.net, subashrp@gmail.com, mchehab@redhat.com,
-	g.liakhovetski@gmx.de
-Subject: Re: [PATCH 02/12] v4l: add buffer exporting via dmabuf
-Date: Wed, 06 Jun 2012 09:55:24 +0200
-Message-ID: <1531190.ziuibg65Hy@avalon>
-In-Reply-To: <1337778455-27912-3-git-send-email-t.stanislaws@samsung.com>
-References: <1337778455-27912-1-git-send-email-t.stanislaws@samsung.com> <1337778455-27912-3-git-send-email-t.stanislaws@samsung.com>
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:50182 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756805Ab2F1J11 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 Jun 2012 05:27:27 -0400
+Received: by yenl2 with SMTP id l2so1645503yen.19
+        for <linux-media@vger.kernel.org>; Thu, 28 Jun 2012 02:27:27 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <a7faf8fbd12471e355c78859062184fea7beb6b2.1340865818.git.hans.verkuil@cisco.com>
+References: <d97434d2319fb8dbea360404f9343c680b5b196e.1340865818.git.hans.verkuil@cisco.com>
+	<1340866107-4188-1-git-send-email-hverkuil@xs4all.nl>
+	<a7faf8fbd12471e355c78859062184fea7beb6b2.1340865818.git.hans.verkuil@cisco.com>
+Date: Thu, 28 Jun 2012 17:27:26 +0800
+Message-ID: <CAHG8p1ADgmzMFZCwULrU__vCuuEGTwEXr+DTfDTcZYA_0iNgkw@mail.gmail.com>
+Subject: Re: [RFCv3 PATCH 26/33] videobuf2-core: add helper functions.
+From: Scott Jiang <scott.jiang.linux@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	uclinux-dist-devel@blackfin.uclinux.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tomasz,
-
-Thanks for the patch.
-
-On Wednesday 23 May 2012 15:07:25 Tomasz Stanislawski wrote:
-> This patch adds extension to V4L2 api. It allow to export a mmap buffer as
-> file descriptor. New ioctl VIDIOC_EXPBUF is added. It takes a buffer offset
-> used by mmap and return a file descriptor on success.
-> 
-> Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-
-Both the API proposal and the patch look good to me. I'll ack this along with 
-the update to the V4L2 documentation ;-)
-
-> ---
->  drivers/media/video/v4l2-compat-ioctl32.c |    1 +
->  drivers/media/video/v4l2-dev.c            |    1 +
->  drivers/media/video/v4l2-ioctl.c          |    6 ++++++
->  include/linux/videodev2.h                 |   26 ++++++++++++++++++++++++++
-> include/media/v4l2-ioctl.h                |    2 ++
->  5 files changed, 36 insertions(+)
-> 
-> diff --git a/drivers/media/video/v4l2-compat-ioctl32.c
-> b/drivers/media/video/v4l2-compat-ioctl32.c index 5327ad3..45159d9 100644
-> --- a/drivers/media/video/v4l2-compat-ioctl32.c
-> +++ b/drivers/media/video/v4l2-compat-ioctl32.c
-> @@ -954,6 +954,7 @@ long v4l2_compat_ioctl32(struct file *file, unsigned int
-> cmd, unsigned long arg) case VIDIOC_S_FBUF32:
->  	case VIDIOC_OVERLAY32:
->  	case VIDIOC_QBUF32:
-> +	case VIDIOC_EXPBUF:
->  	case VIDIOC_DQBUF32:
->  	case VIDIOC_STREAMON32:
->  	case VIDIOC_STREAMOFF32:
-> diff --git a/drivers/media/video/v4l2-dev.c b/drivers/media/video/v4l2-dev.c
-> index 5ccbd46..6bf6307 100644
-> --- a/drivers/media/video/v4l2-dev.c
-> +++ b/drivers/media/video/v4l2-dev.c
-> @@ -597,6 +597,7 @@ static void determine_valid_ioctls(struct video_device
-> *vdev) SET_VALID_IOCTL(ops, VIDIOC_REQBUFS, vidioc_reqbufs);
->  	SET_VALID_IOCTL(ops, VIDIOC_QUERYBUF, vidioc_querybuf);
->  	SET_VALID_IOCTL(ops, VIDIOC_QBUF, vidioc_qbuf);
-> +	SET_VALID_IOCTL(ops, VIDIOC_EXPBUF, vidioc_expbuf);
->  	SET_VALID_IOCTL(ops, VIDIOC_DQBUF, vidioc_dqbuf);
->  	SET_VALID_IOCTL(ops, VIDIOC_OVERLAY, vidioc_overlay);
->  	SET_VALID_IOCTL(ops, VIDIOC_G_FBUF, vidioc_g_fbuf);
-> diff --git a/drivers/media/video/v4l2-ioctl.c
-> b/drivers/media/video/v4l2-ioctl.c index 31fc2ad..a73b14e 100644
-> --- a/drivers/media/video/v4l2-ioctl.c
-> +++ b/drivers/media/video/v4l2-ioctl.c
-> @@ -212,6 +212,7 @@ static struct v4l2_ioctl_info v4l2_ioctls[] = {
->  	IOCTL_INFO(VIDIOC_S_FBUF, INFO_FL_PRIO),
->  	IOCTL_INFO(VIDIOC_OVERLAY, INFO_FL_PRIO),
->  	IOCTL_INFO(VIDIOC_QBUF, 0),
-> +	IOCTL_INFO(VIDIOC_EXPBUF, 0),
->  	IOCTL_INFO(VIDIOC_DQBUF, 0),
->  	IOCTL_INFO(VIDIOC_STREAMON, INFO_FL_PRIO),
->  	IOCTL_INFO(VIDIOC_STREAMOFF, INFO_FL_PRIO),
-> @@ -957,6 +958,11 @@ static long __video_do_ioctl(struct file *file,
->  			dbgbuf(cmd, vfd, p);
->  		break;
->  	}
-> +	case VIDIOC_EXPBUF:
-> +	{
-> +		ret = ops->vidioc_expbuf(file, fh, arg);
-> +		break;
-> +	}
->  	case VIDIOC_DQBUF:
->  	{
->  		struct v4l2_buffer *p = arg;
-> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-> index 51b20f4..e8893a5 100644
-> --- a/include/linux/videodev2.h
-> +++ b/include/linux/videodev2.h
-> @@ -684,6 +684,31 @@ struct v4l2_buffer {
->  #define V4L2_BUF_FLAG_NO_CACHE_INVALIDATE	0x0800
->  #define V4L2_BUF_FLAG_NO_CACHE_CLEAN		0x1000
-> 
-> +/**
-> + * struct v4l2_exportbuffer - export of video buffer as DMABUF file
-> descriptor + *
-> + * @fd:		file descriptor associated with DMABUF (set by driver)
-> + * @mem_offset:	buffer memory offset as returned by VIDIOC_QUERYBUF in
-> struct + *		v4l2_buffer::m.offset (for single-plane formats) or
-> + *		v4l2_plane::m.offset (for multi-planar formats)
-> + * @flags:	flags for newly created file, currently only O_CLOEXEC is
-> + *		supported, refer to manual of open syscall for more details
-> + *
-> + * Contains data used for exporting a video buffer as DMABUF file
-> descriptor. + * The buffer is identified by a 'cookie' returned by
-> VIDIOC_QUERYBUF + * (identical to the cookie used to mmap() the buffer to
-> userspace). All + * reserved fields must be set to zero. The field
-> reserved0 is expected to + * become a structure 'type' allowing an
-> alternative layout of the structure + * content. Therefore this field
-> should not be used for any other extensions. + */
-> +struct v4l2_exportbuffer {
-> +	__u32		fd;
-> +	__u32		reserved0;
-> +	__u32		mem_offset;
-> +	__u32		flags;
-> +	__u32		reserved[12];
-> +};
+> +int vb2_fop_mmap(struct file *file, struct vm_area_struct *vma)
+> +{
+> +       struct video_device *vdev = video_devdata(file);
 > +
->  /*
->   *	O V E R L A Y   P R E V I E W
->   */
-> @@ -2553,6 +2578,7 @@ struct v4l2_create_buffers {
->  #define VIDIOC_S_FBUF		 _IOW('V', 11, struct v4l2_framebuffer)
->  #define VIDIOC_OVERLAY		 _IOW('V', 14, int)
->  #define VIDIOC_QBUF		_IOWR('V', 15, struct v4l2_buffer)
-> +#define VIDIOC_EXPBUF		_IOWR('V', 16, struct v4l2_exportbuffer)
->  #define VIDIOC_DQBUF		_IOWR('V', 17, struct v4l2_buffer)
->  #define VIDIOC_STREAMON		 _IOW('V', 18, int)
->  #define VIDIOC_STREAMOFF	 _IOW('V', 19, int)
-> diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
-> index d8b76f7..ccd1faa 100644
-> --- a/include/media/v4l2-ioctl.h
-> +++ b/include/media/v4l2-ioctl.h
-> @@ -119,6 +119,8 @@ struct v4l2_ioctl_ops {
->  	int (*vidioc_reqbufs) (struct file *file, void *fh, struct
-> v4l2_requestbuffers *b); int (*vidioc_querybuf)(struct file *file, void
-> *fh, struct v4l2_buffer *b); int (*vidioc_qbuf)    (struct file *file, void
-> *fh, struct v4l2_buffer *b); +	int (*vidioc_expbuf)  (struct file *file,
-> void *fh,
-> +				struct v4l2_exportbuffer *e);
->  	int (*vidioc_dqbuf)   (struct file *file, void *fh, struct v4l2_buffer
-> *b);
-> 
->  	int (*vidioc_create_bufs)(struct file *file, void *fh, struct
-> v4l2_create_buffers *b);
--- 
-Regards,
+> +       return vb2_mmap(vdev->queue, vma);
+> +}
+> +EXPORT_SYMBOL_GPL(vb2_fop_mmap);
+Missed one file ops.
 
-Laurent Pinchart
+#ifndef CONFIG_MMU
+unsigned long vb2_fop_get_unmapped_area(struct file *file,
 
+ unsigned long addr,
+
+ unsigned long len,
+
+ unsigned long pgoff,
+
+ unsigned long flags)
+{
+        struct video_device *vdev = video_devdata(file);
+
+        return vb2_get_unmapped_area(vdev->queue,
+                                                             addr,
+                                                             len,
+                                                             pgoff,
+                                                             flags);
+}
+EXPORT_SYMBOL_GPL(vb2_fop_get_unmapped_area);
+#endif
+
+Scott
